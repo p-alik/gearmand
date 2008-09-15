@@ -1,0 +1,55 @@
+Hi!
+
+If you are getting this code from http://hg.tangent.org/gearmandc then
+continue reading. Otherwise these directions are not for you (well maybe...).
+
+To obtain code from http://hg.tangent.org/gearmandc you will need to issue
+the following command:
+
+hg clone http://hg.tangent.org/gearmandc
+
+Once the tree is cloned you will need to build the "configure" script. You
+can do this by running the script:
+
+./config/bootstrap
+
+It will set up all of the files you need to build gearmandc. At that
+point it is just the typical "./configure; make; make test; make install"
+
+For a tarball release do a "make dist" and for an RPM type "make rpm".
+
+For patches either send diffs or make use of hg's ability to do bundles. You
+can read more about this on the hg websites:
+
+http://www.selenic.com/mercurial/wiki/
+
+Notes on coding style:
+
+Variables during assignment should be like:
+a= 12;
+
+When in doubt, use (). It means I clearly know that you meant for an
+operation to follow a specifc order.
+
+Cast return types void when there is a possibility of failure (don't bother
+with printf, use common sense):
+(void)some_function(...);
+
+New functions should be named "object_verb_(item_to_act_on)". You should
+email the list if you are extending the API.
+
+Use spaces after while, for, do, if, else. Don't around anything else.
+
+If/else bracket style is:
+if ()
+{
+}
+else
+{
+}
+
+Thanks and keep hacking!
+
+Cheers,
+  -Brian
+  Seattle, WA.
