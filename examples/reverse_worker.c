@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <time.h>
 
+#define GEARMAN_INTERNAL 
 #include <libgearman/gearman.h>
 
 int main(int argc, char *argvp[])
@@ -86,23 +87,24 @@ int main(int argc, char *argvp[])
     /* Just loop and process jobs */
     while (1)
     {
-      /* Loop until we take a job */
-      do {
-        rc= gearman_worker_take(worker, incomming);
-      } while (rc != GEARMAN_SUCCESS);
+      /* Blocking call */
+      rc= gearman_worker_take(worker, incomming);
 
       printf("We got \"%.*s\"(%u) for %s\n", gearman_result_length(incomming), 
              gearman_result_value(incomming), 
              gearman_result_length(incomming), 
              gearman_result_handle(incomming));
 
+      WATCHPOINT;
       rc= gearman_result_set_handle(result, gearman_result_handle(incomming), gearman_result_handle_length(incomming));
+      WATCHPOINT_ERROR(rc);
       if (rc != GEARMAN_SUCCESS)
       {
         fprintf(stderr, "Could not set return handle: %s\n", gearman_strerror(gear_con, rc));
         exit(1);
       }
 
+      WATCHPOINT_NUMBER(gearman_result_length(incomming));
       if (gearman_result_length(incomming))
       {
         size_t x, y;
@@ -116,6 +118,7 @@ int main(int argc, char *argvp[])
         for (y= 0, x= gearman_result_length(incomming); x; x--, y++)
           buffer[y]= value[x - 1];
 
+        WATCHPOINT;
         rc= gearman_result_set_value(result, buffer, gearman_result_length(incomming));
         if (rc != GEARMAN_SUCCESS)
         {
@@ -127,17 +130,11 @@ int main(int argc, char *argvp[])
       }
       else
       {
-        rc= gearman_result_set_value(result, NULL, 0);
-      }
-
-      if (rc != GEARMAN_SUCCESS)
-      {
-        fprintf(stderr, "Could not set return value: %s\n", gearman_strerror(gear_con, rc));
-        exit(1);
+        gearman_result_reset(result);
       }
 
       rc= gearman_worker_answer(worker, result);
-      printf("Here\n");
+      WATCHPOINT;
       if (rc != GEARMAN_SUCCESS)
       {
         fprintf(stderr, "Not able to return value: %s\n", gearman_strerror(gear_con, rc));

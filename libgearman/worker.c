@@ -109,13 +109,35 @@ gearman_return gearman_worker_take(gearman_worker_st *ptr,
 
   server= &(ptr->root->hosts[ptr->server_key]);
 
-  rc= gearman_dispatch(server,  GEARMAN_GRAB_JOB, NULL, 1); 
-  if (rc != GEARMAN_SUCCESS)
-    return rc;
+  while (1)
+  {
+    rc= gearman_dispatch(server, GEARMAN_GRAB_JOB, NULL, 1); 
+    WATCHPOINT_ERROR(rc);
+    
+    if (rc != GEARMAN_SUCCESS)
+      return rc;
 
-  rc= gearman_response(server, NULL, result);
-
-  return rc;
+    rc= gearman_response(server, NULL, result);
+    WATCHPOINT_ERROR(rc);
+    if (rc == GEARMAN_SUCCESS)
+    {
+      WATCHPOINT;
+      return rc;
+    }
+    else if (rc == GEARMAN_NOT_FOUND)
+    {
+      WATCHPOINT_STRING("Going to sleep");
+      rc= gearman_dispatch(server, GEARMAN_PRE_SLEEP, NULL, 0); 
+      if (rc != GEARMAN_SUCCESS)
+        return rc;
+      rc= gearman_response(server, NULL, result);
+      WATCHPOINT_STRING("Waking up");
+      if (rc != GEARMAN_SUCCESS)
+        return rc;
+    }
+    else
+      return rc;
+  }
 }
 
 gearman_return gearman_worker_do(gearman_worker_st *ptr, 
