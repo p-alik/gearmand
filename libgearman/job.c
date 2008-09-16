@@ -55,16 +55,15 @@ gearman_return gearman_job_result(gearman_job_st *ptr,
                                   gearman_result_st *result)
 {
   gearman_return rc;
-  uint32_t server_key;
   gearman_server_st *server;
   gearman_byte_array_st *handle;
   giov_st giov[1];
 
   handle= &ptr->handle;
 
-  server_key= find_server(ptr->root);
-
-  server= &(ptr->root->hosts[server_key]);
+  WATCHPOINT_STRING("Active Cursor");
+  WATCHPOINT_NUMBER(ptr->cursor);
+  server= &(ptr->root->hosts[ptr->cursor]);
 
   giov[0].arg= gearman_byte_array_value(handle);
   giov[0].arg_length= gearman_byte_array_length(handle);
@@ -82,13 +81,8 @@ gearman_return gearman_job_result(gearman_job_st *ptr,
 gearman_return gearman_job_submit(gearman_job_st *ptr)
 {
   gearman_return rc;
-  uint32_t server_key;
   gearman_server_st *server;
   giov_st giov[3];
-
-  server_key= find_server(ptr->root);
-
-  server= &(ptr->root->hosts[server_key]);
 
   giov[0].arg= gearman_byte_array_value(&(ptr->function));
   giov[0].arg_length= gearman_byte_array_length(&(ptr->function));
@@ -99,18 +93,38 @@ gearman_return gearman_job_submit(gearman_job_st *ptr)
   giov[2].arg= gearman_byte_array_value(&(ptr->value));
   giov[2].arg_length= gearman_byte_array_length(&(ptr->value));
 
-  WATCHPOINT;
-  rc= gearman_dispatch(server,  
-                       ptr->flags & GEARMAN_BEHAVIOR_JOB_BACKGROUND ? GEARMAN_SUBMIT_JOB_BJ : GEARMAN_SUBMIT_JOB, 
-                       giov,
-                       1); 
-  WATCHPOINT_ASSERT(rc == GEARMAN_SUCCESS);
-  WATCHPOINT;
-  
-  rc= gearman_response(server, &(ptr->handle), NULL);
-  WATCHPOINT_ERROR(rc);
+  ptr->cursor= 0;
+  while (1)
+  {
+    if (ptr->cursor >= ptr->root->number_of_hosts)
+    {
+      ptr->cursor= 0;
+      break;
+    }
 
-  return rc;
+    WATCHPOINT_NUMBER(ptr->cursor);
+    server= &(ptr->root->hosts[ptr->cursor]);
+
+    rc= gearman_dispatch(server,  
+                         ptr->flags & GEARMAN_BEHAVIOR_JOB_BACKGROUND ? GEARMAN_SUBMIT_JOB_BJ : GEARMAN_SUBMIT_JOB, 
+                         giov,
+                         1); 
+    switch (rc)
+    {
+    case GEARMAN_SUCCESS:
+      WATCHPOINT_STRING("Good Cursor");
+      WATCHPOINT_NUMBER(ptr->cursor);
+      rc= gearman_response(server, &(ptr->handle), NULL);
+      return rc;
+    case GEARMAN_ERRNO:
+      ptr->cursor++;
+      continue;
+    default:
+      return rc;
+    }
+  }
+
+  return GEARMAN_FAILURE;
 }
 
 /*

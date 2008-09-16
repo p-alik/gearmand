@@ -25,6 +25,10 @@ int main(int argc, char *argv[])
 
     assert(gear_con);
 
+    rc= gearman_server_add(gear_con, "localhost", 2323);
+    assert(rc == GEARMAN_SUCCESS);
+    rc= gearman_server_add(gear_con, "localhost", 2324);
+    assert(rc == GEARMAN_SUCCESS);
     rc= gearman_server_add(gear_con, "localhost", 0);
     assert(rc == GEARMAN_SUCCESS);
 

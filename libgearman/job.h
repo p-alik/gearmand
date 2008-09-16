@@ -22,6 +22,7 @@ struct gearman_job_st {
   gearman_byte_array_st value;
   gearman_byte_array_st handle;
   uint32_t flags;
+  uint32_t cursor;
 };
 
 /* Result Struct */
