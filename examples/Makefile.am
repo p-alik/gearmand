@@ -1,7 +1,5 @@
-INCLUDES = -I$(top_builddir)
-LDADDS = ../libgearman/libgearman.la
-
-LIBS = 
+AM_CFLAGS = -I$(top_builddir)
+AM_LDFLAGS = ../libgearman/libgearman.la
 
 noinst_PROGRAMS = reverse_worker reverse_client
 noinst_HEADERS = 

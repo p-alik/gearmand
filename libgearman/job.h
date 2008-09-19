@@ -1,5 +1,5 @@
 /*
- * Summary: Result structure used for libgearman.
+ * Summary: Job functions used for libgearman.
  *
  * Copy: See Copyright for the status of this software.
  *
@@ -29,19 +29,17 @@ struct gearman_job_st {
 void gearman_job_free(gearman_job_st *job);
 void gearman_job_reset(gearman_job_st *ptr);
 
-gearman_job_st *gearman_job_create(gearman_st *ptr, 
-                                   gearman_job_st *job);
+gearman_job_st *gearman_job_create(gearman_st *ptr, gearman_job_st *job);
 
 gearman_return gearman_job_submit(gearman_job_st *ptr);
 gearman_return gearman_job_result(gearman_job_st *ptr, 
                                   gearman_result_st *result);
 
 gearman_return gearman_job_set_function(gearman_job_st *ptr, char *function);
-gearman_return gearman_job_set_value(gearman_job_st *ptr, char *value, size_t length);
+gearman_return gearman_job_set_value(gearman_job_st *ptr, char *value,
+                                     size_t length);
 
-
-uint64_t gearman_job_get_behavior(gearman_st *ptr, 
-                                  gearman_job_behavior flag);
+uint64_t gearman_job_get_behavior(gearman_st *ptr, gearman_job_behavior flag);
 gearman_return gearman_job_set_behavior(gearman_job_st *ptr, 
                                         gearman_job_behavior flag, 
                                         uint64_t data);

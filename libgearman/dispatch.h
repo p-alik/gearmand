@@ -14,10 +14,8 @@ extern "C" {
 #endif
 
 #ifdef GEARMAN_INTERNAL 
-gearman_return gearman_dispatch(gearman_server_st *ptr, 
-                                gearman_action action,
-                                giov_st *giov,
-                                uint8_t with_flush);
+gearman_return gearman_dispatch(gearman_server_st *ptr, gearman_action action,
+                                giov_st *giov, uint8_t with_flush);
 
 /* IO Vector */
 struct giov_st {
@@ -25,7 +23,7 @@ struct giov_st {
   size_t arg_length;
 };
 
-#endif
+#endif /* GEARMAN_INTERNAL */
 
 #ifdef __cplusplus
 }

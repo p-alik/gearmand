@@ -2,6 +2,9 @@
 
 char *gearman_strerror(gearman_st *ptr, gearman_return rc)
 {
+  /* do something with the ptr, set and ignore for now (compile warnings) */
+  ptr = NULL;
+
   switch (rc)
   {
   case GEARMAN_SUCCESS:

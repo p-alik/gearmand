@@ -1,5 +1,5 @@
 /*
- * Summary: Call quit on a server
+ * Summary: Call echo on a server
  *
  * Copy: See Copyright for the status of this software.
  *
@@ -13,7 +13,8 @@
 extern "C" {
 #endif
 
-gearman_return gearman_echo(gearman_st *ptr, char *message, size_t message_length, char *function);
+gearman_return gearman_echo(gearman_st *ptr, char *message,
+                            size_t message_length, char *function);
 
 #ifdef __cplusplus
 }

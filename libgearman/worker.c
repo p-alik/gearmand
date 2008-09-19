@@ -127,7 +127,7 @@ gearman_return gearman_worker_take(gearman_worker_st *ptr,
     else if (rc == GEARMAN_NOT_FOUND)
     {
       WATCHPOINT_STRING("Going to sleep");
-      rc= gearman_dispatch(server, GEARMAN_PRE_SLEEP, NULL, 0); 
+      rc= gearman_dispatch(server, GEARMAN_PRE_SLEEP, NULL, 1); 
       if (rc != GEARMAN_SUCCESS)
         return rc;
       rc= gearman_response(server, NULL, result);

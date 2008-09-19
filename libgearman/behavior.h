@@ -13,12 +13,10 @@
 extern "C" {
 #endif
 
-gearman_return gearman_behavior_set(gearman_st *ptr, 
-                                    gearman_behavior flag, 
+gearman_return gearman_behavior_set(gearman_st *ptr, gearman_behavior flag, 
                                     uint64_t data);
 
-uint64_t gearman_behavior_get(gearman_st *ptr, 
-                              gearman_behavior flag);
+uint64_t gearman_behavior_get(gearman_st *ptr, gearman_behavior flag);
 
 #ifdef __cplusplus
 }

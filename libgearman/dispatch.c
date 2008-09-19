@@ -139,7 +139,7 @@ gearman_return gearman_dispatch(gearman_server_st *ptr,
     return GEARMAN_FAILURE;
   }
 
-  (void)gearman_io_write(ptr, NULL, 0, 1);
+  (void)gearman_io_write(ptr, NULL, 0, with_flush);
 
   /* We should eventually fix this */
   if (sent_length != total_length)

@@ -1,5 +1,5 @@
 /*
- * Summary: Typpes for libgearman
+ * Summary: Types for libgearman
  *
  * Copy: See Copyright for the status of this software.
  *

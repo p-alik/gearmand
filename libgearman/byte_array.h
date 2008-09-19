@@ -30,16 +30,18 @@ struct gearman_byte_array_st {
 gearman_byte_array_st *gearman_byte_array_create(gearman_st *ptr,
                                              gearman_byte_array_st *byte_array,
                                              size_t initial_size);
-gearman_return gearman_byte_array_check(gearman_byte_array_st *byte_array, size_t need);
+gearman_return gearman_byte_array_check(gearman_byte_array_st *byte_array,
+                                        size_t need);
 char *gearman_byte_array_c_copy(gearman_byte_array_st *byte_array);
 gearman_return gearman_byte_array_append_character(gearman_byte_array_st *byte_array,
                                                    char character);
 gearman_return gearman_byte_array_append(gearman_byte_array_st *byte_array,
                                          const char *value, size_t length);
-size_t gearman_byte_array_backspace(gearman_byte_array_st *byte_array, size_t remove);
+size_t gearman_byte_array_backspace(gearman_byte_array_st *byte_array,
+                                    size_t remove);
 gearman_return gearman_byte_array_reset(gearman_byte_array_st *byte_array);
 gearman_return gearman_byte_array_store(gearman_byte_array_st *byte_array,
-                                         const char *value, size_t length);
+                                        const char *value, size_t length);
 void gearman_byte_array_free(gearman_byte_array_st *byte_array);
 
 #ifdef __cplusplus

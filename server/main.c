@@ -49,7 +49,7 @@ int add_listener(int fd, int client)
   return 0;
 }
 
-int startup(void)
+int startup(char *port)
 {
   int fd;
   struct addrinfo *ai;
@@ -62,7 +62,7 @@ int startup(void)
   hints.ai_flags = AI_PASSIVE | AI_ADDRCONFIG;
   hints.ai_socktype = SOCK_STREAM;
 
-  int e= getaddrinfo(NULL, SERVER_PORT, &hints, &ai);
+  int e= getaddrinfo(NULL, port, &hints, &ai);
 
   if (e != 0)
     exit(1);
@@ -303,9 +303,28 @@ bool server_response(gearman_connection_st *gear_conn)
   return run;
 }
 
-int main (int argc, char **argv)
+int main (int argc, char *argv[])
 {
   struct sigaction sa;
+  char c;
+  char *port= SERVER_PORT;
+
+  while((c = getopt(argc, argv, "e:hv")) != EOF)
+  {
+    switch(c)
+    {
+    case 'p':
+        port= optarg;
+        break;
+
+    case 'h':
+    default:
+        printf("\nusage: %s [-p <port>] [-h]\n", argv[0]);
+        printf("\t-h        - print this help menu\n");
+        printf("\t-p <port> - port for server to listen on\n");
+        return EINVAL;
+    }
+  }
 
   /*
    * ignore SIGPIPE signals; we can use errno==EPIPE if we
@@ -325,7 +344,7 @@ int main (int argc, char **argv)
   main_base= event_init();
 
   /* create socket */
-  startup();
+  startup(port);
 
   //event_dispatch();
   event_base_loop(main_base, 0);

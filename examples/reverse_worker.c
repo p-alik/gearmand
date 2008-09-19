@@ -2,6 +2,7 @@
   Sample test application.
 */
 #include <assert.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,10 +15,29 @@
 #define GEARMAN_INTERNAL 
 #include <libgearman/gearman.h>
 
-int main(int argc, char *argvp[])
+int main(int argc, char *argv[])
 {
   gearman_st *gear_con;
   gearman_worker_st *worker;
+  char c;
+  unsigned short port= 0;
+
+  while((c = getopt(argc, argv, "e:hv")) != EOF)
+  {
+    switch(c)
+    {
+    case 'p':
+        port= atoi(optarg);
+        break;
+
+    case 'h':
+    default:
+        printf("\nusage: %s [-p <port>] [-h]\n", argv[0]);
+        printf("\t-h        - print this help menu\n");
+        printf("\t-p <port> - port for server to listen on\n");
+        return EINVAL;
+    }
+  }
 
   gearman_job_st *job;
   gearman_result_st *result;
@@ -35,7 +55,7 @@ int main(int argc, char *argvp[])
       exit(1);
     }
 
-    rc= gearman_server_add(gear_con, "localhost", 0);
+    rc= gearman_server_add(gear_con, "localhost", port);
 
     if (rc != GEARMAN_SUCCESS)
     {

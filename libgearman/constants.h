@@ -15,7 +15,7 @@ extern "C" {
 
 /* Public defines */
 #define GEARMAN_DEFAULT_PORT 7003
-#define GEARMAN_MAX_BUFFER 8196
+#define GEARMAN_MAX_BUFFER 8192
 #define GEARMAN_MAX_HOST_LENGTH 64
 #define GEARMAN_WHEEL_SIZE 1024
 #define GEARMAN_STRIDE 4
@@ -31,7 +31,7 @@ extern "C" {
   typedef enum {false = 0, true = 1} bool;
 #endif
 
-#endif
+#endif /* GEARMAN_INTERNAL */
 
 typedef enum {
   GEARMAN_SUCCESS,

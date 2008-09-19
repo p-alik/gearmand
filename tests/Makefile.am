@@ -1,7 +1,5 @@
-INCLUDES = -I$(top_builddir)
-LDADDS = ../libgearman/libgearman.la
-
-LIBS = 
+AM_CFLAGS = -I$(top_builddir)
+AM_LDFLAGS = ../libgearman/libgearman.la
 
 noinst_PROGRAMS = client_test testworker
 noinst_HEADERS = test.h

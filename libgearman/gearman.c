@@ -1,6 +1,7 @@
 /*
-  Memcached library
+  Gearman library
 */
+
 #include "common.h"
 
 gearman_st *gearman_create(gearman_st *ptr)

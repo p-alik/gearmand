@@ -28,7 +28,7 @@
 #include <libgearman/behavior.h>
 #include <libgearman/dispatch.h>
 #include <libgearman/response.h>
-#include <libgearman/straction.h>
+#include <libgearman/str_action.h>
 #include <libgearman/echo.h>
 
 #ifdef __cplusplus

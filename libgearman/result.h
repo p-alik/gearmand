@@ -23,7 +23,6 @@ struct gearman_result_st {
   uint32_t denominator;
 };
 
-/* Result Struct */
 void gearman_result_free(gearman_result_st *result);
 void gearman_result_reset(gearman_result_st *ptr);
 gearman_result_st *gearman_result_create(gearman_st *ptr, 
@@ -34,8 +33,10 @@ size_t gearman_result_length(gearman_result_st *ptr);
 char *gearman_result_handle(gearman_result_st *ptr);
 size_t gearman_result_handle_length(gearman_result_st *ptr);
 
-gearman_return gearman_result_set_value(gearman_result_st *ptr, char *value, size_t length);
-gearman_return gearman_result_set_handle(gearman_result_st *ptr, char *handle, size_t length);
+gearman_return gearman_result_set_value(gearman_result_st *ptr, char *value,
+                                        size_t length);
+gearman_return gearman_result_set_handle(gearman_result_st *ptr, char *handle,
+                                         size_t length);
 
 #ifdef __cplusplus
 }

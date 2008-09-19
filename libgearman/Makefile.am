@@ -1,7 +1,6 @@
-INCLUDES = -I$(top_builddir)
-LIBS =
+AM_CFLAGS = -I$(top_builddir)
 
-pkginclude_HEADERS= constants.h dispatch.h gearman.h io.h response.h result.h server.h byte_array.h types.h watchpoint.h straction.h echo.h job.h worker.h
+pkginclude_HEADERS= constants.h dispatch.h gearman.h io.h response.h result.h server.h byte_array.h types.h watchpoint.h str_action.h echo.h job.h worker.h
 
 lib_LTLIBRARIES = libgearman.la
 

@@ -19,6 +19,7 @@
 test_return init_test(void *not_used)
 {
   gearman_st object;
+  not_used= NULL; /* suppress compiler warnings */
 
   (void)gearman_create(&object);
   gearman_free(&object);
@@ -29,6 +30,7 @@ test_return init_test(void *not_used)
 test_return allocation_test(void *not_used)
 {
   gearman_st *object;
+  not_used= NULL; /* suppress compiler warnings */
   object= gearman_create(NULL);
   assert(object);
   gearman_free(object);
@@ -255,6 +257,7 @@ void *create(void *not_used)
 {
   gearman_st *ptr;
   gearman_return rc;
+  not_used= NULL; /* suppress compiler warnings */
 
   ptr= gearman_create(NULL);
 
@@ -310,7 +313,7 @@ test_st tests[] ={
 
 collection_st collection[] ={
   {"norm", flush, create, destroy, pre, post, tests},
-  {0, 0, 0, 0}
+  {0, 0, 0, 0, 0, 0, 0}
 };
 
 void get_world(world_st *world)

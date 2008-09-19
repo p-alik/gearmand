@@ -79,5 +79,7 @@ bool gearman_connection_add_fd(gearman_connection_st *ptr, int fd)
 
 bool gearman_connection_buffered(gearman_connection_st *ptr)
 {
+  /* check something in ptr? do this to suppress compiler warning for now */
+  ptr= NULL;
   return false;
 }

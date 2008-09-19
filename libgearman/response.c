@@ -58,7 +58,7 @@ gearman_return gearman_response(gearman_server_st *ptr,
     printf("\t%u -> %u (%c)\n", x, buffer[x], buffer[x]);
 #endif
 
-  if (read_length != response_length)
+  if ((size_t)read_length != response_length)
     return GEARMAN_FAILURE;
 
 

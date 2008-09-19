@@ -1,6 +1,7 @@
 #include "common.h"
 
-gearman_return gearman_byte_array_check(gearman_byte_array_st *byte_array, size_t need)
+gearman_return gearman_byte_array_check(gearman_byte_array_st *byte_array,
+                                        size_t need)
 {
   if (need && need > (size_t)(byte_array->current_size - (size_t)(byte_array->end - byte_array->byte_array)))
   {
@@ -74,12 +75,12 @@ gearman_return gearman_byte_array_append_character(gearman_byte_array_st *byte_a
 
   WATCHPOINT_ASSERT(byte_array->is_allocated != GEARMAN_USED);
 
-  rc=  gearman_byte_array_check(byte_array, 1);
+  rc= gearman_byte_array_check(byte_array, 1);
 
   if (rc != GEARMAN_SUCCESS)
     return rc;
 
-  *byte_array->end= ' ';
+  *byte_array->end= character;
   byte_array->end++;
 
   return GEARMAN_SUCCESS;
@@ -113,7 +114,7 @@ size_t gearman_byte_array_backspace(gearman_byte_array_st *byte_array, size_t re
 {
   WATCHPOINT_ASSERT(byte_array->is_allocated != GEARMAN_USED);
 
-  if (byte_array->end - byte_array->byte_array  > remove)
+  if ((size_t)(byte_array->end - byte_array->byte_array)  > remove)
   {
     size_t difference;
 

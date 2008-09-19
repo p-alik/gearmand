@@ -1,6 +1,10 @@
 /*
-  Common include file for libmemached
-*/
+ * Summary: Common include file for libgearman
+ *
+ * Copy: See Copyright for the status of this software.
+ *
+ * Author: Brian Aker
+ */
 
 #ifndef __COMMON_H__
 #define __COMMON_H__
@@ -55,7 +59,7 @@
 #define GEARMAN_DEFAULT_COMMAND_SIZE 350
 #define TINY_STRING_LEN 128
 #define SMALL_STRING_LEN 1024
-#define HUGE_STRING_LEN 8196
+#define HUGE_STRING_LEN 8192
 #define PACKET_HEADER_LENGTH 12
 
 typedef enum {
@@ -73,9 +77,9 @@ typedef enum {
 } gearman_flags;
 
 /* Hashing algo */
-void md5_signature(unsigned char *key, unsigned int length, unsigned char *result);
-uint32_t hash_crc32(const char *data,
-                    size_t data_len);
+void md5_signature(unsigned char *key, unsigned int length,
+                   unsigned char *result);
+uint32_t hash_crc32(const char *data, size_t data_len);
 uint32_t hsieh_hash(char *key, size_t key_length);
 uint32_t murmur_hash(char *key, size_t key_length);
 

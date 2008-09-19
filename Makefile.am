@@ -1,4 +1,4 @@
-INCLUDES = 
+AM_CFLAGS = 
 SUBDIRS = libgearman tests server examples
 
 test: all
