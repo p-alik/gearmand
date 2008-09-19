@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -13,6 +14,25 @@
 int main(int argc, char *argv[])
 {
   gearman_st *gear_con;
+  char c;
+  unsigned short port= 0;
+
+  while((c = getopt(argc, argv, "hp:")) != EOF)
+  {
+    switch(c)
+    {
+    case 'p':
+      port= atoi(optarg);
+      break;
+
+    case 'h':
+    default:
+      printf("\nusage: %s [-p <port>] [-h]\n", argv[0]);
+      printf("\t-h        - print this help menu\n");
+      printf("\t-p <port> - port for server to listen on\n");
+      return EINVAL;
+    }
+  }
 
   if (argc < 2)
     return 0;
@@ -29,7 +49,7 @@ int main(int argc, char *argv[])
     assert(rc == GEARMAN_SUCCESS);
     rc= gearman_server_add(gear_con, "localhost", 2324);
     assert(rc == GEARMAN_SUCCESS);
-    rc= gearman_server_add(gear_con, "localhost", 0);
+    rc= gearman_server_add(gear_con, "localhost", port);
     assert(rc == GEARMAN_SUCCESS);
 
   }
@@ -47,7 +67,7 @@ int main(int argc, char *argv[])
     assert(job);
 
     gearman_job_set_function(job, "echo");
-    gearman_job_set_value(job, argv[1], strlen(argv[1]));
+    gearman_job_set_value(job, argv[optind], strlen(argv[optind]));
 
     rc= gearman_job_submit(job);
 

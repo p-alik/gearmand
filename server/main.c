@@ -309,20 +309,20 @@ int main (int argc, char *argv[])
   char c;
   char *port= SERVER_PORT;
 
-  while((c = getopt(argc, argv, "e:hv")) != EOF)
+  while((c = getopt(argc, argv, "hp:")) != EOF)
   {
     switch(c)
     {
     case 'p':
-        port= optarg;
-        break;
+      port= optarg;
+      break;
 
     case 'h':
     default:
-        printf("\nusage: %s [-p <port>] [-h]\n", argv[0]);
-        printf("\t-h        - print this help menu\n");
-        printf("\t-p <port> - port for server to listen on\n");
-        return EINVAL;
+      printf("\nusage: %s [-p <port>] [-h]\n", argv[0]);
+      printf("\t-h        - print this help menu\n");
+      printf("\t-p <port> - port for server to listen on\n");
+      return EINVAL;
     }
   }
 

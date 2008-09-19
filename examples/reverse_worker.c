@@ -22,20 +22,20 @@ int main(int argc, char *argv[])
   char c;
   unsigned short port= 0;
 
-  while((c = getopt(argc, argv, "e:hv")) != EOF)
+  while((c = getopt(argc, argv, "hp:")) != EOF)
   {
     switch(c)
     {
     case 'p':
-        port= atoi(optarg);
-        break;
+      port= atoi(optarg);
+      break;
 
     case 'h':
     default:
-        printf("\nusage: %s [-p <port>] [-h]\n", argv[0]);
-        printf("\t-h        - print this help menu\n");
-        printf("\t-p <port> - port for server to listen on\n");
-        return EINVAL;
+      printf("\nusage: %s [-p <port>] [-h]\n", argv[0]);
+      printf("\t-h        - print this help menu\n");
+      printf("\t-p <port> - port for server to listen on\n");
+      return EINVAL;
     }
   }
 
