@@ -1,0 +1,76 @@
+# Gearman server and library
+# Copyright (C) 2008 Brian Aker
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+Hi!
+
+If you are getting this code from https://launchpad.net/gearmand
+then continue reading. Otherwise these directions are not for you
+(well maybe...).
+
+To obtain code from https://launchpad.net/gearmand you will need to
+issue the following command:
+
+bzr branch lp:gearmand
+
+Once the tree is branched you will need to build the "configure"
+script. You can do this by running the script:
+
+./config/bootstrap
+
+It will set up all of the files you need to build gearmandc. At
+that point it is just the typical "./configure; make; make test;
+make install"
+
+For a tarball release do a "make dist" and for an RPM type "make rpm".
+
+For patches please create a branch on launchpad and propose it to be
+merged into the trunk. You can find out more information on how to
+do this at the launchpad help site:
+
+https://help.launchpad.net/
+
+Notes on coding style:
+
+Variables during assignment should be like:
+a= 12;
+
+When in doubt, use (). It means I clearly know that you meant for an
+operation to follow a specifc order.
+
+Cast return types void when there is a possibility of failure (don't
+bother with printf, use common sense):
+
+(void)some_function(...);
+
+New functions should be named "object_verb_(item_to_act_on)". You
+should email the list if you are extending the API.
+
+Use spaces after while, for, do, if, else. Don't around anything else.
+
+If/else bracket style is:
+if ()
+{
+}
+else
+{
+}
+
+Thanks and keep hacking!
+
+Cheers,
+  -Brian
+  Seattle, WA.

@@ -1,25 +1,43 @@
-/*
- * Summary: interface for gearman server
- * Description: main include file for libgearman
+/* Gearman server and library
+ * Copyright (C) 2008 Brian Aker
  *
- * Copy: See Copyright for the status of this software.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  *
- * Author: Brian Aker
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 #ifndef __GEARMAN_H__
 #define __GEARMAN_H__
 
-#include <stdlib.h>
-#include <inttypes.h>
-#include <sys/types.h>
-#include <netinet/in.h>
-
 #include <libgearman/libgearman_config.h>
+
+#ifdef HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+
 #include <libgearman/constants.h>
 #include <libgearman/types.h>
-#include <libgearman/watchpoint.h>
 #include <libgearman/byte_array.h>
+#include <libgearman/watchpoint.h>
 #include <libgearman/result.h>
 #include <libgearman/job.h>
 #include <libgearman/worker.h>

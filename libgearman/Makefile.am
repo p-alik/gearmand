@@ -1,27 +1,63 @@
-AM_CFLAGS = -I$(top_builddir)
+# Gearman server and library
+# Copyright (C) 2008 Brian Aker
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-pkginclude_HEADERS= constants.h dispatch.h gearman.h io.h response.h result.h server.h byte_array.h types.h watchpoint.h str_action.h echo.h job.h worker.h
+AM_CFLAGS= -I$(top_builddir)
 
-lib_LTLIBRARIES = libgearman.la
+lib_LTLIBRARIES= libgearman.la
 
-libgearman_la_SOURCES = \
-			echo.c \
-			gearman.c \
-			job.c \
-			behavior.c \
-			dispatch.c \
-			find_server.c \
-			connect.c \
-			io.c \
-			response.c \
-			result.c \
-			server.c \
-			byte_array.c \
-			str_action.c \
-			str_error.c \
-			quit.c \
-			worker.c
+pkginclude_HEADERS= \
+	behavior.h \
+	byte_array.h \
+	constants.h \
+	dispatch.h \
+	echo.h \
+	gearman.h \
+	job.h \
+	libgearman_config.h \
+	quit.h \
+	response.h \
+	result.h \
+	server.h \
+	str_action.h \
+	types.h \
+	watchpoint.h \
+	worker.h
 
-libgearman_la_LIBADD =
-libgearman_la_LDFLAGS = -version-info $(GEARMAN_LIBRARY_VERSION)
+noinst_HEADERS= \
+	common.h \
+	connect.h \
+	io.h
 
+libgearman_la_SOURCES= \
+	behavior.c \
+	byte_array.c \
+	connect.c \
+	dispatch.c \
+	echo.c \
+	find_server.c \
+	gearman.c \
+	io.c \
+	job.c \
+	quit.c \
+	response.c \
+	result.c \
+	server.c \
+	str_action.c \
+	str_error.c \
+	worker.c
+
+libgearman_la_LDFLAGS= -version-info $(GEARMAN_LIBRARY_VERSION)

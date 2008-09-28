@@ -1,7 +1,22 @@
+/* Gearman server and library
+ * Copyright (C) 2008 Brian Aker
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "common.h" 
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/tcp.h>
 
 /* 
   This function is used to modify the behabior of running client.
@@ -9,7 +24,8 @@
   We quit all connections so we can reset the sockets.
 */
 
-static void set_behavior_flag(gearman_st *ptr, gearman_flags temp_flag, uint64_t data)
+static void set_behavior_flag(gearman_st *ptr, gearman_flags temp_flag,
+                              uint64_t data)
 {
   if (data)
     ptr->flags|= temp_flag;
@@ -17,8 +33,7 @@ static void set_behavior_flag(gearman_st *ptr, gearman_flags temp_flag, uint64_t
     ptr->flags&= ~temp_flag;
 }
 
-gearman_return gearman_behavior_set(gearman_st *ptr, 
-                                    gearman_behavior flag, 
+gearman_return gearman_behavior_set(gearman_st *ptr, gearman_behavior flag,
                                     uint64_t data)
 {
   switch (flag)
@@ -80,8 +95,7 @@ gearman_return gearman_behavior_set(gearman_st *ptr,
   return GEARMAN_SUCCESS;
 }
 
-uint64_t gearman_behavior_get(gearman_st *ptr, 
-                              gearman_behavior flag)
+uint64_t gearman_behavior_get(gearman_st *ptr, gearman_behavior flag)
 {
   gearman_flags temp_flag= 0;
 
@@ -117,15 +131,15 @@ uint64_t gearman_behavior_get(gearman_st *ptr,
     break;
   case GEARMAN_BEHAVIOR_POLL_TIMEOUT:
     {
-      return (unsigned long long)ptr->poll_timeout;
+      return (uint64_t)ptr->poll_timeout;
     }
   case GEARMAN_BEHAVIOR_CONNECT_TIMEOUT:
     {
-      return (unsigned long long)ptr->connect_timeout;
+      return (uint64_t)ptr->connect_timeout;
     }
   case GEARMAN_BEHAVIOR_RETRY_TIMEOUT:
     {
-      return (unsigned long long)ptr->retry_timeout;
+      return (uint64_t)ptr->retry_timeout;
     }
   case GEARMAN_BEHAVIOR_SOCKET_SEND_SIZE:
     {

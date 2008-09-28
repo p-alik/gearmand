@@ -1,19 +1,28 @@
-/*
-  Main GearmanDC server
+/* Gearman server and library
+ * Copyright (C) 2008 Brian Aker
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#define SERVER_PORT "7003"
-#define MAX_MSG 100
-
-#define SUCCESS 0
-#define ERROR   1
-
-#include <signal.h>
 #include "server_common.h"
 
 static struct event_base *main_base;
 
 /* Prototypes */
+int add_listener(int fd, int client);
+int startup(char *port);
 void server_read(int fd, short event, void *arg);
 bool server_response(gearman_connection_st *gear_conn);
 
@@ -56,13 +65,14 @@ int startup(char *port)
   struct addrinfo *next;
   struct addrinfo hints;
   int arg;
+  int e;
 
   memset(&hints, 0, sizeof (hints));
 
   hints.ai_flags = AI_PASSIVE | AI_ADDRCONFIG;
   hints.ai_socktype = SOCK_STREAM;
 
-  int e= getaddrinfo(NULL, port, &hints, &ai);
+  e= getaddrinfo(NULL, port, &hints, &ai);
 
   if (e != 0)
     exit(1);
@@ -110,10 +120,8 @@ int startup(char *port)
 
 void server_read(int fd, short event, void *arg)
 {
-  gearman_connection_st *gear_conn;
-  gear_conn= (gearman_connection_st *)arg;
+  gearman_connection_st *gear_conn= (gearman_connection_st *)arg;
   bool run= true;
-
 
   fprintf(stderr, "server_read called with fd: %d, event: %d, arg: %p\n", fd, event, arg);
 
@@ -346,7 +354,7 @@ int main (int argc, char *argv[])
   /* create socket */
   startup(port);
 
-  //event_dispatch();
+  /* event_dispatch(); */
   event_base_loop(main_base, 0);
 
   return (0);

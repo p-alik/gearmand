@@ -1,12 +1,31 @@
-AM_CFLAGS = -I$(top_builddir)
+# Gearman server and library
+# Copyright (C) 2008 Brian Aker
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-bin_PROGRAMS = gearmand
+AM_CFLAGS= -I$(top_builddir)
+AM_LDFLAGS= $(top_builddir)/libgearman/libgearman.la
 
-noinst_HEADERS = server_common.h \
-		 connection.h
+bin_PROGRAMS= gearmand
 
-gearmand_SOURCES = main.c connection.c
-gearmand_LDFLAGS = -levent  $(top_builddir)/libgearman/libgearman.la
+noinst_HEADERS= \
+	connection.h \
+	server_common.h
+
+gearmand_SOURCES= main.c connection.c
+gearmand_LDFLAGS= -levent ${AM_LDFLAGS}
 
 valgrind: gearmand
 	libtool --mode=execute valgrind --leak-check=yes --show-reachable=yes  gearmand
