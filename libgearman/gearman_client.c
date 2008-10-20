@@ -16,6 +16,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include <uuid/uuid.h>
 #include <libgearman/gearman_client.h>
 #include "common.h"
 
@@ -99,12 +100,97 @@ uint8_t *gearman_client_do(gearman_client_st *client __attribute__((unused)),
   return NULL;
 }
 
-gearman_return gearman_client_do_background(gearman_client_st *client __attribute__((unused)),
-                                            const char *function_name __attribute__((unused)), 
-                                            const uint8_t *workload __attribute__((unused)), 
-                                            ssize_t workload_size __attribute__((unused)))
+char *gearman_client_do_background(gearman_client_st *client,
+                                   const char *function_name,
+                                   const uint8_t *workload, ssize_t workload_size,
+                                   gearman_return *error)
 {
-  return GEARMAN_SUCCESS;
+  giov_st giov[1];
+  gearman_server_st *server;
+  gearman_result_st result;
+  uuid_t uu;
+  char uuid_string[37];
+
+  if (client->list.number_of_hosts == 0)
+  {
+    *error= GEARMAN_FAILURE;
+    return NULL;
+  }
+
+  server= &(client->list.hosts[0]);
+  assert(server);
+
+  if (gearman_result_create(&result) == NULL)
+  {
+    *error= GEARMAN_SUCCESS;
+    return NULL;
+  }
+
+  uuid_generate(uu);
+  uuid_unparse(uu, uuid_string);
+
+  giov[0].arg= (const void *)function_name;
+  giov[0].arg_length= strlen(function_name);
+  giov[1].arg= uuid_string;
+  giov[1].arg_length= 37;
+  giov[2].arg= (const void *)workload;
+  giov[2].arg_length= workload_size;
+  *error= gearman_dispatch(server, GEARMAN_SUBMIT_JOB_BJ, giov, true);
+
+  if (*error != GEARMAN_SUCCESS)
+    return NULL;
+
+  WATCHPOINT;
+  *error= gearman_response(server, &result);
+  WATCHPOINT;
+
+ // WATCHPOINT_STRING_LENGTH(result.handle->value, result.handle->length);
+  WATCHPOINT_STRING_LENGTH(result.value->value, result.value->length);
+  gearman_result_free(&result);
+
+  if (*error == GEARMAN_SUCCESS)
+    return strdup(uuid_string);
+  else
+    return NULL;
+}
+
+gearman_return gearman_client_job_status(gearman_client_st *client,
+                                         const char *job_id,
+                                         bool *is_known,
+                                         bool *is_running,
+                                         long *numerator,
+                                         long *denominator)
+{
+  gearman_return rc;
+  giov_st giov[1];
+  gearman_server_st *server;
+  gearman_result_st result;
+
+  if (gearman_result_create(&result) == NULL)
+    return GEARMAN_FAILURE;
+
+  if (client->list.number_of_hosts == 0)
+    return GEARMAN_FAILURE;
+
+  server= &(client->list.hosts[0]);
+  assert(server);
+
+  giov[0].arg= (const void *)job_id;
+  giov[0].arg_length= strlen(job_id);
+  rc= gearman_dispatch(server, GEARMAN_GET_STATUS, giov, true);
+  assert(rc == GEARMAN_SUCCESS);
+
+  rc= gearman_response(server, &result);
+
+  assert(rc == GEARMAN_SUCCESS);
+  *is_known= result.is_known;
+  *is_running= result.is_running;
+  *numerator= result.numerator;
+  *denominator= result.denominator;
+
+  gearman_result_free(&result);
+
+  return rc;
 }
 
 gearman_return gearman_client_echo(gearman_client_st *client,
@@ -122,7 +208,6 @@ gearman_return gearman_client_echo(gearman_client_st *client,
   if (client->list.number_of_hosts == 0)
     return GEARMAN_FAILURE;
 
-  WATCHPOINT;
   server= &(client->list.hosts[0]);
   assert(server);
 

@@ -25,7 +25,7 @@ gearman_return gearman_response(gearman_server_st *ptr,
   ssize_t read_length;
   uint32_t tmp_number;
   gearman_action action;
-  size_t response_length; /* While we use size_t, protocol is uint32_t */
+  uint32_t response_length;
 
   WATCHPOINT;
   read_length= gearman_io_read(ptr, buffer, PACKET_HEADER_LENGTH);
@@ -34,10 +34,12 @@ gearman_return gearman_response(gearman_server_st *ptr,
   if (read_length == 0)
     return GEARMAN_READ_FAILURE;
 #ifdef CRAP
-  int x;
+  {
+    int x;
 
-  for (x= 0; x < 4; x++)
-    printf("\t%u -> %u (%c)\n", x, buffer[x], buffer[x]);
+    for (x= 0; x < 4; x++)
+      printf("\t%u -> %u (%c)\n", x, buffer[x], buffer[x]);
+  }
 #endif
 
   if (ptr->type == GEARMAN_SERVER_TYPE_INTERNAL)
@@ -64,8 +66,12 @@ gearman_return gearman_response(gearman_server_st *ptr,
   memset(buffer, 0, HUGE_STRING_LEN);
   read_length= gearman_io_read(ptr, buffer, response_length);
 #ifdef CRAP
-  for (x= 0; x < response_length; x++)
-    printf("\t%u -> %u (%c)\n", x, buffer[x], buffer[x]);
+  {
+    uint32_t x;
+
+    for (x= 0; x < response_length; x++)
+      printf("\t%u -> %u (%c)\n", x, buffer[x], buffer[x]);
+  }
 #endif
 
   if ((size_t)read_length != response_length)
@@ -136,17 +142,26 @@ gearman_return gearman_response(gearman_server_st *ptr,
       /* Put in error logic for case where job not known */
       {
         size_of_string= strlen(start_ptr);
+        assert(size_of_string == 1);
+        WATCHPOINT_NUMBER(*start_ptr);
+        /* YEs, this is crap, original gearman looked for string value of 0 */
+        if (*start_ptr == 48)
+          result->is_known= false;
+        else
+          result->is_known= true;
         start_ptr+= size_of_string + 1; /* One additional for the NULL */
       }
 
       {
         size_of_string= strlen(start_ptr);
+        assert(size_of_string == 1);
 
+        WATCHPOINT_NUMBER(*start_ptr);
         /* YEs, this is crap, original gearman looked for string value of 0 */
         if (*start_ptr == 48)
-          return GEARMAN_SUCCESS;
+          result->is_running= false;
         else
-          rc= GEARMAN_STILL_RUNNING;
+          result->is_running= true;
 
         start_ptr+= size_of_string + 1; /* One additional for the NULL */
       }

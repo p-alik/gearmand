@@ -70,13 +70,22 @@ uint8_t *gearman_client_do(gearman_client_st *client,
                            const uint8_t *workload, ssize_t workload_size, 
                            ssize_t *result_length,  gearman_return *error);
 
-gearman_return gearman_client_do_background(gearman_client_st *client,
-                                            const char *function_name, 
-                                            const uint8_t *workload, ssize_t workload_size);
+char *gearman_client_do_background(gearman_client_st *client,
+                                   const char *function_name,
+                                   const uint8_t *workload, ssize_t workload_size,
+                                   gearman_return *error);
 
 /* Echo test */
 gearman_return gearman_client_echo(gearman_client_st *client,
                                    const char *message, ssize_t message_length);
+
+/* Status methods for Background Jobs */
+gearman_return gearman_client_job_status(gearman_client_st *client,
+                                         const char *job_id,
+                                         bool *is_known,
+                                         bool *is_running,
+                                         long *numerator,
+                                         long *denominator);
 
 #ifdef __cplusplus
 }

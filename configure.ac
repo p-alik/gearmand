@@ -59,6 +59,9 @@ AC_CHECK_HEADERS(sys/socket.h sys/time.h sys/types.h sys/un.h unistd.h)
 AC_CHECK_LIB(event, event_init)
 AC_CHECK_HEADERS(event.h)
 
+AC_CHECK_LIB(uuid, uuid_generate)
+AC_CHECK_HEADERS(uuid/uuid.h)
+
 AC_ARG_ENABLE([debug],
   [AS_HELP_STRING([--enable-debug],
     [Build with debug enabled @<:@default=no@:>@])],

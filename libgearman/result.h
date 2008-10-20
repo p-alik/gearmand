@@ -35,8 +35,11 @@ struct gearman_result_st {
   gearman_action action;
   gearman_byte_array_st *handle;
   gearman_byte_array_st *value;
-  uint32_t numerator;
-  uint32_t denominator;
+  /* The following are just used for job status returns */
+  bool is_known;
+  bool is_running;
+  long numerator;
+  long denominator;
 };
 
 gearman_result_st *gearman_result_create(gearman_result_st *ptr);
