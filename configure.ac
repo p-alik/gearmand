@@ -1,85 +1,131 @@
-AC_INIT(gearmand, [1.0.0], [http://launchpad.net/gearman/])
-AC_CONFIG_SRCDIR(libgearman/io.c)
+# Gearman server and library
+# Copyright (C) 2008 Brian Aker
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+AC_PREREQ(2.59)
+AC_INIT(gearmand, [1.0.0], [https://launchpad.net/gearmand])
+AC_CONFIG_SRCDIR(libgearman/gearman.c)
 AC_CONFIG_AUX_DIR(config)
 AM_CONFIG_HEADER(libgearman/libgearman_config.h)
-AC_CANONICAL_SYSTEM
+AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE
 
-GEARMAN_LIBRARY_NAME=libgearman
-#shared library versioning
-GEARMAN_LIBRARY_VERSION=1:0:0
-#                         | | |
-#                  +------+ | +---+
-#                  |        |     |
-#                 current:revision:age
-#                  |        |     |
-#                  |        |     +- increment if interfaces have been added
-#                  |        |        set to zero if interfaces have been
-#                  |        |        removed or changed
-#                  |        +- increment if source code has changed
-#                  |           set to zero if current is incremented
-#                  +- increment if interfaces have been added, removed or
-#                     changed
-
-#release versioning
-GEARMAN_MAJOR_VERSION=0
-GEARMAN_MINOR_VERSION=1
+GEARMAN_MAJOR_VERSION=1
+GEARMAN_MINOR_VERSION=0
 GEARMAN_MICRO_VERSION=0
 GEARMAN_VERSION=$GEARMAN_MAJOR_VERSION.$GEARMAN_MINOR_VERSION.$GEARMAN_MICRO_VERSION
 GEARMAN_RELEASE=$GEARMAN_MAJOR_VERSION.$GEARMAN_MINOR_VERSION
+GEARMAN_LIBRARY_VERSION=$GEARMAN_MAJOR_VERSION:$GEARMAN_MINOR_VERSION:$GEARMAN_MICRO_VERSION
 
-#API version
-GEARMAN_API_VERSION=1.0
-
-PACKAGE=$GEARMAN_LIBRARY_NAME
 VERSION=$GEARMAN_RELEASE
 
-AC_SUBST(GEARMAN_LIBRARY_NAME)
-AC_SUBST(GEARMAN_LIBRARY_VERSION)
-AC_SUBST(GEARMAN_RELEASE)
 AC_SUBST(GEARMAN_VERSION)
-AC_SUBST(GEARMAN_API_VERSION)
+AC_SUBST(GEARMAN_RELEASE)
+AC_SUBST(GEARMAN_LIBRARY_VERSION)
 
 AC_PROG_CC
-AC_PROG_CXX
-AC_PROG_LIBTOOL
+AC_PROG_CC_C99
+AM_PROG_CC_STDC
 AM_SANITY_CHECK
-LIBTOOL="$LIBTOOL --preserve-dup-deps"
-AC_SUBST(LIBTOOL)dnl
-AC_LANG_CPLUSPLUS
-AC_C_BIGENDIAN
 
-sinclude(config/debug.m4)
-sinclude(config/dtrace.m4)
+AC_PROG_LIBTOOL
+LIBTOOL="$LIBTOOL --preserve-dup-deps"
+AC_SUBST(LIBTOOL)
+
+AC_C_BIGENDIAN
+AC_C_CONST
+AC_TYPE_SIZE_T
+AC_TYPE_SSIZE_T
+
+AC_HEADER_TIME
+AC_CHECK_HEADERS(arpa/inet.h assert.h ctype.h errno.h fcntl.h inttypes.h)
+AC_CHECK_HEADERS(limits.h netdb.h netinet/in.h netinet/tcp.h poll.h signal.h)
+AC_CHECK_HEADERS(stdbool.h stdint.h stdio.h stdlib.h string.h strings.h)
+AC_CHECK_HEADERS(sys/socket.h sys/time.h sys/types.h sys/un.h unistd.h)
+
+AC_CHECK_LIB(event, event_init)
+AC_CHECK_HEADERS(event.h)
+
+AC_ARG_ENABLE([debug],
+  [AS_HELP_STRING([--enable-debug],
+    [Build with debug enabled @<:@default=no@:>@])],
+  [ac_enable_debug="$enableval"],
+  [ac_enable_debug="no"])
 
 AC_ARG_ENABLE([fail],
-    [AS_HELP_STRING([--enable-fail],
-       [Turn warnings into failures @<:@default=no@:>@])],
-    [ac_warn_fail="$enableval"],
-    [ac_warn_fail="no"])
+  [AS_HELP_STRING([--disable-fail],
+    [Turn warnings into failures @<:@default=yes@:>@])],
+  [ac_warn_fail="$enableval"],
+  [ac_warn_fail="yes"])
 
-# We only support GCC and Sun's forte at the moment
+AC_ARG_ENABLE([strict-aliasing],
+  [AS_HELP_STRING([--enable-strict-aliasing],
+    [Enable warnings about stict-aliasing @<:@default=no@:>@])],
+  [ac_warn_strict_aliasing="$enableval"],
+  [ac_warn_strict_aliasing="no"])
+
+AC_ARG_ENABLE([pedantic-warnings],
+  [AS_HELP_STRING([--disable-pedantic-warnings],
+    [Toggle pedanticness @<:@default=yes@:>@])],
+  [ac_warn_pedantic="$enableval"],
+  [ac_warn_pedantic="yes"])
+
+AC_ARG_ENABLE([unreachable],
+  [AS_HELP_STRING([--enable-unreachable],
+    [Enable warnings about unreachable code @<:@default=no@:>@])],
+  [ac_warn_unreachable="$enableval"],
+  [ac_warn_unreachable="no"])
+
 if test "$GCC" = "yes"
 then
+  if test "$ac_enable_debug" = "yes"
+  then
+    AC_DEFINE([HAVE_DEBUG], [1], [Enables debug support])
+    AC_SUBST(HAVE_DEBUG)
+    DEBUG_CFLAGS="-ggdb -DHAVE_DEBUG"
+  else
+    DEBUG_CFLAGS="-O3"
+  fi
+
   if test "$ac_warn_fail" = "yes"
   then
     W_FAIL="-Werror"
   fi
 
-  if test "$ENABLE_DEBUG" = "yes"
+  if test "$ac_warn_strict_aliasing" = "yes"
   then
-    CFLAGS="-W -Wall -Wextra -ggdb -DHAVE_DEBUG $W_FAIL"
+    W_STRICT_ALIASING="-Wstrict-aliasing"
   else
-    CFLAGS="-W -Wall -Wextra -O3 $W_FAIL"
+    W_STRICT_ALIASING="-Wno-strict-aliasing"
   fi
-else
-  CFLAGS="-Xa -xstrconst -mt -D_FORTEC_ -fast -m64"
-  LDFLAGS="-lsocket -lnsl"
-  DTRACEFLAGS="-64"
+
+  if test "$ac_warn_pedantic" = "yes"
+  then
+    W_PEDANTIC="-pedantic -Wundef -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls ${W_STRICT_ALIASING}"
+  fi
+
+  if test "$ac_warn_unreachable" = "yes"
+  then
+    W_UNREACHABLE="-Wunreachable-code"
+  fi
+
+  CFLAGS="-std=gnu99 -W -Wall -Wextra ${DEBUG_CFLAGS} ${W_FAIL} ${W_PEDANTIC} ${W_UNREACHABLE} ${CFLAGS}"
 fi
 
-AC_C_CONST
-AC_HEADER_TIME
-AC_TYPE_SIZE_T
-AC_SEARCH_LIBS(getopt_long, gnugetopt)
-AC_OUTPUT(Makefile libgearman/Makefile tests/Makefile server/Makefile examples/Makefile)
+AC_CONFIG_FILES(Makefile libgearman/Makefile server/Makefile
+                tests/Makefile examples/Makefile)
+
+AC_OUTPUT

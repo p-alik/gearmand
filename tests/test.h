@@ -1,9 +1,23 @@
-/*
-  Structures for generic tests.
-*/
+/* Gearman server and library
+ * Copyright (C) 2008 Brian Aker
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 
-#ifndef __TEST_H__
-#define __TEST_H__
+#ifndef __GEARMAN_TEST_H__
+#define __GEARMAN_TEST_H__
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -21,7 +35,7 @@ typedef enum {
   TEST_SUCCESS,
   TEST_FAILURE,
   TEST_MEMORY_ALLOCATION_FAILURE,
-  TEST_MAXIMUM_RETURN, /* Always add new error code before */
+  TEST_MAXIMUM_RETURN /* Always add new error code before */
 } test_return;
 
 struct test_st {
@@ -62,4 +76,4 @@ void get_world(world_st *world);
 }
 #endif
 
-#endif /* __TEST_H__ */
+#endif /* __GEARMAN_TEST_H__ */

@@ -1,46 +1,83 @@
-/*
- * Summary: Common include file for libgearman
+/* Gearman server and library
+ * Copyright (C) 2008 Brian Aker
  *
- * Copy: See Copyright for the status of this software.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  *
- * Author: Brian Aker
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef __COMMON_H__
-#define __COMMON_H__
+#ifndef __GEARMAN_COMMON_H__
+#define __GEARMAN_COMMON_H__
 
+#define GEARMAN_INTERNAL 1
+
+#include <libgearman/gearman.h>
+#include <libgearman/connect.h>
+#include <libgearman/io.h>
+
+#ifdef HAVE_STDIO_H
 #include <stdio.h>
-#include <stdlib.h>
+#endif
+#ifdef HAVE_STRINGS_H
 #include <string.h>
+#endif
+#ifdef HAVE_CTYPE_H
 #include <ctype.h>
-#include <sys/types.h>
+#endif
+#ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
-#include <netinet/in.h>
+#endif
+#ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
+#endif
+#ifdef HAVE_STDLIB_H
 #include <netdb.h>
+#endif
+#ifdef HAVE_STDLIB_H
 #include <unistd.h>
+#endif
+#ifdef HAVE_STDLIB_H
 #include <limits.h>
+#endif
+#ifdef HAVE_STDLIB_H
 #include <assert.h>
+#endif
+#ifdef HAVE_STDLIB_H
 #include <errno.h>
+#endif
+#ifdef HAVE_STDLIB_H
+#include <poll.h>
+#endif
+#ifdef HAVE_STDLIB_H
 #include <fcntl.h>
+#endif
+#ifdef HAVE_STDLIB_H
 #include <sys/un.h>
+#endif
+#ifdef HAVE_STDLIB_H
 #include <netinet/tcp.h>
+#endif
 
-#if TIME_WITH_SYS_TIME
+#ifdef TIME_WITH_SYS_TIME
 # include <sys/time.h>
 # include <time.h>
 #else
-# if HAVE_SYS_TIME_H
+# ifdef HAVE_SYS_TIME_H
 #  include <sys/time.h>
 # else
 #  include <time.h>
 # endif
 #endif
-
-#define GEARMAN_INTERNAL 1
-
-#include <libgearman/gearman.h>
-#include <libgearman/io.h>
 
 #if !defined(__GNUC__) || (__GNUC__ == 2 && __GNUC_MINOR__ < 96)
 #define __builtin_expect(x, expected_value) (x)
@@ -73,7 +110,7 @@ typedef enum {
   GEAR_SUPPORT_CAS= (1 << 7),
   GEAR_BUFFER_REQUESTS= (1 << 8),
   GEAR_USE_SORT_HOSTS= (1 << 9),
-  GEAR_VERIFY_KEY= (1 << 10),
+  GEAR_VERIFY_KEY= (1 << 10)
 } gearman_flags;
 
 /* Hashing algo */
@@ -85,10 +122,9 @@ uint32_t murmur_hash(char *key, size_t key_length);
 
 gearman_return gearman_connect(gearman_server_st *ptr);
 uint32_t find_server(gearman_st *ptr);
-void gearman_quit_server(gearman_server_st *ptr, uint8_t io_death);
 
 #define gearman_server_response_increment(A) (A)->cursor_active++
 #define gearman_server_response_decrement(A) (A)->cursor_active--
 #define gearman_server_response_reset(A) (A)->cursor_active=0
 
-#endif /* __COMMON_H__ */
+#endif /* __GEARMAN_COMMON_H__ */

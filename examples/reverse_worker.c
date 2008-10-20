@@ -1,6 +1,21 @@
-/*
-  Sample test application.
-*/
+/* Gearman server and library
+ * Copyright (C) 2008 Brian Aker
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include <assert.h>
 #include <errno.h>
 #include <stdio.h>
@@ -21,6 +36,10 @@ int main(int argc, char *argv[])
   gearman_worker_st *worker;
   char c;
   unsigned short port= 0;
+  gearman_job_st *job;
+  gearman_result_st *result;
+  gearman_result_st *incomming;
+  gearman_return rc;
 
   while((c = getopt(argc, argv, "hp:")) != EOF)
   {
@@ -39,29 +58,21 @@ int main(int argc, char *argv[])
     }
   }
 
-  gearman_job_st *job;
-  gearman_result_st *result;
-  gearman_result_st *incomming;
-
   /* Connect to the server or error */
+  gear_con= gearman_create(NULL);
+
+  if (gear_con == NULL)
   {
-    gearman_return rc;
+    fprintf(stderr, "Could not allocation gearman_st\n");
+    exit(1);
+  }
 
-    gear_con= gearman_create(NULL);
+  rc= gearman_server_add(gear_con, "localhost", port);
 
-    if (gear_con == NULL)
-    {
-      fprintf(stderr, "Could not allocation gearman_st\n");
-      exit(1);
-    }
-
-    rc= gearman_server_add(gear_con, "localhost", port);
-
-    if (rc != GEARMAN_SUCCESS)
-    {
-      fprintf(stderr, "Could not add server\n");
-      exit(1);
-    }
+  if (rc != GEARMAN_SUCCESS)
+  {
+    fprintf(stderr, "Could not add server\n");
+    exit(1);
   }
 
   worker= gearman_worker_create(gear_con, NULL);
@@ -94,72 +105,68 @@ int main(int argc, char *argv[])
   }
 
   /* Break this out */
+  rc= gearman_worker_do(worker, "echo");
+  if (rc != GEARMAN_SUCCESS)
   {
-    gearman_return rc;
+    fprintf(stderr, "Could not assign function: %s\n", gearman_strerror(gear_con, rc));
+    exit(1);
+  }
 
-    rc= gearman_worker_do(worker, "echo");
+  /* Just loop and process jobs */
+  while (1)
+  {
+    /* Blocking call */
+    rc= gearman_worker_take(worker, incomming);
+
+    printf("We got \"%.*s\"(%u) for %s\n", gearman_result_length(incomming), 
+           gearman_result_value(incomming), 
+           gearman_result_length(incomming), 
+           gearman_result_handle(incomming));
+
+    WATCHPOINT;
+    rc= gearman_result_set_handle(result, gearman_result_handle(incomming), gearman_result_handle_length(incomming));
+    WATCHPOINT_ERROR(rc);
     if (rc != GEARMAN_SUCCESS)
     {
-      fprintf(stderr, "Could not assign function: %s\n", gearman_strerror(gear_con, rc));
+      fprintf(stderr, "Could not set return handle: %s\n", gearman_strerror(gear_con, rc));
       exit(1);
     }
 
-    /* Just loop and process jobs */
-    while (1)
+    WATCHPOINT_NUMBER(gearman_result_length(incomming));
+    if (gearman_result_length(incomming))
     {
-      /* Blocking call */
-      rc= gearman_worker_take(worker, incomming);
+      size_t x, y;
+      char *buffer;
+      char *value;
 
-      printf("We got \"%.*s\"(%u) for %s\n", gearman_result_length(incomming), 
-             gearman_result_value(incomming), 
-             gearman_result_length(incomming), 
-             gearman_result_handle(incomming));
+      buffer= calloc(gearman_result_length(incomming), sizeof(char));
+      assert(buffer);
+
+      value= gearman_result_value(incomming);
+      for (y= 0, x= gearman_result_length(incomming); x; x--, y++)
+        buffer[y]= value[x - 1];
 
       WATCHPOINT;
-      rc= gearman_result_set_handle(result, gearman_result_handle(incomming), gearman_result_handle_length(incomming));
-      WATCHPOINT_ERROR(rc);
+      rc= gearman_result_set_value(result, buffer, gearman_result_length(incomming));
       if (rc != GEARMAN_SUCCESS)
       {
-        fprintf(stderr, "Could not set return handle: %s\n", gearman_strerror(gear_con, rc));
+        fprintf(stderr, "Could not set return value: %s\n", gearman_strerror(gear_con, rc));
         exit(1);
       }
 
-      WATCHPOINT_NUMBER(gearman_result_length(incomming));
-      if (gearman_result_length(incomming))
-      {
-        size_t x, y;
-        char *buffer;
-        char *value;
+      free(buffer);
+    }
+    else
+    {
+      gearman_result_reset(result);
+    }
 
-        buffer= calloc(gearman_result_length(incomming), sizeof(char));
-        assert(buffer);
-
-        value= gearman_result_value(incomming);
-        for (y= 0, x= gearman_result_length(incomming); x; x--, y++)
-          buffer[y]= value[x - 1];
-
-        WATCHPOINT;
-        rc= gearman_result_set_value(result, buffer, gearman_result_length(incomming));
-        if (rc != GEARMAN_SUCCESS)
-        {
-          fprintf(stderr, "Could not set return value: %s\n", gearman_strerror(gear_con, rc));
-          exit(1);
-        }
-
-        free(buffer);
-      }
-      else
-      {
-        gearman_result_reset(result);
-      }
-
-      rc= gearman_worker_answer(worker, result);
-      WATCHPOINT;
-      if (rc != GEARMAN_SUCCESS)
-      {
-        fprintf(stderr, "Not able to return value: %s\n", gearman_strerror(gear_con, rc));
-        exit(1);
-      }
+    rc= gearman_worker_answer(worker, result);
+    WATCHPOINT;
+    if (rc != GEARMAN_SUCCESS)
+    {
+      fprintf(stderr, "Not able to return value: %s\n", gearman_strerror(gear_con, rc));
+      exit(1);
     }
   }
 

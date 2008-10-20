@@ -1,9 +1,19 @@
-/*
- * Summary: Constants for libgearman
+/* Gearman server and library
+ * Copyright (C) 2008 Brian Aker
  *
- * Copy: See Copyright for the status of this software.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  *
- * Author: Brian Aker
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 #ifndef __GEARMAN_CONSTANTS_H__
@@ -61,12 +71,12 @@ typedef enum {
   /*  End of Failure */
   GEARMAN_BUFFERED,
   GEARMAN_STILL_RUNNING,
-  GEARMAN_MAXIMUM_RETURN, /* Always add new error code before */
+  GEARMAN_MAXIMUM_RETURN /* Always add new error code before */
 } gearman_return;
 
 typedef enum {
   GEARMAN_DISTRIBUTION_MODULA,
-  GEARMAN_DISTRIBUTION_CONSISTENT,
+  GEARMAN_DISTRIBUTION_CONSISTENT
 } gearman_server_distribution;
 
 typedef enum {
@@ -85,11 +95,11 @@ typedef enum {
   GEARMAN_BEHAVIOR_SORT_HOSTS,
   GEARMAN_BEHAVIOR_VERIFY_KEY,
   GEARMAN_BEHAVIOR_CONNECT_TIMEOUT,
-  GEARMAN_BEHAVIOR_RETRY_TIMEOUT,
+  GEARMAN_BEHAVIOR_RETRY_TIMEOUT
 } gearman_behavior;
 
 typedef enum {
-  GEARMAN_BEHAVIOR_JOB_BACKGROUND= 1,
+  GEARMAN_BEHAVIOR_JOB_BACKGROUND= 1
 } gearman_job_behavior;
 
 typedef enum {
@@ -100,7 +110,7 @@ typedef enum {
   GEARMAN_CALLBACK_REALLOC_FUNCTION,
   GEARMAN_CALLBACK_FREE_FUNCTION,
   GEARMAN_CALLBACK_GET_FAILURE,
-  GEARMAN_CALLBACK_DELETE_TRIGGER,
+  GEARMAN_CALLBACK_DELETE_TRIGGER
 } gearman_callback;
 
 typedef enum {
@@ -113,25 +123,25 @@ typedef enum {
   GEARMAN_HASH_FNV1A_32,
   GEARMAN_HASH_KETAMA,
   GEARMAN_HASH_HSIEH,
-  GEARMAN_HASH_MURMUR,
+  GEARMAN_HASH_MURMUR
 } gearman_hash;
 
 typedef enum {
   GEARMAN_NOT_ALLOCATED,
   GEARMAN_ALLOCATED,
-  GEARMAN_USED,
+  GEARMAN_USED
 } gearman_allocated;
 
 typedef enum {
   GEARMAN_SERVER_TYPE_TCP= 0, /* Lease as default for initial state */
-  GEARMAN_SERVER_TYPE_INTERNAL,
+  GEARMAN_SERVER_TYPE_INTERNAL
 } gearman_server_type;
 
 typedef enum {
   GEARMAN_CONNECTION_STATE_LISTENING= 0, /* Leave as default for initial state */
   GEARMAN_CONNECTION_STATE_READ,
   GEARMAN_CONNECTION_STATE_WRITE,
-  GEARMAN_CONNECTION_STATE_CLOSE,
+  GEARMAN_CONNECTION_STATE_CLOSE
 } gearman_connection_state;
 
 typedef enum {
@@ -174,7 +184,7 @@ typedef enum {
   GEARMAN_ECHO_REQ= 16,        /* ?->J: TEXT*/
   GEARMAN_ECHO_RES= 17,        /* J->?: TEXT*/
 
-  GEARMAN_ERROR= 19,           /* J->?: ERRCODE[0]ERR_TEXT*/
+  GEARMAN_ERROR= 19           /* J->?: ERRCODE[0]ERR_TEXT*/
 } gearman_action;
 
 
