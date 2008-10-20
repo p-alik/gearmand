@@ -43,8 +43,8 @@ struct gearman_result_st {
 };
 
 gearman_result_st *gearman_result_create(gearman_result_st *ptr);
-gearman_return gearman_result_value_store(gearman_result_st *ptr, const char *value, ssize_t length);
-gearman_return gearman_result_handle_store(gearman_result_st *ptr, const char *handle, ssize_t length);
+gearman_return gearman_result_value_store(gearman_result_st *ptr, const uint8_t *value, ssize_t length);
+gearman_return gearman_result_handle_store(gearman_result_st *ptr, const uint8_t *handle, ssize_t length);
 void gearman_result_free(gearman_result_st *ptr);
 uint8_t *gearman_result_value(gearman_result_st *result, ssize_t *length);
 ssize_t gearman_result_value_length(gearman_result_st *ptr);

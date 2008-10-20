@@ -36,7 +36,7 @@ void gearman_quit_server(gearman_server_st *server, bool io_death)
     if (io_death == 0)
     {
       ssize_t read_length;
-      char buffer[GEARMAN_MAX_BUFFER];
+      uint8_t buffer[GEARMAN_MAX_BUFFER];
 
       /* (void)gearman_do(server, "quit\r\n", 6, 1); */
 

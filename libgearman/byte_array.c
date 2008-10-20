@@ -61,7 +61,7 @@ void gearman_byte_array_free(gearman_byte_array_st *ptr)
 }
 
 gearman_return gearman_byte_array_store(gearman_byte_array_st *byte_array,
-                                  const char *value, ssize_t length)
+                                        const void *value, ssize_t length)
 {
   gearman_byte_array_st *new_ptr;
 

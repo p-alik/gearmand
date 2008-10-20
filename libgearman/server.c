@@ -88,7 +88,7 @@ static void gearman_server_free(gearman_server_st *host)
     if (host->io_death == 0)
     {
       ssize_t read_length;
-      char buffer[GEARMAN_MAX_BUFFER];
+      uint8_t buffer[GEARMAN_MAX_BUFFER];
 
       /* read until socket is closed, or there is an error
        * closing the socket before all data is read
@@ -96,7 +96,7 @@ static void gearman_server_free(gearman_server_st *host)
        * not read
        */
       while ((read_length=
-	      gearman_io_read(host, buffer, GEARMAN_MAX_BUFFER)) > 0);
+              gearman_io_read(host, buffer, GEARMAN_MAX_BUFFER)) > 0);
     }
     gearman_io_close(host);
 

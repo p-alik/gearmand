@@ -52,8 +52,8 @@ struct gearman_server_st {
   char write_buffer[GEARMAN_MAX_BUFFER];
   size_t write_buffer_offset;
   char read_buffer[GEARMAN_MAX_BUFFER];
-  size_t read_data_length;
-  size_t read_buffer_length;
+  ssize_t read_data_length;
+  ssize_t read_buffer_length;
   char *read_ptr;
   bool sockaddr_inited;
   struct addrinfo *address_info;

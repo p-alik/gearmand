@@ -42,7 +42,7 @@ gearman_result_st *gearman_result_create(gearman_result_st *ptr)
 /*
   NOTE turn into macro
 */
-gearman_return gearman_result_value_store(gearman_result_st *ptr, const char *value, ssize_t length)
+gearman_return gearman_result_value_store(gearman_result_st *ptr, const uint8_t *value, ssize_t length)
 {
   if (ptr->value == NULL)
     ptr->value= gearman_byte_array_create(length);
@@ -50,7 +50,7 @@ gearman_return gearman_result_value_store(gearman_result_st *ptr, const char *va
   return gearman_byte_array_store(ptr->value, value, length);
 }
 
-gearman_return gearman_result_handle_store(gearman_result_st *ptr, const char *handle, ssize_t length)
+gearman_return gearman_result_handle_store(gearman_result_st *ptr, const uint8_t *handle, ssize_t length)
 {
   if (ptr->handle == NULL)
     ptr->handle= gearman_byte_array_create(length);

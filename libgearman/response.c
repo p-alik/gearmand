@@ -21,7 +21,7 @@
 gearman_return gearman_response(gearman_server_st *ptr, 
                                 gearman_result_st *result)
 {
-  char buffer[HUGE_STRING_LEN];
+  uint8_t buffer[HUGE_STRING_LEN];
   ssize_t read_length;
   uint32_t tmp_number;
   gearman_action action;
@@ -102,7 +102,7 @@ gearman_return gearman_response(gearman_server_st *ptr,
     {
       gearman_return rc;
       ssize_t size_of_string;
-      char *start_ptr;
+      uint8_t *start_ptr;
 
       WATCHPOINT_ASSERT(result);
 
@@ -110,7 +110,7 @@ gearman_return gearman_response(gearman_server_st *ptr,
 
       /* Pull out handle */
       {
-        size_of_string= strlen(start_ptr);
+        size_of_string= strlen((char *)start_ptr);
         rc= gearman_result_handle_store(result, start_ptr, size_of_string);
         assert(rc == GEARMAN_SUCCESS);
         start_ptr+= size_of_string + 1; /* One additional for the NULL */
@@ -126,14 +126,14 @@ gearman_return gearman_response(gearman_server_st *ptr,
     {
       gearman_return rc;
       size_t size_of_string;
-      char *start_ptr;
+      uint8_t *start_ptr;
 
       WATCHPOINT_ASSERT(result);
 
       start_ptr= buffer;
 
       {
-        size_of_string= strlen(start_ptr);
+        size_of_string= strlen((char *)start_ptr);
         rc= gearman_result_handle_store(result, start_ptr, size_of_string);
         start_ptr+= size_of_string + 1; /* One additional for the NULL */
         assert(rc == GEARMAN_SUCCESS);
@@ -141,7 +141,7 @@ gearman_return gearman_response(gearman_server_st *ptr,
 
       /* Put in error logic for case where job not known */
       {
-        size_of_string= strlen(start_ptr);
+        size_of_string= strlen((char *)start_ptr);
         assert(size_of_string == 1);
         WATCHPOINT_NUMBER(*start_ptr);
         /* YEs, this is crap, original gearman looked for string value of 0 */
@@ -153,7 +153,7 @@ gearman_return gearman_response(gearman_server_st *ptr,
       }
 
       {
-        size_of_string= strlen(start_ptr);
+        size_of_string= strlen((char *)start_ptr);
         assert(size_of_string == 1);
 
         WATCHPOINT_NUMBER(*start_ptr);
@@ -167,15 +167,15 @@ gearman_return gearman_response(gearman_server_st *ptr,
       }
 
       {
-        size_of_string= strlen(start_ptr);
+        size_of_string= strlen((char *)start_ptr);
         start_ptr+= size_of_string + 1; /* One additional for the NULL */
-        result->numerator= strtol(start_ptr, (char **) NULL, 10);
+        result->numerator= strtol((char *)start_ptr, (char **) NULL, 10);
       }
 
       {
-        size_of_string= strlen(start_ptr);
+        size_of_string= strlen((char *)start_ptr);
         start_ptr+= size_of_string + 1; /* One additional for the NULL */
-        result->denominator= strtol(start_ptr, (char **) NULL, 10);
+        result->denominator= strtol((char *)start_ptr, (char **) NULL, 10);
       }
 
       return rc;
@@ -201,14 +201,16 @@ gearman_return gearman_response(gearman_server_st *ptr,
   case GEARMAN_JOB_ASSIGN: /* J->W: HANDLE[0]FUNC[0]ARG */
     {
       gearman_return rc;
-      char *buffer_ptr;
-      char *start_ptr;
+      uint8_t *buffer_ptr;
+      uint8_t *start_ptr;
 
       buffer_ptr= start_ptr= buffer;
       /* 
         In the future save handle?
         start_ptr, strlen(start_ptr)
       */
+      rc= gearman_result_handle_store(result, start_ptr, strlen((char *)start_ptr));
+      assert(rc == GEARMAN_SUCCESS);
 
       for (; *buffer_ptr != 0; buffer_ptr++); /* duplicate of above */
       buffer_ptr++;
@@ -241,18 +243,18 @@ gearman_return gearman_response(gearman_server_st *ptr,
   case GEARMAN_SUBMIT_JOB_HIGH:
   case GEARMAN_SUBMIT_JOB_BJ:
     {
-      char *buffer_ptr;
-      char *start_ptr;
+      uint8_t *buffer_ptr;
+      uint8_t *start_ptr;
 
       buffer_ptr= start_ptr= buffer;
       WATCHPOINT_STRING(start_ptr);
-      gearman_result_handle_store(result, start_ptr, strlen(start_ptr));
+      gearman_result_handle_store(result, start_ptr, strlen((char *)start_ptr));
       /* We move past the null terminator for the function and the function name */
       buffer_ptr+= gearman_result_handle_length(result) + 1;
       start_ptr= buffer_ptr;
 
       /* We don't handle unique just yet */
-      buffer_ptr+= strlen(start_ptr) + 1;
+      buffer_ptr+= strlen((char *)start_ptr) + 1;
       start_ptr= buffer_ptr;
 
       gearman_result_value_store(result, start_ptr, (size_t)((buffer + response_length) - start_ptr));
