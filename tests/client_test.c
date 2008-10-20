@@ -27,7 +27,7 @@
 #include <time.h>
 
 #define GEARMAN_INTERNAL 1
-#include <libgearman/gearman.h>
+#include <libgearman/gearman_client.h>
 
 #include "test.h"
 
@@ -45,73 +45,55 @@ test_return pre(void *object);
 test_return post(void *object);
 test_return flush(void);
 
-test_return init_test(void *not_used)
+test_return init_test(void *not_used __attribute__((unused)))
 {
-  gearman_st object;
-  not_used= NULL; /* suppress compiler warnings */
+  gearman_client_st object;
 
-  (void)gearman_create(&object);
-  gearman_free(&object);
+  (void)gearman_client_create(&object);
+  gearman_client_free(&object);
 
   return TEST_SUCCESS;
 }
 
-test_return allocation_test(void *not_used)
+test_return allocation_test(void *not_used __attribute__((unused)))
 {
-  gearman_st *object;
-  not_used= NULL; /* suppress compiler warnings */
-  object= gearman_create(NULL);
+  gearman_client_st *object;
+  object= gearman_client_create(NULL);
   assert(object);
-  gearman_free(object);
+  gearman_client_free(object);
 
   return TEST_SUCCESS;
 }
 
 test_return clone_test(void *object)
 {
-  gearman_st *param= (gearman_st *)object;
+  gearman_client_st *param= (gearman_client_st *)object;
 
   /* All null? */
   {
-    gearman_st *clone;
-    clone= gearman_clone(NULL, NULL);
+    gearman_client_st *clone;
+    clone= gearman_client_clone(NULL);
     assert(clone);
-    gearman_free(clone);
+    gearman_client_free(clone);
   }
 
   /* Can we init from null? */
   {
-    gearman_st *clone;
-    clone= gearman_clone(NULL, param);
+    gearman_client_st *clone;
+    clone= gearman_client_clone(param);
     assert(clone);
-    gearman_free(clone);
-  }
-
-  /* Can we init from struct? */
-  {
-    gearman_st declared_clone;
-    gearman_st *clone;
-    clone= gearman_clone(&declared_clone, NULL);
-    assert(clone);
-    gearman_free(clone);
-  }
-
-  /* Can we init from struct? */
-  {
-    gearman_st declared_clone;
-    gearman_st *clone;
-    clone= gearman_clone(&declared_clone, param);
-    assert(clone);
-    gearman_free(clone);
+    gearman_client_free(clone);
   }
 
   return TEST_SUCCESS;
 }
 
+#ifdef NOT_DONE
+
 test_return echo_test(void *object)
 {
   gearman_return rc;
-  gearman_st *param= (gearman_st *)object;
+  gearman_client_st *param= (gearman_client_st *)object;
   size_t value_length;
   char *value= "This is my echo test";
 
@@ -210,52 +192,53 @@ test_return error_test(void *object)
   return TEST_SUCCESS;
 }
 
+#endif /* NOT_DONE */
+
 test_return flush(void)
 {
   return TEST_SUCCESS;
 }
 
-void *create(void *not_used)
+void *create(void *not_used __attribute__((unused)))
 {
-  gearman_st *ptr;
+  gearman_client_st *client;
   gearman_return rc;
-  not_used= NULL; /* suppress compiler warnings */
 
-  ptr= gearman_create(NULL);
+  client= gearman_client_create(NULL);
 
-  assert(ptr);
+  assert(client);
 
-  rc= gearman_server_add(ptr, "localhost", 0);
+  rc= gearman_client_server_add(client, "localhost", 0);
 
   assert(rc == GEARMAN_SUCCESS);
 
 
-  return (void *)ptr;
+  return (void *)client;
 }
 
 void destroy(void *object)
 {
-  gearman_st *ptr= (gearman_st *)object;
+  gearman_client_st *client= (gearman_client_st *)object;
 
-  assert(ptr);
+  assert(client);
 
-  gearman_free(object);
+  gearman_client_free(client);
 }
 
 test_return pre(void *object)
 {
-  gearman_st *ptr= (gearman_st *)object;
+  gearman_client_st *client= (gearman_client_st *)object;
 
-  assert(ptr);
+  assert(client);
 
   return TEST_SUCCESS;
 }
 
 test_return post(void *object)
 {
-  gearman_st *ptr= (gearman_st *)object;
+  gearman_client_st *client= (gearman_client_st *)object;
 
-  assert(ptr);
+  assert(client);
 
   return TEST_SUCCESS;
 }
@@ -265,11 +248,13 @@ test_st tests[] ={
   {"init", 0, init_test },
   {"allocation", 0, allocation_test },
   {"clone_test", 0, clone_test },
+#ifdef NOT_DONE
   {"error", 0, error_test },
   {"echo", 0, echo_test },
   {"submit_job", 0, submit_job_test },
   {"submit_job2", 0, submit_job_test },
   {"background", 0, background_test },
+#endif
   {0, 0, 0}
 };
 

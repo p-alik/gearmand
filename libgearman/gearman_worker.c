@@ -44,6 +44,9 @@ void gearman_worker_free(gearman_worker_st *worker)
   /* If we have anything open, lets close it now */
   gearman_server_list_free(&worker->list);
 
+  if (worker->function_name)
+    free(worker->function_name);
+
   if (worker->is_allocated == true)
       free(worker);
   else
@@ -86,4 +89,19 @@ gearman_return gearman_worker_server_add(gearman_worker_st *worker,
                                          uint16_t port)
 {
   return gearman_server_add(&worker->list, hostname, port);
+}
+
+gearman_return gearman_server_function_register(gearman_worker_st *worker,
+                                                const char *function_name,
+                                                gearman_worker_function *function)
+{
+  assert(function_name);
+  assert(function);
+
+  if (strcpy(worker->function_name, function_name) == NULL)
+    return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+
+  worker->function= function;
+
+  return GEARMAN_SUCCESS;
 }

@@ -16,14 +16,16 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 AM_CFLAGS= -I$(top_builddir)
-AM_LDFLAGS= $(top_builddir)/libgearman/libgearman.la
+AM_LDFLAGS= 
 
-noinst_PROGRAMS= client_test testworker
+noinst_PROGRAMS= client_test worker_test
 noinst_HEADERS= test.h
 
-client_test_SOURCES= test.c function.c
+client_test_SOURCES= test.c client_test.c
+client_test_LDFLAGS= $(top_builddir)/libgearman/libgearman_client.la
 
-testworker_SOURCES= test.c worker_drone.c
+worker_test_SOURCES= test.c worker_test.c
+worker_test_LDFLAGS= $(top_builddir)/libgearman/libgearman_worker.la
 
 record:
 	./client_test output.txt > output.res
@@ -32,4 +34,5 @@ test: client_test
 	diff output.res output.cmp
 
 valgrind:
-	libtool --mode=execute valgrind --leak-check=yes --show-reachable=yes  client_test output.txt
+	libtool --mode=execute valgrind --leak-check=yes --show-reachable=yes  client_test
+	libtool --mode=execute valgrind --leak-check=yes --show-reachable=yes  worker_test

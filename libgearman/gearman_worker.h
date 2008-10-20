@@ -16,8 +16,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef __GEARMAN_CLIENT_H__
-#define __GEARMAN_CLIENT_H__
+#ifndef __GEARMAN_WORKER_H__
+#define __GEARMAN_WORKER_H__
 
 #include <libgearman/libgearman_config.h>
 
@@ -46,9 +46,17 @@ extern "C" {
 /* These are Private and should not be used by applications */
 #define GEARMAN_H_VERSION_STRING_LENGTH 12
 
+
+struct gearman_job_st {
+  bool is_allocated;
+  gearman_server_list_st list;
+};
+
 struct gearman_worker_st {
   bool is_allocated;
   gearman_server_list_st list;
+  char *function_name;
+  gearman_worker_function *function;
 };
 
 /* Public API */
@@ -63,8 +71,13 @@ gearman_return gearman_worker_server_add(gearman_worker_st *worker,
                                          const char *hostname,
                                          uint16_t port);
 
+/* Register a function to the server, and store the function we will call */
+gearman_return gearman_server_function_register(gearman_worker_st *worker,
+                                                const char *function_name,
+                                                gearman_worker_function *function);
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __GEARMAN_CLIENT_H__ */
+#endif /* __GEARMAN_WORKER_H__ */

@@ -23,6 +23,9 @@
 extern "C" {
 #endif
 
+#include <stdlib.h>
+#include <inttypes.h>
+
 typedef struct gearman_client_st gearman_client_st;
 typedef struct gearman_result_st gearman_result_st;
 typedef struct gearman_job_st gearman_job_st;
@@ -30,6 +33,10 @@ typedef struct gearman_byte_array_st gearman_byte_array_st;
 typedef struct gearman_server_list_st gearman_server_list_st;
 typedef struct gearman_server_st gearman_server_st;
 typedef struct gearman_worker_st gearman_worker_st;
+
+typedef uint8_t* (*gearman_worker_function)(gearman_job_st *job,
+                                            ssize_t *result_length,  
+                                            gearman_return *error);
 
 #ifdef GEARMAN_INTERNAL 
 typedef struct giov_st giov_st;
