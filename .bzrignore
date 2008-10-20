@@ -38,3 +38,10 @@ tests/Makefile
 tests/Makefile.in
 tests/client_test
 tests/worker_test
+libgearman/byte_array.lo
+libgearman/connect.lo
+libgearman/dispatch.lo
+libgearman/response.lo
+libgearman/result.lo
+libgearman/str_action.lo
+libgearman/str_error.lo
