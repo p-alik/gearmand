@@ -38,9 +38,7 @@ typedef uint8_t* (*gearman_worker_function)(gearman_job_st *job,
                                             ssize_t *result_length,  
                                             gearman_return *error);
 
-#ifdef GEARMAN_INTERNAL 
 typedef struct giov_st giov_st;
-#endif
 
 #ifdef __cplusplus
 }

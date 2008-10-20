@@ -23,6 +23,11 @@
 extern "C" {
 #endif
 
+#include <libgearman/constants.h>
+#include <libgearman/types.h>
+
+gearman_return gearman_connect(gearman_server_st *server);
+
 #ifdef __cplusplus
 }
 #endif

@@ -17,29 +17,32 @@
  */
 
 #include "common.h"
+#include <libgearman/dispatch.h>
+#include <libgearman/server.h>
+#include <libgearman/connect.h>
 
-gearman_return gearman_dispatch(gearman_server_st *ptr, 
+gearman_return gearman_dispatch(gearman_server_st *server, 
                                 gearman_action action,
                                 giov_st *giov,
-                                uint8_t with_flush)
+                                bool with_flush)
 {
   size_t sent_length;
   size_t total_length;
   uint32_t tmp_store;
   gearman_return rc;
 
-  if ((rc= gearman_connect(ptr)) != GEARMAN_SUCCESS)
+  if ((rc= gearman_connect(server)) != GEARMAN_SUCCESS)
     return rc;
 
   /* Header, aka pick the right one! */
-  if (ptr->type == GEARMAN_SERVER_TYPE_INTERNAL)
-    sent_length= gearman_io_write(ptr, "\0RES", 4, 0);
+  if (server->type == GEARMAN_SERVER_TYPE_INTERNAL)
+    sent_length= gearman_io_write(server, "\0RES", 4, false);
   else
-    sent_length= gearman_io_write(ptr, "\0REQ", 4, 0);
+    sent_length= gearman_io_write(server, "\0REQ", 4, false);
 
   /* Action */
   tmp_store= htonl(action);
-  sent_length= gearman_io_write(ptr, (char *)&tmp_store, sizeof(uint32_t), 0);
+  sent_length= gearman_io_write(server, (char *)&tmp_store, sizeof(uint32_t), false);
   
   /* Value! */
   switch(action)
@@ -52,7 +55,7 @@ gearman_return gearman_dispatch(gearman_server_st *ptr,
   case GEARMAN_GRAB_JOB:
     {
       total_length= sent_length= 0;
-      (void)gearman_io_write(ptr, (char *)&total_length, sizeof(uint32_t), 0);
+      (void)gearman_io_write(server, (char *)&total_length, sizeof(uint32_t), false);
       break;
     }
     /* One Argument */
@@ -71,8 +74,8 @@ gearman_return gearman_dispatch(gearman_server_st *ptr,
     {
       total_length= giov->arg_length;
       tmp_store= htonl(total_length);
-      sent_length= gearman_io_write(ptr, (char *)&tmp_store, sizeof(uint32_t), 0);
-      sent_length= gearman_io_write(ptr, giov->arg, giov->arg_length, 0);
+      sent_length= gearman_io_write(server, (char *)&tmp_store, sizeof(uint32_t), false);
+      sent_length= gearman_io_write(server, giov->arg, giov->arg_length, false);
 
       break;
     }
@@ -86,14 +89,14 @@ gearman_return gearman_dispatch(gearman_server_st *ptr,
       total_length+= (giov + 1)->arg_length;
 
       tmp_store= htonl(total_length);
-      sent_length= gearman_io_write(ptr, (char *)&tmp_store, sizeof(uint32_t), 0);
+      sent_length= gearman_io_write(server, (char *)&tmp_store, sizeof(uint32_t), false);
 
 
-      sent_length= gearman_io_write(ptr, giov->arg, giov->arg_length, 0);
-      sent_length+= gearman_io_write(ptr, "\0", 1, 0);
+      sent_length= gearman_io_write(server, giov->arg, giov->arg_length, false);
+      sent_length+= gearman_io_write(server, "\0", 1, false);
 
       if ((giov + 1)->arg_length)
-        sent_length+= gearman_io_write(ptr, (giov + 1)->arg, (giov + 1)->arg_length, 0);
+        sent_length+= gearman_io_write(server, (giov + 1)->arg, (giov + 1)->arg_length, false);
 
       break;
     }
@@ -113,15 +116,15 @@ gearman_return gearman_dispatch(gearman_server_st *ptr,
       }
       total_length--; /* Remove final NULL */
       tmp_store= htonl(total_length);
-      sent_length= gearman_io_write(ptr, (char *)&tmp_store, sizeof(uint32_t), 0);
+      sent_length= gearman_io_write(server, (char *)&tmp_store, sizeof(uint32_t), false);
 
       /* Strings */
       for (x= 0, sent_length= 0; x < 3; x++)
       {
         if ((giov + x)->arg_length)
-          sent_length+= gearman_io_write(ptr, (giov + x)->arg, (giov + x)->arg_length, 0);
+          sent_length+= gearman_io_write(server, (giov + x)->arg, (giov + x)->arg_length, false);
         if (x != 2)
-          sent_length+= gearman_io_write(ptr, "\0", 1, 0);
+          sent_length+= gearman_io_write(server, "\0", 1, false);
       }
 
       break;
@@ -138,15 +141,15 @@ gearman_return gearman_dispatch(gearman_server_st *ptr,
       }
       total_length--;
       tmp_store= htonl(total_length);
-      sent_length= gearman_io_write(ptr, (char *)&tmp_store, sizeof(uint32_t), 0);
+      sent_length= gearman_io_write(server, (char *)&tmp_store, sizeof(uint32_t), false);
 
       /* Strings */
       for (x= 0, sent_length= 0; x < 5; x++)
       {
         if ((giov + x)->arg_length)
-          sent_length+= gearman_io_write(ptr, (giov + x)->arg, (giov + x)->arg_length, 0);
+          sent_length+= gearman_io_write(server, (giov + x)->arg, (giov + x)->arg_length, false);
         if (x != 4)
-          sent_length+= gearman_io_write(ptr, "\0", 1, 0);
+          sent_length+= gearman_io_write(server, "\0", 1, false);
       }
 
       break;
@@ -157,7 +160,7 @@ gearman_return gearman_dispatch(gearman_server_st *ptr,
     return GEARMAN_FAILURE;
   }
 
-  (void)gearman_io_write(ptr, NULL, 0, with_flush);
+  (void)gearman_io_write(server, NULL, 0, with_flush);
 
   /* We should eventually fix this */
   if (sent_length != total_length)

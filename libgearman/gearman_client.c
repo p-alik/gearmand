@@ -107,26 +107,39 @@ gearman_return gearman_client_do_background(gearman_client_st *client __attribut
   return GEARMAN_SUCCESS;
 }
 
-gearman_return gearman_client_echo(gearman_client_st *client __attribute__((unused)),
-                                   const char *message __attribute__((unused)),
-                                   ssize_t message_length __attribute__((unused)))
+gearman_return gearman_client_echo(gearman_client_st *client,
+                                   const char *message,
+                                   ssize_t message_length)
 {
-#ifdef CRAP
+  gearman_return rc;
   giov_st giov[1];
   gearman_server_st *server;
+  gearman_result_st result;
 
-  if (client->list->number_of_hosts == 0)
+  if (gearman_result_create(&result) == NULL)
     return GEARMAN_FAILURE;
 
-  gearman_server_st *server= &(client->list->hosts[0]);
+  if (client->list.number_of_hosts == 0)
+    return GEARMAN_FAILURE;
 
-  giov[0].arg= (const uint8_t *)message;
+  WATCHPOINT;
+  server= &(client->list.hosts[0]);
+  assert(server);
+
+  giov[0].arg= (const void *)message;
   giov[0].arg_length= message_length;
-  rc= gearman_dispatch(server, GEARMAN_ECHO_REQ, giov, 1);
+  rc= gearman_dispatch(server, GEARMAN_ECHO_REQ, giov, true);
+  assert(rc == GEARMAN_SUCCESS);
 
-  if (message_length == return_length && memcmp(message, return, return_length))
-    return GEARMAN_SUCCESS;
+  rc= gearman_response(server, &result);
+
+  if (message_length == gearman_result_value_length(&result) 
+      && memcmp(message, gearman_result_value(&result, NULL), gearman_result_value_length(&result)) == 0)
+    rc= GEARMAN_SUCCESS;
   else
-#endif 
-    return GEARMAN_FAILURE;
+    rc= GEARMAN_FAILURE;
+
+  gearman_result_free(&result);
+
+  return rc;
 }

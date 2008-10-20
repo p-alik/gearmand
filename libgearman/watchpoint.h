@@ -23,25 +23,27 @@
 extern "C" {
 #endif
 
+#include <libgearman/str_action.h>
+#include <libgearman/str_error.h>
+
 /* Some personal debugging functions */
-#ifdef GEARMAN_INTERNAL 
 #ifdef HAVE_DEBUG
 #define WATCHPOINT { fprintf(stderr, "\nWATCHPOINT %s:%d (%s)\n", \
                            __FILE__, __LINE__, __func__); \
                      fflush(stdout); }
 #define WATCHPOINT_ERROR(A) { fprintf(stderr, "\nWATCHPOINT %s:%d (%s) %s\n", \
                                       __FILE__, __LINE__, __func__, \
-                                      gearman_strerror(NULL, A)); \
+                                      gearman_strerror(A)); \
                               fflush(stdout); }
 #define WATCHPOINT_ACTION(A) { fprintf(stderr, "\nWATCHPOINT %s:%d (%s) %s\n", \
                                        __FILE__, __LINE__, __func__, \
-                                       gearman_straction(NULL, A)); \
+                                       gearman_straction(A)); \
                                fflush(stdout); }
 #define WATCHPOINT_IFERROR(A) { if (A != GEARMAN_SUCCESS) { \
                                   fprintf(stderr, \
                                           "\nWATCHPOINT %s:%d (%s) %s\n", \
                                           __FILE__, __LINE__, __func__, \
-                                          gearman_strerror(NULL, A)); \
+                                          gearman_strerror(A)); \
                                   fflush(stdout); } }
 #define WATCHPOINT_STRING(A) { fprintf(stderr, "\nWATCHPOINT %s:%d (%s) %s\n", \
                                        __FILE__, __LINE__, __func__, A); \
@@ -72,7 +74,6 @@ extern "C" {
 #define WATCHPOINT_ERRNO(A) {}
 #define WATCHPOINT_ASSERT(A) {}
 #endif /* HAVE_DEBUG */
-#endif /* GEARMAN_INTERNAL */
 
 #ifdef __cplusplus
 }

@@ -31,29 +31,23 @@ extern "C" {
 */ 
 
 struct gearman_result_st {
+  bool is_allocated;
   gearman_action action;
-  gearman_allocated is_allocated;
-  gearman_st *root;
-  gearman_byte_array_st handle;
-  gearman_byte_array_st value;
+  gearman_byte_array_st *handle;
+  gearman_byte_array_st *value;
   uint32_t numerator;
   uint32_t denominator;
 };
 
-void gearman_result_free(gearman_result_st *result);
-void gearman_result_reset(gearman_result_st *ptr);
-gearman_result_st *gearman_result_create(gearman_st *ptr, 
-                                         gearman_result_st *result);
-char *gearman_result_value(gearman_result_st *ptr);
-size_t gearman_result_length(gearman_result_st *ptr);
+gearman_result_st *gearman_result_create(gearman_result_st *ptr);
+gearman_return gearman_result_value_store(gearman_result_st *ptr, const char *value, ssize_t length);
+gearman_return gearman_result_handle_store(gearman_result_st *ptr, const char *handle, ssize_t length);
+void gearman_result_free(gearman_result_st *ptr);
+uint8_t *gearman_result_value(gearman_result_st *result, ssize_t *length);
+ssize_t gearman_result_value_length(gearman_result_st *ptr);
+uint8_t *gearman_result_handle(gearman_result_st *result, ssize_t *length);
+ssize_t gearman_result_handle_length(gearman_result_st *ptr);
 
-char *gearman_result_handle(gearman_result_st *ptr);
-size_t gearman_result_handle_length(gearman_result_st *ptr);
-
-gearman_return gearman_result_set_value(gearman_result_st *ptr, char *value,
-                                        size_t length);
-gearman_return gearman_result_set_handle(gearman_result_st *ptr, char *handle,
-                                         size_t length);
 
 #ifdef __cplusplus
 }

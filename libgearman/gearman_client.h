@@ -38,6 +38,7 @@
 #include <libgearman/watchpoint.h>
 #include <libgearman/server.h>
 #include <libgearman/quit.h>
+#include <libgearman/dispatch.h>
 
 #ifdef __cplusplus
 extern "C" {

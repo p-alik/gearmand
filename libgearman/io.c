@@ -143,10 +143,11 @@ ssize_t gearman_io_read(gearman_server_st *ptr,
 }
 
 ssize_t gearman_io_write(gearman_server_st *ptr,
-                           char *buffer, size_t length, char with_flush)
+			 const void *buffer, ssize_t length, 
+			 bool with_flush)
 {
-  size_t original_length;
-  char* buffer_ptr;
+  ssize_t original_length;
+  const uint8_t* buffer_ptr;
 
   original_length= length;
   buffer_ptr= buffer;
@@ -154,7 +155,7 @@ ssize_t gearman_io_write(gearman_server_st *ptr,
   while (length)
   {
     char *write_ptr;
-    size_t should_write;
+    ssize_t should_write;
 
     should_write= GEARMAN_MAX_BUFFER - ptr->write_buffer_offset;
     write_ptr= ptr->write_buffer + ptr->write_buffer_offset;
@@ -221,7 +222,7 @@ static ssize_t io_flush(gearman_server_st *ptr,
 
     sent_length= 0;
     {
-      WATCHPOINT_NUMBER(ptr->fd);
+      WATCHPOINT_ASSERT(ptr->fd != -1);
       if ((ssize_t)(sent_length= write(ptr->fd, local_write_ptr, 
                                        write_length)) == -1)
       {

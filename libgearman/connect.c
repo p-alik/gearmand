@@ -17,6 +17,7 @@
  */
 
 #include "common.h"
+#include <libgearman/connect.h>
 
 static gearman_return set_hostinfo(gearman_server_st *server)
 {
@@ -126,7 +127,7 @@ static gearman_return network_connect(gearman_server_st *ptr)
     /* Old connection junk still is in the structure */
     WATCHPOINT_ASSERT(ptr->cursor_active == 0);
 
-    if (ptr->sockaddr_inited == GEARMAN_NOT_ALLOCATED || 
+    if (ptr->sockaddr_inited == false || 
         (!(ptr->root->flags & GEAR_USE_CACHE_LOOKUPS)))
     {
       gearman_return rc;
@@ -134,7 +135,7 @@ static gearman_return network_connect(gearman_server_st *ptr)
       rc= set_hostinfo(ptr);
       if (rc != GEARMAN_SUCCESS)
         return rc;
-      ptr->sockaddr_inited= GEARMAN_ALLOCATED;
+      ptr->sockaddr_inited= true;
     }
 
     use= ptr->address_info;
@@ -218,24 +219,24 @@ test_connect:
 }
 
 
-gearman_return gearman_connect(gearman_server_st *ptr)
+gearman_return gearman_connect(gearman_server_st *server)
 {
   gearman_return rc= GEARMAN_NO_SERVERS;
 
-  if (ptr->type == GEARMAN_SERVER_TYPE_INTERNAL)
+  if (server->type == GEARMAN_SERVER_TYPE_INTERNAL)
     return GEARMAN_SUCCESS;
 
-  if (ptr->root->retry_timeout)
+  if (server->root->retry_timeout)
   {
     struct timeval next_time;
 
     gettimeofday(&next_time, NULL);
-    if (next_time.tv_sec < ptr->next_retry)
+    if (next_time.tv_sec < server->next_retry)
       return GEARMAN_TIMEOUT;
   }
 
   /* We need to clean up the multi startup piece */
-  rc= network_connect(ptr);
+  rc= network_connect(server);
 
   if (rc != GEARMAN_SUCCESS)
     WATCHPOINT_ERROR(rc);

@@ -33,7 +33,12 @@ extern "C" {
 struct gearman_server_list_st {
   gearman_server_st *hosts;
   uint32_t number_of_hosts;
+  uint32_t flags;
+  int send_size;
+  int recv_size;
   int32_t poll_timeout;
+  int32_t connect_timeout;
+  int32_t retry_timeout;
 };
 
 /* You should never reference this directly */

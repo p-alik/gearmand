@@ -23,16 +23,24 @@
 extern "C" {
 #endif
 
-#ifdef GEARMAN_INTERNAL 
-gearman_return gearman_dispatch(gearman_server_st *ptr, gearman_action action,
-                                giov_st *giov, uint8_t with_flush);
+#include <stdlib.h>
+#include <stdbool.h>
+#include <libgearman/libgearman_config.h>
+#include <libgearman/constants.h>
+#include <libgearman/types.h>
+#include <libgearman/watchpoint.h>
+#include <libgearman/server.h>
+
+gearman_return gearman_dispatch(gearman_server_st *server, 
+                                gearman_action action,
+                                giov_st *giov,
+                                bool with_flush);
 
 /* IO Vector */
 struct giov_st {
-  char *arg;
-  size_t arg_length;
+  const void *arg;
+  ssize_t arg_length;
 };
-#endif /* GEARMAN_INTERNAL */
 
 #ifdef __cplusplus
 }

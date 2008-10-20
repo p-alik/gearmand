@@ -21,8 +21,22 @@
 
 #define GEARMAN_INTERNAL 1
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <inttypes.h>
+#include <stdbool.h>
+
 #include <libgearman/io.h>
 #include <libgearman/quit.h>
+#include <libgearman/constants.h>
+#include <libgearman/types.h>
+#include <libgearman/watchpoint.h>
+#include <libgearman/str_error.h>
+#include <libgearman/str_action.h>
+#include <libgearman/byte_array.h>
+#include <libgearman/result.h>
+#include <libgearman/response.h>
 
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
@@ -98,10 +112,16 @@
 #define HUGE_STRING_LEN 8192
 #define PACKET_HEADER_LENGTH 12
 
-gearman_return gearman_connect(gearman_server_st *ptr);
-
 #define gearman_server_response_increment(A) (A)->cursor_active++
 #define gearman_server_response_decrement(A) (A)->cursor_active--
 #define gearman_server_response_reset(A) (A)->cursor_active=0
+
+typedef enum {
+  GEAR_NO_BLOCK= (1 << 0),
+  GEAR_TCP_NODELAY= (1 << 1),
+  GEAR_REUSE_GEARORY= (1 << 2),
+  GEAR_USE_CACHE_LOOKUPS= (1 << 6),
+} gearman_flags;
+
 
 #endif /* __GEARMAN_COMMON_H__ */

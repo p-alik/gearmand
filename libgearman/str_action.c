@@ -18,11 +18,8 @@
 
 #include "common.h"
 
-char *gearman_straction(gearman_st *ptr, gearman_action action)
+const char *gearman_straction(gearman_action action)
 {
-  /* do something with the ptr, set and ignore for now (compile warnings) */
-  ptr = NULL;
-
   switch (action)
   {
   case GEARMAN_JOB_CREATED:

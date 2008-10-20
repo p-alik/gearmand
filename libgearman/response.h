@@ -25,7 +25,6 @@ extern "C" {
 
 /* Public defines */
 gearman_return gearman_response(gearman_server_st *ptr, 
-                                gearman_byte_array_st *handle,
                                 gearman_result_st *result);
 
 #ifdef __cplusplus

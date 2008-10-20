@@ -19,7 +19,6 @@
 #include "common.h"
 
 gearman_return gearman_response(gearman_server_st *ptr, 
-                                gearman_byte_array_st *handle,
                                 gearman_result_st *result)
 {
   char buffer[HUGE_STRING_LEN];
@@ -81,7 +80,10 @@ gearman_return gearman_response(gearman_server_st *ptr,
     {
       if (response_length)
       {
-        gearman_byte_array_store(handle, buffer, response_length);
+        gearman_return rc;
+
+        rc= gearman_result_value_store(result, buffer, response_length);
+        assert(rc == GEARMAN_SUCCESS);
       }
       else
         return GEARMAN_FAILURE;
@@ -92,7 +94,8 @@ gearman_return gearman_response(gearman_server_st *ptr,
     /* Return value */
   case GEARMAN_WORK_COMPLETE:
     {
-      size_t size_of_string;
+      gearman_return rc;
+      ssize_t size_of_string;
       char *start_ptr;
 
       WATCHPOINT_ASSERT(result);
@@ -102,12 +105,14 @@ gearman_return gearman_response(gearman_server_st *ptr,
       /* Pull out handle */
       {
         size_of_string= strlen(start_ptr);
-        gearman_result_set_handle(result, start_ptr, size_of_string);
+        rc= gearman_result_handle_store(result, start_ptr, size_of_string);
+        assert(rc == GEARMAN_SUCCESS);
         start_ptr+= size_of_string + 1; /* One additional for the NULL */
       }
 
       /* Pull out actual result */
-      gearman_byte_array_store(&(result->value), start_ptr, (size_t)((buffer + response_length) - start_ptr));
+      rc= gearman_result_value_store(result, start_ptr, (size_t)((buffer + response_length) - start_ptr)); 
+      assert(rc == GEARMAN_SUCCESS);
 
       return GEARMAN_SUCCESS;
     }
@@ -123,8 +128,9 @@ gearman_return gearman_response(gearman_server_st *ptr,
 
       {
         size_of_string= strlen(start_ptr);
-        gearman_result_set_handle(result, start_ptr, size_of_string);
+        rc= gearman_result_handle_store(result, start_ptr, size_of_string);
         start_ptr+= size_of_string + 1; /* One additional for the NULL */
+        assert(rc == GEARMAN_SUCCESS);
       }
 
       /* Put in error logic for case where job not known */
@@ -167,8 +173,11 @@ gearman_return gearman_response(gearman_server_st *ptr,
   case GEARMAN_ECHO_REQ:
   case GEARMAN_ECHO_RES:
     {
+      gearman_return rc;
       WATCHPOINT_ASSERT(result);
-      gearman_byte_array_store(&(result->value), buffer, response_length);
+      WATCHPOINT_STRING(buffer);
+      rc= gearman_result_value_store(result, buffer, response_length);
+      assert(rc == GEARMAN_SUCCESS);
 
       return GEARMAN_SUCCESS;
     }
@@ -176,11 +185,15 @@ gearman_return gearman_response(gearman_server_st *ptr,
     return GEARMAN_NOT_FOUND;
   case GEARMAN_JOB_ASSIGN: /* J->W: HANDLE[0]FUNC[0]ARG */
     {
+      gearman_return rc;
       char *buffer_ptr;
       char *start_ptr;
 
       buffer_ptr= start_ptr= buffer;
-      gearman_result_set_handle(result, start_ptr, strlen(start_ptr));
+      /* 
+        In the future save handle?
+        start_ptr, strlen(start_ptr)
+      */
 
       for (; *buffer_ptr != 0; buffer_ptr++); /* duplicate of above */
       buffer_ptr++;
@@ -190,7 +203,9 @@ gearman_return gearman_response(gearman_server_st *ptr,
       buffer_ptr++;
       start_ptr= buffer_ptr;
 
-      gearman_result_set_value(result, start_ptr, (size_t)((buffer + response_length) - start_ptr));
+      WATCHPOINT_ASSERT(result);
+      rc= gearman_result_value_store(result, start_ptr, (size_t)((buffer + response_length) - start_ptr));
+      assert(rc == GEARMAN_SUCCESS);
 
       return GEARMAN_SUCCESS;
     }
@@ -200,7 +215,10 @@ gearman_return gearman_response(gearman_server_st *ptr,
     }
   case GEARMAN_WORK_FAIL:
     {
-      gearman_byte_array_store(&(result->handle), buffer, response_length);
+      gearman_return rc;
+
+      rc= gearman_result_value_store(result, buffer, response_length);
+      assert(rc == GEARMAN_SUCCESS);
 
       return GEARMAN_FAILURE;
     }
@@ -213,7 +231,7 @@ gearman_return gearman_response(gearman_server_st *ptr,
 
       buffer_ptr= start_ptr= buffer;
       WATCHPOINT_STRING(start_ptr);
-      gearman_result_set_handle(result, start_ptr, strlen(start_ptr));
+      gearman_result_handle_store(result, start_ptr, strlen(start_ptr));
       /* We move past the null terminator for the function and the function name */
       buffer_ptr+= gearman_result_handle_length(result) + 1;
       start_ptr= buffer_ptr;
@@ -222,7 +240,7 @@ gearman_return gearman_response(gearman_server_st *ptr,
       buffer_ptr+= strlen(start_ptr) + 1;
       start_ptr= buffer_ptr;
 
-      gearman_result_set_value(result, start_ptr, (size_t)((buffer + response_length) - start_ptr));
+      gearman_result_value_store(result, start_ptr, (size_t)((buffer + response_length) - start_ptr));
       WATCHPOINT_NUMBER(((buffer + response_length) - start_ptr));
       WATCHPOINT_STRING_LENGTH(start_ptr, (size_t)((buffer + response_length) - start_ptr));
 
@@ -230,7 +248,11 @@ gearman_return gearman_response(gearman_server_st *ptr,
     }
   case GEARMAN_GET_STATUS:
     {
-      gearman_result_set_handle(result, buffer, response_length);
+      gearman_return rc;
+
+      rc= gearman_result_value_store(result, buffer, response_length);
+      assert(rc == GEARMAN_SUCCESS);
+
       return GEARMAN_SUCCESS;
     }
   case GEARMAN_RESET_ABILITIES:

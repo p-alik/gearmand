@@ -32,6 +32,7 @@ pkginclude_HEADERS= \
 	response.h \
 	result.h \
 	server.h \
+	str_error.h \
 	str_action.h \
 	types.h \
 	watchpoint.h
@@ -42,9 +43,16 @@ noinst_HEADERS= \
 	io.h
 
 libgearman_client_la_SOURCES= \
+	byte_array.c \
 	gearman_client.c \
 	io.c \
+	connect.c \
+	dispatch.c \
 	quit.c \
+	response.c \
+	result.c \
+	str_action.c \
+	str_error.c \
 	server.c
 
 libgearman_client_la_LDFLAGS= -version-info $(GEARMAN_LIBRARY_VERSION)

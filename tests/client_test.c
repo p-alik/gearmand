@@ -88,22 +88,25 @@ test_return clone_test(void *object)
   return TEST_SUCCESS;
 }
 
-#ifdef NOT_DONE
-
 test_return echo_test(void *object)
 {
   gearman_return rc;
-  gearman_client_st *param= (gearman_client_st *)object;
+  gearman_client_st *client= (gearman_client_st *)object;
   size_t value_length;
   char *value= "This is my echo test";
 
   value_length= strlen(value);
 
-  rc= gearman_echo(param, value, value_length, NULL);
+  assert (client->list.number_of_hosts);
+  rc= gearman_client_echo(client, value, value_length);
+  WATCHPOINT_ERROR(rc);
   assert(rc == GEARMAN_SUCCESS);
 
   return TEST_SUCCESS;
 }
+
+
+#ifdef NOT_DONE
 
 test_return submit_job_test(void *object)
 {
@@ -209,6 +212,7 @@ void *create(void *not_used __attribute__((unused)))
   assert(client);
 
   rc= gearman_client_server_add(client, "localhost", 0);
+  assert (client->list.number_of_hosts == 1);
 
   assert(rc == GEARMAN_SUCCESS);
 
@@ -248,9 +252,9 @@ test_st tests[] ={
   {"init", 0, init_test },
   {"allocation", 0, allocation_test },
   {"clone_test", 0, clone_test },
+  {"echo", 0, echo_test },
 #ifdef NOT_DONE
   {"error", 0, error_test },
-  {"echo", 0, echo_test },
   {"submit_job", 0, submit_job_test },
   {"submit_job2", 0, submit_job_test },
   {"background", 0, background_test },

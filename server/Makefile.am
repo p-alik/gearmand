@@ -16,9 +16,9 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 AM_CFLAGS= -I$(top_builddir)
-AM_LDFLAGS= $(top_builddir)/libgearman/libgearman.la
+AM_LDFLAGS=
 
-bin_PROGRAMS= gearmand
+bin_PROGRAMS=
 
 noinst_HEADERS= \
 	connection.h \

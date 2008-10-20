@@ -18,14 +18,13 @@
 
 #include "common.h"
 
-gearman_result_st *gearman_result_create(gearman_st *gear_con, 
-                                         gearman_result_st *ptr)
+gearman_result_st *gearman_result_create(gearman_result_st *ptr)
 {
   /* Saving malloc calls :) */
   if (ptr)
   {
     memset(ptr, 0, sizeof(gearman_result_st));
-    ptr->is_allocated= GEARMAN_NOT_ALLOCATED;
+    ptr->is_allocated= false;
   }
   else
   {
@@ -34,39 +33,29 @@ gearman_result_st *gearman_result_create(gearman_st *gear_con,
     if (ptr == NULL)
       return NULL;
     memset(ptr, 0, sizeof(gearman_result_st));
-    ptr->is_allocated= GEARMAN_ALLOCATED;
+    ptr->is_allocated= true;
   }
 
-  ptr->root= gear_con;
-  gearman_byte_array_create(gear_con, &ptr->handle, 0);
-  gearman_byte_array_create(gear_con, &ptr->value, 0);
-  WATCHPOINT_ASSERT(ptr->value.byte_array == NULL);
-  WATCHPOINT_ASSERT(ptr->value.is_allocated == GEARMAN_NOT_ALLOCATED);
-  WATCHPOINT_ASSERT(ptr->handle.byte_array == NULL);
-  WATCHPOINT_ASSERT(ptr->handle.is_allocated == GEARMAN_NOT_ALLOCATED);
-
   return ptr;
-}
-
-void gearman_result_reset(gearman_result_st *ptr)
-{
-  gearman_byte_array_reset(&ptr->value);
-  gearman_byte_array_reset(&ptr->handle);
-  ptr->numerator= 0;
-  ptr->denominator= 0;
 }
 
 /*
   NOTE turn into macro
 */
-gearman_return gearman_result_set_value(gearman_result_st *ptr, char *value, size_t length)
+gearman_return gearman_result_value_store(gearman_result_st *ptr, const char *value, ssize_t length)
 {
-  return gearman_byte_array_store(&ptr->value, value, length);
+  if (ptr->value == NULL)
+    ptr->value= gearman_byte_array_create(length);
+
+  return gearman_byte_array_store(ptr->value, value, length);
 }
 
-gearman_return gearman_result_set_handle(gearman_result_st *ptr, char *handle, size_t length)
+gearman_return gearman_result_handle_store(gearman_result_st *ptr, const char *handle, ssize_t length)
 {
-  return gearman_byte_array_store(&ptr->handle, handle, length);
+  if (ptr->handle == NULL)
+    ptr->handle= gearman_byte_array_create(length);
+
+  return gearman_byte_array_store(ptr->handle, handle, length);
 }
 
 void gearman_result_free(gearman_result_st *ptr)
@@ -74,35 +63,33 @@ void gearman_result_free(gearman_result_st *ptr)
   if (ptr == NULL)
     return;
 
-  gearman_byte_array_free(&ptr->value);
-  gearman_byte_array_free(&ptr->handle);
+  gearman_byte_array_free(ptr->value);
+  gearman_byte_array_free(ptr->handle);
 
-  if (ptr->is_allocated == GEARMAN_ALLOCATED)
+  if (ptr->is_allocated == true)
     free(ptr);
-  else
-    ptr->is_allocated= GEARMAN_USED;
 }
 
-char *gearman_result_value(gearman_result_st *ptr)
+uint8_t *gearman_result_value(gearman_result_st *result, ssize_t *length)
 {
-  gearman_byte_array_st *sptr= &ptr->value;
-  return gearman_byte_array_value(sptr);
+  if (length)
+    *length= result->value->length;
+  return result->value->value;
 }
 
-size_t gearman_result_length(gearman_result_st *ptr)
+ssize_t gearman_result_value_length(gearman_result_st *result)
 {
-  gearman_byte_array_st *sptr= &ptr->value;
-  return gearman_byte_array_length(sptr);
+  return result->value->length;
 }
 
-char *gearman_result_handle(gearman_result_st *ptr)
+uint8_t *gearman_result_handle(gearman_result_st *result, ssize_t *length)
 {
-  gearman_byte_array_st *sptr= &ptr->handle;
-  return gearman_byte_array_value(sptr);
+  if (length)
+    *length= result->handle->length;
+  return result->handle->value;
 }
 
-size_t gearman_result_handle_length(gearman_result_st *ptr)
+ssize_t gearman_result_handle_length(gearman_result_st *result)
 {
-  gearman_byte_array_st *sptr= &ptr->handle;
-  return gearman_byte_array_length(sptr);
+  return result->handle->length;
 }

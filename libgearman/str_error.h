@@ -16,18 +16,18 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef __GEARMAN_STR_ACTION_H__
-#define __GEARMAN_STR_ACTION_H__
+#ifndef __GEARMAN_STR_ERROR_H__
+#define __GEARMAN_STR_ERROR_H__
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /* Public defines */
-const char *gearman_straction(gearman_action action);
+const char *gearman_strerror(gearman_return rc);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __GEARMAN_STR_ACTION_H__ */
+#endif /* __GEARMAN_STR_ERROR_H__ */
