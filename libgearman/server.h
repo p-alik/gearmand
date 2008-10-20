@@ -16,13 +16,27 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef __GEARMAN_SERVER_H__
-#define __GEARMAN_SERVER_H__
+#ifndef __LIBGEARMAN_SERVER_H__
+#define __LIBGEARMAN_SERVER_H__
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include <stdlib.h>
+#include <inttypes.h>
+
+#include <libgearman/constants.h>
+#include <libgearman/types.h>
+#include <libgearman/watchpoint.h>
+
+struct gearman_server_list_st {
+  gearman_server_st *hosts;
+  uint32_t number_of_hosts;
+  int32_t poll_timeout;
+};
+
+/* You should never reference this directly */
 struct gearman_server_st {
   char hostname[GEARMAN_MAX_HOST_LENGTH];
   unsigned int port;
@@ -36,27 +50,25 @@ struct gearman_server_st {
   size_t read_data_length;
   size_t read_buffer_length;
   char *read_ptr;
-  gearman_allocated sockaddr_inited;
+  bool sockaddr_inited;
   struct addrinfo *address_info;
   time_t next_retry;
   gearman_server_type type;
-  gearman_st *root;
+  gearman_server_list_st *root;
 };
 
-gearman_return gearman_server_add(gearman_st *ptr, char *hostname,
-                                  unsigned int port);
+gearman_return gearman_server_add(gearman_server_list_st *ptr,
+                                  const char *hostname,
+                                  uint16_t port);
+gearman_return gearman_server_copy(gearman_server_list_st *destination, 
+                                   gearman_server_list_st *source);
+void gearman_server_list_free(gearman_server_list_st *list);
 
 #ifdef GEARMAN_INTERNAL 
 
-gearman_return gearman_server_add_internal(gearman_server_st *ptr, int fd);
-gearman_return gearman_server_push(gearman_st *ptr, gearman_st *list);
-void server_list_free(gearman_st *ptr, gearman_server_st *servers);
-void gearman_server_free(gearman_server_st *ptr);
-bool gearman_server_buffered(gearman_server_st *ptr);
-
 #endif /* GEARMAN_INTERNAL */
 
-#define gearman_server_count(A) (A)->number_of_hosts
+#define gearman_server_list_count(A) (A)->number_of_hosts
 #define gearman_server_name(A,B) (B).hostname
 #define gearman_server_port(A,B) (B).port
 #define gearman_server_list(A) (A)->hosts
@@ -66,4 +78,4 @@ bool gearman_server_buffered(gearman_server_st *ptr);
 }
 #endif
 
-#endif /* __GEARMAN_SERVER_H__ */
+#endif /* __LIBGEARMAN_SERVER_H__ */

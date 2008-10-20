@@ -17,15 +17,15 @@
 
 AM_CFLAGS= -I$(top_builddir)
 
-lib_LTLIBRARIES= libgearman.la
+lib_LTLIBRARIES= libgearman_client.la libgearman_worker.la
 
 pkginclude_HEADERS= \
-	behavior.h \
 	byte_array.h \
 	constants.h \
 	dispatch.h \
 	echo.h \
-	gearman.h \
+	gearman_client.h \
+	gearman_worker.h \
 	job.h \
 	libgearman_config.h \
 	quit.h \
@@ -34,30 +34,25 @@ pkginclude_HEADERS= \
 	server.h \
 	str_action.h \
 	types.h \
-	watchpoint.h \
-	worker.h
+	watchpoint.h
 
 noinst_HEADERS= \
 	common.h \
 	connect.h \
 	io.h
 
-libgearman_la_SOURCES= \
-	behavior.c \
-	byte_array.c \
-	connect.c \
-	dispatch.c \
-	echo.c \
-	find_server.c \
-	gearman.c \
+libgearman_client_la_SOURCES= \
+	gearman_client.c \
 	io.c \
-	job.c \
 	quit.c \
-	response.c \
-	result.c \
-	server.c \
-	str_action.c \
-	str_error.c \
-	worker.c
+	server.c
 
-libgearman_la_LDFLAGS= -version-info $(GEARMAN_LIBRARY_VERSION)
+libgearman_client_la_LDFLAGS= -version-info $(GEARMAN_LIBRARY_VERSION)
+
+libgearman_worker_la_SOURCES= \
+	gearman_worker.c \
+	io.c \
+	quit.c \
+	server.c
+
+libgearman_worker_la_LDFLAGS= -version-info $(GEARMAN_LIBRARY_VERSION)

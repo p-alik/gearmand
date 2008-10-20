@@ -27,9 +27,9 @@
   will force data to be completed.
 */
 
-void gearman_quit_server(gearman_server_st *ptr, uint8_t io_death)
+void gearman_quit_server(gearman_server_st *server, bool io_death)
 {
-  if (ptr->fd != -1)
+  if (server->fd != -1)
   {
     /* For the moment assume IO death */
     io_death = 1;
@@ -38,7 +38,7 @@ void gearman_quit_server(gearman_server_st *ptr, uint8_t io_death)
       ssize_t read_length;
       char buffer[GEARMAN_MAX_BUFFER];
 
-      /* (void)gearman_do(ptr, "quit\r\n", 6, 1); */
+      /* (void)gearman_do(server, "quit\r\n", 6, 1); */
 
       /* read until socket is closed, or there is an error
        * closing the socket before all data is read
@@ -46,33 +46,33 @@ void gearman_quit_server(gearman_server_st *ptr, uint8_t io_death)
        * not read
        */
       while ((read_length=
-	      gearman_io_read(ptr, buffer, sizeof(buffer)/sizeof(*buffer)))
+	      gearman_io_read(server, buffer, sizeof(buffer)/sizeof(*buffer)))
 	     > 0)
 	{
 	  ;
 	}
     }
-    gearman_io_close(ptr);
+    gearman_io_close(server);
 
-    ptr->fd= -1;
-    ptr->write_buffer_offset= 0;
-    ptr->read_buffer_length= 0;
-    ptr->read_ptr= ptr->read_buffer;
-    gearman_server_response_reset(ptr);
+    server->fd= -1;
+    server->write_buffer_offset= 0;
+    server->read_buffer_length= 0;
+    server->read_ptr= server->read_buffer;
+    gearman_server_response_reset(server);
   }
 }
 
-void gearman_quit(gearman_st *ptr)
+void gearman_quit(gearman_server_list_st *list)
 {
-  unsigned int x;
+  uint32_t x;
 
-  if (ptr->hosts == NULL || 
-      ptr->number_of_hosts == 0)
+  if (list->hosts == NULL || 
+      list->number_of_hosts == 0)
     return;
 
-  if (ptr->hosts && ptr->number_of_hosts)
+  if (list->hosts && list->number_of_hosts)
   {
-    for (x= 0; x < ptr->number_of_hosts; x++)
-      gearman_quit_server(&ptr->hosts[x], 0);
+    for (x= 0; x < list->number_of_hosts; x++)
+      gearman_quit_server(&list->hosts[x], false);
   }
 }

@@ -16,8 +16,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef __GEARMAN_H__
-#define __GEARMAN_H__
+#ifndef __GEARMAN_CLIENT_H__
+#define __GEARMAN_CLIENT_H__
 
 #include <libgearman/libgearman_config.h>
 
@@ -36,18 +36,8 @@
 
 #include <libgearman/constants.h>
 #include <libgearman/types.h>
-#include <libgearman/byte_array.h>
 #include <libgearman/watchpoint.h>
-#include <libgearman/result.h>
-#include <libgearman/job.h>
-#include <libgearman/worker.h>
 #include <libgearman/server.h>
-#include <libgearman/quit.h>
-#include <libgearman/behavior.h>
-#include <libgearman/dispatch.h>
-#include <libgearman/response.h>
-#include <libgearman/str_action.h>
-#include <libgearman/echo.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -56,32 +46,25 @@ extern "C" {
 /* These are Private and should not be used by applications */
 #define GEARMAN_H_VERSION_STRING_LENGTH 12
 
-struct gearman_st {
-  gearman_allocated is_allocated;
-  gearman_server_st *hosts;
-  unsigned int number_of_hosts;
-  int cached_errno;
-  uint32_t flags;
-  int send_size;
-  int recv_size;
-  int32_t poll_timeout;
-  int32_t connect_timeout;
-  int32_t retry_timeout;
-  gearman_result_st result;
-  gearman_hash hash;
-  gearman_server_distribution distribution;
-  void *user_data;
+struct gearman_worker_st {
+  bool is_allocated;
+  gearman_server_list_st list;
 };
 
 /* Public API */
-gearman_st *gearman_create(gearman_st *ptr);
-void gearman_free(gearman_st *ptr);
-gearman_st *gearman_clone(gearman_st *clone, gearman_st *ptr);
 
-char *gearman_strerror(gearman_st *ptr, gearman_return rc);
+/* Create and destory worker structures */
+gearman_worker_st *gearman_worker_create(gearman_worker_st *worker);
+void gearman_worker_free(gearman_worker_st *worker);
+gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker);
+
+/* Add a server to the worker */
+gearman_return gearman_worker_server_add(gearman_worker_st *worker,
+                                         const char *hostname,
+                                         uint16_t port);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __GEARMAN_H__ */
+#endif /* __GEARMAN_CLIENT_H__ */

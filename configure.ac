@@ -17,7 +17,7 @@
 
 AC_PREREQ(2.59)
 AC_INIT(gearmand, [1.0.0], [https://launchpad.net/gearmand])
-AC_CONFIG_SRCDIR(libgearman/gearman.c)
+AC_CONFIG_SRCDIR(libgearman/gearman_client.c)
 AC_CONFIG_AUX_DIR(config)
 AM_CONFIG_HEADER(libgearman/libgearman_config.h)
 AC_CANONICAL_TARGET

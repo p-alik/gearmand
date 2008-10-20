@@ -16,12 +16,18 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef __GEARMAN_IO_H__
-#define __GEARMAN_IO_H__
+#ifndef __LIBGEARMAN_IO_H__
+#define __LIBGEARMAN_IO_H__
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <libgearman/libgearman_config.h>
+#include <libgearman/constants.h>
+#include <libgearman/types.h>
+#include <libgearman/watchpoint.h>
+#include <libgearman/server.h>
 
 ssize_t gearman_io_write(gearman_server_st *ptr, char *buffer, size_t length,
                          char with_flush);
@@ -33,4 +39,4 @@ gearman_return gearman_io_close(gearman_server_st *ptr);
 }
 #endif
 
-#endif /* __GEARMAN_IO_H__ */
+#endif /* __LIBGEARMAN_IO_H__ */
