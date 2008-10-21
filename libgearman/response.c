@@ -65,6 +65,7 @@ gearman_return gearman_response(gearman_server_st *ptr,
   /* Now we read the body */
   memset(buffer, 0, HUGE_STRING_LEN);
   read_length= gearman_io_read(ptr, buffer, response_length);
+#define CRAP
 #ifdef CRAP
   {
     uint32_t x;
@@ -79,6 +80,7 @@ gearman_return gearman_response(gearman_server_st *ptr,
 
 
   WATCHPOINT_ACTION(action);
+  WATCHPOINT_NUMBER(response_length);
   switch(action)
   {
     /* Return handle */
@@ -88,7 +90,7 @@ gearman_return gearman_response(gearman_server_st *ptr,
       {
         gearman_return rc;
 
-        rc= gearman_result_value_store(result, buffer, response_length);
+        rc= gearman_result_handle_store(result, buffer, response_length);
         assert(rc == GEARMAN_SUCCESS);
       }
       else
@@ -143,7 +145,6 @@ gearman_return gearman_response(gearman_server_st *ptr,
       {
         size_of_string= strlen((char *)start_ptr);
         assert(size_of_string == 1);
-        WATCHPOINT_NUMBER(*start_ptr);
         /* YEs, this is crap, original gearman looked for string value of 0 */
         if (*start_ptr == 48)
           result->is_known= false;
@@ -156,7 +157,6 @@ gearman_return gearman_response(gearman_server_st *ptr,
         size_of_string= strlen((char *)start_ptr);
         assert(size_of_string == 1);
 
-        WATCHPOINT_NUMBER(*start_ptr);
         /* YEs, this is crap, original gearman looked for string value of 0 */
         if (*start_ptr == 48)
           result->is_running= false;

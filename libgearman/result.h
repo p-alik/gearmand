@@ -51,6 +51,9 @@ ssize_t gearman_result_value_length(gearman_result_st *ptr);
 uint8_t *gearman_result_handle(gearman_result_st *result, ssize_t *length);
 ssize_t gearman_result_handle_length(gearman_result_st *ptr);
 
+/* We just use this to keep people from messing with the byte array in the structure */
+uint8_t *gearman_result_c_copy(gearman_result_st *result, ssize_t *length);
+
 
 #ifdef __cplusplus
 }

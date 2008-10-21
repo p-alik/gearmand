@@ -93,3 +93,8 @@ ssize_t gearman_result_handle_length(gearman_result_st *result)
 {
   return result->handle->length;
 }
+
+uint8_t *gearman_result_c_copy(gearman_result_st *result, ssize_t *length)
+{
+  return gearman_byte_array_c_copy(result->value, length);
+}

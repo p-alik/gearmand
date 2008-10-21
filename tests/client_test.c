@@ -115,8 +115,8 @@ test_return background_failure_test(void *object)
   bool is_running;
   long numerator;
   long denominator;
-  uint8_t *value= (uint8_t *)"submit_job_test";
-  size_t value_length= strlen("submit_job_test");
+  uint8_t *value= (uint8_t *)"background_failure_test";
+  size_t value_length= strlen("background_failure_test");
 
   job_id= gearman_client_do_background(client, "does_not_exist",
                                        value, value_length, &rc);
@@ -145,8 +145,8 @@ test_return background_test(void *object)
   bool is_running;
   long numerator;
   long denominator;
-  uint8_t *value= (uint8_t *)"submit_job_test";
-  size_t value_length= strlen("submit_job_test");
+  uint8_t *value= (uint8_t *)"background_test";
+  size_t value_length= strlen("background_test");
 
   job_id= gearman_client_do_background(client, "frog",
                                        value, value_length, &rc);
@@ -179,43 +179,31 @@ test_return background_test(void *object)
   return TEST_SUCCESS;
 }
 
-
-
-#ifdef NOT_DONE
-
 test_return submit_job_test(void *object)
 {
   gearman_return rc;
-  gearman_st *param= (gearman_st *)object;
-  gearman_result_st *result;
-  gearman_job_st *job;
-  char *value= "submit_job_test";
+  gearman_client_st *client= (gearman_client_st *)object;
+  uint8_t *job_result;
+  ssize_t job_length;
+  uint8_t *value= (uint8_t *)"submit_job_test";
   size_t value_length= strlen("submit_job_test");
 
-  result= gearman_result_create(param, NULL);
-  job= gearman_job_create(param, NULL);
-
-  assert(result);
-  assert(job);
-
-
-  gearman_job_set_function(job, "echo");
-  gearman_job_set_value(job, value, value_length);
-
-  rc= gearman_job_submit(job);
-
+  job_result= gearman_client_do(client, "frog",
+                                value, value_length, &job_length, &rc);
+  WATCHPOINT_ERROR(rc);
   assert(rc == GEARMAN_SUCCESS);
-  WATCHPOINT;
+  assert(job_result);
+  WATCHPOINT_STRING_LENGTH((char *)job_result, job_length);
 
-  rc= gearman_job_result(job, result);
-
-  assert(rc == GEARMAN_SUCCESS);
-  assert(result->action == GEARMAN_WORK_COMPLETE);
-  assert(gearman_result_length(result) == value_length);
-  assert(memcmp(gearman_result_value(result), value, value_length) == 0);
+  if (job_result)
+    free(job_result);
 
   return TEST_SUCCESS;
 }
+
+
+
+#ifdef NOT_DONE
 
 test_return error_test(void *object)
 {
@@ -288,12 +276,12 @@ test_st tests[] ={
   {"init", 0, init_test },
   {"allocation", 0, allocation_test },
   {"clone_test", 0, clone_test },
+  {"submit_job", 0, submit_job_test },
   {"background", 0, background_test },
   {"background_failure", 0, background_failure_test },
   {"echo", 0, echo_test },
 #ifdef NOT_DONE
   {"error", 0, error_test },
-  {"submit_job", 0, submit_job_test },
   {"submit_job2", 0, submit_job_test },
 #endif
   {0, 0, 0}
