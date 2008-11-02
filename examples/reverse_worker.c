@@ -118,7 +118,8 @@ int main(int argc, char *argv[])
     /* Blocking call */
     rc= gearman_worker_take(worker, incomming);
 
-    printf("We got \"%.*s\"(%u) for %s\n", gearman_result_length(incomming), 
+    printf("We got \"%.*s\"(%zu) for %s\n",
+           (int32_t)gearman_result_length(incomming), 
            gearman_result_value(incomming), 
            gearman_result_length(incomming), 
            gearman_result_handle(incomming));

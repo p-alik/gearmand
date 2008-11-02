@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
     rc= gearman_job_result(job, result);
 
     if (rc == GEARMAN_SUCCESS)
-      printf("Returned: %.*s\n", gearman_result_length(result), gearman_result_value(result));
+      printf("Returned: %.*s\n", (int32_t)gearman_result_length(result), gearman_result_value(result));
     else
       printf("Failure: %s\n", gearman_strerror(gear_con, rc));
   }
