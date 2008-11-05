@@ -58,9 +58,17 @@ libgearman_client_la_SOURCES= \
 libgearman_client_la_LDFLAGS= -version-info $(GEARMAN_LIBRARY_VERSION)
 
 libgearman_worker_la_SOURCES= \
+	byte_array.c \
+	gearman_client.c \
 	gearman_worker.c \
 	io.c \
+	connect.c \
+	dispatch.c \
 	quit.c \
+	response.c \
+	result.c \
+	str_action.c \
+	str_error.c \
 	server.c
 
 libgearman_worker_la_LDFLAGS= -version-info $(GEARMAN_LIBRARY_VERSION)

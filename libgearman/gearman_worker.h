@@ -21,14 +21,10 @@
 
 #include <libgearman/libgearman_config.h>
 
-#ifdef HAVE_INTTYPES_H
 #include <inttypes.h>
-#endif
+
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
-#endif
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
 #endif
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
@@ -38,6 +34,8 @@
 #include <libgearman/types.h>
 #include <libgearman/watchpoint.h>
 #include <libgearman/server.h>
+#include <libgearman/quit.h>
+#include <libgearman/dispatch.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -57,6 +55,7 @@ struct gearman_worker_st {
   gearman_server_list_st list;
   char *function_name;
   gearman_worker_function *function;
+  uint32_t time_out;
 };
 
 /* Public API */
@@ -75,6 +74,9 @@ gearman_return gearman_worker_server_add(gearman_worker_st *worker,
 gearman_return gearman_server_function_register(gearman_worker_st *worker,
                                                 const char *function_name,
                                                 gearman_worker_function *function);
+
+/* Grab a single job off the queue and execute */
+gearman_return gearman_server_work(gearman_worker_st *worker);
 
 #ifdef __cplusplus
 }

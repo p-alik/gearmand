@@ -150,7 +150,7 @@ test_return background_test(void *object)
 
   job_id= gearman_client_do_background(client, "frog",
                                        value, value_length, &rc);
-  WATCHPOINT_ERROR(rc);
+  //WATCHPOINT_ERROR(rc);
   assert(rc == GEARMAN_SUCCESS);
   //sleep(1); /* Yes, this could fail on an overloaded system to give the
   //server enough time to assign */

@@ -32,8 +32,8 @@ void gearman_quit_server(gearman_server_st *server, bool io_death)
   if (server->fd != -1)
   {
     /* For the moment assume IO death */
-    io_death = 1;
-    if (io_death == 0)
+    io_death = true;
+    if (io_death == false)
     {
       ssize_t read_length;
       uint8_t buffer[GEARMAN_MAX_BUFFER];
@@ -49,7 +49,7 @@ void gearman_quit_server(gearman_server_st *server, bool io_death)
 	      gearman_io_read(server, buffer, sizeof(buffer)/sizeof(*buffer)))
 	     > 0)
 	{
-	  ;
+	  continue;
 	}
     }
     gearman_io_close(server);

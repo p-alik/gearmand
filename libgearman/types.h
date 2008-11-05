@@ -34,7 +34,9 @@ typedef struct gearman_server_list_st gearman_server_list_st;
 typedef struct gearman_server_st gearman_server_st;
 typedef struct gearman_worker_st gearman_worker_st;
 
-typedef uint8_t* (*gearman_worker_function)(gearman_job_st *job,
+typedef uint8_t* (*gearman_worker_function)(gearman_worker_st *job,
+                                            uint8_t *value,  
+                                            ssize_t value_length,  
                                             ssize_t *result_length,  
                                             gearman_return *error);
 

@@ -95,13 +95,120 @@ gearman_return gearman_server_function_register(gearman_worker_st *worker,
                                                 const char *function_name,
                                                 gearman_worker_function *function)
 {
+  gearman_return rc;
+  giov_st giov[2];
+  gearman_server_st *server;
+  gearman_result_st result;
+  uint32_t x;
+
   assert(function_name);
   assert(function);
 
-  if (strcpy(worker->function_name, function_name) == NULL)
-    return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+  if (gearman_result_create(&result) == NULL)
+    return GEARMAN_FAILURE;
 
-  worker->function= function;
+  if (worker->list.number_of_hosts == 0)
+    return GEARMAN_FAILURE;
+
+  for (x= 0; x < worker->list.number_of_hosts; x++)
+  {
+    server= &(worker->list.hosts[x]);
+    assert(server);
+
+    if ((worker->function_name= strdup(function_name)) == NULL)
+      return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+
+    worker->function= function;
+
+    giov[0].arg= function_name;
+    giov[0].arg_length= strlen(function_name);
+    if (worker->time_out)
+    {
+      /* Create a sensible define here */
+      char buffer[128];
+
+      sprintf(buffer, "%u", worker->time_out);
+      giov[1].arg= buffer;
+      giov[1].arg_length= strlen(buffer);
+
+      rc= gearman_dispatch(server,  GEARMAN_CAN_DO_TIMEOUT, giov, 1);
+    }
+    else
+      rc= gearman_dispatch(server,  GEARMAN_CAN_DO, giov, 1);
+
+    if (rc == GEARMAN_SUCCESS)
+      rc= gearman_dispatch(server, GEARMAN_PRE_SLEEP, NULL, 0);
+  }
+
+  gearman_result_free(&result);
+
+  return GEARMAN_SUCCESS;
+}
+
+gearman_return gearman_server_work(gearman_worker_st *worker)
+{
+  gearman_return rc;
+  giov_st giov[2];
+  gearman_server_st *server;
+  gearman_result_st result;
+  uint32_t x;
+
+  if (gearman_result_create(&result) == NULL)
+    return GEARMAN_FAILURE;
+
+  if (worker->list.number_of_hosts == 0)
+    return GEARMAN_FAILURE;
+
+  while (1)
+  {
+    for (x= 0; x < worker->list.number_of_hosts; x++)
+    {
+      server= &(worker->list.hosts[x]);
+      assert(server);
+
+      rc= gearman_dispatch(server, GEARMAN_GRAB_JOB, NULL, true); 
+      WATCHPOINT_ERROR(rc);
+
+      rc= gearman_response(server, &result);
+
+      switch (result.action)
+      {
+      case GEARMAN_JOB_ASSIGN: /* We do a job, and then exit */
+        {
+          uint8_t *worker_result;
+          ssize_t worker_result_length;
+
+          worker_result= (*(worker->function))(worker, 
+                                               result.value->value, result.value->length,
+                                               &worker_result_length,
+                                               &rc);
+
+          giov[0].arg= result.handle->value;
+          giov[0].arg_length= result.handle->length;
+          giov[1].arg= worker_result;
+          giov[1].arg_length= worker_result_length;
+
+          rc= gearman_dispatch(server, GEARMAN_GRAB_JOB, giov, true); 
+
+          if (worker_result)
+            free(worker_result);
+
+          goto finished_a_job;
+        }
+      case GEARMAN_NO_JOB:
+        continue;
+      case GEARMAN_NOOP: /* Retry server */
+        x--;
+        continue;
+      default:
+        WATCHPOINT_ACTION(result.action);
+        assert(1);
+      }
+    }
+  }
+finished_a_job:
+
+  gearman_result_free(&result);
 
   return GEARMAN_SUCCESS;
 }

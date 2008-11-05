@@ -85,7 +85,9 @@ static void gearman_server_free(gearman_server_st *host)
 {
   if (host->fd != -1)
   {
-    if (host->io_death == 0)
+    /* Assume it is true for the time being */
+    host->io_death= true;
+    if (host->io_death == false)
     {
       ssize_t read_length;
       uint8_t buffer[GEARMAN_MAX_BUFFER];

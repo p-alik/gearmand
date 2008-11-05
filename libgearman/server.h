@@ -45,7 +45,7 @@ struct gearman_server_list_st {
 struct gearman_server_st {
   char hostname[GEARMAN_MAX_HOST_LENGTH];
   unsigned int port;
-  uint8_t io_death;
+  bool io_death;
   int fd;
   int cached_errno;
   unsigned int cursor_active;

@@ -114,6 +114,7 @@ int main(int argc, char *argv[])
       }
 
       gettimeofday(&start_time, NULL);
+      assert(object);
       run->function(object);
       gettimeofday(&end_time, NULL);
       load_time= timedif(end_time, start_time);
