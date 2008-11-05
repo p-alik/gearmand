@@ -46,7 +46,8 @@ gearman_return gearman_worker_server_add(gearman_worker_st *worker, char *host,
 
 /* Register function with job servers. */
 gearman_return gearman_worker_register_function(gearman_worker_st *worker,
-                                                char *name);
+                                                const char *function_name,
+                                                gearman_worker_function *function);
 
 /* Get a job from one of the job servers. */
 gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
@@ -55,6 +56,9 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
 
 /* Register function with job servers. */
 gearman_return gearman_worker_work(gearman_worker_st *worker);
+
+/* Go into a loop and answer a single job */
+gearman_return gearman_server_work(gearman_worker_st *worker);
 
 /* Data structures. */
 struct gearman_worker_st
@@ -67,6 +71,8 @@ struct gearman_worker_st
   gearman_packet_st pre_sleep;
   gearman_con_st *con;
   gearman_job_st *job;
+  char *function_name;
+  gearman_worker_function *function;
 };
 
 #ifdef __cplusplus

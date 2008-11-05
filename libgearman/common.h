@@ -23,6 +23,8 @@
 
 #include "gearman.h"
 
+#include <assert.h>
+
 #ifdef HAVE_ERRNO_H
 #include <errno.h>
 #endif

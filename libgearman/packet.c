@@ -63,7 +63,7 @@ gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX]=
 gearman_return gearman_packet_add(gearman_st *gearman,
                                   gearman_packet_st *packet,
                                   gearman_magic magic, gearman_command command,
-                                  char *arg, ...)
+                                  const char *arg, ...)
 {
   va_list ap;
   size_t arg_size;
@@ -163,7 +163,7 @@ gearman_return gearman_packet_set_header(gearman_packet_st *packet,
 }
 
 /* Add an argument to a packet. */
-gearman_return gearman_packet_add_arg(gearman_packet_st *packet, char *arg,
+gearman_return gearman_packet_add_arg(gearman_packet_st *packet, const char *arg,
                                       size_t arg_size)
 {
   size_t offset;
@@ -207,7 +207,7 @@ gearman_return gearman_packet_add_arg(gearman_packet_st *packet, char *arg,
 /* Add raw argument data to a packet, call gearman_packet_unpack once all data
    has been added. */
 gearman_return gearman_packet_add_arg_data(gearman_packet_st *packet,
-                                           char *data, size_t data_size)
+                                           const char *data, size_t data_size)
 {
   char *new_data;
 

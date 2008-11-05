@@ -35,7 +35,7 @@ extern "C" {
 gearman_return gearman_packet_add(gearman_st *gearman,
                                   gearman_packet_st *packet,
                                   gearman_magic magic, gearman_command command,
-                                  char *arg, ...);
+                                  const char *arg, ...);
 
 /* Initialize a packet structure. */
 gearman_packet_st *gearman_packet_create(gearman_st *gearman,
@@ -50,13 +50,13 @@ gearman_return gearman_packet_set_header(gearman_packet_st *packet,
                                          gearman_command command);
 
 /* Add an argument to a packet and pack if complete. */
-gearman_return gearman_packet_add_arg(gearman_packet_st *packet, char *arg,
+gearman_return gearman_packet_add_arg(gearman_packet_st *packet, const char *arg,
                                       size_t arg_size);
 
 /* Add raw argument data to a packet, call gearman_packet_unpack once all data
    has been added. */
 gearman_return gearman_packet_add_arg_data(gearman_packet_st *packet,
-                                           char *data, size_t data_size);
+                                           const char *data, size_t data_size);
 
 /* Pack packet header information after all args have been added. */
 gearman_return gearman_packet_pack(gearman_packet_st *packet);
