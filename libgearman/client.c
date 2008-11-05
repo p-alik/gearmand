@@ -18,6 +18,8 @@
 
 #include "common.h"
 
+#include <stdbool.h>
+
 /* Initialize a client structure. */
 gearman_client_st *gearman_client_create(gearman_client_st *client)
 {
@@ -75,11 +77,12 @@ gearman_return gearman_client_server_add(gearman_client_st *client, char *host,
   return GEARMAN_SUCCESS;
 }
 
-/* Run a job. */
-gearman_job_st *gearman_client_do(gearman_client_st *client,
-                                  gearman_job_st *job, char *function_name,
-                                  uint8_t *workload, size_t workload_size,
-                                  gearman_return *ret)
+/* Internal Internface to run a job */
+static gearman_job_st *internal_gearman_client_do(gearman_client_st *client,
+                                                  gearman_job_st *job, const char *function_name,
+                                                  const uint8_t *workload, ssize_t workload_size,
+                                                  gearman_return *ret,
+                                                  bool is_background)
 {
   uuid_t uuid;
 
@@ -105,13 +108,15 @@ gearman_job_st *gearman_client_do(gearman_client_st *client,
 
     *ret= gearman_packet_add(&(client->gearman), &(job->packet),
                              GEARMAN_MAGIC_REQUEST,
-                             GEARMAN_COMMAND_SUBMIT_JOB,
+                             is_background ? GEARMAN_CLIENT_STATE_SUBMIT_JOB_BJ : GEARMAN_COMMAND_SUBMIT_JOB,
                              function_name, strlen(function_name) + 1,
                              job->uuid, (size_t)37,
                              workload, workload_size, NULL);
     if (*ret != GEARMAN_SUCCESS)
       return NULL;
 
+    /* TODO check background logic */
+  case GEARMAN_CLIENT_STATE_SUBMIT_JOB_BJ:
   case GEARMAN_CLIENT_STATE_SUBMIT_JOB:
     *ret= gearman_con_send(job->con, &(client->job->packet));
     if (*ret != GEARMAN_SUCCESS)
@@ -151,58 +156,36 @@ gearman_job_st *gearman_client_do(gearman_client_st *client,
   return job;
 }
 
-#if 0
-char *gearman_client_do_background(gearman_client_st *client,
-                                   const char *function_name,
-                                   const uint8_t *workload, ssize_t workload_size,
-                                   gearman_return *error)
+/* Run a job. */
+gearman_job_st *gearman_client_do(gearman_client_st *client,
+                                  gearman_job_st *job, const char *function_name,
+                                  const uint8_t *workload, ssize_t workload_size,
+                                  gearman_return *ret)
 {
-  giov_st giov[1];
-  gearman_server_st *server;
-  gearman_result_st result;
-  uuid_t uu;
-  char uuid_string[37];
+  return internal_gearman_client_do(client, job, function_name, workload, workload_size, ret, false);
+}
 
-  if (client->list.number_of_hosts == 0)
-  {
-    *error= GEARMAN_FAILURE;
-    return NULL;
-  }
+/* Run a job in the background. */
+char * gearman_client_do_background(gearman_client_st *client,
+                                    const char *function_name,
+                                    const uint8_t *workload, ssize_t workload_size,
+                                    gearman_return *ret)
+{
+  char *job_reference;
+  gearman_job_st *job; /* Should be switched to static */
 
-  server= &(client->list.hosts[0]);
-  assert(server);
+  assert(0);
+  job= internal_gearman_client_do(client, NULL, function_name, workload, workload_size, ret, true);
 
-  if (gearman_result_create(&result) == NULL)
-  {
-    *error= GEARMAN_SUCCESS;
-    return NULL;
-  }
-
-  uuid_generate(uu);
-  uuid_unparse(uu, uuid_string);
-
-  giov[0].arg= (const void *)function_name;
-  giov[0].arg_length= strlen(function_name);
-  giov[1].arg= uuid_string;
-  giov[1].arg_length= 37;
-  giov[2].arg= (const void *)workload;
-  giov[2].arg_length= workload_size;
-  *error= gearman_dispatch(server, GEARMAN_SUBMIT_JOB_BJ, giov, true);
-
-  if (*error != GEARMAN_SUCCESS)
-    return NULL;
-
-  WATCHPOINT;
-  *error= gearman_response(server, &result);
-  WATCHPOINT;
-
-  WATCHPOINT_STRING_LENGTH(result.value->value, result.value->length);
-  gearman_result_free(&result);
-
-  if (*error == GEARMAN_SUCCESS)
-    return strdup(uuid_string);
+  if (*ret == GEARMAN_SUCCESS && job)
+    job_reference= strdup(job->uuid);
   else
-    return NULL;
+    job_reference= NULL;
+
+  if (job)
+    gearman_job_free(job);
+
+  return job_reference;
 }
 
 gearman_return gearman_client_job_status(gearman_client_st *client,
@@ -212,71 +195,59 @@ gearman_return gearman_client_job_status(gearman_client_st *client,
                                          long *numerator,
                                          long *denominator)
 {
-  gearman_return rc;
-  giov_st giov[1];
-  gearman_server_st *server;
-  gearman_result_st result;
-
-  if (gearman_result_create(&result) == NULL)
-    return GEARMAN_FAILURE;
-
-  if (client->list.number_of_hosts == 0)
-    return GEARMAN_FAILURE;
-
-  server= &(client->list.hosts[0]);
-  assert(server);
-
-  giov[0].arg= (const void *)job_id;
-  giov[0].arg_length= strlen(job_id);
-  rc= gearman_dispatch(server, GEARMAN_GET_STATUS, giov, true);
-  assert(rc == GEARMAN_SUCCESS);
-
-  rc= gearman_response(server, &result);
-
-  assert(rc == GEARMAN_SUCCESS);
-  *is_known= result.is_known;
-  *is_running= result.is_running;
-  *numerator= result.numerator;
-  *denominator= result.denominator;
-
-  gearman_result_free(&result);
-
-  return rc;
+  assert(0);
+  (void)client;
+  (void) job_id;
+  (void) is_known;
+  (void) is_running;
+  (void) numerator;
+  (void) denominator;
 }
+
+/* Make a copy of a gearman_client_st */
+gearman_client_st *gearman_client_clone(gearman_client_st *client)
+{
+  gearman_client_st *clone;
+  gearman_return rc= GEARMAN_SUCCESS;
+
+  clone= gearman_client_create(NULL);
+
+  if (clone == NULL)
+    return NULL;
+
+  /* If client was null, then we just return NULL */
+  if (client == NULL)
+    return gearman_client_create(NULL);
+
+  /* Put code here to copy internal connection structures */
+  assert(0);
+
+  if (rc != GEARMAN_SUCCESS)
+  {
+    gearman_client_free(clone);
+
+    return NULL;
+  }
+
+  return clone;
+}
+
 
 gearman_return gearman_client_echo(gearman_client_st *client,
                                    const char *message,
                                    ssize_t message_length)
 {
   gearman_return rc;
-  giov_st giov[1];
-  gearman_server_st *server;
-  gearman_result_st result;
 
-  if (gearman_result_create(&result) == NULL)
-    return GEARMAN_FAILURE;
+  (void)client;
+  (void)message;
+  (void)message_length;
 
-  if (client->list.number_of_hosts == 0)
-    return GEARMAN_FAILURE;
-
-  server= &(client->list.hosts[0]);
-  assert(server);
-
-  giov[0].arg= (const void *)message;
-  giov[0].arg_length= message_length;
-  rc= gearman_dispatch(server, GEARMAN_ECHO_REQ, giov, true);
-  assert(rc == GEARMAN_SUCCESS);
-
-  rc= gearman_response(server, &result);
-
-  if (message_length == gearman_result_value_length(&result) 
-      && memcmp(message, gearman_result_value(&result, NULL), gearman_result_value_length(&result)) == 0)
-    rc= GEARMAN_SUCCESS;
-  else
-    rc= GEARMAN_FAILURE;
-
-  gearman_result_free(&result);
+  /* 
+    Send a GEARMAN_ECHO_REQ plus a message to a server (the first?) and
+    see if it gets returned.
+  */
+  assert(0);
 
   return rc;
 }
-#endif

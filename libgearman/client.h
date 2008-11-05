@@ -29,6 +29,9 @@ gearman_client_st *gearman_client_create(gearman_client_st *client);
 /* Free a client structure. */
 void gearman_client_free(gearman_client_st *client);
 
+/* Clone a client structure */
+gearman_client_st *gearman_client_clone(gearman_client_st *client);
+
 /* Return an error string for last library error encountered. */
 char *gearman_client_error(gearman_client_st *client);
 
@@ -46,29 +49,28 @@ gearman_return gearman_client_server_add(gearman_client_st *client, char *host,
 
 /* Run a job. */
 gearman_job_st *gearman_client_do(gearman_client_st *client,
-                                  gearman_job_st *job, char *function_name, 
-                                  uint8_t *workload, size_t workload_size,
+                                  gearman_job_st *job, const char *function_name,
+                                  const uint8_t *workload, ssize_t workload_size,
                                   gearman_return *ret);
 
-#if 0
-char *gearman_client_do_background(gearman_client_st *client,
-                                   const char *function_name,
-                                   const uint8_t *workload, ssize_t workload_size,
-                                   gearman_return *error);
+/* Run a job in the background */
+char * gearman_client_do_background(gearman_client_st *client,
+                                    const char *function_name,
+                                    const uint8_t *workload, ssize_t workload_size,
+                                    gearman_return *ret);
 
-/* Echo test */
+/* Send a message to ? servers and see if they return it */
 gearman_return gearman_client_echo(gearman_client_st *client,
-                                   const char *message, ssize_t message_length);
+                                   const char *message,
+                                   ssize_t message_length);
 
-/* Status methods for Background Jobs */
+/* Gain the job status from a job_id */
 gearman_return gearman_client_job_status(gearman_client_st *client,
                                          const char *job_id,
                                          bool *is_known,
                                          bool *is_running,
                                          long *numerator,
                                          long *denominator);
-#endif
-
 /* Data structures. */
 struct gearman_client_st
 {

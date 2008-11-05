@@ -20,6 +20,7 @@
 #define __GEARMAN_H__
 
 #include <inttypes.h>
+#include <stdbool.h>
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <sys/socket.h>

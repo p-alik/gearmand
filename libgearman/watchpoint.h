@@ -23,7 +23,11 @@
 extern "C" {
 #endif
 
+#include <libgearman/constants.h>
+#include <libgearman/types.h>
+#ifdef HAVE_GEARMAN_ACTION
 #include <libgearman/str_action.h>
+#endif
 #include <libgearman/str_error.h>
 
 /* Some personal debugging functions */
@@ -35,10 +39,12 @@ extern "C" {
                                       __FILE__, __LINE__, __func__, \
                                       gearman_strerror(A)); \
                               fflush(stdout); }
+#ifdef HAVE_GEARMAN_ACTION
 #define WATCHPOINT_ACTION(A) { fprintf(stderr, "\nWATCHPOINT %s:%d (%s) %s\n", \
                                        __FILE__, __LINE__, __func__, \
                                        gearman_straction(A)); \
                                fflush(stdout); }
+#endif
 #define WATCHPOINT_IFERROR(A) { if (A != GEARMAN_SUCCESS) { \
                                   fprintf(stderr, \
                                           "\nWATCHPOINT %s:%d (%s) %s\n", \
