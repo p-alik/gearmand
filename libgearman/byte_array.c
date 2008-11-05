@@ -67,7 +67,7 @@ gearman_return gearman_byte_array_store(gearman_byte_array_st *byte_array,
 
   if (length > byte_array->length)
   {
-    new_ptr= realloc(byte_array, length);
+    new_ptr= realloc(byte_array, length + sizeof(gearman_byte_array_st));
 
     if (new_ptr == NULL)
       return  GEARMAN_MEMORY_ALLOCATION_FAILURE;

@@ -31,7 +31,7 @@
 
 int main(int argc, char *argv[])
 {
-  gearman_st *gear_con;
+  gearman_client_st *client;
   char c;
   unsigned short port= 0;
 
@@ -59,44 +59,35 @@ int main(int argc, char *argv[])
   {
     gearman_return rc;
 
-    gear_con= gearman_create(NULL);
+    client= gearman_client_create(NULL);
 
-    assert(gear_con);
+    assert(client);
 
-    rc= gearman_server_add(gear_con, "localhost", 2323);
-    assert(rc == GEARMAN_SUCCESS);
-    rc= gearman_server_add(gear_con, "localhost", 2324);
-    assert(rc == GEARMAN_SUCCESS);
-    rc= gearman_server_add(gear_con, "localhost", port);
-    assert(rc == GEARMAN_SUCCESS);
+    rc= gearman_client_server_add(client, "localhost", 0);
 
+    if (rc != GEARMAN_SUCCESS)
+    {
+      printf("Failure: %s\n", gearman_strerror(rc));
+      exit(0);
+    }
   }
 
   /* Send the data */
   {
     gearman_return rc;
-    gearman_result_st *result;
-    gearman_job_st *job;
+    ssize_t job_length;
+    uint8_t *job_result;
 
-    result= gearman_result_create(gear_con, NULL);
-    job= gearman_job_create(gear_con, NULL);
-
-    assert(result);
-    assert(job);
-
-    gearman_job_set_function(job, "echo");
-    gearman_job_set_value(job, argv[optind], strlen(argv[optind]));
-
-    rc= gearman_job_submit(job);
-
-    assert(rc == GEARMAN_SUCCESS);
-
-    rc= gearman_job_result(job, result);
+    job_result= gearman_client_do(client, "reverse",
+                                  argv[optind], strlen(argv[optind]), &job_length, &rc);
 
     if (rc == GEARMAN_SUCCESS)
-      printf("Returned: %.*s\n", gearman_result_length(result), gearman_result_value(result));
+    {
+      printf("Returned: %.*s\n", job_length, job_result);
+      free(job_result);
+    }
     else
-      printf("Failure: %s\n", gearman_strerror(gear_con, rc));
+      printf("Failure: %s\n", gearman_strerror(rc));
   }
 
   return 0;
