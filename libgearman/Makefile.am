@@ -1,5 +1,5 @@
 # Gearman server and library
-# Copyright (C) 2008 Brian Aker
+# Copyright (C) 2008 Brian Aker, Eric Day
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,50 +17,63 @@
 
 AM_CFLAGS= -I$(top_builddir)
 
-lib_LTLIBRARIES= libgearman_client.la libgearman_worker.la
+lib_LTLIBRARIES= libgearman.la
+#libgearman_client.la libgearman_worker.la
 
 pkginclude_HEADERS= \
-	byte_array.h \
+        con.h \
 	constants.h \
-	dispatch.h \
-	echo.h \
-	gearman_client.h \
-	gearman_worker.h \
-	job.h \
-	libgearman_config.h \
-	quit.h \
-	response.h \
-	result.h \
-	server.h \
-	str_error.h \
-	str_action.h \
+	gearman.h \
+        job.h \
+        packet.h \
 	types.h \
-	watchpoint.h
+        worker.h
+
+#	byte_array.h \
+#	dispatch.h \
+#	echo.h \
+#	gearman_client.h \
+#	gearman_worker.h \
+#	quit.h \
+#	response.h \
+#	result.h \
+#	server.h \
+#	str_error.h \
+#	str_action.h \
+#	watchpoint.h
 
 noinst_HEADERS= \
-	common.h \
-	connect.h \
-	io.h
+	common.h
 
-libgearman_client_la_SOURCES= \
-	byte_array.c \
-	gearman_client.c \
-	io.c \
-	connect.c \
-	dispatch.c \
-	quit.c \
-	response.c \
-	result.c \
-	str_action.c \
-	str_error.c \
-	server.c
+#	io.h
 
-libgearman_client_la_LDFLAGS= -version-info $(GEARMAN_LIBRARY_VERSION)
+libgearman_la_SOURCES= \
+	con.c \
+        gearman.c \
+	job.c \
+	packet.c \
+	worker.c
 
-libgearman_worker_la_SOURCES= \
-	gearman_worker.c \
-	io.c \
-	quit.c \
-	server.c
+libgearman_la_LDFLAGS= -version-info $(GEARMAN_LIBRARY_VERSION)
 
-libgearman_worker_la_LDFLAGS= -version-info $(GEARMAN_LIBRARY_VERSION)
+#libgearman_client_la_SOURCES= \
+#	byte_array.c \
+#	gearman_client.c \
+#	io.c \
+#	dispatch.c \
+#	quit.c \
+#	response.c \
+#	result.c \
+#	str_action.c \
+#	str_error.c \
+#	server.c
+
+#libgearman_client_la_LDFLAGS= -version-info $(GEARMAN_LIBRARY_VERSION)
+
+#libgearman_worker_la_SOURCES= \
+#	gearman_worker.c \
+#	io.c \
+#	quit.c \
+#	server.c
+
+#libgearman_worker_la_LDFLAGS= -version-info $(GEARMAN_LIBRARY_VERSION)

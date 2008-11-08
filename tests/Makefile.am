@@ -18,8 +18,8 @@
 AM_CFLAGS= -I$(top_builddir)
 AM_LDFLAGS= 
 
-noinst_PROGRAMS= client_test worker_test
-noinst_HEADERS= test.h
+#noinst_PROGRAMS= client_test worker_test
+#noinst_HEADERS= test.h
 
 client_test_SOURCES= test.c client_test.c
 client_test_LDFLAGS= $(top_builddir)/libgearman/libgearman_client.la

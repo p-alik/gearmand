@@ -1,5 +1,5 @@
 /* Gearman server and library
- * Copyright (C) 2008 Brian Aker
+ * Copyright (C) 2008 Brian Aker, Eric Day
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,25 +23,38 @@
 extern "C" {
 #endif
 
-/* Public defines */
-#define GEARMAN_DEFAULT_PORT 7003
-#define GEARMAN_MAX_BUFFER 8192
+/* Public defines. */
+#define GEARMAN_DEFAULT_TCP_HOST "127.0.0.1"
+#define GEARMAN_DEFAULT_TCP_PORT 7003
+#define GEARMAN_DEFAULT_SOCKET_TIMEOUT 10
+#define GEARMAN_DEFAULT_SOCKET_SEND_SIZE 32768
+#define GEARMAN_DEFAULT_SOCKET_RECV_SIZE 32768
+#define GEARMAN_MAX_BUFFER_LENGTH 8192
+#define GEARMAN_MAX_ERROR_LENGTH 1024
+#define GEARMAN_MAX_COMMAND_ARGS 8
+#if 0
 #define GEARMAN_MAX_HOST_LENGTH 64
 #define GEARMAN_WHEEL_SIZE 1024
 #define GEARMAN_STRIDE 4
 #define GEARMAN_DEFAULT_TIMEOUT INT32_MAX
 #define LIBGEARMAN_H_VERSION_STRING "0.19"
-
-
-/* Get a consistent bool type */
-#if HAVE_STDBOOL_H
-# include <stdbool.h>
-#else
-  typedef enum {false = 0, true = 1} bool;
 #endif
 
-typedef enum {
+/* Return codes. */
+typedef enum
+{
   GEARMAN_SUCCESS,
+  GEARMAN_IO_WAIT,
+  GEARMAN_ERRNO,
+  GEARMAN_TOO_MANY_ARGS,
+  GEARMAN_INVALID_MAGIC,
+  GEARMAN_INVALID_COMMAND,
+  GEARMAN_INVALID_LENGTH,
+  GEARMAN_INVALID_ARGS,
+  GEARMAN_GETADDRINFO,
+  GEARMAN_EOF,
+  GEARMAN_MAX_RETURN /* Always add new error code before */
+#if 0
   GEARMAN_NOT_FOUND,
   /* Failure types */
   GEARMAN_FAILURE,
@@ -55,11 +68,9 @@ typedef enum {
   GEARMAN_CLIENT_ERROR,
   GEARMAN_SERVER_ERROR,
   GEARMAN_CONNECTION_SOCKET_CREATE_FAILURE,
-  GEARMAN_MEMORY_ALLOCATION_FAILURE,
   GEARMAN_PARTIAL_READ,
   GEARMAN_SOME_ERRORS,
   GEARMAN_NO_SERVERS,
-  GEARMAN_ERRNO,
   GEARMAN_NOT_SUPPORTED,
   GEARMAN_NO_KEY_PROVIDED,
   GEARMAN_FETCH_NOTFINISHED,
@@ -68,9 +79,103 @@ typedef enum {
   /*  End of Failure */
   GEARMAN_BUFFERED,
   GEARMAN_STILL_RUNNING,
-  GEARMAN_MAXIMUM_RETURN /* Always add new error code before */
+#endif
 } gearman_return;
 
+/* Options for gearman_st. */
+typedef enum
+{
+  GEARMAN_ALLOCATED=    (1 << 0),
+  GEARMAN_NON_BLOCKING= (1 << 1)
+} gearman_options;
+
+/* Options for gearman_con_st. */
+typedef enum
+{
+  GEARMAN_CON_ALLOCATED= (1 << 0)
+} gearman_con_options;
+
+/* States for gearman_con_st. */
+typedef enum
+{
+  GEARMAN_CON_STATE_ADDRINFO,
+  GEARMAN_CON_STATE_CONNECT,
+  GEARMAN_CON_STATE_CONNECTING,
+  GEARMAN_CON_STATE_IDLE,
+  GEARMAN_CON_STATE_SEND,
+  GEARMAN_CON_STATE_RECV
+} gearman_con_state;
+
+/* Options for gearman_job_st. */
+typedef enum
+{
+  GEARMAN_JOB_ALLOCATED= (1 << 0)
+} gearman_job_options;
+
+/* Options for gearman_packet_st. */
+typedef enum
+{
+  GEARMAN_PACKET_ALLOCATED= (1 << 0)
+} gearman_packet_options;
+
+/* Options for gearman_worker_st. */
+typedef enum
+{
+  GEARMAN_WORKER_ALLOCATED= (1 << 0)
+} gearman_worker_options;
+
+/* States for gearman_worker_st. */
+typedef enum
+{
+  GEARMAN_WORKER_STATE_INIT,
+  GEARMAN_WORKER_STATE_GRAB_JOB,
+  GEARMAN_WORKER_STATE_GRAB_JOB_SEND,
+  GEARMAN_WORKER_STATE_GRAB_JOB_RECV,
+  GEARMAN_WORKER_STATE_GRAB_JOB_NEXT,
+  GEARMAN_WORKER_STATE_PRE_SLEEP
+} gearman_worker_state;
+
+/* Magic types. */
+typedef enum
+{
+  GEARMAN_MAGIC_REQUEST,
+  GEARMAN_MAGIC_RESPONSE
+} gearman_magic;
+
+/* Command types. */
+typedef enum
+{
+  GEARMAN_COMMAND_NONE,
+  GEARMAN_COMMAND_CAN_DO,
+  GEARMAN_COMMAND_CANT_DO,
+  GEARMAN_COMMAND_RESET_ABILITIES,
+  GEARMAN_COMMAND_PRE_SLEEP,
+  GEARMAN_COMMAND_UNUSED,
+  GEARMAN_COMMAND_NOOP,
+  GEARMAN_COMMAND_SUBMIT_JOB,
+  GEARMAN_COMMAND_JOB_CREATED,
+  GEARMAN_COMMAND_GRAB_JOB,
+  GEARMAN_COMMAND_NO_JOB,
+  GEARMAN_COMMAND_JOB_ASSIGN,
+  GEARMAN_COMMAND_WORK_STATUS,
+  GEARMAN_COMMAND_WORK_COMPLETE,
+  GEARMAN_COMMAND_WORK_FAIL,
+  GEARMAN_COMMAND_GET_STATUS,
+  GEARMAN_COMMAND_ECHO_REQ,
+  GEARMAN_COMMAND_ECHO_RES,
+  GEARMAN_COMMAND_SUBMIT_JOB_BJ,
+  GEARMAN_COMMAND_ERROR,
+  GEARMAN_COMMAND_STATUS_RES,
+  GEARMAN_COMMAND_SUBMIT_JOB_HIGH,
+  GEARMAN_COMMAND_SET_CLIENT_ID,
+  GEARMAN_COMMAND_CAN_DO_TIMEOUT,
+  GEARMAN_COMMAND_ALL_YOURS,
+  GEARMAN_COMMAND_SUBMIT_JOB_SCHED,
+  GEARMAN_COMMAND_SUBMIT_JOB_EPOCH,
+  GEARMAN_COMMAND_MAX /* Always add new commands before this. */
+} gearman_command;
+
+#if 0
 typedef enum {
   GEARMAN_BEHAVIOR_JOB_BACKGROUND= 1
 } gearman_job_behavior;
@@ -81,55 +186,12 @@ typedef enum {
 } gearman_server_type;
 
 typedef enum {
-  GEARMAN_CONNECTION_STATE_LISTENING= 0, /* Leave as default for initial state */
+  GEARMAN_CONNECTION_STATE_LISTENING= 0,
   GEARMAN_CONNECTION_STATE_READ,
   GEARMAN_CONNECTION_STATE_WRITE,
   GEARMAN_CONNECTION_STATE_CLOSE
 } gearman_connection_state;
-
-typedef enum {
-  GEARMAN_CAN_DO= 1,           /* W->J: FUNC*/
-  GEARMAN_CAN_DO_TIMEOUT= 23,  /* W->J: FUNC[0]TIMEOUT*/
-  GEARMAN_CANT_DO= 2,          /* W->J: FUNC*/
-  GEARMAN_RESET_ABILITIES= 3,  /* W->J: --*/
-  GEARMAN_SET_CLIENT_ID= 22,   /* W->J: [RANDOM_STRING_NO_WHITESPACE]*/
-  GEARMAN_PRE_SLEEP= 4,        /* W->J: --*/
-
-  GEARMAN_NOOP= 6,             /* J->W: --*/
-  GEARMAN_SUBMIT_JOB= 7,       /* C->J: FUNC[0]UNIQ[0]ARGS*/
-  GEARMAN_SUBMIT_JOB_HIGH= 21, /* C->J: FUNC[0]UNIQ[0]ARGS */
-  GEARMAN_SUBMIT_JOB_BJ= 18,   /* C->J: FUNC[0]UNIQ[0]ARGS */
-  /* 
-    Suggested... hate Alan, he suggested CRON (he apologizes) 
-
-    minute        0-59
-    hour          0-23
-    day of month  1-31
-    month         1-12 (or names, see below)
-    day of week   0-7 (0 or 7 is Sun, or use names)
-
-  */
-  GEARMAN_SUBMIT_JOB_SCHEDULUED= 24,   /* C->J: FUNC[0]UNIQ[0]ARGS[0]MIN[0]HOUR[0]DAY_OF_MONTH[0]MONTH[0]DAY_OF_WEEK */
-  GEARMAN_SUBMIT_JOB_FUTURE= 25,   /* C->J: FUNC[0]UNIQ[0]ARGS[0]EPOC */
-
-  GEARMAN_JOB_CREATED= 8,      /* J->C: HANDLE */
-  GEARMAN_GRAB_JOB= 9,         /* W->J: -- */
-  GEARMAN_NO_JOB= 10,          /* J->W: --*/
-  GEARMAN_JOB_ASSIGN= 11,       /* J->W: HANDLE[0]FUNC[0]ARG */
-
-  GEARMAN_WORK_STATUS= 12,     /* W->J/C: HANDLE[0]NUMERATOR[0]DENOMINATOR*/
-  GEARMAN_WORK_COMPLETE= 13,   /* W->J/C: HANDLE[0]RES*/
-  GEARMAN_WORK_FAIL= 14,       /* W->J/C: HANDLE*/
-
-  GEARMAN_GET_STATUS= 15,      /* C->J: HANDLE*/
-  GEARMAN_STATUS_RES= 20,      /* C->J: HANDLE[0]KNOWN[0]RUNNING[0]NUM[0]DENOM*/
-
-  GEARMAN_ECHO_REQ= 16,        /* ?->J: TEXT*/
-  GEARMAN_ECHO_RES= 17,        /* J->?: TEXT*/
-
-  GEARMAN_ERROR= 19           /* J->?: ERRCODE[0]ERR_TEXT*/
-} gearman_action;
-
+#endif
 
 #ifdef __cplusplus
 }

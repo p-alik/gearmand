@@ -1,5 +1,5 @@
 # Gearman server and library
-# Copyright (C) 2008 Brian Aker
+# Copyright (C) 2008 Brian Aker, Eric Day
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,9 +18,8 @@
 AM_CFLAGS= -I$(top_builddir)
 AM_LDFLAGS= $(top_builddir)/libgearman/libgearman.la
 
-noinst_PROGRAMS=
-noinst_HEADERS= 
+noinst_PROGRAMS= reverse_worker
+
+#reverse_client_SOURCES= reverse_client.c
 
 reverse_worker_SOURCES= reverse_worker.c
-
-reverse_client_SOURCES= reverse_client.c

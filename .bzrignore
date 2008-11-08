@@ -45,3 +45,11 @@ libgearman/response.lo
 libgearman/result.lo
 libgearman/str_action.lo
 libgearman/str_error.lo
+.libs
+reverse_worker
+con.lo
+gearman.lo
+job.lo
+packet.lo
+worker.lo
+libgearman.la

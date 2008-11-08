@@ -52,34 +52,36 @@ header is:
 4 byte type       - A big-endian (network-order) integer containing
                     an enumerated packet type. Possible values are:
 
-                    #   Name             Magic  Type
-                    1   CAN_DO           REQ    Worker
-                    2   CANT_DO          REQ    Worker
-                    3   RESET_ABILITIES  REQ    Worker
-                    4   PRE_SLEEP        REQ    Worker
-                    5   (unused)         -      -
-                    6   NOOP             RES    Worker
-                    7   SUBMIT_JOB       REQ    Client
-                    8   JOB_CREATED      RES    Client
-                    9   GRAB_JOB         REQ    Worker
-                    10  NO_JOB           RES    Worker
-                    11  JOB_ASSIGN       RES    Worker
-                    12  WORK_STATUS      REQ    Worker
-                                         RES    Client
-                    13  WORK_COMPLETE    REQ    Worker
-                                         RES    Client
-                    14  WORK_FAIL        REQ    Worker
-                                         RES    Client
-                    15  GET_STATUS       REQ    Client
-                    16  ECHO_REQ         REQ    Client/Worker
-                    17  ECHO_RES         RES    Client/Worker
-                    18  SUBMIT_JOB_BG    REQ    Client
-                    19  ERROR            RES    Client/Worker
-                    20  STATUS_RES       RES    Client
-                    21  SUBMIT_JOB_HIGH  REQ    Client
-                    22  SET_CLIENT_ID    REQ    Worker
-                    23  CAN_DO_TIMEOUT   REQ    Worker
-                    24  ALL_YOURS        REQ    Worker
+                    #   Name              Magic  Type
+                    1   CAN_DO            REQ    Worker
+                    2   CANT_DO           REQ    Worker
+                    3   RESET_ABILITIES   REQ    Worker
+                    4   PRE_SLEEP         REQ    Worker
+                    5   (unused)          -      -
+                    6   NOOP              RES    Worker
+                    7   SUBMIT_JOB        REQ    Client
+                    8   JOB_CREATED       RES    Client
+                    9   GRAB_JOB          REQ    Worker
+                    10  NO_JOB            RES    Worker
+                    11  JOB_ASSIGN        RES    Worker
+                    12  WORK_STATUS       REQ    Worker
+                                          RES    Client
+                    13  WORK_COMPLETE     REQ    Worker
+                                          RES    Client
+                    14  WORK_FAIL         REQ    Worker
+                                          RES    Client
+                    15  GET_STATUS        REQ    Client
+                    16  ECHO_REQ          REQ    Client/Worker
+                    17  ECHO_RES          RES    Client/Worker
+                    18  SUBMIT_JOB_BG     REQ    Client
+                    19  ERROR             RES    Client/Worker
+                    20  STATUS_RES        RES    Client
+                    21  SUBMIT_JOB_HIGH   REQ    Client
+                    22  SET_CLIENT_ID     REQ    Worker
+                    23  CAN_DO_TIMEOUT    REQ    Worker
+                    24  ALL_YOURS         REQ    Worker
+                    25  SUBMIT_JOB_SCHED  REQ    Client
+                    26  SUBMIT_JOB_EPOCH  REQ    Client
 
 4 byte length     - A big-endian (network-order) integer containing
                     the length of the data being sent after the header.
@@ -140,6 +142,30 @@ SUBMIT_JOB_HIGH  respond with a JOB_CREATED packet.
                  Arguments:
                  - NULL byte terminated function name.
                  - NULL byte terminated unique ID.
+                 - Opaque data that is given to the function as an
+                   argument.
+
+SUBMIT_JOB_SCHED Just like SUBMIT_JOB_BG, but run job at given time
+                 instead of immediately.
+
+                 Arguments:
+                 - NULL byte terminated function name.
+                 - NULL byte terminated unique ID.
+                 - NULL byte terminated minute (0-59).
+                 - NULL byte terminated hour (0-23).
+                 - NULL byte terminated day of month (1-31).
+                 - NULL byte terminated month (1-12).
+                 - NULL byte terminated day of week (0-6, 0 = Monday).
+                 - Opaque data that is given to the function as an
+                   argument.
+
+SUBMIT_JOB_EPOCH Just like SUBMIT_JOB_BG, but run job at given time
+                 instead of immediately.
+
+                 Arguments:
+                 - NULL byte terminated function name.
+                 - NULL byte terminated unique ID.
+                 - NULL byte terminated epoch time.
                  - Opaque data that is given to the function as an
                    argument.
 
@@ -280,7 +306,7 @@ WORK_FAIL        This is to notify the server (and any listening
                  clients) that the job failed.
 
                  Arguments:
-                 - None.
+                 - Job handle.
 
 SET_CLIENT_ID    This sets the worker ID in a job server so monitoring
                  and reporting commands can uniquely identify the

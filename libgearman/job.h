@@ -1,5 +1,5 @@
 /* Gearman server and library
- * Copyright (C) 2008 Brian Aker
+ * Copyright (C) 2008 Brian Aker, Eric Day
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,36 +23,33 @@
 extern "C" {
 #endif
 
-struct gearman_job_st {
-  gearman_action action;
-  gearman_allocated is_allocated;
-  gearman_st *root;
-  gearman_byte_array_st function;
-  gearman_byte_array_st unique;
-  gearman_byte_array_st value;
-  gearman_byte_array_st handle;
-  uint32_t flags;
-  uint32_t cursor;
-};
+/* Initialize a connection structure. */
+gearman_job_st *gearman_job_create(gearman_st *gearman, gearman_job_st *job);
 
-/* Result Struct */
+/* Free a connection structure. */
 void gearman_job_free(gearman_job_st *job);
-void gearman_job_reset(gearman_job_st *ptr);
 
-gearman_job_st *gearman_job_create(gearman_st *ptr, gearman_job_st *job);
+/* Send result for a job. */
+gearman_return gearman_job_send_result(gearman_job_st *job, char *result,
+                                       size_t result_len);
 
-gearman_return gearman_job_submit(gearman_job_st *ptr);
-gearman_return gearman_job_result(gearman_job_st *ptr, 
-                                  gearman_result_st *result);
+/* Get job attributes. */
+char *gearman_job_handle(gearman_job_st *job);
+char *gearman_job_function(gearman_job_st *job);
+char *gearman_job_arg(gearman_job_st *job);
+size_t gearman_job_arg_len(gearman_job_st *job);
 
-gearman_return gearman_job_set_function(gearman_job_st *ptr, char *function);
-gearman_return gearman_job_set_value(gearman_job_st *ptr, char *value,
-                                     size_t length);
-
-uint64_t gearman_job_get_behavior(gearman_st *ptr, gearman_job_behavior flag);
-gearman_return gearman_job_set_behavior(gearman_job_st *ptr, 
-                                        gearman_job_behavior flag, 
-                                        uint64_t data);
+/* Data structures. */
+struct gearman_job_st
+{
+  gearman_st *gearman;
+  gearman_job_st *next;
+  gearman_job_st *prev;
+  gearman_job_options options;
+  gearman_con_st *con;
+  gearman_packet_st packet;
+  gearman_packet_st result;
+};
 
 #ifdef __cplusplus
 }

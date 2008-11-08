@@ -17,9 +17,9 @@
 
 AC_PREREQ(2.59)
 AC_INIT(gearmand, [1.0.0], [https://launchpad.net/gearmand])
-AC_CONFIG_SRCDIR(libgearman/gearman_client.c)
+AC_CONFIG_SRCDIR(libgearman/gearman.c)
 AC_CONFIG_AUX_DIR(config)
-AM_CONFIG_HEADER(libgearman/libgearman_config.h)
+AC_CONFIG_HEADERS([config.h])
 AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE
 
@@ -51,10 +51,8 @@ AC_TYPE_SIZE_T
 AC_TYPE_SSIZE_T
 
 AC_HEADER_TIME
-AC_CHECK_HEADERS(arpa/inet.h assert.h ctype.h errno.h fcntl.h inttypes.h)
-AC_CHECK_HEADERS(limits.h netdb.h netinet/in.h netinet/tcp.h poll.h signal.h)
-AC_CHECK_HEADERS(stdbool.h stdint.h stdio.h stdlib.h string.h strings.h)
-AC_CHECK_HEADERS(sys/socket.h sys/time.h sys/types.h sys/un.h unistd.h)
+AC_CHECK_HEADERS(errno.h fcntl.h netinet/tcp.h stdio.h stdlib.h string.h)
+AC_CHECK_HEADERS(unistd.h)
 
 AC_CHECK_LIB(event, event_init)
 AC_CHECK_HEADERS(event.h)
