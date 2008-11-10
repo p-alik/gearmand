@@ -29,6 +29,9 @@
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
+#ifdef HAVE_STDARG_H
+#include <stdarg.h>
+#endif
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -44,6 +47,9 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+#ifdef HAVE_UUID_UUID_H
+#include <uuid/uuid.h>
+#endif
 
 #ifdef TIME_WITH_SYS_TIME
 # include <sys/time.h>
@@ -57,6 +63,6 @@
 #endif
 
 #define GEARMAN_ERROR_SET(__gearman, ...) { \
-  snprintf((__gearman)->last_error, GEARMAN_MAX_ERROR_LENGTH, __VA_ARGS__); }
+  snprintf((__gearman)->last_error, GEARMAN_ERROR_SIZE, __VA_ARGS__); }
 
 #endif /* __GEARMAN_COMMON_H__ */

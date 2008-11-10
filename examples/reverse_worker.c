@@ -23,7 +23,8 @@
 
 #include <libgearman/gearman.h>
 
-void reverse(gearman_st *gearman, gearman_job_st *job);
+static void usage(char *name);
+static void reverse(gearman_worker_st *worker, gearman_job_st *job);
 
 int main(int argc, char *argv[])
 {
@@ -31,8 +32,6 @@ int main(int argc, char *argv[])
   char *host= NULL;
   unsigned short port= 0;
   gearman_return ret;
-  gearman_st gearman;
-  gearman_con_st con;
   gearman_worker_st worker;
   gearman_job_st job;
 
@@ -49,67 +48,80 @@ int main(int argc, char *argv[])
       break;
 
     default:
-      printf("\nusage: %s [-p <port>] [-h]\n", argv[0]);
-      printf("\t-h <host> - job server host\n");
-      printf("\t-p <port> - job server port\n");
-      return EINVAL;
+      usage(argv[0]);
+      exit(1);
     }
   }
 
-  (void)gearman_create(&gearman);
-  (void)gearman_con_add(&gearman, &con, host, port);
-  (void)gearman_worker_create(&gearman, &worker);
+  (void)gearman_worker_create(&worker);
+
+  ret= gearman_worker_server_add(&worker, host, port);
+  if (ret != GEARMAN_SUCCESS)
+  {
+    fprintf(stderr, "%s\n", gearman_worker_error(&worker));
+    exit(1);
+  }
 
   ret= gearman_worker_register_function(&worker, "reverse");
   if (ret != GEARMAN_SUCCESS)
   {
-    fprintf(stderr, "%s\n", gearman_error(&gearman));
+    fprintf(stderr, "%s\n", gearman_worker_error(&worker));
     exit(1);
   }
 
   while (1)
   {
-    gearman_worker_grab_job(&worker, &job, &ret);
+    (void)gearman_worker_grab_job(&worker, &job, &ret);
     if (ret != GEARMAN_SUCCESS)
     {
-      fprintf(stderr, "%s\n", gearman_error(&gearman));
+      fprintf(stderr, "%s\n", gearman_worker_error(&worker));
       exit(1);
     }
 
-    reverse(&gearman, &job);
+    reverse(&worker, &job);
   }
 
   return 0;
 }
 
-void reverse(gearman_st *gearman, gearman_job_st *job)
+static void reverse(gearman_worker_st *worker, gearman_job_st *job)
 {
   gearman_return ret;
-  char *arg;
-  char *buffer;
-  size_t arg_len;
+  char *workload;
+  size_t workload_size;
+  char *result;
   size_t x;
   size_t y;
 
-  arg= gearman_job_arg(job);
-  arg_len= gearman_job_arg_len(job);
+  workload= gearman_job_workload(job);
+  workload_size= gearman_job_workload_size(job);
 
-  buffer= malloc(arg_len);
-  if (buffer == NULL)
+  result= malloc(workload_size);
+  if (result == NULL)
   {
     fprintf(stderr, "malloc:%d\n", errno);
     exit(1);
   }
 
-  for (y= 0, x= arg_len; x; x--, y++)
-    buffer[y]= arg[x - 1];
+  for (y= 0, x= workload_size; x; x--, y++)
+    result[y]= workload[x - 1];
 
-  ret= gearman_job_send_result(job, buffer, arg_len);
+  ret= gearman_job_send_result(job, result, workload_size);
   if (ret != GEARMAN_SUCCESS)
   {
-    fprintf(stderr, "%s\n", gearman_error(gearman));
+    fprintf(stderr, "%s\n", gearman_worker_error(worker));
     exit(1);
   }
 
-  free(buffer);
+  printf("Job=%s Input=%.*s Output=%.*s\n", gearman_job_handle(job),
+         (int)workload_size, workload, (int)workload_size, result);
+
+  free(result);
+}
+
+static void usage(char *name)
+{
+  printf("\nusage: %s [-h <host>] [-p <port>]\n", name);
+  printf("\t-h <host> - job server host\n");
+  printf("\t-p <port> - job server port\n");
 }

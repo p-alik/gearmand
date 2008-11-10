@@ -33,7 +33,6 @@
 #include <libgearman/packet.h>
 #include <libgearman/con.h>
 #include <libgearman/job.h>
-#include <libgearman/worker.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -81,13 +80,16 @@ struct gearman_st
   uint32_t job_count;
   gearman_packet_st *packet_list;
   uint32_t packet_count;
-  gearman_worker_st *worker_list;
-  uint32_t worker_count;
   struct pollfd *pfds;
   uint32_t pfds_size;
-  char last_error[GEARMAN_MAX_ERROR_LENGTH];
+  uint32_t sending;
   int last_errno;
+  char last_error[GEARMAN_ERROR_SIZE];
 };
+
+/* These headers are at the end because they need gearman_st defined. */
+#include <libgearman/client.h>
+#include <libgearman/worker.h>
 
 #ifdef __cplusplus
 }

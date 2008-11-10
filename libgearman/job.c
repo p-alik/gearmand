@@ -61,25 +61,15 @@ void gearman_job_free(gearman_job_st *job)
 
 /* Send result for a job. */
 gearman_return gearman_job_send_result(gearman_job_st *job, char *result,
-                                       size_t result_len)
+                                       size_t result_size)
 {
   gearman_return ret;
 
-  (void)gearman_packet_create(job->gearman, &(job->result));
-  gearman_packet_set_header(&(job->result), GEARMAN_MAGIC_REQUEST,
-                            GEARMAN_COMMAND_WORK_COMPLETE);
-
-  /* Add job handle. */
-  ret= gearman_packet_arg_add(&(job->result), job->packet.arg[0],
-                              job->packet.arg_len[0]);
-  if (ret != GEARMAN_SUCCESS)
-    return ret;
-
-  ret= gearman_packet_arg_add(&(job->result), result, result_len);
-  if (ret != GEARMAN_SUCCESS)
-    return ret;
-
-  ret= gearman_packet_pack(&(job->result));
+  ret= gearman_packet_add(job->gearman, &(job->result),
+                          GEARMAN_MAGIC_REQUEST,
+                          GEARMAN_COMMAND_WORK_COMPLETE,
+                          job->packet.arg[0], job->packet.arg_size[0],
+                          result, result_size, NULL);
   if (ret != GEARMAN_SUCCESS)
     return ret;
 
@@ -93,6 +83,11 @@ gearman_return gearman_job_send_result(gearman_job_st *job, char *result,
 }
 
 /* Get job attributes. */
+char *gearman_job_uuid(gearman_job_st *job)
+{
+  return job->uuid;
+}
+
 char *gearman_job_handle(gearman_job_st *job)
 {
   return job->packet.arg[0];
@@ -100,15 +95,25 @@ char *gearman_job_handle(gearman_job_st *job)
 
 char *gearman_job_function(gearman_job_st *job)
 {
-  return job->packet.arg[1];
+  return job->packet.argc == 3 ? job->packet.arg[1] : "";
 }
 
-char *gearman_job_arg(gearman_job_st *job)
+char *gearman_job_workload(gearman_job_st *job)
 {
-  return job->packet.arg[2];
+  return job->packet.argc == 3 ? job->packet.arg[2] : "";
 }
 
-size_t gearman_job_arg_len(gearman_job_st *job)
+size_t gearman_job_workload_size(gearman_job_st *job)
 {
-  return job->packet.arg_len[2];
+  return job->packet.argc == 3 ? job->packet.arg_size[2] : 0;
+}
+
+char *gearman_job_result(gearman_job_st *job)
+{
+  return job->result.argc == 2 ? job->result.arg[1] : "";
+}
+
+size_t gearman_job_result_size(gearman_job_st *job)
+{
+  return job->result.argc == 2 ? job->result.arg_size[1] : 0;
 }

@@ -21,19 +21,18 @@ lib_LTLIBRARIES= libgearman.la
 #libgearman_client.la libgearman_worker.la
 
 pkginclude_HEADERS= \
-        con.h \
+	client.h
+	con.h \
 	constants.h \
 	gearman.h \
-        job.h \
-        packet.h \
+	job.h \
+	packet.h \
 	types.h \
-        worker.h
+	worker.h
 
 #	byte_array.h \
 #	dispatch.h \
 #	echo.h \
-#	gearman_client.h \
-#	gearman_worker.h \
 #	quit.h \
 #	response.h \
 #	result.h \
@@ -48,8 +47,9 @@ noinst_HEADERS= \
 #	io.h
 
 libgearman_la_SOURCES= \
+	client.c \
 	con.c \
-        gearman.c \
+	gearman.c \
 	job.c \
 	packet.c \
 	worker.c
@@ -58,7 +58,6 @@ libgearman_la_LDFLAGS= -version-info $(GEARMAN_LIBRARY_VERSION)
 
 #libgearman_client_la_SOURCES= \
 #	byte_array.c \
-#	gearman_client.c \
 #	io.c \
 #	dispatch.c \
 #	quit.c \
@@ -71,7 +70,6 @@ libgearman_la_LDFLAGS= -version-info $(GEARMAN_LIBRARY_VERSION)
 #libgearman_client_la_LDFLAGS= -version-info $(GEARMAN_LIBRARY_VERSION)
 
 #libgearman_worker_la_SOURCES= \
-#	gearman_worker.c \
 #	io.c \
 #	quit.c \
 #	server.c

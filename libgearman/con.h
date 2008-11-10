@@ -62,6 +62,10 @@ void gearman_con_reset_addrinfo(gearman_con_st *con);
 /* Send packet to a connection. */
 gearman_return gearman_con_send(gearman_con_st *con, gearman_packet_st *packet);
 
+/* Send packet to all connections. */
+gearman_return gearman_con_send_all(gearman_st *gearman,
+                                    gearman_packet_st *packet);
+
 /* Receive packet from a connection. */
 gearman_packet_st *gearman_con_recv(gearman_con_st *con,
                                     gearman_packet_st *packet,
@@ -86,9 +90,9 @@ struct gearman_con_st
   int fd;
   short events;
   short revents;
-  char buffer[GEARMAN_MAX_BUFFER_LENGTH];
+  char buffer[GEARMAN_READ_BUFFER_SIZE];
   char *buffer_ptr;
-  ssize_t buffer_len;
+  ssize_t buffer_size;
   gearman_packet_st *packet;
   size_t packet_size;
 };

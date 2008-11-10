@@ -16,79 +16,75 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include <assert.h>
-#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <unistd.h>
-#include <time.h>
 
 #include <libgearman/gearman.h>
 
+static void usage(char *name);
+
 int main(int argc, char *argv[])
 {
-  gearman_client_st *client;
   char c;
+  char *host= NULL;
   unsigned short port= 0;
+  gearman_return ret;
+  gearman_client_st client;
+  gearman_job_st job;
 
-  while((c = getopt(argc, argv, "hp:")) != EOF)
+  while((c = getopt(argc, argv, "h:p:")) != EOF)
   {
     switch(c)
     {
+    case 'h':
+      host= optarg;
+      break;
+
     case 'p':
       port= atoi(optarg);
       break;
 
-    case 'h':
     default:
-      printf("\nusage: %s [-p <port>] [-h]\n", argv[0]);
-      printf("\t-h        - print this help menu\n");
-      printf("\t-p <port> - port for server to listen on\n");
-      return EINVAL;
+      usage(argv[0]);
+      exit(1);
     }
   }
 
-  if (argc < 2)
-    return 0;
-
-  /* Create Connection */
+  if(argc != (optind + 1))
   {
-    gearman_return rc;
-
-    client= gearman_client_create(NULL);
-
-    assert(client);
-
-    rc= gearman_client_server_add(client, "localhost", 0);
-
-    if (rc != GEARMAN_SUCCESS)
-    {
-      printf("Failure: %s\n", gearman_strerror(rc));
-      exit(0);
-    }
+    usage(argv[0]);
+    exit(1);
   }
 
-  /* Send the data */
+  (void)gearman_client_create(&client);
+
+  ret= gearman_client_server_add(&client, host, port);
+  if (ret != GEARMAN_SUCCESS)
   {
-    gearman_return rc;
-    ssize_t job_length;
-    uint8_t *job_result;
-
-    job_result= gearman_client_do(client, "reverse",
-                                  argv[optind], strlen(argv[optind]), &job_length, &rc);
-
-    if (rc == GEARMAN_SUCCESS)
-    {
-      printf("Returned: %.*s\n", job_length, job_result);
-      free(job_result);
-    }
-    else
-      printf("Failure: %s\n", gearman_strerror(rc));
+    fprintf(stderr, "%s\n", gearman_client_error(&client));
+    exit(1);
   }
+
+  (void)gearman_client_do(&client, &job, "reverse", (uint8_t *)argv[optind],
+                          (size_t)strlen(argv[optind]), &ret);
+  if (ret != GEARMAN_SUCCESS)
+  {
+    fprintf(stderr, "%s\n", gearman_client_error(&client));
+    exit(1);
+  }
+
+  printf("Job=%s Unique=%s Result=%.*s\n", gearman_job_handle(&job),
+         gearman_job_uuid(&job), (int)gearman_job_result_size(&job),
+         gearman_job_result(&job));
 
   return 0;
+}
+
+static void usage(char *name)
+{
+  printf("\nusage: %s [-h <host>] [-p <port>] <string>\n", name);
+  printf("\t-h <host> - job server host\n");
+  printf("\t-p <port> - job server port\n");
 }

@@ -29,11 +29,11 @@ extern "C" {
 #define GEARMAN_DEFAULT_SOCKET_TIMEOUT 10
 #define GEARMAN_DEFAULT_SOCKET_SEND_SIZE 32768
 #define GEARMAN_DEFAULT_SOCKET_RECV_SIZE 32768
-#define GEARMAN_MAX_BUFFER_LENGTH 8192
-#define GEARMAN_MAX_ERROR_LENGTH 1024
+#define GEARMAN_PACKET_BUFFER_SIZE 64
+#define GEARMAN_READ_BUFFER_SIZE 8192
+#define GEARMAN_ERROR_SIZE 1024
 #define GEARMAN_MAX_COMMAND_ARGS 8
 #if 0
-#define GEARMAN_MAX_HOST_LENGTH 64
 #define GEARMAN_WHEEL_SIZE 1024
 #define GEARMAN_STRIDE 4
 #define GEARMAN_DEFAULT_TIMEOUT INT32_MAX
@@ -49,9 +49,11 @@ typedef enum
   GEARMAN_TOO_MANY_ARGS,
   GEARMAN_INVALID_MAGIC,
   GEARMAN_INVALID_COMMAND,
-  GEARMAN_INVALID_LENGTH,
+  GEARMAN_INVALID_SIZE,
   GEARMAN_INVALID_ARGS,
+  GEARMAN_INVALID_PACKET,
   GEARMAN_GETADDRINFO,
+  GEARMAN_NO_SERVERS,
   GEARMAN_EOF,
   GEARMAN_MAX_RETURN /* Always add new error code before */
 #if 0
@@ -89,6 +91,21 @@ typedef enum
   GEARMAN_NON_BLOCKING= (1 << 1)
 } gearman_options;
 
+/* Options for gearman_client_st. */
+typedef enum
+{
+  GEARMAN_CLIENT_ALLOCATED= (1 << 0)
+} gearman_client_options;
+
+/* States for gearman_client_st. */
+typedef enum
+{
+  GEARMAN_CLIENT_STATE_INIT,
+  GEARMAN_CLIENT_STATE_SUBMIT_JOB,
+  GEARMAN_CLIENT_STATE_JOB_CREATED,
+  GEARMAN_CLIENT_STATE_RESULT
+} gearman_client_state;
+
 /* Options for gearman_con_st. */
 typedef enum
 {
@@ -115,13 +132,15 @@ typedef enum
 /* Options for gearman_packet_st. */
 typedef enum
 {
-  GEARMAN_PACKET_ALLOCATED= (1 << 0)
+  GEARMAN_PACKET_ALLOCATED= (1 << 0),
+  GEARMAN_PACKET_PACKED=    (1 << 1)
 } gearman_packet_options;
 
 /* Options for gearman_worker_st. */
 typedef enum
 {
-  GEARMAN_WORKER_ALLOCATED= (1 << 0)
+  GEARMAN_WORKER_ALLOCATED=     (1 << 0),
+  GEARMAN_WORKER_PACKET_IN_USE= (1 << 1)
 } gearman_worker_options;
 
 /* States for gearman_worker_st. */
@@ -138,6 +157,7 @@ typedef enum
 /* Magic types. */
 typedef enum
 {
+  GEARMAN_MAGIC_NONE,
   GEARMAN_MAGIC_REQUEST,
   GEARMAN_MAGIC_RESPONSE
 } gearman_magic;

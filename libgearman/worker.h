@@ -24,19 +24,29 @@ extern "C" {
 #endif
 
 /* Initialize a worker structure. */
-gearman_worker_st *gearman_worker_create(gearman_st *gearman,
-                                         gearman_worker_st *worker);
+gearman_worker_st *gearman_worker_create(gearman_worker_st *worker);
 
 /* Free a worker structure. */
 void gearman_worker_free(gearman_worker_st *worker);
 
+/* Return an error string for last library error encountered. */
+char *gearman_worker_error(gearman_worker_st *worker);
+
+/* Value of errno in the case of a GEARMAN_ERRNO return value. */
+int gearman_worker_errno(gearman_worker_st *worker);
+
+/* Set options for a library instance structure. */
+void gearman_worker_set_options(gearman_worker_st *worker,
+                                gearman_options options,
+                                uint32_t data);
+
+/* Add a job server to a worker. */
+gearman_return gearman_worker_server_add(gearman_worker_st *worker, char *host,
+                                         in_port_t port);
+
 /* Register function with job servers. */
 gearman_return gearman_worker_register_function(gearman_worker_st *worker,
                                                 char *name);
-
-/* Send packet to all job servers. */
-gearman_return gearman_worker_send_all(gearman_worker_st *worker,
-                                       gearman_packet_st *packet);
 
 /* Get a job from one of the job servers. */
 gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
@@ -46,19 +56,17 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
 /* Register function with job servers. */
 gearman_return gearman_worker_work(gearman_worker_st *worker);
 
+/* Data structures. */
 struct gearman_worker_st
 {
-  gearman_st *gearman;
-  gearman_worker_st *next;
-  gearman_worker_st *prev;
+  gearman_st gearman;
   gearman_worker_options options;
   gearman_worker_state state;
-  gearman_con_st *con;
   gearman_packet_st packet;
   gearman_packet_st grab_job;
   gearman_packet_st pre_sleep;
+  gearman_con_st *con;
   gearman_job_st *job;
-  uint32_t sending;
 };
 
 #ifdef __cplusplus

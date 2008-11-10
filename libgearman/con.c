@@ -154,16 +154,7 @@ void gearman_con_set_fd(gearman_con_st *con, int fd)
 /* Connect to server. */
 gearman_return gearman_con_connect(gearman_con_st *con)
 {
-#if 0
-  if (con->state_current == 0)
-  {
-    GEARMAN_STATE_PUSH(con, gearman_state_addrinfo);
-  }
-
-  return gearman_state_loop(con);
-#endif
-  con= NULL;
-  return GEARMAN_SUCCESS;
+  return gearman_con_loop(con);
 }
 
 /* Close a connection. */
@@ -204,9 +195,78 @@ void gearman_con_reset_addrinfo(gearman_con_st *con)
 /* Send packet to a connection. */
 gearman_return gearman_con_send(gearman_con_st *con, gearman_packet_st *packet)
 {
+  if (!(packet->options & GEARMAN_PACKET_PACKED))
+  {
+    GEARMAN_ERROR_SET(con->gearman, "gearman_con_send:packet not packed");
+    return GEARMAN_INVALID_PACKET;
+  }
+
   con->packet= packet;
 
   return gearman_con_loop(con);
+}
+
+/* Send packet to all connections. */
+gearman_return gearman_con_send_all(gearman_st *gearman,
+                                    gearman_packet_st *packet)
+{
+  gearman_return ret;
+  gearman_con_st *con;
+  gearman_options old_options;
+
+  if (gearman->sending == 0)
+  {
+    old_options= gearman->options;
+    gearman->options&= ~GEARMAN_NON_BLOCKING;
+
+    for (con= gearman->con_list; con != NULL; con= con->next)
+    { 
+      ret= gearman_con_send(con, packet);
+      if (ret != GEARMAN_SUCCESS)
+      { 
+        if (ret != GEARMAN_IO_WAIT)
+        {
+          gearman->options= old_options;
+          return ret;
+        }
+
+        gearman->sending++;
+        break;
+      }
+    }
+
+    gearman->options= old_options;
+  }
+
+  while (gearman->sending != 0)
+  {
+    while (1)
+    { 
+      con= gearman_io_ready(gearman);
+      if (con == NULL)
+        break;
+
+      ret= gearman_con_send(con, packet);
+      if (ret != GEARMAN_SUCCESS)
+      { 
+        if (ret != GEARMAN_IO_WAIT)
+          return ret;
+
+        continue;
+      }
+
+      gearman->sending--;
+    }
+
+    if (gearman->options & GEARMAN_NON_BLOCKING)
+      return GEARMAN_IO_WAIT;
+
+    ret= gearman_io_wait(gearman);
+    if (ret != GEARMAN_IO_WAIT)
+      return ret;
+  }
+
+  return GEARMAN_SUCCESS;
 }
 
 /* Receive packet from a connection. */
@@ -365,16 +425,16 @@ gearman_return gearman_con_loop(gearman_con_st *con)
       {
         con->state= GEARMAN_CON_STATE_SEND;
         con->buffer_ptr= con->packet->data;
-        con->buffer_len= con->packet->length;
+        con->buffer_size= con->packet->data_size;
         break;
       }
 
       return GEARMAN_SUCCESS;
 
     case GEARMAN_CON_STATE_SEND:
-      while (con->buffer_len != 0)
+      while (con->buffer_size != 0)
       {
-        ret= write(con->fd, con->buffer_ptr, con->buffer_len);
+        ret= write(con->fd, con->buffer_ptr, con->buffer_size);
         if (ret == 0)
         { 
           GEARMAN_ERROR_SET(con->gearman, "gearman_con_loop:write:end of file");
@@ -405,8 +465,8 @@ gearman_return gearman_con_loop(gearman_con_st *con)
           return GEARMAN_ERRNO;
         }
 
-        con->buffer_len-= ret;
-        if (con->buffer_len == 0)
+        con->buffer_size-= ret;
+        if (con->buffer_size == 0)
           break;
 
         con->buffer_ptr+= ret;
@@ -419,25 +479,25 @@ gearman_return gearman_con_loop(gearman_con_st *con)
     case GEARMAN_CON_STATE_RECV:
       while (1)
       {
-        if (con->buffer_len > 0)
+        if (con->buffer_size > 0)
         {
           gret= _con_parse_packet(con);
           if (gret != GEARMAN_IO_WAIT)
             return gret;
         }
 
-        if (con->buffer_len == 0)
+        if (con->buffer_size == 0)
           con->buffer_ptr= con->buffer;
         else if ((con->buffer_ptr - con->buffer) >
-                 (GEARMAN_MAX_BUFFER_LENGTH / 2))
+                 (GEARMAN_READ_BUFFER_SIZE / 2))
         {
-          memmove(con->buffer, con->buffer_ptr, con->buffer_len);
+          memmove(con->buffer, con->buffer_ptr, con->buffer_size);
           con->buffer_ptr= con->buffer;
         }
 
-        ret= read(con->fd, con->buffer_ptr + con->buffer_len,
-                  GEARMAN_MAX_BUFFER_LENGTH -
-                  ((con->buffer_ptr - con->buffer) + con->buffer_len));
+        ret= read(con->fd, con->buffer_ptr + con->buffer_size,
+                  GEARMAN_READ_BUFFER_SIZE -
+                  ((con->buffer_ptr - con->buffer) + con->buffer_size));
         if (ret == 0)
         {
           GEARMAN_ERROR_SET(con->gearman, "gearman_con_loop:read:end of file");
@@ -468,7 +528,7 @@ gearman_return gearman_con_loop(gearman_con_st *con)
           return GEARMAN_ERRNO;
         }
 
-        con->buffer_len+= ret;
+        con->buffer_size+= ret;
       }
     }
   }
@@ -485,7 +545,7 @@ static gearman_return _con_parse_packet(gearman_con_st *con)
 
   if (con->packet_size == 0)
   {
-    if (con->buffer_len < 12)
+    if (con->buffer_size < 12)
       return GEARMAN_IO_WAIT;
 
     memcpy(&data_size, con->buffer_ptr + 8, 4);
@@ -496,18 +556,18 @@ static gearman_return _con_parse_packet(gearman_con_st *con)
       return GEARMAN_ERRNO;
   }
 
-  if ((size_t)(con->buffer_len) < con->packet_size)
-    data_read= con->buffer_len;
+  if ((size_t)(con->buffer_size) < con->packet_size)
+    data_read= con->buffer_size;
   else
     data_read= con->packet_size;
 
-  ret= gearman_packet_arg_add_data(con->packet, con->buffer_ptr, data_read);
+  ret= gearman_packet_add_arg_data(con->packet, con->buffer_ptr, data_read);
   if (ret != GEARMAN_SUCCESS)
     return ret;
 
   con->packet_size-= data_read;
   con->buffer_ptr+= data_read;
-  con->buffer_len-= data_read;
+  con->buffer_size-= data_read;
 
   if (con->packet_size != 0)
     return GEARMAN_IO_WAIT;

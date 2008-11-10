@@ -24,6 +24,7 @@ extern "C" {
 #endif
 
 typedef struct gearman_st gearman_st;
+typedef struct gearman_client_st gearman_client_st;
 typedef struct gearman_command_info_st gearman_command_info_st;
 typedef struct gearman_con_st gearman_con_st;
 typedef struct gearman_job_st gearman_job_st;

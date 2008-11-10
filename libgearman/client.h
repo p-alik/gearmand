@@ -1,5 +1,5 @@
 /* Gearman server and library
- * Copyright (C) 2008 Brian Aker
+ * Copyright (C) 2008 Brian Aker, Eric Day
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,54 +19,38 @@
 #ifndef __GEARMAN_CLIENT_H__
 #define __GEARMAN_CLIENT_H__
 
-#include <libgearman/libgearman_config.h>
-
-#include <inttypes.h>
-
-#ifdef HAVE_NETINET_IN_H
-#include <netinet/in.h>
-#endif
-#ifdef HAVE_SYS_TYPES_H
-#include <sys/types.h>
-#endif
-
-#include <libgearman/constants.h>
-#include <libgearman/types.h>
-#include <libgearman/watchpoint.h>
-#include <libgearman/server.h>
-#include <libgearman/quit.h>
-#include <libgearman/dispatch.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* These are Private and should not be used by applications */
-#define GEARMAN_H_VERSION_STRING_LENGTH 12
-
-struct gearman_client_st {
-  bool is_allocated;
-  gearman_server_list_st list;
-};
-
-/* Public API */
-
-/* Create and destory client structures */
+/* Initialize a client structure. */
 gearman_client_st *gearman_client_create(gearman_client_st *client);
+
+/* Free a client structure. */
 void gearman_client_free(gearman_client_st *client);
-gearman_client_st *gearman_client_clone(gearman_client_st *client);
 
-/* Add a server to the client */
-gearman_return gearman_client_server_add(gearman_client_st *client,
-                                         const char *hostname,
-                                         uint16_t port);
+/* Return an error string for last library error encountered. */
+char *gearman_client_error(gearman_client_st *client);
 
-/* Operate on tasks */
-uint8_t *gearman_client_do(gearman_client_st *client,
-                           const char *function_name, 
-                           const uint8_t *workload, ssize_t workload_size, 
-                           ssize_t *result_length,  gearman_return *error);
+/* Value of errno in the case of a GEARMAN_ERRNO return value. */
+int gearman_client_errno(gearman_client_st *client);
 
+/* Set options for a library instance structure. */
+void gearman_client_set_options(gearman_client_st *client,
+                                gearman_options options,
+                                uint32_t data);
+
+/* Add a job server to a client. */
+gearman_return gearman_client_server_add(gearman_client_st *client, char *host,
+                                         in_port_t port);
+
+/* Run a job. */
+gearman_job_st *gearman_client_do(gearman_client_st *client,
+                                  gearman_job_st *job, char *function_name, 
+                                  uint8_t *workload, size_t workload_size,
+                                  gearman_return *ret);
+
+#if 0
 char *gearman_client_do_background(gearman_client_st *client,
                                    const char *function_name,
                                    const uint8_t *workload, ssize_t workload_size,
@@ -83,6 +67,16 @@ gearman_return gearman_client_job_status(gearman_client_st *client,
                                          bool *is_running,
                                          long *numerator,
                                          long *denominator);
+#endif
+
+/* Data structures. */
+struct gearman_client_st
+{
+  gearman_st gearman;
+  gearman_client_options options;
+  gearman_client_state state;
+  gearman_job_st *job;
+};
 
 #ifdef __cplusplus
 }

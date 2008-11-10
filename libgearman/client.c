@@ -16,156 +16,142 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include <uuid/uuid.h>
-#include <libgearman/gearman_client.h>
 #include "common.h"
 
+/* Initialize a client structure. */
 gearman_client_st *gearman_client_create(gearman_client_st *client)
 {
   if (client == NULL)
   {
-    client= (gearman_client_st *)malloc(sizeof(gearman_client_st));
-
-    if (!client)
-      return NULL; /*  GEARMAN_MEMORY_ALLOCATION_FAILURE */
+    client= malloc(sizeof(gearman_client_st));
+    if (client == NULL)
+      return NULL;
 
     memset(client, 0, sizeof(gearman_client_st));
-    client->is_allocated= true;
+    client->options|= GEARMAN_CLIENT_ALLOCATED;
   }
   else
-  {
     memset(client, 0, sizeof(gearman_client_st));
-  }
+
+  (void)gearman_create(&(client->gearman));
 
   return client;
 }
 
+/* Free a client structure. */
 void gearman_client_free(gearman_client_st *client)
 {
-  /* If we have anything open, lets close it now */
-  gearman_server_list_free(&client->list);
-
-  if (client->is_allocated == true)
-      free(client);
-  else
-    memset(client, 0, sizeof(client));
+  if (client->options & GEARMAN_CLIENT_ALLOCATED)
+    free(client);
 }
 
-/*
-  clone is the destination, while client is the structure to clone.
-  If client is NULL the call is the same as if a gearman_client_create() was
-  called.
-*/
-gearman_client_st *gearman_client_clone(gearman_client_st *client)
+/* Return an error string for last library error encountered. */
+char *gearman_client_error(gearman_client_st *client)
 {
-  gearman_client_st *clone;
-  gearman_return rc= GEARMAN_SUCCESS;
-
-  clone= gearman_client_create(NULL);
-
-  if (clone == NULL)
-    return NULL;
-
-  /* If client was null, then we just return NULL */
-  if (client == NULL)
-    return gearman_client_create(NULL);
-
-  rc= gearman_server_copy(&clone->list, &client->list);
-
-  if (rc != GEARMAN_SUCCESS)
-  {
-    gearman_client_free(clone);
-
-    return NULL;
-  }
-
-  return clone;
+  return gearman_error(&(client->gearman));
 }
 
-gearman_return gearman_client_server_add(gearman_client_st *client,
-                                         const char *hostname,
-                                         uint16_t port)
+/* Value of errno in the case of a GEARMAN_ERRNO return value. */
+int gearman_client_errno(gearman_client_st *client)
 {
-  return gearman_server_add(&client->list, hostname, port);
+  return gearman_errno(&(client->gearman));
 }
 
-uint8_t *gearman_client_do(gearman_client_st *client,
-                           const char *function_name,
-                           const uint8_t *workload, ssize_t workload_size,
-                           ssize_t *result_length,  gearman_return *error)
+/* Set options for a library instance structure. */
+void gearman_client_set_options(gearman_client_st *client,
+                                gearman_options options,
+                                uint32_t data)
 {
-  giov_st giov[1];
-  gearman_server_st *server;
-  gearman_result_st result;
-  uuid_t uu;
-  char uuid_string[37];
-  uint8_t *answer= NULL;
-
-  if (client->list.number_of_hosts == 0)
-  {
-    *error= GEARMAN_FAILURE;
-    return NULL;
-  }
-
-  server= &(client->list.hosts[0]);
-  assert(server);
-
-  if (gearman_result_create(&result) == NULL)
-  {
-    *error= GEARMAN_SUCCESS;
-    return NULL;
-  }
-
-  uuid_generate(uu);
-  uuid_unparse(uu, uuid_string);
-
-  giov[0].arg= (const void *)function_name;
-  giov[0].arg_length= strlen(function_name);
-  giov[1].arg= uuid_string;
-  giov[1].arg_length= 37;
-  giov[2].arg= (const void *)workload;
-  giov[2].arg_length= workload_size;
-  *error= gearman_dispatch(server, GEARMAN_SUBMIT_JOB, giov, true);
-
-  if (*error != GEARMAN_SUCCESS)
-    return NULL;
-
-  WATCHPOINT;
-  *error= gearman_response(server, &result);
-  assert(*error == GEARMAN_SUCCESS);
-  assert(result.action == GEARMAN_JOB_CREATED);
-
-  WATCHPOINT;
-  while (1)
-  {
-    /* Now we request the status */
-    giov[0].arg= result.handle->value;
-    giov[0].arg_length= result.handle->length;
-    *error= gearman_dispatch(server, GEARMAN_GET_STATUS, giov, true);
-    assert(*error == GEARMAN_SUCCESS);
-
-    WATCHPOINT;
-    *error= gearman_response(server, &result);
-    WATCHPOINT_ACTION(result.action);
-    assert(*error == GEARMAN_SUCCESS);
-    assert(result.action == GEARMAN_STATUS_RES || result.action == GEARMAN_WORK_COMPLETE || result.action == GEARMAN_WORK_FAIL);
-
-    if (result.action == GEARMAN_WORK_COMPLETE || result.action == GEARMAN_WORK_FAIL)
-      break;
-  }
-
-
-  if (result.action == GEARMAN_WORK_COMPLETE)
-  {
-    WATCHPOINT_STRING_LENGTH(result.value->value, result.value->length);
-    answer= gearman_result_c_copy(&result, result_length);
-  }
-
-  gearman_result_free(&result);
-
-  return answer;
+  gearman_set_options(&(client->gearman), options, data);
 }
 
+/* Add a job server to a client. */
+gearman_return gearman_client_server_add(gearman_client_st *client, char *host,
+                                         in_port_t port)
+{
+  if (gearman_con_add(&(client->gearman), NULL, host, port) == NULL)
+    return GEARMAN_ERRNO;
+
+  return GEARMAN_SUCCESS;
+}
+
+/* Run a job. */
+gearman_job_st *gearman_client_do(gearman_client_st *client,
+                                  gearman_job_st *job, char *function_name,
+                                  uint8_t *workload, size_t workload_size,
+                                  gearman_return *ret)
+{
+  uuid_t uuid;
+
+  switch(client->state)
+  {
+  case GEARMAN_CLIENT_STATE_INIT:
+    if (client->gearman.con_list == NULL)
+    {
+      *ret= GEARMAN_NO_SERVERS;
+      return NULL;
+    }
+
+    client->job= gearman_job_create(&(client->gearman), job);
+    if (client->job == NULL)
+    {
+      *ret= GEARMAN_ERRNO;
+      return NULL;
+    }
+
+    uuid_generate(uuid);
+    uuid_unparse(uuid, client->job->uuid);
+    job->con= client->gearman.con_list;
+
+    *ret= gearman_packet_add(&(client->gearman), &(job->packet),
+                             GEARMAN_MAGIC_REQUEST,
+                             GEARMAN_COMMAND_SUBMIT_JOB,
+                             function_name, strlen(function_name) + 1,
+                             job->uuid, (size_t)37,
+                             workload, workload_size, NULL);
+    if (*ret != GEARMAN_SUCCESS)
+      return NULL;
+
+  case GEARMAN_CLIENT_STATE_SUBMIT_JOB:
+    *ret= gearman_con_send(job->con, &(client->job->packet));
+    if (*ret != GEARMAN_SUCCESS)
+    {
+      if (*ret == GEARMAN_IO_WAIT)
+        client->state= GEARMAN_CLIENT_STATE_SUBMIT_JOB;
+
+      return NULL;
+    }
+
+    gearman_packet_free(&(job->packet));
+
+  case GEARMAN_CLIENT_STATE_JOB_CREATED:
+    gearman_con_recv(job->con, &(client->job->packet), ret);
+    if (*ret != GEARMAN_SUCCESS)
+    {
+      if (*ret == GEARMAN_IO_WAIT)
+        client->state= GEARMAN_CLIENT_STATE_JOB_CREATED;
+
+      return NULL;
+    }
+
+  case GEARMAN_CLIENT_STATE_RESULT:
+    gearman_con_recv(job->con, &(client->job->result), ret);
+    if (*ret != GEARMAN_SUCCESS)
+    {
+      if (*ret == GEARMAN_IO_WAIT)
+        client->state= GEARMAN_CLIENT_STATE_RESULT;
+
+      return NULL;
+    }
+  }
+
+  job= client->job;
+  client->job= NULL;
+
+  return job;
+}
+
+#if 0
 char *gearman_client_do_background(gearman_client_st *client,
                                    const char *function_name,
                                    const uint8_t *workload, ssize_t workload_size,
@@ -293,3 +279,4 @@ gearman_return gearman_client_echo(gearman_client_st *client,
 
   return rc;
 }
+#endif
