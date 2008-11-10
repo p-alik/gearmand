@@ -18,8 +18,8 @@
 AM_CFLAGS= -I$(top_builddir)
 AM_LDFLAGS= $(top_builddir)/libgearman/libgearman.la
 
-noinst_PROGRAMS= reverse_worker
+noinst_PROGRAMS= reverse_client reverse_worker
 
-#reverse_client_SOURCES= reverse_client.c
+reverse_client_SOURCES= reverse_client.c
 
 reverse_worker_SOURCES= reverse_worker.c

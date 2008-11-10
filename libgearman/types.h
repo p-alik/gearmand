@@ -1,5 +1,5 @@
 /* Gearman server and library
- * Copyright (C) 2008 Brian Aker
+ * Copyright (C) 2008 Brian Aker, Eric Day
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,10 +36,12 @@ typedef struct gearman_byte_array_st gearman_byte_array_st;
 typedef struct gearman_server_list_st gearman_server_list_st;
 typedef struct gearman_server_st gearman_server_st;
 typedef struct giov_st giov_st;
-typedef uint8_t* (*gearman_worker_function)(gearman_job_st *job,
-                                            size_t *result_length,  
-                                            gearman_return *ret);
 
+typedef uint8_t* (*gearman_worker_function)(gearman_worker_st *job,
+                                            uint8_t *value,  
+                                            ssize_t value_length,  
+                                            ssize_t *result_length,  
+                                            gearman_return *error);
 #endif
 
 #ifdef __cplusplus

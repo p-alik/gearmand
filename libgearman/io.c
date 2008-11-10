@@ -58,16 +58,16 @@ static gearman_return io_wait(gearman_server_st *ptr,
 
 }
 
-ssize_t gearman_io_read(gearman_server_st *ptr,
-                          char *buffer, size_t length)
+ssize_t gearman_io_read(gearman_server_st *ptr, uint8_t *buffer, ssize_t length)
 {
-  char *buffer_ptr;
+  uint8_t *buffer_ptr;
 
   buffer_ptr= buffer;
 
   while (length)
   {
-    uint8_t found_eof= 0;
+    bool found_eof= false;
+
     if (!ptr->read_buffer_length)
     {
       ssize_t data_read;
@@ -104,7 +104,7 @@ ssize_t gearman_io_read(gearman_server_st *ptr,
         }
         else
         {
-          found_eof= 1;
+          found_eof= true;
           break;
         }
       }

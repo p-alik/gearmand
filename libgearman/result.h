@@ -35,18 +35,24 @@ struct gearman_result_st {
   gearman_action action;
   gearman_byte_array_st *handle;
   gearman_byte_array_st *value;
-  uint32_t numerator;
-  uint32_t denominator;
+  /* The following are just used for job status returns */
+  bool is_known;
+  bool is_running;
+  long numerator;
+  long denominator;
 };
 
 gearman_result_st *gearman_result_create(gearman_result_st *ptr);
-gearman_return gearman_result_value_store(gearman_result_st *ptr, const char *value, ssize_t length);
-gearman_return gearman_result_handle_store(gearman_result_st *ptr, const char *handle, ssize_t length);
+gearman_return gearman_result_value_store(gearman_result_st *ptr, const uint8_t *value, ssize_t length);
+gearman_return gearman_result_handle_store(gearman_result_st *ptr, const uint8_t *handle, ssize_t length);
 void gearman_result_free(gearman_result_st *ptr);
 uint8_t *gearman_result_value(gearman_result_st *result, ssize_t *length);
 ssize_t gearman_result_value_length(gearman_result_st *ptr);
 uint8_t *gearman_result_handle(gearman_result_st *result, ssize_t *length);
 ssize_t gearman_result_handle_length(gearman_result_st *ptr);
+
+/* We just use this to keep people from messing with the byte array in the structure */
+uint8_t *gearman_result_c_copy(gearman_result_st *result, ssize_t *length);
 
 
 #ifdef __cplusplus

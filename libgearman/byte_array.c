@@ -33,14 +33,14 @@ gearman_byte_array_st *gearman_byte_array_create(ssize_t initial_size)
 /*
   We always add a null terminator.
 */
-char *gearman_byte_array_c_copy(gearman_byte_array_st *byte_array, ssize_t *length)
+uint8_t *gearman_byte_array_c_copy(gearman_byte_array_st *byte_array, ssize_t *length)
 {
-  char *c_ptr;
+  uint8_t *c_ptr;
 
   if (byte_array->length == 0)
     return NULL;
 
-  c_ptr= (char *)malloc(byte_array->length * sizeof(char) + 1);
+  c_ptr= (uint8_t *)malloc(byte_array->length * sizeof(uint8_t) + 1);
 
   if (c_ptr == NULL)
     return NULL;
@@ -61,13 +61,13 @@ void gearman_byte_array_free(gearman_byte_array_st *ptr)
 }
 
 gearman_return gearman_byte_array_store(gearman_byte_array_st *byte_array,
-                                  const char *value, ssize_t length)
+                                        const void *value, ssize_t length)
 {
   gearman_byte_array_st *new_ptr;
 
   if (length > byte_array->length)
   {
-    new_ptr= realloc(byte_array, length);
+    new_ptr= realloc(byte_array, length + sizeof(gearman_byte_array_st));
 
     if (new_ptr == NULL)
       return  GEARMAN_MEMORY_ALLOCATION_FAILURE;

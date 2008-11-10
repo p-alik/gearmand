@@ -30,10 +30,10 @@ struct gearman_byte_array_st {
 
 
 gearman_byte_array_st *gearman_byte_array_create(ssize_t initial_size);
-char *gearman_byte_array_c_copy(gearman_byte_array_st *byte_array, ssize_t *length);
+uint8_t *gearman_byte_array_c_copy(gearman_byte_array_st *byte_array, ssize_t *length);
 void gearman_byte_array_free(gearman_byte_array_st *ptr);
 gearman_return gearman_byte_array_store(gearman_byte_array_st *byte_array,
-                                  const char *value, ssize_t length);
+                                        const void *value, ssize_t length);
 
 #ifdef __cplusplus
 }

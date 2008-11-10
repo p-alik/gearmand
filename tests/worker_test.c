@@ -84,6 +84,41 @@ test_return clone_test(void *object)
   return TEST_SUCCESS;
 }
 
+/* Prototype */
+uint8_t* simple_worker(gearman_worker_st *job,
+                       uint8_t *value,  
+                       ssize_t value_length,  
+                       ssize_t *result_length,  
+                       gearman_return *error);
+
+uint8_t* simple_worker(gearman_worker_st *job,
+                       uint8_t *value,  
+                       ssize_t value_length,  
+                       ssize_t *result_length,  
+                       gearman_return *error)
+{
+  fprintf(stderr, "%.*s\n", value_length, value);
+
+  (void)job;
+
+  *error= GEARMAN_SUCCESS;
+  *result_length= strlen("successful");
+
+  return (uint8_t *)strdup("successful");
+}
+
+static test_return simple_work_test(void *object)
+{
+  gearman_worker_st *worker= (gearman_worker_st *)object;
+  gearman_worker_function callback[1];
+
+  callback[0]= simple_worker;
+  gearman_server_function_register(worker, "simple", callback);
+  gearman_server_work(worker);
+
+  return TEST_SUCCESS;
+}
+
 test_return flush(void)
 {
   return TEST_SUCCESS;
@@ -138,6 +173,7 @@ test_st tests[] ={
   {"init", 0, init_test },
   {"allocation", 0, allocation_test },
   {"clone_test", 0, clone_test },
+  {"simple_work_test", 0, simple_work_test },
   {0, 0, 0}
 };
 
