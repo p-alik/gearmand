@@ -31,6 +31,12 @@ typedef struct gearman_job_st gearman_job_st;
 typedef struct gearman_packet_st gearman_packet_st;
 typedef struct gearman_worker_st gearman_worker_st;
 
+typedef uint8_t* (*gearman_worker_function)(gearman_worker_st *job,
+                                            uint8_t *value,  
+                                            ssize_t value_length,  
+                                            ssize_t *result_length,  
+                                            gearman_return *error);
+
 #if 0
 typedef struct gearman_result_st gearman_result_st;
 typedef struct gearman_byte_array_st gearman_byte_array_st;
@@ -38,11 +44,6 @@ typedef struct gearman_server_list_st gearman_server_list_st;
 typedef struct gearman_server_st gearman_server_st;
 typedef struct giov_st giov_st;
 
-typedef uint8_t* (*gearman_worker_function)(gearman_worker_st *job,
-                                            uint8_t *value,  
-                                            ssize_t value_length,  
-                                            ssize_t *result_length,  
-                                            gearman_return *error);
 #endif
 
 #ifdef __cplusplus

@@ -25,9 +25,11 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <time.h>
+#include <stdbool.h>
 
 #define GEARMAN_INTERNAL 1
-#include <libgearman/gearman_client.h>
+#include <libgearman/gearman.h>
+#include <libgearman/watchpoint.h>
 
 #include "test.h"
 
@@ -98,7 +100,6 @@ test_return echo_test(void *object)
 
   value_length= strlen(value);
 
-  assert (client->list.number_of_hosts);
   rc= gearman_client_echo(client, value, value_length);
   WATCHPOINT_ERROR(rc);
   assert(rc == GEARMAN_SUCCESS);
@@ -116,7 +117,7 @@ test_return background_failure_test(void *object)
   long numerator;
   long denominator;
   uint8_t *value= (uint8_t *)"background_failure_test";
-  size_t value_length= strlen("background_failure_test");
+  ssize_t value_length= strlen("background_failure_test");
 
   job_id= gearman_client_do_background(client, "does_not_exist",
                                        value, value_length, &rc);
