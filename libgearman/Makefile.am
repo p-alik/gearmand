@@ -27,6 +27,7 @@ pkginclude_HEADERS= \
 	gearman.h \
 	job.h \
 	packet.h \
+	task.h \
 	types.h \
 	worker.h
 
@@ -52,6 +53,7 @@ libgearman_la_SOURCES= \
 	gearman.c \
 	job.c \
 	packet.c \
+	task.c \
 	worker.c
 
 libgearman_la_LDFLAGS= -version-info $(GEARMAN_LIBRARY_VERSION)

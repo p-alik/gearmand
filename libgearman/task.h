@@ -16,38 +16,39 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef __GEARMAN_JOB_H__
-#define __GEARMAN_JOB_H__
+#ifndef __GEARMAN_TASK_H__
+#define __GEARMAN_TASK_H__
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* Initialize a job structure. */
-gearman_job_st *gearman_job_create(gearman_st *gearman, gearman_job_st *job);
+/* Initialize a task structure. */
+gearman_task_st *gearman_task_create(gearman_st *gearman,
+                                     gearman_task_st *task);
 
-/* Free a job structure. */
-void gearman_job_free(gearman_job_st *job);
+/* Free a task structure. */
+void gearman_task_free(gearman_task_st *task);
 
-/* Send result for a job. */
-gearman_return gearman_job_send_result(gearman_job_st *job, uint8_t *result,
-                                       size_t result_size);
-
-/* Get job attributes. */
-char *gearman_job_handle(gearman_job_st *job);
-char *gearman_job_function_name(gearman_job_st *job);
-uint8_t *gearman_job_workload(gearman_job_st *job);
-size_t gearman_job_workload_size(gearman_job_st *job);
+/* Get task attributes. */
+char *gearman_task_job_handle(gearman_task_st *task);
+char *gearman_task_function(gearman_task_st *task);
+char *gearman_task_uuid(gearman_task_st *task);
+uint8_t *gearman_task_result(gearman_task_st *task);
+size_t gearman_task_result_size(gearman_task_st *task);
 
 /* Data structures. */
-struct gearman_job_st
+struct gearman_task_st
 {
   gearman_st *gearman;
-  gearman_job_st *next;
-  gearman_job_st *prev;
-  gearman_job_options options;
+  gearman_task_st *next;
+  gearman_task_st *prev;
+  gearman_task_options options;
   gearman_con_st *con;
-  gearman_packet_st assigned;
+  uint32_t numerator;
+  uint32_t denominator;
+  gearman_packet_st submit;
+  gearman_packet_st created;
   gearman_packet_st result;
 };
 
@@ -55,4 +56,4 @@ struct gearman_job_st
 }
 #endif
 
-#endif /* __GEARMAN_JOB_H__ */
+#endif /* __GEARMAN_TASK_H__ */

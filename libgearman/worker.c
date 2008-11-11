@@ -113,10 +113,10 @@ gearman_return gearman_worker_register_function(gearman_worker_st *worker,
 {
   gearman_return ret;
 
-#if 0
+  /* Add proper error handling, and create a list or hash to support multiple
+     functions. */
   assert(function_name);
   assert(function);
-#endif
 
   if ((worker->function_name= strdup(function_name)) == NULL)
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
@@ -195,7 +195,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
     case GEARMAN_WORKER_STATE_GRAB_JOB_RECV:
         while (1)
         {
-          (void)gearman_con_recv(worker->con, &(worker->job->packet), ret);
+          (void)gearman_con_recv(worker->con, &(worker->job->assigned), ret);
           if (*ret != GEARMAN_SUCCESS)
           {
             if (*ret == GEARMAN_IO_WAIT)
@@ -204,33 +204,22 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
             return NULL;
           }
 
-          if (worker->job->packet.command == GEARMAN_COMMAND_JOB_ASSIGN)
+          if (worker->job->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN)
           {
-            if (worker->function == NULL)
-            {
-              worker->job->con= worker->con;
-              worker->state= GEARMAN_WORKER_STATE_GRAB_JOB_SEND;
-              job= worker->job;
-              worker->job= NULL;
-              return job;
-            }
-            else
-            {
-#if 0
-              ret= _worker_run_job(worker);
-              if (ret != GEARMAN_SUCCESS)
-                return NULL;
-#endif
-            }
+            worker->job->con= worker->con;
+            worker->state= GEARMAN_WORKER_STATE_GRAB_JOB_SEND;
+            job= worker->job;
+            worker->job= NULL;
+            return job;
           }
 
-          if (worker->job->packet.command != GEARMAN_COMMAND_NOOP)
+          if (worker->job->assigned.command != GEARMAN_COMMAND_NOOP)
           {
-            gearman_packet_free(&(worker->job->packet));
+            gearman_packet_free(&(worker->job->assigned));
             break;
           }
 
-          gearman_packet_free(&(worker->job->packet));
+          gearman_packet_free(&(worker->job->assigned));
         }
 
     case GEARMAN_WORKER_STATE_GRAB_JOB_NEXT:
@@ -267,37 +256,32 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
 /* Go into a loop and answer a single job. */
 gearman_return gearman_worker_work(gearman_worker_st *worker)
 {
-  gearman_return rc;
-  uint8_t *blob;
-  size_t blob_length;
+  gearman_return ret;
   gearman_job_st job;
+  uint8_t *result;
+  size_t result_size;
 
-  if (gearman_job_create(&(worker->gearman), &job) == NULL)
-    return GEARMAN_ERRNO;
+  /* This is not safe for non-blocking mode yet. */
 
-  /* If an error occurs jump to end, free resources, and exit */
-  if (gearman_worker_grab_job(worker, &job, &rc) == NULL && rc == GEARMAN_SUCCESS)
-    goto error;
+  (void)gearman_worker_grab_job(worker, &job, &ret);
+  if (ret == GEARMAN_SUCCESS)
+  {
+    result= (*(worker->function))(&job, 
+                                  gearman_job_workload(&job),
+                                  gearman_job_workload_size(&job),
+                                  &result_size,
+                                  &ret);
 
-  /* The cast should be pulled when we clean up all of the char -> uint8_t */
-  blob= (uint8_t *)gearman_job_workload(&job);
-  blob_length= (ssize_t)gearman_job_workload_size(&job);
+    if (ret == GEARMAN_SUCCESS)
+    {
+      ret= gearman_job_send_result(&job, result, result_size);
 
-  blob= (*(worker->function))(worker, 
-                              blob, blob_length,
-                              &blob_length,
-                              &rc);
+      if (result_size > 0)
+        free(result);
+    }
 
-  assert(rc == GEARMAN_SUCCESS);
+    gearman_job_free(&job);
+  }
 
-  /* What do we send to tell the client that the worker error'ed? */
-  rc= gearman_job_send_result(&job, (uint8_t *)blob, blob_length);
-
-  if (blob_length)
-    free(blob);
-
-error:
-  gearman_job_free(&job);
-
-  return rc;
+  return GEARMAN_SUCCESS;
 }

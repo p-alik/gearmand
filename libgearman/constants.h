@@ -29,7 +29,7 @@ extern "C" {
 #define GEARMAN_DEFAULT_SOCKET_TIMEOUT 10
 #define GEARMAN_DEFAULT_SOCKET_SEND_SIZE 32768
 #define GEARMAN_DEFAULT_SOCKET_RECV_SIZE 32768
-#define GEARMAN_PACKET_BUFFER_SIZE 64
+#define GEARMAN_PACKET_BUFFER_SIZE 128
 #define GEARMAN_READ_BUFFER_SIZE 8192
 #define GEARMAN_ERROR_SIZE 1024
 #define GEARMAN_MAX_COMMAND_ARGS 8
@@ -77,7 +77,8 @@ typedef enum
 /* Options for gearman_client_st. */
 typedef enum
 {
-  GEARMAN_CLIENT_ALLOCATED= (1 << 0)
+  GEARMAN_CLIENT_ALLOCATED=   (1 << 0),
+  GEARMAN_CLIENT_TASK_IN_USE= (1 << 1)
 } gearman_client_options;
 
 /* States for gearman_client_st. */
@@ -113,9 +114,16 @@ typedef enum
 /* Options for gearman_packet_st. */
 typedef enum
 {
-  GEARMAN_PACKET_ALLOCATED= (1 << 0),
-  GEARMAN_PACKET_PACKED=    (1 << 1)
+  GEARMAN_PACKET_ALLOCATED=          (1 << 0),
+  GEARMAN_PACKET_PACKED=             (1 << 1),
+  GEARMAN_PACKET_LAST_ARG_ALLOCATED= (1 << 2)
 } gearman_packet_options;
+
+/* Options for gearman_task_st. */
+typedef enum
+{
+  GEARMAN_TASK_ALLOCATED= (1 << 0)
+} gearman_task_options;
 
 /* Options for gearman_worker_st. */
 typedef enum

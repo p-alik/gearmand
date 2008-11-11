@@ -51,42 +51,48 @@ void gearman_client_set_options(gearman_client_st *client,
 gearman_return gearman_client_server_add(gearman_client_st *client, char *host,
                                          in_port_t port);
 
-/* Run a task. */
-gearman_job_st *gearman_client_do(gearman_client_st *client,
-                                  gearman_job_st *job,
-                                  const char *function_name,
-                                  const uint8_t *workload,
-                                  size_t workload_size,
-                                  gearman_return *ret_ptr);
+/* Run a task, returns result. */
+uint8_t *gearman_client_do(gearman_client_st *client,
+                           const char *function_name,
+                           const uint8_t *workload,
+                           size_t workload_size,
+                           size_t *result_size,
+                           gearman_return *ret_ptr);
 
-/* Run a high priority task. */
-gearman_job_st *gearman_client_do_high(gearman_client_st *client,
-                                       gearman_job_st *job,
-                                       const char *function_name,
-                                       const uint8_t *workload,
-                                       size_t workload_size,
-                                       gearman_return *ret_ptr);
+/* Run a high priority task, returns result. */
+uint8_t *gearman_client_do_high(gearman_client_st *client,
+                                const char *function_name,
+                                const uint8_t *workload,
+                                size_t workload_size,
+                                size_t *result_size,
+                                gearman_return *ret_ptr);
 
-/* Run a task in the background. */
-gearman_job_st *gearman_client_do_background(gearman_client_st *client,
-                                             gearman_job_st *job,
-                                             const char *function_name,
-                                             const uint8_t *workload,
-                                             size_t workload_size,
-                                             gearman_return *ret_ptr);
+/* Run a task in the background, returns job handle. */
+char *gearman_client_do_bg(gearman_client_st *client,
+                           const char *function_name,
+                           const uint8_t *workload,
+                           size_t workload_size,
+                           gearman_return *ret_ptr);
+
+/* Get the status for a backgound task. */
+gearman_return gearman_client_task_status(gearman_client_st *client,
+                                          const char *job_handle,
+                                          bool *is_known,
+                                          bool *is_running,
+                                          long *numerator,
+                                          long *denominator);
+
+#if 0
+/* Run multiple tasks in parallel. */
+gearman_return gearman_client_run_tasks(gearman_client_st *client,
+                                        gearman_task_st *task_list,
+                                        size_t task_list_size);
+#endif
 
 /* Send a message to all servers and see if they return it. */
 gearman_return gearman_client_echo(gearman_client_st *client,
                                    const uint8_t *message,
                                    size_t message_size);
-
-/* Get the job status for a job_handle. */
-gearman_return gearman_client_job_status(gearman_client_st *client,
-                                         const char *job_handle,
-                                         bool *is_known,
-                                         bool *is_running,
-                                         long *numerator,
-                                         long *denominator);
 
 /* Data structures. */
 struct gearman_client_st
@@ -94,7 +100,7 @@ struct gearman_client_st
   gearman_st gearman;
   gearman_client_state state;
   gearman_client_options options;
-  gearman_job_st *job;
+  gearman_task_st task;
 };
 
 #ifdef __cplusplus

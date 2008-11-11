@@ -109,8 +109,6 @@ test_return echo_test(void *object)
 
 test_return background_failure_test(void *object)
 {
-(void)object;
-#if 0
   gearman_return rc;
   gearman_client_st *client= (gearman_client_st *)object;
   char *job_id;
@@ -136,14 +134,11 @@ test_return background_failure_test(void *object)
   if (job_id)
     free(job_id);
 
-#endif
   return TEST_SUCCESS;
 }
 
 test_return background_test(void *object)
 {
-(void)object;
-#if 0
   gearman_return rc;
   gearman_client_st *client= (gearman_client_st *)object;
   char *job_id;
@@ -182,7 +177,6 @@ test_return background_test(void *object)
   if (job_id)
     free(job_id);
 
-#endif
   return TEST_SUCCESS;
 }
 

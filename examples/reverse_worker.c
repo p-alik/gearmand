@@ -23,8 +23,11 @@
 
 #include <libgearman/gearman.h>
 
+static uint8_t *reverse(gearman_job_st *job, uint8_t *workload,
+                        size_t workload_size, size_t *result_size,
+                        gearman_return *ret_ptr);
+
 static void usage(char *name);
-static void reverse(gearman_worker_st *worker, gearman_job_st *job);
 
 int main(int argc, char *argv[])
 {
@@ -33,7 +36,6 @@ int main(int argc, char *argv[])
   unsigned short port= 0;
   gearman_return ret;
   gearman_worker_st worker;
-  gearman_job_st job;
 
   while((c = getopt(argc, argv, "h:p:")) != EOF)
   {
@@ -62,39 +64,29 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  ret= gearman_worker_register_function(&worker, "reverse", NULL);
+  ret= gearman_worker_register_function(&worker, "reverse", reverse);
   if (ret != GEARMAN_SUCCESS)
   {
     fprintf(stderr, "%s\n", gearman_worker_error(&worker));
     exit(1);
   }
 
-  while (1)
-  {
-    (void)gearman_worker_grab_job(&worker, &job, &ret);
-    if (ret != GEARMAN_SUCCESS)
-    {
-      fprintf(stderr, "%s\n", gearman_worker_error(&worker));
-      exit(1);
-    }
+  /* This while loop has no body. */
+  while (gearman_worker_work(&worker) == GEARMAN_SUCCESS);
+  fprintf(stderr, "%s\n", gearman_worker_error(&worker));
 
-    reverse(&worker, &job);
-  }
+  gearman_worker_free(&worker);
 
   return 0;
 }
 
-static void reverse(gearman_worker_st *worker, gearman_job_st *job)
+static uint8_t *reverse(gearman_job_st *job, uint8_t *workload,
+                        size_t workload_size, size_t *result_size,
+                        gearman_return *ret_ptr)
 {
-  gearman_return ret;
-  uint8_t *workload;
-  size_t workload_size;
   uint8_t *result;
   size_t x;
   size_t y;
-
-  workload= gearman_job_workload(job);
-  workload_size= gearman_job_workload_size(job);
 
   result= malloc(workload_size);
   if (result == NULL)
@@ -106,17 +98,12 @@ static void reverse(gearman_worker_st *worker, gearman_job_st *job)
   for (y= 0, x= workload_size; x; x--, y++)
     result[y]= workload[x - 1];
 
-  ret= gearman_job_send_result(job, result, workload_size);
-  if (ret != GEARMAN_SUCCESS)
-  {
-    fprintf(stderr, "%s\n", gearman_worker_error(worker));
-    exit(1);
-  }
-
-  printf("Job=%s Input=%.*s Output=%.*s\n", gearman_job_handle(job),
+  printf("Job=%s Workload=%.*s Result=%.*s\n", gearman_job_handle(job),
          (int)workload_size, workload, (int)workload_size, result);
 
-  free(result);
+  ret_ptr= GEARMAN_SUCCESS;
+  *result_size= workload_size;
+  return result;
 }
 
 static void usage(char *name)

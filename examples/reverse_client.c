@@ -32,7 +32,8 @@ int main(int argc, char *argv[])
   unsigned short port= 0;
   gearman_return ret;
   gearman_client_st client;
-  gearman_job_st job;
+  uint8_t *result;
+  size_t result_size;
 
   while((c = getopt(argc, argv, "h:p:")) != EOF)
   {
@@ -67,17 +68,17 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  (void)gearman_client_do(&client, &job, "reverse", (uint8_t *)argv[optind],
-                          (size_t)strlen(argv[optind]), &ret);
+  result= gearman_client_do(&client, "reverse", (uint8_t *)argv[optind],
+                            (size_t)strlen(argv[optind]), &result_size, &ret);
   if (ret != GEARMAN_SUCCESS)
   {
     fprintf(stderr, "%s\n", gearman_client_error(&client));
     exit(1);
   }
 
-  printf("Job=%s Unique=%s Result=%.*s\n", gearman_job_handle(&job),
-         gearman_job_uuid(&job), (int)gearman_job_result_size(&job),
-         gearman_job_result(&job));
+  printf("Result=%.*s\n", (int)result_size, (char *)result);
+
+  gearman_client_free(&client);
 
   return 0;
 }

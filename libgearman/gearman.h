@@ -34,6 +34,7 @@
 #include <libgearman/packet.h>
 #include <libgearman/con.h>
 #include <libgearman/job.h>
+#include <libgearman/task.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -81,6 +82,8 @@ struct gearman_st
   uint32_t con_count;
   gearman_job_st *job_list;
   uint32_t job_count;
+  gearman_task_st *task_list;
+  uint32_t task_count;
   gearman_packet_st *packet_list;
   uint32_t packet_count;
   struct pollfd *pfds;

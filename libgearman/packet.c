@@ -175,21 +175,37 @@ gearman_return gearman_packet_add_arg(gearman_packet_st *packet,
     return GEARMAN_TOO_MANY_ARGS;
   }
 
-  if (packet->data_size == 0)
-    packet->data_size= 12;
-
-  ret= gearman_packet_add_arg_data(packet, arg, arg_size);
-  if (ret != GEARMAN_SUCCESS)
-    return ret;
-
-  packet->arg_size[packet->argc]= arg_size;
-  packet->argc++;
-
-  offset= 12;
-  for (x= 0; x < packet->argc; x++)
+#if 0
+  if ((packet->magic == GEARMAN_COMMAND_SUBMIT_JOB ||
+       packet->magic == GEARMAN_COMMAND_SUBMIT_JOB_BG ||
+       packet->magic == GEARMAN_COMMAND_SUBMIT_JOB_HIGH ||
+       packet->magic == GEARMAN_COMMAND_WORK_COMPLETE) &&
+       packet->argc == (gearman_command_info_list[packet->command].argc - 1))
   {
-    packet->arg[x]= packet->data + offset;
-    offset+= packet->arg_size[x];
+    packet->options|= GEARMAN_PACKET_LAST_ARG_ALLOCATED;
+    packet->arg[packet->argc]= arg;
+    packet->arg_size[packet->argc]= arg_size;
+    packet->argc++;
+  }
+  else
+#endif
+  {
+    if (packet->data_size == 0)
+      packet->data_size= 12;
+
+    ret= gearman_packet_add_arg_data(packet, arg, arg_size);
+    if (ret != GEARMAN_SUCCESS)
+      return ret;
+
+    packet->arg_size[packet->argc]= arg_size;
+    packet->argc++;
+
+    offset= 12;
+    for (x= 0; x < packet->argc; x++)
+    {
+      packet->arg[x]= packet->data + offset;
+      offset+= packet->arg_size[x];
+    }
   }
 
   /* Pack it now if we have magic, command, and all arguments. */
@@ -282,7 +298,10 @@ gearman_return gearman_packet_pack(gearman_packet_st *packet)
   tmp= htonl(tmp);
   memcpy(packet->data + 4, &tmp, 4);
 
-  tmp= packet->data_size - 12;
+  if (packet->options & GEARMAN_PACKET_LAST_ARG_ALLOCATED)
+    tmp= (packet->data_size - 12) + packet->arg_size[packet->argc - 1];
+  else
+    tmp= packet->data_size - 12;
   tmp= htonl(tmp);
   memcpy(packet->data + 8, &tmp, 4);
 
