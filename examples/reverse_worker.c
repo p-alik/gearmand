@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  ret= gearman_worker_register_function(&worker, "reverse");
+  ret= gearman_worker_register_function(&worker, "reverse", NULL);
   if (ret != GEARMAN_SUCCESS)
   {
     fprintf(stderr, "%s\n", gearman_worker_error(&worker));
@@ -87,9 +87,9 @@ int main(int argc, char *argv[])
 static void reverse(gearman_worker_st *worker, gearman_job_st *job)
 {
   gearman_return ret;
-  char *workload;
+  uint8_t *workload;
   size_t workload_size;
-  char *result;
+  uint8_t *result;
   size_t x;
   size_t y;
 

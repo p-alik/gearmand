@@ -26,11 +26,18 @@ extern "C" {
 /* Initialize a worker structure. */
 gearman_worker_st *gearman_worker_create(gearman_worker_st *worker);
 
+/* Clone a worker structure using 'from' as the source. */
+gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker,
+                                        gearman_worker_st *from);
+
 /* Free a worker structure. */
 void gearman_worker_free(gearman_worker_st *worker);
 
 /* Return an error string for last library error encountered. */
 char *gearman_worker_error(gearman_worker_st *worker);
+
+/* Reset state for a worker structure. */
+void gearman_worker_reset(gearman_worker_st *worker);
 
 /* Value of errno in the case of a GEARMAN_ERRNO return value. */
 int gearman_worker_errno(gearman_worker_st *worker);
@@ -47,18 +54,15 @@ gearman_return gearman_worker_server_add(gearman_worker_st *worker, char *host,
 /* Register function with job servers. */
 gearman_return gearman_worker_register_function(gearman_worker_st *worker,
                                                 const char *function_name,
-                                                gearman_worker_function *function);
+                                             gearman_worker_function *function);
 
 /* Get a job from one of the job servers. */
 gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
                                         gearman_job_st *job,
                                         gearman_return *ret);
 
-/* Register function with job servers. */
+/* Go into a loop and answer a single job. */
 gearman_return gearman_worker_work(gearman_worker_st *worker);
-
-/* Go into a loop and answer a single job */
-gearman_return gearman_server_work(gearman_worker_st *worker);
 
 /* Data structures. */
 struct gearman_worker_st

@@ -47,7 +47,7 @@ void gearman_con_set_options(gearman_con_st *con, gearman_con_options options,
 void gearman_con_set_data(gearman_con_st *con, void *data);
 void *gearman_con_get_data(gearman_con_st *con);
 
-/* Set connection to an already open file description. */
+/* Set connection to an already open file descriptor. */
 void gearman_con_set_fd(gearman_con_st *con, int fd);
 
 /* Connect to server. */
@@ -69,7 +69,7 @@ gearman_return gearman_con_send_all(gearman_st *gearman,
 /* Receive packet from a connection. */
 gearman_packet_st *gearman_con_recv(gearman_con_st *con,
                                     gearman_packet_st *packet,
-                                    gearman_return *ret);
+                                    gearman_return *ret_ptr);
 
 /* State loop for gearman_con_st. */
 gearman_return gearman_con_loop(gearman_con_st *con);
@@ -90,11 +90,14 @@ struct gearman_con_st
   int fd;
   short events;
   short revents;
-  char buffer[GEARMAN_READ_BUFFER_SIZE];
-  char *buffer_ptr;
-  ssize_t buffer_size;
-  gearman_packet_st *packet;
-  size_t packet_size;
+  gearman_packet_st *send_packet;
+  uint8_t *send_packet_ptr;
+  size_t send_packet_size;
+  gearman_packet_st *recv_packet;
+  size_t recv_packet_size;
+  uint8_t recv_buffer[GEARMAN_READ_BUFFER_SIZE];
+  uint8_t *recv_buffer_ptr;
+  size_t recv_buffer_size;
 };
 
 #ifdef __cplusplus

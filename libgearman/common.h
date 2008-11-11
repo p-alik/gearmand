@@ -23,8 +23,9 @@
 
 #include "gearman.h"
 
+#ifdef HAVE_ASSERT_H
 #include <assert.h>
-
+#endif
 #ifdef HAVE_ERRNO_H
 #include <errno.h>
 #endif

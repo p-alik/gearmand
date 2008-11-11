@@ -45,14 +45,17 @@ extern "C" {
  * multiple gearman_st structures (for example, one for each thread).
  */
 
-/* Initialize a library instance structure. */
+/* Initialize a gearman structure. */
 gearman_st *gearman_create(gearman_st *gearman);
 
-/* Clone a library instance structure. */
+/* Clone a gearman structure. */
 gearman_st *gearman_clone(gearman_st *gearman, gearman_st *from);
 
-/* Free a library instance structure. */
+/* Free a gearman structure. */
 void gearman_free(gearman_st *gearman);
+
+/* Reset state for a gearman structure. */
+void gearman_reset(gearman_st *gearman);
 
 /* Return an error string for last library error encountered. */
 char *gearman_error(gearman_st *gearman);
@@ -60,12 +63,12 @@ char *gearman_error(gearman_st *gearman);
 /* Value of errno in the case of a GEARMAN_ERRNO return value. */
 int gearman_errno(gearman_st *gearman);
 
-/* Set options for a library instance structure. */
+/* Set options for a gearman structure. */
 void gearman_set_options(gearman_st *gearman, gearman_options options,
                          uint32_t data);
 
 /* Wait for I/O on connections. */
-gearman_return gearman_io_wait(gearman_st *gearman);
+gearman_return gearman_io_wait(gearman_st *gearman, bool set_read);
 
 /* Get next connection that is ready for I/O. */
 gearman_con_st *gearman_io_ready(gearman_st *gearman);
@@ -76,13 +79,13 @@ struct gearman_st
   gearman_options options;
   gearman_con_st *con_list;
   uint32_t con_count;
-  gearman_con_st *con_ready;
   gearman_job_st *job_list;
   uint32_t job_count;
   gearman_packet_st *packet_list;
   uint32_t packet_count;
   struct pollfd *pfds;
   uint32_t pfds_size;
+  gearman_con_st *con_ready;
   uint32_t sending;
   int last_errno;
   char last_error[GEARMAN_ERROR_SIZE];

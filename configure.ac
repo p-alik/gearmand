@@ -51,8 +51,8 @@ AC_TYPE_SIZE_T
 AC_TYPE_SSIZE_T
 
 AC_HEADER_TIME
-AC_CHECK_HEADERS(errno.h fcntl.h netinet/tcp.h stdarg.h stdio.h stdlib.h)
-AC_CHECK_HEADERS(string.h unistd.h)
+AC_CHECK_HEADERS(assert.h errno.h fcntl.h netinet/tcp.h stdarg.h stdio.h)
+AC_CHECK_HEADERS(stdlib.h string.h unistd.h)
 
 AC_CHECK_LIB(event, event_init)
 AC_CHECK_HEADERS(event.h)

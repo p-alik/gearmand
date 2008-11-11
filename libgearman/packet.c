@@ -63,7 +63,7 @@ gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX]=
 gearman_return gearman_packet_add(gearman_st *gearman,
                                   gearman_packet_st *packet,
                                   gearman_magic magic, gearman_command command,
-                                  const char *arg, ...)
+                                  const uint8_t *arg, ...)
 {
   va_list ap;
   size_t arg_size;
@@ -71,7 +71,7 @@ gearman_return gearman_packet_add(gearman_st *gearman,
 
   packet= gearman_packet_create(gearman, packet);
   if (packet == NULL)
-    return GEARMAN_ERRNO;
+    return GEARMAN_MEMORY_ALLOCATION_FAILURE;
 
   ret= gearman_packet_set_header(packet, magic, command);
   if (ret != GEARMAN_SUCCESS)
@@ -90,7 +90,7 @@ gearman_return gearman_packet_add(gearman_st *gearman,
       return ret;
     }
 
-    arg = va_arg(ap, char *);
+    arg = va_arg(ap, uint8_t *);
   }
 
   va_end(ap);
@@ -107,8 +107,7 @@ gearman_packet_st *gearman_packet_create(gearman_st *gearman,
     packet= malloc(sizeof(gearman_packet_st) + 12);
     if (packet == NULL)
     {
-      GEARMAN_ERROR_SET(gearman, "gearman_packet_create:malloc:%d", errno);
-      gearman->last_errno= errno;
+      GEARMAN_ERROR_SET(gearman, "gearman_packet_create:malloc");
       return NULL;
     }
 
@@ -163,8 +162,8 @@ gearman_return gearman_packet_set_header(gearman_packet_st *packet,
 }
 
 /* Add an argument to a packet. */
-gearman_return gearman_packet_add_arg(gearman_packet_st *packet, const char *arg,
-                                      size_t arg_size)
+gearman_return gearman_packet_add_arg(gearman_packet_st *packet,
+                                      const uint8_t *arg, size_t arg_size)
 {
   size_t offset;
   gearman_return ret;
@@ -207,9 +206,10 @@ gearman_return gearman_packet_add_arg(gearman_packet_st *packet, const char *arg
 /* Add raw argument data to a packet, call gearman_packet_unpack once all data
    has been added. */
 gearman_return gearman_packet_add_arg_data(gearman_packet_st *packet,
-                                           const char *data, size_t data_size)
+                                           const uint8_t *data,
+                                           size_t data_size)
 {
-  char *new_data;
+  uint8_t *new_data;
 
   if ((packet->data_size + data_size) < GEARMAN_PACKET_BUFFER_SIZE)
     packet->data= packet->data_buffer;
@@ -221,10 +221,8 @@ gearman_return gearman_packet_add_arg_data(gearman_packet_st *packet,
     new_data= realloc(packet->data, packet->data_size + data_size);
     if (new_data == NULL)
     {
-      GEARMAN_ERROR_SET(packet->gearman,
-                        "gearman_packet_add_arg_data:realloc:%d", errno);
-      packet->gearman->last_errno= errno;
-      return GEARMAN_ERRNO;
+      GEARMAN_ERROR_SET(packet->gearman, "gearman_packet_add_arg_data:realloc");
+      return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
 
     if (packet->data_size > 0)
@@ -299,7 +297,7 @@ gearman_return gearman_packet_unpack(gearman_packet_st *packet)
   uint32_t tmp;
   size_t offset;
   uint8_t x;
-  char *ptr;
+  uint8_t *ptr;
 
   if (!memcmp(packet->data, "\0REQ", 4))
     packet->magic= GEARMAN_MAGIC_REQUEST;

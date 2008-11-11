@@ -30,16 +30,16 @@ gearman_job_st *gearman_job_create(gearman_st *gearman, gearman_job_st *job);
 void gearman_job_free(gearman_job_st *job);
 
 /* Send result for a job. */
-gearman_return gearman_job_send_result(gearman_job_st *job, char *result,
+gearman_return gearman_job_send_result(gearman_job_st *job, uint8_t *result,
                                        size_t result_size);
 
 /* Get job attributes. */
 char *gearman_job_uuid(gearman_job_st *job);
 char *gearman_job_handle(gearman_job_st *job);
 char *gearman_job_function(gearman_job_st *job);
-char *gearman_job_workload(gearman_job_st *job);
+uint8_t *gearman_job_workload(gearman_job_st *job);
 size_t gearman_job_workload_size(gearman_job_st *job);
-char *gearman_job_result(gearman_job_st *job);
+uint8_t *gearman_job_result(gearman_job_st *job);
 size_t gearman_job_result_size(gearman_job_st *job);
 
 /* Data structures. */
@@ -49,8 +49,10 @@ struct gearman_job_st
   gearman_job_st *next;
   gearman_job_st *prev;
   gearman_job_options options;
-  char uuid[37];
   gearman_con_st *con;
+  char uuid[37];
+  uint32_t numerator;
+  uint32_t denominator;
   gearman_packet_st packet;
   gearman_packet_st result;
 };

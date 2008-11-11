@@ -38,11 +38,42 @@ gearman_worker_st *gearman_worker_create(gearman_worker_st *worker)
   return worker;
 }
 
+/* Clone a worker structure using 'from' as the source. */
+gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker,
+                                        gearman_worker_st *from)
+{
+  worker= gearman_worker_create(worker);
+  if (worker == NULL)
+    return NULL;
+
+  worker->options|= (from->options & ~GEARMAN_CLIENT_ALLOCATED);
+
+  if (gearman_clone(&(worker->gearman), &(from->gearman)) == NULL)
+  {
+    gearman_worker_free(worker);
+    return NULL;
+  }
+
+  return worker;
+}
+
 /* Free a worker structure. */
 void gearman_worker_free(gearman_worker_st *worker)
 {
   if (worker->options & GEARMAN_WORKER_ALLOCATED)
     free(worker);
+}
+
+/* Reset state for a worker structure. */
+void gearman_worker_reset(gearman_worker_st *worker)
+{
+  worker->state= GEARMAN_WORKER_STATE_GRAB_JOB;
+
+  if (worker->job != NULL)
+  {
+    gearman_job_free(worker->job);
+    worker->job= NULL;
+  }
 }
 
 /* Return an error string for last library error encountered. */
@@ -78,12 +109,14 @@ gearman_return gearman_worker_server_add(gearman_worker_st *worker, char *host,
 /* Register function with job servers. */
 gearman_return gearman_worker_register_function(gearman_worker_st *worker,
                                                 const char *function_name,
-                                                gearman_worker_function *function)
+                                             gearman_worker_function *function)
 {
   gearman_return ret;
 
+#if 0
   assert(function_name);
   assert(function);
+#endif
 
   if ((worker->function_name= strdup(function_name)) == NULL)
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
@@ -94,7 +127,8 @@ gearman_return gearman_worker_register_function(gearman_worker_st *worker,
   {
     ret= gearman_packet_add(&(worker->gearman), &(worker->packet),
                             GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_CAN_DO,
-                            function_name, strlen(function_name), NULL);
+                            (uint8_t *)function_name, strlen(function_name),
+                            NULL);
     if (ret != GEARMAN_SUCCESS)
       return ret;
 
@@ -172,11 +206,22 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
 
           if (worker->job->packet.command == GEARMAN_COMMAND_JOB_ASSIGN)
           {
-            worker->job->con= worker->con;
-            worker->state= GEARMAN_WORKER_STATE_GRAB_JOB_SEND;
-            job= worker->job;
-            worker->job= NULL;
-            return job;
+            if (worker->function == NULL)
+            {
+              worker->job->con= worker->con;
+              worker->state= GEARMAN_WORKER_STATE_GRAB_JOB_SEND;
+              job= worker->job;
+              worker->job= NULL;
+              return job;
+            }
+            else
+            {
+#if 0
+              ret= _worker_run_job(worker);
+              if (ret != GEARMAN_SUCCESS)
+                return NULL;
+#endif
+            }
           }
 
           if (worker->job->packet.command != GEARMAN_COMMAND_NOOP)
@@ -210,7 +255,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
         return NULL;
       }
 
-      *ret= gearman_io_wait(&(worker->gearman));
+      *ret= gearman_io_wait(&(worker->gearman), true);
       if (*ret != GEARMAN_SUCCESS)
         return NULL;
     }
@@ -219,12 +264,12 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
   return NULL;
 }
 
-
-gearman_return gearman_server_work(gearman_worker_st *worker)
+/* Go into a loop and answer a single job. */
+gearman_return gearman_worker_work(gearman_worker_st *worker)
 {
   gearman_return rc;
   uint8_t *blob;
-  ssize_t blob_length;
+  size_t blob_length;
   gearman_job_st job;
 
   if (gearman_job_create(&(worker->gearman), &job) == NULL)
@@ -246,7 +291,7 @@ gearman_return gearman_server_work(gearman_worker_st *worker)
   assert(rc == GEARMAN_SUCCESS);
 
   /* What do we send to tell the client that the worker error'ed? */
-  rc= gearman_job_send_result(&job, (char *)blob, (size_t)blob_length);
+  rc= gearman_job_send_result(&job, (uint8_t *)blob, blob_length);
 
   if (blob_length)
     free(blob);

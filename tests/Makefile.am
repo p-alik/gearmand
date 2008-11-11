@@ -18,14 +18,15 @@
 AM_CFLAGS= -I$(top_builddir)
 AM_LDFLAGS= 
 
-noinst_PROGRAMS= client_test worker_test
+noinst_PROGRAMS=
+#noinst_PROGRAMS= client_test worker_test
 noinst_HEADERS= test.h
 
 client_test_SOURCES= test.c client_test.c
-client_test_LDFLAGS= $(top_builddir)/libgearman/libgearman_client.la
+client_test_LDFLAGS= $(top_builddir)/libgearman/libgearman.la
 
 worker_test_SOURCES= test.c worker_test.c
-worker_test_LDFLAGS= $(top_builddir)/libgearman/libgearman_worker.la
+worker_test_LDFLAGS= $(top_builddir)/libgearman/libgearman.la
 
 record:
 	./client_test output.txt > output.res

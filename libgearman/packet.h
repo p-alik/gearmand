@@ -35,7 +35,7 @@ extern "C" {
 gearman_return gearman_packet_add(gearman_st *gearman,
                                   gearman_packet_st *packet,
                                   gearman_magic magic, gearman_command command,
-                                  const char *arg, ...);
+                                  const uint8_t *arg, ...);
 
 /* Initialize a packet structure. */
 gearman_packet_st *gearman_packet_create(gearman_st *gearman,
@@ -50,13 +50,14 @@ gearman_return gearman_packet_set_header(gearman_packet_st *packet,
                                          gearman_command command);
 
 /* Add an argument to a packet and pack if complete. */
-gearman_return gearman_packet_add_arg(gearman_packet_st *packet, const char *arg,
-                                      size_t arg_size);
+gearman_return gearman_packet_add_arg(gearman_packet_st *packet,
+                                      const uint8_t *arg, size_t arg_size);
 
 /* Add raw argument data to a packet, call gearman_packet_unpack once all data
    has been added. */
 gearman_return gearman_packet_add_arg_data(gearman_packet_st *packet,
-                                           const char *data, size_t data_size);
+                                           const uint8_t *data,
+                                           size_t data_size);
 
 /* Pack packet header information after all args have been added. */
 gearman_return gearman_packet_pack(gearman_packet_st *packet);
@@ -74,10 +75,10 @@ struct gearman_packet_st
   gearman_magic magic;
   gearman_command command;
   uint8_t argc;
-  char *arg[GEARMAN_MAX_COMMAND_ARGS];
+  uint8_t *arg[GEARMAN_MAX_COMMAND_ARGS];
   size_t arg_size[GEARMAN_MAX_COMMAND_ARGS];
-  char *data;
-  char data_buffer[GEARMAN_PACKET_BUFFER_SIZE];
+  uint8_t *data;
+  uint8_t data_buffer[GEARMAN_PACKET_BUFFER_SIZE];
   size_t data_size;
 };
 

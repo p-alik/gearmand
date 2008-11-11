@@ -26,11 +26,15 @@ extern "C" {
 /* Initialize a client structure. */
 gearman_client_st *gearman_client_create(gearman_client_st *client);
 
+/* Clone a client structure using 'from' as the source. */
+gearman_client_st *gearman_client_clone(gearman_client_st *client,
+                                        gearman_client_st *from);
+
 /* Free a client structure. */
 void gearman_client_free(gearman_client_st *client);
 
-/* Clone a client structure */
-gearman_client_st *gearman_client_clone(gearman_client_st *client);
+/* Reset state for a client structure. */
+void gearman_client_reset(gearman_client_st *client);
 
 /* Return an error string for last library error encountered. */
 char *gearman_client_error(gearman_client_st *client);
@@ -47,36 +51,49 @@ void gearman_client_set_options(gearman_client_st *client,
 gearman_return gearman_client_server_add(gearman_client_st *client, char *host,
                                          in_port_t port);
 
-/* Run a job. */
+/* Run a task. */
 gearman_job_st *gearman_client_do(gearman_client_st *client,
-                                  gearman_job_st *job, const char *function_name,
-                                  const uint8_t *workload, ssize_t workload_size,
-                                  gearman_return *ret);
+                                  gearman_job_st *job,
+                                  const char *function_name,
+                                  const uint8_t *workload,
+                                  size_t workload_size,
+                                  gearman_return *ret_ptr);
 
-/* Run a job in the background */
-char * gearman_client_do_background(gearman_client_st *client,
-                                    const char *function_name,
-                                    const uint8_t *workload, ssize_t workload_size,
-                                    gearman_return *ret);
+/* Run a high priority task. */
+gearman_job_st *gearman_client_do_high(gearman_client_st *client,
+                                       gearman_job_st *job,
+                                       const char *function_name,
+                                       const uint8_t *workload,
+                                       size_t workload_size,
+                                       gearman_return *ret_ptr);
 
-/* Send a message to ? servers and see if they return it */
+/* Run a task in the background. */
+gearman_job_st *gearman_client_do_background(gearman_client_st *client,
+                                             gearman_job_st *job,
+                                             const char *function_name,
+                                             const uint8_t *workload,
+                                             size_t workload_size,
+                                             gearman_return *ret_ptr);
+
+/* Send a message to all servers and see if they return it. */
 gearman_return gearman_client_echo(gearman_client_st *client,
-                                   const char *message,
-                                   ssize_t message_length);
+                                   const uint8_t *message,
+                                   size_t message_size);
 
-/* Gain the job status from a job_id */
+/* Get the job status for a job_handle. */
 gearman_return gearman_client_job_status(gearman_client_st *client,
-                                         const char *job_id,
+                                         const char *job_handle,
                                          bool *is_known,
                                          bool *is_running,
                                          long *numerator,
                                          long *denominator);
+
 /* Data structures. */
 struct gearman_client_st
 {
   gearman_st gearman;
-  gearman_client_options options;
   gearman_client_state state;
+  gearman_client_options options;
   gearman_job_st *job;
 };
 

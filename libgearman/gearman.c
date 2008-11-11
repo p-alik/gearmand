@@ -18,7 +18,7 @@
 
 #include "common.h"
 
-/* Initialize a library instance structure. */
+/* Initialize a gearman structure. */
 gearman_st *gearman_create(gearman_st *gearman)
 {
   if (gearman == NULL)
@@ -36,7 +36,7 @@ gearman_st *gearman_create(gearman_st *gearman)
   return gearman;
 }
 
-/* Clone a library instance structure. */
+/* Clone a gearman structure. */
 gearman_st *gearman_clone(gearman_st *gearman, gearman_st *from)
 {
   gearman_con_st *con;
@@ -56,22 +56,45 @@ gearman_st *gearman_clone(gearman_st *gearman, gearman_st *from)
     }
   }
 
+  /* Don't clone job or packet information, this is state information for
+     old and active jobs/connections. */
+
   return gearman;
 }
 
-/* Free a library instance structure. */
+/* Free a gearman structure. */
 void gearman_free(gearman_st *gearman)
 {
   gearman_con_st *con;
+  gearman_job_st *job;
+  gearman_packet_st *packet;
 
   for (con= gearman->con_list; con != NULL; con= gearman->con_list)
     gearman_con_free(con);
 
+  for (job= gearman->job_list; job != NULL; job= gearman->job_list)
+    gearman_job_free(job);
+
+  for (packet= gearman->packet_list; packet != NULL;
+       packet= gearman->packet_list)
+  {
+    gearman_packet_free(packet);
+  }
+
   if (gearman->pfds != NULL)
     free(gearman->pfds);
 
+  gearman_reset(gearman);
+
   if (gearman->options & GEARMAN_ALLOCATED)
     free(gearman);
+}
+
+/* Reset state for a gearman structure. */
+void gearman_reset(gearman_st *gearman)
+{
+  gearman->con_ready= NULL;
+  gearman->sending= 0;
 }
 
 /* Return an error string for last library error encountered. */
@@ -86,7 +109,7 @@ int gearman_errno(gearman_st *gearman)
   return gearman->last_errno;
 }
 
-/* Set options for a library instance structure. */
+/* Set options for a gearman structure. */
 void gearman_set_options(gearman_st *gearman, gearman_options options,
                          uint32_t data)
 {
@@ -97,7 +120,7 @@ void gearman_set_options(gearman_st *gearman, gearman_options options,
 }
 
 /* Wait for I/O on connections. */
-gearman_return gearman_io_wait(gearman_st *gearman)
+gearman_return gearman_io_wait(gearman_st *gearman, bool set_read)
 {
   gearman_con_st *con;
   struct pollfd *pfds;
@@ -109,9 +132,8 @@ gearman_return gearman_io_wait(gearman_st *gearman)
     pfds= realloc(gearman->pfds, gearman->con_count * sizeof(struct pollfd));
     if (pfds == NULL)
     {
-      GEARMAN_ERROR_SET(gearman, "gearman_io_wait:realloc:%d", errno);
-      gearman->last_errno= errno;
-      return GEARMAN_ERRNO;
+      GEARMAN_ERROR_SET(gearman, "gearman_io_wait:realloc");
+      return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
 
     gearman->pfds= pfds;
@@ -123,13 +145,14 @@ gearman_return gearman_io_wait(gearman_st *gearman)
   x= 0;
   for (con= gearman->con_list; con != NULL; con= con->next)
   {
-#if 0
-    if (con->events == 0)
+    if (set_read)
+      pfds[x].events= con->events | POLLIN;
+    else if (con->events == 0)
       continue;
-#endif
+    else
+      pfds[x].events= con->events;
 
     pfds[x].fd= con->fd;
-    pfds[x].events= con->events | POLLIN;
     pfds[x].revents= 0;
     x++;
   }

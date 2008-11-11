@@ -32,9 +32,9 @@ typedef struct gearman_packet_st gearman_packet_st;
 typedef struct gearman_worker_st gearman_worker_st;
 
 typedef uint8_t* (*gearman_worker_function)(gearman_worker_st *job,
-                                            uint8_t *value,  
-                                            ssize_t value_length,  
-                                            ssize_t *result_length,  
+                                            uint8_t *value,
+                                            size_t value_length,
+                                            size_t *result_length,
                                             gearman_return *error);
 
 #if 0

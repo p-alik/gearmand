@@ -60,7 +60,7 @@ void gearman_job_free(gearman_job_st *job)
 }
 
 /* Send result for a job. */
-gearman_return gearman_job_send_result(gearman_job_st *job, char *result,
+gearman_return gearman_job_send_result(gearman_job_st *job, uint8_t *result,
                                        size_t result_size)
 {
   gearman_return ret;
@@ -90,17 +90,17 @@ char *gearman_job_uuid(gearman_job_st *job)
 
 char *gearman_job_handle(gearman_job_st *job)
 {
-  return job->packet.arg[0];
+  return (char *)job->packet.arg[0];
 }
 
 char *gearman_job_function(gearman_job_st *job)
 {
-  return job->packet.argc == 3 ? job->packet.arg[1] : "";
+  return job->packet.argc == 3 ? (char *)job->packet.arg[1] : NULL;
 }
 
-char *gearman_job_workload(gearman_job_st *job)
+uint8_t *gearman_job_workload(gearman_job_st *job)
 {
-  return job->packet.argc == 3 ? job->packet.arg[2] : "";
+  return job->packet.argc == 3 ? job->packet.arg[2] : NULL;
 }
 
 size_t gearman_job_workload_size(gearman_job_st *job)
@@ -108,9 +108,9 @@ size_t gearman_job_workload_size(gearman_job_st *job)
   return job->packet.argc == 3 ? job->packet.arg_size[2] : 0;
 }
 
-char *gearman_job_result(gearman_job_st *job)
+uint8_t *gearman_job_result(gearman_job_st *job)
 {
-  return job->result.argc == 2 ? job->result.arg[1] : "";
+  return job->result.argc == 2 ? job->result.arg[1] : NULL;
 }
 
 size_t gearman_job_result_size(gearman_job_st *job)
