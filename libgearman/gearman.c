@@ -67,6 +67,7 @@ void gearman_free(gearman_st *gearman)
 {
   gearman_con_st *con;
   gearman_job_st *job;
+  gearman_task_st *task;
   gearman_packet_st *packet;
 
   for (con= gearman->con_list; con != NULL; con= gearman->con_list)
@@ -74,6 +75,9 @@ void gearman_free(gearman_st *gearman)
 
   for (job= gearman->job_list; job != NULL; job= gearman->job_list)
     gearman_job_free(job);
+
+  for (task= gearman->task_list; task != NULL; task= gearman->task_list)
+    gearman_task_free(task);
 
   for (packet= gearman->packet_list; packet != NULL;
        packet= gearman->packet_list)
@@ -117,84 +121,4 @@ void gearman_set_options(gearman_st *gearman, gearman_options options,
     gearman->options |= options;
   else
     gearman->options &= ~options;
-}
-
-/* Wait for I/O on connections. */
-gearman_return gearman_io_wait(gearman_st *gearman, bool set_read)
-{
-  gearman_con_st *con;
-  struct pollfd *pfds;
-  int x;
-  int ret;
-
-  if (gearman->pfds_size < gearman->con_count)
-  {
-    pfds= realloc(gearman->pfds, gearman->con_count * sizeof(struct pollfd));
-    if (pfds == NULL)
-    {
-      GEARMAN_ERROR_SET(gearman, "gearman_io_wait:realloc");
-      return GEARMAN_MEMORY_ALLOCATION_FAILURE;
-    }
-
-    gearman->pfds= pfds;
-    gearman->pfds_size= gearman->con_count;
-  }
-  else
-    pfds= gearman->pfds;
-
-  x= 0;
-  for (con= gearman->con_list; con != NULL; con= con->next)
-  {
-    if (set_read)
-      pfds[x].events= con->events | POLLIN;
-    else if (con->events == 0)
-      continue;
-    else
-      pfds[x].events= con->events;
-
-    pfds[x].fd= con->fd;
-    pfds[x].revents= 0;
-    x++;
-  }
-
-  ret= poll(pfds, x, -1);
-  if (ret == -1)
-  {
-    GEARMAN_ERROR_SET(gearman, "gearman_io_wait:poll:%d", errno);
-    gearman->last_errno= errno;
-    return GEARMAN_ERRNO;
-  }
-
-  x= 0;
-  for (con= gearman->con_list; con != NULL; con= con->next)
-  {
-    if (con->events == 0)
-      continue;
-
-    con->revents= pfds[x].revents;
-    x++;
-  }
-
-  return GEARMAN_SUCCESS;
-}
-
-/* Get next connection that is ready for I/O. */
-gearman_con_st *gearman_io_ready(gearman_st *gearman)
-{
-  if (gearman->con_ready == NULL)
-    gearman->con_ready= gearman->con_list;
-  else
-    gearman->con_ready= gearman->con_ready->next;
-
-  for (; gearman->con_ready != NULL;
-       gearman->con_ready= gearman->con_ready->next)
-  {
-    if (gearman->con_ready->events == 0)
-      continue;
-
-    gearman->con_ready->events= 0;
-    return gearman->con_ready;
-  }
-
-  return NULL;
 }

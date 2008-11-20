@@ -23,22 +23,19 @@
 extern "C" {
 #endif
 
-/* Public defines. */
+/* Defines. */
 #define GEARMAN_DEFAULT_TCP_HOST "127.0.0.1"
 #define GEARMAN_DEFAULT_TCP_PORT 7003
 #define GEARMAN_DEFAULT_SOCKET_TIMEOUT 10
 #define GEARMAN_DEFAULT_SOCKET_SEND_SIZE 32768
 #define GEARMAN_DEFAULT_SOCKET_RECV_SIZE 32768
-#define GEARMAN_PACKET_BUFFER_SIZE 128
-#define GEARMAN_READ_BUFFER_SIZE 8192
-#define GEARMAN_ERROR_SIZE 1024
+#define GEARMAN_PACKET_HEADER_SIZE 12
+#define GEARMAN_JOB_HANDLE_SIZE 64
 #define GEARMAN_MAX_COMMAND_ARGS 8
-#if 0
-#define GEARMAN_WHEEL_SIZE 1024
-#define GEARMAN_STRIDE 4
-#define GEARMAN_DEFAULT_TIMEOUT INT32_MAX
-#define LIBGEARMAN_H_VERSION_STRING "0.19"
-#endif
+#define GEARMAN_ARGS_BUFFER_SIZE 128
+#define GEARMAN_SEND_BUFFER_SIZE 8192
+#define GEARMAN_RECV_BUFFER_SIZE 8192
+#define GEARMAN_ERROR_SIZE 1024
 
 /* Return codes. */
 typedef enum
@@ -49,8 +46,6 @@ typedef enum
   GEARMAN_TOO_MANY_ARGS,
   GEARMAN_INVALID_MAGIC,
   GEARMAN_INVALID_COMMAND,
-  GEARMAN_INVALID_SIZE,
-  GEARMAN_INVALID_ARGS,
   GEARMAN_INVALID_PACKET,
   GEARMAN_GETADDRINFO,
   GEARMAN_NO_SERVERS,
@@ -58,12 +53,15 @@ typedef enum
   GEARMAN_MEMORY_ALLOCATION_FAILURE,
   GEARMAN_JOB_EXISTS,
   GEARMAN_WORK_ERROR,
+  GEARMAN_WORK_DATA,
   GEARMAN_WORK_STATUS,
   GEARMAN_WORK_FAIL,
   GEARMAN_NOT_CONNECTED,
   GEARMAN_COULD_NOT_CONNECT,
   GEARMAN_SEND_IN_PROGRESS,
   GEARMAN_RECV_IN_PROGRESS,
+  GEARMAN_NOT_FLUSHING,
+  GEARMAN_DATA_TOO_LARGE,
   GEARMAN_MAX_RETURN /* Always add new error code before */
 } gearman_return;
 
@@ -85,9 +83,9 @@ typedef enum
 typedef enum
 {
   GEARMAN_CLIENT_STATE_IDLE,
-  GEARMAN_CLIENT_STATE_SUBMIT_JOB,
-  GEARMAN_CLIENT_STATE_JOB_CREATED,
-  GEARMAN_CLIENT_STATE_RESULT
+  GEARMAN_CLIENT_STATE_NEW,
+  GEARMAN_CLIENT_STATE_SUBMIT,
+  GEARMAN_CLIENT_STATE_PACKET
 } gearman_client_state;
 
 /* Options for gearman_con_st. */
@@ -102,21 +100,39 @@ typedef enum
   GEARMAN_CON_STATE_ADDRINFO,
   GEARMAN_CON_STATE_CONNECT,
   GEARMAN_CON_STATE_CONNECTING,
-  GEARMAN_CON_STATE_IDLE
+  GEARMAN_CON_STATE_CONNECTED
 } gearman_con_state;
+
+/* Send states for gearman_con_st. */
+typedef enum
+{
+  GEARMAN_CON_SEND_STATE_NONE,
+  GEARMAN_CON_SEND_STATE_PRE_FLUSH,
+  GEARMAN_CON_SEND_STATE_FORCE_FLUSH,
+  GEARMAN_CON_SEND_STATE_FLUSH,
+  GEARMAN_CON_SEND_STATE_FLUSH_DATA
+} gearman_con_send_state;
+
+/* Recv states for gearman_con_st. */
+typedef enum
+{
+  GEARMAN_CON_RECV_STATE_NONE,
+  GEARMAN_CON_RECV_STATE_READ,
+  GEARMAN_CON_RECV_STATE_READ_DATA
+} gearman_con_recv_state;
 
 /* Options for gearman_job_st. */
 typedef enum
 {
-  GEARMAN_JOB_ALLOCATED= (1 << 0)
+  GEARMAN_JOB_ALLOCATED=   (1 << 0),
+  GEARMAN_JOB_WORK_IN_USE= (1 << 1)
 } gearman_job_options;
 
 /* Options for gearman_packet_st. */
 typedef enum
 {
-  GEARMAN_PACKET_ALLOCATED=          (1 << 0),
-  GEARMAN_PACKET_PACKED=             (1 << 1),
-  GEARMAN_PACKET_LAST_ARG_ALLOCATED= (1 << 2)
+  GEARMAN_PACKET_ALLOCATED= (1 << 0),
+  GEARMAN_PACKET_COMPLETE=  (1 << 1)
 } gearman_packet_options;
 
 /* Options for gearman_task_st. */
@@ -124,6 +140,20 @@ typedef enum
 {
   GEARMAN_TASK_ALLOCATED= (1 << 0)
 } gearman_task_options;
+
+/* States for gearman_task_st. */
+typedef enum
+{
+  GEARMAN_TASK_STATE_NEW,
+  GEARMAN_TASK_STATE_SUBMIT,
+  GEARMAN_TASK_STATE_WORK,
+  GEARMAN_TASK_STATE_CREATED,
+  GEARMAN_TASK_STATE_DATA,
+  GEARMAN_TASK_STATE_STATUS,
+  GEARMAN_TASK_STATE_COMPLETE,
+  GEARMAN_TASK_STATE_FAIL,
+  GEARMAN_TASK_STATE_FINISHED
+} gearman_task_state;
 
 /* Options for gearman_worker_st. */
 typedef enum
@@ -181,26 +211,9 @@ typedef enum
   GEARMAN_COMMAND_ALL_YOURS,
   GEARMAN_COMMAND_SUBMIT_JOB_SCHED,
   GEARMAN_COMMAND_SUBMIT_JOB_EPOCH,
+  GEARMAN_COMMAND_WORK_DATA,
   GEARMAN_COMMAND_MAX /* Always add new commands before this. */
 } gearman_command;
-
-#if 0
-typedef enum {
-  GEARMAN_BEHAVIOR_JOB_BACKGROUND= 1
-} gearman_job_behavior;
-
-typedef enum {
-  GEARMAN_SERVER_TYPE_TCP= 0, /* Lease as default for initial state */
-  GEARMAN_SERVER_TYPE_INTERNAL
-} gearman_server_type;
-
-typedef enum {
-  GEARMAN_CONNECTION_STATE_LISTENING= 0,
-  GEARMAN_CONNECTION_STATE_READ,
-  GEARMAN_CONNECTION_STATE_WRITE,
-  GEARMAN_CONNECTION_STATE_CLOSE
-} gearman_connection_state;
-#endif
 
 #ifdef __cplusplus
 }

@@ -23,9 +23,9 @@
 
 #include <libgearman/gearman.h>
 
-static uint8_t *reverse(gearman_job_st *job, uint8_t *workload,
-                        size_t workload_size, size_t *result_size,
-                        gearman_return *ret_ptr);
+static void *reverse(gearman_job_st *job, void *cb_arg, const void *workload,
+                     size_t workload_size, size_t *result_size,
+                     gearman_return *ret_ptr);
 
 static void usage(char *name);
 
@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  ret= gearman_worker_register_function(&worker, "reverse", reverse);
+  ret= gearman_worker_register(&worker, "reverse", 0, reverse, NULL);
   if (ret != GEARMAN_SUCCESS)
   {
     fprintf(stderr, "%s\n", gearman_worker_error(&worker));
@@ -80,13 +80,14 @@ int main(int argc, char *argv[])
   return 0;
 }
 
-static uint8_t *reverse(gearman_job_st *job, uint8_t *workload,
-                        size_t workload_size, size_t *result_size,
-                        gearman_return *ret_ptr)
+static void *reverse(gearman_job_st *job, void *cb_arg, const void *workload,
+                     size_t workload_size, size_t *result_size,
+                     gearman_return *ret_ptr)
 {
   uint8_t *result;
   size_t x;
   size_t y;
+  (void)cb_arg;
 
   result= malloc(workload_size);
   if (result == NULL)
@@ -96,10 +97,10 @@ static uint8_t *reverse(gearman_job_st *job, uint8_t *workload,
   }
 
   for (y= 0, x= workload_size; x; x--, y++)
-    result[y]= workload[x - 1];
+    result[y]= ((uint8_t *)workload)[x - 1];
 
   printf("Job=%s Workload=%.*s Result=%.*s\n", gearman_job_handle(job),
-         (int)workload_size, workload, (int)workload_size, result);
+         (int)workload_size, (char *)workload, (int)workload_size, result);
 
   ret_ptr= GEARMAN_SUCCESS;
   *result_size= workload_size;

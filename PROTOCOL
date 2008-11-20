@@ -82,13 +82,17 @@ header is:
                     24  ALL_YOURS         REQ    Worker
                     25  SUBMIT_JOB_SCHED  REQ    Client
                     26  SUBMIT_JOB_EPOCH  REQ    Client
+                    27  WORK_DATA         REQ    Worker
+                                          RES    Client
 
-4 byte length     - A big-endian (network-order) integer containing
-                    the length of the data being sent after the header.
 
-Arguments given in the data part are usually separated by a NULL byte,
-and the last argument is determined by the length of data after the
-last NULL byte separator.
+4 byte size       - A big-endian (network-order) integer containing
+                    the size of the data being sent after the header.
+
+Arguments given in the data part are separated by a NULL byte, and
+the last argument is determined by the size of data after the last
+NULL byte separator. All job handle arguments must not be longer than
+64 bytes, including NULL terminator.
 
 
 Client/Worker Requests
@@ -189,31 +193,11 @@ JOB_CREATED      This is sent in response to one of the SUBMIT_JOB*
                  Arguments:
                  - Job handle assigned by server.
 
-WORK_STATUS      This is an update sent by the worker to tell the
-                 server and client what percentage of the work is
-                 done. This is typically only used for long running
-                 job.
-
-                 Arguments:
-                 - NULL byte terminated job handle.
-                 - NULL byte terminated numerator of percentage
-                   complete.
-                 - Denominator of percentage complete.
-
-WORK_COMPLETE    This is sent to notify the client that the job has
-                 been completed successfully. This is not sent if
-                 the job was submitted with SUBMIT_JOB_BG.
-
-                 Arguments:
-                 - NULL byte terminated job handle.
-                 - Response output from job.
-
-WORK_FAIL        This is sent to notify the client that the job failed
-                 when run by the worker. This is not sent if the job
-                 was submitted with SUBMIT_JOB_BG.
-
-                 Arguments:
-                 - Job handle.
+WORK_DATA        For non-background jobs, the server forwards these
+WORK_STATUS      packets from the worker to clients. See "Worker
+WORK_COMPLETE    Requests" for more information and arguments.
+WORK_COMPLETE
+WORK_FAIL
 
 STATUS_RES       This is sent in response to a GET_STATUS request. This
                  is used by clients that have submitted a job with
@@ -280,6 +264,19 @@ GRAB_JOB         This is sent to the server to request any available
 
                  Arguments:
                  - None.
+
+WORK_DATA        This is sent to update the client with data from a
+                 running job. A worker should use this when it needs
+                 to send updates, send partial results, or flush
+                 data during long running jobs. It can also be used
+                 to break up a result so the worker does not need
+                 to buffer the entire result before sending in a
+                 WORK_COMPLETE packet. This is not sent if the job
+                 was submitted with SUBMIT_JOB_BG.
+
+                 Arguments:
+                 - NULL byte terminated job handle.
+                 - WORKLOAD_SIZE. Data output from job.
 
 WORK_STATUS      This is sent to update the server (and any listening
                  clients) of the status of a running job. The worker

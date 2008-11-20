@@ -63,25 +63,15 @@ void gearman_task_free(gearman_task_st *task)
 /* Get task attributes. */
 char *gearman_task_job_handle(gearman_task_st *task)
 {
-  return (char *)task->created.arg[0];
+  return task->job_handle;
 }
 
 char *gearman_task_function(gearman_task_st *task)
 {
-  return (char *)task->submit.arg[0];
+  return (char *)task->packet.arg[0];
 }
 
 char *gearman_task_uuid(gearman_task_st *task)
 {
-  return (char *)task->submit.arg[1];
-}
-
-uint8_t *gearman_task_result(gearman_task_st *task)
-{
-  return task->result.arg[1];
-}
-
-size_t gearman_task_result_size(gearman_task_st *task)
-{
-  return task->result.arg_size[1];
+  return (char *)task->packet.arg[1];
 }

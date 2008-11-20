@@ -32,11 +32,35 @@ typedef struct gearman_client_st gearman_client_st;
 typedef struct gearman_job_st gearman_job_st;
 typedef struct gearman_worker_st gearman_worker_st;
 
-typedef uint8_t* (gearman_worker_function)(gearman_job_st *job,
-                                           uint8_t *workload,
-                                           size_t workload_size,
-                                           size_t *result_size,
-                                           gearman_return *ret_ptr);
+typedef gearman_return (gearman_workload_function)(gearman_task_st *task,
+                                                   void *cb_arg, void **data,
+                                                   size_t *data_size);
+
+typedef gearman_return (gearman_created_function)(gearman_task_st *task,
+                                                  void *cb_arg);
+
+typedef gearman_return (gearman_data_function)(gearman_task_st *task,
+                                               void *cb_arg, const void *data,
+                                               size_t data_size);
+
+typedef gearman_return (gearman_status_function)(gearman_task_st *task,
+                                                 void *cb_arg,
+                                                 uint32_t numerator,
+                                                 uint32_t denominator);
+
+typedef gearman_return (gearman_complete_function)(gearman_task_st *task,
+                                                   void *cb_arg,
+                                                   const void *result,
+                                                   size_t result_size);
+
+typedef gearman_return (gearman_fail_function)(gearman_task_st *task,
+                                               void *cb_arg);
+
+typedef void* (gearman_worker_function)(gearman_job_st *job, void *cb_arg,
+                                        const void *workload,
+                                        size_t workload_size,
+                                        size_t *result_size,
+                                        gearman_return *ret_ptr);
 
 #if 0
 typedef struct gearman_result_st gearman_result_st;

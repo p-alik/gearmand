@@ -29,14 +29,25 @@ gearman_job_st *gearman_job_create(gearman_st *gearman, gearman_job_st *job);
 /* Free a job structure. */
 void gearman_job_free(gearman_job_st *job);
 
-/* Send result for a job. */
-gearman_return gearman_job_send_result(gearman_job_st *job, uint8_t *result,
-                                       size_t result_size);
+/* Send data for a running job. */
+gearman_return gearman_job_data(gearman_job_st *job, void *data,
+                                size_t data_size);
+
+/* Send status information for a running job. */
+gearman_return gearman_job_status(gearman_job_st *job, uint32_t numerator,
+                                  uint32_t denominator);
+
+/* Send result and complete status for a job. */
+gearman_return gearman_job_complete(gearman_job_st *job, void *result,
+                                    size_t result_size);
+
+/* Send fail status for a jon. */
+gearman_return gearman_job_fail(gearman_job_st *job);
 
 /* Get job attributes. */
 char *gearman_job_handle(gearman_job_st *job);
 char *gearman_job_function_name(gearman_job_st *job);
-uint8_t *gearman_job_workload(gearman_job_st *job);
+const void *gearman_job_workload(gearman_job_st *job);
 size_t gearman_job_workload_size(gearman_job_st *job);
 
 /* Data structures. */
@@ -48,7 +59,7 @@ struct gearman_job_st
   gearman_job_options options;
   gearman_con_st *con;
   gearman_packet_st assigned;
-  gearman_packet_st result;
+  gearman_packet_st work;
 };
 
 #ifdef __cplusplus

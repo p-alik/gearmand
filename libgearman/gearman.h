@@ -68,12 +68,6 @@ int gearman_errno(gearman_st *gearman);
 void gearman_set_options(gearman_st *gearman, gearman_options options,
                          uint32_t data);
 
-/* Wait for I/O on connections. */
-gearman_return gearman_io_wait(gearman_st *gearman, bool set_read);
-
-/* Get next connection that is ready for I/O. */
-gearman_con_st *gearman_io_ready(gearman_st *gearman);
-
 /* Data structures. */
 struct gearman_st
 {

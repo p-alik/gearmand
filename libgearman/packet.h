@@ -23,19 +23,19 @@
 extern "C" {
 #endif
 
-/* Initialize a packet with all arguments. Variable list is alternating
-   argument and argument size (size_t) pairs, terminated by a NULL argument.
-   For example:
+/* Initialize a packet with all arguments. Variable list is NULL terminated
+   alternating argument and argument size (size_t) pairs. For example:
    ret= gearman_packet_add_args(packet,
                                 GEARMAN_MAGIC_REQUEST,
-                                GEARMAN_COMMAND_GRAB_JOB,
-                                arg1, arg1_size,
-                                arg2, arg2_size, NULL);
+                                GEARMAN_COMMAND_SUBMIT_JOB,
+                                function_name, strlen(function_name) + 1,
+                                unique_string, strlen(unique_string) + 1,
+                                workload, workload_size, NULL);
 */
 gearman_return gearman_packet_add(gearman_st *gearman,
                                   gearman_packet_st *packet,
                                   gearman_magic magic, gearman_command command,
-                                  const uint8_t *arg, ...);
+                                  const void *arg, ...);
 
 /* Initialize a packet structure. */
 gearman_packet_st *gearman_packet_create(gearman_st *gearman,
@@ -44,26 +44,23 @@ gearman_packet_st *gearman_packet_create(gearman_st *gearman,
 /* Free a packet structure. */
 void gearman_packet_free(gearman_packet_st *packet);
 
-/* Set header information for a packet and pack if complete. */
-gearman_return gearman_packet_set_header(gearman_packet_st *packet,
-                                         gearman_magic magic,
-                                         gearman_command command);
+/* Set options for a packet structure. */
+void gearman_packet_set_options(gearman_packet_st *packet,
+                                gearman_packet_options options, uint32_t data);
 
-/* Add an argument to a packet and pack if complete. */
+/* Add an argument to a packet. */
 gearman_return gearman_packet_add_arg(gearman_packet_st *packet,
-                                      const uint8_t *arg, size_t arg_size);
+                                      const void *arg, size_t arg_size);
 
-/* Add raw argument data to a packet, call gearman_packet_unpack once all data
-   has been added. */
-gearman_return gearman_packet_add_arg_data(gearman_packet_st *packet,
-                                           const uint8_t *data,
-                                           size_t data_size);
+/* Pack header. */
+gearman_return gearman_packet_pack_header(gearman_packet_st *packet);
 
-/* Pack packet header information after all args have been added. */
-gearman_return gearman_packet_pack(gearman_packet_st *packet);
+/* Unpack header. */
+gearman_return gearman_packet_unpack_header(gearman_packet_st *packet);
 
-/* Unpack packet information after all raw data has been added. */
-gearman_return gearman_packet_unpack(gearman_packet_st *packet);
+/* Parse packet from input data. */
+size_t gearman_packet_parse(gearman_packet_st *packet, const uint8_t *data,
+                            size_t data_size, gearman_return *ret_ptr);
 
 /* Data structures. */
 struct gearman_packet_st
@@ -77,15 +74,18 @@ struct gearman_packet_st
   uint8_t argc;
   uint8_t *arg[GEARMAN_MAX_COMMAND_ARGS];
   size_t arg_size[GEARMAN_MAX_COMMAND_ARGS];
-  uint8_t *data;
-  uint8_t data_buffer[GEARMAN_PACKET_BUFFER_SIZE];
+  uint8_t *args;
+  uint8_t args_buffer[GEARMAN_ARGS_BUFFER_SIZE];
+  size_t args_size;
+  const void *data;
   size_t data_size;
 };
 
 struct gearman_command_info_st
 {
-  char *name;
-  uint8_t argc;
+  const char *name;
+  const uint8_t argc;
+  const bool data;
 };
 
 #ifdef __cplusplus

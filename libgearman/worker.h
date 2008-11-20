@@ -33,35 +33,45 @@ gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker,
 /* Free a worker structure. */
 void gearman_worker_free(gearman_worker_st *worker);
 
-/* Return an error string for last library error encountered. */
-char *gearman_worker_error(gearman_worker_st *worker);
-
 /* Reset state for a worker structure. */
 void gearman_worker_reset(gearman_worker_st *worker);
+
+/* Return an error string for last error encountered. */
+char *gearman_worker_error(gearman_worker_st *worker);
 
 /* Value of errno in the case of a GEARMAN_ERRNO return value. */
 int gearman_worker_errno(gearman_worker_st *worker);
 
-/* Set options for a library instance structure. */
+/* Set options for a worker structure. */
 void gearman_worker_set_options(gearman_worker_st *worker,
-                                gearman_options options,
-                                uint32_t data);
+                                gearman_options options, uint32_t data);
 
 /* Add a job server to a worker. */
 gearman_return gearman_worker_server_add(gearman_worker_st *worker, char *host,
                                          in_port_t port);
 
-/* Register function with job servers. */
-gearman_return gearman_worker_register_function(gearman_worker_st *worker,
-                                                const char *function_name,
-                                             gearman_worker_function *function);
+/* Register function with job servers with optional timeout. The timeout
+   specifies how many seconds the server will wait before marking a job as
+   failed. If timeout is zero, there is no timeout. */
+gearman_return gearman_worker_register(gearman_worker_st *worker,
+                                       const char *function_name,
+                                       uint32_t timeout,
+                                       gearman_worker_function *worker_cb,
+                                       const void *cb_arg);
+
+/* Unregister function with job servers. */
+gearman_return gearman_worker_unregister(gearman_worker_st *worker,
+                                         const char *function_name);
+
+/* Unregister all functions with job servers. */
+gearman_return gearman_worker_unregister_all(gearman_worker_st *worker);
 
 /* Get a job from one of the job servers. */
 gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
                                         gearman_job_st *job,
-                                        gearman_return *ret);
+                                        gearman_return *ret_ptr);
 
-/* Go into a loop and answer a single job. */
+/* Go into a loop and answer a single job using callback functions. */
 gearman_return gearman_worker_work(gearman_worker_st *worker);
 
 /* Data structures. */
@@ -76,7 +86,15 @@ struct gearman_worker_st
   gearman_con_st *con;
   gearman_job_st *job;
   char *function_name;
-  gearman_worker_function *function;
+  gearman_worker_function *worker_cb;
+  const void *cb_arg;
+};
+
+struct gearman_worker_list_st
+{
+  const char *function_name;
+  gearman_worker_function *worker_cb;
+  const void *cb_arg;
 };
 
 #ifdef __cplusplus

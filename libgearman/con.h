@@ -43,10 +43,6 @@ void gearman_con_set_port(gearman_con_st *con, in_port_t port);
 void gearman_con_set_options(gearman_con_st *con, gearman_con_options options,
                              uint32_t data);
 
-/* Set and get application data pointer for a connection. */
-void gearman_con_set_data(gearman_con_st *con, void *data);
-void *gearman_con_get_data(gearman_con_st *con);
-
 /* Set connection to an already open file descriptor. */
 void gearman_con_set_fd(gearman_con_st *con, int fd);
 
@@ -60,7 +56,15 @@ gearman_return gearman_con_close(gearman_con_st *con);
 void gearman_con_reset_addrinfo(gearman_con_st *con);
 
 /* Send packet to a connection. */
-gearman_return gearman_con_send(gearman_con_st *con, gearman_packet_st *packet);
+gearman_return gearman_con_send(gearman_con_st *con, gearman_packet_st *packet,
+                                bool flush);
+
+/* Send packet data to a connection. */
+size_t gearman_con_send_data(gearman_con_st *con, const void *data,
+                             size_t data_size, gearman_return *ret_ptr);
+
+/* Flush the send buffer. */
+gearman_return gearman_con_flush(gearman_con_st *con);
 
 /* Send packet to all connections. */
 gearman_return gearman_con_send_all(gearman_st *gearman,
@@ -69,10 +73,17 @@ gearman_return gearman_con_send_all(gearman_st *gearman,
 /* Receive packet from a connection. */
 gearman_packet_st *gearman_con_recv(gearman_con_st *con,
                                     gearman_packet_st *packet,
-                                    gearman_return *ret_ptr);
+                                    gearman_return *ret_ptr, bool recv_data);
 
-/* State loop for gearman_con_st. */
-gearman_return gearman_con_loop(gearman_con_st *con);
+/* Receive packet data from a connection. */
+size_t gearman_con_recv_data(gearman_con_st *con, void *data, size_t data_size,
+                             gearman_return *ret_ptr);
+
+/* Wait for I/O on connections. */
+gearman_return gearman_con_wait(gearman_st *gearman, bool set_read);
+
+/* Get next connection that is ready for I/O. */
+gearman_con_st *gearman_con_ready(gearman_st *gearman);
 
 /* Data structures. */
 struct gearman_con_st
@@ -90,14 +101,23 @@ struct gearman_con_st
   int fd;
   short events;
   short revents;
-  gearman_packet_st *send_packet;
-  uint8_t *send_packet_ptr;
-  size_t send_packet_size;
+  uint32_t created_id;
+  uint32_t created_id_next;
+
+  gearman_con_send_state send_state;
+  uint8_t send_buffer[GEARMAN_SEND_BUFFER_SIZE];
+  uint8_t *send_buffer_ptr;
+  size_t send_buffer_size;
+  size_t send_data_size;
+  size_t send_data_offset;
+
+  gearman_con_recv_state recv_state;
   gearman_packet_st *recv_packet;
-  size_t recv_packet_size;
-  uint8_t recv_buffer[GEARMAN_READ_BUFFER_SIZE];
+  uint8_t recv_buffer[GEARMAN_RECV_BUFFER_SIZE];
   uint8_t *recv_buffer_ptr;
   size_t recv_buffer_size;
+  size_t recv_data_size;
+  size_t recv_data_offset;
 };
 
 #ifdef __cplusplus

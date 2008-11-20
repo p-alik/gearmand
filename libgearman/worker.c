@@ -76,7 +76,7 @@ void gearman_worker_reset(gearman_worker_st *worker)
   }
 }
 
-/* Return an error string for last library error encountered. */
+/* Return an error string for last error encountered. */
 char *gearman_worker_error(gearman_worker_st *worker)
 {
   return gearman_error(&(worker->gearman));
@@ -88,10 +88,9 @@ int gearman_worker_errno(gearman_worker_st *worker)
   return gearman_errno(&(worker->gearman));
 }
 
-/* Set options for a library instance structure. */
+/* Set options for a worker structure. */
 void gearman_worker_set_options(gearman_worker_st *worker,
-                                gearman_options options,
-                                uint32_t data)
+                                gearman_options options, uint32_t data)
 {
   gearman_set_options(&(worker->gearman), options, data);
 }
@@ -106,22 +105,28 @@ gearman_return gearman_worker_server_add(gearman_worker_st *worker, char *host,
   return GEARMAN_SUCCESS;
 }
 
-/* Register function with job servers. */
-gearman_return gearman_worker_register_function(gearman_worker_st *worker,
-                                                const char *function_name,
-                                             gearman_worker_function *function)
+/* Register function with job servers with optional timeout. The timeout
+   specifies how many seconds the server will wait before marking a job as
+   failed. If timeout is zero, there is no timeout. */
+gearman_return gearman_worker_register(gearman_worker_st *worker,
+                                       const char *function_name,
+                                       uint32_t timeout,
+                                       gearman_worker_function *worker_cb,
+                                       const void *cb_arg)
 {
   gearman_return ret;
+  (void) timeout;
 
   /* Add proper error handling, and create a list or hash to support multiple
      functions. */
   assert(function_name);
-  assert(function);
+  assert(worker_cb);
 
   if ((worker->function_name= strdup(function_name)) == NULL)
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
 
-  worker->function= function;
+  worker->worker_cb= worker_cb;
+  worker->cb_arg= cb_arg;
 
   if (!(worker->options & GEARMAN_WORKER_PACKET_IN_USE))
   {
@@ -144,6 +149,19 @@ gearman_return gearman_worker_register_function(gearman_worker_st *worker,
 
   return ret;
 }
+
+#if 0
+/* Unregister function with job servers. */
+gearman_return gearman_worker_unregister(gearman_worker_st *worker,
+                                         const char *function_name)
+{
+}
+
+/* Unregister all functions with job servers. */
+gearman_return gearman_worker_unregister_all(gearman_worker_st *worker)
+{
+}
+#endif
 
 /* Grab a job from one of the job servers. */
 gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
@@ -183,7 +201,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
       while (worker->con != NULL)
       {
     case GEARMAN_WORKER_STATE_GRAB_JOB_SEND:
-        *ret= gearman_con_send(worker->con, &(worker->grab_job));
+        *ret= gearman_con_send(worker->con, &(worker->grab_job), true);
         if (*ret != GEARMAN_SUCCESS)
         {
           if (*ret == GEARMAN_IO_WAIT)
@@ -195,7 +213,8 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
     case GEARMAN_WORKER_STATE_GRAB_JOB_RECV:
         while (1)
         {
-          (void)gearman_con_recv(worker->con, &(worker->job->assigned), ret);
+          (void)gearman_con_recv(worker->con, &(worker->job->assigned), ret,
+                                 true);
           if (*ret != GEARMAN_SUCCESS)
           {
             if (*ret == GEARMAN_IO_WAIT)
@@ -244,7 +263,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
         return NULL;
       }
 
-      *ret= gearman_io_wait(&(worker->gearman), true);
+      *ret= gearman_con_wait(&(worker->gearman), true);
       if (*ret != GEARMAN_SUCCESS)
         return NULL;
     }
@@ -253,7 +272,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
   return NULL;
 }
 
-/* Go into a loop and answer a single job. */
+/* Go into a loop and answer a single job using callback functions. */
 gearman_return gearman_worker_work(gearman_worker_st *worker)
 {
   gearman_return ret;
@@ -266,15 +285,15 @@ gearman_return gearman_worker_work(gearman_worker_st *worker)
   (void)gearman_worker_grab_job(worker, &job, &ret);
   if (ret == GEARMAN_SUCCESS)
   {
-    result= (*(worker->function))(&job, 
-                                  gearman_job_workload(&job),
-                                  gearman_job_workload_size(&job),
-                                  &result_size,
-                                  &ret);
+    result= (*(worker->worker_cb))(&job, (void *)worker->cb_arg,
+                                   gearman_job_workload(&job),
+                                   gearman_job_workload_size(&job),
+                                   &result_size,
+                                   &ret);
 
     if (ret == GEARMAN_SUCCESS)
     {
-      ret= gearman_job_send_result(&job, result, result_size);
+      ret= gearman_job_complete(&job, result, result_size);
 
       if (result_size > 0)
         free(result);

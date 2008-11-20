@@ -44,12 +44,14 @@ struct gearman_task_st
   gearman_task_st *next;
   gearman_task_st *prev;
   gearman_task_options options;
+  gearman_task_state state;
+  gearman_packet_st packet;
   gearman_con_st *con;
+  uint32_t created_id;
+  char job_handle[GEARMAN_JOB_HANDLE_SIZE];
   uint32_t numerator;
   uint32_t denominator;
-  gearman_packet_st submit;
-  gearman_packet_st created;
-  gearman_packet_st result;
+  const void *cb_arg;
 };
 
 #ifdef __cplusplus
