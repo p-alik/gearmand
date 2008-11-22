@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  (void)gearman_client_create(&client);
+  (void)gearman_client_create(NULL, &client);
 
   ret= gearman_client_server_add(&client, host, port);
   if (ret != GEARMAN_SUCCESS)

@@ -36,7 +36,7 @@ gearman_task_st *gearman_task_create(gearman_st *gearman,
 
   task->gearman= gearman;
 
-  if (gearman->task_list)
+  if (gearman->task_list != NULL)
     gearman->task_list->prev= task;
   task->next= gearman->task_list;
   gearman->task_list= task;
@@ -50,9 +50,9 @@ void gearman_task_free(gearman_task_st *task)
 {
   if (task->gearman->task_list == task)
     task->gearman->task_list= task->next;
-  if (task->prev)
+  if (task->prev != NULL)
     task->prev->next= task->next;
-  if (task->next)
+  if (task->next != NULL)
     task->next->prev= task->prev;
   task->gearman->task_count--;
 
@@ -61,17 +61,53 @@ void gearman_task_free(gearman_task_st *task)
 }
 
 /* Get task attributes. */
+void *gearman_task_fn_arg(gearman_task_st *task)
+{
+  return (void *)task->fn_arg;
+}
+
+char *gearman_task_function(gearman_task_st *task)
+{
+  return (char *)task->send.arg[0];
+}
+
+char *gearman_task_uuid(gearman_task_st *task)
+{
+  return (char *)task->send.arg[1];
+}
+
 char *gearman_task_job_handle(gearman_task_st *task)
 {
   return task->job_handle;
 }
 
-char *gearman_task_function(gearman_task_st *task)
+bool gearman_task_is_known(gearman_task_st *task)
 {
-  return (char *)task->packet.arg[0];
+  return task->is_known;
 }
 
-char *gearman_task_uuid(gearman_task_st *task)
+bool gearman_task_is_running(gearman_task_st *task)
 {
-  return (char *)task->packet.arg[1];
+  return task->is_running;
+}
+
+uint32_t gearman_task_numerator(gearman_task_st *task)
+{
+  return task->numerator;
+}
+
+uint32_t gearman_task_denominator(gearman_task_st *task)
+{
+  return task->denominator;
+}
+
+size_t gearman_task_data_size(gearman_task_st *task)
+{
+  return task->recv->data_size;
+}
+
+size_t gearman_task_recv_data(gearman_task_st *task, void *data,
+                              size_t data_size, gearman_return *ret_ptr)
+{
+  return gearman_con_recv_data(task->con, data, data_size, ret_ptr);
 }

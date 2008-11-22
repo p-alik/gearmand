@@ -75,8 +75,9 @@ typedef enum
 /* Options for gearman_client_st. */
 typedef enum
 {
-  GEARMAN_CLIENT_ALLOCATED=   (1 << 0),
-  GEARMAN_CLIENT_TASK_IN_USE= (1 << 1)
+  GEARMAN_CLIENT_ALLOCATED=      (1 << 0),
+  GEARMAN_CLIENT_GEARMAN_STATIC= (1 << 1),
+  GEARMAN_CLIENT_TASK_IN_USE=    (1 << 2)
 } gearman_client_options;
 
 /* States for gearman_client_st. */
@@ -146,6 +147,7 @@ typedef enum
 {
   GEARMAN_TASK_STATE_NEW,
   GEARMAN_TASK_STATE_SUBMIT,
+  GEARMAN_TASK_STATE_WORKLOAD,
   GEARMAN_TASK_STATE_WORK,
   GEARMAN_TASK_STATE_CREATED,
   GEARMAN_TASK_STATE_DATA,
@@ -158,8 +160,9 @@ typedef enum
 /* Options for gearman_worker_st. */
 typedef enum
 {
-  GEARMAN_WORKER_ALLOCATED=     (1 << 0),
-  GEARMAN_WORKER_PACKET_IN_USE= (1 << 1)
+  GEARMAN_WORKER_ALLOCATED=      (1 << 0),
+  GEARMAN_WORKER_GEARMAN_STATIC= (1 << 1),
+  GEARMAN_WORKER_PACKET_IN_USE=  (1 << 2)
 } gearman_worker_options;
 
 /* States for gearman_worker_st. */

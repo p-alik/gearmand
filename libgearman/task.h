@@ -31,11 +31,17 @@ gearman_task_st *gearman_task_create(gearman_st *gearman,
 void gearman_task_free(gearman_task_st *task);
 
 /* Get task attributes. */
-char *gearman_task_job_handle(gearman_task_st *task);
+void *gearman_task_fn_arg(gearman_task_st *task);
 char *gearman_task_function(gearman_task_st *task);
 char *gearman_task_uuid(gearman_task_st *task);
-uint8_t *gearman_task_result(gearman_task_st *task);
-size_t gearman_task_result_size(gearman_task_st *task);
+char *gearman_task_job_handle(gearman_task_st *task);
+bool gearman_task_is_known(gearman_task_st *task);
+bool gearman_task_is_running(gearman_task_st *task);
+uint32_t gearman_task_numerator(gearman_task_st *task);
+uint32_t gearman_task_denominator(gearman_task_st *task);
+size_t gearman_task_data_size(gearman_task_st *task);
+size_t gearman_task_recv_data(gearman_task_st *task, void *data,
+                              size_t data_size, gearman_return *ret_ptr);
 
 /* Data structures. */
 struct gearman_task_st
@@ -45,13 +51,16 @@ struct gearman_task_st
   gearman_task_st *prev;
   gearman_task_options options;
   gearman_task_state state;
-  gearman_packet_st packet;
+  const void *fn_arg;
   gearman_con_st *con;
   uint32_t created_id;
+  gearman_packet_st send;
+  gearman_packet_st *recv;
   char job_handle[GEARMAN_JOB_HANDLE_SIZE];
+  bool is_known;
+  bool is_running;
   uint32_t numerator;
   uint32_t denominator;
-  const void *cb_arg;
 };
 
 #ifdef __cplusplus

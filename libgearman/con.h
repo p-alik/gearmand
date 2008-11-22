@@ -103,6 +103,7 @@ struct gearman_con_st
   short revents;
   uint32_t created_id;
   uint32_t created_id_next;
+  gearman_packet_st packet;
 
   gearman_con_send_state send_state;
   uint8_t send_buffer[GEARMAN_SEND_BUFFER_SIZE];

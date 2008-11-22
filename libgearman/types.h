@@ -32,43 +32,16 @@ typedef struct gearman_client_st gearman_client_st;
 typedef struct gearman_job_st gearman_job_st;
 typedef struct gearman_worker_st gearman_worker_st;
 
-typedef gearman_return (gearman_workload_function)(gearman_task_st *task,
-                                                   void *cb_arg, void **data,
-                                                   size_t *data_size);
+typedef gearman_return (gearman_workload_fn)(gearman_task_st *task);
+typedef gearman_return (gearman_created_fn)(gearman_task_st *task);
+typedef gearman_return (gearman_data_fn)(gearman_task_st *task);
+typedef gearman_return (gearman_status_fn)(gearman_task_st *task);
+typedef gearman_return (gearman_complete_fn)(gearman_task_st *task);
+typedef gearman_return (gearman_fail_fn)(gearman_task_st *task);
 
-typedef gearman_return (gearman_created_function)(gearman_task_st *task,
-                                                  void *cb_arg);
-
-typedef gearman_return (gearman_data_function)(gearman_task_st *task,
-                                               void *cb_arg, const void *data,
-                                               size_t data_size);
-
-typedef gearman_return (gearman_status_function)(gearman_task_st *task,
-                                                 void *cb_arg,
-                                                 uint32_t numerator,
-                                                 uint32_t denominator);
-
-typedef gearman_return (gearman_complete_function)(gearman_task_st *task,
-                                                   void *cb_arg,
-                                                   const void *result,
-                                                   size_t result_size);
-
-typedef gearman_return (gearman_fail_function)(gearman_task_st *task,
-                                               void *cb_arg);
-
-typedef void* (gearman_worker_function)(gearman_job_st *job, void *cb_arg,
-                                        const void *workload,
-                                        size_t workload_size,
-                                        size_t *result_size,
-                                        gearman_return *ret_ptr);
-
-#if 0
-typedef struct gearman_result_st gearman_result_st;
-typedef struct gearman_byte_array_st gearman_byte_array_st;
-typedef struct gearman_server_list_st gearman_server_list_st;
-typedef struct gearman_server_st gearman_server_st;
-typedef struct giov_st giov_st;
-#endif
+typedef void* (gearman_worker_fn)(gearman_job_st *job, void *fn_arg,
+                                  const void *workload, size_t workload_size,
+                                  size_t *result_size, gearman_return *ret_ptr);
 
 #ifdef __cplusplus
 }

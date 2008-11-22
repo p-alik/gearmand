@@ -196,7 +196,6 @@ JOB_CREATED      This is sent in response to one of the SUBMIT_JOB*
 WORK_DATA        For non-background jobs, the server forwards these
 WORK_STATUS      packets from the worker to clients. See "Worker
 WORK_COMPLETE    Requests" for more information and arguments.
-WORK_COMPLETE
 WORK_FAIL
 
 STATUS_RES       This is sent in response to a GET_STATUS request. This

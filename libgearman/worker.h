@@ -24,10 +24,12 @@ extern "C" {
 #endif
 
 /* Initialize a worker structure. */
-gearman_worker_st *gearman_worker_create(gearman_worker_st *worker);
+gearman_worker_st *gearman_worker_create(gearman_st *gearman,
+                                         gearman_worker_st *worker);
 
 /* Clone a worker structure using 'from' as the source. */
-gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker,
+gearman_worker_st *gearman_worker_clone(gearman_st *gearman,
+                                        gearman_worker_st *worker,
                                         gearman_worker_st *from);
 
 /* Free a worker structure. */
@@ -56,7 +58,7 @@ gearman_return gearman_worker_server_add(gearman_worker_st *worker, char *host,
 gearman_return gearman_worker_register(gearman_worker_st *worker,
                                        const char *function_name,
                                        uint32_t timeout,
-                                       gearman_worker_function *worker_cb,
+                                       gearman_worker_fn *worker_fn,
                                        const void *cb_arg);
 
 /* Unregister function with job servers. */
@@ -77,7 +79,8 @@ gearman_return gearman_worker_work(gearman_worker_st *worker);
 /* Data structures. */
 struct gearman_worker_st
 {
-  gearman_st gearman;
+  gearman_st *gearman;
+  gearman_st gearman_static;
   gearman_worker_options options;
   gearman_worker_state state;
   gearman_packet_st packet;
@@ -86,15 +89,15 @@ struct gearman_worker_st
   gearman_con_st *con;
   gearman_job_st *job;
   char *function_name;
-  gearman_worker_function *worker_cb;
-  const void *cb_arg;
+  gearman_worker_fn *worker_fn;
+  const void *fn_arg;
 };
 
 struct gearman_worker_list_st
 {
   const char *function_name;
-  gearman_worker_function *worker_cb;
-  const void *cb_arg;
+  gearman_worker_fn *worker_fn;
+  const void *fn_arg;
 };
 
 #ifdef __cplusplus

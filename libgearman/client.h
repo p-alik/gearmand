@@ -24,10 +24,12 @@ extern "C" {
 #endif
 
 /* Initialize a client structure. */
-gearman_client_st *gearman_client_create(gearman_client_st *client);
+gearman_client_st *gearman_client_create(gearman_st *gearman,
+                                         gearman_client_st *client);
 
 /* Clone a client structure using 'from' as the source. */
-gearman_client_st *gearman_client_clone(gearman_client_st *client,
+gearman_client_st *gearman_client_clone(gearman_st *gearman,
+                                        gearman_client_st *client,
                                         gearman_client_st *from);
 
 /* Free a client structure. */
@@ -46,6 +48,10 @@ void gearman_client_set_options(gearman_client_st *client,
 /* Add a job server to a client. */
 gearman_return gearman_client_server_add(gearman_client_st *client, char *host,
                                          in_port_t port);
+
+/*
+ * Use the following set of functions to run one task at a time.
+ */
 
 /* Run a task, returns allocated result. */
 void *gearman_client_do(gearman_client_st *client, const char *function_name,
@@ -76,10 +82,14 @@ gearman_return gearman_client_task_status(gearman_client_st *client,
 gearman_return gearman_client_echo(gearman_client_st *client,
                                    const void *workload, size_t workload_size);
 
+/*
+ * Use the following set of functions together to run tasks in parallel.
+ */
+
 /* Add a task to be run in parallel. */
 gearman_task_st *gearman_client_add_task(gearman_client_st *client,
                                          gearman_task_st *task,
-                                         const void *cb_arg,
+                                         const void *fn_arg,
                                          const char *function_name,
                                          const void *workload,
                                          size_t workload_size,
@@ -88,7 +98,7 @@ gearman_task_st *gearman_client_add_task(gearman_client_st *client,
 /* Add a high priority task to be run in parallel. */
 gearman_task_st *gearman_client_add_task_high(gearman_client_st *client,
                                               gearman_task_st *task,
-                                              const void *cb_arg,
+                                              const void *fn_arg,
                                               const char *function_name,
                                               const void *workload,
                                               size_t workload_size,
@@ -97,36 +107,43 @@ gearman_task_st *gearman_client_add_task_high(gearman_client_st *client,
 /* Add a background task to be run in parallel. */
 gearman_task_st *gearman_client_add_task_bg(gearman_client_st *client,
                                             gearman_task_st *task,
-                                            const void *cb_arg,
+                                            const void *fn_arg,
                                             const char *function_name,
                                             const void *workload,
                                             size_t workload_size,
                                             gearman_return *ret_ptr);
 
+/* Add task to get the status for a backgound task in parallel. */
+gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
+                                                gearman_task_st *task,
+                                                const void *fn_arg,
+                                                const char *job_handle,
+                                                gearman_return *ret_ptr);
+
 /* Run tasks that have been added in parallel. */
 gearman_return gearman_client_run_tasks(gearman_client_st *client,
-                                        gearman_workload_function workload_cb,
-                                        gearman_created_function created_cb,
-                                        gearman_data_function data_cb,
-                                        gearman_status_function status_cb,
-                                        gearman_complete_function complete_cb,
-                                        gearman_fail_function fail_cb);
+                                        gearman_workload_fn workload_fn,
+                                        gearman_created_fn created_fn,
+                                        gearman_data_fn data_fn,
+                                        gearman_status_fn status_fn,
+                                        gearman_complete_fn complete_fn,
+                                        gearman_fail_fn fail_fn);
 
 /* Data structures. */
 struct gearman_client_st
 {
-  gearman_st gearman;
+  gearman_st *gearman;
+  gearman_st gearman_static;
   gearman_client_state state;
   gearman_client_options options;
   uint32_t new;
   uint32_t running;
   gearman_task_st *task;
-  gearman_packet_st packet;
-  void *data_buffer;
-  size_t data_buffer_size;
   gearman_task_st do_task;
-  const void *do_data;
+  void *do_data;
   size_t do_data_size;
+  size_t do_data_offset;
+  bool do_fail;
 };
 
 #ifdef __cplusplus
