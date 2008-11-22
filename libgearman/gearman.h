@@ -30,11 +30,13 @@
 #include <sys/uio.h>
 
 #include <libgearman/constants.h>
-#include <libgearman/types.h>
-#include <libgearman/packet.h>
+#include <libgearman/structs.h>
 #include <libgearman/con.h>
-#include <libgearman/job.h>
+#include <libgearman/packet.h>
 #include <libgearman/task.h>
+#include <libgearman/job.h>
+#include <libgearman/client.h>
+#include <libgearman/worker.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -67,30 +69,6 @@ int gearman_errno(gearman_st *gearman);
 /* Set options for a gearman structure. */
 void gearman_set_options(gearman_st *gearman, gearman_options options,
                          uint32_t data);
-
-/* Data structures. */
-struct gearman_st
-{
-  gearman_options options;
-  gearman_con_st *con_list;
-  uint32_t con_count;
-  gearman_job_st *job_list;
-  uint32_t job_count;
-  gearman_task_st *task_list;
-  uint32_t task_count;
-  gearman_packet_st *packet_list;
-  uint32_t packet_count;
-  struct pollfd *pfds;
-  uint32_t pfds_size;
-  gearman_con_st *con_ready;
-  uint32_t sending;
-  int last_errno;
-  char last_error[GEARMAN_ERROR_SIZE];
-};
-
-/* These headers are at the end because they need gearman_st defined. */
-#include <libgearman/client.h>
-#include <libgearman/worker.h>
 
 #ifdef __cplusplus
 }

@@ -43,26 +43,6 @@ size_t gearman_task_data_size(gearman_task_st *task);
 size_t gearman_task_recv_data(gearman_task_st *task, void *data,
                               size_t data_size, gearman_return *ret_ptr);
 
-/* Data structures. */
-struct gearman_task_st
-{
-  gearman_st *gearman;
-  gearman_task_st *next;
-  gearman_task_st *prev;
-  gearman_task_options options;
-  gearman_task_state state;
-  const void *fn_arg;
-  gearman_con_st *con;
-  uint32_t created_id;
-  gearman_packet_st send;
-  gearman_packet_st *recv;
-  char job_handle[GEARMAN_JOB_HANDLE_SIZE];
-  bool is_known;
-  bool is_running;
-  uint32_t numerator;
-  uint32_t denominator;
-};
-
 #ifdef __cplusplus
 }
 #endif

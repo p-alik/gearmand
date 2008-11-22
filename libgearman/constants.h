@@ -29,13 +29,24 @@ extern "C" {
 #define GEARMAN_DEFAULT_SOCKET_TIMEOUT 10
 #define GEARMAN_DEFAULT_SOCKET_SEND_SIZE 32768
 #define GEARMAN_DEFAULT_SOCKET_RECV_SIZE 32768
+
+#define GEARMAN_ERROR_SIZE 1024
 #define GEARMAN_PACKET_HEADER_SIZE 12
 #define GEARMAN_JOB_HANDLE_SIZE 64
 #define GEARMAN_MAX_COMMAND_ARGS 8
 #define GEARMAN_ARGS_BUFFER_SIZE 128
 #define GEARMAN_SEND_BUFFER_SIZE 8192
 #define GEARMAN_RECV_BUFFER_SIZE 8192
-#define GEARMAN_ERROR_SIZE 1024
+
+/* Types. */
+typedef struct gearman_st gearman_st;
+typedef struct gearman_con_st gearman_con_st;
+typedef struct gearman_packet_st gearman_packet_st;
+typedef struct gearman_command_info_st gearman_command_info_st;
+typedef struct gearman_task_st gearman_task_st;
+typedef struct gearman_client_st gearman_client_st;
+typedef struct gearman_job_st gearman_job_st;
+typedef struct gearman_worker_st gearman_worker_st;
 
 /* Return codes. */
 typedef enum
@@ -217,6 +228,18 @@ typedef enum
   GEARMAN_COMMAND_WORK_DATA,
   GEARMAN_COMMAND_MAX /* Always add new commands before this. */
 } gearman_command;
+
+/* Function types. */
+typedef gearman_return (gearman_workload_fn)(gearman_task_st *task);
+typedef gearman_return (gearman_created_fn)(gearman_task_st *task);
+typedef gearman_return (gearman_data_fn)(gearman_task_st *task);
+typedef gearman_return (gearman_status_fn)(gearman_task_st *task);
+typedef gearman_return (gearman_complete_fn)(gearman_task_st *task);
+typedef gearman_return (gearman_fail_fn)(gearman_task_st *task);
+
+typedef void* (gearman_worker_fn)(gearman_job_st *job, void *fn_arg,
+                                  const void *workload, size_t workload_size,
+                                  size_t *result_size, gearman_return *ret_ptr);
 
 #ifdef __cplusplus
 }

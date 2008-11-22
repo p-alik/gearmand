@@ -62,32 +62,6 @@ gearman_return gearman_packet_unpack_header(gearman_packet_st *packet);
 size_t gearman_packet_parse(gearman_packet_st *packet, const uint8_t *data,
                             size_t data_size, gearman_return *ret_ptr);
 
-/* Data structures. */
-struct gearman_packet_st
-{
-  gearman_st *gearman;
-  gearman_packet_st *next;
-  gearman_packet_st *prev;
-  gearman_packet_options options;
-  gearman_magic magic;
-  gearman_command command;
-  uint8_t argc;
-  uint8_t *arg[GEARMAN_MAX_COMMAND_ARGS];
-  size_t arg_size[GEARMAN_MAX_COMMAND_ARGS];
-  uint8_t *args;
-  uint8_t args_buffer[GEARMAN_ARGS_BUFFER_SIZE];
-  size_t args_size;
-  const void *data;
-  size_t data_size;
-};
-
-struct gearman_command_info_st
-{
-  const char *name;
-  const uint8_t argc;
-  const bool data;
-};
-
 #ifdef __cplusplus
 }
 #endif

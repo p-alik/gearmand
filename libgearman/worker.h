@@ -76,30 +76,6 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
 /* Go into a loop and answer a single job using callback functions. */
 gearman_return gearman_worker_work(gearman_worker_st *worker);
 
-/* Data structures. */
-struct gearman_worker_st
-{
-  gearman_st *gearman;
-  gearman_st gearman_static;
-  gearman_worker_options options;
-  gearman_worker_state state;
-  gearman_packet_st packet;
-  gearman_packet_st grab_job;
-  gearman_packet_st pre_sleep;
-  gearman_con_st *con;
-  gearman_job_st *job;
-  char *function_name;
-  gearman_worker_fn *worker_fn;
-  const void *fn_arg;
-};
-
-struct gearman_worker_list_st
-{
-  const char *function_name;
-  gearman_worker_fn *worker_fn;
-  const void *fn_arg;
-};
-
 #ifdef __cplusplus
 }
 #endif

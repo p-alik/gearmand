@@ -85,42 +85,6 @@ gearman_return gearman_con_wait(gearman_st *gearman, bool set_read);
 /* Get next connection that is ready for I/O. */
 gearman_con_st *gearman_con_ready(gearman_st *gearman);
 
-/* Data structures. */
-struct gearman_con_st
-{
-  gearman_st *gearman;
-  gearman_con_st *next;
-  gearman_con_st *prev;
-  gearman_con_state state;
-  gearman_con_options options;
-  void *data;
-  char host[NI_MAXHOST];
-  in_port_t port;
-  struct addrinfo *addrinfo;
-  struct addrinfo *addrinfo_next;
-  int fd;
-  short events;
-  short revents;
-  uint32_t created_id;
-  uint32_t created_id_next;
-  gearman_packet_st packet;
-
-  gearman_con_send_state send_state;
-  uint8_t send_buffer[GEARMAN_SEND_BUFFER_SIZE];
-  uint8_t *send_buffer_ptr;
-  size_t send_buffer_size;
-  size_t send_data_size;
-  size_t send_data_offset;
-
-  gearman_con_recv_state recv_state;
-  gearman_packet_st *recv_packet;
-  uint8_t recv_buffer[GEARMAN_RECV_BUFFER_SIZE];
-  uint8_t *recv_buffer_ptr;
-  size_t recv_buffer_size;
-  size_t recv_data_size;
-  size_t recv_data_offset;
-};
-
 #ifdef __cplusplus
 }
 #endif

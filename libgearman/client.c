@@ -18,10 +18,25 @@
 
 #include "common.h"
 
-/* Allocate a client structure. */
+/**
+ * @file
+ * @brief Client definitions
+ */
+
+/*
+ * Private declarations
+ */
+
+/**
+ * @ingroup gearman_client
+ * Allocate a client structure.
+ */
 static gearman_client_st *_client_allocate(gearman_client_st *client);
 
-/* Add a task. */
+/**
+ * @ingroup gearman_client
+ * Add a task.
+ */
 static gearman_task_st *_client_add_task(gearman_client_st *client,
                                          gearman_task_st *task,
                                          const void *fn_arg,
@@ -31,7 +46,10 @@ static gearman_task_st *_client_add_task(gearman_client_st *client,
                                          size_t workload_size,
                                          gearman_return *ret_ptr);
 
-/* Task state machine. */
+/**
+ * @ingroup gearman_client
+ * Task state machine.
+ */
 static gearman_return _client_run_task(gearman_client_st *client,
                                        gearman_task_st *task,
                                        gearman_workload_fn workload_fn,
@@ -41,12 +59,28 @@ static gearman_return _client_run_task(gearman_client_st *client,
                                        gearman_complete_fn complete_fn,
                                        gearman_fail_fn fail_fn);
 
-/* Callbacks for gearman_client_do* functions. */
+/**
+ * @ingroup gearman_client
+ * Data and complete function for gearman_client_do* functions.
+ */
 static gearman_return _client_do_data(gearman_task_st *task);
+
+/**
+ * @ingroup gearman_client
+ * Status function for gearman_client_do* functions.
+ */
 static gearman_return _client_do_status(gearman_task_st *task);
+
+/**
+ * @ingroup gearman_client
+ * Fail function for gearman_client_do* functions.
+ */
 static gearman_return _client_do_fail(gearman_task_st *task);
 
-/* Initialize a client structure. */
+/*
+ * Public definitions
+ */
+
 gearman_client_st *gearman_client_create(gearman_st *gearman,
                                          gearman_client_st *client)
 {
@@ -65,7 +99,6 @@ gearman_client_st *gearman_client_create(gearman_st *gearman,
   return client;
 }
 
-/* Clone a client structure using 'from' as the source. */
 gearman_client_st *gearman_client_clone(gearman_st *gearman,
                                         gearman_client_st *client,
                                         gearman_client_st *from)
@@ -94,7 +127,6 @@ gearman_client_st *gearman_client_clone(gearman_st *gearman,
   return client;
 }
 
-/* Free a client structure. */
 void gearman_client_free(gearman_client_st *client)
 {
   if (client->options & GEARMAN_CLIENT_TASK_IN_USE)
@@ -104,26 +136,22 @@ void gearman_client_free(gearman_client_st *client)
     free(client);
 }
 
-/* Return an error string for last error encountered. */
-char *gearman_client_error(gearman_client_st *client)
+const char *gearman_client_error(gearman_client_st *client)
 {
   return gearman_error(client->gearman);
 }
 
-/* Value of errno in the case of a GEARMAN_ERRNO return value. */
 int gearman_client_errno(gearman_client_st *client)
 {
   return gearman_errno(client->gearman);
 }
 
-/* Set options for a client structure. */
 void gearman_client_set_options(gearman_client_st *client,
                                 gearman_options options, uint32_t data)
 {
   gearman_set_options(client->gearman, options, data);
 }
 
-/* Add a job server to a client. */
 gearman_return gearman_client_server_add(gearman_client_st *client, char *host,
                                          in_port_t port)
 {
@@ -133,7 +161,6 @@ gearman_return gearman_client_server_add(gearman_client_st *client, char *host,
   return GEARMAN_SUCCESS;
 }
 
-/* Run a task, returns allocated result. */
 void *gearman_client_do(gearman_client_st *client, const char *function_name,
                         const void *workload, size_t workload_size,
                         size_t *result_size, gearman_return *ret_ptr)
@@ -176,7 +203,6 @@ void *gearman_client_do(gearman_client_st *client, const char *function_name,
   return (void *)workload;
 }
 
-/* Run a high priority task, returns allocated result. */
 void *gearman_client_do_high(gearman_client_st *client,
                              const char *function_name, const void *workload,
                              size_t workload_size, size_t *result_size,
@@ -220,8 +246,6 @@ void *gearman_client_do_high(gearman_client_st *client,
   return (void *)workload;
 }
 
-/* Run a task in the background. The job_handle_buffer must be at least
-   GEARMAN_JOB_HANDLE_SIZE bytes. */
 gearman_return gearman_client_do_bg(gearman_client_st *client,
                                     const char *function_name,
                                     const void *workload, size_t workload_size,
@@ -251,7 +275,6 @@ gearman_return gearman_client_do_bg(gearman_client_st *client,
   return ret;
 }
 
-/* Get the status for a backgound task. */
 gearman_return gearman_client_task_status(gearman_client_st *client,
                                           const char *job_handle,
                                           bool *is_known, bool *is_running,
@@ -297,7 +320,6 @@ gearman_return gearman_client_echo(gearman_client_st *client,
 }
 #endif
 
-/* Add a task to be run in parallel. */
 gearman_task_st *gearman_client_add_task(gearman_client_st *client,
                                          gearman_task_st *task,
                                          const void *fn_arg,
@@ -310,7 +332,6 @@ gearman_task_st *gearman_client_add_task(gearman_client_st *client,
                           function_name, workload, workload_size, ret_ptr);
 }
 
-/* Add a high priority task to be run in parallel. */
 gearman_task_st *gearman_client_add_task_high(gearman_client_st *client,
                                               gearman_task_st *task,
                                               const void *fn_arg,  
@@ -323,7 +344,6 @@ gearman_task_st *gearman_client_add_task_high(gearman_client_st *client,
                           function_name, workload, workload_size, ret_ptr);
 }
 
-/* Add a background task to be run in parallel. */
 gearman_task_st *gearman_client_add_task_bg(gearman_client_st *client,
                                             gearman_task_st *task,
                                             const void *fn_arg,  
@@ -336,7 +356,6 @@ gearman_task_st *gearman_client_add_task_bg(gearman_client_st *client,
                           function_name, workload, workload_size, ret_ptr);
 }
 
-/* Add task to get the status for a backgound task in parallel. */
 gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
                                                 gearman_task_st *task,
                                                 const void *fn_arg,
@@ -366,7 +385,6 @@ gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
   return task;
 }
 
-/* Run tasks that have been added in parallel. */
 gearman_return gearman_client_run_tasks(gearman_client_st *client,
                                         gearman_workload_fn workload_fn,
                                         gearman_created_fn created_fn,
@@ -521,7 +539,10 @@ gearman_return gearman_client_run_tasks(gearman_client_st *client,
   return GEARMAN_SUCCESS;
 }
 
-/* Allocate a client structure. */
+/*
+ * Private definitions
+ */
+
 static gearman_client_st *_client_allocate(gearman_client_st *client)
 {
   if (client == NULL)
@@ -539,7 +560,6 @@ static gearman_client_st *_client_allocate(gearman_client_st *client)
   return client;
 }
 
-/* Add a task. */
 static gearman_task_st *_client_add_task(gearman_client_st *client,
                                          gearman_task_st *task,
                                          const void *fn_arg,
@@ -580,7 +600,6 @@ static gearman_task_st *_client_add_task(gearman_client_st *client,
   return task;
 }
 
-/* Task state machine. */
 static gearman_return _client_run_task(gearman_client_st *client,
                                        gearman_task_st *task,
                                        gearman_workload_fn workload_fn,
@@ -751,7 +770,6 @@ static gearman_return _client_run_task(gearman_client_st *client,
   return GEARMAN_SUCCESS;
 }
 
-/* Callbacks for gearman_client_do* functions. */
 static gearman_return _client_do_data(gearman_task_st *task)
 {
   gearman_client_st *client= (gearman_client_st *)gearman_task_fn_arg(task);
