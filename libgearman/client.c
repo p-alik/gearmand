@@ -387,12 +387,12 @@ gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
   }
 
   task->fn_arg= fn_arg;
+  strncpy(task->job_handle, job_handle, GEARMAN_JOB_HANDLE_SIZE);
 
   *ret_ptr= gearman_packet_add(client->gearman, &(task->send),
                                GEARMAN_MAGIC_REQUEST,
                                GEARMAN_COMMAND_GET_STATUS,
-                               (uint8_t *)job_handle, strlen(job_handle) + 1,
-                               NULL);
+                               (uint8_t *)job_handle, strlen(job_handle), NULL);
   if (*ret_ptr == GEARMAN_SUCCESS)
   {
     client->new++;
@@ -727,7 +727,7 @@ static gearman_return _client_run_task(gearman_client_st *client,
         x= 1;
 
       task->numerator= atoi((char *)task->recv->arg[x]);
-      strncpy(status_buffer, (char *)task->recv->arg[x], 11);
+      strncpy(status_buffer, (char *)task->recv->arg[x + 1], 11);
       task->denominator= atoi(status_buffer);
 
   case GEARMAN_TASK_STATE_STATUS:

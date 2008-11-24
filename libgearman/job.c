@@ -117,7 +117,7 @@ gearman_return gearman_job_status(gearman_job_st *job, uint32_t numerator,
     ret= gearman_packet_add(job->gearman, &(job->work), GEARMAN_MAGIC_REQUEST,
                             GEARMAN_COMMAND_WORK_STATUS, job->assigned.arg[0],
                             job->assigned.arg_size[0], numerator_string,
-                            strlen(numerator_string), denominator_string,
+                            strlen(numerator_string) + 1, denominator_string,
                             strlen(denominator_string), NULL);
     if (ret != GEARMAN_SUCCESS)
       return ret;
