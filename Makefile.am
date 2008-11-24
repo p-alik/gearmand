@@ -17,6 +17,10 @@
 
 SUBDIRS = libgearman server tests examples
 
+docs: all
+	doxygen docs/Doxyfile.api
+	doxygen docs/Doxyfile.dev
+
 test: all
 	cd tests; make test; cd ..
 
