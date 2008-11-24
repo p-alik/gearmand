@@ -16,6 +16,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+/**
+ * @file
+ * @brief Worker declarations
+ */
+
 #ifndef __GEARMAN_WORKER_H__
 #define __GEARMAN_WORKER_H__
 
@@ -23,58 +28,127 @@
 extern "C" {
 #endif
 
-/* Initialize a worker structure. */
+/**
+ * @addtogroup gearman_worker Worker Interface
+ * This is the interface gearman workers should use.
+ * @{
+ */
+
+/**
+ * Initialize a worker structure. This cannot fail if the caller supplies a
+ * worker structure.
+ * @param gearman Gearman instance if one exists, otherwise pass in NULL to
+ *        create one.
+ * @param worker Caller allocated worker structure, or NULL to allocate one.
+ * @return Pointer to an allocated worker structure if worker parameter was
+ *         NULL, or the worker parameter pointer if it was not NULL.
+ */
 gearman_worker_st *gearman_worker_create(gearman_st *gearman,
                                          gearman_worker_st *worker);
 
-/* Clone a worker structure using 'from' as the source. */
+/**
+ * Clone a worker structure.
+ * @param gearman Gearman instance if one exists, otherwise pass in NULL to
+ *        create a clone from the existing one used by from.
+ * @param worker Caller allocated worker structure, or NULL to allocate one.
+ * @param from Worker structure to use as a source to clone from.
+ * @return Pointer to an allocated worker structure if worker parameter was
+ *         NULL, or the worker parameter pointer if it was not NULL.
+ */
 gearman_worker_st *gearman_worker_clone(gearman_st *gearman,
                                         gearman_worker_st *worker,
                                         gearman_worker_st *from);
 
-/* Free a worker structure. */
+/**
+ * Free resources used by a worker structure.
+ * @param worker Worker structure previously initialized with
+ *        gearman_worker_create or gearman_worker_clone.
+ */
 void gearman_worker_free(gearman_worker_st *worker);
 
-/* Reset state for a worker structure. */
+/**
+ * Return an error string for the last error encountered.
+ * @param worker Worker structure previously initialized with
+ *        gearman_worker_create or gearman_worker_clone.
+ * @return Pointer to static buffer in library that holds an error string.
+ */
 void gearman_worker_reset(gearman_worker_st *worker);
 
-/* Return an error string for last error encountered. */
-char *gearman_worker_error(gearman_worker_st *worker);
+/**
+ * Return an error string for the last error encountered.
+ * @param worker Worker structure previously initialized with
+ *        gearman_worker_create or gearman_worker_clone.
+ * @return Pointer to static buffer in library that holds an error string.
+ */
+const char *gearman_worker_error(gearman_worker_st *worker);
 
-/* Value of errno in the case of a GEARMAN_ERRNO return value. */
+/**
+ * Value of errno in the case of a GEARMAN_ERRNO return value.
+ * @param worker Worker structure previously initialized with
+ *        gearman_worker_create or gearman_worker_clone.
+ * @return An errno value as defined in your system errno.h file.
+ */
 int gearman_worker_errno(gearman_worker_st *worker);
 
-/* Set options for a worker structure. */
+/**
+ * Set options for a worker structure.
+ * @param worker Worker structure previously initialized with
+ *        gearman_worker_create or gearman_worker_clone.
+ * @param options Available options for gearman structs.
+ * @param data For options that require parameters, the value of that parameter.
+ *        For all other option flags, this should be 0 to clear the option or 1
+ *        to set.
+ */
 void gearman_worker_set_options(gearman_worker_st *worker,
                                 gearman_options options, uint32_t data);
 
-/* Add a job server to a worker. */
-gearman_return gearman_worker_server_add(gearman_worker_st *worker, char *host,
+/**
+ * Add a job server to a worker. This goes into a list of servers than can be
+ * used to run tasks. No socket I/O happens here, it is just added to a list.
+ * @param worker Worker structure previously initialized with
+ *        gearman_worker_create or gearman_worker_clone.
+ * @param host Hostname or IP address (IPv4 or IPv6) of the server to add.
+ * @param port Port of the server to add.
+ * @return Standard gearman return value.
+ */
+gearman_return gearman_worker_add_server(gearman_worker_st *worker, char *host,
                                          in_port_t port);
 
-/* Register function with job servers with optional timeout. The timeout
-   specifies how many seconds the server will wait before marking a job as
-   failed. If timeout is zero, there is no timeout. */
+/**
+ * Register function with job servers with an optional timeout. The timeout
+ * specifies how many seconds the server will wait before marking a job as
+ * failed. If timeout is zero, there is no timeout.
+ */
 gearman_return gearman_worker_register(gearman_worker_st *worker,
                                        const char *function_name,
                                        uint32_t timeout,
                                        gearman_worker_fn *worker_fn,
                                        const void *cb_arg);
 
-/* Unregister function with job servers. */
+/**
+ * Unregister function with job servers.
+ */
 gearman_return gearman_worker_unregister(gearman_worker_st *worker,
                                          const char *function_name);
 
-/* Unregister all functions with job servers. */
+/**
+ * Unregister all functions with job servers.
+ */
 gearman_return gearman_worker_unregister_all(gearman_worker_st *worker);
 
-/* Get a job from one of the job servers. */
+/**
+ * Get a job from one of the job servers.
+ */
 gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
                                         gearman_job_st *job,
                                         gearman_return *ret_ptr);
 
-/* Go into a loop and answer a single job using callback functions. */
+/**
+ * Go into a loop and answer a single job using callback functions.
+ */
 gearman_return gearman_worker_work(gearman_worker_st *worker);
+
+/** @} */
 
 #ifdef __cplusplus
 }

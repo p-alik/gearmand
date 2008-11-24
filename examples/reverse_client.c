@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
 
   (void)gearman_client_create(NULL, &client);
 
-  ret= gearman_client_server_add(&client, host, port);
+  ret= gearman_client_add_server(&client, host, port);
   if (ret != GEARMAN_SUCCESS)
   {
     fprintf(stderr, "%s\n", gearman_client_error(&client));

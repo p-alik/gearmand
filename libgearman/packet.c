@@ -16,10 +16,27 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+/**
+ * @file
+ * @brief Packet definitions
+ */
+
 #include "common.h"
 
-/* Command info. */
-/* Update GEARMAN_MAX_COMMAND_ARGS to the largest number in the args column. */
+/*
+ * Private declarations
+ */
+
+/**
+ * @addtogroup gearman_packet_private Private Packet Functions
+ * @ingroup gearman_packet
+ * @{
+ */
+
+/**
+ * Command info. Update GEARMAN_MAX_COMMAND_ARGS to the largest number in the
+ * args column.
+ */
 gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX]=
 {
   { "NONE",             0, false },
@@ -52,15 +69,12 @@ gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX]=
   { "WORK_DATA",        1, true  }
 };
 
-/* Initialize a packet with all arguments. Variable list is NULL terminated
-   alternating argument and argument size (size_t) pairs. For example:
-   ret= gearman_packet_add_args(packet,
-                                GEARMAN_MAGIC_REQUEST,
-                                GEARMAN_COMMAND_SUBMIT_JOB,
-                                function_name, strlen(function_name) + 1,
-                                unique_string, strlen(unique_string) + 1,
-                                workload, workload_size, NULL);
-*/
+/** @} */
+
+/*
+ * Public definitions
+ */
+
 gearman_return gearman_packet_add(gearman_st *gearman,
                                   gearman_packet_st *packet,
                                   gearman_magic magic, gearman_command command,
@@ -98,7 +112,6 @@ gearman_return gearman_packet_add(gearman_st *gearman,
   return gearman_packet_pack_header(packet);
 }
 
-/* Initialize a packet structure. */
 gearman_packet_st *gearman_packet_create(gearman_st *gearman,
                                          gearman_packet_st *packet)
 {
@@ -128,7 +141,6 @@ gearman_packet_st *gearman_packet_create(gearman_st *gearman,
   return packet;
 }
 
-/* Free a packet structure. */
 void gearman_packet_free(gearman_packet_st *packet)
 {
   if (packet->gearman->packet_list == packet)
@@ -146,7 +158,6 @@ void gearman_packet_free(gearman_packet_st *packet)
     free(packet);
 }
 
-/* Set options for a packet structure. */
 void gearman_packet_set_options(gearman_packet_st *packet, 
                                 gearman_packet_options options, uint32_t data)
 {
@@ -156,7 +167,6 @@ void gearman_packet_set_options(gearman_packet_st *packet,
     packet->options |= options;
 }
 
-/* Add an argument to a packet. */
 gearman_return gearman_packet_add_arg(gearman_packet_st *packet,
                                       const void *arg, size_t arg_size)
 {
@@ -217,7 +227,6 @@ gearman_return gearman_packet_add_arg(gearman_packet_st *packet,
   return GEARMAN_SUCCESS;
 }
 
-/* Pack header. */
 gearman_return gearman_packet_pack_header(gearman_packet_st *packet)
 {
   uint32_t tmp;
@@ -264,7 +273,6 @@ gearman_return gearman_packet_pack_header(gearman_packet_st *packet)
   return GEARMAN_SUCCESS;
 }
 
-/* Unpack header. */
 gearman_return gearman_packet_unpack_header(gearman_packet_st *packet)
 {
   uint32_t tmp;
@@ -295,7 +303,6 @@ gearman_return gearman_packet_unpack_header(gearman_packet_st *packet)
   return GEARMAN_SUCCESS;
 }
 
-/* Parse packet from input data. */
 size_t gearman_packet_parse(gearman_packet_st *packet, const uint8_t *data,
                             size_t data_size, gearman_return *ret_ptr)
 {

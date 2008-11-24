@@ -16,12 +16,22 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+/**
+ * @file
+ * @brief Defines, typedefs, and enums
+ */
+
 #ifndef __GEARMAN_CONSTANTS_H__
 #define __GEARMAN_CONSTANTS_H__
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * @addtogroup gearman_constants Gearman Constants
+ * @{
+ */
 
 /* Defines. */
 #define GEARMAN_DEFAULT_TCP_HOST "127.0.0.1"
@@ -38,6 +48,12 @@ extern "C" {
 #define GEARMAN_SEND_BUFFER_SIZE 8192
 #define GEARMAN_RECV_BUFFER_SIZE 8192
 
+/**
+ * Macro to set error string.
+ */
+#define GEARMAN_ERROR_SET(__gearman, ...) { \
+  snprintf((__gearman)->last_error, GEARMAN_ERROR_SIZE, __VA_ARGS__); }
+
 /* Types. */
 typedef struct gearman_st gearman_st;
 typedef struct gearman_con_st gearman_con_st;
@@ -48,7 +64,9 @@ typedef struct gearman_client_st gearman_client_st;
 typedef struct gearman_job_st gearman_job_st;
 typedef struct gearman_worker_st gearman_worker_st;
 
-/* Return codes. */
+/**
+ * Return codes.
+ */
 typedef enum
 {
   GEARMAN_SUCCESS,
@@ -76,37 +94,43 @@ typedef enum
   GEARMAN_MAX_RETURN /* Always add new error code before */
 } gearman_return;
 
-/* Options for gearman_st. */
+/* Function types. */
+typedef gearman_return (gearman_workload_fn)(gearman_task_st *task);
+typedef gearman_return (gearman_created_fn)(gearman_task_st *task);
+typedef gearman_return (gearman_data_fn)(gearman_task_st *task);
+typedef gearman_return (gearman_status_fn)(gearman_task_st *task);
+typedef gearman_return (gearman_complete_fn)(gearman_task_st *task);
+typedef gearman_return (gearman_fail_fn)(gearman_task_st *task);
+
+typedef void* (gearman_worker_fn)(gearman_job_st *job, void *fn_arg,
+                                  const void *workload, size_t workload_size,
+                                  size_t *result_size, gearman_return *ret_ptr);
+
+/** @} */
+
+/**
+ * @ingroup gearman
+ * Options for gearman_st.
+ */
 typedef enum
 {
   GEARMAN_ALLOCATED=    (1 << 0),
   GEARMAN_NON_BLOCKING= (1 << 1)
 } gearman_options;
 
-/* Options for gearman_client_st. */
-typedef enum
-{
-  GEARMAN_CLIENT_ALLOCATED=      (1 << 0),
-  GEARMAN_CLIENT_GEARMAN_STATIC= (1 << 1),
-  GEARMAN_CLIENT_TASK_IN_USE=    (1 << 2)
-} gearman_client_options;
-
-/* States for gearman_client_st. */
-typedef enum
-{
-  GEARMAN_CLIENT_STATE_IDLE,
-  GEARMAN_CLIENT_STATE_NEW,
-  GEARMAN_CLIENT_STATE_SUBMIT,
-  GEARMAN_CLIENT_STATE_PACKET
-} gearman_client_state;
-
-/* Options for gearman_con_st. */
+/**
+ * @ingroup gearman_con
+ * Options for gearman_con_st.
+ */
 typedef enum
 {
   GEARMAN_CON_ALLOCATED= (1 << 0)
 } gearman_con_options;
 
-/* States for gearman_con_st. */
+/**
+ * @ingroup gearman_con
+ * States for gearman_con_st.
+ */
 typedef enum
 {
   GEARMAN_CON_STATE_ADDRINFO,
@@ -115,7 +139,10 @@ typedef enum
   GEARMAN_CON_STATE_CONNECTED
 } gearman_con_state;
 
-/* Send states for gearman_con_st. */
+/**
+ * @ingroup gearman_con
+ * Send states for gearman_con_st.
+ */
 typedef enum
 {
   GEARMAN_CON_SEND_STATE_NONE,
@@ -125,7 +152,10 @@ typedef enum
   GEARMAN_CON_SEND_STATE_FLUSH_DATA
 } gearman_con_send_state;
 
-/* Recv states for gearman_con_st. */
+/**
+ * @ingroup gearman_con
+ * Recv states for gearman_con_st.
+ */
 typedef enum
 {
   GEARMAN_CON_RECV_STATE_NONE,
@@ -133,61 +163,20 @@ typedef enum
   GEARMAN_CON_RECV_STATE_READ_DATA
 } gearman_con_recv_state;
 
-/* Options for gearman_job_st. */
-typedef enum
-{
-  GEARMAN_JOB_ALLOCATED=   (1 << 0),
-  GEARMAN_JOB_WORK_IN_USE= (1 << 1)
-} gearman_job_options;
-
-/* Options for gearman_packet_st. */
+/**
+ * @ingroup gearman_packet
+ * Options for gearman_packet_st.
+ */
 typedef enum
 {
   GEARMAN_PACKET_ALLOCATED= (1 << 0),
   GEARMAN_PACKET_COMPLETE=  (1 << 1)
 } gearman_packet_options;
 
-/* Options for gearman_task_st. */
-typedef enum
-{
-  GEARMAN_TASK_ALLOCATED= (1 << 0)
-} gearman_task_options;
-
-/* States for gearman_task_st. */
-typedef enum
-{
-  GEARMAN_TASK_STATE_NEW,
-  GEARMAN_TASK_STATE_SUBMIT,
-  GEARMAN_TASK_STATE_WORKLOAD,
-  GEARMAN_TASK_STATE_WORK,
-  GEARMAN_TASK_STATE_CREATED,
-  GEARMAN_TASK_STATE_DATA,
-  GEARMAN_TASK_STATE_STATUS,
-  GEARMAN_TASK_STATE_COMPLETE,
-  GEARMAN_TASK_STATE_FAIL,
-  GEARMAN_TASK_STATE_FINISHED
-} gearman_task_state;
-
-/* Options for gearman_worker_st. */
-typedef enum
-{
-  GEARMAN_WORKER_ALLOCATED=      (1 << 0),
-  GEARMAN_WORKER_GEARMAN_STATIC= (1 << 1),
-  GEARMAN_WORKER_PACKET_IN_USE=  (1 << 2)
-} gearman_worker_options;
-
-/* States for gearman_worker_st. */
-typedef enum
-{
-  GEARMAN_WORKER_STATE_INIT,
-  GEARMAN_WORKER_STATE_GRAB_JOB,
-  GEARMAN_WORKER_STATE_GRAB_JOB_SEND,
-  GEARMAN_WORKER_STATE_GRAB_JOB_RECV,
-  GEARMAN_WORKER_STATE_GRAB_JOB_NEXT,
-  GEARMAN_WORKER_STATE_PRE_SLEEP
-} gearman_worker_state;
-
-/* Magic types. */
+/**
+ * @ingroup gearman_packet
+ * Magic types.
+ */
 typedef enum
 {
   GEARMAN_MAGIC_NONE,
@@ -195,7 +184,10 @@ typedef enum
   GEARMAN_MAGIC_RESPONSE
 } gearman_magic;
 
-/* Command types. */
+/**
+ * @ingroup gearman_packet
+ * Command types.
+ */
 typedef enum
 {
   GEARMAN_COMMAND_NONE,
@@ -229,17 +221,90 @@ typedef enum
   GEARMAN_COMMAND_MAX /* Always add new commands before this. */
 } gearman_command;
 
-/* Function types. */
-typedef gearman_return (gearman_workload_fn)(gearman_task_st *task);
-typedef gearman_return (gearman_created_fn)(gearman_task_st *task);
-typedef gearman_return (gearman_data_fn)(gearman_task_st *task);
-typedef gearman_return (gearman_status_fn)(gearman_task_st *task);
-typedef gearman_return (gearman_complete_fn)(gearman_task_st *task);
-typedef gearman_return (gearman_fail_fn)(gearman_task_st *task);
+/**
+ * @ingroup gearman_task
+ * Options for gearman_task_st.
+ */
+typedef enum
+{
+  GEARMAN_TASK_ALLOCATED= (1 << 0)
+} gearman_task_options;
 
-typedef void* (gearman_worker_fn)(gearman_job_st *job, void *fn_arg,
-                                  const void *workload, size_t workload_size,
-                                  size_t *result_size, gearman_return *ret_ptr);
+/**
+ * @ingroup gearman_task
+ * States for gearman_task_st.
+ */
+typedef enum
+{
+  GEARMAN_TASK_STATE_NEW,
+  GEARMAN_TASK_STATE_SUBMIT,
+  GEARMAN_TASK_STATE_WORKLOAD,
+  GEARMAN_TASK_STATE_WORK,
+  GEARMAN_TASK_STATE_CREATED,
+  GEARMAN_TASK_STATE_DATA,
+  GEARMAN_TASK_STATE_STATUS,
+  GEARMAN_TASK_STATE_COMPLETE,
+  GEARMAN_TASK_STATE_FAIL,
+  GEARMAN_TASK_STATE_FINISHED
+} gearman_task_state;
+
+/**
+ * @ingroup gearman_job
+ * Options for gearman_job_st.
+ */
+typedef enum
+{
+  GEARMAN_JOB_ALLOCATED=   (1 << 0),
+  GEARMAN_JOB_WORK_IN_USE= (1 << 1)
+} gearman_job_options;
+
+/**
+ * @ingroup gearman_client
+ * Options for gearman_client_st.
+ */
+typedef enum
+{
+  GEARMAN_CLIENT_ALLOCATED=      (1 << 0),
+  GEARMAN_CLIENT_GEARMAN_STATIC= (1 << 1),
+  GEARMAN_CLIENT_TASK_IN_USE=    (1 << 2)
+} gearman_client_options;
+
+/**
+ * @ingroup gearman_client
+ * States for gearman_client_st.
+ */
+typedef enum
+{
+  GEARMAN_CLIENT_STATE_IDLE,
+  GEARMAN_CLIENT_STATE_NEW,
+  GEARMAN_CLIENT_STATE_SUBMIT,
+  GEARMAN_CLIENT_STATE_PACKET
+} gearman_client_state;
+
+/**
+ * @ingroup gearman_worker
+ * Options for gearman_worker_st.
+ */
+typedef enum
+{
+  GEARMAN_WORKER_ALLOCATED=      (1 << 0),
+  GEARMAN_WORKER_GEARMAN_STATIC= (1 << 1),
+  GEARMAN_WORKER_PACKET_IN_USE=  (1 << 2)
+} gearman_worker_options;
+
+/**
+ * @ingroup gearman_worker
+ * States for gearman_worker_st.
+ */
+typedef enum
+{
+  GEARMAN_WORKER_STATE_INIT,
+  GEARMAN_WORKER_STATE_GRAB_JOB,
+  GEARMAN_WORKER_STATE_GRAB_JOB_SEND,
+  GEARMAN_WORKER_STATE_GRAB_JOB_RECV,
+  GEARMAN_WORKER_STATE_GRAB_JOB_NEXT,
+  GEARMAN_WORKER_STATE_PRE_SLEEP
+} gearman_worker_state;
 
 #ifdef __cplusplus
 }

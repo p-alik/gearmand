@@ -16,12 +16,34 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+/**
+ * @file
+ * @brief Worker definitions
+ */
+
 #include "common.h"
 
-/* Allocate a worker structure. */
+/*
+ * Private declarations
+ */
+
+/**
+ * @addtogroup gearman_worker_private Private Worker Functions
+ * @ingroup gearman_worker
+ * @{
+ */
+
+/**
+ * Allocate a worker structure.
+ */
 static gearman_worker_st *_worker_allocate(gearman_worker_st *worker);
 
-/* Initialize a worker structure. */
+/** @} */
+
+/*
+ * Public definitions
+ */
+
 gearman_worker_st *gearman_worker_create(gearman_st *gearman,
                                          gearman_worker_st *worker)
 {
@@ -40,7 +62,6 @@ gearman_worker_st *gearman_worker_create(gearman_st *gearman,
   return worker;
 }
 
-/* Clone a worker structure using 'from' as the source. */
 gearman_worker_st *gearman_worker_clone(gearman_st *gearman,
                                         gearman_worker_st *worker,
                                         gearman_worker_st *from)
@@ -69,14 +90,12 @@ gearman_worker_st *gearman_worker_clone(gearman_st *gearman,
   return worker;
 }
 
-/* Free a worker structure. */
 void gearman_worker_free(gearman_worker_st *worker)
 {
   if (worker->options & GEARMAN_WORKER_ALLOCATED)
     free(worker);
 }
 
-/* Reset state for a worker structure. */
 void gearman_worker_reset(gearman_worker_st *worker)
 {
   worker->state= GEARMAN_WORKER_STATE_GRAB_JOB;
@@ -88,27 +107,23 @@ void gearman_worker_reset(gearman_worker_st *worker)
   }
 }
 
-/* Return an error string for last error encountered. */
-char *gearman_worker_error(gearman_worker_st *worker)
+const char *gearman_worker_error(gearman_worker_st *worker)
 {
   return gearman_error(worker->gearman);
 }
 
-/* Value of errno in the case of a GEARMAN_ERRNO return value. */
 int gearman_worker_errno(gearman_worker_st *worker)
 {
   return gearman_errno(worker->gearman);
 }
 
-/* Set options for a worker structure. */
 void gearman_worker_set_options(gearman_worker_st *worker,
                                 gearman_options options, uint32_t data)
 {
   gearman_set_options(worker->gearman, options, data);
 }
 
-/* Add a job server to a worker. */
-gearman_return gearman_worker_server_add(gearman_worker_st *worker, char *host,
+gearman_return gearman_worker_add_server(gearman_worker_st *worker, char *host,
                                          in_port_t port)
 {
   if (gearman_con_add(worker->gearman, NULL, host, port) == NULL)
@@ -117,9 +132,6 @@ gearman_return gearman_worker_server_add(gearman_worker_st *worker, char *host,
   return GEARMAN_SUCCESS;
 }
 
-/* Register function with job servers with optional timeout. The timeout
-   specifies how many seconds the server will wait before marking a job as
-   failed. If timeout is zero, there is no timeout. */
 gearman_return gearman_worker_register(gearman_worker_st *worker,
                                        const char *function_name,
                                        uint32_t timeout,
@@ -175,7 +187,6 @@ gearman_return gearman_worker_unregister_all(gearman_worker_st *worker)
 }
 #endif
 
-/* Grab a job from one of the job servers. */
 gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
                                         gearman_job_st *job,
                                         gearman_return *ret)
@@ -284,7 +295,6 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
   return NULL;
 }
 
-/* Go into a loop and answer a single job using callback functions. */
 gearman_return gearman_worker_work(gearman_worker_st *worker)
 {
   gearman_return ret;
@@ -315,7 +325,10 @@ gearman_return gearman_worker_work(gearman_worker_st *worker)
   return GEARMAN_SUCCESS;
 }
 
-/* Allocate a worker structure. */
+/*
+ * Private definitions
+ */
+
 static gearman_worker_st *_worker_allocate(gearman_worker_st *worker)
 {
   if (worker == NULL)

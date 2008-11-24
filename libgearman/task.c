@@ -16,9 +16,17 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+/**
+ * @file
+ * @brief Task definitions
+ */
+
 #include "common.h"
 
-/* Initialize a task structure. */
+/*
+ * Public definitions
+ */
+
 gearman_task_st *gearman_task_create(gearman_st *gearman,
                                      gearman_task_st *task)
 {
@@ -45,7 +53,6 @@ gearman_task_st *gearman_task_create(gearman_st *gearman,
   return task;
 }
 
-/* Free a task structure. */
 void gearman_task_free(gearman_task_st *task)
 {
   if (task->gearman->task_list == task)
@@ -60,7 +67,6 @@ void gearman_task_free(gearman_task_st *task)
     free(task);
 }
 
-/* Get task attributes. */
 void *gearman_task_fn_arg(gearman_task_st *task)
 {
   return (void *)task->fn_arg;

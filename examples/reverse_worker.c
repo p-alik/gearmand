@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 
   (void)gearman_worker_create(NULL, &worker);
 
-  ret= gearman_worker_server_add(&worker, host, port);
+  ret= gearman_worker_add_server(&worker, host, port);
   if (ret != GEARMAN_SUCCESS)
   {
     fprintf(stderr, "%s\n", gearman_worker_error(&worker));

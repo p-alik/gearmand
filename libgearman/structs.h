@@ -16,13 +16,21 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+/**
+ * @file
+ * @brief Struct definitions
+ */
+
 #ifndef __GEARMAN_STRUCTS_H__
 #define __GEARMAN_STRUCTS_H__
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+ 
+/**
+ * @ingroup gearman
+ */
 struct gearman_st
 {
   gearman_options options;
@@ -42,13 +50,9 @@ struct gearman_st
   char last_error[GEARMAN_ERROR_SIZE];
 };
 
-struct gearman_command_info_st
-{
-  const char *name;
-  const uint8_t argc;
-  const bool data;
-};
-
+/**
+ * @ingroup gearman_packet
+ */
 struct gearman_packet_st
 {
   gearman_st *gearman;
@@ -67,6 +71,19 @@ struct gearman_packet_st
   size_t data_size;
 };
 
+/**
+ * @ingroup gearman_packet
+ */
+struct gearman_command_info_st
+{
+  const char *name;
+  const uint8_t argc;
+  const bool data;
+};
+
+/**
+ * @ingroup gearman_con
+ */
 struct gearman_con_st
 {
   gearman_st *gearman;
@@ -102,6 +119,9 @@ struct gearman_con_st
   size_t recv_data_offset;
 };
 
+/**
+ * @ingroup gearman_task
+ */
 struct gearman_task_st
 {
   gearman_st *gearman;
@@ -121,6 +141,9 @@ struct gearman_task_st
   uint32_t denominator;
 };
 
+/**
+ * @ingroup gearman_job
+ */
 struct gearman_job_st
 {
   gearman_st *gearman;
@@ -132,6 +155,9 @@ struct gearman_job_st
   gearman_packet_st work;
 };
 
+/**
+ * @ingroup gearman_client
+ */
 struct gearman_client_st
 {
   gearman_st *gearman;
@@ -148,6 +174,9 @@ struct gearman_client_st
   bool do_fail;
 };
 
+/**
+ * @ingroup gearman_worker
+ */
 struct gearman_worker_st
 {
   gearman_st *gearman;
@@ -164,6 +193,9 @@ struct gearman_worker_st
   const void *fn_arg;
 };
 
+/**
+ * @ingroup gearman_worker
+ */
 struct gearman_worker_list_st
 {
   const char *function_name;

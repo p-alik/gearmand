@@ -16,16 +16,40 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+/**
+ * @file
+ * @brief Connection definitions
+ */
+
 #include "common.h"
 
-/* Set socket options for a connection. */
+/*
+ * Private declarations
+ */
+
+/**
+ * @addtogroup gearman_con_private Private Connection Functions
+ * @ingroup gearman_con
+ * @{
+ */
+
+/**
+ * Set socket options for a connection.
+ */
 static gearman_return _con_setsockopt(gearman_con_st *con);
 
-/* Read data from a connection. */
+/**
+ * Read data from a connection.
+ */
 static size_t _con_read(gearman_con_st *con, void *data, size_t data_size,
                         gearman_return *ret_ptr);
 
-/* Common usage, add a connection structure. */
+/** @} */
+
+/*
+ * Public definitions
+ */
+
 gearman_con_st *gearman_con_add(gearman_st *gearman, gearman_con_st *con,
                                 char *host, in_port_t port)
 {
@@ -39,7 +63,6 @@ gearman_con_st *gearman_con_add(gearman_st *gearman, gearman_con_st *con,
   return con;
 }
 
-/* Initialize a connection structure. */
 gearman_con_st *gearman_con_create(gearman_st *gearman, gearman_con_st *con)
 {
   if (con == NULL)
@@ -71,7 +94,6 @@ gearman_con_st *gearman_con_create(gearman_st *gearman, gearman_con_st *con)
   return con;
 }
 
-/* Clone a connection structure. */
 gearman_con_st *gearman_con_clone(gearman_st *gearman, gearman_con_st *con,
                                   gearman_con_st *from)
 {
@@ -86,7 +108,6 @@ gearman_con_st *gearman_con_clone(gearman_st *gearman, gearman_con_st *con,
   return con;
 }
 
-/* Free a connection structure. */
 gearman_return gearman_con_free(gearman_con_st *con)
 {
   gearman_return ret;
@@ -114,7 +135,6 @@ gearman_return gearman_con_free(gearman_con_st *con)
   return GEARMAN_SUCCESS;
 }
 
-/* Set options for a connection. */
 void gearman_con_set_host(gearman_con_st *con, char *host)
 {
   gearman_con_reset_addrinfo(con);
@@ -139,19 +159,16 @@ void gearman_con_set_options(gearman_con_st *con, gearman_con_options options,
     con->options&= ~options;
 }
 
-/* Set connection to an already open file description. */
 void gearman_con_set_fd(gearman_con_st *con, int fd)
 {
   con->fd= fd;
 }
 
-/* Connect to server. */
 gearman_return gearman_con_connect(gearman_con_st *con)
 {
   return gearman_con_flush(con);
 }
 
-/* Close a connection. */
 gearman_return gearman_con_close(gearman_con_st *con)
 {
   int ret;
@@ -186,7 +203,6 @@ gearman_return gearman_con_close(gearman_con_st *con)
   return GEARMAN_SUCCESS;;
 }
 
-/* Clear address info, freeing structs if needed. */
 void gearman_con_reset_addrinfo(gearman_con_st *con)
 {
   if (con->addrinfo != NULL)
@@ -198,7 +214,6 @@ void gearman_con_reset_addrinfo(gearman_con_st *con)
   con->addrinfo_next= NULL;
 }
 
-/* Send packet to a connection. */
 gearman_return gearman_con_send(gearman_con_st *con, gearman_packet_st *packet,
                                 bool flush)
 {
@@ -299,7 +314,6 @@ gearman_return gearman_con_send(gearman_con_st *con, gearman_packet_st *packet,
   return GEARMAN_SUCCESS;
 }
 
-/* Send packet data to a connection. */
 size_t gearman_con_send_data(gearman_con_st *con, const void *data,
                              size_t data_size, gearman_return *ret_ptr)
 {
@@ -323,7 +337,6 @@ size_t gearman_con_send_data(gearman_con_st *con, const void *data,
   return data_size - con->send_buffer_size;
 }
 
-/* Flush the send buffer. */
 gearman_return gearman_con_flush(gearman_con_st *con)
 {
   char port_str[NI_MAXSERV];
@@ -521,7 +534,6 @@ gearman_return gearman_con_flush(gearman_con_st *con)
   return GEARMAN_SUCCESS;
 }
 
-/* Send packet to all connections. */
 gearman_return gearman_con_send_all(gearman_st *gearman,
                                     gearman_packet_st *packet)
 {
@@ -584,7 +596,6 @@ gearman_return gearman_con_send_all(gearman_st *gearman,
   return GEARMAN_SUCCESS;
 }
 
-/* Receive packet from a connection. */
 gearman_packet_st *gearman_con_recv(gearman_con_st *con,
                                     gearman_packet_st *packet,
                                     gearman_return *ret_ptr, bool recv_data)
@@ -682,7 +693,6 @@ gearman_packet_st *gearman_con_recv(gearman_con_st *con,
   return packet;
 }
 
-/* Receive packet data from a connection. */
 size_t gearman_con_recv_data(gearman_con_st *con, void *data, size_t data_size,
                              gearman_return *ret_ptr)
 {
@@ -730,7 +740,6 @@ size_t gearman_con_recv_data(gearman_con_st *con, void *data, size_t data_size,
   return recv_size;
 }
 
-/* Wait for I/O on connections. */
 gearman_return gearman_con_wait(gearman_st *gearman, bool set_read)
 {
   gearman_con_st *con;
@@ -790,7 +799,6 @@ gearman_return gearman_con_wait(gearman_st *gearman, bool set_read)
   return GEARMAN_SUCCESS;
 }
 
-/* Get next connection that is ready for I/O. */
 gearman_con_st *gearman_con_ready(gearman_st *gearman)
 {
   if (gearman->con_ready == NULL)
@@ -810,7 +818,10 @@ gearman_con_st *gearman_con_ready(gearman_st *gearman)
   return NULL;
 }
 
-/* Set socket options for a connection. */
+/*
+ * Private definitions
+ */
+
 static gearman_return _con_setsockopt(gearman_con_st *con)
 {
   int ret;
@@ -903,7 +914,6 @@ static gearman_return _con_setsockopt(gearman_con_st *con)
   return GEARMAN_SUCCESS;
 }
 
-/* Read data from a connection. */
 static size_t _con_read(gearman_con_st *con, void *data, size_t data_size,
                         gearman_return *ret_ptr)
 {

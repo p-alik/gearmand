@@ -16,6 +16,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+/**
+ * @file
+ * @brief System include files
+ */
+
 #ifndef __GEARMAN_COMMON_H__
 #define __GEARMAN_COMMON_H__
 
@@ -64,8 +69,5 @@
 #  include <time.h>
 # endif
 #endif
-
-#define GEARMAN_ERROR_SET(__gearman, ...) { \
-  snprintf((__gearman)->last_error, GEARMAN_ERROR_SIZE, __VA_ARGS__); }
 
 #endif /* __GEARMAN_COMMON_H__ */

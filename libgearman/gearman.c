@@ -16,9 +16,17 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+/**
+ * @file
+ * @brief Gearman core definitions
+ */
+
 #include "common.h"
 
-/* Initialize a gearman structure. */
+/*
+ * Public definitions
+ */
+
 gearman_st *gearman_create(gearman_st *gearman)
 {
   if (gearman == NULL)
@@ -36,7 +44,6 @@ gearman_st *gearman_create(gearman_st *gearman)
   return gearman;
 }
 
-/* Clone a gearman structure. */
 gearman_st *gearman_clone(gearman_st *gearman, gearman_st *from)
 {
   gearman_con_st *con;
@@ -62,7 +69,6 @@ gearman_st *gearman_clone(gearman_st *gearman, gearman_st *from)
   return gearman;
 }
 
-/* Free a gearman structure. */
 void gearman_free(gearman_st *gearman)
 {
   gearman_con_st *con;
@@ -94,26 +100,22 @@ void gearman_free(gearman_st *gearman)
     free(gearman);
 }
 
-/* Reset state for a gearman structure. */
 void gearman_reset(gearman_st *gearman)
 {
   gearman->con_ready= NULL;
   gearman->sending= 0;
 }
 
-/* Return an error string for last library error encountered. */
 char *gearman_error(gearman_st *gearman)
 {
   return gearman->last_error;
 }
 
-/* Value of errno in the case of a GEARMAN_ERRNO return value. */
 int gearman_errno(gearman_st *gearman)
 {
   return gearman->last_errno;
 }
 
-/* Set options for a gearman structure. */
 void gearman_set_options(gearman_st *gearman, gearman_options options,
                          uint32_t data)
 {

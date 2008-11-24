@@ -16,25 +16,29 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "common.h"
-
 /**
  * @file
  * @brief Client definitions
  */
+
+#include "common.h"
 
 /*
  * Private declarations
  */
 
 /**
+ * @addtogroup gearman_client_private Private Client Functions
  * @ingroup gearman_client
+ * @{
+ */
+
+/**
  * Allocate a client structure.
  */
 static gearman_client_st *_client_allocate(gearman_client_st *client);
 
 /**
- * @ingroup gearman_client
  * Add a task.
  */
 static gearman_task_st *_client_add_task(gearman_client_st *client,
@@ -47,7 +51,6 @@ static gearman_task_st *_client_add_task(gearman_client_st *client,
                                          gearman_return *ret_ptr);
 
 /**
- * @ingroup gearman_client
  * Task state machine.
  */
 static gearman_return _client_run_task(gearman_client_st *client,
@@ -60,22 +63,21 @@ static gearman_return _client_run_task(gearman_client_st *client,
                                        gearman_fail_fn fail_fn);
 
 /**
- * @ingroup gearman_client
  * Data and complete function for gearman_client_do* functions.
  */
 static gearman_return _client_do_data(gearman_task_st *task);
 
 /**
- * @ingroup gearman_client
  * Status function for gearman_client_do* functions.
  */
 static gearman_return _client_do_status(gearman_task_st *task);
 
 /**
- * @ingroup gearman_client
  * Fail function for gearman_client_do* functions.
  */
 static gearman_return _client_do_fail(gearman_task_st *task);
+
+/** @} */
 
 /*
  * Public definitions
@@ -152,7 +154,7 @@ void gearman_client_set_options(gearman_client_st *client,
   gearman_set_options(client->gearman, options, data);
 }
 
-gearman_return gearman_client_server_add(gearman_client_st *client, char *host,
+gearman_return gearman_client_add_server(gearman_client_st *client, char *host,
                                          in_port_t port)
 {
   if (gearman_con_add(client->gearman, NULL, host, port) == NULL)
@@ -244,6 +246,21 @@ void *gearman_client_do_high(gearman_client_st *client,
   }
 
   return (void *)workload;
+}
+
+const char *gearman_client_do_job_handle(gearman_client_st *client)
+{
+  return client->do_task.job_handle;
+}
+
+void gearman_client_do_status(gearman_client_st *client, uint32_t *numerator,
+                              uint32_t *denominator)
+{
+  if (numerator != NULL)
+    *numerator= client->do_task.numerator;
+
+  if (denominator != NULL)
+    *denominator= client->do_task.denominator;
 }
 
 gearman_return gearman_client_do_bg(gearman_client_st *client,

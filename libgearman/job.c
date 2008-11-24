@@ -16,12 +16,34 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+/**
+ * @file
+ * @brief Job definitions
+ */
+
 #include "common.h"
 
-/* Send a packet for a job. */
+/*
+ * Private declarations
+ */
+
+/**
+ * @addtogroup gearman_job_private Private Job Functions
+ * @ingroup gearman_job
+ * @{
+ */
+
+/**
+ * Send a packet for a job.
+ */
 static gearman_return _job_send(gearman_job_st *job);
 
-/* Initialize a job structure. */
+/** @} */
+
+/*
+ * Public definitions
+ */
+
 gearman_job_st *gearman_job_create(gearman_st *gearman, gearman_job_st *job)
 {
   if (job == NULL)
@@ -47,7 +69,6 @@ gearman_job_st *gearman_job_create(gearman_st *gearman, gearman_job_st *job)
   return job;
 }
 
-/* Free a job structure. */
 void gearman_job_free(gearman_job_st *job)
 {
   if (job->gearman->job_list == job)
@@ -62,7 +83,6 @@ void gearman_job_free(gearman_job_st *job)
     free(job);
 }
 
-/* Send data for a running job. */
 gearman_return gearman_job_data(gearman_job_st *job, void *data,
                                 size_t data_size)
 {
@@ -82,7 +102,6 @@ gearman_return gearman_job_data(gearman_job_st *job, void *data,
   return _job_send(job);
 }
 
-/* Send status information for a running job. */
 gearman_return gearman_job_status(gearman_job_st *job, uint32_t numerator,
                                   uint32_t denominator)
 {
@@ -109,7 +128,6 @@ gearman_return gearman_job_status(gearman_job_st *job, uint32_t numerator,
   return _job_send(job);
 }
 
-/* Send result and complete status for a job. */
 gearman_return gearman_job_complete(gearman_job_st *job, void *result,
                                     size_t result_size)
 {
@@ -131,7 +149,6 @@ gearman_return gearman_job_complete(gearman_job_st *job, void *result,
   return _job_send(job);
 }
 
-/* Send fail status for a jon. */
 gearman_return gearman_job_fail(gearman_job_st *job)
 {
   gearman_return ret;
@@ -150,7 +167,6 @@ gearman_return gearman_job_fail(gearman_job_st *job)
   return _job_send(job);
 }
 
-/* Get job attributes. */
 char *gearman_job_handle(gearman_job_st *job)
 {
   return (char *)job->assigned.arg[0];
@@ -171,7 +187,10 @@ size_t gearman_job_workload_size(gearman_job_st *job)
   return job->assigned.data_size;
 }
 
-/* Send a packet for a job. */
+/*
+ * Private definitions
+ */
+
 static gearman_return _job_send(gearman_job_st *job)
 {
   gearman_return ret;

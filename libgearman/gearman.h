@@ -16,6 +16,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+/**
+ * @file
+ * @brief Gearman core declarations
+ */
+
 #ifndef __GEARMAN_H__
 #define __GEARMAN_H__
 
@@ -42,33 +47,56 @@
 extern "C" {
 #endif
 
-/*
+/**
+ * @addtogroup gearman Gearman Core Interface
+ * This is a low level interface gearman library instances. This is used
+ * internally by both client and worker interfaces, so you probably want to
+ * look there first. This is usually used to write lower level clients, workers,
+ * proxies, or your own server.
+ *
  * There is no locking within a single gearman_st structure, so for threaded
  * applications you must either ensure isolation in the application or use
  * multiple gearman_st structures (for example, one for each thread).
+ * @{
  */
 
-/* Initialize a gearman structure. */
+/**
+ * Initialize a gearman structure.
+ */
 gearman_st *gearman_create(gearman_st *gearman);
 
-/* Clone a gearman structure. */
+/**
+ * Clone a gearman structure.
+ */
 gearman_st *gearman_clone(gearman_st *gearman, gearman_st *from);
 
-/* Free a gearman structure. */
+/**
+ * Free a gearman structure.
+ */
 void gearman_free(gearman_st *gearman);
 
-/* Reset state for a gearman structure. */
+/**
+ * Reset state for a gearman structure.
+ */
 void gearman_reset(gearman_st *gearman);
 
-/* Return an error string for last library error encountered. */
+/**
+ * Return an error string for last library error encountered.
+ */
 char *gearman_error(gearman_st *gearman);
 
-/* Value of errno in the case of a GEARMAN_ERRNO return value. */
+/**
+ * Value of errno in the case of a GEARMAN_ERRNO return value.
+ */
 int gearman_errno(gearman_st *gearman);
 
-/* Set options for a gearman structure. */
+/**
+ * Set options for a gearman structure.
+ */
 void gearman_set_options(gearman_st *gearman, gearman_options options,
                          uint32_t data);
+
+/** @} */
 
 #ifdef __cplusplus
 }
