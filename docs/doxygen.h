@@ -1,5 +1,5 @@
 /* Gearman server and library
- * Copyright (C) 2008 Brian Aker
+ * Copyright (C) 2008 Brian Aker, Eric Day
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,28 +16,19 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef __LIBGEARMAN_IO_H__
-#define __LIBGEARMAN_IO_H__
+/**
+ * @file
+ * @brief Main page for Doxygen
+ */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include <libgearman/libgearman_config.h>
-#include <libgearman/constants.h>
-#include <libgearman/types.h>
-#include <libgearman/watchpoint.h>
-#include <libgearman/server.h>
-
-ssize_t gearman_io_write(gearman_server_st *ptr,
-			 const void *buffer, ssize_t length, 
-			 bool with_flush);
-void gearman_io_reset(gearman_server_st *ptr);
-ssize_t gearman_io_read(gearman_server_st *ptr, uint8_t *buffer, ssize_t length);
-gearman_return gearman_io_close(gearman_server_st *ptr);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* __LIBGEARMAN_IO_H__ */
+/**
+ * @mainpage Gearman Library
+ *
+ * @section client Client
+ *
+ * Client information will go here.
+ *
+ * @section worker Worker
+ *
+ * Worker information will go here.
+ */

@@ -20,7 +20,11 @@ config/depcomp
 config/install-sh
 config/ltmain.sh
 config/missing
+docs/api
+docs/dev
 examples/reverse_client
+examples/reverse_client_bg
 examples/reverse_worker
+examples/reverse_worker_bg
 tests/client_test
 tests/worker_test

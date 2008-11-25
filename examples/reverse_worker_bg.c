@@ -97,7 +97,18 @@ static void *reverse(gearman_job_st *job, void *cb_arg, const void *workload,
   }
 
   for (y= 0, x= workload_size; x; x--, y++)
+  {
     result[y]= ((uint8_t *)workload)[x - 1];
+
+    *ret_ptr= gearman_job_status(job, y, workload_size);
+    if (*ret_ptr != GEARMAN_SUCCESS)
+    {
+      free(result);
+      return NULL;
+    }
+
+    sleep(1);
+  }
 
   printf("Job=%s Workload=%.*s Result=%.*s\n", gearman_job_handle(job),
          (int)workload_size, (char *)workload, (int)workload_size, result);

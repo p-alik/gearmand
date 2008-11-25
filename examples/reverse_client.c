@@ -1,5 +1,5 @@
 /* Gearman server and library
- * Copyright (C) 2008 Brian Aker
+ * Copyright (C) 2008 Brian Aker, Eric Day
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
   unsigned short port= 0;
   gearman_return ret;
   gearman_client_st client;
-  uint8_t *result;
+  char *result;
   size_t result_size;
 
   while((c = getopt(argc, argv, "h:p:")) != EOF)
@@ -59,25 +59,27 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  (void)gearman_client_create(&client);
+  (void)gearman_client_create(NULL, &client);
 
-  ret= gearman_client_server_add(&client, host, port);
+  ret= gearman_client_add_server(&client, host, port);
   if (ret != GEARMAN_SUCCESS)
   {
     fprintf(stderr, "%s\n", gearman_client_error(&client));
     exit(1);
   }
 
-  result= gearman_client_do(&client, "reverse", (uint8_t *)argv[optind],
-                            (size_t)strlen(argv[optind]), &result_size, &ret);
+  result= (char *)gearman_client_do(&client, "reverse", (void *)argv[optind],
+                                    (size_t)strlen(argv[optind]), &result_size,
+                                    &ret);
   if (ret != GEARMAN_SUCCESS)
   {
     fprintf(stderr, "%s\n", gearman_client_error(&client));
     exit(1);
   }
 
-  printf("Result=%.*s\n", (int)result_size, (char *)result);
+  printf("Result=%.*s\n", (int)result_size, result);
 
+  free(result);
   gearman_client_free(&client);
 
   return 0;
