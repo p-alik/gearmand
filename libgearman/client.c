@@ -411,7 +411,6 @@ gearman_return gearman_client_run_tasks(gearman_client_st *client,
                                         gearman_fail_fn fail_fn)
 {
   gearman_options options;
-  gearman_con_st *con;
   gearman_return ret;
   bool start_new= false;
 
@@ -424,33 +423,36 @@ gearman_return gearman_client_run_tasks(gearman_client_st *client,
     while (1)
     {
       /* Start any new tasks. */
-      for (client->task= client->gearman->task_list; client->task != NULL;
-           client->task= client->task->next)
+      if (client->new > 0)
       {
-        if (client->task->state != GEARMAN_TASK_STATE_NEW)
-          continue;
+        for (client->task= client->gearman->task_list; client->task != NULL;
+             client->task= client->task->next)
+        {
+          if (client->task->state != GEARMAN_TASK_STATE_NEW)
+            continue;
 
   case GEARMAN_CLIENT_STATE_NEW:
-        ret= _client_run_task(client, client->task, workload_fn, created_fn,
-                              data_fn, status_fn, complete_fn, fail_fn);
-        if (ret != GEARMAN_SUCCESS && ret != GEARMAN_IO_WAIT)
-        {
-          client->state= GEARMAN_CLIENT_STATE_NEW;
-          client->gearman->options= options;
-          return ret;
+          ret= _client_run_task(client, client->task, workload_fn, created_fn,
+                                data_fn, status_fn, complete_fn, fail_fn);
+          if (ret != GEARMAN_SUCCESS && ret != GEARMAN_IO_WAIT)
+          {
+            client->state= GEARMAN_CLIENT_STATE_NEW;
+            client->gearman->options= options;
+            return ret;
+          }
         }
       }
 
       /* See if there are any connections ready for I/O. */
-      while ((con= gearman_con_ready(client->gearman)) != NULL)
+      while ((client->con= gearman_con_ready(client->gearman)) != NULL)
       {
-        if (con->revents & POLLOUT)
+        if (client->con->revents & POLLOUT)
         {
           /* Socket is ready for writing, continue submitting jobs. */
           for (client->task= client->gearman->task_list; client->task != NULL;
                client->task= client->task->next)
           {
-            if (client->task->con != con ||
+            if (client->task->con != client->con ||
                 client->task->state != GEARMAN_TASK_STATE_SUBMIT)
             {
               continue;
@@ -475,7 +477,8 @@ gearman_return gearman_client_run_tasks(gearman_client_st *client,
         while (1)
         {
           /* Read packet on connection and find which task it belongs to. */
-          (void)gearman_con_recv(con, &(con->packet), &ret, false);
+          (void)gearman_con_recv(client->con, &(client->con->packet), &ret,
+                                 false);
           if (ret != GEARMAN_SUCCESS)
           {
             if (ret == GEARMAN_IO_WAIT)
@@ -489,23 +492,23 @@ gearman_return gearman_client_run_tasks(gearman_client_st *client,
           for (client->task= client->gearman->task_list; client->task != NULL;
                client->task= client->task->next)
           {
-            if (con->packet.command == GEARMAN_COMMAND_JOB_CREATED)
+            if (client->con->packet.command == GEARMAN_COMMAND_JOB_CREATED)
             {
-              if (client->task->con != con ||
-                  client->task->created_id != con->created_id)
+              if (client->task->con != client->con ||
+                  client->task->created_id != client->con->created_id)
               {
                 continue;
               }
 
-              con->created_id++;
+              client->con->created_id++;
             }
             else if (strcmp(client->task->job_handle,
-                            (char *)con->packet.arg[0]))
+                            (char *)client->con->packet.arg[0]))
             {
               continue;
             }
 
-            client->task->recv= &(con->packet);
+            client->task->recv= &(client->con->packet);
 
   case GEARMAN_CLIENT_STATE_PACKET:
             ret= _client_run_task(client, client->task, workload_fn, created_fn,
@@ -520,7 +523,7 @@ gearman_return gearman_client_run_tasks(gearman_client_st *client,
             break;
           }
 
-          gearman_packet_free(&(con->packet));
+          gearman_packet_free(&(client->con->packet));
         }
       }
 
@@ -648,8 +651,12 @@ static gearman_return _client_run_task(gearman_client_st *client,
       return GEARMAN_IO_WAIT;
 
     client->new--;
-    task->created_id= task->con->created_id_next;
-    task->con->created_id_next++;
+
+    if (task->send.command != GEARMAN_COMMAND_GET_STATUS)
+    {
+      task->created_id= task->con->created_id_next;
+      task->con->created_id_next++;
+    }
 
   case GEARMAN_TASK_STATE_SUBMIT:
     ret= gearman_con_send(task->con, &(task->send), true);
