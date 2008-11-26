@@ -166,6 +166,7 @@ struct gearman_client_st
   gearman_client_options options;
   uint32_t new;
   uint32_t running;
+  gearman_con_st *con;
   gearman_task_st *task;
   gearman_task_st do_task;
   void *do_data;
