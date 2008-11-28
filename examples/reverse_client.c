@@ -73,7 +73,11 @@ int main(int argc, char *argv[])
                                     &ret);
   if (ret != GEARMAN_SUCCESS)
   {
-    fprintf(stderr, "%s\n", gearman_client_error(&client));
+    if (ret == GEARMAN_WORK_FAIL)
+      fprintf(stderr, "Work failed\n");
+    else
+      fprintf(stderr, "%s\n", gearman_client_error(&client));
+
     exit(1);
   }
 

@@ -189,15 +189,19 @@ struct gearman_worker_st
   gearman_packet_st pre_sleep;
   gearman_con_st *con;
   gearman_job_st *job;
-  char *function_name;
-  gearman_worker_fn *worker_fn;
-  const void *fn_arg;
+  gearman_worker_function_st *function_list;
+  int32_t function_count;
+  gearman_worker_work_state work_state;
+  gearman_job_st work_job;
+  gearman_worker_function_st *work_function;
+  uint8_t *work_result;
+  size_t work_result_size;
 };
 
 /**
  * @ingroup gearman_worker
  */
-struct gearman_worker_list_st
+struct gearman_worker_function_st
 {
   const char *function_name;
   gearman_worker_fn *worker_fn;

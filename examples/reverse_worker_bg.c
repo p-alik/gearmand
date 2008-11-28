@@ -23,8 +23,7 @@
 
 #include <libgearman/gearman.h>
 
-static void *reverse(gearman_job_st *job, void *cb_arg, const void *workload,
-                     size_t workload_size, size_t *result_size,
+static void *reverse(gearman_job_st *job, void *cb_arg, size_t *result_size,
                      gearman_return *ret_ptr);
 
 static void usage(char *name);
@@ -64,7 +63,7 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  ret= gearman_worker_register(&worker, "reverse", 0, reverse, NULL);
+  ret= gearman_worker_add_function(&worker, "reverse", 0, reverse, NULL);
   if (ret != GEARMAN_SUCCESS)
   {
     fprintf(stderr, "%s\n", gearman_worker_error(&worker));
@@ -80,27 +79,31 @@ int main(int argc, char *argv[])
   return 0;
 }
 
-static void *reverse(gearman_job_st *job, void *cb_arg, const void *workload,
-                     size_t workload_size, size_t *result_size,
+static void *reverse(gearman_job_st *job, void *cb_arg, size_t *result_size,
                      gearman_return *ret_ptr)
 {
+  const uint8_t *workload;
   uint8_t *result;
-  size_t x;
+  size_t x; 
   size_t y;
   (void)cb_arg;
 
-  result= malloc(workload_size);
+  workload= gearman_job_workload(job);
+  *result_size= gearman_job_workload_size(job);
+
+  result= malloc(*result_size);
   if (result == NULL)
   {
     fprintf(stderr, "malloc:%d\n", errno);
-    exit(1);
+    *ret_ptr= GEARMAN_WORK_FAIL;
+    return NULL;
   }
-
-  for (y= 0, x= workload_size; x; x--, y++)
+  
+  for (y= 0, x= *result_size; x; x--, y++)
   {
-    result[y]= ((uint8_t *)workload)[x - 1];
+    result[y]= ((uint8_t *)workload)[x - 1]; 
 
-    *ret_ptr= gearman_job_status(job, y, workload_size);
+    *ret_ptr= gearman_job_status(job, y, *result_size);
     if (*ret_ptr != GEARMAN_SUCCESS)
     {
       free(result);
@@ -109,12 +112,11 @@ static void *reverse(gearman_job_st *job, void *cb_arg, const void *workload,
 
     sleep(1);
   }
-
+  
   printf("Job=%s Workload=%.*s Result=%.*s\n", gearman_job_handle(job),
-         (int)workload_size, (char *)workload, (int)workload_size, result);
-
-  ret_ptr= GEARMAN_SUCCESS;
-  *result_size= workload_size;
+         (int)*result_size, workload, (int)*result_size, result);
+  
+  ret_ptr= GEARMAN_SUCCESS;  
   return result;
 }
 

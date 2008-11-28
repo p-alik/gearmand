@@ -63,6 +63,7 @@ typedef struct gearman_task_st gearman_task_st;
 typedef struct gearman_client_st gearman_client_st;
 typedef struct gearman_job_st gearman_job_st;
 typedef struct gearman_worker_st gearman_worker_st;
+typedef struct gearman_worker_function_st gearman_worker_function_st;
 
 /**
  * Return codes.
@@ -91,6 +92,7 @@ typedef enum
   GEARMAN_RECV_IN_PROGRESS,
   GEARMAN_NOT_FLUSHING,
   GEARMAN_DATA_TOO_LARGE,
+  GEARMAN_INVALID_FUNCTION_NAME,
   GEARMAN_MAX_RETURN /* Always add new error code before */
 } gearman_return;
 
@@ -103,7 +105,6 @@ typedef gearman_return (gearman_complete_fn)(gearman_task_st *task);
 typedef gearman_return (gearman_fail_fn)(gearman_task_st *task);
 
 typedef void* (gearman_worker_fn)(gearman_job_st *job, void *fn_arg,
-                                  const void *workload, size_t workload_size,
                                   size_t *result_size, gearman_return *ret_ptr);
 
 /** @} */
@@ -305,6 +306,18 @@ typedef enum
   GEARMAN_WORKER_STATE_GRAB_JOB_NEXT,
   GEARMAN_WORKER_STATE_PRE_SLEEP
 } gearman_worker_state;
+
+/**
+ * @ingroup gearman_worker
+ * Work states for gearman_worker_st.
+ */
+typedef enum
+{
+  GEARMAN_WORKER_WORK_STATE_GRAB_JOB,
+  GEARMAN_WORKER_WORK_STATE_FUNCTION,
+  GEARMAN_WORKER_WORK_STATE_COMPLETE,
+  GEARMAN_WORKER_WORK_STATE_FAIL
+} gearman_worker_work_state;
 
 #ifdef __cplusplus
 }

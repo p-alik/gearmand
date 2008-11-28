@@ -121,9 +121,7 @@ gearman_return gearman_worker_add_server(gearman_worker_st *worker, char *host,
  */
 gearman_return gearman_worker_register(gearman_worker_st *worker,
                                        const char *function_name,
-                                       uint32_t timeout,
-                                       gearman_worker_fn *worker_fn,
-                                       const void *cb_arg);
+                                       uint32_t timeout);
 
 /**
  * Unregister function with job servers.
@@ -144,7 +142,16 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
                                         gearman_return *ret_ptr);
 
 /**
- * Go into a loop and answer a single job using callback functions.
+ * Register and add callback function for worker.
+ */
+gearman_return gearman_worker_add_function(gearman_worker_st *worker,
+                                           const char *function_name,
+                                           uint32_t timeout,
+                                           gearman_worker_fn *worker_fn,
+                                           const void *fn_arg);
+
+/**
+ * Wait for a job and call the appropriate callback function when it gets one.
  */
 gearman_return gearman_worker_work(gearman_worker_st *worker);
 
