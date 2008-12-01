@@ -33,7 +33,7 @@ extern "C" {
  */
 struct gearman_st
 {
-  gearman_options options;
+  gearman_options_t options;
   gearman_con_st *con_list;
   uint32_t con_count;
   gearman_job_st *job_list;
@@ -58,9 +58,9 @@ struct gearman_packet_st
   gearman_st *gearman;
   gearman_packet_st *next;
   gearman_packet_st *prev;
-  gearman_packet_options options;
-  gearman_magic magic;
-  gearman_command command;
+  gearman_packet_options_t options;
+  gearman_magic_t magic;
+  gearman_command_t command;
   uint8_t argc;
   uint8_t *arg[GEARMAN_MAX_COMMAND_ARGS];
   size_t arg_size[GEARMAN_MAX_COMMAND_ARGS];
@@ -89,8 +89,8 @@ struct gearman_con_st
   gearman_st *gearman;
   gearman_con_st *next;
   gearman_con_st *prev;
-  gearman_con_state state;
-  gearman_con_options options;
+  gearman_con_state_t state;
+  gearman_con_options_t options;
   void *data;
   char host[NI_MAXHOST];
   in_port_t port;
@@ -103,14 +103,14 @@ struct gearman_con_st
   uint32_t created_id_next;
   gearman_packet_st packet;
 
-  gearman_con_send_state send_state;
+  gearman_con_send_state_t send_state;
   uint8_t send_buffer[GEARMAN_SEND_BUFFER_SIZE];
   uint8_t *send_buffer_ptr;
   size_t send_buffer_size;
   size_t send_data_size;
   size_t send_data_offset;
 
-  gearman_con_recv_state recv_state;
+  gearman_con_recv_state_t recv_state;
   gearman_packet_st *recv_packet;
   uint8_t recv_buffer[GEARMAN_RECV_BUFFER_SIZE];
   uint8_t *recv_buffer_ptr;
@@ -127,8 +127,8 @@ struct gearman_task_st
   gearman_st *gearman;
   gearman_task_st *next;
   gearman_task_st *prev;
-  gearman_task_options options;
-  gearman_task_state state;
+  gearman_task_options_t options;
+  gearman_task_state_t state;
   const void *fn_arg;
   gearman_con_st *con;
   uint32_t created_id;
@@ -149,7 +149,7 @@ struct gearman_job_st
   gearman_st *gearman;
   gearman_job_st *next;
   gearman_job_st *prev;
-  gearman_job_options options;
+  gearman_job_options_t options;
   gearman_con_st *con;
   gearman_packet_st assigned;
   gearman_packet_st work;
@@ -162,8 +162,8 @@ struct gearman_client_st
 {
   gearman_st *gearman;
   gearman_st gearman_static;
-  gearman_client_state state;
-  gearman_client_options options;
+  gearman_client_state_t state;
+  gearman_client_options_t options;
   uint32_t new;
   uint32_t running;
   gearman_con_st *con;
@@ -182,8 +182,8 @@ struct gearman_worker_st
 {
   gearman_st *gearman;
   gearman_st gearman_static;
-  gearman_worker_options options;
-  gearman_worker_state state;
+  gearman_worker_options_t options;
+  gearman_worker_state_t state;
   gearman_packet_st packet;
   gearman_packet_st grab_job;
   gearman_packet_st pre_sleep;
@@ -191,7 +191,7 @@ struct gearman_worker_st
   gearman_job_st *job;
   gearman_worker_function_st *function_list;
   int32_t function_count;
-  gearman_worker_work_state work_state;
+  gearman_worker_work_state_t work_state;
   gearman_job_st work_job;
   gearman_worker_function_st *work_function;
   uint8_t *work_result;

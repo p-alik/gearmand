@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
   char c;
   char *host= NULL;
   unsigned short port= 0;
-  gearman_return ret;
+  gearman_return_t ret;
   gearman_client_st client;
   char *result;
   size_t result_size;

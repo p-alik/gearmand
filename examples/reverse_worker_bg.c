@@ -24,7 +24,7 @@
 #include <libgearman/gearman.h>
 
 static void *reverse(gearman_job_st *job, void *cb_arg, size_t *result_size,
-                     gearman_return *ret_ptr);
+                     gearman_return_t *ret_ptr);
 
 static void usage(char *name);
 
@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
   char c;
   char *host= NULL;
   unsigned short port= 0;
-  gearman_return ret;
+  gearman_return_t ret;
   gearman_worker_st worker;
 
   while((c = getopt(argc, argv, "h:p:")) != EOF)
@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
 }
 
 static void *reverse(gearman_job_st *job, void *cb_arg, size_t *result_size,
-                     gearman_return *ret_ptr)
+                     gearman_return_t *ret_ptr)
 {
   const uint8_t *workload;
   uint8_t *result;

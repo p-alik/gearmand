@@ -118,13 +118,13 @@ int gearman_worker_errno(gearman_worker_st *worker)
 }
 
 void gearman_worker_set_options(gearman_worker_st *worker,
-                                gearman_options options, uint32_t data)
+                                gearman_options_t options, uint32_t data)
 {
   gearman_set_options(worker->gearman, options, data);
 }
 
-gearman_return gearman_worker_add_server(gearman_worker_st *worker, char *host,
-                                         in_port_t port)
+gearman_return_t gearman_worker_add_server(gearman_worker_st *worker,
+                                           char *host, in_port_t port)
 {
   if (gearman_con_add(worker->gearman, NULL, host, port) == NULL)
     return GEARMAN_ERRNO;
@@ -132,11 +132,11 @@ gearman_return gearman_worker_add_server(gearman_worker_st *worker, char *host,
   return GEARMAN_SUCCESS;
 }
 
-gearman_return gearman_worker_register(gearman_worker_st *worker,
-                                       const char *function_name,
-                                       uint32_t timeout)
+gearman_return_t gearman_worker_register(gearman_worker_st *worker,
+                                         const char *function_name,
+                                         uint32_t timeout)
 {
-  gearman_return ret;
+  gearman_return_t ret;
   char timeout_buffer[11];
 
   if (!(worker->options & GEARMAN_WORKER_PACKET_IN_USE))
@@ -176,10 +176,10 @@ gearman_return gearman_worker_register(gearman_worker_st *worker,
 }
 
 /* Unregister function with job servers. */
-gearman_return gearman_worker_unregister(gearman_worker_st *worker,
-                                         const char *function_name)
+gearman_return_t gearman_worker_unregister(gearman_worker_st *worker,
+                                           const char *function_name)
 {
-  gearman_return ret;
+  gearman_return_t ret;
 
   if (!(worker->options & GEARMAN_WORKER_PACKET_IN_USE))
   {
@@ -204,9 +204,9 @@ gearman_return gearman_worker_unregister(gearman_worker_st *worker,
 }
 
 /* Unregister all functions with job servers. */
-gearman_return gearman_worker_unregister_all(gearman_worker_st *worker)
+gearman_return_t gearman_worker_unregister_all(gearman_worker_st *worker)
 {
-  gearman_return ret;
+  gearman_return_t ret;
 
   if (!(worker->options & GEARMAN_WORKER_PACKET_IN_USE))
   {
@@ -231,7 +231,7 @@ gearman_return gearman_worker_unregister_all(gearman_worker_st *worker)
 
 gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
                                         gearman_job_st *job,
-                                        gearman_return *ret)
+                                        gearman_return_t *ret)
 {
   if (worker->job == NULL)
   {
@@ -337,11 +337,11 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
   return NULL;
 }
 
-gearman_return gearman_worker_add_function(gearman_worker_st *worker,
-                                           const char *function_name,
-                                           uint32_t timeout,
-                                           gearman_worker_fn *worker_fn,
-                                           const void *fn_arg)
+gearman_return_t gearman_worker_add_function(gearman_worker_st *worker,
+                                             const char *function_name,
+                                             uint32_t timeout,
+                                             gearman_worker_fn *worker_fn,
+                                             const void *fn_arg)
 {
   gearman_worker_function_st *function_list;
 
@@ -370,9 +370,9 @@ gearman_return gearman_worker_add_function(gearman_worker_st *worker,
   return gearman_worker_register(worker, function_name, timeout);
 }
 
-gearman_return gearman_worker_work(gearman_worker_st *worker)
+gearman_return_t gearman_worker_work(gearman_worker_st *worker)
 {
-  gearman_return ret;
+  gearman_return_t ret;
   int32_t x;
 
   switch (worker->work_state)

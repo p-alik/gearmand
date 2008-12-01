@@ -36,7 +36,7 @@
 /**
  * Send a packet for a job.
  */
-static gearman_return _job_send(gearman_job_st *job);
+static gearman_return_t _job_send(gearman_job_st *job);
 
 /** @} */
 
@@ -83,10 +83,10 @@ void gearman_job_free(gearman_job_st *job)
     free(job);
 }
 
-gearman_return gearman_job_data(gearman_job_st *job, void *data,
-                                size_t data_size)
+gearman_return_t gearman_job_data(gearman_job_st *job, void *data,
+                                  size_t data_size)
 {
-  gearman_return ret;
+  gearman_return_t ret;
 
   if (!(job->options & GEARMAN_JOB_WORK_IN_USE))
   {
@@ -102,10 +102,10 @@ gearman_return gearman_job_data(gearman_job_st *job, void *data,
   return _job_send(job);
 }
 
-gearman_return gearman_job_status(gearman_job_st *job, uint32_t numerator,
-                                  uint32_t denominator)
+gearman_return_t gearman_job_status(gearman_job_st *job, uint32_t numerator,
+                                    uint32_t denominator)
 {
-  gearman_return ret;
+  gearman_return_t ret;
   char numerator_string[12];
   char denominator_string[12];
 
@@ -128,10 +128,10 @@ gearman_return gearman_job_status(gearman_job_st *job, uint32_t numerator,
   return _job_send(job);
 }
 
-gearman_return gearman_job_complete(gearman_job_st *job, void *result,
-                                    size_t result_size)
+gearman_return_t gearman_job_complete(gearman_job_st *job, void *result,
+                                      size_t result_size)
 {
-  gearman_return ret;
+  gearman_return_t ret;
 
   if (!(job->options & GEARMAN_JOB_WORK_IN_USE))
   {
@@ -149,9 +149,9 @@ gearman_return gearman_job_complete(gearman_job_st *job, void *result,
   return _job_send(job);
 }
 
-gearman_return gearman_job_fail(gearman_job_st *job)
+gearman_return_t gearman_job_fail(gearman_job_st *job)
 {
-  gearman_return ret;
+  gearman_return_t ret;
 
   if (!(job->options & GEARMAN_JOB_WORK_IN_USE))
   {
@@ -191,9 +191,9 @@ size_t gearman_job_workload_size(gearman_job_st *job)
  * Private definitions
  */
 
-static gearman_return _job_send(gearman_job_st *job)
+static gearman_return_t _job_send(gearman_job_st *job)
 {
-  gearman_return ret;
+  gearman_return_t ret;
 
   ret= gearman_con_send(job->con, &(job->work), true);
   if (ret != GEARMAN_SUCCESS)

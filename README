@@ -69,6 +69,13 @@ else
 {
 }
 
+Make sure structs have a typedef with a _st suffix, enums have a _t
+suffix, and functions have a _fn suffix. For example:
+
+typedef struct gearman_task { ... } gearman_task_st;
+typedef enum gearman_return { ... } gearman_return_t;
+typedef gearman_return_t (gearman_complete_fn)(gearman_task_st *task);
+
 Thanks and keep hacking!
 
 Cheers,

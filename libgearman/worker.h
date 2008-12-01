@@ -100,7 +100,7 @@ int gearman_worker_errno(gearman_worker_st *worker);
  *        to set.
  */
 void gearman_worker_set_options(gearman_worker_st *worker,
-                                gearman_options options, uint32_t data);
+                                gearman_options_t options, uint32_t data);
 
 /**
  * Add a job server to a worker. This goes into a list of servers than can be
@@ -111,49 +111,49 @@ void gearman_worker_set_options(gearman_worker_st *worker,
  * @param port Port of the server to add.
  * @return Standard gearman return value.
  */
-gearman_return gearman_worker_add_server(gearman_worker_st *worker, char *host,
-                                         in_port_t port);
+gearman_return_t gearman_worker_add_server(gearman_worker_st *worker,
+                                           char *host, in_port_t port);
 
 /**
  * Register function with job servers with an optional timeout. The timeout
  * specifies how many seconds the server will wait before marking a job as
  * failed. If timeout is zero, there is no timeout.
  */
-gearman_return gearman_worker_register(gearman_worker_st *worker,
-                                       const char *function_name,
-                                       uint32_t timeout);
+gearman_return_t gearman_worker_register(gearman_worker_st *worker,
+                                         const char *function_name,
+                                         uint32_t timeout);
 
 /**
  * Unregister function with job servers.
  */
-gearman_return gearman_worker_unregister(gearman_worker_st *worker,
-                                         const char *function_name);
+gearman_return_t gearman_worker_unregister(gearman_worker_st *worker,
+                                           const char *function_name);
 
 /**
  * Unregister all functions with job servers.
  */
-gearman_return gearman_worker_unregister_all(gearman_worker_st *worker);
+gearman_return_t gearman_worker_unregister_all(gearman_worker_st *worker);
 
 /**
  * Get a job from one of the job servers.
  */
 gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
                                         gearman_job_st *job,
-                                        gearman_return *ret_ptr);
+                                        gearman_return_t *ret_ptr);
 
 /**
  * Register and add callback function for worker.
  */
-gearman_return gearman_worker_add_function(gearman_worker_st *worker,
-                                           const char *function_name,
-                                           uint32_t timeout,
-                                           gearman_worker_fn *worker_fn,
-                                           const void *fn_arg);
+gearman_return_t gearman_worker_add_function(gearman_worker_st *worker,
+                                             const char *function_name,
+                                             uint32_t timeout,
+                                             gearman_worker_fn *worker_fn,
+                                             const void *fn_arg);
 
 /**
  * Wait for a job and call the appropriate callback function when it gets one.
  */
-gearman_return gearman_worker_work(gearman_worker_st *worker);
+gearman_return_t gearman_worker_work(gearman_worker_st *worker);
 
 /** @} */
 

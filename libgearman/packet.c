@@ -75,14 +75,15 @@ gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX]=
  * Public definitions
  */
 
-gearman_return gearman_packet_add(gearman_st *gearman,
-                                  gearman_packet_st *packet,
-                                  gearman_magic magic, gearman_command command,
-                                  const void *arg, ...)
+gearman_return_t gearman_packet_add(gearman_st *gearman,
+                                    gearman_packet_st *packet,
+                                    gearman_magic_t magic,
+                                    gearman_command_t command,
+                                    const void *arg, ...)
 {
   va_list ap;
   size_t arg_size;
-  gearman_return ret;
+  gearman_return_t ret;
 
   packet= gearman_packet_create(gearman, packet);
   if (packet == NULL)
@@ -159,7 +160,8 @@ void gearman_packet_free(gearman_packet_st *packet)
 }
 
 void gearman_packet_set_options(gearman_packet_st *packet, 
-                                gearman_packet_options options, uint32_t data)
+                                gearman_packet_options_t options,
+                                uint32_t data)
 {
   if (data == 0)
     packet->options &= ~options;
@@ -167,8 +169,8 @@ void gearman_packet_set_options(gearman_packet_st *packet,
     packet->options |= options;
 }
 
-gearman_return gearman_packet_add_arg(gearman_packet_st *packet,
-                                      const void *arg, size_t arg_size)
+gearman_return_t gearman_packet_add_arg(gearman_packet_st *packet,
+                                        const void *arg, size_t arg_size)
 {
   void *new_args;
   size_t offset;
@@ -227,7 +229,7 @@ gearman_return gearman_packet_add_arg(gearman_packet_st *packet,
   return GEARMAN_SUCCESS;
 }
 
-gearman_return gearman_packet_pack_header(gearman_packet_st *packet)
+gearman_return_t gearman_packet_pack_header(gearman_packet_st *packet)
 {
   uint32_t tmp;
 
@@ -273,7 +275,7 @@ gearman_return gearman_packet_pack_header(gearman_packet_st *packet)
   return GEARMAN_SUCCESS;
 }
 
-gearman_return gearman_packet_unpack_header(gearman_packet_st *packet)
+gearman_return_t gearman_packet_unpack_header(gearman_packet_st *packet)
 {
   uint32_t tmp;
 
@@ -304,7 +306,7 @@ gearman_return gearman_packet_unpack_header(gearman_packet_st *packet)
 }
 
 size_t gearman_packet_parse(gearman_packet_st *packet, const uint8_t *data,
-                            size_t data_size, gearman_return *ret_ptr)
+                            size_t data_size, gearman_return_t *ret_ptr)
 {
   uint8_t *ptr;
   size_t used_size;
