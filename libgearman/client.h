@@ -276,12 +276,12 @@ gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
  * Run tasks that have been added in parallel.
  */
 gearman_return_t gearman_client_run_tasks(gearman_client_st *client,
-                                          gearman_workload_fn workload_fn,
-                                          gearman_created_fn created_fn,
-                                          gearman_data_fn data_fn,
-                                          gearman_status_fn status_fn,
-                                          gearman_complete_fn complete_fn,
-                                          gearman_fail_fn fail_fn);
+                                          gearman_workload_fn *workload_fn,
+                                          gearman_created_fn *created_fn,
+                                          gearman_data_fn *data_fn,
+                                          gearman_status_fn *status_fn,
+                                          gearman_complete_fn *complete_fn,
+                                          gearman_fail_fn *fail_fn);
 
 /** @} */
 
