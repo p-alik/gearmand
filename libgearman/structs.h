@@ -190,7 +190,7 @@ struct gearman_worker_st
   gearman_con_st *con;
   gearman_job_st *job;
   gearman_worker_function_st *function_list;
-  int32_t function_count;
+  uint32_t function_count;
   gearman_worker_work_state_t work_state;
   gearman_job_st work_job;
   gearman_worker_function_st *work_function;

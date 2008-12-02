@@ -51,7 +51,7 @@ static size_t _con_read(gearman_con_st *con, void *data, size_t data_size,
  */
 
 gearman_con_st *gearman_con_add(gearman_st *gearman, gearman_con_st *con,
-                                char *host, in_port_t port)
+                                const char *host, in_port_t port)
 {
   con= gearman_con_create(gearman, con);
   if (con == NULL)
@@ -135,7 +135,7 @@ gearman_return_t gearman_con_free(gearman_con_st *con)
   return GEARMAN_SUCCESS;
 }
 
-void gearman_con_set_host(gearman_con_st *con, char *host)
+void gearman_con_set_host(gearman_con_st *con, const char *host)
 {
   gearman_con_reset_addrinfo(con);
 

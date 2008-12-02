@@ -155,7 +155,7 @@ void gearman_client_set_options(gearman_client_st *client,
 }
 
 gearman_return_t gearman_client_add_server(gearman_client_st *client,
-                                           char *host, in_port_t port)
+                                           const char *host, in_port_t port)
 {
   if (gearman_con_add(client->gearman, NULL, host, port) == NULL)
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;

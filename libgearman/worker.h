@@ -112,7 +112,7 @@ void gearman_worker_set_options(gearman_worker_st *worker,
  * @return Standard gearman return value.
  */
 gearman_return_t gearman_worker_add_server(gearman_worker_st *worker,
-                                           char *host, in_port_t port);
+                                           const char *host, in_port_t port);
 
 /**
  * Register function with job servers with an optional timeout. The timeout

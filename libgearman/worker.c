@@ -124,7 +124,7 @@ void gearman_worker_set_options(gearman_worker_st *worker,
 }
 
 gearman_return_t gearman_worker_add_server(gearman_worker_st *worker,
-                                           char *host, in_port_t port)
+                                           const char *host, in_port_t port)
 {
   if (gearman_con_add(worker->gearman, NULL, host, port) == NULL)
     return GEARMAN_ERRNO;
@@ -350,6 +350,9 @@ gearman_return_t gearman_worker_add_function(gearman_worker_st *worker,
     if (function_name == NULL)
       return GEARMAN_INVALID_FUNCTION_NAME;
 
+    if (worker_fn == NULL)
+      return GEARMAN_INVALID_WORKER_FUNCTION;
+
     function_list= realloc(worker->function_list,
                            sizeof(gearman_worker_function_st) *
                            worker->function_count + 1);
@@ -373,7 +376,7 @@ gearman_return_t gearman_worker_add_function(gearman_worker_st *worker,
 gearman_return_t gearman_worker_work(gearman_worker_st *worker)
 {
   gearman_return_t ret;
-  int32_t x;
+  uint32_t x;
 
   switch (worker->work_state)
   {

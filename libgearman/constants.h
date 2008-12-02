@@ -93,6 +93,7 @@ typedef enum
   GEARMAN_NOT_FLUSHING,
   GEARMAN_DATA_TOO_LARGE,
   GEARMAN_INVALID_FUNCTION_NAME,
+  GEARMAN_INVALID_WORKER_FUNCTION,
   GEARMAN_MAX_RETURN /* Always add new error code before */
 } gearman_return_t;
 

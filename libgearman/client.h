@@ -105,7 +105,7 @@ void gearman_client_set_options(gearman_client_st *client,
  * @return Standard gearman return value.
  */
 gearman_return_t gearman_client_add_server(gearman_client_st *client,
-                                           char *host, in_port_t port);
+                                           const char *host, in_port_t port);
 
 /**
  * @addtogroup gearman_client_single Single Task Interface
