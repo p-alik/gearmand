@@ -37,26 +37,20 @@ extern "C" {
 /**
  * Initialize a worker structure. This cannot fail if the caller supplies a
  * worker structure.
- * @param gearman Gearman instance if one exists, otherwise pass in NULL to
- *        create one.
  * @param worker Caller allocated worker structure, or NULL to allocate one.
  * @return Pointer to an allocated worker structure if worker parameter was
  *         NULL, or the worker parameter pointer if it was not NULL.
  */
-gearman_worker_st *gearman_worker_create(gearman_st *gearman,
-                                         gearman_worker_st *worker);
+gearman_worker_st *gearman_worker_create(gearman_worker_st *worker);
 
 /**
  * Clone a worker structure.
- * @param gearman Gearman instance if one exists, otherwise pass in NULL to
- *        create a clone from the existing one used by from.
  * @param worker Caller allocated worker structure, or NULL to allocate one.
  * @param from Worker structure to use as a source to clone from.
  * @return Pointer to an allocated worker structure if worker parameter was
  *         NULL, or the worker parameter pointer if it was not NULL.
  */
-gearman_worker_st *gearman_worker_clone(gearman_st *gearman,
-                                        gearman_worker_st *worker,
+gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker,
                                         gearman_worker_st *from);
 
 /**

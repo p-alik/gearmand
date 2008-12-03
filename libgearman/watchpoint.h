@@ -24,11 +24,9 @@ extern "C" {
 #endif
 
 #include <libgearman/constants.h>
-#include <libgearman/types.h>
 #ifdef HAVE_GEARMAN_ACTION
 #include <libgearman/str_action.h>
 #endif
-#include <libgearman/str_error.h>
 
 /* Some personal debugging functions */
 #ifdef HAVE_DEBUG

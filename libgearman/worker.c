@@ -44,54 +44,45 @@ static gearman_worker_st *_worker_allocate(gearman_worker_st *worker);
  * Public definitions
  */
 
-gearman_worker_st *gearman_worker_create(gearman_st *gearman,
-                                         gearman_worker_st *worker)
+gearman_worker_st *gearman_worker_create(gearman_worker_st *worker)
 {
   worker= _worker_allocate(worker);
   if (worker == NULL)
     return NULL;
 
-  if (gearman == NULL)
-  {
-    gearman= gearman_create(&(worker->gearman_static));
-    worker->options|= GEARMAN_WORKER_GEARMAN_STATIC;
+  worker->gearman= gearman_create(&(worker->gearman_static));
+  if (worker->gearman == NULL)
+  { 
+    gearman_worker_free(worker);
+    return NULL;
   }
-
-  worker->gearman= gearman;
 
   return worker;
 }
 
-gearman_worker_st *gearman_worker_clone(gearman_st *gearman,
-                                        gearman_worker_st *worker,
+gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker,
                                         gearman_worker_st *from)
 {
   worker= _worker_allocate(worker);
   if (worker == NULL)
     return NULL;
 
-  worker->options|= (from->options & ~(GEARMAN_WORKER_ALLOCATED |
-                                       GEARMAN_WORKER_GEARMAN_STATIC));
+  worker->options|= (from->options & ~GEARMAN_WORKER_ALLOCATED);
 
-  if (gearman == NULL)
-  {
-    gearman= gearman_clone(&(worker->gearman_static), from->gearman);
-    if (gearman == NULL)
-    { 
-      gearman_worker_free(worker);
-      return NULL;
-    }
-
-    worker->options|= GEARMAN_WORKER_GEARMAN_STATIC;
+  worker->gearman= gearman_clone(&(worker->gearman_static), from->gearman);
+  if (worker->gearman == NULL)
+  { 
+    gearman_worker_free(worker);
+    return NULL;
   }
-
-  worker->gearman= gearman;
 
   return worker;
 }
 
 void gearman_worker_free(gearman_worker_st *worker)
 {
+  gearman_free(worker->gearman);
+
   if (worker->options & GEARMAN_WORKER_ALLOCATED)
     free(worker);
 }

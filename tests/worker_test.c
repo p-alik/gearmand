@@ -27,7 +27,8 @@
 #include <time.h>
 
 #define GEARMAN_INTERNAL 1
-#include <libgearman/gearman_worker.h>
+#include <libgearman/gearman.h>
+#include <libgearman/watchpoint.h>
 
 #include "test.h"
 
@@ -45,7 +46,7 @@ test_return init_test(void *not_used __attribute__((unused)))
 {
   gearman_worker_st object;
 
-  (void)gearman_worker_create(&object);
+  (void)gearman_worker_create(NULL, &object);
   gearman_worker_free(&object);
 
   return TEST_SUCCESS;
@@ -54,7 +55,7 @@ test_return init_test(void *not_used __attribute__((unused)))
 test_return allocation_test(void *not_used __attribute__((unused)))
 {
   gearman_worker_st *object;
-  object= gearman_worker_create(NULL);
+  object= gearman_worker_create(NULL, NULL);
   assert(object);
   gearman_worker_free(object);
 

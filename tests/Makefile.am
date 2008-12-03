@@ -18,7 +18,7 @@
 AM_CFLAGS= -I$(top_builddir)
 AM_LDFLAGS= 
 
-noinst_PROGRAMS=
+noinst_PROGRAMS= client_test
 #noinst_PROGRAMS= client_test worker_test
 noinst_HEADERS= test.h
 
