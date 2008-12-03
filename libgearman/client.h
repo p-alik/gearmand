@@ -149,7 +149,7 @@ void *gearman_client_do_high(gearman_client_st *client,
                              gearman_return_t *ret_ptr);
 
 /**
- * Get the jo handle for the running task. This should be used between
+ * Get the job handle for the running task. This should be used between
  * repeated gearman_client_do() and gearman_client_do_high() calls to get
  * information.
  * @param client Client structure previously initialized with
@@ -179,15 +179,14 @@ void gearman_client_do_status(gearman_client_st *client, uint32_t *numerator,
  * @param function_name The name of the function to run.
  * @param workload The workload to pass to the function when it is run.
  * @param workload_size Size of the workload.
- * @param job_handle_buffer A buffer to store the job handle in. This must be at
-          least GEARMAN_JOB_HANDLE_SIZE bytes.
+ * @param job_handle A buffer to store the job handle in.
  * @return Standard gearman return value.
  */
 gearman_return_t gearman_client_do_bg(gearman_client_st *client,
                                       const char *function_name,
                                       const void *workload,
                                       size_t workload_size,
-                                      char *job_handle_buffer);
+                                      gearman_job_handle_t job_handle);
 
 /**
  * Get the status for a backgound task.

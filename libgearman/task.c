@@ -72,17 +72,17 @@ void *gearman_task_fn_arg(gearman_task_st *task)
   return (void *)task->fn_arg;
 }
 
-char *gearman_task_function(gearman_task_st *task)
+const char *gearman_task_function(gearman_task_st *task)
 {
   return (char *)task->send.arg[0];
 }
 
-char *gearman_task_uuid(gearman_task_st *task)
+const char *gearman_task_uuid(gearman_task_st *task)
 {
   return (char *)task->send.arg[1];
 }
 
-char *gearman_task_job_handle(gearman_task_st *task)
+const char *gearman_task_job_handle(gearman_task_st *task)
 {
   return task->job_handle;
 }

@@ -64,6 +64,7 @@ typedef struct gearman_client_st gearman_client_st;
 typedef struct gearman_job_st gearman_job_st;
 typedef struct gearman_worker_st gearman_worker_st;
 typedef struct gearman_worker_function_st gearman_worker_function_st;
+typedef char gearman_job_handle_t[GEARMAN_JOB_HANDLE_SIZE];
 
 /**
  * Return codes.

@@ -134,7 +134,7 @@ struct gearman_task_st
   uint32_t created_id;
   gearman_packet_st send;
   gearman_packet_st *recv;
-  char job_handle[GEARMAN_JOB_HANDLE_SIZE];
+  gearman_job_handle_t job_handle;
   bool is_known;
   bool is_running;
   uint32_t numerator;

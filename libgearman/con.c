@@ -141,6 +141,7 @@ void gearman_con_set_host(gearman_con_st *con, const char *host)
 
   strncpy(con->host, host == NULL ? GEARMAN_DEFAULT_TCP_HOST : host,
           NI_MAXHOST);
+  con->host[NI_MAXHOST - 1]= 0;
 }
 
 void gearman_con_set_port(gearman_con_st *con, in_port_t port)

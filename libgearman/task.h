@@ -55,17 +55,17 @@ void *gearman_task_fn_arg(gearman_task_st *task);
 /**
  * Get function name associated with a task.
  */
-char *gearman_task_function(gearman_task_st *task);
+const char *gearman_task_function(gearman_task_st *task);
 
 /**
  * Get unique identifier for a task.
  */
-char *gearman_task_uuid(gearman_task_st *task);
+const char *gearman_task_uuid(gearman_task_st *task);
 
 /**
  * Get job handle for a task.
  */
-char *gearman_task_job_handle(gearman_task_st *task);
+const char *gearman_task_job_handle(gearman_task_st *task);
 
 /**
  * Get status on whether a task is known or not.
