@@ -123,7 +123,7 @@ test_return background_failure_test(void *object)
 
   rc= gearman_client_do_background(client, "does_not_exist",
                                    value, value_length, job_id);
-  WATCHPOINT_ERROR(rc);
+  //WATCHPOINT_ERROR(rc);
   assert(rc == GEARMAN_SUCCESS);
 
   rc= gearman_client_task_status(client, job_id, &is_known, &is_running, &numerator, &denominator);
@@ -165,8 +165,8 @@ test_return background_test(void *object)
     assert(rc == GEARMAN_SUCCESS);
     if (is_running == true)
     {
-      WATCHPOINT_NUMBER(numerator);
-      WATCHPOINT_NUMBER(denominator);
+      //WATCHPOINT_NUMBER(numerator);
+      //WATCHPOINT_NUMBER(denominator);
       continue;
     }
     else

@@ -231,7 +231,8 @@ typedef enum
  */
 typedef enum
 {
-  GEARMAN_TASK_ALLOCATED= (1 << 0)
+  GEARMAN_TASK_ALLOCATED=   (1 << 0),
+  GEARMAN_TASK_SEND_IN_USE= (1 << 1)
 } gearman_task_options_t;
 
 /**

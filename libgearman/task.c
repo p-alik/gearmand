@@ -63,6 +63,9 @@ void gearman_task_free(gearman_task_st *task)
     task->next->prev= task->prev;
   task->gearman->task_count--;
 
+  if (task->options & GEARMAN_TASK_SEND_IN_USE)
+    gearman_packet_free(&(task->send));
+
   if (task->options & GEARMAN_TASK_ALLOCATED)
     free(task);
 }
