@@ -50,10 +50,10 @@ test_return flush(void);
 
 test_return init_test(void *not_used __attribute__((unused)))
 {
-  gearman_client_st object;
+  gearman_client_st client;
 
-  (void)gearman_client_create(&object);
-  gearman_client_free(&object);
+  (void)gearman_client_create(NULL, &client);
+  gearman_client_free(&client);
 
   return TEST_SUCCESS;
 }
@@ -61,7 +61,7 @@ test_return init_test(void *not_used __attribute__((unused)))
 test_return allocation_test(void *not_used __attribute__((unused)))
 {
   gearman_client_st *object;
-  object= gearman_client_create(NULL);
+  object= gearman_client_create(NULL, NULL);
   assert(object);
   gearman_client_free(object);
 
@@ -91,9 +91,10 @@ test_return clone_test(void *object)
   return TEST_SUCCESS;
 }
 
+#ifdef NOT_DONE
 test_return echo_test(void *object)
 {
-  gearman_return rc;
+  gearman_return_t rc;
   gearman_client_st *client= (gearman_client_st *)object;
   size_t value_length;
   char *value= "This is my echo test";
@@ -106,63 +107,61 @@ test_return echo_test(void *object)
 
   return TEST_SUCCESS;
 }
+#endif
 
 test_return background_failure_test(void *object)
 {
-  gearman_return rc;
+  gearman_return_t rc;
   gearman_client_st *client= (gearman_client_st *)object;
-  char *job_id;
+  char job_id[1024];
   bool is_known;
   bool is_running;
-  long numerator;
-  long denominator;
+  uint32_t numerator;
+  uint32_t denominator;
   uint8_t *value= (uint8_t *)"background_failure_test";
   ssize_t value_length= strlen("background_failure_test");
 
-  job_id= gearman_client_do_background(client, "does_not_exist",
-                                       value, value_length, &rc);
+  rc= gearman_client_do_background(client, "does_not_exist",
+                                   value, value_length, job_id);
   WATCHPOINT_ERROR(rc);
   assert(rc == GEARMAN_SUCCESS);
 
-  rc= gearman_client_job_status(client, job_id, &is_known, &is_running, &numerator, &denominator);
+  rc= gearman_client_task_status(client, job_id, &is_known, &is_running, &numerator, &denominator);
   assert(rc == GEARMAN_SUCCESS);
   assert(is_known == false);
   assert(is_running == false);
   assert(numerator == 0);
   assert(denominator == 0);
 
-  if (job_id)
-    free(job_id);
-
   return TEST_SUCCESS;
 }
 
 test_return background_test(void *object)
 {
-  gearman_return rc;
+  gearman_return_t rc;
   gearman_client_st *client= (gearman_client_st *)object;
-  char *job_id;
+  char job_id[1024];
   bool is_known;
   bool is_running;
-  long numerator;
-  long denominator;
+  uint32_t numerator;
+  uint32_t denominator;
   uint8_t *value= (uint8_t *)"background_test";
   size_t value_length= strlen("background_test");
 
-  job_id= gearman_client_do_background(client, "frog",
-                                       value, value_length, &rc);
+  rc= gearman_client_do_background(client, "frog",
+                                   value, value_length, job_id);
   //WATCHPOINT_ERROR(rc);
   assert(rc == GEARMAN_SUCCESS);
   //sleep(1); /* Yes, this could fail on an overloaded system to give the
   //server enough time to assign */
 
-  rc= gearman_client_job_status(client, job_id, &is_known, &is_running, &numerator, &denominator);
+  rc= gearman_client_task_status(client, job_id, &is_known, &is_running, &numerator, &denominator);
   assert(rc == GEARMAN_SUCCESS);
   assert(is_known == true);
 
   while (1)
   {
-    rc= gearman_client_job_status(client, job_id, &is_known, &is_running, &numerator, &denominator);
+    rc= gearman_client_task_status(client, job_id, &is_known, &is_running, &numerator, &denominator);
     assert(rc == GEARMAN_SUCCESS);
     if (is_running == true)
     {
@@ -173,9 +172,6 @@ test_return background_test(void *object)
     else
       break;
   }
-
-  if (job_id)
-    free(job_id);
 
   return TEST_SUCCESS;
 }
@@ -233,14 +229,13 @@ test_return flush(void)
 void *create(void *not_used __attribute__((unused)))
 {
   gearman_client_st *client;
-  gearman_return rc;
+  gearman_return_t rc;
 
-  client= gearman_client_create(NULL);
+  client= gearman_client_create(NULL, NULL);
 
   assert(client);
 
-  rc= gearman_client_server_add(client, "localhost", 0);
-  assert (client->gearman.con_count == 1);
+  rc= gearman_client_add_server(client, "localhost", 0);
 
   assert(rc == GEARMAN_SUCCESS);
 
@@ -283,8 +278,8 @@ test_st tests[] ={
   {"submit_job", 0, submit_job_test },
   {"background", 0, background_test },
   {"background_failure", 0, background_failure_test },
-  {"echo", 0, echo_test },
 #ifdef NOT_DONE
+  {"echo", 0, echo_test },
   {"error", 0, error_test },
   {"submit_job2", 0, submit_job_test },
 #endif

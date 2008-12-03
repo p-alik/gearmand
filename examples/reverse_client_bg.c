@@ -71,8 +71,8 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  ret= gearman_client_do_bg(&client, "reverse", (void *)argv[optind],
-                            (size_t)strlen(argv[optind]), job_handle);
+  ret= gearman_client_do_background(&client, "reverse", (void *)argv[optind],
+                                    (size_t)strlen(argv[optind]), job_handle);
   if (ret != GEARMAN_SUCCESS)
   {
     fprintf(stderr, "%s\n", gearman_client_error(&client));

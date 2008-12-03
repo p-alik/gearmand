@@ -49,15 +49,12 @@ gearman_client_st *gearman_client_create(gearman_st *gearman,
 
 /**
  * Clone a client structure.
- * @param gearman Gearman instance if one exists, otherwise pass in NULL to
- *        create a clone from the existing one used by from.
  * @param client Caller allocated client structure, or NULL to allocate one.
  * @param from Client structure to use as a source to clone from.
  * @return Pointer to an allocated client structure if client parameter was
  *         NULL, or the client parameter pointer if it was not NULL.
  */
-gearman_client_st *gearman_client_clone(gearman_st *gearman,
-                                        gearman_client_st *client,
+gearman_client_st *gearman_client_clone(gearman_client_st *client,
                                         gearman_client_st *from);
 
 /**
@@ -183,11 +180,11 @@ void gearman_client_do_status(gearman_client_st *client, uint32_t *numerator,
           least GEARMAN_JOB_HANDLE_SIZE bytes.
  * @return Standard gearman return value.
  */
-gearman_return_t gearman_client_do_bg(gearman_client_st *client,
-                                      const char *function_name,
-                                      const void *workload,
-                                      size_t workload_size,
-                                      char *job_handle_buffer);
+gearman_return_t gearman_client_do_background(gearman_client_st *client,
+                                              const char *function_name,
+                                              const void *workload,
+                                              size_t workload_size,
+                                              char *job_handle_buffer);
 
 /**
  * Get the status for a backgound task.
@@ -255,13 +252,13 @@ gearman_task_st *gearman_client_add_task_high(gearman_client_st *client,
 /**
  * Add a background task to be run in parallel.
  */
-gearman_task_st *gearman_client_add_task_bg(gearman_client_st *client,
-                                            gearman_task_st *task,
-                                            const void *fn_arg,
-                                            const char *function_name,
-                                            const void *workload,
-                                            size_t workload_size,
-                                            gearman_return_t *ret_ptr);
+gearman_task_st *gearman_client_add_task_background(gearman_client_st *client,
+                                                    gearman_task_st *task,
+                                                    const void *fn_arg,
+                                                    const char *function_name,
+                                                    const void *workload,
+                                                    size_t workload_size,
+                                                    gearman_return_t *ret_ptr);
 
 /**
  * Add task to get the status for a backgound task in parallel.
