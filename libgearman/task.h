@@ -96,7 +96,7 @@ size_t gearman_task_data_size(gearman_task_st *task);
  * Read work or result data into a buffer for a task.
  */
 size_t gearman_task_recv_data(gearman_task_st *task, void *data,
-                              size_t data_size, gearman_return *ret_ptr);
+                              size_t data_size, gearman_return_t *ret_ptr);
 
 /** @} */
 

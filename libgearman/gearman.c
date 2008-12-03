@@ -106,9 +106,9 @@ void gearman_reset(gearman_st *gearman)
   gearman->sending= 0;
 }
 
-char *gearman_error(gearman_st *gearman)
+const char *gearman_error(gearman_st *gearman)
 {
-  return gearman->last_error;
+  return (const char *)(gearman->last_error);
 }
 
 int gearman_errno(gearman_st *gearman)
@@ -116,7 +116,7 @@ int gearman_errno(gearman_st *gearman)
   return gearman->last_errno;
 }
 
-void gearman_set_options(gearman_st *gearman, gearman_options options,
+void gearman_set_options(gearman_st *gearman, gearman_options_t options,
                          uint32_t data)
 {
   if (data)

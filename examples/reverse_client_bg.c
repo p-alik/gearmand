@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
   char c;
   char *host= NULL;
   unsigned short port= 0;
-  gearman_return ret;
+  gearman_return_t ret;
   gearman_client_st client;
   char job_handle[GEARMAN_JOB_HANDLE_SIZE];
   bool is_known;

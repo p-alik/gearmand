@@ -36,13 +36,13 @@
 /**
  * Set socket options for a connection.
  */
-static gearman_return _con_setsockopt(gearman_con_st *con);
+static gearman_return_t _con_setsockopt(gearman_con_st *con);
 
 /**
  * Read data from a connection.
  */
 static size_t _con_read(gearman_con_st *con, void *data, size_t data_size,
-                        gearman_return *ret_ptr);
+                        gearman_return_t *ret_ptr);
 
 /** @} */
 
@@ -51,7 +51,7 @@ static size_t _con_read(gearman_con_st *con, void *data, size_t data_size,
  */
 
 gearman_con_st *gearman_con_add(gearman_st *gearman, gearman_con_st *con,
-                                char *host, in_port_t port)
+                                const char *host, in_port_t port)
 {
   con= gearman_con_create(gearman, con);
   if (con == NULL)
@@ -108,9 +108,9 @@ gearman_con_st *gearman_con_clone(gearman_st *gearman, gearman_con_st *con,
   return con;
 }
 
-gearman_return gearman_con_free(gearman_con_st *con)
+gearman_return_t gearman_con_free(gearman_con_st *con)
 {
-  gearman_return ret;
+  gearman_return_t ret;
 
   if (con->fd != -1)
   {
@@ -135,7 +135,7 @@ gearman_return gearman_con_free(gearman_con_st *con)
   return GEARMAN_SUCCESS;
 }
 
-void gearman_con_set_host(gearman_con_st *con, char *host)
+void gearman_con_set_host(gearman_con_st *con, const char *host)
 {
   gearman_con_reset_addrinfo(con);
 
@@ -150,7 +150,7 @@ void gearman_con_set_port(gearman_con_st *con, in_port_t port)
   con->port= port == 0 ? GEARMAN_DEFAULT_TCP_PORT : port;
 }
 
-void gearman_con_set_options(gearman_con_st *con, gearman_con_options options,
+void gearman_con_set_options(gearman_con_st *con, gearman_con_options_t options,
                              uint32_t data)
 {
   if (data)
@@ -164,12 +164,12 @@ void gearman_con_set_fd(gearman_con_st *con, int fd)
   con->fd= fd;
 }
 
-gearman_return gearman_con_connect(gearman_con_st *con)
+gearman_return_t gearman_con_connect(gearman_con_st *con)
 {
   return gearman_con_flush(con);
 }
 
-gearman_return gearman_con_close(gearman_con_st *con)
+gearman_return_t gearman_con_close(gearman_con_st *con)
 {
   int ret;
 
@@ -214,10 +214,10 @@ void gearman_con_reset_addrinfo(gearman_con_st *con)
   con->addrinfo_next= NULL;
 }
 
-gearman_return gearman_con_send(gearman_con_st *con, gearman_packet_st *packet,
-                                bool flush)
+gearman_return_t gearman_con_send(gearman_con_st *con,
+                                  gearman_packet_st *packet, bool flush)
 {
-  gearman_return ret;
+  gearman_return_t ret;
 
   switch (con->send_state)
   {
@@ -315,7 +315,7 @@ gearman_return gearman_con_send(gearman_con_st *con, gearman_packet_st *packet,
 }
 
 size_t gearman_con_send_data(gearman_con_st *con, const void *data,
-                             size_t data_size, gearman_return *ret_ptr)
+                             size_t data_size, gearman_return_t *ret_ptr)
 {
   if (con->send_state != GEARMAN_CON_SEND_STATE_FLUSH_DATA)
   {
@@ -337,13 +337,13 @@ size_t gearman_con_send_data(gearman_con_st *con, const void *data,
   return data_size - con->send_buffer_size;
 }
 
-gearman_return gearman_con_flush(gearman_con_st *con)
+gearman_return_t gearman_con_flush(gearman_con_st *con)
 {
   char port_str[NI_MAXSERV];
   struct addrinfo ai;
   int ret;
   ssize_t write_size;
-  gearman_return gret;
+  gearman_return_t gret;
 
   while (1)
   {
@@ -534,12 +534,12 @@ gearman_return gearman_con_flush(gearman_con_st *con)
   return GEARMAN_SUCCESS;
 }
 
-gearman_return gearman_con_send_all(gearman_st *gearman,
-                                    gearman_packet_st *packet)
+gearman_return_t gearman_con_send_all(gearman_st *gearman,
+                                      gearman_packet_st *packet)
 {
-  gearman_return ret;
+  gearman_return_t ret;
   gearman_con_st *con;
-  gearman_options old_options;
+  gearman_options_t old_options;
 
   if (gearman->sending == 0)
   {
@@ -598,7 +598,7 @@ gearman_return gearman_con_send_all(gearman_st *gearman,
 
 gearman_packet_st *gearman_con_recv(gearman_con_st *con,
                                     gearman_packet_st *packet,
-                                    gearman_return *ret_ptr, bool recv_data)
+                                    gearman_return_t *ret_ptr, bool recv_data)
 {
   size_t recv_size;
 
@@ -694,7 +694,7 @@ gearman_packet_st *gearman_con_recv(gearman_con_st *con,
 }
 
 size_t gearman_con_recv_data(gearman_con_st *con, void *data, size_t data_size,
-                             gearman_return *ret_ptr)
+                             gearman_return_t *ret_ptr)
 {
   size_t recv_size= 0;
 
@@ -740,7 +740,7 @@ size_t gearman_con_recv_data(gearman_con_st *con, void *data, size_t data_size,
   return recv_size;
 }
 
-gearman_return gearman_con_wait(gearman_st *gearman, bool set_read)
+gearman_return_t gearman_con_wait(gearman_st *gearman, bool set_read)
 {
   gearman_con_st *con;
   struct pollfd *pfds;
@@ -822,7 +822,7 @@ gearman_con_st *gearman_con_ready(gearman_st *gearman)
  * Private definitions
  */
 
-static gearman_return _con_setsockopt(gearman_con_st *con)
+static gearman_return_t _con_setsockopt(gearman_con_st *con)
 {
   int ret;
   struct linger linger;
@@ -915,7 +915,7 @@ static gearman_return _con_setsockopt(gearman_con_st *con)
 }
 
 static size_t _con_read(gearman_con_st *con, void *data, size_t data_size,
-                        gearman_return *ret_ptr)
+                        gearman_return_t *ret_ptr)
 {
   ssize_t read_size;
 

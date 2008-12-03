@@ -83,7 +83,7 @@ void gearman_reset(gearman_st *gearman);
 /**
  * Return an error string for last library error encountered.
  */
-char *gearman_error(gearman_st *gearman);
+const char *gearman_error(gearman_st *gearman);
 
 /**
  * Value of errno in the case of a GEARMAN_ERRNO return value.
@@ -93,7 +93,7 @@ int gearman_errno(gearman_st *gearman);
 /**
  * Set options for a gearman structure.
  */
-void gearman_set_options(gearman_st *gearman, gearman_options options,
+void gearman_set_options(gearman_st *gearman, gearman_options_t options,
                          uint32_t data);
 
 /** @} */

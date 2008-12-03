@@ -49,25 +49,25 @@ void gearman_job_free(gearman_job_st *job);
 /**
  * Send data for a running job.
  */
-gearman_return gearman_job_data(gearman_job_st *job, void *data,
-                                size_t data_size);
+gearman_return_t gearman_job_data(gearman_job_st *job, void *data,
+                                  size_t data_size);
 
 /**
  * Send status information for a running job.
  */
-gearman_return gearman_job_status(gearman_job_st *job, uint32_t numerator,
-                                  uint32_t denominator);
+gearman_return_t gearman_job_status(gearman_job_st *job, uint32_t numerator,
+                                    uint32_t denominator);
 
 /**
  * Send result and complete status for a job.
  */
-gearman_return gearman_job_complete(gearman_job_st *job, void *result,
-                                    size_t result_size);
+gearman_return_t gearman_job_complete(gearman_job_st *job, void *result,
+                                      size_t result_size);
 
 /**
  * Send fail status for a job.
  */
-gearman_return gearman_job_fail(gearman_job_st *job);
+gearman_return_t gearman_job_fail(gearman_job_st *job);
 
 /**
  * Get job handle.

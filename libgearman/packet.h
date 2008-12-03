@@ -47,10 +47,11 @@ extern "C" {
  *                              unique_string, strlen(unique_string) + 1,
  *                              workload, workload_size, NULL);
  */
-gearman_return gearman_packet_add(gearman_st *gearman,
-                                  gearman_packet_st *packet,
-                                  gearman_magic magic, gearman_command command,
-                                  const void *arg, ...);
+gearman_return_t gearman_packet_add(gearman_st *gearman,
+                                    gearman_packet_st *packet,
+                                    gearman_magic_t magic,
+                                    gearman_command_t command,
+                                    const void *arg, ...);
 
 /**
  * Initialize a packet structure.
@@ -67,29 +68,30 @@ void gearman_packet_free(gearman_packet_st *packet);
  * Set options for a packet structure.
  */
 void gearman_packet_set_options(gearman_packet_st *packet,
-                                gearman_packet_options options, uint32_t data);
+                                gearman_packet_options_t options,
+                                uint32_t data);
 
 /**
  * Add an argument to a packet.
  */
-gearman_return gearman_packet_add_arg(gearman_packet_st *packet,
-                                      const void *arg, size_t arg_size);
+gearman_return_t gearman_packet_add_arg(gearman_packet_st *packet,
+                                        const void *arg, size_t arg_size);
 
 /**
  * Pack header.
  */
-gearman_return gearman_packet_pack_header(gearman_packet_st *packet);
+gearman_return_t gearman_packet_pack_header(gearman_packet_st *packet);
 
 /**
  * Unpack header.
  */
-gearman_return gearman_packet_unpack_header(gearman_packet_st *packet);
+gearman_return_t gearman_packet_unpack_header(gearman_packet_st *packet);
 
 /**
  * Parse packet from input data.
  */
 size_t gearman_packet_parse(gearman_packet_st *packet, const uint8_t *data,
-                            size_t data_size, gearman_return *ret_ptr);
+                            size_t data_size, gearman_return_t *ret_ptr);
 
 /** @} */
 

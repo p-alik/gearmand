@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
   char c;
   char *host= NULL;
   unsigned short port= 0;
-  gearman_return ret;
+  gearman_return_t ret;
   gearman_client_st client;
   char *result;
   size_t result_size;
@@ -73,7 +73,11 @@ int main(int argc, char *argv[])
                                     &ret);
   if (ret != GEARMAN_SUCCESS)
   {
-    fprintf(stderr, "%s\n", gearman_client_error(&client));
+    if (ret == GEARMAN_WORK_FAIL)
+      fprintf(stderr, "Work failed\n");
+    else
+      fprintf(stderr, "%s\n", gearman_client_error(&client));
+
     exit(1);
   }
 

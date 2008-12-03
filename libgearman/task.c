@@ -113,7 +113,7 @@ size_t gearman_task_data_size(gearman_task_st *task)
 }
 
 size_t gearman_task_recv_data(gearman_task_st *task, void *data,
-                              size_t data_size, gearman_return *ret_ptr)
+                              size_t data_size, gearman_return_t *ret_ptr)
 {
   return gearman_con_recv_data(task->con, data, data_size, ret_ptr);
 }
