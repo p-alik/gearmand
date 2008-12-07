@@ -179,6 +179,8 @@ void *gearman_client_do(gearman_client_st *client, const char *function_name,
     client->options&= ~GEARMAN_CLIENT_TASK_IN_USE;
   }
 
+  workload= NULL;
+
   if (*ret_ptr == GEARMAN_WORK_DATA || *ret_ptr == GEARMAN_SUCCESS)
   {
     if (client->do_fail)
@@ -221,6 +223,8 @@ void *gearman_client_do_high(gearman_client_st *client,
     gearman_task_free(&(client->do_task));
     client->options&= ~GEARMAN_CLIENT_TASK_IN_USE;
   }
+
+  workload= NULL;
 
   if (*ret_ptr == GEARMAN_WORK_DATA || *ret_ptr == GEARMAN_SUCCESS)
   {
@@ -471,6 +475,7 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client,
         while (1)
         {
           assert(client->con);
+
           /* Read packet on connection and find which task it belongs to. */
           (void)gearman_con_recv(client->con, &(client->con->packet), &ret,
                                  false);

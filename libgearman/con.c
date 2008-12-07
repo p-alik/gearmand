@@ -456,7 +456,7 @@ gearman_return_t gearman_con_flush(gearman_con_st *con)
           break;
         }
 
-        con->events= POLLOUT;
+        con->events|= POLLOUT;
 
         if (con->gearman->options & GEARMAN_NON_BLOCKING)
         {
@@ -486,7 +486,7 @@ gearman_return_t gearman_con_flush(gearman_con_st *con)
         {
           if (errno == EAGAIN)
           { 
-            con->events= POLLOUT;
+            con->events|= POLLOUT;
 
             if (con->gearman->options & GEARMAN_NON_BLOCKING)
               return GEARMAN_IO_WAIT;
@@ -934,7 +934,7 @@ static size_t _con_read(gearman_con_st *con, void *data, size_t data_size,
     {
       if (errno == EAGAIN)
       {
-        con->events= POLLIN;
+        con->events|= POLLIN;
 
         if (con->gearman->options & GEARMAN_NON_BLOCKING)
         {
