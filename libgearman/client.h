@@ -32,6 +32,8 @@ extern "C" {
  * @addtogroup gearman_client Client Interface
  * This is the interface gearman clients should use. You can run tasks one at a
  * time or concurrently.
+ *
+ * See Main Page for full details.
  * @{
  */
 
@@ -81,13 +83,14 @@ int gearman_client_errno(gearman_client_st *client);
  * Set options for a client structure.
  * @param client Client structure previously initialized with
  *        gearman_client_create or gearman_client_clone.
- * @param options Available options for gearman structs.
+ * @param options Available options for gearman_client structs.
  * @param data For options that require parameters, the value of that parameter.
  *        For all other option flags, this should be 0 to clear the option or 1
  *        to set.
  */
 void gearman_client_set_options(gearman_client_st *client,
-                                gearman_options_t options, uint32_t data);
+                                gearman_client_options_t options,
+                                uint32_t data);
 
 /**
  * Add a job server to a client. This goes into a list of servers than can be
@@ -105,6 +108,8 @@ gearman_return_t gearman_client_add_server(gearman_client_st *client,
  * @addtogroup gearman_client_single Single Task Interface
  * @ingroup gearman_client
  * Use the following set of functions to run one task at a time.
+ *
+ * See Main Page for full details.
  * @{
  */
 
@@ -220,6 +225,8 @@ gearman_return_t gearman_client_echo(gearman_client_st *client,
  * @addtogroup gearman_client_concurrent Concurrent Task Interface
  * @ingroup gearman_client
  * Use the following set of functions to multiple run tasks concurrently.
+ *
+ * See Main Page for full details.
  * @{
  */
 

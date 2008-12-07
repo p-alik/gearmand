@@ -88,13 +88,14 @@ int gearman_worker_errno(gearman_worker_st *worker);
  * Set options for a worker structure.
  * @param worker Worker structure previously initialized with
  *        gearman_worker_create or gearman_worker_clone.
- * @param options Available options for gearman structs.
+ * @param options Available options for gearman_worker structs.
  * @param data For options that require parameters, the value of that parameter.
  *        For all other option flags, this should be 0 to clear the option or 1
  *        to set.
  */
 void gearman_worker_set_options(gearman_worker_st *worker,
-                                gearman_options_t options, uint32_t data);
+                                gearman_worker_options_t options,
+                                uint32_t data);
 
 /**
  * Add a job server to a worker. This goes into a list of servers than can be

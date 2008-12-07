@@ -88,6 +88,11 @@ uint32_t gearman_task_numerator(gearman_task_st *task);
 uint32_t gearman_task_denominator(gearman_task_st *task);
 
 /**
+ * Get data being returned for a task.
+ */
+const void *gearman_task_data(gearman_task_st *task);
+
+/**
  * Get data size being returned for a task.
  */
 size_t gearman_task_data_size(gearman_task_st *task);

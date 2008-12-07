@@ -140,9 +140,16 @@ int gearman_client_errno(gearman_client_st *client)
 }
 
 void gearman_client_set_options(gearman_client_st *client,
-                                gearman_options_t options, uint32_t data)
+                                gearman_client_options_t options,
+                                uint32_t data)
 {
-  gearman_set_options(client->gearman, options, data);
+  if (options & GEARMAN_CLIENT_NON_BLOCKING)
+    gearman_set_options(client->gearman, GEARMAN_NON_BLOCKING, data);
+
+  if (data)
+    client->options |= options;
+  else
+    client->options &= ~options;
 }
 
 gearman_return_t gearman_client_add_server(gearman_client_st *client,
@@ -478,7 +485,8 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client,
 
           /* Read packet on connection and find which task it belongs to. */
           (void)gearman_con_recv(client->con, &(client->con->packet), &ret,
-                                 false);
+                                 client->options &
+                                 GEARMAN_CLIENT_BUFFER_RESULT ? true : false);
           if (ret != GEARMAN_SUCCESS)
           {
             if (ret == GEARMAN_IO_WAIT)

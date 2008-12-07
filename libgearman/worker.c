@@ -109,9 +109,16 @@ int gearman_worker_errno(gearman_worker_st *worker)
 }
 
 void gearman_worker_set_options(gearman_worker_st *worker,
-                                gearman_options_t options, uint32_t data)
+                                gearman_worker_options_t options,
+                                uint32_t data)
 {
-  gearman_set_options(worker->gearman, options, data);
+  if (options & GEARMAN_WORKER_NON_BLOCKING)
+    gearman_set_options(worker->gearman, GEARMAN_NON_BLOCKING, data);
+
+  if (data)
+    worker->options |= options;
+  else
+    worker->options &= ~options;
 }
 
 gearman_return_t gearman_worker_add_server(gearman_worker_st *worker,

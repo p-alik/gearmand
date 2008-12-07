@@ -21,12 +21,15 @@ AM_LDFLAGS= $(top_builddir)/libgearman/libgearman.la
 noinst_PROGRAMS= \
 	reverse_client \
 	reverse_client_bg \
+	reverse_client_cb \
 	reverse_worker \
 	reverse_worker_bg
 
 reverse_client_SOURCES= reverse_client.c
 
 reverse_client_bg_SOURCES= reverse_client_bg.c
+
+reverse_client_cb_SOURCES= reverse_client_cb.c
 
 reverse_worker_SOURCES= reverse_worker.c
 

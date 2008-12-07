@@ -269,8 +269,10 @@ typedef enum
  */
 typedef enum
 {
-  GEARMAN_CLIENT_ALLOCATED=   (1 << 0),
-  GEARMAN_CLIENT_TASK_IN_USE= (1 << 1)
+  GEARMAN_CLIENT_ALLOCATED=     (1 << 0),
+  GEARMAN_CLIENT_NON_BLOCKING=  (1 << 1),
+  GEARMAN_CLIENT_TASK_IN_USE=   (1 << 2),
+  GEARMAN_CLIENT_BUFFER_RESULT= (1 << 3)
 } gearman_client_options_t;
 
 /**
@@ -292,8 +294,9 @@ typedef enum
 typedef enum
 {
   GEARMAN_WORKER_ALLOCATED=      (1 << 0),
-  GEARMAN_WORKER_GEARMAN_STATIC= (1 << 1),
-  GEARMAN_WORKER_PACKET_IN_USE=  (1 << 2)
+  GEARMAN_WORKER_NON_BLOCKING=   (1 << 1),
+  GEARMAN_WORKER_GEARMAN_STATIC= (1 << 2),
+  GEARMAN_WORKER_PACKET_IN_USE=  (1 << 3)
 } gearman_worker_options_t;
 
 /**

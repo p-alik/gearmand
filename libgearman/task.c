@@ -110,6 +110,11 @@ uint32_t gearman_task_denominator(gearman_task_st *task)
   return task->denominator;
 }
 
+const void *gearman_task_data(gearman_task_st *task)
+{
+  return task->recv->data;
+}
+
 size_t gearman_task_data_size(gearman_task_st *task)
 {
   return task->recv->data_size;
