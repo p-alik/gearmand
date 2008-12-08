@@ -19,8 +19,10 @@ AM_CFLAGS= -I$(top_builddir)
 
 lib_LTLIBRARIES= libgearman.la
 
-pkginclude_HEADERS= \
-	client.h
+libgearmanincludedir= ${includedir}/libgearman
+
+dist_libgearmaninclude_HEADERS= \
+	client.h \
 	con.h \
 	constants.h \
 	gearman.h \

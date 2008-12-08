@@ -64,6 +64,7 @@ typedef struct gearman_client_st gearman_client_st;
 typedef struct gearman_job_st gearman_job_st;
 typedef struct gearman_worker_st gearman_worker_st;
 typedef struct gearman_worker_function_st gearman_worker_function_st;
+typedef char gearman_job_handle_t[GEARMAN_JOB_HANDLE_SIZE];
 
 /**
  * Return codes.
@@ -230,7 +231,8 @@ typedef enum
  */
 typedef enum
 {
-  GEARMAN_TASK_ALLOCATED= (1 << 0)
+  GEARMAN_TASK_ALLOCATED=   (1 << 0),
+  GEARMAN_TASK_SEND_IN_USE= (1 << 1)
 } gearman_task_options_t;
 
 /**
@@ -267,9 +269,10 @@ typedef enum
  */
 typedef enum
 {
-  GEARMAN_CLIENT_ALLOCATED=      (1 << 0),
-  GEARMAN_CLIENT_GEARMAN_STATIC= (1 << 1),
-  GEARMAN_CLIENT_TASK_IN_USE=    (1 << 2)
+  GEARMAN_CLIENT_ALLOCATED=     (1 << 0),
+  GEARMAN_CLIENT_NON_BLOCKING=  (1 << 1),
+  GEARMAN_CLIENT_TASK_IN_USE=   (1 << 2),
+  GEARMAN_CLIENT_BUFFER_RESULT= (1 << 3)
 } gearman_client_options_t;
 
 /**
@@ -291,8 +294,9 @@ typedef enum
 typedef enum
 {
   GEARMAN_WORKER_ALLOCATED=      (1 << 0),
-  GEARMAN_WORKER_GEARMAN_STATIC= (1 << 1),
-  GEARMAN_WORKER_PACKET_IN_USE=  (1 << 2)
+  GEARMAN_WORKER_NON_BLOCKING=   (1 << 1),
+  GEARMAN_WORKER_GEARMAN_STATIC= (1 << 2),
+  GEARMAN_WORKER_PACKET_IN_USE=  (1 << 3)
 } gearman_worker_options_t;
 
 /**

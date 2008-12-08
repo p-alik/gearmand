@@ -23,6 +23,14 @@
 
 #include <libgearman/gearman.h>
 
+#define REVERSE_TASKS 10
+#define REVERSE_SIZE 1024
+
+static gearman_return_t created(gearman_task_st *task);
+static gearman_return_t status(gearman_task_st *task);
+static gearman_return_t complete(gearman_task_st *task);
+static gearman_return_t fail(gearman_task_st *task);
+
 static void usage(char *name);
 
 int main(int argc, char *argv[])
@@ -32,11 +40,8 @@ int main(int argc, char *argv[])
   unsigned short port= 0;
   gearman_return_t ret;
   gearman_client_st client;
-  char job_handle[GEARMAN_JOB_HANDLE_SIZE];
-  bool is_known;
-  bool is_running;
-  uint32_t numerator;
-  uint32_t denominator;
+  gearman_task_st task[REVERSE_TASKS];
+  uint32_t x;
 
   while((c = getopt(argc, argv, "h:p:")) != EOF)
   {
@@ -68,6 +73,8 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
+  gearman_client_set_options(&client, GEARMAN_CLIENT_BUFFER_RESULT, 1);
+
   ret= gearman_client_add_server(&client, host, port);
   if (ret != GEARMAN_SUCCESS)
   {
@@ -75,39 +82,55 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  ret= gearman_client_do_background(&client, "reverse", (void *)argv[optind],
-                                    (size_t)strlen(argv[optind]), job_handle);
+  for (x= 0; x < REVERSE_TASKS; x++)
+  {
+    if (gearman_client_add_task(&client, &(task[x]), NULL, "reverse",
+                                (void *)argv[optind],
+                                (size_t)strlen(argv[optind]), &ret) == NULL ||
+        ret != GEARMAN_SUCCESS)
+    {
+      fprintf(stderr, "%s\n", gearman_client_error(&client));
+      exit(1);
+    }
+  }
+
+  ret= gearman_client_run_tasks(&client, NULL, created, NULL, status, complete,
+                                fail);
   if (ret != GEARMAN_SUCCESS)
   {
     fprintf(stderr, "%s\n", gearman_client_error(&client));
     exit(1);
   }
 
-  printf("Background Job Handle=%s\n", job_handle);
-
-  while (1)
-  {
-    ret= gearman_client_task_status(&client, job_handle, &is_known, &is_running,
-                                    &numerator, &denominator);
-    if (ret != GEARMAN_SUCCESS)
-    {
-      fprintf(stderr, "%s\n", gearman_client_error(&client));
-      exit(1);
-    }
-
-    printf("Known=%s, Running=%s, Percent Complete=%u/%u\n",
-            is_known ? "true" : "false", is_running ? "true" : "false",
-            numerator, denominator);
-
-    if (!is_known)
-      break;
-
-    sleep(1);
-  }
-
   gearman_client_free(&client);
 
   return 0;
+}
+
+static gearman_return_t created(gearman_task_st *task)
+{
+  printf("Created: %s\n", gearman_task_job_handle(task));
+  return GEARMAN_SUCCESS;
+}
+
+static gearman_return_t status(gearman_task_st *task)
+{
+  printf("Status: %s (%u/%u)\n", gearman_task_job_handle(task),
+         gearman_task_numerator(task), gearman_task_denominator(task));
+  return GEARMAN_SUCCESS;
+}
+
+static gearman_return_t complete(gearman_task_st *task)
+{
+  printf("Completed: %s %.*s\n", gearman_task_job_handle(task),
+         (int)gearman_task_data_size(task), (char *)gearman_task_data(task));
+  return GEARMAN_SUCCESS;
+}
+
+static gearman_return_t fail(gearman_task_st *task)
+{
+  printf("Failed: %s\n", gearman_task_job_handle(task));
+  return GEARMAN_SUCCESS;
 }
 
 static void usage(char *name)

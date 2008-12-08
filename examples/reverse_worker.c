@@ -54,7 +54,11 @@ int main(int argc, char *argv[])
     }
   }
 
-  (void)gearman_worker_create(NULL, &worker);
+  if (gearman_worker_create(&worker) == NULL)
+  {
+    fprintf(stderr, "Memory allocation failure on worker creation\n");
+    exit(1);
+  }
 
   ret= gearman_worker_add_server(&worker, host, port);
   if (ret != GEARMAN_SUCCESS)

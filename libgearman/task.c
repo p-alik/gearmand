@@ -63,6 +63,9 @@ void gearman_task_free(gearman_task_st *task)
     task->next->prev= task->prev;
   task->gearman->task_count--;
 
+  if (task->options & GEARMAN_TASK_SEND_IN_USE)
+    gearman_packet_free(&(task->send));
+
   if (task->options & GEARMAN_TASK_ALLOCATED)
     free(task);
 }
@@ -72,17 +75,17 @@ void *gearman_task_fn_arg(gearman_task_st *task)
   return (void *)task->fn_arg;
 }
 
-char *gearman_task_function(gearman_task_st *task)
+const char *gearman_task_function(gearman_task_st *task)
 {
   return (char *)task->send.arg[0];
 }
 
-char *gearman_task_uuid(gearman_task_st *task)
+const char *gearman_task_uuid(gearman_task_st *task)
 {
   return (char *)task->send.arg[1];
 }
 
-char *gearman_task_job_handle(gearman_task_st *task)
+const char *gearman_task_job_handle(gearman_task_st *task)
 {
   return task->job_handle;
 }
@@ -105,6 +108,11 @@ uint32_t gearman_task_numerator(gearman_task_st *task)
 uint32_t gearman_task_denominator(gearman_task_st *task)
 {
   return task->denominator;
+}
+
+const void *gearman_task_data(gearman_task_st *task)
+{
+  return task->recv->data;
 }
 
 size_t gearman_task_data_size(gearman_task_st *task)

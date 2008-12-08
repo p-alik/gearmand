@@ -55,17 +55,17 @@ void *gearman_task_fn_arg(gearman_task_st *task);
 /**
  * Get function name associated with a task.
  */
-char *gearman_task_function(gearman_task_st *task);
+const char *gearman_task_function(gearman_task_st *task);
 
 /**
  * Get unique identifier for a task.
  */
-char *gearman_task_uuid(gearman_task_st *task);
+const char *gearman_task_uuid(gearman_task_st *task);
 
 /**
  * Get job handle for a task.
  */
-char *gearman_task_job_handle(gearman_task_st *task);
+const char *gearman_task_job_handle(gearman_task_st *task);
 
 /**
  * Get status on whether a task is known or not.
@@ -86,6 +86,11 @@ uint32_t gearman_task_numerator(gearman_task_st *task);
  * Get the denominator of percentage complete for a task.
  */
 uint32_t gearman_task_denominator(gearman_task_st *task);
+
+/**
+ * Get data being returned for a task.
+ */
+const void *gearman_task_data(gearman_task_st *task);
 
 /**
  * Get data size being returned for a task.

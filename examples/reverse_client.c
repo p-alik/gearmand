@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  if (gearman_client_create(NULL, &client) == NULL)
+  if (gearman_client_create(&client) == NULL)
   {
     fprintf(stderr, "Memory allocation failure on client creation\n");
     exit(1);

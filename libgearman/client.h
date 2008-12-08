@@ -32,20 +32,19 @@ extern "C" {
  * @addtogroup gearman_client Client Interface
  * This is the interface gearman clients should use. You can run tasks one at a
  * time or concurrently.
+ *
+ * See Main Page for full details.
  * @{
  */
 
 /**
  * Initialize a client structure. This cannot fail if the caller supplies a
  * client structure.
- * @param gearman Gearman instance if one exists, otherwise pass in NULL to
- *        create one.
  * @param client Caller allocated client structure, or NULL to allocate one.
  * @return Pointer to an allocated client structure if client parameter was
  *         NULL, or the client parameter pointer if it was not NULL.
  */
-gearman_client_st *gearman_client_create(gearman_st *gearman,
-                                         gearman_client_st *client);
+gearman_client_st *gearman_client_create(gearman_client_st *client);
 
 /**
  * Clone a client structure.
@@ -84,13 +83,14 @@ int gearman_client_errno(gearman_client_st *client);
  * Set options for a client structure.
  * @param client Client structure previously initialized with
  *        gearman_client_create or gearman_client_clone.
- * @param options Available options for gearman structs.
+ * @param options Available options for gearman_client structs.
  * @param data For options that require parameters, the value of that parameter.
  *        For all other option flags, this should be 0 to clear the option or 1
  *        to set.
  */
 void gearman_client_set_options(gearman_client_st *client,
-                                gearman_options_t options, uint32_t data);
+                                gearman_client_options_t options,
+                                uint32_t data);
 
 /**
  * Add a job server to a client. This goes into a list of servers than can be
@@ -108,6 +108,8 @@ gearman_return_t gearman_client_add_server(gearman_client_st *client,
  * @addtogroup gearman_client_single Single Task Interface
  * @ingroup gearman_client
  * Use the following set of functions to run one task at a time.
+ *
+ * See Main Page for full details.
  * @{
  */
 
@@ -146,7 +148,7 @@ void *gearman_client_do_high(gearman_client_st *client,
                              gearman_return_t *ret_ptr);
 
 /**
- * Get the jo handle for the running task. This should be used between
+ * Get the job handle for the running task. This should be used between
  * repeated gearman_client_do() and gearman_client_do_high() calls to get
  * information.
  * @param client Client structure previously initialized with
@@ -176,15 +178,14 @@ void gearman_client_do_status(gearman_client_st *client, uint32_t *numerator,
  * @param function_name The name of the function to run.
  * @param workload The workload to pass to the function when it is run.
  * @param workload_size Size of the workload.
- * @param job_handle_buffer A buffer to store the job handle in. This must be at
-          least GEARMAN_JOB_HANDLE_SIZE bytes.
+ * @param job_handle A buffer to store the job handle in.
  * @return Standard gearman return value.
  */
 gearman_return_t gearman_client_do_background(gearman_client_st *client,
                                               const char *function_name,
                                               const void *workload,
                                               size_t workload_size,
-                                              char *job_handle_buffer);
+                                              gearman_job_handle_t job_handle);
 
 /**
  * Get the status for a backgound task.
@@ -224,6 +225,8 @@ gearman_return_t gearman_client_echo(gearman_client_st *client,
  * @addtogroup gearman_client_concurrent Concurrent Task Interface
  * @ingroup gearman_client
  * Use the following set of functions to multiple run tasks concurrently.
+ *
+ * See Main Page for full details.
  * @{
  */
 

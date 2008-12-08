@@ -52,7 +52,7 @@ test_return init_test(void *not_used __attribute__((unused)))
 {
   gearman_client_st client;
 
-  (void)gearman_client_create(NULL, &client);
+  (void)gearman_client_create(&client);
   gearman_client_free(&client);
 
   return TEST_SUCCESS;
@@ -61,7 +61,7 @@ test_return init_test(void *not_used __attribute__((unused)))
 test_return allocation_test(void *not_used __attribute__((unused)))
 {
   gearman_client_st *object;
-  object= gearman_client_create(NULL, NULL);
+  object= gearman_client_create(NULL);
   assert(object);
   gearman_client_free(object);
 
@@ -123,7 +123,7 @@ test_return background_failure_test(void *object)
 
   rc= gearman_client_do_background(client, "does_not_exist",
                                    value, value_length, job_id);
-  WATCHPOINT_ERROR(rc);
+  //WATCHPOINT_ERROR(rc);
   assert(rc == GEARMAN_SUCCESS);
 
   rc= gearman_client_task_status(client, job_id, &is_known, &is_running, &numerator, &denominator);
@@ -165,8 +165,8 @@ test_return background_test(void *object)
     assert(rc == GEARMAN_SUCCESS);
     if (is_running == true)
     {
-      WATCHPOINT_NUMBER(numerator);
-      WATCHPOINT_NUMBER(denominator);
+      //WATCHPOINT_NUMBER(numerator);
+      //WATCHPOINT_NUMBER(denominator);
       continue;
     }
     else
@@ -231,7 +231,7 @@ void *create(void *not_used __attribute__((unused)))
   gearman_client_st *client;
   gearman_return_t rc;
 
-  client= gearman_client_create(NULL, NULL);
+  client= gearman_client_create(NULL);
 
   assert(client);
 

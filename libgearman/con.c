@@ -141,6 +141,7 @@ void gearman_con_set_host(gearman_con_st *con, const char *host)
 
   strncpy(con->host, host == NULL ? GEARMAN_DEFAULT_TCP_HOST : host,
           NI_MAXHOST);
+  con->host[NI_MAXHOST - 1]= 0;
 }
 
 void gearman_con_set_port(gearman_con_st *con, in_port_t port)
@@ -455,7 +456,7 @@ gearman_return_t gearman_con_flush(gearman_con_st *con)
           break;
         }
 
-        con->events= POLLOUT;
+        con->events|= POLLOUT;
 
         if (con->gearman->options & GEARMAN_NON_BLOCKING)
         {
@@ -485,7 +486,7 @@ gearman_return_t gearman_con_flush(gearman_con_st *con)
         {
           if (errno == EAGAIN)
           { 
-            con->events= POLLOUT;
+            con->events|= POLLOUT;
 
             if (con->gearman->options & GEARMAN_NON_BLOCKING)
               return GEARMAN_IO_WAIT;
@@ -933,7 +934,7 @@ static size_t _con_read(gearman_con_st *con, void *data, size_t data_size,
     {
       if (errno == EAGAIN)
       {
-        con->events= POLLIN;
+        con->events|= POLLIN;
 
         if (con->gearman->options & GEARMAN_NON_BLOCKING)
         {
