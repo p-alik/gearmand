@@ -63,6 +63,9 @@ gearman_worker_st *gearman_worker_create(gearman_worker_st *worker)
 gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker,
                                         gearman_worker_st *from)
 {
+  if (from == NULL)
+    return NULL;
+
   worker= _worker_allocate(worker);
   if (worker == NULL)
     return NULL;

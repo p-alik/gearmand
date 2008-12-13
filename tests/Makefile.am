@@ -28,10 +28,11 @@ client_test_LDFLAGS= $(top_builddir)/libgearman/libgearman.la
 worker_test_SOURCES= test.c worker_test.c
 worker_test_LDFLAGS= $(top_builddir)/libgearman/libgearman.la
 
-record:
-	./client_test output.txt > output.res
+record: client_test
+	./client_test > output.res
+
 test: client_test
-	./client_test output.txt > output.cmp
+	./client_test > output.cmp
 	diff output.res output.cmp
 
 valgrind:

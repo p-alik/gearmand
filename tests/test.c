@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
     if (collection_to_run && strcmp(collection_to_run, next->name))
       continue;
 
-    fprintf(stderr, "\n%s\n\n", next->name);
+    printf("\n%s\n\n", next->name);
 
     for (x= 0; run->name; run++)
     {
@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
       if (wildcard && strcmp(wildcard, run->name))
         continue;
 
-      fprintf(stderr, "Testing %s", run->name);
+      printf("Testing %-50s", run->name);
 
       if (run->requires_flush && next->flush)
         next->flush();
@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
 
         if (rc != TEST_SUCCESS)
         {
-          fprintf(stderr, "\t\t\t\t\t [ skipping ]\n");
+          printf("[ skipping ]\n");
           goto error;
         }
       }
@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
       run->function(object);
       gettimeofday(&end_time, NULL);
       load_time= timedif(end_time, start_time);
-      fprintf(stderr, "\t\t\t\t\t %ld.%03ld [ ok ]\n", load_time / 1000, 
+      printf("[ ok %ld.%03ld ]\n", load_time / 1000, 
               load_time % 1000);
 
       if (next->post)
@@ -133,7 +133,7 @@ error:
   if (world.destroy)
     world.destroy(collection_object);
 
-  fprintf(stderr, "All tests completed successfully\n\n");
+  printf("All tests completed successfully\n\n");
 
   return 0;
 }

@@ -33,7 +33,7 @@ extern "C" {
  * This is the interface gearman clients should use. You can run tasks one at a
  * time or concurrently.
  *
- * See Main Page for full details.
+ * @ref main_page "See Main Page for full details."
  * @{
  */
 

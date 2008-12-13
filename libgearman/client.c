@@ -102,6 +102,9 @@ gearman_client_st *gearman_client_create(gearman_client_st *client)
 gearman_client_st *gearman_client_clone(gearman_client_st *client,
                                         gearman_client_st *from)
 {
+  if (from == NULL)
+    return NULL;
+
   client= _client_allocate(client);
   if (client == NULL)
     return NULL;
