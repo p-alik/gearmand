@@ -23,7 +23,6 @@
 
 /**
 @mainpage Gearman Library
-@anchor main_page
 
 Gearman is, at the most basic level, a job queuing system. It can be
 used to farm out work to other machines, dispatc function calls to
@@ -43,6 +42,7 @@ a client, and a job is usually used in the context of the server
 and worker. A task can be a job or other client request such as
 getting status.
 
+@anchor main_page_client
 @section client Client
 
 It is best to look at the example source code (in examples/) included
@@ -67,6 +67,7 @@ You can pass either of the host and port fields of
 gearman_client_add_server() as NULL and 0 respectively to use the
 default values.
 
+@anchor main_page_client_single
 @subsection client_single Single Client Interface
 
 One you have the client object setup, you can run a single task with:
@@ -81,6 +82,7 @@ This will contact the job server, request "function" to be run with
 size of the result is stored in result_size. The return code is stored
 in "ret" and shoulf always be checked.
 
+@anchor main_page_client_concurrent
 @subsection client_concurrent Concurrent Client Interface
 
 If you need to run multiple tasks at the same time, you'll want to

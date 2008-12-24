@@ -33,7 +33,7 @@ extern "C" {
  * This is the interface gearman clients should use. You can run tasks one at a
  * time or concurrently.
  *
- * @ref main_page "See Main Page for full details."
+ * @ref main_page_client "See Main Page for full details."
  * @{
  */
 
@@ -109,7 +109,7 @@ gearman_return_t gearman_client_add_server(gearman_client_st *client,
  * @ingroup gearman_client
  * Use the following set of functions to run one task at a time.
  *
- * See Main Page for full details.
+ * @ref main_page_client_single "See Main Page for full details."
  * @{
  */
 
@@ -226,7 +226,7 @@ gearman_return_t gearman_client_echo(gearman_client_st *client,
  * @ingroup gearman_client
  * Use the following set of functions to multiple run tasks concurrently.
  *
- * See Main Page for full details.
+ * @ref main_page_client_concurrent "See Main Page for full details."
  * @{
  */
 
