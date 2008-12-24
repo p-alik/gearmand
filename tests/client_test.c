@@ -1,20 +1,11 @@
 /* Gearman server and library
- * Copyright (C) 2008 Brian Aker
+ * Copyright (C) 2008 Brian Aker, Eric Day
+ * All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * Use and distribution licensed under the BSD license.  See
+ * the COPYING file in the parent directory for full text.
  */
+
 #include <assert.h>
 
 #include <stdio.h>
@@ -28,7 +19,6 @@
 #include <stdbool.h>
 
 #include <libgearman/gearman.h>
-#include <libgearman/watchpoint.h>
 
 #include "test.h"
 
@@ -41,6 +31,7 @@ test_return submit_job_test(void *object);
 test_return background_failure_test(void *object);
 test_return background_test(void *object);
 test_return error_test(void *object);
+
 void *create(void *not_used);
 void destroy(void *object);
 test_return pre(void *object);
@@ -89,9 +80,9 @@ test_return clone_test(void *object)
   return TEST_SUCCESS;
 }
 
-#ifdef NOT_DONE
-test_return echo_test(void *object)
+test_return echo_test(void *object __attribute__((unused)))
 {
+#ifdef NOT_DONE
   gearman_return_t rc;
   gearman_client_st *client= (gearman_client_st *)object;
   size_t value_length;
@@ -102,10 +93,10 @@ test_return echo_test(void *object)
   rc= gearman_client_echo(client, (uint8_t *)value, value_length);
   WATCHPOINT_ERROR(rc);
   assert(rc == GEARMAN_SUCCESS);
+#endif
 
   return TEST_SUCCESS;
 }
-#endif
 
 test_return background_failure_test(void *object)
 {
@@ -126,7 +117,7 @@ test_return background_failure_test(void *object)
 
   rc= gearman_client_task_status(client, job_handle, &is_known, &is_running,
                                  &numerator, &denominator);
-  if (rc != GEARMAN_SUCCESS || is_known != false || is_running != false ||
+  if (rc != GEARMAN_SUCCESS || is_known != true || is_running != false ||
       numerator != 0 || denominator != 0)
   {
     return TEST_FAILURE;
@@ -201,7 +192,6 @@ test_return submit_job_test(void *object)
 }
 
 #ifdef NOT_DONE
-
 test_return error_test(void *object)
 {
   gearman_return rc;
@@ -215,8 +205,7 @@ test_return error_test(void *object)
 
   return TEST_SUCCESS;
 }
-
-#endif /* NOT_DONE */
+#endif
 
 test_return flush(void)
 {
@@ -271,11 +260,11 @@ test_st tests[] ={
   {"init", 0, init_test },
   {"allocation", 0, allocation_test },
   {"clone_test", 0, clone_test },
+  {"echo", 0, echo_test },
   {"background_failure", 0, background_failure_test },
 #ifdef NOT_DONE
   {"submit_job", 0, submit_job_test },
   {"background", 0, background_test },
-  {"echo", 0, echo_test },
   {"error", 0, error_test },
   {"submit_job2", 0, submit_job_test },
 #endif
@@ -283,7 +272,7 @@ test_st tests[] ={
 };
 
 collection_st collection[] ={
-  {"norm", flush, create, destroy, pre, post, tests},
+  {"client", flush, create, destroy, pre, post, tests},
   {0, 0, 0, 0, 0, 0, 0}
 };
 
