@@ -82,18 +82,16 @@ test_return clone_test(void *object)
 
 test_return echo_test(void *object __attribute__((unused)))
 {
-#ifdef NOT_DONE
-  gearman_return_t rc;
   gearman_client_st *client= (gearman_client_st *)object;
+  gearman_return_t rc;
   size_t value_length;
   char *value= "This is my echo test";
 
   value_length= strlen(value);
 
   rc= gearman_client_echo(client, (uint8_t *)value, value_length);
-  WATCHPOINT_ERROR(rc);
-  assert(rc == GEARMAN_SUCCESS);
-#endif
+  if (rc != GEARMAN_SUCCESS)
+    return TEST_FAILURE;
 
   return TEST_SUCCESS;
 }

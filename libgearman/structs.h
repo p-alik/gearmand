@@ -39,8 +39,7 @@ struct gearman_st
   int last_errno;
   char last_error[GEARMAN_ERROR_SIZE];
   gearman_event_watch_fn *event_watch;
-  gearman_event_close_fn *event_close;
-  void *event_cb_arg;
+  void *event_watch_arg;
 };
 
 /**

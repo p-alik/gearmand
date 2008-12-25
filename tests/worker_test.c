@@ -77,6 +77,17 @@ test_return clone_test(void *object)
 
 test_return echo_test(void *object __attribute__((unused)))
 {
+  gearman_worker_st *worker= (gearman_worker_st *)object;
+  gearman_return_t rc;
+  size_t value_length;
+  char *value= "This is my echo test";
+  
+  value_length= strlen(value);
+  
+  rc= gearman_worker_echo(worker, (uint8_t *)value, value_length);
+  if (rc != GEARMAN_SUCCESS)
+    return TEST_FAILURE;
+  
   return TEST_SUCCESS;
 }
 

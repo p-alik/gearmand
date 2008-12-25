@@ -92,9 +92,9 @@ void gearman_set_options(gearman_st *gearman, gearman_options_t options,
 /**
  * Set custom I/O event callbacks for a gearman structure.
  */
-void gearman_set_event_cb(gearman_st *gearman,
-                          gearman_event_watch_fn *event_watch,
-                          gearman_event_close_fn *event_close, void *arg);
+void gearman_set_event_watch(gearman_st *gearman,
+                             gearman_event_watch_fn *event_watch,
+                             void *event_watch_arg);
 
 /** @} */
 

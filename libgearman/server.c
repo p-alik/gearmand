@@ -102,12 +102,11 @@ void gearman_server_set_options(gearman_server_st *server,
     server->options &= ~options;
 }
 
-void gearman_server_set_event_cb(gearman_server_st *server,
-                                 gearman_event_watch_fn *event_watch,
-                                 gearman_event_close_fn *event_close,
-                                 void *arg)
+void gearman_server_set_event_watch(gearman_server_st *server,
+                                    gearman_event_watch_fn *event_watch,
+                                    void *event_watch_arg)
 {
-  gearman_set_event_cb(server->gearman, event_watch, event_close, arg);
+  gearman_set_event_watch(server->gearman, event_watch, event_watch_arg);
 }
 
 gearman_server_con_st *gearman_server_add_con(gearman_server_st *server,

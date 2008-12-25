@@ -36,9 +36,6 @@ static gearman_return_t _con_watch(gearman_con_st *con, short events,
 
 static void _con_ready(int fd __attribute__ ((unused)), short events,
                        void *arg);
-
-static gearman_return_t _con_close(gearman_con_st *con, gearman_return_t ret,
-                                   void *arg __attribute__ ((unused)));
 #endif
 
 /** @} */
@@ -73,8 +70,7 @@ gearmand_st *gearmand_init(in_port_t port, int backlog)
     return NULL;
   }
 
-  gearman_server_set_event_cb(&(gearmand->server), _con_watch, _con_close,
-                              NULL);
+  gearman_server_set_event_watch(&(gearmand->server), _con_watch, NULL);
 
   if (_listen_init(port, backlog, gearmand->base, &(gearmand->listen_event),
                    gearmand) != GEARMAN_SUCCESS)
@@ -254,10 +250,18 @@ static void _con_ready(int fd __attribute__ ((unused)), short events,
   server_con= gearman_server_run(&(dcon->gearmand->server), &ret);
   if (ret != GEARMAN_SUCCESS && ret != GEARMAN_IO_WAIT)
   {
-    printf("gearman_server_run:%s\n",
-           gearman_server_error(&(dcon->gearmand->server)));
     if (server_con == NULL)
+    {
+      printf("gearman_server_run:%s\n",
+             gearman_server_error(&(dcon->gearmand->server)));
       exit(1);
+    }
+
+    if (ret != GEARMAN_EOF)
+    {
+      printf("gearman_server_run:%s\n",
+             gearman_server_error(&(dcon->gearmand->server)));
+    }
 
     dcon= (gearmand_con_st *)gearman_server_con_data(server_con);
 
@@ -267,22 +271,5 @@ static void _con_ready(int fd __attribute__ ((unused)), short events,
     gearman_server_con_free(server_con);
     free(dcon);
   }
-}
-
-static gearman_return_t _con_close(gearman_con_st *con, gearman_return_t ret,
-                                   void *arg __attribute__ ((unused)))
-{
-  gearmand_con_st *dcon= (gearmand_con_st *)gearman_con_data(con);
-
-  if (ret != GEARMAN_SUCCESS)
-    printf("_con_close:%s\n", gearman_server_error(&(dcon->gearmand->server)));
-
-  if (event_del(&(dcon->event)) == -1)
-    return GEARMAN_EVENT;
-
-  gearman_con_free(con);
-  free(dcon);
-
-  return GEARMAN_SUCCESS;
 }
 #endif

@@ -82,16 +82,14 @@ void gearman_server_set_options(gearman_server_st *server,
                                 uint32_t data);
 
 /**
- * Set custom I/O event callbacks for a server.
+ * Set custom I/O event watch callback.
  * @param server Server structure previously initialized with
  *        gearman_server_create or gearman_server_clone.
  * @param event_watch Function to be called when events need to be watched.
- * @param event_close Function to be called when a connection is closed.
  */
-void gearman_server_set_event_cb(gearman_server_st *server,
-                                 gearman_event_watch_fn *event_watch,
-                                 gearman_event_close_fn *event_close,
-                                 void *arg);
+void gearman_server_set_event_watch(gearman_server_st *server,
+                                    gearman_event_watch_fn *event_watch,
+                                    void *event_watch_arg);
 
 /**
  * Add a job server to a server. This goes into a list of servers than can be

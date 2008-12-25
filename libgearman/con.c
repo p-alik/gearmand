@@ -820,7 +820,8 @@ gearman_return_t gearman_con_set_events(gearman_con_st *con, short events)
 
   if (con->gearman->event_watch != NULL)
   {
-    ret= (con->gearman->event_watch)(con, events, con->gearman->event_cb_arg);
+    ret= (con->gearman->event_watch)(con, events,
+                                     con->gearman->event_watch_arg);
     if (ret != GEARMAN_SUCCESS)
     {
       (void)gearman_con_close(con);
