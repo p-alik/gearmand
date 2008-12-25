@@ -114,3 +114,12 @@ void gearman_set_options(gearman_st *gearman, gearman_options_t options,
   else
     gearman->options &= ~options;
 }
+
+void gearman_set_event_cb(gearman_st *gearman, 
+                          gearman_event_watch_fn *event_watch,
+                          gearman_event_close_fn *event_close, void *arg)
+{
+  gearman->event_watch= event_watch;
+  gearman->event_close= event_close;
+  gearman->event_cb_arg= arg;
+}

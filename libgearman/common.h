@@ -27,6 +27,9 @@
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
+#ifdef HAVE_SIGNAL_H
+#include <signal.h>
+#endif
 #ifdef HAVE_STDARG_H
 #include <stdarg.h>
 #endif
@@ -59,5 +62,36 @@
 #  include <time.h>
 # endif
 #endif
+
+#ifdef HAVE_EVENT_H
+#include <event.h>
+#endif
+
+/**
+ * @ingroup gearmand
+ */
+struct gearmand
+{
+  gearman_server_st server;
+#ifdef HAVE_EVENT_H
+  struct event_base *base;
+  struct event listen_event;
+#endif
+};
+
+/**
+ * @ingroup gearmand
+ */
+struct gearmand_con
+{
+  int fd;
+  struct sockaddr_in sa;
+  gearmand_st *gearmand;
+  gearman_server_con_st server_con;
+#ifdef HAVE_EVENT_H
+  struct event event;
+#endif
+  gearman_con_st *con;
+};
 
 #endif /* __GEARMAN_COMMON_H__ */

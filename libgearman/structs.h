@@ -38,6 +38,9 @@ struct gearman_st
   uint32_t sending;
   int last_errno;
   char last_error[GEARMAN_ERROR_SIZE];
+  gearman_event_watch_fn *event_watch;
+  gearman_event_close_fn *event_close;
+  void *event_cb_arg;
 };
 
 /**
@@ -196,6 +199,32 @@ struct gearman_worker_function_st
   const char *function_name;
   gearman_worker_fn *worker_fn;
   const void *fn_arg;
+};
+
+/**
+ * @ingroup gearman_server
+ */
+struct gearman_server_st
+{
+  gearman_st *gearman;
+  gearman_st gearman_static;
+  gearman_server_options_t options;
+  gearman_server_con_st *server_con_list;
+  uint32_t server_con_count;
+};
+
+/**
+ * @ingroup gearman_server
+ */
+struct gearman_server_con_st
+{
+  gearman_con_st con; /* This must be the first struct member. */
+  gearman_server_st *server;
+  gearman_server_con_st *next;
+  gearman_server_con_st *prev;
+  gearman_server_con_options_t options;
+  gearman_server_con_state_t state;
+  void *data;
 };
 
 #endif /* __GEARMAN_STRUCTS_H__ */

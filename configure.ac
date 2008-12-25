@@ -41,8 +41,8 @@ AC_TYPE_SIZE_T
 AC_TYPE_SSIZE_T
 
 AC_HEADER_TIME
-AC_CHECK_HEADERS(assert.h errno.h fcntl.h netinet/tcp.h stdarg.h stdio.h)
-AC_CHECK_HEADERS(stdlib.h string.h unistd.h)
+AC_CHECK_HEADERS(assert.h errno.h fcntl.h netinet/tcp.h signal.h stdarg.h)
+AC_CHECK_HEADERS(stdio.h stdlib.h string.h sys/socket.h sys/types.h unistd.h)
 
 AC_CHECK_LIB(event, event_init)
 AC_CHECK_HEADERS(event.h)
@@ -116,7 +116,7 @@ then
   CFLAGS="-std=gnu99 -W -Wall -Wextra ${DEBUG_CFLAGS} ${W_FAIL} ${W_PEDANTIC} ${W_UNREACHABLE} ${CFLAGS}"
 fi
 
-AC_CONFIG_FILES(Makefile libgearman/Makefile server/Makefile
+AC_CONFIG_FILES(Makefile libgearman/Makefile gearmand/Makefile
                 tests/Makefile examples/Makefile)
 
 AC_OUTPUT

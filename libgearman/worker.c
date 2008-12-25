@@ -313,13 +313,21 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
 
       worker->state= GEARMAN_WORKER_STATE_GRAB_JOB;
 
+      for (worker->con= worker->gearman->con_list; worker->con != NULL;
+           worker->con= worker->con->next)
+      {
+        *ret= gearman_con_set_events(worker->con, POLLIN);
+        if (*ret != GEARMAN_SUCCESS)
+          return NULL;
+      }
+
       if (worker->gearman->options & GEARMAN_NON_BLOCKING)
       {
         *ret= GEARMAN_IO_WAIT;
         return NULL;
       }
 
-      *ret= gearman_con_wait(worker->gearman, true);
+      *ret= gearman_con_wait(worker->gearman);
       if (*ret != GEARMAN_SUCCESS)
         return NULL;
     }

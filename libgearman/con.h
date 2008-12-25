@@ -60,7 +60,17 @@ void gearman_con_set_options(gearman_con_st *con, gearman_con_options_t options,
 /**
  * Set connection to an already open file descriptor.
  */
-void gearman_con_set_fd(gearman_con_st *con, int fd);
+gearman_return_t gearman_con_set_fd(gearman_con_st *con, int fd);
+
+/**
+ * Get application data pointer.
+ */
+void *gearman_con_data(gearman_con_st *con);
+
+/**
+ * Set application data pointer.
+ */
+void gearman_con_set_data(gearman_con_st *con, void *data);
 
 /**
  * Connect to server.
@@ -116,7 +126,18 @@ size_t gearman_con_recv_data(gearman_con_st *con, void *data, size_t data_size,
 /**
  * Wait for I/O on connections.
  */
-gearman_return_t gearman_con_wait(gearman_st *gearman, bool set_read);
+gearman_return_t gearman_con_wait(gearman_st *gearman);
+
+/**
+ * Set events to be watched for a connection.
+ */
+gearman_return_t gearman_con_set_events(gearman_con_st *con, short events);
+
+/**
+ * Set events that are ready for a connection. This is used with the external
+ * event callbacks.
+ */
+void gearman_con_set_revents(gearman_con_st *con, short revents);
 
 /**
  * Get next connection that is ready for I/O.

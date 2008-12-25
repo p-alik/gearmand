@@ -5,7 +5,7 @@
 # Use and distribution licensed under the BSD license.  See
 # the COPYING file in this directory for full text.
 
-SUBDIRS = libgearman server tests examples
+SUBDIRS = libgearman gearmand tests examples
 
 docs: all
 	doxygen docs/Doxyfile.api

@@ -6,16 +6,11 @@
 # the COPYING file in the parent directory for full text.
 
 AM_CFLAGS= -I$(top_builddir)
-AM_LDFLAGS=
+AM_LDFLAGS= -levent $(top_builddir)/libgearman/libgearman.la
 
-bin_PROGRAMS=
+bin_PROGRAMS= gearmand
 
-noinst_HEADERS= \
-	connection.h \
-	server_common.h
-
-gearmand_SOURCES= main.c connection.c
-gearmand_LDFLAGS= -levent ${AM_LDFLAGS}
+gearmand_SOURCES= gearmand.c
 
 valgrind: gearmand
 	libtool --mode=execute valgrind --leak-check=yes --show-reachable=yes  gearmand

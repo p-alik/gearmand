@@ -30,8 +30,11 @@
 #include <libgearman/packet.h>
 #include <libgearman/task.h>
 #include <libgearman/job.h>
+#include <libgearman/server_con.h>
 #include <libgearman/client.h>
 #include <libgearman/worker.h>
+#include <libgearman/server.h>
+#include <libgearman/gearmand.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -85,6 +88,13 @@ int gearman_errno(gearman_st *gearman);
  */
 void gearman_set_options(gearman_st *gearman, gearman_options_t options,
                          uint32_t data);
+
+/**
+ * Set custom I/O event callbacks for a gearman structure.
+ */
+void gearman_set_event_cb(gearman_st *gearman,
+                          gearman_event_watch_fn *event_watch,
+                          gearman_event_close_fn *event_close, void *arg);
 
 /** @} */
 

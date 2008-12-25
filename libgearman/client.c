@@ -549,7 +549,7 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client,
         return GEARMAN_IO_WAIT;
       }
 
-      ret= gearman_con_wait(client->gearman, true);
+      ret= gearman_con_wait(client->gearman);
       if (ret != GEARMAN_SUCCESS && ret != GEARMAN_IO_WAIT)
       {
         client->state= GEARMAN_CLIENT_STATE_IDLE;

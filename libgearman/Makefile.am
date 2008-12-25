@@ -16,8 +16,11 @@ dist_libgearmaninclude_HEADERS= \
 	con.h \
 	constants.h \
 	gearman.h \
+        gearmand.h \
 	job.h \
 	packet.h \
+	server.h \
+	server_con.h \
 	structs.h \
 	task.h \
 	worker.h
@@ -29,8 +32,11 @@ libgearman_la_SOURCES= \
 	client.c \
 	con.c \
 	gearman.c \
+	gearmand.c \
 	job.c \
 	packet.c \
+	server.c \
+	server_con.c \
 	task.c \
 	worker.c
 
