@@ -99,11 +99,12 @@ void gearman_server_set_event_cb(gearman_server_st *server,
  * @param server Server structure previously initialized with
  *        gearman_server_create or gearman_server_clone.
  * @param fd File descriptor for a newly accepted connection.
+ * @param data Application data pointer.
  * @return Gearman connection pointer.
  */
 gearman_server_con_st *gearman_server_add_con(gearman_server_st *server,
                                               gearman_server_con_st *server_con,
-                                              int fd);
+                                              int fd, void *data);
 
 /**
  * Process server connections.
@@ -111,7 +112,8 @@ gearman_server_con_st *gearman_server_add_con(gearman_server_st *server,
  *        gearman_server_create or gearman_server_clone.
  * @return Standard gearman return value.
  */
-gearman_return_t gearman_server_run(gearman_server_st *server);
+gearman_server_con_st *gearman_server_run(gearman_server_st *server,
+                                          gearman_return_t *ret_ptr);
 
 /** @} */
 

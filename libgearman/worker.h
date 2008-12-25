@@ -140,6 +140,19 @@ gearman_return_t gearman_worker_add_function(gearman_worker_st *worker,
  */
 gearman_return_t gearman_worker_work(gearman_worker_st *worker);
 
+/**
+ * Send data to all job servers to see if they echo it back. This is a test
+ * function to see if job servers are responding properly.
+ * @param worker Worker structure previously initialized with
+ *        gearman_worker_create or gearman_worker_clone.
+ * @param workload The workload to ask the server to echo back.
+ * @param workload_size Size of the workload.
+ * @return Standard gearman return value.
+ */
+gearman_return_t gearman_worker_echo(gearman_worker_st *worker,
+                                     const void *workload,
+                                     size_t workload_size);
+
 /** @} */
 
 #ifdef __cplusplus

@@ -144,6 +144,12 @@ void gearman_con_set_revents(gearman_con_st *con, short revents);
  */
 gearman_con_st *gearman_con_ready(gearman_st *gearman);
 
+/**
+ * Test echo with all connections.
+ */
+gearman_return_t gearman_con_echo(gearman_st *gearman, const void *workload,
+                                  size_t workload_size);
+
 /** @} */
 
 #ifdef __cplusplus

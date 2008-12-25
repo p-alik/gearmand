@@ -92,6 +92,7 @@ gearman_return_t gearman_packet_add(gearman_st *gearman,
     if (ret != GEARMAN_SUCCESS)
     {
       va_end(ap);
+      gearman_packet_free(packet);
       return ret;
     }
 

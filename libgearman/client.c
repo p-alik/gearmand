@@ -325,14 +325,12 @@ gearman_return_t gearman_client_task_status(gearman_client_st *client,
   return ret;
 }
 
-#ifdef NOT_DONE
-/* Send data to all job servers to see if they echo it back. */
 gearman_return_t gearman_client_echo(gearman_client_st *client,
                                      const void *workload,
                                      size_t workload_size)
 {
+  return gearman_con_echo(client->gearman, workload, workload_size);
 }
-#endif
 
 gearman_task_st *gearman_client_add_task(gearman_client_st *client,
                                          gearman_task_st *task,

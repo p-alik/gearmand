@@ -448,6 +448,13 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
   return GEARMAN_SUCCESS;
 }
 
+gearman_return_t gearman_worker_echo(gearman_worker_st *worker,
+                                     const void *workload,
+                                     size_t workload_size)
+{
+  return gearman_con_echo(worker->gearman, workload, workload_size);
+}
+
 /*
  * Private definitions
  */

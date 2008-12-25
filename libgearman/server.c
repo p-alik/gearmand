@@ -112,7 +112,7 @@ void gearman_server_set_event_cb(gearman_server_st *server,
 
 gearman_server_con_st *gearman_server_add_con(gearman_server_st *server,
                                               gearman_server_con_st *server_con,
-                                              int fd)
+                                              int fd, void *data)
 {
   gearman_return_t ret;
 
@@ -126,6 +126,8 @@ gearman_server_con_st *gearman_server_add_con(gearman_server_st *server,
     return NULL;
   }
 
+  server_con->con.data= data;
+
   ret= gearman_con_set_events(&(server_con->con), POLLIN);
   if (ret != GEARMAN_SUCCESS)
   {
@@ -136,7 +138,8 @@ gearman_server_con_st *gearman_server_add_con(gearman_server_st *server,
   return server_con;
 }
 
-gearman_return_t gearman_server_run(gearman_server_st *server)
+gearman_server_con_st *gearman_server_run(gearman_server_st *server,
+                                          gearman_return_t *ret_ptr)
 {
   gearman_con_st *con;
   gearman_server_con_st *server_con;
@@ -148,17 +151,50 @@ gearman_return_t gearman_server_run(gearman_server_st *server)
        at the ends of structs for this. :) */
     server_con= (gearman_server_con_st *)con;
 
-    switch (server_con->state)
+    while (1)
     {
-    case GEARMAN_SERVER_CON_STATE_READ:
-      break;
+      switch (server_con->state)
+      {
+      case GEARMAN_SERVER_CON_STATE_READ:
+        (void)gearman_con_recv(con, &(con->packet), ret_ptr, true);
+        if (*ret_ptr != GEARMAN_SUCCESS)
+        {
+          if (*ret_ptr == GEARMAN_IO_WAIT)
+          {
+            server_con->state= GEARMAN_SERVER_CON_STATE_READ;
+            break;
+          }
 
-    case GEARMAN_SERVER_CON_STATE_WRITE:
-      break;
+          return server_con;
+        }
+
+        con->packet.magic= GEARMAN_MAGIC_RESPONSE;
+        con->packet.command= GEARMAN_COMMAND_ECHO_RES;
+        *ret_ptr= gearman_packet_pack_header(&(con->packet));
+        if (*ret_ptr != GEARMAN_SUCCESS)
+          return server_con;
+
+      case GEARMAN_SERVER_CON_STATE_WRITE:
+        *ret_ptr= gearman_con_send(con, &(con->packet), true);
+        if (*ret_ptr != GEARMAN_SUCCESS)
+        {
+          if (*ret_ptr == GEARMAN_IO_WAIT)
+          {
+            server_con->state= GEARMAN_SERVER_CON_STATE_WRITE;
+            break;
+          }
+
+          return server_con;
+        }
+      }
+
+      if (*ret_ptr == GEARMAN_IO_WAIT)
+        break;
     }
   }
 
-  return GEARMAN_SUCCESS;
+  *ret_ptr= GEARMAN_SUCCESS;
+  return NULL;
 }
 
 /*

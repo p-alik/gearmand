@@ -178,47 +178,36 @@ static void _listen_accept(int fd, short events __attribute__ ((unused)),
                            void *arg)
 {
   gearmand_st *gearmand= (gearmand_st *)arg;
-  gearmand_con_st *con;
+  gearmand_con_st *dcon;
   socklen_t sa_len;
-  gearman_return_t ret;
 
-  con= malloc(sizeof(gearmand_con_st));
-  if (con == NULL)
+  dcon= malloc(sizeof(gearmand_con_st));
+  if (dcon == NULL)
   {
     printf("malloc:%d\n", errno);
     exit(1);
   }
 
-  sa_len= sizeof(con->sa);
-  con->fd= accept(fd, (struct sockaddr *)(&(con->sa)), &sa_len);
-  if (con->fd == -1)
+  sa_len= sizeof(dcon->sa);
+  dcon->fd= accept(fd, (struct sockaddr *)(&(dcon->sa)), &sa_len);
+  if (dcon->fd == -1)
   {
-    free(con);
+    free(dcon);
     printf("accept:%d\n", errno);
     exit(1);
   }
 
-  printf("Connect: %s:%u\n", inet_ntoa(con->sa.sin_addr),
-         ntohs(con->sa.sin_port));
+  printf("Connect: %s:%u\n", inet_ntoa(dcon->sa.sin_addr),
+         ntohs(dcon->sa.sin_port));
 
-  con->gearmand= gearmand;
+  dcon->gearmand= gearmand;
 
-  if (gearman_server_add_con(&(gearmand->server), &(con->server_con),
-      con->fd) == NULL)
+  if (gearman_server_add_con(&(gearmand->server), &(dcon->server_con), dcon->fd,
+                             dcon) == NULL)
   {
-    close(con->fd);
-    free(con);
+    close(dcon->fd);
+    free(dcon);
     printf("gearman_server_add_con:%s\n",
-           gearman_server_error(&(gearmand->server)));
-    exit(1);
-  }
-
-  gearman_server_con_set_data(&(con->server_con), con);
-
-  ret= gearman_server_run(&(gearmand->server));
-  if (ret != GEARMAN_SUCCESS && ret != GEARMAN_IO_WAIT)
-  {
-    printf("gearman_server_run:%s\n",
            gearman_server_error(&(gearmand->server)));
     exit(1);
   }
@@ -227,21 +216,21 @@ static void _listen_accept(int fd, short events __attribute__ ((unused)),
 static gearman_return_t _con_watch(gearman_con_st *con, short events,
                                    void *arg __attribute__ ((unused)))
 {
-  gearmand_con_st *gcon;
+  gearmand_con_st *dcon;
   short set_events= 0;
 
-  gcon= (gearmand_con_st *)gearman_con_data(con);
-  gcon->con= con;
+  dcon= (gearmand_con_st *)gearman_con_data(con);
+  dcon->con= con;
 
   if (events & POLLIN)
     set_events|= EV_READ;
   if (events & POLLOUT)
     set_events|= EV_WRITE;
 
-  event_set(&(gcon->event), gcon->fd, set_events, _con_ready, gcon);
-  event_base_set(gcon->gearmand->base, &(gcon->event));
+  event_set(&(dcon->event), dcon->fd, set_events, _con_ready, dcon);
+  event_base_set(dcon->gearmand->base, &(dcon->event));
 
-  if (event_add(&(gcon->event), NULL) == -1)
+  if (event_add(&(dcon->event), NULL) == -1)
     return GEARMAN_EVENT;
 
   return GEARMAN_SUCCESS;
@@ -250,7 +239,8 @@ static gearman_return_t _con_watch(gearman_con_st *con, short events,
 static void _con_ready(int fd __attribute__ ((unused)), short events,
                        void *arg)
 {
-  gearmand_con_st *gcon= (gearmand_con_st *)arg;
+  gearmand_con_st *dcon= (gearmand_con_st *)arg;
+  gearman_server_con_st *server_con;
   short revents= 0;
   gearman_return_t ret;
 
@@ -259,30 +249,39 @@ static void _con_ready(int fd __attribute__ ((unused)), short events,
   if (events & EV_WRITE)
     revents|= POLLOUT;
 
-  gearman_con_set_revents(gcon->con, revents);
+  gearman_con_set_revents(dcon->con, revents);
 
-  ret= gearman_server_run(&(gcon->gearmand->server));
+  server_con= gearman_server_run(&(dcon->gearmand->server), &ret);
   if (ret != GEARMAN_SUCCESS && ret != GEARMAN_IO_WAIT)
   {
     printf("gearman_server_run:%s\n",
-           gearman_server_error(&(gcon->gearmand->server)));
-    exit(1);
+           gearman_server_error(&(dcon->gearmand->server)));
+    if (server_con == NULL)
+      exit(1);
+
+    dcon= (gearmand_con_st *)gearman_server_con_data(server_con);
+
+    printf("Disconnect: %s:%u\n", inet_ntoa(dcon->sa.sin_addr),
+           ntohs(dcon->sa.sin_port));
+
+    gearman_server_con_free(server_con);
+    free(dcon);
   }
 }
 
 static gearman_return_t _con_close(gearman_con_st *con, gearman_return_t ret,
                                    void *arg __attribute__ ((unused)))
 {
-  gearmand_con_st *gcon= (gearmand_con_st *)gearman_con_data(con);
+  gearmand_con_st *dcon= (gearmand_con_st *)gearman_con_data(con);
 
   if (ret != GEARMAN_SUCCESS)
-    printf("_con_close:%s\n", gearman_server_error(&(gcon->gearmand->server)));
+    printf("_con_close:%s\n", gearman_server_error(&(dcon->gearmand->server)));
 
-  if (event_del(&(gcon->event)) == -1)
+  if (event_del(&(dcon->event)) == -1)
     return GEARMAN_EVENT;
 
   gearman_con_free(con);
-  free(gcon);
+  free(dcon);
 
   return GEARMAN_SUCCESS;
 }

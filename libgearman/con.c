@@ -155,6 +155,7 @@ gearman_return_t gearman_con_set_fd(gearman_con_st *con, int fd)
   gearman_return_t ret;
 
   con->fd= fd;
+  con->state= GEARMAN_CON_STATE_CONNECTED;
 
   ret= _con_setsockopt(con);
   if (ret != GEARMAN_SUCCESS)
@@ -853,6 +854,54 @@ gearman_con_st *gearman_con_ready(gearman_st *gearman)
   }
   
   return NULL;
+}
+
+gearman_return_t gearman_con_echo(gearman_st *gearman, const void *workload,
+                                  size_t workload_size)
+{
+  gearman_con_st *con;
+  gearman_options_t options= gearman->options;
+  gearman_packet_st packet;
+  gearman_return_t ret;
+
+  ret= gearman_packet_add(gearman, &packet, GEARMAN_MAGIC_REQUEST,
+                          GEARMAN_COMMAND_ECHO_REQ, workload, workload_size,
+                          NULL);
+  if (ret != GEARMAN_SUCCESS)
+    return ret;
+
+  gearman->options&= ~GEARMAN_NON_BLOCKING;
+
+  for (con= gearman->con_list; con != NULL; con= con->next)
+  {
+    ret= gearman_con_send(con, &packet, true);
+    if (ret != GEARMAN_SUCCESS)
+    {
+      gearman_packet_free(&packet);
+      gearman->options= options;
+      return ret;
+    }
+
+    (void)gearman_con_recv(con, &(con->packet), &ret, true);
+    if (ret != GEARMAN_SUCCESS)
+    {
+      gearman_packet_free(&packet);
+      gearman->options= options;
+      return ret;
+    }
+
+    if (con->packet.data_size != workload_size ||
+        memcmp(workload, con->packet.data, workload_size))
+    {
+      gearman_packet_free(&packet);
+      gearman->options= options;
+      return GEARMAN_ECHO_DATA_CORRUPTION;
+    }
+  }
+
+  gearman_packet_free(&packet);
+  gearman->options= options;
+  return GEARMAN_SUCCESS;
 }
 
 /*

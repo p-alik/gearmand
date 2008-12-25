@@ -9,11 +9,17 @@ AM_CFLAGS= -I$(top_builddir)
 AM_LDFLAGS= $(top_builddir)/libgearman/libgearman.la
 
 noinst_PROGRAMS= \
+	echo_client \
+	echo_worker \
 	reverse_client \
 	reverse_client_bg \
 	reverse_client_cb \
 	reverse_worker \
 	reverse_worker_bg
+
+echo_client_SOURCES= echo_client.c
+
+echo_worker_SOURCES= echo_worker.c
 
 reverse_client_SOURCES= reverse_client.c
 
