@@ -72,7 +72,12 @@
  */
 struct gearmand
 {
+  in_port_t port;
+  int backlog;
+  uint8_t verbose;
   gearman_server_st server;
+  int listen_fd;
+  gearman_return_t ret;
 #ifdef HAVE_EVENT_H
   struct event_base *base;
   struct event listen_event;

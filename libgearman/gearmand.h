@@ -25,26 +25,44 @@ extern "C" {
  */
 
 /**
- * Initialize a server instance.
+ * Create a server instance.
  * @param port Port for the server to listen on.
  * @param backlog Number of backlog connections to set during listen.
+ * @param verbose Verbosity level.
  * @return Pointer to an allocated gearmand structure.
  */
-gearmand_st *gearmand_init(in_port_t port, int backlog);
+gearmand_st *gearmand_create(in_port_t port, int backlog, uint8_t verbose);
 
 /**
  * Free resources used by a server instace.
  * @param gearmand Server instance structure previously initialized with
  *        gearmand_init.
  */
-void gearmand_destroy(gearmand_st *gearmand);
+void gearmand_free(gearmand_st *gearmand);
+
+/**
+ * Return an error string for the last error encountered.
+ * @param gearmand Server instance structure previously initialized with
+ *        gearmand_init.
+ * @return Pointer to static buffer in library that holds an error string.
+ */
+const char *gearmand_error(gearmand_st *gearmand);
+
+/**
+ * Value of errno in the case of a GEARMAN_ERRNO return value.
+ * @param gearmand Server instance structure previously initialized with
+ *        gearmand_init.
+ * @return An errno value as defined in your system errno.h file.
+ */
+int gearmand_errno(gearmand_st *gearmand);
 
 /**
  * Run the server instance.
- * @param server Server instance structure previously initialized with
+ * @param gearmand Server instance structure previously initialized with
  *        gearmand_init.
+ * @return Standard gearman return value.
  */
-void gearmand_run(gearmand_st *gearmand);
+gearman_return_t gearmand_run(gearmand_st *gearmand);
 
 /** @} */
 

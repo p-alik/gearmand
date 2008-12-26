@@ -46,6 +46,7 @@ AC_CHECK_HEADERS(stdio.h stdlib.h string.h sys/socket.h sys/types.h unistd.h)
 
 AC_CHECK_LIB(event, event_init)
 AC_CHECK_HEADERS(event.h)
+AC_CHECK_FUNCS(event_base_new)
 
 AC_CHECK_LIB(uuid, uuid_generate)
 AC_CHECK_HEADERS(uuid/uuid.h)
