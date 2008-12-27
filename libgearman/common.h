@@ -78,6 +78,8 @@ struct gearmand
   gearman_server_st server;
   int listen_fd;
   gearman_return_t ret;
+  gearmand_con_st *dcon_list;
+  uint32_t dcon_count;
 #ifdef HAVE_EVENT_H
   struct event_base *base;
   struct event listen_event;
@@ -89,14 +91,16 @@ struct gearmand
  */
 struct gearmand_con
 {
+  gearmand_con_st *next;
+  gearmand_con_st *prev;
   int fd;
   struct sockaddr_in sa;
   gearmand_st *gearmand;
   gearman_server_con_st server_con;
+  gearman_con_st *con;
 #ifdef HAVE_EVENT_H
   struct event event;
 #endif
-  gearman_con_st *con;
 };
 
 #endif /* __GEARMAN_COMMON_H__ */

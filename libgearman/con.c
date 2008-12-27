@@ -72,7 +72,7 @@ gearman_con_st *gearman_con_create(gearman_st *gearman, gearman_con_st *con)
 
   con->gearman= gearman;
 
-  if (gearman->con_list)
+  if (gearman->con_list != NULL)
     gearman->con_list->prev= con;
   con->next= gearman->con_list;
   gearman->con_list= con;

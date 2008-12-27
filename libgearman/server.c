@@ -143,6 +143,8 @@ gearman_server_con_st *gearman_server_run(gearman_server_st *server,
   gearman_con_st *con;
   gearman_server_con_st *server_con;
 
+  /* There is a bug right here, the previous con may have been freed, get next
+     before returning error. */
   while ((con= gearman_con_ready(server->gearman)) != NULL)
   {
     /* Inherited classes anyone? Some people would call this a hack, I call it

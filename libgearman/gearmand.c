@@ -18,7 +18,7 @@
 #ifndef HAVE_EVENT_BASE_NEW
 #define event_base_new event_init
 #define event_base_free(__base) {}
-#define event_base_loopbreak(__base) -1
+#define event_base_get_method(__base) event_get_method()
 #endif
 
 /*
@@ -42,6 +42,8 @@ static gearman_return_t _con_watch(gearman_con_st *con, short events,
 
 static void _con_ready(int fd __attribute__ ((unused)), short events,
                        void *arg);
+
+static void _event_del_all(gearmand_st *gearmand);
 #endif
 
 /** @} */
@@ -81,6 +83,9 @@ gearmand_st *gearmand_create(in_port_t port, int backlog, uint8_t verbose)
     return NULL;
   }
 
+  if (verbose > 0)
+    printf("Method for libevent: %s\n", event_base_get_method(gearmand->base));
+
   return gearmand;
 #else
   (void) port;
@@ -96,9 +101,6 @@ gearmand_st *gearmand_create(in_port_t port, int backlog, uint8_t verbose)
 void gearmand_free(gearmand_st *gearmand)
 {
 #ifdef HAVE_EVENT_H
-  if (gearmand->listen_fd >= 0)
-    close(gearmand->listen_fd);
-
   if (gearmand->base != NULL)
     event_base_free(gearmand->base);
 
@@ -122,15 +124,26 @@ int gearmand_errno(gearmand_st *gearmand)
 gearman_return_t gearmand_run(gearmand_st *gearmand)
 {
 #ifdef HAVE_EVENT_H
+  gearmand_con_st *dcon;
+
   gearmand->ret= _listen_init(gearmand);
   if (gearmand->ret != GEARMAN_SUCCESS)
     return gearmand->ret;
 
   if (event_base_loop(gearmand->base, 0) == -1)
   {
-    GEARMAN_ERROR_SET(gearmand->server.gearman,
-                      "gearmand_run:event_base_loop:-1")
-    return GEARMAN_EVENT;
+    GEARMAN_ERROR_SET(gearmand->server.gearman,                                                       "gearmand_run:event_base_loop:-1")
+    gearmand->ret= GEARMAN_EVENT;
+  }
+
+  close(gearmand->listen_fd);
+  gearmand->listen_fd= -1;
+
+  for (dcon= gearmand->dcon_list; dcon != NULL; dcon= gearmand->dcon_list)
+  {
+    gearmand->dcon_list= dcon->next;
+    gearman_server_con_free(&(dcon->server_con));
+    free(dcon);
   }
 
   return gearmand->ret;
@@ -219,9 +232,11 @@ static void _listen_accept(int fd, short events __attribute__ ((unused)),
   {
     GEARMAN_ERROR_SET(gearmand->server.gearman, "_listen_accept:malloc")
     gearmand->ret= GEARMAN_MEMORY_ALLOCATION_FAILURE;
-    assert(event_base_loopbreak(gearmand->base) == 0);
+    _event_del_all(gearmand);
     return;
   }
+
+  memset(dcon, 0, sizeof(gearmand_con_st));
 
   sa_len= sizeof(dcon->sa);
   dcon->fd= accept(fd, (struct sockaddr *)(&(dcon->sa)), &sa_len);
@@ -231,14 +246,14 @@ static void _listen_accept(int fd, short events __attribute__ ((unused)),
     GEARMAN_ERROR_SET(gearmand->server.gearman, "_listen_accept:accept:%d",
                       errno)
     gearmand->ret= GEARMAN_ERRNO;;
-    assert(event_base_loopbreak(gearmand->base) == 0);
+    _event_del_all(gearmand);
     return;
   }
 
   if (gearmand->verbose > 0)
   {
-    printf("%15s:%5u Connected\n", inet_ntoa(dcon->sa.sin_addr),
-           ntohs(dcon->sa.sin_port));
+    printf("%15s:%5u Connected (%u total)\n", inet_ntoa(dcon->sa.sin_addr),
+           ntohs(dcon->sa.sin_port), gearmand->dcon_count + 1);
   }
 
   dcon->gearmand= gearmand;
@@ -249,9 +264,15 @@ static void _listen_accept(int fd, short events __attribute__ ((unused)),
     close(dcon->fd);
     free(dcon);
     gearmand->ret= GEARMAN_MEMORY_ALLOCATION_FAILURE;
-    assert(event_base_loopbreak(gearmand->base) == 0);
+    _event_del_all(gearmand);
     return;
   }
+
+  if (gearmand->dcon_list != NULL)
+    gearmand->dcon_list->prev= dcon;
+  dcon->next= gearmand->dcon_list;
+  gearmand->dcon_list= dcon;
+  gearmand->dcon_count++;
 }
 
 static gearman_return_t _con_watch(gearman_con_st *con, short events,
@@ -290,9 +311,12 @@ static gearman_return_t _con_watch(gearman_con_st *con, short events,
 static void _con_ready(int fd __attribute__ ((unused)), short events,
                        void *arg)
 {
+  gearmand_st *gearmand;
   gearmand_con_st *dcon= (gearmand_con_st *)arg;
   gearman_server_con_st *server_con;
   short revents= 0;
+
+  gearmand= dcon->gearmand;
 
   if (events & EV_READ)
     revents|= POLLIN;
@@ -301,41 +325,61 @@ static void _con_ready(int fd __attribute__ ((unused)), short events,
 
   gearman_con_set_revents(dcon->con, revents);
 
-  if (dcon->gearmand->verbose > 1)
+  if (gearmand->verbose > 1)
   {
     printf("%15s:%5u Ready    %8s%8s\n", inet_ntoa(dcon->sa.sin_addr),
            ntohs(dcon->sa.sin_port), revents & POLLIN ? "POLLIN" : "",
            revents & POLLOUT ? "POLLOUT" : "");
   }
 
-  server_con= gearman_server_run(&(dcon->gearmand->server),
-                                 &(dcon->gearmand->ret));
-  if (dcon->gearmand->ret != GEARMAN_SUCCESS &&
-      dcon->gearmand->ret != GEARMAN_IO_WAIT)
+  while (1)
   {
+    server_con= gearman_server_run(&(gearmand->server), &(gearmand->ret));
+    if (gearmand->ret == GEARMAN_SUCCESS || gearmand->ret == GEARMAN_IO_WAIT)
+      return;
+
     if (server_con == NULL)
     {
-      assert(event_base_loopbreak(dcon->gearmand->base) == 0);
+      _event_del_all(gearmand);
       return;
     }
 
-    if (dcon->gearmand->ret != GEARMAN_EOF)
+    if (gearmand->ret != GEARMAN_EOF)
     {
-      assert(event_base_loopbreak(dcon->gearmand->base) == 0);
+      _event_del_all(gearmand);
       return;
     }
 
     dcon= (gearmand_con_st *)gearman_server_con_data(server_con);
 
-    if (dcon->gearmand->verbose > 0)
+    if (gearmand->verbose > 0)
     {
       printf("%15s:%5u Disconnected\n", inet_ntoa(dcon->sa.sin_addr),
              ntohs(dcon->sa.sin_port));
     }
 
     assert(event_del(&(dcon->event)) == 0);
-    gearman_server_con_free(server_con);
+    gearman_server_con_free(&(dcon->server_con));
+
+    if (gearmand->dcon_list == dcon)
+      gearmand->dcon_list= dcon->next;
+    if (dcon->prev)
+      dcon->prev->next= dcon->next;
+    if (dcon->next)
+      dcon->next->prev= dcon->prev;
+    gearmand->dcon_count--;
+
     free(dcon);
   }
+}
+
+static void _event_del_all(gearmand_st *gearmand)
+{
+  gearmand_con_st *dcon;
+
+  assert(event_del(&(gearmand->listen_event)) == 0);
+
+  for (dcon= gearmand->dcon_list; dcon != NULL; dcon= dcon->next)
+    assert(event_del(&(dcon->event)) == 0);
 }
 #endif
