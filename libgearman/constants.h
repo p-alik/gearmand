@@ -50,6 +50,7 @@ typedef struct gearman_worker_st gearman_worker_st;
 typedef struct gearman_worker_function_st gearman_worker_function_st;
 typedef struct gearman_server_st gearman_server_st;
 typedef struct gearman_server_con_st gearman_server_con_st;
+typedef struct gearman_server_packet_st gearman_server_packet_st;
 struct gearmand;
 typedef struct gearmand gearmand_st;
 struct gearmand_con;
@@ -342,7 +343,7 @@ typedef enum
 } gearman_server_options_t;
 
 /**
- * @ingroup gearman_server_con
+ * @ingroup gearman_server
  * Options for gearman_server_con_st.
  */
 typedef enum
@@ -351,14 +352,13 @@ typedef enum
 } gearman_server_con_options_t;
 
 /**
- * @ingroup gearman_server_con
- * States for gearman_server_con_st.
+ * @ingroup gearman_server
+ * Options for gearman_server_packet_st.
  */
 typedef enum
 {
-  GEARMAN_SERVER_CON_STATE_READ,
-  GEARMAN_SERVER_CON_STATE_WRITE
-} gearman_server_con_state_t;
+  GEARMAN_SERVER_PACKET_IN_USE= (1 << 0)
+} gearman_server_packet_options_t;
 
 #ifdef __cplusplus
 }

@@ -105,6 +105,21 @@ gearman_server_con_st *gearman_server_add_con(gearman_server_st *server,
                                               int fd, void *data);
 
 /**
+ * Add connection to the active server list.
+ */
+void gearman_server_active_list_add(gearman_server_con_st *server_con);
+
+/**
+ * Remove connection from the active server list.
+ */
+void gearman_server_active_list_remove(gearman_server_con_st *server_con);
+
+/**
+ * Get next connection from the active server list.
+ */
+gearman_server_con_st *gearman_server_active_list_next(gearman_server_st *server);
+
+/**
  * Process server connections.
  * @param server Server structure previously initialized with
  *        gearman_server_create or gearman_server_clone.

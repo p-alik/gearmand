@@ -209,6 +209,8 @@ struct gearman_server_st
   gearman_server_options_t options;
   gearman_server_con_st *server_con_list;
   uint32_t server_con_count;
+  gearman_server_con_st *active_list;
+  uint32_t active_count;
 };
 
 /**
@@ -221,8 +223,21 @@ struct gearman_server_con_st
   gearman_server_con_st *next;
   gearman_server_con_st *prev;
   gearman_server_con_options_t options;
-  gearman_server_con_state_t state;
-  void *data;
+  gearman_server_packet_st *packet_list;
+  gearman_server_packet_st *packet_end;
+  uint32_t packet_count;
+  gearman_server_con_st *active_next;
+  gearman_server_con_st *active_prev;
+};
+
+/**
+ * @ingroup gearman_server
+ */
+struct gearman_server_packet_st
+{
+  gearman_packet_st packet; /* This must be the first struct member. */
+  gearman_server_packet_st *next;
+  gearman_server_packet_options_t options;
 };
 
 #endif /* __GEARMAN_STRUCTS_H__ */

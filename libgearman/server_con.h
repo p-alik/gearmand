@@ -8,7 +8,7 @@
 
 /**
  * @file
- * @brief Server Connection declarations
+ * @brief Server connection declarations
  */
 
 #ifndef __GEARMAN_SERVER_CON_H__
@@ -21,7 +21,7 @@ extern "C" {
 /**
  * @addtogroup gearman_server_con Server Connection Handling
  * This is a low level interface for gearman server connections. This is used
- * internally by the servert interface, so you probably want to there first.
+ * internally by the server interface, so you probably want to look there first.
  * @{
  */
 
@@ -32,9 +32,9 @@ gearman_server_con_st *gearman_server_con_create(gearman_server_st *server,
                                              gearman_server_con_st *server_con);
 
 /**
- * Free a server_connection structure.
+ * Free a server connection structure.
  */
-gearman_return_t gearman_server_con_free(gearman_server_con_st *server_con);
+void gearman_server_con_free(gearman_server_con_st *server_con);
 
 /**
  * Get application data pointer.
@@ -45,6 +45,16 @@ void *gearman_server_con_data(gearman_server_con_st *server_con);
  * Set application data pointer.
  */
 void gearman_server_con_set_data(gearman_server_con_st *server_con, void *data);
+
+/**
+ * Add a server packet structure to a connection.
+ */
+gearman_server_packet_st *gearman_server_con_packet_add(gearman_server_con_st *server_con);
+
+/**
+ * Remove the first server packet structure from a connection.
+ */
+void gearman_server_con_packet_remove(gearman_server_con_st *server_con);
 
 /** @} */
 
