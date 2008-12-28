@@ -30,19 +30,13 @@ extern "C" {
 #define GEARMAN_DEFAULT_SOCKET_SEND_SIZE 32768
 #define GEARMAN_DEFAULT_SOCKET_RECV_SIZE 32768
 
-#define GEARMAN_ERROR_SIZE 1024
+#define GEARMAN_MAX_ERROR_SIZE 1024
 #define GEARMAN_PACKET_HEADER_SIZE 12
 #define GEARMAN_JOB_HANDLE_SIZE 64
 #define GEARMAN_MAX_COMMAND_ARGS 8
 #define GEARMAN_ARGS_BUFFER_SIZE 128
 #define GEARMAN_SEND_BUFFER_SIZE 8192
 #define GEARMAN_RECV_BUFFER_SIZE 8192
-
-/**
- * Macro to set error string.
- */
-#define GEARMAN_ERROR_SET(__gearman, ...) { \
-  snprintf((__gearman)->last_error, GEARMAN_ERROR_SIZE, __VA_ARGS__); }
 
 /* Types. */
 typedef struct gearman_st gearman_st;
@@ -69,12 +63,15 @@ typedef enum
 {
   GEARMAN_SUCCESS,
   GEARMAN_IO_WAIT,
+  GEARMAN_SHUTDOWN,
   GEARMAN_ERRNO,
   GEARMAN_EVENT,
   GEARMAN_TOO_MANY_ARGS,
+  GEARMAN_NO_ACTIVE_FDS,
   GEARMAN_INVALID_MAGIC,
   GEARMAN_INVALID_COMMAND,
   GEARMAN_INVALID_PACKET,
+  GEARMAN_UNEXPECTED_PACKET,
   GEARMAN_GETADDRINFO,
   GEARMAN_NO_SERVERS,
   GEARMAN_EOF,
@@ -132,7 +129,9 @@ typedef enum
  */
 typedef enum
 {
-  GEARMAN_CON_ALLOCATED= (1 << 0)
+  GEARMAN_CON_ALLOCATED=     (1 << 0),
+  GEARMAN_CON_READY=         (1 << 1),
+  GEARMAN_CON_PACKET_IN_USE= (1 << 2)
 } gearman_con_options_t;
 
 /**
@@ -178,7 +177,8 @@ typedef enum
 typedef enum
 {
   GEARMAN_PACKET_ALLOCATED= (1 << 0),
-  GEARMAN_PACKET_COMPLETE=  (1 << 1)
+  GEARMAN_PACKET_COMPLETE=  (1 << 1),
+  GEARMAN_PACKET_FREE_DATA= (1 << 2)
 } gearman_packet_options_t;
 
 /**
@@ -263,8 +263,9 @@ typedef enum
  */
 typedef enum
 {
-  GEARMAN_JOB_ALLOCATED=   (1 << 0),
-  GEARMAN_JOB_WORK_IN_USE= (1 << 1)
+  GEARMAN_JOB_ALLOCATED=       (1 << 0),
+  GEARMAN_JOB_ASSIGNED_IN_USE= (1 << 1),
+  GEARMAN_JOB_WORK_IN_USE=     (1 << 2)
 } gearman_job_options_t;
 
 /**
@@ -297,9 +298,12 @@ typedef enum
  */
 typedef enum
 {
-  GEARMAN_WORKER_ALLOCATED=      (1 << 0),
-  GEARMAN_WORKER_NON_BLOCKING=   (1 << 1),
-  GEARMAN_WORKER_PACKET_IN_USE=  (1 << 2)
+  GEARMAN_WORKER_ALLOCATED=        (1 << 0),
+  GEARMAN_WORKER_NON_BLOCKING=     (1 << 1),
+  GEARMAN_WORKER_PACKET_IN_USE=    (1 << 2),
+  GEARMAN_WORKER_GRAB_JOB_IN_USE=  (1 << 3),
+  GEARMAN_WORKER_PRE_SLEEP_IN_USE= (1 << 4),
+  GEARMAN_WORKER_WORK_JOB_IN_USE=  (1 << 5)
 } gearman_worker_options_t;
 
 /**

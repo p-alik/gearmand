@@ -68,6 +68,20 @@
 #endif
 
 /**
+ * Macro to set error string.
+ * @ingroup gearman_constants
+ */
+#define GEARMAN_ERROR_SET(__gearman, __function, ...) { \
+  snprintf((__gearman)->last_error, GEARMAN_MAX_ERROR_SIZE, \
+           __function ":" __VA_ARGS__); }
+
+/**
+ * Command information array.
+ * @ingroup gearman_constants
+ */
+extern gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX];
+
+/**
  * @ingroup gearmand
  */
 struct gearmand
@@ -80,6 +94,7 @@ struct gearmand
   gearman_return_t ret;
   gearmand_con_st *dcon_list;
   uint32_t dcon_count;
+  uint32_t dcon_total;
 #ifdef HAVE_EVENT_H
   struct event_base *base;
   struct event listen_event;

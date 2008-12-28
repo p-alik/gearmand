@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
   }
 
   ret= gearmand_run(gearmand);
-  if (ret != GEARMAN_SUCCESS)
+  if (ret != GEARMAN_SHUTDOWN && ret != GEARMAN_SUCCESS)
     printf("gearmand_run:%s\n", gearmand_error(gearmand));
 
   gearmand_free(gearmand);

@@ -83,6 +83,12 @@ gearman_return_t gearman_packet_unpack_header(gearman_packet_st *packet);
 size_t gearman_packet_parse(gearman_packet_st *packet, const uint8_t *data,
                             size_t data_size, gearman_return_t *ret_ptr);
 
+/**
+ * Take allocated data from packet. After this, the caller is responsible for
+ * free()ing the memory.
+ */
+void *gearman_packet_take_data(gearman_packet_st *packet, size_t *size);
+
 /** @} */
 
 #ifdef __cplusplus

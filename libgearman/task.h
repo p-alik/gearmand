@@ -88,6 +88,12 @@ const void *gearman_task_data(gearman_task_st *task);
 size_t gearman_task_data_size(gearman_task_st *task);
 
 /**
+ * Take allocated data from task. After this, the caller is responsible for
+ * free()ing the memory.
+ */
+void *gearman_task_take_data(gearman_task_st *task, size_t *size);
+
+/**
  * Read work or result data into a buffer for a task.
  */
 size_t gearman_task_recv_data(gearman_task_st *task, void *data,

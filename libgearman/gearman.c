@@ -84,16 +84,8 @@ void gearman_free(gearman_st *gearman)
   if (gearman->pfds != NULL)
     free(gearman->pfds);
 
-  gearman_reset(gearman);
-
   if (gearman->options & GEARMAN_ALLOCATED)
     free(gearman);
-}
-
-void gearman_reset(gearman_st *gearman)
-{
-  gearman->con_ready= NULL;
-  gearman->sending= 0;
 }
 
 const char *gearman_error(gearman_st *gearman)

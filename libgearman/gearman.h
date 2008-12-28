@@ -69,11 +69,6 @@ gearman_st *gearman_clone(gearman_st *gearman, gearman_st *from);
 void gearman_free(gearman_st *gearman);
 
 /**
- * Reset state for a gearman structure.
- */
-void gearman_reset(gearman_st *gearman);
-
-/**
  * Return an error string for last library error encountered.
  */
 const char *gearman_error(gearman_st *gearman);

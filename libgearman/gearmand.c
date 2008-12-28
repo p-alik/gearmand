@@ -17,7 +17,6 @@
    common package version. Make this work for these earlier versions. */
 #ifndef HAVE_EVENT_BASE_NEW
 #define event_base_new event_init
-#define event_base_free(__base) {}
 #define event_base_get_method(__base) event_get_method()
 #endif
 
@@ -132,7 +131,8 @@ gearman_return_t gearmand_run(gearmand_st *gearmand)
 
   if (event_base_loop(gearmand->base, 0) == -1)
   {
-    GEARMAN_ERROR_SET(gearmand->server.gearman,                                                       "gearmand_run:event_base_loop:-1")
+    GEARMAN_ERROR_SET(gearmand->server.gearman, "gearmand_run",
+                      "event_base_loop:-1")
     gearmand->ret= GEARMAN_EVENT;
   }
 
@@ -150,8 +150,8 @@ gearman_return_t gearmand_run(gearmand_st *gearmand)
 #else
   (void) gearmand;
 
-  GEARMAN_ERROR_SET(gearmand->server.gearman,
-                    "gearmand_run:Library not built with libevent support!")
+  GEARMAN_ERROR_SET(gearmand->server.gearman, "gearmand_run",
+                    "Library not built with libevent support!")
   return GEARMAN_EVENT;
 #endif
 }
@@ -168,7 +168,8 @@ static gearman_return_t _listen_init(gearmand_st *gearmand)
 
   if (signal(SIGPIPE, SIG_IGN) == SIG_ERR)
   {
-    GEARMAN_ERROR_SET(gearmand->server.gearman, "_listen_init:signal:%d", errno)
+    GEARMAN_ERROR_SET(gearmand->server.gearman, "_listen_init", "signal:%d",
+                      errno)
     return GEARMAN_ERRNO;
   }
 
@@ -180,27 +181,30 @@ static gearman_return_t _listen_init(gearmand_st *gearmand)
   gearmand->listen_fd= socket(sa.sin_family, SOCK_STREAM, 0);
   if (gearmand->listen_fd == -1)
   {
-    GEARMAN_ERROR_SET(gearmand->server.gearman, "_listen_init:socket:%d", errno)
+    GEARMAN_ERROR_SET(gearmand->server.gearman, "_listen_init", "socket:%d",
+                      errno)
     return GEARMAN_ERRNO;
   }
 
   if (setsockopt(gearmand->listen_fd, SOL_SOCKET, SO_REUSEADDR, &opt,
                  sizeof(opt)) == -1)
   {
-    GEARMAN_ERROR_SET(gearmand->server.gearman, "_listen_init:setsockopt:%d",
+    GEARMAN_ERROR_SET(gearmand->server.gearman, "_listen_init", "setsockopt:%d",
                       errno)
     return GEARMAN_ERRNO;
   }
 
   if (bind(gearmand->listen_fd, (struct sockaddr *)(&sa), sizeof(sa)) == -1)
   {
-    GEARMAN_ERROR_SET(gearmand->server.gearman, "_listen_init:bind:%d", errno)
+    GEARMAN_ERROR_SET(gearmand->server.gearman, "_listen_init", "bind:%d",
+                      errno)
     return GEARMAN_ERRNO;
   }
 
   if (listen(gearmand->listen_fd, gearmand->backlog) == -1)
   {
-    GEARMAN_ERROR_SET(gearmand->server.gearman, "_listen_init:listen:%d", errno)
+    GEARMAN_ERROR_SET(gearmand->server.gearman, "_listen_init", "listen:%d",
+                      errno)
     return GEARMAN_ERRNO;
   }
 
@@ -210,7 +214,7 @@ static gearman_return_t _listen_init(gearmand_st *gearmand)
 
   if (event_add(&(gearmand->listen_event), NULL) == -1)
   {
-    GEARMAN_ERROR_SET(gearmand->server.gearman, "_listen_init:event_add:-1")
+    GEARMAN_ERROR_SET(gearmand->server.gearman, "_listen_init", "event_add:-1")
     return GEARMAN_EVENT;
   }
 
@@ -230,7 +234,7 @@ static void _listen_accept(int fd, short events __attribute__ ((unused)),
   dcon= malloc(sizeof(gearmand_con_st));
   if (dcon == NULL)
   {
-    GEARMAN_ERROR_SET(gearmand->server.gearman, "_listen_accept:malloc")
+    GEARMAN_ERROR_SET(gearmand->server.gearman, "_listen_accept", "malloc")
     gearmand->ret= GEARMAN_MEMORY_ALLOCATION_FAILURE;
     _event_del_all(gearmand);
     return;
@@ -243,7 +247,7 @@ static void _listen_accept(int fd, short events __attribute__ ((unused)),
   if (dcon->fd == -1)
   {
     free(dcon);
-    GEARMAN_ERROR_SET(gearmand->server.gearman, "_listen_accept:accept:%d",
+    GEARMAN_ERROR_SET(gearmand->server.gearman, "_listen_accept", "accept:%d",
                       errno)
     gearmand->ret= GEARMAN_ERRNO;;
     _event_del_all(gearmand);
@@ -252,8 +256,9 @@ static void _listen_accept(int fd, short events __attribute__ ((unused)),
 
   if (gearmand->verbose > 0)
   {
-    printf("%15s:%5u Connected (%u total)\n", inet_ntoa(dcon->sa.sin_addr),
-           ntohs(dcon->sa.sin_port), gearmand->dcon_count + 1);
+    printf("%15s:%5u Connected (%u current, %u total)\n",
+           inet_ntoa(dcon->sa.sin_addr), ntohs(dcon->sa.sin_port),
+           gearmand->dcon_count + 1, gearmand->dcon_total + 1);
   }
 
   dcon->gearmand= gearmand;
@@ -273,6 +278,7 @@ static void _listen_accept(int fd, short events __attribute__ ((unused)),
   dcon->next= gearmand->dcon_list;
   gearmand->dcon_list= dcon;
   gearmand->dcon_count++;
+  gearmand->dcon_total++;
 }
 
 static gearman_return_t _con_watch(gearman_con_st *con, short events,
@@ -294,7 +300,8 @@ static gearman_return_t _con_watch(gearman_con_st *con, short events,
 
   if (event_add(&(dcon->event), NULL) == -1)
   {
-    GEARMAN_ERROR_SET(dcon->gearmand->server.gearman, "_con_watch:event_add:-1")
+    GEARMAN_ERROR_SET(dcon->gearmand->server.gearman, "_con_watch",
+                      "event_add:-1")
     return GEARMAN_EVENT;
   }
 

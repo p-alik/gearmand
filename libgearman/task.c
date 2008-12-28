@@ -24,7 +24,10 @@ gearman_task_st *gearman_task_create(gearman_st *gearman,
   {
     task= malloc(sizeof(gearman_task_st));
     if (task == NULL)
+    {
+      GEARMAN_ERROR_SET(gearman, "gearman_job_create", "malloc")
       return NULL;
+    }
 
     memset(task, 0, sizeof(gearman_task_st));
     task->options|= GEARMAN_TASK_ALLOCATED;
@@ -108,6 +111,11 @@ const void *gearman_task_data(gearman_task_st *task)
 size_t gearman_task_data_size(gearman_task_st *task)
 {
   return task->recv->data_size;
+}
+
+void *gearman_task_take_data(gearman_task_st *task, size_t *size)
+{
+  return gearman_packet_take_data(task->recv, size);
 }
 
 size_t gearman_task_recv_data(gearman_task_st *task, void *data,

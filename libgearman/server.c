@@ -143,8 +143,6 @@ gearman_server_con_st *gearman_server_run(gearman_server_st *server,
   gearman_con_st *con;
   gearman_server_con_st *server_con;
 
-  /* There is a bug right here, the previous con may have been freed, get next
-     before returning error. */
   while ((con= gearman_con_ready(server->gearman)) != NULL)
   {
     /* Inherited classes anyone? Some people would call this a hack, I call it
@@ -169,6 +167,15 @@ gearman_server_con_st *gearman_server_run(gearman_server_st *server,
           return server_con;
         }
 
+        con->options|= GEARMAN_CON_PACKET_IN_USE;
+
+        if (con->packet.data_size == 8 &&
+            !memcmp(con->packet.data, "shutdown", 8))
+        {
+          *ret_ptr= GEARMAN_SHUTDOWN;
+          return NULL;
+        }
+
         con->packet.magic= GEARMAN_MAGIC_RESPONSE;
         con->packet.command= GEARMAN_COMMAND_ECHO_RES;
         *ret_ptr= gearman_packet_pack_header(&(con->packet));
@@ -187,6 +194,9 @@ gearman_server_con_st *gearman_server_run(gearman_server_st *server,
 
           return server_con;
         }
+
+        gearman_packet_free(&(con->packet));
+        con->options&= ~GEARMAN_CON_PACKET_IN_USE;
       }
 
       if (*ret_ptr == GEARMAN_IO_WAIT)

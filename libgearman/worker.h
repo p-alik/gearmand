@@ -56,14 +56,6 @@ void gearman_worker_free(gearman_worker_st *worker);
  *        gearman_worker_create or gearman_worker_clone.
  * @return Pointer to static buffer in library that holds an error string.
  */
-void gearman_worker_reset(gearman_worker_st *worker);
-
-/**
- * Return an error string for the last error encountered.
- * @param worker Worker structure previously initialized with
- *        gearman_worker_create or gearman_worker_clone.
- * @return Pointer to static buffer in library that holds an error string.
- */
 const char *gearman_worker_error(gearman_worker_st *worker);
 
 /**

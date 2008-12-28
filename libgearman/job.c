@@ -40,7 +40,10 @@ gearman_job_st *gearman_job_create(gearman_st *gearman, gearman_job_st *job)
   {
     job= malloc(sizeof(gearman_job_st));
     if (job == NULL)
+    {
+      GEARMAN_ERROR_SET(gearman, "gearman_job_create", "malloc")
       return NULL;
+    }
 
     memset(job, 0, sizeof(gearman_job_st));
     job->options|= GEARMAN_JOB_ALLOCATED;
@@ -68,6 +71,12 @@ void gearman_job_free(gearman_job_st *job)
   if (job->next)
     job->next->prev= job->prev;
   job->gearman->job_count--;
+
+  if (job->options & GEARMAN_JOB_ASSIGNED_IN_USE)
+    gearman_packet_free(&(job->assigned));
+
+  if (job->options & GEARMAN_JOB_WORK_IN_USE)
+    gearman_packet_free(&(job->work));
 
   if (job->options & GEARMAN_JOB_ALLOCATED)
     free(job);

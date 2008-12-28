@@ -34,10 +34,9 @@ struct gearman_st
   uint32_t packet_count;
   struct pollfd *pfds;
   uint32_t pfds_size;
-  gearman_con_st *con_ready;
   uint32_t sending;
   int last_errno;
-  char last_error[GEARMAN_ERROR_SIZE];
+  char last_error[GEARMAN_MAX_ERROR_SIZE];
   gearman_event_watch_fn *event_watch;
   void *event_watch_arg;
 };
@@ -91,6 +90,7 @@ struct gearman_con_st
   int fd;
   short events;
   short revents;
+  short last_revents;
   uint32_t created_id;
   uint32_t created_id_next;
   gearman_packet_st packet;
@@ -163,7 +163,6 @@ struct gearman_client_st
   gearman_task_st do_task;
   void *do_data;
   size_t do_data_size;
-  size_t do_data_offset;
   bool do_fail;
 };
 
@@ -195,7 +194,7 @@ struct gearman_worker_st
  */
 struct gearman_worker_function_st
 {
-  const char *function_name;
+  char *function_name;
   gearman_worker_fn *worker_fn;
   const void *fn_arg;
 };

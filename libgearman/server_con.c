@@ -25,7 +25,7 @@ gearman_server_con_st *gearman_server_con_create(gearman_server_st *server,
     server_con= malloc(sizeof(gearman_server_con_st));
     if (server_con == NULL)
     {
-      GEARMAN_ERROR_SET(server->gearman, "gearman_server_con_create:malloc");
+      GEARMAN_ERROR_SET(server->gearman, "gearman_server_con_create", "malloc")
       return NULL;
     }
 

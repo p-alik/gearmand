@@ -26,15 +26,20 @@ static void usage(char *name);
 int main(int argc, char *argv[])
 {
   char c;
+  uint32_t count= 0;
   char *host= NULL;
   unsigned short port= 0;
   gearman_return_t ret;
   gearman_worker_st worker;
 
-  while((c = getopt(argc, argv, "h:p:")) != EOF)
+  while((c = getopt(argc, argv, "c:h:p:")) != EOF)
   {
     switch(c)
     {
+    case 'c':
+      count= atoi(optarg);
+      break;
+
     case 'h':
       host= optarg;
       break;
@@ -69,9 +74,22 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  /* This while loop has no body. */
-  while (gearman_worker_work(&worker) == GEARMAN_SUCCESS);
-  fprintf(stderr, "%s\n", gearman_worker_error(&worker));
+  while (1)
+  {
+    ret= gearman_worker_work(&worker);
+    if (ret != GEARMAN_SUCCESS)
+    {
+      fprintf(stderr, "%s\n", gearman_worker_error(&worker));
+      break;
+    }
+
+    if (count > 0)
+    {
+      count--;
+      if (count == 0)
+        break;
+    }
+  }
 
   gearman_worker_free(&worker);
 

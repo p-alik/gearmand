@@ -29,6 +29,8 @@ int main(int argc, char *argv[])
   gearman_client_st client;
   char *result;
   size_t result_size;
+  uint32_t numerator;
+  uint32_t denominator;
 
   while((c = getopt(argc, argv, "h:p:")) != EOF)
   {
@@ -67,22 +69,36 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  result= (char *)gearman_client_do(&client, "reverse", (void *)argv[optind],
-                                    (size_t)strlen(argv[optind]), &result_size,
-                                    &ret);
-  if (ret != GEARMAN_SUCCESS)
+  while (1)
   {
-    if (ret == GEARMAN_WORK_FAIL)
-      fprintf(stderr, "Work failed\n");
+    result= (char *)gearman_client_do(&client, "reverse", (void *)argv[optind],
+                                      (size_t)strlen(argv[optind]),
+                                      &result_size, &ret);
+    if (ret == GEARMAN_WORK_DATA)
+    {
+      printf("Data=%.*s\n", (int)result_size, result);
+      free(result);
+      continue;
+    }
+    else if (ret == GEARMAN_WORK_STATUS)
+    {
+      gearman_client_do_status(&client, &numerator, &denominator);
+      printf("Status: %u/%u\n", numerator, denominator);
+      continue;
+    }
+    else if (ret == GEARMAN_SUCCESS)
+    {
+      printf("Result=%.*s\n", (int)result_size, result);
+      free(result);
+    }
+    else if (ret == GEARMAN_WORK_FAIL)
+      printf("Work failed\n");
     else
-      fprintf(stderr, "%s\n", gearman_client_error(&client));
+      printf("%s\n", gearman_client_error(&client));
 
-    exit(1);
+    break;
   }
 
-  printf("Result=%.*s\n", (int)result_size, result);
-
-  free(result);
   gearman_client_free(&client);
 
   return 0;

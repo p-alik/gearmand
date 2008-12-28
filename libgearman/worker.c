@@ -74,21 +74,40 @@ gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker,
 
 void gearman_worker_free(gearman_worker_st *worker)
 {
-  gearman_free(worker->gearman);
+  uint32_t x;
+
+  if (worker->options & GEARMAN_WORKER_PACKET_IN_USE)
+    gearman_packet_free(&(worker->packet));
+
+  if (worker->options & GEARMAN_WORKER_GRAB_JOB_IN_USE)
+    gearman_packet_free(&(worker->grab_job));
+
+  if (worker->options & GEARMAN_WORKER_PRE_SLEEP_IN_USE)
+    gearman_packet_free(&(worker->pre_sleep));
+
+  if (worker->job != NULL)
+    gearman_job_free(worker->job);
+
+  if (worker->options & GEARMAN_WORKER_WORK_JOB_IN_USE)
+    gearman_job_free(&(worker->work_job));
+
+  if (worker->work_result != NULL)
+    free(worker->work_result);
+
+  for (x= 0; x < worker->function_count; x++)
+  {
+    if (worker->function_list[x].function_name != NULL)
+      free(worker->function_list[x].function_name);
+  }
+
+  if (worker->function_list != NULL)
+    free(worker->function_list);
+
+  if (worker->gearman != NULL)
+    gearman_free(worker->gearman);
 
   if (worker->options & GEARMAN_WORKER_ALLOCATED)
     free(worker);
-}
-
-void gearman_worker_reset(gearman_worker_st *worker)
-{
-  worker->state= GEARMAN_WORKER_STATE_GRAB_JOB;
-
-  if (worker->job != NULL)
-  {
-    gearman_job_free(worker->job);
-    worker->job= NULL;
-  }
 }
 
 const char *gearman_worker_error(gearman_worker_st *worker)
@@ -118,7 +137,7 @@ gearman_return_t gearman_worker_add_server(gearman_worker_st *worker,
                                            const char *host, in_port_t port)
 {
   if (gearman_con_add(worker->gearman, NULL, host, port) == NULL)
-    return GEARMAN_ERRNO;
+    return GEARMAN_MEMORY_ALLOCATION_FAILURE;
 
   return GEARMAN_SUCCESS;
 }
@@ -222,34 +241,28 @@ gearman_return_t gearman_worker_unregister_all(gearman_worker_st *worker)
 
 gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
                                         gearman_job_st *job,
-                                        gearman_return_t *ret)
+                                        gearman_return_t *ret_ptr)
 {
-  if (worker->job == NULL)
-  {
-    worker->job= gearman_job_create(worker->gearman, job);
-    if (worker->job == NULL)
-    {
-      *ret= GEARMAN_ERRNO;
-      return NULL;
-    }
-  }
-
   while (1)
   {
     switch (worker->state)
     {
     case GEARMAN_WORKER_STATE_INIT:
-      *ret= gearman_packet_add(worker->gearman, &(worker->grab_job),
-                               GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_GRAB_JOB,
-                               NULL);
-      if (*ret != GEARMAN_SUCCESS)
+      *ret_ptr= gearman_packet_add(worker->gearman, &(worker->grab_job),
+                                   GEARMAN_MAGIC_REQUEST,
+                                   GEARMAN_COMMAND_GRAB_JOB, NULL);
+      if (*ret_ptr != GEARMAN_SUCCESS)
         return NULL;
 
-      *ret= gearman_packet_add(worker->gearman, &(worker->pre_sleep),
-                               GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_PRE_SLEEP,
-                               NULL);
-      if (*ret != GEARMAN_SUCCESS)
+      worker->options|= GEARMAN_WORKER_GRAB_JOB_IN_USE;
+
+      *ret_ptr= gearman_packet_add(worker->gearman, &(worker->pre_sleep),
+                                   GEARMAN_MAGIC_REQUEST,
+                                   GEARMAN_COMMAND_PRE_SLEEP, NULL);
+      if (*ret_ptr != GEARMAN_SUCCESS)
         return NULL;
+
+      worker->options|= GEARMAN_WORKER_PRE_SLEEP_IN_USE;
 
     case GEARMAN_WORKER_STATE_GRAB_JOB:
       worker->con= worker->gearman->con_list;
@@ -257,30 +270,46 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
       while (worker->con != NULL)
       {
     case GEARMAN_WORKER_STATE_GRAB_JOB_SEND:
-        *ret= gearman_con_send(worker->con, &(worker->grab_job), true);
-        if (*ret != GEARMAN_SUCCESS)
+        *ret_ptr= gearman_con_send(worker->con, &(worker->grab_job), true);
+        if (*ret_ptr != GEARMAN_SUCCESS)
         {
-          if (*ret == GEARMAN_IO_WAIT)
+          if (*ret_ptr == GEARMAN_IO_WAIT)
             worker->state= GEARMAN_WORKER_STATE_GRAB_JOB_SEND;
 
           return NULL;
         }
 
     case GEARMAN_WORKER_STATE_GRAB_JOB_RECV:
+        if (worker->job == NULL)
+        {
+          worker->job= gearman_job_create(worker->gearman, job);
+          if (worker->job == NULL)
+          {
+            *ret_ptr= GEARMAN_MEMORY_ALLOCATION_FAILURE;
+            return NULL;
+          }
+        }
+
         while (1)
         {
-          (void)gearman_con_recv(worker->con, &(worker->job->assigned), ret,
+          (void)gearman_con_recv(worker->con, &(worker->job->assigned), ret_ptr,
                                  true);
-          if (*ret != GEARMAN_SUCCESS)
+          if (*ret_ptr != GEARMAN_SUCCESS)
           {
-            if (*ret == GEARMAN_IO_WAIT)
+            if (*ret_ptr == GEARMAN_IO_WAIT)
               worker->state= GEARMAN_WORKER_STATE_GRAB_JOB_RECV;
+            else
+            {
+              gearman_job_free(worker->job);
+              worker->job= NULL;
+            }
 
             return NULL;
           }
 
           if (worker->job->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN)
           {
+            worker->job->options|= GEARMAN_JOB_ASSIGNED_IN_USE;
             worker->job->con= worker->con;
             worker->state= GEARMAN_WORKER_STATE_GRAB_JOB_SEND;
             job= worker->job;
@@ -288,10 +317,22 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
             return job;
           }
 
-          if (worker->job->assigned.command != GEARMAN_COMMAND_NOOP)
+          if (worker->job->assigned.command == GEARMAN_COMMAND_NO_JOB)
           {
             gearman_packet_free(&(worker->job->assigned));
             break;
+          }
+
+          if (worker->job->assigned.command != GEARMAN_COMMAND_NOOP)
+          {
+            GEARMAN_ERROR_SET(worker->gearman, "gearman_worker_grab_job",
+                              "unexpected packet:%s",
+                 gearman_command_info_list[worker->job->assigned.command].name);
+            gearman_packet_free(&(worker->job->assigned));
+            gearman_job_free(worker->job);
+            worker->job= NULL;
+            *ret_ptr= GEARMAN_UNEXPECTED_PACKET;
+            return NULL;
           }
 
           gearman_packet_free(&(worker->job->assigned));
@@ -302,10 +343,10 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
       }
 
     case GEARMAN_WORKER_STATE_PRE_SLEEP:
-      *ret= gearman_con_send_all(worker->gearman, &(worker->pre_sleep));
-      if (*ret != GEARMAN_SUCCESS)
+      *ret_ptr= gearman_con_send_all(worker->gearman, &(worker->pre_sleep));
+      if (*ret_ptr != GEARMAN_SUCCESS)
       {
-        if (*ret == GEARMAN_IO_WAIT)
+        if (*ret_ptr == GEARMAN_IO_WAIT)
           worker->state= GEARMAN_WORKER_STATE_PRE_SLEEP;
 
         return NULL;
@@ -316,19 +357,19 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
       for (worker->con= worker->gearman->con_list; worker->con != NULL;
            worker->con= worker->con->next)
       {
-        *ret= gearman_con_set_events(worker->con, POLLIN);
-        if (*ret != GEARMAN_SUCCESS)
+        *ret_ptr= gearman_con_set_events(worker->con, POLLIN);
+        if (*ret_ptr != GEARMAN_SUCCESS)
           return NULL;
       }
 
       if (worker->gearman->options & GEARMAN_NON_BLOCKING)
       {
-        *ret= GEARMAN_IO_WAIT;
+        *ret_ptr= GEARMAN_IO_WAIT;
         return NULL;
       }
 
-      *ret= gearman_con_wait(worker->gearman);
-      if (*ret != GEARMAN_SUCCESS)
+      *ret_ptr= gearman_con_wait(worker->gearman);
+      if (*ret_ptr != GEARMAN_SUCCESS)
         return NULL;
     }
   }
@@ -347,22 +388,38 @@ gearman_return_t gearman_worker_add_function(gearman_worker_st *worker,
   if (!(worker->options & GEARMAN_WORKER_PACKET_IN_USE))
   {
     if (function_name == NULL)
+    {
+      GEARMAN_ERROR_SET(worker->gearman, "gearman_worker_add_function",
+                        "function name not given")
       return GEARMAN_INVALID_FUNCTION_NAME;
+    }
 
     if (worker_fn == NULL)
+    {
+      GEARMAN_ERROR_SET(worker->gearman, "gearman_worker_add_function",
+                        "function not given")
       return GEARMAN_INVALID_WORKER_FUNCTION;
+    }
 
     function_list= realloc(worker->function_list,
                            sizeof(gearman_worker_function_st) *
-                           worker->function_count + 1);
+                           (worker->function_count + 1));
     if (function_list == NULL)
+    {
+      GEARMAN_ERROR_SET(worker->gearman, "gearman_worker_add_function",
+                        "realloc")
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+    }
 
     worker->function_list= function_list;
 
     function_list[worker->function_count].function_name= strdup(function_name);
     if (function_list[worker->function_count].function_name == NULL)
+    {
+      GEARMAN_ERROR_SET(worker->gearman, "gearman_worker_add_function",
+                        "strdup")
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+    }
 
     function_list[worker->function_count].worker_fn= worker_fn;
     function_list[worker->function_count].fn_arg= fn_arg;
@@ -397,8 +454,12 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
     if (x == worker->function_count)
     {
       gearman_job_free(&(worker->work_job));
+      GEARMAN_ERROR_SET(worker->gearman, "gearman_worker_work",
+                        "function not found")
       return GEARMAN_INVALID_FUNCTION_NAME;
     }
+
+    worker->options|= GEARMAN_WORKER_WORK_JOB_IN_USE;
 
   case GEARMAN_WORKER_WORK_STATE_FUNCTION:
     worker->work_result= (*(worker->work_function->worker_fn))(
@@ -433,7 +494,10 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
     }
 
     if (worker->work_result != NULL)
+    {
       free(worker->work_result);
+      worker->work_result= NULL;
+    }
 
     break;
 
@@ -444,6 +508,7 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
   }
 
   gearman_job_free(&(worker->work_job));
+  worker->options&= ~GEARMAN_WORKER_WORK_JOB_IN_USE;
   worker->work_state= GEARMAN_WORKER_WORK_STATE_GRAB_JOB;
   return GEARMAN_SUCCESS;
 }
