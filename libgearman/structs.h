@@ -207,14 +207,20 @@ struct gearman_server_st
   gearman_st *gearman;
   gearman_st gearman_static;
   gearman_server_options_t options;
-  gearman_server_con_st *server_con_list;
-  uint32_t server_con_count;
+  gearman_job_handle_t job_handle_prefix;
+  uint32_t job_handle_count;
+  gearman_server_con_st *con_list;
+  uint32_t con_count;
   gearman_server_con_st *active_list;
   uint32_t active_count;
+  gearman_server_function_st *function_list;
+  uint32_t function_count;
+  gearman_server_job_st *job_list;
+  uint32_t job_count;
 };
 
 /**
- * @ingroup gearman_server
+ * @ingroup gearman_server_con
  */
 struct gearman_server_con_st
 {
@@ -228,16 +234,60 @@ struct gearman_server_con_st
   uint32_t packet_count;
   gearman_server_con_st *active_next;
   gearman_server_con_st *active_prev;
+  gearman_server_worker_st *function_list;
+  uint32_t function_count;
 };
 
 /**
- * @ingroup gearman_server
+ * @ingroup gearman_server_con
  */
 struct gearman_server_packet_st
 {
   gearman_packet_st packet; /* This must be the first struct member. */
   gearman_server_packet_st *next;
   gearman_server_packet_options_t options;
+};
+
+/**
+ * @ingroup gearman_server_function
+ */
+struct gearman_server_function_st
+{
+  char *function_name;
+  gearman_server_worker_st *worker_list;
+  uint32_t worker_count;
+};
+
+/**
+ * @ingroup gearman_server_worker
+ */
+struct gearman_server_worker_st
+{
+  gearman_server_function_st *function;
+  gearman_server_con_st *con;
+  gearman_server_job_st *job;
+  gearman_server_worker_st *next;
+  gearman_server_worker_st *prev;
+  gearman_server_worker_st *con_next;
+  gearman_server_worker_st *con_prev;
+};
+
+/**
+ * @ingroup gearman_server_job
+ */
+struct gearman_server_job_st
+{
+  gearman_server_st *server;
+  gearman_server_job_st *next;
+  gearman_server_job_st *prev;
+  gearman_server_job_options_t options;
+  gearman_job_handle_t job_handle;
+  const void *data;
+  size_t data_size;
+  gearman_server_con_st *client;
+  gearman_server_worker_st *worker;
+  uint32_t numerator;
+  uint32_t denominator;
 };
 
 #endif /* __GEARMAN_STRUCTS_H__ */

@@ -33,6 +33,7 @@
 #include <libgearman/client.h>
 #include <libgearman/worker.h>
 #include <libgearman/server_con.h>
+#include <libgearman/server_job.h>
 #include <libgearman/server.h>
 #include <libgearman/gearmand.h>
 

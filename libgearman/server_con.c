@@ -45,11 +45,11 @@ gearman_server_con_st *gearman_server_con_create(gearman_server_st *server,
 
   server_con->server= server;
 
-  if (server->server_con_list)
-    server->server_con_list->prev= server_con;
-  server_con->next= server->server_con_list;
-  server->server_con_list= server_con;
-  server->server_con_count++;
+  if (server->con_list)
+    server->con_list->prev= server_con;
+  server_con->next= server->con_list;
+  server->con_list= server_con;
+  server->con_count++;
 
   return server_con;
 }
@@ -64,13 +64,13 @@ void gearman_server_con_free(gearman_server_con_st *server_con)
   while (server_con->packet_list != NULL)
     gearman_server_con_packet_remove(server_con);
 
-  if (server_con->server->server_con_list == server_con)
-    server_con->server->server_con_list= server_con->next;
+  if (server_con->server->con_list == server_con)
+    server_con->server->con_list= server_con->next;
   if (server_con->prev)
     server_con->prev->next= server_con->next;
   if (server_con->next)
     server_con->next->prev= server_con->prev;
-  server_con->server->server_con_count--;
+  server_con->server->con_count--;
 
   if (server_con->options & GEARMAN_SERVER_CON_ALLOCATED)
     free(server_con);

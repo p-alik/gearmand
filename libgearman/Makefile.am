@@ -21,6 +21,7 @@ dist_libgearmaninclude_HEADERS= \
 	packet.h \
 	server.h \
 	server_con.h \
+	server_job.h \
 	structs.h \
 	task.h \
 	worker.h
@@ -37,6 +38,7 @@ libgearman_la_SOURCES= \
 	packet.c \
 	server.c \
 	server_con.c \
+	server_job.c \
 	task.c \
 	worker.c
 

@@ -47,6 +47,8 @@ static gearman_return_t _server_run_command(gearman_server_con_st *server_con,
 
 gearman_server_st *gearman_server_create(gearman_server_st *server)
 {
+  struct utsname un;
+
   server= _server_allocate(server);
   if (server == NULL)
     return NULL;
@@ -59,6 +61,15 @@ gearman_server_st *gearman_server_create(gearman_server_st *server)
   }
 
   gearman_set_options(server->gearman, GEARMAN_NON_BLOCKING, 1);
+
+  if (uname(&un) == -1)
+  {
+    gearman_server_free(server);
+    return NULL;
+  }
+
+  snprintf(server->job_handle_prefix, GEARMAN_JOB_HANDLE_SIZE, "H:%s",
+           un.nodename);
 
   return server;
 }
@@ -87,8 +98,11 @@ gearman_server_st *gearman_server_clone(gearman_server_st *server,
 
 void gearman_server_free(gearman_server_st *server)
 {
-  while (server->server_con_list != NULL)
-    gearman_server_con_free(server->server_con_list);
+  while (server->con_list != NULL)
+    gearman_server_con_free(server->con_list);
+
+  while (server->job_list != NULL)
+    gearman_server_job_free(server->job_list);
 
   gearman_free(server->gearman);
 
@@ -294,6 +308,9 @@ static gearman_return_t _server_run_command(gearman_server_con_st *server_con,
 {
   gearman_return_t ret;
   gearman_server_packet_st *server_packet;
+  gearman_server_job_st *server_job;
+  char numerator_buffer[11]; /* Max string size to hold a uint32_t. */
+  char denominator_buffer[11]; /* Max string size to hold a uint32_t. */
 
   if (packet->magic == GEARMAN_MAGIC_RESPONSE)
   {
@@ -326,23 +343,70 @@ static gearman_return_t _server_run_command(gearman_server_con_st *server_con,
   case GEARMAN_COMMAND_SUBMIT_JOB:
   case GEARMAN_COMMAND_SUBMIT_JOB_BG:
   case GEARMAN_COMMAND_SUBMIT_JOB_HIGH:
-#if 0
     /* Create new job. */
-    server_job= gearman_server_job_add(server);
+    server_job= gearman_server_job_add(server_con->server,
+                                       (char *)(packet->arg[0]), packet->data,
+                                       packet->data_size,
+                              packet->command != GEARMAN_COMMAND_SUBMIT_JOB_BG ?
+                                       server_con : NULL,
+                            packet->command == GEARMAN_COMMAND_SUBMIT_JOB_HIGH ?
+                                       true : false);
     if (server_job == NULL)
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
 
-    if (con->packet.command != GEARMAN_COMMAND_SUBMIT_JOB_BG)
-      server_job->watcher= server_con;
+    packet->options&= ~GEARMAN_PACKET_FREE_DATA;
 
-    create function entry if it doesnt exist
-    add job to function entry (code above)
-    queue job created packet
-    queue NOOP to all matching idle workers
-#endif
+    server_packet= gearman_server_con_packet_add(server_con);
+    if (server_packet == NULL)
+      return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+
+    ret= gearman_packet_add(server_con->server->gearman,
+                            &(server_packet->packet), GEARMAN_MAGIC_RESPONSE,
+                            GEARMAN_COMMAND_JOB_CREATED, server_job->job_handle,
+                            (size_t)strlen(server_job->job_handle), NULL);
+    if (ret != GEARMAN_SUCCESS)
+      return ret;
+
+    server_packet->options|= GEARMAN_SERVER_PACKET_IN_USE;
+    gearman_server_active_list_add(server_con);
+
     break;
 
   case GEARMAN_COMMAND_GET_STATUS:
+    server_job= gearman_server_job_get(server_con->server,
+                                       (char *)packet->arg[0]);
+    if (server_job == NULL)
+    {
+      strcpy(numerator_buffer, "0");
+      strcpy(denominator_buffer, "0");
+    }
+    else
+    {
+      snprintf(numerator_buffer, 11, "%u", server_job->numerator);
+      snprintf(denominator_buffer, 11, "%u", server_job->denominator);
+    }
+
+    server_packet= gearman_server_con_packet_add(server_con);
+    if (server_packet == NULL)
+      return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+
+    ret= gearman_packet_add(server_con->server->gearman,
+                            &(server_packet->packet), GEARMAN_MAGIC_RESPONSE,
+                            GEARMAN_COMMAND_STATUS_RES, packet->arg[0],
+                            packet->arg_size[0] + 1,
+                            server_job == NULL ? "0" : "1", (size_t)2,
+                            server_job->worker == NULL ? "0" : "1", (size_t)2,
+                            numerator_buffer,
+                            (size_t)(strlen(numerator_buffer) + 1),
+                            denominator_buffer,
+                            (size_t)strlen(denominator_buffer),
+                            NULL);
+    if (ret != GEARMAN_SUCCESS)
+      return ret;
+
+    server_packet->options|= GEARMAN_SERVER_PACKET_IN_USE;
+    gearman_server_active_list_add(server_con);
+
     break;
 
   /* Worker requests. */
