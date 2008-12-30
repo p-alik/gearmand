@@ -7,24 +7,26 @@
  */
 
 #include <assert.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <time.h>
-#include <stdbool.h>
 
 #include <libgearman/gearman.h>
 
 #include "test.h"
+#include "test_gearmand.h"
+
+#define CLIENT_TEST_PORT 32123
+
+typedef struct
+{
+  pid_t gearmand_pid;
+  gearman_client_st client;
+} client_test_st;
 
 /* Prototypes */
-test_return init_test(void *not_used);
-test_return allocation_test(void *not_used);
+test_return init_test(void *object);
+test_return allocation_test(void *object);
 test_return clone_test(void *object);
 test_return echo_test(void *object);
 test_return submit_job_test(void *object);
@@ -32,13 +34,16 @@ test_return background_failure_test(void *object);
 test_return background_test(void *object);
 test_return error_test(void *object);
 
-void *create(void *not_used);
+void *create(void *object);
 void destroy(void *object);
 test_return pre(void *object);
 test_return post(void *object);
 test_return flush(void);
 
-test_return init_test(void *not_used __attribute__((unused)))
+void *world_create(void);
+void world_destroy(void *object);
+
+test_return init_test(void *object __attribute__((unused)))
 {
   gearman_client_st client;
 
@@ -50,7 +55,7 @@ test_return init_test(void *not_used __attribute__((unused)))
   return TEST_SUCCESS;
 }
 
-test_return allocation_test(void *not_used __attribute__((unused)))
+test_return allocation_test(void *object __attribute__((unused)))
 {
   gearman_client_st *client;
 
@@ -189,71 +194,55 @@ test_return submit_job_test(void *object)
   return TEST_SUCCESS;
 }
 
-#ifdef NOT_DONE
-test_return error_test(void *object)
-{
-  gearman_return rc;
-  gearman_st *param= (gearman_st *)object;
-
-  for (rc= GEARMAN_SUCCESS; rc < GEARMAN_MAXIMUM_RETURN; rc++)
-  {
-    char *string;
-    string= gearman_strerror(param, rc);
-  }
-
-  return TEST_SUCCESS;
-}
-#endif
-
 test_return flush(void)
 {
   return TEST_SUCCESS;
 }
 
-void *create(void *not_used __attribute__((unused)))
+void *create(void *object)
 {
-  gearman_client_st *client;
-  gearman_return_t rc;
-
-  client= gearman_client_create(NULL);
-
-  assert(client);
-
-  rc= gearman_client_add_server(client, NULL, 0);
-
-  assert(rc == GEARMAN_SUCCESS);
-
-  return (void *)client;
+  client_test_st *test= (client_test_st *)object;
+  return (void *)&(test->client);
 }
 
-void destroy(void *object)
+void destroy(void *object __attribute__((unused)))
 {
-  gearman_client_st *client= (gearman_client_st *)object;
-
-  assert(client);
-
-  gearman_client_free(client);
 }
 
-test_return pre(void *object)
+test_return pre(void *object __attribute__((unused)))
 {
-  gearman_client_st *client= (gearman_client_st *)object;
-
-  assert(client);
-
   return TEST_SUCCESS;
 }
 
-test_return post(void *object)
+test_return post(void *object __attribute__((unused)))
 {
-  gearman_client_st *client= (gearman_client_st *)object;
-
-  assert(client);
-
   return TEST_SUCCESS;
 }
 
-/* Clean the server before beginning testing */
+void *world_create(void)
+{
+  client_test_st *test;
+
+  assert((test= malloc(sizeof(client_test_st))) != NULL);
+  memset(test, 0, sizeof(client_test_st));
+  assert(gearman_client_create(&(test->client)) != NULL);
+
+  assert(gearman_client_add_server(&(test->client), NULL, CLIENT_TEST_PORT) ==
+         GEARMAN_SUCCESS);
+
+  test->gearmand_pid= gearmand_start(CLIENT_TEST_PORT);
+
+  return (void *)test;
+}
+
+void world_destroy(void *object)
+{
+  client_test_st *test= (client_test_st *)object;
+  gearman_client_free(&(test->client));
+  gearmand_stop(test->gearmand_pid);
+  free(test);
+}
+
 test_st tests[] ={
   {"init", 0, init_test },
   {"allocation", 0, allocation_test },
@@ -263,7 +252,6 @@ test_st tests[] ={
 #ifdef NOT_DONE
   {"submit_job", 0, submit_job_test },
   {"background", 0, background_test },
-  {"error", 0, error_test },
   {"submit_job2", 0, submit_job_test },
 #endif
   {0, 0, 0}
@@ -277,6 +265,6 @@ collection_st collection[] ={
 void get_world(world_st *world)
 {
   world->collections= collection;
-  world->create= NULL;
-  world->destroy= NULL;
+  world->create= world_create;
+  world->destroy= world_destroy;
 }

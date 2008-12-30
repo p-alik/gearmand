@@ -639,7 +639,8 @@ static gearman_task_st *_client_add_task(gearman_client_st *client,
                                GEARMAN_MAGIC_REQUEST, command,
                                (uint8_t *)function_name,
                                strlen(function_name) + 1,
-                               (uint8_t *)uuid_string, (size_t)37, workload,
+                               (uint8_t *)"moo", (size_t)4, workload,
+                               /*(uint8_t *)uuid_string, (size_t)37, workload,*/
                                workload_size, NULL);
   if (*ret_ptr == GEARMAN_SUCCESS)
   {

@@ -51,7 +51,7 @@ static void _event_del_all(gearmand_st *gearmand);
  * Public definitions
  */
 
-gearmand_st *gearmand_create(in_port_t port, int backlog, uint8_t verbose)
+gearmand_st *gearmand_create(in_port_t port)
 {
 #ifdef HAVE_EVENT_H
   gearmand_st *gearmand;
@@ -64,8 +64,6 @@ gearmand_st *gearmand_create(in_port_t port, int backlog, uint8_t verbose)
   
   gearmand->listen_fd= -1;
   gearmand->port= port;
-  gearmand->backlog= backlog;
-  gearmand->verbose= verbose;
 
   if (gearman_server_create(&(gearmand->server)) == NULL)
   {
@@ -81,9 +79,6 @@ gearmand_st *gearmand_create(in_port_t port, int backlog, uint8_t verbose)
     gearmand_free(gearmand);
     return NULL;
   }
-
-  if (verbose > 0)
-    printf("Method for libevent: %s\n", event_base_get_method(gearmand->base));
 
   return gearmand;
 #else
@@ -110,6 +105,16 @@ void gearmand_free(gearmand_st *gearmand)
 #endif
 }
  
+void gearmand_set_backlog(gearmand_st *gearmand, int backlog)
+{
+  gearmand->backlog= backlog;
+}
+ 
+void gearmand_set_verbose(gearmand_st *gearmand, uint8_t verbose)
+{
+  gearmand->verbose= verbose;
+}
+
 const char *gearmand_error(gearmand_st *gearmand)
 {
   return gearman_server_error(&(gearmand->server));
@@ -124,6 +129,9 @@ gearman_return_t gearmand_run(gearmand_st *gearmand)
 {
 #ifdef HAVE_EVENT_H
   gearmand_con_st *dcon;
+
+  if (gearmand->verbose > 0)
+    printf("Method for libevent: %s\n", event_base_get_method(gearmand->base));
 
   gearmand->ret= _listen_init(gearmand);
   if (gearmand->ret != GEARMAN_SUCCESS)

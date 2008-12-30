@@ -619,7 +619,11 @@ static gearman_return_t _server_run_command(gearman_server_con_st *server_con,
     break;
 
   case GEARMAN_COMMAND_SET_CLIENT_ID:
-    /* TODO set something in server_con */
+    ret= gearman_server_con_set_id(server_con, packet->arg[0],
+                                   packet->arg_size[0]);
+    if (ret != GEARMAN_SUCCESS)
+      return ret;
+
     break;
 
   default:

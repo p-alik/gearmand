@@ -104,6 +104,49 @@ void gearman_server_con_set_data(gearman_server_con_st *server_con, void *data)
   gearman_con_set_data(&(server_con->con), data);
 }
 
+uint8_t *gearman_server_con_id(gearman_server_con_st *server_con, size_t *size)
+{
+  *size= server_con->id_size;
+  return server_con->id;
+}
+
+gearman_return_t gearman_server_con_set_id(gearman_server_con_st *server_con,
+                                           uint8_t *id, size_t size)
+{
+  uint8_t *new_id;
+
+  if (size == 0)
+  {
+    if (server_con->id != NULL)
+    {
+      free(server_con->id);
+      server_con->id= NULL;
+      server_con->id_size= size;
+    }
+
+    return GEARMAN_SUCCESS;
+  }
+
+  if (size > server_con->id_size)
+  {
+    new_id= realloc(server_con->id, size + 1);
+    if (new_id == NULL)
+    {
+      GEARMAN_ERROR_SET(server_con->server->gearman,
+                        "gearman_server_con_set_id", "realloc")
+      return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+    }
+
+    server_con->id= new_id;
+  }
+
+  memcpy(server_con->id, id, size);
+  server_con->id_size= size;
+  server_con->id[size]= 0;
+
+  return GEARMAN_SUCCESS;
+}
+
 gearman_return_t gearman_server_con_packet_add(
                                               gearman_server_con_st *server_con,
                                               gearman_magic_t magic,

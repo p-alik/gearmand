@@ -27,11 +27,9 @@ extern "C" {
 /**
  * Create a server instance.
  * @param port Port for the server to listen on.
- * @param backlog Number of backlog connections to set during listen.
- * @param verbose Verbosity level.
  * @return Pointer to an allocated gearmand structure.
  */
-gearmand_st *gearmand_create(in_port_t port, int backlog, uint8_t verbose);
+gearmand_st *gearmand_create(in_port_t port);
 
 /**
  * Free resources used by a server instace.
@@ -39,6 +37,22 @@ gearmand_st *gearmand_create(in_port_t port, int backlog, uint8_t verbose);
  *        gearmand_init.
  */
 void gearmand_free(gearmand_st *gearmand);
+
+/**
+ * Set socket backlog for listening connection.
+ * @param gearmand Server instance structure previously initialized with
+ *        gearmand_init.
+ * @param backlog Number of backlog connections to set during listen.
+ */
+void gearmand_set_backlog(gearmand_st *gearmand, int backlog);
+
+/**
+ * Set verbosity level for server instance.
+ * @param gearmand Server instance structure previously initialized with
+ *        gearmand_init.
+ * @param verbose Verbosity level.
+ */
+void gearmand_set_verbose(gearmand_st *gearmand, uint8_t verbose);
 
 /**
  * Return an error string for the last error encountered.

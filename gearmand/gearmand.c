@@ -48,12 +48,15 @@ int main(int argc, char *argv[])
     }
   }
 
-  gearmand= gearmand_create(port, backlog, verbose);
+  gearmand= gearmand_create(port);
   if (gearmand == NULL)
   {
     printf("gearmand_create:NULL\n");
     return 1;
   }
+
+  gearmand_set_backlog(gearmand, backlog);
+  gearmand_set_verbose(gearmand, verbose);
 
   ret= gearmand_run(gearmand);
   if (ret != GEARMAN_SHUTDOWN && ret != GEARMAN_SUCCESS)

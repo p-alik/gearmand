@@ -5,35 +5,41 @@
  * Use and distribution licensed under the BSD license.  See
  * the COPYING file in the parent directory for full text.
  */
-#include <assert.h>
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <time.h>
-#include <stdbool.h>
 
 #include <libgearman/gearman.h>
 
 #include "test.h"
+#include "test_gearmand.h"
+
+#define WORKER_TEST_PORT 32123
+
+typedef struct
+{
+  pid_t gearmand_pid;
+  gearman_worker_st worker;
+} worker_test_st;
 
 /* Prototypes */
-test_return init_test(void *not_used);
-test_return allocation_test(void *not_used);
+test_return init_test(void *object);
+test_return allocation_test(void *object);
 test_return clone_test(void *object);
 test_return echo_test(void *object);
 
-void *create(void *not_used);
+void *create(void *object);
 void destroy(void *object);
 test_return pre(void *object);
 test_return post(void *object);
 test_return flush(void);
 
-test_return init_test(void *not_used __attribute__((unused)))
+void *world_create(void);
+void world_destroy(void *object);
+
+test_return init_test(void *object __attribute__((unused)))
 {
   gearman_worker_st worker;
 
@@ -45,7 +51,7 @@ test_return init_test(void *not_used __attribute__((unused)))
   return TEST_SUCCESS;
 }
 
-test_return allocation_test(void *not_used __attribute__((unused)))
+test_return allocation_test(void *object __attribute__((unused)))
 {
   gearman_worker_st *worker;
 
@@ -133,50 +139,50 @@ test_return flush(void)
   return TEST_SUCCESS;
 }
 
-void *create(void *not_used __attribute__((unused)))
+void *create(void *object __attribute__((unused)))
 {
-  gearman_worker_st *worker;
-  gearman_return_t rc;
-
-  worker= gearman_worker_create(NULL);
-
-  assert(worker);
-
-  rc= gearman_worker_add_server(worker, NULL, 0);
-
-  assert(rc == GEARMAN_SUCCESS);
-
-  return (void *)worker;
+  worker_test_st *test= (worker_test_st *)object;
+  return (void *)&(test->worker);
 }
 
-void destroy(void *object)
+void destroy(void *object __attribute__((unused)))
 {
-  gearman_worker_st *worker= (gearman_worker_st *)object;
-
-  assert(worker);
-
-  gearman_worker_free(worker);
 }
 
-test_return pre(void *object)
+test_return pre(void *object __attribute__((unused)))
 {
-  gearman_worker_st *worker= (gearman_worker_st *)object;
-
-  assert(worker);
-
   return TEST_SUCCESS;
 }
 
-test_return post(void *object)
+test_return post(void *object __attribute__((unused)))
 {
-  gearman_worker_st *worker= (gearman_worker_st *)object;
-
-  assert(worker);
-
   return TEST_SUCCESS;
 }
 
-/* Clean the server before beginning testing */
+void *world_create(void)
+{
+  worker_test_st *test;
+
+  assert((test= malloc(sizeof(worker_test_st))) != NULL);
+  memset(test, 0, sizeof(worker_test_st));
+  assert(gearman_worker_create(&(test->worker)) != NULL);
+
+  assert(gearman_worker_add_server(&(test->worker), NULL, WORKER_TEST_PORT) ==
+         GEARMAN_SUCCESS);
+
+  test->gearmand_pid= gearmand_start(WORKER_TEST_PORT);
+
+  return (void *)test;
+}
+
+void world_destroy(void *object)
+{
+  worker_test_st *test= (worker_test_st *)object;
+  gearman_worker_free(&(test->worker));
+  gearmand_stop(test->gearmand_pid);
+  free(test);
+}
+
 test_st tests[] ={
   {"init", 0, init_test },
   {"allocation", 0, allocation_test },
@@ -196,6 +202,6 @@ collection_st collection[] ={
 void get_world(world_st *world)
 {
   world->collections= collection;
-  world->create= NULL;
-  world->destroy= NULL;
+  world->create= world_create;
+  world->destroy= world_destroy;
 }

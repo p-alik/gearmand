@@ -237,6 +237,8 @@ struct gearman_server_con_st
   gearman_server_worker_st *worker_list;
   uint32_t worker_count;
   uint32_t job_count;
+  uint8_t *id;
+  size_t id_size;
 };
 
 /**
