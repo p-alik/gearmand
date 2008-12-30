@@ -34,7 +34,8 @@ gearman_server_job_st *gearman_server_job_add(gearman_server_st *server,
                                               const void *data,
                                               size_t data_size,
                                               gearman_server_con_st *server_con,
-                                              bool high);
+                                              bool high,
+                                              gearman_return_t *ret_ptr);
 
 /**
  * Initialize a server job structure.
@@ -54,15 +55,21 @@ gearman_server_job_st *gearman_server_job_get(gearman_server_st *server,
                                               gearman_job_handle_t job_handle);
 
 /**
- * Get a new server job that the server connection is registered to run.
+ * See if there are any jobs to be run for the server worker connection.
  */
-gearman_server_job_st *gearman_server_job_get_new(gearman_server_con_st *server_con);
+gearman_server_job_st *gearman_server_job_peek(
+                                             gearman_server_con_st *server_con);
 
 /**
- * Note that a job is being run by the given server connection.
+ * Start running a job for the server worker connection.
  */
-void gearman_server_job_run(gearman_server_job_st *server_job,
-                            gearman_server_con_st *server_con);
+gearman_server_job_st *gearman_server_job_take(
+                                             gearman_server_con_st *server_con);
+
+/**
+ * Queue a job to be run.
+ */
+gearman_return_t gearman_server_job_queue(gearman_server_job_st *server_job);
 
 /** @} */
 

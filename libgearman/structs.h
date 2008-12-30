@@ -243,9 +243,8 @@ struct gearman_server_con_st
  */
 struct gearman_server_packet_st
 {
-  gearman_packet_st packet; /* This must be the first struct member. */
+  gearman_packet_st packet;
   gearman_server_packet_st *next;
-  gearman_server_packet_options_t options;
 };
 
 /**
@@ -298,7 +297,7 @@ struct gearman_server_job_st
   const void *data;
   size_t data_size;
   gearman_server_con_st *client;
-  gearman_server_con_st *worker;
+  gearman_server_worker_st *worker;
   uint32_t numerator;
   uint32_t denominator;
 };

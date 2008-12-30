@@ -83,11 +83,9 @@ gearman_server_worker_st *gearman_server_worker_create(
 
 void gearman_server_worker_free(gearman_server_worker_st *server_worker)
 {
-/*
+  /* If the worker was in the middle of a job, requeue it. */
   if (server_worker->job != NULL)
-    gearman_server_job_worker_free(server_worker->job);
-  TODO: deal with this, restart job
-*/
+    (void)gearman_server_job_queue(server_worker->job);
 
   if (server_worker->con->worker_list == server_worker)
     server_worker->con->worker_list= server_worker->con_next;

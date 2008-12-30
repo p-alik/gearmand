@@ -59,10 +59,12 @@ void gearman_server_con_free(gearman_server_con_st *server_con)
   gearman_con_free(&(server_con->con));
 
   if (server_con->active_next != NULL || server_con->active_prev != NULL)
-    gearman_server_active_list_remove(server_con);
+    gearman_server_active_remove(server_con);
 
   while (server_con->packet_list != NULL)
     gearman_server_con_packet_remove(server_con);
+
+  gearman_server_con_free_workers(server_con);
 
   if (server_con->server->con_list == server_con)
     server_con->server->con_list= server_con->next;
@@ -86,19 +88,64 @@ void gearman_server_con_set_data(gearman_server_con_st *server_con, void *data)
   gearman_con_set_data(&(server_con->con), data);
 }
 
-gearman_server_packet_st *gearman_server_con_packet_add(gearman_server_con_st *server_con)
+gearman_return_t gearman_server_con_packet_add(
+                                              gearman_server_con_st *server_con,
+                                              gearman_magic_t magic,
+                                              gearman_command_t command,
+                                              const void *arg, ...)
 {
   gearman_server_packet_st *server_packet;
+  va_list ap;
+  size_t arg_size;
+  gearman_return_t ret;
 
   server_packet= malloc(sizeof(gearman_server_packet_st));
   if (server_packet == NULL)
   {
     GEARMAN_ERROR_SET(server_con->server->gearman,
                       "gearman_server_con_packet_add", "malloc")
-    return NULL;
+    return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
 
   memset(server_packet, 0, sizeof(gearman_server_packet_st));
+
+  if (gearman_packet_create(server_con->server->gearman,
+                            &(server_packet->packet)) == NULL)
+  {
+    free(server_packet);
+    return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+  }
+
+  server_packet->packet.magic= magic;
+  server_packet->packet.command= command;
+
+  va_start(ap, arg);
+
+  while (arg != NULL)
+  {
+    arg_size = va_arg(ap, size_t);
+
+    ret= gearman_packet_add_arg(&(server_packet->packet), arg, arg_size);
+    if (ret != GEARMAN_SUCCESS)
+    {
+      va_end(ap);
+      gearman_packet_free(&(server_packet->packet));
+      free(server_packet);
+      return ret;
+    }
+
+    arg = va_arg(ap, void *);
+  }
+
+  va_end(ap);
+
+  ret= gearman_packet_pack_header(&(server_packet->packet));
+  if (ret != GEARMAN_SUCCESS)
+  {
+    gearman_packet_free(&(server_packet->packet));
+    free(server_packet);
+    return ret;
+  }
 
   if (server_con->packet_end == NULL)
     server_con->packet_list= server_packet;
@@ -107,15 +154,16 @@ gearman_server_packet_st *gearman_server_con_packet_add(gearman_server_con_st *s
   server_con->packet_end= server_packet;
   server_con->packet_count++;
 
-  return server_packet;
+  gearman_server_active_add(server_con);
+
+  return GEARMAN_SUCCESS;
 }
 
 void gearman_server_con_packet_remove(gearman_server_con_st *server_con)
 {
   gearman_server_packet_st *server_packet= server_con->packet_list;
 
-  if (server_packet->options & GEARMAN_SERVER_PACKET_IN_USE)
-    gearman_packet_free(&(server_packet->packet));
+  gearman_packet_free(&(server_packet->packet));
 
   server_con->packet_list= server_packet->next;
   if (server_con->packet_list == NULL)

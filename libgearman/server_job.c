@@ -23,50 +23,31 @@ gearman_server_job_st *gearman_server_job_add(gearman_server_st *server,
                                               const void *data,
                                               size_t data_size,
                                               gearman_server_con_st *server_con,
-                                              bool high)
+                                              bool high,
+                                              gearman_return_t *ret_ptr)
 {
   gearman_server_function_st *server_function;
   gearman_server_job_st *server_job;
-  gearman_server_worker_st *server_worker;
-  gearman_server_packet_st *server_packet;
-  gearman_return_t ret;
 
   server_function= gearman_server_function_get(server, function_name,
                                                function_name_size);
   if (server_function == NULL)
-    return NULL;
+  {
+    *ret_ptr= GEARMAN_MEMORY_ALLOCATION_FAILURE;
+    return NULL;;
+  }
 
   server_job= gearman_server_job_create(server, NULL);
   if (server_job == NULL)
-    return NULL;
-
-  /* Queue NOOP for possible sleeping workers. */
-  /* TODO Move this into it's own function or add ret_ptr arg. */
-  for (server_worker= server_function->worker_list; server_worker != NULL;
-       server_worker= server_worker->function_next)
   {
-    if (!(server_worker->con->options & GEARMAN_SERVER_CON_SLEEPING))
-      continue;
-
-    server_packet= gearman_server_con_packet_add(server_worker->con);
-    if (server_packet == NULL)
-    {
-      gearman_server_job_free(server_job);
-      return NULL;
-    }
-
-    ret= gearman_packet_add(server->gearman, &(server_packet->packet),
-                            GEARMAN_MAGIC_RESPONSE, GEARMAN_COMMAND_NOOP, NULL);
-    if (ret != GEARMAN_SUCCESS)
-    {
-      gearman_server_job_free(server_job);
-      return NULL;
-    }
-
-    server_packet->options|= GEARMAN_SERVER_PACKET_IN_USE;
-    gearman_server_active_list_add(server_worker->con);
+    *ret_ptr= GEARMAN_MEMORY_ALLOCATION_FAILURE;
+    return NULL;;
   }
 
+  if (high)
+    server_job->options|= GEARMAN_SERVER_JOB_HIGH;
+
+  server_job->function= server_function;
   snprintf(server_job->job_handle, GEARMAN_JOB_HANDLE_SIZE, "%s:%u",
            server->job_handle_prefix, server->job_handle_count);
   server->job_handle_count++;
@@ -74,36 +55,11 @@ gearman_server_job_st *gearman_server_job_add(gearman_server_st *server,
   server_job->data_size= data_size;
   server_job->client= server_con;
 
-  server_job->function= server_function;
-
-  /* Queue the job to be run. */
-  if (high)
+  *ret_ptr= gearman_server_job_queue(server_job);
+  if (*ret_ptr != GEARMAN_SUCCESS)
   {
-    if (server_function->job_high_end == NULL)
-    {
-      if (server_function->job_list != NULL)
-        server_job->function_next= server_function->job_list;
-      server_function->job_list= server_job;
-    }
-    else
-    {
-      server_job->function_next= server_function->job_high_end->function_next;
-      server_function->job_high_end->function_next= server_job;
-    }
-    server_function->job_high_end= server_job;
-  }
-  else
-  {
-    if (server_function->job_end == NULL)
-    {
-      if (server_function->job_list == NULL)
-        server_function->job_list= server_job;
-      else
-        server_function->job_high_end->function_next= server_job;
-    }
-    else
-      server_job->function_next= server_function->job_end->function_next;
-    server_function->job_end= server_job;
+    gearman_server_job_free(server_job);
+    return NULL;
   }
 
   return server_job;
@@ -143,6 +99,9 @@ void gearman_server_job_free(gearman_server_job_st *server_job)
   if (server_job->data != NULL)
     free((void *)(server_job->data));
 
+  if (server_job->worker != NULL)
+    server_job->worker->job= NULL;
+
   if (server_job->server->job_list == server_job)
     server_job->server->job_list= server_job->next;
   if (server_job->prev)
@@ -170,7 +129,8 @@ gearman_server_job_st *gearman_server_job_get(gearman_server_st *server,
   return NULL;
 }
 
-gearman_server_job_st *gearman_server_job_get_new(gearman_server_con_st *server_con)
+gearman_server_job_st *gearman_server_job_peek(
+                                             gearman_server_con_st *server_con)
 {
   gearman_server_worker_st *server_worker;
 
@@ -184,12 +144,25 @@ gearman_server_job_st *gearman_server_job_get_new(gearman_server_con_st *server_
   return NULL;
 }
 
-void gearman_server_job_run(gearman_server_job_st *server_job,
-                            gearman_server_con_st *server_con)
+gearman_server_job_st *gearman_server_job_take(
+                                             gearman_server_con_st *server_con)
 {
-  assert(server_job == server_job->function->job_list);
+  gearman_server_worker_st *server_worker;
+  gearman_server_job_st *server_job;
 
-  server_job->worker= server_con;
+  for (server_worker= server_con->worker_list; server_worker != NULL;
+       server_worker= server_worker->con_next)
+  {
+    if (server_worker->function->job_list != NULL)
+      break;
+  }
+
+  if (server_worker == NULL)
+    return NULL;
+
+  server_job= server_worker->function->job_list;
+  server_job->worker= server_worker;
+  server_worker->job= server_job;
 
   server_job->function->job_list= server_job->function_next;
   if (server_job->function->job_end == server_job)
@@ -197,4 +170,65 @@ void gearman_server_job_run(gearman_server_job_st *server_job,
   else if (server_job->function->job_high_end == server_job)
     server_job->function->job_high_end= NULL;
   server_job->function_next= NULL;
+  server_job->function->job_count--;
+
+  return server_job;
+}
+
+gearman_return_t gearman_server_job_queue(gearman_server_job_st *server_job)
+{
+  gearman_server_worker_st *server_worker;
+  gearman_return_t ret;
+
+  server_job->worker= NULL;
+  server_job->numerator= 0;
+  server_job->denominator= 0;
+
+  /* Queue NOOP for possible sleeping workers. */
+  for (server_worker= server_job->function->worker_list; server_worker != NULL;
+       server_worker= server_worker->function_next)
+  {
+    if (!(server_worker->con->options & GEARMAN_SERVER_CON_SLEEPING))
+      continue;
+
+    ret= gearman_server_con_packet_add(server_worker->con,
+                                       GEARMAN_MAGIC_RESPONSE,
+                                       GEARMAN_COMMAND_NOOP, NULL);
+    if (ret != GEARMAN_SUCCESS)
+      return ret;
+  }
+
+  /* Queue the job to be run. */
+  if (server_job->options & GEARMAN_SERVER_JOB_HIGH)
+  {
+    if (server_job->function->job_high_end == NULL)
+    {
+      if (server_job->function->job_list != NULL)
+        server_job->function_next= server_job->function->job_list;
+      server_job->function->job_list= server_job;
+    }
+    else
+    {
+      server_job->function_next=
+                              server_job->function->job_high_end->function_next;
+      server_job->function->job_high_end->function_next= server_job;
+    }
+    server_job->function->job_high_end= server_job;
+  }
+  else
+  {
+    if (server_job->function->job_end == NULL)
+    {
+      if (server_job->function->job_list == NULL)
+        server_job->function->job_list= server_job;
+      else
+        server_job->function->job_high_end->function_next= server_job;
+    }
+    else
+      server_job->function->job_end->function_next= server_job;
+    server_job->function->job_end= server_job;
+  }
+  server_job->function->job_count++;
+
+  return GEARMAN_SUCCESS;
 }

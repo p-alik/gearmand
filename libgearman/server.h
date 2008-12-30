@@ -107,23 +107,24 @@ gearman_server_con_st *gearman_server_add_con(gearman_server_st *server,
 /**
  * Add connection to the active server list.
  */
-void gearman_server_active_list_add(gearman_server_con_st *server_con);
+void gearman_server_active_add(gearman_server_con_st *server_con);
 
 /**
  * Remove connection from the active server list.
  */
-void gearman_server_active_list_remove(gearman_server_con_st *server_con);
+void gearman_server_active_remove(gearman_server_con_st *server_con);
 
 /**
  * Get next connection from the active server list.
  */
-gearman_server_con_st *gearman_server_active_list_next(gearman_server_st *server);
+gearman_server_con_st *gearman_server_active_next(gearman_server_st *server);
 
 /**
  * Process server connections.
  * @param server Server structure previously initialized with
  *        gearman_server_create or gearman_server_clone.
- * @return Standard gearman return value.
+ * @param ret_ptr Pointer to hold a standard gearman return value.
+ * @return On error, the server connection that encountered the error.
  */
 gearman_server_con_st *gearman_server_run(gearman_server_st *server,
                                           gearman_return_t *ret_ptr);

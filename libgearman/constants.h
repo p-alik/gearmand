@@ -356,15 +356,6 @@ typedef enum
 } gearman_server_con_options_t;
 
 /**
- * @ingroup gearman_server_con
- * Options for gearman_server_packet_st.
- */
-typedef enum
-{
-  GEARMAN_SERVER_PACKET_IN_USE= (1 << 0)
-} gearman_server_packet_options_t;
-
-/**
  * @ingroup gearman_server_function
  * Options for gearman_server_function_st.
  */
@@ -388,7 +379,8 @@ typedef enum
  */
 typedef enum
 {
-  GEARMAN_SERVER_JOB_ALLOCATED= (1 << 0)
+  GEARMAN_SERVER_JOB_ALLOCATED= (1 << 0),
+  GEARMAN_SERVER_JOB_HIGH=      (1 << 1)
 } gearman_server_job_options_t;
 
 #ifdef __cplusplus

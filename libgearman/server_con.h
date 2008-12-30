@@ -49,7 +49,11 @@ void gearman_server_con_set_data(gearman_server_con_st *server_con, void *data);
 /**
  * Add a server packet structure to a connection.
  */
-gearman_server_packet_st *gearman_server_con_packet_add(gearman_server_con_st *server_con);
+gearman_return_t gearman_server_con_packet_add(
+                                              gearman_server_con_st *server_con,
+                                              gearman_magic_t magic,
+                                              gearman_command_t command,
+                                              const void *arg, ...);
 
 /**
  * Remove the first server packet structure from a connection.
