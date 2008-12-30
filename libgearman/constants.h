@@ -351,7 +351,8 @@ typedef enum
  */
 typedef enum
 {
-  GEARMAN_SERVER_CON_ALLOCATED= (1 << 0)
+  GEARMAN_SERVER_CON_ALLOCATED= (1 << 0),
+  GEARMAN_SERVER_CON_SLEEPING=  (1 << 1)
 } gearman_server_con_options_t;
 
 /**
@@ -362,6 +363,24 @@ typedef enum
 {
   GEARMAN_SERVER_PACKET_IN_USE= (1 << 0)
 } gearman_server_packet_options_t;
+
+/**
+ * @ingroup gearman_server_function
+ * Options for gearman_server_function_st.
+ */
+typedef enum
+{
+  GEARMAN_SERVER_FUNCTION_ALLOCATED= (1 << 0)
+} gearman_server_function_options_t;
+
+/**
+ * @ingroup gearman_server_worker
+ * Options for gearman_server_worker_st.
+ */
+typedef enum
+{
+  GEARMAN_SERVER_WORKER_ALLOCATED= (1 << 0)
+} gearman_server_worker_options_t;
 
 /**
  * @ingroup gearman_server_job

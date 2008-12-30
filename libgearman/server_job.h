@@ -30,6 +30,7 @@ extern "C" {
  */
 gearman_server_job_st *gearman_server_job_add(gearman_server_st *server,
                                               const char *function_name,
+                                              size_t function_name_size,
                                               const void *data,
                                               size_t data_size,
                                               gearman_server_con_st *server_con,
@@ -51,6 +52,17 @@ void gearman_server_job_free(gearman_server_job_st *server_job);
  */
 gearman_server_job_st *gearman_server_job_get(gearman_server_st *server,
                                               gearman_job_handle_t job_handle);
+
+/**
+ * Get a new server job that the server connection is registered to run.
+ */
+gearman_server_job_st *gearman_server_job_get_new(gearman_server_con_st *server_con);
+
+/**
+ * Note that a job is being run by the given server connection.
+ */
+void gearman_server_job_run(gearman_server_job_st *server_job,
+                            gearman_server_con_st *server_con);
 
 /** @} */
 

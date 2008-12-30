@@ -124,3 +124,27 @@ void gearman_server_con_packet_remove(gearman_server_con_st *server_con)
 
   free(server_packet);
 }
+
+void gearman_server_con_free_worker(gearman_server_con_st *server_con,
+                                    char *function_name,
+                                    size_t function_name_size)
+{
+  gearman_server_worker_st *server_worker;
+
+  for (server_worker= server_con->worker_list; server_worker != NULL;
+       server_worker= server_worker->con_next)
+  {
+    if (server_worker->function->function_name_size == function_name_size &&
+        !memcmp(server_worker->function->function_name, function_name,
+                function_name_size))
+    {
+      gearman_server_worker_free(server_worker);
+    }
+  }
+}
+
+void gearman_server_con_free_workers(gearman_server_con_st *server_con)
+{
+  while (server_con->worker_list != NULL)
+    gearman_server_worker_free(server_con->worker_list);
+}

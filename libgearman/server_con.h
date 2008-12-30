@@ -56,6 +56,18 @@ gearman_server_packet_st *gearman_server_con_packet_add(gearman_server_con_st *s
  */
 void gearman_server_con_packet_remove(gearman_server_con_st *server_con);
 
+/**
+ * Free server worker struction with name for a server connection.
+ */
+void gearman_server_con_free_worker(gearman_server_con_st *server_con,
+                                    char *function_name,
+                                    size_t function_name_size);
+
+/**
+ * Free all server worker structures for a server connection.
+ */
+void gearman_server_con_free_workers(gearman_server_con_st *server_con);
+
 /** @} */
 
 #ifdef __cplusplus

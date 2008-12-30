@@ -234,8 +234,8 @@ struct gearman_server_con_st
   uint32_t packet_count;
   gearman_server_con_st *active_next;
   gearman_server_con_st *active_prev;
-  gearman_server_worker_st *function_list;
-  uint32_t function_count;
+  gearman_server_worker_st *worker_list;
+  uint32_t worker_count;
 };
 
 /**
@@ -253,9 +253,18 @@ struct gearman_server_packet_st
  */
 struct gearman_server_function_st
 {
+  gearman_server_st *server;
+  gearman_server_function_st *next;
+  gearman_server_function_st *prev;
+  gearman_server_function_options_t options;
   char *function_name;
+  size_t function_name_size;
   gearman_server_worker_st *worker_list;
   uint32_t worker_count;
+  gearman_server_job_st *job_list;
+  gearman_server_job_st *job_high_end;
+  gearman_server_job_st *job_end;
+  uint32_t job_count;
 };
 
 /**
@@ -263,13 +272,15 @@ struct gearman_server_function_st
  */
 struct gearman_server_worker_st
 {
-  gearman_server_function_st *function;
   gearman_server_con_st *con;
-  gearman_server_job_st *job;
-  gearman_server_worker_st *next;
-  gearman_server_worker_st *prev;
   gearman_server_worker_st *con_next;
   gearman_server_worker_st *con_prev;
+  gearman_server_worker_options_t options;
+  gearman_server_function_st *function;
+  gearman_server_worker_st *function_next;
+  gearman_server_worker_st *function_prev;
+  uint32_t timeout;
+  gearman_server_job_st *job;
 };
 
 /**
@@ -280,12 +291,14 @@ struct gearman_server_job_st
   gearman_server_st *server;
   gearman_server_job_st *next;
   gearman_server_job_st *prev;
+  gearman_server_function_st *function;
+  gearman_server_job_st *function_next;
   gearman_server_job_options_t options;
   gearman_job_handle_t job_handle;
   const void *data;
   size_t data_size;
   gearman_server_con_st *client;
-  gearman_server_worker_st *worker;
+  gearman_server_con_st *worker;
   uint32_t numerator;
   uint32_t denominator;
 };
