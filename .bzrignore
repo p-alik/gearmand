@@ -22,10 +22,17 @@ config/ltmain.sh
 config/missing
 docs/api
 docs/dev
+gearmand/gearmand
+examples/echo_client
+examples/echo_worker
 examples/reverse_client
 examples/reverse_client_bg
 examples/reverse_client_cb
 examples/reverse_worker
 examples/reverse_worker_bg
 tests/client_test
+tests/client_test.rec
+tests/client_test.res
 tests/worker_test
+tests/worker_test.rec
+tests/worker_test.res

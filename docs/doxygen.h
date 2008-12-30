@@ -1,19 +1,9 @@
 /* Gearman server and library
  * Copyright (C) 2008 Brian Aker, Eric Day
+ * All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * Use and distribution licensed under the BSD license.  See
+ * the COPYING file in the parent directory for full text.
  */
 
 /**
@@ -42,6 +32,7 @@ a client, and a job is usually used in the context of the server
 and worker. A task can be a job or other client request such as
 getting status.
 
+@anchor main_page_client
 @section client Client
 
 It is best to look at the example source code (in examples/) included
@@ -66,6 +57,7 @@ You can pass either of the host and port fields of
 gearman_client_add_server() as NULL and 0 respectively to use the
 default values.
 
+@anchor main_page_client_single
 @subsection client_single Single Client Interface
 
 One you have the client object setup, you can run a single task with:
@@ -80,6 +72,7 @@ This will contact the job server, request "function" to be run with
 size of the result is stored in result_size. The return code is stored
 in "ret" and shoulf always be checked.
 
+@anchor main_page_client_concurrent
 @subsection client_concurrent Concurrent Client Interface
 
 If you need to run multiple tasks at the same time, you'll want to

@@ -1,19 +1,9 @@
 /* Gearman server and library
  * Copyright (C) 2008 Brian Aker, Eric Day
+ * All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * Use and distribution licensed under the BSD license.  See
+ * the COPYING file in the parent directory for full text.
  */
 
 /**
@@ -44,10 +34,11 @@ struct gearman_st
   uint32_t packet_count;
   struct pollfd *pfds;
   uint32_t pfds_size;
-  gearman_con_st *con_ready;
   uint32_t sending;
   int last_errno;
-  char last_error[GEARMAN_ERROR_SIZE];
+  char last_error[GEARMAN_MAX_ERROR_SIZE];
+  gearman_event_watch_fn *event_watch;
+  void *event_watch_arg;
 };
 
 /**
@@ -99,6 +90,7 @@ struct gearman_con_st
   int fd;
   short events;
   short revents;
+  short last_revents;
   uint32_t created_id;
   uint32_t created_id_next;
   gearman_packet_st packet;
@@ -171,7 +163,6 @@ struct gearman_client_st
   gearman_task_st do_task;
   void *do_data;
   size_t do_data_size;
-  size_t do_data_offset;
   bool do_fail;
 };
 
@@ -203,9 +194,115 @@ struct gearman_worker_st
  */
 struct gearman_worker_function_st
 {
-  const char *function_name;
+  char *function_name;
   gearman_worker_fn *worker_fn;
   const void *fn_arg;
+};
+
+/**
+ * @ingroup gearman_server
+ */
+struct gearman_server_st
+{
+  gearman_st *gearman;
+  gearman_st gearman_static;
+  gearman_server_options_t options;
+  gearman_job_handle_t job_handle_prefix;
+  uint32_t job_handle_count;
+  gearman_server_con_st *con_list;
+  uint32_t con_count;
+  gearman_server_con_st *active_list;
+  uint32_t active_count;
+  gearman_server_function_st *function_list;
+  uint32_t function_count;
+  gearman_server_job_st *job_list;
+  uint32_t job_count;
+};
+
+/**
+ * @ingroup gearman_server_con
+ */
+struct gearman_server_con_st
+{
+  gearman_con_st con; /* This must be the first struct member. */
+  gearman_server_st *server;
+  gearman_server_con_st *next;
+  gearman_server_con_st *prev;
+  gearman_server_con_options_t options;
+  gearman_server_packet_st *packet_list;
+  gearman_server_packet_st *packet_end;
+  uint32_t packet_count;
+  gearman_server_con_st *active_next;
+  gearman_server_con_st *active_prev;
+  gearman_server_worker_st *worker_list;
+  uint32_t worker_count;
+  uint32_t job_count;
+  uint8_t *id;
+  size_t id_size;
+};
+
+/**
+ * @ingroup gearman_server_con
+ */
+struct gearman_server_packet_st
+{
+  gearman_packet_st packet;
+  gearman_server_packet_st *next;
+};
+
+/**
+ * @ingroup gearman_server_function
+ */
+struct gearman_server_function_st
+{
+  gearman_server_st *server;
+  gearman_server_function_st *next;
+  gearman_server_function_st *prev;
+  gearman_server_function_options_t options;
+  char *function_name;
+  size_t function_name_size;
+  gearman_server_worker_st *worker_list;
+  uint32_t worker_count;
+  gearman_server_job_st *job_list;
+  gearman_server_job_st *job_high_end;
+  gearman_server_job_st *job_end;
+  uint32_t job_count;
+};
+
+/**
+ * @ingroup gearman_server_worker
+ */
+struct gearman_server_worker_st
+{
+  gearman_server_con_st *con;
+  gearman_server_worker_st *con_next;
+  gearman_server_worker_st *con_prev;
+  gearman_server_worker_options_t options;
+  gearman_server_function_st *function;
+  gearman_server_worker_st *function_next;
+  gearman_server_worker_st *function_prev;
+  uint32_t timeout;
+  gearman_server_job_st *job;
+};
+
+/**
+ * @ingroup gearman_server_job
+ */
+struct gearman_server_job_st
+{
+  gearman_server_st *server;
+  gearman_server_job_st *next;
+  gearman_server_job_st *prev;
+  gearman_server_function_st *function;
+  gearman_server_job_st *function_next;
+  gearman_server_job_options_t options;
+  gearman_job_handle_t job_handle;
+  const void *data;
+  size_t data_size;
+  gearman_server_con_st *client;
+  gearman_server_worker_st *worker;
+  uint32_t numerator;
+  uint32_t denominator;
 };
 
 #endif /* __GEARMAN_STRUCTS_H__ */

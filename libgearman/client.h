@@ -1,19 +1,9 @@
 /* Gearman server and library
  * Copyright (C) 2008 Brian Aker, Eric Day
+ * All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * Use and distribution licensed under the BSD license.  See
+ * the COPYING file in the parent directory for full text.
  */
 
 /**
@@ -33,7 +23,7 @@ extern "C" {
  * This is the interface gearman clients should use. You can run tasks one at a
  * time or concurrently.
  *
- * See Main Page for full details.
+ * @ref main_page_client "See Main Page for full details."
  * @{
  */
 
@@ -109,7 +99,7 @@ gearman_return_t gearman_client_add_server(gearman_client_st *client,
  * @ingroup gearman_client
  * Use the following set of functions to run one task at a time.
  *
- * See Main Page for full details.
+ * @ref main_page_client_single "See Main Page for full details."
  * @{
  */
 
@@ -226,7 +216,7 @@ gearman_return_t gearman_client_echo(gearman_client_st *client,
  * @ingroup gearman_client
  * Use the following set of functions to multiple run tasks concurrently.
  *
- * See Main Page for full details.
+ * @ref main_page_client_concurrent "See Main Page for full details."
  * @{
  */
 

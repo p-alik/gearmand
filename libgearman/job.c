@@ -1,19 +1,9 @@
 /* Gearman server and library
  * Copyright (C) 2008 Brian Aker, Eric Day
+ * All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * Use and distribution licensed under the BSD license.  See
+ * the COPYING file in the parent directory for full text.
  */
 
 /**
@@ -50,7 +40,10 @@ gearman_job_st *gearman_job_create(gearman_st *gearman, gearman_job_st *job)
   {
     job= malloc(sizeof(gearman_job_st));
     if (job == NULL)
+    {
+      GEARMAN_ERROR_SET(gearman, "gearman_job_create", "malloc")
       return NULL;
+    }
 
     memset(job, 0, sizeof(gearman_job_st));
     job->options|= GEARMAN_JOB_ALLOCATED;
@@ -78,6 +71,12 @@ void gearman_job_free(gearman_job_st *job)
   if (job->next)
     job->next->prev= job->prev;
   job->gearman->job_count--;
+
+  if (job->options & GEARMAN_JOB_ASSIGNED_IN_USE)
+    gearman_packet_free(&(job->assigned));
+
+  if (job->options & GEARMAN_JOB_WORK_IN_USE)
+    gearman_packet_free(&(job->work));
 
   if (job->options & GEARMAN_JOB_ALLOCATED)
     free(job);

@@ -1,19 +1,14 @@
 /* Gearman server and library
  * Copyright (C) 2008 Brian Aker, Eric Day
+ * All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * Use and distribution licensed under the BSD license.  See
+ * the COPYING file in the parent directory for full text.
+ */
+
+/**
+ * @file
+ * @brief Example Background Worker
  */
 
 #include <errno.h>
@@ -31,15 +26,20 @@ static void usage(char *name);
 int main(int argc, char *argv[])
 {
   char c;
+  uint32_t count= 0;
   char *host= NULL;
   unsigned short port= 0;
   gearman_return_t ret;
   gearman_worker_st worker;
 
-  while((c = getopt(argc, argv, "h:p:")) != EOF)
+  while ((c = getopt(argc, argv, "c:h:p:")) != EOF)
   {
     switch(c)
     {
+    case 'c':
+      count= atoi(optarg);
+      break;
+
     case 'h':
       host= optarg;
       break;
@@ -74,9 +74,22 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  /* This while loop has no body. */
-  while (gearman_worker_work(&worker) == GEARMAN_SUCCESS);
-  fprintf(stderr, "%s\n", gearman_worker_error(&worker));
+  while (1)
+  {
+    ret= gearman_worker_work(&worker);
+    if (ret != GEARMAN_SUCCESS)
+    {
+      fprintf(stderr, "%s\n", gearman_worker_error(&worker));
+      break;
+    }
+
+    if (count > 0)
+    {
+      count--;
+      if (count == 0)
+        break;
+    }
+  }
 
   gearman_worker_free(&worker);
 

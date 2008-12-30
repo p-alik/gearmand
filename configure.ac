@@ -1,19 +1,9 @@
 # Gearman server and library
-# Copyright (C) 2008 Brian Aker
+# Copyright (C) 2008 Brian Aker, Eric Day
+# All rights reserved.
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-# 
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+# Use and distribution licensed under the BSD license.  See
+# the COPYING file in this directory for full text.
 
 AC_PREREQ(2.59)
 AC_INIT(gearmand, [1.0.0], [https://launchpad.net/gearmand])
@@ -51,11 +41,13 @@ AC_TYPE_SIZE_T
 AC_TYPE_SSIZE_T
 
 AC_HEADER_TIME
-AC_CHECK_HEADERS(assert.h errno.h fcntl.h netinet/tcp.h stdarg.h stdio.h)
-AC_CHECK_HEADERS(stdlib.h string.h unistd.h)
+AC_CHECK_HEADERS(assert.h errno.h fcntl.h netinet/tcp.h signal.h stdarg.h)
+AC_CHECK_HEADERS(stdio.h stdlib.h string.h sys/socket.h sys/types.h)
+AC_CHECK_HEADERS(sys/utsname.h unistd.h)
 
 AC_CHECK_LIB(event, event_init)
 AC_CHECK_HEADERS(event.h)
+AC_CHECK_FUNCS(event_base_new)
 
 AC_CHECK_LIB(uuid, uuid_generate)
 AC_CHECK_HEADERS(uuid/uuid.h)
@@ -126,7 +118,7 @@ then
   CFLAGS="-std=gnu99 -W -Wall -Wextra ${DEBUG_CFLAGS} ${W_FAIL} ${W_PEDANTIC} ${W_UNREACHABLE} ${CFLAGS}"
 fi
 
-AC_CONFIG_FILES(Makefile libgearman/Makefile server/Makefile
+AC_CONFIG_FILES(Makefile libgearman/Makefile gearmand/Makefile
                 tests/Makefile examples/Makefile)
 
 AC_OUTPUT

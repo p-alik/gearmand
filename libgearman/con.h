@@ -1,19 +1,9 @@
 /* Gearman server and library
  * Copyright (C) 2008 Brian Aker, Eric Day
+ * All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * Use and distribution licensed under the BSD license.  See
+ * the COPYING file in the parent directory for full text.
  */
 
 /**
@@ -70,7 +60,17 @@ void gearman_con_set_options(gearman_con_st *con, gearman_con_options_t options,
 /**
  * Set connection to an already open file descriptor.
  */
-void gearman_con_set_fd(gearman_con_st *con, int fd);
+gearman_return_t gearman_con_set_fd(gearman_con_st *con, int fd);
+
+/**
+ * Get application data pointer.
+ */
+void *gearman_con_data(gearman_con_st *con);
+
+/**
+ * Set application data pointer.
+ */
+void gearman_con_set_data(gearman_con_st *con, void *data);
 
 /**
  * Connect to server.
@@ -105,6 +105,11 @@ size_t gearman_con_send_data(gearman_con_st *con, const void *data,
 gearman_return_t gearman_con_flush(gearman_con_st *con);
 
 /**
+ * Flush the send buffer for all connections.
+ */
+gearman_return_t gearman_con_flush_all(gearman_st *gearman);
+
+/**
  * Send packet to all connections.
  */
 gearman_return_t gearman_con_send_all(gearman_st *gearman,
@@ -126,12 +131,29 @@ size_t gearman_con_recv_data(gearman_con_st *con, void *data, size_t data_size,
 /**
  * Wait for I/O on connections.
  */
-gearman_return_t gearman_con_wait(gearman_st *gearman, bool set_read);
+gearman_return_t gearman_con_wait(gearman_st *gearman);
+
+/**
+ * Set events to be watched for a connection.
+ */
+gearman_return_t gearman_con_set_events(gearman_con_st *con, short events);
+
+/**
+ * Set events that are ready for a connection. This is used with the external
+ * event callbacks.
+ */
+void gearman_con_set_revents(gearman_con_st *con, short revents);
 
 /**
  * Get next connection that is ready for I/O.
  */
 gearman_con_st *gearman_con_ready(gearman_st *gearman);
+
+/**
+ * Test echo with all connections.
+ */
+gearman_return_t gearman_con_echo(gearman_st *gearman, const void *workload,
+                                  size_t workload_size);
 
 /** @} */
 

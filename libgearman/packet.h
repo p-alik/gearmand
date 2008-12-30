@@ -1,19 +1,9 @@
 /* Gearman server and library
  * Copyright (C) 2008 Brian Aker, Eric Day
+ * All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * Use and distribution licensed under the BSD license.  See
+ * the COPYING file in the parent directory for full text.
  */
 
 /**
@@ -40,7 +30,7 @@ extern "C" {
 /**
  * Initialize a packet with all arguments. Variable list is NULL terminated
  * alternating argument and argument size (size_t) pairs. For example:
- * ret= gearman_packet_add_args(packet,
+ * ret= gearman_packet_add_args(gearman, packet,
  *                              GEARMAN_MAGIC_REQUEST,
  *                              GEARMAN_COMMAND_SUBMIT_JOB,
  *                              function_name, strlen(function_name) + 1,
@@ -92,6 +82,12 @@ gearman_return_t gearman_packet_unpack_header(gearman_packet_st *packet);
  */
 size_t gearman_packet_parse(gearman_packet_st *packet, const uint8_t *data,
                             size_t data_size, gearman_return_t *ret_ptr);
+
+/**
+ * Take allocated data from packet. After this, the caller is responsible for
+ * free()ing the memory.
+ */
+void *gearman_packet_take_data(gearman_packet_st *packet, size_t *size);
 
 /** @} */
 

@@ -1,19 +1,9 @@
 /* Gearman server and library
  * Copyright (C) 2008 Brian Aker, Eric Day
+ * All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * Use and distribution licensed under the BSD license.  See
+ * the COPYING file in the parent directory for full text.
  */
 
 /**
@@ -37,6 +27,9 @@
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
+#ifdef HAVE_SIGNAL_H
+#include <signal.h>
+#endif
 #ifdef HAVE_STDARG_H
 #include <stdarg.h>
 #endif
@@ -48,6 +41,9 @@
 #endif
 #ifdef HAVE_STRING_H
 #include <string.h>
+#endif
+#ifdef HAVE_SYS_UTSNAME_H
+#include <sys/utsname.h>
 #endif
 #ifdef HAVE_NETINET_TCP_H
 #include <netinet/tcp.h>
@@ -69,5 +65,60 @@
 #  include <time.h>
 # endif
 #endif
+
+#ifdef HAVE_EVENT_H
+#include <event.h>
+#endif
+
+/**
+ * Macro to set error string.
+ * @ingroup gearman_constants
+ */
+#define GEARMAN_ERROR_SET(__gearman, __function, ...) { \
+  snprintf((__gearman)->last_error, GEARMAN_MAX_ERROR_SIZE, \
+           __function ":" __VA_ARGS__); }
+
+/**
+ * Command information array.
+ * @ingroup gearman_constants
+ */
+extern gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX];
+
+/**
+ * @ingroup gearmand
+ */
+struct gearmand
+{
+  in_port_t port;
+  int backlog;
+  uint8_t verbose;
+  gearman_server_st server;
+  int listen_fd;
+  gearman_return_t ret;
+  gearmand_con_st *dcon_list;
+  uint32_t dcon_count;
+  uint32_t dcon_total;
+#ifdef HAVE_EVENT_H
+  struct event_base *base;
+  struct event listen_event;
+#endif
+};
+
+/**
+ * @ingroup gearmand
+ */
+struct gearmand_con
+{
+  gearmand_con_st *next;
+  gearmand_con_st *prev;
+  int fd;
+  struct sockaddr_in sa;
+  gearmand_st *gearmand;
+  gearman_server_con_st server_con;
+  gearman_con_st *con;
+#ifdef HAVE_EVENT_H
+  struct event event;
+#endif
+};
 
 #endif /* __GEARMAN_COMMON_H__ */

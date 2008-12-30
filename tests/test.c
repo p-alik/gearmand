@@ -1,47 +1,25 @@
 /* Gearman server and library
- * Copyright (C) 2008 Brian Aker
+ * Copyright (C) 2008 Brian Aker, Eric Day
+ * All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * Use and distribution licensed under the BSD license.  See
+ * the COPYING file in the parent directory for full text.
  */
 
 #include <assert.h>
+#include <fnmatch.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
-#include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <time.h>
 
-#define TEST_INTERNAL 1
-
 #include "test.h"
+
 /* Prototypes */
 long int timedif(struct timeval a, struct timeval b);
-
-long int timedif(struct timeval a, struct timeval b)
-{
-  register int us, s;
-
-  us = a.tv_usec - b.tv_usec;
-  us /= 1000;
-  s = a.tv_sec - b.tv_sec;
-  s *= 1000;
-  return s + us;
-}
+void print_break(void);
 
 int main(int argc, char *argv[])
 {
@@ -50,18 +28,19 @@ int main(int argc, char *argv[])
   char *wildcard;
   world_st world;
   collection_st *collection;
-  void *collection_object= NULL;
+  void *collection_object;
   collection_st *next;
   long int load_time;
+  test_return rc;
 
   memset(&world, 0, sizeof(world_st));
   get_world(&world);
   collection= world.collections;
 
-
   if (world.create)
     collection_object= world.create();
-
+  else
+    collection_object= NULL;
 
   if (argc > 1)
     collection_to_run= argv[1];
@@ -80,20 +59,24 @@ int main(int argc, char *argv[])
     test_st *run;
 
     run= next->tests;
-    if (collection_to_run && strcmp(collection_to_run, next->name))
+    if (collection_to_run && fnmatch(collection_to_run, next->name, 0))
       continue;
 
-    fprintf(stderr, "\n%s\n\n", next->name);
+    print_break();
+
+    printf("%s\n\n", next->name);
+    fprintf(stderr, "%s\n\n", next->name);
 
     for (x= 0; run->name; run++)
     {
       struct timeval start_time, end_time;
       void *object= NULL;
 
-      if (wildcard && strcmp(wildcard, run->name))
+      if (wildcard && fnmatch(wildcard, run->name, 0))
         continue;
 
-      fprintf(stderr, "Testing %s", run->name);
+      printf("Testing %-50s", run->name);
+      fprintf(stderr, "Testing %-50s", run->name);
 
       if (run->requires_flush && next->flush)
         next->flush();
@@ -103,28 +86,42 @@ int main(int argc, char *argv[])
 
       if (next->pre)
       {
-        test_return rc;
         rc= next->pre(object);
 
         if (rc != TEST_SUCCESS)
         {
-          fprintf(stderr, "\t\t\t\t\t [ skipping ]\n");
-          goto error;
+          printf("[ skipping ]\n");
+          fprintf(stderr, "[ skipping ]\n");
+
+          if (next->destroy)
+            next->destroy(object);
+
+          continue;
         }
       }
 
       gettimeofday(&start_time, NULL);
-      assert(object);
-      run->function(object);
+      rc= run->function(object);
       gettimeofday(&end_time, NULL);
+
       load_time= timedif(end_time, start_time);
-      fprintf(stderr, "\t\t\t\t\t %ld.%03ld [ ok ]\n", load_time / 1000, 
-              load_time % 1000);
+
+      if (rc == TEST_SUCCESS)
+      {
+        printf("[ ok     ]\n");
+        fprintf(stderr, "[ ok     %ld.%03ld ]\n", load_time / 1000,
+                load_time % 1000);
+      }
+      else
+      {
+        printf("[ failed ]\n");
+        fprintf(stderr, "[ failed %ld.%03ld ]\n", load_time / 1000,
+                load_time % 1000);
+      }
 
       if (next->post)
-        (void)next->post(object);
+        (void)(next->post(object));
 
-error:
       if (next->destroy)
         next->destroy(object);
     }
@@ -133,7 +130,29 @@ error:
   if (world.destroy)
     world.destroy(collection_object);
 
-  fprintf(stderr, "All tests completed successfully\n\n");
+  print_break();
+
+  printf("Test run complete\n");
+  fprintf(stderr, "Test run complete\n");
+
+  print_break();
 
   return 0;
+}
+
+long int timedif(struct timeval a, struct timeval b)
+{
+  register int us, s;
+
+  us = a.tv_usec - b.tv_usec;
+  us /= 1000;
+  s = a.tv_sec - b.tv_sec;
+  s *= 1000;
+  return s + us;
+}
+
+void print_break(void)
+{
+  printf("\n==========================================================================\n\n");
+  fprintf(stderr, "\n==========================================================================\n\n");
 }

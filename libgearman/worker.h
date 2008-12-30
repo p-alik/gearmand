@@ -1,19 +1,9 @@
 /* Gearman server and library
  * Copyright (C) 2008 Brian Aker, Eric Day
+ * All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * Use and distribution licensed under the BSD license.  See
+ * the COPYING file in the parent directory for full text.
  */
 
 /**
@@ -59,14 +49,6 @@ gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker,
  *        gearman_worker_create or gearman_worker_clone.
  */
 void gearman_worker_free(gearman_worker_st *worker);
-
-/**
- * Return an error string for the last error encountered.
- * @param worker Worker structure previously initialized with
- *        gearman_worker_create or gearman_worker_clone.
- * @return Pointer to static buffer in library that holds an error string.
- */
-void gearman_worker_reset(gearman_worker_st *worker);
 
 /**
  * Return an error string for the last error encountered.
@@ -149,6 +131,19 @@ gearman_return_t gearman_worker_add_function(gearman_worker_st *worker,
  * Wait for a job and call the appropriate callback function when it gets one.
  */
 gearman_return_t gearman_worker_work(gearman_worker_st *worker);
+
+/**
+ * Send data to all job servers to see if they echo it back. This is a test
+ * function to see if job servers are responding properly.
+ * @param worker Worker structure previously initialized with
+ *        gearman_worker_create or gearman_worker_clone.
+ * @param workload The workload to ask the server to echo back.
+ * @param workload_size Size of the workload.
+ * @return Standard gearman return value.
+ */
+gearman_return_t gearman_worker_echo(gearman_worker_st *worker,
+                                     const void *workload,
+                                     size_t workload_size);
 
 /** @} */
 

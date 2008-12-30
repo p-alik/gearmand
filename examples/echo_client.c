@@ -8,7 +8,7 @@
 
 /**
  * @file
- * @brief Example Client
+ * @brief Echo Client
  */
 
 #include <stdio.h>
@@ -27,10 +27,6 @@ int main(int argc, char *argv[])
   unsigned short port= 0;
   gearman_return_t ret;
   gearman_client_st client;
-  char *result;
-  size_t result_size;
-  uint32_t numerator;
-  uint32_t denominator;
 
   while ((c = getopt(argc, argv, "h:p:")) != EOF)
   {
@@ -69,35 +65,10 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  while (1)
-  {
-    result= (char *)gearman_client_do(&client, "reverse", (void *)argv[optind],
-                                      (size_t)strlen(argv[optind]),
-                                      &result_size, &ret);
-    if (ret == GEARMAN_WORK_DATA)
-    {
-      printf("Data=%.*s\n", (int)result_size, result);
-      free(result);
-      continue;
-    }
-    else if (ret == GEARMAN_WORK_STATUS)
-    {
-      gearman_client_do_status(&client, &numerator, &denominator);
-      printf("Status: %u/%u\n", numerator, denominator);
-      continue;
-    }
-    else if (ret == GEARMAN_SUCCESS)
-    {
-      printf("Result=%.*s\n", (int)result_size, result);
-      free(result);
-    }
-    else if (ret == GEARMAN_WORK_FAIL)
-      fprintf(stderr, "Work failed\n");
-    else
-      fprintf(stderr, "%s\n", gearman_client_error(&client));
-
-    break;
-  }
+  ret= gearman_client_echo(&client, (void *)argv[optind],
+                           (size_t)strlen(argv[optind]));
+  if (ret != GEARMAN_SUCCESS)
+    fprintf(stderr, "%s\n", gearman_client_error(&client));
 
   gearman_client_free(&client);
 

@@ -1,19 +1,9 @@
 /* Gearman server and library
  * Copyright (C) 2008 Brian Aker, Eric Day
+ * All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * Use and distribution licensed under the BSD license.  See
+ * the COPYING file in the parent directory for full text.
  */
 
 /**
@@ -40,19 +30,13 @@ extern "C" {
 #define GEARMAN_DEFAULT_SOCKET_SEND_SIZE 32768
 #define GEARMAN_DEFAULT_SOCKET_RECV_SIZE 32768
 
-#define GEARMAN_ERROR_SIZE 1024
+#define GEARMAN_MAX_ERROR_SIZE 1024
 #define GEARMAN_PACKET_HEADER_SIZE 12
 #define GEARMAN_JOB_HANDLE_SIZE 64
 #define GEARMAN_MAX_COMMAND_ARGS 8
 #define GEARMAN_ARGS_BUFFER_SIZE 128
 #define GEARMAN_SEND_BUFFER_SIZE 8192
 #define GEARMAN_RECV_BUFFER_SIZE 8192
-
-/**
- * Macro to set error string.
- */
-#define GEARMAN_ERROR_SET(__gearman, ...) { \
-  snprintf((__gearman)->last_error, GEARMAN_ERROR_SIZE, __VA_ARGS__); }
 
 /* Types. */
 typedef struct gearman_st gearman_st;
@@ -64,6 +48,16 @@ typedef struct gearman_client_st gearman_client_st;
 typedef struct gearman_job_st gearman_job_st;
 typedef struct gearman_worker_st gearman_worker_st;
 typedef struct gearman_worker_function_st gearman_worker_function_st;
+typedef struct gearman_server_st gearman_server_st;
+typedef struct gearman_server_con_st gearman_server_con_st;
+typedef struct gearman_server_packet_st gearman_server_packet_st;
+typedef struct gearman_server_function_st gearman_server_function_st;
+typedef struct gearman_server_worker_st gearman_server_worker_st;
+typedef struct gearman_server_job_st gearman_server_job_st;
+struct gearmand;
+typedef struct gearmand gearmand_st;
+struct gearmand_con;
+typedef struct gearmand_con gearmand_con_st;
 typedef char gearman_job_handle_t[GEARMAN_JOB_HANDLE_SIZE];
 
 /**
@@ -73,11 +67,15 @@ typedef enum
 {
   GEARMAN_SUCCESS,
   GEARMAN_IO_WAIT,
+  GEARMAN_SHUTDOWN,
   GEARMAN_ERRNO,
+  GEARMAN_EVENT,
   GEARMAN_TOO_MANY_ARGS,
+  GEARMAN_NO_ACTIVE_FDS,
   GEARMAN_INVALID_MAGIC,
   GEARMAN_INVALID_COMMAND,
   GEARMAN_INVALID_PACKET,
+  GEARMAN_UNEXPECTED_PACKET,
   GEARMAN_GETADDRINFO,
   GEARMAN_NO_SERVERS,
   GEARMAN_EOF,
@@ -95,6 +93,7 @@ typedef enum
   GEARMAN_DATA_TOO_LARGE,
   GEARMAN_INVALID_FUNCTION_NAME,
   GEARMAN_INVALID_WORKER_FUNCTION,
+  GEARMAN_ECHO_DATA_CORRUPTION,
   GEARMAN_MAX_RETURN /* Always add new error code before */
 } gearman_return_t;
 
@@ -109,6 +108,12 @@ typedef gearman_return_t (gearman_fail_fn)(gearman_task_st *task);
 typedef void* (gearman_worker_fn)(gearman_job_st *job, void *fn_arg,
                                   size_t *result_size,
                                   gearman_return_t *ret_ptr);
+
+typedef gearman_return_t (gearman_event_watch_fn(gearman_con_st *con,
+                                                 short events, void *arg));
+typedef gearman_return_t (gearman_event_close_fn(gearman_con_st *con,
+                                                 gearman_return_t ret,
+                                                 void *arg));
 
 /** @} */
 
@@ -128,7 +133,9 @@ typedef enum
  */
 typedef enum
 {
-  GEARMAN_CON_ALLOCATED= (1 << 0)
+  GEARMAN_CON_ALLOCATED=     (1 << 0),
+  GEARMAN_CON_READY=         (1 << 1),
+  GEARMAN_CON_PACKET_IN_USE= (1 << 2)
 } gearman_con_options_t;
 
 /**
@@ -174,7 +181,8 @@ typedef enum
 typedef enum
 {
   GEARMAN_PACKET_ALLOCATED= (1 << 0),
-  GEARMAN_PACKET_COMPLETE=  (1 << 1)
+  GEARMAN_PACKET_COMPLETE=  (1 << 1),
+  GEARMAN_PACKET_FREE_DATA= (1 << 2)
 } gearman_packet_options_t;
 
 /**
@@ -259,8 +267,9 @@ typedef enum
  */
 typedef enum
 {
-  GEARMAN_JOB_ALLOCATED=   (1 << 0),
-  GEARMAN_JOB_WORK_IN_USE= (1 << 1)
+  GEARMAN_JOB_ALLOCATED=       (1 << 0),
+  GEARMAN_JOB_ASSIGNED_IN_USE= (1 << 1),
+  GEARMAN_JOB_WORK_IN_USE=     (1 << 2)
 } gearman_job_options_t;
 
 /**
@@ -293,10 +302,12 @@ typedef enum
  */
 typedef enum
 {
-  GEARMAN_WORKER_ALLOCATED=      (1 << 0),
-  GEARMAN_WORKER_NON_BLOCKING=   (1 << 1),
-  GEARMAN_WORKER_GEARMAN_STATIC= (1 << 2),
-  GEARMAN_WORKER_PACKET_IN_USE=  (1 << 3)
+  GEARMAN_WORKER_ALLOCATED=        (1 << 0),
+  GEARMAN_WORKER_NON_BLOCKING=     (1 << 1),
+  GEARMAN_WORKER_PACKET_IN_USE=    (1 << 2),
+  GEARMAN_WORKER_GRAB_JOB_IN_USE=  (1 << 3),
+  GEARMAN_WORKER_PRE_SLEEP_IN_USE= (1 << 4),
+  GEARMAN_WORKER_WORK_JOB_IN_USE=  (1 << 5)
 } gearman_worker_options_t;
 
 /**
@@ -324,6 +335,53 @@ typedef enum
   GEARMAN_WORKER_WORK_STATE_COMPLETE,
   GEARMAN_WORKER_WORK_STATE_FAIL
 } gearman_worker_work_state_t;
+
+/**
+ * @ingroup gearman_server
+ * Options for gearman_server_st.
+ */
+typedef enum
+{
+  GEARMAN_SERVER_ALLOCATED= (1 << 0)
+} gearman_server_options_t;
+
+/**
+ * @ingroup gearman_server_con
+ * Options for gearman_server_con_st.
+ */
+typedef enum
+{
+  GEARMAN_SERVER_CON_ALLOCATED= (1 << 0),
+  GEARMAN_SERVER_CON_SLEEPING=  (1 << 1)
+} gearman_server_con_options_t;
+
+/**
+ * @ingroup gearman_server_function
+ * Options for gearman_server_function_st.
+ */
+typedef enum
+{
+  GEARMAN_SERVER_FUNCTION_ALLOCATED= (1 << 0)
+} gearman_server_function_options_t;
+
+/**
+ * @ingroup gearman_server_worker
+ * Options for gearman_server_worker_st.
+ */
+typedef enum
+{
+  GEARMAN_SERVER_WORKER_ALLOCATED= (1 << 0)
+} gearman_server_worker_options_t;
+
+/**
+ * @ingroup gearman_server_job
+ * Options for gearman_server_job_st.
+ */
+typedef enum
+{
+  GEARMAN_SERVER_JOB_ALLOCATED= (1 << 0),
+  GEARMAN_SERVER_JOB_HIGH=      (1 << 1)
+} gearman_server_job_options_t;
 
 #ifdef __cplusplus
 }
