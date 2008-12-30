@@ -557,6 +557,21 @@ gearman_return_t gearman_con_flush(gearman_con_st *con)
   return GEARMAN_SUCCESS;
 }
 
+gearman_return_t gearman_con_flush_all(gearman_st *gearman)
+{
+  gearman_con_st *con;
+  gearman_return_t ret;
+
+  for (con= gearman->con_list; con != NULL; con= con->next)
+  {
+    ret= gearman_con_flush(con);
+    if (ret != GEARMAN_SUCCESS && ret != GEARMAN_IO_WAIT)
+      return ret;
+  }
+
+  return GEARMAN_SUCCESS;
+}
+
 gearman_return_t gearman_con_send_all(gearman_st *gearman,
                                       gearman_packet_st *packet)
 {

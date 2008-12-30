@@ -18,7 +18,7 @@
 
 #include <libgearman/gearman.h>
 
-#define REVERSE_TASKS 1000
+#define REVERSE_TASKS 10
 
 static gearman_return_t created(gearman_task_st *task);
 static gearman_return_t status(gearman_task_st *task);

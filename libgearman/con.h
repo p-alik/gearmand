@@ -105,6 +105,11 @@ size_t gearman_con_send_data(gearman_con_st *con, const void *data,
 gearman_return_t gearman_con_flush(gearman_con_st *con);
 
 /**
+ * Flush the send buffer for all connections.
+ */
+gearman_return_t gearman_con_flush_all(gearman_st *gearman);
+
+/**
  * Send packet to all connections.
  */
 gearman_return_t gearman_con_send_all(gearman_st *gearman,

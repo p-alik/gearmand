@@ -54,6 +54,8 @@ gearman_server_job_st *gearman_server_job_add(gearman_server_st *server,
   server_job->data= data;
   server_job->data_size= data_size;
   server_job->client= server_con;
+  if (server_con != NULL)
+    server_con->job_count++;
 
   *ret_ptr= gearman_server_job_queue(server_job);
   if (*ret_ptr != GEARMAN_SUCCESS)
@@ -98,6 +100,9 @@ void gearman_server_job_free(gearman_server_job_st *server_job)
 {
   if (server_job->data != NULL)
     free((void *)(server_job->data));
+
+  if (server_job->client != NULL)
+    server_job->client->job_count--;
 
   if (server_job->worker != NULL)
     server_job->worker->job= NULL;
@@ -188,8 +193,12 @@ gearman_return_t gearman_server_job_queue(gearman_server_job_st *server_job)
   for (server_worker= server_job->function->worker_list; server_worker != NULL;
        server_worker= server_worker->function_next)
   {
-    if (!(server_worker->con->options & GEARMAN_SERVER_CON_SLEEPING))
+    if (!(server_worker->con->options & GEARMAN_SERVER_CON_SLEEPING) ||
+        (server_worker->con->packet_end != NULL &&
+        server_worker->con->packet_end->packet.command == GEARMAN_COMMAND_NOOP))
+    {
       continue;
+    }
 
     ret= gearman_server_con_packet_add(server_worker->con,
                                        GEARMAN_MAGIC_RESPONSE,

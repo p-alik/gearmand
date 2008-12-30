@@ -448,6 +448,13 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client,
             return ret;
           }
         }
+
+        ret= gearman_con_flush_all(client->gearman);
+        if (ret != GEARMAN_SUCCESS && ret != GEARMAN_IO_WAIT)
+        {
+          client->gearman->options= options;
+          return ret;
+        }
       }
 
       /* See if there are any connections ready for I/O. */
@@ -474,6 +481,13 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client,
               client->gearman->options= options;
               return ret;
             }
+          }
+
+          ret= gearman_con_flush(client->con);
+          if (ret != GEARMAN_SUCCESS && ret != GEARMAN_IO_WAIT)
+          {
+            client->gearman->options= options;
+            return ret;
           }
 
           /* A connection may now be idle to start a new job, set this. */
@@ -678,7 +692,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
     }
 
   case GEARMAN_TASK_STATE_SUBMIT:
-    ret= gearman_con_send(task->con, &(task->send), true);
+    ret= gearman_con_send(task->con, &(task->send), false);
     if (ret != GEARMAN_SUCCESS)
     {
       task->state= GEARMAN_TASK_STATE_SUBMIT;
