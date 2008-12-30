@@ -170,7 +170,7 @@ void *world_create(void)
   assert(gearman_worker_add_server(&(test->worker), NULL, WORKER_TEST_PORT) ==
          GEARMAN_SUCCESS);
 
-  test->gearmand_pid= gearmand_start(WORKER_TEST_PORT);
+  test->gearmand_pid= test_gearmand_start(WORKER_TEST_PORT);
 
   return (void *)test;
 }
@@ -179,7 +179,7 @@ void world_destroy(void *object)
 {
   worker_test_st *test= (worker_test_st *)object;
   gearman_worker_free(&(test->worker));
-  gearmand_stop(test->gearmand_pid);
+  test_gearmand_stop(test->gearmand_pid);
   free(test);
 }
 

@@ -1,0 +1,13 @@
+/* Gearman server and library
+ * Copyright (C) 2008 Brian Aker, Eric Day
+ * All rights reserved.
+ *
+ * Use and distribution licensed under the BSD license.  See
+ * the COPYING file in the parent directory for full text.
+ */
+
+#include <sys/types.h>
+#include <libgearman/gearman.h>
+
+pid_t test_gearmand_start(in_port_t port);
+void test_gearmand_stop(pid_t gearmand_pid);
