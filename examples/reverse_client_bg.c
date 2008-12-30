@@ -70,7 +70,8 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  ret= gearman_client_do_background(&client, "reverse", (void *)argv[optind],
+  ret= gearman_client_do_background(&client, "reverse", NULL,
+                                    (void *)argv[optind],
                                     (size_t)strlen(argv[optind]), job_handle);
   if (ret != GEARMAN_SUCCESS)
   {

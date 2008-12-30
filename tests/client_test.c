@@ -120,7 +120,7 @@ test_return background_failure_test(void *object)
   uint8_t *value= (uint8_t *)"background_failure_test";
   ssize_t value_length= strlen("background_failure_test");
 
-  rc= gearman_client_do_background(client, "does_not_exist", value,
+  rc= gearman_client_do_background(client, "does_not_exist", NULL, value,
                                    value_length, job_handle);
   if (rc != GEARMAN_SUCCESS)
     return TEST_FAILURE;
@@ -149,8 +149,8 @@ test_return background_test(void *object)
   uint8_t *value= (uint8_t *)"background_test";
   size_t value_length= strlen("background_test");
 
-  rc= gearman_client_do_background(client, "client_test", value, value_length,
-                                   job_handle);
+  rc= gearman_client_do_background(client, "client_test", NULL, value,
+                                   value_length, job_handle);
   if (rc != GEARMAN_SUCCESS)
   {
     printf("echo_test:%s\n", gearman_client_error(client));
@@ -183,8 +183,8 @@ test_return submit_job_test(void *object)
   uint8_t *value= (uint8_t *)"submit_job_test";
   size_t value_length= strlen("submit_job_test");
 
-  job_result= gearman_client_do(client, "client_test", value, value_length,
-                                &job_length, &rc);
+  job_result= gearman_client_do(client, "client_test", NULL, value,
+                                value_length, &job_length, &rc);
   if (rc != GEARMAN_SUCCESS)
   {
     printf("echo_test:%s\n", gearman_client_error(client));

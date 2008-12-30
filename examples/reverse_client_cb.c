@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
 
   for (x= 0; x < REVERSE_TASKS; x++)
   {
-    if (gearman_client_add_task(&client, &(task[x]), NULL, "reverse",
+    if (gearman_client_add_task(&client, &(task[x]), NULL, "reverse", NULL,
                                 (void *)argv[optind],
                                 (size_t)strlen(argv[optind]), &ret) == NULL ||
         ret != GEARMAN_SUCCESS)
