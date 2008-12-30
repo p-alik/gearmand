@@ -40,8 +40,9 @@ gearman_server_job_st *gearman_server_job_add(gearman_server_st *server,
 /**
  * Initialize a server job structure.
  */
-gearman_server_job_st *gearman_server_job_create(gearman_server_st *server,
-                                             gearman_server_job_st *server_job);
+gearman_server_job_st *
+gearman_server_job_create(gearman_server_st *server,
+                          gearman_server_job_st *server_job);
 
 /**
  * Free a server job structure.
@@ -57,14 +58,14 @@ gearman_server_job_st *gearman_server_job_get(gearman_server_st *server,
 /**
  * See if there are any jobs to be run for the server worker connection.
  */
-gearman_server_job_st *gearman_server_job_peek(
-                                             gearman_server_con_st *server_con);
+gearman_server_job_st *
+gearman_server_job_peek(gearman_server_con_st *server_con);
 
 /**
  * Start running a job for the server worker connection.
  */
-gearman_server_job_st *gearman_server_job_take(
-                                             gearman_server_con_st *server_con);
+gearman_server_job_st *
+gearman_server_job_take(gearman_server_con_st *server_con);
 
 /**
  * Queue a job to be run.

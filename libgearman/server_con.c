@@ -17,8 +17,9 @@
  * Public definitions
  */
 
-gearman_server_con_st *gearman_server_con_create(gearman_server_st *server,
-                                             gearman_server_con_st *server_con)
+gearman_server_con_st *
+gearman_server_con_create(gearman_server_st *server,
+                          gearman_server_con_st *server_con)
 {
   if (server_con == NULL)
   {
@@ -147,11 +148,10 @@ gearman_return_t gearman_server_con_set_id(gearman_server_con_st *server_con,
   return GEARMAN_SUCCESS;
 }
 
-gearman_return_t gearman_server_con_packet_add(
-                                              gearman_server_con_st *server_con,
-                                              gearman_magic_t magic,
-                                              gearman_command_t command,
-                                              const void *arg, ...)
+gearman_return_t
+gearman_server_con_packet_add(gearman_server_con_st *server_con,
+                              gearman_magic_t magic, gearman_command_t command,
+                              const void *arg, ...)
 {
   gearman_server_packet_st *server_packet;
   va_list ap;

@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
   gearmand= gearmand_create(port);
   if (gearmand == NULL)
   {
-    printf("gearmand_create:NULL\n");
+    fprintf(stderr, "gearmand_create:NULL\n");
     return 1;
   }
 
@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
 
   ret= gearmand_run(gearmand);
   if (ret != GEARMAN_SHUTDOWN && ret != GEARMAN_SUCCESS)
-    printf("gearmand_run:%s\n", gearmand_error(gearmand));
+    fprintf(stderr, "gearmand_run:%s\n", gearmand_error(gearmand));
 
   gearmand_free(gearmand);
 

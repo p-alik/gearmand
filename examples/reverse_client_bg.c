@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
   uint32_t numerator;
   uint32_t denominator;
 
-  while((c = getopt(argc, argv, "h:p:")) != EOF)
+  while ((c = getopt(argc, argv, "h:p:")) != EOF)
   {
     switch(c)
     {

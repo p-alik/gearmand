@@ -17,10 +17,10 @@
  * Public definitions
  */
 
-gearman_server_function_st *gearman_server_function_get(
-                                                     gearman_server_st *server,
-                                                     const char *function_name,
-                                                     size_t function_name_size)
+gearman_server_function_st *
+gearman_server_function_get(gearman_server_st *server,
+                            const char *function_name,
+                            size_t function_name_size)
 {
   gearman_server_function_st *server_function;
 
@@ -53,9 +53,9 @@ gearman_server_function_st *gearman_server_function_get(
   return server_function;
 }
 
-gearman_server_function_st *gearman_server_function_create(
-                                   gearman_server_st *server,
-                                   gearman_server_function_st *server_function)
+gearman_server_function_st *
+gearman_server_function_create(gearman_server_st *server,
+                               gearman_server_function_st *server_function)
 {
   if (server_function == NULL)
   {

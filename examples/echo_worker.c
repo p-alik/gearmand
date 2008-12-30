@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
   gearman_return_t ret;
   gearman_worker_st worker;
 
-  while((c = getopt(argc, argv, "h:p:")) != EOF)
+  while ((c = getopt(argc, argv, "h:p:")) != EOF)
   {
     switch(c)
     {
@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
     }
   }
 
-  if(argc != (optind + 1))
+  if (argc != (optind + 1))
   {
     usage(argv[0]);
     exit(1);

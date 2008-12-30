@@ -17,11 +17,11 @@
  * Public definitions
  */
 
-gearman_server_worker_st *gearman_server_worker_add(
-                                              gearman_server_con_st *server_con,
-                                              const char *function_name,
-                                              size_t function_name_size,
-                                              uint32_t timeout)
+gearman_server_worker_st *
+gearman_server_worker_add(gearman_server_con_st *server_con,
+                          const char *function_name,
+                          size_t function_name_size,
+                          uint32_t timeout)
 {
   gearman_server_worker_st *server_worker;
   gearman_server_function_st *server_function;
@@ -42,10 +42,10 @@ gearman_server_worker_st *gearman_server_worker_add(
   return server_worker;
 }
 
-gearman_server_worker_st *gearman_server_worker_create(
-                                    gearman_server_con_st *server_con,
-                                    gearman_server_function_st *server_function,
-                                    gearman_server_worker_st *server_worker)
+gearman_server_worker_st *
+gearman_server_worker_create(gearman_server_con_st *server_con,
+                             gearman_server_function_st *server_function,
+                             gearman_server_worker_st *server_worker)
 {
   if (server_worker == NULL)
   {

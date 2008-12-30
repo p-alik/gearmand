@@ -67,8 +67,9 @@ gearman_server_job_st *gearman_server_job_add(gearman_server_st *server,
   return server_job;
 }
 
-gearman_server_job_st *gearman_server_job_create(gearman_server_st *server,
-                                             gearman_server_job_st *server_job)
+gearman_server_job_st *
+gearman_server_job_create(gearman_server_st *server,
+                          gearman_server_job_st *server_job)
 {
   if (server_job == NULL)
   {
@@ -134,8 +135,8 @@ gearman_server_job_st *gearman_server_job_get(gearman_server_st *server,
   return NULL;
 }
 
-gearman_server_job_st *gearman_server_job_peek(
-                                             gearman_server_con_st *server_con)
+gearman_server_job_st *
+gearman_server_job_peek(gearman_server_con_st *server_con)
 {
   gearman_server_worker_st *server_worker;
 
@@ -149,8 +150,8 @@ gearman_server_job_st *gearman_server_job_peek(
   return NULL;
 }
 
-gearman_server_job_st *gearman_server_job_take(
-                                             gearman_server_con_st *server_con)
+gearman_server_job_st *
+gearman_server_job_take(gearman_server_con_st *server_con)
 {
   gearman_server_worker_st *server_worker;
   gearman_server_job_st *server_job;

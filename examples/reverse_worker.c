@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
   gearman_return_t ret;
   gearman_worker_st worker;
 
-  while((c = getopt(argc, argv, "c:h:p:")) != EOF)
+  while ((c = getopt(argc, argv, "c:h:p:")) != EOF)
   {
     switch(c)
     {

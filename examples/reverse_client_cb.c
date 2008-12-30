@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
   gearman_task_st task[REVERSE_TASKS];
   uint32_t x;
 
-  while((c = getopt(argc, argv, "h:p:")) != EOF)
+  while ((c = getopt(argc, argv, "h:p:")) != EOF)
   {
     switch(c)
     {
@@ -104,6 +104,7 @@ int main(int argc, char *argv[])
 static gearman_return_t created(gearman_task_st *task)
 {
   printf("Created: %s\n", gearman_task_job_handle(task));
+
   return GEARMAN_SUCCESS;
 }
 

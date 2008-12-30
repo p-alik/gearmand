@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
   uint32_t numerator;
   uint32_t denominator;
 
-  while((c = getopt(argc, argv, "h:p:")) != EOF)
+  while ((c = getopt(argc, argv, "h:p:")) != EOF)
   {
     switch(c)
     {
@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
     }
   }
 
-  if(argc != (optind + 1))
+  if (argc != (optind + 1))
   {
     usage(argv[0]);
     exit(1);
@@ -92,9 +92,9 @@ int main(int argc, char *argv[])
       free(result);
     }
     else if (ret == GEARMAN_WORK_FAIL)
-      printf("Work failed\n");
+      fprintf(stderr, "Work failed\n");
     else
-      printf("%s\n", gearman_client_error(&client));
+      fprintf(stderr, "%s\n", gearman_client_error(&client));
 
     break;
   }
