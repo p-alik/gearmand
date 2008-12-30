@@ -230,7 +230,7 @@ void *world_create(void)
   assert(gearman_client_add_server(&(test->client), NULL, CLIENT_TEST_PORT) ==
          GEARMAN_SUCCESS);
 
-  test->gearmand_pid= gearmand_start(CLIENT_TEST_PORT);
+  test->gearmand_pid= test_gearmand_start(CLIENT_TEST_PORT);
 
   return (void *)test;
 }
@@ -239,7 +239,7 @@ void world_destroy(void *object)
 {
   client_test_st *test= (client_test_st *)object;
   gearman_client_free(&(test->client));
-  gearmand_stop(test->gearmand_pid);
+  test_gearmand_stop(test->gearmand_pid);
   free(test);
 }
 
