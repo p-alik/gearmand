@@ -610,6 +610,19 @@ static gearman_return_t _server_run_command(gearman_server_con_st *server_con,
 
     break;
 
+  case GEARMAN_COMMAND_NONE:
+  case GEARMAN_COMMAND_UNUSED:
+  case GEARMAN_COMMAND_NOOP:
+  case GEARMAN_COMMAND_JOB_CREATED:
+  case GEARMAN_COMMAND_NO_JOB:
+  case GEARMAN_COMMAND_JOB_ASSIGN:
+  case GEARMAN_COMMAND_ECHO_RES:
+  case GEARMAN_COMMAND_ERROR:
+  case GEARMAN_COMMAND_STATUS_RES:
+  case GEARMAN_COMMAND_ALL_YOURS:
+  case GEARMAN_COMMAND_SUBMIT_JOB_SCHED:
+  case GEARMAN_COMMAND_SUBMIT_JOB_EPOCH:
+  case GEARMAN_COMMAND_MAX:
   default:
     return _server_error_packet(server_con, "bad_command",
                                 "Command not expected");

@@ -204,24 +204,29 @@ AC_ARG_ENABLE([debug],
 if test "$ac_enable_debug" = "yes"
 then
   # Medium debug.
-  CFLAGS="${DEBUG_OPTIMIZE_CFLAGS} ${CFLAGS} ${SAVE_CFLAGS} -DDEBUG"
+  CFLAGS="${DEBUG_OPTIMIZE_CFLAGS} ${CFLAGS} ${SAVE_CFLAGS} -DHAVE_DEBUG"
 else
   # Optimized version. No debug
   CFLAGS="${OPTIMIZE_CFLAGS} ${CFLAGS} ${SAVE_CFLAGS}"
 fi
 
+AC_ARG_ENABLE([profiling],
+    [AS_HELP_STRING([--enable-profiling],
+       [Toggle profiling @<:@default=off@:>@])],
+    [ac_profiling="$enableval"],
+    [ac_profiling="no"])
+
+AC_ARG_ENABLE([coverage],
+    [AS_HELP_STRING([--enable-coverage],
+       [Toggle coverage @<:@default=off@:>@])],
+    [ac_coverage="$enableval"],
+    [ac_coverage="no"])
 
 AC_ARG_ENABLE([fail],
   [AS_HELP_STRING([--disable-fail],
     [Turn warnings into failures @<:@default=yes@:>@])],
   [ac_warn_fail="$enableval"],
   [ac_warn_fail="yes"])
-
-AC_ARG_ENABLE([strict-aliasing],
-  [AS_HELP_STRING([--enable-strict-aliasing],
-    [Enable warnings about stict-aliasing @<:@default=no@:>@])],
-  [ac_warn_strict_aliasing="$enableval"],
-  [ac_warn_strict_aliasing="no"])
 
 AC_ARG_ENABLE([pedantic-warnings],
   [AS_HELP_STRING([--disable-pedantic-warnings],
@@ -244,17 +249,23 @@ then
   fi
   BASE_WARNINGS="-W -Wall -Wextra -Winvalid-pch ${W_FAIL}"
 
-
-  if test "$ac_warn_strict_aliasing" = "yes"
+  if test "$ac_profiling" = "yes"
   then
-    W_STRICT_ALIASING="-Wstrict-aliasing"
+    GPROF_PROFILING="-pg"
   else
-    W_STRICT_ALIASING="-Wno-strict-aliasing"
+    GPROF_PROFILING=" "
+  fi
+
+  if test "$ac_coverage" = "yes"
+  then
+    GPROF_COVERAGE="-fprofile-arcs -ftest-coverage"
+  else
+    GPROF_COVERAGE=" "
   fi
 
   if test "$ac_warn_pedantic" = "yes"
   then
-    W_PEDANTIC="-pedantic -Wundef -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls ${W_STRICT_ALIASING}"
+    W_PEDANTIC="-pedantic -Wundef -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -Wswitch-enum -Wcast-align -Wlogical-op"
   fi
 
   if test "$ac_warn_unreachable" = "yes"
@@ -262,7 +273,7 @@ then
     W_UNREACHABLE="-Wunreachable-code"
   fi
 
-  CC_WARNINGS="${C99_SUPPORT_HACK} ${BASE_WARNINGS} ${W_PEDANTIC} ${W_UNREACHABLE}"
+  CC_WARNINGS="${C99_SUPPORT_HACK} ${BASE_WARNINGS} ${W_PEDANTIC} ${W_UNREACHABLE} ${GPROF_PROFILING} ${GPROF_COVERAGE} "
 
   NO_REDUNDANT_DECLS="-Wno-redundant-decls"
   CPPFLAGS="${CPPFLAGS} -fpch-deps"
