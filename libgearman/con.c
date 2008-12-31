@@ -206,7 +206,7 @@ gearman_return_t gearman_con_close(gearman_con_st *con)
   con->recv_buffer_ptr= con->recv_buffer;
   con->recv_buffer_size= 0;
 
-  return GEARMAN_SUCCESS;;
+  return GEARMAN_SUCCESS;
 }
 
 void gearman_con_reset_addrinfo(gearman_con_st *con)
@@ -543,8 +543,6 @@ gearman_return_t gearman_con_flush(gearman_con_st *con)
       return GEARMAN_SUCCESS;
     }
   }
-
-  return GEARMAN_SUCCESS;
 }
 
 gearman_return_t gearman_con_flush_all(gearman_st *gearman)
