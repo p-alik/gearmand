@@ -10,8 +10,8 @@ ACLOCAL_AMFLAGS= -I m4
 SUBDIRS = libgearman gearmand tests examples
 
 docs: all
-	doxygen docs/Doxyfile.api
-	doxygen docs/Doxyfile.dev
+	${DOXYGEN} docs/Doxyfile.api
+	${DOXYGEN} docs/Doxyfile.dev
 
 test: all
 	cd tests; make test; cd ..
