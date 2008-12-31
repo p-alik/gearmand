@@ -171,7 +171,8 @@ void gearman_client_do_status(gearman_client_st *client, uint32_t *numerator,
  * @param unique Optional unique job identifier, or NULL for a new UUID.
  * @param workload The workload to pass to the function when it is run.
  * @param workload_size Size of the workload.
- * @param job_handle A buffer to store the job handle in.
+ * @param job_handle A buffer to store the job handle in. Must be at least
+          GEARMAN_JOB_HANDLE_SIZE bytes long.
  * @return Standard gearman return value.
  */
 gearman_return_t gearman_client_do_background(gearman_client_st *client,
@@ -179,7 +180,7 @@ gearman_return_t gearman_client_do_background(gearman_client_st *client,
                                               const char *unique,
                                               const void *workload,
                                               size_t workload_size,
-                                              gearman_job_handle_t job_handle);
+                                              char *job_handle);
 
 /**
  * Get the status for a backgound task.

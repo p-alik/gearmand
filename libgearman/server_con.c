@@ -53,8 +53,6 @@ gearman_server_con_create(gearman_server_st *server,
 
 void gearman_server_con_free(gearman_server_con_st *server_con)
 {
-  gearman_server_job_st *job;
-
   gearman_con_free(&(server_con->con));
 
   if (server_con->active_next != NULL || server_con->active_prev != NULL)
@@ -65,19 +63,8 @@ void gearman_server_con_free(gearman_server_con_st *server_con)
 
   gearman_server_con_free_workers(server_con);
 
-  if (server_con->job_count > 0)
-  {
-    for (job= server_con->server->job_list; job != NULL; job= job->next)
-    {
-      if (job->client != server_con)
-        continue;
-
-      job->client= NULL;
-      server_con->job_count--;
-      if (server_con->job_count == 0)
-        break;
-    }
-  }
+  while (server_con->client_list != NULL)
+    gearman_server_client_free(server_con->client_list);
 
   GEARMAN_LIST_DEL(server_con->server->con, server_con,)
 

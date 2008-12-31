@@ -33,6 +33,7 @@ extern "C" {
 #define GEARMAN_MAX_ERROR_SIZE 1024
 #define GEARMAN_PACKET_HEADER_SIZE 12
 #define GEARMAN_JOB_HANDLE_SIZE 64
+#define GEARMAN_UNIQUE_SIZE 64
 #define GEARMAN_MAX_COMMAND_ARGS 8
 #define GEARMAN_ARGS_BUFFER_SIZE 128
 #define GEARMAN_SEND_BUFFER_SIZE 8192
@@ -52,13 +53,13 @@ typedef struct gearman_server_st gearman_server_st;
 typedef struct gearman_server_con_st gearman_server_con_st;
 typedef struct gearman_server_packet_st gearman_server_packet_st;
 typedef struct gearman_server_function_st gearman_server_function_st;
+typedef struct gearman_server_client_st gearman_server_client_st;
 typedef struct gearman_server_worker_st gearman_server_worker_st;
 typedef struct gearman_server_job_st gearman_server_job_st;
 struct gearmand;
 typedef struct gearmand gearmand_st;
 struct gearmand_con;
 typedef struct gearmand_con gearmand_con_st;
-typedef char gearman_job_handle_t[GEARMAN_JOB_HANDLE_SIZE];
 
 /**
  * Return codes.
@@ -363,6 +364,15 @@ typedef enum
 {
   GEARMAN_SERVER_FUNCTION_ALLOCATED= (1 << 0)
 } gearman_server_function_options_t;
+
+/**
+ * @ingroup gearman_server_client
+ * Options for gearman_server_client_st.
+ */
+typedef enum
+{
+  GEARMAN_SERVER_CLIENT_ALLOCATED= (1 << 0)
+} gearman_server_client_options_t;
 
 /**
  * @ingroup gearman_server_worker

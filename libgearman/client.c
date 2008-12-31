@@ -276,7 +276,7 @@ gearman_return_t gearman_client_do_background(gearman_client_st *client,
                                               const char *unique,
                                               const void *workload,
                                               size_t workload_size,
-                                              gearman_job_handle_t job_handle)
+                                              char *job_handle)
 {
   gearman_return_t ret;
 
@@ -303,7 +303,7 @@ gearman_return_t gearman_client_do_background(gearman_client_st *client,
 }
 
 gearman_return_t gearman_client_task_status(gearman_client_st *client,
-                                          const gearman_job_handle_t job_handle,
+                                            const char *job_handle,
                                             bool *is_known, bool *is_running,
                                             uint32_t *numerator,
                                             uint32_t *denominator)
@@ -391,7 +391,7 @@ gearman_task_st *gearman_client_add_task_background(gearman_client_st *client,
 gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
                                                 gearman_task_st *task,
                                                 const void *fn_arg,
-                                          const gearman_job_handle_t job_handle,
+                                                const char *job_handle,
                                                 gearman_return_t *ret_ptr)
 {
   task= gearman_task_create(client->gearman, task);
@@ -402,7 +402,7 @@ gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
   }
 
   task->fn_arg= fn_arg;
-  strcpy(task->job_handle, job_handle);
+  snprintf(task->job_handle, GEARMAN_JOB_HANDLE_SIZE, "%s", job_handle);
 
   *ret_ptr= gearman_packet_add(client->gearman, &(task->send),
                                GEARMAN_MAGIC_REQUEST,
@@ -538,7 +538,7 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client,
               client->con->created_id++;
             }
             else if (strcmp(client->task->job_handle,
-                            (char *)client->con->packet.arg[0]))
+                            (char *)(client->con->packet.arg[0])))
             {
               continue;
             }

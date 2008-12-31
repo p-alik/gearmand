@@ -126,7 +126,7 @@ struct gearman_task_st
   uint32_t created_id;
   gearman_packet_st send;
   gearman_packet_st *recv;
-  gearman_job_handle_t job_handle;
+  char job_handle[GEARMAN_JOB_HANDLE_SIZE];
   bool is_known;
   bool is_running;
   uint32_t numerator;
@@ -207,7 +207,7 @@ struct gearman_server_st
   gearman_st *gearman;
   gearman_st gearman_static;
   gearman_server_options_t options;
-  gearman_job_handle_t job_handle_prefix;
+  char job_handle_prefix[GEARMAN_JOB_HANDLE_SIZE];
   uint32_t job_handle_count;
   gearman_server_con_st *con_list;
   uint32_t con_count;
@@ -236,7 +236,8 @@ struct gearman_server_con_st
   gearman_server_con_st *active_prev;
   gearman_server_worker_st *worker_list;
   uint32_t worker_count;
-  uint32_t job_count;
+  gearman_server_client_st *client_list;
+  uint32_t client_count;
   uint8_t *id;
   size_t id_size;
 };
@@ -270,14 +271,28 @@ struct gearman_server_function_st
 };
 
 /**
+ * @ingroup gearman_server_client
+ */
+struct gearman_server_client_st
+{
+  gearman_server_client_options_t options;
+  gearman_server_con_st *con;
+  gearman_server_client_st *con_next;
+  gearman_server_client_st *con_prev;
+  gearman_server_job_st *job;
+  gearman_server_client_st *job_next;
+  gearman_server_client_st *job_prev;
+};
+
+/**
  * @ingroup gearman_server_worker
  */
 struct gearman_server_worker_st
 {
+  gearman_server_worker_options_t options;
   gearman_server_con_st *con;
   gearman_server_worker_st *con_next;
   gearman_server_worker_st *con_prev;
-  gearman_server_worker_options_t options;
   gearman_server_function_st *function;
   gearman_server_worker_st *function_next;
   gearman_server_worker_st *function_prev;
@@ -296,10 +311,12 @@ struct gearman_server_job_st
   gearman_server_function_st *function;
   gearman_server_job_st *function_next;
   gearman_server_job_options_t options;
-  gearman_job_handle_t job_handle;
+  char job_handle[GEARMAN_JOB_HANDLE_SIZE];
+  char unique[GEARMAN_UNIQUE_SIZE];
   const void *data;
   size_t data_size;
-  gearman_server_con_st *client;
+  gearman_server_client_st *client_list;
+  uint32_t client_count;
   gearman_server_worker_st *worker;
   uint32_t numerator;
   uint32_t denominator;

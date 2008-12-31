@@ -46,6 +46,13 @@ static gearman_return_t _server_error_packet(gearman_server_con_st *server_con,
 static gearman_return_t _server_run_command(gearman_server_con_st *server_con,
                                             gearman_packet_st *packet);
 
+/**
+ * Send work result packets with data back to clients.
+ */
+static gearman_return_t 
+_server_queue_work_data(gearman_server_job_st *server_job,
+                        gearman_packet_st *packet, gearman_command_t command);
+
 /** @} */
 
 /*
@@ -77,6 +84,7 @@ gearman_server_st *gearman_server_create(gearman_server_st *server)
 
   snprintf(server->job_handle_prefix, GEARMAN_JOB_HANDLE_SIZE, "H:%s",
            un.nodename);
+  server->job_handle_count= 1;
 
   return server;
 }
@@ -318,7 +326,8 @@ static gearman_return_t _server_run_command(gearman_server_con_st *server_con,
 {
   gearman_return_t ret;
   gearman_server_job_st *server_job;
-  gearman_job_handle_t job_handle;
+  char job_handle[GEARMAN_JOB_HANDLE_SIZE];
+  gearman_server_client_st *server_client;
   char numerator_buffer[11]; /* Max string size to hold a uint32_t. */
   char denominator_buffer[11]; /* Max string size to hold a uint32_t. */
 
@@ -348,22 +357,28 @@ static gearman_return_t _server_run_command(gearman_server_con_st *server_con,
   case GEARMAN_COMMAND_SUBMIT_JOB:
   case GEARMAN_COMMAND_SUBMIT_JOB_BG:
   case GEARMAN_COMMAND_SUBMIT_JOB_HIGH:
-    /* Look up job via unique ID first to make sure it's not a duplicate. */
-    /* TODO */
+    if (packet->command == GEARMAN_COMMAND_SUBMIT_JOB_BG)
+      server_client= NULL;
+    else
+    {
+      server_client= gearman_server_client_add(server_con);
+      if (server_client == NULL)
+        return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+    }
 
     /* Create a job. */
     server_job= gearman_server_job_add(server_con->server,
                                        (char *)(packet->arg[0]),
-                                       packet->arg_size[0] - 1, packet->data,
+                                       packet->arg_size[0] - 1,
+                                       (char *)(packet->arg[1]),
+                                       packet->arg_size[1] - 1, packet->data,
                                        packet->data_size,
-                              packet->command != GEARMAN_COMMAND_SUBMIT_JOB_BG ?
-                                       server_con : NULL,
                             packet->command == GEARMAN_COMMAND_SUBMIT_JOB_HIGH ?
-                                       true : false, &ret);
-    if (ret != GEARMAN_SUCCESS)
+                                       true : false, server_client, &ret);
+    if (ret == GEARMAN_SUCCESS)
+      packet->options&= ~GEARMAN_PACKET_FREE_DATA;
+    else if (ret != GEARMAN_JOB_EXISTS)
       return ret;
-
-    packet->options&= ~GEARMAN_PACKET_FREE_DATA;
 
     /* Queue the job created packet. */
     ret= gearman_server_con_packet_add(server_con, GEARMAN_MAGIC_RESPONSE,
@@ -498,20 +513,10 @@ static gearman_return_t _server_run_command(gearman_server_con_st *server_con,
                                   "Job given in work result not found");
     }
 
-    /* If we have no client waiting, just drop the data. */
-    if (server_job->client == NULL)
-      break;
-
-    ret= gearman_server_con_packet_add(server_job->client,
-                                       GEARMAN_MAGIC_RESPONSE,
-                                       GEARMAN_COMMAND_WORK_DATA,
-                                       packet->arg[0], packet->arg_size[0],
-                                       packet->data, packet->data_size, NULL);
+    /* Queue the data packet for all clients. */
+    ret= _server_queue_work_data(server_job, packet, GEARMAN_COMMAND_WORK_DATA);
     if (ret != GEARMAN_SUCCESS)
       return ret;
-
-    packet->options&= ~GEARMAN_PACKET_FREE_DATA;
-    server_job->client->packet_end->packet.options|= GEARMAN_PACKET_FREE_DATA;
 
     break;
 
@@ -532,19 +537,20 @@ static gearman_return_t _server_run_command(gearman_server_con_st *server_con,
              (char *)(packet->arg[2]));
     server_job->denominator= atoi(denominator_buffer);
 
-    /* If we have no client waiting, don't queue any status packets. */
-    if (server_job->client == NULL)
-      break;
-
-    ret= gearman_server_con_packet_add(server_job->client,
-                                       GEARMAN_MAGIC_RESPONSE,
-                                       GEARMAN_COMMAND_WORK_STATUS,
-                                       packet->arg[0], packet->arg_size[0],
-                                       packet->arg[1], packet->arg_size[1],
-                                       packet->arg[2], packet->arg_size[2],
-                                       NULL);
-    if (ret != GEARMAN_SUCCESS)
-      return ret;
+    /* Queue the status packet for all clients. */
+    for (server_client= server_job->client_list; server_client;
+         server_client= server_client->job_next)
+    {
+      ret= gearman_server_con_packet_add(server_client->con,
+                                         GEARMAN_MAGIC_RESPONSE,
+                                         GEARMAN_COMMAND_WORK_STATUS,
+                                         packet->arg[0], packet->arg_size[0],
+                                         packet->arg[1], packet->arg_size[1],
+                                         packet->arg[2], packet->arg_size[2],
+                                         NULL);
+      if (ret != GEARMAN_SUCCESS)
+        return ret;
+    }
 
     break;
 
@@ -557,20 +563,11 @@ static gearman_return_t _server_run_command(gearman_server_con_st *server_con,
                                   "Job given in work result not found");
     }
 
-    /* Forward on response packet if we have a client waiting. */
-    if (server_job->client != NULL)
-    {
-      ret= gearman_server_con_packet_add(server_job->client,
-                                         GEARMAN_MAGIC_RESPONSE,
-                                         GEARMAN_COMMAND_WORK_COMPLETE,
-                                         packet->arg[0], packet->arg_size[0],
-                                         packet->data, packet->data_size, NULL);
-      if (ret != GEARMAN_SUCCESS)
-        return ret;
-
-      packet->options&= ~GEARMAN_PACKET_FREE_DATA;
-      server_job->client->packet_end->packet.options|= GEARMAN_PACKET_FREE_DATA;
-    }
+    /* Queue the data packet for all clients. */
+    ret= _server_queue_work_data(server_job, packet,
+                                 GEARMAN_COMMAND_WORK_COMPLETE);
+    if (ret != GEARMAN_SUCCESS)
+      return ret;
 
     /* Job is done, remove it. */
     gearman_server_job_free(server_job);
@@ -588,10 +585,11 @@ static gearman_return_t _server_run_command(gearman_server_con_st *server_con,
                                   "Job given in work result not found");
     }
 
-    /* Forward on response packet if we have a client waiting. */
-    if (server_job->client != NULL)
+    /* Queue the status packet for all clients. */
+    for (server_client= server_job->client_list; server_client;
+         server_client= server_client->job_next)
     {
-      ret= gearman_server_con_packet_add(server_job->client,
+      ret= gearman_server_con_packet_add(server_client->con,
                                          GEARMAN_MAGIC_RESPONSE,
                                          GEARMAN_COMMAND_WORK_FAIL,
                                          packet->arg[0], packet->arg_size[0],
@@ -615,6 +613,47 @@ static gearman_return_t _server_run_command(gearman_server_con_st *server_con,
   default:
     return _server_error_packet(server_con, "bad_command",
                                 "Command not expected");
+  }
+
+  return GEARMAN_SUCCESS;
+}
+
+static gearman_return_t 
+_server_queue_work_data(gearman_server_job_st *server_job,
+                        gearman_packet_st *packet, gearman_command_t command)
+{
+  gearman_server_client_st *server_client;
+  uint8_t *data;
+  gearman_return_t ret;
+
+  for (server_client= server_job->client_list; server_client;
+       server_client= server_client->job_next)
+  {
+    if (packet->options & GEARMAN_PACKET_FREE_DATA)
+    {
+      data= (uint8_t *)(packet->data);
+      packet->options&= ~GEARMAN_PACKET_FREE_DATA;
+    }
+    else if (packet->data_size > 0)
+    {
+      data= malloc(packet->data_size);
+      if (data == NULL)
+      {
+        GEARMAN_ERROR_SET(packet->gearman, "_server_run_command", "malloc")
+        return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+      }
+
+      memcpy(data, packet->data, packet->data_size);
+    }
+
+    ret= gearman_server_con_packet_add(server_client->con,
+                                       GEARMAN_MAGIC_RESPONSE, command,
+                                       packet->arg[0], packet->arg_size[0],
+                                       data, packet->data_size, NULL);
+    if (ret != GEARMAN_SUCCESS)
+      return ret;
+
+    server_client->con->packet_end->packet.options|= GEARMAN_PACKET_FREE_DATA;
   }
 
   return GEARMAN_SUCCESS;

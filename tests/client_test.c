@@ -112,7 +112,7 @@ test_return background_failure_test(void *object)
 {
   gearman_return_t rc;
   gearman_client_st *client= (gearman_client_st *)object;
-  gearman_job_handle_t job_handle;
+  char job_handle[GEARMAN_JOB_HANDLE_SIZE];
   bool is_known;
   bool is_running;
   uint32_t numerator;
@@ -141,7 +141,7 @@ test_return background_test(void *object)
 {
   gearman_return_t rc;
   gearman_client_st *client= (gearman_client_st *)object;
-  gearman_job_handle_t job_handle;
+  char job_handle[GEARMAN_JOB_HANDLE_SIZE];
   bool is_known;
   bool is_running;
   uint32_t numerator;
