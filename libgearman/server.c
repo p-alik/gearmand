@@ -623,7 +623,7 @@ _server_queue_work_data(gearman_server_job_st *server_job,
                         gearman_packet_st *packet, gearman_command_t command)
 {
   gearman_server_client_st *server_client;
-  uint8_t *data;
+  uint8_t *data= NULL;
   gearman_return_t ret;
 
   for (server_client= server_job->client_list; server_client;
