@@ -180,28 +180,14 @@ void gearman_server_active_add(gearman_server_con_st *server_con)
   if (server_con->active_next != NULL || server_con->active_prev != NULL)
     return;
 
-  if (server_con->server->active_list != NULL)
-    server_con->server->active_list->active_prev= server_con;
-  server_con->active_next= server_con->server->active_list;
-  server_con->server->active_list= server_con;
-  server_con->server->active_count++;
+  GEARMAN_LIST_ADD(server_con->server->active, server_con, active_)
 }
 
 void gearman_server_active_remove(gearman_server_con_st *server_con)
 {
-  if (server_con->server->active_list == server_con)
-    server_con->server->active_list= server_con->active_next;
-  if (server_con->active_prev != NULL)
-  {
-    server_con->active_prev->active_next= server_con->active_next;
-    server_con->active_prev= NULL;
-  }
-  if (server_con->active_next != NULL)
-  {
-    server_con->active_next->active_prev= server_con->active_prev;
-    server_con->active_next= NULL;
-  }
-  server_con->server->active_count--;
+  GEARMAN_LIST_DEL(server_con->server->active, server_con, active_)
+  server_con->active_prev= NULL;
+  server_con->active_next= NULL;
 }
 
 gearman_server_con_st *gearman_server_active_next(gearman_server_st *server)

@@ -79,6 +79,30 @@
            __function ":" __VA_ARGS__); }
 
 /**
+ * Add an object to a list.
+ * @ingroup gearman_constants
+ */
+#define GEARMAN_LIST_ADD(__list, __obj, __prefix) { \
+  if (__list ## _list != NULL) \
+    __list ## _list->__prefix ## prev= __obj; \
+  __obj->__prefix ## next= __list ## _list; \
+  __list ## _list= __obj; \
+  __list ## _count++; }
+
+/**
+ * Delete an object from the list.
+ * @ingroup gearman_constants
+ */
+#define GEARMAN_LIST_DEL(__list, __obj, __prefix) { \
+  if (__list ## _list == __obj) \
+    __list ## _list= __obj->__prefix ## next; \
+  if (__obj->__prefix ## prev != NULL) \
+    __obj->__prefix ## prev->__prefix ## next= __obj->__prefix ## next; \
+  if (__obj->__prefix ## next != NULL) \
+    __obj->__prefix ## next->__prefix ## prev= __obj->__prefix ## prev; \
+  __list ## _count--; }
+
+/**
  * Command information array.
  * @ingroup gearman_constants
  */

@@ -72,11 +72,7 @@ gearman_con_st *gearman_con_create(gearman_st *gearman, gearman_con_st *con)
 
   con->gearman= gearman;
 
-  if (gearman->con_list != NULL)
-    gearman->con_list->prev= con;
-  con->next= gearman->con_list;
-  gearman->con_list= con;
-  gearman->con_count++;
+  GEARMAN_LIST_ADD(gearman->con, con,)
 
   con->fd= -1;
   con->send_buffer_ptr= con->send_buffer;
@@ -111,13 +107,7 @@ gearman_return_t gearman_con_free(gearman_con_st *con)
 
   gearman_con_reset_addrinfo(con);
 
-  if (con->gearman->con_list == con)
-    con->gearman->con_list= con->next;
-  if (con->prev)
-    con->prev->next= con->next;
-  if (con->next)
-    con->next->prev= con->prev;
-  con->gearman->con_count--;
+  GEARMAN_LIST_DEL(con->gearman->con, con,)
 
   if (con->options & GEARMAN_CON_PACKET_IN_USE)
     gearman_packet_free(&(con->packet));

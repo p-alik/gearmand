@@ -75,11 +75,7 @@ gearman_server_function_create(gearman_server_st *server,
 
   server_function->server= server;
 
-  if (server->function_list)
-    server->function_list->prev= server_function;
-  server_function->next= server->function_list;
-  server->function_list= server_function;
-  server->function_count++;
+  GEARMAN_LIST_ADD(server->function, server_function,)
 
   return server_function;
 }
@@ -89,13 +85,7 @@ void gearman_server_function_free(gearman_server_function_st *server_function)
   if (server_function->function_name != NULL)
     free(server_function->function_name);
 
-  if (server_function->server->function_list == server_function)
-    server_function->server->function_list= server_function->next;
-  if (server_function->prev)
-    server_function->prev->next= server_function->next;
-  if (server_function->next)
-    server_function->next->prev= server_function->prev;
-  server_function->server->function_count--;
+  GEARMAN_LIST_DEL(server_function->server->function, server_function,)
 
   if (server_function->options & GEARMAN_SERVER_FUNCTION_ALLOCATED)
     free(server_function);

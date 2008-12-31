@@ -88,11 +88,7 @@ gearman_server_job_create(gearman_server_st *server,
 
   server_job->server= server;
 
-  if (server->job_list)
-    server->job_list->prev= server_job;
-  server_job->next= server->job_list;
-  server->job_list= server_job;
-  server->job_count++;
+  GEARMAN_LIST_ADD(server->job, server_job,)
 
   return server_job;
 }
@@ -108,13 +104,7 @@ void gearman_server_job_free(gearman_server_job_st *server_job)
   if (server_job->worker != NULL)
     server_job->worker->job= NULL;
 
-  if (server_job->server->job_list == server_job)
-    server_job->server->job_list= server_job->next;
-  if (server_job->prev)
-    server_job->prev->next= server_job->next;
-  if (server_job->next)
-    server_job->next->prev= server_job->prev;
-  server_job->server->job_count--;
+  GEARMAN_LIST_DEL(server_job->server->job, server_job,)
 
   if (server_job->options & GEARMAN_SERVER_JOB_ALLOCATED)
     free(server_job);

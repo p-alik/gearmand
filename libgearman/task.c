@@ -37,27 +37,17 @@ gearman_task_st *gearman_task_create(gearman_st *gearman,
 
   task->gearman= gearman;
 
-  if (gearman->task_list != NULL)
-    gearman->task_list->prev= task;
-  task->next= gearman->task_list;
-  gearman->task_list= task;
-  gearman->task_count++;
+  GEARMAN_LIST_ADD(gearman->task, task,)
 
   return task;
 }
 
 void gearman_task_free(gearman_task_st *task)
 {
-  if (task->gearman->task_list == task)
-    task->gearman->task_list= task->next;
-  if (task->prev != NULL)
-    task->prev->next= task->next;
-  if (task->next != NULL)
-    task->next->prev= task->prev;
-  task->gearman->task_count--;
-
   if (task->options & GEARMAN_TASK_SEND_IN_USE)
     gearman_packet_free(&(task->send));
+
+  GEARMAN_LIST_DEL(task->gearman->task, task,)
 
   if (task->options & GEARMAN_TASK_ALLOCATED)
     free(task);
