@@ -83,11 +83,11 @@ gearmand_st *gearmand_create(in_port_t port)
   return gearmand;
 #else
   (void) port;
-  (void) backlog;
 
-  if (verbose > 0)
-    printf("Library not built with libevent support!\n");
-
+/* TODO: How do we switch this here?
+ * if (gearmand->verbose > 0)
+ *   printf("Library not built with libevent support!\n");
+ */
   return NULL;
 #endif
 }
