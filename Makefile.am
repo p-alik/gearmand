@@ -5,6 +5,8 @@
 # Use and distribution licensed under the BSD license.  See
 # the COPYING file in this directory for full text.
 
+ACLOCAL_AMFLAGS= -I m4
+
 SUBDIRS = libgearman gearmand tests examples
 
 docs: all
