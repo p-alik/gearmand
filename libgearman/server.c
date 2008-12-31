@@ -629,22 +629,27 @@ _server_queue_work_data(gearman_server_job_st *server_job,
   for (server_client= server_job->client_list; server_client;
        server_client= server_client->job_next)
   {
-    if (packet->options & GEARMAN_PACKET_FREE_DATA)
+    if (packet->data_size > 0)
     {
-      data= (uint8_t *)(packet->data);
-      packet->options&= ~GEARMAN_PACKET_FREE_DATA;
-    }
-    else if (packet->data_size > 0)
-    {
-      data= malloc(packet->data_size);
-      if (data == NULL)
+      if (packet->options & GEARMAN_PACKET_FREE_DATA)
       {
-        GEARMAN_ERROR_SET(packet->gearman, "_server_run_command", "malloc")
-        return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+        data= (uint8_t *)(packet->data);
+        packet->options&= ~GEARMAN_PACKET_FREE_DATA;
       }
+      else
+      {
+        data= malloc(packet->data_size);
+        if (data == NULL)
+        {
+          GEARMAN_ERROR_SET(packet->gearman, "_server_run_command", "malloc")
+          return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+        }
 
-      memcpy(data, packet->data, packet->data_size);
+        memcpy(data, packet->data, packet->data_size);
+      }
     }
+    else
+      data= NULL;
 
     ret= gearman_server_con_packet_add(server_client->con,
                                        GEARMAN_MAGIC_RESPONSE, command,
