@@ -5,8 +5,6 @@
 # Use and distribution licensed under the BSD license.  See
 # the COPYING file in the parent directory for full text.
 
-AM_CFLAGS= -I$(top_builddir)
-
 lib_LTLIBRARIES= libgearman.la
 
 libgearmanincludedir= ${includedir}/libgearman
@@ -48,4 +46,6 @@ libgearman_la_SOURCES= \
 	task.c \
 	worker.c
 
-libgearman_la_LDFLAGS= -version-info $(GEARMAN_LIBRARY_VERSION)
+libgearman_la_LDFLAGS= -version-info $(GEARMAN_LIBRARY_VERSION) 
+libgearman_la_LIBADD= $(EVENT_LIBS) $(UUID_LIBS)
+libgearman_CFLAGs= $(AM_CFLAGS) $(UUID_CFLAGS) $(EVENT_CFLAGS)
