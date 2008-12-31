@@ -28,8 +28,9 @@ extern "C" {
 /**
  * Initialize a server connection structure.
  */
-gearman_server_con_st *gearman_server_con_create(gearman_server_st *server,
-                                             gearman_server_con_st *server_con);
+gearman_server_con_st *
+gearman_server_con_create(gearman_server_st *server,
+                          gearman_server_con_st *server_con);
 
 /**
  * Free a server connection structure.
@@ -60,11 +61,10 @@ gearman_return_t gearman_server_con_set_id(gearman_server_con_st *server_con,
 /**
  * Add a server packet structure to a connection.
  */
-gearman_return_t gearman_server_con_packet_add(
-                                              gearman_server_con_st *server_con,
-                                              gearman_magic_t magic,
-                                              gearman_command_t command,
-                                              const void *arg, ...);
+gearman_return_t
+gearman_server_con_packet_add(gearman_server_con_st *server_con,
+                              gearman_magic_t magic, gearman_command_t command,
+                              const void *arg, ...);
 
 /**
  * Remove the first server packet structure from a connection.

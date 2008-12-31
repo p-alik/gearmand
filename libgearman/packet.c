@@ -124,30 +124,20 @@ gearman_packet_st *gearman_packet_create(gearman_st *gearman,
 
   packet->gearman= gearman;
 
-  if (gearman->packet_list != NULL)
-    gearman->packet_list->prev= packet;
-  packet->next= gearman->packet_list;
-  gearman->packet_list= packet;
-  gearman->packet_count++;
+  GEARMAN_LIST_ADD(gearman->packet, packet,)
 
   return packet;
 }
 
 void gearman_packet_free(gearman_packet_st *packet)
 {
-  if (packet->gearman->packet_list == packet)
-    packet->gearman->packet_list= packet->next;
-  if (packet->prev != NULL)
-    packet->prev->next= packet->next;
-  if (packet->next != NULL)
-    packet->next->prev= packet->prev;
-  packet->gearman->packet_count--;
-
   if (packet->args != packet->args_buffer && packet->args != NULL)
     free(packet->args);
 
   if (packet->options & GEARMAN_PACKET_FREE_DATA)
     free((void *)(packet->data));
+
+  GEARMAN_LIST_DEL(packet->gearman->packet, packet,)
 
   if (packet->options & GEARMAN_PACKET_ALLOCATED)
     free(packet);

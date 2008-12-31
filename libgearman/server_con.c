@@ -17,8 +17,9 @@
  * Public definitions
  */
 
-gearman_server_con_st *gearman_server_con_create(gearman_server_st *server,
-                                             gearman_server_con_st *server_con)
+gearman_server_con_st *
+gearman_server_con_create(gearman_server_st *server,
+                          gearman_server_con_st *server_con)
 {
   if (server_con == NULL)
   {
@@ -45,19 +46,13 @@ gearman_server_con_st *gearman_server_con_create(gearman_server_st *server,
 
   server_con->server= server;
 
-  if (server->con_list)
-    server->con_list->prev= server_con;
-  server_con->next= server->con_list;
-  server->con_list= server_con;
-  server->con_count++;
+  GEARMAN_LIST_ADD(server->con, server_con,)
 
   return server_con;
 }
 
 void gearman_server_con_free(gearman_server_con_st *server_con)
 {
-  gearman_server_job_st *job;
-
   gearman_con_free(&(server_con->con));
 
   if (server_con->active_next != NULL || server_con->active_prev != NULL)
@@ -68,27 +63,10 @@ void gearman_server_con_free(gearman_server_con_st *server_con)
 
   gearman_server_con_free_workers(server_con);
 
-  if (server_con->job_count > 0)
-  {
-    for (job= server_con->server->job_list; job != NULL; job= job->next)
-    {
-      if (job->client != server_con)
-        continue;
+  while (server_con->client_list != NULL)
+    gearman_server_client_free(server_con->client_list);
 
-      job->client= NULL;
-      server_con->job_count--;
-      if (server_con->job_count == 0)
-        break;
-    }
-  }
-
-  if (server_con->server->con_list == server_con)
-    server_con->server->con_list= server_con->next;
-  if (server_con->prev)
-    server_con->prev->next= server_con->next;
-  if (server_con->next)
-    server_con->next->prev= server_con->prev;
-  server_con->server->con_count--;
+  GEARMAN_LIST_DEL(server_con->server->con, server_con,)
 
   if (server_con->options & GEARMAN_SERVER_CON_ALLOCATED)
     free(server_con);
@@ -147,11 +125,10 @@ gearman_return_t gearman_server_con_set_id(gearman_server_con_st *server_con,
   return GEARMAN_SUCCESS;
 }
 
-gearman_return_t gearman_server_con_packet_add(
-                                              gearman_server_con_st *server_con,
-                                              gearman_magic_t magic,
-                                              gearman_command_t command,
-                                              const void *arg, ...)
+gearman_return_t
+gearman_server_con_packet_add(gearman_server_con_st *server_con,
+                              gearman_magic_t magic, gearman_command_t command,
+                              const void *arg, ...)
 {
   gearman_server_packet_st *server_packet;
   va_list ap;

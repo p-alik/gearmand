@@ -281,11 +281,7 @@ static void _listen_accept(int fd, short events __attribute__ ((unused)),
     return;
   }
 
-  if (gearmand->dcon_list != NULL)
-    gearmand->dcon_list->prev= dcon;
-  dcon->next= gearmand->dcon_list;
-  gearmand->dcon_list= dcon;
-  gearmand->dcon_count++;
+  GEARMAN_LIST_ADD(gearmand->dcon, dcon,)
   gearmand->dcon_total++;
 }
 
@@ -376,13 +372,7 @@ static void _con_ready(int fd __attribute__ ((unused)), short events,
     assert(event_del(&(dcon->event)) == 0);
     gearman_server_con_free(&(dcon->server_con));
 
-    if (gearmand->dcon_list == dcon)
-      gearmand->dcon_list= dcon->next;
-    if (dcon->prev)
-      dcon->prev->next= dcon->next;
-    if (dcon->next)
-      dcon->next->prev= dcon->prev;
-    gearmand->dcon_count--;
+    GEARMAN_LIST_DEL(gearmand->dcon, dcon,)
 
     free(dcon);
   }

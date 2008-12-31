@@ -53,30 +53,20 @@ gearman_job_st *gearman_job_create(gearman_st *gearman, gearman_job_st *job)
 
   job->gearman= gearman;
 
-  if (gearman->job_list)
-    gearman->job_list->prev= job;
-  job->next= gearman->job_list;
-  gearman->job_list= job;
-  gearman->job_count++;
+  GEARMAN_LIST_ADD(gearman->job, job,)
 
   return job;
 }
 
 void gearman_job_free(gearman_job_st *job)
 {
-  if (job->gearman->job_list == job)
-    job->gearman->job_list= job->next;
-  if (job->prev)
-    job->prev->next= job->next;
-  if (job->next)
-    job->next->prev= job->prev;
-  job->gearman->job_count--;
-
   if (job->options & GEARMAN_JOB_ASSIGNED_IN_USE)
     gearman_packet_free(&(job->assigned));
 
   if (job->options & GEARMAN_JOB_WORK_IN_USE)
     gearman_packet_free(&(job->work));
+
+  GEARMAN_LIST_DEL(job->gearman->job, job,)
 
   if (job->options & GEARMAN_JOB_ALLOCATED)
     free(job);

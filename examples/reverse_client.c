@@ -71,7 +71,8 @@ int main(int argc, char *argv[])
 
   while (1)
   {
-    result= (char *)gearman_client_do(&client, "reverse", (void *)argv[optind],
+    result= (char *)gearman_client_do(&client, "reverse", NULL,
+                                      (void *)argv[optind],
                                       (size_t)strlen(argv[optind]),
                                       &result_size, &ret);
     if (ret == GEARMAN_WORK_DATA)

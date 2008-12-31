@@ -66,17 +66,8 @@ gearman_server_worker_create(gearman_server_con_st *server_con,
   server_worker->con= server_con;
   server_worker->function= server_function;
 
-  if (server_con->worker_list)
-    server_con->worker_list->con_prev= server_worker;
-  server_worker->con_next= server_con->worker_list;
-  server_con->worker_list= server_worker;
-  server_con->worker_count++;
-
-  if (server_function->worker_list)
-    server_function->worker_list->function_prev= server_worker;
-  server_worker->function_next= server_function->worker_list;
-  server_function->worker_list= server_worker;
-  server_function->worker_count++;
+  GEARMAN_LIST_ADD(server_con->worker, server_worker, con_)
+  GEARMAN_LIST_ADD(server_function->worker, server_worker, function_)
 
   return server_worker;
 }
@@ -87,21 +78,8 @@ void gearman_server_worker_free(gearman_server_worker_st *server_worker)
   if (server_worker->job != NULL)
     (void)gearman_server_job_queue(server_worker->job);
 
-  if (server_worker->con->worker_list == server_worker)
-    server_worker->con->worker_list= server_worker->con_next;
-  if (server_worker->con_prev != NULL)
-    server_worker->con_prev->con_next= server_worker->con_next;
-  if (server_worker->con_next != NULL)
-    server_worker->con_next->con_prev= server_worker->con_prev;
-  server_worker->con->worker_count--;
-
-  if (server_worker->function->worker_list == server_worker)
-    server_worker->function->worker_list= server_worker->function_next;
-  if (server_worker->function_prev != NULL)
-    server_worker->function_prev->function_next= server_worker->function_next;
-  if (server_worker->function_next != NULL)
-    server_worker->function_next->function_prev= server_worker->function_prev;
-  server_worker->function->worker_count--;
+  GEARMAN_LIST_DEL(server_worker->con->worker, server_worker, con_)
+  GEARMAN_LIST_DEL(server_worker->function->worker, server_worker, function_)
 
   if (server_worker->options & GEARMAN_SERVER_WORKER_ALLOCATED)
     free(server_worker);
