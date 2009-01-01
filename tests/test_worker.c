@@ -31,7 +31,7 @@ pid_t test_worker_start(in_port_t port, const char *function_name,
            function_arg) == GEARMAN_SUCCESS);
     while (1)
     {
-      int ret= gearman_worker_work(&worker);
+      gearman_return_t ret= gearman_worker_work(&worker);
       assert(ret == GEARMAN_SUCCESS);
     }
 

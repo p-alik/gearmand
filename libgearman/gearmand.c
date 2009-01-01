@@ -63,6 +63,7 @@ gearmand_st *gearmand_create(in_port_t port)
   memset(gearmand, 0, sizeof(gearmand_st));
   
   gearmand->listen_fd= -1;
+  gearmand->backlog= GEARMAN_DEFAULT_BACKLOG;
   gearmand->port= port;
 
   if (gearman_server_create(&(gearmand->server)) == NULL)
@@ -83,11 +84,7 @@ gearmand_st *gearmand_create(in_port_t port)
   return gearmand;
 #else
   (void) port;
-
-/* TODO: How do we switch this here?
- * if (gearmand->verbose > 0)
- *   printf("Library not built with libevent support!\n");
- */
+  fprintf(stderr, "Library not built with libevent support!\n");
   return NULL;
 #endif
 }
@@ -151,6 +148,7 @@ gearman_return_t gearmand_run(gearmand_st *gearmand)
   {
     gearmand->dcon_list= dcon->next;
     gearman_server_con_free(&(dcon->server_con));
+    close(dcon->fd);
     free(dcon);
   }
 
@@ -369,11 +367,12 @@ static void _con_ready(int fd __attribute__ ((unused)), short events,
              ntohs(dcon->sa.sin_port));
     }
 
-    assert(event_del(&(dcon->event)) == 0);
     gearman_server_con_free(&(dcon->server_con));
-
+    event_set(&(dcon->event), dcon->fd, EV_READ, _con_ready, dcon);
+    event_add(&(dcon->event), NULL);
+    assert(event_del(&(dcon->event)) == 0);
     GEARMAN_LIST_DEL(gearmand->dcon, dcon,)
-
+    close(dcon->fd);
     free(dcon);
   }
 }
@@ -385,6 +384,10 @@ static void _event_del_all(gearmand_st *gearmand)
   assert(event_del(&(gearmand->listen_event)) == 0);
 
   for (dcon= gearmand->dcon_list; dcon != NULL; dcon= dcon->next)
+  {
+    event_set(&(dcon->event), dcon->fd, EV_READ, _con_ready, dcon);
+    event_add(&(dcon->event), NULL);
     assert(event_del(&(dcon->event)) == 0);
+  }
 }
 #endif

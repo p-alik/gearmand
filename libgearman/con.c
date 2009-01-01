@@ -147,6 +147,7 @@ gearman_return_t gearman_con_set_fd(gearman_con_st *con, int fd)
 {
   gearman_return_t ret;
 
+  con->options|= GEARMAN_CON_EXTERNAL_FD;
   con->fd= fd;
   con->state= GEARMAN_CON_STATE_CONNECTED;
 
@@ -182,12 +183,17 @@ gearman_return_t gearman_con_close(gearman_con_st *con)
   if (con->fd == -1)
     return GEARMAN_SUCCESS;
 
-  ret= close(con->fd);
-  if (ret == -1)
+  if (con->options & GEARMAN_CON_EXTERNAL_FD)
+    con->options&= ~GEARMAN_CON_EXTERNAL_FD;
+  else
   {
-    GEARMAN_ERROR_SET(con->gearman, "gearman_con_close", "close:%d", errno)
-    con->gearman->last_errno= errno;
-    return GEARMAN_ERRNO;
+    ret= close(con->fd);
+    if (ret == -1)
+    {
+      GEARMAN_ERROR_SET(con->gearman, "gearman_con_close", "close:%d", errno)
+      con->gearman->last_errno= errno;
+      return GEARMAN_ERRNO;
+    }
   }
 
   con->state= GEARMAN_CON_STATE_ADDRINFO;
@@ -552,6 +558,9 @@ gearman_return_t gearman_con_flush_all(gearman_st *gearman)
 
   for (con= gearman->con_list; con != NULL; con= con->next)
   {
+    if (con->events & POLLOUT)
+      continue;
+
     ret= gearman_con_flush(con);
     if (ret != GEARMAN_SUCCESS && ret != GEARMAN_IO_WAIT)
       return ret;
