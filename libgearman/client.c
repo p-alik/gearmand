@@ -492,11 +492,14 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client,
             }
           }
 
-          ret= gearman_con_flush(client->con);
-          if (ret != GEARMAN_SUCCESS && ret != GEARMAN_IO_WAIT)
+          if (!(client->con->events & POLLOUT))
           {
-            client->gearman->options= options;
-            return ret;
+            ret= gearman_con_flush(client->con);
+            if (ret != GEARMAN_SUCCESS && ret != GEARMAN_IO_WAIT)
+            {
+              client->gearman->options= options;
+              return ret;
+            }
           }
 
           /* A connection may now be idle to start a new job, set this. */
