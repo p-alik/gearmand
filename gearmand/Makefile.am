@@ -5,12 +5,12 @@
 # Use and distribution licensed under the BSD license.  See
 # the COPYING file in the parent directory for full text.
 
-AM_CFLAGS= -I$(top_builddir)
-AM_LDFLAGS= -levent $(top_builddir)/libgearman/libgearman.la
 
 bin_PROGRAMS= gearmand
 
+gearmand_CFLAGS= $(AM_CFLAGS) $(EVENT_CFLAGS)
 gearmand_SOURCES= gearmand.c
+gearmand_LDFLAGS= $(EVENT_LIBS) $(top_builddir)/libgearman/libgearman.la
 
 valgrind: gearmand
 	libtool --mode=execute valgrind --leak-check=yes --show-reachable=yes  gearmand

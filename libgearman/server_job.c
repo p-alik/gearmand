@@ -37,14 +37,14 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
     if (server_function == NULL)
     {
       *ret_ptr= GEARMAN_MEMORY_ALLOCATION_FAILURE;
-      return NULL;;
+      return NULL;
     }
 
     server_job= gearman_server_job_create(server, NULL);
     if (server_job == NULL)
     {
       *ret_ptr= GEARMAN_MEMORY_ALLOCATION_FAILURE;
-      return NULL;;
+      return NULL;
     }
 
     if (high)

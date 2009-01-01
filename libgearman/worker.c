@@ -373,8 +373,6 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
         return NULL;
     }
   }
-
-  return NULL;
 }
 
 gearman_return_t gearman_worker_add_function(gearman_worker_st *worker,

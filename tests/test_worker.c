@@ -20,7 +20,8 @@ pid_t test_worker_start(in_port_t port, const char *function_name,
   pid_t worker_pid;
   gearman_worker_st worker;
 
-  assert((worker_pid= fork()) != -1);
+  worker_pid= fork();
+  assert(worker_pid != -1);
 
   if (worker_pid == 0)
   {
@@ -29,9 +30,15 @@ pid_t test_worker_start(in_port_t port, const char *function_name,
     assert(gearman_worker_add_function(&worker, function_name, 0, function,
            function_arg) == GEARMAN_SUCCESS);
     while (1)
-      assert(gearman_worker_work(&worker) == GEARMAN_SUCCESS);
-    gearman_worker_free(&worker);
-    exit(0);
+    {
+      gearman_return_t ret= gearman_worker_work(&worker);
+      assert(ret == GEARMAN_SUCCESS);
+    }
+
+    /* TODO: unreachable - the only way out of the loop above is the assert 
+     * gearman_worker_free(&worker);
+     * exit(0);
+     */
   }
   else
   {
