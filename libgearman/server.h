@@ -21,8 +21,6 @@ extern "C" {
 /**
  * @addtogroup gearman_server Server Interface
  * This is the interface gearman servers should use.
- *
- * @ref main_page_server "See Main Page for full details."
  * @{
  */
 
@@ -86,6 +84,7 @@ void gearman_server_set_options(gearman_server_st *server,
  * @param server Server structure previously initialized with
  *        gearman_server_create or gearman_server_clone.
  * @param event_watch Function to be called when events need to be watched.
+ * @param event_watch_arg Argument to pass along to event_watch.
  */
 void gearman_server_set_event_watch(gearman_server_st *server,
                                     gearman_event_watch_fn *event_watch,
@@ -96,6 +95,8 @@ void gearman_server_set_event_watch(gearman_server_st *server,
  * used to run tasks. No socket I/O happens here, it is just added to a list.
  * @param server Server structure previously initialized with
  *        gearman_server_create or gearman_server_clone.
+ * @param server_con Caller allocated server connection structure, or NULL to
+          allocate one.
  * @param fd File descriptor for a newly accepted connection.
  * @param data Application data pointer.
  * @return Gearman connection pointer.

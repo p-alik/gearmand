@@ -91,6 +91,7 @@ void gearman_client_set_options(gearman_client_st *client,
  *        gearman_client_create or gearman_client_clone.
  * @param memory_alloc Memory allocation function to replace malloc().
  * @param memory_free Memory free function to replace free().
+ * @param memory_arg Argument to pass along to memory_alloc/memory_free.
  */
 void gearman_client_set_memory(gearman_client_st *client,
                                gearman_memory_alloc_fn *memory_alloc,
