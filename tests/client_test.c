@@ -32,9 +32,9 @@ test_return allocation_test(void *object);
 test_return clone_test(void *object);
 test_return echo_test(void *object);
 test_return submit_job_test(void *object);
-test_return background_failure_test(void *object);
+test_return submit_null_job_test(void *object);
 test_return background_test(void *object);
-test_return error_test(void *object);
+test_return background_failure_test(void *object);
 
 void *create(void *object);
 void destroy(void *object);
@@ -108,31 +108,51 @@ test_return echo_test(void *object __attribute__((unused)))
   return TEST_SUCCESS;
 }
 
-test_return background_failure_test(void *object)
+test_return submit_job_test(void *object)
 {
   gearman_return_t rc;
   gearman_client_st *client= (gearman_client_st *)object;
-  char job_handle[GEARMAN_JOB_HANDLE_SIZE];
-  bool is_known;
-  bool is_running;
-  uint32_t numerator;
-  uint32_t denominator;
-  uint8_t *value= (uint8_t *)"background_failure_test";
-  ssize_t value_length= strlen("background_failure_test");
+  uint8_t *job_result;
+  size_t job_length;
+  uint8_t *value= (uint8_t *)"submit_job_test";
+  size_t value_length= strlen("submit_job_test");
 
-  rc= gearman_client_do_background(client, "does_not_exist", NULL, value,
-                                   value_length, job_handle);
+  job_result= gearman_client_do(client, "client_test", NULL, value,
+                                value_length, &job_length, &rc);
   if (rc != GEARMAN_SUCCESS)
-    return TEST_FAILURE;
-
-  rc= gearman_client_task_status(client, job_handle, &is_known, &is_running,
-                                 &numerator, &denominator);
-  if (rc != GEARMAN_SUCCESS || is_known != true || is_running != false ||
-      numerator != 0 || denominator != 0)
   {
-    printf("background_failure_test:%s\n", gearman_client_error(client));
+    printf("submit_job_test:%s\n", gearman_client_error(client));
     return TEST_FAILURE;
   }
+
+  if (job_result == NULL)
+    return TEST_FAILURE;
+
+  if (value_length != job_length || memcmp(value, job_result, value_length))
+    return TEST_FAILURE;
+
+  free(job_result);
+
+  return TEST_SUCCESS;
+}
+
+test_return submit_null_job_test(void *object)
+{
+  gearman_return_t rc;
+  gearman_client_st *client= (gearman_client_st *)object;
+  uint8_t *job_result;
+  size_t job_length;
+
+  job_result= gearman_client_do(client, "client_test", NULL, NULL, 0,
+                                &job_length, &rc);
+  if (rc != GEARMAN_SUCCESS)
+  {
+    printf("submit_null_job_test:%s\n", gearman_client_error(client));
+    return TEST_FAILURE;
+  }
+
+  if (job_result != NULL || job_length != 0)
+    return TEST_FAILURE;
 
   return TEST_SUCCESS;
 }
@@ -159,8 +179,8 @@ test_return background_test(void *object)
 
   while (1)
   {
-    rc= gearman_client_task_status(client, job_handle, &is_known, &is_running,
-                                   &numerator, &denominator);
+    rc= gearman_client_job_status(client, job_handle, &is_known, &is_running,
+                                  &numerator, &denominator);
     if (rc != GEARMAN_SUCCESS)
     {
       printf("background_test:%s\n", gearman_client_error(client));
@@ -174,30 +194,31 @@ test_return background_test(void *object)
   return TEST_SUCCESS;
 }
 
-test_return submit_job_test(void *object)
+test_return background_failure_test(void *object)
 {
   gearman_return_t rc;
   gearman_client_st *client= (gearman_client_st *)object;
-  uint8_t *job_result;
-  size_t job_length;
-  uint8_t *value= (uint8_t *)"submit_job_test";
-  size_t value_length= strlen("submit_job_test");
+  char job_handle[GEARMAN_JOB_HANDLE_SIZE];
+  bool is_known;
+  bool is_running;
+  uint32_t numerator;
+  uint32_t denominator;
+  uint8_t *value= (uint8_t *)"background_failure_test";
+  ssize_t value_length= strlen("background_failure_test");
 
-  job_result= gearman_client_do(client, "client_test", NULL, value,
-                                value_length, &job_length, &rc);
+  rc= gearman_client_do_background(client, "does_not_exist", NULL, value,
+                                   value_length, job_handle);
   if (rc != GEARMAN_SUCCESS)
+    return TEST_FAILURE;
+
+  rc= gearman_client_job_status(client, job_handle, &is_known, &is_running,
+                                &numerator, &denominator);
+  if (rc != GEARMAN_SUCCESS || is_known != true || is_running != false ||
+      numerator != 0 || denominator != 0)
   {
-    printf("echo_test:%s\n", gearman_client_error(client));
+    printf("background_failure_test:%s\n", gearman_client_error(client));
     return TEST_FAILURE;
   }
-
-  if (job_result == NULL)
-    return TEST_FAILURE;
-
-  if (value_length != job_length || memcmp(value, job_result, value_length))
-    return TEST_FAILURE;
-
-  free(job_result);
 
   return TEST_SUCCESS;
 }
@@ -238,8 +259,16 @@ void *client_test_worker(gearman_job_st *job, void *cb_arg, size_t *result_size,
   workload= gearman_job_workload(job);
   *result_size= gearman_job_workload_size(job);
 
-  assert((result= malloc(*result_size)) != NULL);
-  memcpy(result, workload, *result_size);
+  if (workload == NULL || *result_size == 0)
+  {
+    assert(workload == NULL && *result_size == 0);
+    result= NULL;
+  }
+  else
+  {
+    assert((result= malloc(*result_size)) != NULL);
+    memcpy(result, workload, *result_size);
+  }
 
   ret_ptr= GEARMAN_SUCCESS;
   return result;
@@ -277,9 +306,10 @@ test_st tests[] ={
   {"allocation", 0, allocation_test },
   {"clone_test", 0, clone_test },
   {"echo", 0, echo_test },
-  {"background_failure", 0, background_failure_test },
-  {"background", 0, background_test },
   {"submit_job", 0, submit_job_test },
+  {"submit_null_job", 0, submit_null_job_test },
+  {"background", 0, background_test },
+  {"background_failure", 0, background_failure_test },
   {0, 0, 0}
 };
 

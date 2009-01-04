@@ -83,6 +83,21 @@ void gearman_client_set_options(gearman_client_st *client,
                                 uint32_t data);
 
 /**
+ * Set custom memory allocation functions. Normally gearman uses the standard
+ * system malloc and free to allocate memory used with client results or free
+ * memory from worker results. These functions are used in place of those
+ * functions.
+ * @param client Client structure previously initialized with
+ *        gearman_client_create or gearman_client_clone.
+ * @param memory_alloc Memory allocation function to replace malloc().
+ * @param memory_free Memory free function to replace free().
+ */
+void gearman_client_set_memory(gearman_client_st *client,
+                               gearman_memory_alloc_fn *memory_alloc,
+                               gearman_memory_free_fn *memory_free,
+                               void *memory_arg);
+
+/**
  * Add a job server to a client. This goes into a list of servers than can be
  * used to run tasks. No socket I/O happens here, it is just added to a list.
  * @param client Client structure previously initialized with
@@ -183,7 +198,7 @@ gearman_return_t gearman_client_do_background(gearman_client_st *client,
                                               char *job_handle);
 
 /**
- * Get the status for a backgound task.
+ * Get the status for a backgound job.
  * @param client Client structure previously initialized with
  *        gearman_client_create or gearman_client_clone.
  * @param job_handle The job handle you want status for.
@@ -195,11 +210,11 @@ gearman_return_t gearman_client_do_background(gearman_client_st *client,
           denominator in.
  * @return Standard gearman return value.
  */
-gearman_return_t gearman_client_task_status(gearman_client_st *client,
-                                            const char *job_handle,
-                                            bool *is_known, bool *is_running,
-                                            uint32_t *numerator,
-                                            uint32_t *denominator);
+gearman_return_t gearman_client_job_status(gearman_client_st *client,
+                                           const char *job_handle,
+                                           bool *is_known, bool *is_running,
+                                           uint32_t *numerator,
+                                           uint32_t *denominator);
 
 /**
  * Send data to all job servers to see if they echo it back. This is a test

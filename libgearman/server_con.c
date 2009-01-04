@@ -23,11 +23,20 @@ gearman_server_con_create(gearman_server_st *server,
 {
   if (server_con == NULL)
   {
-    server_con= malloc(sizeof(gearman_server_con_st));
-    if (server_con == NULL)
+    if (server->free_con_count > 0)
     {
-      GEARMAN_ERROR_SET(server->gearman, "gearman_server_con_create", "malloc")
-      return NULL;
+      server_con= server->free_con_list;
+      GEARMAN_LIST_DEL(server->free_con, server_con,)
+    }
+    else
+    {
+      server_con= malloc(sizeof(gearman_server_con_st));
+      if (server_con == NULL)
+      {
+        GEARMAN_ERROR_SET(server->gearman, "gearman_server_con_create",
+                          "malloc")
+        return NULL;
+      }
     }
 
     memset(server_con, 0, sizeof(gearman_server_con_st));
@@ -69,7 +78,12 @@ void gearman_server_con_free(gearman_server_con_st *server_con)
   GEARMAN_LIST_DEL(server_con->server->con, server_con,)
 
   if (server_con->options & GEARMAN_SERVER_CON_ALLOCATED)
-    free(server_con);
+  {
+    if (server_con->server->free_con_count < GEARMAN_MAX_FREE_SERVER_CON)
+      GEARMAN_LIST_ADD(server_con->server->free_con, server_con,)
+    else
+      free(server_con);
+  }
 }
 
 void *gearman_server_con_data(gearman_server_con_st *server_con)
@@ -135,12 +149,21 @@ gearman_server_con_packet_add(gearman_server_con_st *server_con,
   size_t arg_size;
   gearman_return_t ret;
 
-  server_packet= malloc(sizeof(gearman_server_packet_st));
-  if (server_packet == NULL)
+  if (server_con->server->free_packet_count > 0)
   {
-    GEARMAN_ERROR_SET(server_con->server->gearman,
-                      "gearman_server_con_packet_add", "malloc")
-    return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+    server_packet= server_con->server->free_packet_list;
+    server_con->server->free_packet_list= server_packet->next;
+    server_con->server->free_packet_count--;
+  }
+  else
+  {
+    server_packet= malloc(sizeof(gearman_server_packet_st));
+    if (server_packet == NULL)
+    {
+      GEARMAN_ERROR_SET(server_con->server->gearman,
+                        "gearman_server_con_packet_add", "malloc")
+      return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+    }
   }
 
   memset(server_packet, 0, sizeof(gearman_server_packet_st));
@@ -206,7 +229,14 @@ void gearman_server_con_packet_remove(gearman_server_con_st *server_con)
     server_con->packet_end= NULL;
   server_con->packet_count--;
 
-  free(server_packet);
+  if (server_con->server->free_packet_count < GEARMAN_MAX_FREE_SERVER_PACKET)
+  {
+    server_packet->next= server_con->server->free_packet_list;
+    server_con->server->free_packet_list= server_packet;
+    server_con->server->free_packet_count++;
+  }
+  else
+    free(server_packet);
 }
 
 void gearman_server_con_free_worker(gearman_server_con_st *server_con,

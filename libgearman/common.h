@@ -86,11 +86,12 @@
   if (__list ## _list != NULL) \
     __list ## _list->__prefix ## prev= __obj; \
   __obj->__prefix ## next= __list ## _list; \
+  __obj->__prefix ## prev= NULL; \
   __list ## _list= __obj; \
   __list ## _count++; }
 
 /**
- * Delete an object from the list.
+ * Delete an object from a list.
  * @ingroup gearman_constants
  */
 #define GEARMAN_LIST_DEL(__list, __obj, __prefix) { \
@@ -101,6 +102,31 @@
   if (__obj->__prefix ## next != NULL) \
     __obj->__prefix ## next->__prefix ## prev= __obj->__prefix ## prev; \
   __list ## _count--; }
+
+/**
+ * Add an object to a hash.
+ * @ingroup gearman_constants
+ */
+#define GEARMAN_HASH_ADD(__hash, __key, __obj, __prefix) { \
+  if (__hash ## _hash[__key] != NULL) \
+    __hash ## _hash[__key]->__prefix ## prev= __obj; \
+  __obj->__prefix ## next= __hash ## _hash[__key]; \
+  __obj->__prefix ## prev= NULL; \
+  __hash ## _hash[__key]= __obj; \
+  __hash ## _count++; }
+
+/**
+ * Delete an object from a hash.
+ * @ingroup gearman_constants
+ */
+#define GEARMAN_HASH_DEL(__hash, __key, __obj, __prefix) { \
+  if (__hash ## _hash[__key] == __obj) \
+    __hash ## _hash[__key]= __obj->__prefix ## next; \
+  if (__obj->__prefix ## prev != NULL) \
+    __obj->__prefix ## prev->__prefix ## next= __obj->__prefix ## next; \
+  if (__obj->__prefix ## next != NULL) \
+    __obj->__prefix ## next->__prefix ## prev= __obj->__prefix ## prev; \
+  __hash ## _count--; }
 
 /**
  * Command information array.
@@ -122,6 +148,8 @@ struct gearmand
   gearmand_con_st *dcon_list;
   uint32_t dcon_count;
   uint32_t dcon_total;
+  gearmand_con_st *free_dcon_list;
+  uint32_t free_dcon_count;
 #ifdef HAVE_EVENT_H
   struct event_base *base;
   struct event listen_event;

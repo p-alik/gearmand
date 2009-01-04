@@ -702,7 +702,13 @@ gearman_packet_st *gearman_con_recv(gearman_con_st *con,
     if (!recv_data)
       break;
 
-    packet->data= malloc(packet->data_size);
+    if (packet->gearman->memory_alloc == NULL)
+      packet->data= malloc(packet->data_size);
+    else
+    {
+      packet->data= packet->gearman->memory_alloc(packet->data_size,
+                                                  packet->gearman->memory_arg);
+    }
     if (packet->data == NULL)
     {
       *ret_ptr= GEARMAN_MEMORY_ALLOCATION_FAILURE;

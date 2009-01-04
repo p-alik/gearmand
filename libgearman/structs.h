@@ -39,6 +39,9 @@ struct gearman_st
   char last_error[GEARMAN_MAX_ERROR_SIZE];
   gearman_event_watch_fn *event_watch;
   void *event_watch_arg;
+  gearman_memory_alloc_fn *memory_alloc;
+  gearman_memory_free_fn *memory_free;
+  void *memory_arg;
 };
 
 /**
@@ -215,8 +218,20 @@ struct gearman_server_st
   uint32_t active_count;
   gearman_server_function_st *function_list;
   uint32_t function_count;
-  gearman_server_job_st *job_list;
+  gearman_server_job_st *job_hash[GEARMAN_JOB_HASH_SIZE];
   uint32_t job_count;
+  gearman_server_job_st *unique_hash[GEARMAN_JOB_HASH_SIZE];
+  uint32_t unique_count;
+  gearman_server_con_st *free_con_list;
+  uint32_t free_con_count;
+  gearman_server_packet_st *free_packet_list;
+  uint32_t free_packet_count;
+  gearman_server_job_st *free_job_list;
+  uint32_t free_job_count;
+  gearman_server_client_st *free_client_list;
+  uint32_t free_client_count;
+  gearman_server_worker_st *free_worker_list;
+  uint32_t free_worker_count;
 };
 
 /**
@@ -308,11 +323,15 @@ struct gearman_server_job_st
   gearman_server_st *server;
   gearman_server_job_st *next;
   gearman_server_job_st *prev;
+  gearman_server_job_st *unique_next;
+  gearman_server_job_st *unique_prev;
   gearman_server_function_st *function;
   gearman_server_job_st *function_next;
   gearman_server_job_options_t options;
   char job_handle[GEARMAN_JOB_HANDLE_SIZE];
+  uint32_t job_handle_key;
   char unique[GEARMAN_UNIQUE_SIZE];
+  uint32_t unique_key;
   const void *data;
   size_t data_size;
   gearman_server_client_st *client_list;

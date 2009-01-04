@@ -134,8 +134,16 @@ void gearman_packet_free(gearman_packet_st *packet)
   if (packet->args != packet->args_buffer && packet->args != NULL)
     free(packet->args);
 
-  if (packet->options & GEARMAN_PACKET_FREE_DATA)
-    free((void *)(packet->data));
+  if (packet->options & GEARMAN_PACKET_FREE_DATA && packet->data != NULL)
+  {
+    if (packet->gearman->memory_free == NULL)
+      free((void *)(packet->data));
+    else
+    {
+      packet->gearman->memory_free((void *)(packet->data),
+                                   packet->gearman->memory_arg);
+    }  
+  }
 
   GEARMAN_LIST_DEL(packet->gearman->packet, packet,)
 

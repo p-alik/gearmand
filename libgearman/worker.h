@@ -80,6 +80,21 @@ void gearman_worker_set_options(gearman_worker_st *worker,
                                 uint32_t data);
 
 /**
+ * Set custom memory allocation functions. Normally gearman uses the standard
+ * system malloc and free to allocate memory used with worker results or free
+ * memory from worker results. These functions are used in place of those
+ * functions.
+ * @param worker Client structure previously initialized with
+ *        gearman_worker_create or gearman_worker_clone.
+ * @param memory_alloc Memory allocation function to replace malloc().
+ * @param memory_free Memory free function to replace free().
+ */
+void gearman_worker_set_memory(gearman_worker_st *worker,
+                               gearman_memory_alloc_fn *memory_alloc,
+                               gearman_memory_free_fn *memory_free,
+                               void *memory_arg);
+
+/**
  * Add a job server to a worker. This goes into a list of servers than can be
  * used to run tasks. No socket I/O happens here, it is just added to a list.
  * @param worker Worker structure previously initialized with

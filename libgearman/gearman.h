@@ -95,6 +95,16 @@ void gearman_set_event_watch(gearman_st *gearman,
                              gearman_event_watch_fn *event_watch,
                              void *event_watch_arg);
 
+/**
+ * Set custom memory allocation functions. Normally gearman uses the standard
+ * system malloc and free to allocate memory used with client results or free
+ * memory from worker results. These functions are used in place of those
+ * functions.
+ */
+void gearman_set_memory(gearman_st *gearman,
+                        gearman_memory_alloc_fn *memory_alloc,
+                        gearman_memory_free_fn *memory_free, void *memory_arg);
+
 /** @} */
 
 #ifdef __cplusplus

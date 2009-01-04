@@ -133,7 +133,7 @@ static void *reverse(gearman_job_st *job, void *cb_arg, size_t *result_size,
   printf("Job=%s Workload=%.*s Result=%.*s\n", gearman_job_handle(job),
          (int)*result_size, workload, (int)*result_size, result);
   
-  ret_ptr= GEARMAN_SUCCESS;  
+  *ret_ptr= GEARMAN_SUCCESS;  
   return result;
 }
 

@@ -114,3 +114,12 @@ void gearman_set_event_watch(gearman_st *gearman,
   gearman->event_watch= event_watch;
   gearman->event_watch_arg= event_watch_arg;
 }
+
+void gearman_set_memory(gearman_st *gearman,
+                        gearman_memory_alloc_fn *memory_alloc,
+                        gearman_memory_free_fn *memory_free, void *memory_arg)
+{
+  gearman->memory_alloc= memory_alloc;
+  gearman->memory_free= memory_free;
+  gearman->memory_arg= memory_arg;
+}

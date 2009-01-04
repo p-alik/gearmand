@@ -39,6 +39,12 @@ extern "C" {
 #define GEARMAN_ARGS_BUFFER_SIZE 128
 #define GEARMAN_SEND_BUFFER_SIZE 8192
 #define GEARMAN_RECV_BUFFER_SIZE 8192
+#define GEARMAN_JOB_HASH_SIZE 383
+#define GEARMAN_MAX_FREE_SERVER_CON 1000
+#define GEARMAN_MAX_FREE_SERVER_PACKET 2000
+#define GEARMAN_MAX_FREE_SERVER_JOB 1000
+#define GEARMAN_MAX_FREE_SERVER_CLIENT 1000
+#define GEARMAN_MAX_FREE_SERVER_WORKER 1000
 
 /* Types. */
 typedef struct gearman_st gearman_st;
@@ -111,11 +117,13 @@ typedef void* (gearman_worker_fn)(gearman_job_st *job, void *fn_arg,
                                   size_t *result_size,
                                   gearman_return_t *ret_ptr);
 
-typedef gearman_return_t (gearman_event_watch_fn(gearman_con_st *con,
-                                                 short events, void *arg));
-typedef gearman_return_t (gearman_event_close_fn(gearman_con_st *con,
-                                                 gearman_return_t ret,
-                                                 void *arg));
+typedef gearman_return_t (gearman_event_watch_fn)(gearman_con_st *con,
+                                                  short events, void *arg);
+typedef gearman_return_t (gearman_event_close_fn)(gearman_con_st *con,
+                                                  gearman_return_t ret,
+                                                  void *arg);
+typedef void* (gearman_memory_alloc_fn)(size_t size, void *arg);
+typedef void (gearman_memory_free_fn)(void *ptr, void *arg);
 
 /** @} */
 
