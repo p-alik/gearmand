@@ -90,7 +90,7 @@
   __list ## _count++; }
 
 /**
- * Delete an object from the list.
+ * Delete an object from a list.
  * @ingroup gearman_constants
  */
 #define GEARMAN_LIST_DEL(__list, __obj, __prefix) { \
@@ -101,6 +101,30 @@
   if (__obj->__prefix ## next != NULL) \
     __obj->__prefix ## next->__prefix ## prev= __obj->__prefix ## prev; \
   __list ## _count--; }
+
+/**
+ * Add an object to a hash.
+ * @ingroup gearman_constants
+ */
+#define GEARMAN_HASH_ADD(__hash, __key, __obj, __prefix) { \
+  if (__hash ## _hash[__key] != NULL) \
+    __hash ## _hash[__key]->__prefix ## prev= __obj; \
+  __obj->__prefix ## next= __hash ## _hash[__key]; \
+  __hash ## _hash[__key]= __obj; \
+  __hash ## _count++; }
+
+/**
+ * Delete an object from a hash.
+ * @ingroup gearman_constants
+ */
+#define GEARMAN_HASH_DEL(__hash, __key, __obj, __prefix) { \
+  if (__hash ## _hash[__key] == __obj) \
+    __hash ## _hash[__key]= __obj->__prefix ## next; \
+  if (__obj->__prefix ## prev != NULL) \
+    __obj->__prefix ## prev->__prefix ## next= __obj->__prefix ## next; \
+  if (__obj->__prefix ## next != NULL) \
+    __obj->__prefix ## next->__prefix ## prev= __obj->__prefix ## prev; \
+  __hash ## _count--; }
 
 /**
  * Command information array.

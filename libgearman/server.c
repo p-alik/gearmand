@@ -113,11 +113,16 @@ gearman_server_st *gearman_server_clone(gearman_server_st *server,
 
 void gearman_server_free(gearman_server_st *server)
 {
+  uint32_t key;
+
   while (server->con_list != NULL)
     gearman_server_con_free(server->con_list);
 
-  while (server->job_list != NULL)
-    gearman_server_job_free(server->job_list);
+  for (key= 0; key < GEARMAN_JOB_HASH_SIZE; key++)
+  {
+    while (server->job_hash[key] != NULL)
+      gearman_server_job_free(server->job_hash[key]);
+  }
 
   while (server->function_list != NULL)
     gearman_server_function_free(server->function_list);

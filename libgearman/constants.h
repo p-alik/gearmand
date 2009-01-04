@@ -39,6 +39,7 @@ extern "C" {
 #define GEARMAN_ARGS_BUFFER_SIZE 128
 #define GEARMAN_SEND_BUFFER_SIZE 8192
 #define GEARMAN_RECV_BUFFER_SIZE 8192
+#define GEARMAN_JOB_HASH_SIZE 383
 
 /* Types. */
 typedef struct gearman_st gearman_st;

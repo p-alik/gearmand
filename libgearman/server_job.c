@@ -14,6 +14,31 @@
 #include "common.h"
 
 /*
+ * Private declarations
+ */
+
+/**
+ * @addtogroup gearman_server_job_private Private Server Job Functions
+ * @ingroup gearman_server_job
+ * @{
+ */
+
+/**
+ * Generate hash key for job handles and unique IDs.
+ */
+static uint32_t _server_job_hash(const char *key, size_t key_size);
+
+/**
+ * Get a server job structure from the unique ID.
+ */
+static gearman_server_job_st *_server_job_get_unique(gearman_server_st *server,
+                                                     uint32_t unique_key,
+                                                     const char *unique);
+
+
+/** @} */
+
+/*
  * Public definitions
  */
 
@@ -26,9 +51,11 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
 {
   gearman_server_job_st *server_job;
   gearman_server_function_st *server_function;
+  uint32_t key;
 
   /* Look up job via unique ID first to make sure it's not a duplicate. */
-  server_job= gearman_server_job_get_unique(server, unique);
+  key= _server_job_hash(unique, unique_size);
+  server_job= _server_job_get_unique(server, key, unique);
   if (server_job == NULL || data_size != server_job->data_size ||
       memcmp(data, server_job->data, data_size))
   {
@@ -58,6 +85,16 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
     server->job_handle_count++;
     server_job->data= data;
     server_job->data_size= data_size;
+
+    server_job->unique_key= key;
+    key= key % GEARMAN_JOB_HASH_SIZE;
+    GEARMAN_HASH_ADD(server->unique, key, server_job, unique_)
+
+    key= _server_job_hash(server_job->job_handle,
+                          strlen(server_job->job_handle));
+    server_job->job_handle_key= key;
+    key= key % GEARMAN_JOB_HASH_SIZE;
+    GEARMAN_HASH_ADD(server->job, key, server_job,)
 
     *ret_ptr= gearman_server_job_queue(server_job);
     if (*ret_ptr != GEARMAN_SUCCESS)
@@ -99,13 +136,13 @@ gearman_server_job_create(gearman_server_st *server,
 
   server_job->server= server;
 
-  GEARMAN_LIST_ADD(server->job, server_job,)
-
   return server_job;
 }
 
 void gearman_server_job_free(gearman_server_job_st *server_job)
 {
+  uint32_t key;
+
   if (server_job->data != NULL)
     free((void *)(server_job->data));
 
@@ -115,7 +152,11 @@ void gearman_server_job_free(gearman_server_job_st *server_job)
   if (server_job->worker != NULL)
     server_job->worker->job= NULL;
 
-  GEARMAN_LIST_DEL(server_job->server->job, server_job,)
+  key= server_job->unique_key % GEARMAN_JOB_HASH_SIZE;
+  GEARMAN_HASH_DEL(server_job->server->unique, key, server_job, unique_)
+
+  key= server_job->job_handle_key % GEARMAN_JOB_HASH_SIZE;
+  GEARMAN_HASH_DEL(server_job->server->job, key, server_job,)
 
   if (server_job->options & GEARMAN_SERVER_JOB_ALLOCATED)
     free(server_job);
@@ -125,27 +166,18 @@ gearman_server_job_st *gearman_server_job_get(gearman_server_st *server,
                                               const char *job_handle)
 {
   gearman_server_job_st *server_job;
+  uint32_t key;
 
-  for (server_job= server->job_list; server_job != NULL;
-       server_job= server_job->next)
+  key= _server_job_hash(job_handle, strlen(job_handle));
+
+  for (server_job= server->job_hash[key % GEARMAN_JOB_HASH_SIZE];
+       server_job != NULL; server_job= server_job->next)
   {
-    if (!strcmp(server_job->job_handle, job_handle))
+    if (server_job->job_handle_key == key &&
+        !strcmp(server_job->job_handle, job_handle))
+    {
       return server_job;
-  }
-
-  return NULL;
-}
-
-gearman_server_job_st * gearman_server_job_get_unique(gearman_server_st *server,
-                                                      const char *unique)
-{
-  gearman_server_job_st *server_job;
-
-  for (server_job= server->job_list; server_job != NULL;
-       server_job= server_job->next)
-  {
-    if (!strcmp(server_job->unique, unique))
-      return server_job;
+    }
   }
 
   return NULL;
@@ -257,4 +289,45 @@ gearman_return_t gearman_server_job_queue(gearman_server_job_st *server_job)
   server_job->function->job_count++;
 
   return GEARMAN_SUCCESS;
+}
+
+/*
+ * Private definitions
+ */
+
+static uint32_t _server_job_hash(const char *key, size_t key_size)
+{
+  const char *ptr= key;
+  uint32_t value= 0;
+
+  while (key_size--)
+  {
+    value += *ptr++;
+    value += (value << 10);
+    value ^= (value >> 6);
+  }
+  value += (value << 3);
+  value ^= (value >> 11);
+  value += (value << 15);
+
+  return value == 0 ? 1 : value;
+}
+
+static gearman_server_job_st *_server_job_get_unique(gearman_server_st *server,
+                                                     uint32_t unique_key,
+                                                     const char *unique)
+{
+  gearman_server_job_st *server_job;
+
+  for (server_job= server->unique_hash[unique_key % GEARMAN_JOB_HASH_SIZE];
+       server_job != NULL; server_job= server_job->unique_next)
+  {
+    if (server_job->unique_key == unique_key &&
+        !strcmp(server_job->unique, unique))
+    {
+      return server_job;
+    }
+  }
+
+  return NULL;
 }

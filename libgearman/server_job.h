@@ -54,12 +54,6 @@ gearman_server_job_st *gearman_server_job_get(gearman_server_st *server,
                                               const char *job_handle);
 
 /**
- * Get a server job structure from the unique id.
- */
-gearman_server_job_st * gearman_server_job_get_unique(gearman_server_st *server,
-                                                      const char *unique);
-
-/**
  * See if there are any jobs to be run for the server worker connection.
  */
 gearman_server_job_st *
