@@ -237,13 +237,21 @@ static void _listen_accept(int fd, short events __attribute__ ((unused)),
   gearmand_con_st *dcon;
   socklen_t sa_len;
 
-  dcon= malloc(sizeof(gearmand_con_st));
-  if (dcon == NULL)
+  if (gearmand->free_dcon_count > 0)
   {
-    GEARMAN_ERROR_SET(gearmand->server.gearman, "_listen_accept", "malloc")
-    gearmand->ret= GEARMAN_MEMORY_ALLOCATION_FAILURE;
-    _event_del_all(gearmand);
-    return;
+    dcon= gearmand->free_dcon_list;
+    GEARMAN_LIST_DEL(gearmand->free_dcon, dcon,)
+  }
+  else
+  {
+    dcon= malloc(sizeof(gearmand_con_st));
+    if (dcon == NULL)
+    {
+      GEARMAN_ERROR_SET(gearmand->server.gearman, "_listen_accept", "malloc")
+      gearmand->ret= GEARMAN_MEMORY_ALLOCATION_FAILURE;
+      _event_del_all(gearmand);
+      return;
+    }
   }
 
   memset(dcon, 0, sizeof(gearmand_con_st));
@@ -373,7 +381,10 @@ static void _con_ready(int fd __attribute__ ((unused)), short events,
     assert(event_del(&(dcon->event)) == 0);
     GEARMAN_LIST_DEL(gearmand->dcon, dcon,)
     close(dcon->fd);
-    free(dcon);
+    if (gearmand->free_dcon_count < GEARMAN_MAX_FREE_SERVER_CON)
+      GEARMAN_LIST_ADD(gearmand->free_dcon, dcon,)
+    else
+      free(dcon);
   }
 }
 

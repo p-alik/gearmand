@@ -121,11 +121,20 @@ gearman_server_job_create(gearman_server_st *server,
 {
   if (server_job == NULL)
   {
-    server_job= malloc(sizeof(gearman_server_job_st));
-    if (server_job == NULL)
+    if (server->free_job_count > 0)
     {
-      GEARMAN_ERROR_SET(server->gearman, "gearman_server_job_create", "malloc")
-      return NULL;
+      server_job= server->free_job_list;
+      GEARMAN_LIST_DEL(server->free_job, server_job,)
+    }
+    else
+    {
+      server_job= malloc(sizeof(gearman_server_job_st));
+      if (server_job == NULL)
+      {
+        GEARMAN_ERROR_SET(server->gearman, "gearman_server_job_create",
+                          "malloc")
+        return NULL;
+      }
     }
 
     memset(server_job, 0, sizeof(gearman_server_job_st));
@@ -159,7 +168,12 @@ void gearman_server_job_free(gearman_server_job_st *server_job)
   GEARMAN_HASH_DEL(server_job->server->job, key, server_job,)
 
   if (server_job->options & GEARMAN_SERVER_JOB_ALLOCATED)
-    free(server_job);
+  {
+    if (server_job->server->free_job_count < GEARMAN_MAX_FREE_SERVER_JOB)
+      GEARMAN_LIST_ADD(server_job->server->free_job, server_job,)
+    else
+      free(server_job);
+  }
 }
 
 gearman_server_job_st *gearman_server_job_get(gearman_server_st *server,

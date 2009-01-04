@@ -35,12 +35,20 @@ gearman_server_client_create(gearman_server_con_st *server_con,
 {
   if (server_client == NULL)
   {
-    server_client= malloc(sizeof(gearman_server_client_st));
-    if (server_client == NULL)
+    if (server_con->server->free_client_count > 0)
     {
-      GEARMAN_ERROR_SET(server_con->server->gearman,
-                        "gearman_server_client_create", "malloc")
-      return NULL;
+      server_client= server_con->server->free_client_list;
+      GEARMAN_LIST_DEL(server_con->server->free_client, server_client, con_)
+    }
+    else
+    {
+      server_client= malloc(sizeof(gearman_server_client_st));
+      if (server_client == NULL)
+      {
+        GEARMAN_ERROR_SET(server_con->server->gearman,
+                          "gearman_server_client_create", "malloc")
+        return NULL;
+      }
     }
 
     memset(server_client, 0, sizeof(gearman_server_client_st));
@@ -64,5 +72,14 @@ void gearman_server_client_free(gearman_server_client_st *server_client)
     GEARMAN_LIST_DEL(server_client->job->client, server_client, job_)
 
   if (server_client->options & GEARMAN_SERVER_CLIENT_ALLOCATED)
-    free(server_client);
+  {
+    if (server_client->con->server->free_client_count <
+        GEARMAN_MAX_FREE_SERVER_CLIENT)
+    {
+      GEARMAN_LIST_ADD(server_client->con->server->free_client,
+                       server_client, con_)
+    }
+    else
+      free(server_client);
+  }
 }

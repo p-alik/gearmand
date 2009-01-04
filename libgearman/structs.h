@@ -222,6 +222,16 @@ struct gearman_server_st
   uint32_t job_count;
   gearman_server_job_st *unique_hash[GEARMAN_JOB_HASH_SIZE];
   uint32_t unique_count;
+  gearman_server_con_st *free_con_list;
+  uint32_t free_con_count;
+  gearman_server_packet_st *free_packet_list;
+  uint32_t free_packet_count;
+  gearman_server_job_st *free_job_list;
+  uint32_t free_job_count;
+  gearman_server_client_st *free_client_list;
+  uint32_t free_client_count;
+  gearman_server_worker_st *free_worker_list;
+  uint32_t free_worker_count;
 };
 
 /**

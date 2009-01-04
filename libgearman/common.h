@@ -86,6 +86,7 @@
   if (__list ## _list != NULL) \
     __list ## _list->__prefix ## prev= __obj; \
   __obj->__prefix ## next= __list ## _list; \
+  __obj->__prefix ## prev= NULL; \
   __list ## _list= __obj; \
   __list ## _count++; }
 
@@ -110,6 +111,7 @@
   if (__hash ## _hash[__key] != NULL) \
     __hash ## _hash[__key]->__prefix ## prev= __obj; \
   __obj->__prefix ## next= __hash ## _hash[__key]; \
+  __obj->__prefix ## prev= NULL; \
   __hash ## _hash[__key]= __obj; \
   __hash ## _count++; }
 
@@ -146,6 +148,8 @@ struct gearmand
   gearmand_con_st *dcon_list;
   uint32_t dcon_count;
   uint32_t dcon_total;
+  gearmand_con_st *free_dcon_list;
+  uint32_t free_dcon_count;
 #ifdef HAVE_EVENT_H
   struct event_base *base;
   struct event listen_event;

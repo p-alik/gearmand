@@ -49,12 +49,20 @@ gearman_server_worker_create(gearman_server_con_st *server_con,
 {
   if (server_worker == NULL)
   {
-    server_worker= malloc(sizeof(gearman_server_worker_st));
-    if (server_worker == NULL)
+    if (server_con->server->free_worker_count > 0)
     {
-      GEARMAN_ERROR_SET(server_con->server->gearman,
-                        "gearman_server_worker_create", "malloc")
-      return NULL;
+      server_worker= server_con->server->free_worker_list;
+      GEARMAN_LIST_DEL(server_con->server->free_worker, server_worker, con_)
+    }
+    else
+    {
+      server_worker= malloc(sizeof(gearman_server_worker_st));
+      if (server_worker == NULL)
+      {
+        GEARMAN_ERROR_SET(server_con->server->gearman,
+                          "gearman_server_worker_create", "malloc")
+        return NULL;
+      }
     }
 
     memset(server_worker, 0, sizeof(gearman_server_worker_st));
@@ -82,5 +90,14 @@ void gearman_server_worker_free(gearman_server_worker_st *server_worker)
   GEARMAN_LIST_DEL(server_worker->function->worker, server_worker, function_)
 
   if (server_worker->options & GEARMAN_SERVER_WORKER_ALLOCATED)
-    free(server_worker);
+  {
+    if (server_worker->con->server->free_worker_count <
+        GEARMAN_MAX_FREE_SERVER_WORKER)
+    {
+      GEARMAN_LIST_ADD(server_worker->con->server->free_worker,
+                       server_worker, con_)
+    }
+    else
+      free(server_worker);
+  }
 }
