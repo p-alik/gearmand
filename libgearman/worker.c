@@ -92,7 +92,15 @@ void gearman_worker_free(gearman_worker_st *worker)
     gearman_job_free(&(worker->work_job));
 
   if (worker->work_result != NULL)
-    free(worker->work_result);
+  {
+    if (worker->gearman->memory_free == NULL)
+      free(worker->work_result);
+    else
+    {
+      worker->gearman->memory_free(worker->work_result,
+                                   worker->gearman->memory_arg);
+    }
+  }
 
   for (x= 0; x < worker->function_count; x++)
   {
@@ -131,6 +139,14 @@ void gearman_worker_set_options(gearman_worker_st *worker,
     worker->options |= options;
   else
     worker->options &= ~options;
+}
+
+void gearman_worker_set_memory(gearman_worker_st *worker,
+                               gearman_memory_alloc_fn *memory_alloc,
+                               gearman_memory_free_fn *memory_free,
+                               void *memory_arg)
+{
+  gearman_set_memory(worker->gearman, memory_alloc, memory_free, memory_arg);
 }
 
 gearman_return_t gearman_worker_add_server(gearman_worker_st *worker,
@@ -493,7 +509,13 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
 
     if (worker->work_result != NULL)
     {
-      free(worker->work_result);
+      if (worker->gearman->memory_free == NULL)
+        free(worker->work_result);
+      else
+      {
+        worker->gearman->memory_free(worker->work_result,
+                                     worker->gearman->memory_arg);
+      }
       worker->work_result= NULL;
     }
 

@@ -111,11 +111,13 @@ typedef void* (gearman_worker_fn)(gearman_job_st *job, void *fn_arg,
                                   size_t *result_size,
                                   gearman_return_t *ret_ptr);
 
-typedef gearman_return_t (gearman_event_watch_fn(gearman_con_st *con,
-                                                 short events, void *arg));
-typedef gearman_return_t (gearman_event_close_fn(gearman_con_st *con,
-                                                 gearman_return_t ret,
-                                                 void *arg));
+typedef gearman_return_t (gearman_event_watch_fn)(gearman_con_st *con,
+                                                  short events, void *arg);
+typedef gearman_return_t (gearman_event_close_fn)(gearman_con_st *con,
+                                                  gearman_return_t ret,
+                                                  void *arg);
+typedef void* (gearman_memory_alloc_fn)(size_t size, void *arg);
+typedef void (gearman_memory_free_fn)(void *ptr, void *arg);
 
 /** @} */
 

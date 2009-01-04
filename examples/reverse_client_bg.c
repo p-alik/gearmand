@@ -83,8 +83,8 @@ int main(int argc, char *argv[])
 
   while (1)
   {
-    ret= gearman_client_task_status(&client, job_handle, &is_known, &is_running,
-                                    &numerator, &denominator);
+    ret= gearman_client_job_status(&client, job_handle, &is_known, &is_running,
+                                   &numerator, &denominator);
     if (ret != GEARMAN_SUCCESS)
     {
       fprintf(stderr, "%s\n", gearman_client_error(&client));

@@ -147,6 +147,14 @@ void gearman_client_set_options(gearman_client_st *client,
     client->options &= ~options;
 }
 
+void gearman_client_set_memory(gearman_client_st *client,
+                               gearman_memory_alloc_fn *memory_alloc,
+                               gearman_memory_free_fn *memory_free,
+                               void *memory_arg)
+{
+  gearman_set_memory(client->gearman, memory_alloc, memory_free, memory_arg);
+}
+
 gearman_return_t gearman_client_add_server(gearman_client_st *client,
                                            const char *host, in_port_t port)
 {
@@ -302,11 +310,11 @@ gearman_return_t gearman_client_do_background(gearman_client_st *client,
   return ret;
 }
 
-gearman_return_t gearman_client_task_status(gearman_client_st *client,
-                                            const char *job_handle,
-                                            bool *is_known, bool *is_running,
-                                            uint32_t *numerator,
-                                            uint32_t *denominator)
+gearman_return_t gearman_client_job_status(gearman_client_st *client,
+                                           const char *job_handle,
+                                           bool *is_known, bool *is_running,
+                                           uint32_t *numerator,
+                                           uint32_t *denominator)
 {
   gearman_return_t ret;
 
