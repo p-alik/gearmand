@@ -14,6 +14,8 @@
 /**
 @mainpage Gearman Library
 
+http://www.gearmanproject.org/
+
 Gearman is, at the most basic level, a job queuing system. It can be
 used to farm out work to other machines, dispatc function calls to
 machines that are better suited to do work, to do work in parallel,
@@ -49,7 +51,7 @@ gearman_client_st client;
 
 gearman_client_create(&client);
 
-gearman_client_add_server(&client, "127.0.0.1", 7003);
+gearman_client_add_server(&client, "127.0.0.1", 0);
 
 @endcode
 
@@ -63,8 +65,10 @@ default values.
 One you have the client object setup, you can run a single task with:
 
 @code
+
 result= gearman_client_do(&client, "function", "argument", strlen("argument"),
                           &result_size, &ret);
+
 @endcode
 
 This will contact the job server, request "function" to be run with
@@ -105,17 +109,90 @@ gearman_client_add_task(&client, &task1, NULL, "function", "argument1",
 gearman_client_add_task(&client, &task2, NULL, "function", "argument2",
                         strlen("argument2"), &ret);
 gearman_client_run_tasks(&client, NULL, NULL, NULL, NULL, complete, fail);
+
 @endcode
 
 After adding two tasks, they are run in parallel and the complete()
 callback is called when each is done (or fail() if the job failed).
 
+@anchor main_page_worker
 @section worker Worker
 
-Coming soon!
+It is best to look at the example source code (in examples/) included
+in this package for complete code and error handling. The worker
+interface allows you to register functions along with a callback,
+and then enter into a loop answering requests from a job server. You
+first need to create a worker structure and add job servers to connect
+to. For example:
 
-@section server Server
+@code
 
-Coming soon!
+gearman_worker_st worker;
+
+gearman_worker_create(&worker);
+
+gearman_worker_add_server(&worker, "127.0.0.1", 0);
+
+@endcode
+
+You can pass either of the host and port fields of
+gearman_worker_add_server() as NULL and 0 respectively to use the
+default values.
+
+Once you have the worker object setup, you then need to register
+functions with the job server. For example:
+
+@code
+
+gearman_worker_add_function(&worker, "function", 0, function_callback, NULL);
+
+@endcode
+
+This notifies all job servers that this worker can perform "function",
+and saves the pointer to the "function_callback" in the worker
+structure for use in the worker loop. To enter the worker loop,
+you would use:
+
+@code
+
+while (1) gearman_worker_work(&worker);
+
+@endcode
+
+This waits for jobs to be assigned from the job server, and calls
+the callback functions associated with the job's function name. This
+function also handles all result packet processing back to the job
+server once the callback completes.
+
+The last component of the worker is the callback function. This will look like:
+
+@code
+
+void *function_callback(gearman_job_st *job, void *cb_arg, size_t *result_size,
+                        gearman_return_t *ret_ptr)
+{
+  char *resilt;
+
+  result== strdup((char *)gearman_job_workload(job));
+  *result_size= gearman_job_workload_size(job);
+
+  *ret_ptr= GEARMAN_SUCCESS;
+  return result;
+}
+
+@endcode
+
+This worker function simply echos the given string back. The
+gearman_job_workload() workload function returns the workload sent from
+the client, and gearman_job_workload_size() returns the size of the
+workload. The callback function returns the workload to be sent back to
+the client, or NULL if there is not any. The result_size pointer must
+be set to the size of the workload being returned. The cb_arg argument
+is the same pointer that was passed into gearman_worker_add_function(),
+and allows the calling application to pass data around. The ret_ptr
+argument should be set to the return code of the worker function,
+which is normally GEARMAN_SUCCESS.
+
+See the examples/ directory for the full worker code examples.
 
 */

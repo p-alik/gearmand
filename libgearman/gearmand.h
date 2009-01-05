@@ -19,8 +19,8 @@ extern "C" {
 #endif
 
 /**
- * @addtogroup gearmand Basic Server
- * This is a basic server implementation using the gearman_server interface.
+ * @addtogroup gearmand Default Embedded Server
+ * This is a server implementation using the gearman_server interface.
  * @{
  */
 

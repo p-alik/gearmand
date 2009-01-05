@@ -20,6 +20,7 @@ extern "C" {
 
 /**
  * @addtogroup gearman_server_worker Server Worker Handling
+ * @ingroup gearman_server
  * This is a low level interface for gearman server workers. This is used
  * internally by the server interface, so you probably want to look there first.
  * @{

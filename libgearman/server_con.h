@@ -20,6 +20,7 @@ extern "C" {
 
 /**
  * @addtogroup gearman_server_con Server Connection Handling
+ * @ingroup gearman_server
  * This is a low level interface for gearman server connections. This is used
  * internally by the server interface, so you probably want to look there first.
  * @{

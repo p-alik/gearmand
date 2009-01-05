@@ -21,6 +21,8 @@ extern "C" {
 /**
  * @addtogroup gearman_worker Worker Interface
  * This is the interface gearman workers should use.
+ *
+ * @ref main_page_worker "See Main Page for full details."
  * @{
  */
 
@@ -88,6 +90,7 @@ void gearman_worker_set_options(gearman_worker_st *worker,
  *        gearman_worker_create or gearman_worker_clone.
  * @param memory_alloc Memory allocation function to replace malloc().
  * @param memory_free Memory free function to replace free().
+ * @param memory_arg Argument to pass along to memory_alloc/memory_free.
  */
 void gearman_worker_set_memory(gearman_worker_st *worker,
                                gearman_memory_alloc_fn *memory_alloc,
