@@ -93,12 +93,12 @@ void gearman_worker_free(gearman_worker_st *worker)
 
   if (worker->work_result != NULL)
   {
-    if (worker->gearman->memory_free == NULL)
+    if (worker->gearman->workload_free == NULL)
       free(worker->work_result);
     else
     {
-      worker->gearman->memory_free(worker->work_result,
-                                   worker->gearman->memory_arg);
+      worker->gearman->workload_free(worker->work_result,
+                                  (void *)(worker->gearman->workload_free_arg));
     }
   }
 
@@ -141,12 +141,19 @@ void gearman_worker_set_options(gearman_worker_st *worker,
     worker->options &= ~options;
 }
 
-void gearman_worker_set_memory(gearman_worker_st *worker,
-                               gearman_memory_alloc_fn *memory_alloc,
-                               gearman_memory_free_fn *memory_free,
-                               void *memory_arg)
+void gearman_worker_set_workload_malloc(gearman_worker_st *worker,
+                                        gearman_malloc_fn *workload_malloc,
+                                        const void *workload_malloc_arg)
 {
-  gearman_set_memory(worker->gearman, memory_alloc, memory_free, memory_arg);
+  gearman_set_workload_malloc(worker->gearman, workload_malloc,
+                              workload_malloc_arg);
+}
+
+void gearman_worker_set_workload_free(gearman_worker_st *worker,
+                                      gearman_free_fn *workload_free,
+                                      const void *workload_free_arg)
+{
+  gearman_set_workload_free(worker->gearman, workload_free, workload_free_arg);
 }
 
 gearman_return_t gearman_worker_add_server(gearman_worker_st *worker,
@@ -509,12 +516,12 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
 
     if (worker->work_result != NULL)
     {
-      if (worker->gearman->memory_free == NULL)
+      if (worker->gearman->workload_free == NULL)
         free(worker->work_result);
       else
       {
-        worker->gearman->memory_free(worker->work_result,
-                                     worker->gearman->memory_arg);
+        worker->gearman->workload_free(worker->work_result,
+                                  (void *)(worker->gearman->workload_free_arg));
       }
       worker->work_result= NULL;
     }

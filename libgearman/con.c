@@ -702,12 +702,12 @@ gearman_packet_st *gearman_con_recv(gearman_con_st *con,
     if (!recv_data)
       break;
 
-    if (packet->gearman->memory_alloc == NULL)
+    if (packet->gearman->workload_malloc == NULL)
       packet->data= malloc(packet->data_size);
     else
     {
-      packet->data= packet->gearman->memory_alloc(packet->data_size,
-                                                  packet->gearman->memory_arg);
+      packet->data= packet->gearman->workload_malloc(packet->data_size,
+                                (void *)(packet->gearman->workload_malloc_arg));
     }
     if (packet->data == NULL)
     {

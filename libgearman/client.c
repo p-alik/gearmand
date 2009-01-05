@@ -147,12 +147,19 @@ void gearman_client_set_options(gearman_client_st *client,
     client->options &= ~options;
 }
 
-void gearman_client_set_memory(gearman_client_st *client,
-                               gearman_memory_alloc_fn *memory_alloc,
-                               gearman_memory_free_fn *memory_free,
-                               void *memory_arg)
+void gearman_client_set_workload_malloc(gearman_client_st *client,
+                                        gearman_malloc_fn *workload_malloc,
+                                        const void *workload_malloc_arg)
 {
-  gearman_set_memory(client->gearman, memory_alloc, memory_free, memory_arg);
+  gearman_set_workload_malloc(client->gearman, workload_malloc,
+                              workload_malloc_arg);
+}
+
+void gearman_client_set_workload_free(gearman_client_st *client,
+                                      gearman_free_fn *workload_free,
+                                      const void *workload_free_arg)
+{
+  gearman_set_workload_free(client->gearman, workload_free, workload_free_arg);
 }
 
 gearman_return_t gearman_client_add_server(gearman_client_st *client,
