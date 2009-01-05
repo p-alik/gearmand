@@ -14,13 +14,13 @@ docs: all
 	${DOXYGEN} docs/Doxyfile.dev
 
 test: all
-	cd tests; make test; cd ..
+	(cd tests; ${MAKE} test)
 
 test-extended: all
-	cd tests; make test-extended; cd ..
+	(cd tests; ${MAKE} test-extended)
 
 valgrind:
-	cd tests; make valgrind; cd ..
+	(cd tests; ${MAKE} valgrind)
 
 # This needs to be fixed to not use Brian's home directory. :)
 rpm: all dist
