@@ -39,9 +39,10 @@ struct gearman_st
   char last_error[GEARMAN_MAX_ERROR_SIZE];
   gearman_event_watch_fn *event_watch;
   void *event_watch_arg;
-  gearman_memory_alloc_fn *memory_alloc;
-  gearman_memory_free_fn *memory_free;
-  void *memory_arg;
+  gearman_malloc_fn *workload_malloc;
+  const void *workload_malloc_arg;
+  gearman_free_fn *workload_free;
+  const void *workload_free_arg;
 };
 
 /**

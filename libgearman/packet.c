@@ -136,12 +136,12 @@ void gearman_packet_free(gearman_packet_st *packet)
 
   if (packet->options & GEARMAN_PACKET_FREE_DATA && packet->data != NULL)
   {
-    if (packet->gearman->memory_free == NULL)
+    if (packet->gearman->workload_free == NULL)
       free((void *)(packet->data));
     else
     {
-      packet->gearman->memory_free((void *)(packet->data),
-                                   packet->gearman->memory_arg);
+      packet->gearman->workload_free((void *)(packet->data),
+                                  (void *)(packet->gearman->workload_free_arg));
     }  
   }
 

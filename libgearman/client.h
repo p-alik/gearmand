@@ -83,20 +83,32 @@ void gearman_client_set_options(gearman_client_st *client,
                                 uint32_t data);
 
 /**
- * Set custom memory allocation functions. Normally gearman uses the standard
- * system malloc and free to allocate memory used with client results or free
- * memory from worker results. These functions are used in place of those
- * functions.
+ * Set custom memory allocation function for workloads. Normally gearman uses
+ * the standard system malloc to allocate memory used with workloads. This
+ * function is used instead.
  * @param client Client structure previously initialized with
  *        gearman_client_create or gearman_client_clone.
- * @param memory_alloc Memory allocation function to replace malloc().
- * @param memory_free Memory free function to replace free().
- * @param memory_arg Argument to pass along to memory_alloc/memory_free.
+ * @param workload_malloc Memory allocation function to replace malloc().
+ * @param workload_malloc_arg Argument to pass along to workload_malloc.
  */
-void gearman_client_set_memory(gearman_client_st *client,
-                               gearman_memory_alloc_fn *memory_alloc,
-                               gearman_memory_free_fn *memory_free,
-                               void *memory_arg);
+
+void gearman_client_set_workload_malloc(gearman_client_st *client,
+                                        gearman_malloc_fn *workload_malloc,
+                                        const void *workload_malloc_arg);
+
+/**
+ * Set custom memory free function for workloads. Normally gearman uses the
+ * standard system free to free memory used with workloads. This function
+ * is used instead.
+ * @param client Client structure previously initialized with
+ *        gearman_client_create or gearman_client_clone.
+ * @param workload_free Memory free function to replace free().
+ * @param workload_free_arg Argument to pass along to workload_free.
+ */
+
+void gearman_client_set_workload_free(gearman_client_st *client,
+                                      gearman_free_fn *workload_free,
+                                      const void *workload_free_arg);
 
 /**
  * Add a job server to a client. This goes into a list of servers than can be
