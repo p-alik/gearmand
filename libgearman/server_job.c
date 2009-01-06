@@ -67,6 +67,13 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
       return NULL;
     }
 
+    if (server_function->max_queue_size > 0 &&
+        server_function->job_total >= server_function->max_queue_size)
+    {
+      *ret_ptr= GEARMAN_JOB_QUEUE_FULL;
+      return NULL;
+    }
+
     server_job= gearman_server_job_create(server, NULL);
     if (server_job == NULL)
     {
@@ -78,6 +85,8 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
       server_job->options|= GEARMAN_SERVER_JOB_HIGH;
 
     server_job->function= server_function;
+    server_function->job_total++;
+
     snprintf(server_job->job_handle, GEARMAN_JOB_HANDLE_SIZE, "%s:%u",
              server->job_handle_prefix, server->job_handle_count);
     snprintf(server_job->unique, GEARMAN_UNIQUE_SIZE, "%.*s",
@@ -151,6 +160,11 @@ gearman_server_job_create(gearman_server_st *server,
 void gearman_server_job_free(gearman_server_job_st *server_job)
 {
   uint32_t key;
+
+  if (server_job->worker != NULL)
+    server_job->function->job_running--;
+
+  server_job->function->job_total--;
 
   if (server_job->data != NULL)
     free((void *)(server_job->data));
@@ -231,6 +245,7 @@ gearman_server_job_take(gearman_server_con_st *server_con)
   server_job= server_worker->function->job_list;
   server_job->worker= server_worker;
   server_worker->job= server_job;
+  server_job->function->job_running++;
 
   server_job->function->job_list= server_job->function_next;
   if (server_job->function->job_end == server_job)
@@ -247,6 +262,9 @@ gearman_return_t gearman_server_job_queue(gearman_server_job_st *server_job)
 {
   gearman_server_worker_st *server_worker;
   gearman_return_t ret;
+
+  if (server_job->worker != NULL)
+    server_job->function->job_running--;
 
   server_job->worker= NULL;
   server_job->numerator= 0;

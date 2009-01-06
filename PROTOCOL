@@ -8,7 +8,7 @@
 Gearman Protocol
 ----------------
 
-The gearman protocol operates over TCP, and by default port 7003 is
+The Gearman protocol operates over TCP, and by default port 7003 is
 used (although this should change since it conflicts with the reserved
 AFS port range assigned by IANA). Communication happens between
 either a client and job server, or between a worker and job server. In
@@ -364,4 +364,51 @@ JOB_ASSIGN       This is given in response to a GRAB_JOB request to
 Administrative Protocol
 -----------------------
 
-Coming soon.
+The Gearman job server also supports a text-based protocol to pull
+information and run some administrative tasks. This runs on the same
+port as the binary protocol, and the server differentiates between
+the two by looking at the first character. If it is a NULL (\0),
+then it is binary, if it is non-NULL, that it attempts to parse it
+as a text command. The following commands are supported:
+
+workers          This sends back a list of all workers, their file
+                 descriptors, their IPs, their IDs, and a list of
+                 registered functions they can perform. The list
+                 is terminated with a line containing a single
+                 '.' (period). The format is:
+
+                 FD IP-ADDRESS CLIENT-ID : FUNCTION ...
+
+                 Arguments:
+                 - None.
+
+status           This sends back a list of all registered functions.
+                 Next to each function is the number of jobs in the
+                 queue, the number of running jobs, and the number
+                 of capable workers. The columns are tab separated,
+                 and the list is terminated with a line containing
+                 a single '.' (period). The format is:
+
+                 FUNCTION\tTOTAL\tRUNNING\tAVAILABLE_WORKERS
+
+                 Arguments:
+                 - None.
+
+maxqueue         This sets the maximum queue size for a function. If no
+                 size is given, the default is used. If the size is
+                 negative, then the queue is set to be unlimited. This
+                 sends back a single line with "OK".
+
+                 Arguments:
+                 - Function name.
+                 - Optional maximum queue size.
+
+shutdown         Shutdown the server. If the optional "graceful"
+                 argument is used, close the listening socket and
+                 let all existing connections complete.
+
+                 Arguments:
+                 - Optional "graceful" mode.
+
+The Perl version also has a 'gladiator' command that uses the
+'Devel::Gladiator' Perl module and is used for debugging.

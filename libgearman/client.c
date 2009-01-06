@@ -555,6 +555,14 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client,
 
               client->con->created_id++;
             }
+            else if (client->con->packet.command == GEARMAN_COMMAND_ERROR)
+            {
+              GEARMAN_ERROR_SET(client->gearman, "gearman_client_run_tasks",
+                                "%s:%.*s", (char *)(client->con->packet.arg[0]),
+                                (int)(client->con->packet.arg_size[1]),
+                                (char *)(client->con->packet.arg[1]));
+              return GEARMAN_SERVER_ERROR;
+            }
             else if (strcmp(client->task->job_handle,
                             (char *)(client->con->packet.arg[0])))
             {

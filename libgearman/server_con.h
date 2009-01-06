@@ -49,15 +49,25 @@ void *gearman_server_con_data(gearman_server_con_st *server_con);
 void gearman_server_con_set_data(gearman_server_con_st *server_con, void *data);
 
 /**
+ * Get client addr.
+ */
+const char *gearman_server_con_addr(gearman_server_con_st *server_con);
+
+/**
+ * Set client addr.
+ */
+void gearman_server_con_set_addr(gearman_server_con_st *server_con, char *addr);
+
+/**
  * Get client id.
  */
-uint8_t *gearman_server_con_id(gearman_server_con_st *server_con, size_t *size);
+const char *gearman_server_con_id(gearman_server_con_st *server_con);
 
 /**
  * Set client id.
  */
-gearman_return_t gearman_server_con_set_id(gearman_server_con_st *server_con,
-                                           uint8_t *id, size_t size);
+void gearman_server_con_set_id(gearman_server_con_st *server_con, char *id,
+                               size_t size);
 
 /**
  * Add a server packet structure to a connection.
