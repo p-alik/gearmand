@@ -984,7 +984,7 @@ static gearman_return_t _con_setsockopt(gearman_con_st *con)
   waittime.tv_usec= 0;
   ret= setsockopt(con->fd, SOL_SOCKET, SO_SNDTIMEO, &waittime,
                   (socklen_t)sizeof(struct timeval));
-  if (ret == -1)
+  if (ret == -1 && errno != ENOPROTOOPT)
   {
     GEARMAN_ERROR_SET(con->gearman, "_con_setsockopt",
                       "setsockopt:SO_SNDTIMEO:%d", errno)
@@ -993,7 +993,7 @@ static gearman_return_t _con_setsockopt(gearman_con_st *con)
 
   ret= setsockopt(con->fd, SOL_SOCKET, SO_RCVTIMEO, &waittime,
                   (socklen_t)sizeof(struct timeval));
-  if (ret == -1)
+  if (ret == -1 && errno != ENOPROTOOPT)
   {
     GEARMAN_ERROR_SET(con->gearman, "_con_setsockopt",
                       "setsockopt:SO_RCVTIMEO:%d", errno)
