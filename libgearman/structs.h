@@ -254,8 +254,8 @@ struct gearman_server_con_st
   uint32_t worker_count;
   gearman_server_client_st *client_list;
   uint32_t client_count;
-  uint8_t *id;
-  size_t id_size;
+  char addr[GEARMAN_SERVER_CON_ADDR_SIZE];
+  char id[GEARMAN_SERVER_CON_ID_SIZE];
 };
 
 /**
@@ -284,6 +284,9 @@ struct gearman_server_function_st
   gearman_server_job_st *job_high_end;
   gearman_server_job_st *job_end;
   uint32_t job_count;
+  uint32_t job_total;
+  uint32_t job_running;
+  uint32_t max_queue_size;
 };
 
 /**

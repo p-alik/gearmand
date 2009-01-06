@@ -74,6 +74,7 @@ gearman_server_function_create(gearman_server_st *server,
     memset(server_function, 0, sizeof(gearman_server_function_st));
 
   server_function->server= server;
+  server_function->max_queue_size= GEARMAN_DEFAULT_MAX_QUEUE_SIZE;
 
   GEARMAN_LIST_ADD(server->function, server_function,)
 
