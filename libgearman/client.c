@@ -443,7 +443,6 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client,
 {
   gearman_options_t options;
   gearman_return_t ret;
-  bool start_new= false;
 
   options= client->gearman->options;
   client->gearman->options|= GEARMAN_NON_BLOCKING;
@@ -516,9 +515,6 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client,
               return ret;
             }
           }
-
-          /* A connection may now be idle to start a new job, set this. */
-          start_new= true;
         }
 
         /* Try reading even if POLLIN is not set, we may not have asked yet. */
@@ -597,11 +593,8 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client,
       if (client->running == 0)
         break;
 
-      if (client->new > 0 && start_new)
-      {
-        start_new= false;
+      if (client->new > 0)
         continue;
-      }
 
       if (options & GEARMAN_NON_BLOCKING)
       {
