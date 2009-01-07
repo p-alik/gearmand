@@ -173,7 +173,7 @@ then
   then
     MEMALIGN_FLAGS="-xmemalign=8s"
   fi
-  SYMBOLS_CFLAGS=""
+  SYMBOLS_CFLAGS="-g"
   DEBUG_OPTIMIZE_CFLAGS=""
   OPTIMIZE_CFLAGS="-xO4 -xlibmil -xdepend -Xa -mt -xstrconst -D_FORTEC_ ${MEMALIGN_FLAGS}"
 fi
@@ -196,15 +196,15 @@ AX_HEADER_ASSERT
 
 CFLAGS="${SYMBOLS_CFLAGS} ${CFLAGS}"
 
-AC_ARG_ENABLE([debug],
-  [AS_HELP_STRING([--enable-debug],
-    [Build with debug enabled @<:@default=no@:>@])],
-  [ac_enable_debug="$enableval"],
-  [ac_enable_debug="no"])
-if test "$ac_enable_debug" = "yes"
+AC_ARG_WITH([debug],
+    [AS_HELP_STRING([--with-debug],
+       [Add debug code/turns off optimizations (yes|no) @<:@default=no@:>@])],
+    [with_debug=$withval],
+    [with_debug=no])
+if test "$with_debug" = "yes"
 then
   # Medium debug.
-  CFLAGS="${DEBUG_OPTIMIZE_CFLAGS} ${CFLAGS} ${SAVE_CFLAGS} -DHAVE_DEBUG"
+  CFLAGS="${DEBUG_OPTIMIZE_CFLAGS} ${CFLAGS} ${SAVE_CFLAGS} -DDEBUG"
 else
   # Optimized version. No debug
   CFLAGS="${OPTIMIZE_CFLAGS} ${CFLAGS} ${SAVE_CFLAGS}"

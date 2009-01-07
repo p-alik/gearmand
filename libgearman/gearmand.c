@@ -267,7 +267,6 @@ static void _listen_accept(int fd, short events __attribute__ ((unused)),
   }
 
   memset(dcon, 0, sizeof(gearmand_con_st));
-  dcon->event_added= false;
 
   sa_len= sizeof(dcon->sa);
   dcon->fd= accept(fd, (struct sockaddr *)(&(dcon->sa)), &sa_len);
@@ -321,13 +320,10 @@ static gearman_return_t _con_watch(gearman_con_st *con, short events,
   if (events & POLLOUT)
     set_events|= EV_WRITE;
 
-  if (dcon->event_added)
-  {
+  if (dcon->event.ev_flags != 0)
     assert(event_del(&(dcon->event)) == 0);
-    dcon->event_added= false;
-  }
-
-  event_set(&(dcon->event), dcon->fd, set_events, _con_ready, dcon);
+  event_set(&(dcon->event), dcon->fd, set_events | EV_PERSIST, _con_ready,
+            dcon);
   event_base_set(dcon->gearmand->base, &(dcon->event));
 
   if (event_add(&(dcon->event), NULL) == -1)
@@ -336,8 +332,6 @@ static gearman_return_t _con_watch(gearman_con_st *con, short events,
                       "event_add:-1")
     return GEARMAN_EVENT;
   }
-
-  dcon->event_added= true;
 
   if (dcon->gearmand->verbose > 1)
   {
@@ -357,7 +351,6 @@ static void _con_ready(int fd __attribute__ ((unused)), short events,
   gearman_server_con_st *server_con;
   short revents= 0;
 
-  dcon->event_added= false;
   gearmand= dcon->gearmand;
 
   if (events & EV_READ)
@@ -408,8 +401,7 @@ static void _con_ready(int fd __attribute__ ((unused)), short events,
     }
 
     gearman_server_con_free(&(dcon->server_con));
-    if (dcon->event_added)
-      assert(event_del(&(dcon->event)) == 0);
+    assert(event_del(&(dcon->event)) == 0);
 
     /* This gets around a libevent bug when both POLLIN and POLLOUT are set. */
     event_set(&(dcon->event), dcon->fd, EV_READ, _con_ready, dcon);
@@ -443,7 +435,7 @@ static void _event_del_all(gearmand_st *gearmand)
 
   for (dcon= gearmand->dcon_list; dcon != NULL; dcon= dcon->next)
   {
-    if (dcon->event_added)
+    if (dcon->event.ev_flags != 0)
       assert(event_del(&(dcon->event)) == 0);
 
     /* This gets around a libevent bug when both POLLIN and POLLOUT are set. */

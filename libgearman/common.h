@@ -168,7 +168,6 @@ struct gearmand_con
   gearmand_st *gearmand;
   gearman_server_con_st server_con;
   gearman_con_st *con;
-  bool event_added;
 #ifdef HAVE_EVENT_H
   struct event event;
 #endif
