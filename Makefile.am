@@ -7,7 +7,7 @@
 
 ACLOCAL_AMFLAGS= -I m4
 
-SUBDIRS = libgearman gearmand tests examples
+SUBDIRS = libgearman gearmand tests examples support
 
 docs: all
 	${DOXYGEN} docs/Doxyfile.api
@@ -24,7 +24,7 @@ valgrind:
 
 # This needs to be fixed to not use Brian's home directory. :)
 rpm: all dist
-	cp libgearman-$(VERSION).tar.gz /home/brian/rpmbuild/SOURCES/
-	rpmbuild -ba support/libgearman.spec
-	cp /home/brian/rpmbuild/RPMS/x86_64/libgearman-$(VERSION)*.rpm .
-	cp /home/brian/rpmbuild/SRPMS/libgearman-$(VERSION)*.rpm .
+	cp gearmand-$(VERSION).tar.gz ~/rpmbuild/SOURCES/
+	rpmbuild -ba support/gearmand.spec
+	cp ~/rpmbuild/RPMS/x86_64/gearmand-$(VERSION)*.rpm .
+	cp ~/rpmbuild/SRPMS/gearmand-$(VERSION)*.rpm .

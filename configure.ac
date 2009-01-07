@@ -35,7 +35,7 @@ AC_CANONICAL_TARGET
 CFLAGS=${SAVE_CFLAGS}
 CXXFLAGS=${SAVE_CXXFLAGS}
 
-AM_INIT_AUTOMAKE(-Wall -Werror nostdinc subdir-objects)
+AM_INIT_AUTOMAKE($PACKAGE, $VERSION,-Wall -Werror nostdinc subdir-objects)
 
 if test "x${enable_dependency_tracking}" = "x"
 then
@@ -296,7 +296,7 @@ AC_CHECK_PROGS([DOXYGEN], [doxygen])
 
 
 AC_CONFIG_FILES(Makefile libgearman/Makefile gearmand/Makefile
-                tests/Makefile examples/Makefile)
+                tests/Makefile examples/Makefile support/Makefile)
 
 AC_OUTPUT
 
