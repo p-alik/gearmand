@@ -35,10 +35,8 @@ examples/reverse_worker
 examples/reverse_worker_bg
 examples/wc_worker
 tests/client_test
-tests/client_test.rec
 tests/client_test.res
 tests/worker_test
-tests/worker_test.rec
 tests/worker_test.res
 support/gearmand.pc
 support/gearmand.spec

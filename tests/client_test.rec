@@ -1,0 +1,20 @@
+
+==========================================================================
+
+client
+
+Testing init                                              [ ok     ]
+Testing allocation                                        [ ok     ]
+Testing clone_test                                        [ ok     ]
+Testing echo                                              [ ok     ]
+Testing submit_job                                        [ ok     ]
+Testing submit_null_job                                   [ ok     ]
+Testing background                                        [ ok     ]
+Testing background_failure                                [ ok     ]
+
+==========================================================================
+
+Test run complete
+
+==========================================================================
+
