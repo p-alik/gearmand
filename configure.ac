@@ -301,7 +301,7 @@ AC_CHECK_PROGS([DOXYGEN], [doxygen])
 
 AC_CONFIG_FILES(Makefile libgearman/Makefile gearmand/Makefile
                 tests/Makefile examples/Makefile support/Makefile
-                support/gearmand.pc support/gearmand.spec)
+                benchmark/Makefile support/gearmand.pc support/gearmand.spec)
 
 AC_OUTPUT
 

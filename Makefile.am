@@ -7,7 +7,7 @@
 
 ACLOCAL_AMFLAGS= -I m4
 
-SUBDIRS = libgearman gearmand tests examples support
+SUBDIRS = libgearman gearmand tests examples support benchmark
 
 docs: all
 	${DOXYGEN} docs/Doxyfile.api
