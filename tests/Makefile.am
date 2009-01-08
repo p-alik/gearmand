@@ -14,6 +14,8 @@ client_test_LDFLAGS= $(top_builddir)/libgearman/libgearman.la
 worker_test_SOURCES= test.c test_gearmand.c worker_test.c
 worker_test_LDFLAGS= $(top_builddir)/libgearman/libgearman.la
 
+EXTRA_DIST= client_test.rec worker_test.rec
+
 record: client_test worker_test
 	./client_test > client_test.rec
 	./worker_test > worker_test.rec

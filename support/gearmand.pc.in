@@ -4,7 +4,7 @@ libdir=@libdir@
 includedir=@includedir@
 
 Name: gearmand
-Description: Gearmand Server and  C library.
+Description: Gearman Server and C Library
 Version: @VERSION@
 Libs: -L${libdir} -lgearman
 Cflags: -I${includedir}
