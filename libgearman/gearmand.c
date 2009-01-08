@@ -17,6 +17,9 @@
    common package version. Make this work for these earlier versions. */
 #ifndef HAVE_EVENT_BASE_NEW
 #define event_base_new event_init
+#endif
+
+#ifndef HAVE_EVENT_BASE_GET_METHOD
 #define event_base_get_method(__base) event_get_method()
 #endif
 

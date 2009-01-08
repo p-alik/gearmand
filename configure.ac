@@ -123,6 +123,7 @@ AC_CACHE_CHECK([for bufferevent in libevent], ac_cv_libevent_works, [
 
 ])
 AC_CHECK_FUNCS(event_base_new)
+AC_CHECK_FUNCS(event_base_get_method)
 CPPFLAGS="$save_CPPFLAGS"
 LIBS="$save_LIBS"
 
@@ -229,13 +230,13 @@ AC_ARG_ENABLE([fail],
   [AS_HELP_STRING([--disable-fail],
     [Turn warnings into failures @<:@default=yes@:>@])],
   [ac_warn_fail="$enableval"],
-  [ac_warn_fail="yes"])
+  [ac_warn_fail="no"])
 
 AC_ARG_ENABLE([pedantic-warnings],
   [AS_HELP_STRING([--disable-pedantic-warnings],
     [Toggle pedanticness @<:@default=yes@:>@])],
   [ac_warn_pedantic="$enableval"],
-  [ac_warn_pedantic="yes"])
+  [ac_warn_pedantic="no"])
 
 AC_ARG_ENABLE([unreachable],
   [AS_HELP_STRING([--enable-unreachable],
