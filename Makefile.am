@@ -24,7 +24,7 @@ valgrind:
 
 # This needs to be fixed to not use Brian's home directory. :)
 rpm: all dist
-	cp gearmand-$(VERSION).tar.gz ~/rpmbuild/SOURCES/
+	cp gearmand-$(VERSION).tar.gz ~/rpm/SOURCES/
 	rpmbuild -ba support/gearmand.spec
-	cp ~/rpmbuild/RPMS/x86_64/gearmand-$(VERSION)*.rpm .
-	cp ~/rpmbuild/SRPMS/gearmand-$(VERSION)*.rpm .
+	cp ~/rpm/RPMS/x86_64/gearmand-$(VERSION)*.rpm .
+	cp ~/rpm/SRPMS/gearmand-$(VERSION)*.rpm .
