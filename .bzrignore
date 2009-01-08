@@ -38,3 +38,5 @@ tests/client_test
 tests/client_test.res
 tests/worker_test
 tests/worker_test.res
+support/gearmand.pc
+support/gearmand.spec
