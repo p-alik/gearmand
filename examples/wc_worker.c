@@ -109,7 +109,7 @@ static void *wc(gearman_job_st *job, void *cb_arg, size_t *result_size,
   workload= gearman_job_workload(job);
   *result_size= gearman_job_workload_size(job);
 
-  result= malloc(20);
+  result= malloc(21); /* Max digits for a 64 bit int. */
   if (result == NULL)
   {
     fprintf(stderr, "malloc:%d\n", errno);
@@ -141,12 +141,12 @@ static void *wc(gearman_job_st *job, void *cb_arg, size_t *result_size,
     }
   }
 
-  snprintf(result, 20, "%" PRIu64, count);
+  snprintf((char *)result, 21, "%" PRIu64, count);
 
   printf("Job=%s Workload=%.*s Result=%s\n", gearman_job_handle(job),
          (int)*result_size, workload, result);
 
-  *result_size= strlen(result) + 1;
+  *result_size= strlen((char *)result) + 1;
 
   *ret_ptr= GEARMAN_SUCCESS;
   return result;
