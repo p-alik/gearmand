@@ -408,6 +408,7 @@ static void _con_ready(int fd __attribute__ ((unused)), short events,
 
     /* This gets around a libevent bug when both POLLIN and POLLOUT are set. */
     event_set(&(dcon->event), dcon->fd, EV_READ, _con_ready, dcon);
+    event_base_set(dcon->gearmand->base, &(dcon->event));
     event_add(&(dcon->event), NULL);
     assert(event_del(&(dcon->event)) == 0);
 
@@ -443,6 +444,7 @@ static void _event_del_all(gearmand_st *gearmand)
 
     /* This gets around a libevent bug when both POLLIN and POLLOUT are set. */
     event_set(&(dcon->event), dcon->fd, EV_READ, _con_ready, dcon);
+    event_base_set(dcon->gearmand->base, &(dcon->event));
     event_add(&(dcon->event), NULL);
     assert(event_del(&(dcon->event)) == 0);
   }
