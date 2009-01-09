@@ -97,8 +97,18 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  task = (gearman_task_st **)malloc(num_tasks * sizeof(gearman_task_st));
-  blob = (char *)malloc(max);
+  if (!(task = (gearman_task_st **)malloc(num_tasks * sizeof(gearman_task_st))))
+  {
+    fprintf(stderr, "Memory allocation failure on malloc\n");
+    exit(1);
+  }
+  
+  if (!(blob = (char *)malloc(max)))
+  {
+    fprintf(stderr, "Memory allocation failure on malloc\n");
+    exit(1);
+  }
+
   memset(blob, 'x', max); 
 
   /* This creates the client data and starts our connection to
