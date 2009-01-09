@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
 {
   char c;
   char *host= NULL;
-  char *blob= (char *)malloc(UINT32_MAX);
+  char *blob= NULL;
   char *function_name= NULL;
   unsigned short port= 0;
   gearman_return_t ret;
@@ -98,6 +98,8 @@ int main(int argc, char *argv[])
   }
 
   task = (gearman_task_st **)malloc(num_tasks * sizeof(gearman_task_st));
+  blob = (char *)malloc(max);
+  memset(blob, 'x', max); 
 
   /* This creates the client data and starts our connection to
      the job server. */
@@ -128,9 +130,6 @@ int main(int argc, char *argv[])
       {
         /* Choose a random size between min and max. */
         blob_size = (min + rand()) % (max + 1);
-
-        /* The blob will be the same char over and over for speed. */
-        memset(blob, 'x', blob_size); 
       }
       else if (!(blob_done))
       {
@@ -159,9 +158,6 @@ int main(int argc, char *argv[])
       {
         /* Choose a random size between min and max. */
         blob_size = (min + rand()) % (max + 1);
-
-        /* The blob will be the same char over and over for speed. */
-        memset(blob, 'x', blob_size); 
       }
       else if (!(blob_done))
       {
