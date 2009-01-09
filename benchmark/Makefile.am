@@ -1,0 +1,14 @@
+# Gearman server and library
+# Copyright (C) 2008 Brian Aker, Eric Day
+# All rights reserved.
+#
+# Use and distribution licensed under the BSD license.  See
+# the COPYING file in the parent directory for full text.
+
+AM_CFLAGS= -I$(top_builddir)
+AM_LDFLAGS= $(top_builddir)/libgearman/libgearman.la
+
+noinst_PROGRAMS= \
+	blobslap_client
+
+blobslap_client_SOURCES= blobslap_client.c
