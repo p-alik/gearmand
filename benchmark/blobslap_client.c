@@ -21,6 +21,10 @@
 
 #include <libgearman/gearman.h>
 
+#define _G_NUM_TASKS            65535
+#define _G_MIN					1024
+#define _G_MAX					102400
+
 static gearman_return_t _created(gearman_task_st *task);
 static gearman_return_t _status(gearman_task_st *task);
 static gearman_return_t _complete(gearman_task_st *task);
@@ -40,15 +44,15 @@ int main(int argc, char *argv[])
   gearman_return_t ret;
   gearman_client_st client;
   gearman_task_st **task;
-  uint8_t random_data = 0;
-  uint8_t blob_done = 0;
-  uint32_t num_tasks = 65535;
+  bool random_data= false;
+  bool blob_done= false;
+  uint32_t num_tasks= _G_NUM_TASKS;
   uint32_t x;
   uint32_t blob_size;
-  uint32_t min = 1024;
-  uint32_t max = 102400;
+  uint32_t min= _G_MIN;
+  uint32_t max= _G_MAX;
 
-  while ((c = getopt(argc, argv, "f:h:rm:M:n:p:v")) != EOF)
+  while ((c= getopt(argc, argv, "f:h:rm:M:n:p:v")) != EOF)
   {
     switch(c)
     {
@@ -62,7 +66,7 @@ int main(int argc, char *argv[])
 
     case 'r':
       srand(time(NULL));
-      random_data= 1;
+      random_data= true;
       break;
 
     case 'm':
@@ -97,13 +101,13 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  if (!(task = (gearman_task_st **)malloc(num_tasks * sizeof(gearman_task_st))))
+  if (!(task= (gearman_task_st **)malloc(num_tasks * sizeof(gearman_task_st))))
   {
     fprintf(stderr, "Memory allocation failure on malloc\n");
     exit(1);
   }
   
-  if (!(blob = (char *)malloc(max)))
+  if (!(blob= (char *)malloc(max)))
   {
     fprintf(stderr, "Memory allocation failure on malloc\n");
     exit(1);
@@ -127,24 +131,28 @@ int main(int argc, char *argv[])
   }
 
   /* This is where we need to figure out what function we should be
-     benchmarking, and where we perform any tasks specific to that function. */
+     benchmarking, and where we perform any tasks specific to that function.
+     At the time of this comment the code in the if conditionals is the same;
+     however, benchmarking a particular client may require more work than
+     the simple setup below.  So I leave these conditionals in place to give
+     future developers a way to add new client benchmark code. */
   if (strcmp("reverse", function_name))
   {
     /* We are slapping with the reverse function here. */
     for (x= 0; x < num_tasks; x++)
     {
       /* Is blob data random or not? */
-      if (random_data)
+      if (random_data == true)
       {
         /* Choose a random size between min and max. */
-        blob_size = (min + rand()) % (max + 1);
+        blob_size= (min + rand()) % (max + 1);
       }
-      else if (!(blob_done))
+      else if (blob_done == false)
       {
-        blob_done = 1;
+        blob_done= true;
         free(blob);
-        blob = argv[optind];
-        blob_size = strlen(argv[optind]);
+        blob= argv[optind];
+        blob_size= strlen(argv[optind]);
       }
 
       if (gearman_client_add_task(&client, task[x], NULL, "reverse", NULL,
@@ -162,17 +170,17 @@ int main(int argc, char *argv[])
     for (x= 0; x < num_tasks; x++)
     {
       /* Is blob data random or not? */
-      if (random_data)
+      if (random_data == true)
       {
         /* Choose a random size between min and max. */
-        blob_size = (min + rand()) % (max + 1);
+        blob_size= (min + rand()) % (max + 1);
       }
-      else if (!(blob_done))
+      else if (blob_done == false)
       {
-        blob_done = 1;
+        blob_done= true;
         free(blob);
-        blob = argv[optind];
-        blob_size = strlen(argv[optind]);
+        blob= argv[optind];
+        blob_size= strlen(argv[optind]);
       }
 
       if (gearman_client_add_task(&client, task[x], NULL, "gmdb_slap", NULL,
@@ -249,9 +257,10 @@ static void _usage(char *name)
          "\t[-M <max_size>] [-n <num_runs>] [-p <port>] <string>\n", name);
   printf("\t-f <function_name> - worker function to test\n");
   printf("\t-h <host> - job server host\n");
-  printf("\t-m <min_size> - minimum blob size (default 1024)\n");
-  printf("\t-M <max_size> - maximum blob size (default 102400)\n");
-  printf("\t-n <num_run> - number of times to run (default 65535)\n");
+  printf("\t-m <min_size> - minimum blob size (default %d)\n", _G_MIN);
+  printf("\t-M <max_size> - maximum blob size (default %d)\n", _G_MAX);
+  printf("\t-n <num_run> - number of times to run (default %d)\n",
+         _G_NUM_TASKS);
   printf("\t-p <port> - job server port\n");
   printf("\t-r - generate random blob data (will ignore string)\n");
   printf("\t-v - print verbose messages (this will slow things down)\n");
