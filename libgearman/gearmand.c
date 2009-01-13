@@ -66,7 +66,7 @@ gearmand_st *gearmand_create(in_port_t port)
     return NULL;
 
   memset(gearmand, 0, sizeof(gearmand_st));
-  
+
   gearmand->listen_fd= -1;
   gearmand->backlog= GEARMAN_DEFAULT_BACKLOG;
   gearmand->port= port;
@@ -106,12 +106,12 @@ void gearmand_free(gearmand_st *gearmand)
   (void) gearmand;
 #endif
 }
- 
+
 void gearmand_set_backlog(gearmand_st *gearmand, int backlog)
 {
   gearmand->backlog= backlog;
 }
- 
+
 void gearmand_set_verbose(gearmand_st *gearmand, uint8_t verbose)
 {
   gearmand->verbose= verbose;
@@ -398,7 +398,7 @@ static void _con_ready(int fd __attribute__ ((unused)), short events,
                ntohs(dcon->sa.sin_port),
                gearman_server_error(&(gearmand->server)));
       }
-     
+
       printf("%15s:%5u Disconnected\n", inet_ntoa(dcon->sa.sin_addr),
              ntohs(dcon->sa.sin_port));
     }
