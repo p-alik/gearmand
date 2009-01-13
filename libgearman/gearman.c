@@ -17,12 +17,12 @@
  * Public definitions
  */
 
-const char *gearman_version()
+const char *gearman_version(void)
 {
     return PACKAGE_VERSION;
 }
 
-const char *gearman_bugreport()
+const char *gearman_bugreport(void)
 {
     return PACKAGE_BUGREPORT;
 }

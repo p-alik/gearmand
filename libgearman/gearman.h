@@ -61,12 +61,12 @@ extern "C" {
 /**
  * Return gearman version
  */
-const char *gearman_version();
+const char *gearman_version(void);
 
 /**
  * Return gearman bug report URL
  */
-const char *gearman_bugreport();
+const char *gearman_bugreport(void);
 
 /**
  * Initialize a gearman structure.
