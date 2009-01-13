@@ -17,6 +17,16 @@
  * Public definitions
  */
 
+char *gearman_version()
+{
+    return PACKAGE_VERSION;
+}
+
+char *gearman_bugreport()
+{
+    return PACKAGE_BUGREPORT;
+}
+
 gearman_st *gearman_create(gearman_st *gearman)
 {
   if (gearman == NULL)
@@ -107,7 +117,7 @@ void gearman_set_options(gearman_st *gearman, gearman_options_t options,
     gearman->options &= ~options;
 }
 
-void gearman_set_event_watch(gearman_st *gearman, 
+void gearman_set_event_watch(gearman_st *gearman,
                              gearman_event_watch_fn *event_watch,
                              void *event_watch_arg)
 {

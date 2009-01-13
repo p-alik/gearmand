@@ -11,7 +11,6 @@
 #include <unistd.h>
 
 #include <libgearman/gearman.h>
-#include <config.h>
 
 int main(int argc, char *argv[])
 {
@@ -39,12 +38,12 @@ int main(int argc, char *argv[])
       break;
 
     case 'V':
-      printf("\n%s - %s\n", PACKAGE_STRING, PACKAGE_BUGREPORT);
+      printf("\ngearmand %s - %s\n", gearman_version(), gearman_bugreport());
       return 1;
 
     case 'h':
     default:
-      printf("\n%s - %s\n", PACKAGE_STRING, PACKAGE_BUGREPORT);
+      printf("\ngearmand %s - %s\n", gearman_version(), gearman_bugreport());
       printf("usage: %s [-h] [-p <port>]\n", argv[0]);
       printf("\t-b <backlog> - number of backlog connections for listen\n");
       printf("\t-h           - print this help menu\n");

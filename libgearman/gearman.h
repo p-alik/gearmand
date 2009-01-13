@@ -57,6 +57,17 @@ extern "C" {
  * @{
  */
 
+
+/**
+ * Return gearman version
+ */
+char *gearman_version();
+
+/**
+ * Return gearman bug report URL
+ */
+char *gearman_bugreport();
+
 /**
  * Initialize a gearman structure.
  */
