@@ -323,17 +323,22 @@ static gearman_return_t _con_watch(gearman_con_st *con, short events,
   if (events & POLLOUT)
     set_events|= EV_WRITE;
 
-  if (dcon->event.ev_flags != 0)
-    assert(event_del(&(dcon->event)) == 0);
-  event_set(&(dcon->event), dcon->fd, set_events | EV_PERSIST, _con_ready,
-            dcon);
-  event_base_set(dcon->gearmand->base, &(dcon->event));
-
-  if (event_add(&(dcon->event), NULL) == -1)
+  if (dcon->last_events != set_events)
   {
-    GEARMAN_ERROR_SET(dcon->gearmand->server.gearman, "_con_watch",
-                      "event_add:-1")
-    return GEARMAN_EVENT;
+    if (dcon->last_events != 0)
+      assert(event_del(&(dcon->event)) == 0);
+    event_set(&(dcon->event), dcon->fd, set_events | EV_PERSIST, _con_ready,
+              dcon);
+    event_base_set(dcon->gearmand->base, &(dcon->event));
+
+    if (event_add(&(dcon->event), NULL) == -1)
+    {
+      GEARMAN_ERROR_SET(dcon->gearmand->server.gearman, "_con_watch",
+                        "event_add:-1")
+      return GEARMAN_EVENT;
+    }
+
+    dcon->last_events= set_events;
   }
 
   if (dcon->gearmand->verbose > 1)
@@ -439,7 +444,7 @@ static void _event_del_all(gearmand_st *gearmand)
 
   for (dcon= gearmand->dcon_list; dcon != NULL; dcon= dcon->next)
   {
-    if (dcon->event.ev_flags != 0)
+    if (dcon->last_events != 0)
       assert(event_del(&(dcon->event)) == 0);
 
     /* This gets around a libevent bug when both POLLIN and POLLOUT are set. */
