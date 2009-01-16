@@ -9,7 +9,7 @@ URL: http://www.gearmanproject.org/
 
 Packager: Brian Aker <brian@tangent.org>
 
-Source: http://launchpad.net/gearmand/%{version}/%{version}/+download/gearmand-%{version}.tar.gz
+Source: http://launchpad.net/gearmand/trunk/%{version}/+download/gearmand-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
 %description
