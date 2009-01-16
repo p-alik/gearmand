@@ -131,7 +131,7 @@ size_t gearman_con_recv_data(gearman_con_st *con, void *data, size_t data_size,
 /**
  * Wait for I/O on connections.
  */
-gearman_return_t gearman_con_wait(gearman_st *gearman);
+gearman_return_t gearman_con_wait(gearman_st *gearman, int timeout);
 
 /**
  * Set events to be watched for a connection.

@@ -49,6 +49,7 @@ extern "C" {
 #define GEARMAN_MAX_FREE_SERVER_CLIENT 1000
 #define GEARMAN_MAX_FREE_SERVER_WORKER 1000
 #define GEARMAN_TEXT_RESPONSE_SIZE 8192
+#define GEARMAN_WORKER_WAIT_TIMEOUT 10000 /* Milliseconds */
 
 /* Types. */
 typedef struct gearman_st gearman_st;
@@ -108,6 +109,8 @@ typedef enum
   GEARMAN_DATA_TOO_LARGE,
   GEARMAN_INVALID_FUNCTION_NAME,
   GEARMAN_INVALID_WORKER_FUNCTION,
+  GEARMAN_NO_REGISTERED_FUNCTIONS,
+  GEARMAN_NO_JOBS,
   GEARMAN_ECHO_DATA_CORRUPTION,
   GEARMAN_MAX_RETURN /* Always add new error code before */
 } gearman_return_t;
@@ -322,10 +325,11 @@ typedef enum
 {
   GEARMAN_WORKER_ALLOCATED=        (1 << 0),
   GEARMAN_WORKER_NON_BLOCKING=     (1 << 1),
-  GEARMAN_WORKER_PACKET_IN_USE=    (1 << 2),
+  GEARMAN_WORKER_PACKET_INIT=      (1 << 2),
   GEARMAN_WORKER_GRAB_JOB_IN_USE=  (1 << 3),
   GEARMAN_WORKER_PRE_SLEEP_IN_USE= (1 << 4),
-  GEARMAN_WORKER_WORK_JOB_IN_USE=  (1 << 5)
+  GEARMAN_WORKER_WORK_JOB_IN_USE=  (1 << 5),
+  GEARMAN_WORKER_CHANGE=           (1 << 6)
 } gearman_worker_options_t;
 
 /**
@@ -334,13 +338,24 @@ typedef enum
  */
 typedef enum
 {
-  GEARMAN_WORKER_STATE_INIT,
-  GEARMAN_WORKER_STATE_GRAB_JOB,
+  GEARMAN_WORKER_STATE_START,
+  GEARMAN_WORKER_STATE_FUNCTION_SEND,
+  GEARMAN_WORKER_STATE_CONNECT,
   GEARMAN_WORKER_STATE_GRAB_JOB_SEND,
   GEARMAN_WORKER_STATE_GRAB_JOB_RECV,
-  GEARMAN_WORKER_STATE_GRAB_JOB_NEXT,
   GEARMAN_WORKER_STATE_PRE_SLEEP
 } gearman_worker_state_t;
+
+/**
+ * @ingroup gearman_worker
+ * Options for gearman_worker_function_st.
+ */
+typedef enum
+{
+  GEARMAN_WORKER_FUNCTION_PACKET_IN_USE= (1 << 0),
+  GEARMAN_WORKER_FUNCTION_CHANGE=        (1 << 1),
+  GEARMAN_WORKER_FUNCTION_REMOVE=        (1 << 2)
+} gearman_worker_function_options_t;
 
 /**
  * @ingroup gearman_worker

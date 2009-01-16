@@ -207,6 +207,7 @@ gearman_return_t gearman_con_close(gearman_con_st *con)
   con->send_data_size= 0;
   con->send_data_offset= 0;
 
+  con->recv_state= GEARMAN_CON_RECV_STATE_NONE;
   if (con->recv_packet != NULL)
     gearman_packet_free(con->recv_packet);
   con->recv_buffer_ptr= con->recv_buffer;
@@ -479,7 +480,7 @@ gearman_return_t gearman_con_flush(gearman_con_st *con)
           return GEARMAN_IO_WAIT;
         }
 
-        gret= gearman_con_wait(con->gearman);
+        gret= gearman_con_wait(con->gearman, -1);
         if (gret != GEARMAN_SUCCESS)
           return gret;
       }
@@ -508,7 +509,7 @@ gearman_return_t gearman_con_flush(gearman_con_st *con)
             if (con->gearman->options & GEARMAN_NON_BLOCKING)
               return GEARMAN_IO_WAIT;
 
-            gret= gearman_con_wait(con->gearman);
+            gret= gearman_con_wait(con->gearman, -1);
             if (gret != GEARMAN_SUCCESS)
               return gret;
 
@@ -625,7 +626,7 @@ gearman_return_t gearman_con_send_all(gearman_st *gearman,
       return GEARMAN_IO_WAIT;
     }
 
-    ret= gearman_con_wait(gearman);
+    ret= gearman_con_wait(gearman, -1);
     if (ret != GEARMAN_SUCCESS)
     {
       gearman->options= options;
@@ -788,7 +789,7 @@ size_t gearman_con_recv_data(gearman_con_st *con, void *data, size_t data_size,
   return recv_size;
 }
 
-gearman_return_t gearman_con_wait(gearman_st *gearman)
+gearman_return_t gearman_con_wait(gearman_st *gearman, int timeout)
 {
   gearman_con_st *con;
   struct pollfd *pfds;
@@ -828,7 +829,7 @@ gearman_return_t gearman_con_wait(gearman_st *gearman)
     return GEARMAN_NO_ACTIVE_FDS;
   }
 
-  ret= poll(pfds, x, -1);
+  ret= poll(pfds, x, timeout);
   if (ret == -1)
   {
     GEARMAN_ERROR_SET(gearman, "gearman_con_wait", "poll:%d", errno)
@@ -839,7 +840,7 @@ gearman_return_t gearman_con_wait(gearman_st *gearman)
   x= 0;
   for (con= gearman->con_list; con != NULL; con= con->next)
   {
-    if (pfds[x].events == 0)
+    if (con->events == 0)
       continue;
 
     gearman_con_set_revents(con, pfds[x].revents);
@@ -1077,7 +1078,7 @@ static size_t _con_read(gearman_con_st *con, void *data, size_t data_size,
           return 0;
         }
 
-        *ret_ptr= gearman_con_wait(con->gearman);
+        *ret_ptr= gearman_con_wait(con->gearman, -1);
         if (*ret_ptr != GEARMAN_SUCCESS)
           return 0;
 
