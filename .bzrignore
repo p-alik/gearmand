@@ -40,3 +40,4 @@ tests/worker_test
 tests/worker_test.res
 support/gearmand.pc
 support/gearmand.spec
+benchmark/blobslap_client

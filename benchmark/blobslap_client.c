@@ -8,7 +8,7 @@
 
 /**
  * @file
- * @brief Example Client Using Callbacks
+ * @brief Blob Slap Benchmark Utility
  */
 
 #include <stdio.h>
@@ -21,60 +21,72 @@
 
 #include <libgearman/gearman.h>
 
-#define _G_NUM_TASKS            65535
-#define _G_MIN					1024
-#define _G_MAX					102400
+#define BLOBSLAP_DEFAULT_FUNCTION "blobslap"
+#define BLOBSLAP_DEFAULT_NUM_TASKS 10
+#define BLOBSLAP_DEFAULT_BLOB_MIN_SIZE 0
+#define BLOBSLAP_DEFAULT_BLOB_MAX_SIZE 1024
+#define BLOBSLAP_BUFFER_SIZE 8192
 
 static gearman_return_t _created(gearman_task_st *task);
+static gearman_return_t _data(gearman_task_st *task);
 static gearman_return_t _status(gearman_task_st *task);
 static gearman_return_t _complete(gearman_task_st *task);
 static gearman_return_t _fail(gearman_task_st *task);
 
 static void _usage(char *name);
 
-static uint8_t verbose;
-
 int main(int argc, char *argv[])
 {
   char c;
   char *host= NULL;
-  char *blob= NULL;
-  char *function_name= NULL;
-  unsigned short port= 0;
+  in_port_t port= 0;
+  char *function= BLOBSLAP_DEFAULT_FUNCTION;
+  uint32_t num_tasks= BLOBSLAP_DEFAULT_NUM_TASKS;
+  size_t min_size= BLOBSLAP_DEFAULT_BLOB_MIN_SIZE;
+  size_t max_size= BLOBSLAP_DEFAULT_BLOB_MAX_SIZE;
+  uint8_t verbose= 0;
+  uint32_t count= 1;
   gearman_return_t ret;
   gearman_client_st client;
-  gearman_task_st **task;
-  bool random_data= false;
-  bool blob_done= false;
-  uint32_t num_tasks= _G_NUM_TASKS;
+  gearman_task_st *tasks;
+  char *blob;
+  size_t blob_size;
   uint32_t x;
-  uint32_t blob_size;
-  uint32_t min= _G_MIN;
-  uint32_t max= _G_MAX;
 
-  while ((c= getopt(argc, argv, "f:h:rm:M:n:p:v")) != EOF)
+  if (gearman_client_create(&client) == NULL)
+  {
+    fprintf(stderr, "Memory allocation failure on client creation\n");
+    exit(1);
+  }
+
+  while ((c= getopt(argc, argv, "c:f:h:m:M:n:p:s:v")) != EOF)
   {
     switch(c)
     {
+    case 'c':
+      count= atoi(optarg);
+      break;
+
     case 'f':
-      function_name= optarg;
+      function= optarg;
       break;
 
     case 'h':
       host= optarg;
-      break;
-
-    case 'r':
-      srand(time(NULL));
-      random_data= true;
+      ret= gearman_client_add_server(&client, host, port);
+      if (ret != GEARMAN_SUCCESS)
+      {
+        fprintf(stderr, "%s\n", gearman_client_error(&client));
+        exit(1);
+      }
       break;
 
     case 'm':
-      min= atoi(optarg);
+      min_size= atoi(optarg);
       break;
 
     case 'M':
-      max= atoi(optarg);
+      max_size= atoi(optarg);
       break;
 
     case 'n':
@@ -85,137 +97,104 @@ int main(int argc, char *argv[])
       port= atoi(optarg);
       break;
 
+    case 's':
+      srand(atoi(optarg));
+      break;
+
     case 'v':
-      verbose= 1;
+      verbose++;
       break;
 
     default:
+      gearman_client_free(&client);
       _usage(argv[0]);
       exit(1);
     }
   }
 
-  if(argc != (optind + 1))
+  if (host == NULL)
   {
-    _usage(argv[0]);
+    ret= gearman_client_add_server(&client, host, port);
+    if (ret != GEARMAN_SUCCESS)
+    {
+      fprintf(stderr, "%s\n", gearman_client_error(&client));
+      exit(1);
+    }
+  }
+
+  if (num_tasks == 0)
+  {
+    fprintf(stderr, "Number of tasks must be larger than zero\n");
     exit(1);
   }
 
-  if (!(task= (gearman_task_st **)malloc(num_tasks * sizeof(gearman_task_st))))
+  tasks= malloc(num_tasks * sizeof(gearman_task_st));
+  if (tasks == NULL)
   {
     fprintf(stderr, "Memory allocation failure on malloc\n");
     exit(1);
   }
   
-  if (!(blob= (char *)malloc(max)))
+  blob= malloc(max_size);
+  if (blob == NULL)
   {
     fprintf(stderr, "Memory allocation failure on malloc\n");
     exit(1);
   }
 
-  memset(blob, 'x', max); 
+  memset(blob, 'x', max_size); 
 
-  /* This creates the client data and starts our connection to
-     the job server. */
-  if (gearman_client_create(&client) == NULL)
+  while (1)
   {
-    fprintf(stderr, "Memory allocation failure on client creation\n");
-    exit(1);
-  }
-
-  ret= gearman_client_add_server(&client, host, port);
-  if (ret != GEARMAN_SUCCESS)
-  {
-    fprintf(stderr, "%s\n", gearman_client_error(&client));
-    exit(1);
-  }
-
-  /* This is where we need to figure out what function we should be
-     benchmarking, and where we perform any tasks specific to that function.
-     At the time of this comment the code in the if conditionals is the same;
-     however, benchmarking a particular client may require more work than
-     the simple setup below.  So I leave these conditionals in place to give
-     future developers a way to add new client benchmark code. */
-  if (strcmp("reverse", function_name))
-  {
-    /* We are slapping with the reverse function here. */
     for (x= 0; x < num_tasks; x++)
     {
-      /* Is blob data random or not? */
-      if (random_data == true)
-      {
-        /* Choose a random size between min and max. */
-        blob_size= (min + rand()) % (max + 1);
-      }
-      else if (blob_done == false)
-      {
-        blob_done= true;
-        free(blob);
-        blob= argv[optind];
-        blob_size= strlen(argv[optind]);
-      }
+      blob_size= rand();
 
-      if (gearman_client_add_task(&client, task[x], NULL, "reverse", NULL,
-                                  (void *)blob, (size_t)blob_size,
+      if (max_size > RAND_MAX)
+        blob_size*= (rand() + 1);
+
+      blob_size= (blob_size % (max_size - min_size)) + min_size;
+
+      if (gearman_client_add_task(&client, &(tasks[x]), &verbose, function,
+                                  NULL, (void *)blob, blob_size,
                                   &ret) == NULL || ret != GEARMAN_SUCCESS)
       {
         fprintf(stderr, "%s\n", gearman_client_error(&client));
         exit(1);
       }
     }
-  }
-  else if (strcmp("gmdb_slap", function_name))
-  {
-    /* We are slapping with gearman mail database here. */
-    for (x= 0; x < num_tasks; x++)
-    {
-      /* Is blob data random or not? */
-      if (random_data == true)
-      {
-        /* Choose a random size between min and max. */
-        blob_size= (min + rand()) % (max + 1);
-      }
-      else if (blob_done == false)
-      {
-        blob_done= true;
-        free(blob);
-        blob= argv[optind];
-        blob_size= strlen(argv[optind]);
-      }
 
-      if (gearman_client_add_task(&client, task[x], NULL, "gmdb_slap", NULL,
-                                  (void *)blob, (size_t)blob_size,
-                                  &ret) == NULL || ret != GEARMAN_SUCCESS)
-      {
-        fprintf(stderr, "%s\n", gearman_client_error(&client));
-        exit(1);
-      }
+    ret= gearman_client_run_tasks(&client, NULL, _created, _data, _status,
+                                  _complete, _fail);
+    if (ret != GEARMAN_SUCCESS)
+    {
+      fprintf(stderr, "%s\n", gearman_client_error(&client));
+      exit(1);
+    }
+
+    for (x= 0; x < num_tasks; x++)
+      gearman_task_free(&(tasks[x]));
+
+    if (count > 0)
+    {
+      count--;
+      if (count == 0)
+        break;
     }
   }
-  else
-  {
-    fprintf(stderr, "error: could not find function name: %s\n",
-            function_name);
-    exit(1);
-  }
 
-  ret= gearman_client_run_tasks(&client, NULL, _created, NULL, _status,
-                                _complete, _fail);
-  if (ret != GEARMAN_SUCCESS)
-  {
-    fprintf(stderr, "%s\n", gearman_client_error(&client));
-    exit(1);
-  }
-
+  free(blob);
+  free(tasks);
   gearman_client_free(&client);
-  free(task);
 
   return 0;
 }
 
 static gearman_return_t _created(gearman_task_st *task)
 {
-  if (verbose)
+  uint8_t verbose= *((uint8_t *)gearman_task_fn_arg(task));
+
+  if (verbose > 1)
     printf("Created: %s\n", gearman_task_job_handle(task));
 
   return GEARMAN_SUCCESS;
@@ -223,7 +202,9 @@ static gearman_return_t _created(gearman_task_st *task)
 
 static gearman_return_t _status(gearman_task_st *task)
 {
-  if (verbose)
+  uint8_t verbose= *((uint8_t *)gearman_task_fn_arg(task));
+
+  if (verbose > 1)
   {
     printf("Status: %s (%u/%u)\n", gearman_task_job_handle(task),
            gearman_task_numerator(task), gearman_task_denominator(task));
@@ -232,12 +213,51 @@ static gearman_return_t _status(gearman_task_st *task)
   return GEARMAN_SUCCESS;
 }
 
+static gearman_return_t _data(gearman_task_st *task)
+{
+  uint8_t verbose= *((uint8_t *)gearman_task_fn_arg(task));
+  char buffer[BLOBSLAP_BUFFER_SIZE];
+  size_t size;
+  gearman_return_t ret;
+
+  while (1)
+  {
+    size= gearman_task_recv_data(task, buffer, BLOBSLAP_BUFFER_SIZE, &ret);
+    if (ret != GEARMAN_SUCCESS)
+      return ret;
+    if (size == 0)
+      break;
+  }
+
+  if (verbose > 0)
+  {
+    printf("Data: %s %zu\n", gearman_task_job_handle(task),
+           gearman_task_data_size(task));
+  }
+
+  return GEARMAN_SUCCESS;
+}
+
 static gearman_return_t _complete(gearman_task_st *task)
 {
-  if (verbose)
+  uint8_t verbose= *((uint8_t *)gearman_task_fn_arg(task));
+  char buffer[BLOBSLAP_BUFFER_SIZE];
+  size_t size;
+  gearman_return_t ret;
+
+  while (1)
   {
-    printf("Completed: %s %.*s\n", gearman_task_job_handle(task),
-           (int)gearman_task_data_size(task), (char *)gearman_task_data(task));
+    size= gearman_task_recv_data(task, buffer, BLOBSLAP_BUFFER_SIZE, &ret);
+    if (ret != GEARMAN_SUCCESS)
+      return ret;
+    if (size == 0)
+      break;
+  }
+
+  if (verbose > 0)
+  {
+    printf("Completed: %s %zu\n", gearman_task_job_handle(task),
+           gearman_task_data_size(task));
   }
 
   return GEARMAN_SUCCESS;
@@ -245,7 +265,9 @@ static gearman_return_t _complete(gearman_task_st *task)
 
 static gearman_return_t _fail(gearman_task_st *task)
 {
-  if (verbose)
+  uint8_t verbose= *((uint8_t *)gearman_task_fn_arg(task));
+
+  if (verbose > 0)
     printf("Failed: %s\n", gearman_task_job_handle(task));
 
   return GEARMAN_SUCCESS;
@@ -253,15 +275,18 @@ static gearman_return_t _fail(gearman_task_st *task)
 
 static void _usage(char *name)
 {
-  printf("\nusage: %s [-rv] [-f <function_name>] [-h <host>] [-m <min_size>]\n"
-         "\t[-M <max_size>] [-n <num_runs>] [-p <port>] <string>\n", name);
-  printf("\t-f <function_name> - worker function to test\n");
-  printf("\t-h <host> - job server host\n");
-  printf("\t-m <min_size> - minimum blob size (default %d)\n", _G_MIN);
-  printf("\t-M <max_size> - maximum blob size (default %d)\n", _G_MAX);
-  printf("\t-n <num_run> - number of times to run (default %d)\n",
-         _G_NUM_TASKS);
-  printf("\t-p <port> - job server port\n");
-  printf("\t-r - generate random blob data (will ignore string)\n");
-  printf("\t-v - print verbose messages (this will slow things down)\n");
+  printf("\nusage: %s\n\t[-f <function>] [-h <host>] [-m <min_size>]\n"
+         "\t[-M <max_size>] [-n <num_tasks>] [-p <port>] [-s] [-v]\n\n", name);
+  printf("\t-f <function>  - function name for tasks (default %s)\n",
+         BLOBSLAP_DEFAULT_FUNCTION);
+  printf("\t-h <host>      - job server host, can specify many\n");
+  printf("\t-m <min_size>  - minimum blob size (default %d)\n",
+         BLOBSLAP_DEFAULT_BLOB_MIN_SIZE);
+  printf("\t-M <max_size>  - maximum blob size (default %d)\n",
+         BLOBSLAP_DEFAULT_BLOB_MAX_SIZE);
+  printf("\t-n <num_tasks> - number of tasks to run at once (default %d)\n",
+         BLOBSLAP_DEFAULT_NUM_TASKS);
+  printf("\t-p <port>      - job server port\n");
+  printf("\t-s <seed>      - seed random number for blobsize with <seed>\n");
+  printf("\t-v             - print verbose messages\n");
 }
