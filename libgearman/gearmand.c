@@ -66,7 +66,7 @@ gearmand_st *gearmand_create(in_port_t port)
     return NULL;
 
   memset(gearmand, 0, sizeof(gearmand_st));
-  
+
   gearmand->listen_fd= -1;
   gearmand->backlog= GEARMAN_DEFAULT_BACKLOG;
   gearmand->port= port;
@@ -106,12 +106,12 @@ void gearmand_free(gearmand_st *gearmand)
   (void) gearmand;
 #endif
 }
- 
+
 void gearmand_set_backlog(gearmand_st *gearmand, int backlog)
 {
   gearmand->backlog= backlog;
 }
- 
+
 void gearmand_set_verbose(gearmand_st *gearmand, uint8_t verbose)
 {
   gearmand->verbose= verbose;
@@ -323,17 +323,22 @@ static gearman_return_t _con_watch(gearman_con_st *con, short events,
   if (events & POLLOUT)
     set_events|= EV_WRITE;
 
-  if (dcon->event.ev_flags != 0)
-    assert(event_del(&(dcon->event)) == 0);
-  event_set(&(dcon->event), dcon->fd, set_events | EV_PERSIST, _con_ready,
-            dcon);
-  event_base_set(dcon->gearmand->base, &(dcon->event));
-
-  if (event_add(&(dcon->event), NULL) == -1)
+  if (dcon->last_events != set_events)
   {
-    GEARMAN_ERROR_SET(dcon->gearmand->server.gearman, "_con_watch",
-                      "event_add:-1")
-    return GEARMAN_EVENT;
+    if (dcon->last_events != 0)
+      assert(event_del(&(dcon->event)) == 0);
+    event_set(&(dcon->event), dcon->fd, set_events | EV_PERSIST, _con_ready,
+              dcon);
+    event_base_set(dcon->gearmand->base, &(dcon->event));
+
+    if (event_add(&(dcon->event), NULL) == -1)
+    {
+      GEARMAN_ERROR_SET(dcon->gearmand->server.gearman, "_con_watch",
+                        "event_add:-1")
+      return GEARMAN_EVENT;
+    }
+
+    dcon->last_events= set_events;
   }
 
   if (dcon->gearmand->verbose > 1)
@@ -398,7 +403,7 @@ static void _con_ready(int fd __attribute__ ((unused)), short events,
                ntohs(dcon->sa.sin_port),
                gearman_server_error(&(gearmand->server)));
       }
-     
+
       printf("%15s:%5u Disconnected\n", inet_ntoa(dcon->sa.sin_addr),
              ntohs(dcon->sa.sin_port));
     }
@@ -408,6 +413,7 @@ static void _con_ready(int fd __attribute__ ((unused)), short events,
 
     /* This gets around a libevent bug when both POLLIN and POLLOUT are set. */
     event_set(&(dcon->event), dcon->fd, EV_READ, _con_ready, dcon);
+    event_base_set(dcon->gearmand->base, &(dcon->event));
     event_add(&(dcon->event), NULL);
     assert(event_del(&(dcon->event)) == 0);
 
@@ -438,11 +444,12 @@ static void _event_del_all(gearmand_st *gearmand)
 
   for (dcon= gearmand->dcon_list; dcon != NULL; dcon= dcon->next)
   {
-    if (dcon->event.ev_flags != 0)
+    if (dcon->last_events != 0)
       assert(event_del(&(dcon->event)) == 0);
 
     /* This gets around a libevent bug when both POLLIN and POLLOUT are set. */
     event_set(&(dcon->event), dcon->fd, EV_READ, _con_ready, dcon);
+    event_base_set(dcon->gearmand->base, &(dcon->event));
     event_add(&(dcon->event), NULL);
     assert(event_del(&(dcon->event)) == 0);
   }

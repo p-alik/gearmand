@@ -6,13 +6,13 @@
 # the COPYING file in this directory for full text.
 
 AC_PREREQ(2.59)
-AC_INIT(gearmand, [0.1.0], [https://launchpad.net/gearmand])
+AC_INIT(gearmand, [0.2.0], [https://launchpad.net/gearmand])
 AC_CONFIG_SRCDIR(libgearman/gearman.c)
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_HEADERS([config.h])
 
 GEARMAN_MAJOR_VERSION=0
-GEARMAN_MINOR_VERSION=1
+GEARMAN_MINOR_VERSION=2
 GEARMAN_MICRO_VERSION=0
 GEARMAN_VERSION=$GEARMAN_MAJOR_VERSION.$GEARMAN_MINOR_VERSION.$GEARMAN_MICRO_VERSION
 GEARMAN_RELEASE=$GEARMAN_MAJOR_VERSION.$GEARMAN_MINOR_VERSION
@@ -230,13 +230,13 @@ AC_ARG_ENABLE([fail],
   [AS_HELP_STRING([--disable-fail],
     [Turn warnings into failures @<:@default=yes@:>@])],
   [ac_warn_fail="$enableval"],
-  [ac_warn_fail="no"])
+  [ac_warn_fail="yes"])
 
 AC_ARG_ENABLE([pedantic-warnings],
   [AS_HELP_STRING([--disable-pedantic-warnings],
     [Toggle pedanticness @<:@default=yes@:>@])],
   [ac_warn_pedantic="$enableval"],
-  [ac_warn_pedantic="no"])
+  [ac_warn_pedantic="yes"])
 
 AC_ARG_ENABLE([unreachable],
   [AS_HELP_STRING([--enable-unreachable],

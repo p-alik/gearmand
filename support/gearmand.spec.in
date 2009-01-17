@@ -9,7 +9,7 @@ URL: http://www.gearmanproject.org/
 
 Packager: Brian Aker <brian@tangent.org>
 
-Source: http://launchpad.net/gearmand/%{version}/%{version}/+download/gearmand-%{version}.tar.gz
+Source: http://launchpad.net/gearmand/trunk/%{version}/+download/gearmand-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
 %description
@@ -52,7 +52,7 @@ Gearman provides a generic framework to farm out work to other machines, dispatc
 %{_libdir}/libgearman.la
 %{_libdir}/libgearman.so
 %{_libdir}/libgearman.so.0
-%{_libdir}/libgearman.so.0.0.1
+%{_libdir}/libgearman.so.0.0.2
 %{_libdir}/pkgconfig/gearmand.pc
 
 

@@ -12,6 +12,7 @@
  */
 
 #include <errno.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -52,6 +53,12 @@ int main(int argc, char *argv[])
       usage(argv[0]);
       exit(1);
     }
+  }
+
+  if (signal(SIGPIPE, SIG_IGN) == SIG_ERR)
+  {
+    fprintf(stderr, "signal:%d\n", errno);
+    exit(1);
   }
 
   if (gearman_worker_create(&worker) == NULL)

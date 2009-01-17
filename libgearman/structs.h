@@ -179,11 +179,11 @@ struct gearman_worker_st
   gearman_st gearman_static;
   gearman_worker_options_t options;
   gearman_worker_state_t state;
-  gearman_packet_st packet;
   gearman_packet_st grab_job;
   gearman_packet_st pre_sleep;
   gearman_con_st *con;
   gearman_job_st *job;
+  gearman_worker_function_st *function;
   gearman_worker_function_st *function_list;
   uint32_t function_count;
   gearman_worker_work_state_t work_state;
@@ -198,9 +198,13 @@ struct gearman_worker_st
  */
 struct gearman_worker_function_st
 {
+  gearman_worker_function_st *next;
+  gearman_worker_function_st *prev;
+  gearman_worker_function_options_t options;
   char *function_name;
   gearman_worker_fn *worker_fn;
   const void *fn_arg;
+  gearman_packet_st packet;
 };
 
 /**

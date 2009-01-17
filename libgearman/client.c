@@ -594,7 +594,12 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client,
         break;
 
       if (client->new > 0)
-        continue;
+      {
+        if (client->options & GEARMAN_CLIENT_NO_NEW)
+          client->options&= ~GEARMAN_CLIENT_NO_NEW;
+        else
+          continue;
+      }
 
       if (options & GEARMAN_NON_BLOCKING)
       {
@@ -603,7 +608,7 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client,
         return GEARMAN_IO_WAIT;
       }
 
-      ret= gearman_con_wait(client->gearman);
+      ret= gearman_con_wait(client->gearman, -1);
       if (ret != GEARMAN_SUCCESS && ret != GEARMAN_IO_WAIT)
       {
         client->state= GEARMAN_CLIENT_STATE_IDLE;
@@ -714,7 +719,10 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
     }
 
     if (task->con == NULL)
+    {
+      client->options|= GEARMAN_CLIENT_NO_NEW;
       return GEARMAN_IO_WAIT;
+    }
 
     client->new--;
 

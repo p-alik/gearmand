@@ -367,7 +367,8 @@ static gearman_return_t _server_packet_flush(gearman_server_con_st *server_con)
     gearman_server_con_packet_remove(server_con);
   }
 
-  return GEARMAN_SUCCESS;
+  /* Clear the POLLOUT flag. */
+  return gearman_con_set_events(&(server_con->con), POLLIN);
 }
 
 static gearman_return_t _server_error_packet(gearman_server_con_st *server_con,

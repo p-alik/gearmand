@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
   gearmand_st *gearmand;
   gearman_return_t ret;
 
-  while ((c = getopt(argc, argv, "b:hp:v")) != EOF)
+  while ((c = getopt(argc, argv, "b:hp:vV")) != EOF)
   {
     switch(c)
     {
@@ -37,13 +37,19 @@ int main(int argc, char *argv[])
       verbose++;
       break;
 
+    case 'V':
+      printf("\ngearmand %s - %s\n", gearman_version(), gearman_bugreport());
+      return 1;
+
     case 'h':
     default:
-      printf("\nusage: %s [-h] [-p <port>]\n", argv[0]);
+      printf("\ngearmand %s - %s\n", gearman_version(), gearman_bugreport());
+      printf("usage: %s [-h] [-p <port>]\n", argv[0]);
       printf("\t-b <backlog> - number of backlog connections for listen\n");
       printf("\t-h           - print this help menu\n");
       printf("\t-p <port>    - port for server to listen on\n");
       printf("\t-v           - increase verbosity level by one\n");
+      printf("\t-V           - display the version of gearmand and exit\n");
       return 1;
     }
   }
