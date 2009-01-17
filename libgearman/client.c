@@ -455,28 +455,33 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client,
       /* Start any new tasks. */
       if (client->new > 0)
       {
-        for (client->task= client->gearman->task_list; client->task != NULL;
-             client->task= client->task->next)
+        if (client->options & GEARMAN_CLIENT_NO_NEW)
+          client->options&= ~GEARMAN_CLIENT_NO_NEW;
+        else
         {
-          if (client->task->state != GEARMAN_TASK_STATE_NEW)
-            continue;
+          for (client->task= client->gearman->task_list; client->task != NULL;
+               client->task= client->task->next)
+          {
+            if (client->task->state != GEARMAN_TASK_STATE_NEW)
+              continue;
 
   case GEARMAN_CLIENT_STATE_NEW:
-          ret= _client_run_task(client, client->task, workload_fn, created_fn,
-                                data_fn, status_fn, complete_fn, fail_fn);
+            ret= _client_run_task(client, client->task, workload_fn, created_fn,
+                                  data_fn, status_fn, complete_fn, fail_fn);
+            if (ret != GEARMAN_SUCCESS && ret != GEARMAN_IO_WAIT)
+            {
+              client->state= GEARMAN_CLIENT_STATE_NEW;
+              client->gearman->options= options;
+              return ret;
+            }
+          }
+
+          ret= gearman_con_flush_all(client->gearman);
           if (ret != GEARMAN_SUCCESS && ret != GEARMAN_IO_WAIT)
           {
-            client->state= GEARMAN_CLIENT_STATE_NEW;
             client->gearman->options= options;
             return ret;
           }
-        }
-
-        ret= gearman_con_flush_all(client->gearman);
-        if (ret != GEARMAN_SUCCESS && ret != GEARMAN_IO_WAIT)
-        {
-          client->gearman->options= options;
-          return ret;
         }
       }
 
@@ -593,13 +598,8 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client,
       if (client->running == 0)
         break;
 
-      if (client->new > 0)
-      {
-        if (client->options & GEARMAN_CLIENT_NO_NEW)
-          client->options&= ~GEARMAN_CLIENT_NO_NEW;
-        else
-          continue;
-      }
+      if (client->new > 0 && !(client->options & GEARMAN_CLIENT_NO_NEW))
+        continue;
 
       if (options & GEARMAN_NON_BLOCKING)
       {
