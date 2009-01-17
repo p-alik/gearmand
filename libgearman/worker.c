@@ -292,11 +292,8 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
             {
               if (*ret_ptr == GEARMAN_IO_WAIT)
                 worker->state= GEARMAN_WORKER_STATE_FUNCTION_SEND;
-              else if (*ret_ptr == GEARMAN_EOF || (*ret_ptr == GEARMAN_ERRNO &&
-                       worker->gearman->last_errno == EPIPE))
-              {
+              else if (*ret_ptr == GEARMAN_LOST_CONNECTION)
                 continue;
-              }
 
               return NULL;
             }
@@ -345,8 +342,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
               if (*ret_ptr == GEARMAN_IO_WAIT)
                 worker->state= GEARMAN_WORKER_STATE_CONNECT;
               else if (*ret_ptr == GEARMAN_COULD_NOT_CONNECT ||
-                       *ret_ptr == GEARMAN_EOF || (*ret_ptr == GEARMAN_ERRNO &&
-                       worker->gearman->last_errno == EPIPE))
+                       *ret_ptr == GEARMAN_LOST_CONNECTION)
               {
                 break;
               }
@@ -368,11 +364,8 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
         {
           if (*ret_ptr == GEARMAN_IO_WAIT)
             worker->state= GEARMAN_WORKER_STATE_GRAB_JOB_SEND;
-          else if (*ret_ptr == GEARMAN_EOF || (*ret_ptr == GEARMAN_ERRNO &&
-                   worker->gearman->last_errno == EPIPE))
-          {
+          else if (*ret_ptr == GEARMAN_LOST_CONNECTION)
             continue;
-          }
 
           return NULL;
         }
@@ -400,10 +393,10 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
             {
               gearman_job_free(worker->job);
               worker->job= NULL;
-            }
 
-            if (*ret_ptr == GEARMAN_EOF || *ret_ptr == GEARMAN_NOT_CONNECTED)
-              break;
+              if (*ret_ptr == GEARMAN_LOST_CONNECTION)
+                break;
+            }
 
             return NULL;
           }
@@ -452,11 +445,8 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
         {
           if (*ret_ptr == GEARMAN_IO_WAIT)
             worker->state= GEARMAN_WORKER_STATE_PRE_SLEEP;
-          else if (*ret_ptr == GEARMAN_EOF || (*ret_ptr == GEARMAN_ERRNO &&
-                   worker->gearman->last_errno == EPIPE))
-          {
+          else if (*ret_ptr == GEARMAN_LOST_CONNECTION)
             continue;
-          }
 
           return NULL;
         }
@@ -572,7 +562,7 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
       ret= gearman_job_fail(&(worker->work_job));
       if (ret != GEARMAN_SUCCESS)
       {
-        if (ret == GEARMAN_ERRNO && worker->gearman->last_errno == EPIPE)
+        if (ret == GEARMAN_LOST_CONNECTION)
           break;
 
         worker->work_state= GEARMAN_WORKER_WORK_STATE_FAIL;
@@ -584,7 +574,7 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
 
     if (ret != GEARMAN_SUCCESS)
     {
-      if (ret == GEARMAN_ERRNO && worker->gearman->last_errno == EPIPE)
+      if (ret == GEARMAN_LOST_CONNECTION)
         break;
 
       worker->work_state= GEARMAN_WORKER_WORK_STATE_FUNCTION;
@@ -614,7 +604,7 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
 
     if (ret != GEARMAN_SUCCESS)
     {
-      if (ret == GEARMAN_ERRNO && worker->gearman->last_errno == EPIPE)
+      if (ret == GEARMAN_LOST_CONNECTION)
         break;
 
       return ret;
@@ -626,7 +616,7 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
     ret= gearman_job_fail(&(worker->work_job));
     if (ret != GEARMAN_SUCCESS)
     {
-      if (ret == GEARMAN_ERRNO && worker->gearman->last_errno == EPIPE)
+      if (ret == GEARMAN_LOST_CONNECTION)
         break;
 
       return ret;
