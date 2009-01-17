@@ -67,8 +67,6 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  gearman_client_set_options(&client, GEARMAN_CLIENT_BUFFER_RESULT, 1);
-
   ret= gearman_client_add_server(&client, host, port);
   if (ret != GEARMAN_SUCCESS)
   {

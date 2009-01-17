@@ -8,31 +8,36 @@
 
 /**
  * @file
- * @brief Example Worker
+ * @brief Blob slap worker utility
  */
 
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
+#include "benchmark.h"
 
-#include <libgearman/gearman.h>
-
-static void *reverse(gearman_job_st *job, void *cb_arg, size_t *result_size,
-                     gearman_return_t *ret_ptr);
+static void *worker_fn(gearman_job_st *job, void *cb_arg, size_t *result_size,
+                       gearman_return_t *ret_ptr);
 
 static void usage(char *name);
 
 int main(int argc, char *argv[])
 {
+  gearman_benchmark_st benchmark;
   char c;
-  uint32_t count= 0;
   char *host= NULL;
-  unsigned short port= 0;
+  in_port_t port= 0;
+  char *function= NULL;
+  uint32_t count= 0;
   gearman_return_t ret;
   gearman_worker_st worker;
 
-  while ((c = getopt(argc, argv, "c:h:p:")) != EOF)
+  benchmark_init(&benchmark);
+
+  if (gearman_worker_create(&worker) == NULL)
+  {
+    fprintf(stderr, "Memory allocation failure on worker creation\n");
+    exit(1);
+  }
+
+  while ((c = getopt(argc, argv, "c:f:h:p:v")) != EOF)
   {
     switch(c)
     {
@@ -40,12 +45,33 @@ int main(int argc, char *argv[])
       count= atoi(optarg);
       break;
 
+    case 'f':
+      function= optarg;
+      ret= gearman_worker_add_function(&worker, function, 0, worker_fn,
+                                       &benchmark);
+      if (ret != GEARMAN_SUCCESS)
+      {
+        fprintf(stderr, "%s\n", gearman_worker_error(&worker));
+        exit(1);
+      }
+      break;
+
     case 'h':
       host= optarg;
+      ret= gearman_worker_add_server(&worker, host, port);
+      if (ret != GEARMAN_SUCCESS)
+      {
+        fprintf(stderr, "%s\n", gearman_worker_error(&worker));
+        exit(1);
+      }
       break;
 
     case 'p':
       port= atoi(optarg);
+      break;
+
+    case 'v':
+      benchmark.verbose++;
       break;
 
     default:
@@ -54,24 +80,32 @@ int main(int argc, char *argv[])
     }
   }
 
-  if (gearman_worker_create(&worker) == NULL)
+  if (signal(SIGPIPE, SIG_IGN) == SIG_ERR)
   {
-    fprintf(stderr, "Memory allocation failure on worker creation\n");
+    fprintf(stderr, "signal:%d\n", errno);
     exit(1);
   }
 
-  ret= gearman_worker_add_server(&worker, host, port);
-  if (ret != GEARMAN_SUCCESS)
+  if (host == NULL)
   {
-    fprintf(stderr, "%s\n", gearman_worker_error(&worker));
-    exit(1);
+    ret= gearman_worker_add_server(&worker, NULL, port);
+    if (ret != GEARMAN_SUCCESS)
+    {
+      fprintf(stderr, "%s\n", gearman_worker_error(&worker));
+      exit(1);
+    }
   }
 
-  ret= gearman_worker_add_function(&worker, "reverse", 0, reverse, NULL);
-  if (ret != GEARMAN_SUCCESS)
+  if (function == NULL)
   {
-    fprintf(stderr, "%s\n", gearman_worker_error(&worker));
-    exit(1);
+    ret= gearman_worker_add_function(&worker,
+                                     GEARMAN_BENCHMARK_DEFAULT_FUNCTION, 0,
+                                     worker_fn, &benchmark);
+    if (ret != GEARMAN_SUCCESS)
+    {
+      fprintf(stderr, "%s\n", gearman_worker_error(&worker));
+      exit(1);
+    }
   }
 
   while (1)
@@ -96,39 +130,35 @@ int main(int argc, char *argv[])
   return 0;
 }
 
-static void *reverse(gearman_job_st *job, void *cb_arg, size_t *result_size,
-                     gearman_return_t *ret_ptr)
+static void *worker_fn(gearman_job_st *job, void *cb_arg, size_t *result_size,
+                       gearman_return_t *ret_ptr)
 {
-  const uint8_t *workload;
-  uint8_t *result;
-  size_t x;
-  size_t y;
-  (void)cb_arg;
+  gearman_benchmark_st *benchmark= (gearman_benchmark_st *)cb_arg;
 
-  workload= gearman_job_workload(job);
-  *result_size= gearman_job_workload_size(job);
+  (void)result_size;
 
-  result= malloc(*result_size);
-  if (result == NULL)
+  if (benchmark->verbose > 0)
+    benchmark_check_time(benchmark);
+
+  if (benchmark->verbose > 1)
   {
-    fprintf(stderr, "malloc:%d\n", errno);
-    *ret_ptr= GEARMAN_WORK_FAIL;
-    return NULL;
+    printf("Job=%s (%zu)\n", gearman_job_handle(job),
+           gearman_job_workload_size(job));
   }
 
-  for (y= 0, x= *result_size; x; x--, y++)
-    result[y]= ((uint8_t *)workload)[x - 1];
-
-  printf("Job=%s Workload=%.*s Result=%.*s\n", gearman_job_handle(job),
-         (int)*result_size, workload, (int)*result_size, result);
-
   *ret_ptr= GEARMAN_SUCCESS;
-  return result;
+  return NULL;
 }
 
 static void usage(char *name)
 {
-  printf("\nusage: %s [-h <host>] [-p <port>]\n", name);
-  printf("\t-h <host> - job server host\n");
-  printf("\t-p <port> - job server port\n");
+  printf("\nusage: %s\n"
+         "\t[-c count] [-f function] [-h <host>] [-p <port>] [-v]\n\n", name);
+  printf("\t-c <count>    - number of jobs to run before exiting\n");
+  printf("\t-f <function> - function name for tasks, can specify many\n"
+         "\t                (default %s)\n",
+                            GEARMAN_BENCHMARK_DEFAULT_FUNCTION);
+  printf("\t-h <host>     - job server host, can specify many\n");
+  printf("\t-p <port>     - job server port\n");
+  printf("\t-v            - increase verbose level\n");
 }

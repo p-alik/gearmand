@@ -176,8 +176,6 @@ void *gearman_client_do(gearman_client_st *client, const char *function_name,
                         size_t workload_size, size_t *result_size,
                         gearman_return_t *ret_ptr)
 {
-  gearman_client_options_t options;
-
   if (!(client->options & GEARMAN_CLIENT_TASK_IN_USE))
   {
     (void)_client_add_task(client, &(client->do_task), client,
@@ -189,12 +187,9 @@ void *gearman_client_do(gearman_client_st *client, const char *function_name,
     client->options|= GEARMAN_CLIENT_TASK_IN_USE;
   }
 
-  options= client->options;
-  client->options|= GEARMAN_CLIENT_BUFFER_RESULT;
   *ret_ptr= gearman_client_run_tasks(client, NULL, NULL, _client_do_data,
                                      _client_do_status, _client_do_data,
                                      _client_do_fail);
-  client->options= options;
   if (*ret_ptr != GEARMAN_IO_WAIT && *ret_ptr != GEARMAN_WORK_DATA &&
       *ret_ptr != GEARMAN_WORK_STATUS)
   {
@@ -226,8 +221,6 @@ void *gearman_client_do_high(gearman_client_st *client,
                              const void *workload, size_t workload_size,
                              size_t *result_size, gearman_return_t *ret_ptr)
 {
-  gearman_client_options_t options;
-
   if (!(client->options & GEARMAN_CLIENT_TASK_IN_USE))
   {
     (void)_client_add_task(client, &(client->do_task), client,
@@ -239,12 +232,9 @@ void *gearman_client_do_high(gearman_client_st *client,
     client->options|= GEARMAN_CLIENT_TASK_IN_USE;
   }
 
-  options= client->options;
-  client->options|= GEARMAN_CLIENT_BUFFER_RESULT;
   *ret_ptr= gearman_client_run_tasks(client, NULL, NULL, _client_do_data,
                                      _client_do_status, _client_do_data,
                                      _client_do_fail);
-  client->options= options;
   if (*ret_ptr != GEARMAN_IO_WAIT && *ret_ptr != GEARMAN_WORK_DATA &&
       *ret_ptr != GEARMAN_WORK_STATUS)
   {
@@ -453,7 +443,7 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client,
     while (1)
     {
       /* Start any new tasks. */
-      if (client->new > 0)
+      if (client->new > 0 && !(client->options & GEARMAN_CLIENT_NO_NEW))
       {
         for (client->task= client->gearman->task_list; client->task != NULL;
              client->task= client->task->next)
@@ -471,13 +461,6 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client,
             return ret;
           }
         }
-
-        ret= gearman_con_flush_all(client->gearman);
-        if (ret != GEARMAN_SUCCESS && ret != GEARMAN_IO_WAIT)
-        {
-          client->gearman->options= options;
-          return ret;
-        }
       }
 
       /* See if there are any connections ready for I/O. */
@@ -490,7 +473,8 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client,
                client->task= client->task->next)
           {
             if (client->task->con != client->con ||
-                client->task->state != GEARMAN_TASK_STATE_SUBMIT)
+                (client->task->state != GEARMAN_TASK_STATE_SUBMIT &&
+                 client->task->state != GEARMAN_TASK_STATE_WORKLOAD))
             {
               continue;
             }
@@ -505,81 +489,118 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client,
               return ret;
             }
           }
+        }
 
-          if (!(client->con->events & POLLOUT))
+        if (!(client->con->revents & POLLIN))
+          continue;
+
+        /* Socket is ready for reading. */
+        while (1)
+        {
+          /* Read packet on connection and find which task it belongs to. */
+          if (client->options & GEARMAN_CLIENT_UNBUFFERED_RESULT)
           {
-            ret= gearman_con_flush(client->con);
-            if (ret != GEARMAN_SUCCESS && ret != GEARMAN_IO_WAIT)
+            /* If client is handling the data read, make sure it's complete. */
+            if (client->con->recv_state == GEARMAN_CON_RECV_STATE_READ_DATA)
             {
+              for (client->task= client->gearman->task_list;
+                   client->task != NULL; client->task= client->task->next)
+              {
+                if (client->task->con == client->con &&
+                    (client->task->state == GEARMAN_TASK_STATE_DATA ||
+                     client->task->state == GEARMAN_TASK_STATE_COMPLETE))
+                {
+                  break;
+                }
+              }
+
+              assert(client->task != NULL);
+            }
+            else
+            {
+              /* Read the next packet, without buffering the data part. */
+              client->task= NULL;
+              (void)gearman_con_recv(client->con, &(client->con->packet), &ret,
+                                     false);
+            }
+          }
+          else
+          {
+            /* Read the next packet, buffering the data part. */
+            client->task= NULL;
+            (void)gearman_con_recv(client->con, &(client->con->packet), &ret,
+                                   true);
+          }
+
+          if (client->task == NULL)
+          {
+            /* Check the return of the gearman_con_recv() calls above. */
+            if (ret != GEARMAN_SUCCESS)
+            {
+              if (ret == GEARMAN_IO_WAIT)
+                break;
+
+              client->state= GEARMAN_CLIENT_STATE_IDLE;
               client->gearman->options= options;
               return ret;
             }
-          }
-        }
 
-        /* Try reading even if POLLIN is not set, we may not have asked yet. */
-        while (1)
-        {
-          assert(client->con);
+            client->con->options|= GEARMAN_CON_PACKET_IN_USE;
 
-          /* Read packet on connection and find which task it belongs to. */
-          (void)gearman_con_recv(client->con, &(client->con->packet), &ret,
-                                 client->options &
-                                 GEARMAN_CLIENT_BUFFER_RESULT ? true : false);
-          if (ret != GEARMAN_SUCCESS)
-          {
-            if (ret == GEARMAN_IO_WAIT)
-              break;
-
-            client->state= GEARMAN_CLIENT_STATE_IDLE;
-            client->gearman->options= options;
-            return ret;
-          }
-
-          client->con->options|= GEARMAN_CON_PACKET_IN_USE;
-
-          for (client->task= client->gearman->task_list; client->task != NULL;
-               client->task= client->task->next)
-          {
-            if (client->con->packet.command == GEARMAN_COMMAND_JOB_CREATED)
+            /* We have a packet, see which task it belongs to. */
+            for (client->task= client->gearman->task_list; client->task != NULL;
+                 client->task= client->task->next)
             {
-              if (client->task->con != client->con ||
-                  client->task->created_id != client->con->created_id)
+              if (client->task->con != client->con)
+                continue;
+
+              if (client->con->packet.command == GEARMAN_COMMAND_JOB_CREATED)
+              {
+                if (client->task->created_id != client->con->created_id)
+                  continue;
+
+                /* New job created, drop through below and notify task. */
+                client->con->created_id++;
+              }
+              else if (client->con->packet.command == GEARMAN_COMMAND_ERROR)
+              {
+                GEARMAN_ERROR_SET(client->gearman, "gearman_client_run_tasks",
+                                  "%s:%.*s",
+                                  (char *)(client->con->packet.arg[0]),
+                                  (int)(client->con->packet.arg_size[1]),
+                                  (char *)(client->con->packet.arg[1]));
+                return GEARMAN_SERVER_ERROR;
+              }
+              else if (strcmp(client->task->job_handle,
+                              (char *)(client->con->packet.arg[0])))
               {
                 continue;
               }
 
-              client->con->created_id++;
+              /* Else, we have a matching result packet of some kind. */
+
+              break;
             }
-            else if (client->con->packet.command == GEARMAN_COMMAND_ERROR)
-            {
-              GEARMAN_ERROR_SET(client->gearman, "gearman_client_run_tasks",
-                                "%s:%.*s", (char *)(client->con->packet.arg[0]),
-                                (int)(client->con->packet.arg_size[1]),
-                                (char *)(client->con->packet.arg[1]));
-              return GEARMAN_SERVER_ERROR;
-            }
-            else if (strcmp(client->task->job_handle,
-                            (char *)(client->con->packet.arg[0])))
-            {
-              continue;
-            }
+
+            assert(client->task != NULL);
 
             client->task->recv= &(client->con->packet);
-
-  case GEARMAN_CLIENT_STATE_PACKET:
-            ret= _client_run_task(client, client->task, workload_fn, created_fn,
-                                  data_fn, status_fn, complete_fn, fail_fn);
-            if (ret != GEARMAN_SUCCESS && ret != GEARMAN_IO_WAIT)
-            {
-              client->state= GEARMAN_CLIENT_STATE_PACKET;
-              client->gearman->options= options;
-              return ret;
-            }
-
-            break;
           }
 
+  case GEARMAN_CLIENT_STATE_PACKET:
+          /* Let task process job created or result packet. */
+          ret= _client_run_task(client, client->task, workload_fn, created_fn,
+                                data_fn, status_fn, complete_fn, fail_fn);
+          if (ret == GEARMAN_IO_WAIT)
+            break;
+          if (ret != GEARMAN_SUCCESS)
+          {
+            client->state= GEARMAN_CLIENT_STATE_PACKET;
+            client->gearman->options= options;
+            return ret;
+          }
+
+          /* Clean up the packet. */
           gearman_packet_free(&(client->con->packet));
           client->con->options&= ~GEARMAN_CON_PACKET_IN_USE;
 
@@ -593,21 +614,18 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client,
       if (client->running == 0)
         break;
 
-      if (client->new > 0)
-      {
-        if (client->options & GEARMAN_CLIENT_NO_NEW)
-          client->options&= ~GEARMAN_CLIENT_NO_NEW;
-        else
-          continue;
-      }
+      if (client->new > 0 && !(client->options & GEARMAN_CLIENT_NO_NEW))
+        continue;
 
       if (options & GEARMAN_NON_BLOCKING)
       {
+        /* Let the caller wait for activity. */
         client->state= GEARMAN_CLIENT_STATE_IDLE;
         client->gearman->options= options;
         return GEARMAN_IO_WAIT;
       }
 
+      /* Wait for activity on one of the connections. */
       ret= gearman_con_wait(client->gearman, -1);
       if (ret != GEARMAN_SUCCESS && ret != GEARMAN_IO_WAIT)
       {
@@ -733,7 +751,8 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
     }
 
   case GEARMAN_TASK_STATE_SUBMIT:
-    ret= gearman_con_send(task->con, &(task->send), false);
+    ret= gearman_con_send(task->con, &(task->send),
+                          client->new == 0 ? true : false);
     if (ret != GEARMAN_SUCCESS)
     {
       task->state= GEARMAN_TASK_STATE_SUBMIT;
@@ -751,6 +770,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
       }
     }
 
+    client->options&= ~GEARMAN_CLIENT_NO_NEW;
     task->state= GEARMAN_TASK_STATE_WORK;
     return gearman_con_set_events(task->con, POLLIN);
 

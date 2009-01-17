@@ -9,6 +9,12 @@ AM_CFLAGS= -I$(top_builddir)
 AM_LDFLAGS= $(top_builddir)/libgearman/libgearman.la
 
 noinst_PROGRAMS= \
-	blobslap_client
+	blobslap_client \
+	blobslap_worker
 
-blobslap_client_SOURCES= blobslap_client.c
+noinst_HEADERS= \
+	benchmark.h
+
+blobslap_client_SOURCES= blobslap_client.c benchmark.c
+
+blobslap_worker_SOURCES= blobslap_worker.c benchmark.c
