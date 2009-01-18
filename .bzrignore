@@ -32,7 +32,6 @@ examples/reverse_client
 examples/reverse_client_bg
 examples/reverse_client_cb
 examples/reverse_worker
-examples/reverse_worker_bg
 examples/wc_worker
 tests/client_test
 tests/client_test.res

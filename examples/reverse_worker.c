@@ -30,10 +30,11 @@ int main(int argc, char *argv[])
   uint32_t count= 0;
   char *host= NULL;
   unsigned short port= 0;
+  bool send_status= false;
   gearman_return_t ret;
   gearman_worker_st worker;
 
-  while ((c = getopt(argc, argv, "c:h:p:")) != EOF)
+  while ((c = getopt(argc, argv, "c:h:p:s")) != EOF)
   {
     switch(c)
     {
@@ -47,6 +48,10 @@ int main(int argc, char *argv[])
 
     case 'p':
       port= atoi(optarg);
+      break;
+
+    case 's':
+      send_status= true;
       break;
 
     default:
@@ -74,7 +79,8 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  ret= gearman_worker_add_function(&worker, "reverse", 0, reverse, NULL);
+  ret= gearman_worker_add_function(&worker, "reverse", 0, reverse,
+                                   &send_status);
   if (ret != GEARMAN_SUCCESS)
   {
     fprintf(stderr, "%s\n", gearman_worker_error(&worker));
@@ -106,11 +112,11 @@ int main(int argc, char *argv[])
 static void *reverse(gearman_job_st *job, void *cb_arg, size_t *result_size,
                      gearman_return_t *ret_ptr)
 {
+  bool send_status= *((bool *)cb_arg);
   const uint8_t *workload;
   uint8_t *result;
   size_t x;
   size_t y;
-  (void)cb_arg;
 
   workload= gearman_job_workload(job);
   *result_size= gearman_job_workload_size(job);
@@ -124,7 +130,21 @@ static void *reverse(gearman_job_st *job, void *cb_arg, size_t *result_size,
   }
 
   for (y= 0, x= *result_size; x; x--, y++)
+  {
     result[y]= ((uint8_t *)workload)[x - 1];
+
+    if (send_status)
+    {
+      *ret_ptr= gearman_job_status(job, y, *result_size);
+      if (*ret_ptr != GEARMAN_SUCCESS)
+      {
+        free(result);
+        return NULL;
+      }
+
+      sleep(1);
+    }
+  }
 
   printf("Job=%s Workload=%.*s Result=%.*s\n", gearman_job_handle(job),
          (int)*result_size, workload, (int)*result_size, result);
@@ -136,6 +156,8 @@ static void *reverse(gearman_job_st *job, void *cb_arg, size_t *result_size,
 static void usage(char *name)
 {
   printf("\nusage: %s [-h <host>] [-p <port>]\n", name);
+  printf("\t-c <count>    - number of jobs to run before exiting\n");
   printf("\t-h <host> - job server host\n");
   printf("\t-p <port> - job server port\n");
+  printf("\t-s        - send status updates and sleep while running job\n");
 }

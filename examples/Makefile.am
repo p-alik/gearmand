@@ -15,7 +15,6 @@ noinst_PROGRAMS= \
 	reverse_client_bg \
 	reverse_client_cb \
 	reverse_worker \
-	reverse_worker_bg \
 	wc_worker
 
 echo_client_SOURCES= echo_client.c
@@ -29,7 +28,5 @@ reverse_client_bg_SOURCES= reverse_client_bg.c
 reverse_client_cb_SOURCES= reverse_client_cb.c
 
 reverse_worker_SOURCES= reverse_worker.c
-
-reverse_worker_bg_SOURCES= reverse_worker_bg.c
 
 wc_worker_SOURCES= wc_worker.c
