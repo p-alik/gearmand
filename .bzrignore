@@ -25,6 +25,7 @@ config/ltmain.sh
 config/missing
 docs/api
 docs/dev
+docs/man
 gearmand/gearmand
 examples/echo_client
 examples/echo_worker

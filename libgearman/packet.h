@@ -30,12 +30,14 @@ extern "C" {
 /**
  * Initialize a packet with all arguments. Variable list is NULL terminated
  * alternating argument and argument size (size_t) pairs. For example:
+ * @code
  * ret= gearman_packet_add_args(gearman, packet,
  *                              GEARMAN_MAGIC_REQUEST,
  *                              GEARMAN_COMMAND_SUBMIT_JOB,
  *                              function_name, strlen(function_name) + 1,
  *                              unique_string, strlen(unique_string) + 1,
  *                              workload, workload_size, NULL);
+ * @endcode
  */
 gearman_return_t gearman_packet_add(gearman_st *gearman,
                                     gearman_packet_st *packet,

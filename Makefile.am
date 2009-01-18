@@ -9,9 +9,13 @@ ACLOCAL_AMFLAGS= -I m4
 
 SUBDIRS = libgearman gearmand tests examples support benchmark
 
+include $(top_srcdir)/docs/man_list
+
 docs: all
 	${DOXYGEN} docs/Doxyfile.api
 	${DOXYGEN} docs/Doxyfile.dev
+	$(MKDIR_P) docs/man/man.3
+	cat libgearman/*.h | $(PERL) $(top_srcdir)/docs/man_gen.perl > $(top_srcdir)/docs/man_list
 
 test: all
 	(cd tests; ${MAKE} test)

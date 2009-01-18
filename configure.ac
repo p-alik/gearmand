@@ -297,6 +297,7 @@ AC_SUBST([AM_CPPFLAGS],['${GLOBAL_CPPFLAGS}'])
 AC_SUBST([AM_CFLAGS])
 
 AC_CHECK_PROGS([DOXYGEN], [doxygen])
+AC_CHECK_PROGS([PERL], [perl])
 
 
 AC_CONFIG_FILES(Makefile libgearman/Makefile gearmand/Makefile
