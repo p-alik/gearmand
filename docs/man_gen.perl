@@ -20,7 +20,7 @@ my $include= "#include <libgearman/gearman.h>";
 my $website= "The Gearman homepage: http://www.gearman.org/";
 my $bugs= "Bugs should be reported at https://bugs.launchpad.net/gearmand";
 my $copying= "Copyright (C) 2008 Brian Aker, Eric Day. All rights reserved.\n\n" .
-             "Use and distribution licensed under the BSD license. See the COPYING file in this directory for full text.";
+             "Use and distribution licensed under the BSD license. See the COPYING file in the original source for full text.";
 
 
 # Don't edit below here unless you know what you're doing.
