@@ -16,7 +16,7 @@ SUBDIRS = libgearman gearmand tests examples support benchmark
 docs: all
 	${DOXYGEN} docs/Doxyfile.api
 	${DOXYGEN} docs/Doxyfile.dev
-	$(MKDIR_P) docs/man/man.3
+	$(MKDIR_P) docs/man/man3
 	cat libgearman/*.h | $(PERL) $(top_srcdir)/docs/man_gen.perl > $(top_srcdir)/docs/man_list
 
 test: all

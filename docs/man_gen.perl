@@ -74,9 +74,9 @@ while ($line= <>)
       if ($name)
       {
         # We have a function! Output a man page.
-        print " \\\n\t$path/man.$section/$name.$section";
+        print " \\\n\t$path/man$section/$name.$section";
         $func=~ s/ ([a-z_\*]*),/ \" $1 \",/g;
-        open(MANSRC, ">$path/man.$section/$name.$section");
+        open(MANSRC, ">$path/man$section/$name.$section");
         print MANSRC ".TH $name $section $date \"$short\" \"$long\"\n";
         print MANSRC ".SH SYNOPSIS\n";
         print MANSRC ".B $include\n";
