@@ -9,7 +9,9 @@ ACLOCAL_AMFLAGS= -I m4
 
 SUBDIRS = libgearman gearmand tests examples support benchmark
 
-include $(top_srcdir)/docs/man_list
+# Uncomment this when making a distribution. This is dynamically generated
+# with 'make docs'.
+#include $(top_srcdir)/docs/man_list
 
 docs: all
 	${DOXYGEN} docs/Doxyfile.api

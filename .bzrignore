@@ -26,6 +26,7 @@ config/missing
 docs/api
 docs/dev
 docs/man
+docs/man_list
 gearmand/gearmand
 examples/echo_client
 examples/echo_worker
