@@ -494,9 +494,10 @@ gearman_return_t gearman_con_flush(gearman_con_st *con)
         write_size= write(con->fd, con->send_buffer_ptr, con->send_buffer_size);
         if (write_size == 0)
         {
-          GEARMAN_ERROR_SET(con->gearman, "gearman_con_flush", "write:EOF")
+          GEARMAN_ERROR_SET(con->gearman, "gearman_con_flush",
+                            "lost connection to server (EOF)")
           (void)gearman_con_close(con);
-          return GEARMAN_EOF;
+          return GEARMAN_LOST_CONNECTION;
         }
         else if (write_size == -1)
         {
@@ -517,7 +518,14 @@ gearman_return_t gearman_con_flush(gearman_con_st *con)
           } 
           else if (errno == EINTR)
             continue;
-      
+          else if (errno == EPIPE || errno == ECONNRESET)
+          {
+            GEARMAN_ERROR_SET(con->gearman, "gearman_con_flush",
+                              "lost connection to server (%d)", errno)
+            (void)gearman_con_close(con);
+            return GEARMAN_LOST_CONNECTION;
+          }
+
           GEARMAN_ERROR_SET(con->gearman, "gearman_con_flush", "write:%d",
                             errno)
           con->gearman->last_errno= errno;
@@ -696,12 +704,18 @@ gearman_packet_st *gearman_con_recv(gearman_con_st *con,
     }
 
     if (packet->data_size == 0)
+    {
+      con->recv_state= GEARMAN_CON_RECV_STATE_NONE;
       break;
+    }
 
     con->recv_data_size= packet->data_size;
 
     if (!recv_data)
+    {
+      con->recv_state= GEARMAN_CON_RECV_STATE_READ_DATA;
       break;
+    }
 
     if (packet->gearman->workload_malloc == NULL)
       packet->data= malloc(packet->data_size);
@@ -723,19 +737,19 @@ gearman_packet_st *gearman_con_recv(gearman_con_st *con,
   case GEARMAN_CON_RECV_STATE_READ_DATA:
     while (con->recv_data_size != 0)
     {
-      recv_size= gearman_con_recv_data(con,
-                                       ((uint8_t *)(packet->data)) +
-                                       con->recv_data_offset,
-                                       packet->data_size -
-                                       con->recv_data_offset, ret_ptr);
+      (void)gearman_con_recv_data(con,
+                                  ((uint8_t *)(packet->data)) +
+                                  con->recv_data_offset,
+                                  packet->data_size -
+                                  con->recv_data_offset, ret_ptr);
       if (*ret_ptr != GEARMAN_SUCCESS)
         return NULL;
     }
 
+    con->recv_state= GEARMAN_CON_RECV_STATE_NONE;
     break;
   }
 
-  con->recv_state= GEARMAN_CON_RECV_STATE_NONE;
   packet= con->recv_packet;
   con->recv_packet= NULL;
 
@@ -784,6 +798,7 @@ size_t gearman_con_recv_data(gearman_con_st *con, void *data, size_t data_size,
   {
     con->recv_data_size= 0;
     con->recv_data_offset= 0;
+    con->recv_state= GEARMAN_CON_RECV_STATE_NONE;
   }
 
   return recv_size;
@@ -853,6 +868,9 @@ gearman_return_t gearman_con_wait(gearman_st *gearman, int timeout)
 gearman_return_t gearman_con_set_events(gearman_con_st *con, short events)
 {
   gearman_return_t ret;
+
+  if ((con->events | events) == con->events)
+    return GEARMAN_SUCCESS;
 
   con->events|= events;
 
@@ -1059,9 +1077,10 @@ static size_t _con_read(gearman_con_st *con, void *data, size_t data_size,
     read_size= read(con->fd, data, data_size);
     if (read_size == 0)
     {
-      GEARMAN_ERROR_SET(con->gearman, "_con_read", "read:EOF")
+      GEARMAN_ERROR_SET(con->gearman, "_con_read",
+                        "lost connection to server (EOF)")
       (void)gearman_con_close(con);
-      *ret_ptr= GEARMAN_EOF;
+      *ret_ptr= GEARMAN_LOST_CONNECTION;
       return 0;
     }
     else if (read_size == -1)
@@ -1086,11 +1105,20 @@ static size_t _con_read(gearman_con_st *con, void *data, size_t data_size,
       }
       else if (errno == EINTR)
         continue;
+      else if (errno == EPIPE || errno == ECONNRESET)
+      {
+        GEARMAN_ERROR_SET(con->gearman, "_con_read",
+                          "lost connection to server (%d)", errno)
+        *ret_ptr= GEARMAN_LOST_CONNECTION;
+      }
+      else
+      {
+        GEARMAN_ERROR_SET(con->gearman, "_con_read", "read:%d", errno)
+        con->gearman->last_errno= errno;
+        *ret_ptr= GEARMAN_ERRNO;
+      }
 
-      GEARMAN_ERROR_SET(con->gearman, "_con_read", "read:%d", errno)
-      con->gearman->last_errno= errno;
       (void)gearman_con_close(con);
-      *ret_ptr= GEARMAN_ERRNO;
       return 0;
     }
 

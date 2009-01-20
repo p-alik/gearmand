@@ -397,7 +397,7 @@ static void _con_ready(int fd __attribute__ ((unused)), short events,
 
     if (gearmand->verbose > 0)
     {
-      if (gearmand->ret != GEARMAN_EOF)
+      if (gearmand->ret != GEARMAN_LOST_CONNECTION)
       {
         printf("%15s:%5u %s\n", inet_ntoa(dcon->sa.sin_addr),
                ntohs(dcon->sa.sin_port),

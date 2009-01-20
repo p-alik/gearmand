@@ -297,11 +297,12 @@ AC_SUBST([AM_CPPFLAGS],['${GLOBAL_CPPFLAGS}'])
 AC_SUBST([AM_CFLAGS])
 
 AC_CHECK_PROGS([DOXYGEN], [doxygen])
+AC_CHECK_PROGS([PERL], [perl])
 
 
 AC_CONFIG_FILES(Makefile libgearman/Makefile gearmand/Makefile
                 tests/Makefile examples/Makefile support/Makefile
-                support/gearmand.pc support/gearmand.spec)
+                benchmark/Makefile support/gearmand.pc support/gearmand.spec)
 
 AC_OUTPUT
 

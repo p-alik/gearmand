@@ -25,6 +25,8 @@ config/ltmain.sh
 config/missing
 docs/api
 docs/dev
+docs/man
+docs/man_list
 gearmand/gearmand
 examples/echo_client
 examples/echo_worker
@@ -32,7 +34,6 @@ examples/reverse_client
 examples/reverse_client_bg
 examples/reverse_client_cb
 examples/reverse_worker
-examples/reverse_worker_bg
 examples/wc_worker
 tests/client_test
 tests/client_test.res
@@ -40,3 +41,5 @@ tests/worker_test
 tests/worker_test.res
 support/gearmand.pc
 support/gearmand.spec
+benchmark/blobslap_client
+benchmark/blobslap_worker
