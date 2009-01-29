@@ -102,42 +102,38 @@ AC_CHECK_HEADERS(sys/utsname.h unistd.h)
 # Check for libevent
 #--------------------------------------------------------------------
 
-SEARCH_FOR_LIB(event, event_init, event.h)
-
-save_CPPFLAGS="$CPPFLAGS"
-save_LIBS="$LIBS"
-CPPFLAGS="$EVENT_CFLAGS"
-LIBS="$EVENT_LIBS"
-AC_CACHE_CHECK([for bufferevent in libevent], ac_cv_libevent_works, [
-  AC_TRY_LINK([
+AC_LIB_HAVE_LINKFLAGS(event,,
+[
 #include <sys/types.h>
 #include <sys/time.h>
 #include <stdlib.h>
-#include <event.h>],[
-        struct bufferevent bev;
-        bufferevent_settimeout(&bev, 1, 1);
-  ], ac_cv_libevent_works=yes, [
-        AC_MSG_ERROR([you need to install a more recent version of libevent,
-        check http://www.monkey.org/~provos/libevent/])
-  ])
-
+#include <event.h>
+],[
+  struct bufferevent bev;
+  bufferevent_settimeout(&bev, 1, 1);
+  event_init();
+  event_loop(EVLOOP_ONCE);
 ])
-AC_CHECK_FUNCS(event_base_new)
-AC_CHECK_FUNCS(event_base_get_method)
-CPPFLAGS="$save_CPPFLAGS"
-LIBS="$save_LIBS"
+AS_IF([test x$ac_cv_libevent = xno],
+      AC_MSG_ERROR([A recent libevent is required for Drizzle. Check http://www.monkey.org/~provos/libevent ]))
 
 #--------------------------------------------------------------------
 # Check for libuuid
 #--------------------------------------------------------------------
 
-dnl Do this by hand instead of with SEARCH_FOR_LIB, because uuid is weird.
 AC_CHECK_HEADERS(uuid/uuid.h)
 if test "x$ac_cv_header_uuid_uuid_h" = "xno"
 then
   AC_MSG_ERROR([Couldn't find uuid/uuid.h. Try installing libuuid development packages])
 fi
-AC_CHECK_LIB(uuid, uuid_generate)
+AC_LIB_HAVE_LINKFLAGS(uuid,,
+[
+#include <uuid/uuid.h>
+],
+[
+  uuid_t uout;
+  uuid_generate(uout);
+])
 
 #--------------------------------------------------------------------
 # Check for tcmalloc
