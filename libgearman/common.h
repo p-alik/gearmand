@@ -66,7 +66,7 @@
 # endif
 #endif
 
-#ifdef HAVE_EVENT_H
+#ifdef HAVE_LIBEVENT
 #include <event.h>
 #endif
 
@@ -150,7 +150,7 @@ struct gearmand
   uint32_t dcon_total;
   gearmand_con_st *free_dcon_list;
   uint32_t free_dcon_count;
-#ifdef HAVE_EVENT_H
+#ifdef HAVE_LIBEVENT
   struct event_base *base;
   struct event listen_event;
 #endif
@@ -169,7 +169,7 @@ struct gearmand_con
   gearman_server_con_st server_con;
   gearman_con_st *con;
   short last_events;
-#ifdef HAVE_EVENT_H
+#ifdef HAVE_LIBEVENT
   struct event event;
 #endif
 };

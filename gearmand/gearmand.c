@@ -6,6 +6,7 @@
  * the COPYING file in the parent directory for full text.
  */
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -21,12 +22,34 @@ int main(int argc, char *argv[])
   gearmand_st *gearmand;
   gearman_return_t ret;
 
-  while ((c = getopt(argc, argv, "b:hp:vV")) != EOF)
+  while ((c = getopt(argc, argv, "b:dhp:vV")) != EOF)
   {
     switch(c)
     {
     case 'b':
       backlog= atoi(optarg);
+      break;
+
+    case 'd':
+      switch (fork())
+      {
+      case -1:
+        fprintf(stderr, "fork:%d\n", errno);
+        return 1;
+
+      case 0:
+        break;
+
+      default:
+        return 0;
+      }
+
+      if (setsid() == -1)
+      {
+        fprintf(stderr, "setsid:%d\n", errno);
+        return 1;
+      }
+
       break;
 
     case 'p':
@@ -46,6 +69,7 @@ int main(int argc, char *argv[])
       printf("\ngearmand %s - %s\n", gearman_version(), gearman_bugreport());
       printf("usage: %s [-h] [-p <port>]\n", argv[0]);
       printf("\t-b <backlog> - number of backlog connections for listen\n");
+      printf("\t-d           - detach and run in the background\n");
       printf("\t-h           - print this help menu\n");
       printf("\t-p <port>    - port for server to listen on\n");
       printf("\t-v           - increase verbosity level by one\n");

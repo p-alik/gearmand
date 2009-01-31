@@ -47,5 +47,4 @@ libgearman_la_SOURCES= \
 	worker.c
 
 libgearman_la_LDFLAGS= -version-info $(GEARMAN_LIBRARY_VERSION) 
-libgearman_la_LIBADD= $(EVENT_LIBS) $(UUID_LIBS)
-libgearman_la_CFLAGS= $(AM_CFLAGS) $(UUID_CFLAGS) $(EVENT_CFLAGS)
+libgearman_la_LIBADD= $(LTLIBEVENT) $(LTLIBUUID)

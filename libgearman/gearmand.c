@@ -33,7 +33,7 @@
  * @{
  */
 
-#ifdef HAVE_EVENT_H
+#ifdef HAVE_LIBEVENT
 static gearman_return_t _listen_init(gearmand_st *gearmand);
 
 static void _listen_accept(int fd, short events __attribute__ ((unused)),
@@ -58,7 +58,7 @@ static void _event_del_all(gearmand_st *gearmand);
 
 gearmand_st *gearmand_create(in_port_t port)
 {
-#ifdef HAVE_EVENT_H
+#ifdef HAVE_LIBEVENT
   gearmand_st *gearmand;
 
   gearmand= malloc(sizeof(gearmand_st));
@@ -96,7 +96,7 @@ gearmand_st *gearmand_create(in_port_t port)
 
 void gearmand_free(gearmand_st *gearmand)
 {
-#ifdef HAVE_EVENT_H
+#ifdef HAVE_LIBEVENT
   if (gearmand->base != NULL)
     event_base_free(gearmand->base);
 
@@ -129,7 +129,7 @@ int gearmand_errno(gearmand_st *gearmand)
 
 gearman_return_t gearmand_run(gearmand_st *gearmand)
 {
-#ifdef HAVE_EVENT_H
+#ifdef HAVE_LIBEVENT
   gearmand_con_st *dcon;
 
   if (gearmand->verbose > 0)
@@ -181,7 +181,7 @@ gearman_return_t gearmand_run(gearmand_st *gearmand)
  * Private definitions
  */
 
-#ifdef HAVE_EVENT_H
+#ifdef HAVE_LIBEVENT
 static gearman_return_t _listen_init(gearmand_st *gearmand)
 {
   struct sockaddr_in sa;
