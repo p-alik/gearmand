@@ -47,7 +47,7 @@ gearman_con_st *gearman_con_clone(gearman_st *gearman, gearman_con_st *con,
 /**
  * Free a connection structure.
  */
-gearman_return_t gearman_con_free(gearman_con_st *con);
+void gearman_con_free(gearman_con_st *con);
 
 /**
  * Set options for a connection.
@@ -80,7 +80,7 @@ gearman_return_t gearman_con_connect(gearman_con_st *con);
 /**
  * Close a connection.
  */
-gearman_return_t gearman_con_close(gearman_con_st *con);
+void gearman_con_close(gearman_con_st *con);
 
 /**
  * Clear address info, freeing structs if needed.

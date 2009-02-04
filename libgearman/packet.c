@@ -404,7 +404,10 @@ size_t gearman_packet_parse(gearman_packet_st *packet, const uint8_t *data,
     else
     {
       if ((data_size - used_size) < packet->data_size)
-        return GEARMAN_IO_WAIT;
+      {
+        *ret_ptr= GEARMAN_IO_WAIT;
+        return used_size;
+      }
 
       *ret_ptr= gearman_packet_add_arg(packet, data + used_size,
                                        packet->data_size);
