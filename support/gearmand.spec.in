@@ -52,7 +52,7 @@ Gearman provides a generic framework to farm out work to other machines, dispatc
 %{_libdir}/libgearman.la
 %{_libdir}/libgearman.so
 %{_libdir}/libgearman.so.0
-%{_libdir}/libgearman.so.0.0.2
+%{_libdir}/libgearman.so.0.0.3
 %{_libdir}/pkgconfig/gearmand.pc
 
 
