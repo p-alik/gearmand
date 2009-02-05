@@ -115,7 +115,7 @@ AC_LIB_HAVE_LINKFLAGS(event,,
   event_loop(EVLOOP_ONCE);
 ])
 AS_IF([test x$ac_cv_libevent = xno],
-      AC_MSG_ERROR([A recent libevent is required for Drizzle. Check http://www.monkey.org/~provos/libevent ]))
+      AC_MSG_ERROR([A recent libevent is required for Gearman. Check http://www.monkey.org/~provos/libevent ]))
 
 save_LIBS="${LIBS}"
 LIBS="${LIBS} ${LTLIBEVENT}"
