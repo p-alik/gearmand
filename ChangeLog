@@ -1,0 +1,17 @@
+0.3 - 2009-02-05
+ * Fixed I/O wait bug in packet parse.
+ * Switched to different autoconf library detection method.
+ * Added detach option to gearmand, can now run in background.
+ * Reworked much of the client code for better concurrency and efficiency.
+ * Added benchmark utilities.
+ * Added man pages.
+ * Changed port to new IANA assigned port, 4730.
+
+0.2 - 2009-01-16
+ * Improved gearmand efficiency by tracking events and reducing syscalls.
+ * Reworked most of the worker code, it now reconnects to the job server.
+ * Added version/bugreport options to gearmand (Brian Moon).
+ * Fixed bug #315652, libevent usage.
+
+0.1 - 2009-01-08
+ * First release.

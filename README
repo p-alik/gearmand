@@ -5,6 +5,17 @@
 # Use and distribution licensed under the BSD license.  See
 # the COPYING file in this directory for full text.
 
+
+*** IMPORTANT ***
+
+Since release 0.3, the default port has been changed to the new IANA
+assigned port, 4730. If you are using this package with older clients,
+workers, or job servers that ran on port 7003, be sure to set port
+options appropriately!
+
+*** IMPORTANT ***
+
+
 Hi!
 
 You've most likely downloaded this package as a tar.gz distribution,

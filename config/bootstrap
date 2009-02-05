@@ -27,12 +27,6 @@ run() {
 ## jump out if one of the programs returns 'false'
 set -e
 
-if test -d ".bzr" ; then
-  bzr log --short > ChangeLog || touch ChangeLog
-else
-  touch ChangeLog
-fi
-
 if test x$LIBTOOLIZE = x; then
   if test \! "x`which glibtoolize 2> /dev/null | grep -v '^no'`" = x; then
     LIBTOOLIZE=glibtoolize
