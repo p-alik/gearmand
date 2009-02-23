@@ -166,6 +166,13 @@ char *gearman_job_function_name(gearman_job_st *job)
   return (char *)job->assigned.arg[1];
 }
 
+char *gearman_job_unique(gearman_job_st *job)
+{
+  if (job->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN_UNIQ)
+    return (char *)job->assigned.arg[2];
+  return "";
+}
+
 const void *gearman_job_workload(gearman_job_st *job)
 {
   return job->assigned.data;

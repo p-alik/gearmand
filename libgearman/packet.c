@@ -54,9 +54,14 @@ gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX]=
   { "SET_CLIENT_ID",    1, false },
   { "CAN_DO_TIMEOUT",   2, false },
   { "ALL_YOURS",        0, false },
+  { "WORK_EXCEPTION",   1, true  },
+  { "OPTION_REQ",       1, false },
+  { "OPTION_RES",       1, false },
+  { "WORK_DATA",        1, true  },
   { "SUBMIT_JOB_SCHED", 7, true  },
   { "SUBMIT_JOB_EPOCH", 3, true  },
-  { "WORK_DATA",        1, true  }
+  { "GRAB_JOB_UNIQ",    0, false },
+  { "JOB_ASSIGN_UNIQ",  3, true  }
 };
 
 /** @} */

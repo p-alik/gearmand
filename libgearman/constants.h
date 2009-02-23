@@ -35,6 +35,7 @@ extern "C" {
 #define GEARMAN_MAX_ERROR_SIZE 1024
 #define GEARMAN_PACKET_HEADER_SIZE 12
 #define GEARMAN_JOB_HANDLE_SIZE 64
+#define GEARMAN_OPTION_SIZE 64
 #define GEARMAN_UNIQUE_SIZE 64
 #define GEARMAN_MAX_COMMAND_ARGS 8
 #define GEARMAN_ARGS_BUFFER_SIZE 128
@@ -219,7 +220,8 @@ typedef enum
 
 /**
  * @ingroup gearman_packet
- * Command types.
+ * Command types. When you add a new entry, update gearman_command_info_list in
+ * packet.c as well.
  */
 typedef enum
 {
@@ -248,9 +250,14 @@ typedef enum
   GEARMAN_COMMAND_SET_CLIENT_ID,
   GEARMAN_COMMAND_CAN_DO_TIMEOUT,
   GEARMAN_COMMAND_ALL_YOURS,
+  GEARMAN_COMMAND_WORK_EXCEPTION,
+  GEARMAN_COMMAND_OPTION_REQ,
+  GEARMAN_COMMAND_OPTION_RES,
+  GEARMAN_COMMAND_WORK_DATA,
   GEARMAN_COMMAND_SUBMIT_JOB_SCHED,
   GEARMAN_COMMAND_SUBMIT_JOB_EPOCH,
-  GEARMAN_COMMAND_WORK_DATA,
+  GEARMAN_COMMAND_GRAB_JOB_UNIQ,
+  GEARMAN_COMMAND_JOB_ASSIGN_UNIQ,
   GEARMAN_COMMAND_MAX /* Always add new commands before this. */
 } gearman_command_t;
 
@@ -330,7 +337,8 @@ typedef enum
   GEARMAN_WORKER_GRAB_JOB_IN_USE=  (1 << 3),
   GEARMAN_WORKER_PRE_SLEEP_IN_USE= (1 << 4),
   GEARMAN_WORKER_WORK_JOB_IN_USE=  (1 << 5),
-  GEARMAN_WORKER_CHANGE=           (1 << 6)
+  GEARMAN_WORKER_CHANGE=           (1 << 6),
+  GEARMAN_WORKER_GRAB_UNIQ=        (1 << 7)
 } gearman_worker_options_t;
 
 /**
@@ -387,8 +395,9 @@ typedef enum
  */
 typedef enum
 {
-  GEARMAN_SERVER_CON_ALLOCATED= (1 << 0),
-  GEARMAN_SERVER_CON_SLEEPING=  (1 << 1)
+  GEARMAN_SERVER_CON_ALLOCATED=  (1 << 0),
+  GEARMAN_SERVER_CON_SLEEPING=   (1 << 1),
+  GEARMAN_SERVER_CON_EXCEPTIONS= (1 << 2)
 } gearman_server_con_options_t;
 
 /**

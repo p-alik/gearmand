@@ -70,6 +70,11 @@ char *gearman_job_handle(gearman_job_st *job);
 char *gearman_job_function_name(gearman_job_st *job);
 
 /**
+ * Get the unique ID associated with a job.
+ */
+char *gearman_job_unique(gearman_job_st *job);
+
+/**
  * Get a pointer to the workload for a job.
  */
 const void *gearman_job_workload(gearman_job_st *job);

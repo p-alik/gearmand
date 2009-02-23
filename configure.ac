@@ -43,6 +43,13 @@ then
   enable_dependency_tracking=yes
 fi
 
+if test -d ".bzr"
+then
+  building_from_bzr=yes
+else
+  building_from_bzr=no
+fi
+
 AC_PROG_CC
 AM_PROG_CC_STDC
 
@@ -232,7 +239,7 @@ AC_ARG_ENABLE([fail],
   [AS_HELP_STRING([--disable-fail],
     [Turn warnings into failures @<:@default=yes@:>@])],
   [ac_warn_fail="$enableval"],
-  [ac_warn_fail="yes"])
+  [ac_warn_fail="$building_from_bzr"])
 
 AC_ARG_ENABLE([pedantic-warnings],
   [AS_HELP_STRING([--disable-pedantic-warnings],
@@ -271,7 +278,11 @@ then
 
   if test "$ac_warn_pedantic" = "yes"
   then
-    W_PEDANTIC="-pedantic -Wundef -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -Wswitch-enum -Wcast-align -Wlogical-op"
+    W_PEDANTIC="-pedantic -Wundef -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -Wswitch-enum -Wcast-align"
+    save_CFLAGS="$CFLAGS"
+    CFLAGS="-Wlogical-op"
+    AC_TRY_COMPILE([#include <stdio>],,W_PEDANTIC="${W_PEDANTIC} -Wlogical-op")
+    CFLAGS="$save_CFLAGS"
   fi
 
   if test "$ac_warn_unreachable" = "yes"

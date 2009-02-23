@@ -156,6 +156,16 @@ void gearman_worker_set_options(gearman_worker_st *worker,
   if (options & GEARMAN_WORKER_NON_BLOCKING)
     gearman_set_options(worker->gearman, GEARMAN_NON_BLOCKING, data);
 
+  if (options & GEARMAN_WORKER_GRAB_UNIQ)
+  {
+    if (data)
+      worker->grab_job.command= GEARMAN_COMMAND_GRAB_JOB_UNIQ;
+    else
+      worker->grab_job.command= GEARMAN_COMMAND_GRAB_JOB;
+
+    (void)gearman_packet_pack_header(&(worker->grab_job));
+  }
+
   if (data)
     worker->options |= options;
   else
@@ -320,6 +330,8 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
 
       if (worker->function_list == NULL)
       {
+        GEARMAN_ERROR_SET(worker->gearman, "gearman_worker_grab_job",
+                          "no functions have been registered")
         *ret_ptr= GEARMAN_NO_REGISTERED_FUNCTIONS;
         return NULL;
       }
@@ -401,7 +413,8 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
             return NULL;
           }
 
-          if (worker->job->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN)
+          if (worker->job->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN ||
+              worker->job->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN_UNIQ)
           {
             worker->job->options|= GEARMAN_JOB_ASSIGNED_IN_USE;
             worker->job->con= worker->con;
