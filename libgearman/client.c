@@ -360,6 +360,20 @@ gearman_task_st *gearman_client_add_task_background(gearman_client_st *client,
                           ret_ptr);
 }
 
+gearman_task_st *gearman_client_add_task_high_background(gearman_client_st *client,
+                                                         gearman_task_st *task,
+                                                         const void *fn_arg,
+                                                         const char *function_name,
+                                                         const char *unique,
+                                                         const void *workload,
+                                                         size_t workload_size,
+                                                         gearman_return_t *ret_ptr)
+{
+  return _client_add_task(client, task, fn_arg, GEARMAN_COMMAND_SUBMIT_JOB_HIGH_BG,
+                          function_name, unique, workload, workload_size,
+                          ret_ptr);
+}
+
 gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
                                                 gearman_task_st *task,
                                                 const void *fn_arg,
