@@ -91,6 +91,26 @@ gearman_return_t gearman_job_data(gearman_job_st *job, void *data,
   return _job_send(job);
 }
 
+gearman_return_t gearman_job_warning(gearman_job_st *job, void *warning,
+                                     size_t warning_size)
+{
+  gearman_return_t ret;
+
+  if (!(job->options & GEARMAN_JOB_WORK_IN_USE))
+  {
+    ret= gearman_packet_add(job->gearman, &(job->work), GEARMAN_MAGIC_REQUEST,
+                            GEARMAN_COMMAND_WORK_WARNING, job->assigned.arg[0],
+                            job->assigned.arg_size[0], warning, warning_size,
+                            NULL);
+    if (ret != GEARMAN_SUCCESS)
+      return ret;
+
+    job->options|= GEARMAN_JOB_WORK_IN_USE;
+  }
+
+  return _job_send(job);
+}
+
 gearman_return_t gearman_job_status(gearman_job_st *job, uint32_t numerator,
                                     uint32_t denominator)
 {
@@ -129,6 +149,26 @@ gearman_return_t gearman_job_complete(gearman_job_st *job, void *result,
                             GEARMAN_COMMAND_WORK_COMPLETE,
                             job->assigned.arg[0], job->assigned.arg_size[0],
                             result, result_size, NULL);
+    if (ret != GEARMAN_SUCCESS)
+      return ret;
+
+    job->options|= GEARMAN_JOB_WORK_IN_USE;
+  }
+
+  return _job_send(job);
+}
+
+gearman_return_t gearman_job_exception(gearman_job_st *job, void *exception,
+                                       size_t exception_size)
+{
+  gearman_return_t ret;
+
+  if (!(job->options & GEARMAN_JOB_WORK_IN_USE))
+  {
+    ret= gearman_packet_add(job->gearman, &(job->work), GEARMAN_MAGIC_REQUEST,
+                            GEARMAN_COMMAND_WORK_EXCEPTION,
+                            job->assigned.arg[0], job->assigned.arg_size[0] - 1,
+                            exception, exception_size, NULL);
     if (ret != GEARMAN_SUCCESS)
       return ret;
 

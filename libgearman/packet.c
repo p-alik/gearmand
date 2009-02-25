@@ -58,6 +58,7 @@ gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX]=
   { "OPTION_REQ",       1, false },
   { "OPTION_RES",       1, false },
   { "WORK_DATA",        1, true  },
+  { "WORK_WARNING",     1, true  },
   { "SUBMIT_JOB_SCHED", 7, true  },
   { "SUBMIT_JOB_EPOCH", 3, true  },
   { "GRAB_JOB_UNIQ",    0, false },

@@ -8,9 +8,9 @@
 Gearman Protocol
 ----------------
 
-The Gearman protocol operates over TCP, port 4703 by default. It
+The Gearman protocol operates over TCP, port 4730 by default. It
 previously operated on port 7003, but this conflicted with the
-AFS port range and the new port (4703) was was assigned by IANA.
+AFS port range and the new port (4730) was was assigned by IANA.
 Communication happens between either a client and job server, or
 between a worker and job server. In either case, the protocol consists
 of packets containing requests and responses. All packets sent to a
@@ -93,10 +93,12 @@ header is:
                     27  OPTION_RES        RES    Client/Worker
                     28  WORK_DATA         REQ    Worker
                                           RES    Client
-                    29  SUBMIT_JOB_SCHED  REQ    Client
-                    30  SUBMIT_JOB_EPOCH  REQ    Client
-                    31  GRAB_JOB_UNIQ     REQ    Worker
-                    32  JOB_ASSIGN_UNIQ   RES    Worker
+                    29  WORK_WARNING      REQ    Worker
+                                          RES    Client
+                    30  SUBMIT_JOB_SCHED  REQ    Client
+                    31  SUBMIT_JOB_EPOCH  REQ    Client
+                    32  GRAB_JOB_UNIQ     REQ    Worker
+                    33  JOB_ASSIGN_UNIQ   RES    Worker
 
 4 byte size       - A big-endian (network-order) integer containing
                     the size of the data being sent after the header.
@@ -215,8 +217,9 @@ JOB_CREATED      This is sent in response to one of the SUBMIT_JOB*
                  - Job handle assigned by server.
 
 WORK_DATA        For non-background jobs, the server forwards these
-WORK_STATUS      packets from the worker to clients. See "Worker
-WORK_COMPLETE    Requests" for more information and arguments.
+WORK_WARNING     packets from the worker to clients. See "Worker
+WORK_STATUS      Requests" for more information and arguments.
+WORK_COMPLETE
 WORK_FAIL
 WORK_EXCEPTION
 
@@ -308,7 +311,15 @@ WORK_DATA        This is sent to update the client with data from a
 
                  Arguments:
                  - NULL byte terminated job handle.
-                 - WORKLOAD_SIZE. Data output from job.
+                 - Opaque data that is returned to the client.
+
+WORK_WARNING     This is sent to update the client with a warning. It
+                 acts just like a WORK_DATA response, but should be
+                 treated as a warning instead of normal response data.
+
+                 Arguments:
+                 - NULL byte terminated job handle.
+                 - Opaque data that is returned to the client.
 
 WORK_STATUS      This is sent to update the server (and any listening
                  clients) of the status of a running job. The worker
@@ -338,17 +349,12 @@ WORK_FAIL        This is to notify the server (and any listening
                  - Job handle.
 
 WORK_EXCEPTION   This is to notify the server (and any listening
-                 clients) that the job failed with the given
-                 exception. The format of the exception depends on
-                 the worker API code. For example, the Perl worker
-                 code uses the Storable::nfreeze function to pack
-                 the exception.
+                 clients) that the job failed with the given exception.
 
                  Arguments:
                  - NULL byte terminated job handle.
                  - Opaque data that is returned to the client as an
                    exception.
-
 
 SET_CLIENT_ID    This sets the worker ID in a job server so monitoring
                  and reporting commands can uniquely identify the
@@ -459,6 +465,11 @@ shutdown         Shutdown the server. If the optional "graceful"
 
                  Arguments:
                  - Optional "graceful" mode.
+
+version          Send back the version of the server.
+
+                 Arguments:
+                 - None.
 
 The Perl version also has a 'gladiator' command that uses the
 'Devel::Gladiator' Perl module and is used for debugging.

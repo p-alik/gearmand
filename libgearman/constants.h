@@ -100,7 +100,9 @@ typedef enum
   GEARMAN_SERVER_ERROR,
   GEARMAN_WORK_ERROR,
   GEARMAN_WORK_DATA,
+  GEARMAN_WORK_WARNING,
   GEARMAN_WORK_STATUS,
+  GEARMAN_WORK_EXCEPTION,
   GEARMAN_WORK_FAIL,
   GEARMAN_NOT_CONNECTED,
   GEARMAN_COULD_NOT_CONNECT,
@@ -113,6 +115,8 @@ typedef enum
   GEARMAN_NO_REGISTERED_FUNCTIONS,
   GEARMAN_NO_JOBS,
   GEARMAN_ECHO_DATA_CORRUPTION,
+  GEARMAN_NEED_WORKLOAD_FN,
+  GEARMAN_PAUSE,
   GEARMAN_MAX_RETURN /* Always add new error code before */
 } gearman_return_t;
 
@@ -120,8 +124,10 @@ typedef enum
 typedef gearman_return_t (gearman_workload_fn)(gearman_task_st *task);
 typedef gearman_return_t (gearman_created_fn)(gearman_task_st *task);
 typedef gearman_return_t (gearman_data_fn)(gearman_task_st *task);
+typedef gearman_return_t (gearman_warning_fn)(gearman_task_st *task);
 typedef gearman_return_t (gearman_status_fn)(gearman_task_st *task);
 typedef gearman_return_t (gearman_complete_fn)(gearman_task_st *task);
+typedef gearman_return_t (gearman_exception_fn)(gearman_task_st *task);
 typedef gearman_return_t (gearman_fail_fn)(gearman_task_st *task);
 
 typedef void* (gearman_worker_fn)(gearman_job_st *job, void *fn_arg,
@@ -254,6 +260,7 @@ typedef enum
   GEARMAN_COMMAND_OPTION_REQ,
   GEARMAN_COMMAND_OPTION_RES,
   GEARMAN_COMMAND_WORK_DATA,
+  GEARMAN_COMMAND_WORK_WARNING,
   GEARMAN_COMMAND_SUBMIT_JOB_SCHED,
   GEARMAN_COMMAND_SUBMIT_JOB_EPOCH,
   GEARMAN_COMMAND_GRAB_JOB_UNIQ,
@@ -283,8 +290,10 @@ typedef enum
   GEARMAN_TASK_STATE_WORK,
   GEARMAN_TASK_STATE_CREATED,
   GEARMAN_TASK_STATE_DATA,
+  GEARMAN_TASK_STATE_WARNING,
   GEARMAN_TASK_STATE_STATUS,
   GEARMAN_TASK_STATE_COMPLETE,
+  GEARMAN_TASK_STATE_EXCEPTION,
   GEARMAN_TASK_STATE_FAIL,
   GEARMAN_TASK_STATE_FINISHED
 } gearman_task_state_t;
