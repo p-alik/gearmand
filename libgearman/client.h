@@ -309,6 +309,18 @@ gearman_task_st *gearman_client_add_task_background(gearman_client_st *client,
                                                     gearman_return_t *ret_ptr);
 
 /**
+ * Add a high priority, background task to be run in parallel.
+ */
+gearman_task_st *gearman_client_add_task_high_background(gearman_client_st *client,
+                                                         gearman_task_st *task,
+                                                         const void *fn_arg,
+                                                         const char *function_name,
+                                                         const char *unique,
+                                                         const void *workload,
+                                                         size_t workload_size,
+                                                         gearman_return_t *ret_ptr);
+
+/**
  * Add task to get the status for a backgound task in parallel.
  */
 gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
