@@ -47,7 +47,7 @@ gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX]=
   { "GET_STATUS",       1, false },
   { "ECHO_REQ",         0, true  },
   { "ECHO_RES",         0, true  },
-  { "SUBMIT_JOB_BJ",    2, true  },
+  { "SUBMIT_JOB_BG",    2, true  },
   { "ERROR",            2, false },
   { "STATUS_RES",       5, false },
   { "SUBMIT_JOB_HIGH",  2, true  },
@@ -147,7 +147,7 @@ void gearman_packet_free(gearman_packet_st *packet)
     {
       packet->gearman->workload_free((void *)(packet->data),
                                   (void *)(packet->gearman->workload_free_arg));
-    }  
+    }
   }
 
   GEARMAN_LIST_DEL(packet->gearman->packet, packet,)
@@ -156,7 +156,7 @@ void gearman_packet_free(gearman_packet_st *packet)
     free(packet);
 }
 
-void gearman_packet_set_options(gearman_packet_st *packet, 
+void gearman_packet_set_options(gearman_packet_st *packet,
                                 gearman_packet_options_t options,
                                 uint32_t data)
 {
