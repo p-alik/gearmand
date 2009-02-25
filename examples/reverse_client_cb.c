@@ -87,8 +87,12 @@ int main(int argc, char *argv[])
     }
   }
 
-  ret= gearman_client_run_tasks(&client, NULL, created, data, status, complete,
-                                fail);
+  gearman_client_set_created_fn(&client, created);
+  gearman_client_set_data_fn(&client, data);
+  gearman_client_set_status_fn(&client, status);
+  gearman_client_set_complete_fn(&client, complete);
+  gearman_client_set_fail_fn(&client, fail);
+  ret= gearman_client_run_tasks(&client);
   if (ret != GEARMAN_SUCCESS)
   {
     fprintf(stderr, "%s\n", gearman_client_error(&client));

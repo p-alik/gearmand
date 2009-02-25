@@ -47,7 +47,7 @@ gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX]=
   { "GET_STATUS",       1, false },
   { "ECHO_REQ",         0, true  },
   { "ECHO_RES",         0, true  },
-  { "SUBMIT_JOB_BG",    2, true  },
+  { "SUBMIT_JOB_BJ",    2, true  },
   { "ERROR",            2, false },
   { "STATUS_RES",       5, false },
   { "SUBMIT_JOB_HIGH",  2, true  },
@@ -58,10 +58,12 @@ gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX]=
   { "OPTION_REQ",       1, false },
   { "OPTION_RES",       1, false },
   { "WORK_DATA",        1, true  },
+  { "WORK_WARNING",     1, true  },
   { "SUBMIT_JOB_SCHED", 7, true  },
   { "SUBMIT_JOB_EPOCH", 3, true  },
   { "GRAB_JOB_UNIQ",    0, false },
-  { "JOB_ASSIGN_UNIQ",  3, true  }
+  { "JOB_ASSIGN_UNIQ",  3, true  },
+  { "SUBMIT_JOB_HIGH_BG", 2, true  }
 };
 
 /** @} */
@@ -308,6 +310,8 @@ gearman_return_t gearman_packet_unpack_header(gearman_packet_st *packet)
   if (packet->command == GEARMAN_COMMAND_TEXT ||
       packet->command >= GEARMAN_COMMAND_MAX)
   {
+    printf("invalid command value %d.  max %d", packet->command, GEARMAN_COMMAND_MAX);
+
     GEARMAN_ERROR_SET(packet->gearman, "gearman_packet_unpack",
                       "invalid command value")
     return GEARMAN_INVALID_COMMAND;

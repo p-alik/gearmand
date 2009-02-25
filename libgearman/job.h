@@ -43,6 +43,12 @@ gearman_return_t gearman_job_data(gearman_job_st *job, void *data,
                                   size_t data_size);
 
 /**
+ * Send warning for a running job.
+ */
+gearman_return_t gearman_job_warning(gearman_job_st *job, void *warning,
+                                     size_t warning_size);
+
+/**
  * Send status information for a running job.
  */
 gearman_return_t gearman_job_status(gearman_job_st *job, uint32_t numerator,
@@ -53,6 +59,12 @@ gearman_return_t gearman_job_status(gearman_job_st *job, uint32_t numerator,
  */
 gearman_return_t gearman_job_complete(gearman_job_st *job, void *result,
                                       size_t result_size);
+
+/**
+ * Send exception for a running job.
+ */
+gearman_return_t gearman_job_exception(gearman_job_st *job, void *exceptio,
+                                       size_t exceptio_size);
 
 /**
  * Send fail status for a job.

@@ -211,6 +211,25 @@ gearman_return_t gearman_client_do_background(gearman_client_st *client,
                                               char *job_handle);
 
 /**
+ * Run a high priority task in the background.
+ * @param client Client structure previously initialized with
+ *        gearman_client_create or gearman_client_clone.
+ * @param function_name The name of the function to run.
+ * @param unique Optional unique job identifier, or NULL for a new UUID.
+ * @param workload The workload to pass to the function when it is run.
+ * @param workload_size Size of the workload.
+ * @param job_handle A buffer to store the job handle in. Must be at least
+          GEARMAN_JOB_HANDLE_SIZE bytes long.
+ * @return Standard gearman return value.
+ */
+gearman_return_t gearman_client_do_high_background(gearman_client_st *client,
+                                                   const char *function_name,
+                                                   const char *unique,
+                                                   const void *workload,
+                                                   size_t workload_size,
+                                                   char *job_handle);
+
+/**
  * Get the status for a backgound job.
  * @param client Client structure previously initialized with
  *        gearman_client_create or gearman_client_clone.
@@ -299,15 +318,62 @@ gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
                                                 gearman_return_t *ret_ptr);
 
 /**
+ * Callback function when workload data needs to be sent for a task.
+ */
+void gearman_client_set_workload_fn(gearman_client_st *client,
+                                    gearman_workload_fn *workload_fn);
+
+/**
+ * Callback function when a job has been created for a task.
+ */
+void gearman_client_set_created_fn(gearman_client_st *client,
+                                   gearman_created_fn *created_fn);
+
+/**
+ * Callback function when there is a data packet for a task.
+ */
+void gearman_client_set_data_fn(gearman_client_st *client,
+                                gearman_data_fn *data_fn);
+
+/**
+ * Callback function when there is a warning packet for a task.
+ */
+void gearman_client_set_warning_fn(gearman_client_st *client,
+                                   gearman_warning_fn *warning_fn);
+
+/**
+ * Callback function when there is a status packet for a task.
+ */
+void gearman_client_set_status_fn(gearman_client_st *client,
+                                  gearman_status_fn *status_fn);
+
+/**
+ * Callback function when a task is complete.
+ */
+void gearman_client_set_complete_fn(gearman_client_st *client,
+                                    gearman_complete_fn *complete_fn);
+
+/**
+ * Callback function when there is an exception packet for a task.
+ */
+void gearman_client_set_exception_fn(gearman_client_st *client,
+                                     gearman_exception_fn *exception_fn);
+
+/**
+ * Callback function when a task has failed.
+ */
+void gearman_client_set_fail_fn(gearman_client_st *client,
+                                gearman_fail_fn *fail_fn);
+
+/**
+ * Clear all task callback functions.
+ */
+void gearman_client_clear_fn(gearman_client_st *client);
+
+/**
  * Run tasks that have been added in parallel.
  */
-gearman_return_t gearman_client_run_tasks(gearman_client_st *client,
-                                          gearman_workload_fn *workload_fn,
-                                          gearman_created_fn *created_fn,
-                                          gearman_data_fn *data_fn,
-                                          gearman_status_fn *status_fn,
-                                          gearman_complete_fn *complete_fn,
-                                          gearman_fail_fn *fail_fn);
+gearman_return_t gearman_client_run_tasks(gearman_client_st *client);
 
 /** @} */
 
