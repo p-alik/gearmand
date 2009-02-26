@@ -141,6 +141,7 @@ typedef gearman_return_t (gearman_event_close_fn)(gearman_con_st *con,
                                                   void *arg);
 typedef void* (gearman_malloc_fn)(size_t size, void *arg);
 typedef void (gearman_free_fn)(void *ptr, void *arg);
+typedef void (gearman_task_fn_arg_free_fn)(gearman_task_st *task, void *fn_arg);
 
 /** @} */
 

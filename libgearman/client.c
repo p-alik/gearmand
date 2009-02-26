@@ -164,6 +164,12 @@ void gearman_client_set_workload_free(gearman_client_st *client,
   gearman_set_workload_free(client->gearman, workload_free, workload_free_arg);
 }
 
+void gearman_client_set_task_fn_arg_free(gearman_client_st *client,
+                                         gearman_task_fn_arg_free_fn *free_fn)
+{
+  gearman_set_task_fn_arg_free(client->gearman, free_fn);
+}
+
 gearman_return_t gearman_client_add_server(gearman_client_st *client,
                                            const char *host, in_port_t port)
 {

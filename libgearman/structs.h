@@ -43,6 +43,7 @@ struct gearman_st
   const void *workload_malloc_arg;
   gearman_free_fn *workload_free;
   const void *workload_free_arg;
+  gearman_task_fn_arg_free_fn *task_fn_arg_free_fn;
 };
 
 /**

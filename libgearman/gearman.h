@@ -123,6 +123,13 @@ void gearman_set_workload_free(gearman_st *gearman,
                                gearman_free_fn *workload_free,
                                const void *workload_free_arg);
 
+/**
+ * Set function to call when tasks are being cleaned up so applications can
+ * clean up fn_arg.
+ */
+void gearman_set_task_fn_arg_free(gearman_st *gearman,
+                                  gearman_task_fn_arg_free_fn *free_fn);
+
 /** @} */
 
 #ifdef __cplusplus

@@ -47,6 +47,9 @@ void gearman_task_free(gearman_task_st *task)
   if (task->options & GEARMAN_TASK_SEND_IN_USE)
     gearman_packet_free(&(task->send));
 
+  if (task->fn_arg != NULL && task->gearman->task_fn_arg_free_fn != NULL)
+    (*(task->gearman->task_fn_arg_free_fn))(task, (void *)(task->fn_arg));
+
   GEARMAN_LIST_DEL(task->gearman->task, task,)
 
   if (task->options & GEARMAN_TASK_ALLOCATED)

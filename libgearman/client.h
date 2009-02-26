@@ -111,6 +111,16 @@ void gearman_client_set_workload_free(gearman_client_st *client,
                                       const void *workload_free_arg);
 
 /**
+ * Set function to call when tasks are being cleaned up so applications can
+ * clean up fn_arg.
+ * @param client Client structure previously initialized with
+ *        gearman_client_create or gearman_client_clone.
+ * @param free_fn function to call to clean up fn_arg.
+ */
+void gearman_client_set_task_fn_arg_free(gearman_client_st *client,
+                                         gearman_task_fn_arg_free_fn *free_fn);
+
+/**
  * Add a job server to a client. This goes into a list of servers than can be
  * used to run tasks. No socket I/O happens here, it is just added to a list.
  * @param client Client structure previously initialized with
