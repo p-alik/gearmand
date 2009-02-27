@@ -415,7 +415,7 @@ gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
                                (uint8_t *)job_handle, strlen(job_handle), NULL);
   if (*ret_ptr == GEARMAN_SUCCESS)
   {
-    client->new++;
+    client->running_tasks++;
     client->running++;
     task->options|= GEARMAN_TASK_SEND_IN_USE;
   }
@@ -443,7 +443,7 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client,
     while (1)
     {
       /* Start any new tasks. */
-      if (client->new > 0 && !(client->options & GEARMAN_CLIENT_NO_NEW))
+      if (client->running_tasks > 0 && !(client->options & GEARMAN_CLIENT_NO_NEW))
       {
         for (client->task= client->gearman->task_list; client->task != NULL;
              client->task= client->task->next)
@@ -614,7 +614,7 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client,
       if (client->running == 0)
         break;
 
-      if (client->new > 0 && !(client->options & GEARMAN_CLIENT_NO_NEW))
+      if (client->running_tasks > 0 && !(client->options & GEARMAN_CLIENT_NO_NEW))
         continue;
 
       if (options & GEARMAN_NON_BLOCKING)
@@ -699,7 +699,7 @@ static gearman_task_st *_client_add_task(gearman_client_st *client,
                                workload, workload_size, NULL);
   if (*ret_ptr == GEARMAN_SUCCESS)
   {
-    client->new++;
+    client->running_tasks++;
     client->running++;
     task->options|= GEARMAN_TASK_SEND_IN_USE;
   }
@@ -742,7 +742,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
       return GEARMAN_IO_WAIT;
     }
 
-    client->new--;
+    client->running_tasks--;
 
     if (task->send.command != GEARMAN_COMMAND_GET_STATUS)
     {
@@ -752,7 +752,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
 
   case GEARMAN_TASK_STATE_SUBMIT:
     ret= gearman_con_send(task->con, &(task->send),
-                          client->new == 0 ? true : false);
+                          client->running_tasks == 0 ? true : false);
     if (ret != GEARMAN_SUCCESS)
     {
       task->state= GEARMAN_TASK_STATE_SUBMIT;

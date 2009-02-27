@@ -160,7 +160,7 @@ struct gearman_client_st
   gearman_st gearman_static;
   gearman_client_state_t state;
   gearman_client_options_t options;
-  uint32_t new;
+  uint32_t running_tasks;
   uint32_t running;
   gearman_con_st *con;
   gearman_task_st *task;
