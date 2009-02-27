@@ -416,7 +416,7 @@ gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
   if (*ret_ptr == GEARMAN_SUCCESS)
   {
     client->new_tasks++;
-    client->running++;
+    client->running_tasks++;
     task->options|= GEARMAN_TASK_SEND_IN_USE;
   }
 
@@ -605,13 +605,13 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client,
           client->con->options&= ~GEARMAN_CON_PACKET_IN_USE;
 
           /* If all tasks are done, return. */
-          if (client->running == 0)
+          if (client->running_tasks == 0)
             break;
         }
       }
 
       /* If all tasks are done, return. */
-      if (client->running == 0)
+      if (client->running_tasks == 0)
         break;
 
       if (client->new_tasks > 0 && !(client->options & GEARMAN_CLIENT_NO_NEW))
@@ -700,7 +700,7 @@ static gearman_task_st *_client_add_task(gearman_client_st *client,
   if (*ret_ptr == GEARMAN_SUCCESS)
   {
     client->new_tasks++;
-    client->running++;
+    client->running_tasks++;
     task->options|= GEARMAN_TASK_SEND_IN_USE;
   }
 
@@ -886,7 +886,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
     break;
   }
 
-  client->running--;
+  client->running_tasks--;
   task->state= GEARMAN_TASK_STATE_FINISHED;
   return GEARMAN_SUCCESS;
 }
