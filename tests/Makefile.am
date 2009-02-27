@@ -8,12 +8,15 @@
 AM_CFLAGS= -I$(top_builddir)
 AM_LDFLAGS= $(LTLIBUUID) $(LTLIBEVENT) $(top_builddir)/libgearman/libgearman.la
 
-noinst_PROGRAMS= client_test worker_test
+noinst_PROGRAMS= client_test worker_test cpp_test
 noinst_HEADERS= test.h test_gearmand.h test_worker.h
 
 client_test_SOURCES= test.c test_gearmand.c test_worker.c client_test.c
 
 worker_test_SOURCES= test.c test_gearmand.c worker_test.c
+
+# Test linking with C++ application
+cpp_test_SOURCES= cpp_test.cc
 
 EXTRA_DIST= client_test.rec worker_test.rec
 

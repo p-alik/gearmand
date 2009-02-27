@@ -14,6 +14,10 @@
 #ifndef __GEARMAN_COMMON_H__
 #define __GEARMAN_COMMON_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "config.h"
 
 #include "gearman.h"
@@ -173,5 +177,9 @@ struct gearmand_con
   struct event event;
 #endif
 };
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __GEARMAN_COMMON_H__ */

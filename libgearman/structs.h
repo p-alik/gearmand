@@ -349,4 +349,8 @@ struct gearman_server_job_st
   uint32_t denominator;
 };
 
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* __GEARMAN_STRUCTS_H__ */
