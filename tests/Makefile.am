@@ -6,7 +6,7 @@
 # the COPYING file in the parent directory for full text.
 
 AM_CFLAGS= -I$(top_builddir)
-AM_LDFLAGS= $(LTLIBUUID) $(LTLIBEVENT) $(top_builddir)/libgearman/libgearman.la
+AM_LDFLAGS= $(LIBUUID) $(LIBEVENT) $(top_builddir)/libgearman/libgearman.la
 
 noinst_PROGRAMS= client_test worker_test
 noinst_HEADERS= test.h test_gearmand.h test_worker.h
