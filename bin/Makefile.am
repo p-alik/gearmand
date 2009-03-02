@@ -7,7 +7,7 @@
 
 AM_LDFLAGS= $(LIBUUID) $(LIBEVENT) $(top_builddir)/libgearman/libgearman.la
 
-noinst_PROGRAMS= \
+bin_PROGRAMS= \
 	gearman
 
 gearman_CFLAGS= $(AM_CFLAGS) -I$(top_builddir)
