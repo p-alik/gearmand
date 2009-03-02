@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
 {
   char c;
   char *host= NULL;
-  unsigned short port= 0;
+  in_port_t port= 0;
   gearman_return_t ret;
   gearman_client_st client;
   gearman_task_st task[REVERSE_TASKS];

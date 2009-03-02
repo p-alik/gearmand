@@ -564,6 +564,7 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
     }
 
     worker->options|= GEARMAN_WORKER_WORK_JOB_IN_USE;
+    worker->work_result_size= 0;
 
   case GEARMAN_WORKER_WORK_STATE_FUNCTION:
     worker->work_result= (*(worker->work_function->worker_fn))(

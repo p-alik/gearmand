@@ -149,6 +149,16 @@ void gearman_client_set_options(gearman_client_st *client,
     client->options &= ~options;
 }
 
+void *gearman_client_data(gearman_client_st *client)
+{
+  return (void *)(client->data);
+}
+
+void gearman_client_set_data(gearman_client_st *client, const void *data)
+{
+  client->data= data;
+}
+
 void gearman_client_set_workload_malloc(gearman_client_st *client,
                                         gearman_malloc_fn *workload_malloc,
                                         const void *workload_malloc_arg)

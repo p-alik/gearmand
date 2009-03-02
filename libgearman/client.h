@@ -83,6 +83,22 @@ void gearman_client_set_options(gearman_client_st *client,
                                 uint32_t data);
 
 /**
+ * Get the application data pointer for a client.
+ * @param client Client structure previously initialized with
+ *        gearman_client_create or gearman_client_clone.
+ * @return Application data pointer that was previously set.
+ */
+void *gearman_client_data(gearman_client_st *client);
+
+/**
+ * Set the application data pointer for a client.
+ * @param client Client structure previously initialized with
+ *        gearman_client_create or gearman_client_clone.
+ * @param data Application data pointer to set.
+ */
+void gearman_client_set_data(gearman_client_st *client, const void *data);
+
+/**
  * Set custom memory allocation function for workloads. Normally gearman uses
  * the standard system malloc to allocate memory used with workloads. This
  * function is used instead.

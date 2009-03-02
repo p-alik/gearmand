@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
   char c;
   uint32_t count= 0;
   char *host= NULL;
-  unsigned short port= 0;
+  in_port_t port= 0;
   gearman_return_t ret;
   gearman_worker_st worker;
 
