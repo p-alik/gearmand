@@ -22,32 +22,82 @@
 
 #define GEARMAN_INITIAL_WORKLOAD_SIZE 8192
 
+#define GEARMAN_ERROR(...) \
+{ \
+  fprintf(stderr, "gearman:" __VA_ARGS__); \
+  fprintf(stderr, "\n"); \
+  exit(1); \
+}
+
+/**
+ * Data structure for arguments and state.
+ */
 typedef struct
 {
+  char **function;
+  uint32_t function_count;
   char *host;
   in_port_t port;
-  int32_t count;
+  uint32_t count;
   char *unique;
   bool job_per_newline;
   bool strip_newline;
   bool worker;
   bool suppress_input;
   char **argv;
+  gearman_task_st *task;
 } gearman_args_st;
 
-void _client(gearman_args_st *args);
+/**
+ * Function to run in client mode.
+ */
+static void _client(gearman_args_st *args);
 
-void _client_run(gearman_client_st *client, gearman_args_st *args,
-                 const void *workload, size_t workload_size);
+/**
+ * Run client jobs.
+ */
+static void _client_run(gearman_client_st *client, gearman_args_st *args,
+                        const void *workload, size_t workload_size);
 
-void _worker(gearman_args_st *args);
+/**
+ * Client data/complete callback function.
+ */
+static gearman_return_t _client_data(gearman_task_st *task);
 
+/**
+ * Client warning/exception callback function.
+ */
+static gearman_return_t _client_warning(gearman_task_st *task);
+
+/**
+ * Client status callback function.
+ */
+static gearman_return_t _client_status(gearman_task_st *task);
+/**
+ * Client fail callback function.
+ */
+static gearman_return_t _client_fail(gearman_task_st *task);
+
+/**
+ * Function to run in worker mode.
+ */
+static void _worker(gearman_args_st *args);
+
+/**
+ * Callback function when worker gets a job.
+ */
 static void *_worker_cb(gearman_job_st *job, void *cb_arg, size_t *result_size,
                         gearman_return_t *ret_ptr);
 
-void _read_workload(int fd, char **workload, size_t *workload_offset,
-                    size_t *workload_size);
+/**
+ * Read workload chunk from a file descriptor and put into allocated memory.
+ */
+static void _read_workload(int fd, char **workload, size_t *workload_offset,
+                           size_t *workload_size);
 
+/**
+ * Print usage information.
+ */
 static void usage(char *name);
 
 int main(int argc, char *argv[])
@@ -57,12 +107,22 @@ int main(int argc, char *argv[])
 
   memset(&args, 0, sizeof(gearman_args_st));
 
-  while ((c = getopt(argc, argv, "c:h:nNp:su:w")) != EOF)
+  /* Allocate the maximum number of possible functions. */
+  args.function= malloc(sizeof(char *) * argc);
+  if (args.function == NULL)
+    GEARMAN_ERROR("malloc:%d", errno)
+
+  while ((c = getopt(argc, argv, "c:f:h:HnNp:su:w")) != EOF)
   {
     switch(c)
     {
     case 'c':
       args.count= atoi(optarg);
+      break;
+
+    case 'f':
+      args.function[args.function_count]= optarg;
+      args.function_count++;
       break;
 
     case 'h':
@@ -94,25 +154,17 @@ int main(int argc, char *argv[])
       args.worker= true;
       break;
 
+    case 'H':
     default:
       usage(argv[0]);
       exit(1);
     }
   }
 
-  if (argc <= optind)
-  {
-    usage(argv[0]);
-    exit(1);
-  }
-
   args.argv= argv + optind;
 
   if (signal(SIGPIPE, SIG_IGN) == SIG_ERR)
-  {
-    fprintf(stderr, "signal:%d\n", errno);
-    exit(1);
-  }
+    GEARMAN_ERROR("signal:%d", errno)
 
   if (args.worker)
     _worker(&args);
@@ -129,46 +181,57 @@ void _client(gearman_args_st *args)
   char *workload= NULL;
   size_t workload_size= 0;
   size_t workload_offset= 0;
+  uint32_t x;
 
   if (gearman_client_create(&client) == NULL)
-  {
-    fprintf(stderr, "Memory allocation failure on client creation\n");
-    exit(1);
-  }
+    GEARMAN_ERROR("Memory allocation failure on client creation")
 
   ret= gearman_client_add_server(&client, args->host, args->port);
   if (ret != GEARMAN_SUCCESS)
-  {
-    fprintf(stderr, "%s\n", gearman_client_error(&client));
-    exit(1);
-  }
+    GEARMAN_ERROR("gearman_client_add_server:%s", gearman_client_error(&client))
 
-  if (args->suppress_input)
-    _client_run(&client, args, NULL, 0);
-  else if (args->job_per_newline)
+  gearman_client_set_data_fn(&client, _client_data);
+  gearman_client_set_warning_fn(&client, _client_warning);
+  gearman_client_set_status_fn(&client, _client_status);
+  gearman_client_set_complete_fn(&client, _client_data);
+  gearman_client_set_exception_fn(&client, _client_warning);
+  gearman_client_set_fail_fn(&client, _client_fail);
+
+  args->task= malloc(sizeof(gearman_task_st) * args->function_count);
+  if (args->task == NULL)
+    GEARMAN_ERROR("malloc:%d", errno)
+
+  if (args->argv[0] == NULL)
   {
-    workload= malloc(GEARMAN_INITIAL_WORKLOAD_SIZE);
-    if (workload == NULL)
+    if (args->suppress_input)
+      _client_run(&client, args, NULL, 0);
+    else if (args->job_per_newline)
     {
-      fprintf(stderr, "Memory allocation failure on buffer creation\n");
-      exit(1);
+      workload= malloc(GEARMAN_INITIAL_WORKLOAD_SIZE);
+      if (workload == NULL)
+        GEARMAN_ERROR("malloc:%d", errno)
+
+      while (1)
+      {
+        if (fgets(workload, GEARMAN_INITIAL_WORKLOAD_SIZE, stdin) == NULL)
+          break;
+
+        if (args->strip_newline)
+          _client_run(&client, args, workload, strlen(workload) - 1);
+        else
+          _client_run(&client, args, workload, strlen(workload));
+      }
     }
-
-    while (1)
+    else
     {
-      if (fgets(workload, GEARMAN_INITIAL_WORKLOAD_SIZE, stdin) == NULL)
-        break;
-
-      if (args->strip_newline)
-        _client_run(&client, args, workload, strlen(workload) - 1);
-      else
-        _client_run(&client, args, workload, strlen(workload));
+      _read_workload(0, &workload, &workload_offset, &workload_size);
+      _client_run(&client, args, workload, workload_offset);
     }
   }
   else
   {
-    _read_workload(0, &workload, &workload_offset, &workload_size);
-    _client_run(&client, args, workload, workload_offset);
+    for (x= 0; args->argv[x] != NULL; x++)
+      _client_run(&client, args, args->argv[x], strlen(args->argv[x]));
   }
 
   gearman_client_free(&client);
@@ -180,87 +243,88 @@ void _client(gearman_args_st *args)
 void _client_run(gearman_client_st *client, gearman_args_st *args,
                  const void *workload, size_t workload_size)
 {
-  char **function;
   gearman_return_t ret;
-  char *result;
-  size_t result_size;
-  uint32_t numerator;
-  uint32_t denominator;
-  ssize_t write_ret;
+  uint32_t x;
 
-  for (function= args->argv; *function != NULL; function++)
+  for (x= 0; x < args->function_count; x++)
   {
-    while (1)
-    {
-      result= (char *)gearman_client_do(client, *function, args->unique,
-                                        workload, workload_size, &result_size,
-                                        &ret);
-      if (ret == GEARMAN_WORK_DATA)
-      {
-        write(1, result, result_size);
-        if (write_ret < 0)
-        {
-          fprintf(stderr, "Error writing to standard output (%d)\n", errno);
-          exit(1);
-        }
-
-        free(result);
-        continue;
-      }
-      else if (ret == GEARMAN_WORK_STATUS)
-      {
-        gearman_client_do_status(client, &numerator, &denominator);
-        printf("%u%% Complete\n", (numerator * 100) / denominator);
-        continue;
-      }
-      else if (ret == GEARMAN_SUCCESS)
-      {
-        write(1, result, result_size);
-        free(result);
-      }
-      else if (ret == GEARMAN_WORK_FAIL)
-        fprintf(stderr, "Job failed\n");
-      else
-        fprintf(stderr, "%s\n", gearman_client_error(client));
-
-      break;
-    }
+    (void)gearman_client_add_task(client, &(args->task[x]), args,
+                                  args->function[x], args->unique, workload,
+                                  workload_size, &ret);
+    if (ret != GEARMAN_SUCCESS)
+      GEARMAN_ERROR("gearman_client_add_task:%s", gearman_client_error(client))
   }
+
+  ret= gearman_client_run_tasks(client);
+  if (ret != GEARMAN_SUCCESS)
+    GEARMAN_ERROR("gearman_client_run_tasks:%s", gearman_client_error(client))
+
+  for (x= 0; x < args->function_count; x++)
+    gearman_task_free(&(args->task[x]));
+}
+
+static gearman_return_t _client_data(gearman_task_st *task)
+{
+  if (write(1, gearman_task_data(task), gearman_task_data_size(task)) == -1)
+    GEARMAN_ERROR("write:%d", errno)
+
+  return GEARMAN_SUCCESS;
+}
+
+static gearman_return_t _client_warning(gearman_task_st *task)
+{
+  if (write(2, gearman_task_data(task), gearman_task_data_size(task)) == -1)
+    GEARMAN_ERROR("write:%d", errno)
+
+  return GEARMAN_SUCCESS;
+}
+
+static gearman_return_t _client_status(gearman_task_st *task)
+{
+  printf("%u%% Complete\n", (gearman_task_numerator(task) * 100) /
+         gearman_task_denominator(task));
+
+  return GEARMAN_SUCCESS;
+}
+
+static gearman_return_t _client_fail(gearman_task_st *task)
+{
+  (void) task;
+
+  fprintf(stderr, "Job failed\n");
+
+  return GEARMAN_SUCCESS;
 }
 
 void _worker(gearman_args_st *args)
 {
   gearman_worker_st worker;
   gearman_return_t ret;
+  uint32_t x;
   
   if (gearman_worker_create(&worker) == NULL)
-  {
-    fprintf(stderr, "Memory allocation failure on worker creation\n");
-    exit(1);
-  }
+    GEARMAN_ERROR("Memory allocation failure on client creation")
 
   ret= gearman_worker_add_server(&worker, args->host, args->port);
   if (ret != GEARMAN_SUCCESS)
-  {
-    fprintf(stderr, "%s\n", gearman_worker_error(&worker));
-    exit(1);
-  }
+    GEARMAN_ERROR("gearman_worker_add_server:%s", gearman_worker_error(&worker))
 
-  ret= gearman_worker_add_function(&worker, args->argv[0], 0, _worker_cb, args);
-  if (ret != GEARMAN_SUCCESS)
+  for (x= 0; x < args->function_count; x++)
   {
-    fprintf(stderr, "%s\n", gearman_worker_error(&worker));
-    exit(1);
+    ret= gearman_worker_add_function(&worker, args->function[x], 0, _worker_cb,
+                                     args);
+    if (ret != GEARMAN_SUCCESS)
+    {
+      GEARMAN_ERROR("gearman_worker_add_function:%s",
+                    gearman_worker_error(&worker))
+    }
   }
 
   while (1)
   {
     ret= gearman_worker_work(&worker);
     if (ret != GEARMAN_SUCCESS)
-    {
-      fprintf(stderr, "%s\n", gearman_worker_error(&worker));
-      break;
-    }
+      GEARMAN_ERROR("gearman_worker_work:%s", gearman_worker_error(&worker))
 
     if (args->count > 0)
     {
@@ -277,56 +341,45 @@ static void *_worker_cb(gearman_job_st *job, void *cb_arg, size_t *result_size,
                         gearman_return_t *ret_ptr)
 {
   gearman_args_st *args= (gearman_args_st *)cb_arg;
-  ssize_t write_ret;
   int in_fds[2];
   int out_fds[2];
   char *result= NULL;
   size_t total_size= 0;
+  FILE *f;
 
-  if (args->argv[1] == NULL)
+  *ret_ptr= GEARMAN_SUCCESS;
+
+  if (args->argv[0] == NULL)
   {
-    write_ret= write(1, gearman_job_workload(job),
-                     gearman_job_workload_size(job));
-    if (write_ret < 0)
+    if (write(1, gearman_job_workload(job),
+              gearman_job_workload_size(job)) == -1)
     {
-      fprintf(stderr, "Error writing to standard output (%d)\n", errno);
-      exit(1);
+      GEARMAN_ERROR("write:%d", errno)
     }
   }
   else
   {
-    if (pipe(in_fds) < 0 || pipe(out_fds) < 0)
-    {
-      fprintf(stderr, "Error creating pipes (%d)\n", errno);
-      exit(1);
-    }
+    if (pipe(in_fds) == -1 || pipe(out_fds) == -1)
+      GEARMAN_ERROR("pipe:%d", errno)
 
     switch (fork())
     {
     case -1:
-      fprintf(stderr, "Error forking process (%d)\n", errno);
-      exit(1);
+      GEARMAN_ERROR("fork:%d", errno)
 
     case 0:
-      if (dup2(in_fds[0], 0) < 0)
-      {
-        fprintf(stderr, "Error in dup2 (%d)\n", errno);
-        exit(1);
-      }
+      if (dup2(in_fds[0], 0) == -1)
+        GEARMAN_ERROR("dup2:%d", errno)
 
       close(in_fds[1]);
 
-      if (dup2(out_fds[1], 1) < 0)
-      {
-        fprintf(stderr, "Error in 2dup2 (%d)\n", errno);
-        exit(1);
-      }
+      if (dup2(out_fds[1], 1) == -1)
+        GEARMAN_ERROR("dup2:%d", errno)
 
       close(out_fds[0]);
 
-      execvp(args->argv[1], args->argv + 1);
-      fprintf(stderr, "Error running execvp (%d)\n", errno);
-      exit(1);
+      execvp(args->argv[0], args->argv);
+      GEARMAN_ERROR("execvp:%d", errno)
 
     default:
       break;
@@ -337,23 +390,50 @@ static void *_worker_cb(gearman_job_st *job, void *cb_arg, size_t *result_size,
 
     if (gearman_job_workload_size(job) > 0)
     {
-      write_ret= write(in_fds[1], gearman_job_workload(job),
-                       gearman_job_workload_size(job));
-      if (write_ret < 0)
+      if (write(in_fds[1], gearman_job_workload(job),
+                gearman_job_workload_size(job)) == -1)
       {
-        fprintf(stderr, "Error writing to process (%d)\n", errno);
-        exit(1);
+        GEARMAN_ERROR("write:%d", errno)
       }
     }
 
     close(in_fds[1]);
     
-    _read_workload(out_fds[0], &result, result_size, &total_size);
+    if (args->job_per_newline)
+    {
+      f= fdopen(out_fds[0], "r");
+      if (f == NULL)
+        GEARMAN_ERROR("fdopen:%d", errno)
 
-    close(out_fds[0]);
+      result= malloc(GEARMAN_INITIAL_WORKLOAD_SIZE);
+      if (result == NULL)
+        GEARMAN_ERROR("malloc:%d", errno)
+
+      while (1)
+      {
+        if (fgets(result, GEARMAN_INITIAL_WORKLOAD_SIZE, f) == NULL)
+          break;
+
+        if (args->strip_newline)
+          *ret_ptr= gearman_job_data(job, result, strlen(result) - 1);
+        else
+          *ret_ptr= gearman_job_data(job, result, strlen(result));
+
+        if (*ret_ptr != GEARMAN_SUCCESS)
+          break;
+      }
+
+      free(result);
+      result= NULL;
+      fclose(f);
+    }
+    else
+    {
+      _read_workload(out_fds[0], &result, result_size, &total_size);
+      close(out_fds[0]);
+    }
   }
 
-  *ret_ptr= GEARMAN_SUCCESS;
   return result;
 }
 
@@ -373,19 +453,13 @@ void _read_workload(int fd, char **workload, size_t *workload_offset,
 
       *workload= realloc(*workload, *workload_size);
       if(*workload == NULL)
-      {
-        fprintf(stderr, "Memory allocation failure on workload\n");
-        exit(1);
-      }
+        GEARMAN_ERROR("realloc:%d", errno)
     }
 
     read_ret= read(fd, *workload + *workload_offset,
                    *workload_size - *workload_offset);
-    if (read_ret < 0)
-    {
-      fprintf(stderr, "Error reading from standard input (%d)\n", errno);
-      exit(1);
-    }
+    if (read_ret == -1)
+      GEARMAN_ERROR("execvp:%d", errno)
     else if (read_ret == 0)
       break;
 
@@ -395,16 +469,24 @@ void _read_workload(int fd, char **workload, size_t *workload_offset,
 
 static void usage(char *name)
 {
-  printf("\nusage: %s [client or worker options]\n\n", name);
-  printf("gearman [-h <host>] [-p <port>] [-u <unique>] <function> ...\n");
-  printf("gearman -w [-h <host>] [-p <port>] <function> "
-         "[<command> [<args> ...]]\n\n");
-  printf("\t-c <count>  - number of jobs for worker to run before exiting\n");
-  printf("\t-h <host>   - job server host\n");
-  printf("\t-n          - send one job per line\n");
-  printf("\t-N          - send one job per line, stripping off newline\n");
-  printf("\t-p <port>   - job server port\n");
-  printf("\t-s          - send job without reading from standard input\n");
-  printf("\t-u <unique> - unique key to use for job\n");
-  printf("\t-w          - run as a worker\n");
+  printf("Client mode: %s [options] [<data>]\n", name);
+  printf("Worker mode: %s -w [options] [<command> [<args> ...]]\n", name);
+
+  printf("\nCommon options to both client and worker modes.\n");
+  printf("\t-f <function> - Function name to use for jobs (can give many)\n");
+  printf("\t-h <host>     - Job server host\n");
+  printf("\t-H            - Print this help menu\n");
+  printf("\t-p <port>     - Job server port\n");
+
+  printf("\nClient options:\n");
+  printf("\t-n            - Run one job per line\n");
+  printf("\t-N            - Same as -n, but strip off the newline\n");
+  printf("\t-s            - Send job without reading from standard input\n");
+  printf("\t-u <unique>   - Unique key to use for job\n");
+
+  printf("\nWorker options:\n");
+  printf("\t-c <count>    - Number of jobs for worker to run before exiting\n");
+  printf("\t-n            - Send data packet for each line\n");
+  printf("\t-N            - Same as -n, but strip off the newline\n");
+  printf("\t-w            - Run in worker mode\n");
 }

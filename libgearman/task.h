@@ -43,6 +43,11 @@ void gearman_task_free(gearman_task_st *task);
 void *gearman_task_fn_arg(gearman_task_st *task);
 
 /**
+ * Set callback function argument for a task.
+ */
+void gearman_task_set_fn_arg(gearman_task_st *task, const void *fn_arg);
+
+/**
  * Get function name associated with a task.
  */
 const char *gearman_task_function(gearman_task_st *task);

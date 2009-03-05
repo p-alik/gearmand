@@ -61,6 +61,11 @@ void *gearman_task_fn_arg(gearman_task_st *task)
   return (void *)task->fn_arg;
 }
 
+void gearman_task_set_fn_arg(gearman_task_st *task, const void *fn_arg)
+{
+  task->fn_arg= fn_arg;
+}
+
 const char *gearman_task_function(gearman_task_st *task)
 {
   return (char *)task->send.arg[0];
