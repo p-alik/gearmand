@@ -175,6 +175,7 @@ then
   CPPFLAGS="${CPPFLAGS} -I/usr/local/include"
 
   CFLAGS="-g -mt -xc99=all ${IS_64} ${MEMALIGN_FLAGS} ${CFLAGS}"
+  CXXFLAGS="-g ${IS_64} ${CXXFLAGS}"
   DEBUG_CFLAGS="-xO0"
   OPTIMIZE_CFLAGS="-xO4 -xlibmil -xdepend -Xa -mt -xstrconst"
 fi
@@ -301,7 +302,7 @@ then
     W_FAIL="-errwarn=%all"
   fi
 
-  CC_WARNINGS="-v -errtags=yes ${W_FAIL} -erroff=E_INTEGER_OVERFLOW_DETECTED"
+  CC_WARNINGS="-v -errtags=yes ${W_FAIL} -erroff=E_INTEGER_OVERFLOW_DETECTED,E_PASTE_RESULT_NOT_TOKEN"
 
 fi
 
