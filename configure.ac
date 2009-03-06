@@ -43,6 +43,7 @@ then
   enable_dependency_tracking=yes
 fi
 
+AC_PROG_CXX
 AM_PROG_CC_STDC
 
 ACX_USE_SYSTEM_EXTENSIONS
@@ -78,6 +79,37 @@ AC_SUBST(CC_VERSION)
 
 AC_DEFINE([_THREAD_SAFE],[1],[Thread safe code])
 AC_DEFINE([_REENTRANT],[1],[Re-entrant code])
+
+# Build optimized or debug version ?
+# First check for gcc and g++
+if test "$GCC" = "yes"
+then
+  CFLAGS="-ggdb3 -std=gnu99 ${CFLAGS}"
+  DEBUG_CFLAGS="-O0"
+  OPTMIIZE_CFLAGS="-O3"
+fi
+if test "$SUNCC" = "yes"
+then
+  isainfo_k=`isainfo -k`
+  if test "$target_cpu" = "sparc"
+  then
+    MEMALIGN_FLAGS="-xmemalign=8s"
+    IS_64="-m64"
+    LDFLAGS="${LDFLAGS} -L/usr/lib/${isainfo_k} -L/usr/local/lib/${isainfo_k}"
+  else
+    if test "$isainfo_k" = "amd64"
+    then
+      IS_64="-m64"
+      LDFLAGS="${LDFLAGS} -L/usr/lib/${isainfo_k} -L/usr/local/lib/${isainfo_k}"
+    fi
+  fi
+  CPPFLAGS="${CPPFLAGS} -I/usr/local/include"
+
+  CFLAGS="-g -mt -xc99=all ${IS_64} ${MEMALIGN_FLAGS} ${CFLAGS}"
+  CXXFLAGS="-g -xlang=c99 ${IS_64} ${CXXFLAGS}"
+  DEBUG_CFLAGS="-xO0"
+  OPTIMIZE_CFLAGS="-xO4 -xlibmil -xdepend -Xa -mt -xstrconst"
+fi
 
 
 AC_HEADER_TIME
@@ -148,37 +180,6 @@ then
   AC_CHECK_LIB(mtmalloc,malloc,[],[])
 fi
 
-
-# Build optimized or debug version ?
-# First check for gcc and g++
-if test "$GCC" = "yes"
-then
-  CFLAGS="-ggdb3 -std=gnu99 ${CFLAGS}"
-  DEBUG_CFLAGS="-O0"
-  OPTMIIZE_CFLAGS="-O3"
-fi
-if test "$SUNCC" = "yes"
-then
-  isainfo_k=`isainfo -k`
-  if test "$target_cpu" = "sparc"
-  then
-    MEMALIGN_FLAGS="-xmemalign=8s"
-    IS_64="-m64"
-    LDFLAGS="${LDFLAGS} -L/usr/lib/${isainfo_k} -L/usr/local/lib/${isainfo_k}"
-  else
-    if test "$isainfo_k" = "amd64"
-    then
-      IS_64="-m64"
-      LDFLAGS="${LDFLAGS} -L/usr/lib/${isainfo_k} -L/usr/local/lib/${isainfo_k}"
-    fi
-  fi
-  CPPFLAGS="${CPPFLAGS} -I/usr/local/include"
-
-  CFLAGS="-g -mt -xc99=all ${IS_64} ${MEMALIGN_FLAGS} ${CFLAGS}"
-  CXXFLAGS="-g ${IS_64} ${CXXFLAGS}"
-  DEBUG_CFLAGS="-xO0"
-  OPTIMIZE_CFLAGS="-xO4 -xlibmil -xdepend -Xa -mt -xstrconst"
-fi
 
 
 dnl TODO: Remove this define once we are using 2.61 across the board.
@@ -302,7 +303,25 @@ then
     W_FAIL="-errwarn=%all"
   fi
 
-  CC_WARNINGS="-v -errtags=yes ${W_FAIL} -erroff=E_INTEGER_OVERFLOW_DETECTED,E_PASTE_RESULT_NOT_TOKEN"
+  AC_CACHE_CHECK([whether E_PASTE_RESULT_NOT_TOKEN is usable],
+    [ac_cv_paste_result],
+    [
+      save_CFLAGS="${CFLAGS}"
+      CFLAGS="-errwarn=%all -erroff=E_PASTE_RESULT_NOT_TOKEN ${CFLAGS}" 
+      AC_COMPILE_IFELSE(
+        [AC_LANG_PROGRAM([
+          AC_INCLUDES_DEFAULT
+        ],[
+          int x= 0;])],
+        [ac_cv_paste_result=yes],
+        [ac_cv_paste_result=no])
+      CFLAGS="${save_CFLAGS}"
+    ])
+  AS_IF([test $ac_cv_paste_result = yes],
+    [W_PASTE_RESULT=",E_PASTE_RESULT_NOT_TOKEN"])
+
+      
+  CC_WARNINGS="-v -errtags=yes ${W_FAIL} -erroff=E_INTEGER_OVERFLOW_DETECTED${W_PASTE_RESULT}"
 
 fi
 

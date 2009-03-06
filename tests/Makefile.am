@@ -19,11 +19,16 @@ cpp_test_SOURCES= cpp_test.cc
 
 EXTRA_DIST= client_test.rec worker_test.rec
 
-record: client_test worker_test
-	./client_test > client_test.rec
+worker_test.rec: worker_test
 	./worker_test > worker_test.rec
 
-test: client_test worker_test
+client_test.rec: client_test
+	./client_test > client_test.rec
+
+record: client_test.rec worker_test.rec
+
+check: test
+test: client_test worker_test client_test.rec worker_test.rec
 	./client_test > client_test.res
 	./worker_test > worker_test.res
 	diff client_test.rec client_test.res
