@@ -44,6 +44,7 @@ typedef struct
   bool strip_newline;
   bool worker;
   bool suppress_input;
+  bool prefix;
   char **argv;
   gearman_task_st *task;
 } gearman_args_st;
@@ -112,7 +113,7 @@ int main(int argc, char *argv[])
   if (args.function == NULL)
     GEARMAN_ERROR("malloc:%d", errno)
 
-  while ((c = getopt(argc, argv, "c:f:h:HnNp:su:w")) != EOF)
+  while ((c = getopt(argc, argv, "c:f:h:HnNp:Psu:w")) != EOF)
   {
     switch(c)
     {
@@ -140,6 +141,10 @@ int main(int argc, char *argv[])
 
     case 'p':
       args.port= atoi(optarg);
+      break;
+
+    case 'P':
+      args.prefix= true;
       break;
 
     case 's':
@@ -265,6 +270,15 @@ void _client_run(gearman_client_st *client, gearman_args_st *args,
 
 static gearman_return_t _client_data(gearman_task_st *task)
 {
+  gearman_args_st *args;
+
+  args= gearman_task_fn_arg(task);
+  if (args->prefix)
+  {
+    fprintf(stdout, "%s: ", gearman_task_function(task));
+    fflush(stdout);
+  }
+
   if (write(1, gearman_task_data(task), gearman_task_data_size(task)) == -1)
     GEARMAN_ERROR("write:%d", errno)
 
@@ -273,6 +287,15 @@ static gearman_return_t _client_data(gearman_task_st *task)
 
 static gearman_return_t _client_warning(gearman_task_st *task)
 {
+  gearman_args_st *args;
+
+  args= gearman_task_fn_arg(task);
+  if (args->prefix)
+  {
+    fprintf(stderr, "%s: ", gearman_task_function(task));
+    fflush(stderr);
+  }
+
   if (write(2, gearman_task_data(task), gearman_task_data_size(task)) == -1)
     GEARMAN_ERROR("write:%d", errno)
 
@@ -281,6 +304,12 @@ static gearman_return_t _client_warning(gearman_task_st *task)
 
 static gearman_return_t _client_status(gearman_task_st *task)
 {
+  gearman_args_st *args;
+
+  args= gearman_task_fn_arg(task);
+  if (args->prefix)
+    printf("%s: ", gearman_task_function(task));
+
   printf("%u%% Complete\n", (gearman_task_numerator(task) * 100) /
          gearman_task_denominator(task));
 
@@ -289,7 +318,11 @@ static gearman_return_t _client_status(gearman_task_st *task)
 
 static gearman_return_t _client_fail(gearman_task_st *task)
 {
-  (void) task;
+  gearman_args_st *args;
+
+  args= gearman_task_fn_arg(task);
+  if (args->prefix)
+    fprintf(stderr, "%s: ", gearman_task_function(task));
 
   fprintf(stderr, "Job failed\n");
 
@@ -481,6 +514,7 @@ static void usage(char *name)
   printf("\nClient options:\n");
   printf("\t-n            - Run one job per line\n");
   printf("\t-N            - Same as -n, but strip off the newline\n");
+  printf("\t-P            - Prefix all output lines with functions names\n");
   printf("\t-s            - Send job without reading from standard input\n");
   printf("\t-u <unique>   - Unique key to use for job\n");
 
