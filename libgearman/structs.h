@@ -43,6 +43,7 @@ struct gearman_st
   const void *workload_malloc_arg;
   gearman_free_fn *workload_free;
   const void *workload_free_arg;
+  gearman_task_fn_arg_free_fn *task_fn_arg_free_fn;
 };
 
 /**
@@ -160,6 +161,7 @@ struct gearman_client_st
   gearman_st gearman_static;
   gearman_client_state_t state;
   gearman_client_options_t options;
+  const void *data;
   uint32_t new_tasks;
   uint32_t running_tasks;
   gearman_con_st *con;
@@ -167,7 +169,15 @@ struct gearman_client_st
   gearman_task_st do_task;
   void *do_data;
   size_t do_data_size;
-  bool do_fail;
+  gearman_return_t do_ret;
+  gearman_workload_fn *workload_fn;
+  gearman_created_fn *created_fn;
+  gearman_data_fn *data_fn;
+  gearman_warning_fn *warning_fn;
+  gearman_status_fn *status_fn;
+  gearman_complete_fn *complete_fn;
+  gearman_exception_fn *exception_fn;
+  gearman_fail_fn *fail_fn;
 };
 
 /**

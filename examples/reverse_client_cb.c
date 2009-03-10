@@ -21,6 +21,7 @@
 #define REVERSE_TASKS 10
 
 static gearman_return_t created(gearman_task_st *task);
+static gearman_return_t data(gearman_task_st *task);
 static gearman_return_t status(gearman_task_st *task);
 static gearman_return_t complete(gearman_task_st *task);
 static gearman_return_t fail(gearman_task_st *task);
@@ -31,7 +32,7 @@ int main(int argc, char *argv[])
 {
   char c;
   char *host= NULL;
-  unsigned short port= 0;
+  in_port_t port= 0;
   gearman_return_t ret;
   gearman_client_st client;
   gearman_task_st task[REVERSE_TASKS];
@@ -86,8 +87,12 @@ int main(int argc, char *argv[])
     }
   }
 
-  ret= gearman_client_run_tasks(&client, NULL, created, NULL, status, complete,
-                                fail);
+  gearman_client_set_created_fn(&client, created);
+  gearman_client_set_data_fn(&client, data);
+  gearman_client_set_status_fn(&client, status);
+  gearman_client_set_complete_fn(&client, complete);
+  gearman_client_set_fail_fn(&client, fail);
+  ret= gearman_client_run_tasks(&client);
   if (ret != GEARMAN_SUCCESS)
   {
     fprintf(stderr, "%s\n", gearman_client_error(&client));
@@ -103,6 +108,13 @@ static gearman_return_t created(gearman_task_st *task)
 {
   printf("Created: %s\n", gearman_task_job_handle(task));
 
+  return GEARMAN_SUCCESS;
+}
+
+static gearman_return_t data(gearman_task_st *task)
+{
+  printf("Data: %s %.*s\n", gearman_task_job_handle(task),
+         (int)gearman_task_data_size(task), (char *)gearman_task_data(task));
   return GEARMAN_SUCCESS;
 }
 

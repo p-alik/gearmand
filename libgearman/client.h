@@ -83,6 +83,22 @@ void gearman_client_set_options(gearman_client_st *client,
                                 uint32_t data);
 
 /**
+ * Get the application data pointer for a client.
+ * @param client Client structure previously initialized with
+ *        gearman_client_create or gearman_client_clone.
+ * @return Application data pointer that was previously set.
+ */
+void *gearman_client_data(gearman_client_st *client);
+
+/**
+ * Set the application data pointer for a client.
+ * @param client Client structure previously initialized with
+ *        gearman_client_create or gearman_client_clone.
+ * @param data Application data pointer to set.
+ */
+void gearman_client_set_data(gearman_client_st *client, const void *data);
+
+/**
  * Set custom memory allocation function for workloads. Normally gearman uses
  * the standard system malloc to allocate memory used with workloads. This
  * function is used instead.
@@ -109,6 +125,16 @@ void gearman_client_set_workload_malloc(gearman_client_st *client,
 void gearman_client_set_workload_free(gearman_client_st *client,
                                       gearman_free_fn *workload_free,
                                       const void *workload_free_arg);
+
+/**
+ * Set function to call when tasks are being cleaned up so applications can
+ * clean up fn_arg.
+ * @param client Client structure previously initialized with
+ *        gearman_client_create or gearman_client_clone.
+ * @param free_fn function to call to clean up fn_arg.
+ */
+void gearman_client_set_task_fn_arg_free(gearman_client_st *client,
+                                         gearman_task_fn_arg_free_fn *free_fn);
 
 /**
  * Add a job server to a client. This goes into a list of servers than can be
@@ -299,15 +325,62 @@ gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
                                                 gearman_return_t *ret_ptr);
 
 /**
+ * Callback function when workload data needs to be sent for a task.
+ */
+void gearman_client_set_workload_fn(gearman_client_st *client,
+                                    gearman_workload_fn *workload_fn);
+
+/**
+ * Callback function when a job has been created for a task.
+ */
+void gearman_client_set_created_fn(gearman_client_st *client,
+                                   gearman_created_fn *created_fn);
+
+/**
+ * Callback function when there is a data packet for a task.
+ */
+void gearman_client_set_data_fn(gearman_client_st *client,
+                                gearman_data_fn *data_fn);
+
+/**
+ * Callback function when there is a warning packet for a task.
+ */
+void gearman_client_set_warning_fn(gearman_client_st *client,
+                                   gearman_warning_fn *warning_fn);
+
+/**
+ * Callback function when there is a status packet for a task.
+ */
+void gearman_client_set_status_fn(gearman_client_st *client,
+                                  gearman_status_fn *status_fn);
+
+/**
+ * Callback function when a task is complete.
+ */
+void gearman_client_set_complete_fn(gearman_client_st *client,
+                                    gearman_complete_fn *complete_fn);
+
+/**
+ * Callback function when there is an exception packet for a task.
+ */
+void gearman_client_set_exception_fn(gearman_client_st *client,
+                                     gearman_exception_fn *exception_fn);
+
+/**
+ * Callback function when a task has failed.
+ */
+void gearman_client_set_fail_fn(gearman_client_st *client,
+                                gearman_fail_fn *fail_fn);
+
+/**
+ * Clear all task callback functions.
+ */
+void gearman_client_clear_fn(gearman_client_st *client);
+
+/**
  * Run tasks that have been added in parallel.
  */
-gearman_return_t gearman_client_run_tasks(gearman_client_st *client,
-                                          gearman_workload_fn *workload_fn,
-                                          gearman_created_fn *created_fn,
-                                          gearman_data_fn *data_fn,
-                                          gearman_status_fn *status_fn,
-                                          gearman_complete_fn *complete_fn,
-                                          gearman_fail_fn *fail_fn);
+gearman_return_t gearman_client_run_tasks(gearman_client_st *client);
 
 /** @} */
 

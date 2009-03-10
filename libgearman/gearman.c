@@ -140,3 +140,9 @@ void gearman_set_workload_free(gearman_st *gearman,
   gearman->workload_free= workload_free;
   gearman->workload_free_arg= workload_free_arg;
 }
+
+void gearman_set_task_fn_arg_free(gearman_st *gearman, 
+                                  gearman_task_fn_arg_free_fn *free_fn)
+{
+  gearman->task_fn_arg_free_fn= free_fn;
+}

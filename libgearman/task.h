@@ -43,6 +43,11 @@ void gearman_task_free(gearman_task_st *task);
 void *gearman_task_fn_arg(gearman_task_st *task);
 
 /**
+ * Set callback function argument for a task.
+ */
+void gearman_task_set_fn_arg(gearman_task_st *task, const void *fn_arg);
+
+/**
  * Get function name associated with a task.
  */
 const char *gearman_task_function(gearman_task_st *task);
@@ -92,6 +97,12 @@ size_t gearman_task_data_size(gearman_task_st *task);
  * free()ing the memory.
  */
 void *gearman_task_take_data(gearman_task_st *task, size_t *size);
+
+/**
+ * Send packet data for a task.
+ */
+size_t gearman_task_send_data(gearman_task_st *task, const void *data,
+                              size_t data_size, gearman_return_t *ret_ptr);
 
 /**
  * Read work or result data into a buffer for a task.

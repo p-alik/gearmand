@@ -91,6 +91,26 @@ gearman_return_t gearman_job_data(gearman_job_st *job, void *data,
   return _job_send(job);
 }
 
+gearman_return_t gearman_job_warning(gearman_job_st *job, void *warning,
+                                     size_t warning_size)
+{
+  gearman_return_t ret;
+
+  if (!(job->options & GEARMAN_JOB_WORK_IN_USE))
+  {
+    ret= gearman_packet_add(job->gearman, &(job->work), GEARMAN_MAGIC_REQUEST,
+                            GEARMAN_COMMAND_WORK_WARNING, job->assigned.arg[0],
+                            job->assigned.arg_size[0], warning, warning_size,
+                            NULL);
+    if (ret != GEARMAN_SUCCESS)
+      return ret;
+
+    job->options|= GEARMAN_JOB_WORK_IN_USE;
+  }
+
+  return _job_send(job);
+}
+
 gearman_return_t gearman_job_status(gearman_job_st *job, uint32_t numerator,
                                     uint32_t denominator)
 {
@@ -138,6 +158,26 @@ gearman_return_t gearman_job_complete(gearman_job_st *job, void *result,
   return _job_send(job);
 }
 
+gearman_return_t gearman_job_exception(gearman_job_st *job, void *exception,
+                                       size_t exception_size)
+{
+  gearman_return_t ret;
+
+  if (!(job->options & GEARMAN_JOB_WORK_IN_USE))
+  {
+    ret= gearman_packet_add(job->gearman, &(job->work), GEARMAN_MAGIC_REQUEST,
+                            GEARMAN_COMMAND_WORK_EXCEPTION,
+                            job->assigned.arg[0], job->assigned.arg_size[0] - 1,
+                            exception, exception_size, NULL);
+    if (ret != GEARMAN_SUCCESS)
+      return ret;
+
+    job->options|= GEARMAN_JOB_WORK_IN_USE;
+  }
+
+  return _job_send(job);
+}
+
 gearman_return_t gearman_job_fail(gearman_job_st *job)
 {
   gearman_return_t ret;
@@ -164,6 +204,13 @@ char *gearman_job_handle(gearman_job_st *job)
 char *gearman_job_function_name(gearman_job_st *job)
 {
   return (char *)job->assigned.arg[1];
+}
+
+char *gearman_job_unique(gearman_job_st *job)
+{
+  if (job->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN_UNIQ)
+    return (char *)job->assigned.arg[2];
+  return "";
 }
 
 const void *gearman_job_workload(gearman_job_st *job)

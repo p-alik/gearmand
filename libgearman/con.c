@@ -295,6 +295,11 @@ gearman_return_t gearman_con_send(gearman_con_st *con,
   case GEARMAN_CON_SEND_STATE_FLUSH:
   case GEARMAN_CON_SEND_STATE_FLUSH_DATA:
     return gearman_con_flush(con);
+
+  default:
+    GEARMAN_ERROR_SET(con->gearman, "gearman_con_send", "unknown state: %u",
+                      con->send_state)
+    return GEARMAN_UNKNOWN_STATE;
   }
 
   if (flush)
@@ -360,7 +365,7 @@ gearman_return_t gearman_con_flush(gearman_con_st *con)
       ret= getaddrinfo(con->host, port_str, &ai, &(con->addrinfo));
       if (ret != 0)
       {
-        GEARMAN_ERROR_SET(con->gearman, "gearman_con_flush", "getaddringo:%s",
+        GEARMAN_ERROR_SET(con->gearman, "gearman_con_flush", "getaddrinfo:%s",
                           gai_strerror(ret))
         return GEARMAN_GETADDRINFO;
       }
@@ -536,6 +541,11 @@ gearman_return_t gearman_con_flush(gearman_con_st *con)
       con->send_state= GEARMAN_CON_SEND_STATE_NONE;
       con->send_buffer_ptr= con->send_buffer;
       return GEARMAN_SUCCESS;
+
+    default:
+      GEARMAN_ERROR_SET(con->gearman, "gearman_con_flush", "unknown state: %u",
+                        con->state)
+      return GEARMAN_UNKNOWN_STATE;
     }
   }
 }
@@ -728,6 +738,12 @@ gearman_packet_st *gearman_con_recv(gearman_con_st *con,
 
     con->recv_state= GEARMAN_CON_RECV_STATE_NONE;
     break;
+
+  default:
+    GEARMAN_ERROR_SET(con->gearman, "gearman_con_recv", "unknown state: %u",
+                      con->recv_state)
+    *ret_ptr= GEARMAN_UNKNOWN_STATE;
+    return NULL;
   }
 
   packet= con->recv_packet;

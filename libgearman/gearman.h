@@ -15,7 +15,9 @@
 #define __GEARMAN_H__
 
 #include <inttypes.h>
-#include <stdbool.h>
+#ifndef __cplusplus
+#  include <stdbool.h>
+#endif
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -122,6 +124,13 @@ void gearman_set_workload_malloc(gearman_st *gearman,
 void gearman_set_workload_free(gearman_st *gearman,
                                gearman_free_fn *workload_free,
                                const void *workload_free_arg);
+
+/**
+ * Set function to call when tasks are being cleaned up so applications can
+ * clean up fn_arg.
+ */
+void gearman_set_task_fn_arg_free(gearman_st *gearman,
+                                  gearman_task_fn_arg_free_fn *free_fn);
 
 /** @} */
 

@@ -8,9 +8,9 @@
 Gearman Protocol
 ----------------
 
-The Gearman protocol operates over TCP, port 4703 by default. It
+The Gearman protocol operates over TCP, port 4730 by default. It
 previously operated on port 7003, but this conflicted with the
-AFS port range and the new port (4703) was was assigned by IANA.
+AFS port range and the new port (4730) was was assigned by IANA.
 Communication happens between either a client and job server, or
 between a worker and job server. In either case, the protocol consists
 of packets containing requests and responses. All packets sent to a
@@ -59,39 +59,49 @@ header is:
 4 byte type       - A big-endian (network-order) integer containing
                     an enumerated packet type. Possible values are:
 
-                    #   Name              Magic  Type
-                    1   CAN_DO            REQ    Worker
-                    2   CANT_DO           REQ    Worker
-                    3   RESET_ABILITIES   REQ    Worker
-                    4   PRE_SLEEP         REQ    Worker
-                    5   (unused)          -      -
-                    6   NOOP              RES    Worker
-                    7   SUBMIT_JOB        REQ    Client
-                    8   JOB_CREATED       RES    Client
-                    9   GRAB_JOB          REQ    Worker
-                    10  NO_JOB            RES    Worker
-                    11  JOB_ASSIGN        RES    Worker
-                    12  WORK_STATUS       REQ    Worker
-                                          RES    Client
-                    13  WORK_COMPLETE     REQ    Worker
-                                          RES    Client
-                    14  WORK_FAIL         REQ    Worker
-                                          RES    Client
-                    15  GET_STATUS        REQ    Client
-                    16  ECHO_REQ          REQ    Client/Worker
-                    17  ECHO_RES          RES    Client/Worker
-                    18  SUBMIT_JOB_BG     REQ    Client
-                    19  ERROR             RES    Client/Worker
-                    20  STATUS_RES        RES    Client
-                    21  SUBMIT_JOB_HIGH   REQ    Client
-                    22  SET_CLIENT_ID     REQ    Worker
-                    23  CAN_DO_TIMEOUT    REQ    Worker
-                    24  ALL_YOURS         REQ    Worker
-                    25  SUBMIT_JOB_SCHED  REQ    Client
-                    26  SUBMIT_JOB_EPOCH  REQ    Client
-                    27  WORK_DATA         REQ    Worker
-                                          RES    Client
-
+                    #   Name                Magic  Type
+                    1   CAN_DO              REQ    Worker
+                    2   CANT_DO             REQ    Worker
+                    3   RESET_ABILITIES     REQ    Worker
+                    4   PRE_SLEEP           REQ    Worker
+                    5   (unused)            -      -
+                    6   NOOP                RES    Worker
+                    7   SUBMIT_JOB          REQ    Client
+                    8   JOB_CREATED         RES    Client
+                    9   GRAB_JOB            REQ    Worker
+                    10  NO_JOB              RES    Worker
+                    11  JOB_ASSIGN          RES    Worker
+                    12  WORK_STATUS         REQ    Worker
+                                            RES    Client
+                    13  WORK_COMPLETE       REQ    Worker
+                                            RES    Client
+                    14  WORK_FAIL           REQ    Worker
+                                            RES    Client
+                    15  GET_STATUS          REQ    Client
+                    16  ECHO_REQ            REQ    Client/Worker
+                    17  ECHO_RES            RES    Client/Worker
+                    18  SUBMIT_JOB_BG       REQ    Client
+                    19  ERROR               RES    Client/Worker
+                    20  STATUS_RES          RES    Client
+                    21  SUBMIT_JOB_HIGH     REQ    Client
+                    22  SET_CLIENT_ID       REQ    Worker
+                    23  CAN_DO_TIMEOUT      REQ    Worker
+                    24  ALL_YOURS           REQ    Worker
+                    25  WORK_EXCEPTION      REQ    Worker
+                                            RES    Client
+                    26  OPTION_REQ          REQ    Client/Worker
+                    27  OPTION_RES          RES    Client/Worker
+                    28  WORK_DATA           REQ    Worker
+                                            RES    Client
+                    29  WORK_WARNING        REQ    Worker
+                                            RES    Client
+                    30  SUBMIT_JOB_SCHED    REQ    Client
+                    31  SUBMIT_JOB_EPOCH    REQ    Client
+                    32  GRAB_JOB_UNIQ       REQ    Worker
+                    33  JOB_ASSIGN_UNIQ     RES    Worker
+                    34  SUBMIT_JOB_BG_HIGH  REQ    Client
+                    35  SUBMIT_JOB_LOW      REQ    Client
+                    36  SUBMIT_JOB_BG_LOW   REQ    Client
 
 4 byte size       - A big-endian (network-order) integer containing
                     the size of the data being sent after the header.
@@ -186,6 +196,15 @@ GET_STATUS       A client issues this to get status information for
                  Arguments:
                  - Job handle that was given in JOB_CREATED packet.
 
+OPTION_REQ       A client issues this to set an option for the
+                 connection in the job server. Returns a OPTION_RES
+                 packet on success, or an ERROR packet on failure.
+
+                 Arguments:
+                 - Name of the option to set. Possiblities are:
+                   * "exceptions" - Forward WORK_EXCEPTION packets to
+                     the client.
+
 
 Client Responses
 ----------------
@@ -201,9 +220,11 @@ JOB_CREATED      This is sent in response to one of the SUBMIT_JOB*
                  - Job handle assigned by server.
 
 WORK_DATA        For non-background jobs, the server forwards these
-WORK_STATUS      packets from the worker to clients. See "Worker
-WORK_COMPLETE    Requests" for more information and arguments.
+WORK_WARNING     packets from the worker to clients. See "Worker
+WORK_STATUS      Requests" for more information and arguments.
+WORK_COMPLETE
 WORK_FAIL
+WORK_EXCEPTION
 
 STATUS_RES       This is sent in response to a GET_STATUS request. This
                  is used by clients that have submitted a job with
@@ -218,6 +239,12 @@ STATUS_RES       This is sent in response to a GET_STATUS request. This
                    (false) or 1 (true).
                  - NULL byte terminated percent complete numerator.
                  - Percent complete denominator.
+
+OPTION_RES       Successful response to the OPTION_REQ request.
+
+                 Arguments:
+                 - Name of the option that was set, see OPTION_REQ for
+                   possiblities.
 
 
 Worker Requests
@@ -271,18 +298,31 @@ GRAB_JOB         This is sent to the server to request any available
                  Arguments:
                  - None.
 
+GRAB_JOB_UNIQ    Just like GRAB_JOB, but return JOB_ASSIGN_UNIQ when
+                 there is a job.
+
+                 Arguments:
+                 - None.
+
 WORK_DATA        This is sent to update the client with data from a
                  running job. A worker should use this when it needs
                  to send updates, send partial results, or flush
                  data during long running jobs. It can also be used
                  to break up a result so the worker does not need
                  to buffer the entire result before sending in a
-                 WORK_COMPLETE packet. This is not sent if the job
-                 was submitted with SUBMIT_JOB_BG.
+                 WORK_COMPLETE packet.
 
                  Arguments:
                  - NULL byte terminated job handle.
-                 - WORKLOAD_SIZE. Data output from job.
+                 - Opaque data that is returned to the client.
+
+WORK_WARNING     This is sent to update the client with a warning. It
+                 acts just like a WORK_DATA response, but should be
+                 treated as a warning instead of normal response data.
+
+                 Arguments:
+                 - NULL byte terminated job handle.
+                 - Opaque data that is returned to the client.
 
 WORK_STATUS      This is sent to update the server (and any listening
                  clients) of the status of a running job. The worker
@@ -310,6 +350,14 @@ WORK_FAIL        This is to notify the server (and any listening
 
                  Arguments:
                  - Job handle.
+
+WORK_EXCEPTION   This is to notify the server (and any listening
+                 clients) that the job failed with the given exception.
+
+                 Arguments:
+                 - NULL byte terminated job handle.
+                 - Opaque data that is returned to the client as an
+                   exception.
 
 SET_CLIENT_ID    This sets the worker ID in a job server so monitoring
                  and reporting commands can uniquely identify the
@@ -357,6 +405,17 @@ JOB_ASSIGN       This is given in response to a GRAB_JOB request to
                  Arguments:
                  - NULL byte terminated job handle.
                  - NULL byte terminated function name.
+                 - Opaque data that is given to the function as an
+                   argument.
+
+JOB_ASSIGN_UNIQ  This is given in response to a GRAB_JOB_UNIQ request
+                 and acts just like JOB_ASSIGN but with the client
+                 assigned unique ID.
+
+                 Arguments:
+                 - NULL byte terminated job handle.
+                 - NULL byte terminated function name.
+                 - NULL byte terminated unique ID.
                  - Opaque data that is given to the function as an
                    argument.
 
@@ -409,6 +468,11 @@ shutdown         Shutdown the server. If the optional "graceful"
 
                  Arguments:
                  - Optional "graceful" mode.
+
+version          Send back the version of the server.
+
+                 Arguments:
+                 - None.
 
 The Perl version also has a 'gladiator' command that uses the
 'Devel::Gladiator' Perl module and is used for debugging.

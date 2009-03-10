@@ -47,6 +47,9 @@ void gearman_task_free(gearman_task_st *task)
   if (task->options & GEARMAN_TASK_SEND_IN_USE)
     gearman_packet_free(&(task->send));
 
+  if (task->fn_arg != NULL && task->gearman->task_fn_arg_free_fn != NULL)
+    (*(task->gearman->task_fn_arg_free_fn))(task, (void *)(task->fn_arg));
+
   GEARMAN_LIST_DEL(task->gearman->task, task,)
 
   if (task->options & GEARMAN_TASK_ALLOCATED)
@@ -56,6 +59,11 @@ void gearman_task_free(gearman_task_st *task)
 void *gearman_task_fn_arg(gearman_task_st *task)
 {
   return (void *)task->fn_arg;
+}
+
+void gearman_task_set_fn_arg(gearman_task_st *task, const void *fn_arg)
+{
+  task->fn_arg= fn_arg;
 }
 
 const char *gearman_task_function(gearman_task_st *task)
@@ -106,6 +114,12 @@ size_t gearman_task_data_size(gearman_task_st *task)
 void *gearman_task_take_data(gearman_task_st *task, size_t *size)
 {
   return gearman_packet_take_data(task->recv, size);
+}
+
+size_t gearman_task_send_data(gearman_task_st *task, const void *data,
+                              size_t data_size, gearman_return_t *ret_ptr)
+{
+  return gearman_con_send_data(task->con, data, data_size, ret_ptr);
 }
 
 size_t gearman_task_recv_data(gearman_task_st *task, void *data,

@@ -47,16 +47,22 @@ gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX]=
   { "GET_STATUS",       1, false },
   { "ECHO_REQ",         0, true  },
   { "ECHO_RES",         0, true  },
-  { "SUBMIT_JOB_BJ",    2, true  },
+  { "SUBMIT_JOB_BG",    2, true  },
   { "ERROR",            2, false },
   { "STATUS_RES",       5, false },
   { "SUBMIT_JOB_HIGH",  2, true  },
   { "SET_CLIENT_ID",    1, false },
   { "CAN_DO_TIMEOUT",   2, false },
   { "ALL_YOURS",        0, false },
+  { "WORK_EXCEPTION",   1, true  },
+  { "OPTION_REQ",       1, false },
+  { "OPTION_RES",       1, false },
+  { "WORK_DATA",        1, true  },
+  { "WORK_WARNING",     1, true  },
   { "SUBMIT_JOB_SCHED", 7, true  },
   { "SUBMIT_JOB_EPOCH", 3, true  },
-  { "WORK_DATA",        1, true  }
+  { "GRAB_JOB_UNIQ",    0, false },
+  { "JOB_ASSIGN_UNIQ",  3, true  }
 };
 
 /** @} */
@@ -142,7 +148,7 @@ void gearman_packet_free(gearman_packet_st *packet)
     {
       packet->gearman->workload_free((void *)(packet->data),
                                   (void *)(packet->gearman->workload_free_arg));
-    }  
+    }
   }
 
   GEARMAN_LIST_DEL(packet->gearman->packet, packet,)
@@ -151,7 +157,7 @@ void gearman_packet_free(gearman_packet_st *packet)
     free(packet);
 }
 
-void gearman_packet_set_options(gearman_packet_st *packet, 
+void gearman_packet_set_options(gearman_packet_st *packet,
                                 gearman_packet_options_t options,
                                 uint32_t data)
 {
