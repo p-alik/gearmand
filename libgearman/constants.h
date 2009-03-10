@@ -117,6 +117,7 @@ typedef enum
   GEARMAN_ECHO_DATA_CORRUPTION,
   GEARMAN_NEED_WORKLOAD_FN,
   GEARMAN_PAUSE,
+  GEARMAN_UNKNOWN_STATE,
   GEARMAN_MAX_RETURN /* Always add new error code before */
 } gearman_return_t;
 

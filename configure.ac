@@ -50,7 +50,7 @@ else
   building_from_bzr=no
 fi
 
-AC_PROG_CC
+AC_PROG_CXX
 AM_PROG_CC_STDC
 
 ACX_USE_SYSTEM_EXTENSIONS
@@ -59,18 +59,6 @@ AC_PROG_CPP
 AM_PROG_CC_C_O
 
 AC_CHECK_DECL([__SUNPRO_C], [SUNCC="yes"], [SUNCC="no"])
-ifdef([AC_PROG_CC_C99],[
-    AC_PROG_CC_C99([$1],[$2],[$3])
-],[
-if "x$GCC" = "xyes"
-then
-  C99_SUPPORT_HACK="-std=gnu99"
-fi
-if "x$SUNCC" = "xyes"
-then
-  C99_SUPPORT_HACK="-xc99"
-fi
-])
 AC_PROG_GCC_TRADITIONAL
 
 # We use libtool
@@ -98,6 +86,37 @@ AC_SUBST(CC_VERSION)
 
 AC_DEFINE([_THREAD_SAFE],[1],[Thread safe code])
 AC_DEFINE([_REENTRANT],[1],[Re-entrant code])
+
+# Build optimized or debug version ?
+# First check for gcc and g++
+if test "$GCC" = "yes"
+then
+  CFLAGS="-ggdb3 -std=gnu99 ${CFLAGS}"
+  DEBUG_CFLAGS="-O0"
+  OPTMIIZE_CFLAGS="-O3"
+fi
+if test "$SUNCC" = "yes"
+then
+  isainfo_k=`isainfo -k`
+  if test "$target_cpu" = "sparc"
+  then
+    MEMALIGN_FLAGS="-xmemalign=8s"
+    IS_64="-m64"
+    LDFLAGS="${LDFLAGS} -L/usr/lib/${isainfo_k} -L/usr/local/lib/${isainfo_k}"
+  else
+    if test "$isainfo_k" = "amd64"
+    then
+      IS_64="-m64"
+      LDFLAGS="${LDFLAGS} -L/usr/lib/${isainfo_k} -L/usr/local/lib/${isainfo_k}"
+    fi
+  fi
+  CPPFLAGS="${CPPFLAGS} -I/usr/local/include"
+
+  CFLAGS="-g -mt -xc99=all ${IS_64} ${MEMALIGN_FLAGS} ${CFLAGS}"
+  CXXFLAGS="-g -xlang=c99 ${IS_64} ${CXXFLAGS}"
+  DEBUG_CFLAGS="-xO0"
+  OPTIMIZE_CFLAGS="-xO4 -xlibmil -xdepend -Xa -mt -xstrconst"
+fi
 
 
 AC_HEADER_TIME
@@ -169,27 +188,6 @@ then
 fi
 
 
-# Build optimized or debug version ?
-# First check for gcc and g++
-SYMBOLS_CFLAGS="-g"
-DEBUG_OPTIMIZE_CFLAGS=""
-OPTIMIZE_CFLAGS="-O"
-if test "$GCC" = "yes"
-then
-  SYMBOLS_CFLAGS="-ggdb3"
-  DEBUG_OPTIMIZE_CFLAGS="-O0"
-  OPTIMIZE_CFLAGS="-O3"
-fi
-if test "$SUNCC" = "yes"
-then
-  if test "$target_cpu" = "sparc"
-  then
-    MEMALIGN_FLAGS="-xmemalign=8s"
-  fi
-  SYMBOLS_CFLAGS="-g"
-  DEBUG_OPTIMIZE_CFLAGS=""
-  OPTIMIZE_CFLAGS="-xO4 -xlibmil -xdepend -Xa -mt -xstrconst -D_FORTEC_ ${MEMALIGN_FLAGS}"
-fi
 
 dnl TODO: Remove this define once we are using 2.61 across the board.
 # AX_HEADER_ASSERT
@@ -207,7 +205,14 @@ AC_DEFUN([AX_HEADER_ASSERT],
 ])
 AX_HEADER_ASSERT
 
-CFLAGS="${SYMBOLS_CFLAGS} ${CFLAGS}"
+dnl This is likely subverted by vpath builds. How do we find the original
+dnl source dir in the configure step of a vpath build?
+if test -d ".bzr"
+then
+  building_from_bzr=yes
+else
+  building_from_bzr=no
+fi
 
 AC_ARG_WITH([debug],
     [AS_HELP_STRING([--with-debug],
@@ -216,12 +221,13 @@ AC_ARG_WITH([debug],
     [with_debug=no])
 if test "$with_debug" = "yes"
 then
-  # Medium debug.
-  CFLAGS="${DEBUG_OPTIMIZE_CFLAGS} ${CFLAGS} ${SAVE_CFLAGS} -DDEBUG"
+  # Debugging. No optimization.
+  CFLAGS="${DEBUG_CFLAGS} -DDEBUG ${CFLAGS}"
 else
   # Optimized version. No debug
-  CFLAGS="${OPTIMIZE_CFLAGS} ${CFLAGS} ${SAVE_CFLAGS}"
+  CFLAGS="${OPTIMIZE_CFLAGS} ${CFLAGS}"
 fi
+
 
 AC_ARG_ENABLE([profiling],
     [AS_HELP_STRING([--enable-profiling],
@@ -245,7 +251,7 @@ AC_ARG_ENABLE([pedantic-warnings],
   [AS_HELP_STRING([--disable-pedantic-warnings],
     [Toggle pedanticness @<:@default=yes@:>@])],
   [ac_warn_pedantic="$enableval"],
-  [ac_warn_pedantic="yes"])
+  [ac_warn_pedantic="$building_from_bzr"])
 
 AC_ARG_ENABLE([unreachable],
   [AS_HELP_STRING([--enable-unreachable],
@@ -278,7 +284,7 @@ then
 
   if test "$ac_warn_pedantic" = "yes"
   then
-    W_PEDANTIC="-pedantic -Wundef -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -Wswitch-enum -Wcast-align"
+    W_PEDANTIC="-pedantic -Wundef -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -Wswitch-default -Wswitch-enum -Wcast-align"
     save_CFLAGS="$CFLAGS"
     CFLAGS="-Wlogical-op"
     AC_TRY_COMPILE([#include <stdio>],,W_PEDANTIC="${W_PEDANTIC} -Wlogical-op")
@@ -290,14 +296,39 @@ then
     W_UNREACHABLE="-Wunreachable-code"
   fi
 
-  CC_WARNINGS="${C99_SUPPORT_HACK} ${BASE_WARNINGS} ${W_PEDANTIC} ${W_UNREACHABLE} ${GPROF_PROFILING} ${GPROF_COVERAGE} "
+  CC_WARNINGS="${BASE_WARNINGS} ${W_PEDANTIC} ${W_UNREACHABLE} ${GPROF_PROFILING} ${GPROF_COVERAGE} "
 
   NO_REDUNDANT_DECLS="-Wno-redundant-decls"
-  CPPFLAGS="${CPPFLAGS} -fpch-deps"
+  CPPFLAGS="-fpch-deps ${CPPFLAGS}"
 fi
 if test "$SUNCC" = "yes"
 then
-  CC_WARNINGS="-v -xc99=all -errtags=yes -errwarn=%all -erroff=E_INTEGER_OVERFLOW_DETECTED"
+
+  if test "$ac_warn_fail" = "yes"
+  then
+    W_FAIL="-errwarn=%all"
+  fi
+
+  AC_CACHE_CHECK([whether E_PASTE_RESULT_NOT_TOKEN is usable],
+    [ac_cv_paste_result],
+    [
+      save_CFLAGS="${CFLAGS}"
+      CFLAGS="-errwarn=%all -erroff=E_PASTE_RESULT_NOT_TOKEN ${CFLAGS}" 
+      AC_COMPILE_IFELSE(
+        [AC_LANG_PROGRAM([
+          AC_INCLUDES_DEFAULT
+        ],[
+          int x= 0;])],
+        [ac_cv_paste_result=yes],
+        [ac_cv_paste_result=no])
+      CFLAGS="${save_CFLAGS}"
+    ])
+  AS_IF([test $ac_cv_paste_result = yes],
+    [W_PASTE_RESULT=",E_PASTE_RESULT_NOT_TOKEN"])
+
+      
+  CC_WARNINGS="-v -errtags=yes ${W_FAIL} -erroff=E_INTEGER_OVERFLOW_DETECTED${W_PASTE_RESULT}"
+
 fi
 
 
@@ -305,9 +336,15 @@ AM_CFLAGS="${CC_WARNINGS} ${AM_CFLAGS}"
 
 AC_SUBST(NO_REDUNDANT_DECLS)
 
-AC_SUBST([GLOBAL_CPPFLAGS],['-I$(top_srcdir) -I$(top_builddir)'])
-AC_SUBST([AM_CPPFLAGS],['${GLOBAL_CPPFLAGS}'])
+AM_CPPFLAGS="-I\$(top_srcdir) -I\$(top_builddir) ${CPPFLAGS}"
+AM_CFLAGS="${CC_WARNINGS} ${CFLAGS}"
+
+AC_SUBST([AM_CPPFLAGS])
 AC_SUBST([AM_CFLAGS])
+
+dnl We've collected the flags in AM_*FLAGS now, so blank these.
+CFLAGS=""
+CPPFLAGS=""
 
 AC_CHECK_PROGS([DOXYGEN], [doxygen])
 AC_CHECK_PROGS([PERL], [perl])

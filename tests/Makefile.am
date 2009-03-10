@@ -5,23 +5,30 @@
 # Use and distribution licensed under the BSD license.  See
 # the COPYING file in the parent directory for full text.
 
-AM_CFLAGS= -I$(top_builddir)
-AM_LDFLAGS= $(LIBUUID) $(LIBEVENT) $(top_builddir)/libgearman/libgearman.la
+LDADD= $(LIBUUID) $(LIBEVENT) $(top_builddir)/libgearman/libgearman.la
 
-noinst_PROGRAMS= client_test worker_test
+noinst_PROGRAMS= client_test worker_test cpp_test
 noinst_HEADERS= test.h test_gearmand.h test_worker.h
 
 client_test_SOURCES= test.c test_gearmand.c test_worker.c client_test.c
 
 worker_test_SOURCES= test.c test_gearmand.c worker_test.c
 
+# Test linking with C++ application
+cpp_test_SOURCES= cpp_test.cc
+
 EXTRA_DIST= client_test.rec worker_test.rec
 
-record: client_test worker_test
-	./client_test > client_test.rec
+worker_test.rec: worker_test
 	./worker_test > worker_test.rec
 
-test: client_test worker_test
+client_test.rec: client_test
+	./client_test > client_test.rec
+
+record: client_test.rec worker_test.rec
+
+check: test
+test: client_test worker_test client_test.rec worker_test.rec
 	./client_test > client_test.res
 	./worker_test > worker_test.res
 	diff client_test.rec client_test.res

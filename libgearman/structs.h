@@ -162,8 +162,8 @@ struct gearman_client_st
   gearman_client_state_t state;
   gearman_client_options_t options;
   const void *data;
-  uint32_t new;
-  uint32_t running;
+  uint32_t new_tasks;
+  uint32_t running_tasks;
   gearman_con_st *con;
   gearman_task_st *task;
   gearman_task_st do_task;
@@ -358,5 +358,9 @@ struct gearman_server_job_st
   uint32_t numerator;
   uint32_t denominator;
 };
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __GEARMAN_STRUCTS_H__ */

@@ -15,7 +15,9 @@
 #define __GEARMAN_H__
 
 #include <inttypes.h>
-#include <stdbool.h>
+#ifndef __cplusplus
+#  include <stdbool.h>
+#endif
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <sys/socket.h>

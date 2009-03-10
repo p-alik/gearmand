@@ -497,6 +497,14 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
         if (*ret_ptr != GEARMAN_SUCCESS)
           return NULL;
       }
+
+      break;
+
+    default:
+      GEARMAN_ERROR_SET(worker->gearman, "gearman_worker_grab_job",
+                        "unknown state: %u", worker->state)
+      *ret_ptr= GEARMAN_UNKNOWN_STATE;
+      return NULL;
     }
   }
 }
@@ -635,6 +643,13 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
 
       return ret;
     }
+
+   break;
+
+  default:
+    GEARMAN_ERROR_SET(worker->gearman, "gearman_worker_work",
+                      "unknown state: %u", worker->work_state)
+    return GEARMAN_UNKNOWN_STATE;
   }
 
   gearman_job_free(&(worker->work_job));
