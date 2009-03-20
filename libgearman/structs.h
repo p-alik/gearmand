@@ -294,9 +294,8 @@ struct gearman_server_function_st
   size_t function_name_size;
   gearman_server_worker_st *worker_list;
   uint32_t worker_count;
-  gearman_server_job_st *job_list;
-  gearman_server_job_st *job_high_end;
-  gearman_server_job_st *job_end;
+  gearman_server_job_st *job_list[GEARMAN_JOB_PRIORITY_MAX];
+  gearman_server_job_st *job_end[GEARMAN_JOB_PRIORITY_MAX];
   uint32_t job_count;
   uint32_t job_total;
   uint32_t job_running;
@@ -346,6 +345,7 @@ struct gearman_server_job_st
   gearman_server_function_st *function;
   gearman_server_job_st *function_next;
   gearman_server_job_options_t options;
+  gearman_job_priority_t priority;
   char job_handle[GEARMAN_JOB_HANDLE_SIZE];
   uint32_t job_handle_key;
   char unique[GEARMAN_UNIQUE_SIZE];

@@ -315,6 +315,18 @@ typedef enum
 } gearman_job_options_t;
 
 /**
+ * @ingroup gearman_job
+ * Priority levels for a job.
+ */
+typedef enum
+{
+  GEARMAN_JOB_PRIORITY_HIGH,
+  GEARMAN_JOB_PRIORITY_NORMAL,
+  GEARMAN_JOB_PRIORITY_LOW,
+  GEARMAN_JOB_PRIORITY_MAX /* Always add new commands before this. */
+} gearman_job_priority_t;
+
+/**
  * @ingroup gearman_client
  * Options for gearman_client_st.
  */
@@ -447,8 +459,7 @@ typedef enum
  */
 typedef enum
 {
-  GEARMAN_SERVER_JOB_ALLOCATED= (1 << 0),
-  GEARMAN_SERVER_JOB_HIGH=      (1 << 1)
+  GEARMAN_SERVER_JOB_ALLOCATED= (1 << 0)
 } gearman_server_job_options_t;
 
 #ifdef __cplusplus

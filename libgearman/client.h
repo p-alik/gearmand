@@ -194,6 +194,15 @@ void *gearman_client_do_high(gearman_client_st *client,
                              size_t *result_size, gearman_return_t *ret_ptr);
 
 /**
+ * Run a low priority task and return an allocated result. See
+ * gearman_client_do() for parameter and return information.
+ */
+void *gearman_client_do_low(gearman_client_st *client,
+                            const char *function_name, const char *unique,
+                            const void *workload, size_t workload_size,
+                            size_t *result_size, gearman_return_t *ret_ptr);
+
+/**
  * Get the job handle for the running task. This should be used between
  * repeated gearman_client_do() and gearman_client_do_high() calls to get
  * information.
@@ -246,6 +255,17 @@ gearman_return_t gearman_client_do_high_background(gearman_client_st *client,
                                                    const void *workload,
                                                    size_t workload_size,
                                                    char *job_handle);
+
+/**
+ * Run a low priority task in the background. See
+ * gearman_client_do_background() for parameter and return information.
+ */
+gearman_return_t gearman_client_do_low_background(gearman_client_st *client,
+                                                  const char *function_name,
+                                                  const char *unique,
+                                                  const void *workload,
+                                                  size_t workload_size,
+                                                  char *job_handle);
 
 /**
  * Get the status for a backgound job.
@@ -315,6 +335,18 @@ gearman_task_st *gearman_client_add_task_high(gearman_client_st *client,
                                               gearman_return_t *ret_ptr);
 
 /**
+ * Add a low priority task to be run in parallel.
+ */
+gearman_task_st *gearman_client_add_task_low(gearman_client_st *client,
+                                             gearman_task_st *task,
+                                             const void *fn_arg,
+                                             const char *function_name,
+                                             const char *unique,
+                                             const void *workload,
+                                             size_t workload_size,
+                                             gearman_return_t *ret_ptr);
+
+/**
  * Add a background task to be run in parallel.
  */
 gearman_task_st *gearman_client_add_task_background(gearman_client_st *client,
@@ -338,6 +370,19 @@ gearman_client_add_task_high_background(gearman_client_st *client,
                                         const void *workload,
                                         size_t workload_size,
                                         gearman_return_t *ret_ptr);
+
+/**
+ * Add a low priority background task to be run in parallel.
+ */
+gearman_task_st *
+gearman_client_add_task_low_background(gearman_client_st *client,
+                                       gearman_task_st *task,
+                                       const void *fn_arg,
+                                       const char *function_name,
+                                       const char *unique,
+                                       const void *workload,
+                                       size_t workload_size,
+                                       gearman_return_t *ret_ptr);
 
 /**
  * Add task to get the status for a backgound task in parallel.

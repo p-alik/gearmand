@@ -47,7 +47,8 @@ gearman_server_job_st *
 gearman_server_job_add(gearman_server_st *server, const char *function_name,
                        size_t function_name_size, const char *unique,
                        size_t unique_size, const void *data, size_t data_size,
-                       bool high, gearman_server_client_st *server_client,
+                       gearman_job_priority_t priority,
+                       gearman_server_client_st *server_client,
                        gearman_return_t *ret_ptr)
 {
   gearman_server_job_st *server_job;
@@ -103,8 +104,7 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
       return NULL;
     }
 
-    if (high)
-      server_job->options|= GEARMAN_SERVER_JOB_HIGH;
+    server_job->priority= priority;
 
     server_job->function= server_function;
     server_function->job_total++;
@@ -237,12 +237,20 @@ gearman_server_job_st *
 gearman_server_job_peek(gearman_server_con_st *server_con)
 {
   gearman_server_worker_st *server_worker;
+  gearman_job_priority_t priority;
 
   for (server_worker= server_con->worker_list; server_worker != NULL;
        server_worker= server_worker->con_next)
   {
-    if (server_worker->function->job_list != NULL)
-      return server_worker->function->job_list;
+    if (server_worker->function->job_count != 0)
+    {
+      for (priority= GEARMAN_JOB_PRIORITY_HIGH;
+           priority != GEARMAN_JOB_PRIORITY_MAX; priority++)
+      {
+        if (server_worker->function->job_list[priority] != NULL)
+          return server_worker->function->job_list[priority];
+      }
+    }
   }
 
   return NULL;
@@ -253,29 +261,34 @@ gearman_server_job_take(gearman_server_con_st *server_con)
 {
   gearman_server_worker_st *server_worker;
   gearman_server_job_st *server_job;
+  gearman_job_priority_t priority;
 
   for (server_worker= server_con->worker_list; server_worker != NULL;
        server_worker= server_worker->con_next)
   {
-    if (server_worker->function->job_list != NULL)
+    if (server_worker->function->job_count != 0)
       break;
   }
 
   if (server_worker == NULL)
     return NULL;
 
-  server_job= server_worker->function->job_list;
+  for (priority= GEARMAN_JOB_PRIORITY_HIGH;
+       priority != GEARMAN_JOB_PRIORITY_MAX; priority++)
+  {
+    if (server_worker->function->job_list[priority] != NULL)
+      break;
+  }
+
+  server_job= server_worker->function->job_list[priority];
+  server_job->function->job_list[priority]= server_job->function_next;
+  if (server_job->function->job_end[priority] == server_job)
+    server_job->function->job_end[priority]= NULL;
+  server_job->function->job_count--;
+
   server_job->worker= server_worker;
   server_worker->job= server_job;
   server_job->function->job_running++;
-
-  server_job->function->job_list= server_job->function_next;
-  if (server_job->function->job_end == server_job)
-    server_job->function->job_end= NULL;
-  else if (server_job->function->job_high_end == server_job)
-    server_job->function->job_high_end= NULL;
-  server_job->function_next= NULL;
-  server_job->function->job_count--;
 
   return server_job;
 }
@@ -311,35 +324,11 @@ gearman_return_t gearman_server_job_queue(gearman_server_job_st *server_job)
   }
 
   /* Queue the job to be run. */
-  if (server_job->options & GEARMAN_SERVER_JOB_HIGH)
-  {
-    if (server_job->function->job_high_end == NULL)
-    {
-      if (server_job->function->job_list != NULL)
-        server_job->function_next= server_job->function->job_list;
-      server_job->function->job_list= server_job;
-    }
-    else
-    {
-      server_job->function_next=
-                              server_job->function->job_high_end->function_next;
-      server_job->function->job_high_end->function_next= server_job;
-    }
-    server_job->function->job_high_end= server_job;
-  }
+  if (server_job->function->job_list[server_job->priority] == NULL)
+    server_job->function->job_list[server_job->priority]= server_job;
   else
-  {
-    if (server_job->function->job_end == NULL)
-    {
-      if (server_job->function->job_list == NULL)
-        server_job->function->job_list= server_job;
-      else
-        server_job->function->job_high_end->function_next= server_job;
-    }
-    else
-      server_job->function->job_end->function_next= server_job;
-    server_job->function->job_end= server_job;
-  }
+    server_job->function->job_end[server_job->priority]->next= server_job;
+  server_job->function->job_end[server_job->priority]= server_job;
   server_job->function->job_count++;
 
   return GEARMAN_SUCCESS;
