@@ -327,7 +327,10 @@ gearman_return_t gearman_server_job_queue(gearman_server_job_st *server_job)
   if (server_job->function->job_list[server_job->priority] == NULL)
     server_job->function->job_list[server_job->priority]= server_job;
   else
-    server_job->function->job_end[server_job->priority]->next= server_job;
+  {
+    server_job->function->job_end[server_job->priority]->function_next=
+                                                                     server_job;
+  }
   server_job->function->job_end[server_job->priority]= server_job;
   server_job->function->job_count++;
 
