@@ -55,7 +55,7 @@ static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
 /**
  * Send work result packets with data back to clients.
  */
-static gearman_return_t 
+static gearman_return_t
 _server_queue_work_data(gearman_server_job_st *server_job,
                         gearman_packet_st *packet, gearman_command_t command);
 
@@ -392,6 +392,7 @@ static gearman_return_t _server_run_command(gearman_server_con_st *server_con,
   gearman_server_client_st *server_client;
   char numerator_buffer[11]; /* Max string size to hold a uint32_t. */
   char denominator_buffer[11]; /* Max string size to hold a uint32_t. */
+  gearman_job_priority_t priority;
 
   if (packet->magic == GEARMAN_MAGIC_RESPONSE)
   {
@@ -419,8 +420,29 @@ static gearman_return_t _server_run_command(gearman_server_con_st *server_con,
   case GEARMAN_COMMAND_SUBMIT_JOB:
   case GEARMAN_COMMAND_SUBMIT_JOB_BG:
   case GEARMAN_COMMAND_SUBMIT_JOB_HIGH:
-    if (packet->command == GEARMAN_COMMAND_SUBMIT_JOB_BG)
+  case GEARMAN_COMMAND_SUBMIT_JOB_HIGH_BG:
+  case GEARMAN_COMMAND_SUBMIT_JOB_LOW:
+  case GEARMAN_COMMAND_SUBMIT_JOB_LOW_BG:
+
+    if (packet->command == GEARMAN_COMMAND_SUBMIT_JOB ||
+        packet->command == GEARMAN_COMMAND_SUBMIT_JOB_BG)
+    {
+      priority= GEARMAN_JOB_PRIORITY_NORMAL;
+    }
+    else if (packet->command == GEARMAN_COMMAND_SUBMIT_JOB_HIGH ||
+             packet->command == GEARMAN_COMMAND_SUBMIT_JOB_HIGH_BG)
+    {
+      priority= GEARMAN_JOB_PRIORITY_HIGH;
+    }
+    else
+      priority= GEARMAN_JOB_PRIORITY_LOW;
+
+    if (packet->command == GEARMAN_COMMAND_SUBMIT_JOB_BG ||
+        packet->command == GEARMAN_COMMAND_SUBMIT_JOB_HIGH_BG ||
+        packet->command == GEARMAN_COMMAND_SUBMIT_JOB_LOW_BG)
+    {
       server_client= NULL;
+    }
     else
     {
       server_client= gearman_server_client_add(server_con);
@@ -434,9 +456,8 @@ static gearman_return_t _server_run_command(gearman_server_con_st *server_con,
                                        packet->arg_size[0] - 1,
                                        (char *)(packet->arg[1]),
                                        packet->arg_size[1] - 1, packet->data,
-                                       packet->data_size,
-                            packet->command == GEARMAN_COMMAND_SUBMIT_JOB_HIGH ?
-                                       true : false, server_client, &ret);
+                                       packet->data_size, priority,
+                                       server_client, &ret);
     if (ret == GEARMAN_SUCCESS)
       packet->options&= ~GEARMAN_PACKET_FREE_DATA;
     else if (ret == GEARMAN_JOB_QUEUE_FULL)
@@ -886,7 +907,7 @@ static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
   return GEARMAN_SUCCESS;
 }
 
-static gearman_return_t 
+static gearman_return_t
 _server_queue_work_data(gearman_server_job_st *server_job,
                         gearman_packet_st *packet, gearman_command_t command)
 {

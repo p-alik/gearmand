@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/wait.h>
 
 #include <libgearman/gearman.h>
 
@@ -45,6 +46,8 @@ typedef struct
   bool worker;
   bool suppress_input;
   bool prefix;
+  bool background;
+  gearman_job_priority_t priority;
   char **argv;
   gearman_task_st *task;
 } gearman_args_st;
@@ -107,16 +110,21 @@ int main(int argc, char *argv[])
   gearman_args_st args;
 
   memset(&args, 0, sizeof(gearman_args_st));
+  args.priority= GEARMAN_JOB_PRIORITY_NORMAL;
 
   /* Allocate the maximum number of possible functions. */
   args.function= malloc(sizeof(char *) * argc);
   if (args.function == NULL)
     GEARMAN_ERROR("malloc:%d", errno)
 
-  while ((c = getopt(argc, argv, "c:f:h:HnNp:Psu:w")) != EOF)
+  while ((c = getopt(argc, argv, "bc:f:h:HILnNp:Psu:w")) != EOF)
   {
     switch(c)
     {
+    case 'b':
+      args.background= true;
+      break;
+
     case 'c':
       args.count= atoi(optarg);
       break;
@@ -128,6 +136,14 @@ int main(int argc, char *argv[])
 
     case 'h':
       args.host= optarg;
+      break;
+
+    case 'I':
+      args.priority= GEARMAN_JOB_PRIORITY_HIGH;
+      break;
+
+    case 'L':
+      args.priority= GEARMAN_JOB_PRIORITY_LOW;
       break;
 
     case 'n':
@@ -253,9 +269,69 @@ void _client_run(gearman_client_st *client, gearman_args_st *args,
 
   for (x= 0; x < args->function_count; x++)
   {
-    (void)gearman_client_add_task(client, &(args->task[x]), args,
-                                  args->function[x], args->unique, workload,
-                                  workload_size, &ret);
+    /* This is a bit nasty, but all we have currently is multiple function
+       calls. */
+    if (args->background)
+    {
+      switch (args->priority)
+      {
+      case GEARMAN_JOB_PRIORITY_HIGH:
+        (void)gearman_client_add_task_high_background(client, &(args->task[x]),
+                                                      args, args->function[x],
+                                                      args->unique, workload,
+                                                      workload_size, &ret);
+        break;
+
+      case GEARMAN_JOB_PRIORITY_NORMAL:
+        (void)gearman_client_add_task_background(client, &(args->task[x]), args,
+                                                 args->function[x],
+                                                 args->unique, workload,
+                                                 workload_size, &ret);
+        break;
+
+      case GEARMAN_JOB_PRIORITY_LOW:
+        (void)gearman_client_add_task_low_background(client, &(args->task[x]),
+                                                     args, args->function[x],
+                                                     args->unique, workload,
+                                                     workload_size, &ret);
+        break;
+
+      case GEARMAN_JOB_PRIORITY_MAX:
+      default:
+        /* This should never happen. */
+        ret= GEARMAN_UNKNOWN_STATE;
+        break;
+      }
+    }
+    else
+    {
+      switch (args->priority)
+      {
+      case GEARMAN_JOB_PRIORITY_HIGH:
+        (void)gearman_client_add_task_high(client, &(args->task[x]), args,
+                                           args->function[x], args->unique,
+                                           workload, workload_size, &ret);
+        break;
+
+      case GEARMAN_JOB_PRIORITY_NORMAL:
+        (void)gearman_client_add_task(client, &(args->task[x]), args,
+                                      args->function[x], args->unique, workload,
+                                      workload_size, &ret);
+        break;
+
+      case GEARMAN_JOB_PRIORITY_LOW:
+        (void)gearman_client_add_task_low(client, &(args->task[x]), args,
+                                          args->function[x], args->unique,
+                                          workload, workload_size, &ret);
+        break;
+
+      case GEARMAN_JOB_PRIORITY_MAX:
+      default:
+        /* This should never happen. */
+        ret= GEARMAN_UNKNOWN_STATE;
+        break;
+      }
+    }
     if (ret != GEARMAN_SUCCESS)
       GEARMAN_ERROR("gearman_client_add_task:%s", gearman_client_error(client))
   }
@@ -465,6 +541,9 @@ static void *_worker_cb(gearman_job_st *job, void *cb_arg, size_t *result_size,
       _read_workload(out_fds[0], &result, result_size, &total_size);
       close(out_fds[0]);
     }
+
+    if (wait(NULL) == -1)
+      GEARMAN_ERROR("wait:%d", errno)
   }
 
   return result;
@@ -512,6 +591,9 @@ static void usage(char *name)
   printf("\t-p <port>     - Job server port\n");
 
   printf("\nClient options:\n");
+  printf("\t-b            - Run jobs in the background\n");
+  printf("\t-I            - Run jobs as high priority\n");
+  printf("\t-L            - Run jobs as low priority\n");
   printf("\t-n            - Run one job per line\n");
   printf("\t-N            - Same as -n, but strip off the newline\n");
   printf("\t-P            - Prefix all output lines with functions names\n");

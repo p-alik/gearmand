@@ -263,10 +263,13 @@ typedef enum
   GEARMAN_COMMAND_OPTION_RES,
   GEARMAN_COMMAND_WORK_DATA,
   GEARMAN_COMMAND_WORK_WARNING,
-  GEARMAN_COMMAND_SUBMIT_JOB_SCHED,
-  GEARMAN_COMMAND_SUBMIT_JOB_EPOCH,
   GEARMAN_COMMAND_GRAB_JOB_UNIQ,
   GEARMAN_COMMAND_JOB_ASSIGN_UNIQ,
+  GEARMAN_COMMAND_SUBMIT_JOB_HIGH_BG,
+  GEARMAN_COMMAND_SUBMIT_JOB_LOW,
+  GEARMAN_COMMAND_SUBMIT_JOB_LOW_BG,
+  GEARMAN_COMMAND_SUBMIT_JOB_SCHED,
+  GEARMAN_COMMAND_SUBMIT_JOB_EPOCH,
   GEARMAN_COMMAND_MAX /* Always add new commands before this. */
 } gearman_command_t;
 
@@ -310,6 +313,18 @@ typedef enum
   GEARMAN_JOB_ASSIGNED_IN_USE= (1 << 1),
   GEARMAN_JOB_WORK_IN_USE=     (1 << 2)
 } gearman_job_options_t;
+
+/**
+ * @ingroup gearman_job
+ * Priority levels for a job.
+ */
+typedef enum
+{
+  GEARMAN_JOB_PRIORITY_HIGH,
+  GEARMAN_JOB_PRIORITY_NORMAL,
+  GEARMAN_JOB_PRIORITY_LOW,
+  GEARMAN_JOB_PRIORITY_MAX /* Always add new commands before this. */
+} gearman_job_priority_t;
 
 /**
  * @ingroup gearman_client
@@ -444,8 +459,7 @@ typedef enum
  */
 typedef enum
 {
-  GEARMAN_SERVER_JOB_ALLOCATED= (1 << 0),
-  GEARMAN_SERVER_JOB_HIGH=      (1 << 1)
+  GEARMAN_SERVER_JOB_ALLOCATED= (1 << 0)
 } gearman_server_job_options_t;
 
 #ifdef __cplusplus
