@@ -95,13 +95,13 @@ header is:
                                             RES    Client
                     29  WORK_WARNING        REQ    Worker
                                             RES    Client
-                    30  SUBMIT_JOB_SCHED    REQ    Client
-                    31  SUBMIT_JOB_EPOCH    REQ    Client
-                    32  GRAB_JOB_UNIQ       REQ    Worker
-                    33  JOB_ASSIGN_UNIQ     RES    Worker
-                    34  SUBMIT_JOB_HIGH_BG  REQ    Client
-                    35  SUBMIT_JOB_LOW      REQ    Client
-                    36  SUBMIT_JOB_LOW_BG   REQ    Client
+                    30  GRAB_JOB_UNIQ       REQ    Worker
+                    31  JOB_ASSIGN_UNIQ     RES    Worker
+                    32  SUBMIT_JOB_HIGH_BG  REQ    Client
+                    33  SUBMIT_JOB_LOW      REQ    Client
+                    34  SUBMIT_JOB_LOW_BG   REQ    Client
+                    35  SUBMIT_JOB_SCHED    REQ    Client
+                    36  SUBMIT_JOB_EPOCH    REQ    Client
 
 4 byte size       - A big-endian (network-order) integer containing
                     the size of the data being sent after the header.
@@ -179,7 +179,7 @@ SUBMIT_JOB_LOW, SUBMIT_JOB_LOW_BG
 SUBMIT_JOB_SCHED
 
     Just like SUBMIT_JOB_BG, but run job at given time instead of
-    immediately.
+    immediately. This is not currently used and may be removed.
 
     Arguments:
     - NULL byte terminated function name.
@@ -194,7 +194,7 @@ SUBMIT_JOB_SCHED
 SUBMIT_JOB_EPOCH
 
     Just like SUBMIT_JOB_BG, but run job at given time instead of
-    immediately.
+    immediately. This is not currently used and may be removed.
 
     Arguments:
     - NULL byte terminated function name.

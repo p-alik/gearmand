@@ -59,13 +59,13 @@ gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX]=
   { "OPTION_RES",         1, false },
   { "WORK_DATA",          1, true  },
   { "WORK_WARNING",       1, true  },
-  { "SUBMIT_JOB_SCHED",   7, true  },
-  { "SUBMIT_JOB_EPOCH",   3, true  },
   { "GRAB_JOB_UNIQ",      0, false },
   { "JOB_ASSIGN_UNIQ",    3, true  },
   { "SUBMIT_JOB_HIGH_BG", 2, true  },
   { "SUBMIT_JOB_LOW",     2, true  },
-  { "SUBMIT_JOB_LOW_BG",  2, true  }
+  { "SUBMIT_JOB_LOW_BG",  2, true  },
+  { "SUBMIT_JOB_SCHED",   7, true  },
+  { "SUBMIT_JOB_EPOCH",   3, true  }
 };
 
 /** @} */
