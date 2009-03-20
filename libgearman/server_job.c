@@ -29,12 +29,13 @@
 static uint32_t _server_job_hash(const char *key, size_t key_size);
 
 /**
- * Get a server job structure from the unique ID.
+ * Get a server job structure from the unique ID. If data_size is non-zero,
+ * then unique points to the workload data and not a real unique key.
  */
-static gearman_server_job_st *_server_job_get_unique(gearman_server_st *server,
-                                                     uint32_t unique_key,
-                                                     const char *unique);
-
+static gearman_server_job_st *
+_server_job_get_unique(gearman_server_st *server, uint32_t unique_key,
+                       gearman_server_function_st *server_function,
+                       const char *unique, size_t data_size);
 
 /** @} */
 
@@ -53,20 +54,41 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
   gearman_server_function_st *server_function;
   uint32_t key;
 
-  /* Look up job via unique ID first to make sure it's not a duplicate. */
-  key= _server_job_hash(unique, unique_size);
-  server_job= _server_job_get_unique(server, key, unique);
-  if (server_job == NULL || data_size != server_job->data_size ||
-      memcmp(data, server_job->data, data_size))
+  server_function= gearman_server_function_get(server, function_name,
+                                               function_name_size);
+  if (server_function == NULL)
   {
-    server_function= gearman_server_function_get(server, function_name,
-                                                 function_name_size);
-    if (server_function == NULL)
-    {
-      *ret_ptr= GEARMAN_MEMORY_ALLOCATION_FAILURE;
-      return NULL;
-    }
+    *ret_ptr= GEARMAN_MEMORY_ALLOCATION_FAILURE;
+    return NULL;
+  }
 
+  if (unique_size == 0)
+    server_job= NULL;
+  else
+  {
+    if (unique_size == 1 && *unique ==  '-')
+    {
+      if (data_size == 0)
+        server_job= NULL;
+      else
+      {
+        /* Look up job via unique data when unique = '-'. */
+        key= _server_job_hash(data, data_size);
+        server_job= _server_job_get_unique(server, key, server_function, data,
+                                           data_size);
+      }
+    }
+    else
+    {
+      /* Look up job via unique ID first to make sure it's not a duplicate. */
+      key= _server_job_hash(unique, unique_size);
+      server_job= _server_job_get_unique(server, key, server_function, unique,
+                                         0);
+    }
+  }
+
+  if (server_job == NULL)
+  {
     if (server_function->max_queue_size > 0 &&
         server_function->job_total >= server_function->max_queue_size)
     {
@@ -345,19 +367,34 @@ static uint32_t _server_job_hash(const char *key, size_t key_size)
   return value == 0 ? 1 : value;
 }
 
-static gearman_server_job_st *_server_job_get_unique(gearman_server_st *server,
-                                                     uint32_t unique_key,
-                                                     const char *unique)
+static gearman_server_job_st *
+_server_job_get_unique(gearman_server_st *server, uint32_t unique_key,
+                       gearman_server_function_st *server_function,
+                       const char *unique, size_t data_size)
 {
   gearman_server_job_st *server_job;
 
   for (server_job= server->unique_hash[unique_key % GEARMAN_JOB_HASH_SIZE];
        server_job != NULL; server_job= server_job->unique_next)
   {
-    if (server_job->unique_key == unique_key &&
-        !strcmp(server_job->unique, unique))
+    if (data_size == 0)
     {
-      return server_job;
+      if (server_job->function == server_function &&
+          server_job->unique_key == unique_key &&
+          !strcmp(server_job->unique, unique))
+      {
+        return server_job;
+      }
+    }
+    else
+    {
+      if (server_job->function == server_function &&
+          server_job->unique_key == unique_key &&
+          server_job->data_size == data_size &&
+          !memcmp(server_job->data, unique, data_size))
+      {
+        return server_job;
+      }
     }
   }
 

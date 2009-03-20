@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/wait.h>
 
 #include <libgearman/gearman.h>
 
@@ -465,6 +466,9 @@ static void *_worker_cb(gearman_job_st *job, void *cb_arg, size_t *result_size,
       _read_workload(out_fds[0], &result, result_size, &total_size);
       close(out_fds[0]);
     }
+
+    if (wait(NULL) == -1)
+      GEARMAN_ERROR("wait:%d", errno)
   }
 
   return result;
