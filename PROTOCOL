@@ -99,9 +99,9 @@ header is:
                     31  SUBMIT_JOB_EPOCH    REQ    Client
                     32  GRAB_JOB_UNIQ       REQ    Worker
                     33  JOB_ASSIGN_UNIQ     RES    Worker
-                    34  SUBMIT_JOB_BG_HIGH  REQ    Client
+                    34  SUBMIT_JOB_HIGH_BG  REQ    Client
                     35  SUBMIT_JOB_LOW      REQ    Client
-                    36  SUBMIT_JOB_BG_LOW   REQ    Client
+                    36  SUBMIT_JOB_LOW_BG   REQ    Client
 
 4 byte size       - A big-endian (network-order) integer containing
                     the size of the data being sent after the header.

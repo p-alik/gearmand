@@ -55,7 +55,7 @@ static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
 /**
  * Send work result packets with data back to clients.
  */
-static gearman_return_t 
+static gearman_return_t
 _server_queue_work_data(gearman_server_job_st *server_job,
                         gearman_packet_st *packet, gearman_command_t command);
 
@@ -419,8 +419,12 @@ static gearman_return_t _server_run_command(gearman_server_con_st *server_con,
   case GEARMAN_COMMAND_SUBMIT_JOB:
   case GEARMAN_COMMAND_SUBMIT_JOB_BG:
   case GEARMAN_COMMAND_SUBMIT_JOB_HIGH:
-    if (packet->command == GEARMAN_COMMAND_SUBMIT_JOB_BG)
+  case GEARMAN_COMMAND_SUBMIT_JOB_HIGH_BG:
+    if (packet->command == GEARMAN_COMMAND_SUBMIT_JOB_BG ||
+        packet->command == GEARMAN_COMMAND_SUBMIT_JOB_HIGH_BG)
+    {
       server_client= NULL;
+    }
     else
     {
       server_client= gearman_server_client_add(server_con);
@@ -435,7 +439,8 @@ static gearman_return_t _server_run_command(gearman_server_con_st *server_con,
                                        (char *)(packet->arg[1]),
                                        packet->arg_size[1] - 1, packet->data,
                                        packet->data_size,
-                            packet->command == GEARMAN_COMMAND_SUBMIT_JOB_HIGH ?
+                       (packet->command == GEARMAN_COMMAND_SUBMIT_JOB_HIGH ||
+                        packet->command == GEARMAN_COMMAND_SUBMIT_JOB_HIGH_BG) ?
                                        true : false, server_client, &ret);
     if (ret == GEARMAN_SUCCESS)
       packet->options&= ~GEARMAN_PACKET_FREE_DATA;
@@ -746,6 +751,8 @@ static gearman_return_t _server_run_command(gearman_server_con_st *server_con,
   case GEARMAN_COMMAND_SUBMIT_JOB_SCHED:
   case GEARMAN_COMMAND_SUBMIT_JOB_EPOCH:
   case GEARMAN_COMMAND_JOB_ASSIGN_UNIQ:
+  case GEARMAN_COMMAND_SUBMIT_JOB_LOW:
+  case GEARMAN_COMMAND_SUBMIT_JOB_LOW_BG:
   case GEARMAN_COMMAND_MAX:
   default:
     return _server_error_packet(server_con, "bad_command",
@@ -886,7 +893,7 @@ static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
   return GEARMAN_SUCCESS;
 }
 
-static gearman_return_t 
+static gearman_return_t
 _server_queue_work_data(gearman_server_job_st *server_job,
                         gearman_packet_st *packet, gearman_command_t command)
 {

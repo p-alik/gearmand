@@ -237,6 +237,17 @@ gearman_return_t gearman_client_do_background(gearman_client_st *client,
                                               char *job_handle);
 
 /**
+ * Run a high priority task in the background. See
+ * gearman_client_do_background() for parameter and return information.
+ */
+gearman_return_t gearman_client_do_high_background(gearman_client_st *client,
+                                                   const char *function_name,
+                                                   const char *unique,
+                                                   const void *workload,
+                                                   size_t workload_size,
+                                                   char *job_handle);
+
+/**
  * Get the status for a backgound job.
  * @param client Client structure previously initialized with
  *        gearman_client_create or gearman_client_clone.
@@ -314,6 +325,19 @@ gearman_task_st *gearman_client_add_task_background(gearman_client_st *client,
                                                     const void *workload,
                                                     size_t workload_size,
                                                     gearman_return_t *ret_ptr);
+
+/**
+ * Add a high priority background task to be run in parallel.
+ */
+gearman_task_st *
+gearman_client_add_task_high_background(gearman_client_st *client,
+                                        gearman_task_st *task,
+                                        const void *fn_arg,
+                                        const char *function_name,
+                                        const char *unique,
+                                        const void *workload,
+                                        size_t workload_size,
+                                        gearman_return_t *ret_ptr);
 
 /**
  * Add task to get the status for a backgound task in parallel.
