@@ -417,23 +417,25 @@ static gearman_return_t _server_run_command(gearman_server_con_st *server_con,
     break;
 
   /* Client requests. */
-    while (1)
-    {
   case GEARMAN_COMMAND_SUBMIT_JOB:
   case GEARMAN_COMMAND_SUBMIT_JOB_BG:
-      priority= GEARMAN_JOB_PRIORITY_NORMAL;
-      break;
-
   case GEARMAN_COMMAND_SUBMIT_JOB_HIGH:
   case GEARMAN_COMMAND_SUBMIT_JOB_HIGH_BG:
-      priority= GEARMAN_JOB_PRIORITY_HIGH;
-      break;
-
   case GEARMAN_COMMAND_SUBMIT_JOB_LOW:
   case GEARMAN_COMMAND_SUBMIT_JOB_LOW_BG:
-      priority= GEARMAN_JOB_PRIORITY_LOW;
-      break;
+
+    if (packet->command == GEARMAN_COMMAND_SUBMIT_JOB ||
+        packet->command == GEARMAN_COMMAND_SUBMIT_JOB_BG)
+    {
+      priority= GEARMAN_JOB_PRIORITY_NORMAL;
     }
+    else if (packet->command == GEARMAN_COMMAND_SUBMIT_JOB_HIGH ||
+             packet->command == GEARMAN_COMMAND_SUBMIT_JOB_HIGH_BG)
+    {
+      priority= GEARMAN_JOB_PRIORITY_HIGH;
+    }
+    else
+      priority= GEARMAN_JOB_PRIORITY_LOW;
 
     if (packet->command == GEARMAN_COMMAND_SUBMIT_JOB_BG ||
         packet->command == GEARMAN_COMMAND_SUBMIT_JOB_HIGH_BG ||
