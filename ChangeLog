@@ -1,3 +1,16 @@
+0.4 - 2009-03-30
+ * New protocol additions such as UNIQ grab and assign for workers.
+ * Support for high priority background jobs (Brian Moon).
+ * Support for low priority jobs.
+ * New priority queue in server to support new protocol options.
+ * Reworked the unique ID checking in server.
+ * Added hooks to aid in client memory cleanup.
+ * Added gearman command line utility to allow you to use clients and
+   workers from the shell.
+ * Build fixes (Monty Taylor).
+ * Basic init script added.
+ * Fixed getopt bugs with variable type and EOF.
+
 0.3 - 2009-02-05
  * Fixed I/O wait bug in packet parse.
  * Switched to different autoconf library detection method.

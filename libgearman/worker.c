@@ -287,7 +287,10 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
         while (worker->function != NULL)
         {
           if (!(worker->function->options & GEARMAN_WORKER_FUNCTION_CHANGE))
+          {
+            worker->function= worker->function->next;
             continue;
+          }
 
           for (worker->con= worker->gearman->con_list; worker->con != NULL;
                worker->con= worker->con->next)

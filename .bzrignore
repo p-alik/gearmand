@@ -44,3 +44,4 @@ benchmark/blobslap_client
 benchmark/blobslap_worker
 bin/gearman
 tests/cpp_test
+scripts/gearmand-init

@@ -106,7 +106,7 @@ static void usage(char *name);
 
 int main(int argc, char *argv[])
 {
-  char c;
+  int c;
   gearman_args_st args;
 
   memset(&args, 0, sizeof(gearman_args_st));
@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
   if (args.function == NULL)
     GEARMAN_ERROR("malloc:%d", errno)
 
-  while ((c = getopt(argc, argv, "bc:f:h:HILnNp:Psu:w")) != EOF)
+  while ((c = getopt(argc, argv, "bc:f:h:HILnNp:Psu:w")) != -1)
   {
     switch(c)
     {

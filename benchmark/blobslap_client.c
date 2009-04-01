@@ -29,7 +29,7 @@ static void _usage(char *name);
 int main(int argc, char *argv[])
 {
   gearman_benchmark_st benchmark;
-  char c;
+  int c;
   char *host= NULL;
   in_port_t port= 0;
   char *function= GEARMAN_BENCHMARK_DEFAULT_FUNCTION;
@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
 
   gearman_client_set_options(&client, GEARMAN_CLIENT_UNBUFFERED_RESULT, 1);
 
-  while ((c= getopt(argc, argv, "c:f:h:m:M:n:p:s:v")) != EOF)
+  while ((c= getopt(argc, argv, "c:f:h:m:M:n:p:s:v")) != -1)
   {
     switch(c)
     {

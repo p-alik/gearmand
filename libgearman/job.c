@@ -167,7 +167,7 @@ gearman_return_t gearman_job_exception(gearman_job_st *job, void *exception,
   {
     ret= gearman_packet_add(job->gearman, &(job->work), GEARMAN_MAGIC_REQUEST,
                             GEARMAN_COMMAND_WORK_EXCEPTION,
-                            job->assigned.arg[0], job->assigned.arg_size[0] - 1,
+                            job->assigned.arg[0], job->assigned.arg_size[0],
                             exception, exception_size, NULL);
     if (ret != GEARMAN_SUCCESS)
       return ret;

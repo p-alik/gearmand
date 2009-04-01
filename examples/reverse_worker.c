@@ -34,7 +34,7 @@ static void usage(char *name);
 
 int main(int argc, char *argv[])
 {
-  char c;
+  int c;
   uint32_t count= 0;
   char *host= NULL;
   in_port_t port= 0;
@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
   gearman_return_t ret;
   gearman_worker_st worker;
 
-  while ((c = getopt(argc, argv, "cdh:p:su")) != EOF)
+  while ((c = getopt(argc, argv, "cdh:p:su")) != -1)
   {
     switch(c)
     {

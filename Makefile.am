@@ -7,7 +7,7 @@
 
 ACLOCAL_AMFLAGS= -I m4
 
-SUBDIRS = libgearman gearmand bin tests examples support benchmark
+SUBDIRS = libgearman gearmand bin tests examples scripts support benchmark
 
 # Uncomment this when making a distribution. This is dynamically generated
 # with 'make docs'.
