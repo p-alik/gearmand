@@ -21,12 +21,13 @@ int main(int argc, char *argv[])
   int c;
   in_port_t port= GEARMAN_DEFAULT_TCP_PORT;
   int backlog= 32;
+  uint32_t threads= 0;
   uint8_t verbose= 0;
   char *pid_file= NULL;
   gearmand_st *gearmand;
   gearman_return_t ret;
 
-  while ((c = getopt(argc, argv, "b:dhp:P:vV")) != -1)
+  while ((c = getopt(argc, argv, "b:dhp:P:t:vV")) != EOF)
   {
     switch(c)
     {
@@ -64,6 +65,10 @@ int main(int argc, char *argv[])
       pid_file= optarg;
       break;
 
+    case 't':
+      threads= atoi(optarg);
+      break;
+
     case 'v':
       verbose++;
       break;
@@ -81,6 +86,7 @@ int main(int argc, char *argv[])
       printf("\t-h            - print this help menu\n");
       printf("\t-p <port>     - port for server to listen on\n");
       printf("\t-P <pid_file> - file to write pid out to\n");
+      printf("\t-t <threads>  - number of I/O threads to use\n");
       printf("\t-v            - increase verbosity level by one\n");
       printf("\t-V            - display the version of gearmand and exit\n");
       return 1;
@@ -95,6 +101,7 @@ int main(int argc, char *argv[])
   }
 
   gearmand_set_backlog(gearmand, backlog);
+  gearmand_set_threads(gearmand, threads);
   gearmand_set_verbose(gearmand, verbose);
 
   if (pid_file != NULL)

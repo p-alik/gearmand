@@ -13,6 +13,8 @@
 
 #include "common.h"
 
+#ifdef HAVE_LIBEVENT
+
 /* All thread-safe libevent functions are not in libevent 1.3x, and this is the
    common package version. Make this work for these earlier versions. */
 #ifndef HAVE_EVENT_BASE_NEW
@@ -33,7 +35,6 @@
  * @{
  */
 
-#ifdef HAVE_LIBEVENT
 static gearman_return_t _listen_init(gearmand_st *gearmand);
 
 static void _listen_accept(int fd, short events __attribute__ ((unused)),
@@ -48,7 +49,8 @@ static void _con_ready(int fd __attribute__ ((unused)), short events,
 static void _event_del_listen(gearmand_st *gearmand);
 
 static void _event_del_all(gearmand_st *gearmand);
-#endif
+
+static void *_io_thread(void *data);
 
 /** @} */
 
@@ -58,7 +60,6 @@ static void _event_del_all(gearmand_st *gearmand);
 
 gearmand_st *gearmand_create(in_port_t port)
 {
-#ifdef HAVE_LIBEVENT
   gearmand_st *gearmand;
 
   gearmand= malloc(sizeof(gearmand_st));
@@ -79,37 +80,54 @@ gearmand_st *gearmand_create(in_port_t port)
 
   gearman_server_set_event_watch(&(gearmand->server), _con_watch, NULL);
 
-  gearmand->base= event_base_new();
-  if (gearmand->base == NULL)
-  {
-    gearmand_free(gearmand);
-    return NULL;
-  }
-
   return gearmand;
-#else
-  (void) port;
-  fprintf(stderr, "Library not built with libevent support!\n");
-  return NULL;
-#endif
 }
 
 void gearmand_free(gearmand_st *gearmand)
 {
-#ifdef HAVE_LIBEVENT
+  gearmand_con_st *dcon;
+
+  while (gearmand->thread_list != NULL)
+    gearmand_thread_free(gearmand->thread_list);
+
+  if (gearmand->listen_fd >= 0)
+  {
+    close(gearmand->listen_fd);
+    gearmand->listen_fd= -1;
+  }
+
   if (gearmand->base != NULL)
     event_base_free(gearmand->base);
 
   gearman_server_free(&(gearmand->server));
   free(gearmand);
-#else
-  (void) gearmand;
-#endif
 }
+
+/*
+  for (dcon= gearmand->dcon_list; dcon != NULL; dcon= gearmand->dcon_list)
+  {
+    gearmand->dcon_list= dcon->next;
+    gearman_server_con_free(&(dcon->server_con));
+    close(dcon->fd);
+    free(dcon);
+  }
+
+  for (dcon= gearmand->free_dcon_list; dcon != NULL;
+       dcon= gearmand->free_dcon_list)
+  {
+    gearmand->free_dcon_list= dcon->next;
+    free(dcon);
+  }
+*/
 
 void gearmand_set_backlog(gearmand_st *gearmand, int backlog)
 {
   gearmand->backlog= backlog;
+}
+
+void gearmand_set_threads(gearmand_st *gearmand, uint32_t threads)
+{
+  gearmand->threads= threads;
 }
 
 void gearmand_set_verbose(gearmand_st *gearmand, uint8_t verbose)
@@ -129,59 +147,96 @@ int gearmand_errno(gearmand_st *gearmand)
 
 gearman_return_t gearmand_run(gearmand_st *gearmand)
 {
-#ifdef HAVE_LIBEVENT
-  gearmand_con_st *dcon;
+#ifdef GEARMAN_THREADED
+  uint32_t x;
+  int ret;
+  gearmand_thread_st *thread;
+#else
+  if (gearmand->threads > 0)
+  {
+    GEARMAN_ERROR_SET(gearmand->server.gearman, "gearmand_run",
+                      "gearman was not built with thread support")
+    return GEARMAN_NOT_THREADED;
+  }
+#endif
 
-  if (gearmand->verbose > 0)
-    printf("Method for libevent: %s\n", event_base_get_method(gearmand->base));
+  if (gearmand->base == NULL)
+  {
+    gearmand->base= event_base_new();
+    if (gearmand->base == NULL)
+    {
+      gearmand_free(gearmand);
+      GEARMAN_ERROR_SET(gearmand->server.gearman, "gearmand_run",
+                        "event_base_new:NULL")
+      return GEARMAN_EVENT;
+    }
 
-  gearmand->ret= _listen_init(gearmand);
-  if (gearmand->ret != GEARMAN_SUCCESS)
-    return gearmand->ret;
+    if (gearmand->verbose > 0)
+    {
+      printf("Method for libevent: %s\n",
+             event_base_get_method(gearmand->base));
+    }
+  }
+
+#ifdef GEARMAN_THREADED
+  if (gearmand->threads && gearmand->thread_list == NULL)
+  {
+#ifndef HAVE_EVENT_BASE_NEW
+    GEARMAN_ERROR_SET(gearmand->server.gearman, "gearmand_run",
+                      "Gearman was built with a version of libevent that is "
+                      "not thread-safe. Please recompile with libevent "
+                      "version 1.4 or later.")
+    return GEARMAN_EVENT;
+#endif
+
+    for (x= 0; x < gearmand->threads; x++)
+    {
+      thread= malloc(sizeof(gearmand_thread_st));
+      if (thread == NULL)
+      {
+        GEARMAN_ERROR_SET(gearmand->server.gearman, "gearmand_run", "malloc")
+        return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+      }
+
+      memset(thread, 0, sizeof(gearmand_thread_st));
+
+      thread->gearmand= gearmand;
+
+      ret= pthread_create(&(thread->id), NULL, _io_thread, thread);
+      if (ret != 0)
+      {
+        free(thread);
+        GEARMAN_ERROR_SET(gearmand->server.gearman, "gearmand_run",
+                          "pthread_create:%d", ret)
+        return GEARMAN_PTHREAD;
+      }
+
+      GEARMAN_LIST_ADD(gearmand->thread, thread,)
+    }
+  }
+#endif
+
+  if (gearmand->listen_fd == -1)
+  {
+    gearmand->ret= _listen_init(gearmand);
+    if (gearmand->ret != GEARMAN_SUCCESS)
+      return gearmand->ret;
+  }
 
   if (event_base_loop(gearmand->base, 0) == -1)
   {
     GEARMAN_ERROR_SET(gearmand->server.gearman, "gearmand_run",
                       "event_base_loop:-1")
-    gearmand->ret= GEARMAN_EVENT;
-  }
-
-  if (gearmand->listen_fd >= 0)
-  {
-    close(gearmand->listen_fd);
-    gearmand->listen_fd= -1;
-  }
-
-  for (dcon= gearmand->dcon_list; dcon != NULL; dcon= gearmand->dcon_list)
-  {
-    gearmand->dcon_list= dcon->next;
-    gearman_server_con_free(&(dcon->server_con));
-    close(dcon->fd);
-    free(dcon);
-  }
-
-  for (dcon= gearmand->free_dcon_list; dcon != NULL;
-       dcon= gearmand->free_dcon_list)
-  {
-    gearmand->free_dcon_list= dcon->next;
-    free(dcon);
+    return GEARMAN_EVENT;
   }
 
   return gearmand->ret;
-#else
-  (void) gearmand;
-
-  GEARMAN_ERROR_SET(gearmand->server.gearman, "gearmand_run",
-                    "Library not built with libevent support!")
-  return GEARMAN_EVENT;
-#endif
 }
 
 /*
  * Private definitions
  */
 
-#ifdef HAVE_LIBEVENT
 static gearman_return_t _listen_init(gearmand_st *gearmand)
 {
   struct sockaddr_in sa;
@@ -454,4 +509,66 @@ static void _event_del_all(gearmand_st *gearmand)
     assert(event_del(&(dcon->event)) == 0);
   }
 }
-#endif
+
+static void *_io_thread(void *data)
+{
+  gearmand_thread_st *thread= (gearmand_thread_st *)data;
+
+  if (event_base_loop(thread->base, 0) == -1)
+  {
+    GEARMAN_ERROR_SET(thread->gearmand->server.gearman, "_io_thread",
+                      "event_base_loop:-1")
+    thread->gearmand->ret= GEARMAN_EVENT;
+  }
+
+  return NULL;
+}
+
+#else /* !HAVE_LIBEVENT */
+
+/*
+ * Public definitions with no libevent
+ */
+
+gearmand_st *gearmand_create(in_port_t port __attribute__ ((unused)))
+{
+  fprintf(stderr, "Library not built with libevent support!\n");
+  return NULL;
+}
+
+void gearmand_free(gearmand_st *gearmand __attribute__ ((unused)))
+{
+}
+
+void gearmand_set_backlog(gearmand_st *gearmand __attribute__ ((unused)),
+                          int backlog __attribute__ ((unused)))
+{
+}
+
+void gearmand_set_threads(gearmand_st *gearmand __attribute__ ((unused)),
+                          uint32_t threads __attribute__ ((unused)))
+{
+}
+
+void gearmand_set_verbose(gearmand_st *gearmand __attribute__ ((unused)),
+                          uint8_t verbose __attribute__ ((unused)))
+{
+}
+
+const char *gearmand_error(gearmand_st *gearmand __attribute__ ((unused)))
+{
+  return "";
+}
+
+int gearmand_errno(gearmand_st *gearmand __attribute__ ((unused)))
+{
+  return 0;
+}
+
+gearman_return_t gearmand_run(gearmand_st *gearmand __attribute__ ((unused)))
+{
+  fprintf(stderr, "Library not built with libevent support!\n");
+  return GEARMAN_EVENT;
+}
+
+#endif /* HAVE_LIBEVENT */

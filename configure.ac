@@ -124,6 +124,19 @@ AC_CHECK_HEADERS(assert.h errno.h fcntl.h netinet/tcp.h signal.h stdarg.h)
 AC_CHECK_HEADERS(stdio.h stdlib.h string.h sys/socket.h sys/types.h)
 AC_CHECK_HEADERS(sys/utsname.h unistd.h)
 
+AC_ARG_ENABLE([threading],
+    [AS_HELP_STRING([--disable-threading],
+       [Toggle threading @<:@default=on@:>@])],
+    [ac_threading="$enableval"],
+    [ac_threading="yes"])
+
+if test "$ac_threading" = "yes"
+then
+  AC_CHECK_HEADERS(pthread.h)
+  AC_CHECK_LIB(pthread, pthread_create)
+  AC_DEFINE([GEARMAN_THREADED], [1], [Build with threading support])
+fi
+
 #--------------------------------------------------------------------
 # Check for libevent
 #--------------------------------------------------------------------

@@ -73,6 +73,8 @@ struct gearmand;
 typedef struct gearmand gearmand_st;
 struct gearmand_con;
 typedef struct gearmand_con gearmand_con_st;
+struct gearmand_thread;
+typedef struct gearmand_thread gearmand_thread_st;
 
 /**
  * Return codes.
@@ -118,6 +120,8 @@ typedef enum
   GEARMAN_NEED_WORKLOAD_FN,
   GEARMAN_PAUSE,
   GEARMAN_UNKNOWN_STATE,
+  GEARMAN_NOT_THREADED,
+  GEARMAN_PTHREAD,
   GEARMAN_MAX_RETURN /* Always add new error code before */
 } gearman_return_t;
 

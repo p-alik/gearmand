@@ -47,6 +47,14 @@ void gearmand_free(gearmand_st *gearmand);
 void gearmand_set_backlog(gearmand_st *gearmand, int backlog);
 
 /**
+ * Set number of I/O threads for server to use.
+ * @param gearmand Server instance structure previously initialized with
+ *        gearmand_init.
+ * @param threads Number of threads.
+ */
+void gearmand_set_threads(gearmand_st *gearmand, uint32_t threads);
+
+/**
  * Set verbosity level for server instance.
  * @param gearmand Server instance structure previously initialized with
  *        gearmand_init.

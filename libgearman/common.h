@@ -31,6 +31,9 @@ extern "C" {
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
+#ifdef HAVE_PTHREAD_H
+#include <pthread.h>
+#endif
 #ifdef HAVE_SIGNAL_H
 #include <signal.h>
 #endif
@@ -138,6 +141,7 @@ extern "C" {
  */
 extern gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX];
 
+#ifdef HAVE_LIBEVENT
 /**
  * @ingroup gearmand
  */
@@ -145,19 +149,15 @@ struct gearmand
 {
   in_port_t port;
   int backlog;
+  uint32_t threads;
   uint8_t verbose;
   gearman_server_st server;
   int listen_fd;
   gearman_return_t ret;
-  gearmand_con_st *dcon_list;
-  uint32_t dcon_count;
-  uint32_t dcon_total;
-  gearmand_con_st *free_dcon_list;
-  uint32_t free_dcon_count;
-#ifdef HAVE_LIBEVENT
+  gearmand_thread_st *thread_list;
+  uint32_t thread_count;
   struct event_base *base;
   struct event listen_event;
-#endif
 };
 
 /**
@@ -167,16 +167,37 @@ struct gearmand_con
 {
   gearmand_con_st *next;
   gearmand_con_st *prev;
+  gearmand_thread_st *thread;
   int fd;
   struct sockaddr_in sa;
-  gearmand_st *gearmand;
   gearman_server_con_st server_con;
   gearman_con_st *con;
   short last_events;
-#ifdef HAVE_LIBEVENT
   struct event event;
-#endif
 };
+
+/**
+ * @ingroup gearmand
+ */
+struct gearmand_thread
+{
+  gearmand_thread_st *next;
+  gearmand_thread_st *prev;
+  gearmand_st *gearmand;
+  pthread_t id;
+  int wakeup[2];
+  gearmand_con_st *dcon_list;
+  uint32_t dcon_count;
+  uint32_t dcon_total;
+  gearmand_con_st *free_dcon_list;
+  uint32_t free_dcon_count;
+/*
+  gearman_server_thread_st server_thread;
+*/
+  struct event_base *base;
+  struct event wakeup_event;
+};
+#endif
 
 #ifdef __cplusplus
 }
