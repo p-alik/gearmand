@@ -13,16 +13,20 @@
 
 #include <libgearman/gearman.h>
 
+static void _pid_write(const char *pid_file);
+static void _pid_delete(const char *pid_file);
+
 int main(int argc, char *argv[])
 {
-  char c;
+  int c;
   in_port_t port= GEARMAN_DEFAULT_TCP_PORT;
   int backlog= 32;
   uint8_t verbose= 0;
+  char *pid_file= NULL;
   gearmand_st *gearmand;
   gearman_return_t ret;
 
-  while ((c = getopt(argc, argv, "b:dhp:vV")) != EOF)
+  while ((c = getopt(argc, argv, "b:dhp:P:vV")) != -1)
   {
     switch(c)
     {
@@ -56,6 +60,10 @@ int main(int argc, char *argv[])
       port= (in_port_t)atoi(optarg);
       break;
 
+    case 'P':
+      pid_file= optarg;
+      break;
+
     case 'v':
       verbose++;
       break;
@@ -68,12 +76,13 @@ int main(int argc, char *argv[])
     default:
       printf("\ngearmand %s - %s\n", gearman_version(), gearman_bugreport());
       printf("usage: %s [-h] [-p <port>]\n", argv[0]);
-      printf("\t-b <backlog> - number of backlog connections for listen\n");
-      printf("\t-d           - detach and run in the background\n");
-      printf("\t-h           - print this help menu\n");
-      printf("\t-p <port>    - port for server to listen on\n");
-      printf("\t-v           - increase verbosity level by one\n");
-      printf("\t-V           - display the version of gearmand and exit\n");
+      printf("\t-b <backlog>  - number of backlog connections for listen\n");
+      printf("\t-d            - detach and run in the background\n");
+      printf("\t-h            - print this help menu\n");
+      printf("\t-p <port>     - port for server to listen on\n");
+      printf("\t-P <pid_file> - file to write pid out to\n");
+      printf("\t-v            - increase verbosity level by one\n");
+      printf("\t-V            - display the version of gearmand and exit\n");
       return 1;
     }
   }
@@ -88,11 +97,43 @@ int main(int argc, char *argv[])
   gearmand_set_backlog(gearmand, backlog);
   gearmand_set_verbose(gearmand, verbose);
 
+  if (pid_file != NULL)
+    _pid_write(pid_file);
+
   ret= gearmand_run(gearmand);
   if (ret != GEARMAN_SHUTDOWN && ret != GEARMAN_SUCCESS)
     fprintf(stderr, "gearmand_run:%s\n", gearmand_error(gearmand));
 
   gearmand_free(gearmand);
 
+  if (pid_file != NULL)
+    _pid_delete(pid_file);
+
   return ret == GEARMAN_SUCCESS ? 0 : 1;
+}
+
+static void _pid_write(const char *pid_file)
+{
+  FILE *f;
+
+  f= fopen(pid_file, "w");
+  if (f == NULL)
+  {
+    fprintf(stderr, "Could not open pid file for writing: %s (%d)\n", pid_file,
+            errno);
+    return;
+  }
+
+  fprintf(f, "%" PRId64 "\n", (int64_t)getpid());
+
+  if (fclose(f) == -1)
+  {
+    fprintf(stderr, "Could not close the pid file: %s (%d)\n", pid_file, errno);
+    return;
+  }
+}
+
+static void _pid_delete(const char *pid_file)
+{
+  (void) unlink(pid_file);
 }

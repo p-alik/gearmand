@@ -5,7 +5,7 @@
 # Use and distribution licensed under the BSD license.  See
 # the COPYING file in the parent directory for full text.
 
-LDADD= $(LIBUUID) $(LIBEVENT) $(top_builddir)/libgearman/libgearman.la
+LDADD= $(LTLIBUUID) $(LTLIBEVENT) $(top_builddir)/libgearman/libgearman.la
 
 noinst_PROGRAMS= \
 	echo_client \

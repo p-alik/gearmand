@@ -21,7 +21,7 @@ static void usage(char *name);
 int main(int argc, char *argv[])
 {
   gearman_benchmark_st benchmark;
-  char c;
+  int c;
   char *host= NULL;
   in_port_t port= 0;
   char *function= NULL;
@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  while ((c = getopt(argc, argv, "c:f:h:p:v")) != EOF)
+  while ((c = getopt(argc, argv, "c:f:h:p:v")) != -1)
   {
     switch(c)
     {

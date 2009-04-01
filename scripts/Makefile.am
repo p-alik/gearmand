@@ -5,7 +5,4 @@
 # Use and distribution licensed under the BSD license.  See
 # the COPYING file in this directory for full text.
 
-EXTRA_DIST = gearmand.spec
-
-pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = gearmand.pc
+EXTRA_DIST= gearmand-init

@@ -47,4 +47,4 @@ libgearman_la_SOURCES= \
 	worker.c
 
 libgearman_la_LDFLAGS= -version-info $(GEARMAN_LIBRARY_VERSION) 
-libgearman_la_LIBADD= $(LIBEVENT) $(LIBUUID)
+libgearman_la_LIBADD= $(LTLIBEVENT) $(LTLIBUUID)

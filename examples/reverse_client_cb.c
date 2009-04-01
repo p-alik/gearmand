@@ -30,7 +30,7 @@ static void usage(char *name);
 
 int main(int argc, char *argv[])
 {
-  char c;
+  int c;
   char *host= NULL;
   in_port_t port= 0;
   gearman_return_t ret;
@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
   gearman_task_st task[REVERSE_TASKS];
   uint32_t x;
 
-  while ((c = getopt(argc, argv, "h:p:")) != EOF)
+  while ((c = getopt(argc, argv, "h:p:")) != -1)
   {
     switch(c)
     {

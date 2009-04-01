@@ -6,13 +6,13 @@
 # the COPYING file in this directory for full text.
 
 AC_PREREQ(2.59)
-AC_INIT(gearmand, [0.3.0], [https://launchpad.net/gearmand])
+AC_INIT(gearmand, [0.4.0], [https://launchpad.net/gearmand])
 AC_CONFIG_SRCDIR(libgearman/gearman.c)
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_HEADERS([config.h])
 
 GEARMAN_MAJOR_VERSION=0
-GEARMAN_MINOR_VERSION=3
+GEARMAN_MINOR_VERSION=4
 GEARMAN_MICRO_VERSION=0
 GEARMAN_VERSION=$GEARMAN_MAJOR_VERSION.$GEARMAN_MINOR_VERSION.$GEARMAN_MICRO_VERSION
 GEARMAN_RELEASE=$GEARMAN_MAJOR_VERSION.$GEARMAN_MINOR_VERSION
@@ -351,8 +351,9 @@ AC_CHECK_PROGS([PERL], [perl])
 
 
 AC_CONFIG_FILES(Makefile libgearman/Makefile gearmand/Makefile bin/Makefile
-                tests/Makefile examples/Makefile support/Makefile
-                benchmark/Makefile support/gearmand.pc support/gearmand.spec)
+                tests/Makefile examples/Makefile scripts/Makefile
+                support/Makefile benchmark/Makefile scripts/gearmand-init
+                support/gearmand.pc support/gearmand.spec)
 
 AC_OUTPUT
 
