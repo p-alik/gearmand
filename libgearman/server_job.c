@@ -299,7 +299,10 @@ gearman_return_t gearman_server_job_queue(gearman_server_job_st *server_job)
   gearman_return_t ret;
 
   if (server_job->worker != NULL)
+  {
     server_job->function->job_running--;
+    server_job->function_next= NULL;
+  }
 
   server_job->worker= NULL;
   server_job->numerator= 0;
