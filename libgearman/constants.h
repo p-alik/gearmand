@@ -51,6 +51,7 @@ extern "C" {
 #define GEARMAN_MAX_FREE_SERVER_WORKER 1000
 #define GEARMAN_TEXT_RESPONSE_SIZE 8192
 #define GEARMAN_WORKER_WAIT_TIMEOUT 10000 /* Milliseconds */
+#define GEARMAN_PIPE_BUFFER_SIZE 256
 
 /* Types. */
 typedef struct gearman_st gearman_st;
@@ -69,12 +70,9 @@ typedef struct gearman_server_function_st gearman_server_function_st;
 typedef struct gearman_server_client_st gearman_server_client_st;
 typedef struct gearman_server_worker_st gearman_server_worker_st;
 typedef struct gearman_server_job_st gearman_server_job_st;
-struct gearmand;
-typedef struct gearmand gearmand_st;
-struct gearmand_con;
-typedef struct gearmand_con gearmand_con_st;
-struct gearmand_thread;
-typedef struct gearmand_thread gearmand_thread_st;
+typedef struct gearmand_st gearmand_st;
+typedef struct gearmand_con_st gearmand_con_st;
+typedef struct gearmand_thread_st gearmand_thread_st;
 
 /**
  * Return codes.
@@ -120,8 +118,8 @@ typedef enum
   GEARMAN_NEED_WORKLOAD_FN,
   GEARMAN_PAUSE,
   GEARMAN_UNKNOWN_STATE,
-  GEARMAN_NOT_THREADED,
   GEARMAN_PTHREAD,
+  GEARMAN_PIPE_EOF,
   GEARMAN_MAX_RETURN /* Always add new error code before */
 } gearman_return_t;
 
@@ -465,6 +463,26 @@ typedef enum
 {
   GEARMAN_SERVER_JOB_ALLOCATED= (1 << 0)
 } gearman_server_job_options_t;
+
+/**
+ * @ingroup gearmand
+ * Options for gearmand_st.
+ */
+typedef enum
+{
+  GEARMAND_LISTEN_EVENT= (1 << 0),
+  GEARMAND_WAKEUP_EVENT= (1 << 1)
+} gearmand_options_t;
+
+/**
+ * @ingroup gearmand
+ * Wakeup events for gearmand_st.
+ */
+typedef enum
+{
+  GEARMAND_WAKEUP_PAUSE=    (1 << 0),
+  GEARMAND_WAKEUP_SHUTDOWN= (1 << 1)
+} gearmand_wakeup_t;
 
 #ifdef __cplusplus
 }

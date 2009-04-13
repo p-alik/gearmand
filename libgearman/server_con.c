@@ -103,7 +103,8 @@ const char *gearman_server_con_addr(gearman_server_con_st *server_con)
   return server_con->addr;
 }
 
-void gearman_server_con_set_addr(gearman_server_con_st *server_con, char *addr)
+void gearman_server_con_set_addr(gearman_server_con_st *server_con,
+                                 const char *addr)
 {
   strncpy(server_con->addr, addr, GEARMAN_SERVER_CON_ADDR_SIZE);
   server_con->addr[GEARMAN_SERVER_CON_ADDR_SIZE - 1]= 0;

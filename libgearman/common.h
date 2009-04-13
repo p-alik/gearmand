@@ -73,16 +73,16 @@ extern "C" {
 # endif
 #endif
 
-#ifdef HAVE_LIBEVENT
-#include <event.h>
-#endif
-
 /**
  * Macro to set error string.
  * @ingroup gearman_constants
  */
 #define GEARMAN_ERROR_SET(__gearman, __function, ...) { \
   snprintf((__gearman)->last_error, GEARMAN_MAX_ERROR_SIZE, \
+           __function ":" __VA_ARGS__); }
+
+#define GEARMAND_ERROR_SET(__gearmand, __function, ...) { \
+  snprintf((__gearmand)->last_error, GEARMAN_MAX_ERROR_SIZE, \
            __function ":" __VA_ARGS__); }
 
 /**
@@ -135,69 +135,21 @@ extern "C" {
     __obj->__prefix ## next->__prefix ## prev= __obj->__prefix ## prev; \
   __hash ## _count--; }
 
+/* All thread-safe libevent functions are not in libevent 1.3x, and this is the
+   common package version. Make this work for these earlier versions. */
+#ifndef HAVE_EVENT_BASE_NEW
+#define event_base_new event_init
+#endif
+
+#ifndef HAVE_EVENT_BASE_GET_METHOD
+#define event_base_get_method(__base) event_get_method()
+#endif
+
 /**
  * Command information array.
  * @ingroup gearman_constants
  */
 extern gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX];
-
-#ifdef HAVE_LIBEVENT
-/**
- * @ingroup gearmand
- */
-struct gearmand
-{
-  in_port_t port;
-  int backlog;
-  uint32_t threads;
-  uint8_t verbose;
-  gearman_server_st server;
-  int listen_fd;
-  gearman_return_t ret;
-  gearmand_thread_st *thread_list;
-  uint32_t thread_count;
-  struct event_base *base;
-  struct event listen_event;
-};
-
-/**
- * @ingroup gearmand
- */
-struct gearmand_con
-{
-  gearmand_con_st *next;
-  gearmand_con_st *prev;
-  gearmand_thread_st *thread;
-  int fd;
-  struct sockaddr_in sa;
-  gearman_server_con_st server_con;
-  gearman_con_st *con;
-  short last_events;
-  struct event event;
-};
-
-/**
- * @ingroup gearmand
- */
-struct gearmand_thread
-{
-  gearmand_thread_st *next;
-  gearmand_thread_st *prev;
-  gearmand_st *gearmand;
-  pthread_t id;
-  int wakeup[2];
-  gearmand_con_st *dcon_list;
-  uint32_t dcon_count;
-  uint32_t dcon_total;
-  gearmand_con_st *free_dcon_list;
-  uint32_t free_dcon_count;
-/*
-  gearman_server_thread_st server_thread;
-*/
-  struct event_base *base;
-  struct event wakeup_event;
-};
-#endif
 
 #ifdef __cplusplus
 }

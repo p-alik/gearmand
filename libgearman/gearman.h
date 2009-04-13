@@ -25,6 +25,7 @@
 #include <arpa/inet.h>
 #include <poll.h>
 #include <sys/uio.h>
+#include <event.h>
 
 #include <libgearman/constants.h>
 #include <libgearman/structs.h>
@@ -41,6 +42,8 @@
 #include <libgearman/server_job.h>
 #include <libgearman/server.h>
 #include <libgearman/gearmand.h>
+#include <libgearman/gearmand_thread.h>
+#include <libgearman/gearmand_con.h>
 
 #ifdef __cplusplus
 extern "C" {

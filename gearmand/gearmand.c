@@ -19,7 +19,7 @@ static void _pid_delete(const char *pid_file);
 int main(int argc, char *argv[])
 {
   int c;
-  in_port_t port= GEARMAN_DEFAULT_TCP_PORT;
+  in_port_t port= 0;
   int backlog= 32;
   uint32_t threads= 0;
   uint8_t verbose= 0;
@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
     case 'h':
     default:
       printf("\ngearmand %s - %s\n", gearman_version(), gearman_bugreport());
-      printf("usage: %s [-h] [-p <port>]\n", argv[0]);
+      printf("usage: %s [options]\n", argv[0]);
       printf("\t-b <backlog>  - number of backlog connections for listen\n");
       printf("\t-d            - detach and run in the background\n");
       printf("\t-h            - print this help menu\n");

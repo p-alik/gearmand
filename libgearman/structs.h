@@ -359,6 +359,71 @@ struct gearman_server_job_st
   uint32_t denominator;
 };
 
+/**
+ * @ingroup gearmand
+ */
+struct gearmand_st
+{
+  gearman_options_t options;
+  in_port_t port;
+  int backlog;
+  uint32_t threads;
+  uint8_t verbose;
+  gearman_return_t ret;
+  int last_errno;
+  char last_error[GEARMAN_MAX_ERROR_SIZE];
+  struct addrinfo *addrinfo;
+  struct addrinfo *addrinfo_next;
+  int listen_fd;
+  int wakeup_fd[2];
+  gearmand_thread_st *thread_list;
+  uint32_t thread_count;
+  gearman_server_st server;
+  struct event_base *base;
+  struct event listen_event;
+  struct event wakeup_event;
+
+  gearmand_con_st *dcon_list;
+  uint32_t dcon_count;
+  uint32_t dcon_total;
+  gearmand_con_st *free_dcon_list;
+  uint32_t free_dcon_count;
+};
+
+/**
+ * @ingroup gearmand_thread
+ */
+struct gearmand_thread_st
+{
+  gearmand_thread_st *next;
+  gearmand_thread_st *prev;
+  gearmand_st *gearmand;
+  pthread_t id;
+  int wakeup[2];
+  //gearman_server_thread_st server_thread;
+  struct event_base *base;
+  struct event wakeup_event;
+};
+
+/**
+ * @ingroup gearmand_con
+ */
+struct gearmand_con_st
+{
+  gearmand_st *gearmand;
+
+  gearmand_con_st *next;
+  gearmand_con_st *prev;
+  gearmand_thread_st *thread;
+  int fd;
+  char host[NI_MAXHOST];
+  char port[NI_MAXSERV];
+  gearman_server_con_st server_con;
+  gearman_con_st *con;
+  short last_events;
+  struct event event;
+};
+
 #ifdef __cplusplus
 }
 #endif

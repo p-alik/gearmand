@@ -8,49 +8,36 @@
 
 /**
  * @file
- * @brief Basic Server definitions
+ * @brief Gearman daemon definitions
  */
 
 #include "common.h"
-
-#ifdef HAVE_LIBEVENT
-
-/* All thread-safe libevent functions are not in libevent 1.3x, and this is the
-   common package version. Make this work for these earlier versions. */
-#ifndef HAVE_EVENT_BASE_NEW
-#define event_base_new event_init
-#endif
-
-#ifndef HAVE_EVENT_BASE_GET_METHOD
-#define event_base_get_method(__base) event_get_method()
-#endif
 
 /*
  * Private declarations
  */
 
 /**
- * @addtogroup gearmand_private Private Basic Server Functions
+ * @addtogroup gearmand_private Private Gearman Daemon Functions
  * @ingroup gearmand
  * @{
  */
 
 static gearman_return_t _listen_init(gearmand_st *gearmand);
 
-static void _listen_accept(int fd, short events __attribute__ ((unused)),
-                           void *arg);
+static void _listen_event(int fd, short events __attribute__ ((unused)),
+                          void *arg);
 
-static gearman_return_t _con_watch(gearman_con_st *con, short events,
-                                   void *arg __attribute__ ((unused)));
+static gearman_return_t _wakeup_init(gearmand_st *gearmand);
 
-static void _con_ready(int fd __attribute__ ((unused)), short events,
-                       void *arg);
+static void _wakeup_event(int fd, short events __attribute__ ((unused)),
+                          void *arg);
 
-static void _event_del_listen(gearmand_st *gearmand);
+static gearman_return_t _watch_events(gearmand_st *gearmand);
 
-static void _event_del_all(gearmand_st *gearmand);
+static void _clear_events(gearmand_st *gearmand);
 
-static void *_io_thread(void *data);
+static void _close_events(gearmand_st *gearmand);
 
 /** @} */
 
@@ -69,8 +56,13 @@ gearmand_st *gearmand_create(in_port_t port)
   memset(gearmand, 0, sizeof(gearmand_st));
 
   gearmand->listen_fd= -1;
+  gearmand->wakeup_fd[0]= -1;
+  gearmand->wakeup_fd[1]= -1;
   gearmand->backlog= GEARMAN_DEFAULT_BACKLOG;
-  gearmand->port= port;
+  if (port == 0)
+    gearmand->port= GEARMAN_DEFAULT_TCP_PORT;
+  else
+    gearmand->port= port;
 
   if (gearman_server_create(&(gearmand->server)) == NULL)
   {
@@ -78,23 +70,20 @@ gearmand_st *gearmand_create(in_port_t port)
     return NULL;
   }
 
-  gearman_server_set_event_watch(&(gearmand->server), _con_watch, NULL);
+  gearman_server_set_event_watch(&(gearmand->server), gearmand_con_watch, NULL);
 
   return gearmand;
 }
 
 void gearmand_free(gearmand_st *gearmand)
 {
-  gearmand_con_st *dcon;
-
   while (gearmand->thread_list != NULL)
     gearmand_thread_free(gearmand->thread_list);
 
-  if (gearmand->listen_fd >= 0)
-  {
-    close(gearmand->listen_fd);
-    gearmand->listen_fd= -1;
-  }
+  _close_events(gearmand);
+
+  if (gearmand->addrinfo != NULL)
+    freeaddrinfo(gearmand->addrinfo);
 
   if (gearmand->base != NULL)
     event_base_free(gearmand->base);
@@ -102,23 +91,6 @@ void gearmand_free(gearmand_st *gearmand)
   gearman_server_free(&(gearmand->server));
   free(gearmand);
 }
-
-/*
-  for (dcon= gearmand->dcon_list; dcon != NULL; dcon= gearmand->dcon_list)
-  {
-    gearmand->dcon_list= dcon->next;
-    gearman_server_con_free(&(dcon->server_con));
-    close(dcon->fd);
-    free(dcon);
-  }
-
-  for (dcon= gearmand->free_dcon_list; dcon != NULL;
-       dcon= gearmand->free_dcon_list)
-  {
-    gearmand->free_dcon_list= dcon->next;
-    free(dcon);
-  }
-*/
 
 void gearmand_set_backlog(gearmand_st *gearmand, int backlog)
 {
@@ -137,37 +109,31 @@ void gearmand_set_verbose(gearmand_st *gearmand, uint8_t verbose)
 
 const char *gearmand_error(gearmand_st *gearmand)
 {
-  return gearman_server_error(&(gearmand->server));
+  return (const char *)(gearmand->last_error);
 }
 
 int gearmand_errno(gearmand_st *gearmand)
 {
-  return gearman_server_errno(&(gearmand->server));
+  return gearmand->last_errno;
 }
 
 gearman_return_t gearmand_run(gearmand_st *gearmand)
 {
-#ifdef GEARMAN_THREADED
   uint32_t x;
-  int ret;
-  gearmand_thread_st *thread;
-#else
-  if (gearmand->threads > 0)
-  {
-    GEARMAN_ERROR_SET(gearmand->server.gearman, "gearmand_run",
-                      "gearman was not built with thread support")
-    return GEARMAN_NOT_THREADED;
-  }
-#endif
 
+  /* Initialize server components. */
   if (gearmand->base == NULL)
   {
+    if (signal(SIGPIPE, SIG_IGN) == SIG_ERR)
+    {
+      GEARMAND_ERROR_SET(gearmand, "gearmand_run", "signal:%d", errno)
+      return GEARMAN_ERRNO;
+    }
+
     gearmand->base= event_base_new();
     if (gearmand->base == NULL)
     {
-      gearmand_free(gearmand);
-      GEARMAN_ERROR_SET(gearmand->server.gearman, "gearmand_run",
-                        "event_base_new:NULL")
+      GEARMAN_ERROR_SET(gearmand, "gearmand_run", "event_base_new:NULL")
       return GEARMAN_EVENT;
     }
 
@@ -176,61 +142,48 @@ gearman_return_t gearmand_run(gearmand_st *gearmand)
       printf("Method for libevent: %s\n",
              event_base_get_method(gearmand->base));
     }
-  }
 
-#ifdef GEARMAN_THREADED
-  if (gearmand->threads && gearmand->thread_list == NULL)
-  {
-#ifndef HAVE_EVENT_BASE_NEW
-    GEARMAN_ERROR_SET(gearmand->server.gearman, "gearmand_run",
-                      "Gearman was built with a version of libevent that is "
-                      "not thread-safe. Please recompile with libevent "
-                      "version 1.4 or later.")
-    return GEARMAN_EVENT;
-#endif
-
-    for (x= 0; x < gearmand->threads; x++)
-    {
-      thread= malloc(sizeof(gearmand_thread_st));
-      if (thread == NULL)
-      {
-        GEARMAN_ERROR_SET(gearmand->server.gearman, "gearmand_run", "malloc")
-        return GEARMAN_MEMORY_ALLOCATION_FAILURE;
-      }
-
-      memset(thread, 0, sizeof(gearmand_thread_st));
-
-      thread->gearmand= gearmand;
-
-      ret= pthread_create(&(thread->id), NULL, _io_thread, thread);
-      if (ret != 0)
-      {
-        free(thread);
-        GEARMAN_ERROR_SET(gearmand->server.gearman, "gearmand_run",
-                          "pthread_create:%d", ret)
-        return GEARMAN_PTHREAD;
-      }
-
-      GEARMAN_LIST_ADD(gearmand->thread, thread,)
-    }
-  }
-#endif
-
-  if (gearmand->listen_fd == -1)
-  {
     gearmand->ret= _listen_init(gearmand);
     if (gearmand->ret != GEARMAN_SUCCESS)
       return gearmand->ret;
+
+    gearmand->ret= _wakeup_init(gearmand);
+    if (gearmand->ret != GEARMAN_SUCCESS)
+      return gearmand->ret;
+
+    /* If we have 0 threads we still need to create a fake one for context. */
+    x= 0;
+    do
+    {
+      gearmand->ret= gearmand_thread_create(gearmand);
+      if (gearmand->ret != GEARMAN_SUCCESS)
+        return gearmand->ret;
+      x++;
+    }
+    while (x < gearmand->threads);
   }
 
+  gearmand->ret= _watch_events(gearmand);
+  if (gearmand->ret != GEARMAN_SUCCESS)
+    return gearmand->ret;
+
+  /* Main server loop. */
   if (event_base_loop(gearmand->base, 0) == -1)
   {
-    GEARMAN_ERROR_SET(gearmand->server.gearman, "gearmand_run",
-                      "event_base_loop:-1")
+    GEARMAND_ERROR_SET(gearmand, "gearmand_run", "event_base_loop:-1")
     return GEARMAN_EVENT;
   }
 
   return gearmand->ret;
+}
+
+void gearmand_wakup(gearmand_st *gearmand, gearmand_wakeup_t wakeup)
+{
+  uint8_t buffer= wakeup;
+
+  /* If this fails, there is not much we can really do. This should never fail
+     though if the main gearmand thread is still active. */
+  (void) write(gearmand->wakeup_fd[1], &buffer, 1);
 }
 
 /*
@@ -239,60 +192,74 @@ gearman_return_t gearmand_run(gearmand_st *gearmand)
 
 static gearman_return_t _listen_init(gearmand_st *gearmand)
 {
-  struct sockaddr_in sa;
-  int opt= 1;
+  char port_str[NI_MAXSERV];
+  struct addrinfo ai;
+  int ret;
+  int opt;
 
-  if (signal(SIGPIPE, SIG_IGN) == SIG_ERR)
+  snprintf(port_str, NI_MAXSERV, "%u", gearmand->port);
+
+  memset(&ai, 0, sizeof(struct addrinfo));
+  ai.ai_flags  = AI_PASSIVE;
+  ai.ai_family = AF_UNSPEC;
+  ai.ai_socktype = SOCK_STREAM;
+  ai.ai_protocol= IPPROTO_TCP;
+
+  ret= getaddrinfo(NULL, port_str, &ai, &(gearmand->addrinfo));
+  if (ret == -1)
   {
-    GEARMAN_ERROR_SET(gearmand->server.gearman, "_listen_init", "signal:%d",
-                      errno)
+    GEARMAND_ERROR_SET(gearmand, "_listen_init", "getaddrinfo:%s",
+                       gai_strerror(ret))
     return GEARMAN_ERRNO;
   }
 
-  memset(&sa, 0, sizeof(sa));
-  sa.sin_family = AF_INET;
-  sa.sin_port= htons(gearmand->port);
-  sa.sin_addr.s_addr = INADDR_ANY;
+  for (gearmand->addrinfo_next= gearmand->addrinfo;
+       gearmand->addrinfo_next != NULL;
+       gearmand->addrinfo_next= gearmand->addrinfo_next->ai_next)
+  {
+    /* Calls to socket() can fail for some getaddrinfo results, try another. */
+    gearmand->listen_fd= socket(gearmand->addrinfo_next->ai_family,
+                                gearmand->addrinfo_next->ai_socktype,
+                                gearmand->addrinfo_next->ai_protocol);
+    if (gearmand->listen_fd == -1)
+      continue;
 
-  gearmand->listen_fd= socket(sa.sin_family, SOCK_STREAM, 0);
+    opt= 1;
+    ret= setsockopt(gearmand->listen_fd, SOL_SOCKET, SO_REUSEADDR, &opt,
+                    sizeof(opt));
+    if (ret == -1)
+    {
+      GEARMAND_ERROR_SET(gearmand, "_listen_init", "setsockopt:%d", errno)
+      return GEARMAN_ERRNO;
+    }
+
+    ret= bind(gearmand->listen_fd, gearmand->addrinfo_next->ai_addr,
+              gearmand->addrinfo_next->ai_addrlen);
+    if (ret == -1)
+    {
+      GEARMAND_ERROR_SET(gearmand, "_listen_init", "bind:%d", errno)
+      return GEARMAN_ERRNO;
+    }
+
+    if (listen(gearmand->listen_fd, gearmand->backlog) == -1)
+    {
+      GEARMAND_ERROR_SET(gearmand, "_listen_init", "listen:%d", errno)
+      return GEARMAN_ERRNO;
+    }
+
+    break;
+  }
+
+  /* Report last socket() error if we couldn't find an address to bind. */
   if (gearmand->listen_fd == -1)
   {
-    GEARMAN_ERROR_SET(gearmand->server.gearman, "_listen_init", "socket:%d",
-                      errno)
-    return GEARMAN_ERRNO;
-  }
-
-  if (setsockopt(gearmand->listen_fd, SOL_SOCKET, SO_REUSEADDR, &opt,
-                 sizeof(opt)) == -1)
-  {
-    GEARMAN_ERROR_SET(gearmand->server.gearman, "_listen_init", "setsockopt:%d",
-                      errno)
-    return GEARMAN_ERRNO;
-  }
-
-  if (bind(gearmand->listen_fd, (struct sockaddr *)(&sa), sizeof(sa)) == -1)
-  {
-    GEARMAN_ERROR_SET(gearmand->server.gearman, "_listen_init", "bind:%d",
-                      errno)
-    return GEARMAN_ERRNO;
-  }
-
-  if (listen(gearmand->listen_fd, gearmand->backlog) == -1)
-  {
-    GEARMAN_ERROR_SET(gearmand->server.gearman, "_listen_init", "listen:%d",
-                      errno)
+    GEARMAND_ERROR_SET(gearmand, "_listen_init", "socket:%d", errno)
     return GEARMAN_ERRNO;
   }
 
   event_set(&(gearmand->listen_event), gearmand->listen_fd,
-            EV_READ | EV_PERSIST, _listen_accept, gearmand);
+            EV_READ | EV_PERSIST, _listen_event, gearmand);
   event_base_set(gearmand->base, &(gearmand->listen_event));
-
-  if (event_add(&(gearmand->listen_event), NULL) == -1)
-  {
-    GEARMAN_ERROR_SET(gearmand->server.gearman, "_listen_init", "event_add:-1")
-    return GEARMAN_EVENT;
-  }
 
   if (gearmand->verbose > 0)
     printf("Listening on port %u\n", gearmand->port);
@@ -300,275 +267,177 @@ static gearman_return_t _listen_init(gearmand_st *gearmand)
   return GEARMAN_SUCCESS;
 }
 
-static void _listen_accept(int fd, short events __attribute__ ((unused)),
-                           void *arg)
+static void _listen_event(int fd, short events __attribute__ ((unused)),
+                          void *arg)
 {
   gearmand_st *gearmand= (gearmand_st *)arg;
-  gearmand_con_st *dcon;
+  struct sockaddr sa;
   socklen_t sa_len;
+  char host[NI_MAXHOST];
+  char port[NI_MAXSERV];
 
-  if (gearmand->free_dcon_count > 0)
+  sa_len= sizeof(sa);
+  fd= accept(fd, &sa, &sa_len);
+  if (fd == -1)
   {
-    dcon= gearmand->free_dcon_list;
-    GEARMAN_LIST_DEL(gearmand->free_dcon, dcon,)
-  }
-  else
-  {
-    dcon= malloc(sizeof(gearmand_con_st));
-    if (dcon == NULL)
-    {
-      GEARMAN_ERROR_SET(gearmand->server.gearman, "_listen_accept", "malloc")
-      gearmand->ret= GEARMAN_MEMORY_ALLOCATION_FAILURE;
-      _event_del_all(gearmand);
-      return;
-    }
-  }
-
-  memset(dcon, 0, sizeof(gearmand_con_st));
-
-  sa_len= sizeof(dcon->sa);
-  dcon->fd= accept(fd, (struct sockaddr *)(&(dcon->sa)), &sa_len);
-  if (dcon->fd == -1)
-  {
-    free(dcon);
-    GEARMAN_ERROR_SET(gearmand->server.gearman, "_listen_accept", "accept:%d",
-                      errno)
-    gearmand->ret= GEARMAN_ERRNO;;
-    _event_del_all(gearmand);
+    GEARMAND_ERROR_SET(gearmand, "_listen_event", "accept:%d", errno)
+    gearmand->ret= GEARMAN_ERRNO;
+    _close_events(gearmand);
     return;
   }
 
-  if (gearmand->verbose > 0)
-  {
-    printf("%15s:%5u Connected (%u current, %u total)\n",
-           inet_ntoa(dcon->sa.sin_addr), ntohs(dcon->sa.sin_port),
-           gearmand->dcon_count + 1, gearmand->dcon_total + 1);
-  }
+  /* Since this is numeric, it should never fail. Even if it did we don't want
+     to really error from it. */
+  (void) getnameinfo(&sa, sa_len, host, NI_MAXHOST, port, NI_MAXSERV,
+                     NI_NUMERICHOST | NI_NUMERICSERV);
 
-  dcon->gearmand= gearmand;
-
-  if (gearman_server_add_con(&(gearmand->server), &(dcon->server_con), dcon->fd,
-                             dcon) == NULL)
-  {
-    close(dcon->fd);
-    free(dcon);
-    gearmand->ret= GEARMAN_MEMORY_ALLOCATION_FAILURE;
-    _event_del_all(gearmand);
-    return;
-  }
-
-  gearman_server_con_set_addr(&(dcon->server_con),
-                              inet_ntoa(dcon->sa.sin_addr));
-
-  GEARMAN_LIST_ADD(gearmand->dcon, dcon,)
-  gearmand->dcon_total++;
+  gearmand->ret= gearmand_con_create(gearmand, fd, host, port);
+  if (gearmand->ret != GEARMAN_SUCCESS)
+    _close_events(gearmand);
 }
 
-static gearman_return_t _con_watch(gearman_con_st *con, short events,
-                                   void *arg __attribute__ ((unused)))
+static gearman_return_t _wakeup_init(gearmand_st *gearmand)
 {
-  gearmand_con_st *dcon;
-  short set_events= 0;
+  int ret;
 
-  dcon= (gearmand_con_st *)gearman_con_data(con);
-  dcon->con= con;
-
-  if (events & POLLIN)
-    set_events|= EV_READ;
-  if (events & POLLOUT)
-    set_events|= EV_WRITE;
-
-  if (dcon->last_events != set_events)
+  ret= pipe(gearmand->wakeup_fd);
+  if (ret == -1)
   {
-    if (dcon->last_events != 0)
-      assert(event_del(&(dcon->event)) == 0);
-    event_set(&(dcon->event), dcon->fd, set_events | EV_PERSIST, _con_ready,
-              dcon);
-    event_base_set(dcon->gearmand->base, &(dcon->event));
-
-    if (event_add(&(dcon->event), NULL) == -1)
-    {
-      GEARMAN_ERROR_SET(dcon->gearmand->server.gearman, "_con_watch",
-                        "event_add:-1")
-      return GEARMAN_EVENT;
-    }
-
-    dcon->last_events= set_events;
+    GEARMAND_ERROR_SET(gearmand, "_wakeup_init", "pipe:%d", errno)
+    return GEARMAN_ERRNO;
   }
 
-  if (dcon->gearmand->verbose > 1)
+  ret= fcntl(gearmand->wakeup_fd[0], F_GETFL, 0);
+  if (ret == -1)
   {
-    printf("%15s:%5u Watching %8s%8s\n", inet_ntoa(dcon->sa.sin_addr),
-           ntohs(dcon->sa.sin_port), events & POLLIN ? "POLLIN" : "",
-           events & POLLOUT ? "POLLOUT" : "");
+    GEARMAND_ERROR_SET(gearmand, "_wakeup_init", "fcntl:F_GETFL:%d", errno)
+    return GEARMAN_ERRNO;
   }
+
+  ret= fcntl(gearmand->wakeup_fd[0], F_SETFL, ret | O_NONBLOCK);
+  if (ret == -1)
+  {
+    GEARMAND_ERROR_SET(gearmand, "_wakeup_init", "fcntl:F_SETFL:%d", errno)
+    return GEARMAN_ERRNO;
+  }
+
+  event_set(&(gearmand->wakeup_event), gearmand->wakeup_fd[0],
+            EV_READ | EV_PERSIST, _wakeup_event, gearmand);
+  event_base_set(gearmand->base, &(gearmand->wakeup_event));
+
+  if (gearmand->verbose > 0)
+    printf("Wakeup pipe created\n");
 
   return GEARMAN_SUCCESS;
 }
 
-static void _con_ready(int fd __attribute__ ((unused)), short events,
-                       void *arg)
+static void _wakeup_event(int fd, short events __attribute__ ((unused)),
+                          void *arg)
 {
-  gearmand_st *gearmand;
-  gearmand_con_st *dcon= (gearmand_con_st *)arg;
-  gearman_server_con_st *server_con;
-  short revents= 0;
-
-  gearmand= dcon->gearmand;
-
-  if (events & EV_READ)
-    revents|= POLLIN;
-  if (events & EV_WRITE)
-    revents|= POLLOUT;
-
-  gearman_con_set_revents(dcon->con, revents);
-
-  if (gearmand->verbose > 1)
-  {
-    printf("%15s:%5u Ready    %8s%8s\n", inet_ntoa(dcon->sa.sin_addr),
-           ntohs(dcon->sa.sin_port), revents & POLLIN ? "POLLIN" : "",
-           revents & POLLOUT ? "POLLOUT" : "");
-  }
+  gearmand_st *gearmand= (gearmand_st *)arg;
+  uint8_t buffer[GEARMAN_PIPE_BUFFER_SIZE];
+  ssize_t ret;
+  ssize_t x;
 
   while (1)
   {
-    server_con= gearman_server_run(&(gearmand->server), &(gearmand->ret));
-    if (gearmand->ret == GEARMAN_SUCCESS || gearmand->ret == GEARMAN_IO_WAIT)
-      return;
-
-    if (gearmand->ret == GEARMAN_SHUTDOWN_GRACEFUL)
+    ret= read(fd, buffer, GEARMAN_PIPE_BUFFER_SIZE);
+    if (ret == 0)
     {
-      _event_del_listen(gearmand);
+      GEARMAND_ERROR_SET(gearmand, "_wakeup_event", "read:EOF");
+      gearmand->ret= GEARMAN_PIPE_EOF;
+      _close_events(gearmand);
+      return;
+    }
+    else if (ret == -1)
+    {
+      if (errno == EINTR)
+        continue;
+
+      if (errno == EAGAIN)
+        break;
+
+      GEARMAND_ERROR_SET(gearmand, "_wakeup_event", "read:%d", errno);
+      gearmand->ret= GEARMAN_ERRNO;
+      _close_events(gearmand);
       return;
     }
 
-    if (server_con == NULL)
+    for (x= 0; x < ret; x++)
     {
-      _event_del_all(gearmand);
-      return;
-    }
-
-    dcon= (gearmand_con_st *)gearman_server_con_data(server_con);
-
-    if (gearmand->verbose > 0)
-    {
-      if (gearmand->ret != GEARMAN_LOST_CONNECTION)
+      switch ((gearmand_wakeup_t)buffer[x])
       {
-        printf("%15s:%5u %s\n", inet_ntoa(dcon->sa.sin_addr),
-               ntohs(dcon->sa.sin_port),
-               gearman_server_error(&(gearmand->server)));
+      case GEARMAND_WAKEUP_PAUSE:
+        _clear_events(gearmand);
+        gearmand->ret= GEARMAN_PAUSE;
+        break;
+
+      case GEARMAND_WAKEUP_SHUTDOWN:
+        _close_events(gearmand);
+        gearmand->ret= GEARMAN_UNKNOWN_STATE;
+        break;
+
+      default:
+        GEARMAND_ERROR_SET(gearmand, "_wakeup_event", "unknown state");
+        gearmand->ret= GEARMAN_UNKNOWN_STATE;
+        _close_events(gearmand);
+        break;
       }
-
-      printf("%15s:%5u Disconnected\n", inet_ntoa(dcon->sa.sin_addr),
-             ntohs(dcon->sa.sin_port));
     }
-
-    gearman_server_con_free(&(dcon->server_con));
-    assert(event_del(&(dcon->event)) == 0);
-
-    /* This gets around a libevent bug when both POLLIN and POLLOUT are set. */
-    event_set(&(dcon->event), dcon->fd, EV_READ, _con_ready, dcon);
-    event_base_set(dcon->gearmand->base, &(dcon->event));
-    event_add(&(dcon->event), NULL);
-    assert(event_del(&(dcon->event)) == 0);
-
-    GEARMAN_LIST_DEL(gearmand->dcon, dcon,)
-    close(dcon->fd);
-    if (gearmand->free_dcon_count < GEARMAN_MAX_FREE_SERVER_CON)
-      GEARMAN_LIST_ADD(gearmand->free_dcon, dcon,)
-    else
-      free(dcon);
   }
 }
 
-static void _event_del_listen(gearmand_st *gearmand)
+static gearman_return_t _watch_events(gearmand_st *gearmand)
 {
-  if (gearmand->listen_fd >= 0)
+  if (event_add(&(gearmand->listen_event), NULL) == -1)
+  {
+    GEARMAND_ERROR_SET(gearmand, "_watch_events", "event_add:-1")
+    return GEARMAN_EVENT;
+  }
+
+  gearmand->options|= GEARMAND_LISTEN_EVENT;
+
+  if (event_add(&(gearmand->wakeup_event), NULL) == -1)
+  {
+    GEARMAND_ERROR_SET(gearmand, "_watch_events", "event_add:-1")
+    return GEARMAN_EVENT;
+  }
+
+  gearmand->options|= GEARMAND_WAKEUP_EVENT;
+
+  return GEARMAN_SUCCESS;
+}
+
+static void _clear_events(gearmand_st *gearmand)
+{
+  if (gearmand->options & GEARMAND_LISTEN_EVENT)
   {
     assert(event_del(&(gearmand->listen_event)) == 0);
+    gearmand->options&= ~GEARMAND_LISTEN_EVENT;
+  }
+
+  if (gearmand->options & GEARMAND_WAKEUP_EVENT)
+  {
+    assert(event_del(&(gearmand->wakeup_event)) == 0);
+    gearmand->options&= ~GEARMAND_WAKEUP_EVENT;
+  }
+}
+
+static void _close_events(gearmand_st *gearmand)
+{
+  _clear_events(gearmand);
+
+  if (gearmand->listen_fd >= 0)
+  {
     close(gearmand->listen_fd);
     gearmand->listen_fd= -1;
   }
-}
 
-static void _event_del_all(gearmand_st *gearmand)
-{
-  gearmand_con_st *dcon;
-
-  _event_del_listen(gearmand);
-
-  for (dcon= gearmand->dcon_list; dcon != NULL; dcon= dcon->next)
+  if (gearmand->wakeup_fd[0] >= 0)
   {
-    if (dcon->last_events != 0)
-      assert(event_del(&(dcon->event)) == 0);
-
-    /* This gets around a libevent bug when both POLLIN and POLLOUT are set. */
-    event_set(&(dcon->event), dcon->fd, EV_READ, _con_ready, dcon);
-    event_base_set(dcon->gearmand->base, &(dcon->event));
-    event_add(&(dcon->event), NULL);
-    assert(event_del(&(dcon->event)) == 0);
+    close(gearmand->wakeup_fd[0]);
+    gearmand->wakeup_fd[0]= -1;
+    close(gearmand->wakeup_fd[1]);
+    gearmand->wakeup_fd[1]= -1;
   }
 }
-
-static void *_io_thread(void *data)
-{
-  gearmand_thread_st *thread= (gearmand_thread_st *)data;
-
-  if (event_base_loop(thread->base, 0) == -1)
-  {
-    GEARMAN_ERROR_SET(thread->gearmand->server.gearman, "_io_thread",
-                      "event_base_loop:-1")
-    thread->gearmand->ret= GEARMAN_EVENT;
-  }
-
-  return NULL;
-}
-
-#else /* !HAVE_LIBEVENT */
-
-/*
- * Public definitions with no libevent
- */
-
-gearmand_st *gearmand_create(in_port_t port __attribute__ ((unused)))
-{
-  fprintf(stderr, "Library not built with libevent support!\n");
-  return NULL;
-}
-
-void gearmand_free(gearmand_st *gearmand __attribute__ ((unused)))
-{
-}
-
-void gearmand_set_backlog(gearmand_st *gearmand __attribute__ ((unused)),
-                          int backlog __attribute__ ((unused)))
-{
-}
-
-void gearmand_set_threads(gearmand_st *gearmand __attribute__ ((unused)),
-                          uint32_t threads __attribute__ ((unused)))
-{
-}
-
-void gearmand_set_verbose(gearmand_st *gearmand __attribute__ ((unused)),
-                          uint8_t verbose __attribute__ ((unused)))
-{
-}
-
-const char *gearmand_error(gearmand_st *gearmand __attribute__ ((unused)))
-{
-  return "";
-}
-
-int gearmand_errno(gearmand_st *gearmand __attribute__ ((unused)))
-{
-  return 0;
-}
-
-gearman_return_t gearmand_run(gearmand_st *gearmand __attribute__ ((unused)))
-{
-  fprintf(stderr, "Library not built with libevent support!\n");
-  return GEARMAN_EVENT;
-}
-
-#endif /* HAVE_LIBEVENT */

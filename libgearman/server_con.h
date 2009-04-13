@@ -56,7 +56,8 @@ const char *gearman_server_con_addr(gearman_server_con_st *server_con);
 /**
  * Set client addr.
  */
-void gearman_server_con_set_addr(gearman_server_con_st *server_con, char *addr);
+void gearman_server_con_set_addr(gearman_server_con_st *server_con,
+                                 const char *addr);
 
 /**
  * Get client id.

@@ -15,6 +15,8 @@ dist_libgearmaninclude_HEADERS= \
 	constants.h \
 	gearman.h \
         gearmand.h \
+        gearmand_thread.h \
+        gearmand_con.h \
 	job.h \
 	packet.h \
 	server.h \
@@ -35,6 +37,8 @@ libgearman_la_SOURCES= \
 	con.c \
 	gearman.c \
 	gearmand.c \
+	gearmand_thread.c \
+	gearmand_con.c \
 	job.c \
 	packet.c \
 	server.c \
