@@ -177,6 +177,12 @@ static bool _set_signals(void)
     return true;
   }
 
+  if (sigaction(SIGINT, &sa, 0) == -1)
+  {
+    fprintf(stderr, "Could not set SIGTERM handler (%d)\n", errno);
+    return true;
+  }
+
   return false;
 }
 

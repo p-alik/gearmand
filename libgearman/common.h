@@ -78,9 +78,26 @@ extern "C" {
   snprintf((__gearman)->last_error, GEARMAN_MAX_ERROR_SIZE, \
            __function ":" __VA_ARGS__); }
 
+/**
+ * Macro to set error string for gearmand.
+ * @ingroup gearman_constants
+ */
 #define GEARMAND_ERROR_SET(__gearmand, __function, ...) { \
   snprintf((__gearmand)->last_error, GEARMAN_MAX_ERROR_SIZE, \
            __function ":" __VA_ARGS__); }
+
+/**
+ * Macro to print verbose messages.
+ * @ingroup gearman_constants
+ */
+#define GEARMAND_VERBOSE(__gearmand, __level, ...) { \
+  if ((__gearmand)->verbose > (__level)) \
+  { \
+    char _verbose_buffer[GEARMAN_MAX_ERROR_SIZE]; \
+    snprintf(_verbose_buffer, GEARMAN_MAX_ERROR_SIZE, __VA_ARGS__); \
+    printf("%s\n", _verbose_buffer); \
+  } \
+}
 
 /**
  * Add an object to a list.

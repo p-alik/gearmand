@@ -38,6 +38,15 @@ gearman_return_t gearmand_thread_create(gearmand_st *gearmand);
  */
 void gearmand_thread_free(gearmand_thread_st *thread);
 
+/**
+ * Interrupt a running gearmand thread.
+ * @param thread Thread structure previously initialized with
+ * gearmand_thread_create.
+ * @param wakeup Wakeup event to send to running thread.
+ */
+void gearmand_thread_wakeup(gearmand_thread_st *thread,
+                            gearmand_wakeup_t wakeup);
+
 /** @} */
 
 #ifdef __cplusplus
