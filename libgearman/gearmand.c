@@ -24,19 +24,21 @@
  */
 
 static gearman_return_t _listen_init(gearmand_st *gearmand);
-
+static void _listen_close(gearmand_st *gearmand);
+static gearman_return_t _listen_watch(gearmand_st *gearmand);
+static void _listen_clear(gearmand_st *gearmand);
 static void _listen_event(int fd, short events __attribute__ ((unused)),
                           void *arg);
 
 static gearman_return_t _wakeup_init(gearmand_st *gearmand);
-
+static void _wakeup_close(gearmand_st *gearmand);
+static gearman_return_t _wakeup_watch(gearmand_st *gearmand);
+static void _wakeup_clear(gearmand_st *gearmand);
 static void _wakeup_event(int fd, short events __attribute__ ((unused)),
                           void *arg);
 
 static gearman_return_t _watch_events(gearmand_st *gearmand);
-
 static void _clear_events(gearmand_st *gearmand);
-
 static void _close_events(gearmand_st *gearmand);
 
 /** @} */
@@ -77,10 +79,10 @@ gearmand_st *gearmand_create(in_port_t port)
 
 void gearmand_free(gearmand_st *gearmand)
 {
+  _close_events(gearmand);
+
   while (gearmand->thread_list != NULL)
     gearmand_thread_free(gearmand->thread_list);
-
-  _close_events(gearmand);
 
   if (gearmand->addrinfo != NULL)
     freeaddrinfo(gearmand->addrinfo);
@@ -261,6 +263,38 @@ static gearman_return_t _listen_init(gearmand_st *gearmand)
   return GEARMAN_SUCCESS;
 }
 
+static void _listen_close(gearmand_st *gearmand)
+{
+  _listen_clear(gearmand);
+
+  if (gearmand->listen_fd >= 0)
+  {
+    close(gearmand->listen_fd);
+    gearmand->listen_fd= -1;
+  }
+}
+
+static gearman_return_t _listen_watch(gearmand_st *gearmand)
+{
+  if (event_add(&(gearmand->listen_event), NULL) == -1)
+  {
+    GEARMAND_ERROR_SET(gearmand, "_watch_events", "event_add:-1")
+    return GEARMAN_EVENT;
+  }
+
+  gearmand->options|= GEARMAND_LISTEN_EVENT;
+  return GEARMAN_SUCCESS;
+}
+
+static void _listen_clear(gearmand_st *gearmand)
+{
+  if (gearmand->options & GEARMAND_LISTEN_EVENT)
+  {
+    assert(event_del(&(gearmand->listen_event)) == 0);
+    gearmand->options&= ~GEARMAND_LISTEN_EVENT;
+  }
+}
+
 static void _listen_event(int fd, short events __attribute__ ((unused)),
                           void *arg)
 {
@@ -325,6 +359,40 @@ static gearman_return_t _wakeup_init(gearmand_st *gearmand)
   return GEARMAN_SUCCESS;
 }
 
+static void _wakeup_close(gearmand_st *gearmand)
+{
+  _wakeup_clear(gearmand);
+
+  if (gearmand->wakeup_fd[0] >= 0)
+  {
+    close(gearmand->wakeup_fd[0]);
+    gearmand->wakeup_fd[0]= -1;
+    close(gearmand->wakeup_fd[1]);
+    gearmand->wakeup_fd[1]= -1;
+  }
+}
+
+static gearman_return_t _wakeup_watch(gearmand_st *gearmand)
+{
+  if (event_add(&(gearmand->wakeup_event), NULL) == -1)
+  {
+    GEARMAND_ERROR_SET(gearmand, "_watch_events", "event_add:-1")
+    return GEARMAN_EVENT;
+  }
+
+  gearmand->options|= GEARMAND_WAKEUP_EVENT;
+  return GEARMAN_SUCCESS;
+}
+
+static void _wakeup_clear(gearmand_st *gearmand)
+{
+  if (gearmand->options & GEARMAND_WAKEUP_EVENT)
+  {
+    assert(event_del(&(gearmand->wakeup_event)) == 0);
+    gearmand->options&= ~GEARMAND_WAKEUP_EVENT;
+  }
+}
+
 static void _wakeup_event(int fd, short events __attribute__ ((unused)),
                           void *arg)
 {
@@ -332,6 +400,7 @@ static void _wakeup_event(int fd, short events __attribute__ ((unused)),
   uint8_t buffer[GEARMAN_PIPE_BUFFER_SIZE];
   ssize_t ret;
   ssize_t x;
+  gearmand_thread_st *thread;
 
   while (1)
   {
@@ -340,7 +409,7 @@ static void _wakeup_event(int fd, short events __attribute__ ((unused)),
     {
       GEARMAND_ERROR_SET(gearmand, "_wakeup_event", "read:EOF");
       gearmand->ret= GEARMAN_PIPE_EOF;
-      _close_events(gearmand);
+      _clear_events(gearmand);
       return;
     }
     else if (ret == -1)
@@ -353,7 +422,7 @@ static void _wakeup_event(int fd, short events __attribute__ ((unused)),
 
       GEARMAND_ERROR_SET(gearmand, "_wakeup_event", "read:%d", errno);
       gearmand->ret= GEARMAN_ERRNO;
-      _close_events(gearmand);
+      _clear_events(gearmand);
       return;
     }
 
@@ -366,15 +435,31 @@ static void _wakeup_event(int fd, short events __attribute__ ((unused)),
         gearmand->ret= GEARMAN_PAUSE;
         break;
 
+      case GEARMAND_WAKEUP_SHUTDOWN_GRACEFUL:
+        _listen_close(gearmand);
+
+        for (thread= gearmand->thread_list; thread != NULL;
+             thread= thread->next)
+        {
+          if (thread->dcon_count > 0)
+            break;
+        }
+
+        if (thread == NULL)
+          _clear_events(gearmand);
+
+        gearmand->ret= GEARMAN_SHUTDOWN_GRACEFUL;
+        break;
+
       case GEARMAND_WAKEUP_SHUTDOWN:
         _clear_events(gearmand);
-        gearmand->ret= GEARMAN_UNKNOWN_STATE;
+        gearmand->ret= GEARMAN_SHUTDOWN;
         break;
 
       default:
+        _clear_events(gearmand);
         GEARMAND_ERROR_SET(gearmand, "_wakeup_event", "unknown state");
         gearmand->ret= GEARMAN_UNKNOWN_STATE;
-        _close_events(gearmand);
         break;
       }
     }
@@ -383,55 +468,31 @@ static void _wakeup_event(int fd, short events __attribute__ ((unused)),
 
 static gearman_return_t _watch_events(gearmand_st *gearmand)
 {
-  if (event_add(&(gearmand->listen_event), NULL) == -1)
-  {
-    GEARMAND_ERROR_SET(gearmand, "_watch_events", "event_add:-1")
-    return GEARMAN_EVENT;
-  }
+  gearman_return_t ret;
 
-  gearmand->options|= GEARMAND_LISTEN_EVENT;
+  ret= _listen_watch(gearmand);
+  if (ret != GEARMAN_SUCCESS)
+    return ret;
 
-  if (event_add(&(gearmand->wakeup_event), NULL) == -1)
-  {
-    GEARMAND_ERROR_SET(gearmand, "_watch_events", "event_add:-1")
-    return GEARMAN_EVENT;
-  }
-
-  gearmand->options|= GEARMAND_WAKEUP_EVENT;
+  ret= _wakeup_watch(gearmand);
+  if (ret != GEARMAN_SUCCESS)
+    return ret;
 
   return GEARMAN_SUCCESS;
 }
 
 static void _clear_events(gearmand_st *gearmand)
 {
-  if (gearmand->options & GEARMAND_LISTEN_EVENT)
-  {
-    assert(event_del(&(gearmand->listen_event)) == 0);
-    gearmand->options&= ~GEARMAND_LISTEN_EVENT;
-  }
+  _listen_clear(gearmand);
+  _wakeup_clear(gearmand);
 
-  if (gearmand->options & GEARMAND_WAKEUP_EVENT)
-  {
-    assert(event_del(&(gearmand->wakeup_event)) == 0);
-    gearmand->options&= ~GEARMAND_WAKEUP_EVENT;
-  }
+  /* If we are not threaded, remove this now to clear connections. */
+  if (gearmand->threads == 0 && gearmand->thread_list != NULL)
+    gearmand_thread_free(gearmand->thread_list);
 }
 
 static void _close_events(gearmand_st *gearmand)
 {
-  _clear_events(gearmand);
-
-  if (gearmand->listen_fd >= 0)
-  {
-    close(gearmand->listen_fd);
-    gearmand->listen_fd= -1;
-  }
-
-  if (gearmand->wakeup_fd[0] >= 0)
-  {
-    close(gearmand->wakeup_fd[0]);
-    gearmand->wakeup_fd[0]= -1;
-    close(gearmand->wakeup_fd[1]);
-    gearmand->wakeup_fd[1]= -1;
-  }
+  _listen_close(gearmand);
+  _wakeup_close(gearmand);
 }

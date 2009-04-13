@@ -400,6 +400,9 @@ struct gearmand_thread_st
   gearmand_st *gearmand;
   pthread_t id;
   int wakeup[2];
+  gearmand_con_st *dcon_list;
+  uint32_t dcon_count;
+  uint32_t dcon_total;
   //gearman_server_thread_st server_thread;
   struct event_base *base;
   struct event wakeup_event;

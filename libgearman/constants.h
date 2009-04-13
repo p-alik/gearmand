@@ -480,8 +480,9 @@ typedef enum
  */
 typedef enum
 {
-  GEARMAND_WAKEUP_PAUSE=    (1 << 0),
-  GEARMAND_WAKEUP_SHUTDOWN= (1 << 1)
+  GEARMAND_WAKEUP_PAUSE=             (1 << 0),
+  GEARMAND_WAKEUP_SHUTDOWN=          (1 << 1),
+  GEARMAND_WAKEUP_SHUTDOWN_GRACEFUL= (1 << 2)
 } gearmand_wakeup_t;
 
 #ifdef __cplusplus
