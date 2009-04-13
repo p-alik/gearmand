@@ -7,14 +7,20 @@
  */
 
 #include <errno.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #include <libgearman/gearman.h>
 
+static gearmand_st *_gearmand;
+
 static void _pid_write(const char *pid_file);
 static void _pid_delete(const char *pid_file);
+static bool _set_signals(void);
+static void _term_handler(int signal __attribute__ ((unused)));
 
 int main(int argc, char *argv[])
 {
@@ -24,7 +30,6 @@ int main(int argc, char *argv[])
   uint32_t threads= 0;
   uint8_t verbose= 0;
   char *pid_file= NULL;
-  gearmand_st *gearmand;
   gearman_return_t ret;
 
   while ((c = getopt(argc, argv, "b:dhp:P:t:vV")) != EOF)
@@ -93,25 +98,28 @@ int main(int argc, char *argv[])
     }
   }
 
-  gearmand= gearmand_create(port);
-  if (gearmand == NULL)
+  _gearmand= gearmand_create(port);
+  if (_gearmand == NULL)
   {
     fprintf(stderr, "gearmand_create:NULL\n");
     return 1;
   }
 
-  gearmand_set_backlog(gearmand, backlog);
-  gearmand_set_threads(gearmand, threads);
-  gearmand_set_verbose(gearmand, verbose);
+  gearmand_set_backlog(_gearmand, backlog);
+  gearmand_set_threads(_gearmand, threads);
+  gearmand_set_verbose(_gearmand, verbose);
 
   if (pid_file != NULL)
     _pid_write(pid_file);
 
-  ret= gearmand_run(gearmand);
-  if (ret != GEARMAN_SHUTDOWN && ret != GEARMAN_SUCCESS)
-    fprintf(stderr, "gearmand_run:%s\n", gearmand_error(gearmand));
+  if (_set_signals())
+    return 1;
 
-  gearmand_free(gearmand);
+  ret= gearmand_run(_gearmand);
+  if (ret != GEARMAN_SHUTDOWN && ret != GEARMAN_SUCCESS)
+    fprintf(stderr, "gearmand_run:%s\n", gearmand_error(_gearmand));
+
+  gearmand_free(_gearmand);
 
   if (pid_file != NULL)
     _pid_delete(pid_file);
@@ -143,4 +151,33 @@ static void _pid_write(const char *pid_file)
 static void _pid_delete(const char *pid_file)
 {
   (void) unlink(pid_file);
+}
+
+static bool _set_signals(void)
+{
+  struct sigaction sa;
+
+  memset(&sa, 0, sizeof(struct sigaction));
+
+  sa.sa_handler= SIG_IGN;
+  if (sigemptyset(&sa.sa_mask) == -1 ||
+      sigaction(SIGPIPE, &sa, 0) == -1)
+  {
+    fprintf(stderr, "Could not set SIGPIPE handler (%d)\n", errno);
+    return true;
+  }
+
+  sa.sa_handler= _term_handler;
+  if (sigaction(SIGTERM, &sa, 0) == -1)
+  {
+    fprintf(stderr, "Could not set SIGTERM handler (%d)\n", errno);
+    return true;
+  }
+
+  return false;
+}
+
+static void _term_handler(int signal __attribute__ ((unused)))
+{
+  gearmand_wakeup(_gearmand, GEARMAND_WAKEUP_SHUTDOWN);
 }

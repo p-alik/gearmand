@@ -124,12 +124,6 @@ gearman_return_t gearmand_run(gearmand_st *gearmand)
   /* Initialize server components. */
   if (gearmand->base == NULL)
   {
-    if (signal(SIGPIPE, SIG_IGN) == SIG_ERR)
-    {
-      GEARMAND_ERROR_SET(gearmand, "gearmand_run", "signal:%d", errno)
-      return GEARMAN_ERRNO;
-    }
-
     gearmand->base= event_base_new();
     if (gearmand->base == NULL)
     {
@@ -177,7 +171,7 @@ gearman_return_t gearmand_run(gearmand_st *gearmand)
   return gearmand->ret;
 }
 
-void gearmand_wakup(gearmand_st *gearmand, gearmand_wakeup_t wakeup)
+void gearmand_wakeup(gearmand_st *gearmand, gearmand_wakeup_t wakeup)
 {
   uint8_t buffer= wakeup;
 
@@ -373,7 +367,7 @@ static void _wakeup_event(int fd, short events __attribute__ ((unused)),
         break;
 
       case GEARMAND_WAKEUP_SHUTDOWN:
-        _close_events(gearmand);
+        _clear_events(gearmand);
         gearmand->ret= GEARMAN_UNKNOWN_STATE;
         break;
 

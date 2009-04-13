@@ -94,7 +94,7 @@ gearman_return_t gearmand_run(gearmand_st *gearmand);
  *        gearmand_create.
  * @param wakeup Wakeup event to send to running gearmand.
  */
-void gearmand_wakup(gearmand_st *gearmand, gearmand_wakeup_t wakeup);
+void gearmand_wakeup(gearmand_st *gearmand, gearmand_wakeup_t wakeup);
 
 /** @} */
 
