@@ -491,7 +491,8 @@ typedef enum
  */
 typedef enum
 {
-  GEARMAND_THREAD_WAKEUP_EVENT= (1 << 0)
+  GEARMAND_THREAD_WAKEUP_EVENT= (1 << 0),
+  GEARMAND_THREAD_LOCK=         (1 << 1)
 } gearmand_thread_options_t;
 
 #ifdef __cplusplus

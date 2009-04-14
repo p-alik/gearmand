@@ -54,7 +54,6 @@ gearman_return_t gearmand_thread_create(gearmand_st *gearmand)
   memset(thread, 0, sizeof(gearmand_thread_st));
 
   thread->gearmand= gearmand;
-  thread->count= gearmand->thread_count;
 
 /*
   if (gearman_server_thread_create(&(thread->server_thread)) == NULL)
@@ -70,7 +69,6 @@ gearman_return_t gearmand_thread_create(gearmand_st *gearmand)
     thread->base= gearmand->base;
   else
   {
-    GEARMAND_VERBOSE(gearmand, 1, "Creating thread %u", thread->count)
     GEARMAND_VERBOSE(gearmand, 1, "Initializing libevent for IO thread")
 
     thread->base= event_base_new();
@@ -85,21 +83,39 @@ gearman_return_t gearmand_thread_create(gearmand_st *gearmand)
 
   ret= _wakeup_init(thread);
   if (ret != GEARMAN_SUCCESS)
+  {
+    gearmand_thread_free(thread);
     return ret;
+  }
+
+  thread->count= gearmand->thread_count;
 
   if (gearmand->threads > 0)
   {
-    pthread_mutex_init(&(thread->lock), NULL);
+    pthread_ret= pthread_mutex_init(&(thread->lock), NULL);
+    if (pthread_ret != 0)
+    {
+      thread->count= 0;
+      gearmand_thread_free(thread);
+      GEARMAND_ERROR_SET(gearmand, "gearmand_thread_create",
+                         "pthread_mutex_init:%d", pthread_ret)
+      return GEARMAN_PTHREAD;
+    }
+
+    thread->options|= GEARMAND_THREAD_LOCK;
 
     pthread_ret= pthread_create(&(thread->id), NULL, _thread, thread);
     if (pthread_ret != 0)
     {
-      free(thread);
+      thread->count= 0;
+      gearmand_thread_free(thread);
       GEARMAND_ERROR_SET(gearmand, "gearmand_thread_create",
                          "pthread_create:%d", pthread_ret)
       return GEARMAN_PTHREAD;
     }
   }
+
+  GEARMAND_VERBOSE(gearmand, 1, "Thread %u created", thread->count)
 
   return GEARMAN_SUCCESS;
 }
@@ -108,7 +124,7 @@ void gearmand_thread_free(gearmand_thread_st *thread)
 {
   gearmand_con_st *dcon;
 
-  if (thread->gearmand->threads > 0)
+  if (thread->gearmand->threads && thread->count > 0)
   {
     GEARMAND_VERBOSE(thread->gearmand, 1, "Shutting down thread %u",
                      thread->count)
@@ -116,6 +132,9 @@ void gearmand_thread_free(gearmand_thread_st *thread)
     gearmand_thread_wakeup(thread, GEARMAND_WAKEUP_SHUTDOWN);
     (void) pthread_join(thread->id, NULL);
   }
+
+  if (thread->options & GEARMAND_THREAD_LOCK)
+    (void) pthread_mutex_destroy(&(thread->lock));
 
   _wakeup_close(thread);
 
