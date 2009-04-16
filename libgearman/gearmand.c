@@ -72,19 +72,27 @@ gearmand_st *gearmand_create(in_port_t port)
     return NULL;
   }
 
-  gearman_server_set_event_watch(&(gearmand->server), gearmand_con_watch, NULL);
-
   return gearmand;
 }
 
 void gearmand_free(gearmand_st *gearmand)
 {
+  gearmand_con_st *dcon;
+
   _close_events(gearmand);
 
-  GEARMAND_VERBOSE(gearmand, 1, "Shutting down all threads")
+  if (gearmand->threads > 0)
+    GEARMAND_VERBOSE(gearmand, 1, "Shutting down all threads")
 
   while (gearmand->thread_list != NULL)
     gearmand_thread_free(gearmand->thread_list);
+
+  while (gearmand->free_dcon_list != NULL)
+  {
+    dcon= gearmand->free_dcon_list;
+    gearmand->free_dcon_list= dcon->next;
+    free(dcon);
+  }
 
   if (gearmand->addrinfo != NULL)
     freeaddrinfo(gearmand->addrinfo);
@@ -131,6 +139,15 @@ gearman_return_t gearmand_run(gearmand_st *gearmand)
   /* Initialize server components. */
   if (gearmand->base == NULL)
   {
+    if (gearmand->threads > 0)
+    {
+      /* Set the number of free connection structures each thread should keep
+         around before the main thread is forced to take them. We compute this
+         here so we don't need to on every new connection. */
+      gearmand->max_thread_free_dcon_count= ((GEARMAN_MAX_FREE_SERVER_CON /
+                                              gearmand->threads) / 2);
+    }
+
     GEARMAND_VERBOSE(gearmand, 1, "Initializing libevent for main thread")
 
     gearmand->base= event_base_new();
@@ -298,7 +315,7 @@ static gearman_return_t _listen_watch(gearmand_st *gearmand)
   if (gearmand->options & GEARMAND_LISTEN_EVENT)
     return GEARMAN_SUCCESS;
 
-  GEARMAND_VERBOSE(gearmand, 1, "Adding listening socket event")
+  GEARMAND_VERBOSE(gearmand, 1, "Adding event for listening socket")
 
   if (event_add(&(gearmand->listen_event), NULL) == -1)
   {
@@ -314,7 +331,7 @@ static void _listen_clear(gearmand_st *gearmand)
 {
   if (gearmand->options & GEARMAND_LISTEN_EVENT)
   {
-    GEARMAND_VERBOSE(gearmand, 1, "Clearing listening socket event")
+    GEARMAND_VERBOSE(gearmand, 1, "Clearing event for listening socket")
     assert(event_del(&(gearmand->listen_event)) == 0);
     gearmand->options&= ~GEARMAND_LISTEN_EVENT;
   }
@@ -355,6 +372,8 @@ static gearman_return_t _wakeup_init(gearmand_st *gearmand)
 {
   int ret;
 
+  GEARMAND_VERBOSE(gearmand, 1, "Creating wakeup pipe")
+
   ret= pipe(gearmand->wakeup_fd);
   if (ret == -1)
   {
@@ -380,8 +399,6 @@ static gearman_return_t _wakeup_init(gearmand_st *gearmand)
             EV_READ | EV_PERSIST, _wakeup_event, gearmand);
   event_base_set(gearmand->base, &(gearmand->wakeup_event));
 
-  GEARMAND_VERBOSE(gearmand, 1, "Wakeup pipe created")
-
   return GEARMAN_SUCCESS;
 }
 
@@ -404,11 +421,11 @@ static gearman_return_t _wakeup_watch(gearmand_st *gearmand)
   if (gearmand->options & GEARMAND_WAKEUP_EVENT)
     return GEARMAN_SUCCESS;
 
-  GEARMAND_VERBOSE(gearmand, 1, "Adding wakeup pipe event")
+  GEARMAND_VERBOSE(gearmand, 1, "Adding event for wakeup pipe")
 
   if (event_add(&(gearmand->wakeup_event), NULL) == -1)
   {
-    GEARMAND_ERROR_SET(gearmand, "__wakeup_watch", "event_add:-1")
+    GEARMAND_ERROR_SET(gearmand, "_wakeup_watch", "event_add:-1")
     return GEARMAN_EVENT;
   }
 
@@ -420,7 +437,7 @@ static void _wakeup_clear(gearmand_st *gearmand)
 {
   if (gearmand->options & GEARMAND_WAKEUP_EVENT)
   {
-    GEARMAND_VERBOSE(gearmand, 1, "Clearing wakeup pipe event")
+    GEARMAND_VERBOSE(gearmand, 1, "Clearing event for wakeup pipe")
     assert(event_del(&(gearmand->wakeup_event)) == 0);
     gearmand->options&= ~GEARMAND_WAKEUP_EVENT;
   }
@@ -434,7 +451,6 @@ static void _wakeup_event(int fd, short events __attribute__ ((unused)),
   ssize_t ret;
   ssize_t x;
   gearmand_thread_st *thread;
-  bool ready_to_shutdown;
 
   while (1)
   {
@@ -442,7 +458,7 @@ static void _wakeup_event(int fd, short events __attribute__ ((unused)),
     if (ret == 0)
     {
       _clear_events(gearmand);
-      GEARMAND_ERROR_SET(gearmand, "_wakeup_event", "read:EOF");
+      GEARMAND_ERROR_SET(gearmand, "_wakeup_event", "read:EOF")
       gearmand->ret= GEARMAN_PIPE_EOF;
       return;
     }
@@ -455,7 +471,7 @@ static void _wakeup_event(int fd, short events __attribute__ ((unused)),
         break;
 
       _clear_events(gearmand);
-      GEARMAND_ERROR_SET(gearmand, "_wakeup_event", "read:%d", errno);
+      GEARMAND_ERROR_SET(gearmand, "_wakeup_event", "read:%d", errno)
       gearmand->ret= GEARMAN_ERRNO;
       return;
     }
@@ -474,20 +490,11 @@ static void _wakeup_event(int fd, short events __attribute__ ((unused)),
         GEARMAND_VERBOSE(gearmand, 1, "Received SHUTDOWN_GRACEFUL wakeup event")
         _listen_close(gearmand);
 
-        ready_to_shutdown= true;
-
         for (thread= gearmand->thread_list; thread != NULL;
              thread= thread->next)
         {
-          if (thread->dcon_count > 0)
-          {
-            gearmand_thread_wakeup(thread, GEARMAND_WAKEUP_SHUTDOWN_GRACEFUL);
-            ready_to_shutdown= false;
-          }
+          gearmand_thread_wakeup(thread, GEARMAND_WAKEUP_SHUTDOWN_GRACEFUL);
         }
-
-        if (ready_to_shutdown)
-          _clear_events(gearmand);
 
         gearmand->ret= GEARMAN_SHUTDOWN_GRACEFUL;
         break;
@@ -498,10 +505,13 @@ static void _wakeup_event(int fd, short events __attribute__ ((unused)),
         gearmand->ret= GEARMAN_SHUTDOWN;
         break;
 
+      case GEARMAND_WAKEUP_CON:
+      case GEARMAND_WAKEUP_RUN:
       default:
-        GEARMAND_VERBOSE(gearmand, 1, "Received unknown wakeup event")
+        GEARMAND_VERBOSE(gearmand, 1, "Received unknown wakeup event (%u)",
+                         buffer[x])
         _clear_events(gearmand);
-        GEARMAND_ERROR_SET(gearmand, "_wakeup_event", "unknown state");
+        GEARMAND_ERROR_SET(gearmand, "_wakeup_event", "unknown state")
         gearmand->ret= GEARMAN_UNKNOWN_STATE;
         break;
       }
@@ -529,7 +539,8 @@ static void _clear_events(gearmand_st *gearmand)
   _listen_clear(gearmand);
   _wakeup_clear(gearmand);
 
-  /* If we are not threaded, signal fake thread now to clear connections. */
+  /* If we are not threaded, tell the fake thread to shutdown now to clear
+     connections. Otherwise we will never exit the libevent loop. */
   if (gearmand->threads == 0 && gearmand->thread_list != NULL)
     gearmand_thread_wakeup(gearmand->thread_list, GEARMAND_WAKEUP_SHUTDOWN);
 }

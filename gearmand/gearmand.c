@@ -26,7 +26,7 @@ static bool _pid_write(const char *pid_file);
 static void _pid_delete(const char *pid_file);
 static bool _switch_user(const char *user);
 static bool _set_signals(void);
-static void _term_handler(int signal __attribute__ ((unused)));
+static void _shutdown_handler(int signal);
 
 int main(int argc, char *argv[])
 {
@@ -282,7 +282,7 @@ static bool _set_signals(void)
     return true;
   }
 
-  sa.sa_handler= _term_handler;
+  sa.sa_handler= _shutdown_handler;
   if (sigaction(SIGTERM, &sa, 0) == -1)
   {
     fprintf(stderr, "Could not set SIGTERM handler (%d)\n", errno);
@@ -295,10 +295,19 @@ static bool _set_signals(void)
     return true;
   }
 
+  if (sigaction(SIGUSR1, &sa, 0) == -1)
+  {
+    fprintf(stderr, "Could not set SIGUSR1 handler (%d)\n", errno);
+    return true;
+  }
+
   return false;
 }
 
-static void _term_handler(int signal __attribute__ ((unused)))
+static void _shutdown_handler(int signal)
 {
-  gearmand_wakeup(_gearmand, GEARMAND_WAKEUP_SHUTDOWN);
+  if (signal == SIGUSR1)
+    gearmand_wakeup(_gearmand, GEARMAND_WAKEUP_SHUTDOWN_GRACEFUL);
+  else
+    gearmand_wakeup(_gearmand, GEARMAND_WAKEUP_SHUTDOWN);
 }

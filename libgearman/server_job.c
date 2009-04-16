@@ -161,11 +161,7 @@ gearman_server_job_create(gearman_server_st *server,
     {
       server_job= malloc(sizeof(gearman_server_job_st));
       if (server_job == NULL)
-      {
-        GEARMAN_ERROR_SET(server->gearman, "gearman_server_job_create",
-                          "malloc")
         return NULL;
-      }
     }
 
     memset(server_job, 0, sizeof(gearman_server_job_st));

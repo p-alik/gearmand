@@ -43,6 +43,11 @@ gearman_return_t gearmand_con_create(gearmand_st *gearmand, int fd,
 void gearmand_con_free(gearmand_con_st *dcon);
 
 /**
+ * Check connection queue for a thread.
+ */
+void gearmand_con_check_queue(gearmand_thread_st *thread);
+
+/**
  * Callback function used for setting events in libevent.
  */
 gearman_return_t gearmand_con_watch(gearman_con_st *con, short events,

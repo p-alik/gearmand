@@ -64,6 +64,7 @@ typedef struct gearman_job_st gearman_job_st;
 typedef struct gearman_worker_st gearman_worker_st;
 typedef struct gearman_worker_function_st gearman_worker_function_st;
 typedef struct gearman_server_st gearman_server_st;
+typedef struct gearman_server_thread_st gearman_server_thread_st;
 typedef struct gearman_server_con_st gearman_server_con_st;
 typedef struct gearman_server_packet_st gearman_server_packet_st;
 typedef struct gearman_server_function_st gearman_server_function_st;
@@ -145,6 +146,10 @@ typedef gearman_return_t (gearman_event_close_fn)(gearman_con_st *con,
 typedef void* (gearman_malloc_fn)(size_t size, void *arg);
 typedef void (gearman_free_fn)(void *ptr, void *arg);
 typedef void (gearman_task_fn_arg_free_fn)(gearman_task_st *task, void *fn_arg);
+typedef void (gearman_server_thread_lock_fn)(gearman_server_thread_st *thread,
+                                             void *fn_arg);
+typedef void (gearman_server_thread_run_fn)(gearman_server_thread_st *thread,
+                                            void *fn_arg);
 
 /** @} */
 
@@ -412,10 +417,17 @@ typedef enum
  */
 typedef enum
 {
-  GEARMAN_SERVER_ALLOCATED=         (1 << 0),
-  GEARMAN_SERVER_SHUTDOWN=          (1 << 1),
-  GEARMAN_SERVER_SHUTDOWN_GRACEFUL= (1 << 2)
+  GEARMAN_SERVER_ALLOCATED= (1 << 0)
 } gearman_server_options_t;
+
+/**
+ * @ingroup gearman_server_thread
+ * Options for gearman_server_thread_st.
+ */
+typedef enum
+{
+  GEARMAN_SERVER_THREAD_ALLOCATED= (1 << 0)
+} gearman_server_thread_options_t;
 
 /**
  * @ingroup gearman_server_con
@@ -423,9 +435,11 @@ typedef enum
  */
 typedef enum
 {
-  GEARMAN_SERVER_CON_ALLOCATED=  (1 << 0),
-  GEARMAN_SERVER_CON_SLEEPING=   (1 << 1),
-  GEARMAN_SERVER_CON_EXCEPTIONS= (1 << 2)
+  GEARMAN_SERVER_CON_SLEEPING=   (1 << 0),
+  GEARMAN_SERVER_CON_EXCEPTIONS= (1 << 1),
+  GEARMAN_SERVER_CON_PACKET=     (1 << 2),
+  GEARMAN_SERVER_CON_DEAD=       (1 << 3),
+  GEARMAN_SERVER_CON_FREE=       (1 << 4)
 } gearman_server_con_options_t;
 
 /**
@@ -482,7 +496,9 @@ typedef enum
 {
   GEARMAND_WAKEUP_PAUSE=             (1 << 0),
   GEARMAND_WAKEUP_SHUTDOWN=          (1 << 1),
-  GEARMAND_WAKEUP_SHUTDOWN_GRACEFUL= (1 << 2)
+  GEARMAND_WAKEUP_SHUTDOWN_GRACEFUL= (1 << 2),
+  GEARMAND_WAKEUP_CON=               (1 << 3),
+  GEARMAND_WAKEUP_RUN=               (1 << 4)
 } gearmand_wakeup_t;
 
 /**

@@ -61,11 +61,7 @@ gearman_server_function_create(gearman_server_st *server,
   {
     server_function= malloc(sizeof(gearman_server_function_st));
     if (server_function == NULL)
-    {
-      GEARMAN_ERROR_SET(server->gearman, "gearman_server_function_create",
-                        "malloc")
       return NULL;
-    }
 
     memset(server_function, 0, sizeof(gearman_server_function_st));
     server_function->options|= GEARMAN_SERVER_FUNCTION_ALLOCATED;

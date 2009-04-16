@@ -222,41 +222,61 @@ struct gearman_worker_function_st
  */
 struct gearman_server_st
 {
-  gearman_st *gearman;
-  gearman_st gearman_static;
   gearman_server_options_t options;
   char job_handle_prefix[GEARMAN_JOB_HANDLE_SIZE];
   uint32_t job_handle_count;
-  gearman_server_con_st *con_list;
-  uint32_t con_count;
-  gearman_server_con_st *active_list;
-  uint32_t active_count;
+  bool shutdown;
+  bool shutdown_graceful;
+  gearman_server_thread_st *thread_list;
+  uint32_t thread_count;
+  gearman_server_packet_st *free_packet_list;
+  uint32_t free_packet_count;
   gearman_server_function_st *function_list;
   uint32_t function_count;
   gearman_server_job_st *job_hash[GEARMAN_JOB_HASH_SIZE];
   uint32_t job_count;
   gearman_server_job_st *unique_hash[GEARMAN_JOB_HASH_SIZE];
   uint32_t unique_count;
-  gearman_server_con_st *free_con_list;
-  uint32_t free_con_count;
-  gearman_server_packet_st *free_packet_list;
-  uint32_t free_packet_count;
   gearman_server_job_st *free_job_list;
   uint32_t free_job_count;
   gearman_server_client_st *free_client_list;
   uint32_t free_client_count;
   gearman_server_worker_st *free_worker_list;
   uint32_t free_worker_count;
+  pthread_mutex_t proc_lock;
+  pthread_cond_t proc_cond;
+  pthread_t proc_id;
+  bool proc_wakeup;
+  bool proc_shutdown;
 };
 
 /**
  * @ingroup gearman_server_thread
  */
-/*
-struct gearman_server_st
+struct gearman_server_thread_st
 {
+  gearman_server_thread_options_t options;
+  gearman_server_st *server;
+  gearman_server_thread_st *next;
+  gearman_server_thread_st *prev;
+  gearman_server_thread_lock_fn *lock_fn;
+  gearman_server_thread_lock_fn *unlock_fn;
+  void *lock_arg;
+  gearman_server_thread_run_fn *run_fn;
+  void *run_arg;
+  gearman_st *gearman;
+  gearman_st gearman_static;
+  gearman_server_con_st *con_list;
+  uint32_t con_count;
+  gearman_server_con_st *io_list;
+  uint32_t io_count;
+  gearman_server_con_st *proc_list;
+  uint32_t proc_count;
+  gearman_server_con_st *free_con_list;
+  uint32_t free_con_count;
+  gearman_server_packet_st *free_packet_list;
+  uint32_t free_packet_count;
 };
-*/
 
 /**
  * @ingroup gearman_server_con
@@ -264,15 +284,18 @@ struct gearman_server_st
 struct gearman_server_con_st
 {
   gearman_con_st con; /* This must be the first struct member. */
-  gearman_server_st *server;
+  gearman_server_thread_st *thread;
   gearman_server_con_st *next;
   gearman_server_con_st *prev;
   gearman_server_con_options_t options;
+  gearman_return_t ret;
   gearman_server_packet_st *packet_list;
   gearman_server_packet_st *packet_end;
   uint32_t packet_count;
-  gearman_server_con_st *active_next;
-  gearman_server_con_st *active_prev;
+  gearman_server_con_st *io_next;
+  gearman_server_con_st *io_prev;
+  gearman_server_con_st *proc_next;
+  gearman_server_con_st *proc_prev;
   gearman_server_worker_st *worker_list;
   uint32_t worker_count;
   gearman_server_client_st *client_list;
@@ -391,12 +414,10 @@ struct gearmand_st
   struct event wakeup_event;
   gearmand_thread_st *thread_list;
   uint32_t thread_count;
-
-  gearmand_con_st *dcon_list;
-  uint32_t dcon_count;
-  uint32_t dcon_total;
+  gearmand_thread_st *thread_add_next;
   gearmand_con_st *free_dcon_list;
   uint32_t free_dcon_count;
+  uint32_t max_thread_free_dcon_count;
 };
 
 /**
@@ -408,7 +429,7 @@ struct gearmand_thread_st
   gearmand_thread_st *next;
   gearmand_thread_st *prev;
   gearmand_st *gearmand;
-  //gearman_server_thread_st server_thread;
+  gearman_server_thread_st server_thread;
   uint32_t count;
   pthread_t id;
   pthread_mutex_t lock;
@@ -417,7 +438,8 @@ struct gearmand_thread_st
   struct event wakeup_event;
   gearmand_con_st *dcon_list;
   uint32_t dcon_count;
-  uint32_t dcon_total;
+  gearmand_con_st *dcon_add_list;
+  uint32_t dcon_add_count;
   gearmand_con_st *free_dcon_list;
   uint32_t free_dcon_count;
 };
@@ -427,15 +449,14 @@ struct gearmand_thread_st
  */
 struct gearmand_con_st
 {
-  gearmand_st *gearmand;
-
   gearmand_con_st *next;
   gearmand_con_st *prev;
   gearmand_thread_st *thread;
   int fd;
+/* XXX remove these, use server_con */
   char host[NI_MAXHOST];
   char port[NI_MAXSERV];
-  gearman_server_con_st server_con;
+  gearman_server_con_st *server_con;
   gearman_con_st *con;
   short last_events;
   struct event event;

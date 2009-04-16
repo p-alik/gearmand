@@ -40,6 +40,7 @@
 #include <libgearman/server_client.h>
 #include <libgearman/server_worker.h>
 #include <libgearman/server_job.h>
+#include <libgearman/server_thread.h>
 #include <libgearman/server.h>
 #include <libgearman/gearmand.h>
 #include <libgearman/gearmand_thread.h>
