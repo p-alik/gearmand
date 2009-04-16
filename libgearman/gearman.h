@@ -36,6 +36,7 @@
 #include <libgearman/client.h>
 #include <libgearman/worker.h>
 #include <libgearman/server_con.h>
+#include <libgearman/server_packet.h>
 #include <libgearman/server_function.h>
 #include <libgearman/server_client.h>
 #include <libgearman/server_worker.h>

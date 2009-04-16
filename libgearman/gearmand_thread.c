@@ -24,10 +24,6 @@
  */
 
 static void *_thread(void *data);
-static void _lock(gearman_server_thread_st *thread __attribute__ ((unused)),
-                  void *fn_arg);
-static void _unlock(gearman_server_thread_st *thread __attribute__ ((unused)),
-                    void *fn_arg);
 static void _run(gearman_server_thread_st *thread __attribute__ ((unused)),
                  void *fn_arg);
 
@@ -117,9 +113,6 @@ gearman_return_t gearmand_thread_create(gearmand_st *gearmand)
   }
 
   thread->options|= GEARMAND_THREAD_LOCK;
-
-  gearman_server_thread_set_lock(&(thread->server_thread), _lock, _unlock,
-                                 thread);
 
   gearman_server_thread_set_run(&(thread->server_thread), _run, thread);
 
@@ -260,20 +253,6 @@ static void *_thread(void *data)
                    thread->count)
 
   return NULL;
-}
-
-static void _lock(gearman_server_thread_st *thread __attribute__ ((unused)),
-                  void *fn_arg)
-{
-  gearmand_thread_st *dthread= (gearmand_thread_st *)fn_arg;
-  (void ) pthread_mutex_lock(&(dthread->lock));
-}
-
-static void _unlock(gearman_server_thread_st *thread __attribute__ ((unused)),
-                    void *fn_arg)
-{
-  gearmand_thread_st *dthread= (gearmand_thread_st *)fn_arg;
-  (void ) pthread_mutex_unlock(&(dthread->lock));
 }
 
 static void _run(gearman_server_thread_st *thread __attribute__ ((unused)),

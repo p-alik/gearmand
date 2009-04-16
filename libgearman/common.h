@@ -100,6 +100,24 @@ extern "C" {
 }
 
 /**
+ * Lock only if we are multi-threaded.
+ * @ingroup gearman_server_thread
+ */
+#define GEARMAN_SERVER_THREAD_LOCK(__thread) { \
+  if ((__thread)->server->thread_count > 1) \
+    (void) pthread_mutex_lock(&((__thread)->lock)); \
+}
+
+/**
+ * Unlock only if we are multi-threaded.
+ * @ingroup gearman_server_thread
+ */
+#define GEARMAN_SERVER_THREAD_UNLOCK(__thread) { \
+  if ((__thread)->server->thread_count > 1) \
+    (void) pthread_mutex_unlock(&((__thread)->lock)); \
+}
+
+/**
  * Add an object to a list.
  * @ingroup gearman_constants
  */
@@ -109,7 +127,8 @@ extern "C" {
   __obj->__prefix ## next= __list ## _list; \
   __obj->__prefix ## prev= NULL; \
   __list ## _list= __obj; \
-  __list ## _count++; }
+  __list ## _count++; \
+}
 
 /**
  * Delete an object from a list.
@@ -122,7 +141,32 @@ extern "C" {
     __obj->__prefix ## prev->__prefix ## next= __obj->__prefix ## next; \
   if (__obj->__prefix ## next != NULL) \
     __obj->__prefix ## next->__prefix ## prev= __obj->__prefix ## prev; \
-  __list ## _count--; }
+  __list ## _count--; \
+}
+
+/**
+ * Add an object to a fifo list.
+ * @ingroup gearman_constants
+ */
+#define GEARMAN_FIFO_ADD(__list, __obj, __prefix) { \
+  if (__list ## _end == NULL) \
+    __list ## _list= __obj; \
+  else \
+    __list ## _end->__prefix ## next= __obj; \
+  __list ## _end= __obj; \
+  __list ## _count++; \
+}
+
+/**
+ * Delete an object from a fifo list.
+ * @ingroup gearman_constants
+ */
+#define GEARMAN_FIFO_DEL(__list, __obj, __prefix) { \
+  __list ## _list= __obj->__prefix ## next; \
+  if (__list ## _list == NULL) \
+    __list ## _end= NULL; \
+  __list ## _count--; \
+}
 
 /**
  * Add an object to a hash.
@@ -134,7 +178,8 @@ extern "C" {
   __obj->__prefix ## next= __hash ## _hash[__key]; \
   __obj->__prefix ## prev= NULL; \
   __hash ## _hash[__key]= __obj; \
-  __hash ## _count++; }
+  __hash ## _count++; \
+}
 
 /**
  * Delete an object from a hash.
@@ -147,7 +192,8 @@ extern "C" {
     __obj->__prefix ## prev->__prefix ## next= __obj->__prefix ## next; \
   if (__obj->__prefix ## next != NULL) \
     __obj->__prefix ## next->__prefix ## prev= __obj->__prefix ## prev; \
-  __hash ## _count--; }
+  __hash ## _count--; \
+}
 
 /* All thread-safe libevent functions are not in libevent 1.3x, and this is the
    common package version. Make this work for these earlier versions. */

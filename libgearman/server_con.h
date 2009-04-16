@@ -85,19 +85,6 @@ void gearman_server_con_set_id(gearman_server_con_st *server_con, char *id,
                                size_t size);
 
 /**
- * Add a server packet structure to a connection.
- */
-gearman_return_t
-gearman_server_con_packet_add(gearman_server_con_st *server_con,
-                              gearman_magic_t magic, gearman_command_t command,
-                              const void *arg, ...);
-
-/**
- * Remove the first server packet structure from a connection.
- */
-void gearman_server_con_packet_remove(gearman_server_con_st *server_con);
-
-/**
  * Free server worker struction with name for a server connection.
  */
 void gearman_server_con_free_worker(gearman_server_con_st *server_con,

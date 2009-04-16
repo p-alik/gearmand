@@ -133,7 +133,8 @@ gearman_packet_st *gearman_packet_create(gearman_st *gearman,
 
   packet->gearman= gearman;
 
-  GEARMAN_LIST_ADD(gearman->packet, packet,)
+  if (!(gearman->options & GEARMAN_DONT_TRACK_PACKETS))
+    GEARMAN_LIST_ADD(gearman->packet, packet,)
 
   return packet;
 }
@@ -154,7 +155,8 @@ void gearman_packet_free(gearman_packet_st *packet)
     }
   }
 
-  GEARMAN_LIST_DEL(packet->gearman->packet, packet,)
+  if (!(packet->gearman->options & GEARMAN_DONT_TRACK_PACKETS))
+    GEARMAN_LIST_DEL(packet->gearman->packet, packet,)
 
   if (packet->options & GEARMAN_PACKET_ALLOCATED)
     free(packet);

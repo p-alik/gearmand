@@ -70,19 +70,6 @@ void gearman_server_thread_set_event_watch(gearman_server_thread_st *thread,
                                            void *event_watch_arg);
 
 /**
- * Set thread lock callback.
- * @param thread Thread structure previously initialized with
- *        gearman_server_thread_create.
- * @param lock_fn Function to call when thread should be locked.
- * @param unlock_fn Function to call when thread should be unocked.
- * @param lock_arg Argument to pass along with lock_fn.
- */
-void gearman_server_thread_set_lock(gearman_server_thread_st *thread,
-                                    gearman_server_thread_lock_fn *lock_fn,
-                                    gearman_server_thread_lock_fn *unlock_fn,
-                                    void *lock_arg);
-
-/**
  * Set thread run callback.
  * @param thread Thread structure previously initialized with
  *        gearman_server_thread_create.

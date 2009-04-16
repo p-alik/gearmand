@@ -259,9 +259,7 @@ struct gearman_server_thread_st
   gearman_server_st *server;
   gearman_server_thread_st *next;
   gearman_server_thread_st *prev;
-  gearman_server_thread_lock_fn *lock_fn;
-  gearman_server_thread_lock_fn *unlock_fn;
-  void *lock_arg;
+  pthread_mutex_t lock;
   gearman_server_thread_run_fn *run_fn;
   void *run_arg;
   gearman_st *gearman;
@@ -289,9 +287,13 @@ struct gearman_server_con_st
   gearman_server_con_st *prev;
   gearman_server_con_options_t options;
   gearman_return_t ret;
-  gearman_server_packet_st *packet_list;
-  gearman_server_packet_st *packet_end;
-  uint32_t packet_count;
+  gearman_server_packet_st *packet;
+  gearman_server_packet_st *io_packet_list;
+  gearman_server_packet_st *io_packet_end;
+  uint32_t io_packet_count;
+  gearman_server_packet_st *proc_packet_list;
+  gearman_server_packet_st *proc_packet_end;
+  uint32_t proc_packet_count;
   gearman_server_con_st *io_next;
   gearman_server_con_st *io_prev;
   gearman_server_con_st *proc_next;

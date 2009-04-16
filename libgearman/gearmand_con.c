@@ -126,13 +126,9 @@ void gearmand_con_free(gearmand_con_st *dcon)
   event_add(&(dcon->event), NULL);
   assert(event_del(&(dcon->event)) == 0);
 
-  (void ) pthread_mutex_lock(&(dcon->thread->lock));
-
   gearman_server_con_free(dcon->server_con);
   GEARMAN_LIST_DEL(dcon->thread->dcon, dcon,)
   close(dcon->fd);
-
-  (void ) pthread_mutex_unlock(&(dcon->thread->lock));
 
   if (dcon->thread->gearmand->free_dcon_count < GEARMAN_MAX_FREE_SERVER_CON)
   {

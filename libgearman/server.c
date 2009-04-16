@@ -98,29 +98,30 @@ void gearman_server_free(gearman_server_st *server)
   while (server->function_list != NULL)
     gearman_server_function_free(server->function_list);
 
-  for (packet= server->free_packet_list; packet != NULL;
-       packet= server->free_packet_list)
+  while (server->free_packet_list != NULL)
   {
+    packet= server->free_packet_list;
     server->free_packet_list= packet->next;
     free(packet);
   }
 
-  for (job= server->free_job_list; job != NULL; job= server->free_job_list)
+  while (server->free_job_list != NULL)
   {
+    job= server->free_job_list;
     server->free_job_list= job->next;
     free(job);
   }
 
-  for (client= server->free_client_list; client != NULL;
-       client= server->free_client_list)
+  while (server->free_client_list != NULL)
   {
+    client= server->free_client_list;
     server->free_client_list= client->con_next;
     free(client);
   }
 
-  for (worker= server->free_worker_list; worker != NULL;
-       worker= server->free_worker_list)
+  while (server->free_worker_list != NULL)
   {
+    worker= server->free_worker_list;
     server->free_worker_list= worker->con_next;
     free(worker);
   }
@@ -152,14 +153,13 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
   /* Client/worker requests. */
   case GEARMAN_COMMAND_ECHO_REQ:
     /* Reuse the data buffer and just shove the data back. */
-    ret= gearman_server_con_packet_add(server_con, GEARMAN_MAGIC_RESPONSE,
-                                       GEARMAN_COMMAND_ECHO_RES, packet->data,
-                                       packet->data_size, NULL);
+    ret= gearman_server_io_packet_add(server_con, true, GEARMAN_MAGIC_RESPONSE,
+                                      GEARMAN_COMMAND_ECHO_RES, packet->data,
+                                      packet->data_size, NULL);
     if (ret != GEARMAN_SUCCESS)
       return ret;
 
     packet->options&= ~GEARMAN_PACKET_FREE_DATA;
-    server_con->packet_end->packet.options|= GEARMAN_PACKET_FREE_DATA;
 
     break;
 
@@ -216,11 +216,11 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
       return ret;
 
     /* Queue the job created packet. */
-    ret= gearman_server_con_packet_add(server_con, GEARMAN_MAGIC_RESPONSE,
-                                       GEARMAN_COMMAND_JOB_CREATED,
-                                       server_job->job_handle,
-                                       (size_t)strlen(server_job->job_handle),
-                                       NULL);
+    ret= gearman_server_io_packet_add(server_con, false, GEARMAN_MAGIC_RESPONSE,
+                                      GEARMAN_COMMAND_JOB_CREATED,
+                                      server_job->job_handle,
+                                      (size_t)strlen(server_job->job_handle),
+                                      NULL);
     if (ret != GEARMAN_SUCCESS)
       return ret;
 
@@ -236,27 +236,29 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
     /* Queue status result packet. */
     if (server_job == NULL)
     {
-      ret= gearman_server_con_packet_add(server_con, GEARMAN_MAGIC_RESPONSE,
-                                         GEARMAN_COMMAND_STATUS_RES, job_handle,
-                                         (size_t)(strlen(job_handle) + 1),
-                                         "0", (size_t)2, "0", (size_t)2, "0",
-                                         (size_t)2, "0", (size_t)1, NULL);
+      ret= gearman_server_io_packet_add(server_con, false,
+                                        GEARMAN_MAGIC_RESPONSE,
+                                        GEARMAN_COMMAND_STATUS_RES, job_handle,
+                                        (size_t)(strlen(job_handle) + 1),
+                                        "0", (size_t)2, "0", (size_t)2, "0",
+                                        (size_t)2, "0", (size_t)1, NULL);
     }
     else
     {
       snprintf(numerator_buffer, 11, "%u", server_job->numerator);
       snprintf(denominator_buffer, 11, "%u", server_job->denominator);
 
-      ret= gearman_server_con_packet_add(server_con, GEARMAN_MAGIC_RESPONSE,
-                                         GEARMAN_COMMAND_STATUS_RES, job_handle,
-                                         (size_t)(strlen(job_handle) + 1),
-                                         "1", (size_t)2,
-                                         server_job->worker == NULL ? "0" : "1",
-                                         (size_t)2, numerator_buffer,
-                                         (size_t)(strlen(numerator_buffer) + 1),
-                                         denominator_buffer,
-                                         (size_t)strlen(denominator_buffer),
-                                         NULL);
+      ret= gearman_server_io_packet_add(server_con, false,
+                                        GEARMAN_MAGIC_RESPONSE,
+                                        GEARMAN_COMMAND_STATUS_RES, job_handle,
+                                        (size_t)(strlen(job_handle) + 1),
+                                        "1", (size_t)2,
+                                        server_job->worker == NULL ? "0" : "1",
+                                        (size_t)2, numerator_buffer,
+                                        (size_t)(strlen(numerator_buffer) + 1),
+                                        denominator_buffer,
+                                        (size_t)strlen(denominator_buffer),
+                                        NULL);
     }
 
     if (ret != GEARMAN_SUCCESS)
@@ -276,10 +278,10 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
                                   "Server does not recognize given option");
     }
 
-    ret= gearman_server_con_packet_add(server_con, GEARMAN_MAGIC_RESPONSE,
-                                       GEARMAN_COMMAND_OPTION_RES,
-                                       packet->arg[0], packet->arg_size[0],
-                                       NULL);
+    ret= gearman_server_io_packet_add(server_con, false, GEARMAN_MAGIC_RESPONSE,
+                                      GEARMAN_COMMAND_OPTION_RES,
+                                      packet->arg[0], packet->arg_size[0],
+                                      NULL);
     if (ret != GEARMAN_SUCCESS)
       return ret;
 
@@ -322,8 +324,9 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
     {
       /* If there are jobs that could be run, queue a NOOP packet to wake the
          worker up. This could be the result of a race codition. */
-      ret= gearman_server_con_packet_add(server_con, GEARMAN_MAGIC_RESPONSE,
-                                         GEARMAN_COMMAND_NOOP, NULL);
+      ret= gearman_server_io_packet_add(server_con, false,
+                                        GEARMAN_MAGIC_RESPONSE,
+                                        GEARMAN_COMMAND_NOOP, NULL);
       if (ret != GEARMAN_SUCCESS)
         return ret;
     }
@@ -338,14 +341,16 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
     if (server_job == NULL)
     {
       /* No jobs found, queue no job packet. */
-      ret= gearman_server_con_packet_add(server_con, GEARMAN_MAGIC_RESPONSE,
-                                         GEARMAN_COMMAND_NO_JOB, NULL);
+      ret= gearman_server_io_packet_add(server_con, false,
+                                        GEARMAN_MAGIC_RESPONSE,
+                                        GEARMAN_COMMAND_NO_JOB, NULL);
     }
     else if (packet->command == GEARMAN_COMMAND_GRAB_JOB_UNIQ)
     {
       /* We found a runnable job, queue job assigned packet and take the job
          off the queue. */
-      ret= gearman_server_con_packet_add(server_con, GEARMAN_MAGIC_RESPONSE,
+      ret= gearman_server_io_packet_add(server_con, false,
+                                   GEARMAN_MAGIC_RESPONSE,
                                    GEARMAN_COMMAND_JOB_ASSIGN_UNIQ,
                                    server_job->job_handle,
                                    (size_t)(strlen(server_job->job_handle) + 1),
@@ -359,7 +364,8 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
     else
     {
       /* Same, but without unique ID. */
-      ret= gearman_server_con_packet_add(server_con, GEARMAN_MAGIC_RESPONSE,
+      ret= gearman_server_io_packet_add(server_con, false,
+                                   GEARMAN_MAGIC_RESPONSE,
                                    GEARMAN_COMMAND_JOB_ASSIGN,
                                    server_job->job_handle,
                                    (size_t)(strlen(server_job->job_handle) + 1),
@@ -416,13 +422,13 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
     for (server_client= server_job->client_list; server_client;
          server_client= server_client->job_next)
     {
-      ret= gearman_server_con_packet_add(server_client->con,
-                                         GEARMAN_MAGIC_RESPONSE,
-                                         GEARMAN_COMMAND_WORK_STATUS,
-                                         packet->arg[0], packet->arg_size[0],
-                                         packet->arg[1], packet->arg_size[1],
-                                         packet->arg[2], packet->arg_size[2],
-                                         NULL);
+      ret= gearman_server_io_packet_add(server_client->con, false,
+                                        GEARMAN_MAGIC_RESPONSE,
+                                        GEARMAN_COMMAND_WORK_STATUS,
+                                        packet->arg[0], packet->arg_size[0],
+                                        packet->arg[1], packet->arg_size[1],
+                                        packet->arg[2], packet->arg_size[2],
+                                        NULL);
       if (ret != GEARMAN_SUCCESS)
         return ret;
     }
@@ -480,11 +486,11 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
     for (server_client= server_job->client_list; server_client;
          server_client= server_client->job_next)
     {
-      ret= gearman_server_con_packet_add(server_client->con,
-                                         GEARMAN_MAGIC_RESPONSE,
-                                         GEARMAN_COMMAND_WORK_FAIL,
-                                         packet->arg[0], packet->arg_size[0],
-                                         NULL);
+      ret= gearman_server_io_packet_add(server_client->con, false,
+                                        GEARMAN_MAGIC_RESPONSE,
+                                        GEARMAN_COMMAND_WORK_FAIL,
+                                        packet->arg[0], packet->arg_size[0],
+                                        NULL);
       if (ret != GEARMAN_SUCCESS)
         return ret;
     }
@@ -541,11 +547,11 @@ static gearman_return_t _server_error_packet(gearman_server_con_st *server_con,
                                              char *error_code,
                                              char *error_string)
 {
-  return gearman_server_con_packet_add(server_con, GEARMAN_MAGIC_RESPONSE,
-                                       GEARMAN_COMMAND_ERROR, error_code,
-                                       (size_t)(strlen(error_code) + 1),
-                                       error_string,
-                                       (size_t)strlen(error_string), NULL);
+  return gearman_server_io_packet_add(server_con, false, GEARMAN_MAGIC_RESPONSE,
+                                      GEARMAN_COMMAND_ERROR, error_code,
+                                      (size_t)(strlen(error_code) + 1),
+                                      error_string,
+                                      (size_t)strlen(error_string), NULL);
 }
 
 static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
@@ -572,8 +578,7 @@ static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
     for (thread= server_con->thread->server->thread_list; thread != NULL;
          thread= thread->next)
     {
-      if (thread->lock_fn != NULL)
-        (*thread->lock_fn)(thread, thread->lock_arg);
+      GEARMAN_SERVER_THREAD_LOCK(thread)
 
       for (con= thread->con_list; con != NULL; con= con->next)
       {
@@ -597,8 +602,7 @@ static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
         size+= snprintf(data + size, GEARMAN_TEXT_RESPONSE_SIZE - size, "\n");
       }
 
-      if (thread->unlock_fn != NULL)
-        (*thread->unlock_fn)(thread, thread->lock_arg);
+      GEARMAN_SERVER_THREAD_UNLOCK(thread)
     }
 
     if (size < GEARMAN_TEXT_RESPONSE_SIZE)
@@ -681,9 +685,9 @@ static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
              "ERR unknown_command Unknown+server+command\n");
   }
 
-  ret= gearman_server_con_packet_add(server_con, GEARMAN_MAGIC_TEXT,
-                                     GEARMAN_COMMAND_TEXT, data, strlen(data),
-                                     NULL);
+  ret= gearman_server_io_packet_add(server_con, GEARMAN_MAGIC_TEXT, false,
+                                    GEARMAN_COMMAND_TEXT, data, strlen(data),
+                                    NULL);
   if (ret != GEARMAN_SUCCESS)
     return ret;
 
@@ -709,7 +713,8 @@ _server_queue_work_data(gearman_server_job_st *server_job,
 
     if (packet->data_size > 0)
     {
-      if (packet->options & GEARMAN_PACKET_FREE_DATA)
+      if (packet->options & GEARMAN_PACKET_FREE_DATA &&
+          server_client->job_next == NULL)
       {
         data= (uint8_t *)(packet->data);
         packet->options&= ~GEARMAN_PACKET_FREE_DATA;
@@ -729,14 +734,12 @@ _server_queue_work_data(gearman_server_job_st *server_job,
     else
       data= NULL;
 
-    ret= gearman_server_con_packet_add(server_client->con,
-                                       GEARMAN_MAGIC_RESPONSE, command,
-                                       packet->arg[0], packet->arg_size[0],
-                                       data, packet->data_size, NULL);
+    ret= gearman_server_io_packet_add(server_client->con, true,
+                                      GEARMAN_MAGIC_RESPONSE, command,
+                                      packet->arg[0], packet->arg_size[0],
+                                      data, packet->data_size, NULL);
     if (ret != GEARMAN_SUCCESS)
       return ret;
-
-    server_client->con->packet_end->packet.options|= GEARMAN_PACKET_FREE_DATA;
   }
 
   return GEARMAN_SUCCESS;
