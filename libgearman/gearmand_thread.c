@@ -151,7 +151,8 @@ void gearmand_thread_free(gearmand_thread_st *thread)
 
   _wakeup_close(thread);
 
-  assert(thread->dcon_list == NULL);
+  while (thread->dcon_list != NULL)
+    gearmand_con_free(thread->dcon_list);
 
   while (thread->dcon_add_list != NULL)
   {
