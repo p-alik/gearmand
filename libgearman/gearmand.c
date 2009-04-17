@@ -140,6 +140,12 @@ gearman_return_t gearmand_run(gearmand_st *gearmand)
 
     if (gearmand->threads > 0)
     {
+#ifndef HAVE_EVENT_BASE_NEW
+      fprintf(stderr, "Multi-threaded gearmand requires libevent 1.4 or "
+              "later, libevent 1.3 does not provided a thread-safe interface.");
+      return GEARMAN_EVENT;
+#endif
+
       /* Set the number of free connection structures each thread should keep
          around before the main thread is forced to take them. We compute this
          here so we don't need to on every new connection. */
@@ -228,7 +234,7 @@ static gearman_return_t _listen_init(gearmand_st *gearmand)
   ai.ai_protocol= IPPROTO_TCP;
 
   ret= getaddrinfo(NULL, port, &ai, &(gearmand->addrinfo));
-  if (ret == -1)
+  if (ret != 0)
   {
     GEARMAND_ERROR_SET(gearmand, "_listen_init", "getaddrinfo:%s",
                        gai_strerror(ret))
@@ -239,9 +245,16 @@ static gearman_return_t _listen_init(gearmand_st *gearmand)
        gearmand->addrinfo_next != NULL;
        gearmand->addrinfo_next= gearmand->addrinfo_next->ai_next)
   {
-    (void) getnameinfo(gearmand->addrinfo_next->ai_addr,
-                       gearmand->addrinfo_next->ai_addrlen, host, NI_MAXHOST,
-                       port, NI_MAXSERV, NI_NUMERICHOST | NI_NUMERICSERV);
+    ret= getnameinfo(gearmand->addrinfo_next->ai_addr,
+                     gearmand->addrinfo_next->ai_addrlen, host, NI_MAXHOST,
+                     port, NI_MAXSERV, NI_NUMERICHOST | NI_NUMERICSERV);
+    if (ret != 0)
+    {
+      GEARMAND_ERROR_SET(gearmand, "_listen_init", "getnameinfo:%s",
+                         gai_strerror(ret))
+      strcpy(host, "-");
+      strcpy(port, "-");
+    }
 
     GEARMAND_LOG(gearmand, 1, "Trying to listen on %s:%s", host, port)
 
@@ -344,6 +357,7 @@ static void _listen_event(int fd, short events __attribute__ ((unused)),
   socklen_t sa_len;
   char host[NI_MAXHOST];
   char port[NI_MAXSERV];
+  int ret;
 
   sa_len= sizeof(sa);
   fd= accept(fd, &sa, &sa_len);
@@ -357,8 +371,15 @@ static void _listen_event(int fd, short events __attribute__ ((unused)),
 
   /* Since this is numeric, it should never fail. Even if it did we don't want
      to really error from it. */
-  (void) getnameinfo(&sa, sa_len, host, NI_MAXHOST, port, NI_MAXSERV,
-                     NI_NUMERICHOST | NI_NUMERICSERV);
+  ret= getnameinfo(&sa, sa_len, host, NI_MAXHOST, port, NI_MAXSERV,
+                   NI_NUMERICHOST | NI_NUMERICSERV);
+  if (ret != 0)
+  {
+    GEARMAND_ERROR_SET(gearmand, "_listen_event", "getnameinfo:%s",
+                       gai_strerror(ret))
+    strcpy(host, "-");
+    strcpy(port, "-");
+  }
 
   GEARMAND_LOG(gearmand, 1, "Accepted connection from %s:%s", host, port)
 

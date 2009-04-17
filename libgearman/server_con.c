@@ -86,36 +86,43 @@ gearman_server_con_create(gearman_server_thread_st *thread)
 
 void gearman_server_con_free(gearman_server_con_st *server_con)
 {
+  gearman_server_thread_st *thread= server_con->thread;
+  gearman_server_packet_st *packet;
+
   server_con->host= NULL;
   server_con->port= NULL;
 
-  gearman_server_thread_st *thread= server_con->thread;
-
-  if (thread->server->thread_count > 1 &&
-      !(server_con->options & GEARMAN_SERVER_CON_FREE) &&
-      !(thread->server->proc_shutdown))
+  if (thread->server->options & GEARMAN_SERVER_PROC_THREAD &&
+      !(server_con->proc_removed) && !(thread->server->proc_shutdown))
   {
     server_con->options= GEARMAN_SERVER_CON_DEAD;
     gearman_server_con_proc_add(server_con);
     return;
   }
 
-  if (server_con->options & GEARMAN_SERVER_CON_PACKET)
-    gearman_packet_free(&(server_con->con.packet));
-
   gearman_con_free(&(server_con->con));
 
-  if (server_con->proc_next != NULL || server_con->proc_prev != NULL)
+  if (server_con->proc_list)
     gearman_server_con_proc_remove(server_con);
 
-  if (server_con->io_next != NULL || server_con->io_prev != NULL)
+  if (server_con->io_list)
     gearman_server_con_io_remove(server_con);
+
+  if (server_con->packet != NULL)
+  {
+    gearman_packet_free(&(server_con->packet->packet));
+    gearman_server_packet_free(server_con->packet, server_con->thread, true); 
+  }
 
   while (server_con->io_packet_list != NULL)
     gearman_server_io_packet_remove(server_con);
 
   while (server_con->proc_packet_list != NULL)
-    gearman_server_proc_packet_remove(server_con);
+  {
+    packet= gearman_server_proc_packet_remove(server_con);
+    gearman_packet_free(&(packet->packet));
+    gearman_server_packet_free(packet, server_con->thread, true); 
+  }
 
   gearman_server_con_free_workers(server_con);
 
@@ -183,16 +190,15 @@ void gearman_server_con_free_worker(gearman_server_con_st *con,
                                     char *function_name,
                                     size_t function_name_size)
 {
-  gearman_server_worker_st *server_worker;
+  gearman_server_worker_st *worker;
 
-  for (server_worker= con->worker_list; server_worker != NULL;
-       server_worker= server_worker->con_next)
+  for (worker= con->worker_list; worker != NULL; worker= worker->con_next)
   {
-    if (server_worker->function->function_name_size == function_name_size &&
-        !memcmp(server_worker->function->function_name, function_name,
+    if (worker->function->function_name_size == function_name_size &&
+        !memcmp(worker->function->function_name, function_name,
                 function_name_size))
     {
-      gearman_server_worker_free(server_worker);
+      gearman_server_worker_free(worker);
     }
   }
 }
@@ -205,12 +211,13 @@ void gearman_server_con_free_workers(gearman_server_con_st *con)
 
 void gearman_server_con_io_add(gearman_server_con_st *con)
 {
-  if (con->io_next != NULL || con->io_prev != NULL)
+  if (con->io_list)
     return;
 
   GEARMAN_SERVER_THREAD_LOCK(con->thread)
 
   GEARMAN_LIST_ADD(con->thread->io, con, io_)
+  con->io_list= true;
 
   /* Looks funny, but need to check io_count locked, but call run unlocked. */
   if (con->thread->io_count == 1 && con->thread->run_fn)
@@ -225,11 +232,11 @@ void gearman_server_con_io_add(gearman_server_con_st *con)
 void gearman_server_con_io_remove(gearman_server_con_st *con)
 {
   GEARMAN_SERVER_THREAD_LOCK(con->thread)
-
-  GEARMAN_LIST_DEL(con->thread->io, con, io_)
-  con->io_prev= NULL;
-  con->io_next= NULL;
-
+  if (con->io_list)
+  {
+    GEARMAN_LIST_DEL(con->thread->io, con, io_)
+    con->io_list= false;
+  }
   GEARMAN_SERVER_THREAD_UNLOCK(con->thread)
 }
 
@@ -248,14 +255,16 @@ gearman_server_con_io_next(gearman_server_thread_st *thread)
 
 void gearman_server_con_proc_add(gearman_server_con_st *con)
 {
-  if (con->proc_next != NULL || con->proc_prev != NULL)
+  if (con->proc_list)
     return;
 
   GEARMAN_SERVER_THREAD_LOCK(con->thread)
   GEARMAN_LIST_ADD(con->thread->proc, con, proc_)
+  con->proc_list= true;
   GEARMAN_SERVER_THREAD_UNLOCK(con->thread)
 
-  if (!(con->thread->server->proc_wakeup))
+  if (!(con->thread->server->proc_shutdown) &&
+      !(con->thread->server->proc_wakeup))
   {
     (void) pthread_mutex_lock(&(con->thread->server->proc_lock));
     con->thread->server->proc_wakeup= true;
@@ -267,23 +276,35 @@ void gearman_server_con_proc_add(gearman_server_con_st *con)
 void gearman_server_con_proc_remove(gearman_server_con_st *con)
 {
   GEARMAN_SERVER_THREAD_LOCK(con->thread)
-
-  GEARMAN_LIST_DEL(con->thread->proc, con, proc_)
-  con->proc_prev= NULL;
-  con->proc_next= NULL;
-
+  if (con->proc_list)
+  {
+    GEARMAN_LIST_DEL(con->thread->proc, con, proc_)
+    con->proc_list= false;
+  }
   GEARMAN_SERVER_THREAD_UNLOCK(con->thread)
 }
 
 gearman_server_con_st *
 gearman_server_con_proc_next(gearman_server_thread_st *thread)
 {
-  gearman_server_con_st *con= thread->proc_list;
+  gearman_server_con_st *con;
 
-  if (con == NULL)
+  if (thread->proc_list == NULL)
     return NULL;
 
-  gearman_server_con_proc_remove(con);
+  GEARMAN_SERVER_THREAD_LOCK(thread)
+
+  con= thread->proc_list;
+  while (con != NULL)
+  {
+    GEARMAN_LIST_DEL(thread->proc, con, proc_)
+    con->proc_list= false;
+    if (!(con->proc_removed))
+      break;
+    con= thread->proc_list;
+  }
+
+  GEARMAN_SERVER_THREAD_UNLOCK(thread)
 
   return con;
 }

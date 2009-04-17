@@ -422,7 +422,8 @@ typedef enum
  */
 typedef enum
 {
-  GEARMAN_SERVER_ALLOCATED= (1 << 0)
+  GEARMAN_SERVER_ALLOCATED=   (1 << 0),
+  GEARMAN_SERVER_PROC_THREAD= (1 << 1)
 } gearman_server_options_t;
 
 /**
@@ -442,9 +443,7 @@ typedef enum
 {
   GEARMAN_SERVER_CON_SLEEPING=   (1 << 0),
   GEARMAN_SERVER_CON_EXCEPTIONS= (1 << 1),
-  GEARMAN_SERVER_CON_PACKET=     (1 << 2),
-  GEARMAN_SERVER_CON_DEAD=       (1 << 3),
-  GEARMAN_SERVER_CON_FREE=       (1 << 4)
+  GEARMAN_SERVER_CON_DEAD=       (1 << 2)
 } gearman_server_con_options_t;
 
 /**

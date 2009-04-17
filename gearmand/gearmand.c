@@ -56,6 +56,7 @@
 #include <libgearman/gearman.h>
 
 #define GEARMAND_LOG_REOPEN_TIME 60
+#define GEARMAND_LISTEN_BACKLOG 32
 
 typedef struct
 {
@@ -79,7 +80,7 @@ static void _log(gearmand_st *gearmand __attribute__ ((unused)),
 int main(int argc, char *argv[])
 {
   int c;
-  int backlog= 32;
+  int backlog= GEARMAND_LISTEN_BACKLOG;
   rlim_t fds= 0;
   in_port_t port= 0;
   char *pid_file= NULL;
@@ -160,15 +161,15 @@ int main(int argc, char *argv[])
       printf("\ngearmand %s - %s\n\n", gearman_version(), gearman_bugreport());
       printf("usage: %s [options]\n\n", argv[0]);
       printf("\t-b <backlog>  - Number of backlog connections for listen.\n"
-             "\t                Default is 32.\n");
+             "\t                Default is %d.\n", GEARMAND_LISTEN_BACKLOG);
       printf("\t-d            - Detach and run in the background (daemon).\n");
       printf("\t-f <fds>      - Number of file descriptors to allow for the\n"
              "\t                process (total connections will be slightly\n"
-             "\t                less). Default is max allowed.\n");
+             "\t                less). Default is max allowed for user.\n");
       printf("\t-h            - Print this help menu.\n");
-      printf("\t-l <file>     - File to log errors and information to.\n"
-             "\t                Turning this option on also makes forces the\n"
-             "\t                first verbose level on.\n");
+      printf("\t-l <file>     - Log file to write errors and information to.\n"
+             "\t                Turning this option on also forces the first\n"
+             "\t                verbose level to be enabled.\n");
       printf("\t-p <port>     - Port the server should listen on. Default\n"
              "\t                is %u.\n", GEARMAN_DEFAULT_TCP_PORT);
       printf("\t-P <pid_file> - File to write process ID out to.\n");

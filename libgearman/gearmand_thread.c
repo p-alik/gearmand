@@ -153,6 +153,14 @@ void gearmand_thread_free(gearmand_thread_st *thread)
 
   assert(thread->dcon_list == NULL);
 
+  while (thread->dcon_add_list != NULL)
+  {
+    dcon= thread->dcon_add_list;
+    thread->dcon_add_list= dcon->next;
+    close(dcon->fd);
+    free(dcon);
+  }
+
   while (thread->free_dcon_list != NULL)
   {
     dcon= thread->free_dcon_list;
@@ -206,7 +214,6 @@ void gearmand_thread_run(gearmand_thread_st *thread)
       /* We either got a GEARMAN_SHUTDOWN or some other fatal internal error.
          Either way, we want to shut the server down. */
       gearmand_wakeup(thread->gearmand, GEARMAND_WAKEUP_SHUTDOWN);
-
       return;
     }
 

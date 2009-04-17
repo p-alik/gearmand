@@ -26,12 +26,12 @@
 /**
  * Try reading packets for a connection.
  */
-gearman_return_t _thread_packet_read(gearman_server_con_st *server_con);
+gearman_return_t _thread_packet_read(gearman_server_con_st *con);
 
 /**
  * Flush outgoing packets for a connection.
  */
-static gearman_return_t _thread_packet_flush(gearman_server_con_st *server_con);
+static gearman_return_t _thread_packet_flush(gearman_server_con_st *con);
 
 /**
  * Start processing thread for the server.
@@ -115,8 +115,7 @@ void gearman_server_thread_free(gearman_server_thread_st *thread)
   gearman_server_con_st *con;
   gearman_server_packet_st *packet;
 
-  if (thread->server->thread_count > 1)
-    _proc_thread_kill(thread->server);
+  _proc_thread_kill(thread->server);
 
   while (thread->con_list != NULL)
     gearman_server_con_free(thread->con_list);
@@ -189,13 +188,15 @@ gearman_server_thread_run(gearman_server_thread_st *thread,
 
   /* If we are multi-threaded, we may have packets to flush or connections that
      should start reading again. */
-  if (thread->server->thread_count > 1)
+  if (thread->server->options & GEARMAN_SERVER_PROC_THREAD)
   {
     while ((server_con= gearman_server_con_io_next(thread)) != NULL)
     {
-      if (server_con->options & GEARMAN_SERVER_CON_FREE)
+      if (server_con->options & GEARMAN_SERVER_CON_DEAD)
       {
-        gearman_server_con_free(server_con);
+        if (server_con->proc_removed)
+          gearman_server_con_free(server_con);
+
         continue;
       }
 
@@ -238,7 +239,7 @@ gearman_server_thread_run(gearman_server_thread_st *thread,
   }
 
   /* Start flushing new outgoing packets if we are single threaded. */
-  if (thread->server->thread_count == 1)
+  if (!(thread->server->options & GEARMAN_SERVER_PROC_THREAD))
   {
     while ((server_con= gearman_server_con_io_next(thread)) != NULL)
     {
@@ -268,78 +269,75 @@ gearman_server_thread_run(gearman_server_thread_st *thread,
  * Private definitions
  */
 
-gearman_return_t _thread_packet_read(gearman_server_con_st *server_con)
+gearman_return_t _thread_packet_read(gearman_server_con_st *con)
 {
   gearman_return_t ret;
 
   while (1)
   {
-    if (server_con->packet == NULL)
+    if (con->packet == NULL)
     {
-      server_con->packet= gearman_server_packet_create(server_con->thread,
-                                                       true);
-      if (server_con->packet == NULL)
+      con->packet= gearman_server_packet_create(con->thread, true);
+      if (con->packet == NULL)
         return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
 
-    (void)gearman_con_recv(&(server_con->con), &(server_con->packet->packet),
-                           &ret, true);
+    (void)gearman_con_recv(&(con->con), &(con->packet->packet), &ret, true);
     if (ret != GEARMAN_SUCCESS)
     {
       if (ret == GEARMAN_IO_WAIT)
         break;
 
+      gearman_server_packet_free(con->packet, con->thread, true);
+      con->packet= NULL;
       return ret;
     }
 
     /* We read a complete packet. */
-    if (server_con->thread->server->thread_count == 1)
+    if (con->thread->server->options & GEARMAN_SERVER_PROC_THREAD)
     {
-      /* Single threaded, run the command here. */
-      ret= gearman_server_run_command(server_con,
-                                      &(server_con->packet->packet));
-      gearman_packet_free(&(server_con->packet->packet));
-      gearman_server_packet_free(server_con->packet, server_con->thread, true);
-      server_con->packet= NULL;
-      if (ret != GEARMAN_SUCCESS)
-        return ret;
+      /* Multi-threaded, queue for the processing thread to run. */
+      gearman_server_proc_packet_add(con, con->packet);
+      con->packet= NULL;
     }
     else
     {
-      /* Multi-threaded, queue for the processing thread to run. */
-      gearman_server_proc_packet_add(server_con, server_con->packet);
-      server_con->packet= NULL;
+      /* Single threaded, run the command here. */
+      ret= gearman_server_run_command(con, &(con->packet->packet));
+      gearman_packet_free(&(con->packet->packet));
+      gearman_server_packet_free(con->packet, con->thread, true);
+      con->packet= NULL;
+      if (ret != GEARMAN_SUCCESS)
+        return ret;
     }
   }
 
   return GEARMAN_SUCCESS;
 }
 
-static gearman_return_t _thread_packet_flush(gearman_server_con_st *server_con)
+static gearman_return_t _thread_packet_flush(gearman_server_con_st *con)
 {
   gearman_return_t ret;
 
   /* Check to see if we've already tried to avoid excessive system calls. */
-  if (server_con->con.events & POLLOUT)
+  if (con->con.events & POLLOUT)
     return GEARMAN_IO_WAIT;
 
-  while (server_con->io_packet_list != NULL)
+  while (con->io_packet_list != NULL)
   {
-    ret= gearman_con_send(&(server_con->con),
-                          &(server_con->io_packet_list->packet),
-                          server_con->io_packet_list->next == NULL ?
-                          true : false);
+    ret= gearman_con_send(&(con->con), &(con->io_packet_list->packet),
+                          con->io_packet_list->next == NULL ? true : false);
     if (ret != GEARMAN_SUCCESS)
       return ret;
 
-    if (server_con->io_packet_list->packet.command == GEARMAN_COMMAND_NOOP)
-      server_con->noop_queued= false;
+    if (con->io_packet_list->packet.command == GEARMAN_COMMAND_NOOP)
+      con->noop_queued= false;
 
-    gearman_server_io_packet_remove(server_con);
+    gearman_server_io_packet_remove(con);
   }
 
   /* Clear the POLLOUT flag. */
-  return gearman_con_set_events(&(server_con->con), POLLIN);
+  return gearman_con_set_events(&(con->con), POLLIN);
 }
 
 static gearman_return_t _proc_thread_start(gearman_server_st *server)
@@ -363,12 +361,14 @@ static gearman_return_t _proc_thread_start(gearman_server_st *server)
 
   (void) pthread_attr_destroy(&attr);
 
+  server->options|= GEARMAN_SERVER_PROC_THREAD;
+
   return GEARMAN_SUCCESS;
 }
 
 static void _proc_thread_kill(gearman_server_st *server)
 {
-  if (server->proc_shutdown)
+  if (!(server->options & GEARMAN_SERVER_PROC_THREAD) || server->proc_shutdown)
     return;
 
   server->proc_shutdown= true;
@@ -418,7 +418,7 @@ static void *_proc(void *data)
           while (con->client_list != NULL)
             gearman_server_client_free(con->client_list);
 
-          con->options|= GEARMAN_SERVER_CON_FREE;
+          con->proc_removed= true;
           gearman_server_con_io_add(con);
           continue;
         }

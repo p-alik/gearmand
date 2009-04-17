@@ -311,6 +311,9 @@ struct gearman_server_con_st
   const char *port;
   char id[GEARMAN_SERVER_CON_ID_SIZE];
   bool noop_queued;
+  bool io_list;
+  bool proc_list;
+  bool proc_removed;
 };
 
 /**

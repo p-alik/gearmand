@@ -52,6 +52,7 @@ gearman_return_t gearmand_con_create(gearmand_st *gearmand, int fd,
     dcon= malloc(sizeof(gearmand_con_st));
     if (dcon == NULL)
     {
+      close(fd);
       GEARMAND_ERROR_SET(gearmand, "gearmand_con_create", "malloc")
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
