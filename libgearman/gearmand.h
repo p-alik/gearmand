@@ -63,20 +63,14 @@ void gearmand_set_threads(gearmand_st *gearmand, uint32_t threads);
 void gearmand_set_verbose(gearmand_st *gearmand, uint8_t verbose);
 
 /**
- * Return an error string for the last error encountered.
+ * Set logging callback for server instance.
  * @param gearmand Server instance structure previously initialized with
  *        gearmand_create.
- * @return Pointer to static buffer in library that holds an error string.
+ * @param log_fn Function to call when there is a logging message.
+ * @param log_fn_arg Argument to pass into the log callback function.
  */
-const char *gearmand_error(gearmand_st *gearmand);
-
-/**
- * Value of errno in the case of a GEARMAN_ERRNO return value.
- * @param gearmand Server instance structure previously initialized with
- *        gearmand_create.
- * @return An errno value as defined in your system errno.h file.
- */
-int gearmand_errno(gearmand_st *gearmand);
+void gearmand_set_log(gearmand_st *gearmand, gearmand_log_fn log_fn,
+                      void *log_fn_arg);
 
 /**
  * Run the server instance.

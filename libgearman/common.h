@@ -71,32 +71,54 @@ extern "C" {
 #endif
 
 /**
+ * Macro to print verbose messages.
+ * @ingroup gearman_constants
+ */
+
+#define GEARMAN_LOG(__gearman, __level, ...) { \
+  if ((__gearman)->verbose > (__level) && (__gearman)->log_fn != NULL) \
+  { \
+    char _verbose_buffer[GEARMAN_MAX_ERROR_SIZE]; \
+    snprintf(_verbose_buffer, GEARMAN_MAX_ERROR_SIZE, __VA_ARGS__); \
+    (*((__gearman)->log_fn))(__gearman, 0, _verbose_buffer, \
+                             (__gearman)->log_fn_arg); \
+  } \
+}
+
+/**
  * Macro to set error string.
  * @ingroup gearman_constants
  */
 #define GEARMAN_ERROR_SET(__gearman, __function, ...) { \
-  snprintf((__gearman)->last_error, GEARMAN_MAX_ERROR_SIZE, \
-           __function ":" __VA_ARGS__); }
+  if ((__gearman)->log_fn == NULL) \
+  { \
+    snprintf((__gearman)->last_error, GEARMAN_MAX_ERROR_SIZE, \
+             __function ":" __VA_ARGS__); \
+  } \
+  else \
+    GEARMAN_LOG(__gearman, 0, __function ":" __VA_ARGS__) \
+}
 
 /**
- * Macro to set error string for gearmand.
+ * Macro to print gearmand verbose messages.
  * @ingroup gearman_constants
  */
-#define GEARMAND_ERROR_SET(__gearmand, __function, ...) { \
-  snprintf((__gearmand)->last_error, GEARMAN_MAX_ERROR_SIZE, \
-           __function ":" __VA_ARGS__); }
-
-/**
- * Macro to print verbose messages.
- * @ingroup gearman_constants
- */
-#define GEARMAND_VERBOSE(__gearmand, __level, ...) { \
-  if ((__gearmand)->verbose > (__level)) \
+#define GEARMAND_LOG(__gearmand, __level, ...) { \
+  if ((__gearmand)->verbose > (__level) && (__gearmand)->log_fn != NULL) \
   { \
     char _verbose_buffer[GEARMAN_MAX_ERROR_SIZE]; \
     snprintf(_verbose_buffer, GEARMAN_MAX_ERROR_SIZE, __VA_ARGS__); \
-    printf("%s\n", _verbose_buffer); \
+    (*((__gearmand)->log_fn))(__gearmand, 0, _verbose_buffer, \
+                              (__gearmand)->log_fn_arg); \
   } \
+}
+
+/**
+ * Macro to set gearmand error string.
+ * @ingroup gearman_constants
+ */
+#define GEARMAND_ERROR_SET(__gearmand, __function, ...) { \
+  GEARMAND_LOG(__gearmand, 0, __function ":" __VA_ARGS__) \
 }
 
 /**

@@ -199,10 +199,10 @@ gearman_return_t gearmand_con_watch(gearman_con_st *con, short events,
     dcon->last_events= set_events;
   }
 
-  GEARMAND_VERBOSE(dcon->thread->gearmand, 1, "[%4u] %15s:%5s Watching %8s%8s",
-                   dcon->thread->count, dcon->host, dcon->port,
-                   events & POLLIN ? "POLLIN" : "",
-                   events & POLLOUT ? "POLLOUT" : "")
+  GEARMAND_LOG(dcon->thread->gearmand, 2, "[%4u] %15s:%5s Watching %8s%8s",
+               dcon->thread->count, dcon->host, dcon->port,
+               events & POLLIN ? "POLLIN" : "",
+               events & POLLOUT ? "POLLOUT" : "")
 
   return GEARMAN_SUCCESS;
 }
@@ -224,10 +224,10 @@ static void _con_ready(int fd __attribute__ ((unused)), short events,
 
   gearman_con_set_revents(dcon->con, revents);
 
-  GEARMAND_VERBOSE(dcon->thread->gearmand, 1, "[%4u] %15s:%5s Ready    %8s%8s",
-                   dcon->thread->count, dcon->host, dcon->port,
-                   revents & POLLIN ? "POLLIN" : "",
-                   revents & POLLOUT ? "POLLOUT" : "")
+  GEARMAND_LOG(dcon->thread->gearmand, 2, "[%4u] %15s:%5s Ready    %8s%8s",
+               dcon->thread->count, dcon->host, dcon->port,
+               revents & POLLIN ? "POLLIN" : "",
+               revents & POLLOUT ? "POLLOUT" : "")
 
   gearmand_thread_run(dcon->thread);
 }
@@ -241,15 +241,11 @@ static gearman_return_t _con_add(gearmand_thread_st *thread,
   {
     close(dcon->fd);
     free(dcon);
-    GEARMAND_ERROR_SET(thread->gearmand, "_con_add", "%s",
-                       gearman_server_thread_error(&(thread->server_thread)))
-    thread->gearmand->last_errno=
-                          gearman_server_thread_errno(&(thread->server_thread));
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
 
-  GEARMAND_VERBOSE(thread->gearmand, 0, "[%4u] %15s:%5s Connected",
-                   thread->count, dcon->host, dcon->port)
+  GEARMAND_LOG(thread->gearmand, 1, "[%4u] %15s:%5s Connected", thread->count,
+               dcon->host, dcon->port)
 
   GEARMAN_LIST_ADD(thread->dcon, dcon,)
 

@@ -37,6 +37,9 @@ struct gearman_st
   uint32_t sending;
   int last_errno;
   char last_error[GEARMAN_MAX_ERROR_SIZE];
+  uint8_t verbose;
+  gearman_log_fn *log_fn;
+  void *log_fn_arg;
   gearman_event_watch_fn *event_watch;
   void *event_watch_arg;
   gearman_malloc_fn *workload_malloc;
@@ -260,6 +263,8 @@ struct gearman_server_thread_st
   gearman_server_thread_st *next;
   gearman_server_thread_st *prev;
   pthread_mutex_t lock;
+  gearman_server_thread_log_fn *log_fn;
+  void *log_fn_arg;
   gearman_server_thread_run_fn *run_fn;
   void *run_arg;
   gearman_st *gearman;
@@ -403,9 +408,9 @@ struct gearmand_st
   int backlog;
   uint32_t threads;
   uint8_t verbose;
+  gearmand_log_fn *log_fn;
+  void *log_fn_arg;
   gearman_return_t ret;
-  int last_errno;
-  char last_error[GEARMAN_MAX_ERROR_SIZE];
   gearman_server_st server;
   struct event_base *base;
   struct addrinfo *addrinfo;

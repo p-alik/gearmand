@@ -48,6 +48,12 @@ static void _proc_thread_kill(gearman_server_st *server);
  */
 static void *_proc(void *data);
 
+/**
+ * Wrapper for log handling.
+ */
+static void _log(gearman_st *gearman __attribute__ ((unused)), uint8_t verbose,
+                 const char *line, void *fn_arg);
+
 /** @} */
 
 /*
@@ -165,15 +171,14 @@ void gearman_server_thread_set_run(gearman_server_thread_st *thread,
   thread->run_arg= run_arg;
 }
 
-#if 0
 void gearman_server_thread_set_log(gearman_server_thread_st *thread,
                                    gearman_server_thread_log_fn *log_fn, 
-                                   void *log_arg)
+                                   void *log_fn_arg)
 {
   thread->log_fn= log_fn;
-  thread->log_arg= log_arg;
+  thread->log_fn_arg= log_fn_arg;
+  gearman_set_log(thread->gearman, _log, thread);
 }
-#endif
 
 gearman_server_con_st *
 gearman_server_thread_run(gearman_server_thread_st *thread,
@@ -428,4 +433,11 @@ static void *_proc(void *data)
       }
     }
   }
+}
+
+static void _log(gearman_st *gearman __attribute__ ((unused)), uint8_t verbose,
+                 const char *line, void *fn_arg)
+{
+  gearman_server_thread_st *thread= (gearman_server_thread_st *)fn_arg;
+  (*(thread->log_fn))(thread, verbose, line, thread->log_fn_arg);
 }

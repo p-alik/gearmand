@@ -120,9 +120,9 @@ fi
 
 
 AC_HEADER_TIME
-AC_CHECK_HEADERS(assert.h errno.h fcntl.h netinet/tcp.h signal.h stdarg.h)
-AC_CHECK_HEADERS(stdio.h stdlib.h string.h sys/socket.h sys/types.h)
-AC_CHECK_HEADERS(sys/utsname.h unistd.h)
+AC_CHECK_HEADERS(assert.h errno.h fcntl.h netinet/tcp.h pwd.h signal.h)
+AC_CHECK_HEADERS(stdarg.h stdio.h stdlib.h string.h sys/resource.h sys/stat.h)
+AC_CHECK_HEADERS(sys/socket.h sys/types.h sys/utsname.h unistd.h)
 
 AC_CHECK_HEADERS(pthread.h)
 AC_CHECK_LIB(pthread, pthread_create)
