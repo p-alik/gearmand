@@ -354,7 +354,7 @@ gearman_return_t gearman_con_flush(gearman_con_st *con)
         con->addrinfo= NULL;
       }
 
-      sprintf(port_str, "%u", con->port);
+      snprintf(port_str, NI_MAXSERV, "%u", con->port);
 
       memset(&ai, 0, sizeof(struct addrinfo));
       ai.ai_flags= (AI_V4MAPPED | AI_ADDRCONFIG);
@@ -1033,16 +1033,6 @@ static gearman_return_t _con_setsockopt(gearman_con_st *con)
     return GEARMAN_ERRNO;
   }
 
-#ifdef FIONBIO
-  ret= 1;
-  ret= ioctl(con->fd, FIONBIO, &ret);
-  if (ret == -1)
-  {
-    GEARMAN_ERROR_SET(con->gearman, "_con_setsockopt", "ioctl:FIONBIO:%d",
-                      errno)
-    return GEARMAN_ERRNO;
-  }
-#else /* !FIONBIO */
   ret= fcntl(con->fd, F_GETFL, 0);
   if (ret == -1)
   {
@@ -1058,7 +1048,6 @@ static gearman_return_t _con_setsockopt(gearman_con_st *con)
                       errno)
     return GEARMAN_ERRNO;
   }
-#endif /* FIONBIO */
 
   return GEARMAN_SUCCESS;
 }

@@ -42,7 +42,6 @@ extern "C" {
 #define GEARMAN_SEND_BUFFER_SIZE 8192
 #define GEARMAN_RECV_BUFFER_SIZE 8192
 #define GEARMAN_SERVER_CON_ID_SIZE 128
-#define GEARMAN_SERVER_CON_ADDR_SIZE (NI_MAXHOST + NI_MAXSERV)
 #define GEARMAN_JOB_HASH_SIZE 383
 #define GEARMAN_MAX_FREE_SERVER_CON 1000
 #define GEARMAN_MAX_FREE_SERVER_PACKET 2000
@@ -51,6 +50,7 @@ extern "C" {
 #define GEARMAN_MAX_FREE_SERVER_WORKER 1000
 #define GEARMAN_TEXT_RESPONSE_SIZE 8192
 #define GEARMAN_WORKER_WAIT_TIMEOUT 10000 /* Milliseconds */
+#define GEARMAN_PIPE_BUFFER_SIZE 256
 
 /* Types. */
 typedef struct gearman_st gearman_st;
@@ -63,16 +63,16 @@ typedef struct gearman_job_st gearman_job_st;
 typedef struct gearman_worker_st gearman_worker_st;
 typedef struct gearman_worker_function_st gearman_worker_function_st;
 typedef struct gearman_server_st gearman_server_st;
+typedef struct gearman_server_thread_st gearman_server_thread_st;
 typedef struct gearman_server_con_st gearman_server_con_st;
 typedef struct gearman_server_packet_st gearman_server_packet_st;
 typedef struct gearman_server_function_st gearman_server_function_st;
 typedef struct gearman_server_client_st gearman_server_client_st;
 typedef struct gearman_server_worker_st gearman_server_worker_st;
 typedef struct gearman_server_job_st gearman_server_job_st;
-struct gearmand;
-typedef struct gearmand gearmand_st;
-struct gearmand_con;
-typedef struct gearmand_con gearmand_con_st;
+typedef struct gearmand_st gearmand_st;
+typedef struct gearmand_con_st gearmand_con_st;
+typedef struct gearmand_thread_st gearmand_thread_st;
 
 /**
  * Return codes.
@@ -118,6 +118,8 @@ typedef enum
   GEARMAN_NEED_WORKLOAD_FN,
   GEARMAN_PAUSE,
   GEARMAN_UNKNOWN_STATE,
+  GEARMAN_PTHREAD,
+  GEARMAN_PIPE_EOF,
   GEARMAN_MAX_RETURN /* Always add new error code before */
 } gearman_return_t;
 
@@ -143,6 +145,15 @@ typedef gearman_return_t (gearman_event_close_fn)(gearman_con_st *con,
 typedef void* (gearman_malloc_fn)(size_t size, void *arg);
 typedef void (gearman_free_fn)(void *ptr, void *arg);
 typedef void (gearman_task_fn_arg_free_fn)(gearman_task_st *task, void *fn_arg);
+typedef void (gearman_log_fn)(gearman_st *gearman, uint8_t verbose,
+                              const char *line, void *fn_arg);
+typedef void (gearman_server_thread_run_fn)(gearman_server_thread_st *thread,
+                                            void *fn_arg);
+typedef void (gearman_server_thread_log_fn)(gearman_server_thread_st *thread,
+                                            uint8_t verbose, const char *line,
+                                            void *fn_arg);
+typedef void (gearmand_log_fn)(gearmand_st *gearmand, uint8_t verbose,
+                               const char *line, void *fn_arg);
 
 /** @} */
 
@@ -152,8 +163,9 @@ typedef void (gearman_task_fn_arg_free_fn)(gearman_task_st *task, void *fn_arg);
  */
 typedef enum
 {
-  GEARMAN_ALLOCATED=    (1 << 0),
-  GEARMAN_NON_BLOCKING= (1 << 1)
+  GEARMAN_ALLOCATED=          (1 << 0),
+  GEARMAN_NON_BLOCKING=       (1 << 1),
+  GEARMAN_DONT_TRACK_PACKETS= (1 << 2)
 } gearman_options_t;
 
 /**
@@ -410,10 +422,18 @@ typedef enum
  */
 typedef enum
 {
-  GEARMAN_SERVER_ALLOCATED=         (1 << 0),
-  GEARMAN_SERVER_SHUTDOWN=          (1 << 1),
-  GEARMAN_SERVER_SHUTDOWN_GRACEFUL= (1 << 2)
+  GEARMAN_SERVER_ALLOCATED=   (1 << 0),
+  GEARMAN_SERVER_PROC_THREAD= (1 << 1)
 } gearman_server_options_t;
+
+/**
+ * @ingroup gearman_server_thread
+ * Options for gearman_server_thread_st.
+ */
+typedef enum
+{
+  GEARMAN_SERVER_THREAD_ALLOCATED= (1 << 0)
+} gearman_server_thread_options_t;
 
 /**
  * @ingroup gearman_server_con
@@ -421,9 +441,9 @@ typedef enum
  */
 typedef enum
 {
-  GEARMAN_SERVER_CON_ALLOCATED=  (1 << 0),
-  GEARMAN_SERVER_CON_SLEEPING=   (1 << 1),
-  GEARMAN_SERVER_CON_EXCEPTIONS= (1 << 2)
+  GEARMAN_SERVER_CON_SLEEPING=   (1 << 0),
+  GEARMAN_SERVER_CON_EXCEPTIONS= (1 << 1),
+  GEARMAN_SERVER_CON_DEAD=       (1 << 2)
 } gearman_server_con_options_t;
 
 /**
@@ -461,6 +481,39 @@ typedef enum
 {
   GEARMAN_SERVER_JOB_ALLOCATED= (1 << 0)
 } gearman_server_job_options_t;
+
+/**
+ * @ingroup gearmand
+ * Options for gearmand_st.
+ */
+typedef enum
+{
+  GEARMAND_LISTEN_EVENT= (1 << 0),
+  GEARMAND_WAKEUP_EVENT= (1 << 1)
+} gearmand_options_t;
+
+/**
+ * @ingroup gearmand
+ * Wakeup events for gearmand_st.
+ */
+typedef enum
+{
+  GEARMAND_WAKEUP_PAUSE=             (1 << 0),
+  GEARMAND_WAKEUP_SHUTDOWN=          (1 << 1),
+  GEARMAND_WAKEUP_SHUTDOWN_GRACEFUL= (1 << 2),
+  GEARMAND_WAKEUP_CON=               (1 << 3),
+  GEARMAND_WAKEUP_RUN=               (1 << 4)
+} gearmand_wakeup_t;
+
+/**
+ * @ingroup gearmand_thread
+ * Options for gearmand_thread_st.
+ */
+typedef enum
+{
+  GEARMAND_THREAD_WAKEUP_EVENT= (1 << 0),
+  GEARMAND_THREAD_LOCK=         (1 << 1)
+} gearmand_thread_options_t;
 
 #ifdef __cplusplus
 }

@@ -25,6 +25,7 @@
 #include <arpa/inet.h>
 #include <poll.h>
 #include <sys/uio.h>
+#include <event.h>
 
 #include <libgearman/constants.h>
 #include <libgearman/structs.h>
@@ -35,12 +36,16 @@
 #include <libgearman/client.h>
 #include <libgearman/worker.h>
 #include <libgearman/server_con.h>
+#include <libgearman/server_packet.h>
 #include <libgearman/server_function.h>
 #include <libgearman/server_client.h>
 #include <libgearman/server_worker.h>
 #include <libgearman/server_job.h>
+#include <libgearman/server_thread.h>
 #include <libgearman/server.h>
 #include <libgearman/gearmand.h>
+#include <libgearman/gearmand_thread.h>
+#include <libgearman/gearmand_con.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -99,6 +104,16 @@ int gearman_errno(gearman_st *gearman);
  */
 void gearman_set_options(gearman_st *gearman, gearman_options_t options,
                          uint32_t data);
+
+/**
+ * Set logging callback for gearman instance.
+ * @param gearman Gearman instance structure previously initialized with
+ *        gearman_create.
+ * @param log_fn Function to call when there is a logging message.
+ * @param log_fn_arg Argument to pass into the log callback function.
+ */
+void gearman_set_log(gearman_st *gearman, gearman_log_fn log_fn,
+                     void *log_fn_arg);
 
 /**
  * Set custom I/O event callbacks for a gearman structure.
