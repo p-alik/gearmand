@@ -18,8 +18,7 @@
  */
 
 gearman_server_con_st *gearman_server_con_add(gearman_server_thread_st *thread,
-                                              int fd, const char *host,
-                                              void *data)
+                                              int fd, void *data)
 {
   gearman_server_con_st *server_con;
   gearman_return_t ret;
@@ -34,7 +33,6 @@ gearman_server_con_st *gearman_server_con_add(gearman_server_thread_st *thread,
     return NULL;
   }
 
-  gearman_server_con_set_addr(server_con, host);
   server_con->con.data= data;
 
   ret= gearman_con_set_events(&(server_con->con), POLLIN);
@@ -70,15 +68,14 @@ gearman_server_con_create(gearman_server_thread_st *thread)
 
   memset(server_con, 0, sizeof(gearman_server_con_st));
 
+  server_con->thread= thread;
+  strcpy(server_con->id, "-");
+
   if (gearman_con_create(thread->gearman, &(server_con->con)) == NULL)
   {
     free(server_con);
     return NULL;
   }
-
-  server_con->thread= thread;
-  strcpy(server_con->addr, "-");
-  strcpy(server_con->id, "-");
 
   GEARMAN_SERVER_THREAD_LOCK(thread)
   GEARMAN_LIST_ADD(thread->con, server_con,)
@@ -89,9 +86,11 @@ gearman_server_con_create(gearman_server_thread_st *thread)
 
 void gearman_server_con_free(gearman_server_con_st *server_con)
 {
+  server_con->host= NULL;
+  server_con->port= NULL;
+
   gearman_server_thread_st *thread= server_con->thread;
 
-/* XXX check race cond with proc_shutdown */
   if (thread->server->thread_count > 1 &&
       !(server_con->options & GEARMAN_SERVER_CON_FREE) &&
       !(thread->server->proc_shutdown))
@@ -118,13 +117,10 @@ void gearman_server_con_free(gearman_server_con_st *server_con)
   while (server_con->proc_packet_list != NULL)
     gearman_server_proc_packet_remove(server_con);
 
-  if (thread->server->thread_count == 1)
-  {
-    gearman_server_con_free_workers(server_con);
+  gearman_server_con_free_workers(server_con);
 
-    while (server_con->client_list != NULL)
-      gearman_server_client_free(server_con->client_list);
-  }
+  while (server_con->client_list != NULL)
+    gearman_server_client_free(server_con->client_list);
 
   GEARMAN_SERVER_THREAD_LOCK(thread)
   GEARMAN_LIST_DEL(server_con->thread->con, server_con,)
@@ -146,16 +142,26 @@ void gearman_server_con_set_data(gearman_server_con_st *server_con, void *data)
   gearman_con_set_data(&(server_con->con), data);
 }
 
-const char *gearman_server_con_addr(gearman_server_con_st *server_con)
+const char *gearman_server_con_host(gearman_server_con_st *server_con)
 {
-  return server_con->addr;
+  return server_con->host;
 }
 
-void gearman_server_con_set_addr(gearman_server_con_st *server_con,
-                                 const char *addr)
+void gearman_server_con_set_host(gearman_server_con_st *server_con,
+                                 const char *host)
 {
-  strncpy(server_con->addr, addr, GEARMAN_SERVER_CON_ADDR_SIZE);
-  server_con->addr[GEARMAN_SERVER_CON_ADDR_SIZE - 1]= 0;
+  server_con->host= host;
+}
+
+const char *gearman_server_con_port(gearman_server_con_st *server_con)
+{
+  return server_con->port;
+}
+
+void gearman_server_con_set_port(gearman_server_con_st *server_con,
+                                 const char *port)
+{
+  server_con->port= port;
 }
 
 const char *gearman_server_con_id(gearman_server_con_st *server_con)
@@ -173,13 +179,13 @@ void gearman_server_con_set_id(gearman_server_con_st *server_con, char *id,
   server_con->id[size]= 0;
 }
 
-void gearman_server_con_free_worker(gearman_server_con_st *server_con,
+void gearman_server_con_free_worker(gearman_server_con_st *con,
                                     char *function_name,
                                     size_t function_name_size)
 {
   gearman_server_worker_st *server_worker;
 
-  for (server_worker= server_con->worker_list; server_worker != NULL;
+  for (server_worker= con->worker_list; server_worker != NULL;
        server_worker= server_worker->con_next)
   {
     if (server_worker->function->function_name_size == function_name_size &&
@@ -191,97 +197,93 @@ void gearman_server_con_free_worker(gearman_server_con_st *server_con,
   }
 }
 
-void gearman_server_con_free_workers(gearman_server_con_st *server_con)
+void gearman_server_con_free_workers(gearman_server_con_st *con)
 {
-  while (server_con->worker_list != NULL)
-    gearman_server_worker_free(server_con->worker_list);
+  while (con->worker_list != NULL)
+    gearman_server_worker_free(con->worker_list);
 }
 
-void gearman_server_con_io_add(gearman_server_con_st *server_con)
+void gearman_server_con_io_add(gearman_server_con_st *con)
 {
-  gearman_server_thread_st *thread= server_con->thread;
-
-  if (server_con->io_next != NULL || server_con->io_prev != NULL)
+  if (con->io_next != NULL || con->io_prev != NULL)
     return;
 
-  GEARMAN_SERVER_THREAD_LOCK(thread)
+  GEARMAN_SERVER_THREAD_LOCK(con->thread)
 
-  GEARMAN_LIST_ADD(thread->io, server_con, io_)
+  GEARMAN_LIST_ADD(con->thread->io, con, io_)
 
-  if (thread->io_count == 1 && thread->run_fn)
-    (*thread->run_fn)(thread, thread->run_arg);
-
-  GEARMAN_SERVER_THREAD_UNLOCK(thread)
+  /* Looks funny, but need to check io_count locked, but call run unlocked. */
+  if (con->thread->io_count == 1 && con->thread->run_fn)
+  {
+    GEARMAN_SERVER_THREAD_UNLOCK(con->thread)
+    (*con->thread->run_fn)(con->thread, con->thread->run_arg);
+  }
+  else
+    GEARMAN_SERVER_THREAD_UNLOCK(con->thread)
 }
 
-void gearman_server_con_io_remove(gearman_server_con_st *server_con)
+void gearman_server_con_io_remove(gearman_server_con_st *con)
 {
-  gearman_server_thread_st *thread= server_con->thread;
+  GEARMAN_SERVER_THREAD_LOCK(con->thread)
 
-  GEARMAN_SERVER_THREAD_LOCK(thread)
+  GEARMAN_LIST_DEL(con->thread->io, con, io_)
+  con->io_prev= NULL;
+  con->io_next= NULL;
 
-  GEARMAN_LIST_DEL(thread->io, server_con, io_)
-  server_con->io_prev= NULL;
-  server_con->io_next= NULL;
-
-  GEARMAN_SERVER_THREAD_UNLOCK(thread)
+  GEARMAN_SERVER_THREAD_UNLOCK(con->thread)
 }
 
 gearman_server_con_st *
 gearman_server_con_io_next(gearman_server_thread_st *thread)
 {
-  gearman_server_con_st *server_con= thread->io_list;
+  gearman_server_con_st *con= thread->io_list;
 
-  if (server_con == NULL)
+  if (con == NULL)
     return NULL;
 
-  gearman_server_con_io_remove(server_con);
+  gearman_server_con_io_remove(con);
 
-  return server_con;
+  return con;
 }
 
-void gearman_server_con_proc_add(gearman_server_con_st *server_con)
+void gearman_server_con_proc_add(gearman_server_con_st *con)
 {
-  gearman_server_thread_st *thread= server_con->thread;
-
-  if (server_con->proc_next != NULL || server_con->proc_prev != NULL)
+  if (con->proc_next != NULL || con->proc_prev != NULL)
     return;
 
-  GEARMAN_SERVER_THREAD_LOCK(thread)
-  GEARMAN_LIST_ADD(thread->proc, server_con, proc_)
-  GEARMAN_SERVER_THREAD_UNLOCK(thread)
+  GEARMAN_SERVER_THREAD_LOCK(con->thread)
+  GEARMAN_LIST_ADD(con->thread->proc, con, proc_)
+  GEARMAN_SERVER_THREAD_UNLOCK(con->thread)
 
-  if (thread->server->thread_count > 1 && !(thread->server->proc_wakeup))
+  if (!(con->thread->server->proc_wakeup))
   {
-    (void) pthread_mutex_lock(&(thread->server->proc_lock));
-    thread->server->proc_wakeup= true;
-    (void) pthread_cond_signal(&(thread->server->proc_cond));
-    (void) pthread_mutex_unlock(&(thread->server->proc_lock));
+    (void) pthread_mutex_lock(&(con->thread->server->proc_lock));
+    con->thread->server->proc_wakeup= true;
+    (void) pthread_cond_signal(&(con->thread->server->proc_cond));
+    (void) pthread_mutex_unlock(&(con->thread->server->proc_lock));
   }
 }
 
-void gearman_server_con_proc_remove(gearman_server_con_st *server_con)
+void gearman_server_con_proc_remove(gearman_server_con_st *con)
 {
-  gearman_server_thread_st *thread= server_con->thread;
+  GEARMAN_SERVER_THREAD_LOCK(con->thread)
 
-  GEARMAN_SERVER_THREAD_LOCK(thread)
+  GEARMAN_LIST_DEL(con->thread->proc, con, proc_)
+  con->proc_prev= NULL;
+  con->proc_next= NULL;
 
-  GEARMAN_LIST_DEL(thread->proc, server_con, proc_)
-  server_con->proc_prev= NULL;
-  server_con->proc_next= NULL;
-
-  GEARMAN_SERVER_THREAD_UNLOCK(thread)
+  GEARMAN_SERVER_THREAD_UNLOCK(con->thread)
 }
 
 gearman_server_con_st *
 gearman_server_con_proc_next(gearman_server_thread_st *thread)
 {
-  gearman_server_con_st *server_con= thread->proc_list;
+  gearman_server_con_st *con= thread->proc_list;
 
-  if (server_con == NULL)
+  if (con == NULL)
     return NULL;
 
-  gearman_server_con_proc_remove(server_con);
+  gearman_server_con_proc_remove(con);
 
-  return server_con;
+  return con;
 }

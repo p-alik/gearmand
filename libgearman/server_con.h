@@ -38,8 +38,7 @@ extern "C" {
  * @return Gearman server connection pointer.
  */
 gearman_server_con_st *gearman_server_con_add(gearman_server_thread_st *thread,
-                                              int fd, const char *host,
-                                              void *data);
+                                              int fd, void *data);
 
 /**
  * Initialize a server connection structure.
@@ -63,15 +62,26 @@ void *gearman_server_con_data(gearman_server_con_st *server_con);
 void gearman_server_con_set_data(gearman_server_con_st *server_con, void *data);
 
 /**
- * Get client addr.
+ * Get client host.
  */
-const char *gearman_server_con_addr(gearman_server_con_st *server_con);
+const char *gearman_server_con_host(gearman_server_con_st *server_con);
 
 /**
- * Set client addr.
+ * Set client host.
  */
-void gearman_server_con_set_addr(gearman_server_con_st *server_con,
-                                 const char *addr);
+void gearman_server_con_set_host(gearman_server_con_st *server_con,
+                                 const char *host);
+
+/**
+ * Get client port.
+ */
+const char *gearman_server_con_port(gearman_server_con_st *server_con);
+
+/**
+ * Set client port.
+ */
+void gearman_server_con_set_port(gearman_server_con_st *server_con,
+                                 const char *port);
 
 /**
  * Get client id.
@@ -87,24 +97,24 @@ void gearman_server_con_set_id(gearman_server_con_st *server_con, char *id,
 /**
  * Free server worker struction with name for a server connection.
  */
-void gearman_server_con_free_worker(gearman_server_con_st *server_con,
+void gearman_server_con_free_worker(gearman_server_con_st *con,
                                     char *function_name,
                                     size_t function_name_size);
 
 /**
  * Free all server worker structures for a server connection.
  */
-void gearman_server_con_free_workers(gearman_server_con_st *server_con);
+void gearman_server_con_free_workers(gearman_server_con_st *con);
 
 /**
  * Add connection to the io thread list.
  */
-void gearman_server_con_io_add(gearman_server_con_st *server_con);
+void gearman_server_con_io_add(gearman_server_con_st *con);
 
 /**
  * Remove connection from the io thread list.
  */
-void gearman_server_con_io_remove(gearman_server_con_st *server_con);
+void gearman_server_con_io_remove(gearman_server_con_st *con);
 
 /**
  * Get next connection from the io thread list.
@@ -115,12 +125,12 @@ gearman_server_con_io_next(gearman_server_thread_st *thread);
 /**
  * Add connection to the proc thread list.
  */
-void gearman_server_con_proc_add(gearman_server_con_st *server_con);
+void gearman_server_con_proc_add(gearman_server_con_st *con);
 
 /**
  * Remove connection from the proc thread list.
  */
-void gearman_server_con_proc_remove(gearman_server_con_st *server_con);
+void gearman_server_con_proc_remove(gearman_server_con_st *con);
 
 /**
  * Get next connection from the proc thread list.

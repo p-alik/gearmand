@@ -236,13 +236,16 @@ static gearman_return_t _con_add(gearmand_thread_st *thread,
                                  gearmand_con_st *dcon)
 {
   dcon->server_con= gearman_server_con_add(&(thread->server_thread), dcon->fd,
-                                           dcon->host, dcon);
+                                           dcon);
   if (dcon->server_con == NULL)
   {
     close(dcon->fd);
     free(dcon);
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
+
+  gearman_server_con_set_host(dcon->server_con, dcon->host);
+  gearman_server_con_set_port(dcon->server_con, dcon->port);
 
   GEARMAND_LOG(thread->gearmand, 1, "[%4u] %15s:%5s Connected", thread->count,
                dcon->host, dcon->port)

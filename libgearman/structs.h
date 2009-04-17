@@ -307,8 +307,10 @@ struct gearman_server_con_st
   uint32_t worker_count;
   gearman_server_client_st *client_list;
   uint32_t client_count;
-  char addr[GEARMAN_SERVER_CON_ADDR_SIZE];
+  const char *host;
+  const char *port;
   char id[GEARMAN_SERVER_CON_ID_SIZE];
+  bool noop_queued;
 };
 
 /**
@@ -460,7 +462,6 @@ struct gearmand_con_st
   gearmand_con_st *prev;
   gearmand_thread_st *thread;
   int fd;
-/* XXX remove these, use server_con */
   char host[NI_MAXHOST];
   char port[NI_MAXSERV];
   gearman_server_con_st *server_con;

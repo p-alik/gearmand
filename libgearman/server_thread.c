@@ -332,6 +332,9 @@ static gearman_return_t _thread_packet_flush(gearman_server_con_st *server_con)
     if (ret != GEARMAN_SUCCESS)
       return ret;
 
+    if (server_con->io_packet_list->packet.command == GEARMAN_COMMAND_NOOP)
+      server_con->noop_queued= false;
+
     gearman_server_io_packet_remove(server_con);
   }
 

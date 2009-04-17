@@ -583,7 +583,8 @@ static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
       for (con= thread->con_list; con != NULL; con= con->next)
       {
         size+= snprintf(data + size, GEARMAN_TEXT_RESPONSE_SIZE - size,
-                        "%d %s %s :", con->con.fd, con->addr, con->id);
+                        "%d %s %s :", con->con.fd,
+                        con->host == NULL ? "-" : con->host, con->id);
         if (size > GEARMAN_TEXT_RESPONSE_SIZE)
           break;
 

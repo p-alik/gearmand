@@ -308,13 +308,8 @@ gearman_return_t gearman_server_job_queue(gearman_server_job_st *server_job)
   for (server_worker= server_job->function->worker_list; server_worker != NULL;
        server_worker= server_worker->function_next)
   {
-#if 0
-XXX
-    if (!(server_worker->con->options & GEARMAN_SERVER_CON_SLEEPING) ||
-        (server_worker->con->packet_end != NULL &&
-        server_worker->con->packet_end->packet.command == GEARMAN_COMMAND_NOOP))
-#endif
-    if (!(server_worker->con->options & GEARMAN_SERVER_CON_SLEEPING))
+    if (!(server_worker->con->noop_queued) &&
+        !(server_worker->con->options & GEARMAN_SERVER_CON_SLEEPING))
     {
       continue;
     }
@@ -324,6 +319,8 @@ XXX
                                       GEARMAN_COMMAND_NOOP, NULL);
     if (ret != GEARMAN_SUCCESS)
       return ret;
+
+    server_worker->con->noop_queued= true;
   }
 
   /* Queue the job to be run. */

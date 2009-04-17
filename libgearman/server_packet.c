@@ -101,7 +101,6 @@ gearman_return_t gearman_server_io_packet_add(gearman_server_con_st *con,
   if (server_packet == NULL)
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
 
-/* XXX make gearman mt-safe somehow to avoid this long lock */
   if (gearman_packet_create(con->thread->gearman,
                             &(server_packet->packet)) == NULL)
   {
