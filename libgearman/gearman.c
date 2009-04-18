@@ -117,6 +117,13 @@ void gearman_set_options(gearman_st *gearman, gearman_options_t options,
     gearman->options &= ~options;
 }
 
+void gearman_set_log(gearman_st *gearman, gearman_log_fn log_fn,
+                     void *log_fn_arg)
+{
+  gearman->log_fn= log_fn;
+  gearman->log_fn_arg= log_fn_arg;
+}
+
 void gearman_set_event_watch(gearman_st *gearman,
                              gearman_event_watch_fn *event_watch,
                              void *event_watch_arg)

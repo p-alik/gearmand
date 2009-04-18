@@ -26,7 +26,7 @@ gearman_server_worker_add(gearman_server_con_st *server_con,
   gearman_server_worker_st *server_worker;
   gearman_server_function_st *server_function;
 
-  server_function= gearman_server_function_get(server_con->server,
+  server_function= gearman_server_function_get(server_con->thread->server,
                                                function_name,
                                                function_name_size);
   if (server_function == NULL)
@@ -47,19 +47,21 @@ gearman_server_worker_create(gearman_server_con_st *server_con,
                              gearman_server_function_st *server_function,
                              gearman_server_worker_st *server_worker)
 {
+  gearman_server_st *server= server_con->thread->server;
+
   if (server_worker == NULL)
   {
-    if (server_con->server->free_worker_count > 0)
+    if (server->free_worker_count > 0)
     {
-      server_worker= server_con->server->free_worker_list;
-      GEARMAN_LIST_DEL(server_con->server->free_worker, server_worker, con_)
+      server_worker= server->free_worker_list;
+      GEARMAN_LIST_DEL(server->free_worker, server_worker, con_)
     }
     else
     {
       server_worker= malloc(sizeof(gearman_server_worker_st));
       if (server_worker == NULL)
       {
-        GEARMAN_ERROR_SET(server_con->server->gearman,
+        GEARMAN_ERROR_SET(server_con->thread->gearman,
                           "gearman_server_worker_create", "malloc")
         return NULL;
       }
@@ -82,6 +84,8 @@ gearman_server_worker_create(gearman_server_con_st *server_con,
 
 void gearman_server_worker_free(gearman_server_worker_st *server_worker)
 {
+  gearman_server_st *server= server_worker->con->thread->server;
+
   /* If the worker was in the middle of a job, requeue it. */
   if (server_worker->job != NULL)
     (void)gearman_server_job_queue(server_worker->job);
@@ -91,12 +95,8 @@ void gearman_server_worker_free(gearman_server_worker_st *server_worker)
 
   if (server_worker->options & GEARMAN_SERVER_WORKER_ALLOCATED)
   {
-    if (server_worker->con->server->free_worker_count <
-        GEARMAN_MAX_FREE_SERVER_WORKER)
-    {
-      GEARMAN_LIST_ADD(server_worker->con->server->free_worker,
-                       server_worker, con_)
-    }
+    if (server->free_worker_count < GEARMAN_MAX_FREE_SERVER_WORKER)
+      GEARMAN_LIST_ADD(server->free_worker, server_worker, con_)
     else
       free(server_worker);
   }
