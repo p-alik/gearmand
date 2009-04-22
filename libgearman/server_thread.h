@@ -27,6 +27,8 @@ extern "C" {
 /**
  * Initialize a thread structure. This cannot fail if the caller supplies a
  * thread structure.
+ * @param server Server structure previously initialized with
+ *        gearman_server_create.
  * @param thread Caller allocated thread structure, or NULL to allocate one.
  * @return Pointer to an allocated thread structure if thread parameter was
  *         NULL, or the thread parameter pointer if it was not NULL.

@@ -27,6 +27,14 @@ run() {
 ## jump out if one of the programs returns 'false'
 set -e
 
+if test x$PERL = x; then
+  if test \! "x`which perl 2> /dev/null | grep -v '^no'`" = x; then
+    PERL=perl
+  else
+    echo "perl wasn't found, exiting"; exit 1
+  fi
+fi
+
 if test x$LIBTOOLIZE = x; then
   if test \! "x`which glibtoolize 2> /dev/null | grep -v '^no'`" = x; then
     LIBTOOLIZE=glibtoolize
@@ -91,10 +99,11 @@ if test x$AUTOHEADER = x; then
   fi
 fi
 
+echo "Generating docs..."
+cat libgearman/*.h | $PERL docs/man_gen.perl > docs/man_list
 
 # --force means overwrite ltmain.sh script if it already exists 
 run $LIBTOOLIZE $LIBTOOLIZE_FLAGS || die "Can't execute libtoolize"
-
 run $ACLOCAL $ACLOCAL_FLAGS || die "Can't execute aclocal"
 run $AUTOHEADER || die "Can't execute autoheader"
 run $AUTOMAKE $AUTOMAKE_FLAGS  || die "Can't execute automake"

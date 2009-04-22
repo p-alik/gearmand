@@ -31,8 +31,6 @@ extern "C" {
  * that is used later with server_thread_run, no socket I/O happens here.
  * @param thread Thread structure previously initialized with
  *        gearman_server_thread_create.
- * @param server_con Caller allocated server connection structure, or NULL to
-          allocate one.
  * @param fd File descriptor for a newly accepted connection.
  * @param data Application data pointer.
  * @return Gearman server connection pointer.
