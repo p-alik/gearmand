@@ -536,7 +536,7 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
       /* See if there are any connections ready for I/O. */
       while ((client->con= gearman_con_ready(client->gearman)) != NULL)
       {
-        if (client->con->revents & (POLLOUT | POLLERR))
+        if (client->con->revents & (POLLOUT | POLLERR | POLLHUP | POLLNVAL))
         {
           /* Socket is ready for writing, continue submitting jobs. */
           for (client->task= client->gearman->task_list; client->task != NULL;

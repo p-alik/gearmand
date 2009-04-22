@@ -32,7 +32,7 @@ my $proc= 0;
 my $code= 0;
 my $data;
 
-print "\ndist_man_MANS=";
+print "\ndist_man_MANS= docs/man/man1/gearman.1";
 
 while ($line= <>)
 {

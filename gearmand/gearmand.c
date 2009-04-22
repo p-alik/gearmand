@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
   if (log_info.file != NULL && verbose == 0)
     verbose++;
 
-  if (_set_fdlimit(fds) || _switch_user(user) || _set_signals())
+  if ((fds > 0 && _set_fdlimit(fds)) || _switch_user(user) || _set_signals())
     return 1;
 
   if (pid_file != NULL && _pid_write(pid_file))
@@ -226,39 +226,17 @@ static bool _set_fdlimit(rlim_t fds)
     return true;
   }
 
-  if (fds == 0)
+  rl.rlim_cur= fds;
+  if (rl.rlim_max < rl.rlim_cur)
+    rl.rlim_max= rl.rlim_cur;
+
+  if (setrlimit(RLIMIT_NOFILE, &rl) == -1)
   {
-    fds= rl.rlim_max;
-    rl.rlim_cur= RLIM_INFINITY;
-    rl.rlim_max= RLIM_INFINITY;
-
-    if (setrlimit(RLIMIT_NOFILE, &rl) == -1)
-    {
-      rl.rlim_cur= fds;
-      rl.rlim_max= fds;
-
-      if (setrlimit(RLIMIT_NOFILE, &rl) == -1)
-      {
-        fprintf(stderr, "gearmand: Could not set file descriptor limit: %d\n",
-                errno);
-        return true;
-      }
-    }
-  }
-  else
-  {
-    rl.rlim_cur= fds;
-    if (rl.rlim_max < rl.rlim_cur)
-      rl.rlim_max= rl.rlim_cur;
-
-    if (setrlimit(RLIMIT_NOFILE, &rl) == -1)
-    {
-      fprintf(stderr, "gearmand: Failed to set limit for the number of file "
-                      "descriptors (%d). Try running as root or giving a "
-                      "smaller value to -f.\n",
-              errno);
-      return true;
-    }
+    fprintf(stderr, "gearmand: Failed to set limit for the number of file "
+                    "descriptors (%d). Try running as root or giving a "
+                    "smaller value to -f.\n",
+            errno);
+    return true;
   }
 
   return false;
