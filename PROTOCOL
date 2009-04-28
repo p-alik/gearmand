@@ -521,3 +521,109 @@ version
 
 The Perl version also has a 'gladiator' command that uses the
 'Devel::Gladiator' Perl module and is used for debugging.
+
+
+Binary Protocol Example
+-----------------------
+
+This example will step through a simple interaction where a worker
+connects and registers for a function named "reverse", the client
+connects and submits a job for this function, and the worker performs
+this job and responds with a result. This shows every byte that needs
+to be sent over the wire in order for the job to be run to completion.
+
+
+Worker registration:
+
+Worker -> Job Server
+00 52 45 51                \0REQ        (Magic)
+00 00 00 01                1            (Packet type: CAN_DO)
+00 00 00 07                7            (Packet length)
+72 65 76 65 72 73 65       reverse      (Function)
+
+
+Worker check for job:
+
+Worker -> Job Server
+00 52 45 51                \0REQ        (Magic)
+00 00 00 09                9            (Packet type: GRAB_JOB)
+00 00 00 00                0            (Packet length)
+
+Job Server -> Worker
+00 52 45 53                \0RES        (Magic)
+00 00 00 0a                10           (Packet type: NO_JOB)
+00 00 00 00                0            (Packet length)
+
+Worker -> Job Server
+00 52 45 51                \0REQ        (Magic)
+00 00 00 04                4            (Packet type: PRE_SLEEP)
+00 00 00 00                0            (Packet length)
+
+
+Client job submission:
+
+Client -> Job Server
+00 52 45 51                \0REQ        (Magic)
+00 00 00 07                7            (Packet type: SUBMIT_JOB)
+00 00 00 31                49           (Packet length)
+72 65 76 65 72 73 65 00    reverse\0    (Function)
+00                         \0           (Unique ID)
+74 65 73 74                test         (Workload)
+
+Job Server -> Client
+00 52 45 53                \0RES        (Magic)
+00 00 00 08                8            (Packet type: JOB_CREATED)
+00 00 00 07                7            (Packet length)
+48 3a 6c 61 70 3a 31       H:lap:1      (Job handle)
+
+
+Worker wakeup:
+
+Job Server -> Worker
+00 52 45 53                \0RES        (Magic)
+00 00 00 06                6            (Packet type: NOOP)
+00 00 00 00                0            (Packet length)
+
+
+Worker check for job:
+
+Worker -> Job Server
+00 52 45 51                \0REQ        (Magic)
+00 00 00 09                9            (Packet type: GRAB_JOB)
+00 00 00 00                0            (Packet length)
+
+Job Server -> Worker
+00 52 45 53                \0RES        (Magic)
+00 00 00 0b                11           (Packet type: JOB_ASSIGN)
+00 00 00 14                20           (Packet length)
+48 3a 6c 61 70 3a 31 00    H:lap:1\0    (Job handle)
+72 65 76 65 72 73 65 00    reverse\0    (Function)
+74 65 73 74                test         (Workload)
+
+
+Worker response for job:
+
+Worker -> Job Server
+00 52 45 51                \0REQ        (Magic)
+00 00 00 0d                13           (Packet type: WORK_COMPLETE)
+00 00 00 0c                12           (Packet length)
+48 3a 6c 61 70 3a 31 00    H:lap:1\0    (Job handle)
+74 73 65 74                tset         (Response)
+
+
+Job server response to client:
+
+Job Server -> Client
+00 52 45 53                \0RES        (Magic)
+00 00 00 0d                13           (Packet type: WORK_COMPLETE)
+00 00 00 0c                12           (Packet length)
+48 3a 6c 61 70 3a 31 00    H:lap:1\0    (Job handle)
+74 73 65 74                tset         (Response)
+
+
+At this point, the worker would then ask for more jobs to run (the
+"Check for job" state above), and the client could submit more
+jobs. Note that the client is full duplex and could have multiple
+jobs being run over a single socket at the same time. The result
+packets may not be sent in the same order the jobs were submitted
+and instead interleaved with other job result packets.
