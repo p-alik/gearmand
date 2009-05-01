@@ -1,3 +1,6 @@
+0.6
+ * Fixed rpm building (make rpm)
+
 0.5 - 2009-04-22
  * Threaded Gearman job server (gearmand).
  * More options to gearmand.
