@@ -29,7 +29,7 @@ extern "C" {
  * @param port Port for the server to listen on.
  * @return Pointer to an allocated gearmand structure.
  */
-gearmand_st *gearmand_create(in_port_t port);
+gearmand_st *gearmand_create(in_port_t port, char *host);
 
 /**
  * Free resources used by a server instace.

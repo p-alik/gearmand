@@ -409,6 +409,7 @@ struct gearman_server_job_st
 struct gearmand_st
 {
   gearmand_options_t options;
+  char *host;
   in_port_t port;
   int backlog;
   uint32_t threads;

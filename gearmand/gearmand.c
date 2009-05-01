@@ -83,6 +83,7 @@ int main(int argc, char *argv[])
   int backlog= GEARMAND_LISTEN_BACKLOG;
   rlim_t fds= 0;
   in_port_t port= 0;
+  char *host= NULL;
   char *pid_file= NULL;
   uint32_t threads= 0;
   char *user= NULL;
@@ -94,7 +95,7 @@ int main(int argc, char *argv[])
   log_info.fd= -1;
   log_info.reopen= 0;
 
-  while ((c = getopt(argc, argv, "b:df:hl:p:P:t:u:vV")) != EOF)
+  while ((c = getopt(argc, argv, "b:df:hl:L:p:P:t:u:vV")) != EOF)
   {
     switch(c)
     {
@@ -130,6 +131,10 @@ int main(int argc, char *argv[])
 
     case 'l':
       log_info.file= optarg;
+      break;
+
+    case 'L':
+      host= optarg;
       break;
 
     case 'p':
@@ -170,6 +175,8 @@ int main(int argc, char *argv[])
       printf("\t-l <file>     - Log file to write errors and information to.\n"
              "\t                Turning this option on also forces the first\n"
              "\t                verbose level to be enabled.\n");
+      printf("\t-L <address>  - Address the server should listen on. Default\n"
+             "\t                is INDRR_ANY.\n");
       printf("\t-p <port>     - Port the server should listen on. Default\n"
              "\t                is %u.\n", GEARMAN_DEFAULT_TCP_PORT);
       printf("\t-P <pid_file> - File to write process ID out to.\n");
@@ -190,7 +197,7 @@ int main(int argc, char *argv[])
   if (pid_file != NULL && _pid_write(pid_file))
     return 1;
 
-  _gearmand= gearmand_create(port);
+  _gearmand= gearmand_create(port, host);
   if (_gearmand == NULL)
   {
     fprintf(stderr, "gearmand: Could not create gearmand library instance\n");
