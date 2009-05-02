@@ -9,13 +9,13 @@ Gearman Protocol
 ----------------
 
 The Gearman protocol operates over TCP, port 4730 by default. It
-previously operated on port 7003, but this conflicted with the
-AFS port range and the new port (4730) was was assigned by IANA.
-Communication happens between either a client and job server, or
-between a worker and job server. In either case, the protocol consists
-of packets containing requests and responses. All packets sent to a
-job server are considered requests, and all packets sent from a job
-server are considered responses. A simple configuration may look like:
+previously operated on port 7003, but this conflicted with the AFS
+port range and the new port (4730) was assigned by IANA. Communication
+happens between either a client and job server, or between a worker
+and job server. In either case, the protocol consists of packets
+containing requests and responses. All packets sent to a job server
+are considered requests, and all packets sent from a job server are
+considered responses. A simple configuration may look like:
 
 ----------     ----------     ----------     ----------
 | Client |     | Client |     | Client |     | Client |
