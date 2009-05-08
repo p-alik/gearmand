@@ -357,8 +357,6 @@ gearman_return_t gearman_con_flush(gearman_con_st *con)
       snprintf(port_str, NI_MAXSERV, "%u", con->port);
 
       memset(&ai, 0, sizeof(struct addrinfo));
-      ai.ai_flags= (AI_V4MAPPED | AI_ADDRCONFIG);
-      ai.ai_family= AF_UNSPEC;
       ai.ai_socktype= SOCK_STREAM;
       ai.ai_protocol= IPPROTO_TCP;
 
