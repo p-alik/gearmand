@@ -27,7 +27,9 @@ worker_test.rec:
 client_test.rec:
 	./client_test > client_test.rec
 
-record: client_test.rec worker_test.rec
+record: client_test worker_test
+	./client_test > client_test.rec
+	./worker_test > worker_test.rec
 
 check: test
 test: client_test worker_test client_test.rec worker_test.rec
