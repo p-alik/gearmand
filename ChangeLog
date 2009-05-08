@@ -1,3 +1,8 @@
+0.6 - 2009-05-14
+ * Protocol document updates and fixes (Eric Day, Eric Herman)
+ * Bind to specific hostname in gearmand (Brian Moon).
+ * Minor cleanup and fixes (Eric Day).
+
 0.5 - 2009-04-22
  * Threaded Gearman job server (gearmand).
  * More options to gearmand.

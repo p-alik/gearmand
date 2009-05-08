@@ -47,7 +47,7 @@ static void _close_events(gearmand_st *gearmand);
  * Public definitions
  */
 
-gearmand_st *gearmand_create(in_port_t port)
+gearmand_st *gearmand_create(const char *host, in_port_t port)
 {
   gearmand_st *gearmand;
 
@@ -61,6 +61,7 @@ gearmand_st *gearmand_create(in_port_t port)
   gearmand->wakeup_fd[0]= -1;
   gearmand->wakeup_fd[1]= -1;
   gearmand->backlog= GEARMAN_DEFAULT_BACKLOG;
+  gearmand->host= host;
   if (port == 0)
     gearmand->port= GEARMAN_DEFAULT_TCP_PORT;
   else
@@ -233,7 +234,7 @@ static gearman_return_t _listen_init(gearmand_st *gearmand)
   ai.ai_socktype = SOCK_STREAM;
   ai.ai_protocol= IPPROTO_TCP;
 
-  ret= getaddrinfo(NULL, port, &ai, &(gearmand->addrinfo));
+  ret= getaddrinfo(gearmand->host, port, &ai, &(gearmand->addrinfo));
   if (ret != 0)
   {
     GEARMAND_ERROR_SET(gearmand, "_listen_init", "getaddrinfo:%s",
