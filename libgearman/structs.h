@@ -421,8 +421,9 @@ struct gearmand_st
   struct event_base *base;
   struct addrinfo *addrinfo;
   struct addrinfo *addrinfo_next;
-  int listen_fd;
-  struct event listen_event;
+  uint32_t listen_count;
+  int *listen_fd;
+  struct event *listen_event;
   int wakeup_fd[2];
   struct event wakeup_event;
   gearmand_thread_st *thread_list;
