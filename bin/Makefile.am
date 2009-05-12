@@ -5,7 +5,7 @@
 # Use and distribution licensed under the BSD license.  See
 # the COPYING file in the parent directory for full text.
 
-AM_LDFLAGS= $(LTLIBUUID) $(LTLIBEVENT) $(top_builddir)/libgearman/libgearman.la
+AM_LDFLAGS= $(top_builddir)/libgearman/libgearman.la
 
 bin_PROGRAMS= \
 	gearman

@@ -26,6 +26,7 @@ extern "C" {
 
 /**
  * Create a server instance.
+ * @param host Host for the server to listen on.
  * @param port Port for the server to listen on.
  * @return Pointer to an allocated gearmand structure.
  */

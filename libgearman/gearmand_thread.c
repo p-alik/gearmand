@@ -18,7 +18,7 @@
  */
 
 /**
- * @addtogroup gearmand_thread private Private Gearmand Thread Functions
+ * @addtogroup gearmand_thread_private Private Gearmand Thread Functions
  * @ingroup gearmand_thread
  * @{
  */
@@ -192,7 +192,8 @@ void gearmand_thread_wakeup(gearmand_thread_st *thread,
 
   /* If this fails, there is not much we can really do. This should never fail
      though if the thread is still active. */
-  (void) write(thread->wakeup_fd[1], &buffer, 1);
+  if (write(thread->wakeup_fd[1], &buffer, 1) != 1)
+    GEARMAND_LOG(thread->gearmand, 0, "gearmand_thread_wakeup:write:%d", errno)
 }
 
 void gearmand_thread_run(gearmand_thread_st *thread)

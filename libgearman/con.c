@@ -838,12 +838,18 @@ gearman_return_t gearman_con_wait(gearman_st *gearman, int timeout)
     return GEARMAN_NO_ACTIVE_FDS;
   }
 
-  ret= poll(pfds, x, timeout);
-  if (ret == -1)
+  while (1)
   {
-    GEARMAN_ERROR_SET(gearman, "gearman_con_wait", "poll:%d", errno)
-    gearman->last_errno= errno;
-    return GEARMAN_ERRNO;
+    ret= poll(pfds, x, timeout);
+    if (ret == -1)
+    {
+      if (errno == EINTR)
+        continue;
+
+      GEARMAN_ERROR_SET(gearman, "gearman_con_wait", "poll:%d", errno)
+      gearman->last_errno= errno;
+      return GEARMAN_ERRNO;
+    }
   }
   
   x= 0;

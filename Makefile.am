@@ -11,6 +11,9 @@ SUBDIRS = libgearman gearmand bin tests examples scripts support benchmark
 
 include $(top_srcdir)/docs/man_list
 
+EXTRA_DIST= docs/Doxyfile.api docs/Doxyfile.dev \
+	docs/api_header.html docs/dev_header.html docs/doxygen.h
+
 docs: all
 	${DOXYGEN} docs/Doxyfile.api
 	${DOXYGEN} docs/Doxyfile.dev

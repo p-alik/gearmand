@@ -70,7 +70,10 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
     if (unique_size == 1 && *unique ==  '-')
     {
       if (data_size == 0)
+      {
+        key= 0;
         server_job= NULL;
+      }
       else
       {
         /* Look up job via unique data when unique = '-'. */

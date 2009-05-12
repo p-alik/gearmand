@@ -150,13 +150,13 @@ gearman_return_t gearmand_run(gearmand_st *gearmand)
       fprintf(stderr, "Multi-threaded gearmand requires libevent 1.4 or "
               "later, libevent 1.3 does not provided a thread-safe interface.");
       return GEARMAN_EVENT;
-#endif
-
+#else
       /* Set the number of free connection structures each thread should keep
          around before the main thread is forced to take them. We compute this
          here so we don't need to on every new connection. */
       gearmand->max_thread_free_dcon_count= ((GEARMAN_MAX_FREE_SERVER_CON /
                                               gearmand->threads) / 2);
+#endif
     }
 
     GEARMAND_LOG(gearmand, 1, "Initializing libevent for main thread")
@@ -216,7 +216,8 @@ void gearmand_wakeup(gearmand_st *gearmand, gearmand_wakeup_t wakeup)
 
   /* If this fails, there is not much we can really do. This should never fail
      though if the main gearmand thread is still active. */
-  (void) write(gearmand->wakeup_fd[1], &buffer, 1);
+  if (write(gearmand->wakeup_fd[1], &buffer, 1) != 1)
+    GEARMAND_LOG(gearmand, 0, "gearmand_wakeup:write:%d", errno)
 }
 
 /*
@@ -422,6 +423,14 @@ static void _listen_event(int fd, short events __attribute__ ((unused)),
   fd= accept(fd, &sa, &sa_len);
   if (fd == -1)
   {
+    if (errno == EINTR)
+      return;
+    else if (errno == EMFILE)
+    {
+      GEARMAND_LOG(gearmand, 1, "_listen_event:accept:too many open files")
+      return;
+    }
+
     _clear_events(gearmand);
     GEARMAND_ERROR_SET(gearmand, "_listen_event", "accept:%d", errno)
     gearmand->ret= GEARMAN_ERRNO;
