@@ -47,7 +47,7 @@ static void _close_events(gearmand_st *gearmand);
  * Public definitions
  */
 
-gearmand_st *gearmand_create(in_port_t port)
+gearmand_st *gearmand_create(const char *host, in_port_t port)
 {
   gearmand_st *gearmand;
 
@@ -57,10 +57,10 @@ gearmand_st *gearmand_create(in_port_t port)
 
   memset(gearmand, 0, sizeof(gearmand_st));
 
-  gearmand->listen_fd= -1;
   gearmand->wakeup_fd[0]= -1;
   gearmand->wakeup_fd[1]= -1;
   gearmand->backlog= GEARMAN_DEFAULT_BACKLOG;
+  gearmand->host= host;
   if (port == 0)
     gearmand->port= GEARMAN_DEFAULT_TCP_PORT;
   else
@@ -101,6 +101,12 @@ void gearmand_free(gearmand_st *gearmand)
     event_base_free(gearmand->base);
 
   gearman_server_free(&(gearmand->server));
+
+  if (gearmand->listen_fd != NULL)
+    free(gearmand->listen_fd);
+
+  if (gearmand->listen_event != NULL)
+    free(gearmand->listen_event);
 
   GEARMAND_LOG(gearmand, 0, "Shutdown complete")
 
@@ -224,6 +230,9 @@ static gearman_return_t _listen_init(gearmand_st *gearmand)
   int opt;
   char host[NI_MAXHOST];
   char port[NI_MAXSERV];
+  int fd;
+  int *fd_list;
+  uint32_t x;
 
   snprintf(port, NI_MAXSERV, "%u", gearmand->port);
 
@@ -233,7 +242,7 @@ static gearman_return_t _listen_init(gearmand_st *gearmand)
   ai.ai_socktype = SOCK_STREAM;
   ai.ai_protocol= IPPROTO_TCP;
 
-  ret= getaddrinfo(NULL, port, &ai, &(gearmand->addrinfo));
+  ret= getaddrinfo(gearmand->host, port, &ai, &(gearmand->addrinfo));
   if (ret != 0)
   {
     GEARMAND_ERROR_SET(gearmand, "_listen_init", "getaddrinfo:%s",
@@ -259,80 +268,123 @@ static gearman_return_t _listen_init(gearmand_st *gearmand)
     GEARMAND_LOG(gearmand, 1, "Trying to listen on %s:%s", host, port)
 
     /* Calls to socket() can fail for some getaddrinfo results, try another. */
-    gearmand->listen_fd= socket(gearmand->addrinfo_next->ai_family,
-                                gearmand->addrinfo_next->ai_socktype,
-                                gearmand->addrinfo_next->ai_protocol);
-    if (gearmand->listen_fd == -1)
+    fd= socket(gearmand->addrinfo_next->ai_family,
+               gearmand->addrinfo_next->ai_socktype,
+               gearmand->addrinfo_next->ai_protocol);
+    if (fd == -1)
     {
       GEARMAND_LOG(gearmand, 0, "Failed to listen on %s:%s", host, port)
       continue;
     }
 
     opt= 1;
-    ret= setsockopt(gearmand->listen_fd, SOL_SOCKET, SO_REUSEADDR, &opt,
-                    sizeof(opt));
+    ret= setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
     if (ret == -1)
     {
+      close(fd);
       GEARMAND_ERROR_SET(gearmand, "_listen_init", "setsockopt:%d", errno)
       return GEARMAN_ERRNO;
     }
 
-    ret= bind(gearmand->listen_fd, gearmand->addrinfo_next->ai_addr,
+    ret= bind(fd, gearmand->addrinfo_next->ai_addr,
               gearmand->addrinfo_next->ai_addrlen);
     if (ret == -1)
     {
+      close(fd);
+      if (errno == EADDRINUSE)
+      {
+        GEARMAND_LOG(gearmand, 0, "Address already in use %s:%s", host, port)
+        continue;
+      }
+
       GEARMAND_ERROR_SET(gearmand, "_listen_init", "bind:%d", errno)
       return GEARMAN_ERRNO;
     }
 
-    if (listen(gearmand->listen_fd, gearmand->backlog) == -1)
+    if (listen(fd, gearmand->backlog) == -1)
     {
+      close(fd);
       GEARMAND_ERROR_SET(gearmand, "_listen_init", "listen:%d", errno)
       return GEARMAN_ERRNO;
     }
 
-    break;
+    fd_list= realloc(gearmand->listen_fd,
+                     sizeof(int) * (gearmand->listen_count + 1));
+    if (fd_list == NULL)
+    {
+      close(fd);
+      GEARMAND_ERROR_SET(gearmand, "_listen_init", "realloc:%d", errno)
+      return GEARMAN_ERRNO;
+    }
+
+    x= gearmand->listen_count;
+    gearmand->listen_fd= fd_list;
+    gearmand->listen_fd[x]= fd;
+    gearmand->listen_count++;
+
+    GEARMAND_LOG(gearmand, 0, "Listening on %s:%s (%d)", host, port, fd)
   }
 
   /* Report last socket() error if we couldn't find an address to bind. */
-  if (gearmand->listen_fd == -1)
+  if (gearmand->listen_fd == NULL)
   {
-    GEARMAND_ERROR_SET(gearmand, "_listen_init", "socket:%d", errno)
+    GEARMAND_ERROR_SET(gearmand, "_listen_init",
+                       "Could not bind/listen to any addresses")
     return GEARMAN_ERRNO;
   }
 
-  event_set(&(gearmand->listen_event), gearmand->listen_fd,
-            EV_READ | EV_PERSIST, _listen_event, gearmand);
-  event_base_set(gearmand->base, &(gearmand->listen_event));
+  gearmand->listen_event= malloc(sizeof(struct event) * gearmand->listen_count);
+  if (gearmand->listen_event == NULL)
+  {
+    GEARMAND_ERROR_SET(gearmand, "_listen_init", "malloc:%d", errno)
+    return GEARMAN_ERRNO;
+  }
 
-  GEARMAND_LOG(gearmand, 0, "Listening on %s:%s", host, port)
+  for (x= 0; x < gearmand->listen_count; x++)
+  {
+    event_set(&(gearmand->listen_event[x]), gearmand->listen_fd[x],
+              EV_READ | EV_PERSIST, _listen_event, gearmand);
+    event_base_set(gearmand->base, &(gearmand->listen_event[x]));
+  }
 
   return GEARMAN_SUCCESS;
 }
 
 static void _listen_close(gearmand_st *gearmand)
 {
+  uint32_t x;
+
   _listen_clear(gearmand);
 
-  if (gearmand->listen_fd >= 0)
+  for (x= 0; x < gearmand->listen_count; x++)
   {
-    GEARMAND_LOG(gearmand, 1, "Closing listening socket")
-    close(gearmand->listen_fd);
-    gearmand->listen_fd= -1;
+    if (gearmand->listen_fd[x] >= 0)
+    {
+      GEARMAND_LOG(gearmand, 1, "Closing listening socket (%d)",
+                   gearmand->listen_fd[x])
+      close(gearmand->listen_fd[x]);
+      gearmand->listen_fd[x]= -1;
+    }
   }
 }
 
 static gearman_return_t _listen_watch(gearmand_st *gearmand)
 {
+  uint32_t x;
+
   if (gearmand->options & GEARMAND_LISTEN_EVENT)
     return GEARMAN_SUCCESS;
 
-  GEARMAND_LOG(gearmand, 1, "Adding event for listening socket")
-
-  if (event_add(&(gearmand->listen_event), NULL) == -1)
+  for (x= 0; x < gearmand->listen_count; x++)
   {
-    GEARMAND_ERROR_SET(gearmand, "_listen_watch", "event_add:-1")
-    return GEARMAN_EVENT;
+    GEARMAND_LOG(gearmand, 1, "Adding event for listening socket (%d)",
+                 gearmand->listen_fd[x])
+
+    if (event_add(&(gearmand->listen_event[x]), NULL) == -1)
+    {
+      GEARMAND_ERROR_SET(gearmand, "_listen_watch", "event_add:-1")
+      return GEARMAN_EVENT;
+    }
   }
 
   gearmand->options|= GEARMAND_LISTEN_EVENT;
@@ -341,12 +393,19 @@ static gearman_return_t _listen_watch(gearmand_st *gearmand)
 
 static void _listen_clear(gearmand_st *gearmand)
 {
-  if (gearmand->options & GEARMAND_LISTEN_EVENT)
+  uint32_t x;
+
+  if (!(gearmand->options & GEARMAND_LISTEN_EVENT))
+    return;
+
+  for (x= 0; x < gearmand->listen_count; x++)
   {
-    GEARMAND_LOG(gearmand, 1, "Clearing event for listening socket")
-    assert(event_del(&(gearmand->listen_event)) == 0);
-    gearmand->options&= ~GEARMAND_LISTEN_EVENT;
+    GEARMAND_LOG(gearmand, 1, "Clearing event for listening socket (%d)",
+                 gearmand->listen_fd[x])
+    assert(event_del(&(gearmand->listen_event[x])) == 0);
   }
+
+  gearmand->options&= ~GEARMAND_LISTEN_EVENT;
 }
 
 static void _listen_event(int fd, short events __attribute__ ((unused)),

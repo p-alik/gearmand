@@ -49,7 +49,7 @@ extern "C" {
 #define GEARMAN_MAX_FREE_SERVER_CLIENT 1000
 #define GEARMAN_MAX_FREE_SERVER_WORKER 1000
 #define GEARMAN_TEXT_RESPONSE_SIZE 8192
-#define GEARMAN_WORKER_WAIT_TIMEOUT 10000 /* Milliseconds */
+#define GEARMAN_WORKER_WAIT_TIMEOUT (10 * 1000) /* Milliseconds */
 #define GEARMAN_PIPE_BUFFER_SIZE 256
 
 /* Types. */
@@ -323,7 +323,8 @@ typedef enum
 {
   GEARMAN_JOB_ALLOCATED=       (1 << 0),
   GEARMAN_JOB_ASSIGNED_IN_USE= (1 << 1),
-  GEARMAN_JOB_WORK_IN_USE=     (1 << 2)
+  GEARMAN_JOB_WORK_IN_USE=     (1 << 2),
+  GEARMAN_JOB_FINISHED=        (1 << 3)
 } gearman_job_options_t;
 
 /**

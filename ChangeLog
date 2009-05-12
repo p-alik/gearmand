@@ -1,5 +1,15 @@
+<<<<<<< TREE
 0.6
  * Fixed rpm building (make rpm)
+=======
+0.6 - 2009-05-14
+ * Removed AI_V4MAPPED for client/worker connect lookup, not fully
+   supported in all operating systems (like FreeBSD, bug #373060).
+ * Support for gearmand to bind to multiple addresses.
+ * Protocol document updates and fixes (Eric Day, Eric Herman)
+ * Bind to specific hostname in gearmand (Brian Moon).
+ * Minor cleanup and fixes.
+>>>>>>> MERGE-SOURCE
 
 0.5 - 2009-04-22
  * Threaded Gearman job server (gearmand).

@@ -23,7 +23,7 @@ pid_t test_gearmand_start(in_port_t port)
 
   if (gearmand_pid == 0)
   {
-    gearmand= gearmand_create(port);
+    gearmand= gearmand_create(NULL, port);
     assert(gearmand != NULL);
     assert(gearmand_run(gearmand) != GEARMAN_SUCCESS);
     gearmand_free(gearmand);

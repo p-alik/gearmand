@@ -409,6 +409,7 @@ struct gearman_server_job_st
 struct gearmand_st
 {
   gearmand_options_t options;
+  const char *host;
   in_port_t port;
   int backlog;
   uint32_t threads;
@@ -420,8 +421,9 @@ struct gearmand_st
   struct event_base *base;
   struct addrinfo *addrinfo;
   struct addrinfo *addrinfo_next;
-  int listen_fd;
-  struct event listen_event;
+  uint32_t listen_count;
+  int *listen_fd;
+  struct event *listen_event;
   int wakeup_fd[2];
   struct event wakeup_event;
   gearmand_thread_st *thread_list;
