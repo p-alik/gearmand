@@ -850,6 +850,8 @@ gearman_return_t gearman_con_wait(gearman_st *gearman, int timeout)
       gearman->last_errno= errno;
       return GEARMAN_ERRNO;
     }
+
+    break;
   }
   
   x= 0;
