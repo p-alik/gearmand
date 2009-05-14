@@ -142,9 +142,12 @@ typedef gearman_return_t (gearman_event_watch_fn)(gearman_con_st *con,
 typedef gearman_return_t (gearman_event_close_fn)(gearman_con_st *con,
                                                   gearman_return_t ret,
                                                   void *arg);
+
 typedef void* (gearman_malloc_fn)(size_t size, void *arg);
 typedef void (gearman_free_fn)(void *ptr, void *arg);
+
 typedef void (gearman_task_fn_arg_free_fn)(gearman_task_st *task, void *fn_arg);
+
 typedef void (gearman_log_fn)(gearman_st *gearman, uint8_t verbose,
                               const char *line, void *fn_arg);
 typedef void (gearman_server_thread_run_fn)(gearman_server_thread_st *thread,
@@ -154,6 +157,25 @@ typedef void (gearman_server_thread_log_fn)(gearman_server_thread_st *thread,
                                             void *fn_arg);
 typedef void (gearmand_log_fn)(gearmand_st *gearmand, uint8_t verbose,
                                const char *line, void *fn_arg);
+
+typedef gearman_return_t (gearman_queue_init_fn)(gearman_st *gearman, int argc,
+                                                 char *argv[]);
+typedef gearman_return_t (gearman_queue_deinit_fn)(gearman_st *gearman,
+                                                   void *data);
+typedef gearman_return_t (gearman_queue_add_fn)(gearman_st *gearman,
+                                                const uint8_t *key,
+                                                size_t key_size,
+                                                void *data);
+typedef gearman_return_t (gearman_queue_flush_fn)(gearman_st *gearman,
+                                                  void *data);
+typedef gearman_return_t (gearman_queue_done_fn)(gearman_st *gearman,
+                                                 const uint8_t *key,
+                                                 size_t key_size,
+                                                 void *data);
+typedef gearman_return_t (gearman_queue_replay_fn)(gearman_st *gearman,
+                                                   const uint8_t *key,
+                                                   size_t key_size,
+                                                   void *data);
 
 /** @} */
 

@@ -130,6 +130,21 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
     key= key % GEARMAN_JOB_HASH_SIZE;
     GEARMAN_HASH_ADD(server->job, key, server_job,)
 
+#if 0
+    if (server->gearman->queue_add == NULL)
+    {
+      *ret_ptr= *(server->gearman->queue_add)(server_job->job_handle,
+                                              function_name, function_name_size,
+                                              unique, unique_size, data,
+                                              data_size, priority);
+      if (*ret_ptr != GEARMAN_SUCCESS)
+      {
+        gearman_server_job_free(server_job);
+        return NULL;
+      }
+    }
+#endif
+
     *ret_ptr= gearman_server_job_queue(server_job);
     if (*ret_ptr != GEARMAN_SUCCESS)
     {

@@ -110,7 +110,8 @@ void gearman_server_con_free(gearman_server_con_st *server_con)
 
   if (server_con->packet != NULL)
   {
-    gearman_packet_free(&(server_con->packet->packet));
+    if (&(server_con->packet->packet) != server_con->con.recv_packet)
+      gearman_packet_free(&(server_con->packet->packet));
     gearman_server_packet_free(server_con->packet, server_con->thread, true); 
   }
 

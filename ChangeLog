@@ -1,4 +1,4 @@
-0.6 - 2009-05-14
+0.6.0 - 2009-05-14
  * Removed AI_V4MAPPED for client/worker connect lookup, not fully
    supported in all operating systems (like FreeBSD, bug #373060).
  * Support for gearmand to bind to multiple addresses.
