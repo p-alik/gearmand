@@ -150,13 +150,14 @@ gearman_return_t gearmand_run(gearmand_st *gearmand)
       fprintf(stderr, "Multi-threaded gearmand requires libevent 1.4 or "
               "later, libevent 1.3 does not provided a thread-safe interface.");
       return GEARMAN_EVENT;
-#endif
+#else
 
       /* Set the number of free connection structures each thread should keep
          around before the main thread is forced to take them. We compute this
          here so we don't need to on every new connection. */
       gearmand->max_thread_free_dcon_count= ((GEARMAN_MAX_FREE_SERVER_CON /
                                               gearmand->threads) / 2);
+#endif
     }
 
     GEARMAND_LOG(gearmand, 1, "Initializing libevent for main thread")
