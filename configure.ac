@@ -354,6 +354,7 @@ AC_CHECK_PROGS([PERL], [perl])
 AC_CONFIG_FILES(Makefile libgearman/Makefile gearmand/Makefile bin/Makefile
                 tests/Makefile examples/Makefile scripts/Makefile
                 support/Makefile benchmark/Makefile scripts/gearmand-init
+                scripts/gearmand.xml scripts/gearmand scripts/smf_install.sh
                 support/gearmand.pc support/gearmand.spec)
 
 AC_OUTPUT

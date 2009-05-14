@@ -45,6 +45,9 @@ benchmark/blobslap_worker
 bin/gearman
 tests/cpp_test
 scripts/gearmand-init
+scripts/gearmand
+scripts/gearmand.xml
+scripts/smf_install.sh
 m4/libtool.m4
 m4/ltoptions.m4
 m4/ltsugar.m4
