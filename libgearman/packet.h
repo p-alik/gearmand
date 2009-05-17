@@ -82,7 +82,7 @@ gearman_return_t gearman_packet_unpack_header(gearman_packet_st *packet);
 /**
  * Parse packet from input data.
  */
-size_t gearman_packet_parse(gearman_packet_st *packet, const uint8_t *data,
+size_t gearman_packet_parse(gearman_packet_st *packet, const void *data,
                             size_t data_size, gearman_return_t *ret_ptr);
 
 /**

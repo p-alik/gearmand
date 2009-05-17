@@ -325,7 +325,7 @@ gearman_return_t gearman_packet_unpack_header(gearman_packet_st *packet)
   return GEARMAN_SUCCESS;
 }
 
-size_t gearman_packet_parse(gearman_packet_st *packet, const uint8_t *data,
+size_t gearman_packet_parse(gearman_packet_st *packet, const void *data,
                             size_t data_size, gearman_return_t *ret_ptr)
 {
   uint8_t *ptr;
@@ -334,7 +334,7 @@ size_t gearman_packet_parse(gearman_packet_st *packet, const uint8_t *data,
 
   if (packet->args_size == 0)
   {
-    if (data_size > 0 && data[0] != 0)
+    if (data_size > 0 && ((uint8_t *)data)[0] != 0)
     {
       /* Try to parse a text-based command. */
       ptr= memchr(data, '\n', data_size);
@@ -347,7 +347,7 @@ size_t gearman_packet_parse(gearman_packet_st *packet, const uint8_t *data,
       packet->magic= GEARMAN_MAGIC_TEXT;
       packet->command= GEARMAN_COMMAND_TEXT;
 
-      used_size= (ptr - data) + 1;
+      used_size= (ptr - ((uint8_t *)data)) + 1;
       *ptr= 0;
       if (used_size > 1 && *(ptr - 1) == '\r')
         *(ptr - 1)= 0;
@@ -362,11 +362,11 @@ size_t gearman_packet_parse(gearman_packet_st *packet, const uint8_t *data,
           while (*ptr == ' ')
             ptr++;
 
-          arg_size-= (ptr - data);
+          arg_size-= (ptr - ((uint8_t *)data));
         }
 
-        *ret_ptr= gearman_packet_add_arg(packet, data, ptr == NULL ?
-                                         arg_size : (size_t)(ptr - data));
+        *ret_ptr= gearman_packet_add_arg(packet, data, ptr == NULL ? arg_size :
+                                         (size_t)(ptr - ((uint8_t *)data)));
         if (*ret_ptr != GEARMAN_SUCCESS)
           return used_size;
       }
@@ -397,15 +397,16 @@ size_t gearman_packet_parse(gearman_packet_st *packet, const uint8_t *data,
     if (packet->argc != (gearman_command_info_list[packet->command].argc - 1) ||
         gearman_command_info_list[packet->command].data)
     {
-      ptr= memchr(data + used_size, 0, data_size - used_size);
+      ptr= memchr(((uint8_t *)data) + used_size, 0, data_size - used_size);
       if (ptr == NULL)
       {
         *ret_ptr= GEARMAN_IO_WAIT;
         return used_size;
       }
 
-      arg_size= (ptr - (data + used_size)) + 1;
-      *ret_ptr= gearman_packet_add_arg(packet, data + used_size, arg_size);
+      arg_size= (ptr - (((uint8_t *)data) + used_size)) + 1;
+      *ret_ptr= gearman_packet_add_arg(packet, ((uint8_t *)data) + used_size,
+                                       arg_size);
       if (*ret_ptr != GEARMAN_SUCCESS)
         return used_size;
 
@@ -420,7 +421,7 @@ size_t gearman_packet_parse(gearman_packet_st *packet, const uint8_t *data,
         return used_size;
       }
 
-      *ret_ptr= gearman_packet_add_arg(packet, data + used_size,
+      *ret_ptr= gearman_packet_add_arg(packet, ((uint8_t *)data) + used_size,
                                        packet->data_size);
       if (*ret_ptr != GEARMAN_SUCCESS)
         return used_size;

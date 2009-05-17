@@ -47,6 +47,11 @@ struct gearman_st
   gearman_free_fn *workload_free;
   const void *workload_free_arg;
   gearman_task_fn_arg_free_fn *task_fn_arg_free_fn;
+  const void *queue_fn_arg;
+  gearman_queue_add_fn *queue_add_fn;
+  gearman_queue_flush_fn *queue_flush_fn;
+  gearman_queue_done_fn *queue_done_fn;
+  gearman_queue_replay_fn *queue_replay_fn;
 };
 
 /**
@@ -202,7 +207,7 @@ struct gearman_worker_st
   gearman_worker_work_state_t work_state;
   gearman_job_st work_job;
   gearman_worker_function_st *work_function;
-  uint8_t *work_result;
+  void *work_result;
   size_t work_result_size;
 };
 
@@ -251,6 +256,10 @@ struct gearman_server_st
   pthread_t proc_id;
   bool proc_wakeup;
   bool proc_shutdown;
+  gearman_st *gearman;
+  gearman_st gearman_static;
+  gearman_server_log_fn *log_fn;
+  void *log_fn_arg;
 };
 
 /**

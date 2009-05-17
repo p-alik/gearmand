@@ -23,6 +23,9 @@
  * @{
  */
 
+static void _log(gearman_server_st *server __attribute__ ((unused)),
+                 uint8_t verbose, const char *line, void *arg);
+
 static gearman_return_t _listen_init(gearmand_st *gearmand);
 static void _listen_close(gearmand_st *gearmand);
 static gearman_return_t _listen_watch(gearmand_st *gearmand);
@@ -123,16 +126,13 @@ void gearmand_set_threads(gearmand_st *gearmand, uint32_t threads)
   gearmand->threads= threads;
 }
 
-void gearmand_set_verbose(gearmand_st *gearmand, uint8_t verbose)
-{
-  gearmand->verbose= verbose;
-}
-
 void gearmand_set_log(gearmand_st *gearmand, gearmand_log_fn log_fn,
-                      void *log_fn_arg)
+                      void *log_fn_arg, uint8_t verbose)
 {
+  gearman_server_set_log(&(gearmand->server), _log, gearmand, verbose);
   gearmand->log_fn= log_fn;
   gearmand->log_fn_arg= log_fn_arg;
+  gearmand->verbose= verbose;
 }
 
 gearman_return_t gearmand_run(gearmand_st *gearmand)
@@ -223,6 +223,13 @@ void gearmand_wakeup(gearmand_st *gearmand, gearmand_wakeup_t wakeup)
 /*
  * Private definitions
  */
+
+static void _log(gearman_server_st *server __attribute__ ((unused)),
+                 uint8_t verbose, const char *line, void *fn_arg)
+{
+  gearmand_st *gearmand= (gearmand_st *)fn_arg;
+  GEARMAND_LOG(gearmand, verbose, "%s", line);
+}
 
 static gearman_return_t _listen_init(gearmand_st *gearmand)
 {

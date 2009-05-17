@@ -172,11 +172,11 @@ void gearman_server_thread_set_run(gearman_server_thread_st *thread,
 
 void gearman_server_thread_set_log(gearman_server_thread_st *thread,
                                    gearman_server_thread_log_fn *log_fn, 
-                                   void *log_fn_arg)
+                                   void *log_fn_arg, uint8_t verbose)
 {
   thread->log_fn= log_fn;
   thread->log_fn_arg= log_fn_arg;
-  gearman_set_log(thread->gearman, _log, thread);
+  gearman_set_log(thread->gearman, _log, thread, verbose);
 }
 
 gearman_server_con_st *

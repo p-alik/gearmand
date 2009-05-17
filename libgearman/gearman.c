@@ -118,10 +118,11 @@ void gearman_set_options(gearman_st *gearman, gearman_options_t options,
 }
 
 void gearman_set_log(gearman_st *gearman, gearman_log_fn log_fn,
-                     void *log_fn_arg)
+                     void *log_fn_arg, uint8_t verbose)
 {
   gearman->log_fn= log_fn;
   gearman->log_fn_arg= log_fn_arg;
+  gearman->verbose= verbose;
 }
 
 void gearman_set_event_watch(gearman_st *gearman,
@@ -152,4 +153,37 @@ void gearman_set_task_fn_arg_free(gearman_st *gearman,
                                   gearman_task_fn_arg_free_fn *free_fn)
 {
   gearman->task_fn_arg_free_fn= free_fn;
+}
+
+void *gearman_queue_fn_arg(gearman_st *gearman)
+{
+  return (void *)gearman->queue_fn_arg;
+}
+
+void gearman_set_queue_fn_arg(gearman_st *gearman, const void *fn_arg)
+{
+  gearman->queue_fn_arg= fn_arg;
+}
+
+void gearman_set_queue_add(gearman_st *gearman, gearman_queue_add_fn *add_fn)
+{
+  gearman->queue_add_fn= add_fn;
+}
+
+void gearman_set_queue_flush(gearman_st *gearman,
+                             gearman_queue_flush_fn *flush_fn)
+{
+  gearman->queue_flush_fn= flush_fn;
+}
+
+void gearman_set_queue_done(gearman_st *gearman,
+                            gearman_queue_done_fn *done_fn)
+{
+  gearman->queue_done_fn= done_fn;
+}
+
+void gearman_set_queue_replay(gearman_st *gearman,
+                              gearman_queue_replay_fn *replay_fn)
+{
+  gearman->queue_replay_fn= replay_fn;
 }

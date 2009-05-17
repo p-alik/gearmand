@@ -41,6 +41,18 @@ gearman_server_st *gearman_server_create(gearman_server_st *server);
 void gearman_server_free(gearman_server_st *server);
 
 /**
+ * Set logging callback for server instance.
+ * @param server Server structure previously initialized with
+ *        gearman_server_create.
+ * @param log_fn Function to call when there is a logging message.
+ * @param log_fn_arg Argument to pass into the log callback function.
+ * @param verbose Verbosity level.
+ */
+void gearman_server_set_log(gearman_server_st *server,
+                            gearman_server_log_fn log_fn, void *log_fn_arg,
+                            uint8_t verbose);
+
+/**
  * Process commands for a connection.
  * @param server_con Server connection that has a packet to process.
  * @param packet The packet that needs processing.
@@ -57,6 +69,16 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
  *         the server is ready to shutdown now.
  */
 gearman_return_t gearman_server_shutdown_graceful(gearman_server_st *server);
+
+/**
+ * Replay the persistent queue to load all unfinshed jobs into the server. This
+ * should only be run at startup.
+ * @param server Server structure previously initialized with
+ *        gearman_server_create.
+ * @return Standard gearman return value. This will return GEARMAN_SHUTDOWN if
+ *         the server is ready to shutdown now.
+ */
+gearman_return_t gearman_server_queue_replay(gearman_server_st *server);
 
 /** @} */
 

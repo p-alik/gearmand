@@ -68,7 +68,8 @@ gearman_return_t gearmand_thread_create(gearmand_st *gearmand)
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
 
-  gearman_server_thread_set_log(&(thread->server_thread), _log, thread);
+  gearman_server_thread_set_log(&(thread->server_thread), _log, thread,
+                                gearmand->verbose);
   gearman_server_thread_set_event_watch(&(thread->server_thread),
                                         gearmand_con_watch, NULL);
 
@@ -228,7 +229,7 @@ void gearmand_thread_run(gearmand_thread_st *thread)
                    gearman_server_thread_error(&(thread->server_thread)))
     }
 
-    GEARMAND_LOG(thread->gearmand, 0, "[%4u] %15s:%5s Disconnected",
+    GEARMAND_LOG(thread->gearmand, 1, "[%4u] %15s:%5s Disconnected",
                  thread->count, dcon->host, dcon->port)
 
     gearmand_con_free(dcon);

@@ -188,7 +188,24 @@ then
   AC_CHECK_LIB(mtmalloc,malloc,[],[])
 fi
 
+#--------------------------------------------------------------------
+# Check for libuuid
+#--------------------------------------------------------------------
 
+AC_CHECK_HEADERS(libdrizzle/drizzle_client.h)
+if test "x$ac_cv_header_libdrizzle_drizzle_client_h" = "xyes"
+then
+  AC_LIB_HAVE_LINKFLAGS(drizzle,,
+  [
+  #include <libdrizzle/drizzle_client.h>
+  ],
+  [
+    drizzle_st drizzle;
+    drizzle_version();
+  ])
+fi
+
+AM_CONDITIONAL(HAVE_LIBDRIZZLE, test x$ac_cv_libdrizzle = xyes)
 
 dnl TODO: Remove this define once we are using 2.61 across the board.
 # AX_HEADER_ASSERT

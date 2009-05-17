@@ -56,22 +56,15 @@ void gearmand_set_backlog(gearmand_st *gearmand, int backlog);
 void gearmand_set_threads(gearmand_st *gearmand, uint32_t threads);
 
 /**
- * Set verbosity level for server instance.
- * @param gearmand Server instance structure previously initialized with
- *        gearmand_create.
- * @param verbose Verbosity level.
- */
-void gearmand_set_verbose(gearmand_st *gearmand, uint8_t verbose);
-
-/**
  * Set logging callback for server instance.
  * @param gearmand Server instance structure previously initialized with
  *        gearmand_create.
  * @param log_fn Function to call when there is a logging message.
  * @param log_fn_arg Argument to pass into the log callback function.
+ * @param verbose Verbosity level.
  */
 void gearmand_set_log(gearmand_st *gearmand, gearmand_log_fn log_fn,
-                      void *log_fn_arg);
+                      void *log_fn_arg, uint8_t verbose);
 
 /**
  * Run the server instance.
