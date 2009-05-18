@@ -1,4 +1,6 @@
 0.6.0 - 2009-05-18
+ * Added persistent queue support with a libdrizzle module. This allows queue
+   storage for both Drizzle and MySQL.
  * Added Solaris service scripts (Trond Norbye).
  * Fixed rpm building (make rpm).
  * Removed AI_V4MAPPED for client/worker connect lookup, not fully

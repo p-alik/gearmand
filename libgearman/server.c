@@ -24,6 +24,17 @@
  */
 
 /**
+ * Add job to queue wihle replaying queue during startup.
+ */
+gearman_return_t _queue_replay_add(gearman_st *gearman __attribute__ ((unused)),
+                                   void *fn_arg, const void *unique,
+                                   size_t unique_size,
+                                   const void *function_name,
+                                   size_t function_name_size, const void *data,
+                                   size_t data_size,
+                                   gearman_job_priority_t priority);
+
+/**
  * Queue an error packet.
  */
 static gearman_return_t _server_error_packet(gearman_server_con_st *server_con,
@@ -587,9 +598,44 @@ gearman_return_t gearman_server_shutdown_graceful(gearman_server_st *server)
   return GEARMAN_SHUTDOWN_GRACEFUL;
 }
 
+gearman_return_t gearman_server_queue_replay(gearman_server_st *server)
+{
+  gearman_return_t ret;
+
+  if (server->gearman->queue_replay_fn == NULL)
+    return GEARMAN_SUCCESS;
+
+  server->options|= GEARMAN_SERVER_QUEUE_REPLAY;
+
+  ret= (*(server->gearman->queue_replay_fn))(server->gearman,
+                                          (void *)server->gearman->queue_fn_arg,
+                                          _queue_replay_add, server);
+
+  server->options&= ~GEARMAN_SERVER_QUEUE_REPLAY;
+
+  return ret;
+}
+
 /*
  * Private definitions
  */
+
+gearman_return_t _queue_replay_add(gearman_st *gearman __attribute__ ((unused)),
+                                   void *fn_arg, const void *unique,
+                                   size_t unique_size,
+                                   const void *function_name,
+                                   size_t function_name_size, const void *data,
+                                   size_t data_size,
+                                   gearman_job_priority_t priority)
+{
+  gearman_server_st *server= (gearman_server_st *)fn_arg;
+  gearman_return_t ret;
+
+  (void)gearman_server_job_add(server, (char *)function_name,
+                               function_name_size, (char *)unique, unique_size,
+                               data, data_size, priority, NULL, &ret);
+  return ret;
+}
 
 static gearman_return_t _server_error_packet(gearman_server_con_st *server_con,
                                              char *error_code,

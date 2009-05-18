@@ -191,6 +191,10 @@ gearman_return_t gearmand_run(gearmand_st *gearmand)
       x++;
     }
     while (x < gearmand->threads);
+
+    gearmand->ret= gearman_server_queue_replay(&(gearmand->server));
+    if (gearmand->ret != GEARMAN_SUCCESS)
+      return gearmand->ret;
   }
 
   gearmand->ret= _watch_events(gearmand);

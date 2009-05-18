@@ -137,7 +137,8 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
       return NULL;
     }
 
-    if (server->gearman->queue_add_fn != NULL)
+    if (server->gearman->queue_add_fn != NULL &&
+        !(server->options & GEARMAN_SERVER_QUEUE_REPLAY))
     {
       *ret_ptr= (*(server->gearman->queue_add_fn))(server->gearman,
                                           (void *)server->gearman->queue_fn_arg,

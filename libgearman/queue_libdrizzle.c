@@ -27,6 +27,7 @@
  */
 #define GEARMAN_QUEUE_LIBDRIZZLE_DEFAULT_DATABASE "test"
 #define GEARMAN_QUEUE_LIBDRIZZLE_DEFAULT_TABLE "queue"
+#define GEARMAN_QUEUE_QUERY_BUFFER 256
 
 /*
  * Private declarations
@@ -64,7 +65,8 @@ static gearman_return_t _libdrizzle_done(gearman_st *gearman, void *fn_arg,
                                          const void *unique,
                                          size_t unique_size);
 static gearman_return_t _libdrizzle_replay(gearman_st *gearman, void *fn_arg,
-                                           gearman_queue_add_fn *add_fn);
+                                           gearman_queue_add_fn *add_fn,
+                                           void *add_fn_arg);
 
 /*
  * Public definitions
@@ -163,7 +165,8 @@ gearman_return_t gearman_queue_libdrizzle_init(gearman_st *gearman, int argc,
   if (drizzle_result_buffer(&(queue->result)) != DRIZZLE_RETURN_OK)
   {
     drizzle_result_free(&(queue->result));
-    GEARMAN_ERROR_SET(gearman, "_query", "drizzle_result_buffer:%s",
+    GEARMAN_ERROR_SET(gearman, "gearman_queue_libdrizzle_init",
+                      "drizzle_result_buffer:%s",
                       drizzle_error(&(queue->drizzle)))
     return GEARMAN_QUEUE_ERROR;
   }
@@ -246,13 +249,13 @@ static drizzle_return_t _libdrizzle_query(gearman_st *gearman,
   {
     if (ret == DRIZZLE_RETURN_ERROR_CODE)
     {
-      GEARMAN_ERROR_SET(gearman, "_query", "drizzle_query:%s",
+      GEARMAN_ERROR_SET(gearman, "_libdrizzle_query", "drizzle_query:%s",
                         drizzle_result_error(&(queue->result)))
       drizzle_result_free(&(queue->result));
     }
     else
     {
-      GEARMAN_ERROR_SET(gearman, "_query", "drizzle_query:%s",
+      GEARMAN_ERROR_SET(gearman, "_libdrizzle_query", "drizzle_query:%s",
                         drizzle_error(&(queue->drizzle)))
     }
 
@@ -285,13 +288,14 @@ static gearman_return_t _libdrizzle_add(gearman_st *gearman, void *fn_arg,
   }
 #endif
 
-  query_size= ((unique_size + function_name_size + data_size) * 2) + 256;
+  query_size= ((unique_size + function_name_size + data_size) * 2) +
+              GEARMAN_QUEUE_QUERY_BUFFER;
   if (query_size > queue->query_size)
   {
     query= realloc(queue->query, query_size);
     if (query == NULL)
     {
-      GEARMAN_ERROR_SET(gearman, "_add", "realloc")
+      GEARMAN_ERROR_SET(gearman, "_libdrizzle_add", "realloc")
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
 
@@ -351,17 +355,16 @@ static gearman_return_t _libdrizzle_done(gearman_st *gearman, void *fn_arg,
                                          size_t unique_size)
 {
   gearman_queue_libdrizzle_st *queue= (gearman_queue_libdrizzle_st *)fn_arg;
-
   char *query;
   size_t query_size;
 
-  query_size= (unique_size * 2) + 256;
+  query_size= (unique_size * 2) + GEARMAN_QUEUE_QUERY_BUFFER;
   if (query_size > queue->query_size)
   {
     query= realloc(queue->query, query_size);
     if (query == NULL)
     {
-      GEARMAN_ERROR_SET(gearman, "_add", "realloc")
+      GEARMAN_ERROR_SET(gearman, "_libdrizzle_add", "realloc")
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
 
@@ -387,11 +390,77 @@ static gearman_return_t _libdrizzle_done(gearman_st *gearman, void *fn_arg,
 }
 
 static gearman_return_t _libdrizzle_replay(gearman_st *gearman, void *fn_arg,
-                                           gearman_queue_add_fn *add_fn)
+                                           gearman_queue_add_fn *add_fn,
+                                           void *add_fn_arg)
 {
   gearman_queue_libdrizzle_st *queue= (gearman_queue_libdrizzle_st *)fn_arg;
-  (void)gearman;
-  (void)queue;
-  (void)add_fn;
+  char *query;
+  size_t query_size;
+  drizzle_return_t ret;
+  drizzle_row_t row;
+  size_t *field_sizes;
+  gearman_return_t gret;
+
+  if (GEARMAN_QUEUE_QUERY_BUFFER > queue->query_size)
+  {
+    query= realloc(queue->query, GEARMAN_QUEUE_QUERY_BUFFER);
+    if (query == NULL)
+    {
+      GEARMAN_ERROR_SET(gearman, "_libdrizzle_add", "realloc")
+      return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+    }
+
+    queue->query= query;
+    queue->query_size= GEARMAN_QUEUE_QUERY_BUFFER;
+  }
+  else
+    query= queue->query;
+
+  query_size= snprintf(query, GEARMAN_QUEUE_QUERY_BUFFER,
+                       "SELECT unique_key,function_name,priority,data FROM %s",
+                       queue->table);
+
+  if (_libdrizzle_query(gearman, queue, query, query_size) != DRIZZLE_RETURN_OK)
+    return GEARMAN_QUEUE_ERROR;
+
+  if (drizzle_column_skip(&(queue->result)) != DRIZZLE_RETURN_OK)
+  {
+    drizzle_result_free(&(queue->result));
+    GEARMAN_ERROR_SET(gearman, "_libdrizzle_replay", "drizzle_column_skip:%s",
+                      drizzle_error(&(queue->drizzle)))
+    return GEARMAN_QUEUE_ERROR;
+  }
+
+  while (1)
+  {
+    row= drizzle_row_buffer(&(queue->result), &ret);
+    if (ret != DRIZZLE_RETURN_OK)
+    {
+      drizzle_result_free(&(queue->result));
+      GEARMAN_ERROR_SET(gearman, "_libdrizzle_replay", "drizzle_row_buffer:%s",
+                        drizzle_error(&(queue->drizzle)))
+      return GEARMAN_QUEUE_ERROR;
+    }
+
+    if (row == NULL)
+      break;
+
+    field_sizes= drizzle_row_field_sizes(&(queue->result));
+
+    gret= (*add_fn)(gearman, add_fn_arg, row[0], field_sizes[0], row[1],
+                    field_sizes[1], row[3], field_sizes[3], atoi(row[2]));
+    if (gret != GEARMAN_SUCCESS)
+    {
+      drizzle_row_free(&(queue->result), row);
+      drizzle_result_free(&(queue->result));
+      return gret;
+    }
+
+    row[3]= NULL;
+    drizzle_row_free(&(queue->result), row);
+  }
+
+  drizzle_result_free(&(queue->result));
+
   return GEARMAN_SUCCESS;
 }
