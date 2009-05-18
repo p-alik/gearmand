@@ -200,7 +200,7 @@ gearman_return_t gearmand_con_watch(gearman_con_st *con, short events,
     dcon->last_events= set_events;
   }
 
-  GEARMAND_LOG(dcon->thread->gearmand, 2, "[%4u] %15s:%5s Watching %8s%8s",
+  GEARMAND_LOG(dcon->thread->gearmand, 4, "[%4u] %15s:%5s Watching %8s%8s",
                dcon->thread->count, dcon->host, dcon->port,
                events & POLLIN ? "POLLIN" : "",
                events & POLLOUT ? "POLLOUT" : "")
@@ -225,7 +225,7 @@ static void _con_ready(int fd __attribute__ ((unused)), short events,
 
   gearman_con_set_revents(dcon->con, revents);
 
-  GEARMAND_LOG(dcon->thread->gearmand, 2, "[%4u] %15s:%5s Ready    %8s%8s",
+  GEARMAND_LOG(dcon->thread->gearmand, 4, "[%4u] %15s:%5s Ready    %8s%8s",
                dcon->thread->count, dcon->host, dcon->port,
                revents & POLLIN ? "POLLIN" : "",
                revents & POLLOUT ? "POLLOUT" : "")

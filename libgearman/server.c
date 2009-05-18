@@ -177,13 +177,17 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
   char numerator_buffer[11]; /* Max string size to hold a uint32_t. */
   char denominator_buffer[11]; /* Max string size to hold a uint32_t. */
   gearman_job_priority_t priority;
-  gearman_st *gearman;
+  gearman_st *gearman= gearman= server_con->thread->server->gearman;
 
   if (packet->magic == GEARMAN_MAGIC_RESPONSE)
   {
     return _server_error_packet(server_con, "bad_magic",
                                 "Request magic expected");
   }
+
+  GEARMAN_LOG(gearman, 3, "%s Received %s",
+              server_con->host == NULL ? "-" : server_con->host,
+              gearman_command_info_list[packet->command].name)
 
   switch (packet->command)
   {
@@ -488,7 +492,6 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
       return ret;
 
     /* Remove from persistent queue if one exists. */
-    gearman= server_con->thread->server->gearman;
     if (gearman->queue_done_fn != NULL)
     {
       ret= (*(gearman->queue_done_fn))(gearman, (void *)gearman->queue_fn_arg,
@@ -544,7 +547,6 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
     }
 
     /* Remove from persistent queue if one exists. */
-    gearman= server_con->thread->server->gearman;
     if (gearman->queue_done_fn != NULL)
     {
       ret= (*(gearman->queue_done_fn))(gearman, (void *)gearman->queue_fn_arg,

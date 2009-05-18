@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
   if (queue_argv == NULL)
   {
     fprintf(stderr, "gearmand: malloc:%d\n", errno);
-    exit(1);
+    return 1;
   }
 
   while ((c = getopt(argc, argv, "b:df:hl:L:p:P:q:Q:t:u:vV")) != EOF)
@@ -261,7 +261,17 @@ int main(int argc, char *argv[])
 
   ret= gearmand_run(_gearmand);
 
+  if (queue_type != NULL)
+  {
+#ifdef HAVE_LIBDRIZZLE
+    if (!strcmp(queue_type, "libdrizzle"))
+      gearmand_queue_libdrizzle_deinit(_gearmand);
+#endif
+  }
+
   gearmand_free(_gearmand);
+
+  free(queue_argv);
 
   if (pid_file != NULL)
     _pid_delete(pid_file);

@@ -147,8 +147,8 @@ gearman_return_t gearmand_run(gearmand_st *gearmand)
     if (gearmand->threads > 0)
     {
 #ifndef HAVE_EVENT_BASE_NEW
-      fprintf(stderr, "Multi-threaded gearmand requires libevent 1.4 or "
-              "later, libevent 1.3 does not provided a thread-safe interface.");
+      fprintf(stderr, "Multi-threaded gearmand requires libevent 1.4 or later, "
+              "libevent 1.3 does not provided a thread-safe interface.\n");
       return GEARMAN_EVENT;
 #else
       /* Set the number of free connection structures each thread should keep
