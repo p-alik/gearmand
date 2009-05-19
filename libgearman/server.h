@@ -50,7 +50,7 @@ void gearman_server_free(gearman_server_st *server);
  */
 void gearman_server_set_log(gearman_server_st *server,
                             gearman_server_log_fn log_fn, void *log_fn_arg,
-                            uint8_t verbose);
+                            gearman_verbose_t verbose);
 
 /**
  * Process commands for a connection.

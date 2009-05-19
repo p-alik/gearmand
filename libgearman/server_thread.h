@@ -81,7 +81,7 @@ void gearman_server_thread_set_event_watch(gearman_server_thread_st *thread,
  */
 void gearman_server_thread_set_log(gearman_server_thread_st *thread,
                                    gearman_server_thread_log_fn log_fn,
-                                   void *log_fn_arg, uint8_t verbose);
+                                   void *log_fn_arg, gearman_verbose_t verbose);
 
 /**
  * Set thread run callback.

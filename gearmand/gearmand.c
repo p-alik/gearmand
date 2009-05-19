@@ -78,8 +78,8 @@ static bool _switch_user(const char *user);
 static bool _set_signals(void);
 static void _shutdown_handler(int signal);
 static void _log(gearmand_st *gearmand __attribute__ ((unused)),
-                 uint8_t verbose __attribute__ ((unused)), const char *line,
-                 void *fn_arg);
+                 gearman_verbose_t verbose __attribute__ ((unused)),
+                 const char *line, void *fn_arg);
 
 int main(int argc, char *argv[])
 {
@@ -422,8 +422,8 @@ static void _shutdown_handler(int signal)
 }
 
 static void _log(gearmand_st *gearmand __attribute__ ((unused)),
-                 uint8_t verbose __attribute__ ((unused)), const char *line,
-                 void *fn_arg)
+                 gearman_verbose_t verbose __attribute__ ((unused)),
+                 const char *line, void *fn_arg)
 {
   gearmand_log_info_st *log_info= (gearmand_log_info_st *)fn_arg;
   int fd;

@@ -114,7 +114,7 @@ void gearman_set_options(gearman_st *gearman, gearman_options_t options,
  * @param verbose Verbosity level.
  */
 void gearman_set_log(gearman_st *gearman, gearman_log_fn log_fn,
-                     void *log_fn_arg, uint8_t verbose);
+                     void *log_fn_arg, gearman_verbose_t verbose);
 
 /**
  * Set custom I/O event callbacks for a gearman structure.

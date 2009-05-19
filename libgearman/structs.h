@@ -37,7 +37,7 @@ struct gearman_st
   uint32_t sending;
   int last_errno;
   char last_error[GEARMAN_MAX_ERROR_SIZE];
-  uint8_t verbose;
+  gearman_verbose_t verbose;
   gearman_log_fn *log_fn;
   void *log_fn_arg;
   gearman_event_watch_fn *event_watch;
@@ -103,7 +103,6 @@ struct gearman_con_st
   int fd;
   short events;
   short revents;
-  short last_revents;
   uint32_t created_id;
   uint32_t created_id_next;
   gearman_packet_st packet;
@@ -422,7 +421,7 @@ struct gearmand_st
   in_port_t port;
   int backlog;
   uint32_t threads;
-  uint8_t verbose;
+  gearman_verbose_t verbose;
   gearmand_log_fn *log_fn;
   void *log_fn_arg;
   gearman_return_t ret;

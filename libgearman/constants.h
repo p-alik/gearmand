@@ -124,6 +124,18 @@ typedef enum
   GEARMAN_MAX_RETURN /* Always add new error code before */
 } gearman_return_t;
 
+/**
+ * Verbosity levels.
+ */
+typedef enum
+{
+  GEARMAN_VERBOSE_FATAL,
+  GEARMAN_VERBOSE_ERROR,
+  GEARMAN_VERBOSE_INFO,
+  GEARMAN_VERBOSE_DEBUG,
+  GEARMAN_VERBOSE_CRAZY
+} gearman_verbose_t;
+
 /** @} */
 
 /**
@@ -450,7 +462,9 @@ typedef enum
  */
 typedef enum
 {
-  GEARMAN_SERVER_JOB_ALLOCATED= (1 << 0)
+  GEARMAN_SERVER_JOB_ALLOCATED= (1 << 0),
+  GEARMAN_SERVER_JOB_QUEUED=    (1 << 1),
+  GEARMAN_SERVER_JOB_IGNORE=    (1 << 2)
 } gearman_server_job_options_t;
 
 /**
@@ -507,23 +521,21 @@ typedef void* (gearman_worker_fn)(gearman_job_st *job, void *fn_arg,
 
 typedef gearman_return_t (gearman_event_watch_fn)(gearman_con_st *con,
                                                   short events, void *arg);
-typedef gearman_return_t (gearman_event_close_fn)(gearman_con_st *con,
-                                                  gearman_return_t ret,
-                                                  void *arg);
 
 typedef void* (gearman_malloc_fn)(size_t size, void *arg);
 typedef void (gearman_free_fn)(void *ptr, void *arg);
 
 typedef void (gearman_task_fn_arg_free_fn)(gearman_task_st *task, void *fn_arg);
 
-typedef void (gearman_log_fn)(gearman_st *gearman, uint8_t verbose,
+typedef void (gearman_log_fn)(gearman_st *gearman, gearman_verbose_t verbose,
                               const char *line, void *fn_arg);
-typedef void (gearman_server_log_fn)(gearman_server_st *server, uint8_t verbose,
+typedef void (gearman_server_log_fn)(gearman_server_st *server,
+                                     gearman_verbose_t verbose,
                                      const char *line, void *fn_arg);
 typedef void (gearman_server_thread_log_fn)(gearman_server_thread_st *thread,
-                                            uint8_t verbose, const char *line,
-                                            void *fn_arg);
-typedef void (gearmand_log_fn)(gearmand_st *gearmand, uint8_t verbose,
+                                            gearman_verbose_t verbose,
+                                            const char *line, void *fn_arg);
+typedef void (gearmand_log_fn)(gearmand_st *gearmand, gearman_verbose_t verbose,
                                const char *line, void *fn_arg);
 
 typedef void (gearman_server_thread_run_fn)(gearman_server_thread_st *thread,

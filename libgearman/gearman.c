@@ -118,7 +118,7 @@ void gearman_set_options(gearman_st *gearman, gearman_options_t options,
 }
 
 void gearman_set_log(gearman_st *gearman, gearman_log_fn log_fn,
-                     void *log_fn_arg, uint8_t verbose)
+                     void *log_fn_arg, gearman_verbose_t verbose)
 {
   gearman->log_fn= log_fn;
   gearman->log_fn_arg= log_fn_arg;

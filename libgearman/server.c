@@ -57,8 +57,8 @@ _server_queue_work_data(gearman_server_job_st *server_job,
 /**
  * Wrapper for log handling.
  */
-static void _log(gearman_st *gearman __attribute__ ((unused)), uint8_t verbose,
-                 const char *line, void *fn_arg);
+static void _log(gearman_st *gearman __attribute__ ((unused)),
+                 gearman_verbose_t verbose, const char *line, void *fn_arg);
 
 /** @} */
 
@@ -159,7 +159,7 @@ void gearman_server_free(gearman_server_st *server)
 
 void gearman_server_set_log(gearman_server_st *server,
                             gearman_server_log_fn log_fn, void *log_fn_arg,
-                            uint8_t verbose)
+                            gearman_verbose_t verbose)
 {
   server->log_fn= log_fn;
   server->log_fn_arg= log_fn_arg;
@@ -185,7 +185,7 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
                                 "Request magic expected");
   }
 
-  GEARMAN_LOG(gearman, 3, "%s Received %s",
+  GEARMAN_DEBUG(gearman, "%s Received %s",
               server_con->host == NULL ? "-" : server_con->host,
               gearman_command_info_list[packet->command].name)
 
@@ -492,7 +492,8 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
       return ret;
 
     /* Remove from persistent queue if one exists. */
-    if (gearman->queue_done_fn != NULL)
+    if (server_job->options & GEARMAN_SERVER_JOB_QUEUED &&
+        gearman->queue_done_fn != NULL)
     {
       ret= (*(gearman->queue_done_fn))(gearman, (void *)gearman->queue_fn_arg,
                                        server_job->unique,
@@ -547,7 +548,8 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
     }
 
     /* Remove from persistent queue if one exists. */
-    if (gearman->queue_done_fn != NULL)
+    if (server_job->options & GEARMAN_SERVER_JOB_QUEUED &&
+        gearman->queue_done_fn != NULL)
     {
       ret= (*(gearman->queue_done_fn))(gearman, (void *)gearman->queue_fn_arg,
                                        server_job->unique,
@@ -844,8 +846,8 @@ _server_queue_work_data(gearman_server_job_st *server_job,
   return GEARMAN_SUCCESS;
 }
 
-static void _log(gearman_st *gearman __attribute__ ((unused)), uint8_t verbose,
-                 const char *line, void *fn_arg)
+static void _log(gearman_st *gearman __attribute__ ((unused)),
+                 gearman_verbose_t verbose, const char *line, void *fn_arg)
 {
   gearman_server_st *server= (gearman_server_st *)fn_arg;
   (*(server->log_fn))(server, verbose, line, server->log_fn_arg);

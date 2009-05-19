@@ -64,7 +64,7 @@ void gearmand_set_threads(gearmand_st *gearmand, uint32_t threads);
  * @param verbose Verbosity level.
  */
 void gearmand_set_log(gearmand_st *gearmand, gearmand_log_fn log_fn,
-                      void *log_fn_arg, uint8_t verbose);
+                      void *log_fn_arg, gearman_verbose_t verbose);
 
 /**
  * Run the server instance.

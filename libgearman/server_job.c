@@ -130,14 +130,7 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
     key= key % GEARMAN_JOB_HASH_SIZE;
     GEARMAN_HASH_ADD(server->job, key, server_job,)
 
-    *ret_ptr= gearman_server_job_queue(server_job);
-    if (*ret_ptr != GEARMAN_SUCCESS)
-    {
-      gearman_server_job_free(server_job);
-      return NULL;
-    }
-
-    if (server->gearman->queue_add_fn != NULL &&
+    if (server_client == NULL && server->gearman->queue_add_fn != NULL &&
         !(server->options & GEARMAN_SERVER_QUEUE_REPLAY))
     {
       *ret_ptr= (*(server->gearman->queue_add_fn))(server->gearman,
@@ -165,6 +158,23 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
           return NULL;
         }
       }
+
+      server_job->options|= GEARMAN_SERVER_JOB_QUEUED;
+    }
+
+    *ret_ptr= gearman_server_job_queue(server_job);
+    if (*ret_ptr != GEARMAN_SUCCESS)
+    {
+      if (server_client == NULL && server->gearman->queue_done_fn != NULL)
+      {
+        /* Do our best to remove the job from the queue. */
+        (void)(*(server->gearman->queue_done_fn))(server->gearman,
+                                          (void *)server->gearman->queue_fn_arg,
+                                          server_job->unique, unique_size);
+      }
+
+      gearman_server_job_free(server_job);
+      return NULL;
     }
   }
   else

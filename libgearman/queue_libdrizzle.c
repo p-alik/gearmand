@@ -97,7 +97,7 @@ gearman_return_t gearman_queue_libdrizzle_init(gearman_st *gearman, int argc,
   drizzle_row_t row;
   char create[1024];
 
-  GEARMAN_LOG(gearman, 0, "Initializing libdrizzle queue module")
+  GEARMAN_INFO(gearman, "Initializing libdrizzle module")
 
   queue= malloc(sizeof(gearman_queue_libdrizzle_st));
   if (queue == NULL)
@@ -185,8 +185,8 @@ gearman_return_t gearman_queue_libdrizzle_init(gearman_st *gearman, int argc,
   {
     if (!strcasecmp(queue->table, row[0]))
     {
-      GEARMAN_LOG(gearman, 1, "libdrizzle queue module using table '%s.%s'",
-                  drizzle_con_db(&queue->con), row[0])
+      GEARMAN_INFO(gearman, "libdrizzle module using table '%s.%s'",
+                   drizzle_con_db(&queue->con), row[0])
       break;
     }
   }
@@ -205,8 +205,8 @@ gearman_return_t gearman_queue_libdrizzle_init(gearman_st *gearman, int argc,
              ")",
              queue->table, GEARMAN_UNIQUE_SIZE);
 
-    GEARMAN_LOG(gearman, 1, "libdrizzle queue module creating table '%s.%s'",
-                drizzle_con_db(&queue->con), queue->table)
+    GEARMAN_INFO(gearman, "libdrizzle module creating table '%s.%s'",
+                 drizzle_con_db(&queue->con), queue->table)
 
     if (_libdrizzle_query(gearman, queue, create, strlen(create))
         != DRIZZLE_RETURN_OK)
@@ -230,7 +230,7 @@ gearman_return_t gearman_queue_libdrizzle_deinit(gearman_st *gearman)
 {
   gearman_queue_libdrizzle_st *queue;
 
-  GEARMAN_LOG(gearman, 0, "Shutting down libdrizzle queue module")
+  GEARMAN_INFO(gearman, "Shutting down libdrizzle queue module")
 
   queue= (gearman_queue_libdrizzle_st *)gearman_queue_fn_arg(gearman);
   gearman_set_queue_fn_arg(gearman, NULL);
@@ -264,8 +264,7 @@ static drizzle_return_t _libdrizzle_query(gearman_st *gearman,
 {
   drizzle_return_t ret;
 
-  GEARMAN_LOG(gearman, 3, "libdrizzle queue query: %.*s", (uint32_t)query_size,
-              query)
+  GEARMAN_CRAZY(gearman, "libdrizzle query: %.*s", (uint32_t)query_size, query)
 
   (void)drizzle_query(&(queue->con), &(queue->result), query, query_size, &ret);
   if (ret != DRIZZLE_RETURN_OK)
@@ -289,8 +288,8 @@ static gearman_return_t _libdrizzle_add(gearman_st *gearman, void *fn_arg,
   char *query;
   size_t query_size;
 
-  GEARMAN_LOG(gearman, 2, "libdrizzle queue add: %.*s", (uint32_t)unique_size,
-              (char *)unique)
+  GEARMAN_DEBUG(gearman, "libdrizzle add: %.*s", (uint32_t)unique_size,
+                (char *)unique)
 
   /* This is not used currently, it will be once batch writes are supported
      inside of the Gearman job server. */
@@ -350,7 +349,7 @@ static gearman_return_t _libdrizzle_flush(gearman_st *gearman, void *fn_arg)
 {
   (void) fn_arg;
 
-  GEARMAN_LOG(gearman, 2, "libdrizzle queue flush")
+  GEARMAN_DEBUG(gearman, "libdrizzle flush")
 
   /* This is not used currently, it will be once batch writes are supported
      inside of the Gearman job server. */
@@ -375,8 +374,8 @@ static gearman_return_t _libdrizzle_done(gearman_st *gearman, void *fn_arg,
   char *query;
   size_t query_size;
 
-  GEARMAN_LOG(gearman, 2, "libdrizzle queue done: %.*s", (uint32_t)unique_size,
-              (char *)unique)
+  GEARMAN_DEBUG(gearman, "libdrizzle done: %.*s", (uint32_t)unique_size,
+                (char *)unique)
 
   query_size= (unique_size * 2) + GEARMAN_QUEUE_QUERY_BUFFER;
   if (query_size > queue->query_size)
@@ -421,7 +420,7 @@ static gearman_return_t _libdrizzle_replay(gearman_st *gearman, void *fn_arg,
   size_t *field_sizes;
   gearman_return_t gret;
 
-  GEARMAN_LOG(gearman, 1, "libdrizzle queue replay start")
+  GEARMAN_INFO(gearman, "libdrizzle replay start")
 
   if (GEARMAN_QUEUE_QUERY_BUFFER > queue->query_size)
   {
@@ -469,8 +468,8 @@ static gearman_return_t _libdrizzle_replay(gearman_st *gearman, void *fn_arg,
 
     field_sizes= drizzle_row_field_sizes(&(queue->result));
 
-    GEARMAN_LOG(gearman, 2, "libdrizzle queue replay: %.*s",
-                (uint32_t)field_sizes[0], row[1])
+    GEARMAN_DEBUG(gearman, "libdrizzle replay: %.*s", (uint32_t)field_sizes[0],
+                  row[1])
 
     gret= (*add_fn)(gearman, add_fn_arg, row[0], field_sizes[0], row[1],
                     field_sizes[1], row[3], field_sizes[3], atoi(row[2]));
