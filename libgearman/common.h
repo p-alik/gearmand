@@ -137,20 +137,6 @@ extern "C" {
 }
 
 /**
- * Macro to set fatal error string.
- * @ingroup gearman_constants
- */
-#define GEARMAN_FATAL_SET(__gearman, __function, ...) { \
-  if ((__gearman)->log_fn == NULL) \
-  { \
-    snprintf((__gearman)->last_error, GEARMAN_MAX_ERROR_SIZE, \
-             __function ":" __VA_ARGS__); \
-  } \
-  else \
-    GEARMAN_FATAL(__gearman, __function ":" __VA_ARGS__) \
-}
-
-/**
  * Macro to set error string.
  * @ingroup gearman_constants
  */
@@ -161,7 +147,7 @@ extern "C" {
              __function ":" __VA_ARGS__); \
   } \
   else \
-    GEARMAN_ERROR(__gearman, __function ":" __VA_ARGS__) \
+    GEARMAN_FATAL(__gearman, __function ":" __VA_ARGS__) \
 }
 
 /**
