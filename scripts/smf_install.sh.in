@@ -6,7 +6,7 @@ exec_prefix=@exec_prefix@
 grep solaris.smf.value.gearman /etc/security/auth_attr > /dev/null
 if [ $? -ne 0 ]
 then
-  ed /etc/security/auth_attr <<EOF
+  ed /etc/security/auth_attr > /dev/null <<EOF
 a
 solaris.smf.value.gearman:::Change Gearman value properties::
 solaris.smf.manage.gearman:::Manage Gearman service states::
@@ -21,10 +21,10 @@ EOF
   fi
 fi
 
-grep solaris.smf.manage.gearman /etc/security/prof_attr
+grep solaris.smf.manage.gearman /etc/security/prof_attr > /dev/null
 if [ $? -ne 0 ]
 then
-  ed /etc/security/prof_attr <<EOF
+  ed /etc/security/prof_attr > /dev/null <<EOF
 a
 Gearman Administration::::auths=solaris.smf.manage.gearman,solaris.smf.value.gearman
 .
