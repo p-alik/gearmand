@@ -7,8 +7,7 @@
 
 sbin_PROGRAMS= gearmand
 
-gearmand_LDADD= $(LTLIBUUID) $(LTLIBEVENT) \
-	$(top_builddir)/libgearman/libgearman.la
+gearmand_LDADD= $(top_builddir)/libgearman/libgearman.la
 
 gearmand_SOURCES= gearmand.c
 

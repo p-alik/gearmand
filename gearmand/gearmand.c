@@ -55,6 +55,10 @@
 
 #include <libgearman/gearman.h>
 
+#ifdef HAVE_LIBDRIZZLE
+#include <libgearman/queue_libdrizzle.h>
+#endif
+
 #define GEARMAND_LOG_REOPEN_TIME 60
 #define GEARMAND_LISTEN_BACKLOG 32
 
@@ -74,8 +78,8 @@ static bool _switch_user(const char *user);
 static bool _set_signals(void);
 static void _shutdown_handler(int signal);
 static void _log(gearmand_st *gearmand __attribute__ ((unused)),
-                 uint8_t verbose __attribute__ ((unused)), const char *line,
-                 void *fn_arg);
+                 gearman_verbose_t verbose __attribute__ ((unused)),
+                 const char *line, void *fn_arg);
 
 int main(int argc, char *argv[])
 {
@@ -85,6 +89,9 @@ int main(int argc, char *argv[])
   in_port_t port= 0;
   char *host= NULL;
   char *pid_file= NULL;
+  char *queue_type= NULL;
+  char **queue_argv;
+  int queue_argc= 0;
   uint32_t threads= 0;
   char *user= NULL;
   uint8_t verbose= 0;
@@ -95,7 +102,15 @@ int main(int argc, char *argv[])
   log_info.fd= -1;
   log_info.reopen= 0;
 
-  while ((c = getopt(argc, argv, "b:df:hl:L:p:P:t:u:vV")) != EOF)
+  /* Allocate maximum number of args to make sure there is enough room. */
+  queue_argv= malloc(sizeof(char *) * argc);
+  if (queue_argv == NULL)
+  {
+    fprintf(stderr, "gearmand: malloc:%d\n", errno);
+    return 1;
+  }
+
+  while ((c = getopt(argc, argv, "b:df:hl:L:p:P:q:Q:t:u:vV")) != EOF)
   {
     switch(c)
     {
@@ -107,7 +122,7 @@ int main(int argc, char *argv[])
       switch (fork())
       {
       case -1:
-        fprintf(stderr, "fork:%d\n", errno);
+        fprintf(stderr, "gearmand: fork:%d\n", errno);
         return 1;
 
       case 0:
@@ -119,7 +134,7 @@ int main(int argc, char *argv[])
 
       if (setsid() == -1)
       {
-        fprintf(stderr, "setsid:%d\n", errno);
+        fprintf(stderr, "gearmand: setsid:%d\n", errno);
         return 1;
       }
 
@@ -145,6 +160,15 @@ int main(int argc, char *argv[])
       pid_file= optarg;
       break;
 
+    case 'q':
+      queue_type= optarg;
+      break;
+
+    case 'Q':
+      queue_argv[queue_argc]= optarg;
+      queue_argc++;
+      break;
+
     case 't':
       threads= atoi(optarg);
       break;
@@ -165,25 +189,35 @@ int main(int argc, char *argv[])
     default:
       printf("\ngearmand %s - %s\n\n", gearman_version(), gearman_bugreport());
       printf("usage: %s [options]\n\n", argv[0]);
-      printf("\t-b <backlog>  - Number of backlog connections for listen.\n"
-             "\t                Default is %d.\n", GEARMAND_LISTEN_BACKLOG);
-      printf("\t-d            - Detach and run in the background (daemon).\n");
-      printf("\t-f <fds>      - Number of file descriptors to allow for the\n"
-             "\t                process (total connections will be slightly\n"
-             "\t                less). Default is max allowed for user.\n");
-      printf("\t-h            - Print this help menu.\n");
-      printf("\t-l <file>     - Log file to write errors and information to.\n"
-             "\t                Turning this option on also forces the first\n"
-             "\t                verbose level to be enabled.\n");
-      printf("\t-L <address>  - Address the server should listen on. Default\n"
-             "\t                is INADDR_ANY.\n");
-      printf("\t-p <port>     - Port the server should listen on. Default\n"
-             "\t                is %u.\n", GEARMAN_DEFAULT_TCP_PORT);
-      printf("\t-P <pid_file> - File to write process ID out to.\n");
-      printf("\t-t <threads>  - Number of I/O threads to use. Default is 0.\n");
-      printf("\t-u <user>     - Switch to given user after startup.\n");
-      printf("\t-v            - Increase verbosity level by one.\n");
-      printf("\t-V            - Display the version of gearmand and exit.\n");
+      printf("\t-b <backlog>    - Number of backlog connections for listen.\n"
+             "\t                  Default is %d.\n", GEARMAND_LISTEN_BACKLOG);
+      printf("\t-d              - Daemon, detach and run in the background.\n");
+      printf("\t-f <fds>        - Number of file descriptors to allow for the\n"
+             "\t                  process (total connections will be slightly\n"
+             "\t                  less). Default is max allowed for user.\n");
+      printf("\t-h              - Print this help menu.\n");
+      printf("\t-l <file>       - Log file to write errors and information\n"
+             "\t                  to. Turning this option on also forces the\n"
+             "\t                  first verbose level to be enabled.\n");
+      printf("\t-L <address>    - Address the server should listen on.\n"
+             "\t                  Default is INADDR_ANY.\n");
+      printf("\t-p <port>       - Port the server should listen on. Default\n"
+             "\t                  is %u.\n", GEARMAN_DEFAULT_TCP_PORT);
+      printf("\t-P <pid_file>   - File to write process ID out to.\n");
+      printf("\t-q <queue type> - Persistent queue type to use.\n");
+      printf("\t-Q <queue arg>  - Argument for queue type, can specify many\n");
+      printf("\t-t <threads>    - Number of I/O threads to use. Default=0.\n");
+      printf("\t-u <user>       - Switch to given user after startup.\n");
+      printf("\t-v              - Increase verbosity level by one.\n");
+      printf("\t-V              - Display the version of gearmand and exit.\n");
+
+      printf("\nPersistent queue types and arguments are:\n");
+
+#ifdef HAVE_LIBDRIZZLE
+      printf("\nlibdrizzle\n");
+      gearman_queue_libdrizzle_usage();
+#endif
+
       return 1;
     }
   }
@@ -206,12 +240,38 @@ int main(int argc, char *argv[])
 
   gearmand_set_backlog(_gearmand, backlog);
   gearmand_set_threads(_gearmand, threads);
-  gearmand_set_verbose(_gearmand, verbose);
-  gearmand_set_log(_gearmand, _log, &log_info);
+  gearmand_set_log(_gearmand, _log, &log_info, verbose);
+
+  if (queue_type != NULL)
+  {
+#ifdef HAVE_LIBDRIZZLE
+    if (!strcmp(queue_type, "libdrizzle"))
+    {
+      ret= gearmand_queue_libdrizzle_init(_gearmand, queue_argc, queue_argv);
+      if (ret != GEARMAN_SUCCESS)
+        return 1;
+    }
+    else
+#endif
+    {
+      fprintf(stderr, "gearmand: Unknown queue type: %s\n", queue_type);
+      return 1;
+    }
+  }
 
   ret= gearmand_run(_gearmand);
 
+  if (queue_type != NULL)
+  {
+#ifdef HAVE_LIBDRIZZLE
+    if (!strcmp(queue_type, "libdrizzle"))
+      gearmand_queue_libdrizzle_deinit(_gearmand);
+#endif
+  }
+
   gearmand_free(_gearmand);
+
+  free(queue_argv);
 
   if (pid_file != NULL)
     _pid_delete(pid_file);
@@ -256,8 +316,8 @@ static bool _pid_write(const char *pid_file)
   f= fopen(pid_file, "w");
   if (f == NULL)
   {
-    fprintf(stderr, "gearmand: Could not open pid file for writing: %s (%d)\n", pid_file,
-            errno);
+    fprintf(stderr, "gearmand: Could not open pid file for writing: %s (%d)\n",
+            pid_file, errno);
     return true;
   }
 
@@ -265,7 +325,8 @@ static bool _pid_write(const char *pid_file)
 
   if (fclose(f) == -1)
   {
-    fprintf(stderr, "gearmand: Could not close the pid file: %s (%d)\n", pid_file, errno);
+    fprintf(stderr, "gearmand: Could not close the pid file: %s (%d)\n",
+            pid_file, errno);
     return true;
   }
 
@@ -276,8 +337,8 @@ static void _pid_delete(const char *pid_file)
 {
   if (unlink(pid_file) == -1)
   {
-    fprintf(stderr, "gearmand: Could not remove the pid file: %s (%d)\n", pid_file,
-            errno);
+    fprintf(stderr, "gearmand: Could not remove the pid file: %s (%d)\n",
+            pid_file, errno);
   }
 }
 
@@ -361,8 +422,8 @@ static void _shutdown_handler(int signal)
 }
 
 static void _log(gearmand_st *gearmand __attribute__ ((unused)),
-                 uint8_t verbose __attribute__ ((unused)), const char *line,
-                 void *fn_arg)
+                 gearman_verbose_t verbose __attribute__ ((unused)),
+                 const char *line, void *fn_arg)
 {
   gearmand_log_info_st *log_info= (gearmand_log_info_st *)fn_arg;
   int fd;

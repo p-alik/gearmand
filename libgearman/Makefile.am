@@ -5,11 +5,16 @@
 # Use and distribution licensed under the BSD license.  See
 # the COPYING file in the parent directory for full text.
 
+if HAVE_LIBDRIZZLE
+QUEUE_LIBDRIZZLE_H= queue_libdrizzle.h
+QUEUE_LIBDRIZZLE_C= queue_libdrizzle.c
+endif
+
 lib_LTLIBRARIES= libgearman.la
 
 libgearmanincludedir= ${includedir}/libgearman
 
-dist_libgearmaninclude_HEADERS= \
+dist_libgearmaninclude_HEADERS= $(QUEUE_LIBDRIZZLE_H) \
 	client.h \
 	con.h \
 	constants.h \
@@ -34,7 +39,7 @@ dist_libgearmaninclude_HEADERS= \
 noinst_HEADERS= \
 	common.h
 
-libgearman_la_SOURCES= \
+libgearman_la_SOURCES= $(QUEUE_LIBDRIZZLE_C) \
 	client.c \
 	con.c \
 	gearman.c \
@@ -55,4 +60,4 @@ libgearman_la_SOURCES= \
 	worker.c
 
 libgearman_la_LDFLAGS= -version-info $(GEARMAN_LIBRARY_VERSION) 
-libgearman_la_LIBADD= $(LTLIBEVENT) $(LTLIBUUID)
+libgearman_la_LIBADD= $(LTLIBEVENT) $(LTLIBUUID) $(LTLIBDRIZZLE)

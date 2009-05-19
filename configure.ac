@@ -15,14 +15,12 @@ GEARMAN_MAJOR_VERSION=0
 GEARMAN_MINOR_VERSION=6
 GEARMAN_MICRO_VERSION=0
 GEARMAN_VERSION=$GEARMAN_MAJOR_VERSION.$GEARMAN_MINOR_VERSION.$GEARMAN_MICRO_VERSION
-GEARMAN_RELEASE=$GEARMAN_MAJOR_VERSION.$GEARMAN_MINOR_VERSION
 GEARMAN_LIBRARY_VERSION=$GEARMAN_MAJOR_VERSION:$GEARMAN_MINOR_VERSION:$GEARMAN_MICRO_VERSION
 
 PACKAGE=gearmand
-VERSION=$GEARMAN_RELEASE
+VERSION=$GEARMAN_VERSION
 
 AC_SUBST(GEARMAN_VERSION)
-AC_SUBST(GEARMAN_RELEASE)
 AC_SUBST(GEARMAN_LIBRARY_VERSION)
 
 # Setting CFLAGS here prevents AC_CANONICAL_TARGET from injecting them
@@ -190,7 +188,24 @@ then
   AC_CHECK_LIB(mtmalloc,malloc,[],[])
 fi
 
+#--------------------------------------------------------------------
+# Check for libuuid
+#--------------------------------------------------------------------
 
+AC_CHECK_HEADERS(libdrizzle/drizzle_client.h)
+if test "x$ac_cv_header_libdrizzle_drizzle_client_h" = "xyes"
+then
+  AC_LIB_HAVE_LINKFLAGS(drizzle,,
+  [
+  #include <libdrizzle/drizzle_client.h>
+  ],
+  [
+    drizzle_st drizzle;
+    drizzle_version();
+  ])
+fi
+
+AM_CONDITIONAL(HAVE_LIBDRIZZLE, test x$ac_cv_libdrizzle = xyes)
 
 dnl TODO: Remove this define once we are using 2.61 across the board.
 # AX_HEADER_ASSERT

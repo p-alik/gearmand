@@ -534,7 +534,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces.
 
-INPUT                  = docs libgearman examples/reverse_client.c examples/reverse_client_bg.c examples/reverse_client_cb.c examples/reverse_worker.c examples/reverse_worker_bg.c
+INPUT                  = docs libgearman examples/reverse_client.c examples/reverse_client_bg.c examples/reverse_client_cb.c examples/reverse_worker.c
 
 # This tag can be used to specify the character encoding of the source files 
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is 

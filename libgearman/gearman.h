@@ -111,9 +111,10 @@ void gearman_set_options(gearman_st *gearman, gearman_options_t options,
  *        gearman_create.
  * @param log_fn Function to call when there is a logging message.
  * @param log_fn_arg Argument to pass into the log callback function.
+ * @param verbose Verbosity level.
  */
 void gearman_set_log(gearman_st *gearman, gearman_log_fn log_fn,
-                     void *log_fn_arg);
+                     void *log_fn_arg, gearman_verbose_t verbose);
 
 /**
  * Set custom I/O event callbacks for a gearman structure.
@@ -146,6 +147,41 @@ void gearman_set_workload_free(gearman_st *gearman,
  */
 void gearman_set_task_fn_arg_free(gearman_st *gearman,
                                   gearman_task_fn_arg_free_fn *free_fn);
+
+/**
+ * Get persistent queue function argument.
+ */
+void *gearman_queue_fn_arg(gearman_st *gearman);
+
+/**
+ * Set persistent queue function argument that will be passed back to all queue
+ * callback functions.
+ */
+void gearman_set_queue_fn_arg(gearman_st *gearman, const void *fn_arg);
+
+/**
+ * Set function to call when jobs need to be stored in the persistent queue.
+ */
+void gearman_set_queue_add(gearman_st *gearman, gearman_queue_add_fn *add_fn);
+
+/**
+ * Set function to call when the persistent queue should be flushed to disk.
+ */
+void gearman_set_queue_flush(gearman_st *gearman,
+                             gearman_queue_flush_fn *flush_fn);
+
+/**
+ * Set function to call when a job should be removed from the persistent queue.
+ */
+void gearman_set_queue_done(gearman_st *gearman,
+                            gearman_queue_done_fn *done_fn);
+
+/**
+ * Set function to call when jobs in the persistent queue should be replayed
+ * after a restart.
+ */
+void gearman_set_queue_replay(gearman_st *gearman,
+                              gearman_queue_replay_fn *replay_fn);
 
 /** @} */
 

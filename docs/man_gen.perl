@@ -15,7 +15,7 @@ use POSIX qw(strftime);
 my $path= "docs/man";
 my $section= 3;
 my $short= "Gearman";
-my $long= "Gearman Job Queue System";
+my $long= "Gearman";
 my $include= "#include <libgearman/gearman.h>";
 my $website= "The Gearman homepage: http://www.gearman.org/";
 my $bugs= "Bugs should be reported at https://bugs.launchpad.net/gearmand";
@@ -31,11 +31,19 @@ my $line;
 my $proc= 0;
 my $code= 0;
 my $data;
+my $group;
 
 print "\ndist_man_MANS= docs/man/man1/gearman.1";
 
 while ($line= <>)
 {
+  if ($line=~ s/.*\@addtogroup *[a-z_]* *//)
+  {
+    chomp($line);
+    $group= $line;
+    next;
+  }
+
   if ($line=~ m/^\/\*\*/)
   {
     # We have a start of a comment block.
@@ -78,6 +86,8 @@ while ($line= <>)
         $func=~ s/ ([a-z_\*]*),/ \" $1 \",/g;
         open(MANSRC, ">$path/man$section/$name.$section");
         print MANSRC ".TH $name $section $date \"$short\" \"$long\"\n";
+        print MANSRC ".SH NAME\n";
+        print MANSRC "$name \\- $group\n";
         print MANSRC ".SH SYNOPSIS\n";
         print MANSRC ".B $include\n";
         print MANSRC ".sp\n";
