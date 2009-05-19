@@ -5,10 +5,8 @@
 # Use and distribution licensed under the BSD license.  See
 # the COPYING file in the parent directory for full text.
 
-AM_LDFLAGS= $(top_builddir)/libgearman/libgearman.la
-
 bin_PROGRAMS= \
 	gearman
 
-gearman_CFLAGS= $(AM_CFLAGS) -I$(top_builddir)
+gearman_LDFLAGS= $(top_builddir)/libgearman/libgearman.la
 gearman_SOURCES= gearman.c
