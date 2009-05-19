@@ -1,4 +1,7 @@
-0.6.0 - 2009-05-18
+0.6 - 2009-05-19
+ * Changed behavior so forground jobs are not run when their connected clients
+   disconnect. This is how the Perl server behaves.
+ * Changed to named logging macros, making it easier for module writers to use.
  * Added persistent queue support with a libdrizzle module. This allows queue
    storage for both Drizzle and MySQL.
  * Added Solaris service scripts (Trond Norbye).
