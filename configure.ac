@@ -6,21 +6,23 @@
 # the COPYING file in this directory for full text.
 
 AC_PREREQ(2.59)
-AC_INIT(gearmand, [0.6.0], [https://launchpad.net/gearmand])
+AC_INIT(gearmand, [0.6], [https://launchpad.net/gearmand])
 AC_CONFIG_SRCDIR(libgearman/gearman.c)
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_HEADERS([config.h])
 
-GEARMAN_MAJOR_VERSION=0
-GEARMAN_MINOR_VERSION=6
-GEARMAN_MICRO_VERSION=0
-GEARMAN_VERSION=$GEARMAN_MAJOR_VERSION.$GEARMAN_MINOR_VERSION.$GEARMAN_MICRO_VERSION
-GEARMAN_LIBRARY_VERSION=$GEARMAN_MAJOR_VERSION:$GEARMAN_MINOR_VERSION:$GEARMAN_MICRO_VERSION
-
-PACKAGE=gearmand
-VERSION=$GEARMAN_VERSION
-
-AC_SUBST(GEARMAN_VERSION)
+GEARMAN_LIBRARY_VERSION=1:0:0
+#                       | | |
+#                +------+ | +---+
+#                |        |     |
+#             current:revision:age
+#                |        |     |
+#                |        |     +- increment if interfaces have been added
+#                |        |        set to zero if interfaces have been removed
+#                |        |        or changed
+#                |        +- increment if source code has changed
+#                |           set to zero if current is incremented
+#                +- increment if interfaces have been added, removed or changed
 AC_SUBST(GEARMAN_LIBRARY_VERSION)
 
 # Setting CFLAGS here prevents AC_CANONICAL_TARGET from injecting them
@@ -34,7 +36,7 @@ AC_CANONICAL_TARGET
 CFLAGS=${SAVE_CFLAGS}
 CXXFLAGS=${SAVE_CXXFLAGS}
 
-AM_INIT_AUTOMAKE($PACKAGE, $VERSION, "-Wall -Werror nostdinc subdir-objects")
+AM_INIT_AUTOMAKE([-Wall -Werror nostdinc subdir-objects])
 
 if test "x${enable_dependency_tracking}" = "x"
 then
