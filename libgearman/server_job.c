@@ -287,7 +287,19 @@ gearman_server_job_peek(gearman_server_con_st *server_con)
            priority != GEARMAN_JOB_PRIORITY_MAX; priority++)
       {
         if (server_worker->function->job_list[priority] != NULL)
+        {
+          if (server_worker->function->job_list[priority]->options &
+              GEARMAN_SERVER_JOB_IGNORE)
+          {
+            /* This is only happens when a client disconnects from a foreground
+               job. We do this because we don't want to run the job anymore. */
+            server_worker->function->job_list[priority]->options&=
+                                                     ~GEARMAN_SERVER_JOB_IGNORE;
+            gearman_server_job_free(gearman_server_job_take(server_con));
+            return gearman_server_job_peek(server_con);
+          }
           return server_worker->function->job_list[priority];
+        }
       }
     }
   }
@@ -328,6 +340,12 @@ gearman_server_job_take(gearman_server_con_st *server_con)
   server_job->worker= server_worker;
   server_worker->job= server_job;
   server_job->function->job_running++;
+
+  if (server_job->options & GEARMAN_SERVER_JOB_IGNORE)
+  {
+    gearman_server_job_free(server_job);
+    return gearman_server_job_take(server_con);
+  }
 
   return server_job;
 }

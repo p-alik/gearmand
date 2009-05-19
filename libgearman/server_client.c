@@ -73,7 +73,13 @@ void gearman_server_client_free(gearman_server_client_st *server_client)
   GEARMAN_LIST_DEL(server_client->con->client, server_client, con_)
 
   if (server_client->job != NULL)
+  {
     GEARMAN_LIST_DEL(server_client->job->client, server_client, job_)
+
+    /* If this was a foreground job and is now abandoned, mark to not run. */
+    if (server_client->job->client_list == NULL)
+      server_client->job->options|= GEARMAN_SERVER_JOB_IGNORE;
+  }
 
   if (server_client->options & GEARMAN_SERVER_CLIENT_ALLOCATED)
   {
