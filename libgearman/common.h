@@ -70,6 +70,14 @@ extern "C" {
 # endif
 #endif
 
+#if !defined(__GNUC__) || (__GNUC__ == 2 && __GNUC_MINOR__ < 96)
+#define likely(__x) if((__x))
+#define unlikely(__x) if((__x))
+#else
+#define likely(__x) if(__builtin_expect((__x), 1))
+#define unlikely(__x) if(__builtin_expect((__x), 0))
+#endif
+
 /**
  * Macro to print verbose messages.
  * @ingroup gearman_constants
@@ -97,7 +105,7 @@ extern "C" {
  * @ingroup gearman_constants
  */
 #define GEARMAN_ERROR(__gearman, ...) { \
-  if ((__gearman)->verbose >= GEARMAN_VERBOSE_ERROR) \
+  unlikely ((__gearman)->verbose >= GEARMAN_VERBOSE_ERROR) \
     GEARMAN_LOG(__gearman, "ERROR " __VA_ARGS__) \
 }
 
@@ -106,7 +114,7 @@ extern "C" {
  * @ingroup gearman_constants
  */
 #define GEARMAN_INFO(__gearman, ...) { \
-  if ((__gearman)->verbose >= GEARMAN_VERBOSE_INFO) \
+  unlikely ((__gearman)->verbose >= GEARMAN_VERBOSE_INFO) \
     GEARMAN_LOG(__gearman, " INFO " __VA_ARGS__) \
 }
 
@@ -115,7 +123,7 @@ extern "C" {
  * @ingroup gearman_constants
  */
 #define GEARMAN_DEBUG(__gearman, ...) { \
-  if ((__gearman)->verbose >= GEARMAN_VERBOSE_DEBUG) \
+  unlikely ((__gearman)->verbose >= GEARMAN_VERBOSE_DEBUG) \
     GEARMAN_LOG(__gearman, "DEBUG " __VA_ARGS__) \
 }
 
@@ -124,7 +132,7 @@ extern "C" {
  * @ingroup gearman_constants
  */
 #define GEARMAN_CRAZY(__gearman, ...) { \
-  if ((__gearman)->verbose >= GEARMAN_VERBOSE_CRAZY) \
+  unlikely ((__gearman)->verbose >= GEARMAN_VERBOSE_CRAZY) \
     GEARMAN_LOG(__gearman, "CRAZY " __VA_ARGS__) \
 }
 
