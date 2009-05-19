@@ -146,7 +146,7 @@ gearman_return_t gearman_queue_libdrizzle_init(gearman_st *gearman, int argc,
     else if (!strncmp(argv[x], "db=", 3))
       drizzle_con_set_db(&(queue->con), argv[x] + 3);
     else if (!strncmp(argv[x], "table=", 6))
-      snprintf(queue->table, DRIZZLE_MAX_TABLE_SIZE, argv[x] + 6);
+      snprintf(queue->table, DRIZZLE_MAX_TABLE_SIZE, "%s", argv[x] + 6);
     else if (!strcmp(argv[x], "mysql"))
       drizzle_con_set_options(&(queue->con), DRIZZLE_CON_MYSQL);
     else
