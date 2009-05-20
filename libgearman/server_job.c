@@ -170,7 +170,9 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
         /* Do our best to remove the job from the queue. */
         (void)(*(server->gearman->queue_done_fn))(server->gearman,
                                           (void *)server->gearman->queue_fn_arg,
-                                          server_job->unique, unique_size);
+                                          server_job->unique, unique_size, 
+                                          server_job->function->function_name,
+                                          server_job->function->function_name_size);
       }
 
       gearman_server_job_free(server_job);

@@ -555,7 +555,9 @@ typedef gearman_return_t (gearman_queue_flush_fn)(gearman_st *gearman,
 typedef gearman_return_t (gearman_queue_done_fn)(gearman_st *gearman,
                                                  void *fn_arg,
                                                  const void *unique,
-                                                 size_t unique_size);
+                                                 size_t unique_size,
+                                                 const char *function_name,
+                                                 size_t function_name_size);
 typedef gearman_return_t (gearman_queue_replay_fn)(gearman_st *gearman,
                                                    void *fn_arg,
                                                    gearman_queue_add_fn *add_fn,

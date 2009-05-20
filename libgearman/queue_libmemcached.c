@@ -49,7 +49,9 @@ static gearman_return_t _libmemcached_add(gearman_st *gearman, void *fn_arg,
 static gearman_return_t _libmemcached_flush(gearman_st *gearman, void *fn_arg);
 static gearman_return_t _libmemcached_done(gearman_st *gearman, void *fn_arg,
                                            const void *unique,
-                                           size_t unique_size);
+                                           size_t unique_size, 
+                                           const char *function_name, 
+                                           size_t function_name_size);
 static gearman_return_t _libmemcached_replay(gearman_st *gearman, void *fn_arg,
                                              gearman_queue_add_fn *add_fn,
                                              void *add_fn_arg);
@@ -202,14 +204,22 @@ static gearman_return_t _libmemcached_flush(gearman_st *gearman, void *fn_arg)
 
 static gearman_return_t _libmemcached_done(gearman_st *gearman, void *fn_arg,
                                            const void *unique,
-                                           size_t unique_size)
+                                           size_t unique_size, 
+                                           const char *function_name, 
+                                           size_t function_name_size)
 {
+  size_t key_length;
+  char key[MEMCACHED_MAX_KEY];
   gearman_queue_libmemcached_st *queue= (gearman_queue_libmemcached_st *)fn_arg;
 
   GEARMAN_DEBUG(gearman, "libmemcached done: %.*s", (uint32_t)unique_size, (char *)unique);
 
+  key_length= snprintf(key, MEMCACHED_MAX_KEY, "%s%.*s-%.*s", GEARMAN_QUEUE_LIBMEMCACHED_DEFAULT_PREFIX,
+                       (int)function_name_size, (const char *)function_name, 
+                       (int)unique_size, (const char *)unique);  
+
   /* For the moment we will assume it happened */
-  (void)memcached_delete(&queue->memc, (const char *)unique, unique_size, 0);
+  (void)memcached_delete(&queue->memc, (const char *)key, key_length, 0);
 
   return GEARMAN_SUCCESS;
 }

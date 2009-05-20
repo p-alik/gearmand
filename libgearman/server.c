@@ -497,7 +497,9 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
     {
       ret= (*(gearman->queue_done_fn))(gearman, (void *)gearman->queue_fn_arg,
                                        server_job->unique,
-                                       (size_t)strlen(server_job->unique));
+                                       (size_t)strlen(server_job->unique),
+                                       server_job->function->function_name,
+                                       (size_t)strlen(server_job->function->function_name));
       if (ret != GEARMAN_SUCCESS)
         return ret;
     }
@@ -553,7 +555,9 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
     {
       ret= (*(gearman->queue_done_fn))(gearman, (void *)gearman->queue_fn_arg,
                                        server_job->unique,
-                                       (size_t)strlen(server_job->unique));
+                                       (size_t)strlen(server_job->unique),
+                                       server_job->function->function_name,
+                                       (size_t)strlen(server_job->function->function_name));
       if (ret != GEARMAN_SUCCESS)
         return ret;
     }
