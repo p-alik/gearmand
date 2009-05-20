@@ -209,6 +209,25 @@ fi
 
 AM_CONDITIONAL(HAVE_LIBDRIZZLE, test x$ac_cv_libdrizzle = xyes)
 
+#--------------------------------------------------------------------
+# Check for libmemcached
+#--------------------------------------------------------------------
+
+AC_CHECK_HEADERS(libmemcached/memcached.h)
+if test "x$ac_cv_header_libmemcached_memcached_h" = "xyes"
+then
+  AC_LIB_HAVE_LINKFLAGS(memcached,,
+  [
+  #include <libmemcached/memcached.h>
+  ],
+  [
+    memcached_st memc;
+    memcached_version();
+  ])
+fi
+
+AM_CONDITIONAL(HAVE_LIBMEMCACHED, test x$ac_cv_libmemcached = xyes)
+
 dnl TODO: Remove this define once we are using 2.61 across the board.
 # AX_HEADER_ASSERT
 # ----------------
