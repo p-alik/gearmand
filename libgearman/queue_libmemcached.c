@@ -193,10 +193,8 @@ static gearman_return_t _libmemcached_add(gearman_st *gearman, void *fn_arg,
   return GEARMAN_SUCCESS;
 }
 
-static gearman_return_t _libmemcached_flush(gearman_st *gearman, void *fn_arg)
+static gearman_return_t _libmemcached_flush(gearman_st *gearman, void *fn_arg __attribute__((unused)))
 {
-  (void) fn_arg;
-
   GEARMAN_DEBUG(gearman, "libmemcached flush");
 
   return GEARMAN_SUCCESS;
@@ -210,6 +208,7 @@ static gearman_return_t _libmemcached_done(gearman_st *gearman, void *fn_arg,
 {
   size_t key_length;
   char key[MEMCACHED_MAX_KEY];
+  memcached_return rc;
   gearman_queue_libmemcached_st *queue= (gearman_queue_libmemcached_st *)fn_arg;
 
   GEARMAN_DEBUG(gearman, "libmemcached done: %.*s", (uint32_t)unique_size, (char *)unique);
@@ -219,7 +218,10 @@ static gearman_return_t _libmemcached_done(gearman_st *gearman, void *fn_arg,
                        (int)unique_size, (const char *)unique);  
 
   /* For the moment we will assume it happened */
-  (void)memcached_delete(&queue->memc, (const char *)key, key_length, 0);
+  rc= memcached_delete(&queue->memc, (const char *)key, key_length, 0);
+
+  if (rc != MEMCACHED_SUCCESS)
+    return GEARMAN_QUEUE_ERROR;
 
   return GEARMAN_SUCCESS;
 }
@@ -242,7 +244,6 @@ static memcached_return callback_loader(memcached_st *ptr __attribute__((unused)
   size_t unique_len;
 
   unique= memcached_result_key_value(result);
-  printf("KEY %s\n", unique);
 
   if (strcmp(unique, GEARMAN_QUEUE_LIBMEMCACHED_DEFAULT_PREFIX))
     return MEMCACHED_SUCCESS;
@@ -289,6 +290,9 @@ static memcached_return callback_for_key(memcached_st *ptr __attribute__((unused
   return MEMCACHED_SUCCESS;
 }
 
+/*
+  If we have any failures for loading values back into replay we just ignore them.
+*/
 static gearman_return_t _libmemcached_replay(gearman_st *gearman, void *fn_arg,
                                              gearman_queue_add_fn *add_fn,
                                              void *add_fn_arg)

@@ -347,23 +347,9 @@ static gearman_return_t _libdrizzle_add(gearman_st *gearman, void *fn_arg,
   return GEARMAN_SUCCESS;
 }
 
-static gearman_return_t _libdrizzle_flush(gearman_st *gearman, void *fn_arg)
+static gearman_return_t _libdrizzle_flush(gearman_st *gearman, void *fn_arg __attribute__((unused)))
 {
-  (void) fn_arg;
-
   GEARMAN_DEBUG(gearman, "libdrizzle flush")
-
-  /* This is not used currently, it will be once batch writes are supported
-     inside of the Gearman job server. */
-
-#if 0
-  gearman_queue_libdrizzle_st *queue= (gearman_queue_libdrizzle_st *)fn_arg;
-
-  if (_query(gearman, queue, "COMMIT", 6) != DRIZZLE_RETURN_OK)
-    return GEARMAN_QUEUE_ERROR;
-
-  drizzle_result_free(&(queue->result));
-#endif
 
   return GEARMAN_SUCCESS;
 }

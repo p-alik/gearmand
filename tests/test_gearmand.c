@@ -6,6 +6,8 @@
  * the COPYING file in the parent directory for full text.
  */
 
+#include <stdio.h>
+#include <string.h>
 #include <assert.h>
 #include <signal.h>
 #include <stdlib.h>
@@ -14,7 +16,15 @@
 
 #include "test_gearmand.h"
 
-pid_t test_gearmand_start(in_port_t port)
+#ifdef HAVE_LIBDRIZZLE
+#include <libgearman/queue_libdrizzle.h>
+#endif
+
+#ifdef HAVE_LIBMEMCACHED
+#include <libgearman/queue_libmemcached.h>
+#endif
+
+pid_t test_gearmand_start(in_port_t port, const char *queue_type, char *argv[], int argc)
 {
   pid_t gearmand_pid;
   gearmand_st *gearmand;
@@ -25,7 +35,40 @@ pid_t test_gearmand_start(in_port_t port)
   {
     gearmand= gearmand_create(NULL, port);
     assert(gearmand != NULL);
+
+  if (queue_type != NULL)
+  {
+    assert(argc);
+    assert(argv);
+#ifdef HAVE_LIBDRIZZLE
+    if (!strcmp(queue_type, "libdrizzle"))
+      assert((gearmand_queue_libdrizzle_init(gearmand, argc, argv)) == GEARMAN_SUCCESS);
+    else
+#endif
+#ifdef HAVE_LIBMEMCACHED
+    if (!strcmp(queue_type, "libmemcached"))
+      assert((gearmand_queue_libmemcached_init(gearmand, argc, argv)) == GEARMAN_SUCCESS);
+    else
+#endif
+    {
+      assert(1);
+    }
+  }
+
     assert(gearmand_run(gearmand) != GEARMAN_SUCCESS);
+
+  if (queue_type != NULL)
+  {
+#ifdef HAVE_LIBDRIZZLE
+    if (!strcmp(queue_type, "libdrizzle"))
+      gearmand_queue_libdrizzle_deinit(gearmand);
+#endif
+#ifdef HAVE_LIBMEMCACHED
+    if (!strcmp(queue_type, "libmemcached"))
+      gearmand_queue_libmemcached_deinit(gearmand);
+#endif
+  }
+
     gearmand_free(gearmand);
     exit(0);
   }
