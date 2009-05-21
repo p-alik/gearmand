@@ -191,7 +191,7 @@ then
 fi
 
 #--------------------------------------------------------------------
-# Check for libuuid
+# Check for libdrizzle
 #--------------------------------------------------------------------
 
 AC_CHECK_HEADERS(libdrizzle/drizzle_client.h)

@@ -63,7 +63,9 @@ static gearman_return_t _libdrizzle_add(gearman_st *gearman, void *fn_arg,
 static gearman_return_t _libdrizzle_flush(gearman_st *gearman, void *fn_arg);
 static gearman_return_t _libdrizzle_done(gearman_st *gearman, void *fn_arg,
                                          const void *unique,
-                                         size_t unique_size);
+                                         size_t unique_size,
+                                         const char *function_name,
+                                         size_t function_name_size);
 static gearman_return_t _libdrizzle_replay(gearman_st *gearman, void *fn_arg,
                                            gearman_queue_add_fn *add_fn,
                                            void *add_fn_arg);
@@ -368,7 +370,9 @@ static gearman_return_t _libdrizzle_flush(gearman_st *gearman, void *fn_arg)
 
 static gearman_return_t _libdrizzle_done(gearman_st *gearman, void *fn_arg,
                                          const void *unique,
-                                         size_t unique_size)
+                                         size_t unique_size,
+                                         const char *function_name __attribute__((unused)),
+                                         size_t function_name_size __attribute__((unused)))
 {
   gearman_queue_libdrizzle_st *queue= (gearman_queue_libdrizzle_st *)fn_arg;
   char *query;
