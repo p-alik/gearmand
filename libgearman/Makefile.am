@@ -10,11 +10,17 @@ QUEUE_LIBDRIZZLE_H= queue_libdrizzle.h
 QUEUE_LIBDRIZZLE_C= queue_libdrizzle.c
 endif
 
+if HAVE_LIBMEMCACHED
+QUEUE_LIBMEMCACHED_H= queue_libmemcached.h
+QUEUE_LIBMEMCACHED_C= queue_libmemcached.c
+endif
+
 lib_LTLIBRARIES= libgearman.la
 
 libgearmanincludedir= ${includedir}/libgearman
 
 dist_libgearmaninclude_HEADERS= $(QUEUE_LIBDRIZZLE_H) \
+	$(QUEUE_LIBMEMCACHED_H) \
 	client.h \
 	con.h \
 	constants.h \
@@ -40,6 +46,7 @@ noinst_HEADERS= \
 	common.h
 
 libgearman_la_SOURCES= $(QUEUE_LIBDRIZZLE_C) \
+	$(QUEUE_LIBMEMCACHED_C) \
 	client.c \
 	con.c \
 	gearman.c \
@@ -60,4 +67,4 @@ libgearman_la_SOURCES= $(QUEUE_LIBDRIZZLE_C) \
 	worker.c
 
 libgearman_la_LDFLAGS= -version-info $(GEARMAN_LIBRARY_VERSION) 
-libgearman_la_LIBADD= $(LTLIBEVENT) $(LTLIBUUID) $(LTLIBDRIZZLE)
+libgearman_la_LIBADD= $(LTLIBEVENT) $(LTLIBUUID) $(LTLIBDRIZZLE) $(LTLIBMEMCACHED)
