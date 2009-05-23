@@ -8,5 +8,5 @@
 bin_PROGRAMS= \
 	gearman
 
-gearman_LDFLAGS= $(top_builddir)/libgearman/libgearman.la
 gearman_SOURCES= gearman.c
+gearman_LDADD= $(top_builddir)/libgearman/libgearman.la
