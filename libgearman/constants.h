@@ -330,7 +330,8 @@ typedef enum
   GEARMAN_CLIENT_NON_BLOCKING=      (1 << 1),
   GEARMAN_CLIENT_TASK_IN_USE=       (1 << 2),
   GEARMAN_CLIENT_UNBUFFERED_RESULT= (1 << 3),
-  GEARMAN_CLIENT_NO_NEW=            (1 << 4)
+  GEARMAN_CLIENT_NO_NEW=            (1 << 4),
+  GEARMAN_CLIENT_FREE_TASKS=        (1 << 5)
 } gearman_client_options_t;
 
 /**

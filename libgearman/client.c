@@ -1000,6 +1000,10 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
 
   client->running_tasks--;
   task->state= GEARMAN_TASK_STATE_FINISHED;
+
+  if (client->options & GEARMAN_CLIENT_FREE_TASKS)
+    gearman_task_free(task);
+
   return GEARMAN_SUCCESS;
 }
 
