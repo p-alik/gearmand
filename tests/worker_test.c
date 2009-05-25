@@ -235,7 +235,7 @@ void *world_create(void)
   assert(gearman_worker_add_server(&(test->worker), NULL, WORKER_TEST_PORT) ==
          GEARMAN_SUCCESS);
 
-  test->gearmand_pid= test_gearmand_start(WORKER_TEST_PORT);
+  test->gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, NULL, NULL, 0);
 
   return (void *)test;
 }

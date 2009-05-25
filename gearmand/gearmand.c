@@ -59,6 +59,10 @@
 #include <libgearman/queue_libdrizzle.h>
 #endif
 
+#ifdef HAVE_LIBMEMCACHED
+#include <libgearman/queue_libmemcached.h>
+#endif
+
 #define GEARMAND_LOG_REOPEN_TIME 60
 #define GEARMAND_LISTEN_BACKLOG 32
 
@@ -217,6 +221,10 @@ int main(int argc, char *argv[])
       printf("\nlibdrizzle\n");
       gearman_queue_libdrizzle_usage();
 #endif
+#ifdef HAVE_LIBMEMCACHED
+      printf("\nlibmemcached\n");
+      gearman_queue_libmemcached_usage();
+#endif
 
       return 1;
     }
@@ -253,6 +261,15 @@ int main(int argc, char *argv[])
     }
     else
 #endif
+#ifdef HAVE_LIBMEMCACHED
+    if (!strcmp(queue_type, "libmemcached"))
+    {
+      ret= gearmand_queue_libmemcached_init(_gearmand, queue_argc, queue_argv);
+      if (ret != GEARMAN_SUCCESS)
+        return 1;
+    }
+    else
+#endif
     {
       fprintf(stderr, "gearmand: Unknown queue type: %s\n", queue_type);
       return 1;
@@ -266,6 +283,10 @@ int main(int argc, char *argv[])
 #ifdef HAVE_LIBDRIZZLE
     if (!strcmp(queue_type, "libdrizzle"))
       gearmand_queue_libdrizzle_deinit(_gearmand);
+#endif
+#ifdef HAVE_LIBMEMCACHED
+    if (!strcmp(queue_type, "libmemcached"))
+      gearmand_queue_libmemcached_deinit(_gearmand);
 #endif
   }
 

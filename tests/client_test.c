@@ -285,7 +285,7 @@ void *world_create(void)
   assert(gearman_client_add_server(&(test->client), NULL, CLIENT_TEST_PORT) ==
          GEARMAN_SUCCESS);
 
-  test->gearmand_pid= test_gearmand_start(CLIENT_TEST_PORT);
+  test->gearmand_pid= test_gearmand_start(CLIENT_TEST_PORT, NULL, NULL, 0);
   test->worker_pid= test_worker_start(CLIENT_TEST_PORT, "client_test",
                                       client_test_worker, NULL);
 
