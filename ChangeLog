@@ -1,6 +1,8 @@
 0.7
  * Changed done() function for queue, function_name is now passed to it as
    well as unique.
+ * Fixed text protocol command response to be dynamic length.
+ * Fixed libevent usage to support libevent 1.1 (still used in CentOS and Suse).
 
 0.6 - 2009-05-19
  * Changed behavior so forground jobs are not run when their connected clients

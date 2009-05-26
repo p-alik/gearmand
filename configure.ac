@@ -149,6 +149,7 @@ AS_IF([test x$ac_cv_libevent = xno],
 save_LIBS="${LIBS}"
 LIBS="${LIBS} ${LTLIBEVENT}"
 AC_CHECK_FUNCS(event_base_new)
+AC_CHECK_FUNCS(event_base_free)
 AC_CHECK_FUNCS(event_base_get_method)
 LIBS="$save_LIBS"
 

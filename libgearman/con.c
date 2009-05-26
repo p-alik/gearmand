@@ -232,9 +232,12 @@ gearman_return_t gearman_con_send(gearman_con_st *con,
         return ret;
     }
 
-    memcpy(con->send_buffer + con->send_buffer_size, packet->args,
-           packet->args_size);
-    con->send_buffer_size+= packet->args_size;
+    if (packet->args_size > 0)
+    {
+      memcpy(con->send_buffer + con->send_buffer_size, packet->args,
+             packet->args_size);
+      con->send_buffer_size+= packet->args_size;
+    }
 
     /* Return here if we have no data to send. */
     if (packet->data_size == 0)

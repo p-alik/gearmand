@@ -252,6 +252,10 @@ extern "C" {
 #define event_base_new event_init
 #endif
 
+#ifndef HAVE_EVENT_BASE_FREE
+#define event_base_free (void)
+#endif
+
 #ifndef HAVE_EVENT_BASE_GET_METHOD
 #define event_base_get_method(__base) event_get_method()
 #endif
