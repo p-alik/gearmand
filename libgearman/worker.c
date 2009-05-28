@@ -34,6 +34,12 @@ static gearman_worker_st *_worker_allocate(gearman_worker_st *worker);
 static gearman_return_t _worker_packet_init(gearman_worker_st *worker);
 
 /**
+ * Callback function used when parsing server lists.
+ */
+static gearman_return_t _worker_add_server(const char *host, in_port_t port,
+                                           void *data);
+
+/**
  * Allocate and add a function to the register list.
  */
 static gearman_return_t _worker_function_add(gearman_worker_st *worker,
@@ -194,6 +200,12 @@ gearman_return_t gearman_worker_add_server(gearman_worker_st *worker,
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
 
   return GEARMAN_SUCCESS;
+}
+
+gearman_return_t gearman_worker_add_servers(gearman_worker_st *worker,
+                                            const char *servers)
+{
+  return gearman_parse_servers(servers, worker, _worker_add_server);
 }
 
 gearman_return_t gearman_worker_register(gearman_worker_st *worker,
@@ -711,6 +723,12 @@ static gearman_return_t _worker_packet_init(gearman_worker_st *worker)
   worker->options|= GEARMAN_WORKER_PACKET_INIT;
 
   return GEARMAN_SUCCESS;
+}
+
+static gearman_return_t _worker_add_server(const char *host, in_port_t port,
+                                           void *data)
+{
+  return gearman_worker_add_server((gearman_worker_st *)data, host, port);
 }
 
 static gearman_return_t _worker_function_add(gearman_worker_st *worker,

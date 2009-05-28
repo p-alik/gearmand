@@ -516,6 +516,9 @@ typedef gearman_return_t (gearman_complete_fn)(gearman_task_st *task);
 typedef gearman_return_t (gearman_exception_fn)(gearman_task_st *task);
 typedef gearman_return_t (gearman_fail_fn)(gearman_task_st *task);
 
+typedef gearman_return_t (gearman_parse_server_fn)(const char *host,
+                                                   in_port_t port, void *data);
+
 typedef void* (gearman_worker_fn)(gearman_job_st *job, void *fn_arg,
                                   size_t *result_size,
                                   gearman_return_t *ret_ptr);

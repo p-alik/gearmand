@@ -3,6 +3,8 @@
    well as unique.
  * Fixed text protocol command response to be dynamic length.
  * Fixed libevent usage to support libevent 1.1 (still used in CentOS and Suse).
+ * Added gearman_*_add_servers to client/worker interfaces for taking
+   server lists.
 
 0.6 - 2009-05-19
  * Changed behavior so forground jobs are not run when their connected clients

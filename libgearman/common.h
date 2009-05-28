@@ -266,6 +266,13 @@ extern "C" {
  */
 extern gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX];
 
+/**
+ * Utility function used for parsing server lists.
+ * @ingroup gearman_private
+ */
+gearman_return_t gearman_parse_servers(const char *servers, void *data,
+                                       gearman_parse_server_fn *server_fn);
+
 #ifdef __cplusplus
 }
 #endif

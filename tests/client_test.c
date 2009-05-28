@@ -35,6 +35,7 @@ test_return submit_job_test(void *object);
 test_return submit_null_job_test(void *object);
 test_return background_test(void *object);
 test_return background_failure_test(void *object);
+test_return add_servers_test(void *object);
 
 void *create(void *object);
 void destroy(void *object);
@@ -223,6 +224,30 @@ test_return background_failure_test(void *object)
   return TEST_SUCCESS;
 }
 
+test_return add_servers_test(void *object __attribute__((unused)))
+{
+  gearman_client_st client;
+
+  if (gearman_client_create(&client) == NULL)
+    return TEST_FAILURE;
+
+  if (gearman_client_add_servers(&client, "127.0.0.1:4730,localhost")
+      != GEARMAN_SUCCESS)
+  {
+    return TEST_FAILURE;
+  }
+
+  if (gearman_client_add_servers(&client, "old_jobserver:7003,broken:12345")
+      != GEARMAN_SUCCESS)
+  {
+    return TEST_FAILURE;
+  }
+
+  gearman_client_free(&client);
+
+  return TEST_SUCCESS;
+}
+
 test_return flush(void)
 {
   return TEST_SUCCESS;
@@ -310,6 +335,7 @@ test_st tests[] ={
   {"submit_null_job", 0, submit_null_job_test },
   {"background", 0, background_test },
   {"background_failure", 0, background_failure_test },
+  {"add_servers", 0, add_servers_test },
   {0, 0, 0}
 };
 

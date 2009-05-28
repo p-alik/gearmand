@@ -29,6 +29,12 @@
 static gearman_client_st *_client_allocate(gearman_client_st *client);
 
 /**
+ * Callback function used when parsing server lists.
+ */
+static gearman_return_t _client_add_server(const char *host, in_port_t port,
+                                           void *data);
+
+/**
  * Add a task.
  */
 static gearman_task_st *_client_add_task(gearman_client_st *client,
@@ -198,6 +204,12 @@ gearman_return_t gearman_client_add_server(gearman_client_st *client,
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
 
   return GEARMAN_SUCCESS;
+}
+
+gearman_return_t gearman_client_add_servers(gearman_client_st *client,
+                                            const char *servers)
+{
+  return gearman_parse_servers(servers, client, _client_add_server);
 }
 
 void *gearman_client_do(gearman_client_st *client, const char *function_name,
@@ -736,6 +748,12 @@ static gearman_client_st *_client_allocate(gearman_client_st *client)
     memset(client, 0, sizeof(gearman_client_st));
 
   return client;
+}
+
+static gearman_return_t _client_add_server(const char *host, in_port_t port,
+                                           void *data)
+{
+  return gearman_client_add_server((gearman_client_st *)data, host, port);
 }
 
 static gearman_task_st *_client_add_task(gearman_client_st *client,

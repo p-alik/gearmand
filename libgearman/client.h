@@ -149,6 +149,20 @@ gearman_return_t gearman_client_add_server(gearman_client_st *client,
                                            const char *host, in_port_t port);
 
 /**
+ * Add a list of job servers to a client. The format for the server list is:
+ * SERVER[:PORT][,SERVER[:PORT]]...
+ * Some examples are:
+ * 10.0.0.1,10.0.0.2,10.0.0.3
+ * localhost:1234,jobserver2.domain.com:7003,10.0.0.3
+ * @param client Client structure previously initialized with
+ *        gearman_client_create or gearman_client_clone.
+ * @param servers Server list described above.
+ * @return Standard gearman return value.
+ */
+gearman_return_t gearman_client_add_servers(gearman_client_st *client,
+                                            const char *servers);
+
+/**
  * @addtogroup gearman_client_single Single Task Interface
  * @ingroup gearman_client
  * Use the following set of functions to run one task at a time.
