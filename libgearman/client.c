@@ -841,9 +841,16 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
   case GEARMAN_TASK_STATE_SUBMIT:
     ret= gearman_con_send(task->con, &(task->send),
                           client->new_tasks == 0 ? true : false);
-    if (ret != GEARMAN_SUCCESS)
+    if (ret == GEARMAN_IO_WAIT)
     {
       task->state= GEARMAN_TASK_STATE_SUBMIT;
+      return GEARMAN_IO_WAIT;
+    }
+    else if (ret != GEARMAN_SUCCESS)
+    {
+      /* Increment this since the job submission failed. */
+      client->con->created_id++;
+      client->running_tasks--;
       return ret;
     }
 
