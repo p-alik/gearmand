@@ -1,4 +1,5 @@
 0.7
+ * Fixed persistent queue bug where jobs were not removed after replay.
  * Fix for bug #379198.
  * Changed done() function for queue, function_name is now passed to it as
    well as unique.

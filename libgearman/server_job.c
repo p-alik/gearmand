@@ -130,8 +130,9 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
     key= key % GEARMAN_JOB_HASH_SIZE;
     GEARMAN_HASH_ADD(server->job, key, server_job,)
 
-    if (server_client == NULL && server->gearman->queue_add_fn != NULL &&
-        !(server->options & GEARMAN_SERVER_QUEUE_REPLAY))
+    if (server->options & GEARMAN_SERVER_QUEUE_REPLAY)
+      server_job->options|= GEARMAN_SERVER_JOB_QUEUED;
+    else if (server_client == NULL && server->gearman->queue_add_fn != NULL)
     {
       *ret_ptr= (*(server->gearman->queue_add_fn))(server->gearman,
                                           (void *)server->gearman->queue_fn_arg,
