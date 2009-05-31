@@ -16,6 +16,8 @@
 
 #include "test_gearmand.h"
 
+#include <libmodconf/modconf.h>
+
 #ifdef HAVE_LIBDRIZZLE
 #include <libgearman/queue_libdrizzle.h>
 #endif
