@@ -33,12 +33,6 @@ docs: all
 
 test: check
 
-check: all
-	(cd tests; ${MAKE} check)
-
-test-extended: all
-	(cd tests; ${MAKE} test-extended)
-
 valgrind:
 	(cd tests; ${MAKE} valgrind)
 
