@@ -32,19 +32,21 @@ modconf_module_st *modconf_module_create(modconf_st *modconf,
       return NULL;
     }
 
-    memset(module, 0, sizeof(modconf_module_st));
-    module->options|= MODCONF_MODULE_ALLOCATED;
+    module->options= MODCONF_MODULE_ALLOCATED;
   }
   else
-    memset(module, 0, sizeof(modconf_module_st));
+    module->options= 0;
 
   module->modconf= modconf;
   module->name= name;
+  module->current_option= 0;
+  module->current_value= 0;
 
   module_list= realloc(modconf->module_list, sizeof(modconf_module_st *) *
                        (modconf->module_count + 1));
   if (module_list == NULL)
   {
+    modconf_module_free(module);
     MODCONF_ERROR_SET(modconf, "modconf_module_create", "realloc");
     return NULL;
   }
@@ -62,6 +64,24 @@ void modconf_module_free(modconf_module_st *module)
     free(module);
 }
 
+modconf_module_st *modconf_module_find(modconf_st *modconf, const char *name)
+{
+  uint32_t x;
+
+  for (x= 0; x < modconf->module_count; x++)
+  {
+    if (name == NULL || modconf->module_list[x]->name == NULL)
+    {
+      if (name == modconf->module_list[x]->name)
+        return modconf->module_list[x];
+    }
+    else if (!strcmp(name, modconf->module_list[x]->name))
+      return modconf->module_list[x];
+  }
+
+  return NULL;
+}
+
 void modconf_module_add_option(modconf_module_st *module, const char *name,
                                int short_name, const char *value_name,
                                const char *help)
@@ -70,6 +90,13 @@ void modconf_module_add_option(modconf_module_st *module, const char *name,
   modconf_option_st *option_list;
   struct option *option_getopt;
   uint32_t x;
+
+  /* Unset short_name if it's already in use. */
+  for (x= 0; x < modconf->option_count && short_name != 0; x++)
+  {
+    if (modconf->option_getopt[x].val == short_name)
+      short_name= 0;
+  }
 
   /* Make room in option lists. */
   option_list= realloc(modconf->option_list,
@@ -100,20 +127,12 @@ void modconf_module_add_option(modconf_module_st *module, const char *name,
   memset(&modconf->option_getopt[modconf->option_count], 0,
          sizeof(sizeof(struct option)));
 
-  /* Unset short_name if it's already in use. */
-  for (x= 0; x < modconf->option_count && short_name != 0; x++)
-  {
-    if (modconf->option_getopt[x].val == short_name)
-      short_name= 0;
-  }
-
   option_list->module= module;
   option_list->name= name;
   option_list->value_name= value_name;
   option_list->help= help;
   option_list->value_list= NULL;
   option_list->value_count= 0;
-  option_list->value_current= 0;
 
   if (module->name == NULL)
   {
@@ -151,4 +170,31 @@ void modconf_module_add_option(modconf_module_st *module, const char *name,
       modconf->option_short[modconf->short_count++]= ':';
     modconf->option_short[modconf->short_count]= '0';
   }
+}
+
+bool modconf_module_value(modconf_module_st *module, const char **name,
+                          const char **value)
+{
+  modconf_option_st *option;
+
+  for (; module->current_option < module->modconf->option_count;
+       module->current_option++)
+  {
+    option= &module->modconf->option_list[module->current_option];
+    if (option->module != module)
+      continue;
+
+    if (module->current_value < option->value_count)
+    {
+      *name= option->name;
+      *value= option->value_list[module->current_value++];
+      return true;
+    }
+
+    module->current_value= 0;
+  }
+
+  module->current_option= 0;
+
+  return false;
 }

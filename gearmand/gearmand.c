@@ -70,7 +70,7 @@
 
 typedef struct
 {
-  char *file;
+  const char *file;
   int fd;
   time_t reopen;
 } gearmand_log_info_st;
@@ -89,19 +89,21 @@ static void _log(gearmand_st *gearmand __attribute__ ((unused)),
 
 int main(int argc, char *argv[])
 {
+  modconf_st modconf;
+  modconf_module_st module;
+  const char *name;
+  const char *value;
   int backlog= GEARMAND_LISTEN_BACKLOG;
   rlim_t fds= 0;
   in_port_t port= 0;
-  char *host= NULL;
-  char *pid_file= NULL;
-  char *queue_type= NULL;
+  const char *host= NULL;
+  const char *pid_file= NULL;
+  const char *queue_type= NULL;
   uint32_t threads= 0;
-  char *user= NULL;
+  const char *user= NULL;
   uint8_t verbose= 0;
   gearman_return_t ret;
   gearmand_log_info_st log_info;
-  modconf_st modconf;
-  modconf_module_st module;
 
   log_info.file= NULL;
   log_info.fd= -1;
@@ -119,44 +121,38 @@ int main(int argc, char *argv[])
     return 1;
   }
 
-  modconf_module_add_option(&module, "backlog", 'b', "BACKLOG",
-                            "Number of backlog connections for listen.");
-  modconf_module_add_option(&module, "daemon", 'd', NULL,
-                            "Daemon, detach and run in the background.");
-  modconf_module_add_option(&module, "file-descriptors", 'f', "FDS",
-                            "Number of file descriptors to allow for the "
-                            "process (total connections will be slightly "
-                            "less). Default is max allowed for user.");
-  modconf_module_add_option(&module, "help", 'h', NULL,
-                            "Print this help menu.");
-  modconf_module_add_option(&module, "log-file", 'l', "FILE",
-                            "Log file to write errors and information to. "
-                            "Turning this option on also forces the first "
-                            "verbose level to be enabled.");
-  modconf_module_add_option(&module, "listen", 'L', "ADDRESS",
-                            "Address the server should listen on. Default is "
-                            "INADDR_ANY.");
-  modconf_module_add_option(&module, "port", 'p', "PORT",
-                            "Port the server should listen on.");
-  modconf_module_add_option(&module, "pid-file", 'P', "FILE",
-                            "File to write process ID out to.");
-  modconf_module_add_option(&module, "queue-type", 'q', "QUEUE",
-                            "Persistent queue type to use.");
-  modconf_module_add_option(&module, "threads", 't', "THREADS",
-                            "Number of I/O threads to use. Default=0.");
-  modconf_module_add_option(&module, "user", 'u', "USER",
-                            "Switch to given user after startup.");
-  modconf_module_add_option(&module, "verbose", 'v', NULL,
-                            "Increase verbosity level by one.");
-  modconf_module_add_option(&module, "version", 'V', NULL,
-                            "Display the version of gearmand and exit.");
+  /* Add all main configuration options. */
+#define MCO(__name, __short, __value, __help) \
+  modconf_module_add_option(&module, __name, __short, __value, __help);
 
+  MCO("backlog", 'b', "BACKLOG", "Number of backlog connections for listen.")
+  MCO("daemon", 'd', NULL, "Daemon, detach and run in the background.")
+  MCO("file-descriptors", 'f', "FDS",
+      "Number of file descriptors to allow for the process (total connections "
+      "will be slightly less). Default is max allowed for user.")
+  MCO("help", 'h', NULL, "Print this help menu.");
+  MCO("log-file", 'l', "FILE",
+      "Log file to write errors and information to. Turning this option on "
+      "also forces the first verbose level to be enabled.")
+  MCO("listen", 'L', "ADDRESS",
+      "Address the server should listen on. Default is INADDR_ANY.")
+  MCO("port", 'p', "PORT", "Port the server should listen on.")
+  MCO("pid-file", 'P', "FILE", "File to write process ID out to.")
+  MCO("queue-type", 'q', "QUEUE", "Persistent queue type to use.")
+  MCO("threads", 't', "THREADS", "Number of I/O threads to use. Default=0.")
+  MCO("user", 'u', "USER", "Switch to given user after startup.")
+  MCO("verbose", 'v', NULL, "Increase verbosity level by one.")
+  MCO("version", 'V', NULL, "Display the version of gearmand and exit.")
+
+  /* Make sure none of the modconf_module_add_option calls failed. */
   if (modconf_return(&modconf) != MODCONF_SUCCESS)
   {
     fprintf(stderr, "gearmand: modconf_module_add_option: %s\n",
             modconf_error(&modconf));
     return 1;
   }
+
+  /* Add queue configuration options. */
 
 #ifdef HAVE_LIBDRIZZLE
   if (gearman_queue_libdrizzle_modconf(&modconf) != MODCONF_SUCCESS)
@@ -175,18 +171,19 @@ int main(int argc, char *argv[])
   }
 #endif
 
+  /* Let modconf parse the command line arguments. */
   if (modconf_parse_args(&modconf, argc, argv) != MODCONF_SUCCESS)
   {
-    printf("\ngearmand %s - %s\n\n", gearman_version(), gearman_bugreport());
+    printf("\n%s\n\n", modconf_error(&modconf));
+    printf("gearmand %s - %s\n\n", gearman_version(), gearman_bugreport());
     printf("usage: %s [OPTIONS]\n", argv[0]);
     modconf_usage(&modconf);
     return 1;
   }
 
-  //while(modconf_module_value(&module, &name, &value))
+  /* Check for option values that were given. */
+  while (modconf_module_value(&module, &name, &value))
   {
-char *name="help";
-char *value="1";
     if (!strcmp(name, "backlog"))
       backlog= atoi(value);
     else if (!strcmp(name, "daemon"))
@@ -211,7 +208,7 @@ char *value="1";
       }
     }
     else if (!strcmp(name, "file-descriptors"))
-      fds= atoi(optarg);
+      fds= atoi(value);
     else if (!strcmp(name, "help"))
     {
       printf("\ngearmand %s - %s\n\n", gearman_version(), gearman_bugreport());
@@ -220,23 +217,28 @@ char *value="1";
       return 1;
     }
     else if (!strcmp(name, "log-file"))
-      log_info.file= optarg;
+      log_info.file= value;
     else if (!strcmp(name, "listen"))
-      host= optarg;
+      host= value;
     else if (!strcmp(name, "port"))
-      port= (in_port_t)atoi(optarg);
+      port= (in_port_t)atoi(value);
     else if (!strcmp(name, "pid-file"))
-      pid_file= optarg;
+      pid_file= value;
     else if (!strcmp(name, "queue-type"))
-      queue_type= optarg;
+      queue_type= value;
     else if (!strcmp(name, "threads"))
-      threads= atoi(optarg);
+      threads= atoi(value);
     else if (!strcmp(name, "user"))
-      user= optarg;
+      user= value;
     else if (!strcmp(name, "verbose"))
       verbose++;
     else if (!strcmp(name, "version"))
       printf("\ngearmand %s - %s\n", gearman_version(), gearman_bugreport());
+    else
+    {
+      fprintf(stderr, "gearmand: Unknown option:%s\n", name);
+      return 1;
+    }
   }
 
   if (log_info.file != NULL && verbose == 0)
@@ -264,7 +266,7 @@ char *value="1";
 #ifdef HAVE_LIBDRIZZLE
     if (!strcmp(queue_type, "libdrizzle"))
     {
-      ret= gearmand_queue_libdrizzle_init(_gearmand);
+      ret= gearmand_queue_libdrizzle_init(_gearmand, &modconf);
       if (ret != GEARMAN_SUCCESS)
         return 1;
     }
@@ -273,7 +275,7 @@ char *value="1";
 #ifdef HAVE_LIBMEMCACHED
     if (!strcmp(queue_type, "libmemcached"))
     {
-      ret= gearmand_queue_libmemcached_init(_gearmand);
+      ret= gearmand_queue_libmemcached_init(_gearmand, &modconf);
       if (ret != GEARMAN_SUCCESS)
         return 1;
     }

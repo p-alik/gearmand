@@ -70,6 +70,14 @@ void modconf_free(modconf_st *modconf)
   for (x= 0; x < modconf->module_count; x++)
     modconf_module_free(modconf->module_list[x]);
 
+  for (x= 0; x < modconf->option_count; x++)
+  {
+    free((char *)modconf->option_getopt[x].name);
+
+    if (modconf->option_list[x].value_list != NULL)
+      free(modconf->option_list[x].value_list);
+  }
+
   if (modconf->module_list != NULL)
     free(modconf->module_list);
 
@@ -141,8 +149,8 @@ modconf_return_t modconf_parse_args(modconf_st *modconf, int argc,
 
       if (index == (int)modconf->option_count)
       {
-        MODCONF_ERROR_SET(modconf, "modconf_parse_args",
-                          "Unknown short option: %c", optopt);
+        MODCONF_ERROR_SET(modconf, "ERROR",
+                          " Unknown option: %s", argv[optind - 1]);
         return MODCONF_UNKNOWN_OPTION;
       }
     }

@@ -28,46 +28,57 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type, char *argv[], 
 {
   pid_t gearmand_pid;
   gearmand_st *gearmand;
+  modconf_st modconf;
 
   assert((gearmand_pid= fork()) != -1);
 
   if (gearmand_pid == 0)
   {
+    assert(modconf_create(&modconf) != NULL);
+#ifdef HAVE_LIBDRIZZLE
+    assert(gearman_queue_libdrizzle_modconf(&modconf) == MODCONF_SUCCESS);
+#endif
+#ifdef HAVE_LIBMEMCACHED
+    assert(gearman_queue_libmemcached_modconf(&modconf) == MODCONF_SUCCESS);
+#endif
+
+    assert(modconf_parse_args(&modconf, argc, argv) == MODCONF_SUCCESS);
+
     gearmand= gearmand_create(NULL, port);
     assert(gearmand != NULL);
 
-  if (queue_type != NULL)
-  {
-    assert(argc);
-    assert(argv);
+    if (queue_type != NULL)
+    {
+      assert(argc);
+      assert(argv);
 #ifdef HAVE_LIBDRIZZLE
-    if (!strcmp(queue_type, "libdrizzle"))
-      assert((gearmand_queue_libdrizzle_init(gearmand, argc, argv)) == GEARMAN_SUCCESS);
-    else
+      if (!strcmp(queue_type, "libdrizzle"))
+        assert((gearmand_queue_libdrizzle_init(gearmand, &modconf)) == GEARMAN_SUCCESS);
+      else
 #endif
 #ifdef HAVE_LIBMEMCACHED
-    if (!strcmp(queue_type, "libmemcached"))
-      assert((gearmand_queue_libmemcached_init(gearmand, argc, argv)) == GEARMAN_SUCCESS);
-    else
+      if (!strcmp(queue_type, "libmemcached"))
+        assert((gearmand_queue_libmemcached_init(gearmand, &modconf)) == GEARMAN_SUCCESS);
+      else
 #endif
-    {
-      assert(1);
+      {
+        assert(1);
+      }
     }
-  }
 
     assert(gearmand_run(gearmand) != GEARMAN_SUCCESS);
 
-  if (queue_type != NULL)
-  {
+    if (queue_type != NULL)
+    {
 #ifdef HAVE_LIBDRIZZLE
-    if (!strcmp(queue_type, "libdrizzle"))
-      gearmand_queue_libdrizzle_deinit(gearmand);
+      if (!strcmp(queue_type, "libdrizzle"))
+        gearmand_queue_libdrizzle_deinit(gearmand);
 #endif
 #ifdef HAVE_LIBMEMCACHED
-    if (!strcmp(queue_type, "libmemcached"))
-      gearmand_queue_libmemcached_deinit(gearmand);
+      if (!strcmp(queue_type, "libmemcached"))
+        gearmand_queue_libmemcached_deinit(gearmand);
 #endif
-  }
+    }
 
     gearmand_free(gearmand);
     exit(0);

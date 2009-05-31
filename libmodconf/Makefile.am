@@ -11,6 +11,7 @@ libmodconfincludedir= ${includedir}/libmodconf
 
 dist_libmodconfinclude_HEADERS= \
 	modconf.h \
+	module.h \
 	constants.h \
 	structs.h
 

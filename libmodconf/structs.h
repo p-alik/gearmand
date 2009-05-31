@@ -47,7 +47,6 @@ struct modconf_option_st
   const char *help;
   char **value_list;
   size_t value_count;
-  size_t value_current;
 };
 
 /**
@@ -58,6 +57,8 @@ struct modconf_module_st
   modconf_st *modconf;
   const char *name;
   modconf_module_options_t options;
+  size_t current_option;
+  size_t current_value;
 };
 
 #ifdef __cplusplus

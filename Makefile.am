@@ -15,7 +15,8 @@ SUBDIRS = \
 	examples \
 	scripts \
 	support \
-	benchmark
+	benchmark \
+	tests
 
 include $(top_srcdir)/docs/man_list
 
@@ -30,8 +31,10 @@ docs: all
 	${DOXYGEN} docs/Doxyfile.api
 	${DOXYGEN} docs/Doxyfile.dev
 
-test: all
-	(cd tests; ${MAKE} test)
+test: check
+
+check: all
+	(cd tests; ${MAKE} check)
 
 test-extended: all
 	(cd tests; ${MAKE} test-extended)

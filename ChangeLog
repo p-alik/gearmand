@@ -1,4 +1,6 @@
 0.7
+ * Added libmodconf for config option processing. Eventually this will be split
+   into a separate library. Updated gearmand and tests to use libmodconf.
  * Fixed persistent queue bug where jobs were not removed after replay.
  * Fix for bug #379198.
  * Changed done() function for queue, function_name is now passed to it as

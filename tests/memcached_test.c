@@ -23,6 +23,7 @@ typedef struct
 {
   pid_t gearmand_pid;
   gearman_worker_st worker;
+  bool run_worker;
 } worker_test_st;
 
 /* Prototypes */
@@ -53,38 +54,57 @@ static void *counter_function(gearman_job_st *job __attribute__((unused)),
   return NULL;
 }
 
-test_return queue_add(void *object __attribute__((unused)))
+test_return queue_add(void *object)
 {
-  gearman_return_t rc;
+  worker_test_st *test= (worker_test_st *)object;
   gearman_client_st client;
   char job_handle[GEARMAN_JOB_HANDLE_SIZE];
   uint8_t *value= (uint8_t *)"background_test";
   size_t value_length= strlen("background_test");
 
-  memset(&client, 0, sizeof(gearman_client_st));
-  assert(gearman_client_create(&client) != NULL);
+  test->run_worker= false;
 
-  assert((gearman_client_add_server(&client, "localhost", WORKER_TEST_PORT)) == GEARMAN_SUCCESS);
+  if (gearman_client_create(&client) == NULL)
+    return TEST_FAILURE;
 
-  rc= gearman_client_do_background(&client, "queue_test", NULL, value,
-                                   value_length, job_handle);
-  assert(rc == GEARMAN_SUCCESS);
+  if (gearman_client_add_server(&client, NULL,
+                                WORKER_TEST_PORT) != GEARMAN_SUCCESS)
+  {
+    return TEST_FAILURE;
+  }
+
+  if (gearman_client_do_background(&client, "queue_test", NULL, value,
+                                   value_length, job_handle) != GEARMAN_SUCCESS)
+  {
+    return TEST_FAILURE;
+  }
 
   gearman_client_free(&client);
 
+  test->run_worker= true;
   return TEST_SUCCESS;
 }
 
-test_return queue_worker(void *object __attribute__((unused)))
+test_return queue_worker(void *object)
 {
-  gearman_worker_st *worker= (gearman_worker_st *)object;
+  worker_test_st *test= (worker_test_st *)object;
+  gearman_worker_st *worker= &(test->worker);
   uint32_t counter= 0;
 
-  assert((gearman_worker_add_function(worker, "queue_test", 5, counter_function, &counter)) == GEARMAN_SUCCESS);
+  if (!test->run_worker)
+    return TEST_FAILURE;
 
-  assert((gearman_worker_work(worker)) == GEARMAN_SUCCESS);
+  if (gearman_worker_add_function(worker, "queue_test", 5, counter_function,
+                                  &counter) != GEARMAN_SUCCESS)
+  {
+    return TEST_FAILURE;
+  }
 
-  assert(counter > 0);
+  if (gearman_worker_work(worker) != GEARMAN_SUCCESS)
+    return TEST_FAILURE;
+
+  if (counter == 0)
+    return TEST_FAILURE;
 
   return TEST_SUCCESS;
 }
@@ -95,10 +115,9 @@ test_return flush(void)
   return TEST_SUCCESS;
 }
 
-void *create(void *object __attribute__((unused)))
+void *create(void *object)
 {
-  worker_test_st *test= (worker_test_st *)object;
-  return (void *)&(test->worker);
+  return object;
 }
 
 void destroy(void *object __attribute__((unused)))
@@ -118,9 +137,7 @@ test_return post(void *object __attribute__((unused)))
 void *world_create(void)
 {
   worker_test_st *test;
-  char *argv[1];
-
-  argv[0]= "servers=localhost";
+  char *argv[2]= { "test_gearmand", "--libmemcached-servers=localhost" };
 
   assert((test= malloc(sizeof(worker_test_st))) != NULL);
   memset(test, 0, sizeof(worker_test_st));
@@ -129,7 +146,7 @@ void *world_create(void)
   assert(gearman_worker_add_server(&(test->worker), NULL, WORKER_TEST_PORT) ==
          GEARMAN_SUCCESS);
 
-  test->gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, "libmemcached", argv, 1);
+  test->gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, "libmemcached", argv, 2);
 
   return (void *)test;
 }

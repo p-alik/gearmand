@@ -174,7 +174,7 @@ test_return background_test(void *object)
                                    value_length, job_handle);
   if (rc != GEARMAN_SUCCESS)
   {
-    printf("echo_test:%s\n", gearman_client_error(client));
+    printf("background_test:%s\n", gearman_client_error(client));
     return TEST_FAILURE;
   }
 
@@ -302,6 +302,7 @@ void *client_test_worker(gearman_job_st *job, void *cb_arg, size_t *result_size,
 void *world_create(void)
 {
   client_test_st *test;
+  char *argv[1]= { "client_gearmand" };
 
   assert((test= malloc(sizeof(client_test_st))) != NULL);
   memset(test, 0, sizeof(client_test_st));
@@ -310,7 +311,7 @@ void *world_create(void)
   assert(gearman_client_add_server(&(test->client), NULL, CLIENT_TEST_PORT) ==
          GEARMAN_SUCCESS);
 
-  test->gearmand_pid= test_gearmand_start(CLIENT_TEST_PORT, NULL, NULL, 0);
+  test->gearmand_pid= test_gearmand_start(CLIENT_TEST_PORT, NULL, argv, 1);
   test->worker_pid= test_worker_start(CLIENT_TEST_PORT, "client_test",
                                       client_test_worker, NULL);
 

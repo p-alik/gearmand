@@ -146,7 +146,8 @@ AC_LIB_HAVE_LINKFLAGS(event,,
   event_loop(EVLOOP_ONCE);
 ])
 AS_IF([test x$ac_cv_libevent = xno],
-      AC_MSG_ERROR([A recent version of libevent is required to build gearmand (see http://www.monkey.org/~provos/libevent).]))
+      AC_MSG_ERROR([A recent version of libevent is required to build gearmand. On Debian this can be found in libevent-dev. On RedHat its in libevent-devel. You can also install the latest from source at http://www.monkey.org/~provos/libevent.]))
+
 
 save_LIBS="${LIBS}"
 LIBS="${LIBS} ${LTLIBEVENT}"
@@ -162,7 +163,7 @@ LIBS="$save_LIBS"
 AC_CHECK_HEADERS(uuid/uuid.h)
 if test "x$ac_cv_header_uuid_uuid_h" = "xno"
 then
-  AC_MSG_ERROR([Couldn't find uuid/uuid.h. Try installing libuuid development packages])
+  AC_MSG_ERROR([Couldn't find uuid/uuid.h. On Debian this can be found in uuid-dev. On Redhat this can be found in e2fsprogs-devel.])
 fi
 AC_LIB_HAVE_LINKFLAGS(uuid,,
 [
@@ -197,18 +198,14 @@ fi
 # Check for libdrizzle
 #--------------------------------------------------------------------
 
-AC_CHECK_HEADERS(libdrizzle/drizzle_client.h)
-if test "x$ac_cv_header_libdrizzle_drizzle_client_h" = "xyes"
-then
-  AC_LIB_HAVE_LINKFLAGS(drizzle,,
-  [
+AC_LIB_HAVE_LINKFLAGS(drizzle,,
+[
   #include <libdrizzle/drizzle_client.h>
-  ],
-  [
-    drizzle_st drizzle;
-    drizzle_version();
-  ])
-fi
+],
+[
+  drizzle_st drizzle;
+  drizzle_version();
+])
 
 AM_CONDITIONAL(HAVE_LIBDRIZZLE, test x$ac_cv_libdrizzle = xyes)
 
@@ -216,18 +213,15 @@ AM_CONDITIONAL(HAVE_LIBDRIZZLE, test x$ac_cv_libdrizzle = xyes)
 # Check for libmemcached
 #--------------------------------------------------------------------
 
-AC_CHECK_HEADERS(libmemcached/memcached.h)
-if test "x$ac_cv_header_libmemcached_memcached_h" = "xyes"
-then
-  AC_LIB_HAVE_LINKFLAGS(memcached,,
-  [
+AC_LIB_HAVE_LINKFLAGS(memcached,,
+[
   #include <libmemcached/memcached.h>
-  ],
-  [
-    memcached_st memc;
-    memcached_version();
-  ])
-fi
+],
+[
+  memcached_st memc;
+  memcached_dump_func *df;
+  memcached_version();
+])
 
 AM_CONDITIONAL(HAVE_LIBMEMCACHED, test x$ac_cv_libmemcached = xyes)
 
