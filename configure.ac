@@ -12,6 +12,7 @@ AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_HEADERS([config.h])
 
 GEARMAN_LIBRARY_VERSION=1:1:0
+MODCONF_LIBRARY_VERSION=0:0:0
 #                       | | |
 #                +------+ | +---+
 #                |        |     |
@@ -24,6 +25,7 @@ GEARMAN_LIBRARY_VERSION=1:1:0
 #                |           set to zero if current is incremented
 #                +- increment if interfaces have been added, removed or changed
 AC_SUBST(GEARMAN_LIBRARY_VERSION)
+AC_SUBST(MODCONF_LIBRARY_VERSION)
 
 # Setting CFLAGS here prevents AC_CANONICAL_TARGET from injecting them
 SAVE_CFLAGS=${CFLAGS}
@@ -120,7 +122,7 @@ fi
 
 
 AC_HEADER_TIME
-AC_CHECK_HEADERS(assert.h errno.h fcntl.h netinet/tcp.h pwd.h signal.h)
+AC_CHECK_HEADERS(assert.h errno.h fcntl.h getopt.h netinet/tcp.h pwd.h signal.h)
 AC_CHECK_HEADERS(stdarg.h stdio.h stdlib.h string.h sys/resource.h sys/stat.h)
 AC_CHECK_HEADERS(sys/socket.h sys/types.h sys/utsname.h unistd.h)
 
@@ -390,11 +392,22 @@ AC_CHECK_PROGS([DOXYGEN], [doxygen])
 AC_CHECK_PROGS([PERL], [perl])
 
 
-AC_CONFIG_FILES(Makefile libgearman/Makefile gearmand/Makefile bin/Makefile
-                tests/Makefile examples/Makefile scripts/Makefile
-                support/Makefile benchmark/Makefile scripts/gearmand-init
-                scripts/gearmand.xml scripts/gearmand scripts/smf_install.sh
-                support/gearmand.pc support/gearmand.spec)
+AC_CONFIG_FILES(Makefile
+                libmodconf/Makefile
+                libgearman/Makefile
+                gearmand/Makefile
+                bin/Makefile
+                tests/Makefile
+                examples/Makefile
+                scripts/Makefile
+                support/Makefile
+                benchmark/Makefile
+                scripts/gearmand-init
+                scripts/gearmand.xml
+                scripts/gearmand
+                scripts/smf_install.sh
+                support/gearmand.pc
+                support/gearmand.spec)
 
 AC_OUTPUT
 
@@ -410,4 +423,3 @@ echo "   * Debug enabled:             $ac_enable_debug"
 echo "   * Warnings as failure:       $ac_warn_fail"
 echo ""
 echo "---"
-

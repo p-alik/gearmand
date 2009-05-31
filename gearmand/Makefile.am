@@ -7,7 +7,8 @@
 
 sbin_PROGRAMS= gearmand
 
-gearmand_LDADD= $(top_builddir)/libgearman/libgearman.la
+gearmand_LDADD= $(top_builddir)/libgearman/libgearman.la \
+	$(top_builddir)/libmodconf/libmodconf.la
 
 gearmand_SOURCES= gearmand.c
 

@@ -47,6 +47,11 @@ typedef struct
 } gearman_queue_libdrizzle_st;
 
 /**
+ * Global configuration module.
+ */
+static modconf_module_st *_module= NULL;
+
+/**
  * Query error handling function.
  */
 static drizzle_return_t _libdrizzle_query(gearman_st *gearman,
@@ -64,7 +69,7 @@ static gearman_return_t _libdrizzle_flush(gearman_st *gearman, void *fn_arg);
 static gearman_return_t _libdrizzle_done(gearman_st *gearman, void *fn_arg,
                                          const void *unique,
                                          size_t unique_size,
-                                         const char *function_name,
+                                         const void *function_name,
                                          size_t function_name_size);
 static gearman_return_t _libdrizzle_replay(gearman_st *gearman, void *fn_arg,
                                            gearman_queue_add_fn *add_fn,
@@ -74,23 +79,33 @@ static gearman_return_t _libdrizzle_replay(gearman_st *gearman, void *fn_arg,
  * Public definitions
  */
 
-void gearman_queue_libdrizzle_usage(void)
+modconf_return_t gearman_queue_libdrizzle_modconf(modconf_st *modconf)
 {
-  printf("\thost=<host>         - Host of server.\n");
-  printf("\tport=<port>         - Port of server.\n");
-  printf("\tuds=<uds>           - Unix domain socket for server.\n");
-  printf("\tuser=<user>         - User name for authentication.\n");
-  printf("\tpassword=<password> - Password for authentication.\n");
-  printf("\tdb=<db>             - Database to use.\n");
-  printf("\ttable=<table>       - Table to use.\n");
-  printf("\tmysql               - Use MySQL protocol.\n");
+  if (_module == NULL)
+  {
+    _module= modconf_module_create(modconf, NULL, "libdrizzle");
+    if (_module == NULL)
+      return MODCONF_MEMORY_ALLOCATION_FAILURE;
+  }
+
+  modconf_module_add_option(_module, "host", 0, "HOST", "Host of server.");
+  modconf_module_add_option(_module, "port", 0, "PORT", "Port of server.");
+  modconf_module_add_option(_module, "uds", 0, "UDS",
+                            "Unix domain socket for server.");
+  modconf_module_add_option(_module, "user", 0, "USER",
+                            "User name for authentication.");
+  modconf_module_add_option(_module, "password", 0, "PASSWORD",
+                            "Password for authentication.");
+  modconf_module_add_option(_module, "db", 0, "DB", "Database to use.");
+  modconf_module_add_option(_module, "table", 0, "TABLE", "Table to use.");
+  modconf_module_add_option(_module, "mysql", 0, NULL, "Use MySQL protocol.");
+
+  return modconf_return(modconf);
 }
 
-gearman_return_t gearman_queue_libdrizzle_init(gearman_st *gearman, int argc,
-                                               char *argv[])
+gearman_return_t gearman_queue_libdrizzle_init(gearman_st *gearman)
 {
   gearman_queue_libdrizzle_st *queue;
-  int x;
   char *host= NULL;
   in_port_t port= 0;
   char *uds= NULL;
@@ -133,6 +148,7 @@ gearman_return_t gearman_queue_libdrizzle_init(gearman_st *gearman, int argc,
 
   drizzle_con_set_db(&(queue->con), GEARMAN_QUEUE_LIBDRIZZLE_DEFAULT_DATABASE);
 
+#if 0
   for (x= 0; x < argc; x++)
   {
     if (!strncmp(argv[x], "host=", 5))
@@ -159,6 +175,7 @@ gearman_return_t gearman_queue_libdrizzle_init(gearman_st *gearman, int argc,
       return GEARMAN_QUEUE_ERROR;
     }
   }
+#endif
 
   if (uds == NULL)
     drizzle_con_set_tcp(&(queue->con), host, port);
@@ -245,10 +262,9 @@ gearman_return_t gearman_queue_libdrizzle_deinit(gearman_st *gearman)
   return GEARMAN_SUCCESS;
 }
 
-gearman_return_t gearmand_queue_libdrizzle_init(gearmand_st *gearmand,
-                                                int argc, char *argv[])
+gearman_return_t gearmand_queue_libdrizzle_init(gearmand_st *gearmand)
 {
-  return gearman_queue_libdrizzle_init(gearmand->server.gearman, argc, argv);
+  return gearman_queue_libdrizzle_init(gearmand->server.gearman);
 }
 
 gearman_return_t gearmand_queue_libdrizzle_deinit(gearmand_st *gearmand)
@@ -357,7 +373,7 @@ static gearman_return_t _libdrizzle_flush(gearman_st *gearman, void *fn_arg __at
 static gearman_return_t _libdrizzle_done(gearman_st *gearman, void *fn_arg,
                                          const void *unique,
                                          size_t unique_size,
-                                         const char *function_name __attribute__((unused)),
+                                         const void *function_name __attribute__((unused)),
                                          size_t function_name_size __attribute__((unused)))
 {
   gearman_queue_libdrizzle_st *queue= (gearman_queue_libdrizzle_st *)fn_arg;

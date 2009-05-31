@@ -7,12 +7,24 @@
 
 ACLOCAL_AMFLAGS= -I m4
 
-SUBDIRS = libgearman gearmand bin tests examples scripts support benchmark
+SUBDIRS = \
+	libmodconf \
+	libgearman \
+	gearmand \
+	bin \
+	examples \
+	scripts \
+	support \
+	benchmark
 
 include $(top_srcdir)/docs/man_list
 
-EXTRA_DIST= docs/Doxyfile.api docs/Doxyfile.dev \
-	docs/api_header.html docs/dev_header.html docs/doxygen.h
+EXTRA_DIST= \
+	docs/Doxyfile.api \
+	docs/Doxyfile.dev \
+	docs/api_header.html \
+	docs/dev_header.html \
+	docs/doxygen.h
 
 docs: all
 	${DOXYGEN} docs/Doxyfile.api
@@ -27,7 +39,6 @@ test-extended: all
 valgrind:
 	(cd tests; ${MAKE} valgrind)
 
-# This needs to be fixed to not use Brian's home directory. :)
 rpm: all dist
 	cp gearmand-$(VERSION).tar.gz ~/rpmbuild/SOURCES/
 	rpmbuild -ba support/gearmand.spec
