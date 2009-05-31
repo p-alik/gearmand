@@ -1,4 +1,4 @@
-0.7
+0.7 - 2009-05-31
  * Added libmodconf for config option processing. Eventually this will be split
    into a separate library. Updated gearmand and tests to use libmodconf.
  * Fixed persistent queue bug where jobs were not removed after replay.
