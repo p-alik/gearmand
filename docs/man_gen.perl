@@ -79,7 +79,7 @@ while ($line= <>)
         $func.= $line;
       }
 
-      if ($name)
+      if ($name && !($name=~ m/gmodconf/))
       {
         # We have a function! Output a man page.
         print " \\\n\t$path/man$section/$name.$section";
