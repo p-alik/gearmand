@@ -31,14 +31,6 @@ extern "C" {
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
-#if 0
-#ifdef HAVE_PTHREAD_H
-#include <pthread.h>
-#endif
-#ifdef HAVE_STDARG_H
-#include <stdarg.h>
-#endif
-#endif
 
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
@@ -51,19 +43,6 @@ extern "C" {
 #endif
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
-
-#if 0
-#ifdef TIME_WITH_SYS_TIME
-# include <sys/time.h>
-# include <time.h>
-#else
-# ifdef HAVE_SYS_TIME_H
-#  include <sys/time.h>
-# else
-#  include <time.h>
-# endif
-#endif
 #endif
 
 /**

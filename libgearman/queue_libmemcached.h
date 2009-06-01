@@ -14,7 +14,7 @@
 #ifndef __GEARMAN_QUEUE_LIBMEMCACHED_H__
 #define __GEARMAN_QUEUE_LIBMEMCACHED_H__
 
-#include <libmodconf/modconf.h>
+#include <libgearman/modconf.h>
 
 #ifdef __cplusplus
 extern "C" {

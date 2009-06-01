@@ -12,7 +12,6 @@ AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_HEADERS([config.h])
 
 GEARMAN_LIBRARY_VERSION=1:1:0
-MODCONF_LIBRARY_VERSION=0:0:0
 #                       | | |
 #                +------+ | +---+
 #                |        |     |
@@ -25,7 +24,6 @@ MODCONF_LIBRARY_VERSION=0:0:0
 #                |           set to zero if current is incremented
 #                +- increment if interfaces have been added, removed or changed
 AC_SUBST(GEARMAN_LIBRARY_VERSION)
-AC_SUBST(MODCONF_LIBRARY_VERSION)
 
 # Setting CFLAGS here prevents AC_CANONICAL_TARGET from injecting them
 SAVE_CFLAGS=${CFLAGS}
@@ -387,7 +385,6 @@ AC_CHECK_PROGS([PERL], [perl])
 
 
 AC_CONFIG_FILES(Makefile
-                libmodconf/Makefile
                 libgearman/Makefile
                 gearmand/Makefile
                 bin/Makefile

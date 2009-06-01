@@ -26,32 +26,32 @@ extern "C" {
 /**
  * Initialize a modconf module structure.
  */
-modconf_module_st *modconf_module_create(modconf_st *modconf,
-                                         modconf_module_st *module,
-                                         const char *name);
+modconf_module_st *gmodconf_module_create(modconf_st *modconf,
+                                          modconf_module_st *module,
+                                          const char *name);
 
 /**
  * Free a modconf module structure.
  */
-void modconf_module_free(modconf_module_st *module);
+void gmodconf_module_free(modconf_module_st *module);
 
 /**
  * Find a modconf module structure by name.
  */
-modconf_module_st *modconf_module_find(modconf_st *modconf, const char *name);
+modconf_module_st *gmodconf_module_find(modconf_st *modconf, const char *name);
 
 /**
  * Add option for a module.
  */
-void modconf_module_add_option(modconf_module_st *module, const char *name,
-                               int short_name, const char *value_name,
-                               const char *help);
+void gmodconf_module_add_option(modconf_module_st *module, const char *name,
+                                int short_name, const char *value_name,
+                                const char *help);
 
 /**
  * Loop through all values that were given for a set of module options.
  */
-bool modconf_module_value(modconf_module_st *module, const char **name,
-                          const char **value);
+bool gmodconf_module_value(modconf_module_st *module, const char **name,
+                           const char **value);
 
 /** @} */
 

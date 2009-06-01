@@ -53,7 +53,7 @@
 # endif
 #endif
 
-#include <libmodconf/modconf.h>
+#include <libgearman/modconf.h>
 
 #include <libgearman/gearman.h>
 
@@ -109,13 +109,13 @@ int main(int argc, char *argv[])
   log_info.fd= -1;
   log_info.reopen= 0;
 
-  if (modconf_create(&modconf) == NULL)
+  if (gmodconf_create(&modconf) == NULL)
   {
     fprintf(stderr, "gearmand: modconf_create: NULL\n");
     return 1;
   }
 
-  if (modconf_module_create(&modconf, &module, NULL) == NULL)
+  if (gmodconf_module_create(&modconf, &module, NULL) == NULL)
   {
     fprintf(stderr, "gearmand: modconf_module_create: NULL\n");
     return 1;
@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
 
   /* Add all main configuration options. */
 #define MCO(__name, __short, __value, __help) \
-  modconf_module_add_option(&module, __name, __short, __value, __help);
+  gmodconf_module_add_option(&module, __name, __short, __value, __help);
 
   MCO("backlog", 'b', "BACKLOG", "Number of backlog connections for listen.")
   MCO("daemon", 'd', NULL, "Daemon, detach and run in the background.")
@@ -145,10 +145,10 @@ int main(int argc, char *argv[])
   MCO("version", 'V', NULL, "Display the version of gearmand and exit.")
 
   /* Make sure none of the modconf_module_add_option calls failed. */
-  if (modconf_return(&modconf) != MODCONF_SUCCESS)
+  if (gmodconf_return(&modconf) != MODCONF_SUCCESS)
   {
     fprintf(stderr, "gearmand: modconf_module_add_option: %s\n",
-            modconf_error(&modconf));
+            gmodconf_error(&modconf));
     return 1;
   }
 
@@ -158,7 +158,7 @@ int main(int argc, char *argv[])
   if (gearman_queue_libdrizzle_modconf(&modconf) != MODCONF_SUCCESS)
   {
     fprintf(stderr, "gearmand: gearman_queue_libdrizzle_modconf: %s\n",
-            modconf_error(&modconf));
+            gmodconf_error(&modconf));
     return 1;
   }
 #endif
@@ -166,23 +166,23 @@ int main(int argc, char *argv[])
   if (gearman_queue_libmemcached_modconf(&modconf) != MODCONF_SUCCESS)
   {
     fprintf(stderr, "gearmand: gearman_queue_libmemcached_modconf: %s\n",
-            modconf_error(&modconf));
+            gmodconf_error(&modconf));
     return 1;
   }
 #endif
 
   /* Let modconf parse the command line arguments. */
-  if (modconf_parse_args(&modconf, argc, argv) != MODCONF_SUCCESS)
+  if (gmodconf_parse_args(&modconf, argc, argv) != MODCONF_SUCCESS)
   {
-    printf("\n%s\n\n", modconf_error(&modconf));
+    printf("\n%s\n\n", gmodconf_error(&modconf));
     printf("gearmand %s - %s\n\n", gearman_version(), gearman_bugreport());
     printf("usage: %s [OPTIONS]\n", argv[0]);
-    modconf_usage(&modconf);
+    gmodconf_usage(&modconf);
     return 1;
   }
 
   /* Check for option values that were given. */
-  while (modconf_module_value(&module, &name, &value))
+  while (gmodconf_module_value(&module, &name, &value))
   {
     if (!strcmp(name, "backlog"))
       backlog= atoi(value);
@@ -213,7 +213,7 @@ int main(int argc, char *argv[])
     {
       printf("\ngearmand %s - %s\n\n", gearman_version(), gearman_bugreport());
       printf("usage: %s [OPTIONS]\n", argv[0]);
-      modconf_usage(&modconf);
+      gmodconf_usage(&modconf);
       return 1;
     }
     else if (!strcmp(name, "log-file"))
@@ -309,7 +309,7 @@ int main(int argc, char *argv[])
   if (log_info.fd != -1)
     (void) close(log_info.fd);
 
-  modconf_free(&modconf);
+  gmodconf_free(&modconf);
 
   return (ret == GEARMAN_SUCCESS || ret == GEARMAN_SHUTDOWN) ? 0 : 1;
 }

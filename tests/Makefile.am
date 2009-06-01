@@ -19,8 +19,7 @@ endif
 LDADD= \
 	$(LTLIBUUID) \
 	$(LTLIBEVENT) \
-	$(top_builddir)/libgearman/libgearman.la \
-	$(top_builddir)/libmodconf/libmodconf.la
+	$(top_builddir)/libgearman/libgearman.la
 
 noinst_PROGRAMS= client_test worker_test cpp_test $(LIBMEMCACHED_TEST)
 noinst_HEADERS= test.h test_gearmand.h test_worker.h

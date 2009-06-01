@@ -78,12 +78,12 @@ modconf_return_t gearman_queue_libdrizzle_modconf(modconf_st *modconf)
 {
   modconf_module_st *module;
 
-  module= modconf_module_create(modconf, NULL, "libdrizzle");
+  module= gmodconf_module_create(modconf, NULL, "libdrizzle");
   if (module == NULL)
     return MODCONF_MEMORY_ALLOCATION_FAILURE;
 
 #define MCO(__name, __value, __help) \
-  modconf_module_add_option(module, __name, 0, __value, __help);
+  gmodconf_module_add_option(module, __name, 0, __value, __help);
 
   MCO("host", "HOST", "Host of server.")
   MCO("port", "PORT", "Port of server.")
@@ -94,7 +94,7 @@ modconf_return_t gearman_queue_libdrizzle_modconf(modconf_st *modconf)
   MCO("table", "TABLE", "Table to use.")
   MCO("mysql", NULL, "Use MySQL protocol.")
 
-  return modconf_return(modconf);
+  return gmodconf_return(modconf);
 }
 
 gearman_return_t gearman_queue_libdrizzle_init(gearman_st *gearman,
@@ -147,7 +147,7 @@ gearman_return_t gearman_queue_libdrizzle_init(gearman_st *gearman,
   drizzle_con_set_db(&(queue->con), GEARMAN_QUEUE_LIBDRIZZLE_DEFAULT_DATABASE);
 
   /* Get module and parse the option values that were given. */
-  module= modconf_module_find(modconf, "libdrizzle");
+  module= gmodconf_module_find(modconf, "libdrizzle");
   if (module == NULL)
   {
     GEARMAN_ERROR_SET(gearman, "gearman_queue_libdrizzle_init",
@@ -155,7 +155,7 @@ gearman_return_t gearman_queue_libdrizzle_init(gearman_st *gearman,
     return GEARMAN_QUEUE_ERROR;
   }
 
-  while (modconf_module_value(module, &name, &value))
+  while (gmodconf_module_value(module, &name, &value))
   {
     if (!strcmp(name, "host"))
       host= value;

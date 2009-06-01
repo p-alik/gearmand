@@ -11,23 +11,23 @@
  * @brief Gearman core definitions
  */
 
-#include "common.h"
+#include "modconf_common.h"
 
 /*
  * Public definitions
  */
 
-const char *modconf_version(void)
+const char *gmodconf_version(void)
 {
     return PACKAGE_VERSION;
 }
 
-const char *modconf_bugreport(void)
+const char *gmodconf_bugreport(void)
 {
     return PACKAGE_BUGREPORT;
 }
 
-modconf_st *modconf_create(modconf_st *modconf)
+modconf_st *gmodconf_create(modconf_st *modconf)
 {
   if (modconf == NULL)
   {
@@ -54,7 +54,7 @@ modconf_st *modconf_create(modconf_st *modconf)
   modconf->option_getopt= malloc(sizeof(struct option));
   if (modconf->option_getopt == NULL)
   {
-    modconf_free(modconf);
+    gmodconf_free(modconf);
     return NULL;
   }
 
@@ -63,12 +63,12 @@ modconf_st *modconf_create(modconf_st *modconf)
   return modconf;
 }
 
-void modconf_free(modconf_st *modconf)
+void gmodconf_free(modconf_st *modconf)
 {
   uint32_t x;
 
   for (x= 0; x < modconf->module_count; x++)
-    modconf_module_free(modconf->module_list[x]);
+    gmodconf_module_free(modconf->module_list[x]);
 
   for (x= 0; x < modconf->option_count; x++)
   {
@@ -91,23 +91,23 @@ void modconf_free(modconf_st *modconf)
     free(modconf);
 }
 
-modconf_return_t modconf_return(modconf_st *modconf)
+modconf_return_t gmodconf_return(modconf_st *modconf)
 {
   return modconf->last_return;
 }
 
-const char *modconf_error(modconf_st *modconf)
+const char *gmodconf_error(modconf_st *modconf)
 {
   return (const char *)(modconf->last_error);
 }
 
-int modconf_errno(modconf_st *modconf)
+int gmodconf_errno(modconf_st *modconf)
 {
   return modconf->last_errno;
 }
 
-void modconf_set_options(modconf_st *modconf, modconf_options_t options,
-                         uint32_t data)
+void gmodconf_set_options(modconf_st *modconf, modconf_options_t options,
+                          uint32_t data)
 {
   if (data)
     modconf->options |= options;
@@ -115,8 +115,8 @@ void modconf_set_options(modconf_st *modconf, modconf_options_t options,
     modconf->options &= ~options;
 }
 
-modconf_return_t modconf_parse_args(modconf_st *modconf, int argc,
-                                    char *argv[])
+modconf_return_t gmodconf_parse_args(modconf_st *modconf, int argc,
+                                     char *argv[])
 {
   int c;
   int index;
@@ -179,14 +179,14 @@ modconf_return_t modconf_parse_args(modconf_st *modconf, int argc,
   return MODCONF_SUCCESS;
 }
 
-modconf_return_t modconf_parse_file(modconf_st *modconf, const char *file)
+modconf_return_t gmodconf_parse_file(modconf_st *modconf, const char *file)
 {
   (void)modconf;
   (void)file;
   return MODCONF_SUCCESS;
 }
 
-void modconf_usage(modconf_st *modconf)
+void gmodconf_usage(modconf_st *modconf)
 {
   uint32_t x;
   uint32_t y;

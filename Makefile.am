@@ -8,7 +8,6 @@
 ACLOCAL_AMFLAGS= -I m4
 
 SUBDIRS = \
-	libmodconf \
 	libgearman \
 	gearmand \
 	bin \

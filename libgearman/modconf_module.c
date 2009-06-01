@@ -11,15 +11,15 @@
  * @brief modconf module definitions
  */
 
-#include "common.h"
+#include "modconf_common.h"
 
 /*
  * Public definitions
  */
 
-modconf_module_st *modconf_module_create(modconf_st *modconf,
-                                         modconf_module_st *module,
-                                         const char *name)
+modconf_module_st *gmodconf_module_create(modconf_st *modconf,
+                                          modconf_module_st *module,
+                                          const char *name)
 {
   modconf_module_st **module_list;
 
@@ -46,7 +46,7 @@ modconf_module_st *modconf_module_create(modconf_st *modconf,
                        (modconf->module_count + 1));
   if (module_list == NULL)
   {
-    modconf_module_free(module);
+    gmodconf_module_free(module);
     MODCONF_ERROR_SET(modconf, "modconf_module_create", "realloc");
     return NULL;
   }
@@ -58,13 +58,13 @@ modconf_module_st *modconf_module_create(modconf_st *modconf,
   return module;
 }
 
-void modconf_module_free(modconf_module_st *module)
+void gmodconf_module_free(modconf_module_st *module)
 {
   if (module->options & MODCONF_MODULE_ALLOCATED)
     free(module);
 }
 
-modconf_module_st *modconf_module_find(modconf_st *modconf, const char *name)
+modconf_module_st *gmodconf_module_find(modconf_st *modconf, const char *name)
 {
   uint32_t x;
 
@@ -82,9 +82,9 @@ modconf_module_st *modconf_module_find(modconf_st *modconf, const char *name)
   return NULL;
 }
 
-void modconf_module_add_option(modconf_module_st *module, const char *name,
-                               int short_name, const char *value_name,
-                               const char *help)
+void gmodconf_module_add_option(modconf_module_st *module, const char *name,
+                                int short_name, const char *value_name,
+                                const char *help)
 {
   modconf_st *modconf= module->modconf;
   modconf_option_st *option_list;
@@ -172,8 +172,8 @@ void modconf_module_add_option(modconf_module_st *module, const char *name,
   }
 }
 
-bool modconf_module_value(modconf_module_st *module, const char **name,
-                          const char **value)
+bool gmodconf_module_value(modconf_module_st *module, const char **name,
+                           const char **value)
 {
   modconf_option_st *option;
 

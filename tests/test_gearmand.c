@@ -16,7 +16,7 @@
 
 #include "test_gearmand.h"
 
-#include <libmodconf/modconf.h>
+#include <libgearman/modconf.h>
 
 #ifdef HAVE_LIBDRIZZLE
 #include <libgearman/queue_libdrizzle.h>
@@ -36,7 +36,7 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type, char *argv[], 
 
   if (gearmand_pid == 0)
   {
-    assert(modconf_create(&modconf) != NULL);
+    assert(gmodconf_create(&modconf) != NULL);
 #ifdef HAVE_LIBDRIZZLE
     assert(gearman_queue_libdrizzle_modconf(&modconf) == MODCONF_SUCCESS);
 #endif
@@ -44,7 +44,7 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type, char *argv[], 
     assert(gearman_queue_libmemcached_modconf(&modconf) == MODCONF_SUCCESS);
 #endif
 
-    assert(modconf_parse_args(&modconf, argc, argv) == MODCONF_SUCCESS);
+    assert(gmodconf_parse_args(&modconf, argc, argv) == MODCONF_SUCCESS);
 
     gearmand= gearmand_create(NULL, port);
     assert(gearmand != NULL);

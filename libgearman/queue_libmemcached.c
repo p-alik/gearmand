@@ -65,13 +65,13 @@ modconf_return_t gearman_queue_libmemcached_modconf(modconf_st *modconf)
 {
   modconf_module_st *module;
 
-  module= modconf_module_create(modconf, NULL, "libmemcached");
+  module= gmodconf_module_create(modconf, NULL, "libmemcached");
   if (module == NULL)
     return MODCONF_MEMORY_ALLOCATION_FAILURE;
 
-  modconf_module_add_option(module, "servers", 0, "SERVER_LIST",
-                            "List of Memcached servers to use.");
-  return modconf_return(modconf);
+  gmodconf_module_add_option(module, "servers", 0, "SERVER_LIST",
+                             "List of Memcached servers to use.");
+  return gmodconf_return(modconf);
 }
 
 gearman_return_t gearman_queue_libmemcached_init(gearman_st *gearman,
@@ -102,7 +102,7 @@ gearman_return_t gearman_queue_libmemcached_init(gearman_st *gearman,
   }
 
   /* Get module and parse the option values that were given. */
-  module= modconf_module_find(modconf, "libmemcached");
+  module= gmodconf_module_find(modconf, "libmemcached");
   if (module == NULL)
   {
     GEARMAN_ERROR_SET(gearman, "gearman_queue_libmemcached_init",
@@ -110,7 +110,7 @@ gearman_return_t gearman_queue_libmemcached_init(gearman_st *gearman,
     return GEARMAN_QUEUE_ERROR;
   }
 
-  while (modconf_module_value(module, &name, &value))
+  while (gmodconf_module_value(module, &name, &value))
   { 
     if (!strcmp(name, "servers"))
       opt_servers= value;
