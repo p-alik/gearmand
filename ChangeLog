@@ -1,6 +1,14 @@
-0.7
+0.7 - 2009-05-31
+ * Added libmodconf for config option processing. Eventually this will be split
+   into a separate library. Updated gearmand and tests to use libmodconf.
+ * Fixed persistent queue bug where jobs were not removed after replay.
+ * Fix for bug #379198.
  * Changed done() function for queue, function_name is now passed to it as
    well as unique.
+ * Fixed text protocol command response to be dynamic length.
+ * Fixed libevent usage to support libevent 1.1 (still used in CentOS and Suse).
+ * Added gearman_*_add_servers to client/worker interfaces for taking
+   server lists.
 
 0.6 - 2009-05-19
  * Changed behavior so forground jobs are not run when their connected clients

@@ -6,12 +6,12 @@
 # the COPYING file in this directory for full text.
 
 AC_PREREQ(2.59)
-AC_INIT(gearmand, [0.6], [https://launchpad.net/gearmand])
+AC_INIT(gearmand, [0.7], [https://launchpad.net/gearmand])
 AC_CONFIG_SRCDIR(libgearman/gearman.c)
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_HEADERS([config.h])
 
-GEARMAN_LIBRARY_VERSION=1:0:0
+GEARMAN_LIBRARY_VERSION=1:1:0
 #                       | | |
 #                +------+ | +---+
 #                |        |     |
@@ -120,7 +120,7 @@ fi
 
 
 AC_HEADER_TIME
-AC_CHECK_HEADERS(assert.h errno.h fcntl.h netinet/tcp.h pwd.h signal.h)
+AC_CHECK_HEADERS(assert.h errno.h fcntl.h getopt.h netinet/tcp.h pwd.h signal.h)
 AC_CHECK_HEADERS(stdarg.h stdio.h stdlib.h string.h sys/resource.h sys/stat.h)
 AC_CHECK_HEADERS(sys/socket.h sys/types.h sys/utsname.h unistd.h)
 
@@ -144,11 +144,13 @@ AC_LIB_HAVE_LINKFLAGS(event,,
   event_loop(EVLOOP_ONCE);
 ])
 AS_IF([test x$ac_cv_libevent = xno],
-      AC_MSG_ERROR([A recent version of libevent is required to build gearmand (see http://www.monkey.org/~provos/libevent).]))
+      AC_MSG_ERROR([A recent version of libevent is required to build gearmand. On Debian this can be found in libevent-dev. On RedHat its in libevent-devel. You can also install the latest from source at http://www.monkey.org/~provos/libevent.]))
+
 
 save_LIBS="${LIBS}"
 LIBS="${LIBS} ${LTLIBEVENT}"
 AC_CHECK_FUNCS(event_base_new)
+AC_CHECK_FUNCS(event_base_free)
 AC_CHECK_FUNCS(event_base_get_method)
 LIBS="$save_LIBS"
 
@@ -159,7 +161,7 @@ LIBS="$save_LIBS"
 AC_CHECK_HEADERS(uuid/uuid.h)
 if test "x$ac_cv_header_uuid_uuid_h" = "xno"
 then
-  AC_MSG_ERROR([Couldn't find uuid/uuid.h. Try installing libuuid development packages])
+  AC_MSG_ERROR([Couldn't find uuid/uuid.h. On Debian this can be found in uuid-dev. On Redhat this can be found in e2fsprogs-devel.])
 fi
 AC_LIB_HAVE_LINKFLAGS(uuid,,
 [
@@ -194,18 +196,14 @@ fi
 # Check for libdrizzle
 #--------------------------------------------------------------------
 
-AC_CHECK_HEADERS(libdrizzle/drizzle_client.h)
-if test "x$ac_cv_header_libdrizzle_drizzle_client_h" = "xyes"
-then
-  AC_LIB_HAVE_LINKFLAGS(drizzle,,
-  [
+AC_LIB_HAVE_LINKFLAGS(drizzle,,
+[
   #include <libdrizzle/drizzle_client.h>
-  ],
-  [
-    drizzle_st drizzle;
-    drizzle_version();
-  ])
-fi
+],
+[
+  drizzle_st drizzle;
+  drizzle_version();
+])
 
 AM_CONDITIONAL(HAVE_LIBDRIZZLE, test x$ac_cv_libdrizzle = xyes)
 
@@ -213,18 +211,15 @@ AM_CONDITIONAL(HAVE_LIBDRIZZLE, test x$ac_cv_libdrizzle = xyes)
 # Check for libmemcached
 #--------------------------------------------------------------------
 
-AC_CHECK_HEADERS(libmemcached/memcached.h)
-if test "x$ac_cv_header_libmemcached_memcached_h" = "xyes"
-then
-  AC_LIB_HAVE_LINKFLAGS(memcached,,
-  [
+AC_LIB_HAVE_LINKFLAGS(memcached,,
+[
   #include <libmemcached/memcached.h>
-  ],
-  [
-    memcached_st memc;
-    memcached_version();
-  ])
-fi
+],
+[
+  memcached_st memc;
+  memcached_dump_func *df;
+  memcached_version();
+])
 
 AM_CONDITIONAL(HAVE_LIBMEMCACHED, test x$ac_cv_libmemcached = xyes)
 
@@ -389,11 +384,21 @@ AC_CHECK_PROGS([DOXYGEN], [doxygen])
 AC_CHECK_PROGS([PERL], [perl])
 
 
-AC_CONFIG_FILES(Makefile libgearman/Makefile gearmand/Makefile bin/Makefile
-                tests/Makefile examples/Makefile scripts/Makefile
-                support/Makefile benchmark/Makefile scripts/gearmand-init
-                scripts/gearmand.xml scripts/gearmand scripts/smf_install.sh
-                support/gearmand.pc support/gearmand.spec)
+AC_CONFIG_FILES(Makefile
+                libgearman/Makefile
+                gearmand/Makefile
+                bin/Makefile
+                tests/Makefile
+                examples/Makefile
+                scripts/Makefile
+                support/Makefile
+                benchmark/Makefile
+                scripts/gearmand-init
+                scripts/gearmand.xml
+                scripts/gearmand
+                scripts/smf_install.sh
+                support/gearmand.pc
+                support/gearmand.spec)
 
 AC_OUTPUT
 
@@ -409,4 +414,3 @@ echo "   * Debug enabled:             $ac_enable_debug"
 echo "   * Warnings as failure:       $ac_warn_fail"
 echo ""
 echo "---"
-

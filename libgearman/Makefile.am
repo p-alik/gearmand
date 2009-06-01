@@ -19,7 +19,8 @@ lib_LTLIBRARIES= libgearman.la
 
 libgearmanincludedir= ${includedir}/libgearman
 
-dist_libgearmaninclude_HEADERS= $(QUEUE_LIBDRIZZLE_H) \
+dist_libgearmaninclude_HEADERS= \
+	$(QUEUE_LIBDRIZZLE_H) \
 	$(QUEUE_LIBMEMCACHED_H) \
 	client.h \
 	con.h \
@@ -40,12 +41,18 @@ dist_libgearmaninclude_HEADERS= $(QUEUE_LIBDRIZZLE_H) \
 	server_worker.h \
 	structs.h \
 	task.h \
-	worker.h
+	worker.h \
+	modconf.h \
+	modconf_module.h \
+	modconf_constants.h \
+	modconf_structs.h
 
 noinst_HEADERS= \
-	common.h
+	common.h \
+	modconf_common.h
 
-libgearman_la_SOURCES= $(QUEUE_LIBDRIZZLE_C) \
+libgearman_la_SOURCES= \
+	$(QUEUE_LIBDRIZZLE_C) \
 	$(QUEUE_LIBMEMCACHED_C) \
 	client.c \
 	con.c \
@@ -64,7 +71,13 @@ libgearman_la_SOURCES= $(QUEUE_LIBDRIZZLE_C) \
 	server_thread.c \
 	server_worker.c \
 	task.c \
-	worker.c
+	worker.c \
+	modconf.c \
+	modconf_module.c
 
-libgearman_la_LDFLAGS= -version-info $(GEARMAN_LIBRARY_VERSION) 
-libgearman_la_LIBADD= $(LTLIBEVENT) $(LTLIBUUID) $(LTLIBDRIZZLE) $(LTLIBMEMCACHED)
+libgearman_la_LDFLAGS= -version-info $(GEARMAN_LIBRARY_VERSION)
+libgearman_la_LIBADD= \
+	$(LTLIBEVENT) \
+	$(LTLIBUUID) \
+	$(LTLIBDRIZZLE) \
+	$(LTLIBMEMCACHED)

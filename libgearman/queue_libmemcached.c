@@ -41,7 +41,8 @@ typedef struct
 
 /* Queue callback functions. */
 static gearman_return_t _libmemcached_add(gearman_st *gearman, void *fn_arg,
-                                          const void *unique, size_t unique_size,
+                                          const void *unique,
+                                          size_t unique_size,
                                           const void *function_name,
                                           size_t function_name_size,
                                           const void *data, size_t data_size,
@@ -50,7 +51,7 @@ static gearman_return_t _libmemcached_flush(gearman_st *gearman, void *fn_arg);
 static gearman_return_t _libmemcached_done(gearman_st *gearman, void *fn_arg,
                                            const void *unique,
                                            size_t unique_size, 
-                                           const char *function_name, 
+                                           const void *function_name, 
                                            size_t function_name_size);
 static gearman_return_t _libmemcached_replay(gearman_st *gearman, void *fn_arg,
                                              gearman_queue_add_fn *add_fn,
@@ -60,53 +61,73 @@ static gearman_return_t _libmemcached_replay(gearman_st *gearman, void *fn_arg,
  * Public definitions
  */
 
-void gearman_queue_libmemcached_usage(void)
+modconf_return_t gearman_queue_libmemcached_modconf(modconf_st *modconf)
 {
-  printf("\tservers=<server_list>         - List of Memcached servers to use.\n");
+  modconf_module_st *module;
+
+  module= gmodconf_module_create(modconf, NULL, "libmemcached");
+  if (module == NULL)
+    return MODCONF_MEMORY_ALLOCATION_FAILURE;
+
+  gmodconf_module_add_option(module, "servers", 0, "SERVER_LIST",
+                             "List of Memcached servers to use.");
+  return gmodconf_return(modconf);
 }
 
-gearman_return_t gearman_queue_libmemcached_init(gearman_st *gearman, int argc, char *argv[])
+gearman_return_t gearman_queue_libmemcached_init(gearman_st *gearman,
+                                                 modconf_st *modconf)
 {
   gearman_queue_libmemcached_st *queue;
+  modconf_module_st *module;
+  const char *name;
+  const char *value;
   memcached_server_st *servers;
   const char *opt_servers= NULL;
-  uint32_t x;
 
-  GEARMAN_INFO(gearman, "Initializing libmemcached module");
+  GEARMAN_INFO(gearman, "Initializing libmemcached module")
 
   queue= calloc(1, sizeof(gearman_queue_libmemcached_st));
   if (queue == NULL)
   {
     GEARMAN_ERROR_SET(gearman, "gearman_queue_libmemcached_init", "malloc")
-      return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+    return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
 
   if (memcached_create(&(queue->memc)) == NULL)
   {
     free(queue);
-    GEARMAN_ERROR_SET(gearman, "gearman_queue_libmemcached_init", "memcached_create");
-
+    GEARMAN_ERROR_SET(gearman, "gearman_queue_libmemcached_init",
+                      "memcached_create")
     return GEARMAN_QUEUE_ERROR;
   }
 
-  for (x= 0; x < (uint32_t)argc; x++)
+  /* Get module and parse the option values that were given. */
+  module= gmodconf_module_find(modconf, "libmemcached");
+  if (module == NULL)
   {
-    if (!strncmp(argv[x], "servers=", 5))
-      opt_servers= argv[x] + strlen("servers=");
+    GEARMAN_ERROR_SET(gearman, "gearman_queue_libmemcached_init",
+                      "modconf_module_find:NULL")
+    return GEARMAN_QUEUE_ERROR;
+  }
+
+  while (gmodconf_module_value(module, &name, &value))
+  { 
+    if (!strcmp(name, "servers"))
+      opt_servers= value;
     else
     {
       memcached_free(&(queue->memc));
       free(queue);
-
       GEARMAN_ERROR_SET(gearman, "gearman_queue_libmemcached_init",
-                        "Unknown argument: %s", argv[x])
+                        "Unknown argument: %s", name)
       return GEARMAN_QUEUE_ERROR;
     }
   }
 
   if (opt_servers == NULL)
   {
-    GEARMAN_ERROR_SET(gearman, "gearman_queue_libmemcached_init", "No --servers given");
+    GEARMAN_ERROR_SET(gearman, "gearman_queue_libmemcached_init",
+                      "No --servers given")
     return GEARMAN_QUEUE_ERROR;
   }
 
@@ -117,11 +138,11 @@ gearman_return_t gearman_queue_libmemcached_init(gearman_st *gearman, int argc, 
     memcached_free(&(queue->memc));
     free(queue);
 
-    GEARMAN_ERROR_SET(gearman, "gearman_queue_libmemcached_init", "memcached_servers_parse");
+    GEARMAN_ERROR_SET(gearman, "gearman_queue_libmemcached_init",
+                      "memcached_servers_parse")
 
     return GEARMAN_QUEUE_ERROR;
   }
-
 
   memcached_server_push(&queue->memc, servers);
   memcached_server_list_free(servers);
@@ -152,9 +173,9 @@ gearman_return_t gearman_queue_libmemcached_deinit(gearman_st *gearman)
 }
 
 gearman_return_t gearmand_queue_libmemcached_init(gearmand_st *gearmand,
-                                                  int argc, char *argv[])
+                                                  modconf_st *modconf)
 {
-  return gearman_queue_libmemcached_init(gearmand->server.gearman, argc, argv);
+  return gearman_queue_libmemcached_init(gearmand->server.gearman, modconf);
 }
 
 gearman_return_t gearmand_queue_libmemcached_deinit(gearmand_st *gearmand)
@@ -167,7 +188,8 @@ gearman_return_t gearmand_queue_libmemcached_deinit(gearmand_st *gearmand)
  */
 
 static gearman_return_t _libmemcached_add(gearman_st *gearman, void *fn_arg,
-                                          const void *unique, size_t unique_size,
+                                          const void *unique,
+                                          size_t unique_size,
                                           const void *function_name,
                                           size_t function_name_size,
                                           const void *data, size_t data_size,
@@ -203,7 +225,7 @@ static gearman_return_t _libmemcached_flush(gearman_st *gearman, void *fn_arg __
 static gearman_return_t _libmemcached_done(gearman_st *gearman, void *fn_arg,
                                            const void *unique,
                                            size_t unique_size, 
-                                           const char *function_name, 
+                                           const void *function_name, 
                                            size_t function_name_size)
 {
   size_t key_length;

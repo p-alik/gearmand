@@ -330,7 +330,8 @@ typedef enum
   GEARMAN_CLIENT_NON_BLOCKING=      (1 << 1),
   GEARMAN_CLIENT_TASK_IN_USE=       (1 << 2),
   GEARMAN_CLIENT_UNBUFFERED_RESULT= (1 << 3),
-  GEARMAN_CLIENT_NO_NEW=            (1 << 4)
+  GEARMAN_CLIENT_NO_NEW=            (1 << 4),
+  GEARMAN_CLIENT_FREE_TASKS=        (1 << 5)
 } gearman_client_options_t;
 
 /**
@@ -515,6 +516,9 @@ typedef gearman_return_t (gearman_complete_fn)(gearman_task_st *task);
 typedef gearman_return_t (gearman_exception_fn)(gearman_task_st *task);
 typedef gearman_return_t (gearman_fail_fn)(gearman_task_st *task);
 
+typedef gearman_return_t (gearman_parse_server_fn)(const char *host,
+                                                   in_port_t port, void *data);
+
 typedef void* (gearman_worker_fn)(gearman_job_st *job, void *fn_arg,
                                   size_t *result_size,
                                   gearman_return_t *ret_ptr);
@@ -556,7 +560,7 @@ typedef gearman_return_t (gearman_queue_done_fn)(gearman_st *gearman,
                                                  void *fn_arg,
                                                  const void *unique,
                                                  size_t unique_size,
-                                                 const char *function_name,
+                                                 const void *function_name,
                                                  size_t function_name_size);
 typedef gearman_return_t (gearman_queue_replay_fn)(gearman_st *gearman,
                                                    void *fn_arg,

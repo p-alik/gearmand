@@ -14,6 +14,8 @@
 #ifndef __GEARMAN_QUEUE_LIBMEMCACHED_H__
 #define __GEARMAN_QUEUE_LIBMEMCACHED_H__
 
+#include <libgearman/modconf.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -25,15 +27,15 @@ extern "C" {
  */
 
 /**
- * Print usage information.
+ * Get module configuration options.
  */
-void gearman_queue_libmemcached_usage(void);
+modconf_return_t gearman_queue_libmemcached_modconf(modconf_st *modconf);
 
 /**
  * Initialize the queue.
  */
-gearman_return_t gearman_queue_libmemcached_init(gearman_st *gearman, int argc,
-                                               char *argv[]);
+gearman_return_t gearman_queue_libmemcached_init(gearman_st *gearman,
+                                                 modconf_st *modconf);
 
 /**
  * De-initialize the queue.
@@ -44,7 +46,7 @@ gearman_return_t gearman_queue_libmemcached_deinit(gearman_st *gearman);
  * Initialize the queue for a gearmand object.
  */
 gearman_return_t gearmand_queue_libmemcached_init(gearmand_st *gearmand,
-                                                int argc, char *argv[]);
+                                                  modconf_st *modconf);
 
 /**
  * De-initialize the queue for a gearmand object.

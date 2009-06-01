@@ -29,6 +29,12 @@
 static gearman_client_st *_client_allocate(gearman_client_st *client);
 
 /**
+ * Callback function used when parsing server lists.
+ */
+static gearman_return_t _client_add_server(const char *host, in_port_t port,
+                                           void *data);
+
+/**
  * Add a task.
  */
 static gearman_task_st *_client_add_task(gearman_client_st *client,
@@ -198,6 +204,12 @@ gearman_return_t gearman_client_add_server(gearman_client_st *client,
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
 
   return GEARMAN_SUCCESS;
+}
+
+gearman_return_t gearman_client_add_servers(gearman_client_st *client,
+                                            const char *servers)
+{
+  return gearman_parse_servers(servers, client, _client_add_server);
 }
 
 void *gearman_client_do(gearman_client_st *client, const char *function_name,
@@ -738,6 +750,12 @@ static gearman_client_st *_client_allocate(gearman_client_st *client)
   return client;
 }
 
+static gearman_return_t _client_add_server(const char *host, in_port_t port,
+                                           void *data)
+{
+  return gearman_client_add_server((gearman_client_st *)data, host, port);
+}
+
 static gearman_task_st *_client_add_task(gearman_client_st *client,
                                          gearman_task_st *task,
                                          const void *fn_arg,
@@ -823,9 +841,16 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
   case GEARMAN_TASK_STATE_SUBMIT:
     ret= gearman_con_send(task->con, &(task->send),
                           client->new_tasks == 0 ? true : false);
-    if (ret != GEARMAN_SUCCESS)
+    if (ret == GEARMAN_IO_WAIT)
     {
       task->state= GEARMAN_TASK_STATE_SUBMIT;
+      return GEARMAN_IO_WAIT;
+    }
+    else if (ret != GEARMAN_SUCCESS)
+    {
+      /* Increment this since the job submission failed. */
+      client->con->created_id++;
+      client->running_tasks--;
       return ret;
     }
 
@@ -1000,6 +1025,10 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
 
   client->running_tasks--;
   task->state= GEARMAN_TASK_STATE_FINISHED;
+
+  if (client->options & GEARMAN_CLIENT_FREE_TASKS)
+    gearman_task_free(task);
+
   return GEARMAN_SUCCESS;
 }
 

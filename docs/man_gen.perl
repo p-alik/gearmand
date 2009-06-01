@@ -33,7 +33,7 @@ my $code= 0;
 my $data;
 my $group;
 
-print "\ndist_man_MANS= docs/man/man1/gearman.1";
+print "\ndist_man_MANS= docs/man/man1/gearman.1 docs/man/man8/gearmand.8";
 
 while ($line= <>)
 {
@@ -79,7 +79,7 @@ while ($line= <>)
         $func.= $line;
       }
 
-      if ($name)
+      if ($name && !($name=~ m/gmodconf/))
       {
         # We have a function! Output a man page.
         print " \\\n\t$path/man$section/$name.$section";

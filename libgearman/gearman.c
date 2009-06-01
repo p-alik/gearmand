@@ -187,3 +187,57 @@ void gearman_set_queue_replay(gearman_st *gearman,
 {
   gearman->queue_replay_fn= replay_fn;
 }
+
+gearman_return_t gearman_parse_servers(const char *servers, void *data,
+                                       gearman_parse_server_fn *server_fn)
+{ 
+  const char *ptr= servers;
+  size_t x;
+  char host[NI_MAXHOST];
+  char port[NI_MAXSERV];
+  gearman_return_t ret;
+
+  while (1)
+  { 
+    x= 0;
+
+    while (*ptr != 0 && *ptr != ',' && *ptr != ':')
+    { 
+      if (x < (NI_MAXHOST - 1))
+        host[x++]= *ptr;
+
+      ptr++;
+    }
+
+    host[x]= 0;
+
+    if (*ptr == ':')
+    { 
+      ptr++;
+      x= 0;
+
+      while (*ptr != 0 && *ptr != ',')
+      { 
+        if (x < (NI_MAXSERV - 1))
+          port[x++]= *ptr;
+
+        ptr++;
+      }
+
+      port[x]= 0;
+    }
+    else
+      port[0]= 0;
+
+    ret= (*server_fn)(host, atoi(port), data);
+    if (ret != GEARMAN_SUCCESS)
+      return ret;
+
+    if (*ptr == 0)
+      break;
+
+    ptr++;
+  }
+
+  return GEARMAN_SUCCESS;
+}

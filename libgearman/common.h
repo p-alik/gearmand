@@ -252,6 +252,10 @@ extern "C" {
 #define event_base_new event_init
 #endif
 
+#ifndef HAVE_EVENT_BASE_FREE
+#define event_base_free (void)
+#endif
+
 #ifndef HAVE_EVENT_BASE_GET_METHOD
 #define event_base_get_method(__base) event_get_method()
 #endif
@@ -261,6 +265,13 @@ extern "C" {
  * @ingroup gearman_constants
  */
 extern gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX];
+
+/**
+ * Utility function used for parsing server lists.
+ * @ingroup gearman_private
+ */
+gearman_return_t gearman_parse_servers(const char *servers, void *data,
+                                       gearman_parse_server_fn *server_fn);
 
 #ifdef __cplusplus
 }

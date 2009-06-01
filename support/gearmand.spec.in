@@ -41,7 +41,7 @@ Gearman provides a generic framework to farm out work to other machines, dispatc
 %{_libdir}/pkgconfig/gearmand.pc
 %{_mandir}/man1/gear*
 %{_mandir}/man3/gear*
-
+%{_mandir}/man8/gear*
 
 
 %changelog

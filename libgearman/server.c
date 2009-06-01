@@ -659,14 +659,24 @@ static gearman_return_t _server_error_packet(gearman_server_con_st *server_con,
 static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
                                          gearman_packet_st *packet)
 {
-  char data[GEARMAN_TEXT_RESPONSE_SIZE];
+  char *data;
+  char *new_data;
   size_t size;
-  gearman_return_t ret;
+  size_t total;
   int max_queue_size;
   gearman_server_thread_st *thread;
   gearman_server_con_st *con;
   gearman_server_worker_st *worker;
   gearman_server_function_st *function;
+  gearman_server_packet_st *server_packet;
+
+  data= malloc(GEARMAN_TEXT_RESPONSE_SIZE);
+  if (data == NULL)
+  {
+    GEARMAN_ERROR_SET(packet->gearman, "_server_run_text", "malloc")
+    return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+  }
+  total= GEARMAN_TEXT_RESPONSE_SIZE;
 
   if (packet->argc == 0)
   {
@@ -687,31 +697,50 @@ static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
         if (con->host == NULL)
           continue;
 
-        size+= snprintf(data + size, GEARMAN_TEXT_RESPONSE_SIZE - size,
-                        "%d %s %s :", con->con.fd, con->host, con->id);
-        if (size > GEARMAN_TEXT_RESPONSE_SIZE)
-          break;
+        if (size > total)
+          size= total;
+
+        /* Make sure we have at least GEARMAN_TEXT_RESPONSE_SIZE bytes. */
+        if (size + GEARMAN_TEXT_RESPONSE_SIZE > total)
+        {
+          new_data= realloc(data, total + GEARMAN_TEXT_RESPONSE_SIZE);
+          if (new_data == NULL)
+          {
+            GEARMAN_SERVER_THREAD_UNLOCK(thread)
+            free(data);
+            GEARMAN_ERROR_SET(packet->gearman, "_server_run_text", "malloc")
+            return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+          }
+
+          data= new_data;
+          total+= GEARMAN_TEXT_RESPONSE_SIZE;
+        }
+
+        size+= snprintf(data + size, total - size, "%d %s %s :", con->con.fd,
+                        con->host, con->id);
+        if (size > total)
+          continue;
 
         for (worker= con->worker_list; worker != NULL; worker= worker->con_next)
         {
-          size+= snprintf(data + size, GEARMAN_TEXT_RESPONSE_SIZE - size,
-                          " %.*s", (int)(worker->function->function_name_size),
+          size+= snprintf(data + size, total - size, " %.*s",
+                          (int)(worker->function->function_name_size),
                           worker->function->function_name);
-          if (size > GEARMAN_TEXT_RESPONSE_SIZE)
+          if (size > total)
             break;
         }
 
-        if (size > GEARMAN_TEXT_RESPONSE_SIZE)
-          break;
+        if (size > total)
+          continue;
 
-        size+= snprintf(data + size, GEARMAN_TEXT_RESPONSE_SIZE - size, "\n");
+        size+= snprintf(data + size, total - size, "\n");
       }
 
       GEARMAN_SERVER_THREAD_UNLOCK(thread)
     }
 
-    if (size < GEARMAN_TEXT_RESPONSE_SIZE)
-      snprintf(data + size, GEARMAN_TEXT_RESPONSE_SIZE - size, ".\n");
+    if (size < total)
+      snprintf(data + size, total - size, ".\n");
   }
   else if (!strcasecmp("status", (char *)(packet->arg[0])))
   {
@@ -720,16 +749,30 @@ static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
     for (function= server_con->thread->server->function_list; function != NULL;
          function= function->next)
     {
-      size+= snprintf(data + size, GEARMAN_TEXT_RESPONSE_SIZE - size,
-                      "%.*s\t%u\t%u\t%u\n", (int)(function->function_name_size),
+      if (size + GEARMAN_TEXT_RESPONSE_SIZE > total)
+      {
+        new_data= realloc(data, total + GEARMAN_TEXT_RESPONSE_SIZE);
+        if (new_data == NULL)
+        {
+          free(data);
+          GEARMAN_ERROR_SET(packet->gearman, "_server_run_text", "malloc")
+          return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+        }
+
+        data= new_data;
+        total+= GEARMAN_TEXT_RESPONSE_SIZE;
+      }
+
+      size+= snprintf(data + size, total - size, "%.*s\t%u\t%u\t%u\n",
+                      (int)(function->function_name_size),
                       function->function_name, function->job_total,
                       function->job_running, function->worker_count);
-      if (size > GEARMAN_TEXT_RESPONSE_SIZE)
-        break;
+      if (size > total)
+        size= total;
     }
 
-    if (size < GEARMAN_TEXT_RESPONSE_SIZE)
-      snprintf(data + size, GEARMAN_TEXT_RESPONSE_SIZE - size, ".\n");
+    if (size < total)
+      snprintf(data + size, total - size, ".\n");
   }
   else if (!strcasecmp("maxqueue", (char *)(packet->arg[0])))
   {
@@ -790,11 +833,33 @@ static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
              "ERR unknown_command Unknown+server+command\n");
   }
 
-  ret= gearman_server_io_packet_add(server_con, GEARMAN_MAGIC_TEXT, false,
-                                    GEARMAN_COMMAND_TEXT, data, strlen(data),
-                                    NULL);
-  if (ret != GEARMAN_SUCCESS)
-    return ret;
+  server_packet= gearman_server_packet_create(server_con->thread, false);
+  if (server_packet == NULL)
+  {
+    free(data);
+    return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+  }
+
+  if (gearman_packet_create(server_con->thread->gearman,
+                            &(server_packet->packet)) == NULL)
+  {
+    free(data);
+    gearman_server_packet_free(server_packet, server_con->thread, false);
+    return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+  }
+  
+  server_packet->packet.magic= GEARMAN_MAGIC_TEXT;
+  server_packet->packet.command= GEARMAN_COMMAND_TEXT;
+  server_packet->packet.options|= (GEARMAN_PACKET_COMPLETE |
+                                   GEARMAN_PACKET_FREE_DATA);
+  server_packet->packet.data= data;
+  server_packet->packet.data_size= strlen(data);
+
+  GEARMAN_SERVER_THREAD_LOCK(server_con->thread)
+  GEARMAN_FIFO_ADD(server_con->io_packet, server_packet,)
+  GEARMAN_SERVER_THREAD_UNLOCK(server_con->thread)
+
+  gearman_server_con_io_add(server_con);
 
   return GEARMAN_SUCCESS;
 }
