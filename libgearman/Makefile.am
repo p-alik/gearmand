@@ -15,6 +15,11 @@ QUEUE_LIBMEMCACHED_H= queue_libmemcached.h
 QUEUE_LIBMEMCACHED_C= queue_libmemcached.c
 endif
 
+if HAVE_LIBTOKYOCABINET
+QUEUE_LIBTOKYOCABINET_H= queue_libtokyocabinet.h
+QUEUE_LIBTOKYOCABINET_C= queue_libtokyocabinet.c
+endif
+
 lib_LTLIBRARIES= libgearman.la
 
 libgearmanincludedir= ${includedir}/libgearman
@@ -22,6 +27,7 @@ libgearmanincludedir= ${includedir}/libgearman
 dist_libgearmaninclude_HEADERS= \
 	$(QUEUE_LIBDRIZZLE_H) \
 	$(QUEUE_LIBMEMCACHED_H) \
+	$(QUEUE_LIBTOKYOCABINET_H) \
 	client.h \
 	con.h \
 	constants.h \
@@ -54,6 +60,7 @@ noinst_HEADERS= \
 libgearman_la_SOURCES= \
 	$(QUEUE_LIBDRIZZLE_C) \
 	$(QUEUE_LIBMEMCACHED_C) \
+	$(QUEUE_LIBTOKYOCABINET_C) \
 	client.c \
 	con.c \
 	gearman.c \
@@ -80,4 +87,5 @@ libgearman_la_LIBADD= \
 	$(LTLIBEVENT) \
 	$(LTLIBUUID) \
 	$(LTLIBDRIZZLE) \
-	$(LTLIBMEMCACHED)
+	$(LTLIBMEMCACHED) \
+	$(LTLIBTOKYOCABINET)

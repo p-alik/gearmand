@@ -223,6 +223,24 @@ AC_LIB_HAVE_LINKFLAGS(memcached,,
 
 AM_CONDITIONAL(HAVE_LIBMEMCACHED, test x$ac_cv_libmemcached = xyes)
 
+#--------------------------------------------------------------------
+# Check for libtokyocabinet
+#--------------------------------------------------------------------
+
+AC_LIB_HAVE_LINKFLAGS(tokyocabinet,,
+[
+  #include <tcutil.h>
+  #include <tchdb.h>
+],
+[
+  TCMAP *map;
+
+  map = tcmapnew();
+  tcmapdel(map);
+])
+
+AM_CONDITIONAL(HAVE_LIBTOKYOCABINET, test x$ac_cv_libtokyocabinet = xyes)
+
 dnl TODO: Remove this define once we are using 2.61 across the board.
 # AX_HEADER_ASSERT
 # ----------------

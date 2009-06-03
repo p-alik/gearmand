@@ -65,6 +65,10 @@
 #include <libgearman/queue_libmemcached.h>
 #endif
 
+#ifdef HAVE_LIBTOKYOCABINET
+#include <libgearman/queue_libtokyocabinet.h>
+#endif
+
 #define GEARMAND_LOG_REOPEN_TIME 60
 #define GEARMAND_LISTEN_BACKLOG 32
 
@@ -166,6 +170,14 @@ int main(int argc, char *argv[])
   if (gearman_queue_libmemcached_modconf(&modconf) != MODCONF_SUCCESS)
   {
     fprintf(stderr, "gearmand: gearman_queue_libmemcached_modconf: %s\n",
+            gmodconf_error(&modconf));
+    return 1;
+  }
+#endif
+#ifdef HAVE_LIBTOKYOCABINET
+  if (gearman_queue_libtokyocabinet_modconf(&modconf) != MODCONF_SUCCESS)
+  {
+    fprintf(stderr, "gearmand: gearman_queue_libtokyocabinet_modconf: %s\n",
             gmodconf_error(&modconf));
     return 1;
   }
@@ -281,6 +293,15 @@ int main(int argc, char *argv[])
     }
     else
 #endif
+#ifdef HAVE_LIBTOKYOCABINET
+    if (!strcmp(queue_type, "libtokyocabinet"))
+    {
+      ret= gearmand_queue_libtokyocabinet_init(_gearmand, &modconf);
+      if (ret != GEARMAN_SUCCESS)
+        return 1;
+    }
+    else
+#endif
     {
       fprintf(stderr, "gearmand: Unknown queue type: %s\n", queue_type);
       return 1;
@@ -298,6 +319,10 @@ int main(int argc, char *argv[])
 #ifdef HAVE_LIBMEMCACHED
     if (!strcmp(queue_type, "libmemcached"))
       gearmand_queue_libmemcached_deinit(_gearmand);
+#endif
+#ifdef HAVE_LIBTOKYOCABINET
+    if (!strcmp(queue_type, "libtokyocabinet"))
+      gearmand_queue_libtokyocabinet_deinit(_gearmand);
 #endif
   }
 
