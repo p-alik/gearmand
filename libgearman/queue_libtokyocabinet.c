@@ -266,9 +266,11 @@ static gearman_return_t _callback_for_record(gearman_st *gearman,
 {
   const char *key_cstr;
   size_t key_cstr_size;
+  char *data_cstr;
+  size_t data_cstr_size;
   const char *key_delim;
   const char *function_name;
-  size_t function_name_size;   
+  size_t function_name_size;
   const char *unique;
   size_t unique_size;
       
@@ -296,10 +298,17 @@ static gearman_return_t _callback_for_record(gearman_st *gearman,
   if (*unique == 0)
     return GEARMAN_QUEUE_ERROR;
   unique_size= key_cstr_size - function_name_size - 1;
-
+   
+  data_cstr_size= tcxstrsize(data);
+  if ((data_cstr = malloc(data_cstr_size + 1)) == NULL)
+  {
+    GEARMAN_ERROR_SET(gearman, "_callback_for_record", "malloc")
+    return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+  }   
+  memcpy(data_cstr, tcxstrptr(data), data_cstr_size + 1);
   (void)(*add_fn)(gearman, add_fn_arg, unique, unique_size,
-		  tcstrdup(function_name), function_name_size,
-		  tcstrdup(tcxstrptr(data)), tcxstrsize(data), 0);
+		  function_name, function_name_size,
+		  data_cstr, data_cstr_size, 0);
 
   return GEARMAN_SUCCESS;
 }
