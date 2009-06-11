@@ -140,6 +140,11 @@ void gearman_server_con_free(gearman_server_con_st *server_con)
     free(server_con);
 }
 
+gearman_con_st *gearman_server_con_con(gearman_server_con_st *server_con)
+{
+  return &server_con->con;
+}
+
 void *gearman_server_con_data(gearman_server_con_st *server_con)
 {
   return gearman_con_data(&(server_con->con));

@@ -135,6 +135,15 @@ void gearmand_set_log(gearmand_st *gearmand, gearmand_log_fn log_fn,
   gearmand->verbose= verbose;
 }
 
+gearman_return_t gearmand_port_add(gearmand_st *gearmand, in_port_t port,
+                                   gearman_con_add_fn *add_fn)
+{
+(void)gearmand;
+(void)port;
+(void)add_fn;
+  return GEARMAN_SUCCESS;
+}
+
 gearman_return_t gearmand_run(gearmand_st *gearmand)
 {
   uint32_t x;
@@ -459,7 +468,7 @@ static void _listen_event(int fd, short events __attribute__ ((unused)),
 
   GEARMAN_INFO(gearmand, "Accepted connection from %s:%s", host, port)
 
-  gearmand->ret= gearmand_con_create(gearmand, fd, host, port);
+  gearmand->ret= gearmand_con_create(gearmand, fd, host, port, NULL);
   if (gearmand->ret != GEARMAN_SUCCESS)
     _clear_events(gearmand);
 }

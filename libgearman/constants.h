@@ -545,6 +545,23 @@ typedef void (gearmand_log_fn)(gearmand_st *gearmand, gearman_verbose_t verbose,
 typedef void (gearman_server_thread_run_fn)(gearman_server_thread_st *thread,
                                             void *fn_arg);
 
+typedef gearman_return_t (gearman_con_add_fn)(gearman_con_st *con);
+
+typedef gearman_packet_st* (gearman_con_recv_fn)(gearman_con_st *con,
+                                                 gearman_packet_st *packet,
+                                                 gearman_return_t *ret_ptr,
+                                                 bool recv_data);
+typedef size_t (gearman_con_recv_data_fn)(gearman_con_st *con, void *data,
+                                          size_t data_size,
+                                          gearman_return_t *ret_ptr);
+
+typedef gearman_return_t (gearman_con_send_fn)(gearman_con_st *con,
+                                               gearman_packet_st *packet,
+                                               bool flush);
+typedef size_t (gearman_con_send_data_fn)(gearman_con_st *con, const void *data,
+                                          size_t data_size,
+                                          gearman_return_t *ret_ptr);
+
 typedef gearman_return_t (gearman_queue_add_fn)(gearman_st *gearman,
                                                 void *fn_arg,
                                                 const void *unique,

@@ -50,6 +50,11 @@ gearman_server_con_create(gearman_server_thread_st *thread);
 void gearman_server_con_free(gearman_server_con_st *server_con);
 
 /**
+ * Get gearman connection pointer the server connection uses.
+ */
+gearman_con_st *gearman_server_con_con(gearman_server_con_st *server_con);
+
+/**
  * Get application data pointer.
  */
 void *gearman_server_con_data(gearman_server_con_st *server_con);

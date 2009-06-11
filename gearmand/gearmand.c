@@ -65,6 +65,8 @@
 #include <libgearman/queue_libmemcached.h>
 #endif
 
+#include <libgearman/protocol_http.h>
+
 #define GEARMAND_LOG_REOPEN_TIME 60
 #define GEARMAND_LISTEN_BACKLOG 32
 
@@ -138,6 +140,7 @@ int main(int argc, char *argv[])
       "Address the server should listen on. Default is INADDR_ANY.")
   MCO("port", 'p', "PORT", "Port the server should listen on.")
   MCO("pid-file", 'P', "FILE", "File to write process ID out to.")
+  MCO("protocol", 'r', "PROTOCOL", "Load protocol module.")
   MCO("queue-type", 'q', "QUEUE", "Persistent queue type to use.")
   MCO("threads", 't', "THREADS", "Number of I/O threads to use. Default=0.")
   MCO("user", 'u', "USER", "Switch to given user after startup.")
@@ -162,6 +165,7 @@ int main(int argc, char *argv[])
     return 1;
   }
 #endif
+
 #ifdef HAVE_LIBMEMCACHED
   if (gearman_queue_libmemcached_modconf(&modconf) != MODCONF_SUCCESS)
   {
@@ -170,6 +174,13 @@ int main(int argc, char *argv[])
     return 1;
   }
 #endif
+
+  if (gearman_protocol_http_modconf(&modconf) != MODCONF_SUCCESS)
+  {
+    fprintf(stderr, "gearmand: gearman_protocol_http_modconf: %s\n",
+            gmodconf_error(&modconf));
+    return 1;
+  }
 
   /* Let modconf parse the command line arguments. */
   if (gmodconf_parse_args(&modconf, argc, argv) != MODCONF_SUCCESS)
@@ -224,6 +235,8 @@ int main(int argc, char *argv[])
       port= (in_port_t)atoi(value);
     else if (!strcmp(name, "pid-file"))
       pid_file= value;
+    else if (!strcmp(name, "protocol"))
+      continue;
     else if (!strcmp(name, "queue-type"))
       queue_type= value;
     else if (!strcmp(name, "threads"))
@@ -282,7 +295,25 @@ int main(int argc, char *argv[])
     else
 #endif
     {
-      fprintf(stderr, "gearmand: Unknown queue type: %s\n", queue_type);
+      fprintf(stderr, "gearmand: Unknown queue module: %s\n", queue_type);
+      return 1;
+    }
+  }
+
+  while (gmodconf_module_value(&module, &name, &value))
+  {
+    if (strcmp(name, "protocol"))
+      continue;
+
+    if (!strcmp(value, "http"))
+    {
+      ret= gearmand_protocol_http_init(_gearmand, &modconf);
+      if (ret != GEARMAN_SUCCESS)
+        return 1;
+    }
+    else
+    {
+      fprintf(stderr, "gearmand: Unknown protocol module: %s\n", value);
       return 1;
     }
   }
@@ -299,6 +330,15 @@ int main(int argc, char *argv[])
     if (!strcmp(queue_type, "libmemcached"))
       gearmand_queue_libmemcached_deinit(_gearmand);
 #endif
+  }
+
+  while (gmodconf_module_value(&module, &name, &value))
+  {
+    if (strcmp(name, "protocol"))
+      continue;
+
+    if (!strcmp(value, "http"))
+      gearmand_protocol_http_deinit(_gearmand);
   }
 
   gearmand_free(_gearmand);

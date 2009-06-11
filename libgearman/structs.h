@@ -121,6 +121,11 @@ struct gearman_con_st
   size_t recv_buffer_size;
   size_t recv_data_size;
   size_t recv_data_offset;
+
+  gearman_con_recv_fn *recv_fn;
+  gearman_con_recv_data_fn *recv_data_fn;
+  gearman_con_send_fn *send_fn;
+  gearman_con_send_data_fn *send_data_fn;
 };
 
 /**
@@ -481,6 +486,7 @@ struct gearmand_con_st
   gearman_con_st *con;
   short last_events;
   struct event event;
+  gearman_con_add_fn *add_fn;
 };
 
 #ifdef __cplusplus

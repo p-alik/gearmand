@@ -22,6 +22,7 @@ libgearmanincludedir= ${includedir}/libgearman
 dist_libgearmaninclude_HEADERS= \
 	$(QUEUE_LIBDRIZZLE_H) \
 	$(QUEUE_LIBMEMCACHED_H) \
+        protocol_http.h \
 	client.h \
 	con.h \
 	constants.h \
@@ -54,6 +55,7 @@ noinst_HEADERS= \
 libgearman_la_SOURCES= \
 	$(QUEUE_LIBDRIZZLE_C) \
 	$(QUEUE_LIBMEMCACHED_C) \
+        protocol_http.c \
 	client.c \
 	con.c \
 	gearman.c \

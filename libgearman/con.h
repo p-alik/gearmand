@@ -155,6 +155,28 @@ gearman_con_st *gearman_con_ready(gearman_st *gearman);
 gearman_return_t gearman_con_echo(gearman_st *gearman, const void *workload,
                                   size_t workload_size);
 
+/**
+ * Set custom recv function
+ */
+void gearman_con_set_recv_fn(gearman_con_st *con, gearman_con_recv_fn recv_fn);
+
+/**
+ * Set custom recv_data function
+ */
+void gearman_con_set_recv_data_fn(gearman_con_st *con,
+                                  gearman_con_recv_data_fn recv_data_fn);
+
+/**
+ * Set custom send function
+ */
+void gearman_con_set_send_fn(gearman_con_st *con, gearman_con_send_fn send_fn);
+
+/**
+ * Set custom send_data function
+ */
+void gearman_con_set_send_data_fn(gearman_con_st *con,
+                                  gearman_con_send_data_fn send_data_fn);
+
 /** @} */
 
 #ifdef __cplusplus
