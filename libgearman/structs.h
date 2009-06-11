@@ -421,10 +421,9 @@ struct gearmand_st
   gearmand_options_t options;
   gearman_verbose_t verbose;
   gearman_return_t ret;
-  in_port_t port;
   int backlog;
+  uint32_t port_count;
   uint32_t threads;
-  uint32_t listen_count;
   uint32_t thread_count;
   uint32_t free_dcon_count;
   uint32_t max_thread_free_dcon_count;
@@ -433,15 +432,25 @@ struct gearmand_st
   gearmand_log_fn *log_fn;
   void *log_fn_arg;
   struct event_base *base;
-  struct addrinfo *addrinfo;
-  struct addrinfo *addrinfo_next;
-  int *listen_fd;
-  struct event *listen_event;
+  gearmand_port_st *port_list;
   gearmand_thread_st *thread_list;
   gearmand_thread_st *thread_add_next;
   gearmand_con_st *free_dcon_list;
   gearman_server_st server;
   struct event wakeup_event;
+};
+
+/**
+ * @ingroup gearmand
+ */
+struct gearmand_port_st
+{
+  in_port_t port;
+  uint32_t listen_count;
+  gearmand_st *gearmand;
+  gearman_con_add_fn *add_fn;
+  int *listen_fd;
+  struct event *listen_event;
 };
 
 /**

@@ -58,7 +58,7 @@ modconf_return_t gearman_protocol_http_modconf(modconf_st *modconf)
 gearman_return_t gearmand_protocol_http_init(gearmand_st *gearmand,
                                              modconf_st *modconf)
 {
-  in_port_t port= 0;
+  in_port_t port= GEARMAN_PROTOCOL_HTTP_DEFAULT_PORT;
   modconf_module_st *module;
   const char *name;
   const char *value;
@@ -90,9 +90,8 @@ gearman_return_t gearmand_protocol_http_init(gearmand_st *gearmand,
   return gearmand_port_add(gearmand, port, _http_con_add);
 }
 
-gearman_return_t gearmand_protocol_http_deinit(gearmand_st *gearmand)
+gearman_return_t gearmand_protocol_http_deinit(gearmand_st *gearmand __attribute__ ((unused)))
 {
-(void)gearmand;
   return GEARMAN_SUCCESS;
 }
 
@@ -112,18 +111,13 @@ static gearman_packet_st *_http_recv(gearman_con_st *con,
                                      gearman_packet_st *packet,
                                      gearman_return_t *ret_ptr, bool recv_data)
 {
-(void)con;
-(void)packet;
-(void)ret_ptr;
-(void)recv_data;
-  return NULL;
+con->recv_fn= NULL;
+  return gearman_con_recv(con, packet, ret_ptr, recv_data);
 }
 
 static gearman_return_t _http_send(gearman_con_st *con,
                                    gearman_packet_st *packet, bool flush)
 {
-(void)con;
-(void)packet;
-(void)flush;
-  return GEARMAN_SUCCESS;
+con->send_fn= NULL;
+  return gearman_con_send(con, packet, flush);
 }

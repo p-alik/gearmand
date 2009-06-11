@@ -71,6 +71,7 @@ typedef struct gearman_server_client_st gearman_server_client_st;
 typedef struct gearman_server_worker_st gearman_server_worker_st;
 typedef struct gearman_server_job_st gearman_server_job_st;
 typedef struct gearmand_st gearmand_st;
+typedef struct gearmand_port_st gearmand_port_st;
 typedef struct gearmand_con_st gearmand_con_st;
 typedef struct gearmand_thread_st gearmand_thread_st;
 
