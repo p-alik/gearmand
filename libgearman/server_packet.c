@@ -53,7 +53,7 @@ gearman_server_packet_create(gearman_server_thread_st *thread,
     }
   }
 
-  memset(server_packet, 0, sizeof(gearman_server_packet_st));
+  server_packet->next= NULL;
 
   return server_packet;
 }

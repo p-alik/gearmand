@@ -22,68 +22,76 @@ gearman_server_function_get(gearman_server_st *server,
                             const char *function_name,
                             size_t function_name_size)
 {
-  gearman_server_function_st *server_function;
+  gearman_server_function_st *function;
 
-  for (server_function= server->function_list; server_function != NULL;
-       server_function= server_function->next)
+  for (function= server->function_list; function != NULL;
+       function= function->next)
   {
-    if (server_function->function_name_size == function_name_size &&
-        !memcmp(server_function->function_name, function_name,
-                function_name_size))
+    if (function->function_name_size == function_name_size &&
+        !memcmp(function->function_name, function_name, function_name_size))
     {
-      return server_function;
+      return function;
     }
   }
 
-  server_function= gearman_server_function_create(server, NULL);
-  if (server_function == NULL)
+  function= gearman_server_function_create(server, NULL);
+  if (function == NULL)
     return NULL;
 
-  server_function->function_name= malloc(function_name_size + 1);
-  if (server_function->function_name == NULL)
+  function->function_name= malloc(function_name_size + 1);
+  if (function->function_name == NULL)
   {
-    gearman_server_function_free(server_function);
+    gearman_server_function_free(function);
     return NULL;
   }
 
-  memcpy(server_function->function_name, function_name, function_name_size);
-  server_function->function_name[function_name_size]= 0;
-  server_function->function_name_size= function_name_size;
+  memcpy(function->function_name, function_name, function_name_size);
+  function->function_name[function_name_size]= 0;
+  function->function_name_size= function_name_size;
 
-  return server_function;
+  return function;
 }
 
 gearman_server_function_st *
 gearman_server_function_create(gearman_server_st *server,
-                               gearman_server_function_st *server_function)
+                               gearman_server_function_st *function)
 {
-  if (server_function == NULL)
+  if (function == NULL)
   {
-    server_function= malloc(sizeof(gearman_server_function_st));
-    if (server_function == NULL)
+    function= malloc(sizeof(gearman_server_function_st));
+    if (function == NULL)
       return NULL;
 
-    memset(server_function, 0, sizeof(gearman_server_function_st));
-    server_function->options|= GEARMAN_SERVER_FUNCTION_ALLOCATED;
+    function->options= GEARMAN_SERVER_FUNCTION_ALLOCATED;
   }
   else
-    memset(server_function, 0, sizeof(gearman_server_function_st));
+    function->options= 0;
 
-  server_function->server= server;
-  server_function->max_queue_size= GEARMAN_DEFAULT_MAX_QUEUE_SIZE;
+  function->worker_count= 0;
+  function->job_count= 0;
+  function->job_total= 0;
+  function->job_running= 0;
+  function->max_queue_size= GEARMAN_DEFAULT_MAX_QUEUE_SIZE;
+  function->function_name_size= 0;
+  function->server= server;
+  GEARMAN_LIST_ADD(server->function, function,)
+  function->function_name= NULL;
+  function->worker_list= NULL;
+  memset(function->job_list, 0,
+         sizeof(gearman_server_job_st *) * GEARMAN_JOB_PRIORITY_MAX);
+  memset(function->job_end, 0,
+         sizeof(gearman_server_job_st *) * GEARMAN_JOB_PRIORITY_MAX);
 
-  GEARMAN_LIST_ADD(server->function, server_function,)
-
-  return server_function;
+  return function;
 }
 
-void gearman_server_function_free(gearman_server_function_st *server_function)
+void gearman_server_function_free(gearman_server_function_st *function)
 {
-  if (server_function->function_name != NULL)
-    free(server_function->function_name);
+  if (function->function_name != NULL)
+    free(function->function_name);
 
-  GEARMAN_LIST_DEL(server_function->server->function, server_function,)
+  GEARMAN_LIST_DEL(function->server->function, function,)
 
-  if (server_function->options & GEARMAN_SERVER_FUNCTION_ALLOCATED)
-    free(server_function);
+  if (function->options & GEARMAN_SERVER_FUNCTION_ALLOCATED)
+    free(function);
 }

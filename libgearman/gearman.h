@@ -75,6 +75,11 @@ const char *gearman_version(void);
 const char *gearman_bugreport(void);
 
 /**
+ * Return verbose name.
+ */
+const char *gearman_verbose_name(gearman_verbose_t verbose);
+
+/**
  * Initialize a gearman structure.
  */
 gearman_st *gearman_create(gearman_st *gearman);

@@ -47,49 +47,47 @@ gearman_server_con_create(gearman_server_thread_st *thread);
 /**
  * Free a server connection structure.
  */
-void gearman_server_con_free(gearman_server_con_st *server_con);
+void gearman_server_con_free(gearman_server_con_st *con);
 
 /**
  * Get application data pointer.
  */
-void *gearman_server_con_data(gearman_server_con_st *server_con);
+void *gearman_server_con_data(gearman_server_con_st *con);
 
 /**
  * Set application data pointer.
  */
-void gearman_server_con_set_data(gearman_server_con_st *server_con, void *data);
+void gearman_server_con_set_data(gearman_server_con_st *con, void *data);
 
 /**
  * Get client host.
  */
-const char *gearman_server_con_host(gearman_server_con_st *server_con);
+const char *gearman_server_con_host(gearman_server_con_st *con);
 
 /**
  * Set client host.
  */
-void gearman_server_con_set_host(gearman_server_con_st *server_con,
-                                 const char *host);
+void gearman_server_con_set_host(gearman_server_con_st *con, const char *host);
 
 /**
  * Get client port.
  */
-const char *gearman_server_con_port(gearman_server_con_st *server_con);
+const char *gearman_server_con_port(gearman_server_con_st *con);
 
 /**
  * Set client port.
  */
-void gearman_server_con_set_port(gearman_server_con_st *server_con,
-                                 const char *port);
+void gearman_server_con_set_port(gearman_server_con_st *con, const char *port);
 
 /**
  * Get client id.
  */
-const char *gearman_server_con_id(gearman_server_con_st *server_con);
+const char *gearman_server_con_id(gearman_server_con_st *con);
 
 /**
  * Set client id.
  */
-void gearman_server_con_set_id(gearman_server_con_st *server_con, char *id,
+void gearman_server_con_set_id(gearman_server_con_st *con, char *id,
                                size_t size);
 
 /**

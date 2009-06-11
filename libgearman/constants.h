@@ -133,7 +133,8 @@ typedef enum
   GEARMAN_VERBOSE_ERROR,
   GEARMAN_VERBOSE_INFO,
   GEARMAN_VERBOSE_DEBUG,
-  GEARMAN_VERBOSE_CRAZY
+  GEARMAN_VERBOSE_CRAZY,
+  GEARMAN_VERBOSE_MAX
 } gearman_verbose_t;
 
 /** @} */
@@ -155,10 +156,11 @@ typedef enum
  */
 typedef enum
 {
-  GEARMAN_CON_ALLOCATED=     (1 << 0),
-  GEARMAN_CON_READY=         (1 << 1),
-  GEARMAN_CON_PACKET_IN_USE= (1 << 2),
-  GEARMAN_CON_EXTERNAL_FD=   (1 << 3)
+  GEARMAN_CON_ALLOCATED=              (1 << 0),
+  GEARMAN_CON_READY=                  (1 << 1),
+  GEARMAN_CON_PACKET_IN_USE=          (1 << 2),
+  GEARMAN_CON_EXTERNAL_FD=            (1 << 3),
+  GEARMAN_CON_IGNORE_LOST_CONNECTION= (1 << 4)
 } gearman_con_options_t;
 
 /**

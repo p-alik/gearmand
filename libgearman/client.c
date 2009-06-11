@@ -741,11 +741,29 @@ static gearman_client_st *_client_allocate(gearman_client_st *client)
     if (client == NULL)
       return NULL;
 
-    memset(client, 0, sizeof(gearman_client_st));
-    client->options|= GEARMAN_CLIENT_ALLOCATED;
+    client->options= GEARMAN_CLIENT_ALLOCATED;
   }
   else
-    memset(client, 0, sizeof(gearman_client_st));
+    client->options= 0;
+
+  client->state= 0;
+  client->do_ret= 0;
+  client->new_tasks= 0;
+  client->running_tasks= 0;
+  client->do_data_size= 0;
+  client->gearman= NULL;
+  client->data= NULL;
+  client->con= NULL;
+  client->task= NULL;
+  client->do_data= NULL;
+  client->workload_fn= NULL;
+  client->created_fn= NULL;
+  client->data_fn= NULL;
+  client->warning_fn= NULL;
+  client->status_fn= NULL;
+  client->complete_fn= NULL;
+  client->exception_fn= NULL;
+  client->fail_fn= NULL;
 
   return client;
 }

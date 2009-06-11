@@ -210,13 +210,30 @@ gearman_server_job_create(gearman_server_st *server,
         return NULL;
     }
 
-    memset(server_job, 0, sizeof(gearman_server_job_st));
-    server_job->options|= GEARMAN_SERVER_JOB_ALLOCATED;
+    server_job->options= GEARMAN_SERVER_JOB_ALLOCATED;
   }
   else
-    memset(server_job, 0, sizeof(gearman_server_job_st));
+    server_job->options= 0;
 
+  server_job->priority= 0;
+  server_job->job_handle_key= 0;
+  server_job->unique_key= 0;
+  server_job->client_count= 0;
+  server_job->numerator= 0;
+  server_job->denominator= 0;
+  server_job->data_size= 0;
   server_job->server= server;
+  server_job->next= NULL;
+  server_job->prev= NULL;
+  server_job->unique_next= NULL;
+  server_job->unique_prev= NULL;
+  server_job->function= NULL;
+  server_job->function_next= NULL;
+  server_job->data= NULL;
+  server_job->client_list= NULL;
+  server_job->worker= NULL;
+  server_job->job_handle[0]= 0;
+  server_job->unique[0]= 0;
 
   return server_job;
 }
