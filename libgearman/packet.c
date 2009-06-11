@@ -125,16 +125,23 @@ gearman_packet_st *gearman_packet_create(gearman_st *gearman,
       return NULL;
     }
 
-    memset(packet, 0, sizeof(gearman_packet_st));
-    packet->options|= GEARMAN_PACKET_ALLOCATED;
+    packet->options= GEARMAN_PACKET_ALLOCATED;
   }
   else
-    memset(packet, 0, sizeof(gearman_packet_st));
+    packet->options= 0;
 
+  packet->magic= 0;
+  packet->command= 0;
+  packet->argc= 0;
+  packet->args_size= 0;
+  packet->data_size= 0;
   packet->gearman= gearman;
 
   if (!(gearman->options & GEARMAN_DONT_TRACK_PACKETS))
     GEARMAN_LIST_ADD(gearman->packet, packet,)
+
+  packet->args= NULL;
+  packet->data= NULL;
 
   return packet;
 }

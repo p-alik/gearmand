@@ -58,22 +58,40 @@ gearmand_st *gearmand_create(const char *host, in_port_t port)
   if (gearmand == NULL)
     return NULL;
 
-  memset(gearmand, 0, sizeof(gearmand_st));
-
-  gearmand->wakeup_fd[0]= -1;
-  gearmand->wakeup_fd[1]= -1;
-  gearmand->backlog= GEARMAN_DEFAULT_BACKLOG;
-  gearmand->host= host;
-  if (port == 0)
-    gearmand->port= GEARMAN_DEFAULT_TCP_PORT;
-  else
-    gearmand->port= port;
-
   if (gearman_server_create(&(gearmand->server)) == NULL)
   {
     free(gearmand);
     return NULL;
   }
+
+  gearmand->options= 0;
+  gearmand->verbose= 0;
+  gearmand->ret= 0;
+
+  if (port == 0)
+    gearmand->port= GEARMAN_DEFAULT_TCP_PORT;
+  else
+    gearmand->port= port;
+
+  gearmand->backlog= GEARMAN_DEFAULT_BACKLOG;
+  gearmand->threads= 0;
+  gearmand->listen_count= 0;
+  gearmand->thread_count= 0;
+  gearmand->free_dcon_count= 0;
+  gearmand->max_thread_free_dcon_count= 0;
+  gearmand->wakeup_fd[0]= -1;
+  gearmand->wakeup_fd[1]= -1;
+  gearmand->host= host;
+  gearmand->log_fn= NULL;
+  gearmand->log_fn_arg= NULL;
+  gearmand->base= NULL;
+  gearmand->addrinfo= NULL;
+  gearmand->addrinfo_next= NULL;
+  gearmand->listen_fd= NULL;
+  gearmand->listen_event= NULL;
+  gearmand->thread_list= NULL;
+  gearmand->thread_add_next= NULL;
+  gearmand->free_dcon_list= NULL;
 
   return gearmand;
 }
@@ -312,7 +330,9 @@ static gearman_return_t _listen_init(gearmand_st *gearmand)
       close(fd);
       if (errno == EADDRINUSE)
       {
-        GEARMAN_ERROR(gearmand, "Address already in use %s:%s", host, port)
+        if (gearmand->listen_fd == NULL)
+          GEARMAN_ERROR(gearmand, "Address already in use %s:%s", host, port)
+
         continue;
       }
 

@@ -76,11 +76,35 @@ gearman_server_st *gearman_server_create(gearman_server_st *server)
     if (server == NULL)
       return NULL;
 
-    memset(server, 0, sizeof(gearman_server_st));
-    server->options|= GEARMAN_SERVER_ALLOCATED;
+    server->options= GEARMAN_SERVER_ALLOCATED;
   }
   else
-    memset(server, 0, sizeof(gearman_server_st));
+    server->options= 0;
+
+  server->shutdown= false;
+  server->shutdown_graceful= false;
+  server->proc_wakeup= false;
+  server->proc_shutdown= false;
+  server->thread_count= 0;
+  server->free_packet_count= 0;
+  server->function_count= 0;
+  server->job_count= 0;
+  server->unique_count= 0;
+  server->free_job_count= 0;
+  server->free_client_count= 0;
+  server->free_worker_count= 0;
+  server->thread_list= NULL;
+  server->free_packet_list= NULL;
+  server->function_list= NULL;
+  server->free_job_list= NULL;
+  server->free_client_list= NULL;
+  server->free_worker_list= NULL;
+  server->log_fn= NULL;
+  server->log_fn_arg= NULL;
+  memset(server->job_hash, 0,
+         sizeof(gearman_server_job_st *) * GEARMAN_JOB_HASH_SIZE);
+  memset(server->unique_hash, 0,
+         sizeof(gearman_server_job_st *) * GEARMAN_JOB_HASH_SIZE);
 
   server->gearman= gearman_create(&(server->gearman_static));
   if (server->gearman == NULL)
@@ -184,10 +208,6 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
     return _server_error_packet(server_con, "bad_magic",
                                 "Request magic expected");
   }
-
-  GEARMAN_DEBUG(gearman, "%s Received %s",
-              server_con->host == NULL ? "-" : server_con->host,
-              gearman_command_info_list[packet->command].name)
 
   switch (packet->command)
   {

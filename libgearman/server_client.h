@@ -30,19 +30,19 @@ extern "C" {
  * Add a new client to a server instance.
  */
 gearman_server_client_st *
-gearman_server_client_add(gearman_server_con_st *server_con);
+gearman_server_client_add(gearman_server_con_st *con);
 
 /**
  * Initialize a server client structure.
  */
 gearman_server_client_st *
-gearman_server_client_create(gearman_server_con_st *server_con,
-                             gearman_server_client_st *server_client);
+gearman_server_client_create(gearman_server_con_st *con,
+                             gearman_server_client_st *client);
 
 /**
  * Free a server client structure.
  */
-void gearman_server_client_free(gearman_server_client_st *server_client);
+void gearman_server_client_free(gearman_server_client_st *client);
 
 /** @} */
 

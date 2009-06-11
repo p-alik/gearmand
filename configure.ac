@@ -6,12 +6,12 @@
 # the COPYING file in this directory for full text.
 
 AC_PREREQ(2.59)
-AC_INIT(gearmand, [0.7], [https://launchpad.net/gearmand])
+AC_INIT(gearmand, [0.8], [https://launchpad.net/gearmand])
 AC_CONFIG_SRCDIR(libgearman/gearman.c)
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_HEADERS([config.h])
 
-GEARMAN_LIBRARY_VERSION=1:1:0
+GEARMAN_LIBRARY_VERSION=1:2:0
 #                       | | |
 #                +------+ | +---+
 #                |        |     |
@@ -122,7 +122,7 @@ fi
 AC_HEADER_TIME
 AC_CHECK_HEADERS(assert.h errno.h fcntl.h getopt.h netinet/tcp.h pwd.h signal.h)
 AC_CHECK_HEADERS(stdarg.h stdio.h stdlib.h string.h sys/resource.h sys/stat.h)
-AC_CHECK_HEADERS(sys/socket.h sys/types.h sys/utsname.h unistd.h)
+AC_CHECK_HEADERS(sys/socket.h sys/types.h sys/utsname.h unistd.h strings.h)
 
 AC_CHECK_HEADERS(pthread.h)
 AC_CHECK_LIB(pthread, pthread_create)
