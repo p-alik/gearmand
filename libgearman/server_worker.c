@@ -18,86 +18,82 @@
  */
 
 gearman_server_worker_st *
-gearman_server_worker_add(gearman_server_con_st *server_con,
-                          const char *function_name,
-                          size_t function_name_size,
-                          uint32_t timeout)
+gearman_server_worker_add(gearman_server_con_st *con, const char *function_name,
+                          size_t function_name_size, uint32_t timeout)
 {
-  gearman_server_worker_st *server_worker;
-  gearman_server_function_st *server_function;
+  gearman_server_worker_st *worker;
+  gearman_server_function_st *function;
 
-  server_function= gearman_server_function_get(server_con->thread->server,
-                                               function_name,
-                                               function_name_size);
-  if (server_function == NULL)
+  function= gearman_server_function_get(con->thread->server, function_name,
+                                        function_name_size);
+  if (function == NULL)
     return NULL;
 
-  server_worker= gearman_server_worker_create(server_con, server_function,
-                                              NULL);
-  if (server_worker == NULL)
+  worker= gearman_server_worker_create(con, function, NULL);
+  if (worker == NULL)
     return NULL;
 
-  server_worker->timeout= timeout;
+  worker->timeout= timeout;
 
-  return server_worker;
+  return worker;
 }
 
 gearman_server_worker_st *
-gearman_server_worker_create(gearman_server_con_st *server_con,
-                             gearman_server_function_st *server_function,
-                             gearman_server_worker_st *server_worker)
+gearman_server_worker_create(gearman_server_con_st *con,
+                             gearman_server_function_st *function,
+                             gearman_server_worker_st *worker)
 {
-  gearman_server_st *server= server_con->thread->server;
+  gearman_server_st *server= con->thread->server;
 
-  if (server_worker == NULL)
+  if (worker == NULL)
   {
     if (server->free_worker_count > 0)
     {
-      server_worker= server->free_worker_list;
-      GEARMAN_LIST_DEL(server->free_worker, server_worker, con_)
+      worker= server->free_worker_list;
+      GEARMAN_LIST_DEL(server->free_worker, worker, con_)
     }
     else
     {
-      server_worker= malloc(sizeof(gearman_server_worker_st));
-      if (server_worker == NULL)
+      worker= malloc(sizeof(gearman_server_worker_st));
+      if (worker == NULL)
       {
-        GEARMAN_ERROR_SET(server_con->thread->gearman,
-                          "gearman_server_worker_create", "malloc")
+        GEARMAN_ERROR_SET(con->thread->gearman, "gearman_server_worker_create",
+                          "malloc")
         return NULL;
       }
     }
 
-    memset(server_worker, 0, sizeof(gearman_server_worker_st));
-    server_worker->options|= GEARMAN_SERVER_WORKER_ALLOCATED;
+    worker->options= GEARMAN_SERVER_WORKER_ALLOCATED;
   }
   else
-    memset(server_worker, 0, sizeof(gearman_server_worker_st));
+    worker->options= 0;
 
-  server_worker->con= server_con;
-  server_worker->function= server_function;
+  worker->timeout= 0;
+  worker->con= con;
+  GEARMAN_LIST_ADD(con->worker, worker, con_)
+  worker->function= function;
+  GEARMAN_LIST_ADD(function->worker, worker, function_)
+  worker->job= NULL;
 
-  GEARMAN_LIST_ADD(server_con->worker, server_worker, con_)
-  GEARMAN_LIST_ADD(server_function->worker, server_worker, function_)
-
-  return server_worker;
+  return worker;
 }
 
-void gearman_server_worker_free(gearman_server_worker_st *server_worker)
+void gearman_server_worker_free(gearman_server_worker_st *worker)
 {
-  gearman_server_st *server= server_worker->con->thread->server;
+  gearman_server_st *server= worker->con->thread->server;
 
   /* If the worker was in the middle of a job, requeue it. */
-  if (server_worker->job != NULL)
-    (void)gearman_server_job_queue(server_worker->job);
+  if (worker->job != NULL)
+    (void)gearman_server_job_queue(worker->job);
 
-  GEARMAN_LIST_DEL(server_worker->con->worker, server_worker, con_)
-  GEARMAN_LIST_DEL(server_worker->function->worker, server_worker, function_)
+  GEARMAN_LIST_DEL(worker->con->worker, worker, con_)
+  GEARMAN_LIST_DEL(worker->function->worker, worker, function_)
 
-  if (server_worker->options & GEARMAN_SERVER_WORKER_ALLOCATED)
+  if (worker->options & GEARMAN_SERVER_WORKER_ALLOCATED)
   {
     if (server->free_worker_count < GEARMAN_MAX_FREE_SERVER_WORKER)
-      GEARMAN_LIST_ADD(server->free_worker, server_worker, con_)
+      GEARMAN_LIST_ADD(server->free_worker, worker, con_)
     else
-      free(server_worker);
+      free(worker);
   }
 }

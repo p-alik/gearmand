@@ -454,8 +454,7 @@ static void _shutdown_handler(int signal)
 }
 
 static void _log(gearmand_st *gearmand __attribute__ ((unused)),
-                 gearman_verbose_t verbose __attribute__ ((unused)),
-                 const char *line, void *fn_arg)
+                 gearman_verbose_t verbose, const char *line, void *fn_arg)
 {
   gearmand_log_info_st *log_info= (gearmand_log_info_st *)fn_arg;
   int fd;
@@ -490,7 +489,8 @@ static void _log(gearmand_st *gearmand __attribute__ ((unused)),
     fd= log_info->fd;
   }
 
-  snprintf(buffer, GEARMAN_MAX_ERROR_SIZE, "%s\n", line);
+  snprintf(buffer, GEARMAN_MAX_ERROR_SIZE, "%5s %s\n",
+           gearman_verbose_name(verbose), line);
   if (write(fd, buffer, strlen(buffer)) == -1)
     fprintf(stderr, "gearmand: Could not write to log file: %d\n", errno);
 }

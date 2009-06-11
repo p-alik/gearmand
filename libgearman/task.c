@@ -29,15 +29,23 @@ gearman_task_st *gearman_task_create(gearman_st *gearman,
       return NULL;
     }
 
-    memset(task, 0, sizeof(gearman_task_st));
-    task->options|= GEARMAN_TASK_ALLOCATED;
+    task->options= GEARMAN_TASK_ALLOCATED;
   }
   else
-    memset(task, 0, sizeof(gearman_task_st));
+    task->options= 0;
 
+  task->state= 0;
+  task->is_known= false;
+  task->is_running= false;
+  task->created_id= 0;
+  task->numerator= 0;
+  task->denominator= 0;
   task->gearman= gearman;
-
   GEARMAN_LIST_ADD(gearman->task, task,)
+  task->fn_arg= NULL;
+  task->con= NULL;
+  task->recv= NULL;
+  task->job_handle[0]= 0;
 
   return task;
 }

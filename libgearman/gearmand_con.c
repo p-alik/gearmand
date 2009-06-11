@@ -58,8 +58,12 @@ gearman_return_t gearmand_con_create(gearmand_st *gearmand, int fd,
     }
   }
 
-  memset(dcon, 0, sizeof(gearmand_con_st));
+  dcon->last_events= 0;
   dcon->fd= fd;
+  dcon->next= NULL;
+  dcon->prev= NULL;
+  dcon->server_con= NULL;
+  dcon->con= NULL;
   strncpy(dcon->host, host, NI_MAXHOST - 1);
   strncpy(dcon->port, port, NI_MAXSERV - 1);
 
@@ -200,7 +204,7 @@ gearman_return_t gearmand_con_watch(gearman_con_st *con, short events,
     dcon->last_events= set_events;
   }
 
-  GEARMAN_CRAZY(dcon->thread->gearmand, "[%4u] %15s:%5s Watching %8s%8s",
+  GEARMAN_CRAZY(dcon->thread->gearmand, "[%4u] %15s:%5s Watching  %6s %s",
                 dcon->thread->count, dcon->host, dcon->port,
                 events & POLLIN ? "POLLIN" : "",
                 events & POLLOUT ? "POLLOUT" : "")
@@ -225,7 +229,7 @@ static void _con_ready(int fd __attribute__ ((unused)), short events,
 
   gearman_con_set_revents(dcon->con, revents);
 
-  GEARMAN_CRAZY(dcon->thread->gearmand, "[%4u] %15s:%5s Ready    %8s%8s",
+  GEARMAN_CRAZY(dcon->thread->gearmand, "[%4u] %15s:%5s Ready     %6s %s",
                 dcon->thread->count, dcon->host, dcon->port,
                 revents & POLLIN ? "POLLIN" : "",
                 revents & POLLOUT ? "POLLOUT" : "")

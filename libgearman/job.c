@@ -45,15 +45,14 @@ gearman_job_st *gearman_job_create(gearman_st *gearman, gearman_job_st *job)
       return NULL;
     }
 
-    memset(job, 0, sizeof(gearman_job_st));
-    job->options|= GEARMAN_JOB_ALLOCATED;
+    job->options= GEARMAN_JOB_ALLOCATED;
   }
   else
-    memset(job, 0, sizeof(gearman_job_st));
+    job->options= 0;
 
   job->gearman= gearman;
-
   GEARMAN_LIST_ADD(gearman->job, job,)
+  job->con= NULL;
 
   return job;
 }
