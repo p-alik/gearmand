@@ -274,7 +274,7 @@ gearman_return_t gearman_packet_pack_header(gearman_packet_st *packet)
     break;
 
   default:
-    GEARMAN_ERROR_SET(packet->gearman, "gearman_packet_pack",
+    GEARMAN_ERROR_SET(packet->gearman, "gearman_packet_pack_header",
                       "invalid magic value")
     return GEARMAN_INVALID_MAGIC;
   }
@@ -282,7 +282,7 @@ gearman_return_t gearman_packet_pack_header(gearman_packet_st *packet)
   if (packet->command == GEARMAN_COMMAND_TEXT ||
       packet->command >= GEARMAN_COMMAND_MAX)
   {
-    GEARMAN_ERROR_SET(packet->gearman, "gearman_packet_pack",
+    GEARMAN_ERROR_SET(packet->gearman, "gearman_packet_pack_header",
                       "invalid command value")
     return GEARMAN_INVALID_COMMAND;
   }
@@ -310,7 +310,7 @@ gearman_return_t gearman_packet_unpack_header(gearman_packet_st *packet)
     packet->magic= GEARMAN_MAGIC_RESPONSE;
   else
   {
-    GEARMAN_ERROR_SET(packet->gearman, "gearman_packet_unpack",
+    GEARMAN_ERROR_SET(packet->gearman, "gearman_packet_unpack_header",
                       "invalid magic value")
     return GEARMAN_INVALID_MAGIC;
   }
@@ -321,7 +321,7 @@ gearman_return_t gearman_packet_unpack_header(gearman_packet_st *packet)
   if (packet->command == GEARMAN_COMMAND_TEXT ||
       packet->command >= GEARMAN_COMMAND_MAX)
   {
-    GEARMAN_ERROR_SET(packet->gearman, "gearman_packet_unpack",
+    GEARMAN_ERROR_SET(packet->gearman, "gearman_packet_unpack_header",
                       "invalid command value")
     return GEARMAN_INVALID_COMMAND;
   }
@@ -332,8 +332,32 @@ gearman_return_t gearman_packet_unpack_header(gearman_packet_st *packet)
   return GEARMAN_SUCCESS;
 }
 
-size_t gearman_packet_parse(gearman_packet_st *packet, const void *data,
-                            size_t data_size, gearman_return_t *ret_ptr)
+size_t gearman_packet_pack(gearman_packet_st *packet,
+                           gearman_con_st *con __attribute__ ((unused)),
+                           void *data, size_t data_size,
+                           gearman_return_t *ret_ptr)
+{
+  if (packet->args_size == 0)
+  {
+    *ret_ptr= GEARMAN_SUCCESS;
+    return 0;
+  }
+
+  if (packet->args_size > data_size)
+  {
+    *ret_ptr= GEARMAN_FLUSH_DATA;
+    return 0;
+  }
+
+  memcpy(data, packet->args, packet->args_size);
+  *ret_ptr= GEARMAN_SUCCESS;
+  return packet->args_size;
+}
+
+size_t gearman_packet_unpack(gearman_packet_st *packet,
+                             gearman_con_st *con __attribute__ ((unused)),
+                             const void *data, size_t data_size,
+                             gearman_return_t *ret_ptr)
 {
   uint8_t *ptr;
   size_t used_size;

@@ -867,7 +867,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
     else if (ret != GEARMAN_SUCCESS)
     {
       /* Increment this since the job submission failed. */
-      client->con->created_id++;
+      task->con->created_id++;
       client->running_tasks--;
       return ret;
     }

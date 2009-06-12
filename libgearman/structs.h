@@ -115,6 +115,14 @@ struct gearman_con_st
   uint8_t *send_buffer_ptr;
   gearman_packet_st *recv_packet;
   uint8_t *recv_buffer_ptr;
+  void *protocol_data;
+  gearman_con_protocol_data_free_fn *protocol_data_free_fn;
+  gearman_con_recv_fn *recv_fn;
+  gearman_con_recv_data_fn *recv_data_fn;
+  gearman_con_send_fn *send_fn;
+  gearman_con_send_data_fn *send_data_fn;
+  gearman_packet_pack_fn *packet_pack_fn;
+  gearman_packet_unpack_fn *packet_unpack_fn;
   gearman_packet_st packet;
   char host[NI_MAXHOST];
   uint8_t send_buffer[GEARMAN_SEND_BUFFER_SIZE];
@@ -417,10 +425,9 @@ struct gearmand_st
   gearmand_options_t options;
   gearman_verbose_t verbose;
   gearman_return_t ret;
-  in_port_t port;
   int backlog;
+  uint32_t port_count;
   uint32_t threads;
-  uint32_t listen_count;
   uint32_t thread_count;
   uint32_t free_dcon_count;
   uint32_t max_thread_free_dcon_count;
@@ -429,15 +436,25 @@ struct gearmand_st
   gearmand_log_fn *log_fn;
   void *log_fn_arg;
   struct event_base *base;
-  struct addrinfo *addrinfo;
-  struct addrinfo *addrinfo_next;
-  int *listen_fd;
-  struct event *listen_event;
+  gearmand_port_st *port_list;
   gearmand_thread_st *thread_list;
   gearmand_thread_st *thread_add_next;
   gearmand_con_st *free_dcon_list;
   gearman_server_st server;
   struct event wakeup_event;
+};
+
+/**
+ * @ingroup gearmand
+ */
+struct gearmand_port_st
+{
+  in_port_t port;
+  uint32_t listen_count;
+  gearmand_st *gearmand;
+  gearman_con_add_fn *add_fn;
+  int *listen_fd;
+  struct event *listen_event;
 };
 
 /**
@@ -476,6 +493,7 @@ struct gearmand_con_st
   gearmand_con_st *prev;
   gearman_server_con_st *server_con;
   gearman_con_st *con;
+  gearman_con_add_fn *add_fn;
   struct event event;
   char host[NI_MAXHOST];
   char port[NI_MAXSERV];

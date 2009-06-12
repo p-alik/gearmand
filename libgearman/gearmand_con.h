@@ -34,7 +34,8 @@ extern "C" {
  * @return Pointer to an allocated gearmand structure.
  */
 gearman_return_t gearmand_con_create(gearmand_st *gearmand, int fd,
-                                     const char *host, const char *port);
+                                     const char *host, const char *port,
+                                     gearman_con_add_fn *add_fn);
 
 /**
  * Free resources used by a connection.

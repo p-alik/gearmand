@@ -36,7 +36,8 @@ static gearman_return_t _con_add(gearmand_thread_st *thread,
  */
 
 gearman_return_t gearmand_con_create(gearmand_st *gearmand, int fd,
-                                     const char *host, const char *port)
+                                     const char *host, const char *port,
+                                     gearman_con_add_fn *add_fn)
 {
   gearmand_con_st *dcon;
   gearmand_con_st *free_dcon_list;
@@ -64,8 +65,10 @@ gearman_return_t gearmand_con_create(gearmand_st *gearmand, int fd,
   dcon->prev= NULL;
   dcon->server_con= NULL;
   dcon->con= NULL;
+  dcon->add_fn= NULL;
   strncpy(dcon->host, host, NI_MAXHOST - 1);
   strncpy(dcon->port, port, NI_MAXSERV - 1);
+  dcon->add_fn= add_fn;
 
   /* If we are not threaded, just add the connection now. */
   if (gearmand->threads == 0)
@@ -133,6 +136,7 @@ void gearmand_con_free(gearmand_con_st *dcon)
 
   gearman_server_con_free(dcon->server_con);
   GEARMAN_LIST_DEL(dcon->thread->dcon, dcon,)
+
   close(dcon->fd);
 
   if (dcon->thread->gearmand->free_dcon_count < GEARMAN_MAX_FREE_SERVER_CON)
@@ -240,6 +244,8 @@ static void _con_ready(int fd __attribute__ ((unused)), short events,
 static gearman_return_t _con_add(gearmand_thread_st *thread,
                                  gearmand_con_st *dcon)
 {
+  gearman_return_t ret;
+
   dcon->server_con= gearman_server_con_add(&(thread->server_thread), dcon->fd,
                                            dcon);
   if (dcon->server_con == NULL)
@@ -251,6 +257,18 @@ static gearman_return_t _con_add(gearmand_thread_st *thread,
 
   gearman_server_con_set_host(dcon->server_con, dcon->host);
   gearman_server_con_set_port(dcon->server_con, dcon->port);
+
+  if (dcon->add_fn != NULL)
+  {
+    ret= (*dcon->add_fn)(gearman_server_con_con(dcon->server_con));
+    if (ret != GEARMAN_SUCCESS)
+    {
+      gearman_server_con_free(dcon->server_con);
+      close(dcon->fd);
+      free(dcon);
+      return ret;
+    }
+  }
 
   GEARMAN_INFO(thread->gearmand, "[%4u] %15s:%5s Connected", thread->count,
                dcon->host, dcon->port)
