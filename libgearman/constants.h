@@ -122,6 +122,9 @@ typedef enum
   GEARMAN_PTHREAD,
   GEARMAN_PIPE_EOF,
   GEARMAN_QUEUE_ERROR,
+  GEARMAN_FLUSH_DATA,
+  GEARMAN_SEND_BUFFER_TOO_SMALL,
+  GEARMAN_IGNORE_PACKET,
   GEARMAN_MAX_RETURN /* Always add new error code before */
 } gearman_return_t;
 
@@ -161,7 +164,8 @@ typedef enum
   GEARMAN_CON_READY=                  (1 << 1),
   GEARMAN_CON_PACKET_IN_USE=          (1 << 2),
   GEARMAN_CON_EXTERNAL_FD=            (1 << 3),
-  GEARMAN_CON_IGNORE_LOST_CONNECTION= (1 << 4)
+  GEARMAN_CON_IGNORE_LOST_CONNECTION= (1 << 4),
+  GEARMAN_CON_CLOSE_AFTER_FLUSH=      (1 << 5)
 } gearman_con_options_t;
 
 /**
@@ -550,6 +554,9 @@ typedef void (gearman_server_thread_run_fn)(gearman_server_thread_st *thread,
 
 typedef gearman_return_t (gearman_con_add_fn)(gearman_con_st *con);
 
+typedef void (gearman_con_protocol_data_free_fn)(gearman_con_st *con,
+                                                 void *data);
+
 typedef gearman_packet_st* (gearman_con_recv_fn)(gearman_con_st *con,
                                                  gearman_packet_st *packet,
                                                  gearman_return_t *ret_ptr,
@@ -562,6 +569,15 @@ typedef gearman_return_t (gearman_con_send_fn)(gearman_con_st *con,
                                                gearman_packet_st *packet,
                                                bool flush);
 typedef size_t (gearman_con_send_data_fn)(gearman_con_st *con, const void *data,
+                                          size_t data_size,
+                                          gearman_return_t *ret_ptr);
+
+typedef size_t (gearman_packet_pack_fn)(gearman_packet_st *packet,
+                                        gearman_con_st *con,
+                                        void *data, size_t data_size,
+                                        gearman_return_t *ret_ptr);
+typedef size_t (gearman_packet_unpack_fn)(gearman_packet_st *packet,
+                                          gearman_con_st *con, const void *data,
                                           size_t data_size,
                                           gearman_return_t *ret_ptr);
 

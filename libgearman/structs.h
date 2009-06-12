@@ -115,10 +115,14 @@ struct gearman_con_st
   uint8_t *send_buffer_ptr;
   gearman_packet_st *recv_packet;
   uint8_t *recv_buffer_ptr;
+  void *protocol_data;
+  gearman_con_protocol_data_free_fn *protocol_data_free_fn;
   gearman_con_recv_fn *recv_fn;
   gearman_con_recv_data_fn *recv_data_fn;
   gearman_con_send_fn *send_fn;
   gearman_con_send_data_fn *send_data_fn;
+  gearman_packet_pack_fn *packet_pack_fn;
+  gearman_packet_unpack_fn *packet_unpack_fn;
   gearman_packet_st packet;
   char host[NI_MAXHOST];
   uint8_t send_buffer[GEARMAN_SEND_BUFFER_SIZE];

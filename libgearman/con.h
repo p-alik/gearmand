@@ -129,6 +129,12 @@ size_t gearman_con_recv_data(gearman_con_st *con, void *data, size_t data_size,
                              gearman_return_t *ret_ptr);
 
 /**
+ * Read data from a connection.
+ */
+size_t gearman_con_read(gearman_con_st *con, void *data, size_t data_size,
+                        gearman_return_t *ret_ptr);
+
+/**
  * Wait for I/O on connections.
  */
 gearman_return_t gearman_con_wait(gearman_st *gearman, int timeout);
@@ -156,6 +162,22 @@ gearman_return_t gearman_con_echo(gearman_st *gearman, const void *workload,
                                   size_t workload_size);
 
 /**
+ * Get protocol data pointer.
+ */
+void *gearman_con_protocol_data(gearman_con_st *con);
+
+/**
+ * Set protocol data pointer.
+ */
+void gearman_con_set_protocol_data(gearman_con_st *con, void *data);
+
+/**
+ * Set function to call when protocol_data should be freed.
+ */
+void gearman_con_set_protocol_data_free_fn(gearman_con_st *con,
+                                    gearman_con_protocol_data_free_fn *free_fn);
+
+/**
  * Set custom recv function
  */
 void gearman_con_set_recv_fn(gearman_con_st *con, gearman_con_recv_fn recv_fn);
@@ -176,6 +198,18 @@ void gearman_con_set_send_fn(gearman_con_st *con, gearman_con_send_fn send_fn);
  */
 void gearman_con_set_send_data_fn(gearman_con_st *con,
                                   gearman_con_send_data_fn send_data_fn);
+
+/**
+ * Set custom packet_pack function
+ */
+void gearman_con_set_packet_pack_fn(gearman_con_st *con,
+                                    gearman_packet_pack_fn pack_fn);
+
+/**
+ * Set custom packet_unpack function
+ */
+void gearman_con_set_packet_unpack_fn(gearman_con_st *con,
+                                     gearman_packet_unpack_fn acpket_unpack_fn);
 
 /** @} */
 

@@ -227,13 +227,6 @@ void gearmand_thread_run(gearmand_thread_st *thread)
 
     dcon= (gearmand_con_st *)gearman_server_con_data(server_con);
 
-    if (ret != GEARMAN_LOST_CONNECTION)
-    { 
-      GEARMAN_ERROR(thread->gearmand, "[%4u] %15s:%5s %s", thread->count,
-                    dcon->host, dcon->port,
-                    gearman_server_thread_error(&(thread->server_thread)))
-    }
-
     GEARMAN_INFO(thread->gearmand, "[%4u] %15s:%5s Disconnected", thread->count,
                  dcon->host, dcon->port)
 
