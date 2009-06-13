@@ -67,6 +67,18 @@ void gearmand_set_log(gearmand_st *gearmand, gearmand_log_fn log_fn,
                       void *log_fn_arg, gearman_verbose_t verbose);
 
 /**
+ * Add a port to listen on when starting server with optional callback.
+ * @param gearmand Server instance structure previously initialized with
+ *        gearmand_create.
+ * @param port Port for the server to listen on.
+ * @param add_fn Optional callback function that is called when a connection
+                 has been accepted on the given port.
+ * @return Standard gearman return value.
+ */
+gearman_return_t gearmand_port_add(gearmand_st *gearmand, in_port_t port,
+                                   gearman_con_add_fn *add_fn);
+
+/**
  * Run the server instance.
  * @param gearmand Server instance structure previously initialized with
  *        gearmand_create.
