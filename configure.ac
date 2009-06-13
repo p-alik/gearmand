@@ -94,30 +94,15 @@ then
   CFLAGS="-ggdb3 -std=gnu99 ${CFLAGS}"
   DEBUG_CFLAGS="-O0"
   OPTMIIZE_CFLAGS="-O3"
-fi
-if test "$SUNCC" = "yes"
+elif test "x$SUNCC" = "xyes"
 then
-  isainfo_k=`isainfo -k`
-  if test "$target_cpu" = "sparc"
-  then
-    MEMALIGN_FLAGS="-xmemalign=8s"
-    IS_64="-m64"
-    LDFLAGS="${LDFLAGS} -L/usr/lib/${isainfo_k} -L/usr/local/lib/${isainfo_k}"
-  else
-    if test "$isainfo_k" = "amd64"
-    then
-      IS_64="-m64"
-      LDFLAGS="${LDFLAGS} -L/usr/lib/${isainfo_k} -L/usr/local/lib/${isainfo_k}"
-    fi
-  fi
-  CPPFLAGS="${CPPFLAGS} -I/usr/local/include"
-
-  CFLAGS="-g -mt -xc99=all ${IS_64} ${MEMALIGN_FLAGS} ${CFLAGS}"
-  CXXFLAGS="-g -xlang=c99 ${IS_64} ${CXXFLAGS}"
-  DEBUG_CFLAGS="-xO0"
-  OPTIMIZE_CFLAGS="-xO4 -xlibmil -xdepend -Xa -mt -xstrconst"
+   CFLAGS="-mt -xc99=all -Xa -xstrconst $CFLAGS"
+   CXXFLAGS="-mt -xlang=c99 $CXXFLAGS"
+   DEBUG_CFLAGS="-g"
+   OPTIMIZE_CFLAGS="-xO4 -xdepend"
 fi
 
+sinclude(m4/64bit.m4)
 
 AC_HEADER_TIME
 AC_CHECK_HEADERS(assert.h errno.h fcntl.h getopt.h netinet/tcp.h pwd.h signal.h)
@@ -259,7 +244,7 @@ then
   CFLAGS="${DEBUG_CFLAGS} -DDEBUG ${CFLAGS}"
 else
   # Optimized version. No debug
-  CFLAGS="${OPTIMIZE_CFLAGS} ${CFLAGS}"
+  CFLAGS="${OPTIMIZE_CFLAGS} -DNDEBUG ${CFLAGS}"
 fi
 
 
@@ -410,7 +395,7 @@ echo "   * System type:               $host_vendor-$host_os"
 echo "   * Host CPU:                  $host_cpu"
 echo "   * C Compiler:                $CC_VERSION"
 echo "   * Assertions enabled:        $ac_cv_assert"
-echo "   * Debug enabled:             $ac_enable_debug"
+echo "   * Debug enabled:             $with_debug"
 echo "   * Warnings as failure:       $ac_warn_fail"
 echo ""
 echo "---"
