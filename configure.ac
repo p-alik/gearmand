@@ -94,12 +94,13 @@ then
   CFLAGS="-ggdb3 -std=gnu99 ${CFLAGS}"
   DEBUG_CFLAGS="-O0"
   OPTMIIZE_CFLAGS="-O3"
-elif test "x$SUNCC" = "xyes"
+fi
+if test "x$SUNCC" = "xyes"
 then
-   CFLAGS="-mt -xc99=all -Xa -xstrconst $CFLAGS"
-   CXXFLAGS="-mt -xlang=c99 $CXXFLAGS"
-   DEBUG_CFLAGS="-g"
-   OPTIMIZE_CFLAGS="-xO4 -xdepend"
+   CFLAGS="-g -mt -xc99=all $CFLAGS"
+   CXXFLAGS="-g -mt -xlang=c99 $CXXFLAGS"
+   DEBUG_CFLAGS="-xO0"
+   OPTIMIZE_CFLAGS="-xO4 -xlibmil -xdepend -Xa -xstrconst"
 fi
 
 SOLARIS_64BIT
