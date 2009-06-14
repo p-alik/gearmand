@@ -94,7 +94,7 @@ if test "$GCC" = "yes"
 then
   CFLAGS="-ggdb3 -std=gnu99 ${CFLAGS}"
   DEBUG_CFLAGS="-O0"
-  OPTMIIZE_CFLAGS="-O3"
+  OPTIMIZE_CFLAGS="-O3"
 fi
 if test "x$SUNCC" = "xyes"
 then

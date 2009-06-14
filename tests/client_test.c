@@ -205,7 +205,7 @@ test_return background_failure_test(void *object)
   uint32_t numerator;
   uint32_t denominator;
   uint8_t *value= (uint8_t *)"background_failure_test";
-  ssize_t value_length= strlen("background_failure_test");
+  size_t value_length= strlen("background_failure_test");
 
   rc= gearman_client_do_background(client, "does_not_exist", NULL, value,
                                    value_length, job_handle);

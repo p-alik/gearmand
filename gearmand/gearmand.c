@@ -219,7 +219,7 @@ int main(int argc, char *argv[])
       }
     }
     else if (!strcmp(name, "file-descriptors"))
-      fds= atoi(value);
+      fds= (rlim_t)atoi(value);
     else if (!strcmp(name, "help"))
     {
       printf("\ngearmand %s - %s\n\n", gearman_version(), gearman_bugreport());
@@ -240,7 +240,7 @@ int main(int argc, char *argv[])
     else if (!strcmp(name, "queue-type"))
       queue_type= value;
     else if (!strcmp(name, "threads"))
-      threads= atoi(value);
+      threads= (uint32_t)atoi(value);
     else if (!strcmp(name, "user"))
       user= value;
     else if (!strcmp(name, "verbose"))
@@ -485,9 +485,9 @@ static bool _set_signals(void)
   return false;
 }
 
-static void _shutdown_handler(int signal)
+static void _shutdown_handler(int signal_arg)
 {
-  if (signal == SIGUSR1)
+  if (signal_arg == SIGUSR1)
     gearmand_wakeup(_gearmand, GEARMAND_WAKEUP_SHUTDOWN_GRACEFUL);
   else
     gearmand_wakeup(_gearmand, GEARMAND_WAKEUP_SHUTDOWN);
