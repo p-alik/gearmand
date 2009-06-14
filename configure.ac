@@ -102,12 +102,14 @@ then
    OPTIMIZE_CFLAGS="-xO4 -xdepend"
 fi
 
-sinclude(m4/64bit.m4)
+SOLARIS_64BIT
 
 AC_HEADER_TIME
 AC_CHECK_HEADERS(assert.h errno.h fcntl.h getopt.h netinet/tcp.h pwd.h signal.h)
 AC_CHECK_HEADERS(stdarg.h stdio.h stdlib.h string.h sys/resource.h sys/stat.h)
 AC_CHECK_HEADERS(sys/socket.h sys/types.h sys/utsname.h unistd.h strings.h)
+
+AC_LIB_PREFIX
 
 AC_CHECK_HEADERS(pthread.h)
 AC_CHECK_LIB(pthread, pthread_create)
