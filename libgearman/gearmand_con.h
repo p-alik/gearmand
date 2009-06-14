@@ -52,7 +52,7 @@ void gearmand_con_check_queue(gearmand_thread_st *thread);
  * Callback function used for setting events in libevent.
  */
 gearman_return_t gearmand_con_watch(gearman_con_st *con, short events,
-                                    void *arg __attribute__ ((unused)));
+                                    void *arg);
 
 /** @} */
 
