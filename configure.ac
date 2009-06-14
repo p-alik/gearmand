@@ -111,8 +111,14 @@ AC_CHECK_HEADERS(sys/socket.h sys/types.h sys/utsname.h unistd.h strings.h)
 
 AC_LIB_PREFIX
 
-AC_CHECK_HEADERS(pthread.h)
-AC_CHECK_LIB(pthread, pthread_create)
+#--------------------------------------------------------------------
+# Check for libpthread
+#--------------------------------------------------------------------
+
+ACX_PTHREAD(,AC_MSG_ERROR(could not find libpthread))
+LIBS="${PTHREAD_LIBS} ${LIBS}"
+CFLAGS="${PTHREAD_CFLAGS} ${CFLAGS}"
+CC="$PTHREAD_CC"
 
 #--------------------------------------------------------------------
 # Check for libevent

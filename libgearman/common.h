@@ -31,7 +31,7 @@ extern "C" {
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
-#ifdef HAVE_PTHREAD_H
+#ifdef HAVE_PTHREAD
 #include <pthread.h>
 #endif
 #ifdef HAVE_STDARG_H
