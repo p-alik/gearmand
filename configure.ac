@@ -100,7 +100,6 @@ if test "x$SUNCC" = "xyes"
 then
    CFLAGS="-g -mt -xc99=all $CFLAGS"
    CXXFLAGS="-g -mt -xlang=c99 $CXXFLAGS"
-   DEBUG_CFLAGS="-xO0"
    OPTIMIZE_CFLAGS="-xO4 -xlibmil -xdepend -Xa -xstrconst"
 fi
 
