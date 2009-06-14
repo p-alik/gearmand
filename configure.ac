@@ -50,8 +50,10 @@ else
   building_from_bzr=no
 fi
 
-AC_PROG_CXX
+AC_PROG_CC
+AC_PROG_CC_C99
 AM_PROG_CC_STDC
+AC_PROG_CXX
 
 ACX_USE_SYSTEM_EXTENSIONS
 
@@ -60,6 +62,7 @@ AM_PROG_CC_C_O
 
 AC_C_BIGENDIAN
 AC_C_CONST
+AC_HEADER_TIME
 AC_TYPE_SIZE_T
 AC_TYPE_SSIZE_T
 AC_FUNC_MALLOC
@@ -69,8 +72,6 @@ AC_CHECK_DECL([__SUNPRO_C], [SUNCC="yes"], [SUNCC="no"])
 
 # We use libtool
 AC_PROG_LIBTOOL
-LIBTOOL="$LIBTOOL --preserve-dup-deps"
-
 
 AC_MSG_CHECKING("C Compiler version")
 if test "$GCC" = "yes"
@@ -85,20 +86,28 @@ fi
 AC_MSG_RESULT("$CC_VERSION")
 AC_SUBST(CC_VERSION)
 
-AC_DEFINE([_THREAD_SAFE],[1],[Thread safe code])
-AC_DEFINE([_REENTRANT],[1],[Re-entrant code])
+# libgearman versioning when linked with GNU ld.
+if test "$lt_cv_prog_gnu_ld" = "yes"
+then
+    LD_VERSION_SCRIPT="-Wl,--version-script=\$(top_srcdir)/libgearman/libgearman.ver"
+fi
+AC_SUBST(LD_VERSION_SCRIPT)
+
+# Use the C99 enabling flag found earlier
+AS_IF([test "$ac_cv_prog_cc_c99" != "no"],
+      [CFLAGS="$ac_cv_prog_cc_c99 ${CFLAGS}"])
 
 # Build optimized or debug version ?
 # First check for gcc and g++
 if test "$GCC" = "yes"
 then
-  CFLAGS="-ggdb3 -std=gnu99 ${CFLAGS}"
+  CFLAGS="-ggdb3 ${CFLAGS}"
   DEBUG_CFLAGS="-O0"
   OPTIMIZE_CFLAGS="-O3"
 fi
 if test "x$SUNCC" = "xyes"
 then
-   CFLAGS="-g -mt -xc99=all $CFLAGS"
+   CFLAGS="-g -mt $CFLAGS"
    CXXFLAGS="-g -mt -xlang=c99 $CXXFLAGS"
    OPTIMIZE_CFLAGS="-xO4 -xlibmil -xdepend -Xa -xstrconst"
 fi
@@ -213,7 +222,6 @@ AC_LIB_HAVE_LINKFLAGS(memcached,,
 
 AM_CONDITIONAL(HAVE_LIBMEMCACHED, test x$ac_cv_libmemcached = xyes)
 
-AC_HEADER_TIME
 AC_CHECK_HEADERS(assert.h errno.h fcntl.h getopt.h netinet/tcp.h pwd.h signal.h)
 AC_CHECK_HEADERS(stdarg.h stddef.h stdio.h stdlib.h string.h)
 AC_CHECK_HEADERS(sys/resource.h sys/stat.h)
@@ -263,115 +271,77 @@ AC_ARG_ENABLE([coverage],
     [ac_coverage="$enableval"],
     [ac_coverage="no"])
 
-AC_ARG_ENABLE([fail],
-  [AS_HELP_STRING([--disable-fail],
-    [Turn warnings into failures @<:@default=yes@:>@])],
-  [ac_warn_fail="$enableval"],
-  [ac_warn_fail="$building_from_bzr"])
-
-AC_ARG_ENABLE([pedantic-warnings],
-  [AS_HELP_STRING([--disable-pedantic-warnings],
-    [Toggle pedanticness @<:@default=yes@:>@])],
-  [ac_warn_pedantic="$enableval"],
-  [ac_warn_pedantic="$building_from_bzr"])
-
-AC_ARG_ENABLE([unreachable],
-  [AS_HELP_STRING([--enable-unreachable],
-    [Enable warnings about unreachable code @<:@default=no@:>@])],
-  [ac_warn_unreachable="$enableval"],
-  [ac_warn_unreachable="no"])
-
-AC_ARG_ENABLE([go-crazy],
-    [AS_HELP_STRING([--disable-go-crazy],
-       [Enables extra little warnings that might be too much @<:@default=on@:>@])],
-    [ac_warn_go_crazy="$enableval"],
-    [ac_warn_go_crazy="$building_from_bzr"])
-
 if test "$GCC" = "yes"
 then
 
-  if test "$ac_warn_fail" = "yes"
-  then
-    W_FAIL="-Werror"
-  fi
-  BASE_WARNINGS="-W -Wall -Wextra -Winvalid-pch ${W_FAIL}"
+  W_STRICT_ALIASING="-Wno-strict-aliasing"
 
-  if test "$ac_profiling" = "yes"
-  then
-    GPROF_PROFILING="-pg"
-  else
-    GPROF_PROFILING=" "
-  fi
+  AS_IF([test "$ac_profiling" = "yes"],
+        [CC_PROFILING="-pg"])
 
-  if test "$ac_coverage" = "yes"
-  then
-    GPROF_COVERAGE="-fprofile-arcs -ftest-coverage"
-  else
-    GPROF_COVERAGE=" "
-  fi
+  AS_IF([test "$ac_coverage" = "yes"],
+        [CC_COVERAGE="-fprofile-arcs -ftest-coverage"])
 
-  if test "$ac_warn_pedantic" = "yes"
-  then
-    W_PEDANTIC="-pedantic -Wundef -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -Wswitch-default -Wswitch-enum -Wcast-align"
-    save_CFLAGS="$CFLAGS"
-    CFLAGS="-Wlogical-op"
-    AC_COMPILE_IFELSE([
-      AC_LANG_PROGRAM(
-      [[
+  AS_IF([test "$building_from_bzr" = "yes"],
+        [W_FAIL="-Werror"])
+
+
+  BASE_WARNINGS="-pedantic -W -Wall -Wextra ${W_FAIL} -Wundef  -Wshadow -Wmissing-declarations ${W_STRICT_ALIASING}"
+  CC_WARNINGS="${BASE_WARNINGS} -Wstrict-prototypes -Wmissing-prototypes -Wredundant-decls -Wswitch-default -Wswitch-enum -Wcast-align"
+  CXX_WARNINGS="${BASE_WARNINGS} -Woverloaded-virtual  -Wnon-virtual-dtor -Wctor-dtor-privacy  -Wold-style-cast -Weffc++ -Wno-long-long"
+
+
+  AC_CACHE_CHECK([whether it is safe to use -Wlogical-op],
+    [ac_cv_safe_to_use_Wlogical_op_],
+    [save_CFLAGS="$CFLAGS"
+     CFLAGS="-Wlogical-op"
+     AC_COMPILE_IFELSE([
+       AC_LANG_PROGRAM(
+       [[
 #include <stdio>
-      ]], [[]])
-    ],[
-      W_PEDANTIC="${W_PEDANTIC} -Wlogical-op"
-    ],[])
-    CFLAGS="$save_CFLAGS"
-  fi
+       ]], [[]])
+    ],
+    [ac_cv_safe_to_use_Wlogical_op_=yes],
+    [ac_cv_safe_to_use_Wlogical_op_=no])
+  CFLAGS="$save_CFLAGS"])
+  AS_IF([test "$ac_cv_safe_to_use_Wlogical_op_" = "yes"],
+        [CC_WARNINGS="${CC_WARNINGS} -Wlogical-op"])
 
-  if test "$ac_warn_unreachable" = "yes"
-  then
-    W_UNREACHABLE="-Wunreachable-code"
-  fi
-
-  if test "$ac_warn_go_crazy" = "yes"
-  then
-    W_CRAZY="-Wshadow"
-    NO_CONVERSION="-Wno-conversion"
-    save_CFLAGS="$CFLAGS"
-    CFLAGS="-Werror -Wconversion"
-    AC_COMPILE_IFELSE(
-      [AC_LANG_PROGRAM(
-        [[
-#include <netinet/in.h>
-void foo(in_port_t port)
-{
-  return;
-}
-        ]],[[
-in_port_t x= 0;
-foo(x);
-        ]])],
-        W_CRAZY="${W_CRAZY} -Wconversion")
-    CFLAGS="$save_CFLAGS"
-    AC_SUBST(NO_CONVERSION)
-  fi
-
-  CC_WARNINGS="${BASE_WARNINGS} ${W_PEDANTIC} ${W_UNREACHABLE} ${GPROF_PROFILING} ${GPROF_COVERAGE} ${W_CRAZY}"
+  AC_CACHE_CHECK([whether it is safe to use -Wredundant-decls from C++],
+    [ac_cv_safe_to_use_Wredundant_decls_],
+    [AC_LANG_PUSH(C++)
+     save_CXXFLAGS="${CXXFLAGS}"
+     CXXFLAGS="${CXXFLAGS} ${W_FAIL} -Wredundant-decls"
+     AC_COMPILE_IFELSE(
+       [AC_LANG_PROGRAM([
+template <typename E> struct C { void foo(); };
+template <typename E> void C<E>::foo() { }
+template <> void C<int>::foo();
+          AC_INCLUDES_DEFAULT])],
+        [ac_cv_safe_to_use_Wredundant_decls_=yes],
+        [ac_cv_safe_to_use_Wredundant_decls_=no])
+      CXXFLAGS="${save_CXXFLAGS}"
+      AC_LANG_POP()])
+  AS_IF([test "$ac_cv_safe_to_use_Wredundant_decls_" = "yes"],
+        [CXX_WARNINGS="${CXX_WARNINGS} -Wredundant-decls"],
+        [CXX_WARNINGS="${CXX_WARNINGS} -Wno-redundant-decls"])
 
   NO_REDUNDANT_DECLS="-Wno-redundant-decls"
-  CPPFLAGS="-fpch-deps ${CPPFLAGS}"
 fi
 if test "$SUNCC" = "yes"
 then
 
-  if test "$ac_warn_fail" = "yes"
-  then
-    W_FAIL="-errwarn=%all"
-  fi
+  AS_IF([test "$ac_profiling" = "yes"],
+        [CC_PROFILING="-xinstrument=datarace"])
+
+  AS_IF([test "$building_from_bzr" = "yes"],
+        [W_FAIL="-errwarn=%all"])
 
   AC_CACHE_CHECK([whether E_PASTE_RESULT_NOT_TOKEN is usable],
     [ac_cv_paste_result],
     [
       save_CFLAGS="${CFLAGS}"
-      CFLAGS="-errwarn=%all -erroff=E_PASTE_RESULT_NOT_TOKEN ${CFLAGS}" 
+      CFLAGS="-errwarn=%all -erroff=E_PASTE_RESULT_NOT_TOKEN ${CFLAGS}"
       AC_COMPILE_IFELSE(
         [AC_LANG_PROGRAM([
           AC_INCLUDES_DEFAULT
@@ -384,24 +354,27 @@ then
   AS_IF([test $ac_cv_paste_result = yes],
     [W_PASTE_RESULT=",E_PASTE_RESULT_NOT_TOKEN"])
 
-      
+
   CC_WARNINGS="-v -errtags=yes ${W_FAIL} -erroff=E_INTEGER_OVERFLOW_DETECTED${W_PASTE_RESULT}"
-
+  CXX_WARNINGS="+w +w2 -xwe -xport64 -errtags=yes ${W_FAIL}"
 fi
-
-AM_CFLAGS="${CC_WARNINGS} ${AM_CFLAGS}"
 
 AC_SUBST(NO_REDUNDANT_DECLS)
 
 AM_CPPFLAGS="-I\$(top_srcdir) -I\$(top_builddir) ${CPPFLAGS}"
-AM_CFLAGS="${CC_WARNINGS} ${CFLAGS}"
+AM_CFLAGS="${CC_WARNINGS} ${CC_PROFILING} ${CC_COVERAGE} ${CFLAGS}"
+AM_CXXFLAGS="${CXX_WARNING} ${CC_PROFILING} ${CC_COVERAGE} ${CXXFLAGS}"
+
 
 AC_SUBST([AM_CPPFLAGS])
 AC_SUBST([AM_CFLAGS])
+AC_SUBST([AM_CXXFLAGS])
 
 dnl We've collected the flags in AM_*FLAGS now, so blank these.
 CFLAGS=""
+CXXFLAGS=""
 CPPFLAGS=""
+
 
 AC_CHECK_PROGS([DOXYGEN], [doxygen])
 AC_CHECK_PROGS([PERL], [perl])
