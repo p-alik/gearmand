@@ -425,11 +425,11 @@ gearman_return_t gearman_server_job_queue(gearman_server_job_st *server_job)
 static uint32_t _server_job_hash(const char *key, size_t key_size)
 {
   const char *ptr= key;
-  uint32_t value= 0;
+  int32_t value= 0;
 
   while (key_size--)
   {
-    value += *ptr++;
+    value += (int32_t)*ptr++;
     value += (value << 10);
     value ^= (value >> 6);
   }
@@ -437,7 +437,7 @@ static uint32_t _server_job_hash(const char *key, size_t key_size)
   value ^= (value >> 11);
   value += (value << 15);
 
-  return value == 0 ? 1 : value;
+  return (uint32_t)(value == 0 ? 1 : value);
 }
 
 static gearman_server_job_st *

@@ -24,7 +24,7 @@ dist_libgearmaninclude_HEADERS= \
 	$(QUEUE_LIBMEMCACHED_H) \
         protocol_http.h \
 	client.h \
-	con.h \
+	conn.h \
 	constants.h \
 	gearman.h \
         gearmand.h \
@@ -57,7 +57,7 @@ libgearman_la_SOURCES= \
 	$(QUEUE_LIBMEMCACHED_C) \
         protocol_http.c \
 	client.c \
-	con.c \
+	conn.c \
 	gearman.c \
 	gearmand.c \
 	gearmand_thread.c \

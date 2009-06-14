@@ -289,7 +289,7 @@ gearman_return_t gearman_parse_servers(const char *servers, void *data,
     else
       port[0]= 0;
 
-    ret= (*server_fn)(host, atoi(port), data);
+    ret= (*server_fn)(host, (in_port_t)atoi(port), data);
     if (ret != GEARMAN_SUCCESS)
       return ret;
 

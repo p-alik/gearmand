@@ -119,7 +119,7 @@ modconf_return_t gmodconf_parse_args(modconf_st *modconf, int argc,
                                      char *argv[])
 {
   int c;
-  int index;
+  int mod_index;
   modconf_option_st *option;
   char **value_list;
 
@@ -129,7 +129,7 @@ modconf_return_t gmodconf_parse_args(modconf_st *modconf, int argc,
   while (1)
   {
     c= getopt_long(argc, argv, modconf->option_short, modconf->option_getopt,
-                   &index);
+                   &mod_index);
     if (c == -1)
       break;
 
@@ -141,13 +141,13 @@ modconf_return_t gmodconf_parse_args(modconf_st *modconf, int argc,
 
     default:
       /* Find the long option index that matches the short character. */
-      for (index= 0; index < (int)modconf->option_count; index++)
+      for (mod_index= 0; mod_index < (int)modconf->option_count; mod_index++)
       {
-        if (modconf->option_getopt[index].val == c)
+        if (modconf->option_getopt[mod_index].val == c)
           break;
       }
 
-      if (index == (int)modconf->option_count)
+      if (mod_index == (int)modconf->option_count)
       {
         MODCONF_ERROR_SET(modconf, "ERROR",
                           " Unknown option: %s", argv[optind - 1]);
@@ -155,7 +155,7 @@ modconf_return_t gmodconf_parse_args(modconf_st *modconf, int argc,
       }
     }
 
-    option= &modconf->option_list[index];
+    option= &modconf->option_list[mod_index];
     value_list= realloc(option->value_list,
                         sizeof(char *) * (option->value_count + 1));
     if (value_list == NULL)
@@ -252,7 +252,8 @@ void gmodconf_usage(modconf_st *modconf)
       if (modconf->option_getopt[y].val != 0)
       { 
         display[1]= '-';
-        display[2]= modconf->option_getopt[y].val;
+/* TODO: Eric: Fix this!!!! */
+/*         display[2]= modconf->option_getopt[y].val; */
         display[3]= ',';
       }
 

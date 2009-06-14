@@ -43,7 +43,7 @@ then
   enable_dependency_tracking=yes
 fi
 
-if test -d ".bzr"
+if test -d "${srcdir}/.bzr"
 then
   building_from_bzr=yes
 else
@@ -58,18 +58,19 @@ ACX_USE_SYSTEM_EXTENSIONS
 AC_PROG_CPP
 AM_PROG_CC_C_O
 
-AC_CHECK_DECL([__SUNPRO_C], [SUNCC="yes"], [SUNCC="no"])
-AC_PROG_GCC_TRADITIONAL
-
-# We use libtool
-AC_PROG_LIBTOOL
-AM_SANITY_CHECK
-LIBTOOL="$LIBTOOL --preserve-dup-deps"
-
 AC_C_BIGENDIAN
 AC_C_CONST
 AC_TYPE_SIZE_T
 AC_TYPE_SSIZE_T
+AC_FUNC_MALLOC
+AC_FUNC_REALLOC
+
+AC_CHECK_DECL([__SUNPRO_C], [SUNCC="yes"], [SUNCC="no"])
+
+# We use libtool
+AC_PROG_LIBTOOL
+LIBTOOL="$LIBTOOL --preserve-dup-deps"
+
 
 AC_MSG_CHECKING("C Compiler version")
 if test "$GCC" = "yes"
@@ -105,10 +106,6 @@ fi
 
 SOLARIS_64BIT
 
-AC_HEADER_TIME
-AC_CHECK_HEADERS(assert.h errno.h fcntl.h getopt.h netinet/tcp.h pwd.h signal.h)
-AC_CHECK_HEADERS(stdarg.h stdio.h stdlib.h string.h sys/resource.h sys/stat.h)
-AC_CHECK_HEADERS(sys/socket.h sys/types.h sys/utsname.h unistd.h strings.h)
 
 AC_LIB_PREFIX
 
@@ -217,6 +214,12 @@ AC_LIB_HAVE_LINKFLAGS(memcached,,
 
 AM_CONDITIONAL(HAVE_LIBMEMCACHED, test x$ac_cv_libmemcached = xyes)
 
+AC_HEADER_TIME
+AC_CHECK_HEADERS(assert.h errno.h fcntl.h getopt.h netinet/tcp.h pwd.h signal.h)
+AC_CHECK_HEADERS(stdarg.h stddef.h stdio.h stdlib.h string.h)
+AC_CHECK_HEADERS(sys/resource.h sys/stat.h)
+AC_CHECK_HEADERS(sys/socket.h sys/types.h sys/utsname.h unistd.h strings.h)
+
 dnl TODO: Remove this define once we are using 2.61 across the board.
 # AX_HEADER_ASSERT
 # ----------------
@@ -233,14 +236,6 @@ AC_DEFUN([AX_HEADER_ASSERT],
 ])
 AX_HEADER_ASSERT
 
-dnl This is likely subverted by vpath builds. How do we find the original
-dnl source dir in the configure step of a vpath build?
-if test -d ".bzr"
-then
-  building_from_bzr=yes
-else
-  building_from_bzr=no
-fi
 
 AC_ARG_WITH([debug],
     [AS_HELP_STRING([--with-debug],
@@ -253,7 +248,7 @@ then
   CFLAGS="${DEBUG_CFLAGS} -DDEBUG ${CFLAGS}"
 else
   # Optimized version. No debug
-  CFLAGS="${OPTIMIZE_CFLAGS} -DNDEBUG ${CFLAGS}"
+  CFLAGS="${OPTIMIZE_CFLAGS} ${CFLAGS}"
 fi
 
 
@@ -287,6 +282,12 @@ AC_ARG_ENABLE([unreachable],
   [ac_warn_unreachable="$enableval"],
   [ac_warn_unreachable="no"])
 
+AC_ARG_ENABLE([go-crazy],
+    [AS_HELP_STRING([--disable-go-crazy],
+       [Enables extra little warnings that might be too much @<:@default=on@:>@])],
+    [ac_warn_go_crazy="$enableval"],
+    [ac_warn_go_crazy="$building_from_bzr"])
+
 if test "$GCC" = "yes"
 then
 
@@ -315,7 +316,14 @@ then
     W_PEDANTIC="-pedantic -Wundef -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -Wswitch-default -Wswitch-enum -Wcast-align"
     save_CFLAGS="$CFLAGS"
     CFLAGS="-Wlogical-op"
-    AC_TRY_COMPILE([#include <stdio>],,W_PEDANTIC="${W_PEDANTIC} -Wlogical-op")
+    AC_COMPILE_IFELSE([
+      AC_LANG_PROGRAM(
+      [[
+#include <stdio>
+      ]], [[]])
+    ],[
+      W_PEDANTIC="${W_PEDANTIC} -Wlogical-op"
+    ],[])
     CFLAGS="$save_CFLAGS"
   fi
 
@@ -324,7 +332,30 @@ then
     W_UNREACHABLE="-Wunreachable-code"
   fi
 
-  CC_WARNINGS="${BASE_WARNINGS} ${W_PEDANTIC} ${W_UNREACHABLE} ${GPROF_PROFILING} ${GPROF_COVERAGE} "
+  if test "$ac_warn_go_crazy" = "yes"
+  then
+    W_CRAZY="-Wshadow"
+    NO_CONVERSION="-Wno-conversion"
+    save_CFLAGS="$CFLAGS"
+    CFLAGS="-Werror -Wconversion"
+    AC_COMPILE_IFELSE(
+      [AC_LANG_PROGRAM(
+        [[
+#include <netinet/in.h>
+void foo(in_port_t port)
+{
+  return;
+}
+        ]],[[
+in_port_t x= 0;
+foo(x);
+        ]])],
+        W_CRAZY="${W_CRAZY} -Wconversion")
+    CFLAGS="$save_CFLAGS"
+    AC_SUBST(NO_CONVERSION)
+  fi
+
+  CC_WARNINGS="${BASE_WARNINGS} ${W_PEDANTIC} ${W_UNREACHABLE} ${GPROF_PROFILING} ${GPROF_COVERAGE} ${W_CRAZY}"
 
   NO_REDUNDANT_DECLS="-Wno-redundant-decls"
   CPPFLAGS="-fpch-deps ${CPPFLAGS}"
@@ -358,7 +389,6 @@ then
   CC_WARNINGS="-v -errtags=yes ${W_FAIL} -erroff=E_INTEGER_OVERFLOW_DETECTED${W_PASTE_RESULT}"
 
 fi
-
 
 AM_CFLAGS="${CC_WARNINGS} ${AM_CFLAGS}"
 

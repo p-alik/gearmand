@@ -29,7 +29,7 @@
 
 #include <libgearman/constants.h>
 #include <libgearman/structs.h>
-#include <libgearman/con.h>
+#include <libgearman/conn.h>
 #include <libgearman/packet.h>
 #include <libgearman/task.h>
 #include <libgearman/job.h>

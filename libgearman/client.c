@@ -965,11 +965,11 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
       else
         x= 1;
 
-      task->numerator= atoi((char *)task->recv->arg[x]);
+      task->numerator= (uint32_t)atoi((char *)task->recv->arg[x]);
       snprintf(status_buffer, 11, "%.*s",
                (uint32_t)(task->recv->arg_size[x + 1]),
                (char *)(task->recv->arg[x + 1]));
-      task->denominator= atoi(status_buffer);
+      task->denominator= (uint32_t)atoi(status_buffer);
 
   case GEARMAN_TASK_STATE_STATUS:
       if (client->status_fn != NULL)
