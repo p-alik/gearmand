@@ -160,7 +160,7 @@ gearman_return_t gearman_queue_libdrizzle_init(gearman_st *gearman,
     if (!strcmp(name, "host"))
       host= value;
     else if (!strcmp(name, "port"))
-      port= atoi(value);
+      port= (in_port_t)atoi(value);
     else if (!strcmp(name, "uds"))
       uds= value;
     else if (!strcmp(name, "user"))
@@ -344,9 +344,9 @@ static gearman_return_t _libdrizzle_add(gearman_st *gearman, void *fn_arg,
   else
     query= queue->query;
 
-  query_size= snprintf(query, query_size,
-                       "INSERT INTO %s SET priority=%u,unique_key='",
-                       queue->table, (uint32_t)priority);
+  query_size= (size_t)snprintf(query, query_size,
+                               "INSERT INTO %s SET priority=%u,unique_key='",
+                               queue->table, (uint32_t)priority);
 
   query_size+= drizzle_escape_string(query + query_size, unique, unique_size);
   memcpy(query + query_size, "',function_name='", 17);
@@ -405,8 +405,9 @@ static gearman_return_t _libdrizzle_done(gearman_st *gearman, void *fn_arg,
   else
     query= queue->query;
 
-  query_size= snprintf(query, query_size, "DELETE FROM %s WHERE unique_key='",
-                       queue->table);
+  query_size= (size_t)snprintf(query, query_size,
+                               "DELETE FROM %s WHERE unique_key='",
+                               queue->table);
 
   query_size+= drizzle_escape_string(query + query_size, unique, unique_size);
   memcpy(query + query_size, "'", 1);
@@ -449,9 +450,10 @@ static gearman_return_t _libdrizzle_replay(gearman_st *gearman, void *fn_arg,
   else
     query= queue->query;
 
-  query_size= snprintf(query, GEARMAN_QUEUE_QUERY_BUFFER,
-                       "SELECT unique_key,function_name,priority,data FROM %s",
-                       queue->table);
+  query_size= (size_t)snprintf(query, GEARMAN_QUEUE_QUERY_BUFFER,
+                               "SELECT unique_key,function_name,priority,data "
+                               "FROM %s",
+                               queue->table);
 
   if (_libdrizzle_query(gearman, queue, query, query_size) != DRIZZLE_RETURN_OK)
     return GEARMAN_QUEUE_ERROR;

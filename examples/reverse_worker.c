@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
     switch(c)
     {
     case 'c':
-      count= atoi(optarg);
+      count= (uint32_t)atoi(optarg);
       break;
 
     case 'd':
@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
       break;
 
     case 'p':
-      port= atoi(optarg);
+      port= (in_port_t)atoi(optarg);
       break;
 
     case 's':
@@ -164,7 +164,7 @@ static void *reverse(gearman_job_st *job, void *cb_arg, size_t *result_size,
 
     if (options & REVERSE_WORKER_OPTIONS_STATUS)
     {
-      *ret_ptr= gearman_job_status(job, y, *result_size);
+      *ret_ptr= gearman_job_status(job, (uint32_t)y, (uint32_t)*result_size);
       if (*ret_ptr != GEARMAN_SUCCESS)
       {
         free(result);

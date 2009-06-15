@@ -92,7 +92,7 @@ gearman_return_t gearmand_protocol_http_init(gearmand_st *gearmand,
   while (gmodconf_module_value(module, &name, &value))
   {
     if (!strcmp(name, "port"))
-      port= atoi(value);
+      port= (in_port_t)atoi(value);
     else
     {
       gearmand_protocol_http_deinit(gearmand);
@@ -159,17 +159,17 @@ static size_t _http_pack(gearman_packet_st *packet, gearman_con_st *con,
     return 0;
   }
 
-  pack_size= snprintf((char *)data, data_size,
-                      "HTTP/1.0 200 OK\r\n"
-                      "X-Gearman-Job-Handle: %.*s\r\n"
-                      "Content-Length: %"PRIu64"\r\n"
-                      "Server: Gearman/" PACKAGE_VERSION "\r\n"
-                      "\r\n",
-                      packet->command == GEARMAN_COMMAND_JOB_CREATED ?
-                      (uint32_t)packet->arg_size[0] :
-                      (uint32_t)packet->arg_size[0] - 1,
-                      packet->arg[0],
-                      (uint64_t)packet->data_size);
+  pack_size= (size_t)snprintf((char *)data, data_size,
+                              "HTTP/1.0 200 OK\r\n"
+                              "X-Gearman-Job-Handle: %.*s\r\n"
+                              "Content-Length: %"PRIu64"\r\n"
+                              "Server: Gearman/" PACKAGE_VERSION "\r\n"
+                              "\r\n",
+                              packet->command == GEARMAN_COMMAND_JOB_CREATED ?
+                              (uint32_t)packet->arg_size[0] :
+                              (uint32_t)packet->arg_size[0] - 1,
+                              packet->arg[0],
+                              (uint64_t)packet->data_size);
 
   if (pack_size > data_size)
   {
@@ -193,9 +193,9 @@ static size_t _http_unpack(gearman_packet_st *packet, gearman_con_st *con,
   const char *request;
   size_t request_size;
   const char *method;
-  size_t method_size;
+  ptrdiff_t method_size;
   const char *uri;
-  size_t uri_size;
+  ptrdiff_t uri_size;
   const char *version;
   size_t version_size;
   const char *header;
@@ -245,7 +245,7 @@ static size_t _http_unpack(gearman_packet_st *packet, gearman_con_st *con,
   while (*uri == '/')
     uri++;
 
-  version= memchr(uri, ' ', request_size - (uri - request));
+  version= memchr(uri, ' ', request_size - (size_t)(uri - request));
   if (version == NULL)
   {
     GEARMAN_ERROR_SET(packet->gearman, "_http_unpack", "bad request line: %.*s",
@@ -266,7 +266,7 @@ static size_t _http_unpack(gearman_packet_st *packet, gearman_con_st *con,
   while (*version == ' ')
     version++;
 
-  version_size= request_size - (version - request);
+  version_size= request_size - (size_t)(version - request);
 
   if (version_size == 8 && !strncasecmp(version, "HTTP/1.1", 8))
     http->keep_alive= true;
@@ -291,7 +291,7 @@ static size_t _http_unpack(gearman_packet_st *packet, gearman_con_st *con,
       {
         snprintf(content_length, 11, "%.*s", (uint32_t)header_size - 16,
                  header + 16);
-        packet->data_size= atoi(content_length);
+        packet->data_size= (size_t)atoi(content_length);
       }
     }
     else if (header_size == 22 &&
@@ -354,7 +354,7 @@ static size_t _http_unpack(gearman_packet_st *packet, gearman_con_st *con,
   if (*ret_ptr != GEARMAN_SUCCESS)
     return 0;
 
-  *ret_ptr= gearman_packet_add_arg(packet, uri, uri_size + 1);
+  *ret_ptr= gearman_packet_add_arg(packet, uri, (size_t)uri_size + 1);
   if (*ret_ptr != GEARMAN_SUCCESS)
     return 0;
 
@@ -380,12 +380,12 @@ static const char *_http_line(const void *data, size_t data_size,
   if (end == NULL)
     return NULL;
 
-  *offset+= (end - start) + 1;
+  *offset+= (size_t)(end - start) + 1;
 
   if (end != start && *(end - 1) == '\r')
     end--;
 
-  *line_size= end - start;
+  *line_size= (size_t)(end - start);
 
   return start;
 }

@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
       break;
 
     case 'p':
-      port= atoi(optarg);
+      port= (in_port_t)atoi(optarg);
       break;
 
     default:

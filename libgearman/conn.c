@@ -145,7 +145,7 @@ void gearman_con_set_port(gearman_con_st *con, in_port_t port)
 {
   gearman_con_reset_addrinfo(con);
 
-  con->port= port == 0 ? GEARMAN_DEFAULT_TCP_PORT : port;
+  con->port= (in_port_t)(port == 0 ? GEARMAN_DEFAULT_TCP_PORT : port);
 }
 
 void gearman_con_set_options(gearman_con_st *con, gearman_con_options_t options,
@@ -585,10 +585,10 @@ gearman_return_t gearman_con_flush(gearman_con_st *con)
           return GEARMAN_ERRNO;
         }
 
-        con->send_buffer_size-= write_size;
+        con->send_buffer_size-= (size_t)write_size;
         if (con->send_state == GEARMAN_CON_SEND_STATE_FLUSH_DATA)
         {
-          con->send_data_offset+= write_size;
+          con->send_data_offset+= (size_t)write_size;
           if (con->send_data_offset == con->send_data_size)
           {
             con->send_data_size= 0;
@@ -939,14 +939,14 @@ size_t gearman_con_read(gearman_con_st *con, void *data, size_t data_size,
   }
 
   *ret_ptr= GEARMAN_SUCCESS;
-  return read_size;
+  return (size_t)read_size;
 }
 
 gearman_return_t gearman_con_wait(gearman_st *gearman, int timeout)
 {
   gearman_con_st *con;
   struct pollfd *pfds;
-  int x;
+  nfds_t x;
   int ret;
 
   if (gearman->pfds_size < gearman->con_count)

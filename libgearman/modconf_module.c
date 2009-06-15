@@ -165,7 +165,7 @@ void gmodconf_module_add_option(modconf_module_st *module, const char *name,
   /* Add short_name to the short option list. */
   if (short_name != 0 && modconf->short_count < (MODCONF_MAX_OPTION_SHORT - 2))
   {
-    modconf->option_short[modconf->short_count++]= short_name;
+    modconf->option_short[modconf->short_count++]= (char)short_name;
     if (value_name != NULL)
       modconf->option_short[modconf->short_count++]= ':';
     modconf->option_short[modconf->short_count]= '0';
