@@ -293,14 +293,13 @@ then
   AC_CACHE_CHECK([whether it is safe to use -Wconversion with htons],
     [ac_cv_safe_to_use_Wconversion_],
     [save_CFLAGS="$CFLAGS"
-     CFLAGS="${CC_WARNINGS} ${CFLAGS}"
+     CFLAGS="-Werror -Wno-conversion ${CFLAGS}"
      AC_COMPILE_IFELSE(
        [AC_LANG_PROGRAM(
          [[
 #include <netinet/in.h>
          ]],[[
-size_t source_port= 80;
-uint16_t x= htons((uint16_t)source_port);
+uint16_t x= htons(80);
          ]])],
        [ac_cv_safe_to_use_Wconversion_=yes],
        [ac_cv_safe_to_use_Wconversion_=no])
