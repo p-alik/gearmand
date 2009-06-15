@@ -301,7 +301,7 @@ then
   AC_CACHE_CHECK([whether it is safe to use -Wconversion],
     [ac_cv_safe_to_use_wconversion_],
     [save_CFLAGS="$CFLAGS"
-     CFLAGS="-Wconversion ${CFLAGS}"
+     CFLAGS="-Werror -Wconversion ${CFLAGS}"
      AC_COMPILE_IFELSE(
        [AC_LANG_PROGRAM([[
 #include <stdbool.h>
