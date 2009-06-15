@@ -290,6 +290,33 @@ then
   CC_WARNINGS="${BASE_WARNINGS} -Wstrict-prototypes -Wmissing-prototypes -Wredundant-decls -Wswitch-default -Wswitch-enum -Wcast-align"
   CXX_WARNINGS="${BASE_WARNINGS} -Woverloaded-virtual  -Wnon-virtual-dtor -Wctor-dtor-privacy  -Wold-style-cast -Weffc++ -Wno-long-long"
 
+  AC_CACHE_CHECK([whether it is safe to use -Wconversion],
+    [ac_cv_safe_to_use_Wconversion_],
+    [save_CFLAGS="$CFLAGS"
+     CFLAGS="-Werror -Wconversion"
+     AC_COMPILE_IFELSE(
+       [AC_LANG_PROGRAM(
+         [[
+#include <netinet/in.h>
+void foo(in_port_t port)
+{
+  return;
+}
+         ]],[[
+in_port_t x= 0;
+foo(x);
+         ]])],
+       [ac_cv_safe_to_use_Wconversion_=yes],
+       [ac_cv_safe_to_use_Wconversion_=no])
+     CFLAGS="$save_CFLAGS"])
+
+  AS_IF([test "$ac_cv_safe_to_use_Wconversion_" = "yes"],
+        [
+          CC_WARNINGS="${CC_WARNINGS} -Wconversion"
+          CXX_WARNINGS="${CXX_WARNINGS} -Wconversion"
+        ])
+  NO_CONVERSION="-Wno-conversion"
+
 
   AC_CACHE_CHECK([whether it is safe to use -Wlogical-op],
     [ac_cv_safe_to_use_Wlogical_op_],
@@ -359,6 +386,7 @@ then
   CXX_WARNINGS="+w +w2 -xwe -xport64 -errtags=yes ${W_FAIL}"
 fi
 
+AC_SUBST(NO_CONVERSION)
 AC_SUBST(NO_REDUNDANT_DECLS)
 
 AM_CPPFLAGS="-I\$(top_srcdir) -I\$(top_builddir) ${CPPFLAGS}"
