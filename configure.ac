@@ -292,10 +292,52 @@ then
        [ac_cv_safe_to_use_fdiagnostics_show_option_=yes],
        [ac_cv_safe_to_use_fdiagnostics_show_option_=no])
      CFLAGS="$save_CFLAGS"])
+
   AS_IF([test "$ac_cv_safe_to_use_fdiagnostics_show_option_" = "yes"],
         [
-          DIAGNOSTICS_SHOW_OPTION="-fdiagnostics-show-option"
+          F_DIAGNOSTICS_SHOW_OPTION="-fdiagnostics-show-option"
         ])
+
+  AC_CACHE_CHECK([whether it is safe to use -Wconversion],
+    [ac_cv_safe_to_use_wconversion_],
+    [save_CFLAGS="$CFLAGS"
+     CFLAGS="-Wconversion ${CFLAGS}"
+     AC_COMPILE_IFELSE(
+       [AC_LANG_PROGRAM([[
+#include <stdbool.h>
+void foo(bool a)
+{
+  (void)a;
+}
+       ]],[[
+foo(0);
+       ]])],
+       [ac_cv_safe_to_use_wconversion_=yes],
+       [ac_cv_safe_to_use_wconversion_=no])
+     CFLAGS="$save_CFLAGS"])
+
+  AS_IF([test "$ac_cv_safe_to_use_wconversion_" = "yes"],
+    [W_CONVERSION="-Wconversion"
+    AC_CACHE_CHECK([whether it is safe to use -Wconversion with htons],
+      [ac_cv_safe_to_use_Wconversion_],
+      [save_CFLAGS="$CFLAGS"
+       CFLAGS="-Werror -Wconversion ${CFLAGS}"
+       AC_COMPILE_IFELSE(
+         [AC_LANG_PROGRAM(
+           [[
+#include <netinet/in.h>
+           ]],[[
+uint16_t x= htons(80);
+           ]])],
+         [ac_cv_safe_to_use_Wconversion_=yes],
+         [ac_cv_safe_to_use_Wconversion_=no])
+       CFLAGS="$save_CFLAGS"])
+
+    AS_IF([test "$ac_cv_safe_to_use_Wconversion_" = "no"],
+          [
+            NO_CONVERSION="-Wno-conversion"
+          ])
+    ])
 
   W_STRICT_ALIASING="-Wno-strict-aliasing"
 
@@ -309,29 +351,9 @@ then
         [W_FAIL="-Werror"])
 
 
-  BASE_WARNINGS="-pedantic -W -Wall -Wextra ${W_FAIL} -Wundef  -Wshadow -Wmissing-declarations ${W_STRICT_ALIASING} ${DIAGNOSTICS_SHOW_OPTION}"
-  CC_WARNINGS="${BASE_WARNINGS} -Wstrict-prototypes -Wmissing-prototypes -Wredundant-decls -Wswitch-default -Wswitch-enum -Wcast-align -Wconversion"
-  CXX_WARNINGS="${BASE_WARNINGS} -Woverloaded-virtual  -Wnon-virtual-dtor -Wctor-dtor-privacy  -Wold-style-cast -Weffc++ -Wno-long-long -Wconversion"
-
-  AC_CACHE_CHECK([whether it is safe to use -Wconversion with htons],
-    [ac_cv_safe_to_use_Wconversion_],
-    [save_CFLAGS="$CFLAGS"
-     CFLAGS="-Werror -Wconversion ${CFLAGS}"
-     AC_COMPILE_IFELSE(
-       [AC_LANG_PROGRAM(
-         [[
-#include <netinet/in.h>
-         ]],[[
-uint16_t x= htons(80);
-         ]])],
-       [ac_cv_safe_to_use_Wconversion_=yes],
-       [ac_cv_safe_to_use_Wconversion_=no])
-     CFLAGS="$save_CFLAGS"])
-
-  AS_IF([test "$ac_cv_safe_to_use_Wconversion_" = "no"],
-        [
-          NO_CONVERSION="-Wno-conversion"
-        ])
+  BASE_WARNINGS="-pedantic -W -Wall -Wextra ${W_FAIL} -Wundef  -Wshadow -Wmissing-declarations ${W_STRICT_ALIASING} ${F_DIAGNOSTICS_SHOW_OPTION} ${W_CONVERSION}"
+  CC_WARNINGS="${BASE_WARNINGS} -Wstrict-prototypes -Wmissing-prototypes -Wredundant-decls -Wswitch-default -Wswitch-enum -Wcast-align"
+  CXX_WARNINGS="${BASE_WARNINGS} -Woverloaded-virtual -Wnon-virtual-dtor -Wctor-dtor-privacy -Wold-style-cast -Weffc++ -Wno-long-long"
 
   AC_CACHE_CHECK([whether it is safe to use -Wlogical-op],
     [ac_cv_safe_to_use_Wlogical_op_],
