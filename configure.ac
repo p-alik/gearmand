@@ -101,6 +101,15 @@ AS_IF([test "$ac_cv_prog_cc_c99" != "no"],
 # First check for gcc and g++
 if test "$GCC" = "yes"
 then
+  # If you're on a Mac, and you didn't ask for a specific compiler
+  # You're gonna get 4.2.
+  if test "$host_vendor" = "apple" -a "x${ac_cv_env_CC_set}" = "x" -a -x "/usr/bin/gcc-4.2"
+  then
+    CPP="/usr/bin/gcc-4.2 -E"
+    CC=/usr/bin/gcc-4.2
+    CXX=/usr/bin/g++-4.2
+  fi
+
   CFLAGS="-ggdb3 ${CFLAGS}"
   DEBUG_CFLAGS="-O0"
   OPTIMIZE_CFLAGS="-O3"
@@ -274,6 +283,20 @@ AC_ARG_ENABLE([coverage],
 if test "$GCC" = "yes"
 then
 
+  AC_CACHE_CHECK([whether it is safe to use -fdiagnostics-show-option],
+    [ac_cv_safe_to_use_fdiagnostics_show_option_],
+    [save_CFLAGS="$CFLAGS"
+     CFLAGS="-fdiagnostics-show-option ${CFLAGS}"
+     AC_COMPILE_IFELSE(
+       [AC_LANG_PROGRAM([],[])],
+       [ac_cv_safe_to_use_fdiagnostics_show_option_=yes],
+       [ac_cv_safe_to_use_fdiagnostics_show_option_=no])
+     CFLAGS="$save_CFLAGS"])
+  AS_IF([test "$ac_cv_safe_to_use_fdiagnostics_show_option_" = "yes"],
+        [
+          DIAGNOSTICS_SHOW_OPTION="-fdiagnostics-show-option"
+        ])
+
   W_STRICT_ALIASING="-Wno-strict-aliasing"
 
   AS_IF([test "$ac_profiling" = "yes"],
@@ -286,7 +309,7 @@ then
         [W_FAIL="-Werror"])
 
 
-  BASE_WARNINGS="-pedantic -W -Wall -Wextra ${W_FAIL} -Wundef  -Wshadow -Wmissing-declarations ${W_STRICT_ALIASING} -fdiagnostics-show-option" 
+  BASE_WARNINGS="-pedantic -W -Wall -Wextra ${W_FAIL} -Wundef  -Wshadow -Wmissing-declarations ${W_STRICT_ALIASING} ${DIAGNOSTICS_SHOW_OPTION}"
   CC_WARNINGS="${BASE_WARNINGS} -Wstrict-prototypes -Wmissing-prototypes -Wredundant-decls -Wswitch-default -Wswitch-enum -Wcast-align -Wconversion"
   CXX_WARNINGS="${BASE_WARNINGS} -Woverloaded-virtual  -Wnon-virtual-dtor -Wctor-dtor-privacy  -Wold-style-cast -Weffc++ -Wno-long-long -Wconversion"
 
