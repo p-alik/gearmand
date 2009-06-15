@@ -369,7 +369,8 @@ static gearman_return_t _libdrizzle_add(gearman_st *gearman, void *fn_arg,
   return GEARMAN_SUCCESS;
 }
 
-static gearman_return_t _libdrizzle_flush(gearman_st *gearman, void *fn_arg __attribute__((unused)))
+static gearman_return_t _libdrizzle_flush(gearman_st *gearman,
+                                          void *fn_arg __attribute__((unused)))
 {
   GEARMAN_DEBUG(gearman, "libdrizzle flush")
 

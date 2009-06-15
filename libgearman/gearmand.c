@@ -23,22 +23,20 @@
  * @{
  */
 
-static void _log(gearman_server_st *server __attribute__ ((unused)),
-                 gearman_verbose_t verbose, const char *line, void *arg);
+static void _log(gearman_server_st *server, gearman_verbose_t verbose,
+                 const char *line, void *arg);
 
 static gearman_return_t _listen_init(gearmand_st *gearmand);
 static void _listen_close(gearmand_st *gearmand);
 static gearman_return_t _listen_watch(gearmand_st *gearmand);
 static void _listen_clear(gearmand_st *gearmand);
-static void _listen_event(int fd, short events __attribute__ ((unused)),
-                          void *arg);
+static void _listen_event(int fd, short events, void *arg);
 
 static gearman_return_t _wakeup_init(gearmand_st *gearmand);
 static void _wakeup_close(gearmand_st *gearmand);
 static gearman_return_t _wakeup_watch(gearmand_st *gearmand);
 static void _wakeup_clear(gearmand_st *gearmand);
-static void _wakeup_event(int fd, short events __attribute__ ((unused)),
-                          void *arg);
+static void _wakeup_event(int fd, short events, void *arg);
 
 static gearman_return_t _watch_events(gearmand_st *gearmand);
 static void _clear_events(gearmand_st *gearmand);

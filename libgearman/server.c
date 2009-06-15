@@ -26,9 +26,8 @@
 /**
  * Add job to queue wihle replaying queue during startup.
  */
-gearman_return_t _queue_replay_add(gearman_st *gearman __attribute__ ((unused)),
-                                   void *fn_arg, const void *unique,
-                                   size_t unique_size,
+gearman_return_t _queue_replay_add(gearman_st *gearman, void *fn_arg,
+                                   const void *unique, size_t unique_size,
                                    const void *function_name,
                                    size_t function_name_size, const void *data,
                                    size_t data_size,
@@ -57,8 +56,8 @@ _server_queue_work_data(gearman_server_job_st *server_job,
 /**
  * Wrapper for log handling.
  */
-static void _log(gearman_st *gearman __attribute__ ((unused)),
-                 gearman_verbose_t verbose, const char *line, void *fn_arg);
+static void _log(gearman_st *gearman, gearman_verbose_t verbose,
+                 const char *line, void *fn_arg);
 
 /** @} */
 

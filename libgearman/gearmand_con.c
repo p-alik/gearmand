@@ -23,8 +23,7 @@
  * @{
  */
 
-static void _con_ready(int fd __attribute__ ((unused)), short events,
-                       void *arg);
+static void _con_ready(int fd, short events, void *arg);
 
 static gearman_return_t _con_add(gearmand_thread_st *thread,
                                  gearmand_con_st *con);
@@ -178,7 +177,7 @@ void gearmand_con_check_queue(gearmand_thread_st *thread)
 }
 
 gearman_return_t gearmand_con_watch(gearman_con_st *con, short events,
-                                    void *arg)
+                                    void *arg __attribute__ ((unused)))
 {
   (void) arg;
   gearmand_con_st *dcon;

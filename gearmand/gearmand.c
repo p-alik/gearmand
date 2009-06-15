@@ -85,8 +85,7 @@ static void _pid_delete(const char *pid_file);
 static bool _switch_user(const char *user);
 static bool _set_signals(void);
 static void _shutdown_handler(int signal);
-static void _log(gearmand_st *gearmand __attribute__ ((unused)),
-                 gearman_verbose_t verbose __attribute__ ((unused)),
+static void _log(gearmand_st *gearmand, gearman_verbose_t verbose,
                  const char *line, void *fn_arg);
 
 int main(int argc, char *argv[])
