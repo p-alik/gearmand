@@ -286,37 +286,30 @@ then
         [W_FAIL="-Werror"])
 
 
-  BASE_WARNINGS="-pedantic -W -Wall -Wextra ${W_FAIL} -Wundef  -Wshadow -Wmissing-declarations ${W_STRICT_ALIASING}"
-  CC_WARNINGS="${BASE_WARNINGS} -Wstrict-prototypes -Wmissing-prototypes -Wredundant-decls -Wswitch-default -Wswitch-enum -Wcast-align"
-  CXX_WARNINGS="${BASE_WARNINGS} -Woverloaded-virtual  -Wnon-virtual-dtor -Wctor-dtor-privacy  -Wold-style-cast -Weffc++ -Wno-long-long"
+  BASE_WARNINGS="-pedantic -W -Wall -Wextra ${W_FAIL} -Wundef  -Wshadow -Wmissing-declarations ${W_STRICT_ALIASING} -fdiagnostics-show-option" 
+  CC_WARNINGS="${BASE_WARNINGS} -Wstrict-prototypes -Wmissing-prototypes -Wredundant-decls -Wswitch-default -Wswitch-enum -Wcast-align -Wconversion"
+  CXX_WARNINGS="${BASE_WARNINGS} -Woverloaded-virtual  -Wnon-virtual-dtor -Wctor-dtor-privacy  -Wold-style-cast -Weffc++ -Wno-long-long -Wconversion"
 
-  AC_CACHE_CHECK([whether it is safe to use -Wconversion],
+  AC_CACHE_CHECK([whether it is safe to use -Wconversion with htons],
     [ac_cv_safe_to_use_Wconversion_],
     [save_CFLAGS="$CFLAGS"
-     CFLAGS="-Werror -Wconversion"
+     CFLAGS="${CC_WARNINGS} ${CFLAGS}"
      AC_COMPILE_IFELSE(
        [AC_LANG_PROGRAM(
          [[
 #include <netinet/in.h>
-void foo(in_port_t port)
-{
-  return;
-}
          ]],[[
-in_port_t x= 0;
-foo(x);
+size_t source_port= 80;
+uint16_t x= htons((uint16_t)source_port);
          ]])],
        [ac_cv_safe_to_use_Wconversion_=yes],
        [ac_cv_safe_to_use_Wconversion_=no])
      CFLAGS="$save_CFLAGS"])
 
-  AS_IF([test "$ac_cv_safe_to_use_Wconversion_" = "yes"],
+  AS_IF([test "$ac_cv_safe_to_use_Wconversion_" = "no"],
         [
-          CC_WARNINGS="${CC_WARNINGS} -Wconversion"
-          CXX_WARNINGS="${CXX_WARNINGS} -Wconversion"
+          NO_CONVERSION="-Wno-conversion"
         ])
-  NO_CONVERSION="-Wno-conversion"
-
 
   AC_CACHE_CHECK([whether it is safe to use -Wlogical-op],
     [ac_cv_safe_to_use_Wlogical_op_],
