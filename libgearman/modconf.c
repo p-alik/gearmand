@@ -252,8 +252,7 @@ void gmodconf_usage(modconf_st *modconf)
       if (modconf->option_getopt[y].val != 0)
       { 
         display[1]= '-';
-/* TODO: eday fix this */
-/*        display[2]= modconf->option_getopt[y].val; */
+        display[2]= (signed char)modconf->option_getopt[y].val;
         display[3]= ',';
       }
 
