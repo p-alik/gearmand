@@ -253,124 +253,100 @@ AC_DEFUN([AC_LIB_LINKFLAGS_BODY],
             shrext=
           fi
           if test $use_additional = yes; then
-            # We need to try the arch-specific subdir first
-            if test "x$acl_libdirstem" != "x"; then
-              arch_specific=`echo $additional_libdir | sed 's/lib$//'`
-              arch_specific="$arch_specific$acl_libdirstem"
-            fi
-            if test "x$acl_libdirstem2" != "x"; then
-              arch_specific2=`echo $additional_libdir | sed 's/lib$//'`
-              arch_specific2="$arch_specific2$acl_libdirstem2"
-            fi
-            for dir in $arch_specific $arch_specific2 $additional_libdir  ;do
-              dnl The same code as in the loop below:
-              dnl First look for a shared library.
-              if test -n "$acl_shlibext"; then
-                if test -f "$dir/$libname$shrext"; then
-                  found_dir="$dir"
-                  found_so="$dir/$libname$shrext"
-                else
-                  if test "$acl_library_names_spec" = '$libname$shrext$versuffix'; then
-                    ver=`(cd "$dir" && \
-                          for f in "$libname$shrext".*; do echo "$f"; done \
-                          | sed -e "s,^$libname$shrext\\\\.,," \
-                          | sort -t '.' -n -r -k1,1 -k2,2 -k3,3 -k4,4 -k5,5 \
-                          | sed 1q ) 2>/dev/null`
-                    if test -n "$ver" && test -f "$dir/$libname$shrext.$ver"; then
-                      found_dir="$dir"
-                      found_so="$dir/$libname$shrext.$ver"
-                    fi
-                  else
-                    eval library_names=\"$acl_library_names_spec\"
-                    for f in $library_names; do
-                      if test -f "$dir/$f"; then
-                        found_dir="$dir"
-                        found_so="$dir/$f"
-                        break
-                      fi
-                    done
+            dir="$additional_libdir"
+            dnl The same code as in the loop below:
+            dnl First look for a shared library.
+            if test -n "$acl_shlibext"; then
+              if test -f "$dir/$libname$shrext"; then
+                found_dir="$dir"
+                found_so="$dir/$libname$shrext"
+              else
+                if test "$acl_library_names_spec" = '$libname$shrext$versuffix'; then
+                  ver=`(cd "$dir" && \
+                        for f in "$libname$shrext".*; do echo "$f"; done \
+                        | sed -e "s,^$libname$shrext\\\\.,," \
+                        | sort -t '.' -n -r -k1,1 -k2,2 -k3,3 -k4,4 -k5,5 \
+                        | sed 1q ) 2>/dev/null`
+                  if test -n "$ver" && test -f "$dir/$libname$shrext.$ver"; then
+                    found_dir="$dir"
+                    found_so="$dir/$libname$shrext.$ver"
                   fi
+                else
+                  eval library_names=\"$acl_library_names_spec\"
+                  for f in $library_names; do
+                    if test -f "$dir/$f"; then
+                      found_dir="$dir"
+                      found_so="$dir/$f"
+                      break
+                    fi
+                  done
                 fi
               fi
-              dnl Then look for a static library.
-              if test "X$found_dir" = "X"; then
-                if test -f "$dir/$libname.$acl_libext"; then
-                  found_dir="$dir"
-                  found_a="$dir/$libname.$acl_libext"
-                fi
+            fi
+            dnl Then look for a static library.
+            if test "X$found_dir" = "X"; then
+              if test -f "$dir/$libname.$acl_libext"; then
+                found_dir="$dir"
+                found_a="$dir/$libname.$acl_libext"
               fi
-              if test "X$found_dir" != "X"; then
-                if test -f "$dir/$libname.la"; then
-                  found_la="$dir/$libname.la"
-                fi
-                break
+            fi
+            if test "X$found_dir" != "X"; then
+              if test -f "$dir/$libname.la"; then
+                found_la="$dir/$libname.la"
               fi
-            done
+            fi
           fi
           if test "X$found_dir" = "X"; then
-            for nextlibdir in $LDFLAGS $LTLIB[]NAME; do
-              # We need to try the arch-specific subdir first
-              arch_specific=
-              arch_specific2=
-              if test "x$acl_libdirstem" != "x"; then
-                arch_specific=`echo $nextlibdir | sed 's/lib$//'`
-                arch_specific="$arch_specific$acl_libdirstem"
-              fi
-              if test "x$acl_libdirstem2" != "x"; then
-                arch_specific2=`echo $nextlibdir | sed 's/lib$//'`
-                arch_specific2="$arch_specific2$acl_libdirstem2"
-              fi
-              for x in $arch_specific2 $arch_specific $nextlibdir ; do
-                AC_LIB_WITH_FINAL_PREFIX([eval x=\"$x\"])
-                case "$x" in
-                  -L*)
-                    dir=`echo "X$x" | sed -e 's/^X-L//'`
-                    dnl First look for a shared library.
-                    if test -n "$acl_shlibext"; then
-                      if test -f "$dir/$libname$shrext"; then
-                        found_dir="$dir"
-                        found_so="$dir/$libname$shrext"
-                      else
-                        if test "$acl_library_names_spec" = '$libname$shrext$versuffix'; then
-                          ver=`(cd "$dir" && \
-                                for f in "$libname$shrext".*; do echo "$f"; done \
-                                | sed -e "s,^$libname$shrext\\\\.,," \
-                                | sort -t '.' -n -r -k1,1 -k2,2 -k3,3 -k4,4 -k5,5 \
-                                | sed 1q ) 2>/dev/null`
-                          if test -n "$ver" && test -f "$dir/$libname$shrext.$ver"; then
-                            found_dir="$dir"
-                            found_so="$dir/$libname$shrext.$ver"
-                          fi
-                        else
-                          eval library_names=\"$acl_library_names_spec\"
-                          for f in $library_names; do
-                            if test -f "$dir/$f"; then
-                              found_dir="$dir"
-                              found_so="$dir/$f"
-                              break
-                            fi
-                          done
+            for x in $LDFLAGS $LTLIB[]NAME; do
+              AC_LIB_WITH_FINAL_PREFIX([eval x=\"$x\"])
+              case "$x" in
+                -L*)
+                  dir=`echo "X$x" | sed -e 's/^X-L//'`
+                  dnl First look for a shared library.
+                  if test -n "$acl_shlibext"; then
+                    if test -f "$dir/$libname$shrext"; then
+                      found_dir="$dir"
+                      found_so="$dir/$libname$shrext"
+                    else
+                      if test "$acl_library_names_spec" = '$libname$shrext$versuffix'; then
+                        ver=`(cd "$dir" && \
+                              for f in "$libname$shrext".*; do echo "$f"; done \
+                              | sed -e "s,^$libname$shrext\\\\.,," \
+                              | sort -t '.' -n -r -k1,1 -k2,2 -k3,3 -k4,4 -k5,5 \
+                              | sed 1q ) 2>/dev/null`
+                        if test -n "$ver" && test -f "$dir/$libname$shrext.$ver"; then
+                          found_dir="$dir"
+                          found_so="$dir/$libname$shrext.$ver"
                         fi
+                      else
+                        eval library_names=\"$acl_library_names_spec\"
+                        for f in $library_names; do
+                          if test -f "$dir/$f"; then
+                            found_dir="$dir"
+                            found_so="$dir/$f"
+                            break
+                          fi
+                        done
                       fi
                     fi
-                    dnl Then look for a static library.
-                    if test "X$found_dir" = "X"; then
-                      if test -f "$dir/$libname.$acl_libext"; then
-                        found_dir="$dir"
-                        found_a="$dir/$libname.$acl_libext"
-                      fi
+                  fi
+                  dnl Then look for a static library.
+                  if test "X$found_dir" = "X"; then
+                    if test -f "$dir/$libname.$acl_libext"; then
+                      found_dir="$dir"
+                      found_a="$dir/$libname.$acl_libext"
                     fi
-                    if test "X$found_dir" != "X"; then
-                      if test -f "$dir/$libname.la"; then
-                        found_la="$dir/$libname.la"
-                      fi
+                  fi
+                  if test "X$found_dir" != "X"; then
+                    if test -f "$dir/$libname.la"; then
+                      found_la="$dir/$libname.la"
                     fi
-                    ;;
-                esac
-                if test "X$found_dir" != "X"; then
-                  break
-                fi
-              done
+                  fi
+                  ;;
+              esac
+              if test "X$found_dir" != "X"; then
+                break
+              fi
             done
           fi
           if test "X$found_dir" != "X"; then
