@@ -124,7 +124,7 @@ then
   CFLAGS="-g -mt ${CFLAGS}"
   CXXFLAGS="-xlang=c99 -g -mt -compat=5 -library=stlport4 -template=no%extdef ${CXXFLAGS}"
 
-  OPTIMIZE_FLAGS="-xO4 -xlibmil -xdepend -xbuiltin -lmopt"
+  OPTIMIZE_FLAGS="-xO4 -xlibmil -xdepend -xbuiltin"
   OPTIMIZE_CFLAGS="${OPTIMIZE_FLAGS} -Xa -xstrconst"
   OPTIMIZE_CXXFLAGS="${OPTIMIZE_FLAGS}"
 
