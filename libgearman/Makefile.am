@@ -82,3 +82,5 @@ libgearman_la_LIBADD= \
 	$(LTLIBUUID) \
 	$(LTLIBDRIZZLE) \
 	$(LTLIBMEMCACHED)
+
+EXTRA_DIST= libgearman.ver
