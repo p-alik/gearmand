@@ -112,7 +112,7 @@ then
    OPTIMIZE_CFLAGS="-xO4 -xlibmil -xdepend -Xa -xstrconst"
 fi
 
-SOLARIS_64BIT
+ENABLE_64BIT
 
 
 AC_LIB_PREFIX
