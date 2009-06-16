@@ -202,9 +202,11 @@ static gearman_return_t _libmemcached_add(gearman_st *gearman, void *fn_arg,
 
   GEARMAN_DEBUG(gearman, "libmemcached add: %.*s", (uint32_t)unique_size, (char *)unique);
 
-  key_length= snprintf(key, MEMCACHED_MAX_KEY, "%s%.*s-%.*s", GEARMAN_QUEUE_LIBMEMCACHED_DEFAULT_PREFIX,
-                       (int)function_name_size, (const char *)function_name, 
-                       (int)unique_size, (const char *)unique);  
+  key_length= (size_t)snprintf(key, MEMCACHED_MAX_KEY, "%s%.*s-%.*s",
+                               GEARMAN_QUEUE_LIBMEMCACHED_DEFAULT_PREFIX,
+                               (int)function_name_size,
+                               (const char *)function_name, (int)unique_size,
+                               (const char *)unique);  
 
   rc= memcached_set(&queue->memc, (const char *)key, key_length,
                     (const char *)data, data_size, 0, (uint32_t)priority);
@@ -236,9 +238,11 @@ static gearman_return_t _libmemcached_done(gearman_st *gearman, void *fn_arg,
 
   GEARMAN_DEBUG(gearman, "libmemcached done: %.*s", (uint32_t)unique_size, (char *)unique);
 
-  key_length= snprintf(key, MEMCACHED_MAX_KEY, "%s%.*s-%.*s", GEARMAN_QUEUE_LIBMEMCACHED_DEFAULT_PREFIX,
-                       (int)function_name_size, (const char *)function_name, 
-                       (int)unique_size, (const char *)unique);  
+  key_length= (size_t)snprintf(key, MEMCACHED_MAX_KEY, "%s%.*s-%.*s",
+                               GEARMAN_QUEUE_LIBMEMCACHED_DEFAULT_PREFIX,
+                               (int)function_name_size,
+                               (const char *)function_name, (int)unique_size,
+                               (const char *)unique);  
 
   /* For the moment we will assume it happened */
   rc= memcached_delete(&queue->memc, (const char *)key, key_length, 0);
@@ -274,7 +278,7 @@ static memcached_return callback_loader(memcached_st *ptr __attribute__((unused)
   unique+=strlen(GEARMAN_QUEUE_LIBMEMCACHED_DEFAULT_PREFIX);
 
   function= index(unique, '-');
-  unique_len= function - unique;
+  unique_len= (size_t)(function - unique);
   function++;
 
   assert(unique);
