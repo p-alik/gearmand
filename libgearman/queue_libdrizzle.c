@@ -74,16 +74,16 @@ static gearman_return_t _libdrizzle_replay(gearman_st *gearman, void *fn_arg,
  * Public definitions
  */
 
-modconf_return_t gearman_queue_libdrizzle_modconf(modconf_st *modconf)
+gearman_return_t gearman_queue_libdrizzle_conf(gearman_conf_st *conf)
 {
-  modconf_module_st *module;
+  gearman_conf_module_st *module;
 
-  module= gmodconf_module_create(modconf, NULL, "libdrizzle");
+  module= gearman_conf_module_create(conf, NULL, "libdrizzle");
   if (module == NULL)
-    return MODCONF_MEMORY_ALLOCATION_FAILURE;
+    return GEARMAN_MEMORY_ALLOCATION_FAILURE;
 
 #define MCO(__name, __value, __help) \
-  gmodconf_module_add_option(module, __name, 0, __value, __help);
+  gearman_conf_module_add_option(module, __name, 0, __value, __help);
 
   MCO("host", "HOST", "Host of server.")
   MCO("port", "PORT", "Port of server.")
@@ -94,14 +94,14 @@ modconf_return_t gearman_queue_libdrizzle_modconf(modconf_st *modconf)
   MCO("table", "TABLE", "Table to use.")
   MCO("mysql", NULL, "Use MySQL protocol.")
 
-  return gmodconf_return(modconf);
+  return gearman_conf_return(conf);
 }
 
 gearman_return_t gearman_queue_libdrizzle_init(gearman_st *gearman,
-                                               modconf_st *modconf)
+                                               gearman_conf_st *conf)
 {
   gearman_queue_libdrizzle_st *queue;
-  modconf_module_st *module;
+  gearman_conf_module_st *module;
   const char *name;
   const char *value;
   const char *host= NULL;
@@ -147,15 +147,15 @@ gearman_return_t gearman_queue_libdrizzle_init(gearman_st *gearman,
   drizzle_con_set_db(&(queue->con), GEARMAN_QUEUE_LIBDRIZZLE_DEFAULT_DATABASE);
 
   /* Get module and parse the option values that were given. */
-  module= gmodconf_module_find(modconf, "libdrizzle");
+  module= gearman_conf_module_find(conf, "libdrizzle");
   if (module == NULL)
   {
     GEARMAN_ERROR_SET(gearman, "gearman_queue_libdrizzle_init",
-                      "modconf_module_find:NULL")
+                      "gearman_conf_module_find:NULL")
     return GEARMAN_QUEUE_ERROR;
   }
 
-  while (gmodconf_module_value(module, &name, &value))
+  while (gearman_conf_module_value(module, &name, &value))
   {
     if (!strcmp(name, "host"))
       host= value;
@@ -268,9 +268,9 @@ gearman_return_t gearman_queue_libdrizzle_deinit(gearman_st *gearman)
 }
 
 gearman_return_t gearmand_queue_libdrizzle_init(gearmand_st *gearmand,
-                                                modconf_st *modconf)
+                                                gearman_conf_st *conf)
 {
-  return gearman_queue_libdrizzle_init(gearmand->server.gearman, modconf);
+  return gearman_queue_libdrizzle_init(gearmand->server.gearman, conf);
 }
 
 gearman_return_t gearmand_queue_libdrizzle_deinit(gearmand_st *gearmand)

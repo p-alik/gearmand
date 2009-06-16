@@ -14,8 +14,6 @@
 #ifndef __GEARMAN_PROTOCOL_HTTP_H__
 #define __GEARMAN_PROTOCOL_HTTP_H__
 
-#include <libgearman/modconf.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -41,13 +39,13 @@ extern "C" {
 /**
  * Get module configuration options.
  */
-modconf_return_t gearman_protocol_http_modconf(modconf_st *modconf);
+gearman_return_t gearman_protocol_http_conf(gearman_conf_st *conf);
 
 /**
  * Initialize the HTTP protocol module.
  */
 gearman_return_t gearmand_protocol_http_init(gearmand_st *gearmand,
-                                             modconf_st *modconf);
+                                             gearman_conf_st *conf);
 
 /**
  * De-initialize the HTTP protocol module.

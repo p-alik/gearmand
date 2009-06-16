@@ -16,8 +16,6 @@
 
 #include "test_gearmand.h"
 
-#include <libgearman/modconf.h>
-
 #ifdef HAVE_LIBDRIZZLE
 #include <libgearman/queue_libdrizzle.h>
 #endif
@@ -30,21 +28,21 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type, char *argv[], 
 {
   pid_t gearmand_pid;
   gearmand_st *gearmand;
-  modconf_st modconf;
+  gearman_conf_st conf;
 
   assert((gearmand_pid= fork()) != -1);
 
   if (gearmand_pid == 0)
   {
-    assert(gmodconf_create(&modconf) != NULL);
+    assert(gearman_conf_create(&conf) != NULL);
 #ifdef HAVE_LIBDRIZZLE
-    assert(gearman_queue_libdrizzle_modconf(&modconf) == MODCONF_SUCCESS);
+    assert(gearman_queue_libdrizzle_conf(&conf) == GEARMAN_SUCCESS);
 #endif
 #ifdef HAVE_LIBMEMCACHED
-    assert(gearman_queue_libmemcached_modconf(&modconf) == MODCONF_SUCCESS);
+    assert(gearman_queue_libmemcached_conf(&conf) == GEARMAN_SUCCESS);
 #endif
 
-    assert(gmodconf_parse_args(&modconf, argc, argv) == MODCONF_SUCCESS);
+    assert(gearman_conf_parse_args(&conf, argc, argv) == GEARMAN_SUCCESS);
 
     gearmand= gearmand_create(NULL, port);
     assert(gearmand != NULL);
@@ -55,12 +53,12 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type, char *argv[], 
       assert(argv);
 #ifdef HAVE_LIBDRIZZLE
       if (!strcmp(queue_type, "libdrizzle"))
-        assert((gearmand_queue_libdrizzle_init(gearmand, &modconf)) == GEARMAN_SUCCESS);
+        assert((gearmand_queue_libdrizzle_init(gearmand, &conf)) == GEARMAN_SUCCESS);
       else
 #endif
 #ifdef HAVE_LIBMEMCACHED
       if (!strcmp(queue_type, "libmemcached"))
-        assert((gearmand_queue_libmemcached_init(gearmand, &modconf)) == GEARMAN_SUCCESS);
+        assert((gearmand_queue_libmemcached_init(gearmand, &conf)) == GEARMAN_SUCCESS);
       else
 #endif
       {

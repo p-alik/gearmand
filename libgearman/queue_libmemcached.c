@@ -61,24 +61,24 @@ static gearman_return_t _libmemcached_replay(gearman_st *gearman, void *fn_arg,
  * Public definitions
  */
 
-modconf_return_t gearman_queue_libmemcached_modconf(modconf_st *modconf)
+gearman_return_t gearman_queue_libmemcached_conf(gearman_conf_st *conf)
 {
-  modconf_module_st *module;
+  gearman_conf_module_st *module;
 
-  module= gmodconf_module_create(modconf, NULL, "libmemcached");
+  module= gearman_conf_module_create(conf, NULL, "libmemcached");
   if (module == NULL)
-    return MODCONF_MEMORY_ALLOCATION_FAILURE;
+    return GEARMAN_MEMORY_ALLOCATION_FAILURE;
 
-  gmodconf_module_add_option(module, "servers", 0, "SERVER_LIST",
-                             "List of Memcached servers to use.");
-  return gmodconf_return(modconf);
+  gearman_conf_module_add_option(module, "servers", 0, "SERVER_LIST",
+                                 "List of Memcached servers to use.");
+  return gearman_conf_return(conf);
 }
 
 gearman_return_t gearman_queue_libmemcached_init(gearman_st *gearman,
-                                                 modconf_st *modconf)
+                                                 gearman_conf_st *conf)
 {
   gearman_queue_libmemcached_st *queue;
-  modconf_module_st *module;
+  gearman_conf_module_st *module;
   const char *name;
   const char *value;
   memcached_server_st *servers;
@@ -102,15 +102,15 @@ gearman_return_t gearman_queue_libmemcached_init(gearman_st *gearman,
   }
 
   /* Get module and parse the option values that were given. */
-  module= gmodconf_module_find(modconf, "libmemcached");
+  module= gearman_conf_module_find(conf, "libmemcached");
   if (module == NULL)
   {
     GEARMAN_ERROR_SET(gearman, "gearman_queue_libmemcached_init",
-                      "modconf_module_find:NULL")
+                      "gearman_conf_module_find:NULL")
     return GEARMAN_QUEUE_ERROR;
   }
 
-  while (gmodconf_module_value(module, &name, &value))
+  while (gearman_conf_module_value(module, &name, &value))
   { 
     if (!strcmp(name, "servers"))
       opt_servers= value;
@@ -173,9 +173,9 @@ gearman_return_t gearman_queue_libmemcached_deinit(gearman_st *gearman)
 }
 
 gearman_return_t gearmand_queue_libmemcached_init(gearmand_st *gearmand,
-                                                  modconf_st *modconf)
+                                                  gearman_conf_st *conf)
 {
-  return gearman_queue_libmemcached_init(gearmand->server.gearman, modconf);
+  return gearman_queue_libmemcached_init(gearmand->server.gearman, conf);
 }
 
 gearman_return_t gearmand_queue_libmemcached_deinit(gearmand_st *gearmand)

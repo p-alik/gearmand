@@ -1,4 +1,8 @@
 0.8 - 2009-06-??
+ * Added pluggable protocol support.
+ * Added basic HTTP protocol support.
+ * Updated autoconf build system.
+ * Renamed modconf to gearman_conf.
  * Improved logging messages for gearmand.
  * Removed all struct memsets and packed structs for better memory usage.
 
