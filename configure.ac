@@ -53,7 +53,6 @@ fi
 
 AC_PROG_CC
 AC_PROG_CC_C99
-
 AC_PROG_CXX
 
 ACX_USE_SYSTEM_EXTENSIONS
@@ -118,7 +117,7 @@ then
   CFLAGS="-g -mt ${CFLAGS}"
   CXXFLAGS="-xlang=c99 -g -mt -compat=5 -library=stlport4 -template=no%extdef ${CXXFLAGS}"
 
-  OPTIMIZE_FLAGS="-xO4 -xlibmil -xdepend -xbuiltin -lmopt"
+  OPTIMIZE_FLAGS="-xO4 -xlibmil -xdepend -xbuiltin"
   OPTIMIZE_CFLAGS="${OPTIMIZE_FLAGS} -Xa -xstrconst"
   OPTIMIZE_CXXFLAGS="${OPTIMIZE_FLAGS}"
 
@@ -265,9 +264,11 @@ if test "$with_debug" = "yes"
 then
   # Debugging. No optimization.
   CFLAGS="${DEBUG_CFLAGS} -DDEBUG ${CFLAGS}"
+  CXXFLAGS="${DEBUG_CXXFLAGS} -DDEBUG ${CXXFLAGS}"
 else
   # Optimized version. No debug
   CFLAGS="${OPTIMIZE_CFLAGS} ${CFLAGS}"
+  CXXFLAGS="${OPTIMIZE_CXXFLAGS} ${CXXFLAGS}"
 fi
 
 
@@ -286,6 +287,63 @@ AC_ARG_ENABLE([coverage],
 if test "$GCC" = "yes"
 then
 
+  AC_CACHE_CHECK([whether it is safe to use -fdiagnostics-show-option],
+    [ac_cv_safe_to_use_fdiagnostics_show_option_],
+    [save_CFLAGS="$CFLAGS"
+     CFLAGS="-fdiagnostics-show-option ${CFLAGS}"
+     AC_COMPILE_IFELSE(
+       [AC_LANG_PROGRAM([],[])],
+       [ac_cv_safe_to_use_fdiagnostics_show_option_=yes],
+       [ac_cv_safe_to_use_fdiagnostics_show_option_=no])
+     CFLAGS="$save_CFLAGS"])
+
+  AS_IF([test "$ac_cv_safe_to_use_fdiagnostics_show_option_" = "yes"],
+        [
+          F_DIAGNOSTICS_SHOW_OPTION="-fdiagnostics-show-option"
+        ])
+
+  AC_CACHE_CHECK([whether it is safe to use -Wconversion],
+    [ac_cv_safe_to_use_wconversion_],
+    [save_CFLAGS="$CFLAGS"
+     CFLAGS="-Werror -Wconversion ${CFLAGS}"
+     AC_COMPILE_IFELSE(
+       [AC_LANG_PROGRAM([[
+#include <stdbool.h>
+void foo(bool a)
+{
+  (void)a;
+}
+       ]],[[
+foo(0);
+       ]])],
+       [ac_cv_safe_to_use_wconversion_=yes],
+       [ac_cv_safe_to_use_wconversion_=no])
+     CFLAGS="$save_CFLAGS"])
+
+  AS_IF([test "$ac_cv_safe_to_use_wconversion_" = "yes"],
+    [W_CONVERSION="-Wconversion"
+    AC_CACHE_CHECK([whether it is safe to use -Wconversion with htons],
+      [ac_cv_safe_to_use_Wconversion_],
+      [save_CFLAGS="$CFLAGS"
+       CFLAGS="-Werror -Wconversion ${CFLAGS}"
+       AC_COMPILE_IFELSE(
+         [AC_LANG_PROGRAM(
+           [[
+#include <netinet/in.h>
+           ]],[[
+uint16_t x= htons(80);
+           ]])],
+         [ac_cv_safe_to_use_Wconversion_=yes],
+         [ac_cv_safe_to_use_Wconversion_=no])
+       CFLAGS="$save_CFLAGS"])
+
+    AS_IF([test "$ac_cv_safe_to_use_Wconversion_" = "no"],
+          [
+            NO_CONVERSION="-Wno-conversion"
+          ])
+    ])
+
+
   W_STRICT_ALIASING="-Wno-strict-aliasing"
 
   AS_IF([test "$ac_profiling" = "yes"],
@@ -302,20 +360,6 @@ then
   CC_WARNINGS="${BASE_WARNINGS} -Wstrict-prototypes -Wmissing-prototypes -Wredundant-decls -Wswitch-default -Wswitch-enum -Wcast-align -Wconversion"
   CXX_WARNINGS="${BASE_WARNINGS} -Woverloaded-virtual  -Wnon-virtual-dtor -Wctor-dtor-privacy  -Wold-style-cast -Weffc++ -Wno-long-long -Wconversion"
 
-  AC_CACHE_CHECK([whether it is safe to use -Wconversion with htons],
-    [ac_cv_safe_to_use_Wconversion_],
-    [save_CFLAGS="$CFLAGS"
-     CFLAGS="-Werror -Wno-conversion ${CFLAGS}"
-     AC_COMPILE_IFELSE(
-       [AC_LANG_PROGRAM(
-         [[
-#include <netinet/in.h>
-         ]],[[
-uint16_t x= htons(80);
-         ]])],
-       [ac_cv_safe_to_use_Wconversion_=yes],
-       [ac_cv_safe_to_use_Wconversion_=no])
-     CFLAGS="$save_CFLAGS"])
 
   AS_IF([test "$ac_cv_safe_to_use_Wconversion_" = "no"],
         [
