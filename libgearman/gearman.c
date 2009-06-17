@@ -14,6 +14,30 @@
 #include "common.h"
 
 /*
+ * Private declarations
+ */
+
+/**
+ * @addtogroup gearman_private Private Functions
+ * @ingroup gearman
+ * @{
+ */
+
+/**
+ * Names of the verbose levels provided.
+ */
+static const char *_verbose_name[GEARMAN_VERBOSE_MAX]=
+{
+  "FATAL",
+  "ERROR",
+  "INFO",
+  "DEBUG",
+  "CRAZY"
+};
+
+/** @} */
+
+/*
  * Public definitions
  */
 
@@ -27,6 +51,14 @@ const char *gearman_bugreport(void)
     return PACKAGE_BUGREPORT;
 }
 
+const char *gearman_verbose_name(gearman_verbose_t verbose)
+{
+  if (verbose >= GEARMAN_VERBOSE_MAX)
+    return "UNKNOWN";
+
+  return _verbose_name[verbose];
+}
+
 gearman_st *gearman_create(gearman_st *gearman)
 {
   if (gearman == NULL)
@@ -35,11 +67,39 @@ gearman_st *gearman_create(gearman_st *gearman)
     if (gearman == NULL)
       return NULL;
 
-    memset(gearman, 0, sizeof(gearman_st));
-    gearman->options|= GEARMAN_ALLOCATED;
+    gearman->options= GEARMAN_ALLOCATED;
   }
   else
-    memset(gearman, 0, sizeof(gearman_st));
+    gearman->options= 0;
+
+  gearman->verbose= 0;
+  gearman->con_count= 0;
+  gearman->job_count= 0;
+  gearman->task_count= 0;
+  gearman->packet_count= 0;
+  gearman->pfds_size= 0;
+  gearman->sending= 0;
+  gearman->last_errno= 0;
+  gearman->con_list= NULL;
+  gearman->job_list= NULL;
+  gearman->task_list= NULL;
+  gearman->packet_list= NULL;
+  gearman->pfds= NULL;
+  gearman->log_fn= NULL;
+  gearman->log_fn_arg= NULL;
+  gearman->event_watch= NULL;
+  gearman->event_watch_arg= NULL;
+  gearman->workload_malloc= NULL;
+  gearman->workload_malloc_arg= NULL;
+  gearman->workload_free= NULL;
+  gearman->workload_free_arg= NULL;
+  gearman->task_fn_arg_free_fn= NULL;
+  gearman->queue_fn_arg= NULL;
+  gearman->queue_add_fn= NULL;
+  gearman->queue_flush_fn= NULL;
+  gearman->queue_done_fn= NULL;
+  gearman->queue_replay_fn= NULL;
+  gearman->last_error[0]= 0;
 
   return gearman;
 }
@@ -117,6 +177,14 @@ void gearman_set_options(gearman_st *gearman, gearman_options_t options,
     gearman->options &= ~options;
 }
 
+void gearman_set_log(gearman_st *gearman, gearman_log_fn log_fn,
+                     void *log_fn_arg, gearman_verbose_t verbose)
+{
+  gearman->log_fn= log_fn;
+  gearman->log_fn_arg= log_fn_arg;
+  gearman->verbose= verbose;
+}
+
 void gearman_set_event_watch(gearman_st *gearman,
                              gearman_event_watch_fn *event_watch,
                              void *event_watch_arg)
@@ -139,4 +207,97 @@ void gearman_set_workload_free(gearman_st *gearman,
 {
   gearman->workload_free= workload_free;
   gearman->workload_free_arg= workload_free_arg;
+}
+
+void gearman_set_task_fn_arg_free(gearman_st *gearman, 
+                                  gearman_task_fn_arg_free_fn *free_fn)
+{
+  gearman->task_fn_arg_free_fn= free_fn;
+}
+
+void *gearman_queue_fn_arg(gearman_st *gearman)
+{
+  return (void *)gearman->queue_fn_arg;
+}
+
+void gearman_set_queue_fn_arg(gearman_st *gearman, const void *fn_arg)
+{
+  gearman->queue_fn_arg= fn_arg;
+}
+
+void gearman_set_queue_add(gearman_st *gearman, gearman_queue_add_fn *add_fn)
+{
+  gearman->queue_add_fn= add_fn;
+}
+
+void gearman_set_queue_flush(gearman_st *gearman,
+                             gearman_queue_flush_fn *flush_fn)
+{
+  gearman->queue_flush_fn= flush_fn;
+}
+
+void gearman_set_queue_done(gearman_st *gearman,
+                            gearman_queue_done_fn *done_fn)
+{
+  gearman->queue_done_fn= done_fn;
+}
+
+void gearman_set_queue_replay(gearman_st *gearman,
+                              gearman_queue_replay_fn *replay_fn)
+{
+  gearman->queue_replay_fn= replay_fn;
+}
+
+gearman_return_t gearman_parse_servers(const char *servers, void *data,
+                                       gearman_parse_server_fn *server_fn)
+{ 
+  const char *ptr= servers;
+  size_t x;
+  char host[NI_MAXHOST];
+  char port[NI_MAXSERV];
+  gearman_return_t ret;
+
+  while (1)
+  { 
+    x= 0;
+
+    while (*ptr != 0 && *ptr != ',' && *ptr != ':')
+    { 
+      if (x < (NI_MAXHOST - 1))
+        host[x++]= *ptr;
+
+      ptr++;
+    }
+
+    host[x]= 0;
+
+    if (*ptr == ':')
+    { 
+      ptr++;
+      x= 0;
+
+      while (*ptr != 0 && *ptr != ',')
+      { 
+        if (x < (NI_MAXSERV - 1))
+          port[x++]= *ptr;
+
+        ptr++;
+      }
+
+      port[x]= 0;
+    }
+    else
+      port[0]= 0;
+
+    ret= (*server_fn)(host, (in_port_t)atoi(port), data);
+    if (ret != GEARMAN_SUCCESS)
+      return ret;
+
+    if (*ptr == 0)
+      break;
+
+    ptr++;
+  }
+
+  return GEARMAN_SUCCESS;
 }

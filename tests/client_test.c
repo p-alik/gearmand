@@ -35,6 +35,7 @@ test_return submit_job_test(void *object);
 test_return submit_null_job_test(void *object);
 test_return background_test(void *object);
 test_return background_failure_test(void *object);
+test_return add_servers_test(void *object);
 
 void *create(void *object);
 void destroy(void *object);
@@ -173,7 +174,7 @@ test_return background_test(void *object)
                                    value_length, job_handle);
   if (rc != GEARMAN_SUCCESS)
   {
-    printf("echo_test:%s\n", gearman_client_error(client));
+    printf("background_test:%s\n", gearman_client_error(client));
     return TEST_FAILURE;
   }
 
@@ -204,7 +205,7 @@ test_return background_failure_test(void *object)
   uint32_t numerator;
   uint32_t denominator;
   uint8_t *value= (uint8_t *)"background_failure_test";
-  ssize_t value_length= strlen("background_failure_test");
+  size_t value_length= strlen("background_failure_test");
 
   rc= gearman_client_do_background(client, "does_not_exist", NULL, value,
                                    value_length, job_handle);
@@ -219,6 +220,30 @@ test_return background_failure_test(void *object)
     printf("background_failure_test:%s\n", gearman_client_error(client));
     return TEST_FAILURE;
   }
+
+  return TEST_SUCCESS;
+}
+
+test_return add_servers_test(void *object __attribute__((unused)))
+{
+  gearman_client_st client;
+
+  if (gearman_client_create(&client) == NULL)
+    return TEST_FAILURE;
+
+  if (gearman_client_add_servers(&client, "127.0.0.1:4730,localhost")
+      != GEARMAN_SUCCESS)
+  {
+    return TEST_FAILURE;
+  }
+
+  if (gearman_client_add_servers(&client, "old_jobserver:7003,broken:12345")
+      != GEARMAN_SUCCESS)
+  {
+    return TEST_FAILURE;
+  }
+
+  gearman_client_free(&client);
 
   return TEST_SUCCESS;
 }
@@ -277,6 +302,7 @@ void *client_test_worker(gearman_job_st *job, void *cb_arg, size_t *result_size,
 void *world_create(void)
 {
   client_test_st *test;
+  char *argv[1]= { "client_gearmand" };
 
   assert((test= malloc(sizeof(client_test_st))) != NULL);
   memset(test, 0, sizeof(client_test_st));
@@ -285,7 +311,7 @@ void *world_create(void)
   assert(gearman_client_add_server(&(test->client), NULL, CLIENT_TEST_PORT) ==
          GEARMAN_SUCCESS);
 
-  test->gearmand_pid= test_gearmand_start(CLIENT_TEST_PORT);
+  test->gearmand_pid= test_gearmand_start(CLIENT_TEST_PORT, NULL, argv, 1);
   test->worker_pid= test_worker_start(CLIENT_TEST_PORT, "client_test",
                                       client_test_worker, NULL);
 
@@ -310,6 +336,7 @@ test_st tests[] ={
   {"submit_null_job", 0, submit_null_job_test },
   {"background", 0, background_test },
   {"background_failure", 0, background_failure_test },
+  {"add_servers", 0, add_servers_test },
   {0, 0, 0}
 };
 

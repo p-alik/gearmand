@@ -39,12 +39,12 @@ gearman_server_function_get(gearman_server_st *server,
  */
 gearman_server_function_st *
 gearman_server_function_create(gearman_server_st *server,
-                               gearman_server_function_st *server_function);
+                               gearman_server_function_st *function);
 
 /**
  * Free a server function structure.
  */
-void gearman_server_function_free(gearman_server_function_st *server_function);
+void gearman_server_function_free(gearman_server_function_st *function);
 
 /** @} */
 

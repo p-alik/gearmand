@@ -26,19 +26,19 @@ static void usage(char *name);
 
 int main(int argc, char *argv[])
 {
-  char c;
+  int c;
   uint32_t count= 0;
   char *host= NULL;
-  unsigned short port= 0;
+  in_port_t port= 0;
   gearman_return_t ret;
   gearman_worker_st worker;
 
-  while ((c = getopt(argc, argv, "c:h:p:")) != EOF)
+  while ((c = getopt(argc, argv, "c:h:p:")) != -1)
   {
     switch(c)
     {
     case 'c':
-      count= atoi(optarg);
+      count= (uint32_t)atoi(optarg);
       break;
 
     case 'h':
@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
       break;
 
     case 'p':
-      port= atoi(optarg);
+      port= (in_port_t)atoi(optarg);
       break;
 
     default:

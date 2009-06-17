@@ -1,0 +1,30 @@
+.TH gearman 1 2009-04-18 "Gearman" "Gearman"
+.SH NAME
+gearman \- command line interface for Gearman clients and workers
+.SH SYNOPSIS
+.B gearman
+[\fIOPTION\fR]... [\fIWORKLOAD\fR]...
+.SH DESCRIPTION
+This tool allows you to run both Gearman clients and workers from the
+command line. Client mode is the default, with worker mode triggered
+with the \-w option. More documentation on this tool coming soon!
+.SH EXAMPLES
+\fBExample Client:\fR
+.TP
+This command will act as a client and send a job to function "test" with the payload "Hello World!".
+.TP
+gearman \-f test "Hello World!"
+.TP
+\fBExample Worker:\fR
+.TP
+This command will start a worker and take jobs destined to "test" and run the payload through the 'wc' shell command. It will return the output of that command to the client.
+.TP
+gearman \-w \-f test wc
+.SH "SEE ALSO"
+The Gearman homepage: http://www.gearman.org/
+.SH BUGS
+Bugs should be reported at https://bugs.launchpad.net/gearmand
+.SH COPYING
+Copyright (C) 2008 Brian Aker, Eric Day. All rights reserved.
+
+Use and distribution licensed under the BSD license. See the COPYING file in the original source for full text.

@@ -1,3 +1,58 @@
+0.8 - 2009-06-??
+ * Added pluggable protocol support.
+ * Added basic HTTP protocol support.
+ * Updated autoconf build system.
+ * Renamed modconf to gearman_conf.
+ * Improved logging messages for gearmand.
+ * Removed all struct memsets and packed structs for better memory usage.
+
+0.7 - 2009-05-31
+ * Added libmodconf for config option processing. Eventually this will be split
+   into a separate library. Updated gearmand and tests to use libmodconf.
+ * Fixed persistent queue bug where jobs were not removed after replay.
+ * Fix for bug #379198.
+ * Changed done() function for queue, function_name is now passed to it as
+   well as unique.
+ * Fixed text protocol command response to be dynamic length.
+ * Fixed libevent usage to support libevent 1.1 (still used in CentOS and Suse).
+ * Added gearman_*_add_servers to client/worker interfaces for taking
+   server lists.
+
+0.6 - 2009-05-19
+ * Changed behavior so forground jobs are not run when their connected clients
+   disconnect. This is how the Perl server behaves.
+ * Changed to named logging macros, making it easier for module writers to use.
+ * Added persistent queue support with a libdrizzle module. This allows queue
+   storage for both Drizzle and MySQL.
+ * Added Solaris service scripts (Trond Norbye).
+ * Fixed rpm building (make rpm).
+ * Removed AI_V4MAPPED for client/worker connect lookup, not fully
+   supported in all operating systems (like FreeBSD, bug #373060).
+ * Support for gearmand to bind to multiple addresses.
+ * Protocol document updates and fixes (Eric Day, Eric Herman)
+ * Bind to specific hostname in gearmand (Brian Moon).
+ * Minor cleanup and fixes.
+
+0.5 - 2009-04-22
+ * Threaded Gearman job server (gearmand).
+ * More options to gearmand.
+ * OSX bug fixes related to poll().
+ * Fix for bug #357881.
+ * Man page rework.
+
+0.4 - 2009-03-30
+ * New protocol additions such as UNIQ grab and assign for workers.
+ * Support for high priority background jobs (Brian Moon).
+ * Support for low priority jobs.
+ * New priority queue in server to support new protocol options.
+ * Reworked the unique ID checking in server.
+ * Added hooks to aid in client memory cleanup.
+ * Added gearman command line utility to allow you to use clients and
+   workers from the shell.
+ * Build fixes (Monty Taylor).
+ * Basic init script added.
+ * Fixed getopt bugs with variable type and EOF.
+
 0.3 - 2009-02-05
  * Fixed I/O wait bug in packet parse.
  * Switched to different autoconf library detection method.

@@ -81,12 +81,12 @@ in "ret" and shoulf always be checked.
 
 If you need to run multiple tasks at the same time, you'll want to
 use the concurrent interface. After the client setup, you will then
-add tasks to be run. This jsut queues the task and does not actually
+add tasks to be run. This just queues the task and does not actually
 run it. You then call gearman_run_tasks() to submit and process the
 jobs in parallel. When using the concurrent interface, you need to
 specify callback functions for each action you may care about. For
-example, if you want to know when a task completes, you would pass
-in a gearman_complete_fn callback function to be run for each task.
+example, if you want to know when a task completes, you would set a
+gearman_complete_fn callback function to be run for each task.
 
 @code
 
@@ -103,12 +103,13 @@ static gearman_return_t fail(gearman_task_st *task)
   return GEARMAN_SUCCESS;
 }
 
-gearman_client_set_options(&client, GEARMAN_CLIENT_BUFFER_RESULT, 1);
 gearman_client_add_task(&client, &task1, NULL, "function", "argument1",
                         strlen("argument1"), &ret);
 gearman_client_add_task(&client, &task2, NULL, "function", "argument2",
                         strlen("argument2"), &ret);
-gearman_client_run_tasks(&client, NULL, NULL, NULL, NULL, complete, fail);
+gearman_client_set_complete_fn(&client, complete);
+gearman_client_set_fail_fn(&client, fail);
+gearman_client_run_tasks(&client);
 
 @endcode
 
@@ -171,9 +172,9 @@ The last component of the worker is the callback function. This will look like:
 void *function_callback(gearman_job_st *job, void *cb_arg, size_t *result_size,
                         gearman_return_t *ret_ptr)
 {
-  char *resilt;
+  char *result;
 
-  result== strdup((char *)gearman_job_workload(job));
+  result= strdup((char *)gearman_job_workload(job));
   *result_size= gearman_job_workload_size(job);
 
   *ret_ptr= GEARMAN_SUCCESS;

@@ -29,7 +29,7 @@ static void _usage(char *name);
 int main(int argc, char *argv[])
 {
   gearman_benchmark_st benchmark;
-  char c;
+  int c;
   char *host= NULL;
   in_port_t port= 0;
   char *function= GEARMAN_BENCHMARK_DEFAULT_FUNCTION;
@@ -54,12 +54,12 @@ int main(int argc, char *argv[])
 
   gearman_client_set_options(&client, GEARMAN_CLIENT_UNBUFFERED_RESULT, 1);
 
-  while ((c= getopt(argc, argv, "c:f:h:m:M:n:p:s:v")) != EOF)
+  while ((c= getopt(argc, argv, "c:f:h:m:M:n:p:s:v")) != -1)
   {
     switch(c)
     {
     case 'c':
-      count= atoi(optarg);
+      count= (uint32_t)atoi(optarg);
       break;
 
     case 'f':
@@ -77,23 +77,23 @@ int main(int argc, char *argv[])
       break;
 
     case 'm':
-      min_size= atoi(optarg);
+      min_size= (size_t)atoi(optarg);
       break;
 
     case 'M':
-      max_size= atoi(optarg);
+      max_size= (size_t)atoi(optarg);
       break;
 
     case 'n':
-      num_tasks= atoi(optarg);
+      num_tasks= (uint32_t)atoi(optarg);
       break;
 
     case 'p':
-      port= atoi(optarg);
+      port= (in_port_t)atoi(optarg);
       break;
 
     case 's':
-      srand(atoi(optarg));
+      srand((unsigned int)atoi(optarg));
       break;
 
     case 'v':
@@ -153,10 +153,10 @@ int main(int argc, char *argv[])
         blob_size= max_size;
       else
       {
-        blob_size= rand();
+        blob_size= (size_t)rand();
 
         if (max_size > RAND_MAX)
-          blob_size*= (rand() + 1);
+          blob_size*= (size_t)(rand() + 1);
 
         blob_size= (blob_size % (max_size - min_size)) + min_size;
       }
@@ -170,8 +170,12 @@ int main(int argc, char *argv[])
       }
     }
 
-    ret= gearman_client_run_tasks(&client, NULL, _created, _data, _status,
-                                  _complete, _fail);
+    gearman_client_set_created_fn(&client, _created);
+    gearman_client_set_data_fn(&client, _data);
+    gearman_client_set_status_fn(&client, _status);
+    gearman_client_set_complete_fn(&client, _complete);
+    gearman_client_set_fail_fn(&client, _fail);
+    ret= gearman_client_run_tasks(&client);
     if (ret != GEARMAN_SUCCESS)
     {
       fprintf(stderr, "%s\n", gearman_client_error(&client));

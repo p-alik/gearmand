@@ -8,7 +8,7 @@
 
 /**
  * @file
- * @brief Server declarations
+ * @brief Server Declarations
  */
 
 #ifndef __GEARMAN_SERVER_H__
@@ -34,101 +34,51 @@ extern "C" {
 gearman_server_st *gearman_server_create(gearman_server_st *server);
 
 /**
- * Clone a server structure.
- * @param server Caller allocated server structure, or NULL to allocate one.
- * @param from Server structure to use as a source to clone from.
- * @return Pointer to an allocated server structure if server parameter was
- *         NULL, or the server parameter pointer if it was not NULL.
- */
-gearman_server_st *gearman_server_clone(gearman_server_st *server,
-                                        gearman_server_st *from);
-
-/**
  * Free resources used by a server structure.
  * @param server Server structure previously initialized with
- *        gearman_server_create or gearman_server_clone.
+ *        gearman_server_create.
  */
 void gearman_server_free(gearman_server_st *server);
 
 /**
- * Return an error string for the last error encountered.
+ * Set logging callback for server instance.
  * @param server Server structure previously initialized with
- *        gearman_server_create or gearman_server_clone.
- * @return Pointer to static buffer in library that holds an error string.
+ *        gearman_server_create.
+ * @param log_fn Function to call when there is a logging message.
+ * @param log_fn_arg Argument to pass into the log callback function.
+ * @param verbose Verbosity level.
  */
-const char *gearman_server_error(gearman_server_st *server);
+void gearman_server_set_log(gearman_server_st *server,
+                            gearman_server_log_fn log_fn, void *log_fn_arg,
+                            gearman_verbose_t verbose);
 
 /**
- * Value of errno in the case of a GEARMAN_ERRNO return value.
+ * Process commands for a connection.
+ * @param server_con Server connection that has a packet to process.
+ * @param packet The packet that needs processing.
+ * @return Standard gearman return value.
+ */
+gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
+                                            gearman_packet_st *packet);
+
+/**
+ * Tell server that it should enter a graceful shutdown state.
  * @param server Server structure previously initialized with
- *        gearman_server_create or gearman_server_clone.
- * @return An errno value as defined in your system errno.h file.
+ *        gearman_server_create.
+ * @return Standard gearman return value. This will return GEARMAN_SHUTDOWN if
+ *         the server is ready to shutdown now.
  */
-int gearman_server_errno(gearman_server_st *server);
+gearman_return_t gearman_server_shutdown_graceful(gearman_server_st *server);
 
 /**
- * Set options for a server structure.
+ * Replay the persistent queue to load all unfinshed jobs into the server. This
+ * should only be run at startup.
  * @param server Server structure previously initialized with
- *        gearman_server_create or gearman_server_clone.
- * @param options Available options for gearman_server structs.
- * @param data For options that require parameters, the value of that parameter.
- *        For all other option flags, this should be 0 to clear the option or 1
- *        to set.
+ *        gearman_server_create.
+ * @return Standard gearman return value. This will return GEARMAN_SHUTDOWN if
+ *         the server is ready to shutdown now.
  */
-void gearman_server_set_options(gearman_server_st *server,
-                                gearman_server_options_t options,
-                                uint32_t data);
-
-/**
- * Set custom I/O event watch callback.
- * @param server Server structure previously initialized with
- *        gearman_server_create or gearman_server_clone.
- * @param event_watch Function to be called when events need to be watched.
- * @param event_watch_arg Argument to pass along to event_watch.
- */
-void gearman_server_set_event_watch(gearman_server_st *server,
-                                    gearman_event_watch_fn *event_watch,
-                                    void *event_watch_arg);
-
-/**
- * Add a job server to a server. This goes into a list of servers than can be
- * used to run tasks. No socket I/O happens here, it is just added to a list.
- * @param server Server structure previously initialized with
- *        gearman_server_create or gearman_server_clone.
- * @param server_con Caller allocated server connection structure, or NULL to
-          allocate one.
- * @param fd File descriptor for a newly accepted connection.
- * @param data Application data pointer.
- * @return Gearman connection pointer.
- */
-gearman_server_con_st *gearman_server_add_con(gearman_server_st *server,
-                                              gearman_server_con_st *server_con,
-                                              int fd, void *data);
-
-/**
- * Add connection to the active server list.
- */
-void gearman_server_active_add(gearman_server_con_st *server_con);
-
-/**
- * Remove connection from the active server list.
- */
-void gearman_server_active_remove(gearman_server_con_st *server_con);
-
-/**
- * Get next connection from the active server list.
- */
-gearman_server_con_st *gearman_server_active_next(gearman_server_st *server);
-
-/**
- * Process server connections.
- * @param server Server structure previously initialized with
- *        gearman_server_create or gearman_server_clone.
- * @param ret_ptr Pointer to hold a standard gearman return value.
- * @return On error, the server connection that encountered the error.
- */
-gearman_server_con_st *gearman_server_run(gearman_server_st *server,
-                                          gearman_return_t *ret_ptr);
+gearman_return_t gearman_server_queue_replay(gearman_server_st *server);
 
 /** @} */
 

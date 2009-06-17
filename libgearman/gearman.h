@@ -15,7 +15,9 @@
 #define __GEARMAN_H__
 
 #include <inttypes.h>
-#include <stdbool.h>
+#ifndef __cplusplus
+#  include <stdbool.h>
+#endif
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -23,22 +25,29 @@
 #include <arpa/inet.h>
 #include <poll.h>
 #include <sys/uio.h>
+#include <event.h>
 
 #include <libgearman/constants.h>
 #include <libgearman/structs.h>
-#include <libgearman/con.h>
+#include <libgearman/conn.h>
 #include <libgearman/packet.h>
 #include <libgearman/task.h>
 #include <libgearman/job.h>
 #include <libgearman/client.h>
 #include <libgearman/worker.h>
 #include <libgearman/server_con.h>
+#include <libgearman/server_packet.h>
 #include <libgearman/server_function.h>
 #include <libgearman/server_client.h>
 #include <libgearman/server_worker.h>
 #include <libgearman/server_job.h>
+#include <libgearman/server_thread.h>
 #include <libgearman/server.h>
 #include <libgearman/gearmand.h>
+#include <libgearman/gearmand_thread.h>
+#include <libgearman/gearmand_con.h>
+#include <libgearman/conf.h>
+#include <libgearman/conf_module.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -66,6 +75,11 @@ const char *gearman_version(void);
  * Return gearman bug report URL.
  */
 const char *gearman_bugreport(void);
+
+/**
+ * Return verbose name.
+ */
+const char *gearman_verbose_name(gearman_verbose_t verbose);
 
 /**
  * Initialize a gearman structure.
@@ -99,6 +113,17 @@ void gearman_set_options(gearman_st *gearman, gearman_options_t options,
                          uint32_t data);
 
 /**
+ * Set logging callback for gearman instance.
+ * @param gearman Gearman instance structure previously initialized with
+ *        gearman_create.
+ * @param log_fn Function to call when there is a logging message.
+ * @param log_fn_arg Argument to pass into the log callback function.
+ * @param verbose Verbosity level.
+ */
+void gearman_set_log(gearman_st *gearman, gearman_log_fn log_fn,
+                     void *log_fn_arg, gearman_verbose_t verbose);
+
+/**
  * Set custom I/O event callbacks for a gearman structure.
  */
 void gearman_set_event_watch(gearman_st *gearman,
@@ -122,6 +147,48 @@ void gearman_set_workload_malloc(gearman_st *gearman,
 void gearman_set_workload_free(gearman_st *gearman,
                                gearman_free_fn *workload_free,
                                const void *workload_free_arg);
+
+/**
+ * Set function to call when tasks are being cleaned up so applications can
+ * clean up fn_arg.
+ */
+void gearman_set_task_fn_arg_free(gearman_st *gearman,
+                                  gearman_task_fn_arg_free_fn *free_fn);
+
+/**
+ * Get persistent queue function argument.
+ */
+void *gearman_queue_fn_arg(gearman_st *gearman);
+
+/**
+ * Set persistent queue function argument that will be passed back to all queue
+ * callback functions.
+ */
+void gearman_set_queue_fn_arg(gearman_st *gearman, const void *fn_arg);
+
+/**
+ * Set function to call when jobs need to be stored in the persistent queue.
+ */
+void gearman_set_queue_add(gearman_st *gearman, gearman_queue_add_fn *add_fn);
+
+/**
+ * Set function to call when the persistent queue should be flushed to disk.
+ */
+void gearman_set_queue_flush(gearman_st *gearman,
+                             gearman_queue_flush_fn *flush_fn);
+
+/**
+ * Set function to call when a job should be removed from the persistent queue.
+ */
+void gearman_set_queue_done(gearman_st *gearman,
+                            gearman_queue_done_fn *done_fn);
+
+/**
+ * Set function to call when jobs in the persistent queue should be replayed
+ * after a restart.
+ */
+void gearman_set_queue_replay(gearman_st *gearman,
+                              gearman_queue_replay_fn *replay_fn);
 
 /** @} */
 

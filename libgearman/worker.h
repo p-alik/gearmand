@@ -122,6 +122,20 @@ gearman_return_t gearman_worker_add_server(gearman_worker_st *worker,
                                            const char *host, in_port_t port);
 
 /**
+ * Add a list of job servers to a worker. The format for the server list is:
+ * SERVER[:PORT][,SERVER[:PORT]]...
+ * Some examples are:
+ * 10.0.0.1,10.0.0.2,10.0.0.3
+ * localhost:1234,jobserver2.domain.com:7003,10.0.0.3
+ * @param worker Worker structure previously initialized with
+ *        gearman_worker_create or gearman_worker_clone.
+ * @param servers Server list described above.
+ * @return Standard gearman return value.
+ */
+gearman_return_t gearman_worker_add_servers(gearman_worker_st *worker,
+                                            const char *servers);
+
+/**
  * Register function with job servers with an optional timeout. The timeout
  * specifies how many seconds the server will wait before marking a job as
  * failed. If timeout is zero, there is no timeout.

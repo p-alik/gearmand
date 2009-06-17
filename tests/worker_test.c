@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <libgearman/gearman.h>
 
@@ -29,6 +30,7 @@ test_return init_test(void *object);
 test_return allocation_test(void *object);
 test_return clone_test(void *object);
 test_return echo_test(void *object);
+test_return bug372074_test(void *object);
 
 void *create(void *object);
 void destroy(void *object);
@@ -81,7 +83,7 @@ test_return clone_test(void *object)
   return TEST_SUCCESS;
 }
 
-test_return echo_test(void *object __attribute__((unused)))
+test_return echo_test(void *object)
 {
   gearman_worker_st *worker= (gearman_worker_st *)object;
   gearman_return_t rc;
@@ -94,6 +96,69 @@ test_return echo_test(void *object __attribute__((unused)))
   if (rc != GEARMAN_SUCCESS)
     return TEST_FAILURE;
   
+  return TEST_SUCCESS;
+}
+
+test_return bug372074_test(void *object __attribute__((unused)))
+{
+  gearman_st gearman;
+  gearman_con_st con;
+  gearman_packet_st packet;
+  uint32_t x;
+
+  if (gearman_create(&gearman) == NULL)
+    return TEST_FAILURE;
+
+  for (x= 0; x < 2; x++)
+  {
+    if (gearman_con_create(&gearman, &con) == NULL)
+      return TEST_FAILURE;
+
+    gearman_con_set_host(&con, NULL);
+    gearman_con_set_port(&con, WORKER_TEST_PORT);
+
+    if (gearman_packet_add(&gearman, &packet, GEARMAN_MAGIC_REQUEST,
+                           GEARMAN_COMMAND_SET_CLIENT_ID,
+                           (uint8_t *)"SimpleWorker", 13,
+                           NULL) != GEARMAN_SUCCESS)
+    {
+      return TEST_FAILURE;
+    }
+
+    if (gearman_con_send(&con, &packet, true) != GEARMAN_SUCCESS)
+      return TEST_FAILURE;
+
+    gearman_packet_free(&packet);
+
+    if (gearman_packet_add(&gearman, &packet, GEARMAN_MAGIC_REQUEST,
+                           GEARMAN_COMMAND_CAN_DO, (uint8_t *)"reverse", 7,
+                           NULL) != GEARMAN_SUCCESS)
+    {
+      return TEST_FAILURE;
+    }
+
+    if (gearman_con_send(&con, &packet, true) != GEARMAN_SUCCESS)
+      return TEST_FAILURE;
+
+    gearman_packet_free(&packet);
+
+    if (gearman_packet_add(&gearman, &packet, GEARMAN_MAGIC_REQUEST,
+                           GEARMAN_COMMAND_CAN_DO, (uint8_t *)"digest", 6,
+                           NULL) != GEARMAN_SUCCESS)
+    {
+      return TEST_FAILURE;
+    }
+
+    if (gearman_con_send(&con, &packet, true) != GEARMAN_SUCCESS)
+      return TEST_FAILURE;
+
+    gearman_packet_free(&packet);
+
+    gearman_con_free(&con);
+  }
+
+  gearman_free(&gearman);
+
   return TEST_SUCCESS;
 }
 
@@ -170,7 +235,7 @@ void *world_create(void)
   assert(gearman_worker_add_server(&(test->worker), NULL, WORKER_TEST_PORT) ==
          GEARMAN_SUCCESS);
 
-  test->gearmand_pid= test_gearmand_start(WORKER_TEST_PORT);
+  test->gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, NULL, NULL, 0);
 
   return (void *)test;
 }
@@ -186,8 +251,9 @@ void world_destroy(void *object)
 test_st tests[] ={
   {"init", 0, init_test },
   {"allocation", 0, allocation_test },
-  {"clone_test", 0, clone_test },
+  {"clone", 0, clone_test },
   {"echo", 0, echo_test },
+  {"bug372074", 0, bug372074_test },
 #ifdef NOT_DONE
   {"simple_work_test", 0, simple_work_test },
 #endif

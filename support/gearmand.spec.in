@@ -31,30 +31,17 @@ Gearman provides a generic framework to farm out work to other machines, dispatc
 %{__rm} -rf %{buildroot}
 
 %files
-%{_bindir}/gearmand
-%{_includedir}/libgearman/gearman.h
-%{_includedir}/libgearman/client.h
-%{_includedir}/libgearman/con.h
-%{_includedir}/libgearman/constants.h
-%{_includedir}/libgearman/gearmand.h
-%{_includedir}/libgearman/job.h
-%{_includedir}/libgearman/packet.h
-%{_includedir}/libgearman/server.h
-%{_includedir}/libgearman/server_client.h
-%{_includedir}/libgearman/server_con.h
-%{_includedir}/libgearman/server_function.h
-%{_includedir}/libgearman/server_job.h
-%{_includedir}/libgearman/server_worker.h
-%{_includedir}/libgearman/structs.h
-%{_includedir}/libgearman/task.h
-%{_includedir}/libgearman/worker.h
+%{_bindir}/gearman
+%{_sbindir}/gearmand
+%{_includedir}/libgearman/*.h
 %{_libdir}/libgearman.a
 %{_libdir}/libgearman.la
 %{_libdir}/libgearman.so
-%{_libdir}/libgearman.so.0
-%{_libdir}/libgearman.so.0.0.3
+%{_libdir}/libgearman.so.*
 %{_libdir}/pkgconfig/gearmand.pc
-
+%{_mandir}/man1/gear*
+%{_mandir}/man3/gear*
+%{_mandir}/man8/gear*
 
 
 %changelog

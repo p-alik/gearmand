@@ -7,30 +7,36 @@
 
 ACLOCAL_AMFLAGS= -I m4
 
-SUBDIRS = libgearman gearmand tests examples support benchmark
+SUBDIRS = \
+	libgearman \
+	gearmand \
+	bin \
+	examples \
+	scripts \
+	support \
+	benchmark \
+	tests
 
-# Uncomment this when making a distribution. This is dynamically generated
-# with 'make docs'.
-#include $(top_srcdir)/docs/man_list
+include $(top_srcdir)/docs/man_list
+
+EXTRA_DIST= \
+	docs/Doxyfile.api \
+	docs/Doxyfile.dev \
+	docs/api_header.html \
+	docs/dev_header.html \
+	docs/doxygen.h
 
 docs: all
 	${DOXYGEN} docs/Doxyfile.api
 	${DOXYGEN} docs/Doxyfile.dev
-	$(MKDIR_P) docs/man/man3
-	cat libgearman/*.h | $(PERL) $(top_srcdir)/docs/man_gen.perl > $(top_srcdir)/docs/man_list
 
-test: all
-	(cd tests; ${MAKE} test)
-
-test-extended: all
-	(cd tests; ${MAKE} test-extended)
+test: check
 
 valgrind:
 	(cd tests; ${MAKE} valgrind)
 
-# This needs to be fixed to not use Brian's home directory. :)
 rpm: all dist
-	cp gearmand-$(VERSION).tar.gz ~/rpm/SOURCES/
+	cp gearmand-$(VERSION).tar.gz ~/rpmbuild/SOURCES/
 	rpmbuild -ba support/gearmand.spec
-	cp ~/rpm/RPMS/x86_64/gearmand-$(VERSION)*.rpm .
-	cp ~/rpm/SRPMS/gearmand-$(VERSION)*.rpm .
+	cp ~/rpmbuild/RPMS/x86_64/gearmand-$(VERSION)*.rpm .
+	cp ~/rpmbuild/SRPMS/gearmand-$(VERSION)*.rpm .

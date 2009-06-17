@@ -45,15 +45,14 @@ gearman_job_st *gearman_job_create(gearman_st *gearman, gearman_job_st *job)
       return NULL;
     }
 
-    memset(job, 0, sizeof(gearman_job_st));
-    job->options|= GEARMAN_JOB_ALLOCATED;
+    job->options= GEARMAN_JOB_ALLOCATED;
   }
   else
-    memset(job, 0, sizeof(gearman_job_st));
+    job->options= 0;
 
   job->gearman= gearman;
-
   GEARMAN_LIST_ADD(gearman->job, job,)
+  job->con= NULL;
 
   return job;
 }
@@ -82,6 +81,26 @@ gearman_return_t gearman_job_data(gearman_job_st *job, void *data,
     ret= gearman_packet_add(job->gearman, &(job->work), GEARMAN_MAGIC_REQUEST,
                             GEARMAN_COMMAND_WORK_DATA, job->assigned.arg[0],
                             job->assigned.arg_size[0], data, data_size, NULL);
+    if (ret != GEARMAN_SUCCESS)
+      return ret;
+
+    job->options|= GEARMAN_JOB_WORK_IN_USE;
+  }
+
+  return _job_send(job);
+}
+
+gearman_return_t gearman_job_warning(gearman_job_st *job, void *warning,
+                                     size_t warning_size)
+{
+  gearman_return_t ret;
+
+  if (!(job->options & GEARMAN_JOB_WORK_IN_USE))
+  {
+    ret= gearman_packet_add(job->gearman, &(job->work), GEARMAN_MAGIC_REQUEST,
+                            GEARMAN_COMMAND_WORK_WARNING, job->assigned.arg[0],
+                            job->assigned.arg_size[0], warning, warning_size,
+                            NULL);
     if (ret != GEARMAN_SUCCESS)
       return ret;
 
@@ -122,6 +141,9 @@ gearman_return_t gearman_job_complete(gearman_job_st *job, void *result,
 {
   gearman_return_t ret;
 
+  if (job->options & GEARMAN_JOB_FINISHED)
+    return GEARMAN_SUCCESS;
+
   if (!(job->options & GEARMAN_JOB_WORK_IN_USE))
   {
     ret= gearman_packet_add(job->gearman, &(job->work),
@@ -135,12 +157,40 @@ gearman_return_t gearman_job_complete(gearman_job_st *job, void *result,
     job->options|= GEARMAN_JOB_WORK_IN_USE;
   }
 
+  ret= _job_send(job);
+  if (ret != GEARMAN_SUCCESS)
+    return ret;
+
+  job->options|= GEARMAN_JOB_FINISHED;
+  return GEARMAN_SUCCESS;
+}
+
+gearman_return_t gearman_job_exception(gearman_job_st *job, void *exception,
+                                       size_t exception_size)
+{
+  gearman_return_t ret;
+
+  if (!(job->options & GEARMAN_JOB_WORK_IN_USE))
+  {
+    ret= gearman_packet_add(job->gearman, &(job->work), GEARMAN_MAGIC_REQUEST,
+                            GEARMAN_COMMAND_WORK_EXCEPTION,
+                            job->assigned.arg[0], job->assigned.arg_size[0],
+                            exception, exception_size, NULL);
+    if (ret != GEARMAN_SUCCESS)
+      return ret;
+
+    job->options|= GEARMAN_JOB_WORK_IN_USE;
+  }
+
   return _job_send(job);
 }
 
 gearman_return_t gearman_job_fail(gearman_job_st *job)
 {
   gearman_return_t ret;
+
+  if (job->options & GEARMAN_JOB_FINISHED)
+    return GEARMAN_SUCCESS;
 
   if (!(job->options & GEARMAN_JOB_WORK_IN_USE))
   {
@@ -153,7 +203,12 @@ gearman_return_t gearman_job_fail(gearman_job_st *job)
     job->options|= GEARMAN_JOB_WORK_IN_USE;
   }
 
-  return _job_send(job);
+  ret= _job_send(job);
+  if (ret != GEARMAN_SUCCESS)
+    return ret;
+
+  job->options|= GEARMAN_JOB_FINISHED;
+  return GEARMAN_SUCCESS;
 }
 
 char *gearman_job_handle(gearman_job_st *job)
@@ -164,6 +219,13 @@ char *gearman_job_handle(gearman_job_st *job)
 char *gearman_job_function_name(gearman_job_st *job)
 {
   return (char *)job->assigned.arg[1];
+}
+
+char *gearman_job_unique(gearman_job_st *job)
+{
+  if (job->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN_UNIQ)
+    return (char *)job->assigned.arg[2];
+  return "";
 }
 
 const void *gearman_job_workload(gearman_job_st *job)

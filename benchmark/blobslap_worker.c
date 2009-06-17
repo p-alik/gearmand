@@ -21,7 +21,7 @@ static void usage(char *name);
 int main(int argc, char *argv[])
 {
   gearman_benchmark_st benchmark;
-  char c;
+  int c;
   char *host= NULL;
   in_port_t port= 0;
   char *function= NULL;
@@ -37,12 +37,12 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  while ((c = getopt(argc, argv, "c:f:h:p:v")) != EOF)
+  while ((c = getopt(argc, argv, "c:f:h:p:v")) != -1)
   {
     switch(c)
     {
     case 'c':
-      count= atoi(optarg);
+      count= (uint32_t)atoi(optarg);
       break;
 
     case 'f':
@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
       break;
 
     case 'p':
-      port= atoi(optarg);
+      port= (in_port_t)atoi(optarg);
       break;
 
     case 'v':

@@ -22,9 +22,9 @@ static void usage(char *name);
 
 int main(int argc, char *argv[])
 {
-  char c;
+  int c;
   char *host= NULL;
-  unsigned short port= 0;
+  in_port_t port= 0;
   gearman_return_t ret;
   gearman_client_st client;
   char *result;
@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
   uint32_t numerator;
   uint32_t denominator;
 
-  while ((c = getopt(argc, argv, "h:p:")) != EOF)
+  while ((c = getopt(argc, argv, "h:p:")) != -1)
   {
     switch(c)
     {
@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
       break;
 
     case 'p':
-      port= atoi(optarg);
+      port= (in_port_t)atoi(optarg);
       break;
 
     default:

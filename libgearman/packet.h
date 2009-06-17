@@ -80,10 +80,18 @@ gearman_return_t gearman_packet_pack_header(gearman_packet_st *packet);
 gearman_return_t gearman_packet_unpack_header(gearman_packet_st *packet);
 
 /**
- * Parse packet from input data.
+ * Pack packet into output buffer.
  */
-size_t gearman_packet_parse(gearman_packet_st *packet, const uint8_t *data,
-                            size_t data_size, gearman_return_t *ret_ptr);
+size_t gearman_packet_pack(gearman_packet_st *packet, gearman_con_st *con,
+                           void *data, size_t data_size,
+                           gearman_return_t *ret_ptr);
+
+/**
+ * Unpack packet from input data.
+ */
+size_t gearman_packet_unpack(gearman_packet_st *packet, gearman_con_st *con,
+                             const void *data, size_t data_size,
+                             gearman_return_t *ret_ptr);
 
 /**
  * Take allocated data from packet. After this, the caller is responsible for
