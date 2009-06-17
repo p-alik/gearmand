@@ -71,7 +71,9 @@ AC_FUNC_REALLOC
 AC_CHECK_DECL([__SUNPRO_C], [SUNCC="yes"], [SUNCC="no"])
 
 # We use libtool
-AC_PROG_LIBTOOL
+LT_INIT
+LT_LANG(C)
+LT_LANG(C++)
 
 AC_MSG_CHECKING("C Compiler version")
 if test "$GCC" = "yes"
