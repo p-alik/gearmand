@@ -24,16 +24,14 @@
  */
 
 static void *_thread(void *data);
-static void _log(gearman_server_thread_st *thread __attribute__ ((unused)),
-                 gearman_verbose_t verbose, const char *line, void *arg);
-static void _run(gearman_server_thread_st *thread __attribute__ ((unused)),
-                 void *fn_arg);
+static void _log(gearman_server_thread_st *thread, gearman_verbose_t verbose,
+                 const char *line, void *arg);
+static void _run(gearman_server_thread_st *thread, void *fn_arg);
 
 static gearman_return_t _wakeup_init(gearmand_thread_st *thread);
 static void _wakeup_close(gearmand_thread_st *thread);
 static void _wakeup_clear(gearmand_thread_st *thread);
-static void _wakeup_event(int fd, short events __attribute__ ((unused)),
-                          void *arg);
+static void _wakeup_event(int fd, short events, void *arg);
 static void _clear_events(gearmand_thread_st *thread);
 
 /** @} */

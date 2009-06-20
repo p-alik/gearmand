@@ -291,7 +291,8 @@ gearman_return_t gearman_packet_pack_header(gearman_packet_st *packet)
   tmp= htonl(tmp);
   memcpy(packet->args + 4, &tmp, 4);
 
-  tmp= (uint32_t)(packet->args_size + packet->data_size) - GEARMAN_PACKET_HEADER_SIZE;
+  tmp= (uint32_t)(packet->args_size + packet->data_size) -
+                  GEARMAN_PACKET_HEADER_SIZE;
   tmp= htonl(tmp);
   memcpy(packet->args + 8, &tmp, 4);
 

@@ -135,7 +135,7 @@ static void *reverse(gearman_job_st *job, void *cb_arg, size_t *result_size,
   const uint8_t *workload;
   uint8_t *result;
   size_t x;
-  uint32_t y;
+  size_t y;
 
   workload= gearman_job_workload(job);
   *result_size= gearman_job_workload_size(job);
@@ -164,7 +164,7 @@ static void *reverse(gearman_job_st *job, void *cb_arg, size_t *result_size,
 
     if (options & REVERSE_WORKER_OPTIONS_STATUS)
     {
-      *ret_ptr= gearman_job_status(job, y, (uint32_t)*result_size);
+      *ret_ptr= gearman_job_status(job, (uint32_t)y, (uint32_t)*result_size);
       if (*ret_ptr != GEARMAN_SUCCESS)
       {
         free(result);

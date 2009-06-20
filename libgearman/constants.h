@@ -51,6 +51,8 @@ extern "C" {
 #define GEARMAN_TEXT_RESPONSE_SIZE 8192
 #define GEARMAN_WORKER_WAIT_TIMEOUT (10 * 1000) /* Milliseconds */
 #define GEARMAN_PIPE_BUFFER_SIZE 256
+#define GEARMAN_CONF_MAX_OPTION_SHORT 128
+#define GEARMAN_CONF_DISPLAY_WIDTH 80
 
 /* Types. */
 typedef struct gearman_st gearman_st;
@@ -74,6 +76,9 @@ typedef struct gearmand_st gearmand_st;
 typedef struct gearmand_port_st gearmand_port_st;
 typedef struct gearmand_con_st gearmand_con_st;
 typedef struct gearmand_thread_st gearmand_thread_st;
+typedef struct gearman_conf_st gearman_conf_st;
+typedef struct gearman_conf_option_st gearman_conf_option_st;
+typedef struct gearman_conf_module_st gearman_conf_module_st;
 
 /**
  * Return codes.
@@ -125,6 +130,7 @@ typedef enum
   GEARMAN_FLUSH_DATA,
   GEARMAN_SEND_BUFFER_TOO_SMALL,
   GEARMAN_IGNORE_PACKET,
+  GEARMAN_UNKNOWN_OPTION,
   GEARMAN_MAX_RETURN /* Always add new error code before */
 } gearman_return_t;
 
@@ -507,6 +513,25 @@ typedef enum
   GEARMAND_THREAD_WAKEUP_EVENT= (1 << 0),
   GEARMAND_THREAD_LOCK=         (1 << 1)
 } gearmand_thread_options_t;
+
+/**
+ * @ingroup gearman_conf
+ * Options for gearman_conf_st.
+ */
+typedef enum
+{
+  GEARMAN_CONF_ALLOCATED= (1 << 0)
+} gearman_conf_options_t;
+
+/**
+ * @ingroup gearman_conf_module
+ * Options for gearman_conf_module_st.
+ */
+typedef enum
+{
+  GEARMAN_CONF_MODULE_ALLOCATED= (1 << 0)
+} gearman_conf_module_options_t;
+
 
 /**
  * @addtogroup gearman_constants Gearman Constants

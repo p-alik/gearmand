@@ -499,6 +499,49 @@ struct gearmand_con_st
   char port[NI_MAXSERV];
 };
 
+/**
+ * @ingroup gearman_conf
+ */
+struct gearman_conf_st
+{
+  gearman_conf_options_t options;
+  gearman_return_t last_return;
+  int last_errno;
+  size_t module_count;
+  size_t option_count;
+  size_t short_count;
+  gearman_conf_module_st **module_list;
+  gearman_conf_option_st *option_list;
+  struct option *option_getopt;
+  char option_short[GEARMAN_CONF_MAX_OPTION_SHORT];
+  char last_error[GEARMAN_MAX_ERROR_SIZE];
+};
+
+/**
+ * @ingroup gearman_conf
+ */
+struct gearman_conf_option_st
+{
+  size_t value_count;
+  gearman_conf_module_st *module;
+  const char *name;
+  const char *value_name;
+  const char *help;
+  char **value_list;
+};
+
+/**
+ * @ingroup gearman_conf_module
+ */
+struct gearman_conf_module_st
+{
+  gearman_conf_module_options_t options;
+  size_t current_option;
+  size_t current_value;
+  gearman_conf_st *conf;
+  const char *name;
+};
+
 #ifdef __cplusplus
 }
 #endif

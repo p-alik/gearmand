@@ -355,12 +355,6 @@ uint16_t x= htons(80);
   CC_WARNINGS="${BASE_WARNINGS} -Wstrict-prototypes -Wmissing-prototypes -Wredundant-decls -Wswitch-default -Wswitch-enum -Wcast-align"
   CXX_WARNINGS="${BASE_WARNINGS} -Woverloaded-virtual -Wnon-virtual-dtor -Wctor-dtor-privacy -Wold-style-cast -Weffc++ -Wno-long-long"
 
-
-  AS_IF([test "$ac_cv_safe_to_use_Wconversion_" = "no"],
-        [
-          NO_CONVERSION="-Wno-conversion"
-        ])
-
   AC_CACHE_CHECK([whether it is safe to use -Wlogical-op],
     [ac_cv_safe_to_use_Wlogical_op_],
     [save_CFLAGS="$CFLAGS"

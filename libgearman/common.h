@@ -31,20 +31,23 @@ extern "C" {
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
+#ifdef HAVE_GETOPT_H
+#include <getopt.h>
+#endif
 #ifdef HAVE_PTHREAD
 #include <pthread.h>
 #endif
 #ifdef HAVE_STDARG_H
 #include <stdarg.h>
 #endif
+#ifdef HAVE_STDDEF_H
+#include <stddef.h>
+#endif
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
-#ifdef HAVE_STDDEF_H
-#include <stddef.h>
 #endif
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -154,6 +157,15 @@ extern "C" {
   } \
   else \
     GEARMAN_FATAL(__gearman, __function ":" __VA_ARGS__) \
+}
+
+/**
+ * Macro to set error string.
+ * @ingroup gearman_conf_constants
+ */
+#define GEARMAN_CONF_ERROR_SET(__conf, __function, ...) { \
+  snprintf((__conf)->last_error, GEARMAN_MAX_ERROR_SIZE, \
+           __function ":" __VA_ARGS__); \
 }
 
 /**

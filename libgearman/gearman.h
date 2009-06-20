@@ -46,6 +46,8 @@
 #include <libgearman/gearmand.h>
 #include <libgearman/gearmand_thread.h>
 #include <libgearman/gearmand_con.h>
+#include <libgearman/conf.h>
+#include <libgearman/conf_module.h>
 
 #ifdef __cplusplus
 extern "C" {

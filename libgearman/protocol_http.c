@@ -57,39 +57,40 @@ static const char *_http_line(const void *data, size_t data_size,
  * Public definitions
  */
 
-modconf_return_t gearman_protocol_http_modconf(modconf_st *modconf)
+gearman_return_t gearman_protocol_http_conf(gearman_conf_st *conf)
 {
-  modconf_module_st *module;
+  gearman_conf_module_st *module;
 
-  module= gmodconf_module_create(modconf, NULL, "http");
+  module= gearman_conf_module_create(conf, NULL, "http");
   if (module == NULL)
-    return MODCONF_MEMORY_ALLOCATION_FAILURE;
+    return GEARMAN_MEMORY_ALLOCATION_FAILURE;
 
-  gmodconf_module_add_option(module, "port", 0, "PORT", "Port to listen on.");
+  gearman_conf_module_add_option(module, "port", 0, "PORT",
+                                 "Port to listen on.");
 
-  return gmodconf_return(modconf);
+  return gearman_conf_return(conf);
 }
 
 gearman_return_t gearmand_protocol_http_init(gearmand_st *gearmand,
-                                             modconf_st *modconf)
+                                             gearman_conf_st *conf)
 {
   in_port_t port= GEARMAN_PROTOCOL_HTTP_DEFAULT_PORT;
-  modconf_module_st *module;
+  gearman_conf_module_st *module;
   const char *name;
   const char *value;
 
   GEARMAN_INFO(gearmand, "Initializing http module")
 
   /* Get module and parse the option values that were given. */
-  module= gmodconf_module_find(modconf, "http");
+  module= gearman_conf_module_find(conf, "http");
   if (module == NULL)
   {
     GEARMAN_FATAL(gearmand,
-                  "gearman_protocol_http_init:modconf_module_find:NULL")
+                  "gearman_protocol_http_init:gearman_conf_module_find:NULL")
     return GEARMAN_QUEUE_ERROR;
   }
 
-  while (gmodconf_module_value(module, &name, &value))
+  while (gearman_conf_module_value(module, &name, &value))
   {
     if (!strcmp(name, "port"))
       port= (in_port_t)atoi(value);
@@ -160,16 +161,16 @@ static size_t _http_pack(gearman_packet_st *packet, gearman_con_st *con,
   }
 
   pack_size= (size_t)snprintf((char *)data, data_size,
-                             "HTTP/1.0 200 OK\r\n"
-                             "X-Gearman-Job-Handle: %.*s\r\n"
-                             "Content-Length: %"PRIu64"\r\n"
-                             "Server: Gearman/" PACKAGE_VERSION "\r\n"
-                             "\r\n",
-                             packet->command == GEARMAN_COMMAND_JOB_CREATED ?
-                             (uint32_t)packet->arg_size[0] :
-                             (uint32_t)packet->arg_size[0] - 1,
-                             packet->arg[0],
-                             (uint64_t)packet->data_size);
+                              "HTTP/1.0 200 OK\r\n"
+                              "X-Gearman-Job-Handle: %.*s\r\n"
+                              "Content-Length: %"PRIu64"\r\n"
+                              "Server: Gearman/" PACKAGE_VERSION "\r\n"
+                              "\r\n",
+                              packet->command == GEARMAN_COMMAND_JOB_CREATED ?
+                              (uint32_t)packet->arg_size[0] :
+                              (uint32_t)packet->arg_size[0] - 1,
+                              packet->arg[0],
+                              (uint64_t)packet->data_size);
 
   if (pack_size > data_size)
   {
