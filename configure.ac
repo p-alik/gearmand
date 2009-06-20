@@ -51,7 +51,6 @@ else
   building_from_bzr=no
 fi
 
-AC_PROG_CC_C99
 AC_PROG_CXX
 
 ACX_USE_SYSTEM_EXTENSIONS
@@ -59,11 +58,15 @@ ACX_USE_SYSTEM_EXTENSIONS
 AC_PROG_CPP
 AM_PROG_CC_C_O
 
+FORCE_MAC_GCC42
+dnl Once we can use a modern autoconf, we can use this
+dnl AC_PROG_CC_C99
+
+
 AC_C_BIGENDIAN
 AC_C_CONST
 AC_HEADER_TIME
 AC_TYPE_SIZE_T
-AC_TYPE_SSIZE_T
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
 
@@ -98,6 +101,11 @@ AC_SUBST(LD_VERSION_SCRIPT)
 # First check for gcc and g++
 if test "$GCC" = "yes"
 then
+
+  dnl Once we can use a modern autoconf, we can replace the std=gnu99 here
+  dnl with using AC_CC_STD_C99 above
+  CC="${CC} -std=gnu99"
+
   CFLAGS="-ggdb3 ${CFLAGS}"
   CXXFLAGS="-ggdb3 ${CXXFLAGS}"
 
@@ -109,6 +117,10 @@ then
 fi
 if test "x$SUNCC" = "xyes"
 then
+  dnl Once we can use a modern autoconf, we can replace the -xc99=all here
+  dnl with using AC_CC_STD_C99 above
+  CC="${CC} -xc99=all"
+
   CFLAGS="-g -mt ${CFLAGS}"
   CXXFLAGS="-xlang=c99 -g -mt -compat=5 -library=stlport4 -template=no%extdef ${CXXFLAGS}"
 
@@ -337,7 +349,6 @@ uint16_t x= htons(80);
             NO_CONVERSION="-Wno-conversion"
           ])
     ])
-
 
   W_STRICT_ALIASING="-Wno-strict-aliasing"
 
