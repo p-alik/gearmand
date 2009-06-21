@@ -31,6 +31,7 @@ extern "C" {
  * @return Pointer to an allocated server structure if server parameter was
  *         NULL, or the server parameter pointer if it was not NULL.
  */
+GEARMAN_API
 gearman_server_st *gearman_server_create(gearman_server_st *server);
 
 /**
@@ -38,6 +39,7 @@ gearman_server_st *gearman_server_create(gearman_server_st *server);
  * @param server Server structure previously initialized with
  *        gearman_server_create.
  */
+GEARMAN_API
 void gearman_server_free(gearman_server_st *server);
 
 /**
@@ -48,6 +50,7 @@ void gearman_server_free(gearman_server_st *server);
  * @param log_fn_arg Argument to pass into the log callback function.
  * @param verbose Verbosity level.
  */
+GEARMAN_API
 void gearman_server_set_log(gearman_server_st *server,
                             gearman_server_log_fn log_fn, void *log_fn_arg,
                             gearman_verbose_t verbose);
@@ -58,6 +61,7 @@ void gearman_server_set_log(gearman_server_st *server,
  * @param packet The packet that needs processing.
  * @return Standard gearman return value.
  */
+GEARMAN_API
 gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
                                             gearman_packet_st *packet);
 
@@ -68,6 +72,7 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
  * @return Standard gearman return value. This will return GEARMAN_SHUTDOWN if
  *         the server is ready to shutdown now.
  */
+GEARMAN_API
 gearman_return_t gearman_server_shutdown_graceful(gearman_server_st *server);
 
 /**
@@ -78,6 +83,7 @@ gearman_return_t gearman_server_shutdown_graceful(gearman_server_st *server);
  * @return Standard gearman return value. This will return GEARMAN_SHUTDOWN if
  *         the server is ready to shutdown now.
  */
+GEARMAN_API
 gearman_return_t gearman_server_queue_replay(gearman_server_st *server);
 
 /** @} */
