@@ -51,6 +51,8 @@ extern "C" {
 #define GEARMAN_TEXT_RESPONSE_SIZE 8192
 #define GEARMAN_WORKER_WAIT_TIMEOUT (10 * 1000) /* Milliseconds */
 #define GEARMAN_PIPE_BUFFER_SIZE 256
+#define GEARMAN_CONF_MAX_OPTION_SHORT 128
+#define GEARMAN_CONF_DISPLAY_WIDTH 80
 
 /* Types. */
 typedef struct gearman_st gearman_st;
@@ -71,8 +73,12 @@ typedef struct gearman_server_client_st gearman_server_client_st;
 typedef struct gearman_server_worker_st gearman_server_worker_st;
 typedef struct gearman_server_job_st gearman_server_job_st;
 typedef struct gearmand_st gearmand_st;
+typedef struct gearmand_port_st gearmand_port_st;
 typedef struct gearmand_con_st gearmand_con_st;
 typedef struct gearmand_thread_st gearmand_thread_st;
+typedef struct gearman_conf_st gearman_conf_st;
+typedef struct gearman_conf_option_st gearman_conf_option_st;
+typedef struct gearman_conf_module_st gearman_conf_module_st;
 
 /**
  * Return codes.
@@ -121,6 +127,10 @@ typedef enum
   GEARMAN_PTHREAD,
   GEARMAN_PIPE_EOF,
   GEARMAN_QUEUE_ERROR,
+  GEARMAN_FLUSH_DATA,
+  GEARMAN_SEND_BUFFER_TOO_SMALL,
+  GEARMAN_IGNORE_PACKET,
+  GEARMAN_UNKNOWN_OPTION,
   GEARMAN_MAX_RETURN /* Always add new error code before */
 } gearman_return_t;
 
@@ -133,7 +143,8 @@ typedef enum
   GEARMAN_VERBOSE_ERROR,
   GEARMAN_VERBOSE_INFO,
   GEARMAN_VERBOSE_DEBUG,
-  GEARMAN_VERBOSE_CRAZY
+  GEARMAN_VERBOSE_CRAZY,
+  GEARMAN_VERBOSE_MAX
 } gearman_verbose_t;
 
 /** @} */
@@ -155,10 +166,12 @@ typedef enum
  */
 typedef enum
 {
-  GEARMAN_CON_ALLOCATED=     (1 << 0),
-  GEARMAN_CON_READY=         (1 << 1),
-  GEARMAN_CON_PACKET_IN_USE= (1 << 2),
-  GEARMAN_CON_EXTERNAL_FD=   (1 << 3)
+  GEARMAN_CON_ALLOCATED=              (1 << 0),
+  GEARMAN_CON_READY=                  (1 << 1),
+  GEARMAN_CON_PACKET_IN_USE=          (1 << 2),
+  GEARMAN_CON_EXTERNAL_FD=            (1 << 3),
+  GEARMAN_CON_IGNORE_LOST_CONNECTION= (1 << 4),
+  GEARMAN_CON_CLOSE_AFTER_FLUSH=      (1 << 5)
 } gearman_con_options_t;
 
 /**
@@ -502,6 +515,25 @@ typedef enum
 } gearmand_thread_options_t;
 
 /**
+ * @ingroup gearman_conf
+ * Options for gearman_conf_st.
+ */
+typedef enum
+{
+  GEARMAN_CONF_ALLOCATED= (1 << 0)
+} gearman_conf_options_t;
+
+/**
+ * @ingroup gearman_conf_module
+ * Options for gearman_conf_module_st.
+ */
+typedef enum
+{
+  GEARMAN_CONF_MODULE_ALLOCATED= (1 << 0)
+} gearman_conf_module_options_t;
+
+
+/**
  * @addtogroup gearman_constants Gearman Constants
  * @{
  */
@@ -544,6 +576,35 @@ typedef void (gearmand_log_fn)(gearmand_st *gearmand, gearman_verbose_t verbose,
 
 typedef void (gearman_server_thread_run_fn)(gearman_server_thread_st *thread,
                                             void *fn_arg);
+
+typedef gearman_return_t (gearman_con_add_fn)(gearman_con_st *con);
+
+typedef void (gearman_con_protocol_data_free_fn)(gearman_con_st *con,
+                                                 void *data);
+
+typedef gearman_packet_st* (gearman_con_recv_fn)(gearman_con_st *con,
+                                                 gearman_packet_st *packet,
+                                                 gearman_return_t *ret_ptr,
+                                                 bool recv_data);
+typedef size_t (gearman_con_recv_data_fn)(gearman_con_st *con, void *data,
+                                          size_t data_size,
+                                          gearman_return_t *ret_ptr);
+
+typedef gearman_return_t (gearman_con_send_fn)(gearman_con_st *con,
+                                               gearman_packet_st *packet,
+                                               bool flush);
+typedef size_t (gearman_con_send_data_fn)(gearman_con_st *con, const void *data,
+                                          size_t data_size,
+                                          gearman_return_t *ret_ptr);
+
+typedef size_t (gearman_packet_pack_fn)(gearman_packet_st *packet,
+                                        gearman_con_st *con,
+                                        void *data, size_t data_size,
+                                        gearman_return_t *ret_ptr);
+typedef size_t (gearman_packet_unpack_fn)(gearman_packet_st *packet,
+                                          gearman_con_st *con, const void *data,
+                                          size_t data_size,
+                                          gearman_return_t *ret_ptr);
 
 typedef gearman_return_t (gearman_queue_add_fn)(gearman_st *gearman,
                                                 void *fn_arg,

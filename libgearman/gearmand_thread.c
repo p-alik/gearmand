@@ -24,16 +24,14 @@
  */
 
 static void *_thread(void *data);
-static void _log(gearman_server_thread_st *thread __attribute__ ((unused)),
-                 gearman_verbose_t verbose, const char *line, void *arg);
-static void _run(gearman_server_thread_st *thread __attribute__ ((unused)),
-                 void *fn_arg);
+static void _log(gearman_server_thread_st *thread, gearman_verbose_t verbose,
+                 const char *line, void *arg);
+static void _run(gearman_server_thread_st *thread, void *fn_arg);
 
 static gearman_return_t _wakeup_init(gearmand_thread_st *thread);
 static void _wakeup_close(gearmand_thread_st *thread);
 static void _wakeup_clear(gearmand_thread_st *thread);
-static void _wakeup_event(int fd, short events __attribute__ ((unused)),
-                          void *arg);
+static void _wakeup_event(int fd, short events, void *arg);
 static void _clear_events(gearmand_thread_st *thread);
 
 /** @} */
@@ -55,10 +53,6 @@ gearman_return_t gearmand_thread_create(gearmand_st *gearmand)
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
 
-  memset(thread, 0, sizeof(gearmand_thread_st));
-
-  thread->gearmand= gearmand;
-
   if (gearman_server_thread_create(&(gearmand->server),
                                    &(thread->server_thread)) == NULL)
   {
@@ -73,7 +67,18 @@ gearman_return_t gearmand_thread_create(gearmand_st *gearmand)
   gearman_server_thread_set_event_watch(&(thread->server_thread),
                                         gearmand_con_watch, NULL);
 
+  thread->options= 0;
+  thread->count= 0;
+  thread->dcon_count= 0;
+  thread->dcon_add_count= 0;
+  thread->free_dcon_count= 0;
+  thread->wakeup_fd[0]= -1;
+  thread->wakeup_fd[1]= -1;
   GEARMAN_LIST_ADD(gearmand->thread, thread,)
+  thread->gearmand= gearmand;
+  thread->dcon_list= NULL;
+  thread->dcon_add_list= NULL;
+  thread->free_dcon_list= NULL;
 
   /* If we have no threads, we still create a fake thread that uses the main
      libevent instance. Otherwise create a libevent instance for each thread. */
@@ -220,15 +225,8 @@ void gearmand_thread_run(gearmand_thread_st *thread)
 
     dcon= (gearmand_con_st *)gearman_server_con_data(server_con);
 
-    if (ret != GEARMAN_LOST_CONNECTION)
-    { 
-      GEARMAN_ERROR(thread->gearmand, "[%4u] %15s:%5s %s", thread->count,
-                    dcon->host, dcon->port,
-                    gearman_server_thread_error(&(thread->server_thread)))
-    }
-
-    GEARMAN_INFO(thread->gearmand, "[%4u] %15s:%5s Disconnected",
-                 thread->count, dcon->host, dcon->port)
+    GEARMAN_INFO(thread->gearmand, "[%4u] %15s:%5s Disconnected", thread->count,
+                 dcon->host, dcon->port)
 
     gearmand_con_free(dcon);
   }
@@ -264,7 +262,7 @@ static void _log(gearman_server_thread_st *thread __attribute__ ((unused)),
   char buffer[GEARMAN_MAX_ERROR_SIZE];
 
   snprintf(buffer, GEARMAN_MAX_ERROR_SIZE, "[%4u] %s", dthread->count, line);
-  (*dthread->gearmand->log_fn)(dthread->gearmand, verbose, line,
+  (*dthread->gearmand->log_fn)(dthread->gearmand, verbose, buffer,
                                dthread->gearmand->log_fn_arg);
 }
 

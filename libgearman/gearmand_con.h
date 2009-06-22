@@ -34,7 +34,8 @@ extern "C" {
  * @return Pointer to an allocated gearmand structure.
  */
 gearman_return_t gearmand_con_create(gearmand_st *gearmand, int fd,
-                                     const char *host, const char *port);
+                                     const char *host, const char *port,
+                                     gearman_con_add_fn *add_fn);
 
 /**
  * Free resources used by a connection.
@@ -51,7 +52,7 @@ void gearmand_con_check_queue(gearmand_thread_st *thread);
  * Callback function used for setting events in libevent.
  */
 gearman_return_t gearmand_con_watch(gearman_con_st *con, short events,
-                                    void *arg __attribute__ ((unused)));
+                                    void *arg);
 
 /** @} */
 

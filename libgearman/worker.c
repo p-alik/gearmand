@@ -692,11 +692,22 @@ static gearman_worker_st *_worker_allocate(gearman_worker_st *worker)
     if (worker == NULL)
       return NULL;
 
-    memset(worker, 0, sizeof(gearman_worker_st));
-    worker->options|= GEARMAN_WORKER_ALLOCATED;
+    worker->options= GEARMAN_WORKER_ALLOCATED;
   }
   else
-    memset(worker, 0, sizeof(gearman_worker_st));
+    worker->options= 0;
+
+  worker->state= 0;
+  worker->work_state= 0;
+  worker->function_count= 0;
+  worker->work_result_size= 0;
+  worker->gearman= NULL;
+  worker->con= NULL;
+  worker->job= NULL;
+  worker->function= NULL;
+  worker->function_list= NULL;
+  worker->work_function= NULL;
+  worker->work_result= NULL;
 
   return worker;
 }
@@ -748,7 +759,8 @@ static gearman_return_t _worker_function_add(gearman_worker_st *worker,
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
 
-  memset(function, 0, sizeof(gearman_worker_function_st));
+  function->options= (GEARMAN_WORKER_FUNCTION_PACKET_IN_USE |
+                      GEARMAN_WORKER_FUNCTION_CHANGE);
 
   function->function_name= strdup(function_name);
   if (function->function_name == NULL)
@@ -786,11 +798,9 @@ static gearman_return_t _worker_function_add(gearman_worker_st *worker,
     return ret;
   }
 
-  function->options|= (GEARMAN_WORKER_FUNCTION_PACKET_IN_USE |
-                       GEARMAN_WORKER_FUNCTION_CHANGE);
-  worker->options|= GEARMAN_WORKER_CHANGE;
-
   GEARMAN_LIST_ADD(worker->function, function,)
+
+  worker->options|= GEARMAN_WORKER_CHANGE;
 
   return GEARMAN_SUCCESS;
 }

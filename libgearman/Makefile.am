@@ -25,16 +25,15 @@ lib_LTLIBRARIES= libgearman.la
 libgearmanincludedir= ${includedir}/libgearman
 
 dist_libgearmaninclude_HEADERS= \
-	$(QUEUE_LIBDRIZZLE_H) \
-	$(QUEUE_LIBMEMCACHED_H) \
-	$(QUEUE_LIBTOKYOCABINET_H) \
 	client.h \
-	con.h \
+	conf.h \
+	conf_module.h \
+	conn.h \
 	constants.h \
 	gearman.h \
-        gearmand.h \
-        gearmand_thread.h \
-        gearmand_con.h \
+	gearmand.h \
+	gearmand_thread.h \
+	gearmand_con.h \
 	job.h \
 	packet.h \
 	server.h \
@@ -48,21 +47,19 @@ dist_libgearmaninclude_HEADERS= \
 	structs.h \
 	task.h \
 	worker.h \
-	modconf.h \
-	modconf_module.h \
-	modconf_constants.h \
-	modconf_structs.h
+	$(QUEUE_LIBDRIZZLE_H) \
+	$(QUEUE_LIBMEMCACHED_H) \
+	$(QUEUE_LIBTOKYOCABINET_H) \	
+	protocol_http.h
 
 noinst_HEADERS= \
-	common.h \
-	modconf_common.h
+	common.h
 
 libgearman_la_SOURCES= \
-	$(QUEUE_LIBDRIZZLE_C) \
-	$(QUEUE_LIBMEMCACHED_C) \
-	$(QUEUE_LIBTOKYOCABINET_C) \
 	client.c \
-	con.c \
+	conf.c \
+	conf_module.c \
+	conn.c \
 	gearman.c \
 	gearmand.c \
 	gearmand_thread.c \
@@ -79,13 +76,19 @@ libgearman_la_SOURCES= \
 	server_worker.c \
 	task.c \
 	worker.c \
-	modconf.c \
-	modconf_module.c
+	$(QUEUE_LIBDRIZZLE_C) \
+	$(QUEUE_LIBMEMCACHED_C) \
+	$(QUEUE_LIBTOKYOCABINET_C) \	
+	protocol_http.c
 
-libgearman_la_LDFLAGS= -version-info $(GEARMAN_LIBRARY_VERSION)
+libgearman_la_LDFLAGS= -version-info $(GEARMAN_LIBRARY_VERSION) \
+	$(LD_VERSION_SCRIPT)
+
 libgearman_la_LIBADD= \
 	$(LTLIBEVENT) \
 	$(LTLIBUUID) \
 	$(LTLIBDRIZZLE) \
 	$(LTLIBMEMCACHED) \
 	$(LTLIBTOKYOCABINET)
+
+EXTRA_DIST= libgearman.ver

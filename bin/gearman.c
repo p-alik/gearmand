@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
   args.priority= GEARMAN_JOB_PRIORITY_NORMAL;
 
   /* Allocate the maximum number of possible functions. */
-  args.function= malloc(sizeof(char *) * argc);
+  args.function= malloc(sizeof(char *) * (size_t)argc);
   if (args.function == NULL)
     GEARMAN_ERROR("malloc:%d", errno)
 
@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
       break;
 
     case 'c':
-      args.count= atoi(optarg);
+      args.count= (uint32_t)atoi(optarg);
       break;
 
     case 'f':
@@ -156,7 +156,7 @@ int main(int argc, char *argv[])
       break;
 
     case 'p':
-      args.port= atoi(optarg);
+      args.port= (in_port_t)atoi(optarg);
       break;
 
     case 'P':
@@ -575,7 +575,7 @@ void _read_workload(int fd, char **workload, size_t *workload_offset,
     else if (read_ret == 0)
       break;
 
-    *workload_offset += read_ret;
+    *workload_offset += (size_t)read_ret;
   }
 }
 

@@ -741,11 +741,29 @@ static gearman_client_st *_client_allocate(gearman_client_st *client)
     if (client == NULL)
       return NULL;
 
-    memset(client, 0, sizeof(gearman_client_st));
-    client->options|= GEARMAN_CLIENT_ALLOCATED;
+    client->options= GEARMAN_CLIENT_ALLOCATED;
   }
   else
-    memset(client, 0, sizeof(gearman_client_st));
+    client->options= 0;
+
+  client->state= 0;
+  client->do_ret= 0;
+  client->new_tasks= 0;
+  client->running_tasks= 0;
+  client->do_data_size= 0;
+  client->gearman= NULL;
+  client->data= NULL;
+  client->con= NULL;
+  client->task= NULL;
+  client->do_data= NULL;
+  client->workload_fn= NULL;
+  client->created_fn= NULL;
+  client->data_fn= NULL;
+  client->warning_fn= NULL;
+  client->status_fn= NULL;
+  client->complete_fn= NULL;
+  client->exception_fn= NULL;
+  client->fail_fn= NULL;
 
   return client;
 }
@@ -849,7 +867,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
     else if (ret != GEARMAN_SUCCESS)
     {
       /* Increment this since the job submission failed. */
-      client->con->created_id++;
+      task->con->created_id++;
       client->running_tasks--;
       return ret;
     }
@@ -947,11 +965,11 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
       else
         x= 1;
 
-      task->numerator= atoi((char *)task->recv->arg[x]);
+      task->numerator= (uint32_t)atoi((char *)task->recv->arg[x]);
       snprintf(status_buffer, 11, "%.*s",
                (uint32_t)(task->recv->arg_size[x + 1]),
                (char *)(task->recv->arg[x + 1]));
-      task->denominator= atoi(status_buffer);
+      task->denominator= (uint32_t)atoi(status_buffer);
 
   case GEARMAN_TASK_STATE_STATUS:
       if (client->status_fn != NULL)

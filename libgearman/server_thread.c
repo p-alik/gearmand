@@ -51,8 +51,8 @@ static void *_proc(void *data);
 /**
  * Wrapper for log handling.
  */
-static void _log(gearman_st *gearman __attribute__ ((unused)),
-                 gearman_verbose_t verbose, const char *line, void *fn_arg);
+static void _log(gearman_st *gearman, gearman_verbose_t verbose,
+                 const char *line, void *fn_arg);
 
 /** @} */
 
@@ -80,13 +80,26 @@ gearman_server_thread_create(gearman_server_st *server,
       return NULL;
     }
 
-    memset(thread, 0, sizeof(gearman_server_thread_st));
-    thread->options|= GEARMAN_SERVER_THREAD_ALLOCATED;
+    thread->options= GEARMAN_SERVER_THREAD_ALLOCATED;
   }
   else
-    memset(thread, 0, sizeof(gearman_server_thread_st));
+    thread->options= 0;
 
+  thread->con_count= 0;
+  thread->io_count= 0;
+  thread->proc_count= 0;
+  thread->free_con_count= 0;
+  thread->free_packet_count= 0;
   thread->server= server;
+  thread->log_fn= NULL;
+  thread->log_fn_arg= NULL;
+  thread->run_fn= NULL;
+  thread->run_fn_arg= NULL;
+  thread->con_list= NULL;
+  thread->io_list= NULL;
+  thread->proc_list= NULL;
+  thread->free_con_list= NULL;
+  thread->free_packet_list= NULL;
 
   if (pthread_mutex_init(&(thread->lock), NULL) != 0)
   {
@@ -164,10 +177,10 @@ void gearman_server_thread_set_event_watch(gearman_server_thread_st *thread,
 
 void gearman_server_thread_set_run(gearman_server_thread_st *thread,
                                    gearman_server_thread_run_fn *run_fn, 
-                                   void *run_arg)
+                                   void *run_fn_arg)
 {
   thread->run_fn= run_fn;
-  thread->run_arg= run_arg;
+  thread->run_fn_arg= run_fn_arg;
 }
 
 void gearman_server_thread_set_log(gearman_server_thread_st *thread,
@@ -293,6 +306,11 @@ gearman_return_t _thread_packet_read(gearman_server_con_st *con)
       return ret;
     }
 
+    GEARMAN_DEBUG(con->thread->gearman, "%s:%s Received  %s",
+                  con->host == NULL ? "-" : con->host,
+                  con->port == NULL ? "-" : con->port,
+                  gearman_command_info_list[con->packet->packet.command].name)
+
     /* We read a complete packet. */
     if (con->thread->server->options & GEARMAN_SERVER_PROC_THREAD)
     {
@@ -332,6 +350,11 @@ static gearman_return_t _thread_packet_flush(gearman_server_con_st *con)
 
     if (con->io_packet_list->packet.command == GEARMAN_COMMAND_NOOP)
       con->noop_queued= false;
+
+    GEARMAN_DEBUG(con->thread->gearman, "%s:%s Sent      %s",
+            con->host == NULL ? "-" : con->host,
+            con->port == NULL ? "-" : con->port,
+            gearman_command_info_list[con->io_packet_list->packet.command].name)
 
     gearman_server_io_packet_remove(con);
   }

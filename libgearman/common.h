@@ -31,11 +31,17 @@ extern "C" {
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
-#ifdef HAVE_PTHREAD_H
+#ifdef HAVE_GETOPT_H
+#include <getopt.h>
+#endif
+#ifdef HAVE_PTHREAD
 #include <pthread.h>
 #endif
 #ifdef HAVE_STDARG_H
 #include <stdarg.h>
+#endif
+#ifdef HAVE_STDDEF_H
+#include <stddef.h>
 #endif
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
@@ -45,6 +51,9 @@ extern "C" {
 #endif
 #ifdef HAVE_STRING_H
 #include <string.h>
+#endif
+#ifdef HAVE_STRINGS_H
+#include <strings.h>
 #endif
 #ifdef HAVE_SYS_UTSNAME_H
 #include <sys/utsname.h>
@@ -83,12 +92,12 @@ extern "C" {
  * @ingroup gearman_constants
  */
 
-#define GEARMAN_LOG(__gearman, ...) { \
+#define GEARMAN_LOG(__gearman, __verbose, ...) { \
   if ((__gearman)->log_fn != NULL) \
   { \
     char _log_buffer[GEARMAN_MAX_ERROR_SIZE]; \
     snprintf(_log_buffer, GEARMAN_MAX_ERROR_SIZE, __VA_ARGS__); \
-    (*((__gearman)->log_fn))(__gearman, 0, _log_buffer, \
+    (*((__gearman)->log_fn))(__gearman, __verbose, _log_buffer, \
                              (__gearman)->log_fn_arg); \
   } \
 }
@@ -98,7 +107,7 @@ extern "C" {
  * @ingroup gearman_constants
  */
 #define GEARMAN_FATAL(__gearman, ...) \
-  GEARMAN_LOG(__gearman, "FATAL " __VA_ARGS__)
+  GEARMAN_LOG(__gearman, GEARMAN_VERBOSE_FATAL, __VA_ARGS__)
 
 /**
  * Macro to log errors.
@@ -106,7 +115,7 @@ extern "C" {
  */
 #define GEARMAN_ERROR(__gearman, ...) { \
   unlikely ((__gearman)->verbose >= GEARMAN_VERBOSE_ERROR) \
-    GEARMAN_LOG(__gearman, "ERROR " __VA_ARGS__) \
+    GEARMAN_LOG(__gearman, GEARMAN_VERBOSE_ERROR, __VA_ARGS__) \
 }
 
 /**
@@ -115,7 +124,7 @@ extern "C" {
  */
 #define GEARMAN_INFO(__gearman, ...) { \
   unlikely ((__gearman)->verbose >= GEARMAN_VERBOSE_INFO) \
-    GEARMAN_LOG(__gearman, " INFO " __VA_ARGS__) \
+    GEARMAN_LOG(__gearman, GEARMAN_VERBOSE_INFO, __VA_ARGS__) \
 }
 
 /**
@@ -124,7 +133,7 @@ extern "C" {
  */
 #define GEARMAN_DEBUG(__gearman, ...) { \
   unlikely ((__gearman)->verbose >= GEARMAN_VERBOSE_DEBUG) \
-    GEARMAN_LOG(__gearman, "DEBUG " __VA_ARGS__) \
+    GEARMAN_LOG(__gearman, GEARMAN_VERBOSE_DEBUG, __VA_ARGS__) \
 }
 
 /**
@@ -133,7 +142,7 @@ extern "C" {
  */
 #define GEARMAN_CRAZY(__gearman, ...) { \
   unlikely ((__gearman)->verbose >= GEARMAN_VERBOSE_CRAZY) \
-    GEARMAN_LOG(__gearman, "CRAZY " __VA_ARGS__) \
+    GEARMAN_LOG(__gearman, GEARMAN_VERBOSE_CRAZY, __VA_ARGS__) \
 }
 
 /**
@@ -148,6 +157,15 @@ extern "C" {
   } \
   else \
     GEARMAN_FATAL(__gearman, __function ":" __VA_ARGS__) \
+}
+
+/**
+ * Macro to set error string.
+ * @ingroup gearman_conf_constants
+ */
+#define GEARMAN_CONF_ERROR_SET(__conf, __function, ...) { \
+  snprintf((__conf)->last_error, GEARMAN_MAX_ERROR_SIZE, \
+           __function ":" __VA_ARGS__); \
 }
 
 /**

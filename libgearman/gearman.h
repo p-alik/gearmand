@@ -29,7 +29,7 @@
 
 #include <libgearman/constants.h>
 #include <libgearman/structs.h>
-#include <libgearman/con.h>
+#include <libgearman/conn.h>
 #include <libgearman/packet.h>
 #include <libgearman/task.h>
 #include <libgearman/job.h>
@@ -46,6 +46,8 @@
 #include <libgearman/gearmand.h>
 #include <libgearman/gearmand_thread.h>
 #include <libgearman/gearmand_con.h>
+#include <libgearman/conf.h>
+#include <libgearman/conf_module.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -73,6 +75,11 @@ const char *gearman_version(void);
  * Return gearman bug report URL.
  */
 const char *gearman_bugreport(void);
+
+/**
+ * Return verbose name.
+ */
+const char *gearman_verbose_name(gearman_verbose_t verbose);
 
 /**
  * Initialize a gearman structure.

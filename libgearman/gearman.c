@@ -14,6 +14,30 @@
 #include "common.h"
 
 /*
+ * Private declarations
+ */
+
+/**
+ * @addtogroup gearman_private Private Functions
+ * @ingroup gearman
+ * @{
+ */
+
+/**
+ * Names of the verbose levels provided.
+ */
+static const char *_verbose_name[GEARMAN_VERBOSE_MAX]=
+{
+  "FATAL",
+  "ERROR",
+  "INFO",
+  "DEBUG",
+  "CRAZY"
+};
+
+/** @} */
+
+/*
  * Public definitions
  */
 
@@ -27,6 +51,14 @@ const char *gearman_bugreport(void)
     return PACKAGE_BUGREPORT;
 }
 
+const char *gearman_verbose_name(gearman_verbose_t verbose)
+{
+  if (verbose >= GEARMAN_VERBOSE_MAX)
+    return "UNKNOWN";
+
+  return _verbose_name[verbose];
+}
+
 gearman_st *gearman_create(gearman_st *gearman)
 {
   if (gearman == NULL)
@@ -35,11 +67,39 @@ gearman_st *gearman_create(gearman_st *gearman)
     if (gearman == NULL)
       return NULL;
 
-    memset(gearman, 0, sizeof(gearman_st));
-    gearman->options|= GEARMAN_ALLOCATED;
+    gearman->options= GEARMAN_ALLOCATED;
   }
   else
-    memset(gearman, 0, sizeof(gearman_st));
+    gearman->options= 0;
+
+  gearman->verbose= 0;
+  gearman->con_count= 0;
+  gearman->job_count= 0;
+  gearman->task_count= 0;
+  gearman->packet_count= 0;
+  gearman->pfds_size= 0;
+  gearman->sending= 0;
+  gearman->last_errno= 0;
+  gearman->con_list= NULL;
+  gearman->job_list= NULL;
+  gearman->task_list= NULL;
+  gearman->packet_list= NULL;
+  gearman->pfds= NULL;
+  gearman->log_fn= NULL;
+  gearman->log_fn_arg= NULL;
+  gearman->event_watch= NULL;
+  gearman->event_watch_arg= NULL;
+  gearman->workload_malloc= NULL;
+  gearman->workload_malloc_arg= NULL;
+  gearman->workload_free= NULL;
+  gearman->workload_free_arg= NULL;
+  gearman->task_fn_arg_free_fn= NULL;
+  gearman->queue_fn_arg= NULL;
+  gearman->queue_add_fn= NULL;
+  gearman->queue_flush_fn= NULL;
+  gearman->queue_done_fn= NULL;
+  gearman->queue_replay_fn= NULL;
+  gearman->last_error[0]= 0;
 
   return gearman;
 }
@@ -229,7 +289,7 @@ gearman_return_t gearman_parse_servers(const char *servers, void *data,
     else
       port[0]= 0;
 
-    ret= (*server_fn)(host, atoi(port), data);
+    ret= (*server_fn)(host, (in_port_t)atoi(port), data);
     if (ret != GEARMAN_SUCCESS)
       return ret;
 

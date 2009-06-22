@@ -26,9 +26,8 @@
 /**
  * Add job to queue wihle replaying queue during startup.
  */
-gearman_return_t _queue_replay_add(gearman_st *gearman __attribute__ ((unused)),
-                                   void *fn_arg, const void *unique,
-                                   size_t unique_size,
+gearman_return_t _queue_replay_add(gearman_st *gearman, void *fn_arg,
+                                   const void *unique, size_t unique_size,
                                    const void *function_name,
                                    size_t function_name_size, const void *data,
                                    size_t data_size,
@@ -57,8 +56,8 @@ _server_queue_work_data(gearman_server_job_st *server_job,
 /**
  * Wrapper for log handling.
  */
-static void _log(gearman_st *gearman __attribute__ ((unused)),
-                 gearman_verbose_t verbose, const char *line, void *fn_arg);
+static void _log(gearman_st *gearman, gearman_verbose_t verbose,
+                 const char *line, void *fn_arg);
 
 /** @} */
 
@@ -76,11 +75,35 @@ gearman_server_st *gearman_server_create(gearman_server_st *server)
     if (server == NULL)
       return NULL;
 
-    memset(server, 0, sizeof(gearman_server_st));
-    server->options|= GEARMAN_SERVER_ALLOCATED;
+    server->options= GEARMAN_SERVER_ALLOCATED;
   }
   else
-    memset(server, 0, sizeof(gearman_server_st));
+    server->options= 0;
+
+  server->shutdown= false;
+  server->shutdown_graceful= false;
+  server->proc_wakeup= false;
+  server->proc_shutdown= false;
+  server->thread_count= 0;
+  server->free_packet_count= 0;
+  server->function_count= 0;
+  server->job_count= 0;
+  server->unique_count= 0;
+  server->free_job_count= 0;
+  server->free_client_count= 0;
+  server->free_worker_count= 0;
+  server->thread_list= NULL;
+  server->free_packet_list= NULL;
+  server->function_list= NULL;
+  server->free_job_list= NULL;
+  server->free_client_list= NULL;
+  server->free_worker_list= NULL;
+  server->log_fn= NULL;
+  server->log_fn_arg= NULL;
+  memset(server->job_hash, 0,
+         sizeof(gearman_server_job_st *) * GEARMAN_JOB_HASH_SIZE);
+  memset(server->unique_hash, 0,
+         sizeof(gearman_server_job_st *) * GEARMAN_JOB_HASH_SIZE);
 
   server->gearman= gearman_create(&(server->gearman_static));
   if (server->gearman == NULL)
@@ -184,10 +207,6 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
     return _server_error_packet(server_con, "bad_magic",
                                 "Request magic expected");
   }
-
-  GEARMAN_DEBUG(gearman, "%s Received %s",
-              server_con->host == NULL ? "-" : server_con->host,
-              gearman_command_info_list[packet->command].name)
 
   switch (packet->command)
   {
@@ -341,7 +360,8 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
   case GEARMAN_COMMAND_CAN_DO_TIMEOUT:
     if (gearman_server_worker_add(server_con, (char *)(packet->arg[0]),
                                   packet->arg_size[0] - 1,
-                                  atoi((char *)(packet->arg[1]))) == NULL)
+                                  (in_port_t)atoi((char *)(packet->arg[1])))
+         == NULL)
     {
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
@@ -452,12 +472,12 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
     }
 
     /* Update job status. */
-    server_job->numerator= atoi((char *)(packet->arg[1]));
+    server_job->numerator= (uint32_t)atoi((char *)(packet->arg[1]));
 
     /* This may not be NULL terminated, so copy to make sure it is. */
     snprintf(denominator_buffer, 11, "%.*s", (uint32_t)(packet->arg_size[2]),
              (char *)(packet->arg[2]));
-    server_job->denominator= atoi(denominator_buffer);
+    server_job->denominator= (uint32_t)atoi(denominator_buffer);
 
     /* Queue the status packet for all clients. */
     for (server_client= server_job->client_list; server_client;
@@ -716,16 +736,16 @@ static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
           total+= GEARMAN_TEXT_RESPONSE_SIZE;
         }
 
-        size+= snprintf(data + size, total - size, "%d %s %s :", con->con.fd,
-                        con->host, con->id);
+        size+= (size_t)snprintf(data + size, total - size, "%d %s %s :",
+                                con->con.fd, con->host, con->id);
         if (size > total)
           continue;
 
         for (worker= con->worker_list; worker != NULL; worker= worker->con_next)
         {
-          size+= snprintf(data + size, total - size, " %.*s",
-                          (int)(worker->function->function_name_size),
-                          worker->function->function_name);
+          size+= (size_t)snprintf(data + size, total - size, " %.*s",
+                                  (int)(worker->function->function_name_size),
+                                  worker->function->function_name);
           if (size > total)
             break;
         }
@@ -733,7 +753,7 @@ static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
         if (size > total)
           continue;
 
-        size+= snprintf(data + size, total - size, "\n");
+        size+= (size_t)snprintf(data + size, total - size, "\n");
       }
 
       GEARMAN_SERVER_THREAD_UNLOCK(thread)
@@ -763,10 +783,10 @@ static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
         total+= GEARMAN_TEXT_RESPONSE_SIZE;
       }
 
-      size+= snprintf(data + size, total - size, "%.*s\t%u\t%u\t%u\n",
-                      (int)(function->function_name_size),
-                      function->function_name, function->job_total,
-                      function->job_running, function->worker_count);
+      size+= (size_t)snprintf(data + size, total - size, "%.*s\t%u\t%u\t%u\n",
+                              (int)(function->function_name_size),
+                              function->function_name, function->job_total,
+                              function->job_running, function->worker_count);
       if (size > total)
         size= total;
     }
@@ -799,7 +819,7 @@ static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
             !memcmp(packet->arg[1], function->function_name,
                     function->function_name_size))
         {
-          function->max_queue_size= max_queue_size;
+          function->max_queue_size= (uint32_t)max_queue_size;
         }
       }
 

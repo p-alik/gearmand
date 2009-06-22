@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
     switch(c)
     {
     case 'c':
-      count= atoi(optarg);
+      count= (uint32_t)atoi(optarg);
       break;
 
     case 'f':
@@ -77,23 +77,23 @@ int main(int argc, char *argv[])
       break;
 
     case 'm':
-      min_size= atoi(optarg);
+      min_size= (size_t)atoi(optarg);
       break;
 
     case 'M':
-      max_size= atoi(optarg);
+      max_size= (size_t)atoi(optarg);
       break;
 
     case 'n':
-      num_tasks= atoi(optarg);
+      num_tasks= (uint32_t)atoi(optarg);
       break;
 
     case 'p':
-      port= atoi(optarg);
+      port= (in_port_t)atoi(optarg);
       break;
 
     case 's':
-      srand(atoi(optarg));
+      srand((unsigned int)atoi(optarg));
       break;
 
     case 'v':
@@ -153,10 +153,10 @@ int main(int argc, char *argv[])
         blob_size= max_size;
       else
       {
-        blob_size= rand();
+        blob_size= (size_t)rand();
 
         if (max_size > RAND_MAX)
-          blob_size*= (rand() + 1);
+          blob_size*= (size_t)(rand() + 1);
 
         blob_size= (blob_size % (max_size - min_size)) + min_size;
       }

@@ -53,8 +53,6 @@
 # endif
 #endif
 
-#include <libgearman/modconf.h>
-
 #include <libgearman/gearman.h>
 
 #ifdef HAVE_LIBDRIZZLE
@@ -68,6 +66,7 @@
 #ifdef HAVE_LIBTOKYOCABINET
 #include <libgearman/queue_libtokyocabinet.h>
 #endif
+#include <libgearman/protocol_http.h>
 
 #define GEARMAND_LOG_REOPEN_TIME 60
 #define GEARMAND_LISTEN_BACKLOG 32
@@ -87,14 +86,13 @@ static void _pid_delete(const char *pid_file);
 static bool _switch_user(const char *user);
 static bool _set_signals(void);
 static void _shutdown_handler(int signal);
-static void _log(gearmand_st *gearmand __attribute__ ((unused)),
-                 gearman_verbose_t verbose __attribute__ ((unused)),
+static void _log(gearmand_st *gearmand, gearman_verbose_t verbose,
                  const char *line, void *fn_arg);
 
 int main(int argc, char *argv[])
 {
-  modconf_st modconf;
-  modconf_module_st module;
+  gearman_conf_st conf;
+  gearman_conf_module_st module;
   const char *name;
   const char *value;
   int backlog= GEARMAND_LISTEN_BACKLOG;
@@ -113,21 +111,21 @@ int main(int argc, char *argv[])
   log_info.fd= -1;
   log_info.reopen= 0;
 
-  if (gmodconf_create(&modconf) == NULL)
+  if (gearman_conf_create(&conf) == NULL)
   {
-    fprintf(stderr, "gearmand: modconf_create: NULL\n");
+    fprintf(stderr, "gearmand: gearman_conf_create: NULL\n");
     return 1;
   }
 
-  if (gmodconf_module_create(&modconf, &module, NULL) == NULL)
+  if (gearman_conf_module_create(&conf, &module, NULL) == NULL)
   {
-    fprintf(stderr, "gearmand: modconf_module_create: NULL\n");
+    fprintf(stderr, "gearmand: gearman_conf_module_create: NULL\n");
     return 1;
   }
 
   /* Add all main configuration options. */
 #define MCO(__name, __short, __value, __help) \
-  gmodconf_module_add_option(&module, __name, __short, __value, __help);
+  gearman_conf_module_add_option(&module, __name, __short, __value, __help);
 
   MCO("backlog", 'b', "BACKLOG", "Number of backlog connections for listen.")
   MCO("daemon", 'd', NULL, "Daemon, detach and run in the background.")
@@ -142,35 +140,37 @@ int main(int argc, char *argv[])
       "Address the server should listen on. Default is INADDR_ANY.")
   MCO("port", 'p', "PORT", "Port the server should listen on.")
   MCO("pid-file", 'P', "FILE", "File to write process ID out to.")
+  MCO("protocol", 'r', "PROTOCOL", "Load protocol module.")
   MCO("queue-type", 'q', "QUEUE", "Persistent queue type to use.")
   MCO("threads", 't', "THREADS", "Number of I/O threads to use. Default=0.")
   MCO("user", 'u', "USER", "Switch to given user after startup.")
   MCO("verbose", 'v', NULL, "Increase verbosity level by one.")
   MCO("version", 'V', NULL, "Display the version of gearmand and exit.")
 
-  /* Make sure none of the modconf_module_add_option calls failed. */
-  if (gmodconf_return(&modconf) != MODCONF_SUCCESS)
+  /* Make sure none of the gearman_conf_module_add_option calls failed. */
+  if (gearman_conf_return(&conf) != GEARMAN_SUCCESS)
   {
-    fprintf(stderr, "gearmand: modconf_module_add_option: %s\n",
-            gmodconf_error(&modconf));
+    fprintf(stderr, "gearmand: gearman_conf_module_add_option: %s\n",
+            gearman_conf_error(&conf));
     return 1;
   }
 
   /* Add queue configuration options. */
 
 #ifdef HAVE_LIBDRIZZLE
-  if (gearman_queue_libdrizzle_modconf(&modconf) != MODCONF_SUCCESS)
+  if (gearman_queue_libdrizzle_conf(&conf) != GEARMAN_SUCCESS)
   {
-    fprintf(stderr, "gearmand: gearman_queue_libdrizzle_modconf: %s\n",
-            gmodconf_error(&modconf));
+    fprintf(stderr, "gearmand: gearman_queue_libdrizzle_conf: %s\n",
+            gearman_conf_error(&conf));
     return 1;
   }
 #endif
+
 #ifdef HAVE_LIBMEMCACHED
-  if (gearman_queue_libmemcached_modconf(&modconf) != MODCONF_SUCCESS)
+  if (gearman_queue_libmemcached_conf(&conf) != GEARMAN_SUCCESS)
   {
-    fprintf(stderr, "gearmand: gearman_queue_libmemcached_modconf: %s\n",
-            gmodconf_error(&modconf));
+    fprintf(stderr, "gearmand: gearman_queue_libmemcached_conf: %s\n",
+            gearman_conf_error(&conf));
     return 1;
   }
 #endif
@@ -183,18 +183,25 @@ int main(int argc, char *argv[])
   }
 #endif
 
-  /* Let modconf parse the command line arguments. */
-  if (gmodconf_parse_args(&modconf, argc, argv) != MODCONF_SUCCESS)
+  if (gearman_protocol_http_conf(&conf) != GEARMAN_SUCCESS)
   {
-    printf("\n%s\n\n", gmodconf_error(&modconf));
+    fprintf(stderr, "gearmand: gearman_protocol_http_conf: %s\n",
+            gearman_conf_error(&conf));
+    return 1;
+  }
+
+  /* Let gearman conf parse the command line arguments. */
+  if (gearman_conf_parse_args(&conf, argc, argv) != GEARMAN_SUCCESS)
+  {
+    printf("\n%s\n\n", gearman_conf_error(&conf));
     printf("gearmand %s - %s\n\n", gearman_version(), gearman_bugreport());
     printf("usage: %s [OPTIONS]\n", argv[0]);
-    gmodconf_usage(&modconf);
+    gearman_conf_usage(&conf);
     return 1;
   }
 
   /* Check for option values that were given. */
-  while (gmodconf_module_value(&module, &name, &value))
+  while (gearman_conf_module_value(&module, &name, &value))
   {
     if (!strcmp(name, "backlog"))
       backlog= atoi(value);
@@ -220,12 +227,12 @@ int main(int argc, char *argv[])
       }
     }
     else if (!strcmp(name, "file-descriptors"))
-      fds= atoi(value);
+      fds= (rlim_t)atoi(value);
     else if (!strcmp(name, "help"))
     {
       printf("\ngearmand %s - %s\n\n", gearman_version(), gearman_bugreport());
       printf("usage: %s [OPTIONS]\n", argv[0]);
-      gmodconf_usage(&modconf);
+      gearman_conf_usage(&conf);
       return 1;
     }
     else if (!strcmp(name, "log-file"))
@@ -236,10 +243,12 @@ int main(int argc, char *argv[])
       port= (in_port_t)atoi(value);
     else if (!strcmp(name, "pid-file"))
       pid_file= value;
+    else if (!strcmp(name, "protocol"))
+      continue;
     else if (!strcmp(name, "queue-type"))
       queue_type= value;
     else if (!strcmp(name, "threads"))
-      threads= atoi(value);
+      threads= (uint32_t)atoi(value);
     else if (!strcmp(name, "user"))
       user= value;
     else if (!strcmp(name, "verbose"))
@@ -278,7 +287,7 @@ int main(int argc, char *argv[])
 #ifdef HAVE_LIBDRIZZLE
     if (!strcmp(queue_type, "libdrizzle"))
     {
-      ret= gearmand_queue_libdrizzle_init(_gearmand, &modconf);
+      ret= gearmand_queue_libdrizzle_init(_gearmand, &conf);
       if (ret != GEARMAN_SUCCESS)
         return 1;
     }
@@ -287,7 +296,7 @@ int main(int argc, char *argv[])
 #ifdef HAVE_LIBMEMCACHED
     if (!strcmp(queue_type, "libmemcached"))
     {
-      ret= gearmand_queue_libmemcached_init(_gearmand, &modconf);
+      ret= gearmand_queue_libmemcached_init(_gearmand, &conf);
       if (ret != GEARMAN_SUCCESS)
         return 1;
     }
@@ -303,7 +312,25 @@ int main(int argc, char *argv[])
     else
 #endif
     {
-      fprintf(stderr, "gearmand: Unknown queue type: %s\n", queue_type);
+      fprintf(stderr, "gearmand: Unknown queue module: %s\n", queue_type);
+      return 1;
+    }
+  }
+
+  while (gearman_conf_module_value(&module, &name, &value))
+  {
+    if (strcmp(name, "protocol"))
+      continue;
+
+    if (!strcmp(value, "http"))
+    {
+      ret= gearmand_protocol_http_init(_gearmand, &conf);
+      if (ret != GEARMAN_SUCCESS)
+        return 1;
+    }
+    else
+    {
+      fprintf(stderr, "gearmand: Unknown protocol module: %s\n", value);
       return 1;
     }
   }
@@ -326,6 +353,15 @@ int main(int argc, char *argv[])
 #endif
   }
 
+  while (gearman_conf_module_value(&module, &name, &value))
+  {
+    if (strcmp(name, "protocol"))
+      continue;
+
+    if (!strcmp(value, "http"))
+      gearmand_protocol_http_deinit(_gearmand);
+  }
+
   gearmand_free(_gearmand);
 
   if (pid_file != NULL)
@@ -334,7 +370,7 @@ int main(int argc, char *argv[])
   if (log_info.fd != -1)
     (void) close(log_info.fd);
 
-  gmodconf_free(&modconf);
+  gearman_conf_free(&conf);
 
   return (ret == GEARMAN_SUCCESS || ret == GEARMAN_SHUTDOWN) ? 0 : 1;
 }
@@ -470,17 +506,16 @@ static bool _set_signals(void)
   return false;
 }
 
-static void _shutdown_handler(int signal)
+static void _shutdown_handler(int signal_arg)
 {
-  if (signal == SIGUSR1)
+  if (signal_arg == SIGUSR1)
     gearmand_wakeup(_gearmand, GEARMAND_WAKEUP_SHUTDOWN_GRACEFUL);
   else
     gearmand_wakeup(_gearmand, GEARMAND_WAKEUP_SHUTDOWN);
 }
 
 static void _log(gearmand_st *gearmand __attribute__ ((unused)),
-                 gearman_verbose_t verbose __attribute__ ((unused)),
-                 const char *line, void *fn_arg)
+                 gearman_verbose_t verbose, const char *line, void *fn_arg)
 {
   gearmand_log_info_st *log_info= (gearmand_log_info_st *)fn_arg;
   int fd;
@@ -515,7 +550,8 @@ static void _log(gearmand_st *gearmand __attribute__ ((unused)),
     fd= log_info->fd;
   }
 
-  snprintf(buffer, GEARMAN_MAX_ERROR_SIZE, "%s\n", line);
+  snprintf(buffer, GEARMAN_MAX_ERROR_SIZE, "%5s %s\n",
+           gearman_verbose_name(verbose), line);
   if (write(fd, buffer, strlen(buffer)) == -1)
     fprintf(stderr, "gearmand: Could not write to log file: %d\n", errno);
 }

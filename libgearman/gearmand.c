@@ -23,22 +23,20 @@
  * @{
  */
 
-static void _log(gearman_server_st *server __attribute__ ((unused)),
-                 gearman_verbose_t verbose, const char *line, void *arg);
+static void _log(gearman_server_st *server, gearman_verbose_t verbose,
+                 const char *line, void *arg);
 
 static gearman_return_t _listen_init(gearmand_st *gearmand);
 static void _listen_close(gearmand_st *gearmand);
 static gearman_return_t _listen_watch(gearmand_st *gearmand);
 static void _listen_clear(gearmand_st *gearmand);
-static void _listen_event(int fd, short events __attribute__ ((unused)),
-                          void *arg);
+static void _listen_event(int fd, short events, void *arg);
 
 static gearman_return_t _wakeup_init(gearmand_st *gearmand);
 static void _wakeup_close(gearmand_st *gearmand);
 static gearman_return_t _wakeup_watch(gearmand_st *gearmand);
 static void _wakeup_clear(gearmand_st *gearmand);
-static void _wakeup_event(int fd, short events __attribute__ ((unused)),
-                          void *arg);
+static void _wakeup_event(int fd, short events, void *arg);
 
 static gearman_return_t _watch_events(gearmand_st *gearmand);
 static void _clear_events(gearmand_st *gearmand);
@@ -58,20 +56,38 @@ gearmand_st *gearmand_create(const char *host, in_port_t port)
   if (gearmand == NULL)
     return NULL;
 
-  memset(gearmand, 0, sizeof(gearmand_st));
-
-  gearmand->wakeup_fd[0]= -1;
-  gearmand->wakeup_fd[1]= -1;
-  gearmand->backlog= GEARMAN_DEFAULT_BACKLOG;
-  gearmand->host= host;
-  if (port == 0)
-    gearmand->port= GEARMAN_DEFAULT_TCP_PORT;
-  else
-    gearmand->port= port;
-
   if (gearman_server_create(&(gearmand->server)) == NULL)
   {
     free(gearmand);
+    return NULL;
+  }
+
+  gearmand->options= 0;
+  gearmand->verbose= 0;
+  gearmand->ret= 0;
+  gearmand->backlog= GEARMAN_DEFAULT_BACKLOG;
+  gearmand->threads= 0;
+  gearmand->port_count= 0;
+  gearmand->thread_count= 0;
+  gearmand->free_dcon_count= 0;
+  gearmand->max_thread_free_dcon_count= 0;
+  gearmand->wakeup_fd[0]= -1;
+  gearmand->wakeup_fd[1]= -1;
+  gearmand->host= host;
+  gearmand->log_fn= NULL;
+  gearmand->log_fn_arg= NULL;
+  gearmand->base= NULL;
+  gearmand->port_list= NULL;
+  gearmand->thread_list= NULL;
+  gearmand->thread_add_next= NULL;
+  gearmand->free_dcon_list= NULL;
+
+  if (port == 0)
+    port= GEARMAN_DEFAULT_TCP_PORT;
+
+  if (gearmand_port_add(gearmand, port, NULL) != GEARMAN_SUCCESS)
+  {
+    gearmand_free(gearmand);
     return NULL;
   }
 
@@ -81,6 +97,7 @@ gearmand_st *gearmand_create(const char *host, in_port_t port)
 void gearmand_free(gearmand_st *gearmand)
 {
   gearmand_con_st *dcon;
+  uint32_t x;
 
   _close_events(gearmand);
 
@@ -97,19 +114,22 @@ void gearmand_free(gearmand_st *gearmand)
     free(dcon);
   }
 
-  if (gearmand->addrinfo != NULL)
-    freeaddrinfo(gearmand->addrinfo);
-
   if (gearmand->base != NULL)
     event_base_free(gearmand->base);
 
   gearman_server_free(&(gearmand->server));
 
-  if (gearmand->listen_fd != NULL)
-    free(gearmand->listen_fd);
+  for (x= 0; x < gearmand->port_count; x++)
+  {
+    if (gearmand->port_list[x].listen_fd != NULL)
+      free(gearmand->port_list[x].listen_fd);
 
-  if (gearmand->listen_event != NULL)
-    free(gearmand->listen_event);
+    if (gearmand->port_list[x].listen_event != NULL)
+      free(gearmand->port_list[x].listen_event);
+  }
+
+  if (gearmand->port_list != NULL)
+    free(gearmand->port_list);
 
   GEARMAN_INFO(gearmand, "Shutdown complete")
 
@@ -133,6 +153,32 @@ void gearmand_set_log(gearmand_st *gearmand, gearmand_log_fn log_fn,
   gearmand->log_fn= log_fn;
   gearmand->log_fn_arg= log_fn_arg;
   gearmand->verbose= verbose;
+}
+
+gearman_return_t gearmand_port_add(gearmand_st *gearmand, in_port_t port,
+                                   gearman_con_add_fn *add_fn)
+{
+  gearmand_port_st *port_list;
+
+  port_list= realloc(gearmand->port_list,
+                     sizeof(gearmand_port_st) * (gearmand->port_count + 1));
+  if (port_list == NULL)
+  {
+    GEARMAN_FATAL(gearmand, "gearmand_port_add:realloc:NULL");
+    return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+  }
+
+  port_list[gearmand->port_count].port= port;
+  port_list[gearmand->port_count].listen_count= 0;
+  port_list[gearmand->port_count].gearmand= gearmand;
+  port_list[gearmand->port_count].add_fn= add_fn;
+  port_list[gearmand->port_count].listen_fd= NULL;
+  port_list[gearmand->port_count].listen_event= NULL;
+
+  gearmand->port_list= port_list;
+  gearmand->port_count++;
+
+  return GEARMAN_SUCCESS;
 }
 
 gearman_return_t gearmand_run(gearmand_st *gearmand)
@@ -237,124 +283,136 @@ static void _log(gearman_server_st *server __attribute__ ((unused)),
 
 static gearman_return_t _listen_init(gearmand_st *gearmand)
 {
+  struct gearmand_port_st *port;
+  struct addrinfo *addrinfo;
+  struct addrinfo *addrinfo_next;
   struct addrinfo ai;
   int ret;
   int opt;
   char host[NI_MAXHOST];
-  char port[NI_MAXSERV];
+  char port_str[NI_MAXSERV];
   int fd;
   int *fd_list;
   uint32_t x;
+  uint32_t y;
 
-  snprintf(port, NI_MAXSERV, "%u", gearmand->port);
-
-  memset(&ai, 0, sizeof(struct addrinfo));
-  ai.ai_flags  = AI_PASSIVE;
-  ai.ai_family = AF_UNSPEC;
-  ai.ai_socktype = SOCK_STREAM;
-  ai.ai_protocol= IPPROTO_TCP;
-
-  ret= getaddrinfo(gearmand->host, port, &ai, &(gearmand->addrinfo));
-  if (ret != 0)
+  for (x= 0; x < gearmand->port_count; x++)
   {
-    GEARMAN_FATAL(gearmand, "_listen_init:getaddrinfo:%s", gai_strerror(ret))
-    return GEARMAN_ERRNO;
-  }
+    port= &gearmand->port_list[x];
 
-  for (gearmand->addrinfo_next= gearmand->addrinfo;
-       gearmand->addrinfo_next != NULL;
-       gearmand->addrinfo_next= gearmand->addrinfo_next->ai_next)
-  {
-    ret= getnameinfo(gearmand->addrinfo_next->ai_addr,
-                     gearmand->addrinfo_next->ai_addrlen, host, NI_MAXHOST,
-                     port, NI_MAXSERV, NI_NUMERICHOST | NI_NUMERICSERV);
+    snprintf(port_str, NI_MAXSERV, "%u", port->port);
+
+    memset(&ai, 0, sizeof(struct addrinfo));
+    ai.ai_flags  = AI_PASSIVE;
+    ai.ai_family = AF_UNSPEC;
+    ai.ai_socktype = SOCK_STREAM;
+    ai.ai_protocol= IPPROTO_TCP;
+
+    ret= getaddrinfo(gearmand->host, port_str, &ai, &addrinfo);
     if (ret != 0)
     {
-      GEARMAN_ERROR(gearmand, "_listen_init:getnameinfo:%s", gai_strerror(ret))
-      strcpy(host, "-");
-      strcpy(port, "-");
-    }
-
-    GEARMAN_DEBUG(gearmand, "Trying to listen on %s:%s", host, port)
-
-    /* Calls to socket() can fail for some getaddrinfo results, try another. */
-    fd= socket(gearmand->addrinfo_next->ai_family,
-               gearmand->addrinfo_next->ai_socktype,
-               gearmand->addrinfo_next->ai_protocol);
-    if (fd == -1)
-    {
-      GEARMAN_ERROR(gearmand, "Failed to listen on %s:%s", host, port)
-      continue;
-    }
-
-    opt= 1;
-    ret= setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
-    if (ret == -1)
-    {
-      close(fd);
-      GEARMAN_FATAL(gearmand, "_listen_init:setsockopt:%d", errno)
+      GEARMAN_FATAL(gearmand, "_listen_init:getaddrinfo:%s", gai_strerror(ret))
       return GEARMAN_ERRNO;
     }
 
-    ret= bind(fd, gearmand->addrinfo_next->ai_addr,
-              gearmand->addrinfo_next->ai_addrlen);
-    if (ret == -1)
+    for (addrinfo_next= addrinfo; addrinfo_next != NULL;
+         addrinfo_next= addrinfo_next->ai_next)
     {
-      close(fd);
-      if (errno == EADDRINUSE)
+      ret= getnameinfo(addrinfo_next->ai_addr, addrinfo_next->ai_addrlen, host,
+                       NI_MAXHOST, port_str, NI_MAXSERV,
+                       NI_NUMERICHOST | NI_NUMERICSERV);
+      if (ret != 0)
       {
-        GEARMAN_ERROR(gearmand, "Address already in use %s:%s", host, port)
+        GEARMAN_ERROR(gearmand, "_listen_init:getnameinfo:%s",
+                      gai_strerror(ret))
+        strcpy(host, "-");
+        strcpy(port_str, "-");
+      }
+
+      GEARMAN_DEBUG(gearmand, "Trying to listen on %s:%s", host, port_str)
+
+      /* Call to socket() can fail for some getaddrinfo results, try another. */
+      fd= socket(addrinfo_next->ai_family, addrinfo_next->ai_socktype,
+                 addrinfo_next->ai_protocol);
+      if (fd == -1)
+      {
+        GEARMAN_ERROR(gearmand, "Failed to listen on %s:%s", host, port_str)
         continue;
       }
 
-      GEARMAN_FATAL(gearmand, "_listen_init:bind:%d", errno)
-      return GEARMAN_ERRNO;
+      opt= 1;
+      ret= setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+      if (ret == -1)
+      {
+        close(fd);
+        GEARMAN_FATAL(gearmand, "_listen_init:setsockopt:%d", errno)
+        return GEARMAN_ERRNO;
+      }
+
+      ret= bind(fd, addrinfo_next->ai_addr, addrinfo_next->ai_addrlen);
+      if (ret == -1)
+      {
+        close(fd);
+        if (errno == EADDRINUSE)
+        {
+          if (port->listen_fd == NULL)
+          {
+            GEARMAN_ERROR(gearmand, "Address already in use %s:%s", host,
+                          port_str)
+          }
+
+          continue;
+        }
+
+        GEARMAN_FATAL(gearmand, "_listen_init:bind:%d", errno)
+        return GEARMAN_ERRNO;
+      }
+
+      if (listen(fd, gearmand->backlog) == -1)
+      {
+        close(fd);
+        GEARMAN_FATAL(gearmand, "_listen_init:listen:%d", errno)
+        return GEARMAN_ERRNO;
+      }
+
+      fd_list= realloc(port->listen_fd, sizeof(int) * (port->listen_count + 1));
+      if (fd_list == NULL)
+      {
+        close(fd);
+        GEARMAN_FATAL(gearmand, "_listen_init:realloc:%d", errno)
+        return GEARMAN_ERRNO;
+      }
+
+      port->listen_fd= fd_list;
+      port->listen_fd[port->listen_count]= fd;
+      port->listen_count++;
+
+      GEARMAN_INFO(gearmand, "Listening on %s:%s (%d)", host, port_str, fd)
     }
 
-    if (listen(fd, gearmand->backlog) == -1)
+    freeaddrinfo(addrinfo);
+
+    /* Report last socket() error if we couldn't find an address to bind. */
+    if (port->listen_fd == NULL)
     {
-      close(fd);
-      GEARMAN_FATAL(gearmand, "_listen_init:listen:%d", errno)
+      GEARMAN_FATAL(gearmand,
+                    "_listen_init:Could not bind/listen to any addresses")
       return GEARMAN_ERRNO;
     }
 
-    fd_list= realloc(gearmand->listen_fd,
-                     sizeof(int) * (gearmand->listen_count + 1));
-    if (fd_list == NULL)
+    port->listen_event= malloc(sizeof(struct event) * port->listen_count);
+    if (port->listen_event == NULL)
     {
-      close(fd);
-      GEARMAN_FATAL(gearmand, "_listen_init:realloc:%d", errno)
+      GEARMAN_FATAL(gearmand, "_listen_init:malloc:%d", errno)
       return GEARMAN_ERRNO;
     }
 
-    x= gearmand->listen_count;
-    gearmand->listen_fd= fd_list;
-    gearmand->listen_fd[x]= fd;
-    gearmand->listen_count++;
-
-    GEARMAN_INFO(gearmand, "Listening on %s:%s (%d)", host, port, fd)
-  }
-
-  /* Report last socket() error if we couldn't find an address to bind. */
-  if (gearmand->listen_fd == NULL)
-  {
-    GEARMAN_FATAL(gearmand,
-                  "_listen_init:Could not bind/listen to any addresses")
-    return GEARMAN_ERRNO;
-  }
-
-  gearmand->listen_event= malloc(sizeof(struct event) * gearmand->listen_count);
-  if (gearmand->listen_event == NULL)
-  {
-    GEARMAN_FATAL(gearmand, "_listen_init:malloc:%d", errno)
-    return GEARMAN_ERRNO;
-  }
-
-  for (x= 0; x < gearmand->listen_count; x++)
-  {
-    event_set(&(gearmand->listen_event[x]), gearmand->listen_fd[x],
-              EV_READ | EV_PERSIST, _listen_event, gearmand);
-    event_base_set(gearmand->base, &(gearmand->listen_event[x]));
+    for (y= 0; y < port->listen_count; y++)
+    {
+      event_set(&(port->listen_event[y]), port->listen_fd[y],
+                EV_READ | EV_PERSIST, _listen_event, port);
+      event_base_set(gearmand->base, &(port->listen_event[y]));
+    }
   }
 
   return GEARMAN_SUCCESS;
@@ -363,17 +421,21 @@ static gearman_return_t _listen_init(gearmand_st *gearmand)
 static void _listen_close(gearmand_st *gearmand)
 {
   uint32_t x;
+  uint32_t y;
 
   _listen_clear(gearmand);
 
-  for (x= 0; x < gearmand->listen_count; x++)
+  for (x= 0; x < gearmand->port_count; x++)
   {
-    if (gearmand->listen_fd[x] >= 0)
+    for (y= 0; y < gearmand->port_list[x].listen_count; y++)
     {
-      GEARMAN_INFO(gearmand, "Closing listening socket (%d)",
-                   gearmand->listen_fd[x])
-      close(gearmand->listen_fd[x]);
-      gearmand->listen_fd[x]= -1;
+      if (gearmand->port_list[x].listen_fd[y] >= 0)
+      {
+        GEARMAN_INFO(gearmand, "Closing listening socket (%d)",
+                     gearmand->port_list[x].listen_fd[y])
+        close(gearmand->port_list[x].listen_fd[y]);
+        gearmand->port_list[x].listen_fd[y]= -1;
+      }
     }
   }
 }
@@ -381,19 +443,23 @@ static void _listen_close(gearmand_st *gearmand)
 static gearman_return_t _listen_watch(gearmand_st *gearmand)
 {
   uint32_t x;
+  uint32_t y;
 
   if (gearmand->options & GEARMAND_LISTEN_EVENT)
     return GEARMAN_SUCCESS;
 
-  for (x= 0; x < gearmand->listen_count; x++)
+  for (x= 0; x < gearmand->port_count; x++)
   {
-    GEARMAN_INFO(gearmand, "Adding event for listening socket (%d)",
-                 gearmand->listen_fd[x])
-
-    if (event_add(&(gearmand->listen_event[x]), NULL) == -1)
+    for (y= 0; y < gearmand->port_list[x].listen_count; y++)
     {
-      GEARMAN_FATAL(gearmand, "_listen_watch:event_add:-1")
-      return GEARMAN_EVENT;
+      GEARMAN_INFO(gearmand, "Adding event for listening socket (%d)",
+                   gearmand->port_list[x].listen_fd[y])
+
+      if (event_add(&(gearmand->port_list[x].listen_event[y]), NULL) == -1)
+      {
+        GEARMAN_FATAL(gearmand, "_listen_watch:event_add:-1")
+        return GEARMAN_EVENT;
+      }
     }
   }
 
@@ -404,15 +470,19 @@ static gearman_return_t _listen_watch(gearmand_st *gearmand)
 static void _listen_clear(gearmand_st *gearmand)
 {
   uint32_t x;
+  uint32_t y;
 
   if (!(gearmand->options & GEARMAND_LISTEN_EVENT))
     return;
 
-  for (x= 0; x < gearmand->listen_count; x++)
+  for (x= 0; x < gearmand->port_count; x++)
   {
-    GEARMAN_INFO(gearmand, "Clearing event for listening socket (%d)",
-                 gearmand->listen_fd[x])
-    assert(event_del(&(gearmand->listen_event[x])) == 0);
+    for (y= 0; y < gearmand->port_list[x].listen_count; y++)
+    {
+      GEARMAN_INFO(gearmand, "Clearing event for listening socket (%d)",
+                   gearmand->port_list[x].listen_fd[y])
+      assert(event_del(&(gearmand->port_list[x].listen_event[y])) == 0);
+    }
   }
 
   gearmand->options&= ~GEARMAND_LISTEN_EVENT;
@@ -421,11 +491,11 @@ static void _listen_clear(gearmand_st *gearmand)
 static void _listen_event(int fd, short events __attribute__ ((unused)),
                           void *arg)
 {
-  gearmand_st *gearmand= (gearmand_st *)arg;
+  gearmand_port_st *port= (gearmand_port_st *)arg;
   struct sockaddr sa;
   socklen_t sa_len;
   char host[NI_MAXHOST];
-  char port[NI_MAXSERV];
+  char port_str[NI_MAXSERV];
   int ret;
 
   sa_len= sizeof(sa);
@@ -436,32 +506,34 @@ static void _listen_event(int fd, short events __attribute__ ((unused)),
       return;
     else if (errno == EMFILE)
     {
-      GEARMAN_ERROR(gearmand, "_listen_event:accept:too many open files")
+      GEARMAN_ERROR(port->gearmand, "_listen_event:accept:too many open files")
       return;
     }
 
-    _clear_events(gearmand);
-    GEARMAN_FATAL(gearmand, "_listen_event:accept:%d", errno)
-    gearmand->ret= GEARMAN_ERRNO;
+    _clear_events(port->gearmand);
+    GEARMAN_FATAL(port->gearmand, "_listen_event:accept:%d", errno)
+    port->gearmand->ret= GEARMAN_ERRNO;
     return;
   }
 
   /* Since this is numeric, it should never fail. Even if it did we don't want
      to really error from it. */
-  ret= getnameinfo(&sa, sa_len, host, NI_MAXHOST, port, NI_MAXSERV,
+  ret= getnameinfo(&sa, sa_len, host, NI_MAXHOST, port_str, NI_MAXSERV,
                    NI_NUMERICHOST | NI_NUMERICSERV);
   if (ret != 0)
   {
-    GEARMAN_ERROR(gearmand, "_listen_event:getnameinfo:%s", gai_strerror(ret))
+    GEARMAN_ERROR(port->gearmand, "_listen_event:getnameinfo:%s",
+                  gai_strerror(ret))
     strcpy(host, "-");
-    strcpy(port, "-");
+    strcpy(port_str, "-");
   }
 
-  GEARMAN_INFO(gearmand, "Accepted connection from %s:%s", host, port)
+  GEARMAN_INFO(port->gearmand, "Accepted connection from %s:%s", host, port_str)
 
-  gearmand->ret= gearmand_con_create(gearmand, fd, host, port);
-  if (gearmand->ret != GEARMAN_SUCCESS)
-    _clear_events(gearmand);
+  port->gearmand->ret= gearmand_con_create(port->gearmand, fd, host, port_str,
+                                           port->add_fn);
+  if (port->gearmand->ret != GEARMAN_SUCCESS)
+    _clear_events(port->gearmand);
 }
 
 static gearman_return_t _wakeup_init(gearmand_st *gearmand)
