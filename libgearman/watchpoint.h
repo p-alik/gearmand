@@ -9,10 +9,6 @@
 #ifndef __GEARMAN_WATCHPOINT_H__
 #define __GEARMAN_WATCHPOINT_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <libgearman/constants.h>
 #ifdef HAVE_GEARMAN_ACTION
 #include <libgearman/str_action.h>
@@ -69,8 +65,5 @@ extern "C" {
 #define WATCHPOINT_ASSERT(A) {}
 #endif /* HAVE_DEBUG */
 
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* __GEARMAN_WATCHPOINT_H__ */

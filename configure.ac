@@ -97,6 +97,8 @@ then
 fi
 AC_SUBST(LD_VERSION_SCRIPT)
 
+gl_VISIBILITY
+
 # Build optimized or debug version ?
 # First check for gcc and g++
 if test "$GCC" = "yes"
@@ -361,7 +363,7 @@ uint16_t x= htons(80);
         [W_FAIL="-Werror"])
 
 
-  BASE_WARNINGS="-pedantic -Wall -Wextra ${W_FAIL} -Wundef -Wshadow -Wmissing-declarations -Wstrict-aliasing -Wformat=2 ${F_DIAGNOSTICS_SHOW_OPTION} ${W_CONVERSION}"
+  BASE_WARNINGS="-pedantic -Wall -Wextra ${W_FAIL} -Wundef -Wshadow -Wmissing-declarations -Wstrict-aliasing -Wformat=2 ${CFLAG_VISIBILITY} ${F_DIAGNOSTICS_SHOW_OPTION} ${W_CONVERSION}"
   CC_WARNINGS="${BASE_WARNINGS} -Wstrict-prototypes -Wmissing-prototypes -Wredundant-decls -Wswitch-default -Wswitch-enum -Wcast-align"
   CXX_WARNINGS="${BASE_WARNINGS} -Woverloaded-virtual -Wnon-virtual-dtor -Wctor-dtor-privacy -Wold-style-cast -Weffc++ -Wno-long-long"
 

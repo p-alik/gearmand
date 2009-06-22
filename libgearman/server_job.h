@@ -29,6 +29,7 @@ extern "C" {
 /**
  * Add a new job to a server instance.
  */
+GEARMAN_API
 gearman_server_job_st *
 gearman_server_job_add(gearman_server_st *server, const char *function_name,
                        size_t function_name_size, const char *unique,
@@ -40,6 +41,7 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
 /**
  * Initialize a server job structure.
  */
+GEARMAN_API
 gearman_server_job_st *
 gearman_server_job_create(gearman_server_st *server,
                           gearman_server_job_st *server_job);
@@ -47,29 +49,34 @@ gearman_server_job_create(gearman_server_st *server,
 /**
  * Free a server job structure.
  */
+GEARMAN_API
 void gearman_server_job_free(gearman_server_job_st *server_job);
 
 /**
  * Get a server job structure from the job handle.
  */
+GEARMAN_API
 gearman_server_job_st *gearman_server_job_get(gearman_server_st *server,
                                               const char *job_handle);
 
 /**
  * See if there are any jobs to be run for the server worker connection.
  */
+GEARMAN_API
 gearman_server_job_st *
 gearman_server_job_peek(gearman_server_con_st *server_con);
 
 /**
  * Start running a job for the server worker connection.
  */
+GEARMAN_API
 gearman_server_job_st *
 gearman_server_job_take(gearman_server_con_st *server_con);
 
 /**
  * Queue a job to be run.
  */
+GEARMAN_API
 gearman_return_t gearman_server_job_queue(gearman_server_job_st *server_job);
 
 /** @} */

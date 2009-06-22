@@ -29,6 +29,7 @@ extern "C" {
 /**
  * Add a new worker to a server instance.
  */
+GEARMAN_API
 gearman_server_worker_st *
 gearman_server_worker_add(gearman_server_con_st *con, const char *function_name,
                           size_t function_name_size, uint32_t timeout);
@@ -36,6 +37,7 @@ gearman_server_worker_add(gearman_server_con_st *con, const char *function_name,
 /**
  * Initialize a server worker structure.
  */
+GEARMAN_API
 gearman_server_worker_st *
 gearman_server_worker_create(gearman_server_con_st *con,
                              gearman_server_function_st *function,
@@ -44,6 +46,7 @@ gearman_server_worker_create(gearman_server_con_st *con,
 /**
  * Free a server worker structure.
  */
+GEARMAN_API
 void gearman_server_worker_free(gearman_server_worker_st *worker);
 
 /** @} */

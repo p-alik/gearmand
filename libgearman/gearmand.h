@@ -30,6 +30,7 @@ extern "C" {
  * @param port Port for the server to listen on.
  * @return Pointer to an allocated gearmand structure.
  */
+GEARMAN_API
 gearmand_st *gearmand_create(const char *host, in_port_t port);
 
 /**
@@ -37,6 +38,7 @@ gearmand_st *gearmand_create(const char *host, in_port_t port);
  * @param gearmand Server instance structure previously initialized with
  *        gearmand_create.
  */
+GEARMAN_API
 void gearmand_free(gearmand_st *gearmand);
 
 /**
@@ -45,6 +47,7 @@ void gearmand_free(gearmand_st *gearmand);
  *        gearmand_create.
  * @param backlog Number of backlog connections to set during listen.
  */
+GEARMAN_API
 void gearmand_set_backlog(gearmand_st *gearmand, int backlog);
 
 /**
@@ -53,6 +56,7 @@ void gearmand_set_backlog(gearmand_st *gearmand, int backlog);
  *        gearmand_create.
  * @param threads Number of threads.
  */
+GEARMAN_API
 void gearmand_set_threads(gearmand_st *gearmand, uint32_t threads);
 
 /**
@@ -63,6 +67,7 @@ void gearmand_set_threads(gearmand_st *gearmand, uint32_t threads);
  * @param log_fn_arg Argument to pass into the log callback function.
  * @param verbose Verbosity level.
  */
+GEARMAN_API
 void gearmand_set_log(gearmand_st *gearmand, gearmand_log_fn log_fn,
                       void *log_fn_arg, gearman_verbose_t verbose);
 
@@ -75,6 +80,7 @@ void gearmand_set_log(gearmand_st *gearmand, gearmand_log_fn log_fn,
                  has been accepted on the given port.
  * @return Standard gearman return value.
  */
+GEARMAN_API
 gearman_return_t gearmand_port_add(gearmand_st *gearmand, in_port_t port,
                                    gearman_con_add_fn *add_fn);
 
@@ -84,6 +90,7 @@ gearman_return_t gearmand_port_add(gearmand_st *gearmand, in_port_t port,
  *        gearmand_create.
  * @return Standard gearman return value.
  */
+GEARMAN_API
 gearman_return_t gearmand_run(gearmand_st *gearmand);
 
 /**
@@ -94,6 +101,7 @@ gearman_return_t gearmand_run(gearmand_st *gearmand);
  *        gearmand_create.
  * @param wakeup Wakeup event to send to running gearmand.
  */
+GEARMAN_API
 void gearmand_wakeup(gearmand_st *gearmand, gearmand_wakeup_t wakeup);
 
 /** @} */
