@@ -33,6 +33,7 @@ extern "C" {
  * @return Pointer to an allocated thread structure if thread parameter was
  *         NULL, or the thread parameter pointer if it was not NULL.
  */
+GEARMAN_API
 gearman_server_thread_st *
 gearman_server_thread_create(gearman_server_st *server,
                              gearman_server_thread_st *thread);
@@ -42,6 +43,7 @@ gearman_server_thread_create(gearman_server_st *server,
  * @param thread Thread structure previously initialized with
  *        gearman_server_thread_create.
  */
+GEARMAN_API
 void gearman_server_thread_free(gearman_server_thread_st *thread);
 
 /**
@@ -50,6 +52,7 @@ void gearman_server_thread_free(gearman_server_thread_st *thread);
  *        gearman_server_thread_create.
  * @return Pointer to static buffer in library that holds an error string.
  */
+GEARMAN_API
 const char *gearman_server_thread_error(gearman_server_thread_st *thread);
 
 /**
@@ -58,6 +61,7 @@ const char *gearman_server_thread_error(gearman_server_thread_st *thread);
  *        gearman_server_thread_create.
  * @return An errno value as defined in your system errno.h file.
  */
+GEARMAN_API
 int gearman_server_thread_errno(gearman_server_thread_st *thread);
 
 /**
@@ -67,6 +71,7 @@ int gearman_server_thread_errno(gearman_server_thread_st *thread);
  * @param event_watch Function to be called when events need to be watched.
  * @param event_watch_arg Argument to pass along to event_watch.
  */
+GEARMAN_API
 void gearman_server_thread_set_event_watch(gearman_server_thread_st *thread,
                                            gearman_event_watch_fn *event_watch,
                                            void *event_watch_arg);
@@ -79,6 +84,7 @@ void gearman_server_thread_set_event_watch(gearman_server_thread_st *thread,
  * @param log_fn_arg Argument to pass into the log callback function.
  * @param verbose Verbosity level.
  */
+GEARMAN_API
 void gearman_server_thread_set_log(gearman_server_thread_st *thread,
                                    gearman_server_thread_log_fn log_fn,
                                    void *log_fn_arg, gearman_verbose_t verbose);
@@ -90,6 +96,7 @@ void gearman_server_thread_set_log(gearman_server_thread_st *thread,
  * @param run_fn Function to call when thread should be run.
  * @param run_arg Argument to pass along with run_fn.
  */
+GEARMAN_API
 void gearman_server_thread_set_run(gearman_server_thread_st *thread,
                                    gearman_server_thread_run_fn *run_fn,
                                    void *run_arg);
@@ -101,6 +108,7 @@ void gearman_server_thread_set_run(gearman_server_thread_st *thread,
  * @param ret_ptr Pointer to hold a standard gearman return value.
  * @return On error, the server connection that encountered the error.
  */
+GEARMAN_API
 gearman_server_con_st *
 gearman_server_thread_run(gearman_server_thread_st *thread,
                           gearman_return_t *ret_ptr);

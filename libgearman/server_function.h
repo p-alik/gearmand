@@ -29,6 +29,7 @@ extern "C" {
 /**
  * Add a new function to a server instance.
  */
+GEARMAN_API
 gearman_server_function_st *
 gearman_server_function_get(gearman_server_st *server,
                             const char *function_name,
@@ -37,6 +38,7 @@ gearman_server_function_get(gearman_server_st *server,
 /**
  * Initialize a server function structure.
  */
+GEARMAN_API
 gearman_server_function_st *
 gearman_server_function_create(gearman_server_st *server,
                                gearman_server_function_st *function);
@@ -44,6 +46,7 @@ gearman_server_function_create(gearman_server_st *server,
 /**
  * Free a server function structure.
  */
+GEARMAN_API
 void gearman_server_function_free(gearman_server_function_st *function);
 
 /** @} */

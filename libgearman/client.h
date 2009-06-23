@@ -34,6 +34,7 @@ extern "C" {
  * @return Pointer to an allocated client structure if client parameter was
  *         NULL, or the client parameter pointer if it was not NULL.
  */
+GEARMAN_API
 gearman_client_st *gearman_client_create(gearman_client_st *client);
 
 /**
@@ -43,6 +44,7 @@ gearman_client_st *gearman_client_create(gearman_client_st *client);
  * @return Pointer to an allocated client structure if client parameter was
  *         NULL, or the client parameter pointer if it was not NULL.
  */
+GEARMAN_API
 gearman_client_st *gearman_client_clone(gearman_client_st *client,
                                         gearman_client_st *from);
 
@@ -51,6 +53,7 @@ gearman_client_st *gearman_client_clone(gearman_client_st *client,
  * @param client Client structure previously initialized with
  *        gearman_client_create or gearman_client_clone.
  */
+GEARMAN_API
 void gearman_client_free(gearman_client_st *client);
 
 /**
@@ -59,6 +62,7 @@ void gearman_client_free(gearman_client_st *client);
  *        gearman_client_create or gearman_client_clone.
  * @return Pointer to static buffer in library that holds an error string.
  */
+GEARMAN_API
 const char *gearman_client_error(gearman_client_st *client);
 
 /**
@@ -67,6 +71,7 @@ const char *gearman_client_error(gearman_client_st *client);
  *        gearman_client_create or gearman_client_clone.
  * @return An errno value as defined in your system errno.h file.
  */
+GEARMAN_API
 int gearman_client_errno(gearman_client_st *client);
 
 /**
@@ -78,6 +83,7 @@ int gearman_client_errno(gearman_client_st *client);
  *        For all other option flags, this should be 0 to clear the option or 1
  *        to set.
  */
+GEARMAN_API
 void gearman_client_set_options(gearman_client_st *client,
                                 gearman_client_options_t options,
                                 uint32_t data);
@@ -88,6 +94,7 @@ void gearman_client_set_options(gearman_client_st *client,
  *        gearman_client_create or gearman_client_clone.
  * @return Application data pointer that was previously set.
  */
+GEARMAN_API
 void *gearman_client_data(gearman_client_st *client);
 
 /**
@@ -96,6 +103,7 @@ void *gearman_client_data(gearman_client_st *client);
  *        gearman_client_create or gearman_client_clone.
  * @param data Application data pointer to set.
  */
+GEARMAN_API
 void gearman_client_set_data(gearman_client_st *client, const void *data);
 
 /**
@@ -107,7 +115,7 @@ void gearman_client_set_data(gearman_client_st *client, const void *data);
  * @param workload_malloc Memory allocation function to replace malloc().
  * @param workload_malloc_arg Argument to pass along to workload_malloc.
  */
-
+GEARMAN_API
 void gearman_client_set_workload_malloc(gearman_client_st *client,
                                         gearman_malloc_fn *workload_malloc,
                                         const void *workload_malloc_arg);
@@ -121,7 +129,7 @@ void gearman_client_set_workload_malloc(gearman_client_st *client,
  * @param workload_free Memory free function to replace free().
  * @param workload_free_arg Argument to pass along to workload_free.
  */
-
+GEARMAN_API
 void gearman_client_set_workload_free(gearman_client_st *client,
                                       gearman_free_fn *workload_free,
                                       const void *workload_free_arg);
@@ -133,6 +141,7 @@ void gearman_client_set_workload_free(gearman_client_st *client,
  *        gearman_client_create or gearman_client_clone.
  * @param free_fn function to call to clean up fn_arg.
  */
+GEARMAN_API
 void gearman_client_set_task_fn_arg_free(gearman_client_st *client,
                                          gearman_task_fn_arg_free_fn *free_fn);
 
@@ -145,6 +154,7 @@ void gearman_client_set_task_fn_arg_free(gearman_client_st *client,
  * @param port Port of the server to add.
  * @return Standard gearman return value.
  */
+GEARMAN_API
 gearman_return_t gearman_client_add_server(gearman_client_st *client,
                                            const char *host, in_port_t port);
 
@@ -159,6 +169,7 @@ gearman_return_t gearman_client_add_server(gearman_client_st *client,
  * @param servers Server list described above.
  * @return Standard gearman return value.
  */
+GEARMAN_API
 gearman_return_t gearman_client_add_servers(gearman_client_st *client,
                                             const char *servers);
 
@@ -193,6 +204,7 @@ gearman_return_t gearman_client_add_servers(gearman_client_st *client,
  * @return The result allocated by the library, this needs to be freed when the
  *         caller is done using it.
  */
+GEARMAN_API
 void *gearman_client_do(gearman_client_st *client, const char *function_name,
                         const char *unique, const void *workload,
                         size_t workload_size, size_t *result_size,
@@ -202,6 +214,7 @@ void *gearman_client_do(gearman_client_st *client, const char *function_name,
  * Run a high priority task and return an allocated result. See
  * gearman_client_do() for parameter and return information.
  */
+GEARMAN_API
 void *gearman_client_do_high(gearman_client_st *client,
                              const char *function_name, const char *unique,
                              const void *workload, size_t workload_size,
@@ -211,6 +224,7 @@ void *gearman_client_do_high(gearman_client_st *client,
  * Run a low priority task and return an allocated result. See
  * gearman_client_do() for parameter and return information.
  */
+GEARMAN_API
 void *gearman_client_do_low(gearman_client_st *client,
                             const char *function_name, const char *unique,
                             const void *workload, size_t workload_size,
@@ -224,6 +238,7 @@ void *gearman_client_do_low(gearman_client_st *client,
  *        gearman_client_create or gearman_client_clone.
  * @return Pointer to static buffer in library that holds the job handle.
  */
+GEARMAN_API
 const char *gearman_client_do_job_handle(gearman_client_st *client);
 
 /**
@@ -237,6 +252,7 @@ const char *gearman_client_do_job_handle(gearman_client_st *client);
  * @param denominator Optional parameter to store the percent complete
           denominator in.
  */
+GEARMAN_API
 void gearman_client_do_status(gearman_client_st *client, uint32_t *numerator,
                               uint32_t *denominator);
 
@@ -252,6 +268,7 @@ void gearman_client_do_status(gearman_client_st *client, uint32_t *numerator,
           GEARMAN_JOB_HANDLE_SIZE bytes long.
  * @return Standard gearman return value.
  */
+GEARMAN_API
 gearman_return_t gearman_client_do_background(gearman_client_st *client,
                                               const char *function_name,
                                               const char *unique,
@@ -263,6 +280,7 @@ gearman_return_t gearman_client_do_background(gearman_client_st *client,
  * Run a high priority task in the background. See
  * gearman_client_do_background() for parameter and return information.
  */
+GEARMAN_API
 gearman_return_t gearman_client_do_high_background(gearman_client_st *client,
                                                    const char *function_name,
                                                    const char *unique,
@@ -274,6 +292,7 @@ gearman_return_t gearman_client_do_high_background(gearman_client_st *client,
  * Run a low priority task in the background. See
  * gearman_client_do_background() for parameter and return information.
  */
+GEARMAN_API
 gearman_return_t gearman_client_do_low_background(gearman_client_st *client,
                                                   const char *function_name,
                                                   const char *unique,
@@ -294,6 +313,7 @@ gearman_return_t gearman_client_do_low_background(gearman_client_st *client,
           denominator in.
  * @return Standard gearman return value.
  */
+GEARMAN_API
 gearman_return_t gearman_client_job_status(gearman_client_st *client,
                                            const char *job_handle,
                                            bool *is_known, bool *is_running,
@@ -309,6 +329,7 @@ gearman_return_t gearman_client_job_status(gearman_client_st *client,
  * @param workload_size Size of the workload.
  * @return Standard gearman return value.
  */
+GEARMAN_API
 gearman_return_t gearman_client_echo(gearman_client_st *client,
                                      const void *workload,
                                      size_t workload_size);
@@ -327,6 +348,7 @@ gearman_return_t gearman_client_echo(gearman_client_st *client,
 /**
  * Add a task to be run in parallel.
  */
+GEARMAN_API
 gearman_task_st *gearman_client_add_task(gearman_client_st *client,
                                          gearman_task_st *task,
                                          const void *fn_arg,
@@ -339,6 +361,7 @@ gearman_task_st *gearman_client_add_task(gearman_client_st *client,
 /**
  * Add a high priority task to be run in parallel.
  */
+GEARMAN_API
 gearman_task_st *gearman_client_add_task_high(gearman_client_st *client,
                                               gearman_task_st *task,
                                               const void *fn_arg,
@@ -351,6 +374,7 @@ gearman_task_st *gearman_client_add_task_high(gearman_client_st *client,
 /**
  * Add a low priority task to be run in parallel.
  */
+GEARMAN_API
 gearman_task_st *gearman_client_add_task_low(gearman_client_st *client,
                                              gearman_task_st *task,
                                              const void *fn_arg,
@@ -363,6 +387,7 @@ gearman_task_st *gearman_client_add_task_low(gearman_client_st *client,
 /**
  * Add a background task to be run in parallel.
  */
+GEARMAN_API
 gearman_task_st *gearman_client_add_task_background(gearman_client_st *client,
                                                     gearman_task_st *task,
                                                     const void *fn_arg,
@@ -375,6 +400,7 @@ gearman_task_st *gearman_client_add_task_background(gearman_client_st *client,
 /**
  * Add a high priority background task to be run in parallel.
  */
+GEARMAN_API
 gearman_task_st *
 gearman_client_add_task_high_background(gearman_client_st *client,
                                         gearman_task_st *task,
@@ -388,6 +414,7 @@ gearman_client_add_task_high_background(gearman_client_st *client,
 /**
  * Add a low priority background task to be run in parallel.
  */
+GEARMAN_API
 gearman_task_st *
 gearman_client_add_task_low_background(gearman_client_st *client,
                                        gearman_task_st *task,
@@ -401,6 +428,7 @@ gearman_client_add_task_low_background(gearman_client_st *client,
 /**
  * Add task to get the status for a backgound task in parallel.
  */
+GEARMAN_API
 gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
                                                 gearman_task_st *task,
                                                 const void *fn_arg,
@@ -410,59 +438,69 @@ gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
 /**
  * Callback function when workload data needs to be sent for a task.
  */
+GEARMAN_API
 void gearman_client_set_workload_fn(gearman_client_st *client,
                                     gearman_workload_fn *workload_fn);
 
 /**
  * Callback function when a job has been created for a task.
  */
+GEARMAN_API
 void gearman_client_set_created_fn(gearman_client_st *client,
                                    gearman_created_fn *created_fn);
 
 /**
  * Callback function when there is a data packet for a task.
  */
+GEARMAN_API
 void gearman_client_set_data_fn(gearman_client_st *client,
                                 gearman_data_fn *data_fn);
 
 /**
  * Callback function when there is a warning packet for a task.
  */
+GEARMAN_API
 void gearman_client_set_warning_fn(gearman_client_st *client,
                                    gearman_warning_fn *warning_fn);
 
 /**
  * Callback function when there is a status packet for a task.
  */
+GEARMAN_API
 void gearman_client_set_status_fn(gearman_client_st *client,
                                   gearman_status_fn *status_fn);
 
 /**
  * Callback function when a task is complete.
  */
+GEARMAN_API
 void gearman_client_set_complete_fn(gearman_client_st *client,
                                     gearman_complete_fn *complete_fn);
 
 /**
  * Callback function when there is an exception packet for a task.
  */
+GEARMAN_API
 void gearman_client_set_exception_fn(gearman_client_st *client,
                                      gearman_exception_fn *exception_fn);
 
 /**
  * Callback function when a task has failed.
  */
+GEARMAN_API
 void gearman_client_set_fail_fn(gearman_client_st *client,
                                 gearman_fail_fn *fail_fn);
 
 /**
  * Clear all task callback functions.
  */
+GEARMAN_API
 void gearman_client_clear_fn(gearman_client_st *client);
 
 /**
  * Run tasks that have been added in parallel.
  */
+GEARMAN_API
 gearman_return_t gearman_client_run_tasks(gearman_client_st *client);
 
 /** @} */
