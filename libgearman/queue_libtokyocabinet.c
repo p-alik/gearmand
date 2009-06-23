@@ -34,21 +34,21 @@ typedef struct
 
 /* Queue callback functions. */
 static gearman_return_t _libtokyocabinet_add(gearman_st *gearman, void *fn_arg,
-					     const void *unique,
-					     size_t unique_size,
-					     const void *function_name,
-					     size_t function_name_size,
-					     const void *data, size_t data_size,
-					     gearman_job_priority_t priority);
+                                             const void *unique,
+                                             size_t unique_size,
+                                             const void *function_name,
+                                             size_t function_name_size,
+                                             const void *data, size_t data_size,
+                                             gearman_job_priority_t priority);
 static gearman_return_t _libtokyocabinet_flush(gearman_st *gearman, void *fn_arg);
 static gearman_return_t _libtokyocabinet_done(gearman_st *gearman, void *fn_arg,
-					      const void *unique,
-					      size_t unique_size, 
-					      const void *function_name, 
-					      size_t function_name_size);
+                                              const void *unique,
+                                              size_t unique_size, 
+                                              const void *function_name, 
+                                              size_t function_name_size);
 static gearman_return_t _libtokyocabinet_replay(gearman_st *gearman, void *fn_arg,
-						gearman_queue_add_fn *add_fn,
-						void *add_fn_arg);
+                                                gearman_queue_add_fn *add_fn,
+                                                void *add_fn_arg);
 
 /*
  * Public definitions
@@ -63,12 +63,12 @@ gearman_return_t gearman_queue_libtokyocabinet_conf(gearman_conf_st *conf)
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
 
   gearman_conf_module_add_option(module, "file", 0, "FILE_NAME",
-				 "File name of the database.");
+                                 "File name of the database.");
   return gearman_conf_return(conf);
 }
 
 gearman_return_t gearman_queue_libtokyocabinet_init(gearman_st *gearman,
-						    gearman_conf_st *conf)
+                                                    gearman_conf_st *conf)
 {
   gearman_queue_libtokyocabinet_st *queue;
   gearman_conf_module_st *module;
@@ -172,7 +172,7 @@ gearman_return_t gearman_queue_libtokyocabinet_deinit(gearman_st *gearman)
 }
 
 gearman_return_t gearmand_queue_libtokyocabinet_init(gearmand_st *gearmand,
-						     gearman_conf_st *conf)
+                                                     gearman_conf_st *conf)
 {
   return gearman_queue_libtokyocabinet_init(gearmand->server.gearman, conf);
 }
@@ -187,12 +187,12 @@ gearman_return_t gearmand_queue_libtokyocabinet_deinit(gearmand_st *gearmand)
  */
 
 static gearman_return_t _libtokyocabinet_add(gearman_st *gearman, void *fn_arg,
-					     const void *unique,
-					     size_t unique_size,
-					     const void *function_name,
-					     size_t function_name_size,
-					     const void *data, size_t data_size,
-					     gearman_job_priority_t priority)
+                                             const void *unique,
+                                             size_t unique_size,
+                                             const void *function_name,
+                                             size_t function_name_size,
+                                             const void *data, size_t data_size,
+                                             gearman_job_priority_t priority)
 {
   gearman_queue_libtokyocabinet_st *queue= (gearman_queue_libtokyocabinet_st *)fn_arg;
   bool rc;
@@ -209,8 +209,8 @@ static gearman_return_t _libtokyocabinet_add(gearman_st *gearman, void *fn_arg,
   tcxstrcat(key, "-", 1);
   tcxstrcat(key, unique, (int)unique_size);
   rc= tchdbputasync(queue->db, tcxstrptr(key), tcxstrsize(key),
-		    (const char *)data, (int)data_size);
-  (void) priority;		 
+                    (const char *)data, (int)data_size);
+  (void) priority;               
   tcxstrdel(key);
 
   if (!rc)
@@ -260,9 +260,9 @@ static gearman_return_t _libtokyocabinet_done(gearman_st *gearman, void *fn_arg,
 }
 
 static gearman_return_t _callback_for_record(gearman_st *gearman,
-					     TCXSTR *key, TCXSTR *data,
-					     gearman_queue_add_fn *add_fn,
-					     void *add_fn_arg)
+                                             TCXSTR *key, TCXSTR *data,
+                                             gearman_queue_add_fn *add_fn,
+                                             void *add_fn_arg)
 {
   const char *key_cstr;
   size_t key_cstr_size;
@@ -283,7 +283,7 @@ static gearman_return_t _callback_for_record(gearman_st *gearman,
   if (tcxstrsize(key) < sizeof GEARMAN_QUEUE_LIBTOKYOCABINET_DEFAULT_PREFIX)
     return GEARMAN_QUEUE_ERROR;
   if (memcmp(key_cstr, GEARMAN_QUEUE_LIBTOKYOCABINET_DEFAULT_PREFIX,
-	     sizeof GEARMAN_QUEUE_LIBTOKYOCABINET_DEFAULT_PREFIX - 1))
+             sizeof GEARMAN_QUEUE_LIBTOKYOCABINET_DEFAULT_PREFIX - 1))
     return GEARMAN_QUEUE_ERROR;
   key_cstr+= sizeof GEARMAN_QUEUE_LIBTOKYOCABINET_DEFAULT_PREFIX - 1;
   key_cstr_size-= sizeof GEARMAN_QUEUE_LIBTOKYOCABINET_DEFAULT_PREFIX - 1;
@@ -307,16 +307,16 @@ static gearman_return_t _callback_for_record(gearman_st *gearman,
   }   
   memcpy(data_cstr, tcxstrptr(data), data_cstr_size + 1);
   (void)(*add_fn)(gearman, add_fn_arg, unique, unique_size,
-		  function_name, function_name_size,
-		  data_cstr, data_cstr_size, 0);
+                  function_name, function_name_size,
+                  data_cstr, data_cstr_size, 0);
 
   return GEARMAN_SUCCESS;
 }
 
 
 static gearman_return_t _libtokyocabinet_replay(gearman_st *gearman, void *fn_arg,
-						gearman_queue_add_fn *add_fn,
-						void *add_fn_arg)
+                                                gearman_queue_add_fn *add_fn,
+                                                void *add_fn_arg)
 {
   gearman_queue_libtokyocabinet_st *queue= (gearman_queue_libtokyocabinet_st *)fn_arg;
   TCXSTR *key;
