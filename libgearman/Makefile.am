@@ -49,7 +49,7 @@ dist_libgearmaninclude_HEADERS= \
 	worker.h \
 	$(QUEUE_LIBDRIZZLE_H) \
 	$(QUEUE_LIBMEMCACHED_H) \
-	$(QUEUE_LIBTOKYOCABINET_H) \	
+	$(QUEUE_LIBTOKYOCABINET_H) \
 	protocol_http.h
 
 noinst_HEADERS= \
@@ -78,7 +78,7 @@ libgearman_la_SOURCES= \
 	worker.c \
 	$(QUEUE_LIBDRIZZLE_C) \
 	$(QUEUE_LIBMEMCACHED_C) \
-	$(QUEUE_LIBTOKYOCABINET_C) \	
+	$(QUEUE_LIBTOKYOCABINET_C) \
 	protocol_http.c
 
 libgearman_la_LDFLAGS= -version-info $(GEARMAN_LIBRARY_VERSION) \
