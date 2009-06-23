@@ -175,10 +175,10 @@ int main(int argc, char *argv[])
   }
 #endif
 #ifdef HAVE_LIBTOKYOCABINET
-  if (gearman_queue_libtokyocabinet_modconf(&modconf) != MODCONF_SUCCESS)
+  if (gearman_queue_libtokyocabinet_conf(&conf) != GEARMAN_SUCCESS)
   {
-    fprintf(stderr, "gearmand: gearman_queue_libtokyocabinet_modconf: %s\n",
-            gmodconf_error(&modconf));
+    fprintf(stderr, "gearmand: gearman_queue_libtokyocabinet_conf: %s\n",
+            gearman_conf_error(&conf));
     return 1;
   }
 #endif
@@ -305,7 +305,7 @@ int main(int argc, char *argv[])
 #ifdef HAVE_LIBTOKYOCABINET
     if (!strcmp(queue_type, "libtokyocabinet"))
     {
-      ret= gearmand_queue_libtokyocabinet_init(_gearmand, &modconf);
+      ret= gearmand_queue_libtokyocabinet_init(_gearmand, &conf);
       if (ret != GEARMAN_SUCCESS)
         return 1;
     }

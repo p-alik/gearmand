@@ -54,24 +54,24 @@ static gearman_return_t _libtokyocabinet_replay(gearman_st *gearman, void *fn_ar
  * Public definitions
  */
 
-modconf_return_t gearman_queue_libtokyocabinet_modconf(modconf_st *modconf)
+gearman_return_t gearman_queue_libtokyocabinet_conf(gearman_conf_st *conf)
 {
-  modconf_module_st *module;
+  gearman_conf_module_st *module;
 
-  module= gmodconf_module_create(modconf, NULL, "libtokyocabinet");
+  module= gearman_conf_module_create(conf, NULL, "libtokyocabinet");
   if (module == NULL)
-    return MODCONF_MEMORY_ALLOCATION_FAILURE;
+    return GEARMAN_MEMORY_ALLOCATION_FAILURE;
 
-  gmodconf_module_add_option(module, "file", 0, "FILE_NAME",
-                             "File name of the database.");
-  return gmodconf_return(modconf);
+  gearman_conf_module_add_option(module, "file", 0, "FILE_NAME",
+				 "File name of the database.");
+  return gearman_conf_return(conf);
 }
 
 gearman_return_t gearman_queue_libtokyocabinet_init(gearman_st *gearman,
-						    modconf_st *modconf)
+						    gearman_conf_st *conf)
 {
   gearman_queue_libtokyocabinet_st *queue;
-  modconf_module_st *module;
+  gearman_conf_module_st *module;
   const char *name;
   const char *value;
   const char *opt_file= NULL;
@@ -94,7 +94,7 @@ gearman_return_t gearman_queue_libtokyocabinet_init(gearman_st *gearman,
   }
 
   /* Get module and parse the option values that were given. */
-  module= gmodconf_module_find(modconf, "libtokyocabinet");
+  module= gearman_conf_module_find(conf, "libtokyocabinet");
   if (module == NULL)
   {
     GEARMAN_ERROR_SET(gearman, "gearman_queue_libtokyocabinet_init",
@@ -102,7 +102,7 @@ gearman_return_t gearman_queue_libtokyocabinet_init(gearman_st *gearman,
     return GEARMAN_QUEUE_ERROR;
   }
 
-  while (gmodconf_module_value(module, &name, &value))
+  while (gearman_conf_module_value(module, &name, &value))
   { 
     if (!strcmp(name, "file"))
       opt_file= value;
@@ -172,9 +172,9 @@ gearman_return_t gearman_queue_libtokyocabinet_deinit(gearman_st *gearman)
 }
 
 gearman_return_t gearmand_queue_libtokyocabinet_init(gearmand_st *gearmand,
-                                                  modconf_st *modconf)
+						     gearman_conf_st *conf)
 {
-  return gearman_queue_libtokyocabinet_init(gearmand->server.gearman, modconf);
+  return gearman_queue_libtokyocabinet_init(gearmand->server.gearman, conf);
 }
 
 gearman_return_t gearmand_queue_libtokyocabinet_deinit(gearmand_st *gearmand)
@@ -205,11 +205,11 @@ static gearman_return_t _libtokyocabinet_add(gearman_st *gearman, void *fn_arg,
 #else
   key= tcxstrnew();
 #endif
-  tcxstrcat(key, function_name, function_name_size);
+  tcxstrcat(key, function_name, (int)function_name_size);
   tcxstrcat(key, "-", 1);
-  tcxstrcat(key, unique, unique_size);
+  tcxstrcat(key, unique, (int)unique_size);
   rc= tchdbputasync(queue->db, tcxstrptr(key), tcxstrsize(key),
-		   (const char *)data, data_size);
+		    (const char *)data, (int)data_size);
   (void) priority;		 
   tcxstrdel(key);
 
@@ -247,9 +247,9 @@ static gearman_return_t _libtokyocabinet_done(gearman_st *gearman, void *fn_arg,
 #else
   key= tcxstrnew();
 #endif
-  tcxstrcat(key, function_name, function_name_size);
+  tcxstrcat(key, function_name, (int)function_name_size);
   tcxstrcat(key, "-", 1);
-  tcxstrcat(key, unique, unique_size);
+  tcxstrcat(key, unique, (int)unique_size);
   rc= tchdbout(queue->db, tcxstrptr(key), tcxstrsize(key));
   tcxstrdel(key);
 
@@ -277,7 +277,7 @@ static gearman_return_t _callback_for_record(gearman_st *gearman,
   GEARMAN_DEBUG(gearman, "replaying: %s", (char *) tcxstrptr(key));
    
   key_cstr= tcxstrptr(key);
-  key_cstr_size= tcxstrsize(key);
+  key_cstr_size= (size_t)tcxstrsize(key);
    
 #ifdef GEARMAN_QUEUE_LIBTOKYOCABINET_DEFAULT_PREFIX
   if (tcxstrsize(key) < sizeof GEARMAN_QUEUE_LIBTOKYOCABINET_DEFAULT_PREFIX)
@@ -293,13 +293,13 @@ static gearman_return_t _callback_for_record(gearman_st *gearman,
   if (key_delim == NULL || key_delim == key_cstr)
     return GEARMAN_QUEUE_ERROR;
   function_name= key_cstr;
-  function_name_size= key_delim - key_cstr;
+  function_name_size= (size_t) (key_delim - key_cstr);
   unique= key_delim + 1;
   if (*unique == 0)
     return GEARMAN_QUEUE_ERROR;
   unique_size= key_cstr_size - function_name_size - 1;
    
-  data_cstr_size= tcxstrsize(data);
+  data_cstr_size= (size_t)tcxstrsize(data);
   if ((data_cstr = malloc(data_cstr_size + 1)) == NULL)
   {
     GEARMAN_ERROR_SET(gearman, "_callback_for_record", "malloc")
