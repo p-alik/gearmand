@@ -41,6 +41,7 @@ dist_libgearmaninclude_HEADERS= \
 	server_worker.h \
 	structs.h \
 	task.h \
+	visibility.h \
 	worker.h \
 	$(QUEUE_LIBDRIZZLE_H) \
 	$(QUEUE_LIBMEMCACHED_H) \
@@ -74,6 +75,7 @@ libgearman_la_SOURCES= \
 	$(QUEUE_LIBMEMCACHED_C) \
 	protocol_http.c
 
+libgearman_la_CFLAGS= ${AM_CFLAGS} -DBUILDING_LIBGEARMAN
 libgearman_la_LDFLAGS= -version-info $(GEARMAN_LIBRARY_VERSION) \
 	$(LD_VERSION_SCRIPT)
 

@@ -6,10 +6,11 @@
 # the COPYING file in this directory for full text.
 
 AC_PREREQ(2.59)
-AC_INIT(gearmand, [0.8], [https://launchpad.net/gearmand])
+AC_INIT([gearmand],[0.8],[https://launchpad.net/gearmand])
 AC_CONFIG_SRCDIR(libgearman/gearman.c)
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_MACRO_DIR([m4])
 
 GEARMAN_LIBRARY_VERSION=1:2:0
 #                       | | |
@@ -50,9 +51,6 @@ else
   building_from_bzr=no
 fi
 
-AC_PROG_CC
-AC_PROG_CC_C99
-AM_PROG_CC_STDC
 AC_PROG_CXX
 
 ACX_USE_SYSTEM_EXTENSIONS
@@ -60,18 +58,24 @@ ACX_USE_SYSTEM_EXTENSIONS
 AC_PROG_CPP
 AM_PROG_CC_C_O
 
+FORCE_MAC_GCC42
+dnl Once we can use a modern autoconf, we can use this
+dnl AC_PROG_CC_C99
+
+
 AC_C_BIGENDIAN
 AC_C_CONST
 AC_HEADER_TIME
 AC_TYPE_SIZE_T
-AC_TYPE_SSIZE_T
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
 
 AC_CHECK_DECL([__SUNPRO_C], [SUNCC="yes"], [SUNCC="no"])
 
 # We use libtool
-AC_PROG_LIBTOOL
+LT_INIT
+LT_LANG(C)
+LT_LANG(C++)
 
 AC_MSG_CHECKING("C Compiler version")
 if test "$GCC" = "yes"
@@ -93,22 +97,16 @@ then
 fi
 AC_SUBST(LD_VERSION_SCRIPT)
 
-# Use the C99 enabling flag found earlier
-AS_IF([test "$ac_cv_prog_cc_c99" != "no"],
-      [CFLAGS="$ac_cv_prog_cc_c99 ${CFLAGS}"])
+gl_VISIBILITY
 
 # Build optimized or debug version ?
 # First check for gcc and g++
 if test "$GCC" = "yes"
 then
-  # If you're on a Mac, and you didn't ask for a specific compiler
-  # You're gonna get 4.2.
-  if test "$host_vendor" = "apple" -a "x${ac_cv_env_CC_set}" = "x" -a -x "/usr/bin/gcc-4.2"
-  then
-    CPP="/usr/bin/gcc-4.2 -E"
-    CC=/usr/bin/gcc-4.2
-    CXX=/usr/bin/g++-4.2
-  fi
+
+  dnl Once we can use a modern autoconf, we can replace the std=gnu99 here
+  dnl with using AC_CC_STD_C99 above
+  CC="${CC} -std=gnu99"
 
   CFLAGS="-ggdb3 ${CFLAGS}"
   CXXFLAGS="-ggdb3 ${CXXFLAGS}"
@@ -121,6 +119,10 @@ then
 fi
 if test "x$SUNCC" = "xyes"
 then
+  dnl Once we can use a modern autoconf, we can replace the -xc99=all here
+  dnl with using AC_CC_STD_C99 above
+  CC="${CC} -xc99=all"
+
   CFLAGS="-g -mt ${CFLAGS}"
   CXXFLAGS="-xlang=c99 -g -mt -compat=5 -library=stlport4 -template=no%extdef ${CXXFLAGS}"
 
@@ -271,9 +273,11 @@ if test "$with_debug" = "yes"
 then
   # Debugging. No optimization.
   CFLAGS="${DEBUG_CFLAGS} -DDEBUG ${CFLAGS}"
+  CXXFLAGS="${DEBUG_CXXFLAGS} -DDEBUG ${CXXFLAGS}"
 else
   # Optimized version. No debug
   CFLAGS="${OPTIMIZE_CFLAGS} ${CFLAGS}"
+  CXXFLAGS="${OPTIMIZE_CXXFLAGS} ${CXXFLAGS}"
 fi
 
 
@@ -348,7 +352,6 @@ uint16_t x= htons(80);
           ])
     ])
 
-  W_STRICT_ALIASING="-Wno-strict-aliasing"
 
   AS_IF([test "$ac_profiling" = "yes"],
         [CC_PROFILING="-pg"])
@@ -360,7 +363,7 @@ uint16_t x= htons(80);
         [W_FAIL="-Werror"])
 
 
-  BASE_WARNINGS="-pedantic -W -Wall -Wextra ${W_FAIL} -Wundef -Wshadow -Wmissing-declarations ${W_STRICT_ALIASING} ${F_DIAGNOSTICS_SHOW_OPTION} ${W_CONVERSION}"
+  BASE_WARNINGS="-pedantic -Wall -Wextra ${W_FAIL} -Wundef -Wshadow -Wmissing-declarations -Wstrict-aliasing -Wformat=2 ${CFLAG_VISIBILITY} ${F_DIAGNOSTICS_SHOW_OPTION} ${W_CONVERSION}"
   CC_WARNINGS="${BASE_WARNINGS} -Wstrict-prototypes -Wmissing-prototypes -Wredundant-decls -Wswitch-default -Wswitch-enum -Wcast-align"
   CXX_WARNINGS="${BASE_WARNINGS} -Woverloaded-virtual -Wnon-virtual-dtor -Wctor-dtor-privacy -Wold-style-cast -Weffc++ -Wno-long-long"
 

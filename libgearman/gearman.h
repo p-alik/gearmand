@@ -27,6 +27,7 @@
 #include <sys/uio.h>
 #include <event.h>
 
+#include <libgearman/visibility.h>
 #include <libgearman/constants.h>
 #include <libgearman/structs.h>
 #include <libgearman/conn.h>
@@ -69,46 +70,55 @@ extern "C" {
 /**
  * Return gearman version.
  */
+GEARMAN_API
 const char *gearman_version(void);
 
 /**
  * Return gearman bug report URL.
  */
+GEARMAN_API
 const char *gearman_bugreport(void);
 
 /**
  * Return verbose name.
  */
+GEARMAN_API
 const char *gearman_verbose_name(gearman_verbose_t verbose);
 
 /**
  * Initialize a gearman structure.
  */
+GEARMAN_API
 gearman_st *gearman_create(gearman_st *gearman);
 
 /**
  * Clone a gearman structure.
  */
+GEARMAN_API
 gearman_st *gearman_clone(gearman_st *gearman, gearman_st *from);
 
 /**
  * Free a gearman structure.
  */
+GEARMAN_API
 void gearman_free(gearman_st *gearman);
 
 /**
  * Return an error string for last library error encountered.
  */
+GEARMAN_API
 const char *gearman_error(gearman_st *gearman);
 
 /**
  * Value of errno in the case of a GEARMAN_ERRNO return value.
  */
+GEARMAN_API
 int gearman_errno(gearman_st *gearman);
 
 /**
  * Set options for a gearman structure.
  */
+GEARMAN_API
 void gearman_set_options(gearman_st *gearman, gearman_options_t options,
                          uint32_t data);
 
@@ -120,12 +130,14 @@ void gearman_set_options(gearman_st *gearman, gearman_options_t options,
  * @param log_fn_arg Argument to pass into the log callback function.
  * @param verbose Verbosity level.
  */
+GEARMAN_API
 void gearman_set_log(gearman_st *gearman, gearman_log_fn log_fn,
                      void *log_fn_arg, gearman_verbose_t verbose);
 
 /**
  * Set custom I/O event callbacks for a gearman structure.
  */
+GEARMAN_API
 void gearman_set_event_watch(gearman_st *gearman,
                              gearman_event_watch_fn *event_watch,
                              void *event_watch_arg);
@@ -135,6 +147,7 @@ void gearman_set_event_watch(gearman_st *gearman,
  * the standard system malloc to allocate memory used with workloads. This
  * function is used instead.
  */
+GEARMAN_API
 void gearman_set_workload_malloc(gearman_st *gearman,
                                  gearman_malloc_fn *workload_malloc,
                                  const void *workload_malloc_arg);
@@ -144,6 +157,7 @@ void gearman_set_workload_malloc(gearman_st *gearman,
  * standard system free to free memory used with workloads. This function
  * is used instead.
  */
+GEARMAN_API
 void gearman_set_workload_free(gearman_st *gearman,
                                gearman_free_fn *workload_free,
                                const void *workload_free_arg);
@@ -152,34 +166,40 @@ void gearman_set_workload_free(gearman_st *gearman,
  * Set function to call when tasks are being cleaned up so applications can
  * clean up fn_arg.
  */
+GEARMAN_API
 void gearman_set_task_fn_arg_free(gearman_st *gearman,
                                   gearman_task_fn_arg_free_fn *free_fn);
 
 /**
  * Get persistent queue function argument.
  */
+GEARMAN_API
 void *gearman_queue_fn_arg(gearman_st *gearman);
 
 /**
  * Set persistent queue function argument that will be passed back to all queue
  * callback functions.
  */
+GEARMAN_API
 void gearman_set_queue_fn_arg(gearman_st *gearman, const void *fn_arg);
 
 /**
  * Set function to call when jobs need to be stored in the persistent queue.
  */
+GEARMAN_API
 void gearman_set_queue_add(gearman_st *gearman, gearman_queue_add_fn *add_fn);
 
 /**
  * Set function to call when the persistent queue should be flushed to disk.
  */
+GEARMAN_API
 void gearman_set_queue_flush(gearman_st *gearman,
                              gearman_queue_flush_fn *flush_fn);
 
 /**
  * Set function to call when a job should be removed from the persistent queue.
  */
+GEARMAN_API
 void gearman_set_queue_done(gearman_st *gearman,
                             gearman_queue_done_fn *done_fn);
 
@@ -187,6 +207,7 @@ void gearman_set_queue_done(gearman_st *gearman,
  * Set function to call when jobs in the persistent queue should be replayed
  * after a restart.
  */
+GEARMAN_API
 void gearman_set_queue_replay(gearman_st *gearman,
                               gearman_queue_replay_fn *replay_fn);
 

@@ -33,6 +33,7 @@ extern "C" {
  * @param port Port of peer connection.
  * @return Pointer to an allocated gearmand structure.
  */
+GEARMAN_API
 gearman_return_t gearmand_con_create(gearmand_st *gearmand, int fd,
                                      const char *host, const char *port,
                                      gearman_con_add_fn *add_fn);
@@ -41,16 +42,19 @@ gearman_return_t gearmand_con_create(gearmand_st *gearmand, int fd,
  * Free resources used by a connection.
  * @param dcon Connection previously initialized with gearmand_con_create.
  */
+GEARMAN_API
 void gearmand_con_free(gearmand_con_st *dcon);
 
 /**
  * Check connection queue for a thread.
  */
+GEARMAN_API
 void gearmand_con_check_queue(gearmand_thread_st *thread);
 
 /**
  * Callback function used for setting events in libevent.
  */
+GEARMAN_API
 gearman_return_t gearmand_con_watch(gearman_con_st *con, short events,
                                     void *arg);
 

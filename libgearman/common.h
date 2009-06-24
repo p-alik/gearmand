@@ -14,10 +14,6 @@
 #ifndef __GEARMAN_COMMON_H__
 #define __GEARMAN_COMMON_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "config.h"
 
 #include "gearman.h"
@@ -77,6 +73,10 @@ extern "C" {
 # else
 #  include <time.h>
 # endif
+#endif
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 #if !defined(__GNUC__) || (__GNUC__ == 2 && __GNUC_MINOR__ < 96)
@@ -282,12 +282,14 @@ extern "C" {
  * Command information array.
  * @ingroup gearman_constants
  */
-extern gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX];
+extern GEARMAN_LOCAL
+gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX];
 
 /**
  * Utility function used for parsing server lists.
  * @ingroup gearman_private
  */
+GEARMAN_LOCAL
 gearman_return_t gearman_parse_servers(const char *servers, void *data,
                                        gearman_parse_server_fn *server_fn);
 

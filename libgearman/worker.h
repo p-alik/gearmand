@@ -33,6 +33,7 @@ extern "C" {
  * @return Pointer to an allocated worker structure if worker parameter was
  *         NULL, or the worker parameter pointer if it was not NULL.
  */
+GEARMAN_API
 gearman_worker_st *gearman_worker_create(gearman_worker_st *worker);
 
 /**
@@ -42,6 +43,7 @@ gearman_worker_st *gearman_worker_create(gearman_worker_st *worker);
  * @return Pointer to an allocated worker structure if worker parameter was
  *         NULL, or the worker parameter pointer if it was not NULL.
  */
+GEARMAN_API
 gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker,
                                         gearman_worker_st *from);
 
@@ -50,6 +52,7 @@ gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker,
  * @param worker Worker structure previously initialized with
  *        gearman_worker_create or gearman_worker_clone.
  */
+GEARMAN_API
 void gearman_worker_free(gearman_worker_st *worker);
 
 /**
@@ -58,6 +61,7 @@ void gearman_worker_free(gearman_worker_st *worker);
  *        gearman_worker_create or gearman_worker_clone.
  * @return Pointer to static buffer in library that holds an error string.
  */
+GEARMAN_API
 const char *gearman_worker_error(gearman_worker_st *worker);
 
 /**
@@ -66,6 +70,7 @@ const char *gearman_worker_error(gearman_worker_st *worker);
  *        gearman_worker_create or gearman_worker_clone.
  * @return An errno value as defined in your system errno.h file.
  */
+GEARMAN_API
 int gearman_worker_errno(gearman_worker_st *worker);
 
 /**
@@ -77,6 +82,7 @@ int gearman_worker_errno(gearman_worker_st *worker);
  *        For all other option flags, this should be 0 to clear the option or 1
  *        to set.
  */
+GEARMAN_API
 void gearman_worker_set_options(gearman_worker_st *worker,
                                 gearman_worker_options_t options,
                                 uint32_t data);
@@ -90,7 +96,7 @@ void gearman_worker_set_options(gearman_worker_st *worker,
  * @param workload_malloc Memory allocation function to replace malloc().
  * @param workload_malloc_arg Argument to pass along to workload_malloc.
  */
- 
+GEARMAN_API
 void gearman_worker_set_workload_malloc(gearman_worker_st *worker,
                                         gearman_malloc_fn *workload_malloc,
                                         const void *workload_malloc_arg);
@@ -104,7 +110,7 @@ void gearman_worker_set_workload_malloc(gearman_worker_st *worker,
  * @param workload_free Memory free function to replace free().
  * @param workload_free_arg Argument to pass along to workload_free.
  */
- 
+GEARMAN_API
 void gearman_worker_set_workload_free(gearman_worker_st *worker,
                                       gearman_free_fn *workload_free,
                                       const void *workload_free_arg);
@@ -118,6 +124,7 @@ void gearman_worker_set_workload_free(gearman_worker_st *worker,
  * @param port Port of the server to add.
  * @return Standard gearman return value.
  */
+GEARMAN_API
 gearman_return_t gearman_worker_add_server(gearman_worker_st *worker,
                                            const char *host, in_port_t port);
 
@@ -132,6 +139,7 @@ gearman_return_t gearman_worker_add_server(gearman_worker_st *worker,
  * @param servers Server list described above.
  * @return Standard gearman return value.
  */
+GEARMAN_API
 gearman_return_t gearman_worker_add_servers(gearman_worker_st *worker,
                                             const char *servers);
 
@@ -140,6 +148,7 @@ gearman_return_t gearman_worker_add_servers(gearman_worker_st *worker,
  * specifies how many seconds the server will wait before marking a job as
  * failed. If timeout is zero, there is no timeout.
  */
+GEARMAN_API
 gearman_return_t gearman_worker_register(gearman_worker_st *worker,
                                          const char *function_name,
                                          uint32_t timeout);
@@ -147,17 +156,20 @@ gearman_return_t gearman_worker_register(gearman_worker_st *worker,
 /**
  * Unregister function with job servers.
  */
+GEARMAN_API
 gearman_return_t gearman_worker_unregister(gearman_worker_st *worker,
                                            const char *function_name);
 
 /**
  * Unregister all functions with job servers.
  */
+GEARMAN_API
 gearman_return_t gearman_worker_unregister_all(gearman_worker_st *worker);
 
 /**
  * Get a job from one of the job servers.
  */
+GEARMAN_API
 gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
                                         gearman_job_st *job,
                                         gearman_return_t *ret_ptr);
@@ -165,6 +177,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
 /**
  * Register and add callback function for worker.
  */
+GEARMAN_API
 gearman_return_t gearman_worker_add_function(gearman_worker_st *worker,
                                              const char *function_name,
                                              uint32_t timeout,
@@ -174,6 +187,7 @@ gearman_return_t gearman_worker_add_function(gearman_worker_st *worker,
 /**
  * Wait for a job and call the appropriate callback function when it gets one.
  */
+GEARMAN_API
 gearman_return_t gearman_worker_work(gearman_worker_st *worker);
 
 /**
@@ -185,6 +199,7 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker);
  * @param workload_size Size of the workload.
  * @return Standard gearman return value.
  */
+GEARMAN_API
 gearman_return_t gearman_worker_echo(gearman_worker_st *worker,
                                      const void *workload,
                                      size_t workload_size);

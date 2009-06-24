@@ -64,7 +64,10 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
   }
 
   if (unique_size == 0)
+  {
     server_job= NULL;
+    key= 0;
+  }
   else
   {
     if (unique_size == 1 && *unique ==  '-')
