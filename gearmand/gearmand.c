@@ -63,6 +63,10 @@
 #include <libgearman/queue_libmemcached.h>
 #endif
 
+#ifdef HAVE_LIBSQLITE3
+#include <libgearman/queue_libsqlite3.h>
+#endif
+
 #include <libgearman/protocol_http.h>
 
 #define GEARMAND_LOG_REOPEN_TIME 60
@@ -167,6 +171,15 @@ int main(int argc, char *argv[])
   if (gearman_queue_libmemcached_conf(&conf) != GEARMAN_SUCCESS)
   {
     fprintf(stderr, "gearmand: gearman_queue_libmemcached_conf: %s\n",
+            gearman_conf_error(&conf));
+    return 1;
+  }
+#endif
+
+#ifdef HAVE_LIBSQLITE3
+  if (gearman_queue_libsqlite3_conf(&conf) != GEARMAN_SUCCESS)
+  {
+    fprintf(stderr, "gearmand: gearman_queue_libsqlite3_conf: %s\n",
             gearman_conf_error(&conf));
     return 1;
   }
@@ -291,6 +304,15 @@ int main(int argc, char *argv[])
     }
     else
 #endif
+#ifdef HAVE_LIBSQLITE3
+    if (!strcmp(queue_type, "libsqlite3"))
+    {
+      ret= gearmand_queue_libsqlite3_init(_gearmand, &conf);
+      if (ret != GEARMAN_SUCCESS)
+        return 1;
+    }
+    else
+#endif
     {
       fprintf(stderr, "gearmand: Unknown queue module: %s\n", queue_type);
       return 1;
@@ -326,6 +348,10 @@ int main(int argc, char *argv[])
 #ifdef HAVE_LIBMEMCACHED
     if (!strcmp(queue_type, "libmemcached"))
       gearmand_queue_libmemcached_deinit(_gearmand);
+#endif
+#ifdef HAVE_LIBSQLITE3
+    if (!strcmp(queue_type, "libsqlite3"))
+      gearmand_queue_libsqlite3_deinit(_gearmand);
 #endif
   }
 

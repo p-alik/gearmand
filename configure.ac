@@ -242,6 +242,21 @@ AC_LIB_HAVE_LINKFLAGS(memcached,,
 
 AM_CONDITIONAL(HAVE_LIBMEMCACHED, test x$ac_cv_libmemcached = xyes)
 
+#--------------------------------------------------------------------
+# Check for libsqlite3
+#--------------------------------------------------------------------
+AC_LIB_HAVE_LINKFLAGS(sqlite3,,
+[
+#include <stdio.h>
+#include <sqlite3.h>
+],
+[
+  sqlite3 *db;
+  sqlite3_open(NULL, &db);
+])
+
+AM_CONDITIONAL(HAVE_LIBSQLITE3, test x$ac_cv_libsqlite3 = xyes)
+
 AC_CHECK_HEADERS(assert.h errno.h fcntl.h getopt.h netinet/tcp.h pwd.h signal.h)
 AC_CHECK_HEADERS(stdarg.h stddef.h stdio.h stdlib.h string.h)
 AC_CHECK_HEADERS(sys/resource.h sys/stat.h)
