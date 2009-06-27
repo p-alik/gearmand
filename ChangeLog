@@ -6,6 +6,7 @@
  * Improved logging messages for gearmand.
  * Removed all struct memsets and packed structs for better memory usage.
  * Fixed client connect bug with multiple job servers.
+ * FIxed server spinning bug with long running jobs and large workloads.
 
 0.7 - 2009-05-31
  * Added libmodconf for config option processing. Eventually this will be split
