@@ -306,7 +306,7 @@ gearman_return_t _thread_packet_read(gearman_server_con_st *con)
       return ret;
     }
 
-    GEARMAN_DEBUG(con->thread->gearman, "%s:%s Received  %s",
+    GEARMAN_DEBUG(con->thread->gearman, "%15s:%5s Received  %s",
                   con->host == NULL ? "-" : con->host,
                   con->port == NULL ? "-" : con->port,
                   gearman_command_info_list[con->packet->packet.command].name)
@@ -351,7 +351,7 @@ static gearman_return_t _thread_packet_flush(gearman_server_con_st *con)
     if (con->io_packet_list->packet.command == GEARMAN_COMMAND_NOOP)
       con->noop_queued= false;
 
-    GEARMAN_DEBUG(con->thread->gearman, "%s:%s Sent      %s",
+    GEARMAN_DEBUG(con->thread->gearman, "%15s:%5s Sent      %s",
             con->host == NULL ? "-" : con->host,
             con->port == NULL ? "-" : con->port,
             gearman_command_info_list[con->io_packet_list->packet.command].name)

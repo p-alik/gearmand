@@ -172,7 +172,7 @@ gearman_return_t gearman_con_set_events(gearman_con_st *con, short events);
  * event callbacks.
  */
 GEARMAN_API
-void gearman_con_set_revents(gearman_con_st *con, short revents);
+gearman_return_t gearman_con_set_revents(gearman_con_st *con, short revents);
 
 /**
  * Get next connection that is ready for I/O.
