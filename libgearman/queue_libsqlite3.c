@@ -57,10 +57,8 @@ static int _sqlite_lock(gearman_st *gearman,
                         gearman_queue_sqlite_st *queue);
 static int _sqlite_commit(gearman_st *gearman,
                           gearman_queue_sqlite_st *queue);
-#if 0
 static int _sqlite_rollback(gearman_st *gearman,
                             gearman_queue_sqlite_st *queue);
-#endif
 
 /* Queue callback functions. */
 static gearman_return_t _sqlite_add(gearman_st *gearman, void *fn_arg,
@@ -164,7 +162,7 @@ gearman_return_t gearman_queue_libsqlite3_init(gearman_st *gearman,
   {
     gearman_queue_libsqlite3_deinit(gearman);
     GEARMAN_ERROR_SET(gearman, "gearman_queue_libsqlite3_init",
-                      "missing required --sqlite-db=<dbfile> argument");
+                      "missing required --libsqlite3-db=<dbfile> argument");
     return GEARMAN_QUEUE_ERROR;
   }    
 
@@ -176,7 +174,18 @@ gearman_return_t gearman_queue_libsqlite3_init(gearman_st *gearman,
 
   while (sqlite3_step(sth) == SQLITE_ROW)
   {
-    table = (char*)sqlite3_column_text(sth, 0);
+    if (sqlite3_column_type(sth,0) == SQLITE_TEXT)
+    {
+      table = (char*)sqlite3_column_text(sth, 0);
+    }
+    else
+    {
+      sqlite3_finalize(sth);
+      GEARMAN_ERROR_SET(gearman, "gearman_queue_libsqlite3_init",
+                        "column %d is not type TEXT", 0);
+      return GEARMAN_QUEUE_ERROR;
+    }
+      
     if (!strcasecmp(queue->table, table))
     {
       GEARMAN_INFO(gearman, "sqlite module using table '%s'", table);
@@ -351,7 +360,6 @@ int _sqlite_commit(gearman_st *gearman,
   return SQLITE_OK;
 }
 
-#if 0
 int _sqlite_rollback(gearman_st *gearman,
                      gearman_queue_sqlite_st *queue) {
   sqlite3_stmt * sth;
@@ -382,7 +390,6 @@ int _sqlite_rollback(gearman_st *gearman,
   queue->in_trans = 0;
   return SQLITE_OK;
 }
-#endif
 
 static gearman_return_t _sqlite_add(gearman_st *gearman, void *fn_arg,
                                         const void *unique, size_t unique_size,
@@ -426,10 +433,39 @@ static gearman_return_t _sqlite_add(gearman_st *gearman, void *fn_arg,
   if (_sqlite_query(gearman, queue, query, query_size, &sth) != SQLITE_OK)
     return GEARMAN_QUEUE_ERROR;
 
-  sqlite3_bind_int(sth,  1, priority);
-  sqlite3_bind_text(sth, 2, unique, unique_size, SQLITE_TRANSIENT);
-  sqlite3_bind_text(sth, 3, function_name, function_name_size, SQLITE_TRANSIENT);
-  sqlite3_bind_blob(sth, 4, data, data_size, SQLITE_TRANSIENT);
+  if (sqlite3_bind_int(sth,  1, priority) != SQLITE_OK)
+  {
+    _sqlite_rollback(gearman, queue);
+    GEARMAN_ERROR_SET(gearman, "_sqlite_add", "failed to bind int [%d]: %s", priority, sqlite3_errmsg(queue->db));
+    sqlite3_finalize(sth);
+    return GEARMAN_QUEUE_ERROR;
+  }
+
+  if (sqlite3_bind_text(sth, 2, unique, unique_size, SQLITE_TRANSIENT) != SQLITE_OK)
+  {
+    _sqlite_rollback(gearman, queue);
+    GEARMAN_ERROR_SET(gearman, "_sqlite_add", "failed to bind text [%.*s]: %s", 
+                      (uint32_t)unique_size, (char*)unique, sqlite3_errmsg(queue->db));
+    sqlite3_finalize(sth);
+    return GEARMAN_QUEUE_ERROR;
+  }
+
+  if (sqlite3_bind_text(sth, 3, function_name, function_name_size, SQLITE_TRANSIENT) != SQLITE_OK)
+  {
+    _sqlite_rollback(gearman, queue);
+    GEARMAN_ERROR_SET(gearman, "_sqlite_add", "failed to bind text [%.*s]: %s", 
+                      (uint32_t)function_name_size, (char*)function_name, sqlite3_errmsg(queue->db));
+    sqlite3_finalize(sth);
+    return GEARMAN_QUEUE_ERROR;
+  }
+
+  if (sqlite3_bind_blob(sth, 4, data, data_size, SQLITE_TRANSIENT) != SQLITE_OK)
+  {
+    _sqlite_rollback(gearman, queue);
+    GEARMAN_ERROR_SET(gearman, "_sqlite_add", "failed to bind blob: %s", sqlite3_errmsg(queue->db));
+    sqlite3_finalize(sth);
+    return GEARMAN_QUEUE_ERROR;
+  }
 
   if (sqlite3_step(sth) != SQLITE_DONE)
   {
@@ -547,24 +583,73 @@ static gearman_return_t _sqlite_replay(gearman_st *gearman, void *fn_arg,
 
   if (_sqlite_query(gearman, queue, query, query_size, &sth) != SQLITE_OK)
     return GEARMAN_QUEUE_ERROR;
-
   while (sqlite3_step(sth) == SQLITE_ROW)
   {
-    const void *unique = sqlite3_column_text(sth,0);
-    size_t unique_size = sqlite3_column_bytes(sth,0);
+    const void *unique, *function_name;
+    void *data;
+    size_t unique_size, function_name_size, data_size;
+    gearman_job_priority_t priority;
 
-    const void *function_name = sqlite3_column_text(sth,1);
-    size_t function_name_size = sqlite3_column_bytes(sth,1);
+    if (sqlite3_column_type(sth,0) == SQLITE_TEXT)
+    {
+      unique = sqlite3_column_text(sth,0);
+      unique_size = sqlite3_column_bytes(sth,0);
+    }
+    else
+    {
+      sqlite3_finalize(sth);
+      GEARMAN_ERROR_SET(gearman, "_sqlite_replay",
+                        "column %d is not type TEXT", 0);
+      return GEARMAN_QUEUE_ERROR;
+    }
 
-    gearman_job_priority_t priority = (double)sqlite3_column_int64(sth,2);
-      
-    size_t data_size = sqlite3_column_bytes(sth,3);
-    /* need to make a copy here ... gearman_server_job_free will free it later */
-    void *data = malloc(data_size);
-    memcpy(data, sqlite3_column_blob(sth,3), data_size);
+    if (sqlite3_column_type(sth,1) == SQLITE_TEXT)
+    {
+      function_name = sqlite3_column_text(sth,1);
+      function_name_size = sqlite3_column_bytes(sth,1);
+    }
+    else
+    {
+      sqlite3_finalize(sth);
+      GEARMAN_ERROR_SET(gearman, "_sqlite_replay",
+                        "column %d is not type TEXT", 1);
+      return GEARMAN_QUEUE_ERROR;
+    }
+
+    if (sqlite3_column_type(sth,2) == SQLITE_INTEGER)
+    {
+      priority = (double)sqlite3_column_int64(sth,2);
+    }
+    else
+    {
+      sqlite3_finalize(sth);
+      GEARMAN_ERROR_SET(gearman, "_sqlite_replay",
+                        "column %d is not type INTEGER", 2);
+      return GEARMAN_QUEUE_ERROR;
+    }
+
+    if (sqlite3_column_type(sth,3) == SQLITE_BLOB)
+    {
+      data_size = sqlite3_column_bytes(sth,3);
+      /* need to make a copy here ... gearman_server_job_free will free it later */
+      data = malloc(data_size);
+      if (data == NULL)
+      {
+        sqlite3_finalize(sth);
+        GEARMAN_ERROR_SET(gearman, "_sqlite_replay", "malloc");
+        return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+      }
+      memcpy(data, sqlite3_column_blob(sth,3), data_size);
+    }
+    else
+    {
+      sqlite3_finalize(sth);
+      GEARMAN_ERROR_SET(gearman, "_sqlite_replay",
+                        "column %d is not type TEXT", 3);
+      return GEARMAN_QUEUE_ERROR;
+    }
 
     GEARMAN_DEBUG(gearman, "sqlite replay: %s", (char*)function_name);
-
 
     gret= (*add_fn)(gearman, add_fn_arg,
                     unique, unique_size,
