@@ -242,6 +242,9 @@ AC_LIB_HAVE_LINKFLAGS(memcached,,
 
 AM_CONDITIONAL(HAVE_LIBMEMCACHED, test x$ac_cv_libmemcached = xyes)
 
+AS_IF([test x$ac_cv_libmemcached = xyes],
+      [ WITH_MEMCACHED ])
+
 AC_CHECK_HEADERS(assert.h errno.h fcntl.h getopt.h netinet/tcp.h pwd.h signal.h)
 AC_CHECK_HEADERS(stdarg.h stddef.h stdio.h stdlib.h string.h)
 AC_CHECK_HEADERS(sys/resource.h sys/stat.h)

@@ -7,7 +7,7 @@
 
 if HAVE_LIBMEMCACHED
 LIBMEMCACHED_TEST= memcached_test
-LIBMEMCACHED_SETUP= memcached -d -P /tmp/Xumemc.pid -p 12555
+LIBMEMCACHED_SETUP= $(MEMCACHED_BINARY) -d -P /tmp/Xumemc.pid -p 12555
 LIBMEMCACHED_TEARDOWN= cat /tmp/Xumemc.pid | xargs kill
 LIBMEMCACHED_RM= rm /tmp/Xumemc.pid
 LIBMEMCACHED_RES= memcached_test.res
