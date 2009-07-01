@@ -50,6 +50,7 @@ typedef struct
   gearman_job_priority_t priority;
   char **argv;
   gearman_task_st *task;
+  char return_value;
 } gearman_args_st;
 
 /**
@@ -192,7 +193,7 @@ int main(int argc, char *argv[])
   else
     _client(&args);
 
-  return 0;
+  return args.return_value;
 }
 
 void _client(gearman_args_st *args)
@@ -402,6 +403,7 @@ static gearman_return_t _client_fail(gearman_task_st *task)
 
   fprintf(stderr, "Job failed\n");
 
+  args->return_value= 1;
   return GEARMAN_SUCCESS;
 }
 
@@ -455,6 +457,7 @@ static void *_worker_cb(gearman_job_st *job, void *cb_arg, size_t *result_size,
   char *result= NULL;
   size_t total_size= 0;
   FILE *f;
+  int status;
 
   *ret_ptr= GEARMAN_SUCCESS;
 
@@ -542,8 +545,21 @@ static void *_worker_cb(gearman_job_st *job, void *cb_arg, size_t *result_size,
       close(out_fds[0]);
     }
 
-    if (wait(NULL) == -1)
+    if (wait(&status) == -1)
       GEARMAN_ERROR("wait:%d", errno)
+
+    if (WEXITSTATUS(status) != 0)
+    {
+      if (result != NULL)
+      {
+        *ret_ptr= gearman_job_data(job, result, *result_size);
+        if (*ret_ptr != GEARMAN_SUCCESS)
+          return NULL;
+      }
+
+      *ret_ptr= GEARMAN_WORK_FAIL;
+      return NULL;
+    }
   }
 
   return result;
