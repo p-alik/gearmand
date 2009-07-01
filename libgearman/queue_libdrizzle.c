@@ -293,9 +293,19 @@ static drizzle_return_t _libdrizzle_query(gearman_st *gearman,
   (void)drizzle_query(&(queue->con), &(queue->result), query, query_size, &ret);
   if (ret != DRIZZLE_RETURN_OK)
   {
-    GEARMAN_ERROR_SET(gearman, "_libdrizzle_query", "drizzle_query:%s",
-                      drizzle_error(&(queue->drizzle)))
-    return ret;
+    /* If we lost the connection, try one more time before exiting. */
+    if (ret == DRIZZLE_RETURN_LOST_CONNECTION)
+    {
+      (void)drizzle_query(&(queue->con), &(queue->result), query, query_size,
+                          &ret);
+    }
+
+    if (ret != DRIZZLE_RETURN_OK)
+    {
+      GEARMAN_ERROR_SET(gearman, "_libdrizzle_query", "drizzle_query:%s",
+                        drizzle_error(&(queue->drizzle)))
+      return ret;
+    }
   }
 
   return DRIZZLE_RETURN_OK;

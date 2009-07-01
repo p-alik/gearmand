@@ -1,4 +1,4 @@
-0.8 - 2009-06-??
+0.8 - 2009-06-30
  * Added pluggable protocol support.
  * Added basic HTTP protocol support.
  * Updated autoconf build system.
