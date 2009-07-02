@@ -29,6 +29,7 @@ extern "C" {
 /**
  * Initialize a server packet structure.
  */
+GEARMAN_API
 gearman_server_packet_st *
 gearman_server_packet_create(gearman_server_thread_st *thread,
                              bool from_thread);
@@ -36,6 +37,7 @@ gearman_server_packet_create(gearman_server_thread_st *thread,
 /**
  * Free a server connection structure.
  */
+GEARMAN_API
 void gearman_server_packet_free(gearman_server_packet_st *packet,
                                 gearman_server_thread_st *thread,
                                 bool from_thread);
@@ -43,6 +45,7 @@ void gearman_server_packet_free(gearman_server_packet_st *packet,
 /**
  * Add a server packet structure to io queue for a connection.
  */
+GEARMAN_API
 gearman_return_t gearman_server_io_packet_add(gearman_server_con_st *con,
                                               bool take_data,
                                               gearman_magic_t magic,
@@ -52,17 +55,20 @@ gearman_return_t gearman_server_io_packet_add(gearman_server_con_st *con,
 /**
  * Remove the first server packet structure from io queue for a connection.
  */
+GEARMAN_API
 void gearman_server_io_packet_remove(gearman_server_con_st *con);
 
 /**
  * Add a server packet structure to proc queue for a connection.
  */
+GEARMAN_API
 void gearman_server_proc_packet_add(gearman_server_con_st *con,
                                     gearman_server_packet_st *packet);
 
 /**
  * Remove the first server packet structure from proc queue for a connection.
  */
+GEARMAN_API
 gearman_server_packet_st *
 gearman_server_proc_packet_remove(gearman_server_con_st *con);
 

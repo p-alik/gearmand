@@ -30,12 +30,14 @@ extern "C" {
  *        gearmand_create.
  * @return Standard gearman return value.
  */
+GEARMAN_API
 gearman_return_t gearmand_thread_create(gearmand_st *gearmand);
 
 /**
  * Free resources used by a thread.
  * @param thread Thread previously initialized with gearmand_thread_create.
  */
+GEARMAN_API
 void gearmand_thread_free(gearmand_thread_st *thread);
 
 /**
@@ -44,6 +46,7 @@ void gearmand_thread_free(gearmand_thread_st *thread);
  * gearmand_thread_create.
  * @param wakeup Wakeup event to send to running thread.
  */
+GEARMAN_API
 void gearmand_thread_wakeup(gearmand_thread_st *thread,
                             gearmand_wakeup_t wakeup);
 
@@ -52,6 +55,7 @@ void gearmand_thread_wakeup(gearmand_thread_st *thread,
  * @param thread Thread structure previously initialized with
  * gearmand_thread_create.
  */
+GEARMAN_API
 void gearmand_thread_run(gearmand_thread_st *thread);
 
 /** @} */

@@ -857,19 +857,44 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
     }
 
   case GEARMAN_TASK_STATE_SUBMIT:
-    ret= gearman_con_send(task->con, &(task->send),
-                          client->new_tasks == 0 ? true : false);
-    if (ret == GEARMAN_IO_WAIT)
+    while (1)
     {
-      task->state= GEARMAN_TASK_STATE_SUBMIT;
-      return GEARMAN_IO_WAIT;
-    }
-    else if (ret != GEARMAN_SUCCESS)
-    {
-      /* Increment this since the job submission failed. */
-      task->con->created_id++;
-      client->running_tasks--;
-      return ret;
+      ret= gearman_con_send(task->con, &(task->send),
+                            client->new_tasks == 0 ? true : false);
+      if (ret == GEARMAN_SUCCESS)
+        break;
+      else if (ret == GEARMAN_IO_WAIT)
+      {
+        task->state= GEARMAN_TASK_STATE_SUBMIT;
+        return GEARMAN_IO_WAIT;
+      }
+      else if (ret != GEARMAN_SUCCESS)
+      {
+        /* Increment this since the job submission failed. */
+        task->con->created_id++;
+
+        if (ret == GEARMAN_COULD_NOT_CONNECT)
+        {
+          for (task->con= task->con->next; task->con != NULL;
+               task->con= task->con->next)
+          {
+            if (task->con->send_state == GEARMAN_CON_SEND_STATE_NONE)
+              break;
+          }
+        }
+
+        if (task->con == NULL)
+        {
+          client->running_tasks--;
+          return ret;
+        }
+
+        if (task->send.command != GEARMAN_COMMAND_GET_STATUS)
+        {
+          task->created_id= task->con->created_id_next;
+          task->con->created_id_next++;
+        }
+      }
     }
 
     if (task->send.data_size > 0 && task->send.data == NULL)

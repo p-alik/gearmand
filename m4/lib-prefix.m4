@@ -184,10 +184,10 @@ AC_DEFUN([AC_LIB_PREPARE_MULTILIB],
       dnl But we want to recognize the sparcv9 or amd64 subdirectory also if the
       dnl symlink is missing, so we set acl_libdirstem2 too.
       AC_CACHE_CHECK([for 64-bit host], [gl_cv_solaris_64bit],
-        [AC_EGREP_CPP([sixtyfour bits], [
-#ifdef _LP64
-sixtyfour bits
-#endif
+        [AC_RUN_IFELSE([
+           AC_LANG_PROGRAM([], [[
+             return sizeof(void*) == 8 ? 0 : 1;
+           ]])            
            ], [gl_cv_solaris_64bit=yes], [gl_cv_solaris_64bit=no])
         ])
       if test $gl_cv_solaris_64bit = yes; then

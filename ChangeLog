@@ -5,6 +5,7 @@
  * Renamed modconf to gearman_conf.
  * Improved logging messages for gearmand.
  * Removed all struct memsets and packed structs for better memory usage.
+ * Fixed client connect bug with multiple job servers.
 
 0.7 - 2009-05-31
  * Added libmodconf for config option processing. Eventually this will be split
