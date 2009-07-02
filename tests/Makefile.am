@@ -7,6 +7,9 @@
 
 if HAVE_LIBMEMCACHED
 LIBMEMCACHED_TEST= memcached_test
+LIBMEMCACHED_SETUP= $(MEMCACHED_BINARY) -d -P /tmp/Xumemc.pid -p 12555
+LIBMEMCACHED_TEARDOWN= cat /tmp/Xumemc.pid | xargs kill
+LIBMEMCACHED_RM= rm /tmp/Xumemc.pid
 LIBMEMCACHED_RES= memcached_test.res
 LIBMEMCACHED_REC= memcached_test.rec
 LIBMEMCACHED_RECORD= ./memcached_test > memcached_test.rec
@@ -47,8 +50,11 @@ check: client_test worker_test $(LIBMEMCACHED_TEST)
 	diff ${top_srcdir}/tests/client_test.rec client_test.res
 	./worker_test > worker_test.res
 	diff ${top_srcdir}/tests/worker_test.rec worker_test.res
+	$(LIBMEMCACHED_SETUP)
 	$(LIBMEMCACHED_RUN)
 	$(LIBMEMCACHED_CHECK)
+	$(LIBMEMCACHED_TEARDOWN)
+	$(LIBMEMCACHED_RM)
 
 valgrind: client_test worker_test $(LIBMEMCACHED_TEST)
 	libtool --mode=execute valgrind --leak-check=yes --show-reachable=yes  client_test

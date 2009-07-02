@@ -137,7 +137,7 @@ test_return post(void *object __attribute__((unused)))
 void *world_create(void)
 {
   worker_test_st *test;
-  char *argv[2]= { "test_gearmand", "--libmemcached-servers=localhost" };
+  char *argv[2]= { "test_gearmand", "--libmemcached-servers=localhost:12555" };
 
   assert((test= malloc(sizeof(worker_test_st))) != NULL);
   memset(test, 0, sizeof(worker_test_st));

@@ -225,13 +225,19 @@ static void _con_ready(int fd __attribute__ ((unused)), short events,
 {
   gearmand_con_st *dcon= (gearmand_con_st *)arg;
   short revents= 0;
+  gearman_return_t ret;
 
   if (events & EV_READ)
     revents|= POLLIN;
   if (events & EV_WRITE)
     revents|= POLLOUT;
 
-  gearman_con_set_revents(dcon->con, revents);
+  ret= gearman_con_set_revents(dcon->con, revents);
+  if (ret != GEARMAN_SUCCESS)
+  {
+    gearmand_con_free(dcon);
+    return;
+  }
 
   GEARMAN_CRAZY(dcon->thread->gearmand, "[%4u] %15s:%5s Ready     %6s %s",
                 dcon->thread->count, dcon->host, dcon->port,

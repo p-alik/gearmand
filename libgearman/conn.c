@@ -948,6 +948,7 @@ gearman_return_t gearman_con_wait(gearman_st *gearman, int timeout)
   struct pollfd *pfds;
   nfds_t x;
   int ret;
+  gearman_return_t gret;
 
   if (gearman->pfds_size < gearman->con_count)
   {
@@ -1004,7 +1005,10 @@ gearman_return_t gearman_con_wait(gearman_st *gearman, int timeout)
     if (con->events == 0)
       continue;
 
-    gearman_con_set_revents(con, pfds[x].revents);
+    gret= gearman_con_set_revents(con, pfds[x].revents);
+    if (gret != GEARMAN_SUCCESS)
+      return gret;
+
     x++;
   }
 
@@ -1034,13 +1038,34 @@ gearman_return_t gearman_con_set_events(gearman_con_st *con, short events)
   return GEARMAN_SUCCESS;
 }
 
-void gearman_con_set_revents(gearman_con_st *con, short revents)
+gearman_return_t gearman_con_set_revents(gearman_con_st *con, short revents)
 {
+  gearman_return_t ret;
+
   if (revents != 0)
     con->options|= GEARMAN_CON_READY;
 
   con->revents= revents;
+
+  /* Remove external POLLOUT watch if we didn't ask for it. Otherwise we spin
+     forever until another POLLIN state change. This is much more efficient
+     than removing POLLOUT on every state change since some external polling
+     mechanisms need to use a system call to change flags (like Linux epoll). */
+  if (revents & POLLOUT && !(con->events & POLLOUT) &&
+      con->gearman->event_watch != NULL)
+  {
+    ret= (con->gearman->event_watch)(con, con->events,
+                                     con->gearman->event_watch_arg);
+    if (ret != GEARMAN_SUCCESS)
+    {
+      gearman_con_close(con);
+      return ret;
+    }
+  }
+
   con->events&= (short)~revents;
+
+  return GEARMAN_SUCCESS;
 }
 
 gearman_con_st *gearman_con_ready(gearman_st *gearman)

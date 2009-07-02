@@ -241,6 +241,8 @@ AC_LIB_HAVE_LINKFLAGS(memcached,,
 ])
 
 AM_CONDITIONAL(HAVE_LIBMEMCACHED, test x$ac_cv_libmemcached = xyes)
+AS_IF([test x$ac_cv_libmemcached = xyes],
+      [ WITH_MEMCACHED ])
 
 #--------------------------------------------------------------------
 # Check for libtokyocabinet
