@@ -106,6 +106,7 @@ gearman_return_t gearman_queue_libsqlite3_init(gearman_st *gearman,
   const char *name;
   const char *value;
   char *table = NULL;
+  const char *query;
   sqlite3_stmt * sth;
   char create[1024];
 
@@ -165,8 +166,9 @@ gearman_return_t gearman_queue_libsqlite3_init(gearman_st *gearman,
                       "missing required --libsqlite3-db=<dbfile> argument");
     return GEARMAN_QUEUE_ERROR;
   }    
-
-  if (_sqlite_query(gearman, queue, "SELECT name FROM sqlite_master WHERE type='table'", -1, &sth) != SQLITE_OK)
+  
+  query = "SELECT name FROM sqlite_master WHERE type='table'";
+  if (_sqlite_query(gearman, queue, query, strlen(query), &sth) != SQLITE_OK)
   {
     gearman_queue_libsqlite3_deinit(gearman);
     return GEARMAN_QUEUE_ERROR;
@@ -281,8 +283,14 @@ int _sqlite_query(gearman_st *gearman,
                   sqlite3_stmt ** sth)
 {
   int ret;
+  if (query_size > INT_MAX)
+  {
+    GEARMAN_ERROR_SET(gearman, "_sqlite_query", "query size too big [%u]", (uint32_t)query_size);
+    return SQLITE_ERROR;
+  }
+
   GEARMAN_CRAZY(gearman, "sqlite query: %s", query);
-  ret = sqlite3_prepare(queue->db, query, query_size, sth, NULL);
+  ret = sqlite3_prepare(queue->db, query, (int)query_size, sth, NULL);
   if (ret  != SQLITE_OK)
   {
     if (*sth)
@@ -299,13 +307,15 @@ int _sqlite_lock(gearman_st *gearman,
                  gearman_queue_sqlite_st *queue) {
   sqlite3_stmt * sth;
   int ret;
+  const char * query;
   if (queue->in_trans)
   {
     /* already in transaction */
     return SQLITE_OK;
   }
-
-  ret = _sqlite_query(gearman, queue, "BEGIN TRANSACTION", -1, &sth);
+  
+  query = "BEGIN TRANSACTION";
+  ret = _sqlite_query(gearman, queue, query, strlen(query), &sth);
   if (ret != SQLITE_OK)
   {
     GEARMAN_ERROR_SET(gearman, "_sqlite_lock", "failed to begin transaction: %s", 
@@ -333,13 +343,15 @@ int _sqlite_commit(gearman_st *gearman,
                  gearman_queue_sqlite_st *queue) {
   sqlite3_stmt * sth;
   int ret;
+  const char * query;
   if (! queue->in_trans)
   {
     /* not in transaction */
     return SQLITE_OK;
   }
 
-  ret = _sqlite_query(gearman, queue, "COMMIT", -1, &sth);
+  query = "COMMIT";
+  ret = _sqlite_query(gearman, queue, query, strlen(query), &sth);
   if (ret != SQLITE_OK)
   {
     GEARMAN_ERROR_SET(gearman, "_sqlite_commit", "failed to commit transaction: %s", 
@@ -364,13 +376,15 @@ int _sqlite_rollback(gearman_st *gearman,
                      gearman_queue_sqlite_st *queue) {
   sqlite3_stmt * sth;
   int ret;
+  const char * query;
   if (! queue->in_trans)
   {
     /* not in transaction */
     return SQLITE_OK;
   }
 
-  ret = _sqlite_query(gearman, queue, "ROLLBACK", -1, &sth);
+  query = "ROLLBACK";
+  ret = _sqlite_query(gearman, queue, query, strlen(query), &sth);
   if (ret != SQLITE_OK)
   {
     GEARMAN_ERROR_SET(gearman, "_sqlite_rollback", "failed to rollback transaction: %s", 
@@ -402,6 +416,12 @@ static gearman_return_t _sqlite_add(gearman_st *gearman, void *fn_arg,
   char *query;
   size_t query_size;
   sqlite3_stmt * sth;
+
+  if (unique_size > INT_MAX || function_name_size > INT_MAX || data_size > INT_MAX)
+  {
+    GEARMAN_ERROR_SET(gearman, "_sqlite_add", "size too big [%u]", (uint32_t)unique_size);
+    return SQLITE_ERROR;
+  }
 
   GEARMAN_DEBUG(gearman, "sqlite add: %.*s", (uint32_t)unique_size,
                 (char *)unique);
@@ -441,7 +461,7 @@ static gearman_return_t _sqlite_add(gearman_st *gearman, void *fn_arg,
     return GEARMAN_QUEUE_ERROR;
   }
 
-  if (sqlite3_bind_text(sth, 2, unique, unique_size, SQLITE_TRANSIENT) != SQLITE_OK)
+  if (sqlite3_bind_text(sth, 2, unique, (int)unique_size, SQLITE_TRANSIENT) != SQLITE_OK)
   {
     _sqlite_rollback(gearman, queue);
     GEARMAN_ERROR_SET(gearman, "_sqlite_add", "failed to bind text [%.*s]: %s", 
@@ -450,7 +470,7 @@ static gearman_return_t _sqlite_add(gearman_st *gearman, void *fn_arg,
     return GEARMAN_QUEUE_ERROR;
   }
 
-  if (sqlite3_bind_text(sth, 3, function_name, function_name_size, SQLITE_TRANSIENT) != SQLITE_OK)
+  if (sqlite3_bind_text(sth, 3, function_name, (int)function_name_size, SQLITE_TRANSIENT) != SQLITE_OK)
   {
     _sqlite_rollback(gearman, queue);
     GEARMAN_ERROR_SET(gearman, "_sqlite_add", "failed to bind text [%.*s]: %s", 
@@ -459,7 +479,7 @@ static gearman_return_t _sqlite_add(gearman_st *gearman, void *fn_arg,
     return GEARMAN_QUEUE_ERROR;
   }
 
-  if (sqlite3_bind_blob(sth, 4, data, data_size, SQLITE_TRANSIENT) != SQLITE_OK)
+  if (sqlite3_bind_blob(sth, 4, data, (int)data_size, SQLITE_TRANSIENT) != SQLITE_OK)
   {
     _sqlite_rollback(gearman, queue);
     GEARMAN_ERROR_SET(gearman, "_sqlite_add", "failed to bind blob: %s", sqlite3_errmsg(queue->db));
@@ -503,6 +523,12 @@ static gearman_return_t _sqlite_done(gearman_st *gearman, void *fn_arg,
   size_t query_size;
   sqlite3_stmt * sth;
 
+  if (unique_size > INT_MAX)
+  {
+    GEARMAN_ERROR_SET(gearman, "_sqlite_query", "unique key size too big [%u]", (uint32_t)unique_size);
+    return SQLITE_ERROR;
+  }
+
   GEARMAN_DEBUG(gearman, "sqlite done: %.*s", (uint32_t)unique_size,
                 (char *)unique)
 
@@ -532,7 +558,7 @@ static gearman_return_t _sqlite_done(gearman_st *gearman, void *fn_arg,
   if (_sqlite_query(gearman, queue, query, query_size, &sth) != SQLITE_OK)
     return GEARMAN_QUEUE_ERROR;
 
-  sqlite3_bind_text(sth, 1, unique, unique_size, SQLITE_TRANSIENT);
+  sqlite3_bind_text(sth, 1, unique, (int)unique_size, SQLITE_TRANSIENT);
   
   if (sqlite3_step(sth) != SQLITE_DONE)
   {
@@ -593,7 +619,7 @@ static gearman_return_t _sqlite_replay(gearman_st *gearman, void *fn_arg,
     if (sqlite3_column_type(sth,0) == SQLITE_TEXT)
     {
       unique = sqlite3_column_text(sth,0);
-      unique_size = sqlite3_column_bytes(sth,0);
+      unique_size = (size_t) sqlite3_column_bytes(sth,0);
     }
     else
     {
@@ -606,7 +632,7 @@ static gearman_return_t _sqlite_replay(gearman_st *gearman, void *fn_arg,
     if (sqlite3_column_type(sth,1) == SQLITE_TEXT)
     {
       function_name = sqlite3_column_text(sth,1);
-      function_name_size = sqlite3_column_bytes(sth,1);
+      function_name_size = (size_t)sqlite3_column_bytes(sth,1);
     }
     else
     {
@@ -630,7 +656,7 @@ static gearman_return_t _sqlite_replay(gearman_st *gearman, void *fn_arg,
 
     if (sqlite3_column_type(sth,3) == SQLITE_BLOB)
     {
-      data_size = sqlite3_column_bytes(sth,3);
+      data_size = (size_t)sqlite3_column_bytes(sth,3);
       /* need to make a copy here ... gearman_server_job_free will free it later */
       data = malloc(data_size);
       if (data == NULL)
