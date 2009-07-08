@@ -102,6 +102,8 @@ AC_ARG_ENABLE([tcmalloc],
     [ac_enable_tcmalloc="$enableval"],
     [ac_enable_tcmalloc="no"])
 
+save_LIBS="${LIBS}"
+LIBS=
 if test "x$ac_enable_tcmalloc" != "xno"
 then
   AC_CHECK_LIB(tcmalloc,malloc,[],[])
@@ -111,6 +113,9 @@ if test "x$ac_cv_lib_tcmalloc_malloc" != "xyes"
 then
   AC_CHECK_LIB(mtmalloc,malloc,[],[])
 fi
+MALLOC_LIBS="${LIBS}"
+LIBS="${save_LIBS}"
+AC_SUBST([MALLOC_LIBS])
 
 #--------------------------------------------------------------------
 # Check for libdrizzle
