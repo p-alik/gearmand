@@ -1,29 +1,67 @@
-#!/usr/bin/env bash
+#!/bin/sh
 # Taken from lighthttpd server (BSD). Thanks Jan!
 # Run this to generate all the initial makefiles, etc.
 
 die() { echo "$@"; exit 1; }
 
-# ACLOCAL=${ACLOCAL:-aclocal}
-ACLOCAL_FLAGS="-I m4"
-# AUTOHEADER=${AUTOHEADER:-autoheader}
-# AUTOMAKE=${AUTOMAKE:-automake}
 # --add-missing instructs automake to install missing auxiliary files
-# --copy tells it to make copies and not symlinks
+# and --force to overwrite them if they already exist
 AUTOMAKE_FLAGS="--add-missing --copy --force"
-# AUTOCONF=${AUTOCONF:-autoconf}
+ACLOCAL_FLAGS="-I m4"
 
 ARGV0=$0
 ARGS="$@"
-
 
 run() {
 	echo "$ARGV0: running \`$@' $ARGS"
 	$@ $ARGS
 }
 
-## jump out if one of the programs returns 'false'
-set -e
+# Try to locate a program by using which, and verify that the file is an
+# executable
+locate_binary() {
+  for f in $@
+  do
+    file=`which $f 2>/dev/null | grep -v '^no '`
+    if test -n "$file" -a -x "$file"; then
+      echo $file
+      return 0
+    fi
+  done
+
+  echo "" 
+  return 1
+}
+
+# Try to detect the supported binaries if the user didn't
+# override that by pushing the environment variable
+if test x$ACLOCAL = x; then
+  ACLOCAL=`locate_binary aclocal-1.10 aclocal-1.9 aclocal19 aclocal`
+  if test x$ACLOCAL = x; then
+    die "Did not find a supported aclocal"
+  fi
+fi
+
+if test x$AUTOMAKE = x; then
+  AUTOMAKE=`locate_binary automake-1.10 automake-1.9 automake19 automake`
+  if test x$AUTOMAKE = x; then
+    die "Did not find a supported automake"
+  fi
+fi
+
+if test x$AUTOCONF = x; then
+  AUTOCONF=`locate_binary autoconf-2.59 autoconf259 autoconf`
+  if test x$AUTOCONF = x; then
+    die "Did not find a supported autoconf"
+  fi
+fi
+
+if test x$AUTOHEADER = x; then
+  AUTOHEADER=`locate_binary autoheader-2.59 autoheader259 autoheader`
+  if test x$AUTOHEADER = x; then
+    die "Did not find a supported autoheader"
+  fi
+fi
 
 if test x$PERL = x; then
   if test \! "x`which perl 2> /dev/null | grep -v '^no'`" = x; then
@@ -32,57 +70,6 @@ if test x$PERL = x; then
     echo "perl wasn't found, exiting"; exit 1
   fi
 fi
-
-if test x$ACLOCAL = x; then
-  if test \! "x`which aclocal-1.10 2> /dev/null | grep -v '^no'`" = x; then
-    ACLOCAL=aclocal-1.10
-  elif test \! "x`which aclocal110 2> /dev/null | grep -v '^no'`" = x; then
-    ACLOCAL=aclocal110
-  elif test \! "x`which aclocal 2> /dev/null | grep -v '^no'`" = x; then
-    ACLOCAL=aclocal
-  else 
-    echo "automake 1.10.x (aclocal) wasn't found, exiting"; exit 1
-  fi
-fi
-
-if test x$AUTOMAKE = x; then
-  if test \! "x`which automake-1.10 2> /dev/null | grep -v '^no'`" = x; then
-    AUTOMAKE=automake-1.10
-  elif test \! "x`which automake110 2> /dev/null | grep -v '^no'`" = x; then
-    AUTOMAKE=automake110
-  elif test \! "x`which automake 2> /dev/null | grep -v '^no'`" = x; then
-    AUTOMAKE=automake
-  else 
-    echo "automake 1.10.x wasn't found, exiting"; exit 1
-  fi
-fi
-
-
-## macosx has autoconf-2.59 and autoconf-2.60
-if test x$AUTOCONF = x; then
-  if test \! "x`which autoconf-2.59 2> /dev/null | grep -v '^no'`" = x; then
-    AUTOCONF=autoconf-2.59
-  elif test \! "x`which autoconf259 2> /dev/null | grep -v '^no'`" = x; then
-    AUTOCONF=autoconf259
-  elif test \! "x`which autoconf 2> /dev/null | grep -v '^no'`" = x; then
-    AUTOCONF=autoconf
-  else 
-    echo "autoconf 2.59+ wasn't found, exiting"; exit 1
-  fi
-fi
-
-if test x$AUTOHEADER = x; then
-  if test \! "x`which autoheader-2.59 2> /dev/null | grep -v '^no'`" = x; then
-    AUTOHEADER=autoheader-2.59
-  elif test \! "x`which autoheader259 2> /dev/null | grep -v '^no'`" = x; then
-    AUTOHEADER=autoheader259
-  elif test \! "x`which autoheader 2> /dev/null | grep -v '^no'`" = x; then
-    AUTOHEADER=autoheader
-  else 
-    echo "autoconf 2.59+ (autoheader) wasn't found, exiting"; exit 1
-  fi
-fi
-
 echo "Generating docs..."
 cat libgearman/*.h | $PERL docs/man_gen.perl > docs/man_list
 
@@ -90,7 +77,11 @@ run $ACLOCAL $ACLOCAL_FLAGS || die "Can't execute aclocal"
 run $AUTOHEADER || die "Can't execute autoheader"
 run $AUTOMAKE $AUTOMAKE_FLAGS  || die "Can't execute automake"
 run $AUTOCONF || die "Can't execute autoconf"
-echo -n "Automade with: "
-$AUTOMAKE --version | head -1
-echo -n "Configured with: "
-$AUTOCONF --version | head -1
+
+echo "---"
+echo "Configured with the following tools:"
+echo "  * `$ACLOCAL --version | head -1`"
+echo "  * `$AUTOHEADER --version | head -1`"
+echo "  * `$AUTOMAKE --version | head -1`"
+echo "  * `$AUTOCONF --version | head -1`"
+echo "---"
