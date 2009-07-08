@@ -4,7 +4,7 @@ dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
 
 dnl Which version of the canonical setup we're using
-AC_DEFUN([PANDORA_CANONICAL_VERSION],[0.6])
+AC_DEFUN([PANDORA_CANONICAL_VERSION],[0.7])
 
 AC_DEFUN([PANDORA_FORCE_DEPEND_TRACKING],[
   dnl Force dependency tracking on for Sun Studio builds
@@ -22,6 +22,7 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
   m4_define([PCT_USE_GNULIB],[no])
   m4_define([PCT_REQUIRE_CXX],[no])
   m4_define([PCT_IGNORE_SHARED_PTR],[no])
+  m4_define([PCT_FORCE_GCC42],[no])
   m4_foreach([pct_arg],$*,[
     m4_case(pct_arg,
       [use-gnulib], [
@@ -35,6 +36,10 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
       [ignore-shared-ptr], [
         m4_undefine([PCT_IGNORE_SHARED_PTR])
         m4_define([PCT_IGNORE_SHARED_PTR],[yes])
+      ],
+      [force-gcc42], [
+        m4_undefine([PCT_FORCE_GCC42])
+        m4_define([PCT_FORCE_GCC42],[yes])
     ])
   ])
 
@@ -62,7 +67,9 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
   AM_PROG_CC_C_O
 
   gl_USE_SYSTEM_EXTENSIONS
-  AS_IF([test "$GCC" = "yes"], PANDORA_ENSURE_GCC_VERSION)
+  m4_if(PCT_FORCE_GCC42, [yes], [
+    AS_IF([test "$GCC" = "yes"], PANDORA_ENSURE_GCC_VERSION)
+  ])
   
 
   PANDORA_LIBTOOL
