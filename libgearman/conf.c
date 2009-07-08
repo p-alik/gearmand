@@ -118,8 +118,8 @@ gearman_return_t gearman_conf_parse_args(gearman_conf_st *conf, int argc,
 
   while (1)
   {
-    c= getopt_long(argc, argv, conf->option_short, conf->option_getopt,
-                   &opt_index);
+    c= getopt_long(argc, argv, conf->option_short,
+                   conf->option_getopt, &opt_index);
     if (c == -1)
       break;
 

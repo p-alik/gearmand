@@ -24,7 +24,8 @@
 #include <libgearman/queue_libmemcached.h>
 #endif
 
-pid_t test_gearmand_start(in_port_t port, const char *queue_type, char *argv[], int argc)
+pid_t test_gearmand_start(in_port_t port, const char *queue_type,
+                          char *argv[], int argc)
 {
   pid_t gearmand_pid;
   gearmand_st *gearmand;

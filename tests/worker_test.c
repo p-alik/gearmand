@@ -88,7 +88,7 @@ test_return echo_test(void *object)
   gearman_worker_st *worker= (gearman_worker_st *)object;
   gearman_return_t rc;
   size_t value_length;
-  char *value= "This is my echo test";
+  const char *value= "This is my echo test";
   
   value_length= strlen(value);
   
