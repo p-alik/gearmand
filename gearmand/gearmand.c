@@ -82,7 +82,7 @@ static bool _pid_write(const char *pid_file);
 static void _pid_delete(const char *pid_file);
 static bool _switch_user(const char *user);
 static bool _set_signals(void);
-static void _shutdown_handler(int signal);
+static void _shutdown_handler(int signal_arg);
 static void _log(gearmand_st *gearmand, gearman_verbose_t verbose,
                  const char *line, void *fn_arg);
 
