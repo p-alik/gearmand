@@ -336,7 +336,7 @@ static size_t _http_unpack(gearman_packet_st *packet, gearman_con_st *con,
   {
     if (priority == GEARMAN_JOB_PRIORITY_NORMAL)
       packet->command= GEARMAN_COMMAND_SUBMIT_JOB_BG;
-    if (priority == GEARMAN_JOB_PRIORITY_HIGH)
+    else if (priority == GEARMAN_JOB_PRIORITY_HIGH)
       packet->command= GEARMAN_COMMAND_SUBMIT_JOB_HIGH_BG;
     else
       packet->command= GEARMAN_COMMAND_SUBMIT_JOB_LOW_BG;
@@ -345,7 +345,7 @@ static size_t _http_unpack(gearman_packet_st *packet, gearman_con_st *con,
   {
     if (priority == GEARMAN_JOB_PRIORITY_NORMAL)
       packet->command= GEARMAN_COMMAND_SUBMIT_JOB;
-    if (priority == GEARMAN_JOB_PRIORITY_HIGH)
+    else if (priority == GEARMAN_JOB_PRIORITY_HIGH)
       packet->command= GEARMAN_COMMAND_SUBMIT_JOB_HIGH;
     else
       packet->command= GEARMAN_COMMAND_SUBMIT_JOB_LOW;
