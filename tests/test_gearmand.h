@@ -10,5 +10,6 @@
 #include "../config.h"
 #include <libgearman/gearman.h>
 
-pid_t test_gearmand_start(in_port_t port, const char *queue_type, char *argv[], int argc);
+pid_t test_gearmand_start(in_port_t port, const char *queue_type,
+                          char *argv[], int argc);
 void test_gearmand_stop(pid_t gearmand_pid);

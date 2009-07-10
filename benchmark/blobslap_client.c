@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
   int c;
   char *host= NULL;
   in_port_t port= 0;
-  char *function= GEARMAN_BENCHMARK_DEFAULT_FUNCTION;
+  const char *function= GEARMAN_BENCHMARK_DEFAULT_FUNCTION;
   uint32_t num_tasks= BLOBSLAP_DEFAULT_NUM_TASKS;
   size_t min_size= BLOBSLAP_DEFAULT_BLOB_MIN_SIZE;
   size_t max_size= BLOBSLAP_DEFAULT_BLOB_MAX_SIZE;

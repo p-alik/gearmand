@@ -37,8 +37,8 @@ gearman_return_t _queue_replay_add(gearman_st *gearman, void *fn_arg,
  * Queue an error packet.
  */
 static gearman_return_t _server_error_packet(gearman_server_con_st *server_con,
-                                             char *error_code,
-                                             char *error_string);
+                                             const char *error_code,
+                                             const char *error_string);
 
 /**
  * Process text commands for a connection.
@@ -666,8 +666,8 @@ gearman_return_t _queue_replay_add(gearman_st *gearman __attribute__ ((unused)),
 }
 
 static gearman_return_t _server_error_packet(gearman_server_con_st *server_con,
-                                             char *error_code,
-                                             char *error_string)
+                                             const char *error_code,
+                                             const char *error_string)
 {
   return gearman_server_io_packet_add(server_con, false, GEARMAN_MAGIC_RESPONSE,
                                       GEARMAN_COMMAND_ERROR, error_code,
