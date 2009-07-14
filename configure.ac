@@ -35,6 +35,8 @@ then
 fi
 AC_SUBST(LD_VERSION_SCRIPT)
 
+PANDORA_HAVE_SQLITE
+
 #--------------------------------------------------------------------
 # Check for libpthread
 #--------------------------------------------------------------------
@@ -44,8 +46,6 @@ LIBS="${PTHREAD_LIBS} ${LIBS}"
 CFLAGS="${PTHREAD_CFLAGS} ${CFLAGS}"
 CC="$PTHREAD_CC"
 
-
-AC_LIB_PREFIX
 
 #--------------------------------------------------------------------
 # Check for libevent
@@ -92,64 +92,10 @@ AC_LIB_HAVE_LINKFLAGS(uuid,,
   uuid_generate(uout);
 ])
 
-#--------------------------------------------------------------------
-# Check for tcmalloc
-#--------------------------------------------------------------------
+PANDORA_HAVE_BETTER_MALLOC
+PANDORA_HAVE_LIBDRIZZLE
+PANDORA_HAVE_LIBMEMCACHED
 
-AC_ARG_ENABLE([tcmalloc],
-    [AS_HELP_STRING([--enable-tcmalloc],
-       [Enable linking with tcmalloc @<:@default=off@:>@])],
-    [ac_enable_tcmalloc="$enableval"],
-    [ac_enable_tcmalloc="no"])
-
-save_LIBS="${LIBS}"
-LIBS=
-if test "x$ac_enable_tcmalloc" != "xno"
-then
-  AC_CHECK_LIB(tcmalloc,malloc,[],[])
-fi
-
-if test "x$ac_cv_lib_tcmalloc_malloc" != "xyes"
-then
-  AC_CHECK_LIB(mtmalloc,malloc,[],[])
-fi
-MALLOC_LIBS="${LIBS}"
-LIBS="${save_LIBS}"
-AC_SUBST([MALLOC_LIBS])
-
-#--------------------------------------------------------------------
-# Check for libdrizzle
-#--------------------------------------------------------------------
-
-AC_LIB_HAVE_LINKFLAGS(drizzle,,
-[
-  #include <libdrizzle/drizzle_client.h>
-],
-[
-  drizzle_st drizzle;
-  drizzle_version();
-])
-
-AM_CONDITIONAL(HAVE_LIBDRIZZLE, test x$ac_cv_libdrizzle = xyes)
-
-#--------------------------------------------------------------------
-# Check for libmemcached
-#--------------------------------------------------------------------
-
-AC_LIB_HAVE_LINKFLAGS(memcached,,
-[
-  #include <libmemcached/memcached.h>
-],
-[
-  memcached_st memc;
-  memcached_dump_func *df;
-  memcached_version();
-])
-
-AM_CONDITIONAL(HAVE_LIBMEMCACHED, test x$ac_cv_libmemcached = xyes)
-
-AS_IF([test x$ac_cv_libmemcached = xyes],
-      [ WITH_MEMCACHED ])
 
 AC_CHECK_HEADERS(errno.h fcntl.h getopt.h netinet/tcp.h pwd.h signal.h)
 AC_CHECK_HEADERS(stdarg.h stddef.h stdio.h stdlib.h string.h)

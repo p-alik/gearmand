@@ -9,4 +9,4 @@ bin_PROGRAMS= \
 	gearman
 
 gearman_SOURCES= gearman.c
-gearman_LDADD= $(top_builddir)/libgearman/libgearman.la ${MALLOC_LIBS}
+gearman_LDADD= $(top_builddir)/libgearman/libgearman.la ${BETTER_MALLOC_LIBS}
