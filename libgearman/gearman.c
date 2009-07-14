@@ -257,6 +257,9 @@ gearman_return_t gearman_parse_servers(const char *servers, void *data,
   char port[NI_MAXSERV];
   gearman_return_t ret;
 
+  if (ptr == NULL)
+    return (*server_fn)(NULL, 0, data);
+
   while (1)
   { 
     x= 0;
