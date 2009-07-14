@@ -106,7 +106,8 @@ gearman_con_st *gearman_con_clone(gearman_st *gearman, gearman_con_st *con,
   if (con == NULL)
     return NULL;
 
-  con->options|= (from->options & ~GEARMAN_CON_ALLOCATED);
+  con->options|= (from->options &
+                  (gearman_con_options_t)~GEARMAN_CON_ALLOCATED);
   strcpy(con->host, from->host);
   con->port= from->port;
 
@@ -196,7 +197,7 @@ void gearman_con_close(gearman_con_st *con)
     return;
 
   if (con->options & GEARMAN_CON_EXTERNAL_FD)
-    con->options&= ~GEARMAN_CON_EXTERNAL_FD;
+    con->options&= (gearman_con_options_t)~GEARMAN_CON_EXTERNAL_FD;
   else
     (void)close(con->fd);
 
@@ -1079,7 +1080,7 @@ gearman_con_st *gearman_con_ready(gearman_st *gearman)
   {
     if (con->options & GEARMAN_CON_READY)
     {
-      con->options&= ~GEARMAN_CON_READY;
+      con->options&= (gearman_con_options_t)~GEARMAN_CON_READY;
       return con;
     }
   }
@@ -1101,7 +1102,7 @@ gearman_return_t gearman_con_echo(gearman_st *gearman, const void *workload,
   if (ret != GEARMAN_SUCCESS)
     return ret;
 
-  gearman->options&= ~GEARMAN_NON_BLOCKING;
+  gearman->options&= (gearman_con_options_t)~GEARMAN_NON_BLOCKING;
 
   for (con= gearman->con_list; con != NULL; con= con->next)
   {

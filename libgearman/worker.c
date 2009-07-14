@@ -92,7 +92,8 @@ gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker,
   if (worker == NULL)
     return NULL;
 
-  worker->options|= (from->options & ~GEARMAN_WORKER_ALLOCATED);
+  worker->options|= (from->options &
+                     (gearman_worker_options_t)~GEARMAN_WORKER_ALLOCATED);
 
   worker->gearman= gearman_clone(&(worker->gearman_static), from->gearman);
   if (worker->gearman == NULL)
@@ -239,7 +240,8 @@ gearman_return_t gearman_worker_unregister(gearman_worker_st *worker,
                           NULL);
   if (ret != GEARMAN_SUCCESS)
   {
-    function->options&= ~GEARMAN_WORKER_FUNCTION_PACKET_IN_USE;
+    function->options&=
+      (gearman_worker_function_options_t)~GEARMAN_WORKER_FUNCTION_PACKET_IN_USE;
     return ret;
   }
 
@@ -268,7 +270,8 @@ gearman_return_t gearman_worker_unregister_all(gearman_worker_st *worker)
                           GEARMAN_COMMAND_RESET_ABILITIES, NULL);
   if (ret != GEARMAN_SUCCESS)
   {
-    worker->function_list->options&= ~GEARMAN_WORKER_FUNCTION_PACKET_IN_USE;
+    worker->function_list->options&=
+      (gearman_worker_function_options_t)~GEARMAN_WORKER_FUNCTION_PACKET_IN_USE;
     return ret;
   }
 
@@ -335,12 +338,13 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
           }
           else
           {
-            worker->function->options&= ~GEARMAN_WORKER_FUNCTION_CHANGE;
+            worker->function->options&=
+             (gearman_worker_function_options_t)~GEARMAN_WORKER_FUNCTION_CHANGE;
             worker->function= worker->function->next;
           }
         }
 
-        worker->options&= ~GEARMAN_WORKER_CHANGE;
+        worker->options&= (gearman_worker_options_t)~GEARMAN_WORKER_CHANGE;
       }
 
       if (worker->function_list == NULL)
@@ -668,7 +672,7 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
   }
 
   gearman_job_free(&(worker->work_job));
-  worker->options&= ~GEARMAN_WORKER_WORK_JOB_IN_USE;
+  worker->options&= (gearman_worker_options_t)~GEARMAN_WORKER_WORK_JOB_IN_USE;
   worker->work_state= GEARMAN_WORKER_WORK_STATE_GRAB_JOB;
   return GEARMAN_SUCCESS;
 }

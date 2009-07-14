@@ -112,7 +112,7 @@ gearman_st *gearman_clone(gearman_st *gearman, gearman_st *from)
   if (gearman == NULL)
     return NULL;
 
-  gearman->options|= (from->options & ~GEARMAN_ALLOCATED);
+  gearman->options|= (from->options & (gearman_options_t)~GEARMAN_ALLOCATED);
 
   for (con= from->con_list; con != NULL; con= con->next)
   {
