@@ -284,7 +284,7 @@ int _sqlite_query(gearman_st *gearman,
 {
   int ret;
 
-  if (query_size > INT_MAX)
+  if (query_size > UINT32_MAX)
   {
     GEARMAN_ERROR_SET(gearman, "_sqlite_query", "query size too big [%u]",
                       (uint32_t)query_size);
@@ -428,8 +428,8 @@ static gearman_return_t _sqlite_add(gearman_st *gearman, void *fn_arg,
   size_t query_size;
   sqlite3_stmt * sth;
 
-  if (unique_size > INT_MAX || function_name_size > INT_MAX ||
-      data_size > INT_MAX)
+  if (unique_size > UINT32_MAX || function_name_size > UINT32_MAX ||
+      data_size > UINT32_MAX)
   {
     GEARMAN_ERROR_SET(gearman, "_sqlite_add", "size too big [%u]",
                       (uint32_t)unique_size);
@@ -546,7 +546,7 @@ static gearman_return_t _sqlite_done(gearman_st *gearman, void *fn_arg,
   size_t query_size;
   sqlite3_stmt * sth;
 
-  if (unique_size > INT_MAX)
+  if (unique_size > UINT32_MAX)
   {
     GEARMAN_ERROR_SET(gearman, "_sqlite_query", "unique key size too big [%u]",
                       (uint32_t)unique_size);
