@@ -257,6 +257,8 @@ gearman_return_t gearman_queue_libsqlite3_deinit(gearman_st *gearman)
   queue= (gearman_queue_sqlite_st *)gearman_queue_fn_arg(gearman);
   gearman_set_queue_fn_arg(gearman, NULL);
   sqlite3_close(queue->db);
+  if (queue->query != NULL)
+    free(queue->query);
   free(queue);
 
   return GEARMAN_SUCCESS;
