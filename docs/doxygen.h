@@ -14,7 +14,7 @@
 /**
 @mainpage Gearman Library
 
-http://www.gearman.org/
+http://gearman.org/
 
 Gearman is, at the most basic level, a job queuing system. It can be
 used to farm out work to other machines, dispatch function calls to

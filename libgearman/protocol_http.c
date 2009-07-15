@@ -53,6 +53,8 @@ static size_t _http_unpack(gearman_packet_st *packet, gearman_con_st *con,
 static const char *_http_line(const void *data, size_t data_size,
                               size_t *line_size, size_t *offset);
 
+/** @} */
+
 /*
  * Public definitions
  */

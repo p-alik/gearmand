@@ -31,6 +31,8 @@ extern "C" {
  * @param fd File descriptor of new connection.
  * @param host Host of peer connection.
  * @param port Port of peer connection.
+ * @param add_fn Optional callback to use when adding the connection to an
+          I/O thread.
  * @return Pointer to an allocated gearmand structure.
  */
 GEARMAN_API
