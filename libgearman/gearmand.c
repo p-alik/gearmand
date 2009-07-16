@@ -485,7 +485,7 @@ static void _listen_clear(gearmand_st *gearmand)
     }
   }
 
-  gearmand->options&= ~GEARMAND_LISTEN_EVENT;
+  gearmand->options&= (gearmand_options_t)~GEARMAND_LISTEN_EVENT;
 }
 
 static void _listen_event(int fd, short events __attribute__ ((unused)),
@@ -607,7 +607,7 @@ static void _wakeup_clear(gearmand_st *gearmand)
   {
     GEARMAN_INFO(gearmand, "Clearing event for wakeup pipe")
     assert(event_del(&(gearmand->wakeup_event)) == 0);
-    gearmand->options&= ~GEARMAND_WAKEUP_EVENT;
+    gearmand->options&= (gearmand_options_t)~GEARMAND_WAKEUP_EVENT;
   }
 }
 

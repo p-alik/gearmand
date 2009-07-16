@@ -70,6 +70,8 @@ static gearman_return_t _libdrizzle_replay(gearman_st *gearman, void *fn_arg,
                                            gearman_queue_add_fn *add_fn,
                                            void *add_fn_arg);
 
+/** @} */
+
 /*
  * Public definitions
  */

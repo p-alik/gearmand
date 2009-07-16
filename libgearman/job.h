@@ -95,7 +95,7 @@ char *gearman_job_function_name(gearman_job_st *job);
  * Get the unique ID associated with a job.
  */
 GEARMAN_API
-char *gearman_job_unique(gearman_job_st *job);
+const char *gearman_job_unique(gearman_job_st *job);
 
 /**
  * Get a pointer to the workload for a job.

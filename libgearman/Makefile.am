@@ -15,6 +15,11 @@ QUEUE_LIBMEMCACHED_H= queue_libmemcached.h
 QUEUE_LIBMEMCACHED_C= queue_libmemcached.c
 endif
 
+if HAVE_LIBSQLITE3
+QUEUE_LIBSQLITE3_H= queue_libsqlite3.h
+QUEUE_LIBSQLITE3_C= queue_libsqlite3.c
+endif
+
 lib_LTLIBRARIES= libgearman.la
 
 libgearmanincludedir= ${includedir}/libgearman
@@ -45,6 +50,7 @@ dist_libgearmaninclude_HEADERS= \
 	worker.h \
 	$(QUEUE_LIBDRIZZLE_H) \
 	$(QUEUE_LIBMEMCACHED_H) \
+	$(QUEUE_LIBSQLITE3_H) \
 	protocol_http.h
 
 noinst_HEADERS= \
@@ -73,6 +79,7 @@ libgearman_la_SOURCES= \
 	worker.c \
 	$(QUEUE_LIBDRIZZLE_C) \
 	$(QUEUE_LIBMEMCACHED_C) \
+	$(QUEUE_LIBSQLITE3_C) \
 	protocol_http.c
 
 libgearman_la_CFLAGS= ${AM_CFLAGS} -DBUILDING_LIBGEARMAN
@@ -83,6 +90,7 @@ libgearman_la_LIBADD= \
 	$(LTLIBEVENT) \
 	$(LTLIBUUID) \
 	$(LTLIBDRIZZLE) \
-	$(LTLIBMEMCACHED)
+	$(LTLIBMEMCACHED) \
+	$(LTLIBSQLITE3)
 
 EXTRA_DIST= libgearman.ver

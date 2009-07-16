@@ -36,7 +36,7 @@ Initially, the workers register functions they can perform with each
 job server. Clients will then connect to a job server and issue a
 request to a job to be run. The job server then notifies each worker
 that can perform that job (based on the function it registered) that
-a new job is ready. The first server to wake up and retrieve the jobs
+a new job is ready. The first worker to wake up and retrieve the job
 will then execute it.
 
 All communication between workers or clients and the job server
@@ -298,7 +298,7 @@ CANT_DO
 RESET_ABILITIES
 
     This is sent to notify the server that the worker is no longer
-    able to any functions it previously registered with CAN_DO or
+    able to do any functions it previously registered with CAN_DO or
     CAN_DO_TIMEOUT.
 
     Arguments:
@@ -316,7 +316,7 @@ PRE_SLEEP
 GRAB_JOB
 
     This is sent to the server to request any available jobs on the
-    queue. The server will response with either NO_JOB or JOB_ASSIGN,
+    queue. The server will respond with either NO_JOB or JOB_ASSIGN,
     depending on whether a job is available.
 
     Arguments:

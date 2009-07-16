@@ -112,7 +112,7 @@ gearman_st *gearman_clone(gearman_st *gearman, gearman_st *from)
   if (gearman == NULL)
     return NULL;
 
-  gearman->options|= (from->options & ~GEARMAN_ALLOCATED);
+  gearman->options|= (from->options & (gearman_options_t)~GEARMAN_ALLOCATED);
 
   for (con= from->con_list; con != NULL; con= con->next)
   {
@@ -256,6 +256,9 @@ gearman_return_t gearman_parse_servers(const char *servers, void *data,
   char host[NI_MAXHOST];
   char port[NI_MAXSERV];
   gearman_return_t ret;
+
+  if (ptr == NULL)
+    return (*server_fn)(NULL, 0, data);
 
   while (1)
   { 
