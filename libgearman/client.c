@@ -833,6 +833,8 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
   case GEARMAN_TASK_STATE_NEW:
     if (task->gearman->con_list == NULL)
     {
+      client->new_tasks--;
+      client->running_tasks--;
       GEARMAN_ERROR_SET(client->gearman, "_client_run_task", "no servers added")
       return GEARMAN_NO_SERVERS;
     }

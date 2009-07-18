@@ -56,6 +56,7 @@
  */
 typedef struct
 {
+  bool background;
   uint8_t verbose;
   uint64_t total_jobs;
   uint64_t jobs;
