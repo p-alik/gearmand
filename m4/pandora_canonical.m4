@@ -4,7 +4,7 @@ dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
 
 dnl Which version of the canonical setup we're using
-AC_DEFUN([PANDORA_CANONICAL_VERSION],[0.16])
+AC_DEFUN([PANDORA_CANONICAL_VERSION],[0.21])
 
 AC_DEFUN([PANDORA_FORCE_DEPEND_TRACKING],[
   dnl Force dependency tracking on for Sun Studio builds
@@ -70,7 +70,10 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
   m4_if(PCT_FORCE_GCC42, [yes], [
     AS_IF([test "$GCC" = "yes"], PANDORA_ENSURE_GCC_VERSION)
   ])
-  
+
+  AC_CHECK_DECL([__SUNPRO_C], [SUNCC="yes"], [SUNCC="no"])
+  AC_CHECK_DECL([__ICC], [INTELCC="yes"], [INTELCC="no"])
+  AS_IF([test "x$INTELCC" = "xyes"], [enable_rpath=no])
 
   PANDORA_LIBTOOL
 
@@ -101,9 +104,6 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
 
   AC_HEADER_TIME
   AC_TYPE_SIZE_T
-
-  AC_CHECK_DECL([__SUNPRO_C], [SUNCC="yes"], [SUNCC="no"])
-
   AC_SYS_LARGEFILE
 
 
