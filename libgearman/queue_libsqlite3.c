@@ -77,6 +77,8 @@ static gearman_return_t _sqlite_replay(gearman_st *gearman, void *fn_arg,
                                        gearman_queue_add_fn *add_fn,
                                        void *add_fn_arg);
 
+/** @} */
+
 /*
  * Public definitions
  */
@@ -93,9 +95,9 @@ gearman_return_t gearman_queue_libsqlite3_conf(gearman_conf_st *conf)
   gearman_conf_module_add_option(module, __name, 0, __value, __help);
 
   MCO("db", "DB", "Database file to use.")
-    MCO("table", "TABLE", "Table to use.")
+  MCO("table", "TABLE", "Table to use.")
 
-    return gearman_conf_return(conf);
+  return gearman_conf_return(conf);
 }
 
 gearman_return_t gearman_queue_libsqlite3_init(gearman_st *gearman,
@@ -116,7 +118,7 @@ gearman_return_t gearman_queue_libsqlite3_init(gearman_st *gearman,
   if (queue == NULL)
   {
     GEARMAN_ERROR_SET(gearman, "gearman_queue_libsqlite3_init", "malloc")
-      return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+    return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
 
   memset(queue, 0, sizeof(gearman_queue_sqlite_st));
@@ -177,9 +179,7 @@ gearman_return_t gearman_queue_libsqlite3_init(gearman_st *gearman,
   while (sqlite3_step(sth) == SQLITE_ROW)
   {
     if (sqlite3_column_type(sth,0) == SQLITE_TEXT)
-    {
       table= (char*)sqlite3_column_text(sth, 0);
-    }
     else
     {
       sqlite3_finalize(sth);
@@ -453,7 +453,7 @@ static gearman_return_t _sqlite_add(gearman_st *gearman, void *fn_arg,
     if (query == NULL)
     {
       GEARMAN_ERROR_SET(gearman, "_sqlite_add", "realloc")
-        return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+      return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
 
     queue->query= query;
@@ -516,8 +516,10 @@ static gearman_return_t _sqlite_add(gearman_st *gearman, void *fn_arg,
     GEARMAN_ERROR_SET(gearman, "_sqlite_add", "insert error: %s",
                       sqlite3_errmsg(queue->db));
     if (sqlite3_finalize(sth) != SQLITE_OK )
+    {
       GEARMAN_ERROR_SET(gearman, "_sqlite_add", "finalize error: %s",
                         sqlite3_errmsg(queue->db));
+    }
 
     return GEARMAN_QUEUE_ERROR;
   }
@@ -569,7 +571,7 @@ static gearman_return_t _sqlite_done(gearman_st *gearman, void *fn_arg,
     if (query == NULL)
     {
       GEARMAN_ERROR_SET(gearman, "_sqlite_add", "realloc")
-        return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+      return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
 
     queue->query= query;
@@ -615,20 +617,20 @@ static gearman_return_t _sqlite_replay(gearman_st *gearman, void *fn_arg,
 
   GEARMAN_INFO(gearman, "sqlite replay start")
 
-    if (GEARMAN_QUEUE_QUERY_BUFFER > queue->query_size)
+  if (GEARMAN_QUEUE_QUERY_BUFFER > queue->query_size)
+  {
+    query= realloc(queue->query, GEARMAN_QUEUE_QUERY_BUFFER);
+    if (query == NULL)
     {
-      query= realloc(queue->query, GEARMAN_QUEUE_QUERY_BUFFER);
-      if (query == NULL)
-      {
-        GEARMAN_ERROR_SET(gearman, "_sqlite_replay", "realloc")
-          return GEARMAN_MEMORY_ALLOCATION_FAILURE;
-      }
-
-      queue->query= query;
-      queue->query_size= GEARMAN_QUEUE_QUERY_BUFFER;
+      GEARMAN_ERROR_SET(gearman, "_sqlite_replay", "realloc")
+      return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
-    else
-      query= queue->query;
+
+    queue->query= query;
+    queue->query_size= GEARMAN_QUEUE_QUERY_BUFFER;
+  }
+  else
+    query= queue->query;
 
   query_size= (size_t)snprintf(query, GEARMAN_QUEUE_QUERY_BUFFER,
                                "SELECT unique_key,function_name,priority,data "
