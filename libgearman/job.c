@@ -251,7 +251,7 @@ static gearman_return_t _job_send(gearman_job_st *job)
     return ret;
 
   gearman_packet_free(&(job->work));
-  job->options&= ~GEARMAN_JOB_WORK_IN_USE;
+  job->options&= (gearman_job_options_t)~GEARMAN_JOB_WORK_IN_USE;
 
   return GEARMAN_SUCCESS;
 }

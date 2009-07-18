@@ -6,7 +6,7 @@
 # the COPYING file in this directory for full text.
 
 AC_PREREQ(2.59)
-AC_INIT([gearmand],[0.8],[https://launchpad.net/gearmand])
+AC_INIT([gearmand],[0.9],[https://launchpad.net/gearmand])
 AC_CONFIG_SRCDIR(libgearman/gearman.c)
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_HEADERS([config.h])
@@ -14,7 +14,7 @@ AC_CONFIG_MACRO_DIR([m4])
 
 PANDORA_CANONICAL_TARGET
 
-GEARMAN_LIBRARY_VERSION=1:2:0
+GEARMAN_LIBRARY_VERSION=1:3:0
 #                       | | |
 #                +------+ | +---+
 #                |        |     |
@@ -94,6 +94,7 @@ PANDORA_HAVE_BETTER_MALLOC
 PANDORA_HAVE_SQLITE
 PANDORA_HAVE_LIBDRIZZLE
 PANDORA_HAVE_LIBMEMCACHED
+PANDORA_HAVE_LIBPQ
 
 
 AC_CHECK_HEADERS(errno.h fcntl.h getopt.h netinet/tcp.h pwd.h signal.h)

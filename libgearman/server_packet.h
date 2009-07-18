@@ -50,7 +50,7 @@ gearman_return_t gearman_server_io_packet_add(gearman_server_con_st *con,
                                               bool take_data,
                                               gearman_magic_t magic,
                                               gearman_command_t command,
-                                              const void * arg, ...);
+                                              const void *arg, ...);
 
 /**
  * Remove the first server packet structure from io queue for a connection.

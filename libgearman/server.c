@@ -37,8 +37,8 @@ gearman_return_t _queue_replay_add(gearman_st *gearman, void *fn_arg,
  * Queue an error packet.
  */
 static gearman_return_t _server_error_packet(gearman_server_con_st *server_con,
-                                             const char * restrict error_code,
-                                             const char * restrict error_string);
+                                             const char *error_code,
+                                             const char *error_string);
 
 /**
  * Process text commands for a connection.
@@ -219,7 +219,7 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
     if (ret != GEARMAN_SUCCESS)
       return ret;
 
-    packet->options&= ~GEARMAN_PACKET_FREE_DATA;
+    packet->options&= (gearman_packet_options_t)~GEARMAN_PACKET_FREE_DATA;
 
     break;
 
@@ -266,7 +266,7 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
                                        packet->data_size, priority,
                                        server_client, &ret);
     if (ret == GEARMAN_SUCCESS)
-      packet->options&= ~GEARMAN_PACKET_FREE_DATA;
+      packet->options&= (gearman_packet_options_t)~GEARMAN_PACKET_FREE_DATA;
     else if (ret == GEARMAN_JOB_QUEUE_FULL)
     {
       return _server_error_packet(server_con, "queue_full",
@@ -396,7 +396,8 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
 
   case GEARMAN_COMMAND_GRAB_JOB:
   case GEARMAN_COMMAND_GRAB_JOB_UNIQ:
-    server_con->options&= ~GEARMAN_SERVER_CON_SLEEPING;
+    server_con->options&=
+                     (gearman_server_con_options_t)~GEARMAN_SERVER_CON_SLEEPING;
 
     server_job= gearman_server_job_take(server_con);
     if (server_job == NULL)
@@ -639,7 +640,7 @@ gearman_return_t gearman_server_queue_replay(gearman_server_st *server)
                                           (void *)server->gearman->queue_fn_arg,
                                           _queue_replay_add, server);
 
-  server->options&= ~GEARMAN_SERVER_QUEUE_REPLAY;
+  server->options&= (gearman_server_options_t)~GEARMAN_SERVER_QUEUE_REPLAY;
 
   return ret;
 }
@@ -666,8 +667,8 @@ gearman_return_t _queue_replay_add(gearman_st *gearman __attribute__ ((unused)),
 }
 
 static gearman_return_t _server_error_packet(gearman_server_con_st *server_con,
-                                             const char * restrict error_code,
-                                             const char * restrict error_string)
+                                             const char *error_code,
+                                             const char *error_string)
 {
   return gearman_server_io_packet_add(server_con, false, GEARMAN_MAGIC_RESPONSE,
                                       GEARMAN_COMMAND_ERROR, error_code,
@@ -907,7 +908,7 @@ _server_queue_work_data(gearman_server_job_st *server_job,
           server_client->job_next == NULL)
       {
         data= (uint8_t *)(packet->data);
-        packet->options&= ~GEARMAN_PACKET_FREE_DATA;
+        packet->options&= (gearman_packet_options_t)~GEARMAN_PACKET_FREE_DATA;
       }
       else
       {

@@ -1,3 +1,10 @@
+0.9 - 2009-07-20
+ * Added libsqlite3 persistent queue support (Cory Bennett).
+ * Added libpq (PostgreSQL) persistent queue support.
+ * Updated autoconf build system.
+ * Doxygen documentation cleanup.
+ * Bug fix in HTTP protocol module.
+
 0.8 - 2009-06-30
  * Added pluggable protocol support.
  * Added basic HTTP protocol support.
@@ -6,7 +13,7 @@
  * Improved logging messages for gearmand.
  * Removed all struct memsets and packed structs for better memory usage.
  * Fixed client connect bug with multiple job servers.
- * FIxed server spinning bug with long running jobs and large workloads.
+ * Fixed server spinning bug with long running jobs and large workloads.
 
 0.7 - 2009-05-31
  * Added libmodconf for config option processing. Eventually this will be split
@@ -31,7 +38,7 @@
  * Removed AI_V4MAPPED for client/worker connect lookup, not fully
    supported in all operating systems (like FreeBSD, bug #373060).
  * Support for gearmand to bind to multiple addresses.
- * Protocol document updates and fixes (Eric Day, Eric Herman)
+ * Protocol document updates and fixes (Eric Day, Eric Herman).
  * Bind to specific hostname in gearmand (Brian Moon).
  * Minor cleanup and fixes.
 

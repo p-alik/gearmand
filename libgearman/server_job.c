@@ -317,7 +317,7 @@ gearman_server_job_peek(gearman_server_con_st *server_con)
             /* This is only happens when a client disconnects from a foreground
                job. We do this because we don't want to run the job anymore. */
             server_worker->function->job_list[priority]->options&=
-                                                     ~GEARMAN_SERVER_JOB_IGNORE;
+                       (gearman_server_job_options_t)~GEARMAN_SERVER_JOB_IGNORE;
             gearman_server_job_free(gearman_server_job_take(server_con));
             return gearman_server_job_peek(server_con);
           }
