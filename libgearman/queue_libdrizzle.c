@@ -360,16 +360,18 @@ static gearman_return_t _libdrizzle_add(gearman_st *gearman, void *fn_arg,
                                "INSERT INTO %s SET priority=%u,unique_key='",
                                queue->table, (uint32_t)priority);
 
-  query_size+= drizzle_escape_string(query + query_size, unique, unique_size);
+  query_size+= (size_t)drizzle_escape_string(query + query_size, unique,
+                                             unique_size);
   memcpy(query + query_size, "',function_name='", 17);
   query_size+= 17;
 
-  query_size+= drizzle_escape_string(query + query_size, function_name,
-                                     function_name_size);
+  query_size+= (size_t)drizzle_escape_string(query + query_size, function_name,
+                                             function_name_size);
   memcpy(query + query_size, "',data='", 8);
   query_size+= 8;
 
-  query_size+= drizzle_escape_string(query + query_size, data, data_size);
+  query_size+= (size_t)drizzle_escape_string(query + query_size, data,
+                                             data_size);
   memcpy(query + query_size, "'", 1);
   query_size+= 1;
 
@@ -422,7 +424,8 @@ static gearman_return_t _libdrizzle_done(gearman_st *gearman, void *fn_arg,
                                "DELETE FROM %s WHERE unique_key='",
                                queue->table);
 
-  query_size+= drizzle_escape_string(query + query_size, unique, unique_size);
+  query_size+= (size_t)drizzle_escape_string(query + query_size, unique,
+                                             unique_size);
   memcpy(query + query_size, "'", 1);
   query_size+= 1;
 
