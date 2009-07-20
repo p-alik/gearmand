@@ -19,7 +19,7 @@ extern "C" {
 #endif
 
 /**
- * @addtogroup gearman conf Gearman Conf Interface
+ * @addtogroup gearman_conf Gearman Conf Interface
  * @{
  */
 

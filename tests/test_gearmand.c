@@ -24,7 +24,12 @@
 #include <libgearman/queue_libmemcached.h>
 #endif
 
-pid_t test_gearmand_start(in_port_t port, const char *queue_type, char *argv[], int argc)
+#ifdef HAVE_LIBSQLITE3
+#include <libgearman/queue_libsqlite3.h>
+#endif
+
+pid_t test_gearmand_start(in_port_t port, const char *queue_type,
+                          char *argv[], int argc)
 {
   pid_t gearmand_pid;
   gearmand_st *gearmand;
@@ -40,6 +45,9 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type, char *argv[], 
 #endif
 #ifdef HAVE_LIBMEMCACHED
     assert(gearman_queue_libmemcached_conf(&conf) == GEARMAN_SUCCESS);
+#endif
+#ifdef HAVE_LIBSQLITE3
+    assert(gearman_queue_libsqlite3_conf(&conf) == GEARMAN_SUCCESS);
 #endif
 
     assert(gearman_conf_parse_args(&conf, argc, argv) == GEARMAN_SUCCESS);
@@ -61,6 +69,11 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type, char *argv[], 
         assert((gearmand_queue_libmemcached_init(gearmand, &conf)) == GEARMAN_SUCCESS);
       else
 #endif
+#ifdef HAVE_LIBSQLITE3
+      if (!strcmp(queue_type, "libsqlite3"))
+        assert((gearmand_queue_libsqlite3_init(gearmand, &conf)) == GEARMAN_SUCCESS);
+      else
+#endif
       {
         assert(1);
       }
@@ -77,6 +90,10 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type, char *argv[], 
 #ifdef HAVE_LIBMEMCACHED
       if (!strcmp(queue_type, "libmemcached"))
         gearmand_queue_libmemcached_deinit(gearmand);
+#endif
+#ifdef HAVE_LIBSQLITE3
+      if (!strcmp(queue_type, "libmemcached"))
+        gearmand_queue_libsqlite3_deinit(gearmand);
 #endif
     }
 

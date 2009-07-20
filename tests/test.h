@@ -29,13 +29,13 @@ typedef enum {
 } test_return;
 
 struct test_st {
-  char *name;
+  const char *name;
   uint8_t requires_flush;
   test_return (*function)(void *object);
 };
 
 struct collection_st {
-  char *name;
+  const char *name;
   test_return (*flush)(void);
   void *(*create)(void *collection_object);
   void (*destroy)(void *object);

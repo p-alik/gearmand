@@ -475,7 +475,7 @@ void *gearman_packet_take_data(gearman_packet_st *packet, size_t *size)
 
   packet->data= NULL;
   packet->data_size= 0;
-  packet->options&= ~GEARMAN_PACKET_FREE_DATA;
+  packet->options&= (gearman_packet_options_t)~GEARMAN_PACKET_FREE_DATA;
 
   return data;
 }

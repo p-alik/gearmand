@@ -15,6 +15,16 @@ QUEUE_LIBMEMCACHED_H= queue_libmemcached.h
 QUEUE_LIBMEMCACHED_C= queue_libmemcached.c
 endif
 
+if HAVE_LIBSQLITE3
+QUEUE_LIBSQLITE3_H= queue_libsqlite3.h
+QUEUE_LIBSQLITE3_C= queue_libsqlite3.c
+endif
+
+if HAVE_LIBPQ
+QUEUE_LIBPQ_H= queue_libpq.h
+QUEUE_LIBPQ_C= queue_libpq.c
+endif
+
 if HAVE_LIBTOKYOCABINET
 QUEUE_LIBTOKYOCABINET_H= queue_libtokyocabinet.h
 QUEUE_LIBTOKYOCABINET_C= queue_libtokyocabinet.c
@@ -50,6 +60,8 @@ dist_libgearmaninclude_HEADERS= \
 	worker.h \
 	$(QUEUE_LIBDRIZZLE_H) \
 	$(QUEUE_LIBMEMCACHED_H) \
+	$(QUEUE_LIBSQLITE3_H) \
+	$(QUEUE_LIBPQ_H) \
 	$(QUEUE_LIBTOKYOCABINET_H) \
 	protocol_http.h
 
@@ -79,6 +91,8 @@ libgearman_la_SOURCES= \
 	worker.c \
 	$(QUEUE_LIBDRIZZLE_C) \
 	$(QUEUE_LIBMEMCACHED_C) \
+	$(QUEUE_LIBSQLITE3_C) \
+	$(QUEUE_LIBPQ_C) \
 	$(QUEUE_LIBTOKYOCABINET_C) \
 	protocol_http.c
 
@@ -91,6 +105,8 @@ libgearman_la_LIBADD= \
 	$(LTLIBUUID) \
 	$(LTLIBDRIZZLE) \
 	$(LTLIBMEMCACHED) \
-	$(LTLIBTOKYOCABINET)
+	$(LTLIBSQLITE3) \
+	$(LTLIBPQ) \
+	$(LTLIBTOKYOCABINET)    
 
 EXTRA_DIST= libgearman.ver

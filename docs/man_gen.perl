@@ -37,7 +37,7 @@ print "\ndist_man_MANS= docs/man/man1/gearman.1 docs/man/man8/gearmand.8";
 
 while ($line= <>)
 {
-  if ($line=~ s/.*\@addtogroup *[a-z_]* *//)
+  if ($line=~ s/.*\@addtogroup *[a-z0-9_]* *//)
   {
     chomp($line);
     $group= $line;
@@ -69,7 +69,7 @@ while ($line= <>)
           $name= "";
           last;
         }
-        elsif ($name == "" && $line=~ m/([a-z_]+)\(/)
+        elsif ($name == "" && $line=~ m/([a-z0-9_]+)\(/)
         {
           $name= $1;
         }
@@ -83,7 +83,8 @@ while ($line= <>)
       {
         # We have a function! Output a man page.
         print " \\\n\t$path/man$section/$name.$section";
-        $func=~ s/ ([a-z_\*]*),/ \" $1 \",/g;
+        $func=~ s/GEARMAN_API//g;
+        $func=~ s/ ([a-z0-9_\*]*),/ \" $1 \",/g;
         open(MANSRC, ">$path/man$section/$name.$section");
         print MANSRC ".TH $name $section $date \"$short\" \"$long\"\n";
         print MANSRC ".SH NAME\n";
@@ -122,7 +123,7 @@ while ($line= <>)
       $line=~ s/^ *//;
     }
 
-    if ($line=~ s/\@param *([a-z_]*) */\.TP\n\.BR $1\n/ && $proc == 1)
+    if ($line=~ s/\@param *([a-z0-9_]*) */\.TP\n\.BR $1\n/ && $proc == 1)
     {
       $line= ".SH PARAMETERS\n$line";
       $proc++;

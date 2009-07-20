@@ -51,8 +51,8 @@ static void *_proc(void *data);
 /**
  * Wrapper for log handling.
  */
-static void _log(gearman_st *gearman, gearman_verbose_t verbose,
-                 const char *line, void *fn_arg);
+static void _log(gearman_st *gearman __attribute__ ((unused)),
+                 gearman_verbose_t verbose, const char *line, void *fn_arg);
 
 /** @} */
 

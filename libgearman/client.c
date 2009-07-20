@@ -119,7 +119,8 @@ gearman_client_st *gearman_client_clone(gearman_client_st *client,
   if (client == NULL)
     return NULL;
 
-  client->options|= (from->options & ~GEARMAN_CLIENT_ALLOCATED);
+  client->options|= (from->options &
+                     (gearman_client_options_t)~GEARMAN_CLIENT_ALLOCATED);
 
   client->gearman= gearman_clone(&(client->gearman_static), from->gearman);
   if (client->gearman == NULL)
@@ -323,7 +324,7 @@ gearman_return_t gearman_client_job_status(gearman_client_st *client,
       *denominator= client->do_task.denominator;
 
     gearman_task_free(&(client->do_task));
-    client->options&= ~GEARMAN_CLIENT_TASK_IN_USE;
+    client->options&= (gearman_client_options_t)~GEARMAN_CLIENT_TASK_IN_USE;
   }
 
   return ret;
@@ -682,7 +683,8 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
 
           /* Clean up the packet. */
           gearman_packet_free(&(client->con->packet));
-          client->con->options&= ~GEARMAN_CON_PACKET_IN_USE;
+          client->con->options&=
+                           (gearman_client_options_t)~GEARMAN_CON_PACKET_IN_USE;
 
           /* If all tasks are done, return. */
           if (client->running_tasks == 0)
@@ -831,6 +833,8 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
   case GEARMAN_TASK_STATE_NEW:
     if (task->gearman->con_list == NULL)
     {
+      client->new_tasks--;
+      client->running_tasks--;
       GEARMAN_ERROR_SET(client->gearman, "_client_run_task", "no servers added")
       return GEARMAN_NO_SERVERS;
     }
@@ -915,7 +919,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
       }
     }
 
-    client->options&= ~GEARMAN_CLIENT_NO_NEW;
+    client->options&= (gearman_client_options_t)~GEARMAN_CLIENT_NO_NEW;
     task->state= GEARMAN_TASK_STATE_WORK;
     return gearman_con_set_events(task->con, POLLIN);
 
@@ -1105,7 +1109,7 @@ static void *_client_do(gearman_client_st *client, gearman_command_t command,
       client->do_ret == GEARMAN_WORK_FAIL))
   {
     gearman_task_free(&(client->do_task));
-    client->options&= ~GEARMAN_CLIENT_TASK_IN_USE;
+    client->options&= (gearman_client_options_t)~GEARMAN_CLIENT_TASK_IN_USE;
   }
 
   workload= NULL;
@@ -1152,7 +1156,7 @@ static gearman_return_t _client_do_background(gearman_client_st *client,
       strcpy(job_handle, client->do_task.job_handle);
 
     gearman_task_free(&(client->do_task));
-    client->options&= ~GEARMAN_CLIENT_TASK_IN_USE;
+    client->options&= (gearman_client_options_t)~GEARMAN_CLIENT_TASK_IN_USE;
   }
 
   return ret;

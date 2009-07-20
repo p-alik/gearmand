@@ -95,7 +95,7 @@ test_return echo_test(void *object __attribute__((unused)))
   gearman_client_st *client= (gearman_client_st *)object;
   gearman_return_t rc;
   size_t value_length;
-  char *value= "This is my echo test";
+  const char *value= "This is my echo test";
 
   value_length= strlen(value);
 
@@ -302,7 +302,11 @@ void *client_test_worker(gearman_job_st *job, void *cb_arg, size_t *result_size,
 void *world_create(void)
 {
   client_test_st *test;
-  char *argv[1]= { "client_gearmand" };
+  /**
+   *  @TODO We cast this to char ** below, which is evil. We need to do the
+   *  right thing
+   */  
+  const char *argv[1]= { "client_gearmand" };
 
   assert((test= malloc(sizeof(client_test_st))) != NULL);
   memset(test, 0, sizeof(client_test_st));
@@ -311,7 +315,8 @@ void *world_create(void)
   assert(gearman_client_add_server(&(test->client), NULL, CLIENT_TEST_PORT) ==
          GEARMAN_SUCCESS);
 
-  test->gearmand_pid= test_gearmand_start(CLIENT_TEST_PORT, NULL, argv, 1);
+  test->gearmand_pid= test_gearmand_start(CLIENT_TEST_PORT, NULL,
+                                          (char **)argv, 1);
   test->worker_pid= test_worker_start(CLIENT_TEST_PORT, "client_test",
                                       client_test_worker, NULL);
 

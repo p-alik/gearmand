@@ -14,10 +14,10 @@
 /**
 @mainpage Gearman Library
 
-http://www.gearman.org/
+http://gearman.org/
 
 Gearman is, at the most basic level, a job queuing system. It can be
-used to farm out work to other machines, dispatc function calls to
+used to farm out work to other machines, dispatch function calls to
 machines that are better suited to do work, to do work in parallel,
 to load balance lots of function calls, or to call functions between
 languages.
@@ -74,7 +74,7 @@ result= gearman_client_do(&client, "function", "argument", strlen("argument"),
 This will contact the job server, request "function" to be run with
 "argument" as the argument, and return the result of that function. The
 size of the result is stored in result_size. The return code is stored
-in "ret" and shoulf always be checked.
+in "ret" and should always be checked.
 
 @anchor main_page_client_concurrent
 @subsection client_concurrent Concurrent Client Interface

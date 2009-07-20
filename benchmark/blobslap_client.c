@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
   int c;
   char *host= NULL;
   in_port_t port= 0;
-  char *function= GEARMAN_BENCHMARK_DEFAULT_FUNCTION;
+  const char *function= GEARMAN_BENCHMARK_DEFAULT_FUNCTION;
   uint32_t num_tasks= BLOBSLAP_DEFAULT_NUM_TASKS;
   size_t min_size= BLOBSLAP_DEFAULT_BLOB_MIN_SIZE;
   size_t max_size= BLOBSLAP_DEFAULT_BLOB_MAX_SIZE;
@@ -54,10 +54,14 @@ int main(int argc, char *argv[])
 
   gearman_client_set_options(&client, GEARMAN_CLIENT_UNBUFFERED_RESULT, 1);
 
-  while ((c= getopt(argc, argv, "c:f:h:m:M:n:p:s:v")) != -1)
+  while ((c= getopt(argc, argv, "bc:f:h:m:M:n:p:s:v")) != -1)
   {
     switch(c)
     {
+    case 'b':
+      benchmark.background= true;
+      break;
+
     case 'c':
       count= (uint32_t)atoi(optarg);
       break;
@@ -161,9 +165,20 @@ int main(int argc, char *argv[])
         blob_size= (blob_size % (max_size - min_size)) + min_size;
       }
 
-      if (gearman_client_add_task(&client, &(tasks[x]), &benchmark, function,
-                                  NULL, (void *)blob, blob_size,
-                                  &ret) == NULL || ret != GEARMAN_SUCCESS)
+      if (benchmark.background)
+      {
+        (void)gearman_client_add_task_background(&client, &(tasks[x]),
+                                                 &benchmark, function, NULL,
+                                                 (void *)blob, blob_size, &ret);
+      }
+      else
+      {
+        (void)gearman_client_add_task(&client, &(tasks[x]), &benchmark,
+                                      function, NULL, (void *)blob, blob_size,
+                                      &ret);
+      }
+
+      if (ret != GEARMAN_SUCCESS)
       {
         fprintf(stderr, "%s\n", gearman_client_error(&client));
         exit(1);
@@ -205,6 +220,9 @@ static gearman_return_t _created(gearman_task_st *task)
   gearman_benchmark_st *benchmark;
 
   benchmark= (gearman_benchmark_st *)gearman_task_fn_arg(task);
+
+  if (benchmark->background && benchmark->verbose > 0)
+    benchmark_check_time(benchmark);
 
   if (benchmark->verbose > 2)
     printf("Created: %s\n", gearman_task_job_handle(task));
