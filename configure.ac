@@ -35,15 +35,7 @@ then
 fi
 AC_SUBST(LD_VERSION_SCRIPT)
 
-#--------------------------------------------------------------------
-# Check for libpthread
-#--------------------------------------------------------------------
-
-ACX_PTHREAD(,AC_MSG_ERROR(could not find libpthread))
-LIBS="${PTHREAD_LIBS} ${LIBS}"
-CFLAGS="${PTHREAD_CFLAGS} ${CFLAGS}"
-CC="$PTHREAD_CC"
-
+PANDORA_REQUIRE_PTHREAD
 
 #--------------------------------------------------------------------
 # Check for libevent
