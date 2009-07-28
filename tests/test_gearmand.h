@@ -6,8 +6,9 @@
  * the COPYING file in the parent directory for full text.
  */
 
+#include "config.h"
+
 #include <sys/types.h>
-#include "../config.h"
 #include <libgearman/gearman.h>
 
 pid_t test_gearmand_start(in_port_t port, const char *queue_type,
