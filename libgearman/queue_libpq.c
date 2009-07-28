@@ -14,8 +14,13 @@
 #include "common.h"
 
 #include <libgearman/queue_libpq.h>
-#include <libpq-fe.h>
-#include <pg_config_manual.h>
+#if defined(HAVE_LIBPQ_FE_H)
+# include <libpq-fe.h>
+# include <pg_config_manual.h>
+#else
+# include <postgresql/libpq-fe.h>
+# include <postgresql/pg_config_manual.h>
+#endif
 
 /**
  * @addtogroup gearman_queue_libpq libpq Queue Storage Functions
