@@ -9,6 +9,8 @@
 #ifndef __GEARMAN_TEST_H__
 #define __GEARMAN_TEST_H__
 
+#include "config.h"
+
 #include <stdlib.h>
 #include <stdint.h>
 #include <sys/types.h>
