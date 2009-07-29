@@ -26,6 +26,7 @@ SQLITE_REC= sqlite_test.rec
 SQLITE_RECORD= ./sqlite_test > sqlite_test.rec
 SQLITE_RUN= ./sqlite_test > sqlite_test.res
 SQLITE_CHECK= diff ${top_srcdir}/tests/sqlite_test.rec sqlite_test.res
+SQLITE_RM= rm /tmp/gearman.sql
 SQLITE_VALGRIND= libtool --mode=execute valgrind --leak-check=yes --show-reachable=yes  sqlite_test
 sqlite_test_SOURCES= test.c test_gearmand.c sqlite_test.c
 endif
@@ -69,6 +70,7 @@ check: client_test worker_test $(LIBMEMCACHED_TEST) $(SQLITE_TEST)
 	$(LIBMEMCACHED_RM)
 	$(SQLITE_RUN)
 	$(SQLITE_CHECK)
+	$(SQLITE_RM)
 
 valgrind: client_test worker_test $(LIBMEMCACHED_TEST) $(SQLITE_VALGRIND)
 	libtool --mode=execute valgrind --leak-check=yes --show-reachable=yes  client_test

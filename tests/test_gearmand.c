@@ -6,6 +6,8 @@
  * the COPYING file in the parent directory for full text.
  */
 
+#include "config.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>

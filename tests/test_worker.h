@@ -6,6 +6,8 @@
  * the COPYING file in the parent directory for full text.
  */
 
+#include "config.h"
+
 #include <sys/types.h>
 #include <libgearman/gearman.h>
 
