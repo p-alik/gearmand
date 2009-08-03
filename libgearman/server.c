@@ -100,6 +100,7 @@ gearman_server_st *gearman_server_create(gearman_server_st *server)
   server->free_worker_list= NULL;
   server->log_fn= NULL;
   server->log_fn_arg= NULL;
+  server->time_order= 0;
   memset(server->job_hash, 0,
          sizeof(gearman_server_job_st *) * GEARMAN_JOB_HASH_SIZE);
   memset(server->unique_hash, 0,
@@ -187,6 +188,12 @@ void gearman_server_set_log(gearman_server_st *server,
   server->log_fn= log_fn;
   server->log_fn_arg= log_fn_arg;
   gearman_set_log(server->gearman, _log, server, verbose);
+}
+
+void gearman_server_set_time_order(gearman_server_st *server,
+                                   uint8_t time_order)
+{
+  server->time_order= time_order;
 }
 
 gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,

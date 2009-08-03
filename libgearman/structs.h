@@ -265,6 +265,7 @@ struct gearman_server_st
   char job_handle_prefix[GEARMAN_JOB_HANDLE_SIZE];
   gearman_server_job_st *job_hash[GEARMAN_JOB_HASH_SIZE];
   gearman_server_job_st *unique_hash[GEARMAN_JOB_HASH_SIZE];
+  uint8_t time_order;
 };
 
 /**
@@ -415,6 +416,7 @@ struct gearman_server_job_st
   gearman_server_worker_st *worker;
   char job_handle[GEARMAN_JOB_HANDLE_SIZE];
   char unique[GEARMAN_UNIQUE_SIZE];
+  struct timeval insert_time;
 };
 
 /**

@@ -56,6 +56,17 @@ void gearman_server_set_log(gearman_server_st *server,
                             gearman_verbose_t verbose);
 
 /**
+ * Set option to order jobs by time
+ * @param server Server structure previously initialized with
+ *        gearman_server_create.
+ * @param boolean value, 0 (default) will not order jobs by time
+ */
+GEARMAN_API
+void gearman_server_set_time_order(gearman_server_st *server,
+                                   uint8_t time_order);
+
+
+/**
  * Process commands for a connection.
  * @param server_con Server connection that has a packet to process.
  * @param packet The packet that needs processing.

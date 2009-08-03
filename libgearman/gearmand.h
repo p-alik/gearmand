@@ -60,6 +60,15 @@ GEARMAN_API
 void gearmand_set_threads(gearmand_st *gearmand, uint32_t threads);
 
 /**
+ * Set option to order jobs by time
+ * @param gearmand Server instance structure previously initialized with
+ *        gearmand_create.
+ * @param boolean value, 0 (default) will not order jobs by time
+ */
+GEARMAN_API
+void gearmand_set_time_order(gearmand_st *gearmand, uint8_t time_order);
+
+/**
  * Set logging callback for server instance.
  * @param gearmand Server instance structure previously initialized with
  *        gearmand_create.
