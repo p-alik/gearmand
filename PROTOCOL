@@ -565,7 +565,7 @@ Client job submission:
 Client -> Job Server
 00 52 45 51                \0REQ        (Magic)
 00 00 00 07                7            (Packet type: SUBMIT_JOB)
-00 00 00 31                49           (Packet length)
+00 00 00 0d                13           (Packet length)
 72 65 76 65 72 73 65 00    reverse\0    (Function)
 00                         \0           (Unique ID)
 74 65 73 74                test         (Workload)
