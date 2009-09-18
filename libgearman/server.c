@@ -12,6 +12,7 @@
  */
 
 #include "common.h"
+#include "server.h"
 
 /*
  * Private declarations
@@ -56,8 +57,7 @@ _server_queue_work_data(gearman_server_job_st *server_job,
 /**
  * Wrapper for log handling.
  */
-static void _log(gearman_st *gearman, gearman_verbose_t verbose,
-                 const char *line, void *fn_arg);
+static void _log(const char *line, gearman_verbose_t verbose, void *context);
 
 /** @} */
 
@@ -99,7 +99,7 @@ gearman_server_st *gearman_server_create(gearman_server_st *server)
   server->free_client_list= NULL;
   server->free_worker_list= NULL;
   server->log_fn= NULL;
-  server->log_fn_arg= NULL;
+  server->log_context= NULL;
   memset(server->job_hash, 0,
          sizeof(gearman_server_job_st *) * GEARMAN_JOB_HASH_SIZE);
   memset(server->unique_hash, 0,
@@ -180,13 +180,13 @@ void gearman_server_free(gearman_server_st *server)
     free(server);
 }
 
-void gearman_server_set_log(gearman_server_st *server,
-                            gearman_server_log_fn log_fn, void *log_fn_arg,
-                            gearman_verbose_t verbose)
+void gearman_server_set_log_fn(gearman_server_st *server,
+                               gearman_log_fn *function,
+                               const void *context, gearman_verbose_t verbose)
 {
-  server->log_fn= log_fn;
-  server->log_fn_arg= log_fn_arg;
-  gearman_set_log(server->gearman, _log, server, verbose);
+  server->log_fn= function;
+  server->log_context= context;
+  gearman_set_log_fn(server->gearman, _log, server, verbose);
 }
 
 gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
@@ -200,7 +200,7 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
   char numerator_buffer[11]; /* Max string size to hold a uint32_t. */
   char denominator_buffer[11]; /* Max string size to hold a uint32_t. */
   gearman_job_priority_t priority;
-  gearman_st *gearman= gearman= server_con->thread->server->gearman;
+  gearman_st *gearman= server_con->thread->server->gearman;
 
   if (packet->magic == GEARMAN_MAGIC_RESPONSE)
   {
@@ -516,7 +516,7 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
     if (server_job->options & GEARMAN_SERVER_JOB_QUEUED &&
         gearman->queue_done_fn != NULL)
     {
-      ret= (*(gearman->queue_done_fn))(gearman, (void *)gearman->queue_fn_arg,
+      ret= (*(gearman->queue_done_fn))(gearman, (void *)gearman->queue_context,
                                       server_job->unique,
                                       (size_t)strlen(server_job->unique),
                                       server_job->function->function_name,
@@ -574,7 +574,7 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
     if (server_job->options & GEARMAN_SERVER_JOB_QUEUED &&
         gearman->queue_done_fn != NULL)
     {
-      ret= (*(gearman->queue_done_fn))(gearman, (void *)gearman->queue_fn_arg,
+      ret= (*(gearman->queue_done_fn))(gearman, (void *)gearman->queue_context,
                                       server_job->unique,
                                       (size_t)strlen(server_job->unique),
                                       server_job->function->function_name,
@@ -637,8 +637,8 @@ gearman_return_t gearman_server_queue_replay(gearman_server_st *server)
   server->options|= GEARMAN_SERVER_QUEUE_REPLAY;
 
   ret= (*(server->gearman->queue_replay_fn))(server->gearman,
-                                          (void *)server->gearman->queue_fn_arg,
-                                          _queue_replay_add, server);
+                                         (void *)server->gearman->queue_context,
+                                         _queue_replay_add, server);
 
   server->options&= (gearman_server_options_t)~GEARMAN_SERVER_QUEUE_REPLAY;
 
@@ -868,7 +868,7 @@ static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
     gearman_server_packet_free(server_packet, server_con->thread, false);
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
-  
+
   server_packet->packet.magic= GEARMAN_MAGIC_TEXT;
   server_packet->packet.command= GEARMAN_COMMAND_TEXT;
   server_packet->packet.options|= (GEARMAN_PACKET_COMPLETE |
@@ -936,9 +936,8 @@ _server_queue_work_data(gearman_server_job_st *server_job,
   return GEARMAN_SUCCESS;
 }
 
-static void _log(gearman_st *gearman __attribute__ ((unused)),
-                 gearman_verbose_t verbose, const char *line, void *fn_arg)
+static void _log(const char *line, gearman_verbose_t verbose, void *context)
 {
-  gearman_server_st *server= (gearman_server_st *)fn_arg;
-  (*(server->log_fn))(server, verbose, line, server->log_fn_arg);
+  gearman_server_st *server= (gearman_server_st *)context;
+  (*(server->log_fn))(line, verbose, (void *)server->log_context);
 }

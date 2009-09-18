@@ -12,6 +12,8 @@
  */
 
 #include "common.h"
+#include "server.h"
+#include "gearmand.h"
 
 /*
  * Private declarations
@@ -24,8 +26,7 @@
  */
 
 static void *_thread(void *data);
-static void _log(gearman_server_thread_st *thread, gearman_verbose_t verbose,
-                 const char *line, void *arg);
+static void _log(const char *line, gearman_verbose_t verbose, void *context);
 static void _run(gearman_server_thread_st *thread, void *fn_arg);
 
 static gearman_return_t _wakeup_init(gearmand_thread_st *thread);
@@ -62,8 +63,8 @@ gearman_return_t gearmand_thread_create(gearmand_st *gearmand)
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
 
-  gearman_server_thread_set_log(&(thread->server_thread), _log, thread,
-                                gearmand->verbose);
+  gearman_server_thread_set_log_fn(&(thread->server_thread), _log, thread,
+                                   gearmand->verbose);
   gearman_server_thread_set_event_watch(&(thread->server_thread),
                                         gearmand_con_watch, NULL);
 
@@ -207,11 +208,11 @@ void gearmand_thread_run(gearmand_thread_st *thread)
   gearmand_con_st *dcon;
 
   while (1)
-  { 
+  {
     server_con= gearman_server_thread_run(&(thread->server_thread), &ret);
     if (ret == GEARMAN_SUCCESS || ret == GEARMAN_IO_WAIT ||
         ret == GEARMAN_SHUTDOWN_GRACEFUL)
-    { 
+    {
       return;
     }
 
@@ -255,15 +256,14 @@ static void *_thread(void *data)
   return NULL;
 }
 
-static void _log(gearman_server_thread_st *thread __attribute__ ((unused)),
-                 gearman_verbose_t verbose, const char *line, void *fn_arg)
+static void _log(const char *line, gearman_verbose_t verbose, void *context)
 {
-  gearmand_thread_st *dthread= (gearmand_thread_st *)fn_arg;
+  gearmand_thread_st *dthread= (gearmand_thread_st *)context;
   char buffer[GEARMAN_MAX_ERROR_SIZE];
 
   snprintf(buffer, GEARMAN_MAX_ERROR_SIZE, "[%4u] %s", dthread->count, line);
-  (*dthread->gearmand->log_fn)(dthread->gearmand, verbose, buffer,
-                               dthread->gearmand->log_fn_arg);
+  (*dthread->gearmand->log_fn)(buffer, verbose,
+                               (void *)dthread->gearmand->log_context);
 }
 
 static void _run(gearman_server_thread_st *thread __attribute__ ((unused)),

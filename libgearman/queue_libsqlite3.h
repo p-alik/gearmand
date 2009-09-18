@@ -1,4 +1,4 @@
-/* Gearman server and library 
+/* Gearman server and library
  * Copyright (C) 2009 Cory Bennett
  * All rights reserved.
  *

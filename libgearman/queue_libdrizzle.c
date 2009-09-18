@@ -54,21 +54,21 @@ static drizzle_return_t _libdrizzle_query(gearman_st *gearman,
                                           const char *query, size_t query_size);
 
 /* Queue callback functions. */
-static gearman_return_t _libdrizzle_add(gearman_st *gearman, void *fn_arg,
+static gearman_return_t _libdrizzle_add(gearman_st *gearman, void *context,
                                         const void *unique, size_t unique_size,
                                         const void *function_name,
                                         size_t function_name_size,
                                         const void *data, size_t data_size,
                                         gearman_job_priority_t priority);
-static gearman_return_t _libdrizzle_flush(gearman_st *gearman, void *fn_arg);
-static gearman_return_t _libdrizzle_done(gearman_st *gearman, void *fn_arg,
+static gearman_return_t _libdrizzle_flush(gearman_st *gearman, void *context);
+static gearman_return_t _libdrizzle_done(gearman_st *gearman, void *context,
                                          const void *unique,
                                          size_t unique_size,
                                          const void *function_name,
                                          size_t function_name_size);
-static gearman_return_t _libdrizzle_replay(gearman_st *gearman, void *fn_arg,
+static gearman_return_t _libdrizzle_replay(gearman_st *gearman, void *context,
                                            gearman_queue_add_fn *add_fn,
-                                           void *add_fn_arg);
+                                           void *add_context);
 
 /** @} */
 
@@ -144,7 +144,7 @@ gearman_return_t gearman_queue_libdrizzle_init(gearman_st *gearman,
     return GEARMAN_QUEUE_ERROR;
   }
 
-  gearman_set_queue_fn_arg(gearman, queue);
+  gearman_set_queue_context(gearman, queue);
 
   drizzle_con_set_db(&(queue->con), GEARMAN_QUEUE_LIBDRIZZLE_DEFAULT_DATABASE);
 
@@ -244,10 +244,10 @@ gearman_return_t gearman_queue_libdrizzle_init(gearman_st *gearman,
     drizzle_result_free(&(queue->result));
   }
 
-  gearman_set_queue_add(gearman, _libdrizzle_add);
-  gearman_set_queue_flush(gearman, _libdrizzle_flush);
-  gearman_set_queue_done(gearman, _libdrizzle_done);
-  gearman_set_queue_replay(gearman, _libdrizzle_replay);
+  gearman_set_queue_add_fn(gearman, _libdrizzle_add);
+  gearman_set_queue_flush_fn(gearman, _libdrizzle_flush);
+  gearman_set_queue_done_fn(gearman, _libdrizzle_done);
+  gearman_set_queue_replay_fn(gearman, _libdrizzle_replay);
 
   return GEARMAN_SUCCESS;
 }
@@ -258,8 +258,8 @@ gearman_return_t gearman_queue_libdrizzle_deinit(gearman_st *gearman)
 
   GEARMAN_INFO(gearman, "Shutting down libdrizzle queue module")
 
-  queue= (gearman_queue_libdrizzle_st *)gearman_queue_fn_arg(gearman);
-  gearman_set_queue_fn_arg(gearman, NULL);
+  queue= (gearman_queue_libdrizzle_st *)gearman_queue_context(gearman);
+  gearman_set_queue_context(gearman, NULL);
   drizzle_con_free(&(queue->con));
   drizzle_free(&(queue->drizzle));
   if (queue->query != NULL)
@@ -313,14 +313,14 @@ static drizzle_return_t _libdrizzle_query(gearman_st *gearman,
   return DRIZZLE_RETURN_OK;
 }
 
-static gearman_return_t _libdrizzle_add(gearman_st *gearman, void *fn_arg,
+static gearman_return_t _libdrizzle_add(gearman_st *gearman, void *context,
                                         const void *unique, size_t unique_size,
                                         const void *function_name,
                                         size_t function_name_size,
                                         const void *data, size_t data_size,
                                         gearman_job_priority_t priority)
 {
-  gearman_queue_libdrizzle_st *queue= (gearman_queue_libdrizzle_st *)fn_arg;
+  gearman_queue_libdrizzle_st *queue= (gearman_queue_libdrizzle_st *)context;
   char *query;
   size_t query_size;
 
@@ -384,20 +384,20 @@ static gearman_return_t _libdrizzle_add(gearman_st *gearman, void *fn_arg,
 }
 
 static gearman_return_t _libdrizzle_flush(gearman_st *gearman,
-                                          void *fn_arg __attribute__((unused)))
+                                          void *context __attribute__((unused)))
 {
   GEARMAN_DEBUG(gearman, "libdrizzle flush")
 
   return GEARMAN_SUCCESS;
 }
 
-static gearman_return_t _libdrizzle_done(gearman_st *gearman, void *fn_arg,
+static gearman_return_t _libdrizzle_done(gearman_st *gearman, void *context,
                                          const void *unique,
                                          size_t unique_size,
                                          const void *function_name __attribute__((unused)),
                                          size_t function_name_size __attribute__((unused)))
 {
-  gearman_queue_libdrizzle_st *queue= (gearman_queue_libdrizzle_st *)fn_arg;
+  gearman_queue_libdrizzle_st *queue= (gearman_queue_libdrizzle_st *)context;
   char *query;
   size_t query_size;
 
@@ -437,11 +437,11 @@ static gearman_return_t _libdrizzle_done(gearman_st *gearman, void *fn_arg,
   return GEARMAN_SUCCESS;
 }
 
-static gearman_return_t _libdrizzle_replay(gearman_st *gearman, void *fn_arg,
+static gearman_return_t _libdrizzle_replay(gearman_st *gearman, void *context,
                                            gearman_queue_add_fn *add_fn,
-                                           void *add_fn_arg)
+                                           void *add_context)
 {
-  gearman_queue_libdrizzle_st *queue= (gearman_queue_libdrizzle_st *)fn_arg;
+  gearman_queue_libdrizzle_st *queue= (gearman_queue_libdrizzle_st *)context;
   char *query;
   size_t query_size;
   drizzle_return_t ret;
@@ -501,7 +501,7 @@ static gearman_return_t _libdrizzle_replay(gearman_st *gearman, void *fn_arg,
     GEARMAN_DEBUG(gearman, "libdrizzle replay: %.*s", (uint32_t)field_sizes[0],
                   row[1])
 
-    gret= (*add_fn)(gearman, add_fn_arg, row[0], field_sizes[0], row[1],
+    gret= (*add_fn)(gearman, add_context, row[0], field_sizes[0], row[1],
                     field_sizes[1], row[3], field_sizes[3], atoi(row[2]));
     if (gret != GEARMAN_SUCCESS)
     {

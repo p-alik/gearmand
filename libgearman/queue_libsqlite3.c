@@ -61,21 +61,21 @@ static int _sqlite_rollback(gearman_st *gearman,
                             gearman_queue_sqlite_st *queue);
 
 /* Queue callback functions. */
-static gearman_return_t _sqlite_add(gearman_st *gearman, void *fn_arg,
+static gearman_return_t _sqlite_add(gearman_st *gearman, void *context,
                                     const void *unique, size_t unique_size,
                                     const void *function_name,
                                     size_t function_name_size,
                                     const void *data, size_t data_size,
                                     gearman_job_priority_t priority);
-static gearman_return_t _sqlite_flush(gearman_st *gearman, void *fn_arg);
-static gearman_return_t _sqlite_done(gearman_st *gearman, void *fn_arg,
+static gearman_return_t _sqlite_flush(gearman_st *gearman, void *context);
+static gearman_return_t _sqlite_done(gearman_st *gearman, void *context,
                                      const void *unique,
                                      size_t unique_size,
                                      const void *function_name,
                                      size_t function_name_size);
-static gearman_return_t _sqlite_replay(gearman_st *gearman, void *fn_arg,
+static gearman_return_t _sqlite_replay(gearman_st *gearman, void *context,
                                        gearman_queue_add_fn *add_fn,
-                                       void *add_fn_arg);
+                                       void *add_context);
 
 /** @} */
 
@@ -135,7 +135,7 @@ gearman_return_t gearman_queue_libsqlite3_init(gearman_st *gearman,
     return GEARMAN_QUEUE_ERROR;
   }
 
-  gearman_set_queue_fn_arg(gearman, queue);
+  gearman_set_queue_context(gearman, queue);
 
   while (gearman_conf_module_value(module, &name, &value))
   {
@@ -143,7 +143,7 @@ gearman_return_t gearman_queue_libsqlite3_init(gearman_st *gearman,
     {
       if (sqlite3_open(value, &(queue->db)) != SQLITE_OK)
       {
-        gearman_queue_libsqlite3_deinit(gearman);        
+        gearman_queue_libsqlite3_deinit(gearman);
         GEARMAN_ERROR_SET(gearman, "gearman_queue_libsqlite3_init",
                           "Can't open database: %s\n", sqlite3_errmsg(queue->db));
         free(queue);
@@ -167,7 +167,7 @@ gearman_return_t gearman_queue_libsqlite3_init(gearman_st *gearman,
     GEARMAN_ERROR_SET(gearman, "gearman_queue_libsqlite3_init",
                       "missing required --libsqlite3-db=<dbfile> argument");
     return GEARMAN_QUEUE_ERROR;
-  }    
+  }
 
   query= "SELECT name FROM sqlite_master WHERE type='table'";
   if (_sqlite_query(gearman, queue, query, strlen(query), &sth) != SQLITE_OK)
@@ -241,10 +241,10 @@ gearman_return_t gearman_queue_libsqlite3_init(gearman_st *gearman,
     }
   }
 
-  gearman_set_queue_add(gearman, _sqlite_add);
-  gearman_set_queue_flush(gearman, _sqlite_flush);
-  gearman_set_queue_done(gearman, _sqlite_done);
-  gearman_set_queue_replay(gearman, _sqlite_replay);
+  gearman_set_queue_add_fn(gearman, _sqlite_add);
+  gearman_set_queue_flush_fn(gearman, _sqlite_flush);
+  gearman_set_queue_done_fn(gearman, _sqlite_done);
+  gearman_set_queue_replay_fn(gearman, _sqlite_replay);
 
   return GEARMAN_SUCCESS;
 }
@@ -255,8 +255,8 @@ gearman_return_t gearman_queue_libsqlite3_deinit(gearman_st *gearman)
 
   GEARMAN_INFO(gearman, "Shutting down sqlite queue module");
 
-  queue= (gearman_queue_sqlite_st *)gearman_queue_fn_arg(gearman);
-  gearman_set_queue_fn_arg(gearman, NULL);
+  queue= (gearman_queue_sqlite_st *)gearman_queue_context(gearman);
+  gearman_set_queue_context(gearman, NULL);
   sqlite3_close(queue->db);
   if (queue->query != NULL)
     free(queue->query);
@@ -301,7 +301,7 @@ int _sqlite_query(gearman_st *gearman,
     if (*sth)
       sqlite3_finalize(*sth);
     *sth= NULL;
-    GEARMAN_ERROR_SET(gearman, "_sqlite_query", "sqlite_prepare:%s", 
+    GEARMAN_ERROR_SET(gearman, "_sqlite_query", "sqlite_prepare:%s",
                       sqlite3_errmsg(queue->db));
   }
 
@@ -319,12 +319,12 @@ int _sqlite_lock(gearman_st *gearman,
     return SQLITE_OK;
   }
 
-  ret= _sqlite_query(gearman, queue, "BEGIN TRANSACTION", 
+  ret= _sqlite_query(gearman, queue, "BEGIN TRANSACTION",
                      sizeof("BEGIN TRANSACTION") - 1, &sth);
   if (ret != SQLITE_OK)
   {
     GEARMAN_ERROR_SET(gearman, "_sqlite_lock",
-                      "failed to begin transaction: %s", 
+                      "failed to begin transaction: %s",
                       sqlite3_errmsg(queue->db));
     if(sth)
       sqlite3_finalize(sth);
@@ -363,7 +363,7 @@ int _sqlite_commit(gearman_st *gearman,
   if (ret != SQLITE_OK)
   {
     GEARMAN_ERROR_SET(gearman, "_sqlite_commit",
-                      "failed to commit transaction: %s", 
+                      "failed to commit transaction: %s",
                       sqlite3_errmsg(queue->db));
     if(sth)
       sqlite3_finalize(sth);
@@ -419,14 +419,14 @@ int _sqlite_rollback(gearman_st *gearman,
   return SQLITE_OK;
 }
 
-static gearman_return_t _sqlite_add(gearman_st *gearman, void *fn_arg,
+static gearman_return_t _sqlite_add(gearman_st *gearman, void *context,
                                     const void *unique, size_t unique_size,
                                     const void *function_name,
                                     size_t function_name_size,
                                     const void *data, size_t data_size,
                                     gearman_job_priority_t priority)
 {
-  gearman_queue_sqlite_st *queue= (gearman_queue_sqlite_st *)fn_arg;
+  gearman_queue_sqlite_st *queue= (gearman_queue_sqlite_st *)context;
   char *query;
   size_t query_size;
   sqlite3_stmt* sth;
@@ -483,7 +483,7 @@ static gearman_return_t _sqlite_add(gearman_st *gearman, void *fn_arg,
                         SQLITE_TRANSIENT) != SQLITE_OK)
   {
     _sqlite_rollback(gearman, queue);
-    GEARMAN_ERROR_SET(gearman, "_sqlite_add", "failed to bind text [%.*s]: %s", 
+    GEARMAN_ERROR_SET(gearman, "_sqlite_add", "failed to bind text [%.*s]: %s",
                       (uint32_t)unique_size, (char*)unique,
                       sqlite3_errmsg(queue->db));
     sqlite3_finalize(sth);
@@ -494,7 +494,7 @@ static gearman_return_t _sqlite_add(gearman_st *gearman, void *fn_arg,
                         SQLITE_TRANSIENT) != SQLITE_OK)
   {
     _sqlite_rollback(gearman, queue);
-    GEARMAN_ERROR_SET(gearman, "_sqlite_add", "failed to bind text [%.*s]: %s", 
+    GEARMAN_ERROR_SET(gearman, "_sqlite_add", "failed to bind text [%.*s]: %s",
                       (uint32_t)function_name_size, (char*)function_name,
                       sqlite3_errmsg(queue->db));
     sqlite3_finalize(sth);
@@ -533,20 +533,20 @@ static gearman_return_t _sqlite_add(gearman_st *gearman, void *fn_arg,
 }
 
 static gearman_return_t _sqlite_flush(gearman_st *gearman,
-                                      void *fn_arg __attribute__((unused)))
+                                      void *context __attribute__((unused)))
 {
   GEARMAN_DEBUG(gearman, "sqlite flush");
 
   return GEARMAN_SUCCESS;
 }
 
-static gearman_return_t _sqlite_done(gearman_st *gearman, void *fn_arg,
+static gearman_return_t _sqlite_done(gearman_st *gearman, void *context,
                                      const void *unique,
                                      size_t unique_size,
                                      const void *function_name __attribute__((unused)),
                                      size_t function_name_size __attribute__((unused)))
 {
-  gearman_queue_sqlite_st *queue= (gearman_queue_sqlite_st *)fn_arg;
+  gearman_queue_sqlite_st *queue= (gearman_queue_sqlite_st *)context;
   char *query;
   size_t query_size;
   sqlite3_stmt* sth;
@@ -605,11 +605,11 @@ static gearman_return_t _sqlite_done(gearman_st *gearman, void *fn_arg,
   return GEARMAN_SUCCESS;
 }
 
-static gearman_return_t _sqlite_replay(gearman_st *gearman, void *fn_arg,
+static gearman_return_t _sqlite_replay(gearman_st *gearman, void *context,
                                        gearman_queue_add_fn *add_fn,
-                                       void *add_fn_arg)
+                                       void *add_context)
 {
-  gearman_queue_sqlite_st *queue= (gearman_queue_sqlite_st *)fn_arg;
+  gearman_queue_sqlite_st *queue= (gearman_queue_sqlite_st *)context;
   char *query;
   size_t query_size;
   sqlite3_stmt* sth;
@@ -707,7 +707,7 @@ static gearman_return_t _sqlite_replay(gearman_st *gearman, void *fn_arg,
 
     GEARMAN_DEBUG(gearman, "sqlite replay: %s", (char*)function_name);
 
-    gret= (*add_fn)(gearman, add_fn_arg,
+    gret= (*add_fn)(gearman, add_context,
                     unique, unique_size,
                     function_name, function_name_size,
                     data, data_size,

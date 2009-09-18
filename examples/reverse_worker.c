@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
   }
 
   if (options & REVERSE_WORKER_OPTIONS_UNIQUE)
-    gearman_worker_set_options(&worker, GEARMAN_WORKER_GRAB_UNIQ, 1);
+    gearman_worker_add_options(&worker, GEARMAN_WORKER_GRAB_UNIQ);
 
   ret= gearman_worker_add_server(&worker, host, port);
   if (ret != GEARMAN_SUCCESS)
@@ -154,7 +154,7 @@ static void *reverse(gearman_job_st *job, void *cb_arg, size_t *result_size,
 
     if (options & REVERSE_WORKER_OPTIONS_DATA)
     {
-      *ret_ptr= gearman_job_data(job, &(result[y]), 1);
+      *ret_ptr= gearman_job_send_data(job, &(result[y]), 1);
       if (*ret_ptr != GEARMAN_SUCCESS)
       {
         free(result);
@@ -164,7 +164,8 @@ static void *reverse(gearman_job_st *job, void *cb_arg, size_t *result_size,
 
     if (options & REVERSE_WORKER_OPTIONS_STATUS)
     {
-      *ret_ptr= gearman_job_status(job, (uint32_t)y, (uint32_t)*result_size);
+      *ret_ptr= gearman_job_send_status(job, (uint32_t)y,
+                                        (uint32_t)*result_size);
       if (*ret_ptr != GEARMAN_SUCCESS)
       {
         free(result);

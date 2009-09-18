@@ -53,7 +53,7 @@
 # endif
 #endif
 
-#include <libgearman/gearman.h>
+#include <libgearman/gearmand.h>
 
 #ifdef HAVE_LIBDRIZZLE
 #include <libgearman/queue_libdrizzle.h>
@@ -91,8 +91,7 @@ static void _pid_delete(const char *pid_file);
 static bool _switch_user(const char *user);
 static bool _set_signals(void);
 static void _shutdown_handler(int signal_arg);
-static void _log(gearmand_st *gearmand, gearman_verbose_t verbose,
-                 const char *line, void *fn_arg);
+static void _log(const char *line, gearman_verbose_t verbose, void *context);
 
 int main(int argc, char *argv[])
 {
@@ -295,7 +294,7 @@ int main(int argc, char *argv[])
 
   gearmand_set_backlog(_gearmand, backlog);
   gearmand_set_threads(_gearmand, threads);
-  gearmand_set_log(_gearmand, _log, &log_info, verbose);
+  gearmand_set_log_fn(_gearmand, _log, &log_info, verbose);
 
   if (queue_type != NULL)
   {
@@ -542,10 +541,9 @@ static void _shutdown_handler(int signal_arg)
     gearmand_wakeup(_gearmand, GEARMAND_WAKEUP_SHUTDOWN);
 }
 
-static void _log(gearmand_st *gearmand __attribute__ ((unused)),
-                 gearman_verbose_t verbose, const char *line, void *fn_arg)
+static void _log(const char *line, gearman_verbose_t verbose, void *context)
 {
-  gearmand_log_info_st *log_info= (gearmand_log_info_st *)fn_arg;
+  gearmand_log_info_st *log_info= (gearmand_log_info_st *)context;
   int fd;
   time_t t;
   char buffer[GEARMAN_MAX_ERROR_SIZE];

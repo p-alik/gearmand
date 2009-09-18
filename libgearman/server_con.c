@@ -12,6 +12,7 @@
  */
 
 #include "common.h"
+#include "server.h"
 
 /*
  * Public definitions
@@ -33,7 +34,7 @@ gearman_server_con_st *gearman_server_con_add(gearman_server_thread_st *thread,
     return NULL;
   }
 
-  con->con.data= data;
+  con->con.context= data;
 
   ret= gearman_con_set_events(&(con->con), POLLIN);
   if (ret != GEARMAN_SUCCESS)
@@ -72,7 +73,7 @@ gearman_server_con_create(gearman_server_thread_st *thread)
     return NULL;
   }
 
-  gearman_con_set_options(&(con->con), GEARMAN_CON_IGNORE_LOST_CONNECTION, 1);
+  gearman_con_add_options(&(con->con), GEARMAN_CON_IGNORE_LOST_CONNECTION);
 
   con->options= 0;
   con->ret= 0;
@@ -135,7 +136,7 @@ void gearman_server_con_free(gearman_server_con_st *con)
   {
     if (&(con->packet->packet) != con->con.recv_packet)
       gearman_packet_free(&(con->packet->packet));
-    gearman_server_packet_free(con->packet, con->thread, true); 
+    gearman_server_packet_free(con->packet, con->thread, true);
   }
 
   while (con->io_packet_list != NULL)
@@ -145,7 +146,7 @@ void gearman_server_con_free(gearman_server_con_st *con)
   {
     packet= gearman_server_proc_packet_remove(con);
     gearman_packet_free(&(packet->packet));
-    gearman_server_packet_free(packet, con->thread, true); 
+    gearman_server_packet_free(packet, con->thread, true);
   }
 
   gearman_server_con_free_workers(con);
@@ -170,12 +171,12 @@ gearman_con_st *gearman_server_con_con(gearman_server_con_st *con)
 
 void *gearman_server_con_data(gearman_server_con_st *con)
 {
-  return gearman_con_data(&(con->con));
+  return gearman_con_context(&(con->con));
 }
-  
+
 void gearman_server_con_set_data(gearman_server_con_st *con, void *data)
 {
-  gearman_con_set_data(&(con->con), data);
+  gearman_con_set_context(&(con->con), data);
 }
 
 const char *gearman_server_con_host(gearman_server_con_st *con)

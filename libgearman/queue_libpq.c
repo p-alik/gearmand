@@ -55,21 +55,21 @@ typedef struct
 static void _libpq_notice_processor(void *arg, const char *message);
 
 /* Queue callback functions. */
-static gearman_return_t _libpq_add(gearman_st *gearman, void *fn_arg,
+static gearman_return_t _libpq_add(gearman_st *gearman, void *context,
                                    const void *unique, size_t unique_size,
                                    const void *function_name,
                                    size_t function_name_size,
                                    const void *data, size_t data_size,
                                    gearman_job_priority_t priority);
-static gearman_return_t _libpq_flush(gearman_st *gearman, void *fn_arg);
-static gearman_return_t _libpq_done(gearman_st *gearman, void *fn_arg,
+static gearman_return_t _libpq_flush(gearman_st *gearman, void *context);
+static gearman_return_t _libpq_done(gearman_st *gearman, void *context,
                                     const void *unique,
                                     size_t unique_size,
                                     const void *function_name,
                                     size_t function_name_size);
-static gearman_return_t _libpq_replay(gearman_st *gearman, void *fn_arg,
+static gearman_return_t _libpq_replay(gearman_st *gearman, void *context,
                                       gearman_queue_add_fn *add_fn,
-                                      void *add_fn_arg);
+                                      void *add_context);
 
 /** @} */
 
@@ -117,7 +117,7 @@ gearman_return_t gearman_queue_libpq_init(gearman_st *gearman,
   memset(queue, 0, sizeof(gearman_queue_libpq_st));
   snprintf(queue->table, NAMEDATALEN, GEARMAN_QUEUE_LIBPQ_DEFAULT_TABLE);
 
-  gearman_set_queue_fn_arg(gearman, queue);
+  gearman_set_queue_context(gearman, queue);
 
   /* Get module and parse the option values that were given. */
   module= gearman_conf_module_find(conf, "libpq");
@@ -198,10 +198,10 @@ gearman_return_t gearman_queue_libpq_init(gearman_st *gearman,
   else
     PQclear(result);
 
-  gearman_set_queue_add(gearman, _libpq_add);
-  gearman_set_queue_flush(gearman, _libpq_flush);
-  gearman_set_queue_done(gearman, _libpq_done);
-  gearman_set_queue_replay(gearman, _libpq_replay);
+  gearman_set_queue_add_fn(gearman, _libpq_add);
+  gearman_set_queue_flush_fn(gearman, _libpq_flush);
+  gearman_set_queue_done_fn(gearman, _libpq_done);
+  gearman_set_queue_replay_fn(gearman, _libpq_replay);
 
   return GEARMAN_SUCCESS;
 }
@@ -212,8 +212,8 @@ gearman_return_t gearman_queue_libpq_deinit(gearman_st *gearman)
 
   GEARMAN_INFO(gearman, "Shutting down libpq queue module")
 
-  queue= (gearman_queue_libpq_st *)gearman_queue_fn_arg(gearman);
-  gearman_set_queue_fn_arg(gearman, NULL);
+  queue= (gearman_queue_libpq_st *)gearman_queue_context(gearman);
+  gearman_set_queue_context(gearman, NULL);
 
   if (queue->con != NULL)
     PQfinish(queue->con);
@@ -247,14 +247,14 @@ static void _libpq_notice_processor(void *arg, const char *message)
   GEARMAN_INFO(gearman, "PostgreSQL %s", message)
 }
 
-static gearman_return_t _libpq_add(gearman_st *gearman, void *fn_arg,
+static gearman_return_t _libpq_add(gearman_st *gearman, void *context,
                                         const void *unique, size_t unique_size,
                                         const void *function_name,
                                         size_t function_name_size,
                                         const void *data, size_t data_size,
                                         gearman_job_priority_t priority)
 {
-  gearman_queue_libpq_st *queue= (gearman_queue_libpq_st *)fn_arg;
+  gearman_queue_libpq_st *queue= (gearman_queue_libpq_st *)context;
   char *query;
   size_t query_size;
   PGresult *result;
@@ -317,20 +317,20 @@ static gearman_return_t _libpq_add(gearman_st *gearman, void *fn_arg,
 }
 
 static gearman_return_t _libpq_flush(gearman_st *gearman,
-                                     void *fn_arg __attribute__((unused)))
+                                     void *context __attribute__((unused)))
 {
   GEARMAN_DEBUG(gearman, "libpq flush")
 
   return GEARMAN_SUCCESS;
 }
 
-static gearman_return_t _libpq_done(gearman_st *gearman, void *fn_arg,
+static gearman_return_t _libpq_done(gearman_st *gearman, void *context,
                                     const void *unique,
                                     size_t unique_size,
                                     const void *function_name __attribute__((unused)),
                                     size_t function_name_size __attribute__((unused)))
 {
-  gearman_queue_libpq_st *queue= (gearman_queue_libpq_st *)fn_arg;
+  gearman_queue_libpq_st *queue= (gearman_queue_libpq_st *)context;
   char *query;
   size_t query_size;
   PGresult *result;
@@ -378,11 +378,11 @@ static gearman_return_t _libpq_done(gearman_st *gearman, void *fn_arg,
   return GEARMAN_SUCCESS;
 }
 
-static gearman_return_t _libpq_replay(gearman_st *gearman, void *fn_arg,
+static gearman_return_t _libpq_replay(gearman_st *gearman, void *context,
                                       gearman_queue_add_fn *add_fn,
-                                      void *add_fn_arg)
+                                      void *add_context)
 {
-  gearman_queue_libpq_st *queue= (gearman_queue_libpq_st *)fn_arg;
+  gearman_queue_libpq_st *queue= (gearman_queue_libpq_st *)context;
   char *query;
   gearman_return_t ret;
   PGresult *result;
@@ -440,7 +440,7 @@ static gearman_return_t _libpq_replay(gearman_st *gearman, void *fn_arg,
              (size_t)PQgetlength(result, row, 3));
     }
 
-    ret= (*add_fn)(gearman, add_fn_arg, PQgetvalue(result, row, 0),
+    ret= (*add_fn)(gearman, add_context, PQgetvalue(result, row, 0),
                    (size_t)PQgetlength(result, row, 0),
                    PQgetvalue(result, row, 1),
                    (size_t)PQgetlength(result, row, 1),

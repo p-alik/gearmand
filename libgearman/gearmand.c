@@ -12,6 +12,8 @@
  */
 
 #include "common.h"
+#include "server.h"
+#include "gearmand.h"
 
 /*
  * Private declarations
@@ -23,8 +25,7 @@
  * @{
  */
 
-static void _log(gearman_server_st *server, gearman_verbose_t verbose,
-                 const char *line, void *arg);
+static void _log(const char *line, gearman_verbose_t verbose, void *context);
 
 static gearman_return_t _listen_init(gearmand_st *gearmand);
 static void _listen_close(gearmand_st *gearmand);
@@ -75,7 +76,7 @@ gearmand_st *gearmand_create(const char *host, in_port_t port)
   gearmand->wakeup_fd[1]= -1;
   gearmand->host= host;
   gearmand->log_fn= NULL;
-  gearmand->log_fn_arg= NULL;
+  gearmand->log_context= NULL;
   gearmand->base= NULL;
   gearmand->port_list= NULL;
   gearmand->thread_list= NULL;
@@ -146,17 +147,17 @@ void gearmand_set_threads(gearmand_st *gearmand, uint32_t threads)
   gearmand->threads= threads;
 }
 
-void gearmand_set_log(gearmand_st *gearmand, gearmand_log_fn log_fn,
-                      void *log_fn_arg, gearman_verbose_t verbose)
+void gearmand_set_log_fn(gearmand_st *gearmand, gearman_log_fn *function,
+                         const void *context, gearman_verbose_t verbose)
 {
-  gearman_server_set_log(&(gearmand->server), _log, gearmand, verbose);
-  gearmand->log_fn= log_fn;
-  gearmand->log_fn_arg= log_fn_arg;
+  gearman_server_set_log_fn(&(gearmand->server), _log, gearmand, verbose);
+  gearmand->log_fn= function;
+  gearmand->log_context= context;
   gearmand->verbose= verbose;
 }
 
 gearman_return_t gearmand_port_add(gearmand_st *gearmand, in_port_t port,
-                                   gearman_con_add_fn *add_fn)
+                                   gearman_con_add_fn *function)
 {
   gearmand_port_st *port_list;
 
@@ -171,7 +172,7 @@ gearman_return_t gearmand_port_add(gearmand_st *gearmand, in_port_t port,
   port_list[gearmand->port_count].port= port;
   port_list[gearmand->port_count].listen_count= 0;
   port_list[gearmand->port_count].gearmand= gearmand;
-  port_list[gearmand->port_count].add_fn= add_fn;
+  port_list[gearmand->port_count].add_fn= function;
   port_list[gearmand->port_count].listen_fd= NULL;
   port_list[gearmand->port_count].listen_event= NULL;
 
@@ -274,11 +275,10 @@ void gearmand_wakeup(gearmand_st *gearmand, gearmand_wakeup_t wakeup)
  * Private definitions
  */
 
-static void _log(gearman_server_st *server __attribute__ ((unused)),
-                 gearman_verbose_t verbose, const char *line, void *fn_arg)
+static void _log(const char *line, gearman_verbose_t verbose, void *context)
 {
-  gearmand_st *gearmand= (gearmand_st *)fn_arg;
-  (*gearmand->log_fn)(gearmand, verbose, line, gearmand->log_fn_arg);
+  gearmand_st *gearmand= (gearmand_st *)context;
+  (*gearmand->log_fn)(line, verbose, (void *)gearmand->log_context);
 }
 
 static gearman_return_t _listen_init(gearmand_st *gearmand)
