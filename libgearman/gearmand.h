@@ -80,8 +80,8 @@ void gearmand_set_log_fn(gearmand_st *gearmand, gearman_log_fn *function,
  * @param gearmand Server instance structure previously initialized with
  *        gearmand_create.
  * @param port Port for the server to listen on.
- * @param add_fn Optional callback function that is called when a connection
-                 has been accepted on the given port.
+ * @param function Optional callback function that is called when a connection
+           has been accepted on the given port.
  * @return Standard gearman return value.
  */
 GEARMAN_API

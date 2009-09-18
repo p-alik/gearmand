@@ -410,8 +410,8 @@ void gearman_client_task_free_all(gearman_client_st *client);
  * Set function to call when tasks are being cleaned up so applications can
  * clean up the task context.
  *
- * @param[in] gearman Structure previously initialized with gearman_create() or
- *  gearman_clone().
+ * @param[in] client Structure previously initialized with
+ *  gearman_client_create() or gearman_client_clone().
  * @param[in] function Function to call to clean up task context.
  */
 GEARMAN_API

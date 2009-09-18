@@ -276,7 +276,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
 /**
  * Free a job structure.
  *
- * @param[in] task Structure previously initialized with
+ * @param[in] job Structure previously initialized with
  *  gearman_worker_grab_job().
  */
 GEARMAN_API

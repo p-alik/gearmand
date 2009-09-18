@@ -75,7 +75,7 @@ const char *gearman_bugreport(void);
 /**
  * Get string with the name of the given verbose level.
  *
- * @param[in] Verbose logging level.
+ * @param[in] verbose Verbose logging level.
  * @return String form of verbose level.
  */
 GEARMAN_API
@@ -253,7 +253,7 @@ gearman_con_st *gearman_con_create(gearman_st *gearman, gearman_con_st *con);
  *  gearman_clone().
  * @param[in] con Caller allocated structure, or NULL to allocate one.
  * @param[in] host Host or IP address to connect to.
- * @param[in] host Port to connect to.
+ * @param[in] port Port to connect to.
  * @return On success, a pointer to the (possibly allocated) structure. On
  *  failure this will be NULL.
  */
