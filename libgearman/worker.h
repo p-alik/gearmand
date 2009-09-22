@@ -27,101 +27,151 @@ extern "C" {
  */
 
 /**
- * Initialize a worker structure. This cannot fail if the caller supplies a
- * worker structure.
- * @param worker Caller allocated worker structure, or NULL to allocate one.
- * @return Pointer to an allocated worker structure if worker parameter was
- *         NULL, or the worker parameter pointer if it was not NULL.
+ * Initialize a worker structure. Always check the return value even if passing
+ * in a pre-allocated structure. Some other initialization may have failed.
+ *
+ * @param[in] worker Caller allocated structure, or NULL to allocate one.
+ * @return On success, a pointer to the (possibly allocated) structure. On
+ *  failure this will be NULL.
  */
 GEARMAN_API
 gearman_worker_st *gearman_worker_create(gearman_worker_st *worker);
 
 /**
  * Clone a worker structure.
- * @param worker Caller allocated worker structure, or NULL to allocate one.
- * @param from Worker structure to use as a source to clone from.
- * @return Pointer to an allocated worker structure if worker parameter was
- *         NULL, or the worker parameter pointer if it was not NULL.
+ *
+ * @param[in] worker Caller allocated structure, or NULL to allocate one.
+ * @param[in] from Structure to use as a source to clone from.
+ * @return Same return as gearman_worker_create().
  */
 GEARMAN_API
 gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker,
-                                        gearman_worker_st *from);
+                                        const gearman_worker_st *from);
 
 /**
  * Free resources used by a worker structure.
- * @param worker Worker structure previously initialized with
- *        gearman_worker_create or gearman_worker_clone.
+ *
+ * @param[in] worker Structure previously initialized with
+ *  gearman_worker_create() or gearman_worker_clone().
  */
 GEARMAN_API
 void gearman_worker_free(gearman_worker_st *worker);
 
 /**
- * Return an error string for the last error encountered.
- * @param worker Worker structure previously initialized with
- *        gearman_worker_create or gearman_worker_clone.
- * @return Pointer to static buffer in library that holds an error string.
+ * See gearman_error() for details.
  */
 GEARMAN_API
 const char *gearman_worker_error(gearman_worker_st *worker);
 
 /**
- * Value of errno in the case of a GEARMAN_ERRNO return value.
- * @param worker Worker structure previously initialized with
- *        gearman_worker_create or gearman_worker_clone.
- * @return An errno value as defined in your system errno.h file.
+ * See gearman_errno() for details.
  */
 GEARMAN_API
 int gearman_worker_errno(gearman_worker_st *worker);
 
 /**
+ * Get options for a worker structure.
+ *
+ * @param[in] worker Structure previously initialized with
+ *  gearman_worker_create() or gearman_worker_clone().
+ * @return Options set for the worker structure.
+ */
+GEARMAN_API
+gearman_worker_options_t gearman_worker_options(const gearman_worker_st *worker);
+
+/**
  * Set options for a worker structure.
- * @param worker Worker structure previously initialized with
- *        gearman_worker_create or gearman_worker_clone.
- * @param options Available options for gearman_worker structs.
- * @param data For options that require parameters, the value of that parameter.
- *        For all other option flags, this should be 0 to clear the option or 1
- *        to set.
+ *
+ * @param[in] worker Structure previously initialized with
+ *  gearman_worker_create() or gearman_worker_clone().
+ * @param options Available options for worker structures.
  */
 GEARMAN_API
 void gearman_worker_set_options(gearman_worker_st *worker,
-                                gearman_worker_options_t options,
-                                uint32_t data);
+                                gearman_worker_options_t options);
 
 /**
- * Set custom memory allocation function for workloads. Normally gearman uses
- * the standard system malloc to allocate memory used with workloads. This
- * function is used instead.
- * @param worker Worker structure previously initialized with
- *        gearman_worker_create or gearman_worker_clone.
- * @param workload_malloc Memory allocation function to replace malloc().
- * @param workload_malloc_arg Argument to pass along to workload_malloc.
+ * Add options for a worker structure.
+ *
+ * @param[in] worker Structure previously initialized with
+ *  gearman_worker_create() or gearman_worker_clone().
+ * @param options Available options for worker structures.
  */
 GEARMAN_API
-void gearman_worker_set_workload_malloc(gearman_worker_st *worker,
-                                        gearman_malloc_fn *workload_malloc,
-                                        const void *workload_malloc_arg);
- 
-/**
- * Set custom memory free function for workloads. Normally gearman uses the
- * standard system free to free memory used with workloads. This function
- * is used instead.
- * @param worker Worker structure previously initialized with
- *        gearman_worker_create or gearman_worker_clone.
- * @param workload_free Memory free function to replace free().
- * @param workload_free_arg Argument to pass along to workload_free.
- */
-GEARMAN_API
-void gearman_worker_set_workload_free(gearman_worker_st *worker,
-                                      gearman_free_fn *workload_free,
-                                      const void *workload_free_arg);
+void gearman_worker_add_options(gearman_worker_st *worker,
+                                gearman_worker_options_t options);
 
 /**
- * Add a job server to a worker. This goes into a list of servers than can be
+ * Remove options for a worker structure.
+ *
+ * @param[in] worker Structure previously initialized with
+ *  gearman_worker_create() or gearman_worker_clone().
+ * @param options Available options for worker structures.
+ */
+GEARMAN_API
+void gearman_worker_remove_options(gearman_worker_st *worker,
+                                   gearman_worker_options_t options);
+
+/**
+ * Get the application context for a worker.
+ *
+ * @param[in] worker Structure previously initialized with
+ *  gearman_worker_create() or gearman_worker_clone().
+ * @return Application context that was previously set, or NULL.
+ */
+GEARMAN_API
+void *gearman_worker_context(const gearman_worker_st *worker);
+
+/**
+ * Set the application context for a worker.
+ *
+ * @param[in] worker Structure previously initialized with
+ *  gearman_worker_create() or gearman_worker_clone().
+ * @param[in] context Application context to set.
+ */
+GEARMAN_API
+void gearman_worker_set_context(gearman_worker_st *worker, const void *context);
+
+/**
+ * See gearman_set_log_fn() for details.
+ */
+GEARMAN_API
+void gearman_worker_set_log_fn(gearman_worker_st *worker,
+                               gearman_log_fn *function, const void *context,
+                               gearman_verbose_t verbose);
+
+/**
+ * See gearman_set_event_watch_fn() for details.
+ */
+GEARMAN_API
+void gearman_worker_set_event_watch_fn(gearman_worker_st *worker,
+                                       gearman_event_watch_fn *function,
+                                       const void *context);
+
+/**
+ * See gearman_set_workload_malloc_fn() for details.
+ */
+GEARMAN_API
+void gearman_worker_set_workload_malloc_fn(gearman_worker_st *worker,
+                                           gearman_malloc_fn *function,
+                                           const void *context);
+
+/**
+ * See gearman_set_workload_free_fn() for details.
+ */
+GEARMAN_API
+void gearman_worker_set_workload_free_fn(gearman_worker_st *worker,
+                                         gearman_free_fn *function,
+                                         const void *context);
+
+/**
+ * Add a job server to a worker. This goes into a list of servers that can be
  * used to run tasks. No socket I/O happens here, it is just added to a list.
- * @param worker Worker structure previously initialized with
- *        gearman_worker_create or gearman_worker_clone.
- * @param host Hostname or IP address (IPv4 or IPv6) of the server to add.
- * @param port Port of the server to add.
+ *
+ * @param[in] worker Structure previously initialized with
+ *  gearman_worker_create() or gearman_worker_clone().
+ * @param[in] host Hostname or IP address (IPv4 or IPv6) of the server to add.
+ * @param[in] port Port of the server to add.
  * @return Standard gearman return value.
  */
 GEARMAN_API
@@ -134,9 +184,10 @@ gearman_return_t gearman_worker_add_server(gearman_worker_st *worker,
  * Some examples are:
  * 10.0.0.1,10.0.0.2,10.0.0.3
  * localhost:1234,jobserver2.domain.com:7003,10.0.0.3
- * @param worker Worker structure previously initialized with
- *        gearman_worker_create or gearman_worker_clone.
- * @param servers Server list described above.
+ *
+ * @param[in] worker Structure previously initialized with
+ *  gearman_worker_create() or gearman_worker_clone().
+ * @param[in] servers Server list described above.
  * @return Standard gearman return value.
  */
 GEARMAN_API
@@ -144,9 +195,38 @@ gearman_return_t gearman_worker_add_servers(gearman_worker_st *worker,
                                             const char *servers);
 
 /**
+ * Remove all servers currently associated with the worker.
+ *
+ * @param[in] worker Structure previously initialized with
+ *  gearman_worker_create() or gearman_worker_clone().
+ */
+GEARMAN_API
+void gearman_worker_remove_servers(gearman_worker_st *worker);
+
+/**
+ * When in non-blocking I/O mode, wait for activity from one of the servers.
+ *
+ * @param[in] worker Structure previously initialized with
+ *  gearman_worker_create() or gearman_worker_clone().
+ * @param[in] timeout Milliseconds to wait for I/O activity. A negative value
+ *  means an infinite timeout.
+ * @return Standard gearman return value.
+ */
+GEARMAN_API
+gearman_return_t gearman_worker_wait(gearman_worker_st *worker, int timeout);
+
+/**
  * Register function with job servers with an optional timeout. The timeout
  * specifies how many seconds the server will wait before marking a job as
  * failed. If timeout is zero, there is no timeout.
+ *
+ * @param[in] worker Structure previously initialized with
+ *  gearman_worker_create() or gearman_worker_clone().
+ * @param[in] function_name Function name to register.
+ * @param[in] timeout Optional timeout (in seconds) that specifies the maximum
+ *  time a job should. This is enforced on the job server. A value of 0 means
+ *  an infinite time.
+ * @return Standard gearman return value.
  */
 GEARMAN_API
 gearman_return_t gearman_worker_register(gearman_worker_st *worker,
@@ -155,6 +235,11 @@ gearman_return_t gearman_worker_register(gearman_worker_st *worker,
 
 /**
  * Unregister function with job servers.
+ *
+ * @param[in] worker Structure previously initialized with
+ *  gearman_worker_create() or gearman_worker_clone().
+ * @param[in] function_name Function name to unregister.
+ * @return Standard gearman return value.
  */
 GEARMAN_API
 gearman_return_t gearman_worker_unregister(gearman_worker_st *worker,
@@ -162,12 +247,26 @@ gearman_return_t gearman_worker_unregister(gearman_worker_st *worker,
 
 /**
  * Unregister all functions with job servers.
+ *
+ * @param[in] worker Structure previously initialized with
+ *  gearman_worker_create() or gearman_worker_clone().
+ * @return Standard gearman return value.
  */
 GEARMAN_API
 gearman_return_t gearman_worker_unregister_all(gearman_worker_st *worker);
 
 /**
- * Get a job from one of the job servers.
+ * Get a job from one of the job servers. This does not used the callback
+ * interface below, which means results must be sent back to the job server
+ * manually. It is also the responsibility of the caller to free the job once
+ * it has been completed.
+ *
+ * @param[in] worker Structure previously initialized with
+ *  gearman_worker_create() or gearman_worker_clone().
+ * @param[in] job Caller allocated structure, or NULL to allocate one.
+ * @param[out] ret_ptr Standard gearman return value.
+ * @return On success, a pointer to the (possibly allocated) structure. On
+ *  failure this will be NULL.
  */
 GEARMAN_API
 gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
@@ -175,17 +274,51 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
                                         gearman_return_t *ret_ptr);
 
 /**
- * Register and add callback function for worker.
+ * Free a job structure.
+ *
+ * @param[in] job Structure previously initialized with
+ *  gearman_worker_grab_job().
+ */
+GEARMAN_API
+void gearman_job_free(gearman_job_st *job);
+
+/**
+ * Free all jobs for a gearman structure.
+ *
+ * @param[in] worker Structure previously initialized with
+ *  gearman_worker_create() or gearman_worker_clone().
+ */
+GEARMAN_API
+void gearman_job_free_all(gearman_worker_st *worker);
+
+/**
+ * Register and add callback function for worker. To remove functions that have
+ * been added, call gearman_worker_unregister() or
+ * gearman_worker_unregister_all().
+ *
+ * @param[in] worker Structure previously initialized with
+ *  gearman_worker_create() or gearman_worker_clone().
+ * @param[in] function_name Function name to register.
+ * @param[in] timeout Optional timeout (in seconds) that specifies the maximum
+ *  time a job should. This is enforced on the job server. A value of 0 means
+ *  an infinite time.
+ * @param[in] function Function to run when there is a job ready.
+ * @param[in] context Argument to pass into the callback function.
+ * @return Standard gearman return value.
  */
 GEARMAN_API
 gearman_return_t gearman_worker_add_function(gearman_worker_st *worker,
                                              const char *function_name,
                                              uint32_t timeout,
-                                             gearman_worker_fn *worker_fn,
-                                             const void *fn_arg);
+                                             gearman_worker_fn *function,
+                                             const void *context);
 
 /**
  * Wait for a job and call the appropriate callback function when it gets one.
+ *
+ * @param[in] worker Structure previously initialized with
+ *  gearman_worker_create() or gearman_worker_clone().
+ * @return Standard gearman return value.
  */
 GEARMAN_API
 gearman_return_t gearman_worker_work(gearman_worker_st *worker);
@@ -193,10 +326,11 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker);
 /**
  * Send data to all job servers to see if they echo it back. This is a test
  * function to see if job servers are responding properly.
- * @param worker Worker structure previously initialized with
- *        gearman_worker_create or gearman_worker_clone.
- * @param workload The workload to ask the server to echo back.
- * @param workload_size Size of the workload.
+ *
+ * @param[in] worker Structure previously initialized with
+ *  gearman_worker_create() or gearman_worker_clone().
+ * @param[in] workload The workload to ask the server to echo back.
+ * @param[in] workload_size Size of the workload.
  * @return Standard gearman return value.
  */
 GEARMAN_API

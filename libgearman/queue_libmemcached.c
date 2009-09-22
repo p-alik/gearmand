@@ -40,22 +40,22 @@ typedef struct
 } gearman_queue_libmemcached_st;
 
 /* Queue callback functions. */
-static gearman_return_t _libmemcached_add(gearman_st *gearman, void *fn_arg,
+static gearman_return_t _libmemcached_add(gearman_st *gearman, void *context,
                                           const void *unique,
                                           size_t unique_size,
                                           const void *function_name,
                                           size_t function_name_size,
                                           const void *data, size_t data_size,
                                           gearman_job_priority_t priority);
-static gearman_return_t _libmemcached_flush(gearman_st *gearman, void *fn_arg);
-static gearman_return_t _libmemcached_done(gearman_st *gearman, void *fn_arg,
+static gearman_return_t _libmemcached_flush(gearman_st *gearman, void *context);
+static gearman_return_t _libmemcached_done(gearman_st *gearman, void *context,
                                            const void *unique,
-                                           size_t unique_size, 
-                                           const void *function_name, 
+                                           size_t unique_size,
+                                           const void *function_name,
                                            size_t function_name_size);
-static gearman_return_t _libmemcached_replay(gearman_st *gearman, void *fn_arg,
+static gearman_return_t _libmemcached_replay(gearman_st *gearman, void *context,
                                              gearman_queue_add_fn *add_fn,
-                                             void *add_fn_arg);
+                                             void *add_context);
 
 /** @} */
 
@@ -113,7 +113,7 @@ gearman_return_t gearman_queue_libmemcached_init(gearman_st *gearman,
   }
 
   while (gearman_conf_module_value(module, &name, &value))
-  { 
+  {
     if (!strcmp(name, "servers"))
       opt_servers= value;
     else
@@ -149,12 +149,12 @@ gearman_return_t gearman_queue_libmemcached_init(gearman_st *gearman,
   memcached_server_push(&queue->memc, servers);
   memcached_server_list_free(servers);
 
-  gearman_set_queue_fn_arg(gearman, queue);
+  gearman_set_queue_context(gearman, queue);
 
-  gearman_set_queue_add(gearman, _libmemcached_add);
-  gearman_set_queue_flush(gearman, _libmemcached_flush);
-  gearman_set_queue_done(gearman, _libmemcached_done);
-  gearman_set_queue_replay(gearman, _libmemcached_replay);
+  gearman_set_queue_add_fn(gearman, _libmemcached_add);
+  gearman_set_queue_flush_fn(gearman, _libmemcached_flush);
+  gearman_set_queue_done_fn(gearman, _libmemcached_done);
+  gearman_set_queue_replay_fn(gearman, _libmemcached_replay);
 
   return GEARMAN_SUCCESS;
 }
@@ -165,8 +165,8 @@ gearman_return_t gearman_queue_libmemcached_deinit(gearman_st *gearman)
 
   GEARMAN_INFO(gearman, "Shutting down libmemcached queue module");
 
-  queue= (gearman_queue_libmemcached_st *)gearman_queue_fn_arg(gearman);
-  gearman_set_queue_fn_arg(gearman, NULL);
+  queue= (gearman_queue_libmemcached_st *)gearman_queue_context(gearman);
+  gearman_set_queue_context(gearman, NULL);
   memcached_free(&(queue->memc));
 
   free(queue);
@@ -189,7 +189,7 @@ gearman_return_t gearmand_queue_libmemcached_deinit(gearmand_st *gearmand)
  * Private definitions
  */
 
-static gearman_return_t _libmemcached_add(gearman_st *gearman, void *fn_arg,
+static gearman_return_t _libmemcached_add(gearman_st *gearman, void *context,
                                           const void *unique,
                                           size_t unique_size,
                                           const void *function_name,
@@ -197,7 +197,7 @@ static gearman_return_t _libmemcached_add(gearman_st *gearman, void *fn_arg,
                                           const void *data, size_t data_size,
                                           gearman_job_priority_t priority)
 {
-  gearman_queue_libmemcached_st *queue= (gearman_queue_libmemcached_st *)fn_arg;
+  gearman_queue_libmemcached_st *queue= (gearman_queue_libmemcached_st *)context;
   memcached_return rc;
   char key[MEMCACHED_MAX_KEY];
   size_t key_length;
@@ -208,7 +208,7 @@ static gearman_return_t _libmemcached_add(gearman_st *gearman, void *fn_arg,
                                GEARMAN_QUEUE_LIBMEMCACHED_DEFAULT_PREFIX,
                                (int)function_name_size,
                                (const char *)function_name, (int)unique_size,
-                               (const char *)unique);  
+                               (const char *)unique);
 
   rc= memcached_set(&queue->memc, (const char *)key, key_length,
                     (const char *)data, data_size, 0, (uint32_t)priority);
@@ -220,23 +220,23 @@ static gearman_return_t _libmemcached_add(gearman_st *gearman, void *fn_arg,
 }
 
 static gearman_return_t _libmemcached_flush(gearman_st *gearman,
-                                           void *fn_arg __attribute__((unused)))
+                                           void *context __attribute__((unused)))
 {
   GEARMAN_DEBUG(gearman, "libmemcached flush");
 
   return GEARMAN_SUCCESS;
 }
 
-static gearman_return_t _libmemcached_done(gearman_st *gearman, void *fn_arg,
+static gearman_return_t _libmemcached_done(gearman_st *gearman, void *context,
                                            const void *unique,
-                                           size_t unique_size, 
-                                           const void *function_name, 
+                                           size_t unique_size,
+                                           const void *function_name,
                                            size_t function_name_size)
 {
   size_t key_length;
   char key[MEMCACHED_MAX_KEY];
   memcached_return rc;
-  gearman_queue_libmemcached_st *queue= (gearman_queue_libmemcached_st *)fn_arg;
+  gearman_queue_libmemcached_st *queue= (gearman_queue_libmemcached_st *)context;
 
   GEARMAN_DEBUG(gearman, "libmemcached done: %.*s", (uint32_t)unique_size, (char *)unique);
 
@@ -244,7 +244,7 @@ static gearman_return_t _libmemcached_done(gearman_st *gearman, void *fn_arg,
                                GEARMAN_QUEUE_LIBMEMCACHED_DEFAULT_PREFIX,
                                (int)function_name_size,
                                (const char *)function_name, (int)unique_size,
-                               (const char *)unique);  
+                               (const char *)unique);
 
   /* For the moment we will assume it happened */
   rc= memcached_delete(&queue->memc, (const char *)key, key_length, 0);
@@ -260,11 +260,11 @@ struct replay_context
   memcached_st clone;
   gearman_st *gearman;
   gearman_queue_add_fn *add_fn;
-  void *add_fn_arg;
+  void *add_context;
 };
 
-static memcached_return callback_loader(memcached_st *ptr __attribute__((unused)), 
-                                        memcached_result_st *result __attribute__((unused)), 
+static memcached_return callback_loader(memcached_st *ptr __attribute__((unused)),
+                                        memcached_result_st *result __attribute__((unused)),
                                         void *context)
 {
   struct replay_context *container= (struct replay_context *)context;
@@ -288,9 +288,9 @@ static memcached_return callback_loader(memcached_st *ptr __attribute__((unused)
   assert(function);
   assert(strlen(function));
   /* Currently not looking at failure cases */
-  (void)(*container->add_fn)(container->gearman, container->add_fn_arg, 
-                             unique, unique_len, 
-                             function, strlen(function), 
+  (void)(*container->add_fn)(container->gearman, container->add_context,
+                             unique, unique_len,
+                             function, strlen(function),
                              memcached_result_value(result), memcached_result_length(result),
                              memcached_result_flags(result));
 
@@ -299,7 +299,7 @@ static memcached_return callback_loader(memcached_st *ptr __attribute__((unused)
 }
 
 /* Grab the object and load it into the loader */
-static memcached_return callback_for_key(memcached_st *ptr __attribute__((unused)),  
+static memcached_return callback_for_key(memcached_st *ptr __attribute__((unused)),
                                          const char *key, size_t key_length,
                                          void *context)
 {
@@ -309,7 +309,7 @@ static memcached_return callback_for_key(memcached_st *ptr __attribute__((unused
   char *passable[1];
 
   callbacks[0]= &callback_loader;
-  
+
   passable[0]= (char *)key;
   rc= memcached_mget(&container->clone, passable, &key_length, 1);
 
@@ -322,12 +322,12 @@ static memcached_return callback_for_key(memcached_st *ptr __attribute__((unused
 /*
   If we have any failures for loading values back into replay we just ignore them.
 */
-static gearman_return_t _libmemcached_replay(gearman_st *gearman, void *fn_arg,
+static gearman_return_t _libmemcached_replay(gearman_st *gearman, void *context,
                                              gearman_queue_add_fn *add_fn,
-                                             void *add_fn_arg)
+                                             void *add_context)
 {
-  gearman_queue_libmemcached_st *queue= (gearman_queue_libmemcached_st *)fn_arg;
-  struct replay_context context;
+  gearman_queue_libmemcached_st *queue= (gearman_queue_libmemcached_st *)context;
+  struct replay_context container;
   memcached_st *check_for_failure;
   memcached_dump_func callbacks[1];
 
@@ -335,18 +335,18 @@ static gearman_return_t _libmemcached_replay(gearman_st *gearman, void *fn_arg,
 
   GEARMAN_INFO(gearman, "libmemcached replay start");
 
-  memset(&context, 0, sizeof(struct replay_context));
-  check_for_failure= memcached_clone(&context.clone, &queue->memc);
-  context.gearman= gearman;
-  context.add_fn= add_fn;
-  context.add_fn_arg= add_fn_arg;
+  memset(&container, 0, sizeof(struct replay_context));
+  check_for_failure= memcached_clone(&container.clone, &queue->memc);
+  container.gearman= gearman;
+  container.add_fn= add_fn;
+  container.add_context= add_context;
 
   assert(check_for_failure);
 
 
-  (void)memcached_dump(&queue->memc, callbacks, (void *)&context, 1);
+  (void)memcached_dump(&queue->memc, callbacks, (void *)&container, 1);
 
-  memcached_free(&context.clone);
+  memcached_free(&container.clone);
 
   return GEARMAN_SUCCESS;
 }

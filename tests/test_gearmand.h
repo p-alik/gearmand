@@ -9,7 +9,7 @@
 #include "config.h"
 
 #include <sys/types.h>
-#include <libgearman/gearman.h>
+#include <libgearman/gearmand.h>
 
 pid_t test_gearmand_start(in_port_t port, const char *queue_type,
                           char *argv[], int argc);

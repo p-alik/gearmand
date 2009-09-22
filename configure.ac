@@ -6,7 +6,7 @@
 # the COPYING file in this directory for full text.
 
 AC_PREREQ(2.59)
-AC_INIT([gearmand],[0.9],[https://launchpad.net/gearmand])
+AC_INIT([gearmand],[0.10],[https://launchpad.net/gearmand])
 AC_CONFIG_SRCDIR(libgearman/gearman.c)
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_HEADERS([config.h])
@@ -14,7 +14,7 @@ AC_CONFIG_MACRO_DIR([m4])
 
 PANDORA_CANONICAL_TARGET
 
-GEARMAN_LIBRARY_VERSION=1:3:0
+GEARMAN_LIBRARY_VERSION=2:0:0
 #                       | | |
 #                +------+ | +---+
 #                |        |     |
@@ -83,7 +83,7 @@ AC_LIB_HAVE_LINKFLAGS(uuid,,
 ])
 
 PANDORA_HAVE_BETTER_MALLOC
-PANDORA_HAVE_SQLITE
+PANDORA_HAVE_LIBSQLITE3
 PANDORA_HAVE_LIBDRIZZLE
 PANDORA_HAVE_LIBMEMCACHED
 PANDORA_HAVE_LIBPQ
@@ -123,5 +123,9 @@ echo "   * C Compiler:                $CC_VERSION"
 echo "   * Assertions enabled:        $ac_cv_assert"
 echo "   * Debug enabled:             $with_debug"
 echo "   * Warnings as failure:       $ac_cv_warnings_as_errors"
+echo "   * Building with libsqlite3   $ac_cv_libsqlite3"
+echo "   * Building with libdrizzle   $ac_cv_libdrizzle"
+echo "   * Building with libmemcached $ac_cv_libmemcached"
+echo "   * Building with libpq        $ac_cv_libpq"
 echo ""
 echo "---"

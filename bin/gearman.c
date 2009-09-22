@@ -349,10 +349,10 @@ static gearman_return_t _client_data(gearman_task_st *task)
 {
   gearman_args_st *args;
 
-  args= gearman_task_fn_arg(task);
+  args= gearman_task_context(task);
   if (args->prefix)
   {
-    fprintf(stdout, "%s: ", gearman_task_function(task));
+    fprintf(stdout, "%s: ", gearman_task_function_name(task));
     fflush(stdout);
   }
 
@@ -366,10 +366,10 @@ static gearman_return_t _client_warning(gearman_task_st *task)
 {
   gearman_args_st *args;
 
-  args= gearman_task_fn_arg(task);
+  args= gearman_task_context(task);
   if (args->prefix)
   {
-    fprintf(stderr, "%s: ", gearman_task_function(task));
+    fprintf(stderr, "%s: ", gearman_task_function_name(task));
     fflush(stderr);
   }
 
@@ -383,9 +383,9 @@ static gearman_return_t _client_status(gearman_task_st *task)
 {
   gearman_args_st *args;
 
-  args= gearman_task_fn_arg(task);
+  args= gearman_task_context(task);
   if (args->prefix)
-    printf("%s: ", gearman_task_function(task));
+    printf("%s: ", gearman_task_function_name(task));
 
   printf("%u%% Complete\n", (gearman_task_numerator(task) * 100) /
          gearman_task_denominator(task));
@@ -397,9 +397,9 @@ static gearman_return_t _client_fail(gearman_task_st *task)
 {
   gearman_args_st *args;
 
-  args= gearman_task_fn_arg(task);
+  args= gearman_task_context(task);
   if (args->prefix)
-    fprintf(stderr, "%s: ", gearman_task_function(task));
+    fprintf(stderr, "%s: ", gearman_task_function_name(task));
 
   fprintf(stderr, "Job failed\n");
 
@@ -527,9 +527,9 @@ static void *_worker_cb(gearman_job_st *job, void *cb_arg, size_t *result_size,
           break;
 
         if (args->strip_newline)
-          *ret_ptr= gearman_job_data(job, result, strlen(result) - 1);
+          *ret_ptr= gearman_job_send_data(job, result, strlen(result) - 1);
         else
-          *ret_ptr= gearman_job_data(job, result, strlen(result));
+          *ret_ptr= gearman_job_send_data(job, result, strlen(result));
 
         if (*ret_ptr != GEARMAN_SUCCESS)
           break;
@@ -552,7 +552,7 @@ static void *_worker_cb(gearman_job_st *job, void *cb_arg, size_t *result_size,
     {
       if (result != NULL)
       {
-        *ret_ptr= gearman_job_data(job, result, *result_size);
+        *ret_ptr= gearman_job_send_data(job, result, *result_size);
         if (*ret_ptr != GEARMAN_SUCCESS)
           return NULL;
       }

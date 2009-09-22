@@ -233,7 +233,7 @@ void gearman_conf_usage(gearman_conf_st *conf)
       display[max_length]= 0;
 
       if (conf->option_getopt[y].val != 0)
-      { 
+      {
         display[1]= '-';
         display[2]= (signed char)conf->option_getopt[y].val;
         display[3]= ',';

@@ -80,14 +80,15 @@ void gearman_server_thread_set_event_watch(gearman_server_thread_st *thread,
  * Set logging callback for server thread instance.
  * @param thread Thread structure previously initialized with
  *        gearman_server_thread_create.
- * @param log_fn Function to call when there is a logging message.
- * @param log_fn_arg Argument to pass into the log callback function.
+ * @param function Function to call when there is a logging message.
+ * @param context Argument to pass into the log callback function.
  * @param verbose Verbosity level.
  */
 GEARMAN_API
-void gearman_server_thread_set_log(gearman_server_thread_st *thread,
-                                   gearman_server_thread_log_fn log_fn,
-                                   void *log_fn_arg, gearman_verbose_t verbose);
+void gearman_server_thread_set_log_fn(gearman_server_thread_st *thread,
+                                      gearman_log_fn *function,
+                                      const void *context,
+                                      gearman_verbose_t verbose);
 
 /**
  * Set thread run callback.

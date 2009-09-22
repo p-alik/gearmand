@@ -97,8 +97,8 @@ extern "C" {
   { \
     char _log_buffer[GEARMAN_MAX_ERROR_SIZE]; \
     snprintf(_log_buffer, GEARMAN_MAX_ERROR_SIZE, __VA_ARGS__); \
-    (*((__gearman)->log_fn))(__gearman, __verbose, _log_buffer, \
-                             (__gearman)->log_fn_arg); \
+    (*((__gearman)->log_fn))(_log_buffer, __verbose, \
+                             (void *)(__gearman)->log_context); \
   } \
 }
 
@@ -290,8 +290,9 @@ gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX];
  * @ingroup gearman_private
  */
 GEARMAN_LOCAL
-gearman_return_t gearman_parse_servers(const char *servers, void *data,
-                                       gearman_parse_server_fn *server_fn);
+gearman_return_t gearman_parse_servers(const char *servers,
+                                       gearman_parse_server_fn *callback,
+                                       const void *context);
 
 #ifdef __cplusplus
 }

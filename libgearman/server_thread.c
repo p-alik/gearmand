@@ -12,6 +12,7 @@
  */
 
 #include "common.h"
+#include "server.h"
 
 /*
  * Private declarations
@@ -51,8 +52,7 @@ static void *_proc(void *data);
 /**
  * Wrapper for log handling.
  */
-static void _log(gearman_st *gearman __attribute__ ((unused)),
-                 gearman_verbose_t verbose, const char *line, void *fn_arg);
+static void _log(const char *line, gearman_verbose_t verbose, void *context);
 
 /** @} */
 
@@ -60,7 +60,7 @@ static void _log(gearman_st *gearman __attribute__ ((unused)),
  * Public definitions
  */
 
-gearman_server_thread_st * 
+gearman_server_thread_st *
 gearman_server_thread_create(gearman_server_st *server,
                              gearman_server_thread_st *thread)
 {
@@ -92,7 +92,7 @@ gearman_server_thread_create(gearman_server_st *server,
   thread->free_packet_count= 0;
   thread->server= server;
   thread->log_fn= NULL;
-  thread->log_fn_arg= NULL;
+  thread->log_context= NULL;
   thread->run_fn= NULL;
   thread->run_fn_arg= NULL;
   thread->con_list= NULL;
@@ -117,8 +117,8 @@ gearman_server_thread_create(gearman_server_st *server,
     return NULL;
   }
 
-  gearman_set_options(thread->gearman, GEARMAN_NON_BLOCKING, 1);
-  gearman_set_options(thread->gearman, GEARMAN_DONT_TRACK_PACKETS, 1);
+  gearman_set_options(thread->gearman,
+                      GEARMAN_NON_BLOCKING | GEARMAN_DONT_TRACK_PACKETS);
 
   return thread;
 }
@@ -172,24 +172,25 @@ void gearman_server_thread_set_event_watch(gearman_server_thread_st *thread,
                                            gearman_event_watch_fn *event_watch,
                                            void *event_watch_arg)
 {
-  gearman_set_event_watch(thread->gearman, event_watch, event_watch_arg);
+  gearman_set_event_watch_fn(thread->gearman, event_watch, event_watch_arg);
 }
 
 void gearman_server_thread_set_run(gearman_server_thread_st *thread,
-                                   gearman_server_thread_run_fn *run_fn, 
+                                   gearman_server_thread_run_fn *run_fn,
                                    void *run_fn_arg)
 {
   thread->run_fn= run_fn;
   thread->run_fn_arg= run_fn_arg;
 }
 
-void gearman_server_thread_set_log(gearman_server_thread_st *thread,
-                                   gearman_server_thread_log_fn *log_fn, 
-                                   void *log_fn_arg, gearman_verbose_t verbose)
+void gearman_server_thread_set_log_fn(gearman_server_thread_st *thread,
+                                      gearman_log_fn *function,
+                                      const void *context,
+                                      gearman_verbose_t verbose)
 {
-  thread->log_fn= log_fn;
-  thread->log_fn_arg= log_fn_arg;
-  gearman_set_log(thread->gearman, _log, thread, verbose);
+  thread->log_fn= function;
+  thread->log_context= context;
+  gearman_set_log_fn(thread->gearman, _log, thread, verbose);
 }
 
 gearman_server_con_st *
@@ -461,9 +462,8 @@ static void *_proc(void *data)
   }
 }
 
-static void _log(gearman_st *gearman __attribute__ ((unused)),
-                 gearman_verbose_t verbose, const char *line, void *fn_arg)
+static void _log(const char *line, gearman_verbose_t verbose, void *context)
 {
-  gearman_server_thread_st *thread= (gearman_server_thread_st *)fn_arg;
-  (*(thread->log_fn))(thread, verbose, line, thread->log_fn_arg);
+  gearman_server_thread_st *thread= (gearman_server_thread_st *)context;
+  (*(thread->log_fn))(line, verbose, (void *)thread->log_context);
 }

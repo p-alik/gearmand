@@ -4,7 +4,7 @@ dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
 
 dnl Which version of the canonical setup we're using
-AC_DEFUN([PANDORA_CANONICAL_VERSION],[0.33])
+AC_DEFUN([PANDORA_CANONICAL_VERSION],[0.47])
 
 AC_DEFUN([PANDORA_FORCE_DEPEND_TRACKING],[
   dnl Force dependency tracking on for Sun Studio builds
@@ -63,12 +63,12 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
 
   dnl Once we can use a modern autoconf, we can use this
   dnl AC_PROG_CC_C99
-  AC_PROG_CXX
+  AC_REQUIRE([AC_PROG_CXX])
+  gl_USE_SYSTEM_EXTENSIONS
   AC_PROG_CPP
   AM_PROG_CC_C_O
 
 
-  gl_USE_SYSTEM_EXTENSIONS
   m4_if(PCT_FORCE_GCC42, [yes], [
     AS_IF([test "$GCC" = "yes"], PANDORA_ENSURE_GCC_VERSION)
   ])
@@ -137,6 +137,9 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
     AM_CPPFLAGS="-I\$(top_srcdir)/gnulib -I\$(top_builddir)/gnulib ${AM_CPPFLAGS}"
     ])
   ])
+
+  PANDORA_USE_PIPE
+
 
   AM_CPPFLAGS="-I\${top_srcdir} -I\${top_builddir} ${AM_CPPFLAGS}"
   AM_CFLAGS="${AM_CFLAGS} ${CC_WARNINGS} ${CC_PROFILING} ${CC_COVERAGE}"

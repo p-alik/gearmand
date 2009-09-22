@@ -28,46 +28,6 @@ extern "C" {
  */
 
 /**
- * Initialize a packet with all arguments. Variable list is NULL terminated
- * alternating argument and argument size (size_t) pairs. For example:
- * @code
- * ret= gearman_packet_add_args(gearman, packet,
- *                              GEARMAN_MAGIC_REQUEST,
- *                              GEARMAN_COMMAND_SUBMIT_JOB,
- *                              function_name, strlen(function_name) + 1,
- *                              unique_string, strlen(unique_string) + 1,
- *                              workload, workload_size, NULL);
- * @endcode
- */
-GEARMAN_API
-gearman_return_t gearman_packet_add(gearman_st *gearman,
-                                    gearman_packet_st *packet,
-                                    gearman_magic_t magic,
-                                    gearman_command_t command,
-                                    const void *arg, ...);
-
-/**
- * Initialize a packet structure.
- */
-GEARMAN_API
-gearman_packet_st *gearman_packet_create(gearman_st *gearman,
-                                         gearman_packet_st *packet);
-
-/**
- * Free a packet structure.
- */
-GEARMAN_API
-void gearman_packet_free(gearman_packet_st *packet);
-
-/**
- * Set options for a packet structure.
- */
-GEARMAN_API
-void gearman_packet_set_options(gearman_packet_st *packet,
-                                gearman_packet_options_t options,
-                                uint32_t data);
-
-/**
  * Add an argument to a packet.
  */
 GEARMAN_API
@@ -90,7 +50,7 @@ gearman_return_t gearman_packet_unpack_header(gearman_packet_st *packet);
  * Pack packet into output buffer.
  */
 GEARMAN_API
-size_t gearman_packet_pack(gearman_packet_st *packet, gearman_con_st *con,
+size_t gearman_packet_pack(const gearman_packet_st *packet, gearman_con_st *con,
                            void *data, size_t data_size,
                            gearman_return_t *ret_ptr);
 

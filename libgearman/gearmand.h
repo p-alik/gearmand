@@ -14,6 +14,10 @@
 #ifndef __GEARMAND_H__
 #define __GEARMAND_H__
 
+#include <libgearman/gearman.h>
+#include <libgearman/gearmand_thread.h>
+#include <libgearman/gearmand_con.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -63,26 +67,26 @@ void gearmand_set_threads(gearmand_st *gearmand, uint32_t threads);
  * Set logging callback for server instance.
  * @param gearmand Server instance structure previously initialized with
  *        gearmand_create.
- * @param log_fn Function to call when there is a logging message.
- * @param log_fn_arg Argument to pass into the log callback function.
+ * @param function Function to call when there is a logging message.
+ * @param context Argument to pass into the log callback function.
  * @param verbose Verbosity level.
  */
 GEARMAN_API
-void gearmand_set_log(gearmand_st *gearmand, gearmand_log_fn log_fn,
-                      void *log_fn_arg, gearman_verbose_t verbose);
+void gearmand_set_log_fn(gearmand_st *gearmand, gearman_log_fn *function,
+                         const void *context, gearman_verbose_t verbose);
 
 /**
  * Add a port to listen on when starting server with optional callback.
  * @param gearmand Server instance structure previously initialized with
  *        gearmand_create.
  * @param port Port for the server to listen on.
- * @param add_fn Optional callback function that is called when a connection
-                 has been accepted on the given port.
+ * @param function Optional callback function that is called when a connection
+           has been accepted on the given port.
  * @return Standard gearman return value.
  */
 GEARMAN_API
 gearman_return_t gearmand_port_add(gearmand_st *gearmand, in_port_t port,
-                                   gearman_con_add_fn *add_fn);
+                                   gearman_con_add_fn *function);
 
 /**
  * Run the server instance.

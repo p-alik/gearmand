@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  gearman_client_set_options(&client, GEARMAN_CLIENT_UNBUFFERED_RESULT, 1);
+  gearman_client_add_options(&client, GEARMAN_CLIENT_UNBUFFERED_RESULT);
 
   while ((c= getopt(argc, argv, "bc:f:h:m:M:n:p:s:v")) != -1)
   {
@@ -219,7 +219,7 @@ static gearman_return_t _created(gearman_task_st *task)
 {
   gearman_benchmark_st *benchmark;
 
-  benchmark= (gearman_benchmark_st *)gearman_task_fn_arg(task);
+  benchmark= (gearman_benchmark_st *)gearman_task_context(task);
 
   if (benchmark->background && benchmark->verbose > 0)
     benchmark_check_time(benchmark);
@@ -234,7 +234,7 @@ static gearman_return_t _status(gearman_task_st *task)
 {
   gearman_benchmark_st *benchmark;
 
-  benchmark= (gearman_benchmark_st *)gearman_task_fn_arg(task);
+  benchmark= (gearman_benchmark_st *)gearman_task_context(task);
 
   if (benchmark->verbose > 2)
   {
@@ -252,7 +252,7 @@ static gearman_return_t _data(gearman_task_st *task)
   size_t size;
   gearman_return_t ret;
 
-  benchmark= (gearman_benchmark_st *)gearman_task_fn_arg(task);
+  benchmark= (gearman_benchmark_st *)gearman_task_context(task);
 
   while (1)
   {
@@ -279,7 +279,7 @@ static gearman_return_t _complete(gearman_task_st *task)
   size_t size;
   gearman_return_t ret;
 
-  benchmark= (gearman_benchmark_st *)gearman_task_fn_arg(task);
+  benchmark= (gearman_benchmark_st *)gearman_task_context(task);
 
   while (1)
   {
@@ -306,7 +306,7 @@ static gearman_return_t _fail(gearman_task_st *task)
 {
   gearman_benchmark_st *benchmark;
 
-  benchmark= (gearman_benchmark_st *)gearman_task_fn_arg(task);
+  benchmark= (gearman_benchmark_st *)gearman_task_context(task);
 
   if (benchmark->verbose > 0)
     benchmark_check_time(benchmark);

@@ -12,6 +12,8 @@
  */
 
 #include "common.h"
+#include "server.h"
+#include "gearmand.h"
 
 /*
  * Private declarations
@@ -183,7 +185,7 @@ gearman_return_t gearmand_con_watch(gearman_con_st *con, short events,
   gearmand_con_st *dcon;
   short set_events= 0;
 
-  dcon= (gearmand_con_st *)gearman_con_data(con);
+  dcon= (gearmand_con_st *)gearman_con_context(con);
   dcon->con= con;
 
   if (events & POLLIN)

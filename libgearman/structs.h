@@ -17,7 +17,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
- 
+
 /**
  * @ingroup gearman
  */
@@ -26,27 +26,22 @@ struct gearman_st
   gearman_options_t options;
   gearman_verbose_t verbose;
   uint32_t con_count;
-  uint32_t job_count;
-  uint32_t task_count;
   uint32_t packet_count;
   uint32_t pfds_size;
   uint32_t sending;
   int last_errno;
   gearman_con_st *con_list;
-  gearman_job_st *job_list;
-  gearman_task_st *task_list;
   gearman_packet_st *packet_list;
   struct pollfd *pfds;
   gearman_log_fn *log_fn;
-  void *log_fn_arg;
-  gearman_event_watch_fn *event_watch;
-  void *event_watch_arg;
-  gearman_malloc_fn *workload_malloc;
-  const void *workload_malloc_arg;
-  gearman_free_fn *workload_free;
-  const void *workload_free_arg;
-  gearman_task_fn_arg_free_fn *task_fn_arg_free_fn;
-  const void *queue_fn_arg;
+  const void *log_context;
+  gearman_event_watch_fn *event_watch_fn;
+  const void *event_watch_context;
+  gearman_malloc_fn *workload_malloc_fn;
+  const void *workload_malloc_context;
+  gearman_free_fn *workload_free_fn;
+  const void *workload_free_context;
+  const void *queue_context;
   gearman_queue_add_fn *queue_add_fn;
   gearman_queue_flush_fn *queue_flush_fn;
   gearman_queue_done_fn *queue_done_fn;
@@ -109,14 +104,14 @@ struct gearman_con_st
   gearman_st *gearman;
   gearman_con_st *next;
   gearman_con_st *prev;
-  void *data;
+  const void *context;
   struct addrinfo *addrinfo;
   struct addrinfo *addrinfo_next;
   uint8_t *send_buffer_ptr;
   gearman_packet_st *recv_packet;
   uint8_t *recv_buffer_ptr;
-  void *protocol_data;
-  gearman_con_protocol_data_free_fn *protocol_data_free_fn;
+  const void *protocol_context;
+  gearman_con_protocol_context_free_fn *protocol_context_free_fn;
   gearman_con_recv_fn *recv_fn;
   gearman_con_recv_data_fn *recv_data_fn;
   gearman_con_send_fn *send_fn;
@@ -141,10 +136,10 @@ struct gearman_task_st
   uint32_t created_id;
   uint32_t numerator;
   uint32_t denominator;
-  gearman_st *gearman;
+  gearman_client_st *client;
   gearman_task_st *next;
   gearman_task_st *prev;
-  const void *fn_arg;
+  const void *context;
   gearman_con_st *con;
   gearman_packet_st *recv;
   gearman_packet_st send;
@@ -157,7 +152,7 @@ struct gearman_task_st
 struct gearman_job_st
 {
   gearman_job_options_t options;
-  gearman_st *gearman;
+  gearman_worker_st *worker;
   gearman_job_st *next;
   gearman_job_st *prev;
   gearman_con_st *con;
@@ -175,11 +170,14 @@ struct gearman_client_st
   gearman_return_t do_ret;
   uint32_t new_tasks;
   uint32_t running_tasks;
+  uint32_t task_count;
   size_t do_data_size;
   gearman_st *gearman;
-  const void *data;
+  const void *context;
   gearman_con_st *con;
   gearman_task_st *task;
+  gearman_task_st *task_list;
+  gearman_task_context_free_fn *task_context_free_fn;
   void *do_data;
   gearman_workload_fn *workload_fn;
   gearman_created_fn *created_fn;
@@ -202,10 +200,13 @@ struct gearman_worker_st
   gearman_worker_state_t state;
   gearman_worker_work_state_t work_state;
   uint32_t function_count;
+  uint32_t job_count;
   size_t work_result_size;
   gearman_st *gearman;
+  const void *context;
   gearman_con_st *con;
   gearman_job_st *job;
+  gearman_job_st *job_list;
   gearman_worker_function_st *function;
   gearman_worker_function_st *function_list;
   gearman_worker_function_st *work_function;
@@ -226,7 +227,7 @@ struct gearman_worker_function_st
   gearman_worker_function_st *prev;
   char *function_name;
   gearman_worker_fn *worker_fn;
-  const void *fn_arg;
+  const void *context;
   gearman_packet_st packet;
 };
 
@@ -256,8 +257,8 @@ struct gearman_server_st
   gearman_server_job_st *free_job_list;
   gearman_server_client_st *free_client_list;
   gearman_server_worker_st *free_worker_list;
-  gearman_server_log_fn *log_fn;
-  void *log_fn_arg;
+  gearman_log_fn *log_fn;
+  const void *log_context;
   gearman_st gearman_static;
   pthread_mutex_t proc_lock;
   pthread_cond_t proc_cond;
@@ -282,8 +283,8 @@ struct gearman_server_thread_st
   gearman_server_st *server;
   gearman_server_thread_st *next;
   gearman_server_thread_st *prev;
-  gearman_server_thread_log_fn *log_fn;
-  void *log_fn_arg;
+  gearman_log_fn *log_fn;
+  const void *log_context;
   gearman_server_thread_run_fn *run_fn;
   void *run_fn_arg;
   gearman_server_con_st *con_list;
@@ -433,8 +434,8 @@ struct gearmand_st
   uint32_t max_thread_free_dcon_count;
   int wakeup_fd[2];
   const char *host;
-  gearmand_log_fn *log_fn;
-  void *log_fn_arg;
+  gearman_log_fn *log_fn;
+  const void *log_context;
   struct event_base *base;
   gearmand_port_st *port_list;
   gearmand_thread_st *thread_list;
