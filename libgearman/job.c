@@ -209,6 +209,11 @@ size_t gearman_job_workload_size(const gearman_job_st *job)
   return job->assigned.data_size;
 }
 
+void *gearman_job_take_workload(gearman_job_st *job, size_t *data_size)
+{
+  return gearman_packet_take_data(&(job->assigned), data_size);
+}
+
 /*
  * Private definitions
  */

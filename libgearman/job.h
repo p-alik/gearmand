@@ -101,6 +101,13 @@ const void *gearman_job_workload(const gearman_job_st *job);
 GEARMAN_API
 size_t gearman_job_workload_size(const gearman_job_st *job);
 
+/**
+ * Take allocated workload from job. After this, the caller is responsible
+ * for free()ing the memory.
+ */
+GEARMAN_API
+void *gearman_job_take_workload(gearman_job_st *job, size_t *data_size);
+
 /** @} */
 
 #ifdef __cplusplus

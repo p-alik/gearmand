@@ -63,11 +63,19 @@ size_t gearman_packet_unpack(gearman_packet_st *packet, gearman_con_st *con,
                              gearman_return_t *ret_ptr);
 
 /**
+ * Give allocated memory to packet. After this, the library will be responsible
+ * for freeing the workload memory when the packet is destroyed.
+ */
+GEARMAN_API
+void gearman_packet_give_data(gearman_packet_st *packet, const void *data,
+                              size_t data_size);
+
+/**
  * Take allocated data from packet. After this, the caller is responsible for
  * free()ing the memory.
  */
 GEARMAN_API
-void *gearman_packet_take_data(gearman_packet_st *packet, size_t *size);
+void *gearman_packet_take_data(gearman_packet_st *packet, size_t *data_size);
 
 /** @} */
 

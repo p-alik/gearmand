@@ -62,6 +62,19 @@ uint32_t gearman_task_denominator(const gearman_task_st *task)
   return task->denominator;
 }
 
+void gearman_task_give_workload(gearman_task_st *task, const void *workload,
+                                size_t workload_size)
+{
+  gearman_packet_give_data(&(task->send), workload, workload_size);
+}
+
+size_t gearman_task_send_workload(gearman_task_st *task, const void *workload,
+                                  size_t workload_size,
+                                  gearman_return_t *ret_ptr)
+{
+  return gearman_con_send_data(task->con, workload, workload_size, ret_ptr);
+}
+
 const void *gearman_task_data(const gearman_task_st *task)
 {
   return task->recv->data;
@@ -72,16 +85,9 @@ size_t gearman_task_data_size(const gearman_task_st *task)
   return task->recv->data_size;
 }
 
-void *gearman_task_take_data(gearman_task_st *task, size_t *size)
+void *gearman_task_take_data(gearman_task_st *task, size_t *data_size)
 {
-  return gearman_packet_take_data(task->recv, size);
-}
-
-size_t gearman_task_send_workload(gearman_task_st *task, const void *workload,
-                                  size_t workload_size,
-                                  gearman_return_t *ret_ptr)
-{
-  return gearman_con_send_data(task->con, workload, workload_size, ret_ptr);
+  return gearman_packet_take_data(task->recv, data_size);
 }
 
 size_t gearman_task_recv_data(gearman_task_st *task, void *data,
