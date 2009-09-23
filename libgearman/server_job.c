@@ -232,6 +232,8 @@ gearman_server_job_create(gearman_server_st *server,
   server_job->prev= NULL;
   server_job->unique_next= NULL;
   server_job->unique_prev= NULL;
+  server_job->worker_next= NULL;
+  server_job->worker_prev= NULL;
   server_job->function= NULL;
   server_job->function_next= NULL;
   server_job->data= NULL;
@@ -259,7 +261,7 @@ void gearman_server_job_free(gearman_server_job_st *server_job)
     gearman_server_client_free(server_job->client_list);
 
   if (server_job->worker != NULL)
-    server_job->worker->job= NULL;
+    GEARMAN_LIST_DEL(server_job->worker->job, server_job, worker_)
 
   key= server_job->unique_key % GEARMAN_JOB_HASH_SIZE;
   GEARMAN_HASH_DEL(server_job->server->unique, key, server_job, unique_)
@@ -363,7 +365,7 @@ gearman_server_job_take(gearman_server_con_st *server_con)
   server_job->function->job_count--;
 
   server_job->worker= server_worker;
-  server_worker->job= server_job;
+  GEARMAN_LIST_ADD(server_worker->job, server_job, worker_)
   server_job->function->job_running++;
 
   if (server_job->options & GEARMAN_SERVER_JOB_IGNORE)
@@ -382,13 +384,13 @@ gearman_return_t gearman_server_job_queue(gearman_server_job_st *server_job)
 
   if (server_job->worker != NULL)
   {
+    server_job->worker= NULL;
+    GEARMAN_LIST_DEL(server_worker->job, server_job, worker_)
     server_job->function->job_running--;
     server_job->function_next= NULL;
+    server_job->numerator= 0;
+    server_job->denominator= 0;
   }
-
-  server_job->worker= NULL;
-  server_job->numerator= 0;
-  server_job->denominator= 0;
 
   /* Queue NOOP for possible sleeping workers. */
   for (server_worker= server_job->function->worker_list; server_worker != NULL;
