@@ -1,5 +1,10 @@
 0.10 - 2009-09-??
- * Changed gearmand to remap stdio to /dev/null for detaching.
+ * Added server option for max job retry.
+ * Changed queue_libdrizzle to overwrite the password string to hide in ps.
+ * Worker unregister bug fixed. Bug #372074
+ * Added memory ownership functions so applications can pass control with
+   tasks, jobs, and packets.
+ * Changed gearmand to remap stdio to /dev/null for detaching. Bug #407242
  * Fixed bug that now allows workers to run concurrent jobs.
  * Changed behavior of sending NOOPs to one per PRESLEEP, rather than only
    having one in the outgoing queue at any time.

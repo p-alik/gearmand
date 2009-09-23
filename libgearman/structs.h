@@ -241,6 +241,7 @@ struct gearman_server_st
   bool shutdown_graceful;
   bool proc_wakeup;
   bool proc_shutdown;
+  uint8_t job_retries;
   uint32_t job_handle_count;
   uint32_t thread_count;
   uint32_t function_count;
@@ -396,6 +397,7 @@ struct gearman_server_worker_st
  */
 struct gearman_server_job_st
 {
+  uint8_t retries;
   gearman_server_job_options_t options;
   gearman_job_priority_t priority;
   uint32_t job_handle_key;

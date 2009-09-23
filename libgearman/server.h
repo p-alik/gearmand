@@ -52,6 +52,16 @@ GEARMAN_API
 void gearman_server_free(gearman_server_st *server);
 
 /**
+ * Set maximum job retry count.
+ * @param server Server structure previously initialized with
+ *        gearman_server_create.
+ * @param job_retries Number of job attempts.
+ */
+GEARMAN_API
+void gearman_server_set_job_retries(gearman_server_st *server,
+                                    uint8_t job_retries);
+
+/**
  * Set logging callback for server instance.
  * @param server Server structure previously initialized with
  *        gearman_server_create.

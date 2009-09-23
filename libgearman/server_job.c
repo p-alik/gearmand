@@ -220,6 +220,7 @@ gearman_server_job_create(gearman_server_st *server,
   else
     server_job->options= 0;
 
+  server_job->retries= 0;
   server_job->priority= 0;
   server_job->job_handle_key= 0;
   server_job->unique_key= 0;
@@ -377,50 +378,68 @@ gearman_server_job_take(gearman_server_con_st *server_con)
   return server_job;
 }
 
-gearman_return_t gearman_server_job_queue(gearman_server_job_st *server_job)
+gearman_return_t gearman_server_job_queue(gearman_server_job_st *job)
 {
-  gearman_server_worker_st *server_worker;
+  gearman_server_client_st *client;
+  gearman_server_worker_st *worker;
   gearman_return_t ret;
 
-  if (server_job->worker != NULL)
+  if (job->worker != NULL)
   {
-    GEARMAN_LIST_DEL(server_job->worker->job, server_job, worker_)
-    server_job->worker= NULL;
-    server_job->function->job_running--;
-    server_job->function_next= NULL;
-    server_job->numerator= 0;
-    server_job->denominator= 0;
+    job->retries++;
+    if (job->server->job_retries == job->retries)
+    {
+printf("REMOVE JOB\n");
+       for (client= job->client_list; client != NULL; client= client->job_next)
+       {
+         ret= gearman_server_io_packet_add(client->con, false,
+                                           GEARMAN_MAGIC_RESPONSE,
+                                           GEARMAN_COMMAND_WORK_FAIL,
+                                           job->job_handle,
+                                           (size_t)strlen(job->job_handle),
+                                           NULL);
+         if (ret != GEARMAN_SUCCESS)
+           return ret;
+      }
+
+      gearman_server_job_free(job);
+      return GEARMAN_SUCCESS;
+    }
+
+    GEARMAN_LIST_DEL(job->worker->job, job, worker_)
+    job->worker= NULL;
+    job->function->job_running--;
+    job->function_next= NULL;
+    job->numerator= 0;
+    job->denominator= 0;
   }
 
   /* Queue NOOP for possible sleeping workers. */
-  for (server_worker= server_job->function->worker_list; server_worker != NULL;
-       server_worker= server_worker->function_next)
+  for (worker= job->function->worker_list; worker != NULL;
+       worker= worker->function_next)
   {
-    if (!(server_worker->con->options & GEARMAN_SERVER_CON_SLEEPING) ||
-        server_worker->con->options & GEARMAN_SERVER_CON_NOOP_SENT)
+    if (!(worker->con->options & GEARMAN_SERVER_CON_SLEEPING) ||
+        worker->con->options & GEARMAN_SERVER_CON_NOOP_SENT)
     {
       continue;
     }
 
-    ret= gearman_server_io_packet_add(server_worker->con, false,
+    ret= gearman_server_io_packet_add(worker->con, false,
                                       GEARMAN_MAGIC_RESPONSE,
                                       GEARMAN_COMMAND_NOOP, NULL);
     if (ret != GEARMAN_SUCCESS)
       return ret;
 
-    server_worker->con->options|= GEARMAN_SERVER_CON_NOOP_SENT;
+    worker->con->options|= GEARMAN_SERVER_CON_NOOP_SENT;
   }
 
   /* Queue the job to be run. */
-  if (server_job->function->job_list[server_job->priority] == NULL)
-    server_job->function->job_list[server_job->priority]= server_job;
+  if (job->function->job_list[job->priority] == NULL)
+    job->function->job_list[job->priority]= job;
   else
-  {
-    server_job->function->job_end[server_job->priority]->function_next=
-                                                                     server_job;
-  }
-  server_job->function->job_end[server_job->priority]= server_job;
-  server_job->function->job_count++;
+    job->function->job_end[job->priority]->function_next= job;
+  job->function->job_end[job->priority]= job;
+  job->function->job_count++;
 
   return GEARMAN_SUCCESS;
 }

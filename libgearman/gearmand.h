@@ -55,6 +55,15 @@ GEARMAN_API
 void gearmand_set_backlog(gearmand_st *gearmand, int backlog);
 
 /**
+ * Set maximum job retry count.
+ * @param gearmand Server instance structure previously initialized with
+ *        gearmand_create.
+ * @param job_retries Number of job attempts.
+ */
+GEARMAN_API
+void gearmand_set_job_retries(gearmand_st *gearmand, uint8_t job_retries);
+
+/**
  * Set number of I/O threads for server to use.
  * @param gearmand Server instance structure previously initialized with
  *        gearmand_create.

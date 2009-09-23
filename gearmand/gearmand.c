@@ -101,6 +101,7 @@ int main(int argc, char *argv[])
   const char *value;
   int backlog= GEARMAND_LISTEN_BACKLOG;
   rlim_t fds= 0;
+  uint8_t job_retries= 0;
   in_port_t port= 0;
   const char *host= NULL;
   const char *pid_file= NULL;
@@ -139,6 +140,10 @@ int main(int argc, char *argv[])
       "Number of file descriptors to allow for the process (total connections "
       "will be slightly less). Default is max allowed for user.")
   MCO("help", 'h', NULL, "Print this help menu.");
+  MCO("job-retries", 'j', "RETRIES",
+      "Number of attempts to run the job before the job server removes it. This"
+      "is helpful to ensure a bad job does not crash all available workers. "
+      "Default is no limit.")
   MCO("log-file", 'l', "FILE",
       "Log file to write errors and information to. Turning this option on "
       "also forces the first verbose level to be enabled.")
@@ -253,6 +258,8 @@ int main(int argc, char *argv[])
       gearman_conf_usage(&conf);
       return 1;
     }
+    else if (!strcmp(name, "job-retries"))
+      job_retries= (uint8_t)atoi(value);
     else if (!strcmp(name, "log-file"))
       log_info.file= value;
     else if (!strcmp(name, "listen"))
@@ -323,6 +330,7 @@ int main(int argc, char *argv[])
 
   gearmand_set_backlog(_gearmand, backlog);
   gearmand_set_threads(_gearmand, threads);
+  gearmand_set_job_retries(_gearmand, job_retries);
   gearmand_set_log_fn(_gearmand, _log, &log_info, verbose);
 
   if (queue_type != NULL)
