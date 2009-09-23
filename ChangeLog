@@ -1,4 +1,8 @@
 0.10 - 2009-09-??
+ * Changed gearmand to remap stdio to /dev/null for detaching.
+ * Fixed bug that now allows workers to run concurrent jobs.
+ * Changed behavior of sending NOOPs to one per PRESLEEP, rather than only
+   having one in the outgoing queue at any time.
  * API cleanup to make the code more consistent and object-oriented.
  * Added more documentation for base classes, client, and worker.
  * Build system updates.

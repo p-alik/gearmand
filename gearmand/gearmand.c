@@ -110,6 +110,8 @@ int main(int argc, char *argv[])
   uint8_t verbose= 0;
   gearman_return_t ret;
   gearmand_log_info_st log_info;
+  bool close_stdio= false;
+  int fd;
 
   log_info.file= NULL;
   log_info.fd= -1;
@@ -239,6 +241,8 @@ int main(int argc, char *argv[])
         fprintf(stderr, "gearmand: setsid:%d\n", errno);
         return 1;
       }
+
+      close_stdio= true;
     }
     else if (!strcmp(name, "file-descriptors"))
       fds= (rlim_t)atoi(value);
@@ -276,8 +280,33 @@ int main(int argc, char *argv[])
     }
   }
 
-  if (log_info.file != NULL && verbose == 0)
-    verbose++;
+  if (verbose == 0 && close_stdio)
+  {
+    /* If we can't remap stdio, it should not a fatal error. */
+    fd = open("/dev/null", O_RDWR, 0);
+    if (fd != -1)
+    {
+      if (dup2(fd, STDIN_FILENO) == -1)
+      {
+        fprintf(stderr, "gearmand: dup2:%d\n", errno);
+        return 1;
+      }
+
+      if (dup2(fd, STDOUT_FILENO) == -1)
+      {
+        fprintf(stderr, "gearmand: dup2:%d\n", errno);
+        return 1;
+      }
+
+      if (dup2(fd, STDERR_FILENO) == -1)
+      {
+        fprintf(stderr, "gearmand: dup2:%d\n", errno);
+        return 1;
+      }
+
+      close(fd);
+    }
+  }
 
   if ((fds > 0 && _set_fdlimit(fds)) || _switch_user(user) || _set_signals())
     return 1;
