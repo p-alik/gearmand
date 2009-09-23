@@ -22,17 +22,31 @@ machines that are better suited to do work, to do work in parallel,
 to load balance lots of function calls, or to call functions between
 languages.
 
-There are three components: client, job server, and workers. Clients
+There are three components: clients, job servers, and workers. Clients
 submit jobs to job servers, the job servers find an available worker,
-the worker runs the job, and then the result gets sent back to
-the client.
-
-This package provides the C implementation of all components.
+the worker runs the job, and then the result optionally gets sent
+back to the client. This package provides the C implementation of
+all components.
 
 One note on tasks vs jobs. A task is usually used in the context of
-a client, and a job is usually used in the context of the server
-and worker. A task can be a job or other client request such as
-getting status.
+a client, and a job is usually used in the context of the server and
+worker. A task can be a job or other client request such as getting
+job status.
+
+When using the C library for client and worker interfaces, be sure
+to handle SIGPIPE. The library does not do this to be sure it does
+not interfere with the calling applications signal handling. This
+can be done with code such as:
+
+@code
+
+if (signal(SIGPIPE, SIG_IGN) == SIG_ERR)
+{
+  fprintf(stderr, "signal:%d\n", errno);
+  exit(1);
+}
+
+@endcode
 
 @anchor main_page_client
 @section client Client
