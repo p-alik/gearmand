@@ -191,6 +191,10 @@ gearman_return_t gearman_queue_libdrizzle_init(gearman_st *gearman,
 
   drizzle_con_set_auth(&(queue->con), user, password);
 
+  /* Overwrite password string so it does not appear in 'ps' output. */
+  if (password != NULL)
+    memset((void *)password, 'x', strlen(password));
+
   if (_libdrizzle_query(gearman, queue, "SHOW TABLES", 11) != DRIZZLE_RETURN_OK)
   {
     gearman_queue_libdrizzle_deinit(gearman);
