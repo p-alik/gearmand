@@ -384,8 +384,8 @@ gearman_return_t gearman_server_job_queue(gearman_server_job_st *server_job)
 
   if (server_job->worker != NULL)
   {
+    GEARMAN_LIST_DEL(server_job->worker->job, server_job, worker_)
     server_job->worker= NULL;
-    GEARMAN_LIST_DEL(server_worker->job, server_job, worker_)
     server_job->function->job_running--;
     server_job->function_next= NULL;
     server_job->numerator= 0;
@@ -396,8 +396,8 @@ gearman_return_t gearman_server_job_queue(gearman_server_job_st *server_job)
   for (server_worker= server_job->function->worker_list; server_worker != NULL;
        server_worker= server_worker->function_next)
   {
-    if (!(server_worker->con->noop_queued) &&
-        !(server_worker->con->options & GEARMAN_SERVER_CON_SLEEPING))
+    if (!(server_worker->con->options & GEARMAN_SERVER_CON_SLEEPING) ||
+        server_worker->con->options & GEARMAN_SERVER_CON_NOOP_SENT)
     {
       continue;
     }
@@ -408,7 +408,7 @@ gearman_return_t gearman_server_job_queue(gearman_server_job_st *server_job)
     if (ret != GEARMAN_SUCCESS)
       return ret;
 
-    server_worker->con->noop_queued= true;
+    server_worker->con->options|= GEARMAN_SERVER_CON_NOOP_SENT;
   }
 
   /* Queue the job to be run. */

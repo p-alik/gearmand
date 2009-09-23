@@ -304,7 +304,6 @@ struct gearman_server_con_st
   gearman_con_st con; /* This must be the first struct member. */
   gearman_server_con_options_t options;
   gearman_return_t ret;
-  bool noop_queued;
   bool io_list;
   bool proc_list;
   bool proc_removed;

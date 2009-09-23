@@ -397,7 +397,8 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
   case GEARMAN_COMMAND_GRAB_JOB:
   case GEARMAN_COMMAND_GRAB_JOB_UNIQ:
     server_con->options&=
-                     (gearman_server_con_options_t)~GEARMAN_SERVER_CON_SLEEPING;
+                  (gearman_server_con_options_t)~(GEARMAN_SERVER_CON_SLEEPING |
+                                                  GEARMAN_SERVER_CON_NOOP_SENT);
 
     server_job= gearman_server_job_take(server_con);
     if (server_job == NULL)

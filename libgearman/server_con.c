@@ -77,7 +77,6 @@ gearman_server_con_create(gearman_server_thread_st *thread)
 
   con->options= 0;
   con->ret= 0;
-  con->noop_queued= false;
   con->io_list= false;
   con->proc_list= false;
   con->proc_removed= false;
