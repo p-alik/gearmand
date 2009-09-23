@@ -217,15 +217,28 @@ void gearman_server_con_free_worker(gearman_server_con_st *con,
                                     char *function_name,
                                     size_t function_name_size)
 {
-  gearman_server_worker_st *worker;
+  gearman_server_worker_st *worker= con->worker_list;
+  gearman_server_worker_st *prev_worker= NULL;
 
-  for (worker= con->worker_list; worker != NULL; worker= worker->con_next)
+  while (worker != NULL)
   {
     if (worker->function->function_name_size == function_name_size &&
         !memcmp(worker->function->function_name, function_name,
                 function_name_size))
     {
       gearman_server_worker_free(worker);
+
+      /* Set worker to the last kept worker, or the beginning of the list. */
+      if (prev_worker == NULL)
+        worker= con->worker_list;
+      else
+        worker= prev_worker;
+    }
+    else
+    {
+      /* Save this so we don't need to scan the list again if one is removed. */
+      prev_worker= worker;
+      worker= worker->con_next;
     }
   }
 }
