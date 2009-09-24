@@ -389,7 +389,6 @@ gearman_return_t gearman_server_job_queue(gearman_server_job_st *job)
     job->retries++;
     if (job->server->job_retries == job->retries)
     {
-printf("REMOVE JOB\n");
        for (client= job->client_list; client != NULL; client= client->job_next)
        {
          ret= gearman_server_io_packet_add(client->con, false,
