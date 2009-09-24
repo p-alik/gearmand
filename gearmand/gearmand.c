@@ -101,6 +101,7 @@ int main(int argc, char *argv[])
   const char *value;
   int backlog= GEARMAND_LISTEN_BACKLOG;
   rlim_t fds= 0;
+  uint8_t job_retries= 0;
   in_port_t port= 0;
   const char *host= NULL;
   const char *pid_file= NULL;
@@ -110,6 +111,8 @@ int main(int argc, char *argv[])
   uint8_t verbose= 0;
   gearman_return_t ret;
   gearmand_log_info_st log_info;
+  bool close_stdio= false;
+  int fd;
 
   log_info.file= NULL;
   log_info.fd= -1;
@@ -137,6 +140,10 @@ int main(int argc, char *argv[])
       "Number of file descriptors to allow for the process (total connections "
       "will be slightly less). Default is max allowed for user.")
   MCO("help", 'h', NULL, "Print this help menu.");
+  MCO("job-retries", 'j', "RETRIES",
+      "Number of attempts to run the job before the job server removes it. This"
+      "is helpful to ensure a bad job does not crash all available workers. "
+      "Default is no limit.")
   MCO("log-file", 'l', "FILE",
       "Log file to write errors and information to. Turning this option on "
       "also forces the first verbose level to be enabled.")
@@ -239,6 +246,8 @@ int main(int argc, char *argv[])
         fprintf(stderr, "gearmand: setsid:%d\n", errno);
         return 1;
       }
+
+      close_stdio= true;
     }
     else if (!strcmp(name, "file-descriptors"))
       fds= (rlim_t)atoi(value);
@@ -249,6 +258,8 @@ int main(int argc, char *argv[])
       gearman_conf_usage(&conf);
       return 1;
     }
+    else if (!strcmp(name, "job-retries"))
+      job_retries= (uint8_t)atoi(value);
     else if (!strcmp(name, "log-file"))
       log_info.file= value;
     else if (!strcmp(name, "listen"))
@@ -276,8 +287,33 @@ int main(int argc, char *argv[])
     }
   }
 
-  if (log_info.file != NULL && verbose == 0)
-    verbose++;
+  if (verbose == 0 && close_stdio)
+  {
+    /* If we can't remap stdio, it should not a fatal error. */
+    fd = open("/dev/null", O_RDWR, 0);
+    if (fd != -1)
+    {
+      if (dup2(fd, STDIN_FILENO) == -1)
+      {
+        fprintf(stderr, "gearmand: dup2:%d\n", errno);
+        return 1;
+      }
+
+      if (dup2(fd, STDOUT_FILENO) == -1)
+      {
+        fprintf(stderr, "gearmand: dup2:%d\n", errno);
+        return 1;
+      }
+
+      if (dup2(fd, STDERR_FILENO) == -1)
+      {
+        fprintf(stderr, "gearmand: dup2:%d\n", errno);
+        return 1;
+      }
+
+      close(fd);
+    }
+  }
 
   if ((fds > 0 && _set_fdlimit(fds)) || _switch_user(user) || _set_signals())
     return 1;
@@ -294,6 +330,7 @@ int main(int argc, char *argv[])
 
   gearmand_set_backlog(_gearmand, backlog);
   gearmand_set_threads(_gearmand, threads);
+  gearmand_set_job_retries(_gearmand, job_retries);
   gearmand_set_log_fn(_gearmand, _log, &log_info, verbose);
 
   if (queue_type != NULL)

@@ -362,11 +362,19 @@ size_t gearman_packet_unpack(gearman_packet_st *packet,
   return used_size;
 }
 
-void *gearman_packet_take_data(gearman_packet_st *packet, size_t *size)
+void gearman_packet_give_data(gearman_packet_st *packet, const void *data,
+                              size_t data_size)
+{
+  packet->data= data;
+  packet->data_size= data_size;
+  packet->options|= (gearman_packet_options_t)GEARMAN_PACKET_FREE_DATA;
+}
+
+void *gearman_packet_take_data(gearman_packet_st *packet, size_t *data_size)
 {
   void *data= (void *)(packet->data);
 
-  *size= packet->data_size;
+  *data_size= packet->data_size;
 
   packet->data= NULL;
   packet->data_size= 0;

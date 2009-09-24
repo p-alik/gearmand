@@ -349,9 +349,6 @@ static gearman_return_t _thread_packet_flush(gearman_server_con_st *con)
     if (ret != GEARMAN_SUCCESS)
       return ret;
 
-    if (con->io_packet_list->packet.command == GEARMAN_COMMAND_NOOP)
-      con->noop_queued= false;
-
     GEARMAN_DEBUG(con->thread->gearman, "%15s:%5s Sent      %s",
             con->host == NULL ? "-" : con->host,
             con->port == NULL ? "-" : con->port,

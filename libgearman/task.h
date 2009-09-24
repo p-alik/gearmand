@@ -81,6 +81,22 @@ GEARMAN_API
 uint32_t gearman_task_denominator(const gearman_task_st *task);
 
 /**
+ * Give allocated memory to task. After this, the library will be responsible
+ * for freeing the workload memory when the task is destroyed.
+ */
+GEARMAN_API
+void gearman_task_give_workload(gearman_task_st *task, const void *workload,
+                                size_t workload_size);
+
+/**
+ * Send packet workload for a task.
+ */
+GEARMAN_API
+size_t gearman_task_send_workload(gearman_task_st *task, const void *workload,
+                                  size_t workload_size,
+                                  gearman_return_t *ret_ptr);
+
+/**
  * Get result data being returned for a task.
  */
 GEARMAN_API
@@ -97,18 +113,10 @@ size_t gearman_task_data_size(const gearman_task_st *task);
  * for free()ing the memory.
  */
 GEARMAN_API
-void *gearman_task_take_data(gearman_task_st *task, size_t *size);
+void *gearman_task_take_data(gearman_task_st *task, size_t *data_size);
 
 /**
- * Send packet workload for a task.
- */
-GEARMAN_API
-size_t gearman_task_send_workload(gearman_task_st *task, const void *workload,
-                                  size_t workload_size,
-                                  gearman_return_t *ret_ptr);
-
-/**
- * Read result workload into a buffer for a task.
+ * Read result data into a buffer for a task.
  */
 GEARMAN_API
 size_t gearman_task_recv_data(gearman_task_st *task, void *data,

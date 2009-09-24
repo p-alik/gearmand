@@ -121,7 +121,7 @@ test_return bug372074_test(void *object __attribute__((unused)))
 
     if (gearman_packet_add(&gearman, &packet, GEARMAN_MAGIC_REQUEST,
                            GEARMAN_COMMAND_SET_CLIENT_ID,
-                           (uint8_t *)"SimpleWorker", 13,
+                           (uint8_t *)"testUnregisterFunction", 13,
                            NULL) != GEARMAN_SUCCESS)
     {
       return TEST_FAILURE;
@@ -145,7 +145,64 @@ test_return bug372074_test(void *object __attribute__((unused)))
     gearman_packet_free(&packet);
 
     if (gearman_packet_add(&gearman, &packet, GEARMAN_MAGIC_REQUEST,
+                           GEARMAN_COMMAND_CANT_DO, (uint8_t *)"reverse", 7,
+                           NULL) != GEARMAN_SUCCESS)
+    {
+      return TEST_FAILURE;
+    }
+
+    if (gearman_con_send(&con, &packet, true) != GEARMAN_SUCCESS)
+      return TEST_FAILURE;
+
+    gearman_packet_free(&packet);
+
+    gearman_con_free(&con);
+
+    if (gearman_con_create(&gearman, &con) == NULL)
+      return TEST_FAILURE;
+
+    gearman_con_set_host(&con, NULL);
+    gearman_con_set_port(&con, WORKER_TEST_PORT);
+
+    if (gearman_packet_add(&gearman, &packet, GEARMAN_MAGIC_REQUEST,
+                           GEARMAN_COMMAND_SET_CLIENT_ID,
+                           (uint8_t *)"testUnregisterFunction", 13,
+                           NULL) != GEARMAN_SUCCESS)
+    {
+      return TEST_FAILURE;
+    }
+
+    if (gearman_con_send(&con, &packet, true) != GEARMAN_SUCCESS)
+      return TEST_FAILURE;
+
+    gearman_packet_free(&packet);
+
+    if (gearman_packet_add(&gearman, &packet, GEARMAN_MAGIC_REQUEST,
                            GEARMAN_COMMAND_CAN_DO, (uint8_t *)"digest", 6,
+                           NULL) != GEARMAN_SUCCESS)
+    {
+      return TEST_FAILURE;
+    }
+
+    if (gearman_con_send(&con, &packet, true) != GEARMAN_SUCCESS)
+      return TEST_FAILURE;
+
+    gearman_packet_free(&packet);
+
+    if (gearman_packet_add(&gearman, &packet, GEARMAN_MAGIC_REQUEST,
+                           GEARMAN_COMMAND_CAN_DO, (uint8_t *)"reverse", 7,
+                           NULL) != GEARMAN_SUCCESS)
+    {
+      return TEST_FAILURE;
+    }
+
+    if (gearman_con_send(&con, &packet, true) != GEARMAN_SUCCESS)
+      return TEST_FAILURE;
+
+    gearman_packet_free(&packet);
+
+    if (gearman_packet_add(&gearman, &packet, GEARMAN_MAGIC_REQUEST,
+                           GEARMAN_COMMAND_RESET_ABILITIES,
                            NULL) != GEARMAN_SUCCESS)
     {
       return TEST_FAILURE;

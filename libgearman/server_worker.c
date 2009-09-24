@@ -69,12 +69,13 @@ gearman_server_worker_create(gearman_server_con_st *con,
   else
     worker->options= 0;
 
+  worker->job_count= 0;
   worker->timeout= 0;
   worker->con= con;
   GEARMAN_LIST_ADD(con->worker, worker, con_)
   worker->function= function;
   GEARMAN_LIST_ADD(function->worker, worker, function_)
-  worker->job= NULL;
+  worker->job_list= NULL;
 
   return worker;
 }
@@ -84,8 +85,8 @@ void gearman_server_worker_free(gearman_server_worker_st *worker)
   gearman_server_st *server= worker->con->thread->server;
 
   /* If the worker was in the middle of a job, requeue it. */
-  if (worker->job != NULL)
-    (void)gearman_server_job_queue(worker->job);
+  while (worker->job_list != NULL)
+    (void)gearman_server_job_queue(worker->job_list);
 
   GEARMAN_LIST_DEL(worker->con->worker, worker, con_)
   GEARMAN_LIST_DEL(worker->function->worker, worker, function_)

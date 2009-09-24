@@ -84,6 +84,7 @@ gearman_server_st *gearman_server_create(gearman_server_st *server)
   server->shutdown_graceful= false;
   server->proc_wakeup= false;
   server->proc_shutdown= false;
+  server->job_retries= 0;
   server->thread_count= 0;
   server->free_packet_count= 0;
   server->function_count= 0;
@@ -178,6 +179,12 @@ void gearman_server_free(gearman_server_st *server)
 
   if (server->options & GEARMAN_SERVER_ALLOCATED)
     free(server);
+}
+
+void gearman_server_set_job_retries(gearman_server_st *server,
+                                    uint8_t job_retries)
+{
+  server->job_retries= job_retries;
 }
 
 void gearman_server_set_log_fn(gearman_server_st *server,
@@ -397,7 +404,8 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
   case GEARMAN_COMMAND_GRAB_JOB:
   case GEARMAN_COMMAND_GRAB_JOB_UNIQ:
     server_con->options&=
-                     (gearman_server_con_options_t)~GEARMAN_SERVER_CON_SLEEPING;
+                  (gearman_server_con_options_t)~(GEARMAN_SERVER_CON_SLEEPING |
+                                                  GEARMAN_SERVER_CON_NOOP_SENT);
 
     server_job= gearman_server_job_take(server_con);
     if (server_job == NULL)

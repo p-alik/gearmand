@@ -241,6 +241,7 @@ struct gearman_server_st
   bool shutdown_graceful;
   bool proc_wakeup;
   bool proc_shutdown;
+  uint8_t job_retries;
   uint32_t job_handle_count;
   uint32_t thread_count;
   uint32_t function_count;
@@ -304,7 +305,6 @@ struct gearman_server_con_st
   gearman_con_st con; /* This must be the first struct member. */
   gearman_server_con_options_t options;
   gearman_return_t ret;
-  bool noop_queued;
   bool io_list;
   bool proc_list;
   bool proc_removed;
@@ -381,6 +381,7 @@ struct gearman_server_client_st
 struct gearman_server_worker_st
 {
   gearman_server_worker_options_t options;
+  uint32_t job_count;
   uint32_t timeout;
   gearman_server_con_st *con;
   gearman_server_worker_st *con_next;
@@ -388,7 +389,7 @@ struct gearman_server_worker_st
   gearman_server_function_st *function;
   gearman_server_worker_st *function_next;
   gearman_server_worker_st *function_prev;
-  gearman_server_job_st *job;
+  gearman_server_job_st *job_list;
 };
 
 /**
@@ -396,6 +397,7 @@ struct gearman_server_worker_st
  */
 struct gearman_server_job_st
 {
+  uint8_t retries;
   gearman_server_job_options_t options;
   gearman_job_priority_t priority;
   uint32_t job_handle_key;
@@ -409,6 +411,8 @@ struct gearman_server_job_st
   gearman_server_job_st *prev;
   gearman_server_job_st *unique_next;
   gearman_server_job_st *unique_prev;
+  gearman_server_job_st *worker_next;
+  gearman_server_job_st *worker_prev;
   gearman_server_function_st *function;
   gearman_server_job_st *function_next;
   const void *data;

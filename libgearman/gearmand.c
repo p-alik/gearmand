@@ -142,6 +142,11 @@ void gearmand_set_backlog(gearmand_st *gearmand, int backlog)
   gearmand->backlog= backlog;
 }
 
+void gearmand_set_job_retries(gearmand_st *gearmand, uint8_t job_retries)
+{
+  gearman_server_set_job_retries(&(gearmand->server), job_retries);
+}
+
 void gearmand_set_threads(gearmand_st *gearmand, uint32_t threads)
 {
   gearmand->threads= threads;
