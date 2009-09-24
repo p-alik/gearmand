@@ -311,7 +311,7 @@ static memcached_return callback_for_key(memcached_st *ptr __attribute__((unused
   callbacks[0]= &callback_loader;
 
   passable[0]= (char *)key;
-  rc= memcached_mget(&container->clone, passable, &key_length, 1);
+  rc= memcached_mget(&container->clone, (void *)passable, &key_length, 1);
 
   /* Just void errors for the moment, since other treads might have picked up the object. */
   (void)memcached_fetch_execute(&container->clone, callbacks, context, 1);
