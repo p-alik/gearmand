@@ -12,7 +12,6 @@
  */
 
 #include "common.h"
-#include "server.h"
 
 /*
  * Private declarations
@@ -27,7 +26,7 @@
 /**
  * Add job to queue wihle replaying queue during startup.
  */
-gearman_return_t _queue_replay_add(gearman_st *gearman, void *fn_arg,
+gearman_return_t _queue_replay_add(gearman_server_st *server, void *context,
                                    const void *unique, size_t unique_size,
                                    const void *function_name,
                                    size_t function_name_size, const void *data,
@@ -101,6 +100,11 @@ gearman_server_st *gearman_server_create(gearman_server_st *server)
   server->free_worker_list= NULL;
   server->log_fn= NULL;
   server->log_context= NULL;
+  server->queue_context= NULL;
+  server->queue_add_fn= NULL;
+  server->queue_flush_fn= NULL;
+  server->queue_done_fn= NULL;
+  server->queue_replay_fn= NULL;
   memset(server->job_hash, 0,
          sizeof(gearman_server_job_st *) * GEARMAN_JOB_HASH_SIZE);
   memset(server->unique_hash, 0,
@@ -207,7 +211,7 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
   char numerator_buffer[11]; /* Max string size to hold a uint32_t. */
   char denominator_buffer[11]; /* Max string size to hold a uint32_t. */
   gearman_job_priority_t priority;
-  gearman_st *gearman= server_con->thread->server->gearman;
+  gearman_server_st *server= server_con->thread->server;
 
   if (packet->magic == GEARMAN_MAGIC_RESPONSE)
   {
@@ -522,9 +526,9 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
 
     /* Remove from persistent queue if one exists. */
     if (server_job->options & GEARMAN_SERVER_JOB_QUEUED &&
-        gearman->queue_done_fn != NULL)
+        server->queue_done_fn != NULL)
     {
-      ret= (*(gearman->queue_done_fn))(gearman, (void *)gearman->queue_context,
+      ret= (*(server->queue_done_fn))(server, (void *)server->queue_context,
                                       server_job->unique,
                                       (size_t)strlen(server_job->unique),
                                       server_job->function->function_name,
@@ -580,9 +584,9 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
 
     /* Remove from persistent queue if one exists. */
     if (server_job->options & GEARMAN_SERVER_JOB_QUEUED &&
-        gearman->queue_done_fn != NULL)
+        server->queue_done_fn != NULL)
     {
-      ret= (*(gearman->queue_done_fn))(gearman, (void *)gearman->queue_context,
+      ret= (*(server->queue_done_fn))(server, (void *)server->queue_context,
                                       server_job->unique,
                                       (size_t)strlen(server_job->unique),
                                       server_job->function->function_name,
@@ -639,33 +643,66 @@ gearman_return_t gearman_server_queue_replay(gearman_server_st *server)
 {
   gearman_return_t ret;
 
-  if (server->gearman->queue_replay_fn == NULL)
+  if (server->queue_replay_fn == NULL)
     return GEARMAN_SUCCESS;
 
   server->options|= GEARMAN_SERVER_QUEUE_REPLAY;
 
-  ret= (*(server->gearman->queue_replay_fn))(server->gearman,
-                                         (void *)server->gearman->queue_context,
-                                         _queue_replay_add, server);
+  ret= (*(server->queue_replay_fn))(server, (void *)server->queue_context,
+                                    _queue_replay_add, server);
 
   server->options&= (gearman_server_options_t)~GEARMAN_SERVER_QUEUE_REPLAY;
 
   return ret;
 }
 
+void *gearman_server_queue_context(const gearman_server_st *server)
+{
+  return (void *)server->queue_context;
+}
+
+void gearman_server_set_queue_context(gearman_server_st *server,
+                                      const void *context)
+{
+  server->queue_context= context;
+}
+
+void gearman_server_set_queue_add_fn(gearman_server_st *server,
+                                     gearman_queue_add_fn *function)
+{
+  server->queue_add_fn= function;
+}
+
+void gearman_server_set_queue_flush_fn(gearman_server_st *server,
+                                       gearman_queue_flush_fn *function)
+{
+  server->queue_flush_fn= function;
+}
+
+void gearman_server_set_queue_done_fn(gearman_server_st *server,
+                                      gearman_queue_done_fn *function)
+{
+  server->queue_done_fn= function;
+}
+
+void gearman_server_set_queue_replay_fn(gearman_server_st *server,
+                                        gearman_queue_replay_fn *function)
+{
+  server->queue_replay_fn= function;
+}
+
 /*
  * Private definitions
  */
 
-gearman_return_t _queue_replay_add(gearman_st *gearman __attribute__ ((unused)),
-                                   void *fn_arg, const void *unique,
-                                   size_t unique_size,
+gearman_return_t _queue_replay_add(gearman_server_st *server,
+                                   void *context __attribute__ ((unused)),
+                                   const void *unique, size_t unique_size,
                                    const void *function_name,
                                    size_t function_name_size, const void *data,
                                    size_t data_size,
                                    gearman_job_priority_t priority)
 {
-  gearman_server_st *server= (gearman_server_st *)fn_arg;
   gearman_return_t ret;
 
   (void)gearman_server_job_add(server, (char *)function_name,

@@ -40,7 +40,7 @@ extern "C" {
  * Get module configuration options.
  */
 GEARMAN_API
-gearman_return_t gearman_protocol_http_conf(gearman_conf_st *conf);
+gearman_return_t gearmand_protocol_http_conf(gearman_conf_st *conf);
 
 /**
  * Initialize the HTTP protocol module.

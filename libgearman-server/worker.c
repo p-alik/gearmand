@@ -12,7 +12,6 @@
  */
 
 #include "common.h"
-#include "server.h"
 
 /*
  * Public definitions

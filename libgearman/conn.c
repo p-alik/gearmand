@@ -151,9 +151,6 @@ gearman_return_t gearman_con_send(gearman_con_st *con,
   gearman_return_t ret;
   size_t send_size;
 
-  if (con->send_fn != NULL)
-    return (*con->send_fn)(con, packet, flush);
-
   switch (con->send_state)
   {
   case GEARMAN_CON_SEND_STATE_NONE:
@@ -291,9 +288,6 @@ gearman_return_t gearman_con_send(gearman_con_st *con,
 size_t gearman_con_send_data(gearman_con_st *con, const void *data,
                              size_t data_size, gearman_return_t *ret_ptr)
 {
-  if (con->send_data_fn != NULL)
-    return (*con->send_data_fn)(con, data, data_size, ret_ptr);
-
   if (con->send_state != GEARMAN_CON_SEND_STATE_FLUSH_DATA)
   {
     GEARMAN_ERROR_SET(con->gearman, "gearman_con_send_data", "not flushing")
@@ -539,9 +533,6 @@ gearman_packet_st *gearman_con_recv(gearman_con_st *con,
 {
   size_t recv_size;
 
-  if (con->recv_fn != NULL)
-    return (*con->recv_fn)(con, packet, ret_ptr, recv_data);
-
   switch (con->recv_state)
   {
   case GEARMAN_CON_RECV_STATE_NONE:
@@ -657,9 +648,6 @@ size_t gearman_con_recv_data(gearman_con_st *con, void *data, size_t data_size,
                              gearman_return_t *ret_ptr)
 {
   size_t recv_size= 0;
-
-  if (con->recv_data_fn != NULL)
-    return (*con->recv_data_fn)(con, data, data_size, ret_ptr);
 
   if (con->recv_data_size == 0)
   {
@@ -839,28 +827,6 @@ void gearman_con_set_protocol_context_free_fn(gearman_con_st *con,
                                 gearman_con_protocol_context_free_fn *function)
 {
   con->protocol_context_free_fn= function;
-}
-
-void gearman_con_set_recv_fn(gearman_con_st *con, gearman_con_recv_fn *function)
-{
-  con->recv_fn= function;
-}
-
-void gearman_con_set_recv_data_fn(gearman_con_st *con,
-                                  gearman_con_recv_data_fn *function)
-{
-  con->recv_data_fn= function;
-}
-
-void gearman_con_set_send_fn(gearman_con_st *con, gearman_con_send_fn *function)
-{
-  con->send_fn= function;
-}
-
-void gearman_con_set_send_data_fn(gearman_con_st *con,
-                                  gearman_con_send_data_fn *function)
-{
-  con->send_data_fn= function;
 }
 
 void gearman_con_set_packet_pack_fn(gearman_con_st *con,

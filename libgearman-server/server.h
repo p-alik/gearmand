@@ -15,13 +15,17 @@
 #define __GEARMAN_SERVER_H__
 
 #include <libgearman/gearman.h>
-#include <libgearman/server_con.h>
-#include <libgearman/server_packet.h>
-#include <libgearman/server_function.h>
-#include <libgearman/server_client.h>
-#include <libgearman/server_worker.h>
-#include <libgearman/server_job.h>
-#include <libgearman/server_thread.h>
+#include <libgearman-server/constants.h>
+#include <libgearman-server/structs.h>
+#include <libgearman-server/conf.h>
+#include <libgearman-server/conf_module.h>
+#include <libgearman-server/conn.h>
+#include <libgearman-server/packet.h>
+#include <libgearman-server/function.h>
+#include <libgearman-server/client.h>
+#include <libgearman-server/worker.h>
+#include <libgearman-server/job.h>
+#include <libgearman-server/thread.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -104,6 +108,49 @@ gearman_return_t gearman_server_shutdown_graceful(gearman_server_st *server);
  */
 GEARMAN_API
 gearman_return_t gearman_server_queue_replay(gearman_server_st *server);
+
+/**
+ * Get persistent queue context.
+ */
+GEARMAN_API
+void *gearman_server_queue_context(const gearman_server_st *server);
+
+/**
+ * Set persistent queue context that will be passed back to all queue callback
+ * functions.
+ */
+GEARMAN_API
+void gearman_server_set_queue_context(gearman_server_st *server,
+                                      const void *context);
+
+/**
+ * Set function to call when jobs need to be stored in the persistent queue.
+ */
+GEARMAN_API
+void gearman_server_set_queue_add_fn(gearman_server_st *server,
+                                     gearman_queue_add_fn *function);
+
+/**
+ * Set function to call when the persistent queue should be flushed to disk.
+ */
+GEARMAN_API
+void gearman_server_set_queue_flush_fn(gearman_server_st *server,
+                                       gearman_queue_flush_fn *function);
+
+/**
+ * Set function to call when a job should be removed from the persistent queue.
+ */
+GEARMAN_API
+void gearman_server_set_queue_done_fn(gearman_server_st *server,
+                                      gearman_queue_done_fn *function);
+
+/**
+ * Set function to call when jobs in the persistent queue should be replayed
+ * after a restart.
+ */
+GEARMAN_API
+void gearman_server_set_queue_replay_fn(gearman_server_st *server,
+                                        gearman_queue_replay_fn *function);
 
 /** @} */
 

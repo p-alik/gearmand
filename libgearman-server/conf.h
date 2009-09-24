@@ -11,8 +11,8 @@
  * @brief Gearman conf declarations
  */
 
-#ifndef __GEARMAN_CONF_H__
-#define __GEARMAN_CONF_H__
+#ifndef __GEARMAN_SERVER_CONF_H__
+#define __GEARMAN_SERVER_CONF_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -79,4 +79,4 @@ void gearman_conf_usage(gearman_conf_st *conf);
 }
 #endif
 
-#endif /* __GEARMAN_CONF_H__ */
+#endif /* __GEARMAN_SERVER_CONF_H__ */
