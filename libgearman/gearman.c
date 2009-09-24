@@ -89,11 +89,6 @@ gearman_st *gearman_create(gearman_st *gearman)
   gearman->workload_malloc_context= NULL;
   gearman->workload_free_fn= NULL;
   gearman->workload_free_context= NULL;
-  gearman->queue_context= NULL;
-  gearman->queue_add_fn= NULL;
-  gearman->queue_flush_fn= NULL;
-  gearman->queue_done_fn= NULL;
-  gearman->queue_replay_fn= NULL;
   gearman->last_error[0]= 0;
 
   return gearman;
@@ -243,10 +238,6 @@ gearman_con_st *gearman_con_create(gearman_st *gearman, gearman_con_st *con)
   con->recv_buffer_ptr= con->recv_buffer;
   con->protocol_context= NULL;
   con->protocol_context_free_fn= NULL;
-  con->recv_fn= NULL;
-  con->recv_data_fn= NULL;
-  con->send_fn= NULL;
-  con->send_data_fn= NULL;
   con->packet_pack_fn= gearman_packet_pack;
   con->packet_unpack_fn= gearman_packet_unpack;
   con->host[0]= 0;
@@ -640,44 +631,6 @@ void gearman_packet_free_all(gearman_st *gearman)
 {
   while (gearman->packet_list != NULL)
     gearman_packet_free(gearman->packet_list);
-}
-
-/*
- * Persistent queue API. Move this to server.[ch] once logging is fixed.
- */
-
-void *gearman_queue_context(const gearman_st *gearman)
-{
-  return (void *)gearman->queue_context;
-}
-
-void gearman_set_queue_context(gearman_st *gearman, const void *context)
-{
-  gearman->queue_context= context;
-}
-
-void gearman_set_queue_add_fn(gearman_st *gearman,
-                              gearman_queue_add_fn *function)
-{
-  gearman->queue_add_fn= function;
-}
-
-void gearman_set_queue_flush_fn(gearman_st *gearman,
-                                gearman_queue_flush_fn *function)
-{
-  gearman->queue_flush_fn= function;
-}
-
-void gearman_set_queue_done_fn(gearman_st *gearman,
-                               gearman_queue_done_fn *function)
-{
-  gearman->queue_done_fn= function;
-}
-
-void gearman_set_queue_replay_fn(gearman_st *gearman,
-                                 gearman_queue_replay_fn *function)
-{
-  gearman->queue_replay_fn= function;
 }
 
 gearman_return_t gearman_parse_servers(const char *servers,

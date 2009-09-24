@@ -12,7 +12,6 @@
  */
 
 #include "common.h"
-#include "server.h"
 #include "gearmand.h"
 
 /*

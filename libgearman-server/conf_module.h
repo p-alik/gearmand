@@ -11,8 +11,8 @@
  * @brief Gearman conf module declarations
  */
 
-#ifndef __GEARMAN_CONF_MODULE_H__
-#define __GEARMAN_CONF_MODULE_H__
+#ifndef __GEARMAN_SERVER_CONF_MODULE_H__
+#define __GEARMAN_SERVER_CONF_MODULE_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -65,4 +65,4 @@ bool gearman_conf_module_value(gearman_conf_module_st *module,
 }
 #endif
 
-#endif /* __GEARMAN_CONF_MODULE_H__ */
+#endif /* __GEARMAN_SERVER_CONF_MODULE_H__ */

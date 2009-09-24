@@ -11,12 +11,12 @@
  * @brief System include files
  */
 
-#ifndef __GEARMAN_COMMON_H__
-#define __GEARMAN_COMMON_H__
+#ifndef __GEARMAN_SERVER_COMMON_H__
+#define __GEARMAN_SERVER_COMMON_H__
 
 #include "config.h"
 
-#include "gearman.h"
+#include "server.h"
 
 #ifdef HAVE_ASSERT_H
 #include <assert.h>
@@ -108,6 +108,8 @@ extern "C" {
  */
 #define GEARMAN_FATAL(__gearman, ...) \
   GEARMAN_LOG(__gearman, GEARMAN_VERBOSE_FATAL, __VA_ARGS__)
+#define GEARMAN_SERVER_FATAL(__server, ...) \
+  GEARMAN_FATAL((__server)->gearman, __VA_ARGS__)
 
 /**
  * Macro to log errors.
@@ -117,6 +119,8 @@ extern "C" {
   unlikely ((__gearman)->verbose >= GEARMAN_VERBOSE_ERROR) \
     GEARMAN_LOG(__gearman, GEARMAN_VERBOSE_ERROR, __VA_ARGS__) \
 }
+#define GEARMAN_SERVER_ERROR(__server, ...) \
+  GEARMAN_ERROR((__server)->gearman, __VA_ARGS__)
 
 /**
  * Macro to log infomational messages.
@@ -126,6 +130,8 @@ extern "C" {
   unlikely ((__gearman)->verbose >= GEARMAN_VERBOSE_INFO) \
     GEARMAN_LOG(__gearman, GEARMAN_VERBOSE_INFO, __VA_ARGS__) \
 }
+#define GEARMAN_SERVER_INFO(__server, ...) \
+  GEARMAN_INFO((__server)->gearman, __VA_ARGS__)
 
 /**
  * Macro to log errors.
@@ -135,6 +141,8 @@ extern "C" {
   unlikely ((__gearman)->verbose >= GEARMAN_VERBOSE_DEBUG) \
     GEARMAN_LOG(__gearman, GEARMAN_VERBOSE_DEBUG, __VA_ARGS__) \
 }
+#define GEARMAN_SERVER_DEBUG(__server, ...) \
+  GEARMAN_DEBUG((__server)->gearman, __VA_ARGS__)
 
 /**
  * Macro to log errors.
@@ -144,6 +152,8 @@ extern "C" {
   unlikely ((__gearman)->verbose >= GEARMAN_VERBOSE_CRAZY) \
     GEARMAN_LOG(__gearman, GEARMAN_VERBOSE_CRAZY, __VA_ARGS__) \
 }
+#define GEARMAN_SERVER_CRAZY(__server, ...) \
+  GEARMAN_CRAZY((__server)->gearman, __VA_ARGS__)
 
 /**
  * Macro to set error string.
@@ -157,6 +167,35 @@ extern "C" {
   } \
   else \
     GEARMAN_FATAL(__gearman, __function ":" __VA_ARGS__) \
+}
+#define GEARMAN_SERVER_ERROR_SET(__server, ...) \
+  GEARMAN_ERROR_SET((__server)->gearman, __VA_ARGS__)
+
+/**
+ * Macro to set error string.
+ * @ingroup gearman_conf_constants
+ */
+#define GEARMAN_CONF_ERROR_SET(__conf, __function, ...) { \
+  snprintf((__conf)->last_error, GEARMAN_MAX_ERROR_SIZE, \
+           __function ":" __VA_ARGS__); \
+}
+
+/**
+ * Lock only if we are multi-threaded.
+ * @ingroup gearman_server_thread
+ */
+#define GEARMAN_SERVER_THREAD_LOCK(__thread) { \
+  if ((__thread)->server->thread_count > 1) \
+    (void) pthread_mutex_lock(&((__thread)->lock)); \
+}
+
+/**
+ * Unlock only if we are multi-threaded.
+ * @ingroup gearman_server_thread
+ */
+#define GEARMAN_SERVER_THREAD_UNLOCK(__thread) { \
+  if ((__thread)->server->thread_count > 1) \
+    (void) pthread_mutex_unlock(&((__thread)->lock)); \
 }
 
 /**
@@ -187,16 +226,72 @@ extern "C" {
 }
 
 /**
- * Utility function used for parsing server lists.
- * @ingroup gearman_private
+ * Add an object to a fifo list.
+ * @ingroup gearman_constants
  */
-GEARMAN_LOCAL
-gearman_return_t gearman_parse_servers(const char *servers,
-                                       gearman_parse_server_fn *callback,
-                                       const void *context);
+#define GEARMAN_FIFO_ADD(__list, __obj, __prefix) { \
+  if (__list ## _end == NULL) \
+    __list ## _list= __obj; \
+  else \
+    __list ## _end->__prefix ## next= __obj; \
+  __list ## _end= __obj; \
+  __list ## _count++; \
+}
+
+/**
+ * Delete an object from a fifo list.
+ * @ingroup gearman_constants
+ */
+#define GEARMAN_FIFO_DEL(__list, __obj, __prefix) { \
+  __list ## _list= __obj->__prefix ## next; \
+  if (__list ## _list == NULL) \
+    __list ## _end= NULL; \
+  __list ## _count--; \
+}
+
+/**
+ * Add an object to a hash.
+ * @ingroup gearman_constants
+ */
+#define GEARMAN_HASH_ADD(__hash, __key, __obj, __prefix) { \
+  if (__hash ## _hash[__key] != NULL) \
+    __hash ## _hash[__key]->__prefix ## prev= __obj; \
+  __obj->__prefix ## next= __hash ## _hash[__key]; \
+  __obj->__prefix ## prev= NULL; \
+  __hash ## _hash[__key]= __obj; \
+  __hash ## _count++; \
+}
+
+/**
+ * Delete an object from a hash.
+ * @ingroup gearman_constants
+ */
+#define GEARMAN_HASH_DEL(__hash, __key, __obj, __prefix) { \
+  if (__hash ## _hash[__key] == __obj) \
+    __hash ## _hash[__key]= __obj->__prefix ## next; \
+  if (__obj->__prefix ## prev != NULL) \
+    __obj->__prefix ## prev->__prefix ## next= __obj->__prefix ## next; \
+  if (__obj->__prefix ## next != NULL) \
+    __obj->__prefix ## next->__prefix ## prev= __obj->__prefix ## prev; \
+  __hash ## _count--; \
+}
+
+/* All thread-safe libevent functions are not in libevent 1.3x, and this is the
+   common package version. Make this work for these earlier versions. */
+#ifndef HAVE_EVENT_BASE_NEW
+#define event_base_new event_init
+#endif
+
+#ifndef HAVE_EVENT_BASE_FREE
+#define event_base_free (void)
+#endif
+
+#ifndef HAVE_EVENT_BASE_GET_METHOD
+#define event_base_get_method(__base) event_get_method()
+#endif
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __GEARMAN_COMMON_H__ */
+#endif /* __GEARMAN_SERVER_COMMON_H__ */

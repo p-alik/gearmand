@@ -13,7 +13,8 @@
 
 #include "common.h"
 
-#include <libgearman/queue_libpq.h>
+#include <libgearman-server/queue_libpq.h>
+
 #if defined(HAVE_LIBPQ_FE_H)
 # include <libpq-fe.h>
 # include <pg_config_manual.h>
@@ -55,19 +56,19 @@ typedef struct
 static void _libpq_notice_processor(void *arg, const char *message);
 
 /* Queue callback functions. */
-static gearman_return_t _libpq_add(gearman_st *gearman, void *context,
+static gearman_return_t _libpq_add(gearman_server_st *server, void *context,
                                    const void *unique, size_t unique_size,
                                    const void *function_name,
                                    size_t function_name_size,
                                    const void *data, size_t data_size,
                                    gearman_job_priority_t priority);
-static gearman_return_t _libpq_flush(gearman_st *gearman, void *context);
-static gearman_return_t _libpq_done(gearman_st *gearman, void *context,
+static gearman_return_t _libpq_flush(gearman_server_st *server, void *context);
+static gearman_return_t _libpq_done(gearman_server_st *server, void *context,
                                     const void *unique,
                                     size_t unique_size,
                                     const void *function_name,
                                     size_t function_name_size);
-static gearman_return_t _libpq_replay(gearman_st *gearman, void *context,
+static gearman_return_t _libpq_replay(gearman_server_st *server, void *context,
                                       gearman_queue_add_fn *add_fn,
                                       void *add_context);
 
@@ -77,7 +78,7 @@ static gearman_return_t _libpq_replay(gearman_st *gearman, void *context,
  * Public definitions
  */
 
-gearman_return_t gearman_queue_libpq_conf(gearman_conf_st *conf)
+gearman_return_t gearman_server_queue_libpq_conf(gearman_conf_st *conf)
 {
   gearman_conf_module_st *module;
 
@@ -94,8 +95,8 @@ gearman_return_t gearman_queue_libpq_conf(gearman_conf_st *conf)
   return gearman_conf_return(conf);
 }
 
-gearman_return_t gearman_queue_libpq_init(gearman_st *gearman,
-                                          gearman_conf_st *conf)
+gearman_return_t gearman_server_queue_libpq_init(gearman_server_st *server,
+                                                 gearman_conf_st *conf)
 {
   gearman_queue_libpq_st *queue;
   gearman_conf_module_st *module;
@@ -105,26 +106,26 @@ gearman_return_t gearman_queue_libpq_init(gearman_st *gearman,
   char create[1024];
   PGresult *result;
 
-  GEARMAN_INFO(gearman, "Initializing libpq module")
+  GEARMAN_SERVER_INFO(server, "Initializing libpq module")
 
   queue= malloc(sizeof(gearman_queue_libpq_st));
   if (queue == NULL)
   {
-    GEARMAN_ERROR_SET(gearman, "gearman_queue_libpq_init", "malloc")
+    GEARMAN_SERVER_ERROR_SET(server, "gearman_queue_libpq_init", "malloc")
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
 
   memset(queue, 0, sizeof(gearman_queue_libpq_st));
   snprintf(queue->table, NAMEDATALEN, GEARMAN_QUEUE_LIBPQ_DEFAULT_TABLE);
 
-  gearman_set_queue_context(gearman, queue);
+  gearman_server_set_queue_context(server, queue);
 
   /* Get module and parse the option values that were given. */
   module= gearman_conf_module_find(conf, "libpq");
   if (module == NULL)
   {
-    GEARMAN_ERROR_SET(gearman, "gearman_queue_libpq_init",
-                      "gearman_conf_module_find:NULL")
+    GEARMAN_SERVER_ERROR_SET(server, "gearman_queue_libpq_init",
+                             "gearman_conf_module_find:NULL")
     return GEARMAN_QUEUE_ERROR;
   }
 
@@ -136,9 +137,9 @@ gearman_return_t gearman_queue_libpq_init(gearman_st *gearman,
       snprintf(queue->table, NAMEDATALEN, "%s", value);
     else
     {
-      gearman_queue_libpq_deinit(gearman);
-      GEARMAN_ERROR_SET(gearman, "gearman_queue_libpq_init",
-                        "Unknown argument: %s", name)
+      gearman_server_queue_libpq_deinit(server);
+      GEARMAN_SERVER_ERROR_SET(server, "gearman_queue_libpq_init",
+                               "Unknown argument: %s", name)
       return GEARMAN_QUEUE_ERROR;
     }
   }
@@ -147,13 +148,13 @@ gearman_return_t gearman_queue_libpq_init(gearman_st *gearman,
 
   if (queue->con == NULL || PQstatus(queue->con) != CONNECTION_OK)
   {
-    GEARMAN_ERROR_SET(gearman, "gearman_queue_libpq_init", "PQconnectdb: %s",
-                      PQerrorMessage(queue->con))
-    gearman_queue_libpq_deinit(gearman);
+    GEARMAN_SERVER_ERROR_SET(server, "gearman_queue_libpq_init",
+                             "PQconnectdb: %s", PQerrorMessage(queue->con))
+    gearman_server_queue_libpq_deinit(server);
     return GEARMAN_QUEUE_ERROR;
   }
 
-  (void)PQsetNoticeProcessor(queue->con, _libpq_notice_processor, gearman);
+  (void)PQsetNoticeProcessor(queue->con, _libpq_notice_processor, server);
 
   snprintf(create, 1024, "SELECT tablename FROM pg_tables WHERE tablename='%s'",
            queue->table);
@@ -161,9 +162,10 @@ gearman_return_t gearman_queue_libpq_init(gearman_st *gearman,
   result= PQexec(queue->con, create);
   if (result == NULL || PQresultStatus(result) != PGRES_TUPLES_OK)
   {
-    GEARMAN_ERROR_SET(gearman, "gearman_queue_libpq_init", "PQexec:%s",
-                      PQerrorMessage(queue->con))
+    GEARMAN_SERVER_ERROR_SET(server, "gearman_queue_libpq_init", "PQexec:%s",
+                             PQerrorMessage(queue->con))
     PQclear(result);
+    gearman_server_queue_libpq_deinit(server);
     return GEARMAN_QUEUE_ERROR;
   }
 
@@ -181,15 +183,16 @@ gearman_return_t gearman_queue_libpq_init(gearman_st *gearman,
              ")",
              queue->table, GEARMAN_UNIQUE_SIZE);
 
-    GEARMAN_INFO(gearman, "libpq module creating table '%s'", queue->table)
+    GEARMAN_SERVER_INFO(server, "libpq module creating table '%s'",
+                        queue->table)
 
     result= PQexec(queue->con, create);
     if (result == NULL || PQresultStatus(result) != PGRES_COMMAND_OK)
     {
-      GEARMAN_ERROR_SET(gearman, "gearman_queue_libpq_init", "PQexec:%s",
-                        PQerrorMessage(queue->con))
+      GEARMAN_SERVER_ERROR_SET(server, "gearman_queue_libpq_init", "PQexec:%s",
+                               PQerrorMessage(queue->con))
       PQclear(result);
-      gearman_queue_libpq_deinit(gearman);
+      gearman_server_queue_libpq_deinit(server);
       return GEARMAN_QUEUE_ERROR;
     }
 
@@ -198,22 +201,22 @@ gearman_return_t gearman_queue_libpq_init(gearman_st *gearman,
   else
     PQclear(result);
 
-  gearman_set_queue_add_fn(gearman, _libpq_add);
-  gearman_set_queue_flush_fn(gearman, _libpq_flush);
-  gearman_set_queue_done_fn(gearman, _libpq_done);
-  gearman_set_queue_replay_fn(gearman, _libpq_replay);
+  gearman_server_set_queue_add_fn(server, _libpq_add);
+  gearman_server_set_queue_flush_fn(server, _libpq_flush);
+  gearman_server_set_queue_done_fn(server, _libpq_done);
+  gearman_server_set_queue_replay_fn(server, _libpq_replay);
 
   return GEARMAN_SUCCESS;
 }
 
-gearman_return_t gearman_queue_libpq_deinit(gearman_st *gearman)
+gearman_return_t gearman_server_queue_libpq_deinit(gearman_server_st *server)
 {
   gearman_queue_libpq_st *queue;
 
-  GEARMAN_INFO(gearman, "Shutting down libpq queue module")
+  GEARMAN_SERVER_INFO(server, "Shutting down libpq queue module")
 
-  queue= (gearman_queue_libpq_st *)gearman_queue_context(gearman);
-  gearman_set_queue_context(gearman, NULL);
+  queue= (gearman_queue_libpq_st *)gearman_server_queue_context(server);
+  gearman_server_set_queue_context(server, NULL);
 
   if (queue->con != NULL)
     PQfinish(queue->con);
@@ -229,12 +232,12 @@ gearman_return_t gearman_queue_libpq_deinit(gearman_st *gearman)
 gearman_return_t gearmand_queue_libpq_init(gearmand_st *gearmand,
                                                 gearman_conf_st *conf)
 {
-  return gearman_queue_libpq_init(gearmand->server.gearman, conf);
+  return gearman_server_queue_libpq_init(&(gearmand->server), conf);
 }
 
 gearman_return_t gearmand_queue_libpq_deinit(gearmand_st *gearmand)
 {
-  return gearman_queue_libpq_deinit(gearmand->server.gearman);
+  return gearman_server_queue_libpq_deinit(&(gearmand->server));
 }
 
 /*
@@ -243,11 +246,11 @@ gearman_return_t gearmand_queue_libpq_deinit(gearmand_st *gearmand)
 
 static void _libpq_notice_processor(void *arg, const char *message)
 {
-  gearman_st *gearman= (gearman_st *)arg;
-  GEARMAN_INFO(gearman, "PostgreSQL %s", message)
+  gearman_server_st *server= (gearman_server_st *)arg;
+  GEARMAN_SERVER_INFO(server, "PostgreSQL %s", message)
 }
 
-static gearman_return_t _libpq_add(gearman_st *gearman, void *context,
+static gearman_return_t _libpq_add(gearman_server_st *server, void *context,
                                         const void *unique, size_t unique_size,
                                         const void *function_name,
                                         size_t function_name_size,
@@ -267,8 +270,8 @@ static gearman_return_t _libpq_add(gearman_st *gearman, void *context,
                           (int)data_size };
   int param_formats[3]= { 0, 0, 1 };
 
-  GEARMAN_DEBUG(gearman, "libpq add: %.*s", (uint32_t)unique_size,
-                (char *)unique)
+  GEARMAN_SERVER_DEBUG(server, "libpq add: %.*s", (uint32_t)unique_size,
+                       (char *)unique)
 
   /* This is not used currently, it will be once batch writes are supported
      inside of the Gearman job server. */
@@ -288,7 +291,7 @@ static gearman_return_t _libpq_add(gearman_st *gearman, void *context,
     query= realloc(queue->query, query_size);
     if (query == NULL)
     {
-      GEARMAN_ERROR_SET(gearman, "_libpq_add", "realloc")
+      GEARMAN_SERVER_ERROR_SET(server, "_libpq_add", "realloc")
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
 
@@ -305,8 +308,8 @@ static gearman_return_t _libpq_add(gearman_st *gearman, void *context,
                        param_formats, 0);
   if (result == NULL || PQresultStatus(result) != PGRES_COMMAND_OK)
   {
-    GEARMAN_ERROR_SET(gearman, "_libpq_command", "PQexec:%s",
-                      PQerrorMessage(queue->con))
+    GEARMAN_SERVER_ERROR_SET(server, "_libpq_command", "PQexec:%s",
+                             PQerrorMessage(queue->con))
     PQclear(result);
     return GEARMAN_QUEUE_ERROR;
   }
@@ -316,15 +319,15 @@ static gearman_return_t _libpq_add(gearman_st *gearman, void *context,
   return GEARMAN_SUCCESS;
 }
 
-static gearman_return_t _libpq_flush(gearman_st *gearman,
+static gearman_return_t _libpq_flush(gearman_server_st *server,
                                      void *context __attribute__((unused)))
 {
-  GEARMAN_DEBUG(gearman, "libpq flush")
+  GEARMAN_SERVER_DEBUG(server, "libpq flush")
 
   return GEARMAN_SUCCESS;
 }
 
-static gearman_return_t _libpq_done(gearman_st *gearman, void *context,
+static gearman_return_t _libpq_done(gearman_server_st *server, void *context,
                                     const void *unique,
                                     size_t unique_size,
                                     const void *function_name __attribute__((unused)),
@@ -335,8 +338,8 @@ static gearman_return_t _libpq_done(gearman_st *gearman, void *context,
   size_t query_size;
   PGresult *result;
 
-  GEARMAN_DEBUG(gearman, "libpq done: %.*s", (uint32_t)unique_size,
-                (char *)unique)
+  GEARMAN_SERVER_DEBUG(server, "libpq done: %.*s", (uint32_t)unique_size,
+                       (char *)unique)
 
   query_size= (unique_size * 2) + GEARMAN_QUEUE_QUERY_BUFFER;
   if (query_size > queue->query_size)
@@ -344,7 +347,7 @@ static gearman_return_t _libpq_done(gearman_st *gearman, void *context,
     query= realloc(queue->query, query_size);
     if (query == NULL)
     {
-      GEARMAN_ERROR_SET(gearman, "_libpq_add", "realloc")
+      GEARMAN_SERVER_ERROR_SET(server, "_libpq_add", "realloc")
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
 
@@ -367,8 +370,8 @@ static gearman_return_t _libpq_done(gearman_st *gearman, void *context,
   result= PQexec(queue->con, query);
   if (result == NULL || PQresultStatus(result) != PGRES_COMMAND_OK)
   {
-    GEARMAN_ERROR_SET(gearman, "_libpq_add", "PQexec:%s",
-                      PQerrorMessage(queue->con))
+    GEARMAN_SERVER_ERROR_SET(server, "_libpq_add", "PQexec:%s",
+                             PQerrorMessage(queue->con))
     PQclear(result);
     return GEARMAN_QUEUE_ERROR;
   }
@@ -378,7 +381,7 @@ static gearman_return_t _libpq_done(gearman_st *gearman, void *context,
   return GEARMAN_SUCCESS;
 }
 
-static gearman_return_t _libpq_replay(gearman_st *gearman, void *context,
+static gearman_return_t _libpq_replay(gearman_server_st *server, void *context,
                                       gearman_queue_add_fn *add_fn,
                                       void *add_context)
 {
@@ -389,14 +392,14 @@ static gearman_return_t _libpq_replay(gearman_st *gearman, void *context,
   int row;
   void *data;
 
-  GEARMAN_INFO(gearman, "libpq replay start")
+  GEARMAN_SERVER_INFO(server, "libpq replay start")
 
   if (GEARMAN_QUEUE_QUERY_BUFFER > queue->query_size)
   {
     query= realloc(queue->query, GEARMAN_QUEUE_QUERY_BUFFER);
     if (query == NULL)
     {
-      GEARMAN_ERROR_SET(gearman, "_libpq_replay", "realloc")
+      GEARMAN_SERVER_ERROR_SET(server, "_libpq_replay", "realloc")
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
 
@@ -413,16 +416,17 @@ static gearman_return_t _libpq_replay(gearman_st *gearman, void *context,
   result= PQexecParams(queue->con, query, 0, NULL, NULL, NULL, NULL, 1);
   if (result == NULL || PQresultStatus(result) != PGRES_TUPLES_OK)
   {
-    GEARMAN_ERROR_SET(gearman, "_libpq_replay", "PQexecParams:%s",
-                      PQerrorMessage(queue->con))
+    GEARMAN_SERVER_ERROR_SET(server, "_libpq_replay", "PQexecParams:%s",
+                             PQerrorMessage(queue->con))
     PQclear(result);
     return GEARMAN_QUEUE_ERROR;
   }
 
   for (row= 0; row < PQntuples(result); row++)
   {
-    GEARMAN_DEBUG(gearman, "libpq replay: %.*s", PQgetlength(result, row, 0),
-                  PQgetvalue(result, row, 0));
+    GEARMAN_SERVER_DEBUG(server, "libpq replay: %.*s",
+                         PQgetlength(result, row, 0),
+                         PQgetvalue(result, row, 0));
 
     if (PQgetlength(result, row, 3) == 0)
       data= NULL;
@@ -432,7 +436,7 @@ static gearman_return_t _libpq_replay(gearman_st *gearman, void *context,
       if (query == NULL)
       {
         PQclear(result);
-        GEARMAN_ERROR_SET(gearman, "_libpq_replay", "malloc")
+        GEARMAN_SERVER_ERROR_SET(server, "_libpq_replay", "malloc")
         return GEARMAN_MEMORY_ALLOCATION_FAILURE;
       }
 
@@ -440,7 +444,7 @@ static gearman_return_t _libpq_replay(gearman_st *gearman, void *context,
              (size_t)PQgetlength(result, row, 3));
     }
 
-    ret= (*add_fn)(gearman, add_context, PQgetvalue(result, row, 0),
+    ret= (*add_fn)(server, add_context, PQgetvalue(result, row, 0),
                    (size_t)PQgetlength(result, row, 0),
                    PQgetvalue(result, row, 1),
                    (size_t)PQgetlength(result, row, 1),

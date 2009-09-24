@@ -28,6 +28,21 @@ GEARMAN_LIBRARY_VERSION=2:0:0
 #                +- increment if interfaces have been added, removed or changed
 AC_SUBST(GEARMAN_LIBRARY_VERSION)
 
+GEARMAN_SERVER_LIBRARY_VERSION=0:0:0
+#                              | | |
+#                       +------+ | +---+
+#                       |        |     |
+#                    current:revision:age
+#                       |        |     |
+#                       |        |     +- increment if interfaces have been
+#                       |        |        added, set to zero if interfaces
+#                       |        |        have been removed or changed
+#                       |        +- increment if source code has changed
+#                       |           set to zero if current is incremented
+#                       +- increment if interfaces have been added, removed
+#                          or changed
+AC_SUBST(GEARMAN_SERVER_LIBRARY_VERSION)
+
 # libgearman versioning when linked with GNU ld.
 if test "$lt_cv_prog_gnu_ld" = "yes"
 then
@@ -97,6 +112,7 @@ AC_CHECK_HEADERS(sys/socket.h sys/types.h sys/utsname.h unistd.h strings.h)
 
 AC_CONFIG_FILES(Makefile
                 libgearman/Makefile
+                libgearman-server/Makefile
                 gearmand/Makefile
                 bin/Makefile
                 tests/Makefile
