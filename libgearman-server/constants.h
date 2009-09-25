@@ -19,7 +19,7 @@ extern "C" {
 #endif
 
 /**
- * @addtogroup gearman_constants Gearman Constants
+ * @addtogroup gearman_server_constants Gearman Server Constants
  * @{
  */
 
@@ -54,6 +54,8 @@ typedef struct gearmand_thread_st gearmand_thread_st;
 typedef struct gearman_conf_st gearman_conf_st;
 typedef struct gearman_conf_option_st gearman_conf_option_st;
 typedef struct gearman_conf_module_st gearman_conf_module_st;
+
+/** @} */
 
 /**
  * @ingroup gearman_server
@@ -178,7 +180,7 @@ typedef enum
 
 
 /**
- * @addtogroup gearman_constants Gearman Constants
+ * @addtogroup gearman_server_constants Gearman Server Constants
  * @{
  */
 

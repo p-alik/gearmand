@@ -6,5 +6,5 @@ if test x$PERL = x; then
   fi
 fi
 echo "Generating docs..."
-cat libgearman/*.h | $PERL docs/man_gen.perl > docs/man_list
+cat libgearman/*.h libgearman-server/*.h | $PERL docs/man_gen.perl > docs/man_list
 
