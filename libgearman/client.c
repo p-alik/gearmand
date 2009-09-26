@@ -395,7 +395,13 @@ void gearman_task_free(gearman_task_st *task)
   if (task->context != NULL && task->client->task_context_free_fn != NULL)
     (*(task->client->task_context_free_fn))(task, (void *)(task->context));
 
-  GEARMAN_LIST_DEL(task->client->task, task,)
+  if (task->client->task_list == task)
+    task->client->task_list= task->next;
+  if (task->prev != NULL)
+    task->prev->next= task->next;
+  if (task->next != NULL)
+    task->next->prev= task->prev;
+  task->client->task_count--;
 
   if (task->options & GEARMAN_TASK_ALLOCATED)
     free(task);
@@ -1311,7 +1317,14 @@ static gearman_task_st *_task_create(gearman_client_st *client,
   task->numerator= 0;
   task->denominator= 0;
   task->client= client;
-  GEARMAN_LIST_ADD(client->task, task,)
+
+  if (client->task_list != NULL)
+    client->task_list->prev= task;
+  task->next= client->task_list;
+  task->prev= NULL;
+  client->task_list= task;
+  client->task_count++;
+
   task->context= NULL;
   task->con= NULL;
   task->recv= NULL;

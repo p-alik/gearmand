@@ -229,7 +229,14 @@ gearman_con_st *gearman_con_create(gearman_st *gearman, gearman_con_st *con)
   con->recv_data_size= 0;
   con->recv_data_offset= 0;
   con->gearman= gearman;
-  GEARMAN_LIST_ADD(gearman->con, con,)
+
+  if (gearman->con_list != NULL)
+    gearman->con_list->prev= con;
+  con->next= gearman->con_list;
+  con->prev= NULL;
+  gearman->con_list= con;
+  gearman->con_count++;
+
   con->context= NULL;
   con->addrinfo= NULL;
   con->addrinfo_next= NULL;
@@ -283,7 +290,13 @@ void gearman_con_free(gearman_con_st *con)
   if (con->protocol_context != NULL && con->protocol_context_free_fn != NULL)
     (*con->protocol_context_free_fn)(con, (void *)con->protocol_context);
 
-  GEARMAN_LIST_DEL(con->gearman->con, con,)
+  if (con->gearman->con_list == con)
+    con->gearman->con_list= con->next;
+  if (con->prev != NULL)
+    con->prev->next= con->next;
+  if (con->next != NULL)
+    con->next->prev= con->prev;
+  con->gearman->con_count--;
 
   if (con->options & GEARMAN_CON_PACKET_IN_USE)
     gearman_packet_free(&(con->packet));
@@ -557,7 +570,14 @@ gearman_packet_st *gearman_packet_create(gearman_st *gearman,
   packet->gearman= gearman;
 
   if (!(gearman->options & GEARMAN_DONT_TRACK_PACKETS))
-    GEARMAN_LIST_ADD(gearman->packet, packet,)
+  {
+    if (gearman->packet_list != NULL)
+      gearman->packet_list->prev= packet;
+    packet->next= gearman->packet_list;
+    packet->prev= NULL;
+    gearman->packet_list= packet;
+    gearman->packet_count++;
+  }
 
   packet->args= NULL;
   packet->data= NULL;
@@ -621,7 +641,15 @@ void gearman_packet_free(gearman_packet_st *packet)
   }
 
   if (!(packet->gearman->options & GEARMAN_DONT_TRACK_PACKETS))
-    GEARMAN_LIST_DEL(packet->gearman->packet, packet,)
+  {
+    if (packet->gearman->packet_list == packet)
+      packet->gearman->packet_list= packet->next;
+    if (packet->prev != NULL)
+      packet->prev->next= packet->next;
+    if (packet->next != NULL)
+      packet->next->prev= packet->prev;
+    packet->gearman->packet_count--;
+  }
 
   if (packet->options & GEARMAN_PACKET_ALLOCATED)
     free(packet);
@@ -631,6 +659,41 @@ void gearman_packet_free_all(gearman_st *gearman)
 {
   while (gearman->packet_list != NULL)
     gearman_packet_free(gearman->packet_list);
+}
+
+/*
+ * Local package functions.
+ */
+void gearman_error_set(gearman_st *gearman, const char *function,
+                       const char *format, ...)
+{
+  size_t length;
+  char *ptr;
+  char log_buffer[GEARMAN_MAX_ERROR_SIZE];
+  va_list arg;
+
+  va_start(arg, format);
+
+  length= strlen(function);
+
+  /* Copy the function name and : before the format */
+  ptr= memcpy(log_buffer, function, length);
+  ptr+= length;
+  ptr[0]= ':';
+  ptr++;
+
+  length= (size_t)vsnprintf(ptr, GEARMAN_MAX_ERROR_SIZE - length - 1, format,
+                            arg);
+
+  if (gearman->log_fn == NULL)
+    memcpy(gearman->last_error, log_buffer, length);
+  else
+  {
+    (*(gearman->log_fn))(log_buffer, GEARMAN_VERBOSE_FATAL,
+                         (void *)(gearman)->log_context);
+  }
+
+  va_end(arg);
 }
 
 gearman_return_t gearman_parse_servers(const char *servers,

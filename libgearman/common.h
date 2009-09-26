@@ -79,40 +79,18 @@
 extern "C" {
 #endif
 
-#if !defined(__GNUC__) || (__GNUC__ == 2 && __GNUC_MINOR__ < 96)
-#define likely(__x) if((__x))
-#define unlikely(__x) if((__x))
-#else
-#define likely(__x) if(__builtin_expect((__x), 1))
-#define unlikely(__x) if(__builtin_expect((__x), 0))
-#endif
-
 /**
- * Add an object to a list.
- * @ingroup gearman_constants
+ * Utility function used for error logging
+ * @ingroup gearman_private
+ *
+ * @param[in] gearman Structure previously initialized with gearman_create() or
+ *  gearman_clone().
+ * @param[in] function Name of function the error happened in. 
+ * @param[in] format Format and variable argument list of message.
  */
-#define GEARMAN_LIST_ADD(__list, __obj, __prefix) { \
-  if (__list ## _list != NULL) \
-    __list ## _list->__prefix ## prev= __obj; \
-  __obj->__prefix ## next= __list ## _list; \
-  __obj->__prefix ## prev= NULL; \
-  __list ## _list= __obj; \
-  __list ## _count++; \
-}
-
-/**
- * Delete an object from a list.
- * @ingroup gearman_constants
- */
-#define GEARMAN_LIST_DEL(__list, __obj, __prefix) { \
-  if (__list ## _list == __obj) \
-    __list ## _list= __obj->__prefix ## next; \
-  if (__obj->__prefix ## prev != NULL) \
-    __obj->__prefix ## prev->__prefix ## next= __obj->__prefix ## next; \
-  if (__obj->__prefix ## next != NULL) \
-    __obj->__prefix ## next->__prefix ## prev= __obj->__prefix ## prev; \
-  __list ## _count--; \
-}
+GEARMAN_LOCAL
+void gearman_error_set(gearman_st *gearman, const char *function,
+                       const char *format, ...);
 
 /**
  * Utility function used for parsing server lists.

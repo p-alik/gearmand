@@ -593,7 +593,13 @@ void gearman_job_free(gearman_job_st *job)
   if (job->options & GEARMAN_JOB_WORK_IN_USE)
     gearman_packet_free(&(job->work));
 
-  GEARMAN_LIST_DEL(job->worker->job, job,)
+  if (job->worker->job_list == job)
+    job->worker->job_list= job->next;
+  if (job->prev != NULL)
+    job->prev->next= job->next;
+  if (job->next != NULL)
+    job->next->prev= job->prev;
+  job->worker->job_count--;
 
   if (job->options & GEARMAN_JOB_ALLOCATED)
     free(job);
@@ -881,7 +887,12 @@ static gearman_return_t _worker_function_add(gearman_worker_st *worker,
     return ret;
   }
 
-  GEARMAN_LIST_ADD(worker->function, function,)
+  if (worker->function_list != NULL)
+    worker->function_list->prev= function;
+  function->next= worker->function_list;
+  function->prev= NULL;
+  worker->function_list= function;
+  worker->function_count++;
 
   worker->options|= GEARMAN_WORKER_CHANGE;
 
@@ -891,7 +902,13 @@ static gearman_return_t _worker_function_add(gearman_worker_st *worker,
 static void _worker_function_free(gearman_worker_st *worker,
                                   gearman_worker_function_st *function)
 {
-  GEARMAN_LIST_DEL(worker->function, function,)
+  if (worker->function_list == function)
+    worker->function_list= function->next;
+  if (function->prev != NULL)
+    function->prev->next= function->next;
+  if (function->next != NULL)
+    function->next->prev= function->prev;
+  worker->function_count--;
 
   if (function->options & GEARMAN_WORKER_FUNCTION_PACKET_IN_USE)
     gearman_packet_free(&(function->packet));
@@ -918,7 +935,14 @@ static gearman_job_st *_job_create(gearman_worker_st *worker,
     job->options= 0;
 
   job->worker= worker;
-  GEARMAN_LIST_ADD(worker->job, job,)
+
+  if (worker->job_list != NULL)
+    worker->job_list->prev= job;
+  job->next= worker->job_list;
+  job->prev= NULL;
+  worker->job_list= job;
+  worker->job_count++;
+
   job->con= NULL;
 
   return job;

@@ -37,7 +37,6 @@
 #include <libgearman/job.h>
 #include <libgearman/client.h>
 #include <libgearman/worker.h>
-#include <libgearman/error.h>
 
 #ifdef __cplusplus
 extern "C" {

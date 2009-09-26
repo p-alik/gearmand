@@ -22,13 +22,11 @@ dist_libgearmaninclude_HEADERS= \
 	worker.h
 
 noinst_HEADERS= \
-	common.h \
-	error.h
+	common.h
 
 libgearman_la_SOURCES= \
 	client.c \
 	conn.c \
-	error.c \
 	gearman.c \
 	job.c \
 	packet.c \
