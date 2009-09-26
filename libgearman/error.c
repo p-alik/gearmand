@@ -17,7 +17,8 @@
  * Private definitions
  */
 
-void gearman_error_set(gearman_st *gear, const char *function, const char *format, ...)
+void gearman_error_set(gearman_st *gearman, const char *function,
+                       const char *format, ...)
 {
   size_t length;
   char *ptr;
@@ -34,12 +35,16 @@ void gearman_error_set(gearman_st *gear, const char *function, const char *forma
   ptr[0]= ':';
   ptr++;
 
-  length= (size_t)vsnprintf(ptr, GEARMAN_MAX_ERROR_SIZE - length - 1, format, arg);
+  length= (size_t)vsnprintf(ptr, GEARMAN_MAX_ERROR_SIZE - length - 1, format,
+                            arg);
 
-  if (gear->log_fn == NULL)
-    memcpy(gear->last_error, log_buffer, length);
+  if (gearman->log_fn == NULL)
+    memcpy(gearman->last_error, log_buffer, length);
   else
-    (*(gear->log_fn))(log_buffer, GEARMAN_VERBOSE_FATAL, (void *)(gear)->log_context);
+  {
+    (*(gearman->log_fn))(log_buffer, GEARMAN_VERBOSE_FATAL,
+                         (void *)(gearman)->log_context);
+  }
 
   va_end(arg);
 }
