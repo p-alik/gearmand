@@ -250,6 +250,23 @@ test_return add_servers_test(void *object __attribute__((unused)))
   return TEST_SUCCESS;
 }
 
+static test_return submit_log_failure(void *object)
+{
+  gearman_return_t rc;
+  gearman_client_st *client= (gearman_client_st *)object;
+  uint8_t *job_result;
+  size_t job_length;
+  uint8_t *value= (uint8_t *)"submit_log_failure";
+  size_t value_length= strlen("submit_log_failure");
+
+  job_result= gearman_client_do(client, "client_test", NULL, value,
+                                value_length, &job_length, &rc);
+  if (rc != GEARMAN_SUCCESS)
+    return TEST_SUCCESS;
+
+  return TEST_FAILURE;
+}
+
 test_return flush(void)
 {
   return TEST_SUCCESS;
@@ -272,6 +289,36 @@ test_return pre(void *object __attribute__((unused)))
 
 test_return post(void *object __attribute__((unused)))
 {
+  return TEST_SUCCESS;
+}
+
+static void log_counter(const char *line, gearman_verbose_t verbose, void *context)
+{
+  uint32_t *counter= (uint32_t *)context;
+
+  (void)verbose;
+  (void)line;
+
+  *counter= *counter + 1;
+}
+
+static uint32_t global_counter;
+static test_return pre_logging(void *object)
+{
+  client_test_st *all= (client_test_st *)object;
+  gearman_log_fn *func= log_counter;
+  global_counter= 0;
+
+  gearman_client_set_log_fn(&all->client, func, &global_counter, GEARMAN_VERBOSE_MAX);
+  gearman_client_remove_servers(&all->client);
+
+  return TEST_SUCCESS;
+}
+
+static test_return post_logging(void *object __attribute__((unused)))
+{
+  assert(global_counter);
+
   return TEST_SUCCESS;
 }
 
@@ -347,8 +394,14 @@ test_st tests[] ={
   {0, 0, 0}
 };
 
+test_st tests_log[] ={
+  {"submit_log_failure", 0, submit_log_failure },
+  {0, 0, 0}
+};
+
 collection_st collection[] ={
   {"client", flush, create, destroy, pre, post, tests},
+  {"client-logging", flush, create, destroy, pre_logging, post_logging, tests_log},
   {0, 0, 0, 0, 0, 0, 0}
 };
 

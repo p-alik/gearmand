@@ -85,8 +85,8 @@ gearman_return_t gearman_packet_add_arg(gearman_packet_st *packet,
       (!(gearman_command_info_list[packet->command].data) ||
        packet->data != NULL))
   {
-    GEARMAN_ERROR_SET(packet->gearman, "gearman_packet_add_arg",
-                      "too many arguments for command")
+    gearman_error_set(packet->gearman, "gearman_packet_add_arg",
+                      "too many arguments for command");
     return GEARMAN_TOO_MANY_ARGS;
   }
 
@@ -110,7 +110,7 @@ gearman_return_t gearman_packet_add_arg(gearman_packet_st *packet,
     new_args= realloc(packet->args, packet->args_size + arg_size);
     if (new_args == NULL)
     {
-      GEARMAN_ERROR_SET(packet->gearman, "gearman_packet_add_arg", "realloc")
+      gearman_error_set(packet->gearman, "gearman_packet_add_arg", "realloc");
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
 
@@ -169,16 +169,16 @@ gearman_return_t gearman_packet_pack_header(gearman_packet_st *packet)
     break;
 
   default:
-    GEARMAN_ERROR_SET(packet->gearman, "gearman_packet_pack_header",
-                      "invalid magic value")
+    gearman_error_set(packet->gearman, "gearman_packet_pack_header",
+                      "invalid magic value");
     return GEARMAN_INVALID_MAGIC;
   }
 
   if (packet->command == GEARMAN_COMMAND_TEXT ||
       packet->command >= GEARMAN_COMMAND_MAX)
   {
-    GEARMAN_ERROR_SET(packet->gearman, "gearman_packet_pack_header",
-                      "invalid command value")
+    gearman_error_set(packet->gearman, "gearman_packet_pack_header",
+                      "invalid command value");
     return GEARMAN_INVALID_COMMAND;
   }
 
@@ -206,8 +206,8 @@ gearman_return_t gearman_packet_unpack_header(gearman_packet_st *packet)
     packet->magic= GEARMAN_MAGIC_RESPONSE;
   else
   {
-    GEARMAN_ERROR_SET(packet->gearman, "gearman_packet_unpack_header",
-                      "invalid magic value")
+    gearman_error_set(packet->gearman, "gearman_packet_unpack_header",
+                      "invalid magic value");
     return GEARMAN_INVALID_MAGIC;
   }
 
@@ -217,8 +217,8 @@ gearman_return_t gearman_packet_unpack_header(gearman_packet_st *packet)
   if (packet->command == GEARMAN_COMMAND_TEXT ||
       packet->command >= GEARMAN_COMMAND_MAX)
   {
-    GEARMAN_ERROR_SET(packet->gearman, "gearman_packet_unpack_header",
-                      "invalid command value")
+    gearman_error_set(packet->gearman, "gearman_packet_unpack_header",
+                      "invalid command value");
     return GEARMAN_INVALID_COMMAND;
   }
 
