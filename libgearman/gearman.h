@@ -26,6 +26,7 @@
 #include <poll.h>
 #include <sys/uio.h>
 #include <event.h>
+#include <stdarg.h>
 
 #include <libgearman/visibility.h>
 #include <libgearman/constants.h>
@@ -36,6 +37,7 @@
 #include <libgearman/job.h>
 #include <libgearman/client.h>
 #include <libgearman/worker.h>
+#include <libgearman/error.h>
 
 #ifdef __cplusplus
 extern "C" {

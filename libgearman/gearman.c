@@ -204,7 +204,7 @@ gearman_con_st *gearman_con_create(gearman_st *gearman, gearman_con_st *con)
     con= malloc(sizeof(gearman_con_st));
     if (con == NULL)
     {
-      GEARMAN_ERROR_SET(gearman, "gearman_con_create", "malloc")
+      gearman_error_set(gearman, "gearman_con_create", "malloc");
       return NULL;
     }
 
@@ -397,7 +397,7 @@ gearman_return_t gearman_con_wait(gearman_st *gearman, int timeout)
     pfds= realloc(gearman->pfds, gearman->con_count * sizeof(struct pollfd));
     if (pfds == NULL)
     {
-      GEARMAN_ERROR_SET(gearman, "gearman_con_wait", "realloc")
+      gearman_error_set(gearman, "gearman_con_wait", "realloc");
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
 
@@ -421,7 +421,7 @@ gearman_return_t gearman_con_wait(gearman_st *gearman, int timeout)
 
   if (x == 0)
   {
-    GEARMAN_ERROR_SET(gearman, "gearman_con_wait", "no active file descriptors")
+    gearman_error_set(gearman, "gearman_con_wait", "no active file descriptors");
     return GEARMAN_NO_ACTIVE_FDS;
   }
 
@@ -433,7 +433,7 @@ gearman_return_t gearman_con_wait(gearman_st *gearman, int timeout)
       if (errno == EINTR)
         continue;
 
-      GEARMAN_ERROR_SET(gearman, "gearman_con_wait", "poll:%d", errno)
+      gearman_error_set(gearman, "gearman_con_wait", "poll:%d", errno);
       gearman->last_errno= errno;
       return GEARMAN_ERRNO;
     }
@@ -516,7 +516,7 @@ gearman_return_t gearman_con_echo(gearman_st *gearman, const void *workload,
       gearman_packet_free(&(con->packet));
       gearman_packet_free(&packet);
       gearman->options= options;
-      GEARMAN_ERROR_SET(gearman, "gearman_con_echo", "corruption during echo")
+      gearman_error_set(gearman, "gearman_con_echo", "corruption during echo");
       return GEARMAN_ECHO_DATA_CORRUPTION;
     }
 
@@ -540,7 +540,7 @@ gearman_packet_st *gearman_packet_create(gearman_st *gearman,
     packet= malloc(sizeof(gearman_packet_st));
     if (packet == NULL)
     {
-      GEARMAN_ERROR_SET(gearman, "gearman_packet_create", "malloc")
+      gearman_error_set(gearman, "gearman_packet_create", "malloc");
       return NULL;
     }
 
