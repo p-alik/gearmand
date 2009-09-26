@@ -14,7 +14,7 @@
 #include "common.h"
 
 /*
- * Public definitions
+ * Private definitions
  */
 
 void gearman_error_set(gearman_st *gear, const char *function, const char *format, ...)
@@ -37,14 +37,9 @@ void gearman_error_set(gearman_st *gear, const char *function, const char *forma
   length= (size_t)vsnprintf(ptr, GEARMAN_MAX_ERROR_SIZE - length - 1, format, arg);
 
   if (gear->log_fn == NULL)
-  {
     memcpy(gear->last_error, log_buffer, length);
-  }
   else
-  {
-    (*(gear->log_fn))(log_buffer, GEARMAN_VERBOSE_FATAL,
-                      (void *)(gear)->log_context);
-  }
+    (*(gear->log_fn))(log_buffer, GEARMAN_VERBOSE_FATAL, (void *)(gear)->log_context);
 
   va_end(arg);
 }

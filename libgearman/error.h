@@ -19,20 +19,11 @@ extern "C" {
 #endif
 
 /**
- * @addtogroup gearman_error Logging Handling
- * This is used by the client to handle error messages;
- *
- * @{
+ * Utility function used for error logging
+ * @ingroup gearman_private
  */
-
-/**
- * Function to set error string.
- * @ingroup gearman_constants
- */
-GEARMAN_API
+GEARMAN_LOCAL
 void gearman_error_set(gearman_st *gear, const char *function, const char *format, ...);
-
-/** @} */
 
 #ifdef __cplusplus
 }
