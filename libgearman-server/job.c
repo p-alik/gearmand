@@ -12,7 +12,6 @@
  */
 
 #include "common.h"
-#include "server.h"
 
 /*
  * Private declarations
@@ -52,7 +51,6 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
                        gearman_server_client_st *server_client,
                        gearman_return_t *ret_ptr)
 {
-  gearman_st *gearman= server->gearman;
   gearman_server_job_st *server_job;
   gearman_server_function_st *server_function;
   uint32_t key;
@@ -137,15 +135,15 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
 
     if (server->options & GEARMAN_SERVER_QUEUE_REPLAY)
       server_job->options|= GEARMAN_SERVER_JOB_QUEUED;
-    else if (server_client == NULL && gearman->queue_add_fn != NULL)
+    else if (server_client == NULL && server->queue_add_fn != NULL)
     {
-      *ret_ptr= (*(gearman->queue_add_fn))(gearman,
-                                           (void *)gearman->queue_context,
-                                           server_job->unique,
-                                           unique_size,
-                                           function_name,
-                                           function_name_size,
-                                           data, data_size, priority);
+      *ret_ptr= (*(server->queue_add_fn))(server,
+                                          (void *)server->queue_context,
+                                          server_job->unique,
+                                          unique_size,
+                                          function_name,
+                                          function_name_size,
+                                          data, data_size, priority);
       if (*ret_ptr != GEARMAN_SUCCESS)
       {
         server_job->data= NULL;
@@ -153,10 +151,10 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
         return NULL;
       }
 
-      if (gearman->queue_flush_fn != NULL)
+      if (server->queue_flush_fn != NULL)
       {
-        *ret_ptr= (*(gearman->queue_flush_fn))(gearman,
-                                               (void *)gearman->queue_context);
+        *ret_ptr= (*(server->queue_flush_fn))(server,
+                                              (void *)server->queue_context);
         if (*ret_ptr != GEARMAN_SUCCESS)
         {
           server_job->data= NULL;
@@ -171,11 +169,11 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
     *ret_ptr= gearman_server_job_queue(server_job);
     if (*ret_ptr != GEARMAN_SUCCESS)
     {
-      if (server_client == NULL && gearman->queue_done_fn != NULL)
+      if (server_client == NULL && server->queue_done_fn != NULL)
       {
         /* Do our best to remove the job from the queue. */
-        (void)(*(gearman->queue_done_fn))(gearman,
-                                      (void *)gearman->queue_context,
+        (void)(*(server->queue_done_fn))(server,
+                                      (void *)server->queue_context,
                                       server_job->unique, unique_size,
                                       server_job->function->function_name,
                                       server_job->function->function_name_size);

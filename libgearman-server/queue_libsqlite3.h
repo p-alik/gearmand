@@ -11,8 +11,8 @@
  * @brief libsqlite3 Queue Storage Declarations
  */
 
-#ifndef __GEARMAN_QUEUE_LIBSQLITE3_H__
-#define __GEARMAN_QUEUE_LIBSQLITE3_H__
+#ifndef __GEARMAN_SERVER_QUEUE_LIBSQLITE3_H__
+#define __GEARMAN_SERVER_QUEUE_LIBSQLITE3_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,20 +28,21 @@ extern "C" {
  * Get module configuration options.
  */
 GEARMAN_API
-gearman_return_t gearman_queue_libsqlite3_conf(gearman_conf_st *conf);
+gearman_return_t gearman_server_queue_libsqlite3_conf(gearman_conf_st *conf);
 
 /**
  * Initialize the queue.
  */
 GEARMAN_API
-gearman_return_t gearman_queue_libsqlite3_init(gearman_st *gearman,
-                                               gearman_conf_st *conf);
+gearman_return_t gearman_server_queue_libsqlite3_init(gearman_server_st *server,
+                                                      gearman_conf_st *conf);
 
 /**
  * De-initialize the queue.
  */
 GEARMAN_API
-gearman_return_t gearman_queue_libsqlite3_deinit(gearman_st *gearman);
+gearman_return_t
+gearman_server_queue_libsqlite3_deinit(gearman_server_st *server);
 
 /**
  * Initialize the queue for a gearmand object.
@@ -62,4 +63,4 @@ gearman_return_t gearmand_queue_libsqlite3_deinit(gearmand_st *gearmand);
 }
 #endif
 
-#endif /* __GEARMAN_QUEUE_LIBSQLITE3_H__ */
+#endif /* __GEARMAN_SERVER_QUEUE_LIBSQLITE3_H__ */

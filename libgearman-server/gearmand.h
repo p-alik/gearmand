@@ -14,9 +14,9 @@
 #ifndef __GEARMAND_H__
 #define __GEARMAND_H__
 
-#include <libgearman/gearman.h>
-#include <libgearman/gearmand_thread.h>
-#include <libgearman/gearmand_con.h>
+#include <libgearman-server/server.h>
+#include <libgearman-server/gearmand_thread.h>
+#include <libgearman-server/gearmand_con.h>
 
 #ifdef __cplusplus
 extern "C" {

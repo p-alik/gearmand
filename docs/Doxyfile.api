@@ -534,7 +534,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces.
 
-INPUT                  = docs libgearman examples examples/reverse_client.c examples/reverse_client_bg.c examples/reverse_client_cb.c examples/reverse_worker.c
+INPUT                  = docs libgearman libgearman-server examples examples/reverse_client.c examples/reverse_client_bg.c examples/reverse_client_cb.c examples/reverse_worker.c
 
 # This tag can be used to specify the character encoding of the source files 
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is 
@@ -563,7 +563,7 @@ RECURSIVE              = YES
 # excluded from the INPUT source files. This way you can easily exclude a 
 # subdirectory from a directory tree whose root is specified with the INPUT tag.
 
-EXCLUDE                = libgearman/common.h libgearman/structs.h
+EXCLUDE                = libgearman/common.h libgearman/structs.h libgearman-server/common.h libgearman-server/structs.h
 
 # The EXCLUDE_SYMLINKS tag can be used select whether or not files or 
 # directories that are symbolic links (a Unix filesystem feature) are excluded 

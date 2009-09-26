@@ -19,15 +19,15 @@
 #include "test_gearmand.h"
 
 #ifdef HAVE_LIBDRIZZLE
-#include <libgearman/queue_libdrizzle.h>
+#include <libgearman-server/queue_libdrizzle.h>
 #endif
 
 #ifdef HAVE_LIBMEMCACHED
-#include <libgearman/queue_libmemcached.h>
+#include <libgearman-server/queue_libmemcached.h>
 #endif
 
 #ifdef HAVE_LIBSQLITE3
-#include <libgearman/queue_libsqlite3.h>
+#include <libgearman-server/queue_libsqlite3.h>
 #endif
 
 pid_t test_gearmand_start(in_port_t port, const char *queue_type,
@@ -43,13 +43,13 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
   {
     assert(gearman_conf_create(&conf) != NULL);
 #ifdef HAVE_LIBDRIZZLE
-    assert(gearman_queue_libdrizzle_conf(&conf) == GEARMAN_SUCCESS);
+    assert(gearman_server_queue_libdrizzle_conf(&conf) == GEARMAN_SUCCESS);
 #endif
 #ifdef HAVE_LIBMEMCACHED
-    assert(gearman_queue_libmemcached_conf(&conf) == GEARMAN_SUCCESS);
+    assert(gearman_server_queue_libmemcached_conf(&conf) == GEARMAN_SUCCESS);
 #endif
 #ifdef HAVE_LIBSQLITE3
-    assert(gearman_queue_libsqlite3_conf(&conf) == GEARMAN_SUCCESS);
+    assert(gearman_server_queue_libsqlite3_conf(&conf) == GEARMAN_SUCCESS);
 #endif
 
     assert(gearman_conf_parse_args(&conf, argc, argv) == GEARMAN_SUCCESS);

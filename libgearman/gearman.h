@@ -36,8 +36,6 @@
 #include <libgearman/job.h>
 #include <libgearman/client.h>
 #include <libgearman/worker.h>
-#include <libgearman/conf.h>
-#include <libgearman/conf_module.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -412,52 +410,6 @@ void gearman_packet_free(gearman_packet_st *packet);
  */
 GEARMAN_API
 void gearman_packet_free_all(gearman_st *gearman);
-
-/*
- * Persistent queue API. Move this to server.h once logging is fixed.
- */
-
-/**
- * Get persistent queue context.
- */
-GEARMAN_API
-void *gearman_queue_context(const gearman_st *gearman);
-
-/**
- * Set persistent queue context that will be passed back to all queue callback
- * functions.
- */
-GEARMAN_API
-void gearman_set_queue_context(gearman_st *gearman, const void *context);
-
-/**
- * Set function to call when jobs need to be stored in the persistent queue.
- */
-GEARMAN_API
-void gearman_set_queue_add_fn(gearman_st *gearman,
-                              gearman_queue_add_fn *function);
-
-/**
- * Set function to call when the persistent queue should be flushed to disk.
- */
-GEARMAN_API
-void gearman_set_queue_flush_fn(gearman_st *gearman,
-                                gearman_queue_flush_fn *function);
-
-/**
- * Set function to call when a job should be removed from the persistent queue.
- */
-GEARMAN_API
-void gearman_set_queue_done_fn(gearman_st *gearman,
-                               gearman_queue_done_fn *function);
-
-/**
- * Set function to call when jobs in the persistent queue should be replayed
- * after a restart.
- */
-GEARMAN_API
-void gearman_set_queue_replay_fn(gearman_st *gearman,
-                                 gearman_queue_replay_fn *function);
 
 /** @} */
 

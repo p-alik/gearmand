@@ -14,7 +14,7 @@
 #include "common.h"
 #include "gearmand.h"
 
-#include <libgearman/protocol_http.h>
+#include <libgearman-server/protocol_http.h>
 
 /**
  * @addtogroup gearman_protocol_http HTTP Protocol Functions
@@ -60,7 +60,7 @@ static const char *_http_line(const void *data, size_t data_size,
  * Public definitions
  */
 
-gearman_return_t gearman_protocol_http_conf(gearman_conf_st *conf)
+gearman_return_t gearmand_protocol_http_conf(gearman_conf_st *conf)
 {
   gearman_conf_module_st *module;
 

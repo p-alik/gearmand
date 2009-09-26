@@ -11,8 +11,8 @@
  * @brief libmemcached Queue Storage Declarations
  */
 
-#ifndef __GEARMAN_QUEUE_LIBMEMCACHED_H__
-#define __GEARMAN_QUEUE_LIBMEMCACHED_H__
+#ifndef __GEARMAN_SERVER_QUEUE_LIBMEMCACHED_H__
+#define __GEARMAN_SERVER_QUEUE_LIBMEMCACHED_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,20 +28,22 @@ extern "C" {
  * Get module configuration options.
  */
 GEARMAN_API
-gearman_return_t gearman_queue_libmemcached_conf(gearman_conf_st *conf);
+gearman_return_t gearman_server_queue_libmemcached_conf(gearman_conf_st *conf);
 
 /**
  * Initialize the queue.
  */
 GEARMAN_API
-gearman_return_t gearman_queue_libmemcached_init(gearman_st *gearman,
-                                                 gearman_conf_st *conf);
+gearman_return_t
+gearman_server_queue_libmemcached_init(gearman_server_st *server,
+                                       gearman_conf_st *conf);
 
 /**
  * De-initialize the queue.
  */
 GEARMAN_API
-gearman_return_t gearman_queue_libmemcached_deinit(gearman_st *gearman);
+gearman_return_t
+gearman_server_queue_libmemcached_deinit(gearman_server_st *server);
 
 /**
  * Initialize the queue for a gearmand object.
@@ -62,4 +64,4 @@ gearman_return_t gearmand_queue_libmemcached_deinit(gearmand_st *gearmand);
 }
 #endif
 
-#endif /* __GEARMAN_QUEUE_LIBMEMCACHED_H__ */
+#endif /* __GEARMAN_SERVER_QUEUE_LIBMEMCACHED_H__ */

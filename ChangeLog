@@ -1,4 +1,5 @@
 0.10 - 2009-09-??
+ * Separated libgearman client/worker library from the server/gearmand code.
  * Added server option for max job retry.
  * Changed queue_libdrizzle to overwrite the password string to hide in ps.
  * Worker unregister bug fixed. Bug #372074

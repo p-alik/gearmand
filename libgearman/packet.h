@@ -19,6 +19,13 @@ extern "C" {
 #endif
 
 /**
+ * Command information array.
+ * @ingroup gearman_constants
+ */
+extern GEARMAN_API
+gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX];
+
+/**
  * @addtogroup gearman_packet Packet Handling
  * This is a low level interface for gearman packet. This is used internally
  * internally by both client and worker interfaces (or more specifically, tasks

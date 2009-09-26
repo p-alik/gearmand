@@ -53,25 +53,25 @@
 # endif
 #endif
 
-#include <libgearman/gearmand.h>
+#include <libgearman-server/gearmand.h>
 
 #ifdef HAVE_LIBDRIZZLE
-#include <libgearman/queue_libdrizzle.h>
+#include <libgearman-server/queue_libdrizzle.h>
 #endif
 
 #ifdef HAVE_LIBMEMCACHED
-#include <libgearman/queue_libmemcached.h>
+#include <libgearman-server/queue_libmemcached.h>
 #endif
 
 #ifdef HAVE_LIBSQLITE3
-#include <libgearman/queue_libsqlite3.h>
+#include <libgearman-server/queue_libsqlite3.h>
 #endif
 
 #ifdef HAVE_LIBPQ
-#include <libgearman/queue_libpq.h>
+#include <libgearman-server/queue_libpq.h>
 #endif
 
-#include <libgearman/protocol_http.h>
+#include <libgearman-server/protocol_http.h>
 
 #define GEARMAND_LOG_REOPEN_TIME 60
 #define GEARMAND_LISTEN_BACKLOG 32
@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
   /* Add queue configuration options. */
 
 #ifdef HAVE_LIBDRIZZLE
-  if (gearman_queue_libdrizzle_conf(&conf) != GEARMAN_SUCCESS)
+  if (gearman_server_queue_libdrizzle_conf(&conf) != GEARMAN_SUCCESS)
   {
     fprintf(stderr, "gearmand: gearman_queue_libdrizzle_conf: %s\n",
             gearman_conf_error(&conf));
@@ -178,7 +178,7 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef HAVE_LIBMEMCACHED
-  if (gearman_queue_libmemcached_conf(&conf) != GEARMAN_SUCCESS)
+  if (gearman_server_queue_libmemcached_conf(&conf) != GEARMAN_SUCCESS)
   {
     fprintf(stderr, "gearmand: gearman_queue_libmemcached_conf: %s\n",
             gearman_conf_error(&conf));
@@ -187,7 +187,7 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef HAVE_LIBSQLITE3
-  if (gearman_queue_libsqlite3_conf(&conf) != GEARMAN_SUCCESS)
+  if (gearman_server_queue_libsqlite3_conf(&conf) != GEARMAN_SUCCESS)
   {
     fprintf(stderr, "gearmand: gearman_queue_libsqlite3_conf: %s\n",
             gearman_conf_error(&conf));
@@ -196,7 +196,7 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef HAVE_LIBPQ
-  if (gearman_queue_libpq_conf(&conf) != GEARMAN_SUCCESS)
+  if (gearman_server_queue_libpq_conf(&conf) != GEARMAN_SUCCESS)
   {
     fprintf(stderr, "gearmand: gearman_queue_libpq_conf: %s\n",
             gearman_conf_error(&conf));
@@ -204,7 +204,7 @@ int main(int argc, char *argv[])
   }
 #endif
 
-  if (gearman_protocol_http_conf(&conf) != GEARMAN_SUCCESS)
+  if (gearmand_protocol_http_conf(&conf) != GEARMAN_SUCCESS)
   {
     fprintf(stderr, "gearmand: gearman_protocol_http_conf: %s\n",
             gearman_conf_error(&conf));

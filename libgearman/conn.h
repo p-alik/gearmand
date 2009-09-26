@@ -177,34 +177,6 @@ void gearman_con_set_protocol_context_free_fn(gearman_con_st *con,
                                 gearman_con_protocol_context_free_fn *function);
 
 /**
- * Set custom recv function
- */
-GEARMAN_API
-void gearman_con_set_recv_fn(gearman_con_st *con,
-                             gearman_con_recv_fn *function);
-
-/**
- * Set custom recv_data function
- */
-GEARMAN_API
-void gearman_con_set_recv_data_fn(gearman_con_st *con,
-                                  gearman_con_recv_data_fn *function);
-
-/**
- * Set custom send function
- */
-GEARMAN_API
-void gearman_con_set_send_fn(gearman_con_st *con,
-                             gearman_con_send_fn *function);
-
-/**
- * Set custom send_data function
- */
-GEARMAN_API
-void gearman_con_set_send_data_fn(gearman_con_st *con,
-                                  gearman_con_send_data_fn *function);
-
-/**
  * Set custom packet_pack function
  */
 GEARMAN_API
