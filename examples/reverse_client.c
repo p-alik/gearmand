@@ -25,6 +25,7 @@ int main(int argc, char *argv[])
   int c;
   char *host= NULL;
   in_port_t port= 0;
+  int timeout= -1;
   gearman_return_t ret;
   gearman_client_st client;
   char *result;
@@ -32,7 +33,7 @@ int main(int argc, char *argv[])
   uint32_t numerator;
   uint32_t denominator;
 
-  while ((c = getopt(argc, argv, "h:p:")) != -1)
+  while ((c = getopt(argc, argv, "h:p:t:")) != -1)
   {
     switch(c)
     {
@@ -42,6 +43,10 @@ int main(int argc, char *argv[])
 
     case 'p':
       port= (in_port_t)atoi(optarg);
+      break;
+
+    case 't':
+      timeout= atoi(optarg);
       break;
 
     default:
@@ -61,6 +66,9 @@ int main(int argc, char *argv[])
     fprintf(stderr, "Memory allocation failure on client creation\n");
     exit(1);
   }
+
+  if (timeout >= 0)
+    gearman_client_set_timeout(&client, timeout);
 
   ret= gearman_client_add_server(&client, host, port);
   if (ret != GEARMAN_SUCCESS)
@@ -108,6 +116,7 @@ int main(int argc, char *argv[])
 static void usage(char *name)
 {
   printf("\nusage: %s [-h <host>] [-p <port>] <string>\n", name);
-  printf("\t-h <host> - job server host\n");
-  printf("\t-p <port> - job server port\n");
+  printf("\t-h <host>    - job server host\n");
+  printf("\t-p <port>    - job server port\n");
+  printf("\t-t <timeout> - timeout in milliseconds\n");
 }

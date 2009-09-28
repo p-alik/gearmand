@@ -48,6 +48,7 @@ typedef struct
   bool prefix;
   bool background;
   gearman_job_priority_t priority;
+  int timeout;
   char **argv;
   gearman_task_st *task;
   char return_value;
@@ -112,13 +113,14 @@ int main(int argc, char *argv[])
 
   memset(&args, 0, sizeof(gearman_args_st));
   args.priority= GEARMAN_JOB_PRIORITY_NORMAL;
+  args.timeout= -1;
 
   /* Allocate the maximum number of possible functions. */
   args.function= malloc(sizeof(char *) * (size_t)argc);
   if (args.function == NULL)
     GEARMAN_ERROR("malloc:%d", errno)
 
-  while ((c = getopt(argc, argv, "bc:f:h:HILnNp:Psu:w")) != -1)
+  while ((c = getopt(argc, argv, "bc:f:h:HILnNp:Pst:u:w")) != -1)
   {
     switch(c)
     {
@@ -168,6 +170,10 @@ int main(int argc, char *argv[])
       args.suppress_input= true;
       break;
 
+    case 't':
+      args.timeout= atoi(optarg);
+      break;
+
     case 'u':
       args.unique= optarg;
       break;
@@ -207,6 +213,9 @@ void _client(gearman_args_st *args)
 
   if (gearman_client_create(&client) == NULL)
     GEARMAN_ERROR("Memory allocation failure on client creation")
+
+  if (args->timeout >= 0)
+    gearman_client_set_timeout(&client, args->timeout);
 
   ret= gearman_client_add_server(&client, args->host, args->port);
   if (ret != GEARMAN_SUCCESS)
@@ -416,6 +425,9 @@ void _worker(gearman_args_st *args)
   if (gearman_worker_create(&worker) == NULL)
     GEARMAN_ERROR("Memory allocation failure on client creation")
 
+  if (args->timeout >= 0)
+    gearman_worker_set_timeout(&worker, args->timeout);
+
   ret= gearman_worker_add_server(&worker, args->host, args->port);
   if (ret != GEARMAN_SUCCESS)
     GEARMAN_ERROR("gearman_worker_add_server:%s", gearman_worker_error(&worker))
@@ -605,6 +617,7 @@ static void usage(char *name)
   printf("\t-h <host>     - Job server host\n");
   printf("\t-H            - Print this help menu\n");
   printf("\t-p <port>     - Job server port\n");
+  printf("\t-t <timeout>  - Timeout in milliseconds\n");
 
   printf("\nClient options:\n");
   printf("\t-b            - Run jobs in the background\n");

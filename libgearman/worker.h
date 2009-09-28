@@ -113,6 +113,18 @@ void gearman_worker_remove_options(gearman_worker_st *worker,
                                    gearman_worker_options_t options);
 
 /**
+ * See gearman_timeout() for details.
+ */
+GEARMAN_API
+int gearman_worker_timeout(gearman_worker_st *worker);
+
+/**
+ * See gearman_set_timeout() for details.
+ */
+GEARMAN_API
+void gearman_worker_set_timeout(gearman_worker_st *worker, int timeout);
+
+/**
  * Get the application context for a worker.
  *
  * @param[in] worker Structure previously initialized with
@@ -208,12 +220,10 @@ void gearman_worker_remove_servers(gearman_worker_st *worker);
  *
  * @param[in] worker Structure previously initialized with
  *  gearman_worker_create() or gearman_worker_clone().
- * @param[in] timeout Milliseconds to wait for I/O activity. A negative value
- *  means an infinite timeout.
  * @return Standard gearman return value.
  */
 GEARMAN_API
-gearman_return_t gearman_worker_wait(gearman_worker_st *worker, int timeout);
+gearman_return_t gearman_worker_wait(gearman_worker_st *worker);
 
 /**
  * Register function with job servers with an optional timeout. The timeout

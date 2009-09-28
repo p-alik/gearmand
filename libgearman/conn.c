@@ -435,7 +435,7 @@ gearman_return_t gearman_con_flush(gearman_con_st *con)
           return GEARMAN_IO_WAIT;
         }
 
-        gret= gearman_con_wait(con->gearman, -1);
+        gret= gearman_con_wait(con->gearman);
         if (gret != GEARMAN_SUCCESS)
           return gret;
       }
@@ -468,7 +468,7 @@ gearman_return_t gearman_con_flush(gearman_con_st *con)
             if (con->gearman->options & GEARMAN_NON_BLOCKING)
               return GEARMAN_IO_WAIT;
 
-            gret= gearman_con_wait(con->gearman, -1);
+            gret= gearman_con_wait(con->gearman);
             if (gret != GEARMAN_SUCCESS)
               return gret;
 
@@ -723,7 +723,7 @@ size_t gearman_con_read(gearman_con_st *con, void *data, size_t data_size,
           return 0;
         }
 
-        *ret_ptr= gearman_con_wait(con->gearman, -1);
+        *ret_ptr= gearman_con_wait(con->gearman);
         if (*ret_ptr != GEARMAN_SUCCESS)
           return 0;
 

@@ -13,7 +13,6 @@ dist_libgearmaninclude_HEADERS= \
 	client.h \
 	conn.h \
 	constants.h \
-	error.h \
 	gearman.h \
 	job.h \
 	packet.h \
@@ -28,7 +27,6 @@ noinst_HEADERS= \
 libgearman_la_SOURCES= \
 	client.c \
 	conn.c \
-	error.c \
 	gearman.c \
 	job.c \
 	packet.c \

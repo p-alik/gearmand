@@ -34,10 +34,15 @@ Gearman provides a generic framework to farm out work to other machines, dispatc
 %{_bindir}/gearman
 %{_sbindir}/gearmand
 %{_includedir}/libgearman/*.h
+%{_includedir}/libgearman-server/*.h
 %{_libdir}/libgearman.a
 %{_libdir}/libgearman.la
 %{_libdir}/libgearman.so
 %{_libdir}/libgearman.so.*
+%{_libdir}/libgearman-server.a
+%{_libdir}/libgearman-server.la
+%{_libdir}/libgearman-server.so
+%{_libdir}/libgearman-server.so.*
 %{_libdir}/pkgconfig/gearmand.pc
 %{_mandir}/man1/gear*
 %{_mandir}/man3/gear*

@@ -78,6 +78,7 @@ gearman_st *gearman_create(gearman_st *gearman)
   gearman->pfds_size= 0;
   gearman->sending= 0;
   gearman->last_errno= 0;
+  gearman->timeout= -1;
   gearman->con_list= NULL;
   gearman->packet_list= NULL;
   gearman->pfds= NULL;
@@ -103,6 +104,7 @@ gearman_st *gearman_clone(gearman_st *gearman, const gearman_st *from)
     return NULL;
 
   gearman->options|= (from->options & (gearman_options_t)~GEARMAN_ALLOCATED);
+  gearman->timeout= from->timeout;
 
   for (con= from->con_list; con != NULL; con= con->next)
   {
@@ -159,6 +161,16 @@ void gearman_add_options(gearman_st *gearman, gearman_options_t options)
 void gearman_remove_options(gearman_st *gearman, gearman_options_t options)
 {
   gearman->options&= ~options;
+}
+
+int gearman_timeout(gearman_st *gearman)
+{
+  return gearman->timeout;
+}
+
+void gearman_set_timeout(gearman_st *gearman, int timeout)
+{
+  gearman->timeout= timeout;
 }
 
 void gearman_set_log_fn(gearman_st *gearman, gearman_log_fn *function,
@@ -229,7 +241,14 @@ gearman_con_st *gearman_con_create(gearman_st *gearman, gearman_con_st *con)
   con->recv_data_size= 0;
   con->recv_data_offset= 0;
   con->gearman= gearman;
-  GEARMAN_LIST_ADD(gearman->con, con,)
+
+  if (gearman->con_list != NULL)
+    gearman->con_list->prev= con;
+  con->next= gearman->con_list;
+  con->prev= NULL;
+  gearman->con_list= con;
+  gearman->con_count++;
+
   con->context= NULL;
   con->addrinfo= NULL;
   con->addrinfo_next= NULL;
@@ -283,7 +302,13 @@ void gearman_con_free(gearman_con_st *con)
   if (con->protocol_context != NULL && con->protocol_context_free_fn != NULL)
     (*con->protocol_context_free_fn)(con, (void *)con->protocol_context);
 
-  GEARMAN_LIST_DEL(con->gearman->con, con,)
+  if (con->gearman->con_list == con)
+    con->gearman->con_list= con->next;
+  if (con->prev != NULL)
+    con->prev->next= con->next;
+  if (con->next != NULL)
+    con->next->prev= con->prev;
+  con->gearman->con_count--;
 
   if (con->options & GEARMAN_CON_PACKET_IN_USE)
     gearman_packet_free(&(con->packet));
@@ -372,7 +397,7 @@ gearman_return_t gearman_con_send_all(gearman_st *gearman,
       return GEARMAN_IO_WAIT;
     }
 
-    ret= gearman_con_wait(gearman, -1);
+    ret= gearman_con_wait(gearman);
     if (ret != GEARMAN_SUCCESS)
     {
       gearman->options= options;
@@ -384,7 +409,7 @@ gearman_return_t gearman_con_send_all(gearman_st *gearman,
   return GEARMAN_SUCCESS;
 }
 
-gearman_return_t gearman_con_wait(gearman_st *gearman, int timeout)
+gearman_return_t gearman_con_wait(gearman_st *gearman)
 {
   gearman_con_st *con;
   struct pollfd *pfds;
@@ -421,13 +446,14 @@ gearman_return_t gearman_con_wait(gearman_st *gearman, int timeout)
 
   if (x == 0)
   {
-    gearman_error_set(gearman, "gearman_con_wait", "no active file descriptors");
+    gearman_error_set(gearman, "gearman_con_wait",
+                      "no active file descriptors");
     return GEARMAN_NO_ACTIVE_FDS;
   }
 
   while (1)
   {
-    ret= poll(pfds, x, timeout);
+    ret= poll(pfds, x, gearman->timeout);
     if (ret == -1)
     {
       if (errno == EINTR)
@@ -439,6 +465,12 @@ gearman_return_t gearman_con_wait(gearman_st *gearman, int timeout)
     }
 
     break;
+  }
+
+  if (ret == 0)
+  {
+    gearman_error_set(gearman, "gearman_con_wait", "timeout reached");
+    return GEARMAN_TIMEOUT;
   }
 
   x= 0;
@@ -557,7 +589,14 @@ gearman_packet_st *gearman_packet_create(gearman_st *gearman,
   packet->gearman= gearman;
 
   if (!(gearman->options & GEARMAN_DONT_TRACK_PACKETS))
-    GEARMAN_LIST_ADD(gearman->packet, packet,)
+  {
+    if (gearman->packet_list != NULL)
+      gearman->packet_list->prev= packet;
+    packet->next= gearman->packet_list;
+    packet->prev= NULL;
+    gearman->packet_list= packet;
+    gearman->packet_count++;
+  }
 
   packet->args= NULL;
   packet->data= NULL;
@@ -621,7 +660,15 @@ void gearman_packet_free(gearman_packet_st *packet)
   }
 
   if (!(packet->gearman->options & GEARMAN_DONT_TRACK_PACKETS))
-    GEARMAN_LIST_DEL(packet->gearman->packet, packet,)
+  {
+    if (packet->gearman->packet_list == packet)
+      packet->gearman->packet_list= packet->next;
+    if (packet->prev != NULL)
+      packet->prev->next= packet->next;
+    if (packet->next != NULL)
+      packet->next->prev= packet->prev;
+    packet->gearman->packet_count--;
+  }
 
   if (packet->options & GEARMAN_PACKET_ALLOCATED)
     free(packet);
@@ -631,6 +678,46 @@ void gearman_packet_free_all(gearman_st *gearman)
 {
   while (gearman->packet_list != NULL)
     gearman_packet_free(gearman->packet_list);
+}
+
+/*
+ * Local package functions.
+ */
+void gearman_error_set(gearman_st *gearman, const char *function,
+                       const char *format, ...)
+{
+  size_t length;
+  char *ptr;
+  char log_buffer[GEARMAN_MAX_ERROR_SIZE];
+  va_list arg;
+
+  va_start(arg, format);
+
+  length= strlen(function);
+
+  /* Copy the function name and : before the format */
+  ptr= memcpy(log_buffer, function, length);
+  ptr+= length;
+  ptr[0]= ':';
+  length++;
+  ptr++;
+
+  length+= (size_t)vsnprintf(ptr, GEARMAN_MAX_ERROR_SIZE - length, format, arg);
+
+  if (gearman->log_fn == NULL)
+  {
+    if (length >= GEARMAN_MAX_ERROR_SIZE)
+      length= GEARMAN_MAX_ERROR_SIZE - 1;
+
+    memcpy(gearman->last_error, log_buffer, length + 1);
+  }
+  else
+  {
+    (*(gearman->log_fn))(log_buffer, GEARMAN_VERBOSE_FATAL,
+                         (void *)(gearman)->log_context);
+  }
+
+  va_end(arg);
 }
 
 gearman_return_t gearman_parse_servers(const char *servers,

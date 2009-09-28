@@ -79,6 +79,8 @@ gearman_worker_st *gearman_worker_create(gearman_worker_st *worker)
     return NULL;
   }
 
+  gearman_set_timeout(worker->gearman, GEARMAN_WORKER_WAIT_TIMEOUT);
+
   if (_worker_packet_init(worker) != GEARMAN_SUCCESS)
   {
     gearman_worker_free(worker);
@@ -208,6 +210,17 @@ void gearman_worker_remove_options(gearman_worker_st *worker,
   worker->options&= ~options;
 }
 
+int gearman_worker_timeout(gearman_worker_st *worker)
+{
+  return gearman_timeout(worker->gearman);
+}
+
+void gearman_worker_set_timeout(gearman_worker_st *worker, int timeout)
+{
+  gearman_worker_add_options(worker, GEARMAN_WORKER_TIMEOUT_RETURN);
+  gearman_set_timeout(worker->gearman, timeout);
+}
+
 void *gearman_worker_context(const gearman_worker_st *worker)
 {
   return (void *)(worker->context);
@@ -261,9 +274,9 @@ gearman_return_t gearman_worker_add_servers(gearman_worker_st *worker,
   return gearman_parse_servers(servers, _worker_add_server, worker);
 }
 
-gearman_return_t gearman_worker_wait(gearman_worker_st *worker, int timeout)
+gearman_return_t gearman_worker_wait(gearman_worker_st *worker)
 {
-  return gearman_con_wait(worker->gearman, timeout);
+  return gearman_con_wait(worker->gearman);
 }
 
 gearman_return_t gearman_worker_register(gearman_worker_st *worker,
@@ -565,13 +578,31 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
       }
 
       if (active == 0)
-        sleep(GEARMAN_WORKER_WAIT_TIMEOUT / 1000);
+      {
+        if (worker->gearman->timeout < 0)
+          usleep(GEARMAN_WORKER_WAIT_TIMEOUT * 1000);
+        else
+        {
+          if (worker->gearman->timeout > 0)
+            usleep((unsigned int)worker->gearman->timeout * 1000);
+
+          if (worker->options & GEARMAN_WORKER_TIMEOUT_RETURN)
+          {
+            gearman_error_set(worker->gearman, "gearman_worker_grab_job",
+                              "timeout reached");
+            *ret_ptr= GEARMAN_TIMEOUT;
+            return NULL;
+          }
+        }
+      }
       else
       {
-        *ret_ptr= gearman_con_wait(worker->gearman,
-                                   GEARMAN_WORKER_WAIT_TIMEOUT);
-        if (*ret_ptr != GEARMAN_SUCCESS)
+        *ret_ptr= gearman_con_wait(worker->gearman);
+        if (*ret_ptr != GEARMAN_SUCCESS && (*ret_ptr != GEARMAN_TIMEOUT ||
+            worker->options & GEARMAN_WORKER_TIMEOUT_RETURN))
+        {
           return NULL;
+        }
       }
 
       break;
@@ -593,7 +624,13 @@ void gearman_job_free(gearman_job_st *job)
   if (job->options & GEARMAN_JOB_WORK_IN_USE)
     gearman_packet_free(&(job->work));
 
-  GEARMAN_LIST_DEL(job->worker->job, job,)
+  if (job->worker->job_list == job)
+    job->worker->job_list= job->next;
+  if (job->prev != NULL)
+    job->prev->next= job->next;
+  if (job->next != NULL)
+    job->next->prev= job->prev;
+  job->worker->job_count--;
 
   if (job->options & GEARMAN_JOB_ALLOCATED)
     free(job);
@@ -881,7 +918,12 @@ static gearman_return_t _worker_function_add(gearman_worker_st *worker,
     return ret;
   }
 
-  GEARMAN_LIST_ADD(worker->function, function,)
+  if (worker->function_list != NULL)
+    worker->function_list->prev= function;
+  function->next= worker->function_list;
+  function->prev= NULL;
+  worker->function_list= function;
+  worker->function_count++;
 
   worker->options|= GEARMAN_WORKER_CHANGE;
 
@@ -891,7 +933,13 @@ static gearman_return_t _worker_function_add(gearman_worker_st *worker,
 static void _worker_function_free(gearman_worker_st *worker,
                                   gearman_worker_function_st *function)
 {
-  GEARMAN_LIST_DEL(worker->function, function,)
+  if (worker->function_list == function)
+    worker->function_list= function->next;
+  if (function->prev != NULL)
+    function->prev->next= function->next;
+  if (function->next != NULL)
+    function->next->prev= function->prev;
+  worker->function_count--;
 
   if (function->options & GEARMAN_WORKER_FUNCTION_PACKET_IN_USE)
     gearman_packet_free(&(function->packet));
@@ -918,7 +966,14 @@ static gearman_job_st *_job_create(gearman_worker_st *worker,
     job->options= 0;
 
   job->worker= worker;
-  GEARMAN_LIST_ADD(worker->job, job,)
+
+  if (worker->job_list != NULL)
+    worker->job_list->prev= job;
+  job->next= worker->job_list;
+  job->prev= NULL;
+  worker->job_list= job;
+  worker->job_count++;
+
   job->con= NULL;
 
   return job;

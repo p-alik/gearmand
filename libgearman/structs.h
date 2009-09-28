@@ -30,6 +30,7 @@ struct gearman_st
   uint32_t pfds_size;
   uint32_t sending;
   int last_errno;
+  int timeout;
   gearman_con_st *con_list;
   gearman_packet_st *packet_list;
   struct pollfd *pfds;

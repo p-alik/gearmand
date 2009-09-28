@@ -200,6 +200,16 @@ void gearman_client_remove_options(gearman_client_st *client,
   client->options&= ~options;
 }
 
+int gearman_client_timeout(gearman_client_st *client)
+{
+  return gearman_timeout(client->gearman);
+}
+
+void gearman_client_set_timeout(gearman_client_st *client, int timeout)
+{
+  gearman_set_timeout(client->gearman, timeout);
+}
+
 void *gearman_client_context(const gearman_client_st *client)
 {
   return (void *)(client->context);
@@ -258,9 +268,9 @@ void gearman_client_remove_servers(gearman_client_st *client)
   gearman_con_free_all(client->gearman);
 }
 
-gearman_return_t gearman_client_wait(gearman_client_st *client, int timeout)
+gearman_return_t gearman_client_wait(gearman_client_st *client)
 {
-  return gearman_con_wait(client->gearman, timeout);
+  return gearman_con_wait(client->gearman);
 }
 
 void *gearman_client_do(gearman_client_st *client, const char *function_name,
@@ -395,7 +405,13 @@ void gearman_task_free(gearman_task_st *task)
   if (task->context != NULL && task->client->task_context_free_fn != NULL)
     (*(task->client->task_context_free_fn))(task, (void *)(task->context));
 
-  GEARMAN_LIST_DEL(task->client->task, task,)
+  if (task->client->task_list == task)
+    task->client->task_list= task->next;
+  if (task->prev != NULL)
+    task->prev->next= task->next;
+  if (task->next != NULL)
+    task->next->prev= task->prev;
+  task->client->task_count--;
 
   if (task->options & GEARMAN_TASK_ALLOCATED)
     free(task);
@@ -784,7 +800,7 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
       }
 
       /* Wait for activity on one of the connections. */
-      ret= gearman_con_wait(client->gearman, -1);
+      ret= gearman_con_wait(client->gearman);
       if (ret != GEARMAN_SUCCESS && ret != GEARMAN_IO_WAIT)
       {
         client->state= GEARMAN_CLIENT_STATE_IDLE;
@@ -1311,7 +1327,14 @@ static gearman_task_st *_task_create(gearman_client_st *client,
   task->numerator= 0;
   task->denominator= 0;
   task->client= client;
-  GEARMAN_LIST_ADD(client->task, task,)
+
+  if (client->task_list != NULL)
+    client->task_list->prev= task;
+  task->next= client->task_list;
+  task->prev= NULL;
+  client->task_list= task;
+  client->task_count++;
+
   task->context= NULL;
   task->con= NULL;
   task->recv= NULL;

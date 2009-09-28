@@ -37,7 +37,6 @@
 #include <libgearman/job.h>
 #include <libgearman/client.h>
 #include <libgearman/worker.h>
-#include <libgearman/error.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -170,6 +169,28 @@ void gearman_add_options(gearman_st *gearman, gearman_options_t options);
  */
 GEARMAN_API
 void gearman_remove_options(gearman_st *gearman, gearman_options_t options);
+
+/**
+ * Get current socket I/O activity timeout value.
+ *
+ * @param[in] gearman Structure previously initialized with gearman_create() or
+ *  gearman_clone().
+ * @return Timeout in milliseconds to wait for I/O activity. A negative value
+ *  means an infinite timeout.
+ */
+GEARMAN_API
+int gearman_timeout(gearman_st *gearman);
+
+/**
+ * Set socket I/O activity timeout for connections in a Gearman structure.
+ *
+ * @param[in] gearman Structure previously initialized with gearman_create() or
+ *  gearman_clone().
+ * @param[in] timeout Milliseconds to wait for I/O activity. A negative value
+ *  means an infinite timeout.
+ */
+GEARMAN_API
+void gearman_set_timeout(gearman_st *gearman, int timeout);
 
 /**
  * Set logging function for a gearman structure.
@@ -320,12 +341,10 @@ gearman_return_t gearman_con_send_all(gearman_st *gearman,
  *
  * @param[in] gearman Structure previously initialized with gearman_create() or
  *  gearman_clone().
- * @param[in] timeout Milliseconds to wait for I/O activity. A negative value
- *  means an infinite timeout.
  * @return Standard gearman return value.
  */
 GEARMAN_API
-gearman_return_t gearman_con_wait(gearman_st *gearman, int timeout);
+gearman_return_t gearman_con_wait(gearman_st *gearman);
 
 /**
  * Get next connection that is ready for I/O.

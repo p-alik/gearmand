@@ -102,6 +102,7 @@ typedef enum
   GEARMAN_SEND_BUFFER_TOO_SMALL,
   GEARMAN_IGNORE_PACKET,
   GEARMAN_UNKNOWN_OPTION,
+  GEARMAN_TIMEOUT,
   GEARMAN_MAX_RETURN /* Always add new error code before */
 } gearman_return_t;
 
@@ -343,7 +344,8 @@ typedef enum
   GEARMAN_WORKER_PRE_SLEEP_IN_USE= (1 << 4),
   GEARMAN_WORKER_WORK_JOB_IN_USE=  (1 << 5),
   GEARMAN_WORKER_CHANGE=           (1 << 6),
-  GEARMAN_WORKER_GRAB_UNIQ=        (1 << 7)
+  GEARMAN_WORKER_GRAB_UNIQ=        (1 << 7),
+  GEARMAN_WORKER_TIMEOUT_RETURN=   (1 << 8)
 } gearman_worker_options_t;
 
 /**
