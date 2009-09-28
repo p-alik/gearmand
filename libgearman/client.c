@@ -200,6 +200,16 @@ void gearman_client_remove_options(gearman_client_st *client,
   client->options&= ~options;
 }
 
+int gearman_client_timeout(gearman_client_st *client)
+{
+  return gearman_timeout(client->gearman);
+}
+
+void gearman_client_set_timeout(gearman_client_st *client, int timeout)
+{
+  gearman_set_timeout(client->gearman, timeout);
+}
+
 void *gearman_client_context(const gearman_client_st *client)
 {
   return (void *)(client->context);
@@ -258,9 +268,9 @@ void gearman_client_remove_servers(gearman_client_st *client)
   gearman_con_free_all(client->gearman);
 }
 
-gearman_return_t gearman_client_wait(gearman_client_st *client, int timeout)
+gearman_return_t gearman_client_wait(gearman_client_st *client)
 {
-  return gearman_con_wait(client->gearman, timeout);
+  return gearman_con_wait(client->gearman);
 }
 
 void *gearman_client_do(gearman_client_st *client, const char *function_name,
@@ -790,7 +800,7 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
       }
 
       /* Wait for activity on one of the connections. */
-      ret= gearman_con_wait(client->gearman, -1);
+      ret= gearman_con_wait(client->gearman);
       if (ret != GEARMAN_SUCCESS && ret != GEARMAN_IO_WAIT)
       {
         client->state= GEARMAN_CLIENT_STATE_IDLE;

@@ -79,6 +79,8 @@ gearman_worker_st *gearman_worker_create(gearman_worker_st *worker)
     return NULL;
   }
 
+  gearman_set_timeout(worker->gearman, GEARMAN_WORKER_WAIT_TIMEOUT);
+
   if (_worker_packet_init(worker) != GEARMAN_SUCCESS)
   {
     gearman_worker_free(worker);
@@ -208,6 +210,17 @@ void gearman_worker_remove_options(gearman_worker_st *worker,
   worker->options&= ~options;
 }
 
+int gearman_worker_timeout(gearman_worker_st *worker)
+{
+  return gearman_timeout(worker->gearman);
+}
+
+void gearman_worker_set_timeout(gearman_worker_st *worker, int timeout)
+{
+  gearman_worker_add_options(worker, GEARMAN_WORKER_TIMEOUT_RETURN);
+  gearman_set_timeout(worker->gearman, timeout);
+}
+
 void *gearman_worker_context(const gearman_worker_st *worker)
 {
   return (void *)(worker->context);
@@ -261,9 +274,9 @@ gearman_return_t gearman_worker_add_servers(gearman_worker_st *worker,
   return gearman_parse_servers(servers, _worker_add_server, worker);
 }
 
-gearman_return_t gearman_worker_wait(gearman_worker_st *worker, int timeout)
+gearman_return_t gearman_worker_wait(gearman_worker_st *worker)
 {
-  return gearman_con_wait(worker->gearman, timeout);
+  return gearman_con_wait(worker->gearman);
 }
 
 gearman_return_t gearman_worker_register(gearman_worker_st *worker,
@@ -565,13 +578,31 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
       }
 
       if (active == 0)
-        sleep(GEARMAN_WORKER_WAIT_TIMEOUT / 1000);
+      {
+        if (worker->gearman->timeout < 0)
+          usleep(GEARMAN_WORKER_WAIT_TIMEOUT * 1000);
+        else
+        {
+          if (worker->gearman->timeout > 0)
+            usleep((unsigned int)worker->gearman->timeout * 1000);
+
+          if (worker->options & GEARMAN_WORKER_TIMEOUT_RETURN)
+          {
+            gearman_error_set(worker->gearman, "gearman_worker_grab_job",
+                              "timeout reached");
+            *ret_ptr= GEARMAN_TIMEOUT;
+            return NULL;
+          }
+        }
+      }
       else
       {
-        *ret_ptr= gearman_con_wait(worker->gearman,
-                                   GEARMAN_WORKER_WAIT_TIMEOUT);
-        if (*ret_ptr != GEARMAN_SUCCESS)
+        *ret_ptr= gearman_con_wait(worker->gearman);
+        if (*ret_ptr != GEARMAN_SUCCESS && (*ret_ptr != GEARMAN_TIMEOUT ||
+            worker->options & GEARMAN_WORKER_TIMEOUT_RETURN))
+        {
           return NULL;
+        }
       }
 
       break;

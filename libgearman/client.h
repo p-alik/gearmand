@@ -114,6 +114,18 @@ void gearman_client_remove_options(gearman_client_st *client,
                                    gearman_client_options_t options);
 
 /**
+ * See gearman_timeout() for details.
+ */
+GEARMAN_API
+int gearman_client_timeout(gearman_client_st *client);
+
+/**
+ * See gearman_set_timeout() for details.
+ */
+GEARMAN_API
+void gearman_client_set_timeout(gearman_client_st *client, int timeout);
+
+/**
  * Get the application context for a client.
  *
  * @param[in] client Structure previously initialized with
@@ -209,12 +221,10 @@ void gearman_client_remove_servers(gearman_client_st *client);
  *
  * @param[in] client Structure previously initialized with
  *  gearman_client_create() or gearman_client_clone().
- * @param[in] timeout Milliseconds to wait for I/O activity. A negative value
- *  means an infinite timeout.
  * @return Standard gearman return value.
  */
 GEARMAN_API
-gearman_return_t gearman_client_wait(gearman_client_st *client, int timeout);
+gearman_return_t gearman_client_wait(gearman_client_st *client);
 
 /**
  * @addtogroup gearman_client_single Single Task Interface

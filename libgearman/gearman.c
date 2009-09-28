@@ -78,6 +78,7 @@ gearman_st *gearman_create(gearman_st *gearman)
   gearman->pfds_size= 0;
   gearman->sending= 0;
   gearman->last_errno= 0;
+  gearman->timeout= -1;
   gearman->con_list= NULL;
   gearman->packet_list= NULL;
   gearman->pfds= NULL;
@@ -103,6 +104,7 @@ gearman_st *gearman_clone(gearman_st *gearman, const gearman_st *from)
     return NULL;
 
   gearman->options|= (from->options & (gearman_options_t)~GEARMAN_ALLOCATED);
+  gearman->timeout= from->timeout;
 
   for (con= from->con_list; con != NULL; con= con->next)
   {
@@ -159,6 +161,16 @@ void gearman_add_options(gearman_st *gearman, gearman_options_t options)
 void gearman_remove_options(gearman_st *gearman, gearman_options_t options)
 {
   gearman->options&= ~options;
+}
+
+int gearman_timeout(gearman_st *gearman)
+{
+  return gearman->timeout;
+}
+
+void gearman_set_timeout(gearman_st *gearman, int timeout)
+{
+  gearman->timeout= timeout;
 }
 
 void gearman_set_log_fn(gearman_st *gearman, gearman_log_fn *function,
@@ -385,7 +397,7 @@ gearman_return_t gearman_con_send_all(gearman_st *gearman,
       return GEARMAN_IO_WAIT;
     }
 
-    ret= gearman_con_wait(gearman, -1);
+    ret= gearman_con_wait(gearman);
     if (ret != GEARMAN_SUCCESS)
     {
       gearman->options= options;
@@ -397,7 +409,7 @@ gearman_return_t gearman_con_send_all(gearman_st *gearman,
   return GEARMAN_SUCCESS;
 }
 
-gearman_return_t gearman_con_wait(gearman_st *gearman, int timeout)
+gearman_return_t gearman_con_wait(gearman_st *gearman)
 {
   gearman_con_st *con;
   struct pollfd *pfds;
@@ -434,13 +446,14 @@ gearman_return_t gearman_con_wait(gearman_st *gearman, int timeout)
 
   if (x == 0)
   {
-    gearman_error_set(gearman, "gearman_con_wait", "no active file descriptors");
+    gearman_error_set(gearman, "gearman_con_wait",
+                      "no active file descriptors");
     return GEARMAN_NO_ACTIVE_FDS;
   }
 
   while (1)
   {
-    ret= poll(pfds, x, timeout);
+    ret= poll(pfds, x, gearman->timeout);
     if (ret == -1)
     {
       if (errno == EINTR)
@@ -452,6 +465,12 @@ gearman_return_t gearman_con_wait(gearman_st *gearman, int timeout)
     }
 
     break;
+  }
+
+  if (ret == 0)
+  {
+    gearman_error_set(gearman, "gearman_con_wait", "timeout reached");
+    return GEARMAN_TIMEOUT;
   }
 
   x= 0;
@@ -680,13 +699,18 @@ void gearman_error_set(gearman_st *gearman, const char *function,
   ptr= memcpy(log_buffer, function, length);
   ptr+= length;
   ptr[0]= ':';
+  length++;
   ptr++;
 
-  length= (size_t)vsnprintf(ptr, GEARMAN_MAX_ERROR_SIZE - length - 1, format,
-                            arg);
+  length+= (size_t)vsnprintf(ptr, GEARMAN_MAX_ERROR_SIZE - length, format, arg);
 
   if (gearman->log_fn == NULL)
-    memcpy(gearman->last_error, log_buffer, length);
+  {
+    if (length >= GEARMAN_MAX_ERROR_SIZE)
+      length= GEARMAN_MAX_ERROR_SIZE - 1;
+
+    memcpy(gearman->last_error, log_buffer, length + 1);
+  }
   else
   {
     (*(gearman->log_fn))(log_buffer, GEARMAN_VERBOSE_FATAL,
