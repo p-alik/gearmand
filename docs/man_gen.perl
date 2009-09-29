@@ -57,9 +57,11 @@ while ($line= <>)
       # We've reached the end of a comment block, try to find a function.
       my $name= "";
       my $func= "";
+      my @func_lines;
 
       while ($line= <>)
       {
+        chomp($line);
         if ($line=~ m/^$/)
         {
           last;
@@ -74,11 +76,11 @@ while ($line= <>)
           $name= $1;
         }
 
-        chomp($line);
         $line=~ s/^ +/ /;
-        $func.= $line;
+        push(@func_lines, $line);
       }
 
+      $func= join(" ", @func_lines);
       if ($name)
       {
         # We have a function! Output a man page.
