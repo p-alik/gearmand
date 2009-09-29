@@ -43,12 +43,13 @@ GEARMAN_SERVER_LIBRARY_VERSION=0:0:0
 #                          or changed
 AC_SUBST(GEARMAN_SERVER_LIBRARY_VERSION)
 
-# libgearman versioning when linked with GNU ld.
-if test "$lt_cv_prog_gnu_ld" = "yes"
-then
+# lib versioning when linked with GNU ld.
+AS_IF([test "$lt_cv_prog_gnu_ld" = "yes"],[
     LD_VERSION_SCRIPT="-Wl,--version-script=\$(top_srcdir)/libgearman/libgearman.ver"
-fi
+    LD_VERSION_SCRIPT_SERVER="-Wl,--version-script=\$(top_srcdir)/libgearman-server/libgearman-server.ver"
+])
 AC_SUBST(LD_VERSION_SCRIPT)
+AC_SUBST(LD_VERSION_SCRIPT_SERVER)
 
 PANDORA_REQUIRE_PTHREAD
 
