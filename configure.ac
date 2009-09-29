@@ -49,6 +49,12 @@ then
     LD_VERSION_SCRIPT="-Wl,--version-script=\$(top_srcdir)/libgearman/libgearman.ver"
 fi
 AC_SUBST(LD_VERSION_SCRIPT)
+# libgearman-server versioning when linked with GNU ld.
+if test "$lt_cv_prog_gnu_ld" = "yes"
+then
+    LD_VERSION_SCRIPT_SERVER="-Wl,--version-script=\$(top_srcdir)/libgearman-server/libgearman-server.ver"
+fi
+AC_SUBST(LD_VERSION_SCRIPT_SERVER)
 
 PANDORA_REQUIRE_PTHREAD
 
