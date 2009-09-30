@@ -274,6 +274,11 @@ gearman_return_t gearman_worker_add_servers(gearman_worker_st *worker,
   return gearman_parse_servers(servers, _worker_add_server, worker);
 }
 
+void gearman_worker_remove_servers(gearman_worker_st *worker)
+{
+  gearman_con_free_all(worker->gearman);
+}
+
 gearman_return_t gearman_worker_wait(gearman_worker_st *worker)
 {
   return gearman_con_wait(worker->gearman);
