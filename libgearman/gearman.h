@@ -25,7 +25,6 @@
 #include <arpa/inet.h>
 #include <poll.h>
 #include <sys/uio.h>
-#include <event.h>
 #include <stdarg.h>
 
 #include <libgearman/visibility.h>

@@ -15,6 +15,8 @@
 #define __GEARMAN_SERVER_H__
 
 #include <libgearman/gearman.h>
+#include <event.h>
+
 #include <libgearman-server/constants.h>
 #include <libgearman-server/structs.h>
 #include <libgearman-server/conf.h>
