@@ -402,8 +402,11 @@ void gearman_task_free(gearman_task_st *task)
   if (task->options & GEARMAN_TASK_SEND_IN_USE)
     gearman_packet_free(&(task->send));
 
-  if (task->context != NULL && task->client->task_context_free_fn != NULL)
+  if (task != &(task->client->do_task) && task->context != NULL &&
+      task->client->task_context_free_fn != NULL)
+  {
     (*(task->client->task_context_free_fn))(task, (void *)(task->context));
+  }
 
   if (task->client->task_list == task)
     task->client->task_list= task->next;
