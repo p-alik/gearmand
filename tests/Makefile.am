@@ -6,10 +6,11 @@
 # the COPYING file in the parent directory for full text.
 
 if HAVE_LIBMEMCACHED
+LIBMEMCACHED_PIDFILE = ${abs_top_builddir}/tests/Xumemc.pid
 LIBMEMCACHED_TEST= memcached_test
-LIBMEMCACHED_SETUP= $(MEMCACHED_BINARY) -d -P /tmp/Xumemc.pid -p 12555
-LIBMEMCACHED_TEARDOWN= cat /tmp/Xumemc.pid | xargs kill
-LIBMEMCACHED_RM= rm /tmp/Xumemc.pid
+LIBMEMCACHED_SETUP= $(MEMCACHED_BINARY) -d -P ${LIBMEMCACHED_PIDFILE} -p 12555
+LIBMEMCACHED_TEARDOWN= cat ${LIBMEMCACHED_PIDFILE} | xargs kill
+LIBMEMCACHED_RM= rm ${LIBMEMCACHED_PIDFILE}
 LIBMEMCACHED_RES= memcached_test.res
 LIBMEMCACHED_REC= memcached_test.rec
 LIBMEMCACHED_RECORD= ./memcached_test > memcached_test.rec
@@ -26,7 +27,7 @@ SQLITE_REC= sqlite_test.rec
 SQLITE_RECORD= ./sqlite_test > sqlite_test.rec
 SQLITE_RUN= ./sqlite_test > sqlite_test.res
 SQLITE_CHECK= diff ${top_srcdir}/tests/sqlite_test.rec sqlite_test.res
-SQLITE_RM= rm /tmp/gearman.sql
+SQLITE_RM= rm gearman.sql
 SQLITE_VALGRIND= libtool --mode=execute valgrind --leak-check=yes --show-reachable=yes  sqlite_test
 sqlite_test_SOURCES= test.c test_gearmand.c sqlite_test.c
 endif
