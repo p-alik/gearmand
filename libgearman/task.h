@@ -8,7 +8,7 @@
 
 /**
  * @file
- * @brief Task declarations
+ * @brief Task Declarations
  */
 
 #ifndef __GEARMAN_TASK_H__
@@ -19,10 +19,12 @@ extern "C" {
 #endif
 
 /**
- * @addtogroup gearman_task Task Management
+ * @addtogroup gearman_task Task Declarations
  * @ingroup gearman_client
+ *
  * The task functions are used to manage tasks being run by clients. They are
  * most commonly used with the client interface.
+ *
  * @{
  */
 

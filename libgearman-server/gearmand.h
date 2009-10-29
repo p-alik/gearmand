@@ -8,7 +8,7 @@
 
 /**
  * @file
- * @brief Gearmand declarations
+ * @brief Gearmand Declarations
  */
 
 #ifndef __GEARMAND_H__
@@ -23,8 +23,10 @@ extern "C" {
 #endif
 
 /**
- * @addtogroup gearmand Gearmand
+ * @addtogroup gearmand Gearmand Declarations
+ *
  * This is a server implementation using the gearman_server interface.
+ *
  * @{
  */
 

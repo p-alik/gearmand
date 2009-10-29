@@ -8,7 +8,7 @@
 
 /**
  * @file
- * @brief Gearman core declarations
+ * @brief Gearman Declarations
  */
 
 #ifndef __GEARMAN_H__
@@ -42,7 +42,8 @@ extern "C" {
 #endif
 
 /**
- * @addtogroup gearman Gearman Core Interface
+ * @addtogroup gearman Gearman Declarations
+ *
  * This is a low level interface for gearman library instances. This is used
  * internally by both client and worker interfaces, so you probably want to
  * look there first. This is usually used to write lower level clients, workers,
@@ -51,6 +52,7 @@ extern "C" {
  * There is no locking within a single gearman_st structure, so for threaded
  * applications you must either ensure isolation in the application or use
  * multiple gearman_st structures (for example, one for each thread).
+ *
  * @{
  */
 
@@ -264,7 +266,7 @@ void gearman_set_workload_free_fn(gearman_st *gearman,
  *  failure this will be NULL.
  */
 GEARMAN_API
-gearman_con_st *gearman_con_create(gearman_st *gearman, gearman_con_st *con);
+gearman_con_st *gearman_add_con(gearman_st *gearman, gearman_con_st *con);
 
 /**
  * Create a connection structure with the given host and port.
@@ -278,8 +280,8 @@ gearman_con_st *gearman_con_create(gearman_st *gearman, gearman_con_st *con);
  *  failure this will be NULL.
  */
 GEARMAN_API
-gearman_con_st *gearman_con_add(gearman_st *gearman, gearman_con_st *con,
-                                const char *host, in_port_t port);
+gearman_con_st *gearman_add_con_args(gearman_st *gearman, gearman_con_st *con,
+                                     const char *host, in_port_t port);
 
 /**
  * Clone a connection structure.
@@ -292,14 +294,14 @@ gearman_con_st *gearman_con_add(gearman_st *gearman, gearman_con_st *con,
  *  failure this will be NULL.
  */
 GEARMAN_API
-gearman_con_st *gearman_con_clone(gearman_st *gearman, gearman_con_st *con,
+gearman_con_st *gearman_clone_con(gearman_st *gearman, gearman_con_st *con,
                                   const gearman_con_st *from);
 
 /**
  * Free a connection structure.
  *
- * @param[in] con Structure previously initialized with gearman_con_create(),
- *  gearman_con_add(), or gearman_con_clone().
+ * @param[in] con Structure previously initialized with gearman_add_con(),
+ *  gearman_add_con_args(), or gearman_clone_con().
  */
 GEARMAN_API
 void gearman_con_free(gearman_con_st *con);
@@ -311,7 +313,7 @@ void gearman_con_free(gearman_con_st *con);
  *  gearman_clone().
  */
 GEARMAN_API
-void gearman_con_free_all(gearman_st *gearman);
+void gearman_free_all_cons(gearman_st *gearman);
 
 /**
  * Flush the send buffer for all connections.
@@ -321,7 +323,7 @@ void gearman_con_free_all(gearman_st *gearman);
  * @return Standard gearman return value.
  */
 GEARMAN_API
-gearman_return_t gearman_con_flush_all(gearman_st *gearman);
+gearman_return_t gearman_flush_all(gearman_st *gearman);
 
 /**
  * Send packet to all connections.
@@ -332,8 +334,8 @@ gearman_return_t gearman_con_flush_all(gearman_st *gearman);
  * @return Standard gearman return value.
  */
 GEARMAN_API
-gearman_return_t gearman_con_send_all(gearman_st *gearman,
-                                      const gearman_packet_st *packet);
+gearman_return_t gearman_send_all(gearman_st *gearman,
+                                  const gearman_packet_st *packet);
 
 /**
  * Wait for I/O on connections.
@@ -343,7 +345,7 @@ gearman_return_t gearman_con_send_all(gearman_st *gearman,
  * @return Standard gearman return value.
  */
 GEARMAN_API
-gearman_return_t gearman_con_wait(gearman_st *gearman);
+gearman_return_t gearman_wait(gearman_st *gearman);
 
 /**
  * Get next connection that is ready for I/O.
@@ -353,7 +355,7 @@ gearman_return_t gearman_con_wait(gearman_st *gearman);
  * @return Connection that is ready for I/O, or NULL if there are none.
  */
 GEARMAN_API
-gearman_con_st *gearman_con_ready(gearman_st *gearman);
+gearman_con_st *gearman_ready(gearman_st *gearman);
 
 /**
  * Test echo with all connections.
@@ -365,8 +367,8 @@ gearman_con_st *gearman_con_ready(gearman_st *gearman);
  * @return Standard gearman return value.
  */
 GEARMAN_API
-gearman_return_t gearman_con_echo(gearman_st *gearman, const void *workload,
-                                  size_t workload_size);
+gearman_return_t gearman_echo(gearman_st *gearman, const void *workload,
+                              size_t workload_size);
 
 /*
  * Packet related functions.
@@ -382,15 +384,15 @@ gearman_return_t gearman_con_echo(gearman_st *gearman, const void *workload,
  *  failure this will be NULL.
  */
 GEARMAN_API
-gearman_packet_st *gearman_packet_create(gearman_st *gearman,
-                                         gearman_packet_st *packet);
+gearman_packet_st *gearman_add_packet(gearman_st *gearman,
+                                      gearman_packet_st *packet);
 
 /**
  * Initialize a packet with all arguments. Variable list is NULL terminated
  * alternating argument and argument size (size_t) pairs. For example:
  *
  * @code
- * ret= gearman_packet_add_args(gearman, packet,
+ * ret= gearman_add_packet_args(gearman, packet,
  *                              GEARMAN_MAGIC_REQUEST,
  *                              GEARMAN_COMMAND_SUBMIT_JOB,
  *                              function_name, strlen(function_name) + 1,
@@ -407,17 +409,17 @@ gearman_packet_st *gearman_packet_create(gearman_st *gearman,
  * @return Standard gearman return value.
  */
 GEARMAN_API
-gearman_return_t gearman_packet_add(gearman_st *gearman,
-                                    gearman_packet_st *packet,
-                                    gearman_magic_t magic,
-                                    gearman_command_t command,
-                                    const void *arg, ...);
+gearman_return_t gearman_add_packet_args(gearman_st *gearman,
+                                         gearman_packet_st *packet,
+                                         gearman_magic_t magic,
+                                         gearman_command_t command,
+                                         const void *arg, ...);
 
 /**
  * Free a packet structure.
  *
  * @param[in] packet Structure previously initialized with
- *   gearman_packet_create() or gearman_packet_add().
+ *   gearman_add_packet() or gearman_add_packet_args().
  */
 GEARMAN_API
 void gearman_packet_free(gearman_packet_st *packet);
@@ -429,7 +431,7 @@ void gearman_packet_free(gearman_packet_st *packet);
  *  gearman_clone().
  */
 GEARMAN_API
-void gearman_packet_free_all(gearman_st *gearman);
+void gearman_free_all_packets(gearman_st *gearman);
 
 /** @} */
 

@@ -51,7 +51,8 @@ static void *_proc(void *data);
 /**
  * Wrapper for log handling.
  */
-static void _log(const char *line, gearman_verbose_t verbose, void *context);
+static void _log(const char *line, gearman_verbose_t verbose,
+                 const void *context);
 
 /** @} */
 
@@ -227,7 +228,7 @@ gearman_server_thread_run(gearman_server_thread_st *thread,
   }
 
   /* Check for new activity on connections. */
-  while ((con= gearman_con_ready(thread->gearman)) != NULL)
+  while ((con= gearman_ready(thread->gearman)) != NULL)
   {
     /* Inherited classes anyone? Some people would call this a hack, I call
        it clean (avoids extra ptrs). Brian, I'll give you your C99 0-byte
@@ -458,7 +459,8 @@ static void *_proc(void *data)
   }
 }
 
-static void _log(const char *line, gearman_verbose_t verbose, void *context)
+static void _log(const char *line, gearman_verbose_t verbose,
+                 const void *context)
 {
   gearman_server_thread_st *thread= (gearman_server_thread_st *)context;
   (*(thread->log_fn))(line, verbose, (void *)thread->log_context);

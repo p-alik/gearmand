@@ -19,8 +19,8 @@ extern "C" {
 #endif
 
 /**
- * @addtogroup gearman_queue_libsqlite3 libsqlite3 Queue Storage Functions
- * @ingroup gearman_queue
+ * @addtogroup gearman_queue_libsqlite3 libsqlite3 Queue Storage Declarations
+ * @ingroup gearman_server_queue
  * @{
  */
 

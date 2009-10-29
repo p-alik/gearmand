@@ -8,7 +8,7 @@
 
 /**
  * @file
- * @brief Sqlite Queue Storage Definitions
+ * @brief libsqlite3 Queue Storage Definitions
  */
 
 #include "common.h"
@@ -17,8 +17,8 @@
 #include <sqlite3.h>
 
 /**
- * @addtogroup gearman_queue_sqlite sqlite Queue Storage Functions
- * @ingroup gearman_queue
+ * @addtogroup gearman_queue_libsqlite3_static Static libsqlite3 Queue Storage Definitions
+ * @ingroup gearman_queue_libsqlite3
  * @{
  */
 
@@ -27,10 +27,6 @@
  */
 #define GEARMAN_QUEUE_SQLITE_DEFAULT_TABLE "gearman_queue"
 #define GEARMAN_QUEUE_QUERY_BUFFER 256
-
-/*
- * Private declarations
- */
 #define SQLITE_MAX_TABLE_SIZE 256
 #define SQLITE_MAX_CREATE_TABLE_SIZE 1024
 
@@ -281,7 +277,7 @@ gearman_return_t gearmand_queue_libsqlite3_deinit(gearmand_st *gearmand)
 }
 
 /*
- * Private definitions
+ * Static definitions
  */
 
 int _sqlite_query(gearman_server_st *server,

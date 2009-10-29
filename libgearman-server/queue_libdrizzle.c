@@ -8,7 +8,7 @@
 
 /**
  * @file
- * @brief Drizzle Queue Storage Definitions
+ * @brief libdrizzle Queue Storage Definitions
  */
 
 #include "common.h"
@@ -17,8 +17,8 @@
 #include <libdrizzle/drizzle_client.h>
 
 /**
- * @addtogroup gearman_queue_libdrizzle libdrizzle Queue Storage Functions
- * @ingroup gearman_queue
+ * @addtogroup gearman_queue_libdrizzle_static Static libdrizzle Queue Storage Definitions
+ * @ingroup gearman_queue_libdrizzle
  * @{
  */
 
@@ -28,10 +28,6 @@
 #define GEARMAN_QUEUE_LIBDRIZZLE_DEFAULT_DATABASE "test"
 #define GEARMAN_QUEUE_LIBDRIZZLE_DEFAULT_TABLE "queue"
 #define GEARMAN_QUEUE_QUERY_BUFFER 256
-
-/*
- * Private declarations
- */
 
 /**
  * Structure for libdrizzle specific data.
@@ -289,7 +285,7 @@ gearman_return_t gearmand_queue_libdrizzle_deinit(gearmand_st *gearmand)
 }
 
 /*
- * Private definitions
+ * Static definitions
  */
 
 static drizzle_return_t _libdrizzle_query(gearman_server_st *server,

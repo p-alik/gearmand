@@ -8,17 +8,13 @@
 
 /**
  * @file
- * @brief Job definitions
+ * @brief Job Definitions
  */
 
 #include "common.h"
 
-/*
- * Private declarations
- */
-
 /**
- * @addtogroup gearman_job_private Private Job Functions
+ * @addtogroup gearman_job_static Static Job Declarations
  * @ingroup gearman_job
  * @{
  */
@@ -31,7 +27,7 @@ static gearman_return_t _job_send(gearman_job_st *job);
 /** @} */
 
 /*
- * Public definitions
+ * Public Definitions
  */
 
 gearman_return_t gearman_job_send_data(gearman_job_st *job, const void *data,
@@ -41,10 +37,12 @@ gearman_return_t gearman_job_send_data(gearman_job_st *job, const void *data,
 
   if (!(job->options & GEARMAN_JOB_WORK_IN_USE))
   {
-    ret= gearman_packet_add(job->worker->gearman, &(job->work),
-                            GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_WORK_DATA,
-                            job->assigned.arg[0], job->assigned.arg_size[0],
-                            data, data_size, NULL);
+    ret= gearman_add_packet_args(job->worker->gearman, &(job->work),
+                                 GEARMAN_MAGIC_REQUEST,
+                                 GEARMAN_COMMAND_WORK_DATA,
+                                 job->assigned.arg[0],
+                                 job->assigned.arg_size[0],
+                                 data, data_size, NULL);
     if (ret != GEARMAN_SUCCESS)
       return ret;
 
@@ -62,10 +60,12 @@ gearman_return_t gearman_job_send_warning(gearman_job_st *job,
 
   if (!(job->options & GEARMAN_JOB_WORK_IN_USE))
   {
-    ret= gearman_packet_add(job->worker->gearman, &(job->work),
-                            GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_WORK_WARNING,
-                            job->assigned.arg[0], job->assigned.arg_size[0],
-                            warning, warning_size, NULL);
+    ret= gearman_add_packet_args(job->worker->gearman, &(job->work),
+                                 GEARMAN_MAGIC_REQUEST,
+                                 GEARMAN_COMMAND_WORK_WARNING,
+                                 job->assigned.arg[0],
+                                 job->assigned.arg_size[0],
+                                 warning, warning_size, NULL);
     if (ret != GEARMAN_SUCCESS)
       return ret;
 
@@ -88,12 +88,14 @@ gearman_return_t gearman_job_send_status(gearman_job_st *job,
     snprintf(numerator_string, 12, "%u", numerator);
     snprintf(denominator_string, 12, "%u", denominator);
 
-    ret= gearman_packet_add(job->worker->gearman, &(job->work),
-                            GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_WORK_STATUS,
-                            job->assigned.arg[0], job->assigned.arg_size[0],
-                            numerator_string, strlen(numerator_string) + 1,
-                            denominator_string, strlen(denominator_string),
-                            NULL);
+    ret= gearman_add_packet_args(job->worker->gearman, &(job->work),
+                                 GEARMAN_MAGIC_REQUEST,
+                                 GEARMAN_COMMAND_WORK_STATUS,
+                                 job->assigned.arg[0],
+                                 job->assigned.arg_size[0],
+                                 numerator_string, strlen(numerator_string) + 1,
+                                 denominator_string, strlen(denominator_string),
+                                 NULL);
     if (ret != GEARMAN_SUCCESS)
       return ret;
 
@@ -114,11 +116,12 @@ gearman_return_t gearman_job_send_complete(gearman_job_st *job,
 
   if (!(job->options & GEARMAN_JOB_WORK_IN_USE))
   {
-    ret= gearman_packet_add(job->worker->gearman, &(job->work),
-                            GEARMAN_MAGIC_REQUEST,
-                            GEARMAN_COMMAND_WORK_COMPLETE,
-                            job->assigned.arg[0], job->assigned.arg_size[0],
-                            result, result_size, NULL);
+    ret= gearman_add_packet_args(job->worker->gearman, &(job->work),
+                                 GEARMAN_MAGIC_REQUEST,
+                                 GEARMAN_COMMAND_WORK_COMPLETE,
+                                 job->assigned.arg[0],
+                                 job->assigned.arg_size[0],
+                                 result, result_size, NULL);
     if (ret != GEARMAN_SUCCESS)
       return ret;
 
@@ -141,11 +144,12 @@ gearman_return_t gearman_job_send_exception(gearman_job_st *job,
 
   if (!(job->options & GEARMAN_JOB_WORK_IN_USE))
   {
-    ret= gearman_packet_add(job->worker->gearman, &(job->work),
-                            GEARMAN_MAGIC_REQUEST,
-                            GEARMAN_COMMAND_WORK_EXCEPTION,
-                            job->assigned.arg[0], job->assigned.arg_size[0],
-                            exception, exception_size, NULL);
+    ret= gearman_add_packet_args(job->worker->gearman, &(job->work),
+                                 GEARMAN_MAGIC_REQUEST,
+                                 GEARMAN_COMMAND_WORK_EXCEPTION,
+                                 job->assigned.arg[0],
+                                 job->assigned.arg_size[0],
+                                 exception, exception_size, NULL);
     if (ret != GEARMAN_SUCCESS)
       return ret;
 
@@ -164,10 +168,11 @@ gearman_return_t gearman_job_send_fail(gearman_job_st *job)
 
   if (!(job->options & GEARMAN_JOB_WORK_IN_USE))
   {
-    ret= gearman_packet_add(job->worker->gearman, &(job->work),
-                            GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_WORK_FAIL,
-                            job->assigned.arg[0], job->assigned.arg_size[0] - 1,
-                            NULL);
+    ret= gearman_add_packet_args(job->worker->gearman, &(job->work),
+                                 GEARMAN_MAGIC_REQUEST,
+                                 GEARMAN_COMMAND_WORK_FAIL,
+                                 job->assigned.arg[0],
+                                 job->assigned.arg_size[0] - 1, NULL);
     if (ret != GEARMAN_SUCCESS)
       return ret;
 
@@ -215,7 +220,7 @@ void *gearman_job_take_workload(gearman_job_st *job, size_t *data_size)
 }
 
 /*
- * Private definitions
+ * Static Definitions
  */
 
 static gearman_return_t _job_send(gearman_job_st *job)

@@ -8,7 +8,7 @@
 
 /**
  * @file
- * @brief Server worker declarations
+ * @brief Worker Declarations
  */
 
 #ifndef __GEARMAN_SERVER_WORKER_H__
@@ -19,10 +19,12 @@ extern "C" {
 #endif
 
 /**
- * @addtogroup gearman_server_worker Server Worker Handling
+ * @addtogroup gearman_server_worker Worker Declarations
  * @ingroup gearman_server
+ *
  * This is a low level interface for gearman server workers. This is used
  * internally by the server interface, so you probably want to look there first.
+ *
  * @{
  */
 

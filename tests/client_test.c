@@ -45,8 +45,8 @@ test_return pre(void *object);
 test_return post(void *object);
 test_return flush(void);
 
-void *client_test_worker(gearman_job_st *job, void *cb_arg, size_t *result_size,
-                         gearman_return_t *ret_ptr);
+void *client_test_worker(gearman_job_st *job, const void *context,
+                         size_t *result_size, gearman_return_t *ret_ptr);
 void *world_create(void);
 void world_destroy(void *object);
 
@@ -292,7 +292,8 @@ test_return post(void *object __attribute__((unused)))
   return TEST_SUCCESS;
 }
 
-static void log_counter(const char *line, gearman_verbose_t verbose, void *context)
+static void log_counter(const char *line, gearman_verbose_t verbose,
+                        const void *context)
 {
   uint32_t *counter= (uint32_t *)context;
 
@@ -323,12 +324,12 @@ static test_return post_logging(void *object __attribute__((unused)))
 }
 
 
-void *client_test_worker(gearman_job_st *job, void *cb_arg, size_t *result_size,
-                         gearman_return_t *ret_ptr)
+void *client_test_worker(gearman_job_st *job, const void *context,
+                         size_t *result_size, gearman_return_t *ret_ptr)
 {
   const uint8_t *workload;
   uint8_t *result;
-  (void)cb_arg;
+  (void)context;
 
   workload= gearman_job_workload(job);
   *result_size= gearman_job_workload_size(job);

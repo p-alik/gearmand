@@ -8,7 +8,7 @@
 
 /**
  * @file
- * @brief Gearman conf declarations
+ * @brief Configuration Declarations
  */
 
 #ifndef __GEARMAN_SERVER_CONF_H__
@@ -19,7 +19,8 @@ extern "C" {
 #endif
 
 /**
- * @addtogroup gearman_conf Gearman Conf Interface
+ * @addtogroup gearman_conf Configuration Declarations
+ * @ingroup gearman_server
  * @{
  */
 

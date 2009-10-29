@@ -22,7 +22,8 @@ dist_libgearmaninclude_HEADERS= \
 	worker.h
 
 noinst_HEADERS= \
-	common.h
+	common.h \
+        gearman_local.h
 
 libgearman_la_SOURCES= \
 	client.c \

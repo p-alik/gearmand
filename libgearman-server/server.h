@@ -34,7 +34,7 @@ extern "C" {
 #endif
 
 /**
- * @addtogroup gearman_server Server Interface
+ * @addtogroup gearman_server Gearman Server Declarations
  * This is the interface gearman servers should use.
  * @{
  */

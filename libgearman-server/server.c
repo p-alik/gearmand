@@ -56,7 +56,8 @@ _server_queue_work_data(gearman_server_job_st *server_job,
 /**
  * Wrapper for log handling.
  */
-static void _log(const char *line, gearman_verbose_t verbose, void *context);
+static void _log(const char *line, gearman_verbose_t verbose,
+                 const void *context);
 
 /** @} */
 
@@ -906,8 +907,8 @@ static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
 
-  if (gearman_packet_create(server_con->thread->gearman,
-                            &(server_packet->packet)) == NULL)
+  if (gearman_add_packet(server_con->thread->gearman,
+                         &(server_packet->packet)) == NULL)
   {
     free(data);
     gearman_server_packet_free(server_packet, server_con->thread, false);
@@ -981,7 +982,8 @@ _server_queue_work_data(gearman_server_job_st *server_job,
   return GEARMAN_SUCCESS;
 }
 
-static void _log(const char *line, gearman_verbose_t verbose, void *context)
+static void _log(const char *line, gearman_verbose_t verbose,
+                 const void *context)
 {
   gearman_server_st *server= (gearman_server_st *)context;
   (*(server->log_fn))(line, verbose, (void *)server->log_context);

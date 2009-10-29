@@ -1,3 +1,6 @@
+0.11 - 2009-11-??
+ * API and documentation cleanup.
+
 0.10 - 2009-09-28
  * Added timeout option.
  * Separated libgearman client/worker library from the server/gearmand code.

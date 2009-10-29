@@ -27,8 +27,8 @@ typedef enum
   REVERSE_WORKER_OPTIONS_UNIQUE= (1 << 2)
 } reverse_worker_options_t;
 
-static void *reverse(gearman_job_st *job, void *cb_arg, size_t *result_size,
-                     gearman_return_t *ret_ptr);
+static void *reverse(gearman_job_st *job, const void *context,
+                     size_t *result_size, gearman_return_t *ret_ptr);
 
 static void usage(char *name);
 
@@ -136,10 +136,10 @@ int main(int argc, char *argv[])
   return 0;
 }
 
-static void *reverse(gearman_job_st *job, void *cb_arg, size_t *result_size,
-                     gearman_return_t *ret_ptr)
+static void *reverse(gearman_job_st *job, const void *context,
+                     size_t *result_size, gearman_return_t *ret_ptr)
 {
-  reverse_worker_options_t options= *((reverse_worker_options_t *)cb_arg);
+  reverse_worker_options_t options= *((reverse_worker_options_t *)context);
   const uint8_t *workload;
   uint8_t *result;
   size_t x;

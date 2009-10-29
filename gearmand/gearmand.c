@@ -91,7 +91,8 @@ static void _pid_delete(const char *pid_file);
 static bool _switch_user(const char *user);
 static bool _set_signals(void);
 static void _shutdown_handler(int signal_arg);
-static void _log(const char *line, gearman_verbose_t verbose, void *context);
+static void _log(const char *line, gearman_verbose_t verbose,
+                 const void *context);
 
 int main(int argc, char *argv[])
 {
@@ -578,7 +579,8 @@ static void _shutdown_handler(int signal_arg)
     gearmand_wakeup(_gearmand, GEARMAND_WAKEUP_SHUTDOWN);
 }
 
-static void _log(const char *line, gearman_verbose_t verbose, void *context)
+static void _log(const char *line, gearman_verbose_t verbose,
+                 const void *context)
 {
   gearmand_log_info_st *log_info= (gearmand_log_info_st *)context;
   int fd;

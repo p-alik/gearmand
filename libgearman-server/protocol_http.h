@@ -19,20 +19,24 @@ extern "C" {
 #endif
 
 /**
- * @addtogroup gearman_protocol_http HTTP Protocol Functions
- * @ingroup gearman_protocol
+ * @addtogroup gearman_protocol_http HTTP Protocol Declarations
+ * @ingroup gearman_server_protocol
+ *
  * This module provides a simple HTTP interface into the Gearman job server. It
  * is also meant to serve as an example of how other protocols can plug into
  * the server. This module will ignore all headers except:
+ *
  * Content-Length: SIZE
  * Connection: Keep-Alive
  * X-Gearman-Unique: UNIQUE_KEY
  * X-Gearman-Background: true
  * X-Gearman-Priority: HIGH | LOW
+ *
  * All HTTP requests are translated into SUBMIT_JOB requests, and only
  * WORK_COMPLETE, WORK_FAIL, and JOB_CREATED responses are returned.
  * JOB_CREATED packet are only sent back if the "X-Gearman-Background: true"
  * header is given.
+ *
  * @{
  */
 

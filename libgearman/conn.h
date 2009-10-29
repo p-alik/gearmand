@@ -8,7 +8,7 @@
 
 /**
  * @file
- * @brief Connection declarations
+ * @brief Connection Declarations
  */
 
 #ifndef __GEARMAN_CON_H__
@@ -19,11 +19,14 @@ extern "C" {
 #endif
 
 /**
- * @addtogroup gearman_con Connection Handling
+ * @addtogroup gearman_con Connection Declarations
+ * @ingroup gearman
+ *
  * This is a low level interface for gearman connections. This is used
  * internally by both client and worker interfaces, so you probably want to
  * look there first. This is usually used to write lower level clients, workers,
  * proxies, or your own server.
+ *
  * @{
  */
 

@@ -8,7 +8,7 @@
 
 /**
  * @file
- * @brief Gearmand Thread Declarations
+ * @brief Thread Declarations
  */
 
 #ifndef __GEARMAND_THREAD_H__
@@ -19,8 +19,11 @@ extern "C" {
 #endif
 
 /**
- * @addtogroup gearmand_thread Gearmand Threads
+ * @addtogroup gearmand_thread Thread Declarations
+ * @ingroup gearmand
+ *
  * Thread handling for gearmand.
+ *
  * @{
  */
 

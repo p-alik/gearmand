@@ -66,7 +66,7 @@ gearman_server_con_create(gearman_server_thread_st *thread)
     }
   }
 
-  if (gearman_con_create(thread->gearman, &(con->con)) == NULL)
+  if (gearman_add_con(thread->gearman, &(con->con)) == NULL)
   {
     free(con);
     return NULL;

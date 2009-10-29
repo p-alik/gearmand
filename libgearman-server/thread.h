@@ -8,7 +8,7 @@
 
 /**
  * @file
- * @brief Server Thread Declarations
+ * @brief Thread Declarations
  */
 
 #ifndef __GEARMAN_SERVER_THREAD_H__
@@ -19,8 +19,11 @@ extern "C" {
 #endif
 
 /**
- * @addtogroup gearman_server_thread Server Thread Handling
+ * @addtogroup gearman_server_thread Thread Declarations
+ * @ingroup gearman_server
+ *
  * This is the interface gearman servers should use for creating threads.
+ *
  * @{
  */
 

@@ -13,8 +13,8 @@
 
 #include "benchmark.h"
 
-static void *worker_fn(gearman_job_st *job, void *cb_arg, size_t *result_size,
-                       gearman_return_t *ret_ptr);
+static void *worker_fn(gearman_job_st *job, const void *context,
+                       size_t *result_size, gearman_return_t *ret_ptr);
 
 static void usage(char *name);
 
@@ -130,10 +130,10 @@ int main(int argc, char *argv[])
   return 0;
 }
 
-static void *worker_fn(gearman_job_st *job, void *cb_arg, size_t *result_size,
-                       gearman_return_t *ret_ptr)
+static void *worker_fn(gearman_job_st *job, const void *context,
+                       size_t *result_size, gearman_return_t *ret_ptr)
 {
-  gearman_benchmark_st *benchmark= (gearman_benchmark_st *)cb_arg;
+  gearman_benchmark_st *benchmark= (gearman_benchmark_st *)context;
 
   (void)result_size;
 

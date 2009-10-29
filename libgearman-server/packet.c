@@ -101,8 +101,8 @@ gearman_return_t gearman_server_io_packet_add(gearman_server_con_st *con,
   if (server_packet == NULL)
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
 
-  if (gearman_packet_create(con->thread->gearman,
-                            &(server_packet->packet)) == NULL)
+  if (gearman_add_packet(con->thread->gearman,
+                         &(server_packet->packet)) == NULL)
   {
     gearman_server_packet_free(server_packet, con->thread, false);
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
