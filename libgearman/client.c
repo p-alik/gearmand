@@ -636,6 +636,16 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
             return ret;
           }
         }
+
+        if (client->new_tasks == 0)
+        {
+          ret= gearman_flush_all(client->gearman);
+          if (ret != GEARMAN_SUCCESS)
+          {
+            client->gearman->options= options;
+            return ret;
+          }
+        }
       }
 
       /* See if there are any connections ready for I/O. */
