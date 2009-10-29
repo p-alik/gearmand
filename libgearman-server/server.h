@@ -68,6 +68,16 @@ void gearman_server_set_job_retries(gearman_server_st *server,
                                     uint8_t job_retries);
 
 /**
+ * Set maximum number of workers to wake up per job.
+ * @param server Server structure previously initialized with
+ *        gearman_server_create.
+ * @param worker_wakeup Number of workers to wake up.
+ */
+GEARMAN_API
+void gearman_server_set_worker_wakeup(gearman_server_st *server,
+                                      uint8_t worker_wakeup);
+
+/**
  * Set logging callback for server instance.
  * @param server Server structure previously initialized with
  *        gearman_server_create.
