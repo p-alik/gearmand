@@ -297,7 +297,7 @@ void gearman_con_free(gearman_con_st *con)
   gearman_con_reset_addrinfo(con);
 
   if (con->protocol_context != NULL && con->protocol_context_free_fn != NULL)
-    (*con->protocol_context_free_fn)(con, (void *)con->protocol_context);
+    con->protocol_context_free_fn(con, (void *)con->protocol_context);
 
   if (con->gearman->con_list == con)
     con->gearman->con_list= con->next;
@@ -647,11 +647,11 @@ void gearman_packet_free(gearman_packet_st *packet)
   if (packet->options & GEARMAN_PACKET_FREE_DATA && packet->data != NULL)
   {
     if (packet->gearman->workload_free_fn == NULL)
-      free((void *)(packet->data));
+      free((void *)packet->data);
     else
     {
       packet->gearman->workload_free_fn((void *)(packet->data),
-                              (void *)(packet->gearman->workload_free_context));
+                                (void *)packet->gearman->workload_free_context);
     }
   }
 
@@ -707,7 +707,10 @@ void gearman_set_error(gearman_st *gearman, const char *function,
     memcpy(gearman->last_error, log_buffer, size + 1);
   }
   else
-    gearman->log_fn(log_buffer, GEARMAN_VERBOSE_FATAL, gearman->log_context);
+  {
+    gearman->log_fn(log_buffer, GEARMAN_VERBOSE_FATAL,
+                    (void *)gearman->log_context);
+  }
 }
 
 void gearman_log(gearman_st *gearman, gearman_verbose_t verbose,
@@ -724,7 +727,7 @@ void gearman_log(gearman_st *gearman, gearman_verbose_t verbose,
   else
   {
     vsnprintf(log_buffer, GEARMAN_MAX_ERROR_SIZE, format, args);
-    gearman->log_fn(log_buffer, verbose, gearman->log_context);
+    gearman->log_fn(log_buffer, verbose, (void *)gearman->log_context);
   }
 }
 

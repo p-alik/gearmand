@@ -13,7 +13,7 @@
 
 #include "benchmark.h"
 
-static void *worker_fn(gearman_job_st *job, const void *context,
+static void *worker_fn(gearman_job_st *job, void *context,
                        size_t *result_size, gearman_return_t *ret_ptr);
 
 static void usage(char *name);
@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
   return 0;
 }
 
-static void *worker_fn(gearman_job_st *job, const void *context,
+static void *worker_fn(gearman_job_st *job, void *context,
                        size_t *result_size, gearman_return_t *ret_ptr)
 {
   gearman_benchmark_st *benchmark= (gearman_benchmark_st *)context;

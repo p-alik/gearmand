@@ -38,7 +38,7 @@ typedef struct
 
 /* Protocol callback functions. */
 static gearman_return_t _http_con_add(gearman_con_st *con);
-static void _http_free(gearman_con_st *con, const void *context);
+static void _http_free(gearman_con_st *con, void *context);
 static size_t _http_pack(const gearman_packet_st *packet, gearman_con_st *con,
                          void *data, size_t data_size,
                          gearman_return_t *ret_ptr);
@@ -137,7 +137,7 @@ static gearman_return_t _http_con_add(gearman_con_st *con)
 }
 
 static void _http_free(gearman_con_st *con __attribute__ ((unused)),
-                       const void *context)
+                       void *context)
 {
   free((gearman_protocol_http_st *)context);
 }

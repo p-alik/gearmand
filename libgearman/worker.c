@@ -33,7 +33,7 @@ static gearman_return_t _worker_packet_init(gearman_worker_st *worker);
  * Callback function used when parsing server lists.
  */
 static gearman_return_t _worker_add_server(const char *host, in_port_t port,
-                                           const void *context);
+                                           void *context);
 
 /**
  * Allocate and add a function to the register list.
@@ -136,7 +136,7 @@ void gearman_worker_free(gearman_worker_st *worker)
     else
     {
       worker->gearman->workload_free_fn(worker->work_result,
-                              (void *)(worker->gearman->workload_free_context));
+                                (void *)worker->gearman->workload_free_context);
     }
   }
 
@@ -709,10 +709,9 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
     worker->work_result_size= 0;
 
   case GEARMAN_WORKER_WORK_STATE_FUNCTION:
-    worker->work_result= (*(worker->work_function->worker_fn))(
-                         &(worker->work_job),
-                         (void *)(worker->work_function->context),
-                         &(worker->work_result_size), &ret);
+    worker->work_result= worker->work_function->worker_fn(&(worker->work_job),
+                                         (void *)worker->work_function->context,
+                                         &(worker->work_result_size), &ret);
     if (ret == GEARMAN_WORK_FAIL)
     {
       ret= gearman_job_send_fail(&(worker->work_job));
@@ -753,7 +752,7 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
       else
       {
         worker->gearman->workload_free_fn(worker->work_result,
-                              (void *)(worker->gearman->workload_free_context));
+                                (void *)worker->gearman->workload_free_context);
       }
       worker->work_result= NULL;
     }
@@ -858,7 +857,7 @@ static gearman_return_t _worker_packet_init(gearman_worker_st *worker)
 }
 
 static gearman_return_t _worker_add_server(const char *host, in_port_t port,
-                                           const void *context)
+                                           void *context)
 {
   return gearman_worker_add_server((gearman_worker_st *)context, host, port);
 }

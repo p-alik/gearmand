@@ -19,7 +19,7 @@
 
 #include <libgearman/gearman.h>
 
-static void *wc(gearman_job_st *job, const void *context, size_t *result_size,
+static void *wc(gearman_job_st *job, void *context, size_t *result_size,
                 gearman_return_t *ret_ptr);
 
 static void usage(char *name);
@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
   return 0;
 }
 
-static void *wc(gearman_job_st *job, const void *context, size_t *result_size,
+static void *wc(gearman_job_st *job, void *context, size_t *result_size,
                 gearman_return_t *ret_ptr)
 {
   const uint8_t *workload;

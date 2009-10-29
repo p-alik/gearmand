@@ -25,8 +25,7 @@
  */
 
 static void *_thread(void *data);
-static void _log(const char *line, gearman_verbose_t verbose,
-                 const void *context);
+static void _log(const char *line, gearman_verbose_t verbose, void *context);
 static void _run(gearman_server_thread_st *thread, void *fn_arg);
 
 static gearman_return_t _wakeup_init(gearmand_thread_st *thread);
@@ -256,8 +255,7 @@ static void *_thread(void *data)
   return NULL;
 }
 
-static void _log(const char *line, gearman_verbose_t verbose,
-                 const void *context)
+static void _log(const char *line, gearman_verbose_t verbose, void *context)
 {
   gearmand_thread_st *dthread= (gearmand_thread_st *)context;
   char buffer[GEARMAN_MAX_ERROR_SIZE];

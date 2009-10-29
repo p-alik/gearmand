@@ -28,7 +28,7 @@ static gearman_client_st *_client_allocate(gearman_client_st *client);
  * Callback function used when parsing server lists.
  */
 static gearman_return_t _client_add_server(const char *host, in_port_t port,
-                                           const void *context);
+                                           void *context);
 
 /**
  * Add a task.
@@ -401,7 +401,7 @@ void gearman_task_free(gearman_task_st *task)
   if (task != &(task->client->do_task) && task->context != NULL &&
       task->client->task_context_free_fn != NULL)
   {
-    (*(task->client->task_context_free_fn))(task, (void *)(task->context));
+    task->client->task_context_free_fn(task, (void *)task->context);
   }
 
   if (task->client->task_list == task)
@@ -866,7 +866,7 @@ static gearman_client_st *_client_allocate(gearman_client_st *client)
 }
 
 static gearman_return_t _client_add_server(const char *host, in_port_t port,
-                                           const void *context)
+                                           void *context)
 {
   return gearman_client_add_server((gearman_client_st *)context, host, port);
 }
@@ -1007,7 +1007,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
       }
 
   case GEARMAN_TASK_STATE_WORKLOAD:
-      ret= (*(client->workload_fn))(task);
+      ret= client->workload_fn(task);
       if (ret != GEARMAN_SUCCESS)
       {
         task->state= GEARMAN_TASK_STATE_WORKLOAD;
@@ -1029,7 +1029,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
   case GEARMAN_TASK_STATE_CREATED:
       if (client->created_fn != NULL)
       {
-        ret= (*(client->created_fn))(task);
+        ret= client->created_fn(task);
         if (ret != GEARMAN_SUCCESS)
         {
           task->state= GEARMAN_TASK_STATE_CREATED;
@@ -1049,7 +1049,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
   case GEARMAN_TASK_STATE_DATA:
       if (client->data_fn != NULL)
       {
-        ret= (*(client->data_fn))(task);
+        ret= client->data_fn(task);
         if (ret != GEARMAN_SUCCESS)
         {
           task->state= GEARMAN_TASK_STATE_DATA;
@@ -1062,7 +1062,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
   case GEARMAN_TASK_STATE_WARNING:
       if (client->warning_fn != NULL)
       {
-        ret= (*(client->warning_fn))(task);
+        ret= client->warning_fn(task);
         if (ret != GEARMAN_SUCCESS)
         {
           task->state= GEARMAN_TASK_STATE_WARNING;
@@ -1099,7 +1099,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
   case GEARMAN_TASK_STATE_STATUS:
       if (client->status_fn != NULL)
       {
-        ret= (*(client->status_fn))(task);
+        ret= client->status_fn(task);
         if (ret != GEARMAN_SUCCESS)
         {
           task->state= GEARMAN_TASK_STATE_STATUS;
@@ -1115,7 +1115,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
   case GEARMAN_TASK_STATE_COMPLETE:
       if (client->complete_fn != NULL)
       {
-        ret= (*(client->complete_fn))(task);
+        ret= client->complete_fn(task);
         if (ret != GEARMAN_SUCCESS)
         {
           task->state= GEARMAN_TASK_STATE_COMPLETE;
@@ -1130,7 +1130,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
   case GEARMAN_TASK_STATE_EXCEPTION:
       if (client->exception_fn != NULL)
       {
-        ret= (*(client->exception_fn))(task);
+        ret= client->exception_fn(task);
         if (ret != GEARMAN_SUCCESS)
         {
           task->state= GEARMAN_TASK_STATE_EXCEPTION;
@@ -1143,7 +1143,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
   case GEARMAN_TASK_STATE_FAIL:
       if (client->fail_fn != NULL)
       {
-        ret= (*(client->fail_fn))(task);
+        ret= client->fail_fn(task);
         if (ret != GEARMAN_SUCCESS)
         {
           task->state= GEARMAN_TASK_STATE_FAIL;

@@ -56,8 +56,7 @@ _server_queue_work_data(gearman_server_job_st *server_job,
 /**
  * Wrapper for log handling.
  */
-static void _log(const char *line, gearman_verbose_t verbose,
-                 const void *context);
+static void _log(const char *line, gearman_verbose_t verbose, void *context);
 
 /** @} */
 
@@ -982,8 +981,7 @@ _server_queue_work_data(gearman_server_job_st *server_job,
   return GEARMAN_SUCCESS;
 }
 
-static void _log(const char *line, gearman_verbose_t verbose,
-                 const void *context)
+static void _log(const char *line, gearman_verbose_t verbose, void *context)
 {
   gearman_server_st *server= (gearman_server_st *)context;
   (*(server->log_fn))(line, verbose, (void *)server->log_context);

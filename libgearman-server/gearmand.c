@@ -24,8 +24,7 @@
  * @{
  */
 
-static void _log(const char *line, gearman_verbose_t verbose,
-                 const void *context);
+static void _log(const char *line, gearman_verbose_t verbose, void *context);
 
 static gearman_return_t _listen_init(gearmand_st *gearmand);
 static void _listen_close(gearmand_st *gearmand);
@@ -280,8 +279,7 @@ void gearmand_wakeup(gearmand_st *gearmand, gearmand_wakeup_t wakeup)
  * Private definitions
  */
 
-static void _log(const char *line, gearman_verbose_t verbose,
-                 const void *context)
+static void _log(const char *line, gearman_verbose_t verbose, void *context)
 {
   gearmand_st *gearmand= (gearmand_st *)context;
   (*gearmand->log_fn)(line, verbose, (void *)gearmand->log_context);

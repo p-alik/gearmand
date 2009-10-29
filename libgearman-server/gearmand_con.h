@@ -61,7 +61,7 @@ void gearmand_con_check_queue(gearmand_thread_st *thread);
  */
 GEARMAN_API
 gearman_return_t gearmand_con_watch(gearman_con_st *con, short events,
-                                    const void *context);
+                                    void *context);
 
 /** @} */
 

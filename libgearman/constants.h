@@ -409,27 +409,26 @@ typedef gearman_return_t (gearman_fail_fn)(gearman_task_st *task);
 
 typedef gearman_return_t (gearman_parse_server_fn)(const char *host,
                                                    in_port_t port,
-                                                   const void *context);
+                                                   void *context);
 
-typedef void* (gearman_worker_fn)(gearman_job_st *job, const void *context,
+typedef void* (gearman_worker_fn)(gearman_job_st *job, void *context,
                                   size_t *result_size,
                                   gearman_return_t *ret_ptr);
 
 typedef gearman_return_t (gearman_event_watch_fn)(gearman_con_st *con,
-                                                  short events,
-                                                  const void *context);
+                                                  short events, void *context);
 
-typedef void* (gearman_malloc_fn)(size_t size, const void *context);
-typedef void (gearman_free_fn)(void *ptr, const void *context);
+typedef void* (gearman_malloc_fn)(size_t size, void *context);
+typedef void (gearman_free_fn)(void *ptr, void *context);
 
 typedef void (gearman_task_context_free_fn)(gearman_task_st *task,
-                                            const void *context);
+                                            void *context);
 
 typedef void (gearman_log_fn)(const char *line, gearman_verbose_t verbose,
-                              const void *context);
+                              void *context);
 
 typedef void (gearman_con_protocol_context_free_fn)(gearman_con_st *con,
-                                                    const void *context);
+                                                    void *context);
 
 typedef size_t (gearman_packet_pack_fn)(const gearman_packet_st *packet,
                                         gearman_con_st *con,

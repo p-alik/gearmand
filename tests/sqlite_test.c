@@ -43,8 +43,7 @@ void world_destroy(void *object);
 
 /* Counter test for worker */
 static void *counter_function(gearman_job_st *job __attribute__((unused)), 
-                              const void *context, 
-                              size_t *result_size,
+                              void *context, size_t *result_size,
                               gearman_return_t *ret_ptr __attribute__((unused)))
 {
   uint32_t *counter= (uint32_t *)context;

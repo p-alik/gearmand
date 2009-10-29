@@ -160,12 +160,10 @@ gearman_return_t gearman_con_send(gearman_con_st *con,
     /* Pack first part of packet, which is everything but the payload. */
     while (1)
     {
-      send_size= (*con->packet_pack_fn)(packet, con,
-                                        con->send_buffer +
-                                        con->send_buffer_size,
-                                        GEARMAN_SEND_BUFFER_SIZE -
-                                        con->send_buffer_size,
-                                        &ret);
+      send_size= con->packet_pack_fn(packet, con,
+                                     con->send_buffer + con->send_buffer_size,
+                                     GEARMAN_SEND_BUFFER_SIZE -
+                                     con->send_buffer_size, &ret);
       if (ret == GEARMAN_SUCCESS)
       {
         con->send_buffer_size+= send_size;
@@ -556,9 +554,9 @@ gearman_packet_st *gearman_con_recv(gearman_con_st *con,
     {
       if (con->recv_buffer_size > 0)
       {
-        recv_size= (*con->packet_unpack_fn)(con->recv_packet, con,
-                                            con->recv_buffer_ptr,
-                                            con->recv_buffer_size, ret_ptr);
+        recv_size= con->packet_unpack_fn(con->recv_packet, con,
+                                         con->recv_buffer_ptr,
+                                         con->recv_buffer_size, ret_ptr);
         con->recv_buffer_ptr+= recv_size;
         con->recv_buffer_size-= recv_size;
         if (*ret_ptr == GEARMAN_SUCCESS)
@@ -603,7 +601,7 @@ gearman_packet_st *gearman_con_recv(gearman_con_st *con,
     else
     {
       packet->data= packet->gearman->workload_malloc_fn(packet->data_size,
-                            (void *)(packet->gearman->workload_malloc_context));
+                              (void *)packet->gearman->workload_malloc_context);
     }
     if (packet->data == NULL)
     {
@@ -770,7 +768,7 @@ gearman_return_t gearman_con_set_events(gearman_con_st *con, short events)
 
   if (con->gearman->event_watch_fn != NULL)
   {
-    ret= (con->gearman->event_watch_fn)(con, con->events,
+    ret= con->gearman->event_watch_fn(con, con->events,
                                      (void *)con->gearman->event_watch_context);
     if (ret != GEARMAN_SUCCESS)
     {
@@ -798,7 +796,7 @@ gearman_return_t gearman_con_set_revents(gearman_con_st *con, short revents)
   if (revents & POLLOUT && !(con->events & POLLOUT) &&
       con->gearman->event_watch_fn != NULL)
   {
-    ret= (con->gearman->event_watch_fn)(con, con->events,
+    ret= con->gearman->event_watch_fn(con, con->events,
                                      (void *)con->gearman->event_watch_context);
     if (ret != GEARMAN_SUCCESS)
     {
