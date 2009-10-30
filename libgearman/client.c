@@ -992,6 +992,8 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
               break;
           }
         }
+        else
+          task->con= NULL;
 
         if (task->con == NULL)
         {
