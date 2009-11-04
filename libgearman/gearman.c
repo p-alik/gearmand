@@ -513,8 +513,8 @@ gearman_return_t gearman_echo(gearman_st *gearman, const void *workload,
   gearman_return_t ret;
 
   ret= gearman_add_packet_args(gearman, &packet, GEARMAN_MAGIC_REQUEST,
-                               GEARMAN_COMMAND_ECHO_REQ, workload,
-                               workload_size, NULL);
+                               GEARMAN_COMMAND_ECHO_REQ, &workload,
+                               &workload_size, 1);
   if (ret != GEARMAN_SUCCESS)
     return ret;
 
@@ -604,11 +604,12 @@ gearman_return_t gearman_add_packet_args(gearman_st *gearman,
                                          gearman_packet_st *packet,
                                          gearman_magic_t magic,
                                          gearman_command_t command,
-                                         const void *arg, ...)
+                                         const void *args[],
+                                         const size_t args_size[],
+                                         size_t args_count)
 {
-  va_list ap;
-  size_t arg_size;
   gearman_return_t ret;
+  size_t x;
 
   packet= gearman_add_packet(gearman, packet);
   if (packet == NULL)
@@ -617,24 +618,15 @@ gearman_return_t gearman_add_packet_args(gearman_st *gearman,
   packet->magic= magic;
   packet->command= command;
 
-  va_start(ap, arg);
-
-  while (arg != NULL)
+  for (x= 0; x < args_count; x++)
   {
-    arg_size = va_arg(ap, size_t);
-
-    ret= gearman_packet_add_arg(packet, arg, arg_size);
+    ret= gearman_packet_add_arg(packet, args[x], args_size[x]);
     if (ret != GEARMAN_SUCCESS)
     {
-      va_end(ap);
       gearman_packet_free(packet);
       return ret;
     }
-
-    arg = va_arg(ap, void *);
   }
-
-  va_end(ap);
 
   return gearman_packet_pack_header(packet);
 }

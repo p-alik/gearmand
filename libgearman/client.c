@@ -520,6 +520,9 @@ gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
                                                 const char *job_handle,
                                                 gearman_return_t *ret_ptr)
 {
+  const void *args[1];
+  size_t args_size[1];
+
   task= _task_create(client, task);
   if (task == NULL)
   {
@@ -530,11 +533,12 @@ gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
   task->context= context;
   snprintf(task->job_handle, GEARMAN_JOB_HANDLE_SIZE, "%s", job_handle);
 
+  args[0]= job_handle;
+  args_size[0]= strlen(job_handle);
   *ret_ptr= gearman_add_packet_args(client->gearman, &(task->send),
                                     GEARMAN_MAGIC_REQUEST,
                                     GEARMAN_COMMAND_GET_STATUS,
-                                    job_handle, strlen(job_handle),
-                                    NULL);
+                                    args, args_size, 1);
   if (*ret_ptr == GEARMAN_SUCCESS)
   {
     client->new_tasks++;
@@ -893,6 +897,8 @@ static gearman_task_st *_client_add_task(gearman_client_st *client,
 {
   uuid_t uuid;
   char uuid_string[37];
+  const void *args[3];
+  size_t args_size[3];
 
   task= _task_create(client, task);
   if (task == NULL)
@@ -910,12 +916,16 @@ static gearman_task_st *_client_add_task(gearman_client_st *client,
     unique= uuid_string;
   }
 
+  args[0]= function_name;
+  args_size[0]= (size_t)strlen(function_name) + 1;
+  args[1]= unique;
+  args_size[1]= (size_t)strlen(unique) + 1;
+  args[2]= workload;
+  args_size[2]= workload_size;
+
   *ret_ptr= gearman_add_packet_args(client->gearman, &(task->send),
                                     GEARMAN_MAGIC_REQUEST, command,
-                                    function_name,
-                                    (size_t)(strlen(function_name) + 1),
-                                    unique, (size_t)(strlen(unique) + 1),
-                                    workload, workload_size, NULL);
+                                    args, args_size, 3);
   if (*ret_ptr == GEARMAN_SUCCESS)
   {
     client->new_tasks++;

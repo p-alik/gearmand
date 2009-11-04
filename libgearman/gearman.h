@@ -388,16 +388,23 @@ gearman_packet_st *gearman_add_packet(gearman_st *gearman,
                                       gearman_packet_st *packet);
 
 /**
- * Initialize a packet with all arguments. Variable list is NULL terminated
- * alternating argument and argument size (size_t) pairs. For example:
+ * Initialize a packet with all arguments. For example:
  *
  * @code
+ * void *args[3];
+ * size_t args_suze[3];
+ *
+ * args[0]= function_name;
+ * args_size[0]= strlen(function_name) + 1;
+ * args[1]= unique_string;
+ * args_size[1]= strlen(unique_string,) + 1;
+ * args[2]= workload;
+ * args_size[2]= workload_size;
+ *
  * ret= gearman_add_packet_args(gearman, packet,
  *                              GEARMAN_MAGIC_REQUEST,
  *                              GEARMAN_COMMAND_SUBMIT_JOB,
- *                              function_name, strlen(function_name) + 1,
- *                              unique_string, strlen(unique_string) + 1,
- *                              workload, workload_size, NULL);
+ *                              args, args_size, 3);
  * @endcode
  *
  * @param[in] gearman Structure previously initialized with gearman_create() or
@@ -405,7 +412,9 @@ gearman_packet_st *gearman_add_packet(gearman_st *gearman,
  * @param[in] packet Pre-allocated packet to initialize with arguments.
  * @param[in] magic Magic type for packet header.
  * @param[in] command Command type for packet.
- * @param[in] arg NULL terminated argument list in pairs of "arg, arg_size".
+ * @param[in] args Array of arguments to add.
+ * @param[in] args_size Array of sizes of each byte array in the args array.
+ * @param[in] args_count Number of elements in args/args_sizes arrays.
  * @return Standard gearman return value.
  */
 GEARMAN_API
@@ -413,7 +422,9 @@ gearman_return_t gearman_add_packet_args(gearman_st *gearman,
                                          gearman_packet_st *packet,
                                          gearman_magic_t magic,
                                          gearman_command_t command,
-                                         const void *arg, ...);
+                                         const void *args[],
+                                         const size_t args_size[],
+                                         size_t args_count);
 
 /**
  * Free a packet structure.
