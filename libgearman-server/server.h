@@ -15,6 +15,8 @@
 #define __GEARMAN_SERVER_H__
 
 #include <libgearman/gearman.h>
+#include <event.h>
+
 #include <libgearman-server/constants.h>
 #include <libgearman-server/structs.h>
 #include <libgearman-server/conf.h>
@@ -32,7 +34,7 @@ extern "C" {
 #endif
 
 /**
- * @addtogroup gearman_server Server Interface
+ * @addtogroup gearman_server Gearman Server Declarations
  * This is the interface gearman servers should use.
  * @{
  */
@@ -64,6 +66,16 @@ void gearman_server_free(gearman_server_st *server);
 GEARMAN_API
 void gearman_server_set_job_retries(gearman_server_st *server,
                                     uint8_t job_retries);
+
+/**
+ * Set maximum number of workers to wake up per job.
+ * @param server Server structure previously initialized with
+ *        gearman_server_create.
+ * @param worker_wakeup Number of workers to wake up.
+ */
+GEARMAN_API
+void gearman_server_set_worker_wakeup(gearman_server_st *server,
+                                      uint8_t worker_wakeup);
 
 /**
  * Set logging callback for server instance.

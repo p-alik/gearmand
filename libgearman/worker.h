@@ -8,7 +8,7 @@
 
 /**
  * @file
- * @brief Worker declarations
+ * @brief Worker Declarations
  */
 
 #ifndef __GEARMAN_WORKER_H__
@@ -19,7 +19,8 @@ extern "C" {
 #endif
 
 /**
- * @addtogroup gearman_worker Worker Interface
+ * @addtogroup gearman_worker Worker Declarations
+ *
  * This is the interface gearman workers should use.
  *
  * @ref main_page_worker "See Main Page for full details."

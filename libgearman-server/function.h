@@ -8,7 +8,7 @@
 
 /**
  * @file
- * @brief Server function declarations
+ * @brief Function Declarations
  */
 
 #ifndef __GEARMAN_SERVER_FUNCTION_H__
@@ -19,10 +19,12 @@ extern "C" {
 #endif
 
 /**
- * @addtogroup gearman_server_function Server Function Handling
+ * @addtogroup gearman_server_function Function Declarations
  * @ingroup gearman_server
+ *
  * This is a low level interface for gearman server functions. This is used
  * internally by the server interface, so you probably want to look there first.
+ *
  * @{
  */
 

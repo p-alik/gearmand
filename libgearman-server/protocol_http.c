@@ -17,8 +17,8 @@
 #include <libgearman-server/protocol_http.h>
 
 /**
- * @addtogroup gearman_protocol_http HTTP Protocol Functions
- * @ingroup gearman_protocol
+ * @addtogroup gearman_protocol_http_static Static HTTP Protocol Definitions
+ * @ingroup gearman_protocol_http
  * @{
  */
 
@@ -26,10 +26,6 @@
  * Default values.
  */
 #define GEARMAN_PROTOCOL_HTTP_DEFAULT_PORT 8080
-
-/*
- * Private declarations
- */
 
 /**
  * Structure for HTTP specific data.
@@ -42,7 +38,7 @@ typedef struct
 
 /* Protocol callback functions. */
 static gearman_return_t _http_con_add(gearman_con_st *con);
-static void _http_free(gearman_con_st *con , void *data);
+static void _http_free(gearman_con_st *con, void *context);
 static size_t _http_pack(const gearman_packet_st *packet, gearman_con_st *con,
                          void *data, size_t data_size,
                          gearman_return_t *ret_ptr);
@@ -115,7 +111,7 @@ gearman_return_t gearmand_protocol_http_deinit(gearmand_st *gearmand __attribute
 }
 
 /*
- * Private definitions
+ * Static definitions
  */
 
 static gearman_return_t _http_con_add(gearman_con_st *con)
@@ -140,9 +136,10 @@ static gearman_return_t _http_con_add(gearman_con_st *con)
   return GEARMAN_SUCCESS;
 }
 
-static void _http_free(gearman_con_st *con __attribute__ ((unused)), void *data)
+static void _http_free(gearman_con_st *con __attribute__ ((unused)),
+                       void *context)
 {
-  free(data);
+  free((gearman_protocol_http_st *)context);
 }
 
 static size_t _http_pack(const gearman_packet_st *packet, gearman_con_st *con,

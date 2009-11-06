@@ -8,17 +8,13 @@
 
 /**
  * @file
- * @brief Gearman core definitions
+ * @brief Gearman Definitions
  */
 
 #include "common.h"
 
-/*
- * Private declarations
- */
-
 /**
- * @addtogroup gearman_private Private Functions
+ * @addtogroup gearman_static Static Gearman Declarations
  * @ingroup gearman
  * @{
  */
@@ -28,6 +24,7 @@
  */
 static const char *_verbose_name[GEARMAN_VERBOSE_MAX]=
 {
+  "NEVER",
   "FATAL",
   "ERROR",
   "INFO",
@@ -38,7 +35,7 @@ static const char *_verbose_name[GEARMAN_VERBOSE_MAX]=
 /** @} */
 
 /*
- * Public definitions
+ * Public Definitions
  */
 
 const char *gearman_version(void)
@@ -108,7 +105,7 @@ gearman_st *gearman_clone(gearman_st *gearman, const gearman_st *from)
 
   for (con= from->con_list; con != NULL; con= con->next)
   {
-    if (gearman_con_clone(gearman, NULL, con) == NULL)
+    if (gearman_clone_con(gearman, NULL, con) == NULL)
     {
       gearman_free(gearman);
       return NULL;
@@ -123,8 +120,8 @@ gearman_st *gearman_clone(gearman_st *gearman, const gearman_st *from)
 
 void gearman_free(gearman_st *gearman)
 {
-  gearman_con_free_all(gearman);
-  gearman_packet_free_all(gearman);
+  gearman_free_all_cons(gearman);
+  gearman_free_all_packets(gearman);
 
   if (gearman->pfds != NULL)
     free(gearman->pfds);
@@ -209,14 +206,14 @@ void gearman_set_workload_free_fn(gearman_st *gearman,
  * Connection related functions.
  */
 
-gearman_con_st *gearman_con_create(gearman_st *gearman, gearman_con_st *con)
+gearman_con_st *gearman_add_con(gearman_st *gearman, gearman_con_st *con)
 {
   if (con == NULL)
   {
     con= malloc(sizeof(gearman_con_st));
     if (con == NULL)
     {
-      gearman_error_set(gearman, "gearman_con_create", "malloc");
+      gearman_set_error(gearman, "gearman_add_con", "malloc");
       return NULL;
     }
 
@@ -264,10 +261,10 @@ gearman_con_st *gearman_con_create(gearman_st *gearman, gearman_con_st *con)
   return con;
 }
 
-gearman_con_st *gearman_con_add(gearman_st *gearman, gearman_con_st *con,
-                                const char *host, in_port_t port)
+gearman_con_st *gearman_add_con_args(gearman_st *gearman, gearman_con_st *con,
+                                     const char *host, in_port_t port)
 {
-  con= gearman_con_create(gearman, con);
+  con= gearman_add_con(gearman, con);
   if (con == NULL)
     return NULL;
 
@@ -277,10 +274,10 @@ gearman_con_st *gearman_con_add(gearman_st *gearman, gearman_con_st *con,
   return con;
 }
 
-gearman_con_st *gearman_con_clone(gearman_st *gearman, gearman_con_st *con,
+gearman_con_st *gearman_clone_con(gearman_st *gearman, gearman_con_st *con,
                                   const gearman_con_st *from)
 {
-  con= gearman_con_create(gearman, con);
+  con= gearman_add_con(gearman, con);
   if (con == NULL)
     return NULL;
 
@@ -300,7 +297,7 @@ void gearman_con_free(gearman_con_st *con)
   gearman_con_reset_addrinfo(con);
 
   if (con->protocol_context != NULL && con->protocol_context_free_fn != NULL)
-    (*con->protocol_context_free_fn)(con, (void *)con->protocol_context);
+    con->protocol_context_free_fn(con, (void *)con->protocol_context);
 
   if (con->gearman->con_list == con)
     con->gearman->con_list= con->next;
@@ -317,13 +314,13 @@ void gearman_con_free(gearman_con_st *con)
     free(con);
 }
 
-void gearman_con_free_all(gearman_st *gearman)
+void gearman_free_all_cons(gearman_st *gearman)
 {
   while (gearman->con_list != NULL)
     gearman_con_free(gearman->con_list);
 }
 
-gearman_return_t gearman_con_flush_all(gearman_st *gearman)
+gearman_return_t gearman_flush_all(gearman_st *gearman)
 {
   gearman_con_st *con;
   gearman_return_t ret;
@@ -341,8 +338,8 @@ gearman_return_t gearman_con_flush_all(gearman_st *gearman)
   return GEARMAN_SUCCESS;
 }
 
-gearman_return_t gearman_con_send_all(gearman_st *gearman,
-                                      const gearman_packet_st *packet)
+gearman_return_t gearman_send_all(gearman_st *gearman,
+                                  const gearman_packet_st *packet)
 {
   gearman_return_t ret;
   gearman_con_st *con;
@@ -371,7 +368,7 @@ gearman_return_t gearman_con_send_all(gearman_st *gearman,
 
   while (gearman->sending != 0)
   {
-    while ((con= gearman_con_ready(gearman)) != NULL)
+    while ((con= gearman_ready(gearman)) != NULL)
     {
       ret= gearman_con_send(con, packet, true);
       if (ret != GEARMAN_SUCCESS)
@@ -397,7 +394,7 @@ gearman_return_t gearman_con_send_all(gearman_st *gearman,
       return GEARMAN_IO_WAIT;
     }
 
-    ret= gearman_con_wait(gearman);
+    ret= gearman_wait(gearman);
     if (ret != GEARMAN_SUCCESS)
     {
       gearman->options= options;
@@ -409,7 +406,7 @@ gearman_return_t gearman_con_send_all(gearman_st *gearman,
   return GEARMAN_SUCCESS;
 }
 
-gearman_return_t gearman_con_wait(gearman_st *gearman)
+gearman_return_t gearman_wait(gearman_st *gearman)
 {
   gearman_con_st *con;
   struct pollfd *pfds;
@@ -422,7 +419,7 @@ gearman_return_t gearman_con_wait(gearman_st *gearman)
     pfds= realloc(gearman->pfds, gearman->con_count * sizeof(struct pollfd));
     if (pfds == NULL)
     {
-      gearman_error_set(gearman, "gearman_con_wait", "realloc");
+      gearman_set_error(gearman, "gearman_wait", "realloc");
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
 
@@ -446,8 +443,7 @@ gearman_return_t gearman_con_wait(gearman_st *gearman)
 
   if (x == 0)
   {
-    gearman_error_set(gearman, "gearman_con_wait",
-                      "no active file descriptors");
+    gearman_set_error(gearman, "gearman_wait", "no active file descriptors");
     return GEARMAN_NO_ACTIVE_FDS;
   }
 
@@ -459,7 +455,7 @@ gearman_return_t gearman_con_wait(gearman_st *gearman)
       if (errno == EINTR)
         continue;
 
-      gearman_error_set(gearman, "gearman_con_wait", "poll:%d", errno);
+      gearman_set_error(gearman, "gearman_wait", "poll:%d", errno);
       gearman->last_errno= errno;
       return GEARMAN_ERRNO;
     }
@@ -469,7 +465,7 @@ gearman_return_t gearman_con_wait(gearman_st *gearman)
 
   if (ret == 0)
   {
-    gearman_error_set(gearman, "gearman_con_wait", "timeout reached");
+    gearman_set_error(gearman, "gearman_wait", "timeout reached");
     return GEARMAN_TIMEOUT;
   }
 
@@ -489,7 +485,7 @@ gearman_return_t gearman_con_wait(gearman_st *gearman)
   return GEARMAN_SUCCESS;
 }
 
-gearman_con_st *gearman_con_ready(gearman_st *gearman)
+gearman_con_st *gearman_ready(gearman_st *gearman)
 {
   gearman_con_st *con;
 
@@ -508,17 +504,17 @@ gearman_con_st *gearman_con_ready(gearman_st *gearman)
   return NULL;
 }
 
-gearman_return_t gearman_con_echo(gearman_st *gearman, const void *workload,
-                                  size_t workload_size)
+gearman_return_t gearman_echo(gearman_st *gearman, const void *workload,
+                              size_t workload_size)
 {
   gearman_con_st *con;
   gearman_options_t options= gearman->options;
   gearman_packet_st packet;
   gearman_return_t ret;
 
-  ret= gearman_packet_add(gearman, &packet, GEARMAN_MAGIC_REQUEST,
-                          GEARMAN_COMMAND_ECHO_REQ, workload, workload_size,
-                          NULL);
+  ret= gearman_add_packet_args(gearman, &packet, GEARMAN_MAGIC_REQUEST,
+                               GEARMAN_COMMAND_ECHO_REQ, &workload,
+                               &workload_size, 1);
   if (ret != GEARMAN_SUCCESS)
     return ret;
 
@@ -548,7 +544,7 @@ gearman_return_t gearman_con_echo(gearman_st *gearman, const void *workload,
       gearman_packet_free(&(con->packet));
       gearman_packet_free(&packet);
       gearman->options= options;
-      gearman_error_set(gearman, "gearman_con_echo", "corruption during echo");
+      gearman_set_error(gearman, "gearman_echo", "corruption during echo");
       return GEARMAN_ECHO_DATA_CORRUPTION;
     }
 
@@ -564,15 +560,15 @@ gearman_return_t gearman_con_echo(gearman_st *gearman, const void *workload,
  * Packet related functions.
  */
 
-gearman_packet_st *gearman_packet_create(gearman_st *gearman,
-                                         gearman_packet_st *packet)
+gearman_packet_st *gearman_add_packet(gearman_st *gearman,
+                                      gearman_packet_st *packet)
 {
   if (packet == NULL)
   {
     packet= malloc(sizeof(gearman_packet_st));
     if (packet == NULL)
     {
-      gearman_error_set(gearman, "gearman_packet_create", "malloc");
+      gearman_set_error(gearman, "gearman_add_packet", "malloc");
       return NULL;
     }
 
@@ -604,41 +600,33 @@ gearman_packet_st *gearman_packet_create(gearman_st *gearman,
   return packet;
 }
 
-gearman_return_t gearman_packet_add(gearman_st *gearman,
-                                    gearman_packet_st *packet,
-                                    gearman_magic_t magic,
-                                    gearman_command_t command,
-                                    const void *arg, ...)
+gearman_return_t gearman_add_packet_args(gearman_st *gearman,
+                                         gearman_packet_st *packet,
+                                         gearman_magic_t magic,
+                                         gearman_command_t command,
+                                         const void *args[],
+                                         const size_t args_size[],
+                                         size_t args_count)
 {
-  va_list ap;
-  size_t arg_size;
   gearman_return_t ret;
+  size_t x;
 
-  packet= gearman_packet_create(gearman, packet);
+  packet= gearman_add_packet(gearman, packet);
   if (packet == NULL)
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
 
   packet->magic= magic;
   packet->command= command;
 
-  va_start(ap, arg);
-
-  while (arg != NULL)
+  for (x= 0; x < args_count; x++)
   {
-    arg_size = va_arg(ap, size_t);
-
-    ret= gearman_packet_add_arg(packet, arg, arg_size);
+    ret= gearman_packet_add_arg(packet, args[x], args_size[x]);
     if (ret != GEARMAN_SUCCESS)
     {
-      va_end(ap);
       gearman_packet_free(packet);
       return ret;
     }
-
-    arg = va_arg(ap, void *);
   }
-
-  va_end(ap);
 
   return gearman_packet_pack_header(packet);
 }
@@ -651,11 +639,11 @@ void gearman_packet_free(gearman_packet_st *packet)
   if (packet->options & GEARMAN_PACKET_FREE_DATA && packet->data != NULL)
   {
     if (packet->gearman->workload_free_fn == NULL)
-      free((void *)(packet->data));
+      free((void *)packet->data);
     else
     {
       packet->gearman->workload_free_fn((void *)(packet->data),
-                              (void *)(packet->gearman->workload_free_context));
+                                (void *)packet->gearman->workload_free_context);
     }
   }
 
@@ -674,50 +662,65 @@ void gearman_packet_free(gearman_packet_st *packet)
     free(packet);
 }
 
-void gearman_packet_free_all(gearman_st *gearman)
+void gearman_free_all_packets(gearman_st *gearman)
 {
   while (gearman->packet_list != NULL)
     gearman_packet_free(gearman->packet_list);
 }
 
 /*
- * Local package functions.
+ * Local Definitions
  */
-void gearman_error_set(gearman_st *gearman, const char *function,
+
+void gearman_set_error(gearman_st *gearman, const char *function,
                        const char *format, ...)
 {
-  size_t length;
+  size_t size;
   char *ptr;
   char log_buffer[GEARMAN_MAX_ERROR_SIZE];
-  va_list arg;
+  va_list args;
 
-  va_start(arg, format);
-
-  length= strlen(function);
-
-  /* Copy the function name and : before the format */
-  ptr= memcpy(log_buffer, function, length);
-  ptr+= length;
+  size= strlen(function);
+  ptr= memcpy(log_buffer, function, size);
+  ptr+= size;
   ptr[0]= ':';
-  length++;
+  size++;
   ptr++;
 
-  length+= (size_t)vsnprintf(ptr, GEARMAN_MAX_ERROR_SIZE - length, format, arg);
+  va_start(args, format);
+  size+= (size_t)vsnprintf(ptr, GEARMAN_MAX_ERROR_SIZE - size, format, args);
+  va_end(args);
 
   if (gearman->log_fn == NULL)
   {
-    if (length >= GEARMAN_MAX_ERROR_SIZE)
-      length= GEARMAN_MAX_ERROR_SIZE - 1;
+    if (size >= GEARMAN_MAX_ERROR_SIZE)
+      size= GEARMAN_MAX_ERROR_SIZE - 1;
 
-    memcpy(gearman->last_error, log_buffer, length + 1);
+    memcpy(gearman->last_error, log_buffer, size + 1);
   }
   else
   {
-    (*(gearman->log_fn))(log_buffer, GEARMAN_VERBOSE_FATAL,
-                         (void *)(gearman)->log_context);
+    gearman->log_fn(log_buffer, GEARMAN_VERBOSE_FATAL,
+                    (void *)gearman->log_context);
   }
+}
 
-  va_end(arg);
+void gearman_log(gearman_st *gearman, gearman_verbose_t verbose,
+                 const char *format, va_list args)
+{
+  char log_buffer[GEARMAN_MAX_ERROR_SIZE];
+
+  if (gearman->log_fn == NULL)
+  {
+    printf("%5s: ", gearman_verbose_name(verbose));
+    vprintf(format, args);
+    printf("\n");
+  }
+  else
+  {
+    vsnprintf(log_buffer, GEARMAN_MAX_ERROR_SIZE, format, args);
+    gearman->log_fn(log_buffer, verbose, (void *)gearman->log_context);
+  }
 }
 
 gearman_return_t gearman_parse_servers(const char *servers,

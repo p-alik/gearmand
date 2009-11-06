@@ -8,7 +8,7 @@
 
 /**
  * @file
- * @brief System include files
+ * @brief System Include Files
  */
 
 #ifndef __GEARMAN_COMMON_H__
@@ -75,34 +75,6 @@
 # endif
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/**
- * Utility function used for error logging
- * @ingroup gearman_private
- *
- * @param[in] gearman Structure previously initialized with gearman_create() or
- *  gearman_clone().
- * @param[in] function Name of function the error happened in. 
- * @param[in] format Format and variable argument list of message.
- */
-GEARMAN_LOCAL
-void gearman_error_set(gearman_st *gearman, const char *function,
-                       const char *format, ...);
-
-/**
- * Utility function used for parsing server lists.
- * @ingroup gearman_private
- */
-GEARMAN_LOCAL
-gearman_return_t gearman_parse_servers(const char *servers,
-                                       gearman_parse_server_fn *callback,
-                                       const void *context);
-
-#ifdef __cplusplus
-}
-#endif
+#include "gearman_local.h"
 
 #endif /* __GEARMAN_COMMON_H__ */

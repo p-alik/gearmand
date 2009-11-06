@@ -8,7 +8,7 @@
 
 /**
  * @file
- * @brief Gearmand Connection Declarations
+ * @brief Connection Declarations
  */
 
 #ifndef __GEARMAND_CON_H__
@@ -19,8 +19,11 @@ extern "C" {
 #endif
 
 /**
- * @addtogroup gearmand_con Gearmand Connections
+ * @addtogroup gearmand_con Connection Declarations
+ * @ingroup gearmand
+ *
  * Connection handling for gearmand.
+ *
  * @{
  */
 
@@ -58,7 +61,7 @@ void gearmand_con_check_queue(gearmand_thread_st *thread);
  */
 GEARMAN_API
 gearman_return_t gearmand_con_watch(gearman_con_st *con, short events,
-                                    void *arg);
+                                    void *context);
 
 /** @} */
 

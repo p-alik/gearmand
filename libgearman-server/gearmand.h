@@ -8,7 +8,7 @@
 
 /**
  * @file
- * @brief Gearmand declarations
+ * @brief Gearmand Declarations
  */
 
 #ifndef __GEARMAND_H__
@@ -23,8 +23,10 @@ extern "C" {
 #endif
 
 /**
- * @addtogroup gearmand Gearmand
+ * @addtogroup gearmand Gearmand Declarations
+ *
  * This is a server implementation using the gearman_server interface.
+ *
  * @{
  */
 
@@ -62,6 +64,15 @@ void gearmand_set_backlog(gearmand_st *gearmand, int backlog);
  */
 GEARMAN_API
 void gearmand_set_job_retries(gearmand_st *gearmand, uint8_t job_retries);
+
+/**
+ * Set maximum number of workers to wake up per job.
+ * @param gearmand Server instance structure previously initialized with
+ *        gearmand_create.
+ * @param worker_wakeup Number of workers to wake up.
+ */
+GEARMAN_API
+void gearmand_set_worker_wakeup(gearmand_st *gearmand, uint8_t worker_wakeup);
 
 /**
  * Set number of I/O threads for server to use.

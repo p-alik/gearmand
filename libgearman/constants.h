@@ -19,7 +19,10 @@ extern "C" {
 #endif
 
 /**
- * @addtogroup gearman_constants Gearman Constants
+ * @addtogroup gearman_constants Constants
+ * @ingroup gearman
+ * @ingroup gearman_client
+ * @ingroup gearman_worker
  * @{
  */
 
@@ -39,17 +42,6 @@ extern "C" {
 #define GEARMAN_SEND_BUFFER_SIZE 8192
 #define GEARMAN_RECV_BUFFER_SIZE 8192
 #define GEARMAN_WORKER_WAIT_TIMEOUT (10 * 1000) /* Milliseconds */
-
-/* Types. */
-typedef struct gearman_st gearman_st;
-typedef struct gearman_con_st gearman_con_st;
-typedef struct gearman_packet_st gearman_packet_st;
-typedef struct gearman_command_info_st gearman_command_info_st;
-typedef struct gearman_task_st gearman_task_st;
-typedef struct gearman_client_st gearman_client_st;
-typedef struct gearman_job_st gearman_job_st;
-typedef struct gearman_worker_st gearman_worker_st;
-typedef struct gearman_worker_function_st gearman_worker_function_st;
 
 /**
  * Return codes.
@@ -111,6 +103,7 @@ typedef enum
  */
 typedef enum
 {
+  GEARMAN_VERBOSE_NEVER,
   GEARMAN_VERBOSE_FATAL,
   GEARMAN_VERBOSE_ERROR,
   GEARMAN_VERBOSE_INFO,
@@ -386,9 +379,23 @@ typedef enum
 } gearman_worker_work_state_t;
 
 /**
- * @addtogroup gearman_constants Gearman Constants
+ * @addtogroup gearman_types Types
+ * @ingroup gearman
+ * @ingroup gearman_client
+ * @ingroup gearman_worker
  * @{
  */
+
+/* Types. */
+typedef struct gearman_st gearman_st;
+typedef struct gearman_con_st gearman_con_st;
+typedef struct gearman_packet_st gearman_packet_st;
+typedef struct gearman_command_info_st gearman_command_info_st;
+typedef struct gearman_task_st gearman_task_st;
+typedef struct gearman_client_st gearman_client_st;
+typedef struct gearman_job_st gearman_job_st;
+typedef struct gearman_worker_st gearman_worker_st;
+typedef struct gearman_worker_function_st gearman_worker_function_st;
 
 /* Function types. */
 typedef gearman_return_t (gearman_workload_fn)(gearman_task_st *task);

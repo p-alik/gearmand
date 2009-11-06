@@ -19,8 +19,8 @@ extern "C" {
 #endif
 
 /**
- * @addtogroup gearman_queue_libdrizzle libdrizzle Queue Storage Functions
- * @ingroup gearman_queue
+ * @addtogroup gearman_queue_libdrizzle libdrizzle Queue Storage Declarations
+ * @ingroup gearman_server_queue
  * @{
  */
 

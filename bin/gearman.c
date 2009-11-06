@@ -92,8 +92,8 @@ static void _worker(gearman_args_st *args);
 /**
  * Callback function when worker gets a job.
  */
-static void *_worker_cb(gearman_job_st *job, void *cb_arg, size_t *result_size,
-                        gearman_return_t *ret_ptr);
+static void *_worker_cb(gearman_job_st *job, void *context,
+                        size_t *result_size, gearman_return_t *ret_ptr);
 
 /**
  * Read workload chunk from a file descriptor and put into allocated memory.
@@ -460,10 +460,10 @@ void _worker(gearman_args_st *args)
   gearman_worker_free(&worker);
 }
 
-static void *_worker_cb(gearman_job_st *job, void *cb_arg, size_t *result_size,
-                        gearman_return_t *ret_ptr)
+static void *_worker_cb(gearman_job_st *job, void *context,
+                        size_t *result_size, gearman_return_t *ret_ptr)
 {
-  gearman_args_st *args= (gearman_args_st *)cb_arg;
+  gearman_args_st *args= (gearman_args_st *)context;
   int in_fds[2];
   int out_fds[2];
   char *result= NULL;

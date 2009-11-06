@@ -380,6 +380,7 @@ gearman_return_t gearman_server_job_queue(gearman_server_job_st *job)
 {
   gearman_server_client_st *client;
   gearman_server_worker_st *worker;
+  uint32_t noop_sent;
   gearman_return_t ret;
 
   if (job->worker != NULL)
@@ -415,22 +416,32 @@ gearman_return_t gearman_server_job_queue(gearman_server_job_st *job)
   }
 
   /* Queue NOOP for possible sleeping workers. */
-  for (worker= job->function->worker_list; worker != NULL;
-       worker= worker->function_next)
+  if (job->function->worker_list != NULL)
   {
-    if (!(worker->con->options & GEARMAN_SERVER_CON_SLEEPING) ||
-        worker->con->options & GEARMAN_SERVER_CON_NOOP_SENT)
+    worker= job->function->worker_list;
+    noop_sent= 0;
+    do
     {
-      continue;
+      if (worker->con->options & GEARMAN_SERVER_CON_SLEEPING &&
+          !(worker->con->options & GEARMAN_SERVER_CON_NOOP_SENT))
+      {
+        ret= gearman_server_io_packet_add(worker->con, false,
+                                          GEARMAN_MAGIC_RESPONSE,
+                                          GEARMAN_COMMAND_NOOP, NULL);
+        if (ret != GEARMAN_SUCCESS)
+          return ret;
+
+        worker->con->options|= GEARMAN_SERVER_CON_NOOP_SENT;
+        noop_sent++;
+      }
+
+      worker= worker->function_next;
     }
+    while (worker != job->function->worker_list &&
+           (job->server->worker_wakeup == 0 ||
+           noop_sent < job->server->worker_wakeup));
 
-    ret= gearman_server_io_packet_add(worker->con, false,
-                                      GEARMAN_MAGIC_RESPONSE,
-                                      GEARMAN_COMMAND_NOOP, NULL);
-    if (ret != GEARMAN_SUCCESS)
-      return ret;
-
-    worker->con->options|= GEARMAN_SERVER_CON_NOOP_SENT;
+    job->function->worker_list= worker;
   }
 
   /* Queue the job to be run. */

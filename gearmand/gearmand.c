@@ -102,6 +102,7 @@ int main(int argc, char *argv[])
   int backlog= GEARMAND_LISTEN_BACKLOG;
   rlim_t fds= 0;
   uint8_t job_retries= 0;
+  uint8_t worker_wakeup= 0;
   in_port_t port= 0;
   const char *host= NULL;
   const char *pid_file= NULL;
@@ -157,6 +158,9 @@ int main(int argc, char *argv[])
   MCO("user", 'u', "USER", "Switch to given user after startup.")
   MCO("verbose", 'v', NULL, "Increase verbosity level by one.")
   MCO("version", 'V', NULL, "Display the version of gearmand and exit.")
+  MCO("worker-wakeup", 'w', "WORKERS",
+      "Number of workers to wakeup for each job received. The default is to "
+      "wakeup all avaiable workers.")
 
   /* Make sure none of the gearman_conf_module_add_option calls failed. */
   if (gearman_conf_return(&conf) != GEARMAN_SUCCESS)
@@ -280,6 +284,8 @@ int main(int argc, char *argv[])
       verbose++;
     else if (!strcmp(name, "version"))
       printf("\ngearmand %s - %s\n", gearman_version(), gearman_bugreport());
+    else if (!strcmp(name, "worker-wakeup"))
+      worker_wakeup= (uint8_t)atoi(value);
     else
     {
       fprintf(stderr, "gearmand: Unknown option:%s\n", name);
@@ -331,6 +337,7 @@ int main(int argc, char *argv[])
   gearmand_set_backlog(_gearmand, backlog);
   gearmand_set_threads(_gearmand, threads);
   gearmand_set_job_retries(_gearmand, job_retries);
+  gearmand_set_worker_wakeup(_gearmand, worker_wakeup);
   gearmand_set_log_fn(_gearmand, _log, &log_info, verbose);
 
   if (queue_type != NULL)

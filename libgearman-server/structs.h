@@ -8,7 +8,7 @@
 
 /**
  * @file
- * @brief Struct definitions
+ * @brief Struct Definitions
  */
 
 #ifndef __GEARMAN_SERVER_STRUCTS_H__
@@ -29,6 +29,7 @@ struct gearman_server_st
   bool proc_wakeup;
   bool proc_shutdown;
   uint8_t job_retries;
+  uint8_t worker_wakeup;
   uint32_t job_handle_count;
   uint32_t thread_count;
   uint32_t function_count;

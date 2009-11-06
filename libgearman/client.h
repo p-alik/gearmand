@@ -8,7 +8,7 @@
 
 /**
  * @file
- * @brief Client declarations
+ * @brief Client Declarations
  */
 
 #ifndef __GEARMAN_CLIENT_H__
@@ -19,7 +19,8 @@ extern "C" {
 #endif
 
 /**
- * @addtogroup gearman_client Client Interface
+ * @addtogroup gearman_client Client Declarations
+ *
  * This is the interface gearman clients should use. You can run tasks one at a
  * time or concurrently.
  *
@@ -226,6 +227,8 @@ void gearman_client_remove_servers(gearman_client_st *client);
  */
 GEARMAN_API
 gearman_return_t gearman_client_wait(gearman_client_st *client);
+
+/** @} */
 
 /**
  * @addtogroup gearman_client_single Single Task Interface
@@ -651,8 +654,6 @@ void gearman_client_clear_fn(gearman_client_st *client);
  */
 GEARMAN_API
 gearman_return_t gearman_client_run_tasks(gearman_client_st *client);
-
-/** @} */
 
 /** @} */
 

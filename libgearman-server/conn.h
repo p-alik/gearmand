@@ -8,7 +8,7 @@
 
 /**
  * @file
- * @brief Server connection declarations
+ * @brief Connection Declarations
  */
 
 #ifndef __GEARMAN_SERVER_CON_H__
@@ -19,10 +19,12 @@ extern "C" {
 #endif
 
 /**
- * @addtogroup gearman_server_con Server Connection Handling
+ * @addtogroup gearman_server_con Connection Declarations
  * @ingroup gearman_server
+ *
  * This is a low level interface for gearman server connections. This is used
  * internally by the server interface, so you probably want to look there first.
+ *
  * @{
  */
 

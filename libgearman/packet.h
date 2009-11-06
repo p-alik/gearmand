@@ -8,7 +8,7 @@
 
 /**
  * @file
- * @brief Packet declarations
+ * @brief Packet Declarations
  */
 
 #ifndef __GEARMAN_PACKET_H__
@@ -26,11 +26,14 @@ extern GEARMAN_API
 gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX];
 
 /**
- * @addtogroup gearman_packet Packet Handling
+ * @addtogroup gearman_packet Packet Declarations
+ * @ingroup gearman
+ *
  * This is a low level interface for gearman packet. This is used internally
  * internally by both client and worker interfaces (or more specifically, tasks
  * and jobs), so you probably want to look there first. This is usually used to
  * write lower level clients, workers, proxies, or your own server.
+ *
  * @{
  */
 

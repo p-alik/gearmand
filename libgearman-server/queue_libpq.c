@@ -8,7 +8,7 @@
 
 /**
  * @file
- * @brief PostgreSQL Queue Storage Definitions
+ * @brief libpq Queue Storage Definitions
  */
 
 #include "common.h"
@@ -24,8 +24,8 @@
 #endif
 
 /**
- * @addtogroup gearman_queue_libpq libpq Queue Storage Functions
- * @ingroup gearman_queue
+ * @addtogroup gearman_queue_libpq_static Static libpq Queue Storage Definitions
+ * @ingroup gearman_queue_libpq
  * @{
  */
 
@@ -34,10 +34,6 @@
  */
 #define GEARMAN_QUEUE_LIBPQ_DEFAULT_TABLE "queue"
 #define GEARMAN_QUEUE_QUERY_BUFFER 256
-
-/*
- * Private declarations
- */
 
 /**
  * Structure for libpq specific data.
@@ -241,7 +237,7 @@ gearman_return_t gearmand_queue_libpq_deinit(gearmand_st *gearmand)
 }
 
 /*
- * Private definitions
+ * Static definitions
  */
 
 static void _libpq_notice_processor(void *arg, const char *message)

@@ -19,7 +19,8 @@ extern "C" {
 #endif
 
 /**
- * @addtogroup gearman_server_constants Gearman Server Constants
+ * @addtogroup gearman_server_constants Constants
+ * @ingroup gearman_server
  * @{
  */
 
@@ -37,23 +38,6 @@ extern "C" {
 #define GEARMAN_PIPE_BUFFER_SIZE 256
 #define GEARMAN_CONF_MAX_OPTION_SHORT 128
 #define GEARMAN_CONF_DISPLAY_WIDTH 80
-
-/* Types. */
-typedef struct gearman_server_st gearman_server_st;
-typedef struct gearman_server_thread_st gearman_server_thread_st;
-typedef struct gearman_server_con_st gearman_server_con_st;
-typedef struct gearman_server_packet_st gearman_server_packet_st;
-typedef struct gearman_server_function_st gearman_server_function_st;
-typedef struct gearman_server_client_st gearman_server_client_st;
-typedef struct gearman_server_worker_st gearman_server_worker_st;
-typedef struct gearman_server_job_st gearman_server_job_st;
-typedef struct gearmand_st gearmand_st;
-typedef struct gearmand_port_st gearmand_port_st;
-typedef struct gearmand_con_st gearmand_con_st;
-typedef struct gearmand_thread_st gearmand_thread_st;
-typedef struct gearman_conf_st gearman_conf_st;
-typedef struct gearman_conf_option_st gearman_conf_option_st;
-typedef struct gearman_conf_module_st gearman_conf_module_st;
 
 /** @} */
 
@@ -180,9 +164,27 @@ typedef enum
 
 
 /**
- * @addtogroup gearman_server_constants Gearman Server Constants
+ * @addtogroup gearman_server_types Types
+ * @ingroup gearman_server
  * @{
  */
+
+/* Types. */
+typedef struct gearman_server_st gearman_server_st;
+typedef struct gearman_server_thread_st gearman_server_thread_st;
+typedef struct gearman_server_con_st gearman_server_con_st;
+typedef struct gearman_server_packet_st gearman_server_packet_st;
+typedef struct gearman_server_function_st gearman_server_function_st;
+typedef struct gearman_server_client_st gearman_server_client_st;
+typedef struct gearman_server_worker_st gearman_server_worker_st;
+typedef struct gearman_server_job_st gearman_server_job_st;
+typedef struct gearmand_st gearmand_st;
+typedef struct gearmand_port_st gearmand_port_st;
+typedef struct gearmand_con_st gearmand_con_st;
+typedef struct gearmand_thread_st gearmand_thread_st;
+typedef struct gearman_conf_st gearman_conf_st;
+typedef struct gearman_conf_option_st gearman_conf_option_st;
+typedef struct gearman_conf_module_st gearman_conf_module_st;
 
 /* Function types. */
 typedef void (gearman_server_thread_run_fn)(gearman_server_thread_st *thread,
@@ -213,6 +215,16 @@ typedef gearman_return_t (gearman_queue_replay_fn)(gearman_server_st *server,
 typedef gearman_return_t (gearman_con_add_fn)(gearman_con_st *con);
 
 /** @} */
+
+/**
+ * @addtogroup gearman_server_protocol Protocol Plugins
+ * @ingroup gearman_server
+ */
+
+/**
+ * @addtogroup gearman_server_queue Queue Plugins
+ * @ingroup gearman_server
+ */
 
 #ifdef __cplusplus
 }

@@ -8,7 +8,7 @@
 
 /**
  * @file
- * @brief Job declarations
+ * @brief Job Declarations
  */
 
 #ifndef __GEARMAN_JOB_H__
@@ -19,10 +19,12 @@ extern "C" {
 #endif
 
 /**
- * @addtogroup gearman_job Job Management
+ * @addtogroup gearman_job Job Declarations
  * @ingroup gearman_worker
+ *
  * The job functions are used to manage jobs assigned to workers. It is most
  * commonly used with the worker interface.
+ *
  * @{
  */
 

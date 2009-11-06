@@ -73,7 +73,23 @@ gearman_server_worker_create(gearman_server_con_st *con,
   worker->con= con;
   GEARMAN_LIST_ADD(con->worker, worker, con_)
   worker->function= function;
-  GEARMAN_LIST_ADD(function->worker, worker, function_)
+
+  /* Add worker to the function list, which is a double-linked circular list. */
+  if (function->worker_list == NULL)
+  {
+    function->worker_list= worker;
+    worker->function_next= worker;
+    worker->function_prev= worker;
+  }
+  else
+  {
+    worker->function_next= function->worker_list;
+    worker->function_prev= function->worker_list->function_prev;
+    worker->function_next->function_prev= worker;
+    worker->function_prev->function_next= worker;
+  }
+  function->worker_count++;
+
   worker->job_list= NULL;
 
   return worker;
@@ -88,7 +104,17 @@ void gearman_server_worker_free(gearman_server_worker_st *worker)
     (void)gearman_server_job_queue(worker->job_list);
 
   GEARMAN_LIST_DEL(worker->con->worker, worker, con_)
-  GEARMAN_LIST_DEL(worker->function->worker, worker, function_)
+
+  if (worker == worker->function_next)
+    worker->function->worker_list= NULL;
+  else
+  {
+    worker->function_next->function_prev= worker->function_prev;
+    worker->function_prev->function_next= worker->function_next;
+    if (worker == worker->function->worker_list)
+      worker->function->worker_list= worker->function_next;
+  }
+  worker->function->worker_count--;
 
   if (worker->options & GEARMAN_SERVER_WORKER_ALLOCATED)
   {

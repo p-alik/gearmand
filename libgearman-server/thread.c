@@ -227,7 +227,7 @@ gearman_server_thread_run(gearman_server_thread_st *thread,
   }
 
   /* Check for new activity on connections. */
-  while ((con= gearman_con_ready(thread->gearman)) != NULL)
+  while ((con= gearman_ready(thread->gearman)) != NULL)
   {
     /* Inherited classes anyone? Some people would call this a hack, I call
        it clean (avoids extra ptrs). Brian, I'll give you your C99 0-byte

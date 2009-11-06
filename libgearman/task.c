@@ -8,13 +8,13 @@
 
 /**
  * @file
- * @brief Task definitions
+ * @brief Task Definitions
  */
 
 #include "common.h"
 
 /*
- * Public definitions
+ * Public Definitions
  */
 
 void *gearman_task_context(const gearman_task_st *task)

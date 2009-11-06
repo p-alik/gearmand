@@ -8,7 +8,7 @@
 
 /**
  * @file
- * @brief Struct definitions
+ * @brief Struct Definitions
  */
 
 #ifndef __GEARMAN_STRUCTS_H__

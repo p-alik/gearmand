@@ -178,9 +178,9 @@ void gearmand_con_check_queue(gearmand_thread_st *thread)
 }
 
 gearman_return_t gearmand_con_watch(gearman_con_st *con, short events,
-                                    void *arg __attribute__ ((unused)))
+                                    void *context __attribute__ ((unused)))
 {
-  (void) arg;
+  (void) context;
   gearmand_con_st *dcon;
   short set_events= 0;
 

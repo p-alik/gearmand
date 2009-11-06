@@ -8,7 +8,7 @@
 
 /**
  * @file
- * @brief System include files
+ * @brief System Include Files
  */
 
 #ifndef __GEARMAN_SERVER_COMMON_H__
@@ -106,8 +106,10 @@ extern "C" {
  * Macro to log fatal errors.
  * @ingroup gearman_constants
  */
-#define GEARMAN_FATAL(__gearman, ...) \
-  GEARMAN_LOG(__gearman, GEARMAN_VERBOSE_FATAL, __VA_ARGS__)
+#define GEARMAN_FATAL(__gearman, ...) { \
+  unlikely ((__gearman)->verbose >= GEARMAN_VERBOSE_FATAL) \
+    GEARMAN_LOG(__gearman, GEARMAN_VERBOSE_FATAL, __VA_ARGS__) \
+}
 #define GEARMAN_SERVER_FATAL(__server, ...) \
   GEARMAN_FATAL((__server)->gearman, __VA_ARGS__)
 

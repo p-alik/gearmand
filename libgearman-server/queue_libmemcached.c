@@ -8,7 +8,7 @@
 
 /**
  * @file
- * @brief Drizzle Queue Storage Definitions
+ * @brief libmemcached Queue Storage Definitions
  */
 
 #include "common.h"
@@ -17,8 +17,8 @@
 #include <libmemcached/memcached.h>
 
 /**
- * @addtogroup gearman_queue_libmemcached libmemcached Queue Storage Functions
- * @ingroup gearman_queue
+ * @addtogroup gearman_queue_libmemcached_static Static libmemcached Queue Storage Functions
+ * @ingroup gearman_queue_libmemcached
  * @{
  */
 
@@ -26,10 +26,6 @@
  * Default values.
  */
 #define GEARMAN_QUEUE_LIBMEMCACHED_DEFAULT_PREFIX "gear_"
-
-/*
- * Private declarations
- */
 
 /**
  * Structure for libmemcached specific data.
@@ -191,7 +187,7 @@ gearman_return_t gearmand_queue_libmemcached_deinit(gearmand_st *gearmand)
 }
 
 /*
- * Private definitions
+ * Static definitions
  */
 
 static gearman_return_t _libmemcached_add(gearman_server_st *server,
