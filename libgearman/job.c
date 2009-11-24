@@ -195,7 +195,7 @@ gearman_return_t gearman_job_send_fail(gearman_job_st *job)
     ret= gearman_add_packet_args(job->worker->gearman, &(job->work),
                                  GEARMAN_MAGIC_REQUEST,
                                  GEARMAN_COMMAND_WORK_FAIL,
-                                 args, args_size, 2);
+                                 args, args_size, 1);
     if (ret != GEARMAN_SUCCESS)
       return ret;
 
