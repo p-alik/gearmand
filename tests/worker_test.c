@@ -122,7 +122,7 @@ test_return bug372074_test(void *object __attribute__((unused)))
     gearman_con_set_port(&con, WORKER_TEST_PORT);
 
     args[0]= "testUnregisterFunction";
-    args_size[1]= strlen("testUnregisterFunction");
+    args_size[0]= strlen("testUnregisterFunction");
     if (gearman_add_packet_args(&gearman, &packet, GEARMAN_MAGIC_REQUEST,
                                 GEARMAN_COMMAND_SET_CLIENT_ID,
                                 args, args_size, 1) != GEARMAN_SUCCESS)
@@ -136,7 +136,7 @@ test_return bug372074_test(void *object __attribute__((unused)))
     gearman_packet_free(&packet);
 
     args[0]= "reverse";
-    args_size[1]= strlen("reverse");
+    args_size[0]= strlen("reverse");
     if (gearman_add_packet_args(&gearman, &packet, GEARMAN_MAGIC_REQUEST,
                                 GEARMAN_COMMAND_CAN_DO,
                                 args, args_size, 1) != GEARMAN_SUCCESS)
@@ -170,7 +170,7 @@ test_return bug372074_test(void *object __attribute__((unused)))
     gearman_con_set_port(&con, WORKER_TEST_PORT);
 
     args[0]= "testUnregisterFunction";
-    args_size[1]= strlen("testUnregisterFunction");
+    args_size[0]= strlen("testUnregisterFunction");
     if (gearman_add_packet_args(&gearman, &packet, GEARMAN_MAGIC_REQUEST,
                                 GEARMAN_COMMAND_SET_CLIENT_ID,
                                 args, args_size, 1) != GEARMAN_SUCCESS)
@@ -184,7 +184,7 @@ test_return bug372074_test(void *object __attribute__((unused)))
     gearman_packet_free(&packet);
 
     args[0]= "digest";
-    args_size[1]= strlen("digest");
+    args_size[0]= strlen("digest");
     if (gearman_add_packet_args(&gearman, &packet, GEARMAN_MAGIC_REQUEST,
                                 GEARMAN_COMMAND_CAN_DO,
                                 args, args_size, 1) != GEARMAN_SUCCESS)
@@ -198,7 +198,7 @@ test_return bug372074_test(void *object __attribute__((unused)))
     gearman_packet_free(&packet);
 
     args[0]= "reverse";
-    args_size[1]= strlen("reverse");
+    args_size[0]= strlen("reverse");
     if (gearman_add_packet_args(&gearman, &packet, GEARMAN_MAGIC_REQUEST,
                                 GEARMAN_COMMAND_CAN_DO,
                                 args, args_size, 1) != GEARMAN_SUCCESS)

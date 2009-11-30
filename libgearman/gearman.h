@@ -83,7 +83,8 @@ const char *gearman_verbose_name(gearman_verbose_t verbose);
 
 /**
  * Initialize a gearman structure. Always check the return value even if passing
- * in a pre-allocated structure. Some other initialization may have failed.
+ * in a pre-allocated structure. Some other initialization may have failed. It
+ * is not required to memset() a structure before providing it.
  *
  * @param[in] gearman Caller allocated structure, or NULL to allocate one.
  * @return On success, a pointer to the (possibly allocated) structure. On
