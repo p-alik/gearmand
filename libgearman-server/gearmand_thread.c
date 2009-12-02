@@ -335,7 +335,8 @@ static void _wakeup_clear(gearmand_thread_st *thread)
     GEARMAN_INFO(thread->gearmand,
                  "[%4u] Clearing event for IO thread wakeup pipe",
                  thread->count)
-    assert(event_del(&(thread->wakeup_event)) == 0);
+    int del_ret= event_del(&(thread->wakeup_event));
+    assert(del_ret == 0);
     thread->options&= (gearmand_thread_options_t)~GEARMAND_THREAD_WAKEUP_EVENT;
   }
 }
