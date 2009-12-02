@@ -8,6 +8,10 @@
 
 #include "config.h"
 
+#if defined(NDEBUG)
+# undef NDEBUG
+#endif
+
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
