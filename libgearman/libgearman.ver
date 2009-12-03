@@ -1,1 +1,1 @@
-libgearman_1 { global: *; };
+libgearman_2 { global: *; };

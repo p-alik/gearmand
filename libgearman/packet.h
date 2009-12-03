@@ -8,7 +8,7 @@
 
 /**
  * @file
- * @brief Packet declarations
+ * @brief Packet Declarations
  */
 
 #ifndef __GEARMAN_PACKET_H__
@@ -19,53 +19,23 @@ extern "C" {
 #endif
 
 /**
- * @addtogroup gearman_packet Packet Handling
+ * Command information array.
+ * @ingroup gearman_constants
+ */
+extern GEARMAN_API
+gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX];
+
+/**
+ * @addtogroup gearman_packet Packet Declarations
+ * @ingroup gearman
+ *
  * This is a low level interface for gearman packet. This is used internally
  * internally by both client and worker interfaces (or more specifically, tasks
  * and jobs), so you probably want to look there first. This is usually used to
  * write lower level clients, workers, proxies, or your own server.
+ *
  * @{
  */
-
-/**
- * Initialize a packet with all arguments. Variable list is NULL terminated
- * alternating argument and argument size (size_t) pairs. For example:
- * @code
- * ret= gearman_packet_add_args(gearman, packet,
- *                              GEARMAN_MAGIC_REQUEST,
- *                              GEARMAN_COMMAND_SUBMIT_JOB,
- *                              function_name, strlen(function_name) + 1,
- *                              unique_string, strlen(unique_string) + 1,
- *                              workload, workload_size, NULL);
- * @endcode
- */
-GEARMAN_API
-gearman_return_t gearman_packet_add(gearman_st *gearman,
-                                    gearman_packet_st *packet,
-                                    gearman_magic_t magic,
-                                    gearman_command_t command,
-                                    const void *arg, ...);
-
-/**
- * Initialize a packet structure.
- */
-GEARMAN_API
-gearman_packet_st *gearman_packet_create(gearman_st *gearman,
-                                         gearman_packet_st *packet);
-
-/**
- * Free a packet structure.
- */
-GEARMAN_API
-void gearman_packet_free(gearman_packet_st *packet);
-
-/**
- * Set options for a packet structure.
- */
-GEARMAN_API
-void gearman_packet_set_options(gearman_packet_st *packet,
-                                gearman_packet_options_t options,
-                                uint32_t data);
 
 /**
  * Add an argument to a packet.
@@ -90,7 +60,7 @@ gearman_return_t gearman_packet_unpack_header(gearman_packet_st *packet);
  * Pack packet into output buffer.
  */
 GEARMAN_API
-size_t gearman_packet_pack(gearman_packet_st *packet, gearman_con_st *con,
+size_t gearman_packet_pack(const gearman_packet_st *packet, gearman_con_st *con,
                            void *data, size_t data_size,
                            gearman_return_t *ret_ptr);
 
@@ -103,11 +73,19 @@ size_t gearman_packet_unpack(gearman_packet_st *packet, gearman_con_st *con,
                              gearman_return_t *ret_ptr);
 
 /**
+ * Give allocated memory to packet. After this, the library will be responsible
+ * for freeing the workload memory when the packet is destroyed.
+ */
+GEARMAN_API
+void gearman_packet_give_data(gearman_packet_st *packet, const void *data,
+                              size_t data_size);
+
+/**
  * Take allocated data from packet. After this, the caller is responsible for
  * free()ing the memory.
  */
 GEARMAN_API
-void *gearman_packet_take_data(gearman_packet_st *packet, size_t *size);
+void *gearman_packet_take_data(gearman_packet_st *packet, size_t *data_size);
 
 /** @} */
 

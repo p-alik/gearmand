@@ -9,6 +9,7 @@ ACLOCAL_AMFLAGS= -I m4
 
 SUBDIRS = \
 	libgearman \
+	libgearman-server \
 	gearmand \
 	bin \
 	examples \

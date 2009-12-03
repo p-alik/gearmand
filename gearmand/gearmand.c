@@ -53,29 +53,29 @@
 # endif
 #endif
 
-#include <libgearman/gearman.h>
+#include <libgearman-server/gearmand.h>
 
 #ifdef HAVE_LIBDRIZZLE
-#include <libgearman/queue_libdrizzle.h>
+#include <libgearman-server/queue_libdrizzle.h>
 #endif
 
 #ifdef HAVE_LIBMEMCACHED
-#include <libgearman/queue_libmemcached.h>
+#include <libgearman-server/queue_libmemcached.h>
 #endif
 
 #ifdef HAVE_LIBSQLITE3
-#include <libgearman/queue_libsqlite3.h>
+#include <libgearman-server/queue_libsqlite3.h>
 #endif
 
 #ifdef HAVE_LIBPQ
-#include <libgearman/queue_libpq.h>
+#include <libgearman-server/queue_libpq.h>
 #endif
 
 #ifdef HAVE_LIBTOKYOCABINET
 #include <libgearman/queue_libtokyocabinet.h>
 #endif
 
-#include <libgearman/protocol_http.h>
+#include <libgearman-server/protocol_http.h>
 
 #define GEARMAND_LOG_REOPEN_TIME 60
 #define GEARMAND_LISTEN_BACKLOG 32
@@ -95,8 +95,7 @@ static void _pid_delete(const char *pid_file);
 static bool _switch_user(const char *user);
 static bool _set_signals(void);
 static void _shutdown_handler(int signal_arg);
-static void _log(gearmand_st *gearmand, gearman_verbose_t verbose,
-                 const char *line, void *fn_arg);
+static void _log(const char *line, gearman_verbose_t verbose, void *context);
 
 int main(int argc, char *argv[])
 {
@@ -106,6 +105,8 @@ int main(int argc, char *argv[])
   const char *value;
   int backlog= GEARMAND_LISTEN_BACKLOG;
   rlim_t fds= 0;
+  uint8_t job_retries= 0;
+  uint8_t worker_wakeup= 0;
   in_port_t port= 0;
   const char *host= NULL;
   const char *pid_file= NULL;
@@ -115,6 +116,8 @@ int main(int argc, char *argv[])
   uint8_t verbose= 0;
   gearman_return_t ret;
   gearmand_log_info_st log_info;
+  bool close_stdio= false;
+  int fd;
 
   log_info.file= NULL;
   log_info.fd= -1;
@@ -142,6 +145,10 @@ int main(int argc, char *argv[])
       "Number of file descriptors to allow for the process (total connections "
       "will be slightly less). Default is max allowed for user.")
   MCO("help", 'h', NULL, "Print this help menu.");
+  MCO("job-retries", 'j', "RETRIES",
+      "Number of attempts to run the job before the job server removes it. This"
+      "is helpful to ensure a bad job does not crash all available workers. "
+      "Default is no limit.")
   MCO("log-file", 'l', "FILE",
       "Log file to write errors and information to. Turning this option on "
       "also forces the first verbose level to be enabled.")
@@ -155,6 +162,9 @@ int main(int argc, char *argv[])
   MCO("user", 'u', "USER", "Switch to given user after startup.")
   MCO("verbose", 'v', NULL, "Increase verbosity level by one.")
   MCO("version", 'V', NULL, "Display the version of gearmand and exit.")
+  MCO("worker-wakeup", 'w', "WORKERS",
+      "Number of workers to wakeup for each job received. The default is to "
+      "wakeup all avaiable workers.")
 
   /* Make sure none of the gearman_conf_module_add_option calls failed. */
   if (gearman_conf_return(&conf) != GEARMAN_SUCCESS)
@@ -167,7 +177,7 @@ int main(int argc, char *argv[])
   /* Add queue configuration options. */
 
 #ifdef HAVE_LIBDRIZZLE
-  if (gearman_queue_libdrizzle_conf(&conf) != GEARMAN_SUCCESS)
+  if (gearman_server_queue_libdrizzle_conf(&conf) != GEARMAN_SUCCESS)
   {
     fprintf(stderr, "gearmand: gearman_queue_libdrizzle_conf: %s\n",
             gearman_conf_error(&conf));
@@ -176,7 +186,7 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef HAVE_LIBMEMCACHED
-  if (gearman_queue_libmemcached_conf(&conf) != GEARMAN_SUCCESS)
+  if (gearman_server_queue_libmemcached_conf(&conf) != GEARMAN_SUCCESS)
   {
     fprintf(stderr, "gearmand: gearman_queue_libmemcached_conf: %s\n",
             gearman_conf_error(&conf));
@@ -193,7 +203,7 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef HAVE_LIBSQLITE3
-  if (gearman_queue_libsqlite3_conf(&conf) != GEARMAN_SUCCESS)
+  if (gearman_server_queue_libsqlite3_conf(&conf) != GEARMAN_SUCCESS)
   {
     fprintf(stderr, "gearmand: gearman_queue_libsqlite3_conf: %s\n",
             gearman_conf_error(&conf));
@@ -202,7 +212,7 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef HAVE_LIBPQ
-  if (gearman_queue_libpq_conf(&conf) != GEARMAN_SUCCESS)
+  if (gearman_server_queue_libpq_conf(&conf) != GEARMAN_SUCCESS)
   {
     fprintf(stderr, "gearmand: gearman_queue_libpq_conf: %s\n",
             gearman_conf_error(&conf));
@@ -210,7 +220,7 @@ int main(int argc, char *argv[])
   }
 #endif
 
-  if (gearman_protocol_http_conf(&conf) != GEARMAN_SUCCESS)
+  if (gearmand_protocol_http_conf(&conf) != GEARMAN_SUCCESS)
   {
     fprintf(stderr, "gearmand: gearman_protocol_http_conf: %s\n",
             gearman_conf_error(&conf));
@@ -252,6 +262,8 @@ int main(int argc, char *argv[])
         fprintf(stderr, "gearmand: setsid:%d\n", errno);
         return 1;
       }
+
+      close_stdio= true;
     }
     else if (!strcmp(name, "file-descriptors"))
       fds= (rlim_t)atoi(value);
@@ -262,6 +274,8 @@ int main(int argc, char *argv[])
       gearman_conf_usage(&conf);
       return 1;
     }
+    else if (!strcmp(name, "job-retries"))
+      job_retries= (uint8_t)atoi(value);
     else if (!strcmp(name, "log-file"))
       log_info.file= value;
     else if (!strcmp(name, "listen"))
@@ -282,6 +296,8 @@ int main(int argc, char *argv[])
       verbose++;
     else if (!strcmp(name, "version"))
       printf("\ngearmand %s - %s\n", gearman_version(), gearman_bugreport());
+    else if (!strcmp(name, "worker-wakeup"))
+      worker_wakeup= (uint8_t)atoi(value);
     else
     {
       fprintf(stderr, "gearmand: Unknown option:%s\n", name);
@@ -289,8 +305,33 @@ int main(int argc, char *argv[])
     }
   }
 
-  if (log_info.file != NULL && verbose == 0)
-    verbose++;
+  if (verbose == 0 && close_stdio)
+  {
+    /* If we can't remap stdio, it should not a fatal error. */
+    fd = open("/dev/null", O_RDWR, 0);
+    if (fd != -1)
+    {
+      if (dup2(fd, STDIN_FILENO) == -1)
+      {
+        fprintf(stderr, "gearmand: dup2:%d\n", errno);
+        return 1;
+      }
+
+      if (dup2(fd, STDOUT_FILENO) == -1)
+      {
+        fprintf(stderr, "gearmand: dup2:%d\n", errno);
+        return 1;
+      }
+
+      if (dup2(fd, STDERR_FILENO) == -1)
+      {
+        fprintf(stderr, "gearmand: dup2:%d\n", errno);
+        return 1;
+      }
+
+      close(fd);
+    }
+  }
 
   if ((fds > 0 && _set_fdlimit(fds)) || _switch_user(user) || _set_signals())
     return 1;
@@ -307,7 +348,9 @@ int main(int argc, char *argv[])
 
   gearmand_set_backlog(_gearmand, backlog);
   gearmand_set_threads(_gearmand, threads);
-  gearmand_set_log(_gearmand, _log, &log_info, verbose);
+  gearmand_set_job_retries(_gearmand, job_retries);
+  gearmand_set_worker_wakeup(_gearmand, worker_wakeup);
+  gearmand_set_log_fn(_gearmand, _log, &log_info, verbose);
 
   if (queue_type != NULL)
   {
@@ -567,10 +610,9 @@ static void _shutdown_handler(int signal_arg)
     gearmand_wakeup(_gearmand, GEARMAND_WAKEUP_SHUTDOWN);
 }
 
-static void _log(gearmand_st *gearmand __attribute__ ((unused)),
-                 gearman_verbose_t verbose, const char *line, void *fn_arg)
+static void _log(const char *line, gearman_verbose_t verbose, void *context)
 {
-  gearmand_log_info_st *log_info= (gearmand_log_info_st *)fn_arg;
+  gearmand_log_info_st *log_info= (gearmand_log_info_st *)context;
   int fd;
   time_t t;
   char buffer[GEARMAN_MAX_ERROR_SIZE];

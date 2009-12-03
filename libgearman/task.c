@@ -8,130 +8,91 @@
 
 /**
  * @file
- * @brief Task definitions
+ * @brief Task Definitions
  */
 
 #include "common.h"
 
 /*
- * Public definitions
+ * Public Definitions
  */
 
-gearman_task_st *gearman_task_create(gearman_st *gearman,
-                                     gearman_task_st *task)
+void *gearman_task_context(const gearman_task_st *task)
 {
-  if (task == NULL)
-  {
-    task= malloc(sizeof(gearman_task_st));
-    if (task == NULL)
-    {
-      GEARMAN_ERROR_SET(gearman, "gearman_job_create", "malloc")
-      return NULL;
-    }
-
-    task->options= GEARMAN_TASK_ALLOCATED;
-  }
-  else
-    task->options= 0;
-
-  task->state= 0;
-  task->is_known= false;
-  task->is_running= false;
-  task->created_id= 0;
-  task->numerator= 0;
-  task->denominator= 0;
-  task->gearman= gearman;
-  GEARMAN_LIST_ADD(gearman->task, task,)
-  task->fn_arg= NULL;
-  task->con= NULL;
-  task->recv= NULL;
-  task->job_handle[0]= 0;
-
-  return task;
+  return (void *)task->context;
 }
 
-void gearman_task_free(gearman_task_st *task)
+void gearman_task_set_context(gearman_task_st *task, const void *context)
 {
-  if (task->options & GEARMAN_TASK_SEND_IN_USE)
-    gearman_packet_free(&(task->send));
-
-  if (task->fn_arg != NULL && task->gearman->task_fn_arg_free_fn != NULL)
-    (*(task->gearman->task_fn_arg_free_fn))(task, (void *)(task->fn_arg));
-
-  GEARMAN_LIST_DEL(task->gearman->task, task,)
-
-  if (task->options & GEARMAN_TASK_ALLOCATED)
-    free(task);
+  task->context= context;
 }
 
-void *gearman_task_fn_arg(gearman_task_st *task)
-{
-  return (void *)task->fn_arg;
-}
-
-void gearman_task_set_fn_arg(gearman_task_st *task, const void *fn_arg)
-{
-  task->fn_arg= fn_arg;
-}
-
-const char *gearman_task_function(gearman_task_st *task)
+const char *gearman_task_function_name(const gearman_task_st *task)
 {
   return (char *)task->send.arg[0];
 }
 
-const char *gearman_task_uuid(gearman_task_st *task)
+const char *gearman_task_unique(const gearman_task_st *task)
 {
   return (char *)task->send.arg[1];
 }
 
-const char *gearman_task_job_handle(gearman_task_st *task)
+const char *gearman_task_job_handle(const gearman_task_st *task)
 {
   return task->job_handle;
 }
 
-bool gearman_task_is_known(gearman_task_st *task)
+bool gearman_task_is_known(const gearman_task_st *task)
 {
   return task->is_known;
 }
 
-bool gearman_task_is_running(gearman_task_st *task)
+bool gearman_task_is_running(const gearman_task_st *task)
 {
   return task->is_running;
 }
 
-uint32_t gearman_task_numerator(gearman_task_st *task)
+uint32_t gearman_task_numerator(const gearman_task_st *task)
 {
   return task->numerator;
 }
 
-uint32_t gearman_task_denominator(gearman_task_st *task)
+uint32_t gearman_task_denominator(const gearman_task_st *task)
 {
   return task->denominator;
 }
 
-const void *gearman_task_data(gearman_task_st *task)
+void gearman_task_give_workload(gearman_task_st *task, const void *workload,
+                                size_t workload_size)
+{
+  gearman_packet_give_data(&(task->send), workload, workload_size);
+}
+
+size_t gearman_task_send_workload(gearman_task_st *task, const void *workload,
+                                  size_t workload_size,
+                                  gearman_return_t *ret_ptr)
+{
+  return gearman_con_send_data(task->con, workload, workload_size, ret_ptr);
+}
+
+const void *gearman_task_data(const gearman_task_st *task)
 {
   return task->recv->data;
 }
 
-size_t gearman_task_data_size(gearman_task_st *task)
+size_t gearman_task_data_size(const gearman_task_st *task)
 {
   return task->recv->data_size;
 }
 
-void *gearman_task_take_data(gearman_task_st *task, size_t *size)
+void *gearman_task_take_data(gearman_task_st *task, size_t *data_size)
 {
-  return gearman_packet_take_data(task->recv, size);
-}
-
-size_t gearman_task_send_data(gearman_task_st *task, const void *data,
-                              size_t data_size, gearman_return_t *ret_ptr)
-{
-  return gearman_con_send_data(task->con, data, data_size, ret_ptr);
+  return gearman_packet_take_data(task->recv, data_size);
 }
 
 size_t gearman_task_recv_data(gearman_task_st *task, void *data,
-                              size_t data_size, gearman_return_t *ret_ptr)
+                                  size_t data_size,
+                                  gearman_return_t *ret_ptr)
 {
   return gearman_con_recv_data(task->con, data, data_size, ret_ptr);
 }
