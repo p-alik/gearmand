@@ -199,7 +199,7 @@ static gearman_return_t _libtokyocabinet_add(gearman_server_st *server, void *co
   TCXSTR *key;
 
   GEARMAN_SERVER_DEBUG(server, "libtokyocabinet add: %.*s",
-		       (uint32_t)unique_size, (char *)unique);
+                       (uint32_t)unique_size, (char *)unique);
 
 #ifdef GEARMAN_QUEUE_LIBTOKYOCABINET_DEFAULT_PREFIX
   key= tcxstrnew2(GEARMAN_QUEUE_LIBTOKYOCABINET_DEFAULT_PREFIX);
@@ -243,7 +243,7 @@ static gearman_return_t _libtokyocabinet_done(gearman_server_st *server, void *c
   TCXSTR *key;
 
   GEARMAN_SERVER_DEBUG(server, "libtokyocabinet add: %.*s",
-		       (uint32_t)unique_size, (char *)unique);
+                       (uint32_t)unique_size, (char *)unique);
 
 #ifdef GEARMAN_QUEUE_LIBTOKYOCABINET_DEFAULT_PREFIX
   key= tcxstrnew2(GEARMAN_QUEUE_LIBTOKYOCABINET_DEFAULT_PREFIX);
