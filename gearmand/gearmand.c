@@ -72,7 +72,7 @@
 #endif
 
 #ifdef HAVE_LIBTOKYOCABINET
-#include <libgearman/queue_libtokyocabinet.h>
+#include <libgearman-server/queue_libtokyocabinet.h>
 #endif
 
 #include <libgearman-server/protocol_http.h>
@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
   }
 #endif
 #ifdef HAVE_LIBTOKYOCABINET
-  if (gearman_queue_libtokyocabinet_conf(&conf) != GEARMAN_SUCCESS)
+  if (gearman_server_queue_libtokyocabinet_conf(&conf) != GEARMAN_SUCCESS)
   {
     fprintf(stderr, "gearmand: gearman_queue_libtokyocabinet_conf: %s\n",
             gearman_conf_error(&conf));

@@ -20,7 +20,7 @@ extern "C" {
  * Get module configuration options.
  */
 GEARMAN_API
-gearman_return_t gearman_queue_libtokyocabinet_conf(gearman_conf_st *conf);
+gearman_return_t gearman_server_queue_libtokyocabinet_conf(gearman_conf_st *conf);
 
 /**
  * Initialize the queue.
