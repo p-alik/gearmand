@@ -233,10 +233,10 @@ static gearman_return_t _libtokyocabinet_flush(gearman_server_st *server,
 }
 
 static gearman_return_t _libtokyocabinet_done(gearman_server_st *server, void *context,
-                                           const void *unique,
-                                           size_t unique_size, 
-                                           const void *function_name, 
-                                           size_t function_name_size)
+                                              const void *unique,
+                                              size_t unique_size, 
+                                              const void *function_name, 
+                                              size_t function_name_size)
 {
   gearman_queue_libtokyocabinet_st *queue= (gearman_queue_libtokyocabinet_st *)context;
   bool rc;
