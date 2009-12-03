@@ -304,7 +304,7 @@ static gearman_return_t _callback_for_record(gearman_server_st *server,
    
   key_cstr= tcxstrptr(key);
   key_cstr_size= (size_t)tcxstrsize(key);
-  
+
   if (key_cstr_size <= (size_t) 2U) 
     return GEARMAN_QUEUE_ERROR;
   if (*key_cstr == '2')
@@ -320,7 +320,7 @@ static gearman_return_t _callback_for_record(gearman_server_st *server,
   if (*unique == 0)
     return GEARMAN_QUEUE_ERROR;
   unique_size= key_cstr_size - (size_t) 2U;
-   
+
   data_cstr= tcxstrptr(data);
   data_cstr_size= (size_t)tcxstrsize(data);
 
@@ -330,7 +330,7 @@ static gearman_return_t _callback_for_record(gearman_server_st *server,
     return GEARMAN_QUEUE_ERROR;
   function_name_size= (size_t) (delim - function_name);
   function_data= delim + 1;
-  function_data_size= (size_t) (data_cstr_size - function_name_size) - 2U;
+  function_data_size= (size_t) (data_cstr_size - function_name_size) - 1U;
   if ((function_data_copy = malloc(function_data_size + 1U)) == NULL)
   {
     GEARMAN_SERVER_ERROR_SET(server, "_callback_for_record", "malloc")
@@ -339,6 +339,7 @@ static gearman_return_t _callback_for_record(gearman_server_st *server,
   if (function_data_size > (size_t) 0U) 
      memcpy(function_data_copy, function_data, function_data_size);
   *(function_data_copy + function_data_size) = 0;
+
   (void)(*add_fn)(server, add_context, unique, unique_size,
                   function_name, function_name_size,
                   function_data_copy, function_data_size,
