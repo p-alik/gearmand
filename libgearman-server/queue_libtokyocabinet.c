@@ -397,6 +397,7 @@ static gearman_return_t _libtokyocabinet_replay(gearman_server_st *server, void 
   tcxstrdel(data);
   tcbdbcurdel(cur);
   tcbdbsync(queue->db);
+  tcbdboptimize(queue->db, 0, 0, 0, -1, -1, UINT8_MAX);
    
   return gret;
 }
