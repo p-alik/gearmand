@@ -299,6 +299,7 @@ static gearman_return_t _callback_for_record(gearman_server_st *server,
   const char *unique;
   size_t unique_size;
   gearman_job_priority_t priority;
+  gearman_return_t gret;
   
   GEARMAN_SERVER_DEBUG(server, "replaying: %s", (char *) tcxstrptr(key));
    
@@ -339,12 +340,15 @@ static gearman_return_t _callback_for_record(gearman_server_st *server,
   if (function_data_size > (size_t) 0U) 
      memcpy(function_data_copy, function_data, function_data_size);
   *(function_data_copy + function_data_size) = 0;
-
-  (void)(*add_fn)(server, add_context, unique, unique_size,
-                  function_name, function_name_size,
-                  function_data_copy, function_data_size,
-                  priority);
-
+  gret = (*add_fn)(server, add_context, unique, unique_size,
+                   function_name, function_name_size,
+                   function_data_copy, function_data_size,
+                   priority);
+  if (gret != GEARMAN_SUCCESS)
+  {
+     free(function_data_copy);
+     return gret;
+  }   
   return GEARMAN_SUCCESS;
 }
 
