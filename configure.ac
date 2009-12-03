@@ -14,7 +14,7 @@ AC_CONFIG_MACRO_DIR([m4])
 
 PANDORA_CANONICAL_TARGET(require-cxx)
 
-GEARMAN_LIBRARY_VERSION=2:1:0
+GEARMAN_LIBRARY_VERSION=3:0:0
 #                       | | |
 #                +------+ | +---+
 #                |        |     |
