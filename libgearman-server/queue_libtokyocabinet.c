@@ -15,11 +15,6 @@
  * @{
  */
 
-/**
- * Prefix for keys, optional for Tokyo Cabinet queue storage.
- */
-/* #define GEARMAN_QUEUE_LIBTOKYOCABINET_DEFAULT_PREFIX "gear_" */
-
 /*
  * Private declarations
  */
@@ -201,11 +196,7 @@ static gearman_return_t _libtokyocabinet_add(gearman_server_st *server, void *co
   GEARMAN_SERVER_DEBUG(server, "libtokyocabinet add: %.*s",
                        (uint32_t)unique_size, (char *)unique);
 
-#ifdef GEARMAN_QUEUE_LIBTOKYOCABINET_DEFAULT_PREFIX
-  key= tcxstrnew2(GEARMAN_QUEUE_LIBTOKYOCABINET_DEFAULT_PREFIX);
-#else
   key= tcxstrnew();
-#endif
   tcxstrcat(key, function_name, (int)function_name_size);
   tcxstrcat(key, "-", 1);
   tcxstrcat(key, unique, (int)unique_size);
@@ -245,11 +236,7 @@ static gearman_return_t _libtokyocabinet_done(gearman_server_st *server, void *c
   GEARMAN_SERVER_DEBUG(server, "libtokyocabinet add: %.*s",
                        (uint32_t)unique_size, (char *)unique);
 
-#ifdef GEARMAN_QUEUE_LIBTOKYOCABINET_DEFAULT_PREFIX
-  key= tcxstrnew2(GEARMAN_QUEUE_LIBTOKYOCABINET_DEFAULT_PREFIX);
-#else
   key= tcxstrnew();
-#endif
   tcxstrcat(key, function_name, (int)function_name_size);
   tcxstrcat(key, "-", 1);
   tcxstrcat(key, unique, (int)unique_size);
@@ -282,16 +269,6 @@ static gearman_return_t _callback_for_record(gearman_server_st *server,
   key_cstr= tcxstrptr(key);
   key_cstr_size= (size_t)tcxstrsize(key);
    
-#ifdef GEARMAN_QUEUE_LIBTOKYOCABINET_DEFAULT_PREFIX
-  if (tcxstrsize(key) < sizeof GEARMAN_QUEUE_LIBTOKYOCABINET_DEFAULT_PREFIX)
-    return GEARMAN_QUEUE_ERROR;
-  if (memcmp(key_cstr, GEARMAN_QUEUE_LIBTOKYOCABINET_DEFAULT_PREFIX,
-             sizeof GEARMAN_QUEUE_LIBTOKYOCABINET_DEFAULT_PREFIX - 1))
-    return GEARMAN_QUEUE_ERROR;
-  key_cstr+= sizeof GEARMAN_QUEUE_LIBTOKYOCABINET_DEFAULT_PREFIX - 1;
-  key_cstr_size-= sizeof GEARMAN_QUEUE_LIBTOKYOCABINET_DEFAULT_PREFIX - 1;
-#endif
-  
   key_delim= strchr(key_cstr, '-');
   if (key_delim == NULL || key_delim == key_cstr)
     return GEARMAN_QUEUE_ERROR;
