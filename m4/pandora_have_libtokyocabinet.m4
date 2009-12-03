@@ -12,7 +12,7 @@ AC_DEFUN([_PANDORA_SEARCH_LIBTOKYOCABINET],[
 
   AC_LIB_HAVE_LINKFLAGS(tokyocabinet,,[
     #include <tcutil.h>
-    #include <tchdb.h>    
+    #include <tcbdb.h>    
   ], [
     TCMAP *map;
 
