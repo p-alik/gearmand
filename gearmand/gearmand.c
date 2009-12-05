@@ -164,7 +164,7 @@ int main(int argc, char *argv[])
   MCO("version", 'V', NULL, "Display the version of gearmand and exit.")
   MCO("worker-wakeup", 'w', "WORKERS",
       "Number of workers to wakeup for each job received. The default is to "
-      "wakeup all avaiable workers.")
+      "wakeup all available workers.")
 
   /* Make sure none of the gearman_conf_module_add_option calls failed. */
   if (gearman_conf_return(&conf) != GEARMAN_SUCCESS)

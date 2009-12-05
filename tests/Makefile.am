@@ -27,7 +27,7 @@ SQLITE_REC= sqlite_test.rec
 SQLITE_RECORD= ./sqlite_test > sqlite_test.rec
 SQLITE_RUN= ./sqlite_test > sqlite_test.res
 SQLITE_CHECK= diff ${top_srcdir}/tests/sqlite_test.rec sqlite_test.res
-SQLITE_RM= rm gearman.sql
+SQLITE_RM= rm -f gearman.sql gearman.sql-journal
 SQLITE_VALGRIND= libtool --mode=execute valgrind --leak-check=yes --show-reachable=yes  sqlite_test
 sqlite_test_SOURCES= test.c test_gearmand.c sqlite_test.c
 endif
