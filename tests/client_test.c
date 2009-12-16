@@ -35,6 +35,7 @@ test_return clone_test(void *object);
 test_return echo_test(void *object);
 test_return submit_job_test(void *object);
 test_return submit_null_job_test(void *object);
+test_return submit_fail_job_test(void *object);
 test_return background_test(void *object);
 test_return background_failure_test(void *object);
 test_return add_servers_test(void *object);
@@ -156,6 +157,24 @@ test_return submit_null_job_test(void *object)
 
   if (job_result != NULL || job_length != 0)
     return TEST_FAILURE;
+
+  return TEST_SUCCESS;
+}
+
+test_return submit_fail_job_test(void *object)
+{
+  gearman_return_t rc;
+  gearman_client_st *client= (gearman_client_st *)object;
+  uint8_t *job_result;
+  size_t job_length;
+
+  job_result= gearman_client_do(client, "client_test", NULL, "fail", 4,
+                                &job_length, &rc);
+  if (rc != GEARMAN_WORK_FAIL)
+  {
+    printf("submit_fail_job_test:%s\n", gearman_client_error(client));
+    return TEST_FAILURE;
+  }
 
   return TEST_SUCCESS;
 }
@@ -339,13 +358,18 @@ void *client_test_worker(gearman_job_st *job, void *context,
     assert(workload == NULL && *result_size == 0);
     result= NULL;
   }
+  else if (*result_size == 4 && !memcmp(workload, "fail", 4))
+  {
+    *ret_ptr= GEARMAN_WORK_FAIL;
+    return NULL;
+  }
   else
   {
     assert((result= malloc(*result_size)) != NULL);
     memcpy(result, workload, *result_size);
   }
 
-  ret_ptr= GEARMAN_SUCCESS;
+  *ret_ptr= GEARMAN_SUCCESS;
   return result;
 }
 
@@ -389,6 +413,7 @@ test_st tests[] ={
   {"echo", 0, echo_test },
   {"submit_job", 0, submit_job_test },
   {"submit_null_job", 0, submit_null_job_test },
+  {"submit_fail_job", 0, submit_fail_job_test },
   {"background", 0, background_test },
   {"background_failure", 0, background_failure_test },
   {"add_servers", 0, add_servers_test },
