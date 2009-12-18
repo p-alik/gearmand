@@ -65,7 +65,6 @@ AC_CHECK_HEADERS(sys/socket.h sys/types.h sys/utsname.h unistd.h strings.h)
 AC_CONFIG_FILES(Makefile
                 libgearman/Makefile
                 libgearman-server/Makefile
-                gearmand/Makefile
                 tests/Makefile
                 scripts/Makefile
                 support/Makefile

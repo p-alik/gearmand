@@ -8,12 +8,12 @@
 ACLOCAL_AMFLAGS= -I m4
 
 bin_PROGRAMS =
+sbin_PROGRAMS = 
 noinst_PROGRAMS =
 
 SUBDIRS = \
 	libgearman \
 	libgearman-server \
-	gearmand \
 	scripts \
 	support \
 	benchmark \
@@ -21,6 +21,7 @@ SUBDIRS = \
 
 include bin/include.am
 include examples/include.am
+include gearmand/include.am
 include docs/man_list
 
 EXTRA_DIST= \
