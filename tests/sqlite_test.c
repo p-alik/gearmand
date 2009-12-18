@@ -8,6 +8,10 @@
 
 #include "config.h"
 
+#if defined(NDEBUG)
+# undef NDEBUG
+#endif
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -138,7 +142,7 @@ test_return post(void *object __attribute__((unused)))
 void *world_create(void)
 {
   worker_test_st *test;
-  const char *argv[2]= { "test_gearmand", "--libsqlite3-db=gearman.sql"};
+  const char *argv[2]= { "test_gearmand", "--libsqlite3-db=tests/gearman.sql"};
 
   assert((test= malloc(sizeof(worker_test_st))) != NULL);
   memset(test, 0, sizeof(worker_test_st));
