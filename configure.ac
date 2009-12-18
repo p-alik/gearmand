@@ -66,9 +66,7 @@ AC_CONFIG_FILES(Makefile
                 libgearman/Makefile
                 libgearman-server/Makefile
                 gearmand/Makefile
-                bin/Makefile
                 tests/Makefile
-                examples/Makefile
                 scripts/Makefile
                 support/Makefile
                 benchmark/Makefile

@@ -7,18 +7,21 @@
 
 ACLOCAL_AMFLAGS= -I m4
 
+bin_PROGRAMS =
+noinst_PROGRAMS =
+
 SUBDIRS = \
 	libgearman \
 	libgearman-server \
 	gearmand \
-	bin \
-	examples \
 	scripts \
 	support \
 	benchmark \
 	tests
 
-include $(top_srcdir)/docs/man_list
+include bin/include.am
+include examples/include.am
+include docs/man_list
 
 EXTRA_DIST= \
 	docs/Doxyfile.api \

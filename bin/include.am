@@ -1,0 +1,18 @@
+# vim:ft=automake
+# Gearman server and library
+# Copyright (C) 2008 Brian Aker, Eric Day
+# Copyright (C) 2009 Brian Aker, Eric Day, Monty Taylor
+# All rights reserved.
+#
+# Use and distribution licensed under the BSD license.  See
+# the COPYING file in the parent directory for full text.
+#
+# Included from Top Level Makefile.am
+# All paths should be given relative to the root
+
+
+bin_PROGRAMS+= \
+	bin/gearman
+
+bin_gearman_SOURCES= bin/gearman.c
+bin_gearman_LDADD= libgearman/libgearman.la ${BETTER_MALLOC_LIBS}
