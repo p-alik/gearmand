@@ -9,17 +9,15 @@ ACLOCAL_AMFLAGS= -I m4
 
 bin_PROGRAMS =
 sbin_PROGRAMS = 
+check_PROGRAMS =
 noinst_PROGRAMS =
 lib_LTLIBRARIES =
 noinst_LTLIBRARIES =
 nobase_pkginclude_HEADERS =
 noinst_HEADERS =
 EXTRA_DIST = 
+CLEANFILES =
 
-
-SUBDIRS = \
-	. \
-	tests
 
 include benchmark/include.am
 include bin/include.am
@@ -27,6 +25,8 @@ include examples/include.am
 include gearmand/include.am
 include libgearman/include.am
 include libgearman-server/include.am
+include tests/include.am
+
 include docs/man_list
 
 EXTRA_DIST+= \
@@ -50,8 +50,6 @@ docs: all
 
 test: check
 
-valgrind:
-	(cd tests; ${MAKE} valgrind)
 
 rpm: all dist
 	cp gearmand-$(VERSION).tar.gz ~/rpmbuild/SOURCES/

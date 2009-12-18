@@ -64,7 +64,6 @@ AC_CHECK_HEADERS(sys/socket.h sys/types.h sys/utsname.h unistd.h strings.h)
 
 
 AC_CONFIG_FILES(Makefile
-                tests/Makefile
                 scripts/gearmand-init
                 scripts/gearmand.xml
                 scripts/gearmand
