@@ -126,13 +126,15 @@ gearman_return_t gearmand_con_create(gearmand_st *gearmand, int fd,
 
 void gearmand_con_free(gearmand_con_st *dcon)
 {
-  assert(event_del(&(dcon->event)) == 0);
+  int del_ret= event_del(&(dcon->event));  
+  assert(del_ret == 0);
 
   /* This gets around a libevent bug when both POLLIN and POLLOUT are set. */
   event_set(&(dcon->event), dcon->fd, EV_READ, _con_ready, dcon);
   event_base_set(dcon->thread->base, &(dcon->event));
   event_add(&(dcon->event), NULL);
-  assert(event_del(&(dcon->event)) == 0);
+  del_ret= event_del(&(dcon->event));
+  assert(del_ret == 0);
 
   gearman_server_con_free(dcon->server_con);
   GEARMAN_LIST_DEL(dcon->thread->dcon, dcon,)
@@ -195,7 +197,10 @@ gearman_return_t gearmand_con_watch(gearman_con_st *con, short events,
   if (dcon->last_events != set_events)
   {
     if (dcon->last_events != 0)
-      assert(event_del(&(dcon->event)) == 0);
+    {
+      int del_ret= event_del(&(dcon->event));
+      assert(del_ret == 0);
+    }
     event_set(&(dcon->event), dcon->fd, set_events | EV_PERSIST, _con_ready,
               dcon);
     event_base_set(dcon->thread->base, &(dcon->event));

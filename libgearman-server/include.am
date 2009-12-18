@@ -1,0 +1,96 @@
+# vim:ft=automake
+# Gearman server and library
+# Copyright (C) 2008 Brian Aker, Eric Day
+# Copyright (C) 2009 Brian Aker, Eric Day, Monty Taylor
+# All rights reserved.
+#
+# Use and distribution licensed under the BSD license.  See
+# the COPYING file in the parent directory for full text.
+#
+# Included from Top Level Makefile.am
+# All paths should be given relative to the root
+
+if HAVE_LIBDRIZZLE
+QUEUE_LIBDRIZZLE_H= libgearman-server/queue_libdrizzle.h
+QUEUE_LIBDRIZZLE_C= libgearman-server/queue_libdrizzle.c
+endif
+
+if HAVE_LIBMEMCACHED
+QUEUE_LIBMEMCACHED_H= libgearman-server/queue_libmemcached.h
+QUEUE_LIBMEMCACHED_C= libgearman-server/queue_libmemcached.c
+endif
+
+if HAVE_LIBSQLITE3
+QUEUE_LIBSQLITE3_H= libgearman-server/queue_libsqlite3.h
+QUEUE_LIBSQLITE3_C= libgearman-server/queue_libsqlite3.c
+endif
+
+if HAVE_LIBPQ
+QUEUE_LIBPQ_H= libgearman-server/queue_libpq.h
+QUEUE_LIBPQ_C= libgearman-server/queue_libpq.c
+endif
+
+lib_LTLIBRARIES+= libgearman-server/libgearman-server.la
+
+
+nobase_pkginclude_HEADERS += \
+	$(QUEUE_LIBDRIZZLE_H) \
+	$(QUEUE_LIBMEMCACHED_H) \
+	$(QUEUE_LIBPQ_H) \
+	$(QUEUE_LIBSQLITE3_H) \
+	libgearman-server/client.h \
+	libgearman-server/conf.h \
+	libgearman-server/conf_module.h \
+	libgearman-server/conn.h \
+	libgearman-server/constants.h \
+	libgearman-server/function.h \
+	libgearman-server/gearmand.h \
+	libgearman-server/gearmand_con.h \
+	libgearman-server/gearmand_thread.h \
+	libgearman-server/job.h \
+	libgearman-server/packet.h \
+	libgearman-server/protocol_http.h \
+	libgearman-server/server.h \
+	libgearman-server/structs.h \
+	libgearman-server/thread.h \
+	libgearman-server/worker.h
+
+noinst_HEADERS+= \
+	libgearman-server/common.h
+
+libgearman_server_libgearman_server_la_SOURCES= \
+	$(QUEUE_LIBDRIZZLE_C) \
+	$(QUEUE_LIBMEMCACHED_C) \
+	$(QUEUE_LIBPQ_C) \
+	$(QUEUE_LIBSQLITE3_C) \
+	libgearman-server/client.c \
+	libgearman-server/conf.c \
+	libgearman-server/conf_module.c \
+	libgearman-server/conn.c \
+	libgearman-server/function.c \
+	libgearman-server/gearmand.c \
+	libgearman-server/gearmand_con.c \
+	libgearman-server/gearmand_thread.c \
+	libgearman-server/job.c \
+	libgearman-server/packet.c \
+	libgearman-server/protocol_http.c \
+	libgearman-server/server.c \
+	libgearman-server/thread.c \
+	libgearman-server/worker.c
+
+libgearman_server_libgearman_server_la_CFLAGS= \
+	${AM_CFLAGS} \
+	-DBUILDING_LIBGEARMAN
+
+libgearman_server_libgearman_server_la_LDFLAGS= \
+	$(AM_LDFLAGS) \
+	-version-info \
+	$(GEARMAN_SERVER_LIBRARY_VERSION)
+
+libgearman_server_libgearman_server_la_LIBADD= \
+	$(LTLIBDRIZZLE) \
+	$(LTLIBEVENT) \
+	$(LTLIBMEMCACHED) \
+	$(LTLIBPQ) \
+	$(LTLIBSQLITE3) \
+	libgearman/libgearman.la

@@ -1,0 +1,51 @@
+# vim:ft=automake
+# Gearman server and library
+# Copyright (C) 2008 Brian Aker, Eric Day
+# Copyright (C) 2009 Brian Aker, Eric Day, Monty Taylor
+# All rights reserved.
+#
+# Use and distribution licensed under the BSD license.  See
+# the COPYING file in the parent directory for full text.
+#
+# Included from Top Level Makefile.am
+# All paths should be given relative to the root
+
+lib_LTLIBRARIES+= libgearman/libgearman.la
+
+nobase_pkginclude_HEADERS += \
+	libgearman/client.h \
+	libgearman/conn.h \
+	libgearman/constants.h \
+	libgearman/gearman.h \
+	libgearman/job.h \
+	libgearman/packet.h \
+	libgearman/structs.h \
+	libgearman/task.h \
+	libgearman/visibility.h \
+	libgearman/worker.h
+
+noinst_HEADERS+= \
+	libgearman/common.h \
+	libgearman/gearman_local.h
+
+libgearman_libgearman_la_SOURCES= \
+	libgearman/client.c \
+	libgearman/conn.c \
+	libgearman/gearman.c \
+	libgearman/job.c \
+	libgearman/packet.c \
+	libgearman/task.c \
+	libgearman/worker.c
+
+libgearman_libgearman_la_CFLAGS= \
+	${AM_CFLAGS} \
+	-DBUILDING_LIBGEARMAN
+
+libgearman_libgearman_la_LDFLAGS= \
+	$(AM_LDFLAGS) \
+	-version-info \
+	$(GEARMAN_LIBRARY_VERSION)
+
+libgearman_libgearman_la_LIBADD= \
+	$(LTLIBUUID)
+

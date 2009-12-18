@@ -1,3 +1,8 @@
+0.12 - 2010-01-??
+ * Fixed job handle comparison bug with WORK_FAIL responses.
+ * Fixed disable assert configure option.
+ * Build system updates.
+
 0.11 - 2009-11-30
  * Added max wakeup-worker option to gearmand. Default is still to wakeup all.
  * API and documentation cleanup.
