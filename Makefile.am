@@ -10,18 +10,24 @@ ACLOCAL_AMFLAGS= -I m4
 bin_PROGRAMS =
 sbin_PROGRAMS = 
 noinst_PROGRAMS =
+lib_LTLIBRARIES =
+noinst_LTLIBRARIES =
+nobase_pkginclude_HEADERS =
+noinst_HEADERS=
+
 
 SUBDIRS = \
-	libgearman \
-	libgearman-server \
+	. \
 	scripts \
 	support \
-	benchmark \
 	tests
 
+include benchmark/include.am
 include bin/include.am
 include examples/include.am
 include gearmand/include.am
+include libgearman/include.am
+include libgearman-server/include.am
 include docs/man_list
 
 EXTRA_DIST= \
