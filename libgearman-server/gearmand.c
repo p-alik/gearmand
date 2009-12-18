@@ -484,13 +484,15 @@ static void _listen_clear(gearmand_st *gearmand)
   if (!(gearmand->options & GEARMAND_LISTEN_EVENT))
     return;
 
+  int del_ret= 0;
   for (x= 0; x < gearmand->port_count; x++)
   {
     for (y= 0; y < gearmand->port_list[x].listen_count; y++)
     {
       GEARMAN_INFO(gearmand, "Clearing event for listening socket (%d)",
                    gearmand->port_list[x].listen_fd[y])
-      assert(event_del(&(gearmand->port_list[x].listen_event[y])) == 0);
+      del_ret= event_del(&(gearmand->port_list[x].listen_event[y]));
+      assert(del_ret == 0);
     }
   }
 
@@ -615,7 +617,8 @@ static void _wakeup_clear(gearmand_st *gearmand)
   if (gearmand->options & GEARMAND_WAKEUP_EVENT)
   {
     GEARMAN_INFO(gearmand, "Clearing event for wakeup pipe")
-    assert(event_del(&(gearmand->wakeup_event)) == 0);
+    int del_ret= event_del(&(gearmand->wakeup_event));
+    assert(del_ret == 0);
     gearmand->options&= (gearmand_options_t)~GEARMAND_WAKEUP_EVENT;
   }
 }

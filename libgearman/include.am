@@ -42,6 +42,7 @@ libgearman_libgearman_la_CFLAGS= \
 	-DBUILDING_LIBGEARMAN
 
 libgearman_libgearman_la_LDFLAGS= \
+	$(AM_LDFLAGS) \
 	-version-info \
 	$(GEARMAN_LIBRARY_VERSION)
 

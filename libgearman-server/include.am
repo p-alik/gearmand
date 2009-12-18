@@ -83,6 +83,7 @@ libgearman_server_libgearman_server_la_CFLAGS= \
 	-DBUILDING_LIBGEARMAN
 
 libgearman_server_libgearman_server_la_LDFLAGS= \
+	$(AM_LDFLAGS) \
 	-version-info \
 	$(GEARMAN_SERVER_LIBRARY_VERSION)
 
