@@ -43,60 +43,11 @@ GEARMAN_SERVER_LIBRARY_VERSION=0:1:0
 #                          or changed
 AC_SUBST(GEARMAN_SERVER_LIBRARY_VERSION)
 
-# lib versioning when linked with GNU ld.
-AS_IF([test "$lt_cv_prog_gnu_ld" = "yes"],[
-    LD_VERSION_SCRIPT="-Wl,--version-script=\$(top_srcdir)/libgearman/libgearman.ver"
-    LD_VERSION_SCRIPT_SERVER="-Wl,--version-script=\$(top_srcdir)/libgearman-server/libgearman-server.ver"
-])
-AC_SUBST(LD_VERSION_SCRIPT)
-AC_SUBST(LD_VERSION_SCRIPT_SERVER)
 
 PANDORA_REQUIRE_PTHREAD
+PANDORA_REQUIRE_LIBEVENT
+PANDORA_REQUIRE_LIBUUID
 
-#--------------------------------------------------------------------
-# Check for libevent
-#--------------------------------------------------------------------
-
-AC_LIB_HAVE_LINKFLAGS(event,,
-[
-#include <sys/types.h>
-#include <sys/time.h>
-#include <stdlib.h>
-#include <event.h>
-],[
-  struct bufferevent bev;
-  bufferevent_settimeout(&bev, 1, 1);
-  event_init();
-  event_loop(EVLOOP_ONCE);
-])
-AS_IF([test x$ac_cv_libevent = xno],
-      AC_MSG_ERROR([A recent version of libevent is required to build gearmand. On Debian this can be found in libevent-dev. On RedHat its in libevent-devel. You can also install the latest from source at http://www.monkey.org/~provos/libevent.]))
-
-
-save_LIBS="${LIBS}"
-LIBS="${LIBS} ${LTLIBEVENT}"
-AC_CHECK_FUNCS(event_base_new)
-AC_CHECK_FUNCS(event_base_free)
-AC_CHECK_FUNCS(event_base_get_method)
-LIBS="$save_LIBS"
-
-#--------------------------------------------------------------------
-# Check for libuuid
-#--------------------------------------------------------------------
-
-AC_CHECK_HEADERS(uuid/uuid.h)
-if test "x$ac_cv_header_uuid_uuid_h" = "xno"
-then
-  AC_MSG_ERROR([Couldn't find uuid/uuid.h. On Debian this can be found in uuid-dev. On Redhat this can be found in e2fsprogs-devel.])
-fi
-AC_LIB_HAVE_LINKFLAGS(uuid,,
-[
-#include <uuid/uuid.h>
-],
-[
-  uuid_t uout;
-  uuid_generate(uout);
-])
 
 PANDORA_HAVE_BETTER_MALLOC
 PANDORA_HAVE_LIBSQLITE3

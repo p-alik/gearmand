@@ -40,8 +40,7 @@ libgearman_la_CFLAGS= \
 
 libgearman_la_LDFLAGS= \
 	-version-info \
-	$(GEARMAN_LIBRARY_VERSION) \
-	$(LD_VERSION_SCRIPT)
+	$(GEARMAN_LIBRARY_VERSION)
 
 libgearman_la_LIBADD= \
 	$(LTLIBUUID)

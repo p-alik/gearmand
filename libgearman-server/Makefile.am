@@ -80,8 +80,7 @@ libgearman_server_la_CFLAGS= \
 
 libgearman_server_la_LDFLAGS= \
 	-version-info \
-	$(GEARMAN_SERVER_LIBRARY_VERSION) \
-	$(LD_VERSION_SCRIPT_SERVER)
+	$(GEARMAN_SERVER_LIBRARY_VERSION)
 
 libgearman_server_la_LIBADD= \
 	$(top_builddir)/libgearman/libgearman.la \
