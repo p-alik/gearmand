@@ -35,10 +35,10 @@ EXTRA_DIST+= \
 	docs/api_header.html \
 	docs/dev_header.html \
 	docs/doxygen.h \
-  scripts/gearmand-init \
-	scripts/gearmand.xml \
-	scripts/gearmand \
 	scripts/README.solaris \
+	scripts/gearmand \
+	scripts/gearmand-init \
+	scripts/gearmand.xml \
 	support/gearmand.spec
 
 pkgconfigdir = $(libdir)/pkgconfig
@@ -49,7 +49,6 @@ docs: all
 	${DOXYGEN} docs/Doxyfile.dev
 
 test: check
-
 
 rpm: all dist
 	cp gearmand-$(VERSION).tar.gz ~/rpmbuild/SOURCES/

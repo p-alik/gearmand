@@ -1,3 +1,4 @@
+# vim:ft=automake
 # Gearman server and library
 # Copyright (C) 2008 Brian Aker, Eric Day
 # All rights reserved.
@@ -8,10 +9,10 @@
 noinst_LTLIBRARIES+= tests/libtest.la
 tests_libtest_la_SOURCES= tests/test.c tests/test_gearmand.c
 
-TEST_LDADD = \
-	libgearman/libgearman.la \
-	libgearman-server/libgearman-server.la \
-	tests/libtest.la
+TEST_LDADD= \
+	    libgearman/libgearman.la \
+	    libgearman-server/libgearman-server.la \
+	    tests/libtest.la
 
 if HAVE_LIBMEMCACHED
 LIBMEMCACHED_PIDFILE = ${abs_top_builddir}/tests/Xumemc.pid
@@ -25,7 +26,7 @@ LIBMEMCACHED_RECORD= ${LIBMEMCACHED_TEST} > ${LIBMEMCACHED_REC}
 LIBMEMCACHED_RUN= ${LIBMEMCACHED_TEST} > ${LIBMEMCACHED_RES}
 LIBMEMCACHED_CHECK= diff ${LIBMEMCACHED_REC} ${LIBMEMCACHED_RES}
 LIBMEMCACHED_VALGRIND= libtool --mode=execute valgrind --leak-check=yes --show-reachable=yes ${LIBMEMCACHED_TEST}
-check_PROGRAMS += tests/memcached_test
+noinst_PROGRAMS += tests/memcached_test
 endif
 
 tests_memcached_test_SOURCES= tests/memcached_test.c
@@ -40,14 +41,14 @@ SQLITE_RUN= ${SQLITE_TEST} > ${SQLITE_RES}
 SQLITE_CHECK= diff ${SQLITE_REC} ${SQLITE_RES}
 SQLITE_RM= rm -f tests/gearman.sql tests/gearman.sql-journal
 SQLITE_VALGRIND= libtool --mode=execute valgrind --leak-check=yes --show-reachable=yes ${SQLITE_TEST}
-check_PROGRAMS += tests/sqlite_test
+noinst_PROGRAMS += tests/sqlite_test
 endif
 
 tests_sqlite_test_SOURCES= tests/sqlite_test.c
 tests_sqlite_test_LDADD= ${TEST_LDADD}
 
 
-check_PROGRAMS+= \
+noinst_PROGRAMS+= \
 	tests/client_test \
 	tests/worker_test \
 	tests/cpp_test
@@ -91,7 +92,7 @@ check-local:
 	$(SQLITE_CHECK)
 	$(SQLITE_RM)
 
-valgrind: ${check_PROGRAMS}
+valgrind: ${noinst_PROGRAMS}
 	libtool --mode=execute valgrind --leak-check=yes --show-reachable=yes  tests/client_test
 	libtool --mode=execute valgrind --leak-check=yes --show-reachable=yes  tests/worker_test
 	$(LIBMEMCACHED_VALGRIND)
