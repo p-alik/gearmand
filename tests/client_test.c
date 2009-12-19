@@ -33,29 +33,23 @@ typedef struct
 } client_test_st;
 
 /* Prototypes */
-test_return init_test(void *object);
-test_return allocation_test(void *object);
-test_return clone_test(void *object);
-test_return echo_test(void *object);
-test_return submit_job_test(void *object);
-test_return submit_null_job_test(void *object);
-test_return submit_fail_job_test(void *object);
-test_return background_test(void *object);
-test_return background_failure_test(void *object);
-test_return add_servers_test(void *object);
-
-void *create(void *object);
-void destroy(void *object);
-test_return pre(void *object);
-test_return post(void *object);
-test_return flush(void);
+test_return_t init_test(void *object);
+test_return_t allocation_test(void *object);
+test_return_t clone_test(void *object);
+test_return_t echo_test(void *object);
+test_return_t submit_job_test(void *object);
+test_return_t submit_null_job_test(void *object);
+test_return_t submit_fail_job_test(void *object);
+test_return_t background_test(void *object);
+test_return_t background_failure_test(void *object);
+test_return_t add_servers_test(void *object);
 
 void *client_test_worker(gearman_job_st *job, void *context,
                          size_t *result_size, gearman_return_t *ret_ptr);
 void *world_create(void);
-void world_destroy(void *object);
+test_return_t world_destroy(void *object);
 
-test_return init_test(void *object __attribute__((unused)))
+test_return_t init_test(void *object __attribute__((unused)))
 {
   gearman_client_st client;
 
@@ -67,7 +61,7 @@ test_return init_test(void *object __attribute__((unused)))
   return TEST_SUCCESS;
 }
 
-test_return allocation_test(void *object __attribute__((unused)))
+test_return_t allocation_test(void *object __attribute__((unused)))
 {
   gearman_client_st *client;
 
@@ -80,7 +74,7 @@ test_return allocation_test(void *object __attribute__((unused)))
   return TEST_SUCCESS;
 }
 
-test_return clone_test(void *object)
+test_return_t clone_test(void *object)
 {
   gearman_client_st *from= (gearman_client_st *)object;
   gearman_client_st *client;
@@ -97,7 +91,7 @@ test_return clone_test(void *object)
   return TEST_SUCCESS;
 }
 
-test_return echo_test(void *object __attribute__((unused)))
+test_return_t echo_test(void *object __attribute__((unused)))
 {
   gearman_client_st *client= (gearman_client_st *)object;
   gearman_return_t rc;
@@ -116,7 +110,7 @@ test_return echo_test(void *object __attribute__((unused)))
   return TEST_SUCCESS;
 }
 
-test_return submit_job_test(void *object)
+test_return_t submit_job_test(void *object)
 {
   gearman_return_t rc;
   gearman_client_st *client= (gearman_client_st *)object;
@@ -144,7 +138,7 @@ test_return submit_job_test(void *object)
   return TEST_SUCCESS;
 }
 
-test_return submit_null_job_test(void *object)
+test_return_t submit_null_job_test(void *object)
 {
   gearman_return_t rc;
   gearman_client_st *client= (gearman_client_st *)object;
@@ -165,7 +159,7 @@ test_return submit_null_job_test(void *object)
   return TEST_SUCCESS;
 }
 
-test_return submit_fail_job_test(void *object)
+test_return_t submit_fail_job_test(void *object)
 {
   gearman_return_t rc;
   gearman_client_st *client= (gearman_client_st *)object;
@@ -183,7 +177,7 @@ test_return submit_fail_job_test(void *object)
   return TEST_SUCCESS;
 }
 
-test_return background_test(void *object)
+test_return_t background_test(void *object)
 {
   gearman_return_t rc;
   gearman_client_st *client= (gearman_client_st *)object;
@@ -220,7 +214,7 @@ test_return background_test(void *object)
   return TEST_SUCCESS;
 }
 
-test_return background_failure_test(void *object)
+test_return_t background_failure_test(void *object)
 {
   gearman_return_t rc;
   gearman_client_st *client= (gearman_client_st *)object;
@@ -249,7 +243,7 @@ test_return background_failure_test(void *object)
   return TEST_SUCCESS;
 }
 
-test_return add_servers_test(void *object __attribute__((unused)))
+test_return_t add_servers_test(void *object __attribute__((unused)))
 {
   gearman_client_st client;
 
@@ -273,7 +267,7 @@ test_return add_servers_test(void *object __attribute__((unused)))
   return TEST_SUCCESS;
 }
 
-static test_return submit_log_failure(void *object)
+static test_return_t submit_log_failure(void *object)
 {
   gearman_return_t rc;
   gearman_client_st *client= (gearman_client_st *)object;
@@ -290,31 +284,6 @@ static test_return submit_log_failure(void *object)
   return TEST_FAILURE;
 }
 
-test_return flush(void)
-{
-  return TEST_SUCCESS;
-}
-
-void *create(void *object)
-{
-  client_test_st *test= (client_test_st *)object;
-  return (void *)&(test->client);
-}
-
-void destroy(void *object __attribute__((unused)))
-{
-}
-
-test_return pre(void *object __attribute__((unused)))
-{
-  return TEST_SUCCESS;
-}
-
-test_return post(void *object __attribute__((unused)))
-{
-  return TEST_SUCCESS;
-}
-
 static void log_counter(const char *line, gearman_verbose_t verbose,
                         void *context)
 {
@@ -327,7 +296,7 @@ static void log_counter(const char *line, gearman_verbose_t verbose,
 }
 
 static uint32_t global_counter;
-static test_return pre_logging(void *object)
+static test_return_t pre_logging(void *object)
 {
   client_test_st *all= (client_test_st *)object;
   gearman_log_fn *func= log_counter;
@@ -339,7 +308,7 @@ static test_return pre_logging(void *object)
   return TEST_SUCCESS;
 }
 
-static test_return post_logging(void *object __attribute__((unused)))
+static test_return_t post_logging(void *object __attribute__((unused)))
 {
   assert(global_counter);
 
@@ -383,7 +352,7 @@ void *world_create(void)
   /**
    *  @TODO We cast this to char ** below, which is evil. We need to do the
    *  right thing
-   */  
+   */ 
   const char *argv[1]= { "client_gearmand" };
 
   assert((test= malloc(sizeof(client_test_st))) != NULL);
@@ -401,14 +370,18 @@ void *world_create(void)
   return (void *)test;
 }
 
-void world_destroy(void *object)
+
+test_return_t world_destroy(void *object)
 {
   client_test_st *test= (client_test_st *)object;
   gearman_client_free(&(test->client));
   test_worker_stop(test->worker_pid);
   test_gearmand_stop(test->gearmand_pid);
   free(test);
+
+  return TEST_SUCCESS;
 }
+
 
 test_st tests[] ={
   {"init", 0, init_test },
@@ -424,20 +397,43 @@ test_st tests[] ={
   {0, 0, 0}
 };
 
+
 test_st tests_log[] ={
   {"submit_log_failure", 0, submit_log_failure },
   {0, 0, 0}
 };
 
+
 collection_st collection[] ={
-  {"client", flush, create, destroy, pre, post, tests},
-  {"client-logging", flush, create, destroy, pre_logging, post_logging, tests_log},
-  {0, 0, 0, 0, 0, 0, 0}
+  {"client", 0, 0, tests},
+  {"client-logging", pre_logging, post_logging, tests_log},
+  {0, 0, 0, 0}
 };
+
+typedef test_return_t (*libgearman_test_callback_fn)(gearman_client_st *);
+static test_return_t _runner_default(libgearman_test_callback_fn func, client_test_st *container)
+{
+  if (func)
+  {
+    return func(&container->client);
+  }
+  else
+  {
+    return TEST_SUCCESS;
+  }
+}
+
+static world_runner_st runner= {
+  (test_callback_runner_fn)_runner_default,
+  (test_callback_runner_fn)_runner_default,
+  (test_callback_runner_fn)_runner_default
+};
+
 
 void get_world(world_st *world)
 {
   world->collections= collection;
   world->create= world_create;
   world->destroy= world_destroy;
+  world->runner= &runner;
 }

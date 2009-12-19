@@ -33,17 +33,15 @@ typedef struct
 } worker_test_st;
 
 /* Prototypes */
-test_return queue_add(void *object);
-test_return queue_worker(void *object);
+test_return_t queue_add(void *object);
+test_return_t queue_worker(void *object);
 
-void *create(void *object);
-void destroy(void *object);
-test_return pre(void *object);
-test_return post(void *object);
-test_return flush(void);
+test_return_t pre(void *object);
+test_return_t post(void *object);
+test_return_t flush(void *object);
 
 void *world_create(void);
-void world_destroy(void *object);
+test_return_t world_destroy(void *object);
 
 /* Counter test for worker */
 static void *counter_function(gearman_job_st *job __attribute__((unused)), 
@@ -59,7 +57,7 @@ static void *counter_function(gearman_job_st *job __attribute__((unused)),
   return NULL;
 }
 
-test_return queue_add(void *object)
+test_return_t queue_add(void *object)
 {
   worker_test_st *test= (worker_test_st *)object;
   gearman_client_st client;
@@ -90,7 +88,7 @@ test_return queue_add(void *object)
   return TEST_SUCCESS;
 }
 
-test_return queue_worker(void *object)
+test_return_t queue_worker(void *object)
 {
   worker_test_st *test= (worker_test_st *)object;
   gearman_worker_st *worker= &(test->worker);
@@ -115,30 +113,6 @@ test_return queue_worker(void *object)
 }
 
 
-test_return flush(void)
-{
-  return TEST_SUCCESS;
-}
-
-void *create(void *object)
-{
-  return object;
-}
-
-void destroy(void *object __attribute__((unused)))
-{
-}
-
-test_return pre(void *object __attribute__((unused)))
-{
-  return TEST_SUCCESS;
-}
-
-test_return post(void *object __attribute__((unused)))
-{
-  return TEST_SUCCESS;
-}
-
 void *world_create(void)
 {
   worker_test_st *test;
@@ -156,12 +130,14 @@ void *world_create(void)
   return (void *)test;
 }
 
-void world_destroy(void *object)
+test_return_t world_destroy(void *object)
 {
   worker_test_st *test= (worker_test_st *)object;
   gearman_worker_free(&(test->worker));
   test_gearmand_stop(test->gearmand_pid);
   free(test);
+
+  return TEST_SUCCESS;
 }
 
 test_st tests[] ={
@@ -172,9 +148,9 @@ test_st tests[] ={
 
 collection_st collection[] ={
 #ifdef HAVE_LIBMEMCACHED
-  {"memcached queue", flush, create, destroy, pre, post, tests},
+  {"memcached queue", 0, 0, tests},
 #endif
-  {0, 0, 0, 0, 0, 0, 0}
+  {0, 0, 0, 0}
 };
 
 void get_world(world_st *world)

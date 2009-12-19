@@ -32,22 +32,22 @@ typedef struct
 } worker_test_st;
 
 /* Prototypes */
-test_return init_test(void *object);
-test_return allocation_test(void *object);
-test_return clone_test(void *object);
-test_return echo_test(void *object);
-test_return bug372074_test(void *object);
+test_return_t init_test(void *object);
+test_return_t allocation_test(void *object);
+test_return_t clone_test(void *object);
+test_return_t echo_test(void *object);
+test_return_t bug372074_test(void *object);
 
 void *create(void *object);
 void destroy(void *object);
-test_return pre(void *object);
-test_return post(void *object);
-test_return flush(void);
+test_return_t pre(void *object);
+test_return_t post(void *object);
+test_return_t flush(void);
 
 void *world_create(void);
-void world_destroy(void *object);
+test_return_t world_destroy(void *object);
 
-test_return init_test(void *object __attribute__((unused)))
+test_return_t init_test(void *object __attribute__((unused)))
 {
   gearman_worker_st worker;
 
@@ -59,7 +59,7 @@ test_return init_test(void *object __attribute__((unused)))
   return TEST_SUCCESS;
 }
 
-test_return allocation_test(void *object __attribute__((unused)))
+test_return_t allocation_test(void *object __attribute__((unused)))
 {
   gearman_worker_st *worker;
 
@@ -72,7 +72,7 @@ test_return allocation_test(void *object __attribute__((unused)))
   return TEST_SUCCESS;
 }
 
-test_return clone_test(void *object)
+test_return_t clone_test(void *object)
 {
   gearman_worker_st *from= (gearman_worker_st *)object;
   gearman_worker_st *worker;
@@ -89,23 +89,23 @@ test_return clone_test(void *object)
   return TEST_SUCCESS;
 }
 
-test_return echo_test(void *object)
+test_return_t echo_test(void *object)
 {
   gearman_worker_st *worker= (gearman_worker_st *)object;
   gearman_return_t rc;
   size_t value_length;
   const char *value= "This is my echo test";
-  
+
   value_length= strlen(value);
-  
+
   rc= gearman_worker_echo(worker, (uint8_t *)value, value_length);
   if (rc != GEARMAN_SUCCESS)
     return TEST_FAILURE;
-  
+
   return TEST_SUCCESS;
 }
 
-test_return bug372074_test(void *object __attribute__((unused)))
+test_return_t bug372074_test(void *object __attribute__((unused)))
 {
   gearman_st gearman;
   gearman_con_st con;
@@ -238,15 +238,15 @@ test_return bug372074_test(void *object __attribute__((unused)))
 #ifdef NOT_DONE
 /* Prototype */
 uint8_t* simple_worker(gearman_worker_st *job,
-                       uint8_t *value,  
-                       ssize_t value_length,  
-                       ssize_t *result_length,  
+                       uint8_t *value,
+                       ssize_t value_length,
+                       ssize_t *result_length,
                        gearman_return *error);
 
 uint8_t* simple_worker(gearman_worker_st *job,
-                       uint8_t *value,  
-                       ssize_t value_length,  
-                       ssize_t *result_length,  
+                       uint8_t *value,
+                       ssize_t value_length,
+                       ssize_t *result_length,
                        gearman_return *error)
 {
   fprintf(stderr, "%.*s\n", value_length, value);
@@ -259,7 +259,7 @@ uint8_t* simple_worker(gearman_worker_st *job,
   return (uint8_t *)strdup("successful");
 }
 
-static test_return simple_work_test(void *object)
+static test_return_t simple_work_test(void *object)
 {
   gearman_worker_st *worker= (gearman_worker_st *)object;
   gearman_worker_function callback[1];
@@ -272,29 +272,10 @@ static test_return simple_work_test(void *object)
 }
 #endif
 
-test_return flush(void)
-{
-  return TEST_SUCCESS;
-}
-
 void *create(void *object __attribute__((unused)))
 {
   worker_test_st *test= (worker_test_st *)object;
   return (void *)&(test->worker);
-}
-
-void destroy(void *object __attribute__((unused)))
-{
-}
-
-test_return pre(void *object __attribute__((unused)))
-{
-  return TEST_SUCCESS;
-}
-
-test_return post(void *object __attribute__((unused)))
-{
-  return TEST_SUCCESS;
 }
 
 void *world_create(void)
@@ -313,12 +294,14 @@ void *world_create(void)
   return (void *)test;
 }
 
-void world_destroy(void *object)
+test_return_t world_destroy(void *object)
 {
   worker_test_st *test= (worker_test_st *)object;
   gearman_worker_free(&(test->worker));
   test_gearmand_stop(test->gearmand_pid);
   free(test);
+
+  return TEST_SUCCESS;
 }
 
 test_st tests[] ={
@@ -334,8 +317,29 @@ test_st tests[] ={
 };
 
 collection_st collection[] ={
-  {"worker", flush, create, destroy, pre, post, tests},
-  {0, 0, 0, 0, 0, 0, 0}
+  {"worker", 0, 0, tests},
+  {0, 0, 0, 0}
+};
+
+
+typedef test_return_t (*libgearman_test_callback_fn)(gearman_worker_st *);
+static test_return_t _runner_default(libgearman_test_callback_fn func, worker_test_st *container)
+{
+  if (func)
+  {
+    return func(&container->worker);
+  }
+  else
+  {
+    return TEST_SUCCESS;
+  }
+}
+
+
+static world_runner_st runner= {
+  (test_callback_runner_fn)_runner_default,
+  (test_callback_runner_fn)_runner_default,
+  (test_callback_runner_fn)_runner_default
 };
 
 void get_world(world_st *world)
@@ -343,4 +347,5 @@ void get_world(world_st *world)
   world->collections= collection;
   world->create= world_create;
   world->destroy= world_destroy;
+  world->runner= &runner;
 }
