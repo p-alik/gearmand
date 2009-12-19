@@ -381,6 +381,8 @@ void *world_create(test_return_t *error)
   test->worker_pid= test_worker_start(CLIENT_TEST_PORT, "client_test",
                                       client_test_worker, NULL);
 
+  *error= TEST_SUCCESS;
+
   return (void *)test;
 }
 

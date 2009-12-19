@@ -37,7 +37,7 @@ pid_t test_worker_start(in_port_t port, const char *function_name,
       assert(ret == GEARMAN_SUCCESS);
     }
 
-    /* TODO: unreachable - the only way out of the loop above is the assert 
+    /* TODO: unreachable - the only way out of the loop above is the assert
      * gearman_worker_free(&worker);
      * exit(0);
      */

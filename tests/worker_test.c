@@ -305,6 +305,8 @@ void *world_create(test_return_t *error)
 
   test->gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, NULL, NULL, 0);
 
+  *error= TEST_SUCCESS;
+
   return (void *)test;
 }
 
