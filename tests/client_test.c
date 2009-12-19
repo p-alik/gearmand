@@ -46,7 +46,7 @@ test_return_t add_servers_test(void *object);
 
 void *client_test_worker(gearman_job_st *job, void *context,
                          size_t *result_size, gearman_return_t *ret_ptr);
-void *world_create(void);
+void *world_create(test_return_t *error);
 test_return_t world_destroy(void *object);
 
 test_return_t init_test(void *object __attribute__((unused)))
@@ -346,21 +346,35 @@ void *client_test_worker(gearman_job_st *job, void *context,
   return result;
 }
 
-void *world_create(void)
+void *world_create(test_return_t *error)
 {
   client_test_st *test;
   /**
    *  @TODO We cast this to char ** below, which is evil. We need to do the
    *  right thing
-   */ 
+   */
   const char *argv[1]= { "client_gearmand" };
 
-  assert((test= malloc(sizeof(client_test_st))) != NULL);
-  memset(test, 0, sizeof(client_test_st));
-  assert(gearman_client_create(&(test->client)) != NULL);
+  test= malloc(sizeof(client_test_st));
+  if (! test)
+  {
+    *error= TEST_MEMORY_ALLOCATION_FAILURE;
+    return NULL;
+  }
 
-  assert(gearman_client_add_server(&(test->client), NULL, CLIENT_TEST_PORT) ==
-         GEARMAN_SUCCESS);
+  memset(test, 0, sizeof(client_test_st));
+
+  if (gearman_client_create(&(test->client)) == NULL)
+  {
+    *error= TEST_FAILURE;
+    return NULL;
+  }
+
+  if (gearman_client_add_server(&(test->client), NULL, CLIENT_TEST_PORT) != GEARMAN_SUCCESS)
+  {
+    *error= TEST_FAILURE;
+    return NULL;
+  }
 
   test->gearmand_pid= test_gearmand_start(CLIENT_TEST_PORT, NULL,
                                           (char **)argv, 1);

@@ -20,8 +20,7 @@ LIBMEMCACHED_TEST= tests/memcached_test
 LIBMEMCACHED_SETUP= $(MEMCACHED_BINARY) -d -P ${LIBMEMCACHED_PIDFILE} -p 12555
 LIBMEMCACHED_TEARDOWN= cat ${LIBMEMCACHED_PIDFILE} | xargs kill
 LIBMEMCACHED_RM= rm ${LIBMEMCACHED_PIDFILE}
-LIBMEMCACHED_RUN= ${LIBMEMCACHED_TEST}
-LIBMEMCACHED_VALGRIND= libtool --mode=execute valgrind --leak-check=yes --show-reachable=yes ${LIBMEMCACHED_TEST}
+LIBMEMCACHED_VALGRIND= $(LIBTOOL) --mode=execute valgrind --leak-check=yes --show-reachable=yes ${LIBMEMCACHED_TEST}
 noinst_PROGRAMS += tests/memcached_test
 endif
 
@@ -30,9 +29,8 @@ tests_memcached_test_LDADD= ${TEST_LDADD}
 
 if HAVE_LIBSQLITE3
 SQLITE_TEST= tests/sqlite_test
-SQLITE_RUN= ${SQLITE_TEST}
 SQLITE_RM= rm -f tests/gearman.sql tests/gearman.sql-journal
-SQLITE_VALGRIND= libtool --mode=execute valgrind --leak-check=yes --show-reachable=yes ${SQLITE_TEST}
+SQLITE_VALGRIND= $(LIBTOOL) --mode=execute valgrind --leak-check=yes --show-reachable=yes ${SQLITE_TEST}
 noinst_PROGRAMS += tests/sqlite_test
 endif
 
@@ -64,16 +62,18 @@ check-local:
 	tests/client_test
 	tests/worker_test
 	$(LIBMEMCACHED_SETUP)
-	$(LIBMEMCACHED_RUN)
-	$(LIBMEMCACHED_CHECK)
+	$(LIBMEMCACHED_TEST)
 	$(LIBMEMCACHED_TEARDOWN)
 	$(LIBMEMCACHED_RM)
-	$(SQLITE_RUN)
-	$(SQLITE_CHECK)
+	$(SQLITE_TEST)
 	$(SQLITE_RM)
 
 valgrind: ${noinst_PROGRAMS}
-	libtool --mode=execute valgrind --leak-check=yes --show-reachable=yes  tests/client_test
-	libtool --mode=execute valgrind --leak-check=yes --show-reachable=yes  tests/worker_test
+	$(LIBTOOL) --mode=execute valgrind --leak-check=yes --show-reachable=yes  tests/client_test
+	$(LIBTOOL) --mode=execute valgrind --leak-check=yes --show-reachable=yes  tests/worker_test
+	$(LIBMEMCACHED_SETUP)
 	$(LIBMEMCACHED_VALGRIND)
+	$(LIBMEMCACHED_TEARDOWN)
+	$(LIBMEMCACHED_RM)
 	$(SQLITE_VALGRIND)
+	$(SQLITE_RM)

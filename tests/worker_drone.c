@@ -132,7 +132,7 @@ test_return worker_id_test(void *object)
 
   rc= gearman_worker_set_id(worker, "kungfu");
   assert(rc == GEARMAN_SUCCESS);
-  
+
   gearman_worker_free(worker);
 
   return TEST_SUCCESS;
@@ -158,7 +158,7 @@ test_return worker_function_null_test(void *object)
 
   WATCHPOINT;
   rc= gearman_worker_take(worker, result);
-  
+
   assert(rc == GEARMAN_NOT_FOUND);
   gearman_worker_free(worker);
 
@@ -184,7 +184,7 @@ test_return worker_function_timeout_test(void *object)
   assert(rc == GEARMAN_SUCCESS);
 
   rc= gearman_worker_take(worker, result);
-  
+
   assert(rc == GEARMAN_NOT_FOUND);
   gearman_worker_free(worker);
 

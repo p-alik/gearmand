@@ -44,7 +44,7 @@ test_return_t pre(void *object);
 test_return_t post(void *object);
 test_return_t flush(void);
 
-void *world_create(void);
+void *world_create(test_return_t *error);
 test_return_t world_destroy(void *object);
 
 test_return_t init_test(void *object __attribute__((unused)))
@@ -278,16 +278,30 @@ void *create(void *object __attribute__((unused)))
   return (void *)&(test->worker);
 }
 
-void *world_create(void)
+void *world_create(test_return_t *error)
 {
   worker_test_st *test;
 
-  assert((test= malloc(sizeof(worker_test_st))) != NULL);
-  memset(test, 0, sizeof(worker_test_st));
-  assert(gearman_worker_create(&(test->worker)) != NULL);
+  test= malloc(sizeof(worker_test_st));
 
-  assert(gearman_worker_add_server(&(test->worker), NULL, WORKER_TEST_PORT) ==
-         GEARMAN_SUCCESS);
+  if (! test)
+  {
+    *error= TEST_MEMORY_ALLOCATION_FAILURE;
+    return NULL;
+  }
+
+  memset(test, 0, sizeof(worker_test_st));
+  if (gearman_worker_create(&(test->worker)) == NULL)
+  {
+    *error= TEST_FAILURE;
+    return NULL;
+  }
+
+  if (gearman_worker_add_server(&(test->worker), NULL, WORKER_TEST_PORT) != GEARMAN_SUCCESS)
+  {
+    *error= TEST_FAILURE;
+    return NULL;
+  }
 
   test->gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, NULL, NULL, 0);
 
