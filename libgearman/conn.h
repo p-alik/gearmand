@@ -31,6 +31,46 @@ extern "C" {
  */
 
 /**
+ * @ingroup gearman_con
+ */
+struct gearman_con_st
+{
+  gearman_con_options_t options;
+  gearman_con_state_t state;
+  gearman_con_send_state_t send_state;
+  gearman_con_recv_state_t recv_state;
+  in_port_t port;
+  short events;
+  short revents;
+  int fd;
+  uint32_t created_id;
+  uint32_t created_id_next;
+  size_t send_buffer_size;
+  size_t send_data_size;
+  size_t send_data_offset;
+  size_t recv_buffer_size;
+  size_t recv_data_size;
+  size_t recv_data_offset;
+  gearman_st *gearman;
+  gearman_con_st *next;
+  gearman_con_st *prev;
+  const void *context;
+  struct addrinfo *addrinfo;
+  struct addrinfo *addrinfo_next;
+  uint8_t *send_buffer_ptr;
+  gearman_packet_st *recv_packet;
+  uint8_t *recv_buffer_ptr;
+  const void *protocol_context;
+  gearman_con_protocol_context_free_fn *protocol_context_free_fn;
+  gearman_packet_pack_fn *packet_pack_fn;
+  gearman_packet_unpack_fn *packet_unpack_fn;
+  gearman_packet_st packet;
+  char host[NI_MAXHOST];
+  uint8_t send_buffer[GEARMAN_SEND_BUFFER_SIZE];
+  uint8_t recv_buffer[GEARMAN_RECV_BUFFER_SIZE];
+};
+
+/**
  * Set host for a connection.
  */
 GEARMAN_API

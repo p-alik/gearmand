@@ -29,6 +29,28 @@ extern "C" {
  */
 
 /**
+ * @ingroup gearman_task
+ */
+struct gearman_task_st
+{
+  gearman_task_options_t options;
+  gearman_task_state_t state;
+  bool is_known;
+  bool is_running;
+  uint32_t created_id;
+  uint32_t numerator;
+  uint32_t denominator;
+  gearman_client_st *client;
+  gearman_task_st *next;
+  gearman_task_st *prev;
+  const void *context;
+  gearman_con_st *con;
+  gearman_packet_st *recv;
+  gearman_packet_st send;
+  char job_handle[GEARMAN_JOB_HANDLE_SIZE];
+};
+
+/**
  * Get context for a task.
  */
 GEARMAN_API

@@ -28,6 +28,47 @@ extern "C" {
  */
 
 /**
+ * @ingroup gearman_worker
+ */
+struct gearman_worker_st
+{
+  gearman_worker_options_t options;
+  gearman_worker_state_t state;
+  gearman_worker_work_state_t work_state;
+  uint32_t function_count;
+  uint32_t job_count;
+  size_t work_result_size;
+  gearman_st *gearman;
+  const void *context;
+  gearman_con_st *con;
+  gearman_job_st *job;
+  gearman_job_st *job_list;
+  gearman_worker_function_st *function;
+  gearman_worker_function_st *function_list;
+  gearman_worker_function_st *work_function;
+  void *work_result;
+  gearman_st gearman_static;
+  gearman_packet_st grab_job;
+  gearman_packet_st pre_sleep;
+  gearman_job_st work_job;
+};
+
+
+/**
+ * @ingroup gearman_worker
+ */
+struct gearman_worker_function_st
+{
+  gearman_worker_function_options_t options;
+  gearman_worker_function_st *next;
+  gearman_worker_function_st *prev;
+  char *function_name;
+  gearman_worker_fn *worker_fn;
+  const void *context;
+  gearman_packet_st packet;
+};
+
+/**
  * Initialize a worker structure. Always check the return value even if passing
  * in a pre-allocated structure. Some other initialization may have failed. It
  * is not required to memset() a structure before providing it.

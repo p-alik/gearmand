@@ -29,13 +29,55 @@
 
 #include <libgearman/visibility.h>
 #include <libgearman/constants.h>
-#include <libgearman/structs.h>
-#include <libgearman/conn.h>
+
+// Everything above this line must be in the order specified.
+
+#include <libgearman/command.h>
 #include <libgearman/packet.h>
+#include <libgearman/conn.h>
 #include <libgearman/task.h>
 #include <libgearman/job.h>
-#include <libgearman/client.h>
+
+/**
+  @note we define gearman_st before we include worker.h/client.h since they have static declarations internally of this structure.
+ */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/**
+ * @ingroup gearman
+ */
+struct gearman_st
+{
+  gearman_options_t options;
+  gearman_verbose_t verbose;
+  uint32_t con_count;
+  uint32_t packet_count;
+  uint32_t pfds_size;
+  uint32_t sending;
+  int last_errno;
+  int timeout;
+  gearman_con_st *con_list;
+  gearman_packet_st *packet_list;
+  struct pollfd *pfds;
+  gearman_log_fn *log_fn;
+  const void *log_context;
+  gearman_event_watch_fn *event_watch_fn;
+  const void *event_watch_context;
+  gearman_malloc_fn *workload_malloc_fn;
+  const void *workload_malloc_context;
+  gearman_free_fn *workload_free_fn;
+  const void *workload_free_context;
+  char last_error[GEARMAN_MAX_ERROR_SIZE];
+};
+
+#ifdef __cplusplus
+}
+#endif
+
 #include <libgearman/worker.h>
+#include <libgearman/client.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -426,15 +468,6 @@ gearman_return_t gearman_add_packet_args(gearman_st *gearman,
                                          const void *args[],
                                          const size_t args_size[],
                                          size_t args_count);
-
-/**
- * Free a packet structure.
- *
- * @param[in] packet Structure previously initialized with
- *   gearman_add_packet() or gearman_add_packet_args().
- */
-GEARMAN_API
-void gearman_packet_free(gearman_packet_st *packet);
 
 /**
  * Free all packets for a gearman structure.

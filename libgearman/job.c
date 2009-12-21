@@ -30,6 +30,7 @@ static gearman_return_t _job_send(gearman_job_st *job);
  * Public Definitions
  */
 
+
 gearman_return_t gearman_job_send_data(gearman_job_st *job, const void *data,
                                        size_t data_size)
 {

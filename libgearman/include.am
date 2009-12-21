@@ -19,7 +19,7 @@ nobase_pkginclude_HEADERS += \
 	libgearman/gearman.h \
 	libgearman/job.h \
 	libgearman/packet.h \
-	libgearman/structs.h \
+	libgearman/command.h \
 	libgearman/task.h \
 	libgearman/visibility.h \
 	libgearman/worker.h

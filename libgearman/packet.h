@@ -38,6 +38,37 @@ gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX];
  */
 
 /**
+ * @ingroup gearman_packet
+ */
+struct gearman_packet_st
+{
+  gearman_packet_options_t options;
+  gearman_magic_t magic;
+  gearman_command_t command;
+  uint8_t argc;
+  size_t args_size;
+  size_t data_size;
+  gearman_st *gearman;
+  gearman_packet_st *next;
+  gearman_packet_st *prev;
+  uint8_t *args;
+  const void *data;
+  uint8_t *arg[GEARMAN_MAX_COMMAND_ARGS];
+  size_t arg_size[GEARMAN_MAX_COMMAND_ARGS];
+  uint8_t args_buffer[GEARMAN_ARGS_BUFFER_SIZE];
+};
+
+
+/**
+ * Free a packet structure.
+ *
+ * @param[in] packet Structure previously initialized with
+ *   gearman_add_packet() or gearman_add_packet_args().
+ */
+GEARMAN_API
+void gearman_packet_free(gearman_packet_st *packet);
+
+/**
  * Add an argument to a packet.
  */
 GEARMAN_API

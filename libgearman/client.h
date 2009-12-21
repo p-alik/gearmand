@@ -28,6 +28,38 @@ extern "C" {
  * @{
  */
 
+
+/**
+ * @ingroup gearman_client
+ */
+struct gearman_client_st
+{
+  gearman_client_options_t options;
+  gearman_client_state_t state;
+  gearman_return_t do_ret;
+  uint32_t new_tasks;
+  uint32_t running_tasks;
+  uint32_t task_count;
+  size_t do_data_size;
+  gearman_st *gearman;
+  const void *context;
+  gearman_con_st *con;
+  gearman_task_st *task;
+  gearman_task_st *task_list;
+  gearman_task_context_free_fn *task_context_free_fn;
+  void *do_data;
+  gearman_workload_fn *workload_fn;
+  gearman_created_fn *created_fn;
+  gearman_data_fn *data_fn;
+  gearman_warning_fn *warning_fn;
+  gearman_status_fn *status_fn;
+  gearman_complete_fn *complete_fn;
+  gearman_exception_fn *exception_fn;
+  gearman_fail_fn *fail_fn;
+  gearman_st gearman_static;
+  gearman_task_st do_task;
+};
+
 /**
  * Initialize a client structure. Always check the return value even if passing
  * in a pre-allocated structure. Some other initialization may have failed. It
