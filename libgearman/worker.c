@@ -50,11 +50,6 @@ static gearman_return_t _worker_function_add(gearman_worker_st *worker,
 static void _worker_function_free(gearman_worker_st *worker,
                                   gearman_worker_function_st *function);
 
-/**
- * Initialize a job structure.
- */
-static gearman_job_st *_job_create(gearman_worker_st *worker,
-                                   gearman_job_st *job);
 
 /** @} */
 
@@ -479,7 +474,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
 
         if (worker->job == NULL)
         {
-          worker->job= _job_create(worker, job);
+          worker->job= gearman_job_create(worker, job);
           if (worker->job == NULL)
           {
             *ret_ptr= GEARMAN_MEMORY_ALLOCATION_FAILURE;
@@ -511,7 +506,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
           if (worker->job->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN ||
               worker->job->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN_UNIQ)
           {
-            worker->job->options|= GEARMAN_JOB_ASSIGNED_IN_USE;
+            worker->job->options.assigned_in_use= true;
             worker->job->con= worker->con;
             worker->state= GEARMAN_WORKER_STATE_GRAB_JOB_SEND;
             job= worker->job;
@@ -624,10 +619,10 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
 
 void gearman_job_free(gearman_job_st *job)
 {
-  if (job->options & GEARMAN_JOB_ASSIGNED_IN_USE)
+  if (job->options.assigned_in_use)
     gearman_packet_free(&(job->assigned));
 
-  if (job->options & GEARMAN_JOB_WORK_IN_USE)
+  if (job->options.work_in_use)
     gearman_packet_free(&(job->work));
 
   if (job->worker->job_list == job)
@@ -638,7 +633,7 @@ void gearman_job_free(gearman_job_st *job)
     job->next->prev= job->prev;
   job->worker->job_count--;
 
-  if (job->options & GEARMAN_JOB_ALLOCATED)
+  if (job->options.allocated)
     free(job);
 }
 
@@ -955,35 +950,4 @@ static void _worker_function_free(gearman_worker_st *worker,
 
   free(function->function_name);
   free(function);
-}
-
-static gearman_job_st *_job_create(gearman_worker_st *worker,
-                                   gearman_job_st *job)
-{
-  if (job == NULL)
-  {
-    job= malloc(sizeof(gearman_job_st));
-    if (job == NULL)
-    {
-      gearman_set_error(worker->gearman, "_job_create", "malloc");
-      return NULL;
-    }
-
-    job->options= GEARMAN_JOB_ALLOCATED;
-  }
-  else
-    job->options= 0;
-
-  job->worker= worker;
-
-  if (worker->job_list != NULL)
-    worker->job_list->prev= job;
-  job->next= worker->job_list;
-  job->prev= NULL;
-  worker->job_list= job;
-  worker->job_count++;
-
-  job->con= NULL;
-
-  return job;
 }

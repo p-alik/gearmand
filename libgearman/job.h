@@ -34,7 +34,12 @@ extern "C" {
  */
 struct gearman_job_st
 {
-  gearman_job_options_t options;
+  struct {
+    bool allocated:1;
+    bool assigned_in_use:1;
+    bool work_in_use:1;
+    bool finished:1;
+  } options;
   gearman_worker_st *worker;
   gearman_job_st *next;
   gearman_job_st *prev;
@@ -42,6 +47,29 @@ struct gearman_job_st
   gearman_packet_st assigned;
   gearman_packet_st work;
 };
+
+/**
+ * Initialize a job structure. Always check the return value even if passing
+ * in a pre-allocated structure. Some other initialization may have failed. It
+ * is not required to memset() a structure before providing it.
+ *
+ * @param[in] A valid gearman_worker_st.
+ * @param[in] gearman_job_st allocated structure, or NULL to allocate one.
+ * @return On success, a pointer to the (possibly allocated) structure. On
+ *  failure this will be NULL.
+ */
+GEARMAN_LOCAL
+gearman_job_st *gearman_job_create(gearman_worker_st *worker,
+                                   gearman_job_st *job);
+
+/**
+ * Free a job structure.
+ *
+ * @param[in] job Structure previously initialized with
+ *  gearman_worker_grab_job().
+ */
+GEARMAN_API
+void gearman_job_free(gearman_job_st *job);
 
 
 /**

@@ -327,15 +327,6 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
                                         gearman_return_t *ret_ptr);
 
 /**
- * Free a job structure.
- *
- * @param[in] job Structure previously initialized with
- *  gearman_worker_grab_job().
- */
-GEARMAN_API
-void gearman_job_free(gearman_job_st *job);
-
-/**
  * Free all jobs for a gearman structure.
  *
  * @param[in] worker Structure previously initialized with
