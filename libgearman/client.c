@@ -107,7 +107,7 @@ gearman_client_st *gearman_client_create(gearman_client_st *client)
   if (client == NULL)
     return NULL;
 
-  client->gearman= gearman_state_create(&(client->gearman_state_static));
+  client->gearman= gearman_state_create(&(client->gearman_state_static), NULL);
   if (client->gearman == NULL)
   {
     gearman_client_free(client);

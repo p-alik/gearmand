@@ -111,7 +111,7 @@ gearman_server_st *gearman_server_create(gearman_server_st *server)
   memset(server->unique_hash, 0,
          sizeof(gearman_server_job_st *) * GEARMAN_JOB_HASH_SIZE);
 
-  server->gearman= gearman_state_create(&(server->gearman_state_static));
+  server->gearman= gearman_state_create(&(server->gearman_state_static), NULL);
   if (server->gearman == NULL)
   {
     gearman_server_free(server);

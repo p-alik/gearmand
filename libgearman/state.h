@@ -77,7 +77,7 @@ struct gearman_state_st
  *  failure this will be NULL.
  */
 GEARMAN_API
-gearman_state_st *gearman_state_create(gearman_state_st *gearman);
+gearman_state_st *gearman_state_create(gearman_state_st *gearman, gearman_options_t *options);
 
 /**
  * Clone a gearman structure.
@@ -129,18 +129,21 @@ static inline int gearman_state_errno(const gearman_state_st *gearman)
  *  gearman_clone().
  * @param[in] options Available options for gearman structures.
  */
-GEARMAN_API
-void gearman_add_options(gearman_state_st *gearman, gearman_options_t options);
+GEARMAN_LOCAL
+gearman_return_t gearman_set_option(gearman_state_st *gearman, gearman_options_t option, bool value);
 
 /**
- * Remove options for a gearman structure.
- *
- * @param[in] gearman Structure previously initialized with gearman_create() or
- *  gearman_clone().
- * @param[in] options Available options for gearman structures.
+  @todo remove gearman_set_option() and gearman_remove_options()
  */
-GEARMAN_API
-void gearman_remove_options(gearman_state_st *gearman, gearman_options_t options);
+static inline void gearman_add_options(gearman_state_st *gearman, gearman_options_t options)
+{
+  (void)gearman_set_option(gearman, options, true);
+}
+
+static inline void gearman_remove_options(gearman_state_st *gearman, gearman_options_t options)
+{
+  (void)gearman_set_option(gearman, options, true);
+}
 
 static inline bool gearman_state_is_non_blocking(gearman_state_st *gearman)
 {

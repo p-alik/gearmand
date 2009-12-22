@@ -19,7 +19,7 @@
  * @{
  */
 
-gearman_state_st *gearman_state_create(gearman_state_st *gearman)
+gearman_state_st *gearman_state_create(gearman_state_st *gearman, gearman_options_t *options)
 {
   if (gearman == NULL)
   {
@@ -35,6 +35,18 @@ gearman_state_st *gearman_state_create(gearman_state_st *gearman)
     gearman->options.dont_track_packets= false;
     gearman->options.non_blocking= false;
     gearman->options.stored_non_blocking= false;
+  }
+
+  if (options)
+  {
+    while (*options != GEARMAN_MAX)
+    {
+      /**
+        @note Check for bad value, refactor gearman_add_options().
+      */
+      gearman_add_options(gearman, *options);
+      options++;
+    }
   }
 
   gearman->verbose= 0;
@@ -60,24 +72,28 @@ gearman_state_st *gearman_state_create(gearman_state_st *gearman)
   return gearman;
 }
 
-gearman_state_st *gearman_state_clone(gearman_state_st *gearman, const gearman_state_st *from)
+gearman_state_st *gearman_state_clone(gearman_state_st *destination, const gearman_state_st *source)
 {
   gearman_con_st *con;
 
-  gearman= gearman_state_create(gearman);
-  if (gearman == NULL)
+  if (! source)
+  {
+    return gearman_state_create(destination, NULL);
+  }
+
+  if (destination == NULL)
     return NULL;
 
-  gearman->options.non_blocking= from->options.non_blocking;
-  gearman->options.dont_track_packets= from->options.dont_track_packets;
+  (void)gearman_set_option(destination, GEARMAN_NON_BLOCKING, source->options.non_blocking);
+  (void)gearman_set_option(destination, GEARMAN_DONT_TRACK_PACKETS, source->options.dont_track_packets);
 
-  gearman->timeout= from->timeout;
+  destination->timeout= source->timeout;
 
-  for (con= from->con_list; con != NULL; con= con->next)
+  for (con= source->con_list; con != NULL; con= con->next)
   {
-    if (gearman_clone_con(gearman, NULL, con) == NULL)
+    if (gearman_clone_con(destination, NULL, con) == NULL)
     {
-      gearman_state_free(gearman);
+      gearman_state_free(destination);
       return NULL;
     }
   }
@@ -85,7 +101,7 @@ gearman_state_st *gearman_state_clone(gearman_state_st *gearman, const gearman_s
   /* Don't clone job or packet information, this is state information for
      old and active jobs/connections. */
 
-  return gearman;
+  return destination;
 }
 
 void gearman_state_free(gearman_state_st *gearman)
@@ -100,36 +116,22 @@ void gearman_state_free(gearman_state_st *gearman)
     free(gearman);
 }
 
-void gearman_add_options(gearman_state_st *gearman, gearman_options_t options)
+gearman_return_t gearman_set_option(gearman_state_st *gearman, gearman_options_t option, bool value)
 {
-  switch (options)
+  switch (option)
   {
   case GEARMAN_NON_BLOCKING:
-    gearman->options.non_blocking= true;
+    gearman->options.non_blocking= value;
     break;
   case GEARMAN_DONT_TRACK_PACKETS:
-    gearman->options.dont_track_packets= true;
+    gearman->options.dont_track_packets= value;
     break;
   case GEARMAN_MAX:
   default:
-    break;
+    return GEARMAN_INVALID_COMMAND;
   }
-}
 
-void gearman_remove_options(gearman_state_st *gearman, gearman_options_t options)
-{
-  switch (options)
-  {
-  case GEARMAN_NON_BLOCKING:
-    gearman->options.non_blocking= false;
-    break;
-  case GEARMAN_DONT_TRACK_PACKETS:
-    gearman->options.dont_track_packets= false;
-    break;
-  case GEARMAN_MAX:
-  default:
-    break;
-  }
+  return GEARMAN_SUCCESS;
 }
 
 int gearman_timeout(gearman_state_st *gearman)

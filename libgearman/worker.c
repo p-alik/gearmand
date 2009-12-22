@@ -68,7 +68,7 @@ gearman_worker_st *gearman_worker_create(gearman_worker_st *worker)
   if (worker == NULL)
     return NULL;
 
-  worker->gearman= gearman_state_create(&(worker->gearman_state_static));
+  worker->gearman= gearman_state_create(&(worker->gearman_state_static), NULL);
   if (worker->gearman == NULL)
   {
     gearman_worker_free(worker);

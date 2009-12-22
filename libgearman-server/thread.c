@@ -107,17 +107,15 @@ gearman_server_thread_create(gearman_server_st *server,
     return NULL;
   }
 
-  GEARMAN_LIST_ADD(server->thread, thread,)
+  GEARMAN_LIST_ADD(server->thread, thread,);
 
-  thread->gearman= gearman_state_create(&(thread->gearman_state_static));
+  gearman_options_t options[]= { GEARMAN_NON_BLOCKING, GEARMAN_DONT_TRACK_PACKETS, GEARMAN_MAX};
+  thread->gearman= gearman_state_create(&(thread->gearman_state_static), options);
   if (thread->gearman == NULL)
   {
     gearman_server_thread_free(thread);
     return NULL;
   }
-
-  gearman_add_options(thread->gearman, GEARMAN_NON_BLOCKING);
-  gearman_add_options(thread->gearman, GEARMAN_DONT_TRACK_PACKETS);
 
   return thread;
 }

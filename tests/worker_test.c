@@ -114,7 +114,7 @@ test_return_t bug372074_test(void *object __attribute__((unused)))
   const void *args[1];
   size_t args_size[1];
 
-  if (gearman_state_create(&gearman) == NULL)
+  if (gearman_state_create(&gearman, NULL) == NULL)
     return TEST_FAILURE;
 
   for (x= 0; x < 2; x++)
