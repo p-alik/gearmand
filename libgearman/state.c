@@ -32,6 +32,9 @@ gearman_state_st *gearman_state_create(gearman_state_st *gearman, gearman_option
   else
   {
     gearman->options.allocated= false;
+  }
+
+  { // Set defaults on all options.
     gearman->options.dont_track_packets= false;
     gearman->options.non_blocking= false;
     gearman->options.stored_non_blocking= false;
@@ -76,13 +79,12 @@ gearman_state_st *gearman_state_clone(gearman_state_st *destination, const gearm
 {
   gearman_con_st *con;
 
-  if (! source)
-  {
-    return gearman_state_create(destination, NULL);
-  }
+  destination= gearman_state_create(destination, NULL);
 
-  if (destination == NULL)
-    return NULL;
+  if (! source || ! destination)
+  {
+    return destination;
+  }
 
   (void)gearman_set_option(destination, GEARMAN_NON_BLOCKING, source->options.non_blocking);
   (void)gearman_set_option(destination, GEARMAN_DONT_TRACK_PACKETS, source->options.dont_track_packets);

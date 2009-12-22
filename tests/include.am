@@ -39,17 +39,25 @@ tests_sqlite_test_LDADD= ${TEST_LDADD}
 
 
 noinst_PROGRAMS+= \
-	tests/client_test \
-	tests/worker_test \
-	tests/cpp_test
+		tests/client_test \
+		tests/cpp_test \
+		tests/internals_test \
+		tests/regression_test \
+		tests/worker_test
 
 noinst_HEADERS+= \
-	tests/test.h \
-	tests/test_gearmand.h \
-	tests/test_worker.h
+	      tests/test.h \
+	      tests/test_gearmand.h \
+	      tests/test_worker.h
 
 tests_client_test_SOURCES= tests/test_worker.c tests/client_test.c
 tests_client_test_LDADD= ${TEST_LDADD}
+
+tests_internals_test_SOURCES= tests/internals.c
+tests_internals_test_LDADD= ${TEST_LDADD}
+
+tests_regression_test_SOURCES= tests/regression.c
+tests_regression_test_LDADD= ${TEST_LDADD}
 
 tests_worker_test_SOURCES= tests/worker_test.c
 tests_worker_test_LDADD= ${TEST_LDADD}
@@ -61,6 +69,7 @@ tests_cpp_test_LDADD= ${TEST_LDADD}
 check-local:
 	tests/client_test
 	tests/worker_test
+	tests/internals_test
 	$(LIBMEMCACHED_SETUP)
 	$(LIBMEMCACHED_TEST)
 	$(LIBMEMCACHED_TEARDOWN)
@@ -71,6 +80,7 @@ check-local:
 valgrind: ${noinst_PROGRAMS}
 	$(LIBTOOL) --mode=execute valgrind --leak-check=yes --show-reachable=yes  tests/client_test
 	$(LIBTOOL) --mode=execute valgrind --leak-check=yes --show-reachable=yes  tests/worker_test
+	$(LIBTOOL) --mode=execute valgrind --leak-check=yes --show-reachable=yes  tests/internals_test
 	$(LIBMEMCACHED_SETUP)
 	$(LIBMEMCACHED_VALGRIND)
 	$(LIBMEMCACHED_TEARDOWN)

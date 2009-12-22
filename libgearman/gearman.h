@@ -26,6 +26,7 @@
 #include <poll.h>
 #include <sys/uio.h>
 #include <stdarg.h>
+#include <stdlib.h>
 
 #include <libgearman/visibility.h>
 #include <libgearman/constants.h>

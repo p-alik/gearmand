@@ -35,7 +35,7 @@ struct gearman_state_st
   uint32_t pfds_size;
   uint32_t sending;
   int last_errno;
-  int timeout;
+  int timeout; // Used by poll()
   gearman_con_st *con_list;
   gearman_packet_st *packet_list;
   struct pollfd *pfds;
@@ -107,6 +107,8 @@ void gearman_state_free(gearman_state_st *gearman);
  */
 static inline const char *gearman_state_error(const gearman_state_st *gearman)
 {
+  if (gearman->last_error[0] == 0)
+      return NULL;
   return (const char *)(gearman->last_error);
 }
 
