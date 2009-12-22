@@ -42,7 +42,11 @@ gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX];
  */
 struct gearman_packet_st
 {
-  gearman_packet_options_t options;
+  struct {
+    bool allocated:1;
+    bool complete:1;
+    bool free_data:1;
+  } options;
   gearman_magic_t magic;
   gearman_command_t command;
   uint8_t argc;

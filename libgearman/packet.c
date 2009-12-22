@@ -141,7 +141,7 @@ gearman_return_t gearman_packet_pack_header(gearman_packet_st *packet)
 
   if (packet->magic == GEARMAN_MAGIC_TEXT)
   {
-    packet->options|= GEARMAN_PACKET_COMPLETE;
+    packet->options.complete= true;
     return GEARMAN_SUCCESS;
   }
 
@@ -187,7 +187,7 @@ gearman_return_t gearman_packet_pack_header(gearman_packet_st *packet)
   tmp= htonl(tmp);
   memcpy(packet->args + 8, &tmp, 4);
 
-  packet->options|= GEARMAN_PACKET_COMPLETE;
+  packet->options.complete= true;
 
   return GEARMAN_SUCCESS;
 }
@@ -363,7 +363,7 @@ void gearman_packet_give_data(gearman_packet_st *packet, const void *data,
 {
   packet->data= data;
   packet->data_size= data_size;
-  packet->options|= (gearman_packet_options_t)GEARMAN_PACKET_FREE_DATA;
+  packet->options.free_data= true;
 }
 
 void *gearman_packet_take_data(gearman_packet_st *packet, size_t *data_size)
@@ -374,7 +374,7 @@ void *gearman_packet_take_data(gearman_packet_st *packet, size_t *data_size)
 
   packet->data= NULL;
   packet->data_size= 0;
-  packet->options&= (gearman_packet_options_t)~GEARMAN_PACKET_FREE_DATA;
+  packet->options.free_data= false;
 
   return data;
 }

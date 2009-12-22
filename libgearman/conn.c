@@ -150,7 +150,7 @@ gearman_return_t gearman_con_send(gearman_con_st *con,
   switch (con->send_state)
   {
   case GEARMAN_CON_SEND_STATE_NONE:
-    if (!(packet->options & GEARMAN_PACKET_COMPLETE))
+    if (! (packet->options.complete))
     {
       gearman_set_error(con->gearman, "gearman_con_send",
                         "packet not complete");
@@ -610,7 +610,7 @@ gearman_packet_st *gearman_con_recv(gearman_con_st *con,
       return NULL;
     }
 
-    packet->options|= GEARMAN_PACKET_FREE_DATA;
+    packet->options.free_data= true;
     con->recv_state= GEARMAN_CON_RECV_STATE_READ_DATA;
 
   case GEARMAN_CON_RECV_STATE_READ_DATA:

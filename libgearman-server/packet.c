@@ -140,7 +140,7 @@ gearman_return_t gearman_server_io_packet_add(gearman_server_con_st *con,
   }
 
   if (take_data)
-    server_packet->packet.options|= GEARMAN_PACKET_FREE_DATA;
+    server_packet->packet.options.free_data= true;
 
   GEARMAN_SERVER_THREAD_LOCK(con->thread)
   GEARMAN_FIFO_ADD(con->io_packet, server_packet,)

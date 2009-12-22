@@ -104,9 +104,6 @@ void gearman_add_options(gearman_state_st *gearman, gearman_options_t options)
 {
   switch (options)
   {
-  case GEARMAN_ALLOCATED:
-    assert(0);
-    break;
   case GEARMAN_NON_BLOCKING:
     gearman->options.non_blocking= true;
     break;
@@ -123,9 +120,6 @@ void gearman_remove_options(gearman_state_st *gearman, gearman_options_t options
 {
   switch (options)
   {
-  case GEARMAN_ALLOCATED:
-    assert(0);
-    break;
   case GEARMAN_NON_BLOCKING:
     gearman->options.non_blocking= false;
     break;
@@ -565,10 +559,14 @@ gearman_packet_st *gearman_add_packet(gearman_state_st *gearman,
       return NULL;
     }
 
-    packet->options= GEARMAN_PACKET_ALLOCATED;
+    packet->options.allocated= true;
   }
   else
-    packet->options= 0;
+  {
+    packet->options.allocated= false;
+    packet->options.complete= false;
+    packet->options.free_data= false;
+  }
 
   packet->magic= 0;
   packet->command= 0;
@@ -629,7 +627,7 @@ void gearman_packet_free(gearman_packet_st *packet)
   if (packet->args != packet->args_buffer && packet->args != NULL)
     free(packet->args);
 
-  if (packet->options & GEARMAN_PACKET_FREE_DATA && packet->data != NULL)
+  if (packet->options.free_data && packet->data != NULL)
   {
     if (packet->gearman->workload_free_fn == NULL)
       free((void *)packet->data);
@@ -651,7 +649,7 @@ void gearman_packet_free(gearman_packet_st *packet)
     packet->gearman->packet_count--;
   }
 
-  if (packet->options & GEARMAN_PACKET_ALLOCATED)
+  if (packet->options.allocated)
     free(packet);
 }
 

@@ -120,7 +120,6 @@ typedef enum
  */
 typedef enum
 {
-  GEARMAN_ALLOCATED,
   GEARMAN_NON_BLOCKING,
   GEARMAN_DONT_TRACK_PACKETS,
   GEARMAN_MAX
@@ -182,9 +181,9 @@ typedef enum
  */
 typedef enum
 {
-  GEARMAN_PACKET_ALLOCATED= (1 << 0),
-  GEARMAN_PACKET_COMPLETE=  (1 << 1),
-  GEARMAN_PACKET_FREE_DATA= (1 << 2)
+  GEARMAN_PACKET_COMPLETE,
+  GEARMAN_PACKET_FREE_DATA,
+  GEARMAN_PACKET_MAX
 } gearman_packet_options_t;
 
 /**
