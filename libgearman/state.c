@@ -310,76 +310,6 @@ gearman_return_t gearman_flush_all(gearman_state_st *gearman)
   return GEARMAN_SUCCESS;
 }
 
-gearman_return_t gearman_send_all(gearman_state_st *gearman,
-                                  const gearman_packet_st *packet)
-{
-  gearman_return_t ret;
-  gearman_con_st *con;
-  gearman_state_push_non_blocking(gearman);
-
-  if (gearman->sending == 0)
-  {
-    for (con= gearman->con_list; con != NULL; con= con->next)
-    {
-      ret= gearman_con_send(con, packet, true);
-      if (ret != GEARMAN_SUCCESS)
-      {
-        if (ret != GEARMAN_IO_WAIT)
-        {
-          gearman_state_pop_non_blocking(gearman);
-          return ret;
-        }
-
-        gearman->sending++;
-        break;
-      }
-    }
-  }
-
-  while (gearman->sending != 0)
-  {
-    while ((con= gearman_ready(gearman)) != NULL)
-    {
-      ret= gearman_con_send(con, packet, true);
-      if (ret != GEARMAN_SUCCESS)
-      {
-        if (ret != GEARMAN_IO_WAIT)
-        {
-          gearman_state_pop_non_blocking(gearman);
-
-          return ret;
-        }
-
-        continue;
-      }
-
-      gearman->sending--;
-    }
-
-    if (gearman->sending == 0)
-      break;
-
-    if (gearman_state_is_stored_non_blocking(gearman))
-    {
-      gearman_state_pop_non_blocking(gearman);
-
-      return GEARMAN_IO_WAIT;
-    }
-
-    ret= gearman_wait(gearman);
-    if (ret != GEARMAN_SUCCESS)
-    {
-      gearman_state_pop_non_blocking(gearman);
-
-      return ret;
-    }
-  }
-
-  gearman_state_pop_non_blocking(gearman);
-
-  return GEARMAN_SUCCESS;
-}
-
 gearman_return_t gearman_wait(gearman_state_st *gearman)
 {
   gearman_con_st *con;
@@ -495,9 +425,9 @@ gearman_return_t gearman_echo(gearman_state_st *gearman, const void *workload,
   gearman_packet_st packet;
   gearman_return_t ret;
 
-  ret= gearman_add_packet_args(gearman, &packet, GEARMAN_MAGIC_REQUEST,
-                               GEARMAN_COMMAND_ECHO_REQ, &workload,
-                               &workload_size, 1);
+  ret= gearman_packet_create_args(gearman, &packet, GEARMAN_MAGIC_REQUEST,
+                                  GEARMAN_COMMAND_ECHO_REQ, &workload,
+                                  &workload_size, 1);
   if (ret != GEARMAN_SUCCESS)
     return ret;
 
@@ -541,116 +471,6 @@ gearman_return_t gearman_echo(gearman_state_st *gearman, const void *workload,
   gearman_state_pop_non_blocking(gearman);
 
   return GEARMAN_SUCCESS;
-}
-
-/*
- * Packet related functions.
- */
-
-gearman_packet_st *gearman_add_packet(gearman_state_st *gearman,
-                                      gearman_packet_st *packet)
-{
-  if (packet == NULL)
-  {
-    packet= malloc(sizeof(gearman_packet_st));
-    if (packet == NULL)
-    {
-      gearman_set_error(gearman, "gearman_add_packet", "malloc");
-      return NULL;
-    }
-
-    packet->options.allocated= true;
-  }
-  else
-  {
-    packet->options.allocated= false;
-    packet->options.complete= false;
-    packet->options.free_data= false;
-  }
-
-  packet->magic= 0;
-  packet->command= 0;
-  packet->argc= 0;
-  packet->args_size= 0;
-  packet->data_size= 0;
-  packet->gearman= gearman;
-
-  if (! (gearman->options.dont_track_packets))
-  {
-    if (gearman->packet_list != NULL)
-      gearman->packet_list->prev= packet;
-    packet->next= gearman->packet_list;
-    packet->prev= NULL;
-    gearman->packet_list= packet;
-    gearman->packet_count++;
-  }
-
-  packet->args= NULL;
-  packet->data= NULL;
-
-  return packet;
-}
-
-gearman_return_t gearman_add_packet_args(gearman_state_st *gearman,
-                                         gearman_packet_st *packet,
-                                         gearman_magic_t magic,
-                                         gearman_command_t command,
-                                         const void *args[],
-                                         const size_t args_size[],
-                                         size_t args_count)
-{
-  gearman_return_t ret;
-  size_t x;
-
-  packet= gearman_add_packet(gearman, packet);
-  if (packet == NULL)
-    return GEARMAN_MEMORY_ALLOCATION_FAILURE;
-
-  packet->magic= magic;
-  packet->command= command;
-
-  for (x= 0; x < args_count; x++)
-  {
-    ret= gearman_packet_add_arg(packet, args[x], args_size[x]);
-    if (ret != GEARMAN_SUCCESS)
-    {
-      gearman_packet_free(packet);
-      return ret;
-    }
-  }
-
-  return gearman_packet_pack_header(packet);
-}
-
-void gearman_packet_free(gearman_packet_st *packet)
-{
-  if (packet->args != packet->args_buffer && packet->args != NULL)
-    free(packet->args);
-
-  if (packet->options.free_data && packet->data != NULL)
-  {
-    if (packet->gearman->workload_free_fn == NULL)
-      free((void *)packet->data);
-    else
-    {
-      packet->gearman->workload_free_fn((void *)(packet->data),
-                                (void *)packet->gearman->workload_free_context);
-    }
-  }
-
-  if (! (packet->gearman->options.dont_track_packets))
-  {
-    if (packet->gearman->packet_list == packet)
-      packet->gearman->packet_list= packet->next;
-    if (packet->prev != NULL)
-      packet->prev->next= packet->next;
-    if (packet->next != NULL)
-      packet->next->prev= packet->prev;
-    packet->gearman->packet_count--;
-  }
-
-  if (packet->options.allocated)
-    free(packet);
 }
 
 void gearman_free_all_packets(gearman_state_st *gearman)

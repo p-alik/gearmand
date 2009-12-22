@@ -540,7 +540,7 @@ gearman_packet_st *gearman_con_recv(gearman_con_st *con,
       return NULL;
     }
 
-    con->recv_packet= gearman_add_packet(con->gearman, packet);
+    con->recv_packet= gearman_packet_create(con->gearman, packet);
     if (con->recv_packet == NULL)
     {
       *ret_ptr= GEARMAN_MEMORY_ALLOCATION_FAILURE;

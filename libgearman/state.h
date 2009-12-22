@@ -321,18 +321,6 @@ GEARMAN_API
 gearman_return_t gearman_flush_all(gearman_state_st *gearman);
 
 /**
- * Send packet to all connections.
- *
- * @param[in] gearman Structure previously initialized with gearman_create() or
- *  gearman_clone().
- * @param[in] packet Initialized packet to send to all connections.
- * @return Standard gearman return value.
- */
-GEARMAN_API
-gearman_return_t gearman_send_all(gearman_state_st *gearman,
-                                  const gearman_packet_st *packet);
-
-/**
  * Wait for I/O on connections.
  *
  * @param[in] gearman Structure previously initialized with gearman_create() or
@@ -364,62 +352,6 @@ gearman_con_st *gearman_ready(gearman_state_st *gearman);
 GEARMAN_API
 gearman_return_t gearman_echo(gearman_state_st *gearman, const void *workload,
                               size_t workload_size);
-
-/*
- * Packet related functions.
- */
-
-/**
- * Initialize a packet structure.
- *
- * @param[in] gearman Structure previously initialized with gearman_create() or
- *  gearman_clone().
- * @param[in] packet Caller allocated structure, or NULL to allocate one.
- * @return On success, a pointer to the (possibly allocated) structure. On
- *  failure this will be NULL.
- */
-GEARMAN_API
-gearman_packet_st *gearman_add_packet(gearman_state_st *gearman,
-                                      gearman_packet_st *packet);
-
-/**
- * Initialize a packet with all arguments. For example:
- *
- * @code
- * void *args[3];
- * size_t args_suze[3];
- *
- * args[0]= function_name;
- * args_size[0]= strlen(function_name) + 1;
- * args[1]= unique_string;
- * args_size[1]= strlen(unique_string,) + 1;
- * args[2]= workload;
- * args_size[2]= workload_size;
- *
- * ret= gearman_add_packet_args(gearman, packet,
- *                              GEARMAN_MAGIC_REQUEST,
- *                              GEARMAN_COMMAND_SUBMIT_JOB,
- *                              args, args_size, 3);
- * @endcode
- *
- * @param[in] gearman Structure previously initialized with gearman_create() or
- *  gearman_clone().
- * @param[in] packet Pre-allocated packet to initialize with arguments.
- * @param[in] magic Magic type for packet header.
- * @param[in] command Command type for packet.
- * @param[in] args Array of arguments to add.
- * @param[in] args_size Array of sizes of each byte array in the args array.
- * @param[in] args_count Number of elements in args/args_sizes arrays.
- * @return Standard gearman return value.
- */
-GEARMAN_API
-gearman_return_t gearman_add_packet_args(gearman_state_st *gearman,
-                                         gearman_packet_st *packet,
-                                         gearman_magic_t magic,
-                                         gearman_command_t command,
-                                         const void *args[],
-                                         const size_t args_size[],
-                                         size_t args_count);
 
 /**
  * Free all packets for a gearman structure.

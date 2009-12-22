@@ -355,11 +355,11 @@ static size_t _http_unpack(gearman_packet_st *packet, gearman_con_st *con,
   if (*ret_ptr != GEARMAN_SUCCESS)
     return 0;
 
-  *ret_ptr= gearman_packet_add_arg(packet, uri, (size_t)uri_size + 1);
+  *ret_ptr= gearman_packet_create_arg(packet, uri, (size_t)uri_size + 1);
   if (*ret_ptr != GEARMAN_SUCCESS)
     return 0;
 
-  *ret_ptr= gearman_packet_add_arg(packet, unique, unique_size + 1);
+  *ret_ptr= gearman_packet_create_arg(packet, unique, unique_size + 1);
   if (*ret_ptr != GEARMAN_SUCCESS)
     return 0;
 

@@ -535,10 +535,10 @@ gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
 
   args[0]= job_handle;
   args_size[0]= strlen(job_handle);
-  *ret_ptr= gearman_add_packet_args(client->gearman, &(task->send),
-                                    GEARMAN_MAGIC_REQUEST,
-                                    GEARMAN_COMMAND_GET_STATUS,
-                                    args, args_size, 1);
+  *ret_ptr= gearman_packet_create_args(client->gearman, &(task->send),
+                                       GEARMAN_MAGIC_REQUEST,
+                                       GEARMAN_COMMAND_GET_STATUS,
+                                       args, args_size, 1);
   if (*ret_ptr == GEARMAN_SUCCESS)
   {
     client->new_tasks++;
@@ -929,9 +929,9 @@ static gearman_task_st *_client_add_task(gearman_client_st *client,
   args[2]= workload;
   args_size[2]= workload_size;
 
-  *ret_ptr= gearman_add_packet_args(client->gearman, &(task->send),
-                                    GEARMAN_MAGIC_REQUEST, command,
-                                    args, args_size, 3);
+  *ret_ptr= gearman_packet_create_args(client->gearman, &(task->send),
+                                       GEARMAN_MAGIC_REQUEST, command,
+                                       args, args_size, 3);
   if (*ret_ptr == GEARMAN_SUCCESS)
   {
     client->new_tasks++;

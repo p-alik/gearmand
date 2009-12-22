@@ -309,9 +309,9 @@ gearman_return_t gearman_worker_unregister(gearman_worker_st *worker,
 
   args[0]= function_name;
   args_size[0]= strlen(function_name);
-  ret= gearman_add_packet_args(worker->gearman, &(function->packet),
-                               GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_CANT_DO,
-                               args, args_size, 1);
+  ret= gearman_packet_create_args(worker->gearman, &(function->packet),
+                                  GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_CANT_DO,
+                                  args, args_size, 1);
   if (ret != GEARMAN_SUCCESS)
   {
     function->options&=
@@ -339,11 +339,11 @@ gearman_return_t gearman_worker_unregister_all(gearman_worker_st *worker)
 
   gearman_packet_free(&(worker->function_list->packet));
 
-  ret= gearman_add_packet_args(worker->gearman,
-                               &(worker->function_list->packet),
-                               GEARMAN_MAGIC_REQUEST,
-                               GEARMAN_COMMAND_RESET_ABILITIES,
-                               NULL, NULL, 0);
+  ret= gearman_packet_create_args(worker->gearman,
+                                  &(worker->function_list->packet),
+                                  GEARMAN_MAGIC_REQUEST,
+                                  GEARMAN_COMMAND_RESET_ABILITIES,
+                                  NULL, NULL, 0);
   if (ret != GEARMAN_SUCCESS)
   {
     worker->function_list->options&=
@@ -841,15 +841,15 @@ static gearman_return_t _worker_packet_init(gearman_worker_st *worker)
 {
   gearman_return_t ret;
 
-  ret= gearman_add_packet_args(worker->gearman, &(worker->grab_job),
-                               GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_GRAB_JOB,
-                               NULL, NULL, 0);
+  ret= gearman_packet_create_args(worker->gearman, &(worker->grab_job),
+                                  GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_GRAB_JOB,
+                                  NULL, NULL, 0);
   if (ret != GEARMAN_SUCCESS)
     return ret;
 
-  ret= gearman_add_packet_args(worker->gearman, &(worker->pre_sleep),
-                               GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_PRE_SLEEP,
-                               NULL, NULL, 0);
+  ret= gearman_packet_create_args(worker->gearman, &(worker->pre_sleep),
+                                  GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_PRE_SLEEP,
+                                  NULL, NULL, 0);
   if (ret != GEARMAN_SUCCESS)
   {
     gearman_packet_free(&(worker->grab_job));
@@ -907,18 +907,18 @@ static gearman_return_t _worker_function_add(gearman_worker_st *worker,
     args_size[0]= strlen(function_name) + 1;
     args[1]= timeout_buffer;
     args_size[1]= strlen(timeout_buffer);
-    ret= gearman_add_packet_args(worker->gearman, &(function->packet),
-                                 GEARMAN_MAGIC_REQUEST,
-                                 GEARMAN_COMMAND_CAN_DO_TIMEOUT,
-                                 args, args_size, 2);
+    ret= gearman_packet_create_args(worker->gearman, &(function->packet),
+                                    GEARMAN_MAGIC_REQUEST,
+                                    GEARMAN_COMMAND_CAN_DO_TIMEOUT,
+                                    args, args_size, 2);
   }
   else
   {
     args[0]= function_name;
     args_size[0]= strlen(function_name);
-    ret= gearman_add_packet_args(worker->gearman, &(function->packet),
-                                 GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_CAN_DO,
-                                 args, args_size, 1);
+    ret= gearman_packet_create_args(worker->gearman, &(function->packet),
+                                    GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_CAN_DO,
+                                    args, args_size, 1);
   }
   if (ret != GEARMAN_SUCCESS)
   {
