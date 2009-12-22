@@ -66,13 +66,12 @@ gearman_server_con_create(gearman_server_thread_st *thread)
     }
   }
 
-  if (gearman_connection_create(thread->gearman, &(con->con)) == NULL)
+  gearman_connection_options_t options[] = { GEARMAN_CON_IGNORE_LOST_CONNECTION, GEARMAN_CON_MAX };
+  if (gearman_connection_create(thread->gearman, &(con->con), options) == NULL)
   {
     free(con);
     return NULL;
   }
-
-  gearman_connection_add_options(&(con->con), GEARMAN_CON_IGNORE_LOST_CONNECTION);
 
   con->options= 0;
   con->ret= 0;

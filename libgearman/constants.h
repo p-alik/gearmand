@@ -131,12 +131,12 @@ typedef enum
  */
 typedef enum
 {
-  GEARMAN_CON_ALLOCATED=              (1 << 0),
-  GEARMAN_CON_READY=                  (1 << 1),
-  GEARMAN_CON_PACKET_IN_USE=          (1 << 2),
-  GEARMAN_CON_EXTERNAL_FD=            (1 << 3),
-  GEARMAN_CON_IGNORE_LOST_CONNECTION= (1 << 4),
-  GEARMAN_CON_CLOSE_AFTER_FLUSH=      (1 << 5)
+  GEARMAN_CON_READY,
+  GEARMAN_CON_PACKET_IN_USE,
+  GEARMAN_CON_EXTERNAL_FD,
+  GEARMAN_CON_IGNORE_LOST_CONNECTION,
+  GEARMAN_CON_CLOSE_AFTER_FLUSH,
+  GEARMAN_CON_MAX
 } gearman_connection_options_t;
 
 /**

@@ -35,7 +35,14 @@ extern "C" {
  */
 struct gearman_connection_st
 {
-  gearman_connection_options_t options;
+  struct {
+    bool allocated:1;
+    bool ready:1;
+    bool packet_in_use:1;
+    bool external_fd:1;
+    bool ignore_lost_connection:1;
+    bool close_after_flush:1;
+  } options;
   gearman_connection_state_t state;
   gearman_connection_send_state_t send_state;
   gearman_connection_recv_state_t recv_state;
@@ -76,26 +83,28 @@ struct gearman_connection_st
  *
  * @param[in] gearman Structure previously initialized with gearman_create() or
  *  gearman_clone().
- * @param[in] con Caller allocated structure, or NULL to allocate one.
+ * @param[in] connection Caller allocated structure, or NULL to allocate one.
  * @return On success, a pointer to the (possibly allocated) structure. On
  *  failure this will be NULL.
  */
 GEARMAN_API
-gearman_connection_st *gearman_connection_create(gearman_state_st *gearman, gearman_connection_st *con);
+gearman_connection_st *gearman_connection_create(gearman_state_st *gearman,
+                                                 gearman_connection_st *connection,
+                                                 gearman_connection_options_t *options);
 
 /**
  * Create a connection structure with the given host and port.
  *
  * @param[in] gearman Structure previously initialized with gearman_create() or
  *  gearman_clone().
- * @param[in] con Caller allocated structure, or NULL to allocate one.
+ * @param[in] connection Caller allocated structure, or NULL to allocate one.
  * @param[in] host Host or IP address to connect to.
  * @param[in] port Port to connect to.
  * @return On success, a pointer to the (possibly allocated) structure. On
  *  failure this will be NULL.
  */
 GEARMAN_API
-gearman_connection_st *gearman_connection_create_args(gearman_state_st *gearman, gearman_connection_st *con,
+gearman_connection_st *gearman_connection_create_args(gearman_state_st *gearman, gearman_connection_st *connection,
                                                       const char *host, in_port_t port);
 
 /**
@@ -103,7 +112,7 @@ gearman_connection_st *gearman_connection_create_args(gearman_state_st *gearman,
  *
  * @param[in] gearman Structure previously initialized with gearman_create() or
  *  gearman_clone().
- * @param[in] con Caller allocated structure, or NULL to allocate one.
+ * @param[in] connection Caller allocated structure, or NULL to allocate one.
  * @param[in] from Structure to use as a source to clone from.
  * @return On success, a pointer to the (possibly allocated) structure. On
  *  failure this will be NULL.
@@ -115,113 +124,93 @@ gearman_connection_st *gearman_connection_clone(gearman_state_st *gearman, gearm
 /**
  * Free a connection structure.
  *
- * @param[in] con Structure previously initialized with gearman_connection_create(),
+ * @param[in] connection Structure previously initialized with gearman_connection_create(),
  *  gearman_connection_create_args(), or gearman_connection_clone().
  */
 GEARMAN_API
-void gearman_connection_free(gearman_connection_st *con);
+void gearman_connection_free(gearman_connection_st *connection);
+
+
+GEARMAN_API
+gearman_return_t gearman_connection_set_option(gearman_connection_st *connection,
+                                               gearman_connection_options_t options,
+                                               bool value);
 
 
 /**
  * Set host for a connection.
  */
 GEARMAN_API
-void gearman_connection_set_host(gearman_connection_st *con, const char *host);
+void gearman_connection_set_host(gearman_connection_st *connection, const char *host);
 
 /**
  * Set port for a connection.
  */
 GEARMAN_API
-void gearman_connection_set_port(gearman_connection_st *con, in_port_t port);
+void gearman_connection_set_port(gearman_connection_st *connection, in_port_t port);
 
-/**
- * Get options for a connection.
- */
-GEARMAN_API
-gearman_connection_options_t gearman_connection_options(const gearman_connection_st *con);
-
-/**
- * Set options for a connection.
- */
-GEARMAN_API
-void gearman_connection_set_options(gearman_connection_st *con,
-                                    gearman_connection_options_t options);
-
-/**
- * Add options for a connection.
- */
-GEARMAN_API
-void gearman_connection_add_options(gearman_connection_st *con,
-                                    gearman_connection_options_t options);
-
-/**
- * Remove options for a connection.
- */
-GEARMAN_API
-void gearman_connection_remove_options(gearman_connection_st *con,
-                                       gearman_connection_options_t options);
 
 /**
  * Set connection to an already open file descriptor.
  */
 GEARMAN_API
-gearman_return_t gearman_connection_set_fd(gearman_connection_st *con, int fd);
+gearman_return_t gearman_connection_set_fd(gearman_connection_st *connection, int fd);
 
 /**
  * Get application context pointer.
  */
 GEARMAN_API
-void *gearman_connection_context(const gearman_connection_st *con);
+void *gearman_connection_context(const gearman_connection_st *connection);
 
 /**
  * Set application context pointer.
  */
 GEARMAN_API
-void gearman_connection_set_context(gearman_connection_st *con, const void *context);
+void gearman_connection_set_context(gearman_connection_st *connection, const void *context);
 
 /**
  * Connect to server.
  */
 GEARMAN_API
-gearman_return_t gearman_connection_connect(gearman_connection_st *con);
+gearman_return_t gearman_connection_connect(gearman_connection_st *connection);
 
 /**
  * Close a connection.
  */
 GEARMAN_API
-void gearman_connection_close(gearman_connection_st *con);
+void gearman_connection_close(gearman_connection_st *connection);
 
 /**
  * Clear address info, freeing structs if needed.
  */
 GEARMAN_API
-void gearman_connection_reset_addrinfo(gearman_connection_st *con);
+void gearman_connection_reset_addrinfo(gearman_connection_st *connection);
 
 /**
  * Send packet to a connection.
  */
 GEARMAN_API
-gearman_return_t gearman_connection_send(gearman_connection_st *con,
+gearman_return_t gearman_connection_send(gearman_connection_st *connection,
                                          const gearman_packet_st *packet, bool flush);
 
 /**
  * Send packet data to a connection.
  */
 GEARMAN_API
-size_t gearman_connection_send_data(gearman_connection_st *con, const void *data,
+size_t gearman_connection_send_data(gearman_connection_st *connection, const void *data,
                                     size_t data_size, gearman_return_t *ret_ptr);
 
 /**
  * Flush the send buffer.
  */
 GEARMAN_API
-gearman_return_t gearman_connection_flush(gearman_connection_st *con);
+gearman_return_t gearman_connection_flush(gearman_connection_st *connection);
 
 /**
  * Receive packet from a connection.
  */
 GEARMAN_API
-gearman_packet_st *gearman_connection_recv(gearman_connection_st *con,
+gearman_packet_st *gearman_connection_recv(gearman_connection_st *connection,
                                            gearman_packet_st *packet,
                                            gearman_return_t *ret_ptr, bool recv_data);
 
@@ -229,60 +218,60 @@ gearman_packet_st *gearman_connection_recv(gearman_connection_st *con,
  * Receive packet data from a connection.
  */
 GEARMAN_API
-size_t gearman_connection_recv_data(gearman_connection_st *con, void *data, size_t data_size,
+size_t gearman_connection_recv_data(gearman_connection_st *connection, void *data, size_t data_size,
                                     gearman_return_t *ret_ptr);
 
 /**
  * Read data from a connection.
  */
 GEARMAN_API
-size_t gearman_connection_read(gearman_connection_st *con, void *data, size_t data_size,
+size_t gearman_connection_read(gearman_connection_st *connection, void *data, size_t data_size,
                                gearman_return_t *ret_ptr);
 
 /**
  * Set events to be watched for a connection.
  */
 GEARMAN_API
-gearman_return_t gearman_connection_set_events(gearman_connection_st *con, short events);
+gearman_return_t gearman_connection_set_events(gearman_connection_st *connection, short events);
 
 /**
  * Set events that are ready for a connection. This is used with the external
  * event callbacks.
  */
 GEARMAN_API
-gearman_return_t gearman_connection_set_revents(gearman_connection_st *con, short revents);
+gearman_return_t gearman_connection_set_revents(gearman_connection_st *connection, short revents);
 
 /**
  * Get protocol context pointer.
  */
 GEARMAN_API
-void *gearman_connection_protocol_context(const gearman_connection_st *con);
+void *gearman_connection_protocol_context(const gearman_connection_st *connection);
 
 /**
  * Set protocol context pointer.
  */
 GEARMAN_API
-void gearman_connection_set_protocol_context(gearman_connection_st *con, const void *context);
+void gearman_connection_set_protocol_context(gearman_connection_st *connection, const void *context);
 
 /**
  * Set function to call when protocol_data should be freed.
  */
 GEARMAN_API
-void gearman_connection_set_protocol_context_free_fn(gearman_connection_st *con,
+void gearman_connection_set_protocol_context_free_fn(gearman_connection_st *connection,
                                                      gearman_connection_protocol_context_free_fn *function);
 
 /**
  * Set custom packet_pack function
  */
 GEARMAN_API
-void gearman_connection_set_packet_pack_fn(gearman_connection_st *con,
+void gearman_connection_set_packet_pack_fn(gearman_connection_st *connection,
                                            gearman_packet_pack_fn *function);
 
 /**
  * Set custom packet_unpack function
  */
 GEARMAN_API
-void gearman_connection_set_packet_unpack_fn(gearman_connection_st *con,
+void gearman_connection_set_packet_unpack_fn(gearman_connection_st *connection,
                                              gearman_packet_unpack_fn *function);
 
 /** @} */

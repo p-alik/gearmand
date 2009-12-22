@@ -119,7 +119,7 @@ test_return_t bug372074_test(void *object __attribute__((unused)))
 
   for (x= 0; x < 2; x++)
   {
-    if (gearman_connection_create(&gearman, &con) == NULL)
+    if (gearman_connection_create(&gearman, &con, NULL) == NULL)
       return TEST_FAILURE;
 
     gearman_connection_set_host(&con, NULL);
@@ -167,7 +167,7 @@ test_return_t bug372074_test(void *object __attribute__((unused)))
 
     gearman_connection_free(&con);
 
-    if (gearman_connection_create(&gearman, &con) == NULL)
+    if (gearman_connection_create(&gearman, &con, NULL) == NULL)
       return TEST_FAILURE;
 
     gearman_connection_set_host(&con, NULL);

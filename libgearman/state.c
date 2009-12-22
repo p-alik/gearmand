@@ -290,9 +290,9 @@ gearman_connection_st *gearman_ready(gearman_state_st *gearman)
 
   for (con= gearman->con_list; con != NULL; con= con->next)
   {
-    if (con->options & GEARMAN_CON_READY)
+    if (con->options.ready)
     {
-      con->options&= (gearman_connection_options_t)~GEARMAN_CON_READY;
+      con->options.ready= false;
       return con;
     }
   }

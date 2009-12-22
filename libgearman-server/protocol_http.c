@@ -178,8 +178,10 @@ static size_t _http_pack(const gearman_packet_st *packet, gearman_connection_st 
     return 0;
   }
 
-  if (!(http->keep_alive))
-    gearman_connection_add_options(con, GEARMAN_CON_CLOSE_AFTER_FLUSH);
+  if (! (http->keep_alive))
+  {
+    gearman_connection_set_option(con, GEARMAN_CON_CLOSE_AFTER_FLUSH, true);
+  }
 
   *ret_ptr= GEARMAN_SUCCESS;
   return pack_size;

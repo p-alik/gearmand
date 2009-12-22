@@ -731,7 +731,7 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
               return ret;
             }
 
-            client->con->options|= GEARMAN_CON_PACKET_IN_USE;
+            client->con->options.packet_in_use= true;
 
             /* We have a packet, see which task it belongs to. */
             for (client->task= client->task_list; client->task != NULL;
@@ -792,8 +792,7 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
 
           /* Clean up the packet. */
           gearman_packet_free(&(client->con->packet));
-          client->con->options&=
-                           (gearman_client_options_t)~GEARMAN_CON_PACKET_IN_USE;
+          client->con->options.packet_in_use= false;
 
           /* If all tasks are done, return. */
           if (client->running_tasks == 0)
