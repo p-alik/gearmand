@@ -38,7 +38,7 @@ struct gearman_worker_st
   uint32_t function_count;
   uint32_t job_count;
   size_t work_result_size;
-  gearman_st *gearman;
+  gearman_state_st *gearman;
   const void *context;
   gearman_con_st *con;
   gearman_job_st *job;
@@ -47,7 +47,7 @@ struct gearman_worker_st
   gearman_worker_function_st *function_list;
   gearman_worker_function_st *work_function;
   void *work_result;
-  gearman_st gearman_static;
+  gearman_state_st gearman_state_static;
   gearman_packet_st grab_job;
   gearman_packet_st pre_sleep;
   gearman_job_st work_job;

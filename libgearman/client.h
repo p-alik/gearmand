@@ -41,7 +41,7 @@ struct gearman_client_st
   uint32_t running_tasks;
   uint32_t task_count;
   size_t do_data_size;
-  gearman_st *gearman;
+  gearman_state_st *gearman;
   const void *context;
   gearman_con_st *con;
   gearman_task_st *task;
@@ -52,11 +52,11 @@ struct gearman_client_st
   gearman_created_fn *created_fn;
   gearman_data_fn *data_fn;
   gearman_warning_fn *warning_fn;
-  gearman_status_fn *status_fn;
+  gearman_state_status_fn *status_fn;
   gearman_complete_fn *complete_fn;
   gearman_exception_fn *exception_fn;
   gearman_fail_fn *fail_fn;
-  gearman_st gearman_static;
+  gearman_state_st gearman_state_static;
   gearman_task_st do_task;
 };
 
@@ -633,7 +633,7 @@ void gearman_client_set_warning_fn(gearman_client_st *client,
  */
 GEARMAN_API
 void gearman_client_set_status_fn(gearman_client_st *client,
-                                  gearman_status_fn *function);
+                                  gearman_state_status_fn *function);
 
 /**
  * Callback function when a task is complete.

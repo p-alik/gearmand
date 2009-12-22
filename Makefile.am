@@ -55,3 +55,9 @@ rpm: all dist
 	rpmbuild -ba support/gearmand.spec
 	cp ~/rpmbuild/RPMS/x86_64/gearmand-$(VERSION)*.rpm .
 	cp ~/rpmbuild/SRPMS/gearmand-$(VERSION)*.rpm .
+
+merge-clean:
+	find ./ | $(GREP) \.orig | xargs rm -f
+	find ./ | $(GREP) \.rej | xargs rm -f
+	find ./ | $(GREP) \~$$ | xargs rm -f
+	bzr unknowns

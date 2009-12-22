@@ -40,7 +40,7 @@ test_return flush(void);
 
 test_return init_test(void *not_used)
 {
-  gearman_st object;
+  gearman_state_st object;
   not_used= NULL; /* suppress compiler warnings */
 
   (void)gearman_create(&object);
@@ -51,7 +51,7 @@ test_return init_test(void *not_used)
 
 test_return allocation_test(void *not_used)
 {
-  gearman_st *object;
+  gearman_state_st *object;
   not_used= NULL; /* suppress compiler warnings */
   object= gearman_create(NULL);
   assert(object);
@@ -62,11 +62,11 @@ test_return allocation_test(void *not_used)
 
 test_return clone_test(void *object)
 {
-  gearman_st *param= (gearman_st *)object;
+  gearman_state_st *param= (gearman_state_st *)object;
 
   /* All null? */
   {
-    gearman_st *clone;
+    gearman_state_st *clone;
     clone= gearman_clone(NULL, NULL);
     assert(clone);
     gearman_free(clone);
@@ -74,7 +74,7 @@ test_return clone_test(void *object)
 
   /* Can we init from null? */
   {
-    gearman_st *clone;
+    gearman_state_st *clone;
     clone= gearman_clone(NULL, param);
     assert(clone);
     gearman_free(clone);
@@ -82,8 +82,8 @@ test_return clone_test(void *object)
 
   /* Can we init from struct? */
   {
-    gearman_st declared_clone;
-    gearman_st *clone;
+    gearman_state_st declared_clone;
+    gearman_state_st *clone;
     clone= gearman_clone(&declared_clone, NULL);
     assert(clone);
     gearman_free(clone);
@@ -91,8 +91,8 @@ test_return clone_test(void *object)
 
   /* Can we init from struct? */
   {
-    gearman_st declared_clone;
-    gearman_st *clone;
+    gearman_state_st declared_clone;
+    gearman_state_st *clone;
     clone= gearman_clone(&declared_clone, param);
     assert(clone);
     gearman_free(clone);
@@ -104,7 +104,7 @@ test_return clone_test(void *object)
 test_return echo_test(void *object)
 {
   gearman_return rc;
-  gearman_st *param= (gearman_st *)object;
+  gearman_state_st *param= (gearman_state_st *)object;
   size_t value_length;
   char *value= "This is my echo test";
 
@@ -120,7 +120,7 @@ test_return echo_test(void *object)
 test_return worker_id_test(void *object)
 {
   gearman_return rc;
-  gearman_st *param= (gearman_st *)object;
+  gearman_state_st *param= (gearman_state_st *)object;
   gearman_worker_st *worker;
   char *function_name= "id_function";
 
@@ -141,7 +141,7 @@ test_return worker_id_test(void *object)
 test_return worker_function_null_test(void *object)
 {
   gearman_return rc;
-  gearman_st *param= (gearman_st *)object;
+  gearman_state_st *param= (gearman_state_st *)object;
   gearman_worker_st *worker;
   gearman_result_st *result;
   char *function_name= "bad_function";
@@ -168,7 +168,7 @@ test_return worker_function_null_test(void *object)
 test_return worker_function_timeout_test(void *object)
 {
   gearman_return rc;
-  gearman_st *param= (gearman_st *)object;
+  gearman_state_st *param= (gearman_state_st *)object;
   gearman_worker_st *worker;
   gearman_result_st *result;
   char *function_name= "bad_function";
@@ -195,7 +195,7 @@ test_return worker_function_test(void *object)
 {
   uint8_t loop_count;
   gearman_return rc;
-  gearman_st *param= (gearman_st *)object;
+  gearman_state_st *param= (gearman_state_st *)object;
   gearman_worker_st *worker;
   gearman_job_st *job;
   gearman_result_st *result;
@@ -277,7 +277,7 @@ test_return flush(void)
 
 void *create(void *not_used)
 {
-  gearman_st *ptr;
+  gearman_state_st *ptr;
   gearman_return rc;
   not_used= NULL; /* suppress compiler warnings */
 
@@ -295,7 +295,7 @@ void *create(void *not_used)
 
 void destroy(void *object)
 {
-  gearman_st *ptr= (gearman_st *)object;
+  gearman_state_st *ptr= (gearman_state_st *)object;
 
   assert(ptr);
 
@@ -304,7 +304,7 @@ void destroy(void *object)
 
 test_return pre(void *object)
 {
-  gearman_st *ptr= (gearman_st *)object;
+  gearman_state_st *ptr= (gearman_state_st *)object;
 
   assert(ptr);
 
@@ -313,7 +313,7 @@ test_return pre(void *object)
 
 test_return post(void *object)
 {
-  gearman_st *ptr= (gearman_st *)object;
+  gearman_state_st *ptr= (gearman_state_st *)object;
 
   assert(ptr);
 

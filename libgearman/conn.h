@@ -51,7 +51,7 @@ struct gearman_con_st
   size_t recv_buffer_size;
   size_t recv_data_size;
   size_t recv_data_offset;
-  gearman_st *gearman;
+  gearman_state_st *gearman;
   gearman_con_st *next;
   gearman_con_st *prev;
   const void *context;

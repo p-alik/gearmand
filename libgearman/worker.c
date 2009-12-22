@@ -68,7 +68,7 @@ gearman_worker_st *gearman_worker_create(gearman_worker_st *worker)
   if (worker == NULL)
     return NULL;
 
-  worker->gearman= gearman_create(&(worker->gearman_static));
+  worker->gearman= gearman_state_create(&(worker->gearman_state_static));
   if (worker->gearman == NULL)
   {
     gearman_worker_free(worker);
@@ -99,7 +99,7 @@ gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker,
   worker->options|= (from->options &
                      (gearman_worker_options_t)~GEARMAN_WORKER_ALLOCATED);
 
-  worker->gearman= gearman_clone(&(worker->gearman_static), from->gearman);
+  worker->gearman= gearman_state_clone(&(worker->gearman_state_static), from->gearman);
   if (worker->gearman == NULL)
   {
     gearman_worker_free(worker);
@@ -146,7 +146,7 @@ void gearman_worker_free(gearman_worker_st *worker)
   gearman_job_free_all(worker);
 
   if (worker->gearman != NULL)
-    gearman_free(worker->gearman);
+    gearman_state_free(worker->gearman);
 
   if (worker->options & GEARMAN_WORKER_ALLOCATED)
     free(worker);
@@ -154,12 +154,12 @@ void gearman_worker_free(gearman_worker_st *worker)
 
 const char *gearman_worker_error(gearman_worker_st *worker)
 {
-  return gearman_error(worker->gearman);
+  return gearman_state_error(worker->gearman);
 }
 
 int gearman_worker_errno(gearman_worker_st *worker)
 {
-  return gearman_errno(worker->gearman);
+  return gearman_state_errno(worker->gearman);
 }
 
 gearman_worker_options_t gearman_worker_options(const gearman_worker_st *worker)

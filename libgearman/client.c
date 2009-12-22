@@ -107,7 +107,7 @@ gearman_client_st *gearman_client_create(gearman_client_st *client)
   if (client == NULL)
     return NULL;
 
-  client->gearman= gearman_create(&(client->gearman_static));
+  client->gearman= gearman_state_create(&(client->gearman_state_static));
   if (client->gearman == NULL)
   {
     gearman_client_free(client);
@@ -130,7 +130,7 @@ gearman_client_st *gearman_client_clone(gearman_client_st *client,
   client->options|= (from->options &
                      (gearman_client_options_t)~GEARMAN_CLIENT_ALLOCATED);
 
-  client->gearman= gearman_clone(&(client->gearman_static), from->gearman);
+  client->gearman= gearman_state_clone(&(client->gearman_state_static), from->gearman);
   if (client->gearman == NULL)
   {
     gearman_client_free(client);
@@ -148,7 +148,7 @@ void gearman_client_free(gearman_client_st *client)
   gearman_client_task_free_all(client);
 
   if (client->gearman != NULL)
-    gearman_free(client->gearman);
+    gearman_state_free(client->gearman);
 
   if (client->options & GEARMAN_CLIENT_ALLOCATED)
     free(client);
@@ -156,12 +156,12 @@ void gearman_client_free(gearman_client_st *client)
 
 const char *gearman_client_error(const gearman_client_st *client)
 {
-  return gearman_error(client->gearman);
+  return gearman_state_error(client->gearman);
 }
 
 int gearman_client_errno(const gearman_client_st *client)
 {
-  return gearman_errno(client->gearman);
+  return gearman_state_errno(client->gearman);
 }
 
 gearman_client_options_t gearman_client_options(const gearman_client_st *client)
@@ -574,7 +574,7 @@ void gearman_client_set_warning_fn(gearman_client_st *client,
 }
 
 void gearman_client_set_status_fn(gearman_client_st *client,
-                                  gearman_status_fn *function)
+                                  gearman_state_status_fn *function)
 {
   client->status_fn= function;
 }

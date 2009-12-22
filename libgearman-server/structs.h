@@ -39,7 +39,7 @@ struct gearman_server_st
   uint32_t free_job_count;
   uint32_t free_client_count;
   uint32_t free_worker_count;
-  gearman_st *gearman;
+  gearman_state_st *gearman;
   gearman_server_thread_st *thread_list;
   gearman_server_function_st *function_list;
   gearman_server_packet_st *free_packet_list;
@@ -53,7 +53,7 @@ struct gearman_server_st
   gearman_queue_flush_fn *queue_flush_fn;
   gearman_queue_done_fn *queue_done_fn;
   gearman_queue_replay_fn *queue_replay_fn;
-  gearman_st gearman_static;
+  gearman_state_st gearman_state_static;
   pthread_mutex_t proc_lock;
   pthread_cond_t proc_cond;
   pthread_t proc_id;
@@ -73,7 +73,7 @@ struct gearman_server_thread_st
   uint32_t proc_count;
   uint32_t free_con_count;
   uint32_t free_packet_count;
-  gearman_st *gearman;
+  gearman_state_st *gearman;
   gearman_server_st *server;
   gearman_server_thread_st *next;
   gearman_server_thread_st *prev;
@@ -86,7 +86,7 @@ struct gearman_server_thread_st
   gearman_server_con_st *proc_list;
   gearman_server_con_st *free_con_list;
   gearman_server_packet_st *free_packet_list;
-  gearman_st gearman_static;
+  gearman_state_st gearman_state_static;
   pthread_mutex_t lock;
 };
 

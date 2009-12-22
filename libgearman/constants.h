@@ -116,7 +116,7 @@ typedef enum
 
 /**
  * @ingroup gearman
- * Options for gearman_st.
+ * Options for gearman_state_st.
  */
 typedef enum
 {
@@ -387,7 +387,7 @@ typedef enum
  */
 
 /* Types. */
-typedef struct gearman_st gearman_st;
+typedef struct gearman_state_st gearman_state_st;
 typedef struct gearman_con_st gearman_con_st;
 typedef struct gearman_packet_st gearman_packet_st;
 typedef struct gearman_command_info_st gearman_command_info_st;
@@ -402,7 +402,7 @@ typedef gearman_return_t (gearman_workload_fn)(gearman_task_st *task);
 typedef gearman_return_t (gearman_created_fn)(gearman_task_st *task);
 typedef gearman_return_t (gearman_data_fn)(gearman_task_st *task);
 typedef gearman_return_t (gearman_warning_fn)(gearman_task_st *task);
-typedef gearman_return_t (gearman_status_fn)(gearman_task_st *task);
+typedef gearman_return_t (gearman_state_status_fn)(gearman_task_st *task);
 typedef gearman_return_t (gearman_complete_fn)(gearman_task_st *task);
 typedef gearman_return_t (gearman_exception_fn)(gearman_task_st *task);
 typedef gearman_return_t (gearman_fail_fn)(gearman_task_st *task);

@@ -107,14 +107,14 @@ test_return_t echo_test(void *object)
 
 test_return_t bug372074_test(void *object __attribute__((unused)))
 {
-  gearman_st gearman;
+  gearman_state_st gearman;
   gearman_con_st con;
   gearman_packet_st packet;
   uint32_t x;
   const void *args[1];
   size_t args_size[1];
 
-  if (gearman_create(&gearman) == NULL)
+  if (gearman_state_create(&gearman) == NULL)
     return TEST_FAILURE;
 
   for (x= 0; x < 2; x++)
@@ -230,7 +230,7 @@ test_return_t bug372074_test(void *object __attribute__((unused)))
     gearman_con_free(&con);
   }
 
-  gearman_free(&gearman);
+  gearman_state_free(&gearman);
 
   return TEST_SUCCESS;
 }
