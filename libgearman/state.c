@@ -77,7 +77,7 @@ gearman_state_st *gearman_state_create(gearman_state_st *gearman, gearman_option
 
 gearman_state_st *gearman_state_clone(gearman_state_st *destination, const gearman_state_st *source)
 {
-  gearman_con_st *con;
+  gearman_connection_st *con;
 
   destination= gearman_state_create(destination, NULL);
 
@@ -93,7 +93,7 @@ gearman_state_st *gearman_state_clone(gearman_state_st *destination, const gearm
 
   for (con= source->con_list; con != NULL; con= con->next)
   {
-    if (gearman_clone_con(destination, NULL, con) == NULL)
+    if (gearman_connection_clone(destination, NULL, con) == NULL)
     {
       gearman_state_free(destination);
       return NULL;
@@ -178,127 +178,15 @@ void gearman_set_workload_free_fn(gearman_state_st *gearman,
   gearman->workload_free_context= context;
 }
 
-/*
- * Connection related functions.
- */
-
-gearman_con_st *gearman_add_con(gearman_state_st *gearman, gearman_con_st *con)
-{
-  if (con == NULL)
-  {
-    con= malloc(sizeof(gearman_con_st));
-    if (con == NULL)
-    {
-      gearman_set_error(gearman, "gearman_add_con", "malloc");
-      return NULL;
-    }
-
-    con->options= GEARMAN_CON_ALLOCATED;
-  }
-  else
-    con->options= 0;
-
-  con->state= 0;
-  con->send_state= 0;
-  con->recv_state= 0;
-  con->port= 0;
-  con->events= 0;
-  con->revents= 0;
-  con->fd= -1;
-  con->created_id= 0;
-  con->created_id_next= 0;
-  con->send_buffer_size= 0;
-  con->send_data_size= 0;
-  con->send_data_offset= 0;
-  con->recv_buffer_size= 0;
-  con->recv_data_size= 0;
-  con->recv_data_offset= 0;
-  con->gearman= gearman;
-
-  if (gearman->con_list != NULL)
-    gearman->con_list->prev= con;
-  con->next= gearman->con_list;
-  con->prev= NULL;
-  gearman->con_list= con;
-  gearman->con_count++;
-
-  con->context= NULL;
-  con->addrinfo= NULL;
-  con->addrinfo_next= NULL;
-  con->send_buffer_ptr= con->send_buffer;
-  con->recv_packet= NULL;
-  con->recv_buffer_ptr= con->recv_buffer;
-  con->protocol_context= NULL;
-  con->protocol_context_free_fn= NULL;
-  con->packet_pack_fn= gearman_packet_pack;
-  con->packet_unpack_fn= gearman_packet_unpack;
-  con->host[0]= 0;
-
-  return con;
-}
-
-gearman_con_st *gearman_add_con_args(gearman_state_st *gearman, gearman_con_st *con,
-                                     const char *host, in_port_t port)
-{
-  con= gearman_add_con(gearman, con);
-  if (con == NULL)
-    return NULL;
-
-  gearman_con_set_host(con, host);
-  gearman_con_set_port(con, port);
-
-  return con;
-}
-
-gearman_con_st *gearman_clone_con(gearman_state_st *gearman, gearman_con_st *con,
-                                  const gearman_con_st *from)
-{
-  con= gearman_add_con(gearman, con);
-  if (con == NULL)
-    return NULL;
-
-  con->options|= (from->options &
-                  (gearman_con_options_t)~GEARMAN_CON_ALLOCATED);
-  strcpy(con->host, from->host);
-  con->port= from->port;
-
-  return con;
-}
-
-void gearman_con_free(gearman_con_st *con)
-{
-  if (con->fd != -1)
-    gearman_con_close(con);
-
-  gearman_con_reset_addrinfo(con);
-
-  if (con->protocol_context != NULL && con->protocol_context_free_fn != NULL)
-    con->protocol_context_free_fn(con, (void *)con->protocol_context);
-
-  if (con->gearman->con_list == con)
-    con->gearman->con_list= con->next;
-  if (con->prev != NULL)
-    con->prev->next= con->next;
-  if (con->next != NULL)
-    con->next->prev= con->prev;
-  con->gearman->con_count--;
-
-  if (con->options & GEARMAN_CON_PACKET_IN_USE)
-    gearman_packet_free(&(con->packet));
-
-  if (con->options & GEARMAN_CON_ALLOCATED)
-    free(con);
-}
-
 void gearman_free_all_cons(gearman_state_st *gearman)
 {
   while (gearman->con_list != NULL)
-    gearman_con_free(gearman->con_list);
+    gearman_connection_free(gearman->con_list);
 }
 
 gearman_return_t gearman_flush_all(gearman_state_st *gearman)
 {
-  gearman_con_st *con;
+  gearman_connection_st *con;
   gearman_return_t ret;
 
   for (con= gearman->con_list; con != NULL; con= con->next)
@@ -306,7 +194,7 @@ gearman_return_t gearman_flush_all(gearman_state_st *gearman)
     if (con->events & POLLOUT)
       continue;
 
-    ret= gearman_con_flush(con);
+    ret= gearman_connection_flush(con);
     if (ret != GEARMAN_SUCCESS && ret != GEARMAN_IO_WAIT)
       return ret;
   }
@@ -316,7 +204,7 @@ gearman_return_t gearman_flush_all(gearman_state_st *gearman)
 
 gearman_return_t gearman_wait(gearman_state_st *gearman)
 {
-  gearman_con_st *con;
+  gearman_connection_st *con;
   struct pollfd *pfds;
   nfds_t x;
   int ret;
@@ -383,7 +271,7 @@ gearman_return_t gearman_wait(gearman_state_st *gearman)
     if (con->events == 0)
       continue;
 
-    gret= gearman_con_set_revents(con, pfds[x].revents);
+    gret= gearman_connection_set_revents(con, pfds[x].revents);
     if (gret != GEARMAN_SUCCESS)
       return gret;
 
@@ -393,9 +281,9 @@ gearman_return_t gearman_wait(gearman_state_st *gearman)
   return GEARMAN_SUCCESS;
 }
 
-gearman_con_st *gearman_ready(gearman_state_st *gearman)
+gearman_connection_st *gearman_ready(gearman_state_st *gearman)
 {
-  gearman_con_st *con;
+  gearman_connection_st *con;
 
   /* We can't keep state between calls since connections may be removed during
      processing. If this list ever gets big, we may want something faster. */
@@ -404,7 +292,7 @@ gearman_con_st *gearman_ready(gearman_state_st *gearman)
   {
     if (con->options & GEARMAN_CON_READY)
     {
-      con->options&= (gearman_con_options_t)~GEARMAN_CON_READY;
+      con->options&= (gearman_connection_options_t)~GEARMAN_CON_READY;
       return con;
     }
   }
@@ -425,7 +313,7 @@ static inline void gearman_state_push_blocking(gearman_state_st *gearman)
 gearman_return_t gearman_echo(gearman_state_st *gearman, const void *workload,
                               size_t workload_size)
 {
-  gearman_con_st *con;
+  gearman_connection_st *con;
   gearman_packet_st packet;
   gearman_return_t ret;
 
@@ -439,7 +327,7 @@ gearman_return_t gearman_echo(gearman_state_st *gearman, const void *workload,
 
   for (con= gearman->con_list; con != NULL; con= con->next)
   {
-    ret= gearman_con_send(con, &packet, true);
+    ret= gearman_connection_send(con, &packet, true);
     if (ret != GEARMAN_SUCCESS)
     {
       gearman_packet_free(&packet);
@@ -448,7 +336,7 @@ gearman_return_t gearman_echo(gearman_state_st *gearman, const void *workload,
       return ret;
     }
 
-    (void)gearman_con_recv(con, &(con->packet), &ret, true);
+    (void)gearman_connection_recv(con, &(con->packet), &ret, true);
     if (ret != GEARMAN_SUCCESS)
     {
       gearman_packet_free(&packet);

@@ -37,7 +37,7 @@ static gearman_return_t _con_add(gearmand_thread_st *thread,
 
 gearman_return_t gearmand_con_create(gearmand_st *gearmand, int fd,
                                      const char *host, const char *port,
-                                     gearman_con_add_fn *add_fn)
+                                     gearman_connection_add_fn *add_fn)
 {
   gearmand_con_st *dcon;
   gearmand_con_st *free_dcon_list;
@@ -179,14 +179,14 @@ void gearmand_con_check_queue(gearmand_thread_st *thread)
   }
 }
 
-gearman_return_t gearmand_con_watch(gearman_con_st *con, short events,
+gearman_return_t gearmand_connection_watch(gearman_connection_st *con, short events,
                                     void *context __attribute__ ((unused)))
 {
   (void) context;
   gearmand_con_st *dcon;
   short set_events= 0;
 
-  dcon= (gearmand_con_st *)gearman_con_context(con);
+  dcon= (gearmand_con_st *)gearman_connection_context(con);
   dcon->con= con;
 
   if (events & POLLIN)
@@ -238,7 +238,7 @@ static void _con_ready(int fd __attribute__ ((unused)), short events,
   if (events & EV_WRITE)
     revents|= POLLOUT;
 
-  ret= gearman_con_set_revents(dcon->con, revents);
+  ret= gearman_connection_set_revents(dcon->con, revents);
   if (ret != GEARMAN_SUCCESS)
   {
     gearmand_con_free(dcon);

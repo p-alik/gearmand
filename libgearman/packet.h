@@ -147,7 +147,7 @@ gearman_return_t gearman_packet_unpack_header(gearman_packet_st *packet);
  * Pack packet into output buffer.
  */
 GEARMAN_API
-size_t gearman_packet_pack(const gearman_packet_st *packet, gearman_con_st *con,
+size_t gearman_packet_pack(const gearman_packet_st *packet, gearman_connection_st *con,
                            void *data, size_t data_size,
                            gearman_return_t *ret_ptr);
 
@@ -155,7 +155,7 @@ size_t gearman_packet_pack(const gearman_packet_st *packet, gearman_con_st *con,
  * Unpack packet from input data.
  */
 GEARMAN_API
-size_t gearman_packet_unpack(gearman_packet_st *packet, gearman_con_st *con,
+size_t gearman_packet_unpack(gearman_packet_st *packet, gearman_connection_st *con,
                              const void *data, size_t data_size,
                              gearman_return_t *ret_ptr);
 

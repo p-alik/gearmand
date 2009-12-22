@@ -44,7 +44,7 @@ struct gearman_task_st
   gearman_task_st *next;
   gearman_task_st *prev;
   const void *context;
-  gearman_con_st *con;
+  gearman_connection_st *con;
   gearman_packet_st *recv;
   gearman_packet_st send;
   char job_handle[GEARMAN_JOB_HANDLE_SIZE];

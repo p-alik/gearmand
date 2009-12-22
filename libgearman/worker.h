@@ -40,7 +40,7 @@ struct gearman_worker_st
   size_t work_result_size;
   gearman_state_st *gearman;
   const void *context;
-  gearman_con_st *con;
+  gearman_connection_st *con;
   gearman_job_st *job;
   gearman_job_st *job_list;
   gearman_worker_function_st *function;

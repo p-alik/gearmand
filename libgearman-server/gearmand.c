@@ -166,7 +166,7 @@ void gearmand_set_log_fn(gearmand_st *gearmand, gearman_log_fn *function,
 }
 
 gearman_return_t gearmand_port_add(gearmand_st *gearmand, in_port_t port,
-                                   gearman_con_add_fn *function)
+                                   gearman_connection_add_fn *function)
 {
   gearmand_port_st *port_list;
 

@@ -95,7 +95,7 @@ struct gearman_server_thread_st
  */
 struct gearman_server_con_st
 {
-  gearman_con_st con; /* This must be the first struct member. */
+  gearman_connection_st con; /* This must be the first struct member. */
   gearman_server_con_options_t options;
   gearman_return_t ret;
   bool io_list;
@@ -250,7 +250,7 @@ struct gearmand_port_st
   in_port_t port;
   uint32_t listen_count;
   gearmand_st *gearmand;
-  gearman_con_add_fn *add_fn;
+  gearman_connection_add_fn *add_fn;
   int *listen_fd;
   struct event *listen_event;
 };
@@ -290,8 +290,8 @@ struct gearmand_con_st
   gearmand_con_st *next;
   gearmand_con_st *prev;
   gearman_server_con_st *server_con;
-  gearman_con_st *con;
-  gearman_con_add_fn *add_fn;
+  gearman_connection_st *con;
+  gearman_connection_add_fn *add_fn;
   struct event event;
   char host[NI_MAXHOST];
   char port[NI_MAXSERV];

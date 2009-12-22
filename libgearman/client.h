@@ -43,7 +43,7 @@ struct gearman_client_st
   size_t do_data_size;
   gearman_state_st *gearman;
   const void *context;
-  gearman_con_st *con;
+  gearman_connection_st *con;
   gearman_task_st *task;
   gearman_task_st *task_list;
   gearman_task_context_free_fn *task_context_free_fn;

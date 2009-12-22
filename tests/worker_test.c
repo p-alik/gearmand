@@ -108,7 +108,7 @@ test_return_t echo_test(void *object)
 test_return_t bug372074_test(void *object __attribute__((unused)))
 {
   gearman_state_st gearman;
-  gearman_con_st con;
+  gearman_connection_st con;
   gearman_packet_st packet;
   uint32_t x;
   const void *args[1];
@@ -119,11 +119,11 @@ test_return_t bug372074_test(void *object __attribute__((unused)))
 
   for (x= 0; x < 2; x++)
   {
-    if (gearman_add_con(&gearman, &con) == NULL)
+    if (gearman_connection_create(&gearman, &con) == NULL)
       return TEST_FAILURE;
 
-    gearman_con_set_host(&con, NULL);
-    gearman_con_set_port(&con, WORKER_TEST_PORT);
+    gearman_connection_set_host(&con, NULL);
+    gearman_connection_set_port(&con, WORKER_TEST_PORT);
 
     args[0]= "testUnregisterFunction";
     args_size[0]= strlen("testUnregisterFunction");
@@ -134,7 +134,7 @@ test_return_t bug372074_test(void *object __attribute__((unused)))
       return TEST_FAILURE;
     }
 
-    if (gearman_con_send(&con, &packet, true) != GEARMAN_SUCCESS)
+    if (gearman_connection_send(&con, &packet, true) != GEARMAN_SUCCESS)
       return TEST_FAILURE;
 
     gearman_packet_free(&packet);
@@ -148,7 +148,7 @@ test_return_t bug372074_test(void *object __attribute__((unused)))
       return TEST_FAILURE;
     }
 
-    if (gearman_con_send(&con, &packet, true) != GEARMAN_SUCCESS)
+    if (gearman_connection_send(&con, &packet, true) != GEARMAN_SUCCESS)
       return TEST_FAILURE;
 
     gearman_packet_free(&packet);
@@ -160,18 +160,18 @@ test_return_t bug372074_test(void *object __attribute__((unused)))
       return TEST_FAILURE;
     }
 
-    if (gearman_con_send(&con, &packet, true) != GEARMAN_SUCCESS)
+    if (gearman_connection_send(&con, &packet, true) != GEARMAN_SUCCESS)
       return TEST_FAILURE;
 
     gearman_packet_free(&packet);
 
-    gearman_con_free(&con);
+    gearman_connection_free(&con);
 
-    if (gearman_add_con(&gearman, &con) == NULL)
+    if (gearman_connection_create(&gearman, &con) == NULL)
       return TEST_FAILURE;
 
-    gearman_con_set_host(&con, NULL);
-    gearman_con_set_port(&con, WORKER_TEST_PORT);
+    gearman_connection_set_host(&con, NULL);
+    gearman_connection_set_port(&con, WORKER_TEST_PORT);
 
     args[0]= "testUnregisterFunction";
     args_size[0]= strlen("testUnregisterFunction");
@@ -182,7 +182,7 @@ test_return_t bug372074_test(void *object __attribute__((unused)))
       return TEST_FAILURE;
     }
 
-    if (gearman_con_send(&con, &packet, true) != GEARMAN_SUCCESS)
+    if (gearman_connection_send(&con, &packet, true) != GEARMAN_SUCCESS)
       return TEST_FAILURE;
 
     gearman_packet_free(&packet);
@@ -196,7 +196,7 @@ test_return_t bug372074_test(void *object __attribute__((unused)))
       return TEST_FAILURE;
     }
 
-    if (gearman_con_send(&con, &packet, true) != GEARMAN_SUCCESS)
+    if (gearman_connection_send(&con, &packet, true) != GEARMAN_SUCCESS)
       return TEST_FAILURE;
 
     gearman_packet_free(&packet);
@@ -210,7 +210,7 @@ test_return_t bug372074_test(void *object __attribute__((unused)))
       return TEST_FAILURE;
     }
 
-    if (gearman_con_send(&con, &packet, true) != GEARMAN_SUCCESS)
+    if (gearman_connection_send(&con, &packet, true) != GEARMAN_SUCCESS)
       return TEST_FAILURE;
 
     gearman_packet_free(&packet);
@@ -222,12 +222,12 @@ test_return_t bug372074_test(void *object __attribute__((unused)))
       return TEST_FAILURE;
     }
 
-    if (gearman_con_send(&con, &packet, true) != GEARMAN_SUCCESS)
+    if (gearman_connection_send(&con, &packet, true) != GEARMAN_SUCCESS)
       return TEST_FAILURE;
 
     gearman_packet_free(&packet);
 
-    gearman_con_free(&con);
+    gearman_connection_free(&con);
   }
 
   gearman_state_free(&gearman);

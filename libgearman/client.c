@@ -247,7 +247,7 @@ void gearman_client_set_workload_free_fn(gearman_client_st *client,
 gearman_return_t gearman_client_add_server(gearman_client_st *client,
                                            const char *host, in_port_t port)
 {
-  if (gearman_add_con_args(client->gearman, NULL, host, port) == NULL)
+  if (gearman_connection_create_args(client->gearman, NULL, host, port) == NULL)
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
 
   return GEARMAN_SUCCESS;
@@ -706,7 +706,7 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
             {
               /* Read the next packet, without buffering the data part. */
               client->task= NULL;
-              (void)gearman_con_recv(client->con, &(client->con->packet), &ret,
+              (void)gearman_connection_recv(client->con, &(client->con->packet), &ret,
                                      false);
             }
           }
@@ -714,13 +714,13 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
           {
             /* Read the next packet, buffering the data part. */
             client->task= NULL;
-            (void)gearman_con_recv(client->con, &(client->con->packet), &ret,
+            (void)gearman_connection_recv(client->con, &(client->con->packet), &ret,
                                    true);
           }
 
           if (client->task == NULL)
           {
-            /* Check the return of the gearman_con_recv() calls above. */
+            /* Check the return of the gearman_connection_recv() calls above. */
             if (ret != GEARMAN_SUCCESS)
             {
               if (ret == GEARMAN_IO_WAIT)
@@ -985,7 +985,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
   case GEARMAN_TASK_STATE_SUBMIT:
     while (1)
     {
-      ret= gearman_con_send(task->con, &(task->send),
+      ret= gearman_connection_send(task->con, &(task->send),
                             client->new_tasks == 0 ? true : false);
       if (ret == GEARMAN_SUCCESS)
         break;
@@ -1045,7 +1045,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
 
     client->options&= (gearman_client_options_t)~GEARMAN_CLIENT_NO_NEW;
     task->state= GEARMAN_TASK_STATE_WORK;
-    return gearman_con_set_events(task->con, POLLIN);
+    return gearman_connection_set_events(task->con, POLLIN);
 
   case GEARMAN_TASK_STATE_WORK:
     if (task->recv->command == GEARMAN_COMMAND_JOB_CREATED)

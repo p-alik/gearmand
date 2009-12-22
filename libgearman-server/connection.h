@@ -58,7 +58,7 @@ void gearman_server_con_free(gearman_server_con_st *con);
  * Get gearman connection pointer the server connection uses.
  */
 GEARMAN_API
-gearman_con_st *gearman_server_con_con(gearman_server_con_st *con);
+gearman_connection_st *gearman_server_con_con(gearman_server_con_st *con);
 
 /**
  * Get application data pointer.

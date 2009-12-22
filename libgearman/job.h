@@ -38,7 +38,7 @@ struct gearman_job_st
   gearman_worker_st *worker;
   gearman_job_st *next;
   gearman_job_st *prev;
-  gearman_con_st *con;
+  gearman_connection_st *con;
   gearman_packet_st assigned;
   gearman_packet_st work;
 };

@@ -127,7 +127,7 @@ typedef enum
 
 /**
  * @ingroup gearman_con
- * Options for gearman_con_st.
+ * Options for gearman_connection_st.
  */
 typedef enum
 {
@@ -137,11 +137,11 @@ typedef enum
   GEARMAN_CON_EXTERNAL_FD=            (1 << 3),
   GEARMAN_CON_IGNORE_LOST_CONNECTION= (1 << 4),
   GEARMAN_CON_CLOSE_AFTER_FLUSH=      (1 << 5)
-} gearman_con_options_t;
+} gearman_connection_options_t;
 
 /**
  * @ingroup gearman_con
- * States for gearman_con_st.
+ * States for gearman_connection_st.
  */
 typedef enum
 {
@@ -149,11 +149,11 @@ typedef enum
   GEARMAN_CON_STATE_CONNECT,
   GEARMAN_CON_STATE_CONNECTING,
   GEARMAN_CON_STATE_CONNECTED
-} gearman_con_state_t;
+} gearman_connection_state_t;
 
 /**
  * @ingroup gearman_con
- * Send states for gearman_con_st.
+ * Send states for gearman_connection_st.
  */
 typedef enum
 {
@@ -162,18 +162,18 @@ typedef enum
   GEARMAN_CON_SEND_STATE_FORCE_FLUSH,
   GEARMAN_CON_SEND_STATE_FLUSH,
   GEARMAN_CON_SEND_STATE_FLUSH_DATA
-} gearman_con_send_state_t;
+} gearman_connection_send_state_t;
 
 /**
  * @ingroup gearman_con
- * Recv states for gearman_con_st.
+ * Recv states for gearman_connection_st.
  */
 typedef enum
 {
   GEARMAN_CON_RECV_STATE_NONE,
   GEARMAN_CON_RECV_STATE_READ,
   GEARMAN_CON_RECV_STATE_READ_DATA
-} gearman_con_recv_state_t;
+} gearman_connection_recv_state_t;
 
 /**
  * @ingroup gearman_packet
@@ -388,7 +388,7 @@ typedef enum
 
 /* Types. */
 typedef struct gearman_state_st gearman_state_st;
-typedef struct gearman_con_st gearman_con_st;
+typedef struct gearman_connection_st gearman_connection_st;
 typedef struct gearman_packet_st gearman_packet_st;
 typedef struct gearman_command_info_st gearman_command_info_st;
 typedef struct gearman_task_st gearman_task_st;
@@ -415,7 +415,7 @@ typedef void* (gearman_worker_fn)(gearman_job_st *job, void *context,
                                   size_t *result_size,
                                   gearman_return_t *ret_ptr);
 
-typedef gearman_return_t (gearman_event_watch_fn)(gearman_con_st *con,
+typedef gearman_return_t (gearman_event_watch_fn)(gearman_connection_st *con,
                                                   short events, void *context);
 
 typedef void* (gearman_malloc_fn)(size_t size, void *context);
@@ -427,15 +427,15 @@ typedef void (gearman_task_context_free_fn)(gearman_task_st *task,
 typedef void (gearman_log_fn)(const char *line, gearman_verbose_t verbose,
                               void *context);
 
-typedef void (gearman_con_protocol_context_free_fn)(gearman_con_st *con,
+typedef void (gearman_connection_protocol_context_free_fn)(gearman_connection_st *con,
                                                     void *context);
 
 typedef size_t (gearman_packet_pack_fn)(const gearman_packet_st *packet,
-                                        gearman_con_st *con,
+                                        gearman_connection_st *con,
                                         void *data, size_t data_size,
                                         gearman_return_t *ret_ptr);
 typedef size_t (gearman_packet_unpack_fn)(gearman_packet_st *packet,
-                                          gearman_con_st *con, const void *data,
+                                          gearman_connection_st *con, const void *data,
                                           size_t data_size,
                                           gearman_return_t *ret_ptr);
 

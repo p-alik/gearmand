@@ -37,12 +37,12 @@ typedef struct
 } gearman_protocol_http_st;
 
 /* Protocol callback functions. */
-static gearman_return_t _http_con_add(gearman_con_st *con);
-static void _http_free(gearman_con_st *con, void *context);
-static size_t _http_pack(const gearman_packet_st *packet, gearman_con_st *con,
+static gearman_return_t _http_con_add(gearman_connection_st *con);
+static void _http_free(gearman_connection_st *con, void *context);
+static size_t _http_pack(const gearman_packet_st *packet, gearman_connection_st *con,
                          void *data, size_t data_size,
                          gearman_return_t *ret_ptr);
-static size_t _http_unpack(gearman_packet_st *packet, gearman_con_st *con,
+static size_t _http_unpack(gearman_packet_st *packet, gearman_connection_st *con,
                            const void *data, size_t data_size,
                            gearman_return_t *ret_ptr);
 
@@ -114,7 +114,7 @@ gearman_return_t gearmand_protocol_http_deinit(gearmand_st *gearmand __attribute
  * Static definitions
  */
 
-static gearman_return_t _http_con_add(gearman_con_st *con)
+static gearman_return_t _http_con_add(gearman_connection_st *con)
 {
   gearman_protocol_http_st *http;
 
@@ -128,28 +128,28 @@ static gearman_return_t _http_con_add(gearman_con_st *con)
   http->background= false;
   http->keep_alive= false;
 
-  gearman_con_set_protocol_context(con, http);
-  gearman_con_set_protocol_context_free_fn(con, _http_free);
-  gearman_con_set_packet_pack_fn(con, _http_pack);
-  gearman_con_set_packet_unpack_fn(con, _http_unpack);
+  gearman_connection_set_protocol_context(con, http);
+  gearman_connection_set_protocol_context_free_fn(con, _http_free);
+  gearman_connection_set_packet_pack_fn(con, _http_pack);
+  gearman_connection_set_packet_unpack_fn(con, _http_unpack);
 
   return GEARMAN_SUCCESS;
 }
 
-static void _http_free(gearman_con_st *con __attribute__ ((unused)),
+static void _http_free(gearman_connection_st *con __attribute__ ((unused)),
                        void *context)
 {
   free((gearman_protocol_http_st *)context);
 }
 
-static size_t _http_pack(const gearman_packet_st *packet, gearman_con_st *con,
+static size_t _http_pack(const gearman_packet_st *packet, gearman_connection_st *con,
                          void *data, size_t data_size,
                          gearman_return_t *ret_ptr)
 {
   size_t pack_size;
   gearman_protocol_http_st *http;
 
-  http= (gearman_protocol_http_st *)gearman_con_protocol_context(con);
+  http= (gearman_protocol_http_st *)gearman_connection_protocol_context(con);
 
   if (packet->command != GEARMAN_COMMAND_WORK_COMPLETE &&
       packet->command != GEARMAN_COMMAND_WORK_FAIL &&
@@ -179,13 +179,13 @@ static size_t _http_pack(const gearman_packet_st *packet, gearman_con_st *con,
   }
 
   if (!(http->keep_alive))
-    gearman_con_add_options(con, GEARMAN_CON_CLOSE_AFTER_FLUSH);
+    gearman_connection_add_options(con, GEARMAN_CON_CLOSE_AFTER_FLUSH);
 
   *ret_ptr= GEARMAN_SUCCESS;
   return pack_size;
 }
 
-static size_t _http_unpack(gearman_packet_st *packet, gearman_con_st *con,
+static size_t _http_unpack(gearman_packet_st *packet, gearman_connection_st *con,
                            const void *data, size_t data_size,
                            gearman_return_t *ret_ptr)
 {
@@ -214,7 +214,7 @@ static size_t _http_unpack(gearman_packet_st *packet, gearman_con_st *con,
     return offset;
   }
 
-  http= (gearman_protocol_http_st *)gearman_con_protocol_context(con);
+  http= (gearman_protocol_http_st *)gearman_connection_protocol_context(con);
   http->background= false;
   http->keep_alive= false;
 

@@ -36,7 +36,7 @@
 #include <libgearman/state.h>
 #include <libgearman/command.h>
 #include <libgearman/packet.h>
-#include <libgearman/conn.h>
+#include <libgearman/connection.h>
 #include <libgearman/task.h>
 #include <libgearman/job.h>
 

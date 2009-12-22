@@ -65,7 +65,7 @@ gearman_return_t gearmand_thread_create(gearmand_st *gearmand)
   gearman_server_thread_set_log_fn(&(thread->server_thread), _log, thread,
                                    gearmand->verbose);
   gearman_server_thread_set_event_watch(&(thread->server_thread),
-                                        gearmand_con_watch, NULL);
+                                        gearmand_connection_watch, NULL);
 
   thread->options= 0;
   thread->count= 0;

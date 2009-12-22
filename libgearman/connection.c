@@ -14,15 +14,124 @@
 #include "common.h"
 
 /**
- * @addtogroup gearman_con_static Static Connection Declarations
+ * @addtogroup gearman_connection_static Static Connection Declarations
  * @ingroup gearman_con
  * @{
  */
 
+
+gearman_connection_st *gearman_connection_create(gearman_state_st *gearman, gearman_connection_st *con)
+{
+  if (con == NULL)
+  {
+    con= malloc(sizeof(gearman_connection_st));
+    if (con == NULL)
+    {
+      gearman_set_error(gearman, "gearman_connection_create", "malloc");
+      return NULL;
+    }
+
+    con->options= GEARMAN_CON_ALLOCATED;
+  }
+  else
+    con->options= 0;
+
+  con->state= 0;
+  con->send_state= 0;
+  con->recv_state= 0;
+  con->port= 0;
+  con->events= 0;
+  con->revents= 0;
+  con->fd= -1;
+  con->created_id= 0;
+  con->created_id_next= 0;
+  con->send_buffer_size= 0;
+  con->send_data_size= 0;
+  con->send_data_offset= 0;
+  con->recv_buffer_size= 0;
+  con->recv_data_size= 0;
+  con->recv_data_offset= 0;
+  con->gearman= gearman;
+
+  if (gearman->con_list != NULL)
+    gearman->con_list->prev= con;
+  con->next= gearman->con_list;
+  con->prev= NULL;
+  gearman->con_list= con;
+  gearman->con_count++;
+
+  con->context= NULL;
+  con->addrinfo= NULL;
+  con->addrinfo_next= NULL;
+  con->send_buffer_ptr= con->send_buffer;
+  con->recv_packet= NULL;
+  con->recv_buffer_ptr= con->recv_buffer;
+  con->protocol_context= NULL;
+  con->protocol_context_free_fn= NULL;
+  con->packet_pack_fn= gearman_packet_pack;
+  con->packet_unpack_fn= gearman_packet_unpack;
+  con->host[0]= 0;
+
+  return con;
+}
+
+gearman_connection_st *gearman_connection_create_args(gearman_state_st *gearman, gearman_connection_st *con,
+                                                      const char *host, in_port_t port)
+{
+  con= gearman_connection_create(gearman, con);
+  if (con == NULL)
+    return NULL;
+
+  gearman_connection_set_host(con, host);
+  gearman_connection_set_port(con, port);
+
+  return con;
+}
+
+gearman_connection_st *gearman_connection_clone(gearman_state_st *gearman, gearman_connection_st *con,
+                                                const gearman_connection_st *from)
+{
+  con= gearman_connection_create(gearman, con);
+  if (con == NULL)
+    return NULL;
+
+  con->options|= (from->options &
+                  (gearman_connection_options_t)~GEARMAN_CON_ALLOCATED);
+  strcpy(con->host, from->host);
+  con->port= from->port;
+
+  return con;
+}
+
+void gearman_connection_free(gearman_connection_st *con)
+{
+  if (con->fd != -1)
+    gearman_connection_close(con);
+
+  gearman_connection_reset_addrinfo(con);
+
+  if (con->protocol_context != NULL && con->protocol_context_free_fn != NULL)
+    con->protocol_context_free_fn(con, (void *)con->protocol_context);
+
+  if (con->gearman->con_list == con)
+    con->gearman->con_list= con->next;
+  if (con->prev != NULL)
+    con->prev->next= con->next;
+  if (con->next != NULL)
+    con->next->prev= con->prev;
+  con->gearman->con_count--;
+
+  if (con->options & GEARMAN_CON_PACKET_IN_USE)
+    gearman_packet_free(&(con->packet));
+
+  if (con->options & GEARMAN_CON_ALLOCATED)
+    free(con);
+}
+
 /**
  * Set socket options for a connection.
  */
-static gearman_return_t _con_setsockopt(gearman_con_st *con);
+static gearman_return_t _con_setsockopt(gearman_connection_st *con);
 
 /** @} */
 
@@ -30,46 +139,46 @@ static gearman_return_t _con_setsockopt(gearman_con_st *con);
  * Public Definitions
  */
 
-void gearman_con_set_host(gearman_con_st *con, const char *host)
+void gearman_connection_set_host(gearman_connection_st *con, const char *host)
 {
-  gearman_con_reset_addrinfo(con);
+  gearman_connection_reset_addrinfo(con);
 
   strncpy(con->host, host == NULL ? GEARMAN_DEFAULT_TCP_HOST : host,
           NI_MAXHOST);
   con->host[NI_MAXHOST - 1]= 0;
 }
 
-void gearman_con_set_port(gearman_con_st *con, in_port_t port)
+void gearman_connection_set_port(gearman_connection_st *con, in_port_t port)
 {
-  gearman_con_reset_addrinfo(con);
+  gearman_connection_reset_addrinfo(con);
 
   con->port= (in_port_t)(port == 0 ? GEARMAN_DEFAULT_TCP_PORT : port);
 }
 
-gearman_con_options_t gearman_con_options(const gearman_con_st *con)
+gearman_connection_options_t gearman_connection_options(const gearman_connection_st *con)
 {
   return con->options;
 }
 
-void gearman_con_set_options(gearman_con_st *con,
-                             gearman_con_options_t options)
+void gearman_connection_set_options(gearman_connection_st *con,
+                                    gearman_connection_options_t options)
 {
   con->options= options;
 }
 
-void gearman_con_add_options(gearman_con_st *con,
-                             gearman_con_options_t options)
+void gearman_connection_add_options(gearman_connection_st *con,
+                                    gearman_connection_options_t options)
 {
   con->options|= options;
 }
 
-void gearman_con_remove_options(gearman_con_st *con,
-                                gearman_con_options_t options)
+void gearman_connection_remove_options(gearman_connection_st *con,
+                                       gearman_connection_options_t options)
 {
   con->options&= ~options;
 }
 
-gearman_return_t gearman_con_set_fd(gearman_con_st *con, int fd)
+gearman_return_t gearman_connection_set_fd(gearman_connection_st *con, int fd)
 {
   gearman_return_t ret;
 
@@ -87,28 +196,28 @@ gearman_return_t gearman_con_set_fd(gearman_con_st *con, int fd)
   return GEARMAN_SUCCESS;
 }
 
-void *gearman_con_context(const gearman_con_st *con)
+void *gearman_connection_context(const gearman_connection_st *con)
 {
   return (void *)con->context;
 }
 
-void gearman_con_set_context(gearman_con_st *con, const void *context)
+void gearman_connection_set_context(gearman_connection_st *con, const void *context)
 {
   con->context= context;
 }
 
-gearman_return_t gearman_con_connect(gearman_con_st *con)
+gearman_return_t gearman_connection_connect(gearman_connection_st *con)
 {
-  return gearman_con_flush(con);
+  return gearman_connection_flush(con);
 }
 
-void gearman_con_close(gearman_con_st *con)
+void gearman_connection_close(gearman_connection_st *con)
 {
   if (con->fd == -1)
     return;
 
   if (con->options & GEARMAN_CON_EXTERNAL_FD)
-    con->options&= (gearman_con_options_t)~GEARMAN_CON_EXTERNAL_FD;
+    con->options&= (gearman_connection_options_t)~GEARMAN_CON_EXTERNAL_FD;
   else
     (void)close(con->fd);
 
@@ -130,7 +239,7 @@ void gearman_con_close(gearman_con_st *con)
   con->recv_buffer_size= 0;
 }
 
-void gearman_con_reset_addrinfo(gearman_con_st *con)
+void gearman_connection_reset_addrinfo(gearman_connection_st *con)
 {
   if (con->addrinfo != NULL)
   {
@@ -141,8 +250,8 @@ void gearman_con_reset_addrinfo(gearman_con_st *con)
   con->addrinfo_next= NULL;
 }
 
-gearman_return_t gearman_con_send(gearman_con_st *con,
-                                  const gearman_packet_st *packet, bool flush)
+gearman_return_t gearman_connection_send(gearman_connection_st *con,
+                                         const gearman_packet_st *packet, bool flush)
 {
   gearman_return_t ret;
   size_t send_size;
@@ -152,7 +261,7 @@ gearman_return_t gearman_con_send(gearman_con_st *con,
   case GEARMAN_CON_SEND_STATE_NONE:
     if (! (packet->options.complete))
     {
-      gearman_set_error(con->gearman, "gearman_con_send",
+      gearman_set_error(con->gearman, "gearman_connection_send",
                         "packet not complete");
       return GEARMAN_INVALID_PACKET;
     }
@@ -177,7 +286,7 @@ gearman_return_t gearman_con_send(gearman_con_st *con,
       /* We were asked to flush when the buffer is already flushed! */
       if (con->send_buffer_size == 0)
       {
-        gearman_set_error(con->gearman, "gearman_con_send",
+        gearman_set_error(con->gearman, "gearman_connection_send",
                           "send buffer too small (%u)",
                           GEARMAN_SEND_BUFFER_SIZE);
         return GEARMAN_SEND_BUFFER_TOO_SMALL;
@@ -186,8 +295,8 @@ gearman_return_t gearman_con_send(gearman_con_st *con,
       /* Flush buffer now if first part of packet won't fit in. */
       con->send_state= GEARMAN_CON_SEND_STATE_PRE_FLUSH;
 
-  case GEARMAN_CON_SEND_STATE_PRE_FLUSH:
-      ret= gearman_con_flush(con);
+    case GEARMAN_CON_SEND_STATE_PRE_FLUSH:
+      ret= gearman_connection_flush(con);
       if (ret != GEARMAN_SUCCESS)
         return ret;
     }
@@ -220,13 +329,13 @@ gearman_return_t gearman_con_send(gearman_con_st *con,
     con->send_state= GEARMAN_CON_SEND_STATE_FORCE_FLUSH;
 
   case GEARMAN_CON_SEND_STATE_FORCE_FLUSH:
-    ret= gearman_con_flush(con);
+    ret= gearman_connection_flush(con);
     if (ret != GEARMAN_SUCCESS)
       return ret;
 
     con->send_data_size= packet->data_size;
 
-    /* If this is NULL, then gearman_con_send_data function will be used. */
+    /* If this is NULL, then gearman_connection_send_data function will be used. */
     if (packet->data == NULL)
     {
       con->send_state= GEARMAN_CON_SEND_STATE_FLUSH_DATA;
@@ -250,16 +359,16 @@ gearman_return_t gearman_con_send(gearman_con_st *con,
 
   case GEARMAN_CON_SEND_STATE_FLUSH:
   case GEARMAN_CON_SEND_STATE_FLUSH_DATA:
-    ret= gearman_con_flush(con);
+    ret= gearman_connection_flush(con);
     if (ret == GEARMAN_SUCCESS && con->options & GEARMAN_CON_CLOSE_AFTER_FLUSH)
     {
-      gearman_con_close(con);
+      gearman_connection_close(con);
       ret= GEARMAN_LOST_CONNECTION;
     }
     return ret;
 
   default:
-    gearman_set_error(con->gearman, "gearman_con_send", "unknown state: %u",
+    gearman_set_error(con->gearman, "gearman_connection_send", "unknown state: %u",
                       con->send_state);
     return GEARMAN_UNKNOWN_STATE;
   }
@@ -267,10 +376,10 @@ gearman_return_t gearman_con_send(gearman_con_st *con,
   if (flush)
   {
     con->send_state= GEARMAN_CON_SEND_STATE_FLUSH;
-    ret= gearman_con_flush(con);
+    ret= gearman_connection_flush(con);
     if (ret == GEARMAN_SUCCESS && con->options & GEARMAN_CON_CLOSE_AFTER_FLUSH)
     {
-      gearman_con_close(con);
+      gearman_connection_close(con);
       ret= GEARMAN_LOST_CONNECTION;
     }
     return ret;
@@ -280,30 +389,30 @@ gearman_return_t gearman_con_send(gearman_con_st *con,
   return GEARMAN_SUCCESS;
 }
 
-size_t gearman_con_send_data(gearman_con_st *con, const void *data,
-                             size_t data_size, gearman_return_t *ret_ptr)
+size_t gearman_connection_send_data(gearman_connection_st *con, const void *data,
+                                    size_t data_size, gearman_return_t *ret_ptr)
 {
   if (con->send_state != GEARMAN_CON_SEND_STATE_FLUSH_DATA)
   {
-    gearman_set_error(con->gearman, "gearman_con_send_data", "not flushing");
+    gearman_set_error(con->gearman, "gearman_connection_send_data", "not flushing");
     return GEARMAN_NOT_FLUSHING;
   }
 
   if (data_size > (con->send_data_size - con->send_data_offset))
   {
-    gearman_set_error(con->gearman, "gearman_con_send_data", "data too large");
+    gearman_set_error(con->gearman, "gearman_connection_send_data", "data too large");
     return GEARMAN_DATA_TOO_LARGE;
   }
 
   con->send_buffer_ptr= (uint8_t *)data;
   con->send_buffer_size= data_size;
 
-  *ret_ptr= gearman_con_flush(con);
+  *ret_ptr= gearman_connection_flush(con);
 
   return data_size - con->send_buffer_size;
 }
 
-gearman_return_t gearman_con_flush(gearman_con_st *con)
+gearman_return_t gearman_connection_flush(gearman_connection_st *con)
 {
   char port_str[NI_MAXSERV];
   struct addrinfo ai;
@@ -331,7 +440,7 @@ gearman_return_t gearman_con_flush(gearman_con_st *con)
       ret= getaddrinfo(con->host, port_str, &ai, &(con->addrinfo));
       if (ret != 0)
       {
-        gearman_set_error(con->gearman, "gearman_con_flush", "getaddrinfo:%s",
+        gearman_set_error(con->gearman, "gearman_connection_flush", "getaddrinfo:%s",
                           gai_strerror(ret));
         return GEARMAN_GETADDRINFO;
       }
@@ -340,12 +449,12 @@ gearman_return_t gearman_con_flush(gearman_con_st *con)
 
     case GEARMAN_CON_STATE_CONNECT:
       if (con->fd != -1)
-        gearman_con_close(con);
+        gearman_connection_close(con);
 
       if (con->addrinfo_next == NULL)
       {
         con->state= GEARMAN_CON_STATE_ADDRINFO;
-        gearman_set_error(con->gearman, "gearman_con_flush",
+        gearman_set_error(con->gearman, "gearman_connection_flush",
                           "could not connect");
         return GEARMAN_COULD_NOT_CONNECT;
       }
@@ -356,7 +465,7 @@ gearman_return_t gearman_con_flush(gearman_con_st *con)
       if (con->fd == -1)
       {
         con->state= GEARMAN_CON_STATE_ADDRINFO;
-        gearman_set_error(con->gearman, "gearman_con_flush", "socket:%d",
+        gearman_set_error(con->gearman, "gearman_connection_flush", "socket:%d",
                           errno);
         con->gearman->last_errno= errno;
         return GEARMAN_ERRNO;
@@ -366,7 +475,7 @@ gearman_return_t gearman_con_flush(gearman_con_st *con)
       if (gret != GEARMAN_SUCCESS)
       {
         con->gearman->last_errno= errno;
-        gearman_con_close(con);
+        gearman_connection_close(con);
         return gret;
       }
 
@@ -397,10 +506,10 @@ gearman_return_t gearman_con_flush(gearman_con_st *con)
           break;
         }
 
-        gearman_set_error(con->gearman, "gearman_con_flush", "connect:%d",
+        gearman_set_error(con->gearman, "gearman_connection_flush", "connect:%d",
                           errno);
         con->gearman->last_errno= errno;
-        gearman_con_close(con);
+        gearman_connection_close(con);
         return GEARMAN_ERRNO;
       }
 
@@ -422,7 +531,7 @@ gearman_return_t gearman_con_flush(gearman_con_st *con)
           break;
         }
 
-        gret= gearman_con_set_events(con, POLLOUT);
+        gret= gearman_connection_set_events(con, POLLOUT);
         if (gret != GEARMAN_SUCCESS)
           return gret;
 
@@ -448,17 +557,17 @@ gearman_return_t gearman_con_flush(gearman_con_st *con)
         {
           if (!(con->options & GEARMAN_CON_IGNORE_LOST_CONNECTION))
           {
-            gearman_set_error(con->gearman, "gearman_con_flush",
+            gearman_set_error(con->gearman, "gearman_connection_flush",
                               "lost connection to server (EOF)");
           }
-          gearman_con_close(con);
+          gearman_connection_close(con);
           return GEARMAN_LOST_CONNECTION;
         }
         else if (write_size == -1)
         {
           if (errno == EAGAIN)
           {
-            gret= gearman_con_set_events(con, POLLOUT);
+            gret= gearman_connection_set_events(con, POLLOUT);
             if (gret != GEARMAN_SUCCESS)
               return gret;
 
@@ -477,17 +586,17 @@ gearman_return_t gearman_con_flush(gearman_con_st *con)
           {
             if (!(con->options & GEARMAN_CON_IGNORE_LOST_CONNECTION))
             {
-              gearman_set_error(con->gearman, "gearman_con_flush",
+              gearman_set_error(con->gearman, "gearman_connection_flush",
                                 "lost connection to server (%d)", errno);
             }
-            gearman_con_close(con);
+            gearman_connection_close(con);
             return GEARMAN_LOST_CONNECTION;
           }
 
-          gearman_set_error(con->gearman, "gearman_con_flush", "write:%d",
+          gearman_set_error(con->gearman, "gearman_connection_flush", "write:%d",
                             errno);
           con->gearman->last_errno= errno;
-          gearman_con_close(con);
+          gearman_connection_close(con);
           return GEARMAN_ERRNO;
         }
 
@@ -516,7 +625,7 @@ gearman_return_t gearman_con_flush(gearman_con_st *con)
       return GEARMAN_SUCCESS;
 
     default:
-      gearman_set_error(con->gearman, "gearman_con_flush", "unknown state: %u",
+      gearman_set_error(con->gearman, "gearman_connection_flush", "unknown state: %u",
                         con->state);
 
       return GEARMAN_UNKNOWN_STATE;
@@ -524,9 +633,9 @@ gearman_return_t gearman_con_flush(gearman_con_st *con)
   }
 }
 
-gearman_packet_st *gearman_con_recv(gearman_con_st *con,
-                                    gearman_packet_st *packet,
-                                    gearman_return_t *ret_ptr, bool recv_data)
+gearman_packet_st *gearman_connection_recv(gearman_connection_st *con,
+                                           gearman_packet_st *packet,
+                                           gearman_return_t *ret_ptr, bool recv_data)
 {
   size_t recv_size;
 
@@ -535,7 +644,7 @@ gearman_packet_st *gearman_con_recv(gearman_con_st *con,
   case GEARMAN_CON_RECV_STATE_NONE:
     if (con->state != GEARMAN_CON_STATE_CONNECTED)
     {
-      gearman_set_error(con->gearman, "gearman_con_recv", "not connected");
+      gearman_set_error(con->gearman, "gearman_connection_recv", "not connected");
       *ret_ptr= GEARMAN_NOT_CONNECTED;
       return NULL;
     }
@@ -563,7 +672,7 @@ gearman_packet_st *gearman_con_recv(gearman_con_st *con,
           break;
         else if (*ret_ptr != GEARMAN_IO_WAIT)
         {
-          gearman_con_close(con);
+          gearman_connection_close(con);
           return NULL;
         }
       }
@@ -573,9 +682,9 @@ gearman_packet_st *gearman_con_recv(gearman_con_st *con,
         memmove(con->recv_buffer, con->recv_buffer_ptr, con->recv_buffer_size);
       con->recv_buffer_ptr= con->recv_buffer;
 
-      recv_size= gearman_con_read(con, con->recv_buffer + con->recv_buffer_size,
-                               GEARMAN_RECV_BUFFER_SIZE - con->recv_buffer_size,
-                               ret_ptr);
+      recv_size= gearman_connection_read(con, con->recv_buffer + con->recv_buffer_size,
+                                         GEARMAN_RECV_BUFFER_SIZE - con->recv_buffer_size,
+                                         ret_ptr);
       if (*ret_ptr != GEARMAN_SUCCESS)
         return NULL;
 
@@ -601,12 +710,12 @@ gearman_packet_st *gearman_con_recv(gearman_con_st *con,
     else
     {
       packet->data= packet->gearman->workload_malloc_fn(packet->data_size,
-                              (void *)packet->gearman->workload_malloc_context);
+                                                        (void *)packet->gearman->workload_malloc_context);
     }
     if (packet->data == NULL)
     {
       *ret_ptr= GEARMAN_MEMORY_ALLOCATION_FAILURE;
-      gearman_con_close(con);
+      gearman_connection_close(con);
       return NULL;
     }
 
@@ -616,11 +725,11 @@ gearman_packet_st *gearman_con_recv(gearman_con_st *con,
   case GEARMAN_CON_RECV_STATE_READ_DATA:
     while (con->recv_data_size != 0)
     {
-      (void)gearman_con_recv_data(con,
-                                  ((uint8_t *)(packet->data)) +
-                                  con->recv_data_offset,
-                                  packet->data_size -
-                                  con->recv_data_offset, ret_ptr);
+      (void)gearman_connection_recv_data(con,
+                                         ((uint8_t *)(packet->data)) +
+                                         con->recv_data_offset,
+                                         packet->data_size -
+                                         con->recv_data_offset, ret_ptr);
       if (*ret_ptr != GEARMAN_SUCCESS)
         return NULL;
     }
@@ -629,7 +738,7 @@ gearman_packet_st *gearman_con_recv(gearman_con_st *con,
     break;
 
   default:
-    gearman_set_error(con->gearman, "gearman_con_recv", "unknown state: %u",
+    gearman_set_error(con->gearman, "gearman_connection_recv", "unknown state: %u",
                       con->recv_state);
     *ret_ptr= GEARMAN_UNKNOWN_STATE;
     return NULL;
@@ -641,8 +750,8 @@ gearman_packet_st *gearman_con_recv(gearman_con_st *con,
   return packet;
 }
 
-size_t gearman_con_recv_data(gearman_con_st *con, void *data, size_t data_size,
-                             gearman_return_t *ret_ptr)
+size_t gearman_connection_recv_data(gearman_connection_st *con, void *data, size_t data_size,
+                                    gearman_return_t *ret_ptr)
 {
   size_t recv_size= 0;
 
@@ -669,8 +778,8 @@ size_t gearman_con_recv_data(gearman_con_st *con, void *data, size_t data_size,
 
   if (data_size != recv_size)
   {
-    recv_size+= gearman_con_read(con, ((uint8_t *)data) + recv_size,
-                                 data_size - recv_size, ret_ptr);
+    recv_size+= gearman_connection_read(con, ((uint8_t *)data) + recv_size,
+                                        data_size - recv_size, ret_ptr);
     con->recv_data_offset+= recv_size;
   }
   else
@@ -689,8 +798,8 @@ size_t gearman_con_recv_data(gearman_con_st *con, void *data, size_t data_size,
   return recv_size;
 }
 
-size_t gearman_con_read(gearman_con_st *con, void *data, size_t data_size,
-                        gearman_return_t *ret_ptr)
+size_t gearman_connection_read(gearman_connection_st *con, void *data, size_t data_size,
+                               gearman_return_t *ret_ptr)
 {
   ssize_t read_size;
 
@@ -701,10 +810,10 @@ size_t gearman_con_read(gearman_con_st *con, void *data, size_t data_size,
     {
       if (!(con->options & GEARMAN_CON_IGNORE_LOST_CONNECTION))
       {
-        gearman_set_error(con->gearman, "gearman_con_read",
+        gearman_set_error(con->gearman, "gearman_connection_read",
                           "lost connection to server (EOF)");
       }
-      gearman_con_close(con);
+      gearman_connection_close(con);
       *ret_ptr= GEARMAN_LOST_CONNECTION;
       return 0;
     }
@@ -712,7 +821,7 @@ size_t gearman_con_read(gearman_con_st *con, void *data, size_t data_size,
     {
       if (errno == EAGAIN)
       {
-        *ret_ptr= gearman_con_set_events(con, POLLIN);
+        *ret_ptr= gearman_connection_set_events(con, POLLIN);
         if (*ret_ptr != GEARMAN_SUCCESS)
           return 0;
 
@@ -734,19 +843,19 @@ size_t gearman_con_read(gearman_con_st *con, void *data, size_t data_size,
       {
         if (!(con->options & GEARMAN_CON_IGNORE_LOST_CONNECTION))
         {
-          gearman_set_error(con->gearman, "gearman_con_read",
+          gearman_set_error(con->gearman, "gearman_connection_read",
                             "lost connection to server (%d)", errno);
         }
         *ret_ptr= GEARMAN_LOST_CONNECTION;
       }
       else
       {
-        gearman_set_error(con->gearman, "gearman_con_read", "read:%d", errno);
+        gearman_set_error(con->gearman, "gearman_connection_read", "read:%d", errno);
         con->gearman->last_errno= errno;
         *ret_ptr= GEARMAN_ERRNO;
       }
 
-      gearman_con_close(con);
+      gearman_connection_close(con);
       return 0;
     }
 
@@ -757,7 +866,7 @@ size_t gearman_con_read(gearman_con_st *con, void *data, size_t data_size,
   return (size_t)read_size;
 }
 
-gearman_return_t gearman_con_set_events(gearman_con_st *con, short events)
+gearman_return_t gearman_connection_set_events(gearman_connection_st *con, short events)
 {
   gearman_return_t ret;
 
@@ -769,10 +878,10 @@ gearman_return_t gearman_con_set_events(gearman_con_st *con, short events)
   if (con->gearman->event_watch_fn != NULL)
   {
     ret= con->gearman->event_watch_fn(con, con->events,
-                                     (void *)con->gearman->event_watch_context);
+                                      (void *)con->gearman->event_watch_context);
     if (ret != GEARMAN_SUCCESS)
     {
-      gearman_con_close(con);
+      gearman_connection_close(con);
       return ret;
     }
   }
@@ -780,7 +889,7 @@ gearman_return_t gearman_con_set_events(gearman_con_st *con, short events)
   return GEARMAN_SUCCESS;
 }
 
-gearman_return_t gearman_con_set_revents(gearman_con_st *con, short revents)
+gearman_return_t gearman_connection_set_revents(gearman_connection_st *con, short revents)
 {
   gearman_return_t ret;
 
@@ -790,17 +899,17 @@ gearman_return_t gearman_con_set_revents(gearman_con_st *con, short revents)
   con->revents= revents;
 
   /* Remove external POLLOUT watch if we didn't ask for it. Otherwise we spin
-     forever until another POLLIN state change. This is much more efficient
-     than removing POLLOUT on every state change since some external polling
-     mechanisms need to use a system call to change flags (like Linux epoll). */
+    forever until another POLLIN state change. This is much more efficient
+    than removing POLLOUT on every state change since some external polling
+    mechanisms need to use a system call to change flags (like Linux epoll). */
   if (revents & POLLOUT && !(con->events & POLLOUT) &&
       con->gearman->event_watch_fn != NULL)
   {
     ret= con->gearman->event_watch_fn(con, con->events,
-                                     (void *)con->gearman->event_watch_context);
+                                      (void *)con->gearman->event_watch_context);
     if (ret != GEARMAN_SUCCESS)
     {
-      gearman_con_close(con);
+      gearman_connection_close(con);
       return ret;
     }
   }
@@ -810,30 +919,30 @@ gearman_return_t gearman_con_set_revents(gearman_con_st *con, short revents)
   return GEARMAN_SUCCESS;
 }
 
-void *gearman_con_protocol_context(const gearman_con_st *con)
+void *gearman_connection_protocol_context(const gearman_connection_st *con)
 {
   return (void *)con->protocol_context;
 }
 
-void gearman_con_set_protocol_context(gearman_con_st *con, const void *context)
+void gearman_connection_set_protocol_context(gearman_connection_st *con, const void *context)
 {
   con->protocol_context= context;
 }
 
-void gearman_con_set_protocol_context_free_fn(gearman_con_st *con,
-                                gearman_con_protocol_context_free_fn *function)
+void gearman_connection_set_protocol_context_free_fn(gearman_connection_st *con,
+                                                     gearman_connection_protocol_context_free_fn *function)
 {
   con->protocol_context_free_fn= function;
 }
 
-void gearman_con_set_packet_pack_fn(gearman_con_st *con,
-                                    gearman_packet_pack_fn *function)
+void gearman_connection_set_packet_pack_fn(gearman_connection_st *con,
+                                           gearman_packet_pack_fn *function)
 {
   con->packet_pack_fn= function;
 }
 
-void gearman_con_set_packet_unpack_fn(gearman_con_st *con,
-                                      gearman_packet_unpack_fn *function)
+void gearman_connection_set_packet_unpack_fn(gearman_connection_st *con,
+                                             gearman_packet_unpack_fn *function)
 {
   con->packet_unpack_fn= function;
 }
@@ -842,7 +951,7 @@ void gearman_con_set_packet_unpack_fn(gearman_con_st *con,
  * Static Definitions
  */
 
-static gearman_return_t _con_setsockopt(gearman_con_st *con)
+static gearman_return_t _con_setsockopt(gearman_connection_st *con)
 {
   int ret;
   struct linger linger;

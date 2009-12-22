@@ -258,7 +258,7 @@ void gearman_worker_set_workload_free_fn(gearman_worker_st *worker,
 gearman_return_t gearman_worker_add_server(gearman_worker_st *worker,
                                            const char *host, in_port_t port)
 {
-  if (gearman_add_con_args(worker->gearman, NULL, host, port) == NULL)
+  if (gearman_connection_create_args(worker->gearman, NULL, host, port) == NULL)
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
 
   return GEARMAN_SUCCESS;
@@ -390,7 +390,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
               continue;
 
     case GEARMAN_WORKER_STATE_FUNCTION_SEND:
-            *ret_ptr= gearman_con_send(worker->con, &(worker->function->packet),
+            *ret_ptr= gearman_connection_send(worker->con, &(worker->function->packet),
                                        true);
             if (*ret_ptr != GEARMAN_SUCCESS)
             {
@@ -442,7 +442,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
                worker->function= worker->function->next)
           {
     case GEARMAN_WORKER_STATE_CONNECT:
-            *ret_ptr= gearman_con_send(worker->con, &(worker->function->packet),
+            *ret_ptr= gearman_connection_send(worker->con, &(worker->function->packet),
                                        true);
             if (*ret_ptr != GEARMAN_SUCCESS)
             {
@@ -466,7 +466,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
         if (worker->con->fd == -1)
           continue;
 
-        *ret_ptr= gearman_con_send(worker->con, &(worker->grab_job), true);
+        *ret_ptr= gearman_connection_send(worker->con, &(worker->grab_job), true);
         if (*ret_ptr != GEARMAN_SUCCESS)
         {
           if (*ret_ptr == GEARMAN_IO_WAIT)
@@ -490,7 +490,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
         while (1)
         {
     case GEARMAN_WORKER_STATE_GRAB_JOB_RECV:
-          (void)gearman_con_recv(worker->con, &(worker->job->assigned), ret_ptr,
+          (void)gearman_connection_recv(worker->con, &(worker->job->assigned), ret_ptr,
                                  true);
           if (*ret_ptr != GEARMAN_SUCCESS)
           {
@@ -548,7 +548,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
         if (worker->con->fd == -1)
           continue;
 
-        *ret_ptr= gearman_con_send(worker->con, &(worker->pre_sleep), true);
+        *ret_ptr= gearman_connection_send(worker->con, &(worker->pre_sleep), true);
         if (*ret_ptr != GEARMAN_SUCCESS)
         {
           if (*ret_ptr == GEARMAN_IO_WAIT)
@@ -570,7 +570,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
         if (worker->con->fd == -1)
           continue;
 
-        *ret_ptr= gearman_con_set_events(worker->con, POLLIN);
+        *ret_ptr= gearman_connection_set_events(worker->con, POLLIN);
         if (*ret_ptr != GEARMAN_SUCCESS)
           return NULL;
 

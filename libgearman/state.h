@@ -36,7 +36,7 @@ struct gearman_state_st
   uint32_t sending;
   int last_errno;
   int timeout; // Used by poll()
-  gearman_con_st *con_list;
+  gearman_connection_st *con_list;
   gearman_packet_st *packet_list;
   struct pollfd *pfds;
   gearman_log_fn *log_fn;
@@ -250,62 +250,6 @@ void gearman_set_workload_free_fn(gearman_state_st *gearman,
                                   gearman_free_fn *function,
                                   const void *context);
 
-/*
- * Connection related functions.
- */
-
-/**
- * Initialize a connection structure. Always check the return value even if
- * passing in a pre-allocated structure. Some other initialization may have
- * failed.
- *
- * @param[in] gearman Structure previously initialized with gearman_create() or
- *  gearman_clone().
- * @param[in] con Caller allocated structure, or NULL to allocate one.
- * @return On success, a pointer to the (possibly allocated) structure. On
- *  failure this will be NULL.
- */
-GEARMAN_API
-gearman_con_st *gearman_add_con(gearman_state_st *gearman, gearman_con_st *con);
-
-/**
- * Create a connection structure with the given host and port.
- *
- * @param[in] gearman Structure previously initialized with gearman_create() or
- *  gearman_clone().
- * @param[in] con Caller allocated structure, or NULL to allocate one.
- * @param[in] host Host or IP address to connect to.
- * @param[in] port Port to connect to.
- * @return On success, a pointer to the (possibly allocated) structure. On
- *  failure this will be NULL.
- */
-GEARMAN_API
-gearman_con_st *gearman_add_con_args(gearman_state_st *gearman, gearman_con_st *con,
-                                     const char *host, in_port_t port);
-
-/**
- * Clone a connection structure.
- *
- * @param[in] gearman Structure previously initialized with gearman_create() or
- *  gearman_clone().
- * @param[in] con Caller allocated structure, or NULL to allocate one.
- * @param[in] from Structure to use as a source to clone from.
- * @return On success, a pointer to the (possibly allocated) structure. On
- *  failure this will be NULL.
- */
-GEARMAN_API
-gearman_con_st *gearman_clone_con(gearman_state_st *gearman, gearman_con_st *con,
-                                  const gearman_con_st *from);
-
-/**
- * Free a connection structure.
- *
- * @param[in] con Structure previously initialized with gearman_add_con(),
- *  gearman_add_con_args(), or gearman_clone_con().
- */
-GEARMAN_API
-void gearman_con_free(gearman_con_st *con);
-
 /**
  * Free all connections for a gearman structure.
  *
@@ -343,7 +287,7 @@ gearman_return_t gearman_wait(gearman_state_st *gearman);
  * @return Connection that is ready for I/O, or NULL if there are none.
  */
 GEARMAN_API
-gearman_con_st *gearman_ready(gearman_state_st *gearman);
+gearman_connection_st *gearman_ready(gearman_state_st *gearman);
 
 /**
  * Test echo with all connections.

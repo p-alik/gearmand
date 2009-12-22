@@ -338,7 +338,7 @@ gearman_return_t gearman_packet_unpack_header(gearman_packet_st *packet)
 }
 
 size_t gearman_packet_pack(const gearman_packet_st *packet,
-                           gearman_con_st *con __attribute__ ((unused)),
+                           gearman_connection_st *con __attribute__ ((unused)),
                            void *data, size_t data_size,
                            gearman_return_t *ret_ptr)
 {
@@ -360,7 +360,7 @@ size_t gearman_packet_pack(const gearman_packet_st *packet,
 }
 
 size_t gearman_packet_unpack(gearman_packet_st *packet,
-                             gearman_con_st *con __attribute__ ((unused)),
+                             gearman_connection_st *con __attribute__ ((unused)),
                              const void *data, size_t data_size,
                              gearman_return_t *ret_ptr)
 {

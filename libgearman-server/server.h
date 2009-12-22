@@ -21,7 +21,7 @@
 #include <libgearman-server/structs.h>
 #include <libgearman-server/conf.h>
 #include <libgearman-server/conf_module.h>
-#include <libgearman-server/conn.h>
+#include <libgearman-server/connection.h>
 #include <libgearman-server/packet.h>
 #include <libgearman-server/function.h>
 #include <libgearman-server/client.h>

@@ -52,6 +52,7 @@ m4/ltversion.m4
 m4/lt~obsolete.m4
 out
 patch
+patch*
 scripts/gearmand
 scripts/gearmand-init
 scripts/gearmand.xml
@@ -61,8 +62,10 @@ support/gearmand.spec
 tests/client_test
 tests/client_test.res
 tests/cpp_test
+tests/internals_test
 tests/memcached_test
 tests/memcached_test.res
+tests/regression_test
 tests/sqlite_test
 tests/sqlite_test.res
 tests/worker_test
