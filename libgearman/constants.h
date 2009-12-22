@@ -177,17 +177,6 @@ typedef enum
 
 /**
  * @ingroup gearman_packet
- * Options for gearman_packet_st.
- */
-typedef enum
-{
-  GEARMAN_PACKET_COMPLETE,
-  GEARMAN_PACKET_FREE_DATA,
-  GEARMAN_PACKET_MAX
-} gearman_packet_options_t;
-
-/**
- * @ingroup gearman_packet
  * Magic types.
  */
 typedef enum
