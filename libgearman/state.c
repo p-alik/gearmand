@@ -27,10 +27,15 @@ gearman_state_st *gearman_state_create(gearman_state_st *gearman)
     if (gearman == NULL)
       return NULL;
 
-    gearman->options= GEARMAN_ALLOCATED;
+    gearman->options.allocated= true;
   }
   else
-    gearman->options= 0;
+  {
+    gearman->options.allocated= false;
+    gearman->options.dont_track_packets= false;
+    gearman->options.non_blocking= false;
+    gearman->options.stored_non_blocking= false;
+  }
 
   gearman->verbose= 0;
   gearman->con_count= 0;
@@ -63,7 +68,9 @@ gearman_state_st *gearman_state_clone(gearman_state_st *gearman, const gearman_s
   if (gearman == NULL)
     return NULL;
 
-  gearman->options|= (from->options & (gearman_options_t)~GEARMAN_ALLOCATED);
+  gearman->options.non_blocking= from->options.non_blocking;
+  gearman->options.dont_track_packets= from->options.dont_track_packets;
+
   gearman->timeout= from->timeout;
 
   for (con= from->con_list; con != NULL; con= con->next)
@@ -89,28 +96,46 @@ void gearman_state_free(gearman_state_st *gearman)
   if (gearman->pfds != NULL)
     free(gearman->pfds);
 
-  if (gearman->options & GEARMAN_ALLOCATED)
+  if (gearman->options.allocated)
     free(gearman);
-}
-
-gearman_options_t gearman_options(const gearman_state_st *gearman)
-{
-  return gearman->options;
-}
-
-void gearman_set_options(gearman_state_st *gearman, gearman_options_t options)
-{
-  gearman->options= options;
 }
 
 void gearman_add_options(gearman_state_st *gearman, gearman_options_t options)
 {
-  gearman->options|= options;
+  switch (options)
+  {
+  case GEARMAN_ALLOCATED:
+    assert(0);
+    break;
+  case GEARMAN_NON_BLOCKING:
+    gearman->options.non_blocking= true;
+    break;
+  case GEARMAN_DONT_TRACK_PACKETS:
+    gearman->options.dont_track_packets= true;
+    break;
+  case GEARMAN_MAX:
+  default:
+    break;
+  }
 }
 
 void gearman_remove_options(gearman_state_st *gearman, gearman_options_t options)
 {
-  gearman->options&= ~options;
+  switch (options)
+  {
+  case GEARMAN_ALLOCATED:
+    assert(0);
+    break;
+  case GEARMAN_NON_BLOCKING:
+    gearman->options.non_blocking= false;
+    break;
+  case GEARMAN_DONT_TRACK_PACKETS:
+    gearman->options.dont_track_packets= false;
+    break;
+  case GEARMAN_MAX:
+  default:
+    break;
+  }
 }
 
 int gearman_timeout(gearman_state_st *gearman)
@@ -296,9 +321,7 @@ gearman_return_t gearman_send_all(gearman_state_st *gearman,
 {
   gearman_return_t ret;
   gearman_con_st *con;
-  gearman_options_t options= gearman->options;
-
-  gearman->options|= GEARMAN_NON_BLOCKING;
+  gearman_state_push_non_blocking(gearman);
 
   if (gearman->sending == 0)
   {
@@ -309,7 +332,7 @@ gearman_return_t gearman_send_all(gearman_state_st *gearman,
       {
         if (ret != GEARMAN_IO_WAIT)
         {
-          gearman->options= options;
+          gearman_state_pop_non_blocking(gearman);
           return ret;
         }
 
@@ -328,7 +351,8 @@ gearman_return_t gearman_send_all(gearman_state_st *gearman,
       {
         if (ret != GEARMAN_IO_WAIT)
         {
-          gearman->options= options;
+          gearman_state_pop_non_blocking(gearman);
+
           return ret;
         }
 
@@ -341,21 +365,24 @@ gearman_return_t gearman_send_all(gearman_state_st *gearman,
     if (gearman->sending == 0)
       break;
 
-    if (options & GEARMAN_NON_BLOCKING)
+    if (gearman_state_is_stored_non_blocking(gearman))
     {
-      gearman->options= options;
+      gearman_state_pop_non_blocking(gearman);
+
       return GEARMAN_IO_WAIT;
     }
 
     ret= gearman_wait(gearman);
     if (ret != GEARMAN_SUCCESS)
     {
-      gearman->options= options;
+      gearman_state_pop_non_blocking(gearman);
+
       return ret;
     }
   }
 
-  gearman->options= options;
+  gearman_state_pop_non_blocking(gearman);
+
   return GEARMAN_SUCCESS;
 }
 
@@ -457,11 +484,20 @@ gearman_con_st *gearman_ready(gearman_state_st *gearman)
   return NULL;
 }
 
+/**
+  @note gearman_state_push_blocking is only used for echo (and should be fixed
+  when tricky flip/flop in IO is fixed).
+*/
+static inline void gearman_state_push_blocking(gearman_state_st *gearman)
+{
+  gearman->options.stored_non_blocking= gearman->options.non_blocking;
+  gearman->options.non_blocking= false;
+}
+
 gearman_return_t gearman_echo(gearman_state_st *gearman, const void *workload,
                               size_t workload_size)
 {
   gearman_con_st *con;
-  gearman_options_t options= gearman->options;
   gearman_packet_st packet;
   gearman_return_t ret;
 
@@ -471,7 +507,7 @@ gearman_return_t gearman_echo(gearman_state_st *gearman, const void *workload,
   if (ret != GEARMAN_SUCCESS)
     return ret;
 
-  gearman->options&= (gearman_con_options_t)~GEARMAN_NON_BLOCKING;
+  gearman_state_push_blocking(gearman);
 
   for (con= gearman->con_list; con != NULL; con= con->next)
   {
@@ -479,7 +515,8 @@ gearman_return_t gearman_echo(gearman_state_st *gearman, const void *workload,
     if (ret != GEARMAN_SUCCESS)
     {
       gearman_packet_free(&packet);
-      gearman->options= options;
+      gearman_state_pop_non_blocking(gearman);
+
       return ret;
     }
 
@@ -487,7 +524,8 @@ gearman_return_t gearman_echo(gearman_state_st *gearman, const void *workload,
     if (ret != GEARMAN_SUCCESS)
     {
       gearman_packet_free(&packet);
-      gearman->options= options;
+      gearman_state_pop_non_blocking(gearman);
+
       return ret;
     }
 
@@ -496,8 +534,9 @@ gearman_return_t gearman_echo(gearman_state_st *gearman, const void *workload,
     {
       gearman_packet_free(&(con->packet));
       gearman_packet_free(&packet);
-      gearman->options= options;
+      gearman_state_pop_non_blocking(gearman);
       gearman_set_error(gearman, "gearman_echo", "corruption during echo");
+
       return GEARMAN_ECHO_DATA_CORRUPTION;
     }
 
@@ -505,7 +544,8 @@ gearman_return_t gearman_echo(gearman_state_st *gearman, const void *workload,
   }
 
   gearman_packet_free(&packet);
-  gearman->options= options;
+  gearman_state_pop_non_blocking(gearman);
+
   return GEARMAN_SUCCESS;
 }
 
@@ -537,7 +577,7 @@ gearman_packet_st *gearman_add_packet(gearman_state_st *gearman,
   packet->data_size= 0;
   packet->gearman= gearman;
 
-  if (!(gearman->options & GEARMAN_DONT_TRACK_PACKETS))
+  if (! (gearman->options.dont_track_packets))
   {
     if (gearman->packet_list != NULL)
       gearman->packet_list->prev= packet;
@@ -600,7 +640,7 @@ void gearman_packet_free(gearman_packet_st *packet)
     }
   }
 
-  if (!(packet->gearman->options & GEARMAN_DONT_TRACK_PACKETS))
+  if (! (packet->gearman->options.dont_track_packets))
   {
     if (packet->gearman->packet_list == packet)
       packet->gearman->packet_list= packet->next;

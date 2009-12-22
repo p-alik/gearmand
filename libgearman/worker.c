@@ -577,7 +577,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
         active++;
       }
 
-      if (worker->gearman->options & GEARMAN_NON_BLOCKING)
+      if (worker->gearman->options.non_blocking)
       {
         *ret_ptr= GEARMAN_NO_JOBS;
         return NULL;

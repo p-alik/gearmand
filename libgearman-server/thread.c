@@ -116,8 +116,8 @@ gearman_server_thread_create(gearman_server_st *server,
     return NULL;
   }
 
-  gearman_set_options(thread->gearman,
-                      GEARMAN_NON_BLOCKING | GEARMAN_DONT_TRACK_PACKETS);
+  gearman_add_options(thread->gearman, GEARMAN_NON_BLOCKING);
+  gearman_add_options(thread->gearman, GEARMAN_DONT_TRACK_PACKETS);
 
   return thread;
 }

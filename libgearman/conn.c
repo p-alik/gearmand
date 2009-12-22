@@ -426,7 +426,7 @@ gearman_return_t gearman_con_flush(gearman_con_st *con)
         if (gret != GEARMAN_SUCCESS)
           return gret;
 
-        if (con->gearman->options & GEARMAN_NON_BLOCKING)
+        if (gearman_state_is_non_blocking(con->gearman))
         {
           con->state= GEARMAN_CON_STATE_CONNECTING;
           return GEARMAN_IO_WAIT;
@@ -462,7 +462,7 @@ gearman_return_t gearman_con_flush(gearman_con_st *con)
             if (gret != GEARMAN_SUCCESS)
               return gret;
 
-            if (con->gearman->options & GEARMAN_NON_BLOCKING)
+            if (gearman_state_is_non_blocking(con->gearman))
               return GEARMAN_IO_WAIT;
 
             gret= gearman_wait(con->gearman);
@@ -716,7 +716,7 @@ size_t gearman_con_read(gearman_con_st *con, void *data, size_t data_size,
         if (*ret_ptr != GEARMAN_SUCCESS)
           return 0;
 
-        if (con->gearman->options & GEARMAN_NON_BLOCKING)
+        if (gearman_state_is_non_blocking(con->gearman))
         {
           *ret_ptr= GEARMAN_IO_WAIT;
           return 0;

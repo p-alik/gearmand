@@ -611,11 +611,9 @@ void gearman_client_clear_fn(gearman_client_st *client)
 
 gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
 {
-  gearman_options_t options;
   gearman_return_t ret;
 
-  options= client->gearman->options;
-  client->gearman->options|= GEARMAN_NON_BLOCKING;
+  gearman_state_push_non_blocking(client->gearman);
 
   switch(client->state)
   {
@@ -636,7 +634,7 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
           if (ret != GEARMAN_SUCCESS && ret != GEARMAN_IO_WAIT)
           {
             client->state= GEARMAN_CLIENT_STATE_NEW;
-            client->gearman->options= options;
+            gearman_state_pop_non_blocking(client->gearman);
             return ret;
           }
         }
@@ -646,7 +644,7 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
           ret= gearman_flush_all(client->gearman);
           if (ret != GEARMAN_SUCCESS)
           {
-            client->gearman->options= options;
+            gearman_state_pop_non_blocking(client->gearman);
             return ret;
           }
         }
@@ -673,7 +671,7 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
             if (ret != GEARMAN_SUCCESS && ret != GEARMAN_IO_WAIT)
             {
               client->state= GEARMAN_CLIENT_STATE_SUBMIT;
-              client->gearman->options= options;
+              gearman_state_pop_non_blocking(client->gearman);
               return ret;
             }
           }
@@ -729,7 +727,7 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
                 break;
 
               client->state= GEARMAN_CLIENT_STATE_IDLE;
-              client->gearman->options= options;
+              gearman_state_pop_non_blocking(client->gearman);
               return ret;
             }
 
@@ -788,7 +786,7 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
           if (ret != GEARMAN_SUCCESS)
           {
             client->state= GEARMAN_CLIENT_STATE_PACKET;
-            client->gearman->options= options;
+            gearman_state_pop_non_blocking(client->gearman);
             return ret;
           }
 
@@ -810,11 +808,12 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
       if (client->new_tasks > 0 && !(client->options & GEARMAN_CLIENT_NO_NEW))
         continue;
 
-      if (options & GEARMAN_NON_BLOCKING)
+      if (gearman_state_is_stored_non_blocking(client->gearman))
       {
         /* Let the caller wait for activity. */
         client->state= GEARMAN_CLIENT_STATE_IDLE;
-        client->gearman->options= options;
+        gearman_state_pop_non_blocking(client->gearman);
+
         return GEARMAN_IO_WAIT;
       }
 
@@ -823,7 +822,7 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
       if (ret != GEARMAN_SUCCESS && ret != GEARMAN_IO_WAIT)
       {
         client->state= GEARMAN_CLIENT_STATE_IDLE;
-        client->gearman->options= options;
+        gearman_state_pop_non_blocking(client->gearman);
         return ret;
       }
     }
@@ -833,12 +832,14 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
   default:
     gearman_set_error(client->gearman, "gearman_client_run_tasks",
                       "unknown state: %u", client->state);
-    client->gearman->options= options;
+    gearman_state_pop_non_blocking(client->gearman);
+
     return GEARMAN_UNKNOWN_STATE;
   }
 
   client->state= GEARMAN_CLIENT_STATE_IDLE;
-  client->gearman->options= options;
+  gearman_state_pop_non_blocking(client->gearman);
+
   return GEARMAN_SUCCESS;
 }
 

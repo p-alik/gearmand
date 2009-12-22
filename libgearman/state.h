@@ -23,7 +23,12 @@ extern "C" {
  */
 struct gearman_state_st
 {
-  gearman_options_t options;
+  struct {
+    bool allocated:1;
+    bool dont_track_packets:1;
+    bool non_blocking:1;
+    bool stored_non_blocking:1;
+  } options;
   gearman_verbose_t verbose;
   uint32_t con_count;
   uint32_t packet_count;
@@ -118,26 +123,6 @@ static inline int gearman_state_errno(const gearman_state_st *gearman)
 }
 
 /**
- * Get options for a gearman structure.
- *
- * @param[in] gearman Structure previously initialized with gearman_create() or
- *  gearman_clone().
- * @return Options set for the gearman structure.
- */
-GEARMAN_API
-gearman_options_t gearman_options(const gearman_state_st *gearman);
-
-/**
- * Set options for a gearman structure.
- *
- * @param[in] gearman Structure previously initialized with gearman_create() or
- *  gearman_clone().
- * @param[in] options Available options for gearman structures.
- */
-GEARMAN_API
-void gearman_set_options(gearman_state_st *gearman, gearman_options_t options);
-
-/**
  * Add options for a gearman structure.
  *
  * @param[in] gearman Structure previously initialized with gearman_create() or
@@ -156,6 +141,30 @@ void gearman_add_options(gearman_state_st *gearman, gearman_options_t options);
  */
 GEARMAN_API
 void gearman_remove_options(gearman_state_st *gearman, gearman_options_t options);
+
+static inline bool gearman_state_is_non_blocking(gearman_state_st *gearman)
+{
+  return gearman->options.non_blocking;
+}
+
+static inline bool gearman_state_is_stored_non_blocking(gearman_state_st *gearman)
+{
+  return gearman->options.stored_non_blocking;
+}
+
+/**
+  @todo fix internals to not require state changes like  this.
+ */
+static inline void gearman_state_push_non_blocking(gearman_state_st *gearman)
+{
+  gearman->options.stored_non_blocking= gearman->options.non_blocking;
+  gearman->options.non_blocking= true;
+}
+
+static inline void gearman_state_pop_non_blocking(gearman_state_st *gearman)
+{
+  gearman->options.non_blocking= gearman->options.stored_non_blocking;
+}
 
 /**
  * Get current socket I/O activity timeout value.
