@@ -315,7 +315,8 @@ typedef enum
   GEARMAN_WORKER_WORK_JOB_IN_USE=  (1 << 5),
   GEARMAN_WORKER_CHANGE=           (1 << 6),
   GEARMAN_WORKER_GRAB_UNIQ=        (1 << 7),
-  GEARMAN_WORKER_TIMEOUT_RETURN=   (1 << 8)
+  GEARMAN_WORKER_TIMEOUT_RETURN=   (1 << 8),
+  GEARMAN_WORKER_MAX=   (1 << 9)
 } gearman_worker_options_t;
 
 /**
@@ -331,17 +332,6 @@ typedef enum
   GEARMAN_WORKER_STATE_GRAB_JOB_RECV,
   GEARMAN_WORKER_STATE_PRE_SLEEP
 } gearman_worker_state_t;
-
-/**
- * @ingroup gearman_worker
- * Options for gearman_worker_function_st.
- */
-typedef enum
-{
-  GEARMAN_WORKER_FUNCTION_PACKET_IN_USE= (1 << 0),
-  GEARMAN_WORKER_FUNCTION_CHANGE=        (1 << 1),
-  GEARMAN_WORKER_FUNCTION_REMOVE=        (1 << 2)
-} gearman_worker_function_options_t;
 
 /**
  * @ingroup gearman_worker

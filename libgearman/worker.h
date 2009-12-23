@@ -32,7 +32,17 @@ extern "C" {
  */
 struct gearman_worker_st
 {
-  gearman_worker_options_t options;
+  struct {
+    bool allocated:1;
+    bool non_blocking:1;
+    bool packet_init:1;
+    bool grab_job_in_use:1;
+    bool pre_sleep_in_use:1;
+    bool work_job_in_use:1;
+    bool change:1;
+    bool grab_uniq:1;
+    bool timeout_return:1;
+  } options;
   gearman_worker_state_t state;
   gearman_worker_work_state_t work_state;
   uint32_t function_count;
@@ -59,7 +69,11 @@ struct gearman_worker_st
  */
 struct gearman_worker_function_st
 {
-  gearman_worker_function_options_t options;
+  struct {
+    bool packet_in_use:1;
+    bool change:1;
+    bool remove:1;
+  } options;
   gearman_worker_function_st *next;
   gearman_worker_function_st *prev;
   char *function_name;
