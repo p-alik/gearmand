@@ -122,8 +122,7 @@ test_return_t bug372074_test(void *object __attribute__((unused)))
     if (gearman_connection_create(&gearman, &con, NULL) == NULL)
       return TEST_FAILURE;
 
-    gearman_connection_set_host(&con, NULL);
-    gearman_connection_set_port(&con, WORKER_TEST_PORT);
+    gearman_connection_set_host(&con, NULL, WORKER_TEST_PORT);
 
     args[0]= "testUnregisterFunction";
     args_size[0]= strlen("testUnregisterFunction");
@@ -170,8 +169,7 @@ test_return_t bug372074_test(void *object __attribute__((unused)))
     if (gearman_connection_create(&gearman, &con, NULL) == NULL)
       return TEST_FAILURE;
 
-    gearman_connection_set_host(&con, NULL);
-    gearman_connection_set_port(&con, WORKER_TEST_PORT);
+    gearman_connection_set_host(&con, NULL, WORKER_TEST_PORT);
 
     args[0]= "testUnregisterFunction";
     args_size[0]= strlen("testUnregisterFunction");

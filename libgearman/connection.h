@@ -141,14 +141,9 @@ gearman_return_t gearman_connection_set_option(gearman_connection_st *connection
  * Set host for a connection.
  */
 GEARMAN_API
-void gearman_connection_set_host(gearman_connection_st *connection, const char *host);
-
-/**
- * Set port for a connection.
- */
-GEARMAN_API
-void gearman_connection_set_port(gearman_connection_st *connection, in_port_t port);
-
+void gearman_connection_set_host(gearman_connection_st *connection,
+                                 const char *host,
+                                 in_port_t port);
 
 /**
  * Set connection to an already open file descriptor.
@@ -179,12 +174,6 @@ gearman_return_t gearman_connection_connect(gearman_connection_st *connection);
  */
 GEARMAN_API
 void gearman_connection_close(gearman_connection_st *connection);
-
-/**
- * Clear address info, freeing structs if needed.
- */
-GEARMAN_API
-void gearman_connection_reset_addrinfo(gearman_connection_st *connection);
 
 /**
  * Send packet to a connection.

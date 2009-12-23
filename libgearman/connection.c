@@ -13,6 +13,9 @@
 
 #include "common.h"
 
+static void gearman_connection_reset_addrinfo(gearman_connection_st *connection);
+
+
 /**
  * @addtogroup gearman_connection_static Static Connection Declarations
  * @ingroup gearman_con
@@ -102,8 +105,7 @@ gearman_connection_st *gearman_connection_create_args(gearman_state_st *gearman,
   if (connection == NULL)
     return NULL;
 
-  gearman_connection_set_host(connection, host);
-  gearman_connection_set_port(connection, port);
+  gearman_connection_set_host(connection, host, port);
 
   return connection;
 }
@@ -193,18 +195,15 @@ static gearman_return_t _con_setsockopt(gearman_connection_st *connection);
  * Public Definitions
  */
 
-void gearman_connection_set_host(gearman_connection_st *connection, const char *host)
+void gearman_connection_set_host(gearman_connection_st *connection,
+                                 const char *host,
+                                 in_port_t port)
 {
   gearman_connection_reset_addrinfo(connection);
 
   strncpy(connection->host, host == NULL ? GEARMAN_DEFAULT_TCP_HOST : host,
           NI_MAXHOST);
   connection->host[NI_MAXHOST - 1]= 0;
-}
-
-void gearman_connection_set_port(gearman_connection_st *connection, in_port_t port)
-{
-  gearman_connection_reset_addrinfo(connection);
 
   connection->port= (in_port_t)(port == 0 ? GEARMAN_DEFAULT_TCP_PORT : port);
 }
