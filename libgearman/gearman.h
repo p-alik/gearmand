@@ -32,11 +32,7 @@
 #include <libgearman/constants.h>
 
 // Everything above this line must be in the order specified.
-
-#include <libgearman/state.h>
-#include <libgearman/command.h>
-#include <libgearman/packet.h>
-#include <libgearman/connection.h>
+#include <libgearman/core.h>
 #include <libgearman/task.h>
 #include <libgearman/job.h>
 

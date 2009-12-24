@@ -25,18 +25,6 @@ extern "C" {
  */
 
 /**
- * Set the error string.
- *
- * @param[in] gearman Structure previously initialized with gearman_create() or
- *  gearman_clone().
- * @param[in] function Name of function the error happened in. 
- * @param[in] format Format and variable argument list of message.
- */
-GEARMAN_LOCAL
-void gearman_set_error(gearman_state_st *gearman, const char *function,
-                       const char *format, ...);
-
-/**
  * Log a message.
  *
  * @param[in] gearman Structure previously initialized with gearman_create() or
@@ -127,19 +115,6 @@ static inline void gearman_log_crazy(gearman_state_st *gearman, const char *form
     va_end(args);
   }
 }
-
-/**
- * Utility function used for parsing server lists.
- *
- * @param[in] servers String containing a list of servers to parse.
- * @param[in] callback Function to call for each server that is found.
- * @param[in] context Argument to pass along with callback function.
- * @return Standard Gearman return value.
- */
-GEARMAN_LOCAL
-gearman_return_t gearman_parse_servers(const char *servers,
-                                       gearman_parse_server_fn *callback,
-                                       const void *context);
 
 /** @} */
 

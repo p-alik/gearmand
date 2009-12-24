@@ -215,7 +215,7 @@ gearman_return_t gearman_wait(gearman_state_st *state)
     pfds= realloc(state->pfds, state->con_count * sizeof(struct pollfd));
     if (pfds == NULL)
     {
-      gearman_set_error(state, "gearman_wait", "realloc");
+      gearman_state_set_error(state, "gearman_wait", "realloc");
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
 
@@ -239,7 +239,7 @@ gearman_return_t gearman_wait(gearman_state_st *state)
 
   if (x == 0)
   {
-    gearman_set_error(state, "gearman_wait", "no active file descriptors");
+    gearman_state_set_error(state, "gearman_wait", "no active file descriptors");
     return GEARMAN_NO_ACTIVE_FDS;
   }
 
@@ -251,7 +251,7 @@ gearman_return_t gearman_wait(gearman_state_st *state)
       if (errno == EINTR)
         continue;
 
-      gearman_set_error(state, "gearman_wait", "poll:%d", errno);
+      gearman_state_set_error(state, "gearman_wait", "poll:%d", errno);
       state->last_errno= errno;
       return GEARMAN_ERRNO;
     }
@@ -261,7 +261,7 @@ gearman_return_t gearman_wait(gearman_state_st *state)
 
   if (ret == 0)
   {
-    gearman_set_error(state, "gearman_wait", "timeout reached");
+    gearman_state_set_error(state, "gearman_wait", "timeout reached");
     return GEARMAN_TIMEOUT;
   }
 
@@ -351,7 +351,7 @@ gearman_return_t gearman_echo(gearman_state_st *state, const void *workload,
       gearman_packet_free(&(con->packet));
       gearman_packet_free(&packet);
       gearman_state_pop_non_blocking(state);
-      gearman_set_error(state, "gearman_echo", "corruption during echo");
+      gearman_state_set_error(state, "gearman_echo", "corruption during echo");
 
       return GEARMAN_ECHO_DATA_CORRUPTION;
     }
@@ -375,7 +375,7 @@ void gearman_free_all_packets(gearman_state_st *state)
  * Local Definitions
  */
 
-void gearman_set_error(gearman_state_st *state, const char *function,
+void gearman_state_set_error(gearman_state_st *state, const char *function,
                        const char *format, ...)
 {
   size_t size;
@@ -424,62 +424,4 @@ void gearman_log(gearman_state_st *state, gearman_verbose_t verbose,
     vsnprintf(log_buffer, GEARMAN_MAX_ERROR_SIZE, format, args);
     state->log_fn(log_buffer, verbose, (void *)state->log_context);
   }
-}
-
-gearman_return_t gearman_parse_servers(const char *servers,
-                                       gearman_parse_server_fn *function,
-                                       const void *context)
-{
-  const char *ptr= servers;
-  size_t x;
-  char host[NI_MAXHOST];
-  char port[NI_MAXSERV];
-  gearman_return_t ret;
-
-  if (ptr == NULL)
-    return (*function)(NULL, 0, (void *)context);
-
-  while (1)
-  {
-    x= 0;
-
-    while (*ptr != 0 && *ptr != ',' && *ptr != ':')
-    {
-      if (x < (NI_MAXHOST - 1))
-        host[x++]= *ptr;
-
-      ptr++;
-    }
-
-    host[x]= 0;
-
-    if (*ptr == ':')
-    {
-      ptr++;
-      x= 0;
-
-      while (*ptr != 0 && *ptr != ',')
-      {
-        if (x < (NI_MAXSERV - 1))
-          port[x++]= *ptr;
-
-        ptr++;
-      }
-
-      port[x]= 0;
-    }
-    else
-      port[0]= 0;
-
-    ret= (*function)(host, (in_port_t)atoi(port), (void *)context);
-    if (ret != GEARMAN_SUCCESS)
-      return ret;
-
-    if (*ptr == 0)
-      break;
-
-    ptr++;
-  }
-
-  return GEARMAN_SUCCESS;
 }

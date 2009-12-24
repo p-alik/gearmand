@@ -770,7 +770,7 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
               }
               else if (client->con->packet.command == GEARMAN_COMMAND_ERROR)
               {
-		gearman_set_error(client->gearman, "gearman_client_run_tasks",
+		gearman_state_set_error(client->gearman, "gearman_client_run_tasks",
 				  "%s:%.*s",
 				  (char *)(client->con->packet.arg[0]),
 				  (int)(client->con->packet.arg_size[1]),
@@ -849,7 +849,7 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
     break;
 
   default:
-    gearman_set_error(client->gearman, "gearman_client_run_tasks",
+    gearman_state_set_error(client->gearman, "gearman_client_run_tasks",
                       "unknown state: %u", client->state);
     gearman_state_pop_non_blocking(client->gearman);
 
@@ -983,7 +983,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
     {
       client->new_tasks--;
       client->running_tasks--;
-      gearman_set_error(client->gearman, "_client_run_task",
+      gearman_state_set_error(client->gearman, "_client_run_task",
                         "no servers added");
       return GEARMAN_NO_SERVERS;
     }
@@ -1056,7 +1056,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
     {
       if (client->workload_fn == NULL)
       {
-        gearman_set_error(client->gearman, "_client_run_task",
+        gearman_state_set_error(client->gearman, "_client_run_task",
              "workload size > 0, but no data pointer or workload_fn was given");
         return GEARMAN_NEED_WORKLOAD_FN;
       }
@@ -1216,7 +1216,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
     break;
 
   default:
-    gearman_set_error(client->gearman, "_client_run_task", "unknown state: %u",
+    gearman_state_set_error(client->gearman, "_client_run_task", "unknown state: %u",
                       task->state);
     return GEARMAN_UNKNOWN_STATE;
   }

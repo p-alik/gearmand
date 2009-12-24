@@ -473,7 +473,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
 
       if (worker->function_list == NULL)
       {
-        gearman_set_error(worker->gearman, "gearman_worker_grab_job",
+        gearman_state_set_error(worker->gearman, "gearman_worker_grab_job",
                           "no functions have been registered");
         *ret_ptr= GEARMAN_NO_REGISTERED_FUNCTIONS;
         return NULL;
@@ -575,7 +575,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
 
           if (worker->job->assigned.command != GEARMAN_COMMAND_NOOP)
           {
-            gearman_set_error(worker->gearman, "gearman_worker_grab_job",
+            gearman_state_set_error(worker->gearman, "gearman_worker_grab_job",
                               "unexpected packet:%s",
                               gearman_command_info_list[worker->job->assigned.command].name);
             gearman_packet_free(&(worker->job->assigned));
@@ -642,7 +642,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
 
           if (worker->options.timeout_return)
           {
-            gearman_set_error(worker->gearman, "gearman_worker_grab_job",
+            gearman_state_set_error(worker->gearman, "gearman_worker_grab_job",
                               "timeout reached");
             *ret_ptr= GEARMAN_TIMEOUT;
             return NULL;
@@ -662,7 +662,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
       break;
 
     default:
-      gearman_set_error(worker->gearman, "gearman_worker_grab_job",
+      gearman_state_set_error(worker->gearman, "gearman_worker_grab_job",
                         "unknown state: %u", worker->state);
       *ret_ptr= GEARMAN_UNKNOWN_STATE;
       return NULL;
@@ -704,14 +704,14 @@ gearman_return_t gearman_worker_add_function(gearman_worker_st *worker,
 {
   if (function_name == NULL)
   {
-    gearman_set_error(worker->gearman, "gearman_worker_add_function",
+    gearman_state_set_error(worker->gearman, "gearman_worker_add_function",
                       "function name not given");
     return GEARMAN_INVALID_FUNCTION_NAME;
   }
 
   if (worker_fn == NULL)
   {
-    gearman_set_error(worker->gearman, "gearman_worker_add_function",
+    gearman_state_set_error(worker->gearman, "gearman_worker_add_function",
                       "function not given");
     return GEARMAN_INVALID_WORKER_FUNCTION;
   }
@@ -745,7 +745,7 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
     if (worker->work_function == NULL)
     {
       gearman_job_free(&(worker->work_job));
-      gearman_set_error(worker->gearman, "gearman_worker_work",
+      gearman_state_set_error(worker->gearman, "gearman_worker_work",
                         "function not found");
       return GEARMAN_INVALID_FUNCTION_NAME;
     }
@@ -753,7 +753,7 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
     if (worker->work_function->worker_fn == NULL)
     {
       gearman_job_free(&(worker->work_job));
-      gearman_set_error(worker->gearman, "gearman_worker_work",
+      gearman_state_set_error(worker->gearman, "gearman_worker_work",
                         "no callback function supplied");
       return GEARMAN_INVALID_FUNCTION_NAME;
     }
@@ -833,7 +833,7 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
    break;
 
   default:
-    gearman_set_error(worker->gearman, "gearman_worker_work",
+    gearman_state_set_error(worker->gearman, "gearman_worker_work",
                       "unknown state: %u", worker->work_state);
     return GEARMAN_UNKNOWN_STATE;
   }
@@ -941,7 +941,7 @@ static gearman_return_t _worker_function_add(gearman_worker_st *worker,
   function= malloc(sizeof(gearman_worker_function_st));
   if (function == NULL)
   {
-    gearman_set_error(worker->gearman, "_worker_function_add", "malloc");
+    gearman_state_set_error(worker->gearman, "_worker_function_add", "malloc");
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
 
@@ -952,7 +952,7 @@ static gearman_return_t _worker_function_add(gearman_worker_st *worker,
   if (function->function_name == NULL)
   {
     free(function);
-    gearman_set_error(worker->gearman, "gearman_worker_add_function", "strdup");
+    gearman_state_set_error(worker->gearman, "gearman_worker_add_function", "strdup");
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
 

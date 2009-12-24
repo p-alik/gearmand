@@ -11,33 +11,52 @@
 # All paths should be given relative to the root
 
 lib_LTLIBRARIES+= libgearman/libgearman.la
+lib_LTLIBRARIES+= libgearman/libgearmancore.la
 
 nobase_pkginclude_HEADERS += \
-			  libgearman/client.h \
-			  libgearman/command.h \
-			  libgearman/connection.h \
-			  libgearman/constants.h \
-			  libgearman/gearman.h \
-			  libgearman/job.h \
-			  libgearman/packet.h \
-			  libgearman/state.h \
-			  libgearman/task.h \
-			  libgearman/visibility.h \
-			  libgearman/worker.h
+			     libgearman/client.h \
+			     libgearman/command.h \
+			     libgearman/connection.h \
+			     libgearman/constants.h \
+			     libgearman/core.h \
+			     libgearman/gearman.h \
+			     libgearman/job.h \
+			     libgearman/packet.h \
+			     libgearman/state.h \
+			     libgearman/task.h \
+			     libgearman/visibility.h \
+			     libgearman/worker.h
 
 noinst_HEADERS+= \
-	      libgearman/common.h \
-	      libgearman/gearman_local.h
+		 libgearman/common.h \
+		 libgearman/gearman_local.h
+
+libgearman_libgearmancore_la_SOURCES= \
+				       libgearman/connection.c \
+				       libgearman/core.c \
+				       libgearman/packet.c \
+				       libgearman/state.c
+
+libgearman_libgearmancore_la_CFLAGS= \
+				     ${AM_CFLAGS} \
+				     -DBUILDING_LIBGEARMAN
+
+libgearman_libgearmancore_la_LDFLAGS= \
+				      $(AM_LDFLAGS) \
+				      -version-info \
+				      $(GEARMAN_LIBRARY_VERSION)
+
+libgearman_libgearmancore_la_LIBADD= \
+				     $(LTLIBUUID)
 
 libgearman_libgearman_la_SOURCES= \
-				libgearman/client.c \
-				libgearman/connection.c \
-				libgearman/gearman.c \
-				libgearman/job.c \
-				libgearman/packet.c \
-				libgearman/state.c \
-				libgearman/task.c \
-				libgearman/worker.c
+				  libgearman/client.c \
+				  libgearman/gearman.c \
+				  libgearman/job.c \
+				  libgearman/task.c \
+				  libgearman/worker.c
+
+libgearman_libgearman_la_DEPENDENCIES= libgearman/libgearmancore.la
 
 libgearman_libgearman_la_CFLAGS= \
 	${AM_CFLAGS} \
@@ -49,5 +68,6 @@ libgearman_libgearman_la_LDFLAGS= \
 	$(GEARMAN_LIBRARY_VERSION)
 
 libgearman_libgearman_la_LIBADD= \
+	libgearman/libgearmancore.la \
 	$(LTLIBUUID)
 

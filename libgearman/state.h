@@ -99,6 +99,18 @@ GEARMAN_API
 void gearman_state_free(gearman_state_st *gearman);
 
 /**
+ * Set the error string.
+ *
+ * @param[in] gearman Structure previously initialized with gearman_create() or
+ *  gearman_clone().
+ * @param[in] function Name of function the error happened in.
+ * @param[in] format Format and variable argument list of message.
+ */
+GEARMAN_API
+void gearman_state_set_error(gearman_state_st *gearman, const char *function,
+                       const char *format, ...);
+
+/**
  * Return an error string for last error encountered.
  *
  * @param[in] gearman Structure previously initialized with gearman_create() or
@@ -131,7 +143,7 @@ static inline int gearman_state_errno(const gearman_state_st *gearman)
  *  gearman_clone().
  * @param[in] options Available options for gearman structures.
  */
-GEARMAN_LOCAL
+GEARMAN_API
 gearman_return_t gearman_set_option(gearman_state_st *gearman, gearman_options_t option, bool value);
 
 /**
