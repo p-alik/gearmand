@@ -83,18 +83,6 @@ static gearman_return_t _client_do_status(gearman_task_st *task);
  */
 static gearman_return_t _client_do_fail(gearman_task_st *task);
 
-/**
- * Initialize a task structure.
- *
- * @param[in] client Structure previously initialized with
- *  gearman_client_create() or gearman_client_clone().
- * @param[in] task Caller allocated structure, or NULL to allocate one.
- * @return On success, a pointer to the (possibly allocated) structure. On
- *  failure this will be NULL.
- */
-static gearman_task_st *_task_create(gearman_client_st *client,
-                                     gearman_task_st *task);
-
 /** @} */
 
 /*
@@ -448,29 +436,6 @@ gearman_return_t gearman_client_echo(gearman_client_st *client,
   return gearman_echo(client->gearman, workload, workload_size);
 }
 
-void gearman_task_free(gearman_task_st *task)
-{
-  if (task->options.send_in_use)
-    gearman_packet_free(&(task->send));
-
-  if (task != &(task->client->do_task) && task->context != NULL &&
-      task->client->task_context_free_fn != NULL)
-  {
-    task->client->task_context_free_fn(task, (void *)task->context);
-  }
-
-  if (task->client->task_list == task)
-    task->client->task_list= task->next;
-  if (task->prev != NULL)
-    task->prev->next= task->next;
-  if (task->next != NULL)
-    task->next->prev= task->prev;
-  task->client->task_count--;
-
-  if (task->options.allocated)
-    free(task);
-}
-
 void gearman_client_task_free_all(gearman_client_st *client)
 {
   while (client->task_list != NULL)
@@ -578,7 +543,7 @@ gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
   const void *args[1];
   size_t args_size[1];
 
-  task= _task_create(client, task);
+  task= gearman_task_create(client, task);
   if (task == NULL)
   {
     *ret_ptr= GEARMAN_MEMORY_ALLOCATION_FAILURE;
@@ -968,7 +933,7 @@ static gearman_task_st *_client_add_task(gearman_client_st *client,
   const void *args[3];
   size_t args_size[3];
 
-  task= _task_create(client, task);
+  task= gearman_task_create(client, task);
   if (task == NULL)
   {
     *ret_ptr= GEARMAN_MEMORY_ALLOCATION_FAILURE;
@@ -1392,48 +1357,4 @@ static gearman_return_t _client_do_fail(gearman_task_st *task)
 
   client->do_ret= GEARMAN_WORK_FAIL;
   return GEARMAN_SUCCESS;
-}
-
-static gearman_task_st *_task_create(gearman_client_st *client,
-                                     gearman_task_st *task)
-{
-  if (task == NULL)
-  {
-    task= malloc(sizeof(gearman_task_st));
-    if (task == NULL)
-    {
-      gearman_set_error(client->gearman, "_task_create", "malloc");
-      return NULL;
-    }
-
-    task->options.allocated= true;
-  }
-  else
-  {
-    task->options.allocated= false;
-  }
-
-  task->options.send_in_use= false;
-
-  task->state= 0;
-  task->is_known= false;
-  task->is_running= false;
-  task->created_id= 0;
-  task->numerator= 0;
-  task->denominator= 0;
-  task->client= client;
-
-  if (client->task_list != NULL)
-    client->task_list->prev= task;
-  task->next= client->task_list;
-  task->prev= NULL;
-  client->task_list= task;
-  client->task_count++;
-
-  task->context= NULL;
-  task->con= NULL;
-  task->recv= NULL;
-  task->job_handle[0]= 0;
-
-  return task;
 }

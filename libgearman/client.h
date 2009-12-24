@@ -442,15 +442,6 @@ gearman_return_t gearman_client_echo(gearman_client_st *client,
  */
 
 /**
- * Free a task structure.
- *
- * @param[in] task Structure previously initialized with one of the
- *  gearman_client_add_task() functions.
- */
-GEARMAN_API
-void gearman_task_free(gearman_task_st *task);
-
-/**
  * Free all tasks for a gearman structure.
  *
  * @param[in] client Structure previously initialized with

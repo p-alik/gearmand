@@ -54,6 +54,29 @@ struct gearman_task_st
 };
 
 /**
+ * Initialize a task structure.
+ *
+ * @param[in] client Structure previously initialized with
+ *  gearman_client_create() or gearman_client_clone().
+ * @param[in] task Caller allocated structure, or NULL to allocate one.
+ * @return On success, a pointer to the (possibly allocated) structure. On
+ *  failure this will be NULL.
+ */
+GEARMAN_LOCAL
+gearman_task_st *gearman_task_create(gearman_client_st *client,
+                                     gearman_task_st *task);
+
+/**
+ * Free a task structure.
+ *
+ * @param[in] task Structure previously initialized with one of the
+ *  gearman_client_add_task() functions.
+ */
+GEARMAN_API
+void gearman_task_free(gearman_task_st *task);
+
+
+/**
  * Get context for a task.
  */
 GEARMAN_API
