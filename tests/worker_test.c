@@ -120,185 +120,187 @@ test_return_t option_test(void *object __attribute__((unused)))
     We take the basic options, and push
     them back in. See if we change anything.
   */
- gearman_worker_set_options(gear, default_options);
- { // Initial Allocated, no changes
-   test_truth(gear->options.allocated);
-   test_false(gear->options.non_blocking);
-   test_truth(gear->options.packet_init);
-   test_false(gear->options.grab_job_in_use);
-   test_false(gear->options.pre_sleep_in_use);
-   test_false(gear->options.work_job_in_use);
-   test_false(gear->options.change);
-   test_false(gear->options.grab_uniq);
-   test_false(gear->options.timeout_return);
- }
+  gearman_worker_set_options(gear, default_options);
+  { // Initial Allocated, no changes
+    test_truth(gear->options.allocated);
+    test_false(gear->options.non_blocking);
+    test_truth(gear->options.packet_init);
+    test_false(gear->options.grab_job_in_use);
+    test_false(gear->options.pre_sleep_in_use);
+    test_false(gear->options.work_job_in_use);
+    test_false(gear->options.change);
+    test_false(gear->options.grab_uniq);
+    test_false(gear->options.timeout_return);
+  }
 
   /*
     We will trying to modify non-mutable options (which should not be allowed)
   */
- {
-   gearman_worker_remove_options(gear, GEARMAN_WORKER_ALLOCATED);
-   { // Initial Allocated, no changes
-     test_truth(gear->options.allocated);
-     test_false(gear->options.non_blocking);
-     test_truth(gear->options.packet_init);
-     test_false(gear->options.grab_job_in_use);
-     test_false(gear->options.pre_sleep_in_use);
-     test_false(gear->options.work_job_in_use);
-     test_false(gear->options.change);
-     test_false(gear->options.grab_uniq);
-     test_false(gear->options.timeout_return);
-   }
-   gearman_worker_remove_options(gear, GEARMAN_WORKER_PACKET_INIT);
-   { // Initial Allocated, no changes
-     test_truth(gear->options.allocated);
-     test_false(gear->options.non_blocking);
-     test_truth(gear->options.packet_init);
-     test_false(gear->options.grab_job_in_use);
-     test_false(gear->options.pre_sleep_in_use);
-     test_false(gear->options.work_job_in_use);
-     test_false(gear->options.change);
-     test_false(gear->options.grab_uniq);
-     test_false(gear->options.timeout_return);
-   }
- }
+  {
+    gearman_worker_remove_options(gear, GEARMAN_WORKER_ALLOCATED);
+    { // Initial Allocated, no changes
+      test_truth(gear->options.allocated);
+      test_false(gear->options.non_blocking);
+      test_truth(gear->options.packet_init);
+      test_false(gear->options.grab_job_in_use);
+      test_false(gear->options.pre_sleep_in_use);
+      test_false(gear->options.work_job_in_use);
+      test_false(gear->options.change);
+      test_false(gear->options.grab_uniq);
+      test_false(gear->options.timeout_return);
+    }
+    gearman_worker_remove_options(gear, GEARMAN_WORKER_PACKET_INIT);
+    { // Initial Allocated, no changes
+      test_truth(gear->options.allocated);
+      test_false(gear->options.non_blocking);
+      test_truth(gear->options.packet_init);
+      test_false(gear->options.grab_job_in_use);
+      test_false(gear->options.pre_sleep_in_use);
+      test_false(gear->options.work_job_in_use);
+      test_false(gear->options.change);
+      test_false(gear->options.grab_uniq);
+      test_false(gear->options.timeout_return);
+    }
+  }
 
- /*
-   We will test modifying GEARMAN_WORKER_NON_BLOCKING in several manners.
- */
- {
-   gearman_worker_remove_options(gear, GEARMAN_WORKER_NON_BLOCKING);
-   { // GEARMAN_WORKER_NON_BLOCKING set to default, by default.
-     test_truth(gear->options.allocated);
-     test_false(gear->options.non_blocking);
-     test_truth(gear->options.packet_init);
-     test_false(gear->options.grab_job_in_use);
-     test_false(gear->options.pre_sleep_in_use);
-     test_false(gear->options.work_job_in_use);
-     test_false(gear->options.change);
-     test_false(gear->options.grab_uniq);
-     test_false(gear->options.timeout_return);
-   }
-   gearman_worker_add_options(gear, GEARMAN_WORKER_NON_BLOCKING);
-   { // GEARMAN_WORKER_NON_BLOCKING set to default, by default.
-     test_truth(gear->options.allocated);
-     test_truth(gear->options.non_blocking);
-     test_truth(gear->options.packet_init);
-     test_false(gear->options.grab_job_in_use);
-     test_false(gear->options.pre_sleep_in_use);
-     test_false(gear->options.work_job_in_use);
-     test_false(gear->options.change);
-     test_false(gear->options.grab_uniq);
-     test_false(gear->options.timeout_return);
-   }
-   gearman_worker_set_options(gear, GEARMAN_WORKER_NON_BLOCKING);
-   { // GEARMAN_WORKER_NON_BLOCKING set to default, by default.
-     test_truth(gear->options.allocated);
-     test_truth(gear->options.non_blocking);
-     test_truth(gear->options.packet_init);
-     test_false(gear->options.grab_job_in_use);
-     test_false(gear->options.pre_sleep_in_use);
-     test_false(gear->options.work_job_in_use);
-     test_false(gear->options.change);
-     test_false(gear->options.grab_uniq);
-     test_false(gear->options.timeout_return);
-   }
-   gearman_worker_set_options(gear, GEARMAN_WORKER_GRAB_UNIQ);
-   { // Everything is now set to false except GEARMAN_WORKER_GRAB_UNIQ, and non-mutable options
-     test_truth(gear->options.allocated);
-     test_false(gear->options.non_blocking);
-     test_truth(gear->options.packet_init);
-     test_false(gear->options.grab_job_in_use);
-     test_false(gear->options.pre_sleep_in_use);
-     test_false(gear->options.work_job_in_use);
-     test_false(gear->options.change);
-     test_truth(gear->options.grab_uniq);
-     test_false(gear->options.timeout_return);
-   }
-   /*
-     Reset options to default. Then add an option, and then add more options. Make sure
-     the options are all additive.
-   */
-   {
-     gearman_worker_set_options(gear, default_options);
-     { // See if we return to defaults
-       test_truth(gear->options.allocated);
-       test_false(gear->options.non_blocking);
-       test_truth(gear->options.packet_init);
-       test_false(gear->options.grab_job_in_use);
-       test_false(gear->options.pre_sleep_in_use);
-       test_false(gear->options.work_job_in_use);
-       test_false(gear->options.change);
-       test_false(gear->options.grab_uniq);
-       test_false(gear->options.timeout_return);
-     }
-     gearman_worker_add_options(gear, GEARMAN_WORKER_TIMEOUT_RETURN);
-     { // All defaults, except timeout_return
-       test_truth(gear->options.allocated);
-       test_false(gear->options.non_blocking);
-       test_truth(gear->options.packet_init);
-       test_false(gear->options.grab_job_in_use);
-       test_false(gear->options.pre_sleep_in_use);
-       test_false(gear->options.work_job_in_use);
-       test_false(gear->options.change);
-       test_false(gear->options.grab_uniq);
-       test_truth(gear->options.timeout_return);
-     }
-     gearman_worker_add_options(gear, GEARMAN_WORKER_NON_BLOCKING|GEARMAN_WORKER_GRAB_UNIQ);
-     { // GEARMAN_WORKER_NON_BLOCKING set to default, by default.
-       test_truth(gear->options.allocated);
-       test_truth(gear->options.non_blocking);
-       test_truth(gear->options.packet_init);
-       test_false(gear->options.grab_job_in_use);
-       test_false(gear->options.pre_sleep_in_use);
-       test_false(gear->options.work_job_in_use);
-       test_false(gear->options.change);
-       test_truth(gear->options.grab_uniq);
-       test_truth(gear->options.timeout_return);
-     }
-   }
-   /*
-     Add an option, and then replace with that option plus a new option.
-   */
-   {
-     gearman_worker_set_options(gear, default_options);
-     { // See if we return to defaults
-       test_truth(gear->options.allocated);
-       test_false(gear->options.non_blocking);
-       test_truth(gear->options.packet_init);
-       test_false(gear->options.grab_job_in_use);
-       test_false(gear->options.pre_sleep_in_use);
-       test_false(gear->options.work_job_in_use);
-       test_false(gear->options.change);
-       test_false(gear->options.grab_uniq);
-       test_false(gear->options.timeout_return);
-     }
-     gearman_worker_add_options(gear, GEARMAN_WORKER_TIMEOUT_RETURN);
-     { // All defaults, except timeout_return
-       test_truth(gear->options.allocated);
-       test_false(gear->options.non_blocking);
-       test_truth(gear->options.packet_init);
-       test_false(gear->options.grab_job_in_use);
-       test_false(gear->options.pre_sleep_in_use);
-       test_false(gear->options.work_job_in_use);
-       test_false(gear->options.change);
-       test_false(gear->options.grab_uniq);
-       test_truth(gear->options.timeout_return);
-     }
-     gearman_worker_add_options(gear, GEARMAN_WORKER_TIMEOUT_RETURN|GEARMAN_WORKER_GRAB_UNIQ);
-     { // GEARMAN_WORKER_NON_BLOCKING set to default, by default.
-       test_truth(gear->options.allocated);
-       test_false(gear->options.non_blocking);
-       test_truth(gear->options.packet_init);
-       test_false(gear->options.grab_job_in_use);
-       test_false(gear->options.pre_sleep_in_use);
-       test_false(gear->options.work_job_in_use);
-       test_false(gear->options.change);
-       test_truth(gear->options.grab_uniq);
-       test_truth(gear->options.timeout_return);
-     }
-   }
- }
+  /*
+    We will test modifying GEARMAN_WORKER_NON_BLOCKING in several manners.
+  */
+  {
+    gearman_worker_remove_options(gear, GEARMAN_WORKER_NON_BLOCKING);
+    { // GEARMAN_WORKER_NON_BLOCKING set to default, by default.
+      test_truth(gear->options.allocated);
+      test_false(gear->options.non_blocking);
+      test_truth(gear->options.packet_init);
+      test_false(gear->options.grab_job_in_use);
+      test_false(gear->options.pre_sleep_in_use);
+      test_false(gear->options.work_job_in_use);
+      test_false(gear->options.change);
+      test_false(gear->options.grab_uniq);
+      test_false(gear->options.timeout_return);
+    }
+    gearman_worker_add_options(gear, GEARMAN_WORKER_NON_BLOCKING);
+    { // GEARMAN_WORKER_NON_BLOCKING set to default, by default.
+      test_truth(gear->options.allocated);
+      test_truth(gear->options.non_blocking);
+      test_truth(gear->options.packet_init);
+      test_false(gear->options.grab_job_in_use);
+      test_false(gear->options.pre_sleep_in_use);
+      test_false(gear->options.work_job_in_use);
+      test_false(gear->options.change);
+      test_false(gear->options.grab_uniq);
+      test_false(gear->options.timeout_return);
+    }
+    gearman_worker_set_options(gear, GEARMAN_WORKER_NON_BLOCKING);
+    { // GEARMAN_WORKER_NON_BLOCKING set to default, by default.
+      test_truth(gear->options.allocated);
+      test_truth(gear->options.non_blocking);
+      test_truth(gear->options.packet_init);
+      test_false(gear->options.grab_job_in_use);
+      test_false(gear->options.pre_sleep_in_use);
+      test_false(gear->options.work_job_in_use);
+      test_false(gear->options.change);
+      test_false(gear->options.grab_uniq);
+      test_false(gear->options.timeout_return);
+    }
+    gearman_worker_set_options(gear, GEARMAN_WORKER_GRAB_UNIQ);
+    { // Everything is now set to false except GEARMAN_WORKER_GRAB_UNIQ, and non-mutable options
+      test_truth(gear->options.allocated);
+      test_false(gear->options.non_blocking);
+      test_truth(gear->options.packet_init);
+      test_false(gear->options.grab_job_in_use);
+      test_false(gear->options.pre_sleep_in_use);
+      test_false(gear->options.work_job_in_use);
+      test_false(gear->options.change);
+      test_truth(gear->options.grab_uniq);
+      test_false(gear->options.timeout_return);
+    }
+    /*
+      Reset options to default. Then add an option, and then add more options. Make sure
+      the options are all additive.
+    */
+    {
+      gearman_worker_set_options(gear, default_options);
+      { // See if we return to defaults
+        test_truth(gear->options.allocated);
+        test_false(gear->options.non_blocking);
+        test_truth(gear->options.packet_init);
+        test_false(gear->options.grab_job_in_use);
+        test_false(gear->options.pre_sleep_in_use);
+        test_false(gear->options.work_job_in_use);
+        test_false(gear->options.change);
+        test_false(gear->options.grab_uniq);
+        test_false(gear->options.timeout_return);
+      }
+      gearman_worker_add_options(gear, GEARMAN_WORKER_TIMEOUT_RETURN);
+      { // All defaults, except timeout_return
+        test_truth(gear->options.allocated);
+        test_false(gear->options.non_blocking);
+        test_truth(gear->options.packet_init);
+        test_false(gear->options.grab_job_in_use);
+        test_false(gear->options.pre_sleep_in_use);
+        test_false(gear->options.work_job_in_use);
+        test_false(gear->options.change);
+        test_false(gear->options.grab_uniq);
+        test_truth(gear->options.timeout_return);
+      }
+      gearman_worker_add_options(gear, GEARMAN_WORKER_NON_BLOCKING|GEARMAN_WORKER_GRAB_UNIQ);
+      { // GEARMAN_WORKER_NON_BLOCKING set to default, by default.
+        test_truth(gear->options.allocated);
+        test_truth(gear->options.non_blocking);
+        test_truth(gear->options.packet_init);
+        test_false(gear->options.grab_job_in_use);
+        test_false(gear->options.pre_sleep_in_use);
+        test_false(gear->options.work_job_in_use);
+        test_false(gear->options.change);
+        test_truth(gear->options.grab_uniq);
+        test_truth(gear->options.timeout_return);
+      }
+    }
+    /*
+      Add an option, and then replace with that option plus a new option.
+    */
+    {
+      gearman_worker_set_options(gear, default_options);
+      { // See if we return to defaults
+        test_truth(gear->options.allocated);
+        test_false(gear->options.non_blocking);
+        test_truth(gear->options.packet_init);
+        test_false(gear->options.grab_job_in_use);
+        test_false(gear->options.pre_sleep_in_use);
+        test_false(gear->options.work_job_in_use);
+        test_false(gear->options.change);
+        test_false(gear->options.grab_uniq);
+        test_false(gear->options.timeout_return);
+      }
+      gearman_worker_add_options(gear, GEARMAN_WORKER_TIMEOUT_RETURN);
+      { // All defaults, except timeout_return
+        test_truth(gear->options.allocated);
+        test_false(gear->options.non_blocking);
+        test_truth(gear->options.packet_init);
+        test_false(gear->options.grab_job_in_use);
+        test_false(gear->options.pre_sleep_in_use);
+        test_false(gear->options.work_job_in_use);
+        test_false(gear->options.change);
+        test_false(gear->options.grab_uniq);
+        test_truth(gear->options.timeout_return);
+      }
+      gearman_worker_add_options(gear, GEARMAN_WORKER_TIMEOUT_RETURN|GEARMAN_WORKER_GRAB_UNIQ);
+      { // GEARMAN_WORKER_NON_BLOCKING set to default, by default.
+        test_truth(gear->options.allocated);
+        test_false(gear->options.non_blocking);
+        test_truth(gear->options.packet_init);
+        test_false(gear->options.grab_job_in_use);
+        test_false(gear->options.pre_sleep_in_use);
+        test_false(gear->options.work_job_in_use);
+        test_false(gear->options.change);
+        test_truth(gear->options.grab_uniq);
+        test_truth(gear->options.timeout_return);
+      }
+    }
+  }
+
+  gearman_worker_free(gear);
 
   return TEST_SUCCESS;
 }

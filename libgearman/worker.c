@@ -89,7 +89,6 @@ gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker,
     return worker;
 
   worker->options.non_blocking= from->options.non_blocking;
-  worker->options.packet_init= from->options.packet_init;
   worker->options.grab_job_in_use= from->options.grab_job_in_use;
   worker->options.pre_sleep_in_use= from->options.pre_sleep_in_use;
   worker->options.work_job_in_use= from->options.work_job_in_use;

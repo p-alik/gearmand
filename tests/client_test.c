@@ -79,14 +79,187 @@ test_return_t clone_test(void *object)
   gearman_client_st *from= (gearman_client_st *)object;
   gearman_client_st *client;
 
-  if (gearman_client_clone(NULL, NULL) != NULL)
-    return TEST_FAILURE;
+  client= gearman_client_clone(NULL, NULL);
+
+  test_truth(client);
+  test_truth(client->options.allocated);
+
+  gearman_client_free(client);
 
   client= gearman_client_clone(NULL, from);
   if (client == NULL)
     return TEST_FAILURE;
 
   gearman_client_free(client);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t option_test(void *object __attribute__((unused)))
+{
+  gearman_client_st *gear;
+  gearman_client_options_t default_options;
+
+  gear= gearman_client_create(NULL);
+  test_truth(gear);
+  { // Initial Allocated, no changes
+    test_truth(gear->options.allocated);
+    test_false(gear->options.non_blocking);
+    test_false(gear->options.task_in_use);
+    test_false(gear->options.unbuffered_result);
+    test_false(gear->options.no_new);
+    test_false(gear->options.free_tasks);
+  }
+
+  /* Set up for default options */
+  default_options= gearman_client_options(gear);
+
+  /*
+    We take the basic options, and push
+    them back in. See if we change anything.
+  */
+  gearman_client_set_options(gear, default_options);
+  { // Initial Allocated, no changes
+    test_truth(gear->options.allocated);
+    test_false(gear->options.non_blocking);
+    test_false(gear->options.task_in_use);
+    test_false(gear->options.unbuffered_result);
+    test_false(gear->options.no_new);
+    test_false(gear->options.free_tasks);
+  }
+
+  /*
+    We will trying to modify non-mutable options (which should not be allowed)
+  */
+  {
+    gearman_client_remove_options(gear, GEARMAN_CLIENT_ALLOCATED);
+    { // Initial Allocated, no changes
+      test_truth(gear->options.allocated);
+      test_false(gear->options.non_blocking);
+      test_false(gear->options.task_in_use);
+      test_false(gear->options.unbuffered_result);
+      test_false(gear->options.no_new);
+      test_false(gear->options.free_tasks);
+    }
+    gearman_client_remove_options(gear, GEARMAN_CLIENT_NO_NEW);
+    { // Initial Allocated, no changes
+      test_truth(gear->options.allocated);
+      test_false(gear->options.non_blocking);
+      test_false(gear->options.task_in_use);
+      test_false(gear->options.unbuffered_result);
+      test_false(gear->options.no_new);
+      test_false(gear->options.free_tasks);
+    }
+  }
+
+  /*
+    We will test modifying GEARMAN_CLIENT_NON_BLOCKING in several manners.
+  */
+  {
+    gearman_client_remove_options(gear, GEARMAN_CLIENT_NON_BLOCKING);
+    { // GEARMAN_CLIENT_NON_BLOCKING set to default, by default.
+      test_truth(gear->options.allocated);
+      test_false(gear->options.non_blocking);
+      test_false(gear->options.task_in_use);
+      test_false(gear->options.unbuffered_result);
+      test_false(gear->options.no_new);
+      test_false(gear->options.free_tasks);
+    }
+    gearman_client_add_options(gear, GEARMAN_CLIENT_NON_BLOCKING);
+    { // GEARMAN_CLIENT_NON_BLOCKING set to default, by default.
+      test_truth(gear->options.allocated);
+      test_truth(gear->options.non_blocking);
+      test_false(gear->options.task_in_use);
+      test_false(gear->options.unbuffered_result);
+      test_false(gear->options.no_new);
+      test_false(gear->options.free_tasks);
+    }
+    gearman_client_set_options(gear, GEARMAN_CLIENT_NON_BLOCKING);
+    { // GEARMAN_CLIENT_NON_BLOCKING set to default, by default.
+      test_truth(gear->options.allocated);
+      test_truth(gear->options.non_blocking);
+      test_false(gear->options.task_in_use);
+      test_false(gear->options.unbuffered_result);
+      test_false(gear->options.no_new);
+      test_false(gear->options.free_tasks);
+    }
+    gearman_client_set_options(gear, GEARMAN_CLIENT_UNBUFFERED_RESULT);
+    { // Everything is now set to false except GEARMAN_CLIENT_UNBUFFERED_RESULT, and non-mutable options
+      test_truth(gear->options.allocated);
+      test_false(gear->options.non_blocking);
+      test_false(gear->options.task_in_use);
+      test_truth(gear->options.unbuffered_result);
+      test_false(gear->options.no_new);
+      test_false(gear->options.free_tasks);
+    }
+    /*
+      Reset options to default. Then add an option, and then add more options. Make sure
+      the options are all additive.
+    */
+    {
+      gearman_client_set_options(gear, default_options);
+      { // See if we return to defaults
+        test_truth(gear->options.allocated);
+        test_false(gear->options.non_blocking);
+        test_false(gear->options.task_in_use);
+        test_false(gear->options.unbuffered_result);
+        test_false(gear->options.no_new);
+        test_false(gear->options.free_tasks);
+      }
+      gearman_client_add_options(gear, GEARMAN_CLIENT_FREE_TASKS);
+      { // All defaults, except timeout_return
+        test_truth(gear->options.allocated);
+        test_false(gear->options.non_blocking);
+        test_false(gear->options.task_in_use);
+        test_false(gear->options.unbuffered_result);
+        test_false(gear->options.no_new);
+        test_truth(gear->options.free_tasks);
+      }
+      gearman_client_add_options(gear, GEARMAN_CLIENT_NON_BLOCKING|GEARMAN_CLIENT_UNBUFFERED_RESULT);
+      { // GEARMAN_CLIENT_NON_BLOCKING set to default, by default.
+        test_truth(gear->options.allocated);
+        test_truth(gear->options.non_blocking);
+        test_false(gear->options.task_in_use);
+        test_truth(gear->options.unbuffered_result);
+        test_false(gear->options.no_new);
+        test_truth(gear->options.free_tasks);
+      }
+    }
+    /*
+      Add an option, and then replace with that option plus a new option.
+    */
+    {
+      gearman_client_set_options(gear, default_options);
+      { // See if we return to defaults
+        test_truth(gear->options.allocated);
+        test_false(gear->options.non_blocking);
+        test_false(gear->options.task_in_use);
+        test_false(gear->options.unbuffered_result);
+        test_false(gear->options.no_new);
+        test_false(gear->options.free_tasks);
+      }
+      gearman_client_add_options(gear, GEARMAN_CLIENT_FREE_TASKS);
+      { // All defaults, except timeout_return
+        test_truth(gear->options.allocated);
+        test_false(gear->options.non_blocking);
+        test_false(gear->options.task_in_use);
+        test_false(gear->options.unbuffered_result);
+        test_false(gear->options.no_new);
+        test_truth(gear->options.free_tasks);
+      }
+      gearman_client_add_options(gear, GEARMAN_CLIENT_FREE_TASKS|GEARMAN_CLIENT_UNBUFFERED_RESULT);
+      { // GEARMAN_CLIENT_NON_BLOCKING set to default, by default.
+        test_truth(gear->options.allocated);
+        test_false(gear->options.non_blocking);
+        test_false(gear->options.task_in_use);
+        test_truth(gear->options.unbuffered_result);
+        test_false(gear->options.no_new);
+        test_truth(gear->options.free_tasks);
+      }
+    }
+  }
+
+  gearman_client_free(gear);
 
   return TEST_SUCCESS;
 }
@@ -310,7 +483,7 @@ static test_return_t pre_logging(void *object)
 
 static test_return_t post_logging(void *object __attribute__((unused)))
 {
-  assert(global_counter);
+  test_truth(global_counter);
 
   return TEST_SUCCESS;
 }
@@ -404,6 +577,7 @@ test_st tests[] ={
   {"allocation", 0, allocation_test },
   {"clone_test", 0, clone_test },
   {"echo", 0, echo_test },
+  {"options", 0, option_test },
   {"submit_job", 0, submit_job_test },
   {"submit_null_job", 0, submit_null_job_test },
   {"submit_fail_job", 0, submit_fail_job_test },

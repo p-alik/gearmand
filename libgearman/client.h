@@ -34,7 +34,14 @@ extern "C" {
  */
 struct gearman_client_st
 {
-  gearman_client_options_t options;
+  struct {
+    bool allocated:1;
+    bool non_blocking:1;
+    bool task_in_use:1;
+    bool unbuffered_result:1;
+    bool no_new:1;
+    bool free_tasks:1;
+  } options;
   gearman_client_state_t state;
   gearman_return_t do_ret;
   uint32_t new_tasks;
