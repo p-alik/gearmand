@@ -33,7 +33,10 @@ extern "C" {
  */
 struct gearman_task_st
 {
-  gearman_task_options_t options;
+  struct {
+    bool allocated:1;
+    bool send_in_use:1;
+  } options;
   gearman_task_state_t state;
   bool is_known;
   bool is_running;

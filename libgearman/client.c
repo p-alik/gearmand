@@ -450,7 +450,7 @@ gearman_return_t gearman_client_echo(gearman_client_st *client,
 
 void gearman_task_free(gearman_task_st *task)
 {
-  if (task->options & GEARMAN_TASK_SEND_IN_USE)
+  if (task->options.send_in_use)
     gearman_packet_free(&(task->send));
 
   if (task != &(task->client->do_task) && task->context != NULL &&
@@ -467,7 +467,7 @@ void gearman_task_free(gearman_task_st *task)
     task->next->prev= task->prev;
   task->client->task_count--;
 
-  if (task->options & GEARMAN_TASK_ALLOCATED)
+  if (task->options.allocated)
     free(task);
 }
 
@@ -598,7 +598,7 @@ gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
   {
     client->new_tasks++;
     client->running_tasks++;
-    task->options|= GEARMAN_TASK_SEND_IN_USE;
+    task->options.send_in_use= true;
   }
 
   return task;
@@ -998,7 +998,7 @@ static gearman_task_st *_client_add_task(gearman_client_st *client,
   {
     client->new_tasks++;
     client->running_tasks++;
-    task->options|= GEARMAN_TASK_SEND_IN_USE;
+    task->options.send_in_use= true;
   }
 
   return task;
@@ -1406,10 +1406,14 @@ static gearman_task_st *_task_create(gearman_client_st *client,
       return NULL;
     }
 
-    task->options= GEARMAN_TASK_ALLOCATED;
+    task->options.allocated= true;
   }
   else
-    task->options= 0;
+  {
+    task->options.allocated= false;
+  }
+
+  task->options.send_in_use= false;
 
   task->state= 0;
   task->is_known= false;

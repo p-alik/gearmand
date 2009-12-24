@@ -235,16 +235,6 @@ typedef enum
 
 /**
  * @ingroup gearman_task
- * Options for gearman_task_st.
- */
-typedef enum
-{
-  GEARMAN_TASK_ALLOCATED=   (1 << 0),
-  GEARMAN_TASK_SEND_IN_USE= (1 << 1)
-} gearman_task_options_t;
-
-/**
- * @ingroup gearman_task
  * States for gearman_task_st.
  */
 typedef enum
