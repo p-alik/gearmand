@@ -34,6 +34,7 @@ typedef struct
 
 /* Prototypes */
 test_return queue_add(void *object);
+test_return queue_add_no_unique(void *object);
 test_return queue_worker(void *object);
 
 void *create(void *object);
@@ -114,6 +115,37 @@ test_return queue_worker(void *object)
   return TEST_SUCCESS;
 }
 
+test_return queue_add_no_unique(void *object)
+{
+  worker_test_st *test= (worker_test_st *)object;
+  gearman_client_st client;
+  char job_handle[GEARMAN_JOB_HANDLE_SIZE];
+  uint8_t *value= (uint8_t *)"background_test";
+  size_t value_length= strlen("background_test");
+
+  test->run_worker= false;
+
+  if (gearman_client_create(&client) == NULL)
+    return TEST_FAILURE;
+
+  if (gearman_client_add_server(&client, NULL,
+                                WORKER_TEST_PORT) != GEARMAN_SUCCESS)
+  {
+    return TEST_FAILURE;
+  }
+
+  if (gearman_client_do_background(&client, "queue_test", "", value,
+                                   value_length, job_handle) != GEARMAN_LOST_CONNECTION)
+  {
+    return TEST_FAILURE;
+  }
+
+  gearman_client_free(&client);
+
+  test->run_worker= true;
+  return TEST_SUCCESS;
+}
+
 
 test_return flush(void)
 {
@@ -167,6 +199,7 @@ void world_destroy(void *object)
 test_st tests[] ={
   {"add", 0, queue_add },
   {"worker", 0, queue_worker },
+  {"add_no_unique", 0, queue_add_no_unique },
   {0, 0, 0}
 };
 

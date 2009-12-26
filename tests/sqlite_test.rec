@@ -5,6 +5,7 @@ sqlite queue
 
 Testing add                                               [ ok     ]
 Testing worker                                            [ ok     ]
+Testing add_no_unique                                     [ ok     ]
 
 ==========================================================================
 
