@@ -156,7 +156,7 @@ static inline void gearman_add_options(gearman_state_st *gearman, gearman_option
 
 static inline void gearman_remove_options(gearman_state_st *gearman, gearman_options_t options)
 {
-  (void)gearman_set_option(gearman, options, true);
+  (void)gearman_set_option(gearman, options, false);
 }
 
 static inline bool gearman_state_is_non_blocking(gearman_state_st *gearman)
