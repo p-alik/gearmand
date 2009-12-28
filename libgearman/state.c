@@ -19,7 +19,7 @@
  * @{
  */
 
-gearman_state_st *gearman_state_create(gearman_state_st *state, gearman_options_t *options)
+gearman_state_st *gearman_state_create(gearman_state_st *state, const gearman_options_t *options)
 {
   if (state == NULL)
   {

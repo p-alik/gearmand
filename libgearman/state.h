@@ -77,7 +77,7 @@ struct gearman_state_st
  *  failure this will be NULL.
  */
 GEARMAN_API
-gearman_state_st *gearman_state_create(gearman_state_st *gearman, gearman_options_t *options);
+gearman_state_st *gearman_state_create(gearman_state_st *gearman, const gearman_options_t *options);
 
 /**
  * Clone a gearman structure.

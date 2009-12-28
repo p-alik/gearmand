@@ -189,12 +189,178 @@ static test_return_t basic_error_test(void *not_used __attribute__((unused)))
   return TEST_SUCCESS;
 }
 
+
+static test_return_t state_option_test(void *object __attribute__((unused)))
+{
+  gearman_state_st *state;
+
+  state= gearman_state_create(NULL, NULL);
+  test_truth(state);
+  { // Initial Allocated, no changes
+    test_truth(state->options.allocated);
+    test_false(state->options.dont_track_packets);
+    test_false(state->options.non_blocking);
+    test_false(state->options.stored_non_blocking);
+  }
+  gearman_state_free(state);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t state_option_on_create_test(void *object __attribute__((unused)))
+{
+  gearman_state_st *state;
+  gearman_options_t options[]= { GEARMAN_NON_BLOCKING, GEARMAN_DONT_TRACK_PACKETS, GEARMAN_MAX};
+
+  state= gearman_state_create(NULL, options);
+  test_truth(state);
+  { // Initial Allocated, no changes
+    test_truth(state->options.allocated);
+    test_truth(state->options.dont_track_packets);
+    test_truth(state->options.non_blocking);
+    test_false(state->options.stored_non_blocking);
+  }
+  gearman_state_free(state);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t state_option_push_test(void *object __attribute__((unused)))
+{
+  gearman_state_st *state;
+  gearman_options_t options[]= { GEARMAN_NON_BLOCKING, GEARMAN_DONT_TRACK_PACKETS, GEARMAN_MAX};
+
+  state= gearman_state_create(NULL, options);
+  test_truth(state);
+  { // Initial Allocated, no changes
+    test_truth(state->options.allocated);
+    test_truth(state->options.dont_track_packets);
+    test_truth(state->options.non_blocking);
+    test_false(state->options.stored_non_blocking);
+  }
+
+  gearman_state_push_non_blocking(state);
+  { // Create non-blocking state, hold old state.
+    test_truth(state->options.allocated);
+    test_truth(state->options.dont_track_packets);
+    test_truth(state->options.non_blocking);
+    test_truth(state->options.stored_non_blocking);
+  }
+
+  gearman_state_pop_non_blocking(state);
+  { // Back to previous state
+    test_truth(state->options.allocated);
+    test_truth(state->options.dont_track_packets);
+    test_truth(state->options.non_blocking);
+    test_truth(state->options.stored_non_blocking);
+  }
+  gearman_state_free(state);
+
+
+  options[0]= GEARMAN_DONT_TRACK_PACKETS;
+  options[1]= GEARMAN_MAX;
+  state= gearman_state_create(NULL, options);
+  test_truth(state);
+  { // Initial Allocated, no changes
+    test_truth(state->options.allocated);
+    test_truth(state->options.dont_track_packets);
+    test_false(state->options.non_blocking);
+    test_false(state->options.stored_non_blocking);
+  }
+
+  gearman_state_push_non_blocking(state);
+  { // Create non-blocking state, hold old state.
+    test_truth(state->options.allocated);
+    test_truth(state->options.dont_track_packets);
+    test_truth(state->options.non_blocking);
+    test_false(state->options.stored_non_blocking);
+  }
+
+  gearman_state_pop_non_blocking(state);
+  { // Back to previous state
+    test_truth(state->options.allocated);
+    test_truth(state->options.dont_track_packets);
+    test_false(state->options.non_blocking);
+    test_false(state->options.stored_non_blocking);
+  }
+  gearman_state_free(state);
+
+
+
+  return TEST_SUCCESS;
+}
+
+
+static test_return_t state_option_set_test(void *object __attribute__((unused)))
+{
+  gearman_state_st *state;
+  gearman_options_t options[]= { GEARMAN_NON_BLOCKING, GEARMAN_DONT_TRACK_PACKETS, GEARMAN_MAX};
+
+  state= gearman_state_create(NULL, options);
+  test_truth(state);
+  { // Initial Allocated, no changes
+    test_truth(state->options.allocated);
+    test_truth(state->options.dont_track_packets);
+    test_truth(state->options.non_blocking);
+    test_false(state->options.stored_non_blocking);
+  }
+
+  test_truth(gearman_state_is_non_blocking(state));
+  test_false(gearman_state_is_stored_non_blocking(state));
+
+  gearman_state_push_non_blocking(state);
+  test_truth(gearman_state_is_non_blocking(state));
+  test_truth(gearman_state_is_stored_non_blocking(state));
+  gearman_state_free(state);
+
+  state= gearman_state_create(NULL, NULL);
+  { // Initial Allocated, no changes
+    test_truth(state->options.allocated);
+    test_false(state->options.dont_track_packets);
+    test_false(state->options.non_blocking);
+    test_false(state->options.stored_non_blocking);
+  }
+
+  gearman_add_options(state, GEARMAN_DONT_TRACK_PACKETS);
+  { // Initial Allocated, no changes
+    test_truth(state->options.allocated);
+    test_truth(state->options.dont_track_packets);
+    test_false(state->options.non_blocking);
+    test_false(state->options.stored_non_blocking);
+  }
+
+  gearman_remove_options(state, GEARMAN_DONT_TRACK_PACKETS);
+  { // Initial Allocated, no changes
+    test_truth(state->options.allocated);
+    test_false(state->options.dont_track_packets);
+    test_false(state->options.non_blocking);
+    test_false(state->options.stored_non_blocking);
+  }
+
+  gearman_state_push_non_blocking(state);
+  gearman_remove_options(state, GEARMAN_DONT_TRACK_PACKETS);
+  { // Initial Allocated, no changes
+    test_truth(state->options.allocated);
+    test_false(state->options.dont_track_packets);
+    test_truth(state->options.non_blocking);
+    test_false(state->options.stored_non_blocking);
+  }
+
+  gearman_state_free(state);
+
+  return TEST_SUCCESS;
+}
+
 test_st state_test[] ={
   {"init", 0, init_test },
   {"allocation", 0, allocation_test },
   {"clone_test", 0, clone_test },
   {"set_timeout", 0, set_timout_test },
   {"basic_error", 0, basic_error_test },
+  {"state_options", 0, state_option_test },
+  {"state_options_push", 0, state_option_push_test },
+  {"state_options_on_create", 0, state_option_on_create_test},
+  {"state_options_set", 0, state_option_set_test },
   {0, 0, 0}
 };
 
