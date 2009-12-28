@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define GEARMAN_CORE
 #include <libgearman/gearman.h>
 
 #include "test.h"

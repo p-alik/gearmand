@@ -50,6 +50,8 @@ struct gearman_state_st
   char last_error[GEARMAN_MAX_ERROR_SIZE];
 };
 
+#ifdef GEARMAN_CORE
+
 
 /**
  * @addtogroup gearman Gearman Declarations
@@ -322,6 +324,8 @@ gearman_return_t gearman_echo(gearman_state_st *gearman, const void *workload,
  */
 GEARMAN_API
 void gearman_free_all_packets(gearman_state_st *gearman);
+
+#endif /* GEARMAN_CORE */
 
 /** @} */
 

@@ -16,6 +16,7 @@
 
 #include "config.h"
 
+#define GEARMAN_CORE
 #include "server.h"
 
 #ifdef HAVE_ASSERT_H
