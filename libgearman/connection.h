@@ -11,8 +11,8 @@
  * @brief Connection Declarations
  */
 
-#ifndef __GEARMAN_CON_H__
-#define __GEARMAN_CON_H__
+#ifndef __GEARMAN_CONNECTION_H__
+#define __GEARMAN_CONNECTION_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -76,6 +76,9 @@ struct gearman_connection_st
   uint8_t send_buffer[GEARMAN_SEND_BUFFER_SIZE];
   uint8_t recv_buffer[GEARMAN_RECV_BUFFER_SIZE];
 };
+
+#ifdef GEARMAN_CORE
+
 /**
  * Initialize a connection structure. Always check the return value even if
  * passing in a pre-allocated structure. Some other initialization may have
@@ -265,8 +268,10 @@ void gearman_connection_set_packet_unpack_fn(gearman_connection_st *connection,
 
 /** @} */
 
+#endif /* GEARMAN_CORE */
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __GEARMAN_CON_H__ */
+#endif /* __GEARMAN_CONNECTION_H__ */
