@@ -148,9 +148,6 @@ static inline int gearman_state_errno(const gearman_state_st *gearman)
 GEARMAN_API
 gearman_return_t gearman_set_option(gearman_state_st *gearman, gearman_options_t option, bool value);
 
-/**
-  @todo remove gearman_set_option() and gearman_remove_options()
- */
 static inline void gearman_add_options(gearman_state_st *gearman, gearman_options_t options)
 {
   (void)gearman_set_option(gearman, options, true);

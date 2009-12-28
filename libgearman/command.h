@@ -18,6 +18,7 @@
 extern "C" {
 #endif
 
+#ifdef GEARMAN_CORE
 /**
  * @ingroup gearman_packet
  */
@@ -27,6 +28,7 @@ struct gearman_command_info_st
   const uint8_t argc;
   const bool data;
 };
+#endif /* GEARMAN_CORE */
 
 #ifdef __cplusplus
 }

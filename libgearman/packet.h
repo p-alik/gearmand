@@ -19,13 +19,6 @@ extern "C" {
 #endif
 
 /**
- * Command information array.
- * @ingroup gearman_constants
- */
-extern GEARMAN_API
-gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX];
-
-/**
  * @addtogroup gearman_packet Packet Declarations
  * @ingroup gearman
  *
@@ -61,6 +54,14 @@ struct gearman_packet_st
   size_t arg_size[GEARMAN_MAX_COMMAND_ARGS];
   uint8_t args_buffer[GEARMAN_ARGS_BUFFER_SIZE];
 };
+
+#ifdef GEARMAN_CORE
+/**
+ * Command information array.
+ * @ingroup gearman_constants
+ */
+extern GEARMAN_API
+gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX];
 
 
 /**
@@ -173,6 +174,8 @@ void gearman_packet_give_data(gearman_packet_st *packet, const void *data,
  */
 GEARMAN_API
 void *gearman_packet_take_data(gearman_packet_st *packet, size_t *data_size);
+
+#endif /* GEARMAN_CORE */
 
 /** @} */
 
