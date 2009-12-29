@@ -10,9 +10,6 @@
 # Included from Top Level Makefile.am
 # All paths should be given relative to the root
 
-lib_LTLIBRARIES+= libgearman/libgearman.la
-lib_LTLIBRARIES+= libgearman/libgearmancore.la
-
 nobase_pkginclude_HEADERS += \
 			     libgearman/client.h \
 			     libgearman/command.h \
@@ -31,6 +28,7 @@ noinst_HEADERS+= \
 		 libgearman/common.h \
 		 libgearman/gearman_local.h
 
+lib_LTLIBRARIES+= libgearman/libgearmancore.la
 libgearman_libgearmancore_la_SOURCES= \
 				       libgearman/connection.c \
 				       libgearman/core.c \
@@ -41,14 +39,15 @@ libgearman_libgearmancore_la_CFLAGS= \
 				     ${AM_CFLAGS} \
 				     -DBUILDING_LIBGEARMAN
 
-libgearman_libgearmancore_la_LDFLAGS= \
-				      $(AM_LDFLAGS) \
-				      -version-info \
-				      $(GEARMAN_LIBRARY_VERSION)
+#libgearman_libgearmancore_la_LDFLAGS= \
+#				      $(AM_LDFLAGS) \
+#				      -version-info \
+#				      $(GEARMAN_LIBRARY_VERSION)
+#
+#libgearman_libgearmancore_la_LIBADD= \
+#				     $(LTLIBUUID)
 
-libgearman_libgearmancore_la_LIBADD= \
-				     $(LTLIBUUID)
-
+lib_LTLIBRARIES+= libgearman/libgearman.la
 libgearman_libgearman_la_SOURCES= \
 				  libgearman/client.c \
 				  libgearman/gearman.c \
