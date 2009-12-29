@@ -149,15 +149,15 @@ static test_return_t set_timout_test(void *not_used __attribute__((unused)))
   test_truth(gear_ptr == &gear);
   test_truth(gear_ptr->options.allocated == false);
 
-  time_data= gearman_timeout(gear_ptr);
+  time_data= gearman_state_timeout(gear_ptr);
   test_truth (time_data == -1); // Current default
 
-  gearman_set_timeout(gear_ptr, 20);
-  time_data= gearman_timeout(gear_ptr);
+  gearman_state_set_timeout(gear_ptr, 20);
+  time_data= gearman_state_timeout(gear_ptr);
   test_truth (time_data == 20); // Current default
 
-  gearman_set_timeout(gear_ptr, 10);
-  time_data= gearman_timeout(gear_ptr);
+  gearman_state_set_timeout(gear_ptr, 10);
+  time_data= gearman_state_timeout(gear_ptr);
   test_truth (time_data == 10); // Current default
 
   test_truth(gear_ptr == &gear); // Make sure noting got slipped in :)

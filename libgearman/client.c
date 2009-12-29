@@ -241,12 +241,12 @@ void gearman_client_remove_options(gearman_client_st *client,
 
 int gearman_client_timeout(gearman_client_st *client)
 {
-  return gearman_timeout(client->gearman);
+  return gearman_state_timeout(client->gearman);
 }
 
 void gearman_client_set_timeout(gearman_client_st *client, int timeout)
 {
-  gearman_set_timeout(client->gearman, timeout);
+  gearman_state_set_timeout(client->gearman, timeout);
 }
 
 void *gearman_client_context(const gearman_client_st *client)

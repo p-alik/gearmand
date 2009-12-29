@@ -70,7 +70,7 @@ gearman_worker_st *gearman_worker_create(gearman_worker_st *worker)
     return NULL;
   }
 
-  gearman_set_timeout(worker->gearman, GEARMAN_WORKER_WAIT_TIMEOUT);
+  gearman_state_set_timeout(worker->gearman, GEARMAN_WORKER_WAIT_TIMEOUT);
 
   if (_worker_packet_init(worker) != GEARMAN_SUCCESS)
   {
@@ -258,13 +258,13 @@ void gearman_worker_remove_options(gearman_worker_st *worker,
 
 int gearman_worker_timeout(gearman_worker_st *worker)
 {
-  return gearman_timeout(worker->gearman);
+  return gearman_state_timeout(worker->gearman);
 }
 
 void gearman_worker_set_timeout(gearman_worker_st *worker, int timeout)
 {
   gearman_worker_add_options(worker, GEARMAN_WORKER_TIMEOUT_RETURN);
-  gearman_set_timeout(worker->gearman, timeout);
+  gearman_state_set_timeout(worker->gearman, timeout);
 }
 
 void *gearman_worker_context(const gearman_worker_st *worker)

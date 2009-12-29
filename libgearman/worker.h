@@ -170,13 +170,13 @@ void gearman_worker_remove_options(gearman_worker_st *worker,
                                    gearman_worker_options_t options);
 
 /**
- * See gearman_timeout() for details.
+ * See gearman_state_timeout() for details.
  */
 GEARMAN_API
 int gearman_worker_timeout(gearman_worker_st *worker);
 
 /**
- * See gearman_set_timeout() for details.
+ * See gearman_state_set_timeout() for details.
  */
 GEARMAN_API
 void gearman_worker_set_timeout(gearman_worker_st *worker, int timeout);

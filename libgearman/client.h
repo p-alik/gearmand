@@ -155,13 +155,13 @@ void gearman_client_remove_options(gearman_client_st *client,
                                    gearman_client_options_t options);
 
 /**
- * See gearman_timeout() for details.
+ * See gearman_state_timeout() for details.
  */
 GEARMAN_API
 int gearman_client_timeout(gearman_client_st *client);
 
 /**
- * See gearman_set_timeout() for details.
+ * See gearman_state_set_timeout() for details.
  */
 GEARMAN_API
 void gearman_client_set_timeout(gearman_client_st *client, int timeout);

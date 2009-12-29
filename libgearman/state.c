@@ -86,8 +86,8 @@ gearman_state_st *gearman_state_clone(gearman_state_st *destination, const gearm
     return destination;
   }
 
-  (void)gearman_set_option(destination, GEARMAN_NON_BLOCKING, source->options.non_blocking);
-  (void)gearman_set_option(destination, GEARMAN_DONT_TRACK_PACKETS, source->options.dont_track_packets);
+  (void)gearman_state_set_option(destination, GEARMAN_NON_BLOCKING, source->options.non_blocking);
+  (void)gearman_state_set_option(destination, GEARMAN_DONT_TRACK_PACKETS, source->options.dont_track_packets);
 
   destination->timeout= source->timeout;
 
@@ -118,7 +118,7 @@ void gearman_state_free(gearman_state_st *state)
     free(state);
 }
 
-gearman_return_t gearman_set_option(gearman_state_st *state, gearman_options_t option, bool value)
+gearman_return_t gearman_state_set_option(gearman_state_st *state, gearman_options_t option, bool value)
 {
   switch (option)
   {
@@ -136,12 +136,12 @@ gearman_return_t gearman_set_option(gearman_state_st *state, gearman_options_t o
   return GEARMAN_SUCCESS;
 }
 
-int gearman_timeout(gearman_state_st *state)
+int gearman_state_timeout(gearman_state_st *state)
 {
   return state->timeout;
 }
 
-void gearman_set_timeout(gearman_state_st *state, int timeout)
+void gearman_state_set_timeout(gearman_state_st *state, int timeout)
 {
   state->timeout= timeout;
 }

@@ -83,6 +83,26 @@ const char *gearman_bugreport(void);
 GEARMAN_API
 const char *gearman_verbose_name(gearman_verbose_t verbose);
 
+/**
+ * Get current socket I/O activity timeout value.
+ *
+ * @param[in] gearman_client_st or gearman_worker_st Structure previously initialized.
+ * @return Timeout in milliseconds to wait for I/O activity. A negative value
+ *  means an infinite timeout.
+ * @note This is a utility macro.
+ */
+#define gearman_timeout(__object) ((__object)->gearman.timeout)
+
+/**
+ * Set socket I/O activity timeout for connections in a Gearman structure.
+ *
+ * @param[in] gearman_client_st or gearman_worker_st Structure previously initialized.
+ * @param[in] timeout Milliseconds to wait for I/O activity. A negative value
+ *  means an infinite timeout.
+ * @note This is a utility macro.
+ */
+#define gearman_set_timeout(__object, __value) ((__object)->gearman.timeout)=(__value);
+
 /** @} */
 
 #ifdef __cplusplus

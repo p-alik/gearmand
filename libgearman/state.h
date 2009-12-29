@@ -110,7 +110,7 @@ void gearman_state_free(gearman_state_st *gearman);
  */
 GEARMAN_API
 void gearman_state_set_error(gearman_state_st *gearman, const char *function,
-                       const char *format, ...);
+                             const char *format, ...);
 
 /**
  * Return an error string for last error encountered.
@@ -146,16 +146,16 @@ static inline int gearman_state_errno(const gearman_state_st *gearman)
  * @param[in] options Available options for gearman structures.
  */
 GEARMAN_API
-gearman_return_t gearman_set_option(gearman_state_st *gearman, gearman_options_t option, bool value);
+gearman_return_t gearman_state_set_option(gearman_state_st *gearman, gearman_options_t option, bool value);
 
 static inline void gearman_add_options(gearman_state_st *gearman, gearman_options_t options)
 {
-  (void)gearman_set_option(gearman, options, true);
+  (void)gearman_state_set_option(gearman, options, true);
 }
 
 static inline void gearman_remove_options(gearman_state_st *gearman, gearman_options_t options)
 {
-  (void)gearman_set_option(gearman, options, false);
+  (void)gearman_state_set_option(gearman, options, false);
 }
 
 static inline bool gearman_state_is_non_blocking(gearman_state_st *gearman)
@@ -191,7 +191,7 @@ static inline void gearman_state_pop_non_blocking(gearman_state_st *gearman)
  *  means an infinite timeout.
  */
 GEARMAN_API
-int gearman_timeout(gearman_state_st *gearman);
+int gearman_state_timeout(gearman_state_st *gearman);
 
 /**
  * Set socket I/O activity timeout for connections in a Gearman structure.
@@ -202,7 +202,7 @@ int gearman_timeout(gearman_state_st *gearman);
  *  means an infinite timeout.
  */
 GEARMAN_API
-void gearman_set_timeout(gearman_state_st *gearman, int timeout);
+void gearman_state_set_timeout(gearman_state_st *gearman, int timeout);
 
 /**
  * Set logging function for a gearman structure.
