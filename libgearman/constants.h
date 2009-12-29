@@ -140,45 +140,9 @@ typedef enum
 } gearman_connection_options_t;
 
 /**
- * @ingroup gearman_con
- * States for gearman_connection_st.
- */
-typedef enum
-{
-  GEARMAN_CON_UNIVERSAL_ADDRINFO,
-  GEARMAN_CON_UNIVERSAL_CONNECT,
-  GEARMAN_CON_UNIVERSAL_CONNECTING,
-  GEARMAN_CON_UNIVERSAL_CONNECTED
-} gearman_connection_universal_t;
-
-/**
- * @ingroup gearman_con
- * Send states for gearman_connection_st.
- */
-typedef enum
-{
-  GEARMAN_CON_SEND_STATE_NONE,
-  GEARMAN_CON_SEND_UNIVERSAL_PRE_FLUSH,
-  GEARMAN_CON_SEND_UNIVERSAL_FORCE_FLUSH,
-  GEARMAN_CON_SEND_UNIVERSAL_FLUSH,
-  GEARMAN_CON_SEND_UNIVERSAL_FLUSH_DATA
-} gearman_connection_send_universal_t;
-
-/**
- * @ingroup gearman_con
- * Recv states for gearman_connection_st.
- */
-typedef enum
-{
-  GEARMAN_CON_RECV_UNIVERSAL_NONE,
-  GEARMAN_CON_RECV_UNIVERSAL_READ,
-  GEARMAN_CON_RECV_STATE_READ_DATA
-} gearman_connection_recv_universal_t;
-
-/**
  * @ingroup gearman_packet
  * Magic types.
- */
+*/
 typedef enum
 {
   GEARMAN_MAGIC_TEXT,
@@ -234,26 +198,6 @@ typedef enum
 } gearman_command_t;
 
 /**
- * @ingroup gearman_task
- * States for gearman_task_st.
- */
-typedef enum
-{
-  GEARMAN_TASK_STATE_NEW,
-  GEARMAN_TASK_STATE_SUBMIT,
-  GEARMAN_TASK_STATE_WORKLOAD,
-  GEARMAN_TASK_STATE_WORK,
-  GEARMAN_TASK_STATE_CREATED,
-  GEARMAN_TASK_STATE_DATA,
-  GEARMAN_TASK_STATE_WARNING,
-  GEARMAN_TASK_STATE_STATUS,
-  GEARMAN_TASK_STATE_COMPLETE,
-  GEARMAN_TASK_STATE_EXCEPTION,
-  GEARMAN_TASK_STATE_FAIL,
-  GEARMAN_TASK_STATE_FINISHED
-} gearman_task_universal_t;
-
-/**
  * @ingroup gearman_job
  * Priority levels for a job.
  */
@@ -281,18 +225,6 @@ typedef enum
 } gearman_client_options_t;
 
 /**
- * @ingroup gearman_client
- * States for gearman_client_st.
- */
-typedef enum
-{
-  GEARMAN_CLIENT_STATE_IDLE,
-  GEARMAN_CLIENT_STATE_NEW,
-  GEARMAN_CLIENT_STATE_SUBMIT,
-  GEARMAN_CLIENT_STATE_PACKET
-} gearman_client_universal_t;
-
-/**
  * @ingroup gearman_worker
  * Options for gearman_worker_st.
  */
@@ -309,32 +241,6 @@ typedef enum
   GEARMAN_WORKER_TIMEOUT_RETURN=   (1 << 8),
   GEARMAN_WORKER_MAX=   (1 << 9)
 } gearman_worker_options_t;
-
-/**
- * @ingroup gearman_worker
- * States for gearman_worker_st.
- */
-typedef enum
-{
-  GEARMAN_WORKER_STATE_START,
-  GEARMAN_WORKER_STATE_FUNCTION_SEND,
-  GEARMAN_WORKER_STATE_CONNECT,
-  GEARMAN_WORKER_STATE_GRAB_JOB_SEND,
-  GEARMAN_WORKER_STATE_GRAB_JOB_RECV,
-  GEARMAN_WORKER_STATE_PRE_SLEEP
-} gearman_worker_universal_t;
-
-/**
- * @ingroup gearman_worker
- * Work states for gearman_worker_st.
- */
-typedef enum
-{
-  GEARMAN_WORKER_WORK_UNIVERSAL_GRAB_JOB,
-  GEARMAN_WORKER_WORK_UNIVERSAL_FUNCTION,
-  GEARMAN_WORKER_WORK_UNIVERSAL_COMPLETE,
-  GEARMAN_WORKER_WORK_UNIVERSAL_FAIL
-} gearman_worker_work_universal_t;
 
 /**
  * @addtogroup gearman_types Types

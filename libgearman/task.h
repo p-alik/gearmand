@@ -37,7 +37,20 @@ struct gearman_task_st
     bool allocated:1;
     bool send_in_use:1;
   } options;
-  gearman_task_universal_t state;
+  enum {
+    GEARMAN_TASK_STATE_NEW,
+    GEARMAN_TASK_STATE_SUBMIT,
+    GEARMAN_TASK_STATE_WORKLOAD,
+    GEARMAN_TASK_STATE_WORK,
+    GEARMAN_TASK_STATE_CREATED,
+    GEARMAN_TASK_STATE_DATA,
+    GEARMAN_TASK_STATE_WARNING,
+    GEARMAN_TASK_STATE_STATUS,
+    GEARMAN_TASK_STATE_COMPLETE,
+    GEARMAN_TASK_STATE_EXCEPTION,
+    GEARMAN_TASK_STATE_FAIL,
+    GEARMAN_TASK_STATE_FINISHED
+  } state;
   bool is_known;
   bool is_running;
   uint32_t created_id;

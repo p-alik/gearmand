@@ -43,8 +43,20 @@ struct gearman_worker_st
     bool grab_uniq:1;
     bool timeout_return:1;
   } options;
-  gearman_worker_universal_t state;
-  gearman_worker_work_universal_t work_state;
+  enum {
+    GEARMAN_WORKER_STATE_START,
+    GEARMAN_WORKER_STATE_FUNCTION_SEND,
+    GEARMAN_WORKER_STATE_CONNECT,
+    GEARMAN_WORKER_STATE_GRAB_JOB_SEND,
+    GEARMAN_WORKER_STATE_GRAB_JOB_RECV,
+    GEARMAN_WORKER_STATE_PRE_SLEEP
+  } state;
+  enum {
+    GEARMAN_WORKER_WORK_UNIVERSAL_GRAB_JOB,
+    GEARMAN_WORKER_WORK_UNIVERSAL_FUNCTION,
+    GEARMAN_WORKER_WORK_UNIVERSAL_COMPLETE,
+    GEARMAN_WORKER_WORK_UNIVERSAL_FAIL
+  } work_state;
   uint32_t function_count;
   uint32_t job_count;
   size_t work_result_size;

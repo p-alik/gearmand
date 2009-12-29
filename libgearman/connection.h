@@ -43,9 +43,24 @@ struct gearman_connection_st
     bool ignore_lost_connection:1;
     bool close_after_flush:1;
   } options;
-  gearman_connection_universal_t state;
-  gearman_connection_send_universal_t send_state;
-  gearman_connection_recv_universal_t recv_state;
+  enum {
+    GEARMAN_CON_UNIVERSAL_ADDRINFO,
+    GEARMAN_CON_UNIVERSAL_CONNECT,
+    GEARMAN_CON_UNIVERSAL_CONNECTING,
+    GEARMAN_CON_UNIVERSAL_CONNECTED
+  } state;
+  enum {
+    GEARMAN_CON_SEND_STATE_NONE,
+    GEARMAN_CON_SEND_UNIVERSAL_PRE_FLUSH,
+    GEARMAN_CON_SEND_UNIVERSAL_FORCE_FLUSH,
+    GEARMAN_CON_SEND_UNIVERSAL_FLUSH,
+    GEARMAN_CON_SEND_UNIVERSAL_FLUSH_DATA
+  } send_state;
+  enum {
+    GEARMAN_CON_RECV_UNIVERSAL_NONE,
+    GEARMAN_CON_RECV_UNIVERSAL_READ,
+    GEARMAN_CON_RECV_STATE_READ_DATA
+  } recv_state;
   in_port_t port;
   short events;
   short revents;

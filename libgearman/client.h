@@ -42,7 +42,12 @@ struct gearman_client_st
     bool no_new:1;
     bool free_tasks:1;
   } options;
-  gearman_client_universal_t state;
+  enum {
+    GEARMAN_CLIENT_STATE_IDLE,
+    GEARMAN_CLIENT_STATE_NEW,
+    GEARMAN_CLIENT_STATE_SUBMIT,
+    GEARMAN_CLIENT_STATE_PACKET
+  } state;
   gearman_return_t do_ret;
   uint32_t new_tasks;
   uint32_t running_tasks;
