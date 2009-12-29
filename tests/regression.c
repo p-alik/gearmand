@@ -41,14 +41,14 @@ test_return_t flush(void);
 
 static test_return_t bug372074_test(void *object __attribute__((unused)))
 {
-  gearman_state_st gearman;
+  gearman_universal_st gearman;
   gearman_connection_st con;
   gearman_packet_st packet;
   uint32_t x;
   const void *args[1];
   size_t args_size[1];
 
-  if (gearman_state_create(&gearman, NULL) == NULL)
+  if (gearman_universal_create(&gearman, NULL) == NULL)
     return TEST_FAILURE;
 
   for (x= 0; x < 2; x++)
@@ -162,7 +162,7 @@ static test_return_t bug372074_test(void *object __attribute__((unused)))
     gearman_connection_free(&con);
   }
 
-  gearman_state_free(&gearman);
+  gearman_universal_free(&gearman);
 
   return TEST_SUCCESS;
 }

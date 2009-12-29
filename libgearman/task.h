@@ -37,7 +37,7 @@ struct gearman_task_st
     bool allocated:1;
     bool send_in_use:1;
   } options;
-  gearman_task_state_t state;
+  gearman_task_universal_t state;
   bool is_known;
   bool is_running;
   uint32_t created_id;

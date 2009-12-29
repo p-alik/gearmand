@@ -22,8 +22,8 @@ nobase_pkginclude_HEADERS += \
 			     libgearman/gearman.h \
 			     libgearman/job.h \
 			     libgearman/packet.h \
-			     libgearman/state.h \
 			     libgearman/task.h \
+			     libgearman/universal.h \
 			     libgearman/visibility.h \
 			     libgearman/worker.h
 
@@ -35,7 +35,7 @@ libgearman_libgearmancore_la_SOURCES= \
 				       libgearman/connection.c \
 				       libgearman/core.c \
 				       libgearman/packet.c \
-				       libgearman/state.c
+				       libgearman/universal.c
 
 libgearman_libgearmancore_la_CFLAGS= \
 				     ${AM_CFLAGS} \

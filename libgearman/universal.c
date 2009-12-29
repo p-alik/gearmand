@@ -19,11 +19,11 @@
  * @{
  */
 
-gearman_state_st *gearman_state_create(gearman_state_st *state, const gearman_options_t *options)
+gearman_universal_st *gearman_universal_create(gearman_universal_st *state, const gearman_options_t *options)
 {
   if (state == NULL)
   {
-    state= malloc(sizeof(gearman_state_st));
+    state= malloc(sizeof(gearman_universal_st));
     if (state == NULL)
       return NULL;
 
@@ -47,7 +47,7 @@ gearman_state_st *gearman_state_create(gearman_state_st *state, const gearman_op
       /**
         @note Check for bad value, refactor gearman_add_options().
       */
-      gearman_add_options(state, *options);
+      gearman_universal_add_options(state, *options);
       options++;
     }
   }
@@ -75,19 +75,19 @@ gearman_state_st *gearman_state_create(gearman_state_st *state, const gearman_op
   return state;
 }
 
-gearman_state_st *gearman_state_clone(gearman_state_st *destination, const gearman_state_st *source)
+gearman_universal_st *gearman_universal_clone(gearman_universal_st *destination, const gearman_universal_st *source)
 {
   gearman_connection_st *con;
 
-  destination= gearman_state_create(destination, NULL);
+  destination= gearman_universal_create(destination, NULL);
 
   if (! source || ! destination)
   {
     return destination;
   }
 
-  (void)gearman_state_set_option(destination, GEARMAN_NON_BLOCKING, source->options.non_blocking);
-  (void)gearman_state_set_option(destination, GEARMAN_DONT_TRACK_PACKETS, source->options.dont_track_packets);
+  (void)gearman_universal_set_option(destination, GEARMAN_NON_BLOCKING, source->options.non_blocking);
+  (void)gearman_universal_set_option(destination, GEARMAN_DONT_TRACK_PACKETS, source->options.dont_track_packets);
 
   destination->timeout= source->timeout;
 
@@ -95,7 +95,7 @@ gearman_state_st *gearman_state_clone(gearman_state_st *destination, const gearm
   {
     if (gearman_connection_clone(destination, NULL, con) == NULL)
     {
-      gearman_state_free(destination);
+      gearman_universal_free(destination);
       return NULL;
     }
   }
@@ -106,7 +106,7 @@ gearman_state_st *gearman_state_clone(gearman_state_st *destination, const gearm
   return destination;
 }
 
-void gearman_state_free(gearman_state_st *state)
+void gearman_universal_free(gearman_universal_st *state)
 {
   gearman_free_all_cons(state);
   gearman_free_all_packets(state);
@@ -118,7 +118,7 @@ void gearman_state_free(gearman_state_st *state)
     free(state);
 }
 
-gearman_return_t gearman_state_set_option(gearman_state_st *state, gearman_options_t option, bool value)
+gearman_return_t gearman_universal_set_option(gearman_universal_st *state, gearman_options_t option, bool value)
 {
   switch (option)
   {
@@ -136,17 +136,17 @@ gearman_return_t gearman_state_set_option(gearman_state_st *state, gearman_optio
   return GEARMAN_SUCCESS;
 }
 
-int gearman_state_timeout(gearman_state_st *state)
+int gearman_universal_timeout(gearman_universal_st *state)
 {
   return state->timeout;
 }
 
-void gearman_state_set_timeout(gearman_state_st *state, int timeout)
+void gearman_universal_set_timeout(gearman_universal_st *state, int timeout)
 {
   state->timeout= timeout;
 }
 
-void gearman_set_log_fn(gearman_state_st *state, gearman_log_fn *function,
+void gearman_set_log_fn(gearman_universal_st *state, gearman_log_fn *function,
                         const void *context, gearman_verbose_t verbose)
 {
   state->log_fn= function;
@@ -154,7 +154,7 @@ void gearman_set_log_fn(gearman_state_st *state, gearman_log_fn *function,
   state->verbose= verbose;
 }
 
-void gearman_set_event_watch_fn(gearman_state_st *state,
+void gearman_set_event_watch_fn(gearman_universal_st *state,
                                 gearman_event_watch_fn *function,
                                 const void *context)
 {
@@ -162,7 +162,7 @@ void gearman_set_event_watch_fn(gearman_state_st *state,
   state->event_watch_context= context;
 }
 
-void gearman_set_workload_malloc_fn(gearman_state_st *state,
+void gearman_set_workload_malloc_fn(gearman_universal_st *state,
                                     gearman_malloc_fn *function,
                                     const void *context)
 {
@@ -170,7 +170,7 @@ void gearman_set_workload_malloc_fn(gearman_state_st *state,
   state->workload_malloc_context= context;
 }
 
-void gearman_set_workload_free_fn(gearman_state_st *state,
+void gearman_set_workload_free_fn(gearman_universal_st *state,
                                   gearman_free_fn *function,
                                   const void *context)
 {
@@ -178,13 +178,13 @@ void gearman_set_workload_free_fn(gearman_state_st *state,
   state->workload_free_context= context;
 }
 
-void gearman_free_all_cons(gearman_state_st *state)
+void gearman_free_all_cons(gearman_universal_st *state)
 {
   while (state->con_list != NULL)
     gearman_connection_free(state->con_list);
 }
 
-gearman_return_t gearman_flush_all(gearman_state_st *state)
+gearman_return_t gearman_flush_all(gearman_universal_st *state)
 {
   gearman_connection_st *con;
   gearman_return_t ret;
@@ -202,7 +202,7 @@ gearman_return_t gearman_flush_all(gearman_state_st *state)
   return GEARMAN_SUCCESS;
 }
 
-gearman_return_t gearman_wait(gearman_state_st *state)
+gearman_return_t gearman_wait(gearman_universal_st *state)
 {
   gearman_connection_st *con;
   struct pollfd *pfds;
@@ -215,7 +215,7 @@ gearman_return_t gearman_wait(gearman_state_st *state)
     pfds= realloc(state->pfds, state->con_count * sizeof(struct pollfd));
     if (pfds == NULL)
     {
-      gearman_state_set_error(state, "gearman_wait", "realloc");
+      gearman_universal_set_error(state, "gearman_wait", "realloc");
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
 
@@ -239,7 +239,7 @@ gearman_return_t gearman_wait(gearman_state_st *state)
 
   if (x == 0)
   {
-    gearman_state_set_error(state, "gearman_wait", "no active file descriptors");
+    gearman_universal_set_error(state, "gearman_wait", "no active file descriptors");
     return GEARMAN_NO_ACTIVE_FDS;
   }
 
@@ -251,7 +251,7 @@ gearman_return_t gearman_wait(gearman_state_st *state)
       if (errno == EINTR)
         continue;
 
-      gearman_state_set_error(state, "gearman_wait", "poll:%d", errno);
+      gearman_universal_set_error(state, "gearman_wait", "poll:%d", errno);
       state->last_errno= errno;
       return GEARMAN_ERRNO;
     }
@@ -261,7 +261,7 @@ gearman_return_t gearman_wait(gearman_state_st *state)
 
   if (ret == 0)
   {
-    gearman_state_set_error(state, "gearman_wait", "timeout reached");
+    gearman_universal_set_error(state, "gearman_wait", "timeout reached");
     return GEARMAN_TIMEOUT;
   }
 
@@ -281,7 +281,7 @@ gearman_return_t gearman_wait(gearman_state_st *state)
   return GEARMAN_SUCCESS;
 }
 
-gearman_connection_st *gearman_ready(gearman_state_st *state)
+gearman_connection_st *gearman_ready(gearman_universal_st *state)
 {
   gearman_connection_st *con;
 
@@ -301,16 +301,16 @@ gearman_connection_st *gearman_ready(gearman_state_st *state)
 }
 
 /**
-  @note gearman_state_push_blocking is only used for echo (and should be fixed
+  @note gearman_universal_push_blocking is only used for echo (and should be fixed
   when tricky flip/flop in IO is fixed).
 */
-static inline void gearman_state_push_blocking(gearman_state_st *state)
+static inline void gearman_universal_push_blocking(gearman_universal_st *state)
 {
   state->options.stored_non_blocking= state->options.non_blocking;
   state->options.non_blocking= false;
 }
 
-gearman_return_t gearman_echo(gearman_state_st *state, const void *workload,
+gearman_return_t gearman_echo(gearman_universal_st *state, const void *workload,
                               size_t workload_size)
 {
   gearman_connection_st *con;
@@ -323,7 +323,7 @@ gearman_return_t gearman_echo(gearman_state_st *state, const void *workload,
   if (ret != GEARMAN_SUCCESS)
     return ret;
 
-  gearman_state_push_blocking(state);
+  gearman_universal_push_blocking(state);
 
   for (con= state->con_list; con != NULL; con= con->next)
   {
@@ -331,7 +331,7 @@ gearman_return_t gearman_echo(gearman_state_st *state, const void *workload,
     if (ret != GEARMAN_SUCCESS)
     {
       gearman_packet_free(&packet);
-      gearman_state_pop_non_blocking(state);
+      gearman_universal_pop_non_blocking(state);
 
       return ret;
     }
@@ -340,7 +340,7 @@ gearman_return_t gearman_echo(gearman_state_st *state, const void *workload,
     if (ret != GEARMAN_SUCCESS)
     {
       gearman_packet_free(&packet);
-      gearman_state_pop_non_blocking(state);
+      gearman_universal_pop_non_blocking(state);
 
       return ret;
     }
@@ -350,8 +350,8 @@ gearman_return_t gearman_echo(gearman_state_st *state, const void *workload,
     {
       gearman_packet_free(&(con->packet));
       gearman_packet_free(&packet);
-      gearman_state_pop_non_blocking(state);
-      gearman_state_set_error(state, "gearman_echo", "corruption during echo");
+      gearman_universal_pop_non_blocking(state);
+      gearman_universal_set_error(state, "gearman_echo", "corruption during echo");
 
       return GEARMAN_ECHO_DATA_CORRUPTION;
     }
@@ -360,12 +360,12 @@ gearman_return_t gearman_echo(gearman_state_st *state, const void *workload,
   }
 
   gearman_packet_free(&packet);
-  gearman_state_pop_non_blocking(state);
+  gearman_universal_pop_non_blocking(state);
 
   return GEARMAN_SUCCESS;
 }
 
-void gearman_free_all_packets(gearman_state_st *state)
+void gearman_free_all_packets(gearman_universal_st *state)
 {
   while (state->packet_list != NULL)
     gearman_packet_free(state->packet_list);
@@ -375,7 +375,7 @@ void gearman_free_all_packets(gearman_state_st *state)
  * Local Definitions
  */
 
-void gearman_state_set_error(gearman_state_st *state, const char *function,
+void gearman_universal_set_error(gearman_universal_st *state, const char *function,
                        const char *format, ...)
 {
   size_t size;
@@ -408,7 +408,7 @@ void gearman_state_set_error(gearman_state_st *state, const char *function,
   }
 }
 
-void gearman_log(gearman_state_st *state, gearman_verbose_t verbose,
+void gearman_log(gearman_universal_st *state, gearman_verbose_t verbose,
                  const char *format, va_list args)
 {
   char log_buffer[GEARMAN_MAX_ERROR_SIZE];

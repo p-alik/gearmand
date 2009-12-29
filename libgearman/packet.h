@@ -45,7 +45,7 @@ struct gearman_packet_st
   uint8_t argc;
   size_t args_size;
   size_t data_size;
-  gearman_state_st *gearman;
+  gearman_universal_st *gearman;
   gearman_packet_st *next;
   gearman_packet_st *prev;
   uint8_t *args;
@@ -74,7 +74,7 @@ gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX];
  *  failure this will be NULL.
  */
 GEARMAN_API
-gearman_packet_st *gearman_packet_create(gearman_state_st *gearman,
+gearman_packet_st *gearman_packet_create(gearman_universal_st *gearman,
                                          gearman_packet_st *packet);
 
 /**
@@ -117,7 +117,7 @@ void gearman_packet_free(gearman_packet_st *packet);
  * @return Standard gearman return value.
  */
 GEARMAN_API
-gearman_return_t gearman_packet_create_args(gearman_state_st *gearman,
+gearman_return_t gearman_packet_create_args(gearman_universal_st *gearman,
                                             gearman_packet_st *packet,
                                             gearman_magic_t magic,
                                             gearman_command_t command,

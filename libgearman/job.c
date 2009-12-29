@@ -38,7 +38,7 @@ gearman_job_st *gearman_job_create(gearman_worker_st *worker,
     job= malloc(sizeof(gearman_job_st));
     if (job == NULL)
     {
-      gearman_state_set_error(worker->gearman, "_job_create", "malloc");
+      gearman_universal_set_error(worker->gearman, "_job_create", "malloc");
       return NULL;
     }
 

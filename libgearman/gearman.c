@@ -14,7 +14,7 @@
 #include "common.h"
 
 /**
- * @addtogroup gearman_state_static Static Gearman Declarations
+ * @addtogroup gearman_universal_static Static Gearman Declarations
  * @ingroup gearman
  * @{
  */

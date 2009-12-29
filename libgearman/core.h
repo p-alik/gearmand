@@ -14,7 +14,7 @@
 #ifndef __GEARMAN_CORE_H__
 #define __GEARMAN_CORE_H__
 
-#include <libgearman/state.h>
+#include <libgearman/universal.h>
 #include <libgearman/command.h>
 #include <libgearman/packet.h>
 #include <libgearman/connection.h>
@@ -24,7 +24,7 @@ extern "C" {
 #endif
 
 /**
- * @ingroup gearman_state_state
+ * @ingroup gearman_universal_state
  */
 /**
  * Utility function used for parsing server lists.

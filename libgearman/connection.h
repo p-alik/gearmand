@@ -43,9 +43,9 @@ struct gearman_connection_st
     bool ignore_lost_connection:1;
     bool close_after_flush:1;
   } options;
-  gearman_connection_state_t state;
-  gearman_connection_send_state_t send_state;
-  gearman_connection_recv_state_t recv_state;
+  gearman_connection_universal_t state;
+  gearman_connection_send_universal_t send_state;
+  gearman_connection_recv_universal_t recv_state;
   in_port_t port;
   short events;
   short revents;
@@ -58,7 +58,7 @@ struct gearman_connection_st
   size_t recv_buffer_size;
   size_t recv_data_size;
   size_t recv_data_offset;
-  gearman_state_st *gearman;
+  gearman_universal_st *gearman;
   gearman_connection_st *next;
   gearman_connection_st *prev;
   const void *context;
@@ -91,7 +91,7 @@ struct gearman_connection_st
  *  failure this will be NULL.
  */
 GEARMAN_API
-gearman_connection_st *gearman_connection_create(gearman_state_st *gearman,
+gearman_connection_st *gearman_connection_create(gearman_universal_st *gearman,
                                                  gearman_connection_st *connection,
                                                  gearman_connection_options_t *options);
 
@@ -107,7 +107,7 @@ gearman_connection_st *gearman_connection_create(gearman_state_st *gearman,
  *  failure this will be NULL.
  */
 GEARMAN_API
-gearman_connection_st *gearman_connection_create_args(gearman_state_st *gearman, gearman_connection_st *connection,
+gearman_connection_st *gearman_connection_create_args(gearman_universal_st *gearman, gearman_connection_st *connection,
                                                       const char *host, in_port_t port);
 
 /**
@@ -121,7 +121,7 @@ gearman_connection_st *gearman_connection_create_args(gearman_state_st *gearman,
  *  failure this will be NULL.
  */
 GEARMAN_API
-gearman_connection_st *gearman_connection_clone(gearman_state_st *gearman, gearman_connection_st *src,
+gearman_connection_st *gearman_connection_clone(gearman_universal_st *gearman, gearman_connection_st *src,
                                                 const gearman_connection_st *from);
 
 /**

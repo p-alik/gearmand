@@ -43,12 +43,12 @@ struct gearman_worker_st
     bool grab_uniq:1;
     bool timeout_return:1;
   } options;
-  gearman_worker_state_t state;
-  gearman_worker_work_state_t work_state;
+  gearman_worker_universal_t state;
+  gearman_worker_work_universal_t work_state;
   uint32_t function_count;
   uint32_t job_count;
   size_t work_result_size;
-  gearman_state_st *gearman;
+  gearman_universal_st *gearman;
   const void *context;
   gearman_connection_st *con;
   gearman_job_st *job;
@@ -57,7 +57,7 @@ struct gearman_worker_st
   gearman_worker_function_st *function_list;
   gearman_worker_function_st *work_function;
   void *work_result;
-  gearman_state_st gearman_state_static;
+  gearman_universal_st gearman_universal_static;
   gearman_packet_st grab_job;
   gearman_packet_st pre_sleep;
   gearman_job_st work_job;
@@ -170,13 +170,13 @@ void gearman_worker_remove_options(gearman_worker_st *worker,
                                    gearman_worker_options_t options);
 
 /**
- * See gearman_state_timeout() for details.
+ * See gearman_universal_timeout() for details.
  */
 GEARMAN_API
 int gearman_worker_timeout(gearman_worker_st *worker);
 
 /**
- * See gearman_state_set_timeout() for details.
+ * See gearman_universal_set_timeout() for details.
  */
 GEARMAN_API
 void gearman_worker_set_timeout(gearman_worker_st *worker, int timeout);

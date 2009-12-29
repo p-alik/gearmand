@@ -116,7 +116,7 @@ typedef enum
 
 /**
  * @ingroup gearman
- * Options for gearman_state_st.
+ * Options for gearman_universal_st.
  */
 typedef enum
 {
@@ -145,11 +145,11 @@ typedef enum
  */
 typedef enum
 {
-  GEARMAN_CON_STATE_ADDRINFO,
-  GEARMAN_CON_STATE_CONNECT,
-  GEARMAN_CON_STATE_CONNECTING,
-  GEARMAN_CON_STATE_CONNECTED
-} gearman_connection_state_t;
+  GEARMAN_CON_UNIVERSAL_ADDRINFO,
+  GEARMAN_CON_UNIVERSAL_CONNECT,
+  GEARMAN_CON_UNIVERSAL_CONNECTING,
+  GEARMAN_CON_UNIVERSAL_CONNECTED
+} gearman_connection_universal_t;
 
 /**
  * @ingroup gearman_con
@@ -158,11 +158,11 @@ typedef enum
 typedef enum
 {
   GEARMAN_CON_SEND_STATE_NONE,
-  GEARMAN_CON_SEND_STATE_PRE_FLUSH,
-  GEARMAN_CON_SEND_STATE_FORCE_FLUSH,
-  GEARMAN_CON_SEND_STATE_FLUSH,
-  GEARMAN_CON_SEND_STATE_FLUSH_DATA
-} gearman_connection_send_state_t;
+  GEARMAN_CON_SEND_UNIVERSAL_PRE_FLUSH,
+  GEARMAN_CON_SEND_UNIVERSAL_FORCE_FLUSH,
+  GEARMAN_CON_SEND_UNIVERSAL_FLUSH,
+  GEARMAN_CON_SEND_UNIVERSAL_FLUSH_DATA
+} gearman_connection_send_universal_t;
 
 /**
  * @ingroup gearman_con
@@ -170,10 +170,10 @@ typedef enum
  */
 typedef enum
 {
-  GEARMAN_CON_RECV_STATE_NONE,
-  GEARMAN_CON_RECV_STATE_READ,
+  GEARMAN_CON_RECV_UNIVERSAL_NONE,
+  GEARMAN_CON_RECV_UNIVERSAL_READ,
   GEARMAN_CON_RECV_STATE_READ_DATA
-} gearman_connection_recv_state_t;
+} gearman_connection_recv_universal_t;
 
 /**
  * @ingroup gearman_packet
@@ -251,7 +251,7 @@ typedef enum
   GEARMAN_TASK_STATE_EXCEPTION,
   GEARMAN_TASK_STATE_FAIL,
   GEARMAN_TASK_STATE_FINISHED
-} gearman_task_state_t;
+} gearman_task_universal_t;
 
 /**
  * @ingroup gearman_job
@@ -290,7 +290,7 @@ typedef enum
   GEARMAN_CLIENT_STATE_NEW,
   GEARMAN_CLIENT_STATE_SUBMIT,
   GEARMAN_CLIENT_STATE_PACKET
-} gearman_client_state_t;
+} gearman_client_universal_t;
 
 /**
  * @ingroup gearman_worker
@@ -322,7 +322,7 @@ typedef enum
   GEARMAN_WORKER_STATE_GRAB_JOB_SEND,
   GEARMAN_WORKER_STATE_GRAB_JOB_RECV,
   GEARMAN_WORKER_STATE_PRE_SLEEP
-} gearman_worker_state_t;
+} gearman_worker_universal_t;
 
 /**
  * @ingroup gearman_worker
@@ -330,11 +330,11 @@ typedef enum
  */
 typedef enum
 {
-  GEARMAN_WORKER_WORK_STATE_GRAB_JOB,
-  GEARMAN_WORKER_WORK_STATE_FUNCTION,
-  GEARMAN_WORKER_WORK_STATE_COMPLETE,
-  GEARMAN_WORKER_WORK_STATE_FAIL
-} gearman_worker_work_state_t;
+  GEARMAN_WORKER_WORK_UNIVERSAL_GRAB_JOB,
+  GEARMAN_WORKER_WORK_UNIVERSAL_FUNCTION,
+  GEARMAN_WORKER_WORK_UNIVERSAL_COMPLETE,
+  GEARMAN_WORKER_WORK_UNIVERSAL_FAIL
+} gearman_worker_work_universal_t;
 
 /**
  * @addtogroup gearman_types Types
@@ -345,7 +345,7 @@ typedef enum
  */
 
 /* Types. */
-typedef struct gearman_state_st gearman_state_st;
+typedef struct gearman_universal_st gearman_universal_st;
 typedef struct gearman_connection_st gearman_connection_st;
 typedef struct gearman_packet_st gearman_packet_st;
 typedef struct gearman_command_info_st gearman_command_info_st;
@@ -360,7 +360,7 @@ typedef gearman_return_t (gearman_workload_fn)(gearman_task_st *task);
 typedef gearman_return_t (gearman_created_fn)(gearman_task_st *task);
 typedef gearman_return_t (gearman_data_fn)(gearman_task_st *task);
 typedef gearman_return_t (gearman_warning_fn)(gearman_task_st *task);
-typedef gearman_return_t (gearman_state_status_fn)(gearman_task_st *task);
+typedef gearman_return_t (gearman_universal_status_fn)(gearman_task_st *task);
 typedef gearman_return_t (gearman_complete_fn)(gearman_task_st *task);
 typedef gearman_return_t (gearman_exception_fn)(gearman_task_st *task);
 typedef gearman_return_t (gearman_fail_fn)(gearman_task_st *task);

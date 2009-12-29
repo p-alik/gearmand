@@ -34,13 +34,13 @@ extern "C" {
  * @param[in] args Variable argument list that has been initialized.
  */
 GEARMAN_LOCAL
-void gearman_log(gearman_state_st *gearman, gearman_verbose_t verbose,
+void gearman_log(gearman_universal_st *gearman, gearman_verbose_t verbose,
                  const char *format, va_list args);
 
 /**
  * Log a fatal message, see gearman_log() for argument details.
  */
-static inline void gearman_log_fatal(gearman_state_st *gearman, const char *format,
+static inline void gearman_log_fatal(gearman_universal_st *gearman, const char *format,
                                      ...)
 {
   va_list args;
@@ -55,7 +55,7 @@ static inline void gearman_log_fatal(gearman_state_st *gearman, const char *form
 /**
  * Log an error message, see gearman_log() for argument details.
  */
-static inline void gearman_log_error(gearman_state_st *gearman, const char *format,
+static inline void gearman_log_error(gearman_universal_st *gearman, const char *format,
                                      ...)
 {
   va_list args;
@@ -71,7 +71,7 @@ static inline void gearman_log_error(gearman_state_st *gearman, const char *form
 /**
  * Log an info message, see gearman_log() for argument details.
  */
-static inline void gearman_log_info(gearman_state_st *gearman, const char *format,
+static inline void gearman_log_info(gearman_universal_st *gearman, const char *format,
                                     ...)
 {
   va_list args;
@@ -87,7 +87,7 @@ static inline void gearman_log_info(gearman_state_st *gearman, const char *forma
 /**
  * Log a debug message, see gearman_log() for argument details.
  */
-static inline void gearman_log_debug(gearman_state_st *gearman, const char *format,
+static inline void gearman_log_debug(gearman_universal_st *gearman, const char *format,
                                      ...)
 {
   va_list args;
@@ -103,7 +103,7 @@ static inline void gearman_log_debug(gearman_state_st *gearman, const char *form
 /**
  * Log a crazy message, see gearman_log() for argument details.
  */
-static inline void gearman_log_crazy(gearman_state_st *gearman, const char *format,
+static inline void gearman_log_crazy(gearman_universal_st *gearman, const char *format,
                                      ...)
 {
   va_list args;

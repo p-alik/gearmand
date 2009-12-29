@@ -110,7 +110,7 @@ gearman_server_thread_create(gearman_server_st *server,
   GEARMAN_LIST_ADD(server->thread, thread,);
 
   gearman_options_t options[]= { GEARMAN_NON_BLOCKING, GEARMAN_DONT_TRACK_PACKETS, GEARMAN_MAX};
-  thread->gearman= gearman_state_create(&(thread->gearman_state_static), options);
+  thread->gearman= gearman_universal_create(&(thread->gearman_universal_static), options);
   if (thread->gearman == NULL)
   {
     gearman_server_thread_free(thread);
@@ -145,7 +145,7 @@ void gearman_server_thread_free(gearman_server_thread_st *thread)
   }
 
   if (thread->gearman != NULL)
-    gearman_state_free(thread->gearman);
+    gearman_universal_free(thread->gearman);
 
   pthread_mutex_destroy(&(thread->lock));
 
@@ -157,12 +157,12 @@ void gearman_server_thread_free(gearman_server_thread_st *thread)
 
 const char *gearman_server_thread_error(gearman_server_thread_st *thread)
 {
-  return gearman_state_error(thread->gearman);
+  return gearman_universal_error(thread->gearman);
 }
 
 int gearman_server_thread_errno(gearman_server_thread_st *thread)
 {
-  return gearman_state_errno(thread->gearman);
+  return gearman_universal_errno(thread->gearman);
 }
 
 void gearman_server_thread_set_event_watch(gearman_server_thread_st *thread,

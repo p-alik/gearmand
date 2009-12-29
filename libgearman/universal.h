@@ -11,17 +11,17 @@
  * @brief Gearman Declarations
  */
 
-#ifndef __GEARMAN_STATE_H__
-#define __GEARMAN_STATE_H__
+#ifndef __GEARMAN_UNIVERSAL_H__
+#define __GEARMAN_UNIVERSAL_H__
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
- * @ingroup gearman_state_state
+ * @ingroup gearman_universal_state
  */
-struct gearman_state_st
+struct gearman_universal_st
 {
   struct {
     bool allocated:1;
@@ -61,9 +61,9 @@ struct gearman_state_st
  * look there first. This is usually used to write lower level clients, workers,
  * proxies, or your own server.
  *
- * There is no locking within a single gearman_state_st structure, so for threaded
+ * There is no locking within a single gearman_universal_st structure, so for threaded
  * applications you must either ensure isolation in the application or use
- * multiple gearman_state_st structures (for example, one for each thread).
+ * multiple gearman_universal_st structures (for example, one for each thread).
  *
  * @{
  */
@@ -79,7 +79,7 @@ struct gearman_state_st
  *  failure this will be NULL.
  */
 GEARMAN_API
-gearman_state_st *gearman_state_create(gearman_state_st *gearman, const gearman_options_t *options);
+gearman_universal_st *gearman_universal_create(gearman_universal_st *gearman, const gearman_options_t *options);
 
 /**
  * Clone a gearman structure.
@@ -89,7 +89,7 @@ gearman_state_st *gearman_state_create(gearman_state_st *gearman, const gearman_
  * @return Same return as gearman_create().
  */
 GEARMAN_API
-gearman_state_st *gearman_state_clone(gearman_state_st *gearman, const gearman_state_st *from);
+gearman_universal_st *gearman_universal_clone(gearman_universal_st *gearman, const gearman_universal_st *from);
 
 /**
  * Free a gearman structure.
@@ -98,7 +98,7 @@ gearman_state_st *gearman_state_clone(gearman_state_st *gearman, const gearman_s
  *  gearman_clone().
  */
 GEARMAN_API
-void gearman_state_free(gearman_state_st *gearman);
+void gearman_universal_free(gearman_universal_st *gearman);
 
 /**
  * Set the error string.
@@ -109,7 +109,7 @@ void gearman_state_free(gearman_state_st *gearman);
  * @param[in] format Format and variable argument list of message.
  */
 GEARMAN_API
-void gearman_state_set_error(gearman_state_st *gearman, const char *function,
+void gearman_universal_set_error(gearman_universal_st *gearman, const char *function,
                              const char *format, ...);
 
 /**
@@ -119,7 +119,7 @@ void gearman_state_set_error(gearman_state_st *gearman, const char *function,
  *  gearman_clone().
  * @return Pointer to a buffer in the structure that holds an error string.
  */
-static inline const char *gearman_state_error(const gearman_state_st *gearman)
+static inline const char *gearman_universal_error(const gearman_universal_st *gearman)
 {
   if (gearman->last_error[0] == 0)
       return NULL;
@@ -133,7 +133,7 @@ static inline const char *gearman_state_error(const gearman_state_st *gearman)
  *  gearman_clone().
  * @return An errno value as defined in your system errno.h file.
  */
-static inline int gearman_state_errno(const gearman_state_st *gearman)
+static inline int gearman_universal_errno(const gearman_universal_st *gearman)
 {
   return gearman->last_errno;
 }
@@ -146,24 +146,24 @@ static inline int gearman_state_errno(const gearman_state_st *gearman)
  * @param[in] options Available options for gearman structures.
  */
 GEARMAN_API
-gearman_return_t gearman_state_set_option(gearman_state_st *gearman, gearman_options_t option, bool value);
+gearman_return_t gearman_universal_set_option(gearman_universal_st *gearman, gearman_options_t option, bool value);
 
-static inline void gearman_add_options(gearman_state_st *gearman, gearman_options_t options)
+static inline void gearman_universal_add_options(gearman_universal_st *gearman, gearman_options_t options)
 {
-  (void)gearman_state_set_option(gearman, options, true);
+  (void)gearman_universal_set_option(gearman, options, true);
 }
 
-static inline void gearman_remove_options(gearman_state_st *gearman, gearman_options_t options)
+static inline void gearman_universal_remove_options(gearman_universal_st *gearman, gearman_options_t options)
 {
-  (void)gearman_state_set_option(gearman, options, false);
+  (void)gearman_universal_set_option(gearman, options, false);
 }
 
-static inline bool gearman_state_is_non_blocking(gearman_state_st *gearman)
+static inline bool gearman_universal_is_non_blocking(gearman_universal_st *gearman)
 {
   return gearman->options.non_blocking;
 }
 
-static inline bool gearman_state_is_stored_non_blocking(gearman_state_st *gearman)
+static inline bool gearman_universal_is_stored_non_blocking(gearman_universal_st *gearman)
 {
   return gearman->options.stored_non_blocking;
 }
@@ -171,13 +171,13 @@ static inline bool gearman_state_is_stored_non_blocking(gearman_state_st *gearma
 /**
   @todo fix internals to not require state changes like  this.
  */
-static inline void gearman_state_push_non_blocking(gearman_state_st *gearman)
+static inline void gearman_universal_push_non_blocking(gearman_universal_st *gearman)
 {
   gearman->options.stored_non_blocking= gearman->options.non_blocking;
   gearman->options.non_blocking= true;
 }
 
-static inline void gearman_state_pop_non_blocking(gearman_state_st *gearman)
+static inline void gearman_universal_pop_non_blocking(gearman_universal_st *gearman)
 {
   gearman->options.non_blocking= gearman->options.stored_non_blocking;
 }
@@ -191,7 +191,7 @@ static inline void gearman_state_pop_non_blocking(gearman_state_st *gearman)
  *  means an infinite timeout.
  */
 GEARMAN_API
-int gearman_state_timeout(gearman_state_st *gearman);
+int gearman_universal_timeout(gearman_universal_st *gearman);
 
 /**
  * Set socket I/O activity timeout for connections in a Gearman structure.
@@ -202,7 +202,7 @@ int gearman_state_timeout(gearman_state_st *gearman);
  *  means an infinite timeout.
  */
 GEARMAN_API
-void gearman_state_set_timeout(gearman_state_st *gearman, int timeout);
+void gearman_universal_set_timeout(gearman_universal_st *gearman, int timeout);
 
 /**
  * Set logging function for a gearman structure.
@@ -215,7 +215,7 @@ void gearman_state_set_timeout(gearman_state_st *gearman, int timeout);
  *  logging message is equal to or less verbose that this.
  */
 GEARMAN_API
-void gearman_set_log_fn(gearman_state_st *gearman, gearman_log_fn *function,
+void gearman_set_log_fn(gearman_universal_st *gearman, gearman_log_fn *function,
                         const void *context, gearman_verbose_t verbose);
 
 /**
@@ -227,7 +227,7 @@ void gearman_set_log_fn(gearman_state_st *gearman, gearman_log_fn *function,
  * @param[in] context Argument to pass into the callback function.
  */
 GEARMAN_API
-void gearman_set_event_watch_fn(gearman_state_st *gearman,
+void gearman_set_event_watch_fn(gearman_universal_st *gearman,
                                 gearman_event_watch_fn *function,
                                 const void *context);
 
@@ -242,7 +242,7 @@ void gearman_set_event_watch_fn(gearman_state_st *gearman,
  * @param[in] context Argument to pass into the callback function.
  */
 GEARMAN_API
-void gearman_set_workload_malloc_fn(gearman_state_st *gearman,
+void gearman_set_workload_malloc_fn(gearman_universal_st *gearman,
                                     gearman_malloc_fn *function,
                                     const void *context);
 
@@ -257,7 +257,7 @@ void gearman_set_workload_malloc_fn(gearman_state_st *gearman,
  * @param[in] context Argument to pass into the callback function.
  */
 GEARMAN_API
-void gearman_set_workload_free_fn(gearman_state_st *gearman,
+void gearman_set_workload_free_fn(gearman_universal_st *gearman,
                                   gearman_free_fn *function,
                                   const void *context);
 
@@ -268,7 +268,7 @@ void gearman_set_workload_free_fn(gearman_state_st *gearman,
  *  gearman_clone().
  */
 GEARMAN_API
-void gearman_free_all_cons(gearman_state_st *gearman);
+void gearman_free_all_cons(gearman_universal_st *gearman);
 
 /**
  * Flush the send buffer for all connections.
@@ -278,7 +278,7 @@ void gearman_free_all_cons(gearman_state_st *gearman);
  * @return Standard gearman return value.
  */
 GEARMAN_API
-gearman_return_t gearman_flush_all(gearman_state_st *gearman);
+gearman_return_t gearman_flush_all(gearman_universal_st *gearman);
 
 /**
  * Wait for I/O on connections.
@@ -288,7 +288,7 @@ gearman_return_t gearman_flush_all(gearman_state_st *gearman);
  * @return Standard gearman return value.
  */
 GEARMAN_API
-gearman_return_t gearman_wait(gearman_state_st *gearman);
+gearman_return_t gearman_wait(gearman_universal_st *gearman);
 
 /**
  * Get next connection that is ready for I/O.
@@ -298,7 +298,7 @@ gearman_return_t gearman_wait(gearman_state_st *gearman);
  * @return Connection that is ready for I/O, or NULL if there are none.
  */
 GEARMAN_API
-gearman_connection_st *gearman_ready(gearman_state_st *gearman);
+gearman_connection_st *gearman_ready(gearman_universal_st *gearman);
 
 /**
  * Test echo with all connections.
@@ -310,7 +310,7 @@ gearman_connection_st *gearman_ready(gearman_state_st *gearman);
  * @return Standard gearman return value.
  */
 GEARMAN_API
-gearman_return_t gearman_echo(gearman_state_st *gearman, const void *workload,
+gearman_return_t gearman_echo(gearman_universal_st *gearman, const void *workload,
                               size_t workload_size);
 
 /**
@@ -320,7 +320,7 @@ gearman_return_t gearman_echo(gearman_state_st *gearman, const void *workload,
  *  gearman_clone().
  */
 GEARMAN_API
-void gearman_free_all_packets(gearman_state_st *gearman);
+void gearman_free_all_packets(gearman_universal_st *gearman);
 
 #endif /* GEARMAN_CORE */
 
@@ -330,4 +330,4 @@ void gearman_free_all_packets(gearman_state_st *gearman);
 }
 #endif
 
-#endif /* __GEARMAN_STATE_H__ */
+#endif /* __GEARMAN_UNIVERSAL_H__ */

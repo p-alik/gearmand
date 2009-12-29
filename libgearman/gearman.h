@@ -51,9 +51,9 @@ extern "C" {
  * look there first. This is usually used to write lower level clients, workers,
  * proxies, or your own server.
  *
- * There is no locking within a single gearman_state_st structure, so for threaded
+ * There is no locking within a single gearman_universal_st structure, so for threaded
  * applications you must either ensure isolation in the application or use
- * multiple gearman_state_st structures (for example, one for each thread).
+ * multiple gearman_universal_st structures (for example, one for each thread).
  *
  * @{
  */
