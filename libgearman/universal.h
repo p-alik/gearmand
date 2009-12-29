@@ -78,7 +78,7 @@ struct gearman_universal_st
  * @return On success, a pointer to the (possibly allocated) structure. On
  *  failure this will be NULL.
  */
-GEARMAN_API
+GEARMAN_INTERNAL_API
 gearman_universal_st *gearman_universal_create(gearman_universal_st *gearman, const gearman_options_t *options);
 
 /**
@@ -88,7 +88,7 @@ gearman_universal_st *gearman_universal_create(gearman_universal_st *gearman, co
  * @param[in] from Structure to use as a source to clone from.
  * @return Same return as gearman_create().
  */
-GEARMAN_API
+GEARMAN_INTERNAL_API
 gearman_universal_st *gearman_universal_clone(gearman_universal_st *gearman, const gearman_universal_st *from);
 
 /**
@@ -97,7 +97,7 @@ gearman_universal_st *gearman_universal_clone(gearman_universal_st *gearman, con
  * @param[in] gearman Structure previously initialized with gearman_create() or
  *  gearman_clone().
  */
-GEARMAN_API
+GEARMAN_INTERNAL_API
 void gearman_universal_free(gearman_universal_st *gearman);
 
 /**
@@ -108,7 +108,7 @@ void gearman_universal_free(gearman_universal_st *gearman);
  * @param[in] function Name of function the error happened in.
  * @param[in] format Format and variable argument list of message.
  */
-GEARMAN_API
+GEARMAN_INTERNAL_API
 void gearman_universal_set_error(gearman_universal_st *gearman, const char *function,
                              const char *format, ...);
 
@@ -145,7 +145,7 @@ static inline int gearman_universal_errno(const gearman_universal_st *gearman)
  *  gearman_clone().
  * @param[in] options Available options for gearman structures.
  */
-GEARMAN_API
+GEARMAN_INTERNAL_API
 gearman_return_t gearman_universal_set_option(gearman_universal_st *gearman, gearman_options_t option, bool value);
 
 static inline void gearman_universal_add_options(gearman_universal_st *gearman, gearman_options_t options)
@@ -190,7 +190,7 @@ static inline void gearman_universal_pop_non_blocking(gearman_universal_st *gear
  * @return Timeout in milliseconds to wait for I/O activity. A negative value
  *  means an infinite timeout.
  */
-GEARMAN_API
+GEARMAN_INTERNAL_API
 int gearman_universal_timeout(gearman_universal_st *gearman);
 
 /**
@@ -201,7 +201,7 @@ int gearman_universal_timeout(gearman_universal_st *gearman);
  * @param[in] timeout Milliseconds to wait for I/O activity. A negative value
  *  means an infinite timeout.
  */
-GEARMAN_API
+GEARMAN_INTERNAL_API
 void gearman_universal_set_timeout(gearman_universal_st *gearman, int timeout);
 
 /**
@@ -214,7 +214,7 @@ void gearman_universal_set_timeout(gearman_universal_st *gearman, int timeout);
  * @param[in] verbose Verbosity level threshold. Only call function when the
  *  logging message is equal to or less verbose that this.
  */
-GEARMAN_API
+GEARMAN_INTERNAL_API
 void gearman_set_log_fn(gearman_universal_st *gearman, gearman_log_fn *function,
                         const void *context, gearman_verbose_t verbose);
 
@@ -226,7 +226,7 @@ void gearman_set_log_fn(gearman_universal_st *gearman, gearman_log_fn *function,
  * @param[in] function Function to call when there is an I/O event.
  * @param[in] context Argument to pass into the callback function.
  */
-GEARMAN_API
+GEARMAN_INTERNAL_API
 void gearman_set_event_watch_fn(gearman_universal_st *gearman,
                                 gearman_event_watch_fn *function,
                                 const void *context);
@@ -241,7 +241,7 @@ void gearman_set_event_watch_fn(gearman_universal_st *gearman,
  * @param[in] function Memory allocation function to use instead of malloc().
  * @param[in] context Argument to pass into the callback function.
  */
-GEARMAN_API
+GEARMAN_INTERNAL_API
 void gearman_set_workload_malloc_fn(gearman_universal_st *gearman,
                                     gearman_malloc_fn *function,
                                     const void *context);
@@ -256,7 +256,7 @@ void gearman_set_workload_malloc_fn(gearman_universal_st *gearman,
  * @param[in] function Memory free function to use instead of free().
  * @param[in] context Argument to pass into the callback function.
  */
-GEARMAN_API
+GEARMAN_INTERNAL_API
 void gearman_set_workload_free_fn(gearman_universal_st *gearman,
                                   gearman_free_fn *function,
                                   const void *context);
@@ -267,7 +267,7 @@ void gearman_set_workload_free_fn(gearman_universal_st *gearman,
  * @param[in] gearman Structure previously initialized with gearman_create() or
  *  gearman_clone().
  */
-GEARMAN_API
+GEARMAN_INTERNAL_API
 void gearman_free_all_cons(gearman_universal_st *gearman);
 
 /**
@@ -277,7 +277,7 @@ void gearman_free_all_cons(gearman_universal_st *gearman);
  *  gearman_clone().
  * @return Standard gearman return value.
  */
-GEARMAN_API
+GEARMAN_INTERNAL_API
 gearman_return_t gearman_flush_all(gearman_universal_st *gearman);
 
 /**
@@ -287,7 +287,7 @@ gearman_return_t gearman_flush_all(gearman_universal_st *gearman);
  *  gearman_clone().
  * @return Standard gearman return value.
  */
-GEARMAN_API
+GEARMAN_INTERNAL_API
 gearman_return_t gearman_wait(gearman_universal_st *gearman);
 
 /**
@@ -297,7 +297,7 @@ gearman_return_t gearman_wait(gearman_universal_st *gearman);
  *  gearman_clone().
  * @return Connection that is ready for I/O, or NULL if there are none.
  */
-GEARMAN_API
+GEARMAN_INTERNAL_API
 gearman_connection_st *gearman_ready(gearman_universal_st *gearman);
 
 /**
@@ -309,7 +309,7 @@ gearman_connection_st *gearman_ready(gearman_universal_st *gearman);
  * @param[in] workload_size Size of workload.
  * @return Standard gearman return value.
  */
-GEARMAN_API
+GEARMAN_INTERNAL_API
 gearman_return_t gearman_echo(gearman_universal_st *gearman, const void *workload,
                               size_t workload_size);
 
@@ -319,7 +319,7 @@ gearman_return_t gearman_echo(gearman_universal_st *gearman, const void *workloa
  * @param[in] gearman Structure previously initialized with gearman_create() or
  *  gearman_clone().
  */
-GEARMAN_API
+GEARMAN_INTERNAL_API
 void gearman_free_all_packets(gearman_universal_st *gearman);
 
 #endif /* GEARMAN_CORE */

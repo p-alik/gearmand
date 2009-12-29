@@ -60,7 +60,7 @@ struct gearman_packet_st
  * Command information array.
  * @ingroup gearman_constants
  */
-extern GEARMAN_API
+extern GEARMAN_INTERNAL_API
 gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX];
 
 
@@ -73,7 +73,7 @@ gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX];
  * @return On success, a pointer to the (possibly allocated) structure. On
  *  failure this will be NULL.
  */
-GEARMAN_API
+GEARMAN_INTERNAL_API
 gearman_packet_st *gearman_packet_create(gearman_universal_st *gearman,
                                          gearman_packet_st *packet);
 
@@ -83,7 +83,7 @@ gearman_packet_st *gearman_packet_create(gearman_universal_st *gearman,
  * @param[in] packet Structure previously initialized with
  *   gearman_packet_create() or gearman_packet_create_args().
  */
-GEARMAN_API
+GEARMAN_INTERNAL_API
 void gearman_packet_free(gearman_packet_st *packet);
 
 /**
@@ -116,7 +116,7 @@ void gearman_packet_free(gearman_packet_st *packet);
  * @param[in] args_count Number of elements in args/args_sizes arrays.
  * @return Standard gearman return value.
  */
-GEARMAN_API
+GEARMAN_INTERNAL_API
 gearman_return_t gearman_packet_create_args(gearman_universal_st *gearman,
                                             gearman_packet_st *packet,
                                             gearman_magic_t magic,
@@ -128,26 +128,26 @@ gearman_return_t gearman_packet_create_args(gearman_universal_st *gearman,
 /**
  * Add an argument to a packet.
  */
-GEARMAN_API
+GEARMAN_INTERNAL_API
 gearman_return_t gearman_packet_create_arg(gearman_packet_st *packet,
                                            const void *arg, size_t arg_size);
 
 /**
  * Pack header.
  */
-GEARMAN_API
+GEARMAN_INTERNAL_API
 gearman_return_t gearman_packet_pack_header(gearman_packet_st *packet);
 
 /**
  * Unpack header.
  */
-GEARMAN_API
+GEARMAN_INTERNAL_API
 gearman_return_t gearman_packet_unpack_header(gearman_packet_st *packet);
 
 /**
  * Pack packet into output buffer.
  */
-GEARMAN_API
+GEARMAN_INTERNAL_API
 size_t gearman_packet_pack(const gearman_packet_st *packet, gearman_connection_st *con,
                            void *data, size_t data_size,
                            gearman_return_t *ret_ptr);
@@ -155,7 +155,7 @@ size_t gearman_packet_pack(const gearman_packet_st *packet, gearman_connection_s
 /**
  * Unpack packet from input data.
  */
-GEARMAN_API
+GEARMAN_INTERNAL_API
 size_t gearman_packet_unpack(gearman_packet_st *packet, gearman_connection_st *con,
                              const void *data, size_t data_size,
                              gearman_return_t *ret_ptr);
@@ -164,7 +164,7 @@ size_t gearman_packet_unpack(gearman_packet_st *packet, gearman_connection_st *c
  * Give allocated memory to packet. After this, the library will be responsible
  * for freeing the workload memory when the packet is destroyed.
  */
-GEARMAN_API
+GEARMAN_INTERNAL_API
 void gearman_packet_give_data(gearman_packet_st *packet, const void *data,
                               size_t data_size);
 
@@ -172,7 +172,7 @@ void gearman_packet_give_data(gearman_packet_st *packet, const void *data,
  * Take allocated data from packet. After this, the caller is responsible for
  * free()ing the memory.
  */
-GEARMAN_API
+GEARMAN_INTERNAL_API
 void *gearman_packet_take_data(gearman_packet_st *packet, size_t *data_size);
 
 #endif /* GEARMAN_CORE */

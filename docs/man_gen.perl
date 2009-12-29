@@ -81,7 +81,8 @@ while ($line= <>)
       }
 
       $func= join(" ", @func_lines);
-      if ($name)
+
+      if ($name and ($func =~ m/GEARMAN_API/ or $func =~ m/GEARMAN_DEPRECATED_API/ ))
       {
         # We have a function! Output a man page.
         print " \\\n\t$path/man$section/$name.$section";
