@@ -20,7 +20,7 @@ extern "C" {
 
 /**
  * @addtogroup gearman_constants Constants
- * @ingroup gearman
+ * @ingroup gearman_universal
  * @ingroup gearman_client
  * @ingroup gearman_worker
  * @{
@@ -115,7 +115,7 @@ typedef enum
 /** @} */
 
 /**
- * @ingroup gearman
+ * @ingroup gearman_universal
  * Options for gearman_universal_st.
  */
 typedef enum
@@ -244,7 +244,7 @@ typedef enum
 
 /**
  * @addtogroup gearman_types Types
- * @ingroup gearman
+ * @ingroup gearman_universal
  * @ingroup gearman_client
  * @ingroup gearman_worker
  * @{

@@ -76,6 +76,4 @@
 # endif
 #endif
 
-#include "gearman_local.h"
-
 #endif /* __GEARMAN_COMMON_H__ */

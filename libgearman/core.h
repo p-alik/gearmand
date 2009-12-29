@@ -18,13 +18,14 @@
 #include <libgearman/command.h>
 #include <libgearman/packet.h>
 #include <libgearman/connection.h>
+#include <libgearman/log.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
- * @ingroup gearman_universal_state
+ * @ingroup gearman_universal
  */
 /**
  * Utility function used for parsing server lists.

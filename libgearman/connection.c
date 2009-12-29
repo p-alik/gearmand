@@ -18,7 +18,7 @@ static void gearman_connection_reset_addrinfo(gearman_connection_st *connection)
 
 /**
  * @addtogroup gearman_connection_static Static Connection Declarations
- * @ingroup gearman_con
+ * @ingroup gearman_connection
  * @{
  */
 

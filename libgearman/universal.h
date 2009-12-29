@@ -19,7 +19,7 @@ extern "C" {
 #endif
 
 /**
- * @ingroup gearman_universal_state
+ * @ingroup gearman_universal
  */
 struct gearman_universal_st
 {

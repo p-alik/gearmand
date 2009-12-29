@@ -11,8 +11,8 @@
  * @brief Local Gearman Declarations
  */
 
-#ifndef __GEARMAN_LOCAL_H__
-#define __GEARMAN_LOCAL_H__
+#ifndef __GEARMAN_LOG_H__
+#define __GEARMAN_LOG_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -20,7 +20,7 @@ extern "C" {
 
 /**
  * @addtogroup gearman_local Local Gearman Declarations
- * @ingroup gearman
+ * @ingroup gearman_universal
  * @{
  */
 
@@ -122,4 +122,4 @@ static inline void gearman_log_crazy(gearman_universal_st *gearman, const char *
 }
 #endif
 
-#endif /* __GEARMAN_LOCAL_H__ */
+#endif /* __GEARMAN_LOG_H__ */

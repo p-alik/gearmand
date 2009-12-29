@@ -26,12 +26,13 @@ nobase_pkginclude_HEADERS += \
 
 noinst_HEADERS+= \
 		 libgearman/common.h \
-		 libgearman/gearman_local.h
+		 libgearman/log.h
 
 lib_LTLIBRARIES+= libgearman/libgearmancore.la
 libgearman_libgearmancore_la_SOURCES= \
 				       libgearman/connection.c \
 				       libgearman/core.c \
+				       libgearman/log.c \
 				       libgearman/packet.c \
 				       libgearman/universal.c
 

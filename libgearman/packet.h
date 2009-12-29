@@ -20,7 +20,7 @@ extern "C" {
 
 /**
  * @addtogroup gearman_packet Packet Declarations
- * @ingroup gearman
+ * @ingroup gearman_universal
  *
  * This is a low level interface for gearman packet. This is used internally
  * internally by both client and worker interfaces (or more specifically, tasks

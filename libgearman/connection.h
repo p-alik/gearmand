@@ -20,7 +20,7 @@ extern "C" {
 
 /**
  * @addtogroup gearman_con Connection Declarations
- * @ingroup gearman
+ * @ingroup gearman_universal
  *
  * This is a low level interface for gearman connections. This is used
  * internally by both client and worker interfaces, so you probably want to
@@ -31,7 +31,7 @@ extern "C" {
  */
 
 /**
- * @ingroup gearman_con
+ * @ingroup gearman_connection
  */
 struct gearman_connection_st
 {

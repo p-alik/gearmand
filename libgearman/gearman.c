@@ -15,7 +15,7 @@
 
 /**
  * @addtogroup gearman_universal_static Static Gearman Declarations
- * @ingroup gearman
+ * @ingroup gearman_universal
  * @{
  */
 
