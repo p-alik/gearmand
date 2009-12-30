@@ -76,7 +76,7 @@ test_return_t allocation_test(void *object __attribute__((unused)))
 
 test_return_t clone_test(void *object)
 {
-  gearman_client_st *from= (gearman_client_st *)object;
+  const gearman_client_st *from= (gearman_client_st *)object;
   gearman_client_st *client;
 
   client= gearman_client_clone(NULL, NULL);
@@ -87,8 +87,7 @@ test_return_t clone_test(void *object)
   gearman_client_free(client);
 
   client= gearman_client_clone(NULL, from);
-  if (client == NULL)
-    return TEST_FAILURE;
+  test_truth(client);
 
   gearman_client_free(client);
 

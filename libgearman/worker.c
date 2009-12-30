@@ -947,6 +947,7 @@ static gearman_return_t _worker_function_add(gearman_worker_st *worker,
 
   function->options.packet_in_use= true;
   function->options.change= true;
+  function->options.remove= false;
 
   function->function_name= strdup(function_name);
   if (function->function_name == NULL)

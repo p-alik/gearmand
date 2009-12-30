@@ -53,7 +53,6 @@ struct gearman_client_st
   uint32_t running_tasks;
   uint32_t task_count;
   size_t do_data_size;
-  gearman_universal_st *gearman;
   const void *context;
   gearman_connection_st *con;
   gearman_task_st *task;
@@ -68,7 +67,7 @@ struct gearman_client_st
   gearman_complete_fn *complete_fn;
   gearman_exception_fn *exception_fn;
   gearman_fail_fn *fail_fn;
-  gearman_universal_st gearman_universal_static;
+  gearman_universal_st universal;
   gearman_task_st do_task;
 };
 
