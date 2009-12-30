@@ -15,6 +15,7 @@ TEST_LDADD= \
 	    tests/libtest.la
 
 if HAVE_LIBMEMCACHED
+if HAVE_MEMCACHED
 LIBMEMCACHED_PIDFILE = ${abs_top_builddir}/tests/Xumemc.pid
 LIBMEMCACHED_TEST= tests/memcached_test
 LIBMEMCACHED_SETUP= $(MEMCACHED_BINARY) -d -P ${LIBMEMCACHED_PIDFILE} -p 12555
@@ -22,6 +23,7 @@ LIBMEMCACHED_TEARDOWN= cat ${LIBMEMCACHED_PIDFILE} | xargs kill
 LIBMEMCACHED_RM= rm ${LIBMEMCACHED_PIDFILE}
 LIBMEMCACHED_VALGRIND= $(LIBTOOL) --mode=execute valgrind --leak-check=yes --show-reachable=yes ${LIBMEMCACHED_TEST}
 noinst_PROGRAMS += tests/memcached_test
+endif
 endif
 
 tests_memcached_test_SOURCES= tests/memcached_test.c
