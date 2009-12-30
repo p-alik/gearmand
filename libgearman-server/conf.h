@@ -24,6 +24,21 @@ extern "C" {
  * @{
  */
 
+struct gearman_conf_st
+{
+  gearman_conf_options_t options;
+  gearman_return_t last_return;
+  int last_errno;
+  size_t module_count;
+  size_t option_count;
+  size_t short_count;
+  gearman_conf_module_st **module_list;
+  gearman_conf_option_st *option_list;
+  struct option *option_getopt;
+  char option_short[GEARMAN_CONF_MAX_OPTION_SHORT];
+  char last_error[GEARMAN_MAX_ERROR_SIZE];
+};
+
 /**
  * Initialize a gearman conf structure.
  */

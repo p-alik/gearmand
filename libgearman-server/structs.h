@@ -91,131 +91,6 @@ struct gearman_server_thread_st
 };
 
 /**
- * @ingroup gearman_server_con
- */
-struct gearman_server_con_st
-{
-  gearman_connection_st con; /* This must be the first struct member. */
-  gearman_server_con_options_t options;
-  gearman_return_t ret;
-  bool io_list;
-  bool proc_list;
-  bool proc_removed;
-  uint32_t io_packet_count;
-  uint32_t proc_packet_count;
-  uint32_t worker_count;
-  uint32_t client_count;
-  gearman_server_thread_st *thread;
-  gearman_server_con_st *next;
-  gearman_server_con_st *prev;
-  gearman_server_packet_st *packet;
-  gearman_server_packet_st *io_packet_list;
-  gearman_server_packet_st *io_packet_end;
-  gearman_server_packet_st *proc_packet_list;
-  gearman_server_packet_st *proc_packet_end;
-  gearman_server_con_st *io_next;
-  gearman_server_con_st *io_prev;
-  gearman_server_con_st *proc_next;
-  gearman_server_con_st *proc_prev;
-  gearman_server_worker_st *worker_list;
-  gearman_server_client_st *client_list;
-  const char *host;
-  const char *port;
-  char id[GEARMAN_SERVER_CON_ID_SIZE];
-};
-
-/**
- * @ingroup gearman_server_con
- */
-struct gearman_server_packet_st
-{
-  gearman_packet_st packet;
-  gearman_server_packet_st *next;
-};
-
-/**
- * @ingroup gearman_server_function
- */
-struct gearman_server_function_st
-{
-  gearman_server_function_options_t options;
-  uint32_t worker_count;
-  uint32_t job_count;
-  uint32_t job_total;
-  uint32_t job_running;
-  uint32_t max_queue_size;
-  size_t function_name_size;
-  gearman_server_st *server;
-  gearman_server_function_st *next;
-  gearman_server_function_st *prev;
-  char *function_name;
-  gearman_server_worker_st *worker_list;
-  gearman_server_job_st *job_list[GEARMAN_JOB_PRIORITY_MAX];
-  gearman_server_job_st *job_end[GEARMAN_JOB_PRIORITY_MAX];
-};
-
-/**
- * @ingroup gearman_server_client
- */
-struct gearman_server_client_st
-{
-  gearman_server_client_options_t options;
-  gearman_server_con_st *con;
-  gearman_server_client_st *con_next;
-  gearman_server_client_st *con_prev;
-  gearman_server_job_st *job;
-  gearman_server_client_st *job_next;
-  gearman_server_client_st *job_prev;
-};
-
-/**
- * @ingroup gearman_server_worker
- */
-struct gearman_server_worker_st
-{
-  gearman_server_worker_options_t options;
-  uint32_t job_count;
-  uint32_t timeout;
-  gearman_server_con_st *con;
-  gearman_server_worker_st *con_next;
-  gearman_server_worker_st *con_prev;
-  gearman_server_function_st *function;
-  gearman_server_worker_st *function_next;
-  gearman_server_worker_st *function_prev;
-  gearman_server_job_st *job_list;
-};
-
-/**
- * @ingroup gearman_server_job
- */
-struct gearman_server_job_st
-{
-  uint8_t retries;
-  gearman_server_job_options_t options;
-  gearman_job_priority_t priority;
-  uint32_t job_handle_key;
-  uint32_t unique_key;
-  uint32_t client_count;
-  uint32_t numerator;
-  uint32_t denominator;
-  size_t data_size;
-  gearman_server_st *server;
-  gearman_server_job_st *next;
-  gearman_server_job_st *prev;
-  gearman_server_job_st *unique_next;
-  gearman_server_job_st *unique_prev;
-  gearman_server_job_st *worker_next;
-  gearman_server_job_st *worker_prev;
-  gearman_server_function_st *function;
-  gearman_server_job_st *function_next;
-  const void *data;
-  gearman_server_client_st *client_list;
-  gearman_server_worker_st *worker;
-  char job_handle[GEARMAN_JOB_HANDLE_SIZE];
-  char unique[GEARMAN_UNIQUE_SIZE];
-};
-
-/**
  * @ingroup gearmand
  */
 struct gearmand_st
@@ -300,20 +175,6 @@ struct gearmand_con_st
 /**
  * @ingroup gearman_conf
  */
-struct gearman_conf_st
-{
-  gearman_conf_options_t options;
-  gearman_return_t last_return;
-  int last_errno;
-  size_t module_count;
-  size_t option_count;
-  size_t short_count;
-  gearman_conf_module_st **module_list;
-  gearman_conf_option_st *option_list;
-  struct option *option_getopt;
-  char option_short[GEARMAN_CONF_MAX_OPTION_SHORT];
-  char last_error[GEARMAN_MAX_ERROR_SIZE];
-};
 
 /**
  * @ingroup gearman_conf
@@ -331,14 +192,6 @@ struct gearman_conf_option_st
 /**
  * @ingroup gearman_conf_module
  */
-struct gearman_conf_module_st
-{
-  gearman_conf_module_options_t options;
-  size_t current_option;
-  size_t current_value;
-  gearman_conf_st *conf;
-  const char *name;
-};
 
 #ifdef __cplusplus
 }

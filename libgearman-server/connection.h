@@ -28,6 +28,37 @@ extern "C" {
  * @{
  */
 
+struct gearman_server_con_st
+{
+  gearman_connection_st con; /* This must be the first struct member. */
+  gearman_server_con_options_t options;
+  gearman_return_t ret;
+  bool io_list;
+  bool proc_list;
+  bool proc_removed;
+  uint32_t io_packet_count;
+  uint32_t proc_packet_count;
+  uint32_t worker_count;
+  uint32_t client_count;
+  gearman_server_thread_st *thread;
+  gearman_server_con_st *next;
+  gearman_server_con_st *prev;
+  gearman_server_packet_st *packet;
+  gearman_server_packet_st *io_packet_list;
+  gearman_server_packet_st *io_packet_end;
+  gearman_server_packet_st *proc_packet_list;
+  gearman_server_packet_st *proc_packet_end;
+  gearman_server_con_st *io_next;
+  gearman_server_con_st *io_prev;
+  gearman_server_con_st *proc_next;
+  gearman_server_con_st *proc_prev;
+  gearman_server_worker_st *worker_list;
+  gearman_server_client_st *client_list;
+  const char *host;
+  const char *port;
+  char id[GEARMAN_SERVER_CON_ID_SIZE];
+};
+
 /**
  * Add a connection to a server thread. This goes into a list of connections
  * that is used later with server_thread_run, no socket I/O happens here.
