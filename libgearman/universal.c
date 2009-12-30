@@ -77,11 +77,18 @@ gearman_universal_st *gearman_universal_create(gearman_universal_st *state, cons
 
 gearman_universal_st *gearman_universal_clone(gearman_universal_st *destination, const gearman_universal_st *source)
 {
+  gearman_universal_st *check;
   gearman_connection_st *con;
 
-  destination= gearman_universal_create(destination, NULL);
+  assert(destination);
+  assert(source);
 
-  if (! source || ! destination)
+  if (! destination || ! source)
+    return NULL;
+
+  check= gearman_universal_create(destination, NULL);
+
+  if (! check)
   {
     return destination;
   }

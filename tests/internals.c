@@ -71,21 +71,25 @@ static test_return_t clone_test(void *not_used __attribute__((unused)))
   test_truth(gear_ptr);
   test_truth(gear_ptr == &gear);
 
-  /* All null? */
-  {
+#if 0
     gearman_universal_st *gear_clone;
+
+    /* For gearman_universal_st we don't allow NULL cloning creation */
     gear_clone= gearman_universal_clone(NULL, NULL);
     test_truth(gear_clone);
-    test_truth(gear_clone->options.allocated);
-    gearman_universal_free(gear_clone);
-  }
+    gear_clone= gearman_universal_clone(NULL, &gear);
+    test_truth(gear_clone);
+    gear_clone= gearman_universal_clone(&gear, NULL);
+    test_truth(gear_clone);
+#endif
 
   /* Can we init from null? */
   {
     gearman_universal_st *gear_clone;
-    gear_clone= gearman_universal_clone(NULL, &gear);
+    gearman_universal_st destination;
+    gear_clone= gearman_universal_clone(&destination, &gear);
     test_truth(gear_clone);
-    test_truth(gear_clone->options.allocated);
+    test_false(gear_clone->options.allocated);
 
     { // Test all of the flags
       test_truth(gear_clone->options.dont_track_packets == gear_ptr->options.dont_track_packets);
@@ -113,27 +117,7 @@ static test_return_t clone_test(void *not_used __attribute__((unused)))
     gearman_universal_free(gear_clone);
   }
 
-  /* Can we init from struct? */
-  {
-    gearman_universal_st declared_clone;
-    gearman_universal_st *gear_clone;
-    memset(&declared_clone, 0 , sizeof(gearman_universal_st));
-    gear_clone= gearman_universal_clone(&declared_clone, NULL);
-    test_truth(gear_clone);
-    test_truth(gear_clone->options.allocated == false);
-    gearman_universal_free(gear_clone);
-  }
-
-  /* Can we init from struct? */
-  {
-    gearman_universal_st declared_clone;
-    gearman_universal_st *gear_clone;
-    memset(&declared_clone, 0 , sizeof(gearman_universal_st));
-    gear_clone= gearman_universal_clone(&declared_clone, &gear);
-    test_truth(gear_clone);
-    test_truth(gear_clone->options.allocated == false);
-    gearman_universal_free(gear_clone);
-  }
+  gearman_universal_free(gear_ptr);
 
   return TEST_SUCCESS;
 }

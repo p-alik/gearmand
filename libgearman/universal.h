@@ -54,7 +54,7 @@ struct gearman_universal_st
 
 
 /**
- * @addtogroup gearman Gearman Declarations
+ * @addtogroup gearman_universal Gearman Declarations
  *
  * This is a low level interface for gearman library instances. This is used
  * internally by both client and worker interfaces, so you probably want to
@@ -75,6 +75,7 @@ struct gearman_universal_st
  * is not required to memset() a structure before providing it.
  *
  * @param[in] gearman Caller allocated structure, or NULL to allocate one.
+ * @param[in] options gearman_options_t options used to modify creation.
  * @return On success, a pointer to the (possibly allocated) structure. On
  *  failure this will be NULL.
  */
@@ -84,12 +85,12 @@ gearman_universal_st *gearman_universal_create(gearman_universal_st *gearman, co
 /**
  * Clone a gearman structure.
  *
- * @param[in] gearman Caller allocated structure, or NULL to allocate one.
- * @param[in] from Structure to use as a source to clone from.
- * @return Same return as gearman_create().
+ * @param[in] destination gearman_universal_st.
+ * @param[in] source gearman_universal_st to clone from.
+ * @return Same return as gearman_universal_create().
  */
 GEARMAN_INTERNAL_API
-gearman_universal_st *gearman_universal_clone(gearman_universal_st *gearman, const gearman_universal_st *from);
+gearman_universal_st *gearman_universal_clone(gearman_universal_st *destination, const gearman_universal_st *source);
 
 /**
  * Free a gearman structure.
@@ -110,7 +111,7 @@ void gearman_universal_free(gearman_universal_st *gearman);
  */
 GEARMAN_INTERNAL_API
 void gearman_universal_set_error(gearman_universal_st *gearman, const char *function,
-                             const char *format, ...);
+                                 const char *format, ...);
 
 /**
  * Return an error string for last error encountered.

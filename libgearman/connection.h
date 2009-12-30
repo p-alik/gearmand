@@ -122,7 +122,8 @@ gearman_connection_st *gearman_connection_create(gearman_universal_st *gearman,
  *  failure this will be NULL.
  */
 GEARMAN_INTERNAL_API
-gearman_connection_st *gearman_connection_create_args(gearman_universal_st *gearman, gearman_connection_st *connection,
+gearman_connection_st *gearman_connection_create_args(gearman_universal_st *gearman,
+                                                      gearman_connection_st *connection,
                                                       const char *host, in_port_t port);
 
 /**
