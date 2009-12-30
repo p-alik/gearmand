@@ -33,7 +33,7 @@ endif
 noinst_LTLIBRARIES+= libgearman-server/libgearman-server.la
 
 
-nobase_include_HEADERS += \
+noinst_HEADERS += \
 	$(QUEUE_LIBDRIZZLE_H) \
 	$(QUEUE_LIBMEMCACHED_H) \
 	$(QUEUE_LIBPQ_H) \
