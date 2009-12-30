@@ -195,7 +195,7 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
     dnl We need to inject error into the cflags to test if visibility works or not
     save_CFLAGS="${CFLAGS}"
     CFLAGS="${CFLAGS} -Werror"
-    gl_VISIBILITY
+    PANDORA_VISIBILITY
     CFLAGS="${save_CFLAGS}"
   ])
 
