@@ -32,35 +32,18 @@ static test_return_t init_test(void *not_used __attribute__((unused)))
   gearman_universal_st *gear_ptr;
 
   gear_ptr= gearman_universal_create(&gear, NULL);
-  test_truth(gear.options.allocated == false);
-  test_truth(gear_ptr->options.allocated == false);
-  test_truth(gear.options.dont_track_packets == false);
-  test_truth(gear.options.non_blocking == false);
-  test_truth(gear.options.stored_non_blocking == false);
+  test_false(gear.options.allocated);
+  test_false(gear_ptr->options.allocated);
+  test_false(gear.options.dont_track_packets);
+  test_false(gear.options.non_blocking);
+  test_false(gear.options.stored_non_blocking);
   test_truth(gear_ptr == &gear);
 
   gearman_universal_free(&gear);
-  test_truth(gear.options.allocated == false);
+  test_false(gear.options.allocated);
 
   return TEST_SUCCESS;
 }
-
-static test_return_t allocation_test(void *not_used __attribute__((unused)))
-{
-  gearman_universal_st *gear_ptr;
-
-  gear_ptr= gearman_universal_create(NULL, NULL);
-
-  test_truth(gear_ptr->options.allocated == true);
-  test_truth(gear_ptr->options.dont_track_packets == false);
-  test_truth(gear_ptr->options.non_blocking == false);
-  test_truth(gear_ptr->options.stored_non_blocking == false);
-
-  gearman_universal_free(gear_ptr);
-
-  return TEST_SUCCESS;
-}
-
 
 static test_return_t clone_test(void *not_used __attribute__((unused)))
 {
@@ -131,7 +114,7 @@ static test_return_t set_timout_test(void *not_used __attribute__((unused)))
   gear_ptr= gearman_universal_create(&gear, NULL);
   test_truth(gear_ptr);
   test_truth(gear_ptr == &gear);
-  test_truth(gear_ptr->options.allocated == false);
+  test_false(gear_ptr->options.allocated);
 
   time_data= gearman_universal_timeout(gear_ptr);
   test_truth (time_data == -1); // Current default
@@ -160,14 +143,14 @@ static test_return_t basic_error_test(void *not_used __attribute__((unused)))
   gear_ptr= gearman_universal_create(&gear, NULL);
   test_truth(gear_ptr);
   test_truth(gear_ptr == &gear);
-  test_truth(gear_ptr->options.allocated == false);
+  test_false(gear_ptr->options.allocated);
 
   error= gearman_universal_error(gear_ptr);
   test_truth(error == NULL);
 
   error_number= gearman_universal_errno(gear_ptr);
   test_truth(error_number == 0);
-  
+
   test_truth(gear_ptr == &gear); // Make sure noting got slipped in :)
   gearman_universal_free(gear_ptr);
 
@@ -177,98 +160,101 @@ static test_return_t basic_error_test(void *not_used __attribute__((unused)))
 
 static test_return_t state_option_test(void *object __attribute__((unused)))
 {
-  gearman_universal_st *state;
+  gearman_universal_st universal;
+  gearman_universal_st *universal_ptr;
 
-  state= gearman_universal_create(NULL, NULL);
-  test_truth(state);
+  universal_ptr= gearman_universal_create(&universal, NULL);
+  test_truth(universal_ptr);
   { // Initial Allocated, no changes
-    test_truth(state->options.allocated);
-    test_false(state->options.dont_track_packets);
-    test_false(state->options.non_blocking);
-    test_false(state->options.stored_non_blocking);
+    test_false(universal_ptr->options.allocated);
+    test_false(universal_ptr->options.dont_track_packets);
+    test_false(universal_ptr->options.non_blocking);
+    test_false(universal_ptr->options.stored_non_blocking);
   }
-  gearman_universal_free(state);
+  gearman_universal_free(universal_ptr);
 
   return TEST_SUCCESS;
 }
 
 static test_return_t state_option_on_create_test(void *object __attribute__((unused)))
 {
-  gearman_universal_st *state;
+  gearman_universal_st universal;
+  gearman_universal_st *universal_ptr;
   gearman_options_t options[]= { GEARMAN_NON_BLOCKING, GEARMAN_DONT_TRACK_PACKETS, GEARMAN_MAX};
 
-  state= gearman_universal_create(NULL, options);
-  test_truth(state);
+  universal_ptr= gearman_universal_create(&universal, options);
+  test_truth(universal_ptr);
   { // Initial Allocated, no changes
-    test_truth(state->options.allocated);
-    test_truth(state->options.dont_track_packets);
-    test_truth(state->options.non_blocking);
-    test_false(state->options.stored_non_blocking);
+    test_false(universal_ptr->options.allocated);
+    test_truth(universal_ptr->options.dont_track_packets);
+    test_truth(universal_ptr->options.non_blocking);
+    test_false(universal_ptr->options.stored_non_blocking);
   }
-  gearman_universal_free(state);
+  gearman_universal_free(universal_ptr);
 
   return TEST_SUCCESS;
 }
 
 static test_return_t state_option_push_test(void *object __attribute__((unused)))
 {
-  gearman_universal_st *state;
+  gearman_universal_st universal;
+  gearman_universal_st *universal_ptr;
   gearman_options_t options[]= { GEARMAN_NON_BLOCKING, GEARMAN_DONT_TRACK_PACKETS, GEARMAN_MAX};
 
-  state= gearman_universal_create(NULL, options);
-  test_truth(state);
+  universal_ptr= gearman_universal_create(&universal, options);
+  test_truth(universal_ptr);
   { // Initial Allocated, no changes
-    test_truth(state->options.allocated);
-    test_truth(state->options.dont_track_packets);
-    test_truth(state->options.non_blocking);
-    test_false(state->options.stored_non_blocking);
+    test_false(universal_ptr->options.allocated);
+    test_truth(universal_ptr->options.dont_track_packets);
+    test_truth(universal_ptr->options.non_blocking);
+    test_false(universal_ptr->options.stored_non_blocking);
   }
 
-  gearman_universal_push_non_blocking(state);
-  { // Create non-blocking state, hold old state.
-    test_truth(state->options.allocated);
-    test_truth(state->options.dont_track_packets);
-    test_truth(state->options.non_blocking);
-    test_truth(state->options.stored_non_blocking);
+  gearman_universal_push_non_blocking(universal_ptr);
+  { // Create non-blocking universal_ptr, hold old universal_ptr.
+    test_false(universal_ptr->options.allocated);
+    test_truth(universal_ptr->options.dont_track_packets);
+    test_truth(universal_ptr->options.non_blocking);
+    test_truth(universal_ptr->options.stored_non_blocking);
   }
 
-  gearman_universal_pop_non_blocking(state);
-  { // Back to previous state
-    test_truth(state->options.allocated);
-    test_truth(state->options.dont_track_packets);
-    test_truth(state->options.non_blocking);
-    test_truth(state->options.stored_non_blocking);
+  gearman_universal_pop_non_blocking(universal_ptr);
+  { // Back to previous universal_ptr
+    test_false(universal_ptr->options.allocated);
+    test_truth(universal_ptr->options.dont_track_packets);
+    test_truth(universal_ptr->options.non_blocking);
+    test_truth(universal_ptr->options.stored_non_blocking);
   }
-  gearman_universal_free(state);
+  gearman_universal_free(universal_ptr);
 
 
   options[0]= GEARMAN_DONT_TRACK_PACKETS;
   options[1]= GEARMAN_MAX;
-  state= gearman_universal_create(NULL, options);
-  test_truth(state);
+  universal_ptr= gearman_universal_create(&universal, options);
+  test_truth(universal_ptr);
   { // Initial Allocated, no changes
-    test_truth(state->options.allocated);
-    test_truth(state->options.dont_track_packets);
-    test_false(state->options.non_blocking);
-    test_false(state->options.stored_non_blocking);
+    test_false(universal_ptr->options.allocated);
+    test_truth(universal_ptr->options.dont_track_packets);
+    test_false(universal_ptr->options.non_blocking);
+    test_false(universal_ptr->options.stored_non_blocking);
   }
 
-  gearman_universal_push_non_blocking(state);
-  { // Create non-blocking state, hold old state.
-    test_truth(state->options.allocated);
-    test_truth(state->options.dont_track_packets);
-    test_truth(state->options.non_blocking);
-    test_false(state->options.stored_non_blocking);
+  gearman_universal_push_non_blocking(universal_ptr);
+  { // Create non-blocking universal_ptr, hold old universal_ptr.
+    test_false(universal_ptr->options.allocated);
+    test_truth(universal_ptr->options.dont_track_packets);
+    test_truth(universal_ptr->options.non_blocking);
+    test_false(universal_ptr->options.stored_non_blocking);
   }
 
-  gearman_universal_pop_non_blocking(state);
-  { // Back to previous state
-    test_truth(state->options.allocated);
-    test_truth(state->options.dont_track_packets);
-    test_false(state->options.non_blocking);
-    test_false(state->options.stored_non_blocking);
+  gearman_universal_pop_non_blocking(universal_ptr);
+  { // Back to previous universal_ptr
+    test_false(universal_ptr->options.allocated);
+    test_truth(universal_ptr->options.dont_track_packets);
+    test_false(universal_ptr->options.non_blocking);
+    test_false(universal_ptr->options.stored_non_blocking);
   }
-  gearman_universal_free(state);
+  gearman_universal_free(universal_ptr);
 
 
 
@@ -278,67 +264,67 @@ static test_return_t state_option_push_test(void *object __attribute__((unused))
 
 static test_return_t state_option_set_test(void *object __attribute__((unused)))
 {
-  gearman_universal_st *state;
+  gearman_universal_st universal;
+  gearman_universal_st *universal_ptr;
   gearman_options_t options[]= { GEARMAN_NON_BLOCKING, GEARMAN_DONT_TRACK_PACKETS, GEARMAN_MAX};
 
-  state= gearman_universal_create(NULL, options);
-  test_truth(state);
+  universal_ptr= gearman_universal_create(&universal, options);
+  test_truth(universal_ptr);
   { // Initial Allocated, no changes
-    test_truth(state->options.allocated);
-    test_truth(state->options.dont_track_packets);
-    test_truth(state->options.non_blocking);
-    test_false(state->options.stored_non_blocking);
+    test_false(universal_ptr->options.allocated);
+    test_truth(universal_ptr->options.dont_track_packets);
+    test_truth(universal_ptr->options.non_blocking);
+    test_false(universal_ptr->options.stored_non_blocking);
   }
 
-  test_truth(gearman_universal_is_non_blocking(state));
-  test_false(gearman_universal_is_stored_non_blocking(state));
+  test_truth(gearman_universal_is_non_blocking(universal_ptr));
+  test_false(gearman_universal_is_stored_non_blocking(universal_ptr));
 
-  gearman_universal_push_non_blocking(state);
-  test_truth(gearman_universal_is_non_blocking(state));
-  test_truth(gearman_universal_is_stored_non_blocking(state));
-  gearman_universal_free(state);
+  gearman_universal_push_non_blocking(universal_ptr);
+  test_truth(gearman_universal_is_non_blocking(universal_ptr));
+  test_truth(gearman_universal_is_stored_non_blocking(universal_ptr));
+  gearman_universal_free(universal_ptr);
 
-  state= gearman_universal_create(NULL, NULL);
+  universal_ptr= gearman_universal_create(&universal, NULL);
   { // Initial Allocated, no changes
-    test_truth(state->options.allocated);
-    test_false(state->options.dont_track_packets);
-    test_false(state->options.non_blocking);
-    test_false(state->options.stored_non_blocking);
+    test_false(universal_ptr->options.allocated);
+    test_false(universal_ptr->options.dont_track_packets);
+    test_false(universal_ptr->options.non_blocking);
+    test_false(universal_ptr->options.stored_non_blocking);
   }
 
-  gearman_universal_add_options(state, GEARMAN_DONT_TRACK_PACKETS);
+  gearman_universal_add_options(universal_ptr, GEARMAN_DONT_TRACK_PACKETS);
   { // Initial Allocated, no changes
-    test_truth(state->options.allocated);
-    test_truth(state->options.dont_track_packets);
-    test_false(state->options.non_blocking);
-    test_false(state->options.stored_non_blocking);
+    test_false(universal_ptr->options.allocated);
+    test_truth(universal_ptr->options.dont_track_packets);
+    test_false(universal_ptr->options.non_blocking);
+    test_false(universal_ptr->options.stored_non_blocking);
   }
 
-  gearman_universal_remove_options(state, GEARMAN_DONT_TRACK_PACKETS);
+  gearman_universal_remove_options(universal_ptr, GEARMAN_DONT_TRACK_PACKETS);
   { // Initial Allocated, no changes
-    test_truth(state->options.allocated);
-    test_false(state->options.dont_track_packets);
-    test_false(state->options.non_blocking);
-    test_false(state->options.stored_non_blocking);
+    test_false(universal_ptr->options.allocated);
+    test_false(universal_ptr->options.dont_track_packets);
+    test_false(universal_ptr->options.non_blocking);
+    test_false(universal_ptr->options.stored_non_blocking);
   }
 
-  gearman_universal_push_non_blocking(state);
-  gearman_universal_remove_options(state, GEARMAN_DONT_TRACK_PACKETS);
+  gearman_universal_push_non_blocking(universal_ptr);
+  gearman_universal_remove_options(universal_ptr, GEARMAN_DONT_TRACK_PACKETS);
   { // Initial Allocated, no changes
-    test_truth(state->options.allocated);
-    test_false(state->options.dont_track_packets);
-    test_truth(state->options.non_blocking);
-    test_false(state->options.stored_non_blocking);
+    test_false(universal_ptr->options.allocated);
+    test_false(universal_ptr->options.dont_track_packets);
+    test_truth(universal_ptr->options.non_blocking);
+    test_false(universal_ptr->options.stored_non_blocking);
   }
 
-  gearman_universal_free(state);
+  gearman_universal_free(universal_ptr);
 
   return TEST_SUCCESS;
 }
 
 test_st state_test[] ={
   {"init", 0, init_test },
-  {"allocation", 0, allocation_test },
   {"clone_test", 0, clone_test },
   {"set_timeout", 0, set_timout_test },
   {"basic_error", 0, basic_error_test },

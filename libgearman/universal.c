@@ -21,20 +21,10 @@
 
 gearman_universal_st *gearman_universal_create(gearman_universal_st *state, const gearman_options_t *options)
 {
-  if (state == NULL)
-  {
-    state= malloc(sizeof(gearman_universal_st));
-    if (state == NULL)
-      return NULL;
-
-    state->options.allocated= true;
-  }
-  else
-  {
-    state->options.allocated= false;
-  }
+  assert(state);
 
   { // Set defaults on all options.
+    state->options.allocated= false;
     state->options.dont_track_packets= false;
     state->options.non_blocking= false;
     state->options.stored_non_blocking= false;
@@ -122,7 +112,10 @@ void gearman_universal_free(gearman_universal_st *state)
     free(state->pfds);
 
   if (state->options.allocated)
+  {
+    assert(0);
     free(state);
+  }
 }
 
 gearman_return_t gearman_universal_set_option(gearman_universal_st *state, gearman_options_t option, bool value)
