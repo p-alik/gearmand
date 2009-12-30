@@ -377,14 +377,14 @@ gearman_return_t gearman_connection_send(gearman_connection_st *connection,
     if (connection->send_buffer_size < GEARMAN_SEND_BUFFER_SIZE)
     {
       memcpy(connection->send_buffer,
-             ((uint8_t *)(packet->data)) + connection->send_data_offset,
+             (char *)packet->data + connection->send_data_offset,
              connection->send_buffer_size);
       connection->send_data_size= 0;
       connection->send_data_offset= 0;
       break;
     }
 
-    connection->send_buffer_ptr= ((uint8_t *)(packet->data)) + connection->send_data_offset;
+    connection->send_buffer_ptr= (char *)packet->data + connection->send_data_offset;
     connection->send_state= GEARMAN_CON_SEND_UNIVERSAL_FLUSH_DATA;
 
   case GEARMAN_CON_SEND_UNIVERSAL_FLUSH:
@@ -434,7 +434,7 @@ size_t gearman_connection_send_data(gearman_connection_st *connection, const voi
     return GEARMAN_DATA_TOO_LARGE;
   }
 
-  connection->send_buffer_ptr= (uint8_t *)data;
+  connection->send_buffer_ptr= (char *)data;
   connection->send_buffer_size= data_size;
 
   *ret_ptr= gearman_connection_flush(connection);

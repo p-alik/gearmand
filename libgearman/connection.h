@@ -79,17 +79,17 @@ struct gearman_connection_st
   const void *context;
   struct addrinfo *addrinfo;
   struct addrinfo *addrinfo_next;
-  uint8_t *send_buffer_ptr;
+  char *send_buffer_ptr;
   gearman_packet_st *recv_packet;
-  uint8_t *recv_buffer_ptr;
+  char *recv_buffer_ptr;
   const void *protocol_context;
   gearman_connection_protocol_context_free_fn *protocol_context_free_fn;
   gearman_packet_pack_fn *packet_pack_fn;
   gearman_packet_unpack_fn *packet_unpack_fn;
   gearman_packet_st packet;
   char host[NI_MAXHOST];
-  uint8_t send_buffer[GEARMAN_SEND_BUFFER_SIZE];
-  uint8_t recv_buffer[GEARMAN_RECV_BUFFER_SIZE];
+  char send_buffer[GEARMAN_SEND_BUFFER_SIZE];
+  char recv_buffer[GEARMAN_RECV_BUFFER_SIZE];
 };
 
 #ifdef GEARMAN_CORE
