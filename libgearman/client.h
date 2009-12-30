@@ -456,7 +456,7 @@ void gearman_client_task_free_all(gearman_client_st *client);
  */
 GEARMAN_API
 void gearman_client_set_task_context_free_fn(gearman_client_st *client,
-                                        gearman_task_context_free_fn *function);
+                                             gearman_task_context_free_fn *function);
 
 /**
  * Add a task to be run in parallel.
