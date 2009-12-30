@@ -5,6 +5,7 @@
    callers.
  * Deprecated gearman_client_set_event_watch_fn() and
    gearman_worker_set_event_watch_fn.
+ * gearman_job_handle() and  gearman_job_function_name() now return const char* 
 
 0.12 - 2010-01-??
  * Fixed job handle comparison bug with WORK_FAIL responses.

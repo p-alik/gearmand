@@ -121,13 +121,13 @@ gearman_return_t gearman_job_send_fail(gearman_job_st *job);
  * Get job handle.
  */
 GEARMAN_API
-char *gearman_job_handle(const gearman_job_st *job);
+const char *gearman_job_handle(const gearman_job_st *job);
 
 /**
  * Get the function name associated with a job.
  */
 GEARMAN_API
-char *gearman_job_function_name(const gearman_job_st *job);
+const char *gearman_job_function_name(const gearman_job_st *job);
 
 /**
  * Get the unique ID associated with a job.

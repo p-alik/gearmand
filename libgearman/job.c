@@ -249,14 +249,14 @@ gearman_return_t gearman_job_send_fail(gearman_job_st *job)
   return GEARMAN_SUCCESS;
 }
 
-char *gearman_job_handle(const gearman_job_st *job)
+const char *gearman_job_handle(const gearman_job_st *job)
 {
-  return (char *)job->assigned.arg[0];
+  return (const char *)job->assigned.arg[0];
 }
 
-char *gearman_job_function_name(const gearman_job_st *job)
+const char *gearman_job_function_name(const gearman_job_st *job)
 {
-  return (char *)job->assigned.arg[1];
+  return (const char *)job->assigned.arg[1];
 }
 
 const char *gearman_job_unique(const gearman_job_st *job)
