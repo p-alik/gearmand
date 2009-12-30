@@ -35,11 +35,7 @@ EXTRA_DIST+= \
 	docs/api_header.html \
 	docs/dev_header.html \
 	docs/doxygen.h \
-	scripts/README.solaris \
-	scripts/gearmand \
-	scripts/gearmand-init \
-	scripts/gearmand.xml \
-	support/gearmand.spec
+	scripts/README.solaris
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = support/gearmand.pc
