@@ -93,4 +93,5 @@ libgearman_server_libgearman_server_la_LIBADD= \
 	$(LTLIBMEMCACHED) \
 	$(LTLIBPQ) \
 	$(LTLIBSQLITE3) \
-	libgearman/libgearman.la
+	libgearman/libgearman.la \
+	libgearman/libgearmancore.la

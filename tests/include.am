@@ -54,10 +54,10 @@ tests_client_test_SOURCES= tests/test_worker.c tests/client_test.c
 tests_client_test_LDADD= ${TEST_LDADD}
 
 tests_internals_test_SOURCES= tests/internals.c
-tests_internals_test_LDADD= ${TEST_LDADD}
+tests_internals_test_LDADD= ${TEST_LDADD} libgearman/libgearmancore.la
 
 tests_regression_test_SOURCES= tests/regression.c
-tests_regression_test_LDADD= ${TEST_LDADD}
+tests_regression_test_LDADD= ${TEST_LDADD} libgearman/libgearmancore.la
 
 tests_worker_test_SOURCES= tests/worker_test.c
 tests_worker_test_LDADD= ${TEST_LDADD}
