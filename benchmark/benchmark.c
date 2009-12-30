@@ -30,7 +30,7 @@ void benchmark_check_time(gearman_benchmark_st *benchmark)
 
   gettimeofday(&(benchmark->end), NULL);
   if (benchmark->end.tv_sec != benchmark->begin.tv_sec)
-  { 
+  {
     benchmark->total_jobs+= benchmark->jobs;
 
     printf("[Current: %6"PRIu64" jobs/s, Total: %6"PRIu64" jobs/s]\n",
