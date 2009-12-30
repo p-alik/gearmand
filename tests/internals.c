@@ -335,6 +335,7 @@ test_st universal_st_test[] ={
   {0, 0, 0}
 };
 
+
 static test_return_t connection_init_test(void *not_used __attribute__((unused)))
 {
   gearman_universal_st universal;
@@ -370,10 +371,113 @@ test_st connection_st_test[] ={
   {0, 0, 0}
 };
 
+static test_return_t packet_init_test(void *not_used __attribute__((unused)))
+{
+  gearman_universal_st universal;
+  gearman_universal_st *universal_ptr;
+
+  gearman_packet_st packet;
+  gearman_packet_st *packet_ptr;
+
+  universal_ptr= gearman_universal_create(&universal, NULL);
+  test_false(universal.options.allocated);
+  test_false(universal_ptr->options.allocated);
+
+  packet_ptr= gearman_packet_create(universal_ptr, &packet);
+  test_false(packet.options.allocated);
+  test_false(packet_ptr->options.allocated);
+
+  test_false(packet.options.complete);
+  test_false(packet.options.free_data);
+
+  test_truth(packet_ptr == &packet);
+
+  gearman_packet_free(packet_ptr);
+  test_false(packet.options.allocated);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_packet_give_data_test(void *not_used __attribute__((unused)))
+{
+  char *data = strdup("Mine!");
+  size_t data_size= strlen(data);
+  gearman_universal_st universal;
+  gearman_universal_st *universal_ptr;
+
+  gearman_packet_st packet;
+  gearman_packet_st *packet_ptr;
+
+  universal_ptr= gearman_universal_create(&universal, NULL);
+  test_truth(universal_ptr);
+
+  packet_ptr= gearman_packet_create(universal_ptr, &packet);
+  test_truth(packet_ptr);
+
+  gearman_packet_give_data(packet_ptr, data, data_size);
+
+  test_truth(packet_ptr->data == data);
+  test_truth(packet_ptr->data_size == data_size);
+  test_truth(packet_ptr->options.free_data);
+
+  gearman_packet_free(packet_ptr);
+  gearman_universal_free(universal_ptr);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_packet_take_data_test(void *not_used __attribute__((unused)))
+{
+  char *data = strdup("Mine!");
+  char *catch;
+  size_t data_size= strlen(data);
+  size_t catch_size;
+  gearman_universal_st universal;
+  gearman_universal_st *universal_ptr;
+
+  gearman_packet_st packet;
+  gearman_packet_st *packet_ptr;
+
+  universal_ptr= gearman_universal_create(&universal, NULL);
+  test_truth(universal_ptr);
+
+  packet_ptr= gearman_packet_create(universal_ptr, &packet);
+  test_truth(packet_ptr);
+
+  gearman_packet_give_data(packet_ptr, data, data_size);
+
+  test_truth(packet_ptr->data == data);
+  test_truth(packet_ptr->data_size == data_size);
+  test_truth(packet_ptr->options.free_data);
+
+  catch= gearman_packet_take_data(packet_ptr, &catch_size);
+
+  test_false(packet_ptr->data);
+  test_false(packet_ptr->data_size);
+  test_false(packet_ptr->options.free_data);
+
+  test_truth(catch == data);
+  test_truth(data_size == catch_size);
+
+  gearman_packet_free(packet_ptr);
+  gearman_universal_free(universal_ptr);
+  free(data);
+
+  return TEST_SUCCESS;
+}
+
+test_st packet_st_test[] ={
+  {"init", 0, packet_init_test },
+  {"gearman_packet_give_data", 0, gearman_packet_give_data_test },
+  {"gearman_packet_take_data", 0, gearman_packet_take_data_test },
+  {0, 0, 0}
+};
+
 
 collection_st collection[] ={
   {"gearman_universal_st", 0, 0, universal_st_test},
   {"gearman_connection_st", 0, 0, connection_st_test},
+  {"gearman_packet_st", 0, 0, packet_st_test},
   {0, 0, 0, 0}
 };
 
