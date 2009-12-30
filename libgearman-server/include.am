@@ -30,7 +30,7 @@ QUEUE_LIBPQ_H= libgearman-server/queue_libpq.h
 QUEUE_LIBPQ_C= libgearman-server/queue_libpq.c
 endif
 
-lib_LTLIBRARIES+= libgearman-server/libgearman-server.la
+noinst_LTLIBRARIES+= libgearman-server/libgearman-server.la
 
 
 nobase_include_HEADERS += \

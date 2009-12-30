@@ -32,6 +32,7 @@ tests_memcached_test_LDADD= ${TEST_LDADD}
 if HAVE_LIBSQLITE3
 SQLITE_TEST= tests/sqlite_test
 SQLITE_RM= rm -f tests/gearman.sql tests/gearman.sql-journal
+CLEANFILES+= tests/gearman.sql tests/gearman.sql-journal
 SQLITE_VALGRIND= $(LIBTOOL) --mode=execute valgrind --leak-check=yes --show-reachable=yes ${SQLITE_TEST}
 noinst_PROGRAMS += tests/sqlite_test
 endif
