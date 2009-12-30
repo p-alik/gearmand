@@ -323,7 +323,7 @@ static test_return_t state_option_set_test(void *object __attribute__((unused)))
   return TEST_SUCCESS;
 }
 
-test_st state_test[] ={
+test_st universal_st_test[] ={
   {"init", 0, init_test },
   {"clone_test", 0, clone_test },
   {"set_timeout", 0, set_timout_test },
@@ -335,9 +335,45 @@ test_st state_test[] ={
   {0, 0, 0}
 };
 
+static test_return_t connection_init_test(void *not_used __attribute__((unused)))
+{
+  gearman_universal_st universal;
+  gearman_universal_st *universal_ptr;
+
+  gearman_connection_st connection;
+  gearman_connection_st *connection_ptr;
+
+  universal_ptr= gearman_universal_create(&universal, NULL);
+  test_false(universal.options.allocated);
+  test_false(universal_ptr->options.allocated);
+
+  connection_ptr= gearman_connection_create(universal_ptr, &connection, NULL);
+  test_false(connection.options.allocated);
+  test_false(connection_ptr->options.allocated);
+
+  test_false(connection.options.ready);
+  test_false(connection.options.packet_in_use);
+  test_false(connection.options.external_fd);
+  test_false(connection.options.ignore_lost_connection);
+  test_false(connection.options.close_after_flush);
+
+  test_truth(connection_ptr == &connection);
+
+  gearman_connection_free(connection_ptr);
+  test_false(connection.options.allocated);
+
+  return TEST_SUCCESS;
+}
+
+test_st connection_st_test[] ={
+  {"init", 0, connection_init_test },
+  {0, 0, 0}
+};
+
 
 collection_st collection[] ={
-  {"state", 0, 0, state_test},
+  {"gearman_universal_st", 0, 0, universal_st_test},
+  {"gearman_connection_st", 0, 0, connection_st_test},
   {0, 0, 0, 0}
 };
 
