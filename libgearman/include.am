@@ -10,7 +10,7 @@
 # Included from Top Level Makefile.am
 # All paths should be given relative to the root
 
-nobase_pkginclude_HEADERS += \
+nobase_include_HEADERS += \
 			     libgearman/client.h \
 			     libgearman/command.h \
 			     libgearman/connection.h \
