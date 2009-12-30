@@ -110,14 +110,13 @@ gearman_return_t gearman_server_queue_libsqlite3_init(gearman_server_st *server,
 
   GEARMAN_SERVER_INFO(server, "Initializing libsqlite3 module");
 
-  queue= malloc(sizeof(gearman_queue_sqlite_st));
+  queue= calloc(1, sizeof(gearman_queue_sqlite_st));
   if (queue == NULL)
   {
     GEARMAN_SERVER_ERROR_SET(server, "gearman_queue_libsqlite3_init", "malloc")
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
 
-  memset(queue, 0, sizeof(gearman_queue_sqlite_st));
   snprintf(queue->table, SQLITE_MAX_TABLE_SIZE,
            GEARMAN_QUEUE_SQLITE_DEFAULT_TABLE);
 
@@ -128,6 +127,7 @@ gearman_return_t gearman_server_queue_libsqlite3_init(gearman_server_st *server,
     GEARMAN_SERVER_ERROR_SET(server, "gearman_queue_libsqlite3_init",
                              "gearman_conf_module_find:NULL");
     free(queue);
+
     return GEARMAN_QUEUE_ERROR;
   }
 
@@ -135,7 +135,7 @@ gearman_return_t gearman_server_queue_libsqlite3_init(gearman_server_st *server,
 
   while (gearman_conf_module_value(module, &name, &value))
   {
-    if (!strcmp(name, "db"))
+    if (! strcmp(name, "db"))
     {
       if (sqlite3_open(value, &(queue->db)) != SQLITE_OK)
       {
@@ -147,8 +147,10 @@ gearman_return_t gearman_server_queue_libsqlite3_init(gearman_server_st *server,
         return GEARMAN_QUEUE_ERROR;
       }
     }
-    else if (!strcmp(name, "table"))
+    else if (! strcmp(name, "table"))
+    {
       snprintf(queue->table, SQLITE_MAX_TABLE_SIZE, "%s", value);
+    }
     else
     {
       gearman_server_queue_libsqlite3_deinit(server);
@@ -158,11 +160,11 @@ gearman_return_t gearman_server_queue_libsqlite3_init(gearman_server_st *server,
     }
   }
 
-  if (!queue->db)
+  if (! queue->db)
   {
     gearman_server_queue_libsqlite3_deinit(server);
     GEARMAN_SERVER_ERROR_SET(server, "gearman_queue_libsqlite3_init",
-                          "missing required --libsqlite3-db=<dbfile> argument");
+                             "missing required --libsqlite3-db=<dbfile> argument");
     return GEARMAN_QUEUE_ERROR;
   }
 
@@ -185,7 +187,7 @@ gearman_return_t gearman_server_queue_libsqlite3_init(gearman_server_st *server,
       return GEARMAN_QUEUE_ERROR;
     }
 
-    if (!strcasecmp(queue->table, table))
+    if (! strcasecmp(queue->table, table))
     {
       GEARMAN_SERVER_INFO(server, "sqlite module using table '%s'", table);
       break;
@@ -299,7 +301,9 @@ int _sqlite_query(gearman_server_st *server,
   if (ret  != SQLITE_OK)
   {
     if (*sth)
+    {
       sqlite3_finalize(*sth);
+    }
     *sth= NULL;
     GEARMAN_SERVER_ERROR_SET(server, "_sqlite_query", "sqlite_prepare:%s",
                              sqlite3_errmsg(queue->db));
@@ -326,8 +330,10 @@ int _sqlite_lock(gearman_server_st *server,
     GEARMAN_SERVER_ERROR_SET(server, "_sqlite_lock",
                              "failed to begin transaction: %s",
                              sqlite3_errmsg(queue->db));
-    if(sth)
+    if (sth)
+    {
       sqlite3_finalize(sth);
+    }
 
     return ret;
   }
@@ -365,8 +371,11 @@ int _sqlite_commit(gearman_server_st *server,
     GEARMAN_SERVER_ERROR_SET(server, "_sqlite_commit",
                              "failed to commit transaction: %s",
                              sqlite3_errmsg(queue->db));
-    if(sth)
+    if (sth)
+    {
       sqlite3_finalize(sth);
+    }
+
     return ret;
   }
   ret= sqlite3_step(sth);
@@ -402,8 +411,11 @@ int _sqlite_rollback(gearman_server_st *server,
     GEARMAN_SERVER_ERROR_SET(server, "_sqlite_rollback",
                              "failed to rollback transaction: %s",
                              sqlite3_errmsg(queue->db));
-    if(sth)
+    if (sth)
+    {
       sqlite3_finalize(sth);
+    }
+
     return ret;
   }
   ret= sqlite3_step(sth);
@@ -416,6 +428,7 @@ int _sqlite_rollback(gearman_server_st *server,
   }
   sqlite3_finalize(sth);
   queue->in_trans= 0;
+
   return SQLITE_OK;
 }
 
@@ -460,7 +473,9 @@ static gearman_return_t _sqlite_add(gearman_server_st *server, void *context,
     queue->query_size= query_size;
   }
   else
+  {
     query= queue->query;
+  }
 
   query_size= (size_t)snprintf(query, query_size,
                                "INSERT INTO %s (priority,unique_key,"

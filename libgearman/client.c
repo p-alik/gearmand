@@ -1306,7 +1306,9 @@ static gearman_return_t _client_do_background(gearman_client_st *client,
   if (ret != GEARMAN_IO_WAIT)
   {
     if (job_handle)
-      strcpy(job_handle, client->do_task.job_handle);
+    {
+      strncpy(job_handle, client->do_task.job_handle, GEARMAN_JOB_HANDLE_SIZE);
+    }
 
     gearman_task_free(&(client->do_task));
     client->options.task_in_use= false;
