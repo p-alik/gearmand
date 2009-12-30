@@ -18,6 +18,8 @@
 extern "C" {
 #endif
 
+#ifdef GEARMAN_CORE
+
 /**
  * @addtogroup gearman_local Local Gearman Declarations
  * @ingroup gearman_universal
@@ -33,7 +35,7 @@ extern "C" {
  * @param[in] format Format and variable argument list of message.
  * @param[in] args Variable argument list that has been initialized.
  */
-GEARMAN_LOCAL
+GEARMAN_INTERNAL_API
 void gearman_log(gearman_universal_st *gearman, gearman_verbose_t verbose,
                  const char *format, va_list args);
 
@@ -115,6 +117,8 @@ static inline void gearman_log_crazy(gearman_universal_st *gearman, const char *
     va_end(args);
   }
 }
+
+#endif /* GEARMAN_CORE */
 
 /** @} */
 
