@@ -3,6 +3,8 @@
    triggers on the option (for both worker and client).
  * Options that are internal can no longer be set by external
    callers.
+ * Deprecated gearman_client_set_event_watch_fn() and
+   gearman_worker_set_event_watch_fn.
 
 0.12 - 2010-01-??
  * Fixed job handle comparison bug with WORK_FAIL responses.

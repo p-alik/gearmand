@@ -199,14 +199,6 @@ void gearman_client_set_log_fn(gearman_client_st *client,
                                gearman_verbose_t verbose);
 
 /**
- * See gearman_set_event_watch_fn() for details.
- */
-GEARMAN_API
-void gearman_client_set_event_watch_fn(gearman_client_st *client,
-                                       gearman_event_watch_fn *function,
-                                       const void *context);
-
-/**
  * See gearman_set_workload_malloc_fn() for details.
  */
 GEARMAN_API

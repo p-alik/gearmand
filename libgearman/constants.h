@@ -279,6 +279,9 @@ typedef void* (gearman_worker_fn)(gearman_job_st *job, void *context,
                                   size_t *result_size,
                                   gearman_return_t *ret_ptr);
 
+/**
+  @todo this is only used by the server and should be made private.
+ */
 typedef gearman_return_t (gearman_event_watch_fn)(gearman_connection_st *con,
                                                   short events, void *context);
 
@@ -292,7 +295,7 @@ typedef void (gearman_log_fn)(const char *line, gearman_verbose_t verbose,
                               void *context);
 
 typedef void (gearman_connection_protocol_context_free_fn)(gearman_connection_st *con,
-                                                    void *context);
+                                                           void *context);
 
 typedef size_t (gearman_packet_pack_fn)(const gearman_packet_st *packet,
                                         gearman_connection_st *con,

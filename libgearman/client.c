@@ -264,13 +264,6 @@ void gearman_client_set_log_fn(gearman_client_st *client,
   gearman_set_log_fn(&client->universal, function, context, verbose);
 }
 
-void gearman_client_set_event_watch_fn(gearman_client_st *client,
-                                       gearman_event_watch_fn *function,
-                                       const void *context)
-{
-  gearman_set_event_watch_fn(&client->universal, function, context);
-}
-
 void gearman_client_set_workload_malloc_fn(gearman_client_st *client,
                                            gearman_malloc_fn *function,
                                            const void *context)
