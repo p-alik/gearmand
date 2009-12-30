@@ -42,81 +42,32 @@ void gearman_log(gearman_universal_st *gearman, gearman_verbose_t verbose,
 /**
  * Log a fatal message, see gearman_log() for argument details.
  */
-static inline void gearman_log_fatal(gearman_universal_st *gearman, const char *format,
-                                     ...)
-{
-  va_list args;
+GEARMAN_INTERNAL_API
+void gearman_log_fatal(gearman_universal_st *gearman, const char *format, ...);
 
-  if (gearman->verbose >= GEARMAN_VERBOSE_FATAL)
-  {
-    va_start(args, format);
-    gearman_log(gearman, GEARMAN_VERBOSE_FATAL, format, args);
-    va_end(args);
-  }
-}
 /**
  * Log an error message, see gearman_log() for argument details.
  */
-static inline void gearman_log_error(gearman_universal_st *gearman, const char *format,
-                                     ...)
-{
-  va_list args;
-
-  if (gearman->verbose >= GEARMAN_VERBOSE_ERROR)
-  {
-    va_start(args, format);
-    gearman_log(gearman, GEARMAN_VERBOSE_ERROR, format, args);
-    va_end(args);
-  }
-}
+GEARMAN_INTERNAL_API
+void gearman_log_error(gearman_universal_st *gearman, const char *format, ...);
 
 /**
  * Log an info message, see gearman_log() for argument details.
  */
-static inline void gearman_log_info(gearman_universal_st *gearman, const char *format,
-                                    ...)
-{
-  va_list args;
-
-  if (gearman->verbose >= GEARMAN_VERBOSE_INFO)
-  {
-    va_start(args, format);
-    gearman_log(gearman, GEARMAN_VERBOSE_INFO, format, args);
-    va_end(args);
-  }
-}
+GEARMAN_INTERNAL_API
+void gearman_log_info(gearman_universal_st *gearman, const char *format, ...);
 
 /**
  * Log a debug message, see gearman_log() for argument details.
  */
-static inline void gearman_log_debug(gearman_universal_st *gearman, const char *format,
-                                     ...)
-{
-  va_list args;
-
-  if (gearman->verbose >= GEARMAN_VERBOSE_DEBUG)
-  {
-    va_start(args, format);
-    gearman_log(gearman, GEARMAN_VERBOSE_DEBUG, format, args);
-    va_end(args);
-  }
-}
+GEARMAN_INTERNAL_API
+void gearman_log_debug(gearman_universal_st *gearman, const char *format, ...);
 
 /**
  * Log a crazy message, see gearman_log() for argument details.
  */
-static inline void gearman_log_crazy(gearman_universal_st *gearman, const char *format,
-                                     ...)
-{
-  va_list args;
-
-  if (gearman->verbose >= GEARMAN_VERBOSE_CRAZY)
-  {
-    va_start(args, format);
-    gearman_log(gearman, GEARMAN_VERBOSE_CRAZY, format, args);
-    va_end(args);
-  }
-}
+GEARMAN_INTERNAL_API
+void gearman_log_crazy(gearman_universal_st *gearman, const char *format, ...);
 
 #endif /* GEARMAN_CORE */
 
