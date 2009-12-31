@@ -31,6 +31,7 @@ extern "C" {
 /**
  * @ingroup gearman_task
  */
+
 struct gearman_task_st
 {
   struct {

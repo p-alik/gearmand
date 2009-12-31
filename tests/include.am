@@ -80,6 +80,15 @@ check-local:
 	$(SQLITE_TEST)
 	$(SQLITE_RM)
 
+gdb-client: ${noinst_PROGRAMS}
+	$(LIBTOOL) --mode=execute gdb tests/client_test
+
+gdb-worker: ${noinst_PROGRAMS}
+	$(LIBTOOL) --mode=execute gdb tests/worker_test
+
+gdb-internals: ${noinst_PROGRAMS}
+	$(LIBTOOL) --mode=execute gdb tests/internals_test
+
 valgrind: ${noinst_PROGRAMS}
 	$(LIBTOOL) --mode=execute valgrind --leak-check=yes --show-reachable=yes  tests/client_test
 	$(LIBTOOL) --mode=execute valgrind --leak-check=yes --show-reachable=yes  tests/worker_test
