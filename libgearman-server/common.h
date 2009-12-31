@@ -17,7 +17,7 @@
 #include "config.h"
 
 #define GEARMAN_CORE
-#include "server.h"
+#include "gearmand.h"
 
 #ifdef HAVE_ASSERT_H
 #include <assert.h>

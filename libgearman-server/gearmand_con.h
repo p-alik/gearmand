@@ -27,6 +27,21 @@ extern "C" {
  * @{
  */
 
+struct gearmand_con_st
+{
+  short last_events;
+  int fd;
+  gearmand_thread_st *thread;
+  gearmand_con_st *next;
+  gearmand_con_st *prev;
+  gearman_server_con_st *server_con;
+  gearman_connection_st *con;
+  gearman_connection_add_fn *add_fn;
+  struct event event;
+  char host[NI_MAXHOST];
+  char port[NI_MAXSERV];
+};
+
 /**
  * Create a new gearmand connection.
  * @param gearmand Server instance structure previously initialized with

@@ -14,6 +14,19 @@
 #ifndef __GEARMAND_H__
 #define __GEARMAND_H__
 
+#include <libgearman/gearman.h>
+#include <event.h>
+
+#include <libgearman-server/constants.h>
+#include <libgearman-server/conf.h>
+#include <libgearman-server/conf_module.h>
+#include <libgearman-server/connection.h>
+#include <libgearman-server/packet.h>
+#include <libgearman-server/function.h>
+#include <libgearman-server/client.h>
+#include <libgearman-server/worker.h>
+#include <libgearman-server/job.h>
+#include <libgearman-server/thread.h>
 #include <libgearman-server/server.h>
 #include <libgearman-server/gearmand_thread.h>
 #include <libgearman-server/gearmand_con.h>
@@ -29,6 +42,40 @@ extern "C" {
  *
  * @{
  */
+
+struct gearmand_port_st
+{
+  in_port_t port;
+  uint32_t listen_count;
+  gearmand_st *gearmand;
+  gearman_connection_add_fn *add_fn;
+  int *listen_fd;
+  struct event *listen_event;
+};
+
+struct gearmand_st
+{
+  gearmand_options_t options;
+  gearman_verbose_t verbose;
+  gearman_return_t ret;
+  int backlog;
+  uint32_t port_count;
+  uint32_t threads;
+  uint32_t thread_count;
+  uint32_t free_dcon_count;
+  uint32_t max_thread_free_dcon_count;
+  int wakeup_fd[2];
+  const char *host;
+  gearman_log_fn *log_fn;
+  const void *log_context;
+  struct event_base *base;
+  gearmand_port_st *port_list;
+  gearmand_thread_st *thread_list;
+  gearmand_thread_st *thread_add_next;
+  gearmand_con_st *free_dcon_list;
+  gearman_server_st server;
+  struct event wakeup_event;
+};
 
 /**
  * Create a server instance.

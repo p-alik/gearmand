@@ -51,7 +51,6 @@ noinst_HEADERS += \
 	libgearman-server/packet.h \
 	libgearman-server/protocol_http.h \
 	libgearman-server/server.h \
-	libgearman-server/structs.h \
 	libgearman-server/thread.h \
 	libgearman-server/worker.h
 

@@ -24,6 +24,16 @@ extern "C" {
  * @{
  */
 
+struct gearman_conf_option_st
+{
+  size_t value_count;
+  gearman_conf_module_st *module;
+  const char *name;
+  const char *value_name;
+  const char *help;
+  char **value_list;
+};
+
 struct gearman_conf_st
 {
   gearman_conf_options_t options;

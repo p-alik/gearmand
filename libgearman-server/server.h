@@ -14,21 +14,6 @@
 #ifndef __GEARMAN_SERVER_H__
 #define __GEARMAN_SERVER_H__
 
-#include <libgearman/gearman.h>
-#include <event.h>
-
-#include <libgearman-server/constants.h>
-#include <libgearman-server/structs.h>
-#include <libgearman-server/conf.h>
-#include <libgearman-server/conf_module.h>
-#include <libgearman-server/connection.h>
-#include <libgearman-server/packet.h>
-#include <libgearman-server/function.h>
-#include <libgearman-server/client.h>
-#include <libgearman-server/worker.h>
-#include <libgearman-server/job.h>
-#include <libgearman-server/thread.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -38,6 +23,47 @@ extern "C" {
  * This is the interface gearman servers should use.
  * @{
  */
+
+struct gearman_server_st
+{
+  gearman_server_options_t options;
+  bool shutdown;
+  bool shutdown_graceful;
+  bool proc_wakeup;
+  bool proc_shutdown;
+  uint8_t job_retries;
+  uint8_t worker_wakeup;
+  uint32_t job_handle_count;
+  uint32_t thread_count;
+  uint32_t function_count;
+  uint32_t job_count;
+  uint32_t unique_count;
+  uint32_t free_packet_count;
+  uint32_t free_job_count;
+  uint32_t free_client_count;
+  uint32_t free_worker_count;
+  gearman_universal_st *gearman;
+  gearman_server_thread_st *thread_list;
+  gearman_server_function_st *function_list;
+  gearman_server_packet_st *free_packet_list;
+  gearman_server_job_st *free_job_list;
+  gearman_server_client_st *free_client_list;
+  gearman_server_worker_st *free_worker_list;
+  gearman_log_fn *log_fn;
+  const void *log_context;
+  const void *queue_context;
+  gearman_queue_add_fn *queue_add_fn;
+  gearman_queue_flush_fn *queue_flush_fn;
+  gearman_queue_done_fn *queue_done_fn;
+  gearman_queue_replay_fn *queue_replay_fn;
+  gearman_universal_st gearman_universal_static;
+  pthread_mutex_t proc_lock;
+  pthread_cond_t proc_cond;
+  pthread_t proc_id;
+  char job_handle_prefix[GEARMAN_JOB_HANDLE_SIZE];
+  gearman_server_job_st *job_hash[GEARMAN_JOB_HASH_SIZE];
+  gearman_server_job_st *unique_hash[GEARMAN_JOB_HASH_SIZE];
+};
 
 /**
  * Initialize a server structure. This cannot fail if the caller supplies a
