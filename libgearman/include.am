@@ -31,7 +31,6 @@ noinst_HEADERS+= \
 noinst_LTLIBRARIES+= libgearman/libgearmancore.la
 libgearman_libgearmancore_la_SOURCES= \
 				       libgearman/connection.c \
-				       libgearman/core.c \
 				       libgearman/log.c \
 				       libgearman/packet.c \
 				       libgearman/universal.c

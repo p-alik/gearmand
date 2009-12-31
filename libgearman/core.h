@@ -24,23 +24,6 @@
 extern "C" {
 #endif
 
-/**
- * @ingroup gearman_universal
- */
-/**
- * Utility function used for parsing server lists.
- *
- * @param[in] servers String containing a list of servers to parse.
- * @param[in] callback Function to call for each server that is found.
- * @param[in] context Argument to pass along with callback function.
- * @return Standard Gearman return value.
- */
-GEARMAN_API
-gearman_return_t gearman_parse_servers(const char *servers,
-                                       gearman_parse_server_fn *callback,
-                                       const void *context);
-
-/** @} */
 
 #ifdef __cplusplus
 }
