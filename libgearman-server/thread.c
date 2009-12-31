@@ -109,7 +109,7 @@ gearman_server_thread_create(gearman_server_st *server,
 
   GEARMAN_LIST_ADD(server->thread, thread,);
 
-  gearman_options_t options[]= { GEARMAN_NON_BLOCKING, GEARMAN_DONT_TRACK_PACKETS, GEARMAN_MAX};
+  gearman_universal_options_t options[]= { GEARMAN_NON_BLOCKING, GEARMAN_DONT_TRACK_PACKETS, GEARMAN_MAX};
   thread->gearman= gearman_universal_create(&(thread->gearman_universal_static), options);
   if (thread->gearman == NULL)
   {

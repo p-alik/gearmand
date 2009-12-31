@@ -123,7 +123,7 @@ typedef enum
   GEARMAN_NON_BLOCKING,
   GEARMAN_DONT_TRACK_PACKETS,
   GEARMAN_MAX
-} gearman_options_t;
+} gearman_universal_options_t;
 
 /**
  * @ingroup gearman_con

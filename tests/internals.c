@@ -180,7 +180,7 @@ static test_return_t state_option_on_create_test(void *object __attribute__((unu
 {
   gearman_universal_st universal;
   gearman_universal_st *universal_ptr;
-  gearman_options_t options[]= { GEARMAN_NON_BLOCKING, GEARMAN_DONT_TRACK_PACKETS, GEARMAN_MAX};
+  gearman_universal_options_t options[]= { GEARMAN_NON_BLOCKING, GEARMAN_DONT_TRACK_PACKETS, GEARMAN_MAX};
 
   universal_ptr= gearman_universal_create(&universal, options);
   test_truth(universal_ptr);
@@ -199,7 +199,7 @@ static test_return_t state_option_push_test(void *object __attribute__((unused))
 {
   gearman_universal_st universal;
   gearman_universal_st *universal_ptr;
-  gearman_options_t options[]= { GEARMAN_NON_BLOCKING, GEARMAN_DONT_TRACK_PACKETS, GEARMAN_MAX};
+  gearman_universal_options_t options[]= { GEARMAN_NON_BLOCKING, GEARMAN_DONT_TRACK_PACKETS, GEARMAN_MAX};
 
   universal_ptr= gearman_universal_create(&universal, options);
   test_truth(universal_ptr);
@@ -266,7 +266,7 @@ static test_return_t state_option_set_test(void *object __attribute__((unused)))
 {
   gearman_universal_st universal;
   gearman_universal_st *universal_ptr;
-  gearman_options_t options[]= { GEARMAN_NON_BLOCKING, GEARMAN_DONT_TRACK_PACKETS, GEARMAN_MAX};
+  gearman_universal_options_t options[]= { GEARMAN_NON_BLOCKING, GEARMAN_DONT_TRACK_PACKETS, GEARMAN_MAX};
 
   universal_ptr= gearman_universal_create(&universal, options);
   test_truth(universal_ptr);

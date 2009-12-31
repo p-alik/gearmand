@@ -74,12 +74,12 @@ struct gearman_universal_st
  * a structure before providing it. These are for internal use only.
  *
  * @param[in] source Caller allocated structure.
- * @param[in] options gearman_options_t options used to modify creation.
+ * @param[in] options gearman_universal_options_t options used to modify creation.
  * @return On success, a pointer to the (possibly allocated) structure. On
  *  failure this will be NULL.
  */
 GEARMAN_INTERNAL_API
-gearman_universal_st *gearman_universal_create(gearman_universal_st *source, const gearman_options_t *options);
+gearman_universal_st *gearman_universal_create(gearman_universal_st *source, const gearman_universal_options_t *options);
 
 /**
  * Clone a gearman structure.
@@ -146,14 +146,14 @@ static inline int gearman_universal_errno(const gearman_universal_st *gearman)
  * @param[in] options Available options for gearman structures.
  */
 GEARMAN_INTERNAL_API
-gearman_return_t gearman_universal_set_option(gearman_universal_st *gearman, gearman_options_t option, bool value);
+gearman_return_t gearman_universal_set_option(gearman_universal_st *gearman, gearman_universal_options_t option, bool value);
 
-static inline void gearman_universal_add_options(gearman_universal_st *gearman, gearman_options_t options)
+static inline void gearman_universal_add_options(gearman_universal_st *gearman, gearman_universal_options_t options)
 {
   (void)gearman_universal_set_option(gearman, options, true);
 }
 
-static inline void gearman_universal_remove_options(gearman_universal_st *gearman, gearman_options_t options)
+static inline void gearman_universal_remove_options(gearman_universal_st *gearman, gearman_universal_options_t options)
 {
   (void)gearman_universal_set_option(gearman, options, false);
 }

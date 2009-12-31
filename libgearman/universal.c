@@ -19,7 +19,7 @@
  * @{
  */
 
-gearman_universal_st *gearman_universal_create(gearman_universal_st *state, const gearman_options_t *options)
+gearman_universal_st *gearman_universal_create(gearman_universal_st *state, const gearman_universal_options_t *options)
 {
   assert(state);
 
@@ -118,7 +118,7 @@ void gearman_universal_free(gearman_universal_st *state)
   }
 }
 
-gearman_return_t gearman_universal_set_option(gearman_universal_st *state, gearman_options_t option, bool value)
+gearman_return_t gearman_universal_set_option(gearman_universal_st *state, gearman_universal_options_t option, bool value)
 {
   switch (option)
   {
