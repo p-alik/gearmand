@@ -36,6 +36,8 @@ struct gearman_task_st
   struct {
     bool allocated:1;
     bool send_in_use:1;
+    bool is_known:1;
+    bool is_running:1;
   } options;
   enum {
     GEARMAN_TASK_STATE_NEW,
@@ -51,8 +53,6 @@ struct gearman_task_st
     GEARMAN_TASK_STATE_FAIL,
     GEARMAN_TASK_STATE_FINISHED
   } state;
-  bool is_known;
-  bool is_running;
   uint32_t created_id;
   uint32_t numerator;
   uint32_t denominator;

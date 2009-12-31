@@ -405,9 +405,9 @@ gearman_return_t gearman_client_job_status(gearman_client_st *client,
   if (ret != GEARMAN_IO_WAIT)
   {
     if (is_known != NULL)
-      *is_known= client->do_task.is_known;
+      *is_known= client->do_task.options.is_known;
     if (is_running != NULL)
-      *is_running= client->do_task.is_running;
+      *is_running= client->do_task.options.is_running;
     if (numerator != NULL)
       *numerator= client->do_task.numerator;
     if (denominator != NULL)
@@ -1133,14 +1133,14 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
       if (task->recv->command == GEARMAN_COMMAND_STATUS_RES)
       {
         if (atoi((char *)task->recv->arg[1]) == 0)
-          task->is_known= false;
+          task->options.is_known= false;
         else
-          task->is_known= true;
+          task->options.is_known= true;
 
         if (atoi((char *)task->recv->arg[2]) == 0)
-          task->is_running= false;
+          task->options.is_running= false;
         else
-          task->is_running= true;
+          task->options.is_running= true;
 
         x= 3;
       }
