@@ -14,6 +14,24 @@
 #include "common.h"
 
 /**
+  Private structure.
+*/
+struct _worker_function_st
+{
+  struct {
+    bool packet_in_use:1;
+    bool change:1;
+    bool remove:1;
+  } options;
+  struct _worker_function_st *next;
+  struct _worker_function_st *prev;
+  char *function_name;
+  gearman_worker_fn *worker_fn;
+  const void *context;
+  gearman_packet_st packet;
+};
+
+/**
  * @addtogroup gearman_worker_static Static Worker Declarations
  * @ingroup gearman_worker
  * @{
@@ -48,7 +66,7 @@ static gearman_return_t _worker_function_add(gearman_worker_st *worker,
  * Free a function.
  */
 static void _worker_function_free(gearman_worker_st *worker,
-                                  gearman_worker_function_st *function);
+                                  struct _worker_function_st *function);
 
 
 /** @} */
@@ -333,7 +351,7 @@ gearman_return_t gearman_worker_register(gearman_worker_st *worker,
 gearman_return_t gearman_worker_unregister(gearman_worker_st *worker,
                                            const char *function_name)
 {
-  gearman_worker_function_st *function;
+  struct _worker_function_st *function;
   gearman_return_t ret;
   const void *args[1];
   size_t args_size[1];
@@ -405,7 +423,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
                                         gearman_job_st *job,
                                         gearman_return_t *ret_ptr)
 {
-  gearman_worker_function_st *function;
+  struct _worker_function_st *function;
   uint32_t active;
 
   while (1)
@@ -925,13 +943,13 @@ static gearman_return_t _worker_function_add(gearman_worker_st *worker,
                                              gearman_worker_fn *worker_fn,
                                              const void *context)
 {
-  gearman_worker_function_st *function;
+  struct _worker_function_st *function;
   gearman_return_t ret;
   char timeout_buffer[11];
   const void *args[2];
   size_t args_size[2];
 
-  function= malloc(sizeof(gearman_worker_function_st));
+  function= malloc(sizeof(struct _worker_function_st));
   if (function == NULL)
   {
     gearman_universal_set_error(worker->gearman, "_worker_function_add", "malloc");
@@ -993,7 +1011,7 @@ static gearman_return_t _worker_function_add(gearman_worker_st *worker,
 }
 
 static void _worker_function_free(gearman_worker_st *worker,
-                                  gearman_worker_function_st *function)
+                                  struct _worker_function_st *function)
 {
   if (worker->function_list == function)
     worker->function_list= function->next;

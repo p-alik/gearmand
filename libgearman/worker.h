@@ -65,9 +65,9 @@ struct gearman_worker_st
   gearman_connection_st *con;
   gearman_job_st *job;
   gearman_job_st *job_list;
-  gearman_worker_function_st *function;
-  gearman_worker_function_st *function_list;
-  gearman_worker_function_st *work_function;
+  struct _worker_function_st *function;
+  struct _worker_function_st *function_list;
+  struct _worker_function_st *work_function;
   void *work_result;
   gearman_universal_st gearman_universal_static;
   gearman_packet_st grab_job;
@@ -75,24 +75,6 @@ struct gearman_worker_st
   gearman_job_st work_job;
 };
 
-
-/**
- * @ingroup gearman_worker
- */
-struct gearman_worker_function_st
-{
-  struct {
-    bool packet_in_use:1;
-    bool change:1;
-    bool remove:1;
-  } options;
-  gearman_worker_function_st *next;
-  gearman_worker_function_st *prev;
-  char *function_name;
-  gearman_worker_fn *worker_fn;
-  const void *context;
-  gearman_packet_st packet;
-};
 
 /**
  * Initialize a worker structure. Always check the return value even if passing
