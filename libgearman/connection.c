@@ -226,9 +226,9 @@ gearman_return_t gearman_connection_set_fd(gearman_connection_st *connection, in
   return GEARMAN_SUCCESS;
 }
 
-void *gearman_connection_context(const gearman_connection_st *connection)
+const void *gearman_connection_context(const gearman_connection_st *connection)
 {
-  return (void *)connection->context;
+  return connection->context;
 }
 
 void gearman_connection_set_context(gearman_connection_st *connection, const void *context)

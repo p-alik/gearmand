@@ -95,7 +95,7 @@ gearman_connection_st *gearman_server_con_con(gearman_server_con_st *con);
  * Get application data pointer.
  */
 GEARMAN_API
-void *gearman_server_con_data(gearman_server_con_st *con);
+const void *gearman_server_con_data(const gearman_server_con_st *con);
 
 /**
  * Set application data pointer.

@@ -166,7 +166,7 @@ gearman_connection_st *gearman_server_con_con(gearman_server_con_st *con)
   return &con->con;
 }
 
-void *gearman_server_con_data(gearman_server_con_st *con)
+const void *gearman_server_con_data(const gearman_server_con_st *con)
 {
   return gearman_connection_context(&(con->con));
 }

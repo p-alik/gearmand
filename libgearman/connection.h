@@ -174,7 +174,7 @@ gearman_return_t gearman_connection_set_fd(gearman_connection_st *connection, in
  * Get application context pointer.
  */
 GEARMAN_INTERNAL_API
-void *gearman_connection_context(const gearman_connection_st *connection);
+const void *gearman_connection_context(const gearman_connection_st *connection);
 
 /**
  * Set application context pointer.
