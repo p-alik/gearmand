@@ -461,7 +461,7 @@ gearman_return_t gearman_connection_flush(gearman_connection_st *connection)
         connection->addrinfo= NULL;
       }
 
-      snprintf(port_str, NI_MAXSERV, "%u", connection->port);
+      snprintf(port_str, NI_MAXSERV, "%hu", (uint16_t)connection->port);
 
       memset(&ai, 0, sizeof(struct addrinfo));
       ai.ai_socktype= SOCK_STREAM;

@@ -94,7 +94,7 @@ void gearman_task_free(gearman_task_st *task);
  * Get context for a task.
  */
 GEARMAN_API
-void *gearman_task_context(const gearman_task_st *task);
+const void *gearman_task_context(const gearman_task_st *task);
 
 /**
  * Set context for a task.

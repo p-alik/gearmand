@@ -84,9 +84,9 @@ void gearman_task_free(gearman_task_st *task)
     free(task);
 }
 
-void *gearman_task_context(const gearman_task_st *task)
+const void *gearman_task_context(const gearman_task_st *task)
 {
-  return (void *)task->context;
+  return task->context;
 }
 
 void gearman_task_set_context(gearman_task_st *task, const void *context)
@@ -96,12 +96,12 @@ void gearman_task_set_context(gearman_task_st *task, const void *context)
 
 const char *gearman_task_function_name(const gearman_task_st *task)
 {
-  return (char *)task->send.arg[0];
+  return task->send.arg[0];
 }
 
 const char *gearman_task_unique(const gearman_task_st *task)
 {
-  return (char *)task->send.arg[1];
+  return task->send.arg[1];
 }
 
 const char *gearman_task_job_handle(const gearman_task_st *task)
