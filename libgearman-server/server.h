@@ -50,8 +50,8 @@ struct gearman_server_st
   gearman_server_client_st *free_client_list;
   gearman_server_worker_st *free_worker_list;
   gearman_log_fn *log_fn;
-  const void *log_context;
-  const void *queue_context;
+  void *log_context;
+  void *queue_context;
   gearman_queue_add_fn *queue_add_fn;
   gearman_queue_flush_fn *queue_flush_fn;
   gearman_queue_done_fn *queue_done_fn;
@@ -114,7 +114,7 @@ void gearman_server_set_worker_wakeup(gearman_server_st *server,
 GEARMAN_API
 void gearman_server_set_log_fn(gearman_server_st *server,
                                gearman_log_fn *function,
-                               const void *context, gearman_verbose_t verbose);
+                               void *context, gearman_verbose_t verbose);
 
 /**
  * Process commands for a connection.
@@ -159,7 +159,7 @@ void *gearman_server_queue_context(const gearman_server_st *server);
  */
 GEARMAN_API
 void gearman_server_set_queue_context(gearman_server_st *server,
-                                      const void *context);
+                                      void *context);
 
 /**
  * Set function to call when jobs need to be stored in the persistent queue.

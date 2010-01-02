@@ -182,7 +182,7 @@ void gearman_server_thread_set_run(gearman_server_thread_st *thread,
 
 void gearman_server_thread_set_log_fn(gearman_server_thread_st *thread,
                                       gearman_log_fn *function,
-                                      const void *context,
+                                      void *context,
                                       gearman_verbose_t verbose)
 {
   thread->log_fn= function;

@@ -200,7 +200,7 @@ void gearman_server_set_worker_wakeup(gearman_server_st *server,
 
 void gearman_server_set_log_fn(gearman_server_st *server,
                                gearman_log_fn *function,
-                               const void *context, gearman_verbose_t verbose)
+                               void *context, gearman_verbose_t verbose)
 {
   server->log_fn= function;
   server->log_context= context;
@@ -671,7 +671,7 @@ void *gearman_server_queue_context(const gearman_server_st *server)
 }
 
 void gearman_server_set_queue_context(gearman_server_st *server,
-                                      const void *context)
+                                      void *context)
 {
   server->queue_context= context;
 }
