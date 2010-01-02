@@ -53,7 +53,7 @@ struct gearman_client_st
   uint32_t running_tasks;
   uint32_t task_count;
   size_t do_data_size;
-  const void *context;
+  void *context;
   gearman_connection_st *con;
   gearman_task_st *task;
   gearman_task_st *task_list;
@@ -188,14 +188,14 @@ void *gearman_client_context(const gearman_client_st *client);
  * @param[in] context Application context to set.
  */
 GEARMAN_API
-void gearman_client_set_context(gearman_client_st *client, const void *context);
+void gearman_client_set_context(gearman_client_st *client, void *context);
 
 /**
  * See gearman_set_log_fn() for details.
  */
 GEARMAN_API
 void gearman_client_set_log_fn(gearman_client_st *client,
-                               gearman_log_fn *function, const void *context,
+                               gearman_log_fn *function, void *context,
                                gearman_verbose_t verbose);
 
 /**
@@ -204,7 +204,7 @@ void gearman_client_set_log_fn(gearman_client_st *client,
 GEARMAN_API
 void gearman_client_set_workload_malloc_fn(gearman_client_st *client,
                                            gearman_malloc_fn *function,
-                                           const void *context);
+                                           void *context);
 
 /**
  * See gearman_set_workload_malloc_fn() for details.
@@ -212,7 +212,7 @@ void gearman_client_set_workload_malloc_fn(gearman_client_st *client,
 GEARMAN_API
 void gearman_client_set_workload_free_fn(gearman_client_st *client,
                                          gearman_free_fn *function,
-                                         const void *context);
+                                         void *context);
 
 /**
  * Add a job server to a client. This goes into a list of servers that can be
@@ -476,7 +476,7 @@ void gearman_client_set_task_context_free_fn(gearman_client_st *client,
 GEARMAN_API
 gearman_task_st *gearman_client_add_task(gearman_client_st *client,
                                          gearman_task_st *task,
-                                         const void *context,
+                                         void *context,
                                          const char *function_name,
                                          const char *unique,
                                          const void *workload,
@@ -490,7 +490,7 @@ gearman_task_st *gearman_client_add_task(gearman_client_st *client,
 GEARMAN_API
 gearman_task_st *gearman_client_add_task_high(gearman_client_st *client,
                                               gearman_task_st *task,
-                                              const void *context,
+                                              void *context,
                                               const char *function_name,
                                               const char *unique,
                                               const void *workload,
@@ -504,7 +504,7 @@ gearman_task_st *gearman_client_add_task_high(gearman_client_st *client,
 GEARMAN_API
 gearman_task_st *gearman_client_add_task_low(gearman_client_st *client,
                                              gearman_task_st *task,
-                                             const void *context,
+                                             void *context,
                                              const char *function_name,
                                              const char *unique,
                                              const void *workload,
@@ -518,7 +518,7 @@ gearman_task_st *gearman_client_add_task_low(gearman_client_st *client,
 GEARMAN_API
 gearman_task_st *gearman_client_add_task_background(gearman_client_st *client,
                                                     gearman_task_st *task,
-                                                    const void *context,
+                                                    void *context,
                                                     const char *function_name,
                                                     const char *unique,
                                                     const void *workload,
@@ -533,7 +533,7 @@ GEARMAN_API
 gearman_task_st *
 gearman_client_add_task_high_background(gearman_client_st *client,
                                         gearman_task_st *task,
-                                        const void *context,
+                                        void *context,
                                         const char *function_name,
                                         const char *unique,
                                         const void *workload,
@@ -548,7 +548,7 @@ GEARMAN_API
 gearman_task_st *
 gearman_client_add_task_low_background(gearman_client_st *client,
                                        gearman_task_st *task,
-                                       const void *context,
+                                       void *context,
                                        const char *function_name,
                                        const char *unique,
                                        const void *workload,
@@ -570,7 +570,7 @@ gearman_client_add_task_low_background(gearman_client_st *client,
 GEARMAN_API
 gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
                                                 gearman_task_st *task,
-                                                const void *context,
+                                                void *context,
                                                 const char *job_handle,
                                                 gearman_return_t *ret_ptr);
 

@@ -226,12 +226,12 @@ gearman_return_t gearman_connection_set_fd(gearman_connection_st *connection, in
   return GEARMAN_SUCCESS;
 }
 
-const void *gearman_connection_context(const gearman_connection_st *connection)
+void *gearman_connection_context(const gearman_connection_st *connection)
 {
   return connection->context;
 }
 
-void gearman_connection_set_context(gearman_connection_st *connection, const void *context)
+void gearman_connection_set_context(gearman_connection_st *connection, void *context)
 {
   connection->context= context;
 }
@@ -951,10 +951,10 @@ gearman_return_t gearman_connection_set_revents(gearman_connection_st *connectio
 
 void *gearman_connection_protocol_context(const gearman_connection_st *connection)
 {
-  return (void *)connection->protocol_context;
+  return connection->protocol_context;
 }
 
-void gearman_connection_set_protocol_context(gearman_connection_st *connection, const void *context)
+void gearman_connection_set_protocol_context(gearman_connection_st *connection, void *context)
 {
   connection->protocol_context= context;
 }

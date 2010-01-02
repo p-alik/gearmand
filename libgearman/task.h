@@ -60,7 +60,7 @@ struct gearman_task_st
   gearman_client_st *client;
   gearman_task_st *next;
   gearman_task_st *prev;
-  const void *context;
+  void *context;
   gearman_connection_st *con;
   gearman_packet_st *recv;
   gearman_packet_st send;
@@ -100,7 +100,7 @@ const void *gearman_task_context(const gearman_task_st *task);
  * Set context for a task.
  */
 GEARMAN_API
-void gearman_task_set_context(gearman_task_st *task, const void *context);
+void gearman_task_set_context(gearman_task_st *task, void *context);
 
 /**
  * Get function name associated with a task.

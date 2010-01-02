@@ -89,7 +89,7 @@ const void *gearman_task_context(const gearman_task_st *task)
   return task->context;
 }
 
-void gearman_task_set_context(gearman_task_st *task, const void *context)
+void gearman_task_set_context(gearman_task_st *task, void *context)
 {
   task->context= context;
 }

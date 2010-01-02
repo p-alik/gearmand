@@ -193,14 +193,14 @@ void *gearman_worker_context(const gearman_worker_st *worker);
  * @param[in] context Application context to set.
  */
 GEARMAN_API
-void gearman_worker_set_context(gearman_worker_st *worker, const void *context);
+void gearman_worker_set_context(gearman_worker_st *worker, void *context);
 
 /**
  * See gearman_set_log_fn() for details.
  */
 GEARMAN_API
 void gearman_worker_set_log_fn(gearman_worker_st *worker,
-                               gearman_log_fn *function, const void *context,
+                               gearman_log_fn *function, void *context,
                                gearman_verbose_t verbose);
 
 /**
@@ -209,7 +209,7 @@ void gearman_worker_set_log_fn(gearman_worker_st *worker,
 GEARMAN_API
 void gearman_worker_set_workload_malloc_fn(gearman_worker_st *worker,
                                            gearman_malloc_fn *function,
-                                           const void *context);
+                                           void *context);
 
 /**
  * See gearman_set_workload_free_fn() for details.
@@ -217,7 +217,7 @@ void gearman_worker_set_workload_malloc_fn(gearman_worker_st *worker,
 GEARMAN_API
 void gearman_worker_set_workload_free_fn(gearman_worker_st *worker,
                                          gearman_free_fn *function,
-                                         const void *context);
+                                         void *context);
 
 /**
  * Add a job server to a worker. This goes into a list of servers that can be
@@ -355,7 +355,7 @@ gearman_return_t gearman_worker_add_function(gearman_worker_st *worker,
                                              const char *function_name,
                                              uint32_t timeout,
                                              gearman_worker_fn *function,
-                                             const void *context);
+                                             void *context);
 
 /**
  * Wait for a job and call the appropriate callback function when it gets one.

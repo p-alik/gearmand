@@ -147,7 +147,7 @@ void gearman_universal_set_timeout(gearman_universal_st *state, int timeout)
 }
 
 void gearman_set_log_fn(gearman_universal_st *state, gearman_log_fn *function,
-                        const void *context, gearman_verbose_t verbose)
+                        void *context, gearman_verbose_t verbose)
 {
   state->log_fn= function;
   state->log_context= context;
@@ -156,7 +156,7 @@ void gearman_set_log_fn(gearman_universal_st *state, gearman_log_fn *function,
 
 void gearman_set_event_watch_fn(gearman_universal_st *state,
                                 gearman_event_watch_fn *function,
-                                const void *context)
+                                void *context)
 {
   state->event_watch_fn= function;
   state->event_watch_context= context;
@@ -164,7 +164,7 @@ void gearman_set_event_watch_fn(gearman_universal_st *state,
 
 void gearman_set_workload_malloc_fn(gearman_universal_st *state,
                                     gearman_malloc_fn *function,
-                                    const void *context)
+                                    void *context)
 {
   state->workload_malloc_fn= function;
   state->workload_malloc_context= context;
@@ -172,7 +172,7 @@ void gearman_set_workload_malloc_fn(gearman_universal_st *state,
 
 void gearman_set_workload_free_fn(gearman_universal_st *state,
                                   gearman_free_fn *function,
-                                  const void *context)
+                                  void *context)
 {
   state->workload_free_fn= function;
   state->workload_free_context= context;

@@ -17,7 +17,7 @@
 #include "test_worker.h"
 
 pid_t test_worker_start(in_port_t port, const char *function_name,
-                        gearman_worker_fn *function, const void *function_arg)
+                        gearman_worker_fn *function, void *function_arg)
 {
   pid_t worker_pid;
   gearman_worker_st worker;
