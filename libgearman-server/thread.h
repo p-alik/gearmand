@@ -40,7 +40,7 @@ struct gearman_server_thread_st
   gearman_server_thread_st *next;
   gearman_server_thread_st *prev;
   gearman_log_fn *log_fn;
-  const void *log_context;
+  void *log_context;
   gearman_server_thread_run_fn *run_fn;
   void *run_fn_arg;
   gearman_server_con_st *con_list;
@@ -115,7 +115,7 @@ void gearman_server_thread_set_event_watch(gearman_server_thread_st *thread,
 GEARMAN_API
 void gearman_server_thread_set_log_fn(gearman_server_thread_st *thread,
                                       gearman_log_fn *function,
-                                      const void *context,
+                                      void *context,
                                       gearman_verbose_t verbose);
 
 /**

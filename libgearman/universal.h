@@ -40,13 +40,13 @@ struct gearman_universal_st
   gearman_packet_st *packet_list;
   struct pollfd *pfds;
   gearman_log_fn *log_fn;
-  const void *log_context;
+  void *log_context;
   gearman_event_watch_fn *event_watch_fn;
-  const void *event_watch_context;
+  void *event_watch_context;
   gearman_malloc_fn *workload_malloc_fn;
-  const void *workload_malloc_context;
+  void *workload_malloc_context;
   gearman_free_fn *workload_free_fn;
-  const void *workload_free_context;
+  void *workload_free_context;
   char last_error[GEARMAN_MAX_ERROR_SIZE];
 };
 
@@ -216,7 +216,7 @@ void gearman_universal_set_timeout(gearman_universal_st *gearman, int timeout);
  */
 GEARMAN_INTERNAL_API
 void gearman_set_log_fn(gearman_universal_st *gearman, gearman_log_fn *function,
-                        const void *context, gearman_verbose_t verbose);
+                        void *context, gearman_verbose_t verbose);
 
 /**
  * Set custom I/O event callback function for a gearman structure.
@@ -229,7 +229,7 @@ void gearman_set_log_fn(gearman_universal_st *gearman, gearman_log_fn *function,
 GEARMAN_INTERNAL_API
 void gearman_set_event_watch_fn(gearman_universal_st *gearman,
                                 gearman_event_watch_fn *function,
-                                const void *context);
+                                void *context);
 
 /**
  * Set custom memory allocation function for workloads. Normally gearman uses
@@ -244,7 +244,7 @@ void gearman_set_event_watch_fn(gearman_universal_st *gearman,
 GEARMAN_INTERNAL_API
 void gearman_set_workload_malloc_fn(gearman_universal_st *gearman,
                                     gearman_malloc_fn *function,
-                                    const void *context);
+                                    void *context);
 
 /**
  * Set custom memory free function for workloads. Normally gearman uses the
@@ -259,7 +259,7 @@ void gearman_set_workload_malloc_fn(gearman_universal_st *gearman,
 GEARMAN_INTERNAL_API
 void gearman_set_workload_free_fn(gearman_universal_st *gearman,
                                   gearman_free_fn *function,
-                                  const void *context);
+                                  void *context);
 
 /**
  * Free all connections for a gearman structure.

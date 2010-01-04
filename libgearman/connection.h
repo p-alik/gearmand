@@ -76,13 +76,13 @@ struct gearman_connection_st
   gearman_universal_st *gearman;
   gearman_connection_st *next;
   gearman_connection_st *prev;
-  const void *context;
+  void *context;
   struct addrinfo *addrinfo;
   struct addrinfo *addrinfo_next;
   char *send_buffer_ptr;
   gearman_packet_st *recv_packet;
   char *recv_buffer_ptr;
-  const void *protocol_context;
+  void *protocol_context;
   gearman_connection_protocol_context_free_fn *protocol_context_free_fn;
   gearman_packet_pack_fn *packet_pack_fn;
   gearman_packet_unpack_fn *packet_unpack_fn;
@@ -174,13 +174,13 @@ gearman_return_t gearman_connection_set_fd(gearman_connection_st *connection, in
  * Get application context pointer.
  */
 GEARMAN_INTERNAL_API
-const void *gearman_connection_context(const gearman_connection_st *connection);
+void *gearman_connection_context(const gearman_connection_st *connection);
 
 /**
  * Set application context pointer.
  */
 GEARMAN_INTERNAL_API
-void gearman_connection_set_context(gearman_connection_st *connection, const void *context);
+void gearman_connection_set_context(gearman_connection_st *connection, void *context);
 
 /**
  * Connect to server.
@@ -259,7 +259,7 @@ void *gearman_connection_protocol_context(const gearman_connection_st *connectio
  * Set protocol context pointer.
  */
 GEARMAN_INTERNAL_API
-void gearman_connection_set_protocol_context(gearman_connection_st *connection, const void *context);
+void gearman_connection_set_protocol_context(gearman_connection_st *connection, void *context);
 
 /**
  * Set function to call when protocol_data should be freed.

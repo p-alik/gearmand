@@ -94,7 +94,7 @@ const char *gearman_verbose_name(gearman_verbose_t verbose);
 GEARMAN_API
 gearman_return_t gearman_parse_servers(const char *servers,
                                        gearman_parse_server_fn *callback,
-                                       const void *context);
+                                       void *context);
 
 /**
  * Get current socket I/O activity timeout value.

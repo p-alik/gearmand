@@ -67,7 +67,7 @@ struct gearmand_st
   int wakeup_fd[2];
   const char *host;
   gearman_log_fn *log_fn;
-  const void *log_context;
+  void *log_context;
   struct event_base *base;
   gearmand_port_st *port_list;
   gearmand_thread_st *thread_list;
@@ -140,7 +140,7 @@ void gearmand_set_threads(gearmand_st *gearmand, uint32_t threads);
  */
 GEARMAN_API
 void gearmand_set_log_fn(gearmand_st *gearmand, gearman_log_fn *function,
-                         const void *context, gearman_verbose_t verbose);
+                         void *context, gearman_verbose_t verbose);
 
 /**
  * Add a port to listen on when starting server with optional callback.

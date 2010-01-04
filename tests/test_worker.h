@@ -12,5 +12,5 @@
 #include <libgearman/gearman.h>
 
 pid_t test_worker_start(in_port_t port, const char *function_name,
-                        gearman_worker_fn *function, const void *function_arg);
+                        gearman_worker_fn *function, void *function_arg);
 void test_worker_stop(pid_t gearmand_pid);

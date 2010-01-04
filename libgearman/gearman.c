@@ -58,7 +58,7 @@ const char *gearman_verbose_name(gearman_verbose_t verbose)
 
 gearman_return_t gearman_parse_servers(const char *servers,
                                        gearman_parse_server_fn *function,
-                                       const void *context)
+                                       void *context)
 {
   const char *ptr= servers;
   size_t x;

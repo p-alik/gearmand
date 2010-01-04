@@ -27,7 +27,7 @@ struct _worker_function_st
   struct _worker_function_st *prev;
   char *function_name;
   gearman_worker_fn *worker_fn;
-  const void *context;
+  void *context;
   gearman_packet_st packet;
 };
 
@@ -60,7 +60,7 @@ static gearman_return_t _worker_function_add(gearman_worker_st *worker,
                                              const char *function_name,
                                              uint32_t timeout,
                                              gearman_worker_fn *worker_fn,
-                                             const void *context);
+                                             void *context);
 
 /**
  * Free a function.
@@ -290,13 +290,13 @@ void *gearman_worker_context(const gearman_worker_st *worker)
   return (void *)(worker->context);
 }
 
-void gearman_worker_set_context(gearman_worker_st *worker, const void *context)
+void gearman_worker_set_context(gearman_worker_st *worker, void *context)
 {
   worker->context= context;
 }
 
 void gearman_worker_set_log_fn(gearman_worker_st *worker,
-                               gearman_log_fn *function, const void *context,
+                               gearman_log_fn *function, void *context,
                                gearman_verbose_t verbose)
 {
   gearman_set_log_fn(worker->gearman, function, context, verbose);
@@ -304,14 +304,14 @@ void gearman_worker_set_log_fn(gearman_worker_st *worker,
 
 void gearman_worker_set_workload_malloc_fn(gearman_worker_st *worker,
                                            gearman_malloc_fn *function,
-                                           const void *context)
+                                           void *context)
 {
   gearman_set_workload_malloc_fn(worker->gearman, function, context);
 }
 
 void gearman_worker_set_workload_free_fn(gearman_worker_st *worker,
                                          gearman_free_fn *function,
-                                         const void *context)
+                                         void *context)
 {
   gearman_set_workload_free_fn(worker->gearman, function, context);
 }
@@ -711,7 +711,7 @@ gearman_return_t gearman_worker_add_function(gearman_worker_st *worker,
                                              const char *function_name,
                                              uint32_t timeout,
                                              gearman_worker_fn *worker_fn,
-                                             const void *context)
+                                             void *context)
 {
   if (function_name == NULL)
   {
@@ -816,7 +816,7 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
       else
       {
         worker->gearman->workload_free_fn(worker->work_result,
-                                (void *)worker->gearman->workload_free_context);
+                                          worker->gearman->workload_free_context);
       }
       worker->work_result= NULL;
     }
@@ -941,7 +941,7 @@ static gearman_return_t _worker_function_add(gearman_worker_st *worker,
                                              const char *function_name,
                                              uint32_t timeout,
                                              gearman_worker_fn *worker_fn,
-                                             const void *context)
+                                             void *context)
 {
   struct _worker_function_st *function;
   gearman_return_t ret;

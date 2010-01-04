@@ -157,7 +157,7 @@ void gearmand_set_threads(gearmand_st *gearmand, uint32_t threads)
 }
 
 void gearmand_set_log_fn(gearmand_st *gearmand, gearman_log_fn *function,
-                         const void *context, gearman_verbose_t verbose)
+                         void *context, gearman_verbose_t verbose)
 {
   gearman_server_set_log_fn(&(gearmand->server), _log, gearmand, verbose);
   gearmand->log_fn= function;
