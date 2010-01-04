@@ -12,11 +12,13 @@
 # undef NDEBUG
 #endif
 
-#include <stdio.h>
-#include <string.h>
 #include <assert.h>
+#include <errno.h>
 #include <signal.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -41,22 +43,31 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
   gearmand_st *gearmand;
   gearman_conf_st conf;
 
-  assert((gearmand_pid= fork()) != -1);
+  gearmand_pid= fork();
+  assert(gearmand_pid != -1);
 
   if (gearmand_pid == 0)
   {
-    assert(gearman_conf_create(&conf) != NULL);
+    gearman_conf_st *conf_ptr;
+    gearman_return_t ret;
+
+    conf_ptr= gearman_conf_create(&conf);
+    assert(conf_ptr);
 #ifdef HAVE_LIBDRIZZLE
-    assert(gearman_server_queue_libdrizzle_conf(&conf) == GEARMAN_SUCCESS);
+    ret= gearman_server_queue_libdrizzle_conf(&conf);
+    assert(ret == GEARMAN_SUCCESS);
 #endif
 #ifdef HAVE_LIBMEMCACHED
-    assert(gearman_server_queue_libmemcached_conf(&conf) == GEARMAN_SUCCESS);
+    ret= gearman_server_queue_libmemcached_conf(&conf);
+    assert(ret == GEARMAN_SUCCESS);
 #endif
 #ifdef HAVE_LIBSQLITE3
-    assert(gearman_server_queue_libsqlite3_conf(&conf) == GEARMAN_SUCCESS);
+    ret= gearman_server_queue_libsqlite3_conf(&conf);
+    assert(ret == GEARMAN_SUCCESS);
 #endif
 
-    assert(gearman_conf_parse_args(&conf, argc, argv) == GEARMAN_SUCCESS);
+    ret= gearman_conf_parse_args(&conf, argc, argv);
+    assert(ret == GEARMAN_SUCCESS);
 
     gearmand= gearmand_create(NULL, port);
     assert(gearmand != NULL);
@@ -66,18 +77,27 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
       assert(argc);
       assert(argv);
 #ifdef HAVE_LIBDRIZZLE
-      if (!strcmp(queue_type, "libdrizzle"))
-        assert((gearmand_queue_libdrizzle_init(gearmand, &conf)) == GEARMAN_SUCCESS);
+      if (! strcmp(queue_type, "libdrizzle"))
+      {
+        ret= gearmand_queue_libdrizzle_init(gearmand, &conf);
+        assert(ret == GEARMAN_SUCCESS);
+      }
       else
 #endif
 #ifdef HAVE_LIBMEMCACHED
-      if (!strcmp(queue_type, "libmemcached"))
-        assert((gearmand_queue_libmemcached_init(gearmand, &conf)) == GEARMAN_SUCCESS);
+      if (! strcmp(queue_type, "libmemcached"))
+      {
+        ret= gearmand_queue_libmemcached_init(gearmand, &conf);
+        assert(ret == GEARMAN_SUCCESS);
+      }
       else
 #endif
 #ifdef HAVE_LIBSQLITE3
-      if (!strcmp(queue_type, "libsqlite3"))
-        assert((gearmand_queue_libsqlite3_init(gearmand, &conf)) == GEARMAN_SUCCESS);
+      if (! strcmp(queue_type, "libsqlite3"))
+      {
+        ret= gearmand_queue_libsqlite3_init(gearmand, &conf);
+        assert(ret == GEARMAN_SUCCESS);
+      }
       else
 #endif
       {
@@ -85,7 +105,8 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
       }
     }
 
-    assert(gearmand_run(gearmand) != GEARMAN_SUCCESS);
+    ret= gearmand_run(gearmand);
+    assert(ret != GEARMAN_SUCCESS);
 
     if (queue_type != NULL)
     {
@@ -117,6 +138,22 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
 
 void test_gearmand_stop(pid_t gearmand_pid)
 {
-  assert(kill(gearmand_pid, SIGKILL) == 0);
-  assert(waitpid(gearmand_pid, NULL, 0) == gearmand_pid);
+  int ret;
+  pid_t pid;
+
+  ret= kill(gearmand_pid, SIGKILL);
+  
+  if (ret != 0)
+  {
+    if (ret == -1)
+    {
+      perror(strerror(errno));
+    }
+
+    assert(ret == 0); // If assert is enabled, we assert(), otherwise we return
+    return;
+  }
+
+  pid= waitpid(gearmand_pid, NULL, 0);
+  assert(pid == gearmand_pid);
 }
