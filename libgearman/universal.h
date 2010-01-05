@@ -163,25 +163,6 @@ static inline bool gearman_universal_is_non_blocking(gearman_universal_st *gearm
   return gearman->options.non_blocking;
 }
 
-static inline bool gearman_universal_is_stored_non_blocking(gearman_universal_st *gearman)
-{
-  return gearman->options.stored_non_blocking;
-}
-
-/**
-  @todo fix internals to not require state changes like  this.
- */
-static inline void gearman_universal_push_non_blocking(gearman_universal_st *gearman)
-{
-  gearman->options.stored_non_blocking= gearman->options.non_blocking;
-  gearman->options.non_blocking= true;
-}
-
-static inline void gearman_universal_pop_non_blocking(gearman_universal_st *gearman)
-{
-  gearman->options.non_blocking= gearman->options.stored_non_blocking;
-}
-
 /**
  * Get current socket I/O activity timeout value.
  *

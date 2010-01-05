@@ -195,72 +195,6 @@ static test_return_t state_option_on_create_test(void *object __attribute__((unu
   return TEST_SUCCESS;
 }
 
-static test_return_t state_option_push_test(void *object __attribute__((unused)))
-{
-  gearman_universal_st universal;
-  gearman_universal_st *universal_ptr;
-  gearman_universal_options_t options[]= { GEARMAN_NON_BLOCKING, GEARMAN_DONT_TRACK_PACKETS, GEARMAN_MAX};
-
-  universal_ptr= gearman_universal_create(&universal, options);
-  test_truth(universal_ptr);
-  { // Initial Allocated, no changes
-    test_false(universal_ptr->options.allocated);
-    test_truth(universal_ptr->options.dont_track_packets);
-    test_truth(universal_ptr->options.non_blocking);
-    test_false(universal_ptr->options.stored_non_blocking);
-  }
-
-  gearman_universal_push_non_blocking(universal_ptr);
-  { // Create non-blocking universal_ptr, hold old universal_ptr.
-    test_false(universal_ptr->options.allocated);
-    test_truth(universal_ptr->options.dont_track_packets);
-    test_truth(universal_ptr->options.non_blocking);
-    test_truth(universal_ptr->options.stored_non_blocking);
-  }
-
-  gearman_universal_pop_non_blocking(universal_ptr);
-  { // Back to previous universal_ptr
-    test_false(universal_ptr->options.allocated);
-    test_truth(universal_ptr->options.dont_track_packets);
-    test_truth(universal_ptr->options.non_blocking);
-    test_truth(universal_ptr->options.stored_non_blocking);
-  }
-  gearman_universal_free(universal_ptr);
-
-
-  options[0]= GEARMAN_DONT_TRACK_PACKETS;
-  options[1]= GEARMAN_MAX;
-  universal_ptr= gearman_universal_create(&universal, options);
-  test_truth(universal_ptr);
-  { // Initial Allocated, no changes
-    test_false(universal_ptr->options.allocated);
-    test_truth(universal_ptr->options.dont_track_packets);
-    test_false(universal_ptr->options.non_blocking);
-    test_false(universal_ptr->options.stored_non_blocking);
-  }
-
-  gearman_universal_push_non_blocking(universal_ptr);
-  { // Create non-blocking universal_ptr, hold old universal_ptr.
-    test_false(universal_ptr->options.allocated);
-    test_truth(universal_ptr->options.dont_track_packets);
-    test_truth(universal_ptr->options.non_blocking);
-    test_false(universal_ptr->options.stored_non_blocking);
-  }
-
-  gearman_universal_pop_non_blocking(universal_ptr);
-  { // Back to previous universal_ptr
-    test_false(universal_ptr->options.allocated);
-    test_truth(universal_ptr->options.dont_track_packets);
-    test_false(universal_ptr->options.non_blocking);
-    test_false(universal_ptr->options.stored_non_blocking);
-  }
-  gearman_universal_free(universal_ptr);
-
-
-
-  return TEST_SUCCESS;
-}
-
 
 static test_return_t state_option_set_test(void *object __attribute__((unused)))
 {
@@ -278,12 +212,6 @@ static test_return_t state_option_set_test(void *object __attribute__((unused)))
   }
 
   test_truth(gearman_universal_is_non_blocking(universal_ptr));
-  test_false(gearman_universal_is_stored_non_blocking(universal_ptr));
-
-  gearman_universal_push_non_blocking(universal_ptr);
-  test_truth(gearman_universal_is_non_blocking(universal_ptr));
-  test_truth(gearman_universal_is_stored_non_blocking(universal_ptr));
-  gearman_universal_free(universal_ptr);
 
   universal_ptr= gearman_universal_create(&universal, NULL);
   { // Initial Allocated, no changes
@@ -309,15 +237,6 @@ static test_return_t state_option_set_test(void *object __attribute__((unused)))
     test_false(universal_ptr->options.stored_non_blocking);
   }
 
-  gearman_universal_push_non_blocking(universal_ptr);
-  gearman_universal_remove_options(universal_ptr, GEARMAN_DONT_TRACK_PACKETS);
-  { // Initial Allocated, no changes
-    test_false(universal_ptr->options.allocated);
-    test_false(universal_ptr->options.dont_track_packets);
-    test_truth(universal_ptr->options.non_blocking);
-    test_false(universal_ptr->options.stored_non_blocking);
-  }
-
   gearman_universal_free(universal_ptr);
 
   return TEST_SUCCESS;
@@ -329,7 +248,6 @@ test_st universal_st_test[] ={
   {"set_timeout", 0, set_timout_test },
   {"basic_error", 0, basic_error_test },
   {"state_options", 0, state_option_test },
-  {"state_options_push", 0, state_option_push_test },
   {"state_options_on_create", 0, state_option_on_create_test},
   {"state_options_set", 0, state_option_set_test },
   {0, 0, 0}

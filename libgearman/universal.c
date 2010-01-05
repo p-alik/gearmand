@@ -301,13 +301,18 @@ gearman_connection_st *gearman_ready(gearman_universal_st *state)
 }
 
 /**
-  @note gearman_universal_push_blocking is only used for echo (and should be fixed
+  @note _push_blocking is only used for echo (and should be fixed
   when tricky flip/flop in IO is fixed).
 */
-static inline void gearman_universal_push_blocking(gearman_universal_st *state)
+static inline void _push_blocking(gearman_universal_st *state, bool *orig_block_state)
 {
-  state->options.stored_non_blocking= state->options.non_blocking;
+  *orig_block_state= state->options.non_blocking;
   state->options.non_blocking= false;
+}
+
+static inline void _pop_non_blocking(gearman_universal_st *gearman, bool orig_block_state)
+{
+  gearman->options.non_blocking= orig_block_state;
 }
 
 gearman_return_t gearman_echo(gearman_universal_st *state, const void *workload,
@@ -316,6 +321,7 @@ gearman_return_t gearman_echo(gearman_universal_st *state, const void *workload,
   gearman_connection_st *con;
   gearman_packet_st packet;
   gearman_return_t ret;
+  bool orig_block_state;
 
   ret= gearman_packet_create_args(state, &packet, GEARMAN_MAGIC_REQUEST,
                                   GEARMAN_COMMAND_ECHO_REQ, &workload,
@@ -323,44 +329,44 @@ gearman_return_t gearman_echo(gearman_universal_st *state, const void *workload,
   if (ret != GEARMAN_SUCCESS)
     return ret;
 
-  gearman_universal_push_blocking(state);
+  _push_blocking(state, &orig_block_state);
 
   for (con= state->con_list; con != NULL; con= con->next)
   {
+    gearman_packet_st *packet_ptr;
+
     ret= gearman_connection_send(con, &packet, true);
     if (ret != GEARMAN_SUCCESS)
     {
-      gearman_packet_free(&packet);
-      gearman_universal_pop_non_blocking(state);
-
-      return ret;
+      goto exit;
     }
 
-    (void)gearman_connection_recv(con, &(con->packet), &ret, true);
+    packet_ptr= gearman_connection_recv(con, &(con->packet), &ret, true);
     if (ret != GEARMAN_SUCCESS)
     {
-      gearman_packet_free(&packet);
-      gearman_universal_pop_non_blocking(state);
-
-      return ret;
+      goto exit;
     }
+
+    assert(packet_ptr);
 
     if (con->packet.data_size != workload_size ||
         memcmp(workload, con->packet.data, workload_size))
     {
       gearman_packet_free(&(con->packet));
-      gearman_packet_free(&packet);
-      gearman_universal_pop_non_blocking(state);
       gearman_universal_set_error(state, "gearman_echo", "corruption during echo");
 
-      return GEARMAN_ECHO_DATA_CORRUPTION;
+      ret= GEARMAN_ECHO_DATA_CORRUPTION;
+      goto exit;
     }
 
     gearman_packet_free(&(con->packet));
   }
 
+  ret= GEARMAN_SUCCESS;
+
+exit:
   gearman_packet_free(&packet);
-  gearman_universal_pop_non_blocking(state);
+  _pop_non_blocking(state, orig_block_state);
 
   return GEARMAN_SUCCESS;
 }
