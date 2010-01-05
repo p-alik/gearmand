@@ -871,7 +871,6 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
       {
         client->state= GEARMAN_CLIENT_STATE_IDLE;
 
-        ret= GEARMAN_CLIENT_STATE_IDLE;
         goto exit;
       }
     }
