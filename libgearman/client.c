@@ -109,7 +109,7 @@ gearman_client_st *gearman_client_clone(gearman_client_st *client,
     return _client_allocate(client, false);
   }
 
-  client= _client_allocate(client, false);
+  client= _client_allocate(client, true);
 
   if (client == NULL)
   {

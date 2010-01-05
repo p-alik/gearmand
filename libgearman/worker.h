@@ -60,7 +60,6 @@ struct gearman_worker_st
   uint32_t function_count;
   uint32_t job_count;
   size_t work_result_size;
-  gearman_universal_st *gearman;
   const void *context;
   gearman_connection_st *con;
   gearman_job_st *job;
@@ -69,7 +68,7 @@ struct gearman_worker_st
   struct _worker_function_st *function_list;
   struct _worker_function_st *work_function;
   void *work_result;
-  gearman_universal_st gearman_universal_static;
+  gearman_universal_st universal;
   gearman_packet_st grab_job;
   gearman_packet_st pre_sleep;
   gearman_job_st work_job;
