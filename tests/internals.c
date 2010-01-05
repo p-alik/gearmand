@@ -366,8 +366,34 @@ static test_return_t connection_init_test(void *not_used __attribute__((unused))
   return TEST_SUCCESS;
 }
 
+static test_return_t connection_alloc_test(void *not_used __attribute__((unused)))
+{
+  gearman_universal_st universal;
+  gearman_universal_st *universal_ptr;
+
+  gearman_connection_st *connection_ptr;
+
+  universal_ptr= gearman_universal_create(&universal, NULL);
+  test_false(universal.options.allocated);
+  test_false(universal_ptr->options.allocated);
+
+  connection_ptr= gearman_connection_create(universal_ptr, NULL, NULL);
+  test_truth(connection_ptr->options.allocated);
+
+  test_false(connection_ptr->options.ready);
+  test_false(connection_ptr->options.packet_in_use);
+  test_false(connection_ptr->options.external_fd);
+  test_false(connection_ptr->options.ignore_lost_connection);
+  test_false(connection_ptr->options.close_after_flush);
+
+  gearman_connection_free(connection_ptr);
+
+  return TEST_SUCCESS;
+}
+
 test_st connection_st_test[] ={
   {"init", 0, connection_init_test },
+  {"alloc", 0, connection_alloc_test },
   {0, 0, 0}
 };
 

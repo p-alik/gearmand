@@ -330,6 +330,9 @@ void *create(void *object __attribute__((unused)))
 void *world_create(test_return_t *error)
 {
   worker_test_st *test;
+  pid_t gearmand_pid;
+
+  gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, NULL, NULL, 0);
 
   test= malloc(sizeof(worker_test_st));
 
@@ -340,6 +343,9 @@ void *world_create(test_return_t *error)
   }
 
   memset(test, 0, sizeof(worker_test_st));
+
+  test->gearmand_pid= gearmand_pid;
+
   if (gearman_worker_create(&(test->worker)) == NULL)
   {
     *error= TEST_FAILURE;
@@ -351,8 +357,6 @@ void *world_create(test_return_t *error)
     *error= TEST_FAILURE;
     return NULL;
   }
-
-  test->gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, NULL, NULL, 0);
 
   *error= TEST_SUCCESS;
 

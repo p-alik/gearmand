@@ -125,6 +125,7 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
     }
 
     gearmand_free(gearmand);
+    gearman_conf_free(&conf);
     exit(0);
   }
   else

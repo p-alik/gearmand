@@ -89,13 +89,23 @@ gdb-worker: ${noinst_PROGRAMS}
 gdb-internals: ${noinst_PROGRAMS}
 	$(LIBTOOL) --mode=execute gdb tests/internals_test
 
-valgrind: ${noinst_PROGRAMS}
+valgrind-client:
 	$(LIBTOOL) --mode=execute valgrind --leak-check=yes --show-reachable=yes  tests/client_test
+
+valgrind-worker:
 	$(LIBTOOL) --mode=execute valgrind --leak-check=yes --show-reachable=yes  tests/worker_test
+
+valgrind-internals:
 	$(LIBTOOL) --mode=execute valgrind --leak-check=yes --show-reachable=yes  tests/internals_test
+
+valgrind-libmemcached:
 	$(LIBMEMCACHED_SETUP)
 	$(LIBMEMCACHED_VALGRIND)
 	$(LIBMEMCACHED_TEARDOWN)
 	$(LIBMEMCACHED_RM)
+
+valgrind-sqlite:
 	$(SQLITE_VALGRIND)
 	$(SQLITE_RM)
+
+valgrind: ${noinst_PROGRAMS} valgrind-client valgrind-worker valgrind-internals valgrind-sqlite

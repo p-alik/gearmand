@@ -468,6 +468,7 @@ static void log_counter(const char *line, gearman_verbose_t verbose,
 }
 
 static uint32_t global_counter;
+
 static test_return_t pre_logging(void *object)
 {
   client_test_st *all= (client_test_st *)object;
@@ -521,11 +522,22 @@ void *client_test_worker(gearman_job_st *job, void *context,
 void *world_create(test_return_t *error)
 {
   client_test_st *test;
+  pid_t gearmand_pid;
+  pid_t worker_pid;
+
   /**
    *  @TODO We cast this to char ** below, which is evil. We need to do the
    *  right thing
    */
   const char *argv[1]= { "client_gearmand" };
+
+  /**
+    We start up everything before we allocate so that we don't have to track memory in the forked process.
+  */
+  gearmand_pid= test_gearmand_start(CLIENT_TEST_PORT, NULL,
+                                    (char **)argv, 1);
+  worker_pid= test_worker_start(CLIENT_TEST_PORT, "client_test",
+                                client_test_worker, NULL);
 
   test= malloc(sizeof(client_test_st));
   if (! test)
@@ -535,6 +547,10 @@ void *world_create(test_return_t *error)
   }
 
   memset(test, 0, sizeof(client_test_st));
+
+  test->gearmand_pid= gearmand_pid;
+  test->worker_pid= worker_pid;
+
 
   if (gearman_client_create(&(test->client)) == NULL)
   {
@@ -547,11 +563,6 @@ void *world_create(test_return_t *error)
     *error= TEST_FAILURE;
     return NULL;
   }
-
-  test->gearmand_pid= test_gearmand_start(CLIENT_TEST_PORT, NULL,
-                                          (char **)argv, 1);
-  test->worker_pid= test_worker_start(CLIENT_TEST_PORT, "client_test",
-                                      client_test_worker, NULL);
 
   *error= TEST_SUCCESS;
 

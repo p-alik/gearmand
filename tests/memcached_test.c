@@ -116,10 +116,12 @@ test_return_t queue_worker(void *object)
 void *world_create(test_return_t *error)
 {
   worker_test_st *test;
+  pid_t gearmand_pid;
   const char *argv[2]= { "test_gearmand", "--libmemcached-servers=localhost:12555" };
 
-  test= malloc(sizeof(worker_test_st));
+  gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, "libmemcached", (char **)argv, 2);
 
+  test= malloc(sizeof(worker_test_st));
   if (! test)
   {
     *error= TEST_MEMORY_ALLOCATION_FAILURE;
@@ -139,7 +141,7 @@ void *world_create(test_return_t *error)
     return NULL;
   }
 
-  test->gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, "libmemcached", (char **)argv, 2);
+  test->gearmand_pid= gearmand_pid;
 
   *error= TEST_SUCCESS;
 
