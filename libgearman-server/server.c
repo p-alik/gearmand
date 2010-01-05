@@ -748,7 +748,7 @@ static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
   data= malloc(GEARMAN_TEXT_RESPONSE_SIZE);
   if (data == NULL)
   {
-    GEARMAN_ERROR_SET(packet->gearman, "_server_run_text", "malloc")
+    GEARMAN_ERROR_SET(packet->universal, "_server_run_text", "malloc")
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
   total= GEARMAN_TEXT_RESPONSE_SIZE;
@@ -783,7 +783,7 @@ static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
           {
             GEARMAN_SERVER_THREAD_UNLOCK(thread)
             free(data);
-            GEARMAN_ERROR_SET(packet->gearman, "_server_run_text", "malloc")
+            GEARMAN_ERROR_SET(packet->universal, "_server_run_text", "malloc")
             return GEARMAN_MEMORY_ALLOCATION_FAILURE;
           }
 
@@ -830,7 +830,7 @@ static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
         if (new_data == NULL)
         {
           free(data);
-          GEARMAN_ERROR_SET(packet->gearman, "_server_run_text", "malloc")
+          GEARMAN_ERROR_SET(packet->universal, "_server_run_text", "malloc")
           return GEARMAN_MEMORY_ALLOCATION_FAILURE;
         }
 
@@ -970,7 +970,7 @@ _server_queue_work_data(gearman_server_job_st *server_job,
         data= malloc(packet->data_size);
         if (data == NULL)
         {
-          GEARMAN_ERROR_SET(packet->gearman, "_server_run_command", "malloc")
+          GEARMAN_ERROR_SET(packet->universal, "_server_run_command", "malloc")
           return GEARMAN_MEMORY_ALLOCATION_FAILURE;
         }
 

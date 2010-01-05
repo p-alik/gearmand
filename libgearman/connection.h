@@ -73,7 +73,7 @@ struct gearman_connection_st
   size_t recv_buffer_size;
   size_t recv_data_size;
   size_t recv_data_offset;
-  gearman_universal_st *gearman;
+  gearman_universal_st *universal;
   gearman_connection_st *next;
   gearman_connection_st *prev;
   void *context;

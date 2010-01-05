@@ -45,7 +45,7 @@ struct gearman_packet_st
   uint8_t argc;
   size_t args_size;
   size_t data_size;
-  gearman_universal_st *gearman;
+  gearman_universal_st *universal;
   gearman_packet_st *next;
   gearman_packet_st *prev;
   char *args;

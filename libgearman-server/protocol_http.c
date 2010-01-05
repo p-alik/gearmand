@@ -37,12 +37,12 @@ typedef struct
 } gearman_protocol_http_st;
 
 /* Protocol callback functions. */
-static gearman_return_t _http_con_add(gearman_connection_st *con);
-static void _http_free(gearman_connection_st *con, void *context);
-static size_t _http_pack(const gearman_packet_st *packet, gearman_connection_st *con,
+static gearman_return_t _http_con_add(gearman_connection_st *connection);
+static void _http_free(gearman_connection_st *connection, void *context);
+static size_t _http_pack(const gearman_packet_st *packet, gearman_connection_st *connection,
                          void *data, size_t data_size,
                          gearman_return_t *ret_ptr);
-static size_t _http_unpack(gearman_packet_st *packet, gearman_connection_st *con,
+static size_t _http_unpack(gearman_packet_st *packet, gearman_connection_st *connection,
                            const void *data, size_t data_size,
                            gearman_return_t *ret_ptr);
 
@@ -114,42 +114,42 @@ gearman_return_t gearmand_protocol_http_deinit(gearmand_st *gearmand __attribute
  * Static definitions
  */
 
-static gearman_return_t _http_con_add(gearman_connection_st *con)
+static gearman_return_t _http_con_add(gearman_connection_st *connection)
 {
   gearman_protocol_http_st *http;
 
   http= malloc(sizeof(gearman_protocol_http_st));
   if (http == NULL)
   {
-    GEARMAN_ERROR_SET(con->gearman, "_http_con_add", "malloc")
+    GEARMAN_ERROR_SET(connection->universal, "_http_con_add", "malloc")
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
 
   http->background= false;
   http->keep_alive= false;
 
-  gearman_connection_set_protocol_context(con, http);
-  gearman_connection_set_protocol_context_free_fn(con, _http_free);
-  gearman_connection_set_packet_pack_fn(con, _http_pack);
-  gearman_connection_set_packet_unpack_fn(con, _http_unpack);
+  gearman_connection_set_protocol_context(connection, http);
+  gearman_connection_set_protocol_context_free_fn(connection, _http_free);
+  gearman_connection_set_packet_pack_fn(connection, _http_pack);
+  gearman_connection_set_packet_unpack_fn(connection, _http_unpack);
 
   return GEARMAN_SUCCESS;
 }
 
-static void _http_free(gearman_connection_st *con __attribute__ ((unused)),
+static void _http_free(gearman_connection_st *connection __attribute__ ((unused)),
                        void *context)
 {
   free((gearman_protocol_http_st *)context);
 }
 
-static size_t _http_pack(const gearman_packet_st *packet, gearman_connection_st *con,
+static size_t _http_pack(const gearman_packet_st *packet, gearman_connection_st *connection,
                          void *data, size_t data_size,
                          gearman_return_t *ret_ptr)
 {
   size_t pack_size;
   gearman_protocol_http_st *http;
 
-  http= (gearman_protocol_http_st *)gearman_connection_protocol_context(con);
+  http= (gearman_protocol_http_st *)gearman_connection_protocol_context(connection);
 
   if (packet->command != GEARMAN_COMMAND_WORK_COMPLETE &&
       packet->command != GEARMAN_COMMAND_WORK_FAIL &&
@@ -180,14 +180,14 @@ static size_t _http_pack(const gearman_packet_st *packet, gearman_connection_st 
 
   if (! (http->keep_alive))
   {
-    gearman_connection_set_option(con, GEARMAN_CON_CLOSE_AFTER_FLUSH, true);
+    gearman_connection_set_option(connection, GEARMAN_CON_CLOSE_AFTER_FLUSH, true);
   }
 
   *ret_ptr= GEARMAN_SUCCESS;
   return pack_size;
 }
 
-static size_t _http_unpack(gearman_packet_st *packet, gearman_connection_st *con,
+static size_t _http_unpack(gearman_packet_st *packet, gearman_connection_st *connection,
                            const void *data, size_t data_size,
                            gearman_return_t *ret_ptr)
 {
@@ -216,7 +216,7 @@ static size_t _http_unpack(gearman_packet_st *packet, gearman_connection_st *con
     return offset;
   }
 
-  http= (gearman_protocol_http_st *)gearman_connection_protocol_context(con);
+  http= (gearman_protocol_http_st *)gearman_connection_protocol_context(connection);
   http->background= false;
   http->keep_alive= false;
 
@@ -225,7 +225,7 @@ static size_t _http_unpack(gearman_packet_st *packet, gearman_connection_st *con
   uri= memchr(request, ' ', request_size);
   if (uri == NULL)
   {
-    GEARMAN_ERROR_SET(packet->gearman, "_http_unpack", "bad request line: %.*s",
+    GEARMAN_ERROR_SET(packet->universal, "_http_unpack", "bad request line: %.*s",
                       (uint32_t)request_size, request);
     *ret_ptr= GEARMAN_INVALID_PACKET;
     return 0;
@@ -236,7 +236,7 @@ static size_t _http_unpack(gearman_packet_st *packet, gearman_connection_st *con
        (strncasecmp(method, "GET", 3) && strncasecmp(method, "PUT", 3))) &&
       (method_size != 4 || strncasecmp(method, "POST", 4)))
   {
-    GEARMAN_ERROR_SET(packet->gearman, "_http_unpack", "bad method: %.*s",
+    GEARMAN_ERROR_SET(packet->universal, "_http_unpack", "bad method: %.*s",
                       (uint32_t)method_size, method);
     *ret_ptr= GEARMAN_INVALID_PACKET;
     return 0;
@@ -251,7 +251,7 @@ static size_t _http_unpack(gearman_packet_st *packet, gearman_connection_st *con
   version= memchr(uri, ' ', request_size - (size_t)(uri - request));
   if (version == NULL)
   {
-    GEARMAN_ERROR_SET(packet->gearman, "_http_unpack", "bad request line: %.*s",
+    GEARMAN_ERROR_SET(packet->universal, "_http_unpack", "bad request line: %.*s",
                       (uint32_t)request_size, request);
     *ret_ptr= GEARMAN_INVALID_PACKET;
     return 0;
@@ -260,7 +260,7 @@ static size_t _http_unpack(gearman_packet_st *packet, gearman_connection_st *con
   uri_size= version - uri;
   if (uri_size == 0)
   {
-    GEARMAN_ERROR_SET(packet->gearman, "_http_unpack",
+    GEARMAN_ERROR_SET(packet->universal, "_http_unpack",
                       "must give function name in URI")
     *ret_ptr= GEARMAN_INVALID_PACKET;
     return 0;
@@ -275,7 +275,7 @@ static size_t _http_unpack(gearman_packet_st *packet, gearman_connection_st *con
     http->keep_alive= true;
   else if (version_size != 8 || strncasecmp(version, "HTTP/1.0", 8))
   {
-    GEARMAN_ERROR_SET(packet->gearman, "_http_unpack", "bad version: %.*s",
+    GEARMAN_ERROR_SET(packet->universal, "_http_unpack", "bad version: %.*s",
                       (uint32_t)version_size, version);
     *ret_ptr= GEARMAN_INVALID_PACKET;
     return 0;
