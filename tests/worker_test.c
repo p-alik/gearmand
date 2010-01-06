@@ -428,14 +428,13 @@ static test_return_t _runner_default(libgearman_test_callback_fn func, worker_te
 
   if (func)
   {
+    gearman_worker_unregister_all(worker);
     return func(worker);
   }
   else
   {
     return TEST_SUCCESS;
   }
-
-  gearman_worker_unregister_all(worker);
 }
 
 
