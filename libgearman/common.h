@@ -16,9 +16,6 @@
 
 #include "config.h"
 
-#define GEARMAN_CORE
-#include "gearman.h"
-
 #ifdef HAVE_ASSERT_H
 #include <assert.h>
 #endif
@@ -75,5 +72,16 @@
 #  include <time.h>
 # endif
 #endif
+
+#include <stdint.h>
+#include <limits.h>
+
+#define BUILDING_LIBGEARMAN
+#define GEARMAN_CORE
+
+#include "gearman.h"
+
+/* These are private not to be installed headers */
+#include "libgearman/byteorder.h"
 
 #endif /* __GEARMAN_COMMON_H__ */

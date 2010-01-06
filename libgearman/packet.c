@@ -250,6 +250,7 @@ void gearman_packet_free(gearman_packet_st *packet)
 
 gearman_return_t gearman_packet_pack_header(gearman_packet_st *packet)
 {
+  uint64_t length_64;
   uint32_t tmp;
 
   if (packet->magic == GEARMAN_MAGIC_TEXT)
@@ -295,8 +296,12 @@ gearman_return_t gearman_packet_pack_header(gearman_packet_st *packet)
   tmp= htonl(tmp);
   memcpy(packet->args + 4, &tmp, 4);
 
-  tmp= (uint32_t)(packet->args_size + packet->data_size) -
-                  GEARMAN_PACKET_HEADER_SIZE;
+  length_64= packet->args_size + packet->data_size - GEARMAN_PACKET_HEADER_SIZE;
+  
+  if (length_64 > UINT_MAX)
+    return GEARMAN_COMMAND_WORK_DATA;
+
+  tmp= (uint32_t)length_64;
   tmp= htonl(tmp);
   memcpy(packet->args + 8, &tmp, 4);
 

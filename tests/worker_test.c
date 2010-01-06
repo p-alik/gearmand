@@ -37,7 +37,6 @@ test_return_t allocation_test(void *object);
 test_return_t clone_test(void *object);
 test_return_t echo_test(void *object);
 test_return_t option_test(void *object);
-test_return_t bug372074_test(void *object);
 
 void *create(void *object);
 void destroy(void *object);
