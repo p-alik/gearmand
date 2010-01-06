@@ -299,7 +299,7 @@ gearman_return_t gearman_packet_pack_header(gearman_packet_st *packet)
   length_64= packet->args_size + packet->data_size - GEARMAN_PACKET_HEADER_SIZE;
   
   if (length_64 > UINT_MAX)
-    return GEARMAN_COMMAND_WORK_DATA;
+    return GEARMAN_WORK_ERROR;
 
   tmp= (uint32_t)length_64;
   tmp= htonl(tmp);
