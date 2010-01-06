@@ -424,7 +424,7 @@ void _worker(gearman_args_st *args)
   gearman_worker_st worker;
   gearman_return_t ret;
   uint32_t x;
-  
+
   if (gearman_worker_create(&worker) == NULL)
     GEARMAN_ERROR("Memory allocation failure on client creation")
 
@@ -525,7 +525,7 @@ static void *_worker_cb(gearman_job_st *job, void *context,
     }
 
     close(in_fds[1]);
-    
+
     if (args->job_per_newline)
     {
       f= fdopen(out_fds[0], "r");

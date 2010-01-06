@@ -361,7 +361,7 @@ gearman_return_t gearman_worker_unregister(gearman_worker_st *worker,
   for (function= worker->function_list; function != NULL;
        function= function->next)
   {
-    if (!strcmp(function_name, function->function_name))
+    if (! strcmp(function_name, function->function_name))
       break;
   }
 

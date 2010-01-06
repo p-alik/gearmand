@@ -313,12 +313,42 @@ test_return_t echo_test(void *object)
 
   value_length= strlen(value);
 
-  rc= gearman_worker_echo(worker, (uint8_t *)value, value_length);
+  rc= gearman_worker_echo(worker, value, value_length);
   if (rc != GEARMAN_SUCCESS)
     return TEST_FAILURE;
 
   return TEST_SUCCESS;
 }
+
+static void *_gearman_worker_add_function_worker_fn(gearman_job_st *job __attribute__((unused)),
+						    void *context __attribute__((unused)),
+						    size_t *result_size __attribute__((unused)),
+						    gearman_return_t *ret_ptr __attribute__((unused)))
+{
+  (void)job;
+  (void)context;
+  *ret_ptr= GEARMAN_WORK_FAIL;
+
+  return NULL;
+}
+
+static test_return_t gearman_worker_add_function_test(void *object)
+{
+  gearman_return_t rc;
+  gearman_worker_st *worker= (gearman_worker_st *)object;
+  const char *function_name= "_gearman_worker_add_function_worker_fn";
+
+  rc= gearman_worker_add_function(worker,
+				  function_name,
+				  0, _gearman_worker_add_function_worker_fn, NULL);
+
+  test_truth(rc == GEARMAN_SUCCESS);
+
+  gearman_worker_unregister(worker, function_name);
+
+  return TEST_SUCCESS;
+}
+
 
 void *create(void *object __attribute__((unused)))
 {
@@ -378,6 +408,7 @@ test_st tests[] ={
   {"clone", 0, clone_test },
   {"echo", 0, echo_test },
   {"options", 0, option_test },
+  {"gearman_worker_add_function", 0, gearman_worker_add_function_test },
   {0, 0, 0}
 };
 
@@ -390,14 +421,21 @@ collection_st collection[] ={
 typedef test_return_t (*libgearman_test_callback_fn)(gearman_worker_st *);
 static test_return_t _runner_default(libgearman_test_callback_fn func, worker_test_st *container)
 {
+  gearman_worker_st *worker= &container->worker;
+
+  /* We should enter with zero functions  registered */
+  test_truth(worker->function_list == NULL);
+
   if (func)
   {
-    return func(&container->worker);
+    return func(worker);
   }
   else
   {
     return TEST_SUCCESS;
   }
+
+  gearman_worker_unregister_all(worker);
 }
 
 
