@@ -349,7 +349,7 @@ static test_return_t echo_max_test(void *object)
   gearman_return_t rc;
   const char *value= "This is my echo test";
 
-  rc= gearman_worker_echo(worker, value, UINT64_MAX);
+  rc= gearman_worker_echo(worker, value, SIZE_MAX);
   test_truth(rc == GEARMAN_WORK_ERROR);
 
   return TEST_SUCCESS;
