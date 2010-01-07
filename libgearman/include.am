@@ -20,6 +20,7 @@ nobase_include_HEADERS += \
 			     libgearman/gearman.h \
 			     libgearman/job.h \
 			     libgearman/packet.h \
+			     libgearman/strerror.h \
 			     libgearman/task.h \
 			     libgearman/universal.h \
 			     libgearman/visibility.h \
@@ -53,6 +54,7 @@ libgearman_libgearman_la_SOURCES= \
 				  libgearman/client.c \
 				  libgearman/gearman.c \
 				  libgearman/job.c \
+				  libgearman/strerror.c \
 				  libgearman/task.c \
 				  libgearman/worker.c
 

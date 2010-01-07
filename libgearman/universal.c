@@ -315,7 +315,8 @@ static inline void _pop_non_blocking(gearman_universal_st *universal, bool orig_
   universal->options.non_blocking= orig_block_universal;
 }
 
-gearman_return_t gearman_echo(gearman_universal_st *universal, const void *workload,
+gearman_return_t gearman_echo(gearman_universal_st *universal,
+                              const void *workload,
                               size_t workload_size)
 {
   gearman_connection_st *con;
@@ -324,10 +325,12 @@ gearman_return_t gearman_echo(gearman_universal_st *universal, const void *workl
   bool orig_block_universal;
 
   ret= gearman_packet_create_args(universal, &packet, GEARMAN_MAGIC_REQUEST,
-                                  GEARMAN_COMMAND_ECHO_REQ, &workload,
-                                  &workload_size, 1);
+                                  GEARMAN_COMMAND_ECHO_REQ,
+                                  &workload, &workload_size, 1);
   if (ret != GEARMAN_SUCCESS)
+  {
     return ret;
+  }
 
   _push_blocking(universal, &orig_block_universal);
 

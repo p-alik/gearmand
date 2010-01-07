@@ -74,21 +74,21 @@ tests_cpp_test_SOURCES= tests/cpp_test.cc
 tests_cpp_test_LDADD= ${TEST_LDADD}
 
 test-client:
-	tests/client_test
+	tests/client_test $(ARG1) $(ARG2)
 
 test-worker:
-	tests/worker_test
+	tests/worker_test $(ARG1) $(ARG2)
 
 test-internals:
-	tests/internals_test
+	tests/internals_test $(ARG1) $(ARG2)
 
 test-libmemcached:
 	$(LIBMEMCACHED_SETUP)
-	$(LIBMEMCACHED_TEST)
+	$(LIBMEMCACHED_TEST) $(ARG1) $(ARG2)
 	$(LIBMEMCACHED_TEARDOWN)
 
 test-sqlite:
-	$(SQLITE_TEST)
+	$(SQLITE_TEST) $(ARG1) $(ARG2)
 	$(SQLITE_RM)
 
 check-local: test-client test-worker test-internals test-libmemcached test-sqlite
@@ -103,21 +103,21 @@ gdb-internals: ${noinst_PROGRAMS}
 	$(LIBTOOL) --mode=execute gdb tests/internals_test
 
 valgrind-client:
-	$(VALGRIND_COMMAND) tests/client_test
+	$(VALGRIND_COMMAND) tests/client_test $(ARG1) $(ARG2)
 
 valgrind-worker:
-	$(VALGRIND_COMMAND) tests/worker_test
+	$(VALGRIND_COMMAND) tests/worker_test $(ARG1) $(ARG2)
 
 valgrind-internals:
-	$(VALGRIND_COMMAND) tests/internals_test
+	$(VALGRIND_COMMAND) tests/internals_test $(ARG1) $(ARG2)
 
 valgrind-libmemcached:
 	$(LIBMEMCACHED_SETUP)
-	$(VALGRIND_COMMAND) $(LIBMEMCACHED_TEST)
+	$(VALGRIND_COMMAND) $(LIBMEMCACHED_TEST) $(ARG1) $(ARG2)
 	$(LIBMEMCACHED_TEARDOWN)
 
 valgrind-sqlite:
-	$(VALGRIND_COMMAND) $(SQLITE_TEST)
+	$(VALGRIND_COMMAND) $(SQLITE_TEST) $(ARG1) $(ARG2)
 	$(SQLITE_RM)
 
 valgrind: ${noinst_PROGRAMS} valgrind-client valgrind-worker valgrind-internals valgrind-sqlite

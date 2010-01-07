@@ -72,7 +72,7 @@ inline static gearman_return_t packet_create_arg(gearman_packet_st *packet,
   uint8_t x;
 
   if (packet->argc == gearman_command_info_list[packet->command].argc &&
-      (!(gearman_command_info_list[packet->command].data) ||
+      (! (gearman_command_info_list[packet->command].data) ||
        packet->data != NULL))
   {
     gearman_universal_set_error(packet->universal, "gearman_packet_create_arg",
@@ -91,7 +91,9 @@ inline static gearman_return_t packet_create_arg(gearman_packet_st *packet,
     packet->args_size= GEARMAN_PACKET_HEADER_SIZE;
 
   if ((packet->args_size + arg_size) < GEARMAN_ARGS_BUFFER_SIZE)
+  {
     packet->args= packet->args_buffer;
+  }
   else
   {
     if (packet->args == packet->args_buffer)
@@ -116,9 +118,13 @@ inline static gearman_return_t packet_create_arg(gearman_packet_st *packet,
   packet->argc++;
 
   if (packet->magic == GEARMAN_MAGIC_TEXT)
+  {
     offset= 0;
+  }
   else
+  {
     offset= GEARMAN_PACKET_HEADER_SIZE;
+  }
 
   for (x= 0; x < packet->argc; x++)
   {
@@ -199,7 +205,9 @@ gearman_return_t gearman_packet_create_args(gearman_universal_st *gearman,
 
   packet= gearman_packet_create(gearman, packet);
   if (packet == NULL)
+  {
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+  }
 
   packet->magic= magic;
   packet->command= command;
@@ -214,7 +222,12 @@ gearman_return_t gearman_packet_create_args(gearman_universal_st *gearman,
     }
   }
 
-  return gearman_packet_pack_header(packet);
+  ret= gearman_packet_pack_header(packet);
+
+  if (ret !=  GEARMAN_SUCCESS)
+      gearman_packet_free(packet);
+
+  return ret;
 }
 
 void gearman_packet_free(gearman_packet_st *packet)
@@ -225,11 +238,13 @@ void gearman_packet_free(gearman_packet_st *packet)
   if (packet->options.free_data && packet->data != NULL)
   {
     if (packet->universal->workload_free_fn == NULL)
-      free((void *)packet->data);
+    {
+      free((void *)packet->data); //@todo fix the need for the casting.
+    }
     else
     {
       packet->universal->workload_free_fn((void *)(packet->data),
-                                (void *)packet->universal->workload_free_context);
+                                          (void *)packet->universal->workload_free_context);
     }
   }
 
@@ -297,9 +312,13 @@ gearman_return_t gearman_packet_pack_header(gearman_packet_st *packet)
   memcpy(packet->args + 4, &tmp, 4);
 
   length_64= packet->args_size + packet->data_size - GEARMAN_PACKET_HEADER_SIZE;
-  
+
   if (length_64 > UINT_MAX)
+  {
+    gearman_universal_set_error(packet->universal, "gearman_packet_pack_header",
+                                "data size too too long");
     return GEARMAN_WORK_ERROR;
+  }
 
   tmp= (uint32_t)length_64;
   tmp= htonl(tmp);

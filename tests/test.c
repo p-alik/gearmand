@@ -159,7 +159,7 @@ int main(int argc, char *argv[])
       if (wildcard && fnmatch(wildcard, run->name, 0))
         continue;
 
-      fprintf(stderr, "Testing %s", run->name);
+      fprintf(stderr, "\tTesting %s", run->name);
 
       if (world.collection_startup)
       {
@@ -238,7 +238,7 @@ error:
     }
   }
 
-  fprintf(stderr, "All tests completed successfully\n\n");
+  fprintf(stderr, "\n\nAll tests completed successfully\n\n");
 
   if (world.destroy)
   {

@@ -35,7 +35,6 @@ typedef struct
 test_return_t init_test(void *object);
 test_return_t allocation_test(void *object);
 test_return_t clone_test(void *object);
-test_return_t echo_test(void *object);
 test_return_t option_test(void *object);
 
 void *create(void *object);
@@ -304,7 +303,7 @@ test_return_t option_test(void *object __attribute__((unused)))
   return TEST_SUCCESS;
 }
 
-test_return_t echo_test(void *object)
+static test_return_t echo_test(void *object)
 {
   gearman_worker_st *worker= (gearman_worker_st *)object;
   gearman_return_t rc;
@@ -314,11 +313,48 @@ test_return_t echo_test(void *object)
   value_length= strlen(value);
 
   rc= gearman_worker_echo(worker, value, value_length);
-  if (rc != GEARMAN_SUCCESS)
-    return TEST_FAILURE;
+  test_truth(rc == GEARMAN_SUCCESS);
 
   return TEST_SUCCESS;
 }
+
+static test_return_t echo_multi_test(void *object)
+{
+  gearman_worker_st *worker= (gearman_worker_st *)object;
+  gearman_return_t rc;
+  const char *value[]= { 
+    "This is my echo test",
+    "This land is my land",
+    "This land is your land",
+    "We the people",
+    "in order to form a more perfect union",
+    "establish justice",
+    NULL
+  };
+  const char **ptr= value;
+
+  while (*ptr)
+  {
+    rc= gearman_worker_echo(worker, value, strlen(*ptr));
+    test_truth( rc == GEARMAN_SUCCESS);
+    ptr++;
+  }
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t echo_max_test(void *object)
+{
+  gearman_worker_st *worker= (gearman_worker_st *)object;
+  gearman_return_t rc;
+  const char *value= "This is my echo test";
+
+  rc= gearman_worker_echo(worker, value, UINT64_MAX);
+  test_truth(rc == GEARMAN_WORK_ERROR);
+
+  return TEST_SUCCESS;
+}
+
 
 static void *_gearman_worker_add_function_worker_fn(gearman_job_st *job __attribute__((unused)),
 						    void *context __attribute__((unused)),
@@ -407,8 +443,10 @@ test_st tests[] ={
   {"allocation", 0, allocation_test },
   {"clone", 0, clone_test },
   {"echo", 0, echo_test },
+  {"echo_multi", 0, echo_multi_test },
   {"options", 0, option_test },
   {"gearman_worker_add_function", 0, gearman_worker_add_function_test },
+  {"echo_max", 0, echo_max_test },
   {0, 0, 0}
 };
 
@@ -422,9 +460,6 @@ typedef test_return_t (*libgearman_test_callback_fn)(gearman_worker_st *);
 static test_return_t _runner_default(libgearman_test_callback_fn func, worker_test_st *container)
 {
   gearman_worker_st *worker= &container->worker;
-
-  /* We should enter with zero functions  registered */
-  test_truth(worker->function_list == NULL);
 
   if (func)
   {

@@ -1,4 +1,6 @@
 0.13
+ * Fixed bug where memory loss occured if data was too large.
+ * Added gearman_strerror().
  * Fixed bug where setting an option off in mass would not trip any 
    triggers on the option (for both worker and client).
  * Options that are internal can no longer be set by external
