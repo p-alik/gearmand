@@ -322,7 +322,7 @@ static test_return_t echo_multi_test(void *object)
 {
   gearman_worker_st *worker= (gearman_worker_st *)object;
   gearman_return_t rc;
-  const char *value[]= { 
+  const char *value[]= {
     "This is my echo test",
     "This land is my land",
     "This land is your land",
@@ -350,7 +350,7 @@ static test_return_t echo_max_test(void *object)
   const char *value= "This is my echo test";
 
   rc= gearman_worker_echo(worker, value, SIZE_MAX);
-  test_truth(rc == GEARMAN_WORK_ERROR);
+  test_truth(rc == GEARMAN_ARGUMENT_TOO_LARGE);
 
   return TEST_SUCCESS;
 }

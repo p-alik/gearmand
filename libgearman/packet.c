@@ -317,7 +317,7 @@ gearman_return_t gearman_packet_pack_header(gearman_packet_st *packet)
   {
     gearman_universal_set_error(packet->universal, "gearman_packet_pack_header",
                                 "data size too too long");
-    return GEARMAN_WORK_ERROR;
+    return GEARMAN_ARGUMENT_TOO_LARGE;
   }
 
   tmp= (uint32_t)length_64;

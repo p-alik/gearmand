@@ -14,6 +14,8 @@
 
  * Added gearman_worker_function_exist()
 
+ * Trying to send too large of a piece of data will result in GEARMAN_ARGUMENT_TOO_LARGE.
+
 0.12 - 2010-01-??
  * Fixed job handle comparison bug with WORK_FAIL responses.
  * Fixed disable assert configure option.

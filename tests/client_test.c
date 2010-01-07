@@ -491,7 +491,7 @@ static void log_counter(const char *line, gearman_verbose_t verbose,
 
 static test_return_t strerror_count(void *object  __attribute__((unused)))
 {
-  test_truth(GEARMAN_MAX_RETURN == 48);
+  test_truth(GEARMAN_MAX_RETURN == 49);
 
   return TEST_SUCCESS;
 }
@@ -512,7 +512,8 @@ static test_return_t strerror_strings(void *object  __attribute__((unused)))
 			1469920452U, 2236059486U, 1693700353U, 1173962212U,
 			2491943732U, 1864825729U, 523632457U, 1342225548U,
 			245155833U, 3999913926U, 2789053153U, 2576033598U,
-			463490826U, 1983660343U, 2268979717U, 1656388188U };
+			463490826U, 1983660343U, 2268979717U, 1656388188U,
+                        1558344702U};
 
 #ifdef MAKE_NEW_STRERROR
   int flip_flop= 0;
@@ -540,6 +541,11 @@ static test_return_t strerror_strings(void *object  __attribute__((unused)))
     test_truth(values[rc] == hash_val);
 #endif
   }
+
+#ifdef MAKE_NEW_STRERROR
+  fflush(stdout);
+#endif
+
   return GEARMAN_SUCCESS;
 }
 
