@@ -370,6 +370,7 @@ static void *_gearman_worker_add_function_worker_fn(gearman_job_st *job __attrib
 
 static test_return_t gearman_worker_add_function_test(void *object)
 {
+  bool found;
   gearman_return_t rc;
   gearman_worker_st *worker= (gearman_worker_st *)object;
   const char *function_name= "_gearman_worker_add_function_worker_fn";
@@ -377,10 +378,94 @@ static test_return_t gearman_worker_add_function_test(void *object)
   rc= gearman_worker_add_function(worker,
 				  function_name,
 				  0, _gearman_worker_add_function_worker_fn, NULL);
-
   test_truth(rc == GEARMAN_SUCCESS);
 
-  gearman_worker_unregister(worker, function_name);
+  found= gearman_worker_function_exist(worker, function_name, strlen(function_name));
+  test_truth(found);
+
+  rc= gearman_worker_unregister(worker, function_name);
+  test_truth(rc == GEARMAN_SUCCESS);
+
+  found= gearman_worker_function_exist(worker, function_name, strlen(function_name));
+  test_false(found);
+
+  /* Make sure we have removed it */
+  rc= gearman_worker_unregister(worker, function_name);
+  test_truth(rc == GEARMAN_NO_REGISTERED_FUNCTION);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_worker_add_function_multi_test(void *object)
+{
+  uint32_t x;
+  gearman_return_t rc;
+  gearman_worker_st *worker= (gearman_worker_st *)object;
+  const char *function_name_ext= "_gearman_worker_add_function_worker_fn";
+
+  for (x= 0; x < 100; x++)
+  {
+    char buffer[1024];
+    snprintf(buffer, 1024, "%u%s", x, function_name_ext);
+    rc= gearman_worker_add_function(worker,
+                                    buffer,
+                                    0, _gearman_worker_add_function_worker_fn, NULL);
+
+    test_truth(rc == GEARMAN_SUCCESS);
+  }
+
+  for (x= 0; x < 100; x++)
+  {
+    char buffer[1024];
+
+    snprintf(buffer, 1024, "%u%s", x, function_name_ext);
+    rc= gearman_worker_unregister(worker, buffer);
+    test_truth(rc == GEARMAN_SUCCESS);
+  }
+
+  for (x= 0; x < 100; x++)
+  {
+    char buffer[1024];
+
+    snprintf(buffer, 1024, "%u%s", x, function_name_ext);
+    rc= gearman_worker_unregister(worker, buffer);
+    test_truth(rc == GEARMAN_NO_REGISTERED_FUNCTION);
+  }
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_worker_unregister_all_test(void *object)
+{
+  uint32_t x;
+  gearman_return_t rc;
+  gearman_worker_st *worker= (gearman_worker_st *)object;
+  const char *function_name_ext= "_gearman_worker_add_function_worker_fn";
+
+  for (x= 0; x < 100; x++)
+  {
+    char buffer[1024];
+    snprintf(buffer, 1024, "%u%s", x, function_name_ext);
+    rc= gearman_worker_add_function(worker,
+                                    buffer,
+                                    0, _gearman_worker_add_function_worker_fn, NULL);
+
+    test_truth(rc == GEARMAN_SUCCESS);
+  }
+
+  rc= gearman_worker_unregister_all(worker);
+
+  for (x= 0; x < 100; x++)
+  {
+    char buffer[1024];
+
+    snprintf(buffer, 1024, "%u%s", x, function_name_ext);
+    rc= gearman_worker_unregister(worker, buffer);
+    test_truth(rc == GEARMAN_NO_REGISTERED_FUNCTION);
+  }
+
+  rc= gearman_worker_unregister_all(worker);
+  test_truth(rc == GEARMAN_NO_REGISTERED_FUNCTIONS);
 
   return TEST_SUCCESS;
 }
@@ -446,6 +531,8 @@ test_st tests[] ={
   {"echo_multi", 0, echo_multi_test },
   {"options", 0, option_test },
   {"gearman_worker_add_function", 0, gearman_worker_add_function_test },
+  {"gearman_worker_add_function_multi", 0, gearman_worker_add_function_multi_test },
+  {"gearman_worker_unregister_all", 0, gearman_worker_unregister_all_test },
   {"echo_max", 0, echo_max_test },
   {0, 0, 0}
 };
@@ -463,7 +550,7 @@ static test_return_t _runner_default(libgearman_test_callback_fn func, worker_te
 
   if (func)
   {
-    gearman_worker_unregister_all(worker);
+    (void)gearman_worker_unregister_all(worker);
     return func(worker);
   }
   else

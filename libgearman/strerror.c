@@ -83,6 +83,8 @@ const char *gearman_strerror(gearman_return_t rc)
     return "INVALID_FUNCTION_NAME";
   case GEARMAN_INVALID_WORKER_FUNCTION:
     return "INVALID_WORKER_FUNCTION";
+  case GEARMAN_NO_REGISTERED_FUNCTION:
+    return "NO_REGISTERED_FUNCTION";
   case GEARMAN_NO_REGISTERED_FUNCTIONS:
     return "NO_REGISTERED_FUNCTIONS";
   case GEARMAN_NO_JOBS:

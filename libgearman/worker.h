@@ -335,6 +335,19 @@ GEARMAN_API
 void gearman_job_free_all(gearman_worker_st *worker);
 
 /**
+ * See if a function exists in the server. It will not return
+ * true if the function is currently being de-allocated.
+ * @param[in] worker gearman_worker_st that will be used.
+ * @param[in] function_name Function name for search.
+ * @param[in] function_length Length of function name.
+ * @return bool
+ */
+GEARMAN_API
+bool gearman_worker_function_exist(gearman_worker_st *worker,
+                                   const char *function_name,
+                                   size_t function_length);
+
+/**
  * Register and add callback function for worker. To remove functions that have
  * been added, call gearman_worker_unregister() or
  * gearman_worker_unregister_all().

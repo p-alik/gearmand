@@ -491,33 +491,54 @@ static void log_counter(const char *line, gearman_verbose_t verbose,
 
 static test_return_t strerror_count(void *object  __attribute__((unused)))
 {
-  test_truth(GEARMAN_MAX_RETURN == 47);
+  test_truth(GEARMAN_MAX_RETURN == 48);
 
   return TEST_SUCCESS;
 }
+
+#undef MAKE_NEW_STRERROR
 
 static test_return_t strerror_strings(void *object  __attribute__((unused)))
 {
   gearman_return_t rc;
   uint32_t values[] = { 324335284U, 1940666259U, 4156775927U, 18028287U,
-                        1834995715U, 1009419836U, 1038124396U, 3050095617U,
-                        4004269877U, 2913489720U, 1389266665U, 1374361090U,
-                        3775104989U, 1158738795U, 2490507301U, 426780991U,
-                        2421852085U, 426121997U, 3669711613U, 1027733609U,
-                        48094985U, 4052600452U, 2697110207U, 4260329382U,
-                        3706494438U, 1765339649U, 1176029865U, 2899482444U,
-                        2255507756U, 1844534215U, 1685626311U, 3134591697U,
-                        1469920452U, 1693700353U, 1173962212U, 2491943732U,
-                        1864825729U, 523632457U, 1342225548U, 245155833U,
-                        3999913926U, 2789053153U, 2576033598U, 463490826U,
-                        1983660343U, 2268979717U, 1656388188U };
+			1834995715U, 1009419836U, 1038124396U, 3050095617U,
+			4004269877U, 2913489720U, 1389266665U, 1374361090U,
+			3775104989U, 1158738795U, 2490507301U, 426780991U,
+			2421852085U, 426121997U, 3669711613U, 1027733609U,
+			48094985U, 4052600452U, 2697110207U, 4260329382U,
+			3706494438U, 1765339649U, 1176029865U, 2899482444U,
+			2255507756U, 1844534215U, 1685626311U, 3134591697U,
+			1469920452U, 2236059486U, 1693700353U, 1173962212U,
+			2491943732U, 1864825729U, 523632457U, 1342225548U,
+			245155833U, 3999913926U, 2789053153U, 2576033598U,
+			463490826U, 1983660343U, 2268979717U, 1656388188U };
 
+#ifdef MAKE_NEW_STRERROR
+  int flip_flop= 0;
+  printf("\n");
+#endif
   for (rc= GEARMAN_SUCCESS; rc < GEARMAN_MAX_RETURN; rc++)
   {
     uint32_t hash_val;
     const char *msg=  gearman_strerror(rc);
     hash_val= internal_generate_hash(msg, strlen(msg));
+#ifdef MAKE_NEW_STRERROR
+    (void)values;
+    printf("%uU,", hash_val);
+    if (flip_flop == 3)
+    {
+      printf("\n");
+      flip_flop= 0;
+    }
+    else
+    {
+      printf(" ");
+      flip_flop++;
+    }
+#else
     test_truth(values[rc] == hash_val);
+#endif
   }
   return GEARMAN_SUCCESS;
 }
