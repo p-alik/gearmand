@@ -308,7 +308,7 @@ void gearman_worker_set_timeout(gearman_worker_st *worker, int timeout)
 
 void *gearman_worker_context(const gearman_worker_st *worker)
 {
-  return (void *)(worker->context);
+  return worker->context;
 }
 
 void gearman_worker_set_context(gearman_worker_st *worker, void *context)
