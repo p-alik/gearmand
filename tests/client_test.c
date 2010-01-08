@@ -546,7 +546,7 @@ static test_return_t strerror_strings(void *object  __attribute__((unused)))
   fflush(stdout);
 #endif
 
-  return GEARMAN_SUCCESS;
+  return TEST_SUCCESS;
 }
 
 static uint32_t global_counter;
