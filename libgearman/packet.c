@@ -313,7 +313,8 @@ gearman_return_t gearman_packet_pack_header(gearman_packet_st *packet)
 
   length_64= packet->args_size + packet->data_size - GEARMAN_PACKET_HEADER_SIZE;
 
-  if (length_64 > UINT_MAX)
+  // Check for overflow on 32bit(portable?).
+  if (length_64 >= UINT32_MAX || length_64 < packet->data_size)
   {
     gearman_universal_set_error(packet->universal, "gearman_packet_pack_header",
                                 "data size too too long");
