@@ -493,6 +493,25 @@ static test_return_t gearman_worker_work_with_test(void *object)
   return TEST_SUCCESS;
 }
 
+static test_return_t gearman_worker_context_test(void *object)
+{
+  gearman_worker_st *worker= (gearman_worker_st *)object;
+  int value= 5;
+  int *ptr;
+
+  ptr= gearman_worker_context(worker);
+  test_truth(ptr == NULL);
+
+  gearman_worker_set_context(worker, &value);
+
+  ptr= (int *)gearman_worker_context(worker);
+
+  test_truth(ptr == &value);
+  test_truth(*ptr == value);
+
+  return TEST_SUCCESS;
+}
+
 /*********************** World functions **************************************/
 
 void *create(void *object __attribute__((unused)))
@@ -558,6 +577,7 @@ test_st tests[] ={
   {"gearman_worker_add_function_multi", 0, gearman_worker_add_function_multi_test },
   {"gearman_worker_unregister_all", 0, gearman_worker_unregister_all_test },
   {"gearman_worker_work with timout", 0, gearman_worker_work_with_test },
+  {"gearman_worker_context", 0, gearman_worker_context_test },
   {"echo_max", 0, echo_max_test },
   {0, 0, 0}
 };

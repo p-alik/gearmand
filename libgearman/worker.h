@@ -60,7 +60,7 @@ struct gearman_worker_st
   uint32_t function_count;
   uint32_t job_count;
   size_t work_result_size;
-  const void *context;
+  void *context;
   gearman_connection_st *con;
   gearman_job_st *job;
   gearman_job_st *job_list;
@@ -211,7 +211,14 @@ void gearman_worker_set_workload_malloc_fn(gearman_worker_st *worker,
                                            void *context);
 
 /**
- * See gearman_set_workload_free_fn() for details.
+ * Set custom memory free function for workloads. Normally gearman uses the
+ * standard system free to free memory used with workloads. The provided
+ * function will be used instead.
+ *
+ * @param[in] gearman Structure previously initialized with gearman_universal_create() or
+ *  gearman_clone().
+ * @param[in] function Memory free function to use instead of free().
+ * @param[in] context Argument to pass into the callback function.
  */
 GEARMAN_API
 void gearman_worker_set_workload_free_fn(gearman_worker_st *worker,
