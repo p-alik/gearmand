@@ -470,6 +470,30 @@ static test_return_t gearman_worker_unregister_all_test(void *object)
   return TEST_SUCCESS;
 }
 
+static test_return_t gearman_worker_work_with_test(void *object)
+{
+  gearman_return_t rc;
+  gearman_worker_st *worker= (gearman_worker_st *)object;
+  const char *function_name= "_gearman_worker_add_function_worker_fn";
+
+  rc= gearman_worker_add_function(worker,
+				  function_name,
+				  0, _gearman_worker_add_function_worker_fn, NULL);
+  test_truth(rc == GEARMAN_SUCCESS);
+
+  gearman_worker_set_timeout(worker, 2);
+
+  rc= gearman_worker_work(worker);
+  test_truth(rc == GEARMAN_TIMEOUT);
+
+  /* Make sure we have remove worker function */
+  rc= gearman_worker_unregister(worker, function_name);
+  test_truth(rc == GEARMAN_SUCCESS);
+
+  return TEST_SUCCESS;
+}
+
+/*********************** World functions **************************************/
 
 void *create(void *object __attribute__((unused)))
 {
@@ -533,6 +557,7 @@ test_st tests[] ={
   {"gearman_worker_add_function", 0, gearman_worker_add_function_test },
   {"gearman_worker_add_function_multi", 0, gearman_worker_add_function_multi_test },
   {"gearman_worker_unregister_all", 0, gearman_worker_unregister_all_test },
+  {"gearman_worker_work with timout", 0, gearman_worker_work_with_test },
   {"echo_max", 0, echo_max_test },
   {0, 0, 0}
 };
