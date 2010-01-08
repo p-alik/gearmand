@@ -40,7 +40,12 @@ struct gearman_packet_st
     bool complete:1;
     bool free_data:1;
   } options;
-  gearman_magic_t magic;
+  enum gearman_magic_t
+  {
+      GEARMAN_MAGIC_TEXT,
+      GEARMAN_MAGIC_REQUEST,
+      GEARMAN_MAGIC_RESPONSE
+  } magic;
   gearman_command_t command;
   uint8_t argc;
   size_t args_size;
@@ -119,7 +124,7 @@ void gearman_packet_free(gearman_packet_st *packet);
 GEARMAN_INTERNAL_API
 gearman_return_t gearman_packet_create_args(gearman_universal_st *gearman,
                                             gearman_packet_st *packet,
-                                            gearman_magic_t magic,
+                                            enum gearman_magic_t magic,
                                             gearman_command_t command,
                                             const void *args[],
                                             const size_t args_size[],

@@ -194,7 +194,7 @@ gearman_return_t gearman_packet_create_arg(gearman_packet_st *packet,
 
 gearman_return_t gearman_packet_create_args(gearman_universal_st *gearman,
                                             gearman_packet_st *packet,
-                                            gearman_magic_t magic,
+                                            enum gearman_magic_t magic,
                                             gearman_command_t command,
                                             const void *args[],
                                             const size_t args_size[],
