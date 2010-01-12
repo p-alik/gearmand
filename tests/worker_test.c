@@ -35,9 +35,7 @@ typedef struct
 test_return_t init_test(void *object);
 test_return_t allocation_test(void *object);
 test_return_t clone_test(void *object);
-test_return_t echo_test(void *object);
 test_return_t option_test(void *object);
-test_return_t bug372074_test(void *object);
 
 void *create(void *object);
 void destroy(void *object);
@@ -305,7 +303,7 @@ test_return_t option_test(void *object __attribute__((unused)))
   return TEST_SUCCESS;
 }
 
-test_return_t echo_test(void *object)
+static test_return_t echo_test(void *object)
 {
   gearman_worker_st *worker= (gearman_worker_st *)object;
   gearman_return_t rc;
@@ -314,12 +312,164 @@ test_return_t echo_test(void *object)
 
   value_length= strlen(value);
 
-  rc= gearman_worker_echo(worker, (uint8_t *)value, value_length);
-  if (rc != GEARMAN_SUCCESS)
-    return TEST_FAILURE;
+  rc= gearman_worker_echo(worker, value, value_length);
+  test_truth(rc == GEARMAN_SUCCESS);
 
   return TEST_SUCCESS;
 }
+
+static test_return_t echo_multi_test(void *object)
+{
+  gearman_worker_st *worker= (gearman_worker_st *)object;
+  gearman_return_t rc;
+  const char *value[]= {
+    "This is my echo test",
+    "This land is my land",
+    "This land is your land",
+    "We the people",
+    "in order to form a more perfect union",
+    "establish justice",
+    NULL
+  };
+  const char **ptr= value;
+
+  while (*ptr)
+  {
+    rc= gearman_worker_echo(worker, value, strlen(*ptr));
+    test_truth( rc == GEARMAN_SUCCESS);
+    ptr++;
+  }
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t echo_max_test(void *object)
+{
+  gearman_worker_st *worker= (gearman_worker_st *)object;
+  gearman_return_t rc;
+  const char *value= "This is my echo test";
+
+  rc= gearman_worker_echo(worker, value, SIZE_MAX);
+  test_truth(rc == GEARMAN_ARGUMENT_TOO_LARGE);
+
+  return TEST_SUCCESS;
+}
+
+
+static void *_gearman_worker_add_function_worker_fn(gearman_job_st *job __attribute__((unused)),
+						    void *context __attribute__((unused)),
+						    size_t *result_size __attribute__((unused)),
+						    gearman_return_t *ret_ptr __attribute__((unused)))
+{
+  (void)job;
+  (void)context;
+  *ret_ptr= GEARMAN_WORK_FAIL;
+
+  return NULL;
+}
+
+static test_return_t gearman_worker_add_function_test(void *object)
+{
+  bool found;
+  gearman_return_t rc;
+  gearman_worker_st *worker= (gearman_worker_st *)object;
+  const char *function_name= "_gearman_worker_add_function_worker_fn";
+
+  rc= gearman_worker_add_function(worker,
+				  function_name,
+				  0, _gearman_worker_add_function_worker_fn, NULL);
+  test_truth(rc == GEARMAN_SUCCESS);
+
+  found= gearman_worker_function_exist(worker, function_name, strlen(function_name));
+  test_truth(found);
+
+  rc= gearman_worker_unregister(worker, function_name);
+  test_truth(rc == GEARMAN_SUCCESS);
+
+  found= gearman_worker_function_exist(worker, function_name, strlen(function_name));
+  test_false(found);
+
+  /* Make sure we have removed it */
+  rc= gearman_worker_unregister(worker, function_name);
+  test_truth(rc == GEARMAN_NO_REGISTERED_FUNCTION);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_worker_add_function_multi_test(void *object)
+{
+  uint32_t x;
+  gearman_return_t rc;
+  gearman_worker_st *worker= (gearman_worker_st *)object;
+  const char *function_name_ext= "_gearman_worker_add_function_worker_fn";
+
+  for (x= 0; x < 100; x++)
+  {
+    char buffer[1024];
+    snprintf(buffer, 1024, "%u%s", x, function_name_ext);
+    rc= gearman_worker_add_function(worker,
+                                    buffer,
+                                    0, _gearman_worker_add_function_worker_fn, NULL);
+
+    test_truth(rc == GEARMAN_SUCCESS);
+  }
+
+  for (x= 0; x < 100; x++)
+  {
+    char buffer[1024];
+
+    snprintf(buffer, 1024, "%u%s", x, function_name_ext);
+    rc= gearman_worker_unregister(worker, buffer);
+    test_truth(rc == GEARMAN_SUCCESS);
+  }
+
+  for (x= 0; x < 100; x++)
+  {
+    char buffer[1024];
+
+    snprintf(buffer, 1024, "%u%s", x, function_name_ext);
+    rc= gearman_worker_unregister(worker, buffer);
+    test_truth(rc == GEARMAN_NO_REGISTERED_FUNCTION);
+  }
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_worker_unregister_all_test(void *object)
+{
+  uint32_t x;
+  gearman_return_t rc;
+  gearman_worker_st *worker= (gearman_worker_st *)object;
+  const char *function_name_ext= "_gearman_worker_add_function_worker_fn";
+
+  for (x= 0; x < 100; x++)
+  {
+    char buffer[1024];
+    snprintf(buffer, 1024, "%u%s", x, function_name_ext);
+    rc= gearman_worker_add_function(worker,
+                                    buffer,
+                                    0, _gearman_worker_add_function_worker_fn, NULL);
+
+    test_truth(rc == GEARMAN_SUCCESS);
+  }
+
+  rc= gearman_worker_unregister_all(worker);
+
+  for (x= 0; x < 100; x++)
+  {
+    char buffer[1024];
+
+    snprintf(buffer, 1024, "%u%s", x, function_name_ext);
+    rc= gearman_worker_unregister(worker, buffer);
+    test_truth(rc == GEARMAN_NO_REGISTERED_FUNCTION);
+  }
+
+  rc= gearman_worker_unregister_all(worker);
+  test_truth(rc == GEARMAN_NO_REGISTERED_FUNCTIONS);
+
+  return TEST_SUCCESS;
+}
+
 
 void *create(void *object __attribute__((unused)))
 {
@@ -330,6 +480,9 @@ void *create(void *object __attribute__((unused)))
 void *world_create(test_return_t *error)
 {
   worker_test_st *test;
+  pid_t gearmand_pid;
+
+  gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, NULL, NULL, 0);
 
   test= malloc(sizeof(worker_test_st));
 
@@ -340,6 +493,9 @@ void *world_create(test_return_t *error)
   }
 
   memset(test, 0, sizeof(worker_test_st));
+
+  test->gearmand_pid= gearmand_pid;
+
   if (gearman_worker_create(&(test->worker)) == NULL)
   {
     *error= TEST_FAILURE;
@@ -351,8 +507,6 @@ void *world_create(test_return_t *error)
     *error= TEST_FAILURE;
     return NULL;
   }
-
-  test->gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, NULL, NULL, 0);
 
   *error= TEST_SUCCESS;
 
@@ -374,7 +528,12 @@ test_st tests[] ={
   {"allocation", 0, allocation_test },
   {"clone", 0, clone_test },
   {"echo", 0, echo_test },
+  {"echo_multi", 0, echo_multi_test },
   {"options", 0, option_test },
+  {"gearman_worker_add_function", 0, gearman_worker_add_function_test },
+  {"gearman_worker_add_function_multi", 0, gearman_worker_add_function_multi_test },
+  {"gearman_worker_unregister_all", 0, gearman_worker_unregister_all_test },
+  {"echo_max", 0, echo_max_test },
   {0, 0, 0}
 };
 
@@ -387,9 +546,12 @@ collection_st collection[] ={
 typedef test_return_t (*libgearman_test_callback_fn)(gearman_worker_st *);
 static test_return_t _runner_default(libgearman_test_callback_fn func, worker_test_st *container)
 {
+  gearman_worker_st *worker= &container->worker;
+
   if (func)
   {
-    return func(&container->worker);
+    (void)gearman_worker_unregister_all(worker);
+    return func(worker);
   }
   else
   {

@@ -27,6 +27,31 @@ extern "C" {
  * @{
  */
 
+struct gearman_server_thread_st
+{
+  gearman_server_thread_options_t options;
+  uint32_t con_count;
+  uint32_t io_count;
+  uint32_t proc_count;
+  uint32_t free_con_count;
+  uint32_t free_packet_count;
+  gearman_universal_st *gearman;
+  gearman_server_st *server;
+  gearman_server_thread_st *next;
+  gearman_server_thread_st *prev;
+  gearman_log_fn *log_fn;
+  void *log_context;
+  gearman_server_thread_run_fn *run_fn;
+  void *run_fn_arg;
+  gearman_server_con_st *con_list;
+  gearman_server_con_st *io_list;
+  gearman_server_con_st *proc_list;
+  gearman_server_con_st *free_con_list;
+  gearman_server_packet_st *free_packet_list;
+  gearman_universal_st gearman_universal_static;
+  pthread_mutex_t lock;
+};
+
 /**
  * Initialize a thread structure. This cannot fail if the caller supplies a
  * thread structure.
@@ -90,7 +115,7 @@ void gearman_server_thread_set_event_watch(gearman_server_thread_st *thread,
 GEARMAN_API
 void gearman_server_thread_set_log_fn(gearman_server_thread_st *thread,
                                       gearman_log_fn *function,
-                                      const void *context,
+                                      void *context,
                                       gearman_verbose_t verbose);
 
 /**

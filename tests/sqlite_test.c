@@ -116,9 +116,11 @@ void *world_create(test_return_t *error)
 {
   worker_test_st *test;
   const char *argv[2]= { "test_gearmand", "--libsqlite3-db=tests/gearman.sql"};
+  pid_t gearmand_pid;
+
+  gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, "libsqlite3", (char **)argv, 2);
 
   test= malloc(sizeof(worker_test_st));
-
   if (! test)
   {
     *error= TEST_MEMORY_ALLOCATION_FAILURE;
@@ -138,7 +140,7 @@ void *world_create(test_return_t *error)
     return NULL;
   }
 
-  test->gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, "libsqlite3", (char **)argv, 2);
+  test->gearmand_pid= gearmand_pid;
 
   *error= TEST_SUCCESS;
 

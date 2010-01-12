@@ -10,7 +10,8 @@
 # Included from Top Level Makefile.am
 # All paths should be given relative to the root
 
-nobase_pkginclude_HEADERS += \
+nobase_include_HEADERS += \
+			     libgearman/byteorder.h \
 			     libgearman/client.h \
 			     libgearman/command.h \
 			     libgearman/connection.h \
@@ -19,6 +20,7 @@ nobase_pkginclude_HEADERS += \
 			     libgearman/gearman.h \
 			     libgearman/job.h \
 			     libgearman/packet.h \
+			     libgearman/strerror.h \
 			     libgearman/task.h \
 			     libgearman/universal.h \
 			     libgearman/visibility.h \
@@ -28,17 +30,16 @@ noinst_HEADERS+= \
 		 libgearman/common.h \
 		 libgearman/log.h
 
-lib_LTLIBRARIES+= libgearman/libgearmancore.la
+noinst_LTLIBRARIES+= libgearman/libgearmancore.la
 libgearman_libgearmancore_la_SOURCES= \
+				       libgearman/byteorder.c \
 				       libgearman/connection.c \
-				       libgearman/core.c \
 				       libgearman/log.c \
 				       libgearman/packet.c \
 				       libgearman/universal.c
 
 libgearman_libgearmancore_la_CFLAGS= \
-				     ${AM_CFLAGS} \
-				     -DBUILDING_LIBGEARMAN
+				     ${AM_CFLAGS}
 
 #libgearman_libgearmancore_la_LDFLAGS= \
 #				      $(AM_LDFLAGS) \
@@ -53,19 +54,18 @@ libgearman_libgearman_la_SOURCES= \
 				  libgearman/client.c \
 				  libgearman/gearman.c \
 				  libgearman/job.c \
+				  libgearman/strerror.c \
 				  libgearman/task.c \
 				  libgearman/worker.c
 
 libgearman_libgearman_la_DEPENDENCIES= libgearman/libgearmancore.la
 
 libgearman_libgearman_la_CFLAGS= \
-	${AM_CFLAGS} \
-	-DBUILDING_LIBGEARMAN
+				 ${AM_CFLAGS}
 
 libgearman_libgearman_la_LDFLAGS= \
-	$(AM_LDFLAGS) \
-	-version-info \
-	$(GEARMAN_LIBRARY_VERSION)
+				  $(AM_LDFLAGS) \
+				  -version-info $(GEARMAN_LIBRARY_VERSION)
 
 libgearman_libgearman_la_LIBADD= \
 	libgearman/libgearmancore.la \

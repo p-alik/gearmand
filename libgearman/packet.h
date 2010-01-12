@@ -45,14 +45,14 @@ struct gearman_packet_st
   uint8_t argc;
   size_t args_size;
   size_t data_size;
-  gearman_universal_st *gearman;
+  gearman_universal_st *universal;
   gearman_packet_st *next;
   gearman_packet_st *prev;
-  uint8_t *args;
+  char *args;
   const void *data;
-  uint8_t *arg[GEARMAN_MAX_COMMAND_ARGS];
+  char *arg[GEARMAN_MAX_COMMAND_ARGS];
   size_t arg_size[GEARMAN_MAX_COMMAND_ARGS];
-  uint8_t args_buffer[GEARMAN_ARGS_BUFFER_SIZE];
+  char args_buffer[GEARMAN_ARGS_BUFFER_SIZE];
 };
 
 #ifdef GEARMAN_CORE

@@ -24,6 +24,15 @@ extern "C" {
  * @{
  */
 
+struct gearman_conf_module_st
+{
+  gearman_conf_module_options_t options;
+  size_t current_option;
+  size_t current_value;
+  gearman_conf_st *conf;
+  const char *name;
+};
+
 /**
  * Initialize a gearman conf module structure.
  */

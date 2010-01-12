@@ -36,10 +36,10 @@ gearman_task_st *gearman_task_create(gearman_client_st *client, gearman_task_st 
   }
 
   task->options.send_in_use= false;
+  task->options.is_known= false;
+  task->options.is_running= false;
 
   task->state= 0;
-  task->is_known= false;
-  task->is_running= false;
   task->created_id= 0;
   task->numerator= 0;
   task->denominator= 0;
@@ -84,24 +84,24 @@ void gearman_task_free(gearman_task_st *task)
     free(task);
 }
 
-void *gearman_task_context(const gearman_task_st *task)
+const void *gearman_task_context(const gearman_task_st *task)
 {
-  return (void *)task->context;
+  return task->context;
 }
 
-void gearman_task_set_context(gearman_task_st *task, const void *context)
+void gearman_task_set_context(gearman_task_st *task, void *context)
 {
   task->context= context;
 }
 
 const char *gearman_task_function_name(const gearman_task_st *task)
 {
-  return (char *)task->send.arg[0];
+  return task->send.arg[0];
 }
 
 const char *gearman_task_unique(const gearman_task_st *task)
 {
-  return (char *)task->send.arg[1];
+  return task->send.arg[1];
 }
 
 const char *gearman_task_job_handle(const gearman_task_st *task)
@@ -111,12 +111,12 @@ const char *gearman_task_job_handle(const gearman_task_st *task)
 
 bool gearman_task_is_known(const gearman_task_st *task)
 {
-  return task->is_known;
+  return task->options.is_known;
 }
 
 bool gearman_task_is_running(const gearman_task_st *task)
 {
-  return task->is_running;
+  return task->options.is_running;
 }
 
 uint32_t gearman_task_numerator(const gearman_task_st *task)

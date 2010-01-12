@@ -35,10 +35,10 @@ QUEUE_LIBTOKYOCABINET_H= libgearman-server/queue_libtokyocabinet.h
 QUEUE_LIBTOKYOCABINET_C= libgearman-server/queue_libtokyocabinet.c
 endif
 
-lib_LTLIBRARIES+= libgearman-server/libgearman-server.la
+noinst_LTLIBRARIES+= libgearman-server/libgearman-server.la
 
 
-nobase_pkginclude_HEADERS += \
+noinst_HEADERS += \
 	$(QUEUE_LIBDRIZZLE_H) \
 	$(QUEUE_LIBMEMCACHED_H) \
 	$(QUEUE_LIBPQ_H) \
@@ -57,7 +57,6 @@ nobase_pkginclude_HEADERS += \
 	libgearman-server/packet.h \
 	libgearman-server/protocol_http.h \
 	libgearman-server/server.h \
-	libgearman-server/structs.h \
 	libgearman-server/thread.h \
 	libgearman-server/worker.h
 
@@ -89,11 +88,6 @@ libgearman_server_libgearman_server_la_CFLAGS= \
 	${AM_CFLAGS} \
 	-DBUILDING_LIBGEARMAN
 
-libgearman_server_libgearman_server_la_LDFLAGS= \
-	$(AM_LDFLAGS) \
-	-version-info \
-	$(GEARMAN_SERVER_LIBRARY_VERSION)
-
 libgearman_server_libgearman_server_la_LIBADD= \
 	$(LTLIBDRIZZLE) \
 	$(LTLIBEVENT) \
@@ -101,5 +95,5 @@ libgearman_server_libgearman_server_la_LIBADD= \
 	$(LTLIBPQ) \
 	$(LTLIBSQLITE3) \
 	$(LTLIBTOKYOCABINET) \
-	libgearman/libgearman.la
-
+	libgearman/libgearman.la \
+	libgearman/libgearmancore.la

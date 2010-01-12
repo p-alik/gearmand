@@ -19,6 +19,23 @@ extern "C" {
 #endif
 
 /**
+ * @ingroup gearman_server_worker
+ */
+struct gearman_server_worker_st
+{
+  gearman_server_worker_options_t options;
+  uint32_t job_count;
+  uint32_t timeout;
+  gearman_server_con_st *con;
+  gearman_server_worker_st *con_next;
+  gearman_server_worker_st *con_prev;
+  gearman_server_function_st *function;
+  gearman_server_worker_st *function_next;
+  gearman_server_worker_st *function_prev;
+  gearman_server_job_st *job_list;
+};
+
+/**
  * @addtogroup gearman_server_worker Worker Declarations
  * @ingroup gearman_server
  *

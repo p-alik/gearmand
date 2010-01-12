@@ -40,13 +40,13 @@ struct gearman_universal_st
   gearman_packet_st *packet_list;
   struct pollfd *pfds;
   gearman_log_fn *log_fn;
-  const void *log_context;
+  void *log_context;
   gearman_event_watch_fn *event_watch_fn;
-  const void *event_watch_context;
+  void *event_watch_context;
   gearman_malloc_fn *workload_malloc_fn;
-  const void *workload_malloc_context;
+  void *workload_malloc_context;
   gearman_free_fn *workload_free_fn;
-  const void *workload_free_context;
+  void *workload_free_context;
   char last_error[GEARMAN_MAX_ERROR_SIZE];
 };
 
@@ -74,12 +74,12 @@ struct gearman_universal_st
  * a structure before providing it. These are for internal use only.
  *
  * @param[in] source Caller allocated structure.
- * @param[in] options gearman_options_t options used to modify creation.
+ * @param[in] options gearman_universal_options_t options used to modify creation.
  * @return On success, a pointer to the (possibly allocated) structure. On
  *  failure this will be NULL.
  */
 GEARMAN_INTERNAL_API
-gearman_universal_st *gearman_universal_create(gearman_universal_st *source, const gearman_options_t *options);
+gearman_universal_st *gearman_universal_create(gearman_universal_st *source, const gearman_universal_options_t *options);
 
 /**
  * Clone a gearman structure.
@@ -146,14 +146,14 @@ static inline int gearman_universal_errno(const gearman_universal_st *gearman)
  * @param[in] options Available options for gearman structures.
  */
 GEARMAN_INTERNAL_API
-gearman_return_t gearman_universal_set_option(gearman_universal_st *gearman, gearman_options_t option, bool value);
+gearman_return_t gearman_universal_set_option(gearman_universal_st *gearman, gearman_universal_options_t option, bool value);
 
-static inline void gearman_universal_add_options(gearman_universal_st *gearman, gearman_options_t options)
+static inline void gearman_universal_add_options(gearman_universal_st *gearman, gearman_universal_options_t options)
 {
   (void)gearman_universal_set_option(gearman, options, true);
 }
 
-static inline void gearman_universal_remove_options(gearman_universal_st *gearman, gearman_options_t options)
+static inline void gearman_universal_remove_options(gearman_universal_st *gearman, gearman_universal_options_t options)
 {
   (void)gearman_universal_set_option(gearman, options, false);
 }
@@ -161,25 +161,6 @@ static inline void gearman_universal_remove_options(gearman_universal_st *gearma
 static inline bool gearman_universal_is_non_blocking(gearman_universal_st *gearman)
 {
   return gearman->options.non_blocking;
-}
-
-static inline bool gearman_universal_is_stored_non_blocking(gearman_universal_st *gearman)
-{
-  return gearman->options.stored_non_blocking;
-}
-
-/**
-  @todo fix internals to not require state changes like  this.
- */
-static inline void gearman_universal_push_non_blocking(gearman_universal_st *gearman)
-{
-  gearman->options.stored_non_blocking= gearman->options.non_blocking;
-  gearman->options.non_blocking= true;
-}
-
-static inline void gearman_universal_pop_non_blocking(gearman_universal_st *gearman)
-{
-  gearman->options.non_blocking= gearman->options.stored_non_blocking;
 }
 
 /**
@@ -216,7 +197,7 @@ void gearman_universal_set_timeout(gearman_universal_st *gearman, int timeout);
  */
 GEARMAN_INTERNAL_API
 void gearman_set_log_fn(gearman_universal_st *gearman, gearman_log_fn *function,
-                        const void *context, gearman_verbose_t verbose);
+                        void *context, gearman_verbose_t verbose);
 
 /**
  * Set custom I/O event callback function for a gearman structure.
@@ -229,7 +210,7 @@ void gearman_set_log_fn(gearman_universal_st *gearman, gearman_log_fn *function,
 GEARMAN_INTERNAL_API
 void gearman_set_event_watch_fn(gearman_universal_st *gearman,
                                 gearman_event_watch_fn *function,
-                                const void *context);
+                                void *context);
 
 /**
  * Set custom memory allocation function for workloads. Normally gearman uses
@@ -244,7 +225,7 @@ void gearman_set_event_watch_fn(gearman_universal_st *gearman,
 GEARMAN_INTERNAL_API
 void gearman_set_workload_malloc_fn(gearman_universal_st *gearman,
                                     gearman_malloc_fn *function,
-                                    const void *context);
+                                    void *context);
 
 /**
  * Set custom memory free function for workloads. Normally gearman uses the
@@ -259,7 +240,7 @@ void gearman_set_workload_malloc_fn(gearman_universal_st *gearman,
 GEARMAN_INTERNAL_API
 void gearman_set_workload_free_fn(gearman_universal_st *gearman,
                                   gearman_free_fn *function,
-                                  const void *context);
+                                  void *context);
 
 /**
  * Free all connections for a gearman structure.

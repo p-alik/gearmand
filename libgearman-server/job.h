@@ -28,6 +28,33 @@ extern "C" {
  * @{
  */
 
+struct gearman_server_job_st
+{
+  uint8_t retries;
+  gearman_server_job_options_t options;
+  gearman_job_priority_t priority;
+  uint32_t job_handle_key;
+  uint32_t unique_key;
+  uint32_t client_count;
+  uint32_t numerator;
+  uint32_t denominator;
+  size_t data_size;
+  gearman_server_st *server;
+  gearman_server_job_st *next;
+  gearman_server_job_st *prev;
+  gearman_server_job_st *unique_next;
+  gearman_server_job_st *unique_prev;
+  gearman_server_job_st *worker_next;
+  gearman_server_job_st *worker_prev;
+  gearman_server_function_st *function;
+  gearman_server_job_st *function_next;
+  const void *data;
+  gearman_server_client_st *client_list;
+  gearman_server_worker_st *worker;
+  char job_handle[GEARMAN_JOB_HANDLE_SIZE];
+  char unique[GEARMAN_UNIQUE_SIZE];
+};
+
 /**
  * Add a new job to a server instance.
  */

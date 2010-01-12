@@ -356,7 +356,7 @@ void _client_run(gearman_client_st *client, gearman_args_st *args,
 
 static gearman_return_t _client_data(gearman_task_st *task)
 {
-  gearman_args_st *args;
+  const gearman_args_st *args;
 
   args= gearman_task_context(task);
   if (args->prefix)
@@ -373,7 +373,7 @@ static gearman_return_t _client_data(gearman_task_st *task)
 
 static gearman_return_t _client_warning(gearman_task_st *task)
 {
-  gearman_args_st *args;
+  const gearman_args_st *args;
 
   args= gearman_task_context(task);
   if (args->prefix)
@@ -390,7 +390,7 @@ static gearman_return_t _client_warning(gearman_task_st *task)
 
 static gearman_return_t _client_status(gearman_task_st *task)
 {
-  gearman_args_st *args;
+  const gearman_args_st *args;
 
   args= gearman_task_context(task);
   if (args->prefix)
@@ -406,12 +406,15 @@ static gearman_return_t _client_fail(gearman_task_st *task)
 {
   gearman_args_st *args;
 
-  args= gearman_task_context(task);
+  args= (gearman_args_st *)gearman_task_context(task);
   if (args->prefix)
     fprintf(stderr, "%s: ", gearman_task_function_name(task));
 
   fprintf(stderr, "Job failed\n");
 
+  /**
+    @note Fix this so that we don't cast from const.
+  */
   args->return_value= 1;
   return GEARMAN_SUCCESS;
 }
@@ -421,7 +424,7 @@ void _worker(gearman_args_st *args)
   gearman_worker_st worker;
   gearman_return_t ret;
   uint32_t x;
-  
+
   if (gearman_worker_create(&worker) == NULL)
     GEARMAN_ERROR("Memory allocation failure on client creation")
 
@@ -522,7 +525,7 @@ static void *_worker_cb(gearman_job_st *job, void *context,
     }
 
     close(in_fds[1]);
-    
+
     if (args->job_per_newline)
     {
       f= fdopen(out_fds[0], "r");

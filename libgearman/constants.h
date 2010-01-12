@@ -81,6 +81,7 @@ typedef enum
   GEARMAN_DATA_TOO_LARGE,
   GEARMAN_INVALID_FUNCTION_NAME,
   GEARMAN_INVALID_WORKER_FUNCTION,
+  GEARMAN_NO_REGISTERED_FUNCTION,
   GEARMAN_NO_REGISTERED_FUNCTIONS,
   GEARMAN_NO_JOBS,
   GEARMAN_ECHO_DATA_CORRUPTION,
@@ -95,6 +96,7 @@ typedef enum
   GEARMAN_IGNORE_PACKET,
   GEARMAN_UNKNOWN_OPTION,
   GEARMAN_TIMEOUT,
+  GEARMAN_ARGUMENT_TOO_LARGE,
   GEARMAN_MAX_RETURN /* Always add new error code before */
 } gearman_return_t;
 
@@ -123,7 +125,7 @@ typedef enum
   GEARMAN_NON_BLOCKING,
   GEARMAN_DONT_TRACK_PACKETS,
   GEARMAN_MAX
-} gearman_options_t;
+} gearman_universal_options_t;
 
 /**
  * @ingroup gearman_con
@@ -259,7 +261,6 @@ typedef struct gearman_task_st gearman_task_st;
 typedef struct gearman_client_st gearman_client_st;
 typedef struct gearman_job_st gearman_job_st;
 typedef struct gearman_worker_st gearman_worker_st;
-typedef struct gearman_worker_function_st gearman_worker_function_st;
 
 /* Function types. */
 typedef gearman_return_t (gearman_workload_fn)(gearman_task_st *task);

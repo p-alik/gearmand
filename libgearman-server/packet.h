@@ -28,6 +28,14 @@ extern "C" {
  * @{
  */
 
+
+struct gearman_server_packet_st
+{
+  gearman_packet_st packet;
+  gearman_server_packet_st *next;
+};
+
+
 /**
  * Initialize a server packet structure.
  */

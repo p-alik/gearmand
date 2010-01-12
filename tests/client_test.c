@@ -32,6 +32,28 @@ typedef struct
   pid_t worker_pid;
 } client_test_st;
 
+/**
+  @note Just here until I fix libhashkit.
+*/
+static uint32_t internal_generate_hash(const char *key, size_t key_length)
+{
+  const char *ptr= key;
+  uint32_t value= 0;
+
+  while (key_length--)
+  {
+    uint32_t val= (uint32_t) *ptr++;
+    value += val;
+    value += (value << 10);
+    value ^= (value >> 6);
+  }
+  value += (value << 3);
+  value ^= (value >> 11);
+  value += (value << 15);
+
+  return value == 0 ? 1 : (uint32_t) value;
+}
+
 /* Prototypes */
 test_return_t init_test(void *object);
 test_return_t allocation_test(void *object);
@@ -467,7 +489,68 @@ static void log_counter(const char *line, gearman_verbose_t verbose,
   *counter= *counter + 1;
 }
 
+static test_return_t strerror_count(void *object  __attribute__((unused)))
+{
+  test_truth(GEARMAN_MAX_RETURN == 49);
+
+  return TEST_SUCCESS;
+}
+
+#undef MAKE_NEW_STRERROR
+
+static test_return_t strerror_strings(void *object  __attribute__((unused)))
+{
+  gearman_return_t rc;
+  uint32_t values[] = { 324335284U, 1940666259U, 4156775927U, 18028287U,
+			1834995715U, 1009419836U, 1038124396U, 3050095617U,
+			4004269877U, 2913489720U, 1389266665U, 1374361090U,
+			3775104989U, 1158738795U, 2490507301U, 426780991U,
+			2421852085U, 426121997U, 3669711613U, 1027733609U,
+			48094985U, 4052600452U, 2697110207U, 4260329382U,
+			3706494438U, 1765339649U, 1176029865U, 2899482444U,
+			2255507756U, 1844534215U, 1685626311U, 3134591697U,
+			1469920452U, 2236059486U, 1693700353U, 1173962212U,
+			2491943732U, 1864825729U, 523632457U, 1342225548U,
+			245155833U, 3999913926U, 2789053153U, 2576033598U,
+			463490826U, 1983660343U, 2268979717U, 1656388188U,
+                        1558344702U};
+
+#ifdef MAKE_NEW_STRERROR
+  int flip_flop= 0;
+  printf("\n");
+#endif
+  for (rc= GEARMAN_SUCCESS; rc < GEARMAN_MAX_RETURN; rc++)
+  {
+    uint32_t hash_val;
+    const char *msg=  gearman_strerror(rc);
+    hash_val= internal_generate_hash(msg, strlen(msg));
+#ifdef MAKE_NEW_STRERROR
+    (void)values;
+    printf("%uU,", hash_val);
+    if (flip_flop == 3)
+    {
+      printf("\n");
+      flip_flop= 0;
+    }
+    else
+    {
+      printf(" ");
+      flip_flop++;
+    }
+#else
+    test_truth(values[rc] == hash_val);
+#endif
+  }
+
+#ifdef MAKE_NEW_STRERROR
+  fflush(stdout);
+#endif
+
+  return TEST_SUCCESS;
+}
+
 static uint32_t global_counter;
+
 static test_return_t pre_logging(void *object)
 {
   client_test_st *all= (client_test_st *)object;
@@ -521,11 +604,22 @@ void *client_test_worker(gearman_job_st *job, void *context,
 void *world_create(test_return_t *error)
 {
   client_test_st *test;
+  pid_t gearmand_pid;
+  pid_t worker_pid;
+
   /**
    *  @TODO We cast this to char ** below, which is evil. We need to do the
    *  right thing
    */
   const char *argv[1]= { "client_gearmand" };
+
+  /**
+    We start up everything before we allocate so that we don't have to track memory in the forked process.
+  */
+  gearmand_pid= test_gearmand_start(CLIENT_TEST_PORT, NULL,
+                                    (char **)argv, 1);
+  worker_pid= test_worker_start(CLIENT_TEST_PORT, "client_test",
+                                client_test_worker, NULL);
 
   test= malloc(sizeof(client_test_st));
   if (! test)
@@ -535,6 +629,10 @@ void *world_create(test_return_t *error)
   }
 
   memset(test, 0, sizeof(client_test_st));
+
+  test->gearmand_pid= gearmand_pid;
+  test->worker_pid= worker_pid;
+
 
   if (gearman_client_create(&(test->client)) == NULL)
   {
@@ -547,11 +645,6 @@ void *world_create(test_return_t *error)
     *error= TEST_FAILURE;
     return NULL;
   }
-
-  test->gearmand_pid= test_gearmand_start(CLIENT_TEST_PORT, NULL,
-                                          (char **)argv, 1);
-  test->worker_pid= test_worker_start(CLIENT_TEST_PORT, "client_test",
-                                      client_test_worker, NULL);
 
   *error= TEST_SUCCESS;
 
@@ -592,10 +685,17 @@ test_st tests_log[] ={
   {0, 0, 0}
 };
 
+test_st gearman_strerror_tests[] ={
+  {"count", 0, strerror_count },
+  {"strings", 0, strerror_strings },
+  {0, 0, 0}
+};
+
 
 collection_st collection[] ={
-  {"client", 0, 0, tests},
+  {"gearman_client_st", 0, 0, tests},
   {"client-logging", pre_logging, post_logging, tests_log},
+  {"gearman_strerror", 0, 0, gearman_strerror_tests},
   {0, 0, 0, 0}
 };
 

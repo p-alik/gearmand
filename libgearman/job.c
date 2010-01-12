@@ -38,7 +38,7 @@ gearman_job_st *gearman_job_create(gearman_worker_st *worker,
     job= malloc(sizeof(gearman_job_st));
     if (job == NULL)
     {
-      gearman_universal_set_error(worker->gearman, "_job_create", "malloc");
+      gearman_universal_set_error((&worker->universal), "_job_create", "malloc");
       return NULL;
     }
 
@@ -81,7 +81,7 @@ gearman_return_t gearman_job_send_data(gearman_job_st *job, const void *data,
     args_size[0]= job->assigned.arg_size[0];
     args[1]= data;
     args_size[1]= data_size;
-    ret= gearman_packet_create_args(job->worker->gearman, &(job->work),
+    ret= gearman_packet_create_args(&(job->worker->universal), &(job->work),
                                     GEARMAN_MAGIC_REQUEST,
                                     GEARMAN_COMMAND_WORK_DATA,
                                     args, args_size, 2);
@@ -108,7 +108,7 @@ gearman_return_t gearman_job_send_warning(gearman_job_st *job,
     args_size[0]= job->assigned.arg_size[0];
     args[1]= warning;
     args_size[1]= warning_size;
-    ret= gearman_packet_create_args(job->worker->gearman, &(job->work),
+    ret= gearman_packet_create_args(&(job->worker->universal), &(job->work),
                                     GEARMAN_MAGIC_REQUEST,
                                     GEARMAN_COMMAND_WORK_WARNING,
                                     args, args_size, 2);
@@ -142,10 +142,10 @@ gearman_return_t gearman_job_send_status(gearman_job_st *job,
     args_size[1]= strlen(numerator_string) + 1;
     args[2]= denominator_string;
     args_size[2]= strlen(denominator_string);
-    ret= gearman_packet_create_args(job->worker->gearman, &(job->work),
-                                 GEARMAN_MAGIC_REQUEST,
-                                 GEARMAN_COMMAND_WORK_STATUS,
-                                 args, args_size, 3);
+    ret= gearman_packet_create_args(&(job->worker->universal), &(job->work),
+                                    GEARMAN_MAGIC_REQUEST,
+                                    GEARMAN_COMMAND_WORK_STATUS,
+                                    args, args_size, 3);
     if (ret != GEARMAN_SUCCESS)
       return ret;
 
@@ -172,7 +172,7 @@ gearman_return_t gearman_job_send_complete(gearman_job_st *job,
     args_size[0]= job->assigned.arg_size[0];
     args[1]= result;
     args_size[1]= result_size;
-    ret= gearman_packet_create_args(job->worker->gearman, &(job->work),
+    ret= gearman_packet_create_args(&(job->worker->universal), &(job->work),
                                  GEARMAN_MAGIC_REQUEST,
                                  GEARMAN_COMMAND_WORK_COMPLETE,
                                  args, args_size, 2);
@@ -205,10 +205,10 @@ gearman_return_t gearman_job_send_exception(gearman_job_st *job,
     args_size[0]= job->assigned.arg_size[0];
     args[1]= exception;
     args_size[1]= exception_size;
-    ret= gearman_packet_create_args(job->worker->gearman, &(job->work),
-                                 GEARMAN_MAGIC_REQUEST,
-                                 GEARMAN_COMMAND_WORK_EXCEPTION,
-                                 args, args_size, 2);
+    ret= gearman_packet_create_args(&(job->worker->universal), &(job->work),
+                                    GEARMAN_MAGIC_REQUEST,
+                                    GEARMAN_COMMAND_WORK_EXCEPTION,
+                                    args, args_size, 2);
     if (ret != GEARMAN_SUCCESS)
       return ret;
 
@@ -231,7 +231,7 @@ gearman_return_t gearman_job_send_fail(gearman_job_st *job)
   {
     args[0]= job->assigned.arg[0];
     args_size[0]= job->assigned.arg_size[0] - 1;
-    ret= gearman_packet_create_args(job->worker->gearman, &(job->work),
+    ret= gearman_packet_create_args(&(job->worker->universal), &(job->work),
                                     GEARMAN_MAGIC_REQUEST,
                                     GEARMAN_COMMAND_WORK_FAIL,
                                     args, args_size, 1);
@@ -249,14 +249,14 @@ gearman_return_t gearman_job_send_fail(gearman_job_st *job)
   return GEARMAN_SUCCESS;
 }
 
-char *gearman_job_handle(const gearman_job_st *job)
+const char *gearman_job_handle(const gearman_job_st *job)
 {
-  return (char *)job->assigned.arg[0];
+  return (const char *)job->assigned.arg[0];
 }
 
-char *gearman_job_function_name(const gearman_job_st *job)
+const char *gearman_job_function_name(const gearman_job_st *job)
 {
-  return (char *)job->assigned.arg[1];
+  return (const char *)job->assigned.arg[1];
 }
 
 const char *gearman_job_unique(const gearman_job_st *job)

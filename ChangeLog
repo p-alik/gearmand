@@ -1,10 +1,20 @@
 0.13
+ * Fixed bug where memory loss occured if data was too large.
+ * Added gearman_strerror().
  * Fixed bug where setting an option off in mass would not trip any 
    triggers on the option (for both worker and client).
  * Options that are internal can no longer be set by external
    callers.
  * Deprecated gearman_client_set_event_watch_fn() and
-   gearman_worker_set_event_watch_fn.
+   gearman_worker_set_event_watch_fn.  
+   
+ * gearman_job_handle() and gearman_job_function_name() now return const char* pointers 
+
+ * gearman_worker_unregister now returns GEARMAN_NO_REGISTERED_FUNCTION if the function does not exist (or is being removed)
+
+ * Added gearman_worker_function_exist()
+
+ * Trying to send too large of a piece of data will result in GEARMAN_ARGUMENT_TOO_LARGE.
 
 0.12 - 2010-01-??
  * Fixed job handle comparison bug with WORK_FAIL responses.

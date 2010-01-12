@@ -14,20 +14,20 @@
 #include "common.h"
 
 /**
- * @addtogroup gearman_state Static Gearman Declarations
- * @ingroup state
+ * @addtogroup gearman_universal Static Gearman Declarations
+ * @ingroup universal
  * @{
  */
 
-gearman_universal_st *gearman_universal_create(gearman_universal_st *state, const gearman_options_t *options)
+gearman_universal_st *gearman_universal_create(gearman_universal_st *universal, const gearman_universal_options_t *options)
 {
-  assert(state);
+  assert(universal);
 
   { // Set defaults on all options.
-    state->options.allocated= false;
-    state->options.dont_track_packets= false;
-    state->options.non_blocking= false;
-    state->options.stored_non_blocking= false;
+    universal->options.allocated= false;
+    universal->options.dont_track_packets= false;
+    universal->options.non_blocking= false;
+    universal->options.stored_non_blocking= false;
   }
 
   if (options)
@@ -37,32 +37,32 @@ gearman_universal_st *gearman_universal_create(gearman_universal_st *state, cons
       /**
         @note Check for bad value, refactor gearman_add_options().
       */
-      gearman_universal_add_options(state, *options);
+      gearman_universal_add_options(universal, *options);
       options++;
     }
   }
 
-  state->verbose= 0;
-  state->con_count= 0;
-  state->packet_count= 0;
-  state->pfds_size= 0;
-  state->sending= 0;
-  state->last_errno= 0;
-  state->timeout= -1;
-  state->con_list= NULL;
-  state->packet_list= NULL;
-  state->pfds= NULL;
-  state->log_fn= NULL;
-  state->log_context= NULL;
-  state->event_watch_fn= NULL;
-  state->event_watch_context= NULL;
-  state->workload_malloc_fn= NULL;
-  state->workload_malloc_context= NULL;
-  state->workload_free_fn= NULL;
-  state->workload_free_context= NULL;
-  state->last_error[0]= 0;
+  universal->verbose= 0;
+  universal->con_count= 0;
+  universal->packet_count= 0;
+  universal->pfds_size= 0;
+  universal->sending= 0;
+  universal->last_errno= 0;
+  universal->timeout= -1;
+  universal->con_list= NULL;
+  universal->packet_list= NULL;
+  universal->pfds= NULL;
+  universal->log_fn= NULL;
+  universal->log_context= NULL;
+  universal->event_watch_fn= NULL;
+  universal->event_watch_context= NULL;
+  universal->workload_malloc_fn= NULL;
+  universal->workload_malloc_context= NULL;
+  universal->workload_free_fn= NULL;
+  universal->workload_free_context= NULL;
+  universal->last_error[0]= 0;
 
-  return state;
+  return universal;
 }
 
 gearman_universal_st *gearman_universal_clone(gearman_universal_st *destination, const gearman_universal_st *source)
@@ -97,36 +97,36 @@ gearman_universal_st *gearman_universal_clone(gearman_universal_st *destination,
     }
   }
 
-  /* Don't clone job or packet information, this is state information for
-     old and active jobs/connections. */
+  /* Don't clone job or packet information, this is universal information for
+    old and active jobs/connections. */
 
   return destination;
 }
 
-void gearman_universal_free(gearman_universal_st *state)
+void gearman_universal_free(gearman_universal_st *universal)
 {
-  gearman_free_all_cons(state);
-  gearman_free_all_packets(state);
+  gearman_free_all_cons(universal);
+  gearman_free_all_packets(universal);
 
-  if (state->pfds != NULL)
-    free(state->pfds);
+  if (universal->pfds != NULL)
+    free(universal->pfds);
 
-  if (state->options.allocated)
+  if (universal->options.allocated)
   {
     assert(0);
-    free(state);
+    free(universal);
   }
 }
 
-gearman_return_t gearman_universal_set_option(gearman_universal_st *state, gearman_options_t option, bool value)
+gearman_return_t gearman_universal_set_option(gearman_universal_st *universal, gearman_universal_options_t option, bool value)
 {
   switch (option)
   {
   case GEARMAN_NON_BLOCKING:
-    state->options.non_blocking= value;
+    universal->options.non_blocking= value;
     break;
   case GEARMAN_DONT_TRACK_PACKETS:
-    state->options.dont_track_packets= value;
+    universal->options.dont_track_packets= value;
     break;
   case GEARMAN_MAX:
   default:
@@ -136,60 +136,60 @@ gearman_return_t gearman_universal_set_option(gearman_universal_st *state, gearm
   return GEARMAN_SUCCESS;
 }
 
-int gearman_universal_timeout(gearman_universal_st *state)
+int gearman_universal_timeout(gearman_universal_st *universal)
 {
-  return state->timeout;
+  return universal->timeout;
 }
 
-void gearman_universal_set_timeout(gearman_universal_st *state, int timeout)
+void gearman_universal_set_timeout(gearman_universal_st *universal, int timeout)
 {
-  state->timeout= timeout;
+  universal->timeout= timeout;
 }
 
-void gearman_set_log_fn(gearman_universal_st *state, gearman_log_fn *function,
-                        const void *context, gearman_verbose_t verbose)
+void gearman_set_log_fn(gearman_universal_st *universal, gearman_log_fn *function,
+                        void *context, gearman_verbose_t verbose)
 {
-  state->log_fn= function;
-  state->log_context= context;
-  state->verbose= verbose;
+  universal->log_fn= function;
+  universal->log_context= context;
+  universal->verbose= verbose;
 }
 
-void gearman_set_event_watch_fn(gearman_universal_st *state,
+void gearman_set_event_watch_fn(gearman_universal_st *universal,
                                 gearman_event_watch_fn *function,
-                                const void *context)
+                                void *context)
 {
-  state->event_watch_fn= function;
-  state->event_watch_context= context;
+  universal->event_watch_fn= function;
+  universal->event_watch_context= context;
 }
 
-void gearman_set_workload_malloc_fn(gearman_universal_st *state,
+void gearman_set_workload_malloc_fn(gearman_universal_st *universal,
                                     gearman_malloc_fn *function,
-                                    const void *context)
+                                    void *context)
 {
-  state->workload_malloc_fn= function;
-  state->workload_malloc_context= context;
+  universal->workload_malloc_fn= function;
+  universal->workload_malloc_context= context;
 }
 
-void gearman_set_workload_free_fn(gearman_universal_st *state,
+void gearman_set_workload_free_fn(gearman_universal_st *universal,
                                   gearman_free_fn *function,
-                                  const void *context)
+                                  void *context)
 {
-  state->workload_free_fn= function;
-  state->workload_free_context= context;
+  universal->workload_free_fn= function;
+  universal->workload_free_context= context;
 }
 
-void gearman_free_all_cons(gearman_universal_st *state)
+void gearman_free_all_cons(gearman_universal_st *universal)
 {
-  while (state->con_list != NULL)
-    gearman_connection_free(state->con_list);
+  while (universal->con_list != NULL)
+    gearman_connection_free(universal->con_list);
 }
 
-gearman_return_t gearman_flush_all(gearman_universal_st *state)
+gearman_return_t gearman_flush_all(gearman_universal_st *universal)
 {
   gearman_connection_st *con;
   gearman_return_t ret;
 
-  for (con= state->con_list; con != NULL; con= con->next)
+  for (con= universal->con_list; con != NULL; con= con->next)
   {
     if (con->events & POLLOUT)
       continue;
@@ -202,7 +202,7 @@ gearman_return_t gearman_flush_all(gearman_universal_st *state)
   return GEARMAN_SUCCESS;
 }
 
-gearman_return_t gearman_wait(gearman_universal_st *state)
+gearman_return_t gearman_wait(gearman_universal_st *universal)
 {
   gearman_connection_st *con;
   struct pollfd *pfds;
@@ -210,23 +210,23 @@ gearman_return_t gearman_wait(gearman_universal_st *state)
   int ret;
   gearman_return_t gret;
 
-  if (state->pfds_size < state->con_count)
+  if (universal->pfds_size < universal->con_count)
   {
-    pfds= realloc(state->pfds, state->con_count * sizeof(struct pollfd));
+    pfds= realloc(universal->pfds, universal->con_count * sizeof(struct pollfd));
     if (pfds == NULL)
     {
-      gearman_universal_set_error(state, "gearman_wait", "realloc");
+      gearman_universal_set_error(universal, "gearman_wait", "realloc");
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
 
-    state->pfds= pfds;
-    state->pfds_size= state->con_count;
+    universal->pfds= pfds;
+    universal->pfds_size= universal->con_count;
   }
   else
-    pfds= state->pfds;
+    pfds= universal->pfds;
 
   x= 0;
-  for (con= state->con_list; con != NULL; con= con->next)
+  for (con= universal->con_list; con != NULL; con= con->next)
   {
     if (con->events == 0)
       continue;
@@ -239,20 +239,20 @@ gearman_return_t gearman_wait(gearman_universal_st *state)
 
   if (x == 0)
   {
-    gearman_universal_set_error(state, "gearman_wait", "no active file descriptors");
+    gearman_universal_set_error(universal, "gearman_wait", "no active file descriptors");
     return GEARMAN_NO_ACTIVE_FDS;
   }
 
   while (1)
   {
-    ret= poll(pfds, x, state->timeout);
+    ret= poll(pfds, x, universal->timeout);
     if (ret == -1)
     {
       if (errno == EINTR)
         continue;
 
-      gearman_universal_set_error(state, "gearman_wait", "poll:%d", errno);
-      state->last_errno= errno;
+      gearman_universal_set_error(universal, "gearman_wait", "poll:%d", errno);
+      universal->last_errno= errno;
       return GEARMAN_ERRNO;
     }
 
@@ -261,12 +261,12 @@ gearman_return_t gearman_wait(gearman_universal_st *state)
 
   if (ret == 0)
   {
-    gearman_universal_set_error(state, "gearman_wait", "timeout reached");
+    gearman_universal_set_error(universal, "gearman_wait", "timeout reached");
     return GEARMAN_TIMEOUT;
   }
 
   x= 0;
-  for (con= state->con_list; con != NULL; con= con->next)
+  for (con= universal->con_list; con != NULL; con= con->next)
   {
     if (con->events == 0)
       continue;
@@ -281,14 +281,14 @@ gearman_return_t gearman_wait(gearman_universal_st *state)
   return GEARMAN_SUCCESS;
 }
 
-gearman_connection_st *gearman_ready(gearman_universal_st *state)
+gearman_connection_st *gearman_ready(gearman_universal_st *universal)
 {
   gearman_connection_st *con;
 
-  /* We can't keep state between calls since connections may be removed during
-     processing. If this list ever gets big, we may want something faster. */
+  /* We can't keep universal between calls since connections may be removed during
+    processing. If this list ever gets big, we may want something faster. */
 
-  for (con= state->con_list; con != NULL; con= con->next)
+  for (con= universal->con_list; con != NULL; con= con->next)
   {
     if (con->options.ready)
     {
@@ -301,82 +301,91 @@ gearman_connection_st *gearman_ready(gearman_universal_st *state)
 }
 
 /**
-  @note gearman_universal_push_blocking is only used for echo (and should be fixed
+  @note _push_blocking is only used for echo (and should be fixed
   when tricky flip/flop in IO is fixed).
 */
-static inline void gearman_universal_push_blocking(gearman_universal_st *state)
+static inline void _push_blocking(gearman_universal_st *universal, bool *orig_block_universal)
 {
-  state->options.stored_non_blocking= state->options.non_blocking;
-  state->options.non_blocking= false;
+  *orig_block_universal= universal->options.non_blocking;
+  universal->options.non_blocking= false;
 }
 
-gearman_return_t gearman_echo(gearman_universal_st *state, const void *workload,
+static inline void _pop_non_blocking(gearman_universal_st *universal, bool orig_block_universal)
+{
+  universal->options.non_blocking= orig_block_universal;
+}
+
+gearman_return_t gearman_echo(gearman_universal_st *universal,
+                              const void *workload,
                               size_t workload_size)
 {
   gearman_connection_st *con;
   gearman_packet_st packet;
   gearman_return_t ret;
+  bool orig_block_universal;
 
-  ret= gearman_packet_create_args(state, &packet, GEARMAN_MAGIC_REQUEST,
-                                  GEARMAN_COMMAND_ECHO_REQ, &workload,
-                                  &workload_size, 1);
+  ret= gearman_packet_create_args(universal, &packet, GEARMAN_MAGIC_REQUEST,
+                                  GEARMAN_COMMAND_ECHO_REQ,
+                                  &workload, &workload_size, 1);
   if (ret != GEARMAN_SUCCESS)
-    return ret;
-
-  gearman_universal_push_blocking(state);
-
-  for (con= state->con_list; con != NULL; con= con->next)
   {
+    return ret;
+  }
+
+  _push_blocking(universal, &orig_block_universal);
+
+  for (con= universal->con_list; con != NULL; con= con->next)
+  {
+    gearman_packet_st *packet_ptr;
+
     ret= gearman_connection_send(con, &packet, true);
     if (ret != GEARMAN_SUCCESS)
     {
-      gearman_packet_free(&packet);
-      gearman_universal_pop_non_blocking(state);
-
-      return ret;
+      goto exit;
     }
 
-    (void)gearman_connection_recv(con, &(con->packet), &ret, true);
+    packet_ptr= gearman_connection_recv(con, &(con->packet), &ret, true);
     if (ret != GEARMAN_SUCCESS)
     {
-      gearman_packet_free(&packet);
-      gearman_universal_pop_non_blocking(state);
-
-      return ret;
+      goto exit;
     }
+
+    assert(packet_ptr);
 
     if (con->packet.data_size != workload_size ||
         memcmp(workload, con->packet.data, workload_size))
     {
       gearman_packet_free(&(con->packet));
-      gearman_packet_free(&packet);
-      gearman_universal_pop_non_blocking(state);
-      gearman_universal_set_error(state, "gearman_echo", "corruption during echo");
+      gearman_universal_set_error(universal, "gearman_echo", "corruption during echo");
 
-      return GEARMAN_ECHO_DATA_CORRUPTION;
+      ret= GEARMAN_ECHO_DATA_CORRUPTION;
+      goto exit;
     }
 
     gearman_packet_free(&(con->packet));
   }
 
+  ret= GEARMAN_SUCCESS;
+
+exit:
   gearman_packet_free(&packet);
-  gearman_universal_pop_non_blocking(state);
+  _pop_non_blocking(universal, orig_block_universal);
 
   return GEARMAN_SUCCESS;
 }
 
-void gearman_free_all_packets(gearman_universal_st *state)
+void gearman_free_all_packets(gearman_universal_st *universal)
 {
-  while (state->packet_list != NULL)
-    gearman_packet_free(state->packet_list);
+  while (universal->packet_list != NULL)
+    gearman_packet_free(universal->packet_list);
 }
 
 /*
  * Local Definitions
  */
 
-void gearman_universal_set_error(gearman_universal_st *state, const char *function,
-                       const char *format, ...)
+void gearman_universal_set_error(gearman_universal_st *universal, const char *function,
+                                 const char *format, ...)
 {
   size_t size;
   char *ptr;
@@ -394,16 +403,16 @@ void gearman_universal_set_error(gearman_universal_st *state, const char *functi
   size+= (size_t)vsnprintf(ptr, GEARMAN_MAX_ERROR_SIZE - size, format, args);
   va_end(args);
 
-  if (state->log_fn == NULL)
+  if (universal->log_fn == NULL)
   {
     if (size >= GEARMAN_MAX_ERROR_SIZE)
       size= GEARMAN_MAX_ERROR_SIZE - 1;
 
-    memcpy(state->last_error, log_buffer, size + 1);
+    memcpy(universal->last_error, log_buffer, size + 1);
   }
   else
   {
-    state->log_fn(log_buffer, GEARMAN_VERBOSE_FATAL,
-                    (void *)state->log_context);
+    universal->log_fn(log_buffer, GEARMAN_VERBOSE_FATAL,
+                      (void *)universal->log_context);
   }
 }

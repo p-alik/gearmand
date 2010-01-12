@@ -73,23 +73,23 @@ struct gearman_connection_st
   size_t recv_buffer_size;
   size_t recv_data_size;
   size_t recv_data_offset;
-  gearman_universal_st *gearman;
+  gearman_universal_st *universal;
   gearman_connection_st *next;
   gearman_connection_st *prev;
-  const void *context;
+  void *context;
   struct addrinfo *addrinfo;
   struct addrinfo *addrinfo_next;
-  uint8_t *send_buffer_ptr;
+  char *send_buffer_ptr;
   gearman_packet_st *recv_packet;
-  uint8_t *recv_buffer_ptr;
-  const void *protocol_context;
+  char *recv_buffer_ptr;
+  void *protocol_context;
   gearman_connection_protocol_context_free_fn *protocol_context_free_fn;
   gearman_packet_pack_fn *packet_pack_fn;
   gearman_packet_unpack_fn *packet_unpack_fn;
   gearman_packet_st packet;
   char host[NI_MAXHOST];
-  uint8_t send_buffer[GEARMAN_SEND_BUFFER_SIZE];
-  uint8_t recv_buffer[GEARMAN_RECV_BUFFER_SIZE];
+  char send_buffer[GEARMAN_SEND_BUFFER_SIZE];
+  char recv_buffer[GEARMAN_RECV_BUFFER_SIZE];
 };
 
 #ifdef GEARMAN_CORE
@@ -180,7 +180,7 @@ void *gearman_connection_context(const gearman_connection_st *connection);
  * Set application context pointer.
  */
 GEARMAN_INTERNAL_API
-void gearman_connection_set_context(gearman_connection_st *connection, const void *context);
+void gearman_connection_set_context(gearman_connection_st *connection, void *context);
 
 /**
  * Connect to server.
@@ -259,7 +259,7 @@ void *gearman_connection_protocol_context(const gearman_connection_st *connectio
  * Set protocol context pointer.
  */
 GEARMAN_INTERNAL_API
-void gearman_connection_set_protocol_context(gearman_connection_st *connection, const void *context);
+void gearman_connection_set_protocol_context(gearman_connection_st *connection, void *context);
 
 /**
  * Set function to call when protocol_data should be freed.
