@@ -7,25 +7,42 @@
 
 ACLOCAL_AMFLAGS= -I m4
 
-SUBDIRS = \
-	libgearman \
-	libgearman-server \
-	gearmand \
-	bin \
-	examples \
-	scripts \
-	support \
-	benchmark \
-	tests
+bin_PROGRAMS =
+sbin_PROGRAMS = 
+check_PROGRAMS =
+noinst_PROGRAMS =
+lib_LTLIBRARIES =
+noinst_LTLIBRARIES =
+nobase_pkginclude_HEADERS =
+noinst_HEADERS =
+EXTRA_DIST = 
+CLEANFILES =
 
-include $(top_srcdir)/docs/man_list
 
-EXTRA_DIST= \
+include benchmark/include.am
+include bin/include.am
+include examples/include.am
+include gearmand/include.am
+include libgearman/include.am
+include libgearman-server/include.am
+include tests/include.am
+
+include docs/man_list
+
+EXTRA_DIST+= \
 	docs/Doxyfile.api \
 	docs/Doxyfile.dev \
 	docs/api_header.html \
 	docs/dev_header.html \
-	docs/doxygen.h
+	docs/doxygen.h \
+  scripts/gearmand-init \
+	scripts/gearmand.xml \
+	scripts/gearmand \
+	scripts/README.solaris \
+	support/gearmand.spec
+
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = support/gearmand.pc
 
 docs: all
 	${DOXYGEN} docs/Doxyfile.api
@@ -33,8 +50,6 @@ docs: all
 
 test: check
 
-valgrind:
-	(cd tests; ${MAKE} valgrind)
 
 rpm: all dist
 	cp gearmand-$(VERSION).tar.gz ~/rpmbuild/SOURCES/

@@ -759,8 +759,13 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
 				  (char *)(client->con->packet.arg[1]));
                 return GEARMAN_SERVER_ERROR;
               }
-              else if (strcmp(client->task->job_handle,
-                              (char *)(client->con->packet.arg[0])))
+              else if (strncmp(client->task->job_handle,
+                               (char *)(client->con->packet.arg[0]),
+                               client->con->packet.arg_size[0]) ||
+                       (client->con->packet.command != GEARMAN_COMMAND_WORK_FAIL &&
+                        strlen(client->task->job_handle) != client->con->packet.arg_size[0] - 1) ||
+                       (client->con->packet.command == GEARMAN_COMMAND_WORK_FAIL &&
+                        strlen(client->task->job_handle) != client->con->packet.arg_size[0]))
               {
                 continue;
               }
