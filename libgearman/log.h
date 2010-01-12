@@ -11,8 +11,8 @@
  * @brief Local Gearman Declarations
  */
 
-#ifndef __GEARMAN_LOCAL_H__
-#define __GEARMAN_LOCAL_H__
+#ifndef __GEARMAN_LOG_H__
+#define __GEARMAN_LOG_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -20,21 +20,9 @@ extern "C" {
 
 /**
  * @addtogroup gearman_local Local Gearman Declarations
- * @ingroup gearman
+ * @ingroup gearman_universal
  * @{
  */
-
-/**
- * Set the error string.
- *
- * @param[in] gearman Structure previously initialized with gearman_create() or
- *  gearman_clone().
- * @param[in] function Name of function the error happened in. 
- * @param[in] format Format and variable argument list of message.
- */
-GEARMAN_LOCAL
-void gearman_set_error(gearman_st *gearman, const char *function,
-                       const char *format, ...);
 
 /**
  * Log a message.
@@ -46,13 +34,13 @@ void gearman_set_error(gearman_st *gearman, const char *function,
  * @param[in] args Variable argument list that has been initialized.
  */
 GEARMAN_LOCAL
-void gearman_log(gearman_st *gearman, gearman_verbose_t verbose,
+void gearman_log(gearman_universal_st *gearman, gearman_verbose_t verbose,
                  const char *format, va_list args);
 
 /**
  * Log a fatal message, see gearman_log() for argument details.
  */
-static inline void gearman_log_fatal(gearman_st *gearman, const char *format,
+static inline void gearman_log_fatal(gearman_universal_st *gearman, const char *format,
                                      ...)
 {
   va_list args;
@@ -67,7 +55,7 @@ static inline void gearman_log_fatal(gearman_st *gearman, const char *format,
 /**
  * Log an error message, see gearman_log() for argument details.
  */
-static inline void gearman_log_error(gearman_st *gearman, const char *format,
+static inline void gearman_log_error(gearman_universal_st *gearman, const char *format,
                                      ...)
 {
   va_list args;
@@ -83,7 +71,7 @@ static inline void gearman_log_error(gearman_st *gearman, const char *format,
 /**
  * Log an info message, see gearman_log() for argument details.
  */
-static inline void gearman_log_info(gearman_st *gearman, const char *format,
+static inline void gearman_log_info(gearman_universal_st *gearman, const char *format,
                                     ...)
 {
   va_list args;
@@ -99,7 +87,7 @@ static inline void gearman_log_info(gearman_st *gearman, const char *format,
 /**
  * Log a debug message, see gearman_log() for argument details.
  */
-static inline void gearman_log_debug(gearman_st *gearman, const char *format,
+static inline void gearman_log_debug(gearman_universal_st *gearman, const char *format,
                                      ...)
 {
   va_list args;
@@ -115,7 +103,7 @@ static inline void gearman_log_debug(gearman_st *gearman, const char *format,
 /**
  * Log a crazy message, see gearman_log() for argument details.
  */
-static inline void gearman_log_crazy(gearman_st *gearman, const char *format,
+static inline void gearman_log_crazy(gearman_universal_st *gearman, const char *format,
                                      ...)
 {
   va_list args;
@@ -128,23 +116,10 @@ static inline void gearman_log_crazy(gearman_st *gearman, const char *format,
   }
 }
 
-/**
- * Utility function used for parsing server lists.
- *
- * @param[in] servers String containing a list of servers to parse.
- * @param[in] callback Function to call for each server that is found.
- * @param[in] context Argument to pass along with callback function.
- * @return Standard Gearman return value.
- */
-GEARMAN_LOCAL
-gearman_return_t gearman_parse_servers(const char *servers,
-                                       gearman_parse_server_fn *callback,
-                                       const void *context);
-
 /** @} */
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __GEARMAN_LOCAL_H__ */
+#endif /* __GEARMAN_LOG_H__ */

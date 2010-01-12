@@ -16,6 +16,7 @@
 
 #include "config.h"
 
+#define GEARMAN_CORE
 #include "gearman.h"
 
 #ifdef HAVE_ASSERT_H
@@ -74,7 +75,5 @@
 #  include <time.h>
 # endif
 #endif
-
-#include "gearman_local.h"
 
 #endif /* __GEARMAN_COMMON_H__ */

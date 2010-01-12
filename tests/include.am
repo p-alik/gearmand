@@ -1,3 +1,4 @@
+# vim:ft=automake
 # Gearman server and library
 # Copyright (C) 2008 Brian Aker, Eric Day
 # All rights reserved.
@@ -8,10 +9,10 @@
 noinst_LTLIBRARIES+= tests/libtest.la
 tests_libtest_la_SOURCES= tests/test.c tests/test_gearmand.c
 
-TEST_LDADD = \
-	libgearman/libgearman.la \
-	libgearman-server/libgearman-server.la \
-	tests/libtest.la
+TEST_LDADD= \
+	    libgearman/libgearman.la \
+	    libgearman-server/libgearman-server.la \
+	    tests/libtest.la
 
 if HAVE_LIBMEMCACHED
 LIBMEMCACHED_PIDFILE = ${abs_top_builddir}/tests/Xumemc.pid
@@ -19,13 +20,8 @@ LIBMEMCACHED_TEST= tests/memcached_test
 LIBMEMCACHED_SETUP= $(MEMCACHED_BINARY) -d -P ${LIBMEMCACHED_PIDFILE} -p 12555
 LIBMEMCACHED_TEARDOWN= cat ${LIBMEMCACHED_PIDFILE} | xargs kill
 LIBMEMCACHED_RM= rm ${LIBMEMCACHED_PIDFILE}
-LIBMEMCACHED_RES= tests/memcached_test.res
-LIBMEMCACHED_REC= ${top_srcdir}/tests/memcached_test.rec
-LIBMEMCACHED_RECORD= ${LIBMEMCACHED_TEST} > ${LIBMEMCACHED_REC}
-LIBMEMCACHED_RUN= ${LIBMEMCACHED_TEST} > ${LIBMEMCACHED_RES}
-LIBMEMCACHED_CHECK= diff ${LIBMEMCACHED_REC} ${LIBMEMCACHED_RES}
-LIBMEMCACHED_VALGRIND= libtool --mode=execute valgrind --leak-check=yes --show-reachable=yes ${LIBMEMCACHED_TEST}
-check_PROGRAMS += tests/memcached_test
+LIBMEMCACHED_VALGRIND= $(LIBTOOL) --mode=execute valgrind --leak-check=yes --show-reachable=yes ${LIBMEMCACHED_TEST}
+noinst_PROGRAMS += tests/memcached_test
 endif
 
 tests_memcached_test_SOURCES= tests/memcached_test.c
@@ -33,32 +29,35 @@ tests_memcached_test_LDADD= ${TEST_LDADD}
 
 if HAVE_LIBSQLITE3
 SQLITE_TEST= tests/sqlite_test
-SQLITE_RES= tests/sqlite_test.res
-SQLITE_REC= ${top_srcdir}/tests/sqlite_test.rec
-SQLITE_RECORD= ${SQLITE_TEST} > ${SQLITE_REC}
-SQLITE_RUN= ${SQLITE_TEST} > ${SQLITE_RES}
-SQLITE_CHECK= diff ${SQLITE_REC} ${SQLITE_RES}
 SQLITE_RM= rm -f tests/gearman.sql tests/gearman.sql-journal
-SQLITE_VALGRIND= libtool --mode=execute valgrind --leak-check=yes --show-reachable=yes ${SQLITE_TEST}
-check_PROGRAMS += tests/sqlite_test
+SQLITE_VALGRIND= $(LIBTOOL) --mode=execute valgrind --leak-check=yes --show-reachable=yes ${SQLITE_TEST}
+noinst_PROGRAMS += tests/sqlite_test
 endif
 
 tests_sqlite_test_SOURCES= tests/sqlite_test.c
 tests_sqlite_test_LDADD= ${TEST_LDADD}
 
 
-check_PROGRAMS+= \
-	tests/client_test \
-	tests/worker_test \
-	tests/cpp_test
+noinst_PROGRAMS+= \
+		tests/client_test \
+		tests/cpp_test \
+		tests/internals_test \
+		tests/regression_test \
+		tests/worker_test
 
 noinst_HEADERS+= \
-	tests/test.h \
-	tests/test_gearmand.h \
-	tests/test_worker.h
+	      tests/test.h \
+	      tests/test_gearmand.h \
+	      tests/test_worker.h
 
 tests_client_test_SOURCES= tests/test_worker.c tests/client_test.c
 tests_client_test_LDADD= ${TEST_LDADD}
+
+tests_internals_test_SOURCES= tests/internals.c
+tests_internals_test_LDADD= ${TEST_LDADD}
+
+tests_regression_test_SOURCES= tests/regression.c
+tests_regression_test_LDADD= ${TEST_LDADD}
 
 tests_worker_test_SOURCES= tests/worker_test.c
 tests_worker_test_LDADD= ${TEST_LDADD}
@@ -67,32 +66,24 @@ tests_worker_test_LDADD= ${TEST_LDADD}
 tests_cpp_test_SOURCES= tests/cpp_test.cc
 tests_cpp_test_LDADD= ${TEST_LDADD}
 
-CLEANFILES+= tests/client_test.res tests/worker_test.res $(LIBMEMCACHED_RES) $(SQLITE_RES)
-
-EXTRA_DIST+= tests/client_test.rec tests/worker_test.rec $(LIBMEMCACHED_REC) $(SQLITE_REC)
-
-record: tests/client_test tests/worker_test $(LIBMEMCACHED_TEST) $(SQLITE_TEST)
-	tests/client_test > tests/client_test.rec
-	tests/worker_test > tests/worker_test.rec
-	$(LIBMEMCACHED_RECORD)
-	$(SQLITE_RECORD)
-
 check-local:
-	tests/client_test > tests/client_test.res
-	diff ${top_srcdir}/tests/client_test.rec tests/client_test.res
-	tests/worker_test > tests/worker_test.res
-	diff ${top_srcdir}/tests/worker_test.rec tests/worker_test.res
+	tests/client_test
+	tests/worker_test
+	tests/internals_test
 	$(LIBMEMCACHED_SETUP)
-	$(LIBMEMCACHED_RUN)
-	$(LIBMEMCACHED_CHECK)
+	$(LIBMEMCACHED_TEST)
 	$(LIBMEMCACHED_TEARDOWN)
 	$(LIBMEMCACHED_RM)
-	$(SQLITE_RUN)
-	$(SQLITE_CHECK)
+	$(SQLITE_TEST)
 	$(SQLITE_RM)
 
-valgrind: ${check_PROGRAMS}
-	libtool --mode=execute valgrind --leak-check=yes --show-reachable=yes  tests/client_test
-	libtool --mode=execute valgrind --leak-check=yes --show-reachable=yes  tests/worker_test
+valgrind: ${noinst_PROGRAMS}
+	$(LIBTOOL) --mode=execute valgrind --leak-check=yes --show-reachable=yes  tests/client_test
+	$(LIBTOOL) --mode=execute valgrind --leak-check=yes --show-reachable=yes  tests/worker_test
+	$(LIBTOOL) --mode=execute valgrind --leak-check=yes --show-reachable=yes  tests/internals_test
+	$(LIBMEMCACHED_SETUP)
 	$(LIBMEMCACHED_VALGRIND)
+	$(LIBMEMCACHED_TEARDOWN)
+	$(LIBMEMCACHED_RM)
 	$(SQLITE_VALGRIND)
+	$(SQLITE_RM)

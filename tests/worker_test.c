@@ -32,22 +32,23 @@ typedef struct
 } worker_test_st;
 
 /* Prototypes */
-test_return init_test(void *object);
-test_return allocation_test(void *object);
-test_return clone_test(void *object);
-test_return echo_test(void *object);
-test_return bug372074_test(void *object);
+test_return_t init_test(void *object);
+test_return_t allocation_test(void *object);
+test_return_t clone_test(void *object);
+test_return_t echo_test(void *object);
+test_return_t option_test(void *object);
+test_return_t bug372074_test(void *object);
 
 void *create(void *object);
 void destroy(void *object);
-test_return pre(void *object);
-test_return post(void *object);
-test_return flush(void);
+test_return_t pre(void *object);
+test_return_t post(void *object);
+test_return_t flush(void);
 
-void *world_create(void);
-void world_destroy(void *object);
+void *world_create(test_return_t *error);
+test_return_t world_destroy(void *object);
 
-test_return init_test(void *object __attribute__((unused)))
+test_return_t init_test(void *object __attribute__((unused)))
 {
   gearman_worker_st worker;
 
@@ -59,7 +60,7 @@ test_return init_test(void *object __attribute__((unused)))
   return TEST_SUCCESS;
 }
 
-test_return allocation_test(void *object __attribute__((unused)))
+test_return_t allocation_test(void *object __attribute__((unused)))
 {
   gearman_worker_st *worker;
 
@@ -72,13 +73,17 @@ test_return allocation_test(void *object __attribute__((unused)))
   return TEST_SUCCESS;
 }
 
-test_return clone_test(void *object)
+test_return_t clone_test(void *object)
 {
   gearman_worker_st *from= (gearman_worker_st *)object;
   gearman_worker_st *worker;
 
-  if (gearman_worker_clone(NULL, NULL) != NULL)
-    return TEST_FAILURE;
+  worker= gearman_worker_clone(NULL, NULL);
+
+  test_truth(worker);
+  test_truth(worker->options.allocated);
+
+  gearman_worker_free(worker);
 
   worker= gearman_worker_clone(NULL, from);
   if (worker == NULL)
@@ -89,191 +94,230 @@ test_return clone_test(void *object)
   return TEST_SUCCESS;
 }
 
-test_return echo_test(void *object)
+test_return_t option_test(void *object __attribute__((unused)))
+{
+  gearman_worker_st *gear;
+  gearman_worker_options_t default_options;
+
+  gear= gearman_worker_create(NULL);
+  test_truth(gear);
+  { // Initial Allocated, no changes
+    test_truth(gear->options.allocated);
+    test_false(gear->options.non_blocking);
+    test_truth(gear->options.packet_init);
+    test_false(gear->options.grab_job_in_use);
+    test_false(gear->options.pre_sleep_in_use);
+    test_false(gear->options.work_job_in_use);
+    test_false(gear->options.change);
+    test_false(gear->options.grab_uniq);
+    test_false(gear->options.timeout_return);
+  }
+
+  /* Set up for default options */
+  default_options= gearman_worker_options(gear);
+
+  /*
+    We take the basic options, and push
+    them back in. See if we change anything.
+  */
+  gearman_worker_set_options(gear, default_options);
+  { // Initial Allocated, no changes
+    test_truth(gear->options.allocated);
+    test_false(gear->options.non_blocking);
+    test_truth(gear->options.packet_init);
+    test_false(gear->options.grab_job_in_use);
+    test_false(gear->options.pre_sleep_in_use);
+    test_false(gear->options.work_job_in_use);
+    test_false(gear->options.change);
+    test_false(gear->options.grab_uniq);
+    test_false(gear->options.timeout_return);
+  }
+
+  /*
+    We will trying to modify non-mutable options (which should not be allowed)
+  */
+  {
+    gearman_worker_remove_options(gear, GEARMAN_WORKER_ALLOCATED);
+    { // Initial Allocated, no changes
+      test_truth(gear->options.allocated);
+      test_false(gear->options.non_blocking);
+      test_truth(gear->options.packet_init);
+      test_false(gear->options.grab_job_in_use);
+      test_false(gear->options.pre_sleep_in_use);
+      test_false(gear->options.work_job_in_use);
+      test_false(gear->options.change);
+      test_false(gear->options.grab_uniq);
+      test_false(gear->options.timeout_return);
+    }
+    gearman_worker_remove_options(gear, GEARMAN_WORKER_PACKET_INIT);
+    { // Initial Allocated, no changes
+      test_truth(gear->options.allocated);
+      test_false(gear->options.non_blocking);
+      test_truth(gear->options.packet_init);
+      test_false(gear->options.grab_job_in_use);
+      test_false(gear->options.pre_sleep_in_use);
+      test_false(gear->options.work_job_in_use);
+      test_false(gear->options.change);
+      test_false(gear->options.grab_uniq);
+      test_false(gear->options.timeout_return);
+    }
+  }
+
+  /*
+    We will test modifying GEARMAN_WORKER_NON_BLOCKING in several manners.
+  */
+  {
+    gearman_worker_remove_options(gear, GEARMAN_WORKER_NON_BLOCKING);
+    { // GEARMAN_WORKER_NON_BLOCKING set to default, by default.
+      test_truth(gear->options.allocated);
+      test_false(gear->options.non_blocking);
+      test_truth(gear->options.packet_init);
+      test_false(gear->options.grab_job_in_use);
+      test_false(gear->options.pre_sleep_in_use);
+      test_false(gear->options.work_job_in_use);
+      test_false(gear->options.change);
+      test_false(gear->options.grab_uniq);
+      test_false(gear->options.timeout_return);
+    }
+    gearman_worker_add_options(gear, GEARMAN_WORKER_NON_BLOCKING);
+    { // GEARMAN_WORKER_NON_BLOCKING set to default, by default.
+      test_truth(gear->options.allocated);
+      test_truth(gear->options.non_blocking);
+      test_truth(gear->options.packet_init);
+      test_false(gear->options.grab_job_in_use);
+      test_false(gear->options.pre_sleep_in_use);
+      test_false(gear->options.work_job_in_use);
+      test_false(gear->options.change);
+      test_false(gear->options.grab_uniq);
+      test_false(gear->options.timeout_return);
+    }
+    gearman_worker_set_options(gear, GEARMAN_WORKER_NON_BLOCKING);
+    { // GEARMAN_WORKER_NON_BLOCKING set to default, by default.
+      test_truth(gear->options.allocated);
+      test_truth(gear->options.non_blocking);
+      test_truth(gear->options.packet_init);
+      test_false(gear->options.grab_job_in_use);
+      test_false(gear->options.pre_sleep_in_use);
+      test_false(gear->options.work_job_in_use);
+      test_false(gear->options.change);
+      test_false(gear->options.grab_uniq);
+      test_false(gear->options.timeout_return);
+    }
+    gearman_worker_set_options(gear, GEARMAN_WORKER_GRAB_UNIQ);
+    { // Everything is now set to false except GEARMAN_WORKER_GRAB_UNIQ, and non-mutable options
+      test_truth(gear->options.allocated);
+      test_false(gear->options.non_blocking);
+      test_truth(gear->options.packet_init);
+      test_false(gear->options.grab_job_in_use);
+      test_false(gear->options.pre_sleep_in_use);
+      test_false(gear->options.work_job_in_use);
+      test_false(gear->options.change);
+      test_truth(gear->options.grab_uniq);
+      test_false(gear->options.timeout_return);
+    }
+    /*
+      Reset options to default. Then add an option, and then add more options. Make sure
+      the options are all additive.
+    */
+    {
+      gearman_worker_set_options(gear, default_options);
+      { // See if we return to defaults
+        test_truth(gear->options.allocated);
+        test_false(gear->options.non_blocking);
+        test_truth(gear->options.packet_init);
+        test_false(gear->options.grab_job_in_use);
+        test_false(gear->options.pre_sleep_in_use);
+        test_false(gear->options.work_job_in_use);
+        test_false(gear->options.change);
+        test_false(gear->options.grab_uniq);
+        test_false(gear->options.timeout_return);
+      }
+      gearman_worker_add_options(gear, GEARMAN_WORKER_TIMEOUT_RETURN);
+      { // All defaults, except timeout_return
+        test_truth(gear->options.allocated);
+        test_false(gear->options.non_blocking);
+        test_truth(gear->options.packet_init);
+        test_false(gear->options.grab_job_in_use);
+        test_false(gear->options.pre_sleep_in_use);
+        test_false(gear->options.work_job_in_use);
+        test_false(gear->options.change);
+        test_false(gear->options.grab_uniq);
+        test_truth(gear->options.timeout_return);
+      }
+      gearman_worker_add_options(gear, GEARMAN_WORKER_NON_BLOCKING|GEARMAN_WORKER_GRAB_UNIQ);
+      { // GEARMAN_WORKER_NON_BLOCKING set to default, by default.
+        test_truth(gear->options.allocated);
+        test_truth(gear->options.non_blocking);
+        test_truth(gear->options.packet_init);
+        test_false(gear->options.grab_job_in_use);
+        test_false(gear->options.pre_sleep_in_use);
+        test_false(gear->options.work_job_in_use);
+        test_false(gear->options.change);
+        test_truth(gear->options.grab_uniq);
+        test_truth(gear->options.timeout_return);
+      }
+    }
+    /*
+      Add an option, and then replace with that option plus a new option.
+    */
+    {
+      gearman_worker_set_options(gear, default_options);
+      { // See if we return to defaults
+        test_truth(gear->options.allocated);
+        test_false(gear->options.non_blocking);
+        test_truth(gear->options.packet_init);
+        test_false(gear->options.grab_job_in_use);
+        test_false(gear->options.pre_sleep_in_use);
+        test_false(gear->options.work_job_in_use);
+        test_false(gear->options.change);
+        test_false(gear->options.grab_uniq);
+        test_false(gear->options.timeout_return);
+      }
+      gearman_worker_add_options(gear, GEARMAN_WORKER_TIMEOUT_RETURN);
+      { // All defaults, except timeout_return
+        test_truth(gear->options.allocated);
+        test_false(gear->options.non_blocking);
+        test_truth(gear->options.packet_init);
+        test_false(gear->options.grab_job_in_use);
+        test_false(gear->options.pre_sleep_in_use);
+        test_false(gear->options.work_job_in_use);
+        test_false(gear->options.change);
+        test_false(gear->options.grab_uniq);
+        test_truth(gear->options.timeout_return);
+      }
+      gearman_worker_add_options(gear, GEARMAN_WORKER_TIMEOUT_RETURN|GEARMAN_WORKER_GRAB_UNIQ);
+      { // GEARMAN_WORKER_NON_BLOCKING set to default, by default.
+        test_truth(gear->options.allocated);
+        test_false(gear->options.non_blocking);
+        test_truth(gear->options.packet_init);
+        test_false(gear->options.grab_job_in_use);
+        test_false(gear->options.pre_sleep_in_use);
+        test_false(gear->options.work_job_in_use);
+        test_false(gear->options.change);
+        test_truth(gear->options.grab_uniq);
+        test_truth(gear->options.timeout_return);
+      }
+    }
+  }
+
+  gearman_worker_free(gear);
+
+  return TEST_SUCCESS;
+}
+
+test_return_t echo_test(void *object)
 {
   gearman_worker_st *worker= (gearman_worker_st *)object;
   gearman_return_t rc;
   size_t value_length;
   const char *value= "This is my echo test";
-  
+
   value_length= strlen(value);
-  
+
   rc= gearman_worker_echo(worker, (uint8_t *)value, value_length);
   if (rc != GEARMAN_SUCCESS)
     return TEST_FAILURE;
-  
-  return TEST_SUCCESS;
-}
 
-test_return bug372074_test(void *object __attribute__((unused)))
-{
-  gearman_st gearman;
-  gearman_con_st con;
-  gearman_packet_st packet;
-  uint32_t x;
-  const void *args[1];
-  size_t args_size[1];
-
-  if (gearman_create(&gearman) == NULL)
-    return TEST_FAILURE;
-
-  for (x= 0; x < 2; x++)
-  {
-    if (gearman_add_con(&gearman, &con) == NULL)
-      return TEST_FAILURE;
-
-    gearman_con_set_host(&con, NULL);
-    gearman_con_set_port(&con, WORKER_TEST_PORT);
-
-    args[0]= "testUnregisterFunction";
-    args_size[0]= strlen("testUnregisterFunction");
-    if (gearman_add_packet_args(&gearman, &packet, GEARMAN_MAGIC_REQUEST,
-                                GEARMAN_COMMAND_SET_CLIENT_ID,
-                                args, args_size, 1) != GEARMAN_SUCCESS)
-    {
-      return TEST_FAILURE;
-    }
-
-    if (gearman_con_send(&con, &packet, true) != GEARMAN_SUCCESS)
-      return TEST_FAILURE;
-
-    gearman_packet_free(&packet);
-
-    args[0]= "reverse";
-    args_size[0]= strlen("reverse");
-    if (gearman_add_packet_args(&gearman, &packet, GEARMAN_MAGIC_REQUEST,
-                                GEARMAN_COMMAND_CAN_DO,
-                                args, args_size, 1) != GEARMAN_SUCCESS)
-    {
-      return TEST_FAILURE;
-    }
-
-    if (gearman_con_send(&con, &packet, true) != GEARMAN_SUCCESS)
-      return TEST_FAILURE;
-
-    gearman_packet_free(&packet);
-
-    if (gearman_add_packet_args(&gearman, &packet, GEARMAN_MAGIC_REQUEST,
-                                GEARMAN_COMMAND_CANT_DO,
-                                args, args_size, 1) != GEARMAN_SUCCESS)
-    {
-      return TEST_FAILURE;
-    }
-
-    if (gearman_con_send(&con, &packet, true) != GEARMAN_SUCCESS)
-      return TEST_FAILURE;
-
-    gearman_packet_free(&packet);
-
-    gearman_con_free(&con);
-
-    if (gearman_add_con(&gearman, &con) == NULL)
-      return TEST_FAILURE;
-
-    gearman_con_set_host(&con, NULL);
-    gearman_con_set_port(&con, WORKER_TEST_PORT);
-
-    args[0]= "testUnregisterFunction";
-    args_size[0]= strlen("testUnregisterFunction");
-    if (gearman_add_packet_args(&gearman, &packet, GEARMAN_MAGIC_REQUEST,
-                                GEARMAN_COMMAND_SET_CLIENT_ID,
-                                args, args_size, 1) != GEARMAN_SUCCESS)
-    {
-      return TEST_FAILURE;
-    }
-
-    if (gearman_con_send(&con, &packet, true) != GEARMAN_SUCCESS)
-      return TEST_FAILURE;
-
-    gearman_packet_free(&packet);
-
-    args[0]= "digest";
-    args_size[0]= strlen("digest");
-    if (gearman_add_packet_args(&gearman, &packet, GEARMAN_MAGIC_REQUEST,
-                                GEARMAN_COMMAND_CAN_DO,
-                                args, args_size, 1) != GEARMAN_SUCCESS)
-    {
-      return TEST_FAILURE;
-    }
-
-    if (gearman_con_send(&con, &packet, true) != GEARMAN_SUCCESS)
-      return TEST_FAILURE;
-
-    gearman_packet_free(&packet);
-
-    args[0]= "reverse";
-    args_size[0]= strlen("reverse");
-    if (gearman_add_packet_args(&gearman, &packet, GEARMAN_MAGIC_REQUEST,
-                                GEARMAN_COMMAND_CAN_DO,
-                                args, args_size, 1) != GEARMAN_SUCCESS)
-    {
-      return TEST_FAILURE;
-    }
-
-    if (gearman_con_send(&con, &packet, true) != GEARMAN_SUCCESS)
-      return TEST_FAILURE;
-
-    gearman_packet_free(&packet);
-
-    if (gearman_add_packet_args(&gearman, &packet, GEARMAN_MAGIC_REQUEST,
-                                GEARMAN_COMMAND_RESET_ABILITIES,
-                                NULL, NULL, 0) != GEARMAN_SUCCESS)
-    {
-      return TEST_FAILURE;
-    }
-
-    if (gearman_con_send(&con, &packet, true) != GEARMAN_SUCCESS)
-      return TEST_FAILURE;
-
-    gearman_packet_free(&packet);
-
-    gearman_con_free(&con);
-  }
-
-  gearman_free(&gearman);
-
-  return TEST_SUCCESS;
-}
-
-#ifdef NOT_DONE
-/* Prototype */
-uint8_t* simple_worker(gearman_worker_st *job,
-                       uint8_t *value,  
-                       ssize_t value_length,  
-                       ssize_t *result_length,  
-                       gearman_return *error);
-
-uint8_t* simple_worker(gearman_worker_st *job,
-                       uint8_t *value,  
-                       ssize_t value_length,  
-                       ssize_t *result_length,  
-                       gearman_return *error)
-{
-  fprintf(stderr, "%.*s\n", value_length, value);
-
-  (void)job;
-
-  *error= GEARMAN_SUCCESS;
-  *result_length= strlen("successful");
-
-  return (uint8_t *)strdup("successful");
-}
-
-static test_return simple_work_test(void *object)
-{
-  gearman_worker_st *worker= (gearman_worker_st *)object;
-  gearman_worker_function callback[1];
-
-  callback[0]= simple_worker;
-  gearman_server_function_register(worker, "simple", callback);
-  gearman_server_work(worker);
-
-  return TEST_SUCCESS;
-}
-#endif
-
-test_return flush(void)
-{
   return TEST_SUCCESS;
 }
 
@@ -283,42 +327,46 @@ void *create(void *object __attribute__((unused)))
   return (void *)&(test->worker);
 }
 
-void destroy(void *object __attribute__((unused)))
-{
-}
-
-test_return pre(void *object __attribute__((unused)))
-{
-  return TEST_SUCCESS;
-}
-
-test_return post(void *object __attribute__((unused)))
-{
-  return TEST_SUCCESS;
-}
-
-void *world_create(void)
+void *world_create(test_return_t *error)
 {
   worker_test_st *test;
 
-  assert((test= malloc(sizeof(worker_test_st))) != NULL);
-  memset(test, 0, sizeof(worker_test_st));
-  assert(gearman_worker_create(&(test->worker)) != NULL);
+  test= malloc(sizeof(worker_test_st));
 
-  assert(gearman_worker_add_server(&(test->worker), NULL, WORKER_TEST_PORT) ==
-         GEARMAN_SUCCESS);
+  if (! test)
+  {
+    *error= TEST_MEMORY_ALLOCATION_FAILURE;
+    return NULL;
+  }
+
+  memset(test, 0, sizeof(worker_test_st));
+  if (gearman_worker_create(&(test->worker)) == NULL)
+  {
+    *error= TEST_FAILURE;
+    return NULL;
+  }
+
+  if (gearman_worker_add_server(&(test->worker), NULL, WORKER_TEST_PORT) != GEARMAN_SUCCESS)
+  {
+    *error= TEST_FAILURE;
+    return NULL;
+  }
 
   test->gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, NULL, NULL, 0);
+
+  *error= TEST_SUCCESS;
 
   return (void *)test;
 }
 
-void world_destroy(void *object)
+test_return_t world_destroy(void *object)
 {
   worker_test_st *test= (worker_test_st *)object;
   gearman_worker_free(&(test->worker));
   test_gearmand_stop(test->gearmand_pid);
   free(test);
+
+  return TEST_SUCCESS;
 }
 
 test_st tests[] ={
@@ -326,16 +374,34 @@ test_st tests[] ={
   {"allocation", 0, allocation_test },
   {"clone", 0, clone_test },
   {"echo", 0, echo_test },
-  {"bug372074", 0, bug372074_test },
-#ifdef NOT_DONE
-  {"simple_work_test", 0, simple_work_test },
-#endif
+  {"options", 0, option_test },
   {0, 0, 0}
 };
 
 collection_st collection[] ={
-  {"worker", flush, create, destroy, pre, post, tests},
-  {0, 0, 0, 0, 0, 0, 0}
+  {"worker", 0, 0, tests},
+  {0, 0, 0, 0}
+};
+
+
+typedef test_return_t (*libgearman_test_callback_fn)(gearman_worker_st *);
+static test_return_t _runner_default(libgearman_test_callback_fn func, worker_test_st *container)
+{
+  if (func)
+  {
+    return func(&container->worker);
+  }
+  else
+  {
+    return TEST_SUCCESS;
+  }
+}
+
+
+static world_runner_st runner= {
+  (test_callback_runner_fn)_runner_default,
+  (test_callback_runner_fn)_runner_default,
+  (test_callback_runner_fn)_runner_default
 };
 
 void get_world(world_st *world)
@@ -343,4 +409,5 @@ void get_world(world_st *world)
   world->collections= collection;
   world->create= world_create;
   world->destroy= world_destroy;
+  world->runner= &runner;
 }

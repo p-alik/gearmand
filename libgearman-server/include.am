@@ -47,7 +47,7 @@ nobase_pkginclude_HEADERS += \
 	libgearman-server/client.h \
 	libgearman-server/conf.h \
 	libgearman-server/conf_module.h \
-	libgearman-server/conn.h \
+	libgearman-server/connection.h \
 	libgearman-server/constants.h \
 	libgearman-server/function.h \
 	libgearman-server/gearmand.h \
@@ -73,7 +73,7 @@ libgearman_server_libgearman_server_la_SOURCES= \
 	libgearman-server/client.c \
 	libgearman-server/conf.c \
 	libgearman-server/conf_module.c \
-	libgearman-server/conn.c \
+	libgearman-server/connection.c \
 	libgearman-server/function.c \
 	libgearman-server/gearmand.c \
 	libgearman-server/gearmand_con.c \

@@ -29,6 +29,67 @@ extern "C" {
  */
 
 /**
+ * @ingroup gearman_task
+ */
+struct gearman_task_st
+{
+  struct {
+    bool allocated:1;
+    bool send_in_use:1;
+  } options;
+  enum {
+    GEARMAN_TASK_STATE_NEW,
+    GEARMAN_TASK_STATE_SUBMIT,
+    GEARMAN_TASK_STATE_WORKLOAD,
+    GEARMAN_TASK_STATE_WORK,
+    GEARMAN_TASK_STATE_CREATED,
+    GEARMAN_TASK_STATE_DATA,
+    GEARMAN_TASK_STATE_WARNING,
+    GEARMAN_TASK_STATE_STATUS,
+    GEARMAN_TASK_STATE_COMPLETE,
+    GEARMAN_TASK_STATE_EXCEPTION,
+    GEARMAN_TASK_STATE_FAIL,
+    GEARMAN_TASK_STATE_FINISHED
+  } state;
+  bool is_known;
+  bool is_running;
+  uint32_t created_id;
+  uint32_t numerator;
+  uint32_t denominator;
+  gearman_client_st *client;
+  gearman_task_st *next;
+  gearman_task_st *prev;
+  const void *context;
+  gearman_connection_st *con;
+  gearman_packet_st *recv;
+  gearman_packet_st send;
+  char job_handle[GEARMAN_JOB_HANDLE_SIZE];
+};
+
+/**
+ * Initialize a task structure.
+ *
+ * @param[in] client Structure previously initialized with
+ *  gearman_client_create() or gearman_client_clone().
+ * @param[in] task Caller allocated structure, or NULL to allocate one.
+ * @return On success, a pointer to the (possibly allocated) structure. On
+ *  failure this will be NULL.
+ */
+GEARMAN_LOCAL
+gearman_task_st *gearman_task_create(gearman_client_st *client,
+                                     gearman_task_st *task);
+
+/**
+ * Free a task structure.
+ *
+ * @param[in] task Structure previously initialized with one of the
+ *  gearman_client_add_task() functions.
+ */
+GEARMAN_API
+void gearman_task_free(gearman_task_st *task);
+
+
+/**
  * Get context for a task.
  */
 GEARMAN_API

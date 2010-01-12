@@ -101,8 +101,8 @@ gearman_return_t gearman_server_io_packet_add(gearman_server_con_st *con,
   if (server_packet == NULL)
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
 
-  if (gearman_add_packet(con->thread->gearman,
-                         &(server_packet->packet)) == NULL)
+  if (gearman_packet_create(con->thread->gearman,
+                            &(server_packet->packet)) == NULL)
   {
     gearman_server_packet_free(server_packet, con->thread, false);
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
@@ -117,7 +117,7 @@ gearman_return_t gearman_server_io_packet_add(gearman_server_con_st *con,
   {
     arg_size = va_arg(ap, size_t);
 
-    ret= gearman_packet_add_arg(&(server_packet->packet), arg, arg_size);
+    ret= gearman_packet_create_arg(&(server_packet->packet), arg, arg_size);
     if (ret != GEARMAN_SUCCESS)
     {
       va_end(ap);
@@ -140,7 +140,7 @@ gearman_return_t gearman_server_io_packet_add(gearman_server_con_st *con,
   }
 
   if (take_data)
-    server_packet->packet.options|= GEARMAN_PACKET_FREE_DATA;
+    server_packet->packet.options.free_data= true;
 
   GEARMAN_SERVER_THREAD_LOCK(con->thread)
   GEARMAN_FIFO_ADD(con->io_packet, server_packet,)

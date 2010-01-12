@@ -107,17 +107,15 @@ gearman_server_thread_create(gearman_server_st *server,
     return NULL;
   }
 
-  GEARMAN_LIST_ADD(server->thread, thread,)
+  GEARMAN_LIST_ADD(server->thread, thread,);
 
-  thread->gearman= gearman_create(&(thread->gearman_static));
+  gearman_options_t options[]= { GEARMAN_NON_BLOCKING, GEARMAN_DONT_TRACK_PACKETS, GEARMAN_MAX};
+  thread->gearman= gearman_universal_create(&(thread->gearman_universal_static), options);
   if (thread->gearman == NULL)
   {
     gearman_server_thread_free(thread);
     return NULL;
   }
-
-  gearman_set_options(thread->gearman,
-                      GEARMAN_NON_BLOCKING | GEARMAN_DONT_TRACK_PACKETS);
 
   return thread;
 }
@@ -147,7 +145,7 @@ void gearman_server_thread_free(gearman_server_thread_st *thread)
   }
 
   if (thread->gearman != NULL)
-    gearman_free(thread->gearman);
+    gearman_universal_free(thread->gearman);
 
   pthread_mutex_destroy(&(thread->lock));
 
@@ -159,12 +157,12 @@ void gearman_server_thread_free(gearman_server_thread_st *thread)
 
 const char *gearman_server_thread_error(gearman_server_thread_st *thread)
 {
-  return gearman_error(thread->gearman);
+  return gearman_universal_error(thread->gearman);
 }
 
 int gearman_server_thread_errno(gearman_server_thread_st *thread)
 {
-  return gearman_errno(thread->gearman);
+  return gearman_universal_errno(thread->gearman);
 }
 
 void gearman_server_thread_set_event_watch(gearman_server_thread_st *thread,
@@ -196,7 +194,7 @@ gearman_server_con_st *
 gearman_server_thread_run(gearman_server_thread_st *thread,
                           gearman_return_t *ret_ptr)
 {
-  gearman_con_st *con;
+  gearman_connection_st *con;
   gearman_server_con_st *server_con;
 
   /* If we are multi-threaded, we may have packets to flush or connections that
@@ -295,7 +293,7 @@ gearman_return_t _thread_packet_read(gearman_server_con_st *con)
         return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
 
-    (void)gearman_con_recv(&(con->con), &(con->packet->packet), &ret, true);
+    (void)gearman_connection_recv(&(con->con), &(con->packet->packet), &ret, true);
     if (ret != GEARMAN_SUCCESS)
     {
       if (ret == GEARMAN_IO_WAIT)
@@ -343,7 +341,7 @@ static gearman_return_t _thread_packet_flush(gearman_server_con_st *con)
 
   while (con->io_packet_list != NULL)
   {
-    ret= gearman_con_send(&(con->con), &(con->io_packet_list->packet),
+    ret= gearman_connection_send(&(con->con), &(con->io_packet_list->packet),
                           con->io_packet_list->next == NULL ? true : false);
     if (ret != GEARMAN_SUCCESS)
       return ret;
@@ -357,7 +355,7 @@ static gearman_return_t _thread_packet_flush(gearman_server_con_st *con)
   }
 
   /* Clear the POLLOUT flag. */
-  return gearman_con_set_events(&(con->con), POLLIN);
+  return gearman_connection_set_events(&(con->con), POLLIN);
 }
 
 static gearman_return_t _proc_thread_start(gearman_server_st *server)

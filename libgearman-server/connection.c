@@ -27,7 +27,7 @@ gearman_server_con_st *gearman_server_con_add(gearman_server_thread_st *thread,
   if (con == NULL)
     return NULL;
 
-  if (gearman_con_set_fd(&(con->con), fd) != GEARMAN_SUCCESS)
+  if (gearman_connection_set_fd(&(con->con), fd) != GEARMAN_SUCCESS)
   {
     gearman_server_con_free(con);
     return NULL;
@@ -35,7 +35,7 @@ gearman_server_con_st *gearman_server_con_add(gearman_server_thread_st *thread,
 
   con->con.context= data;
 
-  ret= gearman_con_set_events(&(con->con), POLLIN);
+  ret= gearman_connection_set_events(&(con->con), POLLIN);
   if (ret != GEARMAN_SUCCESS)
   {
     gearman_server_con_free(con);
@@ -66,13 +66,12 @@ gearman_server_con_create(gearman_server_thread_st *thread)
     }
   }
 
-  if (gearman_add_con(thread->gearman, &(con->con)) == NULL)
+  gearman_connection_options_t options[] = { GEARMAN_CON_IGNORE_LOST_CONNECTION, GEARMAN_CON_MAX };
+  if (gearman_connection_create(thread->gearman, &(con->con), options) == NULL)
   {
     free(con);
     return NULL;
   }
-
-  gearman_con_add_options(&(con->con), GEARMAN_CON_IGNORE_LOST_CONNECTION);
 
   con->options= 0;
   con->ret= 0;
@@ -122,7 +121,7 @@ void gearman_server_con_free(gearman_server_con_st *con)
     return;
   }
 
-  gearman_con_free(&(con->con));
+  gearman_connection_free(&(con->con));
 
   if (con->proc_list)
     gearman_server_con_proc_remove(con);
@@ -162,19 +161,19 @@ void gearman_server_con_free(gearman_server_con_st *con)
     free(con);
 }
 
-gearman_con_st *gearman_server_con_con(gearman_server_con_st *con)
+gearman_connection_st *gearman_server_con_con(gearman_server_con_st *con)
 {
   return &con->con;
 }
 
 void *gearman_server_con_data(gearman_server_con_st *con)
 {
-  return gearman_con_context(&(con->con));
+  return gearman_connection_context(&(con->con));
 }
 
 void gearman_server_con_set_data(gearman_server_con_st *con, void *data)
 {
-  gearman_con_set_context(&(con->con), data);
+  gearman_connection_set_context(&(con->con), data);
 }
 
 const char *gearman_server_con_host(gearman_server_con_st *con)

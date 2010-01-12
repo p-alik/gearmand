@@ -39,7 +39,7 @@ struct gearman_server_st
   uint32_t free_job_count;
   uint32_t free_client_count;
   uint32_t free_worker_count;
-  gearman_st *gearman;
+  gearman_universal_st *gearman;
   gearman_server_thread_st *thread_list;
   gearman_server_function_st *function_list;
   gearman_server_packet_st *free_packet_list;
@@ -53,7 +53,7 @@ struct gearman_server_st
   gearman_queue_flush_fn *queue_flush_fn;
   gearman_queue_done_fn *queue_done_fn;
   gearman_queue_replay_fn *queue_replay_fn;
-  gearman_st gearman_static;
+  gearman_universal_st gearman_universal_static;
   pthread_mutex_t proc_lock;
   pthread_cond_t proc_cond;
   pthread_t proc_id;
@@ -73,7 +73,7 @@ struct gearman_server_thread_st
   uint32_t proc_count;
   uint32_t free_con_count;
   uint32_t free_packet_count;
-  gearman_st *gearman;
+  gearman_universal_st *gearman;
   gearman_server_st *server;
   gearman_server_thread_st *next;
   gearman_server_thread_st *prev;
@@ -86,7 +86,7 @@ struct gearman_server_thread_st
   gearman_server_con_st *proc_list;
   gearman_server_con_st *free_con_list;
   gearman_server_packet_st *free_packet_list;
-  gearman_st gearman_static;
+  gearman_universal_st gearman_universal_static;
   pthread_mutex_t lock;
 };
 
@@ -95,7 +95,7 @@ struct gearman_server_thread_st
  */
 struct gearman_server_con_st
 {
-  gearman_con_st con; /* This must be the first struct member. */
+  gearman_connection_st con; /* This must be the first struct member. */
   gearman_server_con_options_t options;
   gearman_return_t ret;
   bool io_list;
@@ -250,7 +250,7 @@ struct gearmand_port_st
   in_port_t port;
   uint32_t listen_count;
   gearmand_st *gearmand;
-  gearman_con_add_fn *add_fn;
+  gearman_connection_add_fn *add_fn;
   int *listen_fd;
   struct event *listen_event;
 };
@@ -290,8 +290,8 @@ struct gearmand_con_st
   gearmand_con_st *next;
   gearmand_con_st *prev;
   gearman_server_con_st *server_con;
-  gearman_con_st *con;
-  gearman_con_add_fn *add_fn;
+  gearman_connection_st *con;
+  gearman_connection_add_fn *add_fn;
   struct event event;
   char host[NI_MAXHOST];
   char port[NI_MAXSERV];

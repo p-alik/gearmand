@@ -28,6 +28,49 @@ extern "C" {
  * @{
  */
 
+
+/**
+ * @ingroup gearman_client
+ */
+struct gearman_client_st
+{
+  struct {
+    bool allocated:1;
+    bool non_blocking:1;
+    bool task_in_use:1;
+    bool unbuffered_result:1;
+    bool no_new:1;
+    bool free_tasks:1;
+  } options;
+  enum {
+    GEARMAN_CLIENT_STATE_IDLE,
+    GEARMAN_CLIENT_STATE_NEW,
+    GEARMAN_CLIENT_STATE_SUBMIT,
+    GEARMAN_CLIENT_STATE_PACKET
+  } state;
+  gearman_return_t do_ret;
+  uint32_t new_tasks;
+  uint32_t running_tasks;
+  uint32_t task_count;
+  size_t do_data_size;
+  const void *context;
+  gearman_connection_st *con;
+  gearman_task_st *task;
+  gearman_task_st *task_list;
+  gearman_task_context_free_fn *task_context_free_fn;
+  void *do_data;
+  gearman_workload_fn *workload_fn;
+  gearman_created_fn *created_fn;
+  gearman_data_fn *data_fn;
+  gearman_warning_fn *warning_fn;
+  gearman_universal_status_fn *status_fn;
+  gearman_complete_fn *complete_fn;
+  gearman_exception_fn *exception_fn;
+  gearman_fail_fn *fail_fn;
+  gearman_universal_st universal;
+  gearman_task_st do_task;
+};
+
 /**
  * Initialize a client structure. Always check the return value even if passing
  * in a pre-allocated structure. Some other initialization may have failed. It
@@ -116,13 +159,13 @@ void gearman_client_remove_options(gearman_client_st *client,
                                    gearman_client_options_t options);
 
 /**
- * See gearman_timeout() for details.
+ * See gearman_universal_timeout() for details.
  */
 GEARMAN_API
 int gearman_client_timeout(gearman_client_st *client);
 
 /**
- * See gearman_set_timeout() for details.
+ * See gearman_universal_set_timeout() for details.
  */
 GEARMAN_API
 void gearman_client_set_timeout(gearman_client_st *client, int timeout);
@@ -154,14 +197,6 @@ GEARMAN_API
 void gearman_client_set_log_fn(gearman_client_st *client,
                                gearman_log_fn *function, const void *context,
                                gearman_verbose_t verbose);
-
-/**
- * See gearman_set_event_watch_fn() for details.
- */
-GEARMAN_API
-void gearman_client_set_event_watch_fn(gearman_client_st *client,
-                                       gearman_event_watch_fn *function,
-                                       const void *context);
 
 /**
  * See gearman_set_workload_malloc_fn() for details.
@@ -403,15 +438,6 @@ gearman_return_t gearman_client_echo(gearman_client_st *client,
  */
 
 /**
- * Free a task structure.
- *
- * @param[in] task Structure previously initialized with one of the
- *  gearman_client_add_task() functions.
- */
-GEARMAN_API
-void gearman_task_free(gearman_task_st *task);
-
-/**
  * Free all tasks for a gearman structure.
  *
  * @param[in] client Structure previously initialized with
@@ -601,7 +627,7 @@ void gearman_client_set_warning_fn(gearman_client_st *client,
  */
 GEARMAN_API
 void gearman_client_set_status_fn(gearman_client_st *client,
-                                  gearman_status_fn *function);
+                                  gearman_universal_status_fn *function);
 
 /**
  * Callback function when a task is complete.

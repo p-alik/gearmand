@@ -28,6 +28,73 @@ extern "C" {
  */
 
 /**
+ * @ingroup gearman_worker
+ */
+struct gearman_worker_st
+{
+  struct {
+    bool allocated:1;
+    bool non_blocking:1;
+    bool packet_init:1;
+    bool grab_job_in_use:1;
+    bool pre_sleep_in_use:1;
+    bool work_job_in_use:1;
+    bool change:1;
+    bool grab_uniq:1;
+    bool timeout_return:1;
+  } options;
+  enum {
+    GEARMAN_WORKER_STATE_START,
+    GEARMAN_WORKER_STATE_FUNCTION_SEND,
+    GEARMAN_WORKER_STATE_CONNECT,
+    GEARMAN_WORKER_STATE_GRAB_JOB_SEND,
+    GEARMAN_WORKER_STATE_GRAB_JOB_RECV,
+    GEARMAN_WORKER_STATE_PRE_SLEEP
+  } state;
+  enum {
+    GEARMAN_WORKER_WORK_UNIVERSAL_GRAB_JOB,
+    GEARMAN_WORKER_WORK_UNIVERSAL_FUNCTION,
+    GEARMAN_WORKER_WORK_UNIVERSAL_COMPLETE,
+    GEARMAN_WORKER_WORK_UNIVERSAL_FAIL
+  } work_state;
+  uint32_t function_count;
+  uint32_t job_count;
+  size_t work_result_size;
+  gearman_universal_st *gearman;
+  const void *context;
+  gearman_connection_st *con;
+  gearman_job_st *job;
+  gearman_job_st *job_list;
+  gearman_worker_function_st *function;
+  gearman_worker_function_st *function_list;
+  gearman_worker_function_st *work_function;
+  void *work_result;
+  gearman_universal_st gearman_universal_static;
+  gearman_packet_st grab_job;
+  gearman_packet_st pre_sleep;
+  gearman_job_st work_job;
+};
+
+
+/**
+ * @ingroup gearman_worker
+ */
+struct gearman_worker_function_st
+{
+  struct {
+    bool packet_in_use:1;
+    bool change:1;
+    bool remove:1;
+  } options;
+  gearman_worker_function_st *next;
+  gearman_worker_function_st *prev;
+  char *function_name;
+  gearman_worker_fn *worker_fn;
+  const void *context;
+  gearman_packet_st packet;
+};
+
+/**
  * Initialize a worker structure. Always check the return value even if passing
  * in a pre-allocated structure. Some other initialization may have failed. It
  * is not required to memset() a structure before providing it.
@@ -115,13 +182,13 @@ void gearman_worker_remove_options(gearman_worker_st *worker,
                                    gearman_worker_options_t options);
 
 /**
- * See gearman_timeout() for details.
+ * See gearman_universal_timeout() for details.
  */
 GEARMAN_API
 int gearman_worker_timeout(gearman_worker_st *worker);
 
 /**
- * See gearman_set_timeout() for details.
+ * See gearman_universal_set_timeout() for details.
  */
 GEARMAN_API
 void gearman_worker_set_timeout(gearman_worker_st *worker, int timeout);
@@ -153,14 +220,6 @@ GEARMAN_API
 void gearman_worker_set_log_fn(gearman_worker_st *worker,
                                gearman_log_fn *function, const void *context,
                                gearman_verbose_t verbose);
-
-/**
- * See gearman_set_event_watch_fn() for details.
- */
-GEARMAN_API
-void gearman_worker_set_event_watch_fn(gearman_worker_st *worker,
-                                       gearman_event_watch_fn *function,
-                                       const void *context);
 
 /**
  * See gearman_set_workload_malloc_fn() for details.
@@ -284,15 +343,6 @@ GEARMAN_API
 gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
                                         gearman_job_st *job,
                                         gearman_return_t *ret_ptr);
-
-/**
- * Free a job structure.
- *
- * @param[in] job Structure previously initialized with
- *  gearman_worker_grab_job().
- */
-GEARMAN_API
-void gearman_job_free(gearman_job_st *job);
 
 /**
  * Free all jobs for a gearman structure.

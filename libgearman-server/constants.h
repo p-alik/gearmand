@@ -212,7 +212,7 @@ typedef gearman_return_t (gearman_queue_replay_fn)(gearman_server_st *server,
                                                    gearman_queue_add_fn *add_fn,
                                                    void *add_context);
 
-typedef gearman_return_t (gearman_con_add_fn)(gearman_con_st *con);
+typedef gearman_return_t (gearman_connection_add_fn)(gearman_connection_st *con);
 
 /** @} */
 

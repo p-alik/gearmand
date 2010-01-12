@@ -111,7 +111,7 @@ gearman_server_st *gearman_server_create(gearman_server_st *server)
   memset(server->unique_hash, 0,
          sizeof(gearman_server_job_st *) * GEARMAN_JOB_HASH_SIZE);
 
-  server->gearman= gearman_create(&(server->gearman_static));
+  server->gearman= gearman_universal_create(&(server->gearman_universal_static), NULL);
   if (server->gearman == NULL)
   {
     gearman_server_free(server);
@@ -180,7 +180,7 @@ void gearman_server_free(gearman_server_st *server)
   }
 
   if (server->gearman != NULL)
-    gearman_free(server->gearman);
+    gearman_universal_free(server->gearman);
 
   if (server->options & GEARMAN_SERVER_ALLOCATED)
     free(server);
@@ -237,7 +237,7 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
     if (ret != GEARMAN_SUCCESS)
       return ret;
 
-    packet->options&= (gearman_packet_options_t)~GEARMAN_PACKET_FREE_DATA;
+    packet->options.free_data= false;
 
     break;
 
@@ -284,7 +284,9 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
                                        packet->data_size, priority,
                                        server_client, &ret);
     if (ret == GEARMAN_SUCCESS)
-      packet->options&= (gearman_packet_options_t)~GEARMAN_PACKET_FREE_DATA;
+    {
+      packet->options.free_data= false;
+    }
     else if (ret == GEARMAN_JOB_QUEUE_FULL)
     {
       return _server_error_packet(server_con, "queue_full",
@@ -913,8 +915,8 @@ static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
 
-  if (gearman_add_packet(server_con->thread->gearman,
-                         &(server_packet->packet)) == NULL)
+  if (gearman_packet_create(server_con->thread->gearman,
+                            &(server_packet->packet)) == NULL)
   {
     free(data);
     gearman_server_packet_free(server_packet, server_con->thread, false);
@@ -923,8 +925,9 @@ static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
 
   server_packet->packet.magic= GEARMAN_MAGIC_TEXT;
   server_packet->packet.command= GEARMAN_COMMAND_TEXT;
-  server_packet->packet.options|= (GEARMAN_PACKET_COMPLETE |
-                                   GEARMAN_PACKET_FREE_DATA);
+  server_packet->packet.options.complete= true;
+  server_packet->packet.options.free_data= true;
+
   server_packet->packet.data= data;
   server_packet->packet.data_size= strlen(data);
 
@@ -956,11 +959,11 @@ _server_queue_work_data(gearman_server_job_st *server_job,
 
     if (packet->data_size > 0)
     {
-      if (packet->options & GEARMAN_PACKET_FREE_DATA &&
+      if (packet->options.free_data &&
           server_client->job_next == NULL)
       {
         data= (uint8_t *)(packet->data);
-        packet->options&= (gearman_packet_options_t)~GEARMAN_PACKET_FREE_DATA;
+        packet->options.free_data= false;
       }
       else
       {
