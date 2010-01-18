@@ -59,6 +59,8 @@ gearman_return_t gearman_server_queue_libtokyocabinet_conf(gearman_conf_st *conf
 
   gearman_conf_module_add_option(module, "file", 0, "FILE_NAME",
                                  "File name of the database.");
+  gearman_conf_module_add_option(module, "optimize", 0, "yes/no",
+                                 "Optimize database on open. [default=yes]");
   return gearman_conf_return(conf);
 }
 
@@ -70,6 +72,7 @@ gearman_return_t gearman_queue_libtokyocabinet_init(gearman_server_st *server,
   const char *name;
   const char *value;
   const char *opt_file= NULL;
+  const char *opt_optimize= NULL;
 
   GEARMAN_SERVER_INFO(server, "Initializing libtokyocabinet module")
 
@@ -103,6 +106,8 @@ gearman_return_t gearman_queue_libtokyocabinet_init(gearman_server_st *server,
   { 
     if (!strcmp(name, "file"))
       opt_file= value;
+    else if (!strcmp(name, "optimize"))
+      opt_optimize= value;
     else
     {
       tcbdbdel(queue->db);
@@ -119,7 +124,7 @@ gearman_return_t gearman_queue_libtokyocabinet_init(gearman_server_st *server,
                              "No --file given")
     return GEARMAN_QUEUE_ERROR;
   }
-  
+
 #ifdef HAVE_EVENT_BASE_NEW
   if (!tcbdbsetmutex(queue->db))
   {
@@ -141,6 +146,20 @@ gearman_return_t gearman_queue_libtokyocabinet_init(gearman_server_st *server,
                              "tcbdbopen")
 
     return GEARMAN_QUEUE_ERROR;
+  }
+
+  if (opt_optimize == NULL || !strcasecmp(opt_optimize, "yes"))
+  {
+    GEARMAN_SERVER_INFO(server, "libtokyocabinet optimizing database file");
+    if (!tcbdboptimize(queue->db, 0, 0, 0, -1, -1, UINT8_MAX))
+    {
+      tcbdbdel(queue->db);
+      free(queue);
+      GEARMAN_SERVER_ERROR_SET(server, "gearman_queue_libtokyocabinet_init",
+                               "tcbdboptimize")
+
+      return GEARMAN_QUEUE_ERROR;
+    }
   }
 
   gearman_server_set_queue_context(server, queue);
@@ -202,22 +221,23 @@ static gearman_return_t _libtokyocabinet_add(gearman_server_st *server, void *co
       strchr(function_name, '\n') != NULL)
      return GEARMAN_QUEUE_ERROR;
   
+  key= tcxstrnew();
+  tcxstrcat(key, unique, (int)unique_size);
+
   switch (priority)
   {
    case GEARMAN_JOB_PRIORITY_HIGH:
    case GEARMAN_JOB_PRIORITY_MAX:     
-     key= tcxstrnew2("0");
+     job_data= tcxstrnew2("0");
      break;
    case GEARMAN_JOB_PRIORITY_LOW:
-     key= tcxstrnew2("2");
+     job_data= tcxstrnew2("2");
      break;
    case GEARMAN_JOB_PRIORITY_NORMAL:
    default:
-     key= tcxstrnew2("1");
+     job_data= tcxstrnew2("1");
   }
-  tcxstrcat(key, "\n", 1);
-  tcxstrcat(key, unique, (int)unique_size);
-  job_data= tcxstrnew2(function_name);
+  tcxstrcat(job_data, function_name, function_name_size);
   tcxstrcat(job_data, "\n", 1);
   tcxstrcat(job_data, (const char *)data, (int)data_size);
   rc= tcbdbput(queue->db, tcxstrptr(key), tcxstrsize(key),
@@ -258,21 +278,9 @@ static gearman_return_t _libtokyocabinet_done(gearman_server_st *server, void *c
   GEARMAN_SERVER_DEBUG(server, "libtokyocabinet add: %.*s",
                        (uint32_t)unique_size, (char *)unique);
   
-  key= tcxstrnew2("1\n");
+  key= tcxstrnew();
   tcxstrcat(key, unique, (int)unique_size);
-  if (!(rc= tcbdbout3(queue->db, tcxstrptr(key), tcxstrsize(key))))
-  {
-     tcxstrclear(key);
-     tcxstrcat(key, "0\n", 2);
-     tcxstrcat(key, unique, (int)unique_size);
-     if (!(rc= tcbdbout3(queue->db, tcxstrptr(key), tcxstrsize(key))))
-     {  
-        tcxstrclear(key);
-        tcxstrcat(key, "2\n", 2);
-        tcxstrcat(key, unique, (int)unique_size);
-        rc= tcbdbout3(queue->db, tcxstrptr(key), tcxstrsize(key));
-     }
-  }
+  rc= tcbdbout3(queue->db, tcxstrptr(key), tcxstrsize(key));
   tcxstrdel(key);
 
   if (!rc)
@@ -296,34 +304,23 @@ static gearman_return_t _callback_for_record(gearman_server_st *server,
   const char *function_data;
   size_t function_data_size;
   char *function_data_copy;
-  const char *unique;
-  size_t unique_size;
   gearman_job_priority_t priority;
   gearman_return_t gret;
   
   GEARMAN_SERVER_DEBUG(server, "replaying: %s", (char *) tcxstrptr(key));
    
-  key_cstr= tcxstrptr(key);
-  key_cstr_size= (size_t)tcxstrsize(key);
+  data_cstr= tcxstrptr(data);
+  data_cstr_size= (size_t)tcxstrsize(data);
 
-  if (key_cstr_size <= (size_t) 2U) 
-    return GEARMAN_QUEUE_ERROR;
-  if (*key_cstr == '2')
+  if (*data_cstr == '2')
     priority = GEARMAN_JOB_PRIORITY_LOW;
-  else if (*key_cstr == '0')
+  else if (*data_cstr == '0')
     priority = GEARMAN_JOB_PRIORITY_HIGH;
   else
     priority = GEARMAN_JOB_PRIORITY_NORMAL;
-  delim= strchr(key_cstr, '\n');
-  if (delim == NULL || delim == key_cstr)
-    return GEARMAN_QUEUE_ERROR;
-  unique= delim + 1;
-  if (*unique == 0)
-    return GEARMAN_QUEUE_ERROR;
-  unique_size= key_cstr_size - (size_t) 2U;
 
-  data_cstr= tcxstrptr(data);
-  data_cstr_size= (size_t)tcxstrsize(data);
+  ++data_cstr;
+  --data_cstr_size;
 
   function_name= data_cstr;
   delim= strchr(data_cstr, '\n');
@@ -337,10 +334,14 @@ static gearman_return_t _callback_for_record(gearman_server_st *server,
     GEARMAN_SERVER_ERROR_SET(server, "_callback_for_record", "malloc")
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
+
+  key_cstr= tcxstrptr(key);
+  key_cstr_size= (size_t)tcxstrsize(key);
+
   if (function_data_size > (size_t) 0U) 
      memcpy(function_data_copy, function_data, function_data_size);
   *(function_data_copy + function_data_size) = 0;
-  gret = (*add_fn)(server, add_context, unique, unique_size,
+  gret = (*add_fn)(server, add_context, key_cstr, key_cstr_size,
                    function_name, function_name_size,
                    function_data_copy, function_data_size,
                    priority);
@@ -384,20 +385,14 @@ static gearman_return_t _libtokyocabinet_replay(gearman_server_st *server, void 
     if (tmp_gret != GEARMAN_SUCCESS)
     {
       gret= GEARMAN_QUEUE_ERROR;
-      if (!tcbdbcurnext(cur))
-         break;
+      break;
     }
-    else
-    {     
-      if (!tcbdbcurout(cur))
-         break;
-    }     
+    if (!tcbdbcurnext(cur))
+      break;
   }
   tcxstrdel(key);
   tcxstrdel(data);
   tcbdbcurdel(cur);
-  tcbdbsync(queue->db);
-  tcbdboptimize(queue->db, 0, 0, 0, -1, -1, UINT8_MAX);
-   
+
   return gret;
 }
