@@ -19,6 +19,7 @@ nobase_include_HEADERS += \
 			     libgearman/core.h \
 			     libgearman/gearman.h \
 			     libgearman/job.h \
+			     libgearman/log.h \
 			     libgearman/packet.h \
 			     libgearman/strerror.h \
 			     libgearman/task.h \
