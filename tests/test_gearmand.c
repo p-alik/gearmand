@@ -42,6 +42,10 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
   pid_t gearmand_pid;
   gearmand_st *gearmand;
   gearman_conf_st conf;
+  gearman_conf_module_st module;
+  const char *name;
+  const char *value;
+  uint8_t time_order = 0;
 
   gearmand_pid= fork();
   assert(gearmand_pid != -1);
@@ -53,6 +57,13 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
 
     conf_ptr= gearman_conf_create(&conf);
     assert(conf_ptr);
+  
+    assert( gearman_conf_module_create(&conf, &module, NULL) );
+  
+#define MCO(__name, __short, __value, __help) \
+    gearman_conf_module_add_option(&module, __name, __short, __value, __help);
+    MCO("time-order", 'T', NULL, "Dispatch jobs in order received")
+
 #ifdef HAVE_LIBDRIZZLE
     ret= gearman_server_queue_libdrizzle_conf(&conf);
     assert(ret == GEARMAN_SUCCESS);
@@ -69,8 +80,17 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
     ret= gearman_conf_parse_args(&conf, argc, argv);
     assert(ret == GEARMAN_SUCCESS);
 
+    /* Check for option values that were given. */
+    while (gearman_conf_module_value(&module, &name, &value))
+    {
+      if (!strcmp(name, "time-order"))
+        time_order++;
+    }
+
     gearmand= gearmand_create(NULL, port);
     assert(gearmand != NULL);
+
+    gearmand_set_time_order(gearmand, time_order);
 
     if (queue_type != NULL)
     {

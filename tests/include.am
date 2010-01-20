@@ -50,7 +50,8 @@ noinst_PROGRAMS+= \
 		tests/cpp_test \
 		tests/internals_test \
 		tests/regression_test \
-		tests/worker_test
+		tests/worker_test \
+	    tests/time_order_test
 
 noinst_HEADERS+= \
 	      tests/test.h \
@@ -69,6 +70,9 @@ tests_regression_test_LDADD= ${TEST_LDADD} libgearman/libgearmancore.la
 tests_worker_test_SOURCES= tests/worker_test.c
 tests_worker_test_LDADD= ${TEST_LDADD}
 
+tests_time_order_test_SOURCES= tests/time_order_test.c
+tests_time_order_test_LDADD= ${TEST_LDADD}
+
 # Test linking with C++ application
 tests_cpp_test_SOURCES= tests/cpp_test.cc
 tests_cpp_test_LDADD= ${TEST_LDADD}
@@ -78,6 +82,9 @@ test-client:
 
 test-worker:
 	tests/worker_test $(ARG1) $(ARG2)
+
+test-time-order:
+	tests/time_order_test $(ARG1) $(ARG2)
 
 test-internals:
 	tests/internals_test $(ARG1) $(ARG2)
@@ -91,7 +98,7 @@ test-sqlite:
 	$(SQLITE_TEST) $(ARG1) $(ARG2)
 	$(SQLITE_RM)
 
-check-local: test-client test-worker test-internals test-libmemcached test-sqlite
+check-local: test-client test-worker test-time-order test-internals test-libmemcached test-sqlite
 
 gdb-client: ${noinst_PROGRAMS}
 	$(LIBTOOL) --mode=execute gdb tests/client_test
