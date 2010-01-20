@@ -63,6 +63,17 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
     return NULL;
   }
 
+  if (server_client == NULL && server->queue_add_fn != NULL)
+  {
+    if ((unique_size == 0) || (unique_size == 1 && *unique == '-'))
+    {
+      /* If we are using persistance, we HAVE to have a unique key provided by the client */
+      GEARMAN_SERVER_ERROR(server, "Job requires a unique key")
+      *ret_ptr= GEARMAN_JOB_UNIQUE_REQUIRED;
+      return NULL;
+    }
+  }
+
   if (unique_size == 0)
   {
     server_job= NULL;
