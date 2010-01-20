@@ -6,6 +6,11 @@
 #ifndef __GEARMAN_QUEUE_LIBTOKYOCABINET_H__
 #define __GEARMAN_QUEUE_LIBTOKYOCABINET_H__
 
+/**
+ * It is unclear from tokyocabinet's public headers what, if any, limit there is. 4k seems sane.
+ */
+#define GEARMAN_QUEUE_TOKYOCABINET_MAX_KEY_LEN 4096
+
 #ifdef __cplusplus
 extern "C" {
 #endif

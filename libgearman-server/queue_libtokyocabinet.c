@@ -217,31 +217,44 @@ static gearman_return_t _libtokyocabinet_add(gearman_server_st *server, void *co
 
   GEARMAN_SERVER_DEBUG(server, "libtokyocabinet add: %.*s",
                        (uint32_t)unique_size, (char *)unique);
-  if (strlen(function_name) != function_name_size ||
-      strchr(function_name, '\n') != NULL)
-     return GEARMAN_QUEUE_ERROR;
   
+  char key_str[GEARMAN_QUEUE_TOKYOCABINET_MAX_KEY_LEN];
+  size_t key_length= (size_t)snprintf(key_str, GEARMAN_QUEUE_TOKYOCABINET_MAX_KEY_LEN, "%.*s-%.*s",
+                               (int)function_name_size,
+                               (const char *)function_name, (int)unique_size,
+                               (const char *)unique);
+
   key= tcxstrnew();
-  tcxstrcat(key, unique, (int)unique_size);
+  tcxstrcat(key, key_str, (int)key_length);
+
+  GEARMAN_SERVER_DEBUG(server, "libtokyocabinet key: %.*s", (int)key_length, key_str);
+
+  job_data= tcxstrnew();
+
+  tcxstrcat(job_data, (const char *)function_name, (int)function_name_size);
+  tcxstrcat(job_data, "\0", 1);
+  tcxstrcat(job_data, (const char *)unique, (int)unique_size);
+  tcxstrcat(job_data, "\0", 1);
 
   switch (priority)
   {
    case GEARMAN_JOB_PRIORITY_HIGH:
    case GEARMAN_JOB_PRIORITY_MAX:     
-     job_data= tcxstrnew2("0");
+     tcxstrcat2(job_data,"0");
      break;
    case GEARMAN_JOB_PRIORITY_LOW:
-     job_data= tcxstrnew2("2");
+     tcxstrcat2(job_data,"2");
      break;
    case GEARMAN_JOB_PRIORITY_NORMAL:
    default:
-     job_data= tcxstrnew2("1");
+     tcxstrcat2(job_data,"1");
   }
-  tcxstrcat(job_data, function_name, function_name_size);
-  tcxstrcat(job_data, "\n", 1);
+
   tcxstrcat(job_data, (const char *)data, (int)data_size);
+
   rc= tcbdbput(queue->db, tcxstrptr(key), tcxstrsize(key),
                tcxstrptr(job_data), tcxstrsize(job_data));
+
   tcxstrdel(key);
   tcxstrdel(job_data);
 
@@ -278,8 +291,14 @@ static gearman_return_t _libtokyocabinet_done(gearman_server_st *server, void *c
   GEARMAN_SERVER_DEBUG(server, "libtokyocabinet add: %.*s",
                        (uint32_t)unique_size, (char *)unique);
   
+  char key_str[GEARMAN_QUEUE_TOKYOCABINET_MAX_KEY_LEN];
+  size_t key_length= (size_t)snprintf(key_str, GEARMAN_QUEUE_TOKYOCABINET_MAX_KEY_LEN, "%.*s-%.*s",
+                               (int)function_name_size,
+                               (const char *)function_name, (int)unique_size,
+                               (const char *)unique);
+
   key= tcxstrnew();
-  tcxstrcat(key, unique, (int)unique_size);
+  tcxstrcat(key, key_str, (int)key_length);
   rc= tcbdbout3(queue->db, tcxstrptr(key), tcxstrsize(key));
   tcxstrdel(key);
 
@@ -294,24 +313,36 @@ static gearman_return_t _callback_for_record(gearman_server_st *server,
                                              gearman_queue_add_fn *add_fn,
                                              void *add_context)
 {
-  const char *key_cstr;
-  size_t key_cstr_size;
-  const char *data_cstr;
+  char *data_cstr;
   size_t data_cstr_size;
-  const char *delim;
-  const char *function_name;
-  size_t function_name_size;
-  const char *function_data;
-  size_t function_data_size;
-  char *function_data_copy;
+  const char *function;
+  size_t function_len;
+  char *unique;
+  size_t unique_len;
   gearman_job_priority_t priority;
   gearman_return_t gret;
   
   GEARMAN_SERVER_DEBUG(server, "replaying: %s", (char *) tcxstrptr(key));
-   
-  data_cstr= tcxstrptr(data);
+
+  data_cstr= (char *)tcxstrptr(data);
   data_cstr_size= (size_t)tcxstrsize(data);
 
+  function= data_cstr;
+  function_len= strlen(function);
+
+  unique= data_cstr+function_len+1;
+  unique_len= strlen(unique); // strlen is only safe because tcxstrptr guarantees nul term
+
+  // +2 for nulls
+  data_cstr += unique_len+function_len+2;
+  data_cstr_size -= unique_len+function_len+2;
+
+  assert(unique);
+  assert(unique_len);
+  assert(function);
+  assert(function_len);
+
+  // single char for priority
   if (*data_cstr == '2')
     priority = GEARMAN_JOB_PRIORITY_LOW;
   else if (*data_cstr == '0')
@@ -322,32 +353,21 @@ static gearman_return_t _callback_for_record(gearman_server_st *server,
   ++data_cstr;
   --data_cstr_size;
 
-  function_name= data_cstr;
-  delim= strchr(data_cstr, '\n');
-  if (delim == NULL || delim == function_name)
-    return GEARMAN_QUEUE_ERROR;
-  function_name_size= (size_t) (delim - function_name);
-  function_data= delim + 1;
-  function_data_size= (size_t) (data_cstr_size - function_name_size) - 1U;
-  if ((function_data_copy = malloc(function_data_size + 1U)) == NULL)
+  // data is freed later so we must make a copy
+  void *data_ptr= malloc(data_cstr_size);
+  if (data_ptr == NULL)
   {
-    GEARMAN_SERVER_ERROR_SET(server, "_callback_for_record", "malloc")
-    return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+    return GEARMAN_QUEUE_ERROR;
   }
+  memcpy(data_ptr, data_cstr, data_cstr_size); 
 
-  key_cstr= tcxstrptr(key);
-  key_cstr_size= (size_t)tcxstrsize(key);
-
-  if (function_data_size > (size_t) 0U) 
-     memcpy(function_data_copy, function_data, function_data_size);
-  *(function_data_copy + function_data_size) = 0;
-  gret = (*add_fn)(server, add_context, key_cstr, key_cstr_size,
-                   function_name, function_name_size,
-                   function_data_copy, function_data_size,
+  gret = (*add_fn)(server, add_context, unique, unique_len,
+                   function, function_len,
+                   data_ptr, data_cstr_size,
                    priority);
+
   if (gret != GEARMAN_SUCCESS)
   {
-     free(function_data_copy);
      return gret;
   }   
   return GEARMAN_SUCCESS;
