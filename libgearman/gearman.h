@@ -8,7 +8,7 @@
 
 /**
  * @file
- * @brief Gearman core declarations
+ * @brief Gearman Declarations
  */
 
 #ifndef __GEARMAN_H__
@@ -25,191 +25,97 @@
 #include <arpa/inet.h>
 #include <poll.h>
 #include <sys/uio.h>
-#include <event.h>
+#include <stdarg.h>
+#include <stdlib.h>
 
 #include <libgearman/visibility.h>
 #include <libgearman/constants.h>
-#include <libgearman/structs.h>
-#include <libgearman/conn.h>
-#include <libgearman/packet.h>
+#include <libgearman/strerror.h>
+
+// Everything above this line must be in the order specified.
+#include <libgearman/core.h>
 #include <libgearman/task.h>
 #include <libgearman/job.h>
-#include <libgearman/client.h>
+
 #include <libgearman/worker.h>
-#include <libgearman/server_con.h>
-#include <libgearman/server_packet.h>
-#include <libgearman/server_function.h>
-#include <libgearman/server_client.h>
-#include <libgearman/server_worker.h>
-#include <libgearman/server_job.h>
-#include <libgearman/server_thread.h>
-#include <libgearman/server.h>
-#include <libgearman/gearmand.h>
-#include <libgearman/gearmand_thread.h>
-#include <libgearman/gearmand_con.h>
-#include <libgearman/conf.h>
-#include <libgearman/conf_module.h>
+#include <libgearman/client.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
- * @addtogroup gearman Gearman Core Interface
- * This is a low level interface gearman library instances. This is used
+ * @addtogroup gearman Gearman Declarations
+ *
+ * This is a low level interface for gearman library instances. This is used
  * internally by both client and worker interfaces, so you probably want to
  * look there first. This is usually used to write lower level clients, workers,
  * proxies, or your own server.
  *
- * There is no locking within a single gearman_st structure, so for threaded
+ * There is no locking within a single gearman_universal_st structure, so for threaded
  * applications you must either ensure isolation in the application or use
- * multiple gearman_st structures (for example, one for each thread).
+ * multiple gearman_universal_st structures (for example, one for each thread).
+ *
  * @{
  */
 
 /**
- * Return gearman version.
+ * Get Gearman library version.
+ *
+ * @return Version string of library.
  */
 GEARMAN_API
 const char *gearman_version(void);
 
 /**
- * Return gearman bug report URL.
+ * Get bug report URL.
+ *
+ * @return Bug report URL string.
  */
 GEARMAN_API
 const char *gearman_bugreport(void);
 
 /**
- * Return verbose name.
+ * Get string with the name of the given verbose level.
+ *
+ * @param[in] verbose Verbose logging level.
+ * @return String form of verbose level.
  */
 GEARMAN_API
 const char *gearman_verbose_name(gearman_verbose_t verbose);
 
 /**
- * Initialize a gearman structure.
+ * Utility function used for parsing server lists.
+ *
+ * @param[in] servers String containing a list of servers to parse.
+ * @param[in] callback Function to call for each server that is found.
+ * @param[in] context Argument to pass along with callback function.
+ * @return Standard Gearman return value.
  */
 GEARMAN_API
-gearman_st *gearman_create(gearman_st *gearman);
+gearman_return_t gearman_parse_servers(const char *servers,
+                                       gearman_parse_server_fn *callback,
+                                       void *context);
 
 /**
- * Clone a gearman structure.
+ * Get current socket I/O activity timeout value.
+ *
+ * @param[in] gearman_client_st or gearman_worker_st Structure previously initialized.
+ * @return Timeout in milliseconds to wait for I/O activity. A negative value
+ *  means an infinite timeout.
+ * @note This is a utility macro.
  */
-GEARMAN_API
-gearman_st *gearman_clone(gearman_st *gearman, gearman_st *from);
+#define gearman_timeout(__object) ((__object)->gearman.timeout)
 
 /**
- * Free a gearman structure.
+ * Set socket I/O activity timeout for connections in a Gearman structure.
+ *
+ * @param[in] gearman_client_st or gearman_worker_st Structure previously initialized.
+ * @param[in] timeout Milliseconds to wait for I/O activity. A negative value
+ *  means an infinite timeout.
+ * @note This is a utility macro.
  */
-GEARMAN_API
-void gearman_free(gearman_st *gearman);
-
-/**
- * Return an error string for last library error encountered.
- */
-GEARMAN_API
-const char *gearman_error(gearman_st *gearman);
-
-/**
- * Value of errno in the case of a GEARMAN_ERRNO return value.
- */
-GEARMAN_API
-int gearman_errno(gearman_st *gearman);
-
-/**
- * Set options for a gearman structure.
- */
-GEARMAN_API
-void gearman_set_options(gearman_st *gearman, gearman_options_t options,
-                         uint32_t data);
-
-/**
- * Set logging callback for gearman instance.
- * @param gearman Gearman instance structure previously initialized with
- *        gearman_create.
- * @param log_fn Function to call when there is a logging message.
- * @param log_fn_arg Argument to pass into the log callback function.
- * @param verbose Verbosity level.
- */
-GEARMAN_API
-void gearman_set_log(gearman_st *gearman, gearman_log_fn log_fn,
-                     void *log_fn_arg, gearman_verbose_t verbose);
-
-/**
- * Set custom I/O event callbacks for a gearman structure.
- */
-GEARMAN_API
-void gearman_set_event_watch(gearman_st *gearman,
-                             gearman_event_watch_fn *event_watch,
-                             void *event_watch_arg);
-
-/**
- * Set custom memory allocation function for workloads. Normally gearman uses
- * the standard system malloc to allocate memory used with workloads. This
- * function is used instead.
- */
-GEARMAN_API
-void gearman_set_workload_malloc(gearman_st *gearman,
-                                 gearman_malloc_fn *workload_malloc,
-                                 const void *workload_malloc_arg);
-
-/**
- * Set custom memory free function for workloads. Normally gearman uses the
- * standard system free to free memory used with workloads. This function
- * is used instead.
- */
-GEARMAN_API
-void gearman_set_workload_free(gearman_st *gearman,
-                               gearman_free_fn *workload_free,
-                               const void *workload_free_arg);
-
-/**
- * Set function to call when tasks are being cleaned up so applications can
- * clean up fn_arg.
- */
-GEARMAN_API
-void gearman_set_task_fn_arg_free(gearman_st *gearman,
-                                  gearman_task_fn_arg_free_fn *free_fn);
-
-/**
- * Get persistent queue function argument.
- */
-GEARMAN_API
-void *gearman_queue_fn_arg(gearman_st *gearman);
-
-/**
- * Set persistent queue function argument that will be passed back to all queue
- * callback functions.
- */
-GEARMAN_API
-void gearman_set_queue_fn_arg(gearman_st *gearman, const void *fn_arg);
-
-/**
- * Set function to call when jobs need to be stored in the persistent queue.
- */
-GEARMAN_API
-void gearman_set_queue_add(gearman_st *gearman, gearman_queue_add_fn *add_fn);
-
-/**
- * Set function to call when the persistent queue should be flushed to disk.
- */
-GEARMAN_API
-void gearman_set_queue_flush(gearman_st *gearman,
-                             gearman_queue_flush_fn *flush_fn);
-
-/**
- * Set function to call when a job should be removed from the persistent queue.
- */
-GEARMAN_API
-void gearman_set_queue_done(gearman_st *gearman,
-                            gearman_queue_done_fn *done_fn);
-
-/**
- * Set function to call when jobs in the persistent queue should be replayed
- * after a restart.
- */
-GEARMAN_API
-void gearman_set_queue_replay(gearman_st *gearman,
-                              gearman_queue_replay_fn *replay_fn);
+#define gearman_set_timeout(__object, __value) ((__object)->gearman.timeout)=(__value);
 
 /** @} */
 

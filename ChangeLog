@@ -1,3 +1,52 @@
+0.13
+ * Fixed bug where memory loss occured if data was too large.
+ * Added gearman_strerror().
+ * Fixed bug where setting an option off in mass would not trip any 
+   triggers on the option (for both worker and client).
+ * Options that are internal can no longer be set by external
+   callers.
+ * Deprecated gearman_client_set_event_watch_fn() and
+   gearman_worker_set_event_watch_fn.  
+   
+ * gearman_job_handle() and gearman_job_function_name() now return const char* pointers 
+
+ * gearman_worker_unregister now returns GEARMAN_NO_REGISTERED_FUNCTION if the function does not exist (or is being removed)
+
+ * Added gearman_worker_function_exist()
+
+ * Trying to send too large of a piece of data will result in GEARMAN_ARGUMENT_TOO_LARGE.
+
+0.12 - 2010-01-??
+ * Fixed job handle comparison bug with WORK_FAIL responses.
+ * Fixed disable assert configure option.
+ * Build system updates.
+
+0.11 - 2009-11-30
+ * Added max wakeup-worker option to gearmand. Default is still to wakeup all.
+ * API and documentation cleanup.
+ * Fixed bug where task context free function was getting called for do()
+   functions. This was PECL/Gearman bug #16899 as well.
+ * Fixed bug #458912, not flushing with multiple gearmands in client.
+ * Fixed PECL/Gearman bug #16847, was actually in C library and not in PHP.
+ * Fixed C++ build/test/ issue, updated pandora build system.
+ * Removed packet varargs function.
+
+0.10 - 2009-09-28
+ * Added timeout option.
+ * Separated libgearman client/worker library from the server/gearmand code.
+ * Added server option for max job retry.
+ * Changed queue_libdrizzle to overwrite the password string to hide in ps.
+ * Worker unregister bug fixed. Bug #372074
+ * Added memory ownership functions so applications can pass control with
+   tasks, jobs, and packets.
+ * Changed gearmand to remap stdio to /dev/null for detaching. Bug #407242
+ * Fixed bug that now allows workers to run concurrent jobs.
+ * Changed behavior of sending NOOPs to one per PRESLEEP, rather than only
+   having one in the outgoing queue at any time.
+ * API cleanup to make the code more consistent and object-oriented.
+ * Added more documentation for base classes, client, and worker.
+ * Build system updates.
+
 0.9 - 2009-07-20
  * Added libsqlite3 persistent queue support (Cory Bennett).
  * Added libpq (PostgreSQL) persistent queue support.

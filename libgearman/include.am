@@ -1,0 +1,74 @@
+# vim:ft=automake
+# Gearman server and library
+# Copyright (C) 2008 Brian Aker, Eric Day
+# Copyright (C) 2009 Brian Aker, Eric Day, Monty Taylor
+# All rights reserved.
+#
+# Use and distribution licensed under the BSD license.  See
+# the COPYING file in the parent directory for full text.
+#
+# Included from Top Level Makefile.am
+# All paths should be given relative to the root
+
+nobase_include_HEADERS += \
+			     libgearman/byteorder.h \
+			     libgearman/client.h \
+			     libgearman/command.h \
+			     libgearman/connection.h \
+			     libgearman/constants.h \
+			     libgearman/core.h \
+			     libgearman/gearman.h \
+			     libgearman/job.h \
+			     libgearman/log.h \
+			     libgearman/packet.h \
+			     libgearman/strerror.h \
+			     libgearman/task.h \
+			     libgearman/universal.h \
+			     libgearman/visibility.h \
+			     libgearman/worker.h
+
+noinst_HEADERS+= \
+		 libgearman/common.h \
+		 libgearman/log.h
+
+noinst_LTLIBRARIES+= libgearman/libgearmancore.la
+libgearman_libgearmancore_la_SOURCES= \
+				       libgearman/byteorder.c \
+				       libgearman/connection.c \
+				       libgearman/log.c \
+				       libgearman/packet.c \
+				       libgearman/universal.c
+
+libgearman_libgearmancore_la_CFLAGS= \
+				     ${AM_CFLAGS}
+
+#libgearman_libgearmancore_la_LDFLAGS= \
+#				      $(AM_LDFLAGS) \
+#				      -version-info \
+#				      $(GEARMAN_LIBRARY_VERSION)
+#
+#libgearman_libgearmancore_la_LIBADD= \
+#				     $(LTLIBUUID)
+
+lib_LTLIBRARIES+= libgearman/libgearman.la
+libgearman_libgearman_la_SOURCES= \
+				  libgearman/client.c \
+				  libgearman/gearman.c \
+				  libgearman/job.c \
+				  libgearman/strerror.c \
+				  libgearman/task.c \
+				  libgearman/worker.c
+
+libgearman_libgearman_la_DEPENDENCIES= libgearman/libgearmancore.la
+
+libgearman_libgearman_la_CFLAGS= \
+				 ${AM_CFLAGS}
+
+libgearman_libgearman_la_LDFLAGS= \
+				  $(AM_LDFLAGS) \
+				  -version-info $(GEARMAN_LIBRARY_VERSION)
+
+libgearman_libgearman_la_LIBADD= \
+	libgearman/libgearmancore.la \
+	$(LTLIBUUID)
+

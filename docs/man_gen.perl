@@ -57,9 +57,11 @@ while ($line= <>)
       # We've reached the end of a comment block, try to find a function.
       my $name= "";
       my $func= "";
+      my @func_lines;
 
       while ($line= <>)
       {
+        chomp($line);
         if ($line=~ m/^$/)
         {
           last;
@@ -74,12 +76,13 @@ while ($line= <>)
           $name= $1;
         }
 
-        chomp($line);
         $line=~ s/^ +/ /;
-        $func.= $line;
+        push(@func_lines, $line);
       }
 
-      if ($name)
+      $func= join(" ", @func_lines);
+
+      if ($name and ($func =~ m/GEARMAN_API/ or $func =~ m/GEARMAN_DEPRECATED_API/ ))
       {
         # We have a function! Output a man page.
         print " \\\n\t$path/man$section/$name.$section";

@@ -48,6 +48,7 @@ typedef struct
   bool prefix;
   bool background;
   gearman_job_priority_t priority;
+  int timeout;
   char **argv;
   gearman_task_st *task;
   char return_value;
@@ -91,8 +92,8 @@ static void _worker(gearman_args_st *args);
 /**
  * Callback function when worker gets a job.
  */
-static void *_worker_cb(gearman_job_st *job, void *cb_arg, size_t *result_size,
-                        gearman_return_t *ret_ptr);
+static void *_worker_cb(gearman_job_st *job, void *context,
+                        size_t *result_size, gearman_return_t *ret_ptr);
 
 /**
  * Read workload chunk from a file descriptor and put into allocated memory.
@@ -112,13 +113,14 @@ int main(int argc, char *argv[])
 
   memset(&args, 0, sizeof(gearman_args_st));
   args.priority= GEARMAN_JOB_PRIORITY_NORMAL;
+  args.timeout= -1;
 
   /* Allocate the maximum number of possible functions. */
   args.function= malloc(sizeof(char *) * (size_t)argc);
   if (args.function == NULL)
     GEARMAN_ERROR("malloc:%d", errno)
 
-  while ((c = getopt(argc, argv, "bc:f:h:HILnNp:Psu:w")) != -1)
+  while ((c = getopt(argc, argv, "bc:f:h:HILnNp:Pst:u:w")) != -1)
   {
     switch(c)
     {
@@ -168,6 +170,10 @@ int main(int argc, char *argv[])
       args.suppress_input= true;
       break;
 
+    case 't':
+      args.timeout= atoi(optarg);
+      break;
+
     case 'u':
       args.unique= optarg;
       break;
@@ -207,6 +213,9 @@ void _client(gearman_args_st *args)
 
   if (gearman_client_create(&client) == NULL)
     GEARMAN_ERROR("Memory allocation failure on client creation")
+
+  if (args->timeout >= 0)
+    gearman_client_set_timeout(&client, args->timeout);
 
   ret= gearman_client_add_server(&client, args->host, args->port);
   if (ret != GEARMAN_SUCCESS)
@@ -347,12 +356,12 @@ void _client_run(gearman_client_st *client, gearman_args_st *args,
 
 static gearman_return_t _client_data(gearman_task_st *task)
 {
-  gearman_args_st *args;
+  const gearman_args_st *args;
 
-  args= gearman_task_fn_arg(task);
+  args= gearman_task_context(task);
   if (args->prefix)
   {
-    fprintf(stdout, "%s: ", gearman_task_function(task));
+    fprintf(stdout, "%s: ", gearman_task_function_name(task));
     fflush(stdout);
   }
 
@@ -364,12 +373,12 @@ static gearman_return_t _client_data(gearman_task_st *task)
 
 static gearman_return_t _client_warning(gearman_task_st *task)
 {
-  gearman_args_st *args;
+  const gearman_args_st *args;
 
-  args= gearman_task_fn_arg(task);
+  args= gearman_task_context(task);
   if (args->prefix)
   {
-    fprintf(stderr, "%s: ", gearman_task_function(task));
+    fprintf(stderr, "%s: ", gearman_task_function_name(task));
     fflush(stderr);
   }
 
@@ -381,11 +390,11 @@ static gearman_return_t _client_warning(gearman_task_st *task)
 
 static gearman_return_t _client_status(gearman_task_st *task)
 {
-  gearman_args_st *args;
+  const gearman_args_st *args;
 
-  args= gearman_task_fn_arg(task);
+  args= gearman_task_context(task);
   if (args->prefix)
-    printf("%s: ", gearman_task_function(task));
+    printf("%s: ", gearman_task_function_name(task));
 
   printf("%u%% Complete\n", (gearman_task_numerator(task) * 100) /
          gearman_task_denominator(task));
@@ -397,12 +406,15 @@ static gearman_return_t _client_fail(gearman_task_st *task)
 {
   gearman_args_st *args;
 
-  args= gearman_task_fn_arg(task);
+  args= (gearman_args_st *)gearman_task_context(task);
   if (args->prefix)
-    fprintf(stderr, "%s: ", gearman_task_function(task));
+    fprintf(stderr, "%s: ", gearman_task_function_name(task));
 
   fprintf(stderr, "Job failed\n");
 
+  /**
+    @note Fix this so that we don't cast from const.
+  */
   args->return_value= 1;
   return GEARMAN_SUCCESS;
 }
@@ -412,9 +424,12 @@ void _worker(gearman_args_st *args)
   gearman_worker_st worker;
   gearman_return_t ret;
   uint32_t x;
-  
+
   if (gearman_worker_create(&worker) == NULL)
     GEARMAN_ERROR("Memory allocation failure on client creation")
+
+  if (args->timeout >= 0)
+    gearman_worker_set_timeout(&worker, args->timeout);
 
   ret= gearman_worker_add_server(&worker, args->host, args->port);
   if (ret != GEARMAN_SUCCESS)
@@ -448,10 +463,10 @@ void _worker(gearman_args_st *args)
   gearman_worker_free(&worker);
 }
 
-static void *_worker_cb(gearman_job_st *job, void *cb_arg, size_t *result_size,
-                        gearman_return_t *ret_ptr)
+static void *_worker_cb(gearman_job_st *job, void *context,
+                        size_t *result_size, gearman_return_t *ret_ptr)
 {
-  gearman_args_st *args= (gearman_args_st *)cb_arg;
+  gearman_args_st *args= (gearman_args_st *)context;
   int in_fds[2];
   int out_fds[2];
   char *result= NULL;
@@ -510,7 +525,7 @@ static void *_worker_cb(gearman_job_st *job, void *cb_arg, size_t *result_size,
     }
 
     close(in_fds[1]);
-    
+
     if (args->job_per_newline)
     {
       f= fdopen(out_fds[0], "r");
@@ -527,9 +542,9 @@ static void *_worker_cb(gearman_job_st *job, void *cb_arg, size_t *result_size,
           break;
 
         if (args->strip_newline)
-          *ret_ptr= gearman_job_data(job, result, strlen(result) - 1);
+          *ret_ptr= gearman_job_send_data(job, result, strlen(result) - 1);
         else
-          *ret_ptr= gearman_job_data(job, result, strlen(result));
+          *ret_ptr= gearman_job_send_data(job, result, strlen(result));
 
         if (*ret_ptr != GEARMAN_SUCCESS)
           break;
@@ -552,7 +567,7 @@ static void *_worker_cb(gearman_job_st *job, void *cb_arg, size_t *result_size,
     {
       if (result != NULL)
       {
-        *ret_ptr= gearman_job_data(job, result, *result_size);
+        *ret_ptr= gearman_job_send_data(job, result, *result_size);
         if (*ret_ptr != GEARMAN_SUCCESS)
           return NULL;
       }
@@ -605,6 +620,7 @@ static void usage(char *name)
   printf("\t-h <host>     - Job server host\n");
   printf("\t-H            - Print this help menu\n");
   printf("\t-p <port>     - Job server port\n");
+  printf("\t-t <timeout>  - Timeout in milliseconds\n");
 
   printf("\nClient options:\n");
   printf("\t-b            - Run jobs in the background\n");

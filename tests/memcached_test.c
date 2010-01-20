@@ -8,6 +8,10 @@
 
 #include "config.h"
 
+#if defined(NDEBUG)
+# undef NDEBUG
+#endif
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,22 +33,19 @@ typedef struct
 } worker_test_st;
 
 /* Prototypes */
-test_return queue_add(void *object);
-test_return queue_worker(void *object);
+test_return_t queue_add(void *object);
+test_return_t queue_worker(void *object);
 
-void *create(void *object);
-void destroy(void *object);
-test_return pre(void *object);
-test_return post(void *object);
-test_return flush(void);
+test_return_t pre(void *object);
+test_return_t post(void *object);
+test_return_t flush(void *object);
 
-void *world_create(void);
-void world_destroy(void *object);
+void *world_create(test_return_t *error);
+test_return_t world_destroy(void *object);
 
 /* Counter test for worker */
-static void *counter_function(gearman_job_st *job __attribute__((unused)), 
-                              void *context, 
-                              size_t *result_size,
+static void *counter_function(gearman_job_st *job __attribute__((unused)),
+                              void *context, size_t *result_size,
                               gearman_return_t *ret_ptr __attribute__((unused)))
 {
   uint32_t *counter= (uint32_t *)context;
@@ -56,7 +57,7 @@ static void *counter_function(gearman_job_st *job __attribute__((unused)),
   return NULL;
 }
 
-test_return queue_add(void *object)
+test_return_t queue_add(void *object)
 {
   worker_test_st *test= (worker_test_st *)object;
   gearman_client_st client;
@@ -87,7 +88,7 @@ test_return queue_add(void *object)
   return TEST_SUCCESS;
 }
 
-test_return queue_worker(void *object)
+test_return_t queue_worker(void *object)
 {
   worker_test_st *test= (worker_test_st *)object;
   gearman_worker_st *worker= &(test->worker);
@@ -112,53 +113,49 @@ test_return queue_worker(void *object)
 }
 
 
-test_return flush(void)
-{
-  return TEST_SUCCESS;
-}
-
-void *create(void *object)
-{
-  return object;
-}
-
-void destroy(void *object __attribute__((unused)))
-{
-}
-
-test_return pre(void *object __attribute__((unused)))
-{
-  return TEST_SUCCESS;
-}
-
-test_return post(void *object __attribute__((unused)))
-{
-  return TEST_SUCCESS;
-}
-
-void *world_create(void)
+void *world_create(test_return_t *error)
 {
   worker_test_st *test;
+  pid_t gearmand_pid;
   const char *argv[2]= { "test_gearmand", "--libmemcached-servers=localhost:12555" };
 
-  assert((test= malloc(sizeof(worker_test_st))) != NULL);
+  gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, "libmemcached", (char **)argv, 2);
+
+  test= malloc(sizeof(worker_test_st));
+  if (! test)
+  {
+    *error= TEST_MEMORY_ALLOCATION_FAILURE;
+    return NULL;
+  }
+
   memset(test, 0, sizeof(worker_test_st));
-  assert(gearman_worker_create(&(test->worker)) != NULL);
+  if (gearman_worker_create(&(test->worker)) == NULL)
+  {
+    *error= TEST_FAILURE;
+    return NULL;
+  }
 
-  assert(gearman_worker_add_server(&(test->worker), NULL, WORKER_TEST_PORT) ==
-         GEARMAN_SUCCESS);
+  if (gearman_worker_add_server(&(test->worker), NULL, WORKER_TEST_PORT) != GEARMAN_SUCCESS)
+  {
+    *error= TEST_FAILURE;
+    return NULL;
+  }
 
-  test->gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, "libmemcached", (char **)argv, 2);
+  test->gearmand_pid= gearmand_pid;
+
+  *error= TEST_SUCCESS;
 
   return (void *)test;
 }
 
-void world_destroy(void *object)
+test_return_t world_destroy(void *object)
 {
   worker_test_st *test= (worker_test_st *)object;
   gearman_worker_free(&(test->worker));
   test_gearmand_stop(test->gearmand_pid);
   free(test);
+
+  return TEST_SUCCESS;
 }
 
 test_st tests[] ={
@@ -169,9 +166,9 @@ test_st tests[] ={
 
 collection_st collection[] ={
 #ifdef HAVE_LIBMEMCACHED
-  {"memcached queue", flush, create, destroy, pre, post, tests},
+  {"memcached queue", 0, 0, tests},
 #endif
-  {0, 0, 0, 0, 0, 0, 0}
+  {0, 0, 0, 0}
 };
 
 void get_world(world_st *world)
