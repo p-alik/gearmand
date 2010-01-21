@@ -88,7 +88,7 @@ void gearman_server_packet_free(gearman_server_packet_st *packet,
 
 gearman_return_t gearman_server_io_packet_add(gearman_server_con_st *con,
                                               bool take_data,
-                                              gearman_magic_t magic,
+                                              enum gearman_magic_t magic,
                                               gearman_command_t command,
                                               const void *arg, ...)
 {
