@@ -53,6 +53,7 @@ struct gearman_server_job_st
   gearman_server_worker_st *worker;
   char job_handle[GEARMAN_JOB_HANDLE_SIZE];
   char unique[GEARMAN_UNIQUE_SIZE];
+  struct timeval insert_time;
 };
 
 /**

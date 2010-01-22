@@ -101,6 +101,7 @@ gearman_server_st *gearman_server_create(gearman_server_st *server)
   server->free_worker_list= NULL;
   server->log_fn= NULL;
   server->log_context= NULL;
+  server->time_order= 0;
   server->queue_context= NULL;
   server->queue_add_fn= NULL;
   server->queue_flush_fn= NULL;
@@ -205,6 +206,12 @@ void gearman_server_set_log_fn(gearman_server_st *server,
   server->log_fn= function;
   server->log_context= context;
   gearman_set_log_fn(server->gearman, _log, server, verbose);
+}
+
+void gearman_server_set_time_order(gearman_server_st *server,
+                                   uint8_t time_order)
+{
+  server->time_order= time_order;
 }
 
 gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,

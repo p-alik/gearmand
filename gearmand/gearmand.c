@@ -110,6 +110,7 @@ int main(int argc, char *argv[])
   uint32_t threads= 0;
   const char *user= NULL;
   uint8_t verbose= 0;
+  uint8_t time_order = 0;
   gearman_return_t ret;
   gearmand_log_info_st log_info;
   bool close_stdio= false;
@@ -155,6 +156,7 @@ int main(int argc, char *argv[])
   MCO("protocol", 'r', "PROTOCOL", "Load protocol module.")
   MCO("queue-type", 'q', "QUEUE", "Persistent queue type to use.")
   MCO("threads", 't', "THREADS", "Number of I/O threads to use. Default=0.")
+  MCO("time-order", 'T', NULL, "Dispatch jobs in order received")
   MCO("user", 'u', "USER", "Switch to given user after startup.")
   MCO("verbose", 'v', NULL, "Increase verbosity level by one.")
   MCO("version", 'V', NULL, "Display the version of gearmand and exit.")
@@ -278,6 +280,8 @@ int main(int argc, char *argv[])
       queue_type= value;
     else if (!strcmp(name, "threads"))
       threads= (uint32_t)atoi(value);
+    else if (!strcmp(name, "time-order"))
+      time_order++;
     else if (!strcmp(name, "user"))
       user= value;
     else if (!strcmp(name, "verbose"))
@@ -336,6 +340,7 @@ int main(int argc, char *argv[])
 
   gearmand_set_backlog(_gearmand, backlog);
   gearmand_set_threads(_gearmand, threads);
+  gearmand_set_time_order(_gearmand, time_order);
   gearmand_set_job_retries(_gearmand, job_retries);
   gearmand_set_worker_wakeup(_gearmand, worker_wakeup);
   gearmand_set_log_fn(_gearmand, _log, &log_info, verbose);

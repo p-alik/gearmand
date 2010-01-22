@@ -165,6 +165,11 @@ void gearmand_set_log_fn(gearmand_st *gearmand, gearman_log_fn *function,
   gearmand->verbose= verbose;
 }
 
+void gearmand_set_time_order(gearmand_st *gearmand, uint8_t time_order)
+{
+  gearman_server_set_time_order(&gearmand->server,time_order);
+}
+
 gearman_return_t gearmand_port_add(gearmand_st *gearmand, in_port_t port,
                                    gearman_connection_add_fn *function)
 {
