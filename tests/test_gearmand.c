@@ -36,6 +36,10 @@
 #include <libgearman-server/queue_libsqlite3.h>
 #endif
 
+#ifdef HAVE_LIBTOKYOCABINET
+#include <libgearman-server/queue_libtokyocabinet.h>
+#endif
+
 pid_t test_gearmand_start(in_port_t port, const char *queue_type,
                           char *argv[], int argc)
 {
@@ -63,6 +67,10 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
 #endif
 #ifdef HAVE_LIBSQLITE3
     ret= gearman_server_queue_libsqlite3_conf(&conf);
+    assert(ret == GEARMAN_SUCCESS);
+#endif
+#ifdef HAVE_LIBTOKYOCABINET
+    ret= gearman_server_queue_libtokyocabinet_conf(&conf);
     assert(ret == GEARMAN_SUCCESS);
 #endif
 
@@ -100,6 +108,14 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
       }
       else
 #endif
+#ifdef HAVE_LIBTOKYOCABINET
+      if (! strcmp(queue_type, "libtokyocabinet"))
+      {
+        ret= gearmand_queue_libtokyocabinet_init(gearmand, &conf);
+        assert(ret == GEARMAN_SUCCESS);
+      }
+      else
+#endif
       {
         assert(1);
       }
@@ -119,8 +135,12 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
         gearmand_queue_libmemcached_deinit(gearmand);
 #endif
 #ifdef HAVE_LIBSQLITE3
-      if (!strcmp(queue_type, "libmemcached"))
+      if (!strcmp(queue_type, "sqlite3"))
         gearmand_queue_libsqlite3_deinit(gearmand);
+#endif
+#ifdef HAVE_LIBTOKYOCABINET
+      if (!strcmp(queue_type, "tokyocabinet"))
+        gearmand_queue_libtokyocabinet_deinit(gearmand);
 #endif
     }
 
