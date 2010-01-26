@@ -165,7 +165,7 @@ test_st tests[] ={
 };
 
 collection_st collection[] ={
-#ifdef HAVE_LIBMEMCACHED
+#ifdef HAVE_LIBTOKYOCABINET
   {"tokyocabinet queue", 0, 0, tests},
 #endif
   {0, 0, 0, 0}
