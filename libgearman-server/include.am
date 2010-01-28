@@ -30,6 +30,11 @@ QUEUE_LIBPQ_H= libgearman-server/queue_libpq.h
 QUEUE_LIBPQ_C= libgearman-server/queue_libpq.c
 endif
 
+if HAVE_LIBTOKYOCABINET
+QUEUE_LIBTOKYOCABINET_H= libgearman-server/queue_libtokyocabinet.h
+QUEUE_LIBTOKYOCABINET_C= libgearman-server/queue_libtokyocabinet.c
+endif
+
 noinst_LTLIBRARIES+= libgearman-server/libgearman-server.la
 
 
@@ -38,6 +43,7 @@ noinst_HEADERS += \
 		  $(QUEUE_LIBMEMCACHED_H) \
 		  $(QUEUE_LIBPQ_H) \
 		  $(QUEUE_LIBSQLITE3_H) \
+		  $(QUEUE_LIBTOKYOCABINET_H) \
 		  libgearman-server/client.h \
 		  libgearman-server/conf.h \
 		  libgearman-server/conf_module.h \
@@ -62,6 +68,7 @@ libgearman_server_libgearman_server_la_SOURCES= \
 						$(QUEUE_LIBMEMCACHED_C) \
 						$(QUEUE_LIBPQ_C) \
 						$(QUEUE_LIBSQLITE3_C) \
+						$(QUEUE_LIBTOKYOCABINET_C) \
 						libgearman-server/client.c \
 						libgearman-server/conf.c \
 						libgearman-server/conf_module.c \
@@ -87,5 +94,6 @@ libgearman_server_libgearman_server_la_LIBADD= \
 					       $(LTLIBMEMCACHED) \
 					       $(LTLIBPQ) \
 					       $(LTLIBSQLITE3) \
+					       $(LTLIBTOKYOCABINET) \
 					       libgearman/libgearman.la \
 					       libgearman/libgearmancore.la

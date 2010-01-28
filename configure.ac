@@ -40,6 +40,7 @@ PANDORA_HAVE_LIBDRIZZLE
 PANDORA_HAVE_LIBMEMCACHED
 PANDORA_HAVE_MEMCACHED
 PANDORA_HAVE_LIBPQ
+PANDORA_HAVE_LIBTOKYOCABINET
 
 
 AC_CHECK_HEADERS(errno.h fcntl.h getopt.h netinet/tcp.h pwd.h signal.h)
@@ -72,5 +73,6 @@ echo "   * Building with libsqlite3   $ac_cv_libsqlite3"
 echo "   * Building with libdrizzle   $ac_cv_libdrizzle"
 echo "   * Building with libmemcached $ac_cv_libmemcached"
 echo "   * Building with libpq        $ac_cv_libpq"
+echo "   * Building with tokyocabinet $ac_cv_libtokyocabinet"
 echo ""
 echo "---"
