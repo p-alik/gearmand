@@ -9,8 +9,6 @@ AC_PREREQ(2.59)
 AC_INIT([gearmand],[0.12],[https://launchpad.net/gearmand])
 AC_CONFIG_SRCDIR(libgearman/gearman.c)
 AC_CONFIG_AUX_DIR(config)
-AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_MACRO_DIR([m4])
 
 PANDORA_CANONICAL_TARGET(require-cxx)
 
