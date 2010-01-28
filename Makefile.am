@@ -26,7 +26,6 @@ include gearmand/include.am
 include libgearman/include.am
 include libgearman-server/include.am
 include tests/include.am
-include support/include.am
 
 include docs/man_list
 
@@ -37,6 +36,9 @@ EXTRA_DIST+= \
 	docs/dev_header.html \
 	docs/doxygen.h \
 	scripts/README.solaris
+
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = support/gearmand.pc
 
 docs: all
 	${DOXYGEN} docs/Doxyfile.api
