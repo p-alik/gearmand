@@ -264,7 +264,11 @@ void gearman_connection_close(gearman_connection_st *connection)
 
   connection->recv_state= GEARMAN_CON_RECV_UNIVERSAL_NONE;
   if (connection->recv_packet != NULL)
+  {
     gearman_packet_free(connection->recv_packet);
+    connection->recv_packet= NULL;
+  }
+
   connection->recv_buffer_ptr= connection->recv_buffer;
   connection->recv_buffer_size= 0;
 }
