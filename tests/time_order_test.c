@@ -19,7 +19,6 @@
 #include <unistd.h>
 
 #include <libgearman/gearman.h>
-
 #include "test.h"
 #include "test_gearmand.h"
 
@@ -34,7 +33,6 @@ typedef struct
 
 /* Prototypes */
 test_return_t queue_add(void *object);
-test_return_t queue_add_no_unique(void *object);
 test_return_t queue_worker(void *object);
 
 test_return_t pre(void *object);
@@ -43,17 +41,18 @@ test_return_t post(void *object);
 void *world_create(test_return_t *error);
 test_return_t world_destroy(void *object);
 
-/* Counter test for worker */
-static void *counter_function(gearman_job_st *job __attribute__((unused)),
-                              void *context, size_t *result_size,
-                              gearman_return_t *ret_ptr __attribute__((unused)))
+/* append test for worker */
+static void *append_function(gearman_job_st *job __attribute__((unused)),
+                             void *context, size_t *result_size,
+                             gearman_return_t *ret_ptr __attribute__((unused)))
 {
-  uint32_t *counter= (uint32_t *)context;
-
+  /* this will will set the last char in the context (buffer) to the */
+  /* first char of the work */
+  char * buf = (char *)context;
+  char * work = (char *)gearman_job_workload(job);
+  buf += strlen(buf);
+  *buf = *work;
   *result_size= 0;
-
-  *counter= *counter + 1;
-
   return NULL;
 }
 
@@ -62,8 +61,10 @@ test_return_t queue_add(void *object)
   worker_test_st *test= (worker_test_st *)object;
   gearman_client_st client;
   char job_handle[GEARMAN_JOB_HANDLE_SIZE];
-  uint8_t *value= (uint8_t *)"background_test";
-  size_t value_length= strlen("background_test");
+
+  uint8_t * value= (uint8_t *)strdup("0");
+  size_t value_length= 1;
+  uint8_t i;
 
   test->run_worker= false;
 
@@ -76,13 +77,20 @@ test_return_t queue_add(void *object)
     return TEST_FAILURE;
   }
 
-  if (gearman_client_do_background(&client, "queue_test", NULL, value,
-                                   value_length, job_handle) != GEARMAN_SUCCESS)
-  {
-    return TEST_FAILURE;
+  /* send strings "0", "1" ... "9" to alternating between 2 queues */
+  /* queue1 = 1,3,5,7,9 */
+  /* queue2 = 0,2,4,6,8 */
+  for (i=0; i<10; i++) {
+    if (gearman_client_do_background(&client, i % 2 ? "queue1" : "queue2", NULL, value,
+                                     value_length, job_handle) != GEARMAN_SUCCESS)
+    {
+      return TEST_FAILURE;
+    }
+    *value = (uint8_t)(*value + 1);
   }
 
   gearman_client_free(&client);
+  free(value);
 
   test->run_worker= true;
   return TEST_SUCCESS;
@@ -92,54 +100,34 @@ test_return_t queue_worker(void *object)
 {
   worker_test_st *test= (worker_test_st *)object;
   gearman_worker_st *worker= &(test->worker);
-  uint32_t counter= 0;
+  char buffer[11];
+  int i;
+  memset(buffer, 0, 11);
 
   if (!test->run_worker)
     return TEST_FAILURE;
 
-  if (gearman_worker_add_function(worker, "queue_test", 5, counter_function,
-                                  &counter) != GEARMAN_SUCCESS)
+  if (gearman_worker_add_function(worker, "queue1", 5, append_function,
+                                  buffer) != GEARMAN_SUCCESS)
   {
     return TEST_FAILURE;
   }
 
-  if (gearman_worker_work(worker) != GEARMAN_SUCCESS)
+  if (gearman_worker_add_function(worker, "queue2", 5, append_function,
+                                  buffer) != GEARMAN_SUCCESS)
+  {
     return TEST_FAILURE;
+  }
 
-  if (counter == 0)
+  for (i=0; i<10; i++) {
+    if (gearman_worker_work(worker) != GEARMAN_SUCCESS)
+      return TEST_FAILURE;
+  }
+
+  // expect buffer to be reassembled in order
+  // of insert, not the default "sticky queue" order
+  if( strcmp(buffer, "0123456789") ) 
     return TEST_FAILURE;
-
-  return TEST_SUCCESS;
-}
-
-test_return_t queue_add_no_unique(void *object)
-{
-  worker_test_st *test= (worker_test_st *)object;
-  gearman_return_t rc;
-  gearman_client_st client;
-  gearman_client_st *client_ptr;
-  char job_handle[GEARMAN_JOB_HANDLE_SIZE];
-  uint8_t *value= (uint8_t *)"background_test";
-  size_t value_length= strlen("background_test");
-
-  test->run_worker= false;
-
-  client_ptr= gearman_client_create(&client);
-
-  test_truth(client_ptr);
-
-  rc= gearman_client_add_server(&client, NULL, WORKER_TEST_PORT);
-
-  test_truth(rc == GEARMAN_SUCCESS);
-
-  rc= gearman_client_do_background(&client, "queue_test", "", value,
-                                   value_length, job_handle);
-
-  test_truth(rc == GEARMAN_SUCCESS);
-
-  gearman_client_free(&client);
-
-  test->run_worker= true;
 
   return TEST_SUCCESS;
 }
@@ -148,10 +136,10 @@ test_return_t queue_add_no_unique(void *object)
 void *world_create(test_return_t *error)
 {
   worker_test_st *test;
-  const char *argv[2]= { "test_gearmand", "--libsqlite3-db=tests/gearman.sql"};
+  const char *argv[2]= { "test_gearmand", "--time-order"};
   pid_t gearmand_pid;
 
-  gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, "libsqlite3", (char **)argv, 2);
+  gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, NULL, (char **)argv, 2);
 
   test= malloc(sizeof(worker_test_st));
   if (! test)
@@ -193,14 +181,11 @@ test_return_t world_destroy(void *object)
 test_st tests[] ={
   {"add", 0, queue_add },
   {"worker", 0, queue_worker },
-  {"add_no_unique", 0, queue_add_no_unique },
   {0, 0, 0}
 };
 
 collection_st collection[] ={
-#ifdef HAVE_LIBSQLITE3
-  {"sqlite queue", 0, 0, tests},
-#endif
+  {"time_order", 0, 0, tests},
   {0, 0, 0, 0}
 };
 

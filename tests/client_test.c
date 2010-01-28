@@ -491,7 +491,7 @@ static void log_counter(const char *line, gearman_verbose_t verbose,
 
 static test_return_t strerror_count(void *object  __attribute__((unused)))
 {
-  test_truth(GEARMAN_MAX_RETURN == 49);
+  test_truth(GEARMAN_MAX_RETURN == 50);
 
   return TEST_SUCCESS;
 }
@@ -513,7 +513,7 @@ static test_return_t strerror_strings(void *object  __attribute__((unused)))
 			2491943732U, 1864825729U, 523632457U, 1342225548U,
 			245155833U, 3999913926U, 2789053153U, 2576033598U,
 			463490826U, 1983660343U, 2268979717U, 1656388188U,
-                        1558344702U};
+                        1558344702U, 2020794608U};
 
 #ifdef MAKE_NEW_STRERROR
   int flip_flop= 0;

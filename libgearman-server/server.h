@@ -63,6 +63,7 @@ struct gearman_server_st
   char job_handle_prefix[GEARMAN_JOB_HANDLE_SIZE];
   gearman_server_job_st *job_hash[GEARMAN_JOB_HASH_SIZE];
   gearman_server_job_st *unique_hash[GEARMAN_JOB_HASH_SIZE];
+  uint8_t time_order;
 };
 
 /**
@@ -115,6 +116,17 @@ GEARMAN_API
 void gearman_server_set_log_fn(gearman_server_st *server,
                                gearman_log_fn *function,
                                void *context, gearman_verbose_t verbose);
+
+/**
+ * Set option to order jobs by time
+ * @param server Server structure previously initialized with
+ *        gearman_server_create.
+ * @param boolean value, 0 (default) will not order jobs by time
+ */
+GEARMAN_API
+void gearman_server_set_time_order(gearman_server_st *server,
+                                   uint8_t time_order);
+
 
 /**
  * Process commands for a connection.

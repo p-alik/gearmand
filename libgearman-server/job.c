@@ -63,6 +63,17 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
     return NULL;
   }
 
+  if (server_client == NULL && server->queue_add_fn != NULL)
+  {
+    if ((unique_size == 0) || (unique_size == 1 && *unique == '-'))
+    {
+      /* If we are using persistance, we HAVE to have a unique key provided by the client */
+      GEARMAN_SERVER_ERROR(server, "Job requires a unique key")
+      *ret_ptr= GEARMAN_JOB_UNIQUE_REQUIRED;
+      return NULL;
+    }
+  }
+
   if (unique_size == 0)
   {
     server_job= NULL;
@@ -109,6 +120,9 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
       *ret_ptr= GEARMAN_MEMORY_ALLOCATION_FAILURE;
       return NULL;
     }
+
+    if( server->time_order )
+      gettimeofday(&server_job->insert_time, NULL);
 
     server_job->priority= priority;
 
@@ -218,6 +232,8 @@ gearman_server_job_create(gearman_server_st *server,
   else
     server_job->options= 0;
 
+  server_job->insert_time.tv_sec= 0;
+  server_job->insert_time.tv_usec= 0;
   server_job->retries= 0;
   server_job->priority= 0;
   server_job->job_handle_key= 0;
@@ -298,12 +314,12 @@ gearman_server_job_st *gearman_server_job_get(gearman_server_st *server,
   return NULL;
 }
 
-gearman_server_job_st *
-gearman_server_job_peek(gearman_server_con_st *server_con)
-{
+static gearman_server_job_st *
+gearman_server_next_job(gearman_server_con_st *server_con) {
   gearman_server_worker_st *server_worker;
+  gearman_server_job_st *server_job=NULL, *job_cursor = NULL;
   gearman_job_priority_t priority;
-
+  
   for (server_worker= server_con->worker_list; server_worker != NULL;
        server_worker= server_worker->con_next)
   {
@@ -314,50 +330,64 @@ gearman_server_job_peek(gearman_server_con_st *server_con)
       {
         if (server_worker->function->job_list[priority] != NULL)
         {
-          if (server_worker->function->job_list[priority]->options &
-              GEARMAN_SERVER_JOB_IGNORE)
+          job_cursor = server_worker->function->job_list[priority];
+          if (!server_job)
           {
-            /* This is only happens when a client disconnects from a foreground
-               job. We do this because we don't want to run the job anymore. */
-            server_worker->function->job_list[priority]->options&=
-                       (gearman_server_job_options_t)~GEARMAN_SERVER_JOB_IGNORE;
-            gearman_server_job_free(gearman_server_job_take(server_con));
-            return gearman_server_job_peek(server_con);
+            server_job = job_cursor;
+            server_job->worker =  server_worker;
+            if( !server_job->server->time_order ) {
+              /* if not order by time, just return on the first
+                 found job */
+              return server_job;
+            }
           }
-          return server_worker->function->job_list[priority];
+          else if (job_cursor->priority < server_job->priority ||
+                   (job_cursor->priority == server_job->priority &&
+                    job_cursor->insert_time.tv_sec < server_job->insert_time.tv_sec) ||
+                   (job_cursor->priority == server_job->priority &&
+                    job_cursor->insert_time.tv_sec == server_job->insert_time.tv_sec &&
+                    job_cursor->insert_time.tv_usec < server_job->insert_time.tv_usec))
+          {
+            /* job is either higher priority or has been sitting in the queue longer,
+               so do it first */
+            server_job = job_cursor;
+            server_job->worker = server_worker;
+            continue;
+          }
         }
       }
     }
   }
+  return server_job;
+}
 
-  return NULL;
+gearman_server_job_st *
+gearman_server_job_peek(gearman_server_con_st *server_con)
+{
+  gearman_server_job_st * server_job = gearman_server_next_job(server_con);
+  if(!server_job)
+    return NULL;
+  if (server_job->options & GEARMAN_SERVER_JOB_IGNORE)
+  {
+    server_job->options &= (gearman_server_job_options_t)~GEARMAN_SERVER_JOB_IGNORE;
+    gearman_server_job_free(gearman_server_job_take(server_con));
+    return gearman_server_job_peek(server_con);
+  }
+  return server_job;
 }
 
 gearman_server_job_st *
 gearman_server_job_take(gearman_server_con_st *server_con)
 {
   gearman_server_worker_st *server_worker;
-  gearman_server_job_st *server_job;
   gearman_job_priority_t priority;
-
-  for (server_worker= server_con->worker_list; server_worker != NULL;
-       server_worker= server_worker->con_next)
-  {
-    if (server_worker->function->job_count != 0)
-      break;
-  }
-
-  if (server_worker == NULL)
+  gearman_server_job_st * server_job = gearman_server_next_job(server_con);
+  if(!server_job)
     return NULL;
 
-  for (priority= GEARMAN_JOB_PRIORITY_HIGH;
-       priority != GEARMAN_JOB_PRIORITY_MAX; priority++)
-  {
-    if (server_worker->function->job_list[priority] != NULL)
-      break;
-  }
+  server_worker = server_job->worker;
+  priority = server_job->priority;
 
-  server_job= server_worker->function->job_list[priority];
   server_job->function->job_list[priority]= server_job->function_next;
   if (server_job->function->job_end[priority] == server_job)
     server_job->function->job_end[priority]= NULL;
