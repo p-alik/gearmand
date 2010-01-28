@@ -35,7 +35,7 @@ const char *test= tcversion;
       ac_cv_libtokyocabinet=yes
       LTLIBTOKYOCABINET=${LIBTOKYOCABINET_LIBS}
       LIBTOKYOCABINET=${LIBTOKYOCABINET_LIBS}
-    ],[])
+    ],[test x = y])
   ])
 
   AM_CONDITIONAL(HAVE_LIBTOKYOCABINET, [test "${ac_cv_libtokyocabinet}" = "yes"])
