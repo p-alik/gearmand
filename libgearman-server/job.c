@@ -350,6 +350,22 @@ gearman_server_job_take(gearman_server_con_st *server_con)
   if (server_worker == NULL)
     return NULL;
 
+  // Move this to the back of the list now
+  GEARMAN_LIST_DEL(server_con->worker, server_worker, con_)
+  server_worker->con_prev= NULL;
+  server_worker->con_next= server_con->worker_list;
+  while (server_worker->con_next != NULL)
+  {
+    server_worker->con_prev= server_worker->con_next;
+    server_worker->con_next= server_worker->con_next->con_next;
+  }
+  if (server_worker->con_prev)
+    server_worker->con_prev->con_next= server_worker;
+  ++server_con->worker_count;
+  if (server_con->worker_list == NULL) {
+    server_con->worker_list= server_worker;
+  }
+
   for (priority= GEARMAN_JOB_PRIORITY_HIGH;
        priority != GEARMAN_JOB_PRIORITY_MAX; priority++)
   {
