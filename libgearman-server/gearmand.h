@@ -175,6 +175,16 @@ gearman_return_t gearmand_run(gearmand_st *gearmand);
 GEARMAN_API
 void gearmand_wakeup(gearmand_st *gearmand, gearmand_wakeup_t wakeup);
 
+/**
+ * Sets the round-robin mode on the server object. RR will distribute work
+ * fairly among every function assigned to a worker, instead of draining
+ * each function before moving on to the next.
+ * @param gearmand Server instance previously initialized
+ * @param bool true=round robin is used, false=round robin is not used
+ */
+GEARMAN_API
+void gearmand_set_round_robin(gearmand_st *gearmand, bool round_robin);
+
 /** @} */
 
 #ifdef __cplusplus
