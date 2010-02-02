@@ -72,3 +72,5 @@ tests/worker_test
 tests/worker_test.res
 tests/tokyocabinet_test
 tests/tokyocabinet_test.res
+tests/round_robin_test
+tests/round_robin_test.res
