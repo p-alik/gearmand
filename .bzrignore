@@ -70,3 +70,5 @@ tests/sqlite_test
 tests/sqlite_test.res
 tests/worker_test
 tests/worker_test.res
+tests/tokyocabinet_test
+tests/tokyocabinet_test.res
