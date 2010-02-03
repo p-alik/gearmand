@@ -835,7 +835,6 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
           if (ret != GEARMAN_SUCCESS)
           {
             client->state= GEARMAN_CLIENT_STATE_PACKET;
-            ret= GEARMAN_IO_WAIT;
             goto exit;
           }
 
