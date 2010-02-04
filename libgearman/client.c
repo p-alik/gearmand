@@ -661,11 +661,9 @@ static inline void _pop_non_blocking(gearman_client_st *client)
   assert(client->universal.options.stored_non_blocking == client->options.non_blocking);
 }
 
-gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
+static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
 {
   gearman_return_t ret;
-
-  _push_non_blocking(client);
 
   switch(client->state)
   {
@@ -686,7 +684,8 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
           if (ret != GEARMAN_SUCCESS && ret != GEARMAN_IO_WAIT)
           {
             client->state= GEARMAN_CLIENT_STATE_NEW;
-            goto exit; // ret has been set
+
+            return ret;
           }
         }
 
@@ -695,7 +694,7 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
           ret= gearman_flush_all(&client->universal);
           if (ret != GEARMAN_SUCCESS)
           {
-            goto exit; // ret has been set
+            return ret;
           }
         }
       }
@@ -721,12 +720,12 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
             if (ret != GEARMAN_SUCCESS && ret != GEARMAN_IO_WAIT)
             {
               client->state= GEARMAN_CLIENT_STATE_SUBMIT;
-              goto exit; // ret has been set
+              return ret;
             }
           }
         }
 
-        if (!(client->con->revents & POLLIN))
+        if (! (client->con->revents & POLLIN))
           continue;
 
         /* Socket is ready for reading. */
@@ -775,8 +774,7 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
                 break;
 
               client->state= GEARMAN_CLIENT_STATE_IDLE;
-              ret= ret;
-              goto exit;
+              return ret;
             }
 
             client->con->options.packet_in_use= true;
@@ -803,8 +801,8 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
 				  (char *)(client->con->packet.arg[0]),
 				  (int)(client->con->packet.arg_size[1]),
 				  (char *)(client->con->packet.arg[1]));
-                ret= GEARMAN_SERVER_ERROR;
-                goto exit;
+
+                return GEARMAN_SERVER_ERROR;
               }
               else if (strncmp(client->task->job_handle,
                                (char *)(client->con->packet.arg[0]),
@@ -835,7 +833,7 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
           if (ret != GEARMAN_SUCCESS)
           {
             client->state= GEARMAN_CLIENT_STATE_PACKET;
-            goto exit;
+            return ret;
           }
 
           /* Clean up the packet. */
@@ -860,8 +858,7 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
         /* Let the caller wait for activity. */
         client->state= GEARMAN_CLIENT_STATE_IDLE;
 
-        ret= GEARMAN_IO_WAIT;
-        goto exit;
+        return GEARMAN_IO_WAIT;
       }
 
       /* Wait for activity on one of the connections. */
@@ -870,7 +867,7 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
       {
         client->state= GEARMAN_CLIENT_STATE_IDLE;
 
-        goto exit;
+        return ret;
       }
     }
 
@@ -878,19 +875,27 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
 
   default:
     gearman_universal_set_error(&client->universal, "gearman_client_run_tasks",
-                      "unknown state: %u", client->state);
+                                "unknown state: %u", client->state);
 
-    ret= GEARMAN_UNKNOWN_STATE;
-    goto exit;
+    return GEARMAN_UNKNOWN_STATE;
   }
 
   client->state= GEARMAN_CLIENT_STATE_IDLE;
-  ret= GEARMAN_SUCCESS;
 
-exit:
+  return GEARMAN_SUCCESS;
+}
+
+gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
+{
+  gearman_return_t rc;
+
+  _push_non_blocking(client);
+
+  rc= _client_run_tasks(client);
+
   _pop_non_blocking(client);
 
-  return ret;
+  return rc;
 }
 
 /*
