@@ -16,6 +16,8 @@
 
  * Trying to send too large of a piece of data will result in GEARMAN_ARGUMENT_TOO_LARGE.
 
+ * Added support for gearmand command client to daemonize and create a pid file.
+
 0.12 - 2010-01-??
  * Fixed job handle comparison bug with WORK_FAIL responses.
  * Fixed disable assert configure option.

@@ -12,12 +12,16 @@
  */
 
 #include <errno.h>
+#include <fcntl.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <sys/wait.h>
+#include <unistd.h>
+
 
 #include <libgearman/gearman.h>
 
@@ -47,11 +51,13 @@ typedef struct
   bool suppress_input;
   bool prefix;
   bool background;
+  bool daemon;
   gearman_job_priority_t priority;
   int timeout;
   char **argv;
   gearman_task_st *task;
   char return_value;
+  char *pid_file;
 } gearman_args_st;
 
 /**
@@ -106,10 +112,47 @@ static void _read_workload(int fd, char **workload, size_t *workload_offset,
  */
 static void usage(char *name);
 
+/*
+  Pid file functions.
+*/
+static bool _pid_write(const char *pid_file)
+{
+  FILE *f;
+
+  f= fopen(pid_file, "w");
+  if (f == NULL)
+  {
+    fprintf(stderr, "gearmand: Could not open pid file for writing: %s (%d)\n",
+            pid_file, errno);
+    return true;
+  }
+
+  fprintf(f, "%" PRId64 "\n", (int64_t)getpid());
+
+  if (fclose(f) == -1)
+  {
+    fprintf(stderr, "gearmand: Could not close the pid file: %s (%d)\n",
+            pid_file, errno);
+    return true;
+  }
+
+  return false;
+}
+
+static void _pid_delete(const char *pid_file)
+{
+  if (unlink(pid_file) == -1)
+  {
+    fprintf(stderr, "gearmand: Could not remove the pid file: %s (%d)\n",
+            pid_file, errno);
+  }
+}
+
 int main(int argc, char *argv[])
 {
   int c;
   gearman_args_st args;
+  bool close_stdio= false;
 
   memset(&args, 0, sizeof(gearman_args_st));
   args.priority= GEARMAN_JOB_PRIORITY_NORMAL;
@@ -120,7 +163,7 @@ int main(int argc, char *argv[])
   if (args.function == NULL)
     GEARMAN_ERROR("malloc:%d", errno)
 
-  while ((c = getopt(argc, argv, "bc:f:h:HILnNp:Pst:u:w")) != -1)
+  while ((c = getopt(argc, argv, "bc:f:h:HILnNp:Pst:u:wi:d")) != -1)
   {
     switch(c)
     {
@@ -132,6 +175,10 @@ int main(int argc, char *argv[])
       args.count= (uint32_t)atoi(optarg);
       break;
 
+    case 'd':
+      args.daemon= true;
+      break;
+
     case 'f':
       args.function[args.function_count]= optarg;
       args.function_count++;
@@ -139,6 +186,10 @@ int main(int argc, char *argv[])
 
     case 'h':
       args.host= optarg;
+      break;
+
+    case 'i':
+      args.pid_file= strdup(optarg);
       break;
 
     case 'I':
@@ -185,19 +236,83 @@ int main(int argc, char *argv[])
     case 'H':
     default:
       usage(argv[0]);
-      exit(1);
+      exit(0);
     }
   }
 
   args.argv= argv + optind;
 
   if (signal(SIGPIPE, SIG_IGN) == SIG_ERR)
-    GEARMAN_ERROR("signal:%d", errno)
+    GEARMAN_ERROR("signal:%d", errno);
+
+  if (args.daemon)
+  {
+    switch (fork())
+    {
+    case -1:
+      fprintf(stderr, "gearmand: fork:%d\n", errno);
+      return 1;
+
+    case 0:
+      break;
+
+    default:
+      return 0;
+    }
+
+    if (setsid() == -1)
+    {
+      fprintf(stderr, "gearmand: setsid:%d\n", errno);
+      return 1;
+    }
+
+    close_stdio= true;
+  }
+
+  if (close_stdio)
+  {
+    int fd;
+
+    /* If we can't remap stdio, it should not a fatal error. */
+    fd= open("/dev/null", O_RDWR, 0);
+
+    if (fd != -1)
+    {
+      if (dup2(fd, STDIN_FILENO) == -1)
+      {
+        fprintf(stderr, "gearmand: dup2:%d\n", errno);
+        return 1;
+      }
+
+      if (dup2(fd, STDOUT_FILENO) == -1)
+      {
+        fprintf(stderr, "gearmand: dup2:%d\n", errno);
+        return 1;
+      }
+
+      if (dup2(fd, STDERR_FILENO) == -1)
+      {
+        fprintf(stderr, "gearmand: dup2:%d\n", errno);
+        return 1;
+      }
+
+      close(fd);
+    }
+  }
+
+  if (args.pid_file != NULL && _pid_write(args.pid_file))
+    return 1;
 
   if (args.worker)
     _worker(&args);
   else
     _client(&args);
+
+  if (args.pid_file != NULL)
+  {
+    _pid_delete(args.pid_file);
+    free(args.pid_file);
+  }
 
   return args.return_value;
 }
@@ -621,6 +736,7 @@ static void usage(char *name)
   printf("\t-H            - Print this help menu\n");
   printf("\t-p <port>     - Job server port\n");
   printf("\t-t <timeout>  - Timeout in milliseconds\n");
+  printf("\t-i <pidfile>  - Create a pidfile for the process\n");
 
   printf("\nClient options:\n");
   printf("\t-b            - Run jobs in the background\n");
