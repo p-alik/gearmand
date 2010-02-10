@@ -39,6 +39,7 @@ PANDORA_HAVE_LIBMEMCACHED
 PANDORA_HAVE_MEMCACHED
 PANDORA_HAVE_LIBPQ
 PANDORA_HAVE_LIBTOKYOCABINET
+DETECT_BITFIELD
 
 
 AC_CHECK_HEADERS(errno.h fcntl.h getopt.h netinet/tcp.h pwd.h signal.h)
@@ -48,9 +49,10 @@ AC_CHECK_HEADERS(sys/socket.h sys/types.h sys/utsname.h unistd.h strings.h)
 
 
 AC_CONFIG_FILES(Makefile
+                libgearman/configure.h
+                scripts/gearmand
                 scripts/gearmand-init
                 scripts/gearmand.xml
-                scripts/gearmand
                 scripts/smf_install.sh
                 support/gearmand.pc
                 support/gearmand.spec)

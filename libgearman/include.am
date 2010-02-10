@@ -1,8 +1,8 @@
 # vim:ft=automake
-# Gearman server and library
-# Copyright (C) 2008 Brian Aker, Eric Day
-# Copyright (C) 2009 Brian Aker, Eric Day, Monty Taylor
-# All rights reserved.
+# Gearman server and library 
+# Copyright (C) 2008 Brian Aker, Eric Day 
+# Copyright (C) 2009-2010 Brian Aker, Eric Day, Monty Taylor All rights
+# reserved.
 #
 # Use and distribution licensed under the BSD license.  See
 # the COPYING file in the parent directory for full text.
@@ -10,22 +10,23 @@
 # Included from Top Level Makefile.am
 # All paths should be given relative to the root
 
-nobase_include_HEADERS += \
-			     libgearman/byteorder.h \
-			     libgearman/client.h \
-			     libgearman/command.h \
-			     libgearman/connection.h \
-			     libgearman/constants.h \
-			     libgearman/core.h \
-			     libgearman/gearman.h \
-			     libgearman/job.h \
-			     libgearman/log.h \
-			     libgearman/packet.h \
-			     libgearman/strerror.h \
-			     libgearman/task.h \
-			     libgearman/universal.h \
-			     libgearman/visibility.h \
-			     libgearman/worker.h
+nobase_include_HEADERS+= \
+			 libgearman/byteorder.h \
+			 libgearman/client.h \
+			 libgearman/command.h \
+			 libgearman/configure.h \
+			 libgearman/connection.h \
+			 libgearman/constants.h \
+			 libgearman/core.h \
+			 libgearman/gearman.h \
+			 libgearman/job.h \
+			 libgearman/log.h \
+			 libgearman/packet.h \
+			 libgearman/strerror.h \
+			 libgearman/task.h \
+			 libgearman/universal.h \
+			 libgearman/visibility.h \
+			 libgearman/worker.h
 
 noinst_HEADERS+= \
 		 libgearman/common.h \

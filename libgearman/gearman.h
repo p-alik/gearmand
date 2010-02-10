@@ -29,6 +29,7 @@
 #include <stdlib.h>
 
 #include <libgearman/visibility.h>
+#include <libgearman/configure.h>
 #include <libgearman/constants.h>
 #include <libgearman/strerror.h>
 
