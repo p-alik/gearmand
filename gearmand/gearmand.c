@@ -118,6 +118,7 @@ int main(int argc, char *argv[])
   gearmand_log_info_st log_info;
   bool close_stdio= false;
   int fd;
+  bool round_robin= false;
 
   log_info.file= NULL;
   log_info.fd= -1;
@@ -157,6 +158,9 @@ int main(int argc, char *argv[])
   MCO("port", 'p', "PORT", "Port the server should listen on.")
   MCO("pid-file", 'P', "FILE", "File to write process ID out to.")
   MCO("protocol", 'r', "PROTOCOL", "Load protocol module.")
+  MCO("round-robin", 'R', NULL, "Assign work in round-robin order per worker"
+      "connection. The default is to assign work in the order of functions "
+      "added by the worker.")
   MCO("queue-type", 'q', "QUEUE", "Persistent queue type to use.")
   MCO("threads", 't', "THREADS", "Number of I/O threads to use. Default=0.")
   MCO("user", 'u', "USER", "Switch to given user after startup.")
@@ -294,6 +298,8 @@ int main(int argc, char *argv[])
       user= value;
     else if (!strcmp(name, "verbose"))
       verbose++;
+    else if (!strcmp(name, "round-robin"))
+      round_robin++;
     else if (!strcmp(name, "version"))
       printf("\ngearmand %s - %s\n", gearman_version(), gearman_bugreport());
     else if (!strcmp(name, "worker-wakeup"))
@@ -351,6 +357,7 @@ int main(int argc, char *argv[])
   gearmand_set_job_retries(_gearmand, job_retries);
   gearmand_set_worker_wakeup(_gearmand, worker_wakeup);
   gearmand_set_log_fn(_gearmand, _log, &log_info, verbose);
+  gearmand_set_round_robin(_gearmand, round_robin);
 
   if (queue_type != NULL)
   {

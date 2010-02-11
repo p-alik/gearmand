@@ -280,6 +280,17 @@ void gearmand_wakeup(gearmand_st *gearmand, gearmand_wakeup_t wakeup)
     GEARMAN_ERROR(gearmand, "gearmand_wakeup:write:%d", errno)
 }
 
+void gearmand_set_round_robin(gearmand_st *gearmand, bool round_robin)
+{
+  if (round_robin)
+  {
+    gearmand->server.options|= GEARMAN_SERVER_RR_ORDER;
+    return;
+  }
+  gearmand->server.options&= GEARMAN_SERVER_RR_ORDER;
+}
+
+
 /*
  * Private definitions
  */

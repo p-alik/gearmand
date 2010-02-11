@@ -29,6 +29,12 @@
 static uint32_t _server_job_hash(const char *key, size_t key_size);
 
 /**
+ * Appends a worker onto the end of a list of workers.
+ */
+static inline void _server_con_worker_list_append(gearman_server_worker_st *list,
+                                                  gearman_server_worker_st *worker);
+
+/**
  * Get a server job structure from the unique ID. If data_size is non-zero,
  * then unique points to the workload data and not a real unique key.
  */
@@ -333,6 +339,20 @@ gearman_server_job_peek(gearman_server_con_st *server_con)
   return NULL;
 }
 
+static inline void _server_con_worker_list_append(gearman_server_worker_st *list,
+                                                  gearman_server_worker_st *worker)
+{
+  worker->con_prev= NULL;
+  worker->con_next= list;
+  while (worker->con_next != NULL)
+  {
+    worker->con_prev= worker->con_next;
+    worker->con_next= worker->con_next->con_next;
+  }
+  if (worker->con_prev)
+    worker->con_prev->con_next= worker;
+}
+
 gearman_server_job_st *
 gearman_server_job_take(gearman_server_con_st *server_con)
 {
@@ -349,6 +369,16 @@ gearman_server_job_take(gearman_server_con_st *server_con)
 
   if (server_worker == NULL)
     return NULL;
+
+  if (server_con->thread->server->options & GEARMAN_SERVER_RR_ORDER)
+  {
+    GEARMAN_LIST_DEL(server_con->worker, server_worker, con_)
+    _server_con_worker_list_append(server_con->worker_list, server_worker);
+    ++server_con->worker_count;
+    if (server_con->worker_list == NULL) {
+      server_con->worker_list= server_worker;
+    }
+  }
 
   for (priority= GEARMAN_JOB_PRIORITY_HIGH;
        priority != GEARMAN_JOB_PRIORITY_MAX; priority++)
