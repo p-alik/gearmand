@@ -36,12 +36,12 @@ extern "C" {
 struct gearman_connection_st
 {
   struct {
-    bool allocated:1;
-    bool ready:1;
-    bool packet_in_use:1;
-    bool external_fd:1;
-    bool ignore_lost_connection:1;
-    bool close_after_flush:1;
+    bool allocated LIBGEARMAN_BITFIELD;
+    bool ready LIBGEARMAN_BITFIELD;
+    bool packet_in_use LIBGEARMAN_BITFIELD;
+    bool external_fd LIBGEARMAN_BITFIELD;
+    bool ignore_lost_connection LIBGEARMAN_BITFIELD;
+    bool close_after_flush LIBGEARMAN_BITFIELD;
   } options;
   enum {
     GEARMAN_CON_UNIVERSAL_ADDRINFO,

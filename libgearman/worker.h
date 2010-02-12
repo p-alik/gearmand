@@ -33,15 +33,15 @@ extern "C" {
 struct gearman_worker_st
 {
   struct {
-    bool allocated:1;
-    bool non_blocking:1;
-    bool packet_init:1;
-    bool grab_job_in_use:1;
-    bool pre_sleep_in_use:1;
-    bool work_job_in_use:1;
-    bool change:1;
-    bool grab_uniq:1;
-    bool timeout_return:1;
+    bool allocated LIBGEARMAN_BITFIELD;
+    bool non_blocking LIBGEARMAN_BITFIELD;
+    bool packet_init LIBGEARMAN_BITFIELD;
+    bool grab_job_in_use LIBGEARMAN_BITFIELD;
+    bool pre_sleep_in_use LIBGEARMAN_BITFIELD;
+    bool work_job_in_use LIBGEARMAN_BITFIELD;
+    bool change LIBGEARMAN_BITFIELD;
+    bool grab_uniq LIBGEARMAN_BITFIELD;
+    bool timeout_return LIBGEARMAN_BITFIELD;
   } options;
   enum {
     GEARMAN_WORKER_STATE_START,
@@ -244,7 +244,7 @@ gearman_return_t gearman_worker_add_server(gearman_worker_st *worker,
  * SERVER[:PORT][,SERVER[:PORT]]...
  * Some examples are:
  * 10.0.0.1,10.0.0.2,10.0.0.3
- * localhost:1234,jobserver2.domain.com:7003,10.0.0.3
+ * localhost LIBGEARMAN_BITFIELD234,jobserver2.domain.com:7003,10.0.0.3
  *
  * @param[in] worker Structure previously initialized with
  *  gearman_worker_create() or gearman_worker_clone().

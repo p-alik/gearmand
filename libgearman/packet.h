@@ -36,9 +36,9 @@ extern "C" {
 struct gearman_packet_st
 {
   struct {
-    bool allocated:1;
-    bool complete:1;
-    bool free_data:1;
+    bool allocated LIBGEARMAN_BITFIELD;
+    bool complete LIBGEARMAN_BITFIELD;
+    bool free_data LIBGEARMAN_BITFIELD;
   } options;
   enum gearman_magic_t
   {

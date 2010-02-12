@@ -266,21 +266,22 @@ struct replay_context
   void *add_context;
 };
 
-static memcached_return callback_loader(memcached_st *ptr __attribute__((unused)),
+static memcached_return callback_loader(const memcached_st *ptr __attribute__((unused)),
                                         memcached_result_st *result __attribute__((unused)),
                                         void *context)
 {
   struct replay_context *container= (struct replay_context *)context;
-  char *unique;
+  const char *key;
+  const char *unique;
   char *function;
   size_t unique_len;
 
-  unique= memcached_result_key_value(result);
+  key= memcached_result_key_value(result);
 
-  if (strcmp(unique, GEARMAN_QUEUE_LIBMEMCACHED_DEFAULT_PREFIX))
+  if (strcmp(key, GEARMAN_QUEUE_LIBMEMCACHED_DEFAULT_PREFIX))
     return MEMCACHED_SUCCESS;
 
-  unique+=strlen(GEARMAN_QUEUE_LIBMEMCACHED_DEFAULT_PREFIX);
+  unique= key + strlen(GEARMAN_QUEUE_LIBMEMCACHED_DEFAULT_PREFIX);
 
   function= index(unique, '-');
   unique_len= (size_t)(function - unique);
@@ -302,7 +303,7 @@ static memcached_return callback_loader(memcached_st *ptr __attribute__((unused)
 }
 
 /* Grab the object and load it into the loader */
-static memcached_return callback_for_key(memcached_st *ptr __attribute__((unused)),
+static memcached_return callback_for_key(const memcached_st *ptr __attribute__((unused)),
                                          const char *key, size_t key_length,
                                          void *context)
 {

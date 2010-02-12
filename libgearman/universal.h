@@ -24,10 +24,10 @@ extern "C" {
 struct gearman_universal_st
 {
   struct {
-    bool allocated:1; // Not Used (will remove later)
-    bool dont_track_packets:1;
-    bool non_blocking:1;
-    bool stored_non_blocking:1;
+    bool allocated LIBGEARMAN_BITFIELD; // Not Used (will remove later)
+    bool dont_track_packets LIBGEARMAN_BITFIELD;
+    bool non_blocking LIBGEARMAN_BITFIELD;
+    bool stored_non_blocking LIBGEARMAN_BITFIELD;
   } options;
   gearman_verbose_t verbose;
   uint32_t con_count;

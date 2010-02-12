@@ -35,10 +35,10 @@ extern "C" {
 struct gearman_task_st
 {
   struct {
-    bool allocated:1;
-    bool send_in_use:1;
-    bool is_known:1;
-    bool is_running:1;
+    bool allocated LIBGEARMAN_BITFIELD;
+    bool send_in_use LIBGEARMAN_BITFIELD;
+    bool is_known LIBGEARMAN_BITFIELD;
+    bool is_running LIBGEARMAN_BITFIELD;
   } options;
   enum {
     GEARMAN_TASK_STATE_NEW,

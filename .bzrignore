@@ -72,3 +72,4 @@ tests/worker_test
 tests/worker_test.res
 tests/tokyocabinet_test
 tests/tokyocabinet_test.res
+configure.h

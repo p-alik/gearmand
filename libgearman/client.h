@@ -35,12 +35,12 @@ extern "C" {
 struct gearman_client_st
 {
   struct {
-    bool allocated:1;
-    bool non_blocking:1;
-    bool task_in_use:1;
-    bool unbuffered_result:1;
-    bool no_new:1;
-    bool free_tasks:1;
+    bool allocated LIBGEARMAN_BITFIELD;
+    bool non_blocking LIBGEARMAN_BITFIELD;
+    bool task_in_use LIBGEARMAN_BITFIELD;
+    bool unbuffered_result LIBGEARMAN_BITFIELD;
+    bool no_new LIBGEARMAN_BITFIELD;
+    bool free_tasks LIBGEARMAN_BITFIELD;
   } options;
   enum {
     GEARMAN_CLIENT_STATE_IDLE,
@@ -233,7 +233,7 @@ gearman_return_t gearman_client_add_server(gearman_client_st *client,
  * SERVER[:PORT][,SERVER[:PORT]]...
  * Some examples are:
  * 10.0.0.1,10.0.0.2,10.0.0.3
- * localhost:1234,jobserver2.domain.com:7003,10.0.0.3
+ * localhost LIBGEARMAN_BITFIELD234,jobserver2.domain.com:7003,10.0.0.3
  *
  * @param[in] client Structure previously initialized with
  *  gearman_client_create() or gearman_client_clone().
