@@ -32,6 +32,7 @@ config/ltmain.sh
 config/missing
 config/plugin.ac
 configure
+configure.h
 docs/api
 docs/dev
 docs/man/man3/*.3
@@ -66,10 +67,11 @@ tests/internals_test
 tests/memcached_test
 tests/memcached_test.res
 tests/regression_test
+tests/round_robin_test
+tests/round_robin_test.res
 tests/sqlite_test
 tests/sqlite_test.res
-tests/worker_test
-tests/worker_test.res
 tests/tokyocabinet_test
 tests/tokyocabinet_test.res
-configure.h
+tests/worker_test
+tests/worker_test.res

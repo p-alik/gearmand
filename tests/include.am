@@ -59,6 +59,7 @@ noinst_PROGRAMS+= \
 		  tests/cpp_test \
 		  tests/internals_test \
 		  tests/regression_test \
+		  tests/round_robin_test \
 		  tests/worker_test
 
 noinst_HEADERS+= \
@@ -75,6 +76,9 @@ tests_internals_test_LDADD= ${TEST_LDADD} libgearman/libgearmancore.la
 tests_regression_test_SOURCES= tests/regression.c
 tests_regression_test_LDADD= ${TEST_LDADD} libgearman/libgearmancore.la
 
+tests_round_robin_test_SOURCES= tests/round_robin.c
+tests_round_robin_test_LDADD= ${TEST_LDADD} libgearman/libgearmancore.la
+
 tests_worker_test_SOURCES= tests/worker_test.c
 tests_worker_test_LDADD= ${TEST_LDADD}
 
@@ -84,6 +88,9 @@ tests_cpp_test_LDADD= ${TEST_LDADD}
 
 test-client:
 	@tests/client_test $(ARG1) $(ARG2)
+
+test-round-robin:
+	tests/round_robin_test $(ARG1) $(ARG2)
 
 test-worker:
 	@tests/worker_test $(ARG1) $(ARG2)
@@ -104,10 +111,13 @@ test-tokyocabinet:
 	$(TOKYOCABINET_TEST) $(ARG1) $(ARG2)
 	$(TOKYOCABINET_RM)
 
-check-local: test-client test-worker test-internals test-libmemcached test-sqlite test-tokyocabinet
+check-local: test-client test-round-robin test-worker test-internals test-libmemcached test-sqlite test-tokyocabinet
 
 gdb-client: ${noinst_PROGRAMS}
 	$(LIBTOOL) --mode=execute gdb tests/client_test
+
+gdb-round-robin: ${noinst_PROGRAMS}
+	$(LIBTOOL) --mode=execute gdb tests/round_robin_test
 
 gdb-worker: ${noinst_PROGRAMS}
 	$(LIBTOOL) --mode=execute gdb tests/worker_test
@@ -117,6 +127,9 @@ gdb-internals: ${noinst_PROGRAMS}
 
 valgrind-client:
 	$(VALGRIND_COMMAND) tests/client_test $(ARG1) $(ARG2)
+
+valgrind-round-robin:
+	$(VALGRIND_COMMAND) tests/round_robin_test $(ARG1) $(ARG2)
 
 valgrind-worker:
 	$(VALGRIND_COMMAND) tests/worker_test $(ARG1) $(ARG2)
@@ -147,4 +160,4 @@ client-test: $(GEARMAN_CLIENT_TEST)
 	@echo "gearman client success"
 
 valgrind: ${noinst_PROGRAMS} valgrind-client valgrind-worker valgrind-internals valgrind-sqlite valgrind-tokyocabinetn
-
+valgrind: ${noinst_PROGRAMS} valgrind-client valgrind-round-robin valgrind-worker valgrind-internals valgrind-sqlite valgrind-tokyocabinetn

@@ -46,6 +46,10 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
   pid_t gearmand_pid;
   gearmand_st *gearmand;
   gearman_conf_st conf;
+  gearman_conf_module_st module;
+  const char *name;
+  const char *value;
+  bool round_robin= false;
 
   gearmand_pid= fork();
   assert(gearmand_pid != -1);
@@ -74,11 +78,31 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
     assert(ret == GEARMAN_SUCCESS);
 #endif
 
+    (void)gearman_conf_module_create(&conf, &module, NULL);
+
+#ifndef MCO
+#define MCO(__name, __short, __value, __help) \
+      gearman_conf_module_add_option(&module, __name, __short, __value, __help);
+#endif
+
+  MCO("round-robin", 'R', NULL, "Assign work in round-robin order per worker"
+      "connection. The default is to assign work in the order of functions "
+      "added by the worker.")
+
     ret= gearman_conf_parse_args(&conf, argc, argv);
     assert(ret == GEARMAN_SUCCESS);
 
+    /* Check for option values that were given. */
+    while (gearman_conf_module_value(&module, &name, &value))
+    {
+      if (!strcmp(name, "round-robin"))
+        round_robin++;
+    }
+
     gearmand= gearmand_create(NULL, port);
     assert(gearmand != NULL);
+
+    gearmand_set_round_robin(gearmand, round_robin);
 
     if (queue_type != NULL)
     {
@@ -120,6 +144,8 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
         assert(1);
       }
     }
+
+    
 
     ret= gearmand_run(gearmand);
     assert(ret != GEARMAN_SUCCESS);
