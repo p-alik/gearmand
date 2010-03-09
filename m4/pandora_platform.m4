@@ -34,14 +34,13 @@ AC_DEFUN([PANDORA_PLATFORM],[
     ;;
   esac
 
-  PANDORA_OPTIMIZE_BITFIELD=0
+  PANDORA_OPTIMIZE_BITFIELD=1
 
   case "$target_os" in
     *linux*)
     TARGET_LINUX="true"
     AC_SUBST(TARGET_LINUX)
     AC_DEFINE([TARGET_OS_LINUX], [1], [Whether we build for Linux])
-    PANDORA_OPTIMIZE_BITFIELD=1
       ;;
     *darwin*)
       TARGET_OSX="true"
@@ -50,6 +49,7 @@ AC_DEFUN([PANDORA_PLATFORM],[
       ;;
     *solaris*)
       TARGET_SOLARIS="true"
+      PANDORA_OPTIMIZE_BITFIELD=0
       AC_SUBST(TARGET_SOLARIS)
       AC_DEFINE([TARGET_OS_SOLARIS], [1], [Whether we are building for Solaris])
       ;;
