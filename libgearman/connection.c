@@ -115,7 +115,7 @@ gearman_connection_st *gearman_connection_clone(gearman_universal_st *gearman, g
 {
   connection= gearman_connection_create(gearman, connection, NULL);
 
-  if (from || connection == NULL)
+  if (from == NULL || connection == NULL)
     return connection;
 
   connection->options.ready= from->options.ready;

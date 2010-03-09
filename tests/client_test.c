@@ -99,6 +99,7 @@ test_return_t allocation_test(void *object __attribute__((unused)))
 test_return_t clone_test(void *object)
 {
   const gearman_client_st *from= (gearman_client_st *)object;
+  gearman_client_st *from_with_host;
   gearman_client_st *client;
 
   client= gearman_client_clone(NULL, NULL);
@@ -110,8 +111,21 @@ test_return_t clone_test(void *object)
 
   client= gearman_client_clone(NULL, from);
   test_truth(client);
+  gearman_client_free(client);
+
+  from_with_host= gearman_client_create(NULL);
+  test_truth(from_with_host);
+  gearman_client_add_server(from_with_host, "127.0.0.1", 12345);
+
+  client= gearman_client_clone(NULL, from_with_host);
+  test_truth(client);
+
+  test_truth(client->universal.con_list);
+  test_truth(!strcmp(client->universal.con_list->host, from_with_host->universal.con_list->host));
+  test_truth(client->universal.con_list->port == from_with_host->universal.con_list->port);
 
   gearman_client_free(client);
+  gearman_client_free(from_with_host);
 
   return TEST_SUCCESS;
 }
