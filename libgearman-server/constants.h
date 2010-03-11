@@ -109,15 +109,6 @@ typedef enum
   GEARMAND_THREAD_LOCK=         (1 << 1)
 } gearmand_thread_options_t;
 
-/**
- * @ingroup gearman_conf_module
- * Options for gearman_conf_module_st.
- */
-typedef enum
-{
-  GEARMAN_CONF_MODULE_ALLOCATED= (1 << 0)
-} gearman_conf_module_options_t;
-
 
 /**
  * @addtogroup gearman_server_types Types

@@ -32,10 +32,12 @@ gearman_conf_module_st *gearman_conf_module_create(gearman_conf_st *conf,
       return NULL;
     }
 
-    module->options= GEARMAN_CONF_MODULE_ALLOCATED;
+    module->options.allocated= true;
   }
   else
-    module->options= 0;
+  {
+    module->options.allocated= false;
+  }
 
   module->current_option= 0;
   module->current_value= 0;
@@ -60,7 +62,7 @@ gearman_conf_module_st *gearman_conf_module_create(gearman_conf_st *conf,
 
 void gearman_conf_module_free(gearman_conf_module_st *module)
 {
-  if (module->options & GEARMAN_CONF_MODULE_ALLOCATED)
+  if (module->options.allocated)
     free(module);
 }
 
