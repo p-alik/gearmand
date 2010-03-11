@@ -66,15 +66,6 @@ typedef enum
 } gearman_server_con_options_t;
 
 /**
- * @ingroup gearman_server_worker
- * Options for gearman_server_worker_st.
- */
-typedef enum
-{
-  GEARMAN_SERVER_WORKER_ALLOCATED= (1 << 0)
-} gearman_server_worker_options_t;
-
-/**
  * @ingroup gearman_server_job
  * Options for gearman_server_job_st.
  */
@@ -117,15 +108,6 @@ typedef enum
   GEARMAND_THREAD_WAKEUP_EVENT= (1 << 0),
   GEARMAND_THREAD_LOCK=         (1 << 1)
 } gearmand_thread_options_t;
-
-/**
- * @ingroup gearman_conf
- * Options for gearman_conf_st.
- */
-typedef enum
-{
-  GEARMAN_CONF_ALLOCATED= (1 << 0)
-} gearman_conf_options_t;
 
 /**
  * @ingroup gearman_conf_module

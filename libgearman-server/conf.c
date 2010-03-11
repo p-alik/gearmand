@@ -25,10 +25,12 @@ gearman_conf_st *gearman_conf_create(gearman_conf_st *conf)
     if (conf == NULL)
       return NULL;
 
-    conf->options= GEARMAN_CONF_ALLOCATED;
+    conf->options.allocated= true;
   }
   else
-    conf->options= 0;
+  {
+    conf->options.allocated= false;
+  }
 
   conf->last_return= GEARMAN_SUCCESS;
   conf->last_errno= 0;
@@ -77,7 +79,7 @@ void gearman_conf_free(gearman_conf_st *conf)
   if (conf->option_getopt != NULL)
     free(conf->option_getopt);
 
-  if (conf->options & GEARMAN_CONF_ALLOCATED)
+  if (conf->options.allocated)
     free(conf);
 }
 
@@ -94,15 +96,6 @@ const char *gearman_conf_error(gearman_conf_st *conf)
 int gearman_conf_errno(gearman_conf_st *conf)
 {
   return conf->last_errno;
-}
-
-void gearman_conf_set_options(gearman_conf_st *conf,
-                              gearman_conf_options_t options, uint32_t data)
-{
-  if (data)
-    conf->options |= options;
-  else
-    conf->options &= ~options;
 }
 
 gearman_return_t gearman_conf_parse_args(gearman_conf_st *conf, int argc,
@@ -209,7 +202,7 @@ void gearman_conf_usage(gearman_conf_st *conf)
     if (max_length > GEARMAN_CONF_DISPLAY_WIDTH - 2)
       max_length= GEARMAN_CONF_DISPLAY_WIDTH - 2;
 
-    /* Print out all options for this module. */
+    /* Print out all options.allocated for this module. */
     for (y= 0; y < conf->option_count; y++)
     {
       option= &conf->option_list[y];
