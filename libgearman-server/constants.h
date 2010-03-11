@@ -50,7 +50,7 @@ typedef enum
   GEARMAN_SERVER_ALLOCATED=    (1 << 0),
   GEARMAN_SERVER_PROC_THREAD=  (1 << 1),
   GEARMAN_SERVER_QUEUE_REPLAY= (1 << 2),
-  GEARMAN_SERVER_RR_ORDER=     (1 << 3),
+  GEARMAN_SERVER_RR_ORDER=     (1 << 3)
 } gearman_server_options_t;
 
 /**
