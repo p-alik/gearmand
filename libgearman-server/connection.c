@@ -113,7 +113,7 @@ void gearman_server_con_free(gearman_server_con_st *con)
   con->host= NULL;
   con->port= NULL;
 
-  if (thread->server->options & GEARMAN_SERVER_PROC_THREAD &&
+  if (thread->server->state & GEARMAN_SERVER_PROC_THREAD &&
       !(con->proc_removed) && !(thread->server->proc_shutdown))
   {
     con->options= GEARMAN_SERVER_CON_DEAD;

@@ -284,10 +284,10 @@ void gearmand_set_round_robin(gearmand_st *gearmand, bool round_robin)
 {
   if (round_robin)
   {
-    gearmand->server.options|= GEARMAN_SERVER_RR_ORDER;
+    gearmand->server.state|= GEARMAN_SERVER_RR_ORDER;
     return;
   }
-  gearmand->server.options&= GEARMAN_SERVER_RR_ORDER;
+  gearmand->server.state&= GEARMAN_SERVER_RR_ORDER;
 }
 
 

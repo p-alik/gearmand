@@ -23,7 +23,7 @@ gearman_server_packet_create(gearman_server_thread_st *thread,
 {
   gearman_server_packet_st *server_packet= NULL;
 
-  if (from_thread && thread->server->options & GEARMAN_SERVER_PROC_THREAD)
+  if (from_thread && thread->server->state & GEARMAN_SERVER_PROC_THREAD)
   {
     if (thread->free_packet_count > 0)
     {
@@ -62,7 +62,7 @@ void gearman_server_packet_free(gearman_server_packet_st *packet,
                                 gearman_server_thread_st *thread,
                                 bool from_thread)
 {
-  if (from_thread && thread->server->options & GEARMAN_SERVER_PROC_THREAD)
+  if (from_thread && thread->server->state & GEARMAN_SERVER_PROC_THREAD)
   {
     if (thread->free_packet_count < GEARMAN_MAX_FREE_SERVER_PACKET)
     {

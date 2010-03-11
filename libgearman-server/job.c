@@ -139,7 +139,7 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
     key= key % GEARMAN_JOB_HASH_SIZE;
     GEARMAN_HASH_ADD(server->job, key, server_job,)
 
-    if (server->options & GEARMAN_SERVER_QUEUE_REPLAY)
+    if (server->state & GEARMAN_SERVER_QUEUE_REPLAY)
       server_job->options|= GEARMAN_SERVER_JOB_QUEUED;
     else if (server_client == NULL && server->queue_add_fn != NULL)
     {
@@ -370,7 +370,7 @@ gearman_server_job_take(gearman_server_con_st *server_con)
   if (server_worker == NULL)
     return NULL;
 
-  if (server_con->thread->server->options & GEARMAN_SERVER_RR_ORDER)
+  if (server_con->thread->server->state & GEARMAN_SERVER_RR_ORDER)
   {
     GEARMAN_LIST_DEL(server_con->worker, server_worker, con_)
     _server_con_worker_list_append(server_con->worker_list, server_worker);

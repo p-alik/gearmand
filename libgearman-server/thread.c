@@ -202,7 +202,7 @@ gearman_server_thread_run(gearman_server_thread_st *thread,
 
   /* If we are multi-threaded, we may have packets to flush or connections that
      should start reading again. */
-  if (thread->server->options & GEARMAN_SERVER_PROC_THREAD)
+  if (thread->server->state & GEARMAN_SERVER_PROC_THREAD)
   {
     while ((server_con= gearman_server_con_io_next(thread)) != NULL)
     {
@@ -253,7 +253,7 @@ gearman_server_thread_run(gearman_server_thread_st *thread,
   }
 
   /* Start flushing new outgoing packets if we are single threaded. */
-  if (!(thread->server->options & GEARMAN_SERVER_PROC_THREAD))
+  if (! (thread->server->state & GEARMAN_SERVER_PROC_THREAD))
   {
     while ((server_con= gearman_server_con_io_next(thread)) != NULL)
     {
@@ -313,7 +313,7 @@ gearman_return_t _thread_packet_read(gearman_server_con_st *con)
                   gearman_command_info_list[con->packet->packet.command].name)
 
     /* We read a complete packet. */
-    if (con->thread->server->options & GEARMAN_SERVER_PROC_THREAD)
+    if (con->thread->server->state & GEARMAN_SERVER_PROC_THREAD)
     {
       /* Multi-threaded, queue for the processing thread to run. */
       gearman_server_proc_packet_add(con, con->packet);
@@ -382,14 +382,14 @@ static gearman_return_t _proc_thread_start(gearman_server_st *server)
 
   (void) pthread_attr_destroy(&attr);
 
-  server->options|= GEARMAN_SERVER_PROC_THREAD;
+  server->state|= GEARMAN_SERVER_PROC_THREAD;
 
   return GEARMAN_SUCCESS;
 }
 
 static void _proc_thread_kill(gearman_server_st *server)
 {
-  if (!(server->options & GEARMAN_SERVER_PROC_THREAD) || server->proc_shutdown)
+  if (! (server->state & GEARMAN_SERVER_PROC_THREAD) || server->proc_shutdown)
     return;
 
   server->proc_shutdown= true;

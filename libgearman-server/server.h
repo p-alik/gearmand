@@ -26,7 +26,10 @@ extern "C" {
 
 struct gearman_server_st
 {
-  gearman_server_options_t options;
+  struct {
+    bool allocated;
+  } options;
+  gearman_server_state_t state;
   bool shutdown;
   bool shutdown_graceful;
   bool proc_wakeup;
