@@ -79,10 +79,12 @@ gearman_server_thread_create(gearman_server_st *server,
       return NULL;
     }
 
-    thread->options= GEARMAN_SERVER_THREAD_ALLOCATED;
+    thread->options.allocated= true;
   }
   else
-    thread->options= 0;
+  {
+    thread->options.allocated= false;
+  }
 
   thread->con_count= 0;
   thread->io_count= 0;
@@ -102,8 +104,9 @@ gearman_server_thread_create(gearman_server_st *server,
 
   if (pthread_mutex_init(&(thread->lock), NULL) != 0)
   {
-    if (thread->options & GEARMAN_SERVER_THREAD_ALLOCATED)
+    if (thread->options.allocated)
       free(thread);
+
     return NULL;
   }
 
@@ -151,7 +154,7 @@ void gearman_server_thread_free(gearman_server_thread_st *thread)
 
   GEARMAN_LIST_DEL(thread->server->thread, thread,)
 
-  if (thread->options & GEARMAN_SERVER_THREAD_ALLOCATED)
+  if (thread->options.allocated)
     free(thread);
 }
 

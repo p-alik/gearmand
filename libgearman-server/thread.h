@@ -29,7 +29,9 @@ extern "C" {
 
 struct gearman_server_thread_st
 {
-  gearman_server_thread_options_t options;
+  struct {
+    bool allocated;
+  } options;
   uint32_t con_count;
   uint32_t io_count;
   uint32_t proc_count;

@@ -54,15 +54,6 @@ typedef enum
 } gearman_server_options_t;
 
 /**
- * @ingroup gearman_server_thread
- * Options for gearman_server_thread_st.
- */
-typedef enum
-{
-  GEARMAN_SERVER_THREAD_ALLOCATED= (1 << 0)
-} gearman_server_thread_options_t;
-
-/**
  * @ingroup gearman_server_con
  * Options for gearman_server_con_st.
  */
