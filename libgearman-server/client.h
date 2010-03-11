@@ -23,7 +23,9 @@ extern "C" {
  */
 struct gearman_server_client_st
 {
-  gearman_server_client_options_t options;
+  struct {
+    bool allocated;
+  } options;
   gearman_server_con_st *con;
   gearman_server_client_st *con_next;
   gearman_server_client_st *con_prev;

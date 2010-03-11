@@ -53,10 +53,12 @@ gearman_server_client_create(gearman_server_con_st *con,
       }
     }
 
-    client->options= GEARMAN_SERVER_CLIENT_ALLOCATED;
+    client->options.allocated= true;
   }
   else
-    client->options= 0;
+  {
+    client->options.allocated= false;
+  }
 
   client->con= con;
   GEARMAN_LIST_ADD(con->client, client, con_)
@@ -82,7 +84,7 @@ void gearman_server_client_free(gearman_server_client_st *client)
       client->job->options|= GEARMAN_SERVER_JOB_IGNORE;
   }
 
-  if (client->options & GEARMAN_SERVER_CLIENT_ALLOCATED)
+  if (client->options.allocated)
   {
     if (server->free_client_count < GEARMAN_MAX_FREE_SERVER_CLIENT)
       GEARMAN_LIST_ADD(server->free_client, client, con_)

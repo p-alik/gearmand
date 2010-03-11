@@ -66,15 +66,6 @@ typedef enum
 } gearman_server_con_options_t;
 
 /**
- * @ingroup gearman_server_client
- * Options for gearman_server_client_st.
- */
-typedef enum
-{
-  GEARMAN_SERVER_CLIENT_ALLOCATED= (1 << 0)
-} gearman_server_client_options_t;
-
-/**
  * @ingroup gearman_server_worker
  * Options for gearman_server_worker_st.
  */
