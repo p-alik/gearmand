@@ -99,9 +99,13 @@ test-internals:
 	@tests/internals_test $(ARG1) $(ARG2)
 
 test-libmemcached:
+if HAVE_LIBMEMCACHED
+if HAVE_MEMCACHED
 	$(LIBMEMCACHED_SETUP)
 	$(LIBMEMCACHED_TEST) $(ARG1) $(ARG2)
 	$(LIBMEMCACHED_TEARDOWN)
+endif
+endif
 
 test-sqlite:
 	$(SQLITE_TEST) $(ARG1) $(ARG2)
