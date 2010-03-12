@@ -108,12 +108,16 @@ endif
 endif
 
 test-sqlite:
+if HAVE_LIBSQLITE3
 	$(SQLITE_TEST) $(ARG1) $(ARG2)
 	$(SQLITE_RM)
+endif
 
 test-tokyocabinet:
+if HAVE_LIBTOKYOCABINET
 	$(TOKYOCABINET_TEST) $(ARG1) $(ARG2)
 	$(TOKYOCABINET_RM)
+endif
 
 check-local: test-client test-round-robin test-worker test-internals test-libmemcached test-sqlite test-tokyocabinet
 
@@ -147,12 +151,16 @@ valgrind-libmemcached:
 	$(LIBMEMCACHED_TEARDOWN)
 
 valgrind-sqlite:
+if HAVE_LIBSQLITE3
 	$(VALGRIND_COMMAND) $(SQLITE_TEST) $(ARG1) $(ARG2)
 	$(SQLITE_RM)
+endif
 
 valgrind-tokyocabinet:
+if HAVE_LIBTOKYOCABINET
 	$(VALGRIND_COMMAND) $(TOKYOCABINET_TEST) $(ARG1) $(ARG2)
 	$(TOKYOCABINET_RM)
+endif
 
 GEARMAN_CLIENT_TEST= bin/gearman
 GEARMAN_PIDFILE = ${abs_top_builddir}/tests/Xugear.pid
