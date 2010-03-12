@@ -303,21 +303,14 @@ static void _log(const char *line, gearman_verbose_t verbose, void *context)
 
 static gearman_return_t _listen_init(gearmand_st *gearmand)
 {
-  struct gearmand_port_st *port;
-  struct addrinfo *addrinfo;
-  struct addrinfo *addrinfo_next;
-  struct addrinfo ai;
-  int ret;
-  int opt;
-  char host[NI_MAXHOST];
-  char port_str[NI_MAXSERV];
-  int fd;
-  int *fd_list;
-  uint32_t x;
-  uint32_t y;
-
-  for (x= 0; x < gearmand->port_count; x++)
+  for (uint32_t x= 0; x < gearmand->port_count; x++)
   {
+    int ret;
+    struct gearmand_port_st *port;
+    char port_str[NI_MAXSERV];
+    struct addrinfo ai;
+    struct addrinfo *addrinfo;
+
     port= &gearmand->port_list[x];
 
     snprintf(port_str, NI_MAXSERV, "%u", port->port);
@@ -335,9 +328,13 @@ static gearman_return_t _listen_init(gearmand_st *gearmand)
       return GEARMAN_ERRNO;
     }
 
-    for (addrinfo_next= addrinfo; addrinfo_next != NULL;
+    for (struct addrinfo *addrinfo_next= addrinfo; addrinfo_next != NULL;
          addrinfo_next= addrinfo_next->ai_next)
     {
+      int opt;
+      int fd;
+      char host[NI_MAXHOST];
+
       ret= getnameinfo(addrinfo_next->ai_addr, addrinfo_next->ai_addrlen, host,
                        NI_MAXHOST, port_str, NI_MAXSERV,
                        NI_NUMERICHOST | NI_NUMERICSERV);
@@ -395,15 +392,21 @@ static gearman_return_t _listen_init(gearmand_st *gearmand)
         return GEARMAN_ERRNO;
       }
 
-      fd_list= realloc(port->listen_fd, sizeof(int) * (port->listen_count + 1));
-      if (fd_list == NULL)
+      // Scoping note for eventual transformation
       {
-        close(fd);
-        GEARMAN_FATAL(gearmand, "_listen_init:realloc:%d", errno)
-        return GEARMAN_ERRNO;
+        int *fd_list;
+
+        fd_list= realloc(port->listen_fd, sizeof(int) * (port->listen_count + 1));
+        if (fd_list == NULL)
+        {
+          close(fd);
+          GEARMAN_FATAL(gearmand, "_listen_init:realloc:%d", errno)
+            return GEARMAN_ERRNO;
+        }
+
+        port->listen_fd= fd_list;
       }
 
-      port->listen_fd= fd_list;
       port->listen_fd[port->listen_count]= fd;
       port->listen_count++;
 
@@ -427,7 +430,7 @@ static gearman_return_t _listen_init(gearmand_st *gearmand)
       return GEARMAN_ERRNO;
     }
 
-    for (y= 0; y < port->listen_count; y++)
+    for (uint32_t y= 0; y < port->listen_count; y++)
     {
       event_set(&(port->listen_event[y]), port->listen_fd[y],
                 EV_READ | EV_PERSIST, _listen_event, port);
@@ -440,14 +443,11 @@ static gearman_return_t _listen_init(gearmand_st *gearmand)
 
 static void _listen_close(gearmand_st *gearmand)
 {
-  uint32_t x;
-  uint32_t y;
-
   _listen_clear(gearmand);
 
-  for (x= 0; x < gearmand->port_count; x++)
+  for (uint32_t x= 0; x < gearmand->port_count; x++)
   {
-    for (y= 0; y < gearmand->port_list[x].listen_count; y++)
+    for (uint32_t y= 0; y < gearmand->port_list[x].listen_count; y++)
     {
       if (gearmand->port_list[x].listen_fd[y] >= 0)
       {
@@ -462,15 +462,12 @@ static void _listen_close(gearmand_st *gearmand)
 
 static gearman_return_t _listen_watch(gearmand_st *gearmand)
 {
-  uint32_t x;
-  uint32_t y;
-
   if (gearmand->options & GEARMAND_LISTEN_EVENT)
     return GEARMAN_SUCCESS;
 
-  for (x= 0; x < gearmand->port_count; x++)
+  for (uint32_t x= 0; x < gearmand->port_count; x++)
   {
-    for (y= 0; y < gearmand->port_list[x].listen_count; y++)
+    for (uint32_t y= 0; y < gearmand->port_list[x].listen_count; y++)
     {
       GEARMAN_INFO(gearmand, "Adding event for listening socket (%d)",
                    gearmand->port_list[x].listen_fd[y])
@@ -489,16 +486,13 @@ static gearman_return_t _listen_watch(gearmand_st *gearmand)
 
 static void _listen_clear(gearmand_st *gearmand)
 {
-  uint32_t x;
-  uint32_t y;
-
-  if (!(gearmand->options & GEARMAND_LISTEN_EVENT))
+  if (! (gearmand->options & GEARMAND_LISTEN_EVENT))
     return;
 
   int del_ret= 0;
-  for (x= 0; x < gearmand->port_count; x++)
+  for (uint32_t x= 0; x < gearmand->port_count; x++)
   {
-    for (y= 0; y < gearmand->port_list[x].listen_count; y++)
+    for (uint32_t y= 0; y < gearmand->port_list[x].listen_count; y++)
     {
       GEARMAN_INFO(gearmand, "Clearing event for listening socket (%d)",
                    gearmand->port_list[x].listen_fd[y])
@@ -640,7 +634,6 @@ static void _wakeup_event(int fd, short events __attribute__ ((unused)),
   gearmand_st *gearmand= (gearmand_st *)arg;
   uint8_t buffer[GEARMAN_PIPE_BUFFER_SIZE];
   ssize_t ret;
-  ssize_t x;
   gearmand_thread_st *thread;
 
   while (1)
@@ -667,7 +660,7 @@ static void _wakeup_event(int fd, short events __attribute__ ((unused)),
       return;
     }
 
-    for (x= 0; x < ret; x++)
+    for (ssize_t x= 0; x < ret; x++)
     {
       switch ((gearmand_wakeup_t)buffer[x])
       {

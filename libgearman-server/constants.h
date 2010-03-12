@@ -70,10 +70,9 @@ typedef enum
  */
 typedef enum
 {
-  GEARMAN_SERVER_JOB_ALLOCATED= (1 << 0),
   GEARMAN_SERVER_JOB_QUEUED=    (1 << 1),
   GEARMAN_SERVER_JOB_IGNORE=    (1 << 2)
-} gearman_server_job_options_t;
+} gearman_server_job_state_t;
 
 /**
  * @ingroup gearmand
@@ -81,8 +80,8 @@ typedef enum
  */
 typedef enum
 {
-  GEARMAND_LISTEN_EVENT= (1 << 0),
-  GEARMAND_WAKEUP_EVENT= (1 << 1)
+  GEARMAND_LISTEN_EVENT= (1 << 1),
+  GEARMAND_WAKEUP_EVENT= (1 << 2)
 } gearmand_options_t;
 
 /**

@@ -81,7 +81,7 @@ void gearman_server_client_free(gearman_server_client_st *client)
 
     /* If this was a foreground job and is now abandoned, mark to not run. */
     if (client->job->client_list == NULL)
-      client->job->options|= GEARMAN_SERVER_JOB_IGNORE;
+      client->job->state|= GEARMAN_SERVER_JOB_IGNORE;
   }
 
   if (client->options.allocated)

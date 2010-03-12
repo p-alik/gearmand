@@ -79,6 +79,7 @@ gearman_server_st *gearman_server_create(gearman_server_st *server)
   else
     server->options.allocated= false;
 
+  memset(&server->state, 0, sizeof(gearman_server_state_t));
   server->shutdown= false;
   server->shutdown_graceful= false;
   server->proc_wakeup= false;
@@ -534,7 +535,7 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
       return ret;
 
     /* Remove from persistent queue if one exists. */
-    if (server_job->options & GEARMAN_SERVER_JOB_QUEUED &&
+    if (server_job->state & GEARMAN_SERVER_JOB_QUEUED &&
         server->queue_done_fn != NULL)
     {
       ret= (*(server->queue_done_fn))(server, (void *)server->queue_context,
@@ -592,7 +593,7 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
     }
 
     /* Remove from persistent queue if one exists. */
-    if (server_job->options & GEARMAN_SERVER_JOB_QUEUED &&
+    if (server_job->state & GEARMAN_SERVER_JOB_QUEUED &&
         server->queue_done_fn != NULL)
     {
       ret= (*(server->queue_done_fn))(server, (void *)server->queue_context,
