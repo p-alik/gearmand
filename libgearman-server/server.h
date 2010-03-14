@@ -29,6 +29,10 @@ struct gearman_server_st
   struct {
     bool allocated;
   } options;
+  struct {
+    bool round_robin;
+    bool threaded;
+  } flags;
   gearman_server_state_t state;
   bool shutdown;
   bool shutdown_graceful;

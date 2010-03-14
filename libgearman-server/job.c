@@ -372,7 +372,7 @@ gearman_server_job_take(gearman_server_con_st *server_con)
   if (server_worker == NULL)
     return NULL;
 
-  if (server_con->thread->server->state & GEARMAN_SERVER_RR_ORDER)
+  if (server_con->thread->server->flags.round_robin)
   {
     GEARMAN_LIST_DEL(server_con->worker, server_worker, con_)
     _server_con_worker_list_append(server_con->worker_list, server_worker);

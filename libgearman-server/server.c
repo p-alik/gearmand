@@ -80,6 +80,8 @@ gearman_server_st *gearman_server_create(gearman_server_st *server)
     server->options.allocated= false;
 
   memset(&server->state, 0, sizeof(gearman_server_state_t));
+  server->flags.round_robin= false;
+  server->flags.threaded= false;
   server->shutdown= false;
   server->shutdown_graceful= false;
   server->proc_wakeup= false;

@@ -47,9 +47,7 @@ extern "C" {
  */
 typedef enum
 {
-  GEARMAN_SERVER_PROC_THREAD=  (1 << 1),
-  GEARMAN_SERVER_QUEUE_REPLAY= (1 << 2),
-  GEARMAN_SERVER_RR_ORDER=     (1 << 3)
+  GEARMAN_SERVER_QUEUE_REPLAY= (1 << 2)
 } gearman_server_state_t;
 
 /**
