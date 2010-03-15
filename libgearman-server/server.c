@@ -79,7 +79,7 @@ gearman_server_st *gearman_server_create(gearman_server_st *server)
   else
     server->options.allocated= false;
 
-  memset(&server->state, 0, sizeof(gearman_server_state_t));
+  server->state.queue_startup= false;
   server->flags.round_robin= false;
   server->flags.threaded= false;
   server->shutdown= false;
@@ -658,12 +658,12 @@ gearman_return_t gearman_server_queue_replay(gearman_server_st *server)
   if (server->queue_replay_fn == NULL)
     return GEARMAN_SUCCESS;
 
-  server->state|= GEARMAN_SERVER_QUEUE_REPLAY;
+  server->state.queue_startup= true;
 
   ret= (*(server->queue_replay_fn))(server, (void *)server->queue_context,
                                     _queue_replay_add, server);
 
-  server->state&= (gearman_server_state_t)~GEARMAN_SERVER_QUEUE_REPLAY;
+  server->state.queue_startup= false;
 
   return ret;
 }

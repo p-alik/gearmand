@@ -131,15 +131,15 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
 
     server_job->unique_key= key;
     key= key % GEARMAN_JOB_HASH_SIZE;
-    GEARMAN_HASH_ADD(server->unique, key, server_job, unique_)
+    GEARMAN_HASH_ADD(server->unique, key, server_job, unique_);
 
     key= _server_job_hash(server_job->job_handle,
                           strlen(server_job->job_handle));
     server_job->job_handle_key= key;
     key= key % GEARMAN_JOB_HASH_SIZE;
-    GEARMAN_HASH_ADD(server->job, key, server_job,)
+    GEARMAN_HASH_ADD(server->job, key, server_job,);
 
-    if (server->state & GEARMAN_SERVER_QUEUE_REPLAY)
+    if (server->state.queue_startup)
     {
       server_job->state|= GEARMAN_SERVER_JOB_QUEUED;
     }
@@ -272,10 +272,10 @@ void gearman_server_job_free(gearman_server_job_st *server_job)
     GEARMAN_LIST_DEL(server_job->worker->job, server_job, worker_)
 
   key= server_job->unique_key % GEARMAN_JOB_HASH_SIZE;
-  GEARMAN_HASH_DEL(server_job->server->unique, key, server_job, unique_)
+  GEARMAN_HASH_DEL(server_job->server->unique, key, server_job, unique_);
 
   key= server_job->job_handle_key % GEARMAN_JOB_HASH_SIZE;
-  GEARMAN_HASH_DEL(server_job->server->job, key, server_job,)
+  GEARMAN_HASH_DEL(server_job->server->job, key, server_job,);
 
   if (server_job->options.allocated)
   {
@@ -289,12 +289,11 @@ void gearman_server_job_free(gearman_server_job_st *server_job)
 gearman_server_job_st *gearman_server_job_get(gearman_server_st *server,
                                               const char *job_handle)
 {
-  gearman_server_job_st *server_job;
   uint32_t key;
 
   key= _server_job_hash(job_handle, strlen(job_handle));
 
-  for (server_job= server->job_hash[key % GEARMAN_JOB_HASH_SIZE];
+  for (gearman_server_job_st *server_job= server->job_hash[key % GEARMAN_JOB_HASH_SIZE];
        server_job != NULL; server_job= server_job->next)
   {
     if (server_job->job_handle_key == key &&

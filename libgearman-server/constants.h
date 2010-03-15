@@ -42,15 +42,6 @@ extern "C" {
 /** @} */
 
 /**
- * @ingroup gearman_server
- * Options for gearman_server_st.
- */
-typedef enum
-{
-  GEARMAN_SERVER_QUEUE_REPLAY= (1 << 2)
-} gearman_server_state_t;
-
-/**
  * @ingroup gearman_server_con
  * Options for gearman_server_con_st.
  */

@@ -33,7 +33,9 @@ struct gearman_server_st
     bool round_robin;
     bool threaded;
   } flags;
-  gearman_server_state_t state;
+  struct {
+    bool queue_startup;
+  } state;
   bool shutdown;
   bool shutdown_graceful;
   bool proc_wakeup;
