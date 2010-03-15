@@ -308,7 +308,7 @@ static gearman_return_t _listen_init(gearmand_st *gearmand)
 
     port= &gearmand->port_list[x];
 
-    snprintf(port_str, NI_MAXSERV, "%u", port->port);
+    snprintf(port_str, NI_MAXSERV, "%u", (uint32_t)(port->port));
 
     memset(&ai, 0, sizeof(struct addrinfo));
     ai.ai_flags  = AI_PASSIVE;
@@ -679,7 +679,7 @@ static void _wakeup_event(int fd, short events __attribute__ ((unused)),
         break;
 
       case GEARMAND_WAKEUP_SHUTDOWN:
-        GEARMAN_INFO(gearmand, "Received SHUTDOWN wakeup event")
+        GEARMAN_INFO(gearmand, "Received SHUTDOWN wakeup event");
         _clear_events(gearmand);
         gearmand->ret= GEARMAN_SHUTDOWN;
         break;
@@ -687,8 +687,7 @@ static void _wakeup_event(int fd, short events __attribute__ ((unused)),
       case GEARMAND_WAKEUP_CON:
       case GEARMAND_WAKEUP_RUN:
       default:
-        GEARMAN_FATAL(gearmand, "Received unknown wakeup event (%u)",
-                      buffer[x])
+        GEARMAN_FATAL(gearmand, "Received unknown wakeup event (%u)", buffer[x]);
         _clear_events(gearmand);
         gearmand->ret= GEARMAN_UNKNOWN_STATE;
         break;

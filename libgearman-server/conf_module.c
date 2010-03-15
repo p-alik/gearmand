@@ -18,8 +18,8 @@
  */
 
 gearman_conf_module_st *gearman_conf_module_create(gearman_conf_st *conf,
-                                                 gearman_conf_module_st *module,
-                                                 const char *name)
+                                                   gearman_conf_module_st *module,
+                                                   const char *name)
 {
   gearman_conf_module_st **module_list;
 
@@ -69,9 +69,7 @@ void gearman_conf_module_free(gearman_conf_module_st *module)
 gearman_conf_module_st *gearman_conf_module_find(gearman_conf_st *conf,
                                                  const char *name)
 {
-  uint32_t x;
-
-  for (x= 0; x < conf->module_count; x++)
+  for (uint32_t x= 0; x < conf->module_count; x++)
   {
     if (name == NULL || conf->module_list[x]->name == NULL)
     {
@@ -92,10 +90,9 @@ void gearman_conf_module_add_option(gearman_conf_module_st *module,
   gearman_conf_st *conf= module->conf;
   gearman_conf_option_st *option_list;
   struct option *option_getopt;
-  uint32_t x;
 
   /* Unset short_name if it's already in use. */
-  for (x= 0; x < conf->option_count && short_name != 0; x++)
+  for (uint32_t x= 0; x < conf->option_count && short_name != 0; x++)
   {
     if (conf->option_getopt[x].val == short_name)
       short_name= 0;
@@ -150,15 +147,21 @@ void gearman_conf_module_add_option(gearman_conf_module_st *module,
   }
   else
   {
-    option_getopt->name= malloc(strlen(module->name) + strlen(name) + 2);
-    if (option_getopt->name == NULL)
+    // 2 is the - plus null for the const char string
+    size_t option_string_length= strlen(module->name) + strlen(name) + 2;
+    char *option_string= 
+      malloc(option_string_length * sizeof(char));
+
+    if (option_string == NULL)
     {
       GEARMAN_CONF_ERROR_SET(conf, "gearman_conf_module_add_option", "malloc");
       conf->last_return= GEARMAN_MEMORY_ALLOCATION_FAILURE;
       return;
     }
 
-    sprintf((char *)option_getopt->name, "%s-%s", module->name, name);
+    snprintf(option_string, option_string_length, "%s-%s", module->name, name);
+
+    option_getopt->name= option_string;
   }
 
   option_getopt->has_arg= value_name == NULL ? 0 : 1;
