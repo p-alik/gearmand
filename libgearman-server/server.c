@@ -74,11 +74,14 @@ gearman_server_st *gearman_server_create(gearman_server_st *server)
     if (server == NULL)
       return NULL;
 
-    server->options= GEARMAN_SERVER_ALLOCATED;
+    server->options.allocated= true;
   }
   else
-    server->options= 0;
+    server->options.allocated= false;
 
+  server->state.queue_startup= false;
+  server->flags.round_robin= false;
+  server->flags.threaded= false;
   server->shutdown= false;
   server->shutdown_graceful= false;
   server->proc_wakeup= false;
@@ -182,7 +185,7 @@ void gearman_server_free(gearman_server_st *server)
   if (server->gearman != NULL)
     gearman_universal_free(server->gearman);
 
-  if (server->options & GEARMAN_SERVER_ALLOCATED)
+  if (server->options.allocated)
     free(server);
 }
 
@@ -534,7 +537,7 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
       return ret;
 
     /* Remove from persistent queue if one exists. */
-    if (server_job->options & GEARMAN_SERVER_JOB_QUEUED &&
+    if (server_job->state & GEARMAN_SERVER_JOB_QUEUED &&
         server->queue_done_fn != NULL)
     {
       ret= (*(server->queue_done_fn))(server, (void *)server->queue_context,
@@ -592,7 +595,7 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
     }
 
     /* Remove from persistent queue if one exists. */
-    if (server_job->options & GEARMAN_SERVER_JOB_QUEUED &&
+    if (server_job->state & GEARMAN_SERVER_JOB_QUEUED &&
         server->queue_done_fn != NULL)
     {
       ret= (*(server->queue_done_fn))(server, (void *)server->queue_context,
@@ -655,12 +658,12 @@ gearman_return_t gearman_server_queue_replay(gearman_server_st *server)
   if (server->queue_replay_fn == NULL)
     return GEARMAN_SUCCESS;
 
-  server->options|= GEARMAN_SERVER_QUEUE_REPLAY;
+  server->state.queue_startup= true;
 
   ret= (*(server->queue_replay_fn))(server, (void *)server->queue_context,
                                     _queue_replay_add, server);
 
-  server->options&= (gearman_server_options_t)~GEARMAN_SERVER_QUEUE_REPLAY;
+  server->state.queue_startup= false;
 
   return ret;
 }

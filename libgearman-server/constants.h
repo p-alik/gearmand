@@ -42,27 +42,6 @@ extern "C" {
 /** @} */
 
 /**
- * @ingroup gearman_server
- * Options for gearman_server_st.
- */
-typedef enum
-{
-  GEARMAN_SERVER_ALLOCATED=    (1 << 0),
-  GEARMAN_SERVER_PROC_THREAD=  (1 << 1),
-  GEARMAN_SERVER_QUEUE_REPLAY= (1 << 2),
-  GEARMAN_SERVER_RR_ORDER=     (1 << 3),
-} gearman_server_options_t;
-
-/**
- * @ingroup gearman_server_thread
- * Options for gearman_server_thread_st.
- */
-typedef enum
-{
-  GEARMAN_SERVER_THREAD_ALLOCATED= (1 << 0)
-} gearman_server_thread_options_t;
-
-/**
  * @ingroup gearman_server_con
  * Options for gearman_server_con_st.
  */
@@ -75,42 +54,14 @@ typedef enum
 } gearman_server_con_options_t;
 
 /**
- * @ingroup gearman_server_function
- * Options for gearman_server_function_st.
- */
-typedef enum
-{
-  GEARMAN_SERVER_FUNCTION_ALLOCATED= (1 << 0)
-} gearman_server_function_options_t;
-
-/**
- * @ingroup gearman_server_client
- * Options for gearman_server_client_st.
- */
-typedef enum
-{
-  GEARMAN_SERVER_CLIENT_ALLOCATED= (1 << 0)
-} gearman_server_client_options_t;
-
-/**
- * @ingroup gearman_server_worker
- * Options for gearman_server_worker_st.
- */
-typedef enum
-{
-  GEARMAN_SERVER_WORKER_ALLOCATED= (1 << 0)
-} gearman_server_worker_options_t;
-
-/**
  * @ingroup gearman_server_job
  * Options for gearman_server_job_st.
  */
 typedef enum
 {
-  GEARMAN_SERVER_JOB_ALLOCATED= (1 << 0),
   GEARMAN_SERVER_JOB_QUEUED=    (1 << 1),
   GEARMAN_SERVER_JOB_IGNORE=    (1 << 2)
-} gearman_server_job_options_t;
+} gearman_server_job_state_t;
 
 /**
  * @ingroup gearmand
@@ -144,24 +95,6 @@ typedef enum
   GEARMAND_THREAD_WAKEUP_EVENT= (1 << 0),
   GEARMAND_THREAD_LOCK=         (1 << 1)
 } gearmand_thread_options_t;
-
-/**
- * @ingroup gearman_conf
- * Options for gearman_conf_st.
- */
-typedef enum
-{
-  GEARMAN_CONF_ALLOCATED= (1 << 0)
-} gearman_conf_options_t;
-
-/**
- * @ingroup gearman_conf_module
- * Options for gearman_conf_module_st.
- */
-typedef enum
-{
-  GEARMAN_CONF_MODULE_ALLOCATED= (1 << 0)
-} gearman_conf_module_options_t;
 
 
 /**

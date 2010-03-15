@@ -131,16 +131,18 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
 
     server_job->unique_key= key;
     key= key % GEARMAN_JOB_HASH_SIZE;
-    GEARMAN_HASH_ADD(server->unique, key, server_job, unique_)
+    GEARMAN_HASH_ADD(server->unique, key, server_job, unique_);
 
     key= _server_job_hash(server_job->job_handle,
                           strlen(server_job->job_handle));
     server_job->job_handle_key= key;
     key= key % GEARMAN_JOB_HASH_SIZE;
-    GEARMAN_HASH_ADD(server->job, key, server_job,)
+    GEARMAN_HASH_ADD(server->job, key, server_job,);
 
-    if (server->options & GEARMAN_SERVER_QUEUE_REPLAY)
-      server_job->options|= GEARMAN_SERVER_JOB_QUEUED;
+    if (server->state.queue_startup)
+    {
+      server_job->state|= GEARMAN_SERVER_JOB_QUEUED;
+    }
     else if (server_client == NULL && server->queue_add_fn != NULL)
     {
       *ret_ptr= (*(server->queue_add_fn))(server,
@@ -169,7 +171,7 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
         }
       }
 
-      server_job->options|= GEARMAN_SERVER_JOB_QUEUED;
+      server_job->state|= GEARMAN_SERVER_JOB_QUEUED;
     }
 
     *ret_ptr= gearman_server_job_queue(server_job);
@@ -219,11 +221,12 @@ gearman_server_job_create(gearman_server_st *server,
         return NULL;
     }
 
-    server_job->options= GEARMAN_SERVER_JOB_ALLOCATED;
+    server_job->options.allocated= true;
   }
   else
-    server_job->options= 0;
+    server_job->options.allocated= false;
 
+  memset(&server_job->state, 0, sizeof(gearman_server_job_state_t));
   server_job->retries= 0;
   server_job->priority= 0;
   server_job->job_handle_key= 0;
@@ -269,12 +272,12 @@ void gearman_server_job_free(gearman_server_job_st *server_job)
     GEARMAN_LIST_DEL(server_job->worker->job, server_job, worker_)
 
   key= server_job->unique_key % GEARMAN_JOB_HASH_SIZE;
-  GEARMAN_HASH_DEL(server_job->server->unique, key, server_job, unique_)
+  GEARMAN_HASH_DEL(server_job->server->unique, key, server_job, unique_);
 
   key= server_job->job_handle_key % GEARMAN_JOB_HASH_SIZE;
-  GEARMAN_HASH_DEL(server_job->server->job, key, server_job,)
+  GEARMAN_HASH_DEL(server_job->server->job, key, server_job,);
 
-  if (server_job->options & GEARMAN_SERVER_JOB_ALLOCATED)
+  if (server_job->options.allocated)
   {
     if (server_job->server->free_job_count < GEARMAN_MAX_FREE_SERVER_JOB)
       GEARMAN_LIST_ADD(server_job->server->free_job, server_job,)
@@ -286,12 +289,11 @@ void gearman_server_job_free(gearman_server_job_st *server_job)
 gearman_server_job_st *gearman_server_job_get(gearman_server_st *server,
                                               const char *job_handle)
 {
-  gearman_server_job_st *server_job;
   uint32_t key;
 
   key= _server_job_hash(job_handle, strlen(job_handle));
 
-  for (server_job= server->job_hash[key % GEARMAN_JOB_HASH_SIZE];
+  for (gearman_server_job_st *server_job= server->job_hash[key % GEARMAN_JOB_HASH_SIZE];
        server_job != NULL; server_job= server_job->next)
   {
     if (server_job->job_handle_key == key &&
@@ -320,13 +322,12 @@ gearman_server_job_peek(gearman_server_con_st *server_con)
       {
         if (server_worker->function->job_list[priority] != NULL)
         {
-          if (server_worker->function->job_list[priority]->options &
-              GEARMAN_SERVER_JOB_IGNORE)
+          if (server_worker->function->job_list[priority]->state & GEARMAN_SERVER_JOB_IGNORE)
           {
             /* This is only happens when a client disconnects from a foreground
                job. We do this because we don't want to run the job anymore. */
-            server_worker->function->job_list[priority]->options&=
-                       (gearman_server_job_options_t)~GEARMAN_SERVER_JOB_IGNORE;
+            server_worker->function->job_list[priority]->state&=
+                       (gearman_server_job_state_t)~GEARMAN_SERVER_JOB_IGNORE;
             gearman_server_job_free(gearman_server_job_take(server_con));
             return gearman_server_job_peek(server_con);
           }
@@ -370,7 +371,7 @@ gearman_server_job_take(gearman_server_con_st *server_con)
   if (server_worker == NULL)
     return NULL;
 
-  if (server_con->thread->server->options & GEARMAN_SERVER_RR_ORDER)
+  if (server_con->thread->server->flags.round_robin)
   {
     GEARMAN_LIST_DEL(server_con->worker, server_worker, con_)
     _server_con_worker_list_append(server_con->worker_list, server_worker);
@@ -397,7 +398,7 @@ gearman_server_job_take(gearman_server_con_st *server_con)
   GEARMAN_LIST_ADD(server_worker->job, server_job, worker_)
   server_job->function->job_running++;
 
-  if (server_job->options & GEARMAN_SERVER_JOB_IGNORE)
+  if (server_job->state & GEARMAN_SERVER_JOB_IGNORE)
   {
     gearman_server_job_free(server_job);
     return gearman_server_job_take(server_con);

@@ -36,7 +36,9 @@ struct gearman_conf_option_st
 
 struct gearman_conf_st
 {
-  gearman_conf_options_t options;
+  struct {
+    bool allocated;
+  } options;
   gearman_return_t last_return;
   int last_errno;
   size_t module_count;
@@ -78,13 +80,6 @@ const char *gearman_conf_error(gearman_conf_st *conf);
  */
 GEARMAN_API
 int gearman_conf_errno(gearman_conf_st *conf);
-
-/**
- * Set options for a gearman conf structure.
- */
-GEARMAN_API
-void gearman_conf_set_options(gearman_conf_st *conf,
-                              gearman_conf_options_t options, uint32_t data);
 
 /**
  * Parse command line arguments.

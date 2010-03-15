@@ -23,7 +23,9 @@ extern "C" {
  */
 struct gearman_server_worker_st
 {
-  gearman_server_worker_options_t options;
+  struct {
+    bool allocated;
+  } options;
   uint32_t job_count;
   uint32_t timeout;
   gearman_server_con_st *con;

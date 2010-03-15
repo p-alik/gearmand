@@ -33,7 +33,9 @@ extern "C" {
  */
 struct gearman_server_function_st
 {
-  gearman_server_function_options_t options;
+  struct {
+    bool allocated;
+  } options;
   uint32_t worker_count;
   uint32_t job_count;
   uint32_t job_total;

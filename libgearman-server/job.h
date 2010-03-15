@@ -31,7 +31,10 @@ extern "C" {
 struct gearman_server_job_st
 {
   uint8_t retries;
-  gearman_server_job_options_t options;
+  struct {
+    bool allocated;
+  } options;
+  gearman_server_job_state_t state;
   gearman_job_priority_t priority;
   uint32_t job_handle_key;
   uint32_t unique_key;

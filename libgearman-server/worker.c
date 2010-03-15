@@ -63,10 +63,10 @@ gearman_server_worker_create(gearman_server_con_st *con,
       }
     }
 
-    worker->options= GEARMAN_SERVER_WORKER_ALLOCATED;
+    worker->options.allocated= true;
   }
   else
-    worker->options= 0;
+    worker->options.allocated= false;
 
   worker->job_count= 0;
   worker->timeout= 0;
@@ -116,7 +116,7 @@ void gearman_server_worker_free(gearman_server_worker_st *worker)
   }
   worker->function->worker_count--;
 
-  if (worker->options & GEARMAN_SERVER_WORKER_ALLOCATED)
+  if (worker->options.allocated)
   {
     if (server->free_worker_count < GEARMAN_MAX_FREE_SERVER_WORKER)
       GEARMAN_LIST_ADD(server->free_worker, worker, con_)

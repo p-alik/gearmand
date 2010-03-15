@@ -26,7 +26,9 @@ extern "C" {
 
 struct gearman_conf_module_st
 {
-  gearman_conf_module_options_t options;
+  struct {
+    bool allocated;
+  } options;
   size_t current_option;
   size_t current_value;
   gearman_conf_st *conf;

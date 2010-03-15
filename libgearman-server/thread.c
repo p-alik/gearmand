@@ -79,10 +79,12 @@ gearman_server_thread_create(gearman_server_st *server,
       return NULL;
     }
 
-    thread->options= GEARMAN_SERVER_THREAD_ALLOCATED;
+    thread->options.allocated= true;
   }
   else
-    thread->options= 0;
+  {
+    thread->options.allocated= false;
+  }
 
   thread->con_count= 0;
   thread->io_count= 0;
@@ -102,8 +104,9 @@ gearman_server_thread_create(gearman_server_st *server,
 
   if (pthread_mutex_init(&(thread->lock), NULL) != 0)
   {
-    if (thread->options & GEARMAN_SERVER_THREAD_ALLOCATED)
+    if (thread->options.allocated)
       free(thread);
+
     return NULL;
   }
 
@@ -151,7 +154,7 @@ void gearman_server_thread_free(gearman_server_thread_st *thread)
 
   GEARMAN_LIST_DEL(thread->server->thread, thread,)
 
-  if (thread->options & GEARMAN_SERVER_THREAD_ALLOCATED)
+  if (thread->options.allocated)
     free(thread);
 }
 
@@ -199,7 +202,7 @@ gearman_server_thread_run(gearman_server_thread_st *thread,
 
   /* If we are multi-threaded, we may have packets to flush or connections that
      should start reading again. */
-  if (thread->server->options & GEARMAN_SERVER_PROC_THREAD)
+  if (thread->server->flags.threaded)
   {
     while ((server_con= gearman_server_con_io_next(thread)) != NULL)
     {
@@ -250,7 +253,7 @@ gearman_server_thread_run(gearman_server_thread_st *thread,
   }
 
   /* Start flushing new outgoing packets if we are single threaded. */
-  if (!(thread->server->options & GEARMAN_SERVER_PROC_THREAD))
+  if (! (thread->server->flags.threaded))
   {
     while ((server_con= gearman_server_con_io_next(thread)) != NULL)
     {
@@ -310,7 +313,7 @@ gearman_return_t _thread_packet_read(gearman_server_con_st *con)
                   gearman_command_info_list[con->packet->packet.command].name)
 
     /* We read a complete packet. */
-    if (con->thread->server->options & GEARMAN_SERVER_PROC_THREAD)
+    if (con->thread->server->flags.threaded)
     {
       /* Multi-threaded, queue for the processing thread to run. */
       gearman_server_proc_packet_add(con, con->packet);
@@ -379,14 +382,14 @@ static gearman_return_t _proc_thread_start(gearman_server_st *server)
 
   (void) pthread_attr_destroy(&attr);
 
-  server->options|= GEARMAN_SERVER_PROC_THREAD;
+  server->flags.threaded= true;
 
   return GEARMAN_SUCCESS;
 }
 
 static void _proc_thread_kill(gearman_server_st *server)
 {
-  if (!(server->options & GEARMAN_SERVER_PROC_THREAD) || server->proc_shutdown)
+  if (! (server->flags.threaded) || server->proc_shutdown)
     return;
 
   server->proc_shutdown= true;

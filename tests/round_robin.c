@@ -101,10 +101,9 @@ test_return_t queue_worker(void *object)
   worker_test_st *test= (worker_test_st *)object;
   gearman_worker_st *worker= &(test->worker);
   char buffer[11];
-  int i;
-  memset(buffer, 0, 11);
+  memset(buffer, 0, sizeof(buffer));
 
-  if (!test->run_worker)
+  if (! test->run_worker)
     return TEST_FAILURE;
 
   if (gearman_worker_add_function(worker, "queue1", 5, append_function,
@@ -119,7 +118,8 @@ test_return_t queue_worker(void *object)
     return TEST_FAILURE;
   }
 
-  for (i=0; i<10; i++) {
+  for (uint32_t x= 0; x < 10; x++)
+  {
     if (gearman_worker_work(worker) != GEARMAN_SUCCESS)
       return TEST_FAILURE;
   }

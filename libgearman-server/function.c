@@ -62,10 +62,12 @@ gearman_server_function_create(gearman_server_st *server,
     if (function == NULL)
       return NULL;
 
-    function->options= GEARMAN_SERVER_FUNCTION_ALLOCATED;
+    function->options.allocated= true;
   }
   else
-    function->options= 0;
+  {
+    function->options.allocated= false;
+  }
 
   function->worker_count= 0;
   function->job_count= 0;
@@ -92,6 +94,6 @@ void gearman_server_function_free(gearman_server_function_st *function)
 
   GEARMAN_LIST_DEL(function->server->function, function,)
 
-  if (function->options & GEARMAN_SERVER_FUNCTION_ALLOCATED)
+  if (function->options.allocated)
     free(function);
 }
