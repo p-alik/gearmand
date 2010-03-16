@@ -142,9 +142,9 @@ gearman_return_t gearman_server_io_packet_add(gearman_server_con_st *con,
   if (take_data)
     server_packet->packet.options.free_data= true;
 
-  GEARMAN_SERVER_THREAD_LOCK(con->thread)
-  GEARMAN_FIFO_ADD(con->io_packet, server_packet,)
-  GEARMAN_SERVER_THREAD_UNLOCK(con->thread)
+  (void) pthread_mutex_lock(&con->thread->lock);
+  GEARMAN_FIFO_ADD(con->io_packet, server_packet,);
+  (void) pthread_mutex_unlock(&con->thread->lock);
 
   gearman_server_con_io_add(con);
 
@@ -157,9 +157,9 @@ void gearman_server_io_packet_remove(gearman_server_con_st *con)
 
   gearman_packet_free(&(server_packet->packet));
 
-  GEARMAN_SERVER_THREAD_LOCK(con->thread)
-  GEARMAN_FIFO_DEL(con->io_packet, server_packet,)
-  GEARMAN_SERVER_THREAD_UNLOCK(con->thread)
+  (void) pthread_mutex_lock(&con->thread->lock);
+  GEARMAN_FIFO_DEL(con->io_packet, server_packet,);
+  (void) pthread_mutex_unlock(&con->thread->lock);
 
   gearman_server_packet_free(server_packet, con->thread, true);
 }
@@ -167,9 +167,9 @@ void gearman_server_io_packet_remove(gearman_server_con_st *con)
 void gearman_server_proc_packet_add(gearman_server_con_st *con,
                                     gearman_server_packet_st *packet)
 {
-  GEARMAN_SERVER_THREAD_LOCK(con->thread)
-  GEARMAN_FIFO_ADD(con->proc_packet, packet,)
-  GEARMAN_SERVER_THREAD_UNLOCK(con->thread)
+  (void) pthread_mutex_lock(&con->thread->lock);
+  GEARMAN_FIFO_ADD(con->proc_packet, packet,);
+  (void) pthread_mutex_unlock(&con->thread->lock);
 
   gearman_server_con_proc_add(con);
 }
@@ -182,9 +182,9 @@ gearman_server_proc_packet_remove(gearman_server_con_st *con)
   if (server_packet == NULL)
     return NULL;
 
-  GEARMAN_SERVER_THREAD_LOCK(con->thread)
-  GEARMAN_FIFO_DEL(con->proc_packet, server_packet,)
-  GEARMAN_SERVER_THREAD_UNLOCK(con->thread)
+  (void) pthread_mutex_lock(&con->thread->lock);
+  GEARMAN_FIFO_DEL(con->proc_packet, server_packet,);
+  (void) pthread_mutex_unlock(&con->thread->lock);
 
   return server_packet;
 }

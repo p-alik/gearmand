@@ -184,24 +184,6 @@ extern "C" {
 }
 
 /**
- * Lock only if we are multi-threaded.
- * @ingroup gearman_server_thread
- */
-#define GEARMAN_SERVER_THREAD_LOCK(__thread) { \
-  if ((__thread)->server->thread_count > 1) \
-    (void) pthread_mutex_lock(&((__thread)->lock)); \
-}
-
-/**
- * Unlock only if we are multi-threaded.
- * @ingroup gearman_server_thread
- */
-#define GEARMAN_SERVER_THREAD_UNLOCK(__thread) { \
-  if ((__thread)->server->thread_count > 1) \
-    (void) pthread_mutex_unlock(&((__thread)->lock)); \
-}
-
-/**
  * Add an object to a list.
  * @ingroup gearman_constants
  */

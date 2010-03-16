@@ -98,9 +98,9 @@ gearman_server_con_create(gearman_server_thread_st *thread)
   con->port= NULL;
   strcpy(con->id, "-");
 
-  GEARMAN_SERVER_THREAD_LOCK(thread)
+  (void) pthread_mutex_lock(&thread->lock);
   GEARMAN_LIST_ADD(thread->con, con,)
-  GEARMAN_SERVER_THREAD_UNLOCK(thread)
+  (void) pthread_mutex_unlock(&thread->lock);
 
   return con;
 }
@@ -151,9 +151,9 @@ void gearman_server_con_free(gearman_server_con_st *con)
   while (con->client_list != NULL)
     gearman_server_client_free(con->client_list);
 
-  GEARMAN_SERVER_THREAD_LOCK(thread)
+  (void) pthread_mutex_lock(&thread->lock);
   GEARMAN_LIST_DEL(con->thread->con, con,)
-  GEARMAN_SERVER_THREAD_UNLOCK(thread)
+  (void) pthread_mutex_unlock(&thread->lock);
 
   if (thread->free_con_count < GEARMAN_MAX_FREE_SERVER_CON)
     GEARMAN_LIST_ADD(thread->free_con, con,)
@@ -252,7 +252,7 @@ void gearman_server_con_io_add(gearman_server_con_st *con)
   if (con->io_list)
     return;
 
-  GEARMAN_SERVER_THREAD_LOCK(con->thread)
+  (void) pthread_mutex_lock(&con->thread->lock);
 
   GEARMAN_LIST_ADD(con->thread->io, con, io_)
   con->io_list= true;
@@ -260,22 +260,24 @@ void gearman_server_con_io_add(gearman_server_con_st *con)
   /* Looks funny, but need to check io_count locked, but call run unlocked. */
   if (con->thread->io_count == 1 && con->thread->run_fn)
   {
-    GEARMAN_SERVER_THREAD_UNLOCK(con->thread)
+    (void) pthread_mutex_unlock(&con->thread->lock);
     (*con->thread->run_fn)(con->thread, con->thread->run_fn_arg);
   }
   else
-    GEARMAN_SERVER_THREAD_UNLOCK(con->thread)
+  {
+    (void) pthread_mutex_unlock(&con->thread->lock);
+  }
 }
 
 void gearman_server_con_io_remove(gearman_server_con_st *con)
 {
-  GEARMAN_SERVER_THREAD_LOCK(con->thread)
+  (void) pthread_mutex_lock(&con->thread->lock);
   if (con->io_list)
   {
     GEARMAN_LIST_DEL(con->thread->io, con, io_)
     con->io_list= false;
   }
-  GEARMAN_SERVER_THREAD_UNLOCK(con->thread)
+  (void) pthread_mutex_unlock(&con->thread->lock);
 }
 
 gearman_server_con_st *
@@ -296,12 +298,12 @@ void gearman_server_con_proc_add(gearman_server_con_st *con)
   if (con->proc_list)
     return;
 
-  GEARMAN_SERVER_THREAD_LOCK(con->thread)
+  (void) pthread_mutex_lock(&con->thread->lock);
   GEARMAN_LIST_ADD(con->thread->proc, con, proc_)
   con->proc_list= true;
-  GEARMAN_SERVER_THREAD_UNLOCK(con->thread)
+  (void) pthread_mutex_unlock(&con->thread->lock);
 
-  if (!(con->thread->server->proc_shutdown) &&
+  if (! (con->thread->server->proc_shutdown) &&
       !(con->thread->server->proc_wakeup))
   {
     (void) pthread_mutex_lock(&(con->thread->server->proc_lock));
@@ -313,13 +315,14 @@ void gearman_server_con_proc_add(gearman_server_con_st *con)
 
 void gearman_server_con_proc_remove(gearman_server_con_st *con)
 {
-  GEARMAN_SERVER_THREAD_LOCK(con->thread)
+  (void) pthread_mutex_lock(&con->thread->lock);
+
   if (con->proc_list)
   {
     GEARMAN_LIST_DEL(con->thread->proc, con, proc_)
     con->proc_list= false;
   }
-  GEARMAN_SERVER_THREAD_UNLOCK(con->thread)
+  (void) pthread_mutex_unlock(&con->thread->lock);
 }
 
 gearman_server_con_st *
@@ -330,7 +333,7 @@ gearman_server_con_proc_next(gearman_server_thread_st *thread)
   if (thread->proc_list == NULL)
     return NULL;
 
-  GEARMAN_SERVER_THREAD_LOCK(thread)
+  (void) pthread_mutex_lock(&thread->lock);
 
   con= thread->proc_list;
   while (con != NULL)
@@ -342,7 +345,7 @@ gearman_server_con_proc_next(gearman_server_thread_st *thread)
     con= thread->proc_list;
   }
 
-  GEARMAN_SERVER_THREAD_UNLOCK(thread)
+  (void) pthread_mutex_unlock(&thread->lock);
 
   return con;
 }

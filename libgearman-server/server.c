@@ -768,7 +768,7 @@ static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
     for (thread= server_con->thread->server->thread_list; thread != NULL;
          thread= thread->next)
     {
-      GEARMAN_SERVER_THREAD_LOCK(thread)
+      (void) pthread_mutex_lock(&thread->lock);
 
       for (con= thread->con_list; con != NULL; con= con->next)
       {
@@ -784,7 +784,7 @@ static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
           new_data= realloc(data, total + GEARMAN_TEXT_RESPONSE_SIZE);
           if (new_data == NULL)
           {
-            GEARMAN_SERVER_THREAD_UNLOCK(thread)
+            (void) pthread_mutex_unlock(&thread->lock);
             free(data);
             GEARMAN_ERROR_SET(packet->universal, "_server_run_text", "malloc")
             return GEARMAN_MEMORY_ALLOCATION_FAILURE;
@@ -814,7 +814,7 @@ static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
         size+= (size_t)snprintf(data + size, total - size, "\n");
       }
 
-      GEARMAN_SERVER_THREAD_UNLOCK(thread)
+      (void) pthread_mutex_unlock(&thread->lock);
     }
 
     if (size < total)
@@ -934,9 +934,9 @@ static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
   server_packet->packet.data= data;
   server_packet->packet.data_size= strlen(data);
 
-  GEARMAN_SERVER_THREAD_LOCK(server_con->thread)
+  (void) pthread_mutex_lock(&server_con->thread->lock);
   GEARMAN_FIFO_ADD(server_con->io_packet, server_packet,)
-  GEARMAN_SERVER_THREAD_UNLOCK(server_con->thread)
+  (void) pthread_mutex_unlock(&server_con->thread->lock);
 
   gearman_server_con_io_add(server_con);
 
