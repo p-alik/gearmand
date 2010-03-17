@@ -478,7 +478,7 @@ static gearman_return_t _sqlite_add(gearman_server_st *server, void *context,
   }
 
   query_size= (size_t)snprintf(query, query_size,
-                               "INSERT INTO %s (priority,unique_key,"
+                               "INSERT OR REPLACE INTO %s (priority,unique_key,"
                                "function_name,data) VALUES (?,?,?,?)",
                                queue->table);
 
@@ -541,6 +541,10 @@ static gearman_return_t _sqlite_add(gearman_server_st *server, void *context,
 
     return GEARMAN_QUEUE_ERROR;
   }
+
+  GEARMAN_SERVER_CRAZY(server,
+                       "sqlite data: priority: %d, unique_key: %s, function_name: %s",
+                       priority, (char*)unique, (char*)function_name);
 
   sqlite3_finalize(sth);
 
