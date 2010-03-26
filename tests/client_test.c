@@ -68,6 +68,8 @@ test_return_t add_servers_test(void *object);
 
 void *client_test_worker(gearman_job_st *job, void *context,
                          size_t *result_size, gearman_return_t *ret_ptr);
+void *client_test_temp_worker(gearman_job_st *job, void *context,
+                              size_t *result_size, gearman_return_t *ret_ptr);
 void *world_create(test_return_t *error);
 test_return_t world_destroy(void *object);
 
@@ -475,6 +477,52 @@ test_return_t add_servers_test(void *object __attribute__((unused)))
   return TEST_SUCCESS;
 }
 
+static test_return_t bug_518512_test(void *object)
+{
+  gearman_return_t rc;
+  gearman_client_st client;
+  size_t result_size;
+  pid_t worker_pid;
+  (void) object;
+
+  (void) gearman_client_create(&client);
+  
+  if (gearman_client_add_server(&client, NULL, CLIENT_TEST_PORT) != GEARMAN_SUCCESS)
+  {
+    printf("bug_518512_test: gearman_client_add_server: %s\n", gearman_client_error(&client));
+    return TEST_FAILURE;
+  }
+
+  gearman_client_set_timeout(&client, 100);
+  (void) gearman_client_do(&client, "client_test_temp", NULL, NULL, 0,
+                           &result_size, &rc);
+  if (rc != GEARMAN_TIMEOUT)
+  {
+    printf("bug_518512_test: should have timed out\n");
+    gearman_client_free(&client);
+    return TEST_FAILURE;
+  }
+
+  worker_pid= test_worker_start(CLIENT_TEST_PORT, "client_test_temp",
+                                client_test_temp_worker, NULL);
+
+  gearman_client_set_timeout(&client, -1);
+  (void) gearman_client_do(&client, "client_test_temp", NULL, NULL, 0,
+                           &result_size, &rc);
+  if (rc != GEARMAN_SUCCESS)
+  {
+    printf("bug_518512_test: gearman_client_do: %s\n", gearman_client_error(&client));
+    test_worker_stop(worker_pid);
+    gearman_client_free(&client);
+    return TEST_FAILURE;
+  }
+
+  test_worker_stop(worker_pid);
+  gearman_client_free(&client);
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t submit_log_failure(void *object)
 {
   gearman_return_t rc;
@@ -615,6 +663,16 @@ void *client_test_worker(gearman_job_st *job, void *context,
   return result;
 }
 
+void *client_test_temp_worker(gearman_job_st *job, void *context,
+                              size_t *result_size, gearman_return_t *ret_ptr)
+{
+  (void) job;
+  (void) context;
+  *result_size = 0;
+  *ret_ptr= GEARMAN_SUCCESS;
+  return NULL;
+}
+
 void *world_create(test_return_t *error)
 {
   client_test_st *test;
@@ -690,6 +748,7 @@ test_st tests[] ={
   {"background", 0, background_test },
   {"background_failure", 0, background_failure_test },
   {"add_servers", 0, add_servers_test },
+  {"bug_518512_test", 0, bug_518512_test },
   {0, 0, 0}
 };
 

@@ -820,7 +820,13 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
               break;
             }
 
-            assert(client->task != NULL);
+            if (client->task == NULL)
+            {
+              /* The client has stopped waiting for the response, ignore it. */
+              gearman_packet_free(&(client->con->packet));
+              client->con->options.packet_in_use= false;
+              continue;
+            }
 
             client->task->recv= &(client->con->packet);
           }
@@ -1319,6 +1325,8 @@ static void *_client_do(gearman_client_st *client, gearman_command_t command,
   {
     gearman_task_free(&(client->do_task));
     client->options.task_in_use= false;
+    client->new_tasks= 0;
+    client->running_tasks= 0;
   }
 
   workload= NULL;
@@ -1372,6 +1380,8 @@ static gearman_return_t _client_do_background(gearman_client_st *client,
 
     gearman_task_free(&(client->do_task));
     client->options.task_in_use= false;
+    client->new_tasks= 0;
+    client->running_tasks= 0;
   }
 
   return ret;
