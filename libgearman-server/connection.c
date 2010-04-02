@@ -60,8 +60,7 @@ gearman_server_con_create(gearman_server_thread_st *thread)
     con= malloc(sizeof(gearman_server_con_st));
     if (con == NULL)
     {
-      GEARMAN_ERROR_SET(thread->gearman, "gearman_server_con_create",
-                        "malloc")
+      gearman_log_error(thread->gearman, "gearman_server_con_create", "malloc");
       return NULL;
     }
   }

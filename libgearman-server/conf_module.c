@@ -28,7 +28,7 @@ gearman_conf_module_st *gearman_conf_module_create(gearman_conf_st *conf,
     module= malloc(sizeof(gearman_conf_module_st));
     if (module == NULL)
     {
-      GEARMAN_CONF_ERROR_SET(conf, "gearman_conf_module_create", "malloc");
+      gearman_conf_error_set(conf, "gearman_conf_module_create", "malloc");
       return NULL;
     }
 
@@ -49,7 +49,7 @@ gearman_conf_module_st *gearman_conf_module_create(gearman_conf_st *conf,
   if (module_list == NULL)
   {
     gearman_conf_module_free(module);
-    GEARMAN_CONF_ERROR_SET(conf, "gearman_conf_module_create", "realloc");
+    gearman_conf_error_set(conf, "gearman_conf_module_create", "realloc");
     return NULL;
   }
 
@@ -103,7 +103,7 @@ void gearman_conf_module_add_option(gearman_conf_module_st *module,
                                           (conf->option_count + 1));
   if (option_list == NULL)
   {
-    GEARMAN_CONF_ERROR_SET(conf, "gearman_conf_module_add_option", "realloc");
+    gearman_conf_error_set(conf, "gearman_conf_module_add_option", "realloc");
     conf->last_return= GEARMAN_MEMORY_ALLOCATION_FAILURE;
     return;
   }
@@ -115,7 +115,7 @@ void gearman_conf_module_add_option(gearman_conf_module_st *module,
                          sizeof(struct option) * (conf->option_count + 2));
   if (option_getopt == NULL)
   {
-    GEARMAN_CONF_ERROR_SET(conf, "gearman_conf_module_add_option", "realloc");
+    gearman_conf_error_set(conf, "gearman_conf_module_add_option", "realloc");
     conf->last_return= GEARMAN_MEMORY_ALLOCATION_FAILURE;
     return;
   }
@@ -140,7 +140,7 @@ void gearman_conf_module_add_option(gearman_conf_module_st *module,
     option_getopt->name= strdup(name);
     if (option_getopt->name == NULL)
     {
-      GEARMAN_CONF_ERROR_SET(conf, "gearman_conf_module_add_option", "strdup");
+      gearman_conf_error_set(conf, "gearman_conf_module_add_option", "strdup");
       conf->last_return= GEARMAN_MEMORY_ALLOCATION_FAILURE;
       return;
     }
@@ -154,7 +154,7 @@ void gearman_conf_module_add_option(gearman_conf_module_st *module,
 
     if (option_string == NULL)
     {
-      GEARMAN_CONF_ERROR_SET(conf, "gearman_conf_module_add_option", "malloc");
+      gearman_conf_error_set(conf, "gearman_conf_module_add_option", "malloc");
       conf->last_return= GEARMAN_MEMORY_ALLOCATION_FAILURE;
       return;
     }

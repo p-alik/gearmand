@@ -113,12 +113,12 @@ gearman_return_t gearman_server_queue_libdrizzle_init(gearman_server_st *server,
   drizzle_row_t row;
   char create[1024];
 
-  GEARMAN_SERVER_INFO(server, "Initializing libdrizzle module")
+  gearman_log_info(server->gearman, "Initializing libdrizzle module");
 
   queue= malloc(sizeof(gearman_queue_libdrizzle_st));
   if (queue == NULL)
   {
-    GEARMAN_SERVER_ERROR_SET(server, "gearman_queue_libdrizzle_init", "malloc")
+    gearman_log_error(server->gearman, "gearman_queue_libdrizzle_init", "malloc");
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
 
@@ -129,8 +129,7 @@ gearman_return_t gearman_server_queue_libdrizzle_init(gearman_server_st *server,
   if (drizzle_create(&(queue->drizzle)) == NULL)
   {
     free(queue);
-    GEARMAN_SERVER_ERROR_SET(server, "gearman_queue_libdrizzle_init",
-                             "drizzle_create")
+    gearman_log_error(server->gearman, "gearman_queue_libdrizzle_init", "drizzle_create");
     return GEARMAN_QUEUE_ERROR;
   }
 
@@ -138,8 +137,7 @@ gearman_return_t gearman_server_queue_libdrizzle_init(gearman_server_st *server,
   {
     drizzle_free(&(queue->drizzle));
     free(queue);
-    GEARMAN_SERVER_ERROR_SET(server, "gearman_queue_libdrizzle_init",
-                             "drizzle_con_create")
+    gearman_log_error(server->gearman, "gearman_queue_libdrizzle_init", "drizzle_con_create");
     return GEARMAN_QUEUE_ERROR;
   }
 
@@ -151,8 +149,7 @@ gearman_return_t gearman_server_queue_libdrizzle_init(gearman_server_st *server,
   module= gearman_conf_module_find(conf, "libdrizzle");
   if (module == NULL)
   {
-    GEARMAN_SERVER_ERROR_SET(server, "gearman_queue_libdrizzle_init",
-                             "gearman_conf_module_find:NULL")
+    gearman_log_error(server->gearman, "gearman_queue_libdrizzle_init", "gearman_conf_module_find:NULL");
     return GEARMAN_QUEUE_ERROR;
   }
 
@@ -177,8 +174,7 @@ gearman_return_t gearman_server_queue_libdrizzle_init(gearman_server_st *server,
     else
     {
       gearman_server_queue_libdrizzle_deinit(server);
-      GEARMAN_SERVER_ERROR_SET(server, "gearman_queue_libdrizzle_init",
-                               "Unknown argument: %s", name)
+      gearman_log_error(server->gearman, "gearman_queue_libdrizzle_init", "Unknown argument: %s", name);
       return GEARMAN_QUEUE_ERROR;
     }
   }
@@ -204,9 +200,7 @@ gearman_return_t gearman_server_queue_libdrizzle_init(gearman_server_st *server,
   {
     drizzle_result_free(&(queue->result));
     gearman_server_queue_libdrizzle_deinit(server);
-    GEARMAN_SERVER_ERROR_SET(server, "gearman_queue_libdrizzle_init",
-                             "drizzle_result_buffer:%s",
-                             drizzle_error(&(queue->drizzle)))
+    gearman_log_error(server->gearman, "gearman_queue_libdrizzle_init", "drizzle_result_buffer:%s", drizzle_error(&(queue->drizzle)));
     return GEARMAN_QUEUE_ERROR;
   }
 
@@ -214,8 +208,8 @@ gearman_return_t gearman_server_queue_libdrizzle_init(gearman_server_st *server,
   {
     if (!strcasecmp(queue->table, row[0]))
     {
-      GEARMAN_SERVER_INFO(server, "libdrizzle module using table '%s.%s'",
-                          drizzle_con_db(&queue->con), row[0])
+      gearman_log_info(server->gearman, "libdrizzle module using table '%s.%s'", drizzle_con_db(&queue->con), row[0]);
+
       break;
     }
   }
@@ -234,8 +228,8 @@ gearman_return_t gearman_server_queue_libdrizzle_init(gearman_server_st *server,
              ")",
              queue->table, GEARMAN_UNIQUE_SIZE);
 
-    GEARMAN_SERVER_INFO(server, "libdrizzle module creating table '%s.%s'",
-                        drizzle_con_db(&queue->con), queue->table)
+    gearman_log_info(server->gearman, "libdrizzle module creating table '%s.%s'",
+                     drizzle_con_db(&queue->con), queue->table);
 
     if (_libdrizzle_query(server, queue, create, strlen(create))
         != DRIZZLE_RETURN_OK)
@@ -260,7 +254,7 @@ gearman_server_queue_libdrizzle_deinit(gearman_server_st *server)
 {
   gearman_queue_libdrizzle_st *queue;
 
-  GEARMAN_SERVER_INFO(server, "Shutting down libdrizzle queue module")
+  gearman_log_info(server->gearman, "Shutting down libdrizzle queue module");
 
   queue= (gearman_queue_libdrizzle_st *)gearman_server_queue_context(server);
   gearman_server_set_queue_context(server, NULL);
@@ -294,8 +288,7 @@ static drizzle_return_t _libdrizzle_query(gearman_server_st *server,
 {
   drizzle_return_t ret;
 
-  GEARMAN_SERVER_CRAZY(server, "libdrizzle query: %.*s", (uint32_t)query_size,
-                       query)
+  gearman_log_crazy(server->gearman, "libdrizzle query: %.*s", (uint32_t)query_size, query);
 
   (void)drizzle_query(&(queue->con), &(queue->result), query, query_size, &ret);
   if (ret != DRIZZLE_RETURN_OK)
@@ -309,8 +302,8 @@ static drizzle_return_t _libdrizzle_query(gearman_server_st *server,
 
     if (ret != DRIZZLE_RETURN_OK)
     {
-      GEARMAN_SERVER_ERROR_SET(server, "_libdrizzle_query", "drizzle_query:%s",
-                               drizzle_error(&(queue->drizzle)))
+      gearman_log_error(server->gearman, "_libdrizzle_query", "drizzle_query:%s",
+                               drizzle_error(&(queue->drizzle)));
       return ret;
     }
   }
@@ -330,8 +323,7 @@ static gearman_return_t _libdrizzle_add(gearman_server_st *server,
   char *query;
   size_t query_size;
 
-  GEARMAN_SERVER_DEBUG(server, "libdrizzle add: %.*s", (uint32_t)unique_size,
-                       (char *)unique)
+  gearman_log_debug(server->gearman, "libdrizzle add: %.*s", (uint32_t)unique_size, (char *)unique);
 
   /* This is not used currently, it will be once batch writes are supported
      inside of the Gearman job server. */
@@ -352,7 +344,7 @@ static gearman_return_t _libdrizzle_add(gearman_server_st *server,
     query= realloc(queue->query, query_size);
     if (query == NULL)
     {
-      GEARMAN_SERVER_ERROR_SET(server, "_libdrizzle_add", "realloc")
+      gearman_log_error(server->gearman, "_libdrizzle_add", "realloc");
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
 
@@ -392,7 +384,7 @@ static gearman_return_t _libdrizzle_add(gearman_server_st *server,
 static gearman_return_t _libdrizzle_flush(gearman_server_st *server,
                                           void *context __attribute__((unused)))
 {
-  GEARMAN_SERVER_DEBUG(server, "libdrizzle flush")
+  gearman_log_debug(server->gearman, "libdrizzle flush");
 
   return GEARMAN_SUCCESS;
 }
@@ -407,8 +399,7 @@ static gearman_return_t _libdrizzle_done(gearman_server_st *server,
   char *query;
   size_t query_size;
 
-  GEARMAN_SERVER_DEBUG(server, "libdrizzle done: %.*s", (uint32_t)unique_size,
-                       (char *)unique)
+  gearman_log_debug(server->gearman, "libdrizzle done: %.*s", (uint32_t)unique_size, (char *)unique);
 
   query_size= (unique_size * 2) + GEARMAN_QUEUE_QUERY_BUFFER;
   if (query_size > queue->query_size)
@@ -416,7 +407,7 @@ static gearman_return_t _libdrizzle_done(gearman_server_st *server,
     query= realloc(queue->query, query_size);
     if (query == NULL)
     {
-      GEARMAN_SERVER_ERROR_SET(server, "_libdrizzle_add", "realloc")
+      gearman_log_error(server->gearman, "_libdrizzle_add", "realloc");
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
 
@@ -456,14 +447,14 @@ static gearman_return_t _libdrizzle_replay(gearman_server_st *server,
   size_t *field_sizes;
   gearman_return_t gret;
 
-  GEARMAN_SERVER_INFO(server, "libdrizzle replay start")
+  gearman_log_info(server->gearman, "libdrizzle replay start");
 
   if (GEARMAN_QUEUE_QUERY_BUFFER > queue->query_size)
   {
     query= realloc(queue->query, GEARMAN_QUEUE_QUERY_BUFFER);
     if (query == NULL)
     {
-      GEARMAN_SERVER_ERROR_SET(server, "_libdrizzle_add", "realloc")
+      gearman_log_error(server->gearman, "_libdrizzle_add", "realloc");
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
 
@@ -484,9 +475,8 @@ static gearman_return_t _libdrizzle_replay(gearman_server_st *server,
   if (drizzle_column_skip(&(queue->result)) != DRIZZLE_RETURN_OK)
   {
     drizzle_result_free(&(queue->result));
-    GEARMAN_SERVER_ERROR_SET(server, "_libdrizzle_replay",
-                             "drizzle_column_skip:%s",
-                              drizzle_error(&(queue->drizzle)))
+    gearman_log_error(server->gearman, "_libdrizzle_replay", "drizzle_column_skip:%s", drizzle_error(&(queue->drizzle)));
+
     return GEARMAN_QUEUE_ERROR;
   }
 
@@ -496,9 +486,8 @@ static gearman_return_t _libdrizzle_replay(gearman_server_st *server,
     if (ret != DRIZZLE_RETURN_OK)
     {
       drizzle_result_free(&(queue->result));
-      GEARMAN_SERVER_ERROR_SET(server, "_libdrizzle_replay",
-                               "drizzle_row_buffer:%s",
-                               drizzle_error(&(queue->drizzle)))
+      gearman_log_error(server->gearman, "_libdrizzle_replay", "drizzle_row_buffer:%s", drizzle_error(&(queue->drizzle)));
+
       return GEARMAN_QUEUE_ERROR;
     }
 
@@ -507,8 +496,7 @@ static gearman_return_t _libdrizzle_replay(gearman_server_st *server,
 
     field_sizes= drizzle_row_field_sizes(&(queue->result));
 
-    GEARMAN_SERVER_DEBUG(server, "libdrizzle replay: %.*s",
-                         (uint32_t)field_sizes[0], row[1])
+    gearman_log_debug(server->gearman, "libdrizzle replay: %.*s", (uint32_t)field_sizes[0], row[1]);
 
     gret= (*add_fn)(server, add_context, row[0], field_sizes[0], row[1],
                     field_sizes[1], row[3], field_sizes[3], atoi(row[2]));

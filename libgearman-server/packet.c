@@ -47,8 +47,7 @@ gearman_server_packet_create(gearman_server_thread_st *thread,
     server_packet= malloc(sizeof(gearman_server_packet_st));
     if (server_packet == NULL)
     {
-      GEARMAN_ERROR_SET(thread->gearman, "gearman_server_packet_create",
-                        "malloc")
+      gearman_log_error(thread->gearman, "gearman_server_packet_create", "malloc");
       return NULL;
     }
   }

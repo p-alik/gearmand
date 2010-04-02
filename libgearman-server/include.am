@@ -54,6 +54,7 @@ noinst_HEADERS += \
 		  libgearman-server/gearmand_con.h \
 		  libgearman-server/gearmand_thread.h \
 		  libgearman-server/job.h \
+		  libgearman-server/log.h \
 		  libgearman-server/packet.h \
 		  libgearman-server/protocol_http.h \
 		  libgearman-server/server.h \
@@ -78,6 +79,7 @@ libgearman_server_libgearman_server_la_SOURCES= \
 						libgearman-server/gearmand_con.c \
 						libgearman-server/gearmand_thread.c \
 						libgearman-server/job.c \
+						libgearman-server/log.c \
 						libgearman-server/packet.c \
 						libgearman-server/protocol_http.c \
 						libgearman-server/server.c \

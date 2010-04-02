@@ -419,7 +419,7 @@ gearman_return_t gearman_server_job_queue(gearman_server_job_st *job)
     job->retries++;
     if (job->server->job_retries == job->retries)
     {
-       GEARMAN_SERVER_ERROR(job->server,
+       gearman_log_error(job->server->gearman,
                             "Dropped job due to max retry count: %s %s",
                             job->job_handle, job->unique);
        for (client= job->client_list; client != NULL; client= client->job_next)

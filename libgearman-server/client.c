@@ -47,8 +47,7 @@ gearman_server_client_create(gearman_server_con_st *con,
       client= malloc(sizeof(gearman_server_client_st));
       if (client == NULL)
       {
-        GEARMAN_ERROR_SET(con->thread->gearman, "gearman_server_client_create",
-                          "malloc")
+        gearman_log_error(con->thread->gearman, "gearman_server_client_create", "malloc");
         return NULL;
       }
     }

@@ -132,8 +132,7 @@ gearman_return_t gearman_conf_parse_args(gearman_conf_st *conf, int argc,
 
       if (opt_index == (int)conf->option_count)
       {
-        GEARMAN_CONF_ERROR_SET(conf, "ERROR", " Unknown option: %s",
-                               argv[optind - 1]);
+        gearman_conf_error_set(conf, "ERROR", " Unknown option: %s", argv[optind - 1]);
         return GEARMAN_UNKNOWN_OPTION;
       }
     }
@@ -143,7 +142,7 @@ gearman_return_t gearman_conf_parse_args(gearman_conf_st *conf, int argc,
                         sizeof(char *) * (option->value_count + 1));
     if (value_list == NULL)
     {
-      GEARMAN_CONF_ERROR_SET(conf, "gearman_conf_parse_args", "realloc");
+      gearman_conf_error_set(conf, "gearman_conf_parse_args", " realloc");
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
 
@@ -154,8 +153,7 @@ gearman_return_t gearman_conf_parse_args(gearman_conf_st *conf, int argc,
 
   if (optind < argc)
   {
-    GEARMAN_CONF_ERROR_SET(conf, "gearman_conf_parse_args",
-                           "Unknown option: %s", argv[optind]);
+    gearman_conf_error_set(conf, "gearman_conf_parse_args", "Unknown option: %s", argv[optind]);
     return GEARMAN_UNKNOWN_OPTION;
   }
 

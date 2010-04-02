@@ -78,14 +78,13 @@ gearman_return_t gearmand_protocol_http_init(gearmand_st *gearmand,
   const char *name;
   const char *value;
 
-  GEARMAN_INFO(gearmand, "Initializing http module")
+  gearmand_log_info(gearmand, "Initializing http module");
 
   /* Get module and parse the option values that were given. */
   module= gearman_conf_module_find(conf, "http");
   if (module == NULL)
   {
-    GEARMAN_FATAL(gearmand,
-                  "gearman_protocol_http_init:gearman_conf_module_find:NULL")
+    gearmand_log_fatal(gearmand, "gearman_protocol_http_init:gearman_conf_module_find:NULL");
     return GEARMAN_QUEUE_ERROR;
   }
 
@@ -96,8 +95,7 @@ gearman_return_t gearmand_protocol_http_init(gearmand_st *gearmand,
     else
     {
       gearmand_protocol_http_deinit(gearmand);
-      GEARMAN_FATAL(gearmand, "gearman_protocol_http_init:Unknown argument: %s",
-                    name)
+      gearmand_log_fatal(gearmand, "gearman_protocol_http_init:Unknown argument: %s", name);
       return GEARMAN_QUEUE_ERROR;
     }
   }
@@ -121,7 +119,7 @@ static gearman_return_t _http_con_add(gearman_connection_st *connection)
   http= malloc(sizeof(gearman_protocol_http_st));
   if (http == NULL)
   {
-    GEARMAN_ERROR_SET(connection->universal, "_http_con_add", "malloc")
+    gearman_log_error(connection->universal, "_http_con_add", "malloc");
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
 
@@ -225,8 +223,7 @@ static size_t _http_unpack(gearman_packet_st *packet, gearman_connection_st *con
   uri= memchr(request, ' ', request_size);
   if (uri == NULL)
   {
-    GEARMAN_ERROR_SET(packet->universal, "_http_unpack", "bad request line: %.*s",
-                      (uint32_t)request_size, request);
+    gearman_log_error(packet->universal, "_http_unpack", "bad request line: %.*s", (uint32_t)request_size, request);
     *ret_ptr= GEARMAN_INVALID_PACKET;
     return 0;
   }
@@ -236,8 +233,7 @@ static size_t _http_unpack(gearman_packet_st *packet, gearman_connection_st *con
        (strncasecmp(method, "GET", 3) && strncasecmp(method, "PUT", 3))) &&
       (method_size != 4 || strncasecmp(method, "POST", 4)))
   {
-    GEARMAN_ERROR_SET(packet->universal, "_http_unpack", "bad method: %.*s",
-                      (uint32_t)method_size, method);
+    gearman_log_error(packet->universal, "_http_unpack", "bad method: %.*s", (uint32_t)method_size, method);
     *ret_ptr= GEARMAN_INVALID_PACKET;
     return 0;
   }
@@ -251,7 +247,7 @@ static size_t _http_unpack(gearman_packet_st *packet, gearman_connection_st *con
   version= memchr(uri, ' ', request_size - (size_t)(uri - request));
   if (version == NULL)
   {
-    GEARMAN_ERROR_SET(packet->universal, "_http_unpack", "bad request line: %.*s",
+    gearman_log_error(packet->universal, "_http_unpack", "bad request line: %.*s",
                       (uint32_t)request_size, request);
     *ret_ptr= GEARMAN_INVALID_PACKET;
     return 0;
@@ -260,8 +256,8 @@ static size_t _http_unpack(gearman_packet_st *packet, gearman_connection_st *con
   uri_size= version - uri;
   if (uri_size == 0)
   {
-    GEARMAN_ERROR_SET(packet->universal, "_http_unpack",
-                      "must give function name in URI")
+    gearman_log_error(packet->universal, "_http_unpack",
+                      "must give function name in URI");
     *ret_ptr= GEARMAN_INVALID_PACKET;
     return 0;
   }
@@ -275,7 +271,7 @@ static size_t _http_unpack(gearman_packet_st *packet, gearman_connection_st *con
     http->keep_alive= true;
   else if (version_size != 8 || strncasecmp(version, "HTTP/1.0", 8))
   {
-    GEARMAN_ERROR_SET(packet->universal, "_http_unpack", "bad version: %.*s",
+    gearman_log_error(packet->universal, "_http_unpack", "bad version: %.*s",
                       (uint32_t)version_size, version);
     *ret_ptr= GEARMAN_INVALID_PACKET;
     return 0;

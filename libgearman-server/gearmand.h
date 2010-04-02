@@ -18,6 +18,7 @@
 #include <event.h>
 
 #include <libgearman-server/constants.h>
+#include <libgearman-server/log.h>
 #include <libgearman-server/conf.h>
 #include <libgearman-server/conf_module.h>
 #include <libgearman-server/connection.h>
