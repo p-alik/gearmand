@@ -378,6 +378,7 @@ static test_return_t abandoned_worker_test(void *object __attribute__((unused)))
     printf("abandoned_worker_test:%s\n", gearman_client_error(&client));
     return TEST_FAILURE;
   }
+  gearman_client_free(&client);
 
   /* Now take job with one worker. */
   if (gearman_universal_create(&gearman, NULL) == NULL)
@@ -467,6 +468,7 @@ static test_return_t abandoned_worker_test(void *object __attribute__((unused)))
     return TEST_FAILURE;
 
   gearman_packet_free(&packet);
+  gearman_universal_free(&gearman);
 
   return TEST_SUCCESS;
 }
