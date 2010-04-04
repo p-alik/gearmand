@@ -314,7 +314,7 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
     snprintf(job_handle, GEARMAN_JOB_HANDLE_SIZE, "%.*s",
              (uint32_t)(packet->arg_size[0]), (char *)(packet->arg[0]));
 
-    server_job= gearman_server_job_get(server_con->thread->server, job_handle);
+    server_job= gearman_server_job_get(server_con->thread->server, job_handle, NULL);
 
     /* Queue status result packet. */
     if (server_job == NULL)
@@ -473,7 +473,8 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
   case GEARMAN_COMMAND_WORK_DATA:
   case GEARMAN_COMMAND_WORK_WARNING:
     server_job= gearman_server_job_get(server_con->thread->server,
-                                       (char *)(packet->arg[0]));
+                                       (char *)(packet->arg[0]),
+                                       server_con);
     if (server_job == NULL)
     {
       return _server_error_packet(server_con, "job_not_found",
@@ -489,7 +490,8 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
 
   case GEARMAN_COMMAND_WORK_STATUS:
     server_job= gearman_server_job_get(server_con->thread->server,
-                                       (char *)(packet->arg[0]));
+                                       (char *)(packet->arg[0]),
+                                       server_con);
     if (server_job == NULL)
     {
       return _server_error_packet(server_con, "job_not_found",
@@ -523,7 +525,8 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
 
   case GEARMAN_COMMAND_WORK_COMPLETE:
     server_job= gearman_server_job_get(server_con->thread->server,
-                                       (char *)(packet->arg[0]));
+                                       (char *)(packet->arg[0]),
+                                       server_con);
     if (server_job == NULL)
     {
       return _server_error_packet(server_con, "job_not_found",
@@ -555,7 +558,8 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
 
   case GEARMAN_COMMAND_WORK_EXCEPTION:
     server_job= gearman_server_job_get(server_con->thread->server,
-                                       (char *)(packet->arg[0]));
+                                       (char *)(packet->arg[0]),
+                                       server_con);
     if (server_job == NULL)
     {
       return _server_error_packet(server_con, "job_not_found",
@@ -574,7 +578,8 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
     snprintf(job_handle, GEARMAN_JOB_HANDLE_SIZE, "%.*s",
              (uint32_t)(packet->arg_size[0]), (char *)(packet->arg[0]));
 
-    server_job= gearman_server_job_get(server_con->thread->server, job_handle);
+    server_job= gearman_server_job_get(server_con->thread->server, job_handle,
+                                       server_con);
     if (server_job == NULL)
     {
       return _server_error_packet(server_con, "job_not_found",
