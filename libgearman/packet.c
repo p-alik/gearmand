@@ -201,7 +201,6 @@ gearman_return_t gearman_packet_create_args(gearman_universal_st *gearman,
                                             size_t args_count)
 {
   gearman_return_t ret;
-  size_t x;
 
   packet= gearman_packet_create(gearman, packet);
   if (packet == NULL)
@@ -212,7 +211,7 @@ gearman_return_t gearman_packet_create_args(gearman_universal_st *gearman,
   packet->magic= magic;
   packet->command= command;
 
-  for (x= 0; x < args_count; x++)
+  for (size_t x= 0; x < args_count; x++)
   {
     ret= packet_create_arg(packet, args[x], args_size[x]);
     if (ret != GEARMAN_SUCCESS)
