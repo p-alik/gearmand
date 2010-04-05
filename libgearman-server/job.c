@@ -287,7 +287,8 @@ void gearman_server_job_free(gearman_server_job_st *server_job)
 }
 
 gearman_server_job_st *gearman_server_job_get(gearman_server_st *server,
-                                              const char *job_handle)
+                                              const char *job_handle,
+                                              gearman_server_con_st *worker_con)
 {
   uint32_t key;
 
@@ -299,6 +300,13 @@ gearman_server_job_st *gearman_server_job_get(gearman_server_st *server,
     if (server_job->job_handle_key == key &&
         !strcmp(server_job->job_handle, job_handle))
     {
+      /* Check to make sure the worker asking for the job still owns the job. */
+      if (worker_con != NULL &&
+          (server_job->worker == NULL || server_job->worker->con != worker_con))
+      {
+        return NULL;
+      }
+
       return server_job;
     }
   }
@@ -432,6 +440,20 @@ gearman_return_t gearman_server_job_queue(gearman_server_job_st *job)
                                            NULL);
          if (ret != GEARMAN_SUCCESS)
            return ret;
+      }
+
+      /* Remove from persistent queue if one exists. */
+      if (job->state & GEARMAN_SERVER_JOB_QUEUED &&
+          job->server->queue_done_fn != NULL)
+      {
+        ret= (*(job->server->queue_done_fn))(job->server,
+                                             (void *)job->server->queue_context,
+                                             job->unique,
+                                             (size_t)strlen(job->unique),
+                                             job->function->function_name,
+                                             job->function->function_name_size);
+        if (ret != GEARMAN_SUCCESS)
+          return ret;
       }
 
       gearman_server_job_free(job);

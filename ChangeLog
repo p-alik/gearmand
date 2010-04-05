@@ -1,8 +1,13 @@
-0.13 Sat Apr  3 18:06:23 PDT 2010
-* Fix for bug #518512.
-* Use OR REPLACE syntax for inserting items into the sqlite.
-* Changed default bitfield optimize setting to only be off for Solaris.
-* Refactoring on server.
+0.13 Sun Apr  4 14:45:08 PDT 2010
+ * Fix for bug #518512.
+ * Use OR REPLACE syntax for inserting items into the sqlite.
+ * Changed default bitfield optimize setting to only be off for Solaris.
+ * Refactoring on server.
+ * Various bug fixes as reported on mailing list, such as a bad return
+   code and treating EHOSTDOWN as lost connection for FreeBSD.
+ * Fixed bug #543402 so jobs taking more than max job retries will
+   be removed from persistentn queue as well.
+ * Check to make sure worker job results match assigned worker.
 
 0.12 Thu Feb 18 11:28:49 PST 2010
  * Fixed bug where memory loss occured if data was too large.

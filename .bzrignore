@@ -31,6 +31,7 @@ config/install-sh
 config/ltmain.sh
 config/missing
 config/plugin.ac
+config/pandora_vc_revinfo
 configure
 configure.h
 docs/api
