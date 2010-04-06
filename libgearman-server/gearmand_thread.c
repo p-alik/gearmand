@@ -67,6 +67,7 @@ gearman_return_t gearmand_thread_create(gearmand_st *gearmand)
                                         gearmand_connection_watch, NULL);
 
   thread->options= 0;
+  thread->is_thread_lock= false;
   thread->count= 0;
   thread->dcon_count= 0;
   thread->dcon_add_count= 0;
@@ -118,7 +119,7 @@ gearman_return_t gearmand_thread_create(gearmand_st *gearmand)
     return GEARMAN_PTHREAD;
   }
 
-  thread->options|= GEARMAND_THREAD_LOCK;
+  thread->is_thread_lock= true;
 
   gearman_server_thread_set_run(&(thread->server_thread), _run, thread);
 
@@ -149,7 +150,7 @@ void gearmand_thread_free(gearmand_thread_st *thread)
     (void) pthread_join(thread->id, NULL);
   }
 
-  if (thread->options & GEARMAND_THREAD_LOCK)
+  if (thread->is_thread_lock)
     (void) pthread_mutex_destroy(&(thread->lock));
 
   _wakeup_close(thread);
