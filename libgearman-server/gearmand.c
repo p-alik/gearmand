@@ -62,7 +62,8 @@ gearmand_st *gearmand_create(const char *host, in_port_t port)
     return NULL;
   }
 
-  gearmand->options= 0;
+  gearmand->is_listen_event= false;
+  gearmand->is_wakeup_event= false;
   gearmand->verbose= 0;
   gearmand->ret= 0;
   gearmand->backlog= GEARMAN_DEFAULT_BACKLOG;
@@ -453,7 +454,7 @@ static void _listen_close(gearmand_st *gearmand)
 
 static gearman_return_t _listen_watch(gearmand_st *gearmand)
 {
-  if (gearmand->options & GEARMAND_LISTEN_EVENT)
+  if (gearmand->is_listen_event)
     return GEARMAN_SUCCESS;
 
   for (uint32_t x= 0; x < gearmand->port_count; x++)
@@ -471,13 +472,13 @@ static gearman_return_t _listen_watch(gearmand_st *gearmand)
     }
   }
 
-  gearmand->options|= GEARMAND_LISTEN_EVENT;
+  gearmand->is_listen_event= true;
   return GEARMAN_SUCCESS;
 }
 
 static void _listen_clear(gearmand_st *gearmand)
 {
-  if (! (gearmand->options & GEARMAND_LISTEN_EVENT))
+  if (! (gearmand->is_listen_event))
     return;
 
   int del_ret= 0;
@@ -492,7 +493,7 @@ static void _listen_clear(gearmand_st *gearmand)
     }
   }
 
-  gearmand->options&= (gearmand_options_t)~GEARMAND_LISTEN_EVENT;
+  gearmand->is_listen_event= false;
 }
 
 static void _listen_event(int fd, short events __attribute__ ((unused)),
@@ -592,7 +593,7 @@ static void _wakeup_close(gearmand_st *gearmand)
 
 static gearman_return_t _wakeup_watch(gearmand_st *gearmand)
 {
-  if (gearmand->options & GEARMAND_WAKEUP_EVENT)
+  if (gearmand->is_wakeup_event)
     return GEARMAN_SUCCESS;
 
   gearmand_log_info(gearmand, "Adding event for wakeup pipe");
@@ -603,18 +604,18 @@ static gearman_return_t _wakeup_watch(gearmand_st *gearmand)
     return GEARMAN_EVENT;
   }
 
-  gearmand->options|= GEARMAND_WAKEUP_EVENT;
+  gearmand->is_wakeup_event= true;
   return GEARMAN_SUCCESS;
 }
 
 static void _wakeup_clear(gearmand_st *gearmand)
 {
-  if (gearmand->options & GEARMAND_WAKEUP_EVENT)
+  if (gearmand->is_wakeup_event)
   {
     gearmand_log_info(gearmand, "Clearing event for wakeup pipe");
     int del_ret= event_del(&(gearmand->wakeup_event));
     assert(del_ret == 0);
-    gearmand->options&= (gearmand_options_t)~GEARMAND_WAKEUP_EVENT;
+    gearmand->is_wakeup_event= false;
   }
 }
 

@@ -56,10 +56,11 @@ struct gearmand_port_st
 
 struct gearmand_st
 {
-  gearmand_options_t options;
   gearman_verbose_t verbose;
   gearman_return_t ret;
   int backlog;
+  bool is_listen_event;
+  bool is_wakeup_event;
   uint32_t port_count;
   uint32_t threads;
   uint32_t thread_count;

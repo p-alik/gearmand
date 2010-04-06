@@ -55,16 +55,6 @@ typedef enum
 
 /**
  * @ingroup gearmand
- * Options for gearmand_st.
- */
-typedef enum
-{
-  GEARMAND_LISTEN_EVENT= (1 << 0),
-  GEARMAND_WAKEUP_EVENT= (1 << 1)
-} gearmand_options_t;
-
-/**
- * @ingroup gearmand
  * Wakeup events for gearmand_st.
  */
 typedef enum
