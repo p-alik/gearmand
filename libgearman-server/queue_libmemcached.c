@@ -306,7 +306,7 @@ static memcached_return callback_for_key(const memcached_st *ptr __attribute__((
   memcached_execute_function callbacks[1];
   char *passable[1];
 
-  callbacks[0]= &callback_loader;
+  callbacks[0]= (memcached_execute_fn)&callback_loader;
 
   passable[0]= (char *)key;
   rc= memcached_mget(&container->clone, (void *)passable, &key_length, 1);
@@ -329,7 +329,7 @@ static gearman_return_t _libmemcached_replay(gearman_server_st *server, void *co
   memcached_st *check_for_failure;
   memcached_dump_func callbacks[1];
 
-  callbacks[0]= &callback_for_key;
+  callbacks[0]= (memcached_dump_fn)&callback_for_key;
 
   gearman_log_info(server->gearman, "libmemcached replay start");
 
