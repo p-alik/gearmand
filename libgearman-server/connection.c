@@ -72,7 +72,11 @@ gearman_server_con_create(gearman_server_thread_st *thread)
     return NULL;
   }
 
-  con->options= 0;
+  con->is_sleeping= false;
+  con->is_exceptions= false;
+  con->is_dead= false;
+  con->is_noop_sent= false;
+
   con->ret= 0;
   con->io_list= false;
   con->proc_list= false;
@@ -115,7 +119,10 @@ void gearman_server_con_free(gearman_server_con_st *con)
   if (thread->server->flags.threaded &&
       !(con->proc_removed) && !(thread->server->proc_shutdown))
   {
-    con->options= GEARMAN_SERVER_CON_DEAD;
+    con->is_dead= true;
+    con->is_sleeping= false;
+    con->is_exceptions= false;
+    con->is_noop_sent= false;
     gearman_server_con_proc_add(con);
     return;
   }

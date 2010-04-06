@@ -476,8 +476,7 @@ gearman_return_t gearman_server_job_queue(gearman_server_job_st *job)
     noop_sent= 0;
     do
     {
-      if (worker->con->options & GEARMAN_SERVER_CON_SLEEPING &&
-          !(worker->con->options & GEARMAN_SERVER_CON_NOOP_SENT))
+      if (worker->con->is_sleeping && ! (worker->con->is_noop_sent))
       {
         ret= gearman_server_io_packet_add(worker->con, false,
                                           GEARMAN_MAGIC_RESPONSE,
@@ -485,7 +484,7 @@ gearman_return_t gearman_server_job_queue(gearman_server_job_st *job)
         if (ret != GEARMAN_SUCCESS)
           return ret;
 
-        worker->con->options|= GEARMAN_SERVER_CON_NOOP_SENT;
+        worker->con->is_noop_sent= true;
         noop_sent++;
       }
 

@@ -353,8 +353,11 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
     /* This may not be NULL terminated, so copy to make sure it is. */
     snprintf(option, GEARMAN_OPTION_SIZE, "%.*s",
              (uint32_t)(packet->arg_size[0]), (char *)(packet->arg[0]));
+
     if (!strcasecmp(option, "exceptions"))
-      server_con->options|= GEARMAN_SERVER_CON_EXCEPTIONS;
+    {
+      server_con->is_exceptions= true;
+    }
     else
     {
       return _server_error_packet(server_con, "unknown_option",
@@ -403,7 +406,9 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
   case GEARMAN_COMMAND_PRE_SLEEP:
     server_job= gearman_server_job_peek(server_con);
     if (server_job == NULL)
-      server_con->options|= GEARMAN_SERVER_CON_SLEEPING;
+    {
+      server_con->is_sleeping= true;
+    }
     else
     {
       /* If there are jobs that could be run, queue a NOOP packet to wake the
@@ -419,9 +424,8 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
 
   case GEARMAN_COMMAND_GRAB_JOB:
   case GEARMAN_COMMAND_GRAB_JOB_UNIQ:
-    server_con->options&=
-                  (gearman_server_con_options_t)~(GEARMAN_SERVER_CON_SLEEPING |
-                                                  GEARMAN_SERVER_CON_NOOP_SENT);
+    server_con->is_sleeping= false;
+    server_con->is_noop_sent= false;
 
     server_job= gearman_server_job_take(server_con);
     if (server_job == NULL)
@@ -957,8 +961,7 @@ _server_queue_work_data(gearman_server_job_st *server_job,
   for (server_client= server_job->client_list; server_client;
        server_client= server_client->job_next)
   {
-    if (command == GEARMAN_COMMAND_WORK_EXCEPTION &&
-        !(server_client->con->options & GEARMAN_SERVER_CON_EXCEPTIONS))
+    if (command == GEARMAN_COMMAND_WORK_EXCEPTION && !(server_client->con->is_exceptions))
     {
       continue;
     }

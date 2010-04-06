@@ -206,7 +206,7 @@ gearman_server_thread_run(gearman_server_thread_st *thread,
   {
     while ((server_con= gearman_server_con_io_next(thread)) != NULL)
     {
-      if (server_con->options & GEARMAN_SERVER_CON_DEAD)
+      if (server_con->is_dead)
       {
         if (server_con->proc_removed)
           gearman_server_con_free(server_con);
@@ -432,7 +432,7 @@ static void *_proc(void *data)
     {
       while ((con= gearman_server_con_proc_next(thread)) != NULL)
       {
-        if (con->options & GEARMAN_SERVER_CON_DEAD)
+        if (con->is_dead)
         {
           gearman_server_con_free_workers(con);
 

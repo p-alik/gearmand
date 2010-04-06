@@ -42,18 +42,6 @@ extern "C" {
 /** @} */
 
 /**
- * @ingroup gearman_server_con
- * Options for gearman_server_con_st.
- */
-typedef enum
-{
-  GEARMAN_SERVER_CON_SLEEPING=   (1 << 0),
-  GEARMAN_SERVER_CON_EXCEPTIONS= (1 << 1),
-  GEARMAN_SERVER_CON_DEAD=       (1 << 2),
-  GEARMAN_SERVER_CON_NOOP_SENT=  (1 << 3)
-} gearman_server_con_options_t;
-
-/**
  * @ingroup gearmand
  * Wakeup events for gearmand_st.
  */
