@@ -47,11 +47,11 @@ extern "C" {
  */
 typedef enum
 {
-  GEARMAND_WAKEUP_PAUSE=             (1 << 0),
-  GEARMAND_WAKEUP_SHUTDOWN=          (1 << 1),
-  GEARMAND_WAKEUP_SHUTDOWN_GRACEFUL= (1 << 2),
-  GEARMAND_WAKEUP_CON=               (1 << 3),
-  GEARMAND_WAKEUP_RUN=               (1 << 4)
+  GEARMAND_WAKEUP_PAUSE,
+  GEARMAND_WAKEUP_SHUTDOWN,
+  GEARMAND_WAKEUP_SHUTDOWN_GRACEFUL,
+  GEARMAND_WAKEUP_CON,
+  GEARMAND_WAKEUP_RUN
 } gearmand_wakeup_t;
 
 
