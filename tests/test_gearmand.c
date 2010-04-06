@@ -84,6 +84,7 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
   gearmand_pid= atoi(buffer);
   assert(gearmand_pid);
   fclose(file);
+  unlink(file_buffer);
 
 
   return gearmand_pid;
