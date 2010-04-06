@@ -74,6 +74,9 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
   fprintf(stderr, "%s\n", buffer);
   system(buffer);
 
+  // Sleep to make sure the server is up and running (or we could poll....)
+  sleep(3);
+
   FILE *file;
   file= fopen(file_buffer, "r");
   assert(file);
@@ -82,7 +85,6 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
   assert(gearmand_pid);
   fclose(file);
 
-  sleep(3);
 
   return gearmand_pid;
 }
