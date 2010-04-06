@@ -540,8 +540,7 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
       return ret;
 
     /* Remove from persistent queue if one exists. */
-    if (server_job->state & GEARMAN_SERVER_JOB_QUEUED &&
-        server->queue_done_fn != NULL)
+    if (server_job->job_queued && server->queue_done_fn != NULL)
     {
       ret= (*(server->queue_done_fn))(server, (void *)server->queue_context,
                                       server_job->unique,
@@ -600,8 +599,7 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
     }
 
     /* Remove from persistent queue if one exists. */
-    if (server_job->state & GEARMAN_SERVER_JOB_QUEUED &&
-        server->queue_done_fn != NULL)
+    if (server_job->job_queued && server->queue_done_fn != NULL)
     {
       ret= (*(server->queue_done_fn))(server, (void *)server->queue_context,
                                       server_job->unique,

@@ -54,16 +54,6 @@ typedef enum
 } gearman_server_con_options_t;
 
 /**
- * @ingroup gearman_server_job
- * Options for gearman_server_job_st.
- */
-typedef enum
-{
-  GEARMAN_SERVER_JOB_QUEUED=    (1 << 1),
-  GEARMAN_SERVER_JOB_IGNORE=    (1 << 2)
-} gearman_server_job_state_t;
-
-/**
  * @ingroup gearmand
  * Options for gearmand_st.
  */

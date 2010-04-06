@@ -141,7 +141,7 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
 
     if (server->state.queue_startup)
     {
-      server_job->state|= GEARMAN_SERVER_JOB_QUEUED;
+      server_job->job_queued= true;
     }
     else if (server_client == NULL && server->queue_add_fn != NULL)
     {
@@ -171,7 +171,7 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
         }
       }
 
-      server_job->state|= GEARMAN_SERVER_JOB_QUEUED;
+      server_job->job_queued= true;
     }
 
     *ret_ptr= gearman_server_job_queue(server_job);
@@ -226,7 +226,8 @@ gearman_server_job_create(gearman_server_st *server,
   else
     server_job->options.allocated= false;
 
-  memset(&server_job->state, 0, sizeof(gearman_server_job_state_t));
+  server_job->ignore_job= false;
+  server_job->job_queued= false;
   server_job->retries= 0;
   server_job->priority= 0;
   server_job->job_handle_key= 0;
@@ -330,13 +331,14 @@ gearman_server_job_peek(gearman_server_con_st *server_con)
       {
         if (server_worker->function->job_list[priority] != NULL)
         {
-          if (server_worker->function->job_list[priority]->state & GEARMAN_SERVER_JOB_IGNORE)
+          if (server_worker->function->job_list[priority]->ignore_job)
           {
             /* This is only happens when a client disconnects from a foreground
-               job. We do this because we don't want to run the job anymore. */
-            server_worker->function->job_list[priority]->state&=
-                       (gearman_server_job_state_t)~GEARMAN_SERVER_JOB_IGNORE;
+              job. We do this because we don't want to run the job anymore. */
+            server_worker->function->job_list[priority]->ignore_job= false;
+
             gearman_server_job_free(gearman_server_job_take(server_con));
+
             return gearman_server_job_peek(server_con);
           }
           return server_worker->function->job_list[priority];
@@ -406,7 +408,7 @@ gearman_server_job_take(gearman_server_con_st *server_con)
   GEARMAN_LIST_ADD(server_worker->job, server_job, worker_)
   server_job->function->job_running++;
 
-  if (server_job->state & GEARMAN_SERVER_JOB_IGNORE)
+  if (server_job->ignore_job)
   {
     gearman_server_job_free(server_job);
     return gearman_server_job_take(server_con);
@@ -443,8 +445,7 @@ gearman_return_t gearman_server_job_queue(gearman_server_job_st *job)
       }
 
       /* Remove from persistent queue if one exists. */
-      if (job->state & GEARMAN_SERVER_JOB_QUEUED &&
-          job->server->queue_done_fn != NULL)
+      if (job->job_queued && job->server->queue_done_fn != NULL)
       {
         ret= (*(job->server->queue_done_fn))(job->server,
                                              (void *)job->server->queue_context,
