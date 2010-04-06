@@ -45,7 +45,7 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
 {
   pid_t gearmand_pid;
 
-  if (queue_type)
+  if (0)
   {
     gearmand_st *gearmand;
     gearman_conf_st conf;
@@ -200,6 +200,12 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
     snprintf(buffer_ptr, sizeof(buffer), "./gearmand/gearmand --pid-file=%s --daemon --port=%u", file_buffer, port);
     buffer_ptr+= strlen(buffer_ptr);
 
+    if (queue_type)
+    {
+      snprintf(buffer_ptr, sizeof(buffer), " --queue-type=%s ", queue_type);
+      buffer_ptr+= strlen(buffer_ptr);
+    }
+
     for (int x= 1 ; x < argc ; x++)
     {
       snprintf(buffer_ptr, sizeof(buffer), " %s ", argv[x]);
@@ -215,8 +221,9 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
     gearmand_pid= atoi(buffer);
     assert(gearmand_pid);
     fclose(file);
-    unlink(file_buffer);
   }
+
+  sleep(3);
 
   return gearmand_pid;
 }
@@ -235,9 +242,10 @@ void test_gearmand_stop(pid_t gearmand_pid)
       perror(strerror(errno));
     }
 
-    assert(ret == 0); // If assert is enabled, we assert(), otherwise we return
     return;
   }
 
   pid= waitpid(gearmand_pid, NULL, 0);
+
+  sleep(3);
 }

@@ -59,28 +59,24 @@ static void *counter_function(gearman_job_st *job __attribute__((unused)),
 
 test_return_t queue_add(void *object)
 {
+  gearman_return_t rc;
   worker_test_st *test= (worker_test_st *)object;
   gearman_client_st client;
+  gearman_client_st *check;
   char job_handle[GEARMAN_JOB_HANDLE_SIZE];
   uint8_t *value= (uint8_t *)"background_test";
   size_t value_length= strlen("background_test");
 
   test->run_worker= false;
 
-  if (gearman_client_create(&client) == NULL)
-    return TEST_FAILURE;
+  check= gearman_client_create(&client);
+  test_truth(check);
 
-  if (gearman_client_add_server(&client, NULL,
-                                WORKER_TEST_PORT) != GEARMAN_SUCCESS)
-  {
-    return TEST_FAILURE;
-  }
+  rc= gearman_client_add_server(&client, NULL, WORKER_TEST_PORT);
+  test_truth(rc == GEARMAN_SUCCESS);
 
-  if (gearman_client_do_background(&client, "queue_test", NULL, value,
-                                   value_length, job_handle) != GEARMAN_SUCCESS)
-  {
-    return TEST_FAILURE;
-  }
+  rc= gearman_client_do_background(&client, "queue_test", NULL, value, value_length, job_handle);
+  test_truth(rc == GEARMAN_SUCCESS);
 
   gearman_client_free(&client);
 
