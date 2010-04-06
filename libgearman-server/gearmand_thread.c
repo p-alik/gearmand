@@ -66,8 +66,8 @@ gearman_return_t gearmand_thread_create(gearmand_st *gearmand)
   gearman_server_thread_set_event_watch(&(thread->server_thread),
                                         gearmand_connection_watch, NULL);
 
-  thread->options= 0;
   thread->is_thread_lock= false;
+  thread->is_wakeup_event= false;
   thread->count= 0;
   thread->dcon_count= 0;
   thread->dcon_add_count= 0;
@@ -305,7 +305,7 @@ static gearman_return_t _wakeup_init(gearmand_thread_st *thread)
     return GEARMAN_EVENT;
   }
 
-  thread->options|= GEARMAND_THREAD_WAKEUP_EVENT;
+  thread->is_wakeup_event= true;
 
   return GEARMAN_SUCCESS;
 }
@@ -326,17 +326,16 @@ static void _wakeup_close(gearmand_thread_st *thread)
 
 static void _wakeup_clear(gearmand_thread_st *thread)
 {
-  if (thread->options & GEARMAND_THREAD_WAKEUP_EVENT)
+  if (thread->is_wakeup_event)
   {
     gearmand_log_info(thread->gearmand, "[%4u] Clearing event for IO thread wakeup pipe", thread->count);
     int del_ret= event_del(&(thread->wakeup_event));
     assert(del_ret == 0);
-    thread->options&= (gearmand_thread_options_t)~GEARMAND_THREAD_WAKEUP_EVENT;
+    thread->is_wakeup_event= false;
   }
 }
 
-static void _wakeup_event(int fd, short events __attribute__ ((unused)),
-                          void *arg)
+static void _wakeup_event(int fd, short events __attribute__ ((unused)), void *arg)
 {
   gearmand_thread_st *thread= (gearmand_thread_st *)arg;
   uint8_t buffer[GEARMAN_PIPE_BUFFER_SIZE];

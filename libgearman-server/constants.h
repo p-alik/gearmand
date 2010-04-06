@@ -76,15 +76,6 @@ typedef enum
   GEARMAND_WAKEUP_RUN=               (1 << 4)
 } gearmand_wakeup_t;
 
-/**
- * @ingroup gearmand_thread
- * Options for gearmand_thread_st.
- */
-typedef enum
-{
-  GEARMAND_THREAD_WAKEUP_EVENT= (1 << 0)
-} gearmand_thread_options_t;
-
 
 /**
  * @addtogroup gearman_server_types Types

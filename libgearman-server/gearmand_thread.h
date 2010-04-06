@@ -29,8 +29,8 @@ extern "C" {
 
 struct gearmand_thread_st
 {
-  gearmand_thread_options_t options;
   bool is_thread_lock;
+  bool is_wakeup_event;
   uint32_t count;
   uint32_t dcon_count;
   uint32_t dcon_add_count;
