@@ -58,34 +58,32 @@ static void *append_function(gearman_job_st *job __attribute__((unused)),
 
 test_return_t queue_add(void *object)
 {
+  gearman_return_t rc;
   worker_test_st *test= (worker_test_st *)object;
   gearman_client_st client;
+  gearman_client_st *client_ptr;
   char job_handle[GEARMAN_JOB_HANDLE_SIZE];
 
-  uint8_t * value= (uint8_t *)strdup("0");
+  uint8_t *value= (uint8_t *)strdup("0");
   size_t value_length= 1;
-  uint8_t i;
 
   test->run_worker= false;
 
-  if (gearman_client_create(&client) == NULL)
-    return TEST_FAILURE;
+  client_ptr= gearman_client_create(&client);
+  test_truth(client_ptr);
 
-  if (gearman_client_add_server(&client, NULL,
-                                WORKER_TEST_PORT) != GEARMAN_SUCCESS)
-  {
-    return TEST_FAILURE;
-  }
+  rc= gearman_client_add_server(&client, NULL, WORKER_TEST_PORT);
+    test_truth(GEARMAN_SUCCESS == rc);
 
   /* send strings "0", "1" ... "9" to alternating between 2 queues */
   /* queue1 = 1,3,5,7,9 */
   /* queue2 = 0,2,4,6,8 */
-  for (i=0; i<10; i++) {
-    if (gearman_client_do_background(&client, i % 2 ? "queue1" : "queue2", NULL, value,
-                                     value_length, job_handle) != GEARMAN_SUCCESS)
-    {
-      return TEST_FAILURE;
-    }
+  for (uint32_t x= 0; x < 10; x++)
+  {
+    rc= gearman_client_do_background(&client, x % 2 ? "queue1" : "queue2", NULL,
+                                     value, value_length, job_handle);
+
+    test_truth(GEARMAN_SUCCESS == rc);
     *value = (uint8_t)(*value + 1);
   }
 
