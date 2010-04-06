@@ -115,7 +115,7 @@ gearman_return_t gearman_server_queue_libdrizzle_init(gearman_server_st *server,
 
   gearman_log_info(server->gearman, "Initializing libdrizzle module");
 
-  queue= malloc(sizeof(gearman_queue_libdrizzle_st));
+  queue= (gearman_queue_libdrizzle_st *)malloc(sizeof(gearman_queue_libdrizzle_st));
   if (queue == NULL)
   {
     gearman_log_error(server->gearman, "gearman_queue_libdrizzle_init", "malloc");
@@ -341,7 +341,7 @@ static gearman_return_t _libdrizzle_add(gearman_server_st *server,
               GEARMAN_QUEUE_QUERY_BUFFER;
   if (query_size > queue->query_size)
   {
-    query= realloc(queue->query, query_size);
+    query= (char *)realloc(queue->query, query_size);
     if (query == NULL)
     {
       gearman_log_error(server->gearman, "_libdrizzle_add", "realloc");
@@ -352,7 +352,9 @@ static gearman_return_t _libdrizzle_add(gearman_server_st *server,
     queue->query_size= query_size;
   }
   else
+  {
     query= queue->query;
+  }
 
   query_size= (size_t)snprintf(query, query_size,
                                "INSERT INTO %s SET priority=%u,unique_key='",
@@ -404,7 +406,7 @@ static gearman_return_t _libdrizzle_done(gearman_server_st *server,
   query_size= (unique_size * 2) + GEARMAN_QUEUE_QUERY_BUFFER;
   if (query_size > queue->query_size)
   {
-    query= realloc(queue->query, query_size);
+    query= (char *)realloc(queue->query, query_size);
     if (query == NULL)
     {
       gearman_log_error(server->gearman, "_libdrizzle_add", "realloc");
@@ -451,7 +453,7 @@ static gearman_return_t _libdrizzle_replay(gearman_server_st *server,
 
   if (GEARMAN_QUEUE_QUERY_BUFFER > queue->query_size)
   {
-    query= realloc(queue->query, GEARMAN_QUEUE_QUERY_BUFFER);
+    query= (char *)realloc(queue->query, GEARMAN_QUEUE_QUERY_BUFFER);
     if (query == NULL)
     {
       gearman_log_error(server->gearman, "_libdrizzle_add", "realloc");

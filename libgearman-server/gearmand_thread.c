@@ -46,7 +46,7 @@ gearman_return_t gearmand_thread_create(gearmand_st *gearmand)
   gearman_return_t ret;
   int pthread_ret;
 
-  thread= malloc(sizeof(gearmand_thread_st));
+  thread= (gearmand_thread_st *)malloc(sizeof(gearmand_thread_st));
   if (thread == NULL)
   {
     gearmand_log_fatal(gearmand, "gearmand_thread_create:malloc");

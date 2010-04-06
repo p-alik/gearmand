@@ -216,7 +216,7 @@ gearman_server_job_create(gearman_server_st *server,
     }
     else
     {
-      server_job= malloc(sizeof(gearman_server_job_st));
+      server_job= (gearman_server_job_st *)malloc(sizeof(gearman_server_job_st));
       if (server_job == NULL)
         return NULL;
     }

@@ -70,7 +70,7 @@ gearman_server_st *gearman_server_create(gearman_server_st *server)
 
   if (server == NULL)
   {
-    server= malloc(sizeof(gearman_server_st));
+    server= (gearman_server_st *)malloc(sizeof(gearman_server_st));
     if (server == NULL)
       return NULL;
 
@@ -755,7 +755,7 @@ static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
   gearman_server_function_st *function;
   gearman_server_packet_st *server_packet;
 
-  data= malloc(GEARMAN_TEXT_RESPONSE_SIZE);
+  data= (char *)malloc(GEARMAN_TEXT_RESPONSE_SIZE);
   if (data == NULL)
   {
     gearman_log_error(packet->universal, "_server_run_text", "malloc");
@@ -788,7 +788,7 @@ static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
         /* Make sure we have at least GEARMAN_TEXT_RESPONSE_SIZE bytes. */
         if (size + GEARMAN_TEXT_RESPONSE_SIZE > total)
         {
-          new_data= realloc(data, total + GEARMAN_TEXT_RESPONSE_SIZE);
+          new_data= (char *)realloc(data, total + GEARMAN_TEXT_RESPONSE_SIZE);
           if (new_data == NULL)
           {
             (void) pthread_mutex_unlock(&thread->lock);
@@ -836,7 +836,7 @@ static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
     {
       if (size + GEARMAN_TEXT_RESPONSE_SIZE > total)
       {
-        new_data= realloc(data, total + GEARMAN_TEXT_RESPONSE_SIZE);
+        new_data= (char *)realloc(data, total + GEARMAN_TEXT_RESPONSE_SIZE);
         if (new_data == NULL)
         {
           free(data);
@@ -976,7 +976,7 @@ _server_queue_work_data(gearman_server_job_st *server_job,
       }
       else
       {
-        data= malloc(packet->data_size);
+        data= (uint8_t *)malloc(packet->data_size);
         if (data == NULL)
         {
           gearman_log_error(packet->universal, "_server_run_command", "malloc");

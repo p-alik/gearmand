@@ -50,7 +50,7 @@ gearman_return_t gearmand_con_create(gearmand_st *gearmand, int fd,
   }
   else
   {
-    dcon= malloc(sizeof(gearmand_con_st));
+    dcon= (gearmand_con_st *)malloc(sizeof(gearmand_con_st));
     if (dcon == NULL)
     {
       close(fd);

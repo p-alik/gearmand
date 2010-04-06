@@ -116,7 +116,7 @@ static gearman_return_t _http_con_add(gearman_connection_st *connection)
 {
   gearman_protocol_http_st *http;
 
-  http= malloc(sizeof(gearman_protocol_http_st));
+  http= (gearman_protocol_http_st *)malloc(sizeof(gearman_protocol_http_st));
   if (http == NULL)
   {
     gearman_log_error(connection->universal, "_http_con_add", "malloc");

@@ -25,7 +25,7 @@ gearman_conf_module_st *gearman_conf_module_create(gearman_conf_st *conf,
 
   if (module == NULL)
   {
-    module= malloc(sizeof(gearman_conf_module_st));
+    module= (gearman_conf_module_st *)malloc(sizeof(gearman_conf_module_st));
     if (module == NULL)
     {
       gearman_conf_error_set(conf, "gearman_conf_module_create", "malloc");
@@ -44,8 +44,8 @@ gearman_conf_module_st *gearman_conf_module_create(gearman_conf_st *conf,
   module->conf= conf;
   module->name= name;
 
-  module_list= realloc(conf->module_list, sizeof(gearman_conf_module_st *) *
-                       (conf->module_count + 1));
+  module_list= (gearman_conf_module_st **)realloc(conf->module_list, sizeof(gearman_conf_module_st *) *
+                                                  (conf->module_count + 1));
   if (module_list == NULL)
   {
     gearman_conf_module_free(module);
@@ -99,8 +99,8 @@ void gearman_conf_module_add_option(gearman_conf_module_st *module,
   }
 
   /* Make room in option lists. */
-  option_list= realloc(conf->option_list, sizeof(gearman_conf_option_st) *
-                                          (conf->option_count + 1));
+  option_list= (gearman_conf_option_st *)realloc(conf->option_list, sizeof(gearman_conf_option_st) *
+                                                 (conf->option_count + 1));
   if (option_list == NULL)
   {
     gearman_conf_error_set(conf, "gearman_conf_module_add_option", "realloc");
@@ -111,8 +111,8 @@ void gearman_conf_module_add_option(gearman_conf_module_st *module,
   conf->option_list= option_list;
   option_list= &conf->option_list[conf->option_count];
 
-  option_getopt= realloc(conf->option_getopt,
-                         sizeof(struct option) * (conf->option_count + 2));
+  option_getopt= (struct option *)realloc(conf->option_getopt,
+                                          sizeof(struct option) * (conf->option_count + 2));
   if (option_getopt == NULL)
   {
     gearman_conf_error_set(conf, "gearman_conf_module_add_option", "realloc");
@@ -149,8 +149,7 @@ void gearman_conf_module_add_option(gearman_conf_module_st *module,
   {
     // 2 is the - plus null for the const char string
     size_t option_string_length= strlen(module->name) + strlen(name) + 2;
-    char *option_string= 
-      malloc(option_string_length * sizeof(char));
+    char *option_string= (char *) malloc(option_string_length * sizeof(char));
 
     if (option_string == NULL)
     {

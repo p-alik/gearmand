@@ -38,7 +38,7 @@ gearman_server_function_get(gearman_server_st *server,
   if (function == NULL)
     return NULL;
 
-  function->function_name= malloc(function_name_size + 1);
+  function->function_name= (char *)malloc(function_name_size + 1);
   if (function->function_name == NULL)
   {
     gearman_server_function_free(function);
@@ -58,7 +58,7 @@ gearman_server_function_create(gearman_server_st *server,
 {
   if (function == NULL)
   {
-    function= malloc(sizeof(gearman_server_function_st));
+    function= (gearman_server_function_st *)malloc(sizeof(gearman_server_function_st));
     if (function == NULL)
       return NULL;
 

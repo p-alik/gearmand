@@ -72,7 +72,7 @@ gearman_server_thread_create(gearman_server_st *server,
 
   if (thread == NULL)
   {
-    thread= malloc(sizeof(gearman_server_thread_st));
+    thread= (gearman_server_thread_st *)malloc(sizeof(gearman_server_thread_st));
     if (thread == NULL)
     {
       _proc_thread_kill(server);

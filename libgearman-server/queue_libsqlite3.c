@@ -461,7 +461,7 @@ static gearman_return_t _sqlite_add(gearman_server_st *server, void *context,
     GEARMAN_QUEUE_QUERY_BUFFER;
   if (query_size > queue->query_size)
   {
-    query= realloc(queue->query, query_size);
+    query= (char *)realloc(queue->query, query_size);
     if (query == NULL)
     {
       gearman_log_error(server->gearman, "_sqlite_add", "realloc");
@@ -587,7 +587,7 @@ static gearman_return_t _sqlite_done(gearman_server_st *server, void *context,
   query_size= (unique_size * 2) + GEARMAN_QUEUE_QUERY_BUFFER;
   if (query_size > queue->query_size)
   {
-    query= realloc(queue->query, query_size);
+    query= (char *)realloc(queue->query, query_size);
     if (query == NULL)
     {
       gearman_log_error(server->gearman, "_sqlite_add", "realloc");
@@ -639,7 +639,7 @@ static gearman_return_t _sqlite_replay(gearman_server_st *server, void *context,
 
   if (GEARMAN_QUEUE_QUERY_BUFFER > queue->query_size)
   {
-    query= realloc(queue->query, GEARMAN_QUEUE_QUERY_BUFFER);
+    query= (char *)realloc(queue->query, GEARMAN_QUEUE_QUERY_BUFFER);
     if (query == NULL)
     {
       gearman_log_error(server->gearman, "_sqlite_replay", "realloc");
@@ -708,7 +708,7 @@ static gearman_return_t _sqlite_replay(gearman_server_st *server, void *context,
     {
       data_size= (size_t)sqlite3_column_bytes(sth,3);
       /* need to make a copy here ... gearman_server_job_free will free it later */
-      data= malloc(data_size);
+      data= (void *)malloc(data_size);
       if (data == NULL)
       {
         sqlite3_finalize(sth);
