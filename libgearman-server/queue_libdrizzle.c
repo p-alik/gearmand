@@ -227,10 +227,11 @@ gearman_return_t gearman_server_queue_libdrizzle_init(gearman_server_st *server,
     snprintf(create, 1024,
              "CREATE TABLE %s"
              "("
-               "unique_key VARCHAR(%d) PRIMARY KEY,"
+               "unique_key VARCHAR(%d),"
                "function_name VARCHAR(255),"
                "priority INT,"
-               "data LONGBLOB"
+               "data LONGBLOB,"
+               "unique key (unique_key, function_name)"
              ")",
              queue->table, GEARMAN_UNIQUE_SIZE);
 
@@ -363,7 +364,7 @@ static gearman_return_t _libdrizzle_add(gearman_server_st *server,
     query= queue->query;
 
   query_size= (size_t)snprintf(query, query_size,
-                               "INSERT INTO %s SET priority=%u,unique_key='",
+                               "REPLACE INTO %s SET priority=%u,unique_key='",
                                queue->table, (uint32_t)priority);
 
   query_size+= (size_t)drizzle_escape_string(query + query_size, unique,
@@ -435,6 +436,11 @@ static gearman_return_t _libdrizzle_done(gearman_server_st *server,
   memcpy(query + query_size, "'", 1);
   query_size+= 1;
 
+  query_size+= (size_t)drizzle_escape_string(query + query_size, function_name,
+                                             function_name_size);
+  memcpy(query + query_size, "'", 1);
+  query_size+= 1;
+  
   if (_libdrizzle_query(server, queue, query, query_size) != DRIZZLE_RETURN_OK)
     return GEARMAN_QUEUE_ERROR;
 
