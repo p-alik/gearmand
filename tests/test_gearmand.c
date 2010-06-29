@@ -24,41 +24,54 @@
 
 #include "test_gearmand.h"
 
-#ifdef HAVE_LIBDRIZZLE
-#include <libgearman-server/queue_libdrizzle.h>
-#endif
-
-#ifdef HAVE_LIBMEMCACHED
-#include <libgearman-server/queue_libmemcached.h>
-#endif
-
-#ifdef HAVE_LIBSQLITE3
-#include <libgearman-server/queue_libsqlite3.h>
-#endif
-
-#ifdef HAVE_LIBTOKYOCABINET
-#include <libgearman-server/queue_libtokyocabinet.h>
-#endif
 
 pid_t test_gearmand_start(in_port_t port, const char *queue_type,
                           char *argv[], int argc)
 {
-  pid_t gearmand_pid;
+  pid_t gearmand_pid= -1;
 
   char file_buffer[1024];
+  char log_buffer[1024];
   char buffer[8196];
   char *buffer_ptr= buffer;
 
-  if (getenv("GEARMAN_VALGRIND"))
+  log_buffer[0]= 0;
+  file_buffer[0]= 0;
+
+  if (getenv("GEARMAN_MANUAL_GDB"))
+  {
+    snprintf(buffer_ptr, sizeof(buffer), "libtool --mode=execute gdb gearmand/gearmand");
+    buffer_ptr+= strlen(buffer_ptr);
+  }
+  else if (getenv("GEARMAN_VALGRIND"))
   {
     snprintf(buffer_ptr, sizeof(buffer), "libtool --mode=execute valgrind --log-file=tests/valgrind.out --leak-check=full  --show-reachable=yes ");
     buffer_ptr+= strlen(buffer_ptr);
   }
 
-  snprintf(file_buffer, sizeof(file_buffer), "tests/gearman.pidXXXXXX");
-  mkstemp(file_buffer);
-  snprintf(buffer_ptr, sizeof(buffer), "./gearmand/gearmand --pid-file=%s --daemon --port=%u", file_buffer, port);
-  buffer_ptr+= strlen(buffer_ptr);
+  if (getenv("GEARMAN_MANUAL_GDB"))
+  {
+    snprintf(file_buffer, sizeof(file_buffer), "tests/gearman.pidXXXXXX");
+    mkstemp(file_buffer);
+    snprintf(buffer_ptr, sizeof(buffer), "\nrun --pid-file=%s -vvvvvv --port=%u", file_buffer, port);
+    buffer_ptr+= strlen(buffer_ptr);
+  }
+  else if (getenv("GEARMAN_LOG"))
+  {
+    snprintf(file_buffer, sizeof(file_buffer), "tests/gearman.pidXXXXXX");
+    mkstemp(file_buffer);
+    snprintf(log_buffer, sizeof(log_buffer), "tests/gearmand.logXXXXXX");
+    mkstemp(log_buffer);
+    snprintf(buffer_ptr, sizeof(buffer), "./gearmand/gearmand --pid-file=%s --daemon --port=%u -vvvvvv --log-file=%s", file_buffer, port, log_buffer);
+    buffer_ptr+= strlen(buffer_ptr);
+  }
+  else
+  {
+    snprintf(file_buffer, sizeof(file_buffer), "tests/gearman.pidXXXXXX");
+    mkstemp(file_buffer);
+    snprintf(buffer_ptr, sizeof(buffer), "./gearmand/gearmand --pid-file=%s --daemon --port=%u", file_buffer, port);
+    buffer_ptr+= strlen(buffer_ptr);
+  }
 
   if (queue_type)
   {
@@ -72,18 +85,38 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
   }
 
   fprintf(stderr, "%s\n", buffer);
-  system(buffer);
+  if (getenv("GEARMAN_MANUAL_GDB"))
+  {
+    fprintf(stderr, "Pausing for startup, hit return when ready.\n");
+    getchar();
+  }
+  else
+  {
+    system(buffer);
+  }
 
   // Sleep to make sure the server is up and running (or we could poll....)
-  sleep(3);
+  uint32_t counter= 3;
+  while (--counter)
+  {
+    sleep(1);
 
-  FILE *file;
-  file= fopen(file_buffer, "r");
-  assert(file);
-  fgets(buffer, 8196, file);
-  gearmand_pid= atoi(buffer);
-  assert(gearmand_pid);
-  fclose(file);
+    FILE *file;
+    file= fopen(file_buffer, "r");
+    if (file == NULL)
+    {
+      continue;
+    }
+    fgets(buffer, 8196, file);
+    gearmand_pid= atoi(buffer);
+    fclose(file);
+  }
+
+  if (gearmand_pid == -1)
+  {
+    fprintf(stderr, "Could not attach to gearman server, could server already be running on port %u\n", port);
+    abort();
+  }
   unlink(file_buffer);
 
 
