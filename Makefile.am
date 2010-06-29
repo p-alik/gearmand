@@ -17,6 +17,7 @@ nobase_include_HEADERS =
 noinst_HEADERS =
 EXTRA_DIST = 
 CLEANFILES =
+TESTS =
 
 
 include benchmark/include.am
@@ -29,6 +30,8 @@ include tests/include.am
 include support/include.am
 
 include docs/man_list
+
+TESTS += ${check_PROGRAMS}
 
 EXTRA_DIST+= \
 	docs/Doxyfile.api \
