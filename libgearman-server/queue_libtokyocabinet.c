@@ -355,7 +355,7 @@ static gearman_return_t _callback_for_record(gearman_server_st *server,
   --data_cstr_size;
 
   // data is freed later so we must make a copy
-  void *data_ptr= malloc(data_cstr_size);
+  void *data_ptr= (void *)malloc(data_cstr_size);
   if (data_ptr == NULL)
   {
     return GEARMAN_QUEUE_ERROR;

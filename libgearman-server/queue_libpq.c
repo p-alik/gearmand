@@ -104,7 +104,7 @@ gearman_return_t gearman_server_queue_libpq_init(gearman_server_st *server,
 
   gearman_log_info(server->gearman, "Initializing libpq module");
 
-  queue= malloc(sizeof(gearman_queue_libpq_st));
+  queue= (gearman_queue_libpq_st *)malloc(sizeof(gearman_queue_libpq_st));
   if (queue == NULL)
   {
     gearman_log_error(server->gearman, "gearman_queue_libpq_init", "malloc");
@@ -280,7 +280,7 @@ static gearman_return_t _libpq_add(gearman_server_st *server, void *context,
   query_size= GEARMAN_QUEUE_QUERY_BUFFER;
   if (query_size > queue->query_size)
   {
-    query= realloc(queue->query, query_size);
+    query= (char *)realloc(queue->query, query_size);
     if (query == NULL)
     {
       gearman_log_error(server->gearman, "_libpq_add", "realloc");
@@ -334,7 +334,7 @@ static gearman_return_t _libpq_done(gearman_server_st *server, void *context,
   query_size= (unique_size * 2) + GEARMAN_QUEUE_QUERY_BUFFER;
   if (query_size > queue->query_size)
   {
-    query= realloc(queue->query, query_size);
+    query= (char *)realloc(queue->query, query_size);
     if (query == NULL)
     {
       gearman_log_error(server->gearman, "_libpq_add", "realloc");
@@ -385,7 +385,7 @@ static gearman_return_t _libpq_replay(gearman_server_st *server, void *context,
 
   if (GEARMAN_QUEUE_QUERY_BUFFER > queue->query_size)
   {
-    query= realloc(queue->query, GEARMAN_QUEUE_QUERY_BUFFER);
+    query= (char *)realloc(queue->query, GEARMAN_QUEUE_QUERY_BUFFER);
     if (query == NULL)
     {
       gearman_log_error(server->gearman, "_libpq_replay", "realloc");
@@ -417,10 +417,12 @@ static gearman_return_t _libpq_replay(gearman_server_st *server, void *context,
                       PQgetvalue(result, row, 0));
 
     if (PQgetlength(result, row, 3) == 0)
+    {
       data= NULL;
+    }
     else
     {
-      data= malloc((size_t)PQgetlength(result, row, 3));
+      data= (void *)malloc((size_t)PQgetlength(result, row, 3));
       if (query == NULL)
       {
         PQclear(result);

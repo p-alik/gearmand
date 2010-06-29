@@ -52,7 +52,7 @@ gearmand_st *gearmand_create(const char *host, in_port_t port)
 {
   gearmand_st *gearmand;
 
-  gearmand= malloc(sizeof(gearmand_st));
+  gearmand= (gearmand_st *)malloc(sizeof(gearmand_st));
   if (gearmand == NULL)
     return NULL;
 
@@ -171,8 +171,8 @@ gearman_return_t gearmand_port_add(gearmand_st *gearmand, in_port_t port,
 {
   gearmand_port_st *port_list;
 
-  port_list= realloc(gearmand->port_list,
-                     sizeof(gearmand_port_st) * (gearmand->port_count + 1));
+  port_list= (gearmand_port_st *)realloc(gearmand->port_list,
+                                         sizeof(gearmand_port_st) * (gearmand->port_count + 1));
   if (port_list == NULL)
   {
     gearmand_log_fatal(gearmand, "gearmand_port_add:realloc:NULL");
@@ -390,7 +390,7 @@ static gearman_return_t _listen_init(gearmand_st *gearmand)
       {
         int *fd_list;
 
-        fd_list= realloc(port->listen_fd, sizeof(int) * (port->listen_count + 1));
+        fd_list= (int *)realloc(port->listen_fd, sizeof(int) * (port->listen_count + 1));
         if (fd_list == NULL)
         {
           close(fd);
@@ -416,7 +416,7 @@ static gearman_return_t _listen_init(gearmand_st *gearmand)
       return GEARMAN_ERRNO;
     }
 
-    port->listen_event= malloc(sizeof(struct event) * port->listen_count);
+    port->listen_event= (struct event *)malloc(sizeof(struct event) * port->listen_count);
     if (port->listen_event == NULL)
     {
       gearmand_log_fatal(gearmand, "_listen_init:malloc:%d", errno);
