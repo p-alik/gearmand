@@ -9,10 +9,6 @@
 noinst_LTLIBRARIES+= tests/libtest.la
 tests_libtest_la_SOURCES= tests/test.c tests/test_gearmand.c
 
-if HAVE_LIBGTEST
-check_PROGRAMS += tests/unittests
-endif
-
 VALGRIND_COMMAND= $(LIBTOOL) --mode=execute valgrind --leak-check=yes --show-reachable=yes
 
 TEST_LDADD= \
@@ -20,14 +16,6 @@ TEST_LDADD= \
 	    libgearman/libgearman.la \
 	    libgearman-server/libgearman-server.la
 
-
-tests_unittests_SOURCES= \
-			 tests/main.cc
-
-tests_unittests_LDADD= \
-		       libgearman/libgearman.la \
-		       libgearman-server/libgearman-server.la \
-		       ${LTLIBGTEST}
 
 if HAVE_LIBMEMCACHED
 if HAVE_MEMCACHED
