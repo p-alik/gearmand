@@ -29,7 +29,7 @@ typedef struct
 {
   gearman_client_st client;
   pid_t gearmand_pid;
-  pid_t worker_pid;
+  struct worker_handle_st *handle;
 } client_test_st;
 
 /**
@@ -72,6 +72,35 @@ void *client_test_temp_worker(gearman_job_st *job, void *context,
                               size_t *result_size, gearman_return_t *ret_ptr);
 void *world_create(test_return_t *error);
 test_return_t world_destroy(void *object);
+
+
+static void *client_thread(void *object)
+{
+  (void)object;
+  gearman_return_t rc;
+  gearman_client_st client;
+  gearman_client_st *client_ptr;
+  size_t result_size;
+
+  client_ptr= gearman_client_create(&client);
+
+  if (client_ptr == NULL)
+    abort(); // This would be pretty bad.
+
+  rc= gearman_client_add_server(&client, NULL, CLIENT_TEST_PORT);
+  if (rc != GEARMAN_SUCCESS)
+    pthread_exit(0);
+
+  gearman_client_set_timeout(&client, 400);
+  for (size_t x= 0; x < 5; x++)
+  {
+    (void) gearman_client_do(&client, "client_test_temp", NULL, NULL, 0,
+                             &result_size, &rc);
+
+  }
+
+  pthread_exit(0);
+}
 
 test_return_t init_test(void *object __attribute__((unused)))
 {
@@ -482,11 +511,10 @@ static test_return_t bug_518512_test(void *object)
   gearman_return_t rc;
   gearman_client_st client;
   size_t result_size;
-  pid_t worker_pid;
   (void) object;
 
   test_truth(gearman_client_create(&client));
-  
+
   if (gearman_client_add_server(&client, NULL, CLIENT_TEST_PORT) != GEARMAN_SUCCESS)
   {
     fprintf(stderr, "bug_518512_test: gearman_client_add_server: %s\n", gearman_client_error(&client));
@@ -503,8 +531,8 @@ static test_return_t bug_518512_test(void *object)
     return TEST_FAILURE;
   }
 
-  worker_pid= test_worker_start(CLIENT_TEST_PORT, "client_test_temp",
-                                client_test_temp_worker, NULL);
+  struct worker_handle_st *handle= test_worker_start(CLIENT_TEST_PORT, "client_test_temp",
+                                                     client_test_temp_worker, NULL);
 
   gearman_client_set_timeout(&client, -1);
   (void) gearman_client_do(&client, "client_test_temp", NULL, NULL, 0,
@@ -512,13 +540,49 @@ static test_return_t bug_518512_test(void *object)
   if (rc != GEARMAN_SUCCESS)
   {
     fprintf(stderr, "bug_518512_test: gearman_client_do: %s\n", gearman_client_error(&client));
-    test_worker_stop(worker_pid);
+    test_worker_stop(handle);
     gearman_client_free(&client);
     return TEST_FAILURE;
   }
 
-  test_worker_stop(worker_pid);
+  test_worker_stop(handle);
   gearman_client_free(&client);
+
+  return TEST_SUCCESS;
+}
+
+#define NUMBER_OF_WORKERS 2
+
+static test_return_t loop_test(void *object)
+{
+  (void) object;
+  pthread_attr_t attr;
+
+  pthread_t one;
+  pthread_t two;
+
+  pthread_attr_init(&attr);
+  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+
+  struct worker_handle_st *handles[NUMBER_OF_WORKERS];
+  for (size_t x= 0; x < NUMBER_OF_WORKERS; x++)
+  {
+    handles[x]= test_worker_start(CLIENT_TEST_PORT, "client_test_temp",
+                                  client_test_temp_worker, NULL);
+  }
+
+  pthread_create(&one, &attr, client_thread, NULL);
+  pthread_create(&two, &attr, client_thread, NULL);
+
+  pthread_join(one, NULL);
+  pthread_join(two, NULL);
+
+  for (size_t x= 0; x < NUMBER_OF_WORKERS; x++)
+  {
+    test_worker_stop(handles[x]);
+  }
+
+  pthread_attr_destroy(&attr);
 
   return TEST_SUCCESS;
 }
@@ -677,7 +741,6 @@ void *world_create(test_return_t *error)
 {
   client_test_st *test;
   pid_t gearmand_pid;
-  pid_t worker_pid;
 
   /**
    *  @TODO We cast this to char ** below, which is evil. We need to do the
@@ -685,26 +748,21 @@ void *world_create(test_return_t *error)
    */
   const char *argv[1]= { "client_gearmand" };
 
-  /**
-    We start up everything before we allocate so that we don't have to track memory in the forked process.
-  */
-  gearmand_pid= test_gearmand_start(CLIENT_TEST_PORT, NULL,
-                                    (char **)argv, 1);
-  worker_pid= test_worker_start(CLIENT_TEST_PORT, "client_test",
-                                client_test_worker, NULL);
-
-  test= malloc(sizeof(client_test_st));
+  test= calloc(1, sizeof(client_test_st));
   if (! test)
   {
     *error= TEST_MEMORY_ALLOCATION_FAILURE;
     return NULL;
   }
 
-  memset(test, 0, sizeof(client_test_st));
+  /**
+    We start up everything before we allocate so that we don't have to track memory in the forked process.
+  */
+  gearmand_pid= test_gearmand_start(CLIENT_TEST_PORT, NULL,
+                                    (char **)argv, 1);
+  test->handle= test_worker_start(CLIENT_TEST_PORT, "client_test", client_test_worker, NULL);
 
   test->gearmand_pid= gearmand_pid;
-  test->worker_pid= worker_pid;
-
 
   if (gearman_client_create(&(test->client)) == NULL)
   {
@@ -728,8 +786,8 @@ test_return_t world_destroy(void *object)
 {
   client_test_st *test= (client_test_st *)object;
   gearman_client_free(&(test->client));
-  test_worker_stop(test->worker_pid);
   test_gearmand_stop(test->gearmand_pid);
+  test_worker_stop(test->handle);
   free(test);
 
   return TEST_SUCCESS;
@@ -749,6 +807,9 @@ test_st tests[] ={
   {"background_failure", 0, background_failure_test },
   {"add_servers", 0, add_servers_test },
   {"bug_518512_test", 0, bug_518512_test },
+#if 0
+  {"loop_test", 0, loop_test },
+#endif
   {0, 0, 0}
 };
 
@@ -775,6 +836,7 @@ collection_st collection[] ={
 typedef test_return_t (*libgearman_test_callback_fn)(gearman_client_st *);
 static test_return_t _runner_default(libgearman_test_callback_fn func, client_test_st *container)
 {
+  (void)loop_test;
   if (func)
   {
     return func(&container->client);
