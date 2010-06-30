@@ -52,23 +52,23 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
   if (getenv("GEARMAN_MANUAL_GDB"))
   {
     snprintf(file_buffer, sizeof(file_buffer), "tests/gearman.pidXXXXXX");
-    mkstemp(file_buffer);
+    (void)mkstemp(file_buffer);
     snprintf(buffer_ptr, sizeof(buffer), "\nrun --pid-file=%s -vvvvvv --port=%u", file_buffer, port);
     buffer_ptr+= strlen(buffer_ptr);
   }
   else if (getenv("GEARMAN_LOG"))
   {
     snprintf(file_buffer, sizeof(file_buffer), "tests/gearman.pidXXXXXX");
-    mkstemp(file_buffer);
+    (void)mkstemp(file_buffer);
     snprintf(log_buffer, sizeof(log_buffer), "tests/gearmand.logXXXXXX");
-    mkstemp(log_buffer);
+    (void)mkstemp(log_buffer);
     snprintf(buffer_ptr, sizeof(buffer), "./gearmand/gearmand --pid-file=%s --daemon --port=%u -vvvvvv --log-file=%s", file_buffer, port, log_buffer);
     buffer_ptr+= strlen(buffer_ptr);
   }
   else
   {
     snprintf(file_buffer, sizeof(file_buffer), "tests/gearman.pidXXXXXX");
-    mkstemp(file_buffer);
+    (void)mkstemp(file_buffer);
     snprintf(buffer_ptr, sizeof(buffer), "./gearmand/gearmand --pid-file=%s --daemon --port=%u", file_buffer, port);
     buffer_ptr+= strlen(buffer_ptr);
   }
@@ -92,7 +92,7 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
   }
   else
   {
-    system(buffer);
+    (void)system(buffer);
   }
 
   // Sleep to make sure the server is up and running (or we could poll....)
@@ -107,7 +107,7 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
     {
       continue;
     }
-    fgets(buffer, 8196, file);
+    (void)fgets(buffer, 8196, file);
     gearmand_pid= atoi(buffer);
     fclose(file);
   }
