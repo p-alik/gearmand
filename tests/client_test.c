@@ -98,6 +98,7 @@ static void *client_thread(void *object)
                              &result_size, &rc);
 
   }
+  gearman_client_free(client_ptr);
 
   pthread_exit(0);
 }
@@ -556,6 +557,7 @@ static test_return_t bug_518512_test(void *object)
 static test_return_t loop_test(void *object)
 {
   (void) object;
+  void *unused;
   pthread_attr_t attr;
 
   pthread_t one;
@@ -574,8 +576,8 @@ static test_return_t loop_test(void *object)
   pthread_create(&one, &attr, client_thread, NULL);
   pthread_create(&two, &attr, client_thread, NULL);
 
-  pthread_join(one, NULL);
-  pthread_join(two, NULL);
+  pthread_join(one, &unused);
+  pthread_join(two, &unused);
 
   for (size_t x= 0; x < NUMBER_OF_WORKERS; x++)
   {
@@ -807,9 +809,7 @@ test_st tests[] ={
   {"background_failure", 0, background_failure_test },
   {"add_servers", 0, add_servers_test },
   {"bug_518512_test", 0, bug_518512_test },
-#if 0
   {"loop_test", 0, loop_test },
-#endif
   {0, 0, 0}
 };
 
@@ -836,7 +836,6 @@ collection_st collection[] ={
 typedef test_return_t (*libgearman_test_callback_fn)(gearman_client_st *);
 static test_return_t _runner_default(libgearman_test_callback_fn func, client_test_st *container)
 {
-  (void)loop_test;
   if (func)
   {
     return func(&container->client);
