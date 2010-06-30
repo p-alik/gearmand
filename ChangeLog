@@ -1,3 +1,7 @@
+0.14
+  * Leak in SQLite resolved.
+  * updated build configs
+
 0.13 Sun Apr  4 14:45:08 PDT 2010
  * Fix for bug #518512.
  * Use OR REPLACE syntax for inserting items into the sqlite.
