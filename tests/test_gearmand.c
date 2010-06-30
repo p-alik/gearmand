@@ -52,23 +52,39 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
   if (getenv("GEARMAN_MANUAL_GDB"))
   {
     snprintf(file_buffer, sizeof(file_buffer), "tests/gearman.pidXXXXXX");
-    (void)mkstemp(file_buffer);
+    if (mkstemp(file_buffer) == -1)
+    {
+      perror("mkstemp");
+      abort();
+    }
     snprintf(buffer_ptr, sizeof(buffer), "\nrun --pid-file=%s -vvvvvv --port=%u", file_buffer, port);
     buffer_ptr+= strlen(buffer_ptr);
   }
   else if (getenv("GEARMAN_LOG"))
   {
     snprintf(file_buffer, sizeof(file_buffer), "tests/gearman.pidXXXXXX");
-    (void)mkstemp(file_buffer);
+    if (mkstemp(file_buffer) == -1)
+    {
+      perror("mkstemp");
+      abort();
+    }
     snprintf(log_buffer, sizeof(log_buffer), "tests/gearmand.logXXXXXX");
-    (void)mkstemp(log_buffer);
+    if (mkstemp(log_buffer) == -1)
+    {
+      perror("mkstemp");
+      abort();
+    }
     snprintf(buffer_ptr, sizeof(buffer), "./gearmand/gearmand --pid-file=%s --daemon --port=%u -vvvvvv --log-file=%s", file_buffer, port, log_buffer);
     buffer_ptr+= strlen(buffer_ptr);
   }
   else
   {
     snprintf(file_buffer, sizeof(file_buffer), "tests/gearman.pidXXXXXX");
-    (void)mkstemp(file_buffer);
+    if (mkstemp(file_buffer) == -1)
+    {
+      perror("mkstemp");
+      abort();
+    }
     snprintf(buffer_ptr, sizeof(buffer), "./gearmand/gearmand --pid-file=%s --daemon --port=%u", file_buffer, port);
     buffer_ptr+= strlen(buffer_ptr);
   }
@@ -92,7 +108,8 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
   }
   else
   {
-    (void)system(buffer);
+    int err= system(buffer);
+    assert(err != -1);
   }
 
   // Sleep to make sure the server is up and running (or we could poll....)
@@ -107,7 +124,11 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
     {
       continue;
     }
-    (void)fgets(buffer, 8196, file);
+    char *found= fgets(buffer, 8196, file);
+    if (!found)
+    {
+      abort();
+    }
     gearmand_pid= atoi(buffer);
     fclose(file);
   }
