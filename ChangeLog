@@ -1,6 +1,7 @@
-0.14
+0.14 Wed Jun 30 13:04:39 PDT 2010
   * Leak in SQLite resolved.
   * updated build configs
+  * Increased testting.
 
 0.13 Sun Apr  4 14:45:08 PDT 2010
  * Fix for bug #518512.
