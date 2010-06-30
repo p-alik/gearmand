@@ -17,6 +17,7 @@ nobase_include_HEADERS =
 noinst_HEADERS =
 EXTRA_DIST = 
 CLEANFILES =
+TESTS =
 
 
 include benchmark/include.am
@@ -26,9 +27,12 @@ include gearmand/include.am
 include libgearman/include.am
 include libgearman-server/include.am
 include tests/include.am
+include unittests/include.am
 include support/include.am
 
 include docs/man_list
+
+TESTS += ${check_PROGRAMS}
 
 EXTRA_DIST+= \
 	docs/Doxyfile.api \

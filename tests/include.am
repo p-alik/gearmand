@@ -9,13 +9,13 @@
 noinst_LTLIBRARIES+= tests/libtest.la
 tests_libtest_la_SOURCES= tests/test.c tests/test_gearmand.c
 
-
 VALGRIND_COMMAND= $(LIBTOOL) --mode=execute valgrind --leak-check=yes --show-reachable=yes
 
 TEST_LDADD= \
 	    tests/libtest.la \
 	    libgearman/libgearman.la \
 	    libgearman-server/libgearman-server.la
+
 
 if HAVE_LIBMEMCACHED
 if HAVE_MEMCACHED
