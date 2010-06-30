@@ -676,8 +676,8 @@ void *world_create(test_return_t *error)
 test_return_t world_destroy(void *object)
 {
   worker_test_st *test= (worker_test_st *)object;
-  gearman_worker_free(&(test->worker));
   test_gearmand_stop(test->gearmand_pid);
+  gearman_worker_free(&(test->worker));
   free(test);
 
   return TEST_SUCCESS;
