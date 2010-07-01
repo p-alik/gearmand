@@ -54,11 +54,10 @@ gearman_server_worker_create(gearman_server_con_st *con,
     }
     else
     {
-      worker= malloc(sizeof(gearman_server_worker_st));
+      worker= (gearman_server_worker_st *)malloc(sizeof(gearman_server_worker_st));
       if (worker == NULL)
       {
-        GEARMAN_ERROR_SET(con->thread->gearman, "gearman_server_worker_create",
-                          "malloc")
+        gearman_log_error(con->thread->gearman, "gearman_server_worker_create", "malloc");
         return NULL;
       }
     }

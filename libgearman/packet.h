@@ -30,6 +30,13 @@ extern "C" {
  * @{
  */
 
+enum gearman_magic_t
+{
+  GEARMAN_MAGIC_TEXT,
+  GEARMAN_MAGIC_REQUEST,
+  GEARMAN_MAGIC_RESPONSE
+};
+
 /**
  * @ingroup gearman_packet
  */
@@ -40,12 +47,7 @@ struct gearman_packet_st
     bool complete LIBGEARMAN_BITFIELD;
     bool free_data LIBGEARMAN_BITFIELD;
   } options;
-  enum gearman_magic_t
-  {
-      GEARMAN_MAGIC_TEXT,
-      GEARMAN_MAGIC_REQUEST,
-      GEARMAN_MAGIC_RESPONSE
-  } magic;
+  enum gearman_magic_t magic;
   gearman_command_t command;
   uint8_t argc;
   size_t args_size;

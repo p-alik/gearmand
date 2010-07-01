@@ -371,7 +371,7 @@ exit:
   gearman_packet_free(&packet);
   _pop_non_blocking(universal, orig_block_universal);
 
-  return GEARMAN_SUCCESS;
+  return ret;
 }
 
 void gearman_free_all_packets(gearman_universal_st *universal)

@@ -72,7 +72,7 @@ gearman_server_thread_create(gearman_server_st *server,
 
   if (thread == NULL)
   {
-    thread= malloc(sizeof(gearman_server_thread_st));
+    thread= (gearman_server_thread_st *)malloc(sizeof(gearman_server_thread_st));
     if (thread == NULL)
     {
       _proc_thread_kill(server);
@@ -206,7 +206,7 @@ gearman_server_thread_run(gearman_server_thread_st *thread,
   {
     while ((server_con= gearman_server_con_io_next(thread)) != NULL)
     {
-      if (server_con->options & GEARMAN_SERVER_CON_DEAD)
+      if (server_con->is_dead)
       {
         if (server_con->proc_removed)
           gearman_server_con_free(server_con);
@@ -307,10 +307,10 @@ gearman_return_t _thread_packet_read(gearman_server_con_st *con)
       return ret;
     }
 
-    GEARMAN_DEBUG(con->thread->gearman, "%15s:%5s Received  %s",
-                  con->host == NULL ? "-" : con->host,
-                  con->port == NULL ? "-" : con->port,
-                  gearman_command_info_list[con->packet->packet.command].name)
+    gearman_log_debug(con->thread->gearman, "%15s:%5s Received  %s",
+                      con->host == NULL ? "-" : con->host,
+                      con->port == NULL ? "-" : con->port,
+                      gearman_command_info_list[con->packet->packet.command].name);
 
     /* We read a complete packet. */
     if (con->thread->server->flags.threaded)
@@ -349,10 +349,10 @@ static gearman_return_t _thread_packet_flush(gearman_server_con_st *con)
     if (ret != GEARMAN_SUCCESS)
       return ret;
 
-    GEARMAN_DEBUG(con->thread->gearman, "%15s:%5s Sent      %s",
-            con->host == NULL ? "-" : con->host,
-            con->port == NULL ? "-" : con->port,
-            gearman_command_info_list[con->io_packet_list->packet.command].name)
+    gearman_log_debug(con->thread->gearman, "%15s:%5s Sent      %s",
+                      con->host == NULL ? "-" : con->host,
+                      con->port == NULL ? "-" : con->port,
+                      gearman_command_info_list[con->io_packet_list->packet.command].name);
 
     gearman_server_io_packet_remove(con);
   }
@@ -432,7 +432,7 @@ static void *_proc(void *data)
     {
       while ((con= gearman_server_con_proc_next(thread)) != NULL)
       {
-        if (con->options & GEARMAN_SERVER_CON_DEAD)
+        if (con->is_dead)
         {
           gearman_server_con_free_workers(con);
 

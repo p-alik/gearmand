@@ -50,11 +50,11 @@ gearman_return_t gearmand_con_create(gearmand_st *gearmand, int fd,
   }
   else
   {
-    dcon= malloc(sizeof(gearmand_con_st));
+    dcon= (gearmand_con_st *)malloc(sizeof(gearmand_con_st));
     if (dcon == NULL)
     {
       close(fd);
-      GEARMAN_FATAL(gearmand, "gearmand_con_create:malloc")
+      gearmand_log_fatal(gearmand, "gearmand_con_create:malloc");
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
   }
@@ -207,17 +207,17 @@ gearman_return_t gearmand_connection_watch(gearman_connection_st *con, short eve
 
     if (event_add(&(dcon->event), NULL) == -1)
     {
-      GEARMAN_FATAL(dcon->thread->gearmand, "_con_watch:event_add:-1")
+      gearmand_log_fatal(dcon->thread->gearmand, "_con_watch:event_add:-1");
       return GEARMAN_EVENT;
     }
 
     dcon->last_events= set_events;
   }
 
-  GEARMAN_CRAZY(dcon->thread->gearmand, "[%4u] %15s:%5s Watching  %6s %s",
-                dcon->thread->count, dcon->host, dcon->port,
-                events & POLLIN ? "POLLIN" : "",
-                events & POLLOUT ? "POLLOUT" : "")
+  gearmand_log_crazy(dcon->thread->gearmand, "[%4u] %15s:%5s Watching  %6s %s",
+                     dcon->thread->count, dcon->host, dcon->port,
+                     events & POLLIN ? "POLLIN" : "",
+                     events & POLLOUT ? "POLLOUT" : "");
 
   return GEARMAN_SUCCESS;
 }
@@ -245,10 +245,10 @@ static void _con_ready(int fd __attribute__ ((unused)), short events,
     return;
   }
 
-  GEARMAN_CRAZY(dcon->thread->gearmand, "[%4u] %15s:%5s Ready     %6s %s",
-                dcon->thread->count, dcon->host, dcon->port,
-                revents & POLLIN ? "POLLIN" : "",
-                revents & POLLOUT ? "POLLOUT" : "")
+  gearmand_log_crazy(dcon->thread->gearmand, "[%4u] %15s:%5s Ready     %6s %s",
+                     dcon->thread->count, dcon->host, dcon->port,
+                     revents & POLLIN ? "POLLIN" : "",
+                     revents & POLLOUT ? "POLLOUT" : "");
 
   gearmand_thread_run(dcon->thread);
 }
@@ -282,8 +282,7 @@ static gearman_return_t _con_add(gearmand_thread_st *thread,
     }
   }
 
-  GEARMAN_INFO(thread->gearmand, "[%4u] %15s:%5s Connected", thread->count,
-               dcon->host, dcon->port)
+  gearmand_log_info(thread->gearmand, "[%4u] %15s:%5s Connected", thread->count, dcon->host, dcon->port);
 
   GEARMAN_LIST_ADD(thread->dcon, dcon,)
 

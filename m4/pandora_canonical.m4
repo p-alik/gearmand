@@ -4,7 +4,7 @@ dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
 
 dnl Which version of the canonical setup we're using
-AC_DEFUN([PANDORA_CANONICAL_VERSION],[0.100])
+AC_DEFUN([PANDORA_CANONICAL_VERSION],[0.120])
 
 AC_DEFUN([PANDORA_FORCE_DEPEND_TRACKING],[
   AC_ARG_ENABLE([fat-binaries],
@@ -31,6 +31,7 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
   m4_define([PCT_ALL_ARGS],[$*])
   m4_define([PCT_REQUIRE_CXX],[no])
   m4_define([PCT_FORCE_GCC42],[no])
+  m4_define([PCT_DONT_SUPPRESS_INCLUDE],[no])
   m4_define([PCT_VERSION_FROM_VC],[no])
   m4_define([PCT_USE_VISIBILITY],[yes])
   m4_foreach([pct_arg],[$*],[
@@ -47,6 +48,10 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
         m4_undefine([PCT_USE_VISIBILITY])
         m4_define([PCT_USE_VISIBILITY],[no])
       ],
+      [dont-suppress-include], [
+        m4_undefine([PCT_DONT_SUPPRESS_INCLUDE])
+        m4_define([PCT_DONT_SUPPRESS_INCLUDE],[yes])
+      ],
       [version-from-vc], [
         m4_undefine([PCT_VERSION_FROM_VC])
         m4_define([PCT_VERSION_FROM_VC],[yes])
@@ -55,7 +60,7 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
 
   AC_CONFIG_MACRO_DIR([m4])
 
-  m4_if(m4_esyscmd(test -d src && echo -n 0),0,[
+  m4_if(m4_substr(m4_esyscmd(test -d src && echo 0),0,1),0,[
     AC_CONFIG_HEADERS([src/config.h])
   ],[
     AC_CONFIG_HEADERS([config.h])
@@ -71,10 +76,15 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
   
   AC_CANONICAL_TARGET
   
-  AM_INIT_AUTOMAKE(-Wall -Werror nostdinc subdir-objects foreign)
+  m4_if(PCT_DONT_SUPRESS_INCLUDE,yes,[
+    AM_INIT_AUTOMAKE(-Wall -Werror subdir-objects foreign)
+  ],[
+    AM_INIT_AUTOMAKE(-Wall -Werror nostdinc subdir-objects foreign)
+  ])
+
   m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 
-  m4_if(m4_esyscmd(test -d gnulib && echo -n 0),0,[
+  m4_if(m4_substr(m4_esyscmd(test -d gnulib && echo 0),0,1),0,[
     gl_EARLY
   ])
   
@@ -84,6 +94,8 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
 
   m4_if(PCT_VERSION_FROM_VC,yes,[
     PANDORA_VC_VERSION
+  ],[
+    PANDORA_TEST_VC_DIR
   ])
   PANDORA_VERSION
 
@@ -113,7 +125,7 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
 
   ])
   
-  m4_if(m4_esyscmd(test -d gnulib && echo -n 0),0,[
+  m4_if(m4_substr(m4_esyscmd(test -d gnulib && echo 0),0,1),0,[
     gl_INIT
     AC_CONFIG_LIBOBJ_DIR([gnulib])
   ])
@@ -128,8 +140,10 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
   AC_C_RESTRICT
 
   AC_HEADER_TIME
+  AC_STRUCT_TM
   AC_TYPE_SIZE_T
   AC_SYS_LARGEFILE
+  PANDORA_CLOCK_GETTIME
 
   # off_t is not a builtin type
   AC_CHECK_SIZEOF(off_t, 4)
@@ -162,10 +176,6 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
   AS_IF([test "$ac_cv_time_t_unsigned" = "yes"],[
     AC_DEFINE([TIME_T_UNSIGNED], 1, [Define to 1 if time_t is unsigned])
   ])
-
-  dnl AC_FUNC_ALLOCA would test for stack direction if we didn't have a working
-  dnl alloca - but we need to know it anyway for check_stack_overrun.
-  PANDORA_STACK_DIRECTION
 
   AC_CHECK_LIBM
   
@@ -208,6 +218,9 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
 
   AC_CHECK_PROGS([DOXYGEN], [doxygen])
   AC_CHECK_PROGS([PERL], [perl])
+  AC_CHECK_PROGS([DPKG_GENSYMBOLS], [dpkg-gensymbols], [:])
+
+  AM_CONDITIONAL(HAVE_DPKG_GENSYMBOLS,[test "x${DPKG_GENSYMBOLS}" != "x:"])
 
   PANDORA_WITH_GETTEXT
 
@@ -218,7 +231,7 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
     AM_CPPFLAGS="-I\${top_srcdir}/gnulib -I\${top_builddir}/gnulib ${AM_CPPFLAGS}"
     ])
   ])
-  m4_if(m4_esyscmd(test -d src && echo -n 0),0,[
+  m4_if(m4_substr(m4_esyscmd(test -d src && echo 0),0,1),0,[
     AM_CPPFLAGS="-I\$(top_srcdir)/src -I\$(top_builddir)/src ${AM_CPPFLAGS}"
   ],[
     AM_CPPFLAGS="-I\$(top_srcdir) -I\$(top_builddir) ${AM_CPPFLAGS}"

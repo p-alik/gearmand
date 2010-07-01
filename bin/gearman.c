@@ -161,7 +161,9 @@ int main(int argc, char *argv[])
   /* Allocate the maximum number of possible functions. */
   args.function= malloc(sizeof(char *) * (size_t)argc);
   if (args.function == NULL)
-    GEARMAN_ERROR("malloc:%d", errno)
+  {
+    GEARMAN_ERROR("malloc:%d", errno);
+  }
 
   while ((c = getopt(argc, argv, "bc:f:h:HILnNp:Pst:u:wi:d")) != -1)
   {
@@ -243,7 +245,9 @@ int main(int argc, char *argv[])
   args.argv= argv + optind;
 
   if (signal(SIGPIPE, SIG_IGN) == SIG_ERR)
+  {
     GEARMAN_ERROR("signal:%d", errno);
+  }
 
   if (args.daemon)
   {
@@ -327,14 +331,18 @@ void _client(gearman_args_st *args)
   uint32_t x;
 
   if (gearman_client_create(&client) == NULL)
-    GEARMAN_ERROR("Memory allocation failure on client creation")
+  {
+    GEARMAN_ERROR("Memory allocation failure on client creation");
+  }
 
   if (args->timeout >= 0)
     gearman_client_set_timeout(&client, args->timeout);
 
   ret= gearman_client_add_server(&client, args->host, args->port);
   if (ret != GEARMAN_SUCCESS)
-    GEARMAN_ERROR("gearman_client_add_server:%s", gearman_client_error(&client))
+  {
+    GEARMAN_ERROR("gearman_client_add_server:%s", gearman_client_error(&client));
+  }
 
   gearman_client_set_data_fn(&client, _client_data);
   gearman_client_set_warning_fn(&client, _client_warning);
@@ -345,7 +353,9 @@ void _client(gearman_args_st *args)
 
   args->task= malloc(sizeof(gearman_task_st) * args->function_count);
   if (args->task == NULL)
-    GEARMAN_ERROR("malloc:%d", errno)
+  {
+    GEARMAN_ERROR("malloc:%d", errno);
+  }
 
   if (args->argv[0] == NULL)
   {
@@ -355,7 +365,9 @@ void _client(gearman_args_st *args)
     {
       workload= malloc(GEARMAN_INITIAL_WORKLOAD_SIZE);
       if (workload == NULL)
-        GEARMAN_ERROR("malloc:%d", errno)
+      {
+        GEARMAN_ERROR("malloc:%d", errno);
+      }
 
       while (1)
       {
@@ -458,12 +470,16 @@ void _client_run(gearman_client_st *client, gearman_args_st *args,
       }
     }
     if (ret != GEARMAN_SUCCESS)
-      GEARMAN_ERROR("gearman_client_add_task:%s", gearman_client_error(client))
+    {
+      GEARMAN_ERROR("gearman_client_add_task:%s", gearman_client_error(client));
+    }
   }
 
   ret= gearman_client_run_tasks(client);
   if (ret != GEARMAN_SUCCESS)
-    GEARMAN_ERROR("gearman_client_run_tasks:%s", gearman_client_error(client))
+  {
+    GEARMAN_ERROR("gearman_client_run_tasks:%s", gearman_client_error(client));
+  }
 
   for (x= 0; x < args->function_count; x++)
     gearman_task_free(&(args->task[x]));
@@ -481,7 +497,9 @@ static gearman_return_t _client_data(gearman_task_st *task)
   }
 
   if (write(1, gearman_task_data(task), gearman_task_data_size(task)) == -1)
-    GEARMAN_ERROR("write:%d", errno)
+  {
+    GEARMAN_ERROR("write:%d", errno);
+  }
 
   return GEARMAN_SUCCESS;
 }
@@ -498,7 +516,9 @@ static gearman_return_t _client_warning(gearman_task_st *task)
   }
 
   if (write(2, gearman_task_data(task), gearman_task_data_size(task)) == -1)
-    GEARMAN_ERROR("write:%d", errno)
+  {
+    GEARMAN_ERROR("write:%d", errno);
+  }
 
   return GEARMAN_SUCCESS;
 }
@@ -541,14 +561,18 @@ void _worker(gearman_args_st *args)
   uint32_t x;
 
   if (gearman_worker_create(&worker) == NULL)
-    GEARMAN_ERROR("Memory allocation failure on client creation")
+  {
+    GEARMAN_ERROR("Memory allocation failure on client creation");
+  }
 
   if (args->timeout >= 0)
     gearman_worker_set_timeout(&worker, args->timeout);
 
   ret= gearman_worker_add_server(&worker, args->host, args->port);
   if (ret != GEARMAN_SUCCESS)
-    GEARMAN_ERROR("gearman_worker_add_server:%s", gearman_worker_error(&worker))
+  {
+    GEARMAN_ERROR("gearman_worker_add_server:%s", gearman_worker_error(&worker));
+  }
 
   for (x= 0; x < args->function_count; x++)
   {
@@ -556,8 +580,7 @@ void _worker(gearman_args_st *args)
                                      args);
     if (ret != GEARMAN_SUCCESS)
     {
-      GEARMAN_ERROR("gearman_worker_add_function:%s",
-                    gearman_worker_error(&worker))
+      GEARMAN_ERROR("gearman_worker_add_function:%s", gearman_worker_error(&worker));
     }
   }
 
@@ -565,7 +588,9 @@ void _worker(gearman_args_st *args)
   {
     ret= gearman_worker_work(&worker);
     if (ret != GEARMAN_SUCCESS)
-      GEARMAN_ERROR("gearman_worker_work:%s", gearman_worker_error(&worker))
+    {
+      GEARMAN_ERROR("gearman_worker_work:%s", gearman_worker_error(&worker));
+    }
 
     if (args->count > 0)
     {
@@ -596,32 +621,40 @@ static void *_worker_cb(gearman_job_st *job, void *context,
     if (write(1, gearman_job_workload(job),
               gearman_job_workload_size(job)) == -1)
     {
-      GEARMAN_ERROR("write:%d", errno)
+      GEARMAN_ERROR("write:%d", errno);
     }
   }
   else
   {
     if (pipe(in_fds) == -1 || pipe(out_fds) == -1)
-      GEARMAN_ERROR("pipe:%d", errno)
+    {
+      GEARMAN_ERROR("pipe:%d", errno);
+    }
 
     switch (fork())
     {
     case -1:
-      GEARMAN_ERROR("fork:%d", errno)
+      GEARMAN_ERROR("fork:%d", errno);
 
     case 0:
       if (dup2(in_fds[0], 0) == -1)
-        GEARMAN_ERROR("dup2:%d", errno)
+      {
+        GEARMAN_ERROR("dup2:%d", errno);
+      }
 
       close(in_fds[1]);
 
       if (dup2(out_fds[1], 1) == -1)
-        GEARMAN_ERROR("dup2:%d", errno)
+      {
+        GEARMAN_ERROR("dup2:%d", errno);
+      }
 
       close(out_fds[0]);
 
       execvp(args->argv[0], args->argv);
-      GEARMAN_ERROR("execvp:%d", errno)
+      {
+        GEARMAN_ERROR("execvp:%d", errno);
+      }
 
     default:
       break;
@@ -635,7 +668,7 @@ static void *_worker_cb(gearman_job_st *job, void *context,
       if (write(in_fds[1], gearman_job_workload(job),
                 gearman_job_workload_size(job)) == -1)
       {
-        GEARMAN_ERROR("write:%d", errno)
+        GEARMAN_ERROR("write:%d", errno);
       }
     }
 
@@ -645,11 +678,15 @@ static void *_worker_cb(gearman_job_st *job, void *context,
     {
       f= fdopen(out_fds[0], "r");
       if (f == NULL)
-        GEARMAN_ERROR("fdopen:%d", errno)
+      {
+        GEARMAN_ERROR("fdopen:%d", errno);
+      }
 
       result= malloc(GEARMAN_INITIAL_WORKLOAD_SIZE);
       if (result == NULL)
-        GEARMAN_ERROR("malloc:%d", errno)
+      {
+        GEARMAN_ERROR("malloc:%d", errno);
+      }
 
       while (1)
       {
@@ -676,7 +713,9 @@ static void *_worker_cb(gearman_job_st *job, void *context,
     }
 
     if (wait(&status) == -1)
-      GEARMAN_ERROR("wait:%d", errno)
+    {
+      GEARMAN_ERROR("wait:%d", errno);
+    }
 
     if (WEXITSTATUS(status) != 0)
     {
@@ -711,15 +750,21 @@ void _read_workload(int fd, char **workload, size_t *workload_offset,
 
       *workload= realloc(*workload, *workload_size);
       if(*workload == NULL)
-        GEARMAN_ERROR("realloc:%d", errno)
+      {
+        GEARMAN_ERROR("realloc:%d", errno);
+      }
     }
 
     read_ret= read(fd, *workload + *workload_offset,
                    *workload_size - *workload_offset);
     if (read_ret == -1)
-      GEARMAN_ERROR("execvp:%d", errno)
+    {
+      GEARMAN_ERROR("execvp:%d", errno);
+    }
     else if (read_ret == 0)
+    {
       break;
+    }
 
     *workload_offset += (size_t)read_ret;
   }

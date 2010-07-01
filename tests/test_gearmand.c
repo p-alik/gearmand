@@ -24,161 +24,122 @@
 
 #include "test_gearmand.h"
 
-#ifdef HAVE_LIBDRIZZLE
-#include <libgearman-server/queue_libdrizzle.h>
-#endif
-
-#ifdef HAVE_LIBMEMCACHED
-#include <libgearman-server/queue_libmemcached.h>
-#endif
-
-#ifdef HAVE_LIBSQLITE3
-#include <libgearman-server/queue_libsqlite3.h>
-#endif
-
-#ifdef HAVE_LIBTOKYOCABINET
-#include <libgearman-server/queue_libtokyocabinet.h>
-#endif
 
 pid_t test_gearmand_start(in_port_t port, const char *queue_type,
                           char *argv[], int argc)
 {
-  pid_t gearmand_pid;
-  gearmand_st *gearmand;
-  gearman_conf_st conf;
-  gearman_conf_module_st module;
-  const char *name;
-  const char *value;
-  bool round_robin= false;
+  pid_t gearmand_pid= -1;
 
-  gearmand_pid= fork();
-  assert(gearmand_pid != -1);
+  char file_buffer[1024];
+  char log_buffer[1024];
+  char buffer[8196];
+  char *buffer_ptr= buffer;
 
-  if (gearmand_pid == 0)
+  log_buffer[0]= 0;
+  file_buffer[0]= 0;
+
+  if (getenv("GEARMAN_MANUAL_GDB"))
   {
-    gearman_conf_st *conf_ptr;
-    gearman_return_t ret;
+    snprintf(buffer_ptr, sizeof(buffer), "libtool --mode=execute gdb gearmand/gearmand");
+    buffer_ptr+= strlen(buffer_ptr);
+  }
+  else if (getenv("GEARMAN_VALGRIND"))
+  {
+    snprintf(buffer_ptr, sizeof(buffer), "libtool --mode=execute valgrind --log-file=tests/valgrind.out --leak-check=full  --show-reachable=yes ");
+    buffer_ptr+= strlen(buffer_ptr);
+  }
 
-    conf_ptr= gearman_conf_create(&conf);
-    assert(conf_ptr);
-#ifdef HAVE_LIBDRIZZLE
-    ret= gearman_server_queue_libdrizzle_conf(&conf);
-    assert(ret == GEARMAN_SUCCESS);
-#endif
-#ifdef HAVE_LIBMEMCACHED
-    ret= gearman_server_queue_libmemcached_conf(&conf);
-    assert(ret == GEARMAN_SUCCESS);
-#endif
-#ifdef HAVE_LIBSQLITE3
-    ret= gearman_server_queue_libsqlite3_conf(&conf);
-    assert(ret == GEARMAN_SUCCESS);
-#endif
-#ifdef HAVE_LIBTOKYOCABINET
-    ret= gearman_server_queue_libtokyocabinet_conf(&conf);
-    assert(ret == GEARMAN_SUCCESS);
-#endif
-
-    (void)gearman_conf_module_create(&conf, &module, NULL);
-
-#ifndef MCO
-#define MCO(__name, __short, __value, __help) \
-      gearman_conf_module_add_option(&module, __name, __short, __value, __help);
-#endif
-
-  MCO("round-robin", 'R', NULL, "Assign work in round-robin order per worker"
-      "connection. The default is to assign work in the order of functions "
-      "added by the worker.")
-
-    ret= gearman_conf_parse_args(&conf, argc, argv);
-    assert(ret == GEARMAN_SUCCESS);
-
-    /* Check for option values that were given. */
-    while (gearman_conf_module_value(&module, &name, &value))
+  if (getenv("GEARMAN_MANUAL_GDB"))
+  {
+    snprintf(file_buffer, sizeof(file_buffer), "tests/gearman.pidXXXXXX");
+    if (mkstemp(file_buffer) == -1)
     {
-      if (!strcmp(name, "round-robin"))
-        round_robin++;
+      perror("mkstemp");
+      abort();
     }
-
-    gearmand= gearmand_create(NULL, port);
-    assert(gearmand != NULL);
-
-    gearmand_set_round_robin(gearmand, round_robin);
-
-    if (queue_type != NULL)
+    snprintf(buffer_ptr, sizeof(buffer), "\nrun --pid-file=%s -vvvvvv --port=%u", file_buffer, port);
+    buffer_ptr+= strlen(buffer_ptr);
+  }
+  else if (getenv("GEARMAN_LOG"))
+  {
+    snprintf(file_buffer, sizeof(file_buffer), "tests/gearman.pidXXXXXX");
+    if (mkstemp(file_buffer) == -1)
     {
-      assert(argc);
-      assert(argv);
-#ifdef HAVE_LIBDRIZZLE
-      if (! strcmp(queue_type, "libdrizzle"))
-      {
-        ret= gearmand_queue_libdrizzle_init(gearmand, &conf);
-        assert(ret == GEARMAN_SUCCESS);
-      }
-      else
-#endif
-#ifdef HAVE_LIBMEMCACHED
-      if (! strcmp(queue_type, "libmemcached"))
-      {
-        ret= gearmand_queue_libmemcached_init(gearmand, &conf);
-        assert(ret == GEARMAN_SUCCESS);
-      }
-      else
-#endif
-#ifdef HAVE_LIBSQLITE3
-      if (! strcmp(queue_type, "libsqlite3"))
-      {
-        ret= gearmand_queue_libsqlite3_init(gearmand, &conf);
-        assert(ret == GEARMAN_SUCCESS);
-      }
-      else
-#endif
-#ifdef HAVE_LIBTOKYOCABINET
-      if (! strcmp(queue_type, "libtokyocabinet"))
-      {
-        ret= gearmand_queue_libtokyocabinet_init(gearmand, &conf);
-        assert(ret == GEARMAN_SUCCESS);
-      }
-      else
-#endif
-      {
-        assert(1);
-      }
+      perror("mkstemp");
+      abort();
     }
-
-    
-
-    ret= gearmand_run(gearmand);
-    assert(ret != GEARMAN_SUCCESS);
-
-    if (queue_type != NULL)
+    snprintf(log_buffer, sizeof(log_buffer), "tests/gearmand.logXXXXXX");
+    if (mkstemp(log_buffer) == -1)
     {
-#ifdef HAVE_LIBDRIZZLE
-      if (!strcmp(queue_type, "libdrizzle"))
-        gearmand_queue_libdrizzle_deinit(gearmand);
-#endif
-#ifdef HAVE_LIBMEMCACHED
-      if (!strcmp(queue_type, "libmemcached"))
-        gearmand_queue_libmemcached_deinit(gearmand);
-#endif
-#ifdef HAVE_LIBSQLITE3
-      if (!strcmp(queue_type, "sqlite3"))
-        gearmand_queue_libsqlite3_deinit(gearmand);
-#endif
-#ifdef HAVE_LIBTOKYOCABINET
-      if (!strcmp(queue_type, "tokyocabinet"))
-        gearmand_queue_libtokyocabinet_deinit(gearmand);
-#endif
+      perror("mkstemp");
+      abort();
     }
-
-    gearmand_free(gearmand);
-    gearman_conf_free(&conf);
-    exit(0);
+    snprintf(buffer_ptr, sizeof(buffer), "./gearmand/gearmand --pid-file=%s --daemon --port=%u -vvvvvv --log-file=%s", file_buffer, port, log_buffer);
+    buffer_ptr+= strlen(buffer_ptr);
   }
   else
   {
-    /* Wait for the server to start and bind the port. */
-    sleep(1);
+    snprintf(file_buffer, sizeof(file_buffer), "tests/gearman.pidXXXXXX");
+    if (mkstemp(file_buffer) == -1)
+    {
+      perror("mkstemp");
+      abort();
+    }
+    snprintf(buffer_ptr, sizeof(buffer), "./gearmand/gearmand --pid-file=%s --daemon --port=%u", file_buffer, port);
+    buffer_ptr+= strlen(buffer_ptr);
   }
+
+  if (queue_type)
+  {
+    snprintf(buffer_ptr, sizeof(buffer), " --queue-type=%s ", queue_type);
+    buffer_ptr+= strlen(buffer_ptr);
+  }
+
+  for (int x= 1 ; x < argc ; x++)
+  {
+    snprintf(buffer_ptr, sizeof(buffer), " %s ", argv[x]);
+  }
+
+  fprintf(stderr, "%s\n", buffer);
+  if (getenv("GEARMAN_MANUAL_GDB"))
+  {
+    fprintf(stderr, "Pausing for startup, hit return when ready.\n");
+    getchar();
+  }
+  else
+  {
+    int err= system(buffer);
+    assert(err != -1);
+  }
+
+  // Sleep to make sure the server is up and running (or we could poll....)
+  uint32_t counter= 3;
+  while (--counter)
+  {
+    sleep(1);
+
+    FILE *file;
+    file= fopen(file_buffer, "r");
+    if (file == NULL)
+    {
+      continue;
+    }
+    char *found= fgets(buffer, 8196, file);
+    if (!found)
+    {
+      abort();
+    }
+    gearmand_pid= atoi(buffer);
+    fclose(file);
+  }
+
+  if (gearmand_pid == -1)
+  {
+    fprintf(stderr, "Could not attach to gearman server, could server already be running on port %u\n", port);
+    abort();
+  }
+  unlink(file_buffer);
+
 
   return gearmand_pid;
 }
@@ -197,10 +158,10 @@ void test_gearmand_stop(pid_t gearmand_pid)
       perror(strerror(errno));
     }
 
-    assert(ret == 0); // If assert is enabled, we assert(), otherwise we return
     return;
   }
 
   pid= waitpid(gearmand_pid, NULL, 0);
-  assert(pid == gearmand_pid);
+
+  sleep(3);
 }

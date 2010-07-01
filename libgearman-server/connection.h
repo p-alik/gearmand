@@ -31,7 +31,10 @@ extern "C" {
 struct gearman_server_con_st
 {
   gearman_connection_st con; /* This must be the first struct member. */
-  gearman_server_con_options_t options;
+  bool is_sleeping;
+  bool is_exceptions;
+  bool is_dead;
+  bool is_noop_sent;
   gearman_return_t ret;
   bool io_list;
   bool proc_list;

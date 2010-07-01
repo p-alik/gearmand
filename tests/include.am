@@ -9,13 +9,13 @@
 noinst_LTLIBRARIES+= tests/libtest.la
 tests_libtest_la_SOURCES= tests/test.c tests/test_gearmand.c
 
-
 VALGRIND_COMMAND= $(LIBTOOL) --mode=execute valgrind --leak-check=yes --show-reachable=yes
 
 TEST_LDADD= \
 	    tests/libtest.la \
 	    libgearman/libgearman.la \
 	    libgearman-server/libgearman-server.la
+
 
 if HAVE_LIBMEMCACHED
 if HAVE_MEMCACHED
@@ -35,7 +35,7 @@ tests_memcached_test_SOURCES= tests/memcached_test.c
 tests_memcached_test_LDADD= ${TEST_LDADD}
 
 if HAVE_LIBSQLITE3
-SQLITE_TEST= @tests/sqlite_test
+SQLITE_TEST= tests/sqlite_test
 SQLITE_RM= @rm -f tests/gearman.sql tests/gearman.sql-journal
 CLEANFILES+= tests/gearman.sql tests/gearman.sql-journal
 noinst_PROGRAMS += tests/sqlite_test
@@ -45,7 +45,7 @@ tests_sqlite_test_SOURCES= tests/sqlite_test.c
 tests_sqlite_test_LDADD= ${TEST_LDADD}
 
 if HAVE_LIBTOKYOCABINET
-TOKYOCABINET_TEST= @tests/tokyocabinet_test
+TOKYOCABINET_TEST= tests/tokyocabinet_test
 TOKYOCABINET_RM= @rm -f tests/gearman.tcb
 CLEANFILES+= tests/gearman.tcb
 noinst_PROGRAMS += tests/tokyocabinet_test
@@ -113,6 +113,12 @@ if HAVE_LIBSQLITE3
 	$(SQLITE_RM)
 endif
 
+gdb-sqlite:
+if HAVE_LIBSQLITE3
+	$(LIBTOOL) --mode=execute gdb tests/sqlite_test
+	$(SQLITE_RM)
+endif
+
 test-tokyocabinet:
 if HAVE_LIBTOKYOCABINET
 	$(TOKYOCABINET_TEST) $(ARG1) $(ARG2)
@@ -171,5 +177,9 @@ client-test: $(GEARMAN_CLIENT_TEST)
 	cat $(GEARMAN_PIDFILE) | xargs kill
 	@echo "gearman client success"
 
-valgrind: ${noinst_PROGRAMS} valgrind-client valgrind-worker valgrind-internals valgrind-sqlite valgrind-tokyocabinetn
-valgrind: ${noinst_PROGRAMS} valgrind-client valgrind-round-robin valgrind-worker valgrind-internals valgrind-sqlite valgrind-tokyocabinetn
+#valgrind: ${noinst_PROGRAMS} valgrind-client valgrind-worker valgrind-internals valgrind-sqlite valgrind-tokyocabinet
+
+valgrind: ${noinst_PROGRAMS} valgrind-client valgrind-round-robin valgrind-worker valgrind-internals valgrind-sqlite valgrind-tokyocabinet
+
+bogus:
+

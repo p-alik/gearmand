@@ -42,59 +42,17 @@ extern "C" {
 /** @} */
 
 /**
- * @ingroup gearman_server_con
- * Options for gearman_server_con_st.
- */
-typedef enum
-{
-  GEARMAN_SERVER_CON_SLEEPING=   (1 << 0),
-  GEARMAN_SERVER_CON_EXCEPTIONS= (1 << 1),
-  GEARMAN_SERVER_CON_DEAD=       (1 << 2),
-  GEARMAN_SERVER_CON_NOOP_SENT=  (1 << 3)
-} gearman_server_con_options_t;
-
-/**
- * @ingroup gearman_server_job
- * Options for gearman_server_job_st.
- */
-typedef enum
-{
-  GEARMAN_SERVER_JOB_QUEUED=    (1 << 1),
-  GEARMAN_SERVER_JOB_IGNORE=    (1 << 2)
-} gearman_server_job_state_t;
-
-/**
- * @ingroup gearmand
- * Options for gearmand_st.
- */
-typedef enum
-{
-  GEARMAND_LISTEN_EVENT= (1 << 0),
-  GEARMAND_WAKEUP_EVENT= (1 << 1)
-} gearmand_options_t;
-
-/**
  * @ingroup gearmand
  * Wakeup events for gearmand_st.
  */
 typedef enum
 {
-  GEARMAND_WAKEUP_PAUSE=             (1 << 0),
-  GEARMAND_WAKEUP_SHUTDOWN=          (1 << 1),
-  GEARMAND_WAKEUP_SHUTDOWN_GRACEFUL= (1 << 2),
-  GEARMAND_WAKEUP_CON=               (1 << 3),
-  GEARMAND_WAKEUP_RUN=               (1 << 4)
+  GEARMAND_WAKEUP_PAUSE,
+  GEARMAND_WAKEUP_SHUTDOWN,
+  GEARMAND_WAKEUP_SHUTDOWN_GRACEFUL,
+  GEARMAND_WAKEUP_CON,
+  GEARMAND_WAKEUP_RUN
 } gearmand_wakeup_t;
-
-/**
- * @ingroup gearmand_thread
- * Options for gearmand_thread_st.
- */
-typedef enum
-{
-  GEARMAND_THREAD_WAKEUP_EVENT= (1 << 0),
-  GEARMAND_THREAD_LOCK=         (1 << 1)
-} gearmand_thread_options_t;
 
 
 /**

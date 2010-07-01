@@ -616,7 +616,7 @@ gearman_return_t gearman_connection_flush(gearman_connection_st *connection)
           }
           else if (errno == EINTR)
             continue;
-          else if (errno == EPIPE || errno == ECONNRESET)
+          else if (errno == EPIPE || errno == ECONNRESET || errno == EHOSTDOWN)
           {
             if (! (connection->options.ignore_lost_connection))
             {
@@ -875,7 +875,7 @@ size_t gearman_connection_read(gearman_connection_st *connection, void *data, si
       }
       else if (errno == EINTR)
         continue;
-      else if (errno == EPIPE || errno == ECONNRESET)
+      else if (errno == EPIPE || errno == ECONNRESET || errno == EHOSTDOWN)
       {
         if (! (connection->options.ignore_lost_connection))
         {

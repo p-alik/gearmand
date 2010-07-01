@@ -1,0 +1,21 @@
+# vim:ft=automake
+# included from Top Level Makefile.am
+# All paths should be given relative to the root
+
+
+if HAVE_LIBGTEST
+check_PROGRAMS += unittests/unittests
+endif
+
+unittests_unittests_SOURCES= \
+			     unittests/main.cc
+
+unittests_unittests_CXXFLAGS= ${AM_CXXFLAGS} ${NO_WERROR}
+unittests_unittests_LDADD= \
+			   libgearman/libgearman.la \
+			   libgearman-server/libgearman-server.la \
+			   ${LTLIBGTEST}
+
+# Shorthand
+unit: check-TESTS
+

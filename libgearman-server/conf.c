@@ -21,7 +21,7 @@ gearman_conf_st *gearman_conf_create(gearman_conf_st *conf)
 {
   if (conf == NULL)
   {
-    conf= malloc(sizeof(gearman_conf_st));
+    conf= (gearman_conf_st *)malloc(sizeof(gearman_conf_st));
     if (conf == NULL)
       return NULL;
 
@@ -43,7 +43,7 @@ gearman_conf_st *gearman_conf_create(gearman_conf_st *conf)
   conf->last_error[0]= 0;
 
   /* We always need a NULL terminated getopt list. */
-  conf->option_getopt= malloc(sizeof(struct option));
+  conf->option_getopt= (struct option *)malloc(sizeof(struct option));
   if (conf->option_getopt == NULL)
   {
     gearman_conf_free(conf);
@@ -132,18 +132,17 @@ gearman_return_t gearman_conf_parse_args(gearman_conf_st *conf, int argc,
 
       if (opt_index == (int)conf->option_count)
       {
-        GEARMAN_CONF_ERROR_SET(conf, "ERROR", " Unknown option: %s",
-                               argv[optind - 1]);
+        gearman_conf_error_set(conf, "ERROR", " Unknown option: %s", argv[optind - 1]);
         return GEARMAN_UNKNOWN_OPTION;
       }
     }
 
     option= &conf->option_list[opt_index];
-    value_list= realloc(option->value_list,
-                        sizeof(char *) * (option->value_count + 1));
+    value_list= (char **)realloc(option->value_list,
+                                 sizeof(char *) * (option->value_count + 1));
     if (value_list == NULL)
     {
-      GEARMAN_CONF_ERROR_SET(conf, "gearman_conf_parse_args", "realloc");
+      gearman_conf_error_set(conf, "gearman_conf_parse_args", " realloc");
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
 
@@ -154,8 +153,7 @@ gearman_return_t gearman_conf_parse_args(gearman_conf_st *conf, int argc,
 
   if (optind < argc)
   {
-    GEARMAN_CONF_ERROR_SET(conf, "gearman_conf_parse_args",
-                           "Unknown option: %s", argv[optind]);
+    gearman_conf_error_set(conf, "gearman_conf_parse_args", "Unknown option: %s", argv[optind]);
     return GEARMAN_UNKNOWN_OPTION;
   }
 

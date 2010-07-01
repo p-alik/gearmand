@@ -46,10 +46,10 @@ gearman_return_t gearmand_thread_create(gearmand_st *gearmand)
   gearman_return_t ret;
   int pthread_ret;
 
-  thread= malloc(sizeof(gearmand_thread_st));
+  thread= (gearmand_thread_st *)malloc(sizeof(gearmand_thread_st));
   if (thread == NULL)
   {
-    GEARMAN_FATAL(gearmand, "gearmand_thread_create:malloc")
+    gearmand_log_fatal(gearmand, "gearmand_thread_create:malloc");
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
 
@@ -57,8 +57,7 @@ gearman_return_t gearmand_thread_create(gearmand_st *gearmand)
                                    &(thread->server_thread)) == NULL)
   {
     free(thread);
-    GEARMAN_FATAL(gearmand,
-                  "gearmand_thread_create:gearman_server_thread_create:NULL")
+    gearmand_log_fatal(gearmand, "gearmand_thread_create:gearman_server_thread_create:NULL");
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
 
@@ -67,7 +66,8 @@ gearman_return_t gearmand_thread_create(gearmand_st *gearmand)
   gearman_server_thread_set_event_watch(&(thread->server_thread),
                                         gearmand_connection_watch, NULL);
 
-  thread->options= 0;
+  thread->is_thread_lock= false;
+  thread->is_wakeup_event= false;
   thread->count= 0;
   thread->dcon_count= 0;
   thread->dcon_add_count= 0;
@@ -86,13 +86,13 @@ gearman_return_t gearmand_thread_create(gearmand_st *gearmand)
     thread->base= gearmand->base;
   else
   {
-    GEARMAN_INFO(gearmand, "Initializing libevent for IO thread")
+    gearmand_log_info(gearmand, "Initializing libevent for IO thread");
 
     thread->base= event_base_new();
     if (thread->base == NULL)
     {
       gearmand_thread_free(thread);
-      GEARMAN_FATAL(gearmand, "gearmand_thread_create:event_base_new:NULL")
+      gearmand_log_fatal(gearmand, "gearmand_thread_create:event_base_new:NULL");
       return GEARMAN_EVENT;
     }
   }
@@ -115,12 +115,11 @@ gearman_return_t gearmand_thread_create(gearmand_st *gearmand)
   {
     thread->count= 0;
     gearmand_thread_free(thread);
-    GEARMAN_FATAL(gearmand, "gearmand_thread_create:pthread_mutex_init:%d",
-                  pthread_ret)
+    gearmand_log_fatal(gearmand, "gearmand_thread_create:pthread_mutex_init:%d", pthread_ret);
     return GEARMAN_PTHREAD;
   }
 
-  thread->options|= GEARMAND_THREAD_LOCK;
+  thread->is_thread_lock= true;
 
   gearman_server_thread_set_run(&(thread->server_thread), _run, thread);
 
@@ -129,12 +128,12 @@ gearman_return_t gearmand_thread_create(gearmand_st *gearmand)
   {
     thread->count= 0;
     gearmand_thread_free(thread);
-    GEARMAN_FATAL(gearmand, "gearmand_thread_create:pthread_create:%d",
-                  pthread_ret)
+    gearmand_log_fatal(gearmand, "gearmand_thread_create:pthread_create:%d", pthread_ret);
+
     return GEARMAN_PTHREAD;
   }
 
-  GEARMAN_INFO(gearmand, "Thread %u created", thread->count)
+  gearmand_log_info(gearmand, "Thread %u created", thread->count);
 
   return GEARMAN_SUCCESS;
 }
@@ -145,13 +144,13 @@ void gearmand_thread_free(gearmand_thread_st *thread)
 
   if (thread->gearmand->threads && thread->count > 0)
   {
-    GEARMAN_INFO(thread->gearmand, "Shutting down thread %u", thread->count)
+    gearmand_log_info(thread->gearmand, "Shutting down thread %u", thread->count);
 
     gearmand_thread_wakeup(thread, GEARMAND_WAKEUP_SHUTDOWN);
     (void) pthread_join(thread->id, NULL);
   }
 
-  if (thread->options & GEARMAND_THREAD_LOCK)
+  if (thread->is_thread_lock)
     (void) pthread_mutex_destroy(&(thread->lock));
 
   _wakeup_close(thread);
@@ -183,7 +182,7 @@ void gearmand_thread_free(gearmand_thread_st *thread)
     if (thread->base != NULL)
       event_base_free(thread->base);
 
-    GEARMAN_INFO(thread->gearmand, "Thread %u shutdown complete", thread->count)
+    gearmand_log_info(thread->gearmand, "Thread %u shutdown complete", thread->count);
   }
 
   free(thread);
@@ -197,7 +196,7 @@ void gearmand_thread_wakeup(gearmand_thread_st *thread,
   /* If this fails, there is not much we can really do. This should never fail
      though if the thread is still active. */
   if (write(thread->wakeup_fd[1], &buffer, 1) != 1)
-    GEARMAN_ERROR(thread->gearmand, "gearmand_thread_wakeup:write:%d", errno)
+    gearmand_log_error(thread->gearmand, "gearmand_thread_wakeup:write:%d", errno);
 }
 
 void gearmand_thread_run(gearmand_thread_st *thread)
@@ -225,8 +224,7 @@ void gearmand_thread_run(gearmand_thread_st *thread)
 
     dcon= (gearmand_con_st *)gearman_server_con_data(server_con);
 
-    GEARMAN_INFO(thread->gearmand, "[%4u] %15s:%5s Disconnected", thread->count,
-                 dcon->host, dcon->port)
+    gearmand_log_info(thread->gearmand, "[%4u] %15s:%5s Disconnected", thread->count, dcon->host, dcon->port);
 
     gearmand_con_free(dcon);
   }
@@ -240,17 +238,15 @@ static void *_thread(void *data)
 {
   gearmand_thread_st *thread= (gearmand_thread_st *)data;
 
-  GEARMAN_INFO(thread->gearmand, "[%4u] Entering thread event loop",
-               thread->count)
+  gearmand_log_info(thread->gearmand, "[%4u] Entering thread event loop", thread->count);
 
   if (event_base_loop(thread->base, 0) == -1)
   {
-    GEARMAN_FATAL(thread->gearmand, "_io_thread:event_base_loop:-1")
+    gearmand_log_fatal(thread->gearmand, "_io_thread:event_base_loop:-1");
     thread->gearmand->ret= GEARMAN_EVENT;
   }
 
-  GEARMAN_INFO(thread->gearmand, "[%4u] Exiting thread event loop",
-               thread->count)
+  gearmand_log_info(thread->gearmand, "[%4u] Exiting thread event loop", thread->count);
 
   return NULL;
 }
@@ -276,26 +272,26 @@ static gearman_return_t _wakeup_init(gearmand_thread_st *thread)
 {
   int ret;
 
-  GEARMAN_INFO(thread->gearmand, "Creating IO thread wakeup pipe")
+  gearmand_log_info(thread->gearmand, "Creating IO thread wakeup pipe");
 
   ret= pipe(thread->wakeup_fd);
   if (ret == -1)
   {
-    GEARMAN_FATAL(thread->gearmand, "_wakeup_init:pipe:%d", errno)
+    gearmand_log_fatal(thread->gearmand, "_wakeup_init:pipe:%d", errno);
     return GEARMAN_ERRNO;
   }
 
   ret= fcntl(thread->wakeup_fd[0], F_GETFL, 0);
   if (ret == -1)
   {
-    GEARMAN_FATAL(thread->gearmand, "_wakeup_init:fcntl:F_GETFL:%d", errno)
+    gearmand_log_fatal(thread->gearmand, "_wakeup_init:fcntl:F_GETFL:%d", errno);
     return GEARMAN_ERRNO;
   }
 
   ret= fcntl(thread->wakeup_fd[0], F_SETFL, ret | O_NONBLOCK);
   if (ret == -1)
   {
-    GEARMAN_FATAL(thread->gearmand, "_wakeup_init:fcntl:F_SETFL:%d", errno)
+    gearmand_log_fatal(thread->gearmand, "_wakeup_init:fcntl:F_SETFL:%d", errno);
     return GEARMAN_ERRNO;
   }
 
@@ -305,11 +301,11 @@ static gearman_return_t _wakeup_init(gearmand_thread_st *thread)
 
   if (event_add(&(thread->wakeup_event), NULL) == -1)
   {
-    GEARMAN_FATAL(thread->gearmand, "_wakeup_init:event_add:-1")
+    gearmand_log_fatal(thread->gearmand, "_wakeup_init:event_add:-1");
     return GEARMAN_EVENT;
   }
 
-  thread->options|= GEARMAND_THREAD_WAKEUP_EVENT;
+  thread->is_wakeup_event= true;
 
   return GEARMAN_SUCCESS;
 }
@@ -320,7 +316,7 @@ static void _wakeup_close(gearmand_thread_st *thread)
 
   if (thread->wakeup_fd[0] >= 0)
   {
-    GEARMAN_INFO(thread->gearmand, "Closing IO thread wakeup pipe")
+    gearmand_log_info(thread->gearmand, "Closing IO thread wakeup pipe");
     close(thread->wakeup_fd[0]);
     thread->wakeup_fd[0]= -1;
     close(thread->wakeup_fd[1]);
@@ -330,19 +326,16 @@ static void _wakeup_close(gearmand_thread_st *thread)
 
 static void _wakeup_clear(gearmand_thread_st *thread)
 {
-  if (thread->options & GEARMAND_THREAD_WAKEUP_EVENT)
+  if (thread->is_wakeup_event)
   {
-    GEARMAN_INFO(thread->gearmand,
-                 "[%4u] Clearing event for IO thread wakeup pipe",
-                 thread->count)
+    gearmand_log_info(thread->gearmand, "[%4u] Clearing event for IO thread wakeup pipe", thread->count);
     int del_ret= event_del(&(thread->wakeup_event));
     assert(del_ret == 0);
-    thread->options&= (gearmand_thread_options_t)~GEARMAND_THREAD_WAKEUP_EVENT;
+    thread->is_wakeup_event= false;
   }
 }
 
-static void _wakeup_event(int fd, short events __attribute__ ((unused)),
-                          void *arg)
+static void _wakeup_event(int fd, short events __attribute__ ((unused)), void *arg)
 {
   gearmand_thread_st *thread= (gearmand_thread_st *)arg;
   uint8_t buffer[GEARMAN_PIPE_BUFFER_SIZE];
@@ -355,7 +348,7 @@ static void _wakeup_event(int fd, short events __attribute__ ((unused)),
     if (ret == 0)
     {
       _clear_events(thread);
-      GEARMAN_FATAL(thread->gearmand, "_wakeup_event:read:EOF")
+      gearmand_log_fatal(thread->gearmand, "_wakeup_event:read:EOF");
       thread->gearmand->ret= GEARMAN_PIPE_EOF;
       return;
     }
@@ -368,7 +361,7 @@ static void _wakeup_event(int fd, short events __attribute__ ((unused)),
         break;
 
       _clear_events(thread);
-      GEARMAN_FATAL(thread->gearmand, "_wakeup_event:read:%d", errno)
+      gearmand_log_fatal(thread->gearmand, "_wakeup_event:read:%d", errno);
       thread->gearmand->ret= GEARMAN_ERRNO;
       return;
     }
@@ -378,43 +371,36 @@ static void _wakeup_event(int fd, short events __attribute__ ((unused)),
       switch ((gearmand_wakeup_t)buffer[x])
       {
       case GEARMAND_WAKEUP_PAUSE:
-        GEARMAN_INFO(thread->gearmand, "[%4u] Received PAUSE wakeup event",
-                     thread->count)
+        gearmand_log_info(thread->gearmand, "[%4u] Received PAUSE wakeup event", thread->count);
         break;
 
       case GEARMAND_WAKEUP_SHUTDOWN_GRACEFUL:
-        GEARMAN_INFO(thread->gearmand,
-                     "[%4u] Received SHUTDOWN_GRACEFUL wakeup event",
-                     thread->count)
-        if (gearman_server_shutdown_graceful(&(thread->gearmand->server)) ==
-            GEARMAN_SHUTDOWN)
+        gearmand_log_info(thread->gearmand,
+                          "[%4u] Received SHUTDOWN_GRACEFUL wakeup event",
+                          thread->count);
+        if (gearman_server_shutdown_graceful(&(thread->gearmand->server)) == GEARMAN_SHUTDOWN)
         {
           gearmand_wakeup(thread->gearmand, GEARMAND_WAKEUP_SHUTDOWN);
         }
         break;
 
       case GEARMAND_WAKEUP_SHUTDOWN:
-        GEARMAN_INFO(thread->gearmand, "[%4u] Received SHUTDOWN wakeup event",
-                     thread->count)
+        gearmand_log_info(thread->gearmand, "[%4u] Received SHUTDOWN wakeup event", thread->count);
         _clear_events(thread);
         break;
 
       case GEARMAND_WAKEUP_CON:
-        GEARMAN_INFO(thread->gearmand, "[%4u] Received CON wakeup event",
-                     thread->count)
+        gearmand_log_info(thread->gearmand, "[%4u] Received CON wakeup event", thread->count);
         gearmand_con_check_queue(thread);
         break;
 
       case GEARMAND_WAKEUP_RUN:
-        GEARMAN_DEBUG(thread->gearmand, "[%4u] Received RUN wakeup event",
-                      thread->count)
+        gearmand_log_debug(thread->gearmand, "[%4u] Received RUN wakeup event", thread->count);
         gearmand_thread_run(thread);
         break;
 
       default:
-        GEARMAN_FATAL(thread->gearmand,
-                     "[%4u] Received unknown wakeup event (%u)", thread->count,
-                     buffer[x])
+        gearmand_log_fatal(thread->gearmand, "[%4u] Received unknown wakeup event (%u)", thread->count, buffer[x]);
         _clear_events(thread);
         thread->gearmand->ret= GEARMAN_UNKNOWN_STATE;
         break;

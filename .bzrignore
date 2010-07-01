@@ -31,6 +31,7 @@ config/install-sh
 config/ltmain.sh
 config/missing
 config/plugin.ac
+config/pandora_vc_revinfo
 configure
 configure.h
 docs/api
@@ -75,3 +76,5 @@ tests/tokyocabinet_test
 tests/tokyocabinet_test.res
 tests/worker_test
 tests/worker_test.res
+tests/unittests
+unittests/unittests

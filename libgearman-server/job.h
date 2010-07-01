@@ -34,8 +34,9 @@ struct gearman_server_job_st
   struct {
     bool allocated;
   } options;
-  gearman_server_job_state_t state;
   gearman_job_priority_t priority;
+  bool ignore_job;
+  bool job_queued;
   uint32_t job_handle_key;
   uint32_t unique_key;
   uint32_t client_count;
@@ -90,7 +91,8 @@ void gearman_server_job_free(gearman_server_job_st *server_job);
  */
 GEARMAN_API
 gearman_server_job_st *gearman_server_job_get(gearman_server_st *server,
-                                              const char *job_handle);
+                                              const char *job_handle,
+                                              gearman_server_con_st *worker_con);
 
 /**
  * See if there are any jobs to be run for the server worker connection.

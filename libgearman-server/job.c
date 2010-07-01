@@ -142,7 +142,7 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
 
     if (server->state.queue_startup)
     {
-      server_job->state|= GEARMAN_SERVER_JOB_QUEUED;
+      server_job->job_queued= true;
     }
     else if (server_client == NULL && server->queue_add_fn != NULL)
     {
@@ -173,7 +173,7 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
         }
       }
 
-      server_job->state|= GEARMAN_SERVER_JOB_QUEUED;
+      server_job->job_queued= true;
     }
 
     *ret_ptr= gearman_server_job_queue(server_job);
@@ -218,7 +218,7 @@ gearman_server_job_create(gearman_server_st *server,
     }
     else
     {
-      server_job= malloc(sizeof(gearman_server_job_st));
+      server_job= (gearman_server_job_st *)malloc(sizeof(gearman_server_job_st));
       if (server_job == NULL)
         return NULL;
     }
@@ -228,7 +228,8 @@ gearman_server_job_create(gearman_server_st *server,
   else
     server_job->options.allocated= false;
 
-  memset(&server_job->state, 0, sizeof(gearman_server_job_state_t));
+  server_job->ignore_job= false;
+  server_job->job_queued= false;
   server_job->retries= 0;
   server_job->priority= 0;
   server_job->job_handle_key= 0;
@@ -289,12 +290,12 @@ void gearman_server_job_free(gearman_server_job_st *server_job)
 }
 
 gearman_server_job_st *gearman_server_job_get(gearman_server_st *server,
-                                              const char *job_handle)
+                                              const char *job_handle,
+                                              gearman_server_con_st *worker_con)
 {
   uint32_t key;
 
   key= _server_job_hash(job_handle, strlen(job_handle));
-  time_t currtime = time(NULL);
   
   for (gearman_server_job_st *server_job= server->job_hash[key % GEARMAN_JOB_HASH_SIZE];
        server_job != NULL; server_job= server_job->next)
@@ -302,6 +303,13 @@ gearman_server_job_st *gearman_server_job_get(gearman_server_st *server,
     if (server_job->job_handle_key == key &&
         !strcmp(server_job->job_handle, job_handle))
     {
+      /* Check to make sure the worker asking for the job still owns the job. */
+      if (worker_con != NULL &&
+          (server_job->worker == NULL || server_job->worker->con != worker_con))
+      {
+        return NULL;
+      }
+
       return server_job;
     }
   }
@@ -325,13 +333,14 @@ gearman_server_job_peek(gearman_server_con_st *server_con)
       {
         if (server_worker->function->job_list[priority] != NULL)
         {
-          if (server_worker->function->job_list[priority]->state & GEARMAN_SERVER_JOB_IGNORE)
+          if (server_worker->function->job_list[priority]->ignore_job)
           {
             /* This is only happens when a client disconnects from a foreground
-               job. We do this because we don't want to run the job anymore. */
-            server_worker->function->job_list[priority]->state&=
-                       (gearman_server_job_state_t)~GEARMAN_SERVER_JOB_IGNORE;
+              job. We do this because we don't want to run the job anymore. */
+            server_worker->function->job_list[priority]->ignore_job= false;
+
             gearman_server_job_free(gearman_server_job_take(server_con));
+
             return gearman_server_job_peek(server_con);
           }
           return server_worker->function->job_list[priority];
@@ -392,13 +401,16 @@ gearman_server_job_take(gearman_server_con_st *server_con)
   }
 
   server_job= server_worker->function->job_list[priority];
+
   gearman_server_job_st *previous_job = server_job;
   
   time_t current_time = time(NULL);
   
-  while(server_job != NULL && server_job->when != NULL && server_job->when > current_time)
+  while(server_job != NULL && 
+        server_job->when != 0 && 
+        server_job->when > current_time)
   {
-    GEARMAN_DEBUG(server_con->thread->gearman, "%d is after current time of %d!", server_job->when, current_time)
+    gearman_log_debug(server_con->thread->gearman, "%d is after current time of %d!", server_job->when, current_time);
     previous_job = server_job;
     server_job = server_job->function_next;  
   }
@@ -415,7 +427,7 @@ gearman_server_job_take(gearman_server_con_st *server_con)
     GEARMAN_LIST_ADD(server_worker->job, server_job, worker_)
     server_job->function->job_running++;
 
-    if (server_job->state & GEARMAN_SERVER_JOB_IGNORE)
+    if (server_job->ignore_job)
     {
       gearman_server_job_free(server_job);
       return gearman_server_job_take(server_con);
@@ -437,7 +449,7 @@ gearman_return_t gearman_server_job_queue(gearman_server_job_st *job)
     job->retries++;
     if (job->server->job_retries == job->retries)
     {
-       GEARMAN_SERVER_ERROR(job->server,
+       gearman_log_error(job->server->gearman,
                             "Dropped job due to max retry count: %s %s",
                             job->job_handle, job->unique);
        for (client= job->client_list; client != NULL; client= client->job_next)
@@ -450,6 +462,19 @@ gearman_return_t gearman_server_job_queue(gearman_server_job_st *job)
                                            NULL);
          if (ret != GEARMAN_SUCCESS)
            return ret;
+      }
+
+      /* Remove from persistent queue if one exists. */
+      if (job->job_queued && job->server->queue_done_fn != NULL)
+      {
+        ret= (*(job->server->queue_done_fn))(job->server,
+                                             (void *)job->server->queue_context,
+                                             job->unique,
+                                             (size_t)strlen(job->unique),
+                                             job->function->function_name,
+                                             job->function->function_name_size);
+        if (ret != GEARMAN_SUCCESS)
+          return ret;
       }
 
       gearman_server_job_free(job);
@@ -471,8 +496,7 @@ gearman_return_t gearman_server_job_queue(gearman_server_job_st *job)
     noop_sent= 0;
     do
     {
-      if (worker->con->options & GEARMAN_SERVER_CON_SLEEPING &&
-          !(worker->con->options & GEARMAN_SERVER_CON_NOOP_SENT))
+      if (worker->con->is_sleeping && ! (worker->con->is_noop_sent))
       {
         ret= gearman_server_io_packet_add(worker->con, false,
                                           GEARMAN_MAGIC_RESPONSE,
@@ -480,7 +504,7 @@ gearman_return_t gearman_server_job_queue(gearman_server_job_st *job)
         if (ret != GEARMAN_SUCCESS)
           return ret;
 
-        worker->con->options|= GEARMAN_SERVER_CON_NOOP_SENT;
+        worker->con->is_noop_sent= true;
         noop_sent++;
       }
 

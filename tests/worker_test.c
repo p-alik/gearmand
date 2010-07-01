@@ -18,6 +18,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#define GEARMAN_CORE
+
 #include <libgearman/gearman.h>
 
 #include "test.h"
@@ -355,6 +357,121 @@ static test_return_t echo_max_test(void *object)
   return TEST_SUCCESS;
 }
 
+static test_return_t abandoned_worker_test(void *object __attribute__((unused)))
+{
+  gearman_client_st client;
+  char job_handle[GEARMAN_JOB_HANDLE_SIZE];
+  gearman_return_t ret;
+  gearman_universal_st gearman;
+  gearman_connection_st worker1;
+  gearman_connection_st worker2;
+  gearman_packet_st packet;
+  const void *args[2];
+  size_t args_size[2];
+
+  assert(gearman_client_create(&client) != NULL);
+  gearman_client_add_server(&client, NULL, WORKER_TEST_PORT);
+  ret= gearman_client_do_background(&client, "abandoned_worker", NULL, NULL, 0,
+                                    job_handle);
+  if (ret != GEARMAN_SUCCESS)
+  {
+    printf("abandoned_worker_test:%s\n", gearman_client_error(&client));
+    return TEST_FAILURE;
+  }
+  gearman_client_free(&client);
+
+  /* Now take job with one worker. */
+  if (gearman_universal_create(&gearman, NULL) == NULL)
+    return TEST_FAILURE;
+
+  if (gearman_connection_create(&gearman, &worker1, NULL) == NULL)
+    return TEST_FAILURE;
+
+  gearman_connection_set_host(&worker1, NULL, WORKER_TEST_PORT);
+
+  args[0]= "abandoned_worker";
+  args_size[0]= strlen("abandoned_worker");
+  if (gearman_packet_create_args(&gearman, &packet, GEARMAN_MAGIC_REQUEST,
+                                 GEARMAN_COMMAND_CAN_DO,
+                                 args, args_size, 1) != GEARMAN_SUCCESS)
+  {
+    return TEST_FAILURE;
+  }
+
+  if (gearman_connection_send(&worker1, &packet, true) != GEARMAN_SUCCESS)
+    return TEST_FAILURE;
+
+  gearman_packet_free(&packet);
+
+  if (gearman_packet_create_args(&gearman, &packet, GEARMAN_MAGIC_REQUEST,
+                                 GEARMAN_COMMAND_GRAB_JOB,
+                                 NULL, NULL, 0) != GEARMAN_SUCCESS)
+  {
+    return TEST_FAILURE;
+  }
+
+  if (gearman_connection_send(&worker1, &packet, true) != GEARMAN_SUCCESS)
+    return TEST_FAILURE;
+
+  gearman_packet_free(&packet);
+
+  gearman_connection_recv(&worker1, &packet, &ret, false);
+  if (ret != GEARMAN_SUCCESS || packet.command != GEARMAN_COMMAND_JOB_ASSIGN)
+    return TEST_FAILURE;
+
+  if (strcmp(job_handle, packet.arg[0]))
+  {
+    printf("unexpected job: %s != %s\n", job_handle, (char *)packet.arg[0]);
+    return TEST_FAILURE;
+  }
+
+  gearman_packet_free(&packet);
+
+  if (gearman_connection_create(&gearman, &worker2, NULL) == NULL)
+    return TEST_FAILURE;
+
+  gearman_connection_set_host(&worker2, NULL, WORKER_TEST_PORT);
+
+  args[0]= "abandoned_worker";
+  args_size[0]= strlen("abandoned_worker");
+  if (gearman_packet_create_args(&gearman, &packet, GEARMAN_MAGIC_REQUEST,
+                                 GEARMAN_COMMAND_CAN_DO,
+                                 args, args_size, 1) != GEARMAN_SUCCESS)
+  {
+    return TEST_FAILURE;
+  }
+
+  if (gearman_connection_send(&worker2, &packet, true) != GEARMAN_SUCCESS)
+    return TEST_FAILURE;
+
+  gearman_packet_free(&packet);
+
+  args[0]= job_handle;
+  args_size[0]= strlen(job_handle) + 1;
+  args[1]= "test";
+  args_size[1]= 4;
+  if (gearman_packet_create_args(&gearman, &packet, GEARMAN_MAGIC_REQUEST,
+                                 GEARMAN_COMMAND_WORK_COMPLETE,
+                                 args, args_size, 2) != GEARMAN_SUCCESS)
+  {
+    return TEST_FAILURE;
+  }
+
+  if (gearman_connection_send(&worker2, &packet, true) != GEARMAN_SUCCESS)
+    return TEST_FAILURE;
+
+  gearman_packet_free(&packet);
+
+  gearman_universal_set_timeout(&gearman, 1000);
+  gearman_connection_recv(&worker2, &packet, &ret, false);
+  if (ret != GEARMAN_SUCCESS || packet.command != GEARMAN_COMMAND_ERROR)
+    return TEST_FAILURE;
+
+  gearman_packet_free(&packet);
+  gearman_universal_free(&gearman);
+
+  return TEST_SUCCESS;
+}
 
 static void *_gearman_worker_add_function_worker_fn(gearman_job_st *job __attribute__((unused)),
 						    void *context __attribute__((unused)),
@@ -559,8 +676,8 @@ void *world_create(test_return_t *error)
 test_return_t world_destroy(void *object)
 {
   worker_test_st *test= (worker_test_st *)object;
-  gearman_worker_free(&(test->worker));
   test_gearmand_stop(test->gearmand_pid);
+  gearman_worker_free(&(test->worker));
   free(test);
 
   return TEST_SUCCESS;
@@ -579,6 +696,7 @@ test_st tests[] ={
   {"gearman_worker_work with timout", 0, gearman_worker_work_with_test },
   {"gearman_worker_context", 0, gearman_worker_context_test },
   {"echo_max", 0, echo_max_test },
+  {"abandoned_worker", 0, abandoned_worker_test },
   {0, 0, 0}
 };
 
