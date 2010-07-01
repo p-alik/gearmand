@@ -42,6 +42,7 @@ struct gearman_server_job_st
   uint32_t numerator;
   uint32_t denominator;
   size_t data_size;
+  time_t when;
   gearman_server_st *server;
   gearman_server_job_st *next;
   gearman_server_job_st *prev;
@@ -68,7 +69,7 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
                        size_t unique_size, const void *data, size_t data_size,
                        gearman_job_priority_t priority,
                        gearman_server_client_st *server_client,
-                       gearman_return_t *ret_ptr);
+                       gearman_return_t *ret_ptr, time_t when);
 
 /**
  * Initialize a server job structure.

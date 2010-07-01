@@ -55,7 +55,7 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
                        size_t unique_size, const void *data, size_t data_size,
                        gearman_job_priority_t priority,
                        gearman_server_client_st *server_client,
-                       gearman_return_t *ret_ptr)
+                       gearman_return_t *ret_ptr, time_t when)
 {
   gearman_server_job_st *server_job;
   gearman_server_function_st *server_function;
@@ -128,7 +128,8 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
     server->job_handle_count++;
     server_job->data= data;
     server_job->data_size= data_size;
-
+		server_job->when = when; 
+		
     server_job->unique_key= key;
     key= key % GEARMAN_JOB_HASH_SIZE;
     GEARMAN_HASH_ADD(server->unique, key, server_job, unique_);
@@ -151,7 +152,8 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
                                           unique_size,
                                           function_name,
                                           function_name_size,
-                                          data, data_size, priority);
+                                          data, data_size, priority, 
+                                          when);
       if (*ret_ptr != GEARMAN_SUCCESS)
       {
         server_job->data= NULL;
@@ -292,7 +294,8 @@ gearman_server_job_st *gearman_server_job_get(gearman_server_st *server,
   uint32_t key;
 
   key= _server_job_hash(job_handle, strlen(job_handle));
-
+  time_t currtime = time(NULL);
+  
   for (gearman_server_job_st *server_job= server->job_hash[key % GEARMAN_JOB_HASH_SIZE];
        server_job != NULL; server_job= server_job->next)
   {
@@ -389,21 +392,36 @@ gearman_server_job_take(gearman_server_con_st *server_con)
   }
 
   server_job= server_worker->function->job_list[priority];
-  server_job->function->job_list[priority]= server_job->function_next;
-  if (server_job->function->job_end[priority] == server_job)
-    server_job->function->job_end[priority]= NULL;
-  server_job->function->job_count--;
-
-  server_job->worker= server_worker;
-  GEARMAN_LIST_ADD(server_worker->job, server_job, worker_)
-  server_job->function->job_running++;
-
-  if (server_job->state & GEARMAN_SERVER_JOB_IGNORE)
+  gearman_server_job_st *previous_job = server_job;
+  
+  time_t current_time = time(NULL);
+  
+  while(server_job != NULL && server_job->when != NULL && server_job->when > current_time)
   {
-    gearman_server_job_free(server_job);
-    return gearman_server_job_take(server_con);
+    GEARMAN_DEBUG(server_con->thread->gearman, "%d is after current time of %d!", server_job->when, current_time)
+    previous_job = server_job;
+    server_job = server_job->function_next;  
   }
+  
+  if (server_job != NULL)
+  {
+    previous_job->function_next = server_job->function_next;
+    server_job->function->job_list[priority]= server_job->function_next;
+    if (server_job->function->job_end[priority] == server_job)
+      server_job->function->job_end[priority]= NULL;
+    server_job->function->job_count--;
 
+    server_job->worker= server_worker;
+    GEARMAN_LIST_ADD(server_worker->job, server_job, worker_)
+    server_job->function->job_running++;
+
+    if (server_job->state & GEARMAN_SERVER_JOB_IGNORE)
+    {
+      gearman_server_job_free(server_job);
+      return gearman_server_job_take(server_con);
+    }
+  }
+  
   return server_job;
 }
 
@@ -501,6 +519,7 @@ static uint32_t _server_job_hash(const char *key, size_t key_size)
     value += (value << 10);
     value ^= (value >> 6);
   }
+
   value += (value << 3);
   value ^= (value >> 11);
   value += (value << 15);

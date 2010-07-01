@@ -31,7 +31,7 @@ gearman_return_t _queue_replay_add(gearman_server_st *server, void *context,
                                    const void *function_name,
                                    size_t function_name_size, const void *data,
                                    size_t data_size,
-                                   gearman_job_priority_t priority);
+                                   gearman_job_priority_t priority, time_t when);
 
 /**
  * Queue an error packet.
@@ -251,9 +251,11 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
   case GEARMAN_COMMAND_SUBMIT_JOB_HIGH_BG:
   case GEARMAN_COMMAND_SUBMIT_JOB_LOW:
   case GEARMAN_COMMAND_SUBMIT_JOB_LOW_BG:
+  case GEARMAN_COMMAND_SUBMIT_JOB_EPOCH:
 
     if (packet->command == GEARMAN_COMMAND_SUBMIT_JOB ||
-        packet->command == GEARMAN_COMMAND_SUBMIT_JOB_BG)
+        packet->command == GEARMAN_COMMAND_SUBMIT_JOB_BG ||
+        packet->command == GEARMAN_COMMAND_SUBMIT_JOB_EPOCH)
     {
       priority= GEARMAN_JOB_PRIORITY_NORMAL;
     }
@@ -267,7 +269,8 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
 
     if (packet->command == GEARMAN_COMMAND_SUBMIT_JOB_BG ||
         packet->command == GEARMAN_COMMAND_SUBMIT_JOB_HIGH_BG ||
-        packet->command == GEARMAN_COMMAND_SUBMIT_JOB_LOW_BG)
+        packet->command == GEARMAN_COMMAND_SUBMIT_JOB_LOW_BG ||
+        packet->command == GEARMAN_COMMAND_SUBMIT_JOB_EPOCH)
     {
       server_client= NULL;
     }
@@ -278,14 +281,33 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
         return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
 
-    /* Create a job. */
-    server_job= gearman_server_job_add(server_con->thread->server,
-                                       (char *)(packet->arg[0]),
-                                       packet->arg_size[0] - 1,
-                                       (char *)(packet->arg[1]),
-                                       packet->arg_size[1] - 1, packet->data,
-                                       packet->data_size, priority,
-                                       server_client, &ret);
+
+    if (packet->command == GEARMAN_COMMAND_SUBMIT_JOB_EPOCH)
+    {
+      GEARMAN_DEBUG(server_con->thread->gearman, "Received EPOCH job submission with data: %s", packet->data)
+      uint seconds;
+      sscanf((char *)packet->arg[2], "%u", &seconds);
+      time_t when = seconds;
+      GEARMAN_DEBUG(server_con->thread->gearman, "Epoch time: %d\n", when)
+      GEARMAN_DEBUG(server_con->thread->gearman, "Unique key: %s\n", (char *)(packet->arg[1]))
+      server_job= gearman_server_job_add(server_con->thread->server,
+                                         (char *)(packet->arg[0]),
+                                         packet->arg_size[0] - 1,
+                                         (char *)(packet->arg[1]),
+                                         packet->arg_size[1] - 1, packet->data,
+                                         packet->data_size, priority,
+                                         server_client, &ret, when);
+    } else {
+      /* Create a non-scheduled job. */
+      server_job= gearman_server_job_add(server_con->thread->server,
+                                         (char *)(packet->arg[0]),
+                                         packet->arg_size[0] - 1,
+                                         (char *)(packet->arg[1]),
+                                         packet->arg_size[1] - 1, packet->data,
+                                         packet->data_size, priority,
+                                         server_client, &ret, 0);
+    }
+    
     if (ret == GEARMAN_SUCCESS)
     {
       packet->options.free_data= false;
@@ -630,7 +652,6 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
   case GEARMAN_COMMAND_ALL_YOURS:
   case GEARMAN_COMMAND_OPTION_RES:
   case GEARMAN_COMMAND_SUBMIT_JOB_SCHED:
-  case GEARMAN_COMMAND_SUBMIT_JOB_EPOCH:
   case GEARMAN_COMMAND_JOB_ASSIGN_UNIQ:
   case GEARMAN_COMMAND_MAX:
   default:
@@ -713,13 +734,13 @@ gearman_return_t _queue_replay_add(gearman_server_st *server,
                                    const void *function_name,
                                    size_t function_name_size, const void *data,
                                    size_t data_size,
-                                   gearman_job_priority_t priority)
+                                   gearman_job_priority_t priority, time_t when)
 {
   gearman_return_t ret;
 
   (void)gearman_server_job_add(server, (char *)function_name,
                                function_name_size, (char *)unique, unique_size,
-                               data, data_size, priority, NULL, &ret);
+                               data, data_size, priority, NULL, &ret, when);
   return ret;
 }
 

@@ -132,7 +132,8 @@ typedef gearman_return_t (gearman_queue_add_fn)(gearman_server_st *server,
                                                 size_t function_name_size,
                                                 const void *data,
                                                 size_t data_size,
-                                               gearman_job_priority_t priority);
+                                                gearman_job_priority_t priority,
+                                                time_t when);
 typedef gearman_return_t (gearman_queue_flush_fn)(gearman_server_st *server,
                                                   void *context);
 typedef gearman_return_t (gearman_queue_done_fn)(gearman_server_st *server,
