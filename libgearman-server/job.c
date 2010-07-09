@@ -322,6 +322,7 @@ gearman_server_job_peek(gearman_server_con_st *server_con)
 {
   gearman_server_worker_st *server_worker;
   gearman_job_priority_t priority;
+  gearman_server_job_st *server_job;
 
   for (server_worker= server_con->worker_list; server_worker != NULL;
        server_worker= server_worker->con_next)
@@ -331,23 +332,38 @@ gearman_server_job_peek(gearman_server_con_st *server_con)
       for (priority= GEARMAN_JOB_PRIORITY_HIGH;
            priority != GEARMAN_JOB_PRIORITY_MAX; priority++)
       {
-        if (server_worker->function->job_list[priority] != NULL)
+
+        server_job= server_worker->function->job_list[priority];
+
+        time_t current_time = time(NULL);
+
+        while(server_job != NULL && 
+             server_job->when != 0 && 
+             server_job->when > current_time)
         {
-          if (server_worker->function->job_list[priority]->ignore_job)
+          server_job = server_job->function_next;  
+        }
+        
+        if (server_job != NULL)
+        {
+
+          if (server_job->ignore_job)
           {
             /* This is only happens when a client disconnects from a foreground
               job. We do this because we don't want to run the job anymore. */
-            server_worker->function->job_list[priority]->ignore_job= false;
+            server_job->ignore_job= false;
 
             gearman_server_job_free(gearman_server_job_take(server_con));
 
             return gearman_server_job_peek(server_con);
           }
-          return server_worker->function->job_list[priority];
+        
+          return server_job;
         }
       }
     }
   }
+  
 
   return NULL;
 }
@@ -370,67 +386,67 @@ gearman_server_job_st *
 gearman_server_job_take(gearman_server_con_st *server_con)
 {
   gearman_server_worker_st *server_worker;
-  gearman_server_job_st *server_job;
+  gearman_server_job_st *server_job = NULL;
   gearman_job_priority_t priority;
 
   for (server_worker= server_con->worker_list; server_worker != NULL;
        server_worker= server_worker->con_next)
   {
     if (server_worker->function->job_count != 0)
-      break;
-  }
-
-  if (server_worker == NULL)
-    return NULL;
-
-  if (server_con->thread->server->flags.round_robin)
-  {
-    GEARMAN_LIST_DEL(server_con->worker, server_worker, con_)
-    _server_con_worker_list_append(server_con->worker_list, server_worker);
-    ++server_con->worker_count;
-    if (server_con->worker_list == NULL) {
-      server_con->worker_list= server_worker;
-    }
-  }
-
-  for (priority= GEARMAN_JOB_PRIORITY_HIGH;
-       priority != GEARMAN_JOB_PRIORITY_MAX; priority++)
-  {
-    if (server_worker->function->job_list[priority] != NULL)
-      break;
-  }
-
-  server_job= server_worker->function->job_list[priority];
-
-  gearman_server_job_st *previous_job = server_job;
-  
-  time_t current_time = time(NULL);
-  
-  while(server_job != NULL && 
-        server_job->when != 0 && 
-        server_job->when > current_time)
-  {
-    gearman_log_debug(server_con->thread->gearman, "%d is after current time of %d!", server_job->when, current_time);
-    previous_job = server_job;
-    server_job = server_job->function_next;  
-  }
-  
-  if (server_job != NULL)
-  {
-    previous_job->function_next = server_job->function_next;
-    server_job->function->job_list[priority]= server_job->function_next;
-    if (server_job->function->job_end[priority] == server_job)
-      server_job->function->job_end[priority]= NULL;
-    server_job->function->job_count--;
-
-    server_job->worker= server_worker;
-    GEARMAN_LIST_ADD(server_worker->job, server_job, worker_)
-    server_job->function->job_running++;
-
-    if (server_job->ignore_job)
     {
-      gearman_server_job_free(server_job);
-      return gearman_server_job_take(server_con);
+  
+      if (server_worker == NULL)
+        return NULL;
+
+      if (server_con->thread->server->flags.round_robin)
+      {
+        GEARMAN_LIST_DEL(server_con->worker, server_worker, con_)
+        _server_con_worker_list_append(server_con->worker_list, server_worker);
+        ++server_con->worker_count;
+        if (server_con->worker_list == NULL) {
+          server_con->worker_list= server_worker;
+        }
+      }
+
+      for (priority= GEARMAN_JOB_PRIORITY_HIGH;
+           priority != GEARMAN_JOB_PRIORITY_MAX; priority++)
+      {
+        if (server_worker->function->job_list[priority] != NULL)
+          break;
+      }
+
+      server_job= server_worker->function->job_list[priority];
+
+      gearman_server_job_st *previous_job = server_job;
+  
+      time_t current_time = time(NULL);
+  
+      while(server_job != NULL && 
+            server_job->when != 0 && 
+            server_job->when > current_time)
+      {
+        previous_job = server_job;
+        server_job = server_job->function_next;  
+      }
+  
+      if (server_job != NULL)
+      {    
+        previous_job->function_next = server_job->function_next;
+        //server_job->function->job_list[priority]= server_job->function_next;
+        if (server_job->function->job_end[priority] == server_job)
+          server_job->function->job_end[priority]= previous_job;
+        server_job->function->job_count--;
+
+        server_job->worker= server_worker;
+        GEARMAN_LIST_ADD(server_worker->job, server_job, worker_)
+        server_job->function->job_running++;
+
+        if (server_job->ignore_job)
+        {
+          gearman_server_job_free(server_job);
+          return gearman_server_job_take(server_con);
+        }
+      }
     }
   }
   
