@@ -430,9 +430,17 @@ gearman_server_job_take(gearman_server_con_st *server_con)
       }
   
       if (server_job != NULL)
-      {    
-        previous_job->function_next = server_job->function_next;
-        //server_job->function->job_list[priority]= server_job->function_next;
+      { 
+        if (server_job->function->job_list[priority] == server_job)
+        {
+          // If it's the head of the list, advance it
+          server_job->function->job_list[priority]= server_job->function_next;
+        } else {
+          // Otherwise, just remove the item from the list
+          previous_job->function_next = server_job->function_next;
+        }
+        
+        // If it's the tail of the list, move the tail back
         if (server_job->function->job_end[priority] == server_job)
           server_job->function->job_end[priority]= previous_job;
         server_job->function->job_count--;
@@ -446,11 +454,13 @@ gearman_server_job_take(gearman_server_con_st *server_con)
           gearman_server_job_free(server_job);
           return gearman_server_job_take(server_con);
         }
+        
+        return server_job;
       }
     }
   }
   
-  return server_job;
+  return NULL;
 }
 
 gearman_return_t gearman_server_job_queue(gearman_server_job_st *job)
