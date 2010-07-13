@@ -56,7 +56,7 @@ static gearman_return_t _libdrizzle_add(gearman_server_st *server,
                                         const void *function_name,
                                         size_t function_name_size,
                                         const void *data, size_t data_size,
-                                        gearman_job_priority_t priority);
+                                        gearman_job_priority_t priority, time_t when);
 static gearman_return_t _libdrizzle_flush(gearman_server_st *gearman,
                                           void *context);
 static gearman_return_t _libdrizzle_done(gearman_server_st *gearman,
@@ -224,7 +224,8 @@ gearman_return_t gearman_server_queue_libdrizzle_init(gearman_server_st *server,
                "unique_key VARCHAR(%d) PRIMARY KEY,"
                "function_name VARCHAR(255),"
                "priority INT,"
-               "data LONGBLOB"
+               "data LONGBLOB," 
+               "when_to_run INT"
              ")",
              queue->table, GEARMAN_UNIQUE_SIZE);
 
@@ -317,7 +318,7 @@ static gearman_return_t _libdrizzle_add(gearman_server_st *server,
                                         const void *function_name,
                                         size_t function_name_size,
                                         const void *data, size_t data_size,
-                                        gearman_job_priority_t priority)
+                                        gearman_job_priority_t priority, time_t when)
 {
   gearman_queue_libdrizzle_st *queue= (gearman_queue_libdrizzle_st *)context;
   char *query;
@@ -357,8 +358,8 @@ static gearman_return_t _libdrizzle_add(gearman_server_st *server,
   }
 
   query_size= (size_t)snprintf(query, query_size,
-                               "INSERT INTO %s SET priority=%u,unique_key='",
-                               queue->table, (uint32_t)priority);
+                               "INSERT INTO %s SET priority=%u,when_to_run=%llu,unique_key='",
+                               queue->table, (uint32_t)priority, (long long unsigned int)when);
 
   query_size+= (size_t)drizzle_escape_string(query + query_size, unique,
                                              unique_size);
@@ -372,6 +373,7 @@ static gearman_return_t _libdrizzle_add(gearman_server_st *server,
 
   query_size+= (size_t)drizzle_escape_string(query + query_size, data,
                                              data_size);
+
   memcpy(query + query_size, "'", 1);
   query_size+= 1;
 
@@ -467,7 +469,7 @@ static gearman_return_t _libdrizzle_replay(gearman_server_st *server,
     query= queue->query;
 
   query_size= (size_t)snprintf(query, GEARMAN_QUEUE_QUERY_BUFFER,
-                               "SELECT unique_key,function_name,priority,data "
+                               "SELECT unique_key,function_name,priority,data,when_to_run "
                                "FROM %s",
                                queue->table);
 
@@ -498,10 +500,10 @@ static gearman_return_t _libdrizzle_replay(gearman_server_st *server,
 
     field_sizes= drizzle_row_field_sizes(&(queue->result));
 
-    gearman_log_debug(server->gearman, "libdrizzle replay: %.*s", (uint32_t)field_sizes[0], row[1]);
+    gearman_log_debug(server->gearman, "libdrizzle replay: %.*s", (uint32_t)field_sizes[1], row[1]);
 
     gret= (*add_fn)(server, add_context, row[0], field_sizes[0], row[1],
-                    field_sizes[1], row[3], field_sizes[3], atoi(row[2]));
+                    field_sizes[1], row[3], field_sizes[3], atoi(row[2]), (time_t)(atoi(row[4])));
     if (gret != GEARMAN_SUCCESS)
     {
       drizzle_row_free(&(queue->result), row);
