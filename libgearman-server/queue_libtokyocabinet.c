@@ -34,7 +34,7 @@ static gearman_return_t _libtokyocabinet_add(gearman_server_st *server, void *co
                                              const void *function_name,
                                              size_t function_name_size,
                                              const void *data, size_t data_size,
-                                             gearman_job_priority_t priority);
+                                             gearman_job_priority_t priority, time_t when);
 static gearman_return_t _libtokyocabinet_flush(gearman_server_st *server, void *context);
 static gearman_return_t _libtokyocabinet_done(gearman_server_st *server, void *context,
                                               const void *unique,
@@ -210,14 +210,14 @@ static gearman_return_t _libtokyocabinet_add(gearman_server_st *server, void *co
                                              const void *function_name,
                                              size_t function_name_size,
                                              const void *data, size_t data_size,
-                                             gearman_job_priority_t priority)
+                                             gearman_job_priority_t priority, time_t when)
 {
   gearman_queue_libtokyocabinet_st *queue= (gearman_queue_libtokyocabinet_st *)context;
   bool rc;
   TCXSTR *key;
   TCXSTR *job_data;
 
-  gearman_log_debug(server->gearman, "libtokyocabinet add: %.*s", (uint32_t)unique_size, (char *)unique);
+  gearman_log_debug(server->gearman, "libtokyocabinet add: %.*s @ %ld", (uint32_t)unique_size, (char *)unique, (long int)when);
 
   char key_str[GEARMAN_QUEUE_TOKYOCABINET_MAX_KEY_LEN];
   size_t key_length= (size_t)snprintf(key_str, GEARMAN_QUEUE_TOKYOCABINET_MAX_KEY_LEN, "%.*s-%.*s",
@@ -251,6 +251,15 @@ static gearman_return_t _libtokyocabinet_add(gearman_server_st *server, void *co
      tcxstrcat2(job_data,"1");
   }
 
+  // get time_t as string
+  char timestr[16];
+  snprintf(timestr, 16, "%lu", when);
+
+  // append to job_data
+  tcxstrcat(job_data, (const char *)timestr, strlen(timestr));
+  tcxstrcat(job_data, "\0", 1);
+  
+  // add the rest...
   tcxstrcat(job_data, (const char *)data, (int)data_size);
 
   rc= tcadbput(queue->db, tcxstrptr(key), tcxstrsize(key),
@@ -322,6 +331,7 @@ static gearman_return_t _callback_for_record(gearman_server_st *server,
   size_t unique_len;
   gearman_job_priority_t priority;
   gearman_return_t gret;
+  time_t when; 
   
   gearman_log_debug(server->gearman, "replaying: %s", (char *) tcxstrptr(key));
 
@@ -354,6 +364,18 @@ static gearman_return_t _callback_for_record(gearman_server_st *server,
   ++data_cstr;
   --data_cstr_size;
 
+  // out ptr for strtoul
+  char *new_data_cstr = NULL;
+  
+  // parse time from record
+  when = (time_t)strtoul(data_cstr, &new_data_cstr, 10);
+  
+  // decrease opaque data size by the length of the numbers read by strtoul
+  data_cstr_size -= (new_data_cstr - data_cstr) + 1;
+  
+  // move data pointer to end of timestamp + 1 (null)
+  data_cstr = new_data_cstr + 1; 
+  
   // data is freed later so we must make a copy
   void *data_ptr= (void *)malloc(data_cstr_size);
   if (data_ptr == NULL)
@@ -365,7 +387,7 @@ static gearman_return_t _callback_for_record(gearman_server_st *server,
   gret = (*add_fn)(server, add_context, unique, unique_len,
                    function, function_len,
                    data_ptr, data_cstr_size,
-                   priority);
+                   priority, when);
 
   if (gret != GEARMAN_SUCCESS)
   {
