@@ -95,6 +95,12 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
     buffer_ptr+= strlen(buffer_ptr);
   }
 
+  if (getuid() == 0 || geteuid() == 0)
+  {
+    snprintf(buffer_ptr, sizeof(buffer), " -u root ");
+    buffer_ptr+= strlen(buffer_ptr);
+  }
+
   for (int x= 1 ; x < argc ; x++)
   {
     snprintf(buffer_ptr, sizeof(buffer), " %s ", argv[x]);
