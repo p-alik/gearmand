@@ -18,6 +18,8 @@
 extern "C" {
 #endif
 
+#include <pthread.h>
+
 /**
  * @addtogroup gearmand_thread Thread Declarations
  * @ingroup gearmand

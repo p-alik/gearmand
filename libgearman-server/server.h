@@ -18,6 +18,8 @@
 extern "C" {
 #endif
 
+#include <pthread.h>
+
 /**
  * @addtogroup gearman_server Gearman Server Declarations
  * This is the interface gearman servers should use.
