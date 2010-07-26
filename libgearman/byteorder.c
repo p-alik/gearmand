@@ -15,10 +15,11 @@
 
 #include "common.h"
 
+#ifndef swap64
 /* Byte swap a 64-bit number. */
 static inline uint64_t swap64(uint64_t in)
 {
-#ifndef WORDS_BIGENDIAN
+ #ifndef WORDS_BIGENDIAN
   /* Little endian, flip the bytes around until someone makes a faster/better
    * way to do this. */
   uint64_t rv= 0;
@@ -29,11 +30,12 @@ static inline uint64_t swap64(uint64_t in)
     in >>= 8;
   }
   return rv;
-#else
+ #else
   /* big-endian machines don't need byte swapping */
   return in;
-#endif
+ #endif
 }
+#endif
 
 uint64_t ntohll(uint64_t value)
 {
