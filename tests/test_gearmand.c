@@ -124,7 +124,8 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
     {
       continue;
     }
-    char *found= fgets(buffer, 8196, file);
+
+    char *found= fgets(buffer, sizeof(buffer), file);
     if (!found)
     {
       abort();
