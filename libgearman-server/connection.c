@@ -355,3 +355,39 @@ gearman_server_con_proc_next(gearman_server_thread_st *thread)
 
   return con;
 }
+
+gearman_return_t
+gearman_server_job_add_timeout(gearman_server_con_st *con, gearman_server_job_st *job)
+{
+  if (con->worker->timeout)
+  {
+    if (! con->timeout_event)
+    {
+      con->timeout_event= (struct event *)malloc(sizeof(struct event));
+      if (con->timeout_event == NULL)
+      {
+        return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+      }
+      timeout_set(con->timeout_event, timeout_tv, _server_job_timeout, job);
+    }
+
+    struct timeval timeout_tv;
+    timeout_tv.tv_sec= con->worker->timeout;
+    timeout_add(con->timeout_event, timeout_tv);
+  }
+  return GEARMAN_SUCCESS;
+}
+
+static void
+_server_job_timeout(int fd, short event, void *arg)
+{
+  gearman_server_job_st *job= (gearman_server_job_st *)arg;
+
+  /* A timeout has ocurred on a job, re-queue it */
+
+  gearman_return_t ret= gearman_server_job_queue(job);
+  // XXX: how do I handle a failure here?!
+}
+
+  
+}
