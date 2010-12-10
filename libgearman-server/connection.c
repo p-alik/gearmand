@@ -14,6 +14,13 @@
 #include "common.h"
 
 /*
+ * Private definitions
+ */
+
+static void
+_server_job_timeout(int fd, short event, void *arg);
+
+/*
  * Public definitions
  */
 
@@ -100,6 +107,7 @@ gearman_server_con_create(gearman_server_thread_st *thread)
   con->host= NULL;
   con->port= NULL;
   strcpy(con->id, "-");
+  con->timeout_event= NULL;
 
   (void) pthread_mutex_lock(&thread->lock);
   GEARMAN_LIST_ADD(thread->con, con,)
@@ -156,6 +164,9 @@ void gearman_server_con_free(gearman_server_con_st *con)
 
   while (con->client_list != NULL)
     gearman_server_client_free(con->client_list);
+
+  if (con->timeout_event != NULL)
+    event_del(con->timeout_event);
 
   (void) pthread_mutex_lock(&thread->lock);
   GEARMAN_LIST_DEL(con->thread->con, con,)
@@ -354,4 +365,82 @@ gearman_server_con_proc_next(gearman_server_thread_st *thread)
   (void) pthread_mutex_unlock(&thread->lock);
 
   return con;
+}
+
+gearman_return_t
+gearman_server_con_add_job_timeout(gearman_server_con_st *con, gearman_server_job_st *job)
+{
+  if (job)
+  {
+    gearman_server_worker_st *worker= con->worker_list;
+    for (worker= con->worker_list; worker != NULL; worker= worker->con_next)
+    {
+      /* Assumes the functions are always fetched from the same server structure */
+      if (worker->function == job->function)
+          break;
+    }
+
+    /* It makes no sense to add a timeout to a connection that has no workers
+       for a job */
+    assert(worker);
+
+    if (worker && worker->timeout)
+    {
+      if (! con->timeout_event)
+      {
+        gearmand_con_st *dcon;
+        dcon= (gearmand_con_st *)con->con.context;
+        con->timeout_event= (struct event *)malloc(sizeof(struct event));
+        if (con->timeout_event == NULL)
+        {
+          return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+        }
+        timeout_set(con->timeout_event, _server_job_timeout, job);
+        event_base_set(dcon->thread->base, con->timeout_event);
+      }
+
+      /* XXX Right now, if a worker has diff timeouts for functions I think
+         this will overwrite any existing timeouts on that event. One
+         solution to that would be to record the timeout from last time,
+         and only set this one if it is longer than that one. */
+
+      struct timeval timeout_tv = { 0 , 0 };
+      timeout_tv.tv_sec= worker->timeout;
+      timeout_add(con->timeout_event, &timeout_tv);
+    }
+  }
+  return GEARMAN_SUCCESS;
+}
+
+void
+gearman_server_con_delete_timeout(gearman_server_con_st *con)
+{
+  if (con->timeout_event)
+  {
+    timeout_del(con->timeout_event);
+    con->timeout_event= NULL;
+  }
+}
+
+static void
+_server_job_timeout(int fd, short event, void *arg)
+{
+  gearman_server_job_st *job= (gearman_server_job_st *)arg;
+
+  fd=fd;
+  event=event;
+
+  /* A timeout has ocurred on a job, re-queue it */
+  gearman_log_debug(job->server->gearman,
+      "Worker timeout reached on job, requeueing: %s %s",
+      job->job_handle, job->unique);
+
+  gearman_return_t ret= gearman_server_job_queue(job);
+  if (ret != GEARMAN_SUCCESS)
+  {
+    gearman_log_error(job->server->gearman,
+        "Failed trying to requeue job after timeout, job lost: %s %s",
+        job->job_handle, job->unique);
+    gearman_server_job_free(job);
+  }
 }
