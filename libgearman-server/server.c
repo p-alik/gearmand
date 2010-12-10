@@ -475,7 +475,8 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
     }
 
     /* Since job is assigned, we should respect function timeout */
-    gearman_server_con_add_job_timeout(server_con, server_job);
+    if (server_job != NULL)
+        gearman_server_con_add_job_timeout(server_con, server_job);
 
     break;
 

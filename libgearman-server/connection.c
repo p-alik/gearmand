@@ -370,38 +370,44 @@ gearman_server_con_proc_next(gearman_server_thread_st *thread)
 gearman_return_t
 gearman_server_con_add_job_timeout(gearman_server_con_st *con, gearman_server_job_st *job)
 {
-  gearman_server_worker_st *worker= con->worker_list;
-  for (worker= con->worker_list; worker != NULL; worker= worker->con_next)
+  if (job)
   {
-    /* Assumes the functions are always fetched from the same server structure */
-    if (worker->function == job->function)
-        break;
-  }
-
-  /* It makes no sense to add a timeout to a connection that has no workers
-     for a job */
-  assert(worker);
-
-  if (worker && worker->timeout)
-  {
-    if (! con->timeout_event)
+    gearman_server_worker_st *worker= con->worker_list;
+    for (worker= con->worker_list; worker != NULL; worker= worker->con_next)
     {
-      con->timeout_event= (struct event *)malloc(sizeof(struct event));
-      if (con->timeout_event == NULL)
-      {
-        return GEARMAN_MEMORY_ALLOCATION_FAILURE;
-      }
-      timeout_set(con->timeout_event, _server_job_timeout, job);
+      /* Assumes the functions are always fetched from the same server structure */
+      if (worker->function == job->function)
+          break;
     }
 
-    /* XXX Right now, if a worker has diff timeouts for functions I think
-       this will overwrite any existing timeouts on that event. One
-       solution to that would be to record the timeout from last time,
-       and only set this one if it is longer than that one. */
+    /* It makes no sense to add a timeout to a connection that has no workers
+       for a job */
+    assert(worker);
 
-    struct timeval timeout_tv;
-    timeout_tv.tv_sec= worker->timeout;
-    timeout_add(con->timeout_event, &timeout_tv);
+    if (worker && worker->timeout)
+    {
+      if (! con->timeout_event)
+      {
+        gearmand_con_st *dcon;
+        dcon= (gearmand_con_st *)con->con.context;
+        con->timeout_event= (struct event *)malloc(sizeof(struct event));
+        if (con->timeout_event == NULL)
+        {
+          return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+        }
+        timeout_set(con->timeout_event, _server_job_timeout, job);
+        event_base_set(dcon->thread->base, con->timeout_event);
+      }
+
+      /* XXX Right now, if a worker has diff timeouts for functions I think
+         this will overwrite any existing timeouts on that event. One
+         solution to that would be to record the timeout from last time,
+         and only set this one if it is longer than that one. */
+
+      struct timeval timeout_tv = { 0 , 0 };
+      timeout_tv.tv_sec= worker->timeout;
+      timeout_add(con->timeout_event, &timeout_tv);
+    }
   }
   return GEARMAN_SUCCESS;
 }
