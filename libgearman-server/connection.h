@@ -60,6 +60,7 @@ struct gearman_server_con_st
   const char *host;
   const char *port;
   char id[GEARMAN_SERVER_CON_ID_SIZE];
+  struct event *timeout_event;
 };
 
 /**
@@ -194,6 +195,20 @@ void gearman_server_con_proc_remove(gearman_server_con_st *con);
 GEARMAN_API
 gearman_server_con_st *
 gearman_server_con_proc_next(gearman_server_thread_st *thread);
+
+/**
+ * Add worker timeout for a connection tied to a job
+ */
+GEARMAN_API
+gearman_return_t
+gearman_server_con_add_job_timeout(gearman_server_con_st *con, gearman_server_job_st *job);
+
+/**
+ * Delete timeout event for a server con
+ */
+GEARMAN_API
+void
+gearman_server_con_delete_timeout(gearman_server_con_st *con);
 
 /** @} */
 
