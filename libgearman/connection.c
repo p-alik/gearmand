@@ -553,15 +553,15 @@ gearman_return_t gearman_connection_flush(gearman_connection_st *connection)
     case GEARMAN_CON_UNIVERSAL_CONNECTING:
       while (1)
       {
-        if (connection->revents & POLLOUT)
-        {
-          connection->state= GEARMAN_CON_UNIVERSAL_CONNECTED;
-          break;
-        }
-        else if (connection->revents & (POLLERR | POLLHUP | POLLNVAL))
+        if (connection->revents & (POLLERR | POLLHUP | POLLNVAL))
         {
           connection->state= GEARMAN_CON_UNIVERSAL_CONNECT;
           connection->addrinfo_next= connection->addrinfo_next->ai_next;
+          break;
+        }
+        else if (connection->revents & POLLOUT)
+        {
+          connection->state= GEARMAN_CON_UNIVERSAL_CONNECTED;
           break;
         }
 
