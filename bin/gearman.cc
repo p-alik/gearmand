@@ -673,7 +673,7 @@ static void *_worker_cb(gearman_job_st *job, void *context,
 void _read_workload(int fd, Bytes workload, size_t *workload_offset)
 {
   ssize_t read_ret;
-  size_t workload_size;
+  size_t workload_size= 0;
 
   while (1)
   {
@@ -693,6 +693,7 @@ void _read_workload(int fd, Bytes workload, size_t *workload_offset)
 
     read_ret= read(fd, &workload[0] + *workload_offset,
                    workload_size - *workload_offset);
+
     if (read_ret == -1)
     {
       error::perror("execvp");
