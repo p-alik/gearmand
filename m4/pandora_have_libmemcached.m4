@@ -12,9 +12,9 @@ AC_DEFUN([_PANDORA_SEARCH_LIBMEMCACHED],[
 
   AC_ARG_ENABLE([libmemcached],
     [AS_HELP_STRING([--disable-libmemcached],
-      [Build with libmemcached support @<:@default=on@:>@])],
+      [Build with libmemcached support @<:@default=off@:>@])],
     [ac_enable_libmemcached="$enableval"],
-    [ac_enable_libmemcached="yes"])
+    [ac_enable_libmemcached="no"])
 
   AS_IF([test "x$ac_enable_libmemcached" = "xyes"],[
     AC_LIB_HAVE_LINKFLAGS(memcached,,[
