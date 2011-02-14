@@ -297,27 +297,34 @@ static void _log(const char *line, gearman_verbose_t verbose, void *context)
   (*gearmand->log_fn)(line, verbose, (void *)gearmand->log_context);
 }
 
+static const uint32_t bind_timeout= 0;
+
 static gearman_return_t _listen_init(gearmand_st *gearmand)
 {
   for (uint32_t x= 0; x < gearmand->port_count; x++)
   {
     int ret;
+    struct linger ling= {0, 0};
     struct gearmand_port_st *port;
     char port_str[NI_MAXSERV];
-    struct addrinfo ai;
+    struct addrinfo hints;
     struct addrinfo *addrinfo;
 
     port= &gearmand->port_list[x];
 
-    snprintf(port_str, NI_MAXSERV, "%u", (uint32_t)(port->port));
+    int port_length= snprintf(port_str, NI_MAXSERV, "%u", (uint32_t)(port->port));
 
-    memset(&ai, 0, sizeof(struct addrinfo));
-    ai.ai_flags  = AI_PASSIVE;
-    ai.ai_family = AF_UNSPEC;
-    ai.ai_socktype = SOCK_STREAM;
-    ai.ai_protocol= IPPROTO_TCP;
+    if ((size_t)port_length >= sizeof(port_str) || port_length < 0)
+    {
+      gearmand_log_fatal(gearmand, "Bad port length");
+      return GEARMAN_MEMORY_ALLOCATION_FAILURE; // Not awesome, but we have no "general" error type.
+    }
 
-    ret= getaddrinfo(gearmand->host, port_str, &ai, &addrinfo);
+    memset(&hints, 0, sizeof(struct addrinfo));
+    hints.ai_flags  = AI_PASSIVE;
+    hints.ai_socktype = SOCK_STREAM;
+
+    ret= getaddrinfo(gearmand->host, port_str, &hints, &addrinfo);
     if (ret != 0)
     {
       gearmand_log_fatal(gearmand, "_listen_init:getaddrinfo:%s", gai_strerror(ret));
@@ -327,7 +334,6 @@ static gearman_return_t _listen_init(gearmand_st *gearmand)
     for (struct addrinfo *addrinfo_next= addrinfo; addrinfo_next != NULL;
          addrinfo_next= addrinfo_next->ai_next)
     {
-      int opt;
       int fd;
       char host[NI_MAXHOST];
 
@@ -352,17 +358,82 @@ static gearman_return_t _listen_init(gearmand_st *gearmand)
         continue;
       }
 
-      opt= 1;
-      ret= setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
-      if (ret == -1)
+      int flags= 1;
+#ifdef IPV6_V6ONLY
+      if (addrinfo_next->ai_family == AF_INET6)
       {
-        close(fd);
-        gearmand_log_fatal(gearmand, "_listen_init:setsockopt:%d", errno);
-        return GEARMAN_ERRNO;
+        flags= 1;
+        ret= setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &flags, sizeof(flags));
+        if (ret != 0)
+        {
+          gearmand_log_perror(gearmand, "setsockopt(IPV6_V6ONLY)");
+          return true;
+        }
+      }
+#endif
+
+      ret= fcntl(fd, F_SETFD, FD_CLOEXEC);
+      if (ret != 0 || !(fcntl(fd, F_GETFD, 0) & FD_CLOEXEC))
+      {
+        gearmand_log_perror(gearmand, "fcntl(FD_CLOEXEC)");
+        return true;
       }
 
-      ret= bind(fd, addrinfo_next->ai_addr, addrinfo_next->ai_addrlen);
-      if (ret == -1)
+      ret= setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &flags, sizeof(flags));
+      if (ret != 0)
+      {
+        gearmand_log_perror(gearmand, "setsockopt(SO_REUSEADDR)");
+        return true;
+      }
+
+      ret= setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &flags, sizeof(flags));
+      if (ret != 0)
+      {
+        gearmand_log_perror(gearmand, "setsockopt(SO_KEEPALIVE)");
+        return true;
+      }
+
+      ret= setsockopt(fd, SOL_SOCKET, SO_LINGER, &ling, sizeof(ling));
+      if (ret != 0)
+      {
+        gearmand_log_perror(gearmand, "setsockopt(SO_LINGER)");
+        return true;
+      }
+
+      ret= setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &flags, sizeof(flags));
+      if (ret != 0)
+      {
+        gearmand_log_perror(gearmand, "setsockopt(TCP_NODELAY)");
+        return true;
+      }
+
+      /*
+        @note logic for this pulled from Drizzle.
+
+        Sometimes the port is not released fast enough when stopping and
+        restarting the server. This happens quite often with the test suite
+        on busy Linux systems. Retry to bind the address at these intervals:
+        Sleep intervals: 1, 2, 4,  6,  9, 13, 17, 22, ...
+        Retry at second: 1, 3, 7, 13, 22, 35, 52, 74, ...
+        Limit the sequence by drizzled_bind_timeout.
+      */
+      uint32_t waited;
+      uint32_t this_wait;
+      uint32_t retry;
+      for (waited= 0, retry= 1; ; retry++, waited+= this_wait)
+      {
+        if (((ret= bind(fd, addrinfo_next->ai_addr, addrinfo_next->ai_addrlen)) == 0) ||
+            (errno != EADDRINUSE) || (waited >= bind_timeout))
+        {
+          break;
+        }
+
+        gearmand_log_info(gearmand, "Retrying bind() on %s:%s", host, port_str);
+        this_wait= retry * retry / 3 + 1;
+        sleep(this_wait);
+      }
+
+      if (ret < 0)
       {
         close(fd);
         if (errno == EADDRINUSE)
@@ -385,6 +456,8 @@ static gearman_return_t _listen_init(gearmand_st *gearmand)
         gearmand_log_fatal(gearmand, "_listen_init:listen:%d", errno);
         return GEARMAN_ERRNO;
       }
+
+      gearmand_log_info(gearmand, "Listening on %s:%s\n", host, port_str);
 
       // Scoping note for eventual transformation
       {

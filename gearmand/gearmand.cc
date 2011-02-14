@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
   uint8_t worker_wakeup= 0;
   in_port_t port= 0;
   const char *host= NULL;
-  const char *pid_file= NULL;
+  const char *pid_file= "";
   const char *queue_type= NULL;
   uint32_t threads= 0;
   const char *user= NULL;

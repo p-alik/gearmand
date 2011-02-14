@@ -72,6 +72,9 @@ void gearmand_log_crazy(gearmand_st *gearman, const char *format, ...);
 GEARMAN_INTERNAL_API
 void gearman_conf_error_set(gearman_conf_st *conf, const char *msg, const char *format, ...);
 
+GEARMAN_INTERNAL_API
+void gearmand_log_perror(gearmand_st *gearmand, const char *message);
+
 #endif /* GEARMAN_CORE */
 
 /** @} */

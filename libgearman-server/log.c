@@ -107,4 +107,12 @@ void gearman_conf_error_set(gearman_conf_st *conf, const char *msg, const char *
   va_end(args);
 }
 
+void gearmand_log_perror(gearmand_st *gearmand, const char *message)
+{
+  char buffer[BUFSIZ];
+  char final[BUFSIZ];
 
+  strerror_r(errno, buffer, sizeof(buffer));
+  snprintf(final, sizeof(final), "%s (%s)", message, buffer);
+  gearmand_log_error(gearmand, final);
+}
