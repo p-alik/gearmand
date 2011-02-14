@@ -64,6 +64,7 @@ support/gearmand.spec
 tests/client_test
 tests/client_test.res
 tests/cpp_test
+tests/gearman.pi*
 tests/internals_test
 tests/memcached_test
 tests/memcached_test.res
@@ -74,7 +75,8 @@ tests/sqlite_test
 tests/sqlite_test.res
 tests/tokyocabinet_test
 tests/tokyocabinet_test.res
+tests/unittests
+tests/valgrind.out
 tests/worker_test
 tests/worker_test.res
-tests/unittests
 unittests/unittests
