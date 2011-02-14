@@ -188,7 +188,7 @@ void gearman_worker_free(gearman_worker_st *worker)
     free(worker);
 }
 
-const char *gearman_worker_error(gearman_worker_st *worker)
+const char *gearman_worker_error(const gearman_worker_st *worker)
 {
   return gearman_universal_error((&worker->universal));
 }

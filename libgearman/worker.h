@@ -111,7 +111,7 @@ void gearman_worker_free(gearman_worker_st *worker);
  * See gearman_error() for details.
  */
 GEARMAN_API
-const char *gearman_worker_error(gearman_worker_st *worker);
+const char *gearman_worker_error(const gearman_worker_st *worker);
 
 /**
  * See gearman_errno() for details.

@@ -24,8 +24,9 @@ include benchmark/include.am
 include bin/include.am
 include examples/include.am
 include gearmand/include.am
-include libgearman/include.am
 include libgearman-server/include.am
+include libgearman/include.am
+include util/include.am
 include tests/include.am
 include support/include.am
 

@@ -8,6 +8,8 @@
 
 #include "config.h"
 
+#include <stdint.h>
+
 #ifdef HAVE_ERRNO_H
 #include <errno.h>
 #endif
@@ -80,20 +82,32 @@
 #define GEARMAND_LOG_REOPEN_TIME 60
 #define GEARMAND_LISTEN_BACKLOG 32
 
-typedef struct
+#include "util/error.h"
+#include "util/pidfile.h"
+
+using namespace gearman_util;
+
+struct gearmand_log_info_st
 {
   const char *file;
   int fd;
   time_t reopen;
-} gearmand_log_info_st;
+
+  gearmand_log_info_st() :
+    file(NULL),
+    fd(-1),
+    reopen(0)
+  {
+  }
+};
 
 static gearmand_st *_gearmand;
 
 static bool _set_fdlimit(rlim_t fds);
-static bool _pid_write(const char *pid_file);
-static void _pid_delete(const char *pid_file);
 static bool _switch_user(const char *user);
+extern "C" {
 static bool _set_signals(void);
+}
 static void _shutdown_handler(int signal_arg);
 static void _log(const char *line, gearman_verbose_t verbose, void *context);
 
@@ -120,19 +134,15 @@ int main(int argc, char *argv[])
   int fd;
   bool round_robin= false;
 
-  log_info.file= NULL;
-  log_info.fd= -1;
-  log_info.reopen= 0;
-
   if (gearman_conf_create(&conf) == NULL)
   {
-    fprintf(stderr, "gearmand: gearman_conf_create: NULL\n");
+    error::message("gearman_conf_create: NULL");
     return 1;
   }
 
   if (gearman_conf_module_create(&conf, &module, NULL) == NULL)
   {
-    fprintf(stderr, "gearmand: gearman_conf_module_create: NULL\n");
+    error::message("gearman_conf_module_create: NULL");
     return 1;
   }
 
@@ -173,8 +183,7 @@ int main(int argc, char *argv[])
   /* Make sure none of the gearman_conf_module_add_option calls failed. */
   if (gearman_conf_return(&conf) != GEARMAN_SUCCESS)
   {
-    fprintf(stderr, "gearmand: gearman_conf_module_add_option: %s\n",
-            gearman_conf_error(&conf));
+    error::message("gearman_conf_module_add_option", gearman_conf_error(&conf));
     return 1;
   }
 
@@ -183,8 +192,7 @@ int main(int argc, char *argv[])
 #ifdef HAVE_LIBDRIZZLE
   if (gearman_server_queue_libdrizzle_conf(&conf) != GEARMAN_SUCCESS)
   {
-    fprintf(stderr, "gearmand: gearman_queue_libdrizzle_conf: %s\n",
-            gearman_conf_error(&conf));
+    error::message("gearman_queue_libdrizzle_conf", gearman_conf_error(&conf));
     return 1;
   }
 #endif
@@ -192,16 +200,14 @@ int main(int argc, char *argv[])
 #ifdef HAVE_LIBMEMCACHED
   if (gearman_server_queue_libmemcached_conf(&conf) != GEARMAN_SUCCESS)
   {
-    fprintf(stderr, "gearmand: gearman_queue_libmemcached_conf: %s\n",
-            gearman_conf_error(&conf));
+    error::message("gearman_queue_libmemcached_conf", gearman_conf_error(&conf));
     return 1;
   }
 #endif
 #ifdef HAVE_LIBTOKYOCABINET
   if (gearman_server_queue_libtokyocabinet_conf(&conf) != GEARMAN_SUCCESS)
   {
-    fprintf(stderr, "gearmand: gearman_queue_libtokyocabinet_conf: %s\n",
-            gearman_conf_error(&conf));
+    error::message("gearman_queue_libtokyocabinet_conf", gearman_conf_error(&conf));
     return 1;
   }
 #endif
@@ -209,8 +215,7 @@ int main(int argc, char *argv[])
 #ifdef HAVE_LIBSQLITE3
   if (gearman_server_queue_libsqlite3_conf(&conf) != GEARMAN_SUCCESS)
   {
-    fprintf(stderr, "gearmand: gearman_queue_libsqlite3_conf: %s\n",
-            gearman_conf_error(&conf));
+    error::message("gearman_queue_libsqlite3_conf", gearman_conf_error(&conf));
     return 1;
   }
 #endif
@@ -218,16 +223,14 @@ int main(int argc, char *argv[])
 #ifdef HAVE_LIBPQ
   if (gearman_server_queue_libpq_conf(&conf) != GEARMAN_SUCCESS)
   {
-    fprintf(stderr, "gearmand: gearman_queue_libpq_conf: %s\n",
-            gearman_conf_error(&conf));
+    error::message("gearman_queue_libpq_conf", gearman_conf_error(&conf));
     return 1;
   }
 #endif
 
   if (gearmand_protocol_http_conf(&conf) != GEARMAN_SUCCESS)
   {
-    fprintf(stderr, "gearmand: gearman_protocol_http_conf: %s\n",
-            gearman_conf_error(&conf));
+    error::message("gearman_protocol_http_conf", gearman_conf_error(&conf));
     return 1;
   }
 
@@ -244,14 +247,16 @@ int main(int argc, char *argv[])
   /* Check for option values that were given. */
   while (gearman_conf_module_value(&module, &name, &value))
   {
-    if (!strcmp(name, "backlog"))
+    if (not strcmp(name, "backlog"))
+    {
       backlog= atoi(value);
-    else if (!strcmp(name, "daemon"))
+    }
+    else if (not strcmp(name, "daemon"))
     {
       switch (fork())
       {
       case -1:
-        fprintf(stderr, "gearmand: fork:%d\n", errno);
+	error::perror("fork");
         return 1;
 
       case 0:
@@ -263,50 +268,78 @@ int main(int argc, char *argv[])
 
       if (setsid() == -1)
       {
-        fprintf(stderr, "gearmand: setsid:%d\n", errno);
+	error::perror("setsid");
         return 1;
       }
 
       close_stdio= true;
     }
-    else if (!strcmp(name, "file-descriptors"))
-      fds= (rlim_t)atoi(value);
-    else if (!strcmp(name, "help"))
+    else if (not strcmp(name, "file-descriptors"))
+    {
+      fds= static_cast<rlim_t>(atoi(value));
+    }
+    else if (not strcmp(name, "help"))
     {
       printf("\ngearmand %s - %s\n\n", gearman_version(), gearman_bugreport());
       printf("usage: %s [OPTIONS]\n", argv[0]);
       gearman_conf_usage(&conf);
       return 1;
     }
-    else if (!strcmp(name, "job-retries"))
-      job_retries= (uint8_t)atoi(value);
-    else if (!strcmp(name, "log-file"))
+    else if (not strcmp(name, "job-retries"))
+    {
+      job_retries= static_cast<uint8_t>(atoi(value));
+    }
+    else if (not strcmp(name, "log-file"))
+    {
       log_info.file= value;
-    else if (!strcmp(name, "listen"))
+    }
+    else if (not strcmp(name, "listen"))
+    {
       host= value;
-    else if (!strcmp(name, "port"))
-      port= (in_port_t)atoi(value);
-    else if (!strcmp(name, "pid-file"))
+    }
+    else if (not strcmp(name, "port"))
+    {
+      port= static_cast<in_port_t>(atoi(value));
+    }
+    else if (not strcmp(name, "pid-file"))
+    {
       pid_file= value;
-    else if (!strcmp(name, "protocol"))
+    }
+    else if (not strcmp(name, "protocol"))
+    {
       continue;
-    else if (!strcmp(name, "queue-type"))
+    }
+    else if (not strcmp(name, "queue-type"))
+    {
       queue_type= value;
-    else if (!strcmp(name, "threads"))
-      threads= (uint32_t)atoi(value);
-    else if (!strcmp(name, "user"))
+    }
+    else if (not strcmp(name, "threads"))
+    {
+      threads= static_cast<uint32_t>(atoi(value));
+    }
+    else if (not strcmp(name, "user"))
+    {
       user= value;
-    else if (!strcmp(name, "verbose"))
+    }
+    else if (not strcmp(name, "verbose"))
+    {
       verbose++;
-    else if (!strcmp(name, "round-robin"))
+    }
+    else if (not strcmp(name, "round-robin"))
+    {
       round_robin++;
-    else if (!strcmp(name, "version"))
+    }
+    else if (not strcmp(name, "version"))
+    {
       printf("\ngearmand %s - %s\n", gearman_version(), gearman_bugreport());
-    else if (!strcmp(name, "worker-wakeup"))
-      worker_wakeup= (uint8_t)atoi(value);
+    }
+    else if (not strcmp(name, "worker-wakeup"))
+    {
+      worker_wakeup= static_cast<uint8_t>(atoi(value));
+    }
     else
     {
-      fprintf(stderr, "gearmand: Unknown option:%s\n", name);
+      error::message("Unknown option", name);
       return 1;
     }
   }
@@ -319,19 +352,19 @@ int main(int argc, char *argv[])
     {
       if (dup2(fd, STDIN_FILENO) == -1)
       {
-        fprintf(stderr, "gearmand: dup2:%d\n", errno);
+	error::perror("dup2");
         return 1;
       }
 
       if (dup2(fd, STDOUT_FILENO) == -1)
       {
-        fprintf(stderr, "gearmand: dup2:%d\n", errno);
+	error::perror("dup2");
         return 1;
       }
 
       if (dup2(fd, STDERR_FILENO) == -1)
       {
-        fprintf(stderr, "gearmand: dup2:%d\n", errno);
+	error::perror("dup2");
         return 1;
       }
 
@@ -342,13 +375,12 @@ int main(int argc, char *argv[])
   if ((fds > 0 && _set_fdlimit(fds)) || _switch_user(user) || _set_signals())
     return 1;
 
-  if (pid_file != NULL && _pid_write(pid_file))
-    return 1;
+  Pidfile _pid_file(pid_file);
 
   _gearmand= gearmand_create(host, port);
   if (_gearmand == NULL)
   {
-    fprintf(stderr, "gearmand: Could not create gearmand library instance\n");
+    error::message("Could not create gearmand library instance.");
     return 1;
   }
 
@@ -356,13 +388,13 @@ int main(int argc, char *argv[])
   gearmand_set_threads(_gearmand, threads);
   gearmand_set_job_retries(_gearmand, job_retries);
   gearmand_set_worker_wakeup(_gearmand, worker_wakeup);
-  gearmand_set_log_fn(_gearmand, _log, &log_info, verbose);
+  gearmand_set_log_fn(_gearmand, _log, &log_info, static_cast<gearman_verbose_t>(verbose));
   gearmand_set_round_robin(_gearmand, round_robin);
 
   if (queue_type != NULL)
   {
 #ifdef HAVE_LIBDRIZZLE
-    if (!strcmp(queue_type, "libdrizzle"))
+    if (not strcmp(queue_type, "libdrizzle"))
     {
       ret= gearmand_queue_libdrizzle_init(_gearmand, &conf);
       if (ret != GEARMAN_SUCCESS)
@@ -371,7 +403,7 @@ int main(int argc, char *argv[])
     else
 #endif
 #ifdef HAVE_LIBMEMCACHED
-    if (!strcmp(queue_type, "libmemcached"))
+    if (not strcmp(queue_type, "libmemcached"))
     {
       ret= gearmand_queue_libmemcached_init(_gearmand, &conf);
       if (ret != GEARMAN_SUCCESS)
@@ -380,7 +412,7 @@ int main(int argc, char *argv[])
     else
 #endif
 #ifdef HAVE_LIBSQLITE3
-    if (!strcmp(queue_type, "libsqlite3"))
+    if (not strcmp(queue_type, "libsqlite3"))
     {
       ret= gearmand_queue_libsqlite3_init(_gearmand, &conf);
       if (ret != GEARMAN_SUCCESS)
@@ -389,7 +421,7 @@ int main(int argc, char *argv[])
     else
 #endif
 #ifdef HAVE_LIBPQ
-    if (!strcmp(queue_type, "libpq"))
+    if (not strcmp(queue_type, "libpq"))
     {
       ret= gearmand_queue_libpq_init(_gearmand, &conf);
       if (ret != GEARMAN_SUCCESS)
@@ -398,7 +430,7 @@ int main(int argc, char *argv[])
     else
 #endif
 #ifdef HAVE_LIBTOKYOCABINET
-    if (!strcmp(queue_type, "libtokyocabinet"))
+    if (not strcmp(queue_type, "libtokyocabinet"))
     {
       ret= gearmand_queue_libtokyocabinet_init(_gearmand, &conf);
       if (ret != GEARMAN_SUCCESS)
@@ -407,7 +439,7 @@ int main(int argc, char *argv[])
     else
 #endif        
     {
-      fprintf(stderr, "gearmand: Unknown queue module: %s\n", queue_type);
+      error::message("Unknown queue module", queue_type);
       return 1;
     }
   }
@@ -417,7 +449,7 @@ int main(int argc, char *argv[])
     if (strcmp(name, "protocol"))
       continue;
 
-    if (!strcmp(value, "http"))
+    if (not strcmp(value, "http"))
     {
       ret= gearmand_protocol_http_init(_gearmand, &conf);
       if (ret != GEARMAN_SUCCESS)
@@ -425,7 +457,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-      fprintf(stderr, "gearmand: Unknown protocol module: %s\n", value);
+      error::message("Unknown protocol module", value);
       return 1;
     }
   }
@@ -435,23 +467,23 @@ int main(int argc, char *argv[])
   if (queue_type != NULL)
   {
 #ifdef HAVE_LIBDRIZZLE
-    if (!strcmp(queue_type, "libdrizzle"))
+    if (not strcmp(queue_type, "libdrizzle"))
       gearmand_queue_libdrizzle_deinit(_gearmand);
 #endif
 #ifdef HAVE_LIBMEMCACHED
-    if (!strcmp(queue_type, "libmemcached"))
+    if (not strcmp(queue_type, "libmemcached"))
       gearmand_queue_libmemcached_deinit(_gearmand);
 #endif
 #ifdef HAVE_LIBSQLITE3
-    if (!strcmp(queue_type, "libsqlite3"))
+    if (not strcmp(queue_type, "libsqlite3"))
       gearmand_queue_libsqlite3_deinit(_gearmand);
 #endif
 #ifdef HAVE_LIBPQ
-    if (!strcmp(queue_type, "libpq"))
+    if (not strcmp(queue_type, "libpq"))
       gearmand_queue_libpq_deinit(_gearmand);
 #endif
 #ifdef HAVE_LIBTOKYOCABINET
-    if (!strcmp(queue_type, "libtokyocabinet"))
+    if (not strcmp(queue_type, "libtokyocabinet"))
       gearmand_queue_libtokyocabinet_deinit(_gearmand);
 #endif
   }
@@ -461,14 +493,11 @@ int main(int argc, char *argv[])
     if (strcmp(name, "protocol"))
       continue;
 
-    if (!strcmp(value, "http"))
+    if (not strcmp(value, "http"))
       gearmand_protocol_http_deinit(_gearmand);
   }
 
   gearmand_free(_gearmand);
-
-  if (pid_file != NULL)
-    _pid_delete(pid_file);
 
   if (log_info.fd != -1)
     (void) close(log_info.fd);
@@ -484,8 +513,7 @@ static bool _set_fdlimit(rlim_t fds)
 
   if (getrlimit(RLIMIT_NOFILE, &rl) == -1)
   {
-    fprintf(stderr, "gearmand: Could not get file descriptor limit:%d\n",
-            errno);
+    error::perror("Could not get file descriptor limit");
     return true;
   }
 
@@ -495,47 +523,13 @@ static bool _set_fdlimit(rlim_t fds)
 
   if (setrlimit(RLIMIT_NOFILE, &rl) == -1)
   {
-    fprintf(stderr, "gearmand: Failed to set limit for the number of file "
-                    "descriptors (%d). Try running as root or giving a "
-                    "smaller value to -f.\n",
-            errno);
+    error::perror("Failed to set limit for the number of file "
+		  "descriptors.  Try running as root or giving a "
+		  "smaller value to -f.");
     return true;
   }
 
   return false;
-}
-
-static bool _pid_write(const char *pid_file)
-{
-  FILE *f;
-
-  f= fopen(pid_file, "w");
-  if (f == NULL)
-  {
-    fprintf(stderr, "gearmand: Could not open pid file for writing: %s (%d)\n",
-            pid_file, errno);
-    return true;
-  }
-
-  fprintf(f, "%" PRId64 "\n", (int64_t)getpid());
-
-  if (fclose(f) == -1)
-  {
-    fprintf(stderr, "gearmand: Could not close the pid file: %s (%d)\n",
-            pid_file, errno);
-    return true;
-  }
-
-  return false;
-}
-
-static void _pid_delete(const char *pid_file)
-{
-  if (unlink(pid_file) == -1)
-  {
-    fprintf(stderr, "gearmand: Could not remove the pid file: %s (%d)\n",
-            pid_file, errno);
-  }
 }
 
 static bool _switch_user(const char *user)
@@ -546,33 +540,33 @@ static bool _switch_user(const char *user)
   {
     if (user == NULL || user[0] == 0)
     {
-      fprintf(stderr,
-              "gearmand: Must specify '-u root' if you want to run as root\n");
+      error::message("Must specify '-u root' if you want to run as root");
       return true;
     }
 
     pw= getpwnam(user);
     if (pw == NULL)
     {
-      fprintf(stderr, "gearmand: Could not find user '%s'\n", user);
+      error::message("Could not find user", user);
       return 1;
     }
 
     if (setgid(pw->pw_gid) == -1 || setuid(pw->pw_uid) == -1)
     {
-      fprintf(stderr, "gearmand: Could not switch to user '%s'\n", user);
+      error::message("Could not switch to user", user);
       return 1;
     }
   }
   else if (user != NULL)
   {
-    fprintf(stderr, "gearmand: Must be root to switch users\n");
+    error::message("Must be root to switch users.");
     return true;
   }
 
   return false;
 }
 
+extern "C" {
 static bool _set_signals(void)
 {
   struct sigaction sa;
@@ -583,30 +577,31 @@ static bool _set_signals(void)
   if (sigemptyset(&sa.sa_mask) == -1 ||
       sigaction(SIGPIPE, &sa, 0) == -1)
   {
-    fprintf(stderr, "gearmand: Could not set SIGPIPE handler (%d)\n", errno);
+    error::perror("Could not set SIGPIPE handler.");
     return true;
   }
 
   sa.sa_handler= _shutdown_handler;
   if (sigaction(SIGTERM, &sa, 0) == -1)
   {
-    fprintf(stderr, "gearmand: Could not set SIGTERM handler (%d)\n", errno);
+    error::perror("Could not set SIGTERM handler.");
     return true;
   }
 
   if (sigaction(SIGINT, &sa, 0) == -1)
   {
-    fprintf(stderr, "gearmand: Could not set SIGINT handler (%d)\n", errno);
+    error::perror("Could not set SIGINT handler.");
     return true;
   }
 
   if (sigaction(SIGUSR1, &sa, 0) == -1)
   {
-    fprintf(stderr, "gearmand: Could not set SIGUSR1 handler (%d)\n", errno);
+    error::perror("Could not set SIGUSR1 handler.");
     return true;
   }
 
   return false;
+}
 }
 
 static void _shutdown_handler(int signal_arg)
@@ -619,13 +614,15 @@ static void _shutdown_handler(int signal_arg)
 
 static void _log(const char *line, gearman_verbose_t verbose, void *context)
 {
-  gearmand_log_info_st *log_info= (gearmand_log_info_st *)context;
+  gearmand_log_info_st *log_info= static_cast<gearmand_log_info_st *>(context);
   int fd;
   time_t t;
   char buffer[GEARMAN_MAX_ERROR_SIZE];
 
   if (log_info->file == NULL)
+  {
     fd= 1;
+  }
   else
   {
     t= time(NULL);
@@ -641,8 +638,7 @@ static void _log(const char *line, gearman_verbose_t verbose, void *context)
       log_info->fd= open(log_info->file, O_CREAT | O_WRONLY | O_APPEND, 0644);
       if (log_info->fd == -1)
       {
-        fprintf(stderr, "gearmand: Could not open log file for writing (%d)\n",
-                errno);
+	error::perror("Could not open log file for writing.");
         return;
       }
 
@@ -655,5 +651,7 @@ static void _log(const char *line, gearman_verbose_t verbose, void *context)
   snprintf(buffer, GEARMAN_MAX_ERROR_SIZE, "%5s %s\n",
            gearman_verbose_name(verbose), line);
   if (write(fd, buffer, strlen(buffer)) == -1)
-    fprintf(stderr, "gearmand: Could not write to log file: %d\n", errno);
+  {
+    error::perror("Could not write to log file.");
+  }
 }

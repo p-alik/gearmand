@@ -2,6 +2,9 @@
 # Gearman server and library
 # Copyright (C) 2008 Brian Aker, Eric Day
 # Copyright (C) 2009 Brian Aker, Eric Day, Monty Taylor
+#
+# Copyright (C) 2011 DataDifferential
+#
 # All rights reserved.
 #
 # Use and distribution licensed under the BSD license.  See
@@ -12,7 +15,15 @@
 
 
 bin_PROGRAMS+= \
-	bin/gearman
+	       bin/gearman
 
-bin_gearman_SOURCES= bin/gearman.c
+bin_gearman_SOURCES= \
+		     bin/arguments.cc \
+		     bin/gearman.cc \
+		     util/error.cc \
+		     util/pidfile.cc
+
 bin_gearman_LDADD= libgearman/libgearman.la ${BETTER_MALLOC_LIBS}
+
+noinst_HEADERS+= \
+		 bin/arguments.h

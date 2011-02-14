@@ -169,6 +169,7 @@ if HAVE_LIBTOKYOCABINET
 endif
 
 GEARMAN_CLIENT_TEST= bin/gearman
+GEARMAN_VALGRIND_CLIENT_TEST= $(VALGRIND_COMMAND) bin/gearman
 GEARMAN_PIDFILE = ${abs_top_builddir}/tests/Xugear.pid
 
 client-test: $(GEARMAN_CLIENT_TEST)
@@ -176,6 +177,12 @@ client-test: $(GEARMAN_CLIENT_TEST)
 	@$(GEARMAN_CLIENT_TEST) -w -f true -d -i $(GEARMAN_PIDFILE) -- false
 	cat $(GEARMAN_PIDFILE) | xargs kill
 	@echo "gearman client success"
+
+valgrind-client-test: $(GEARMAN_CLIENT_TEST)
+		      @$(GEARMAN_VALGRIND_CLIENT_TEST) -H 2>&1 > /dev/null
+		      @$(GEARMAN_CLIENT_TEST) -w -f true -d -i $(GEARMAN_PIDFILE) -- false
+		      cat $(GEARMAN_PIDFILE) | xargs kill
+		      @echo "gearman client success"
 
 #valgrind: ${noinst_PROGRAMS} valgrind-client valgrind-worker valgrind-internals valgrind-sqlite valgrind-tokyocabinet
 

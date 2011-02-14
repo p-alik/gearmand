@@ -13,10 +13,13 @@
 sbin_PROGRAMS+= gearmand/gearmand
 
 gearmand_gearmand_LDADD= \
-	libgearman-server/libgearman-server.la \
-	${BETTER_MALLOC_LIBS}
+			 libgearman-server/libgearman-server.la \
+			 ${BETTER_MALLOC_LIBS}
 
-gearmand_gearmand_SOURCES= gearmand/gearmand.c
+gearmand_gearmand_SOURCES= \
+			   gearmand/gearmand.cc \
+			   util/error.cc \
+			   util/pidfile.cc
 
 gearmand-valgrind: gearmand/gearmand
 	$(LIBTOOL) --mode=execute valgrind --leak-check=yes --show-reachable=yes  gearmand/gearmand
