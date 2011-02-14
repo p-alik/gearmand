@@ -17,16 +17,12 @@ AC_DEFUN([_PANDORA_SEARCH_LIBMEMCACHED],[
     [ac_enable_libmemcached="yes"])
 
   AS_IF([test "x$ac_enable_libmemcached" = "xyes"],[
-    pandora_need_libmemcached_version=`echo "$1" | perl -nle '/(\d+)\.(\d+)/; printf "%d%0.3d000", $[]1, $[]2 ;'`
     AC_LIB_HAVE_LINKFLAGS(memcached,,[
       #include <libmemcached/memcached.h>
     ],[
       memcached_st memc;
       memcached_dump_func *df;
       memcached_lib_version();
-#if !defined(LIBMEMCACHED_VERSION_HEX) || LIBMEMCACHED_VERSION_HEX < 0x${pandora_need_libmemcached_version}
-# error libmemcached too old!
-#endif
     ])
   ],[
     ac_cv_libmemcached="no"
