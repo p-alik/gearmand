@@ -11,7 +11,7 @@ AC_DEFUN([_PANDORA_SEARCH_LIBMEMCACHED],[
   dnl --------------------------------------------------------------------
 
   AC_ARG_ENABLE([libmemcached],
-    [AS_HELP_STRING([--disable-libmemcached],
+    [AS_HELP_STRING([--enable-libmemcached],
       [Build with libmemcached support @<:@default=off@:>@])],
     [ac_enable_libmemcached="$enableval"],
     [ac_enable_libmemcached="no"])
