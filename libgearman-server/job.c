@@ -124,7 +124,7 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
     snprintf(server_job->job_handle, GEARMAN_JOB_HANDLE_SIZE, "%s:%u",
              server->job_handle_prefix, server->job_handle_count);
     snprintf(server_job->unique, GEARMAN_UNIQUE_SIZE, "%.*s",
-             (uint32_t)unique_size, unique);
+             (int)unique_size, unique);
     server->job_handle_count++;
     server_job->data= data;
     server_job->data_size= data_size;

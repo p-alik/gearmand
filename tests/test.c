@@ -32,11 +32,11 @@ static void world_stats_print(world_stats_st *stats)
 
 static long int timedif(struct timeval a, struct timeval b)
 {
-  register int us, s;
+  long us, s;
 
-  us = (int)(a.tv_usec - b.tv_usec);
+  us = (long)(a.tv_usec - b.tv_usec);
   us /= 1000;
-  s = (int)(a.tv_sec - b.tv_sec);
+  s = (long)(a.tv_sec - b.tv_sec);
   s *= 1000;
   return s + us;
 }

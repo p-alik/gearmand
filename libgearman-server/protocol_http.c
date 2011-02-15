@@ -288,7 +288,7 @@ static size_t _http_unpack(gearman_packet_st *packet, gearman_connection_st *con
       if ((method_size == 4 && !strncasecmp(method, "POST", 4)) ||
           (method_size == 3 && !strncasecmp(method, "PUT", 3)))
       {
-        snprintf(content_length, 11, "%.*s", (uint32_t)header_size - 16,
+        snprintf(content_length, 11, "%.*s", (int)header_size - 16,
                  header + 16);
         packet->data_size= (size_t)atoi(content_length);
       }

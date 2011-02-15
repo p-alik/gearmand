@@ -363,7 +363,7 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
   case GEARMAN_COMMAND_OPTION_REQ:
     /* This may not be NULL terminated, so copy to make sure it is. */
     snprintf(option, GEARMAN_OPTION_SIZE, "%.*s",
-             (uint32_t)(packet->arg_size[0]), (char *)(packet->arg[0]));
+             (int)(packet->arg_size[0]), (char *)(packet->arg[0]));
 
     if (!strcasecmp(option, "exceptions"))
     {
@@ -517,7 +517,7 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
     server_job->numerator= (uint32_t)atoi((char *)(packet->arg[1]));
 
     /* This may not be NULL terminated, so copy to make sure it is. */
-    snprintf(denominator_buffer, 11, "%.*s", (uint32_t)(packet->arg_size[2]),
+    snprintf(denominator_buffer, 11, "%.*s", (int)(packet->arg_size[2]),
              (char *)(packet->arg[2]));
     server_job->denominator= (uint32_t)atoi(denominator_buffer);
 
@@ -590,7 +590,7 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
   case GEARMAN_COMMAND_WORK_FAIL:
     /* This may not be NULL terminated, so copy to make sure it is. */
     snprintf(job_handle, GEARMAN_JOB_HANDLE_SIZE, "%.*s",
-             (uint32_t)(packet->arg_size[0]), (char *)(packet->arg[0]));
+             (int)(packet->arg_size[0]), (char *)(packet->arg[0]));
 
     server_job= gearman_server_job_get(server_con->thread->server, job_handle,
                                        server_con);
