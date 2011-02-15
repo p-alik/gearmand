@@ -310,42 +310,53 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
     break;
 
   case GEARMAN_COMMAND_GET_STATUS:
-    /* This may not be NULL terminated, so copy to make sure it is. */
-    snprintf(job_handle, GEARMAN_JOB_HANDLE_SIZE, "%.*s",
-             (uint32_t)(packet->arg_size[0]), (char *)(packet->arg[0]));
-
-    server_job= gearman_server_job_get(server_con->thread->server, job_handle, NULL);
-
-    /* Queue status result packet. */
-    if (server_job == NULL)
     {
-      ret= gearman_server_io_packet_add(server_con, false,
-                                        GEARMAN_MAGIC_RESPONSE,
-                                        GEARMAN_COMMAND_STATUS_RES, job_handle,
-                                        (size_t)(strlen(job_handle) + 1),
-                                        "0", (size_t)2, "0", (size_t)2, "0",
-                                        (size_t)2, "0", (size_t)1, NULL);
-    }
-    else
-    {
-      snprintf(numerator_buffer, 11, "%u", server_job->numerator);
-      snprintf(denominator_buffer, 11, "%u", server_job->denominator);
+      int check_length;
+      /* This may not be NULL terminated, so copy to make sure it is. */
+      check_length= snprintf(job_handle, GEARMAN_JOB_HANDLE_SIZE, "%.*s",
+                             (int)(packet->arg_size[0]), (char *)(packet->arg[0]));
 
-      ret= gearman_server_io_packet_add(server_con, false,
-                                        GEARMAN_MAGIC_RESPONSE,
-                                        GEARMAN_COMMAND_STATUS_RES, job_handle,
-                                        (size_t)(strlen(job_handle) + 1),
-                                        "1", (size_t)2,
-                                        server_job->worker == NULL ? "0" : "1",
-                                        (size_t)2, numerator_buffer,
-                                        (size_t)(strlen(numerator_buffer) + 1),
-                                        denominator_buffer,
-                                        (size_t)strlen(denominator_buffer),
-                                        NULL);
-    }
+      if (check_length >= GEARMAN_JOB_HANDLE_SIZE || GEARMAN_JOB_HANDLE_SIZE < 0)
+        return GEARMAN_MEMORY_ALLOCATION_FAILURE;
 
-    if (ret != GEARMAN_SUCCESS)
-      return ret;
+      server_job= gearman_server_job_get(server_con->thread->server, job_handle, NULL);
+
+      /* Queue status result packet. */
+      if (server_job == NULL)
+      {
+        ret= gearman_server_io_packet_add(server_con, false,
+                                          GEARMAN_MAGIC_RESPONSE,
+                                          GEARMAN_COMMAND_STATUS_RES, job_handle,
+                                          (size_t)(strlen(job_handle) + 1),
+                                          "0", (size_t)2, "0", (size_t)2, "0",
+                                          (size_t)2, "0", (size_t)1, NULL);
+      }
+      else
+      {
+        check_length= snprintf(numerator_buffer, sizeof(numerator_buffer), "%u", server_job->numerator);
+        if ((size_t)check_length >= sizeof(numerator_buffer) || sizeof(numerator_buffer) < 0)
+          return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+
+        check_length= snprintf(denominator_buffer, sizeof(denominator_buffer), "%u", server_job->denominator);
+        if ((size_t)check_length >= sizeof(denominator_buffer) || sizeof(denominator_buffer) < 0)
+          return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+
+        ret= gearman_server_io_packet_add(server_con, false,
+                                          GEARMAN_MAGIC_RESPONSE,
+                                          GEARMAN_COMMAND_STATUS_RES, job_handle,
+                                          (size_t)(strlen(job_handle) + 1),
+                                          "1", (size_t)2,
+                                          server_job->worker == NULL ? "0" : "1",
+                                          (size_t)2, numerator_buffer,
+                                          (size_t)(strlen(numerator_buffer) + 1),
+                                          denominator_buffer,
+                                          (size_t)strlen(denominator_buffer),
+                                          NULL);
+      }
+
+      if (ret != GEARMAN_SUCCESS)
+        return ret;
+    }
 
     break;
 
@@ -911,7 +922,9 @@ static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
     }
   }
   else if (!strcasecmp("version", (char *)(packet->arg[0])))
+  {
     snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, "%s\n", PACKAGE_VERSION);
+  }
   else
   {
     snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE,

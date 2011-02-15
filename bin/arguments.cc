@@ -12,6 +12,11 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <unistd.h>
+
+#ifdef HAVE_GETOPT_H
+#include <getopt.h>
+#endif
 
 #include <libgearman/gearman.h>
 #include "arguments.h"
