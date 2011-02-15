@@ -14,9 +14,14 @@
 #ifndef __GEARMAN_CONNECTION_H__
 #define __GEARMAN_CONNECTION_H__
 
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 
 /**
  * @addtogroup gearman_con Connection Declarations

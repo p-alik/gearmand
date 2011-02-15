@@ -14,6 +14,10 @@
 #ifndef __GEARMAND_CON_H__
 #define __GEARMAND_CON_H__
 
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
