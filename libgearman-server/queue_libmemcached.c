@@ -266,30 +266,46 @@ static memcached_return callback_loader(const memcached_st *ptr __attribute__((u
 {
   struct replay_context *container= (struct replay_context *)context;
   const char *key;
-  const char *unique;
-  char *function;
-  size_t unique_len;
+  char *unique;
+  const char *function;
+  size_t function_len;
+  char *data;
+  size_t data_size;
 
   key= memcached_result_key_value(result);
-
-  if (strcmp(key, GEARMAN_QUEUE_LIBMEMCACHED_DEFAULT_PREFIX))
+  if (strncmp(key, GEARMAN_QUEUE_LIBMEMCACHED_DEFAULT_PREFIX, strlen(GEARMAN_QUEUE_LIBMEMCACHED_DEFAULT_PREFIX)))
     return MEMCACHED_SUCCESS;
 
-  unique= key + strlen(GEARMAN_QUEUE_LIBMEMCACHED_DEFAULT_PREFIX);
+  function= key + strlen(GEARMAN_QUEUE_LIBMEMCACHED_DEFAULT_PREFIX);
 
-  function= index(unique, '-');
-  unique_len= (size_t)(function - unique);
-  function++;
+  unique= index(function, '-');
+
+  if (! unique)
+    return MEMCACHED_SUCCESS;
+
+  function_len = (size_t) (unique-function);
+  unique++;
 
   assert(unique);
-  assert(unique_len);
+  assert(strlen(unique));
   assert(function);
-  assert(strlen(function));
+  assert(function_len);
+
+  data_size= (size_t) memcached_result_length(result);
+  /* need to make a copy here ... gearman_server_job_free will free it later */
+  data= (void *)malloc(data_size);
+  if (data == NULL)
+  {
+     gearman_log_error(container->server->gearman, "_memcached_replay", "malloc");
+     return MEMCACHED_MEMORY_ALLOCATION_FAILURE;
+  } 
+  memcpy(data, memcached_result_value(result), data_size);
+
   /* Currently not looking at failure cases */
   (void)(*container->add_fn)(container->server, container->add_context,
-                             unique, unique_len,
-                             function, strlen(function),
-                             memcached_result_value(result), memcached_result_length(result),
+                             unique, strlen(unique),
+                             function, function_len,
+                             data, data_size,
                              memcached_result_flags(result));
 
 

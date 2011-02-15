@@ -1139,7 +1139,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
     if (task->recv->command == GEARMAN_COMMAND_JOB_CREATED)
     {
       snprintf(task->job_handle, GEARMAN_JOB_HANDLE_SIZE, "%.*s",
-               (uint32_t)(task->recv->arg_size[0]),
+               (int)(task->recv->arg_size[0]),
                (char *)(task->recv->arg[0]));
 
   case GEARMAN_TASK_STATE_CREATED:
@@ -1208,7 +1208,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
 
       task->numerator= (uint32_t)atoi((char *)task->recv->arg[x]);
       snprintf(status_buffer, 11, "%.*s",
-               (uint32_t)(task->recv->arg_size[x + 1]),
+               (int)(task->recv->arg_size[x + 1]),
                (char *)(task->recv->arg[x + 1]));
       task->denominator= (uint32_t)atoi(status_buffer);
 

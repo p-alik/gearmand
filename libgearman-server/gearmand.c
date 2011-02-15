@@ -12,6 +12,11 @@
  */
 
 #include "common.h"
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+
 #include "gearmand.h"
 
 /*
@@ -297,7 +302,7 @@ static void _log(const char *line, gearman_verbose_t verbose, void *context)
   (*gearmand->log_fn)(line, verbose, (void *)gearmand->log_context);
 }
 
-static const uint32_t bind_timeout= 0;
+static const uint32_t bind_timeout= 100; // Number is not special
 
 static gearman_return_t _listen_init(gearmand_st *gearmand)
 {

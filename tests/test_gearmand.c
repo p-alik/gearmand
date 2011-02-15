@@ -57,7 +57,7 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
       perror("mkstemp");
       abort();
     }
-    snprintf(buffer_ptr, sizeof(buffer), "\nrun --pid-file=%s -vvvvvv --port=%u", file_buffer, port);
+    snprintf(buffer_ptr, sizeof(buffer), "\nrun --pid-file=%s -vvvvvv --port=%u", file_buffer, (uint32_t)port);
     buffer_ptr+= strlen(buffer_ptr);
   }
   else if (getenv("GEARMAN_LOG"))
@@ -74,7 +74,7 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
       perror("mkstemp");
       abort();
     }
-    snprintf(buffer_ptr, sizeof(buffer), "./gearmand/gearmand --pid-file=%s --daemon --port=%u -vvvvvv --log-file=%s", file_buffer, port, log_buffer);
+    snprintf(buffer_ptr, sizeof(buffer), "./gearmand/gearmand --pid-file=%s --daemon --port=%u -vvvvvv --log-file=%s", file_buffer, (uint32_t)port, log_buffer);
     buffer_ptr+= strlen(buffer_ptr);
   }
   else

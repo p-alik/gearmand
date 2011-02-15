@@ -13,6 +13,10 @@
 
 #include "common.h"
 
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+
 /**
  * @addtogroup gearman_universal_static Static Gearman Declarations
  * @ingroup gearman_universal

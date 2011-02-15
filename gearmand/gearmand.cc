@@ -327,7 +327,7 @@ int main(int argc, char *argv[])
     }
     else if (not strcmp(name, "round-robin"))
     {
-      round_robin++;
+      round_robin= true;
     }
     else if (not strcmp(name, "version"))
     {
