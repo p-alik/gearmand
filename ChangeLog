@@ -1,3 +1,9 @@
+0.15 Mon Feb 14 18:44:32 PST 2011
+  * Numerous issues around overflow on buffers are now fixed.
+  * Updates on gearmand daemon to share a bit more code.
+  * Numerious fixes for gearman command line client.
+  * IPV6 fix for server.
+
 0.14 Wed Jun 30 13:04:39 PDT 2010
   * Leak in SQLite resolved.
   * updated build configs
