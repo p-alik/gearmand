@@ -654,10 +654,6 @@ static test_return_t gearman_worker_failover_test(void *object)
   rc= gearman_worker_unregister(cloned, function_name);
   test_truth(rc == GEARMAN_SUCCESS);
 
-  //gearman_return_t ret= gearman_worker_echo(cloned, "test", sizeof("test"));
-
-  //test_truth(ret == GEARMAN_SUCCESS);
-
   gearman_worker_free(cloned);
 
   return TEST_SUCCESS;
