@@ -127,8 +127,13 @@ gearman_server_st *gearman_server_create(gearman_server_st *server)
     return NULL;
   }
 
-  snprintf(server->job_handle_prefix, GEARMAN_JOB_HANDLE_SIZE, "H:%s",
-           un.nodename);
+  int checked_length= snprintf(server->job_handle_prefix, GEARMAN_JOB_HANDLE_SIZE, "H:%s", un.nodename);
+  if (checked_length >= GEARMAN_JOB_HANDLE_SIZE || checked_length < 0)
+  {
+    gearman_server_free(server);
+    return NULL;
+  }
+
   server->job_handle_count= 1;
 
   return server;
@@ -223,6 +228,8 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
   gearman_job_priority_t priority;
   gearman_server_st *server= server_con->thread->server;
 
+  int checked_length;
+
   if (packet->magic == GEARMAN_MAGIC_RESPONSE)
   {
     return _server_error_packet(server_con, "bad_magic",
@@ -311,13 +318,15 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
 
   case GEARMAN_COMMAND_GET_STATUS:
     {
-      int check_length;
       /* This may not be NULL terminated, so copy to make sure it is. */
-      check_length= snprintf(job_handle, GEARMAN_JOB_HANDLE_SIZE, "%.*s",
-                             (int)(packet->arg_size[0]), (char *)(packet->arg[0]));
+      checked_length= snprintf(job_handle, GEARMAN_JOB_HANDLE_SIZE, "%.*s",
+                               (int)(packet->arg_size[0]), (char *)(packet->arg[0]));
 
-      if (check_length >= GEARMAN_JOB_HANDLE_SIZE || GEARMAN_JOB_HANDLE_SIZE < 0)
+      if (checked_length >= GEARMAN_JOB_HANDLE_SIZE || checked_length < 0)
+      {
+        gearman_log_error(packet->universal, "_server_command_get_status", "snprintf");
         return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+      }
 
       server_job= gearman_server_job_get(server_con->thread->server, job_handle, NULL);
 
@@ -333,13 +342,19 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
       }
       else
       {
-        check_length= snprintf(numerator_buffer, sizeof(numerator_buffer), "%u", server_job->numerator);
-        if ((size_t)check_length >= sizeof(numerator_buffer) || sizeof(numerator_buffer) < 0)
+        checked_length= snprintf(numerator_buffer, sizeof(numerator_buffer), "%u", server_job->numerator);
+        if ((size_t)checked_length >= sizeof(numerator_buffer) || checked_length < 0)
+        {
+          gearman_log_error(packet->universal, "_server_command_get_status", "snprintf");
           return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+        }
 
-        check_length= snprintf(denominator_buffer, sizeof(denominator_buffer), "%u", server_job->denominator);
-        if ((size_t)check_length >= sizeof(denominator_buffer) || sizeof(denominator_buffer) < 0)
+        checked_length= snprintf(denominator_buffer, sizeof(denominator_buffer), "%u", server_job->denominator);
+        if ((size_t)checked_length >= sizeof(denominator_buffer) || checked_length < 0)
+        {
+          gearman_log_error(packet->universal, "_server_command_get_status", "snprintf");
           return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+        }
 
         ret= gearman_server_io_packet_add(server_con, false,
                                           GEARMAN_MAGIC_RESPONSE,
@@ -362,8 +377,15 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
 
   case GEARMAN_COMMAND_OPTION_REQ:
     /* This may not be NULL terminated, so copy to make sure it is. */
-    snprintf(option, GEARMAN_OPTION_SIZE, "%.*s",
-             (int)(packet->arg_size[0]), (char *)(packet->arg[0]));
+    checked_length= snprintf(option, GEARMAN_OPTION_SIZE, "%.*s",
+                                 (int)(packet->arg_size[0]), (char *)(packet->arg[0]));
+
+    if (checked_length >= GEARMAN_OPTION_SIZE || checked_length < 0)
+    {
+      gearman_log_error(packet->universal, "_server_command_option_request", "snprintf");
+      return _server_error_packet(server_con, "unknown_option",
+                                  "Server does not recognize given option");
+    }
 
     if (!strcasecmp(option, "exceptions"))
     {
@@ -517,8 +539,16 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
     server_job->numerator= (uint32_t)atoi((char *)(packet->arg[1]));
 
     /* This may not be NULL terminated, so copy to make sure it is. */
-    snprintf(denominator_buffer, 11, "%.*s", (int)(packet->arg_size[2]),
-             (char *)(packet->arg[2]));
+    checked_length= snprintf(denominator_buffer, sizeof(denominator_buffer), "%.*s", (int)(packet->arg_size[2]),
+                             (char *)(packet->arg[2]));
+
+    if ((size_t)checked_length > sizeof(denominator_buffer) || checked_length < 0)
+    {
+      gearman_log_error(packet->universal, "_server_run_text", "snprintf");
+      return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+    }
+
+
     server_job->denominator= (uint32_t)atoi(denominator_buffer);
 
     /* Queue the status packet for all clients. */
@@ -589,8 +619,14 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
 
   case GEARMAN_COMMAND_WORK_FAIL:
     /* This may not be NULL terminated, so copy to make sure it is. */
-    snprintf(job_handle, GEARMAN_JOB_HANDLE_SIZE, "%.*s",
-             (int)(packet->arg_size[0]), (char *)(packet->arg[0]));
+    checked_length= snprintf(job_handle, GEARMAN_JOB_HANDLE_SIZE, "%.*s",
+                             (int)(packet->arg_size[0]), (char *)(packet->arg[0]));
+
+    if (checked_length >= GEARMAN_JOB_HANDLE_SIZE || checked_length < 0)
+    {
+      return _server_error_packet(server_con, "job_name_too_large",
+                                  "Error occured due to GEARMAN_JOB_HANDLE_SIZE being too small from snprintf");
+    }
 
     server_job= gearman_server_job_get(server_con->thread->server, job_handle,
                                        server_con);
@@ -627,6 +663,7 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
 
     /* Job is done, remove it. */
     gearman_server_job_free(server_job);
+
     break;
 
   case GEARMAN_COMMAND_SET_CLIENT_ID:
@@ -765,6 +802,7 @@ static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
   gearman_server_worker_st *worker;
   gearman_server_function_st *function;
   gearman_server_packet_st *server_packet;
+  int checked_length;
 
   data= (char *)malloc(GEARMAN_TEXT_RESPONSE_SIZE);
   if (data == NULL)
@@ -812,16 +850,36 @@ static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
           total+= GEARMAN_TEXT_RESPONSE_SIZE;
         }
 
-        size+= (size_t)snprintf(data + size, total - size, "%d %s %s :",
-                                con->con.fd, con->host, con->id);
+        checked_length= snprintf(data + size, total - size, "%d %s %s :",
+                                 con->con.fd, con->host, con->id);
+
+        if ((size_t)checked_length > total - size || checked_length < 0)
+        {
+          (void) pthread_mutex_unlock(&thread->lock);
+          free(data);
+          gearman_log_error(packet->universal, "_server_run_text", "snprintf");
+          return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+        }
+
+        size+= (size_t)checked_length;
         if (size > total)
           continue;
 
         for (worker= con->worker_list; worker != NULL; worker= worker->con_next)
         {
-          size+= (size_t)snprintf(data + size, total - size, " %.*s",
-                                  (int)(worker->function->function_name_size),
-                                  worker->function->function_name);
+          checked_length= snprintf(data + size, total - size, " %.*s",
+                                   (int)(worker->function->function_name_size),
+                                   worker->function->function_name);
+
+          if ((size_t)checked_length > total - size || checked_length < 0)
+          {
+            (void) pthread_mutex_unlock(&thread->lock);
+            free(data);
+            gearman_log_error(packet->universal, "_server_run_text", "snprintf");
+            return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+          }
+
+          size+= (size_t)checked_length;
           if (size > total)
             break;
         }
@@ -829,14 +887,29 @@ static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
         if (size > total)
           continue;
 
-        size+= (size_t)snprintf(data + size, total - size, "\n");
+        checked_length= snprintf(data + size, total - size, "\n");
+        if ((size_t)checked_length > total - size || checked_length < 0)
+        {
+          (void) pthread_mutex_unlock(&thread->lock);
+          free(data);
+          gearman_log_error(packet->universal, "_server_run_text", "snprintf");
+          return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+        }
+        size+= (size_t)checked_length;
       }
 
       (void) pthread_mutex_unlock(&thread->lock);
     }
 
     if (size < total)
-      snprintf(data + size, total - size, ".\n");
+    {
+      checked_length= snprintf(data + size, total - size, ".\n");
+      if ((size_t)checked_length > total - size || checked_length < 0)
+      {
+        gearman_log_error(packet->universal, "_server_run_text", "snprintf");
+        return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+      }
+    }
   }
   else if (!strcasecmp("status", (char *)(packet->arg[0])))
   {
@@ -859,16 +932,33 @@ static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
         total+= GEARMAN_TEXT_RESPONSE_SIZE;
       }
 
-      size+= (size_t)snprintf(data + size, total - size, "%.*s\t%u\t%u\t%u\n",
-                              (int)(function->function_name_size),
-                              function->function_name, function->job_total,
-                              function->job_running, function->worker_count);
+      checked_length= snprintf(data + size, total - size, "%.*s\t%u\t%u\t%u\n",
+                               (int)(function->function_name_size),
+                               function->function_name, function->job_total,
+                               function->job_running, function->worker_count);
+
+      if ((size_t)checked_length > total - size || checked_length < 0)
+      {
+        free(data);
+        gearman_log_error(packet->universal, "_server_run_text", "malloc");
+        return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+      }
+
+      size+= (size_t)checked_length;
       if (size > total)
         size= total;
     }
 
     if (size < total)
-      snprintf(data + size, total - size, ".\n");
+    {
+      checked_length= snprintf(data + size, total - size, ".\n");
+      if ((size_t)checked_length > total - size || checked_length < 0)
+      {
+        free(data);
+        gearman_log_error(packet->universal, "_server_run_text", "malloc");
+        return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+      }
+    }
   }
   else if (!strcasecmp("maxqueue", (char *)(packet->arg[0])))
   {
