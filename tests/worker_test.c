@@ -629,6 +629,36 @@ static test_return_t gearman_worker_context_test(void *object)
   return TEST_SUCCESS;
 }
 
+static test_return_t gearman_worker_failover_test(void *object)
+{
+  gearman_worker_st *worker= (gearman_worker_st *)object;
+  gearman_worker_st *cloned;
+  gearman_return_t rc;
+  const char *function_name= "_gearman_worker_add_function_worker_fn";
+
+  cloned= gearman_worker_clone(NULL, worker);
+  gearman_worker_add_server(cloned, NULL, WORKER_TEST_PORT);
+  gearman_worker_add_server(cloned, NULL, WORKER_TEST_PORT+1);
+
+  rc= gearman_worker_add_function(cloned,
+				  function_name,
+				  0, _gearman_worker_add_function_worker_fn, NULL);
+  test_truth(rc == GEARMAN_SUCCESS);
+
+  gearman_worker_set_timeout(cloned, 2);
+
+  rc= gearman_worker_work(cloned);
+  test_truth(rc == GEARMAN_TIMEOUT);
+
+  /* Make sure we have remove worker function */
+  rc= gearman_worker_unregister(cloned, function_name);
+  test_truth(rc == GEARMAN_SUCCESS);
+
+  gearman_worker_free(cloned);
+
+  return TEST_SUCCESS;
+}
+
 /*********************** World functions **************************************/
 
 void *create(void *object __attribute__((unused)))
@@ -695,6 +725,7 @@ test_st tests[] ={
   {"gearman_worker_unregister_all", 0, gearman_worker_unregister_all_test },
   {"gearman_worker_work with timout", 0, gearman_worker_work_with_test },
   {"gearman_worker_context", 0, gearman_worker_context_test },
+  {"gearman_worker_failover", 0, gearman_worker_failover_test },
   {"echo_max", 0, echo_max_test },
   {"abandoned_worker", 0, abandoned_worker_test },
   {0, 0, 0}
