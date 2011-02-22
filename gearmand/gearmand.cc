@@ -101,8 +101,6 @@ struct gearmand_log_info_st
   }
 };
 
-static gearmand_st *_gearmand;
-
 static bool _set_fdlimit(rlim_t fds);
 static bool _switch_user(const char *user);
 extern "C" {
@@ -111,35 +109,37 @@ static bool _set_signals(void);
 static void _shutdown_handler(int signal_arg);
 static void _log(const char *line, gearman_verbose_t verbose, void *context);
 
+static gearman_return_t queue_init(gearmand_st *_gearmand, gearman_conf_st &conf, const char *queue_type);
+static void queue_deinit(gearmand_st *_gearmand, const char *queue_type);
+static int queue_configure(gearman_conf_st &conf);
+
 int main(int argc, char *argv[])
 {
-  gearman_conf_st conf;
-  gearman_conf_module_st module;
-  const char *name;
-  const char *value;
   int backlog= GEARMAND_LISTEN_BACKLOG;
   rlim_t fds= 0;
   uint8_t job_retries= 0;
   uint8_t worker_wakeup= 0;
-  in_port_t port= 0;
+  char port[NI_MAXSERV];
   const char *host= NULL;
   const char *pid_file= "";
   const char *queue_type= NULL;
-  uint32_t threads= 0;
+  uint32_t threads= 4;
   const char *user= NULL;
-  uint8_t verbose= 0;
-  gearman_return_t ret;
+  uint8_t verbose_count= 0;
   gearmand_log_info_st log_info;
   bool close_stdio= false;
-  int fd;
   bool round_robin= false;
 
+  port[0]= 0;
+
+  gearman_conf_st conf;
   if (gearman_conf_create(&conf) == NULL)
   {
     error::message("gearman_conf_create: NULL");
     return 1;
   }
 
+  gearman_conf_module_st module;
   if (gearman_conf_module_create(&conf, &module, NULL) == NULL)
   {
     error::message("gearman_conf_module_create: NULL");
@@ -172,7 +172,7 @@ int main(int argc, char *argv[])
       "connection. The default is to assign work in the order of functions "
       "added by the worker.")
   MCO("queue-type", 'q', "QUEUE", "Persistent queue type to use.")
-  MCO("threads", 't', "THREADS", "Number of I/O threads to use. Default=0.")
+  MCO("threads", 't', "THREADS", "Number of I/O threads to use. Default=4.")
   MCO("user", 'u', "USER", "Switch to given user after startup.")
   MCO("verbose", 'v', NULL, "Increase verbosity level by one.")
   MCO("version", 'V', NULL, "Display the version of gearmand and exit.")
@@ -188,45 +188,9 @@ int main(int argc, char *argv[])
   }
 
   /* Add queue configuration options. */
+  if (queue_configure(conf))
+    return 1;
 
-#ifdef HAVE_LIBDRIZZLE
-  if (gearman_server_queue_libdrizzle_conf(&conf) != GEARMAN_SUCCESS)
-  {
-    error::message("gearman_queue_libdrizzle_conf", gearman_conf_error(&conf));
-    return 1;
-  }
-#endif
-
-#ifdef HAVE_LIBMEMCACHED
-  if (gearman_server_queue_libmemcached_conf(&conf) != GEARMAN_SUCCESS)
-  {
-    error::message("gearman_queue_libmemcached_conf", gearman_conf_error(&conf));
-    return 1;
-  }
-#endif
-#ifdef HAVE_LIBTOKYOCABINET
-  if (gearman_server_queue_libtokyocabinet_conf(&conf) != GEARMAN_SUCCESS)
-  {
-    error::message("gearman_queue_libtokyocabinet_conf", gearman_conf_error(&conf));
-    return 1;
-  }
-#endif
-
-#ifdef HAVE_LIBSQLITE3
-  if (gearman_server_queue_libsqlite3_conf(&conf) != GEARMAN_SUCCESS)
-  {
-    error::message("gearman_queue_libsqlite3_conf", gearman_conf_error(&conf));
-    return 1;
-  }
-#endif
-
-#ifdef HAVE_LIBPQ
-  if (gearman_server_queue_libpq_conf(&conf) != GEARMAN_SUCCESS)
-  {
-    error::message("gearman_queue_libpq_conf", gearman_conf_error(&conf));
-    return 1;
-  }
-#endif
 
   if (gearmand_protocol_http_conf(&conf) != GEARMAN_SUCCESS)
   {
@@ -238,13 +202,15 @@ int main(int argc, char *argv[])
   if (gearman_conf_parse_args(&conf, argc, argv) != GEARMAN_SUCCESS)
   {
     printf("\n%s\n\n", gearman_conf_error(&conf));
-    printf("gearmand %s - %s\n\n", gearman_version(), gearman_bugreport());
+    printf("gearmand %s - %s\n\n", gearmand_version(), gearmand_bugreport());
     printf("usage: %s [OPTIONS]\n", argv[0]);
     gearman_conf_usage(&conf);
     return 1;
   }
 
   /* Check for option values that were given. */
+  const char *name;
+  const char *value;
   while (gearman_conf_module_value(&module, &name, &value))
   {
     if (not strcmp(name, "backlog"))
@@ -280,7 +246,7 @@ int main(int argc, char *argv[])
     }
     else if (not strcmp(name, "help"))
     {
-      printf("\ngearmand %s - %s\n\n", gearman_version(), gearman_bugreport());
+      printf("\ngearmand %s - %s\n\n", gearmand_version(), gearmand_bugreport());
       printf("usage: %s [OPTIONS]\n", argv[0]);
       gearman_conf_usage(&conf);
       return 1;
@@ -299,7 +265,7 @@ int main(int argc, char *argv[])
     }
     else if (not strcmp(name, "port"))
     {
-      port= static_cast<in_port_t>(atoi(value));
+      strncpy(port, value, NI_MAXSERV);
     }
     else if (not strcmp(name, "pid-file"))
     {
@@ -323,7 +289,7 @@ int main(int argc, char *argv[])
     }
     else if (not strcmp(name, "verbose"))
     {
-      verbose++;
+      verbose_count++;
     }
     else if (not strcmp(name, "round-robin"))
     {
@@ -331,7 +297,7 @@ int main(int argc, char *argv[])
     }
     else if (not strcmp(name, "version"))
     {
-      printf("\ngearmand %s - %s\n", gearman_version(), gearman_bugreport());
+      printf("\ngearmand %s - %s\n", gearmand_version(), gearmand_bugreport());
     }
     else if (not strcmp(name, "worker-wakeup"))
     {
@@ -344,8 +310,10 @@ int main(int argc, char *argv[])
     }
   }
 
-  if (verbose == 0 && close_stdio)
+  if (verbose_count == 0 && close_stdio)
   {
+    int fd;
+
     /* If we can't remap stdio, it should not a fatal error. */
     fd = open("/dev/null", O_RDWR, 0);
     if (fd != -1)
@@ -375,71 +343,29 @@ int main(int argc, char *argv[])
   if ((fds > 0 && _set_fdlimit(fds)) || _switch_user(user) || _set_signals())
     return 1;
 
+  gearman_verbose_t verbose= verbose_count > static_cast<int>(GEARMAN_VERBOSE_CRAZY) ? GEARMAN_VERBOSE_CRAZY : static_cast<gearman_verbose_t>(verbose_count);
+
   Pidfile _pid_file(pid_file);
 
-  _gearmand= gearmand_create(host, port);
+  gearmand_st *_gearmand;
+  _gearmand= gearmand_create(host, port, threads, backlog, job_retries, worker_wakeup,
+                             _log, &log_info, verbose,
+                             round_robin);
   if (_gearmand == NULL)
   {
     error::message("Could not create gearmand library instance.");
     return 1;
   }
 
-  gearmand_set_backlog(_gearmand, backlog);
-  gearmand_set_threads(_gearmand, threads);
-  gearmand_set_job_retries(_gearmand, job_retries);
-  gearmand_set_worker_wakeup(_gearmand, worker_wakeup);
-  gearmand_set_log_fn(_gearmand, _log, &log_info, static_cast<gearman_verbose_t>(verbose));
-  gearmand_set_round_robin(_gearmand, round_robin);
-
-  if (queue_type != NULL)
+  if (queue_type)
   {
-#ifdef HAVE_LIBDRIZZLE
-    if (not strcmp(queue_type, "libdrizzle"))
+    gearman_return_t rc;
+    if ((rc= queue_init(_gearmand, conf, queue_type)) != GEARMAN_SUCCESS)
     {
-      ret= gearmand_queue_libdrizzle_init(_gearmand, &conf);
-      if (ret != GEARMAN_SUCCESS)
-        return 1;
-    }
-    else
-#endif
-#ifdef HAVE_LIBMEMCACHED
-    if (not strcmp(queue_type, "libmemcached"))
-    {
-      ret= gearmand_queue_libmemcached_init(_gearmand, &conf);
-      if (ret != GEARMAN_SUCCESS)
-        return 1;
-    }
-    else
-#endif
-#ifdef HAVE_LIBSQLITE3
-    if (not strcmp(queue_type, "libsqlite3"))
-    {
-      ret= gearmand_queue_libsqlite3_init(_gearmand, &conf);
-      if (ret != GEARMAN_SUCCESS)
-        return 1;
-    }
-    else
-#endif
-#ifdef HAVE_LIBPQ
-    if (not strcmp(queue_type, "libpq"))
-    {
-      ret= gearmand_queue_libpq_init(_gearmand, &conf);
-      if (ret != GEARMAN_SUCCESS)
-        return 1;
-    }
-    else
-#endif
-#ifdef HAVE_LIBTOKYOCABINET
-    if (not strcmp(queue_type, "libtokyocabinet"))
-    {
-      ret= gearmand_queue_libtokyocabinet_init(_gearmand, &conf);
-      if (ret != GEARMAN_SUCCESS)
-        return 1;
-    }
-    else
-#endif        
-    {
-      error::message("Unknown queue module", queue_type);
+      std::string error_message;
+      error_message+= "Failed to initialize queue ";
+      error_message+= queue_type;
+      error::message(error_message, rc);
       return 1;
     }
   }
@@ -451,6 +377,7 @@ int main(int argc, char *argv[])
 
     if (not strcmp(value, "http"))
     {
+      gearman_return_t ret;
       ret= gearmand_protocol_http_init(_gearmand, &conf);
       if (ret != GEARMAN_SUCCESS)
         return 1;
@@ -462,30 +389,12 @@ int main(int argc, char *argv[])
     }
   }
 
+  gearman_return_t ret;
   ret= gearmand_run(_gearmand);
 
-  if (queue_type != NULL)
+  if (queue_type)
   {
-#ifdef HAVE_LIBDRIZZLE
-    if (not strcmp(queue_type, "libdrizzle"))
-      gearmand_queue_libdrizzle_deinit(_gearmand);
-#endif
-#ifdef HAVE_LIBMEMCACHED
-    if (not strcmp(queue_type, "libmemcached"))
-      gearmand_queue_libmemcached_deinit(_gearmand);
-#endif
-#ifdef HAVE_LIBSQLITE3
-    if (not strcmp(queue_type, "libsqlite3"))
-      gearmand_queue_libsqlite3_deinit(_gearmand);
-#endif
-#ifdef HAVE_LIBPQ
-    if (not strcmp(queue_type, "libpq"))
-      gearmand_queue_libpq_deinit(_gearmand);
-#endif
-#ifdef HAVE_LIBTOKYOCABINET
-    if (not strcmp(queue_type, "libtokyocabinet"))
-      gearmand_queue_libtokyocabinet_deinit(_gearmand);
-#endif
+    queue_deinit(_gearmand, queue_type);
   }
 
   while (gearman_conf_module_value(&module, &name, &value))
@@ -607,9 +516,9 @@ static bool _set_signals(void)
 static void _shutdown_handler(int signal_arg)
 {
   if (signal_arg == SIGUSR1)
-    gearmand_wakeup(_gearmand, GEARMAND_WAKEUP_SHUTDOWN_GRACEFUL);
+    gearmand_wakeup(Gearmand(), GEARMAND_WAKEUP_SHUTDOWN_GRACEFUL);
   else
-    gearmand_wakeup(_gearmand, GEARMAND_WAKEUP_SHUTDOWN);
+    gearmand_wakeup(Gearmand(), GEARMAND_WAKEUP_SHUTDOWN);
 }
 
 static void _log(const char *line, gearman_verbose_t verbose, void *context)
@@ -649,9 +558,120 @@ static void _log(const char *line, gearman_verbose_t verbose, void *context)
   }
 
   snprintf(buffer, GEARMAN_MAX_ERROR_SIZE, "%5s %s\n",
-           gearman_verbose_name(verbose), line);
+           gearmand_verbose_name(verbose), line);
   if (write(fd, buffer, strlen(buffer)) == -1)
   {
     error::perror("Could not write to log file.");
   }
+}
+
+static gearman_return_t queue_init(gearmand_st *_gearmand, gearman_conf_st &conf, const char *queue_type)
+{
+#ifdef HAVE_LIBDRIZZLE
+  if (not strcmp(queue_type, "libdrizzle"))
+  {
+    return gearmand_queue_libdrizzle_init(_gearmand, &conf);
+  }
+  else
+#endif
+#ifdef HAVE_LIBMEMCACHED
+  if (not strcmp(queue_type, "libmemcached"))
+  {
+    return gearmand_queue_libmemcached_init(_gearmand, &conf);
+  }
+  else
+#endif
+#ifdef HAVE_LIBSQLITE3
+  if (not strcmp(queue_type, "libsqlite3"))
+  {
+    return gearmand_queue_libsqlite3_init(_gearmand, &conf);
+  }
+  else
+#endif
+#ifdef HAVE_LIBPQ
+  if (not strcmp(queue_type, "libpq"))
+  {
+    return gearmand_queue_libpq_init(_gearmand, &conf);
+  }
+  else
+#endif
+#ifdef HAVE_LIBTOKYOCABINET
+  if (not strcmp(queue_type, "libtokyocabinet"))
+  {
+    return gearmand_queue_libtokyocabinet_init(_gearmand, &conf);
+  }
+#endif        
+
+  error::message("Unknown queue module", queue_type);
+
+  return GEARMAN_UNKNOWN_OPTION;
+}
+
+
+static void queue_deinit(gearmand_st *_gearmand, const char *queue_type)
+{
+#ifdef HAVE_LIBDRIZZLE
+  if (not strcmp(queue_type, "libdrizzle"))
+    gearmand_queue_libdrizzle_deinit(_gearmand);
+#endif
+#ifdef HAVE_LIBMEMCACHED
+  if (not strcmp(queue_type, "libmemcached"))
+    gearmand_queue_libmemcached_deinit(_gearmand);
+#endif
+#ifdef HAVE_LIBSQLITE3
+  if (not strcmp(queue_type, "libsqlite3"))
+    gearmand_queue_libsqlite3_deinit(_gearmand);
+#endif
+#ifdef HAVE_LIBPQ
+  if (not strcmp(queue_type, "libpq"))
+    gearmand_queue_libpq_deinit(_gearmand);
+#endif
+#ifdef HAVE_LIBTOKYOCABINET
+  if (not strcmp(queue_type, "libtokyocabinet"))
+    gearmand_queue_libtokyocabinet_deinit(_gearmand);
+#endif
+}
+
+static int queue_configure(gearman_conf_st &conf)
+{
+#ifdef HAVE_LIBDRIZZLE
+  if (gearman_server_queue_libdrizzle_conf(&conf) != GEARMAN_SUCCESS)
+  {
+    error::message("gearman_queue_libdrizzle_conf", gearman_conf_error(&conf));
+    return 1;
+  }
+#endif
+
+#ifdef HAVE_LIBMEMCACHED
+  if (gearman_server_queue_libmemcached_conf(&conf) != GEARMAN_SUCCESS)
+  {
+    error::message("gearman_queue_libmemcached_conf", gearman_conf_error(&conf));
+    return 1;
+  }
+#endif
+#ifdef HAVE_LIBTOKYOCABINET
+  if (gearman_server_queue_libtokyocabinet_conf(&conf) != GEARMAN_SUCCESS)
+  {
+    error::message("gearman_queue_libtokyocabinet_conf", gearman_conf_error(&conf));
+    return 1;
+  }
+#endif
+
+#ifdef HAVE_LIBSQLITE3
+  if (gearman_server_queue_libsqlite3_conf(&conf) != GEARMAN_SUCCESS)
+  {
+    error::message("gearman_queue_libsqlite3_conf", gearman_conf_error(&conf));
+    return 1;
+  }
+#endif
+
+#ifdef HAVE_LIBPQ
+  if (gearman_server_queue_libpq_conf(&conf) != GEARMAN_SUCCESS)
+  {
+    error::message("gearman_queue_libpq_conf", gearman_conf_error(&conf));
+    return 1;
+  }
+#endif
+
+  return 0;
 }

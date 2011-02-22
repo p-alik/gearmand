@@ -31,9 +31,6 @@ extern "C" {
 struct gearman_server_job_st
 {
   uint8_t retries;
-  struct {
-    bool allocated;
-  } options;
   gearman_job_priority_t priority;
   bool ignore_job;
   bool job_queued;
@@ -43,7 +40,6 @@ struct gearman_server_job_st
   uint32_t numerator;
   uint32_t denominator;
   size_t data_size;
-  gearman_server_st *server;
   gearman_server_job_st *next;
   gearman_server_job_st *prev;
   gearman_server_job_st *unique_next;
@@ -76,8 +72,7 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
  */
 GEARMAN_API
 gearman_server_job_st *
-gearman_server_job_create(gearman_server_st *server,
-                          gearman_server_job_st *server_job);
+gearman_server_job_create(gearman_server_st *server);
 
 /**
  * Free a server job structure.

@@ -23,9 +23,6 @@ extern "C" {
  */
 struct gearman_server_client_st
 {
-  struct {
-    bool allocated;
-  } options;
   gearman_server_con_st *con;
   gearman_server_client_st *con_next;
   gearman_server_client_st *con_prev;
@@ -50,14 +47,6 @@ struct gearman_server_client_st
 GEARMAN_API
 gearman_server_client_st *
 gearman_server_client_add(gearman_server_con_st *con);
-
-/**
- * Initialize a server client structure.
- */
-GEARMAN_API
-gearman_server_client_st *
-gearman_server_client_create(gearman_server_con_st *con,
-                             gearman_server_client_st *client);
 
 /**
  * Free a server client structure.

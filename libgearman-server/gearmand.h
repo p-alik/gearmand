@@ -14,15 +14,26 @@
 #ifndef __GEARMAND_H__
 #define __GEARMAND_H__
 
-#include <libgearman/gearman.h>
+#include <inttypes.h>
+#include <netinet/in.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <poll.h>
+
 #include <event.h>
 
+#include <libgearman/constants.h>
+#include <libgearman/visibility.h>
+
 #include <libgearman-server/constants.h>
+#include <libgearman-server/connection_list.h>
+#include <libgearman-server/byteorder.h>
+#include <libgearman-server/strerror.h>
 #include <libgearman-server/log.h>
 #include <libgearman-server/conf.h>
 #include <libgearman-server/conf_module.h>
-#include <libgearman-server/connection.h>
 #include <libgearman-server/packet.h>
+#include <libgearman-server/connection.h>
 #include <libgearman-server/function.h>
 #include <libgearman-server/client.h>
 #include <libgearman-server/worker.h>
@@ -36,31 +47,14 @@
 extern "C" {
 #endif
 
-/**
- * @addtogroup gearmand Gearmand Declarations
- *
- * This is a server implementation using the gearman_server interface.
- *
- * @{
- */
-
-struct gearmand_port_st
-{
-  in_port_t port;
-  uint32_t listen_count;
-  gearmand_st *gearmand;
-  gearman_connection_add_fn *add_fn;
-  int *listen_fd;
-  struct event *listen_event;
-};
-
 struct gearmand_st
 {
   gearman_verbose_t verbose;
   gearman_return_t ret;
-  int backlog;
+  int backlog; // Set socket backlog for listening connection
   bool is_listen_event;
   bool is_wakeup_event;
+  int timeout;
   uint32_t port_count;
   uint32_t threads;
   uint32_t thread_count;
@@ -80,13 +74,33 @@ struct gearmand_st
 };
 
 /**
+ * @addtogroup gearmand Gearmand Declarations
+ *
+ * This is a server implementation using the gearman_server interface.
+ *
+ * @{
+ */
+
+GEARMAN_API
+gearmand_st *Gearmand(void);
+
+#define Server (&(Gearmand()->server))
+
+/**
  * Create a server instance.
  * @param host Host for the server to listen on.
  * @param port Port for the server to listen on.
  * @return Pointer to an allocated gearmand structure.
  */
 GEARMAN_API
-gearmand_st *gearmand_create(const char *host, in_port_t port);
+gearmand_st *gearmand_create(const char *host,
+                             const char *port,
+                             uint32_t threads,
+                             int backlog,
+                             uint8_t job_retries,
+                             uint8_t worker_wakeup,
+                             gearman_log_fn *function, void *log_context, const gearman_verbose_t verbose,
+                             bool round_robin);
 
 /**
  * Free resources used by a server instace.
@@ -96,53 +110,9 @@ gearmand_st *gearmand_create(const char *host, in_port_t port);
 GEARMAN_API
 void gearmand_free(gearmand_st *gearmand);
 
-/**
- * Set socket backlog for listening connection.
- * @param gearmand Server instance structure previously initialized with
- *        gearmand_create.
- * @param backlog Number of backlog connections to set during listen.
- */
-GEARMAN_API
-void gearmand_set_backlog(gearmand_st *gearmand, int backlog);
 
-/**
- * Set maximum job retry count.
- * @param gearmand Server instance structure previously initialized with
- *        gearmand_create.
- * @param job_retries Number of job attempts.
- */
 GEARMAN_API
-void gearmand_set_job_retries(gearmand_st *gearmand, uint8_t job_retries);
-
-/**
- * Set maximum number of workers to wake up per job.
- * @param gearmand Server instance structure previously initialized with
- *        gearmand_create.
- * @param worker_wakeup Number of workers to wake up.
- */
-GEARMAN_API
-void gearmand_set_worker_wakeup(gearmand_st *gearmand, uint8_t worker_wakeup);
-
-/**
- * Set number of I/O threads for server to use.
- * @param gearmand Server instance structure previously initialized with
- *        gearmand_create.
- * @param threads Number of threads.
- */
-GEARMAN_API
-void gearmand_set_threads(gearmand_st *gearmand, uint32_t threads);
-
-/**
- * Set logging callback for server instance.
- * @param gearmand Server instance structure previously initialized with
- *        gearmand_create.
- * @param function Function to call when there is a logging message.
- * @param context Argument to pass into the log callback function.
- * @param verbose Verbosity level.
- */
-GEARMAN_API
-void gearmand_set_log_fn(gearmand_st *gearmand, gearman_log_fn *function,
-                         void *context, gearman_verbose_t verbose);
+gearman_server_st *gearmand_server(gearmand_st *gearmand);
 
 /**
  * Add a port to listen on when starting server with optional callback.
@@ -154,8 +124,9 @@ void gearmand_set_log_fn(gearmand_st *gearmand, gearman_log_fn *function,
  * @return Standard gearman return value.
  */
 GEARMAN_API
-gearman_return_t gearmand_port_add(gearmand_st *gearmand, in_port_t port,
-                                   gearman_connection_add_fn *function);
+gearman_return_t gearmand_port_add(gearmand_st *gearmand,
+                                   const char *port,
+                                   gearmand_connection_add_fn *function);
 
 /**
  * Run the server instance.
@@ -177,15 +148,14 @@ gearman_return_t gearmand_run(gearmand_st *gearmand);
 GEARMAN_API
 void gearmand_wakeup(gearmand_st *gearmand, gearmand_wakeup_t wakeup);
 
-/**
- * Sets the round-robin mode on the server object. RR will distribute work
- * fairly among every function assigned to a worker, instead of draining
- * each function before moving on to the next.
- * @param gearmand Server instance previously initialized
- * @param bool true=round robin is used, false=round robin is not used
- */
 GEARMAN_API
-void gearmand_set_round_robin(gearmand_st *gearmand, bool round_robin);
+const char *gearmand_version(void);
+
+GEARMAN_API
+const char *gearmand_bugreport(void);
+
+GEARMAN_API
+const char *gearmand_verbose_name(gearman_verbose_t verbose);
 
 /** @} */
 

@@ -416,3 +416,24 @@ void gearman_universal_set_error(gearman_universal_st *universal, const char *fu
                       (void *)universal->log_context);
   }
 }
+
+void gearman_universal_set_perror(const char *position, gearman_universal_st *universal, const char *message)
+{
+  universal->last_errno= errno;
+
+  const char *errmsg_ptr;
+  char errmsg[GEARMAN_MAX_ERROR_SIZE]; 
+  errmsg[0]= 0; 
+
+#ifdef STRERROR_R_CHAR_P
+  errmsg_ptr= strerror_r(universal->last_errno, errmsg, sizeof(errmsg));
+#else
+  strerror_r(universal->last_errno, errmsg, sizeof(errmsg));
+  errmsg_ptr= errmsg;
+#endif
+
+  char final[GEARMAN_MAX_ERROR_SIZE];
+  snprintf(final, sizeof(final), "%s(%s)", message, errmsg_ptr);
+
+  gearman_universal_set_error(universal, position, final);
+}

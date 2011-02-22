@@ -1,0 +1,13 @@
+Hi!
+
+If you are working on the server here are some handy environmental variables
+you can set so that you can debug make test:
+
+GEARMAN_VALGRIND <- runs the server under valgrind.
+GEARMAN_MANUAL_GDB <-- runs the server under a remote version of GDB.
+GEARMAN_LOG <-- generates a log file for you with the output of the debug for the server
+
+GDB will pause the server while you do run the GDB command.
+
+Cheers,
+  -Brian

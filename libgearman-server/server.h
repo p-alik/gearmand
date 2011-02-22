@@ -29,9 +29,11 @@ extern "C" {
 struct gearman_server_st
 {
   struct {
-    bool allocated;
-  } options;
-  struct {
+    /*
+      Sets the round-robin mode on the server object. RR will distribute work
+      fairly among every function assigned to a worker, instead of draining
+      each function before moving on to the next.
+    */
     bool round_robin;
     bool threaded;
   } flags;
@@ -42,8 +44,8 @@ struct gearman_server_st
   bool shutdown_graceful;
   bool proc_wakeup;
   bool proc_shutdown;
-  uint8_t job_retries;
-  uint8_t worker_wakeup;
+  uint8_t job_retries; // Set maximum job retry count.
+  uint8_t worker_wakeup; // Set maximum number of workers to wake up per job.
   uint32_t job_handle_count;
   uint32_t thread_count;
   uint32_t function_count;
@@ -53,21 +55,19 @@ struct gearman_server_st
   uint32_t free_job_count;
   uint32_t free_client_count;
   uint32_t free_worker_count;
-  gearman_universal_st *gearman;
   gearman_server_thread_st *thread_list;
   gearman_server_function_st *function_list;
   gearman_server_packet_st *free_packet_list;
   gearman_server_job_st *free_job_list;
   gearman_server_client_st *free_client_list;
   gearman_server_worker_st *free_worker_list;
-  gearman_log_fn *log_fn;
-  void *log_context;
-  void *queue_context;
-  gearman_queue_add_fn *queue_add_fn;
-  gearman_queue_flush_fn *queue_flush_fn;
-  gearman_queue_done_fn *queue_done_fn;
-  gearman_queue_replay_fn *queue_replay_fn;
-  gearman_universal_st gearman_universal_static;
+  struct {
+    void *_context;
+    gearman_queue_add_fn *_add_fn;
+    gearman_queue_flush_fn *_flush_fn;
+    gearman_queue_done_fn *_done_fn;
+    gearman_queue_replay_fn *_replay_fn;
+  } queue;
   pthread_mutex_t proc_lock;
   pthread_cond_t proc_cond;
   pthread_t proc_id;
@@ -76,56 +76,11 @@ struct gearman_server_st
   gearman_server_job_st *unique_hash[GEARMAN_JOB_HASH_SIZE];
 };
 
-/**
- * Initialize a server structure. This cannot fail if the caller supplies a
- * server structure.
- * @param server Caller allocated server structure, or NULL to allocate one.
- * @return Pointer to an allocated server structure if server parameter was
- *         NULL, or the server parameter pointer if it was not NULL.
- */
-GEARMAN_API
-gearman_server_st *gearman_server_create(gearman_server_st *server);
 
-/**
- * Free resources used by a server structure.
- * @param server Server structure previously initialized with
- *        gearman_server_create.
- */
-GEARMAN_API
-void gearman_server_free(gearman_server_st *server);
-
-/**
- * Set maximum job retry count.
- * @param server Server structure previously initialized with
- *        gearman_server_create.
- * @param job_retries Number of job attempts.
- */
-GEARMAN_API
-void gearman_server_set_job_retries(gearman_server_st *server,
-                                    uint8_t job_retries);
-
-/**
- * Set maximum number of workers to wake up per job.
- * @param server Server structure previously initialized with
- *        gearman_server_create.
- * @param worker_wakeup Number of workers to wake up.
- */
-GEARMAN_API
-void gearman_server_set_worker_wakeup(gearman_server_st *server,
-                                      uint8_t worker_wakeup);
-
-/**
- * Set logging callback for server instance.
- * @param server Server structure previously initialized with
- *        gearman_server_create.
- * @param function Function to call when there is a logging message.
- * @param context Argument to pass into the log callback function.
- * @param verbose Verbosity level.
- */
-GEARMAN_API
-void gearman_server_set_log_fn(gearman_server_st *server,
-                               gearman_log_fn *function,
-                               void *context, gearman_verbose_t verbose);
+inline static void gearmand_set_round_robin(gearman_server_st *server, bool round_robin)
+{
+  server->flags.round_robin= round_robin;
+}
 
 /**
  * Process commands for a connection.
@@ -135,7 +90,7 @@ void gearman_server_set_log_fn(gearman_server_st *server,
  */
 GEARMAN_API
 gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
-                                            gearman_packet_st *packet);
+                                            gearmand_packet_st *packet);
 
 /**
  * Tell server that it should enter a graceful shutdown state.
@@ -169,37 +124,12 @@ void *gearman_server_queue_context(const gearman_server_st *server);
  * functions.
  */
 GEARMAN_API
-void gearman_server_set_queue_context(gearman_server_st *server,
-                                      void *context);
-
-/**
- * Set function to call when jobs need to be stored in the persistent queue.
- */
-GEARMAN_API
-void gearman_server_set_queue_add_fn(gearman_server_st *server,
-                                     gearman_queue_add_fn *function);
-
-/**
- * Set function to call when the persistent queue should be flushed to disk.
- */
-GEARMAN_API
-void gearman_server_set_queue_flush_fn(gearman_server_st *server,
-                                       gearman_queue_flush_fn *function);
-
-/**
- * Set function to call when a job should be removed from the persistent queue.
- */
-GEARMAN_API
-void gearman_server_set_queue_done_fn(gearman_server_st *server,
-                                      gearman_queue_done_fn *function);
-
-/**
- * Set function to call when jobs in the persistent queue should be replayed
- * after a restart.
- */
-GEARMAN_API
-void gearman_server_set_queue_replay_fn(gearman_server_st *server,
-                                        gearman_queue_replay_fn *function);
+void gearman_server_set_queue(gearman_server_st *server,
+                              void *context,
+                              gearman_queue_add_fn *add,
+                              gearman_queue_flush_fn *flush,
+                              gearman_queue_done_fn *done,
+                              gearman_queue_replay_fn *replay);
 
 /** @} */
 

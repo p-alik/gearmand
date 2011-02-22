@@ -42,7 +42,6 @@ int main(int argc, char *argv[])
   gearman_task_st *tasks;
   char *blob;
   size_t blob_size;
-  uint32_t x;
 
   benchmark_init(&benchmark);
 
@@ -151,10 +150,12 @@ int main(int argc, char *argv[])
 
   while (1)
   {
-    for (x= 0; x < num_tasks; x++)
+    for (uint32_t x= 0; x < num_tasks; x++)
     {
       if (min_size == max_size)
+      {
         blob_size= max_size;
+      }
       else
       {
         blob_size= (size_t)rand();
@@ -180,6 +181,9 @@ int main(int argc, char *argv[])
 
       if (ret != GEARMAN_SUCCESS)
       {
+        if (ret == GEARMAN_LOST_CONNECTION)
+          continue;
+
         fprintf(stderr, "%s\n", gearman_client_error(&client));
         exit(1);
       }
@@ -191,14 +195,17 @@ int main(int argc, char *argv[])
     gearman_client_set_complete_fn(&client, _complete);
     gearman_client_set_fail_fn(&client, _fail);
     ret= gearman_client_run_tasks(&client);
-    if (ret != GEARMAN_SUCCESS)
+
+    if (ret != GEARMAN_SUCCESS && ret != GEARMAN_LOST_CONNECTION)
     {
       fprintf(stderr, "%s\n", gearman_client_error(&client));
       exit(1);
     }
 
-    for (x= 0; x < num_tasks; x++)
+    for (uint32_t x= 0; x < num_tasks; x++)
+    {
       gearman_task_free(&(tasks[x]));
+    }
 
     if (count > 0)
     {
@@ -211,6 +218,8 @@ int main(int argc, char *argv[])
   free(blob);
   free(tasks);
   gearman_client_free(&client);
+
+  fprintf(stderr, "Success\n");
 
   return 0;
 }

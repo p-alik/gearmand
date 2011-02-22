@@ -30,8 +30,8 @@ config/depcomp
 config/install-sh
 config/ltmain.sh
 config/missing
-config/plugin.ac
 config/pandora_vc_revinfo
+config/plugin.ac
 configure
 configure.h
 docs/api
@@ -65,6 +65,7 @@ tests/client_test
 tests/client_test.res
 tests/cpp_test
 tests/gearman.pi*
+tests/gearmand.log*
 tests/internals_test
 tests/memcached_test
 tests/memcached_test.res
@@ -80,3 +81,6 @@ tests/valgrind.out
 tests/worker_test
 tests/worker_test.res
 unittests/unittests
+gearmand/gearmand_test
+tests/Xugear.pid
+gearmand/gearmand_hostile

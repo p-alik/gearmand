@@ -6,10 +6,11 @@
  * the COPYING file in the parent directory for full text.
  */
 
-/**
- * @file
- * @brief Local Gearman Declarations
- */
+/*
+  All logging facilities within the server.
+*/
+
+#include <stdio.h>
 
 #ifndef __GEARMAND_LOG_H__
 #define __GEARMAND_LOG_H__
@@ -18,66 +19,71 @@
 extern "C" {
 #endif
 
-#ifdef GEARMAN_CORE
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+#define AT __FILE__ ":" TOSTRING(__LINE__)
 
-/**
- * @addtogroup gearman_local Local Gearman Declarations
- * @ingroup gearman_universal
- * @{
- */
-
-/**
- * Log a message.
- *
- * @param[in] gearman Structure previously initialized with gearman_create() or
- *  gearman_clone().
- * @param[in] verbose Logging level of the message.
- * @param[in] format Format and variable argument list of message.
- * @param[in] args Variable argument list that has been initialized.
- */
 GEARMAN_INTERNAL_API
-void gearmand_log(gearmand_st *gearman, gearman_verbose_t verbose,
-                 const char *format, va_list args);
+void gearmand_initialize_thread_logging(const char *identity);
 
 /**
  * Log a fatal message, see gearmand_log() for argument details.
  */
 GEARMAN_INTERNAL_API
-void gearmand_log_fatal(gearmand_st *gearman, const char *format, ...);
+void gearmand_log_fatal(const char *format, ...);
+
+GEARMAN_INTERNAL_API
+void gearmand_log_fatal_perror(const char *message, const char *file);
+
+#define gearmand_fatal(A) do { gearmand_log_fatal("%s -> %s", A, AT); } while (0)
+#define gearmand_fatal_perror(A) do { gearmand_log_fatal_perror(AT, A); } while (0)
+
 
 /**
  * Log an error message, see gearmand_log() for argument details.
  */
 GEARMAN_INTERNAL_API
-void gearmand_log_error(gearmand_st *gearman, const char *format, ...);
+void gearmand_log_error(const char *format, ...);
+
+GEARMAN_INTERNAL_API
+void gearmand_log_perror(const char *position, const char *message);
+
+GEARMAN_INTERNAL_API
+void gearmand_log_gerror(const char *position, const char *message, const gearman_return_t rc);
+
+#define gearmand_error(A) do { gearmand_log_error("%s -> %s", A, AT); } while (0)
+#define gearmand_perror(A) do { gearmand_log_perror(AT, A); } while (0)
+#define gearmand_gerror(A,B) do { gearmand_log_gerror(AT, A, B); } while (0)
+
 
 /**
  * Log an info message, see gearmand_log() for argument details.
  */
 GEARMAN_INTERNAL_API
-void gearmand_log_info(gearmand_st *gearman, const char *format, ...);
+void gearmand_log_info(const char *format, ...);
 
 /**
  * Log a debug message, see gearmand_log() for argument details.
  */
 GEARMAN_INTERNAL_API
-void gearmand_log_debug(gearmand_st *gearman, const char *format, ...);
+void gearmand_log_debug(const char *format, ...);
+#define gearmand_debug(A) do { gearmand_log_debug("%s -> %s", A, AT); } while (0)
+
 
 /**
  * Log a crazy message, see gearmand_log() for argument details.
  */
 GEARMAN_INTERNAL_API
-void gearmand_log_crazy(gearmand_st *gearman, const char *format, ...);
+void gearmand_log_crazy(const char *format, ...);
+
+#ifdef DEBUG
+#define gearmand_crazy(A) do { gearmand_log_crazy("%s -> %s", A, AT); } while (0)
+#else
+#define gearmand_crazy(A)
+#endif
 
 GEARMAN_INTERNAL_API
 void gearman_conf_error_set(gearman_conf_st *conf, const char *msg, const char *format, ...);
-
-GEARMAN_INTERNAL_API
-void gearmand_log_perror(gearmand_st *gearmand, const char *message);
-
-#endif /* GEARMAN_CORE */
-
-/** @} */
 
 #ifdef __cplusplus
 }

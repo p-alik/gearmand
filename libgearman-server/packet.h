@@ -18,6 +18,43 @@
 extern "C" {
 #endif
 
+enum gearman_magic_t
+{
+  GEARMAN_MAGIC_TEXT,
+  GEARMAN_MAGIC_REQUEST,
+  GEARMAN_MAGIC_RESPONSE
+};
+
+/**
+ * @ingroup gearman_packet
+ */
+struct gearmand_packet_st
+{
+  struct {
+    bool complete;
+    bool free_data;
+  } options;
+  enum gearman_magic_t magic;
+  gearman_command_t command;
+  uint8_t argc;
+  size_t args_size;
+  size_t data_size;
+  struct gearmand_packet_st *next;
+  struct gearmand_packet_st *prev;
+  char *args;
+  const void *data;
+  char *arg[GEARMAN_MAX_COMMAND_ARGS];
+  size_t arg_size[GEARMAN_MAX_COMMAND_ARGS];
+  char args_buffer[GEARMAN_ARGS_BUFFER_SIZE];
+};
+
+struct gearman_command_info_st
+{
+  const char *name;
+  const uint8_t argc; // Number of arguments to commands.
+  const bool data;
+};
+
 /**
  * @addtogroup gearman_server_packet Packet Declarations
  * @ingroup gearman_server
@@ -31,10 +68,9 @@ extern "C" {
 
 struct gearman_server_packet_st
 {
-  gearman_packet_st packet;
+  gearmand_packet_st packet;
   gearman_server_packet_st *next;
 };
-
 
 /**
  * Initialize a server packet structure.
@@ -81,6 +117,66 @@ void gearman_server_proc_packet_add(gearman_server_con_st *con,
 GEARMAN_API
 gearman_server_packet_st *
 gearman_server_proc_packet_remove(gearman_server_con_st *con);
+
+/**
+ * Command information array.
+ * @ingroup gearman_constants
+ */
+extern GEARMAN_INTERNAL_API
+gearman_command_info_st gearmand_command_info_list[GEARMAN_COMMAND_MAX];
+
+
+/**
+ * Initialize a packet structure.
+ *
+ * @param[in] gearman Structure previously initialized with gearman_create() or
+ *  gearman_clone().
+ * @param[in] packet Caller allocated structure, or NULL to allocate one.
+ * @return On success, a pointer to the (possibly allocated) structure. On
+ *  failure this will be NULL.
+ */
+GEARMAN_INTERNAL_API
+void gearmand_packet_init(gearmand_packet_st *packet, enum gearman_magic_t magic, gearman_command_t command);
+
+/**
+ * Free a packet structure.
+ *
+ * @param[in] packet Structure previously initialized with
+ *   gearmand_packet_init() or gearmand_packet_creates().
+ */
+GEARMAN_INTERNAL_API
+void gearmand_packet_free(gearmand_packet_st *packet);
+
+/**
+ * Add an argument to a packet.
+ */
+GEARMAN_INTERNAL_API
+  gearman_return_t gearmand_packet_create(gearmand_packet_st *packet,
+                                              const void *arg, size_t arg_size);
+
+/**
+ * Pack header.
+ */
+GEARMAN_INTERNAL_API
+  gearman_return_t gearmand_packet_pack_header(gearmand_packet_st *packet);
+
+/**
+ * Pack packet into output buffer.
+ */
+GEARMAN_INTERNAL_API
+  size_t gearmand_packet_pack(const gearmand_packet_st *packet,
+                              gearman_server_con_st *con,
+                              void *data, size_t data_size,
+                              gearman_return_t *ret_ptr);
+
+/**
+ * Unpack packet from input data.
+ */
+GEARMAN_INTERNAL_API
+  size_t gearmand_packet_unpack(gearmand_packet_st *packet,
+                                gearman_server_con_st *con,
+                                const void *data, size_t data_size,
+                                gearman_return_t *ret_ptr);
 
 /** @} */
 

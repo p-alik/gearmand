@@ -22,45 +22,31 @@ gearman_server_client_add(gearman_server_con_st *con)
 {
   gearman_server_client_st *client;
 
-  client= gearman_server_client_create(con, NULL);
-  if (client == NULL)
-    return NULL;
-
-  return client;
-}
-
-gearman_server_client_st *
-gearman_server_client_create(gearman_server_con_st *con,
-                             gearman_server_client_st *client)
-{
-  gearman_server_st *server= con->thread->server;
-
-  if (client == NULL)
+  if (Server->free_client_count > 0)
   {
-    if (server->free_client_count > 0)
-    {
-      client= server->free_client_list;
-      GEARMAN_LIST_DEL(server->free_client, client, con_)
-    }
-    else
-    {
-      client= (gearman_server_client_st *)malloc(sizeof(gearman_server_client_st));
-      if (client == NULL)
-      {
-        gearman_log_error(con->thread->gearman, "gearman_server_client_create", "malloc");
-        return NULL;
-      }
-    }
-
-    client->options.allocated= true;
+    client= Server->free_client_list;
+    GEARMAN_LIST_DEL(Server->free_client, client, con_)
   }
   else
   {
-    client->options.allocated= false;
+    client= (gearman_server_client_st *)malloc(sizeof(gearman_server_client_st));
+    if (client == NULL)
+    {
+      gearmand_log_error("gearman_server_client_create", "malloc");
+      return NULL;
+    }
+  }
+  assert(client);
+
+  if (!client)
+  {
+    gearmand_error("In gearman_server_client_add() we failed to either allocorate of find a free one");
+    return NULL;
   }
 
   client->con= con;
   GEARMAN_LIST_ADD(con->client, client, con_)
+
   client->job= NULL;
   client->job_next= NULL;
   client->job_prev= NULL;
@@ -70,8 +56,6 @@ gearman_server_client_create(gearman_server_con_st *con,
 
 void gearman_server_client_free(gearman_server_client_st *client)
 {
-  gearman_server_st *server= client->con->thread->server;
-
   GEARMAN_LIST_DEL(client->con->client, client, con_)
 
   if (client->job != NULL)
@@ -86,11 +70,13 @@ void gearman_server_client_free(gearman_server_client_st *client)
     }
   }
 
-  if (client->options.allocated)
+  if (Server->free_client_count < GEARMAN_MAX_FREE_SERVER_CLIENT)
   {
-    if (server->free_client_count < GEARMAN_MAX_FREE_SERVER_CLIENT)
-      GEARMAN_LIST_ADD(server->free_client, client, con_)
-    else
-      free(client);
+    GEARMAN_LIST_ADD(Server->free_client, client, con_)
+  }
+  else
+  {
+    gearmand_crazy("free");
+    free(client);
   }
 }

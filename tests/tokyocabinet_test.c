@@ -43,6 +43,14 @@ test_return_t flush(void *object);
 void *world_create(test_return_t *error);
 test_return_t world_destroy(void *object);
 
+static void client_logger(const char *line, gearman_verbose_t verbose, void *context)
+{
+  (void)line;
+  (void)context;
+  (void)verbose;
+  //fprintf(stderr, "\nclient_logger: %s\n", line);
+}
+
 /* Counter test for worker */
 static void *counter_function(gearman_job_st *job __attribute__((unused)),
                               void *context, size_t *result_size,
@@ -72,11 +80,13 @@ test_return_t queue_add(void *object)
   check= gearman_client_create(&client);
   test_truth(check);
 
+  gearman_client_set_log_fn(&client, client_logger, NULL, GEARMAN_VERBOSE_DEBUG);
+
   rc= gearman_client_add_server(&client, NULL, WORKER_TEST_PORT);
   test_truth(rc == GEARMAN_SUCCESS);
 
   rc= gearman_client_do_background(&client, "queue_test", NULL, value, value_length, job_handle);
-  test_truth(rc == GEARMAN_SUCCESS);
+  test_true_got(rc == GEARMAN_SUCCESS, gearman_strerror(rc));
 
   gearman_client_free(&client);
 
@@ -107,7 +117,6 @@ test_return_t queue_worker(void *object)
 
   return TEST_SUCCESS;
 }
-
 
 void *world_create(test_return_t *error)
 {

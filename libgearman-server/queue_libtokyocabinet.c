@@ -90,19 +90,19 @@ gearman_return_t gearman_queue_libtokyocabinet_init(gearman_server_st *server,
   const char *opt_file= NULL;
   const char *opt_optimize= NULL;
 
-  gearman_log_info(server->gearman, "Initializing libtokyocabinet module");
+  gearmand_log_info("Initializing libtokyocabinet module");
 
   queue= calloc(1, sizeof(gearman_queue_libtokyocabinet_st));
   if (queue == NULL)
   {
-    gearman_log_error(server->gearman, "gearman_queue_libtokyocabinet_init", "malloc");
+    gearmand_log_error("gearman_queue_libtokyocabinet_init", "malloc");
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
 
   if ((queue->db= tcadbnew()) == NULL)
   {
     free(queue);
-    gearman_log_error(server->gearman, "gearman_queue_libtokyocabinet_init",
+    gearmand_log_error("gearman_queue_libtokyocabinet_init",
                              "tcadbnew");
     return GEARMAN_QUEUE_ERROR;
   }
@@ -111,7 +111,7 @@ gearman_return_t gearman_queue_libtokyocabinet_init(gearman_server_st *server,
   module= gearman_conf_module_find(conf, "libtokyocabinet");
   if (module == NULL)
   {
-    gearman_log_error(server->gearman, "gearman_queue_libtokyocabinet_init",
+    gearmand_log_error("gearman_queue_libtokyocabinet_init",
                               "modconf_module_find:NULL");
     return GEARMAN_QUEUE_ERROR;
   }
@@ -126,7 +126,7 @@ gearman_return_t gearman_queue_libtokyocabinet_init(gearman_server_st *server,
     {
       tcadbdel(queue->db);
       free(queue);
-      gearman_log_error(server->gearman, "gearman_queue_libtokyocabinet_init",
+      gearmand_log_error("gearman_queue_libtokyocabinet_init",
                                "Unknown argument: %s", name);
       return GEARMAN_QUEUE_ERROR;
     }
@@ -134,7 +134,7 @@ gearman_return_t gearman_queue_libtokyocabinet_init(gearman_server_st *server,
      
   if (opt_file == NULL)
   {
-    gearman_log_error(server->gearman, "gearman_queue_libtokyocabinet_init",
+    gearmand_log_error("gearman_queue_libtokyocabinet_init",
                              "No --file given");
     return GEARMAN_QUEUE_ERROR;
   }
@@ -144,7 +144,7 @@ gearman_return_t gearman_queue_libtokyocabinet_init(gearman_server_st *server,
     tcadbdel(queue->db);
     free(queue);
 
-    gearman_log_error(server->gearman, "gearman_queue_libtokyocabinet_init",
+    gearmand_log_error("gearman_queue_libtokyocabinet_init",
                              "tcadbopen(%s): %s", opt_file, _libtokyocabinet_tcaerrmsg(queue->db));
 
     return GEARMAN_QUEUE_ERROR;
@@ -152,24 +152,19 @@ gearman_return_t gearman_queue_libtokyocabinet_init(gearman_server_st *server,
 
   if (opt_optimize == NULL || !strcasecmp(opt_optimize, "yes"))
   {
-    gearman_log_info(server->gearman, "libtokyocabinet optimizing database file");
+    gearmand_log_info("libtokyocabinet optimizing database file");
     if (!tcadboptimize(queue->db, NULL))
     {
       tcadbdel(queue->db);
       free(queue);
-      gearman_log_error(server->gearman, "gearman_queue_libtokyocabinet_init",
+      gearmand_log_error("gearman_queue_libtokyocabinet_init",
                                "tcadboptimize");
 
       return GEARMAN_QUEUE_ERROR;
     }
   }
 
-  gearman_server_set_queue_context(server, queue);
-
-  gearman_server_set_queue_add_fn(server, _libtokyocabinet_add);
-  gearman_server_set_queue_flush_fn(server, _libtokyocabinet_flush);
-  gearman_server_set_queue_done_fn(server, _libtokyocabinet_done);
-  gearman_server_set_queue_replay_fn(server, _libtokyocabinet_replay);   
+  gearman_server_set_queue(server, queue, _libtokyocabinet_add, _libtokyocabinet_flush, _libtokyocabinet_done, _libtokyocabinet_replay);   
    
   return GEARMAN_SUCCESS;
 }
@@ -178,10 +173,10 @@ gearman_return_t gearman_queue_libtokyocabinet_deinit(gearman_server_st *server)
 {
   gearman_queue_libtokyocabinet_st *queue;
 
-  gearman_log_info(server->gearman, "Shutting down libtokyocabinet queue module");
+  gearmand_log_info("Shutting down libtokyocabinet queue module");
 
   queue= (gearman_queue_libtokyocabinet_st *)gearman_server_queue_context(server);
-  gearman_server_set_queue_context(server, NULL);
+  gearman_server_set_queue(server, NULL, NULL, NULL, NULL, NULL);
   tcadbdel(queue->db);
 
   free(queue);
@@ -192,12 +187,12 @@ gearman_return_t gearman_queue_libtokyocabinet_deinit(gearman_server_st *server)
 gearman_return_t gearmand_queue_libtokyocabinet_init(gearmand_st *gearmand,
                                                      gearman_conf_st *conf)
 {
-  return gearman_queue_libtokyocabinet_init(&(gearmand->server), conf);
+  return gearman_queue_libtokyocabinet_init(gearmand_server(gearmand), conf);
 }
 
 gearman_return_t gearmand_queue_libtokyocabinet_deinit(gearmand_st *gearmand)
 {
-  return gearman_queue_libtokyocabinet_deinit(&(gearmand->server));
+  return gearman_queue_libtokyocabinet_deinit(gearmand_server(gearmand));
 }
 
 /*
@@ -212,12 +207,13 @@ static gearman_return_t _libtokyocabinet_add(gearman_server_st *server, void *co
                                              const void *data, size_t data_size,
                                              gearman_job_priority_t priority)
 {
+  (void)server;
   gearman_queue_libtokyocabinet_st *queue= (gearman_queue_libtokyocabinet_st *)context;
   bool rc;
   TCXSTR *key;
   TCXSTR *job_data;
 
-  gearman_log_debug(server->gearman, "libtokyocabinet add: %.*s", (uint32_t)unique_size, (char *)unique);
+  gearmand_log_debug("libtokyocabinet add: %.*s", (uint32_t)unique_size, (char *)unique);
 
   char key_str[GEARMAN_QUEUE_TOKYOCABINET_MAX_KEY_LEN];
   size_t key_length= (size_t)snprintf(key_str, GEARMAN_QUEUE_TOKYOCABINET_MAX_KEY_LEN, "%.*s-%.*s",
@@ -228,7 +224,7 @@ static gearman_return_t _libtokyocabinet_add(gearman_server_st *server, void *co
   key= tcxstrnew();
   tcxstrcat(key, key_str, (int)key_length);
 
-  gearman_log_debug(server->gearman, "libtokyocabinet key: %.*s", (int)key_length, key_str);
+  gearmand_log_debug("libtokyocabinet key: %.*s", (int)key_length, key_str);
 
   job_data= tcxstrnew();
 
@@ -268,9 +264,10 @@ static gearman_return_t _libtokyocabinet_add(gearman_server_st *server, void *co
 static gearman_return_t _libtokyocabinet_flush(gearman_server_st *server,
                                                void *context __attribute__((unused)))
 {
+  (void)server;
   gearman_queue_libtokyocabinet_st *queue= (gearman_queue_libtokyocabinet_st *)context;
    
-  gearman_log_debug(server->gearman, "libtokyocabinet flush");
+  gearmand_log_debug("libtokyocabinet flush");
 
   if (!tcadbsync(queue->db))
      return GEARMAN_QUEUE_ERROR;
@@ -284,13 +281,14 @@ static gearman_return_t _libtokyocabinet_done(gearman_server_st *server, void *c
                                               const void *function_name,
                                               size_t function_name_size)
 {
+  (void)server;
   gearman_queue_libtokyocabinet_st *queue= (gearman_queue_libtokyocabinet_st *)context;
   bool rc;
   TCXSTR *key;
 
   (void) function_name;
   (void) function_name_size;   
-  gearman_log_debug(server->gearman, "libtokyocabinet add: %.*s", (uint32_t)unique_size, (char *)unique);
+  gearmand_log_debug("libtokyocabinet add: %.*s", (uint32_t)unique_size, (char *)unique);
   
   char key_str[GEARMAN_QUEUE_TOKYOCABINET_MAX_KEY_LEN];
   size_t key_length= (size_t)snprintf(key_str, GEARMAN_QUEUE_TOKYOCABINET_MAX_KEY_LEN, "%.*s-%.*s",
@@ -323,7 +321,7 @@ static gearman_return_t _callback_for_record(gearman_server_st *server,
   gearman_job_priority_t priority;
   gearman_return_t gret;
   
-  gearman_log_debug(server->gearman, "replaying: %s", (char *) tcxstrptr(key));
+  gearmand_log_debug("replaying: %s", (char *) tcxstrptr(key));
 
   data_cstr= (char *)tcxstrptr(data);
   data_cstr_size= (size_t)tcxstrsize(data);
@@ -387,7 +385,7 @@ static gearman_return_t _libtokyocabinet_replay(gearman_server_st *server, void 
   gearman_return_t gret;
   gearman_return_t tmp_gret;   
    
-  gearman_log_info(server->gearman, "libtokyocabinet replay start");
+  gearmand_log_info("libtokyocabinet replay start");
   
   if (!tcadbiterinit(queue->db))
   {
@@ -405,7 +403,7 @@ static gearman_return_t _libtokyocabinet_replay(gearman_server_st *server, void 
     free(iter);
     iter= tcadbget(queue->db, tcxstrptr(key), tcxstrsize(key), &iter_size);
     if (! iter) {
-      gearman_log_info(server->gearman, "libtokyocabinet replay key disappeared: %s", (char *)tcxstrptr(key));
+      gearmand_log_info("libtokyocabinet replay key disappeared: %s", (char *)tcxstrptr(key));
       continue;
     }
     tcxstrcat(data, iter, iter_size);
@@ -421,7 +419,7 @@ static gearman_return_t _libtokyocabinet_replay(gearman_server_st *server, void 
   tcxstrdel(key);
   tcxstrdel(data);
 
-  gearman_log_info(server->gearman, "libtokyocabinet replayed %ld records", x);
+  gearmand_log_info("libtokyocabinet replayed %ld records", x);
 
   return gret;
 }

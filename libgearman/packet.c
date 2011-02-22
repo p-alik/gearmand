@@ -232,13 +232,17 @@ gearman_return_t gearman_packet_create_args(gearman_universal_st *gearman,
 void gearman_packet_free(gearman_packet_st *packet)
 {
   if (packet->args != packet->args_buffer && packet->args != NULL)
+  {
     free(packet->args);
+    packet->args= NULL;
+  }
 
   if (packet->options.free_data && packet->data != NULL)
   {
     if (packet->universal->workload_free_fn == NULL)
     {
       free((void *)packet->data); //@todo fix the need for the casting.
+      packet->data= NULL;
     }
     else
     {
@@ -259,7 +263,9 @@ void gearman_packet_free(gearman_packet_st *packet)
   }
 
   if (packet->options.allocated)
+  {
     free(packet);
+  }
 }
 
 gearman_return_t gearman_packet_pack_header(gearman_packet_st *packet)

@@ -44,20 +44,24 @@ noinst_HEADERS += \
 		  $(QUEUE_LIBPQ_H) \
 		  $(QUEUE_LIBSQLITE3_H) \
 		  $(QUEUE_LIBTOKYOCABINET_H) \
+		  libgearman-server/byteorder.h \
 		  libgearman-server/client.h \
 		  libgearman-server/conf.h \
 		  libgearman-server/conf_module.h \
 		  libgearman-server/connection.h \
+		  libgearman-server/connection_list.h \
 		  libgearman-server/constants.h \
 		  libgearman-server/function.h \
 		  libgearman-server/gearmand.h \
 		  libgearman-server/gearmand_con.h \
 		  libgearman-server/gearmand_thread.h \
+		  libgearman-server/io.h \
 		  libgearman-server/job.h \
 		  libgearman-server/log.h \
 		  libgearman-server/packet.h \
 		  libgearman-server/protocol_http.h \
 		  libgearman-server/server.h \
+		  libgearman-server/strerror.h \
 		  libgearman-server/thread.h \
 		  libgearman-server/worker.h
 
@@ -70,19 +74,23 @@ libgearman_server_libgearman_server_la_SOURCES= \
 						$(QUEUE_LIBPQ_C) \
 						$(QUEUE_LIBSQLITE3_C) \
 						$(QUEUE_LIBTOKYOCABINET_C) \
+						libgearman-server/byteorder.c \
 						libgearman-server/client.c \
 						libgearman-server/conf.c \
 						libgearman-server/conf_module.c \
 						libgearman-server/connection.c \
+						libgearman-server/connection_list.c \
 						libgearman-server/function.c \
 						libgearman-server/gearmand.c \
 						libgearman-server/gearmand_con.c \
 						libgearman-server/gearmand_thread.c \
+						libgearman-server/io.c \
 						libgearman-server/job.c \
 						libgearman-server/log.c \
 						libgearman-server/packet.c \
 						libgearman-server/protocol_http.c \
 						libgearman-server/server.c \
+						libgearman-server/strerror.c \
 						libgearman-server/thread.c \
 						libgearman-server/worker.c
 
@@ -97,5 +105,4 @@ libgearman_server_libgearman_server_la_LIBADD= \
 					       $(LTLIBPQ) \
 					       $(LTLIBSQLITE3) \
 					       $(LTLIBTOKYOCABINET) \
-					       libgearman/libgearman.la \
-					       libgearman/libgearmancore.la
+					       libgearman/libgearman.la

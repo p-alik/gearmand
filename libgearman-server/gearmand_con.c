@@ -37,11 +37,9 @@ static gearman_return_t _con_add(gearmand_thread_st *thread,
 
 gearman_return_t gearmand_con_create(gearmand_st *gearmand, int fd,
                                      const char *host, const char *port,
-                                     gearman_connection_add_fn *add_fn)
+                                     gearmand_connection_add_fn *add_fn)
 {
   gearmand_con_st *dcon;
-  gearmand_con_st *free_dcon_list;
-  uint32_t free_dcon_count;
 
   if (gearmand->free_dcon_count > 0)
   {
@@ -53,10 +51,16 @@ gearman_return_t gearmand_con_create(gearmand_st *gearmand, int fd,
     dcon= (gearmand_con_st *)malloc(sizeof(gearmand_con_st));
     if (dcon == NULL)
     {
-      close(fd);
-      gearmand_log_fatal(gearmand, "gearmand_con_create:malloc");
+      gearmand_perror("malloc");
+      if (close(fd) < 0)
+      {
+        gearmand_perror("close");
+      }
+
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
+
+    memset(&dcon->event, 0, sizeof(struct event));
   }
 
   dcon->last_events= 0;
@@ -64,7 +68,6 @@ gearman_return_t gearmand_con_create(gearmand_st *gearmand, int fd,
   dcon->next= NULL;
   dcon->prev= NULL;
   dcon->server_con= NULL;
-  dcon->con= NULL;
   dcon->add_fn= NULL;
   strncpy(dcon->host, host, NI_MAXHOST - 1);
   strncpy(dcon->port, port, NI_MAXSERV - 1);
@@ -92,6 +95,9 @@ gearman_return_t gearmand_con_create(gearmand_st *gearmand, int fd,
   }
   else
   {
+    uint32_t free_dcon_count;
+    gearmand_con_st *free_dcon_list;
+
     (void ) pthread_mutex_lock(&(dcon->thread->lock));
 
     GEARMAN_LIST_ADD(dcon->thread->dcon_add, dcon,)
@@ -126,41 +132,75 @@ gearman_return_t gearmand_con_create(gearmand_st *gearmand, int fd,
 
 void gearmand_con_free(gearmand_con_st *dcon)
 {
-  int del_ret= event_del(&(dcon->event));  
-  assert(del_ret == 0);
+  if (event_initialized(&(dcon->event)))
+  {
+    if (event_del(&(dcon->event)) < 0)
+    {
+      gearmand_perror("event_del");
+    }
+    else
+    {
+      /* This gets around a libevent bug when both POLLIN and POLLOUT are set. */
+      event_set(&(dcon->event), dcon->fd, EV_READ, _con_ready, dcon);
+      event_base_set(dcon->thread->base, &(dcon->event));
 
-  /* This gets around a libevent bug when both POLLIN and POLLOUT are set. */
-  event_set(&(dcon->event), dcon->fd, EV_READ, _con_ready, dcon);
-  event_base_set(dcon->thread->base, &(dcon->event));
-  event_add(&(dcon->event), NULL);
-  del_ret= event_del(&(dcon->event));
-  assert(del_ret == 0);
+      if (event_add(&(dcon->event), NULL) < 0)
+      {
+        gearmand_perror("event_add");
+      }
+      else
+      {
+        if (event_del(&(dcon->event)) < 0)
+        {
+          gearmand_perror("event_del");
+        }
+      }
+    }
+  }
 
-  gearman_server_con_free(dcon->server_con);
+  // @note server_con could be null if we failed to complete the initial
+  // connection.
+  if (dcon->server_con)
+    gearman_server_con_free(dcon->server_con);
+
   GEARMAN_LIST_DEL(dcon->thread->dcon, dcon,)
 
-  close(dcon->fd);
-
-  if (dcon->thread->gearmand->free_dcon_count < GEARMAN_MAX_FREE_SERVER_CON)
+  if (close(dcon->fd) < 0)
   {
-    if (dcon->thread->gearmand->threads == 0)
-      GEARMAN_LIST_ADD(dcon->thread->gearmand->free_dcon, dcon,)
+    gearmand_perror("close");
+  }
+
+  if (Gearmand()->free_dcon_count < GEARMAN_MAX_FREE_SERVER_CON)
+  {
+    if (Gearmand()->threads == 0)
+    {
+      GEARMAN_LIST_ADD(Gearmand()->free_dcon, dcon,)
+    }
     else
     {
       /* Lock here because the main thread may be emptying this. */
-      (void ) pthread_mutex_lock(&(dcon->thread->lock));
-      GEARMAN_LIST_ADD(dcon->thread->free_dcon, dcon,)
-      (void ) pthread_mutex_unlock(&(dcon->thread->lock));
+      int error;
+      if (! (error=  pthread_mutex_lock(&(dcon->thread->lock))))
+      {
+        GEARMAN_LIST_ADD(dcon->thread->free_dcon, dcon,);
+        (void ) pthread_mutex_unlock(&(dcon->thread->lock));
+      }
+      else
+      {
+        errno= error;
+        gearmand_perror("pthread_mutex_lock");
+      }
     }
   }
   else
+  {
+    gearmand_crazy("free");
     free(dcon);
+  }
 }
 
 void gearmand_con_check_queue(gearmand_thread_st *thread)
 {
-  gearmand_con_st *dcon;
-
   /* Dirty check is fine here, wakeup is always sent after add completes. */
   if (thread->dcon_add_count == 0)
     return;
@@ -169,25 +209,45 @@ void gearmand_con_check_queue(gearmand_thread_st *thread)
      walk the thread's dcon_list while holding the lock. */
   while (thread->dcon_add_list != NULL)
   {
-    (void ) pthread_mutex_lock(&(thread->lock));
-    dcon= thread->dcon_add_list;
-    GEARMAN_LIST_DEL(thread->dcon_add, dcon,)
-    (void ) pthread_mutex_unlock(&(thread->lock));
+    int error;
+    if (! (error= pthread_mutex_lock(&(thread->lock))))
+    {
+      gearmand_con_st *dcon= thread->dcon_add_list;
+      GEARMAN_LIST_DEL(thread->dcon_add, dcon,);
 
-    if (_con_add(thread, dcon) != GEARMAN_SUCCESS)
-      gearmand_wakeup(thread->gearmand, GEARMAND_WAKEUP_SHUTDOWN);
+      if ((error= pthread_mutex_unlock(&(thread->lock))) != 0)
+      {
+        errno= error;
+        gearmand_perror("pthread_mutex_unlock");
+        gearmand_fatal("Error in locking forcing a shutdown");
+        gearmand_wakeup(Gearmand(), GEARMAND_WAKEUP_SHUTDOWN);
+      }
+
+      gearman_return_t rc;
+      if ((rc= _con_add(thread, dcon)) != GEARMAN_SUCCESS)
+      {
+	gearmand_gerror("_con_add() has failed, please report any crashes that occur immediatly after this.", rc);
+        gearmand_con_free(dcon);
+      }
+    }
+    else
+    {
+      errno= error;
+      gearmand_perror("pthread_mutex_lock");
+      gearmand_fatal("Lock could not be taken on thread->, shutdown to occur");
+      gearmand_wakeup(Gearmand(), GEARMAND_WAKEUP_SHUTDOWN);
+    }
   }
 }
 
-gearman_return_t gearmand_connection_watch(gearman_connection_st *con, short events,
-                                    void *context __attribute__ ((unused)))
+gearman_return_t gearmand_connection_watch(gearmand_io_st *con, short events,
+                                           void *context __attribute__ ((unused)))
 {
   (void) context;
   gearmand_con_st *dcon;
   short set_events= 0;
 
-  dcon= (gearmand_con_st *)gearman_connection_context(con);
-  dcon->con= con;
+  dcon= (gearmand_con_st *)gearman_io_context(con);
 
   if (events & POLLIN)
     set_events|= EV_READ;
@@ -198,24 +258,26 @@ gearman_return_t gearmand_connection_watch(gearman_connection_st *con, short eve
   {
     if (dcon->last_events != 0)
     {
-      int del_ret= event_del(&(dcon->event));
-      assert(del_ret == 0);
+      if (event_del(&(dcon->event)) < 0)
+      {
+        gearmand_perror("event_del");
+        assert(! "event_del");
+      }
     }
-    event_set(&(dcon->event), dcon->fd, set_events | EV_PERSIST, _con_ready,
-              dcon);
+    event_set(&(dcon->event), dcon->fd, set_events | EV_PERSIST, _con_ready, dcon);
     event_base_set(dcon->thread->base, &(dcon->event));
 
-    if (event_add(&(dcon->event), NULL) == -1)
+    if (event_add(&(dcon->event), NULL) < 0)
     {
-      gearmand_log_fatal(dcon->thread->gearmand, "_con_watch:event_add:-1");
+      gearmand_fatal("event_add(-1)");
       return GEARMAN_EVENT;
     }
 
     dcon->last_events= set_events;
   }
 
-  gearmand_log_crazy(dcon->thread->gearmand, "[%4u] %15s:%5s Watching  %6s %s",
-                     dcon->thread->count, dcon->host, dcon->port,
+  gearmand_log_crazy("%15s:%5s Watching  %6s %s",
+                     dcon->host, dcon->port,
                      events & POLLIN ? "POLLIN" : "",
                      events & POLLOUT ? "POLLOUT" : "");
 
@@ -231,22 +293,23 @@ static void _con_ready(int fd __attribute__ ((unused)), short events,
 {
   gearmand_con_st *dcon= (gearmand_con_st *)arg;
   short revents= 0;
-  gearman_return_t ret;
 
   if (events & EV_READ)
     revents|= POLLIN;
   if (events & EV_WRITE)
     revents|= POLLOUT;
 
-  ret= gearman_connection_set_revents(dcon->con, revents);
+  gearman_return_t ret;
+  ret= gearmand_io_set_revents(dcon->server_con, revents);
   if (ret != GEARMAN_SUCCESS)
   {
+    gearmand_gerror("gearmand_io_set_revents", ret);
     gearmand_con_free(dcon);
     return;
   }
 
-  gearmand_log_crazy(dcon->thread->gearmand, "[%4u] %15s:%5s Ready     %6s %s",
-                     dcon->thread->count, dcon->host, dcon->port,
+  gearmand_log_crazy("%15s:%5s Ready     %6s %s",
+                     dcon->host, dcon->port,
                      revents & POLLIN ? "POLLIN" : "",
                      revents & POLLOUT ? "POLLOUT" : "");
 
@@ -256,33 +319,33 @@ static void _con_ready(int fd __attribute__ ((unused)), short events,
 static gearman_return_t _con_add(gearmand_thread_st *thread,
                                  gearmand_con_st *dcon)
 {
-  gearman_return_t ret;
+  dcon->server_con= gearman_server_con_add(&(thread->server_thread), dcon);
 
-  dcon->server_con= gearman_server_con_add(&(thread->server_thread), dcon->fd,
-                                           dcon);
   if (dcon->server_con == NULL)
   {
-    close(dcon->fd);
-    free(dcon);
+    if (close(dcon->fd) < 0)
+      gearmand_perror("close");
+
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
 
-  gearman_server_con_set_host(dcon->server_con, dcon->host);
-  gearman_server_con_set_port(dcon->server_con, dcon->port);
-
   if (dcon->add_fn != NULL)
   {
-    ret= (*dcon->add_fn)(gearman_server_con_con(dcon->server_con));
+    gearman_return_t ret;
+
+    ret= (*dcon->add_fn)(dcon->server_con);
     if (ret != GEARMAN_SUCCESS)
     {
       gearman_server_con_free(dcon->server_con);
-      close(dcon->fd);
-      free(dcon);
+
+      if (close(dcon->fd) < 0)
+        gearmand_perror("close");
+
       return ret;
     }
   }
 
-  gearmand_log_info(thread->gearmand, "[%4u] %15s:%5s Connected", thread->count, dcon->host, dcon->port);
+  gearmand_log_info("%15s:%5s Connected", dcon->host, dcon->port);
 
   GEARMAN_LIST_ADD(thread->dcon, dcon,)
 

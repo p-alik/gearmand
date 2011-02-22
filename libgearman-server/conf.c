@@ -23,7 +23,10 @@ gearman_conf_st *gearman_conf_create(gearman_conf_st *conf)
   {
     conf= (gearman_conf_st *)malloc(sizeof(gearman_conf_st));
     if (conf == NULL)
+    {
+      gearmand_perror("malloc");
       return NULL;
+    }
 
     conf->options.allocated= true;
   }
@@ -46,6 +49,7 @@ gearman_conf_st *gearman_conf_create(gearman_conf_st *conf)
   conf->option_getopt= (struct option *)malloc(sizeof(struct option));
   if (conf->option_getopt == NULL)
   {
+    gearmand_perror("malloc");
     gearman_conf_free(conf);
     return NULL;
   }

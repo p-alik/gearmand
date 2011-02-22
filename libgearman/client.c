@@ -1074,7 +1074,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
     while (1)
     {
       ret= gearman_connection_send(task->con, &(task->send),
-                            client->new_tasks == 0 ? true : false);
+                                   client->new_tasks == 0 ? true : false);
       if (ret == GEARMAN_SUCCESS)
         break;
       else if (ret == GEARMAN_IO_WAIT)

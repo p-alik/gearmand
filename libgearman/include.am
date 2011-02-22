@@ -43,14 +43,6 @@ libgearman_libgearmancore_la_SOURCES= \
 libgearman_libgearmancore_la_CFLAGS= \
 				     ${AM_CFLAGS}
 
-#libgearman_libgearmancore_la_LDFLAGS= \
-#				      $(AM_LDFLAGS) \
-#				      -version-info \
-#				      $(GEARMAN_LIBRARY_VERSION)
-#
-#libgearman_libgearmancore_la_LIBADD= \
-#				     $(LTLIBUUID)
-
 lib_LTLIBRARIES+= libgearman/libgearman.la
 libgearman_libgearman_la_SOURCES= \
 				  libgearman/client.c \

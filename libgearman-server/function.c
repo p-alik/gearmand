@@ -17,6 +17,8 @@
  * Public definitions
  */
 
+static gearman_server_function_st * gearman_server_function_create(gearman_server_st *server);
+
 gearman_server_function_st *
 gearman_server_function_get(gearman_server_st *server,
                             const char *function_name,
@@ -34,14 +36,14 @@ gearman_server_function_get(gearman_server_st *server,
     }
   }
 
-  function= gearman_server_function_create(server, NULL);
+  function= gearman_server_function_create(server);
   if (function == NULL)
     return NULL;
 
   function->function_name= (char *)malloc(function_name_size + 1);
   if (function->function_name == NULL)
   {
-    gearman_server_function_free(function);
+    gearman_server_function_free(server, function);
     return NULL;
   }
 
@@ -52,21 +54,16 @@ gearman_server_function_get(gearman_server_st *server,
   return function;
 }
 
-gearman_server_function_st *
-gearman_server_function_create(gearman_server_st *server,
-                               gearman_server_function_st *function)
+static gearman_server_function_st * gearman_server_function_create(gearman_server_st *server)
 {
+  gearman_server_function_st *function;
+
+  function= (gearman_server_function_st *)malloc(sizeof(gearman_server_function_st));
+
   if (function == NULL)
   {
-    function= (gearman_server_function_st *)malloc(sizeof(gearman_server_function_st));
-    if (function == NULL)
-      return NULL;
-
-    function->options.allocated= true;
-  }
-  else
-  {
-    function->options.allocated= false;
+    gearmand_perror("malloc");
+    return NULL;
   }
 
   function->worker_count= 0;
@@ -75,7 +72,6 @@ gearman_server_function_create(gearman_server_st *server,
   function->job_running= 0;
   function->max_queue_size= GEARMAN_DEFAULT_MAX_QUEUE_SIZE;
   function->function_name_size= 0;
-  function->server= server;
   GEARMAN_LIST_ADD(server->function, function,)
   function->function_name= NULL;
   function->worker_list= NULL;
@@ -87,13 +83,16 @@ gearman_server_function_create(gearman_server_st *server,
   return function;
 }
 
-void gearman_server_function_free(gearman_server_function_st *function)
+void gearman_server_function_free(gearman_server_st *server, gearman_server_function_st *function)
 {
   if (function->function_name != NULL)
+  {
+    gearmand_crazy("free");
     free(function->function_name);
+  }
 
-  GEARMAN_LIST_DEL(function->server->function, function,)
+  GEARMAN_LIST_DEL(server->function, function,);
 
-  if (function->options.allocated)
-    free(function);
+  gearmand_crazy("free");
+  free(function);
 }

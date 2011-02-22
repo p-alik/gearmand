@@ -40,7 +40,6 @@ struct gearmand_thread_st
   int wakeup_fd[2];
   gearmand_thread_st *next;
   gearmand_thread_st *prev;
-  gearmand_st *gearmand;
   struct event_base *base;
   gearmand_con_st *dcon_list;
   gearmand_con_st *dcon_add_list;

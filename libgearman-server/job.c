@@ -109,7 +109,7 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
       return NULL;
     }
 
-    server_job= gearman_server_job_create(server, NULL);
+    server_job= gearman_server_job_create(server);
     if (server_job == NULL)
     {
       *ret_ptr= GEARMAN_MEMORY_ALLOCATION_FAILURE;
@@ -121,10 +121,23 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
     server_job->function= server_function;
     server_function->job_total++;
 
-    snprintf(server_job->job_handle, GEARMAN_JOB_HANDLE_SIZE, "%s:%u",
-             server->job_handle_prefix, server->job_handle_count);
-    snprintf(server_job->unique, GEARMAN_UNIQUE_SIZE, "%.*s",
-             (int)unique_size, unique);
+    int checked_length;
+    checked_length= snprintf(server_job->job_handle, GEARMAN_JOB_HANDLE_SIZE, "%s:%u",
+                             server->job_handle_prefix, server->job_handle_count);
+
+    if (checked_length >= GEARMAN_JOB_HANDLE_SIZE || checked_length < 0)
+    {
+      gearmand_log_error("Job handle plus handle count beyond GEARMAN_JOB_HANDLE_SIZE: %s:%u",
+                         server->job_handle_prefix, server->job_handle_count);
+    }
+
+    checked_length= snprintf(server_job->unique, GEARMAN_UNIQUE_SIZE, "%.*s",
+                             (int)unique_size, unique);
+    if (checked_length >= GEARMAN_UNIQUE_SIZE || checked_length < 0)
+    {
+      gearmand_log_error("We recieved a unique beyond GEARMAN_UNIQUE_SIZE: %.*s", (int)unique_size, unique);
+    }
+
     server->job_handle_count++;
     server_job->data= data;
     server_job->data_size= data_size;
@@ -143,10 +156,10 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
     {
       server_job->job_queued= true;
     }
-    else if (server_client == NULL && server->queue_add_fn != NULL)
+    else if (server_client == NULL && server->queue._add_fn != NULL)
     {
-      *ret_ptr= (*(server->queue_add_fn))(server,
-                                          (void *)server->queue_context,
+      *ret_ptr= (*(server->queue._add_fn))(server,
+                                         (void *)server->queue._context,
                                           server_job->unique,
                                           unique_size,
                                           function_name,
@@ -159,10 +172,10 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
         return NULL;
       }
 
-      if (server->queue_flush_fn != NULL)
+      if (server->queue._flush_fn != NULL)
       {
-        *ret_ptr= (*(server->queue_flush_fn))(server,
-                                              (void *)server->queue_context);
+        *ret_ptr= (*(server->queue._flush_fn))(server,
+                                              (void *)server->queue._context);
         if (*ret_ptr != GEARMAN_SUCCESS)
         {
           server_job->data= NULL;
@@ -177,11 +190,11 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
     *ret_ptr= gearman_server_job_queue(server_job);
     if (*ret_ptr != GEARMAN_SUCCESS)
     {
-      if (server_client == NULL && server->queue_done_fn != NULL)
+      if (server_client == NULL && server->queue._done_fn != NULL)
       {
         /* Do our best to remove the job from the queue. */
-        (void)(*(server->queue_done_fn))(server,
-                                      (void *)server->queue_context,
+        (void)(*(server->queue._done_fn))(server,
+                                      (void *)server->queue._context,
                                       server_job->unique, unique_size,
                                       server_job->function->function_name,
                                       server_job->function->function_name_size);
@@ -204,27 +217,21 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
 }
 
 gearman_server_job_st *
-gearman_server_job_create(gearman_server_st *server,
-                          gearman_server_job_st *server_job)
+gearman_server_job_create(gearman_server_st *server)
 {
-  if (server_job == NULL)
-  {
-    if (server->free_job_count > 0)
-    {
-      server_job= server->free_job_list;
-      GEARMAN_LIST_DEL(server->free_job, server_job,)
-    }
-    else
-    {
-      server_job= (gearman_server_job_st *)malloc(sizeof(gearman_server_job_st));
-      if (server_job == NULL)
-        return NULL;
-    }
+  gearman_server_job_st *server_job;
 
-    server_job->options.allocated= true;
+  if (server->free_job_count > 0)
+  {
+    server_job= server->free_job_list;
+    GEARMAN_LIST_DEL(server->free_job, server_job,)
   }
   else
-    server_job->options.allocated= false;
+  {
+    server_job= (gearman_server_job_st *)malloc(sizeof(gearman_server_job_st));
+    if (server_job == NULL)
+      return NULL;
+  }
 
   server_job->ignore_job= false;
   server_job->job_queued= false;
@@ -236,7 +243,6 @@ gearman_server_job_create(gearman_server_st *server,
   server_job->numerator= 0;
   server_job->denominator= 0;
   server_job->data_size= 0;
-  server_job->server= server;
   server_job->next= NULL;
   server_job->prev= NULL;
   server_job->unique_next= NULL;
@@ -273,18 +279,15 @@ void gearman_server_job_free(gearman_server_job_st *server_job)
     GEARMAN_LIST_DEL(server_job->worker->job, server_job, worker_)
 
   key= server_job->unique_key % GEARMAN_JOB_HASH_SIZE;
-  GEARMAN_HASH_DEL(server_job->server->unique, key, server_job, unique_);
+  GEARMAN_HASH_DEL(Server->unique, key, server_job, unique_);
 
   key= server_job->job_handle_key % GEARMAN_JOB_HASH_SIZE;
-  GEARMAN_HASH_DEL(server_job->server->job, key, server_job,);
+  GEARMAN_HASH_DEL(Server->job, key, server_job,);
 
-  if (server_job->options.allocated)
-  {
-    if (server_job->server->free_job_count < GEARMAN_MAX_FREE_SERVER_JOB)
-      GEARMAN_LIST_ADD(server_job->server->free_job, server_job,)
-    else
-      free(server_job);
-  }
+  if (Server->free_job_count < GEARMAN_MAX_FREE_SERVER_JOB)
+    GEARMAN_LIST_ADD(Server->free_job, server_job,)
+  else
+    free(server_job);
 }
 
 gearman_server_job_st *gearman_server_job_get(gearman_server_st *server,
@@ -381,7 +384,7 @@ gearman_server_job_take(gearman_server_con_st *server_con)
   if (server_worker == NULL)
     return NULL;
 
-  if (server_con->thread->server->flags.round_robin)
+  if (Server->flags.round_robin)
   {
     GEARMAN_LIST_DEL(server_con->worker, server_worker, con_)
     _server_con_worker_list_append(server_con->worker_list, server_worker);
@@ -427,32 +430,32 @@ gearman_return_t gearman_server_job_queue(gearman_server_job_st *job)
   if (job->worker != NULL)
   {
     job->retries++;
-    if (job->server->job_retries == job->retries)
+    if (Server->job_retries == job->retries)
     {
-       gearman_log_error(job->server->gearman,
-                            "Dropped job due to max retry count: %s %s",
-                            job->job_handle, job->unique);
-       for (client= job->client_list; client != NULL; client= client->job_next)
-       {
-         ret= gearman_server_io_packet_add(client->con, false,
-                                           GEARMAN_MAGIC_RESPONSE,
-                                           GEARMAN_COMMAND_WORK_FAIL,
-                                           job->job_handle,
-                                           (size_t)strlen(job->job_handle),
-                                           NULL);
-         if (ret != GEARMAN_SUCCESS)
-           return ret;
+      gearmand_log_error("Dropped job due to max retry count: %s %s",
+                         job->job_handle, job->unique);
+
+      for (client= job->client_list; client != NULL; client= client->job_next)
+      {
+        ret= gearman_server_io_packet_add(client->con, false,
+                                          GEARMAN_MAGIC_RESPONSE,
+                                          GEARMAN_COMMAND_WORK_FAIL,
+                                          job->job_handle,
+                                          (size_t)strlen(job->job_handle),
+                                          NULL);
+        if (ret != GEARMAN_SUCCESS)
+          return ret;
       }
 
       /* Remove from persistent queue if one exists. */
-      if (job->job_queued && job->server->queue_done_fn != NULL)
+      if (job->job_queued && Server->queue._done_fn != NULL)
       {
-        ret= (*(job->server->queue_done_fn))(job->server,
-                                             (void *)job->server->queue_context,
-                                             job->unique,
-                                             (size_t)strlen(job->unique),
-                                             job->function->function_name,
-                                             job->function->function_name_size);
+	ret= (*(Server->queue._done_fn))(Server,
+					 (void *)Server->queue._context,
+					 job->unique,
+					 (size_t)strlen(job->unique),
+					 job->function->function_name,
+					 job->function->function_name_size);
         if (ret != GEARMAN_SUCCESS)
           return ret;
       }
@@ -491,8 +494,8 @@ gearman_return_t gearman_server_job_queue(gearman_server_job_st *job)
       worker= worker->function_next;
     }
     while (worker != job->function->worker_list &&
-           (job->server->worker_wakeup == 0 ||
-           noop_sent < job->server->worker_wakeup));
+           (Server->worker_wakeup == 0 ||
+           noop_sent < Server->worker_wakeup));
 
     job->function->worker_list= worker;
   }

@@ -21,10 +21,16 @@ namespace error {
 
 void perror(const char *message)
 {
-  char buffer[BUFSIZ];
+  char *errmsg_ptr;
+  char errmsg[BUFSIZ];
 
-  strerror_r(errno, buffer, sizeof(buffer));
-  std::cerr << "gearman: " << message << " (" << buffer << ")" << std::endl;
+#ifdef STRERROR_R_CHAR_P
+  errmsg_ptr= strerror_r(errno, errmsg, sizeof(errmsg));
+#else
+  strerror_r(errno, errmsg, sizeof(errmsg));
+  errmsg_ptr= errmsg;
+#endif
+  std::cerr << "gearman: " << message << " (" << errmsg_ptr << ")" << std::endl;
 }
 
 void message(const char *arg)
@@ -35,6 +41,11 @@ void message(const char *arg)
 void message(const char *arg, const char *arg2)
 {
   std::cerr << "gearman: " << arg << " : " << arg2 << std::endl;
+}
+
+void message(const std::string &arg, gearman_return_t rc)
+{
+  std::cerr << "gearman: " << arg << " : " << gearman_strerror(rc) << std::endl;
 }
 
 void message(const char *arg, const gearman_client_st &client)

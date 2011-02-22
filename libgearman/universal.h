@@ -112,6 +112,16 @@ GEARMAN_INTERNAL_API
 void gearman_universal_set_error(gearman_universal_st *gearman, const char *function,
                                  const char *format, ...);
 
+GEARMAN_INTERNAL_API
+void gearman_universal_set_perror(const char *position, gearman_universal_st *universal, const char *message);
+
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+#define AT __FILE__ ":" TOSTRING(__LINE__)
+
+#define gearman_perror(A, B) do { gearman_universal_set_perror(AT, A, B); } while (0)
+#define gearman_error(A, B) do { gearman_universal_set_error(A, AT, B); } while (0)
+
 /**
  * Return an error string for last error encountered.
  *

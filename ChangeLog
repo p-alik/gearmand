@@ -1,4 +1,10 @@
+0.16
+  * Fixed cases where silent failure of server for queues would not cause tests to fail.
+  * Fix for failure when setsockopt() failed on new connection.
+  * Fixed silen exit in client library based on signals.
+  * Error log now reports failure location in compiled code for ERROR conditions.
   * Fix for failover.
+  * Fixed issue in client where it would silently die based on signal issues.
 
 0.15 Mon Feb 14 18:44:32 PST 2011
   * Numerous issues around overflow on buffers are now fixed.

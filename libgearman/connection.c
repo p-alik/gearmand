@@ -219,7 +219,6 @@ gearman_return_t gearman_connection_set_fd(gearman_connection_st *connection, in
   ret= _con_setsockopt(connection);
   if (ret != GEARMAN_SUCCESS)
   {
-    connection->universal->last_errno= errno;
     return ret;
   }
 
@@ -499,16 +498,13 @@ gearman_return_t gearman_connection_flush(gearman_connection_st *connection)
       if (connection->fd == -1)
       {
         connection->state= GEARMAN_CON_UNIVERSAL_ADDRINFO;
-        gearman_universal_set_error(connection->universal, "gearman_connection_flush", "socket:%d",
-                          errno);
-        connection->universal->last_errno= errno;
+        gearman_perror(connection->universal, "socket");
         return GEARMAN_ERRNO;
       }
 
       gret= _con_setsockopt(connection);
       if (gret != GEARMAN_SUCCESS)
       {
-        connection->universal->last_errno= errno;
         gearman_connection_close(connection);
         return gret;
       }
@@ -540,9 +536,7 @@ gearman_return_t gearman_connection_flush(gearman_connection_st *connection)
           break;
         }
 
-        gearman_universal_set_error(connection->universal, "gearman_connection_flush", "connect:%d",
-                          errno);
-        connection->universal->last_errno= errno;
+        gearman_perror(connection->universal, "connect");
         gearman_connection_close(connection);
         return GEARMAN_ERRNO;
       }
@@ -586,13 +580,18 @@ gearman_return_t gearman_connection_flush(gearman_connection_st *connection)
     case GEARMAN_CON_UNIVERSAL_CONNECTED:
       while (connection->send_buffer_size != 0)
       {
-        write_size= write(connection->fd, connection->send_buffer_ptr, connection->send_buffer_size);
+#if defined(__MACH__) && defined(__APPLE__) || defined(__FreeBSD__)
+        write_size= send(connection->fd, connection->send_buffer_ptr, connection->send_buffer_size, 0);
+#else
+        write_size= send(connection->fd, connection->send_buffer_ptr, connection->send_buffer_size, 
+                         gearman_universal_is_non_blocking(connection->universal) ? MSG_NOSIGNAL|MSG_DONTWAIT : MSG_NOSIGNAL);
+#endif
+
         if (write_size == 0)
         {
           if (! (connection->options.ignore_lost_connection))
           {
-            gearman_universal_set_error(connection->universal, "gearman_connection_flush",
-                              "lost connection to server (EOF)");
+            gearman_error(connection->universal, "lost connection to server (EOF)");
           }
           gearman_connection_close(connection);
           return GEARMAN_LOST_CONNECTION;
@@ -615,21 +614,20 @@ gearman_return_t gearman_connection_flush(gearman_connection_st *connection)
             continue;
           }
           else if (errno == EINTR)
+          {
             continue;
+          }
           else if (errno == EPIPE || errno == ECONNRESET || errno == EHOSTDOWN)
           {
             if (! (connection->options.ignore_lost_connection))
             {
-              gearman_universal_set_error(connection->universal, "gearman_connection_flush",
-                                "lost connection to server (%d)", errno);
+              gearman_perror(connection->universal, "lost connection to server");
             }
             gearman_connection_close(connection);
             return GEARMAN_LOST_CONNECTION;
           }
 
-          gearman_universal_set_error(connection->universal, "gearman_connection_flush", "write:%d",
-                            errno);
-          connection->universal->last_errno= errno;
+          gearman_perror(connection->universal, "send");
           gearman_connection_close(connection);
           return GEARMAN_ERRNO;
         }
@@ -998,8 +996,7 @@ static gearman_return_t _con_setsockopt(gearman_connection_st *connection)
                   (socklen_t)sizeof(int));
   if (ret == -1 && errno != EOPNOTSUPP)
   {
-    gearman_universal_set_error(connection->universal, "_con_setsockopt",
-                                "setsockopt:TCP_NODELAY:%d", errno);
+    gearman_perror(connection->universal, "setsockopt(TCP_NODELAY)");
     return GEARMAN_ERRNO;
   }
 
@@ -1009,8 +1006,7 @@ static gearman_return_t _con_setsockopt(gearman_connection_st *connection)
                   (socklen_t)sizeof(struct linger));
   if (ret == -1)
   {
-    gearman_universal_set_error(connection->universal, "_con_setsockopt",
-                                "setsockopt:SO_LINGER:%d", errno);
+    gearman_perror(connection->universal, "setsockopt(SO_LINGER)");
     return GEARMAN_ERRNO;
   }
 
@@ -1020,8 +1016,7 @@ static gearman_return_t _con_setsockopt(gearman_connection_st *connection)
                   (socklen_t)sizeof(struct timeval));
   if (ret == -1 && errno != ENOPROTOOPT)
   {
-    gearman_universal_set_error(connection->universal, "_con_setsockopt",
-                                "setsockopt:SO_SNDTIMEO:%d", errno);
+    gearman_perror(connection->universal, "setsockopt(SO_SNDTIMEO)");
     return GEARMAN_ERRNO;
   }
 
@@ -1029,8 +1024,7 @@ static gearman_return_t _con_setsockopt(gearman_connection_st *connection)
                   (socklen_t)sizeof(struct timeval));
   if (ret == -1 && errno != ENOPROTOOPT)
   {
-    gearman_universal_set_error(connection->universal, "_con_setsockopt",
-                                "setsockopt:SO_RCVTIMEO:%d", errno);
+    gearman_perror(connection->universal, "setsockopt(SO_RCVTIMEO)");
     return GEARMAN_ERRNO;
   }
 
@@ -1038,33 +1032,42 @@ static gearman_return_t _con_setsockopt(gearman_connection_st *connection)
   ret= setsockopt(connection->fd, SOL_SOCKET, SO_SNDBUF, &ret, (socklen_t)sizeof(int));
   if (ret == -1)
   {
-    gearman_universal_set_error(connection->universal, "_con_setsockopt",
-                                "setsockopt:SO_SNDBUF:%d", errno);
+    gearman_perror(connection->universal, "setsockopt(SO_SNDBUF)");
     return GEARMAN_ERRNO;
   }
+
+#if defined(__MACH__) && defined(__APPLE__) || defined(__FreeBSD__)
+  {
+    ret= 1;
+    setsockopt(connection->fd, SOL_SOCKET, SO_NOSIGPIPE, (void *)&ret, sizeof(int));
+
+    // This is not considered a fatal error 
+    if (ret == -1)
+    {
+      gearman_perror(connection->universal, "setsockopt(SO_NOSIGPIPE)");
+    }
+  }
+#endif
 
   ret= GEARMAN_DEFAULT_SOCKET_RECV_SIZE;
   ret= setsockopt(connection->fd, SOL_SOCKET, SO_RCVBUF, &ret, (socklen_t)sizeof(int));
   if (ret == -1)
   {
-    gearman_universal_set_error(connection->universal, "_con_setsockopt",
-                                "setsockopt:SO_RCVBUF:%d", errno);
+    gearman_perror(connection->universal, "setsockopt(SO_RCVBUF)");
     return GEARMAN_ERRNO;
   }
 
   ret= fcntl(connection->fd, F_GETFL, 0);
   if (ret == -1)
   {
-    gearman_universal_set_error(connection->universal, "_con_setsockopt", "fcntl:F_GETFL:%d",
-                                errno);
+    gearman_perror(connection->universal, "fcntl(F_GETFL)");
     return GEARMAN_ERRNO;
   }
 
   ret= fcntl(connection->fd, F_SETFL, ret | O_NONBLOCK);
   if (ret == -1)
   {
-    gearman_universal_set_error(connection->universal, "_con_setsockopt", "fcntl:F_SETFL:%d",
-                                errno);
+    gearman_perror(connection->universal, "fcntl(F_SETFL)");
     return GEARMAN_ERRNO;
   }
 

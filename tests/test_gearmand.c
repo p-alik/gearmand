@@ -21,8 +21,53 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <stdbool.h>
 
 #include "test_gearmand.h"
+
+#include <libgearman/gearman.h>
+
+static bool wait_and_check_startup(const char *hostname, in_port_t port)
+{
+  gearman_client_st *client;
+
+  client= gearman_client_create(NULL);
+  if (! client)
+  {
+    return false;
+  }
+
+  gearman_return_t rc;
+
+  if ((rc= gearman_client_add_server(client, hostname, port)) == GEARMAN_SUCCESS)
+  {
+    const char *value= "This is my echo test";
+    size_t value_length= strlen(value);
+
+    int counter= 5; // sleep cycles
+    while (--counter)
+    {
+      rc= gearman_client_echo(client, (uint8_t *)value, value_length);
+
+      if (rc == GEARMAN_SUCCESS)
+        break;
+
+      if (rc == GEARMAN_ERRNO && gearman_client_errno(client) == ECONNREFUSED)
+      {
+        sleep(1);
+        continue;
+      }
+    }
+  }
+  
+  if (rc != GEARMAN_SUCCESS)
+  {
+    fprintf(stderr, "wait_and_check_startup(%s)", gearman_client_error(client));
+  }
+  gearman_client_free(client);
+
+  return rc == GEARMAN_SUCCESS;
+}
 
 
 pid_t test_gearmand_start(in_port_t port, const char *queue_type,
@@ -145,30 +190,50 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
     fprintf(stderr, "Could not attach to gearman server, could server already be running on port %u\n", port);
     abort();
   }
-  unlink(file_buffer);
 
+  if (! wait_and_check_startup(NULL, port))
+  {
+    test_gearmand_stop(gearmand_pid);
+    fprintf(stderr, "Failed wait_and_check_startup()\n");
+    abort();
+  }
 
   return gearmand_pid;
 }
 
 void test_gearmand_stop(pid_t gearmand_pid)
 {
-  int ret;
   pid_t pid;
-
-  ret= kill(gearmand_pid, SIGKILL);
   
-  if (ret != 0)
+  if ((kill(gearmand_pid, SIGTERM) == -1))
   {
-    if (ret == -1)
+    switch (errno)
     {
-      perror(strerror(errno));
+    case EPERM:
+      perror(__func__);
+      fprintf(stderr, "%s -> Does someone else have a gearmand server running locally?\n", __func__);
+      return;
+    case ESRCH:
+      perror(__func__);
+      fprintf(stderr, "Process %d not found.\n", (int)gearmand_pid);
+      return;
+    default:
+    case EINVAL:
+      perror(__func__);
+      return;
     }
-
-    return;
   }
 
-  pid= waitpid(gearmand_pid, NULL, 0);
+  int status= 0;
+  pid= waitpid(gearmand_pid, &status, 0);
+
+  if (WCOREDUMP(status))
+  {
+    fprintf(stderr, "A core dump was created from the server\n");
+  }
+
+  if (WIFEXITED(status))
+    return;
 
   sleep(3);
 }

@@ -14,9 +14,60 @@
 #ifndef __GEARMAN_SERVER_CON_H__
 #define __GEARMAN_SERVER_CON_H__
 
+#include <libgearman-server/io.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+struct gearmand_io_st
+{
+  struct {
+    bool ready;
+    bool packet_in_use;
+    bool external_fd;
+    bool ignore_lost_connection;
+    bool close_after_flush;
+  } options;
+  enum {
+    GEARMAN_CON_UNIVERSAL_INVALID,
+    GEARMAN_CON_UNIVERSAL_CONNECTED
+  } _state;
+  enum {
+    GEARMAN_CON_SEND_STATE_NONE,
+    GEARMAN_CON_SEND_UNIVERSAL_PRE_FLUSH,
+    GEARMAN_CON_SEND_UNIVERSAL_FORCE_FLUSH,
+    GEARMAN_CON_SEND_UNIVERSAL_FLUSH,
+    GEARMAN_CON_SEND_UNIVERSAL_FLUSH_DATA
+  } send_state;
+  enum {
+    GEARMAN_CON_RECV_UNIVERSAL_NONE,
+    GEARMAN_CON_RECV_UNIVERSAL_READ,
+    GEARMAN_CON_RECV_STATE_READ_DATA
+  } recv_state;
+  short events;
+  short revents;
+  int fd;
+  uint32_t created_id;
+  uint32_t created_id_next;
+  size_t send_buffer_size;
+  size_t send_data_size;
+  size_t send_data_offset;
+  size_t recv_buffer_size;
+  size_t recv_data_size;
+  size_t recv_data_offset;
+  gearmand_connection_list_st *universal;
+  gearmand_io_st *next;
+  gearmand_io_st *prev;
+  gearmand_con_st *context;
+  char *send_buffer_ptr;
+  gearmand_packet_st *recv_packet;
+  char *recv_buffer_ptr;
+  gearmand_packet_st packet;
+  gearman_server_con_st *root;
+  char send_buffer[GEARMAN_SEND_BUFFER_SIZE];
+  char recv_buffer[GEARMAN_RECV_BUFFER_SIZE];
+};
 
 /**
  * @addtogroup gearman_server_con Connection Declarations
@@ -28,9 +79,12 @@ extern "C" {
  * @{
  */
 
+/*
+  Free list for these are stored in gearman_server_thread_st[], otherwise they are owned by gearmand_con_st[]
+  */
 struct gearman_server_con_st
 {
-  gearman_connection_st con; /* This must be the first struct member. */
+  gearmand_io_st con;
   bool is_sleeping;
   bool is_exceptions;
   bool is_dead;
@@ -57,30 +111,29 @@ struct gearman_server_con_st
   gearman_server_con_st *proc_prev;
   gearman_server_worker_st *worker_list;
   gearman_server_client_st *client_list;
-  const char *host;
-  const char *port;
+  const char *_host; // client host
+  const char *_port; // client port
   char id[GEARMAN_SERVER_CON_ID_SIZE];
+  struct {
+    void *context;
+    gearmand_connection_protocol_context_free_fn *context_free_fn;
+    gearmand_packet_pack_fn *packet_pack_fn;
+    gearmand_packet_unpack_fn *packet_unpack_fn;
+  } protocol;
 };
 
 /**
  * Add a connection to a server thread. This goes into a list of connections
  * that is used later with server_thread_run, no socket I/O happens here.
  * @param thread Thread structure previously initialized with
- *        gearman_server_thread_create.
+ *        gearman_server_thread_init.
  * @param fd File descriptor for a newly accepted connection.
  * @param data Application data pointer.
  * @return Gearman server connection pointer.
  */
 GEARMAN_API
 gearman_server_con_st *gearman_server_con_add(gearman_server_thread_st *thread,
-                                              int fd, void *data);
-
-/**
- * Initialize a server connection structure.
- */
-GEARMAN_API
-gearman_server_con_st *
-gearman_server_con_create(gearman_server_thread_st *thread);
+                                              gearmand_con_st *dcon);
 
 /**
  * Free a server connection structure.
@@ -92,43 +145,13 @@ void gearman_server_con_free(gearman_server_con_st *con);
  * Get gearman connection pointer the server connection uses.
  */
 GEARMAN_API
-gearman_connection_st *gearman_server_con_con(gearman_server_con_st *con);
+gearmand_io_st *gearman_server_con_con(gearman_server_con_st *con);
 
 /**
  * Get application data pointer.
  */
 GEARMAN_API
-const void *gearman_server_con_data(const gearman_server_con_st *con);
-
-/**
- * Set application data pointer.
- */
-GEARMAN_API
-void gearman_server_con_set_data(gearman_server_con_st *con, void *data);
-
-/**
- * Get client host.
- */
-GEARMAN_API
-const char *gearman_server_con_host(gearman_server_con_st *con);
-
-/**
- * Set client host.
- */
-GEARMAN_API
-void gearman_server_con_set_host(gearman_server_con_st *con, const char *host);
-
-/**
- * Get client port.
- */
-GEARMAN_API
-const char *gearman_server_con_port(gearman_server_con_st *con);
-
-/**
- * Set client port.
- */
-GEARMAN_API
-void gearman_server_con_set_port(gearman_server_con_st *con, const char *port);
+gearmand_con_st *gearman_server_con_data(gearman_server_con_st *con);
 
 /**
  * Get client id.
@@ -194,6 +217,19 @@ void gearman_server_con_proc_remove(gearman_server_con_st *con);
 GEARMAN_API
 gearman_server_con_st *
 gearman_server_con_proc_next(gearman_server_thread_st *thread);
+
+/**
+ * Set protocol context pointer.
+ */
+GEARMAN_INTERNAL_API
+void gearmand_connection_set_protocol(gearman_server_con_st *connection, 
+                                      void *context,
+                                      gearmand_connection_protocol_context_free_fn *free_fn,
+                                      gearmand_packet_pack_fn *pack,
+                                      gearmand_packet_unpack_fn *unpack);
+
+GEARMAN_INTERNAL_API
+void *gearmand_connection_protocol_context(const gearman_server_con_st *connection);
 
 /** @} */
 

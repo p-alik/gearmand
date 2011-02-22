@@ -28,6 +28,7 @@ gearman_conf_module_st *gearman_conf_module_create(gearman_conf_st *conf,
     module= (gearman_conf_module_st *)malloc(sizeof(gearman_conf_module_st));
     if (module == NULL)
     {
+      gearmand_perror("malloc");
       gearman_conf_error_set(conf, "gearman_conf_module_create", "malloc");
       return NULL;
     }
@@ -48,6 +49,7 @@ gearman_conf_module_st *gearman_conf_module_create(gearman_conf_st *conf,
                                                   (conf->module_count + 1));
   if (module_list == NULL)
   {
+    gearmand_perror("realloc");
     gearman_conf_module_free(module);
     gearman_conf_error_set(conf, "gearman_conf_module_create", "realloc");
     return NULL;

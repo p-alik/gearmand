@@ -13,6 +13,10 @@
 
 #include "common.h"
 
+static gearman_server_worker_st *
+gearman_server_worker_create(gearman_server_con_st *con,
+                             gearman_server_function_st *function);
+
 /*
  * Public definitions
  */
@@ -24,12 +28,12 @@ gearman_server_worker_add(gearman_server_con_st *con, const char *function_name,
   gearman_server_worker_st *worker;
   gearman_server_function_st *function;
 
-  function= gearman_server_function_get(con->thread->server, function_name,
+  function= gearman_server_function_get(Server, function_name,
                                         function_name_size);
   if (function == NULL)
     return NULL;
 
-  worker= gearman_server_worker_create(con, function, NULL);
+  worker= gearman_server_worker_create(con, function);
   if (worker == NULL)
     return NULL;
 
@@ -38,34 +42,26 @@ gearman_server_worker_add(gearman_server_con_st *con, const char *function_name,
   return worker;
 }
 
-gearman_server_worker_st *
-gearman_server_worker_create(gearman_server_con_st *con,
-                             gearman_server_function_st *function,
-                             gearman_server_worker_st *worker)
+static gearman_server_worker_st *
+gearman_server_worker_create(gearman_server_con_st *con, gearman_server_function_st *function)
 {
-  gearman_server_st *server= con->thread->server;
+  gearman_server_worker_st *worker;
 
-  if (worker == NULL)
+  if (Server->free_worker_count > 0)
   {
-    if (server->free_worker_count > 0)
-    {
-      worker= server->free_worker_list;
-      GEARMAN_LIST_DEL(server->free_worker, worker, con_)
-    }
-    else
-    {
-      worker= (gearman_server_worker_st *)malloc(sizeof(gearman_server_worker_st));
-      if (worker == NULL)
-      {
-        gearman_log_error(con->thread->gearman, "gearman_server_worker_create", "malloc");
-        return NULL;
-      }
-    }
-
-    worker->options.allocated= true;
+    worker= Server->free_worker_list;
+    GEARMAN_LIST_DEL(Server->free_worker, worker, con_)
   }
   else
-    worker->options.allocated= false;
+  {
+    worker= (gearman_server_worker_st *)malloc(sizeof(gearman_server_worker_st));
+    if (worker == NULL)
+    {
+      gearmand_log_error("gearman_server_worker_create", "malloc");
+      return NULL;
+    }
+  }
+
 
   worker->job_count= 0;
   worker->timeout= 0;
@@ -96,8 +92,6 @@ gearman_server_worker_create(gearman_server_con_st *con,
 
 void gearman_server_worker_free(gearman_server_worker_st *worker)
 {
-  gearman_server_st *server= worker->con->thread->server;
-
   /* If the worker was in the middle of a job, requeue it. */
   while (worker->job_list != NULL)
     (void)gearman_server_job_queue(worker->job_list);
@@ -115,11 +109,13 @@ void gearman_server_worker_free(gearman_server_worker_st *worker)
   }
   worker->function->worker_count--;
 
-  if (worker->options.allocated)
+  if (Server->free_worker_count < GEARMAN_MAX_FREE_SERVER_WORKER)
   {
-    if (server->free_worker_count < GEARMAN_MAX_FREE_SERVER_WORKER)
-      GEARMAN_LIST_ADD(server->free_worker, worker, con_)
-    else
-      free(worker);
+    GEARMAN_LIST_ADD(Server->free_worker, worker, con_)
+  }
+  else
+  {
+    gearmand_crazy("free");
+    free(worker);
   }
 }

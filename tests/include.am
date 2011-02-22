@@ -11,11 +11,10 @@ tests_libtest_la_SOURCES= tests/test.c tests/test_gearmand.c
 
 VALGRIND_COMMAND= $(LIBTOOL) --mode=execute valgrind --leak-check=yes --show-reachable=yes
 
-TEST_LDADD= \
-	    tests/libtest.la \
-	    libgearman/libgearman.la \
-	    libgearman-server/libgearman-server.la
-
+CLIENT_LDADD= \
+	      tests/libtest.la \
+	      libgearman/libgearman.la \
+	      libgearman/libgearmancore.la
 
 if HAVE_LIBMEMCACHED
 if HAVE_MEMCACHED
@@ -32,17 +31,17 @@ endif
 endif
 
 tests_memcached_test_SOURCES= tests/memcached_test.c
-tests_memcached_test_LDADD= ${TEST_LDADD}
+tests_memcached_test_LDADD= ${CLIENT_LDADD}
 
 if HAVE_LIBSQLITE3
 SQLITE_TEST= tests/sqlite_test
 SQLITE_RM= @rm -f tests/gearman.sql tests/gearman.sql-journal
-CLEANFILES+= tests/gearman.sql tests/gearman.sql-journal
+CLEANFILES+= tests/gearman.sql tests/gearman.sql-journal tests/gearmand.log*
 noinst_PROGRAMS += tests/sqlite_test
 endif
 
 tests_sqlite_test_SOURCES= tests/sqlite_test.c
-tests_sqlite_test_LDADD= ${TEST_LDADD}
+tests_sqlite_test_LDADD= ${CLIENT_LDADD}
 
 if HAVE_LIBTOKYOCABINET
 TOKYOCABINET_TEST= tests/tokyocabinet_test
@@ -52,7 +51,7 @@ noinst_PROGRAMS += tests/tokyocabinet_test
 endif
 
 tests_tokyocabinet_test_SOURCES= tests/tokyocabinet_test.c
-tests_tokyocabinet_test_LDADD= ${TEST_LDADD}
+tests_tokyocabinet_test_LDADD= ${CLIENT_LDADD}
 
 noinst_PROGRAMS+= \
 		  tests/client_test \
@@ -68,23 +67,23 @@ noinst_HEADERS+= \
 		 tests/test_worker.h
 
 tests_client_test_SOURCES= tests/test_worker.c tests/client_test.c
-tests_client_test_LDADD= ${TEST_LDADD}
+tests_client_test_LDADD= ${CLIENT_LDADD}
 
 tests_internals_test_SOURCES= tests/internals.c
-tests_internals_test_LDADD= ${TEST_LDADD} libgearman/libgearmancore.la
+tests_internals_test_LDADD= ${CLIENT_LDADD} libgearman/libgearmancore.la
 
 tests_regression_test_SOURCES= tests/regression.c
-tests_regression_test_LDADD= ${TEST_LDADD} libgearman/libgearmancore.la
+tests_regression_test_LDADD= ${CLIENT_LDADD} libgearman/libgearmancore.la
 
 tests_round_robin_test_SOURCES= tests/round_robin.c
-tests_round_robin_test_LDADD= ${TEST_LDADD} libgearman/libgearmancore.la
+tests_round_robin_test_LDADD= ${CLIENT_LDADD} libgearman/libgearmancore.la
 
 tests_worker_test_SOURCES= tests/worker_test.c
-tests_worker_test_LDADD= ${TEST_LDADD}
+tests_worker_test_LDADD= ${CLIENT_LDADD}
 
 # Test linking with C++ application
 tests_cpp_test_SOURCES= tests/cpp_test.cc
-tests_cpp_test_LDADD= ${TEST_LDADD}
+tests_cpp_test_LDADD= ${CLIENT_LDADD}
 
 test-client:
 	@tests/client_test $(ARG1) $(ARG2)

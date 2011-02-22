@@ -77,6 +77,7 @@ typedef struct gearmand_thread_st gearmand_thread_st;
 typedef struct gearman_conf_st gearman_conf_st;
 typedef struct gearman_conf_option_st gearman_conf_option_st;
 typedef struct gearman_conf_module_st gearman_conf_module_st;
+typedef struct gearmand_io_st gearmand_io_st;
 
 /* Function types. */
 typedef void (gearman_server_thread_run_fn)(gearman_server_thread_st *thread,
@@ -90,9 +91,11 @@ typedef gearman_return_t (gearman_queue_add_fn)(gearman_server_st *server,
                                                 size_t function_name_size,
                                                 const void *data,
                                                 size_t data_size,
-                                               gearman_job_priority_t priority);
+                                                gearman_job_priority_t priority);
+
 typedef gearman_return_t (gearman_queue_flush_fn)(gearman_server_st *server,
                                                   void *context);
+
 typedef gearman_return_t (gearman_queue_done_fn)(gearman_server_st *server,
                                                  void *context,
                                                  const void *unique,
@@ -104,7 +107,27 @@ typedef gearman_return_t (gearman_queue_replay_fn)(gearman_server_st *server,
                                                    gearman_queue_add_fn *add_fn,
                                                    void *add_context);
 
-typedef gearman_return_t (gearman_connection_add_fn)(gearman_connection_st *con);
+typedef gearman_return_t (gearmand_connection_add_fn)(gearman_server_con_st *con);
+
+typedef void (gearman_log_server_fn)(const char *line, gearman_verbose_t verbose,
+                                     struct gearmand_thread_st *context);
+
+typedef gearman_return_t (gearmand_event_watch_fn)(gearmand_io_st *con,
+                                                   short events, void *context);
+
+typedef struct gearmand_packet_st gearmand_packet_st;
+
+typedef size_t (gearmand_packet_pack_fn)(const gearmand_packet_st *packet,
+                                         gearman_server_con_st *con,
+                                         void *data, size_t data_size,
+                                         gearman_return_t *ret_ptr);
+typedef size_t (gearmand_packet_unpack_fn)(gearmand_packet_st *packet,
+                                           gearman_server_con_st *con, const void *data,
+                                           size_t data_size,
+                                           gearman_return_t *ret_ptr);
+typedef void (gearmand_connection_protocol_context_free_fn)(gearman_server_con_st *con,
+                                                            void *context);
+
 
 /** @} */
 

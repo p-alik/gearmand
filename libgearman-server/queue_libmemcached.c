@@ -90,7 +90,7 @@ gearman_server_queue_libmemcached_init(gearman_server_st *server,
   queue= calloc(1, sizeof(gearman_queue_libmemcached_st));
   if (queue == NULL)
   {
-    gearman_log_error(server->gearman, "gearman_queue_libmemcached_init", "malloc");
+    gearmand_log_error("gearman_queue_libmemcached_init", "malloc");
 
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
@@ -98,7 +98,7 @@ gearman_server_queue_libmemcached_init(gearman_server_st *server,
   if (memcached_create(&(queue->memc)) == NULL)
   {
     free(queue);
-    gearman_log_error(server->gearman, "gearman_queue_libmemcached_init", "memcached_create");
+    gearmand_log_error("gearman_queue_libmemcached_init", "memcached_create");
     return GEARMAN_QUEUE_ERROR;
   }
 
@@ -106,7 +106,7 @@ gearman_server_queue_libmemcached_init(gearman_server_st *server,
   module= gearman_conf_module_find(conf, "libmemcached");
   if (module == NULL)
   {
-    gearman_log_error(server->gearman, "gearman_queue_libmemcached_init", "gearman_conf_module_find:NULL");
+    gearmand_log_error("gearman_queue_libmemcached_init", "gearman_conf_module_find:NULL");
 
     return GEARMAN_QUEUE_ERROR;
   }
@@ -119,14 +119,14 @@ gearman_server_queue_libmemcached_init(gearman_server_st *server,
     {
       memcached_free(&(queue->memc));
       free(queue);
-      gearman_log_error(server->gearman, "gearman_queue_libmemcached_init", "Unknown argument: %s", name);
+      gearmand_log_error("gearman_queue_libmemcached_init", "Unknown argument: %s", name);
       return GEARMAN_QUEUE_ERROR;
     }
   }
 
   if (opt_servers == NULL)
   {
-    gearman_log_error(server->gearman, "gearman_queue_libmemcached_init", "No --servers given");
+    gearmand_log_error("gearman_queue_libmemcached_init", "No --servers given");
     return GEARMAN_QUEUE_ERROR;
   }
 
@@ -137,7 +137,7 @@ gearman_server_queue_libmemcached_init(gearman_server_st *server,
     memcached_free(&(queue->memc));
     free(queue);
 
-    gearman_log_error(server->gearman, "gearman_queue_libmemcached_init", "memcached_servers_parse");
+    gearmand_log_error("gearman_queue_libmemcached_init", "memcached_servers_parse");
 
     return GEARMAN_QUEUE_ERROR;
   }
@@ -145,12 +145,7 @@ gearman_server_queue_libmemcached_init(gearman_server_st *server,
   memcached_server_push(&queue->memc, servers);
   memcached_server_list_free(servers);
 
-  gearman_server_set_queue_context(server, queue);
-
-  gearman_server_set_queue_add_fn(server, _libmemcached_add);
-  gearman_server_set_queue_flush_fn(server, _libmemcached_flush);
-  gearman_server_set_queue_done_fn(server, _libmemcached_done);
-  gearman_server_set_queue_replay_fn(server, _libmemcached_replay);
+  gearman_server_set_queue(server, _libmemcached_add, _libmemcached_flush, _libmemcached_done, _libmemcached_replay);
 
   return GEARMAN_SUCCESS;
 }
@@ -163,7 +158,7 @@ gearman_server_queue_libmemcached_deinit(gearman_server_st *server)
   gearman_log_info(server->gearman, "Shutting down libmemcached queue module");
 
   queue= (gearman_queue_libmemcached_st *)gearman_server_queue_context(server);
-  gearman_server_set_queue_context(server, NULL);
+  gearman_server_set_queue(server, NULL, NULL, NULL, NULL, NULL);
   memcached_free(&(queue->memc));
 
   free(queue);
@@ -293,11 +288,11 @@ static memcached_return callback_loader(const memcached_st *ptr __attribute__((u
 
   data_size= (size_t) memcached_result_length(result);
   /* need to make a copy here ... gearman_server_job_free will free it later */
-  data= (void *)malloc(data_size);
+  data= (char *)malloc(data_size);
   if (data == NULL)
   {
-     gearman_log_error(container->server->gearman, "_memcached_replay", "malloc");
-     return MEMCACHED_MEMORY_ALLOCATION_FAILURE;
+    gearmand_perror("malloc");
+    return MEMCACHED_MEMORY_ALLOCATION_FAILURE;
   } 
   memcpy(data, memcached_result_value(result), data_size);
 
