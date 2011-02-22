@@ -51,9 +51,13 @@ void gearmand_log_perror(const char *position, const char *message);
 GEARMAN_INTERNAL_API
 void gearmand_log_gerror(const char *position, const char *message, const gearman_return_t rc);
 
+GEARMAN_INTERNAL_API
+void gearmand_log_gai_error(const char *position, const char *message, const int rc);
+
 #define gearmand_error(A) do { gearmand_log_error("%s -> %s", A, AT); } while (0)
 #define gearmand_perror(A) do { gearmand_log_perror(AT, A); } while (0)
 #define gearmand_gerror(A,B) do { gearmand_log_gerror(AT, A, B); } while (0)
+#define gearmand_gai_error(A,B) do { gearmand_log_gerror(AT, A, B); } while (0)
 
 
 /**

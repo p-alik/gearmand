@@ -341,9 +341,17 @@ void gearmand_wakeup(gearmand_st *gearmand, gearmand_wakeup_t wakeup)
 
   /* If this fails, there is not much we can really do. This should never fail
      though if the main gearmand thread is still active. */
-  if (write(gearmand->wakeup_fd[1], &buffer, 1) != 1)
+  ssize_t written;
+  if ((written= write(gearmand->wakeup_fd[1], &buffer, 1)) != 1)
   {
-    gearmand_perror("write");
+    if (written < 0)
+    {
+      gearmand_perror("write");
+    }
+    else
+    {
+      gearmand_log_error("gearmand_wakeup() incorrectly wrote %lu bytes of data.", (unsigned long)written);
+    }
   }
 }
 
@@ -373,7 +381,7 @@ static gearman_return_t _listen_init(gearmand_st *gearmand)
     ret= getaddrinfo(gearmand->host, port->port, &hints, &addrinfo);
     if (ret != 0)
     {
-      gearmand_log_fatal("getaddrinfo:%s", gai_strerror(ret));
+      gearmand_gai_error("getaddrinfo", ret);
       return GEARMAN_ERRNO;
     }
 
@@ -388,7 +396,7 @@ static gearman_return_t _listen_init(gearmand_st *gearmand)
                        NI_NUMERICHOST | NI_NUMERICSERV);
       if (ret != 0)
       {
-        gearmand_log_error("getnameinfo:%s", gai_strerror(ret));
+        gearmand_gai_error("getaddrinfo", ret);
         strcpy(host, "-");
         strcpy(port->port, "-");
       }

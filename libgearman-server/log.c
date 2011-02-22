@@ -203,19 +203,22 @@ void gearmand_log_perror(const char *position, const char *message)
     strerror_r(errno, errmsg, sizeof(errmsg));
     errmsg_ptr= errmsg;
 #endif
-
-    char final[GEARMAN_MAX_ERROR_SIZE];
-    snprintf(final, sizeof(final), "%s(%s) -> %s ", message, errmsg_ptr, position);
-    gearmand_log_error(final);
+    gearmand_log_error("%s(%s) -> %s ", message, errmsg_ptr, position);
   }
 }
 
 void gearmand_log_gerror(const char *position, const char *message, const gearman_return_t rc)
 {
-  if (!Gearmand() || Gearmand()->verbose >= GEARMAN_VERBOSE_ERROR)
+  gearmand_log_error("%s(%s) -> %s ", message, gearmand_strerror(rc), position);
+}
+
+void gearmand_log_gai_error(const char *position, const char *message, const int rc)
+{
+  if (rc == EAI_SYSTEM)
   {
-    char final[GEARMAN_MAX_ERROR_SIZE];
-    snprintf(final, sizeof(final), "%s(%s) -> %s ", message, gearmand_strerror(rc), position);
-    gearmand_log_error(final);
+    gearmand_log_perror(position, message);
+    return;
   }
+
+  gearmand_log_error("%s(%s) -> %s", message, gai_strerror(rc), position);
 }
