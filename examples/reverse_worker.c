@@ -148,20 +148,20 @@ static void *reverse(gearman_job_st *job, void *context,
   reverse_worker_options_t options= *((reverse_worker_options_t *)context);
   const uint8_t *workload;
   uint8_t *result;
-  size_t x;
-  size_t y;
 
   workload= gearman_job_workload(job);
   *result_size= gearman_job_workload_size(job);
 
-  result= malloc(*result_size);
+  result= (uint8_t *)malloc(*result_size);
   if (result == NULL)
   {
-    fprintf(stderr, "malloc:%d\n", errno);
+    perror("malloc");
     *ret_ptr= GEARMAN_WORK_FAIL;
     return NULL;
   }
 
+  size_t x;
+  size_t y;
   for (y= 0, x= *result_size; x; x--, y++)
   {
     result[y]= ((uint8_t *)workload)[x - 1];
@@ -193,7 +193,7 @@ static void *reverse(gearman_job_st *job, void *context,
   printf("Job=%s%s%s Workload=%.*s Result=%.*s\n", gearman_job_handle(job),
          options & REVERSE_WORKER_OPTIONS_UNIQUE ? " Unique=" : "",
          options & REVERSE_WORKER_OPTIONS_UNIQUE ? gearman_job_unique(job) : "",
-         (int)*result_size, workload, (int)*result_size, result);
+         (int)*result_size, workload, (int)*result_size, (const char *)result);
 
   *ret_ptr= GEARMAN_SUCCESS;
 

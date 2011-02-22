@@ -165,10 +165,8 @@ static size_t _http_pack(const gearmand_packet_st *packet, gearman_server_con_st
                               "Content-Length: %"PRIu64"\r\n"
                               "Server: Gearman/" PACKAGE_VERSION "\r\n"
                               "\r\n",
-                              packet->command == GEARMAN_COMMAND_JOB_CREATED ?
-                              (uint32_t)packet->arg_size[0] :
-                              (uint32_t)packet->arg_size[0] - 1,
-                              packet->arg[0],
+                              packet->command == GEARMAN_COMMAND_JOB_CREATED ?  (int)packet->arg_size[0] : (int)packet->arg_size[0] - 1,
+                              (const char *)packet->arg[0],
                               (uint64_t)packet->data_size);
 
   if (pack_size > data_size)

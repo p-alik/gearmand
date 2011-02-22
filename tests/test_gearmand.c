@@ -130,7 +130,7 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
       perror("mkstemp");
       abort();
     }
-    snprintf(buffer_ptr, sizeof(buffer), "./gearmand/gearmand --pid-file=%s --daemon --port=%u", file_buffer, port);
+    snprintf(buffer_ptr, sizeof(buffer), "./gearmand/gearmand --pid-file=%s --daemon --port=%u", file_buffer, (uint32_t)port);
     buffer_ptr+= strlen(buffer_ptr);
   }
 
@@ -187,7 +187,7 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
 
   if (gearmand_pid == -1)
   {
-    fprintf(stderr, "Could not attach to gearman server, could server already be running on port %u\n", port);
+    fprintf(stderr, "Could not attach to gearman server, could server already be running on port %u\n", (uint32_t)port);
     abort();
   }
 
