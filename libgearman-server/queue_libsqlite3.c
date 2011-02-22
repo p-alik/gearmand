@@ -207,10 +207,11 @@ gearman_return_t gearman_server_queue_libsqlite3_init(gearman_server_st *server,
     snprintf(create, SQLITE_MAX_CREATE_TABLE_SIZE,
              "CREATE TABLE %s"
              "("
-             "unique_key TEXT PRIMARY KEY,"
+             "unique_key TEXT,"
              "function_name TEXT,"
              "priority INTEGER,"
-             "data BLOB"
+             "data BLOB,"
+             "PRIMARY KEY (unique_key, function_name)"
              ")",
              queue->table);
 
@@ -598,13 +599,14 @@ static gearman_return_t _sqlite_done(gearman_server_st *server, void *context,
     query= queue->query;
 
   query_size= (size_t)snprintf(query, query_size,
-                               "DELETE FROM %s WHERE unique_key=?",
+                               "DELETE FROM %s WHERE unique_key=? and function_name=?",
                                queue->table);
 
   if (_sqlite_query(server, queue, query, query_size, &sth) != SQLITE_OK)
     return GEARMAN_QUEUE_ERROR;
 
   sqlite3_bind_text(sth, 1, unique, (int)unique_size, SQLITE_TRANSIENT);
+  sqlite3_bind_text(sth, 2, function_name, (int)function_name_size, SQLITE_TRANSIENT);
 
   if (sqlite3_step(sth) != SQLITE_DONE)
   {

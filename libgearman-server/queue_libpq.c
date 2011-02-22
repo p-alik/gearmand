@@ -171,10 +171,11 @@ gearman_return_t gearman_server_queue_libpq_init(gearman_server_st *server,
     snprintf(create, 1024,
              "CREATE TABLE %s"
              "("
-               "unique_key VARCHAR(%d) PRIMARY KEY,"
+               "unique_key VARCHAR(%d),"
                "function_name VARCHAR(255),"
                "priority INTEGER,"
-               "data BYTEA"
+               "data BYTEA,"
+               "UNIQUE KEY (unique_key, function_name)"
              ")",
              queue->table, GEARMAN_UNIQUE_SIZE);
 
@@ -354,6 +355,12 @@ static gearman_return_t _libpq_done(gearman_server_st *server, void *context,
                                   unique_size, NULL);
   memcpy(query + query_size, "'", 1);
   query_size+= 1;
+  
+  query_size+= PQescapeStringConn(queue->con, query + query_size, function_name,
+                                  function_name_size, NULL);
+  memcpy(query + query_size, "'", 1);
+  query_size+= 1;
+  
   query[query_size]= 0;
 
   result= PQexec(queue->con, query);
