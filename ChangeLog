@@ -1,4 +1,4 @@
-0.16
+0.16 Tue Feb 22 10:55:33 PST 2011
   * Fixed cases where silent failure of server for queues would not cause tests to fail.
   * Fix for failure when setsockopt() failed on new connection.
   * Fixed silen exit in client library based on signals.
