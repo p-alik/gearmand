@@ -13,33 +13,33 @@
 
 #include "common.h"
 
-static gearman_server_con_st * _server_con_create(gearman_server_thread_st *thread, gearmand_con_st *dcon);
+static gearman_server_con_st * _server_con_create(gearman_server_thread_st *thread, gearmand_con_st *dcon,
+                                                  gearman_return_t *ret);
 
 /*
  * Public definitions
  */
 
-gearman_server_con_st *gearman_server_con_add(gearman_server_thread_st *thread, gearmand_con_st *dcon)
+gearman_server_con_st *gearman_server_con_add(gearman_server_thread_st *thread, gearmand_con_st *dcon, gearman_return_t *ret)
 {
   gearman_server_con_st *con;
-  gearman_return_t ret;
 
-  con= _server_con_create(thread, dcon);
+  con= _server_con_create(thread, dcon, ret);
   if (con == NULL)
   {
     return NULL;
   }
 
-  if (gearman_io_set_fd(&(con->con), dcon->fd) != GEARMAN_SUCCESS)
+  if ((*ret= gearman_io_set_fd(&(con->con), dcon->fd)) != GEARMAN_SUCCESS)
   {
     gearman_server_con_free(con);
     return NULL;
   }
 
-  ret= gearmand_io_set_events(con, POLLIN);
-  if (ret != GEARMAN_SUCCESS)
+  *ret= gearmand_io_set_events(con, POLLIN);
+  if (*ret != GEARMAN_SUCCESS)
   {
-    gearmand_gerror("gearmand_io_set_events", ret);
+    gearmand_gerror("gearmand_io_set_events", *ret);
     gearman_server_con_free(con);
     return NULL;
   }
@@ -47,7 +47,8 @@ gearman_server_con_st *gearman_server_con_add(gearman_server_thread_st *thread, 
   return con;
 }
 
-static gearman_server_con_st * _server_con_create(gearman_server_thread_st *thread, gearmand_con_st *dcon)
+static gearman_server_con_st * _server_con_create(gearman_server_thread_st *thread, gearmand_con_st *dcon,
+                                                  gearman_return_t *ret)
 {
   gearman_server_con_st *con;
 
@@ -62,6 +63,7 @@ static gearman_server_con_st * _server_con_create(gearman_server_thread_st *thre
     if (con == NULL)
     {
       gearmand_perror("malloc");
+      *ret= GEARMAN_MEMORY_ALLOCATION_FAILURE;
       return NULL;
     }
   }
@@ -69,6 +71,7 @@ static gearman_server_con_st * _server_con_create(gearman_server_thread_st *thre
   if (!con)
   {
     gearmand_error("Neigther an allocated gearman_server_con_st() or free listed could be found");
+    *ret= GEARMAN_MEMORY_ALLOCATION_FAILURE;
     return NULL;
   }
 
@@ -123,6 +126,7 @@ static gearman_server_con_st * _server_con_create(gearman_server_thread_st *thre
     gearmand_perror("pthread_mutex_lock");
     gearman_server_con_free(con);
 
+    *ret= GEARMAN_ERRNO;
     return NULL;
   }
 

@@ -347,6 +347,7 @@ void gearmand_wakeup(gearmand_st *gearmand, gearmand_wakeup_t wakeup)
     if (written < 0)
     {
       gearmand_perror("write");
+      abort(); // Crash the server, otherwise we are stuck in a loop.
     }
     else
     {
@@ -491,8 +492,7 @@ static gearman_return_t _listen_init(gearmand_st *gearmand)
       {
         gearmand_perror("bind");
 
-        if (close(fd) < 0)
-          gearmand_perror("close");
+        gearmand_sockfd_close(fd);
 
         if (errno == EADDRINUSE)
         {
@@ -512,8 +512,7 @@ static gearman_return_t _listen_init(gearmand_st *gearmand)
       {
         gearmand_perror("listen");
 
-        if (close(fd) < 0)
-          gearmand_perror("close");
+        gearmand_sockfd_close(fd);
 
         return GEARMAN_ERRNO;
       }
@@ -529,8 +528,7 @@ static gearman_return_t _listen_init(gearmand_st *gearmand)
         {
           gearmand_perror("realloc");
 
-          if (close(fd) < 0)
-            gearmand_perror("close");
+          gearmand_sockfd_close(fd);
 
           return GEARMAN_ERRNO;
         }
@@ -582,7 +580,7 @@ static void _listen_close(gearmand_st *gearmand)
       if (gearmand->port_list[x].listen_fd[y] >= 0)
       {
         gearmand_log_info("Closing listening socket (%d)", gearmand->port_list[x].listen_fd[y]);
-        close(gearmand->port_list[x].listen_fd[y]);
+        gearmand_sockfd_close(gearmand->port_list[x].listen_fd[y]);
         gearmand->port_list[x].listen_fd[y]= -1;
       }
     }
@@ -601,9 +599,9 @@ static gearman_return_t _listen_watch(gearmand_st *gearmand)
       gearmand_log_info("Adding event for listening socket (%d)",
                         gearmand->port_list[x].listen_fd[y]);
 
-      if (event_add(&(gearmand->port_list[x].listen_event[y]), NULL) == -1)
+      if (event_add(&(gearmand->port_list[x].listen_event[y]), NULL) < 0)
       {
-        gearmand_fatal("_listen_watch:event_add(-1)");
+        gearmand_perror("event_add");
         return GEARMAN_EVENT;
       }
     }
@@ -654,12 +652,12 @@ static void _listen_event(int fd, short events __attribute__ ((unused)), void *a
     }
     else if (errno == EMFILE)
     {
-      gearmand_log_error("_listen_event:accept:too many open files");
+      gearmand_perror("accept");
       return;
     }
 
     _clear_events(Gearmand());
-    gearmand_perror("_listen_event:accept");
+    gearmand_perror("accept");
     Gearmand()->ret= GEARMAN_ERRNO;
     return;
   }
@@ -672,7 +670,7 @@ static void _listen_event(int fd, short events __attribute__ ((unused)), void *a
                      NI_NUMERICHOST | NI_NUMERICSERV);
   if (error != 0)
   {
-    gearmand_log_error("_listen_event:getnameinfo:%s", gai_strerror(error));
+    gearmand_gai_error("getnameinfo", error);
     strcpy(host, "-");
     strcpy(port_str, "-");
   }
@@ -683,9 +681,7 @@ static void _listen_event(int fd, short events __attribute__ ((unused)), void *a
   ret= gearmand_con_create(Gearmand(), fd, host, port_str, port->add_fn);
   if (ret == GEARMAN_MEMORY_ALLOCATION_FAILURE)
   {
-    if (close(fd) < 0)
-      gearmand_perror("close");
-
+    gearmand_sockfd_close(fd);
     return;
   }
   else if (ret != GEARMAN_SUCCESS)
@@ -733,9 +729,9 @@ static void _wakeup_close(gearmand_st *gearmand)
   if (gearmand->wakeup_fd[0] >= 0)
   {
     gearmand_log_info("Closing wakeup pipe");
-    close(gearmand->wakeup_fd[0]);
+    gearmand_pipe_close(gearmand->wakeup_fd[0]);
     gearmand->wakeup_fd[0]= -1;
-    close(gearmand->wakeup_fd[1]);
+    gearmand_pipe_close(gearmand->wakeup_fd[1]);
     gearmand->wakeup_fd[1]= -1;
   }
 }

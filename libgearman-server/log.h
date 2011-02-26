@@ -65,6 +65,7 @@ void gearmand_log_gai_error(const char *position, const char *message, const int
  */
 GEARMAN_INTERNAL_API
 void gearmand_log_info(const char *format, ...);
+#define gearmand_info(A) do { gearmand_log_info("%s -> %s", A, AT); } while (0)
 
 /**
  * Log a debug message, see gearmand_log() for argument details.

@@ -533,8 +533,6 @@ static void _log(const char *line, gearman_verbose_t verbose, void *context)
 {
   gearmand_log_info_st *log_info= static_cast<gearmand_log_info_st *>(context);
   int fd;
-  time_t t;
-  char buffer[GEARMAN_MAX_ERROR_SIZE];
 
   if (log_info->file == NULL)
   {
@@ -542,7 +540,7 @@ static void _log(const char *line, gearman_verbose_t verbose, void *context)
   }
   else
   {
-    t= time(NULL);
+    time_t t= time(NULL);
 
     if (log_info->fd != -1 && log_info->reopen < t)
     {
@@ -565,6 +563,7 @@ static void _log(const char *line, gearman_verbose_t verbose, void *context)
     fd= log_info->fd;
   }
 
+  char buffer[GEARMAN_MAX_ERROR_SIZE];
   snprintf(buffer, GEARMAN_MAX_ERROR_SIZE, "%5s %s\n",
            gearmand_verbose_name(verbose), line);
   if (write(fd, buffer, strlen(buffer)) == -1)

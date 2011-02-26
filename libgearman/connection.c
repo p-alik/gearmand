@@ -246,12 +246,30 @@ void gearman_connection_close(gearman_connection_st *connection)
     return;
 
   if (connection->options.external_fd)
+  {
     connection->options.external_fd= false;
+  }
   else
-    (void)close(connection->fd);
+  {
+    if (connection->fd == INVALID_SOCKET)
+      return;
+
+    /* in case of death shutdown to avoid blocking at close() */
+    if (shutdown(connection->fd, SHUT_RDWR) == SOCKET_ERROR && get_socket_errno() != ENOTCONN)
+    {
+      gearman_perror(connection->universal, "shutdown");
+      assert(errno != ENOTSOCK);
+      return;
+    }
+
+    if (closesocket(connection->fd) == SOCKET_ERROR)
+    {
+      gearman_perror(connection->universal, "close");
+    }
+  }
 
   connection->state= GEARMAN_CON_UNIVERSAL_ADDRINFO;
-  connection->fd= -1;
+  connection->fd= INVALID_SOCKET;
   connection->events= 0;
   connection->revents= 0;
 

@@ -156,13 +156,15 @@ void gearmand_thread_free(gearmand_thread_st *thread)
   _wakeup_close(thread);
 
   while (thread->dcon_list != NULL)
+  {
     gearmand_con_free(thread->dcon_list);
+  }
 
   while (thread->dcon_add_list != NULL)
   {
     dcon= thread->dcon_add_list;
     thread->dcon_add_list= dcon->next;
-    close(dcon->fd);
+    gearmand_sockfd_close(dcon->fd);
     free(dcon);
   }
 
@@ -209,6 +211,7 @@ void gearmand_thread_run(gearmand_thread_st *thread)
   {
     gearmand_con_st *dcon;
     dcon= gearman_server_thread_run(&(thread->server_thread), &ret);
+
     if (ret == GEARMAN_SUCCESS || ret == GEARMAN_IO_WAIT ||
         ret == GEARMAN_SHUTDOWN_GRACEFUL)
     {
@@ -299,9 +302,9 @@ static gearman_return_t _wakeup_init(gearmand_thread_st *thread)
             _wakeup_event, thread);
   event_base_set(thread->base, &(thread->wakeup_event));
 
-  if (event_add(&(thread->wakeup_event), NULL) == -1)
+  if (event_add(&(thread->wakeup_event), NULL) < 0)
   {
-    gearmand_fatal("event_add(-1)");
+    gearmand_perror("event_add");
     return GEARMAN_EVENT;
   }
 
@@ -317,9 +320,9 @@ static void _wakeup_close(gearmand_thread_st *thread)
   if (thread->wakeup_fd[0] >= 0)
   {
     gearmand_log_info("Closing IO thread wakeup pipe");
-    close(thread->wakeup_fd[0]);
+    gearmand_pipe_close(thread->wakeup_fd[0]);
     thread->wakeup_fd[0]= -1;
-    close(thread->wakeup_fd[1]);
+    gearmand_pipe_close(thread->wakeup_fd[1]);
     thread->wakeup_fd[1]= -1;
   }
 }
@@ -328,7 +331,7 @@ static void _wakeup_clear(gearmand_thread_st *thread)
 {
   if (thread->is_wakeup_event)
   {
-    gearmand_log_info("Clearing event for IO thread wakeup pipe", thread->count);
+    gearmand_log_info("Clearing event for IO thread wakeup pipe %u", thread->count);
     if (event_del(&(thread->wakeup_event)) < 0)
     {
       gearmand_perror("event_del");
@@ -414,5 +417,7 @@ static void _clear_events(gearmand_thread_st *thread)
   _wakeup_clear(thread);
 
   while (thread->dcon_list != NULL)
+  {
     gearmand_con_free(thread->dcon_list);
+  }
 }

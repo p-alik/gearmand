@@ -56,7 +56,7 @@ void gearmand_connection_init(gearmand_connection_list_st *gearman,
   connection->recv_state= GEARMAN_CON_RECV_UNIVERSAL_NONE;
   connection->events= 0;
   connection->revents= 0;
-  connection->fd= -1;
+  connection->fd= INVALID_SOCKET;
   connection->created_id= 0;
   connection->created_id_next= 0;
   connection->send_buffer_size= 0;
@@ -83,7 +83,7 @@ void gearmand_connection_init(gearmand_connection_list_st *gearman,
 
 void gearmand_io_free(gearmand_io_st *connection)
 {
-  if (connection->fd != -1)
+  if (connection->fd != INVALID_SOCKET)
     _connection_close(connection);
 
   {
@@ -166,16 +166,21 @@ gearmand_con_st *gearman_io_context(const gearmand_io_st *connection)
 
 static void _connection_close(gearmand_io_st *connection)
 {
-  if (connection->fd == -1)
+  if (connection->fd == INVALID_SOCKET)
     return;
 
   if (connection->options.external_fd)
+  {
     connection->options.external_fd= false;
+  }
   else
-    (void)close(connection->fd);
+  {
+    (void)gearmand_sockfd_close(connection->fd);
+    assert(! "We should never have an internal fd");
+  }
 
   connection->_state= GEARMAN_CON_UNIVERSAL_INVALID;
-  connection->fd= -1;
+  connection->fd= INVALID_SOCKET;
   connection->events= 0;
   connection->revents= 0;
 
@@ -197,7 +202,7 @@ static void _connection_close(gearmand_io_st *connection)
 }
 
 gearman_return_t gearman_io_send(gearman_server_con_st *con,
-                                         const gearmand_packet_st *packet, bool flush)
+                                 const gearmand_packet_st *packet, bool flush)
 {
   gearman_return_t ret;
   size_t send_size;
@@ -226,9 +231,13 @@ gearman_return_t gearman_io_send(gearman_server_con_st *con,
         break;
       }
       else if (ret == GEARMAN_IGNORE_PACKET)
+      {
         return GEARMAN_SUCCESS;
+      }
       else if (ret != GEARMAN_FLUSH_DATA)
+      {
         return ret;
+      }
 
       /* We were asked to flush when the buffer is already flushed! */
       if (connection->send_buffer_size == 0)
@@ -244,7 +253,9 @@ gearman_return_t gearman_io_send(gearman_server_con_st *con,
     case GEARMAN_CON_SEND_UNIVERSAL_PRE_FLUSH:
       ret= _connection_flush(con);
       if (ret != GEARMAN_SUCCESS)
+      {
         return ret;
+      }
     }
 
     /* Return here if we have no data to send. */
@@ -277,7 +288,9 @@ gearman_return_t gearman_io_send(gearman_server_con_st *con,
   case GEARMAN_CON_SEND_UNIVERSAL_FORCE_FLUSH:
     ret= _connection_flush(con);
     if (ret != GEARMAN_SUCCESS)
+    {
       return ret;
+    }
 
     connection->send_data_size= packet->data_size;
 
@@ -334,10 +347,9 @@ gearman_return_t gearman_io_send(gearman_server_con_st *con,
   return GEARMAN_SUCCESS;
 }
 
-static gearman_return_t _connection_flush(gearman_server_con_st * con)
+static gearman_return_t _connection_flush(gearman_server_con_st *con)
 {
   ssize_t write_size;
-  gearman_return_t gret;
 
   gearmand_io_st *connection= &con->con;
 
@@ -359,29 +371,36 @@ static gearman_return_t _connection_flush(gearman_server_con_st * con)
 #endif
         if (write_size == 0)
         {
-          gearmand_log_info("lost connection to client send(EOF)");
+          gearmand_info("lost connection to client send(EOF)");
           _connection_close(connection);
           return GEARMAN_LOST_CONNECTION;
         }
         else if (write_size == -1)
         {
-          if (errno == EAGAIN)
+          gearman_return_t gret;
+
+          switch (errno)
           {
+          case EAGAIN:
             gret= gearmand_io_set_events(con, POLLOUT);
             if (gret != GEARMAN_SUCCESS)
+            {
               return gret;
-
+            }
             return GEARMAN_IO_WAIT;
-          }
-          else if (errno == EINTR)
-          {
+
+          case EINTR:
             continue;
-          }
-          else if (errno == EPIPE || errno == ECONNRESET || errno == EHOSTDOWN)
-          {
-            gearmand_log_info("lost connection to client send(EPIPE || ECONNRESET || EHOSTDOWN)");
+
+          case EPIPE:
+          case ECONNRESET:
+          case EHOSTDOWN:
+            gearmand_info("lost connection to client send(EPIPE || ECONNRESET || EHOSTDOWN)");
             _connection_close(connection);
             return GEARMAN_LOST_CONNECTION;
+
+          default:
+            break;
           }
 
           gearmand_perror("send");
@@ -401,10 +420,14 @@ static gearman_return_t _connection_flush(gearman_server_con_st * con)
           }
 
           if (connection->send_buffer_size == 0)
+          {
             return GEARMAN_SUCCESS;
+          }
         }
         else if (connection->send_buffer_size == 0)
+        {
           break;
+        }
 
         connection->send_buffer_ptr+= write_size;
       }
@@ -588,36 +611,45 @@ size_t _connection_read(gearman_server_con_st *con, void *data, size_t data_size
 
   while (1)
   {
-    read_size= read(connection->fd, data, data_size);
+#if defined(__MACH__) && defined(__APPLE__) || defined(__FreeBSD__)
+    read_size= recv(connection->fd, data, data_size, 0);
+#else
+    read_size= recv(connection->fd, data, data_size, MSG_DONTWAIT);
+#endif
+
     if (read_size == 0)
     {
-      gearmand_log_info("lost connection to client (EOF)");
+      gearmand_info("lost connection to client (EOF)");
       _connection_close(connection);
       *ret_ptr= GEARMAN_LOST_CONNECTION;
       return 0;
     }
     else if (read_size == -1)
     {
-      if (errno == EAGAIN)
+      switch (errno)
       {
+      case EAGAIN:
         *ret_ptr= gearmand_io_set_events(con, POLLIN);
         if (*ret_ptr != GEARMAN_SUCCESS)
+        {
+          gearmand_perror("recv");
           return 0;
+        }
 
         *ret_ptr= GEARMAN_IO_WAIT;
         return 0;
-      }
-      else if (errno == EINTR)
-      {
+
+      case EINTR:
         continue;
-      }
-      else if (errno == EPIPE || errno == ECONNRESET || errno == EHOSTDOWN)
-      {
-        gearmand_log_info("lost connection to client(EPIPE || ECONNRESET || EHOSTDOWN)");
+
+      case EPIPE:
+      case ECONNRESET:
+      case EHOSTDOWN:
+        gearmand_info("lost connection to client(EPIPE || ECONNRESET || EHOSTDOWN)");
         *ret_ptr= GEARMAN_LOST_CONNECTION;
-      }
-      else
-      {
+        break;
+
+      default:
         gearmand_perror("read");
         *ret_ptr= GEARMAN_ERRNO;
       }
@@ -639,7 +671,9 @@ gearman_return_t gearmand_io_set_events(gearman_server_con_st *con, short events
   gearmand_io_st *connection= &con->con;
 
   if ((connection->events | events) == connection->events)
+  {
     return GEARMAN_SUCCESS;
+  }
 
   connection->events|= events;
 
@@ -780,4 +814,34 @@ static gearman_return_t _io_setsockopt(gearmand_io_st *connection)
   }
 
   return GEARMAN_SUCCESS;
+}
+
+void gearmand_sockfd_close(int sockfd)
+{
+  if (sockfd == INVALID_SOCKET)
+    return;
+
+  /* in case of death shutdown to avoid blocking at close() */
+  if (shutdown(sockfd, SHUT_RDWR) == SOCKET_ERROR && get_socket_errno() != ENOTCONN)
+  {
+    gearmand_perror("shutdown");
+    assert(errno != ENOTSOCK);
+    return;
+  }
+
+  if (closesocket(sockfd) == SOCKET_ERROR)
+  {
+    gearmand_perror("close");
+  }
+}
+
+void gearmand_pipe_close(int pipefd)
+{
+  if (pipefd == INVALID_SOCKET)
+    return;
+
+  if (closesocket(pipefd) == SOCKET_ERROR)
+  {
+    gearmand_perror("close");
+  }
 }

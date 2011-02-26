@@ -177,7 +177,9 @@ gearman_server_thread_run(gearman_server_thread_st *thread,
       /* See if any outgoing packets were queued. */
       *ret_ptr= _thread_packet_flush(server_con);
       if (*ret_ptr != GEARMAN_SUCCESS && *ret_ptr != GEARMAN_IO_WAIT)
+      {
         return gearman_server_con_data(server_con);
+      }
     }
   }
 
@@ -200,7 +202,9 @@ gearman_server_thread_run(gearman_server_thread_st *thread,
       {
         *ret_ptr= _thread_packet_flush(server_con);
         if (*ret_ptr != GEARMAN_SUCCESS && *ret_ptr != GEARMAN_IO_WAIT)
+        {
           return gearman_server_con_data(server_con);
+        }
       }
     }
   }
@@ -213,7 +217,9 @@ gearman_server_thread_run(gearman_server_thread_st *thread,
     {
       *ret_ptr= _thread_packet_flush(server_con);
       if (*ret_ptr != GEARMAN_SUCCESS && *ret_ptr != GEARMAN_IO_WAIT)
+      {
         return gearman_server_con_data(server_con);
+      }
     }
   }
 
@@ -311,7 +317,9 @@ static gearman_return_t _thread_packet_flush(gearman_server_con_st *con)
     ret= gearman_io_send(con, &(con->io_packet_list->packet),
                                  con->io_packet_list->next == NULL ? true : false);
     if (ret != GEARMAN_SUCCESS)
+    {
       return ret;
+    }
 
     gearmand_log_debug("%15s:%5d Sent      %s",
                        con->_host == NULL ? "-" : con->_host,

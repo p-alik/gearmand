@@ -444,7 +444,9 @@ gearman_return_t gearman_server_job_queue(gearman_server_job_st *job)
                                           (size_t)strlen(job->job_handle),
                                           NULL);
         if (ret != GEARMAN_SUCCESS)
+        {
           return ret;
+        }
       }
 
       /* Remove from persistent queue if one exists. */
@@ -477,6 +479,7 @@ gearman_return_t gearman_server_job_queue(gearman_server_job_st *job)
   {
     worker= job->function->worker_list;
     noop_sent= 0;
+
     do
     {
       if (worker->con->is_sleeping && ! (worker->con->is_noop_sent))
@@ -485,7 +488,10 @@ gearman_return_t gearman_server_job_queue(gearman_server_job_st *job)
                                           GEARMAN_MAGIC_RESPONSE,
                                           GEARMAN_COMMAND_NOOP, NULL);
         if (ret != GEARMAN_SUCCESS)
+        {
+          gearmand_gerror("gearman_server_io_packet_add", ret);
           return ret;
+        }
 
         worker->con->is_noop_sent= true;
         noop_sent++;
@@ -502,9 +508,14 @@ gearman_return_t gearman_server_job_queue(gearman_server_job_st *job)
 
   /* Queue the job to be run. */
   if (job->function->job_list[job->priority] == NULL)
+  {
     job->function->job_list[job->priority]= job;
+  }
   else
+  {
     job->function->job_end[job->priority]->function_next= job;
+  }
+
   job->function->job_end[job->priority]= job;
   job->function->job_count++;
 

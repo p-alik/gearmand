@@ -132,8 +132,8 @@ struct gearman_server_con_st
  * @return Gearman server connection pointer.
  */
 GEARMAN_API
-gearman_server_con_st *gearman_server_con_add(gearman_server_thread_st *thread,
-                                              gearmand_con_st *dcon);
+gearman_server_con_st *gearman_server_con_add(gearman_server_thread_st *thread, gearmand_con_st *dcon,
+                                              gearman_return_t *ret);
 
 /**
  * Free a server connection structure.

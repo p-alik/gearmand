@@ -52,10 +52,7 @@ gearman_return_t gearmand_con_create(gearmand_st *gearmand, int fd,
     if (dcon == NULL)
     {
       gearmand_perror("malloc");
-      if (close(fd) < 0)
-      {
-        gearmand_perror("close");
-      }
+      gearmand_sockfd_close(fd);
 
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
@@ -161,14 +158,13 @@ void gearmand_con_free(gearmand_con_st *dcon)
   // @note server_con could be null if we failed to complete the initial
   // connection.
   if (dcon->server_con)
+  {
     gearman_server_con_free(dcon->server_con);
+  }
 
   GEARMAN_LIST_DEL(dcon->thread->dcon, dcon,)
 
-  if (close(dcon->fd) < 0)
-  {
-    gearmand_perror("close");
-  }
+  gearmand_sockfd_close(dcon->fd);
 
   if (Gearmand()->free_dcon_count < GEARMAN_MAX_FREE_SERVER_CON)
   {
@@ -269,7 +265,7 @@ gearman_return_t gearmand_connection_watch(gearmand_io_st *con, short events,
 
     if (event_add(&(dcon->event), NULL) < 0)
     {
-      gearmand_fatal("event_add(-1)");
+      gearmand_perror("event_add");
       return GEARMAN_EVENT;
     }
 
@@ -319,27 +315,27 @@ static void _con_ready(int fd __attribute__ ((unused)), short events,
 static gearman_return_t _con_add(gearmand_thread_st *thread,
                                  gearmand_con_st *dcon)
 {
-  dcon->server_con= gearman_server_con_add(&(thread->server_thread), dcon);
+  gearman_return_t ret= GEARMAN_SUCCESS;
+  dcon->server_con= gearman_server_con_add(&(thread->server_thread), dcon, &ret);
+
+  assert(dcon->server_con || ret != GEARMAN_SUCCESS);
+  assert(! dcon->server_con || ret == GEARMAN_SUCCESS);
 
   if (dcon->server_con == NULL)
   {
-    if (close(dcon->fd) < 0)
-      gearmand_perror("close");
+    gearmand_sockfd_close(dcon->fd);
 
-    return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+    return ret;
   }
 
   if (dcon->add_fn != NULL)
   {
-    gearman_return_t ret;
-
     ret= (*dcon->add_fn)(dcon->server_con);
     if (ret != GEARMAN_SUCCESS)
     {
       gearman_server_con_free(dcon->server_con);
 
-      if (close(dcon->fd) < 0)
-        gearmand_perror("close");
+      gearmand_sockfd_close(dcon->fd);
 
       return ret;
     }

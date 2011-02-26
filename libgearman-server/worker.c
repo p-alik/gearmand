@@ -94,16 +94,26 @@ void gearman_server_worker_free(gearman_server_worker_st *worker)
 {
   /* If the worker was in the middle of a job, requeue it. */
   while (worker->job_list != NULL)
-    (void)gearman_server_job_queue(worker->job_list);
+  {
+    gearman_return_t ret;
+    ret= gearman_server_job_queue(worker->job_list);
+    if (ret != GEARMAN_SUCCESS)
+    {
+      gearmand_gerror("gearman_server_job_queue", ret);
+    }
+  }
 
   GEARMAN_LIST_DEL(worker->con->worker, worker, con_)
 
   if (worker == worker->function_next)
+  {
     worker->function->worker_list= NULL;
+  }
   else
   {
     worker->function_next->function_prev= worker->function_prev;
     worker->function_prev->function_next= worker->function_next;
+
     if (worker == worker->function->worker_list)
       worker->function->worker_list= worker->function_next;
   }
