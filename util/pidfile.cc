@@ -10,19 +10,23 @@
 
 #include "pidfile.h"
 
-#include <cstdlib>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <errno.h>
+#include <fcntl.h>
 #include <iostream>
+#include <sys/stat.h>
+#include <sys/types.h>
+
 
 namespace gearman_util
 {
 
 Pidfile::Pidfile(const std::string &arg) :
+  _last_errno(0),
   _filename(arg)
 {
-  init();
 }
 
 
@@ -30,33 +34,45 @@ Pidfile::~Pidfile()
 {
   if (not _filename.empty() and (unlink(_filename.c_str()) == -1))
   {
-    std::cerr << "gearman: Could not remove the pid file: " << _filename.c_str() << "(" << strerror(errno) << ")" << std::endl;
+    _error_message+= "Could not remove the pid file: ";
+    _error_message+= _filename;
   }
 }
 
-void Pidfile::init()
+bool Pidfile::create()
 {
   if (_filename.empty())
-    return;
+    return true;
 
-  FILE *f;
-
-  f= fopen(_filename.c_str(), "w");
-  if (f == NULL)
+  int file;
+  if ((file = open(_filename.c_str(), O_CREAT|O_WRONLY|O_TRUNC, S_IRWXU|S_IRGRP|S_IROTH)) < 0)
   {
-    fprintf(stderr, "gearmand: Could not open pid file for writing: %s (%d)\n",
-            _filename.c_str(), errno);
-    return;
+    _error_message+= "Could not open pid file for writing: "; 
+    _error_message+= _filename;
+    return false;
   }
+
+  char buffer[BUFSIZ];
 
   unsigned long temp= static_cast<unsigned long>(getpid());
-  fprintf(f, "%lu\n", temp);
+  int length= snprintf(buffer, sizeof(buffer), "%lu\n", temp);
 
-  if (fclose(f) == -1)
-  {
-    fprintf(stderr, "gearmand: Could not close the pid file: %s (%d)\n",
-            _filename.c_str(), errno);
+  if (write(file, buffer, length) != length)
+  { 
+    _error_message+= "Could not write pid to file: "; 
+    _error_message+= _filename;
+
+    return false;
   }
+
+  if (close(file < 0))
+  {
+    _error_message+= "Could not close() file after writing pid to it: "; 
+    _error_message+= _filename;
+    return false;
+  }
+
+  return true;
 }
 
 } // namespace gearman_util

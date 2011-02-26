@@ -54,6 +54,7 @@ tests_tokyocabinet_test_SOURCES= tests/tokyocabinet_test.c
 tests_tokyocabinet_test_LDADD= ${CLIENT_LDADD}
 
 noinst_PROGRAMS+= \
+		  tests/burnin_test \
 		  tests/client_test \
 		  tests/cpp_test \
 		  tests/internals_test \
@@ -68,6 +69,9 @@ noinst_HEADERS+= \
 
 tests_client_test_SOURCES= tests/test_worker.c tests/client_test.c
 tests_client_test_LDADD= ${CLIENT_LDADD}
+
+tests_burnin_test_SOURCES= tests/test_worker.c tests/burnin.c
+tests_burnin_test_LDADD= ${CLIENT_LDADD}
 
 tests_internals_test_SOURCES= tests/internals.c
 tests_internals_test_LDADD= ${CLIENT_LDADD} libgearman/libgearmancore.la
@@ -84,6 +88,9 @@ tests_worker_test_LDADD= ${CLIENT_LDADD}
 # Test linking with C++ application
 tests_cpp_test_SOURCES= tests/cpp_test.cc
 tests_cpp_test_LDADD= ${CLIENT_LDADD}
+
+test-burnin:
+	@tests/burnin_test $(ARG1) $(ARG2)
 
 test-client:
 	@tests/client_test $(ARG1) $(ARG2)
@@ -124,7 +131,7 @@ if HAVE_LIBTOKYOCABINET
 	$(TOKYOCABINET_RM)
 endif
 
-check-local: test-client test-round-robin test-worker test-internals test-libmemcached test-sqlite test-tokyocabinet
+check-local: test-client test-round-robin test-worker test-internals test-libmemcached test-sqlite test-tokyocabinet test-burnin
 
 gdb-client: ${noinst_PROGRAMS}
 	$(LIBTOOL) --mode=execute gdb tests/client_test

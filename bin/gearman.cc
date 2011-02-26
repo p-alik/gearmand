@@ -235,7 +235,13 @@ int main(int argc, char *argv[])
     }
   }
 
-  Pidfile pidfile(args.pid_file());
+  Pidfile _pid_file(args.pid_file());
+
+  if (not _pid_file.create())
+  {
+    error::perror(_pid_file.error_message().c_str());
+    return 1;
+  }
 
   if (args.worker())
   {

@@ -39,7 +39,6 @@ void gearmand_connection_init(gearmand_connection_list_st *gearman,
   connection->options.ready= false;
   connection->options.packet_in_use= false;
   connection->options.external_fd= false;
-  connection->options.ignore_lost_connection= false;
   connection->options.close_after_flush= false;
 
   if (options)
@@ -121,7 +120,6 @@ gearman_return_t gearman_io_set_option(gearmand_io_st *connection,
     connection->options.external_fd= value;
     break;
   case GEARMAN_CON_IGNORE_LOST_CONNECTION:
-    connection->options.ignore_lost_connection= value;
     break;
   case GEARMAN_CON_CLOSE_AFTER_FLUSH:
     connection->options.close_after_flush= value;
@@ -361,10 +359,7 @@ static gearman_return_t _connection_flush(gearman_server_con_st * con)
 #endif
         if (write_size == 0)
         {
-          if (! (connection->options.ignore_lost_connection))
-          {
-            gearmand_error("lost connection to server (EOF)");
-          }
+          gearmand_log_info("lost connection to client send(EOF)");
           _connection_close(connection);
           return GEARMAN_LOST_CONNECTION;
         }
@@ -384,10 +379,7 @@ static gearman_return_t _connection_flush(gearman_server_con_st * con)
           }
           else if (errno == EPIPE || errno == ECONNRESET || errno == EHOSTDOWN)
           {
-            if (! (connection->options.ignore_lost_connection))
-            {
-              gearmand_perror("lost connection to server");
-            }
+            gearmand_log_info("lost connection to client send(EPIPE || ECONNRESET || EHOSTDOWN)");
             _connection_close(connection);
             return GEARMAN_LOST_CONNECTION;
           }
@@ -599,10 +591,7 @@ size_t _connection_read(gearman_server_con_st *con, void *data, size_t data_size
     read_size= read(connection->fd, data, data_size);
     if (read_size == 0)
     {
-      if (! (connection->options.ignore_lost_connection))
-      {
-        gearmand_error("lost connection to server (EOF)");
-      }
+      gearmand_log_info("lost connection to client (EOF)");
       _connection_close(connection);
       *ret_ptr= GEARMAN_LOST_CONNECTION;
       return 0;
@@ -619,13 +608,12 @@ size_t _connection_read(gearman_server_con_st *con, void *data, size_t data_size
         return 0;
       }
       else if (errno == EINTR)
+      {
         continue;
+      }
       else if (errno == EPIPE || errno == ECONNRESET || errno == EHOSTDOWN)
       {
-        if (! (connection->options.ignore_lost_connection))
-        {
-          gearmand_perror("lost connection to server");
-        }
+        gearmand_log_info("lost connection to client(EPIPE || ECONNRESET || EHOSTDOWN)");
         *ret_ptr= GEARMAN_LOST_CONNECTION;
       }
       else

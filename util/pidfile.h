@@ -21,10 +21,17 @@ public:
 
   ~Pidfile();
 
-private:
-  std::string _filename;
+  const std::string &error_message()
+  {
+    return _error_message;
+  }
 
-  void init();
+  bool create();
+
+private:
+  int _last_errno;
+  std::string _filename;
+  std::string _error_message;
 };
 
 } // namespace gearman_util

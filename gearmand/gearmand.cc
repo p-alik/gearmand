@@ -341,11 +341,19 @@ int main(int argc, char *argv[])
   }
 
   if ((fds > 0 && _set_fdlimit(fds)) || _switch_user(user) || _set_signals())
+  {
     return 1;
+  }
 
   gearman_verbose_t verbose= verbose_count > static_cast<int>(GEARMAN_VERBOSE_CRAZY) ? GEARMAN_VERBOSE_CRAZY : static_cast<gearman_verbose_t>(verbose_count);
 
   Pidfile _pid_file(pid_file);
+
+  if (not _pid_file.create())
+  {
+    error::perror(_pid_file.error_message().c_str());
+    return 1;
+  }
 
   gearmand_st *_gearmand;
   _gearmand= gearmand_create(host, port, threads, backlog, job_retries, worker_wakeup,
