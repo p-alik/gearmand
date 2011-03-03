@@ -61,6 +61,7 @@ noinst_HEADERS += \
 		  libgearman-server/packet.h \
 		  libgearman-server/protocol_http.h \
 		  libgearman-server/server.h \
+		  libgearman-server/wakeup.h \
 		  libgearman-server/strerror.h \
 		  libgearman-server/thread.h \
 		  libgearman-server/worker.h
@@ -92,6 +93,7 @@ libgearman_server_libgearman_server_la_SOURCES= \
 						libgearman-server/server.c \
 						libgearman-server/strerror.c \
 						libgearman-server/thread.c \
+						libgearman-server/wakeup.c \
 						libgearman-server/worker.c
 
 libgearman_server_libgearman_server_la_CFLAGS= \

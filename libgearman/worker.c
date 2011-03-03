@@ -865,7 +865,9 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
     if (worker->work_result != NULL)
     {
       if ((&worker->universal)->workload_free_fn == NULL)
+      {
         free(worker->work_result);
+      }
       else
       {
         (&worker->universal)->workload_free_fn(worker->work_result,

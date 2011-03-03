@@ -11,6 +11,8 @@
  * @brief Connection Definitions
  */
 
+#include <config.h>
+
 #include "common.h"
 
 static void gearman_connection_reset_addrinfo(gearman_connection_st *connection);
@@ -598,12 +600,8 @@ gearman_return_t gearman_connection_flush(gearman_connection_st *connection)
     case GEARMAN_CON_UNIVERSAL_CONNECTED:
       while (connection->send_buffer_size != 0)
       {
-#if defined(__MACH__) && defined(__APPLE__) || defined(__FreeBSD__)
-        write_size= send(connection->fd, connection->send_buffer_ptr, connection->send_buffer_size, 0);
-#else
         write_size= send(connection->fd, connection->send_buffer_ptr, connection->send_buffer_size, 
-                         gearman_universal_is_non_blocking(connection->universal) ? MSG_NOSIGNAL|MSG_DONTWAIT : MSG_NOSIGNAL);
-#endif
+                         gearman_universal_is_non_blocking(connection->universal) ? MSG_NOSIGNAL| MSG_DONTWAIT : MSG_NOSIGNAL);
 
         if (write_size == 0)
         {

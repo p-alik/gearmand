@@ -374,6 +374,14 @@ typedef unsigned long int ulong;
 #define SOCKET_ERROR -1
 #define closesocket(a) close(a)
 #define get_socket_errno() errno
+#endif // TARGET_OS_WINDOWS
+
+#ifndef HAVE_MSG_NOSIGNAL
+#define MSG_NOSIGNAL 0
+#endif
+
+#ifndef HAVE_MSG_DONTWAIT
+#define MSG_DONTWAIT 0
 #endif
 
 #if defined(__cplusplus)

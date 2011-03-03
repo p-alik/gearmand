@@ -13,6 +13,7 @@
 
 #include "config.h"
 
+#include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
@@ -31,6 +32,8 @@
 #include <libgearman/gearman.h>
 
 #include "bin/arguments.h"
+#include "bin/client.h"
+#include "bin/worker.h"
 #include "util/pidfile.h"
 #include "util/error.h"
 
@@ -59,7 +62,7 @@ static void _client(Args &args);
 /**
  * Run client jobs.
  */
-static void _client_run(gearman_client_st *client, Args &args,
+static void _client_run(gearman_client_st& client, Args &args,
                         const void *workload, size_t workload_size);
 
 /**
@@ -95,7 +98,7 @@ static void *_worker_cb(gearman_job_st *job, void *context,
 /**
  * Read workload chunk from a file descriptor and put into allocated memory.
  */
-static void _read_workload(int fd, Bytes workload, size_t *workload_offset);
+static void _read_workload(int fd, Bytes& workload);
 
 /**
  * Print usage information.
@@ -114,58 +117,6 @@ static void signal_setup()
 }
 
 }
-
-class Client
-{
-public:
-  Client()
-  {
-    if (gearman_client_create(&_client) == NULL)
-    {
-      std::cerr << "Failed memory allocation while initializing client." << std::endl;
-      abort();
-    }
-  }
-
-  ~Client()
-  {
-    gearman_client_free(&_client);
-  }
-
-  gearman_client_st &client()
-  {
-    return _client;
-  }
-
-private:
-  gearman_client_st _client;
-};
-
-class Worker
-{
-public:
-  Worker()
-  {
-    if (gearman_worker_create(&_worker) == NULL)
-    {
-      std::cerr << "Failed memory allocation while initializing memory." << std::endl;
-      abort();
-    }
-  }
-
-  ~Worker()
-  {
-    gearman_worker_free(&_worker);
-  }
-
-  gearman_worker_st &worker()
-  {
-    return _worker;
-  }
-
-private:
-  gearman_worker_st _worker;
-};
 
 int main(int argc, char *argv[])
 {
@@ -206,10 +157,8 @@ int main(int argc, char *argv[])
 
   if (close_stdio)
   {
-    int fd;
-
     /* If we can't remap stdio, it should not a fatal error. */
-    fd= open("/dev/null", O_RDWR, 0);
+    int fd= open("/dev/null", O_RDWR, 0);
 
     if (fd != -1)
     {
@@ -259,19 +208,18 @@ void _client(Args &args)
 {
   Client local_client;
   gearman_client_st &client= local_client.client();
-  gearman_return_t ret;
   Bytes workload;
-  size_t workload_offset= 0;
-
   if (args.timeout() >= 0)
   {
     gearman_client_set_timeout(&client, args.timeout());
   }
 
+  gearman_return_t ret;
   ret= gearman_client_add_server(&client, args.host(), args.port());
   if (ret != GEARMAN_SUCCESS)
   {
     error::message("gearman_client_add_server", client);
+    return;
   }
 
   gearman_client_set_data_fn(&client, _client_data);
@@ -285,7 +233,7 @@ void _client(Args &args)
   {
     if (args.suppress_input())
     {
-      _client_run(&client, args, NULL, 0);
+      _client_run(client, args, NULL, 0);
     }
     else if (args.job_per_newline())
     {
@@ -297,27 +245,27 @@ void _client(Args &args)
           break;
 
         if (args.strip_newline())
-          _client_run(&client, args, &workload[0], strlen(&workload[0]) - 1);
+          _client_run(client, args, &workload[0], strlen(&workload[0]) - 1);
         else
-          _client_run(&client, args, &workload[0], strlen(&workload[0]));
+          _client_run(client, args, &workload[0], strlen(&workload[0]));
       }
     }
     else
     {
-      _read_workload(0, workload, &workload_offset);
-      _client_run(&client, args, &workload[0], workload_offset);
+      _read_workload(STDIN_FILENO, workload);
+      _client_run(client, args, &workload[0], workload.size());
     }
   }
   else
   {
     for (size_t x= 0; args.argument(x) != NULL; x++)
     {
-      _client_run(&client, args, args.argument(x), strlen(args.argument(x)));
+      _client_run(client, args, args.argument(x), strlen(args.argument(x)));
     }
   }
 }
 
-void _client_run(gearman_client_st *client, Args &args,
+void _client_run(gearman_client_st& client, Args &args,
                  const void *workload, size_t workload_size)
 {
   gearman_return_t ret;
@@ -335,7 +283,7 @@ void _client_run(gearman_client_st *client, Args &args,
       switch (args.priority())
       {
       case GEARMAN_JOB_PRIORITY_HIGH:
-        (void)gearman_client_add_task_high_background(client,
+        (void)gearman_client_add_task_high_background(&client,
                                                       function.task(),
                                                       &args,
                                                       function.name(),
@@ -345,7 +293,7 @@ void _client_run(gearman_client_st *client, Args &args,
         break;
 
       case GEARMAN_JOB_PRIORITY_NORMAL:
-        (void)gearman_client_add_task_background(client,
+        (void)gearman_client_add_task_background(&client,
                                                  function.task(),
                                                  &args,
                                                  function.name(),
@@ -355,7 +303,7 @@ void _client_run(gearman_client_st *client, Args &args,
         break;
 
       case GEARMAN_JOB_PRIORITY_LOW:
-        (void)gearman_client_add_task_low_background(client,
+        (void)gearman_client_add_task_low_background(&client,
                                                      function.task(),
                                                      &args,
                                                      function.name(),
@@ -376,7 +324,7 @@ void _client_run(gearman_client_st *client, Args &args,
       switch (args.priority())
       {
       case GEARMAN_JOB_PRIORITY_HIGH:
-        (void)gearman_client_add_task_high(client,
+        (void)gearman_client_add_task_high(&client,
                                            function.task(),
                                            &args,
                                            function.name(),
@@ -385,7 +333,7 @@ void _client_run(gearman_client_st *client, Args &args,
         break;
 
       case GEARMAN_JOB_PRIORITY_NORMAL:
-        (void)gearman_client_add_task(client,
+        (void)gearman_client_add_task(&client,
                                       function.task(),
                                       &args,
                                       function.name(),
@@ -395,7 +343,7 @@ void _client_run(gearman_client_st *client, Args &args,
         break;
 
       case GEARMAN_JOB_PRIORITY_LOW:
-        (void)gearman_client_add_task_low(client,
+        (void)gearman_client_add_task_low(&client,
                                           function.task(),
                                           &args,
                                           function.name(),
@@ -413,14 +361,14 @@ void _client_run(gearman_client_st *client, Args &args,
 
     if (ret != GEARMAN_SUCCESS)
     {
-      error::message("gearman_client_add_task", *client);
+      error::message("gearman_client_add_task", client);
     }
   }
 
-  ret= gearman_client_run_tasks(client);
+  ret= gearman_client_run_tasks(&client);
   if (ret != GEARMAN_SUCCESS)
   {
-    error::message("gearman_client_run_tasks", *client);
+    error::message("gearman_client_run_tasks", client);
   }
 }
 
@@ -438,6 +386,7 @@ static gearman_return_t _client_data(gearman_task_st *task)
   if (write(fileno(stdout), gearman_task_data(task), gearman_task_data_size(task)) == -1)
   {
     error::perror("write");
+    return GEARMAN_ERRNO;
   }
 
   return GEARMAN_SUCCESS;
@@ -491,6 +440,12 @@ static gearman_return_t _client_fail(gearman_task_st *task)
   return GEARMAN_SUCCESS;
 }
 
+static void _worker_free(void *ptr, void *context)
+{
+  (void)ptr;
+  (void)context;
+}
+
 void _worker(Args &args)
 {
   gearman_return_t ret;
@@ -504,7 +459,10 @@ void _worker(Args &args)
   if (ret != GEARMAN_SUCCESS)
   {
     error::message("gearman_worker_add_server", worker);
+    exit(0);
   }
+
+  gearman_worker_set_workload_free_fn(&worker, _worker_free, NULL);
 
   for (Function::vector::iterator iter= args.begin(); 
        iter != args.end();
@@ -516,6 +474,7 @@ void _worker(Args &args)
     if (ret != GEARMAN_SUCCESS)
     {
       error::message("gearman_worker_add_function", worker);
+      exit(0);
     }
   }
 
@@ -552,8 +511,8 @@ static void *_worker_cb(gearman_job_st *job, void *context,
   worker_argument_t *arguments= static_cast<worker_argument_t *>(context);
   int in_fds[2];
   int out_fds[2];
-  FILE *f;
   int status;
+  (void)result_size;
 
   Args &args= arguments->args;
   Function &function= arguments->function;
@@ -562,7 +521,7 @@ static void *_worker_cb(gearman_job_st *job, void *context,
 
   if (not args.arguments())
   {
-    if (write(1, gearman_job_workload(job),
+    if (write(STDOUT_FILENO, gearman_job_workload(job),
               gearman_job_workload_size(job)) == -1)
     {
       error::perror("write");
@@ -575,37 +534,57 @@ static void *_worker_cb(gearman_job_st *job, void *context,
       error::perror("pipe");
     }
 
-    switch (fork())
+    pid_t pid;
+    switch ((pid= fork()))
     {
     case -1:
       error::perror("fork");
+      return NULL;
 
     case 0:
       if (dup2(in_fds[0], 0) == -1)
       {
         error::perror("dup2");
+        return NULL;
       }
 
-      close(in_fds[1]);
+      if (close(in_fds[1]) < 0)
+      {
+        error::perror("close");
+        return NULL;
+      }
 
       if (dup2(out_fds[1], 1) == -1)
       {
         error::perror("dup2");
+        return NULL;
       }
 
-      close(out_fds[0]);
+      if (close(out_fds[0]) < 0)
+      {
+        error::perror("close");
+        return NULL;
+      }
 
-      execvp(args.argument(0), args.argumentv());
+      if (execvp(args.argument(0), args.argumentv()) < 0)
       {
         error::perror("execvp");
+        return NULL;
       }
 
     default:
       break;
     }
 
-    close(in_fds[0]);
-    close(out_fds[1]);
+    if (close(in_fds[0]) < 0)
+    {
+      error::perror("close");
+    }
+
+    if (close(out_fds[1]) < 0)
+    {
+      error::perror("close");
+    }
 
     if (gearman_job_workload_size(job) > 0)
     {
@@ -616,35 +595,50 @@ static void *_worker_cb(gearman_job_st *job, void *context,
       }
     }
 
-    close(in_fds[1]);
+    if (close(in_fds[1]) < 0)
+    {
+      error::perror("close");
+    }
 
     if (args.job_per_newline())
     {
-      f= fdopen(out_fds[0], "r");
+      FILE *f= fdopen(out_fds[0], "r");
+
       if (f == NULL)
       {
         error::perror("fdopen");
       }
 
       function.buffer().clear();
-      function.buffer().resize(GEARMAN_INITIAL_WORKLOAD_SIZE);
 
       while (1)
       {
-        if (fgets(function.buffer_ptr(), GEARMAN_INITIAL_WORKLOAD_SIZE, f) == NULL)
+        char buffer[1024];
+        if (fgets(buffer, sizeof(buffer), f) == NULL)
+        {
           break;
+        }
+
+        size_t length= strlen(buffer);
+        for (size_t x= 0; x < length ; x++)
+        {
+          function.buffer().push_back(buffer[x]);
+        }
 
         if (args.strip_newline())
         {
-          *ret_ptr= gearman_job_send_data(job, function.buffer_ptr(), strlen(function.buffer_ptr()) - 1);
+          *ret_ptr= gearman_job_send_data(job, function.buffer_ptr(), function.buffer().size() - 1);
         }
         else
         {
-          *ret_ptr= gearman_job_send_data(job, function.buffer_ptr(), strlen(function.buffer_ptr()));
+          *ret_ptr= gearman_job_send_data(job, function.buffer_ptr(), function.buffer().size());
         }
 
         if (*ret_ptr != GEARMAN_SUCCESS)
+        {
+          error::message("gearman_job_send_data() failed with", *ret_ptr);
           break;
+        }
       }
 
       function.buffer().clear();
@@ -652,8 +646,12 @@ static void *_worker_cb(gearman_job_st *job, void *context,
     }
     else
     {
-      _read_workload(out_fds[0], function.buffer(), result_size);
-      close(out_fds[0]);
+      _read_workload(out_fds[0], function.buffer());
+      if (close(out_fds[0]) < 0)
+      {
+        error::perror("close");
+      }
+      *result_size= function.buffer().size();
     }
 
     if (wait(&status) == -1)
@@ -665,7 +663,7 @@ static void *_worker_cb(gearman_job_st *job, void *context,
     {
       if (not function.buffer().empty())
       {
-        *ret_ptr= gearman_job_send_data(job, function.buffer_ptr(), *result_size);
+        *ret_ptr= gearman_job_send_data(job, function.buffer_ptr(), function.buffer().size());
         if (*ret_ptr != GEARMAN_SUCCESS)
           return NULL;
       }
@@ -678,40 +676,28 @@ static void *_worker_cb(gearman_job_st *job, void *context,
   return function.buffer_ptr();
 }
 
-void _read_workload(int fd, Bytes workload, size_t *workload_offset)
+void _read_workload(int fd, Bytes& workload)
 {
-  ssize_t read_ret;
-  size_t workload_size= 0;
-
   while (1)
   {
-    if (*workload_offset == workload_size)
-    {
-      if (workload_size == 0)
-      {
-        workload_size= GEARMAN_INITIAL_WORKLOAD_SIZE;
-      }
-      else
-      {
-        workload_size= workload_size * 2;
-      }
+    char buffer[1024];
 
-      workload.resize(workload_size);
-    }
-
-    read_ret= read(fd, &workload[0] + *workload_offset,
-                   workload_size - *workload_offset);
+    ssize_t read_ret= read(fd, buffer, sizeof(buffer));
 
     if (read_ret == -1)
     {
-      error::perror("execvp");
+      error::perror("read");
     }
     else if (read_ret == 0)
     {
       break;
     }
 
-    *workload_offset += static_cast<size_t>(read_ret);
+    workload.reserve(workload.size() + static_cast<size_t>(read_ret));
+    for (size_t x= 0; x < static_cast<size_t>(read_ret); x++)
+    {
+      workload.push_back(buffer[x]);
+    }
   }
 }
 

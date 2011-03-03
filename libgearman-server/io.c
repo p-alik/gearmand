@@ -364,11 +364,8 @@ static gearman_return_t _connection_flush(gearman_server_con_st *con)
     case GEARMAN_CON_UNIVERSAL_CONNECTED:
       while (connection->send_buffer_size != 0)
       {
-#if defined(__MACH__) && defined(__APPLE__) || defined(__FreeBSD__)
-        write_size= send(connection->fd, connection->send_buffer_ptr, connection->send_buffer_size, 0);
-#else
-        write_size= send(connection->fd, connection->send_buffer_ptr, connection->send_buffer_size, MSG_NOSIGNAL);
-#endif
+        write_size= send(connection->fd, connection->send_buffer_ptr, connection->send_buffer_size, MSG_NOSIGNAL|MSG_DONTWAIT);
+
         if (write_size == 0)
         {
           gearmand_info("lost connection to client send(EOF)");
@@ -611,11 +608,7 @@ size_t _connection_read(gearman_server_con_st *con, void *data, size_t data_size
 
   while (1)
   {
-#if defined(__MACH__) && defined(__APPLE__) || defined(__FreeBSD__)
-    read_size= recv(connection->fd, data, data_size, 0);
-#else
     read_size= recv(connection->fd, data, data_size, MSG_DONTWAIT);
-#endif
 
     if (read_size == 0)
     {

@@ -6,61 +6,12 @@
  * the COPYING file in the parent directory for full text.
  */
 
-#ifndef __GEARMAN_ARGUMENTS_H__
-#define __GEARMAN_ARGUMENTS_H__
+#pragma once
+
+#include <bin/function.h>
 
 namespace gearman_client
 {
-
-typedef std::vector<char> Bytes;
-
-class Function {
-  bool _used_task;
-  Bytes _name;
-  gearman_task_st _task;
-  Bytes _buffer;
-
-public:
-  typedef std::vector<Function> vector;
-
-  Function(const char *name_arg) :
-    _used_task(false)
-  {
-    memset(&_task, 0, sizeof(gearman_task_st));
-
-    // copy the name into the _name vector
-    size_t length= strlen(name_arg);
-    _name.resize(length +1);
-    memcpy(&_name[0], name_arg, length);
-  }
-
-  ~Function()
-  {
-    if (_used_task)
-      gearman_task_free(&_task);
-  }
-
-  gearman_task_st *task()
-  {
-    _used_task= true;
-    return &_task;
-  }
-
-  const char *name()
-  {
-    return &_name[0];
-  }
-
-  Bytes &buffer()
-  {
-    return _buffer;
-  }
-
-  char *buffer_ptr()
-  {
-    return &_buffer[0];
-  }
-};
 
 /**
  * Data structure for arguments and state.
@@ -163,7 +114,7 @@ public:
 
   bool arguments() const
   {
-    if (argv)
+    if (argv[0])
       return true;
 
     return false;
@@ -214,5 +165,3 @@ private:
 };
 
 } // namespace gearman_client
-
-#endif /* __GEARMAN_ARGUMENTS_H__ */

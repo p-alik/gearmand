@@ -322,7 +322,7 @@ gearman_return_t gearmand_run(gearmand_st *gearmand)
   if (gearmand->ret != GEARMAN_SUCCESS)
     return gearmand->ret;
 
-  gearmand_log_info("Entering main event loop");
+  gearmand_info("Entering main event loop");
 
   if (event_base_loop(gearmand->base, 0) == -1)
   {
@@ -330,7 +330,7 @@ gearman_return_t gearmand_run(gearmand_st *gearmand)
     return GEARMAN_EVENT;
   }
 
-  gearmand_log_info("Exited main event loop");
+  gearmand_info("Exited main event loop");
 
   return gearmand->ret;
 }
@@ -346,8 +346,7 @@ void gearmand_wakeup(gearmand_st *gearmand, gearmand_wakeup_t wakeup)
   {
     if (written < 0)
     {
-      gearmand_perror("write");
-      abort(); // Crash the server, otherwise we are stuck in a loop.
+      gearmand_perror(gearmand_strwakeup(wakeup));
     }
     else
     {

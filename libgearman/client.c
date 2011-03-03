@@ -1017,6 +1017,12 @@ static gearman_task_st *_client_add_task(gearman_client_st *client,
   args[2]= workload;
   args_size[2]= workload_size;
 
+  if ((workload_size && workload == NULL) || (workload_size == 0 && workload))
+  {
+    *ret_ptr= GEARMAN_WORK_ERROR;
+    return NULL;
+  }
+
   *ret_ptr= gearman_packet_create_args(&client->universal, &(task->send),
                                        GEARMAN_MAGIC_REQUEST, command,
                                        args, args_size, 3);
@@ -1075,8 +1081,11 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
     {
       ret= gearman_connection_send(task->con, &(task->send),
                                    client->new_tasks == 0 ? true : false);
+
       if (ret == GEARMAN_SUCCESS)
+      {
         break;
+      }
       else if (ret == GEARMAN_IO_WAIT)
       {
         task->state= GEARMAN_TASK_STATE_SUBMIT;
@@ -1097,7 +1106,9 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
           }
         }
         else
+        {
           task->con= NULL;
+        }
 
         if (task->con == NULL)
         {

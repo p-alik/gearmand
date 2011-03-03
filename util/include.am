@@ -11,6 +11,7 @@
 
 
 noinst_HEADERS+= \
+		 util/daemon.h \
 		 util/error.h \
 		 util/pidfile.h
 

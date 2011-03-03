@@ -63,6 +63,9 @@ gearman_task_st *gearman_task_create(gearman_client_st *client, gearman_task_st 
 
 void gearman_task_free(gearman_task_st *task)
 {
+  if (! task->client)
+    return;
+
   if (task->options.send_in_use)
     gearman_packet_free(&(task->send));
 
@@ -74,6 +77,7 @@ void gearman_task_free(gearman_task_st *task)
 
   if (task->client->task_list == task)
     task->client->task_list= task->next;
+
   if (task->prev != NULL)
     task->prev->next= task->next;
   if (task->next != NULL)
@@ -144,11 +148,13 @@ size_t gearman_task_send_workload(gearman_task_st *task, const void *workload,
 
 const void *gearman_task_data(const gearman_task_st *task)
 {
+  assert(task->recv);
   return task->recv->data;
 }
 
 size_t gearman_task_data_size(const gearman_task_st *task)
 {
+  assert(task->recv);
   return task->recv->data_size;
 }
 

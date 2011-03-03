@@ -18,6 +18,7 @@ gearmand_gearmand_LDADD= \
 
 gearmand_gearmand_SOURCES= \
 			   gearmand/gearmand.cc \
+			   util/daemon.cc \
 			   util/error.cc \
 			   util/pidfile.cc
 

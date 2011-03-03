@@ -26,6 +26,7 @@
 #include <libgearman/visibility.h>
 
 #include <libgearman-server/constants.h>
+#include <libgearman-server/wakeup.h>
 #include <libgearman-server/connection_list.h>
 #include <libgearman-server/byteorder.h>
 #include <libgearman-server/strerror.h>

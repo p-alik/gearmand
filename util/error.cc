@@ -23,6 +23,7 @@ void perror(const char *message)
 {
   char *errmsg_ptr;
   char errmsg[BUFSIZ];
+  errmsg[0]= 0;
 
 #ifdef STRERROR_R_CHAR_P
   errmsg_ptr= strerror_r(errno, errmsg, sizeof(errmsg));

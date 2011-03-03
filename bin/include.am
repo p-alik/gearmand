@@ -1,9 +1,8 @@
 # vim:ft=automake
-# Gearman server and library
-# Copyright (C) 2008 Brian Aker, Eric Day
-# Copyright (C) 2009 Brian Aker, Eric Day, Monty Taylor
-#
-# Copyright (C) 2011 DataDifferential
+# Gearman server and library 
+# Copyright (C) 2011 DataDifferential 
+# Copyright (C) 2009 Brian Aker, Eric Day, Monty Taylor 
+# Copyright (C) 2008 Brian Aker, Eric Day 
 #
 # All rights reserved.
 #
@@ -19,6 +18,7 @@ bin_PROGRAMS+= \
 
 bin_gearman_SOURCES= \
 		     bin/arguments.cc \
+		     bin/function.cc \
 		     bin/gearman.cc \
 		     util/error.cc \
 		     util/pidfile.cc
@@ -26,4 +26,7 @@ bin_gearman_SOURCES= \
 bin_gearman_LDADD= libgearman/libgearman.la ${BETTER_MALLOC_LIBS}
 
 noinst_HEADERS+= \
-		 bin/arguments.h
+		 bin/arguments.h \
+		 bin/function.h \
+		 bin/client.h \
+		 bin/worker.h

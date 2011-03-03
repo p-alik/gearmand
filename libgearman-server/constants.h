@@ -41,19 +41,6 @@ extern "C" {
 
 /** @} */
 
-/**
- * @ingroup gearmand
- * Wakeup events for gearmand_st.
- */
-typedef enum
-{
-  GEARMAND_WAKEUP_PAUSE,
-  GEARMAND_WAKEUP_SHUTDOWN,
-  GEARMAND_WAKEUP_SHUTDOWN_GRACEFUL,
-  GEARMAND_WAKEUP_CON,
-  GEARMAND_WAKEUP_RUN
-} gearmand_wakeup_t;
-
 
 /**
  * @addtogroup gearman_server_types Types

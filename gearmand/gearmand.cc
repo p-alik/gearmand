@@ -82,8 +82,11 @@
 #define GEARMAND_LOG_REOPEN_TIME 60
 #define GEARMAND_LISTEN_BACKLOG 32
 
+#include "util/daemon.h"
 #include "util/error.h"
 #include "util/pidfile.h"
+
+#include <iostream>
 
 using namespace gearman_util;
 
@@ -127,8 +130,8 @@ int main(int argc, char *argv[])
   const char *user= NULL;
   uint8_t verbose_count= 0;
   gearmand_log_info_st log_info;
-  bool close_stdio= false;
   bool round_robin= false;
+  bool opt_daemon= false;
 
   port[0]= 0;
 
@@ -201,16 +204,18 @@ int main(int argc, char *argv[])
   /* Let gearman conf parse the command line arguments. */
   if (gearman_conf_parse_args(&conf, argc, argv) != GEARMAN_SUCCESS)
   {
-    printf("\n%s\n\n", gearman_conf_error(&conf));
-    printf("gearmand %s - %s\n\n", gearmand_version(), gearmand_bugreport());
-    printf("usage: %s [OPTIONS]\n", argv[0]);
+    std::cout << std::endl << gearman_conf_error(&conf) << std::endl;
+    std::cout << "gearmand " << gearmand_version() << " - " <<  gearmand_bugreport() << std::endl;
+    std::cout << "usage: " << argv[0] << " [OPTIONS]" << std::endl;
     gearman_conf_usage(&conf);
+
     return 1;
   }
 
   /* Check for option values that were given. */
   const char *name;
   const char *value;
+
   while (gearman_conf_module_value(&module, &name, &value))
   {
     if (not strcmp(name, "backlog"))
@@ -219,26 +224,7 @@ int main(int argc, char *argv[])
     }
     else if (not strcmp(name, "daemon"))
     {
-      switch (fork())
-      {
-      case -1:
-	error::perror("fork");
-        return 1;
-
-      case 0:
-        break;
-
-      default:
-        return 0;
-      }
-
-      if (setsid() == -1)
-      {
-	error::perror("setsid");
-        return 1;
-      }
-
-      close_stdio= true;
+      opt_daemon= true;
     }
     else if (not strcmp(name, "file-descriptors"))
     {
@@ -246,8 +232,8 @@ int main(int argc, char *argv[])
     }
     else if (not strcmp(name, "help"))
     {
-      printf("\ngearmand %s - %s\n\n", gearmand_version(), gearmand_bugreport());
-      printf("usage: %s [OPTIONS]\n", argv[0]);
+      std::cout << "\ngearmand " << gearmand_version() << " - " <<  gearmand_bugreport() << std::endl;
+      std::cout << "usage: " << argv[0] << " [OPTIONS]" << std::endl;
       gearman_conf_usage(&conf);
       return 1;
     }
@@ -297,7 +283,7 @@ int main(int argc, char *argv[])
     }
     else if (not strcmp(name, "version"))
     {
-      printf("\ngearmand %s - %s\n", gearmand_version(), gearmand_bugreport());
+      std::cout << "\ngearmand " << gearmand_version() << " - " <<  gearmand_bugreport() << std::endl;
     }
     else if (not strcmp(name, "worker-wakeup"))
     {
@@ -310,40 +296,19 @@ int main(int argc, char *argv[])
     }
   }
 
-  if (verbose_count == 0 && close_stdio)
+  if (opt_daemon)
   {
-    int fd;
-
-    /* If we can't remap stdio, it should not a fatal error. */
-    fd = open("/dev/null", O_RDWR, 0);
-    if (fd != -1)
-    {
-      if (dup2(fd, STDIN_FILENO) == -1)
-      {
-	error::perror("dup2");
-        return 1;
-      }
-
-      if (dup2(fd, STDOUT_FILENO) == -1)
-      {
-	error::perror("dup2");
-        return 1;
-      }
-
-      if (dup2(fd, STDERR_FILENO) == -1)
-      {
-	error::perror("dup2");
-        return 1;
-      }
-
-      close(fd);
-    }
+    gearmand::daemonize(false, true);
   }
 
   if ((fds > 0 && _set_fdlimit(fds)) || _switch_user(user) || _set_signals())
   {
     return 1;
   }
+
+  if (opt_daemon)
+    gearmand::daemon_is_ready(verbose_count == 0);
+
 
   gearman_verbose_t verbose= verbose_count > static_cast<int>(GEARMAN_VERBOSE_CRAZY) ? GEARMAN_VERBOSE_CRAZY : static_cast<gearman_verbose_t>(verbose_count);
 
