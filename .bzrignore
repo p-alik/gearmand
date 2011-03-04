@@ -85,3 +85,4 @@ gearmand/gearmand_test
 tests/Xugear.pid
 gearmand/gearmand_hostile
 tests/burnin_test
+tests/drizzle_test

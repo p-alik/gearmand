@@ -50,13 +50,22 @@ CLEANFILES+= tests/gearman.tcb
 noinst_PROGRAMS += tests/tokyocabinet_test
 endif
 
+if HAVE_LIBDRIZZLE
+DRIZZLE_TEST= tests/drizzle_test
+noinst_PROGRAMS += tests/drizzle_test
+endif
+
 tests_tokyocabinet_test_SOURCES= tests/tokyocabinet_test.c
 tests_tokyocabinet_test_LDADD= ${CLIENT_LDADD}
+
+tests_drizzle_test_SOURCES= tests/drizzle_test.c
+tests_drizzle_test_LDADD= ${CLIENT_LDADD}
 
 noinst_PROGRAMS+= \
 		  tests/burnin_test \
 		  tests/client_test \
 		  tests/cpp_test \
+		  tests/drizzle_test \
 		  tests/internals_test \
 		  tests/regression_test \
 		  tests/round_robin_test \
@@ -129,6 +138,11 @@ test-tokyocabinet:
 if HAVE_LIBTOKYOCABINET
 	$(TOKYOCABINET_TEST) $(ARG1) $(ARG2)
 	$(TOKYOCABINET_RM)
+endif
+
+test-drizzle:
+if HAVE_LIBDRIZZLE
+	$(DRIZZLE_TEST) $(ARG1) $(ARG2)
 endif
 
 check-local: test-client test-round-robin test-worker test-internals test-libmemcached test-sqlite test-tokyocabinet test-burnin

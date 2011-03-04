@@ -6,7 +6,7 @@
 # the COPYING file in this directory for full text.
 
 AC_PREREQ(2.59)
-AC_INIT([gearmand],[0.16],[https://launchpad.net/gearmand])
+AC_INIT([gearmand],[0.17],[https://launchpad.net/gearmand])
 AC_CONFIG_SRCDIR(libgearman/gearman.c)
 AC_CONFIG_AUX_DIR(config)
 

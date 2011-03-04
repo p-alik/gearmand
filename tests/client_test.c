@@ -422,10 +422,6 @@ test_return_t background_test(void *object)
   gearman_return_t rc;
   gearman_client_st *client= (gearman_client_st *)object;
   char job_handle[GEARMAN_JOB_HANDLE_SIZE];
-  bool is_known;
-  bool is_running;
-  uint32_t numerator;
-  uint32_t denominator;
   uint8_t *value= (uint8_t *)"background_test";
   size_t value_length= strlen("background_test");
 
@@ -439,6 +435,11 @@ test_return_t background_test(void *object)
 
   while (1)
   {
+    bool is_known;
+    bool is_running;
+    uint32_t numerator;
+    uint32_t denominator;
+
     rc= gearman_client_job_status(client, job_handle, &is_known, &is_running,
                                   &numerator, &denominator);
     if (rc != GEARMAN_SUCCESS)

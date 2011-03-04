@@ -23,6 +23,12 @@ extern "C" {
 #define TOSTRING(x) STRINGIFY(x)
 #define AT __FILE__ ":" TOSTRING(__LINE__)
 
+#ifdef __cplusplus
+#define STRING_WITH_LEN(X) (X), (static_cast<size_t>((sizeof(X) - 1)))
+#else
+#define STRING_WITH_LEN(X) (X), ((size_t)((sizeof(X) - 1)))
+#endif
+
 GEARMAN_INTERNAL_API
 void gearmand_initialize_thread_logging(const char *identity);
 

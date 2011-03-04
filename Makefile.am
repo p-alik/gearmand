@@ -15,9 +15,11 @@ lib_LTLIBRARIES =
 noinst_LTLIBRARIES =
 nobase_include_HEADERS =
 noinst_HEADERS =
-EXTRA_DIST = 
+EXTRA_DIST = config/top.h
 CLEANFILES =
 TESTS =
+
+CLEANFILES+= config/top.h
 
 
 include benchmark/include.am

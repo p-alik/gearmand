@@ -192,7 +192,9 @@ int main(int argc, char *argv[])
 
   /* Add queue configuration options. */
   if (queue_configure(conf))
+  {
     return 1;
+  }
 
 
   if (gearmand_protocol_http_conf(&conf) != GEARMAN_SUCCESS)
@@ -327,7 +329,7 @@ int main(int argc, char *argv[])
   if (_gearmand == NULL)
   {
     error::message("Could not create gearmand library instance.");
-    return 1;
+    exit(1);
   }
 
   if (queue_type)
@@ -339,7 +341,9 @@ int main(int argc, char *argv[])
       error_message+= "Failed to initialize queue ";
       error_message+= queue_type;
       error::message(error_message, rc);
-      return 1;
+      gearmand_free(_gearmand);
+
+      exit(1);
     }
   }
 
