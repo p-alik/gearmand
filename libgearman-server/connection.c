@@ -14,13 +14,13 @@
 #include "common.h"
 
 static gearman_server_con_st * _server_con_create(gearman_server_thread_st *thread, gearmand_con_st *dcon,
-                                                  gearman_return_t *ret);
+                                                  gearmand_error_t *ret);
 
 /*
  * Public definitions
  */
 
-gearman_server_con_st *gearman_server_con_add(gearman_server_thread_st *thread, gearmand_con_st *dcon, gearman_return_t *ret)
+gearman_server_con_st *gearman_server_con_add(gearman_server_thread_st *thread, gearmand_con_st *dcon, gearmand_error_t *ret)
 {
   gearman_server_con_st *con;
 
@@ -48,7 +48,7 @@ gearman_server_con_st *gearman_server_con_add(gearman_server_thread_st *thread, 
 }
 
 static gearman_server_con_st * _server_con_create(gearman_server_thread_st *thread, gearmand_con_st *dcon,
-                                                  gearman_return_t *ret)
+                                                  gearmand_error_t *ret)
 {
   gearman_server_con_st *con;
 
@@ -75,7 +75,7 @@ static gearman_server_con_st * _server_con_create(gearman_server_thread_st *thre
     return NULL;
   }
 
-  gearman_connection_options_t options[] = { GEARMAN_CON_MAX };
+  gearmand_connection_options_t options[] = { GEARMAND_CON_MAX };
   gearmand_connection_init(thread->gearman, &(con->con), dcon, options);
 
   con->con.root= con;

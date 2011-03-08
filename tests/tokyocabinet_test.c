@@ -20,8 +20,8 @@
 
 #include <libgearman/gearman.h>
 
-#include "test.h"
-#include "test_gearmand.h"
+#include "libtest/test.h"
+#include "libtest/server.h"
 
 #define WORKER_TEST_PORT 32123
 

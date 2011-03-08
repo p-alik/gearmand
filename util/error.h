@@ -6,10 +6,12 @@
  * the COPYING file in the parent directory for full text.
  */
 
-#ifndef __GEARMAN_UTIL_ERROR_H__
-#define __GEARMAN_UTIL_ERROR_H__
+#pragma once
 
 #include <string>
+
+struct gearman_client_st;
+struct gearman_worker_st;
 
 namespace gearman_util
 {
@@ -28,5 +30,3 @@ void message(const char *arg, const gearman_worker_st &);
 
 
 } // namespace gearman_util
-
-#endif /* __GEARMAN_ERROR_H__ */

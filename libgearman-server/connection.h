@@ -30,20 +30,20 @@ struct gearmand_io_st
     bool close_after_flush;
   } options;
   enum {
-    GEARMAN_CON_UNIVERSAL_INVALID,
-    GEARMAN_CON_UNIVERSAL_CONNECTED
+    GEARMAND_CON_UNIVERSAL_INVALID,
+    GEARMAND_CON_UNIVERSAL_CONNECTED
   } _state;
   enum {
-    GEARMAN_CON_SEND_STATE_NONE,
-    GEARMAN_CON_SEND_UNIVERSAL_PRE_FLUSH,
-    GEARMAN_CON_SEND_UNIVERSAL_FORCE_FLUSH,
-    GEARMAN_CON_SEND_UNIVERSAL_FLUSH,
-    GEARMAN_CON_SEND_UNIVERSAL_FLUSH_DATA
+    GEARMAND_CON_SEND_STATE_NONE,
+    GEARMAND_CON_SEND_UNIVERSAL_PRE_FLUSH,
+    GEARMAND_CON_SEND_UNIVERSAL_FORCE_FLUSH,
+    GEARMAND_CON_SEND_UNIVERSAL_FLUSH,
+    GEARMAND_CON_SEND_UNIVERSAL_FLUSH_DATA
   } send_state;
   enum {
-    GEARMAN_CON_RECV_UNIVERSAL_NONE,
-    GEARMAN_CON_RECV_UNIVERSAL_READ,
-    GEARMAN_CON_RECV_STATE_READ_DATA
+    GEARMAND_CON_RECV_UNIVERSAL_NONE,
+    GEARMAND_CON_RECV_UNIVERSAL_READ,
+    GEARMAND_CON_RECV_STATE_READ_DATA
   } recv_state;
   short events;
   short revents;
@@ -89,7 +89,7 @@ struct gearman_server_con_st
   bool is_exceptions;
   bool is_dead;
   bool is_noop_sent;
-  gearman_return_t ret;
+  gearmand_error_t ret;
   bool io_list;
   bool proc_list;
   bool proc_removed;
@@ -133,7 +133,7 @@ struct gearman_server_con_st
  */
 GEARMAN_API
 gearman_server_con_st *gearman_server_con_add(gearman_server_thread_st *thread, gearmand_con_st *dcon,
-                                              gearman_return_t *ret);
+                                              gearmand_error_t *ret);
 
 /**
  * Free a server connection structure.

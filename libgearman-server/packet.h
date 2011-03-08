@@ -14,6 +14,8 @@
 #ifndef __GEARMAN_SERVER_PACKET_H__
 #define __GEARMAN_SERVER_PACKET_H__
 
+#include <libgearman/protocol.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -92,7 +94,7 @@ void gearman_server_packet_free(gearman_server_packet_st *packet,
  * Add a server packet structure to io queue for a connection.
  */
 GEARMAN_API
-gearman_return_t gearman_server_io_packet_add(gearman_server_con_st *con,
+gearmand_error_t gearman_server_io_packet_add(gearman_server_con_st *con,
                                               bool take_data,
                                               enum gearman_magic_t magic,
                                               gearman_command_t command,
@@ -123,7 +125,7 @@ gearman_server_proc_packet_remove(gearman_server_con_st *con);
  * @ingroup gearman_constants
  */
 extern GEARMAN_INTERNAL_API
-gearman_command_info_st gearmand_command_info_list[GEARMAN_COMMAND_MAX];
+struct gearman_command_info_st gearmand_command_info_list[GEARMAN_COMMAND_MAX];
 
 
 /**
@@ -151,14 +153,14 @@ void gearmand_packet_free(gearmand_packet_st *packet);
  * Add an argument to a packet.
  */
 GEARMAN_INTERNAL_API
-  gearman_return_t gearmand_packet_create(gearmand_packet_st *packet,
+  gearmand_error_t gearmand_packet_create(gearmand_packet_st *packet,
                                               const void *arg, size_t arg_size);
 
 /**
  * Pack header.
  */
 GEARMAN_INTERNAL_API
-  gearman_return_t gearmand_packet_pack_header(gearmand_packet_st *packet);
+  gearmand_error_t gearmand_packet_pack_header(gearmand_packet_st *packet);
 
 /**
  * Pack packet into output buffer.
@@ -167,7 +169,7 @@ GEARMAN_INTERNAL_API
   size_t gearmand_packet_pack(const gearmand_packet_st *packet,
                               gearman_server_con_st *con,
                               void *data, size_t data_size,
-                              gearman_return_t *ret_ptr);
+                              gearmand_error_t *ret_ptr);
 
 /**
  * Unpack packet from input data.
@@ -176,7 +178,7 @@ GEARMAN_INTERNAL_API
   size_t gearmand_packet_unpack(gearmand_packet_st *packet,
                                 gearman_server_con_st *con,
                                 const void *data, size_t data_size,
-                                gearman_return_t *ret_ptr);
+                                gearmand_error_t *ret_ptr);
 
 /** @} */
 

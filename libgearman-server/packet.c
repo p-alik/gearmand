@@ -91,7 +91,7 @@ void gearman_server_packet_free(gearman_server_packet_st *packet,
   }
 }
 
-gearman_return_t gearman_server_io_packet_add(gearman_server_con_st *con,
+gearmand_error_t gearman_server_io_packet_add(gearman_server_con_st *con,
                                               bool take_data,
                                               enum gearman_magic_t magic,
                                               gearman_command_t command,
@@ -100,7 +100,7 @@ gearman_return_t gearman_server_io_packet_add(gearman_server_con_st *con,
   gearman_server_packet_st *server_packet;
   va_list ap;
   size_t arg_size;
-  gearman_return_t ret;
+  gearmand_error_t ret;
 
   server_packet= gearman_server_packet_create(con->thread, false);
   if (server_packet == NULL)
@@ -235,7 +235,7 @@ gearman_command_info_st gearmand_command_info_list[GEARMAN_COMMAND_MAX]=
   { "SUBMIT_JOB_EPOCH",   3, true  }
 };
 
-inline static gearman_return_t packet_create_arg(gearmand_packet_st *packet,
+inline static gearmand_error_t packet_create_arg(gearmand_packet_st *packet,
                                                  const void *arg, size_t arg_size)
 {
   void *new_args;
@@ -328,7 +328,7 @@ void gearmand_packet_init(gearmand_packet_st *packet, enum gearman_magic_t magic
   packet->data= NULL;
 }
 
-gearman_return_t gearmand_packet_create(gearmand_packet_st *packet,
+gearmand_error_t gearmand_packet_create(gearmand_packet_st *packet,
                                           const void *arg, size_t arg_size)
 {
   return packet_create_arg(packet, arg, arg_size);
@@ -351,7 +351,7 @@ void gearmand_packet_free(gearmand_packet_st *packet)
   }
 }
 
-gearman_return_t gearmand_packet_pack_header(gearmand_packet_st *packet)
+gearmand_error_t gearmand_packet_pack_header(gearmand_packet_st *packet)
 {
   uint64_t length_64;
   uint32_t tmp;
@@ -415,7 +415,7 @@ gearman_return_t gearmand_packet_pack_header(gearmand_packet_st *packet)
   return GEARMAN_SUCCESS;
 }
 
-static gearman_return_t gearmand_packet_unpack_header(gearmand_packet_st *packet)
+static gearmand_error_t gearmand_packet_unpack_header(gearmand_packet_st *packet)
 {
   uint32_t tmp;
 
@@ -452,7 +452,7 @@ static gearman_return_t gearmand_packet_unpack_header(gearmand_packet_st *packet
 size_t gearmand_packet_pack(const gearmand_packet_st *packet,
                             gearman_server_con_st *con __attribute__ ((unused)),
                             void *data, size_t data_size,
-                            gearman_return_t *ret_ptr)
+                            gearmand_error_t *ret_ptr)
 {
   if (packet->args_size == 0)
   {
@@ -474,7 +474,7 @@ size_t gearmand_packet_pack(const gearmand_packet_st *packet,
 size_t gearmand_packet_unpack(gearmand_packet_st *packet,
                               gearman_server_con_st *con __attribute__ ((unused)),
                               const void *data, size_t data_size,
-                              gearman_return_t *ret_ptr)
+                              gearmand_error_t *ret_ptr)
 {
   uint8_t *ptr;
   size_t used_size;

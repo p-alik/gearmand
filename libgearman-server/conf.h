@@ -39,7 +39,7 @@ struct gearman_conf_st
   struct {
     bool allocated;
   } options;
-  gearman_return_t last_return;
+  gearmand_error_t last_return;
   int last_errno;
   size_t module_count;
   size_t option_count;
@@ -67,7 +67,7 @@ void gearman_conf_free(gearman_conf_st *conf);
  * Return an return code for the last library error encountered.
  */
 GEARMAN_API
-gearman_return_t gearman_conf_return(gearman_conf_st *conf);
+gearmand_error_t gearman_conf_return(gearman_conf_st *conf);
 
 /**
  * Return an error string for last library error encountered.
@@ -85,7 +85,7 @@ int gearman_conf_errno(gearman_conf_st *conf);
  * Parse command line arguments.
  */
 GEARMAN_API
-gearman_return_t gearman_conf_parse_args(gearman_conf_st *conf, int argc,
+gearmand_error_t gearman_conf_parse_args(gearman_conf_st *conf, int argc,
                                          char *argv[]);
 
 /**

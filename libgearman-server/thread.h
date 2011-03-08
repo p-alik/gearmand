@@ -100,7 +100,7 @@ void gearman_server_thread_set_run(gearman_server_thread_st *thread,
 GEARMAN_API
 gearmand_con_st *
 gearman_server_thread_run(gearman_server_thread_st *thread,
-                          gearman_return_t *ret_ptr);
+                          gearmand_error_t *ret_ptr);
 
 /** @} */
 

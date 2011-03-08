@@ -14,12 +14,12 @@
 #include "common.h"
 
 static size_t gearmand_connection_recv_data(gearman_server_con_st *connection, void *data, size_t data_size,
-                                            gearman_return_t *ret_ptr);
+                                            gearmand_error_t *ret_ptr);
 
 static void _connection_close(gearmand_io_st *connection);
-static gearman_return_t _connection_flush(gearman_server_con_st * con);
+static gearmand_error_t _connection_flush(gearman_server_con_st * con);
 size_t _connection_read(gearman_server_con_st *con, void *data, size_t data_size,
-                        gearman_return_t *ret_ptr);
+                        gearmand_error_t *ret_ptr);
 
 /**
  * @addtogroup gearmand_io_static Static Connection Declarations
@@ -31,7 +31,7 @@ size_t _connection_read(gearman_server_con_st *con, void *data, size_t data_size
 void gearmand_connection_init(gearmand_connection_list_st *gearman,
                               gearmand_io_st *connection,
                               gearmand_con_st *dcon,
-                              gearman_connection_options_t *options)
+                              gearmand_connection_options_t *options)
 {
   assert(gearman);
   assert(connection);
@@ -43,7 +43,7 @@ void gearmand_connection_init(gearmand_connection_list_st *gearman,
 
   if (options)
   {
-    while (*options != GEARMAN_CON_MAX)
+    while (*options != GEARMAND_CON_MAX)
     {
       gearman_io_set_option(connection, *options, true);
       options++;
@@ -51,9 +51,9 @@ void gearmand_connection_init(gearmand_connection_list_st *gearman,
   }
 
 
-  connection->_state= GEARMAN_CON_UNIVERSAL_INVALID;
-  connection->send_state= GEARMAN_CON_SEND_STATE_NONE;
-  connection->recv_state= GEARMAN_CON_RECV_UNIVERSAL_NONE;
+  connection->_state= GEARMAND_CON_UNIVERSAL_INVALID;
+  connection->send_state= GEARMAND_CON_SEND_STATE_NONE;
+  connection->recv_state= GEARMAND_CON_RECV_UNIVERSAL_NONE;
   connection->events= 0;
   connection->revents= 0;
   connection->fd= INVALID_SOCKET;
@@ -104,27 +104,27 @@ void gearmand_io_free(gearmand_io_st *connection)
   }
 }
 
-gearman_return_t gearman_io_set_option(gearmand_io_st *connection,
-                                               gearman_connection_options_t options,
+gearmand_error_t gearman_io_set_option(gearmand_io_st *connection,
+                                               gearmand_connection_options_t options,
                                                bool value)
 {
   switch (options)
   {
-  case GEARMAN_CON_READY:
+  case GEARMAND_CON_READY:
     connection->options.ready= value;
     break;
-  case GEARMAN_CON_PACKET_IN_USE:
+  case GEARMAND_CON_PACKET_IN_USE:
     connection->options.packet_in_use= value;
     break;
-  case GEARMAN_CON_EXTERNAL_FD:
+  case GEARMAND_CON_EXTERNAL_FD:
     connection->options.external_fd= value;
     break;
-  case GEARMAN_CON_IGNORE_LOST_CONNECTION:
+  case GEARMAND_CON_IGNORE_LOST_CONNECTION:
     break;
-  case GEARMAN_CON_CLOSE_AFTER_FLUSH:
+  case GEARMAND_CON_CLOSE_AFTER_FLUSH:
     connection->options.close_after_flush= value;
     break;
-  case GEARMAN_CON_MAX:
+  case GEARMAND_CON_MAX:
   default:
     return GEARMAN_INVALID_COMMAND;
   }
@@ -135,7 +135,7 @@ gearman_return_t gearman_io_set_option(gearmand_io_st *connection,
 /**
  * Set socket options for a connection.
  */
-static gearman_return_t _io_setsockopt(gearmand_io_st *connection);
+static gearmand_error_t _io_setsockopt(gearmand_io_st *connection);
 
 /** @} */
 
@@ -143,13 +143,13 @@ static gearman_return_t _io_setsockopt(gearmand_io_st *connection);
  * Public Definitions
  */
 
-gearman_return_t gearman_io_set_fd(gearmand_io_st *connection, int fd)
+gearmand_error_t gearman_io_set_fd(gearmand_io_st *connection, int fd)
 {
-  gearman_return_t ret;
+  gearmand_error_t ret;
 
   connection->options.external_fd= true;
   connection->fd= fd;
-  connection->_state= GEARMAN_CON_UNIVERSAL_CONNECTED;
+  connection->_state= GEARMAND_CON_UNIVERSAL_CONNECTED;
 
   if ((ret= _io_setsockopt(connection)) != GEARMAN_SUCCESS)
   {
@@ -179,18 +179,18 @@ static void _connection_close(gearmand_io_st *connection)
     assert(! "We should never have an internal fd");
   }
 
-  connection->_state= GEARMAN_CON_UNIVERSAL_INVALID;
+  connection->_state= GEARMAND_CON_UNIVERSAL_INVALID;
   connection->fd= INVALID_SOCKET;
   connection->events= 0;
   connection->revents= 0;
 
-  connection->send_state= GEARMAN_CON_SEND_STATE_NONE;
+  connection->send_state= GEARMAND_CON_SEND_STATE_NONE;
   connection->send_buffer_ptr= connection->send_buffer;
   connection->send_buffer_size= 0;
   connection->send_data_size= 0;
   connection->send_data_offset= 0;
 
-  connection->recv_state= GEARMAN_CON_RECV_UNIVERSAL_NONE;
+  connection->recv_state= GEARMAND_CON_RECV_UNIVERSAL_NONE;
   if (connection->recv_packet != NULL)
   {
     gearmand_packet_free(connection->recv_packet);
@@ -201,17 +201,17 @@ static void _connection_close(gearmand_io_st *connection)
   connection->recv_buffer_size= 0;
 }
 
-gearman_return_t gearman_io_send(gearman_server_con_st *con,
+gearmand_error_t gearman_io_send(gearman_server_con_st *con,
                                  const gearmand_packet_st *packet, bool flush)
 {
-  gearman_return_t ret;
+  gearmand_error_t ret;
   size_t send_size;
 
   gearmand_io_st *connection= &con->con;
 
   switch (connection->send_state)
   {
-  case GEARMAN_CON_SEND_STATE_NONE:
+  case GEARMAND_CON_SEND_STATE_NONE:
     if (! (packet->options.complete))
     {
       gearmand_error("packet not complete");
@@ -248,9 +248,9 @@ gearman_return_t gearman_io_send(gearman_server_con_st *con,
       }
 
       /* Flush buffer now if first part of packet won't fit in. */
-      connection->send_state= GEARMAN_CON_SEND_UNIVERSAL_PRE_FLUSH;
+      connection->send_state= GEARMAND_CON_SEND_UNIVERSAL_PRE_FLUSH;
 
-    case GEARMAN_CON_SEND_UNIVERSAL_PRE_FLUSH:
+    case GEARMAND_CON_SEND_UNIVERSAL_PRE_FLUSH:
       ret= _connection_flush(con);
       if (ret != GEARMAN_SUCCESS)
       {
@@ -283,9 +283,9 @@ gearman_return_t gearman_io_send(gearman_server_con_st *con,
     }
 
     /* Flush buffer now so we can start writing directly from data buffer. */
-    connection->send_state= GEARMAN_CON_SEND_UNIVERSAL_FORCE_FLUSH;
+    connection->send_state= GEARMAND_CON_SEND_UNIVERSAL_FORCE_FLUSH;
 
-  case GEARMAN_CON_SEND_UNIVERSAL_FORCE_FLUSH:
+  case GEARMAND_CON_SEND_UNIVERSAL_FORCE_FLUSH:
     ret= _connection_flush(con);
     if (ret != GEARMAN_SUCCESS)
     {
@@ -297,7 +297,7 @@ gearman_return_t gearman_io_send(gearman_server_con_st *con,
     /* If this is NULL, then ?? function will be used. */
     if (packet->data == NULL)
     {
-      connection->send_state= GEARMAN_CON_SEND_UNIVERSAL_FLUSH_DATA;
+      connection->send_state= GEARMAND_CON_SEND_UNIVERSAL_FLUSH_DATA;
       return GEARMAN_SUCCESS;
     }
 
@@ -314,10 +314,10 @@ gearman_return_t gearman_io_send(gearman_server_con_st *con,
     }
 
     connection->send_buffer_ptr= (char *)packet->data + connection->send_data_offset;
-    connection->send_state= GEARMAN_CON_SEND_UNIVERSAL_FLUSH_DATA;
+    connection->send_state= GEARMAND_CON_SEND_UNIVERSAL_FLUSH_DATA;
 
-  case GEARMAN_CON_SEND_UNIVERSAL_FLUSH:
-  case GEARMAN_CON_SEND_UNIVERSAL_FLUSH_DATA:
+  case GEARMAND_CON_SEND_UNIVERSAL_FLUSH:
+  case GEARMAND_CON_SEND_UNIVERSAL_FLUSH_DATA:
     ret= _connection_flush(con);
     if (ret == GEARMAN_SUCCESS && connection->options.close_after_flush)
     {
@@ -333,7 +333,7 @@ gearman_return_t gearman_io_send(gearman_server_con_st *con,
 
   if (flush)
   {
-    connection->send_state= GEARMAN_CON_SEND_UNIVERSAL_FLUSH;
+    connection->send_state= GEARMAND_CON_SEND_UNIVERSAL_FLUSH;
     ret= _connection_flush(con);
     if (ret == GEARMAN_SUCCESS && connection->options.close_after_flush)
     {
@@ -343,25 +343,25 @@ gearman_return_t gearman_io_send(gearman_server_con_st *con,
     return ret;
   }
 
-  connection->send_state= GEARMAN_CON_SEND_STATE_NONE;
+  connection->send_state= GEARMAND_CON_SEND_STATE_NONE;
   return GEARMAN_SUCCESS;
 }
 
-static gearman_return_t _connection_flush(gearman_server_con_st *con)
+static gearmand_error_t _connection_flush(gearman_server_con_st *con)
 {
   ssize_t write_size;
 
   gearmand_io_st *connection= &con->con;
 
-  assert(connection->_state == GEARMAN_CON_UNIVERSAL_CONNECTED);
+  assert(connection->_state == GEARMAND_CON_UNIVERSAL_CONNECTED);
   while (1)
   {
     switch (connection->_state)
     {
-    case GEARMAN_CON_UNIVERSAL_INVALID:
+    case GEARMAND_CON_UNIVERSAL_INVALID:
       assert(0);
       return GEARMAN_ERRNO;
-    case GEARMAN_CON_UNIVERSAL_CONNECTED:
+    case GEARMAND_CON_UNIVERSAL_CONNECTED:
       while (connection->send_buffer_size != 0)
       {
         write_size= send(connection->fd, connection->send_buffer_ptr, connection->send_buffer_size, MSG_NOSIGNAL|MSG_DONTWAIT);
@@ -374,7 +374,7 @@ static gearman_return_t _connection_flush(gearman_server_con_st *con)
         }
         else if (write_size == -1)
         {
-          gearman_return_t gret;
+          gearmand_error_t gret;
 
           switch (errno)
           {
@@ -406,7 +406,7 @@ static gearman_return_t _connection_flush(gearman_server_con_st *con)
         }
 
         connection->send_buffer_size-= (size_t)write_size;
-        if (connection->send_state == GEARMAN_CON_SEND_UNIVERSAL_FLUSH_DATA)
+        if (connection->send_state == GEARMAND_CON_SEND_UNIVERSAL_FLUSH_DATA)
         {
           connection->send_data_offset+= (size_t)write_size;
           if (connection->send_data_offset == connection->send_data_size)
@@ -429,7 +429,7 @@ static gearman_return_t _connection_flush(gearman_server_con_st *con)
         connection->send_buffer_ptr+= write_size;
       }
 
-      connection->send_state= GEARMAN_CON_SEND_STATE_NONE;
+      connection->send_state= GEARMAND_CON_SEND_STATE_NONE;
       connection->send_buffer_ptr= connection->send_buffer;
       return GEARMAN_SUCCESS;
 
@@ -442,7 +442,7 @@ static gearman_return_t _connection_flush(gearman_server_con_st *con)
 }
 
 gearmand_packet_st *gearman_io_recv(gearman_server_con_st *con,
-                                            gearman_return_t *ret_ptr, bool recv_data)
+                                            gearmand_error_t *ret_ptr, bool recv_data)
 {
   size_t recv_size;
 
@@ -451,8 +451,8 @@ gearmand_packet_st *gearman_io_recv(gearman_server_con_st *con,
 
   switch (connection->recv_state)
   {
-  case GEARMAN_CON_RECV_UNIVERSAL_NONE:
-    if (connection->_state != GEARMAN_CON_UNIVERSAL_CONNECTED)
+  case GEARMAND_CON_RECV_UNIVERSAL_NONE:
+    if (connection->_state != GEARMAND_CON_UNIVERSAL_CONNECTED)
     {
       gearmand_error("not connected");
       *ret_ptr= GEARMAN_NOT_CONNECTED;
@@ -463,9 +463,9 @@ gearmand_packet_st *gearman_io_recv(gearman_server_con_st *con,
     // The options being passed in are just defaults.
     gearmand_packet_init(connection->recv_packet, GEARMAN_MAGIC_TEXT, GEARMAN_COMMAND_TEXT);
 
-    connection->recv_state= GEARMAN_CON_RECV_UNIVERSAL_READ;
+    connection->recv_state= GEARMAND_CON_RECV_UNIVERSAL_READ;
 
-  case GEARMAN_CON_RECV_UNIVERSAL_READ:
+  case GEARMAND_CON_RECV_UNIVERSAL_READ:
     while (1)
     {
       if (connection->recv_buffer_size > 0)
@@ -500,7 +500,7 @@ gearmand_packet_st *gearman_io_recv(gearman_server_con_st *con,
 
     if (packet->data_size == 0)
     {
-      connection->recv_state= GEARMAN_CON_RECV_UNIVERSAL_NONE;
+      connection->recv_state= GEARMAND_CON_RECV_UNIVERSAL_NONE;
       break;
     }
 
@@ -508,7 +508,7 @@ gearmand_packet_st *gearman_io_recv(gearman_server_con_st *con,
 
     if (!recv_data)
     {
-      connection->recv_state= GEARMAN_CON_RECV_STATE_READ_DATA;
+      connection->recv_state= GEARMAND_CON_RECV_STATE_READ_DATA;
       break;
     }
 
@@ -522,9 +522,9 @@ gearmand_packet_st *gearman_io_recv(gearman_server_con_st *con,
     }
 
     packet->options.free_data= true;
-    connection->recv_state= GEARMAN_CON_RECV_STATE_READ_DATA;
+    connection->recv_state= GEARMAND_CON_RECV_STATE_READ_DATA;
 
-  case GEARMAN_CON_RECV_STATE_READ_DATA:
+  case GEARMAND_CON_RECV_STATE_READ_DATA:
     while (connection->recv_data_size != 0)
     {
       (void)gearmand_connection_recv_data(con,
@@ -536,7 +536,7 @@ gearmand_packet_st *gearman_io_recv(gearman_server_con_st *con,
         return NULL;
     }
 
-    connection->recv_state= GEARMAN_CON_RECV_UNIVERSAL_NONE;
+    connection->recv_state= GEARMAND_CON_RECV_UNIVERSAL_NONE;
     break;
 
   default:
@@ -552,7 +552,7 @@ gearmand_packet_st *gearman_io_recv(gearman_server_con_st *con,
 }
 
 size_t gearmand_connection_recv_data(gearman_server_con_st *con, void *data, size_t data_size,
-                                     gearman_return_t *ret_ptr)
+                                     gearmand_error_t *ret_ptr)
 {
   size_t recv_size= 0;
   gearmand_io_st *connection= &con->con;
@@ -594,14 +594,14 @@ size_t gearmand_connection_recv_data(gearman_server_con_st *con, void *data, siz
   {
     connection->recv_data_size= 0;
     connection->recv_data_offset= 0;
-    connection->recv_state= GEARMAN_CON_RECV_UNIVERSAL_NONE;
+    connection->recv_state= GEARMAND_CON_RECV_UNIVERSAL_NONE;
   }
 
   return recv_size;
 }
 
 size_t _connection_read(gearman_server_con_st *con, void *data, size_t data_size,
-                        gearman_return_t *ret_ptr)
+                        gearmand_error_t *ret_ptr)
 {
   ssize_t read_size;
   gearmand_io_st *connection= &con->con;
@@ -658,9 +658,9 @@ size_t _connection_read(gearman_server_con_st *con, void *data, size_t data_size
   return (size_t)read_size;
 }
 
-gearman_return_t gearmand_io_set_events(gearman_server_con_st *con, short events)
+gearmand_error_t gearmand_io_set_events(gearman_server_con_st *con, short events)
 {
-  gearman_return_t ret;
+  gearmand_error_t ret;
   gearmand_io_st *connection= &con->con;
 
   if ((connection->events | events) == connection->events)
@@ -684,9 +684,9 @@ gearman_return_t gearmand_io_set_events(gearman_server_con_st *con, short events
   return GEARMAN_SUCCESS;
 }
 
-gearman_return_t gearmand_io_set_revents(gearman_server_con_st *con, short revents)
+gearmand_error_t gearmand_io_set_revents(gearman_server_con_st *con, short revents)
 {
-  gearman_return_t ret;
+  gearmand_error_t ret;
   gearmand_io_st *connection= &con->con;
 
   if (revents != 0)
@@ -720,7 +720,7 @@ gearman_return_t gearmand_io_set_revents(gearman_server_con_st *con, short reven
  * Static Definitions
  */
 
-static gearman_return_t _io_setsockopt(gearmand_io_st *connection)
+static gearmand_error_t _io_setsockopt(gearmand_io_st *connection)
 {
   int ret;
   struct linger linger;

@@ -11,8 +11,7 @@
  * @brief Gearman Declarations
  */
 
-#ifndef __GEARMAN_STRERROR_H__
-#define __GEARMAN_STRERROR_H__
+#pragma once 
 
 #ifdef __cplusplus
 extern "C" {
@@ -24,5 +23,3 @@ const char *gearman_strerror(gearman_return_t rc);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GEARMAN_STRERROR_H__ */

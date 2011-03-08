@@ -9,102 +9,62 @@
 #
 # Included from Top Level Makefile.am
 # All paths should be given relative to the root
+#
 
-if HAVE_LIBDRIZZLE
-QUEUE_LIBDRIZZLE_H= libgearman-server/queue_libdrizzle.h
-QUEUE_LIBDRIZZLE_C= libgearman-server/queue_libdrizzle.c
-endif
+libgearman_server_libgearman_server_la_SOURCES=
+libgearman_server_libgearman_server_la_LIBADD=
 
-if HAVE_LIBMEMCACHED
-QUEUE_LIBMEMCACHED_H= libgearman-server/queue_libmemcached.h
-QUEUE_LIBMEMCACHED_C= libgearman-server/queue_libmemcached.c
-endif
-
-if HAVE_LIBSQLITE3
-QUEUE_LIBSQLITE3_H= libgearman-server/queue_libsqlite3.h
-QUEUE_LIBSQLITE3_C= libgearman-server/queue_libsqlite3.c
-endif
-
-if HAVE_LIBPQ
-QUEUE_LIBPQ_H= libgearman-server/queue_libpq.h
-QUEUE_LIBPQ_C= libgearman-server/queue_libpq.c
-endif
-
-if HAVE_LIBTOKYOCABINET
-QUEUE_LIBTOKYOCABINET_H= libgearman-server/queue_libtokyocabinet.h
-QUEUE_LIBTOKYOCABINET_C= libgearman-server/queue_libtokyocabinet.c
-endif
+include libgearman-server/error/include.am
+include libgearman-server/plugins/include.am
 
 noinst_LTLIBRARIES+= libgearman-server/libgearman-server.la
 
 
-noinst_HEADERS += \
-		  $(QUEUE_LIBDRIZZLE_H) \
-		  $(QUEUE_LIBMEMCACHED_H) \
-		  $(QUEUE_LIBPQ_H) \
-		  $(QUEUE_LIBSQLITE3_H) \
-		  $(QUEUE_LIBTOKYOCABINET_H) \
-		  libgearman-server/byteorder.h \
-		  libgearman-server/client.h \
-		  libgearman-server/conf.h \
-		  libgearman-server/conf_module.h \
-		  libgearman-server/connection.h \
-		  libgearman-server/connection_list.h \
-		  libgearman-server/constants.h \
-		  libgearman-server/function.h \
-		  libgearman-server/gearmand.h \
-		  libgearman-server/gearmand_con.h \
-		  libgearman-server/gearmand_thread.h \
-		  libgearman-server/io.h \
-		  libgearman-server/job.h \
-		  libgearman-server/log.h \
-		  libgearman-server/packet.h \
-		  libgearman-server/protocol_http.h \
-		  libgearman-server/server.h \
-		  libgearman-server/wakeup.h \
-		  libgearman-server/strerror.h \
-		  libgearman-server/thread.h \
-		  libgearman-server/worker.h
-
 noinst_HEADERS+= \
-		 libgearman-server/common.h
+		 libgearman-server/byteorder.h \
+		 libgearman-server/client.h \
+		 libgearman-server/common.h \
+		 libgearman-server/conf.h \
+		 libgearman-server/conf_module.h \
+		 libgearman-server/connection.h \
+		 libgearman-server/connection_list.h \
+		 libgearman-server/constants.h \
+		 libgearman-server/function.h \
+		 libgearman-server/gearmand.h \
+		 libgearman-server/gearmand_con.h \
+		 libgearman-server/gearmand_thread.h \
+		 libgearman-server/io.h \
+		 libgearman-server/job.h \
+		 libgearman-server/log.h \
+		 libgearman-server/packet.h \
+		 libgearman-server/plugins.h \
+		 libgearman-server/server.h \
+		 libgearman-server/thread.h \
+		 libgearman-server/wakeup.h \
+		 libgearman-server/worker.h
 
-libgearman_server_libgearman_server_la_SOURCES= \
-						$(QUEUE_LIBDRIZZLE_C) \
-						$(QUEUE_LIBMEMCACHED_C) \
-						$(QUEUE_LIBPQ_C) \
-						$(QUEUE_LIBSQLITE3_C) \
-						$(QUEUE_LIBTOKYOCABINET_C) \
-						libgearman-server/byteorder.c \
-						libgearman-server/client.c \
-						libgearman-server/conf.c \
-						libgearman-server/conf_module.c \
-						libgearman-server/connection.c \
-						libgearman-server/connection_list.c \
-						libgearman-server/function.c \
-						libgearman-server/gearmand.c \
-						libgearman-server/gearmand_con.c \
-						libgearman-server/gearmand_thread.c \
-						libgearman-server/io.c \
-						libgearman-server/job.c \
-						libgearman-server/log.c \
-						libgearman-server/packet.c \
-						libgearman-server/protocol_http.c \
-						libgearman-server/server.c \
-						libgearman-server/strerror.c \
-						libgearman-server/thread.c \
-						libgearman-server/wakeup.c \
-						libgearman-server/worker.c
+libgearman_server_libgearman_server_la_SOURCES+= \
+						 libgearman-server/byteorder.c \
+						 libgearman-server/client.c \
+						 libgearman-server/conf.c \
+						 libgearman-server/conf_module.c \
+						 libgearman-server/connection.c \
+						 libgearman-server/connection_list.c \
+						 libgearman-server/function.c \
+						 libgearman-server/gearmand.c \
+						 libgearman-server/gearmand_con.c \
+						 libgearman-server/gearmand_thread.c \
+						 libgearman-server/io.c \
+						 libgearman-server/job.c \
+						 libgearman-server/log.c \
+						 libgearman-server/packet.c \
+						 libgearman-server/server.c \
+						 libgearman-server/thread.c \
+						 libgearman-server/wakeup.c \
+						 libgearman-server/worker.c
 
 libgearman_server_libgearman_server_la_CFLAGS= \
 					       ${AM_CFLAGS} \
 					       -DBUILDING_LIBGEARMAN
 
-libgearman_server_libgearman_server_la_LIBADD= \
-					       $(LTLIBDRIZZLE) \
-					       $(LTLIBEVENT) \
-					       $(LTLIBMEMCACHED) \
-					       $(LTLIBPQ) \
-					       $(LTLIBSQLITE3) \
-					       $(LTLIBTOKYOCABINET) \
-					       libgearman/libgearman.la
+libgearman_server_libgearman_server_la_LIBADD+= $(LTLIBEVENT)

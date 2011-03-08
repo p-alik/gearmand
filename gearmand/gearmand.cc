@@ -57,38 +57,51 @@
 
 #include <libgearman-server/gearmand.h>
 
-#ifdef HAVE_LIBDRIZZLE
-#include <libgearman-server/queue_libdrizzle.h>
-#endif
-
-#ifdef HAVE_LIBMEMCACHED
-#include <libgearman-server/queue_libmemcached.h>
-#endif
-
-#ifdef HAVE_LIBSQLITE3
-#include <libgearman-server/queue_libsqlite3.h>
-#endif
-
-#ifdef HAVE_LIBPQ
-#include <libgearman-server/queue_libpq.h>
-#endif
-
-#ifdef HAVE_LIBTOKYOCABINET
-#include <libgearman-server/queue_libtokyocabinet.h>
-#endif
-
-#include <libgearman-server/protocol_http.h>
+#include <libgearman-server/plugins.h>
 
 #define GEARMAND_LOG_REOPEN_TIME 60
 #define GEARMAND_LISTEN_BACKLOG 32
 
 #include "util/daemon.h"
-#include "util/error.h"
 #include "util/pidfile.h"
 
 #include <iostream>
 
 using namespace gearman_util;
+
+namespace error {
+
+inline void perror(const char *message)
+{
+  char *errmsg_ptr;
+  char errmsg[BUFSIZ];
+  errmsg[0]= 0;
+
+#ifdef STRERROR_R_CHAR_P
+  errmsg_ptr= strerror_r(errno, errmsg, sizeof(errmsg));
+#else
+  strerror_r(errno, errmsg, sizeof(errmsg));
+  errmsg_ptr= errmsg;
+#endif
+  std::cerr << "gearman: " << message << " (" << errmsg_ptr << ")" << std::endl;
+}
+
+inline void message(const char *arg)
+{
+  std::cerr << "gearmand: " << arg << std::endl;
+}
+
+inline void message(const char *arg, const char *arg2)
+{
+  std::cerr << "gearmand: " << arg << " : " << arg2 << std::endl;
+}
+
+inline void message(const std::string &arg, gearmand_error_t rc)
+{
+  std::cerr << "gearmand: " << arg << " : " << gearmand_strerror(rc) << std::endl;
+}
+
+} // namespace error
 
 struct gearmand_log_info_st
 {
@@ -110,9 +123,9 @@ extern "C" {
 static bool _set_signals(void);
 }
 static void _shutdown_handler(int signal_arg);
-static void _log(const char *line, gearman_verbose_t verbose, void *context);
+static void _log(const char *line, gearmand_verbose_t verbose, void *context);
 
-static gearman_return_t queue_init(gearmand_st *_gearmand, gearman_conf_st &conf, const char *queue_type);
+static gearmand_error_t queue_init(gearmand_st *_gearmand, gearman_conf_st &conf, const char *queue_type);
 static void queue_deinit(gearmand_st *_gearmand, const char *queue_type);
 static int queue_configure(gearman_conf_st &conf);
 
@@ -312,7 +325,7 @@ int main(int argc, char *argv[])
     gearmand::daemon_is_ready(verbose_count == 0);
 
 
-  gearman_verbose_t verbose= verbose_count > static_cast<int>(GEARMAN_VERBOSE_CRAZY) ? GEARMAN_VERBOSE_CRAZY : static_cast<gearman_verbose_t>(verbose_count);
+  gearmand_verbose_t verbose= verbose_count > static_cast<int>(GEARMAND_VERBOSE_CRAZY) ? GEARMAND_VERBOSE_CRAZY : static_cast<gearmand_verbose_t>(verbose_count);
 
   Pidfile _pid_file(pid_file);
 
@@ -334,7 +347,7 @@ int main(int argc, char *argv[])
 
   if (queue_type)
   {
-    gearman_return_t rc;
+    gearmand_error_t rc;
     if ((rc= queue_init(_gearmand, conf, queue_type)) != GEARMAN_SUCCESS)
     {
       std::string error_message;
@@ -354,7 +367,7 @@ int main(int argc, char *argv[])
 
     if (not strcmp(value, "http"))
     {
-      gearman_return_t ret;
+      gearmand_error_t ret;
       ret= gearmand_protocol_http_init(_gearmand, &conf);
       if (ret != GEARMAN_SUCCESS)
         return 1;
@@ -366,7 +379,7 @@ int main(int argc, char *argv[])
     }
   }
 
-  gearman_return_t ret;
+  gearmand_error_t ret;
   ret= gearmand_run(_gearmand);
 
   if (queue_type)
@@ -498,7 +511,7 @@ static void _shutdown_handler(int signal_arg)
     gearmand_wakeup(Gearmand(), GEARMAND_WAKEUP_SHUTDOWN);
 }
 
-static void _log(const char *line, gearman_verbose_t verbose, void *context)
+static void _log(const char *line, gearmand_verbose_t verbose, void *context)
 {
   gearmand_log_info_st *log_info= static_cast<gearmand_log_info_st *>(context);
   int fd;
@@ -541,7 +554,7 @@ static void _log(const char *line, gearman_verbose_t verbose, void *context)
   }
 }
 
-static gearman_return_t queue_init(gearmand_st *_gearmand, gearman_conf_st &conf, const char *queue_type)
+static gearmand_error_t queue_init(gearmand_st *_gearmand, gearman_conf_st &conf, const char *queue_type)
 {
 #ifdef HAVE_LIBDRIZZLE
   if (not strcmp(queue_type, "libdrizzle"))

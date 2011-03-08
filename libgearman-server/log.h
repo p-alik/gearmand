@@ -55,7 +55,7 @@ GEARMAN_INTERNAL_API
 void gearmand_log_perror(const char *position, const char *message);
 
 GEARMAN_INTERNAL_API
-void gearmand_log_gerror(const char *position, const char *message, const gearman_return_t rc);
+void gearmand_log_gerror(const char *position, const char *message, const gearmand_error_t rc);
 
 GEARMAN_INTERNAL_API
 void gearmand_log_gai_error(const char *position, const char *message, const int rc);

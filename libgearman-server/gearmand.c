@@ -29,19 +29,19 @@
  * @{
  */
 
-static gearman_return_t _listen_init(gearmand_st *gearmand);
+static gearmand_error_t _listen_init(gearmand_st *gearmand);
 static void _listen_close(gearmand_st *gearmand);
-static gearman_return_t _listen_watch(gearmand_st *gearmand);
+static gearmand_error_t _listen_watch(gearmand_st *gearmand);
 static void _listen_clear(gearmand_st *gearmand);
 static void _listen_event(int fd, short events, void *arg);
 
-static gearman_return_t _wakeup_init(gearmand_st *gearmand);
+static gearmand_error_t _wakeup_init(gearmand_st *gearmand);
 static void _wakeup_close(gearmand_st *gearmand);
-static gearman_return_t _wakeup_watch(gearmand_st *gearmand);
+static gearmand_error_t _wakeup_watch(gearmand_st *gearmand);
 static void _wakeup_clear(gearmand_st *gearmand);
 static void _wakeup_event(int fd, short events, void *arg);
 
-static gearman_return_t _watch_events(gearmand_st *gearmand);
+static gearmand_error_t _watch_events(gearmand_st *gearmand);
 static void _clear_events(gearmand_st *gearmand);
 static void _close_events(gearmand_st *gearmand);
 
@@ -50,8 +50,8 @@ static bool gearman_server_create(gearman_server_st *server,
                                   uint8_t worker_wakeup,
                                   bool round_robin);
 static void gearman_server_free(gearman_server_st *server);
-static void gearmand_set_log_fn(gearmand_st *gearmand, gearman_log_fn *function,
-                                void *context, const gearman_verbose_t verbose);
+static void gearmand_set_log_fn(gearmand_st *gearmand, gearmand_log_fn *function,
+                                void *context, const gearmand_verbose_t verbose);
 
 /** @} */
 
@@ -88,7 +88,7 @@ gearmand_st *gearmand_create(const char *host_arg,
                              int backlog_arg,
                              uint8_t job_retries,
                              uint8_t worker_wakeup,
-                             gearman_log_fn *log_function, void *log_context, const gearman_verbose_t verbose_arg,
+                             gearmand_log_fn *log_function, void *log_context, const gearmand_verbose_t verbose_arg,
                              bool round_robin)
 {
   gearmand_st *gearmand;
@@ -137,7 +137,7 @@ gearmand_st *gearmand_create(const char *host_arg,
   gearmand->thread_add_next= NULL;
   gearmand->free_dcon_list= NULL;
 
-  gearman_return_t rc;
+  gearmand_error_t rc;
   if (port && port[0] == 0)
   {
     rc= gearmand_port_add(gearmand, GEARMAN_DEFAULT_TCP_SERVICE, NULL);
@@ -218,15 +218,15 @@ void gearmand_free(gearmand_st *gearmand)
   free(gearmand);
 }
 
-static void gearmand_set_log_fn(gearmand_st *gearmand, gearman_log_fn *function,
-                                void *context, const gearman_verbose_t verbose)
+static void gearmand_set_log_fn(gearmand_st *gearmand, gearmand_log_fn *function,
+                                void *context, const gearmand_verbose_t verbose)
 {
   gearmand->log_fn= function;
   gearmand->log_context= context;
   gearmand->verbose= verbose;
 }
 
-gearman_return_t gearmand_port_add(gearmand_st *gearmand, const char *port,
+gearmand_error_t gearmand_port_add(gearmand_st *gearmand, const char *port,
                                    gearmand_connection_add_fn *function)
 {
   gearmand_port_st *port_list;
@@ -256,7 +256,7 @@ gearman_server_st *gearmand_server(gearmand_st *gearmand)
   return &gearmand->server;
 }
 
-gearman_return_t gearmand_run(gearmand_st *gearmand)
+gearmand_error_t gearmand_run(gearmand_st *gearmand)
 {
   uint32_t x;
 
@@ -362,7 +362,7 @@ void gearmand_wakeup(gearmand_st *gearmand, gearmand_wakeup_t wakeup)
 
 static const uint32_t bind_timeout= 100; // Number is not special
 
-static gearman_return_t _listen_init(gearmand_st *gearmand)
+static gearmand_error_t _listen_init(gearmand_st *gearmand)
 {
   for (uint32_t x= 0; x < gearmand->port_count; x++)
   {
@@ -586,7 +586,7 @@ static void _listen_close(gearmand_st *gearmand)
   }
 }
 
-static gearman_return_t _listen_watch(gearmand_st *gearmand)
+static gearmand_error_t _listen_watch(gearmand_st *gearmand)
 {
   if (gearmand->is_listen_event)
     return GEARMAN_SUCCESS;
@@ -676,7 +676,7 @@ static void _listen_event(int fd, short events __attribute__ ((unused)), void *a
 
   gearmand_log_info("Accepted connection from %s:%s", host, port_str);
 
-  gearman_return_t ret;
+  gearmand_error_t ret;
   ret= gearmand_con_create(Gearmand(), fd, host, port_str, port->add_fn);
   if (ret == GEARMAN_MEMORY_ALLOCATION_FAILURE)
   {
@@ -690,7 +690,7 @@ static void _listen_event(int fd, short events __attribute__ ((unused)), void *a
   }
 }
 
-static gearman_return_t _wakeup_init(gearmand_st *gearmand)
+static gearmand_error_t _wakeup_init(gearmand_st *gearmand)
 {
   gearmand_log_info("Creating wakeup pipe");
 
@@ -735,7 +735,7 @@ static void _wakeup_close(gearmand_st *gearmand)
   }
 }
 
-static gearman_return_t _wakeup_watch(gearmand_st *gearmand)
+static gearmand_error_t _wakeup_watch(gearmand_st *gearmand)
 {
   if (gearmand->is_wakeup_event)
     return GEARMAN_SUCCESS;
@@ -839,9 +839,9 @@ static void _wakeup_event(int fd, short events __attribute__ ((unused)),
   }
 }
 
-static gearman_return_t _watch_events(gearmand_st *gearmand)
+static gearmand_error_t _watch_events(gearmand_st *gearmand)
 {
-  gearman_return_t ret;
+  gearmand_error_t ret;
 
   ret= _listen_watch(gearmand);
   if (ret != GEARMAN_SUCCESS)
@@ -871,7 +871,7 @@ static void _close_events(gearmand_st *gearmand)
   _wakeup_close(gearmand);
 }
 
-static const char *_verbose_name[GEARMAN_VERBOSE_MAX]=
+static const char *_verbose_name[GEARMAND_VERBOSE_MAX]=
 {
   "NEVER",
   "FATAL",
@@ -897,9 +897,9 @@ const char *gearmand_bugreport(void)
     return PACKAGE_BUGREPORT;
 }
 
-const char *gearmand_verbose_name(gearman_verbose_t verbose)
+const char *gearmand_verbose_name(gearmand_verbose_t verbose)
 {
-  if (verbose >= GEARMAN_VERBOSE_MAX)
+  if (verbose >= GEARMAND_VERBOSE_MAX)
     return "UNKNOWN";
 
   return _verbose_name[verbose];
@@ -942,9 +942,9 @@ static bool gearman_server_create(gearman_server_st *server,
   server->queue._done_fn= NULL;
   server->queue._replay_fn= NULL;
   memset(server->job_hash, 0,
-         sizeof(gearman_server_job_st *) * GEARMAN_JOB_HASH_SIZE);
+         sizeof(gearman_server_job_st *) * GEARMAND_JOB_HASH_SIZE);
   memset(server->unique_hash, 0,
-         sizeof(gearman_server_job_st *) * GEARMAN_JOB_HASH_SIZE);
+         sizeof(gearman_server_job_st *) * GEARMAND_JOB_HASH_SIZE);
 
   if (uname(&un) == -1)
   {
@@ -952,8 +952,8 @@ static bool gearman_server_create(gearman_server_st *server,
     return false;
   }
 
-  int checked_length= snprintf(server->job_handle_prefix, GEARMAN_JOB_HANDLE_SIZE, "H:%s", un.nodename);
-  if (checked_length >= GEARMAN_JOB_HANDLE_SIZE || checked_length < 0)
+  int checked_length= snprintf(server->job_handle_prefix, GEARMAND_JOB_HANDLE_SIZE, "H:%s", un.nodename);
+  if (checked_length >= GEARMAND_JOB_HANDLE_SIZE || checked_length < 0)
   {
     gearman_server_free(server);
     return false;
@@ -975,7 +975,7 @@ static void gearman_server_free(gearman_server_st *server)
   /* All threads should be cleaned up before calling this. */
   assert(server->thread_list == NULL);
 
-  for (key= 0; key < GEARMAN_JOB_HASH_SIZE; key++)
+  for (key= 0; key < GEARMAND_JOB_HASH_SIZE; key++)
   {
     while (server->job_hash[key] != NULL)
       gearman_server_job_free(server->job_hash[key]);

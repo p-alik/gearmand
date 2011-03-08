@@ -57,7 +57,7 @@ struct gearmand_con_st
  * @return Pointer to an allocated gearmand structure.
  */
 GEARMAN_API
-gearman_return_t gearmand_con_create(gearmand_st *gearmand, int fd,
+gearmand_error_t gearmand_con_create(gearmand_st *gearmand, int fd,
                                      const char *host, const char *port,
                                      gearmand_connection_add_fn *add_fn);
 
@@ -78,7 +78,7 @@ void gearmand_con_check_queue(gearmand_thread_st *thread);
  * Callback function used for setting events in libevent.
  */
 GEARMAN_API
-gearman_return_t gearmand_connection_watch(gearmand_io_st *con, short events,
+gearmand_error_t gearmand_connection_watch(gearmand_io_st *con, short events,
                                            void *context);
 
 /** @} */

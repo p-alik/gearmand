@@ -57,7 +57,7 @@ GEARMAN_INTERNAL_API
   void gearmand_connection_init(gearmand_connection_list_st *gearman,
                                 gearmand_io_st *connection,
                                 gearmand_con_st *dcon,
-                                gearman_connection_options_t *options);
+                                gearmand_connection_options_t *options);
 
 /**
  * Free a connection structure.
@@ -70,8 +70,8 @@ void gearmand_io_free(gearmand_io_st *connection);
 
 
 GEARMAN_INTERNAL_API
-gearman_return_t gearman_io_set_option(gearmand_io_st *connection,
-                                               gearman_connection_options_t options,
+gearmand_error_t gearman_io_set_option(gearmand_io_st *connection,
+                                               gearmand_connection_options_t options,
                                                bool value);
 
 
@@ -79,7 +79,7 @@ gearman_return_t gearman_io_set_option(gearmand_io_st *connection,
  * Set connection to an already open file descriptor.
  */
 GEARMAN_INTERNAL_API
-gearman_return_t gearman_io_set_fd(gearmand_io_st *connection, int fd);
+gearmand_error_t gearman_io_set_fd(gearmand_io_st *connection, int fd);
 
 /**
  * Get application context pointer.
@@ -91,7 +91,7 @@ gearmand_con_st *gearman_io_context(const gearmand_io_st *connection);
  * Used by thread to send packets.
  */
 GEARMAN_INTERNAL_API
-gearman_return_t gearman_io_send(gearman_server_con_st *connection,
+gearmand_error_t gearman_io_send(gearman_server_con_st *connection,
                                  const gearmand_packet_st *packet, bool flush);
 
 /**
@@ -99,20 +99,20 @@ gearman_return_t gearman_io_send(gearman_server_con_st *connection,
  */
 GEARMAN_INTERNAL_API
   gearmand_packet_st *gearman_io_recv(gearman_server_con_st *con,
-                                      gearman_return_t *ret_ptr, bool recv_data);
+                                      gearmand_error_t *ret_ptr, bool recv_data);
 
 /**
  * Set events to be watched for a connection.
  */
 GEARMAN_INTERNAL_API
-gearman_return_t gearmand_io_set_events(gearman_server_con_st *connection, short events);
+gearmand_error_t gearmand_io_set_events(gearman_server_con_st *connection, short events);
 
 /**
  * Set events that are ready for a connection. This is used with the external
  * event callbacks.
  */
 GEARMAN_INTERNAL_API
-gearman_return_t gearmand_io_set_revents(gearman_server_con_st *connection, short revents);
+gearmand_error_t gearmand_io_set_revents(gearman_server_con_st *connection, short revents);
 
 GEARMAN_INTERNAL_API
 void gearmand_sockfd_close(int sockfd);

@@ -22,14 +22,15 @@
 
 #include <event.h>
 
-#include <libgearman/constants.h>
 #include <libgearman/visibility.h>
+#include <libgearman/protocol.h>
+
+#include <libgearman-server/error.h>
 
 #include <libgearman-server/constants.h>
 #include <libgearman-server/wakeup.h>
 #include <libgearman-server/connection_list.h>
 #include <libgearman-server/byteorder.h>
-#include <libgearman-server/strerror.h>
 #include <libgearman-server/log.h>
 #include <libgearman-server/conf.h>
 #include <libgearman-server/conf_module.h>
@@ -50,8 +51,8 @@ extern "C" {
 
 struct gearmand_st
 {
-  gearman_verbose_t verbose;
-  gearman_return_t ret;
+  gearmand_verbose_t verbose;
+  gearmand_error_t ret;
   int backlog; // Set socket backlog for listening connection
   bool is_listen_event;
   bool is_wakeup_event;
@@ -63,7 +64,7 @@ struct gearmand_st
   uint32_t max_thread_free_dcon_count;
   int wakeup_fd[2];
   const char *host;
-  gearman_log_fn *log_fn;
+  gearmand_log_fn *log_fn;
   void *log_context;
   struct event_base *base;
   gearmand_port_st *port_list;
@@ -100,7 +101,7 @@ gearmand_st *gearmand_create(const char *host,
                              int backlog,
                              uint8_t job_retries,
                              uint8_t worker_wakeup,
-                             gearman_log_fn *function, void *log_context, const gearman_verbose_t verbose,
+                             gearmand_log_fn *function, void *log_context, const gearmand_verbose_t verbose,
                              bool round_robin);
 
 /**
@@ -125,7 +126,7 @@ gearman_server_st *gearmand_server(gearmand_st *gearmand);
  * @return Standard gearman return value.
  */
 GEARMAN_API
-gearman_return_t gearmand_port_add(gearmand_st *gearmand,
+gearmand_error_t gearmand_port_add(gearmand_st *gearmand,
                                    const char *port,
                                    gearmand_connection_add_fn *function);
 
@@ -136,7 +137,7 @@ gearman_return_t gearmand_port_add(gearmand_st *gearmand,
  * @return Standard gearman return value.
  */
 GEARMAN_API
-gearman_return_t gearmand_run(gearmand_st *gearmand);
+gearmand_error_t gearmand_run(gearmand_st *gearmand);
 
 /**
  * Interrupt a running gearmand server from another thread. You should only
@@ -156,7 +157,7 @@ GEARMAN_API
 const char *gearmand_bugreport(void);
 
 GEARMAN_API
-const char *gearmand_verbose_name(gearman_verbose_t verbose);
+const char *gearmand_verbose_name(gearmand_verbose_t verbose);
 
 /** @} */
 

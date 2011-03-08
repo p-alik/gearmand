@@ -87,7 +87,7 @@ void gearman_conf_free(gearman_conf_st *conf)
     free(conf);
 }
 
-gearman_return_t gearman_conf_return(gearman_conf_st *conf)
+gearmand_error_t gearman_conf_return(gearman_conf_st *conf)
 {
   return conf->last_return;
 }
@@ -102,7 +102,7 @@ int gearman_conf_errno(gearman_conf_st *conf)
   return conf->last_errno;
 }
 
-gearman_return_t gearman_conf_parse_args(gearman_conf_st *conf, int argc,
+gearmand_error_t gearman_conf_parse_args(gearman_conf_st *conf, int argc,
                                          char *argv[])
 {
   int c;

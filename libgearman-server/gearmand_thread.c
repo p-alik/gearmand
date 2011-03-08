@@ -25,10 +25,10 @@
  */
 
 static void *_thread(void *data);
-static void _log(const char *line, gearman_verbose_t verbose, gearmand_thread_st *dthread);
+static void _log(const char *line, gearmand_verbose_t verbose, gearmand_thread_st *dthread);
 static void _run(gearman_server_thread_st *thread, void *fn_arg);
 
-static gearman_return_t _wakeup_init(gearmand_thread_st *thread);
+static gearmand_error_t _wakeup_init(gearmand_thread_st *thread);
 static void _wakeup_close(gearmand_thread_st *thread);
 static void _wakeup_clear(gearmand_thread_st *thread);
 static void _wakeup_event(int fd, short events, void *arg);
@@ -40,10 +40,10 @@ static void _clear_events(gearmand_thread_st *thread);
  * Public definitions
  */
 
-gearman_return_t gearmand_thread_create(gearmand_st *gearmand)
+gearmand_error_t gearmand_thread_create(gearmand_st *gearmand)
 {
   gearmand_thread_st *thread;
-  gearman_return_t ret;
+  gearmand_error_t ret;
   int pthread_ret;
 
   thread= (gearmand_thread_st *)malloc(sizeof(gearmand_thread_st));
@@ -205,7 +205,7 @@ void gearmand_thread_wakeup(gearmand_thread_st *thread,
 
 void gearmand_thread_run(gearmand_thread_st *thread)
 {
-  gearman_return_t ret;
+  gearmand_error_t ret;
 
   while (1)
   {
@@ -258,7 +258,7 @@ static void *_thread(void *data)
   return NULL;
 }
 
-static void _log(const char *line, gearman_verbose_t verbose, gearmand_thread_st *dthread)
+static void _log(const char *line, gearmand_verbose_t verbose, gearmand_thread_st *dthread)
 {
   (void)dthread;
   (*Gearmand()->log_fn)(line, verbose, (void *)Gearmand()->log_context);
@@ -271,7 +271,7 @@ static void _run(gearman_server_thread_st *thread __attribute__ ((unused)),
   gearmand_thread_wakeup(dthread, GEARMAND_WAKEUP_RUN);
 }
 
-static gearman_return_t _wakeup_init(gearmand_thread_st *thread)
+static gearmand_error_t _wakeup_init(gearmand_thread_st *thread)
 {
   int ret;
 

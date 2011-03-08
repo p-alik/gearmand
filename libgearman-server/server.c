@@ -26,30 +26,30 @@
 /**
  * Add job to queue wihle replaying queue during startup.
  */
-gearman_return_t _queue_replay_add(gearman_server_st *server, void *context,
+gearmand_error_t _queue_replay_add(gearman_server_st *server, void *context,
                                    const void *unique, size_t unique_size,
                                    const void *function_name,
                                    size_t function_name_size, const void *data,
                                    size_t data_size,
-                                   gearman_job_priority_t priority);
+                                   gearmand_job_priority_t priority);
 
 /**
  * Queue an error packet.
  */
-static gearman_return_t _server_error_packet(gearman_server_con_st *server_con,
+static gearmand_error_t _server_error_packet(gearman_server_con_st *server_con,
                                              const char *error_code,
                                              const char *error_string);
 
 /**
  * Process text commands for a connection.
  */
-static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
+static gearmand_error_t _server_run_text(gearman_server_con_st *server_con,
                                          gearmand_packet_st *packet);
 
 /**
  * Send work result packets with data back to clients.
  */
-static gearman_return_t
+static gearmand_error_t
 _server_queue_work_data(gearman_server_job_st *server_job,
                         gearmand_packet_st *packet, gearman_command_t command);
 
@@ -59,17 +59,17 @@ _server_queue_work_data(gearman_server_job_st *server_job,
  * Public definitions
  */
 
-gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
+gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
                                             gearmand_packet_st *packet)
 {
-  gearman_return_t ret;
+  gearmand_error_t ret;
   gearman_server_job_st *server_job;
-  char job_handle[GEARMAN_JOB_HANDLE_SIZE];
+  char job_handle[GEARMAND_JOB_HANDLE_SIZE];
   char option[GEARMAN_OPTION_SIZE];
   gearman_server_client_st *server_client;
   char numerator_buffer[11]; /* Max string size to hold a uint32_t. */
   char denominator_buffer[11]; /* Max string size to hold a uint32_t. */
-  gearman_job_priority_t priority;
+  gearmand_job_priority_t priority;
 
   int checked_length;
 
@@ -108,15 +108,15 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
     if (packet->command == GEARMAN_COMMAND_SUBMIT_JOB ||
         packet->command == GEARMAN_COMMAND_SUBMIT_JOB_BG)
     {
-      priority= GEARMAN_JOB_PRIORITY_NORMAL;
+      priority= GEARMAND_JOB_PRIORITY_NORMAL;
     }
     else if (packet->command == GEARMAN_COMMAND_SUBMIT_JOB_HIGH ||
              packet->command == GEARMAN_COMMAND_SUBMIT_JOB_HIGH_BG)
     {
-      priority= GEARMAN_JOB_PRIORITY_HIGH;
+      priority= GEARMAND_JOB_PRIORITY_HIGH;
     }
     else
-      priority= GEARMAN_JOB_PRIORITY_LOW;
+      priority= GEARMAND_JOB_PRIORITY_LOW;
 
     if (packet->command == GEARMAN_COMMAND_SUBMIT_JOB_BG ||
         packet->command == GEARMAN_COMMAND_SUBMIT_JOB_HIGH_BG ||
@@ -128,7 +128,9 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
     {
       server_client= gearman_server_client_add(server_con);
       if (server_client == NULL)
+      {
         return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+      }
     }
 
     /* Create a job. */
@@ -171,10 +173,10 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
   case GEARMAN_COMMAND_GET_STATUS:
     {
       /* This may not be NULL terminated, so copy to make sure it is. */
-      checked_length= snprintf(job_handle, GEARMAN_JOB_HANDLE_SIZE, "%.*s",
+      checked_length= snprintf(job_handle, GEARMAND_JOB_HANDLE_SIZE, "%.*s",
                                (int)(packet->arg_size[0]), (char *)(packet->arg[0]));
 
-      if (checked_length >= GEARMAN_JOB_HANDLE_SIZE || checked_length < 0)
+      if (checked_length >= GEARMAND_JOB_HANDLE_SIZE || checked_length < 0)
       {
         gearmand_error("snprintf");
         return GEARMAN_MEMORY_ALLOCATION_FAILURE;
@@ -498,13 +500,13 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
 
   case GEARMAN_COMMAND_WORK_FAIL:
     /* This may not be NULL terminated, so copy to make sure it is. */
-    checked_length= snprintf(job_handle, GEARMAN_JOB_HANDLE_SIZE, "%.*s",
+    checked_length= snprintf(job_handle, GEARMAND_JOB_HANDLE_SIZE, "%.*s",
                              (int)(packet->arg_size[0]), (char *)(packet->arg[0]));
 
-    if (checked_length >= GEARMAN_JOB_HANDLE_SIZE || checked_length < 0)
+    if (checked_length >= GEARMAND_JOB_HANDLE_SIZE || checked_length < 0)
     {
       return _server_error_packet(server_con, "job_name_too_large",
-                                  "Error occured due to GEARMAN_JOB_HANDLE_SIZE being too small from snprintf");
+                                  "Error occured due to GEARMAND_JOB_HANDLE_SIZE being too small from snprintf");
     }
 
     server_job= gearman_server_job_get(Server, job_handle,
@@ -581,7 +583,7 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
   return GEARMAN_SUCCESS;
 }
 
-gearman_return_t gearman_server_shutdown_graceful(gearman_server_st *server)
+gearmand_error_t gearman_server_shutdown_graceful(gearman_server_st *server)
 {
   server->shutdown_graceful= true;
 
@@ -591,9 +593,9 @@ gearman_return_t gearman_server_shutdown_graceful(gearman_server_st *server)
   return GEARMAN_SHUTDOWN_GRACEFUL;
 }
 
-gearman_return_t gearman_server_queue_replay(gearman_server_st *server)
+gearmand_error_t gearman_server_queue_replay(gearman_server_st *server)
 {
-  gearman_return_t ret;
+  gearmand_error_t ret;
 
   if (server->queue._replay_fn == NULL)
     return GEARMAN_SUCCESS;
@@ -631,15 +633,15 @@ void gearman_server_set_queue(gearman_server_st *server,
  * Private definitions
  */
 
-gearman_return_t _queue_replay_add(gearman_server_st *server,
+gearmand_error_t _queue_replay_add(gearman_server_st *server,
                                    void *context __attribute__ ((unused)),
                                    const void *unique, size_t unique_size,
                                    const void *function_name,
                                    size_t function_name_size, const void *data,
                                    size_t data_size,
-                                   gearman_job_priority_t priority)
+                                   gearmand_job_priority_t priority)
 {
-  gearman_return_t ret;
+  gearmand_error_t ret;
 
   (void)gearman_server_job_add(server, (char *)function_name,
                                function_name_size, (char *)unique, unique_size,
@@ -651,7 +653,7 @@ gearman_return_t _queue_replay_add(gearman_server_st *server,
   return ret;
 }
 
-static gearman_return_t _server_error_packet(gearman_server_con_st *server_con,
+static gearmand_error_t _server_error_packet(gearman_server_con_st *server_con,
                                              const char *error_code,
                                              const char *error_string)
 {
@@ -662,7 +664,7 @@ static gearman_return_t _server_error_packet(gearman_server_con_st *server_con,
                                       (size_t)strlen(error_string), NULL);
 }
 
-static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
+static gearmand_error_t _server_run_text(gearman_server_con_st *server_con,
                                          gearmand_packet_st *packet)
 {
   char *data;
@@ -949,13 +951,13 @@ static gearman_return_t _server_run_text(gearman_server_con_st *server_con,
   return GEARMAN_SUCCESS;
 }
 
-static gearman_return_t
+static gearmand_error_t
 _server_queue_work_data(gearman_server_job_st *server_job,
                         gearmand_packet_st *packet, gearman_command_t command)
 {
   gearman_server_client_st *server_client;
   uint8_t *data;
-  gearman_return_t ret;
+  gearmand_error_t ret;
 
   for (server_client= server_job->client_list; server_client;
        server_client= server_client->job_next)

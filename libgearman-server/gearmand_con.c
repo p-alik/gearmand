@@ -26,7 +26,7 @@
 
 static void _con_ready(int fd, short events, void *arg);
 
-static gearman_return_t _con_add(gearmand_thread_st *thread,
+static gearmand_error_t _con_add(gearmand_thread_st *thread,
                                  gearmand_con_st *con);
 
 /** @} */
@@ -35,7 +35,7 @@ static gearman_return_t _con_add(gearmand_thread_st *thread,
  * Public definitions
  */
 
-gearman_return_t gearmand_con_create(gearmand_st *gearmand, int fd,
+gearmand_error_t gearmand_con_create(gearmand_st *gearmand, int fd,
                                      const char *host, const char *port,
                                      gearmand_connection_add_fn *add_fn)
 {
@@ -219,7 +219,7 @@ void gearmand_con_check_queue(gearmand_thread_st *thread)
         gearmand_wakeup(Gearmand(), GEARMAND_WAKEUP_SHUTDOWN);
       }
 
-      gearman_return_t rc;
+      gearmand_error_t rc;
       if ((rc= _con_add(thread, dcon)) != GEARMAN_SUCCESS)
       {
 	gearmand_gerror("_con_add() has failed, please report any crashes that occur immediatly after this.", rc);
@@ -236,7 +236,7 @@ void gearmand_con_check_queue(gearmand_thread_st *thread)
   }
 }
 
-gearman_return_t gearmand_connection_watch(gearmand_io_st *con, short events,
+gearmand_error_t gearmand_connection_watch(gearmand_io_st *con, short events,
                                            void *context __attribute__ ((unused)))
 {
   (void) context;
@@ -295,7 +295,7 @@ static void _con_ready(int fd __attribute__ ((unused)), short events,
   if (events & EV_WRITE)
     revents|= POLLOUT;
 
-  gearman_return_t ret;
+  gearmand_error_t ret;
   ret= gearmand_io_set_revents(dcon->server_con, revents);
   if (ret != GEARMAN_SUCCESS)
   {
@@ -312,10 +312,10 @@ static void _con_ready(int fd __attribute__ ((unused)), short events,
   gearmand_thread_run(dcon->thread);
 }
 
-static gearman_return_t _con_add(gearmand_thread_st *thread,
+static gearmand_error_t _con_add(gearmand_thread_st *thread,
                                  gearmand_con_st *dcon)
 {
-  gearman_return_t ret= GEARMAN_SUCCESS;
+  gearmand_error_t ret= GEARMAN_SUCCESS;
   dcon->server_con= gearman_server_con_add(&(thread->server_thread), dcon, &ret);
 
   assert(dcon->server_con || ret != GEARMAN_SUCCESS);

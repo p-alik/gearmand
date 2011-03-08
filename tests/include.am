@@ -6,13 +6,11 @@
 # Use and distribution licensed under the BSD license.  See
 # the COPYING file in the parent directory for full text.
 
-noinst_LTLIBRARIES+= tests/libtest.la
-tests_libtest_la_SOURCES= tests/test.c tests/test_gearmand.c
-
 VALGRIND_COMMAND= $(LIBTOOL) --mode=execute valgrind --leak-check=yes --show-reachable=yes
 
 CLIENT_LDADD= \
-	      tests/libtest.la \
+	      libtest/libtest.la \
+	      libtest/libserver.la \
 	      libgearman/libgearman.la \
 	      libgearman/libgearmancore.la
 
@@ -72,8 +70,6 @@ noinst_PROGRAMS+= \
 		  tests/worker_test
 
 noinst_HEADERS+= \
-		 tests/test.h \
-		 tests/test_gearmand.h \
 		 tests/test_worker.h
 
 tests_client_test_SOURCES= tests/test_worker.c tests/client_test.c
@@ -145,7 +141,11 @@ if HAVE_LIBDRIZZLE
 	$(DRIZZLE_TEST) $(ARG1) $(ARG2)
 endif
 
-check-local: test-client test-round-robin test-worker test-internals test-libmemcached test-sqlite test-tokyocabinet test-burnin
+GEARADMIN_TOOL= bin/gearadmin
+test-shutdown: bin/gearadmin
+	$(GEARADMIN_TOOL) --port 32123 --shutdown 2>&1 > /dev/null
+
+check-local: test-shutdown test-client test-round-robin test-worker test-internals test-libmemcached test-sqlite test-tokyocabinet test-burnin
 
 gdb-client: ${noinst_PROGRAMS}
 	$(LIBTOOL) --mode=execute gdb tests/client_test

@@ -76,9 +76,9 @@ static gearman_server_function_st * gearman_server_function_create(gearman_serve
   function->function_name= NULL;
   function->worker_list= NULL;
   memset(function->job_list, 0,
-         sizeof(gearman_server_job_st *) * GEARMAN_JOB_PRIORITY_MAX);
+         sizeof(gearman_server_job_st *) * GEARMAND_JOB_PRIORITY_MAX);
   memset(function->job_end, 0,
-         sizeof(gearman_server_job_st *) * GEARMAN_JOB_PRIORITY_MAX);
+         sizeof(gearman_server_job_st *) * GEARMAND_JOB_PRIORITY_MAX);
 
   return function;
 }

@@ -26,17 +26,17 @@
 /**
  * Try reading packets for a connection.
  */
-static gearman_return_t _thread_packet_read(gearman_server_con_st *con);
+static gearmand_error_t _thread_packet_read(gearman_server_con_st *con);
 
 /**
  * Flush outgoing packets for a connection.
  */
-static gearman_return_t _thread_packet_flush(gearman_server_con_st *con);
+static gearmand_error_t _thread_packet_flush(gearman_server_con_st *con);
 
 /**
  * Start processing thread for the server.
  */
-static gearman_return_t _proc_thread_start(gearman_server_st *server);
+static gearmand_error_t _proc_thread_start(gearman_server_st *server);
 
 /**
  * Kill processing thread for the server.
@@ -148,7 +148,7 @@ void gearman_server_thread_set_run(gearman_server_thread_st *thread,
 
 gearmand_con_st *
 gearman_server_thread_run(gearman_server_thread_st *thread,
-                          gearman_return_t *ret_ptr)
+                          gearmand_error_t *ret_ptr)
 {
   /* If we are multi-threaded, we may have packets to flush or connections that
      should start reading again. */
@@ -251,9 +251,9 @@ gearman_server_thread_run(gearman_server_thread_st *thread,
  * Private definitions
  */
 
-static gearman_return_t _thread_packet_read(gearman_server_con_st *con)
+static gearmand_error_t _thread_packet_read(gearman_server_con_st *con)
 {
-  gearman_return_t ret;
+  gearmand_error_t ret;
 
   while (1)
   {
@@ -304,7 +304,7 @@ static gearman_return_t _thread_packet_read(gearman_server_con_st *con)
   return GEARMAN_SUCCESS;
 }
 
-static gearman_return_t _thread_packet_flush(gearman_server_con_st *con)
+static gearmand_error_t _thread_packet_flush(gearman_server_con_st *con)
 {
   /* Check to see if we've already tried to avoid excessive system calls. */
   if (con->con.events & POLLOUT)
@@ -312,7 +312,7 @@ static gearman_return_t _thread_packet_flush(gearman_server_con_st *con)
 
   while (con->io_packet_list != NULL)
   {
-    gearman_return_t ret;
+    gearmand_error_t ret;
 
     ret= gearman_io_send(con, &(con->io_packet_list->packet),
                                  con->io_packet_list->next == NULL ? true : false);
@@ -333,7 +333,7 @@ static gearman_return_t _thread_packet_flush(gearman_server_con_st *con)
   return gearmand_io_set_events(con, POLLIN);
 }
 
-static gearman_return_t _proc_thread_start(gearman_server_st *server)
+static gearmand_error_t _proc_thread_start(gearman_server_st *server)
 {
   pthread_attr_t attr;
 

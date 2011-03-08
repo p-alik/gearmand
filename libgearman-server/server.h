@@ -71,9 +71,9 @@ struct gearman_server_st
   pthread_mutex_t proc_lock;
   pthread_cond_t proc_cond;
   pthread_t proc_id;
-  char job_handle_prefix[GEARMAN_JOB_HANDLE_SIZE];
-  gearman_server_job_st *job_hash[GEARMAN_JOB_HASH_SIZE];
-  gearman_server_job_st *unique_hash[GEARMAN_JOB_HASH_SIZE];
+  char job_handle_prefix[GEARMAND_JOB_HANDLE_SIZE];
+  gearman_server_job_st *job_hash[GEARMAND_JOB_HASH_SIZE];
+  gearman_server_job_st *unique_hash[GEARMAND_JOB_HASH_SIZE];
 };
 
 
@@ -89,7 +89,7 @@ inline static void gearmand_set_round_robin(gearman_server_st *server, bool roun
  * @return Standard gearman return value.
  */
 GEARMAN_API
-gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
+gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
                                             gearmand_packet_st *packet);
 
 /**
@@ -100,7 +100,7 @@ gearman_return_t gearman_server_run_command(gearman_server_con_st *server_con,
  *         the server is ready to shutdown now.
  */
 GEARMAN_API
-gearman_return_t gearman_server_shutdown_graceful(gearman_server_st *server);
+gearmand_error_t gearman_server_shutdown_graceful(gearman_server_st *server);
 
 /**
  * Replay the persistent queue to load all unfinshed jobs into the server. This
@@ -111,7 +111,7 @@ gearman_return_t gearman_server_shutdown_graceful(gearman_server_st *server);
  *         the server is ready to shutdown now.
  */
 GEARMAN_API
-gearman_return_t gearman_server_queue_replay(gearman_server_st *server);
+gearmand_error_t gearman_server_queue_replay(gearman_server_st *server);
 
 /**
  * Get persistent queue context.

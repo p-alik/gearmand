@@ -53,9 +53,9 @@ gearman_server_job_st *
 gearman_server_job_add(gearman_server_st *server, const char *function_name,
                        size_t function_name_size, const char *unique,
                        size_t unique_size, const void *data, size_t data_size,
-                       gearman_job_priority_t priority,
+                       gearmand_job_priority_t priority,
                        gearman_server_client_st *server_client,
-                       gearman_return_t *ret_ptr)
+                       gearmand_error_t *ret_ptr)
 {
   gearman_server_job_st *server_job;
   gearman_server_function_st *server_function;
@@ -122,12 +122,12 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
     server_function->job_total++;
 
     int checked_length;
-    checked_length= snprintf(server_job->job_handle, GEARMAN_JOB_HANDLE_SIZE, "%s:%u",
+    checked_length= snprintf(server_job->job_handle, GEARMAND_JOB_HANDLE_SIZE, "%s:%u",
                              server->job_handle_prefix, server->job_handle_count);
 
-    if (checked_length >= GEARMAN_JOB_HANDLE_SIZE || checked_length < 0)
+    if (checked_length >= GEARMAND_JOB_HANDLE_SIZE || checked_length < 0)
     {
-      gearmand_log_error("Job handle plus handle count beyond GEARMAN_JOB_HANDLE_SIZE: %s:%u",
+      gearmand_log_error("Job handle plus handle count beyond GEARMAND_JOB_HANDLE_SIZE: %s:%u",
                          server->job_handle_prefix, server->job_handle_count);
     }
 
@@ -143,13 +143,13 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
     server_job->data_size= data_size;
 
     server_job->unique_key= key;
-    key= key % GEARMAN_JOB_HASH_SIZE;
+    key= key % GEARMAND_JOB_HASH_SIZE;
     GEARMAN_HASH_ADD(server->unique, key, server_job, unique_);
 
     key= _server_job_hash(server_job->job_handle,
                           strlen(server_job->job_handle));
     server_job->job_handle_key= key;
-    key= key % GEARMAN_JOB_HASH_SIZE;
+    key= key % GEARMAND_JOB_HASH_SIZE;
     GEARMAN_HASH_ADD(server->job, key, server_job,);
 
     if (server->state.queue_startup)
@@ -278,10 +278,10 @@ void gearman_server_job_free(gearman_server_job_st *server_job)
   if (server_job->worker != NULL)
     GEARMAN_LIST_DEL(server_job->worker->job, server_job, worker_)
 
-  key= server_job->unique_key % GEARMAN_JOB_HASH_SIZE;
+  key= server_job->unique_key % GEARMAND_JOB_HASH_SIZE;
   GEARMAN_HASH_DEL(Server->unique, key, server_job, unique_);
 
-  key= server_job->job_handle_key % GEARMAN_JOB_HASH_SIZE;
+  key= server_job->job_handle_key % GEARMAND_JOB_HASH_SIZE;
   GEARMAN_HASH_DEL(Server->job, key, server_job,);
 
   if (Server->free_job_count < GEARMAN_MAX_FREE_SERVER_JOB)
@@ -298,7 +298,7 @@ gearman_server_job_st *gearman_server_job_get(gearman_server_st *server,
 
   key= _server_job_hash(job_handle, strlen(job_handle));
 
-  for (gearman_server_job_st *server_job= server->job_hash[key % GEARMAN_JOB_HASH_SIZE];
+  for (gearman_server_job_st *server_job= server->job_hash[key % GEARMAND_JOB_HASH_SIZE];
        server_job != NULL; server_job= server_job->next)
   {
     if (server_job->job_handle_key == key &&
@@ -322,15 +322,15 @@ gearman_server_job_st *
 gearman_server_job_peek(gearman_server_con_st *server_con)
 {
   gearman_server_worker_st *server_worker;
-  gearman_job_priority_t priority;
+  gearmand_job_priority_t priority;
 
   for (server_worker= server_con->worker_list; server_worker != NULL;
        server_worker= server_worker->con_next)
   {
     if (server_worker->function->job_count != 0)
     {
-      for (priority= GEARMAN_JOB_PRIORITY_HIGH;
-           priority != GEARMAN_JOB_PRIORITY_MAX; priority++)
+      for (priority= GEARMAND_JOB_PRIORITY_HIGH;
+           priority != GEARMAND_JOB_PRIORITY_MAX; priority++)
       {
         if (server_worker->function->job_list[priority] != NULL)
         {
@@ -372,7 +372,7 @@ gearman_server_job_take(gearman_server_con_st *server_con)
 {
   gearman_server_worker_st *server_worker;
   gearman_server_job_st *server_job;
-  gearman_job_priority_t priority;
+  gearmand_job_priority_t priority;
 
   for (server_worker= server_con->worker_list; server_worker != NULL;
        server_worker= server_worker->con_next)
@@ -394,8 +394,8 @@ gearman_server_job_take(gearman_server_con_st *server_con)
     }
   }
 
-  for (priority= GEARMAN_JOB_PRIORITY_HIGH;
-       priority != GEARMAN_JOB_PRIORITY_MAX; priority++)
+  for (priority= GEARMAND_JOB_PRIORITY_HIGH;
+       priority != GEARMAND_JOB_PRIORITY_MAX; priority++)
   {
     if (server_worker->function->job_list[priority] != NULL)
       break;
@@ -420,12 +420,12 @@ gearman_server_job_take(gearman_server_con_st *server_con)
   return server_job;
 }
 
-gearman_return_t gearman_server_job_queue(gearman_server_job_st *job)
+gearmand_error_t gearman_server_job_queue(gearman_server_job_st *job)
 {
   gearman_server_client_st *client;
   gearman_server_worker_st *worker;
   uint32_t noop_sent;
-  gearman_return_t ret;
+  gearmand_error_t ret;
 
   if (job->worker != NULL)
   {
@@ -551,7 +551,7 @@ _server_job_get_unique(gearman_server_st *server, uint32_t unique_key,
 {
   gearman_server_job_st *server_job;
 
-  for (server_job= server->unique_hash[unique_key % GEARMAN_JOB_HASH_SIZE];
+  for (server_job= server->unique_hash[unique_key % GEARMAND_JOB_HASH_SIZE];
        server_job != NULL; server_job= server_job->unique_next)
   {
     if (data_size == 0)

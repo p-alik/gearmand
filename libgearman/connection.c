@@ -513,8 +513,8 @@ gearman_return_t gearman_connection_flush(gearman_connection_st *connection)
       }
 
       connection->fd= socket(connection->addrinfo_next->ai_family,
-                      connection->addrinfo_next->ai_socktype,
-                      connection->addrinfo_next->ai_protocol);
+                             connection->addrinfo_next->ai_socktype,
+                             connection->addrinfo_next->ai_protocol);
       if (connection->fd == -1)
       {
         connection->state= GEARMAN_CON_UNIVERSAL_ADDRINFO;
@@ -883,7 +883,9 @@ size_t gearman_connection_read(gearman_connection_st *connection, void *data, si
 
         *ret_ptr= gearman_wait(connection->universal);
         if (*ret_ptr != GEARMAN_SUCCESS)
+        {
           return 0;
+        }
 
         continue;
       }

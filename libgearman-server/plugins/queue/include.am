@@ -1,0 +1,16 @@
+# vim:ft=automake
+# Gearman
+# Copyright (C) 2011 Data Differential, http://datadifferential.com/
+# All rights reserved.
+#
+# Use and distribution licensed under the BSD license.  See
+# the COPYING file in the parent directory for full text.
+#
+# All paths should be given relative to the root
+#
+
+include libgearman-server/plugins/queue/drizzle/include.am
+include libgearman-server/plugins/queue/libmemcached/include.am
+include libgearman-server/plugins/queue/postgres/include.am
+include libgearman-server/plugins/queue/sqlite/include.am
+include libgearman-server/plugins/queue/tokyocabinet/include.am

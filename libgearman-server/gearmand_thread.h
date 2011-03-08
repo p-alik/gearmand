@@ -57,7 +57,7 @@ struct gearmand_thread_st
  * @return Standard gearman return value.
  */
 GEARMAN_API
-gearman_return_t gearmand_thread_create(gearmand_st *gearmand);
+gearmand_error_t gearmand_thread_create(gearmand_st *gearmand);
 
 /**
  * Free resources used by a thread.

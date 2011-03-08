@@ -43,8 +43,8 @@ struct gearman_server_function_st
   gearman_server_function_st *prev;
   char *function_name;
   gearman_server_worker_st *worker_list;
-  gearman_server_job_st *job_list[GEARMAN_JOB_PRIORITY_MAX];
-  gearman_server_job_st *job_end[GEARMAN_JOB_PRIORITY_MAX];
+  gearman_server_job_st *job_list[GEARMAND_JOB_PRIORITY_MAX];
+  gearman_server_job_st *job_end[GEARMAND_JOB_PRIORITY_MAX];
 };
 
 /**

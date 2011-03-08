@@ -29,6 +29,7 @@ include gearmand/include.am
 include libgearman-server/include.am
 include libgearman/include.am
 include util/include.am
+include libtest/include.am
 include tests/include.am
 include support/include.am
 
