@@ -56,7 +56,7 @@ const char *gearman_strerror(gearman_return_t rc)
   case GEARMAN_SERVER_ERROR:
     return "SERVER_ERROR";
   case GEARMAN_WORK_ERROR:
-    return "WORK_ERROR";
+    return "Mis-sized workload passed in as argument.";
   case GEARMAN_WORK_DATA:
     return "WORK_DATA";
   case GEARMAN_WORK_WARNING:
