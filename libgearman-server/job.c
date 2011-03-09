@@ -102,8 +102,11 @@ gearman_server_job_add(gearman_server_st *server, const char *function_name,
 
   if (server_job == NULL)
   {
-    if (server_function->max_queue_size > 0 &&
-        server_function->job_total >= server_function->max_queue_size)
+    gearmand_log_debug("Comparing queue %u to limit %u for priority %u",
+      server_function->job_total, server_function->max_queue_size[priority],
+      priority);
+    if (server_function->max_queue_size[priority] > 0 &&
+        server_function->job_total >= server_function->max_queue_size[priority])
     {
       *ret_ptr= GEARMAN_JOB_QUEUE_FULL;
       return NULL;

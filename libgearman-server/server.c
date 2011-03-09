@@ -671,7 +671,8 @@ static gearmand_error_t _server_run_text(gearman_server_con_st *server_con,
   char *new_data;
   size_t size;
   size_t total;
-  int max_queue_size;
+  int priority;
+  uint32_t max_queue_size[GEARMAND_JOB_PRIORITY_MAX];
   gearman_server_thread_st *thread;
   gearman_server_con_st *con;
   gearman_server_worker_st *worker;
@@ -859,15 +860,28 @@ static gearmand_error_t _server_run_text(gearman_server_con_st *server_con,
     }
     else
     {
-      if (packet->argc == 2)
-        max_queue_size= GEARMAN_DEFAULT_MAX_QUEUE_SIZE;
-      else
+      for (priority= 0; priority < GEARMAND_JOB_PRIORITY_MAX; ++priority)
       {
-        max_queue_size= atoi((char *)(packet->arg[2]));
-        if (max_queue_size < 0)
-          max_queue_size= 0;
+        const int argc= priority+2;
+        if (packet->argc > argc)
+        {
+          const int parameter = atoi((char *)(packet->arg[argc]));
+          if (parameter < 0)
+            max_queue_size[priority]= 0;
+          else
+            max_queue_size[priority]= (uint32_t)parameter;
+        }
+        else
+        {
+          max_queue_size[priority]= GEARMAN_DEFAULT_MAX_QUEUE_SIZE;
+        }
       }
-
+      /* To preserve the existing behavior of maxqueue, ensure that the
+         one-parameter invocation is applied to all priorities. */
+      if (packet->argc <= 3)
+        for (priority= 1; priority < GEARMAND_JOB_PRIORITY_MAX; ++priority)
+          max_queue_size[priority]= max_queue_size[0];
+       
       for (function= Server->function_list;
            function != NULL; function= function->next)
       {
@@ -875,7 +889,10 @@ static gearmand_error_t _server_run_text(gearman_server_con_st *server_con,
             !memcmp(packet->arg[1], function->function_name,
                     function->function_name_size))
         {
-          function->max_queue_size= (uint32_t)max_queue_size;
+          gearmand_log_debug("Applying queue limits to %s",
+                             function->function_name);
+          memcpy(function->max_queue_size, max_queue_size,
+                 sizeof(uint32_t) * GEARMAND_JOB_PRIORITY_MAX);
         }
       }
 

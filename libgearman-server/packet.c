@@ -196,7 +196,7 @@ gearman_server_proc_packet_remove(gearman_server_con_st *con)
  */
 gearman_command_info_st gearmand_command_info_list[GEARMAN_COMMAND_MAX]=
 {
-  { "TEXT",               3, false },
+  { "TEXT",               5, false },
   { "CAN_DO",             1, false },
   { "CANT_DO",            1, false },
   { "RESET_ABILITIES",    0, false },

@@ -495,12 +495,17 @@ status
 maxqueue
 
     This sets the maximum queue size for a function. If no size is
-    given, the default is used. If the size is negative, then the queue
-    is set to be unlimited. This sends back a single line with "OK".
+    given, the default is used. If one size is given, it is applied to
+    jobs regardless of priority. If three sizes are given, the sizes
+    are used when testing high-priority, normal, and low-priority jobs,
+    respectively. A zero or negative size indicates no limit.  This
+    command sends back a single line with "OK".
 
     Arguments:
     - Function name.
-    - Optional maximum queue size.
+    - Optional maximum queue size (to apply one maximum at all priorities), or
+      three optional maximum queue sizes (to enforce for high-, normal-, and
+      low-priority job submissions).
 
 shutdown
 
