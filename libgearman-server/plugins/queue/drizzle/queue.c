@@ -453,10 +453,8 @@ static gearmand_error_t _libdrizzle_done(gearman_server_st *server,
 
   gearmand_log_debug("libdrizzle done: %.*s", (uint32_t)unique_size, (char *)unique);
 
-  size_t escaped_unique_name_size= drizzle_escape_string(escaped_unique_name, unique, unique_size);
-  size_t escaped_function_name_size= drizzle_escape_string(escaped_function_name, function_name, function_name_size);
-  (void)escaped_unique_name_size;
-  (void)escaped_function_name_size;
+  (void)drizzle_escape_string(escaped_unique_name, unique, unique_size);
+  (void)drizzle_escape_string(escaped_function_name, function_name, function_name_size);
 
   ssize_t query_size= (ssize_t)snprintf(query, sizeof(query),
                                        "DELETE FROM %s WHERE unique_key='%s' and function_name= '%s'",

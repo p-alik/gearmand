@@ -21,8 +21,16 @@ bin_gearadmin_SOURCES= \
 		       bin/gearadmin.cc \
 		       util/instance.cc
 
+bin_gearadmin_CPPFLAGS= \
+			$(AM_CPPFLAGS) \
+			$(BOOST_CPPFLAGS)
+
+bin_gearadmin_LDFLAGS= \
+		       $(AM_LDFLAGS)
+
 bin_gearadmin_LDADD= \
-		     ${BOOST_LIBS}
+		     $(AM_LDADD) \
+		     $(BOOST_PROGRAM_OPTIONS_LIBS)
 
 bin_gearman_SOURCES= \
 		     bin/arguments.cc \
