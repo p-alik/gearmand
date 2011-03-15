@@ -53,16 +53,16 @@ static void _libpq_notice_processor(void *arg, const char *message);
 
 /* Queue callback functions. */
 static gearmand_error_t _libpq_add(gearman_server_st *server, void *context,
-                                   const void *unique, size_t unique_size,
-                                   const void *function_name,
+                                   const char *unique, size_t unique_size,
+                                   const char *function_name,
                                    size_t function_name_size,
                                    const void *data, size_t data_size,
                                    gearmand_job_priority_t priority);
 static gearmand_error_t _libpq_flush(gearman_server_st *server, void *context);
 static gearmand_error_t _libpq_done(gearman_server_st *server, void *context,
-                                    const void *unique,
+                                    const char *unique,
                                     size_t unique_size,
-                                    const void *function_name,
+                                    const char *function_name,
                                     size_t function_name_size);
 static gearmand_error_t _libpq_replay(gearman_server_st *server, void *context,
                                       gearman_queue_add_fn *add_fn,
@@ -115,7 +115,6 @@ gearmand_error_t gearman_server_queue_libpq_init(gearman_server_st *server,
   snprintf(queue->table, NAMEDATALEN, GEARMAN_QUEUE_LIBPQ_DEFAULT_TABLE);
 
   gearman_server_set_queue(server, queue, _libpq_add, _libpq_flush, _libpq_done, _libpq_replay);
-
 
   /* Get module and parse the option values that were given. */
   module= gearman_conf_module_find(conf, "libpq");
@@ -241,8 +240,8 @@ static void _libpq_notice_processor(void *arg, const char *message)
 }
 
 static gearmand_error_t _libpq_add(gearman_server_st *server, void *context,
-                                        const void *unique, size_t unique_size,
-                                        const void *function_name,
+                                        const char *unique, size_t unique_size,
+                                        const char *function_name,
                                         size_t function_name_size,
                                         const void *data, size_t data_size,
                                         gearmand_job_priority_t priority)
@@ -318,9 +317,9 @@ static gearmand_error_t _libpq_flush(gearman_server_st *server,
 }
 
 static gearmand_error_t _libpq_done(gearman_server_st *server, void *context,
-                                    const void *unique,
+                                    const char *unique,
                                     size_t unique_size,
-                                    const void *function_name __attribute__((unused)),
+                                    const char *function_name __attribute__((unused)),
                                     size_t function_name_size __attribute__((unused)))
 {
   (void)server;

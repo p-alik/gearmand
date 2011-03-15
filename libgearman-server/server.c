@@ -26,12 +26,11 @@
 /**
  * Add job to queue wihle replaying queue during startup.
  */
-gearmand_error_t _queue_replay_add(gearman_server_st *server, void *context,
-                                   const void *unique, size_t unique_size,
-                                   const void *function_name,
-                                   size_t function_name_size, const void *data,
-                                   size_t data_size,
-                                   gearmand_job_priority_t priority);
+static gearmand_error_t _queue_replay_add(gearman_server_st *server, void *context,
+                                          const char *unique, size_t unique_size,
+                                          const char *function_name, size_t function_name_size,
+                                          const void *data, size_t data_size,
+                                          gearmand_job_priority_t priority);
 
 /**
  * Queue an error packet.
@@ -635,16 +634,16 @@ void gearman_server_set_queue(gearman_server_st *server,
 
 gearmand_error_t _queue_replay_add(gearman_server_st *server,
                                    void *context __attribute__ ((unused)),
-                                   const void *unique, size_t unique_size,
-                                   const void *function_name,
-                                   size_t function_name_size, const void *data,
-                                   size_t data_size,
+                                   const char *unique, size_t unique_size,
+                                   const char *function_name, size_t function_name_size,
+                                   const void *data, size_t data_size,
                                    gearmand_job_priority_t priority)
 {
-  gearmand_error_t ret;
+  gearmand_error_t ret= GEARMAN_SUCCESS;
 
-  (void)gearman_server_job_add(server, (char *)function_name,
-                               function_name_size, (char *)unique, unique_size,
+  (void)gearman_server_job_add(server,
+                               function_name, function_name_size,
+                               unique, unique_size,
                                data, data_size, priority, NULL, &ret);
 
   if (ret != GEARMAN_SUCCESS)

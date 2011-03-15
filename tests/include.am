@@ -32,14 +32,18 @@ tests_memcached_test_SOURCES= tests/memcached_test.c
 tests_memcached_test_LDADD= ${CLIENT_LDADD}
 
 if HAVE_LIBSQLITE3
-SQLITE_TEST= tests/sqlite_test
+QUEUE_REGRESSION_TEST= tests/queue_regression
+SQLITE_TEST= tests/sqlite_test tests/queue_regression
 SQLITE_RM= @rm -f tests/gearman.sql tests/gearman.sql-journal
 CLEANFILES+= tests/gearman.sql tests/gearman.sql-journal tests/gearmand.log*
-noinst_PROGRAMS += tests/sqlite_test
+noinst_PROGRAMS += tests/sqlite_test tests/queue_regression
 endif
 
 tests_sqlite_test_SOURCES= tests/sqlite_test.c
 tests_sqlite_test_LDADD= ${CLIENT_LDADD}
+
+tests_queue_regression_SOURCES= tests/queue_regression.c tests/test_worker.c
+tests_queue_regression_LDADD= ${CLIENT_LDADD}
 
 if HAVE_LIBTOKYOCABINET
 TOKYOCABINET_TEST= tests/tokyocabinet_test
@@ -56,7 +60,7 @@ endif
 tests_tokyocabinet_test_SOURCES= tests/tokyocabinet_test.c
 tests_tokyocabinet_test_LDADD= ${CLIENT_LDADD}
 
-tests_drizzle_test_SOURCES= tests/drizzle_test.c
+tests_drizzle_test_SOURCES= tests/drizzle_test.c tests/test_worker.c
 tests_drizzle_test_LDADD= ${CLIENT_LDADD}
 
 noinst_PROGRAMS+= \
@@ -118,6 +122,11 @@ if HAVE_MEMCACHED
 endif
 endif
 
+queue-regression:
+if HAVE_LIBSQLITE3
+	$(QUEUE_REGRESSION_TEST) $(ARG1) $(ARG2)
+endif
+
 test-sqlite:
 if HAVE_LIBSQLITE3
 	$(SQLITE_TEST) $(ARG1) $(ARG2)
@@ -145,7 +154,7 @@ GEARADMIN_TOOL= bin/gearadmin
 test-shutdown: bin/gearadmin
 	$(GEARADMIN_TOOL) --port 32123 --shutdown 2>&1 > /dev/null
 
-check-local: test-shutdown test-client test-round-robin test-worker test-internals test-libmemcached test-sqlite test-tokyocabinet test-burnin
+check-local: test-shutdown test-client test-round-robin test-worker test-internals test-libmemcached test-sqlite test-tokyocabinet test-burnin queue-regression
 
 gdb-client: ${noinst_PROGRAMS}
 	$(LIBTOOL) --mode=execute gdb tests/client_test

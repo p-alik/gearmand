@@ -56,19 +56,16 @@ static drizzle_return_t _libdrizzle_query(gearman_server_st *server,
 
 /* Queue callback functions. */
 static gearmand_error_t _libdrizzle_add(gearman_server_st *server,
-                                        void *context, const void *unique,
-                                        size_t unique_size,
-                                        const void *function_name,
-                                        size_t function_name_size,
+                                        void *context,
+                                        const char *unique, size_t unique_size,
+                                        const char *function_name, size_t function_name_size,
                                         const void *data, size_t data_size,
                                         gearmand_job_priority_t priority);
 static gearmand_error_t _libdrizzle_flush(gearman_server_st *gearman,
                                           void *context);
 static gearmand_error_t _libdrizzle_done(gearman_server_st *gearman,
-                                          void *context, const void *unique,
-                                         size_t unique_size,
-                                         const void *function_name,
-                                         size_t function_name_size);
+                                          void *context, const char *unique, size_t unique_size,
+                                         const char *function_name, size_t function_name_size);
 static gearmand_error_t _libdrizzle_replay(gearman_server_st *gearman,
                                            void *context,
                                            gearman_queue_add_fn *add_fn,
@@ -356,10 +353,9 @@ static drizzle_return_t _libdrizzle_query(gearman_server_st *server,
 }
 
 static gearmand_error_t _libdrizzle_add(gearman_server_st *server,
-                                        void *context, const void *unique,
-                                        size_t unique_size,
-                                        const void *function_name,
-                                        size_t function_name_size,
+                                        void *context,
+                                        const char *unique, size_t unique_size,
+                                        const char *function_name, size_t function_name_size,
                                         const void *data, size_t data_size,
                                         gearmand_job_priority_t priority)
 {
@@ -441,10 +437,9 @@ static gearmand_error_t _libdrizzle_flush(gearman_server_st *server,
 }
 
 static gearmand_error_t _libdrizzle_done(gearman_server_st *server,
-                                         void *context, const void *unique,
-                                         size_t unique_size,
-                                         const void *function_name,
-                                         size_t function_name_size)
+                                         void *context,
+                                         const char *unique, size_t unique_size,
+                                         const char *function_name, size_t function_name_size)
 {
   gearman_queue_libdrizzle_st *queue= (gearman_queue_libdrizzle_st *)context;
   char escaped_function_name[function_name_size*2];
@@ -587,8 +582,21 @@ static gearmand_error_t _libdrizzle_replay(gearman_server_st *server,
 
     gearmand_log_debug("libdrizzle replay: %.*s", (uint32_t)field_sizes[0], row[0]);
 
-    gret= (*add_fn)(server, add_context, row[0], field_sizes[0], row[1],
-                    field_sizes[1], row[3], field_sizes[3], atoi(row[2]));
+    size_t data_size= field_sizes[3];
+    /* need to make a copy here ... gearman_server_job_free will free it later */
+    char *data= (char *)malloc(data_size);
+    if (data == NULL)
+    {
+      gearmand_perror("Failed to allocate data while replaying the queue");
+      drizzle_row_free(&(queue->result), row);
+      drizzle_result_free(&(queue->result));
+      return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+    }
+    memcpy(data, row[3], data_size);
+
+    gret= (*add_fn)(server, add_context, row[0], field_sizes[0],
+                    row[1], field_sizes[1],
+                    data, data_size, atoi(row[2]));
     if (gret != GEARMAN_SUCCESS)
     {
       drizzle_row_free(&(queue->result), row);

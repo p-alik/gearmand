@@ -87,3 +87,4 @@ gearmand/gearmand_hostile
 tests/burnin_test
 tests/drizzle_test
 bin/gearadmin
+tests/queue_regression

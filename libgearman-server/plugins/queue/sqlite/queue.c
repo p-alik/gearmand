@@ -58,16 +58,16 @@ static int _sqlite_rollback(gearman_server_st *server,
 
 /* Queue callback functions. */
 static gearmand_error_t _sqlite_add(gearman_server_st *server, void *context,
-                                    const void *unique, size_t unique_size,
-                                    const void *function_name,
+                                    const char *unique, size_t unique_size,
+                                    const char *function_name,
                                     size_t function_name_size,
                                     const void *data, size_t data_size,
                                     gearmand_job_priority_t priority);
 static gearmand_error_t _sqlite_flush(gearman_server_st *server, void *context);
 static gearmand_error_t _sqlite_done(gearman_server_st *server, void *context,
-                                     const void *unique,
+                                     const char *unique,
                                      size_t unique_size,
-                                     const void *function_name,
+                                     const char *function_name,
                                      size_t function_name_size);
 static gearmand_error_t _sqlite_replay(gearman_server_st *server, void *context,
                                        gearman_queue_add_fn *add_fn,
@@ -430,8 +430,8 @@ int _sqlite_rollback(gearman_server_st *server,
 }
 
 static gearmand_error_t _sqlite_add(gearman_server_st *server, void *context,
-                                    const void *unique, size_t unique_size,
-                                    const void *function_name,
+                                    const char *unique, size_t unique_size,
+                                    const char *function_name,
                                     size_t function_name_size,
                                     const void *data, size_t data_size,
                                     gearmand_job_priority_t priority)
@@ -559,9 +559,9 @@ static gearmand_error_t _sqlite_flush(gearman_server_st *server,
 }
 
 static gearmand_error_t _sqlite_done(gearman_server_st *server, void *context,
-                                     const void *unique,
+                                     const char *unique,
                                      size_t unique_size,
-                                     const void *function_name __attribute__((unused)),
+                                     const char *function_name __attribute__((unused)),
                                      size_t function_name_size __attribute__((unused)))
 {
   gearman_queue_sqlite_st *queue= (gearman_queue_sqlite_st *)context;
@@ -660,14 +660,14 @@ static gearmand_error_t _sqlite_replay(gearman_server_st *server, void *context,
     return GEARMAN_QUEUE_ERROR;
   while (sqlite3_step(sth) == SQLITE_ROW)
   {
-    const void *unique, *function_name;
+    const char *unique, *function_name;
     void *data;
     size_t unique_size, function_name_size, data_size;
     gearmand_job_priority_t priority;
 
     if (sqlite3_column_type(sth,0) == SQLITE_TEXT)
     {
-      unique= sqlite3_column_text(sth,0);
+      unique= (char *)sqlite3_column_text(sth,0);
       unique_size= (size_t) sqlite3_column_bytes(sth,0);
     }
     else
@@ -680,7 +680,7 @@ static gearmand_error_t _sqlite_replay(gearman_server_st *server, void *context,
 
     if (sqlite3_column_type(sth,1) == SQLITE_TEXT)
     {
-      function_name= sqlite3_column_text(sth,1);
+      function_name= (char *)sqlite3_column_text(sth,1);
       function_name_size= (size_t)sqlite3_column_bytes(sth,1);
     }
     else
