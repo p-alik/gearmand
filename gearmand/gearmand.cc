@@ -558,7 +558,6 @@ static gearmand_error_t queue_init(gearmand_st *_gearmand, gearman_conf_st &conf
 {
   (void)_gearmand;
   (void)conf;
-  (void)queue_type;
 #ifdef HAVE_LIBDRIZZLE
   if (not strcmp(queue_type, "libdrizzle"))
   {
@@ -602,6 +601,8 @@ static gearmand_error_t queue_init(gearmand_st *_gearmand, gearman_conf_st &conf
 
 static void queue_deinit(gearmand_st *_gearmand, const char *queue_type)
 {
+  (void)_gearmand;
+  (void)queue_type;
 #ifdef HAVE_LIBDRIZZLE
   if (not strcmp(queue_type, "libdrizzle"))
     gearmand_queue_libdrizzle_deinit(_gearmand);
@@ -626,6 +627,7 @@ static void queue_deinit(gearmand_st *_gearmand, const char *queue_type)
 
 static int queue_configure(gearman_conf_st &conf)
 {
+  (void)conf;
 #ifdef HAVE_LIBDRIZZLE
   if (gearman_server_queue_libdrizzle_conf(&conf) != GEARMAN_SUCCESS)
   {
