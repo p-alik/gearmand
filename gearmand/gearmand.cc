@@ -556,6 +556,9 @@ static void _log(const char *line, gearmand_verbose_t verbose, void *context)
 
 static gearmand_error_t queue_init(gearmand_st *_gearmand, gearman_conf_st &conf, const char *queue_type)
 {
+  (void)_gearmand;
+  (void)conf;
+  (void)queue_type;
 #ifdef HAVE_LIBDRIZZLE
   if (not strcmp(queue_type, "libdrizzle"))
   {
