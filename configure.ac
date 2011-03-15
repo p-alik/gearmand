@@ -1,4 +1,5 @@
 # Gearman server and library
+# Copyright (C) 2011 Data Differential, http://datadifferential.com/
 # Copyright (C) 2008 Brian Aker, Eric Day, Monty Taylor
 # All rights reserved.
 #
@@ -6,7 +7,7 @@
 # the COPYING file in this directory for full text.
 
 AC_PREREQ(2.59)
-AC_INIT([gearmand],[0.17],[https://launchpad.net/gearmand])
+AC_INIT([gearmand],[0.18],[https://launchpad.net/gearmand])
 AC_CONFIG_SRCDIR(libgearman/gearman.c)
 AC_CONFIG_AUX_DIR(config)
 
