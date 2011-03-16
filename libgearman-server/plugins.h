@@ -37,5 +37,14 @@
 
 #pragma once
 
-#include <libgearman-server/plugins/queue.h>
+namespace boost { namespace program_options { class options_description; } }
+
 #include <libgearman-server/plugins/protocol.h>
+
+namespace gearmand {
+namespace plugins {
+
+void initialize(boost::program_options::options_description &all);
+
+} //namespace plugins
+} //namespace gearmand

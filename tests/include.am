@@ -28,21 +28,20 @@ noinst_PROGRAMS += tests/memcached_test
 endif
 endif
 
-tests_memcached_test_SOURCES= tests/memcached_test.c
+tests_memcached_test_SOURCES= tests/memcached_test.cc
 tests_memcached_test_LDADD= ${CLIENT_LDADD}
 
 if HAVE_LIBSQLITE3
+SQLITE_TEST= tests/sqlite_test
 QUEUE_REGRESSION_TEST= tests/queue_regression
-SQLITE_TEST= tests/sqlite_test tests/queue_regression
-SQLITE_RM= @rm -f tests/gearman.sql tests/gearman.sql-journal
 CLEANFILES+= tests/gearman.sql tests/gearman.sql-journal tests/gearmand.log*
 noinst_PROGRAMS += tests/sqlite_test tests/queue_regression
 endif
 
-tests_sqlite_test_SOURCES= tests/sqlite_test.c
+tests_sqlite_test_SOURCES= tests/sqlite_test.cc
 tests_sqlite_test_LDADD= ${CLIENT_LDADD}
 
-tests_queue_regression_SOURCES= tests/queue_regression.c tests/test_worker.c
+tests_queue_regression_SOURCES= tests/queue_regression.cc
 tests_queue_regression_LDADD= ${CLIENT_LDADD}
 
 if HAVE_LIBTOKYOCABINET
@@ -57,10 +56,10 @@ DRIZZLE_TEST= tests/drizzle_test
 noinst_PROGRAMS += tests/drizzle_test
 endif
 
-tests_tokyocabinet_test_SOURCES= tests/tokyocabinet_test.c
+tests_tokyocabinet_test_SOURCES= tests/tokyocabinet_test.cc
 tests_tokyocabinet_test_LDADD= ${CLIENT_LDADD}
 
-tests_drizzle_test_SOURCES= tests/drizzle_test.c tests/test_worker.c
+tests_drizzle_test_SOURCES= tests/drizzle_test.cc
 tests_drizzle_test_LDADD= ${CLIENT_LDADD}
 
 noinst_PROGRAMS+= \
@@ -73,25 +72,22 @@ noinst_PROGRAMS+= \
 		  tests/round_robin_test \
 		  tests/worker_test
 
-noinst_HEADERS+= \
-		 tests/test_worker.h
-
-tests_client_test_SOURCES= tests/test_worker.c tests/client_test.c
+tests_client_test_SOURCES= tests/client_test.cc
 tests_client_test_LDADD= ${CLIENT_LDADD}
 
-tests_burnin_test_SOURCES= tests/test_worker.c tests/burnin.c
+tests_burnin_test_SOURCES= tests/burnin.cc
 tests_burnin_test_LDADD= ${CLIENT_LDADD}
 
-tests_internals_test_SOURCES= tests/internals.c
+tests_internals_test_SOURCES= tests/internals.cc
 tests_internals_test_LDADD= ${CLIENT_LDADD} libgearman/libgearmancore.la
 
-tests_regression_test_SOURCES= tests/regression.c
+tests_regression_test_SOURCES= tests/regression.cc
 tests_regression_test_LDADD= ${CLIENT_LDADD} libgearman/libgearmancore.la
 
-tests_round_robin_test_SOURCES= tests/round_robin.c
+tests_round_robin_test_SOURCES= tests/round_robin.cc
 tests_round_robin_test_LDADD= ${CLIENT_LDADD} libgearman/libgearmancore.la
 
-tests_worker_test_SOURCES= tests/worker_test.c
+tests_worker_test_SOURCES= tests/worker_test.cc
 tests_worker_test_LDADD= ${CLIENT_LDADD}
 
 # Test linking with C++ application
@@ -130,13 +126,11 @@ endif
 test-sqlite:
 if HAVE_LIBSQLITE3
 	$(SQLITE_TEST) $(ARG1) $(ARG2)
-	$(SQLITE_RM)
 endif
 
 gdb-sqlite:
 if HAVE_LIBSQLITE3
 	$(LIBTOOL) --mode=execute gdb tests/sqlite_test
-	$(SQLITE_RM)
 endif
 
 test-tokyocabinet:
@@ -188,7 +182,6 @@ valgrind-libmemcached:
 valgrind-sqlite:
 if HAVE_LIBSQLITE3
 	$(VALGRIND_COMMAND) $(SQLITE_TEST) $(ARG1) $(ARG2)
-	$(SQLITE_RM)
 endif
 
 valgrind-tokyocabinet:

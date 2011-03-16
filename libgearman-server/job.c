@@ -13,6 +13,9 @@
 
 #include "common.h"
 
+#include <libgearman-server/list.h>
+#include <libgearman-server/hash.h>
+
 /*
  * Private declarations
  */
@@ -44,6 +47,10 @@ _server_job_get_unique(gearman_server_st *server, uint32_t unique_key,
                        const char *unique, size_t data_size);
 
 /** @} */
+
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#pragma GCC diagnostic ignored "-fpermissive"
+
 
 /*
  * Public definitions
@@ -151,7 +158,7 @@ gearman_server_job_add(gearman_server_st *server,
                           strlen(server_job->job_handle));
     server_job->job_handle_key= key;
     key= key % GEARMAND_JOB_HASH_SIZE;
-    GEARMAN_HASH_ADD(server->job, key, server_job,);
+    gearmand_hash_server_add(server, key, server_job);
 
     if (server->state.queue_startup)
     {
@@ -225,7 +232,7 @@ gearman_server_job_create(gearman_server_st *server)
   if (server->free_job_count > 0)
   {
     server_job= server->free_job_list;
-    GEARMAN_LIST_DEL(server->free_job, server_job,)
+    gearmand_server_free_job_list_free(server, server_job);
   }
   else
   {
@@ -283,12 +290,16 @@ void gearman_server_job_free(gearman_server_job_st *server_job)
   GEARMAN_HASH_DEL(Server->unique, key, server_job, unique_);
 
   key= server_job->job_handle_key % GEARMAND_JOB_HASH_SIZE;
-  GEARMAN_HASH_DEL(Server->job, key, server_job,);
+  gearmand_hash_server_free(Server, key, server_job);
 
   if (Server->free_job_count < GEARMAN_MAX_FREE_SERVER_JOB)
-    GEARMAN_LIST_ADD(Server->free_job, server_job,)
+  {
+    gearmand_server_job_list_add(Server, server_job);
+  }
   else
+  {
     free(server_job);
+  }
 }
 
 gearman_server_job_st *gearman_server_job_get(gearman_server_st *server,
@@ -390,7 +401,8 @@ gearman_server_job_take(gearman_server_con_st *server_con)
     GEARMAN_LIST_DEL(server_con->worker, server_worker, con_)
     _server_con_worker_list_append(server_con->worker_list, server_worker);
     ++server_con->worker_count;
-    if (server_con->worker_list == NULL) {
+    if (server_con->worker_list == NULL)
+    {
       server_con->worker_list= server_worker;
     }
   }

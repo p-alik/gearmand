@@ -9,9 +9,22 @@
 
 #include "config.h"
 
+#include "libtest/visibility.h"
+
 #include <sys/types.h>
 #include <netdb.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+LIBTEST_API
 pid_t test_gearmand_start(in_port_t port, const char *queue_type,
                           char *argv[], int argc);
+
+LIBTEST_API
 void test_gearmand_stop(pid_t gearmand_pid);
+
+#ifdef __cplusplus
+}
+#endif

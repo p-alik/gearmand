@@ -266,7 +266,7 @@ static gearmand_error_t _thread_packet_read(gearman_server_con_st *con)
       }
     }
 
-    (void)gearman_io_recv(con, &ret, true);
+    ret= gearman_io_recv(con, true);
     if (ret != GEARMAN_SUCCESS)
     {
       if (ret == GEARMAN_IO_WAIT)

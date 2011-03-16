@@ -13,4 +13,4 @@ noinst_HEADERS+= \
                  libgearman-server/plugins/protocol/http/protocol.h
 
 libgearman_server_libgearman_server_la_SOURCES+= \
-                                                 libgearman-server/plugins/protocol/http/protocol.c
+                                                 libgearman-server/plugins/protocol/http/protocol.cc

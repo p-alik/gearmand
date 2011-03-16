@@ -44,7 +44,7 @@ struct gearmand_packet_st
   struct gearmand_packet_st *next;
   struct gearmand_packet_st *prev;
   char *args;
-  const void *data;
+  const char *data;
   char *arg[GEARMAN_MAX_COMMAND_ARGS];
   size_t arg_size[GEARMAN_MAX_COMMAND_ARGS];
   char args_buffer[GEARMAN_ARGS_BUFFER_SIZE];

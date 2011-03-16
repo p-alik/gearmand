@@ -14,7 +14,7 @@ noinst_HEADERS+= \
 		 libgearman-server/plugins/queue/tokyocabinet/queue.h
 
 libgearman_server_libgearman_server_la_SOURCES+= \
-						 libgearman-server/plugins/queue/tokyocabinet/queue.c
+						 libgearman-server/plugins/queue/tokyocabinet/queue.cc
 
 libgearman_server_libgearman_server_la_LIBADD+= $(LTLIBTOKYOCABINET)
 

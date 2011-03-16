@@ -1,3 +1,5 @@
+0.19
+
 0.18 Tue Mar 15 13:32:33 PDT 2011
   * Bug fix for compile when no plugins are requested.
   * Bug fix where during startup using Drizzle or MySQL the server could crash.

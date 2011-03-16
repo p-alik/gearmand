@@ -11,14 +11,12 @@
   Structures for generic tests.
 */
 
-#ifdef	__cplusplus
-extern "C" {
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <libtest/visibility.h>
+
 
 typedef struct world_st world_st;
 typedef struct collection_st collection_st;
@@ -120,14 +118,21 @@ typedef struct {
   uint32_t total;
 } world_stats_st;
 
+#ifdef	__cplusplus
+extern "C" {
+#endif
+
 /* How we make all of this work :) */
+LIBTEST_API
 void get_world(world_st *world);
 
+LIBTEST_INTERNAL_API
 void create_core(void);
 
 /**
   @note Friendly print function for errors.
 */
+LIBTEST_INTERNAL_API
 const char *test_strerror(test_return_t code);
 
 #define test_truth(A) \

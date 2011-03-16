@@ -56,8 +56,8 @@
 #endif
 
 #include <libgearman-server/gearmand.h>
-
 #include <libgearman-server/plugins.h>
+#include <libgearman-server/queue.h>
 
 #define GEARMAND_LOG_REOPEN_TIME 60
 #define GEARMAND_LISTEN_BACKLOG 32
@@ -65,6 +65,7 @@
 #include "util/daemon.h"
 #include "util/pidfile.h"
 
+#include <boost/program_options.hpp>
 #include <iostream>
 
 using namespace gearman_util;
@@ -105,12 +106,12 @@ inline void message(const std::string &arg, gearmand_error_t rc)
 
 struct gearmand_log_info_st
 {
-  const char *file;
+  std::string filename;
   int fd;
   time_t reopen;
 
-  gearmand_log_info_st() :
-    file(NULL),
+  gearmand_log_info_st(const std::string &filename_arg) :
+    filename(filename_arg),
     fd(-1),
     reopen(0)
   {
@@ -125,28 +126,26 @@ static bool _set_signals(void);
 static void _shutdown_handler(int signal_arg);
 static void _log(const char *line, gearmand_verbose_t verbose, void *context);
 
-static gearmand_error_t queue_init(gearmand_st *_gearmand, gearman_conf_st &conf, const char *queue_type);
-static void queue_deinit(gearmand_st *_gearmand, const char *queue_type);
-static int queue_configure(gearman_conf_st &conf);
-
 int main(int argc, char *argv[])
 {
   int backlog= GEARMAND_LISTEN_BACKLOG;
   rlim_t fds= 0;
   uint8_t job_retries= 0;
   uint8_t worker_wakeup= 0;
-  char port[NI_MAXSERV];
-  const char *host= NULL;
-  const char *pid_file= "";
-  const char *queue_type= NULL;
-  uint32_t threads= 4;
-  const char *user= NULL;
-  uint8_t verbose_count= 0;
-  gearmand_log_info_st log_info;
-  bool round_robin= false;
-  bool opt_daemon= false;
 
-  port[0]= 0;
+  std::string host;
+  std::string user;
+  std::string log_file;
+  std::string pid_file;
+  std::string port;
+  std::string protocol;
+  std::string queue_type;
+  std::string verbose_string;
+
+  uint32_t threads;
+  uint8_t verbose_count= 0;
+  bool opt_round_robin;
+  bool opt_daemon;
 
   gearman_conf_st conf;
   if (gearman_conf_create(&conf) == NULL)
@@ -162,168 +161,91 @@ int main(int argc, char *argv[])
     return 1;
   }
 
-  /* Add all main configuration options. */
-#define MCO(__name, __short, __value, __help) \
-  gearman_conf_module_add_option(&module, __name, __short, __value, __help);
+  boost::program_options::options_description general("General options");
 
-  MCO("backlog", 'b', "BACKLOG", "Number of backlog connections for listen.")
-  MCO("daemon", 'd', NULL, "Daemon, detach and run in the background.")
-  MCO("file-descriptors", 'f', "FDS",
-      "Number of file descriptors to allow for the process (total connections "
-      "will be slightly less). Default is max allowed for user.")
-  MCO("help", 'h', NULL, "Print this help menu.");
-  MCO("job-retries", 'j', "RETRIES",
-      "Number of attempts to run the job before the job server removes it. This"
-      "is helpful to ensure a bad job does not crash all available workers. "
-      "Default is no limit.")
-  MCO("log-file", 'l', "FILE",
-      "Log file to write errors and information to. Turning this option on "
-      "also forces the first verbose level to be enabled.")
-  MCO("listen", 'L', "ADDRESS",
-      "Address the server should listen on. Default is INADDR_ANY.")
-  MCO("port", 'p', "PORT", "Port the server should listen on.")
-  MCO("pid-file", 'P', "FILE", "File to write process ID out to.")
-  MCO("protocol", 'r', "PROTOCOL", "Load protocol module.")
-  MCO("round-robin", 'R', NULL, "Assign work in round-robin order per worker"
-      "connection. The default is to assign work in the order of functions "
-      "added by the worker.")
-  MCO("queue-type", 'q', "QUEUE", "Persistent queue type to use.")
-  MCO("threads", 't', "THREADS", "Number of I/O threads to use. Default=4.")
-  MCO("user", 'u', "USER", "Switch to given user after startup.")
-  MCO("verbose", 'v', NULL, "Increase verbosity level by one.")
-  MCO("version", 'V', NULL, "Display the version of gearmand and exit.")
-  MCO("worker-wakeup", 'w', "WORKERS",
-      "Number of workers to wakeup for each job received. The default is to "
-      "wakeup all available workers.")
+  general.add_options()
+  ("backlog,b", boost::program_options::value(&backlog)->default_value(GEARMAND_LISTEN_BACKLOG),
+   "Number of backlog connections for listen.")
+  ("daemon,d",boost::program_options::bool_switch(&opt_daemon)->default_value(false),
+   "Daemon, detach and run in the background.")
+  ("file-descriptors,f", boost::program_options::value(&fds),
+   "Number of file descriptors to allow for the process (total connections will be slightly less). Default is max allowed for user.")
+  ("help,h", "Print this help menu.")
+  ("job-retries,j", boost::program_options::value(&job_retries),
+   "Number of attempts to run the job before the job server removes it. This is helpful to ensure a bad job does not crash all available workers. Default is no limit.")
+  ("log-file,l", boost::program_options::value(&log_file),
+   "Log file to write errors and information to. Turning this option on also forces the first verbose level to be enabled.")
+  ("listen,L", boost::program_options::value(&host),
+   "Address the server should listen on. Default is INADDR_ANY.")
+  ("port,p", boost::program_options::value(&port)->default_value(GEARMAN_DEFAULT_TCP_PORT_STRING), 
+   "Port the server should listen on.")
+  ("pid-file,P", boost::program_options::value(&pid_file), 
+   "File to write process ID out to.")
+  ("protocol,r", boost::program_options::value(&protocol), 
+   "Load protocol module.")
+  ("round-robin,R", boost::program_options::bool_switch(&opt_round_robin)->default_value(false),
+   "Assign work in round-robin order per worker connection. The default is to assign work in the order of functions added by the worker.")
+  ("queue-type,q", boost::program_options::value(&queue_type),
+   "Persistent queue type to use.")
+  ("threads,t", boost::program_options::value(&threads)->default_value(4),
+   "Number of I/O threads to use. Default=4.")
+  ("user,u", boost::program_options::value(&user),
+   "Switch to given user after startup.")
+  ("verbose,v", boost::program_options::value(&verbose_string)->default_value("v"),
+   "Increase verbosity level by one.")
+  ("version,V", "Display the version of gearmand and exit.")
+  ("worker-wakeup,w", boost::program_options::value(&worker_wakeup),
+   "Number of workers to wakeup for each job received. The default is to wakeup all available workers.")
+  ;
 
-  /* Make sure none of the gearman_conf_module_add_option calls failed. */
-  if (gearman_conf_return(&conf) != GEARMAN_SUCCESS)
+  boost::program_options::options_description all("Allowed options");
+  all.add(general);
+
+  gearmand::protocol::HTTP http;
+  all.add(http.command_line_options());
+
+  gearmand::plugins::initialize(all);
+
+  boost::program_options::variables_map vm;
+  try {
+    store(parse_command_line(argc, argv, all), vm);
+    notify(vm);
+  }
+
+  catch(std::exception &e)
   {
-    error::message("gearman_conf_module_add_option", gearman_conf_error(&conf));
+    std::cout << e.what() << std::endl;
     return 1;
   }
 
-  /* Add queue configuration options. */
-  if (queue_configure(conf))
+  if (vm.count("help"))
   {
+    std::cout << all << std::endl;
     return 1;
   }
 
-
-  if (gearmand_protocol_http_conf(&conf) != GEARMAN_SUCCESS)
+  if (vm.count("version"))
   {
-    error::message("gearman_protocol_http_conf", gearman_conf_error(&conf));
+    std::cout << std::endl << "gearmand " << gearmand_version() << " - " <<  gearmand_bugreport() << std::endl;
     return 1;
   }
 
-  /* Let gearman conf parse the command line arguments. */
-  if (gearman_conf_parse_args(&conf, argc, argv) != GEARMAN_SUCCESS)
-  {
-    std::cout << std::endl << gearman_conf_error(&conf) << std::endl;
-    std::cout << "gearmand " << gearmand_version() << " - " <<  gearmand_bugreport() << std::endl;
-    std::cout << "usage: " << argv[0] << " [OPTIONS]" << std::endl;
-    gearman_conf_usage(&conf);
-
-    return 1;
-  }
-
-  /* Check for option values that were given. */
-  const char *name;
-  const char *value;
-
-  while (gearman_conf_module_value(&module, &name, &value))
-  {
-    if (not strcmp(name, "backlog"))
-    {
-      backlog= atoi(value);
-    }
-    else if (not strcmp(name, "daemon"))
-    {
-      opt_daemon= true;
-    }
-    else if (not strcmp(name, "file-descriptors"))
-    {
-      fds= static_cast<rlim_t>(atoi(value));
-    }
-    else if (not strcmp(name, "help"))
-    {
-      std::cout << "\ngearmand " << gearmand_version() << " - " <<  gearmand_bugreport() << std::endl;
-      std::cout << "usage: " << argv[0] << " [OPTIONS]" << std::endl;
-      gearman_conf_usage(&conf);
-      return 1;
-    }
-    else if (not strcmp(name, "job-retries"))
-    {
-      job_retries= static_cast<uint8_t>(atoi(value));
-    }
-    else if (not strcmp(name, "log-file"))
-    {
-      log_info.file= value;
-    }
-    else if (not strcmp(name, "listen"))
-    {
-      host= value;
-    }
-    else if (not strcmp(name, "port"))
-    {
-      strncpy(port, value, NI_MAXSERV);
-    }
-    else if (not strcmp(name, "pid-file"))
-    {
-      pid_file= value;
-    }
-    else if (not strcmp(name, "protocol"))
-    {
-      continue;
-    }
-    else if (not strcmp(name, "queue-type"))
-    {
-      queue_type= value;
-    }
-    else if (not strcmp(name, "threads"))
-    {
-      threads= static_cast<uint32_t>(atoi(value));
-    }
-    else if (not strcmp(name, "user"))
-    {
-      user= value;
-    }
-    else if (not strcmp(name, "verbose"))
-    {
-      verbose_count++;
-    }
-    else if (not strcmp(name, "round-robin"))
-    {
-      round_robin= true;
-    }
-    else if (not strcmp(name, "version"))
-    {
-      std::cout << "\ngearmand " << gearmand_version() << " - " <<  gearmand_bugreport() << std::endl;
-    }
-    else if (not strcmp(name, "worker-wakeup"))
-    {
-      worker_wakeup= static_cast<uint8_t>(atoi(value));
-    }
-    else
-    {
-      error::message("Unknown option", name);
-      return 1;
-    }
-  }
+  verbose_count= static_cast<gearmand_verbose_t>(verbose_string.length());
 
   if (opt_daemon)
   {
     gearmand::daemonize(false, true);
   }
 
-  if ((fds > 0 && _set_fdlimit(fds)) || _switch_user(user) || _set_signals())
+  if ((fds > 0 && _set_fdlimit(fds))
+      or _switch_user(user.empty() ? NULL : user.c_str()) 
+      or _set_signals())
   {
     return 1;
   }
 
   if (opt_daemon)
     gearmand::daemon_is_ready(verbose_count == 0);
-
 
   gearmand_verbose_t verbose= verbose_count > static_cast<int>(GEARMAND_VERBOSE_CRAZY) ? GEARMAND_VERBOSE_CRAZY : static_cast<gearmand_verbose_t>(verbose_count);
 
@@ -335,20 +257,23 @@ int main(int argc, char *argv[])
     return 1;
   }
 
+  gearmand_log_info_st log_info(log_file);
+
   gearmand_st *_gearmand;
-  _gearmand= gearmand_create(host, port, threads, backlog, job_retries, worker_wakeup,
+  _gearmand= gearmand_create(host.empty() ? NULL : host.c_str(),
+                             port.c_str(), threads, backlog, job_retries, worker_wakeup,
                              _log, &log_info, verbose,
-                             round_robin);
+                             opt_round_robin);
   if (_gearmand == NULL)
   {
     error::message("Could not create gearmand library instance.");
     exit(1);
   }
 
-  if (queue_type)
+  if (not queue_type.empty())
   {
     gearmand_error_t rc;
-    if ((rc= queue_init(_gearmand, conf, queue_type)) != GEARMAN_SUCCESS)
+    if ((rc= gearmand::queue::initialize(_gearmand, queue_type.c_str())) != GEARMAN_SUCCESS)
     {
       std::string error_message;
       error_message+= "Failed to initialize queue ";
@@ -360,41 +285,22 @@ int main(int argc, char *argv[])
     }
   }
 
-  while (gearman_conf_module_value(&module, &name, &value))
+  if (not protocol.compare("http"))
   {
-    if (strcmp(name, "protocol"))
-      continue;
-
-    if (not strcmp(value, "http"))
+    if (http.start(_gearmand) != GEARMAN_SUCCESS)
     {
-      gearmand_error_t ret;
-      ret= gearmand_protocol_http_init(_gearmand, &conf);
-      if (ret != GEARMAN_SUCCESS)
-        return 1;
-    }
-    else
-    {
-      error::message("Unknown protocol module", value);
+      error::message("Error while enabling protocol module", protocol.c_str());
       return 1;
     }
+  }
+  else if (not protocol.empty())
+  {
+    error::message("Unknown protocol module", protocol.c_str());
+    return 1;
   }
 
   gearmand_error_t ret;
   ret= gearmand_run(_gearmand);
-
-  if (queue_type)
-  {
-    queue_deinit(_gearmand, queue_type);
-  }
-
-  while (gearman_conf_module_value(&module, &name, &value))
-  {
-    if (strcmp(name, "protocol"))
-      continue;
-
-    if (not strcmp(value, "http"))
-      gearmand_protocol_http_deinit(_gearmand);
-  }
 
   gearmand_free(_gearmand);
 
@@ -516,7 +422,7 @@ static void _log(const char *line, gearmand_verbose_t verbose, void *context)
   gearmand_log_info_st *log_info= static_cast<gearmand_log_info_st *>(context);
   int fd;
 
-  if (log_info->file == NULL)
+  if (log_info->filename.empty())
   {
     fd= 1;
   }
@@ -532,7 +438,7 @@ static void _log(const char *line, gearmand_verbose_t verbose, void *context)
 
     if (log_info->fd == -1)
     {
-      log_info->fd= open(log_info->file, O_CREAT | O_WRONLY | O_APPEND, 0644);
+      log_info->fd= open(log_info->filename.c_str(), O_CREAT | O_WRONLY | O_APPEND, 0644);
       if (log_info->fd == -1)
       {
 	error::perror("Could not open log file for writing.");
@@ -552,120 +458,4 @@ static void _log(const char *line, gearmand_verbose_t verbose, void *context)
   {
     error::perror("Could not write to log file.");
   }
-}
-
-static gearmand_error_t queue_init(gearmand_st *_gearmand, gearman_conf_st &conf, const char *queue_type)
-{
-  (void)_gearmand;
-  (void)conf;
-#ifdef HAVE_LIBDRIZZLE
-  if (not strcmp(queue_type, "libdrizzle"))
-  {
-    return gearmand_queue_libdrizzle_init(_gearmand, &conf);
-  }
-  else
-#endif
-#ifdef HAVE_LIBMEMCACHED
-  if (not strcmp(queue_type, "libmemcached"))
-  {
-    return gearmand_queue_libmemcached_init(_gearmand, &conf);
-  }
-  else
-#endif
-#ifdef HAVE_LIBSQLITE3
-  if (not strcmp(queue_type, "libsqlite3"))
-  {
-    return gearmand_queue_libsqlite3_init(_gearmand, &conf);
-  }
-  else
-#endif
-#ifdef HAVE_LIBPQ
-  if (not strcmp(queue_type, "libpq"))
-  {
-    return gearmand_queue_libpq_init(_gearmand, &conf);
-  }
-  else
-#endif
-#ifdef HAVE_LIBTOKYOCABINET
-  if (not strcmp(queue_type, "libtokyocabinet"))
-  {
-    return gearmand_queue_libtokyocabinet_init(_gearmand, &conf);
-  }
-#endif        
-
-  error::message("Unknown queue module", queue_type);
-
-  return GEARMAN_UNKNOWN_OPTION;
-}
-
-
-static void queue_deinit(gearmand_st *_gearmand, const char *queue_type)
-{
-  (void)_gearmand;
-  (void)queue_type;
-#ifdef HAVE_LIBDRIZZLE
-  if (not strcmp(queue_type, "libdrizzle"))
-    gearmand_queue_libdrizzle_deinit(_gearmand);
-#endif
-#ifdef HAVE_LIBMEMCACHED
-  if (not strcmp(queue_type, "libmemcached"))
-    gearmand_queue_libmemcached_deinit(_gearmand);
-#endif
-#ifdef HAVE_LIBSQLITE3
-  if (not strcmp(queue_type, "libsqlite3"))
-    gearmand_queue_libsqlite3_deinit(_gearmand);
-#endif
-#ifdef HAVE_LIBPQ
-  if (not strcmp(queue_type, "libpq"))
-    gearmand_queue_libpq_deinit(_gearmand);
-#endif
-#ifdef HAVE_LIBTOKYOCABINET
-  if (not strcmp(queue_type, "libtokyocabinet"))
-    gearmand_queue_libtokyocabinet_deinit(_gearmand);
-#endif
-}
-
-static int queue_configure(gearman_conf_st &conf)
-{
-  (void)conf;
-#ifdef HAVE_LIBDRIZZLE
-  if (gearman_server_queue_libdrizzle_conf(&conf) != GEARMAN_SUCCESS)
-  {
-    error::message("gearman_queue_libdrizzle_conf", gearman_conf_error(&conf));
-    return 1;
-  }
-#endif
-
-#ifdef HAVE_LIBMEMCACHED
-  if (gearman_server_queue_libmemcached_conf(&conf) != GEARMAN_SUCCESS)
-  {
-    error::message("gearman_queue_libmemcached_conf", gearman_conf_error(&conf));
-    return 1;
-  }
-#endif
-#ifdef HAVE_LIBTOKYOCABINET
-  if (gearman_server_queue_libtokyocabinet_conf(&conf) != GEARMAN_SUCCESS)
-  {
-    error::message("gearman_queue_libtokyocabinet_conf", gearman_conf_error(&conf));
-    return 1;
-  }
-#endif
-
-#ifdef HAVE_LIBSQLITE3
-  if (gearman_server_queue_libsqlite3_conf(&conf) != GEARMAN_SUCCESS)
-  {
-    error::message("gearman_queue_libsqlite3_conf", gearman_conf_error(&conf));
-    return 1;
-  }
-#endif
-
-#ifdef HAVE_LIBPQ
-  if (gearman_server_queue_libpq_conf(&conf) != GEARMAN_SUCCESS)
-  {
-    error::message("gearman_queue_libpq_conf", gearman_conf_error(&conf));
-    return 1;
-  }
-#endif
-
-  return 0;
 }

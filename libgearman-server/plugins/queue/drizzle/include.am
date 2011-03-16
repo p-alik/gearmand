@@ -14,7 +14,7 @@ noinst_HEADERS+= \
 		 libgearman-server/plugins/queue/drizzle/queue.h
 
 libgearman_server_libgearman_server_la_SOURCES+= \
-						 libgearman-server/plugins/queue/drizzle/queue.c
+						 libgearman-server/plugins/queue/drizzle/queue.cc
 
 libgearman_server_libgearman_server_la_LIBADD+= $(LTLIBDRIZZLE)
 endif

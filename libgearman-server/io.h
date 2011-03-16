@@ -98,8 +98,7 @@ gearmand_error_t gearman_io_send(gearman_server_con_st *connection,
  * Used by thread to recv packets.
  */
 GEARMAN_INTERNAL_API
-  gearmand_packet_st *gearman_io_recv(gearman_server_con_st *con,
-                                      gearmand_error_t *ret_ptr, bool recv_data);
+gearmand_error_t gearman_io_recv(gearman_server_con_st *con, bool recv_data);
 
 /**
  * Set events to be watched for a connection.

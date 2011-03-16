@@ -13,53 +13,51 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <libgearman-server/plugins/base.h>
 
-/**
- * @addtogroup gearman_protocol_http HTTP Protocol Declarations
- * @ingroup gearman_server_protocol
- *
- * This module provides a simple HTTP interface into the Gearman job server. It
- * is also meant to serve as an example of how other protocols can plug into
- * the server. This module will ignore all headers except:
- *
- * Content-Length: SIZE
- * Connection: Keep-Alive
- * X-Gearman-Unique: UNIQUE_KEY
- * X-Gearman-Background: true
- * X-Gearman-Priority: HIGH | LOW
- *
- * All HTTP requests are translated into SUBMIT_JOB requests, and only
- * WORK_COMPLETE, WORK_FAIL, and JOB_CREATED responses are returned.
- * JOB_CREATED packet are only sent back if the "X-Gearman-Background: true"
- * header is given.
- *
- * @{
- */
+struct gearmand_st;
 
-/**
- * Get module configuration options.
- */
-GEARMAN_API
-gearmand_error_t gearmand_protocol_http_conf(gearman_conf_st *conf);
+namespace gearmand {
+namespace protocol {
 
-/**
- * Initialize the HTTP protocol module.
- */
-GEARMAN_API
-gearmand_error_t gearmand_protocol_http_init(gearmand_st *gearmand,
-                                             gearman_conf_st *conf);
+class HTTP : public gearmand::Plugin {
+  bool _background;
+  bool _keep_alive;
+  std::string global_port;
 
-/**
- * De-initialize the HTTP protocol module.
- */
-GEARMAN_API
-gearmand_error_t gearmand_protocol_http_deinit(gearmand_st *gearmand);
+public:
 
-/** @} */
+  HTTP();
+  ~HTTP();
 
-#ifdef __cplusplus
-}
-#endif
+  gearmand_error_t start(gearmand_st *gearmand);
+
+  bool background()
+  {
+    return _background;
+  }
+
+  bool keep_alive()
+  {
+    return _keep_alive;
+  }
+
+  void set_background(bool arg)
+  {
+    _background= arg;
+  }
+
+  void set_keep_alive(bool arg)
+  {
+    _keep_alive= arg;
+  }
+
+  void reset()
+  {
+    _background= false;
+    _keep_alive= false;
+  }
+};
+
+} // namespace protocol
+} // namespace gearmand
