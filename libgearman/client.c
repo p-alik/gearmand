@@ -802,6 +802,19 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
 				  (int)(client->con->packet.arg_size[1]),
 				  (char *)(client->con->packet.arg[1]));
 
+                /* Packet cleanup copied from "Clean up the packet" below, and must
+                   remain in sync with its reference. */
+                gearman_packet_free(&(client->con->packet));
+                client->con->options.packet_in_use= false;
+
+                /* Task cleanup copied from bottom of _client_run_tasks(), and must
+                   remain in sync with its reference. */
+                client->running_tasks--;
+                client->task->state= GEARMAN_TASK_STATE_FINISHED;
+
+                if (client->options.free_tasks)
+                  gearman_task_free(client->task);
+
                 return GEARMAN_SERVER_ERROR;
               }
               else if (strncmp(client->task->job_handle,
