@@ -220,5 +220,5 @@ void gearmand_log_gai_error(const char *position, const char *message, const int
     return;
   }
 
-  gearmand_log_error("%s(%s) -> %s", message, gai_strerror(rc), position);
+  gearmand_log_error("%s getaddrinfo(%s) -> %s", message, gai_strerror(rc), position);
 }
