@@ -16,5 +16,5 @@ noinst_HEADERS+= \
 libgearman_server_libgearman_server_la_SOURCES+= \
 						 libgearman-server/plugins/queue/libmemcached/queue.c
 
-libgearman_server_libgearman_server_la_LIBADD+= $(LTLIBPQ)
+libgearman_server_libgearman_server_la_LIBADD+= $(LTLIBMEMCACHED)
 endif

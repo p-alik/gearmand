@@ -627,6 +627,14 @@ static test_return_t strerror_count(void *object  __attribute__((unused)))
 
 #undef MAKE_NEW_STRERROR
 
+static char * make_number(uint32_t expected, uint32_t got)
+{
+  char buffer[1024];
+  snprintf(buffer, sizeof(buffer), "Expected %uU, got %uU", expected, got);
+
+  return strdup(buffer);
+}
+
 static test_return_t strerror_strings(void *object  __attribute__((unused)))
 {
   gearman_return_t rc;
@@ -634,7 +642,7 @@ static test_return_t strerror_strings(void *object  __attribute__((unused)))
 			1834995715U, 1009419836U, 1038124396U, 3050095617U,
 			4004269877U, 2913489720U, 1389266665U, 1374361090U,
 			3775104989U, 1158738795U, 2490507301U, 426780991U,
-			2421852085U, 426121997U, 3669711613U, 1027733609U,
+			2421852085U, 426121997U, 3669711613U, 2620567638U,
 			48094985U, 4052600452U, 2697110207U, 4260329382U,
 			3706494438U, 1765339649U, 1176029865U, 2899482444U,
 			2255507756U, 1844534215U, 1685626311U, 3134591697U,
@@ -667,7 +675,7 @@ static test_return_t strerror_strings(void *object  __attribute__((unused)))
       flip_flop++;
     }
 #else
-    test_truth(values[rc] == hash_val);
+    test_true_got(values[rc] == hash_val, make_number(values[rc], hash_val));
 #endif
   }
 

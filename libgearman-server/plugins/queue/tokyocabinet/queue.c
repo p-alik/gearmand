@@ -30,17 +30,17 @@ typedef struct
 
 /* Queue callback functions. */
 static gearmand_error_t _libtokyocabinet_add(gearman_server_st *server, void *context,
-                                             const void *unique,
+                                             const char *unique,
                                              size_t unique_size,
-                                             const void *function_name,
+                                             const char *function_name,
                                              size_t function_name_size,
                                              const void *data, size_t data_size,
                                              gearmand_job_priority_t priority);
 static gearmand_error_t _libtokyocabinet_flush(gearman_server_st *server, void *context);
 static gearmand_error_t _libtokyocabinet_done(gearman_server_st *server, void *context,
-                                              const void *unique,
+                                              const char *unique,
                                               size_t unique_size, 
-                                              const void *function_name, 
+                                              const char *function_name, 
                                               size_t function_name_size);
 static gearmand_error_t _libtokyocabinet_replay(gearman_server_st *server, void *context,
                                                 gearman_queue_add_fn *add_fn,
@@ -201,9 +201,9 @@ gearmand_error_t gearmand_queue_libtokyocabinet_deinit(gearmand_st *gearmand)
  */
 
 static gearmand_error_t _libtokyocabinet_add(gearman_server_st *server, void *context,
-                                             const void *unique,
+                                             const char *unique,
                                              size_t unique_size,
-                                             const void *function_name,
+                                             const char *function_name,
                                              size_t function_name_size,
                                              const void *data, size_t data_size,
                                              gearmand_job_priority_t priority)
@@ -277,9 +277,9 @@ static gearmand_error_t _libtokyocabinet_flush(gearman_server_st *server,
 }
 
 static gearmand_error_t _libtokyocabinet_done(gearman_server_st *server, void *context,
-                                              const void *unique,
+                                              const char *unique,
                                               size_t unique_size, 
-                                              const void *function_name,
+                                              const char *function_name,
                                               size_t function_name_size)
 {
   (void)server;
@@ -293,9 +293,9 @@ static gearmand_error_t _libtokyocabinet_done(gearman_server_st *server, void *c
   
   char key_str[GEARMAN_QUEUE_TOKYOCABINET_MAX_KEY_LEN];
   size_t key_length= (size_t)snprintf(key_str, GEARMAN_QUEUE_TOKYOCABINET_MAX_KEY_LEN, "%.*s-%.*s",
-                               (int)function_name_size,
-                               (const char *)function_name, (int)unique_size,
-                               (const char *)unique);
+                                      (int)function_name_size,
+                                      (const char *)function_name, (int)unique_size,
+                                      (const char *)unique);
 
   key= tcxstrnew();
   tcxstrcat(key, key_str, (int)key_length);

@@ -1,4 +1,10 @@
-0.17
+0.18 Tue Mar 15 13:32:33 PDT 2011
+  * Bug fix for compile when no plugins are requested.
+  * Bug fix where during startup using Drizzle or MySQL the server could crash.
+  * Bug fix to make sure test programs will run if NULL sized objects are sent.
+
+
+0.17 Tue Mar  8 08:27:04 PST 2011
   * gearadmin added, easy access to shutdown, version, and verbose commands
   on the server.
   * Bug fixes related to CLI.
@@ -6,6 +12,7 @@
   * Bug fixes related to Drizzle support.
   * Dependency on boost now required for build.
   * Drizzle queue module expects that a schema named "gearmand" exists.
+  * Fix copyright headers were needed.
 
 0.16 Tue Feb 22 10:55:33 PST 2011
   * Fixed cases where silent failure of server for queues would not cause tests to fail.

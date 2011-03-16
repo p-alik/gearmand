@@ -1,4 +1,5 @@
 # Gearman server and library
+# Copyright (C) 2011 Data Differential, http://datadifferential.com/
 # Copyright (C) 2008 Brian Aker, Eric Day, Monty Taylor
 # All rights reserved.
 #
@@ -6,7 +7,7 @@
 # the COPYING file in this directory for full text.
 
 AC_PREREQ(2.59)
-AC_INIT([gearmand],[0.17],[https://launchpad.net/gearmand])
+AC_INIT([gearmand],[0.18],[https://launchpad.net/gearmand])
 AC_CONFIG_SRCDIR(libgearman/gearman.c)
 AC_CONFIG_AUX_DIR(config)
 
@@ -26,6 +27,9 @@ GEARMAN_LIBRARY_VERSION=4:0:0
 #                +- increment if interfaces have been added, removed or changed
 AC_SUBST(GEARMAN_LIBRARY_VERSION)
 
+BOOST_REQUIRE
+BOOST_PROGRAM_OPTIONS(mt-)
+
 
 PANDORA_REQUIRE_PTHREAD
 PANDORA_REQUIRE_LIBEVENT
@@ -40,9 +44,6 @@ PANDORA_HAVE_LIBPQ
 PANDORA_HAVE_LIBTOKYOCABINET
 AC_FUNC_STRERROR_R
 SOCKET_SEND_FLAGS
-PANDORA_HAVE_BOOST_TEST
-_PANDORA_SEARCH_BOOST_PROGRAM_OPTIONS
-
 
 AC_CHECK_HEADERS(errno.h fcntl.h getopt.h netinet/tcp.h pwd.h signal.h)
 AC_CHECK_HEADERS(stdarg.h stddef.h stdio.h stdlib.h string.h)

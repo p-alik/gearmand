@@ -37,11 +37,9 @@ int main(int argc, char *argv[])
   size_t min_size= BLOBSLAP_DEFAULT_BLOB_MIN_SIZE;
   size_t max_size= BLOBSLAP_DEFAULT_BLOB_MAX_SIZE;
   uint32_t count= 1;
-  gearman_return_t ret;
   gearman_client_st client;
   gearman_task_st *tasks;
   char *blob;
-  size_t blob_size;
 
   benchmark_init(&benchmark);
 
@@ -70,12 +68,15 @@ int main(int argc, char *argv[])
       break;
 
     case 'h':
-      host= optarg;
-      ret= gearman_client_add_server(&client, host, port);
-      if (ret != GEARMAN_SUCCESS)
       {
-        fprintf(stderr, "%s\n", gearman_client_error(&client));
-        exit(1);
+        host= optarg;
+        gearman_return_t ret= gearman_client_add_server(&client, host, port);
+
+        if (ret != GEARMAN_SUCCESS)
+        {
+          fprintf(stderr, "gearman_client_add_server() -> %s\n", gearman_client_error(&client));
+          exit(1);
+        }
       }
       break;
 
@@ -112,10 +113,12 @@ int main(int argc, char *argv[])
 
   if (host == NULL)
   {
+    gearman_return_t ret;
     ret= gearman_client_add_server(&client, NULL, port);
+
     if (ret != GEARMAN_SUCCESS)
     {
-      fprintf(stderr, "%s\n", gearman_client_error(&client));
+      fprintf(stderr, "gearman_client_add_server() -> %s\n", gearman_client_error(&client));
       exit(1);
     }
   }
@@ -152,6 +155,8 @@ int main(int argc, char *argv[])
   {
     for (uint32_t x= 0; x < num_tasks; x++)
     {
+      size_t blob_size;
+
       if (min_size == max_size)
       {
         blob_size= max_size;
@@ -165,17 +170,20 @@ int main(int argc, char *argv[])
 
         blob_size= (blob_size % (max_size - min_size)) + min_size;
       }
+      
+      const char *blob_ptr= blob_size ? blob : NULL;
 
+      gearman_return_t ret;
       if (benchmark.background)
       {
         (void)gearman_client_add_task_background(&client, &(tasks[x]),
                                                  &benchmark, function, NULL,
-                                                 (void *)blob, blob_size, &ret);
+                                                 (void *)blob_ptr, blob_size, &ret);
       }
       else
       {
         (void)gearman_client_add_task(&client, &(tasks[x]), &benchmark,
-                                      function, NULL, (void *)blob, blob_size,
+                                      function, NULL, (void *)blob_ptr, blob_size,
                                       &ret);
       }
 
@@ -184,7 +192,19 @@ int main(int argc, char *argv[])
         if (ret == GEARMAN_LOST_CONNECTION)
           continue;
 
-        fprintf(stderr, "%s\n", gearman_client_error(&client));
+        if (benchmark.background)
+        {
+          fprintf(stderr, "#%u gearman_client_add_task_background(%s) -> %s\n",
+                  x, gearman_strerror(ret),
+                  gearman_client_error(&client));
+        }
+        else
+        {
+          fprintf(stderr, "%u gearman_client_add_task(%s) -> %s\n",
+                  x, gearman_strerror(ret),
+                  gearman_client_error(&client));
+        }
+
         exit(1);
       }
     }
@@ -194,11 +214,13 @@ int main(int argc, char *argv[])
     gearman_client_set_status_fn(&client, _status);
     gearman_client_set_complete_fn(&client, _complete);
     gearman_client_set_fail_fn(&client, _fail);
+
+    gearman_return_t ret;
     ret= gearman_client_run_tasks(&client);
 
     if (ret != GEARMAN_SUCCESS && ret != GEARMAN_LOST_CONNECTION)
     {
-      fprintf(stderr, "%s\n", gearman_client_error(&client));
+      fprintf(stderr, "gearman_client_run_tasks() -> %s\n", gearman_client_error(&client));
       exit(1);
     }
 

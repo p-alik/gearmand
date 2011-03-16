@@ -11,9 +11,9 @@
  * @brief libmemcached Queue Storage Definitions
  */
 
-#include "common.h"
+#include <libgearman-server/common.h>
 
-#include <libgearman-server/queue_libmemcached.h>
+#include <libgearman-server/plugins/queue/libmemcached/queue.h>
 #include <libmemcached/memcached.h>
 
 /**
@@ -37,19 +37,17 @@ typedef struct
 
 /* Queue callback functions. */
 static gearmand_error_t _libmemcached_add(gearman_server_st *server,
-                                          void *context, const void *unique,
-                                          size_t unique_size,
-                                          const void *function_name,
-                                          size_t function_name_size,
+                                          void *context,
+                                          const char *unique, size_t unique_size,
+                                          const char *function_name, size_t function_name_size,
                                           const void *data, size_t data_size,
                                           gearmand_job_priority_t priority);
 static gearmand_error_t _libmemcached_flush(gearman_server_st *server,
                                             void *context);
 static gearmand_error_t _libmemcached_done(gearman_server_st *server,
-                                           void *context, const void *unique,
-                                           size_t unique_size,
-                                           const void *function_name,
-                                           size_t function_name_size);
+                                           void *context,
+                                           const char *unique, size_t unique_size,
+                                           const char *function_name, size_t function_name_size);
 static gearmand_error_t _libmemcached_replay(gearman_server_st *server,
                                              void *context,
                                              gearman_queue_add_fn *add_fn,
@@ -184,9 +182,10 @@ gearmand_error_t gearmand_queue_libmemcached_deinit(gearmand_st *gearmand)
  */
 
 static gearmand_error_t _libmemcached_add(gearman_server_st *server,
-                                          void *context, const void *unique,
+                                          void *context,
+                                          const char *unique,
                                           size_t unique_size,
-                                          const void *function_name,
+                                          const char *function_name,
                                           size_t function_name_size,
                                           const void *data, size_t data_size,
                                           gearmand_job_priority_t priority)
@@ -226,10 +225,9 @@ static gearmand_error_t _libmemcached_flush(gearman_server_st *server,
 }
 
 static gearmand_error_t _libmemcached_done(gearman_server_st *server,
-                                           void *context, const void *unique,
-                                           size_t unique_size,
-                                           const void *function_name,
-                                           size_t function_name_size)
+                                           void *context,
+                                           const char *unique, size_t unique_size,
+                                           const char *function_name, size_t function_name_size)
 {
   size_t key_length;
   char key[MEMCACHED_MAX_KEY];

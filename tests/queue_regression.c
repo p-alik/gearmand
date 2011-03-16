@@ -1,10 +1,40 @@
-/* Gearman server and library
- * Copyright (C) 2008 Brian Aker, Eric Day
- * All rights reserved.
+/*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
+ * 
+ *  Gearmand client and server library.
  *
- * Use and distribution licensed under the BSD license.  See
- * the COPYING file in the parent directory for full text.
+ *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions are
+ *  met:
+ *
+ *      * Redistributions of source code must retain the above copyright
+ *  notice, this list of conditions and the following disclaimer.
+ *
+ *      * Redistributions in binary form must reproduce the above
+ *  copyright notice, this list of conditions and the following disclaimer
+ *  in the documentation and/or other materials provided with the
+ *  distribution.
+ *
+ *      * The names of its contributors may not be used to endorse or
+ *  promote products derived from this software without specific prior
+ *  written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ *  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ *  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ *  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ *  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ *  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ *  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
+
 
 #include "config.h"
 
@@ -25,33 +55,19 @@
 #include "tests/test_worker.h"
 
 #define WORKER_TEST_PORT 32123
-#define WORKER_FUNCTION "drizzle_queue_test"
+#define WORKER_FUNCTION  "queue_test"
 
 typedef struct
 {
   pid_t gearmand_pid;
-  gearman_worker_st worker;
-  bool run_worker;
-} worker_test_st;
+} local_test_st;
 
 /* Prototypes */
-test_return_t queue_add(void *object);
-test_return_t queue_worker(void *object);
-
 test_return_t pre(void *object);
 test_return_t post(void *object);
-test_return_t flush(void *object);
 
 void *world_create(test_return_t *error);
 test_return_t world_destroy(void *object);
-
-static void client_logger(const char *line, gearman_verbose_t verbose, void *context)
-{
-  (void)line;
-  (void)context;
-  (void)verbose;
-  //fprintf(stderr, "\nclient_logger: %s\n", line);
-}
 
 pthread_mutex_t counter_lock= PTHREAD_MUTEX_INITIALIZER;
 /* Counter test for worker */
@@ -68,63 +84,6 @@ static void *counter_function(gearman_job_st *job __attribute__((unused)),
   pthread_mutex_unlock(&counter_lock);
 
   return NULL;
-}
-
-test_return_t queue_add(void *object)
-{
-  gearman_return_t rc;
-  worker_test_st *test= (worker_test_st *)object;
-  gearman_client_st client;
-  gearman_client_st *check;
-  char job_handle[GEARMAN_JOB_HANDLE_SIZE];
-  const char *workload= "set workload";
-
-  test->run_worker= false;
-
-  check= gearman_client_create(&client);
-  test_truth(check);
-
-  gearman_client_set_log_fn(&client, client_logger, NULL, GEARMAN_VERBOSE_DEBUG);
-
-  rc= gearman_client_add_server(&client, NULL, WORKER_TEST_PORT);
-  test_truth(rc == GEARMAN_SUCCESS);
-
-  rc= gearman_client_do_background(&client, WORKER_FUNCTION, NULL,
-                                   workload, sizeof(workload)-1,
-                                   job_handle);
-  test_true_got(rc == GEARMAN_SUCCESS, gearman_strerror(rc));
-
-  sleep(3); // Yes, this is sleep().
-
-  gearman_client_free(&client);
-
-  test->run_worker= true;
-  return TEST_SUCCESS;
-}
-
-test_return_t queue_worker(void *object)
-{
-  worker_test_st *test= (worker_test_st *)object;
-  gearman_worker_st *worker= &(test->worker);
-  uint32_t counter= 0;
-
-  if (!test->run_worker)
-    return TEST_FAILURE;
-
-  if (gearman_worker_add_function(worker, WORKER_FUNCTION, 
-                                  5, counter_function,
-                                  &counter) != GEARMAN_SUCCESS)
-  {
-    return TEST_FAILURE;
-  }
-
-  if (gearman_worker_work(worker) != GEARMAN_SUCCESS)
-    return TEST_FAILURE;
-
-  if (counter == 0)
-    return TEST_FAILURE;
-
-  return TEST_SUCCESS;
 }
 
 #define NUMBER_OF_WORKERS 10
@@ -184,34 +143,26 @@ static test_return_t lp_734663(void *object)
   return TEST_SUCCESS;
 }
 
+
 void *world_create(test_return_t *error)
 {
-  worker_test_st *test;
+  local_test_st *test;
+  const char *argv[2]= { "test_gearmand", "--libsqlite3-db=tests/gearman.sql"};
   pid_t gearmand_pid;
-  const char *argv[2]= { "test_gearmand", "" };
 
-  gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, "libdrizzle", (char **)argv, 2);
+  unlink("tests/gearman.sql");
+  unlink("tests/gearman.sql-journal");
 
-  test= malloc(sizeof(worker_test_st));
+  gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, "libsqlite3", (char **)argv, 2);
+
+  test= malloc(sizeof(local_test_st));
   if (! test)
   {
     *error= TEST_MEMORY_ALLOCATION_FAILURE;
     return NULL;
   }
 
-  memset(test, 0, sizeof(worker_test_st));
-  if (gearman_worker_create(&(test->worker)) == NULL)
-  {
-    *error= TEST_FAILURE;
-    return NULL;
-  }
-
-  if (gearman_worker_add_server(&(test->worker), NULL, WORKER_TEST_PORT) != GEARMAN_SUCCESS)
-  {
-    *error= TEST_FAILURE;
-    return NULL;
-  }
-
+  memset(test, 0, sizeof(local_test_st));
   test->gearmand_pid= gearmand_pid;
 
   *error= TEST_SUCCESS;
@@ -221,30 +172,23 @@ void *world_create(test_return_t *error)
 
 test_return_t world_destroy(void *object)
 {
-  worker_test_st *test= (worker_test_st *)object;
-  gearman_worker_free(&(test->worker));
+  local_test_st *test= (local_test_st *)object;
   test_gearmand_stop(test->gearmand_pid);
   free(test);
+
+  unlink("tests/gearman.sql");
+  unlink("tests/gearman.sql-journal");
 
   return TEST_SUCCESS;
 }
 
 test_st tests[] ={
-  {"add", 0, queue_add },
-  {"worker", 0, queue_worker },
-  {0, 0, 0}
-};
-
-test_st regressions[] ={
   {"lp:734663", 0, lp_734663 },
   {0, 0, 0}
 };
 
 collection_st collection[] ={
-#ifdef HAVE_LIBDRIZZLE
-  {"drizzle queue", 0, 0, tests},
-  {"regressions", 0, 0, regressions},
-#endif
+  {"queue regressions", 0, 0, tests},
   {0, 0, 0, 0}
 };
 

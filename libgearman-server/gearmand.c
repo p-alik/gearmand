@@ -140,7 +140,16 @@ gearmand_st *gearmand_create(const char *host_arg,
   gearmand_error_t rc;
   if (port && port[0] == 0)
   {
-    rc= gearmand_port_add(gearmand, GEARMAN_DEFAULT_TCP_SERVICE, NULL);
+    struct servent *gearman_servent= getservbyname(GEARMAN_DEFAULT_TCP_SERVICE, NULL);
+
+    if (gearman_servent && gearman_servent->s_name)
+    {
+      rc= gearmand_port_add(gearmand, gearman_servent->s_name, NULL);
+    }
+    else
+    {
+      rc= gearmand_port_add(gearmand, GEARMAN_DEFAULT_TCP_PORT_STRING, NULL);
+    }
   }
   else
   {
@@ -381,7 +390,10 @@ static gearmand_error_t _listen_init(gearmand_st *gearmand)
     ret= getaddrinfo(gearmand->host, port->port, &hints, &addrinfo);
     if (ret != 0)
     {
-      gearmand_gai_error("getaddrinfo", ret);
+      char buffer[1024];
+
+      snprintf(buffer, sizeof(buffer), "%s:%s", gearmand->host ? gearmand->host : "<any>", port->port);
+      gearmand_gai_error(buffer, ret);
       return GEARMAN_ERRNO;
     }
 
