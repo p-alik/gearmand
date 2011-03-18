@@ -3,6 +3,7 @@
  *  Gearmand client and server library.
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2008 Brian Aker, Eric Day
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -37,84 +38,38 @@
 
 #include "config.h"
 
-#include <cstdio>
 #include <cstdlib>
-#include <cstring>
 #include <iostream>
-#include <vector>
+#include <string>
 
-#include <netdb.h>
-#include <sys/socket.h>
-
-#ifdef HAVE_ERRNO_H
-#include <errno.h>
-#endif
-#ifdef HAVE_FCNTL_H
-#include <fcntl.h>
-#endif
-#ifdef HAVE_PWD_H
-#include <pwd.h>
-#endif
-#ifdef HAVE_SIGNAL_H
-#include <signal.h>
-#endif
-#ifdef HAVE_STDIO_H
-#include <stdio.h>
-#endif
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
-#ifdef HAVE_SYS_RESOURCE_H
-#include <sys/resource.h>
-#endif
-#ifdef HAVE_SYS_STAT_H
-#include <sys/stat.h>
-#endif
-#ifdef HAVE_SYS_TYPES_H
-#include <sys/types.h>
-#endif
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-
-#include <libgearman/protocol.h>
+#include <libgearman/gearman.h>
 #include <boost/program_options.hpp>
 
-#include "util/instance.h"
-
-using namespace gearman_util;
-
-/*
-  This is a very quickly build application, I am just tired of telneting to the port.
-*/
-
-#define STRING_WITH_LEN(X) (X), (static_cast<size_t>((sizeof(X) - 1)))
-
+#pragma GCC diagnostic ignored "-Wold-style-cast"
 
 int main(int args, char *argv[])
 {
-  boost::program_options::options_description desc("Options");
+  std::string text_to_echo;
   std::string host;
-  std::string port;
+  in_port_t port;
 
+  boost::program_options::options_description desc("Options");
   desc.add_options()
     ("help", "Options related to the program.")
     ("host,h", boost::program_options::value<std::string>(&host)->default_value("localhost"),"Connect to the host")
-    ("port,p", boost::program_options::value<std::string>(&port)->default_value(GEARMAN_DEFAULT_TCP_PORT_STRING), "Port number or service to use for connection")
-    ("server-version", "Fetch the version number for the server.")
-    ("server-verbose", "Fetch the verbose setting for the server.")
-    ("status", "Status for the server.")
-    ("workers", "Workers for the server.")
-    ("shutdown", "Shutdown server.")
-            ;
+    ("port,p", boost::program_options::value<in_port_t>(&port)->default_value(GEARMAN_DEFAULT_TCP_PORT), "Port number use for connection")
+    ("text", boost::program_options::value<std::string>(&text_to_echo), "Text used for echo")
+    ;
+
+  boost::program_options::positional_options_description text_options;
+  text_options.add("text", -1);
 
   boost::program_options::variables_map vm;
   try
   {
-    boost::program_options::store(boost::program_options::parse_command_line(args, argv, desc), vm);
+    boost::program_options::store(boost::program_options::command_line_parser(args, argv).
+                                  options(desc).positional(text_options).run(), vm);
+
     boost::program_options::notify(vm);
   }
   catch(std::exception &e)
@@ -123,42 +78,54 @@ int main(int args, char *argv[])
     return EXIT_FAILURE;
   }
 
-  Instance instance;
-
-  instance.set_host(host);
-  instance.set_port(port);
-
   if (vm.count("help"))
   {
     std::cout << desc << std::endl;
+    return EXIT_SUCCESS;
+  }
+
+  if (text_to_echo.empty())
+  {
+    while(std::cin.good())
+    { 
+      char buffer[1024];
+
+      std::cin.read(buffer, sizeof(buffer));
+      text_to_echo.append(buffer, std::cin.gcount());
+    }
+
+    if (text_to_echo.empty())
+    {
+      std::cerr << "No text was provided for --text or via stdin" << std::endl;
+      std::cerr << desc << std::endl;
+      return EXIT_FAILURE;
+    }
+  }
+
+  gearman_worker_st worker;
+  if (gearman_worker_create(&worker) == NULL)
+  {
+    std::cerr << "Memory allocation failure on worker creation" << std::endl;
     return EXIT_FAILURE;
   }
 
-  if (vm.count("shutdown"))
+  gearman_return_t ret;
+  ret= gearman_worker_add_server(&worker, host.c_str(), port);
+  if (ret != GEARMAN_SUCCESS)
   {
-    Operation operation(STRING_WITH_LEN("shutdown\n"), false);
-    instance.push(operation);
+    std::cerr << gearman_worker_error(&worker) << std::endl;
+    return EXIT_FAILURE;
   }
 
-  if (vm.count("status"))
+  ret= gearman_worker_echo(&worker, text_to_echo.c_str(), text_to_echo.size());
+  gearman_worker_free(&worker);
+  if (ret != GEARMAN_SUCCESS)
   {
-    Operation operation(STRING_WITH_LEN("status\n"), true);
-    instance.push(operation);
+    std::cerr << gearman_worker_error(&worker) << std::endl;
+    return EXIT_FAILURE;
   }
 
-  if (vm.count("server-version"))
-  {
-    Operation operation(STRING_WITH_LEN("version\n"), true);
-    instance.push(operation);
-  }
-
-  if (vm.count("server-verbose"))
-  {
-    Operation operation(STRING_WITH_LEN("verbose\n"), true);
-    instance.push(operation);
-  }
-
-  instance.run();
+  std::cout << text_to_echo;
 
   return EXIT_SUCCESS;
 }

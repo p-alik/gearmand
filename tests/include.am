@@ -14,6 +14,10 @@ CLIENT_LDADD= \
 	      libgearman/libgearman.la \
 	      libgearman/libgearmancore.la
 
+CLEANFILES+= \
+	     tests/var/log/* \
+	     tests/var/tmp/*
+
 if HAVE_LIBMEMCACHED
 if HAVE_MEMCACHED
 LIBMEMCACHED_PIDFILE = ${abs_top_builddir}/tests/Xumemc.pid
@@ -148,7 +152,7 @@ GEARADMIN_TOOL= bin/gearadmin
 test-shutdown: bin/gearadmin
 	$(GEARADMIN_TOOL) --port 32123 --shutdown 2>&1 > /dev/null
 
-check-local: test-shutdown test-client test-round-robin test-worker test-internals test-libmemcached test-sqlite test-tokyocabinet test-burnin queue-regression
+check-local: tests/var test-shutdown test-client test-round-robin test-worker test-internals test-libmemcached test-sqlite test-tokyocabinet test-burnin queue-regression
 
 gdb-client: ${noinst_PROGRAMS}
 	$(LIBTOOL) --mode=execute gdb tests/client_test
@@ -214,6 +218,15 @@ valgrind-client-test: $(GEARMAN_CLIENT_TEST)
 		      @$(GEARMAN_CLIENT_TEST) -w -f true -d -i $(GEARMAN_PIDFILE) -- false
 		      cat $(GEARMAN_PIDFILE) | xargs kill
 		      @echo "gearman client success"
+
+tests/var: tests/var/log tests/var/tmp
+	$(mkdir_p) tests/var
+
+tests/var/log:
+	$(mkdir_p) tests/var/log
+
+tests/var/tmp:
+	$(mkdir_p) tests/var/tmp
 
 #valgrind: ${noinst_PROGRAMS} valgrind-client valgrind-worker valgrind-internals valgrind-sqlite valgrind-tokyocabinet
 

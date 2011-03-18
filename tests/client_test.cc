@@ -33,7 +33,6 @@ typedef struct
 } client_test_st;
 
 #pragma GCC diagnostic ignored "-Wold-style-cast"
-#pragma GCC diagnostic ignored "-fpermissive"
 
 /**
   @note Just here until I fix libhashkit.
@@ -92,7 +91,9 @@ static void *client_thread(void *object)
 
   rc= gearman_client_add_server(&client, NULL, CLIENT_TEST_PORT);
   if (rc != GEARMAN_SUCCESS)
+  {
     pthread_exit(0);
+  }
 
   gearman_client_set_timeout(&client, 400);
   for (size_t x= 0; x < 5; x++)
@@ -285,7 +286,7 @@ static test_return_t option_test(void *object __attribute__((unused)))
         test_false(gear->options.no_new);
         test_truth(gear->options.free_tasks);
       }
-      gearman_client_add_options(gear, GEARMAN_CLIENT_NON_BLOCKING|GEARMAN_CLIENT_UNBUFFERED_RESULT);
+      gearman_client_add_options(gear, (gearman_client_options_t)(GEARMAN_CLIENT_NON_BLOCKING|GEARMAN_CLIENT_UNBUFFERED_RESULT));
       { // GEARMAN_CLIENT_NON_BLOCKING set to default, by default.
         test_truth(gear->options.allocated);
         test_truth(gear->options.non_blocking);
@@ -317,7 +318,7 @@ static test_return_t option_test(void *object __attribute__((unused)))
         test_false(gear->options.no_new);
         test_truth(gear->options.free_tasks);
       }
-      gearman_client_add_options(gear, GEARMAN_CLIENT_FREE_TASKS|GEARMAN_CLIENT_UNBUFFERED_RESULT);
+      gearman_client_add_options(gear, (gearman_client_options_t)(GEARMAN_CLIENT_FREE_TASKS|GEARMAN_CLIENT_UNBUFFERED_RESULT));
       { // GEARMAN_CLIENT_NON_BLOCKING set to default, by default.
         test_truth(gear->options.allocated);
         test_false(gear->options.non_blocking);
@@ -357,7 +358,7 @@ test_return_t submit_job_test(void *object)
 {
   gearman_return_t rc;
   gearman_client_st *client= (gearman_client_st *)object;
-  uint8_t *job_result;
+  void *job_result;
   size_t job_length;
   uint8_t *value= (uint8_t *)"submit_job_test";
   size_t value_length= strlen("submit_job_test");
@@ -385,7 +386,7 @@ test_return_t submit_null_job_test(void *object)
 {
   gearman_return_t rc;
   gearman_client_st *client= (gearman_client_st *)object;
-  uint8_t *job_result;
+  void *job_result;
   size_t job_length;
 
   job_result= gearman_client_do(client, "client_test", NULL, NULL, 0,
@@ -406,7 +407,7 @@ test_return_t submit_fail_job_test(void *object)
 {
   gearman_return_t rc;
   gearman_client_st *client= (gearman_client_st *)object;
-  uint8_t *job_result;
+  void *job_result;
   size_t job_length;
 
   job_result= gearman_client_do(client, "client_test", NULL, "fail", 4,
@@ -597,7 +598,7 @@ static test_return_t submit_log_failure(void *object)
 {
   gearman_return_t rc;
   gearman_client_st *client= (gearman_client_st *)object;
-  uint8_t *job_result;
+  void *job_result;
   size_t job_length;
   uint8_t *value= (uint8_t *)"submit_log_failure";
   size_t value_length= strlen("submit_log_failure");
@@ -661,7 +662,7 @@ static test_return_t strerror_strings(void *object  __attribute__((unused)))
   for (int rc= GEARMAN_SUCCESS; rc < GEARMAN_MAX_RETURN; rc++)
   {
     uint32_t hash_val;
-    const char *msg=  gearman_strerror(rc);
+    const char *msg=  gearman_strerror((gearman_return_t)rc);
     hash_val= internal_generate_hash(msg, strlen(msg));
 #ifdef MAKE_NEW_STRERROR
     (void)values;
@@ -713,8 +714,8 @@ static test_return_t post_logging(void *object __attribute__((unused)))
 void *client_test_worker(gearman_job_st *job, void *context,
                          size_t *result_size, gearman_return_t *ret_ptr)
 {
-  const uint8_t *workload;
-  uint8_t *result;
+  const void *workload;
+  void *result;
   (void)context;
 
   workload= gearman_job_workload(job);
@@ -761,7 +762,7 @@ void *world_create(test_return_t *error)
    */
   const char *argv[1]= { "client_gearmand" };
 
-  test= calloc(1, sizeof(client_test_st));
+  test= (client_test_st *)calloc(1, sizeof(client_test_st));
   if (! test)
   {
     *error= TEST_MEMORY_ALLOCATION_FAILURE;

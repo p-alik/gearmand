@@ -131,7 +131,9 @@ int main(int argc, char *argv[])
     test_return_t error;
     world_ptr= world.create(&error);
     if (error != TEST_SUCCESS)
-      exit(1);
+    {
+      return EXIT_FAILURE;
+    }
   }
   else
   {
@@ -251,7 +253,7 @@ error:
     if (error != TEST_SUCCESS)
     {
       fprintf(stderr, "Failure during shutdown.\n");
-      stats.failed++; // We do this to make our exit code return 1
+      stats.failed++; // We do this to make our exit code return EXIT_FAILURE
     }
   }
 

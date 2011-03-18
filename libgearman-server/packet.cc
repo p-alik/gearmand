@@ -461,13 +461,13 @@ size_t gearmand_packet_pack(const gearmand_packet_st *packet,
   if (packet->args_size == 0)
   {
     *ret_ptr= GEARMAN_SUCCESS;
-    return 0;
+    return EXIT_SUCCESS;
   }
 
   if (packet->args_size > data_size)
   {
     *ret_ptr= GEARMAN_FLUSH_DATA;
-    return 0;
+    return EXIT_SUCCESS;
   }
 
   memcpy(data, packet->args, packet->args_size);
@@ -493,7 +493,7 @@ size_t gearmand_packet_unpack(gearmand_packet_st *packet,
       if (ptr == NULL)
       {
         *ret_ptr= GEARMAN_IO_WAIT;
-        return 0;
+        return EXIT_SUCCESS;
       }
 
       packet->magic= GEARMAN_MAGIC_TEXT;
@@ -528,7 +528,7 @@ size_t gearmand_packet_unpack(gearmand_packet_st *packet,
     else if (data_size < GEARMAN_PACKET_HEADER_SIZE)
     {
       *ret_ptr= GEARMAN_IO_WAIT;
-      return 0;
+      return EXIT_SUCCESS;
     }
 
     packet->args= packet->args_buffer;
@@ -537,7 +537,7 @@ size_t gearmand_packet_unpack(gearmand_packet_st *packet,
 
     *ret_ptr= gearmand_packet_unpack_header(packet);
     if (*ret_ptr != GEARMAN_SUCCESS)
-      return 0;
+      return EXIT_SUCCESS;
 
     used_size= GEARMAN_PACKET_HEADER_SIZE;
   }

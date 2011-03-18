@@ -96,7 +96,7 @@ gearmand_st *gearmand_create(const char *host_arg,
   if (_global_gearmand)
   {
     gearmand_error("You have called gearmand_create() twice within your application.");
-    exit(1);
+    _exit(EXIT_FAILURE);
   }
 
   gearmand= (gearmand_st *)malloc(sizeof(gearmand_st));
@@ -870,8 +870,10 @@ static void _clear_events(gearmand_st *gearmand)
   _listen_clear(gearmand);
   _wakeup_clear(gearmand);
 
-  /* If we are not threaded, tell the fake thread to shutdown now to clear
-     connections. Otherwise we will never exit the libevent loop. */
+  /*
+    If we are not threaded, tell the fake thread to shutdown now to clear
+    connections. Otherwise we will never exit the libevent loop.
+  */
   if (gearmand->threads == 0 && gearmand->thread_list != NULL)
     gearmand_thread_wakeup(gearmand->thread_list, GEARMAND_WAKEUP_SHUTDOWN);
 }

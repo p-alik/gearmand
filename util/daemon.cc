@@ -60,7 +60,9 @@ extern "C"
 static void sigusr1_handler(int sig)
 {
   if (sig == SIGUSR1)
+  {
     _exit(EXIT_SUCCESS);
+  }
 }
 
 }
@@ -134,7 +136,7 @@ bool daemonize(bool is_chdir, bool wait_sigusr1)
     if (wait_sigusr1)
     {
       /* parent */
-      int exit_code= -1;
+      int exit_code= EXIT_FAILURE;
       int status;
       while (waitpid(child, &status, 0) != child)
       { }
@@ -145,7 +147,7 @@ bool daemonize(bool is_chdir, bool wait_sigusr1)
       }
       if (WIFSIGNALED(status))
       {
-        exit_code= -1;
+        exit_code= EXIT_FAILURE;
       }
       _exit(exit_code);
     }

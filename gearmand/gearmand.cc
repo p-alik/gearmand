@@ -151,14 +151,14 @@ int main(int argc, char *argv[])
   if (gearman_conf_create(&conf) == NULL)
   {
     error::message("gearman_conf_create: NULL");
-    return 1;
+    return EXIT_FAILURE;
   }
 
   gearman_conf_module_st module;
   if (gearman_conf_module_create(&conf, &module, NULL) == NULL)
   {
     error::message("gearman_conf_module_create: NULL");
-    return 1;
+    return EXIT_FAILURE;
   }
 
   boost::program_options::options_description general("General options");
@@ -215,19 +215,19 @@ int main(int argc, char *argv[])
   catch(std::exception &e)
   {
     std::cout << e.what() << std::endl;
-    return 1;
+    return EXIT_FAILURE;
   }
 
   if (vm.count("help"))
   {
     std::cout << all << std::endl;
-    return 1;
+    return EXIT_FAILURE;
   }
 
   if (vm.count("version"))
   {
     std::cout << std::endl << "gearmand " << gearmand_version() << " - " <<  gearmand_bugreport() << std::endl;
-    return 1;
+    return EXIT_FAILURE;
   }
 
   verbose_count= static_cast<gearmand_verbose_t>(verbose_string.length());
@@ -241,7 +241,7 @@ int main(int argc, char *argv[])
       or _switch_user(user.empty() ? NULL : user.c_str()) 
       or _set_signals())
   {
-    return 1;
+    return EXIT_FAILURE;
   }
 
   if (opt_daemon)
@@ -254,7 +254,7 @@ int main(int argc, char *argv[])
   if (not _pid_file.create())
   {
     error::perror(_pid_file.error_message().c_str());
-    return 1;
+    return EXIT_FAILURE;
   }
 
   gearmand_log_info_st log_info(log_file);
@@ -267,7 +267,7 @@ int main(int argc, char *argv[])
   if (_gearmand == NULL)
   {
     error::message("Could not create gearmand library instance.");
-    exit(1);
+    return EXIT_FAILURE;
   }
 
   if (not queue_type.empty())
@@ -281,7 +281,7 @@ int main(int argc, char *argv[])
       error::message(error_message, rc);
       gearmand_free(_gearmand);
 
-      exit(1);
+      return EXIT_FAILURE;
     }
   }
 
@@ -290,13 +290,13 @@ int main(int argc, char *argv[])
     if (http.start(_gearmand) != GEARMAN_SUCCESS)
     {
       error::message("Error while enabling protocol module", protocol.c_str());
-      return 1;
+      return EXIT_FAILURE;
     }
   }
   else if (not protocol.empty())
   {
     error::message("Unknown protocol module", protocol.c_str());
-    return 1;
+    return EXIT_FAILURE;
   }
 
   gearmand_error_t ret;
@@ -353,13 +353,13 @@ static bool _switch_user(const char *user)
     if (pw == NULL)
     {
       error::message("Could not find user", user);
-      return 1;
+      return EXIT_FAILURE;
     }
 
     if (setgid(pw->pw_gid) == -1 || setuid(pw->pw_uid) == -1)
     {
       error::message("Could not switch to user", user);
-      return 1;
+      return EXIT_FAILURE;
     }
   }
   else if (user != NULL)

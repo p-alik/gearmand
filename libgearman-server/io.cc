@@ -604,7 +604,7 @@ size_t _connection_read(gearman_server_con_st *con, void *data, size_t data_size
       gearmand_info("lost connection to client (EOF)");
       _connection_close(connection);
       ret= GEARMAN_LOST_CONNECTION;
-      return 0;
+      return EXIT_SUCCESS;
     }
     else if (read_size == -1)
     {
@@ -615,11 +615,11 @@ size_t _connection_read(gearman_server_con_st *con, void *data, size_t data_size
         if (ret != GEARMAN_SUCCESS)
         {
           gearmand_perror("recv");
-          return 0;
+          return EXIT_SUCCESS;
         }
 
         ret= GEARMAN_IO_WAIT;
-        return 0;
+        return EXIT_SUCCESS;
 
       case EINTR:
         continue;
@@ -637,7 +637,7 @@ size_t _connection_read(gearman_server_con_st *con, void *data, size_t data_size
       }
 
       _connection_close(connection);
-      return 0;
+      return EXIT_SUCCESS;
     }
 
     break;
