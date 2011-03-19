@@ -147,20 +147,6 @@ int main(int argc, char *argv[])
   bool opt_round_robin;
   bool opt_daemon;
 
-  gearman_conf_st conf;
-  if (gearman_conf_create(&conf) == NULL)
-  {
-    error::message("gearman_conf_create: NULL");
-    return EXIT_FAILURE;
-  }
-
-  gearman_conf_module_st module;
-  if (gearman_conf_module_create(&conf, &module, NULL) == NULL)
-  {
-    error::message("gearman_conf_module_create: NULL");
-    return EXIT_FAILURE;
-  }
-
   boost::program_options::options_description general("General options");
 
   general.add_options()
@@ -306,8 +292,6 @@ int main(int argc, char *argv[])
 
   if (log_info.fd != -1)
     (void) close(log_info.fd);
-
-  gearman_conf_free(&conf);
 
   return (ret == GEARMAN_SUCCESS || ret == GEARMAN_SHUTDOWN) ? 0 : 1;
 }

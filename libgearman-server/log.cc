@@ -178,20 +178,6 @@ void gearmand_log_crazy(const char *format, ...)
 #endif
 }
 
-void gearman_conf_error_set(gearman_conf_st *conf, const char *msg, const char *format, ...)
-{
-  va_list args;
-  char *ptr;
-  size_t length= strlen(msg);
-
-  std::copy(msg, msg+length, conf->last_error);
-  ptr= conf->last_error + length;
-
-  va_start(args, format);
-  vsnprintf(ptr, GEARMAN_MAX_ERROR_SIZE- length, format, args);
-  va_end(args);
-}
-
 void gearmand_log_perror(const char *position, const char *message)
 {
   if (!Gearmand() || Gearmand()->verbose >= GEARMAND_VERBOSE_ERROR)

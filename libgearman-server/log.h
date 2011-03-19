@@ -93,9 +93,6 @@ void gearmand_log_crazy(const char *format, ...);
 #define gearmand_crazy(A)
 #endif
 
-GEARMAN_INTERNAL_API
-void gearman_conf_error_set(gearman_conf_st *conf, const char *msg, const char *format, ...);
-
 #ifdef __cplusplus
 }
 #endif
