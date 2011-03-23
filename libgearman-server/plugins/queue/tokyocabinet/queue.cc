@@ -43,7 +43,7 @@ TokyoCabinet::TokyoCabinet() :
 {
   command_line_options().add_options()
     ("libtokyocabinet-file", boost::program_options::value(&filename), "File name of the database. [see: man tcadb, tcadbopen() for name guidelines]")
-    ("libtokyocabinet-optimize", boost::program_options::value(&optimize)->default_value(true), "Optimize database on open. [default=true]");
+    ("libtokyocabinet-optimize", boost::program_options::bool_switch(&optimize)->default_value(true), "Optimize database on open. [default=true]");
 
   db= tcadbnew();
 }

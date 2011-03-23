@@ -46,3 +46,28 @@ noinst_HEADERS+= \
 		 bin/function.h \
 		 bin/client.h \
 		 bin/worker.h
+
+GEARMAN_CLIENT_TEST= bin/gearman
+GEARMAN_VALGRIND_CLIENT_TEST= $(VALGRIND_COMMAND) bin/gearman
+GEARMAN_PIDFILE = ${abs_top_builddir}/tests/Xugear.pid
+
+client-test: $(GEARMAN_CLIENT_TEST)
+	@$(GEARMAN_CLIENT_TEST) -H 2>&1 > /dev/null
+	@$(GEARMAN_CLIENT_TEST) -w -f true -d -i $(GEARMAN_PIDFILE) -- false
+	cat $(GEARMAN_PIDFILE) | xargs kill
+	@echo "gearman client success"
+
+client-test-wc: $(GEARMAN_CLIENT_TEST)
+	@echo "1" > ${abs_top_builddir}/tests/test_file 
+	@$(GEARMAN_CLIENT_TEST) -w -f wc -d -i $(GEARMAN_PIDFILE) -- wc -l
+	@$(GEARMAN_CLIENT_TEST) -f wc < ${abs_top_builddir}/tests/test_file > ${abs_top_builddir}/tests/out_file
+	diff -q ${abs_top_builddir}/tests/test_file  ${abs_top_builddir}/tests/out_file
+	rm ${abs_top_builddir}/tests/test_file  ${abs_top_builddir}/tests/out_file
+	cat $(GEARMAN_PIDFILE) | xargs kill
+	@echo "gearman client success"
+
+valgrind-client-test: $(GEARMAN_CLIENT_TEST)
+		      @$(GEARMAN_VALGRIND_CLIENT_TEST) -H 2>&1 > /dev/null
+		      @$(GEARMAN_CLIENT_TEST) -w -f true -d -i $(GEARMAN_PIDFILE) -- false
+		      cat $(GEARMAN_PIDFILE) | xargs kill
+		      @echo "gearman client success"

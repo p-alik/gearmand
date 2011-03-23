@@ -130,8 +130,8 @@ int main(int argc, char *argv[])
 {
   int backlog= GEARMAND_LISTEN_BACKLOG;
   rlim_t fds= 0;
-  uint8_t job_retries= 0;
-  uint8_t worker_wakeup= 0;
+  uint32_t job_retries;
+  uint32_t worker_wakeup;
 
   std::string host;
   std::string user;
@@ -143,21 +143,23 @@ int main(int argc, char *argv[])
   std::string verbose_string;
 
   uint32_t threads;
-  uint8_t verbose_count= 0;
   bool opt_round_robin;
   bool opt_daemon;
+  bool opt_check_args;
 
   boost::program_options::options_description general("General options");
 
   general.add_options()
   ("backlog,b", boost::program_options::value(&backlog)->default_value(GEARMAND_LISTEN_BACKLOG),
    "Number of backlog connections for listen.")
-  ("daemon,d",boost::program_options::bool_switch(&opt_daemon)->default_value(false),
+  ("check-args", boost::program_options::bool_switch(&opt_check_args)->default_value(false),
+   "Check command line and configuration file argments and then exit.")
+  ("daemon,d", boost::program_options::bool_switch(&opt_daemon)->default_value(false),
    "Daemon, detach and run in the background.")
   ("file-descriptors,f", boost::program_options::value(&fds),
    "Number of file descriptors to allow for the process (total connections will be slightly less). Default is max allowed for user.")
   ("help,h", "Print this help menu.")
-  ("job-retries,j", boost::program_options::value(&job_retries),
+  ("job-retries,j", boost::program_options::value(&job_retries)->default_value(0),
    "Number of attempts to run the job before the job server removes it. This is helpful to ensure a bad job does not crash all available workers. Default is no limit.")
   ("log-file,l", boost::program_options::value(&log_file),
    "Log file to write errors and information to. Turning this option on also forces the first verbose level to be enabled.")
@@ -180,7 +182,7 @@ int main(int argc, char *argv[])
   ("verbose,v", boost::program_options::value(&verbose_string)->default_value("v"),
    "Increase verbosity level by one.")
   ("version,V", "Display the version of gearmand and exit.")
-  ("worker-wakeup,w", boost::program_options::value(&worker_wakeup),
+  ("worker-wakeup,w", boost::program_options::value(&worker_wakeup)->default_value(0),
    "Number of workers to wakeup for each job received. The default is to wakeup all available workers.")
   ;
 
@@ -204,6 +206,14 @@ int main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
+  uint8_t verbose_count;
+  verbose_count= static_cast<gearmand_verbose_t>(verbose_string.length());
+
+  if (opt_check_args)
+  {
+    return EXIT_SUCCESS;
+  }
+
   if (vm.count("help"))
   {
     std::cout << all << std::endl;
@@ -215,8 +225,6 @@ int main(int argc, char *argv[])
     std::cout << std::endl << "gearmand " << gearmand_version() << " - " <<  gearmand_bugreport() << std::endl;
     return EXIT_FAILURE;
   }
-
-  verbose_count= static_cast<gearmand_verbose_t>(verbose_string.length());
 
   if (opt_daemon)
   {
@@ -247,7 +255,9 @@ int main(int argc, char *argv[])
 
   gearmand_st *_gearmand;
   _gearmand= gearmand_create(host.empty() ? NULL : host.c_str(),
-                             port.c_str(), threads, backlog, job_retries, worker_wakeup,
+                             port.c_str(), threads, backlog,
+			     static_cast<uint8_t>(job_retries),
+			     static_cast<uint8_t>(worker_wakeup),
                              _log, &log_info, verbose,
                              opt_round_robin);
   if (_gearmand == NULL)

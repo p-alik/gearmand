@@ -1,0 +1,49 @@
+# vim:ft=automake
+# Gearman server and library
+# Copyright (C) 2011 Data Differential, http://datadifferential.com/
+# All rights reserved.
+#
+# Use and distribution licensed under the BSD license.  See
+# the COPYING file in the parent directory for full text.
+#
+# Included from Top Level Makefile.am
+# All paths should be given relative to the root
+#
+
+test-sqlite: tests-sqlite-args test-sqlite-queue
+
+tests-sqlite-args: gearmand/gearmand
+if HAVE_LIBSQLITE3
+	@gearmand/gearmand --check-args --libsqlite3-db=tmp/schema --libsqlite3-table=tmp/table
+
+endif
+
+if HAVE_LIBSQLITE3
+SQLITE_TEST= tests/sqlite_test
+QUEUE_REGRESSION_TEST= tests/queue_regression
+CLEANFILES+= tests/gearman.sql tests/gearman.sql-journal tests/gearmand.log*
+noinst_PROGRAMS += tests/sqlite_test tests/queue_regression
+endif
+
+tests_sqlite_test_SOURCES= tests/sqlite_test.cc
+tests_sqlite_test_LDADD= ${CLIENT_LDADD}
+
+queue-regression:
+if HAVE_LIBSQLITE3
+	$(QUEUE_REGRESSION_TEST) $(ARG1) $(ARG2)
+endif
+
+test-sqlite-queue:
+if HAVE_LIBSQLITE3
+	$(SQLITE_TEST) $(ARG1) $(ARG2)
+endif
+
+gdb-sqlite:
+if HAVE_LIBSQLITE3
+	$(LIBTOOL) --mode=execute gdb tests/sqlite_test
+endif
+
+valgrind-sqlite:
+if HAVE_LIBSQLITE3
+	$(VALGRIND_COMMAND) $(SQLITE_TEST) $(ARG1) $(ARG2)
+endif
