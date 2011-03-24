@@ -6,6 +6,7 @@ License: BSD
 Group: System Environment/Libraries
 BuildRequires: gcc-c++
 URL: http://www.gearman.org/
+Requires: sqlite
 
 Packager: Brian Aker <brian@tangent.org>
 
@@ -18,7 +19,8 @@ Gearman provides a generic framework to farm out work to other machines, dispatc
 %prep
 %setup -q
 
-%configure
+%configure --disable-libpq --disable-libtokyocabinet --disable-libdrizzle
+
 
 %build
 %{__make} %{_smp_mflags}
