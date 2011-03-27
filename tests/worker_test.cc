@@ -675,6 +675,11 @@ void *world_create(test_return_t *error)
   pid_t gearmand_pid;
 
   gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, NULL, NULL, 0);
+  if (gearmand_pid == -1)
+  {
+    *error= TEST_FAILURE;
+    return NULL;
+  }
 
   test= (worker_test_st *)malloc(sizeof(worker_test_st));
 

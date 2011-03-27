@@ -127,6 +127,11 @@ void *world_create(test_return_t *error)
   const char *argv[2]= { "test_gearmand", "--libtokyocabinet-file=tests/gearman.tcb" };
 
   gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, "libtokyocabinet", (char **)argv, 2);
+  if (gearmand_pid == -1)
+  {
+    *error= TEST_FAILURE;
+    return NULL;
+  }
 
   test= (worker_test_st *)malloc(sizeof(worker_test_st));
   if (! test)

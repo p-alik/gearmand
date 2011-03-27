@@ -50,6 +50,7 @@ examples/wc_worker
 gearmand/gearmand
 gearmand/gearmand_hostile
 gearmand/gearmand_test
+libtest/wait
 libtool
 m4/libtool.m4
 m4/ltoptions.m4
@@ -86,9 +87,9 @@ tests/tokyocabinet_test
 tests/tokyocabinet_test.res
 tests/unittests
 tests/valgrind.out
+tests/var/
 tests/var/log/*
 tests/var/tmp/*
 tests/worker_test
 tests/worker_test.res
 unittests/unittests
-tests/var/

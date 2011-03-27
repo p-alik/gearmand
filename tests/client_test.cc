@@ -774,6 +774,13 @@ void *world_create(test_return_t *error)
   */
   gearmand_pid= test_gearmand_start(CLIENT_TEST_PORT, NULL,
                                     (char **)argv, 1);
+  
+  if (gearmand_pid == -1)
+  {
+    *error= TEST_FAILURE;
+    return NULL;
+  }
+
   test->handle= test_worker_start(CLIENT_TEST_PORT, "client_test", client_test_worker, NULL);
 
   test->gearmand_pid= gearmand_pid;

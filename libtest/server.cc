@@ -16,15 +16,15 @@
 #include <assert.h>
 #include <errno.h>
 #include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include <stdbool.h>
 
-#include "libtest/server.h"
+#include <libtest/server.h>
+#include <libtest/wait.h>
 
 #include <libgearman/gearman.h>
 
@@ -103,7 +103,7 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
     if (mkstemp(file_buffer) == -1)
     {
       perror("mkstemp");
-      abort();
+      return -1;
     }
     snprintf(buffer_ptr, sizeof(buffer), "\nrun --pid-file=%s -vvvvvv --port=%u", file_buffer, (uint32_t)port);
     buffer_ptr+= strlen(buffer_ptr);
@@ -114,13 +114,13 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
     if (mkstemp(file_buffer) == -1)
     {
       perror("mkstemp");
-      abort();
+      return -1;
     }
     snprintf(log_buffer, sizeof(log_buffer), "tests/var/log/gearmand.logXXXXXX");
     if (mkstemp(log_buffer) == -1)
     {
       perror("mkstemp");
-      abort();
+      return -1;
     }
     snprintf(buffer_ptr, sizeof(buffer), "./gearmand/gearmand --pid-file=%s --daemon --port=%u -vvvvvv --log-file=%s", file_buffer, (uint32_t)port, log_buffer);
     buffer_ptr+= strlen(buffer_ptr);
@@ -131,7 +131,7 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
     if (mkstemp(file_buffer) == -1)
     {
       perror("mkstemp");
-      abort();
+      return -1;
     }
     snprintf(buffer_ptr, sizeof(buffer), "./gearmand/gearmand --pid-file=%s --daemon --port=%u", file_buffer, (uint32_t)port);
     buffer_ptr+= strlen(buffer_ptr);
@@ -166,6 +166,11 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
     assert(err != -1);
   }
 
+  libtest::Wait wait(file_buffer);
+  
+  if (not wait.successful())
+    return -1;
+
   // Sleep to make sure the server is up and running (or we could poll....)
   uint32_t counter= 3;
   while (--counter)
@@ -182,7 +187,7 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
     char *found= fgets(buffer, sizeof(buffer), file);
     if (!found)
     {
-      abort();
+      return -1;
     }
     gearmand_pid= atoi(buffer);
     fclose(file);
@@ -191,14 +196,14 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
   if (gearmand_pid == -1)
   {
     fprintf(stderr, "Could not attach to gearman server, could server already be running on port %u\n", (uint32_t)port);
-    abort();
+    return -1;
   }
 
   if (! wait_and_check_startup(NULL, port))
   {
     test_gearmand_stop(gearmand_pid);
     fprintf(stderr, "Failed wait_and_check_startup()\n");
-    abort();
+    return -1;
   }
 
   return gearmand_pid;

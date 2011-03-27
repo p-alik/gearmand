@@ -189,6 +189,12 @@ static void *world_create(test_return_t *error)
 
   test->gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, NULL, NULL, 0);
 
+  if (test->gearmand_pid == -1)
+  {
+    *error= TEST_FAILURE;
+    return NULL;
+  }
+
   *error= TEST_SUCCESS;
 
   return (void *)test;

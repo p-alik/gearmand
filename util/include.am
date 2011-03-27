@@ -16,4 +16,3 @@ noinst_HEADERS+= \
 		 util/instance.h \
 		 util/operation.h \
 		 util/pidfile.h
-

@@ -19,6 +19,8 @@ EXTRA_DIST = config/top.h
 CLEANFILES =
 TESTS =
 
+GEARMAN_TMP = ${abs_top_builddir}/tests/var/tmp/
+
 CLEANFILES+= config/top.h
 
 

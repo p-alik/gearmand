@@ -512,10 +512,11 @@ static void *_worker_cb(gearman_job_st *job, void *context,
   int in_fds[2];
   int out_fds[2];
   int status;
-  (void)result_size;
 
   Args &args= arguments->args;
   Function &function= arguments->function;
+
+  function.buffer().clear();
 
   *ret_ptr= GEARMAN_SUCCESS;
 

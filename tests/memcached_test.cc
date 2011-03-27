@@ -121,6 +121,12 @@ void *world_create(test_return_t *error)
 
   gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, "libmemcached", (char **)argv, 2);
 
+  if (gearmand_pid == -1)
+  {
+    *error= TEST_FAILURE;
+    return NULL;
+  }
+
   test= malloc(sizeof(worker_test_st));
   if (! test)
   {

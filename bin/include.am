@@ -49,25 +49,46 @@ noinst_HEADERS+= \
 
 GEARMAN_CLIENT_TEST= bin/gearman
 GEARMAN_VALGRIND_CLIENT_TEST= $(VALGRIND_COMMAND) bin/gearman
-GEARMAN_PIDFILE = ${abs_top_builddir}/tests/Xugear.pid
+GEARMAN_PIDFILE = ${abs_top_builddir}/tests/var/tmp/Xugear.pid
+GEARMAND_PIDFILE = ${abs_top_builddir}/tests/var/tmp/Xugearmand.pid
+GEARMAND_PORT = 5999
 
-client-test: $(GEARMAN_CLIENT_TEST)
+client-test: client-test-basic
+
+client-test-basic: $(GEARMAN_CLIENT_TEST)
 	@$(GEARMAN_CLIENT_TEST) -H 2>&1 > /dev/null
 	@$(GEARMAN_CLIENT_TEST) -w -f true -d -i $(GEARMAN_PIDFILE) -- false
-	cat $(GEARMAN_PIDFILE) | xargs kill
-	@echo "gearman client success"
+	@libtest/wait $(GEARMAN_PIDFILE)
+	@cat $(GEARMAN_PIDFILE) | xargs kill
 
 client-test-wc: $(GEARMAN_CLIENT_TEST)
-	@echo "1" > ${abs_top_builddir}/tests/test_file 
+	@gearmand/gearmand --port=$(GEARMAND_PORT) --daemon --pid-file=$(GEARMAND_PIDFILE)
+	@echo "1" > $(GEARMAN_TMP)/test_file 
 	@$(GEARMAN_CLIENT_TEST) -w -f wc -d -i $(GEARMAN_PIDFILE) -- wc -l
-	@$(GEARMAN_CLIENT_TEST) -f wc < ${abs_top_builddir}/tests/test_file > ${abs_top_builddir}/tests/out_file
-	diff -q ${abs_top_builddir}/tests/test_file  ${abs_top_builddir}/tests/out_file
-	rm ${abs_top_builddir}/tests/test_file  ${abs_top_builddir}/tests/out_file
-	cat $(GEARMAN_PIDFILE) | xargs kill
-	@echo "gearman client success"
+	@$(GEARMAN_CLIENT_TEST) -f wc < $(GEARMAN_TMP)/test_file > $(GEARMAN_TMP)/out_file
+	@diff -q $(GEARMAN_TMP)/test_file   $(GEARMAN_TMP)/out_file
+	@rm $(GEARMAN_TMP)/test_file   $(GEARMAN_TMP)/out_file
+	@libtest/wait $(GEARMAN_PIDFILE)
+	@libtest/wait $(GEARMAND_PIDFILE)
+	@cat $(GEARMAN_PIDFILE) | xargs kill
+	@cat $(GEARMAND_PIDFILE) | xargs kill
+
+client-test-lp738917: $(GEARMAN_CLIENT_TEST)
+	@gearmand/gearmand --port=$(GEARMAND_PORT) --daemon --pid-file=$(GEARMAND_PIDFILE)
+	@echo "1" > $(GEARMAN_TMP)/test_file 
+	@$(GEARMAN_CLIENT_TEST) -w -f wc -d -i $(GEARMAN_PIDFILE) -- wc -l
+	@$(GEARMAN_CLIENT_TEST) -f wc < $(GEARMAN_TMP)/test_file > $(GEARMAN_TMP)/out_file
+	@$(GEARMAN_CLIENT_TEST) -f wc < $(GEARMAN_TMP)/test_file > $(GEARMAN_TMP)/out_file
+	@$(GEARMAN_CLIENT_TEST) -f wc < $(GEARMAN_TMP)/test_file > $(GEARMAN_TMP)/out_file
+	@diff -q $(GEARMAN_TMP)/test_file   $(GEARMAN_TMP)/out_file
+	@rm $(GEARMAN_TMP)/test_file   $(GEARMAN_TMP)/out_file
+	@libtest/wait $(GEARMAN_PIDFILE)
+	@libtest/wait $(GEARMAND_PIDFILE)
+	@cat $(GEARMAN_PIDFILE) | xargs kill
+	@cat $(GEARMAND_PIDFILE) | xargs kill
 
 valgrind-client-test: $(GEARMAN_CLIENT_TEST)
 		      @$(GEARMAN_VALGRIND_CLIENT_TEST) -H 2>&1 > /dev/null
 		      @$(GEARMAN_CLIENT_TEST) -w -f true -d -i $(GEARMAN_PIDFILE) -- false
-		      cat $(GEARMAN_PIDFILE) | xargs kill
-		      @echo "gearman client success"
+		      @libtest/wait $(GEARMAN_PIDFILE)
+		      @cat $(GEARMAN_PIDFILE) | xargs kill
