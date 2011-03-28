@@ -13,30 +13,23 @@
 #endif
 
 #include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <unistd.h>
+#include <iostream>
 
 #include <libgearman/gearman.h>
 
-#include "libtest/test.h"
-#include "libtest/server.h"
+#include <libtest/test.h>
+#include <libtest/server.h>
+
+#include <tests/basic.h>
+#include <tests/context.h>
 
 #define WORKER_TEST_PORT 32123
 
-typedef struct
-{
-  pid_t gearmand_pid;
-  gearman_worker_st worker;
-  bool run_worker;
-} worker_test_st;
-
-/* Prototypes */
-test_return_t echo_test(void *object);
-test_return_t queue_add(void *object);
-test_return_t queue_worker(void *object);
-
+// Prototypes
 test_return_t pre(void *object);
 test_return_t post(void *object);
 
@@ -45,113 +38,23 @@ test_return_t world_destroy(void *object);
 
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 
-/* Counter test for worker */
-static void *counter_function(gearman_job_st *job __attribute__((unused)),
-                              void *context, size_t *result_size,
-                              gearman_return_t *ret_ptr __attribute__((unused)))
+static test_return_t collection_init(void *object)
 {
-  uint32_t *counter= (uint32_t *)context;
+  const char *argv[2]= { "test_gearmand", "--libsqlite3-db=tests/gearman.sql"};
 
-  *result_size= 0;
+  Context *test= (Context *)object;
+  assert(test);
 
-  *counter= *counter + 1;
-
-  return NULL;
-}
-
-test_return_t echo_test(void *object)
-{
-  gearman_client_st client, *client_ptr;
-  gearman_return_t rc;
-  size_t value_length;
-  const char *value= "This is my echo test";
-
-  (void)object;
-
-  value_length= strlen(value);
-
-  client_ptr= gearman_client_create(&client);
-  test_truth(client_ptr);
-
-  rc= gearman_client_echo(&client, (uint8_t *)value, value_length);
-
-  test_truth(rc == GEARMAN_SUCCESS);
-
-  gearman_client_free(&client);
-
-  return TEST_SUCCESS;
-}
-
-static test_return_t queue_clean(void *object)
-{
-  worker_test_st *test= (worker_test_st *)object;
-  gearman_worker_st *worker= &(test->worker);
-  uint32_t counter= 0;
-  gearman_return_t rc;
-
-  gearman_worker_set_timeout(worker, 200);
-  rc= gearman_worker_add_function(worker, "queue_test", 5, counter_function, &counter);
-  test_truth(rc == GEARMAN_SUCCESS);
-
-  // Clean out any jobs that might still be in the queue from failed tests.
-  while (1)
-  {
-    rc= gearman_worker_work(worker);
-    if (rc != GEARMAN_SUCCESS)
-      break;
-  }
-
-  return TEST_SUCCESS;
-}
-
-test_return_t queue_add(void *object)
-{
-  worker_test_st *test= (worker_test_st *)object;
-  gearman_client_st client, *client_ptr;
-  char job_handle[GEARMAN_JOB_HANDLE_SIZE];
-  uint8_t *value= (uint8_t *)"background_test";
-  size_t value_length= strlen("background_test");
-  gearman_return_t rc;
-
-  test->run_worker= false;
-
-  client_ptr= gearman_client_create(&client);
-  test_truth(client_ptr);
-
-  rc= gearman_client_add_server(&client, NULL, WORKER_TEST_PORT);
-  test_truth(rc == GEARMAN_SUCCESS);
-
-  rc= gearman_client_echo(&client, (uint8_t *)value, value_length);
-  test_truth(rc == GEARMAN_SUCCESS);
-
-  rc= gearman_client_do_background(&client, "queue_test", NULL, value,
-                                   value_length, job_handle);
-  test_truth(rc == GEARMAN_SUCCESS);
-
-  gearman_client_free(&client);
-
-  test->run_worker= true;
-
-  return TEST_SUCCESS;
-}
-
-test_return_t queue_worker(void *object)
-{
-  worker_test_st *test= (worker_test_st *)object;
-  gearman_worker_st *worker= &(test->worker);
-  uint32_t counter= 0;
-  gearman_return_t rc;
-
-  if (! test->run_worker)
+  if (not test->initialize(2, argv))
     return TEST_FAILURE;
 
-  rc= gearman_worker_add_function(worker, "queue_test", 5, counter_function, &counter);
-  test_truth(rc == GEARMAN_SUCCESS);
+  return TEST_SUCCESS;
+}
 
-  rc= gearman_worker_work(worker);
-  test_truth(rc == GEARMAN_SUCCESS);
-
-  test_truth (counter != 0);
+static test_return_t collection_cleanup(void *object)
+{
+  Context *test= (Context *)object;
+  test->reset();
 
   return TEST_SUCCESS;
 }
@@ -159,56 +62,23 @@ test_return_t queue_worker(void *object)
 
 void *world_create(test_return_t *error)
 {
-  worker_test_st *test;
-  const char *argv[2]= { "test_gearmand", "--libsqlite3-db=tests/gearman.sql"};
-  pid_t gearmand_pid;
-
-  unlink("tests/gearman.sql");
-  unlink("tests/gearman.sql-journal");
-
-  gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, "libsqlite3", (char **)argv, 2);
-  if (gearmand_pid == -1)
-  {
-    *error= TEST_FAILURE;
-    return NULL;
-  }
-
-  test= (worker_test_st *)malloc(sizeof(worker_test_st));
-  if (! test)
+  Context *test= new Context(WORKER_TEST_PORT);
+  if (not test)
   {
     *error= TEST_MEMORY_ALLOCATION_FAILURE;
     return NULL;
   }
 
-  memset(test, 0, sizeof(worker_test_st));
-  if (gearman_worker_create(&(test->worker)) == NULL)
-  {
-    *error= TEST_FAILURE;
-    return NULL;
-  }
-
-  if (gearman_worker_add_server(&(test->worker), NULL, WORKER_TEST_PORT) != GEARMAN_SUCCESS)
-  {
-    *error= TEST_FAILURE;
-    return NULL;
-  }
-
-  test->gearmand_pid= gearmand_pid;
-
   *error= TEST_SUCCESS;
 
-  return (void *)test;
+  return test;
 }
 
 test_return_t world_destroy(void *object)
 {
-  worker_test_st *test= (worker_test_st *)object;
-  test_gearmand_stop(test->gearmand_pid);
-  gearman_worker_free(&(test->worker));
-  free(test);
+  Context *test= (Context *)object;
 
-  unlink("tests/gearman.sql");
-  unlink("tests/gearman.sql-journal");
+  delete test;
 
   return TEST_SUCCESS;
 }
@@ -222,7 +92,10 @@ test_st tests[] ={
 };
 
 collection_st collection[] ={
-  {"sqlite queue", 0, 0, tests},
+  {"sqlite queue", collection_init, collection_cleanup, tests},
+#if 0
+  {"sqlite queue change table", collection_init, collection_cleanup, tests},
+#endif
   {0, 0, 0, 0}
 };
 

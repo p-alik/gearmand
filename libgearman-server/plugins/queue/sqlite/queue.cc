@@ -51,7 +51,20 @@ public:
   std::string table;
   sqlite3 *db;
   int in_trans;
+
+  const std::string &insert_query() const
+  {
+    return _insert_query;
+  }
+
+  const std::string &delete_query() const
+  {
+    return _delete_query;
+  }
+
 private:
+  std::string _insert_query;
+  std::string _delete_query;
 };
 
 Sqlite::Sqlite() :
@@ -71,6 +84,14 @@ Sqlite::~Sqlite()
 
 gearmand_error_t Sqlite::initialize()
 {
+  _insert_query+= "INSERT OR REPLACE INTO ";
+  _insert_query+= table;
+  _insert_query+= " (priority,unique_key,function_name,data) VALUES (?,?,?,?)";
+
+  _delete_query+= "DELETE FROM ";
+  _delete_query+= table;
+  _delete_query+= " WHERE unique_key=? and function_name=?";
+
   return _initialize(&Gearmand()->server, this);
 }
 
@@ -414,12 +435,7 @@ static gearmand_error_t _sqlite_add(gearman_server_st *server, void *context,
   if (_sqlite_lock(server, queue) !=  SQLITE_OK)
     return GEARMAN_QUEUE_ERROR;
 
-  std::string query;
-  query+= "INSERT OR REPLACE INTO ";
-  query+= queue->table;
-  query+= " (priority,unique_key,function_name,data) VALUES (?,?,?,?)";
-
-  if (_sqlite_query(server, queue, query.c_str(), query.size(), &sth) != SQLITE_OK)
+  if (_sqlite_query(server, queue, queue->insert_query().c_str(), queue->insert_query().size(), &sth) != SQLITE_OK)
     return GEARMAN_QUEUE_ERROR;
 
   if (sqlite3_bind_int(sth,  1, priority) != SQLITE_OK)
@@ -521,13 +537,7 @@ static gearmand_error_t _sqlite_done(gearman_server_st *server, void *context,
   if (_sqlite_lock(server, queue) !=  SQLITE_OK)
     return GEARMAN_QUEUE_ERROR;
 
-
-  std::string query;
-  query+= "DELETE FROM ";
-  query+= queue->table;
-  query+= " WHERE unique_key=? and function_name=?";
-
-  if (_sqlite_query(server, queue, query.c_str(), query.size(), &sth) != SQLITE_OK)
+  if (_sqlite_query(server, queue, queue->delete_query().c_str(), queue->delete_query().size(), &sth) != SQLITE_OK)
     return GEARMAN_QUEUE_ERROR;
 
   sqlite3_bind_text(sth, 1, (const char *)unique, (int)unique_size, SQLITE_TRANSIENT);

@@ -674,7 +674,7 @@ void *world_create(test_return_t *error)
   worker_test_st *test;
   pid_t gearmand_pid;
 
-  gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, NULL, NULL, 0);
+  gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, NULL, 0, NULL);
   if (gearmand_pid == -1)
   {
     *error= TEST_FAILURE;

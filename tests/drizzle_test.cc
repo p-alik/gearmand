@@ -192,7 +192,7 @@ void *world_create(test_return_t *error)
   pid_t gearmand_pid;
   const char *argv[2]= { "test_gearmand", "" };
 
-  gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, "libdrizzle", (char **)argv, 2);
+  gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, "libdrizzle", 2, argv);
 
   if (gearmand_pid == -1)
   {

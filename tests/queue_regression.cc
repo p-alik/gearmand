@@ -155,7 +155,7 @@ void *world_create(test_return_t *error)
   unlink("tests/gearman.sql");
   unlink("tests/gearman.sql-journal");
 
-  gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, "libsqlite3", (char **)argv, 2);
+  gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, "libsqlite3", 2, argv);
 
   if (gearmand_pid == -1)
   {

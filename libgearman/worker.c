@@ -153,6 +153,11 @@ gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker,
 
 void gearman_worker_free(gearman_worker_st *worker)
 {
+  if (! worker)
+    return;
+
+  gearman_worker_unregister_all(worker);
+
   if (worker->options.packet_init)
   {
     gearman_packet_free(&(worker->grab_job));

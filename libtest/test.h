@@ -17,18 +17,15 @@
 #include <stdint.h>
 #include <libtest/visibility.h>
 
+#pragma once
 
-typedef struct world_st world_st;
-typedef struct collection_st collection_st;
-typedef struct test_st test_st;
-
-typedef enum {
+enum test_return_t {
   TEST_SUCCESS= 0, /* Backwards compatibility */
   TEST_FAILURE,
   TEST_MEMORY_ALLOCATION_FAILURE,
   TEST_SKIPPED,
   TEST_MAXIMUM_RETURN /* Always add new error code before */
-} test_return_t;
+};
 
 typedef void *(*test_callback_create_fn)(test_return_t *error);
 typedef test_return_t (*test_callback_fn)(void *);
@@ -61,11 +58,11 @@ struct collection_st {
   Structure which houses the actual callers for the test cases contained in
   the collections.
 */
-typedef struct {
+struct world_runner_st {
   test_callback_runner_fn pre;
   test_callback_runner_fn run;
   test_callback_runner_fn post;
-} world_runner_st;
+};
 
 
 /**
@@ -104,6 +101,21 @@ struct world_st {
     a set of default implementations.
   */
   world_runner_st *runner;
+
+  world_st() :
+    collections(NULL),
+    create(NULL),
+    destroy(NULL),
+    collection_startup(NULL),
+    flush(NULL),
+    pre_run(NULL),
+    post_run(NULL),
+    on_error(NULL),
+    runner(NULL)
+  { }
+
+  virtual ~world_st()
+  { }
 };
 
 
@@ -111,12 +123,19 @@ struct world_st {
 /**
   @note world_stats_st is a simple structure for tracking test successes.
 */
-typedef struct {
+struct world_stats_st {
   uint32_t success;
   uint32_t skipped;
   uint32_t failed;
   uint32_t total;
-} world_stats_st;
+
+  world_stats_st() :
+    success(0),
+    skipped(0),
+    failed(0),
+    total(0)
+  { }
+};
 
 #ifdef	__cplusplus
 extern "C" {

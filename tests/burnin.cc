@@ -188,8 +188,7 @@ void *world_create(test_return_t *error)
   /**
     We start up everything before we allocate so that we don't have to track memory in the forked process.
   */
-  gearmand_pid= test_gearmand_start(CLIENT_TEST_PORT, NULL,
-                                    (char **)argv, 1);
+  gearmand_pid= test_gearmand_start(CLIENT_TEST_PORT, NULL, 1, argv);
   
   if (gearmand_pid == -1)
   {

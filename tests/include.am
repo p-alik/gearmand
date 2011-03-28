@@ -8,6 +8,10 @@
 
 VALGRIND_COMMAND= $(LIBTOOL) --mode=execute valgrind --leak-check=yes --show-reachable=yes
 
+noinst_HEADERS+= \
+		 tests/basic.h \
+		 tests/context.h
+
 CLIENT_LDADD= \
 	      libtest/libtest.la \
 	      libtest/libserver.la \

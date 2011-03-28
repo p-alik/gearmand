@@ -14,6 +14,7 @@
 #endif
 
 #include <assert.h>
+#include <iostream>
 #include <errno.h>
 #include <signal.h>
 #include <cstdio>
@@ -45,7 +46,7 @@ static bool wait_and_check_startup(const char *hostname, in_port_t port)
   if ((rc= gearman_client_add_server(client, hostname, port)) == GEARMAN_SUCCESS)
   {
     const char *value= "This is my echo test";
-    size_t value_length= strlen(value);
+    size_t value_length= sizeof("This is my echo test") -1;
 
     int counter= 5; // sleep cycles
     while (--counter)
@@ -65,7 +66,7 @@ static bool wait_and_check_startup(const char *hostname, in_port_t port)
   
   if (rc != GEARMAN_SUCCESS)
   {
-    fprintf(stderr, "wait_and_check_startup(%s)", gearman_client_error(client));
+    std::cerr << "wait_and_check_startup(" <<  gearman_client_error(client) << ")" << std::endl;
   }
   gearman_client_free(client);
 
@@ -73,28 +74,28 @@ static bool wait_and_check_startup(const char *hostname, in_port_t port)
 }
 
 
+#include <sstream>
+
 pid_t test_gearmand_start(in_port_t port, const char *queue_type,
-                          char *argv[], int argc)
+                          int argc, const char *argv[])
 {
   pid_t gearmand_pid= -1;
 
+  std::stringstream buffer;
+
   char file_buffer[1024];
   char log_buffer[1024];
-  char buffer[8196];
-  char *buffer_ptr= buffer;
 
   log_buffer[0]= 0;
   file_buffer[0]= 0;
 
   if (getenv("GEARMAN_MANUAL_GDB"))
   {
-    snprintf(buffer_ptr, sizeof(buffer), "libtool --mode=execute gdb gearmand/gearmand");
-    buffer_ptr+= strlen(buffer_ptr);
+    buffer << "libtool --mode=execute gdb gearmand/gearmand";
   }
   else if (getenv("GEARMAN_VALGRIND"))
   {
-    snprintf(buffer_ptr, sizeof(buffer), "libtool --mode=execute valgrind --log-file=tests/var/tmp/valgrind.out --leak-check=full  --show-reachable=yes ");
-    buffer_ptr+= strlen(buffer_ptr);
+    buffer << "libtool --mode=execute valgrind --log-file=tests/var/tmp/valgrind.out --leak-check=full  --show-reachable=yes ";
   }
 
   if (getenv("GEARMAN_MANUAL_GDB"))
@@ -105,8 +106,7 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
       perror("mkstemp");
       return -1;
     }
-    snprintf(buffer_ptr, sizeof(buffer), "\nrun --pid-file=%s -vvvvvv --port=%u", file_buffer, (uint32_t)port);
-    buffer_ptr+= strlen(buffer_ptr);
+    buffer << std::endl << "run --pid-file=" << file_buffer << " -vvvvvv --port=" << port;
   }
   else if (getenv("GEARMAN_LOG"))
   {
@@ -122,8 +122,7 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
       perror("mkstemp");
       return -1;
     }
-    snprintf(buffer_ptr, sizeof(buffer), "./gearmand/gearmand --pid-file=%s --daemon --port=%u -vvvvvv --log-file=%s", file_buffer, (uint32_t)port, log_buffer);
-    buffer_ptr+= strlen(buffer_ptr);
+    buffer << "./gearmand/gearmand --pid-file=" << file_buffer << " --daemon --port=" << port << " -vvvvvv --log-file=" << log_buffer;
   }
   else
   {
@@ -133,36 +132,32 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
       perror("mkstemp");
       return -1;
     }
-    snprintf(buffer_ptr, sizeof(buffer), "./gearmand/gearmand --pid-file=%s --daemon --port=%u", file_buffer, (uint32_t)port);
-    buffer_ptr+= strlen(buffer_ptr);
+    buffer << "./gearmand/gearmand --pid-file=" << file_buffer << " --daemon --port=" << port;
   }
 
   if (queue_type)
   {
-    snprintf(buffer_ptr, sizeof(buffer), " --queue-type=%s ", queue_type);
-    buffer_ptr+= strlen(buffer_ptr);
+    buffer << " --queue-type=" << queue_type << " ";
   }
 
   if (getuid() == 0 || geteuid() == 0)
   {
-    snprintf(buffer_ptr, sizeof(buffer), " -u root ");
-    buffer_ptr+= strlen(buffer_ptr);
+    buffer << " -u root ";
   }
 
   for (int x= 1 ; x < argc ; x++)
   {
-    snprintf(buffer_ptr, sizeof(buffer), " %s ", argv[x]);
+    buffer << " " << argv[x] << " ";
   }
 
-  fprintf(stderr, "%s\n", buffer);
   if (getenv("GEARMAN_MANUAL_GDB"))
   {
-    fprintf(stderr, "Pausing for startup, hit return when ready.\n");
+    std::cerr << "Pausing for startup, hit return when ready." << std::endl;
     getchar();
   }
   else
   {
-    int err= system(buffer);
+    int err= system(buffer.str().c_str());
     assert(err != -1);
   }
 
@@ -184,25 +179,26 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
       continue;
     }
 
-    char *found= fgets(buffer, sizeof(buffer), file);
-    if (!found)
+    char fgets_buffer[1024];
+    char *found= fgets(fgets_buffer, sizeof(fgets_buffer), file);
+    if (! found)
     {
       return -1;
     }
-    gearmand_pid= atoi(buffer);
+    gearmand_pid= atoi(fgets_buffer);
     fclose(file);
   }
 
   if (gearmand_pid == -1)
   {
-    fprintf(stderr, "Could not attach to gearman server, could server already be running on port %u\n", (uint32_t)port);
+    std::cerr << "Could not attach to gearman server, could server already be running on port " << port << std::endl;
     return -1;
   }
 
   if (! wait_and_check_startup(NULL, port))
   {
     test_gearmand_stop(gearmand_pid);
-    fprintf(stderr, "Failed wait_and_check_startup()\n");
+    std::cerr << "Failed wait_and_check_startup()" << std::endl;
     return -1;
   }
 
@@ -219,11 +215,11 @@ void test_gearmand_stop(pid_t gearmand_pid)
     {
     case EPERM:
       perror(__func__);
-      fprintf(stderr, "%s -> Does someone else have a gearmand server running locally?\n", __func__);
+      std::cerr << __func__ << " -> Does someone else have a gearmand server running locally?" << std::endl;
       return;
     case ESRCH:
       perror(__func__);
-      fprintf(stderr, "Process %d not found.\n", (int)gearmand_pid);
+      std::cerr << "Process " << (int)gearmand_pid << "not found." << std::endl;
       return;
     default:
     case EINVAL:
@@ -237,7 +233,7 @@ void test_gearmand_stop(pid_t gearmand_pid)
 
   if (WCOREDUMP(status))
   {
-    fprintf(stderr, "A core dump was created from the server\n");
+    std::cerr << "A core dump was created from the server." << std::endl;
   }
 
   if (WIFEXITED(status))

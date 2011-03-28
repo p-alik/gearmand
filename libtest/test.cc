@@ -7,9 +7,10 @@
  * the COPYING file in the parent directory for full text.
  */
 
-/*
-  Sample test application.
-*/
+
+#include <config.h>
+
+#include <stdint.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,6 +21,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <fnmatch.h>
+#include <iostream>
 
 #include "test.h"
 
@@ -27,10 +29,10 @@
 
 static void world_stats_print(world_stats_st *stats)
 {
-  fprintf(stderr, "Total\t\t\t\t%u\n", stats->total);
-  fprintf(stderr, "\tFailed\t\t\t%u\n", stats->failed);
-  fprintf(stderr, "\tSkipped\t\t\t%u\n", stats->skipped);
-  fprintf(stderr, "\tSucceeded\t\t%u\n", stats->success);
+   std::cerr << "Total\t\t\t\t" << stats->total << std::endl;
+   std::cerr << "\tFailed\t\t\t" << stats->failed << std::endl;
+   std::cerr << "\tSkipped\t\t\t" << stats->skipped << std::endl;
+   std::cerr << "\tSucceeded\t\t" << stats->success << std::endl;
 }
 
 static long int timedif(struct timeval a, struct timeval b)
@@ -57,7 +59,7 @@ const char *test_strerror(test_return_t code)
     return "skipped";
   case TEST_MAXIMUM_RETURN:
   default:
-    fprintf(stderr, "Unknown return value\n");
+     std::cerr << "Unknown return value." << std::endl;
     abort();
   }
 }
@@ -74,10 +76,7 @@ void create_core(void)
     }
     else
     {
-      while (waitpid(pid, NULL, 0) != pid)
-      {
-        ;
-      }
+      while (waitpid(pid, NULL, 0) != pid) {};
     }
   }
 }
@@ -86,13 +85,9 @@ void create_core(void)
 static test_return_t _runner_default(test_callback_fn func, void *p)
 {
   if (func)
-  {
     return func(p);
-  }
-  else
-  {
-    return TEST_SUCCESS;
-  }
+
+  return TEST_SUCCESS;
 }
 
 static world_runner_st defualt_runners= {
@@ -154,7 +149,7 @@ int main(int argc, char *argv[])
     if (collection_to_run && fnmatch(collection_to_run, next->name, 0))
       continue;
 
-    fprintf(stderr, "\n%s\n\n", next->name);
+     std::cerr << std::endl << next->name << std::endl << std::endl;
 
     for (x= 0; run->name; run++)
     {
@@ -164,7 +159,7 @@ int main(int argc, char *argv[])
       if (wildcard && fnmatch(wildcard, run->name, 0))
         continue;
 
-      fprintf(stderr, "\tTesting %s", run->name);
+       std::cerr << "\tTesting " << run->name;
 
       if (world.collection_startup)
       {
@@ -210,12 +205,12 @@ int main(int argc, char *argv[])
 error:
       stats.total++;
 
-      fprintf(stderr, "\t\t\t\t\t");
+       std::cerr << "\t\t\t\t\t";
 
       switch (return_code)
       {
       case TEST_SUCCESS:
-        fprintf(stderr, "%ld.%03ld ", load_time / 1000, load_time % 1000);
+         std::cerr << load_time / 1000 << "." << load_time % 1000;
         stats.success++;
         break;
       case TEST_FAILURE:
@@ -230,7 +225,7 @@ error:
         break;
       }
 
-      fprintf(stderr, "[ %s ]\n", test_strerror(return_code));
+       std::cerr << "[ " << test_strerror(return_code) << " ]" << std::endl;
 
       if (world.on_error)
       {
@@ -243,7 +238,7 @@ error:
     }
   }
 
-  fprintf(stderr, "\n\nAll tests completed successfully\n\n");
+   std::cerr << std::endl << std::endl <<  "All tests completed successfully." << std::endl << std::endl;
 
   if (world.destroy)
   {
@@ -252,7 +247,7 @@ error:
 
     if (error != TEST_SUCCESS)
     {
-      fprintf(stderr, "Failure during shutdown.\n");
+       std::cerr << "Failure during shutdown." << std::endl;
       stats.failed++; // We do this to make our exit code return EXIT_FAILURE
     }
   }

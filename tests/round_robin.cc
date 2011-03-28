@@ -142,7 +142,7 @@ void *world_create(test_return_t *error)
   const char *argv[2]= { "test_gearmand", "--round-robin"};
   pid_t gearmand_pid;
 
-  gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, NULL, (char **)argv, 2);
+  gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, NULL, 2, argv);
 
   if (gearmand_pid == -1)
   {

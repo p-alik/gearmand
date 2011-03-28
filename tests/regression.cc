@@ -187,7 +187,7 @@ static void *world_create(test_return_t *error)
 
   test= (regression_st *)malloc(sizeof(regression_st));
 
-  test->gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, NULL, NULL, 0);
+  test->gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, NULL, 0, NULL);
 
   if (test->gearmand_pid == -1)
   {
