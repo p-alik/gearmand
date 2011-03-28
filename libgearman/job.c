@@ -11,7 +11,9 @@
  * @brief Job Definitions
  */
 
-#include "common.h"
+#include <libgearman/common.h>
+#include <libgearman/connection.h>
+#include <libgearman/packet.h>
 
 /**
  * @addtogroup gearman_job_static Static Job Declarations

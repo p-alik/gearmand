@@ -157,8 +157,7 @@ test_return_t clone_test(void *object)
   test_truth(client);
 
   test_truth(client->universal.con_list);
-  test_truth(!strcmp(client->universal.con_list->host, from_with_host->universal.con_list->host));
-  test_truth(client->universal.con_list->port == from_with_host->universal.con_list->port);
+  test_truth(gearman_client_compare(client, from_with_host));
 
   gearman_client_free(client);
   gearman_client_free(from_with_host);

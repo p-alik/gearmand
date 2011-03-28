@@ -11,7 +11,8 @@
  * @brief Gearman State Definitions
  */
 
-#include "common.h"
+#include <libgearman/common.h>
+#include <libgearman/connection.h>
 
 /**
  * @addtogroup gearman_universal Static Gearman Declarations

@@ -46,6 +46,7 @@ tests_burnin_test_LDADD= ${CLIENT_LDADD}
 
 tests_internals_test_SOURCES= tests/internals.cc
 tests_internals_test_LDADD= ${CLIENT_LDADD} libgearman/libgearmancore.la
+tests_internals_test_DEPENDENCIES= ${CLIENT_LDADD} libgearman/libgearmancore.la
 
 tests_regression_test_SOURCES= tests/regression.cc
 tests_regression_test_LDADD= ${CLIENT_LDADD} libgearman/libgearmancore.la

@@ -681,6 +681,9 @@ void gearman_client_clear_fn(gearman_client_st *client);
 GEARMAN_API
 gearman_return_t gearman_client_run_tasks(gearman_client_st *client);
 
+GEARMAN_API
+bool gearman_client_compare(const gearman_client_st *first, const gearman_client_st *second);
+
 /** @} */
 
 #ifdef __cplusplus

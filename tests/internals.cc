@@ -19,6 +19,7 @@
 
 #define GEARMAN_CORE
 #include <libgearman/gearman.h>
+#include <libgearman/connection.h>
 
 #include "libtest/test.h"
 #include "libtest/server.h"

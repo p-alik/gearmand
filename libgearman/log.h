@@ -11,8 +11,7 @@
  * @brief Local Gearman Declarations
  */
 
-#ifndef __GEARMAN_LOG_H__
-#define __GEARMAN_LOG_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -76,5 +75,3 @@ void gearman_log_crazy(gearman_universal_st *gearman, const char *format, ...);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GEARMAN_LOG_H__ */

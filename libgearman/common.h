@@ -82,7 +82,7 @@
 #define BUILDING_LIBGEARMAN
 #define GEARMAN_CORE
 
-#include "gearman.h"
+#include <libgearman/gearman.h>
 
 /* These are private not to be installed headers */
 #include "libgearman/byteorder.h"

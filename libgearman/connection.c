@@ -13,7 +13,8 @@
 
 #include <config.h>
 
-#include "common.h"
+#include <libgearman/common.h>
+#include <libgearman/connection.h>
 
 static void gearman_connection_reset_addrinfo(gearman_connection_st *connection);
 
@@ -332,9 +333,13 @@ gearman_return_t gearman_connection_send(gearman_connection_st *connection,
         break;
       }
       else if (ret == GEARMAN_IGNORE_PACKET)
+      {
         return GEARMAN_SUCCESS;
+      }
       else if (ret != GEARMAN_FLUSH_DATA)
+      {
         return ret;
+      }
 
       /* We were asked to flush when the buffer is already flushed! */
       if (connection->send_buffer_size == 0)

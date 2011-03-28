@@ -11,7 +11,8 @@
  * @brief Client Definitions
  */
 
-#include "common.h"
+#include <libgearman/common.h>
+#include <libgearman/connection.h>
 
 /**
  * @addtogroup gearman_client_static Static Client Declarations
@@ -1442,4 +1443,18 @@ static gearman_return_t _client_do_fail(gearman_task_st *task)
 
   client->do_ret= GEARMAN_WORK_FAIL;
   return GEARMAN_SUCCESS;
+}
+
+bool gearman_client_compare(const gearman_client_st *first, const gearman_client_st *second)
+{
+  if (!first || !second)
+    return false;
+
+  if (strcmp(first->universal.con_list->host, second->universal.con_list->host))
+    return false;
+
+  if (first->universal.con_list->port != second->universal.con_list->port)
+    return false;
+
+  return true;
 }

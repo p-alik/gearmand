@@ -11,7 +11,7 @@
  * @brief Gearman State Definitions
  */
 
-#include "common.h"
+#include "libgearman/common.h"
 
 #include <sys/types.h>
 #include <sys/socket.h>

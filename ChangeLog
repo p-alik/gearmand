@@ -2,7 +2,9 @@
   * Fix bug where gearman util would create duplicate output.
   * Update sqlite queue so that it uses a prepared statement.
   * Fixes a number cases where server was not initializing default values
-  internally correctly.
+  internally correctly.  
+  * gearman_client_compare()  API added. Returns true if the client
+  connections are connects are equivalent.
 
 0.18 Tue Mar 15 13:32:33 PDT 2011
   * Bug fix for compile when no plugins are requested.

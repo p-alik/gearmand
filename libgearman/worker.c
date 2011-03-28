@@ -11,7 +11,8 @@
  * @brief Worker Definitions
  */
 
-#include "common.h"
+#include <libgearman/common.h>
+#include <libgearman/connection.h>
 
 /**
   Private structure.

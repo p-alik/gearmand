@@ -11,8 +11,7 @@
  * @brief Definition for gearman_command_info_st
  */
 
-#ifndef __GEARMAN_COMMAND_H__
-#define __GEARMAN_COMMAND_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -33,5 +32,3 @@ struct gearman_command_info_st
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GEARMAN_COMMAND_H__ */

@@ -18,11 +18,6 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
 /**
  * @addtogroup gearman_con Connection Declarations
  * @ingroup gearman_universal
@@ -98,6 +93,10 @@ struct gearman_connection_st
 };
 
 #ifdef GEARMAN_CORE
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * Initialize a connection structure. Always check the return value even if

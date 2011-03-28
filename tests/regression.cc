@@ -20,6 +20,7 @@
 #define GEARMAN_CORE
 
 #include <libgearman/gearman.h>
+#include <libgearman/connection.h>
 
 #include <libtest/test.h>
 #include <libtest/server.h>
@@ -44,14 +45,13 @@ static test_return_t bug372074_test(void *object __attribute__((unused)))
   gearman_universal_st gearman;
   gearman_connection_st con;
   gearman_packet_st packet;
-  uint32_t x;
   const void *args[1];
   size_t args_size[1];
 
   if (gearman_universal_create(&gearman, NULL) == NULL)
     return TEST_FAILURE;
 
-  for (x= 0; x < 2; x++)
+  for (uint32_t x= 0; x < 2; x++)
   {
     if (gearman_connection_create(&gearman, &con, NULL) == NULL)
       return TEST_FAILURE;
