@@ -807,13 +807,20 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
                 gearman_packet_free(&(client->con->packet));
                 client->con->options.packet_in_use= false;
 
+                /* This step copied from _client_run_tasks(): */
+                /* Increment this since the job submission failed. */
+                client->con->created_id++;
+
                 /* Task cleanup copied from bottom of _client_run_tasks(), and must
                    remain in sync with its reference. */
+		/* Actually, caller already tries to gearman_task_free(...) */
+		/*
                 client->running_tasks--;
                 client->task->state= GEARMAN_TASK_STATE_FINISHED;
 
                 if (client->options.free_tasks)
                   gearman_task_free(client->task);
+		*/
 
                 return GEARMAN_SERVER_ERROR;
               }
