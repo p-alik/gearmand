@@ -45,6 +45,7 @@
 #include <libgearman/common.h>
 #include <libgearman/connection.h>
 #include <libgearman/packet.h>
+#include <stdio.h>
 
 /**
  * @addtogroup gearman_job_static Static Job Declarations

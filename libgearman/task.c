@@ -45,6 +45,8 @@
 #include <libgearman/connection.h>
 #include <libgearman/packet.h>
 
+#include <assert.h>
+
 /*
  * Public Definitions
  */

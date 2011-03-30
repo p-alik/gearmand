@@ -11,7 +11,11 @@
  * @brief Connection Definitions
  */
 
-#include "common.h"
+#include <libgearman-server/common.h>
+
+#include <string.h>
+#include <errno.h>
+#include <assert.h>
 
 static gearmand_error_t gearmand_connection_recv_data(gearman_server_con_st *con, void *data, size_t data_size);
 

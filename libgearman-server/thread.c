@@ -11,7 +11,10 @@
  * @brief Server Thread Definitions
  */
 
-#include "common.h"
+#include <libgearman-server/common.h>
+
+#include <assert.h>
+#include <errno.h>
 
 /*
  * Private declarations

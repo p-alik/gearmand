@@ -6,43 +6,20 @@
  * the COPYING file in the parent directory for full text.
  */
 
-#include "config.h"
+#include <config.h>
 
-#include <stdint.h>
-
-#ifdef HAVE_ERRNO_H
 #include <errno.h>
-#endif
-#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
-#endif
-#ifdef HAVE_PWD_H
 #include <pwd.h>
-#endif
-#ifdef HAVE_SIGNAL_H
 #include <signal.h>
-#endif
-#ifdef HAVE_STDIO_H
+#include <stdint.h>
 #include <stdio.h>
-#endif
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
-#ifdef HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>
-#endif
-#ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
-#endif
-#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
-#endif
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 #ifdef TIME_WITH_SYS_TIME
 # include <sys/time.h>
@@ -60,7 +37,6 @@
 #include <libgearman-server/queue.h>
 
 #define GEARMAND_LOG_REOPEN_TIME 60
-#define GEARMAND_LISTEN_BACKLOG 32
 
 #include "util/daemon.h"
 #include "util/pidfile.h"
@@ -128,7 +104,7 @@ static void _log(const char *line, gearmand_verbose_t verbose, void *context);
 
 int main(int argc, char *argv[])
 {
-  int backlog= GEARMAND_LISTEN_BACKLOG;
+  int backlog;
   rlim_t fds= 0;
   uint32_t job_retries;
   uint32_t worker_wakeup;
@@ -150,7 +126,7 @@ int main(int argc, char *argv[])
   boost::program_options::options_description general("General options");
 
   general.add_options()
-  ("backlog,b", boost::program_options::value(&backlog)->default_value(GEARMAND_LISTEN_BACKLOG),
+  ("backlog,b", boost::program_options::value(&backlog)->default_value(32),
    "Number of backlog connections for listen.")
   ("check-args", boost::program_options::bool_switch(&opt_check_args)->default_value(false),
    "Check command line and configuration file argments and then exit.")

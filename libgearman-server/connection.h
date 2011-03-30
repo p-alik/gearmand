@@ -15,6 +15,7 @@
 #define __GEARMAN_SERVER_CON_H__
 
 #include <libgearman-server/io.h>
+#include <libgearman-server/packet.h>
 
 #ifdef __cplusplus
 extern "C" {

@@ -14,6 +14,10 @@
 #include <libgearman/common.h>
 #include <libgearman/connection.h>
 
+#include <assert.h>
+#include <errno.h>
+#include <stdio.h>
+
 /**
  * @addtogroup gearman_universal Static Gearman Declarations
  * @ingroup universal

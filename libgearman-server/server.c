@@ -11,7 +11,11 @@
  * @brief Server Definitions
  */
 
-#include "common.h"
+#include <libgearman-server/common.h>
+
+#include <assert.h>
+#include <errno.h>
+#include <string.h>
 
 /*
  * Private declarations

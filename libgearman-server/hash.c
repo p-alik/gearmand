@@ -35,7 +35,7 @@
  *
  */
 
-#include "libgearman-server/common.h"
+#include <libgearman-server/common.h>
 
 #include <libgearman-server/gearmand.h>
 #include <libgearman-server/hash.h>

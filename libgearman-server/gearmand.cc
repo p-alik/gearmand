@@ -11,13 +11,15 @@
  * @brief Gearmand Definitions
  */
 
-#include "common.h"
+#include <libgearman-server/common.h>
 
-#include <sys/types.h>
-#include <sys/socket.h>
+#include <errno.h>
 #include <netdb.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/utsname.h>
 
-#include "gearmand.h"
+#include <libgearman-server/gearmand.h>
 
 #include <libgearman-server/port.h>
 #include <libgearman-server/plugins.h>

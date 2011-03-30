@@ -11,7 +11,7 @@
  * @brief gearman_strerror()
  */
 
-#include "common.h"
+#include <libgearman/common.h>
 
 const char *gearman_strerror(gearman_return_t rc)
 {

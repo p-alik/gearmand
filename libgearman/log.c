@@ -13,6 +13,7 @@
 
 #include <libgearman/common.h>
 #include <libgearman/log.h>
+#include <stdio.h>
 
 void gearman_log(gearman_universal_st *state, gearman_verbose_t verbose,
                  const char *format, va_list args)

@@ -6,10 +6,16 @@
  * the COPYING file in the parent directory for full text.
  */
 
-#include "common.h"
+#include <config.h>
+#include <libgearman-server/error.h>
+#include <libgearman-server/constants.h>
+#include <libgearman-server/connection_list.h>
+#include <libgearman-server/io.h>
+#include <libgearman-server/connection.h>
+#include <assert.h>
 
 void gearmand_connection_list_init(gearmand_connection_list_st *universal,
-                             gearmand_event_watch_fn *watch_fn, void *watch_context)
+                                   gearmand_event_watch_fn *watch_fn, void *watch_context)
 {
   assert(universal);
 

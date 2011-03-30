@@ -11,9 +11,11 @@
  * @brief Server connection definitions
  */
 
-#include "common.h"
+#include <libgearman-server/common.h>
 
 #include <libgearman-server/fifo.h>
+#include <assert.h>
+#include <cstring>
 
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 

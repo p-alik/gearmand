@@ -11,9 +11,11 @@
  * @brief Gearmand Thread Definitions
  */
 
-#include "common.h"
+#include <libgearman-server/common.h>
+#include <libgearman-server/gearmand.h>
 
-#include "gearmand.h"
+#include <assert.h>
+#include <errno.h>
 
 #include <libgearman-server/list.h>
 

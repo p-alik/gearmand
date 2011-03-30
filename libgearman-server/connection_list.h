@@ -6,8 +6,9 @@
  * the COPYING file in the parent directory for full text.
  */
 
-#ifndef __GEARMAN_UNIVERSAL_H__
-#define __GEARMAN_UNIVERSAL_H__
+#pragma once 
+
+struct gearmand_io_st;
 
 #ifdef __cplusplus
 extern "C" {
@@ -38,5 +39,3 @@ gearman_server_con_st *gearmand_ready(gearmand_connection_list_st *gearman);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GEARMAN_UNIVERSAL_H__ */

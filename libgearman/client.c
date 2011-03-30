@@ -42,7 +42,15 @@
  */
 
 #include <libgearman/common.h>
+#include <libgearman/configure.h>
 #include <libgearman/connection.h>
+
+#include <assert.h>
+#include <stdio.h>
+
+#ifdef HAVE_UUID_UUID_H
+#include <uuid/uuid.h>
+#endif
 
 /**
  * @addtogroup gearman_client_static Static Client Declarations

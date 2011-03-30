@@ -11,8 +11,12 @@
  * @brief Gearmand Connection Definitions
  */
 
-#include "common.h"
-#include "gearmand.h"
+#include <libgearman-server/common.h>
+#include <libgearman-server/gearmand.h>
+#include <string.h>
+
+#include <errno.h>
+#include <assert.h>
 
 /*
  * Private declarations

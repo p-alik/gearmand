@@ -13,7 +13,7 @@
  *
  */
 
-#include "common.h"
+#include <libgearman/common.h>
 
 #ifndef swap64
 /* Byte swap a 64-bit number. */

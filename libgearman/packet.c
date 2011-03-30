@@ -41,7 +41,7 @@
  * @brief Packet Definitions
  */
 
-#include "common.h"
+#include <libgearman/common.h>
 
 /**
  * @addtogroup gearman_packet_static Static Packet Declarations

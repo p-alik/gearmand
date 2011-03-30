@@ -11,7 +11,8 @@
  * @brief Blob slap client utility
  */
 
-#include "benchmark.h"
+#include <benchmark/benchmark.h>
+#include <stdio.h>
 
 #define BLOBSLAP_DEFAULT_NUM_TASKS 10
 #define BLOBSLAP_DEFAULT_BLOB_MIN_SIZE 0

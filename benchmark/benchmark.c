@@ -11,7 +11,8 @@
  * @brief Common benchmark functions
  */
 
-#include "benchmark.h"
+#include <benchmark/benchmark.h>
+#include <stdio.h>
 
 /*
  * Public definitions

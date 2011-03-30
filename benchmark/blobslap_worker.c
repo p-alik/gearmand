@@ -11,7 +11,9 @@
  * @brief Blob slap worker utility
  */
 
-#include "benchmark.h"
+#include <benchmark/benchmark.h>
+#include <errno.h>
+#include <stdio.h>
 
 static void *worker_fn(gearman_job_st *job, void *context,
                        size_t *result_size, gearman_return_t *ret_ptr);

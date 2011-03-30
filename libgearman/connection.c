@@ -16,6 +16,18 @@
 #include <libgearman/common.h>
 #include <libgearman/connection.h>
 
+#include <assert.h>
+#include <errno.h>
+#include <stdio.h>
+#include <unistd.h>
+
+#if HAVE_NETINET_TCP_H
+#include <netinet/tcp.h>    /* for TCP_NODELAY */
+#endif
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>
+#endif
+
 static void gearman_connection_reset_addrinfo(gearman_connection_st *connection);
 
 

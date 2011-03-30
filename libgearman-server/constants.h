@@ -15,6 +15,12 @@
 #define __GEARMAN_SERVER_CONSTANTS_H__
 
 #ifdef __cplusplus
+#include <cstdlib>
+#else
+#include <stdlib.h>
+#endif
+
+#ifdef __cplusplus
 extern "C" {
 #endif
 

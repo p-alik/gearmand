@@ -11,9 +11,11 @@
  * @brief Gearman State Definitions
  */
 
-#include "common.h"
+#include <libgearman-server/common.h>
 
 #include <algorithm>
+#include <errno.h>
+#include <cstring>
 
 static pthread_key_t logging_key;
 static pthread_once_t intitialize_log_once = PTHREAD_ONCE_INIT;

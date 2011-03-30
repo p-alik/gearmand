@@ -11,7 +11,10 @@
  * @brief Server connection definitions
  */
 
-#include "common.h"
+#include <libgearman-server/common.h>
+#include <string.h>
+#include <errno.h>
+#include <assert.h>
 
 static gearman_server_con_st * _server_con_create(gearman_server_thread_st *thread, gearmand_con_st *dcon,
                                                   gearmand_error_t *ret);

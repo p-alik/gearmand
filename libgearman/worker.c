@@ -14,6 +14,9 @@
 #include <libgearman/common.h>
 #include <libgearman/connection.h>
 
+#include <stdio.h>
+#include <unistd.h>
+
 /**
   Private structure.
 */
@@ -698,7 +701,9 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
       if (active == 0)
       {
         if ((&worker->universal)->timeout < 0)
+        {
           usleep(GEARMAN_WORKER_WAIT_TIMEOUT * 1000);
+        }
         else
         {
           if ((&worker->universal)->timeout > 0)
