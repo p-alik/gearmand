@@ -1,4 +1,4 @@
-0.19
+0.19 Fri Apr  1 09:50:22 PDT 2011
   * Fix bug where gearman util would create duplicate output.
   * Update sqlite queue so that it uses a prepared statement.
   * Fixes a number cases where server was not initializing default values
