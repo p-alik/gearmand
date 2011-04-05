@@ -7,7 +7,7 @@
  * the COPYING file in the parent directory for full text.
  */
 
-#include "config.h"
+#include <config.h>
 
 #if defined(NDEBUG)
 # undef NDEBUG
@@ -98,24 +98,18 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
     buffer << "libtool --mode=execute valgrind --log-file=tests/var/tmp/valgrind.out --leak-check=full  --show-reachable=yes ";
   }
 
+  snprintf(file_buffer, sizeof(file_buffer), "tests/var/tmp/gearmand.pidXXXXXX");
+  if (mkstemp(file_buffer) == -1)
+  {
+    perror("mkstemp");
+    return -1;
+  }
   if (getenv("GEARMAN_MANUAL_GDB"))
   {
-    snprintf(file_buffer, sizeof(file_buffer), "tests/var/tmp/gearmand.pidXXXXXX");
-    if (mkstemp(file_buffer) == -1)
-    {
-      perror("mkstemp");
-      return -1;
-    }
     buffer << std::endl << "run --pid-file=" << file_buffer << " -vvvvvv --port=" << port;
   }
   else if (getenv("GEARMAN_LOG"))
   {
-    snprintf(file_buffer, sizeof(file_buffer), "tests/var/tmp/gearmand.pidXXXXXX");
-    if (mkstemp(file_buffer) == -1)
-    {
-      perror("mkstemp");
-      return -1;
-    }
     snprintf(log_buffer, sizeof(log_buffer), "tests/var/log/gearmand.logXXXXXX");
     if (mkstemp(log_buffer) == -1)
     {
@@ -126,12 +120,6 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
   }
   else
   {
-    snprintf(file_buffer, sizeof(file_buffer), "tests/var/tmp/gearmand.pidXXXXXX");
-    if (mkstemp(file_buffer) == -1)
-    {
-      perror("mkstemp");
-      return -1;
-    }
     buffer << "./gearmand/gearmand --pid-file=" << file_buffer << " --daemon --port=" << port;
   }
 
