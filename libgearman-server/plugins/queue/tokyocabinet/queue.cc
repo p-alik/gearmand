@@ -4,6 +4,7 @@
  */
 
 #include <libgearman-server/common.h>
+#include <inttypes.h>
 
 #include <libgearman-server/plugins/queue/tokyocabinet/queue.h>
 #include <libgearman-server/plugins/queue/base.h>
@@ -85,13 +86,17 @@ static gearmand_error_t _libtokyocabinet_add(gearman_server_st *server, void *co
                                              const char *function_name,
                                              size_t function_name_size,
                                              const void *data, size_t data_size,
-                                             gearmand_job_priority_t priority);
+                                             gearmand_job_priority_t priority,
+                                             int64_t when);
+
 static gearmand_error_t _libtokyocabinet_flush(gearman_server_st *server, void *context);
+
 static gearmand_error_t _libtokyocabinet_done(gearman_server_st *server, void *context,
                                               const char *unique,
                                               size_t unique_size, 
                                               const char *function_name, 
                                               size_t function_name_size);
+
 static gearmand_error_t _libtokyocabinet_replay(gearman_server_st *server, void *context,
                                                 gearman_queue_add_fn *add_fn,
                                                 void *add_context);
@@ -169,7 +174,8 @@ static gearmand_error_t _libtokyocabinet_add(gearman_server_st *server, void *co
                                              const char *function_name,
                                              size_t function_name_size,
                                              const void *data, size_t data_size,
-                                             gearmand_job_priority_t priority)
+                                             gearmand_job_priority_t priority,
+                                             int64_t when)
 {
   (void)server;
   gearmand::plugins::queue::TokyoCabinet *queue= (gearmand::plugins::queue::TokyoCabinet *)context;
@@ -177,7 +183,7 @@ static gearmand_error_t _libtokyocabinet_add(gearman_server_st *server, void *co
   TCXSTR *key;
   TCXSTR *job_data;
 
-  gearmand_log_debug("libtokyocabinet add: %.*s", (uint32_t)unique_size, (char *)unique);
+  gearmand_log_debug("libtokyocabinet add: %.*s at %lld", (uint32_t)unique_size, (char *)unique, (long long int)when);
 
   char key_str[GEARMAN_QUEUE_TOKYOCABINET_MAX_KEY_LEN];
   size_t key_length= (size_t)snprintf(key_str, GEARMAN_QUEUE_TOKYOCABINET_MAX_KEY_LEN, "%.*s-%.*s",
@@ -201,16 +207,25 @@ static gearmand_error_t _libtokyocabinet_add(gearman_server_st *server, void *co
   {
    case GEARMAND_JOB_PRIORITY_HIGH:
    case GEARMAND_JOB_PRIORITY_MAX:     
-     tcxstrcat2(job_data,"0");
+     tcxstrcat2(job_data, "0");
      break;
    case GEARMAND_JOB_PRIORITY_LOW:
-     tcxstrcat2(job_data,"2");
+     tcxstrcat2(job_data, "2");
      break;
    case GEARMAND_JOB_PRIORITY_NORMAL:
    default:
-     tcxstrcat2(job_data,"1");
+     tcxstrcat2(job_data, "1");
   }
 
+  // get int64_t as string
+  char timestr[32];
+  snprintf(timestr, sizeof(timestr), "%lld", (long long int)when);
+
+  // append to job_data
+  tcxstrcat(job_data, (const char *)timestr, (int)strlen(timestr));
+  tcxstrcat(job_data, "\0", 1);
+  
+  // add the rest...
   tcxstrcat(job_data, (const char *)data, (int)data_size);
 
   rc= tcadbput(queue->db, tcxstrptr(key), tcxstrsize(key),
@@ -284,6 +299,7 @@ static gearmand_error_t _callback_for_record(gearman_server_st *server,
   size_t unique_len;
   gearmand_job_priority_t priority;
   gearmand_error_t gret;
+  int64_t when; 
   
   gearmand_log_debug("replaying: %s", (char *) tcxstrptr(key));
 
@@ -316,6 +332,18 @@ static gearmand_error_t _callback_for_record(gearman_server_st *server,
   ++data_cstr;
   --data_cstr_size;
 
+  // out ptr for strtoul
+  char *new_data_cstr= NULL;
+  
+  // parse time from record
+  when= (int64_t)strtoul(data_cstr, &new_data_cstr, 10);
+  
+  // decrease opaque data size by the length of the numbers read by strtoul
+  data_cstr_size -= (new_data_cstr - data_cstr) + 1;
+  
+  // move data pointer to end of timestamp + 1 (null)
+  data_cstr= new_data_cstr + 1; 
+  
   // data is freed later so we must make a copy
   void *data_ptr= (void *)malloc(data_cstr_size);
   if (data_ptr == NULL)
@@ -327,7 +355,7 @@ static gearmand_error_t _callback_for_record(gearman_server_st *server,
   gret = (*add_fn)(server, add_context, unique, unique_len,
                    function, function_len,
                    data_ptr, data_cstr_size,
-                   priority);
+                   priority, when);
 
   if (gret != GEARMAN_SUCCESS)
   {

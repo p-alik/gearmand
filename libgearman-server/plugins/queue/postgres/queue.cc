@@ -99,13 +99,17 @@ static gearmand_error_t _libpq_add(gearman_server_st *server, void *context,
                                    const char *function_name,
                                    size_t function_name_size,
                                    const void *data, size_t data_size,
-                                   gearmand_job_priority_t priority);
+                                   gearmand_job_priority_t priority,
+                                   int64_t when);
+
 static gearmand_error_t _libpq_flush(gearman_server_st *server, void *context);
+
 static gearmand_error_t _libpq_done(gearman_server_st *server, void *context,
                                     const char *unique,
                                     size_t unique_size,
                                     const char *function_name,
                                     size_t function_name_size);
+
 static gearmand_error_t _libpq_replay(gearman_server_st *server, void *context,
                                       gearman_queue_add_fn *add_fn,
                                       void *add_context);
@@ -163,7 +167,7 @@ gearmand_error_t _initialize(gearman_server_st *server,
                "function_name VARCHAR(255),"
                "priority INTEGER,"
                "data BYTEA,"
-               "UNIQUE KEY (unique_key, function_name)"
+               "UNIQUE KEY (unique_key, function_name), when_to_run INTEGER"
              ")",
              queue->table.c_str(), GEARMAN_UNIQUE_SIZE);
 
@@ -202,36 +206,39 @@ static gearmand_error_t _libpq_add(gearman_server_st *server, void *context,
                                         const char *function_name,
                                         size_t function_name_size,
                                         const void *data, size_t data_size,
-                                        gearmand_job_priority_t priority)
+                                        gearmand_job_priority_t priority,
+                                        int64_t when)
 {
   (void)server;
+  (void)when;
   gearmand::plugins::queue::Postgres *queue= (gearmand::plugins::queue::Postgres *)context;
   PGresult *result;
 
   char buffer[22];
   snprintf(buffer, sizeof(buffer), "%u", static_cast<uint32_t>(priority));
 
-  const char *param_values[4]= {
+  const char *param_values[5]= {
     (char *)buffer,
     (char *)unique,
     (char *)function_name,
-    (char *)data };
+    (char *)data,
+    (char *)when };
 
-  int param_lengths[4]= { 
+  int param_lengths[5]= { 
     (int)strlen(buffer),
     (int)unique_size,
     (int)function_name_size,
-    (int)data_size };
+    (int)data_size,
+    (int)when };
 
   gearmand_log_debug("libpq add: %.*s", (uint32_t)unique_size, (char *)unique);
 
   std::string query;
   query+= "INSERT INTO ";
   query+= queue->table;
-  query+= " (priority,unique_key,function_name,data) VALUES($1,$2,$3,$4::BYTEA)";
+  query+= " (priority, unique_key, function_name, data, when_to_run) VALUES($1,$2,$3,$4::BYTEA,$5)";
 
-  result= PQexecParams(queue->con, query.c_str(), 3, NULL, param_values, param_lengths,
-                       NULL, 0);
+  result= PQexecParams(queue->con, query.c_str(), 3, NULL, param_values, param_lengths, NULL, 0);
   if (result == NULL || PQresultStatus(result) != PGRES_COMMAND_OK)
   {
     gearmand_log_error("_libpq_command", "PQexec:%s", PQerrorMessage(queue->con));
@@ -298,7 +305,7 @@ static gearmand_error_t _libpq_replay(gearman_server_st *server, void *context,
   gearmand_log_info("libpq replay start");
 
   std::string query;
-  query+= "SELECT unique_key,function_name,priority,data FROM ";
+  query+= "SELECT unique_key,function_name,priority,data,when_to_run FROM ";
   query+= queue->table;
 
   result= PQexecParams(queue->con, query.c_str(), 0, NULL, NULL, NULL, NULL, 1);
@@ -340,7 +347,8 @@ static gearmand_error_t _libpq_replay(gearman_server_st *server, void *context,
                    PQgetvalue(result, row, 1),
                    (size_t)PQgetlength(result, row, 1),
                    data, (size_t)PQgetlength(result, row, 3),
-                   (gearmand_job_priority_t)atoi(PQgetvalue(result, row, 2)));
+                   (gearmand_job_priority_t)atoi(PQgetvalue(result, row, 2)),
+                   atoll(PQgetvalue(result, row, 4)));
     if (ret != GEARMAN_SUCCESS)
     {
       PQclear(result);

@@ -88,13 +88,17 @@ static gearmand_error_t _libmemcached_add(gearman_server_st *server,
                                           const char *unique, size_t unique_size,
                                           const char *function_name, size_t function_name_size,
                                           const void *data, size_t data_size,
-                                          gearmand_job_priority_t priority);
+                                          gearmand_job_priority_t priority,
+					  int64_t when);
+
 static gearmand_error_t _libmemcached_flush(gearman_server_st *server,
                                             void *context);
+
 static gearmand_error_t _libmemcached_done(gearman_server_st *server,
                                            void *context,
                                            const char *unique, size_t unique_size,
                                            const char *function_name, size_t function_name_size);
+
 static gearmand_error_t _libmemcached_replay(gearman_server_st *server,
                                              void *context,
                                              gearman_queue_add_fn *add_fn,
@@ -141,12 +145,16 @@ static gearmand_error_t _libmemcached_add(gearman_server_st *server,
                                           const char *function_name,
                                           size_t function_name_size,
                                           const void *data, size_t data_size,
-                                          gearmand_job_priority_t priority)
+                                          gearmand_job_priority_t priority,
+					  int64_t when)
 {
   gearmand::plugins::queue::Libmemcached *queue= (gearmand::plugins::queue::Libmemcached *)context;
   memcached_return rc;
   char key[MEMCACHED_MAX_KEY];
   size_t key_length;
+
+  if (when) // No support for EPOCH jobs
+    return GEARMAN_QUEUE_ERROR;
 
   (void)server;
 
@@ -259,7 +267,7 @@ static memcached_return callback_loader(const memcached_st *ptr __attribute__((u
                              unique, strlen(unique),
                              function, function_len,
                              data, data_size,
-                             static_cast<gearmand_job_priority_t>(memcached_result_flags(result)));
+                             static_cast<gearmand_job_priority_t>(memcached_result_flags(result)), 0);
 
 
   return MEMCACHED_SUCCESS;

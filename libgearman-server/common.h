@@ -11,12 +11,12 @@
  * @brief System Include Files
  */
 
-#ifndef __GEARMAN_SERVER_COMMON_H__
-#define __GEARMAN_SERVER_COMMON_H__
+#pragma once
 
 #include <config.h>
 
-#include "libgearman-server/gearmand.h"
+#include <libgearman-server/gearmand.h>
+#include <libgearman-server/byteorder.h>
 
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
@@ -164,5 +164,3 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GEARMAN_SERVER_COMMON_H__ */

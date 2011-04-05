@@ -14,6 +14,7 @@
  */
 
 #include <config.h>
+
 #include <libgearman-server/byteorder.h>
 
 #ifndef swap64

@@ -120,7 +120,7 @@ gearmand_error_t gearman_server_io_packet_add(gearman_server_con_st *con,
 
   while (arg != NULL)
   {
-    arg_size = va_arg(ap, size_t);
+    arg_size= va_arg(ap, size_t);
 
     ret= gearmand_packet_create(&(server_packet->packet), arg, arg_size);
     if (ret != GEARMAN_SUCCESS)

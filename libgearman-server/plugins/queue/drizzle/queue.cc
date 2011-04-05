@@ -138,12 +138,16 @@ static gearmand_error_t _libdrizzle_add(gearman_server_st *server,
                                         const char *unique, size_t unique_size,
                                         const char *function_name, size_t function_name_size,
                                         const void *data, size_t data_size,
-                                        gearmand_job_priority_t priority);
+                                        gearmand_job_priority_t priority,
+                                        int64_t when);
+
 static gearmand_error_t _libdrizzle_flush(gearman_server_st *gearman,
                                           void *context);
+
 static gearmand_error_t _libdrizzle_done(gearman_server_st *gearman,
                                           void *context, const char *unique, size_t unique_size,
                                          const char *function_name, size_t function_name_size);
+
 static gearmand_error_t _libdrizzle_replay(gearman_server_st *gearman,
                                            void *context,
                                            gearman_queue_add_fn *add_fn,
@@ -260,6 +264,8 @@ gearmand_error_t gearman_server_queue_libdrizzle_init(plugins::queue::Drizzle *q
                "priority INT,"
                "data LONGBLOB,"
                "unique key (unique_key, function_name)"
+               "data LONGBLOB," 
+               "when_to_run INT"
              ")",
              queue->table.c_str(), GEARMAN_UNIQUE_SIZE);
 
@@ -322,7 +328,8 @@ static gearmand_error_t _libdrizzle_add(gearman_server_st *server,
                                         const char *unique, size_t unique_size,
                                         const char *function_name, size_t function_name_size,
                                         const void *data, size_t data_size,
-                                        gearmand_job_priority_t priority)
+                                        gearmand_job_priority_t priority,
+                                        int64_t when)
 {
   plugins::queue::Drizzle *queue= (plugins::queue::Drizzle *)context;
   Byte query;
@@ -345,8 +352,9 @@ static gearmand_error_t _libdrizzle_add(gearman_server_st *server,
   query.resize(((unique_size + function_name_size + data_size) * 2) + GEARMAN_QUEUE_QUERY_BUFFER);
 
   size_t query_size= (size_t)snprintf(query.c_str(), query.size(),
-                                      "INSERT INTO %s SET priority=%u,unique_key='",
-                                      queue->table.c_str(), (uint32_t)priority);
+                                      "INSERT INTO %s SET priority=%u,when_to_run=%lldunique_key='",
+                                      queue->table.c_str(), (uint32_t)priority,
+                                      (long long unsigned int)when);
 
   query_size+= (size_t)drizzle_escape_string((char *)(query.c_str() + query_size), (const char *)unique, unique_size);
   memcpy(query.c_str() + query_size, "',function_name='", 17);
@@ -496,7 +504,7 @@ static gearmand_error_t _libdrizzle_replay(gearman_server_st *server,
   gearmand_log_info("libdrizzle replay start");
 
   query_size= (size_t)snprintf(query, sizeof(query),
-                               "SELECT unique_key,function_name,priority,data FROM %s",
+                               "SELECT unique_key,function_name,priority,data,when_to_run FROM %s",
                                queue->table.c_str());
 
   if (_libdrizzle_query(server, queue, query, query_size) != DRIZZLE_RETURN_OK)
@@ -545,7 +553,8 @@ static gearmand_error_t _libdrizzle_replay(gearman_server_st *server,
 
     gret= (*add_fn)(server, add_context, row[0], field_sizes[0],
                     row[1], field_sizes[1],
-                    data, data_size, (gearmand_job_priority_t)atoi(row[2]));
+                    data, data_size, (gearmand_job_priority_t)atoi(row[2]), atoi(row[4]));
+
     if (gret != GEARMAN_SUCCESS)
     {
       drizzle_row_free(queue->result(), row);
