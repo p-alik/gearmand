@@ -35,34 +35,44 @@ noinst_HEADERS+= \
 
 noinst_LTLIBRARIES+= libgearman/libgearmancore.la
 libgearman_libgearmancore_la_SOURCES= \
-				       libgearman/byteorder.c \
-				       libgearman/connection.c \
-				       libgearman/log.c \
-				       libgearman/packet.c \
-				       libgearman/universal.c
+				       libgearman/byteorder.cc \
+				       libgearman/connection.cc \
+				       libgearman/log.cc \
+				       libgearman/packet.cc \
+				       libgearman/universal.cc
 
 libgearman_libgearmancore_la_CFLAGS= \
+				     -fno-exceptions \
+				     -fno-rtti \
 				     ${AM_CFLAGS}
+libgearman_libgearmancore_la_LDFLAGS= \
+				      -fno-exceptions \
+				      -fno-rtti \
+				      ${AM_LDFLAGS}
 
 lib_LTLIBRARIES+= libgearman/libgearman.la
 libgearman_libgearman_la_SOURCES= \
 				  libgearman/client.cc \
-				  libgearman/gearman.c \
-				  libgearman/job.c \
-				  libgearman/strerror.c \
-				  libgearman/task.c \
-				  libgearman/worker.c
+				  libgearman/gearman.cc \
+				  libgearman/job.cc \
+				  libgearman/strerror.cc \
+				  libgearman/task.cc \
+				  libgearman/worker.cc
 
 libgearman_libgearman_la_DEPENDENCIES= libgearman/libgearmancore.la
 
 libgearman_libgearman_la_CFLAGS= \
+				 -fno-exceptions \
+				 -fno-rtti \
 				 ${AM_CFLAGS}
 
 libgearman_libgearman_la_LDFLAGS= \
+				  -fno-exceptions \
+				  -fno-rtti \
 				  $(AM_LDFLAGS) \
 				  -version-info $(GEARMAN_LIBRARY_VERSION)
 
 libgearman_libgearman_la_LIBADD= \
-	libgearman/libgearmancore.la \
-	$(LTLIBUUID)
+				 libgearman/libgearmancore.la \
+				 $(LTLIBUUID)
 

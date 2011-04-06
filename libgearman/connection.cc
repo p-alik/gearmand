@@ -37,6 +37,7 @@ static void gearman_connection_reset_addrinfo(gearman_connection_st *connection)
  * @{
  */
 
+#pragma GCC diagnostic ignored "-Wold-style-cast"
 
 gearman_connection_st *gearman_connection_create(gearman_universal_st *gearman,
                                                  gearman_connection_st *connection,
@@ -44,7 +45,7 @@ gearman_connection_st *gearman_connection_create(gearman_universal_st *gearman,
 {
   if (connection == NULL)
   {
-    connection= malloc(sizeof(gearman_connection_st));
+    connection= (gearman_connection_st *)malloc(sizeof(gearman_connection_st));
     if (connection == NULL)
     {
       gearman_universal_set_error(gearman, "gearman_connection_create", "malloc");
@@ -73,10 +74,9 @@ gearman_connection_st *gearman_connection_create(gearman_universal_st *gearman,
     }
   }
 
-
-  connection->state= 0;
-  connection->send_state= 0;
-  connection->recv_state= 0;
+  connection->state= GEARMAN_CON_UNIVERSAL_ADDRINFO;
+  connection->send_state= GEARMAN_CON_SEND_STATE_NONE;
+  connection->recv_state= GEARMAN_CON_RECV_UNIVERSAL_NONE;
   connection->port= 0;
   connection->events= 0;
   connection->revents= 0;

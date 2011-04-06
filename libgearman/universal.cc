@@ -47,7 +47,7 @@ gearman_universal_st *gearman_universal_create(gearman_universal_st *universal, 
     }
   }
 
-  universal->verbose= 0;
+  universal->verbose= GEARMAN_VERBOSE_NEVER;
   universal->con_count= 0;
   universal->packet_count= 0;
   universal->pfds_size= 0;
@@ -207,6 +207,8 @@ gearman_return_t gearman_flush_all(gearman_universal_st *universal)
   return GEARMAN_SUCCESS;
 }
 
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+
 gearman_return_t gearman_wait(gearman_universal_st *universal)
 {
   gearman_connection_st *con;
@@ -217,7 +219,7 @@ gearman_return_t gearman_wait(gearman_universal_st *universal)
 
   if (universal->pfds_size < universal->con_count)
   {
-    pfds= realloc(universal->pfds, universal->con_count * sizeof(struct pollfd));
+    pfds= (pollfd*)realloc(universal->pfds, universal->con_count * sizeof(struct pollfd));
     if (pfds == NULL)
     {
       gearman_universal_set_error(universal, "gearman_wait", "realloc");
@@ -385,6 +387,8 @@ void gearman_free_all_packets(gearman_universal_st *universal)
     gearman_packet_free(universal->packet_list);
 }
 
+#pragma GCC diagnostic ignored "-fpermissive"
+
 /*
  * Local Definitions
  */
@@ -398,7 +402,7 @@ void gearman_universal_set_error(gearman_universal_st *universal, const char *fu
   va_list args;
 
   size= strlen(function);
-  ptr= memcpy(log_buffer, function, size);
+  ptr= memcpy((void*)log_buffer, (void*)function, size);
   ptr+= size;
   ptr[0]= ':';
   size++;

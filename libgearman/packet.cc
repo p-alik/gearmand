@@ -94,6 +94,9 @@ gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX]=
   { "SUBMIT_JOB_EPOCH",   3, true  }
 };
 
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#pragma GCC diagnostic ignored "-fpermissive"
+
 inline static gearman_return_t packet_create_arg(gearman_packet_st *packet,
                                                  const void *arg, size_t arg_size)
 {

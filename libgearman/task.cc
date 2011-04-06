@@ -51,11 +51,13 @@
  * Public Definitions
  */
 
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+
 gearman_task_st *gearman_task_create(gearman_client_st *client, gearman_task_st *task)
 {
   if (task == NULL)
   {
-    task= malloc(sizeof(gearman_task_st));
+    task= (gearman_task_st *)malloc(sizeof(gearman_task_st));
     if (task == NULL)
     {
       gearman_universal_set_error(&client->universal, "_task_create", "malloc");
@@ -73,7 +75,7 @@ gearman_task_st *gearman_task_create(gearman_client_st *client, gearman_task_st 
   task->options.is_known= false;
   task->options.is_running= false;
 
-  task->state= 0;
+  task->state= GEARMAN_TASK_STATE_NEW;
   task->created_id= 0;
   task->numerator= 0;
   task->denominator= 0;

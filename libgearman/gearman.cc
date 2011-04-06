@@ -68,6 +68,8 @@ static const char *_verbose_name[GEARMAN_VERBOSE_MAX]=
   "CRAZY"
 };
 
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+
 /** @} */
 
 /*

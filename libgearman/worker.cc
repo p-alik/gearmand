@@ -155,6 +155,7 @@ gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker,
   return worker;
 }
 
+#pragma GCC diagnostic ignored "-Wold-style-cast"
 void gearman_worker_free(gearman_worker_st *worker)
 {
   if (! worker)
@@ -206,6 +207,9 @@ int gearman_worker_errno(gearman_worker_st *worker)
 {
   return gearman_universal_errno((&worker->universal));
 }
+
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#pragma GCC diagnostic ignored "-fpermissive"
 
 gearman_worker_options_t gearman_worker_options(const gearman_worker_st *worker)
 {
