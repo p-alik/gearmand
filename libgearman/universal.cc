@@ -52,7 +52,6 @@ gearman_universal_st *gearman_universal_create(gearman_universal_st *universal, 
   universal->packet_count= 0;
   universal->pfds_size= 0;
   universal->sending= 0;
-  universal->last_errno= 0;
   universal->timeout= -1;
   universal->con_list= NULL;
   universal->packet_list= NULL;
@@ -65,7 +64,9 @@ gearman_universal_st *gearman_universal_create(gearman_universal_st *universal, 
   universal->workload_malloc_context= NULL;
   universal->workload_free_fn= NULL;
   universal->workload_free_context= NULL;
-  universal->last_error[0]= 0;
+  universal->error.rc= GEARMAN_SUCCESS;
+  universal->error.last_errno= 0;
+  universal->error.last_error[0]= 0;
 
   return universal;
 }
@@ -222,7 +223,7 @@ gearman_return_t gearman_wait(gearman_universal_st *universal)
     pfds= (pollfd*)realloc(universal->pfds, universal->con_count * sizeof(struct pollfd));
     if (pfds == NULL)
     {
-      gearman_universal_set_error(universal, "gearman_wait", "realloc");
+      gearman_perror(universal, "realloc");
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
 
@@ -246,7 +247,7 @@ gearman_return_t gearman_wait(gearman_universal_st *universal)
 
   if (x == 0)
   {
-    gearman_universal_set_error(universal, "gearman_wait", "no active file descriptors");
+    gearman_error(universal, GEARMAN_NO_ACTIVE_FDS, "no active file descriptors");
     return GEARMAN_NO_ACTIVE_FDS;
   }
 
@@ -258,8 +259,7 @@ gearman_return_t gearman_wait(gearman_universal_st *universal)
       if (errno == EINTR)
         continue;
 
-      gearman_universal_set_error(universal, "gearman_wait", "poll:%d", errno);
-      universal->last_errno= errno;
+      gearman_perror(universal, "poll");
       return GEARMAN_ERRNO;
     }
 
@@ -268,7 +268,7 @@ gearman_return_t gearman_wait(gearman_universal_st *universal)
 
   if (ret == 0)
   {
-    gearman_universal_set_error(universal, "gearman_wait", "timeout reached");
+    gearman_error(universal, GEARMAN_TIMEOUT, "timeout reached");
     return GEARMAN_TIMEOUT;
   }
 
@@ -363,7 +363,7 @@ gearman_return_t gearman_echo(gearman_universal_st *universal,
         memcmp(workload, con->packet.data, workload_size))
     {
       gearman_packet_free(&(con->packet));
-      gearman_universal_set_error(universal, "gearman_echo", "corruption during echo");
+      gearman_error(universal, GEARMAN_ECHO_DATA_CORRUPTION, "corruption during echo");
 
       ret= GEARMAN_ECHO_DATA_CORRUPTION;
       goto exit;
@@ -393,13 +393,21 @@ void gearman_free_all_packets(gearman_universal_st *universal)
  * Local Definitions
  */
 
-void gearman_universal_set_error(gearman_universal_st *universal, const char *function,
+void gearman_universal_set_error(gearman_universal_st *universal, 
+				 gearman_return_t rc,
+				 const char *function,
                                  const char *format, ...)
 {
   size_t size;
   char *ptr;
   char log_buffer[GEARMAN_MAX_ERROR_SIZE];
   va_list args;
+
+  universal->error.rc= rc;
+  if (rc != GEARMAN_ERRNO)
+  {
+    universal->error.last_errno= 0;
+  }
 
   size= strlen(function);
   ptr= memcpy((void*)log_buffer, (void*)function, size);
@@ -417,7 +425,7 @@ void gearman_universal_set_error(gearman_universal_st *universal, const char *fu
     if (size >= GEARMAN_MAX_ERROR_SIZE)
       size= GEARMAN_MAX_ERROR_SIZE - 1;
 
-    memcpy(universal->last_error, log_buffer, size + 1);
+    memcpy(universal->error.last_error, log_buffer, size + 1);
   }
   else
   {
@@ -428,21 +436,22 @@ void gearman_universal_set_error(gearman_universal_st *universal, const char *fu
 
 void gearman_universal_set_perror(const char *position, gearman_universal_st *universal, const char *message)
 {
-  universal->last_errno= errno;
+  universal->error.rc= GEARMAN_ERRNO;
+  universal->error.last_errno= errno;
 
   const char *errmsg_ptr;
   char errmsg[GEARMAN_MAX_ERROR_SIZE]; 
   errmsg[0]= 0; 
 
 #ifdef STRERROR_R_CHAR_P
-  errmsg_ptr= strerror_r(universal->last_errno, errmsg, sizeof(errmsg));
+  errmsg_ptr= strerror_r(universal->error.last_errno, errmsg, sizeof(errmsg));
 #else
-  strerror_r(universal->last_errno, errmsg, sizeof(errmsg));
+  strerror_r(universal->error.last_errno, errmsg, sizeof(errmsg));
   errmsg_ptr= errmsg;
 #endif
 
   char final[GEARMAN_MAX_ERROR_SIZE];
   snprintf(final, sizeof(final), "%s(%s)", message, errmsg_ptr);
 
-  gearman_universal_set_error(universal, position, final);
+  gearman_universal_set_error(universal, GEARMAN_ERRNO, position, final);
 }

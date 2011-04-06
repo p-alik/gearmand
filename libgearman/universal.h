@@ -34,7 +34,6 @@ struct gearman_universal_st
   uint32_t packet_count;
   uint32_t pfds_size;
   uint32_t sending;
-  int last_errno;
   int timeout; // Used by poll()
   gearman_connection_st *con_list;
   gearman_packet_st *packet_list;
@@ -47,7 +46,11 @@ struct gearman_universal_st
   void *workload_malloc_context;
   gearman_free_fn *workload_free_fn;
   void *workload_free_context;
-  char last_error[GEARMAN_MAX_ERROR_SIZE];
+  struct {
+    gearman_return_t rc;
+    int last_errno;
+    char last_error[GEARMAN_MAX_ERROR_SIZE];
+  } error;
 };
 
 #ifdef GEARMAN_CORE
@@ -109,7 +112,9 @@ void gearman_universal_free(gearman_universal_st *gearman);
  * @param[in] format Format and variable argument list of message.
  */
 GEARMAN_INTERNAL_API
-void gearman_universal_set_error(gearman_universal_st *gearman, const char *function,
+void gearman_universal_set_error(gearman_universal_st *gearman,
+				 gearman_return_t rc,
+				 const char *function,
                                  const char *format, ...);
 
 GEARMAN_INTERNAL_API
@@ -120,7 +125,7 @@ void gearman_universal_set_perror(const char *position, gearman_universal_st *un
 #define AT __FILE__ ":" TOSTRING(__LINE__)
 
 #define gearman_perror(A, B) do { gearman_universal_set_perror(AT, A, B); } while (0)
-#define gearman_error(A, B) do { gearman_universal_set_error(A, AT, B); } while (0)
+#define gearman_error(A, B, C) do { gearman_universal_set_error(A, B, AT, C); } while (0)
 
 /**
  * Return an error string for last error encountered.
@@ -131,9 +136,9 @@ void gearman_universal_set_perror(const char *position, gearman_universal_st *un
  */
 static inline const char *gearman_universal_error(const gearman_universal_st *gearman)
 {
-  if (gearman->last_error[0] == 0)
+  if (gearman->error.last_error[0] == 0)
       return NULL;
-  return (const char *)(gearman->last_error);
+  return (const char *)(gearman->error.last_error);
 }
 
 /**
@@ -145,7 +150,7 @@ static inline const char *gearman_universal_error(const gearman_universal_st *ge
  */
 static inline int gearman_universal_errno(const gearman_universal_st *gearman)
 {
-  return gearman->last_errno;
+  return gearman->error.last_errno;
 }
 
 /**

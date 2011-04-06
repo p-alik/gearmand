@@ -86,7 +86,7 @@ static test_return_t clone_test(void *not_used __attribute__((unused)))
     test_truth(gear_clone->con_count == gear_ptr->con_count);
     test_truth(gear_clone->packet_count == gear_ptr->packet_count);
     test_truth(gear_clone->pfds_size == gear_ptr->pfds_size);
-    test_truth(gear_clone->last_errno == gear_ptr->last_errno);
+    test_truth(gear_clone->error.last_errno == gear_ptr->error.last_errno);
     test_truth(gear_clone->timeout == gear_ptr->timeout);
     test_truth(gear_clone->con_list == gear_ptr->con_list);
     test_truth(gear_clone->packet_list == gear_ptr->packet_list);

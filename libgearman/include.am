@@ -17,6 +17,7 @@ nobase_include_HEADERS+= \
 			 libgearman/configure.h \
 			 libgearman/constants.h \
 			 libgearman/core.h \
+			 libgearman/function.h \
 			 libgearman/gearman.h \
 			 libgearman/job.h \
 			 libgearman/log.h \
@@ -26,7 +27,8 @@ nobase_include_HEADERS+= \
 			 libgearman/task.h \
 			 libgearman/universal.h \
 			 libgearman/visibility.h \
-			 libgearman/worker.h
+			 libgearman/worker.h \
+			 libgearman/workload.h
 
 noinst_HEADERS+= \
 		 libgearman/common.h \
@@ -35,16 +37,17 @@ noinst_HEADERS+= \
 
 noinst_LTLIBRARIES+= libgearman/libgearmancore.la
 libgearman_libgearmancore_la_SOURCES= \
-				       libgearman/byteorder.cc \
-				       libgearman/connection.cc \
-				       libgearman/log.cc \
-				       libgearman/packet.cc \
-				       libgearman/universal.cc
+				      libgearman/byteorder.cc \
+				      libgearman/connection.cc \
+				      libgearman/log.cc \
+				      libgearman/packet.cc \
+				      libgearman/universal.cc
 
 libgearman_libgearmancore_la_CFLAGS= \
 				     -fno-exceptions \
 				     -fno-rtti \
-				     ${AM_CFLAGS}
+				     ${AM_CXXFLAGS}
+
 libgearman_libgearmancore_la_LDFLAGS= \
 				      -fno-exceptions \
 				      -fno-rtti \
@@ -53,18 +56,19 @@ libgearman_libgearmancore_la_LDFLAGS= \
 lib_LTLIBRARIES+= libgearman/libgearman.la
 libgearman_libgearman_la_SOURCES= \
 				  libgearman/client.cc \
+				  libgearman/function.cc \
 				  libgearman/gearman.cc \
 				  libgearman/job.cc \
 				  libgearman/strerror.cc \
 				  libgearman/task.cc \
-				  libgearman/worker.cc
+				  libgearman/worker.cc \
+				  libgearman/workload.cc
 
-libgearman_libgearman_la_DEPENDENCIES= libgearman/libgearmancore.la
+libgearman_libgearman_la_DEPENDENCIES= \
+				       libgearman/libgearmancore.la
 
-libgearman_libgearman_la_CFLAGS= \
-				 -fno-exceptions \
-				 -fno-rtti \
-				 ${AM_CFLAGS}
+libgearman_libgearman_la_CXXFLAGS= \
+				   ${AM_CXXFLAGS}
 
 libgearman_libgearman_la_LDFLAGS= \
 				  -fno-exceptions \

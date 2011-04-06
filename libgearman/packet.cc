@@ -108,8 +108,7 @@ inline static gearman_return_t packet_create_arg(gearman_packet_st *packet,
       (! (gearman_command_info_list[packet->command].data) ||
        packet->data != NULL))
   {
-    gearman_universal_set_error(packet->universal, "gearman_packet_create_arg",
-                      "too many arguments for command");
+    gearman_error(packet->universal, GEARMAN_TOO_MANY_ARGS, "too many arguments for command");
     return GEARMAN_TOO_MANY_ARGS;
   }
 
@@ -135,7 +134,7 @@ inline static gearman_return_t packet_create_arg(gearman_packet_st *packet,
     new_args= realloc(packet->args, packet->args_size + arg_size);
     if (new_args == NULL)
     {
-      gearman_universal_set_error(packet->universal, "gearman_packet_create_arg", "realloc");
+      gearman_perror(packet->universal, "realloc");
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
 
@@ -183,7 +182,7 @@ gearman_packet_st *gearman_packet_create(gearman_universal_st *gearman,
     packet= malloc(sizeof(gearman_packet_st));
     if (packet == NULL)
     {
-      gearman_universal_set_error(gearman, "gearman_packet_create", "malloc");
+      gearman_perror(gearman, "malloc");
       return NULL;
     }
 
@@ -332,16 +331,14 @@ gearman_return_t gearman_packet_pack_header(gearman_packet_st *packet)
     break;
 
   default:
-    gearman_universal_set_error(packet->universal, "gearman_packet_pack_header",
-                      "invalid magic value");
+    gearman_error(packet->universal, GEARMAN_INVALID_MAGIC, "invalid magic value");
     return GEARMAN_INVALID_MAGIC;
   }
 
   if (packet->command == GEARMAN_COMMAND_TEXT ||
       packet->command >= GEARMAN_COMMAND_MAX)
   {
-    gearman_universal_set_error(packet->universal, "gearman_packet_pack_header",
-                      "invalid command value");
+    gearman_error(packet->universal, GEARMAN_INVALID_COMMAND, "invalid command value");
     return GEARMAN_INVALID_COMMAND;
   }
 
@@ -354,8 +351,7 @@ gearman_return_t gearman_packet_pack_header(gearman_packet_st *packet)
   // Check for overflow on 32bit(portable?).
   if (length_64 >= UINT32_MAX || length_64 < packet->data_size)
   {
-    gearman_universal_set_error(packet->universal, "gearman_packet_pack_header",
-                                "data size too too long");
+    gearman_error(packet->universal, GEARMAN_ARGUMENT_TOO_LARGE, "data size too too long");
     return GEARMAN_ARGUMENT_TOO_LARGE;
   }
 
@@ -378,8 +374,7 @@ gearman_return_t gearman_packet_unpack_header(gearman_packet_st *packet)
     packet->magic= GEARMAN_MAGIC_RESPONSE;
   else
   {
-    gearman_universal_set_error(packet->universal, "gearman_packet_unpack_header",
-                      "invalid magic value");
+    gearman_error(packet->universal, GEARMAN_INVALID_MAGIC, "invalid magic value");
     return GEARMAN_INVALID_MAGIC;
   }
 
@@ -389,8 +384,7 @@ gearman_return_t gearman_packet_unpack_header(gearman_packet_st *packet)
   if (packet->command == GEARMAN_COMMAND_TEXT ||
       packet->command >= GEARMAN_COMMAND_MAX)
   {
-    gearman_universal_set_error(packet->universal, "gearman_packet_unpack_header",
-                                "invalid command value");
+    gearman_error(packet->universal, GEARMAN_INVALID_COMMAND, "invalid command value");
     return GEARMAN_INVALID_COMMAND;
   }
 

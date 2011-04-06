@@ -15,6 +15,7 @@
 #define __GEARMAN_COMMON_H__
 
 #include <config.h>
+#include <stdint.h>
 
 #ifdef HAVE_STDARG_H
 #include <stdarg.h>
@@ -40,7 +41,7 @@
 # endif
 #endif
 
-#include <stdint.h>
+#include <errno.h>
 #include <limits.h>
 
 #define BUILDING_LIBGEARMAN
@@ -49,6 +50,7 @@
 #include <libgearman/gearman.h>
 
 /* These are private not to be installed headers */
-#include "libgearman/byteorder.h"
+#include <libgearman/byteorder.h>
+#include <libgearman/function.h>
 
 #endif /* __GEARMAN_COMMON_H__ */

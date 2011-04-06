@@ -60,7 +60,7 @@ gearman_task_st *gearman_task_create(gearman_client_st *client, gearman_task_st 
     task= (gearman_task_st *)malloc(sizeof(gearman_task_st));
     if (task == NULL)
     {
-      gearman_universal_set_error(&client->universal, "_task_create", "malloc");
+      gearman_perror(&client->universal, "malloc");
       return NULL;
     }
 
@@ -184,13 +184,23 @@ size_t gearman_task_send_workload(gearman_task_st *task, const void *workload,
 
 const void *gearman_task_data(const gearman_task_st *task)
 {
-  assert(task->recv);
+  if (not task)
+    return NULL;
+
+  if (not task->recv)
+    return NULL;
+
   return task->recv->data;
 }
 
 size_t gearman_task_data_size(const gearman_task_st *task)
 {
-  assert(task->recv);
+  if (not task)
+    return 0;
+
+  if (not task->recv)
+    return 0;
+
   return task->recv->data_size;
 }
 

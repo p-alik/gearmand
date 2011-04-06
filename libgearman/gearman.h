@@ -65,12 +65,15 @@
 #include <libgearman/strerror.h>
 
 // Everything above this line must be in the order specified.
+#include <libgearman/workload.h>
+#include <libgearman/unique.h>
 #include <libgearman/core.h>
 #include <libgearman/task.h>
 #include <libgearman/job.h>
 
 #include <libgearman/worker.h>
 #include <libgearman/client.h>
+#include <libgearman/function.h>
 
 #ifdef __cplusplus
 extern "C" {

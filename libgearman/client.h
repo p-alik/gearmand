@@ -489,6 +489,13 @@ GEARMAN_API
 void gearman_client_set_task_context_free_fn(gearman_client_st *client,
                                              gearman_task_context_free_fn *function);
 
+// Use the job handle in task for returning all information.
+GEARMAN_API
+gearman_task_st *gearman_client_execute(gearman_client_st *client,
+                                        const gearman_function_t *function,
+                                        gearman_unique_t *unique,
+                                        const gearman_workload_t *workload);
+
 /**
  * Add a task to be run in parallel.
  *

@@ -93,3 +93,6 @@ tests/var/tmp/*
 tests/worker_test
 tests/worker_test.res
 unittests/unittests
+config/top.h
+bin/wait
+libhostile

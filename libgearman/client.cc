@@ -383,6 +383,74 @@ void *gearman_client_do_low(gearman_client_st *client,
                     workload, workload_size, result_size, ret_ptr);
 }
 
+static inline pick_command_by_priority(const gearman_job_priority_t &arg)
+{
+  if (arg == GEARMAN_JOB_PRIORITY_NORMAL)
+    return GEARMAN_COMMAND_SUBMIT_JOB;
+  else if (arg == GEARMAN_JOB_PRIORITY_HIGH)
+    return GEARMAN_COMMAND_SUBMIT_JOB_HIGH;
+
+  return GEARMAN_COMMAND_SUBMIT_JOB_LOW;
+}
+
+static inline pick_command_by_priority_background(const gearman_job_priority_t &arg)
+{
+  if (arg == GEARMAN_JOB_PRIORITY_NORMAL)
+    return GEARMAN_COMMAND_SUBMIT_JOB_BG;
+  else if (arg == GEARMAN_JOB_PRIORITY_HIGH)
+    return GEARMAN_COMMAND_SUBMIT_JOB_HIGH_BG;
+
+  return GEARMAN_COMMAND_SUBMIT_JOB_LOW_BG;
+}
+
+
+gearman_task_st *gearman_client_execute(gearman_client_st *client,
+                                        const gearman_function_t *function,
+                                        gearman_unique_t *unique,
+                                        const gearman_workload_t *workload)
+{
+  gearman_command_t command;
+
+  if (not client)
+    return NULL;
+
+  if (not function)
+    return NULL;
+
+  if (gearman_function_epoch(function))
+  {
+    command= GEARMAN_COMMAND_SUBMIT_JOB_EPOCH;
+  }
+  else if (gearman_function_background(function))
+  {
+    command= pick_command_by_priority_background(gearman_function_priority(function));
+  }
+  else
+  {
+    command= pick_command_by_priority(gearman_function_priority(function));
+  }
+
+  gearman_return_t rc;
+  gearman_task_st *task= _client_add_task(client, NULL, 
+                                          gearman_workload_context(workload),
+                                          command,
+                                          gearman_function_name(function), gearman_function_size(function),
+                                          gearman_param(unique),
+                                          gearman_param(workload),
+                                          &rc);
+  if (not task)
+    return NULL;
+
+  rc= gearman_client_run_tasks(client);
+  if (rc !=  GEARMAN_SUCCESS)
+  {
+    gearman_error(&client->universal, rc, "gearman_client_run_tasks");
+    return NULL;
+  }
+
+  return task;
+}
+
 const char *gearman_client_do_job_handle(const gearman_client_st *client)
 {
   return client->do_task.job_handle;
@@ -838,11 +906,13 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
               }
               else if (client->con->packet.command == GEARMAN_COMMAND_ERROR)
               {
-		gearman_universal_set_error(&client->universal, "gearman_client_run_tasks",
-				  "%s:%.*s",
-				  (char *)(client->con->packet.arg[0]),
-				  (int)(client->con->packet.arg_size[1]),
-				  (char *)(client->con->packet.arg[1]));
+                gearman_universal_set_error(&client->universal,
+                                            GEARMAN_SERVER_ERROR,
+                                            "gearman_client_run_tasks",
+                                            "%s:%.*s",
+                                            (char *)(client->con->packet.arg[0]),
+                                            (int)(client->con->packet.arg_size[1]),
+                                            (char *)(client->con->packet.arg[1]));
 
                 return GEARMAN_SERVER_ERROR;
               }
@@ -922,7 +992,9 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
     break;
 
   default:
-    gearman_universal_set_error(&client->universal, "gearman_client_run_tasks",
+    gearman_universal_set_error(&client->universal,
+                                GEARMAN_UNKNOWN_STATE,
+                                "gearman_client_run_tasks",
                                 "unknown state: %u", client->state);
 
     return GEARMAN_UNKNOWN_STATE;
@@ -1092,8 +1164,10 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
     {
       client->new_tasks--;
       client->running_tasks--;
-      gearman_universal_set_error(&client->universal, "_client_run_task",
-                        "no servers added");
+      gearman_universal_set_error(&client->universal,
+                                  GEARMAN_NO_SERVERS,
+                                  "_client_run_task",
+                                  "no servers added");
       return GEARMAN_NO_SERVERS;
     }
 
@@ -1170,7 +1244,9 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
     {
       if (client->workload_fn == NULL)
       {
-        gearman_universal_set_error(&client->universal, "_client_run_task",
+        gearman_universal_set_error(&client->universal,
+                                    GEARMAN_NEED_WORKLOAD_FN,
+                                    "_client_run_task",
                                     "workload size > 0, but no data pointer or workload_fn was given");
         return GEARMAN_NEED_WORKLOAD_FN;
       }
@@ -1330,7 +1406,9 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
     break;
 
   default:
-    gearman_universal_set_error(&client->universal, "_client_run_task", "unknown state: %u",
+    gearman_universal_set_error(&client->universal,
+                                GEARMAN_UNKNOWN_STATE,
+                                "_client_run_task", "unknown state: %u",
                                 task->state);
     return GEARMAN_UNKNOWN_STATE;
   }
