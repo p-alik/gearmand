@@ -251,7 +251,7 @@ inline static gearmand_error_t packet_create_arg(gearmand_packet_st *packet,
       (! (gearmand_command_info_list[packet->command].data) ||
        packet->data != NULL))
   {
-    gearmand_error("too many arguments for command");
+    gearmand_log_error("too many arguments for command(%s)", gearmand_command_info_list[packet->command].name);
     return GEARMAN_TOO_MANY_ARGS;
   }
 
@@ -484,7 +484,6 @@ size_t gearmand_packet_unpack(gearmand_packet_st *packet,
 {
   uint8_t *ptr;
   size_t used_size;
-  size_t arg_size;
 
   if (packet->args_size == 0)
   {
@@ -506,6 +505,7 @@ size_t gearmand_packet_unpack(gearmand_packet_st *packet,
       if (used_size > 1 && *(ptr - 1) == '\r')
         *(ptr - 1)= 0;
 
+      size_t arg_size;
       for (arg_size= used_size, ptr= (uint8_t *)data; ptr != NULL; data= ptr)
       {
         ptr= (uint8_t *)memchr(data, ' ', arg_size);
@@ -560,7 +560,7 @@ size_t gearmand_packet_unpack(gearmand_packet_st *packet,
         return used_size;
       }
 
-      arg_size= (size_t)(ptr - (((uint8_t *)data) + used_size)) + 1;
+      size_t arg_size= (size_t)(ptr - (((uint8_t *)data) + used_size)) + 1;
       *ret_ptr= packet_create_arg(packet, ((uint8_t *)data) + used_size, arg_size);
 
       if (*ret_ptr != GEARMAN_SUCCESS)

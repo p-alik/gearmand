@@ -23,6 +23,7 @@ noinst_PROGRAMS+= \
 		  examples/echo_worker \
 		  examples/reverse_client \
 		  examples/reverse_client_bg \
+		  examples/reverse_client_epoch \
 		  examples/reverse_client_cb \
 		  examples/reverse_worker \
 		  examples/wc_worker
@@ -48,6 +49,12 @@ examples_reverse_client_CPPFLAGS= \
 examples_reverse_client_bg_SOURCES= examples/reverse_client_bg.cc
 examples_reverse_client_bg_LDADD= $(EXAMPLES_LDADD)
 examples_reverse_client_bg_CPPFLAGS= \
+				     $(AM_CPPFLAGS) \
+				     $(BOOST_CPPFLAGS)
+
+examples_reverse_client_epoch_SOURCES= examples/reverse_client_epoch.cc
+examples_reverse_client_epoch_LDADD= $(EXAMPLES_LDADD)
+examples_reverse_client_epoch_CPPFLAGS= \
 				     $(AM_CPPFLAGS) \
 				     $(BOOST_CPPFLAGS)
 

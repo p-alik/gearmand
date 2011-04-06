@@ -39,7 +39,8 @@
 
 gearman_workload_t gearman_workload_make(const char *arg, size_t arg_size, void *context)
 {
-  gearman_workload_t local= { arg, arg_size, context };
+  gearman_workload_t local= { false, GEARMAN_JOB_PRIORITY_NORMAL, 0, arg, arg_size, context };
+
   return local;
 }
 
@@ -49,4 +50,53 @@ size_t gearman_workload_size(gearman_workload_t *self)
     return 0;
 
   return self->size;
+}
+
+
+time_t gearman_workload_epoch(const gearman_workload_t *self)
+{
+  if (not self)
+    return 0;
+
+  return self->epoch;
+}
+
+void gearman_workload_set_epoch(gearman_workload_t *self, time_t epoch)
+{
+  if (! self)
+    return;
+
+  self->epoch= epoch;
+}
+
+gearman_job_priority_t gearman_workload_priority(const gearman_workload_t *self)
+{
+  if (not self)
+    return GEARMAN_JOB_PRIORITY_NORMAL;
+
+  return self->priority;
+}
+
+bool gearman_workload_background(const gearman_workload_t *self)
+{
+  if (not self)
+    return false;
+
+  return self->background;
+}
+
+void gearman_workload_set_priority(gearman_workload_t *self, const gearman_job_priority_t priority)
+{
+  if (not self)
+    return;
+
+  self->priority= priority;
+}
+
+void gearman_workload_set_background(gearman_workload_t *self, time_t background)
+{
+  if (! self)
+    return;
+
+  self->background= background;
 }

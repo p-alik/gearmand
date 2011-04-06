@@ -387,8 +387,6 @@ void gearman_free_all_packets(gearman_universal_st *universal)
     gearman_packet_free(universal->packet_list);
 }
 
-#pragma GCC diagnostic ignored "-fpermissive"
-
 /*
  * Local Definitions
  */
@@ -409,9 +407,18 @@ void gearman_universal_set_error(gearman_universal_st *universal,
     universal->error.last_errno= 0;
   }
 
-  size= strlen(function);
-  ptr= memcpy((void*)log_buffer, (void*)function, size);
+  size= strlen(gearman_strerror(rc));
+  ptr= (char *)memcpy(log_buffer, gearman_strerror(rc), size);
   ptr+= size;
+
+  ptr[0]= '>';
+  size++;
+  ptr++;
+
+  size= strlen(function);
+  ptr= (char *)memcpy(ptr, (void*)function, size);
+  ptr+= size;
+
   ptr[0]= ':';
   size++;
   ptr++;

@@ -37,9 +37,9 @@
 
 #include <libgearman/common.h>
 
-gearman_unique_t gearman_unique_make(const char *arg, size_t arg_size, void *context)
+gearman_unique_t gearman_unique_make(const char *arg, size_t arg_size)
 {
-  gearman_unique_t local= { arg, arg_size, context };
+  gearman_unique_t local= { arg, arg_size };
   return local;
 }
 

@@ -3,7 +3,6 @@
  *  Gearmand client and server library.
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  Copyright (C) 2008 Brian Aker, Eric Day
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -53,6 +52,7 @@ int main(int args, char *argv[])
 {
   in_port_t port;
   int timeout;
+  time_t epoch;
   std::string host;
   std::string text_to_echo;
 
@@ -62,6 +62,7 @@ int main(int args, char *argv[])
     ("host,h", boost::program_options::value<std::string>(&host)->default_value("localhost"),"Connect to the host")
     ("port,p", boost::program_options::value<in_port_t>(&port)->default_value(GEARMAN_DEFAULT_TCP_PORT), "Port number use for connection")
     ("timeout,u", boost::program_options::value<int>(&timeout)->default_value(-1), "Timeout in milliseconds")
+    ("epoch", boost::program_options::value<time_t>(&epoch)->default_value(10), "Seconds forward in time for task to run.")
     ("text", boost::program_options::value<std::string>(&text_to_echo), "Text used for echo")
             ;
 
@@ -125,13 +126,20 @@ int main(int args, char *argv[])
 
   gearman_function_t *function= gearman_function_create(&client, gearman_literal_param("reverse"));
 
+  gearman_unique_t unique= gearman_unique_make(gearman_literal_param("epoch"));
   gearman_workload_t workload= gearman_workload_make(text_to_echo.c_str(), text_to_echo.size(), NULL);
+  gearman_workload_set_epoch(&workload, time(NULL) +epoch);
 
   gearman_task_st *task;
   task= gearman_client_execute(&client,
                                function,
                                NULL,
                                &workload);
+  if (not task)
+  {
+    std::cerr << gearman_client_error(&client) << std::endl;
+    return EXIT_FAILURE;
+  }
 
   std::cout << "Background Job Handle=" << gearman_task_job_handle(task) << std::endl;
 

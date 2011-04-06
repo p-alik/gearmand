@@ -38,10 +38,6 @@
 #include <libgearman/common.h>
 
 struct gearman_function_t {
-  bool background;
-  gearman_job_priority_t priority;
-  time_t epoch;
-  struct gearman_client_st *client;
   size_t size;
   char *name;
 };
@@ -67,10 +63,6 @@ gearman_function_t *gearman_function_create(struct gearman_client_st *client, co
   function->name= ((char *)function) + sizeof(struct gearman_function_t);
   memcpy(function->name, name, size);
   function->name[size]= 0;
-  function->background= false;
-  function->priority= GEARMAN_JOB_PRIORITY_NORMAL;
-  function->epoch= 0;
-  function->client= client;
   function->size= size;
 
   return function;
@@ -81,31 +73,7 @@ void gearman_function_free(gearman_function_t *function)
   free(function);
 }
 
-void gearman_function_set_priority(gearman_function_t *self, const gearman_job_priority_t priority)
-{
-  if (not self)
-    return;
-
-  self->priority= priority;
-}
-
-void gearman_function_set_epoch(gearman_function_t *self, time_t epoch)
-{
-  if (! self)
-    return;
-
-  self->epoch= epoch;
-}
-
-void gearman_function_set_background(gearman_function_t *self, time_t background)
-{
-  if (! self)
-    return;
-
-  self->background= background;
-}
-
-const char *gearman_function_name(gearman_function_t *self)
+const char *gearman_function_name(const gearman_function_t *self)
 {
   if (not self)
     return 0;
@@ -113,35 +81,10 @@ const char *gearman_function_name(gearman_function_t *self)
   return self->name;
 }
 
-size_t gearman_function_size(gearman_function_t *self)
+size_t gearman_function_size(const gearman_function_t *self)
 {
   if (not self)
     return 0;
 
   return self->size;
-}
-
-
-time_t gearman_function_epoch(gearman_function_t *self)
-{
-  if (not self)
-    return 0;
-
-  return self->epoch;
-}
-
-gearman_job_priority_t gearman_function_priority(gearman_function_t *self)
-{
-  if (not self)
-    return GEARMAN_JOB_PRIORITY_NORMAL;
-
-  return self->priority;
-}
-
-bool gearman_function_background(gearman_function_t *self)
-{
-  if (not self)
-    return false;
-
-  return self->background;
 }

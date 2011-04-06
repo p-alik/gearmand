@@ -47,10 +47,10 @@ extern "C" {
 #endif
 
 GEARMAN_API
-gearman_workload_t gearman_unique_make(const char *arg, size_t arg_size, void *context);
+gearman_unique_t gearman_unique_make(const char *arg, size_t arg_size);
 
 GEARMAN_API
-size_t gearman_unique_size(gearman_workload_t *self);
+size_t gearman_unique_size(gearman_unique_t *self);
 
 #ifdef __cplusplus
 }

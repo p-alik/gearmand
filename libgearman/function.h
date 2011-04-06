@@ -47,29 +47,11 @@ gearman_function_t *gearman_function_create(struct gearman_client_st *, const ch
 GEARMAN_API
 void gearman_function_free(gearman_function_t *);
 
-GEARMAN_API
-void gearman_function_set_priority(gearman_function_t *, gearman_job_priority_t);
-
-GEARMAN_API
-void gearman_function_set_epoch(gearman_function_t *, time_t);
-
-GEARMAN_API
-void gearman_function_set_background(gearman_function_t *self, time_t background);
+GEARMAN_LOCAL
+const char *gearman_function_name(const gearman_function_t *);
 
 GEARMAN_LOCAL
-const char *gearman_function_name(gearman_function_t *);
-
-GEARMAN_LOCAL
-size_t gearman_function_size(gearman_function_t *);
-
-GEARMAN_LOCAL
-time_t gearman_function_epoch(gearman_function_t *);
-
-GEARMAN_LOCAL
-gearman_job_priority_t gearman_function_priority(gearman_function_t *);
-
-GEARMAN_LOCAL
-bool gearman_function_background(gearman_function_t *);
+size_t gearman_function_size(const gearman_function_t *);
 
 #ifdef __cplusplus
 }

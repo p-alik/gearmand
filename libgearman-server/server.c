@@ -140,22 +140,27 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
       }
     }
 
+    gearmand_log_debug("Received submission, %.*s/%.*s with %d arguments",
+                       packet->arg_size[0], packet->arg[0],
+                       packet->arg_size[1], packet->arg[1],
+                       (int)packet->argc);
+
     int64_t when= 0;
     if (packet->command == GEARMAN_COMMAND_SUBMIT_JOB_EPOCH)
     {
-      gearmand_debug("Received EPOCH job submission with data");
-      uint64_t seconds;
-      memcpy(&seconds, (char *)packet->arg[2], sizeof(uint64_t));
-      when= (int64_t)ntohll(seconds);
+      sscanf((char *)packet->arg[2], "%lld", (long long *)&when);
+      gearmand_log_debug("Received EPOCH job submission, %.*s/%.*s, with data for %jd at %jd, args %d",
+                         packet->arg_size[0], packet->arg[0],
+                         packet->arg_size[1], packet->arg[1],
+                         when, time(NULL),
+                         (int)packet->argc);
     }
 
     /* Schedule job. */
     server_job= gearman_server_job_add(Server,
-                                       (char *)(packet->arg[0]),
-                                       packet->arg_size[0] - 1,
-                                       (char *)(packet->arg[1]),
-                                       packet->arg_size[1] - 1, packet->data,
-                                       packet->data_size, priority,
+                                       (char *)(packet->arg[0]), packet->arg_size[0] -1, // Function
+                                       (char *)(packet->arg[1]), packet->arg_size[1] -1, // unique
+                                       packet->data, packet->data_size, priority,
                                        server_client, &ret,
                                        when);
     

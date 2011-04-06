@@ -719,6 +719,7 @@ static test_return_t gearman_client_execute_test(void *object)
   gearman_task_free(task);
   gearman_function_free(function);
 
+  int timeout= gearman_client_timeout(client);
   gearman_client_set_timeout(client, 4);
   function= gearman_function_create(client, gearman_literal_param("no_worker_should_be_found"));
 
@@ -726,8 +727,33 @@ static test_return_t gearman_client_execute_test(void *object)
                                function,
                                NULL,
                                &workload);
+  gearman_client_set_timeout(client, timeout);
   test_false(task);
 
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_client_execute_epoch_test(void *object)
+{
+  gearman_client_st *client= (gearman_client_st *)object;
+  gearman_function_t *function= gearman_function_create(client, gearman_literal_param(WORKER_FUNCTION_NAME));
+
+  gearman_workload_t workload= gearman_workload_make(gearman_literal_param("test load"), NULL);
+  gearman_workload_set_epoch(&workload, time(NULL) +5);
+
+  gearman_task_st *task;
+  task= gearman_client_execute(client,
+                               function,
+                               NULL,
+                               &workload);
+  test_true_got(task, gearman_client_error(client));
+  while (gearman_task_is_running(task)) { }
+
+  test_true_got(gearman_task_data_size(task) == gearman_workload_size(&workload), gearman_client_error(client));
+
+  gearman_task_free(task);
+  gearman_function_free(function);
 
   return TEST_SUCCESS;
 }
@@ -889,6 +915,7 @@ test_st gearman_strerror_tests[] ={
 test_st gearman_function_tests[] ={
   {"allocate", 0, allocate_function },
   {"gearman_client_execute", 0, gearman_client_execute_test },
+  {"gearman_client_execute_epoch", 0, gearman_client_execute_epoch_test },
   {0, 0, 0}
 };
 

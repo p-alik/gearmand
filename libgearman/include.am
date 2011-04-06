@@ -25,6 +25,7 @@ nobase_include_HEADERS+= \
 			 libgearman/protocol.h \
 			 libgearman/strerror.h \
 			 libgearman/task.h \
+			 libgearman/unique.h \
 			 libgearman/universal.h \
 			 libgearman/visibility.h \
 			 libgearman/worker.h \
@@ -61,6 +62,7 @@ libgearman_libgearman_la_SOURCES= \
 				  libgearman/job.cc \
 				  libgearman/strerror.cc \
 				  libgearman/task.cc \
+				  libgearman/unique.cc \
 				  libgearman/worker.cc \
 				  libgearman/workload.cc
 
