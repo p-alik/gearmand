@@ -46,7 +46,7 @@ libgearman_libgearmancore_la_CFLAGS= \
 
 lib_LTLIBRARIES+= libgearman/libgearman.la
 libgearman_libgearman_la_SOURCES= \
-				  libgearman/client.c \
+				  libgearman/client.cc \
 				  libgearman/gearman.c \
 				  libgearman/job.c \
 				  libgearman/strerror.c \

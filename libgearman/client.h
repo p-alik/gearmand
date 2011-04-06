@@ -57,6 +57,13 @@ extern "C" {
  * @{
  */
 
+enum gearman_client_t {
+  GEARMAN_CLIENT_STATE_IDLE,
+  GEARMAN_CLIENT_STATE_NEW,
+  GEARMAN_CLIENT_STATE_SUBMIT,
+  GEARMAN_CLIENT_STATE_PACKET
+};
+
 
 /**
  * @ingroup gearman_client
@@ -71,12 +78,7 @@ struct gearman_client_st
     bool no_new LIBGEARMAN_BITFIELD;
     bool free_tasks LIBGEARMAN_BITFIELD;
   } options;
-  enum {
-    GEARMAN_CLIENT_STATE_IDLE,
-    GEARMAN_CLIENT_STATE_NEW,
-    GEARMAN_CLIENT_STATE_SUBMIT,
-    GEARMAN_CLIENT_STATE_PACKET
-  } state;
+  enum gearman_client_t state;
   gearman_return_t do_ret;
   uint32_t new_tasks;
   uint32_t running_tasks;

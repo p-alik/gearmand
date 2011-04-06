@@ -30,6 +30,27 @@
  * @{
  */
 
+enum gearman_con_recv_t {
+  GEARMAN_CON_RECV_UNIVERSAL_NONE,
+  GEARMAN_CON_RECV_UNIVERSAL_READ,
+  GEARMAN_CON_RECV_STATE_READ_DATA
+};
+
+enum gearman_con_send_t {
+  GEARMAN_CON_SEND_STATE_NONE,
+  GEARMAN_CON_SEND_UNIVERSAL_PRE_FLUSH,
+  GEARMAN_CON_SEND_UNIVERSAL_FORCE_FLUSH,
+  GEARMAN_CON_SEND_UNIVERSAL_FLUSH,
+  GEARMAN_CON_SEND_UNIVERSAL_FLUSH_DATA
+};
+
+enum gearman_con_universal_t {
+  GEARMAN_CON_UNIVERSAL_ADDRINFO,
+  GEARMAN_CON_UNIVERSAL_CONNECT,
+  GEARMAN_CON_UNIVERSAL_CONNECTING,
+  GEARMAN_CON_UNIVERSAL_CONNECTED
+};
+
 /**
  * @ingroup gearman_connection
  */
@@ -43,24 +64,9 @@ struct gearman_connection_st
     bool ignore_lost_connection LIBGEARMAN_BITFIELD;
     bool close_after_flush LIBGEARMAN_BITFIELD;
   } options;
-  enum {
-    GEARMAN_CON_UNIVERSAL_ADDRINFO,
-    GEARMAN_CON_UNIVERSAL_CONNECT,
-    GEARMAN_CON_UNIVERSAL_CONNECTING,
-    GEARMAN_CON_UNIVERSAL_CONNECTED
-  } state;
-  enum {
-    GEARMAN_CON_SEND_STATE_NONE,
-    GEARMAN_CON_SEND_UNIVERSAL_PRE_FLUSH,
-    GEARMAN_CON_SEND_UNIVERSAL_FORCE_FLUSH,
-    GEARMAN_CON_SEND_UNIVERSAL_FLUSH,
-    GEARMAN_CON_SEND_UNIVERSAL_FLUSH_DATA
-  } send_state;
-  enum {
-    GEARMAN_CON_RECV_UNIVERSAL_NONE,
-    GEARMAN_CON_RECV_UNIVERSAL_READ,
-    GEARMAN_CON_RECV_STATE_READ_DATA
-  } recv_state;
+  enum gearman_con_universal_t state;
+  enum gearman_con_send_t send_state;
+  enum gearman_con_recv_t recv_state;
   in_port_t port;
   short events;
   short revents;

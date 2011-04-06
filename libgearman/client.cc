@@ -52,6 +52,9 @@
 #include <uuid/uuid.h>
 #endif
 
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#pragma GCC diagnostic ignored "-fpermissive"
+
 /**
  * @addtogroup gearman_client_static Static Client Declarations
  * @ingroup gearman_client
