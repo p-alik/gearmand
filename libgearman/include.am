@@ -23,6 +23,7 @@ nobase_include_HEADERS+= \
 			 libgearman/log.h \
 			 libgearman/packet.h \
 			 libgearman/protocol.h \
+			 libgearman/status.h \
 			 libgearman/strerror.h \
 			 libgearman/task.h \
 			 libgearman/unique.h \
@@ -60,6 +61,7 @@ libgearman_libgearman_la_SOURCES= \
 				  libgearman/function.cc \
 				  libgearman/gearman.cc \
 				  libgearman/job.cc \
+				  libgearman/status.cc \
 				  libgearman/strerror.cc \
 				  libgearman/task.cc \
 				  libgearman/unique.cc \

@@ -127,19 +127,19 @@ int main(int args, char *argv[])
   gearman_function_t *function= gearman_function_create(&client, gearman_literal_param("reverse"));
 
   gearman_unique_t unique= gearman_unique_make(gearman_literal_param("epoch"));
-  gearman_workload_t workload= gearman_workload_make(text_to_echo.c_str(), text_to_echo.size(), NULL);
+  gearman_workload_t workload= gearman_workload_make(text_to_echo.c_str(), text_to_echo.size());
   gearman_workload_set_epoch(&workload, time(NULL) +epoch);
 
-  gearman_task_st *task;
-  task= gearman_client_execute(&client,
-                               function,
-                               NULL,
-                               &workload);
-  if (not task)
+  gearman_status_t status= gearman_client_execute(&client,
+                                                  function,
+                                                  NULL,
+                                                  &workload);
+  if (not gearman_status_is_successful(status))
   {
     std::cerr << gearman_client_error(&client) << std::endl;
     return EXIT_FAILURE;
   }
+  gearman_task_st *task= gearman_status_task(status);
 
   std::cout << "Background Job Handle=" << gearman_task_job_handle(task) << std::endl;
 

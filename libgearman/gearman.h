@@ -74,6 +74,7 @@
 #include <libgearman/worker.h>
 #include <libgearman/client.h>
 #include <libgearman/function.h>
+#include <libgearman/status.h>
 
 #ifdef __cplusplus
 extern "C" {

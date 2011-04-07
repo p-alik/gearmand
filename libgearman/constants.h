@@ -207,6 +207,7 @@ typedef struct gearman_worker_st gearman_worker_st;
 typedef struct gearman_function_t gearman_function_t;
 typedef struct gearman_workload_t gearman_workload_t;
 typedef struct gearman_unique_t gearman_unique_t;
+typedef struct gearman_status_t gearman_status_t;
 
 /* Function types. */
 typedef gearman_return_t (gearman_workload_fn)(gearman_task_st *task);

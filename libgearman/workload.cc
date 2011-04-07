@@ -37,9 +37,9 @@
 
 #include <libgearman/common.h>
 
-gearman_workload_t gearman_workload_make(const char *arg, size_t arg_size, void *context)
+gearman_workload_t gearman_workload_make(const char *arg, size_t arg_size)
 {
-  gearman_workload_t local= { false, GEARMAN_JOB_PRIORITY_NORMAL, 0, arg, arg_size, context };
+  gearman_workload_t local= { false, GEARMAN_JOB_PRIORITY_NORMAL, 0, arg, arg_size, 0};
 
   return local;
 }
@@ -93,10 +93,28 @@ void gearman_workload_set_priority(gearman_workload_t *self, const gearman_job_p
   self->priority= priority;
 }
 
-void gearman_workload_set_background(gearman_workload_t *self, time_t background)
+void gearman_workload_set_background(gearman_workload_t *self, bool background)
 {
   if (! self)
     return;
 
   self->background= background;
 }
+
+void gearman_workload_set_context(gearman_workload_t *self, void *context)
+{
+  if (not self)
+    return;
+
+  self->context= context;
+}
+
+#if 0
+void *gearman_workload_context(const gearman_workload_t *self)
+{
+  if (not self)
+    return NULL;
+
+  return self->context;
+}
+#endif

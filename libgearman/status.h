@@ -37,13 +37,9 @@
 
 #pragma once
 
-struct gearman_workload_t {
-  bool background;
-  gearman_job_priority_t priority;
-  time_t epoch;
-  const char *c_str;
-  size_t size;
-  void *context;
+struct gearman_status_t {
+  const bool successful;
+  gearman_task_st *task;
 };
 
 #ifdef __cplusplus
@@ -51,45 +47,15 @@ extern "C" {
 #endif
 
 GEARMAN_API
-gearman_workload_t gearman_workload_make(const char *arg, size_t arg_size);
+gearman_status_t gearman_failure(void);
+#define GEARMAN_STATUS_FAIL gearman_failure();
 
 GEARMAN_API
-size_t gearman_workload_size(gearman_workload_t *self);
+bool gearman_status_is_successful(const gearman_status_t);
 
 GEARMAN_API
-void gearman_workload_set_epoch(gearman_workload_t *, time_t);
-
-GEARMAN_LOCAL
-time_t gearman_workload_epoch(const gearman_workload_t *);
-
-GEARMAN_API
-void gearman_workload_set_context(gearman_workload_t *, void *);
-
-GEARMAN_LOCAL
-void *gearman_workload_context(const gearman_workload_t *);
-
-GEARMAN_LOCAL
-gearman_job_priority_t gearman_workload_priority(const gearman_workload_t *);
-
-GEARMAN_API
-void gearman_workload_set_priority(gearman_workload_t *, gearman_job_priority_t);
-
-GEARMAN_API
-void gearman_workload_set_background(gearman_workload_t *self, bool background);
-
-GEARMAN_LOCAL
-bool gearman_workload_background(const gearman_workload_t *);
-
+gearman_task_st *gearman_status_task(const gearman_status_t);
 
 #ifdef __cplusplus
 }
 #endif
-
-#ifdef __cplusplus
-#define gearman_literal_param(X) (X), static_cast<size_t>(sizeof(X) - 1)
-#else
-#define gearman_literal_param(X) (X), (size_t)(sizeof(X) - 1)
-#endif
-
-#define gearman_param(X) (X) ? (X)->c_str : NULL, (X) ? (X)->size : 0
-#define gearman_workload_context(X) (X)->context

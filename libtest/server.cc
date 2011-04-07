@@ -151,6 +151,7 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
   }
   else
   {
+    std::cerr << "Starting up with:" << buffer.str() << std::endl;
     int err= system(buffer.str().c_str());
     assert(err != -1);
   }

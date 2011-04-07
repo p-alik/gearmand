@@ -404,19 +404,18 @@ static inline gearman_command_t pick_command_by_priority_background(const gearma
 }
 
 
-gearman_task_st *gearman_client_execute(gearman_client_st *client,
+gearman_status_t gearman_client_execute(gearman_client_st *client,
                                         const gearman_function_t *function,
                                         gearman_unique_t *unique,
                                         const gearman_workload_t *workload)
 {
-  gearman_command_t command;
-
   if (not client)
-    return NULL;
+    return GEARMAN_STATUS_FAIL;
 
   if (not function)
-    return NULL;
+    return GEARMAN_STATUS_FAIL;
 
+  gearman_command_t command;
   if (gearman_workload_epoch(workload))
   {
     command= GEARMAN_COMMAND_SUBMIT_JOB_EPOCH;
@@ -440,16 +439,22 @@ gearman_task_st *gearman_client_execute(gearman_client_st *client,
                                           gearman_workload_epoch(workload),
                                           &rc);
   if (not task)
-    return NULL;
+    return GEARMAN_STATUS_FAIL;
 
-  rc= gearman_client_run_tasks(client);
-  if (rc !=  GEARMAN_SUCCESS)
+  if (not gearman_workload_background(workload))
   {
-    gearman_error(&client->universal, rc, "gearman_client_run_tasks");
-    return NULL;
+    rc= gearman_client_run_tasks(client);
+    if (rc !=  GEARMAN_SUCCESS)
+    {
+      gearman_error(&client->universal, rc, "failure occured during gearman_client_run_tasks()");
+      gearman_task_free(task);
+
+      return GEARMAN_STATUS_FAIL;
+    }
   }
 
-  return task;
+  gearman_status_t status= { true, task };
+  return status;
 }
 
 const char *gearman_client_do_job_handle(const gearman_client_st *client)
