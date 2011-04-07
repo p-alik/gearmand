@@ -42,7 +42,7 @@ extern "C" {
 #endif
 
 GEARMAN_API
-gearman_function_t *gearman_function_create(struct gearman_client_st *, const char *, size_t size);
+gearman_function_t *gearman_function_create(const char *, size_t size);
 
 GEARMAN_API
 void gearman_function_free(gearman_function_t *);

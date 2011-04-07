@@ -44,10 +44,10 @@ struct gearman_function_t {
 
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 
-gearman_function_t *gearman_function_create(struct gearman_client_st *client, const char *name, size_t size)
+gearman_function_t *gearman_function_create(const char *name, size_t size)
 {
   errno= 0;
-  if (not client or not name or not size)
+  if (not name or not size)
   {
     errno= EINVAL;
     return NULL;
