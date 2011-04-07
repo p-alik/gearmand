@@ -15,6 +15,8 @@ lib_LTLIBRARIES =
 noinst_LTLIBRARIES =
 nobase_include_HEADERS =
 noinst_HEADERS =
+man_MANS =
+DISTCLEANFILES =
 EXTRA_DIST = config/top.h
 CLEANFILES =
 TESTS =
@@ -34,8 +36,7 @@ include util/include.am
 include libtest/include.am
 include tests/include.am
 include support/include.am
-
-include docs/man_list
+include docs/include.am
 
 TESTS += ${check_PROGRAMS}
 
@@ -47,9 +48,7 @@ EXTRA_DIST+= \
 	docs/doxygen.h \
 	scripts/README.solaris
 
-docs: all
-	${DOXYGEN} docs/Doxyfile.api
-	${DOXYGEN} docs/Doxyfile.dev
+docs: all man
 
 test: check
 
