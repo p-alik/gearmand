@@ -49,8 +49,13 @@ EXTRA_DIST+= \
 	scripts/README.solaris
 
 docs: all man
+	${DOXYGEN} docs/Doxyfile.api
+	${DOXYGEN} docs/Doxyfile.dev
 
 test: check
+
+clean-local:
+	-rm -rf docs/_build docs/doctrees
 
 rpm: all dist
 	cp gearmand-$(VERSION).tar.gz ~/rpmbuild/SOURCES/

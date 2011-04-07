@@ -39,7 +39,7 @@
 
 struct gearman_unique_t {
   const char *c_str;
-  size_t size;
+  const size_t size;
 };
 
 #ifdef __cplusplus
@@ -49,7 +49,7 @@ extern "C" {
 GEARMAN_API
 gearman_unique_t gearman_unique_make(const char *arg, size_t arg_size);
 
-GEARMAN_API
+GEARMAN_LOCAL
 size_t gearman_unique_size(gearman_unique_t *self);
 
 #ifdef __cplusplus

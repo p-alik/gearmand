@@ -46,9 +46,14 @@ struct gearman_status_t {
 extern "C" {
 #endif
 
-GEARMAN_API
+GEARMAN_LOCAL
 gearman_status_t gearman_failure(void);
+
+GEARMAN_LOCAL
+gearman_status_t gearman_success(void);
+
 #define GEARMAN_STATUS_FAIL gearman_failure();
+#define GEARMAN_STATUS_SUCCESS gearman_success();
 
 GEARMAN_API
 bool gearman_status_is_successful(const gearman_status_t);

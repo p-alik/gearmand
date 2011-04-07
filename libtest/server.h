@@ -14,6 +14,8 @@
 #include <sys/types.h>
 #include <netdb.h>
 
+#pragma once
+
 #ifdef __cplusplus
 extern "C" {
 #endif

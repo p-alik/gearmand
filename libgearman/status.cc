@@ -43,6 +43,12 @@ gearman_status_t gearman_failure()
   return status;
 }
 
+gearman_status_t gearman_success()
+{
+  static gearman_status_t status= { false, 0 };
+  return status;
+}
+
 bool gearman_status_is_successful(const gearman_status_t self)
 {
   return self.successful;

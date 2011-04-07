@@ -3,7 +3,16 @@
 # All paths should be given relative to the root
 
 EXTRA_DIST+= \
-	     docs/conf.py
+	     docs/conf.py \
+	     docs/gearman_client_execute.rst \
+	     docs/gearman_client_st.rst \
+	     docs/gearman_function_st.rst \
+	     docs/gearman_job_st.rst \
+	     docs/gearman_state_t.rst \
+	     docs/gearman_task_st.rst \
+	     docs/gearman_unique_t.rst \
+	     docs/gearman_worker_st.rst
+
 
 # Makefile for Sphinx documentation
 #
@@ -19,16 +28,34 @@ ALLSPHINXOPTS   = -d $(SPHINX_BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOP
 
 .PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest
 
+include docs/man_list
+
 if HAVE_RECENT_SPHINX
 
 man_MANS+= \
-	   docs/man/gearman_client_st.1
+	   docs/man/gearman_client_execute.3 \
+	   docs/man/gearman_client_st.3 \
+	   docs/man/gearman_function_st.3 \
+	   docs/man/gearman_job_st.3 \
+	   docs/man/gearman_state_t.3 \
+	   docs/man/gearman_task_st.3 \
+	   docs/man/gearman_unique_t.3 \
+	   docs/man/gearman_worker_st.3
 
 DISTCLEANFILES+= \
 		 docs/man/*
+		 docs/man/1/*
+		 docs/man/3/*
 
-docs/man/gearman_client_st.1: man
- 
+docs/man/gearman_client_execute.3: man
+docs/man/gearman_client_st.3: man
+docs/man/gearman_function_st.3: man
+docs/man/gearman_job_st.3: man
+docs/man/gearman_state_t.3: man
+docs/man/gearman_task_st.3: man
+docs/man/gearman_unique_t.3: man
+docs/man/gearman_worker_st.3: man
+
 endif
 
 if HAVE_SPHINX

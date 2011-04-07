@@ -360,6 +360,8 @@ static test_return_t echo_max_test(void *object)
   return TEST_SUCCESS;
 }
 
+#pragma GCC diagnostic ignored "-Wframe-larger-than="
+
 static test_return_t abandoned_worker_test(void *object __attribute__((unused)))
 {
   gearman_client_st client;

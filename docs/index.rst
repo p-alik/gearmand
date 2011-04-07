@@ -26,6 +26,12 @@ C/C++ Client Library:
    gearman_client_st 
    gearman_task_st
    gearman_worker_st
+   gearman_job_st
+   gearman_client_execute
+   gearman_function_st
+   gearman_state_t
+   gearman_unique_t
+
 
 Indices and tables
 ==================
