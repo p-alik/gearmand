@@ -1,7 +1,7 @@
 0.20
 
 * gearman_client_execute() interface added
-* New types of gearman_unique_t, gearman_function_t, gearman_workload_t
+* New types of gearman_unique_t, gearman_function_st, gearman_workload_t
 * Better error reporting from clients.
 * Server no longer hangs because of bad list.
 * First bit of work on supporting epoch portion of protocol.  

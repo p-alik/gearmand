@@ -42,16 +42,16 @@ extern "C" {
 #endif
 
 GEARMAN_API
-gearman_function_t *gearman_function_create(const char *, size_t size);
+gearman_function_st *gearman_function_create(const char *, size_t size);
 
 GEARMAN_API
-void gearman_function_free(gearman_function_t *);
+void gearman_function_free(gearman_function_st *);
 
 GEARMAN_LOCAL
-const char *gearman_function_name(const gearman_function_t *);
+const char *gearman_function_name(const gearman_function_st *);
 
 GEARMAN_LOCAL
-size_t gearman_function_size(const gearman_function_t *);
+size_t gearman_function_size(const gearman_function_st *);
 
 #ifdef __cplusplus
 }

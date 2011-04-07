@@ -123,7 +123,7 @@ int main(int args, char *argv[])
   if (timeout >= 0)
     gearman_client_set_timeout(&client, timeout);
 
-  gearman_function_t *function= gearman_function_create(gearman_literal_param("reverse"));
+  gearman_function_st *function= gearman_function_create(gearman_literal_param("reverse"));
 
   gearman_workload_t workload= gearman_workload_make(text_to_echo.c_str(), text_to_echo.size());
   gearman_workload_set_background(&workload, true);

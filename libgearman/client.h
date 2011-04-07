@@ -492,7 +492,7 @@ void gearman_client_set_task_context_free_fn(gearman_client_st *client,
 // Use the job handle in task for returning all information.
 GEARMAN_API
 gearman_status_t gearman_client_execute(gearman_client_st *client,
-                                        const gearman_function_t *function,
+                                        const gearman_function_st *function,
                                         gearman_unique_t *unique,
                                         const gearman_workload_t *workload);
 

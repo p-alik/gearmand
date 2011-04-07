@@ -405,7 +405,7 @@ static inline gearman_command_t pick_command_by_priority_background(const gearma
 
 
 gearman_status_t gearman_client_execute(gearman_client_st *client,
-                                        const gearman_function_t *function,
+                                        const gearman_function_st *function,
                                         gearman_unique_t *unique,
                                         const gearman_workload_t *workload)
 {

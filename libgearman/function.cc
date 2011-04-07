@@ -37,14 +37,14 @@
 
 #include <libgearman/common.h>
 
-struct gearman_function_t {
+struct gearman_function_st {
   size_t size;
   char *name;
 };
 
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 
-gearman_function_t *gearman_function_create(const char *name, size_t size)
+gearman_function_st *gearman_function_create(const char *name, size_t size)
 {
   errno= 0;
   if (not name or not size)
@@ -53,14 +53,14 @@ gearman_function_t *gearman_function_create(const char *name, size_t size)
     return NULL;
   }
 
-  gearman_function_t *function= (struct gearman_function_t *)malloc(sizeof(struct gearman_function_t) +size +1);;
+  gearman_function_st *function= (struct gearman_function_st *)malloc(sizeof(struct gearman_function_st) +size +1);;
 
   if (not function)
   {
     return NULL;
   }
 
-  function->name= ((char *)function) + sizeof(struct gearman_function_t);
+  function->name= ((char *)function) + sizeof(struct gearman_function_st);
   memcpy(function->name, name, size);
   function->name[size]= 0;
   function->size= size;
@@ -68,12 +68,12 @@ gearman_function_t *gearman_function_create(const char *name, size_t size)
   return function;
 }
 
-void gearman_function_free(gearman_function_t *function)
+void gearman_function_free(gearman_function_st *function)
 {
   free(function);
 }
 
-const char *gearman_function_name(const gearman_function_t *self)
+const char *gearman_function_name(const gearman_function_st *self)
 {
   if (not self)
     return 0;
@@ -81,7 +81,7 @@ const char *gearman_function_name(const gearman_function_t *self)
   return self->name;
 }
 
-size_t gearman_function_size(const gearman_function_t *self)
+size_t gearman_function_size(const gearman_function_st *self)
 {
   if (not self)
     return 0;

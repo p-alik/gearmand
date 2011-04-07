@@ -692,7 +692,7 @@ static test_return_t strerror_strings(void *object  __attribute__((unused)))
 
 static test_return_t allocate_function(void *)
 {
-  gearman_function_t *function= gearman_function_create(gearman_literal_param("test"));
+  gearman_function_st *function= gearman_function_create(gearman_literal_param("test"));
   gearman_function_free(function);
 
   return TEST_SUCCESS;
@@ -701,7 +701,7 @@ static test_return_t allocate_function(void *)
 static test_return_t gearman_client_execute_test(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
-  gearman_function_t *function= gearman_function_create(gearman_literal_param(WORKER_FUNCTION_NAME));
+  gearman_function_st *function= gearman_function_create(gearman_literal_param(WORKER_FUNCTION_NAME));
 
   gearman_workload_t workload= gearman_workload_make(gearman_literal_param("test load"));
 
@@ -724,7 +724,7 @@ static test_return_t gearman_client_execute_timeout_test(void *object)
   gearman_client_st *original= (gearman_client_st *)object;
   gearman_client_st *client= gearman_client_clone(NULL, original);
   test_truth(client);
-  gearman_function_t *function= gearman_function_create(gearman_literal_param("no_worker_should_be_found"));
+  gearman_function_st *function= gearman_function_create(gearman_literal_param("no_worker_should_be_found"));
   gearman_workload_t workload= gearman_workload_make(gearman_literal_param("test load"));
 
   int timeout= gearman_client_timeout(client);
@@ -745,7 +745,7 @@ static test_return_t gearman_client_execute_timeout_test(void *object)
 static test_return_t gearman_client_execute_epoch_test(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
-  gearman_function_t *function= gearman_function_create(gearman_literal_param(WORKER_FUNCTION_NAME));
+  gearman_function_st *function= gearman_function_create(gearman_literal_param(WORKER_FUNCTION_NAME));
 
   gearman_workload_t workload= gearman_workload_make(gearman_literal_param("test load"));
   gearman_workload_set_epoch(&workload, time(NULL) +5);
@@ -766,7 +766,7 @@ static test_return_t gearman_client_execute_epoch_test(void *object)
 static test_return_t gearman_client_execute_bg_test(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
-  gearman_function_t *function= gearman_function_create(gearman_literal_param(WORKER_FUNCTION_NAME));
+  gearman_function_st *function= gearman_function_create(gearman_literal_param(WORKER_FUNCTION_NAME));
 
   gearman_workload_t workload= gearman_workload_make(gearman_literal_param("test load"));
   gearman_workload_set_background(&workload, true);
@@ -942,7 +942,7 @@ test_st gearman_strerror_tests[] ={
   {0, 0, 0}
 };
 
-test_st gearman_function_tests[] ={
+test_st gearman_function_stests[] ={
   {"allocate", 0, allocate_function },
   {"gearman_client_execute()", 0, gearman_client_execute_test },
   {"gearman_client_execute() epoch", 0, gearman_client_execute_epoch_test },
@@ -955,7 +955,7 @@ test_st gearman_function_tests[] ={
 collection_st collection[] ={
   {"gearman_client_st", 0, 0, tests},
   {"gearman_strerror", 0, 0, gearman_strerror_tests},
-  {"gearman_function", 0, 0, gearman_function_tests},
+  {"gearman_function", 0, 0, gearman_function_stests},
   {"client-logging", pre_logging, post_logging, tests_log},
   {0, 0, 0, 0}
 };
