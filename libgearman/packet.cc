@@ -131,7 +131,7 @@ inline static gearman_return_t packet_create_arg(gearman_packet_st *packet,
     new_args= realloc(packet->args, packet->args_size + arg_size);
     if (new_args == NULL)
     {
-      gearman_perror(packet->universal, "realloc");
+      gearman_perror(packet->universal, "packet realloc");
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
 
@@ -180,7 +180,7 @@ gearman_packet_st *gearman_packet_create(gearman_universal_st *gearman,
     packet= (gearman_packet_st *)malloc(sizeof(gearman_packet_st));
     if (packet == NULL)
     {
-      gearman_perror(gearman, "malloc");
+      gearman_perror(gearman, "gearman_packet_st malloc");
       return NULL;
     }
 

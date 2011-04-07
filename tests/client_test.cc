@@ -771,9 +771,11 @@ static test_return_t gearman_client_execute_bg_test(void *object)
   gearman_workload_t workload= gearman_workload_make(gearman_literal_param("test load"));
   gearman_workload_set_background(&workload, true);
 
+  gearman_unique_t unique= gearman_unique_make(gearman_literal_param("my id"));
+
   gearman_status_t status= gearman_client_execute(client,
                                                   function,
-                                                  NULL,
+                                                  &unique,
                                                   &workload);
   test_true_got(gearman_status_is_successful(status), gearman_client_error(client));
 

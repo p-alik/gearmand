@@ -223,7 +223,7 @@ gearman_return_t gearman_wait(gearman_universal_st *universal)
     pfds= (pollfd*)realloc(universal->pfds, universal->con_count * sizeof(struct pollfd));
     if (pfds == NULL)
     {
-      gearman_perror(universal, "realloc");
+      gearman_perror(universal, "pollfd realloc");
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
 

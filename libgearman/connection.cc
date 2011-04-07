@@ -48,7 +48,7 @@ gearman_connection_st *gearman_connection_create(gearman_universal_st *gearman,
     connection= (gearman_connection_st *)malloc(sizeof(gearman_connection_st));
     if (connection == NULL)
     {
-      gearman_perror(gearman, "malloc");
+      gearman_perror(gearman, "gearman_connection_st malloc");
       return NULL;
     }
 
@@ -652,7 +652,7 @@ gearman_return_t gearman_connection_flush(gearman_connection_st *connection)
           {
             if (! (connection->options.ignore_lost_connection))
             {
-              gearman_perror(connection->universal, "lost connection to server");
+              gearman_perror(connection->universal, "lost connection to server during send");
             }
             gearman_connection_close(connection);
             return GEARMAN_LOST_CONNECTION;
@@ -909,7 +909,7 @@ size_t gearman_connection_read(gearman_connection_st *connection, void *data, si
       {
         if (! (connection->options.ignore_lost_connection))
         {
-          gearman_perror(connection->universal, "lost connection to server");
+          gearman_perror(connection->universal, "lost connection to server during read");
         }
         *ret_ptr= GEARMAN_LOST_CONNECTION;
       }

@@ -208,12 +208,9 @@ int gearman_worker_errno(gearman_worker_st *worker)
   return gearman_universal_errno((&worker->universal));
 }
 
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#pragma GCC diagnostic ignored "-fpermissive"
-
 gearman_worker_options_t gearman_worker_options(const gearman_worker_st *worker)
 {
-  gearman_worker_options_t options;
+  int options;
   memset(&options, 0, sizeof(gearman_worker_options_t));
 
   if (worker->options.allocated)
@@ -235,7 +232,7 @@ gearman_worker_options_t gearman_worker_options(const gearman_worker_st *worker)
   if (worker->options.timeout_return)
     options|= (int)GEARMAN_WORKER_TIMEOUT_RETURN;
 
-  return options;
+  return (gearman_worker_options_t)options;
 }
 
 void gearman_worker_set_options(gearman_worker_st *worker,
@@ -938,9 +935,12 @@ static gearman_worker_st *_worker_allocate(gearman_worker_st *worker, bool is_cl
 {
   if (worker == NULL)
   {
-    worker= malloc(sizeof(gearman_worker_st));
+    worker= (gearman_worker_st *)malloc(sizeof(gearman_worker_st));
     if (worker == NULL)
+    {
+      gearman_perror((&worker->universal), "gearman_worker_st malloc");
       return NULL;
+    }
 
     worker->options.allocated= true;
   }
@@ -958,8 +958,8 @@ static gearman_worker_st *_worker_allocate(gearman_worker_st *worker, bool is_cl
   worker->options.grab_uniq= false;
   worker->options.timeout_return= false;
 
-  worker->state= 0;
-  worker->work_state= 0;
+  worker->state= GEARMAN_WORKER_STATE_START;
+  worker->work_state= GEARMAN_WORKER_WORK_UNIVERSAL_GRAB_JOB;
   worker->function_count= 0;
   worker->job_count= 0;
   worker->work_result_size= 0;
@@ -1031,10 +1031,10 @@ static gearman_return_t _worker_function_create(gearman_worker_st *worker,
   const void *args[2];
   size_t args_size[2];
 
-  function= malloc(sizeof(struct _worker_function_st));
+  function= (struct _worker_function_st *)malloc(sizeof(struct _worker_function_st));
   if (function == NULL)
   {
-    gearman_universal_set_error((&worker->universal), GEARMAN_MEMORY_ALLOCATION_FAILURE, AT, "malloc");
+    gearman_perror((&worker->universal), "_worker_function_st malloc");
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
 
@@ -1047,7 +1047,7 @@ static gearman_return_t _worker_function_create(gearman_worker_st *worker,
   if (function->function_name == NULL)
   {
     free(function);
-    gearman_perror((&worker->universal), "strdup");
+    gearman_perror((&worker->universal), "function_name strdup");
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
 

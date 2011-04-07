@@ -60,7 +60,7 @@ gearman_task_st *gearman_task_create(gearman_client_st *client, gearman_task_st 
     task= (gearman_task_st *)malloc(sizeof(gearman_task_st));
     if (task == NULL)
     {
-      gearman_perror(&client->universal, "malloc");
+      gearman_perror(&client->universal, "gearman_task_st malloc");
       return NULL;
     }
 
