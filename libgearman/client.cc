@@ -203,17 +203,17 @@ gearman_client_options_t gearman_client_options(const gearman_client_st *client)
   memset(&options, 0, sizeof(int32_t));
 
   if (client->options.allocated)
-    options|= GEARMAN_CLIENT_ALLOCATED;
+    options|= (int)GEARMAN_CLIENT_ALLOCATED;
   if (client->options.non_blocking)
-    options|= GEARMAN_CLIENT_NON_BLOCKING;
+    options|= (int)GEARMAN_CLIENT_NON_BLOCKING;
   if (client->options.task_in_use)
-    options|= GEARMAN_CLIENT_TASK_IN_USE;
+    options|= (int)GEARMAN_CLIENT_TASK_IN_USE;
   if (client->options.unbuffered_result)
-    options|= GEARMAN_CLIENT_UNBUFFERED_RESULT;
+    options|= (int)GEARMAN_CLIENT_UNBUFFERED_RESULT;
   if (client->options.no_new)
-    options|= GEARMAN_CLIENT_NO_NEW;
+    options|= (int)GEARMAN_CLIENT_NO_NEW;
   if (client->options.free_tasks)
-    options|= GEARMAN_CLIENT_FREE_TASKS;
+    options|= (int)GEARMAN_CLIENT_FREE_TASKS;
 
   return (gearman_client_options_t)options;
 }
