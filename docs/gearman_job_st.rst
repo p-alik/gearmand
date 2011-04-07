@@ -10,8 +10,7 @@ Job Functions
 This a complete list of all functions that work with a gearman_job_st,
 see their individual pages to learn more about them.
 
-
-void gearman_job_free(gearman_job_st *job);
+.. c:function:: void gearman_job_free(gearman_job_st *job);
 
 .. c:function:: gearman_return_t gearman_job_send_data(gearman_job_st *job, const void *data,
                                        size_t data_size);
