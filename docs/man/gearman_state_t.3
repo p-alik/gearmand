@@ -1,4 +1,4 @@
-.TH "GEARMAN_STATE_T" "3" "April 07, 2011" "0.20" "Gearmand"
+.TH "GEARMAN_STATE_T" "3" "April 08, 2011" "0.20" "Gearmand"
 .SH NAME
 gearman_state_t \- Gearmand Documentation
 .
@@ -30,11 +30,9 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 ..
 .\" Man page generated from reStructeredText.
 .
+.SH SYNOPSIS
 .sp
-gearman_status_t requires no allocation or deallocation.
-.sp
-This a complete list of all functions that work with a gearman_status_t,
-see their individual pages to learn more about them.
+#include <libgearman/gearman.h>
 .INDENT 0.0
 .TP
 .B bool gearman_status_is_successful(const gearman_status_t);
@@ -43,6 +41,23 @@ see their individual pages to learn more about them.
 .TP
 .B gearman_task_st *gearman_status_task(const gearman_status_t);
 .UNINDENT
+.SH DESCRIPTION
+.sp
+gearman_status_t requires no allocation or deallocation.
+.sp
+This a complete list of all functions that work with a gearman_status_t,
+see their individual pages to learn more about them.
+.SH RETURN
+.sp
+gearman_status_is_successful() return true on success. gearman_status_task()
+will return a gearman_task_st if one is available.
+.SH HOME
+.sp
+To find out more information please check:
+\fI\%https://launchpad.net/gearmand\fP
+.SH SEE ALSO
+.sp
+\fIgearmand(1)\fP \fIlibgearman(3)\fP
 .SH AUTHOR
 Data Differential http://datadifferential.com/
 .SH COPYRIGHT

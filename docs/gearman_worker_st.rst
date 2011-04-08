@@ -1,15 +1,22 @@
-
-
-.. highlightlang:: c
-
+================
 Worker Functions
-----------------
+================
 
 .. index:: object: gearman_worker_st
 
-This a complete list of all functions that work with a gearman_worker_st,
-see their individual pages to learn more about them.
+-------
+LIBRARY
+-------
 
+C Client Library for Gearmand (libgearman, -lgearman)
+
+--------
+SYNOPSIS
+--------
+
+#include <libgearman/gearman.h>
+
+.. index:: object: gearman_worker_st
 
 .. c:function:: gearman_client_st *gearman_client_create(gearman_client_st *client);
 
@@ -95,3 +102,29 @@ see their individual pages to learn more about them.
 .. c:function:: gearman_return_t gearman_worker_echo(gearman_worker_st *worker,
                                      const void *workload,
                                      size_t workload_size);
+
+-----------
+DESCRIPTION
+-----------
+
+This a complete list of all functions that work with a gearman_worker_st,
+see their individual pages to learn more about them.
+
+------
+RETURN
+------
+
+Various
+
+----
+HOME
+----
+
+To find out more information please check:
+`https://launchpad.net/gearmand <https://launchpad.net/gearmand>`_
+
+--------
+SEE ALSO
+--------
+
+:manpage:`gearmand(1)` :manpage:`libgearman(3)`

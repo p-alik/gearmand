@@ -1,4 +1,4 @@
-.TH "GEARMAN_CLIENT_EXECUTE" "3" "April 07, 2011" "0.20" "Gearmand"
+.TH "GEARMAN_CLIENT_EXECUTE" "3" "April 08, 2011" "0.20" "Gearmand"
 .SH NAME
 gearman_client_execute \- Gearmand Documentation
 .
@@ -30,8 +30,12 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 ..
 .\" Man page generated from reStructeredText.
 .
+.SH LIBRARY
 .sp
-gearman_client_execute() can be used to execute tasks against a gearman network.
+C Client Library for Gearmand (libgearman, \-lgearman)
+.SH SYNOPSIS
+.sp
+#include <libgearman/gearman.h>
 .INDENT 0.0
 .TP
 .B gearman_status_t gearman_client_execute(gearman_client_st *client,
@@ -42,6 +46,19 @@ gearman_client_execute() can be used to execute tasks against a gearman network.
 .TP
 .B const gearman_workload_t *workload);
 .UNINDENT
+.SH DESCRIPTION
+.sp
+gearman_client_execute() can be used to execute tasks against a gearman network.
+.SH RETURN
+.sp
+gearman_client_execute() returns a gearman_status_t.
+.SH HOME
+.sp
+To find out more information please check:
+\fI\%https://launchpad.net/gearmand\fP
+.SH SEE ALSO
+.sp
+\fIgearmand(1)\fP \fIlibgearman(3)\fP \fIgearman_status_t(3)\fP
 .SH AUTHOR
 Data Differential http://datadifferential.com/
 .SH COPYRIGHT

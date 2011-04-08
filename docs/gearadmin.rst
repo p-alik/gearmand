@@ -1,13 +1,10 @@
+=========
 gearadmin
 =========
 
-
-Command line client for Gearmand
-
-
+--------
 SYNOPSIS
-________
-
+--------
 
 .. program:: gearadmin
 
@@ -45,24 +42,23 @@ Workers for the server.
 Shutdown server.
 
 
+-----------
 DESCRIPTION
-___________
-
+-----------
 
 Command line tool for manipulating gearmand servers.
 
-
+----
 HOME
-____
-
+----
 
 To find out more information please check:
 `https://launchpad.net/gearmand <https://launchpad.net/gearmand>`_
 
 
+--------
 SEE ALSO
-________
+--------
 
-
-gearmand(1) libgearman(3)
+:manpage:`gearmand(1)` :manpage:`libgearman(3)`
 

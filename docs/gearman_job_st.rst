@@ -1,14 +1,20 @@
-
-
-.. highlightlang:: c
-
-Job Functions
--------------
+========================
+gearman_job_st functions
+========================
 
 .. index:: object: gearman_job_st
 
-This a complete list of all functions that work with a gearman_job_st,
-see their individual pages to learn more about them.
+-------
+LIBRARY
+-------
+
+C Client Library for Gearmand (libgearman, -lgearman)
+
+--------
+SYNOPSIS
+--------
+
+#include <libgearman/gearman.h>
 
 .. c:function:: void gearman_job_free(gearman_job_st *job);
 
@@ -44,3 +50,33 @@ see their individual pages to learn more about them.
 .. c:function:: size_t gearman_job_workload_size(const gearman_job_st *job);
 
 .. c:function:: void *gearman_job_take_workload(gearman_job_st *job, size_t *data_size);
+
+-----------
+DESCRIPTION
+-----------
+
+This a complete list of all functions that work with a gearman_job_st,
+see their individual pages to learn more about them.
+
+------
+RETURN
+------
+
+A value of type \ ``gearman_return_t``\  is returned.
+On success that value will be \ ``GEARMAN_SUCCESS``\ .
+Use gearman_strerror() to translate this value to a printable string.
+
+----
+HOME
+----
+
+
+To find out more information please check:
+`https://launchpad.net/gearmand <https://launchpad.net/gearmand>`_
+
+
+--------
+SEE ALSO
+--------
+
+:manpage:`gearmand(1)` :manpage:`libgearman(3)`

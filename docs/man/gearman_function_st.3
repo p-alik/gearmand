@@ -1,4 +1,4 @@
-.TH "GEARMAN_FUNCTION_ST" "3" "April 07, 2011" "0.20" "Gearmand"
+.TH "GEARMAN_FUNCTION_ST" "3" "April 08, 2011" "0.20" "Gearmand"
 .SH NAME
 gearman_function_st \- Gearmand Documentation
 .
@@ -30,9 +30,9 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 ..
 .\" Man page generated from reStructeredText.
 .
+.SH SYNOPSIS
 .sp
-This a complete list of all functions that work with a gearman_function_st,
-see their individual pages to learn more about them. gearman_function_st must be decallocated when you finish with them.
+#include <libgearman/gearman.h>
 .INDENT 0.0
 .TP
 .B gearman_function_st *gearman_function_create(const char *, size_t size);
@@ -41,6 +41,22 @@ see their individual pages to learn more about them. gearman_function_st must be
 .TP
 .B void gearman_function_free(gearman_function_st *);
 .UNINDENT
+.SH DESCRIPTION
+.sp
+You gearman_function_st to describe functions to be executed against a server.
+.sp
+This a complete list of all functions that work with a gearman_function_st,
+see their individual pages to learn more about them. gearman_function_st must be decallocated when you finish with them.
+.SH RETURN
+.sp
+Various
+.SH HOME
+.sp
+To find out more information please check:
+\fI\%https://launchpad.net/gearmand\fP
+.SH SEE ALSO
+.sp
+\fIgearmand(1)\fP \fIlibgearman(3)\fP
 .SH AUTHOR
 Data Differential http://datadifferential.com/
 .SH COPYRIGHT

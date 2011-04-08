@@ -360,39 +360,39 @@ static test_return_t echo_max_test(void *object)
   return TEST_SUCCESS;
 }
 
-#pragma GCC diagnostic ignored "-Wframe-larger-than="
-
 static test_return_t abandoned_worker_test(void *object __attribute__((unused)))
 {
-  gearman_client_st client;
   char job_handle[GEARMAN_JOB_HANDLE_SIZE];
   gearman_return_t ret;
-  gearman_universal_st gearman;
-  gearman_connection_st worker1;
-  gearman_connection_st worker2;
   gearman_packet_st packet;
   const void *args[2];
   size_t args_size[2];
 
-  assert(gearman_client_create(&client) != NULL);
-  gearman_client_add_server(&client, NULL, WORKER_TEST_PORT);
-  ret= gearman_client_do_background(&client, "abandoned_worker", NULL, NULL, 0,
-                                    job_handle);
-  if (ret != GEARMAN_SUCCESS)
   {
-    printf("abandoned_worker_test:%s\n", gearman_client_error(&client));
-    return TEST_FAILURE;
+    gearman_client_st *client;
+    client= gearman_client_create(NULL);
+    test_truth(client);
+    gearman_client_add_server(client, NULL, WORKER_TEST_PORT);
+    ret= gearman_client_do_background(client, "abandoned_worker", NULL, NULL, 0,
+                                      job_handle);
+    if (ret != GEARMAN_SUCCESS)
+    {
+      printf("abandoned_worker_test:%s\n", gearman_client_error(client));
+      return TEST_FAILURE;
+    }
+    gearman_client_free(client);
   }
-  gearman_client_free(&client);
 
   /* Now take job with one worker. */
+  gearman_universal_st gearman;
   if (gearman_universal_create(&gearman, NULL) == NULL)
     return TEST_FAILURE;
 
-  if (gearman_connection_create(&gearman, &worker1, NULL) == NULL)
-    return TEST_FAILURE;
+  gearman_connection_st *worker1;
+  worker1= gearman_connection_create(&gearman, NULL, NULL);
+  test_truth(worker1);
 
-  gearman_connection_set_host(&worker1, NULL, WORKER_TEST_PORT);
+  gearman_connection_set_host(worker1, NULL, WORKER_TEST_PORT);
 
   args[0]= "abandoned_worker";
   args_size[0]= strlen("abandoned_worker");
@@ -403,7 +403,7 @@ static test_return_t abandoned_worker_test(void *object __attribute__((unused)))
     return TEST_FAILURE;
   }
 
-  if (gearman_connection_send(&worker1, &packet, true) != GEARMAN_SUCCESS)
+  if (gearman_connection_send(worker1, &packet, true) != GEARMAN_SUCCESS)
     return TEST_FAILURE;
 
   gearman_packet_free(&packet);
@@ -415,12 +415,12 @@ static test_return_t abandoned_worker_test(void *object __attribute__((unused)))
     return TEST_FAILURE;
   }
 
-  if (gearman_connection_send(&worker1, &packet, true) != GEARMAN_SUCCESS)
+  if (gearman_connection_send(worker1, &packet, true) != GEARMAN_SUCCESS)
     return TEST_FAILURE;
 
   gearman_packet_free(&packet);
 
-  gearman_connection_recv(&worker1, &packet, &ret, false);
+  gearman_connection_recv(worker1, &packet, &ret, false);
   if (ret != GEARMAN_SUCCESS || packet.command != GEARMAN_COMMAND_JOB_ASSIGN)
     return TEST_FAILURE;
 
@@ -432,10 +432,11 @@ static test_return_t abandoned_worker_test(void *object __attribute__((unused)))
 
   gearman_packet_free(&packet);
 
-  if (gearman_connection_create(&gearman, &worker2, NULL) == NULL)
-    return TEST_FAILURE;
+  gearman_connection_st *worker2;
+  worker2= gearman_connection_create(&gearman, NULL, NULL);
+  test_truth(worker2);
 
-  gearman_connection_set_host(&worker2, NULL, WORKER_TEST_PORT);
+  gearman_connection_set_host(worker2, NULL, WORKER_TEST_PORT);
 
   args[0]= "abandoned_worker";
   args_size[0]= strlen("abandoned_worker");
@@ -446,7 +447,7 @@ static test_return_t abandoned_worker_test(void *object __attribute__((unused)))
     return TEST_FAILURE;
   }
 
-  if (gearman_connection_send(&worker2, &packet, true) != GEARMAN_SUCCESS)
+  if (gearman_connection_send(worker2, &packet, true) != GEARMAN_SUCCESS)
     return TEST_FAILURE;
 
   gearman_packet_free(&packet);
@@ -462,16 +463,18 @@ static test_return_t abandoned_worker_test(void *object __attribute__((unused)))
     return TEST_FAILURE;
   }
 
-  if (gearman_connection_send(&worker2, &packet, true) != GEARMAN_SUCCESS)
+  if (gearman_connection_send(worker2, &packet, true) != GEARMAN_SUCCESS)
     return TEST_FAILURE;
 
   gearman_packet_free(&packet);
 
   gearman_universal_set_timeout(&gearman, 1000);
-  gearman_connection_recv(&worker2, &packet, &ret, false);
+  gearman_connection_recv(worker2, &packet, &ret, false);
   if (ret != GEARMAN_SUCCESS || packet.command != GEARMAN_COMMAND_ERROR)
     return TEST_FAILURE;
 
+  gearman_connection_free(worker1);
+  gearman_connection_free(worker2);
   gearman_packet_free(&packet);
   gearman_universal_free(&gearman);
 

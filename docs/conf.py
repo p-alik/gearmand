@@ -259,7 +259,6 @@ man_pages = [
   ('gearman_client_st', 'gearman_client_set_workload_free_fn', u'Gearmand Documentation', [u'Data Differential http://datadifferential.com/'], 3),
   ('gearman_client_st', 'gearman_client_set_workload_malloc_fn', u'Gearmand Documentation', [u'Data Differential http://datadifferential.com/'], 3),
   ('gearman_client_st', 'gearman_client_st', u'Gearmand Documentation', [u'Data Differential http://datadifferential.com/'], 3),
-  ('gearman_client_st', 'gearman_client_st', u'Gearmand Documentation', [u'Data Differential http://datadifferential.com/'], 3),
   ('gearman_client_st', 'gearman_client_task_free_all', u'Gearmand Documentation', [u'Data Differential http://datadifferential.com/'], 3),
   ('gearman_client_st', 'gearman_client_timeout', u'Gearmand Documentation', [u'Data Differential http://datadifferential.com/'], 3),
   ('gearman_client_st', 'gearman_client_wait', u'Gearmand Documentation', [u'Data Differential http://datadifferential.com/'], 3),
