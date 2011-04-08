@@ -1,6 +1,6 @@
-===================
-gearman_function_st
-===================
+================================
+Working with gearman_function_st
+================================
 
 .. index:: object: gearman_function_st
 
@@ -9,6 +9,8 @@ SYNOPSIS
 --------
 
 #include <libgearman/gearman.h>
+
+.. c:type:: gearman_function_st
 
 .. c:function:: gearman_function_st *gearman_function_create(const char *, size_t size);
 

@@ -16,6 +16,8 @@ SYNOPSIS
 
 #include <libgearman/gearman.h>
 
+.. c:type:: gearman_client_st
+
 .. c:function:: gearman_client_st *gearman_client_create(gearman_client_st *client);
 
 .. c:function:: gearman_client_st *gearman_client_clone(gearman_client_st *client, const gearman_client_st *from);
@@ -64,131 +66,52 @@ SYNOPSIS
 
 .. c:function:: void gearman_client_do_status(gearman_client_st *client, uint32_t *numerator, uint32_t *denominator);
 
-.. c:function:: gearman_return_t gearman_client_do_background(gearman_client_st *client,
-                                              const char *function_name,
-                                              const char *unique,
-                                              const void *workload,
-                                              size_t workload_size,
-                                              char *job_handle);
+.. c:function:: gearman_return_t gearman_client_do_background(gearman_client_st *client, const char *function_name, const char *unique, const void *workload, size_t workload_size, char *job_handle);
 
-.. c:function:: gearman_return_t gearman_client_do_high_background(gearman_client_st *client,
-                                                   const char *function_name,
-                                                   const char *unique,
-                                                   const void *workload,
-                                                   size_t workload_size,
-                                                   char *job_handle);
+.. c:function:: gearman_return_t gearman_client_do_high_background(gearman_client_st *client, const char *function_name, const char *unique, const void *workload, size_t workload_size, char *job_handle);
 
-.. c:function:: gearman_return_t gearman_client_do_low_background(gearman_client_st *client,
-                                                  const char *function_name,
-                                                  const char *unique,
-                                                  const void *workload,
-                                                  size_t workload_size,
-                                                  char *job_handle);
+.. c:function:: gearman_return_t gearman_client_do_low_background(gearman_client_st *client, const char *function_name, const char *unique, const void *workload, size_t workload_size, char *job_handle);
 
-.. c:function:: gearman_return_t gearman_client_job_status(gearman_client_st *client,
-                                           const char *job_handle,
-                                           bool *is_known, bool *is_running,
-                                           uint32_t *numerator,
-                                           uint32_t *denominator);
+.. c:function:: gearman_return_t gearman_client_job_status(gearman_client_st *client, const char *job_handle, bool *is_known, bool *is_running, uint32_t *numerator, uint32_t *denominator);
 
-.. c:function:: gearman_return_t gearman_client_echo(gearman_client_st *client,
-                                     const void *workload,
-                                     size_t workload_size);
+.. c:function:: gearman_return_t gearman_client_echo(gearman_client_st *client, const void *workload, size_t workload_size);
 
 .. c:function:: void gearman_client_task_free_all(gearman_client_st *client);
 
-.. c:function:: void gearman_client_set_task_context_free_fn(gearman_client_st *client,
-                                             gearman_task_context_free_fn *function);
+.. c:function:: void gearman_client_set_task_context_free_fn(gearman_client_st *client, gearman_task_context_free_fn *function);
 
-.. c:function:: gearman_status_t gearman_client_execute(gearman_client_st *client,
-                                        const gearman_function_st *function,
-                                        gearman_unique_t *unique,
-                                        const gearman_workload_t *workload);
+.. c:function:: gearman_status_t gearman_client_execute(gearman_client_st *client, const gearman_function_st *function, gearman_unique_t *unique, const gearman_workload_t *workload);
 
 
-.. c:function:: gearman_task_st *gearman_client_add_task(gearman_client_st *client,
-                                         gearman_task_st *task,
-                                         void *context,
-                                         const char *function_name,
-                                         const char *unique,
-                                         const void *workload,
-                                         size_t workload_size,
-                                         gearman_return_t *ret_ptr);
+.. c:function:: gearman_task_st *gearman_client_add_task(gearman_client_st *client, gearman_task_st *task, void *context, const char *function_name, const char *unique, const void *workload, size_t workload_size, gearman_return_t *ret_ptr);
 
-.. c:function:: gearman_task_st *gearman_client_add_task_high(gearman_client_st *client,
-                                              gearman_task_st *task,
-                                              void *context,
-                                              const char *function_name,
-                                              const char *unique,
-                                              const void *workload,
-                                              size_t workload_size,
-                                              gearman_return_t *ret_ptr);
+.. c:function:: gearman_task_st *gearman_client_add_task_high(gearman_client_st *client, gearman_task_st *task, void *context, const char *function_name, const char *unique, const void *workload, size_t workload_size, gearman_return_t *ret_ptr);
 
-.. c:function:: gearman_task_st *gearman_client_add_task_low(gearman_client_st *client,
-                                             gearman_task_st *task,
-                                             void *context,
-                                             const char *function_name,
-                                             const char *unique,
-                                             const void *workload,
-                                             size_t workload_size,
-                                             gearman_return_t *ret_ptr);
+.. c:function:: gearman_task_st *gearman_client_add_task_low(gearman_client_st *client, gearman_task_st *task, void *context, const char *function_name, const char *unique, const void *workload, size_t workload_size, gearman_return_t *ret_ptr);
 
-.. c:function:: gearman_task_st *gearman_client_add_task_background(gearman_client_st *client,
-                                                    gearman_task_st *task,
-                                                    void *context,
-                                                    const char *function_name,
-                                                    const char *unique,
-                                                    const void *workload,
-                                                    size_t workload_size,
-                                                    gearman_return_t *ret_ptr);
+.. c:function:: gearman_task_st *gearman_client_add_task_background(gearman_client_st *client, gearman_task_st *task, void *context, const char *function_name, const char *unique, const void *workload, size_t workload_size, gearman_return_t *ret_ptr);
 
-.. c:function:: gearman_task_st * gearman_client_add_task_high_background(gearman_client_st *client,
-                                        gearman_task_st *task,
-                                        void *context,
-                                        const char *function_name,
-                                        const char *unique,
-                                        const void *workload,
-                                        size_t workload_size,
-                                        gearman_return_t *ret_ptr);
+.. c:function:: gearman_task_st * gearman_client_add_task_high_background(gearman_client_st *client, gearman_task_st *task, void *context, const char *function_name, const char *unique, const void *workload, size_t workload_size, gearman_return_t *ret_ptr);
 
-.. c:function:: gearman_task_st * gearman_client_add_task_low_background(gearman_client_st *client,
-                                       gearman_task_st *task,
-                                       void *context,
-                                       const char *function_name,
-                                       const char *unique,
-                                       const void *workload,
-                                       size_t workload_size,
-                                       gearman_return_t *ret_ptr);
+.. c:function:: gearman_task_st * gearman_client_add_task_low_background(gearman_client_st *client, gearman_task_st *task, void *context, const char *function_name, const char *unique, const void *workload, size_t workload_size, gearman_return_t *ret_ptr);
 
-.. c:function:: gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
-                                                gearman_task_st *task,
-                                                void *context,
-                                                const char *job_handle,
-                                                gearman_return_t *ret_ptr);
+.. c:function:: gearman_task_st *gearman_client_add_task_status(gearman_client_st *client, gearman_task_st *task, void *context, const char *job_handle, gearman_return_t *ret_ptr);
 
-.. c:function:: void gearman_client_set_workload_fn(gearman_client_st *client,
-                                    gearman_workload_fn *function);
+.. c:function:: void gearman_client_set_workload_fn(gearman_client_st *client, gearman_workload_fn *function);
 
-.. c:function:: void gearman_client_set_created_fn(gearman_client_st *client,
-                                   gearman_created_fn *function);
+.. c:function:: void gearman_client_set_created_fn(gearman_client_st *client, gearman_created_fn *function);
 
-.. c:function:: void gearman_client_set_data_fn(gearman_client_st *client,
-                                gearman_data_fn *function);
+.. c:function:: void gearman_client_set_data_fn(gearman_client_st *client, gearman_data_fn *function);
 
-.. c:function:: void gearman_client_set_warning_fn(gearman_client_st *client,
-                                   gearman_warning_fn *function);
+.. c:function:: void gearman_client_set_warning_fn(gearman_client_st *client, gearman_warning_fn *function);
 
-.. c:function:: void gearman_client_set_status_fn(gearman_client_st *client,
-                                  gearman_universal_status_fn *function);
+.. c:function:: void gearman_client_set_status_fn(gearman_client_st *client, gearman_universal_status_fn *function);
 
-.. c:function:: void gearman_client_set_complete_fn(gearman_client_st *client,
-                                    gearman_complete_fn *function);
+.. c:function:: void gearman_client_set_complete_fn(gearman_client_st *client, gearman_complete_fn *function);
 
-.. c:function:: void gearman_client_set_exception_fn(gearman_client_st *client,
-                                     gearman_exception_fn *function);
+.. c:function:: void gearman_client_set_exception_fn(gearman_client_st *client, gearman_exception_fn *function);
 
-.. c:function:: void gearman_client_set_fail_fn(gearman_client_st *client,
-                                gearman_fail_fn *function);
+.. c:function:: void gearman_client_set_fail_fn(gearman_client_st *client, gearman_fail_fn *function);
 
 .. c:function:: void gearman_client_clear_fn(gearman_client_st *client);
 

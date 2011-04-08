@@ -38,45 +38,31 @@ C Client Library for Gearmand (libgearman, \-lgearman)
 #include <libgearman/gearman.h>
 .INDENT 0.0
 .TP
+.B gearman_job_st
+.UNINDENT
+.INDENT 0.0
+.TP
 .B void gearman_job_free(gearman_job_st *job);
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_job_send_data(gearman_job_st *job, const void *data,
-.TP
-.B size_t data_size);
+.B gearman_return_t gearman_job_send_data(gearman_job_st *job, const void *data, size_t data_size);
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_job_send_warning(gearman_job_st *job,
-.TP
-.B const void *warning,
-.TP
-.B size_t warning_size);
+.B gearman_return_t gearman_job_send_warning(gearman_job_st *job, const void *warning, size_t warning_size);
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_job_send_status(gearman_job_st *job,
-.TP
-.B uint32_t numerator,
-.TP
-.B uint32_t denominator);
+.B gearman_return_t gearman_job_send_status(gearman_job_st *job, uint32_t numerator, uint32_t denominator);
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_job_send_complete(gearman_job_st *job,
-.TP
-.B const void *result,
-.TP
-.B size_t result_size);
+.B gearman_return_t gearman_job_send_complete(gearman_job_st *job, const void *result, size_t result_size);
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_job_send_exception(gearman_job_st *job,
-.TP
-.B const void *exception,
-.TP
-.B size_t exception_size);
+.B gearman_return_t gearman_job_send_exception(gearman_job_st *job, const void *exception, size_t exception_size);
 .UNINDENT
 .INDENT 0.0
 .TP

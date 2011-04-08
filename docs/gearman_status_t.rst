@@ -1,12 +1,14 @@
-==========================
-gearman_status_t functions
-==========================
+======================
+Using gearman_status_t
+======================
 
 --------
 SYNOPSIS
 --------
 
 #include <libgearman/gearman.h>
+
+.. c:type:: gearman_status_t
 
 .. c:function:: bool gearman_status_is_successful(const gearman_status_t);
 
@@ -18,8 +20,9 @@ DESCRIPTION
 
 gearman_status_t requires no allocation or deallocation.
 
-This a complete list of all functions that work with a gearman_status_t,
-see their individual pages to learn more about them.
+gearman_status_is_successful() determines whether or not a call to :manpage:`gearman_client_execute(3)` was successful or not.
+
+gearman_status_task() will provide a gearman_task_st if one is available.
 
 ------
 RETURN

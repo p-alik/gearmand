@@ -39,24 +39,35 @@ Command Line Tools
 ---------------------
 C/C++ Client Library:
 ---------------------
+
+**************
+Function Calls
+**************
+
 .. toctree::
    :maxdepth: 2
 
    libgearman
-   gearman_version
-   gearman_verbose_name
-   gearman_parse_servers
-   gearman_bugreport
-   gearman_client_st 
-   gearman_task_st
-   gearman_worker_st
-   gearman_job_st
-   gearman_client_execute
-   gearman_function_st
-   gearman_state_t
-   gearman_unique_t
    gearman_client
+   gearman_worker
+   gearman_client_execute
+   gearman_misc_functions
 
+
+**********
+Structures
+**********
+
+.. toctree::
+   :maxdepth: 2
+
+   gearman_client_st 
+   gearman_function_st
+   gearman_job_st
+   gearman_status_t
+   gearman_task_st
+   gearman_unique_t
+   gearman_worker_st
 
 ------------------
 Indices and tables

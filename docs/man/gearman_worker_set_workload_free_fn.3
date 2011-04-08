@@ -38,6 +38,10 @@ C Client Library for Gearmand (libgearman, \-lgearman)
 #include <libgearman/gearman.h>
 .INDENT 0.0
 .TP
+.B gearman_worker_st
+.UNINDENT
+.INDENT 0.0
+.TP
 .B gearman_client_st *gearman_client_create(gearman_client_st *client);
 .UNINDENT
 .INDENT 0.0
@@ -46,9 +50,7 @@ C Client Library for Gearmand (libgearman, \-lgearman)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker,
-.TP
-.B const gearman_worker_st *from);
+.B gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker, const gearman_worker_st *from);
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -68,21 +70,15 @@ C Client Library for Gearmand (libgearman, \-lgearman)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void gearman_worker_set_options(gearman_worker_st *worker,
-.TP
-.B gearman_worker_options_t options);
+.B void gearman_worker_set_options(gearman_worker_st *worker, gearman_worker_options_t options);
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void gearman_worker_add_options(gearman_worker_st *worker,
-.TP
-.B gearman_worker_options_t options);
+.B void gearman_worker_add_options(gearman_worker_st *worker, gearman_worker_options_t options);
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void gearman_worker_remove_options(gearman_worker_st *worker,
-.TP
-.B gearman_worker_options_t options);
+.B void gearman_worker_remove_options(gearman_worker_st *worker, gearman_worker_options_t options);
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -102,39 +98,23 @@ C Client Library for Gearmand (libgearman, \-lgearman)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void gearman_worker_set_log_fn(gearman_worker_st *worker,
-.TP
-.B gearman_log_fn *function, void *context,
-.TP
-.B gearman_verbose_t verbose);
+.B void gearman_worker_set_log_fn(gearman_worker_st *worker, gearman_log_fn *function, void *context, gearman_verbose_t verbose);
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void gearman_worker_set_workload_malloc_fn(gearman_worker_st *worker,
-.TP
-.B gearman_malloc_fn *function,
-.TP
-.B void *context);
+.B void gearman_worker_set_workload_malloc_fn(gearman_worker_st *worker, gearman_malloc_fn *function, void *context);
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void gearman_worker_set_workload_free_fn(gearman_worker_st *worker,
-.TP
-.B gearman_free_fn *function,
-.TP
-.B void *context);
+.B void gearman_worker_set_workload_free_fn(gearman_worker_st *worker, gearman_free_fn *function, void *context);
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_worker_add_server(gearman_worker_st *worker,
-.TP
-.B const char *host, in_port_t port);
+.B gearman_return_t gearman_worker_add_server(gearman_worker_st *worker, const char *host, in_port_t port);
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_worker_add_servers(gearman_worker_st *worker,
-.TP
-.B const char *servers);
+.B gearman_return_t gearman_worker_add_servers(gearman_worker_st *worker, const char *servers);
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -146,17 +126,11 @@ C Client Library for Gearmand (libgearman, \-lgearman)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_worker_register(gearman_worker_st *worker,
-.TP
-.B const char *function_name,
-.TP
-.B uint32_t timeout);
+.B gearman_return_t gearman_worker_register(gearman_worker_st *worker, const char *function_name, uint32_t timeout);
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_worker_unregister(gearman_worker_st *worker,
-.TP
-.B const char *function_name);
+.B gearman_return_t gearman_worker_unregister(gearman_worker_st *worker, const char *function_name);
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -164,11 +138,7 @@ C Client Library for Gearmand (libgearman, \-lgearman)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
-.TP
-.B gearman_job_st *job,
-.TP
-.B gearman_return_t *ret_ptr);
+.B gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker, gearman_job_st *job, gearman_return_t *ret_ptr);
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -176,23 +146,11 @@ C Client Library for Gearmand (libgearman, \-lgearman)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B bool gearman_worker_function_exist(gearman_worker_st *worker,
-.TP
-.B const char *function_name,
-.TP
-.B size_t function_length);
+.B bool gearman_worker_function_exist(gearman_worker_st *worker, const char *function_name, size_t function_length);
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_worker_add_function(gearman_worker_st *worker,
-.TP
-.B const char *function_name,
-.TP
-.B uint32_t timeout,
-.TP
-.B gearman_worker_fn *function,
-.TP
-.B void *context);
+.B gearman_return_t gearman_worker_add_function(gearman_worker_st *worker, const char *function_name, uint32_t timeout, gearman_worker_fn *function, void *context);
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -200,11 +158,7 @@ C Client Library for Gearmand (libgearman, \-lgearman)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_worker_echo(gearman_worker_st *worker,
-.TP
-.B const void *workload,
-.TP
-.B size_t workload_size);
+.B gearman_return_t gearman_worker_echo(gearman_worker_st *worker, const void *workload, size_t workload_size);
 .UNINDENT
 .SH DESCRIPTION
 .sp

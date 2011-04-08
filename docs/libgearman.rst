@@ -59,30 +59,30 @@ CONSTANTS
 A number of constants have been provided for in the library.
 
 
-GEARMAN_DEFAULT_TCP_PORT
+.. c:var:: GEARMAN_DEFAULT_TCP_PORT
  
 The default port used by gearmand(3).
 
-GEARMAN_DEFAULT_TCP_PORT
+.. c:var:: GEARMAN_DEFAULT_TCP_PORT
  
 The default service used by gearmand(3).
 
-GEARMAN_VERSION_STRING
+.. c:var:: GEARMAN_VERSION_STRING
  
 String value of libmemcached version such as "0.20.4"
 
 
-GEARMAN_MAJOR_VERSION
+.. c:var:: GEARMAN_MAJOR_VERSION
  
 Major version value. Such as 0.20.4, would be 0
 
 
-GEARMAN_MINOR_VERSION
+.. c:var:: GEARMAN_MINOR_VERSION
  
 Major version value. Such as 0.20.4, would be 20
  
 
-GEARMAN_MICRO_VERSION
+.. c:var:: GEARMAN_MICRO_VERSION
  
 Major version value. Such as 0.20.4, would be 4
 

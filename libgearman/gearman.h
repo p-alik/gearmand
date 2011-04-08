@@ -42,8 +42,7 @@
  * @brief Gearman Declarations
  */
 
-#ifndef __GEARMAN_H__
-#define __GEARMAN_H__
+#pragma once
 
 #include <inttypes.h>
 #ifndef __cplusplus
@@ -75,6 +74,7 @@
 #include <libgearman/client.h>
 #include <libgearman/function.h>
 #include <libgearman/status.h>
+#include <libgearman/connection.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -158,5 +158,3 @@ gearman_return_t gearman_parse_servers(const char *servers,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GEARMAN_H__ */

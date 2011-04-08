@@ -15,6 +15,7 @@ nobase_include_HEADERS+= \
 			 libgearman/client.h \
 			 libgearman/command.h \
 			 libgearman/configure.h \
+			 libgearman/connection.h \
 			 libgearman/constants.h \
 			 libgearman/core.h \
 			 libgearman/function.h \
@@ -34,7 +35,6 @@ nobase_include_HEADERS+= \
 
 noinst_HEADERS+= \
 		 libgearman/common.h \
-		 libgearman/connection.h \
 		 libgearman/log.h
 
 noinst_LTLIBRARIES+= libgearman/libgearmancore.la

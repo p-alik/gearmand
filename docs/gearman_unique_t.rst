@@ -1,6 +1,6 @@
-================
-gearman_unique_t
-================
+===================================================
+Expressing unique identifiers with gearman_unique_t
+===================================================
 
 .. index:: object: gearman_unique_t
 
@@ -9,6 +9,8 @@ SYNOPSIS
 --------
 
 #include <libgearman/gearman.h>
+
+.. c:type:: gearman_unique_t
 
 .. c:function:: gearman_unique_t gearman_unique_make(const char *arg, size_t arg_size);
 
