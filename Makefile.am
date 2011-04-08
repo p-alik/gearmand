@@ -49,8 +49,6 @@ EXTRA_DIST+= \
 	scripts/README.solaris
 
 docs: all man
-	${DOXYGEN} docs/Doxyfile.api
-	${DOXYGEN} docs/Doxyfile.dev
 
 test: check
 

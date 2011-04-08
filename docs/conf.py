@@ -164,7 +164,7 @@ html_static_path = ['_static']
 #html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'libmemcacheddoc'
+htmlhelp_basename = 'gearmandoc'
 
 
 # -- Options for LaTeX output --------------------------------------------------
@@ -330,4 +330,8 @@ man_pages = [
   ('gearman_worker_st', 'gearman_worker_unregister_all', u'Gearmand Documentation', [u'Data Differential http://datadifferential.com/'], 3),
   ('gearman_worker_st', 'gearman_worker_wait', u'Gearmand Documentation', [u'Data Differential http://datadifferential.com/'], 3),
   ('gearman_worker_st', 'gearman_worker_work', u'Gearmand Documentation', [u'Data Differential http://datadifferential.com/'], 3),
+  ('gearman', 'gearman', u'Gearmand Documentation', [u'Data Differential http://datadifferential.com/'], 1),
+  ('gearadmin', 'gearadmin', u'Gearmand Documentation', [u'Data Differential http://datadifferential.com/'], 1),
+  ('gearmand', 'gearmand', u'Gearmand Documentation', [u'Data Differential http://datadifferential.com/'], 8),
+  ('libgearman', 'libgearman', u'Gearmand Documentation', [u'Data Differential http://datadifferential.com/'], 3),
   ]

@@ -17,6 +17,21 @@ Introduction:
    license
    how_to_report_a_bug
 
+Server
+------------------
+.. toctree::
+   :maxdepth: 2
+
+   gearmand
+
+Command Line Tools
+------------------
+.. toctree::
+   :maxdepth: 2
+
+   gearman
+   gearadmin
+
 C/C++ Client Library:
 ---------------------
 .. toctree::
