@@ -1,3 +1,4 @@
+=====================================
 Welcome to the Gearman documentation!
 =====================================
 
@@ -9,6 +10,7 @@ high-availability web sites to the transport of database replication events.
 In other words, it is the nervous system for how distributed processing
 communi
 
+-------------
 Introduction:
 -------------
 .. toctree::
@@ -17,13 +19,15 @@ Introduction:
    license
    how_to_report_a_bug
 
+------
 Server
-------------------
+------
 .. toctree::
    :maxdepth: 2
 
    gearmand
 
+------------------
 Command Line Tools
 ------------------
 .. toctree::
@@ -32,6 +36,7 @@ Command Line Tools
    gearman
    gearadmin
 
+---------------------
 C/C++ Client Library:
 ---------------------
 .. toctree::
@@ -53,8 +58,9 @@ C/C++ Client Library:
    gearman_client
 
 
+------------------
 Indices and tables
-==================
+------------------
 
 * :ref:`genindex`
 * :ref:`search`

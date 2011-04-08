@@ -1,12 +1,28 @@
+==================================================================
+gearman_client_create, gearman_client_create, gearman_client_clone
+==================================================================
+
+-------
+LIBRARY
+-------
+
+C Client Library for Gearmand (libgearman, -lgearman)
+
+--------
+SYNOPSIS
+--------
+
+#include <libgearman/gearman.h>
+
 .. c:function:: gearman_client_st *gearman_client_create(gearman_client_st *client);
 
 .. c:function:: gearman_client_st *gearman_client_clone(gearman_client_st *client, const gearman_client_st *from);
 
 .. c:function:: void gearman_client_free(gearman_client_st *client);
 
-***********
+-----------
 DESCRIPTION
-***********
+-----------
 
 
 gearman_client_create() is used to create a \ ``gearman_client_st``\  structure that will then
@@ -29,9 +45,9 @@ stack based allocation, ie the first parameter. The most common issues related t
 heap allocated structures.
 
 
-******
+------
 RETURN
-******
+------
 
 
 gearman_client_create() returns a pointer to the gearman_client_st that was created
@@ -41,19 +57,17 @@ gearman_client_clone() returns a pointer to the gearman_client_st that was creat
 (or initialized). On an allocation failure, it returns NULL.
 
 
-****
+----
 HOME
-****
+----
 
 
 To find out more information please check:
 `https://launchpad.net/gearmand <https://launchpad.net/gearmand>`_
 
 
-********
+--------
 SEE ALSO
-********
+--------
 
-
-gearmand(1) libgearman(3) gearman_strerror(3)
-
+:manpage:`gearmand(1)` :manpage:`libgearman(3)` :manpage:`gearman_strerror(3)`

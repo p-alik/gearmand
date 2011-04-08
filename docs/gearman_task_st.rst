@@ -1,15 +1,22 @@
-
-
-.. highlightlang:: c
-
-Query Object
-------------
+===============
+gearman_task_st
+===============
 
 .. index:: object: gearman_task_st
 
-This a complete list of all functions that work with a gearman_task_st,
-see their individual pages to learn more about them.
+-------
+LIBRARY
+-------
 
+C Client Library for Gearmand (libgearman, -lgearman)
+
+
+--------
+SYNOPSIS
+--------
+
+
+#include <libgearman/gearman.h>
 
 .. c:function:: void gearman_task_free(gearman_task_st *task);
 
@@ -46,3 +53,29 @@ see their individual pages to learn more about them.
 
 .. c:function:: size_t gearman_task_recv_data(gearman_task_st *task, void *data,
                               size_t data_size, gearman_return_t *ret_ptr);
+
+-----------
+DESCRIPTION
+-----------
+
+This a complete list of all functions that work with a gearman_task_st,
+see their individual pages to learn more about them.
+
+------
+RETURN
+------
+
+Various
+
+----
+HOME
+----
+
+To find out more information please check:
+`https://launchpad.net/gearmand <https://launchpad.net/gearmand>`_
+
+--------
+SEE ALSO
+--------
+
+:manpage:`gearmand(1)` :manpage:`libgearman(3)`

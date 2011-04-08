@@ -1,17 +1,23 @@
+=============
+libgearman(3)
+=============
 
 .. index:: object: libgearman
 
+-------
 LIBRARY
 -------
 
  C Client Library for Gearmand (libgearman, -lgearman)
 
 
+--------
 SYNOPSIS
 --------
 
 #include <libgearman/gearman.h>
 
+-----------
 DESCRIPTION
 -----------
 
@@ -82,8 +88,9 @@ Major version value. Such as 0.20.4, would be 4
 
 
 
+---------------------
 THREADS AND PROCESSES
-_____________________
+---------------------
 
 
 When using threads or forked processes it is important to keep an instance
@@ -91,24 +98,26 @@ of \ ``gearman_client_st``\ or \ ``gearman_worker_st``\  per process or thread. 
 structures you can not share a single \ ``gearman_client_st``\  or \ ``gearman_worker_st``\.
 
 
+----
 HOME
-____
+----
 
 
 To find out more information please check:
 `https://launchpad.net/libgearman <https://launchpad.net/gearmand>`_
 
 
+------
 AUTHOR
-______
+------
 
 
 Brian Aker, <brian@tangent.org> of Data Differential, http://datadifferential.com/
 
 
+--------
 SEE ALSO
-________
+--------
 
-
-gearman(1) libgearman_examples(3)
+:manpage:`gearmand(1)` :manpage:`libgearman_examples(3)`
 

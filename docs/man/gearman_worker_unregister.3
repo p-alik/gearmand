@@ -1,4 +1,4 @@
-.TH "GEARMAN_WORKER_UNREGISTER" "3" "April 07, 2011" "0.20" "Gearmand"
+.TH "GEARMAN_WORKER_UNREGISTER" "3" "April 08, 2011" "0.20" "Gearmand"
 .SH NAME
 gearman_worker_unregister \- Gearmand Documentation
 .
@@ -30,9 +30,12 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 ..
 .\" Man page generated from reStructeredText.
 .
+.SH LIBRARY
 .sp
-This a complete list of all functions that work with a gearman_worker_st,
-see their individual pages to learn more about them.
+C Client Library for Gearmand (libgearman, \-lgearman)
+.SH SYNOPSIS
+.sp
+#include <libgearman/gearman.h>
 .INDENT 0.0
 .TP
 .B gearman_client_st *gearman_client_create(gearman_client_st *client);
@@ -203,6 +206,20 @@ see their individual pages to learn more about them.
 .TP
 .B size_t workload_size);
 .UNINDENT
+.SH DESCRIPTION
+.sp
+This a complete list of all functions that work with a gearman_worker_st,
+see their individual pages to learn more about them.
+.SH RETURN
+.sp
+Various
+.SH HOME
+.sp
+To find out more information please check:
+\fI\%https://launchpad.net/gearmand\fP
+.SH SEE ALSO
+.sp
+\fIgearmand(1)\fP \fIlibgearman(3)\fP
 .SH AUTHOR
 Data Differential http://datadifferential.com/
 .SH COPYRIGHT

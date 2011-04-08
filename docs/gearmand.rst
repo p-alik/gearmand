@@ -1,8 +1,10 @@
-gearmand
-========
+===========
+gearmand(1)
+===========
 
+--------
 SYNOPSIS
-________
+--------
 
 
 .. program:: gearmand
@@ -119,8 +121,9 @@ Optimize database on open. [default=true]
 
 
 
+-----------
 DESCRIPTION
-___________
+-----------
 
 
 Gearman provides a generic application framework to farm out work to other machines or processes that are better suited to do the work. It allows you to do work in parallel, to load balance processing, and to call functions between languages. It can be used in a variety of applications, from high-availability web sites to the transport of database replication events. In other words, it is the nervous system for how distributed processing communicates. A few strong points about Gearman:
@@ -138,17 +141,17 @@ Gearman provides a generic application framework to farm out work to other machi
 * No single point of failure - Gearman can not only help scale systems, but can do it in a fault tolerant way.
 
 
+----
 HOME
-____
+----
 
 
 To find out more information please check:
 `https://launchpad.net/gearmand <https://launchpad.net/gearmand>`_
 
 
+--------
 SEE ALSO
-________
+--------
 
-
-`gearmand` (1) `libgearman` (3)
-
+:manpage:`gearman(1)` :manpage:`gearadmin(1)` :manpage:`libgearmand(3)` 

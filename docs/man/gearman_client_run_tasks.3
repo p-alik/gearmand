@@ -1,4 +1,4 @@
-.TH "GEARMAN_CLIENT_RUN_TASKS" "3" "April 07, 2011" "0.20" "Gearmand"
+.TH "GEARMAN_CLIENT_RUN_TASKS" "3" "April 08, 2011" "0.20" "Gearmand"
 .SH NAME
 gearman_client_run_tasks \- Gearmand Documentation
 .
@@ -30,9 +30,12 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 ..
 .\" Man page generated from reStructeredText.
 .
+.SH LIBRARY
 .sp
-This a complete list of all functions that work with a gearman_client_st,
-see their individual pages to learn more about them.
+C Client Library for Gearmand (libgearman, \-lgearman)
+.SH SYNOPSIS
+.sp
+#include <libgearman/gearman.h>
 .INDENT 0.0
 .TP
 .B gearman_client_st *gearman_client_create(gearman_client_st *client);
@@ -391,6 +394,22 @@ see their individual pages to learn more about them.
 .TP
 .B bool gearman_client_compare(const gearman_client_st *first, const gearman_client_st *second);
 .UNINDENT
+.SH DESCRIPTION
+.sp
+gearman_client_st is used to create a client that can communicate with a
+Gearman server.
+.sp
+This a complete list of all functions that work with a gearman_client_st.
+.SH RETURN
+.sp
+Various
+.SH HOME
+.sp
+To find out more information please check:
+\fI\%https://launchpad.net/gearmand\fP
+.SH SEE ALSO
+.sp
+\fIgearmand(1)\fP \fIlibgearman(3)\fP
 .SH AUTHOR
 Data Differential http://datadifferential.com/
 .SH COPYRIGHT

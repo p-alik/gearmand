@@ -1,3 +1,4 @@
+=======
 gearman
 =======
 
@@ -5,8 +6,9 @@ gearman
 Command line client for Gearmand
 
 
+--------
 SYNOPSIS
-________
+--------
 
 
 .. program:: gearman
@@ -84,24 +86,25 @@ Run in worker mode
 
 
 
+-----------
 DESCRIPTION
-___________
+-----------
 
 
 With gearman you can run client and worker functions from the command line. 
 
 
+----
 HOME
-____
+----
 
 
 To find out more information please check:
 `https://launchpad.net/gearmand <https://launchpad.net/gearmand>`_
 
 
+--------
 SEE ALSO
-________
+--------
 
-
-gearmand(1) libgearman(3)
-
+:manpage:`gearmand(1)` :manpage:`libgearman(3)`

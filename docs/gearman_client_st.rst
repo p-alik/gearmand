@@ -1,15 +1,20 @@
-
-
-.. highlightlang:: c
-
-Client Functions
-----------------
+========================
+Gearman Client Functions
+========================
 
 .. index:: object: gearman_client_st
 
-This a complete list of all functions that work with a gearman_client_st,
-see their individual pages to learn more about them.
+-------
+LIBRARY
+-------
 
+C Client Library for Gearmand (libgearman, -lgearman)
+
+--------
+SYNOPSIS
+--------
+
+#include <libgearman/gearman.h>
 
 .. c:function:: gearman_client_st *gearman_client_create(gearman_client_st *client);
 
@@ -191,3 +196,36 @@ see their individual pages to learn more about them.
 
 .. c:function:: bool gearman_client_compare(const gearman_client_st *first, const gearman_client_st *second);
 
+-----------
+DESCRIPTION
+-----------
+
+gearman_client_st is used to create a client that can communicate with a
+Gearman server.
+
+This a complete list of all functions that work with a gearman_client_st.
+
+
+
+------
+RETURN
+------
+
+
+Various
+
+
+----
+HOME
+----
+
+
+To find out more information please check:
+`https://launchpad.net/gearmand <https://launchpad.net/gearmand>`_
+
+
+--------
+SEE ALSO
+--------
+
+:manpage:`gearmand(1)` :manpage:`libgearman(3)`
