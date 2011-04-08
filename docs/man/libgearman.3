@@ -89,28 +89,16 @@ The default port used by gearmand(3).
 The default service used by gearmand(3).
 .INDENT 0.0
 .TP
-.B GEARMAN_VERSION_STRING
+.B LIBGEARMAN_VERSION_STRING
 .UNINDENT
 .sp
-String value of libmemcached version such as "0.20.4"
+String value of the libgearman version such as "0.20.4"
 .INDENT 0.0
 .TP
-.B GEARMAN_MAJOR_VERSION
+.B LIBGEARMAN_VERSION_HEX
 .UNINDENT
 .sp
-Major version value. Such as 0.20.4, would be 0
-.INDENT 0.0
-.TP
-.B GEARMAN_MINOR_VERSION
-.UNINDENT
-.sp
-Major version value. Such as 0.20.4, would be 20
-.INDENT 0.0
-.TP
-.B GEARMAN_MICRO_VERSION
-.UNINDENT
-.sp
-Major version value. Such as 0.20.4, would be 4
+Hex value of the version number. "0x00048000" This can be used for comparing versions based on number.
 .SH THREADS AND PROCESSES
 .sp
 When using threads or forked processes it is important to keep an instance

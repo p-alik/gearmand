@@ -67,25 +67,14 @@ The default port used by gearmand(3).
  
 The default service used by gearmand(3).
 
-.. c:var:: GEARMAN_VERSION_STRING
+.. c:var:: LIBGEARMAN_VERSION_STRING
  
-String value of libmemcached version such as "0.20.4"
+String value of the libgearman version such as "0.20.4"
 
 
-.. c:var:: GEARMAN_MAJOR_VERSION
+.. c:var:: LIBGEARMAN_VERSION_HEX
  
-Major version value. Such as 0.20.4, would be 0
-
-
-.. c:var:: GEARMAN_MINOR_VERSION
- 
-Major version value. Such as 0.20.4, would be 20
- 
-
-.. c:var:: GEARMAN_MICRO_VERSION
- 
-Major version value. Such as 0.20.4, would be 4
-
+Hex value of the version number. "0x00048000" This can be used for comparing versions based on number.
 
 
 ---------------------
