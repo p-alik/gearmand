@@ -82,7 +82,6 @@ _server_job_get_unique(gearman_server_st *server, uint32_t unique_key,
 /** @} */
 
 #pragma GCC diagnostic ignored "-Wold-style-cast"
-#pragma GCC diagnostic ignored "-fpermissive"
 
 
 /*
