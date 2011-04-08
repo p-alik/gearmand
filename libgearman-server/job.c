@@ -83,7 +83,6 @@ _server_job_get_unique(gearman_server_st *server, uint32_t unique_key,
 
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #pragma GCC diagnostic ignored "-fpermissive"
-#pragma GCC diagnostic ignored "-Warray-bounds"
 
 
 /*
@@ -309,6 +308,9 @@ void gearman_server_job_free(gearman_server_job_st *server_job)
 {
   uint32_t key;
 
+  if (! server_job)
+    return;
+
   if (server_job->worker != NULL)
     server_job->function->job_running--;
 
@@ -429,8 +431,7 @@ static inline void _server_con_worker_list_append(gearman_server_worker_st *list
     worker->con_prev->con_next= worker;
 }
 
-gearman_server_job_st *
-gearman_server_job_take(gearman_server_con_st *server_con)
+gearman_server_job_st *gearman_server_job_take(gearman_server_con_st *server_con)
 {
   for (gearman_server_worker_st *server_worker= server_con->worker_list; server_worker != NULL; server_worker= server_worker->con_next)
   {
@@ -451,7 +452,7 @@ gearman_server_job_take(gearman_server_con_st *server_con)
       }
 
       gearmand_job_priority_t priority;
-      for (priority= GEARMAND_JOB_PRIORITY_HIGH; priority < GEARMAND_JOB_PRIORITY_MAX; priority++)
+      for (priority= GEARMAND_JOB_PRIORITY_HIGH; priority < GEARMAND_JOB_PRIORITY_LOW; priority++)
       {
         if (server_worker->function->job_list[priority] != NULL)
           break;
