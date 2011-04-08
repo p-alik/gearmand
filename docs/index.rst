@@ -1,5 +1,5 @@
 Welcome to the Gearman documentation!
-==============--=====================
+=====================================
 
 Gearman provides a generic application framework to farm out work to other
 machines or processes that are better suited to do the work. It allows you
@@ -21,8 +21,12 @@ C/C++ Client Library:
 ---------------------
 .. toctree::
    :maxdepth: 2
-   
-   license 
+
+   libgearman
+   gearman_version
+   gearman_verbose_name
+   gearman_parse_servers
+   gearman_bugreport
    gearman_client_st 
    gearman_task_st
    gearman_worker_st
@@ -31,6 +35,7 @@ C/C++ Client Library:
    gearman_function_st
    gearman_state_t
    gearman_unique_t
+   gearman_client
 
 
 Indices and tables
