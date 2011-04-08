@@ -41,14 +41,7 @@ include docs/include.am
 TESTS += ${check_PROGRAMS}
 
 EXTRA_DIST+= \
-	docs/Doxyfile.api \
-	docs/Doxyfile.dev \
-	docs/api_header.html \
-	docs/dev_header.html \
-	docs/doxygen.h \
-	scripts/README.solaris
-
-docs: all man
+	     scripts/README.solaris
 
 test: check
 
