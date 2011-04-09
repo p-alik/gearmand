@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define GEARMAN_CORE
 #include <libgearman/gearman.h>
 
 #include <libtest/server.h>
@@ -24,6 +25,8 @@
 #include <libtest/worker.h>
 
 #define CLIENT_TEST_PORT 32123
+
+#define WORKER_FUNCTION_NAME "client_test"
 
 typedef struct
 {
@@ -64,7 +67,6 @@ test_return_t echo_test(void *object);
 test_return_t submit_job_test(void *object);
 test_return_t submit_null_job_test(void *object);
 test_return_t submit_fail_job_test(void *object);
-test_return_t background_test(void *object);
 test_return_t background_failure_test(void *object);
 test_return_t add_servers_test(void *object);
 
@@ -362,7 +364,7 @@ test_return_t submit_job_test(void *object)
   uint8_t *value= (uint8_t *)"submit_job_test";
   size_t value_length= strlen("submit_job_test");
 
-  job_result= gearman_client_do(client, "client_test", NULL, value,
+  job_result= gearman_client_do(client, WORKER_FUNCTION_NAME, NULL, value,
                                 value_length, &job_length, &rc);
   if (rc != GEARMAN_SUCCESS)
   {
@@ -388,7 +390,7 @@ test_return_t submit_null_job_test(void *object)
   void *job_result;
   size_t job_length;
 
-  job_result= gearman_client_do(client, "client_test", NULL, NULL, 0,
+  job_result= gearman_client_do(client, WORKER_FUNCTION_NAME, NULL, NULL, 0,
                                 &job_length, &rc);
   if (rc != GEARMAN_SUCCESS)
   {
@@ -409,7 +411,7 @@ test_return_t submit_fail_job_test(void *object)
   void *job_result;
   size_t job_length;
 
-  job_result= gearman_client_do(client, "client_test", NULL, "fail", 4,
+  job_result= gearman_client_do(client, WORKER_FUNCTION_NAME, NULL, "fail", 4,
                                 &job_length, &rc);
   if (rc != GEARMAN_WORK_FAIL)
   {
@@ -420,7 +422,7 @@ test_return_t submit_fail_job_test(void *object)
   return TEST_SUCCESS;
 }
 
-test_return_t background_test(void *object)
+static test_return_t background_test(void *object)
 {
   gearman_return_t rc;
   gearman_client_st *client= (gearman_client_st *)object;
@@ -428,7 +430,7 @@ test_return_t background_test(void *object)
   uint8_t *value= (uint8_t *)"background_test";
   size_t value_length= strlen("background_test");
 
-  rc= gearman_client_do_background(client, "client_test", NULL, value,
+  rc= gearman_client_do_background(client, WORKER_FUNCTION_NAME, NULL, value,
                                    value_length, job_handle);
   if (rc != GEARMAN_SUCCESS)
   {
@@ -602,7 +604,7 @@ static test_return_t submit_log_failure(void *object)
   uint8_t *value= (uint8_t *)"submit_log_failure";
   size_t value_length= strlen("submit_log_failure");
 
-  job_result= gearman_client_do(client, "client_test", NULL, value,
+  job_result= gearman_client_do(client, WORKER_FUNCTION_NAME, NULL, value,
                                 value_length, &job_length, &rc);
   if (rc != GEARMAN_SUCCESS)
     return TEST_SUCCESS;
@@ -684,6 +686,104 @@ static test_return_t strerror_strings(void *object  __attribute__((unused)))
 #ifdef MAKE_NEW_STRERROR
   fflush(stdout);
 #endif
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t allocate_function(void *)
+{
+  gearman_function_st *function= gearman_function_create(gearman_literal_param("test"));
+  gearman_function_free(function);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_client_execute_test(void *object)
+{
+  gearman_client_st *client= (gearman_client_st *)object;
+  gearman_function_st *function= gearman_function_create(gearman_literal_param(WORKER_FUNCTION_NAME));
+
+  gearman_workload_t workload= gearman_workload_make(gearman_literal_param("test load"));
+
+  gearman_status_t status= gearman_client_execute(client,
+						  function,
+						  NULL,
+						  &workload);
+  test_true_got(gearman_status_is_successful(status), gearman_client_error(client));
+
+  gearman_task_st *task= gearman_status_task(status);
+  test_truth(gearman_task_data_size(task) == gearman_workload_size(&workload));
+
+  gearman_function_free(function);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_client_execute_timeout_test(void *object)
+{
+  gearman_client_st *original= (gearman_client_st *)object;
+  gearman_client_st *client= gearman_client_clone(NULL, original);
+  test_truth(client);
+  gearman_function_st *function= gearman_function_create(gearman_literal_param("no_worker_should_be_found"));
+  gearman_workload_t workload= gearman_workload_make(gearman_literal_param("test load"));
+
+  int timeout= gearman_client_timeout(client);
+  gearman_client_set_timeout(client, 4);
+
+  gearman_status_t status= gearman_client_execute(client,
+						  function,
+						  NULL,
+						  &workload);
+  gearman_client_set_timeout(client, timeout);
+  test_false(gearman_status_is_successful(status));
+  gearman_function_free(function);
+  gearman_client_free(client);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_client_execute_epoch_test(void *object)
+{
+  gearman_client_st *client= (gearman_client_st *)object;
+  gearman_function_st *function= gearman_function_create(gearman_literal_param(WORKER_FUNCTION_NAME));
+
+  gearman_workload_t workload= gearman_workload_make(gearman_literal_param("test load"));
+  gearman_workload_set_epoch(&workload, time(NULL) +5);
+
+  gearman_status_t status= gearman_client_execute(client,
+                                                  function,
+                                                  NULL,
+                                                  &workload);
+  test_true_got(gearman_status_is_successful(status), gearman_client_error(client));
+  gearman_task_st *task= gearman_status_task(status);
+  test_truth(gearman_task_job_handle(task));
+
+  gearman_function_free(function);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_client_execute_bg_test(void *object)
+{
+  gearman_client_st *client= (gearman_client_st *)object;
+  gearman_function_st *function= gearman_function_create(gearman_literal_param(WORKER_FUNCTION_NAME));
+
+  gearman_workload_t workload= gearman_workload_make(gearman_literal_param("test load"));
+  gearman_workload_set_background(&workload, true);
+
+  gearman_unique_t unique= gearman_unique_make(gearman_literal_param("my id"));
+
+  gearman_status_t status= gearman_client_execute(client,
+                                                  function,
+                                                  &unique,
+                                                  &workload);
+  test_true_got(gearman_status_is_successful(status), gearman_client_error(client));
+
+  // Lets make sure we have a task
+  gearman_task_st *task= gearman_status_task(status);
+  test_truth(gearman_task_job_handle(task));
+
+  gearman_function_free(function);
 
   return TEST_SUCCESS;
 }
@@ -779,7 +879,7 @@ void *world_create(test_return_t *error)
     return NULL;
   }
 
-  test->handle= test_worker_start(CLIENT_TEST_PORT, "client_test", client_test_worker, NULL);
+  test->handle= test_worker_start(CLIENT_TEST_PORT, WORKER_FUNCTION_NAME, client_test_worker, NULL);
 
   test->gearmand_pid= gearmand_pid;
 
@@ -842,11 +942,21 @@ test_st gearman_strerror_tests[] ={
   {0, 0, 0}
 };
 
+test_st gearman_function_stests[] ={
+  {"allocate", 0, allocate_function },
+  {"gearman_client_execute()", 0, gearman_client_execute_test },
+  {"gearman_client_execute() epoch", 0, gearman_client_execute_epoch_test },
+  {"gearman_client_execute() timeout", 0, gearman_client_execute_timeout_test },
+  {"gearman_client_execute() background", 0, gearman_client_execute_bg_test },
+  {0, 0, 0}
+};
+
 
 collection_st collection[] ={
   {"gearman_client_st", 0, 0, tests},
-  {"client-logging", pre_logging, post_logging, tests_log},
   {"gearman_strerror", 0, 0, gearman_strerror_tests},
+  {"gearman_function", 0, 0, gearman_function_stests},
+  {"client-logging", pre_logging, post_logging, tests_log},
   {0, 0, 0, 0}
 };
 

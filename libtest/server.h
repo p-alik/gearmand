@@ -7,12 +7,14 @@
  * the COPYING file in the parent directory for full text.
  */
 
-#include "config.h"
+#include <config.h>
 
 #include "libtest/visibility.h"
 
 #include <sys/types.h>
 #include <netdb.h>
+
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {

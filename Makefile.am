@@ -15,6 +15,8 @@ lib_LTLIBRARIES =
 noinst_LTLIBRARIES =
 nobase_include_HEADERS =
 noinst_HEADERS =
+man_MANS =
+DISTCLEANFILES =
 EXTRA_DIST = config/top.h
 CLEANFILES =
 TESTS =
@@ -34,24 +36,17 @@ include util/include.am
 include libtest/include.am
 include tests/include.am
 include support/include.am
-
-include docs/man_list
+include docs/include.am
 
 TESTS += ${check_PROGRAMS}
 
 EXTRA_DIST+= \
-	docs/Doxyfile.api \
-	docs/Doxyfile.dev \
-	docs/api_header.html \
-	docs/dev_header.html \
-	docs/doxygen.h \
-	scripts/README.solaris
-
-docs: all
-	${DOXYGEN} docs/Doxyfile.api
-	${DOXYGEN} docs/Doxyfile.dev
+	     scripts/README.solaris
 
 test: check
+
+clean-local:
+	-rm -rf docs/_build docs/doctrees
 
 rpm: all dist
 	cp gearmand-$(VERSION).tar.gz ~/rpmbuild/SOURCES/

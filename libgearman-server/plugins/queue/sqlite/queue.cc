@@ -86,7 +86,7 @@ gearmand_error_t Sqlite::initialize()
 {
   _insert_query+= "INSERT OR REPLACE INTO ";
   _insert_query+= table;
-  _insert_query+= " (priority,unique_key,function_name,data) VALUES (?,?,?,?)";
+  _insert_query+= " (priority, unique_key, function_name, data, when_to_run) VALUES (?,?,?,?,?)";
 
   _delete_query+= "DELETE FROM ";
   _delete_query+= table;
@@ -124,13 +124,17 @@ static gearmand_error_t _sqlite_add(gearman_server_st *server, void *context,
                                     const char *function_name,
                                     size_t function_name_size,
                                     const void *data, size_t data_size,
-                                    gearmand_job_priority_t priority);
+                                    gearmand_job_priority_t priority,
+                                    int64_t when);
+
 static gearmand_error_t _sqlite_flush(gearman_server_st *server, void *context);
+
 static gearmand_error_t _sqlite_done(gearman_server_st *server, void *context,
                                      const char *unique,
                                      size_t unique_size,
                                      const char *function_name,
                                      size_t function_name_size);
+
 static gearmand_error_t _sqlite_replay(gearman_server_st *server, void *context,
                                        gearman_queue_add_fn *add_fn,
                                        void *add_context);
@@ -222,7 +226,7 @@ gearmand_error_t _initialize(gearman_server_st *server,
              "function_name TEXT,"
              "priority INTEGER,"
              "data BLOB,"
-             "PRIMARY KEY (unique_key, function_name)"
+             "PRIMARY KEY (unique_key, function_name), when_to_run INTEGER"
              ")",
              queue->table.c_str());
 
@@ -417,7 +421,8 @@ static gearmand_error_t _sqlite_add(gearman_server_st *server, void *context,
                                     const char *function_name,
                                     size_t function_name_size,
                                     const void *data, size_t data_size,
-                                    gearmand_job_priority_t priority)
+                                    gearmand_job_priority_t priority,
+                                    int64_t when)
 {
   gearmand::plugins::queue::Sqlite *queue= (gearmand::plugins::queue::Sqlite *)context;
   sqlite3_stmt* sth;
@@ -430,7 +435,7 @@ static gearmand_error_t _sqlite_add(gearman_server_st *server, void *context,
     return GEARMAN_QUEUE_ERROR;
   }
 
-  gearmand_log_debug("sqlite add: %.*s", (uint32_t)unique_size, (char *)unique);
+  gearmand_log_debug("sqlite add: %.*s at %ld", (uint32_t)unique_size, (char *)unique, (long int)when);
 
   if (_sqlite_lock(server, queue) !=  SQLITE_OK)
     return GEARMAN_QUEUE_ERROR;
@@ -481,6 +486,17 @@ static gearmand_error_t _sqlite_add(gearman_server_st *server, void *context,
     return GEARMAN_QUEUE_ERROR;
   }
 
+  // epoch data
+  if (sqlite3_bind_int64(sth,  5, when) != SQLITE_OK)
+  {
+    _sqlite_rollback(server, queue);
+    gearmand_log_error("_sqlite_add", "failed to bind int64_t(%ld): %s",
+                       (long int)when,
+                       sqlite3_errmsg(queue->db));
+    sqlite3_finalize(sth);
+    return GEARMAN_QUEUE_ERROR;
+  }
+  
   if (sqlite3_step(sth) != SQLITE_DONE)
   {
     gearmand_log_error("_sqlite_add", "insert error: %s",
@@ -570,7 +586,7 @@ static gearmand_error_t _sqlite_replay(gearman_server_st *server, void *context,
   gearmand_log_info("sqlite replay start");
 
   std::string query;
-  query+= "SELECT unique_key,function_name,priority,data FROM ";
+  query+= "SELECT unique_key,function_name,priority,data,when_to_run FROM ";
   query+= queue->table;
 
   if (_sqlite_query(server, queue, query.c_str(), query.size(), &sth) != SQLITE_OK)
@@ -582,6 +598,7 @@ static gearmand_error_t _sqlite_replay(gearman_server_st *server, void *context,
     void *data;
     size_t unique_size, function_name_size, data_size;
     gearmand_job_priority_t priority;
+    int64_t when;
 
     if (sqlite3_column_type(sth,0) == SQLITE_TEXT)
     {
@@ -640,6 +657,17 @@ static gearmand_error_t _sqlite_replay(gearman_server_st *server, void *context,
       gearmand_log_error("_sqlite_replay", "column %d is not type TEXT", 3);
       return GEARMAN_QUEUE_ERROR;
     }
+    
+    if (sqlite3_column_type(sth,4) == SQLITE_INTEGER)
+    {
+      when= (int64_t)sqlite3_column_int64(sth,4);
+    }
+    else
+    {
+      sqlite3_finalize(sth);
+      gearmand_log_error("_sqlite_replay", "column %d is not type INTEGER", 3);
+      return GEARMAN_QUEUE_ERROR;
+    }
 
     gearmand_log_debug("sqlite replay: %s", (char*)function_name);
 
@@ -647,7 +675,7 @@ static gearmand_error_t _sqlite_replay(gearman_server_st *server, void *context,
                     unique, unique_size,
                     function_name, function_name_size,
                     data, data_size,
-                    priority);
+                    priority, when);
     if (gret != GEARMAN_SUCCESS)
     {
       sqlite3_finalize(sth);

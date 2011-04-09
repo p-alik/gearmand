@@ -57,6 +57,13 @@ extern "C" {
  * @{
  */
 
+enum gearman_client_t {
+  GEARMAN_CLIENT_STATE_IDLE,
+  GEARMAN_CLIENT_STATE_NEW,
+  GEARMAN_CLIENT_STATE_SUBMIT,
+  GEARMAN_CLIENT_STATE_PACKET
+};
+
 
 /**
  * @ingroup gearman_client
@@ -71,12 +78,7 @@ struct gearman_client_st
     bool no_new LIBGEARMAN_BITFIELD;
     bool free_tasks LIBGEARMAN_BITFIELD;
   } options;
-  enum {
-    GEARMAN_CLIENT_STATE_IDLE,
-    GEARMAN_CLIENT_STATE_NEW,
-    GEARMAN_CLIENT_STATE_SUBMIT,
-    GEARMAN_CLIENT_STATE_PACKET
-  } state;
+  enum gearman_client_t state;
   gearman_return_t do_ret;
   uint32_t new_tasks;
   uint32_t running_tasks;
@@ -486,6 +488,13 @@ void gearman_client_task_free_all(gearman_client_st *client);
 GEARMAN_API
 void gearman_client_set_task_context_free_fn(gearman_client_st *client,
                                              gearman_task_context_free_fn *function);
+
+// Use the job handle in task for returning all information.
+GEARMAN_API
+gearman_status_t gearman_client_execute(gearman_client_st *client,
+                                        const gearman_function_st *function,
+                                        gearman_unique_t *unique,
+                                        const gearman_workload_t *workload);
 
 /**
  * Add a task to be run in parallel.

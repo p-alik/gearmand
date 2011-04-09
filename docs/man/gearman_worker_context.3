@@ -1,0 +1,183 @@
+.TH "GEARMAN_WORKER_CONTEXT" "3" "April 08, 2011" "0.20" "Gearmand"
+.SH NAME
+gearman_worker_context \- Gearmand Documentation
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.\" Man page generated from reStructeredText.
+.
+.SH LIBRARY
+.sp
+C Client Library for Gearmand (libgearman, \-lgearman)
+.SH SYNOPSIS
+.sp
+#include <libgearman/gearman.h>
+.INDENT 0.0
+.TP
+.B gearman_worker_st
+.UNINDENT
+.INDENT 0.0
+.TP
+.B gearman_client_st *gearman_client_create(gearman_client_st *client);
+.UNINDENT
+.INDENT 0.0
+.TP
+.B gearman_worker_st *gearman_worker_create(gearman_worker_st *worker);
+.UNINDENT
+.INDENT 0.0
+.TP
+.B gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker, const gearman_worker_st *from);
+.UNINDENT
+.INDENT 0.0
+.TP
+.B void gearman_worker_free(gearman_worker_st *worker);
+.UNINDENT
+.INDENT 0.0
+.TP
+.B const char *gearman_worker_error(const gearman_worker_st *worker);
+.UNINDENT
+.INDENT 0.0
+.TP
+.B int gearman_worker_errno(gearman_worker_st *worker);
+.UNINDENT
+.INDENT 0.0
+.TP
+.B gearman_worker_options_t gearman_worker_options(const gearman_worker_st *worker);
+.UNINDENT
+.INDENT 0.0
+.TP
+.B void gearman_worker_set_options(gearman_worker_st *worker, gearman_worker_options_t options);
+.UNINDENT
+.INDENT 0.0
+.TP
+.B void gearman_worker_add_options(gearman_worker_st *worker, gearman_worker_options_t options);
+.UNINDENT
+.INDENT 0.0
+.TP
+.B void gearman_worker_remove_options(gearman_worker_st *worker, gearman_worker_options_t options);
+.UNINDENT
+.INDENT 0.0
+.TP
+.B int gearman_worker_timeout(gearman_worker_st *worker);
+.UNINDENT
+.INDENT 0.0
+.TP
+.B void gearman_worker_set_timeout(gearman_worker_st *worker, int timeout);
+.UNINDENT
+.INDENT 0.0
+.TP
+.B void *gearman_worker_context(const gearman_worker_st *worker);
+.UNINDENT
+.INDENT 0.0
+.TP
+.B void gearman_worker_set_context(gearman_worker_st *worker, void *context);
+.UNINDENT
+.INDENT 0.0
+.TP
+.B void gearman_worker_set_log_fn(gearman_worker_st *worker, gearman_log_fn *function, void *context, gearman_verbose_t verbose);
+.UNINDENT
+.INDENT 0.0
+.TP
+.B void gearman_worker_set_workload_malloc_fn(gearman_worker_st *worker, gearman_malloc_fn *function, void *context);
+.UNINDENT
+.INDENT 0.0
+.TP
+.B void gearman_worker_set_workload_free_fn(gearman_worker_st *worker, gearman_free_fn *function, void *context);
+.UNINDENT
+.INDENT 0.0
+.TP
+.B gearman_return_t gearman_worker_add_server(gearman_worker_st *worker, const char *host, in_port_t port);
+.UNINDENT
+.INDENT 0.0
+.TP
+.B gearman_return_t gearman_worker_add_servers(gearman_worker_st *worker, const char *servers);
+.UNINDENT
+.INDENT 0.0
+.TP
+.B void gearman_worker_remove_servers(gearman_worker_st *worker);
+.UNINDENT
+.INDENT 0.0
+.TP
+.B gearman_return_t gearman_worker_wait(gearman_worker_st *worker);
+.UNINDENT
+.INDENT 0.0
+.TP
+.B gearman_return_t gearman_worker_register(gearman_worker_st *worker, const char *function_name, uint32_t timeout);
+.UNINDENT
+.INDENT 0.0
+.TP
+.B gearman_return_t gearman_worker_unregister(gearman_worker_st *worker, const char *function_name);
+.UNINDENT
+.INDENT 0.0
+.TP
+.B gearman_return_t gearman_worker_unregister_all(gearman_worker_st *worker);
+.UNINDENT
+.INDENT 0.0
+.TP
+.B gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker, gearman_job_st *job, gearman_return_t *ret_ptr);
+.UNINDENT
+.INDENT 0.0
+.TP
+.B void gearman_job_free_all(gearman_worker_st *worker);
+.UNINDENT
+.INDENT 0.0
+.TP
+.B bool gearman_worker_function_exist(gearman_worker_st *worker, const char *function_name, size_t function_length);
+.UNINDENT
+.INDENT 0.0
+.TP
+.B gearman_return_t gearman_worker_add_function(gearman_worker_st *worker, const char *function_name, uint32_t timeout, gearman_worker_fn *function, void *context);
+.UNINDENT
+.INDENT 0.0
+.TP
+.B gearman_return_t gearman_worker_work(gearman_worker_st *worker);
+.UNINDENT
+.INDENT 0.0
+.TP
+.B gearman_return_t gearman_worker_echo(gearman_worker_st *worker, const void *workload, size_t workload_size);
+.UNINDENT
+.SH DESCRIPTION
+.sp
+This a complete list of all functions that work with a gearman_worker_st,
+see their individual pages to learn more about them.
+.SH RETURN
+.sp
+Various
+.SH HOME
+.sp
+To find out more information please check:
+\fI\%https://launchpad.net/gearmand\fP
+.SH SEE ALSO
+.sp
+\fIgearmand(1)\fP \fIlibgearman(3)\fP
+.SH AUTHOR
+Data Differential http://datadifferential.com/
+.SH COPYRIGHT
+2011, Data Differential, http://datadifferential.com/
+.\" Generated by docutils manpage writer.
+.\" 
+.

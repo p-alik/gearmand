@@ -36,10 +36,6 @@ config/pandora_vc_revinfo
 config/plugin.ac
 configure
 configure.h
-docs/api
-docs/dev
-docs/man/man3/*.3
-docs/man_list
 examples/echo_client
 examples/echo_worker
 examples/reverse_client
@@ -93,3 +89,10 @@ tests/var/tmp/*
 tests/worker_test
 tests/worker_test.res
 unittests/unittests
+config/top.h
+bin/wait
+libhostile
+examples/reverse_client_epoch
+docs/doctrees
+docs/_static
+docs/html

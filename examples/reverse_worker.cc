@@ -64,7 +64,6 @@ struct reverse_worker_options_t
 };
 
 #pragma GCC diagnostic ignored "-Wold-style-cast"
-#pragma GCC diagnostic ignored "-fpermissive"
 
 static void *reverse(gearman_job_st *job, void *context,
                      size_t *result_size, gearman_return_t *ret_ptr);

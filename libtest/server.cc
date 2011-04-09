@@ -7,7 +7,7 @@
  * the COPYING file in the parent directory for full text.
  */
 
-#include "config.h"
+#include <config.h>
 
 #if defined(NDEBUG)
 # undef NDEBUG
@@ -73,7 +73,6 @@ static bool wait_and_check_startup(const char *hostname, in_port_t port)
   return rc == GEARMAN_SUCCESS;
 }
 
-
 #include <sstream>
 
 pid_t test_gearmand_start(in_port_t port, const char *queue_type,
@@ -98,40 +97,35 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
     buffer << "libtool --mode=execute valgrind --log-file=tests/var/tmp/valgrind.out --leak-check=full  --show-reachable=yes ";
   }
 
-  if (getenv("GEARMAN_MANUAL_GDB"))
   {
     snprintf(file_buffer, sizeof(file_buffer), "tests/var/tmp/gearmand.pidXXXXXX");
-    if (mkstemp(file_buffer) == -1)
+    int fd;
+    if ((fd= mkstemp(file_buffer)) == -1)
     {
       perror("mkstemp");
       return -1;
     }
+    close(fd);
+  }
+
+  if (getenv("GEARMAN_MANUAL_GDB"))
+  {
     buffer << std::endl << "run --pid-file=" << file_buffer << " -vvvvvv --port=" << port;
   }
   else if (getenv("GEARMAN_LOG"))
   {
-    snprintf(file_buffer, sizeof(file_buffer), "tests/var/tmp/gearmand.pidXXXXXX");
-    if (mkstemp(file_buffer) == -1)
-    {
-      perror("mkstemp");
-      return -1;
-    }
     snprintf(log_buffer, sizeof(log_buffer), "tests/var/log/gearmand.logXXXXXX");
-    if (mkstemp(log_buffer) == -1)
+    int log_fd;
+    if ((log_fd= mkstemp(log_buffer)) == -1)
     {
       perror("mkstemp");
       return -1;
     }
+    close(log_fd);
     buffer << "./gearmand/gearmand --pid-file=" << file_buffer << " --daemon --port=" << port << " -vvvvvv --log-file=" << log_buffer;
   }
   else
   {
-    snprintf(file_buffer, sizeof(file_buffer), "tests/var/tmp/gearmand.pidXXXXXX");
-    if (mkstemp(file_buffer) == -1)
-    {
-      perror("mkstemp");
-      return -1;
-    }
     buffer << "./gearmand/gearmand --pid-file=" << file_buffer << " --daemon --port=" << port;
   }
 
@@ -157,6 +151,7 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
   }
   else
   {
+    std::cerr << "Starting up with:" << buffer.str() << std::endl;
     int err= system(buffer.str().c_str());
     assert(err != -1);
   }

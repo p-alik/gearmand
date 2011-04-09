@@ -55,6 +55,7 @@ static test_return_t burnin_test(void *object)
 
   struct client_context_st *context= (struct client_context_st *)gearman_client_context(client);
 
+  // This sketchy, don't do this in your own code.
   gearman_task_st *tasks= (gearman_task_st *)calloc(context->num_tasks, sizeof(gearman_task_st));
   test_true_got(tasks, strerror(errno));
 

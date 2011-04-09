@@ -34,7 +34,8 @@ static gearmand_error_t _queue_replay_add(gearman_server_st *server, void *conte
                                           const char *unique, size_t unique_size,
                                           const char *function_name, size_t function_name_size,
                                           const void *data, size_t data_size,
-                                          gearmand_job_priority_t priority);
+                                          gearmand_job_priority_t priority,
+                                          int64_t when);
 
 /**
  * Queue an error packet.
@@ -107,9 +108,11 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
   case GEARMAN_COMMAND_SUBMIT_JOB_HIGH_BG:
   case GEARMAN_COMMAND_SUBMIT_JOB_LOW:
   case GEARMAN_COMMAND_SUBMIT_JOB_LOW_BG:
+  case GEARMAN_COMMAND_SUBMIT_JOB_EPOCH:
 
     if (packet->command == GEARMAN_COMMAND_SUBMIT_JOB ||
-        packet->command == GEARMAN_COMMAND_SUBMIT_JOB_BG)
+        packet->command == GEARMAN_COMMAND_SUBMIT_JOB_BG ||
+        packet->command == GEARMAN_COMMAND_SUBMIT_JOB_EPOCH)
     {
       priority= GEARMAND_JOB_PRIORITY_NORMAL;
     }
@@ -123,7 +126,8 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
 
     if (packet->command == GEARMAN_COMMAND_SUBMIT_JOB_BG ||
         packet->command == GEARMAN_COMMAND_SUBMIT_JOB_HIGH_BG ||
-        packet->command == GEARMAN_COMMAND_SUBMIT_JOB_LOW_BG)
+        packet->command == GEARMAN_COMMAND_SUBMIT_JOB_LOW_BG ||
+        packet->command == GEARMAN_COMMAND_SUBMIT_JOB_EPOCH)
     {
       server_client= NULL;
     }
@@ -136,14 +140,30 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
       }
     }
 
-    /* Create a job. */
+    gearmand_log_debug("Received submission, %.*s/%.*s with %d arguments",
+                       packet->arg_size[0], packet->arg[0],
+                       packet->arg_size[1], packet->arg[1],
+                       (int)packet->argc);
+
+    int64_t when= 0;
+    if (packet->command == GEARMAN_COMMAND_SUBMIT_JOB_EPOCH)
+    {
+      sscanf((char *)packet->arg[2], "%lld", (long long *)&when);
+      gearmand_log_debug("Received EPOCH job submission, %.*s/%.*s, with data for %jd at %jd, args %d",
+                         packet->arg_size[0], packet->arg[0],
+                         packet->arg_size[1], packet->arg[1],
+                         when, time(NULL),
+                         (int)packet->argc);
+    }
+
+    /* Schedule job. */
     server_job= gearman_server_job_add(Server,
-                                       (char *)(packet->arg[0]),
-                                       packet->arg_size[0] - 1,
-                                       (char *)(packet->arg[1]),
-                                       packet->arg_size[1] - 1, packet->data,
-                                       packet->data_size, priority,
-                                       server_client, &ret);
+                                       (char *)(packet->arg[0]), packet->arg_size[0] -1, // Function
+                                       (char *)(packet->arg[1]), packet->arg_size[1] -1, // unique
+                                       packet->data, packet->data_size, priority,
+                                       server_client, &ret,
+                                       when);
+    
     if (ret == GEARMAN_SUCCESS)
     {
       packet->options.free_data= false;
@@ -575,7 +595,6 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
   case GEARMAN_COMMAND_ALL_YOURS:
   case GEARMAN_COMMAND_OPTION_RES:
   case GEARMAN_COMMAND_SUBMIT_JOB_SCHED:
-  case GEARMAN_COMMAND_SUBMIT_JOB_EPOCH:
   case GEARMAN_COMMAND_JOB_ASSIGN_UNIQ:
   case GEARMAN_COMMAND_MAX:
   default:
@@ -641,14 +660,15 @@ gearmand_error_t _queue_replay_add(gearman_server_st *server,
                                    const char *unique, size_t unique_size,
                                    const char *function_name, size_t function_name_size,
                                    const void *data, size_t data_size,
-                                   gearmand_job_priority_t priority)
+                                   gearmand_job_priority_t priority,
+                                   int64_t when)
 {
   gearmand_error_t ret= GEARMAN_SUCCESS;
 
   (void)gearman_server_job_add(server,
                                function_name, function_name_size,
                                unique, unique_size,
-                               data, data_size, priority, NULL, &ret);
+                               data, data_size, priority, NULL, &ret, when);
 
   if (ret != GEARMAN_SUCCESS)
     gearmand_gerror("gearman_server_job_add", ret);

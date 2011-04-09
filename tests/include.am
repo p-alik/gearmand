@@ -80,9 +80,9 @@ GEARADMIN_TOOL= bin/gearadmin
 test-shutdown: bin/gearadmin
 	$(GEARADMIN_TOOL) --port 32123 --shutdown 2>&1 > /dev/null
 
-check-local: tests/var gearmand-test-args client-test tests/var test-shutdown libtest-tests
+check-local: tests/var gearmand-test-args client-test test-shutdown libtest-tests
 
-libtest-tests: tests/var test-client test-round-robin test-worker test-internals test-libmemcached test-sqlite test-tokyocabinet test-burnin queue-regression
+libtest-tests: test-client test-round-robin test-worker test-internals test-libmemcached test-sqlite test-tokyocabinet test-burnin queue-regression
 
 gdb-client: ${noinst_PROGRAMS}
 	$(LIBTOOL) --mode=execute gdb tests/client_test
