@@ -698,7 +698,6 @@ static gearmand_error_t _server_run_text(gearman_server_con_st *server_con,
   gearman_server_thread_st *thread;
   gearman_server_con_st *con;
   gearman_server_worker_st *worker;
-  gearman_server_function_st *function;
   gearman_server_packet_st *server_packet;
   int checked_length;
 
@@ -825,6 +824,7 @@ static gearmand_error_t _server_run_text(gearman_server_con_st *server_con,
   {
     size= 0;
 
+    gearman_server_function_st *function;
     for (function= Server->function_list; function != NULL;
          function= function->next)
     {
@@ -873,6 +873,34 @@ static gearmand_error_t _server_run_text(gearman_server_con_st *server_con,
       }
     }
   }
+  else if (!strcasecmp("drop", (char *)(packet->arg[0])))
+  {
+    if (packet->argc == 3 && !strcasecmp("function", (char *)(packet->arg[1])))
+    {
+      gearman_server_function_st *function;
+      for (function= Server->function_list;
+           function != NULL; function= function->next)
+      {
+        if (!strcasecmp(function->function_name, (char *)(packet->arg[2])))
+        {
+          if (function->worker_count == 0 && function->job_running == 0)
+          {
+            gearman_server_function_free(Server, function);
+            snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, "OK\n");
+          }
+          else
+          {
+            snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, "ERR there are still connected workers or executing clients\n");
+          }
+        }
+      }
+    }
+    else
+    {
+      snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, "ERR incomplete_args "
+               "An+incomplete+set+of+arguments+was+sent+to+this+command\n");
+    }
+  }
   else if (!strcasecmp("maxqueue", (char *)(packet->arg[0])))
   {
     if (packet->argc == 1)
@@ -891,6 +919,7 @@ static gearmand_error_t _server_run_text(gearman_server_con_st *server_con,
           max_queue_size= 0;
       }
 
+      gearman_server_function_st *function;
       for (function= Server->function_list;
            function != NULL; function= function->next)
       {

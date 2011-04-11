@@ -99,6 +99,7 @@ int main(int args, char *argv[])
   boost::program_options::options_description desc("Options");
   std::string host;
   std::string port;
+  std::string drop_function;
 
   desc.add_options()
     ("help", "Options related to the program.")
@@ -106,6 +107,8 @@ int main(int args, char *argv[])
     ("port,p", boost::program_options::value<std::string>(&port)->default_value(GEARMAN_DEFAULT_TCP_PORT_STRING), "Port number or service to use for connection")
     ("server-version", "Fetch the version number for the server.")
     ("server-verbose", "Fetch the verbose setting for the server.")
+    ("drop-function",  boost::program_options::value<std::string>(&drop_function),
+     "Drop the function from the server.")
     ("status", "Status for the server.")
     ("workers", "Workers for the server.")
     ("shutdown", "Shutdown server.")
@@ -136,7 +139,7 @@ int main(int args, char *argv[])
 
   if (vm.count("shutdown"))
   {
-    Operation operation(STRING_WITH_LEN("shutdown\n"), false);
+    Operation operation(STRING_WITH_LEN("shutdown graceful\n"), false);
     instance.push(operation);
   }
 
@@ -155,6 +158,15 @@ int main(int args, char *argv[])
   if (vm.count("server-verbose"))
   {
     Operation operation(STRING_WITH_LEN("verbose\n"), true);
+    instance.push(operation);
+  }
+
+  if (not drop_function.empty())
+  {
+    std::string execute(STRING_WITH_LEN("drop function "));
+    execute.append(drop_function);
+    execute.append("\n");
+    Operation operation(execute.c_str(), true);
     instance.push(operation);
   }
 

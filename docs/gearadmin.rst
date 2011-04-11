@@ -6,12 +6,17 @@ gearadmin
 SYNOPSIS
 --------
 
-.. program:: gearadmin
+:program: `gearadmin`
 
+.. program:: gearadmin
 
 .. option:: --help
 
-Options related to the program.
+Provice help about the program.
+
+.. option:: --drop-function
+
+Drop a function from the server.
 
 .. option:: -h [ --host ] arg (=localhost)i
 
@@ -20,6 +25,10 @@ Connect to the host
 .. option:: -p [ --port ] arg (=4730)
 
 Port number or service to use for connection
+
+.. option:: --drop-function
+
+Drop a function from the server.
 
 .. option:: --server-version
 

@@ -145,8 +145,7 @@ void gearman_server_con_free(gearman_server_con_st *con)
   con->_host= NULL;
   con->_port= NULL;
 
-  if (Server->flags.threaded &&
-      !(con->proc_removed) && !(Server->proc_shutdown))
+  if (Server->flags.threaded && !(con->proc_removed) && !(Server->proc_shutdown))
   {
     con->is_dead= true;
     con->is_sleeping= false;
@@ -335,8 +334,7 @@ void gearman_server_con_proc_add(gearman_server_con_st *con)
   con->proc_list= true;
   (void) pthread_mutex_unlock(&con->thread->lock);
 
-  if (! (Server->proc_shutdown) &&
-      !(Server->proc_wakeup))
+  if (! (Server->proc_shutdown) && !(Server->proc_wakeup))
   {
     (void) pthread_mutex_lock(&(Server->proc_lock));
     Server->proc_wakeup= true;
