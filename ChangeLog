@@ -1,3 +1,5 @@
+  * Support for "drop function"
+
 0.20 Fri Apr  8 09:25:15 PDT 2011
   * gearman_client_execute() interface added
   * New types of gearman_unique_t, gearman_function_st, gearman_workload_t
