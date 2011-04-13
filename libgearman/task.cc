@@ -46,6 +46,7 @@
 #include <libgearman/packet.h>
 
 #include <assert.h>
+#include <memory>
 
 /*
  * Public Definitions
@@ -57,10 +58,10 @@ gearman_task_st *gearman_task_create(gearman_client_st *client, gearman_task_st 
 {
   if (task == NULL)
   {
-    task= (gearman_task_st *)malloc(sizeof(gearman_task_st));
+    task= new (std::nothrow) gearman_task_st;
     if (task == NULL)
     {
-      gearman_perror(&client->universal, "gearman_task_st malloc");
+      gearman_perror(&client->universal, "gearman_task_st new");
       return NULL;
     }
 

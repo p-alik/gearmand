@@ -47,8 +47,9 @@
 #include <libgearman/connection.h>
 
 #include <assert.h>
-#include <errno.h>
-#include <stdio.h>
+#include <cerrno>
+#include <cstdio>
+#include <memory>
 #include <unistd.h>
 
 #if HAVE_NETINET_TCP_H
@@ -67,18 +68,16 @@ static void gearman_connection_reset_addrinfo(gearman_connection_st *connection)
  * @{
  */
 
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-
 gearman_connection_st *gearman_connection_create(gearman_universal_st *gearman,
                                                  gearman_connection_st *connection,
                                                  gearman_connection_options_t *options)
 {
   if (connection == NULL)
   {
-    connection= (gearman_connection_st *)malloc(sizeof(gearman_connection_st));
+    connection= new (std::nothrow) gearman_connection_st;
     if (connection == NULL)
     {
-      gearman_perror(gearman, "gearman_connection_st malloc");
+      gearman_perror(gearman, "gearman_connection_st new");
       return NULL;
     }
 
@@ -197,7 +196,9 @@ void gearman_connection_free(gearman_connection_st *connection)
     gearman_packet_free(&(connection->packet));
 
   if (connection->options.allocated)
-    free(connection);
+  {
+    delete connection;
+  }
 }
 
 gearman_return_t gearman_connection_set_option(gearman_connection_st *connection,
