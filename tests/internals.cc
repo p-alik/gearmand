@@ -35,15 +35,12 @@ static test_return_t init_test(void *not_used __attribute__((unused)))
   gearman_universal_st *gear_ptr;
 
   gear_ptr= gearman_universal_create(&gear, NULL);
-  test_false(gear.options.allocated);
-  test_false(gear_ptr->options.allocated);
   test_false(gear.options.dont_track_packets);
   test_false(gear.options.non_blocking);
   test_false(gear.options.stored_non_blocking);
   test_truth(gear_ptr == &gear);
 
   gearman_universal_free(&gear);
-  test_false(gear.options.allocated);
 
   return TEST_SUCCESS;
 }
@@ -75,7 +72,6 @@ static test_return_t clone_test(void *not_used __attribute__((unused)))
     gearman_universal_st destination;
     gear_clone= gearman_universal_clone(&destination, &gear);
     test_truth(gear_clone);
-    test_false(gear_clone->options.allocated);
 
     { // Test all of the flags
       test_truth(gear_clone->options.dont_track_packets == gear_ptr->options.dont_track_packets);
@@ -117,7 +113,6 @@ static test_return_t set_timout_test(void *not_used __attribute__((unused)))
   gear_ptr= gearman_universal_create(&gear, NULL);
   test_truth(gear_ptr);
   test_truth(gear_ptr == &gear);
-  test_false(gear_ptr->options.allocated);
 
   time_data= gearman_universal_timeout(gear_ptr);
   test_truth (time_data == -1); // Current default
@@ -146,7 +141,6 @@ static test_return_t basic_error_test(void *not_used __attribute__((unused)))
   gear_ptr= gearman_universal_create(&gear, NULL);
   test_truth(gear_ptr);
   test_truth(gear_ptr == &gear);
-  test_false(gear_ptr->options.allocated);
 
   error= gearman_universal_error(gear_ptr);
   test_truth(error == NULL);
@@ -169,7 +163,6 @@ static test_return_t state_option_test(void *object __attribute__((unused)))
   universal_ptr= gearman_universal_create(&universal, NULL);
   test_truth(universal_ptr);
   { // Initial Allocated, no changes
-    test_false(universal_ptr->options.allocated);
     test_false(universal_ptr->options.dont_track_packets);
     test_false(universal_ptr->options.non_blocking);
     test_false(universal_ptr->options.stored_non_blocking);
@@ -188,7 +181,6 @@ static test_return_t state_option_on_create_test(void *object __attribute__((unu
   universal_ptr= gearman_universal_create(&universal, options);
   test_truth(universal_ptr);
   { // Initial Allocated, no changes
-    test_false(universal_ptr->options.allocated);
     test_truth(universal_ptr->options.dont_track_packets);
     test_truth(universal_ptr->options.non_blocking);
     test_false(universal_ptr->options.stored_non_blocking);
@@ -208,7 +200,6 @@ static test_return_t state_option_set_test(void *object __attribute__((unused)))
   universal_ptr= gearman_universal_create(&universal, options);
   test_truth(universal_ptr);
   { // Initial Allocated, no changes
-    test_false(universal_ptr->options.allocated);
     test_truth(universal_ptr->options.dont_track_packets);
     test_truth(universal_ptr->options.non_blocking);
     test_false(universal_ptr->options.stored_non_blocking);
@@ -218,7 +209,6 @@ static test_return_t state_option_set_test(void *object __attribute__((unused)))
 
   universal_ptr= gearman_universal_create(&universal, NULL);
   { // Initial Allocated, no changes
-    test_false(universal_ptr->options.allocated);
     test_false(universal_ptr->options.dont_track_packets);
     test_false(universal_ptr->options.non_blocking);
     test_false(universal_ptr->options.stored_non_blocking);
@@ -226,7 +216,6 @@ static test_return_t state_option_set_test(void *object __attribute__((unused)))
 
   gearman_universal_add_options(universal_ptr, GEARMAN_DONT_TRACK_PACKETS);
   { // Initial Allocated, no changes
-    test_false(universal_ptr->options.allocated);
     test_truth(universal_ptr->options.dont_track_packets);
     test_false(universal_ptr->options.non_blocking);
     test_false(universal_ptr->options.stored_non_blocking);
@@ -234,7 +223,6 @@ static test_return_t state_option_set_test(void *object __attribute__((unused)))
 
   gearman_universal_remove_options(universal_ptr, GEARMAN_DONT_TRACK_PACKETS);
   { // Initial Allocated, no changes
-    test_false(universal_ptr->options.allocated);
     test_false(universal_ptr->options.dont_track_packets);
     test_false(universal_ptr->options.non_blocking);
     test_false(universal_ptr->options.stored_non_blocking);
@@ -266,8 +254,6 @@ static test_return_t connection_init_test(void *not_used __attribute__((unused))
   gearman_connection_st *connection_ptr;
 
   universal_ptr= gearman_universal_create(&universal, NULL);
-  test_false(universal.options.allocated);
-  test_false(universal_ptr->options.allocated);
 
   connection_ptr= gearman_connection_create(universal_ptr, &connection, NULL);
   test_false(connection.options.allocated);
@@ -295,8 +281,6 @@ static test_return_t connection_alloc_test(void *not_used __attribute__((unused)
   gearman_connection_st *connection_ptr;
 
   universal_ptr= gearman_universal_create(&universal, NULL);
-  test_false(universal.options.allocated);
-  test_false(universal_ptr->options.allocated);
 
   connection_ptr= gearman_connection_create(universal_ptr, NULL, NULL);
   test_truth(connection_ptr->options.allocated);
@@ -327,8 +311,6 @@ static test_return_t packet_init_test(void *not_used __attribute__((unused)))
   gearman_packet_st *packet_ptr;
 
   universal_ptr= gearman_universal_create(&universal, NULL);
-  test_false(universal.options.allocated);
-  test_false(universal_ptr->options.allocated);
 
   packet_ptr= gearman_packet_create(universal_ptr, &packet);
   test_false(packet.options.allocated);

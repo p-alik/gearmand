@@ -24,7 +24,6 @@ extern "C" {
 struct gearman_universal_st
 {
   struct {
-    bool allocated LIBGEARMAN_BITFIELD; // Not Used (will remove later)
     bool dont_track_packets LIBGEARMAN_BITFIELD;
     bool non_blocking LIBGEARMAN_BITFIELD;
     bool stored_non_blocking LIBGEARMAN_BITFIELD;

@@ -46,13 +46,12 @@
 #include <libgearman/connection.h>
 
 #include <assert.h>
-#include <stdio.h>
+#include <cstdio>
+#include <memory>
 
 #ifdef HAVE_UUID_UUID_H
 #include <uuid/uuid.h>
 #endif
-
-#pragma GCC diagnostic ignored "-Wold-style-cast"
 
 /**
  * @addtogroup gearman_client_static Static Client Declarations
@@ -184,7 +183,7 @@ void gearman_client_free(gearman_client_st *client)
   gearman_universal_free(&client->universal);
 
   if (client->options.allocated)
-    free(client);
+    delete client;
 }
 
 const char *gearman_client_error(const gearman_client_st *client)
@@ -318,9 +317,7 @@ void gearman_client_set_workload_malloc_fn(gearman_client_st *client,
   gearman_set_workload_malloc_fn(&client->universal, function, context);
 }
 
-void gearman_client_set_workload_free_fn(gearman_client_st *client,
-                                         gearman_free_fn *function,
-                                         void *context)
+void gearman_client_set_workload_free_fn(gearman_client_st *client, gearman_free_fn *function, void *context)
 {
   gearman_set_workload_free_fn(&client->universal, function, context);
 }
@@ -1039,7 +1036,7 @@ static gearman_client_st *_client_allocate(gearman_client_st *client, bool is_cl
 {
   if (client == NULL)
   {
-    client= (gearman_client_st*)malloc(sizeof(gearman_client_st));
+    client= new (std::nothrow) gearman_client_st;
     if (client == NULL)
       return NULL;
 

@@ -14,8 +14,9 @@
 #include <libgearman/common.h>
 #include <libgearman/connection.h>
 
-#include <stdio.h>
+#include <cstdio>
 #include <unistd.h>
+#include <memory>
 
 /**
   Private structure.
@@ -155,7 +156,6 @@ gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker,
   return worker;
 }
 
-#pragma GCC diagnostic ignored "-Wold-style-cast"
 void gearman_worker_free(gearman_worker_st *worker)
 {
   if (! worker)
@@ -195,7 +195,7 @@ void gearman_worker_free(gearman_worker_st *worker)
     gearman_universal_free((&worker->universal));
 
   if (worker->options.allocated)
-    free(worker);
+    delete worker;
 }
 
 const char *gearman_worker_error(const gearman_worker_st *worker)
@@ -756,7 +756,7 @@ void gearman_job_free(gearman_job_st *job)
   job->worker->job_count--;
 
   if (job->options.allocated)
-    free(job);
+    delete job;
 }
 
 void gearman_job_free_all(gearman_worker_st *worker)
@@ -935,10 +935,10 @@ static gearman_worker_st *_worker_allocate(gearman_worker_st *worker, bool is_cl
 {
   if (worker == NULL)
   {
-    worker= (gearman_worker_st *)malloc(sizeof(gearman_worker_st));
+    worker= new (std::nothrow) gearman_worker_st;
     if (worker == NULL)
     {
-      gearman_perror((&worker->universal), "gearman_worker_st malloc");
+      gearman_perror((&worker->universal), "gearman_worker_st new");
       return NULL;
     }
 

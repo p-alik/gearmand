@@ -29,7 +29,6 @@ gearman_universal_st *gearman_universal_create(gearman_universal_st *universal, 
   assert(universal);
 
   { // Set defaults on all options.
-    universal->options.allocated= false;
     universal->options.dont_track_packets= false;
     universal->options.non_blocking= false;
     universal->options.stored_non_blocking= false;
@@ -116,12 +115,6 @@ void gearman_universal_free(gearman_universal_st *universal)
 
   if (universal->pfds != NULL)
     free(universal->pfds);
-
-  if (universal->options.allocated)
-  {
-    assert(0);
-    free(universal);
-  }
 }
 
 gearman_return_t gearman_universal_set_option(gearman_universal_st *universal, gearman_universal_options_t option, bool value)
@@ -192,15 +185,12 @@ void gearman_free_all_cons(gearman_universal_st *universal)
 
 gearman_return_t gearman_flush_all(gearman_universal_st *universal)
 {
-  gearman_connection_st *con;
-  gearman_return_t ret;
-
-  for (con= universal->con_list; con != NULL; con= con->next)
+  for (gearman_connection_st *con= universal->con_list; con != NULL; con= con->next)
   {
     if (con->events & POLLOUT)
       continue;
 
-    ret= gearman_connection_flush(con);
+    gearman_return_t ret= gearman_connection_flush(con);
     if (ret != GEARMAN_SUCCESS && ret != GEARMAN_IO_WAIT)
       return ret;
   }
@@ -208,11 +198,8 @@ gearman_return_t gearman_flush_all(gearman_universal_st *universal)
   return GEARMAN_SUCCESS;
 }
 
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-
 gearman_return_t gearman_wait(gearman_universal_st *universal)
 {
-  gearman_connection_st *con;
   struct pollfd *pfds;
   nfds_t x;
   int ret;
@@ -220,7 +207,7 @@ gearman_return_t gearman_wait(gearman_universal_st *universal)
 
   if (universal->pfds_size < universal->con_count)
   {
-    pfds= (pollfd*)realloc(universal->pfds, universal->con_count * sizeof(struct pollfd));
+    pfds= static_cast<pollfd*>(realloc(universal->pfds, universal->con_count * sizeof(struct pollfd)));
     if (pfds == NULL)
     {
       gearman_perror(universal, "pollfd realloc");
@@ -231,10 +218,12 @@ gearman_return_t gearman_wait(gearman_universal_st *universal)
     universal->pfds_size= universal->con_count;
   }
   else
+  {
     pfds= universal->pfds;
+  }
 
   x= 0;
-  for (con= universal->con_list; con != NULL; con= con->next)
+  for (gearman_connection_st *con= universal->con_list; con != NULL; con= con->next)
   {
     if (con->events == 0)
       continue;
@@ -273,7 +262,7 @@ gearman_return_t gearman_wait(gearman_universal_st *universal)
   }
 
   x= 0;
-  for (con= universal->con_list; con != NULL; con= con->next)
+  for (gearman_connection_st *con= universal->con_list; con != NULL; con= con->next)
   {
     if (con->events == 0)
       continue;

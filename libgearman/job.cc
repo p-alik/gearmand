@@ -45,7 +45,8 @@
 #include <libgearman/common.h>
 #include <libgearman/connection.h>
 #include <libgearman/packet.h>
-#include <stdio.h>
+#include <cstdio>
+#include <memory>
 
 /**
  * @addtogroup gearman_job_static Static Job Declarations
@@ -64,14 +65,11 @@ static gearman_return_t _job_send(gearman_job_st *job);
  * Public Definitions
  */
 
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-
-gearman_job_st *gearman_job_create(gearman_worker_st *worker,
-                                   gearman_job_st *job)
+gearman_job_st *gearman_job_create(gearman_worker_st *worker, gearman_job_st *job)
 {
   if (job == NULL)
   {
-    job= (gearman_job_st *)malloc(sizeof(gearman_job_st));
+    job= new (std::nothrow) gearman_job_st;
     if (job == NULL)
     {
       gearman_universal_set_error((&worker->universal),

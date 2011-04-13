@@ -53,7 +53,6 @@ public:
   Operation(const char *command, size_t command_length, bool expect_response= true) :
     _expect_response(expect_response)
   {
-    assert(command_length);
     packet.resize(command_length);
     memcpy(&packet[0], command, command_length);
   }
