@@ -213,7 +213,9 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
   ('gearman_bugreport', 'gearman_bugreport', u'Gearmand Documentation', [u'Data Differential http://datadifferential.com/'], 3),
-  ('gearman_client', 'gearman_create', u'Gearmand Documentation', [u'Data Differential http://datadifferential.com/'], 3),
+  ('gearman_client', 'gearman_client_clone', u'Gearmand Documentation', [u'Data Differential http://datadifferential.com/'], 3),
+  ('gearman_client', 'gearman_client_create', u'Gearmand Documentation', [u'Data Differential http://datadifferential.com/'], 3),
+  ('gearman_client', 'gearman_client_free', u'Gearmand Documentation', [u'Data Differential http://datadifferential.com/'], 3),
   ('gearman_client_execute', 'gearman_client_execute', u'Gearmand Documentation', [u'Data Differential http://datadifferential.com/'], 3),
   ('gearman_client_st', 'gearman_client_add_options', u'Gearmand Documentation', [u'Data Differential http://datadifferential.com/'], 3),
   ('gearman_client_st', 'gearman_client_add_server', u'Gearmand Documentation', [u'Data Differential http://datadifferential.com/'], 3),

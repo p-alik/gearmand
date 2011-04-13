@@ -23,7 +23,6 @@ ALLSPHINXOPTS   = -d $(SPHINX_BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOP
 man_MANS+= \
 	   docs/man/gearadmin.1 \
 	   docs/man/gearman.1 \
-	   docs/man/gearman.8 \
 	   docs/man/gearman_bugreport.3 \
 	   docs/man/gearman_client_add_options.3 \
 	   docs/man/gearman_client_add_server.3 \
@@ -36,7 +35,9 @@ man_MANS+= \
 	   docs/man/gearman_client_add_task_low_background.3 \
 	   docs/man/gearman_client_add_task_status.3 \
 	   docs/man/gearman_client_clear_fn.3 \
+	   docs/man/gearman_client_clone.3 \
 	   docs/man/gearman_client_context.3 \
+	   docs/man/gearman_client_create.3 \
 	   docs/man/gearman_client_do.3 \
 	   docs/man/gearman_client_do_background.3 \
 	   docs/man/gearman_client_do_high.3 \
@@ -49,6 +50,7 @@ man_MANS+= \
 	   docs/man/gearman_client_errno.3 \
 	   docs/man/gearman_client_error.3 \
 	   docs/man/gearman_client_execute.3 \
+	   docs/man/gearman_client_free.3 \
 	   docs/man/gearman_client_job_status.3 \
 	   docs/man/gearman_client_options.3 \
 	   docs/man/gearman_client_remove_options.3 \
@@ -91,6 +93,7 @@ man_MANS+= \
 	   docs/man/gearman_job_workload.3 \
 	   docs/man/gearman_job_workload_size.3 \
 	   docs/man/gearman_parse_servers.3 \
+	   docs/man/gearman_state_t.3 \
 	   docs/man/gearman_status_is_successful.3 \
 	   docs/man/gearman_status_t.3 \
 	   docs/man/gearman_status_task.3 \
@@ -120,7 +123,7 @@ man_MANS+= \
 	   docs/man/gearman_worker_add_servers.3 \
 	   docs/man/gearman_worker_clone.3 \
 	   docs/man/gearman_worker_context.3 \
-	   docs/man/gearman_worker_create.3
+	   docs/man/gearman_worker_create.3 \
 	   docs/man/gearman_worker_echo.3 \
 	   docs/man/gearman_worker_errno.3 \
 	   docs/man/gearman_worker_error.3 \
