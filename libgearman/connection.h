@@ -117,8 +117,6 @@ struct gearman_connection_st
   char *send_buffer_ptr;
   gearman_packet_st *recv_packet;
   char *recv_buffer_ptr;
-  gearman_packet_pack_fn *packet_pack_fn;
-  gearman_packet_unpack_fn *packet_unpack_fn;
   gearman_packet_st packet;
   char host[NI_MAXHOST];
   char send_buffer[GEARMAN_SEND_BUFFER_SIZE];
@@ -183,12 +181,6 @@ GEARMAN_INTERNAL_API
 void gearman_connection_free(gearman_connection_st *connection);
 
 
-GEARMAN_INTERNAL_API
-gearman_return_t gearman_connection_set_option(gearman_connection_st *connection,
-                                               gearman_connection_options_t options,
-                                               bool value);
-
-
 /**
  * Set host for a connection.
  */
@@ -196,30 +188,6 @@ GEARMAN_INTERNAL_API
 void gearman_connection_set_host(gearman_connection_st *connection,
                                  const char *host,
                                  in_port_t port);
-
-/**
- * Set connection to an already open file descriptor.
- */
-GEARMAN_INTERNAL_API
-gearman_return_t gearman_connection_set_fd(gearman_connection_st *connection, int fd);
-
-/**
- * Get application context pointer.
- */
-GEARMAN_INTERNAL_API
-void *gearman_connection_context(const gearman_connection_st *connection);
-
-/**
- * Set application context pointer.
- */
-GEARMAN_INTERNAL_API
-void gearman_connection_set_context(gearman_connection_st *connection, void *context);
-
-/**
- * Connect to server.
- */
-GEARMAN_INTERNAL_API
-gearman_return_t gearman_connection_connect(gearman_connection_st *connection);
 
 /**
  * Close a connection.
@@ -281,20 +249,6 @@ gearman_return_t gearman_connection_set_events(gearman_connection_st *connection
  */
 GEARMAN_INTERNAL_API
 gearman_return_t gearman_connection_set_revents(gearman_connection_st *connection, short revents);
-
-/**
- * Set custom packet_pack function
- */
-GEARMAN_INTERNAL_API
-void gearman_connection_set_packet_pack_fn(gearman_connection_st *connection,
-                                           gearman_packet_pack_fn *function);
-
-/**
- * Set custom packet_unpack function
- */
-GEARMAN_INTERNAL_API
-void gearman_connection_set_packet_unpack_fn(gearman_connection_st *connection,
-                                             gearman_packet_unpack_fn *function);
 
 /** @} */
 

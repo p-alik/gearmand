@@ -63,6 +63,12 @@
 
 static void gearman_connection_reset_addrinfo(gearman_connection_st *connection);
 
+static gearman_return_t gearman_connection_set_option(gearman_connection_st *connection,
+                                                      gearman_connection_options_t options,
+                                                      bool value);
+
+
+
 
 /**
  * @addtogroup gearman_connection_static Static Connection Declarations
@@ -135,8 +141,6 @@ gearman_connection_st *gearman_connection_create(gearman_universal_st *gearman,
   connection->send_buffer_ptr= connection->send_buffer;
   connection->recv_packet= NULL;
   connection->recv_buffer_ptr= connection->recv_buffer;
-  connection->packet_pack_fn= gearman_packet_pack;
-  connection->packet_unpack_fn= gearman_packet_unpack;
   connection->host[0]= 0;
 
   return connection;
@@ -251,38 +255,6 @@ void gearman_connection_set_host(gearman_connection_st *connection,
   connection->port= (in_port_t)(port == 0 ? GEARMAN_DEFAULT_TCP_PORT : port);
 }
 
-gearman_return_t gearman_connection_set_fd(gearman_connection_st *connection, int fd)
-{
-  gearman_return_t ret;
-
-  connection->options.external_fd= true;
-  connection->fd= fd;
-  connection->state= GEARMAN_CON_UNIVERSAL_CONNECTED;
-
-  ret= _con_setsockopt(connection);
-  if (ret != GEARMAN_SUCCESS)
-  {
-    return ret;
-  }
-
-  return GEARMAN_SUCCESS;
-}
-
-void *gearman_connection_context(const gearman_connection_st *connection)
-{
-  return connection->context;
-}
-
-void gearman_connection_set_context(gearman_connection_st *connection, void *context)
-{
-  connection->context= context;
-}
-
-gearman_return_t gearman_connection_connect(gearman_connection_st *connection)
-{
-  return gearman_connection_flush(connection);
-}
-
 void gearman_connection_close(gearman_connection_st *connection)
 {
   if (connection->fd == -1)
@@ -362,7 +334,7 @@ gearman_return_t gearman_connection_send(gearman_connection_st *connection,
     /* Pack first part of packet, which is everything but the payload. */
     while (1)
     {
-      send_size= connection->packet_pack_fn(packet, connection,
+      send_size= gearman_packet_pack(packet, connection,
                                      connection->send_buffer + connection->send_buffer_size,
                                      GEARMAN_SEND_BUFFER_SIZE -
                                      connection->send_buffer_size, &ret);
@@ -754,7 +726,7 @@ gearman_packet_st *gearman_connection_recv(gearman_connection_st *connection,
     {
       if (connection->recv_buffer_size > 0)
       {
-        recv_size= connection->packet_unpack_fn(connection->recv_packet, connection,
+        recv_size= gearman_packet_unpack(connection->recv_packet, connection,
                                          connection->recv_buffer_ptr,
                                          connection->recv_buffer_size, ret_ptr);
         connection->recv_buffer_ptr+= recv_size;
@@ -1009,18 +981,6 @@ gearman_return_t gearman_connection_set_revents(gearman_connection_st *connectio
   connection->events&= (short)~revents;
 
   return GEARMAN_SUCCESS;
-}
-
-void gearman_connection_set_packet_pack_fn(gearman_connection_st *connection,
-                                           gearman_packet_pack_fn *function)
-{
-  connection->packet_pack_fn= function;
-}
-
-void gearman_connection_set_packet_unpack_fn(gearman_connection_st *connection,
-                                             gearman_packet_unpack_fn *function)
-{
-  connection->packet_unpack_fn= function;
 }
 
 /*
