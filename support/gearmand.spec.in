@@ -33,15 +33,17 @@ Gearman provides a generic framework to farm out work to other machines, dispatc
 %{__rm} -rf %{buildroot}
 
 %files
+
 %{_bindir}/gearadmin
 %{_bindir}/gearman
-%{_sbindir}/gearmand
-%{_includedir}/libgearman/configure.h
 %{_includedir}/libgearman/byteorder.h
 %{_includedir}/libgearman/client.h
 %{_includedir}/libgearman/command.h
+%{_includedir}/libgearman/configure.h
+%{_includedir}/libgearman/connection.h
 %{_includedir}/libgearman/constants.h
 %{_includedir}/libgearman/core.h
+%{_includedir}/libgearman/function.h
 %{_includedir}/libgearman/gearman.h
 %{_includedir}/libgearman/job.h
 %{_includedir}/libgearman/log.h
@@ -49,14 +51,18 @@ Gearman provides a generic framework to farm out work to other machines, dispatc
 %{_includedir}/libgearman/protocol.h
 %{_includedir}/libgearman/strerror.h
 %{_includedir}/libgearman/task.h
+%{_includedir}/libgearman/unique.h
 %{_includedir}/libgearman/universal.h
 %{_includedir}/libgearman/visibility.h
 %{_includedir}/libgearman/worker.h
+%{_includedir}/libgearman/workload.h
+%{_includedir}/libgearman/status.h
 %{_libdir}/libgearman.la
 %{_libdir}/libgearman.so
 %{_libdir}/libgearman.so.4
 %{_libdir}/libgearman.so.4.1.1
 %{_libdir}/pkgconfig/gearmand.pc
+%{_mandir}/man1/gearadmin.1.gz
 %{_mandir}/man1/gearman.1.gz
 %{_mandir}/man3/gearman_bugreport.3.gz
 %{_mandir}/man3/gearman_client_add_options.3.gz
@@ -110,6 +116,7 @@ Gearman provides a generic framework to farm out work to other machines, dispatc
 %{_mandir}/man3/gearman_client_task_free_all.3.gz
 %{_mandir}/man3/gearman_client_timeout.3.gz
 %{_mandir}/man3/gearman_client_wait.3.gz
+%{_mandir}/man3/gearman_create.3.gz
 %{_mandir}/man3/gearman_function_st.3.gz
 %{_mandir}/man3/gearman_job_free.3.gz
 %{_mandir}/man3/gearman_job_free_all.3.gz
@@ -128,6 +135,9 @@ Gearman provides a generic framework to farm out work to other machines, dispatc
 %{_mandir}/man3/gearman_job_workload_size.3.gz
 %{_mandir}/man3/gearman_parse_servers.3.gz
 %{_mandir}/man3/gearman_state_t.3.gz
+%{_mandir}/man3/gearman_status_is_successful.3.gz
+%{_mandir}/man3/gearman_status_t.3.gz
+%{_mandir}/man3/gearman_status_task.3.gz
 %{_mandir}/man3/gearman_task_context.3.gz
 %{_mandir}/man3/gearman_task_data.3.gz
 %{_mandir}/man3/gearman_task_data_size.3.gz
@@ -177,7 +187,9 @@ Gearman provides a generic framework to farm out work to other machines, dispatc
 %{_mandir}/man3/gearman_worker_unregister_all.3.gz
 %{_mandir}/man3/gearman_worker_wait.3.gz
 %{_mandir}/man3/gearman_worker_work.3.gz
+%{_mandir}/man3/libgearman.3.gz
 %{_mandir}/man8/gearmand.8.gz
+%{_sbindir}/gearmand
 
 
 %changelog
