@@ -41,8 +41,7 @@
  * @brief Packet Declarations
  */
 
-#ifndef __GEARMAN_PACKET_H__
-#define __GEARMAN_PACKET_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -219,5 +218,3 @@ void *gearman_packet_take_data(gearman_packet_st *packet, size_t *data_size);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GEARMAN_PACKET_H__ */

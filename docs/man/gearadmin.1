@@ -1,4 +1,4 @@
-.TH "GEARADMIN" "1" "April 08, 2011" "0.20" "Gearmand"
+.TH "GEARADMIN" "1" "April 12, 2011" "0.20" "Gearmand"
 .SH NAME
 gearadmin \- Gearmand Documentation
 .
@@ -33,10 +33,22 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .SH SYNOPSIS
 .INDENT 0.0
 .TP
+.B program
+.
+\fIgearadmin\fP
+.UNINDENT
+.INDENT 0.0
+.TP
 .B \-\-help
 .UNINDENT
 .sp
-Options related to the program.
+Provice help about the program.
+.INDENT 0.0
+.TP
+.B \-\-create\-function
+.UNINDENT
+.sp
+Create a function from the server.
 .INDENT 0.0
 .TP
 .B \-h [ \-\-host ] arg (=localhost)i
@@ -49,6 +61,12 @@ Connect to the host
 .UNINDENT
 .sp
 Port number or service to use for connection
+.INDENT 0.0
+.TP
+.B \-\-drop\-function
+.UNINDENT
+.sp
+Drop a function from the server.
 .INDENT 0.0
 .TP
 .B \-\-server\-version

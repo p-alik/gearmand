@@ -279,7 +279,6 @@ man_pages = [
   ('gearman_job_st', 'gearman_job_workload', u'Gearmand Documentation', [u'Data Differential http://datadifferential.com/'], 3),
   ('gearman_job_st', 'gearman_job_workload_size', u'Gearmand Documentation', [u'Data Differential http://datadifferential.com/'], 3),
   ('gearman_parse_servers', 'gearman_parse_servers', u'Gearmand Documentation', [u'Data Differential http://datadifferential.com/'], 3),
-  ('gearman_state_t', 'gearman_state_t', u'Gearmand Documentation', [u'Data Differential http://datadifferential.com/'], 3),
   ('gearman_task_st', 'gearman_task_context', u'Gearmand Documentation', [u'Data Differential http://datadifferential.com/'], 3),
   ('gearman_task_st', 'gearman_task_data', u'Gearmand Documentation', [u'Data Differential http://datadifferential.com/'], 3),
   ('gearman_task_st', 'gearman_task_data_size', u'Gearmand Documentation', [u'Data Differential http://datadifferential.com/'], 3),

@@ -48,7 +48,7 @@ test: check
 clean-local:
 	-rm -rf docs/_build docs/doctrees
 
-rpm: all dist
+rpm: man all dist
 	cp gearmand-$(VERSION).tar.gz ~/rpmbuild/SOURCES/
 	rpmbuild -ba support/gearmand.spec
 	cp ~/rpmbuild/RPMS/x86_64/gearmand-$(VERSION)*.rpm .

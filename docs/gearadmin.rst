@@ -14,9 +14,9 @@ SYNOPSIS
 
 Provice help about the program.
 
-.. option:: --drop-function
+.. option:: --create-function
 
-Drop a function from the server.
+Create a function from the server.
 
 .. option:: -h [ --host ] arg (=localhost)i
 
