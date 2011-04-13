@@ -83,7 +83,7 @@
 #include <libgearman/protocol.h>
 #include <boost/program_options.hpp>
 
-#include "util/instance.h"
+#include <util/instance.h>
 
 using namespace gearman_util;
 
@@ -99,7 +99,6 @@ int main(int args, char *argv[])
   boost::program_options::options_description desc("Options");
   std::string host;
   std::string port;
-  std::string drop_function;
 
   desc.add_options()
     ("help", "Options related to the program.")
@@ -107,8 +106,8 @@ int main(int args, char *argv[])
     ("port,p", boost::program_options::value<std::string>(&port)->default_value(GEARMAN_DEFAULT_TCP_PORT_STRING), "Port number or service to use for connection")
     ("server-version", "Fetch the version number for the server.")
     ("server-verbose", "Fetch the verbose setting for the server.")
-    ("drop-function",  boost::program_options::value<std::string>(&drop_function),
-     "Drop the function from the server.")
+    ("create-function",  boost::program_options::value<std::string>(), "Create the function from the server.") 
+    ("drop-function",  boost::program_options::value<std::string>(), "Drop the function from the server.")
     ("status", "Status for the server.")
     ("workers", "Workers for the server.")
     ("shutdown", "Shutdown server.")
@@ -122,7 +121,8 @@ int main(int args, char *argv[])
   }
   catch(std::exception &e)
   { 
-    std::cout << e.what() << std::endl;
+    std::cerr <<  argv[0] << " : " << e.what() << std::endl;
+    std::cerr <<  std::endl << desc << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -134,40 +134,43 @@ int main(int args, char *argv[])
   if (vm.count("help"))
   {
     std::cout << desc << std::endl;
-    return EXIT_FAILURE;
+    return EXIT_SUCCESS;
   }
 
   if (vm.count("shutdown"))
   {
-    Operation operation(STRING_WITH_LEN("shutdown graceful\n"), false);
-    instance.push(operation);
+    instance.push(new Operation(STRING_WITH_LEN("shutdown graceful\r\n"), false));
   }
 
   if (vm.count("status"))
   {
-    Operation operation(STRING_WITH_LEN("status\n"), true);
-    instance.push(operation);
+    instance.push(new Operation(STRING_WITH_LEN("status\r\n")));
   }
 
   if (vm.count("server-version"))
   {
-    Operation operation(STRING_WITH_LEN("version\n"), true);
-    instance.push(operation);
+    instance.push(new Operation(STRING_WITH_LEN("version\r\n")));
   }
 
   if (vm.count("server-verbose"))
   {
-    Operation operation(STRING_WITH_LEN("verbose\n"), true);
-    instance.push(operation);
+    instance.push(new Operation(STRING_WITH_LEN("verbose\r\n")));
   }
 
-  if (not drop_function.empty())
+  if (vm.count("drop-function"))
   {
     std::string execute(STRING_WITH_LEN("drop function "));
-    execute.append(drop_function);
-    execute.append("\n");
-    Operation operation(execute.c_str(), true);
-    instance.push(operation);
+    execute.append(vm["drop-function"].as<std::string>());
+    execute.append("\r\n");
+    instance.push(new Operation(execute.c_str(), execute.size()));
+  }
+
+  if (vm.count("create-function"))
+  {
+    std::string execute(STRING_WITH_LEN("create function "));
+    execute.append(vm["create-function"].as<std::string>());
+    execute.append("\r\n");
+    instance.push(new Operation(execute.c_str(), execute.size()));
   }
 
   instance.run();

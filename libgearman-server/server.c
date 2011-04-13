@@ -21,6 +21,13 @@
  * Private declarations
  */
 
+
+#define TEXT_SUCCESS "OK\r\n"
+#define TEXT_ERROR_ARGS "ERR INVALID_ARGUMENTS An+incomplete+set+of+arguments+was+sent+to+this+command+%.*s\r\n"
+#define TEXT_ERROR_CREATE_FUNCTION "ERR CREATE_FUNCTION %.*s\r\n"
+#define TEXT_ERROR_UNKNOWN_COMMAND "ERR UNKNOWN_COMMAND Unknown+server+command%.*s\r\n"
+#define TEXT_ERROR_INTERNAL_ERROR "ERR UNKNOWN_ERROR\r\n"
+
 /**
  * @addtogroup gearman_server_private Private Server Functions
  * @ingroup gearman_server
@@ -701,18 +708,23 @@ static gearmand_error_t _server_run_text(gearman_server_con_st *server_con,
   gearman_server_packet_st *server_packet;
   int checked_length;
 
-  data= (char *)malloc(GEARMAN_TEXT_RESPONSE_SIZE);
+  data= (char *)(char *)malloc(GEARMAN_TEXT_RESPONSE_SIZE);
   if (data == NULL)
   {
     gearmand_perror("malloc");
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
   total= GEARMAN_TEXT_RESPONSE_SIZE;
+  data[0]= 0;
+
+  if (packet->argc)
+  {
+    gearmand_log_debug("text command %.*s", packet->arg_size[0],  packet->arg[0]);
+  }
 
   if (packet->argc == 0)
   {
-    snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE,
-             "ERR unknown_command Unknown+server+command\n");
+    snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, TEXT_ERROR_UNKNOWN_COMMAND, 4, "NULL");
   }
   else if (!strcasecmp("workers", (char *)(packet->arg[0])))
   {
@@ -757,7 +769,7 @@ static gearmand_error_t _server_run_text(gearman_server_con_st *server_con,
             (void) pthread_mutex_unlock(&thread->lock);
             gearmand_crazy("free");
             free(data);
-            gearmand_error("snprintf");
+            gearmand_perror("snprintf");
             return GEARMAN_MEMORY_ALLOCATION_FAILURE;
           }
 
@@ -776,7 +788,7 @@ static gearmand_error_t _server_run_text(gearman_server_con_st *server_con,
               (void) pthread_mutex_unlock(&thread->lock);
               gearmand_crazy("free");
               free(data);
-              gearmand_error("snprintf");
+              gearmand_perror("snprintf");
               return GEARMAN_MEMORY_ALLOCATION_FAILURE;
             }
 
@@ -815,7 +827,7 @@ static gearmand_error_t _server_run_text(gearman_server_con_st *server_con,
       checked_length= snprintf(data + size, total - size, ".\n");
       if ((size_t)checked_length > total - size || checked_length < 0)
       {
-        gearmand_error("snprintf");
+        gearmand_perror("snprintf");
         return GEARMAN_MEMORY_ALLOCATION_FAILURE;
       }
     }
@@ -873,40 +885,69 @@ static gearmand_error_t _server_run_text(gearman_server_con_st *server_con,
       }
     }
   }
-  else if (!strcasecmp("drop", (char *)(packet->arg[0])))
+  else if (!strcasecmp("create", (char *)(packet->arg[0])))
   {
     if (packet->argc == 3 && !strcasecmp("function", (char *)(packet->arg[1])))
     {
       gearman_server_function_st *function;
-      for (function= Server->function_list;
-           function != NULL; function= function->next)
+      function= gearman_server_function_get(Server, (char *)(packet->arg[2]), packet->arg_size[2] -2);
+
+      if (function)
       {
-        if (!strcasecmp(function->function_name, (char *)(packet->arg[2])))
-        {
-          if (function->worker_count == 0 && function->job_running == 0)
-          {
-            gearman_server_function_free(Server, function);
-            snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, "OK\n");
-          }
-          else
-          {
-            snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, "ERR there are still connected workers or executing clients\n");
-          }
-        }
+        snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, TEXT_SUCCESS);
+      }
+      else
+      {
+        snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, TEXT_ERROR_CREATE_FUNCTION,
+                 (int)packet->arg_size[2], (char *)(packet->arg[2]));
       }
     }
     else
     {
-      snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, "ERR incomplete_args "
-               "An+incomplete+set+of+arguments+was+sent+to+this+command\n");
+      // create
+      snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, TEXT_ERROR_ARGS, (int)packet->arg_size[0], (char *)(packet->arg[0]));
+    }
+  }
+  else if (! strcasecmp("drop", (char *)(packet->arg[0])))
+  {
+    if (packet->argc == 3 && !strcasecmp("function", (char *)(packet->arg[1])))
+    {
+      bool success= false;
+      for (gearman_server_function_st *function= Server->function_list; function != NULL; function= function->next)
+      {
+        if (! strcasecmp(function->function_name, (char *)(packet->arg[2])))
+        {
+          success++;
+          if (function->worker_count == 0 && function->job_running == 0)
+          {
+            gearman_server_function_free(Server, function);
+            snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, TEXT_SUCCESS);
+          }
+          else
+          {
+            snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, "ERR there are still connected workers or executing clients\r\n");
+          }
+          break;
+        }
+      }
+
+      if (! success)
+      {
+        snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, "ERR function not found\r\n");
+        gearmand_debug(data);
+      }
+    }
+    else
+    {
+      // drop
+      snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, TEXT_ERROR_ARGS, (int)packet->arg_size[0], (char *)(packet->arg[0]));
     }
   }
   else if (!strcasecmp("maxqueue", (char *)(packet->arg[0])))
   {
     if (packet->argc == 1)
     {
-      snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, "ERR incomplete_args "
-               "An+incomplete+set+of+arguments+was+sent+to+this+command\n");
+      snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, TEXT_ERROR_ARGS, (int)packet->arg_size[0], (char *)(packet->arg[0]));
     }
     else
     {
@@ -931,7 +972,7 @@ static gearmand_error_t _server_run_text(gearman_server_con_st *server_con,
         }
       }
 
-      snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, "OK\n");
+      snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, TEXT_SUCCESS);
     }
   }
   else if (!strcasecmp("shutdown", (char *)(packet->arg[0])))
@@ -939,32 +980,33 @@ static gearmand_error_t _server_run_text(gearman_server_con_st *server_con,
     if (packet->argc == 1)
     {
       Server->shutdown= true;
-      snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, "OK\n");
+      snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, TEXT_SUCCESS);
     }
     else if (packet->argc == 2 &&
              !strcasecmp("graceful", (char *)(packet->arg[1])))
     {
       Server->shutdown_graceful= true;
-      snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, "OK\n");
+      snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, TEXT_SUCCESS);
     }
     else
     {
-      snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE,
-               "ERR unknown_args Unknown+arguments+to+server+command\n");
+      // shutdown
+      snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, TEXT_ERROR_ARGS, (int)packet->arg_size[0], (char *)(packet->arg[0]));
     }
   }
   else if (!strcasecmp("verbose", (char *)(packet->arg[0])))
   {
-    snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, "%s\n", gearmand_verbose_name(Gearmand()->verbose));
+    snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, "OK %s\n", gearmand_verbose_name(Gearmand()->verbose));
   }
   else if (!strcasecmp("version", (char *)(packet->arg[0])))
   {
-    snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, "%s\n", PACKAGE_VERSION);
+    snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, "OK %s\n", PACKAGE_VERSION);
   }
   else
   {
-    snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE,
-             "ERR unknown_command Unknown+server+command\n");
+    gearmand_log_debug("Failed to find command %.*s(%llu)", packet->arg_size[0], packet->arg[0], 
+                       (unsigned long long)packet->arg_size[0]);
+    snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, TEXT_ERROR_UNKNOWN_COMMAND, (int)packet->arg_size[0], (char *)(packet->arg[0]));
   }
 
   server_packet= gearman_server_packet_create(server_con->thread, false);
@@ -982,6 +1024,10 @@ static gearmand_error_t _server_run_text(gearman_server_con_st *server_con,
   server_packet->packet.options.complete= true;
   server_packet->packet.options.free_data= true;
 
+  if (data[0] == 0)
+  {
+    snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, TEXT_ERROR_INTERNAL_ERROR);
+  }
   server_packet->packet.data= data;
   server_packet->packet.data_size= strlen(data);
 

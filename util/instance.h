@@ -87,9 +87,9 @@ public:
     _port= port;
   }
 
-  void run();
+  bool run();
 
-  void push(const Operation &next)
+  void push(Operation *next)
   {
     _operations.push_back(next);
   }

@@ -128,35 +128,51 @@ int main(int argc, char *argv[])
   general.add_options()
   ("backlog,b", boost::program_options::value(&backlog)->default_value(32),
    "Number of backlog connections for listen.")
+
   ("check-args", boost::program_options::bool_switch(&opt_check_args)->default_value(false),
    "Check command line and configuration file argments and then exit.")
+
   ("daemon,d", boost::program_options::bool_switch(&opt_daemon)->default_value(false),
    "Daemon, detach and run in the background.")
+
   ("file-descriptors,f", boost::program_options::value(&fds),
    "Number of file descriptors to allow for the process (total connections will be slightly less). Default is max allowed for user.")
+
   ("help,h", "Print this help menu.")
+
   ("job-retries,j", boost::program_options::value(&job_retries)->default_value(0),
    "Number of attempts to run the job before the job server removes it. This is helpful to ensure a bad job does not crash all available workers. Default is no limit.")
+
   ("log-file,l", boost::program_options::value(&log_file),
    "Log file to write errors and information to. Turning this option on also forces the first verbose level to be enabled.")
+
   ("listen,L", boost::program_options::value(&host),
    "Address the server should listen on. Default is INADDR_ANY.")
+
   ("port,p", boost::program_options::value(&port)->default_value(GEARMAN_DEFAULT_TCP_PORT_STRING), 
    "Port the server should listen on.")
+
   ("pid-file,P", boost::program_options::value(&pid_file), 
    "File to write process ID out to.")
+
   ("protocol,r", boost::program_options::value(&protocol), 
    "Load protocol module.")
+
   ("round-robin,R", boost::program_options::bool_switch(&opt_round_robin)->default_value(false),
    "Assign work in round-robin order per worker connection. The default is to assign work in the order of functions added by the worker.")
+
   ("queue-type,q", boost::program_options::value(&queue_type),
    "Persistent queue type to use.")
+
   ("threads,t", boost::program_options::value(&threads)->default_value(4),
    "Number of I/O threads to use. Default=4.")
+
   ("user,u", boost::program_options::value(&user),
    "Switch to given user after startup.")
+
   ("verbose,v", boost::program_options::value(&verbose_string)->default_value("v"),
    "Increase verbosity level by one.")
+
   ("version,V", "Display the version of gearmand and exit.")
   ("worker-wakeup,w", boost::program_options::value(&worker_wakeup)->default_value(0),
    "Number of workers to wakeup for each job received. The default is to wakeup all available workers.")

@@ -50,11 +50,12 @@
 
 namespace gearman_util {
 
-void Instance::run()
+bool Instance::run()
 {
   while (not _operations.empty())
   {
-    Operation::vector::reference operation= _operations.back();
+    Operation::vector::value_type operation= _operations.back();
+    assert(operation);
 
     switch (state)
     {
@@ -71,7 +72,7 @@ void Instance::run()
         if (ret)
         {
           std::cerr << "Failed to connect on " << _host.c_str() << ":" << _port.c_str() << " with "  << gai_strerror(ret) << std::endl;
-          return;
+          return false;
         }
       }
       _addrinfo_next= _addrinfo;
@@ -82,7 +83,7 @@ void Instance::run()
       if (_addrinfo_next->ai_next == NULL)
       {
         std::cerr << "Error connecting to " << _host.c_str() << "." << std::endl;
-        return;
+        return false;
       }
       _addrinfo_next= _addrinfo_next->ai_next;
 
@@ -132,8 +133,8 @@ void Instance::run()
     case CONNECTED:
     case WRITING:
       {
-        size_t packet_length= operation.size();
-        const char *packet= operation.ptr();
+        size_t packet_length= operation->size();
+        const char *packet= operation->ptr();
 
         while(packet_length)
         {
@@ -157,7 +158,7 @@ void Instance::run()
       break;
 
     case READING:
-      if (operation.has_response())
+      if (operation->has_response())
       {
         size_t total_read;
         ssize_t read_length;
@@ -173,11 +174,11 @@ void Instance::run()
             {
             default:
               std::cerr << "Error occured while reading data from " << _host.c_str() << std::endl;
-              return;
+              return false;
             }
           }
 
-          operation.push(buffer, static_cast<size_t>(read_length));
+          operation->push(buffer, static_cast<size_t>(read_length));
           total_read+= static_cast<size_t>(read_length);
         } while (more_to_read());
       } // end has_response
@@ -186,17 +187,20 @@ void Instance::run()
       break;
 
     case FINISHED:
-      operation.print();
+      operation->print();
 
-      if (operation.reconnect())
+      if (operation->reconnect())
       {
       }
-
       _operations.pop_back();
+      delete operation;
+
       state= CONNECTED;
       break;
     } // end switch
   }
+
+  return true;
 } // end run()
 
 bool Instance::more_to_read() const
