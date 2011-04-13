@@ -48,15 +48,12 @@
 #ifndef __cplusplus
 #  include <stdbool.h>
 #endif
-#include <sys/types.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <poll.h>
 #include <sys/uio.h>
-#include <stdarg.h>
-#include <stdlib.h>
 
 #include <libgearman/visibility.h>
 #include <libgearman/configure.h>

@@ -42,6 +42,10 @@
  */
 
 #include <libgearman/common.h>
+#include <cerrno>
+#include <cstdlib>
+#include <cstring>
+#include <memory>
 
 /**
  * @addtogroup gearman_packet_static Static Packet Declarations
@@ -177,10 +181,11 @@ gearman_packet_st *gearman_packet_create(gearman_universal_st *gearman,
 {
   if (packet == NULL)
   {
-    packet= (gearman_packet_st *)malloc(sizeof(gearman_packet_st));
+    packet= new (std::nothrow) gearman_packet_st;
     if (packet == NULL)
     {
       gearman_perror(gearman, "gearman_packet_st malloc");
+      errno= ENOMEM;
       return NULL;
     }
 
@@ -294,7 +299,7 @@ void gearman_packet_free(gearman_packet_st *packet)
 
   if (packet->options.allocated)
   {
-    free(packet);
+    delete packet;
   }
 }
 
@@ -496,15 +501,15 @@ size_t gearman_packet_unpack(gearman_packet_st *packet,
     if (packet->argc != (gearman_command_info_list[packet->command].argc - 1) ||
         gearman_command_info_list[packet->command].data)
     {
-      ptr= (uint8_t *)memchr(((uint8_t *)data) + used_size, 0, data_size - used_size);
+      ptr= (uint8_t *)memchr((char *)data + used_size, 0, data_size - used_size);
       if (ptr == NULL)
       {
         *ret_ptr= GEARMAN_IO_WAIT;
         return used_size;
       }
 
-      arg_size= (size_t)(ptr - (((uint8_t *)data) + used_size)) + 1;
-      *ret_ptr= packet_create_arg(packet, ((uint8_t *)data) + used_size, arg_size);
+      arg_size= (size_t)(ptr - ((uint8_t *)data + used_size)) + 1;
+      *ret_ptr= packet_create_arg(packet, (uint8_t *)data + used_size, arg_size);
 
       if (*ret_ptr != GEARMAN_SUCCESS)
         return used_size;
@@ -544,7 +549,7 @@ void gearman_packet_give_data(gearman_packet_st *packet, const void *data,
 
 void *gearman_packet_take_data(gearman_packet_st *packet, size_t *data_size)
 {
-  void *data= (void *)(packet->data);
+  void *data= const_cast<void *>(packet->data);
 
   *data_size= packet->data_size;
 

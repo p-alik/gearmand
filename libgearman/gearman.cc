@@ -45,6 +45,7 @@
 
 #include <libgearman/common.h>
 
+#include <cstdlib>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
@@ -67,8 +68,6 @@ static const char *_verbose_name[GEARMAN_VERBOSE_MAX]=
   "DEBUG",
   "CRAZY"
 };
-
-#pragma GCC diagnostic ignored "-Wold-style-cast"
 
 /** @} */
 
@@ -105,7 +104,7 @@ gearman_return_t gearman_parse_servers(const char *servers,
   gearman_return_t ret;
 
   if (ptr == NULL)
-    return (*function)(NULL, 0, (void *)context);
+    return (*function)(NULL, 0, context);
 
   while (1)
   {
@@ -139,7 +138,7 @@ gearman_return_t gearman_parse_servers(const char *servers,
     else
       port[0]= 0;
 
-    ret= (*function)(host, (in_port_t)atoi(port), (void *)context);
+    ret= (*function)(host, static_cast<in_port_t>(atoi(port)), context);
     if (ret != GEARMAN_SUCCESS)
       return ret;
 

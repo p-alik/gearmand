@@ -52,8 +52,6 @@
  * Public Definitions
  */
 
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-
 gearman_task_st *gearman_task_create(gearman_client_st *client, gearman_task_st *task)
 {
   if (task == NULL)
@@ -125,7 +123,7 @@ void gearman_task_free(gearman_task_st *task)
   task->client->task_count--;
 
   if (task->options.allocated)
-    free(task);
+    delete task;
 }
 
 const void *gearman_task_context(const gearman_task_st *task)

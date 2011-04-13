@@ -36,13 +36,14 @@
  */
 
 #include <libgearman/common.h>
+#include <cerrno>
+#include <cstdlib>
+#include <cstring>
 
 struct gearman_function_st {
   size_t size;
   char *name;
 };
-
-#pragma GCC diagnostic ignored "-Wold-style-cast"
 
 gearman_function_st *gearman_function_create(const char *name, size_t size)
 {
@@ -53,14 +54,14 @@ gearman_function_st *gearman_function_create(const char *name, size_t size)
     return NULL;
   }
 
-  gearman_function_st *function= (struct gearman_function_st *)malloc(sizeof(struct gearman_function_st) +size +1);;
+  gearman_function_st *function= static_cast<gearman_function_st *>(malloc(sizeof(struct gearman_function_st) +size +1));
 
   if (not function)
   {
     return NULL;
   }
 
-  function->name= ((char *)function) + sizeof(struct gearman_function_st);
+  function->name= reinterpret_cast<char *>(function) + sizeof(struct gearman_function_st);
   memcpy(function->name, name, size);
   function->name[size]= 0;
   function->size= size;
@@ -70,6 +71,9 @@ gearman_function_st *gearman_function_create(const char *name, size_t size)
 
 void gearman_function_free(gearman_function_st *function)
 {
+  if (not  function)
+    return;
+
   free(function);
 }
 

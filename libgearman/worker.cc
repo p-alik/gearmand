@@ -15,8 +15,10 @@
 #include <libgearman/connection.h>
 
 #include <cstdio>
-#include <unistd.h>
+#include <cstdlib>
+#include <cstring>
 #include <memory>
+#include <unistd.h>
 
 /**
   Private structure.

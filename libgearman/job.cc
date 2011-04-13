@@ -46,6 +46,7 @@
 #include <libgearman/connection.h>
 #include <libgearman/packet.h>
 #include <cstdio>
+#include <cstring>
 #include <memory>
 
 /**

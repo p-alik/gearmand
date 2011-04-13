@@ -49,6 +49,8 @@
 #include <assert.h>
 #include <cerrno>
 #include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <memory>
 #include <unistd.h>
 

@@ -11,8 +11,7 @@
  * @brief Gearman Declarations
  */
 
-#ifndef __GEARMAN_UNIVERSAL_H__
-#define __GEARMAN_UNIVERSAL_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -324,5 +323,3 @@ void gearman_free_all_packets(gearman_universal_st *gearman);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GEARMAN_UNIVERSAL_H__ */

@@ -15,8 +15,12 @@
 #include <libgearman/connection.h>
 
 #include <assert.h>
-#include <errno.h>
-#include <stdio.h>
+
+#include <cerrno>
+#include <cstdarg>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 /**
  * @addtogroup gearman_universal Static Gearman Declarations
