@@ -15,16 +15,21 @@ sbin_PROGRAMS+= gearmand/gearmand
 gearmand_gearmand_LDADD= \
 			 libgearman-server/libgearman-server.la \
 			 ${BETTER_MALLOC_LIBS} \
+			 $(AM_LDADD) \
 			 $(BOOST_PROGRAM_OPTIONS_LIBS)
+
+gearmand_gearmand_LDFLAGS= \
+			   $(BOOST_PROGRAM_OPTIONS_LDFLAGS) \
+			   $(AM_LDFLAGS)
+
+gearmand_gearmand_CPPFLAGS= \
+			    $(AM_CPPFLAGS) \
+			    $(BOOST_CPPFLAGS)
 
 gearmand_gearmand_SOURCES= \
 			   gearmand/gearmand.cc \
 			   util/daemon.cc \
 			   util/pidfile.cc
-
-gearmand_gearmand_CPPFLAGS= \
-			    $(AM_CPPFLAGS) \
-			    $(BOOST_CPPFLAGS)
 
 gearmand-valgrind: gearmand/gearmand
 	$(LIBTOOL) --mode=execute valgrind --leak-check=yes --show-reachable=yes  gearmand/gearmand

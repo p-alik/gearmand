@@ -26,6 +26,7 @@ bin_gearadmin_CPPFLAGS= \
 			$(BOOST_CPPFLAGS)
 
 bin_gearadmin_LDFLAGS= \
+		       $(BOOST_PROGRAM_OPTIONS_LDFLAGS) \
 		       $(AM_LDFLAGS)
 
 bin_gearadmin_LDADD= \
