@@ -135,8 +135,6 @@ gearman_connection_st *gearman_connection_create(gearman_universal_st *gearman,
   connection->send_buffer_ptr= connection->send_buffer;
   connection->recv_packet= NULL;
   connection->recv_buffer_ptr= connection->recv_buffer;
-  connection->protocol_context= NULL;
-  connection->protocol_context_free_fn= NULL;
   connection->packet_pack_fn= gearman_packet_pack;
   connection->packet_unpack_fn= gearman_packet_unpack;
   connection->host[0]= 0;
@@ -182,9 +180,6 @@ void gearman_connection_free(gearman_connection_st *connection)
     gearman_connection_close(connection);
 
   gearman_connection_reset_addrinfo(connection);
-
-  if (connection->protocol_context != NULL && connection->protocol_context_free_fn != NULL)
-    connection->protocol_context_free_fn(connection, (void *)connection->protocol_context);
 
   if (connection->universal->con_list == connection)
     connection->universal->con_list= connection->next;
@@ -1014,22 +1009,6 @@ gearman_return_t gearman_connection_set_revents(gearman_connection_st *connectio
   connection->events&= (short)~revents;
 
   return GEARMAN_SUCCESS;
-}
-
-void *gearman_connection_protocol_context(const gearman_connection_st *connection)
-{
-  return connection->protocol_context;
-}
-
-void gearman_connection_set_protocol_context(gearman_connection_st *connection, void *context)
-{
-  connection->protocol_context= context;
-}
-
-void gearman_connection_set_protocol_context_free_fn(gearman_connection_st *connection,
-                                                     gearman_connection_protocol_context_free_fn *function)
-{
-  connection->protocol_context_free_fn= function;
 }
 
 void gearman_connection_set_packet_pack_fn(gearman_connection_st *connection,

@@ -117,8 +117,6 @@ struct gearman_connection_st
   char *send_buffer_ptr;
   gearman_packet_st *recv_packet;
   char *recv_buffer_ptr;
-  void *protocol_context;
-  gearman_connection_protocol_context_free_fn *protocol_context_free_fn;
   gearman_packet_pack_fn *packet_pack_fn;
   gearman_packet_unpack_fn *packet_unpack_fn;
   gearman_packet_st packet;
@@ -283,25 +281,6 @@ gearman_return_t gearman_connection_set_events(gearman_connection_st *connection
  */
 GEARMAN_INTERNAL_API
 gearman_return_t gearman_connection_set_revents(gearman_connection_st *connection, short revents);
-
-/**
- * Get protocol context pointer.
- */
-GEARMAN_INTERNAL_API
-void *gearman_connection_protocol_context(const gearman_connection_st *connection);
-
-/**
- * Set protocol context pointer.
- */
-GEARMAN_INTERNAL_API
-void gearman_connection_set_protocol_context(gearman_connection_st *connection, void *context);
-
-/**
- * Set function to call when protocol_data should be freed.
- */
-GEARMAN_INTERNAL_API
-void gearman_connection_set_protocol_context_free_fn(gearman_connection_st *connection,
-                                                     gearman_connection_protocol_context_free_fn *function);
 
 /**
  * Set custom packet_pack function
