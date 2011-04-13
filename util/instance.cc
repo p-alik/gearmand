@@ -55,7 +55,6 @@ bool Instance::run()
   while (not _operations.empty())
   {
     Operation::vector::value_type operation= _operations.back();
-    assert(operation);
 
     switch (state)
     {

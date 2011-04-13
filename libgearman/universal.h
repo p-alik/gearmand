@@ -135,7 +135,7 @@ void gearman_universal_set_perror(const char *position, gearman_universal_st *un
 static inline const char *gearman_universal_error(const gearman_universal_st *gearman)
 {
   if (gearman->error.last_error[0] == 0)
-      return NULL;
+      return 0;
   return (const char *)(gearman->error.last_error);
 }
 

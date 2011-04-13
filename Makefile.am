@@ -40,8 +40,8 @@ include docs/include.am
 
 TESTS += ${check_PROGRAMS}
 
-EXTRA_DIST+= \
-	     scripts/README.solaris
+EXTRA_DIST+= ${man_MANS}
+EXTRA_DIST+= scripts/README.solaris
 
 test: check
 
