@@ -268,6 +268,7 @@ void gearman_packet_free(gearman_packet_st *packet)
 {
   if (packet->args != packet->args_buffer && packet->args != NULL)
   {
+    // Created with realloc
     free(packet->args);
     packet->args= NULL;
   }
@@ -276,6 +277,7 @@ void gearman_packet_free(gearman_packet_st *packet)
   {
     if (packet->universal->workload_free_fn == NULL)
     {
+      // Created with malloc()
       free((void *)packet->data); //@todo fix the need for the casting.
       packet->data= NULL;
     }
@@ -404,7 +406,6 @@ gearman_return_t gearman_packet_unpack_header(gearman_packet_st *packet)
 }
 
 size_t gearman_packet_pack(const gearman_packet_st *packet,
-                           gearman_connection_st *con __attribute__ ((unused)),
                            void *data, size_t data_size,
                            gearman_return_t *ret_ptr)
 {
@@ -426,7 +427,6 @@ size_t gearman_packet_pack(const gearman_packet_st *packet,
 }
 
 size_t gearman_packet_unpack(gearman_packet_st *packet,
-                             gearman_connection_st *con __attribute__ ((unused)),
                              const void *data, size_t data_size,
                              gearman_return_t *ret_ptr)
 {

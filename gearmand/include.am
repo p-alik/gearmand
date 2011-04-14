@@ -19,7 +19,7 @@ gearmand_gearmand_LDADD= \
 			 $(BOOST_PROGRAM_OPTIONS_LIBS)
 
 gearmand_gearmand_LDFLAGS= \
-			   $(BOOST_PROGRAM_OPTIONS_LDFLAGS) \
+			   $(CLIENT_LD_FLAGS) \
 			   $(AM_LDFLAGS)
 
 gearmand_gearmand_CPPFLAGS= \

@@ -272,12 +272,10 @@ typedef void (gearman_connection_protocol_context_free_fn)(gearman_connection_st
                                                            void *context);
 
 typedef size_t (gearman_packet_pack_fn)(const gearman_packet_st *packet,
-                                        gearman_connection_st *con,
                                         void *data, size_t data_size,
                                         gearman_return_t *ret_ptr);
 typedef size_t (gearman_packet_unpack_fn)(gearman_packet_st *packet,
-                                          gearman_connection_st *con, const void *data,
-                                          size_t data_size,
+                                          const void *data, size_t data_size,
                                           gearman_return_t *ret_ptr);
 
 /** @} */

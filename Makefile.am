@@ -25,6 +25,13 @@ GEARMAN_TMP = ${abs_top_builddir}/tests/var/tmp/
 
 CLEANFILES+= config/top.h
 
+CLIENT_LD_FLAGS=
+if TARGET_OSX
+CLIENT_LD_FLAGS+= $(BOOST_PROGRAM_OPTIONS_LDFLAGS)
+else
+CLIENT_LD_FLAGS+= -L$(BOOST_PROGRAM_OPTIONS_LDPATH)
+endif
+
 
 include benchmark/include.am
 include bin/include.am

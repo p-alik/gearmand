@@ -108,5 +108,5 @@ Brian Aker, <brian@tangent.org> of Data Differential, http://datadifferential.co
 SEE ALSO
 --------
 
-:manpage:`gearmand(1)` :manpage:`libgearman_examples(3)`
+:manpage:`gearmand(8)` :manpage:`libgearman_examples(3)`
 

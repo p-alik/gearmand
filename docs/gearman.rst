@@ -1,6 +1,6 @@
-=======
-gearman
-=======
+=========================
+Gearman Command Line Tool
+=========================
 
 
 Command line client for Gearmand
@@ -107,4 +107,4 @@ To find out more information please check:
 SEE ALSO
 --------
 
-:manpage:`gearmand(1)` :manpage:`libgearman(3)`
+:manpage:`gearmand(8)` :manpage:`libgearman(3)`

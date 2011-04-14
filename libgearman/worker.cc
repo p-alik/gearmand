@@ -180,7 +180,10 @@ void gearman_worker_free(gearman_worker_st *worker)
   if (worker->work_result != NULL)
   {
     if ((&worker->universal)->workload_free_fn == NULL)
+    {
+      // Created with malloc
       free(worker->work_result);
+    }
     else
     {
       (&worker->universal)->workload_free_fn(worker->work_result,
@@ -973,7 +976,7 @@ static gearman_worker_st *_worker_allocate(gearman_worker_st *worker, bool is_cl
   worker->work_function= NULL;
   worker->work_result= NULL;
 
-  if (! is_clone)
+  if (not is_clone)
   {
     gearman_universal_st *check;
 
@@ -1027,13 +1030,12 @@ static gearman_return_t _worker_function_create(gearman_worker_st *worker,
                                                 gearman_worker_fn *worker_fn,
                                                 void *context)
 {
-  struct _worker_function_st *function;
   gearman_return_t ret;
   char timeout_buffer[11];
   const void *args[2];
   size_t args_size[2];
 
-  function= (struct _worker_function_st *)malloc(sizeof(struct _worker_function_st));
+  _worker_function_st *function= new (std::nothrow) _worker_function_st;
   if (function == NULL)
   {
     gearman_perror((&worker->universal), "_worker_function_st malloc");
@@ -1044,14 +1046,16 @@ static gearman_return_t _worker_function_create(gearman_worker_st *worker,
   function->options.change= true;
   function->options.remove= false;
 
-  function->function_name= strdup(function_name);
-  function->function_length= function_length;
+  function->function_name= new char[function_length +1];
   if (function->function_name == NULL)
   {
-    free(function);
+    delete function;
     gearman_perror((&worker->universal), "function_name strdup");
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
+  memcpy(function->function_name, function_name, function_length);
+  function->function_length= function_length;
+  function->function_name[function_length]= 0;
 
   function->worker_fn= worker_fn;
   function->context= context;
@@ -1078,13 +1082,15 @@ static gearman_return_t _worker_function_create(gearman_worker_st *worker,
   }
   if (ret != GEARMAN_SUCCESS)
   {
-    free(function->function_name);
-    free(function);
+    delete [] function->function_name;
+    delete function;
+
     return ret;
   }
 
   if (worker->function_list != NULL)
     worker->function_list->prev= function;
+
   function->next= worker->function_list;
   function->prev= NULL;
   worker->function_list= function;
@@ -1109,6 +1115,6 @@ static void _worker_function_free(gearman_worker_st *worker,
   if (function->options.packet_in_use)
     gearman_packet_free(&(function->packet));
 
-  free(function->function_name);
-  free(function);
+  delete [] function->function_name;
+  delete function;
 }

@@ -50,4 +50,4 @@ To find out more information please check:
 SEE ALSO
 --------
 
-:manpage:`gearmand(1)` :manpage:`libgearman(3)` :manpage:`gearman_status_t(3)`
+:manpage:`gearmand(8)` :manpage:`libgearman(3)` :manpage:`gearman_status_t(3)`

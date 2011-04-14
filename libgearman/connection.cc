@@ -334,7 +334,7 @@ gearman_return_t gearman_connection_send(gearman_connection_st *connection,
     /* Pack first part of packet, which is everything but the payload. */
     while (1)
     {
-      send_size= gearman_packet_pack(packet, connection,
+      send_size= gearman_packet_pack(packet,
                                      connection->send_buffer + connection->send_buffer_size,
                                      GEARMAN_SEND_BUFFER_SIZE -
                                      connection->send_buffer_size, &ret);
@@ -726,7 +726,7 @@ gearman_packet_st *gearman_connection_recv(gearman_connection_st *connection,
     {
       if (connection->recv_buffer_size > 0)
       {
-        recv_size= gearman_packet_unpack(connection->recv_packet, connection,
+        recv_size= gearman_packet_unpack(connection->recv_packet,
                                          connection->recv_buffer_ptr,
                                          connection->recv_buffer_size, ret_ptr);
         connection->recv_buffer_ptr+= recv_size;
@@ -770,6 +770,7 @@ gearman_packet_st *gearman_connection_recv(gearman_connection_st *connection,
 
     if (packet->universal->workload_malloc_fn == NULL)
     {
+      // Since it may be C on the other side, don't use new
       packet->data= malloc(packet->data_size);
     }
     else

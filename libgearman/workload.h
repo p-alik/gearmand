@@ -37,6 +37,8 @@
 
 #pragma once
 
+#include <time.h>
+
 struct gearman_workload_t {
   bool background;
   gearman_job_priority_t priority;

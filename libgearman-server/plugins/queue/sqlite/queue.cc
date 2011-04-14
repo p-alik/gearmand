@@ -147,22 +147,9 @@ static gearmand_error_t _sqlite_replay(gearman_server_st *server, void *context,
 
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 
-gearmand_error_t _initialize(gearman_server_st *server,
-                             gearmand::plugins::queue::Sqlite *queue)
+gearmand_error_t _initialize(gearman_server_st *server, gearmand::plugins::queue::Sqlite *queue)
 {
-  char *table= NULL;
-  const char *query;
-  sqlite3_stmt* sth;
-
-  gearmand_log_info("Initializing libsqlite3 module");
-
-  queue= (gearmand::plugins::queue::Sqlite *)calloc(1, sizeof(gearmand::plugins::queue::Sqlite));
-  if (queue == NULL)
-  {
-    gearmand_log_error("gearman_queue_libsqlite3_init", "malloc");
-    return GEARMAN_MEMORY_ALLOCATION_FAILURE;
-  }
-
+  gearmand_info("Initializing libsqlite3 module");
   gearman_server_set_queue(server, queue, _sqlite_add, _sqlite_flush, _sqlite_done, _sqlite_replay);
 
   if (sqlite3_open(queue->schema.c_str(), &(queue->db)) != SQLITE_OK)
@@ -182,17 +169,21 @@ gearmand_error_t _initialize(gearman_server_st *server,
     return GEARMAN_QUEUE_ERROR;
   }
 
-  query= "SELECT name FROM sqlite_master WHERE type='table'";
+  sqlite3_stmt* sth;
+  const char *query= "SELECT name FROM sqlite_master WHERE type='table'";
   if (_sqlite_query(server, queue, query, strlen(query), &sth) != SQLITE_OK)
   {
     gearman_server_set_queue(server, NULL, NULL, NULL, NULL, NULL);
     return GEARMAN_QUEUE_ERROR;
   }
 
+  char *table= NULL;
   while (sqlite3_step(sth) == SQLITE_ROW)
   {
     if (sqlite3_column_type(sth,0) == SQLITE_TEXT)
+    {
       table= (char*)sqlite3_column_text(sth, 0);
+    }
     else
     {
       sqlite3_finalize(sth);
@@ -232,8 +223,7 @@ gearmand_error_t _initialize(gearman_server_st *server,
 
     gearmand_log_info("sqlite module creating table '%s'", queue->table.c_str());
 
-    if (_sqlite_query(server, queue, create, strlen(create), &sth)
-        != SQLITE_OK)
+    if (_sqlite_query(server, queue, create, strlen(create), &sth) != SQLITE_OK)
     {
       gearman_server_set_queue(server, NULL, NULL, NULL, NULL, NULL);
       return GEARMAN_QUEUE_ERROR;
@@ -241,9 +231,7 @@ gearmand_error_t _initialize(gearman_server_st *server,
 
     if (sqlite3_step(sth) != SQLITE_DONE)
     {
-      gearmand_log_error("gearman_queue_libsqlite3_init",
-                         "create table error: %s",
-                         sqlite3_errmsg(queue->db));
+      gearmand_log_error("gearman_queue_libsqlite3_init", "create table error: %s", sqlite3_errmsg(queue->db));
       sqlite3_finalize(sth);
       return GEARMAN_QUEUE_ERROR;
     }
@@ -265,14 +253,11 @@ gearmand_error_t _initialize(gearman_server_st *server,
  * Static definitions
  */
 
-int _sqlite_query(gearman_server_st *server,
+int _sqlite_query(gearman_server_st *,
                   gearmand::plugins::queue::Sqlite *queue,
                   const char *query, size_t query_size,
                   sqlite3_stmt ** sth)
 {
-  (void)server;
-  int ret;
-
   if (query_size > UINT32_MAX)
   {
     gearmand_log_error("_sqlite_query", "query size too big [%u]",
@@ -281,7 +266,7 @@ int _sqlite_query(gearman_server_st *server,
   }
 
   gearmand_log_crazy("sqlite query: %s", query);
-  ret= sqlite3_prepare(queue->db, query, (int)query_size, sth, NULL);
+  int ret= sqlite3_prepare(queue->db, query, (int)query_size, sth, NULL);
   if (ret  != SQLITE_OK)
   {
     if (*sth)
@@ -299,16 +284,14 @@ int _sqlite_query(gearman_server_st *server,
 int _sqlite_lock(gearman_server_st *server,
                  gearmand::plugins::queue::Sqlite *queue)
 {
-  sqlite3_stmt* sth;
-  int ret;
   if (queue->in_trans)
   {
     /* already in transaction */
     return SQLITE_OK;
   }
 
-  ret= _sqlite_query(server, queue, "BEGIN TRANSACTION",
-                     sizeof("BEGIN TRANSACTION") - 1, &sth);
+  sqlite3_stmt* sth;
+  int ret= _sqlite_query(server, queue, STRING_WITH_LEN("BEGIN TRANSACTION"), &sth);
   if (ret != SQLITE_OK)
   {
     gearmand_log_error("_sqlite_lock",
@@ -340,16 +323,14 @@ int _sqlite_lock(gearman_server_st *server,
 int _sqlite_commit(gearman_server_st *server,
                    gearmand::plugins::queue::Sqlite *queue)
 {
-  sqlite3_stmt* sth;
-  int ret;
-
   if (! queue->in_trans)
   {
     /* not in transaction */
     return SQLITE_OK;
   }
 
-  ret= _sqlite_query(server, queue, "COMMIT", sizeof("COMMIT") - 1, &sth);
+  sqlite3_stmt* sth;
+  int ret= _sqlite_query(server, queue, STRING_WITH_LEN("COMMIT"), &sth);
   if (ret != SQLITE_OK)
   {
     gearmand_log_error("_sqlite_commit",
@@ -362,11 +343,11 @@ int _sqlite_commit(gearman_server_st *server,
 
     return ret;
   }
+
   ret= sqlite3_step(sth);
   if (ret != SQLITE_DONE)
   {
-    gearmand_log_error("_sqlite_commit", "commit error: %s",
-                       sqlite3_errmsg(queue->db));
+    gearmand_log_error("_sqlite_commit", "commit error: %s", sqlite3_errmsg(queue->db));
     sqlite3_finalize(sth);
     return ret;
   }
@@ -378,18 +359,14 @@ int _sqlite_commit(gearman_server_st *server,
 int _sqlite_rollback(gearman_server_st *server,
                      gearmand::plugins::queue::Sqlite *queue)
 {
-  sqlite3_stmt* sth;
-  int ret;
-  const char* query;
-
   if (! queue->in_trans)
   {
     /* not in transaction */
     return SQLITE_OK;
   }
 
-  query= "ROLLBACK";
-  ret= _sqlite_query(server, queue, query, strlen(query), &sth);
+  sqlite3_stmt* sth;
+  int ret= _sqlite_query(server, queue, STRING_WITH_LEN("ROLLBACK"), &sth);
   if (ret != SQLITE_OK)
   {
     gearmand_log_error("_sqlite_rollback",

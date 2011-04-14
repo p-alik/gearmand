@@ -118,7 +118,10 @@ void gearman_universal_free(gearman_universal_st *universal)
   gearman_free_all_packets(universal);
 
   if (universal->pfds != NULL)
+  {
+    // created realloc()
     free(universal->pfds);
+  }
 }
 
 gearman_return_t gearman_universal_set_option(gearman_universal_st *universal, gearman_universal_options_t option, bool value)
