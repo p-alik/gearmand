@@ -7,13 +7,14 @@
 # the COPYING file in this directory for full text.
 
 AC_PREREQ(2.59)
-AC_INIT([gearmand],[0.18],[https://launchpad.net/gearmand])
-AC_CONFIG_SRCDIR(libgearman/gearman.c)
+AC_INIT([gearmand],[0.20],[https://launchpad.net/gearmand])
+AC_CONFIG_SRCDIR(libgearman/gearman.cc)
 AC_CONFIG_AUX_DIR(config)
+AC_CONFIG_MACRO_DIR(m4)
 
 PANDORA_CANONICAL_TARGET(require-cxx)
 
-GEARMAN_LIBRARY_VERSION=4:0:0
+GEARMAN_LIBRARY_VERSION=5:1:1
 #                       | | |
 #                +------+ | +---+
 #                |        |     |
@@ -27,7 +28,7 @@ GEARMAN_LIBRARY_VERSION=4:0:0
 #                +- increment if interfaces have been added, removed or changed
 AC_SUBST(GEARMAN_LIBRARY_VERSION)
 
-BOOST_REQUIRE
+BOOST_REQUIRE(1.37.0)
 BOOST_PROGRAM_OPTIONS(mt-)
 
 
@@ -45,11 +46,52 @@ PANDORA_HAVE_LIBTOKYOCABINET
 AC_FUNC_STRERROR_R
 SOCKET_SEND_FLAGS
 
-AC_CHECK_HEADERS(errno.h fcntl.h getopt.h netinet/tcp.h pwd.h signal.h)
-AC_CHECK_HEADERS(stdarg.h stddef.h stdio.h stdlib.h string.h)
-AC_CHECK_HEADERS(sys/resource.h sys/stat.h)
-AC_CHECK_HEADERS(sys/socket.h sys/types.h sys/utsname.h unistd.h strings.h)
+# Checks for programs.
+AC_PROG_CXX
+AC_PROG_AWK
+AC_PROG_CPP
+AC_PROG_INSTALL
+AC_PROG_LN_S
+AC_PROG_MAKE_SET
+AC_PROG_RANLIB
 
+# Checks for header files.
+AC_HEADER_STDC
+AC_HEADER_SYS_WAIT
+AC_CHECK_HEADERS(arpa/inet.h fcntl.h inttypes.h limits.h netdb.h netinet/in.h stddef.h stdint.h stdlib.h string.h strings.h sys/socket.h sys/time.h unistd.h netinet/tcp.h)
+AC_CHECK_HEADERS(errno.h getopt.h pwd.h signal.h)
+AC_CHECK_HEADERS(stdarg.h stddef.h stdio.h)
+AC_CHECK_HEADERS(sys/resource.h sys/stat.h)
+AC_CHECK_HEADERS(sys/socket.h sys/types.h sys/utsname.h strings.h)
+
+# Checks for typedefs, structures, and compiler characteristics.
+AC_HEADER_STDBOOL
+AC_C_CONST
+AC_C_INLINE
+AC_TYPE_INT32_T
+AC_TYPE_PID_T
+AC_TYPE_SIZE_T
+AC_TYPE_SSIZE_T
+AC_HEADER_TIME
+AC_TYPE_UID_T
+AC_TYPE_UINT16_T
+AC_TYPE_UINT32_T
+AC_TYPE_UINT64_T
+AC_TYPE_UINT8_T
+AC_C_VOLATILE
+AC_CHECK_TYPES([ptrdiff_t])
+
+# Checks for library functions.
+AC_FUNC_ERROR_AT_LINE
+AC_REPLACE_FNMATCH
+AC_FUNC_FORK
+AC_FUNC_MALLOC
+AC_FUNC_MEMCMP
+AC_FUNC_REALLOC
+AC_TYPE_SIGNAL
+AC_FUNC_STRERROR_R
+AC_FUNC_VPRINTF
+AC_CHECK_FUNCS([dup2 gettimeofday memchr memmove memset socket strcasecmp strdup strerror strncasecmp uname])
 
 AC_CONFIG_FILES(Makefile
                 libgearman/configure.h

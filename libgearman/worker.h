@@ -1,9 +1,39 @@
-/* Gearman server and library
- * Copyright (C) 2008 Brian Aker, Eric Day
- * All rights reserved.
+/*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
+ * 
+ *  Gearmand client and server library.
  *
- * Use and distribution licensed under the BSD license.  See
- * the COPYING file in the parent directory for full text.
+ *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2008 Brian Aker, Eric Day
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions are
+ *  met:
+ *
+ *      * Redistributions of source code must retain the above copyright
+ *  notice, this list of conditions and the following disclaimer.
+ *
+ *      * Redistributions in binary form must reproduce the above
+ *  copyright notice, this list of conditions and the following disclaimer
+ *  in the documentation and/or other materials provided with the
+ *  distribution.
+ *
+ *      * The names of its contributors may not be used to endorse or
+ *  promote products derived from this software without specific prior
+ *  written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ *  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ *  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ *  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ *  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ *  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ *  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
 /**
@@ -11,8 +41,7 @@
  * @brief Worker Declarations
  */
 
-#ifndef __GEARMAN_WORKER_H__
-#define __GEARMAN_WORKER_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -26,6 +55,22 @@ extern "C" {
  * @ref main_page_worker "See Main Page for full details."
  * @{
  */
+
+  enum gearman_worker_state_t {
+    GEARMAN_WORKER_STATE_START,
+    GEARMAN_WORKER_STATE_FUNCTION_SEND,
+    GEARMAN_WORKER_STATE_CONNECT,
+    GEARMAN_WORKER_STATE_GRAB_JOB_SEND,
+    GEARMAN_WORKER_STATE_GRAB_JOB_RECV,
+    GEARMAN_WORKER_STATE_PRE_SLEEP
+  };
+
+  enum gearman_worker_universal_t {
+    GEARMAN_WORKER_WORK_UNIVERSAL_GRAB_JOB,
+    GEARMAN_WORKER_WORK_UNIVERSAL_FUNCTION,
+    GEARMAN_WORKER_WORK_UNIVERSAL_COMPLETE,
+    GEARMAN_WORKER_WORK_UNIVERSAL_FAIL
+  };
 
 /**
  * @ingroup gearman_worker
@@ -43,20 +88,8 @@ struct gearman_worker_st
     bool grab_uniq LIBGEARMAN_BITFIELD;
     bool timeout_return LIBGEARMAN_BITFIELD;
   } options;
-  enum {
-    GEARMAN_WORKER_STATE_START,
-    GEARMAN_WORKER_STATE_FUNCTION_SEND,
-    GEARMAN_WORKER_STATE_CONNECT,
-    GEARMAN_WORKER_STATE_GRAB_JOB_SEND,
-    GEARMAN_WORKER_STATE_GRAB_JOB_RECV,
-    GEARMAN_WORKER_STATE_PRE_SLEEP
-  } state;
-  enum {
-    GEARMAN_WORKER_WORK_UNIVERSAL_GRAB_JOB,
-    GEARMAN_WORKER_WORK_UNIVERSAL_FUNCTION,
-    GEARMAN_WORKER_WORK_UNIVERSAL_COMPLETE,
-    GEARMAN_WORKER_WORK_UNIVERSAL_FAIL
-  } work_state;
+  enum gearman_worker_state_t state;
+  enum gearman_worker_universal_t work_state;
   uint32_t function_count;
   uint32_t job_count;
   size_t work_result_size;
@@ -406,5 +439,3 @@ gearman_return_t gearman_worker_echo(gearman_worker_st *worker,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GEARMAN_WORKER_H__ */

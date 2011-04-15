@@ -32,8 +32,6 @@
 #include <libgearman-server/connection_list.h>
 #include <libgearman-server/byteorder.h>
 #include <libgearman-server/log.h>
-#include <libgearman-server/conf.h>
-#include <libgearman-server/conf_module.h>
 #include <libgearman-server/packet.h>
 #include <libgearman-server/connection.h>
 #include <libgearman-server/function.h>

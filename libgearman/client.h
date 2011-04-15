@@ -1,9 +1,39 @@
-/* Gearman server and library
- * Copyright (C) 2008 Brian Aker, Eric Day
- * All rights reserved.
+/*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
+ * 
+ *  Gearmand client and server library.
  *
- * Use and distribution licensed under the BSD license.  See
- * the COPYING file in the parent directory for full text.
+ *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2008 Brian Aker, Eric Day
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions are
+ *  met:
+ *
+ *      * Redistributions of source code must retain the above copyright
+ *  notice, this list of conditions and the following disclaimer.
+ *
+ *      * Redistributions in binary form must reproduce the above
+ *  copyright notice, this list of conditions and the following disclaimer
+ *  in the documentation and/or other materials provided with the
+ *  distribution.
+ *
+ *      * The names of its contributors may not be used to endorse or
+ *  promote products derived from this software without specific prior
+ *  written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ *  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ *  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ *  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ *  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ *  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ *  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
 /**
@@ -11,8 +41,7 @@
  * @brief Client Declarations
  */
 
-#ifndef __GEARMAN_CLIENT_H__
-#define __GEARMAN_CLIENT_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,6 +57,13 @@ extern "C" {
  * @{
  */
 
+enum gearman_client_t {
+  GEARMAN_CLIENT_STATE_IDLE,
+  GEARMAN_CLIENT_STATE_NEW,
+  GEARMAN_CLIENT_STATE_SUBMIT,
+  GEARMAN_CLIENT_STATE_PACKET
+};
+
 
 /**
  * @ingroup gearman_client
@@ -42,12 +78,7 @@ struct gearman_client_st
     bool no_new LIBGEARMAN_BITFIELD;
     bool free_tasks LIBGEARMAN_BITFIELD;
   } options;
-  enum {
-    GEARMAN_CLIENT_STATE_IDLE,
-    GEARMAN_CLIENT_STATE_NEW,
-    GEARMAN_CLIENT_STATE_SUBMIT,
-    GEARMAN_CLIENT_STATE_PACKET
-  } state;
+  enum gearman_client_t state;
   gearman_return_t do_ret;
   uint32_t new_tasks;
   uint32_t running_tasks;
@@ -458,6 +489,13 @@ GEARMAN_API
 void gearman_client_set_task_context_free_fn(gearman_client_st *client,
                                              gearman_task_context_free_fn *function);
 
+// Use the job handle in task for returning all information.
+GEARMAN_API
+gearman_status_t gearman_client_execute(gearman_client_st *client,
+                                        const gearman_function_st *function,
+                                        gearman_unique_t *unique,
+                                        const gearman_workload_t *workload);
+
 /**
  * Add a task to be run in parallel.
  *
@@ -681,10 +719,11 @@ void gearman_client_clear_fn(gearman_client_st *client);
 GEARMAN_API
 gearman_return_t gearman_client_run_tasks(gearman_client_st *client);
 
+GEARMAN_API
+bool gearman_client_compare(const gearman_client_st *first, const gearman_client_st *second);
+
 /** @} */
 
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GEARMAN_CLIENT_H__ */

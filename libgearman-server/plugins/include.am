@@ -3,6 +3,7 @@
 # Copyright (C) 2011 Data Differential
 
 noinst_HEADERS+= \
+		 libgearman-server/plugins/base.h \
 		 libgearman-server/plugins/protocol.h \
 		 libgearman-server/plugins/queue.h
 

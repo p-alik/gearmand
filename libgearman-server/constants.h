@@ -15,6 +15,12 @@
 #define __GEARMAN_SERVER_CONSTANTS_H__
 
 #ifdef __cplusplus
+#include <cstdlib>
+#else
+#include <stdlib.h>
+#endif
+
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -129,10 +135,11 @@ typedef gearmand_error_t (gearman_queue_add_fn)(gearman_server_st *server,
                                                 size_t function_name_size,
                                                 const void *data,
                                                 size_t data_size,
-                                                gearmand_job_priority_t priority);
+                                                gearmand_job_priority_t priority,
+                                                int64_t when);
 
 typedef gearmand_error_t (gearman_queue_flush_fn)(gearman_server_st *server,
-                                                  void *context);
+                                                 void *context);
 
 typedef gearmand_error_t (gearman_queue_done_fn)(gearman_server_st *server,
                                                  void *context,

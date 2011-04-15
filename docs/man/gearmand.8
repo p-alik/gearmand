@@ -1,0 +1,230 @@
+.TH "GEARMAND" "8" "April 13, 2011" "0.20" "Gearmand"
+.SH NAME
+gearmand \- Gearmand Documentation
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.\" Man page generated from reStructeredText.
+.
+.SH SYNOPSIS
+.sp
+\fBGeneral options\fP
+.INDENT 0.0
+.TP
+.B \-b [ \-\-backlog ] arg (=32)
+.UNINDENT
+.sp
+Number of backlog connections for listen.
+.INDENT 0.0
+.TP
+.B \-\-check\-args
+.UNINDENT
+.sp
+Check command line and configuration file argments and then exit.
+.INDENT 0.0
+.TP
+.B \-d [ \-\-daemon ]
+.UNINDENT
+.sp
+Daemon, detach and run in the background.
+.INDENT 0.0
+.TP
+.B \-f [ \-\-file\-descriptors ] arg
+.UNINDENT
+.sp
+Number of file descriptors to allow for the process (total connections will be slightly less). Default is max allowed for user.
+.INDENT 0.0
+.TP
+.B \-h [ \-\-help ]
+.UNINDENT
+.sp
+Print this help menu.
+.INDENT 0.0
+.TP
+.B \-j [ \-\-job\-retries ] arg (=0)
+.UNINDENT
+.sp
+Number of attempts to run the job before the job server removes it. This is helpful to ensure a bad job does not crash all available workers. Default is no limit.
+.INDENT 0.0
+.TP
+.B \-l [ \-\-log\-file ] arg
+.UNINDENT
+.sp
+Log file to write errors and information to.  Turning this option on also forces the first verbose level to be enabled.
+.INDENT 0.0
+.TP
+.B \-L [ \-\-listen ] arg
+.UNINDENT
+.sp
+Address the server should listen on. Default is INADDR_ANY.
+.INDENT 0.0
+.TP
+.B \-p [ \-\-port ] arg (=4730)
+.UNINDENT
+.sp
+Port the server should listen on.
+.INDENT 0.0
+.TP
+.B \-P [ \-\-pid\-file ] arg
+.UNINDENT
+.sp
+File to write process ID out to.
+.INDENT 0.0
+.TP
+.B \-r [ \-\-protocol ] arg
+.UNINDENT
+.sp
+Load protocol module.
+.INDENT 0.0
+.TP
+.B \-R [ \-\-round\-robin ]
+.UNINDENT
+.sp
+Assign work in round\-robin order per worker connection. The default is to assign work in the order of functions added by the worker.
+.INDENT 0.0
+.TP
+.B \-q [ \-\-queue\-type ] arg
+.UNINDENT
+.sp
+Persistent queue type to use.
+.INDENT 0.0
+.TP
+.B \-t [ \-\-threads ] arg (=4)
+.UNINDENT
+.sp
+Number of I/O threads to use. Default=4.
+.INDENT 0.0
+.TP
+.B \-u [ \-\-user ] arg
+.UNINDENT
+.sp
+Switch to given user after startup.
+.INDENT 0.0
+.TP
+.B \-v [ \-\-verbose ] arg (=v)
+.UNINDENT
+.sp
+Increase verbosity level by one.
+.INDENT 0.0
+.TP
+.B \-V [ \-\-version ]
+.UNINDENT
+.sp
+Display the version of gearmand and exit.
+.INDENT 0.0
+.TP
+.B \-w [ \-\-worker\-wakeup ] arg (=0)
+.UNINDENT
+.sp
+Number of workers to wakeup for each job received. The default is to wakeup all available workers.
+.sp
+\fBHTTP:\fP
+.INDENT 0.0
+.TP
+.B \-\-http\-port arg (=8080)
+.UNINDENT
+.sp
+Port to listen on.
+.sp
+\fBsqlite\fP
+.INDENT 0.0
+.TP
+.B \-\-libsqlite3\-db arg
+.UNINDENT
+.sp
+Database file to use.
+.INDENT 0.0
+.TP
+.B \-\-libsqlite3\-table arg (=gearman_queue)
+.UNINDENT
+.sp
+Table to use.
+.sp
+\fBPostgres\fP
+.INDENT 0.0
+.TP
+.B \-\-libpq\-conninfo arg
+.UNINDENT
+.sp
+PostgreSQL connection information string.
+.INDENT 0.0
+.TP
+.B \-\-libpq\-table arg (=queue)
+.UNINDENT
+.sp
+Table to use.
+.sp
+\fBtokyocabinet\fP
+.INDENT 0.0
+.TP
+.B \-\-libtokyocabinet\-file arg
+.UNINDENT
+.sp
+File name of the database. [see: man tcadb, tcadbopen() for name guidelines]
+.INDENT 0.0
+.TP
+.B \-\-libtokyocabinet\-optimize
+.UNINDENT
+.sp
+Optimize database on open. [default=true]
+.SH DESCRIPTION
+.sp
+Gearman provides a generic application framework to farm out work to other machines or processes that are better suited to do the work. It allows you to do work in parallel, to load balance processing, and to call functions between languages. It can be used in a variety of applications, from high\-availability web sites to the transport of database replication events. In other words, it is the nervous system for how distributed processing communicates. A few strong points about Gearman:
+.INDENT 0.0
+.IP \(bu 2
+.
+Open Source \- It\(aqs free! (in both meanings of the word) Gearman has an active open source community that is easy to get involved with if you need help or want to contribute.
+.IP \(bu 2
+.
+Multi\-language \- There are interfaces for a number of languages, and this list is growing. You also have the option to write heterogeneous applications with clients submitting work in one language and workers performing that work in another.
+.IP \(bu 2
+.
+Flexible \- You are not tied to any specific design pattern. You can quickly put together distributed applications using any model you choose, one of those options being Map/Reduce.
+.IP \(bu 2
+.
+Fast \- Gearman has a simple protocol and interface with a new optimized server in C to minimize your application overhead.
+.IP \(bu 2
+.
+Embeddable \- Since Gearman is fast and lightweight, it is great for applications of all sizes. It is also easy to introduce into existing applications with minimal overhead.
+.IP \(bu 2
+.
+No single point of failure \- Gearman can not only help scale systems, but can do it in a fault tolerant way.
+.UNINDENT
+.SH HOME
+.sp
+To find out more information please check:
+\fI\%https://launchpad.net/gearmand\fP
+.SH SEE ALSO
+.sp
+\fIgearman(1)\fP \fIgearadmin(1)\fP \fIlibgearmand(3)\fP
+.SH AUTHOR
+Data Differential http://datadifferential.com/
+.SH COPYRIGHT
+2011, Data Differential, http://datadifferential.com/
+.\" Generated by docutils manpage writer.
+.\" 
+.

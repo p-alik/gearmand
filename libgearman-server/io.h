@@ -11,10 +11,8 @@
  * @brief Connection Declarations
  */
 
-#ifndef __GEARMAN_CONNECTION_H__
-#define __GEARMAN_CONNECTION_H__
+#pragma once
 
-#include <stdbool.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
@@ -40,10 +38,7 @@ extern "C" {
  * @ingroup gearman_connection
  */
 
-#ifdef GEARMAN_CORE
-
-/**
- * Initialize a connection structure. Always check the return value even if
+/** Initialize a connection structure. Always check the return value even if
  * passing in a pre-allocated structure. Some other initialization may have
  * failed.
  *
@@ -98,8 +93,7 @@ gearmand_error_t gearman_io_send(gearman_server_con_st *connection,
  * Used by thread to recv packets.
  */
 GEARMAN_INTERNAL_API
-  gearmand_packet_st *gearman_io_recv(gearman_server_con_st *con,
-                                      gearmand_error_t *ret_ptr, bool recv_data);
+gearmand_error_t gearman_io_recv(gearman_server_con_st *con, bool recv_data);
 
 /**
  * Set events to be watched for a connection.
@@ -122,10 +116,6 @@ void gearmand_pipe_close(int sockfd);
 
 /** @} */
 
-#endif /* GEARMAN_CORE */
-
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GEARMAN_CONNECTION_H__ */

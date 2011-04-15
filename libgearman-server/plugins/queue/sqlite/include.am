@@ -14,7 +14,7 @@ noinst_HEADERS+= \
 		 libgearman-server/plugins/queue/sqlite/queue.h
 
 libgearman_server_libgearman_server_la_SOURCES+= \
-						 libgearman-server/plugins/queue/sqlite/queue.c
+						 libgearman-server/plugins/queue/sqlite/queue.cc
 
 libgearman_server_libgearman_server_la_LIBADD+= $(LTLIBSQLITE3)
 

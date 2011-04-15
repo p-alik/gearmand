@@ -38,3 +38,4 @@
 #pragma once
 
 #include <libgearman-server/plugins/protocol/http/protocol.h>
+

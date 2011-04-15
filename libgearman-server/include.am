@@ -1,5 +1,6 @@
 # vim:ft=automake
 # Gearman server and library
+# Copyright (C) 2011 Data Differential, http://datadifferential.com/
 # Copyright (C) 2008 Brian Aker, Eric Day
 # Copyright (C) 2009 Brian Aker, Eric Day, Monty Taylor
 # All rights reserved.
@@ -21,47 +22,54 @@ noinst_LTLIBRARIES+= libgearman-server/libgearman-server.la
 
 
 noinst_HEADERS+= \
+		 libgearman-server/byte.h \
 		 libgearman-server/byteorder.h \
 		 libgearman-server/client.h \
 		 libgearman-server/common.h \
-		 libgearman-server/conf.h \
-		 libgearman-server/conf_module.h \
 		 libgearman-server/connection.h \
 		 libgearman-server/connection_list.h \
 		 libgearman-server/constants.h \
+		 libgearman-server/fifo.h \
 		 libgearman-server/function.h \
 		 libgearman-server/gearmand.h \
 		 libgearman-server/gearmand_con.h \
 		 libgearman-server/gearmand_thread.h \
+		 libgearman-server/hash.h \
 		 libgearman-server/io.h \
 		 libgearman-server/job.h \
+		 libgearman-server/list.h \
 		 libgearman-server/log.h \
 		 libgearman-server/packet.h \
+		 libgearman-server/queue.h \
 		 libgearman-server/plugins.h \
+		 libgearman-server/port.h \
 		 libgearman-server/server.h \
 		 libgearman-server/thread.h \
 		 libgearman-server/wakeup.h \
 		 libgearman-server/worker.h
 
 libgearman_server_libgearman_server_la_SOURCES+= \
-						 libgearman-server/byteorder.c \
-						 libgearman-server/client.c \
-						 libgearman-server/conf.c \
-						 libgearman-server/conf_module.c \
+						 libgearman-server/byteorder.cc \
+						 libgearman-server/client.cc \
 						 libgearman-server/connection.c \
-						 libgearman-server/connection_list.c \
-						 libgearman-server/function.c \
-						 libgearman-server/gearmand.c \
+						 libgearman-server/connection_list.cc \
+						 libgearman-server/fifo.c \
+						 libgearman-server/function.cc \
+						 libgearman-server/gearmand.cc \
 						 libgearman-server/gearmand_con.c \
-						 libgearman-server/gearmand_thread.c \
-						 libgearman-server/io.c \
+						 libgearman-server/gearmand_thread.cc \
+						 libgearman-server/hash.c \
+						 libgearman-server/io.cc \
 						 libgearman-server/job.c \
-						 libgearman-server/log.c \
-						 libgearman-server/packet.c \
+						 libgearman-server/list.c \
+						 libgearman-server/log.cc \
+						 libgearman-server/packet.cc \
+						 libgearman-server/plugins.cc \
+						 libgearman-server/queue.cc \
 						 libgearman-server/server.c \
 						 libgearman-server/thread.c \
-						 libgearman-server/wakeup.c \
-						 libgearman-server/worker.c
+						 libgearman-server/wakeup.cc \
+						 libgearman-server/worker.cc
 
 libgearman_server_libgearman_server_la_CFLAGS= \
 					       ${AM_CFLAGS} \

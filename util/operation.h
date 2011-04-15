@@ -48,14 +48,17 @@ class Operation {
   typedef std::vector<char> Packet;
 
 public:
-  typedef std::vector<Operation> vector;
+  typedef std::vector<Operation *> vector;
 
-  Operation(const char *command, size_t command_length, bool expect_response= false) :
+  Operation(const char *command, size_t command_length, bool expect_response= true) :
     _expect_response(expect_response)
   {
     packet.resize(command_length);
     memcpy(&packet[0], command, command_length);
   }
+
+  ~Operation()
+  { }
 
   size_t size() const
   {
@@ -76,7 +79,7 @@ public:
   {
     size_t response_size= response.size();
     response.resize(response_size + buffer_size);
-    memcpy(&response[0] + response_size, buffer, buffer_size);
+    memcpy(&response[0] +response_size, buffer, buffer_size);
   }
 
   void print() const
@@ -84,7 +87,28 @@ public:
     if (response.empty())
       return;
 
-    std::cerr << std::string(&response[0], response.size());
+    if (not memcmp("OK\r\n", &response[0], 3))
+    {
+      std::cout << "OK" << std::endl;
+      return;
+    }
+    else if (not memcmp("OK ", &response[0], 3))
+    {
+      std::cout.write(&response[3], response.size() -3);
+    }
+    else if (not memcmp("ERR ", &response[0], 4))
+    {
+      std::cerr << "Error: ";
+      std::cerr.write(&response[4], response.size() -4);
+    }
+    else 
+    {
+#if 0 // Do this until we have the factory in place for admin language
+      std::cerr <<  "Unknown reponse returned:";
+#endif
+      std::cerr.write(&response[0], response.size());
+      std::cerr << std::endl;
+    }
   }
 
   bool reconnect() const

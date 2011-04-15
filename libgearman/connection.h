@@ -1,9 +1,39 @@
-/* Gearman server and library
- * Copyright (C) 2008 Brian Aker, Eric Day
- * All rights reserved.
+/*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
+ * 
+ *  Gearmand client and server library.
  *
- * Use and distribution licensed under the BSD license.  See
- * the COPYING file in the parent directory for full text.
+ *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2008 Brian Aker, Eric Day
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions are
+ *  met:
+ *
+ *      * Redistributions of source code must retain the above copyright
+ *  notice, this list of conditions and the following disclaimer.
+ *
+ *      * Redistributions in binary form must reproduce the above
+ *  copyright notice, this list of conditions and the following disclaimer
+ *  in the documentation and/or other materials provided with the
+ *  distribution.
+ *
+ *      * The names of its contributors may not be used to endorse or
+ *  promote products derived from this software without specific prior
+ *  written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ *  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ *  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ *  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ *  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ *  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ *  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
 /**
@@ -11,17 +41,11 @@
  * @brief Connection Declarations
  */
 
-#ifndef __GEARMAN_CONNECTION_H__
-#define __GEARMAN_CONNECTION_H__
+#pragma once
 
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 
 /**
  * @addtogroup gearman_con Connection Declarations
@@ -34,6 +58,27 @@ extern "C" {
  *
  * @{
  */
+
+enum gearman_con_recv_t {
+  GEARMAN_CON_RECV_UNIVERSAL_NONE,
+  GEARMAN_CON_RECV_UNIVERSAL_READ,
+  GEARMAN_CON_RECV_STATE_READ_DATA
+};
+
+enum gearman_con_send_t {
+  GEARMAN_CON_SEND_STATE_NONE,
+  GEARMAN_CON_SEND_UNIVERSAL_PRE_FLUSH,
+  GEARMAN_CON_SEND_UNIVERSAL_FORCE_FLUSH,
+  GEARMAN_CON_SEND_UNIVERSAL_FLUSH,
+  GEARMAN_CON_SEND_UNIVERSAL_FLUSH_DATA
+};
+
+enum gearman_con_universal_t {
+  GEARMAN_CON_UNIVERSAL_ADDRINFO,
+  GEARMAN_CON_UNIVERSAL_CONNECT,
+  GEARMAN_CON_UNIVERSAL_CONNECTING,
+  GEARMAN_CON_UNIVERSAL_CONNECTED
+};
 
 /**
  * @ingroup gearman_connection
@@ -48,24 +93,9 @@ struct gearman_connection_st
     bool ignore_lost_connection LIBGEARMAN_BITFIELD;
     bool close_after_flush LIBGEARMAN_BITFIELD;
   } options;
-  enum {
-    GEARMAN_CON_UNIVERSAL_ADDRINFO,
-    GEARMAN_CON_UNIVERSAL_CONNECT,
-    GEARMAN_CON_UNIVERSAL_CONNECTING,
-    GEARMAN_CON_UNIVERSAL_CONNECTED
-  } state;
-  enum {
-    GEARMAN_CON_SEND_STATE_NONE,
-    GEARMAN_CON_SEND_UNIVERSAL_PRE_FLUSH,
-    GEARMAN_CON_SEND_UNIVERSAL_FORCE_FLUSH,
-    GEARMAN_CON_SEND_UNIVERSAL_FLUSH,
-    GEARMAN_CON_SEND_UNIVERSAL_FLUSH_DATA
-  } send_state;
-  enum {
-    GEARMAN_CON_RECV_UNIVERSAL_NONE,
-    GEARMAN_CON_RECV_UNIVERSAL_READ,
-    GEARMAN_CON_RECV_STATE_READ_DATA
-  } recv_state;
+  enum gearman_con_universal_t state;
+  enum gearman_con_send_t send_state;
+  enum gearman_con_recv_t recv_state;
   in_port_t port;
   short events;
   short revents;
@@ -87,10 +117,6 @@ struct gearman_connection_st
   char *send_buffer_ptr;
   gearman_packet_st *recv_packet;
   char *recv_buffer_ptr;
-  void *protocol_context;
-  gearman_connection_protocol_context_free_fn *protocol_context_free_fn;
-  gearman_packet_pack_fn *packet_pack_fn;
-  gearman_packet_unpack_fn *packet_unpack_fn;
   gearman_packet_st packet;
   char host[NI_MAXHOST];
   char send_buffer[GEARMAN_SEND_BUFFER_SIZE];
@@ -155,12 +181,6 @@ GEARMAN_INTERNAL_API
 void gearman_connection_free(gearman_connection_st *connection);
 
 
-GEARMAN_INTERNAL_API
-gearman_return_t gearman_connection_set_option(gearman_connection_st *connection,
-                                               gearman_connection_options_t options,
-                                               bool value);
-
-
 /**
  * Set host for a connection.
  */
@@ -168,30 +188,6 @@ GEARMAN_INTERNAL_API
 void gearman_connection_set_host(gearman_connection_st *connection,
                                  const char *host,
                                  in_port_t port);
-
-/**
- * Set connection to an already open file descriptor.
- */
-GEARMAN_INTERNAL_API
-gearman_return_t gearman_connection_set_fd(gearman_connection_st *connection, int fd);
-
-/**
- * Get application context pointer.
- */
-GEARMAN_INTERNAL_API
-void *gearman_connection_context(const gearman_connection_st *connection);
-
-/**
- * Set application context pointer.
- */
-GEARMAN_INTERNAL_API
-void gearman_connection_set_context(gearman_connection_st *connection, void *context);
-
-/**
- * Connect to server.
- */
-GEARMAN_INTERNAL_API
-gearman_return_t gearman_connection_connect(gearman_connection_st *connection);
 
 /**
  * Close a connection.
@@ -254,45 +250,6 @@ gearman_return_t gearman_connection_set_events(gearman_connection_st *connection
 GEARMAN_INTERNAL_API
 gearman_return_t gearman_connection_set_revents(gearman_connection_st *connection, short revents);
 
-/**
- * Get protocol context pointer.
- */
-GEARMAN_INTERNAL_API
-void *gearman_connection_protocol_context(const gearman_connection_st *connection);
-
-/**
- * Set protocol context pointer.
- */
-GEARMAN_INTERNAL_API
-void gearman_connection_set_protocol_context(gearman_connection_st *connection, void *context);
-
-/**
- * Set function to call when protocol_data should be freed.
- */
-GEARMAN_INTERNAL_API
-void gearman_connection_set_protocol_context_free_fn(gearman_connection_st *connection,
-                                                     gearman_connection_protocol_context_free_fn *function);
-
-/**
- * Set custom packet_pack function
- */
-GEARMAN_INTERNAL_API
-void gearman_connection_set_packet_pack_fn(gearman_connection_st *connection,
-                                           gearman_packet_pack_fn *function);
-
-/**
- * Set custom packet_unpack function
- */
-GEARMAN_INTERNAL_API
-void gearman_connection_set_packet_unpack_fn(gearman_connection_st *connection,
-                                             gearman_packet_unpack_fn *function);
-
 /** @} */
 
 #endif /* GEARMAN_CORE */
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* __GEARMAN_CONNECTION_H__ */

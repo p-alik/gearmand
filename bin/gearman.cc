@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
   if (args.usage())
   {
     usage(argv[0]);
-    exit(0);
+    return EXIT_SUCCESS;
   }
 
   signal_setup();
@@ -137,19 +137,19 @@ int main(int argc, char *argv[])
     {
     case -1:
       fprintf(stderr, "gearmand: fork:%d\n", errno);
-      return 1;
+      return EXIT_FAILURE;
 
     case 0:
       break;
 
     default:
-      return 0;
+      return EXIT_SUCCESS;
     }
 
     if (setsid() == -1)
     {
       fprintf(stderr, "gearmand: setsid:%d\n", errno);
-      return 1;
+      return EXIT_FAILURE;
     }
 
     close_stdio= true;
@@ -165,19 +165,19 @@ int main(int argc, char *argv[])
       if (dup2(fd, STDIN_FILENO) == -1)
       {
         fprintf(stderr, "gearmand: dup2:%d\n", errno);
-        return 1;
+        return EXIT_FAILURE;
       }
 
       if (dup2(fd, STDOUT_FILENO) == -1)
       {
         fprintf(stderr, "gearmand: dup2:%d\n", errno);
-        return 1;
+        return EXIT_FAILURE;
       }
 
       if (dup2(fd, STDERR_FILENO) == -1)
       {
         fprintf(stderr, "gearmand: dup2:%d\n", errno);
-        return 1;
+        return EXIT_FAILURE;
       }
 
       close(fd);
@@ -189,7 +189,7 @@ int main(int argc, char *argv[])
   if (not _pid_file.create())
   {
     error::perror(_pid_file.error_message().c_str());
-    return 1;
+    return EXIT_FAILURE;
   }
 
   if (args.worker())
@@ -459,7 +459,7 @@ void _worker(Args &args)
   if (ret != GEARMAN_SUCCESS)
   {
     error::message("gearman_worker_add_server", worker);
-    exit(0);
+    _exit(EXIT_FAILURE);
   }
 
   gearman_worker_set_workload_free_fn(&worker, _worker_free, NULL);
@@ -474,7 +474,7 @@ void _worker(Args &args)
     if (ret != GEARMAN_SUCCESS)
     {
       error::message("gearman_worker_add_function", worker);
-      exit(0);
+      _exit(EXIT_FAILURE);
     }
   }
 
@@ -512,10 +512,11 @@ static void *_worker_cb(gearman_job_st *job, void *context,
   int in_fds[2];
   int out_fds[2];
   int status;
-  (void)result_size;
 
   Args &args= arguments->args;
   Function &function= arguments->function;
+
+  function.buffer().clear();
 
   *ret_ptr= GEARMAN_SUCCESS;
 

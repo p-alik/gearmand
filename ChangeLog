@@ -1,3 +1,22 @@
+  * Support for "drop function"
+
+0.20 Fri Apr  8 09:25:15 PDT 2011
+  * gearman_client_execute() interface added
+  * New types of gearman_unique_t, gearman_function_st, gearman_workload_t
+  * Better error reporting from clients.
+  * Server no longer hangs because of bad job list.
+  * First bit of work on supporting epoch portion of protocol.  
+  * Improved error message handling in client. 
+  * Updates for manpages.
+
+0.19 Fri Apr  1 09:50:22 PDT 2011
+  * Fix bug where gearman util would create duplicate output.
+  * Update sqlite queue so that it uses a prepared statement.
+  * Fixes a number cases where server was not initializing default values
+  internally correctly.  
+  * gearman_client_compare()  API added. Returns true if the client
+  connections are connects are equivalent.
+
 0.18 Tue Mar 15 13:32:33 PDT 2011
   * Bug fix for compile when no plugins are requested.
   * Bug fix where during startup using Drizzle or MySQL the server could crash.

@@ -1,9 +1,39 @@
-/* Gearman server and library
- * Copyright (C) 2008 Brian Aker, Eric Day
- * All rights reserved.
+/*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
+ * 
+ *  Gearmand client and server library.
  *
- * Use and distribution licensed under the BSD license.  See
- * the COPYING file in the parent directory for full text.
+ *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2008 Brian Aker, Eric Day
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions are
+ *  met:
+ *
+ *      * Redistributions of source code must retain the above copyright
+ *  notice, this list of conditions and the following disclaimer.
+ *
+ *      * Redistributions in binary form must reproduce the above
+ *  copyright notice, this list of conditions and the following disclaimer
+ *  in the documentation and/or other materials provided with the
+ *  distribution.
+ *
+ *      * The names of its contributors may not be used to endorse or
+ *  promote products derived from this software without specific prior
+ *  written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ *  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ *  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ *  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ *  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ *  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ *  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
 /**
@@ -11,8 +41,7 @@
  * @brief Task Declarations
  */
 
-#ifndef __GEARMAN_TASK_H__
-#define __GEARMAN_TASK_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,6 +61,21 @@ extern "C" {
  * @ingroup gearman_task
  */
 
+enum gearman_task_state_t {
+  GEARMAN_TASK_STATE_NEW,
+  GEARMAN_TASK_STATE_SUBMIT,
+  GEARMAN_TASK_STATE_WORKLOAD,
+  GEARMAN_TASK_STATE_WORK,
+  GEARMAN_TASK_STATE_CREATED,
+  GEARMAN_TASK_STATE_DATA,
+  GEARMAN_TASK_STATE_WARNING,
+  GEARMAN_TASK_STATE_STATUS,
+  GEARMAN_TASK_STATE_COMPLETE,
+  GEARMAN_TASK_STATE_EXCEPTION,
+  GEARMAN_TASK_STATE_FAIL,
+  GEARMAN_TASK_STATE_FINISHED
+};
+
 struct gearman_task_st
 {
   struct {
@@ -40,20 +84,7 @@ struct gearman_task_st
     bool is_known LIBGEARMAN_BITFIELD;
     bool is_running LIBGEARMAN_BITFIELD;
   } options;
-  enum {
-    GEARMAN_TASK_STATE_NEW,
-    GEARMAN_TASK_STATE_SUBMIT,
-    GEARMAN_TASK_STATE_WORKLOAD,
-    GEARMAN_TASK_STATE_WORK,
-    GEARMAN_TASK_STATE_CREATED,
-    GEARMAN_TASK_STATE_DATA,
-    GEARMAN_TASK_STATE_WARNING,
-    GEARMAN_TASK_STATE_STATUS,
-    GEARMAN_TASK_STATE_COMPLETE,
-    GEARMAN_TASK_STATE_EXCEPTION,
-    GEARMAN_TASK_STATE_FAIL,
-    GEARMAN_TASK_STATE_FINISHED
-  } state;
+  enum gearman_task_state_t state;
   uint32_t created_id;
   uint32_t numerator;
   uint32_t denominator;
@@ -191,5 +222,3 @@ size_t gearman_task_recv_data(gearman_task_st *task, void *data,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GEARMAN_TASK_H__ */

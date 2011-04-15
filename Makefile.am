@@ -15,11 +15,22 @@ lib_LTLIBRARIES =
 noinst_LTLIBRARIES =
 nobase_include_HEADERS =
 noinst_HEADERS =
+man_MANS =
+DISTCLEANFILES =
 EXTRA_DIST = config/top.h
 CLEANFILES =
 TESTS =
 
+GEARMAN_TMP = ${abs_top_builddir}/tests/var/tmp/
+
 CLEANFILES+= config/top.h
+
+CLIENT_LD_FLAGS=
+if TARGET_OSX
+CLIENT_LD_FLAGS+= $(BOOST_PROGRAM_OPTIONS_LDFLAGS)
+else
+CLIENT_LD_FLAGS+= -L$(BOOST_PROGRAM_OPTIONS_LDPATH)
+endif
 
 
 include benchmark/include.am
@@ -32,26 +43,19 @@ include util/include.am
 include libtest/include.am
 include tests/include.am
 include support/include.am
-
-include docs/man_list
+include docs/include.am
 
 TESTS += ${check_PROGRAMS}
 
-EXTRA_DIST+= \
-	docs/Doxyfile.api \
-	docs/Doxyfile.dev \
-	docs/api_header.html \
-	docs/dev_header.html \
-	docs/doxygen.h \
-	scripts/README.solaris
-
-docs: all
-	${DOXYGEN} docs/Doxyfile.api
-	${DOXYGEN} docs/Doxyfile.dev
+EXTRA_DIST+= ${man_MANS}
+EXTRA_DIST+= scripts/README.solaris
 
 test: check
 
-rpm: all dist
+clean-local:
+	-rm -rf docs/_build docs/doctrees
+
+rpm: man all dist
 	cp gearmand-$(VERSION).tar.gz ~/rpmbuild/SOURCES/
 	rpmbuild -ba support/gearmand.spec
 	cp ~/rpmbuild/RPMS/x86_64/gearmand-$(VERSION)*.rpm .

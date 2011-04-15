@@ -11,7 +11,10 @@
  * @brief Server Thread Definitions
  */
 
-#include "common.h"
+#include <libgearman-server/common.h>
+
+#include <assert.h>
+#include <errno.h>
 
 /*
  * Private declarations
@@ -266,7 +269,7 @@ static gearmand_error_t _thread_packet_read(gearman_server_con_st *con)
       }
     }
 
-    (void)gearman_io_recv(con, &ret, true);
+    ret= gearman_io_recv(con, true);
     if (ret != GEARMAN_SUCCESS)
     {
       if (ret == GEARMAN_IO_WAIT)
