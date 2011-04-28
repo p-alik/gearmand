@@ -14,6 +14,8 @@
 
 libgearman_server_libgearman_server_la_SOURCES=
 libgearman_server_libgearman_server_la_LIBADD=
+libgearman_server_libgearman_server_la_CXXFLAGS=
+libgearman_server_libgearman_server_la_CFLAGS=
 
 include libgearman-server/error/include.am
 include libgearman-server/plugins/include.am
@@ -71,8 +73,12 @@ libgearman_server_libgearman_server_la_SOURCES+= \
 						 libgearman-server/wakeup.cc \
 						 libgearman-server/worker.cc
 
-libgearman_server_libgearman_server_la_CFLAGS= \
+libgearman_server_libgearman_server_la_CFLAGS+= \
 					       ${AM_CFLAGS} \
 					       -DBUILDING_LIBGEARMAN
+
+libgearman_server_libgearman_server_la_CXXFLAGS+= \
+						  ${AM_CXXFLAGS} \
+						  -DBUILDING_LIBGEARMAN
 
 libgearman_server_libgearman_server_la_LIBADD+= $(LTLIBEVENT)

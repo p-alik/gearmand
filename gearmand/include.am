@@ -24,15 +24,6 @@ gearmand_gearmand_CPPFLAGS= \
 			    $(AM_CPPFLAGS) \
 			    $(BOOST_CPPFLAGS)
 
-if HAVE_LIBDRIZZLE
-gearmand_gearmand_LDADD+= $(LIBDRIZZLE_LIBS)
-gearmand_gearmand_CPPFLAGS+= $(LIBDRIZZLE_CFLAGS) 
-endif
-if HAVE_LIBMEMCACHED
-gearmand_gearmand_LDADD+= $(LIBDRIZZLE_LIBS)
-gearmand_gearmand_CPPFLAGS+= $(LIBMEMCACHED_CFLAGS)
-endif
-
 gearmand_gearmand_SOURCES= \
 			   gearmand/gearmand.cc \
 			   util/daemon.cc \

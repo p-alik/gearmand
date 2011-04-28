@@ -81,11 +81,7 @@ test-worker:
 test-internals:
 	@tests/internals_test $(ARG1) $(ARG2)
 
-GEARADMIN_TOOL= bin/gearadmin
-test-shutdown: bin/gearadmin
-	$(GEARADMIN_TOOL) --port 32123 --shutdown 2>&1 > /dev/null
-
-check-local: tests/var gearmand-test-args client-test test-shutdown libtest-tests
+check-local: tests/var gearmand-test-args client-test libtest-tests
 
 libtest-tests: test-client test-round-robin test-worker test-internals test-libmemcached test-sqlite test-tokyocabinet test-burnin
 

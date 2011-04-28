@@ -10,11 +10,12 @@
 #
 
 if HAVE_LIBMEMCACHED
-noinst_HEADERS+= \
-		 libgearman-server/plugins/queue/libmemcached/queue.h
+noinst_HEADERS+= libgearman-server/plugins/queue/libmemcached/queue.h
 
-libgearman_server_libgearman_server_la_SOURCES+= \
-						 libgearman-server/plugins/queue/libmemcached/queue.cc
+libgearman_server_libgearman_server_la_SOURCES+= libgearman-server/plugins/queue/libmemcached/queue.cc
+libgearman_server_libgearman_server_la_CXXFLAGS+= $(libmemcached_CFLAGS)
+libgearman_server_libgearman_server_la_LIBADD+= $(libmemcached_LIBS)
 
-libgearman_server_libgearman_server_la_LIBADD+= $(LTLIBMEMCACHED)
+gearmand_gearmand_LDADD+= $(libmemcached_LIBS)
+gearmand_gearmand_CPPFLAGS+= $(libmemcached_CFLAGS) 
 endif

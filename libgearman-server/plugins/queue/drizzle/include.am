@@ -10,15 +10,13 @@
 #
 
 if HAVE_LIBDRIZZLE
-noinst_HEADERS+= \
-		 libgearman-server/plugins/queue/drizzle/queue.h
+noinst_HEADERS+= libgearman-server/plugins/queue/drizzle/queue.h
 
-libgearman_server_libgearman_server_la_SOURCES+= \
-						 libgearman-server/plugins/queue/drizzle/queue.cc
+libgearman_server_libgearman_server_la_SOURCES+= libgearman-server/plugins/queue/drizzle/queue.cc
+libgearman_server_libgearman_server_la_LIBADD+= $(libdrizzle_LIBS)
+libgearman_server_libgearman_server_la_CXXFLAGS+= $(libdrizzle_CFLAGS)
 
-libgearman_server_libgearman_server_la_LIBADD+= $(LTLIBDRIZZLE)
-libgearman_server_libgearman_server_la_CXXFLAGS= \
-						 $(AM_CXXFLAGS) \
-						 $(LIBDRIZZLE_CFLAGS)
+gearmand_gearmand_LDADD+= $(libdrizzle_LIBS)
+gearmand_gearmand_CPPFLAGS+= $(libdrizzle_CFLAGS) 
+
 endif
-
