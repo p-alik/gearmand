@@ -14,10 +14,11 @@
 
 namespace gearman_client
 {
-Function::Function(const char *name_arg)
+Function::Function(const char *name_arg) :
+  _name(),
+  _task(),
+  _buffer()
 {
-  memset(&_task, 0, sizeof(gearman_task_st));
-
   // copy the name into the _name vector
   size_t length= strlen(name_arg);
   _name.resize(length +1);

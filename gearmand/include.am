@@ -13,18 +13,25 @@
 sbin_PROGRAMS+= gearmand/gearmand
 
 gearmand_gearmand_LDADD= \
-			 libgearman-server/libgearman-server.la \
-			 ${BETTER_MALLOC_LIBS} \
 			 $(AM_LDADD) \
-			 $(BOOST_PROGRAM_OPTIONS_LIBS)
+			 $(BOOST_PROGRAM_OPTIONS_LIBS) \
+			 ${BETTER_MALLOC_LIBS} \
+			 libgearman-server/libgearman-server.la
 
-gearmand_gearmand_LDFLAGS= \
-			   $(CLIENT_LD_FLAGS) \
-			   $(AM_LDFLAGS)
+gearmand_gearmand_LDFLAGS= $(BOOST_PROGRAM_OPTIONS_LDFLAGS)
 
 gearmand_gearmand_CPPFLAGS= \
 			    $(AM_CPPFLAGS) \
 			    $(BOOST_CPPFLAGS)
+
+if HAVE_LIBDRIZZLE
+gearmand_gearmand_LDADD+= $(LIBDRIZZLE_LIBS)
+gearmand_gearmand_CPPFLAGS+= $(LIBDRIZZLE_CFLAGS) 
+endif
+if HAVE_LIBMEMCACHED
+gearmand_gearmand_LDADD+= $(LIBDRIZZLE_LIBS)
+gearmand_gearmand_CPPFLAGS+= $(LIBMEMCACHED_CFLAGS)
+endif
 
 gearmand_gearmand_SOURCES= \
 			   gearmand/gearmand.cc \

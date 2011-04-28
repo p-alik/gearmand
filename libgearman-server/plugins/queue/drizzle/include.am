@@ -17,5 +17,8 @@ libgearman_server_libgearman_server_la_SOURCES+= \
 						 libgearman-server/plugins/queue/drizzle/queue.cc
 
 libgearman_server_libgearman_server_la_LIBADD+= $(LTLIBDRIZZLE)
+libgearman_server_libgearman_server_la_CXXFLAGS= \
+						 $(AM_CXXFLAGS) \
+						 $(LIBDRIZZLE_CFLAGS)
 endif
 

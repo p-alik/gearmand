@@ -72,16 +72,16 @@ enum gearman_magic_t
 struct gearman_packet_st
 {
   struct {
-    bool allocated LIBGEARMAN_BITFIELD;
-    bool complete LIBGEARMAN_BITFIELD;
-    bool free_data LIBGEARMAN_BITFIELD;
+    bool allocated;
+    bool complete;
+    bool free_data;
   } options;
   enum gearman_magic_t magic;
   gearman_command_t command;
   uint8_t argc;
   size_t args_size;
   size_t data_size;
-  gearman_universal_st *universal;
+  struct gearman_universal_st *universal;
   gearman_packet_st *next;
   gearman_packet_st *prev;
   char *args;
@@ -92,6 +92,13 @@ struct gearman_packet_st
 };
 
 #ifdef GEARMAN_CORE
+
+typedef size_t (gearman_packet_pack_fn)(const gearman_packet_st *packet,
+                                        void *data, size_t data_size,
+                                        gearman_return_t *ret_ptr);
+typedef size_t (gearman_packet_unpack_fn)(gearman_packet_st *packet,
+                                          const void *data, size_t data_size,
+                                          gearman_return_t *ret_ptr);
 /**
  * Command information array.
  * @ingroup gearman_constants

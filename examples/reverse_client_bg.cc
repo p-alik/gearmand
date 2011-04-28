@@ -47,7 +47,9 @@
 #include <libgearman/gearman.h>
 #include <boost/program_options.hpp>
 
+#ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
 
 int main(int args, char *argv[])
 {
@@ -128,19 +130,15 @@ int main(int args, char *argv[])
   gearman_workload_t workload= gearman_workload_make(text_to_echo.c_str(), text_to_echo.size());
   gearman_workload_set_background(&workload, true);
 
-  gearman_status_t status= gearman_client_execute(&client,
-                                                   function,
-                                                   NULL,
-                                                   &workload);
 
-  if (not gearman_status_is_successful(status))
+  if (not gearman_client_execute(&client, function, &workload))
   {
     std::cerr << "Failed to process job (" << gearman_client_error(&client) << std::endl;
     gearman_client_free(&client);
     return EXIT_FAILURE;
   }
 
-  gearman_task_st *task= gearman_status_task(status);
+  gearman_task_st *task= gearman_workload_task(&workload);
   std::cout << "Background Job Handle=" << gearman_task_job_handle(task) << std::endl;
 
   int exit_code= EXIT_SUCCESS;

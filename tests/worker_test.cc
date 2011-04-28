@@ -26,7 +26,7 @@
 #include "libtest/test.h"
 #include "libtest/server.h"
 
-#define WORKER_TEST_PORT 32123
+#define WORKER_TEST_PORT 32125
 
 typedef struct
 {
@@ -74,7 +74,9 @@ test_return_t allocation_test(void *object __attribute__((unused)))
   return TEST_SUCCESS;
 }
 
+#ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
 
 test_return_t clone_test(void *object)
 {
@@ -318,7 +320,7 @@ static test_return_t echo_test(void *object)
   value_length= strlen(value);
 
   rc= gearman_worker_echo(worker, value, value_length);
-  test_truth(rc == GEARMAN_SUCCESS);
+  test_true_got(rc == GEARMAN_SUCCESS, gearman_strerror(rc));
 
   return TEST_SUCCESS;
 }
@@ -341,7 +343,7 @@ static test_return_t echo_multi_test(void *object)
   while (*ptr)
   {
     rc= gearman_worker_echo(worker, value, strlen(*ptr));
-    test_truth( rc == GEARMAN_SUCCESS);
+    test_true_got(rc == GEARMAN_SUCCESS, gearman_strerror(rc));
     ptr++;
   }
 
@@ -360,7 +362,7 @@ static test_return_t echo_max_test(void *object)
   return TEST_SUCCESS;
 }
 
-static test_return_t abandoned_worker_test(void *object __attribute__((unused)))
+static test_return_t abandoned_worker_test(void *)
 {
   char job_handle[GEARMAN_JOB_HANDLE_SIZE];
   gearman_return_t ret;
@@ -403,26 +405,23 @@ static test_return_t abandoned_worker_test(void *object __attribute__((unused)))
     return TEST_FAILURE;
   }
 
-  if (gearman_connection_send(worker1, &packet, true) != GEARMAN_SUCCESS)
-    return TEST_FAILURE;
+  ret= gearman_connection_send(worker1, &packet, true);
+  test_true_got(ret == GEARMAN_SUCCESS, gearman_strerror(ret));
 
   gearman_packet_free(&packet);
 
-  if (gearman_packet_create_args(&gearman, &packet, GEARMAN_MAGIC_REQUEST,
-                                 GEARMAN_COMMAND_GRAB_JOB,
-                                 NULL, NULL, 0) != GEARMAN_SUCCESS)
-  {
-    return TEST_FAILURE;
-  }
+  ret= gearman_packet_create_args(&gearman, &packet, GEARMAN_MAGIC_REQUEST,
+                                  GEARMAN_COMMAND_GRAB_JOB,
+                                  NULL, NULL, 0);
+  test_true_got(ret == GEARMAN_SUCCESS, gearman_strerror(ret));
 
-  if (gearman_connection_send(worker1, &packet, true) != GEARMAN_SUCCESS)
-    return TEST_FAILURE;
+  ret= gearman_connection_send(worker1, &packet, true);
+  test_true_got(ret == GEARMAN_SUCCESS, gearman_strerror(ret));
 
   gearman_packet_free(&packet);
 
   gearman_connection_recv(worker1, &packet, &ret, false);
-  if (ret != GEARMAN_SUCCESS || packet.command != GEARMAN_COMMAND_JOB_ASSIGN)
-    return TEST_FAILURE;
+  test_truth(not (ret != GEARMAN_SUCCESS || packet.command != GEARMAN_COMMAND_JOB_ASSIGN));
 
   if (strcmp(job_handle, packet.arg[0]))
   {
@@ -440,15 +439,13 @@ static test_return_t abandoned_worker_test(void *object __attribute__((unused)))
 
   args[0]= "abandoned_worker";
   args_size[0]= strlen("abandoned_worker");
-  if (gearman_packet_create_args(&gearman, &packet, GEARMAN_MAGIC_REQUEST,
-                                 GEARMAN_COMMAND_CAN_DO,
-                                 args, args_size, 1) != GEARMAN_SUCCESS)
-  {
-    return TEST_FAILURE;
-  }
+  ret= gearman_packet_create_args(&gearman, &packet, GEARMAN_MAGIC_REQUEST,
+                                  GEARMAN_COMMAND_CAN_DO,
+                                  args, args_size, 1);
+  test_true_got(ret == GEARMAN_SUCCESS, gearman_strerror(ret));
 
-  if (gearman_connection_send(worker2, &packet, true) != GEARMAN_SUCCESS)
-    return TEST_FAILURE;
+  ret= gearman_connection_send(worker2, &packet, true);
+  test_true_got(ret == GEARMAN_SUCCESS, gearman_strerror(ret));
 
   gearman_packet_free(&packet);
 
@@ -456,22 +453,19 @@ static test_return_t abandoned_worker_test(void *object __attribute__((unused)))
   args_size[0]= strlen(job_handle) + 1;
   args[1]= "test";
   args_size[1]= 4;
-  if (gearman_packet_create_args(&gearman, &packet, GEARMAN_MAGIC_REQUEST,
-                                 GEARMAN_COMMAND_WORK_COMPLETE,
-                                 args, args_size, 2) != GEARMAN_SUCCESS)
-  {
-    return TEST_FAILURE;
-  }
+  ret= gearman_packet_create_args(&gearman, &packet, GEARMAN_MAGIC_REQUEST,
+                                  GEARMAN_COMMAND_WORK_COMPLETE,
+                                  args, args_size, 2);
+  test_true_got(ret == GEARMAN_SUCCESS, gearman_strerror(ret));
 
-  if (gearman_connection_send(worker2, &packet, true) != GEARMAN_SUCCESS)
-    return TEST_FAILURE;
+  ret= gearman_connection_send(worker2, &packet, true);
+  test_true_got(ret == GEARMAN_SUCCESS, gearman_strerror(ret));
 
   gearman_packet_free(&packet);
 
   gearman_universal_set_timeout(&gearman, 1000);
   gearman_connection_recv(worker2, &packet, &ret, false);
-  if (ret != GEARMAN_SUCCESS || packet.command != GEARMAN_COMMAND_ERROR)
-    return TEST_FAILURE;
+  test_truth(not (ret != GEARMAN_SUCCESS || packet.command != GEARMAN_COMMAND_ERROR));
 
   gearman_connection_free(worker1);
   gearman_connection_free(worker2);
@@ -481,13 +475,10 @@ static test_return_t abandoned_worker_test(void *object __attribute__((unused)))
   return TEST_SUCCESS;
 }
 
-static void *_gearman_worker_add_function_worker_fn(gearman_job_st *job __attribute__((unused)),
-						    void *context __attribute__((unused)),
-						    size_t *result_size __attribute__((unused)),
-						    gearman_return_t *ret_ptr __attribute__((unused)))
+static void *_gearman_worker_add_function_worker_fn(gearman_job_st *,
+						    void *, size_t *,
+						    gearman_return_t *ret_ptr)
 {
-  (void)job;
-  (void)context;
   *ret_ptr= GEARMAN_WORK_FAIL;
 
   return NULL;
@@ -503,32 +494,31 @@ static test_return_t gearman_worker_add_function_test(void *object)
   rc= gearman_worker_add_function(worker,
 				  function_name,
 				  0, _gearman_worker_add_function_worker_fn, NULL);
-  test_truth(rc == GEARMAN_SUCCESS);
+  test_true_got(rc == GEARMAN_SUCCESS, gearman_strerror(rc));
 
   found= gearman_worker_function_exist(worker, function_name, strlen(function_name));
   test_truth(found);
 
   rc= gearman_worker_unregister(worker, function_name);
-  test_truth(rc == GEARMAN_SUCCESS);
+  test_true_got(rc == GEARMAN_SUCCESS, gearman_strerror(rc));
 
   found= gearman_worker_function_exist(worker, function_name, strlen(function_name));
   test_false(found);
 
   /* Make sure we have removed it */
   rc= gearman_worker_unregister(worker, function_name);
-  test_truth(rc == GEARMAN_NO_REGISTERED_FUNCTION);
+  test_true_got(rc == GEARMAN_NO_REGISTERED_FUNCTION, gearman_strerror(rc));
 
   return TEST_SUCCESS;
 }
 
 static test_return_t gearman_worker_add_function_multi_test(void *object)
 {
-  uint32_t x;
   gearman_return_t rc;
   gearman_worker_st *worker= (gearman_worker_st *)object;
   const char *function_name_ext= "_gearman_worker_add_function_worker_fn";
 
-  for (x= 0; x < 100; x++)
+  for (uint32_t x= 0; x < 100; x++)
   {
     char buffer[1024];
     snprintf(buffer, 1024, "%u%s", x, function_name_ext);
@@ -536,25 +526,25 @@ static test_return_t gearman_worker_add_function_multi_test(void *object)
                                     buffer,
                                     0, _gearman_worker_add_function_worker_fn, NULL);
 
-    test_truth(rc == GEARMAN_SUCCESS);
+    test_true_got(rc == GEARMAN_SUCCESS, gearman_strerror(rc));
   }
 
-  for (x= 0; x < 100; x++)
+  for (uint32_t x= 0; x < 100; x++)
   {
     char buffer[1024];
 
     snprintf(buffer, 1024, "%u%s", x, function_name_ext);
     rc= gearman_worker_unregister(worker, buffer);
-    test_truth(rc == GEARMAN_SUCCESS);
+    test_true_got(rc == GEARMAN_SUCCESS, gearman_strerror(rc));
   }
 
-  for (x= 0; x < 100; x++)
+  for (uint32_t x= 0; x < 100; x++)
   {
     char buffer[1024];
 
     snprintf(buffer, 1024, "%u%s", x, function_name_ext);
     rc= gearman_worker_unregister(worker, buffer);
-    test_truth(rc == GEARMAN_NO_REGISTERED_FUNCTION);
+    test_true_got(rc == GEARMAN_NO_REGISTERED_FUNCTION, gearman_strerror(rc));
   }
 
   return TEST_SUCCESS;
@@ -562,35 +552,34 @@ static test_return_t gearman_worker_add_function_multi_test(void *object)
 
 static test_return_t gearman_worker_unregister_all_test(void *object)
 {
-  uint32_t x;
   gearman_return_t rc;
   gearman_worker_st *worker= (gearman_worker_st *)object;
   const char *function_name_ext= "_gearman_worker_add_function_worker_fn";
 
-  for (x= 0; x < 100; x++)
+  for (uint32_t x= 0; x < 100; x++)
   {
     char buffer[1024];
-    snprintf(buffer, 1024, "%u%s", x, function_name_ext);
+    snprintf(buffer, sizeof(buffer), "%u%s", x, function_name_ext);
     rc= gearman_worker_add_function(worker,
                                     buffer,
                                     0, _gearman_worker_add_function_worker_fn, NULL);
 
-    test_truth(rc == GEARMAN_SUCCESS);
+    test_true_got(rc == GEARMAN_SUCCESS, gearman_strerror(rc));
   }
 
   rc= gearman_worker_unregister_all(worker);
 
-  for (x= 0; x < 100; x++)
+  for (uint32_t x= 0; x < 100; x++)
   {
     char buffer[1024];
 
-    snprintf(buffer, 1024, "%u%s", x, function_name_ext);
+    snprintf(buffer, sizeof(buffer), "%u%s", x, function_name_ext);
     rc= gearman_worker_unregister(worker, buffer);
-    test_truth(rc == GEARMAN_NO_REGISTERED_FUNCTION);
+    test_true_got(rc == GEARMAN_NO_REGISTERED_FUNCTION, gearman_strerror(rc));
   }
 
   rc= gearman_worker_unregister_all(worker);
-  test_truth(rc == GEARMAN_NO_REGISTERED_FUNCTIONS);
+  test_true_got(rc == GEARMAN_NO_REGISTERED_FUNCTIONS, gearman_strerror(rc));
 
   return TEST_SUCCESS;
 }
@@ -604,16 +593,16 @@ static test_return_t gearman_worker_work_with_test(void *object)
   rc= gearman_worker_add_function(worker,
 				  function_name,
 				  0, _gearman_worker_add_function_worker_fn, NULL);
-  test_truth(rc == GEARMAN_SUCCESS);
+  test_true_got(rc == GEARMAN_SUCCESS, gearman_strerror(rc));
 
   gearman_worker_set_timeout(worker, 2);
 
   rc= gearman_worker_work(worker);
-  test_truth(rc == GEARMAN_TIMEOUT);
+  test_true_got(rc == GEARMAN_TIMEOUT, gearman_strerror(rc));
 
   /* Make sure we have remove worker function */
   rc= gearman_worker_unregister(worker, function_name);
-  test_truth(rc == GEARMAN_SUCCESS);
+  test_true_got(rc == GEARMAN_SUCCESS, gearman_strerror(rc));
 
   return TEST_SUCCESS;
 }
@@ -645,22 +634,24 @@ static test_return_t gearman_worker_failover_test(void *object)
   const char *function_name= "_gearman_worker_add_function_worker_fn";
 
   cloned= gearman_worker_clone(NULL, worker);
-  gearman_worker_add_server(cloned, NULL, WORKER_TEST_PORT);
-  gearman_worker_add_server(cloned, NULL, WORKER_TEST_PORT+1);
+  rc= gearman_worker_add_server(cloned, NULL, WORKER_TEST_PORT);
+  test_true_got(rc == GEARMAN_SUCCESS, gearman_strerror(rc));
+  rc= gearman_worker_add_server(cloned, NULL, WORKER_TEST_PORT +1);
+  test_true_got(rc == GEARMAN_SUCCESS, gearman_strerror(rc));
 
   rc= gearman_worker_add_function(cloned,
 				  function_name,
 				  0, _gearman_worker_add_function_worker_fn, NULL);
-  test_truth(rc == GEARMAN_SUCCESS);
+  test_true_got(rc == GEARMAN_SUCCESS, gearman_strerror(rc));
 
   gearman_worker_set_timeout(cloned, 2);
 
   rc= gearman_worker_work(cloned);
-  test_truth(rc == GEARMAN_TIMEOUT);
+  test_true_got(rc == GEARMAN_TIMEOUT, gearman_strerror(rc));
 
   /* Make sure we have remove worker function */
   rc= gearman_worker_unregister(cloned, function_name);
-  test_truth(rc == GEARMAN_SUCCESS);
+  test_true_got(rc == GEARMAN_SUCCESS, gearman_strerror(rc));
 
   gearman_worker_free(cloned);
 
@@ -680,7 +671,7 @@ void *world_create(test_return_t *error)
   worker_test_st *test;
   pid_t gearmand_pid;
 
-  gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, NULL, 0, NULL);
+  gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, 0, NULL);
   if (gearmand_pid == -1)
   {
     *error= TEST_FAILURE;

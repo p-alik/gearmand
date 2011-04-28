@@ -78,15 +78,15 @@ extern "C" {
 struct gearman_worker_st
 {
   struct {
-    bool allocated LIBGEARMAN_BITFIELD;
-    bool non_blocking LIBGEARMAN_BITFIELD;
-    bool packet_init LIBGEARMAN_BITFIELD;
-    bool grab_job_in_use LIBGEARMAN_BITFIELD;
-    bool pre_sleep_in_use LIBGEARMAN_BITFIELD;
-    bool work_job_in_use LIBGEARMAN_BITFIELD;
-    bool change LIBGEARMAN_BITFIELD;
-    bool grab_uniq LIBGEARMAN_BITFIELD;
-    bool timeout_return LIBGEARMAN_BITFIELD;
+    bool allocated;
+    bool non_blocking;
+    bool packet_init;
+    bool grab_job_in_use;
+    bool pre_sleep_in_use;
+    bool work_job_in_use;
+    bool change;
+    bool grab_uniq;
+    bool timeout_return;
   } options;
   enum gearman_worker_state_t state;
   enum gearman_worker_universal_t work_state;
@@ -101,7 +101,7 @@ struct gearman_worker_st
   struct _worker_function_st *function_list;
   struct _worker_function_st *work_function;
   void *work_result;
-  gearman_universal_st universal;
+  struct gearman_universal_st universal;
   gearman_packet_st grab_job;
   gearman_packet_st pre_sleep;
   gearman_job_st work_job;
@@ -277,7 +277,7 @@ gearman_return_t gearman_worker_add_server(gearman_worker_st *worker,
  * SERVER[:PORT][,SERVER[:PORT]]...
  * Some examples are:
  * 10.0.0.1,10.0.0.2,10.0.0.3
- * localhost LIBGEARMAN_BITFIELD234,jobserver2.domain.com:7003,10.0.0.3
+ * localhost234,jobserver2.domain.com:7003,10.0.0.3
  *
  * @param[in] worker Structure previously initialized with
  *  gearman_worker_create() or gearman_worker_clone().

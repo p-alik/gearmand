@@ -56,7 +56,7 @@
 #include <sys/uio.h>
 
 #include <libgearman/visibility.h>
-#include <libgearman/configure.h>
+#include <libgearman/version.h>
 #include <libgearman/constants.h>
 #include <libgearman/strerror.h>
 
@@ -70,7 +70,6 @@
 #include <libgearman/worker.h>
 #include <libgearman/client.h>
 #include <libgearman/function.h>
-#include <libgearman/status.h>
 #include <libgearman/connection.h>
 
 #ifdef __cplusplus

@@ -38,6 +38,7 @@
 #pragma once
 
 #include <time.h>
+#include <libgearman/unique.h>
 
 struct gearman_workload_t {
   bool background;
@@ -46,6 +47,13 @@ struct gearman_workload_t {
   const char *c_str;
   size_t size;
   void *context;
+  gearman_unique_t unique;
+  gearman_task_st *task;
+};
+
+struct gearman_batch_t {
+  gearman_function_st *function;
+  gearman_workload_t workload;
 };
 
 #ifdef __cplusplus
@@ -54,6 +62,9 @@ extern "C" {
 
 GEARMAN_API
 gearman_workload_t gearman_workload_make(const char *arg, size_t arg_size);
+
+GEARMAN_API
+gearman_workload_t gearman_workload_make_unique(const char *arg, size_t arg_size, const char *unique, size_t unique_size);
 
 GEARMAN_API
 size_t gearman_workload_size(gearman_workload_t *self);
@@ -82,6 +93,17 @@ void gearman_workload_set_background(gearman_workload_t *self, bool background);
 GEARMAN_LOCAL
 bool gearman_workload_background(const gearman_workload_t *);
 
+GEARMAN_API
+gearman_task_st *gearman_workload_task(const gearman_workload_t *);
+
+GEARMAN_LOCAL
+void gearman_workload_set_task(gearman_workload_t *, gearman_task_st *);
+
+GEARMAN_LOCAL
+const gearman_unique_t *gearman_workload_unique(const gearman_workload_t *self);
+
+GEARMAN_API
+bool gearman_workload_compare(const gearman_workload_t *self, const char*, size_t);
 
 #ifdef __cplusplus
 }
@@ -89,9 +111,14 @@ bool gearman_workload_background(const gearman_workload_t *);
 
 #ifdef __cplusplus
 #define gearman_literal_param(X) (X), static_cast<size_t>(sizeof(X) - 1)
+#define gearman_workload_array_size(X) size_t(sizeof(X)/sizeof(gearman_workload_t))
+#define gearman_workload_batch_array_size(X) size_t(sizeof(X)/sizeof(gearman_batch_t))
 #else
 #define gearman_literal_param(X) (X), (size_t)(sizeof(X) - 1)
+#define gearman_workload_array_size(X) (size_t)(sizeof(X)/sizeof(gearman_workload_t))
+#define gearman_workload_batch_array_size(X) (size_t)(sizeof(X)/sizeof(gearman_batch_t))
 #endif
 
+#define gearman_string_param(X) (X) ? (X) : NULL, (X) ? strlen(X) : 0
 #define gearman_param(X) (X) ? (X)->c_str : NULL, (X) ? (X)->size : 0
 #define gearman_workload_context(X) (X)->context

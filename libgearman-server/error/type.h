@@ -94,3 +94,5 @@ typedef enum
   GEARMAN_ARGUMENT_TOO_LARGE,
   GEARMAN_MAX_RETURN /* Always add new error code before */
 } gearmand_error_t;
+
+#define gearmand_failed(X) ((X) != GEARMAN_SUCCESS)

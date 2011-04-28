@@ -25,7 +25,9 @@
 
 #include "test.h"
 
+#ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
 
 static void world_stats_print(world_stats_st *stats)
 {

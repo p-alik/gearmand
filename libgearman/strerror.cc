@@ -115,6 +115,8 @@ const char *gearman_strerror(gearman_return_t rc)
     return "TIMEOUT";
   case GEARMAN_ARGUMENT_TOO_LARGE:
     return "The argument was too large for Gearman to handle.";
+  case GEARMAN_INVALID_ARGUMENT:
+    return "Invalid arguement";
   case GEARMAN_MAX_RETURN:
   default:
     return "Gibberish returned!";

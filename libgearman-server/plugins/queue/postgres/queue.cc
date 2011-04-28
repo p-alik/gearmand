@@ -52,16 +52,38 @@ public:
 
   gearmand_error_t initialize();
 
+  const std::string &insert()
+  {
+    return _insert_query;
+  }
+
+  const std::string &select()
+  {
+    return _select_query;
+  }
+
+  const std::string &create()
+  {
+    return _create_query;
+  }
+
   PGconn *con;
   std::string postgres_connect_string;
   std::string table;
   std::vector<char> query_buffer;
-private:
+
+public:
+  std::string _insert_query;
+  std::string _select_query;
+  std::string _create_query;
 };
 
 Postgres::Postgres() :
   Queue("Postgres"),
-  con(NULL)
+  con(NULL),
+  postgres_connect_string(""),
+  table(""),
+  query_buffer()
 {
   command_line_options().add_options()
     ("libpq-conninfo", boost::program_options::value(&postgres_connect_string)->default_value(""), "PostgreSQL connection information string.")
@@ -76,7 +98,16 @@ Postgres::~Postgres ()
 
 gearmand_error_t Postgres::initialize()
 {
-  return _initialize(&Gearmand()->server, this);
+  _create_query+= "CREATE TABLE " +table +" (unique_key VARCHAR" +"(" + TOSTRING(GEARMAN_UNIQUE_SIZE) +"), ";
+  _create_query+= "function_name VARCHAR(255), priority INTEGER, data BYTEA, when_to_run INTEGER, UNIQUE KEY (unique_key, function_name))";
+
+  gearmand_error_t ret= _initialize(&Gearmand()->server, this);
+
+  _insert_query+= "INSERT INTO " +table +" (priority, unique_key, function_name, data, when_to_run) VALUES($1,$2,$3,$4::BYTEA,$5)";
+
+  _select_query+= "SELECT unique_key,function_name,priority,data,when_to_run FROM " +table;
+
+  return ret;
 }
 
 void initialize_postgres()
@@ -143,15 +174,14 @@ gearmand_error_t _initialize(gearman_server_st *server,
 
   (void)PQsetNoticeProcessor(queue->con, _libpq_notice_processor, server);
 
-  char create[1024];
-  snprintf(create, sizeof(create), "SELECT tablename FROM pg_tables WHERE tablename='%s'",
-           queue->table.c_str());
+  std::string query("SELECT tablename FROM pg_tables WHERE tablename=" +queue->table);
 
-  result= PQexec(queue->con, create);
+  result= PQexec(queue->con, query.c_str());
   if (result == NULL || PQresultStatus(result) != PGRES_TUPLES_OK)
   {
-    gearmand_log_error("gearman_queue_libpq_init", "PQexec:%s",
-                             PQerrorMessage(queue->con));
+    std::string error_string= "PQexec:";
+    error_string+= PQerrorMessage(queue->con);
+    gearmand_gerror(error_string.c_str(), GEARMAN_QUEUE_ERROR);
     PQclear(result);
     return GEARMAN_QUEUE_ERROR;
   }
@@ -160,20 +190,9 @@ gearmand_error_t _initialize(gearman_server_st *server,
   {
     PQclear(result);
 
-    snprintf(create, sizeof(create),
-             "CREATE TABLE %s"
-             "("
-               "unique_key VARCHAR(%d),"
-               "function_name VARCHAR(255),"
-               "priority INTEGER,"
-               "data BYTEA,"
-               "UNIQUE KEY (unique_key, function_name), when_to_run INTEGER"
-             ")",
-             queue->table.c_str(), GEARMAN_UNIQUE_SIZE);
-
     gearmand_log_info("libpq module creating table '%s'", queue->table.c_str());
 
-    result= PQexec(queue->con, create);
+    result= PQexec(queue->con, queue->create().c_str());
     if (result == NULL || PQresultStatus(result) != PGRES_COMMAND_OK)
     {
       gearmand_log_error("gearman_queue_libpq_init", "PQexec:%s",
@@ -186,7 +205,9 @@ gearmand_error_t _initialize(gearman_server_st *server,
     PQclear(result);
   }
   else
+  {
     PQclear(result);
+  }
 
   return GEARMAN_SUCCESS;
 }
@@ -233,12 +254,7 @@ static gearmand_error_t _libpq_add(gearman_server_st *server, void *context,
 
   gearmand_log_debug("libpq add: %.*s", (uint32_t)unique_size, (char *)unique);
 
-  std::string query;
-  query+= "INSERT INTO ";
-  query+= queue->table;
-  query+= " (priority, unique_key, function_name, data, when_to_run) VALUES($1,$2,$3,$4::BYTEA,$5)";
-
-  result= PQexecParams(queue->con, query.c_str(), 3, NULL, param_values, param_lengths, NULL, 0);
+  result= PQexecParams(queue->con, queue->insert().c_str(), 3, NULL, param_values, param_lengths, NULL, 0);
   if (result == NULL || PQresultStatus(result) != PGRES_COMMAND_OK)
   {
     gearmand_log_error("_libpq_command", "PQexec:%s", PQerrorMessage(queue->con));
@@ -304,11 +320,7 @@ static gearmand_error_t _libpq_replay(gearman_server_st *server, void *context,
 
   gearmand_log_info("libpq replay start");
 
-  std::string query;
-  query+= "SELECT unique_key,function_name,priority,data,when_to_run FROM ";
-  query+= queue->table;
-
-  result= PQexecParams(queue->con, query.c_str(), 0, NULL, NULL, NULL, NULL, 1);
+  result= PQexecParams(queue->con, queue->create().c_str(), 0, NULL, NULL, NULL, NULL, 1);
   if (result == NULL || PQresultStatus(result) != PGRES_TUPLES_OK)
   {
     gearmand_log_error("_libpq_replay", "PQexecParams:%s", PQerrorMessage(queue->con));

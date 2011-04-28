@@ -41,6 +41,7 @@
 #pragma once
 
 #include <libgearman/protocol.h>
+#include <libgearman/return.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -69,63 +70,6 @@ extern "C" {
 #define GEARMAN_SEND_BUFFER_SIZE 8192
 #define GEARMAN_RECV_BUFFER_SIZE 8192
 #define GEARMAN_WORKER_WAIT_TIMEOUT (10 * 1000) /* Milliseconds */
-
-/**
- * Return codes.
- */
-typedef enum
-{
-  GEARMAN_SUCCESS,
-  GEARMAN_IO_WAIT,
-  GEARMAN_SHUTDOWN,
-  GEARMAN_SHUTDOWN_GRACEFUL,
-  GEARMAN_ERRNO,
-  GEARMAN_EVENT,
-  GEARMAN_TOO_MANY_ARGS,
-  GEARMAN_NO_ACTIVE_FDS,
-  GEARMAN_INVALID_MAGIC,
-  GEARMAN_INVALID_COMMAND,
-  GEARMAN_INVALID_PACKET,
-  GEARMAN_UNEXPECTED_PACKET,
-  GEARMAN_GETADDRINFO,
-  GEARMAN_NO_SERVERS,
-  GEARMAN_LOST_CONNECTION,
-  GEARMAN_MEMORY_ALLOCATION_FAILURE,
-  GEARMAN_JOB_EXISTS,
-  GEARMAN_JOB_QUEUE_FULL,
-  GEARMAN_SERVER_ERROR,
-  GEARMAN_WORK_ERROR,
-  GEARMAN_WORK_DATA,
-  GEARMAN_WORK_WARNING,
-  GEARMAN_WORK_STATUS,
-  GEARMAN_WORK_EXCEPTION,
-  GEARMAN_WORK_FAIL,
-  GEARMAN_NOT_CONNECTED,
-  GEARMAN_COULD_NOT_CONNECT,
-  GEARMAN_SEND_IN_PROGRESS,
-  GEARMAN_RECV_IN_PROGRESS,
-  GEARMAN_NOT_FLUSHING,
-  GEARMAN_DATA_TOO_LARGE,
-  GEARMAN_INVALID_FUNCTION_NAME,
-  GEARMAN_INVALID_WORKER_FUNCTION,
-  GEARMAN_NO_REGISTERED_FUNCTION,
-  GEARMAN_NO_REGISTERED_FUNCTIONS,
-  GEARMAN_NO_JOBS,
-  GEARMAN_ECHO_DATA_CORRUPTION,
-  GEARMAN_NEED_WORKLOAD_FN,
-  GEARMAN_PAUSE,
-  GEARMAN_UNKNOWN_STATE,
-  GEARMAN_PTHREAD,
-  GEARMAN_PIPE_EOF,
-  GEARMAN_QUEUE_ERROR,
-  GEARMAN_FLUSH_DATA,
-  GEARMAN_SEND_BUFFER_TOO_SMALL,
-  GEARMAN_IGNORE_PACKET,
-  GEARMAN_UNKNOWN_OPTION,
-  GEARMAN_TIMEOUT,
-  GEARMAN_ARGUMENT_TOO_LARGE,
-  GEARMAN_MAX_RETURN /* Always add new error code before */
-} gearman_return_t;
 
 /**
  * Verbosity levels.
@@ -222,8 +166,6 @@ typedef enum
  */
 
 /* Types. */
-typedef struct gearman_universal_st gearman_universal_st;
-typedef struct gearman_connection_st gearman_connection_st;
 typedef struct gearman_packet_st gearman_packet_st;
 typedef struct gearman_command_info_st gearman_command_info_st;
 typedef struct gearman_task_st gearman_task_st;
@@ -232,6 +174,7 @@ typedef struct gearman_job_st gearman_job_st;
 typedef struct gearman_worker_st gearman_worker_st;
 typedef struct gearman_function_st gearman_function_st;
 typedef struct gearman_workload_t gearman_workload_t;
+typedef struct gearman_batch_t gearman_batch_t;
 typedef struct gearman_unique_t gearman_unique_t;
 typedef struct gearman_status_t gearman_status_t;
 
@@ -253,12 +196,6 @@ typedef void* (gearman_worker_fn)(gearman_job_st *job, void *context,
                                   size_t *result_size,
                                   gearman_return_t *ret_ptr);
 
-/**
-  @todo this is only used by the server and should be made private.
- */
-typedef gearman_return_t (gearman_event_watch_fn)(gearman_connection_st *con,
-                                                  short events, void *context);
-
 typedef void* (gearman_malloc_fn)(size_t size, void *context);
 typedef void (gearman_free_fn)(void *ptr, void *context);
 
@@ -267,16 +204,6 @@ typedef void (gearman_task_context_free_fn)(gearman_task_st *task,
 
 typedef void (gearman_log_fn)(const char *line, gearman_verbose_t verbose,
                               void *context);
-
-typedef void (gearman_connection_protocol_context_free_fn)(gearman_connection_st *con,
-                                                           void *context);
-
-typedef size_t (gearman_packet_pack_fn)(const gearman_packet_st *packet,
-                                        void *data, size_t data_size,
-                                        gearman_return_t *ret_ptr);
-typedef size_t (gearman_packet_unpack_fn)(gearman_packet_st *packet,
-                                          const void *data, size_t data_size,
-                                          gearman_return_t *ret_ptr);
 
 /** @} */
 

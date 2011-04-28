@@ -43,6 +43,8 @@
 
 #pragma once
 
+#include <libgearman/actions.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -79,10 +81,10 @@ enum gearman_task_state_t {
 struct gearman_task_st
 {
   struct {
-    bool allocated LIBGEARMAN_BITFIELD;
-    bool send_in_use LIBGEARMAN_BITFIELD;
-    bool is_known LIBGEARMAN_BITFIELD;
-    bool is_running LIBGEARMAN_BITFIELD;
+    bool allocated;
+    bool send_in_use;
+    bool is_known;
+    bool is_running;
   } options;
   enum gearman_task_state_t state;
   uint32_t created_id;
@@ -95,6 +97,9 @@ struct gearman_task_st
   gearman_connection_st *con;
   gearman_packet_st *recv;
   gearman_packet_st send;
+  struct gearman_actions_t func;
+  gearman_return_t result_rc;
+  struct gearman_string_st *result_ptr;
   char job_handle[GEARMAN_JOB_HANDLE_SIZE];
 };
 
@@ -110,6 +115,9 @@ struct gearman_task_st
 GEARMAN_LOCAL
 gearman_task_st *gearman_task_create(gearman_client_st *client,
                                      gearman_task_st *task);
+
+GEARMAN_LOCAL
+void gearman_task_clear_fn(gearman_task_st *task);
 
 /**
  * Free a task structure.
@@ -216,6 +224,15 @@ void *gearman_task_take_data(gearman_task_st *task, size_t *data_size);
 GEARMAN_API
 size_t gearman_task_recv_data(gearman_task_st *task, void *data,
                               size_t data_size, gearman_return_t *ret_ptr);
+
+GEARMAN_API
+gearman_return_t gearman_task_error(const gearman_task_st *task);
+
+GEARMAN_API
+size_t gearman_task_result_size(const gearman_task_st *task);
+
+GEARMAN_API
+const void *gearman_task_result(const gearman_task_st *task);
 
 /** @} */
 

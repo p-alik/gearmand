@@ -83,45 +83,6 @@ enum gearman_con_universal_t {
 /**
  * @ingroup gearman_connection
  */
-struct gearman_connection_st
-{
-  struct {
-    bool allocated LIBGEARMAN_BITFIELD;
-    bool ready LIBGEARMAN_BITFIELD;
-    bool packet_in_use LIBGEARMAN_BITFIELD;
-    bool external_fd LIBGEARMAN_BITFIELD;
-    bool ignore_lost_connection LIBGEARMAN_BITFIELD;
-    bool close_after_flush LIBGEARMAN_BITFIELD;
-  } options;
-  enum gearman_con_universal_t state;
-  enum gearman_con_send_t send_state;
-  enum gearman_con_recv_t recv_state;
-  in_port_t port;
-  short events;
-  short revents;
-  int fd;
-  uint32_t created_id;
-  uint32_t created_id_next;
-  size_t send_buffer_size;
-  size_t send_data_size;
-  size_t send_data_offset;
-  size_t recv_buffer_size;
-  size_t recv_data_size;
-  size_t recv_data_offset;
-  gearman_universal_st *universal;
-  gearman_connection_st *next;
-  gearman_connection_st *prev;
-  void *context;
-  struct addrinfo *addrinfo;
-  struct addrinfo *addrinfo_next;
-  char *send_buffer_ptr;
-  gearman_packet_st *recv_packet;
-  char *recv_buffer_ptr;
-  gearman_packet_st packet;
-  char host[NI_MAXHOST];
-  char send_buffer[GEARMAN_SEND_BUFFER_SIZE];
-  char recv_buffer[GEARMAN_RECV_BUFFER_SIZE];
-};
 
 #ifdef GEARMAN_CORE
 

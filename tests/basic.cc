@@ -42,40 +42,79 @@
 
 #include <tests/basic.h>
 #include <tests/context.h>
+#include <libtest/worker.h>
 
+#ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
+pthread_mutex_t counter_lock= PTHREAD_MUTEX_INITIALIZER;
 
 /* Counter test for worker */
-static void *counter_function(gearman_job_st *job __attribute__((unused)),
+static void *counter_function(gearman_job_st *,
                               void *context, size_t *result_size,
-                              gearman_return_t *ret_ptr __attribute__((unused)))
+                              gearman_return_t *)
 {
   uint32_t *counter= (uint32_t *)context;
 
   *result_size= 0;
 
+  pthread_mutex_lock(&counter_lock);
   *counter= *counter + 1;
+  pthread_mutex_unlock(&counter_lock);
 
   return NULL;
 }
 
-test_return_t echo_test(void *object)
+test_return_t client_echo_fail_test(void *object)
 {
-  gearman_client_st client, *client_ptr;
-  gearman_return_t rc;
-  const char *value= "This is my echo test";
-  size_t value_length= sizeof("This is my echo test") -1;
+  Context *test= (Context *)object;
+  test_truth(test);
 
-  (void)object;
+  gearman_client_st client, *client_ptr;
 
   client_ptr= gearman_client_create(&client);
   test_truth(client_ptr);
 
-  rc= gearman_client_echo(&client, (uint8_t *)value, value_length);
+  test_true_got(gearman_success(gearman_client_add_server(&client, NULL, 20)), gearman_client_error(client_ptr));
 
-  test_truth(rc == GEARMAN_SUCCESS);
+  gearman_return_t rc= gearman_client_echo(&client, gearman_literal_param("This should never work"));
+  test_true_got(gearman_failed(rc), gearman_strerror(rc));
 
   gearman_client_free(&client);
+
+  return TEST_SUCCESS;
+}
+
+test_return_t client_echo_test(void *object)
+{
+  Context *test= (Context *)object;
+  test_truth(test);
+
+  gearman_client_st client, *client_ptr;
+
+  client_ptr= gearman_client_create(&client);
+  test_truth(client_ptr);
+
+  test_true_got(gearman_success(gearman_client_add_server(&client, NULL, test->port())), gearman_client_error(client_ptr));
+
+  gearman_return_t rc= gearman_client_echo(&client, gearman_literal_param("This is my echo test"));
+  test_true_got(rc == GEARMAN_SUCCESS, gearman_strerror(rc));
+
+  gearman_client_free(&client);
+
+  return TEST_SUCCESS;
+}
+
+test_return_t worker_echo_test(void *object)
+{
+  Context *test= (Context *)object;
+  test_truth(test);
+
+  gearman_worker_st *worker= test->worker;
+  test_truth(worker);
+
+  gearman_return_t rc= gearman_worker_echo(worker, gearman_literal_param("This is my echo test"));
+  test_true_got(rc == GEARMAN_SUCCESS, gearman_strerror(rc));
 
   return TEST_SUCCESS;
 }
@@ -83,18 +122,19 @@ test_return_t echo_test(void *object)
 test_return_t queue_clean(void *object)
 {
   Context *test= (Context *)object;
+  test_truth(test);
   gearman_worker_st *worker= test->worker;
-  uint32_t counter= 0;
-  gearman_return_t rc;
+  test_truth(worker);
 
   gearman_worker_set_timeout(worker, 200);
-  rc= gearman_worker_add_function(worker, "queue_test", 5, counter_function, &counter);
-  test_truth(rc == GEARMAN_SUCCESS);
+
+  uint32_t counter= 0;
+  test_true_got(gearman_success(gearman_worker_add_function(worker, test->worker_function_name(), 5, counter_function, &counter)), gearman_worker_error(worker));
 
   // Clean out any jobs that might still be in the queue from failed tests.
   while (1)
   {
-    rc= gearman_worker_work(worker);
+    gearman_return_t rc= gearman_worker_work(worker);
     if (rc != GEARMAN_SUCCESS)
       break;
   }
@@ -106,25 +146,24 @@ test_return_t queue_add(void *object)
 {
   Context *test= (Context *)object;
   gearman_client_st client, *client_ptr;
-  char job_handle[GEARMAN_JOB_HANDLE_SIZE];
-  uint8_t *value= (uint8_t *)"background_test";
-  size_t value_length= strlen("background_test");
-  gearman_return_t rc;
+  char job_handle[GEARMAN_JOB_HANDLE_SIZE]= {};
+  test_truth(test);
 
   test->run_worker= false;
 
   client_ptr= gearman_client_create(&client);
   test_truth(client_ptr);
 
-  rc= gearman_client_add_server(&client, NULL, test->port());
-  test_truth(rc == GEARMAN_SUCCESS);
+  test_true_got(gearman_success(gearman_client_add_server(&client, NULL, test->port())), gearman_client_error(client_ptr));
 
-  rc= gearman_client_echo(&client, (uint8_t *)value, value_length);
-  test_truth(rc == GEARMAN_SUCCESS);
+  gearman_return_t rc= gearman_client_echo(&client, gearman_literal_param("background_payload"));
+  test_true_got(rc == GEARMAN_SUCCESS, gearman_strerror(rc));
 
-  rc= gearman_client_do_background(&client, "queue_test", NULL, value,
-                                   value_length, job_handle);
-  test_truth(rc == GEARMAN_SUCCESS);
+  rc= gearman_client_do_background(&client, test->worker_function_name(), NULL, 
+                                   gearman_literal_param("background_payload"),
+                                   job_handle);
+  test_true_got(rc == GEARMAN_SUCCESS, gearman_strerror(rc));
+  test_truth(job_handle[0]);
 
   gearman_client_free(&client);
 
@@ -133,31 +172,94 @@ test_return_t queue_add(void *object)
   return TEST_SUCCESS;
 }
 
-#include <iostream>
-
 test_return_t queue_worker(void *object)
 {
   Context *test= (Context *)object;
+  test_truth(test);
+
+  // Setup job
+  test_truth(queue_add(object) == TEST_SUCCESS);
+
   gearman_worker_st *worker= test->worker;
+  test_truth(worker);
+
+  test_true_got(test->run_worker, "run_worker was not set");
+
   uint32_t counter= 0;
-  gearman_return_t rc;
-
-  if (! test->run_worker)
-    return TEST_FAILURE;
-
-  rc= gearman_worker_add_function(worker, "queue_test", 5, counter_function, &counter);
-  test_truth(rc == GEARMAN_SUCCESS);
+  gearman_return_t rc= gearman_worker_add_function(worker, test->worker_function_name(), 5, counter_function, &counter);
+  test_true_got(rc == GEARMAN_SUCCESS, gearman_strerror(rc));
 
   gearman_worker_set_timeout(worker, 5);
 
-  std::cerr << "got here " << std::endl;
   rc= gearman_worker_work(worker);
-  test_truth(rc == GEARMAN_SUCCESS or rc == GEARMAN_TIMEOUT);
-  std::cerr << "gearman_worker_work() " << std::endl;
+  test_true_got(rc == GEARMAN_SUCCESS, (rc == GEARMAN_TIMEOUT) ? "Worker was not able to connection to the server, is it running?": gearman_strerror(rc));
 
   if (rc == GEARMAN_SUCCESS)
   {
     test_truth (counter != 0);
+  }
+
+  return TEST_SUCCESS;
+}
+
+#define NUMBER_OF_WORKERS 10
+#define NUMBER_OF_JOBS 40
+#define JOB_SIZE 100
+test_return_t lp_734663(void *object)
+{
+  Context *test= (Context *)object;
+  test_truth(test);
+
+  const char *worker_function_name= "drizzle_queue_test";
+
+  uint8_t value[JOB_SIZE]= { 'x' };
+  memset(&value, 'x', sizeof(value));
+
+  gearman_client_st client, *client_ptr;
+  client_ptr= gearman_client_create(&client);
+  test_truth(client_ptr);
+
+  test_true_got(gearman_success(gearman_client_add_server(&client, NULL, test->port())), gearman_client_error(client_ptr));
+
+  uint32_t echo_loop= 3;
+  do {
+    if (echo_loop != 3)
+      sleep(1); // Yes, rigging sleep() in order to make sue the server is there
+
+    gearman_return_t rc= gearman_client_echo(&client, value, sizeof(JOB_SIZE));
+    test_true_got(rc == GEARMAN_SUCCESS, gearman_strerror(rc));
+  } while (--echo_loop);
+
+  for (uint32_t x= 0; x < NUMBER_OF_JOBS; x++)
+  {
+    char job_handle[GEARMAN_JOB_HANDLE_SIZE]= {};
+    gearman_return_t rc= gearman_client_do_background(&client, worker_function_name, NULL, value,
+                                     sizeof(value), job_handle);
+    test_truth(rc == GEARMAN_SUCCESS);
+    test_truth(job_handle[0]);
+  }
+
+  gearman_client_free(&client);
+
+  struct worker_handle_st *worker_handle[NUMBER_OF_WORKERS];
+
+  uint32_t counter= 0;
+  for (uint32_t x= 0; x < NUMBER_OF_WORKERS; x++)
+  {
+    worker_handle[x]= test_worker_start(test->port(), worker_function_name, counter_function, &counter);
+  }
+
+  time_t end_time= time(NULL) + 5;
+  time_t current_time= 0;
+  while (counter < NUMBER_OF_JOBS || current_time < end_time)
+  {
+    sleep(1);
+    current_time= time(NULL);
+  }
+
+  for (uint32_t x= 0; x < NUMBER_OF_WORKERS; x++)
+  {
+    test_worker_stop(worker_handle[x]);
   }
 
   return TEST_SUCCESS;

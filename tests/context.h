@@ -38,6 +38,7 @@
 
 #pragma once
 
+#include <string>
 #include <unistd.h>
 #include <libtest/server.h>
 
@@ -47,14 +48,21 @@ public:
   pid_t gearmand_pid;
   gearman_worker_st *worker;
   in_port_t _port;
+  std::string _worker_function_name;
   bool run_worker;
 
   Context(in_port_t port_arg):
     gearmand_pid(-1),
     worker(NULL),
     _port(port_arg),
+    _worker_function_name("queue_test"),
     run_worker(false)
   {
+  }
+
+  const char *worker_function_name() const
+  {
+    return _worker_function_name.c_str();
   }
 
   in_port_t port() const
@@ -64,10 +72,7 @@ public:
 
   bool initialize(int argc, const char *argv[])
   {
-    unlink("tests/gearman.sql");
-    unlink("tests/gearman.sql-journal");
-
-    gearmand_pid= test_gearmand_start(_port, "libsqlite3", argc, argv);
+    gearmand_pid= test_gearmand_start(_port, argc, argv);
     if (gearmand_pid == -1)
       return false;
 

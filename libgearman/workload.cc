@@ -36,17 +36,25 @@
  */
 
 #include <libgearman/common.h>
+#include <cstring>
 
 gearman_workload_t gearman_workload_make(const char *arg, size_t arg_size)
 {
-  gearman_workload_t local= { false, GEARMAN_JOB_PRIORITY_NORMAL, 0, arg, arg_size, 0};
+  gearman_workload_t local= { false, GEARMAN_JOB_PRIORITY_NORMAL, 0, arg, arg_size, 0, {0 ,0}, 0};
+
+  return local;
+}
+
+gearman_workload_t gearman_workload_make_unique(const char *arg, size_t arg_size, const char *unique, size_t unique_size)
+{
+  gearman_workload_t local= { false, GEARMAN_JOB_PRIORITY_NORMAL, 0, arg, arg_size, 0, {unique , unique_size}, 0};
 
   return local;
 }
 
 size_t gearman_workload_size(gearman_workload_t *self)
 {
-  if (! self)
+  if (not self)
     return 0;
 
   return self->size;
@@ -63,7 +71,7 @@ time_t gearman_workload_epoch(const gearman_workload_t *self)
 
 void gearman_workload_set_epoch(gearman_workload_t *self, time_t epoch)
 {
-  if (! self)
+  if (not self)
     return;
 
   self->epoch= epoch;
@@ -95,7 +103,7 @@ void gearman_workload_set_priority(gearman_workload_t *self, const gearman_job_p
 
 void gearman_workload_set_background(gearman_workload_t *self, bool background)
 {
-  if (! self)
+  if (not self)
     return;
 
   self->background= background;
@@ -107,6 +115,38 @@ void gearman_workload_set_context(gearman_workload_t *self, void *context)
     return;
 
   self->context= context;
+}
+
+gearman_task_st *gearman_workload_task(const gearman_workload_t *self)
+{
+  if (not self)
+    return false;
+
+  return self->task;
+}
+
+void gearman_workload_set_task(gearman_workload_t *self, gearman_task_st *task)
+{
+  if (not self)
+    return;
+
+  self->task= task;
+}
+
+const gearman_unique_t *gearman_workload_unique(const gearman_workload_t *self)
+{
+  if (not self)
+    return false;
+
+  return &self->unique;
+}
+
+bool gearman_workload_compare(const gearman_workload_t *self, const char* arg, size_t size)
+{
+  if (size != self->size)
+    return false;
+
+  return memcmp(self->c_str, arg, size) == 0;
 }
 
 #if 0

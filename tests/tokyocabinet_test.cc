@@ -23,154 +23,69 @@
 #include "libtest/test.h"
 #include "libtest/server.h"
 
+#include <tests/basic.h>
+#include <tests/context.h>
+
 #define WORKER_TEST_PORT 32123
-
-typedef struct
-{
-  pid_t gearmand_pid;
-  gearman_worker_st worker;
-  bool run_worker;
-} worker_test_st;
-
-/* Prototypes */
-test_return_t queue_add(void *object);
-test_return_t queue_worker(void *object);
-
-test_return_t pre(void *object);
-test_return_t post(void *object);
-test_return_t flush(void *object);
 
 void *world_create(test_return_t *error);
 test_return_t world_destroy(void *object);
 
-static void client_logger(const char *line, gearman_verbose_t verbose, void *context)
-{
-  (void)line;
-  (void)context;
-  (void)verbose;
-  //fprintf(stderr, "\nclient_logger: %s\n", line);
-}
-
+#ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
 
-/* Counter test for worker */
-static void *counter_function(gearman_job_st *job __attribute__((unused)),
-                              void *context, size_t *result_size,
-                              gearman_return_t *ret_ptr __attribute__((unused)))
+static test_return_t collection_init(void *object)
 {
-  uint32_t *counter= (uint32_t *)context;
+  const char *argv[3]= { "test_gearmand", "--libtokyocabinet-file=tests/gearman.tcb", "--queue-type=libtokyocabinet" };
 
-  *result_size= 0;
+  unlink("tests/gearman.tcb");
 
-  *counter= *counter + 1;
+  Context *test= (Context *)object;
+  assert(test);
 
-  return NULL;
-}
+  test_truth(test->initialize(3, argv));
 
-test_return_t queue_add(void *object)
-{
-  gearman_return_t rc;
-  worker_test_st *test= (worker_test_st *)object;
-  gearman_client_st client;
-  gearman_client_st *check;
-  char job_handle[GEARMAN_JOB_HANDLE_SIZE];
-  uint8_t *value= (uint8_t *)"background_test";
-  size_t value_length= strlen("background_test");
-
-  test->run_worker= false;
-
-  check= gearman_client_create(&client);
-  test_truth(check);
-
-  gearman_client_set_log_fn(&client, client_logger, NULL, GEARMAN_VERBOSE_DEBUG);
-
-  rc= gearman_client_add_server(&client, NULL, WORKER_TEST_PORT);
-  test_truth(rc == GEARMAN_SUCCESS);
-
-  rc= gearman_client_do_background(&client, "queue_test", NULL, value, value_length, job_handle);
-  test_true_got(rc == GEARMAN_SUCCESS, gearman_strerror(rc));
-
-  gearman_client_free(&client);
-
-  test->run_worker= true;
   return TEST_SUCCESS;
 }
 
-test_return_t queue_worker(void *object)
+static test_return_t collection_cleanup(void *object)
 {
-  worker_test_st *test= (worker_test_st *)object;
-  gearman_worker_st *worker= &(test->worker);
-  uint32_t counter= 0;
-
-  if (!test->run_worker)
-    return TEST_FAILURE;
-
-  if (gearman_worker_add_function(worker, "queue_test", 5, counter_function,
-                                  &counter) != GEARMAN_SUCCESS)
-  {
-    return TEST_FAILURE;
-  }
-
-  if (gearman_worker_work(worker) != GEARMAN_SUCCESS)
-    return TEST_FAILURE;
-
-  if (counter == 0)
-    return TEST_FAILURE;
+  Context *test= (Context *)object;
+  test->reset();
 
   return TEST_SUCCESS;
 }
+
 
 void *world_create(test_return_t *error)
 {
-  worker_test_st *test;
-  pid_t gearmand_pid;
-  const char *argv[2]= { "test_gearmand", "--libtokyocabinet-file=tests/gearman.tcb" };
-
-  gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, "libtokyocabinet", 2, argv);
-  if (gearmand_pid == -1)
-  {
-    *error= TEST_FAILURE;
-    return NULL;
-  }
-
-  test= (worker_test_st *)malloc(sizeof(worker_test_st));
-  if (! test)
+  Context *test= new Context(WORKER_TEST_PORT);
+  if (not test)
   {
     *error= TEST_MEMORY_ALLOCATION_FAILURE;
     return NULL;
   }
 
-  memset(test, 0, sizeof(worker_test_st));
-  if (gearman_worker_create(&(test->worker)) == NULL)
-  {
-    *error= TEST_FAILURE;
-    return NULL;
-  }
-
-  if (gearman_worker_add_server(&(test->worker), NULL, WORKER_TEST_PORT) != GEARMAN_SUCCESS)
-  {
-    *error= TEST_FAILURE;
-    return NULL;
-  }
-
-  test->gearmand_pid= gearmand_pid;
-
   *error= TEST_SUCCESS;
 
-  return (void *)test;
+  return test;
 }
 
 test_return_t world_destroy(void *object)
 {
-  worker_test_st *test= (worker_test_st *)object;
-  gearman_worker_free(&(test->worker));
-  test_gearmand_stop(test->gearmand_pid);
-  free(test);
+  Context *test= (Context *)object;
+
+  delete test;
 
   return TEST_SUCCESS;
 }
 
 test_st tests[] ={
+  {"gearman_client_echo()", 0, client_echo_test },
+  {"gearman_client_echo() fail", 0, client_echo_fail_test },
+  {"gearman_worker_echo()", 0, worker_echo_test },
+  {"clean", 0, queue_clean },
   {"add", 0, queue_add },
   {"worker", 0, queue_worker },
   {0, 0, 0}
@@ -178,7 +93,7 @@ test_st tests[] ={
 
 collection_st collection[] ={
 #ifdef HAVE_LIBTOKYOCABINET
-  {"tokyocabinet queue", 0, 0, tests},
+  {"tokyocabinet queue", collection_init, collection_cleanup, tests},
 #endif
   {0, 0, 0, 0}
 };

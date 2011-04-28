@@ -18,14 +18,21 @@ extern "C" {
 #endif
 
 /**
+  @todo this is only used by the server and should be made private.
+ */
+typedef struct gearman_connection_st gearman_connection_st;
+typedef gearman_return_t (gearman_event_watch_fn)(gearman_connection_st *con,
+                                                  short events, void *context);
+
+/**
  * @ingroup gearman_universal
  */
 struct gearman_universal_st
 {
   struct {
-    bool dont_track_packets LIBGEARMAN_BITFIELD;
-    bool non_blocking LIBGEARMAN_BITFIELD;
-    bool stored_non_blocking LIBGEARMAN_BITFIELD;
+    bool dont_track_packets;
+    bool non_blocking;
+    bool stored_non_blocking;
   } options;
   gearman_verbose_t verbose;
   uint32_t con_count;
@@ -38,8 +45,6 @@ struct gearman_universal_st
   struct pollfd *pfds;
   gearman_log_fn *log_fn;
   void *log_context;
-  gearman_event_watch_fn *event_watch_fn;
-  void *event_watch_context;
   gearman_malloc_fn *workload_malloc_fn;
   void *workload_malloc_context;
   gearman_free_fn *workload_free_fn;
@@ -122,8 +127,8 @@ void gearman_universal_set_perror(const char *position, gearman_universal_st *un
 #define TOSTRING(x) STRINGIFY(x)
 #define AT __FILE__ ":" TOSTRING(__LINE__)
 
-#define gearman_perror(A, B) do { gearman_universal_set_perror(AT, A, B); } while (0)
-#define gearman_error(A, B, C) do { gearman_universal_set_error(A, B, AT, C); } while (0)
+#define gearman_perror(A, B) do { gearman_universal_set_perror(AT, (A), (B)); } while (0)
+#define gearman_error(A, B, C) do { gearman_universal_set_error((A), (B), AT, (C)); } while (0)
 
 /**
  * Return an error string for last error encountered.
@@ -137,6 +142,11 @@ static inline const char *gearman_universal_error(const gearman_universal_st *ge
   if (gearman->error.last_error[0] == 0)
       return 0;
   return (const char *)(gearman->error.last_error);
+}
+
+static inline gearman_return_t gearman_universal_error_code(const gearman_universal_st *gearman)
+{
+  return gearman->error.rc;
 }
 
 /**
@@ -211,19 +221,6 @@ void gearman_universal_set_timeout(gearman_universal_st *gearman, int timeout);
 GEARMAN_INTERNAL_API
 void gearman_set_log_fn(gearman_universal_st *gearman, gearman_log_fn *function,
                         void *context, gearman_verbose_t verbose);
-
-/**
- * Set custom I/O event callback function for a gearman structure.
- *
- * @param[in] gearman Structure previously initialized with gearman_universal_create() or
- *  gearman_clone().
- * @param[in] function Function to call when there is an I/O event.
- * @param[in] context Argument to pass into the callback function.
- */
-GEARMAN_INTERNAL_API
-void gearman_set_event_watch_fn(gearman_universal_st *gearman,
-                                gearman_event_watch_fn *function,
-                                void *context);
 
 /**
  * Set custom memory allocation function for workloads. Normally gearman uses

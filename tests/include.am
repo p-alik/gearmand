@@ -10,23 +10,20 @@ VALGRIND_COMMAND= $(LIBTOOL) --mode=execute valgrind --leak-check=yes --show-rea
 
 noinst_HEADERS+= \
 		 tests/basic.h \
-		 tests/context.h
+		 tests/context.h \
+		 tests/do_background.cc \
+		 tests/execute.h \
+		 tests/gearman_client_do_job_handle.h \
+		 tests/task.h
 
 CLIENT_LDADD= \
 	      libtest/libtest.la \
 	      libtest/libserver.la \
-	      libgearman/libgearman.la \
-	      libgearman/libgearmancore.la
+	      libgearman/libgearman.la
 
 CLEANFILES+= \
 	     tests/var/log/* \
 	     tests/var/tmp/*
-
-tests_memcached_test_SOURCES= tests/memcached_test.cc
-tests_memcached_test_LDADD= ${CLIENT_LDADD}
-
-tests_queue_regression_SOURCES= tests/queue_regression.cc
-tests_queue_regression_LDADD= ${CLIENT_LDADD}
 
 noinst_PROGRAMS+= \
 		  tests/burnin_test \
@@ -38,7 +35,13 @@ noinst_PROGRAMS+= \
 		  tests/round_robin_test \
 		  tests/worker_test
 
-tests_client_test_SOURCES= tests/client_test.cc
+tests_client_test_SOURCES= \
+			   tests/batch.cc \
+			   tests/client_test.cc \
+			   tests/do_background.cc \
+			   tests/execute.cc \
+			   tests/gearman_client_do_job_handle.cc \
+			   tests/task.cc
 tests_client_test_LDADD= ${CLIENT_LDADD}
 
 tests_burnin_test_SOURCES= tests/burnin.cc
@@ -55,7 +58,9 @@ tests_round_robin_test_SOURCES= tests/round_robin.cc
 tests_round_robin_test_LDADD= ${CLIENT_LDADD} libgearman/libgearmancore.la
 
 tests_worker_test_SOURCES= tests/worker_test.cc
-tests_worker_test_LDADD= ${CLIENT_LDADD}
+tests_worker_test_LDADD= \
+			 ${CLIENT_LDADD} \
+			 libgearman/libgearmancore.la
 
 # Test linking with C++ application
 tests_cpp_test_SOURCES= tests/cpp_test.cc
@@ -82,7 +87,7 @@ test-shutdown: bin/gearadmin
 
 check-local: tests/var gearmand-test-args client-test test-shutdown libtest-tests
 
-libtest-tests: test-client test-round-robin test-worker test-internals test-libmemcached test-sqlite test-tokyocabinet test-burnin queue-regression
+libtest-tests: test-client test-round-robin test-worker test-internals test-libmemcached test-sqlite test-tokyocabinet test-burnin
 
 gdb-client: ${noinst_PROGRAMS}
 	$(LIBTOOL) --mode=execute gdb tests/client_test
@@ -107,11 +112,6 @@ valgrind-worker:
 
 valgrind-internals:
 	$(VALGRIND_COMMAND) tests/internals_test $(ARG1) $(ARG2)
-
-valgrind-libmemcached:
-	$(LIBMEMCACHED_SETUP)
-	$(VALGRIND_COMMAND) $(LIBMEMCACHED_TEST) $(ARG1) $(ARG2)
-	$(LIBMEMCACHED_TEARDOWN)
 
 tests/var: tests/var/log tests/var/tmp
 	$(mkdir_p) tests/var

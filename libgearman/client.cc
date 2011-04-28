@@ -42,18 +42,16 @@
  */
 
 #include <libgearman/common.h>
-#include <libgearman/configure.h>
+
+#include <libgearman/add.h>
 #include <libgearman/connection.h>
 
-#include <assert.h>
+#include <cassert>
+#include <cerrno>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <memory>
-
-#ifdef HAVE_UUID_UUID_H
-#include <uuid/uuid.h>
-#endif
 
 /**
  * @addtogroup gearman_client_static Static Client Declarations
@@ -71,22 +69,6 @@ static gearman_client_st *_client_allocate(gearman_client_st *client, bool is_cl
  */
 static gearman_return_t _client_add_server(const char *host, in_port_t port,
                                            void *context);
-
-/**
- * Add a task.
- */
-static gearman_task_st *_client_add_task(gearman_client_st *client,
-                                         gearman_task_st *task,
-                                         void *context,
-                                         gearman_command_t command,
-                                         const char *function_name,
-                                         size_t function_name_length,
-                                         const char *unique,
-                                         size_t unique_name_length,
-                                         const void *workload,
-                                         size_t workload_size,
-                                         time_t when,
-                                         gearman_return_t *ret_ptr);
 
 /**
  * Task state machine.
@@ -116,21 +98,6 @@ static gearman_return_t _client_do_background(gearman_client_st *client,
                                               size_t workload_size,
                                               char *job_handle);
 
-/**
- * Data and complete function for gearman_client_do* functions.
- */
-static gearman_return_t _client_do_data(gearman_task_st *task);
-
-/**
- * Status function for gearman_client_do* functions.
- */
-static gearman_return_t _client_do_status(gearman_task_st *task);
-
-/**
- * Fail function for gearman_client_do* functions.
- */
-static gearman_return_t _client_do_fail(gearman_task_st *task);
-
 /** @} */
 
 /*
@@ -147,7 +114,7 @@ gearman_client_st *gearman_client_clone(gearman_client_st *client,
 {
   gearman_universal_st *check;
 
-  if (! from)
+  if (not from)
   {
     return _client_allocate(client, false);
   }
@@ -160,13 +127,13 @@ gearman_client_st *gearman_client_clone(gearman_client_st *client,
   }
 
   client->options.non_blocking= from->options.non_blocking;
-  client->options.task_in_use= from->options.task_in_use;
   client->options.unbuffered_result= from->options.unbuffered_result;
   client->options.no_new= from->options.no_new;
   client->options.free_tasks= from->options.free_tasks;
+  client->actions= from->actions;
 
   check= gearman_universal_clone((&client->universal), &(from->universal));
-  if (! check)
+  if (not check)
   {
     gearman_client_free(client);
     return NULL;
@@ -177,9 +144,6 @@ gearman_client_st *gearman_client_clone(gearman_client_st *client,
 
 void gearman_client_free(gearman_client_st *client)
 {
-  if (client->options.task_in_use)
-    gearman_task_free(&(client->do_task));
-
   gearman_client_task_free_all(client);
 
   gearman_universal_free(&client->universal);
@@ -190,7 +154,15 @@ void gearman_client_free(gearman_client_st *client)
 
 const char *gearman_client_error(const gearman_client_st *client)
 {
+  if (not client)
+    return NULL;
+
   return gearman_universal_error(&client->universal);
+}
+
+gearman_return_t gearman_client_error_code(const gearman_client_st *client)
+{
+  return gearman_universal_error_code(&client->universal);
 }
 
 int gearman_client_errno(const gearman_client_st *client)
@@ -204,19 +176,21 @@ gearman_client_options_t gearman_client_options(const gearman_client_st *client)
   memset(&options, 0, sizeof(int32_t));
 
   if (client->options.allocated)
-    options|= (int)GEARMAN_CLIENT_ALLOCATED;
-  if (client->options.non_blocking)
-    options|= (int)GEARMAN_CLIENT_NON_BLOCKING;
-  if (client->options.task_in_use)
-    options|= (int)GEARMAN_CLIENT_TASK_IN_USE;
-  if (client->options.unbuffered_result)
-    options|= (int)GEARMAN_CLIENT_UNBUFFERED_RESULT;
-  if (client->options.no_new)
-    options|= (int)GEARMAN_CLIENT_NO_NEW;
-  if (client->options.free_tasks)
-    options|= (int)GEARMAN_CLIENT_FREE_TASKS;
+    options|= int(GEARMAN_CLIENT_ALLOCATED);
 
-  return (gearman_client_options_t)options;
+  if (client->options.non_blocking)
+    options|= int(GEARMAN_CLIENT_NON_BLOCKING);
+
+  if (client->options.unbuffered_result)
+    options|= int(GEARMAN_CLIENT_UNBUFFERED_RESULT);
+
+  if (client->options.no_new)
+    options|= int(GEARMAN_CLIENT_NO_NEW);
+
+  if (client->options.free_tasks)
+    options|= int(GEARMAN_CLIENT_FREE_TASKS);
+
+  return gearman_client_options_t(options);
 }
 
 void gearman_client_set_options(gearman_client_st *client,
@@ -297,7 +271,7 @@ void gearman_client_set_timeout(gearman_client_st *client, int timeout)
 
 void *gearman_client_context(const gearman_client_st *client)
 {
-  return (void *)(client->context);
+  return const_cast<void *>(client->context);
 }
 
 void gearman_client_set_context(gearman_client_st *client, void *context)
@@ -327,8 +301,15 @@ void gearman_client_set_workload_free_fn(gearman_client_st *client, gearman_free
 gearman_return_t gearman_client_add_server(gearman_client_st *client,
                                            const char *host, in_port_t port)
 {
+  if (not client)
+  {
+    return GEARMAN_INVALID_ARGUMENT;
+  }
+
   if (gearman_connection_create_args(&client->universal, NULL, host, port) == NULL)
+  {
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+  }
 
   return GEARMAN_SUCCESS;
 }
@@ -402,73 +383,189 @@ static inline gearman_command_t pick_command_by_priority_background(const gearma
   return GEARMAN_COMMAND_SUBMIT_JOB_LOW_BG;
 }
 
-
-gearman_status_t gearman_client_execute(gearman_client_st *client,
-                                        const gearman_function_st *function,
-                                        gearman_unique_t *unique,
-                                        const gearman_workload_t *workload)
+#if 0
+static size_t _count_tasks(gearman_client_st *client)
 {
-  if (not client)
-    return GEARMAN_STATUS_FAIL;
+  size_t count= 1;
+  gearman_task_st *search= client->task_list;
 
-  if (not function)
-    return GEARMAN_STATUS_FAIL;
+  while ((search= search->next))
+  {
+    count++;
+  }
+
+  return count;
+}
+#endif
+
+static gearman_return_t _client_execute_setup(gearman_client_st *client,
+                                              const gearman_function_st *function,
+                                              gearman_workload_t *workload,
+                                              bool &has_background)
+{
+  gearman_workload_t *workload_ptr= workload;
 
   gearman_command_t command;
-  if (gearman_workload_epoch(workload))
+  if (gearman_workload_epoch(workload_ptr))
   {
     command= GEARMAN_COMMAND_SUBMIT_JOB_EPOCH;
   }
-  else if (gearman_workload_background(workload))
+  else if (gearman_workload_background(workload_ptr))
   {
-    command= pick_command_by_priority_background(gearman_workload_priority(workload));
+    command= pick_command_by_priority_background(gearman_workload_priority(workload_ptr));
   }
   else
   {
-    command= pick_command_by_priority(gearman_workload_priority(workload));
+    command= pick_command_by_priority(gearman_workload_priority(workload_ptr));
   }
 
-  gearman_return_t rc;
-  gearman_task_st *task= _client_add_task(client, NULL, 
-                                          gearman_workload_context(workload),
-                                          command,
+  gearman_task_st *task= add_task(client, NULL, 
+                                  gearman_workload_context(workload_ptr),
+                                  command,
                                           gearman_function_name(function), gearman_function_size(function),
-                                          gearman_param(unique),
-                                          gearman_param(workload),
-                                          gearman_workload_epoch(workload),
-                                          &rc);
-  if (not task)
-    return GEARMAN_STATUS_FAIL;
+                                          gearman_param(&workload_ptr->unique),
+                                          gearman_param(workload_ptr),
+                                          gearman_workload_epoch(workload_ptr));
 
-  if (not gearman_workload_background(workload))
+  gearman_workload_set_task(workload_ptr, task);
+
+  if (not task)
   {
-    rc= gearman_client_run_tasks(client);
-    if (rc !=  GEARMAN_SUCCESS)
+    gearman_client_task_free_all(client);
+    return gearman_universal_error_code(&client->universal);
+  }
+
+  if (gearman_workload_background(workload_ptr))
+  {
+    has_background= true;
+  }
+  else // Define do operations
+  {
+    task->func= gearman_actions_do_default();
+  }
+
+  return GEARMAN_SUCCESS;
+}
+
+static bool _client_execute(gearman_client_st *client,
+                                        bool &has_background)
+{
+  if (not has_background)
+  {
+    gearman_return_t rc;
+
+    do {
+      rc= gearman_client_run_tasks(client);
+    } while (rc == GEARMAN_PAUSE);
+
+    if (rc == GEARMAN_SUCCESS)
+    { }
+    else
     {
       gearman_error(&client->universal, rc, "failure occured during gearman_client_run_tasks()");
-      gearman_task_free(task);
+      return false;
+    }
+  }
+  else
+  {
+    gearman_return_t rc= gearman_client_run_tasks(client);
+    gearman_error(&client->universal, rc, "gearman_client_run_tasks()");
 
-      return GEARMAN_STATUS_FAIL;
+    if (rc != GEARMAN_IO_WAIT)
+    {
+      client->new_tasks= 0;
+      client->running_tasks= 0;
     }
   }
 
-  gearman_status_t status= { true, task };
-  return status;
+  return true;
 }
 
-const char *gearman_client_do_job_handle(const gearman_client_st *client)
+bool gearman_client_execute(gearman_client_st *client,
+                            const gearman_function_st *function,
+                            gearman_workload_t *workload)
 {
-  return client->do_task.job_handle;
+  if (not client)
+  {
+    errno= EINVAL;
+    return GEARMAN_ERRNO;
+  }
+
+  if (not function)
+  {
+    errno= EINVAL;
+    gearman_perror(&client->universal, "gearman_function_st was NULL");
+    return GEARMAN_ERRNO;
+  }
+
+  if (not workload)
+  {
+    errno= EINVAL;
+    gearman_perror((&client->universal), "gearman_workload_t was NULL");
+    return GEARMAN_ERRNO;
+  }
+
+  gearman_workload_t *workload_ptr= workload;
+  bool has_background= false;
+  for (uint32_t x= 0; x < gearman_workload_array_size(*workload_ptr); x++, workload_ptr++)
+  {
+    _client_execute_setup(client, function, workload, has_background);
+  }
+
+  return _client_execute(client, has_background);
 }
 
-void gearman_client_do_status(gearman_client_st *client, uint32_t *numerator,
-                              uint32_t *denominator)
+
+bool gearman_client_execute_batch(gearman_client_st *client,
+                                  gearman_batch_t *batch)
+{
+  if (not client)
+  {
+    errno= EINVAL;
+    return false;
+  }
+
+  if (not batch)
+  {
+    errno= EINVAL;
+    gearman_perror(&client->universal, "gearman_workload_batch_st was NULL");
+    return false;
+  }
+
+  bool has_background= false;
+  gearman_batch_t *workload_ptr= batch;
+  for (uint32_t x= 0; x < gearman_workload_batch_array_size(*workload_ptr); x++, workload_ptr++)
+  {
+    _client_execute_setup(client, workload_ptr->function, &workload_ptr->workload, has_background);
+  }
+
+  return _client_execute(client, has_background);
+}
+
+const char *gearman_client_do_job_handle(const gearman_client_st *self)
+{
+  if (not self)
+  {
+    errno= EINVAL;
+    return NULL;
+  }
+
+  if (not self->task_list)
+  {
+    errno= EINVAL;
+    return NULL;
+  }
+
+  return gearman_task_job_handle(self->task_list);
+}
+
+void gearman_client_do_status(gearman_client_st *, uint32_t *numerator, uint32_t *denominator)
 {
   if (numerator != NULL)
-    *numerator= client->do_task.numerator;
+    *numerator= 0;
 
   if (denominator != NULL)
-    *denominator= client->do_task.denominator;
+    *denominator= 0;
 }
 
 gearman_return_t gearman_client_do_background(gearman_client_st *client,
@@ -521,33 +618,29 @@ gearman_return_t gearman_client_job_status(gearman_client_st *client,
 {
   gearman_return_t ret;
 
-  if (! (client->options.task_in_use))
-  {
-    (void)gearman_client_add_task_status(client, &(client->do_task), client,
-                                         job_handle, &ret);
-    if (ret != GEARMAN_SUCCESS)
-      return ret;
+  gearman_task_st do_task, *do_task_ptr;
+  do_task_ptr= gearman_client_add_task_status(client, &do_task, client,
+                                              job_handle, &ret);
+  if (ret != GEARMAN_SUCCESS)
+    return ret;
 
-    client->options.task_in_use= true;
-  }
+  assert(do_task_ptr);
 
-  gearman_client_clear_fn(client);
+  gearman_task_clear_fn(do_task_ptr);
 
   ret= gearman_client_run_tasks(client);
   if (ret != GEARMAN_IO_WAIT)
   {
     if (is_known != NULL)
-      *is_known= client->do_task.options.is_known;
+      *is_known= do_task.options.is_known;
     if (is_running != NULL)
-      *is_running= client->do_task.options.is_running;
+      *is_running= do_task.options.is_running;
     if (numerator != NULL)
-      *numerator= client->do_task.numerator;
+      *numerator= do_task.numerator;
     if (denominator != NULL)
-      *denominator= client->do_task.denominator;
-
-    gearman_task_free(&(client->do_task));
-    client->options.task_in_use= false;
+      *denominator= do_task.denominator;
   }
+  gearman_task_free(do_task_ptr);
 
   return ret;
 }
@@ -580,12 +673,22 @@ gearman_task_st *gearman_client_add_task(gearman_client_st *client,
                                          size_t workload_size,
                                          gearman_return_t *ret_ptr)
 {
-  return _client_add_task(client, task, context, GEARMAN_COMMAND_SUBMIT_JOB,
-                          function_name, strlen(function_name),
-                          unique, unique ? strlen(unique) : 0,
-                          workload, workload_size,
-                          0,
-                          ret_ptr);
+  task= add_task(client, task, context, GEARMAN_COMMAND_SUBMIT_JOB,
+                 function_name, strlen(function_name),
+                 unique, unique ? strlen(unique) : 0,
+                 workload, workload_size,
+                 0);
+
+  if (not task and ret_ptr)
+  {
+    *ret_ptr= gearman_universal_error_code(&client->universal);
+  }
+  else if (ret_ptr)
+  {
+    *ret_ptr= GEARMAN_SUCCESS;
+  }
+
+  return task;
 }
 
 gearman_task_st *gearman_client_add_task_high(gearman_client_st *client,
@@ -597,11 +700,22 @@ gearman_task_st *gearman_client_add_task_high(gearman_client_st *client,
                                               size_t workload_size,
                                               gearman_return_t *ret_ptr)
 {
-  return _client_add_task(client, task, context,
-                          GEARMAN_COMMAND_SUBMIT_JOB_HIGH,
-                          function_name, strlen(function_name),
-                          unique, unique ? strlen(unique) : 0,
-                          workload, workload_size, 0, ret_ptr);
+  task= add_task(client, task, context,
+                 GEARMAN_COMMAND_SUBMIT_JOB_HIGH,
+                 function_name, strlen(function_name),
+                 unique, unique ? strlen(unique) : 0,
+                 workload, workload_size, 0);
+
+  if (not task and ret_ptr)
+  {
+    *ret_ptr= gearman_universal_error_code(&client->universal);
+  }
+  else if (ret_ptr)
+  {
+    *ret_ptr= GEARMAN_SUCCESS;
+  }
+
+  return task;
 }
 
 gearman_task_st *gearman_client_add_task_low(gearman_client_st *client,
@@ -613,12 +727,22 @@ gearman_task_st *gearman_client_add_task_low(gearman_client_st *client,
                                              size_t workload_size,
                                              gearman_return_t *ret_ptr)
 {
-  return _client_add_task(client, task, context, GEARMAN_COMMAND_SUBMIT_JOB_LOW,
-                          function_name, strlen(function_name),
-                          unique, unique ? strlen(unique) : 0,
-                          workload, workload_size,
-                          0,
-                          ret_ptr);
+  task= add_task(client, task, context, GEARMAN_COMMAND_SUBMIT_JOB_LOW,
+                 function_name, strlen(function_name),
+                 unique, unique ? strlen(unique) : 0,
+                 workload, workload_size,
+                 0);
+
+  if (not task and ret_ptr)
+  {
+    *ret_ptr= gearman_universal_error_code(&client->universal);
+  }
+  else if (ret_ptr)
+  {
+    *ret_ptr= GEARMAN_SUCCESS;
+  }
+
+  return task;
 }
 
 gearman_task_st *gearman_client_add_task_background(gearman_client_st *client,
@@ -630,12 +754,22 @@ gearman_task_st *gearman_client_add_task_background(gearman_client_st *client,
                                                     size_t workload_size,
                                                     gearman_return_t *ret_ptr)
 {
-  return _client_add_task(client, task, context, GEARMAN_COMMAND_SUBMIT_JOB_BG,
-                          function_name, strlen(function_name),
-                          unique, unique ? strlen(unique) : 0,
-                          workload, workload_size,
-                          0,
-                          ret_ptr);
+  task= add_task(client, task, context, GEARMAN_COMMAND_SUBMIT_JOB_BG,
+                 function_name, strlen(function_name),
+                 unique, unique ? strlen(unique) : 0,
+                 workload, workload_size,
+                 0);
+
+  if (not task and ret_ptr)
+  {
+    *ret_ptr= gearman_universal_error_code(&client->universal);
+  }
+  else if (ret_ptr)
+  {
+    *ret_ptr= GEARMAN_SUCCESS;
+  }
+
+  return task;
 }
 
 gearman_task_st *
@@ -648,13 +782,22 @@ gearman_client_add_task_high_background(gearman_client_st *client,
                                         size_t workload_size,
                                         gearman_return_t *ret_ptr)
 {
-  return _client_add_task(client, task, context,
-                          GEARMAN_COMMAND_SUBMIT_JOB_HIGH_BG,
-                          function_name, strlen(function_name),
-                          unique, unique ? strlen(unique) : 0,
-                          workload, workload_size,
-                          0,
-                          ret_ptr);
+  task= add_task(client, task, context,
+                 GEARMAN_COMMAND_SUBMIT_JOB_HIGH_BG,
+                 function_name, strlen(function_name),
+                 unique, unique ? strlen(unique) : 0,
+                 workload, workload_size,
+                 0);
+
+  if (not task and ret_ptr)
+  {
+    *ret_ptr= gearman_universal_error_code(&client->universal);
+  }
+  else if (ret_ptr)
+  {
+    *ret_ptr= GEARMAN_SUCCESS;
+  }
+  return task;
 }
 
 gearman_task_st *
@@ -667,13 +810,23 @@ gearman_client_add_task_low_background(gearman_client_st *client,
                                        size_t workload_size,
                                        gearman_return_t *ret_ptr)
 {
-  return _client_add_task(client, task, context,
-                          GEARMAN_COMMAND_SUBMIT_JOB_LOW_BG,
-                          function_name, strlen(function_name),
-                          unique, unique ? strlen(unique) : 0,
-                          workload, workload_size, 
-                          0,
-                          ret_ptr);
+  task= add_task(client, task, context,
+                 GEARMAN_COMMAND_SUBMIT_JOB_LOW_BG,
+                 function_name, strlen(function_name),
+                 unique, unique ? strlen(unique) : 0,
+                 workload, workload_size, 
+                 0);
+
+  if (not task and ret_ptr)
+  {
+    *ret_ptr= gearman_universal_error_code(&client->universal);
+  }
+  else if (ret_ptr)
+  {
+    *ret_ptr= GEARMAN_SUCCESS;
+  }
+
+  return task;
 }
 
 gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
@@ -688,7 +841,8 @@ gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
   task= gearman_task_create(client, task);
   if (task == NULL)
   {
-    *ret_ptr= GEARMAN_MEMORY_ALLOCATION_FAILURE;
+    if (ret_ptr)
+      *ret_ptr= GEARMAN_MEMORY_ALLOCATION_FAILURE;
     return NULL;
   }
 
@@ -697,16 +851,20 @@ gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
 
   args[0]= job_handle;
   args_size[0]= strlen(job_handle);
-  *ret_ptr= gearman_packet_create_args(&client->universal, &(task->send),
-                                       GEARMAN_MAGIC_REQUEST,
-                                       GEARMAN_COMMAND_GET_STATUS,
-                                       args, args_size, 1);
-  if (*ret_ptr == GEARMAN_SUCCESS)
+  gearman_return_t rc;
+  rc= gearman_packet_create_args(&client->universal, &(task->send),
+                                 GEARMAN_MAGIC_REQUEST,
+                                 GEARMAN_COMMAND_GET_STATUS,
+                                 args, args_size, 1);
+  if (rc == GEARMAN_SUCCESS)
   {
     client->new_tasks++;
     client->running_tasks++;
     task->options.send_in_use= true;
   }
+
+  if (ret_ptr)
+    *ret_ptr= rc;
 
   return task;
 }
@@ -714,61 +872,54 @@ gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
 void gearman_client_set_workload_fn(gearman_client_st *client,
                                     gearman_workload_fn *function)
 {
-  client->workload_fn= function;
+  client->actions.workload_fn= function;
 }
 
 void gearman_client_set_created_fn(gearman_client_st *client,
                                    gearman_created_fn *function)
 {
-  client->created_fn= function;
+  client->actions.created_fn= function;
 }
 
 void gearman_client_set_data_fn(gearman_client_st *client,
                                 gearman_data_fn *function)
 {
-  client->data_fn= function;
+  client->actions.data_fn= function;
 }
 
 void gearman_client_set_warning_fn(gearman_client_st *client,
                                    gearman_warning_fn *function)
 {
-  client->warning_fn= function;
+  client->actions.warning_fn= function;
 }
 
 void gearman_client_set_status_fn(gearman_client_st *client,
                                   gearman_universal_status_fn *function)
 {
-  client->status_fn= function;
+  client->actions.status_fn= function;
 }
 
 void gearman_client_set_complete_fn(gearman_client_st *client,
                                     gearman_complete_fn *function)
 {
-  client->complete_fn= function;
+  client->actions.complete_fn= function;
 }
 
 void gearman_client_set_exception_fn(gearman_client_st *client,
                                      gearman_exception_fn *function)
 {
-  client->exception_fn= function;
+  client->actions.exception_fn= function;
 }
 
 void gearman_client_set_fail_fn(gearman_client_st *client,
                                 gearman_fail_fn *function)
 {
-  client->fail_fn= function;
+  client->actions.fail_fn= function;
 }
 
 void gearman_client_clear_fn(gearman_client_st *client)
 {
-  client->workload_fn= NULL;
-  client->created_fn= NULL;
-  client->data_fn= NULL;
-  client->warning_fn= NULL;
-  client->status_fn= NULL;
-  client->complete_fn= NULL;
-  client->exception_fn= NULL;
-  client->fail_fn= NULL;
+  client->actions= gearman_actions_default();
 }
 
 static inline void _push_non_blocking(gearman_client_st *client)
@@ -922,14 +1073,14 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
                                             GEARMAN_SERVER_ERROR,
                                             "gearman_client_run_tasks",
                                             "%s:%.*s",
-                                            (char *)(client->con->packet.arg[0]),
-                                            (int)(client->con->packet.arg_size[1]),
-                                            (char *)(client->con->packet.arg[1]));
+                                            static_cast<char *>(client->con->packet.arg[0]),
+                                            int(client->con->packet.arg_size[1]),
+                                            static_cast<char *>(client->con->packet.arg[1]));
 
                 return GEARMAN_SERVER_ERROR;
               }
               else if (strncmp(client->task->job_handle,
-                               (char *)(client->con->packet.arg[0]),
+                               static_cast<char *>(client->con->packet.arg[0]),
                                client->con->packet.arg_size[0]) ||
                        (client->con->packet.command != GEARMAN_COMMAND_WORK_FAIL &&
                         strlen(client->task->job_handle) != client->con->packet.arg_size[0] - 1) ||
@@ -1002,14 +1153,6 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
     }
 
     break;
-
-  default:
-    gearman_universal_set_error(&client->universal,
-                                GEARMAN_UNKNOWN_STATE,
-                                "gearman_client_run_tasks",
-                                "unknown state: %u", client->state);
-
-    return GEARMAN_UNKNOWN_STATE;
   }
 
   client->state= GEARMAN_CLIENT_STATE_IDLE;
@@ -1050,33 +1193,22 @@ static gearman_client_st *_client_allocate(gearman_client_st *client, bool is_cl
   }
 
   client->options.non_blocking= false;
-  client->options.task_in_use= false;
   client->options.unbuffered_result= false;
   client->options.no_new= false;
   client->options.free_tasks= false;
 
   client->state= GEARMAN_CLIENT_STATE_IDLE;
-  client->do_ret= GEARMAN_SUCCESS;
   client->new_tasks= 0;
   client->running_tasks= 0;
   client->task_count= 0;
-  client->do_data_size= 0;
   client->context= NULL;
   client->con= NULL;
   client->task= NULL;
   client->task_list= NULL;
   client->task_context_free_fn= NULL;
-  client->do_data= NULL;
-  client->workload_fn= NULL;
-  client->created_fn= NULL;
-  client->data_fn= NULL;
-  client->warning_fn= NULL;
-  client->status_fn= NULL;
-  client->complete_fn= NULL;
-  client->exception_fn= NULL;
-  client->fail_fn= NULL;
+  gearman_client_clear_fn(client);
 
-  if (! is_clone)
+  if (not is_clone)
   {
     gearman_universal_st *check;
 
@@ -1094,101 +1226,12 @@ static gearman_client_st *_client_allocate(gearman_client_st *client, bool is_cl
 static gearman_return_t _client_add_server(const char *host, in_port_t port,
                                            void *context)
 {
-  return gearman_client_add_server((gearman_client_st *)context, host, port);
-}
-
-static gearman_task_st *_client_add_task(gearman_client_st *client,
-                                         gearman_task_st *task,
-                                         void *context,
-                                         gearman_command_t command,
-                                         const char *function_name,
-                                         size_t function_name_length,
-                                         const char *unique,
-                                         size_t unique_length,
-                                         const void *workload,
-                                         size_t workload_size,
-                                         time_t when,
-                                         gearman_return_t *ret_ptr)
-{
-  uuid_t uuid;
-  char uuid_string[37];
-  const void *args[4];
-  size_t args_size[4];
-
-  task= gearman_task_create(client, task);
-  if (task == NULL)
-  {
-    *ret_ptr= GEARMAN_MEMORY_ALLOCATION_FAILURE;
-    return NULL;
-  }
-
-  task->context= context;
-
-  if (unique == NULL)
-  {
-    uuid_generate(uuid);
-    uuid_unparse(uuid, uuid_string);
-    uuid_string[36]= 0;
-    unique= uuid_string;
-    unique_length= 36; // @note This comes from uuid/uuid.h (which does not define a number)
-  }
-
-  if ((workload_size && workload == NULL) || (workload_size == 0 && workload))
-  {
-    *ret_ptr= GEARMAN_WORK_ERROR;
-    return NULL;
-  }
-
-  /**
-    @todo fix it so that NULL is done by default by the API not by happenstance.
-  */
-  args[0]= function_name;
-  args_size[0]= function_name_length + 1;
-  args[1]= unique;
-  args_size[1]= unique_length + 1;
-
-  if (command == GEARMAN_COMMAND_SUBMIT_JOB_EPOCH)
-  {
-    char time_string[30];
-    int length= snprintf(time_string, sizeof(time_string), "%lld", (long long)when);
-    args[2]= time_string;
-    args_size[2]= length +1;
-    args[3]= workload;
-    args_size[3]= workload_size;
-
-    *ret_ptr= gearman_packet_create_args(&client->universal, &(task->send),
-                                         GEARMAN_MAGIC_REQUEST, command,
-                                         args, args_size,
-                                         4);
-  }
-  else
-  {
-    args[2]= workload;
-    args_size[2]= workload_size;
-
-    *ret_ptr= gearman_packet_create_args(&client->universal, &(task->send),
-                                         GEARMAN_MAGIC_REQUEST, command,
-                                         args, args_size,
-                                         3);
-  }
-
-  if (*ret_ptr == GEARMAN_SUCCESS)
-  {
-    client->new_tasks++;
-    client->running_tasks++;
-    task->options.send_in_use= true;
-  }
-
-  return task;
+  return gearman_client_add_server(static_cast<gearman_client_st *>(context), host, port);
 }
 
 static gearman_return_t _client_run_task(gearman_client_st *client,
                                          gearman_task_st *task)
 {
-  gearman_return_t ret;
-  char status_buffer[11]; /* Max string size to hold a uint32_t. */
-  uint8_t x;
-
   switch(task->state)
   {
   case GEARMAN_TASK_STATE_NEW:
@@ -1227,6 +1270,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
   case GEARMAN_TASK_STATE_SUBMIT:
     while (1)
     {
+      gearman_return_t ret;
       ret= gearman_connection_send(task->con, &(task->send),
                                    client->new_tasks == 0 ? true : false);
 
@@ -1274,7 +1318,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
 
     if (task->send.data_size > 0 && task->send.data == NULL)
     {
-      if (client->workload_fn == NULL)
+      if (task->func.workload_fn == NULL)
       {
         gearman_universal_set_error(&client->universal,
                                     GEARMAN_NEED_WORKLOAD_FN,
@@ -1284,7 +1328,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
       }
 
   case GEARMAN_TASK_STATE_WORKLOAD:
-      ret= client->workload_fn(task);
+      gearman_return_t ret= task->func.workload_fn(task);
       if (ret != GEARMAN_SUCCESS)
       {
         task->state= GEARMAN_TASK_STATE_WORKLOAD;
@@ -1300,13 +1344,13 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
     if (task->recv->command == GEARMAN_COMMAND_JOB_CREATED)
     {
       snprintf(task->job_handle, GEARMAN_JOB_HANDLE_SIZE, "%.*s",
-               (int)(task->recv->arg_size[0]),
-               (char *)(task->recv->arg[0]));
+               int(task->recv->arg_size[0]),
+               static_cast<char *>(task->recv->arg[0]));
 
   case GEARMAN_TASK_STATE_CREATED:
-      if (client->created_fn != NULL)
+      if (task->func.created_fn != NULL)
       {
-        ret= client->created_fn(task);
+        gearman_return_t ret= task->func.created_fn(task);
         if (ret != GEARMAN_SUCCESS)
         {
           task->state= GEARMAN_TASK_STATE_CREATED;
@@ -1325,9 +1369,9 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
     else if (task->recv->command == GEARMAN_COMMAND_WORK_DATA)
     {
   case GEARMAN_TASK_STATE_DATA:
-      if (client->data_fn != NULL)
+      if (task->func.data_fn != NULL)
       {
-        ret= client->data_fn(task);
+        gearman_return_t ret= task->func.data_fn(task);
         if (ret != GEARMAN_SUCCESS)
         {
           task->state= GEARMAN_TASK_STATE_DATA;
@@ -1338,9 +1382,9 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
     else if (task->recv->command == GEARMAN_COMMAND_WORK_WARNING)
     {
   case GEARMAN_TASK_STATE_WARNING:
-      if (client->warning_fn != NULL)
+      if (task->func.warning_fn != NULL)
       {
-        ret= client->warning_fn(task);
+        gearman_return_t ret= task->func.warning_fn(task);
         if (ret != GEARMAN_SUCCESS)
         {
           task->state= GEARMAN_TASK_STATE_WARNING;
@@ -1351,14 +1395,16 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
     else if (task->recv->command == GEARMAN_COMMAND_WORK_STATUS ||
              task->recv->command == GEARMAN_COMMAND_STATUS_RES)
     {
+      uint8_t x;
+
       if (task->recv->command == GEARMAN_COMMAND_STATUS_RES)
       {
-        if (atoi((char *)task->recv->arg[1]) == 0)
+        if (atoi(static_cast<char *>(task->recv->arg[1])) == 0)
           task->options.is_known= false;
         else
           task->options.is_known= true;
 
-        if (atoi((char *)task->recv->arg[2]) == 0)
+        if (atoi(static_cast<char *>(task->recv->arg[2])) == 0)
           task->options.is_running= false;
         else
           task->options.is_running= true;
@@ -1370,16 +1416,17 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
         x= 1;
       }
 
-      task->numerator= (uint32_t)atoi((char *)task->recv->arg[x]);
+      task->numerator= uint32_t(atoi(static_cast<char *>(task->recv->arg[x])));
+      char status_buffer[11]; /* Max string size to hold a uint32_t. */
       snprintf(status_buffer, 11, "%.*s",
-               (int)(task->recv->arg_size[x + 1]),
-               (char *)(task->recv->arg[x + 1]));
-      task->denominator= (uint32_t)atoi(status_buffer);
+               int(task->recv->arg_size[x + 1]),
+               static_cast<char *>(task->recv->arg[x + 1]));
+      task->denominator= uint32_t(atoi(status_buffer));
 
   case GEARMAN_TASK_STATE_STATUS:
-      if (client->status_fn != NULL)
+      if (task->func.status_fn != NULL)
       {
-        ret= client->status_fn(task);
+        gearman_return_t ret= task->func.status_fn(task);
         if (ret != GEARMAN_SUCCESS)
         {
           task->state= GEARMAN_TASK_STATE_STATUS;
@@ -1393,9 +1440,9 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
     else if (task->recv->command == GEARMAN_COMMAND_WORK_COMPLETE)
     {
   case GEARMAN_TASK_STATE_COMPLETE:
-      if (client->complete_fn != NULL)
+      if (task->func.complete_fn != NULL)
       {
-        ret= client->complete_fn(task);
+        gearman_return_t ret= task->func.complete_fn(task);
         if (ret != GEARMAN_SUCCESS)
         {
           task->state= GEARMAN_TASK_STATE_COMPLETE;
@@ -1408,9 +1455,9 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
     else if (task->recv->command == GEARMAN_COMMAND_WORK_EXCEPTION)
     {
   case GEARMAN_TASK_STATE_EXCEPTION:
-      if (client->exception_fn != NULL)
+      if (task->func.exception_fn != NULL)
       {
-        ret= client->exception_fn(task);
+        gearman_return_t ret= task->func.exception_fn(task);
         if (ret != GEARMAN_SUCCESS)
         {
           task->state= GEARMAN_TASK_STATE_EXCEPTION;
@@ -1421,9 +1468,9 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
     else if (task->recv->command == GEARMAN_COMMAND_WORK_FAIL)
     {
   case GEARMAN_TASK_STATE_FAIL:
-      if (client->fail_fn != NULL)
+      if (task->func.fail_fn != NULL)
       {
-        ret= client->fail_fn(task);
+        gearman_return_t ret= task->func.fail_fn(task);
         if (ret != GEARMAN_SUCCESS)
         {
           task->state= GEARMAN_TASK_STATE_FAIL;
@@ -1439,13 +1486,6 @@ static gearman_return_t _client_run_task(gearman_client_st *client,
 
   case GEARMAN_TASK_STATE_FINISHED:
     break;
-
-  default:
-    gearman_universal_set_error(&client->universal,
-                                GEARMAN_UNKNOWN_STATE,
-                                "_client_run_task", "unknown state: %u",
-                                task->state);
-    return GEARMAN_UNKNOWN_STATE;
   }
 
   client->running_tasks--;
@@ -1463,51 +1503,49 @@ static void *_client_do(gearman_client_st *client, gearman_command_t command,
                         const void *workload, size_t workload_size,
                         size_t *result_size, gearman_return_t *ret_ptr)
 {
-  if (! client->options.task_in_use)
+  gearman_task_st do_task, *do_task_ptr;
+  do_task_ptr= add_task(client, &do_task, NULL, command,
+                        function_name, function_name_length,
+                        unique, unique_length,
+                        workload, workload_size,
+                        0);
+  if (not do_task_ptr)
   {
-    (void)_client_add_task(client, &(client->do_task), client, command,
-                           function_name, function_name_length,
-                           unique, unique_length,
-                           workload, workload_size,
-                           0,
-                           ret_ptr);
-    if (*ret_ptr != GEARMAN_SUCCESS)
-      return NULL;
-
-    client->options.task_in_use= true;
+    if (ret_ptr)
+      *ret_ptr= gearman_universal_error_code(&client->universal);
+    return NULL;
   }
 
-  client->workload_fn= NULL;
-  client->created_fn= NULL;
-  client->data_fn= _client_do_data;
-  client->warning_fn= _client_do_data;
-  client->status_fn= _client_do_status;
-  client->complete_fn= _client_do_data;
-  client->exception_fn= _client_do_data;
-  client->fail_fn= _client_do_fail;
+  do_task_ptr->func= gearman_actions_do_default();
 
-  *ret_ptr= gearman_client_run_tasks(client);
-  if (*ret_ptr != GEARMAN_IO_WAIT && (*ret_ptr != GEARMAN_PAUSE ||
-      client->do_ret == GEARMAN_WORK_FAIL))
+  do {
+    *ret_ptr= gearman_client_run_tasks(client);
+  } while (*ret_ptr == GEARMAN_PAUSE);
+
+  const char *returnable= NULL;
+  if (*ret_ptr == GEARMAN_TIMEOUT or *ret_ptr == GEARMAN_NO_SERVERS)
   {
-    gearman_task_free(&(client->do_task));
-    client->options.task_in_use= false;
-    client->new_tasks= 0;
-    client->running_tasks= 0;
+    *result_size= 0;
+  }
+  else if (*ret_ptr == GEARMAN_SUCCESS and do_task_ptr->result_rc == GEARMAN_SUCCESS)
+  {
+    *ret_ptr= do_task_ptr->result_rc;
+    *result_size= gearman_string_length(do_task_ptr->result_ptr);
+    if (*result_size)
+      returnable= gearman_string_value_take(do_task_ptr->result_ptr);
+  }
+  else
+  {
+    *ret_ptr= do_task_ptr->result_rc;
+    *result_size= 0;
   }
 
-  workload= NULL;
+  assert(client->task_list);
+  gearman_task_free(&do_task);
+  client->new_tasks= 0;
+  client->running_tasks= 0;
 
-  if (*ret_ptr == GEARMAN_SUCCESS || *ret_ptr == GEARMAN_PAUSE)
-  {
-    *ret_ptr= client->do_ret;
-    workload= client->do_data;
-    *result_size= client->do_data_size;
-    client->do_data= NULL;
-    client->do_data_size= 0;
-  }
-
-  return (void *)workload;
+  return static_cast<void *>(const_cast<char *>(returnable));
 }
 
 static gearman_return_t _client_do_background(gearman_client_st *client,
@@ -1522,88 +1560,37 @@ static gearman_return_t _client_do_background(gearman_client_st *client,
 {
   gearman_return_t ret;
 
-  if (! client->options.task_in_use)
+  gearman_task_st do_task, *do_task_ptr;
+  do_task_ptr= add_task(client, &do_task, client, command,
+                        function_name, function_name_length,
+                        unique, unique_length,
+                        workload, workload_size,
+                        0);
+  if (not do_task_ptr)
   {
-    (void)_client_add_task(client, &(client->do_task), client, command,
-                           function_name, function_name_length,
-                           unique, unique_length,
-                           workload, workload_size,
-                           0,
-                           &ret);
-    if (ret != GEARMAN_SUCCESS)
-      return ret;
-
-    client->options.task_in_use= true;
+    return gearman_universal_error_code(&client->universal);
   }
 
-  gearman_client_clear_fn(client);
+  gearman_task_clear_fn(do_task_ptr);
 
   ret= gearman_client_run_tasks(client);
   if (ret != GEARMAN_IO_WAIT)
   {
     if (job_handle)
     {
-      strncpy(job_handle, client->do_task.job_handle, GEARMAN_JOB_HANDLE_SIZE);
+      strncpy(job_handle, do_task.job_handle, GEARMAN_JOB_HANDLE_SIZE);
     }
-
-    gearman_task_free(&(client->do_task));
-    client->options.task_in_use= false;
     client->new_tasks= 0;
     client->running_tasks= 0;
   }
+  gearman_task_free(&do_task);
 
   return ret;
 }
 
-static gearman_return_t _client_do_data(gearman_task_st *task)
-{
-  gearman_client_st *client= (gearman_client_st *)gearman_task_context(task);
-
-  if (client->do_ret != GEARMAN_SUCCESS)
-  {
-    client->do_ret= GEARMAN_SUCCESS;
-    return GEARMAN_SUCCESS;
-  }
-
-  client->do_data= gearman_task_take_data(task, &(client->do_data_size));
-
-  if (task->recv->command == GEARMAN_COMMAND_WORK_DATA)
-    client->do_ret= GEARMAN_WORK_DATA;
-  else if (task->recv->command == GEARMAN_COMMAND_WORK_WARNING)
-    client->do_ret= GEARMAN_WORK_WARNING;
-  else if (task->recv->command == GEARMAN_COMMAND_WORK_EXCEPTION)
-    client->do_ret= GEARMAN_WORK_EXCEPTION;
-  else
-    return GEARMAN_SUCCESS;
-
-  return GEARMAN_PAUSE;
-}
-
-static gearman_return_t _client_do_status(gearman_task_st *task)
-{
-  gearman_client_st *client= (gearman_client_st *)gearman_task_context(task);
-
-  if (client->do_ret != GEARMAN_SUCCESS)
-  {
-    client->do_ret= GEARMAN_SUCCESS;
-    return GEARMAN_SUCCESS;
-  }
-
-  client->do_ret= GEARMAN_WORK_STATUS;
-  return GEARMAN_PAUSE;
-}
-
-static gearman_return_t _client_do_fail(gearman_task_st *task)
-{
-  gearman_client_st *client= (gearman_client_st *)gearman_task_context(task);
-
-  client->do_ret= GEARMAN_WORK_FAIL;
-  return GEARMAN_SUCCESS;
-}
-
 bool gearman_client_compare(const gearman_client_st *first, const gearman_client_st *second)
 {
-  if (!first || !second)
+  if (not first || not second)
     return false;
 
   if (strcmp(first->universal.con_list->host, second->universal.con_list->host))

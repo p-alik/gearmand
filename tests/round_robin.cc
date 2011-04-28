@@ -12,37 +12,40 @@
 # undef NDEBUG
 #endif
 
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cassert>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <memory>
 #include <unistd.h>
 
 #include <libgearman/gearman.h>
 
-#include "libtest/test.h"
-#include "libtest/server.h"
+#include <libtest/test.h>
+#include <libtest/server.h>
 
-#define WORKER_TEST_PORT 32123
+#define ROUND_ROBIN_WORKER_TEST_PORT 32124
 
-typedef struct
+struct worker_test_st
 {
   pid_t gearmand_pid;
   gearman_worker_st worker;
   bool run_worker;
-} worker_test_st;
+
+  worker_test_st() :
+    gearmand_pid(-1),
+    worker(),
+    run_worker(false)
+    { }
+};
 
 /* Prototypes */
-test_return_t queue_add(void *object);
-test_return_t queue_worker(void *object);
-
-test_return_t pre(void *object);
-test_return_t post(void *object);
-
 void *world_create(test_return_t *error);
 test_return_t world_destroy(void *object);
 
+#ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
 
 /* append test for worker */
 static void *append_function(gearman_job_st *job __attribute__((unused)),
@@ -59,7 +62,7 @@ static void *append_function(gearman_job_st *job __attribute__((unused)),
   return NULL;
 }
 
-test_return_t queue_add(void *object)
+static test_return_t queue_add(void *object)
 {
   gearman_return_t rc;
   worker_test_st *test= (worker_test_st *)object;
@@ -75,7 +78,7 @@ test_return_t queue_add(void *object)
   client_ptr= gearman_client_create(&client);
   test_truth(client_ptr);
 
-  rc= gearman_client_add_server(&client, NULL, WORKER_TEST_PORT);
+  rc= gearman_client_add_server(&client, NULL, ROUND_ROBIN_WORKER_TEST_PORT);
     test_truth(GEARMAN_SUCCESS == rc);
 
   /* send strings "0", "1" ... "9" to alternating between 2 queues */
@@ -97,24 +100,21 @@ test_return_t queue_add(void *object)
   return TEST_SUCCESS;
 }
 
-test_return_t queue_worker(void *object)
+static test_return_t queue_worker(void *object)
 {
   worker_test_st *test= (worker_test_st *)object;
   gearman_worker_st *worker= &(test->worker);
   char buffer[11];
   memset(buffer, 0, sizeof(buffer));
 
-  if (! test->run_worker)
-    return TEST_FAILURE;
+  test_truth(test->run_worker);
 
-  if (gearman_worker_add_function(worker, "queue1", 5, append_function,
-                                  buffer) != GEARMAN_SUCCESS)
+  if (gearman_worker_add_function(worker, "queue1", 5, append_function, buffer) != GEARMAN_SUCCESS)
   {
     return TEST_FAILURE;
   }
 
-  if (gearman_worker_add_function(worker, "queue2", 5, append_function,
-                                  buffer) != GEARMAN_SUCCESS)
+  if (gearman_worker_add_function(worker, "queue2", 5, append_function, buffer) != GEARMAN_SUCCESS)
   {
     return TEST_FAILURE;
   }
@@ -138,11 +138,10 @@ test_return_t queue_worker(void *object)
 
 void *world_create(test_return_t *error)
 {
-  worker_test_st *test;
   const char *argv[2]= { "test_gearmand", "--round-robin"};
   pid_t gearmand_pid;
 
-  gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, NULL, 2, argv);
+  gearmand_pid= test_gearmand_start(ROUND_ROBIN_WORKER_TEST_PORT, 2, argv);
 
   if (gearmand_pid == -1)
   {
@@ -150,21 +149,20 @@ void *world_create(test_return_t *error)
     return NULL;
   }
 
-  test= (worker_test_st *)malloc(sizeof(worker_test_st));
-  if (! test)
+  worker_test_st *test= new (std::nothrow) worker_test_st;;
+  if (not test)
   {
     *error= TEST_MEMORY_ALLOCATION_FAILURE;
     return NULL;
   }
 
-  memset(test, 0, sizeof(worker_test_st));
   if (gearman_worker_create(&(test->worker)) == NULL)
   {
     *error= TEST_FAILURE;
     return NULL;
   }
 
-  if (gearman_worker_add_server(&(test->worker), NULL, WORKER_TEST_PORT) != GEARMAN_SUCCESS)
+  if (gearman_worker_add_server(&(test->worker), NULL, ROUND_ROBIN_WORKER_TEST_PORT) != GEARMAN_SUCCESS)
   {
     *error= TEST_FAILURE;
     return NULL;
@@ -182,7 +180,7 @@ test_return_t world_destroy(void *object)
   worker_test_st *test= (worker_test_st *)object;
   gearman_worker_free(&(test->worker));
   test_gearmand_stop(test->gearmand_pid);
-  free(test);
+  delete test;
 
   return TEST_SUCCESS;
 }

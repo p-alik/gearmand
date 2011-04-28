@@ -36,6 +36,7 @@ Gearman provides a generic framework to farm out work to other machines, dispatc
 
 %{_bindir}/gearadmin
 %{_bindir}/gearman
+%{_includedir}/libgearman/actions.h
 %{_includedir}/libgearman/byteorder.h
 %{_includedir}/libgearman/client.h
 %{_includedir}/libgearman/command.h
@@ -49,14 +50,15 @@ Gearman provides a generic framework to farm out work to other machines, dispatc
 %{_includedir}/libgearman/log.h
 %{_includedir}/libgearman/packet.h
 %{_includedir}/libgearman/protocol.h
+%{_includedir}/libgearman/return.h
 %{_includedir}/libgearman/strerror.h
 %{_includedir}/libgearman/task.h
 %{_includedir}/libgearman/unique.h
 %{_includedir}/libgearman/universal.h
+%{_includedir}/libgearman/version.h
 %{_includedir}/libgearman/visibility.h
 %{_includedir}/libgearman/worker.h
 %{_includedir}/libgearman/workload.h
-%{_includedir}/libgearman/status.h
 %{_libdir}/libgearman.la
 %{_libdir}/libgearman.so
 %{_libdir}/libgearman.so.4

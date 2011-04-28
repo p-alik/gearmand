@@ -19,7 +19,7 @@ CLEANFILES+= tests/gearman.tcb
 noinst_PROGRAMS += tests/tokyocabinet_test
 endif
 
-tests_tokyocabinet_test_SOURCES= tests/tokyocabinet_test.cc
+tests_tokyocabinet_test_SOURCES= tests/tokyocabinet_test.cc tests/basic.cc
 tests_tokyocabinet_test_LDADD= ${CLIENT_LDADD}
 
 test-tokyocabinet-args: gearmand/gearmand

@@ -14,6 +14,7 @@
 #include <libgearman-server/common.h>
 
 #include <libgearman-server/plugins/queue/base.h>
+#include <libgearman-server/plugins/queue/libmemcached/queue.h>
 #include <libmemcached/memcached.h>
 
 #pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -79,7 +80,7 @@ void initialize_libmemcached()
 }
 
 } // namespace queue
-} // namespace plugin
+} // namespace plugins
 } // namespace gearmand
 
 /* Queue callback functions. */

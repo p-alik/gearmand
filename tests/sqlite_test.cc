@@ -30,23 +30,25 @@
 #define WORKER_TEST_PORT 32123
 
 // Prototypes
-test_return_t pre(void *object);
-test_return_t post(void *object);
-
 void *world_create(test_return_t *error);
 test_return_t world_destroy(void *object);
 
+#ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
 
 static test_return_t collection_init(void *object)
 {
-  const char *argv[2]= { "test_gearmand", "--libsqlite3-db=tests/gearman.sql"};
+  const char *argv[3]= { "test_gearmand", "--libsqlite3-db=tests/gearman.sql", "--queue-type=libsqlite3"};
+
+  // Delete whatever might have been sitting around for the sql files
+  unlink("tests/gearman.sql");
+  unlink("tests/gearman.sql-journal");
 
   Context *test= (Context *)object;
   assert(test);
 
-  if (not test->initialize(2, argv))
-    return TEST_FAILURE;
+  test_truth(test->initialize(3, argv));
 
   return TEST_SUCCESS;
 }
@@ -84,15 +86,23 @@ test_return_t world_destroy(void *object)
 }
 
 test_st tests[] ={
-  {"echo", 0, echo_test },
+  {"gearman_client_echo()", 0, client_echo_test },
+  {"gearman_client_echo() fail", 0, client_echo_fail_test },
+  {"gearman_worker_echo()", 0, worker_echo_test },
   {"clean", 0, queue_clean },
   {"add", 0, queue_add },
   {"worker", 0, queue_worker },
   {0, 0, 0}
 };
 
+test_st regressions[] ={
+  {"lp:734663", 0, lp_734663 },
+  {0, 0, 0}
+};
+
 collection_st collection[] ={
   {"sqlite queue", collection_init, collection_cleanup, tests},
+  {"queue regression", collection_init, collection_cleanup, regressions},
 #if 0
   {"sqlite queue change table", collection_init, collection_cleanup, tests},
 #endif

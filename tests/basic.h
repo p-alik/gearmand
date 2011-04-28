@@ -39,7 +39,10 @@
 
 #include <libtest/test.h>
 
-test_return_t echo_test(void *object);
+test_return_t client_echo_test(void *);
+test_return_t client_echo_fail_test(void *object);
+test_return_t worker_echo_test(void *);
 test_return_t queue_clean(void *object);
 test_return_t queue_add(void *object);
 test_return_t queue_worker(void *object);
+test_return_t lp_734663(void *);

@@ -98,7 +98,9 @@ gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX]=
   { "SUBMIT_JOB_EPOCH",   3, true  }
 };
 
+#ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
 
 inline static gearman_return_t packet_create_arg(gearman_packet_st *packet,
                                                  const void *arg, size_t arg_size)
@@ -278,13 +280,13 @@ void gearman_packet_free(gearman_packet_st *packet)
     if (packet->universal->workload_free_fn == NULL)
     {
       // Created with malloc()
-      free((void *)packet->data); //@todo fix the need for the casting.
+      free(const_cast<void *>(packet->data)); //@todo fix the need for the casting.
       packet->data= NULL;
     }
     else
     {
-      packet->universal->workload_free_fn((void *)(packet->data),
-                                          (void *)packet->universal->workload_free_context);
+      packet->universal->workload_free_fn(const_cast<void *>((packet->data)),
+                                          const_cast<void *>(packet->universal->workload_free_context));
     }
   }
 

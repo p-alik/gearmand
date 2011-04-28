@@ -45,7 +45,9 @@ void gearmand_initialize_thread_logging(const char *identity)
   }
 }
 
+#ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
 
 /**
  * Log a message.
@@ -198,9 +200,14 @@ void gearmand_log_perror(const char *position, const char *message)
   }
 }
 
-void gearmand_log_gerror(const char *position, const char *message, const gearmand_error_t rc)
+gearmand_error_t gearmand_log_gerror(const char *position, const char *message, const gearmand_error_t rc)
 {
-  gearmand_log_error("%s(%s) -> %s ", message, gearmand_strerror(rc), position);
+  if (rc != GEARMAN_SUCCESS)
+  {
+    gearmand_log_error("%s(%s) -> %s ", message, gearmand_strerror(rc), position);
+  }
+
+  return rc;
 }
 
 void gearmand_log_gai_error(const char *position, const char *message, const int rc)

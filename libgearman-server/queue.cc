@@ -40,8 +40,10 @@
 #include <iostream>
 
 #include <boost/program_options.hpp>
+
 #include <libgearman-server/plugins/queue/base.h>
 #include <libgearman-server/queue.h>
+#include <libgearman-server/log.h>
 
 
 namespace gearmand {
@@ -65,9 +67,12 @@ void load_options(boost::program_options::options_description &all)
   }
 }
 
-gearmand_error_t initialize(gearmand_st *gearmand, const std::string &name)
+gearmand_error_t initialize(gearmand_st *, const std::string &name)
 {
-  (void)gearmand;
+  bool launched= false;
+
+  if (name.empty())
+    return GEARMAN_SUCCESS;
 
   for (plugins::Queue::vector::iterator iter= all_queue_modules.begin();
        iter != all_queue_modules.end();
@@ -75,8 +80,29 @@ gearmand_error_t initialize(gearmand_st *gearmand, const std::string &name)
   {
     if (not name.compare((*iter)->name()))
     {
-      (*iter)->initialize();
+      if (launched)
+      {
+        return gearmand_gerror("Attempt to initialize multiple queues", GEARMAN_UNKNOWN_OPTION);
+      }
+
+      gearmand_error_t rc;
+      if (gearmand_failed(rc= (*iter)->initialize()))
+      {
+        std::string error_string("Failed to initialize ");
+        error_string+= name;
+
+        return gearmand_gerror(error_string.c_str(), rc);
+      }
+
+      launched= true;
     }
+  }
+
+  if (not launched)
+  {
+    std::string error_string("Unknown queue ");
+    error_string+= name;
+    return gearmand_gerror(error_string.c_str(), GEARMAN_UNKNOWN_OPTION);
   }
 
   return GEARMAN_SUCCESS;

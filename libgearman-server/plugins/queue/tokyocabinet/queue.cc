@@ -36,11 +36,12 @@ public:
   TCADB *db;
   std::string filename;
   bool optimize;
-private:
 };
 
 TokyoCabinet::TokyoCabinet() :
-  Queue("tokyocabinet")
+  Queue("libtokyocabinet"),
+  db(NULL),
+  optimize(false)
 {
   command_line_options().add_options()
     ("libtokyocabinet-file", boost::program_options::value(&filename), "File name of the database. [see: man tcadb, tcadbopen() for name guidelines]")

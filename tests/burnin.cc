@@ -47,7 +47,9 @@ struct client_context_st {
 void *world_create(test_return_t *error);
 test_return_t world_destroy(void *object);
 
+#ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
 
 static test_return_t burnin_test(void *object)
 {
@@ -189,7 +191,7 @@ void *world_create(test_return_t *error)
   /**
     We start up everything before we allocate so that we don't have to track memory in the forked process.
   */
-  gearmand_pid= test_gearmand_start(CLIENT_TEST_PORT, NULL, 1, argv);
+  gearmand_pid= test_gearmand_start(CLIENT_TEST_PORT, 1, argv);
   
   if (gearmand_pid == -1)
   {

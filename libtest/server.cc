@@ -29,29 +29,27 @@
 
 #include <libgearman/gearman.h>
 
+#ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
 
 static bool wait_and_check_startup(const char *hostname, in_port_t port)
 {
   gearman_client_st *client;
 
   client= gearman_client_create(NULL);
-  if (! client)
+  if (not client)
   {
     return false;
   }
 
   gearman_return_t rc;
-
   if ((rc= gearman_client_add_server(client, hostname, port)) == GEARMAN_SUCCESS)
   {
-    const char *value= "This is my echo test";
-    size_t value_length= sizeof("This is my echo test") -1;
-
     int counter= 5; // sleep cycles
     while (--counter)
     {
-      rc= gearman_client_echo(client, (uint8_t *)value, value_length);
+      rc= gearman_client_echo(client, gearman_literal_param("This is my echo test"));
 
       if (rc == GEARMAN_SUCCESS)
         break;
@@ -75,11 +73,8 @@ static bool wait_and_check_startup(const char *hostname, in_port_t port)
 
 #include <sstream>
 
-pid_t test_gearmand_start(in_port_t port, const char *queue_type,
-                          int argc, const char *argv[])
+pid_t test_gearmand_start(in_port_t port, int argc, const char *argv[])
 {
-  pid_t gearmand_pid= -1;
-
   std::stringstream buffer;
 
   char file_buffer[1024];
@@ -129,11 +124,6 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
     buffer << "./gearmand/gearmand --pid-file=" << file_buffer << " --daemon --port=" << port;
   }
 
-  if (queue_type)
-  {
-    buffer << " --queue-type=" << queue_type << " ";
-  }
-
   if (getuid() == 0 || geteuid() == 0)
   {
     buffer << " -u root ";
@@ -162,6 +152,7 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
     return -1;
 
   // Sleep to make sure the server is up and running (or we could poll....)
+  pid_t gearmand_pid= -1;
   uint32_t counter= 3;
   while (--counter)
   {
@@ -176,21 +167,25 @@ pid_t test_gearmand_start(in_port_t port, const char *queue_type,
 
     char fgets_buffer[1024];
     char *found= fgets(fgets_buffer, sizeof(fgets_buffer), file);
-    if (! found)
+    if (not found)
     {
       return -1;
     }
     gearmand_pid= atoi(fgets_buffer);
+
+    if (gearmand_pid > 0)
+      break;
+
     fclose(file);
   }
 
   if (gearmand_pid == -1)
   {
-    std::cerr << "Could not attach to gearman server, could server already be running on port " << port << std::endl;
+    std::cerr << "Could not attach to gearman server, could server already be running on port(" << port << ")?" << std::endl;
     return -1;
   }
 
-  if (! wait_and_check_startup(NULL, port))
+  if (not wait_and_check_startup(NULL, port))
   {
     test_gearmand_stop(gearmand_pid);
     std::cerr << "Failed wait_and_check_startup()" << std::endl;
@@ -214,7 +209,7 @@ void test_gearmand_stop(pid_t gearmand_pid)
       return;
     case ESRCH:
       perror(__func__);
-      std::cerr << "Process " << (int)gearmand_pid << "not found." << std::endl;
+      std::cerr << "Process " << (int)gearmand_pid << " not found." << std::endl;
       return;
     default:
     case EINVAL:

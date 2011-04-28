@@ -91,7 +91,7 @@ gearmand_error_t gearmand_thread_create(gearmand_st *gearmand)
   {
     gearmand_log_info("Initializing libevent for IO thread");
 
-    thread->base= event_base_new();
+    thread->base= static_cast<struct event_base *>(event_base_new());
     if (thread->base == NULL)
     {
       gearmand_thread_free(thread);
@@ -239,7 +239,9 @@ void gearmand_thread_run(gearmand_thread_st *thread)
   }
 }
 
+#ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
 
 /*
  * Private definitions

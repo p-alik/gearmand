@@ -19,7 +19,9 @@
 
 #include "libtest/worker.h"
 
+#ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
 
 struct context_st {
   in_port_t port;

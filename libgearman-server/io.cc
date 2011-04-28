@@ -434,7 +434,10 @@ static gearmand_error_t _connection_flush(gearman_server_con_st *con)
     }
   }
 }
+
+#ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
 
 
 gearmand_error_t gearman_io_recv(gearman_server_con_st *con, bool recv_data)

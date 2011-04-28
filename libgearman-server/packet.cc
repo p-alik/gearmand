@@ -17,7 +17,9 @@
 #include <assert.h>
 #include <cstring>
 
+#ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
 
 /*
  * Public definitions

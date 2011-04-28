@@ -48,7 +48,9 @@
 #include <boost/program_options.hpp>
 #include <boost/lexical_cast.hpp>
 
+#ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
 
 static void *wc(gearman_job_st *job, void *context, size_t *result_size,
                 gearman_return_t *ret_ptr);

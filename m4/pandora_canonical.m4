@@ -4,7 +4,15 @@ dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
 
 dnl Which version of the canonical setup we're using
-AC_DEFUN([PANDORA_CANONICAL_VERSION],[0.171])
+AC_DEFUN([PANDORA_CANONICAL_VERSION],[0.177])
+
+AC_DEFUN([PANDORA_MSG_ERROR],[
+  AS_IF([test "x${pandora_cv_skip_requires}" != "xno"],[
+    AC_MSG_ERROR($1)
+  ],[
+    AC_MSG_WARN($1)
+  ])
+])
 
 AC_DEFUN([PANDORA_FORCE_DEPEND_TRACKING],[
   AC_ARG_ENABLE([fat-binaries],
@@ -25,7 +33,7 @@ AC_DEFUN([PANDORA_FORCE_DEPEND_TRACKING],[
 
 AC_DEFUN([PANDORA_BLOCK_BAD_OPTIONS],[
   AS_IF([test "x${prefix}" = "x"],[
-    AC_MSG_ERROR([--prefix requires an argument])
+    PANDORA_MSG_ERROR([--prefix requires an argument])
   ])
 ])
 
@@ -115,7 +123,7 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
     vc_changelog=yes
   ])
   m4_if(PCT_VERSION_FROM_VC,yes,[
-    PANDORA_VC_VERSION
+    PANDORA_VC_INFO_HEADER
   ],[
     PANDORA_TEST_VC_DIR
 
@@ -151,7 +159,7 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
   PANDORA_CHECK_CXX_STANDARD
   m4_if(PCT_REQUIRE_CXX, [yes], [
     AS_IF([test "$ac_cv_cxx_stdcxx_98" = "no"],[
-      AC_MSG_ERROR([No working C++ Compiler has been found. ${PACKAGE} requires a C++ compiler that can handle C++98])
+      PANDORA_MSG_ERROR([No working C++ Compiler has been found. ${PACKAGE} requires a C++ compiler that can handle C++98])
     ])
   ])
   PANDORA_CXX_CSTDINT
@@ -182,12 +190,12 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
   # off_t is not a builtin type
   AC_CHECK_SIZEOF(off_t, 4)
   AS_IF([test "$ac_cv_sizeof_off_t" -eq 0],[
-    AC_MSG_ERROR("${PACKAGE} needs an off_t type.")
+    PANDORA_MSG_ERROR("${PACKAGE} needs an off_t type.")
   ])
 
   AC_CHECK_SIZEOF(size_t)
   AS_IF([test "$ac_cv_sizeof_size_t" -eq 0],[
-    AC_MSG_ERROR("${PACKAGE} needs an size_t type.")
+    PANDORA_MSG_ERROR("${PACKAGE} needs an size_t type.")
   ])
 
   AC_DEFINE_UNQUOTED([SIZEOF_SIZE_T],[$ac_cv_sizeof_size_t],[Size of size_t as computed by sizeof()])
@@ -268,6 +276,7 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
 
   AC_LIB_PREFIX
   PANDORA_HAVE_BETTER_MALLOC
+  PANDORA_WITH_VALGRIND
 
   AC_CHECK_PROGS([DOXYGEN], [doxygen])
   AC_CHECK_PROGS([PERL], [perl])
@@ -289,20 +298,6 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
   AM_CONDITIONAL(HAVE_DPKG_GENSYMBOLS,[test "x${DPKG_GENSYMBOLS}" != "x:"])
   AM_CONDITIONAL(HAVE_SPHINX,[test "x${SPHINXBUILD}" != "x:"])
   AM_CONDITIONAL(HAVE_RECENT_SPHINX,[test "x${ac_cv_recent_sphinx}" = "xyes"])
-
-  m4_if(m4_substr(m4_esyscmd(test -d po && echo 0),0,1),0, [
-    AM_PO_SUBDIRS
-    IT_PROG_INTLTOOL([0.35],[no-xml])
-    
-    GETTEXT_PACKAGE=$PACKAGE
-    AC_CHECK_LIB(intl, libintl_gettext)
-    AC_SUBST([GETTEXT_PACKAGE])
-    AS_IF([test "x${USE_NLS}" = "xyes" -a "x${pandora_have_intltool}" = "xyes"],
-          [AC_DEFINE([ENABLE_NLS],[1],[Turn on language support])
-           AC_CONFIG_FILES([po/Makefile.in])
-      ])
-  ])
-  AM_CONDITIONAL(BUILD_PO,[test "x${USE_NLS}" = "xyes" -a "x${pandora_have_intltool}" = "xyes"])
 
   AS_IF([test "x${gl_LIBOBJS}" != "x"],[
     AS_IF([test "$GCC" = "yes"],[
@@ -378,11 +373,11 @@ typedef unsigned long int ulong;
 
 #ifndef HAVE_MSG_NOSIGNAL
 #define MSG_NOSIGNAL 0
-#endif
+#endif // HAVE_MSG_NOSIGNAL
 
 #ifndef HAVE_MSG_DONTWAIT
 #define MSG_DONTWAIT 0
-#endif
+#endif // HAVE_MSG_DONTWAIT
 
 #if defined(__cplusplus)
 # if defined(DEBUG)

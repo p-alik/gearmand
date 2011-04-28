@@ -45,7 +45,9 @@
 #include <libgearman/connection.h>
 #include <libgearman/packet.h>
 
-#include <assert.h>
+#include <cerrno>
+#include <cassert>
+#include <cstring>
 #include <memory>
 
 /*
@@ -80,6 +82,9 @@ gearman_task_st *gearman_task_create(gearman_client_st *client, gearman_task_st 
   task->denominator= 0;
   task->client= client;
 
+  task->func= client->actions;
+  task->result_rc= GEARMAN_SUCCESS;
+
   if (client->task_list != NULL)
     client->task_list->prev= task;
   task->next= client->task_list;
@@ -90,6 +95,7 @@ gearman_task_st *gearman_task_create(gearman_client_st *client, gearman_task_st 
   task->context= NULL;
   task->con= NULL;
   task->recv= NULL;
+  task->result_ptr= NULL;
   task->job_handle[0]= 0;
 
   return task;
@@ -101,16 +107,18 @@ void gearman_task_free(gearman_task_st *task)
   if (not task)
     return;
 
+  if (task->result_ptr)
+    gearman_string_free(task->result_ptr);
+
   if (not task->client)
     return;
 
   if (task->options.send_in_use)
     gearman_packet_free(&(task->send));
 
-  if (task != &(task->client->do_task) && task->context != NULL &&
-      task->client->task_context_free_fn != NULL)
+  if (task->context and  task->client->task_context_free_fn)
   {
-    task->client->task_context_free_fn(task, (void *)task->context);
+    task->client->task_context_free_fn(task, static_cast<void *>(task->context));
   }
 
   if (task->client->task_list == task)
@@ -120,10 +128,16 @@ void gearman_task_free(gearman_task_st *task)
     task->prev->next= task->next;
   if (task->next != NULL)
     task->next->prev= task->prev;
+
   task->client->task_count--;
 
   if (task->options.allocated)
     delete task;
+}
+
+void gearman_task_clear_fn(gearman_task_st *task)
+{
+  task->func= gearman_actions_default();
 }
 
 const void *gearman_task_context(const gearman_task_st *task)
@@ -161,7 +175,9 @@ const char *gearman_task_unique(const gearman_task_st *task)
 const char *gearman_task_job_handle(const gearman_task_st *task)
 {
   if (not task)
+  {
     return 0;
+  }
 
   return task->job_handle;
 }
@@ -217,15 +233,37 @@ size_t gearman_task_send_workload(gearman_task_st *task, const void *workload,
   return gearman_connection_send_data(task->con, workload, workload_size, ret_ptr);
 }
 
+const void *gearman_task_result(const gearman_task_st *task)
+{
+  if (not task)
+    return NULL;
+
+  if (task->result_ptr)
+    return gearman_string_value(task->result_ptr);
+
+  return NULL;
+}
+
+size_t gearman_task_result_size(const gearman_task_st *task)
+{
+  if (not task)
+    return 0;
+
+  if (task->result_ptr)
+    return gearman_string_length(task->result_ptr);
+
+  return 0;
+}
+
 const void *gearman_task_data(const gearman_task_st *task)
 {
   if (not task)
     return NULL;
 
-  if (not task->recv)
-    return NULL;
+  if (task->recv and task->recv->data)
+    return task->recv->data;
 
-  return task->recv->data;
+  return 0;
 }
 
 size_t gearman_task_data_size(const gearman_task_st *task)
@@ -233,10 +271,10 @@ size_t gearman_task_data_size(const gearman_task_st *task)
   if (not task)
     return 0;
 
-  if (not task->recv)
-    return 0;
+  if (task->recv and task->recv->data_size)
+    return task->recv->data_size;
 
-  return task->recv->data_size;
+  return 0;
 }
 
 void *gearman_task_take_data(gearman_task_st *task, size_t *data_size)
@@ -255,4 +293,15 @@ size_t gearman_task_recv_data(gearman_task_st *task, void *data,
     return 0;
 
   return gearman_connection_recv_data(task->con, data, data_size, ret_ptr);
+}
+
+gearman_return_t gearman_task_error(const gearman_task_st *task)
+{
+  if (not task)
+  {
+    errno= EINVAL;
+    return GEARMAN_ERRNO;
+  }
+
+  return task->result_rc;
 }

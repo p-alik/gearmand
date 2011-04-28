@@ -20,20 +20,14 @@ endif
 
 if HAVE_LIBSQLITE3
 SQLITE_TEST= tests/sqlite_test
-QUEUE_REGRESSION_TEST= tests/queue_regression
 CLEANFILES+= tests/gearman.sql tests/gearman.sql-journal tests/gearmand.log*
-noinst_PROGRAMS += tests/sqlite_test tests/queue_regression
+noinst_PROGRAMS += tests/sqlite_test
 endif
 
 tests_sqlite_test_SOURCES= \
 			   tests/basic.cc \
 			   tests/sqlite_test.cc
 tests_sqlite_test_LDADD= ${CLIENT_LDADD}
-
-queue-regression:
-if HAVE_LIBSQLITE3
-	$(QUEUE_REGRESSION_TEST) $(ARG1) $(ARG2)
-endif
 
 test-sqlite-queue:
 if HAVE_LIBSQLITE3

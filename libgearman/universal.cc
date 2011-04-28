@@ -61,8 +61,6 @@ gearman_universal_st *gearman_universal_create(gearman_universal_st *universal, 
   universal->pfds= NULL;
   universal->log_fn= NULL;
   universal->log_context= NULL;
-  universal->event_watch_fn= NULL;
-  universal->event_watch_context= NULL;
   universal->workload_malloc_fn= NULL;
   universal->workload_malloc_context= NULL;
   universal->workload_free_fn= NULL;
@@ -158,14 +156,6 @@ void gearman_set_log_fn(gearman_universal_st *universal, gearman_log_fn *functio
   universal->log_fn= function;
   universal->log_context= context;
   universal->verbose= verbose;
-}
-
-void gearman_set_event_watch_fn(gearman_universal_st *universal,
-                                gearman_event_watch_fn *function,
-                                void *context)
-{
-  universal->event_watch_fn= function;
-  universal->event_watch_context= context;
 }
 
 void gearman_set_workload_malloc_fn(gearman_universal_st *universal,
@@ -404,7 +394,7 @@ void gearman_universal_set_error(gearman_universal_st *universal,
   }
 
   size= strlen(gearman_strerror(rc));
-  ptr= (char *)memcpy(log_buffer, gearman_strerror(rc), size);
+  ptr= static_cast<char *>(memcpy(log_buffer, gearman_strerror(rc), size));
   ptr+= size;
 
   ptr[0]= '>';
@@ -412,7 +402,7 @@ void gearman_universal_set_error(gearman_universal_st *universal,
   ptr++;
 
   size= strlen(function);
-  ptr= (char *)memcpy(ptr, (void*)function, size);
+  ptr= static_cast<char *>(memcpy(ptr, static_cast<void*>(const_cast<char *>(function)), size));
   ptr+= size;
 
   ptr[0]= ':';
@@ -420,7 +410,7 @@ void gearman_universal_set_error(gearman_universal_st *universal,
   ptr++;
 
   va_start(args, format);
-  size+= (size_t)vsnprintf(ptr, GEARMAN_MAX_ERROR_SIZE - size, format, args);
+  size+= size_t(vsnprintf(ptr, GEARMAN_MAX_ERROR_SIZE - size, format, args));
   va_end(args);
 
   if (universal->log_fn == NULL)
@@ -433,7 +423,7 @@ void gearman_universal_set_error(gearman_universal_st *universal,
   else
   {
     universal->log_fn(log_buffer, GEARMAN_VERBOSE_FATAL,
-                      (void *)universal->log_context);
+                      static_cast<void *>(universal->log_context));
   }
 }
 

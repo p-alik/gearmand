@@ -232,7 +232,6 @@ gearman_return_t gearman_job_send_exception(gearman_job_st *job,
                                             const void *exception,
                                             size_t exception_size)
 {
-  gearman_return_t ret;
   const void *args[2];
   size_t args_size[2];
 
@@ -242,6 +241,8 @@ gearman_return_t gearman_job_send_exception(gearman_job_st *job,
     args_size[0]= job->assigned.arg_size[0];
     args[1]= exception;
     args_size[1]= exception_size;
+
+    gearman_return_t ret;
     ret= gearman_packet_create_args(&(job->worker->universal), &(job->work),
                                     GEARMAN_MAGIC_REQUEST,
                                     GEARMAN_COMMAND_WORK_EXCEPTION,
@@ -257,7 +258,6 @@ gearman_return_t gearman_job_send_exception(gearman_job_st *job,
 
 gearman_return_t gearman_job_send_fail(gearman_job_st *job)
 {
-  gearman_return_t ret;
   const void *args[1];
   size_t args_size[1];
 
@@ -268,6 +268,7 @@ gearman_return_t gearman_job_send_fail(gearman_job_st *job)
   {
     args[0]= job->assigned.arg[0];
     args_size[0]= job->assigned.arg_size[0] - 1;
+    gearman_return_t ret;
     ret= gearman_packet_create_args(&(job->worker->universal), &(job->work),
                                     GEARMAN_MAGIC_REQUEST,
                                     GEARMAN_COMMAND_WORK_FAIL,
@@ -278,6 +279,7 @@ gearman_return_t gearman_job_send_fail(gearman_job_st *job)
     job->options.work_in_use= true;
   }
 
+  gearman_return_t ret;
   ret= _job_send(job);
   if (ret != GEARMAN_SUCCESS)
     return ret;
@@ -288,18 +290,18 @@ gearman_return_t gearman_job_send_fail(gearman_job_st *job)
 
 const char *gearman_job_handle(const gearman_job_st *job)
 {
-  return (const char *)job->assigned.arg[0];
+  return static_cast<const char *>(job->assigned.arg[0]);
 }
 
 const char *gearman_job_function_name(const gearman_job_st *job)
 {
-  return (const char *)job->assigned.arg[1];
+  return static_cast<const char *>(job->assigned.arg[1]);
 }
 
 const char *gearman_job_unique(const gearman_job_st *job)
 {
   if (job->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN_UNIQ)
-    return (const char *)job->assigned.arg[2];
+    return static_cast<const char *>(job->assigned.arg[2]);
   return "";
 }
 

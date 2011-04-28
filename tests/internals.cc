@@ -1,10 +1,42 @@
-/* Gearman server and library
- * Copyright (C) 2008 Brian Aker, Eric Day
- * All rights reserved.
+/*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
+ * 
+ *  Gearmand client and server library.
  *
- * Use and distribution licensed under the BSD license.  See
- * the COPYING file in the parent directory for full text.
+ *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2008 Brian Aker, Eric Day
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions are
+ *  met:
+ *
+ *      * Redistributions of source code must retain the above copyright
+ *  notice, this list of conditions and the following disclaimer.
+ *
+ *      * Redistributions in binary form must reproduce the above
+ *  copyright notice, this list of conditions and the following disclaimer
+ *  in the documentation and/or other materials provided with the
+ *  distribution.
+ *
+ *      * The names of its contributors may not be used to endorse or
+ *  promote products derived from this software without specific prior
+ *  written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ *  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ *  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ *  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ *  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ *  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ *  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
+
+
 
 #include "config.h"
 
@@ -18,8 +50,7 @@
 #include <string.h>
 
 #define GEARMAN_CORE
-#include <libgearman/gearman.h>
-#include <libgearman/connection.h>
+#include <libgearman/common.h>
 
 #include "libtest/test.h"
 #include "libtest/server.h"
@@ -27,7 +58,9 @@
 
 #define CLIENT_TEST_PORT 32123
 
+#ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
 
 static test_return_t init_test(void *not_used __attribute__((unused)))
 {
@@ -89,8 +122,6 @@ static test_return_t clone_test(void *not_used __attribute__((unused)))
     test_truth(gear_clone->pfds == gear_ptr->pfds);
     test_truth(gear_clone->log_fn == gear_ptr->log_fn);
     test_truth(gear_clone->log_context == gear_ptr->log_context);
-    test_truth(gear_clone->event_watch_fn == gear_ptr->event_watch_fn);
-    test_truth(gear_clone->event_watch_context == gear_ptr->event_watch_context);
     test_truth(gear_clone->workload_malloc_fn == gear_ptr->workload_malloc_fn);
     test_truth(gear_clone->workload_malloc_context == gear_ptr->workload_malloc_context);
     test_truth(gear_clone->workload_free_fn == gear_ptr->workload_free_fn);
@@ -135,14 +166,13 @@ static test_return_t basic_error_test(void *not_used __attribute__((unused)))
 {
   gearman_universal_st gear;
   gearman_universal_st *gear_ptr;
-  const char *error;
   int error_number;
 
   gear_ptr= gearman_universal_create(&gear, NULL);
   test_truth(gear_ptr);
   test_truth(gear_ptr == &gear);
 
-  error= gearman_universal_error(gear_ptr);
+  const char *error= gearman_universal_error(gear_ptr);
   test_truth(error == NULL);
 
   error_number= gearman_universal_errno(gear_ptr);

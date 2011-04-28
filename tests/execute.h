@@ -37,30 +37,10 @@
 
 #pragma once
 
-struct gearman_status_t {
-  const bool successful;
-  gearman_task_st *task;
-};
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-GEARMAN_LOCAL
-gearman_status_t gearman_failure(void);
-
-GEARMAN_LOCAL
-gearman_status_t gearman_success(void);
-
-#define GEARMAN_STATUS_FAIL gearman_failure();
-#define GEARMAN_STATUS_SUCCESS gearman_success();
-
-GEARMAN_API
-bool gearman_status_is_successful(const gearman_status_t);
-
-GEARMAN_API
-gearman_task_st *gearman_status_task(const gearman_status_t);
-
-#ifdef __cplusplus
-}
-#endif
+test_return_t gearman_client_execute_test(void *object);
+test_return_t gearman_client_execute_timeout_test(void *object);
+test_return_t gearman_client_execute_epoch_test(void *object);
+test_return_t gearman_client_execute_bg_test(void *object);
+test_return_t gearman_client_execute_multile_bg_test(void *object);
+test_return_t gearman_client_execute_in_bulk(void *object);
+test_return_t gearman_client_execute_in_bulk_fail(void *object);

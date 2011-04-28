@@ -263,10 +263,6 @@ int main(int argc, char *argv[])
     gearmand_error_t rc;
     if ((rc= gearmand::queue::initialize(_gearmand, queue_type.c_str())) != GEARMAN_SUCCESS)
     {
-      std::string error_message;
-      error_message+= "Failed to initialize queue ";
-      error_message+= queue_type;
-      error::message(error_message, rc);
       gearmand_free(_gearmand);
 
       return EXIT_FAILURE;

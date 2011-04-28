@@ -35,26 +35,11 @@
  *
  */
 
-#include <libgearman/common.h>
+#pragma once
 
-gearman_status_t gearman_failure()
-{
-  static gearman_status_t status= { false, 0 };
-  return status;
-}
-
-gearman_status_t gearman_success()
-{
-  static gearman_status_t status= { false, 0 };
-  return status;
-}
-
-bool gearman_status_is_successful(const gearman_status_t self)
-{
-  return self.successful;
-}
-
-gearman_task_st *gearman_status_task(const gearman_status_t self)
-{
-  return self.task;
-}
+test_return_t gearman_client_add_task_test(void *);
+test_return_t gearman_client_add_task_test_fail(void *object);
+test_return_t gearman_client_add_task_test_bad_workload(void *object);
+test_return_t gearman_client_add_task_background_test(void *object);
+test_return_t gearman_client_add_task_high_background_test(void *object);
+test_return_t gearman_client_add_task_low_background_test(void *object);

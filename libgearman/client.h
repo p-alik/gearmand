@@ -64,42 +64,29 @@ enum gearman_client_t {
   GEARMAN_CLIENT_STATE_PACKET
 };
 
-
 /**
  * @ingroup gearman_client
  */
 struct gearman_client_st
 {
   struct {
-    bool allocated LIBGEARMAN_BITFIELD;
-    bool non_blocking LIBGEARMAN_BITFIELD;
-    bool task_in_use LIBGEARMAN_BITFIELD;
-    bool unbuffered_result LIBGEARMAN_BITFIELD;
-    bool no_new LIBGEARMAN_BITFIELD;
-    bool free_tasks LIBGEARMAN_BITFIELD;
+    bool allocated;
+    bool non_blocking;
+    bool unbuffered_result;
+    bool no_new;
+    bool free_tasks;
   } options;
   enum gearman_client_t state;
-  gearman_return_t do_ret;
   uint32_t new_tasks;
   uint32_t running_tasks;
   uint32_t task_count;
-  size_t do_data_size;
   void *context;
   gearman_connection_st *con;
   gearman_task_st *task;
   gearman_task_st *task_list;
   gearman_task_context_free_fn *task_context_free_fn;
-  void *do_data;
-  gearman_workload_fn *workload_fn;
-  gearman_created_fn *created_fn;
-  gearman_data_fn *data_fn;
-  gearman_warning_fn *warning_fn;
-  gearman_universal_status_fn *status_fn;
-  gearman_complete_fn *complete_fn;
-  gearman_exception_fn *exception_fn;
-  gearman_fail_fn *fail_fn;
-  gearman_universal_st universal;
-  gearman_task_st do_task;
+  struct gearman_universal_st universal;
+  struct gearman_actions_t actions;
 };
 
 /**
@@ -139,6 +126,9 @@ void gearman_client_free(gearman_client_st *client);
  */
 GEARMAN_API
 const char *gearman_client_error(const gearman_client_st *client);
+
+GEARMAN_API
+gearman_return_t gearman_client_error_code(const gearman_client_st *client);
 
 /**
  * See gearman_errno() for details.
@@ -264,7 +254,7 @@ gearman_return_t gearman_client_add_server(gearman_client_st *client,
  * SERVER[:PORT][,SERVER[:PORT]]...
  * Some examples are:
  * 10.0.0.1,10.0.0.2,10.0.0.3
- * localhost LIBGEARMAN_BITFIELD234,jobserver2.domain.com:7003,10.0.0.3
+ * localhost234,jobserver2.domain.com:7003,10.0.0.3
  *
  * @param[in] client Structure previously initialized with
  *  gearman_client_create() or gearman_client_clone().
@@ -491,10 +481,13 @@ void gearman_client_set_task_context_free_fn(gearman_client_st *client,
 
 // Use the job handle in task for returning all information.
 GEARMAN_API
-gearman_status_t gearman_client_execute(gearman_client_st *client,
-                                        const gearman_function_st *function,
-                                        gearman_unique_t *unique,
-                                        const gearman_workload_t *workload);
+bool gearman_client_execute(gearman_client_st *client,
+                            const gearman_function_st *function,
+                            gearman_workload_t *workload);
+
+GEARMAN_API
+bool gearman_client_execute_batch(gearman_client_st *client,
+                                  gearman_batch_t *batch);
 
 /**
  * Add a task to be run in parallel.

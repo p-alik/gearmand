@@ -64,10 +64,10 @@ extern "C" {
 struct gearman_job_st
 {
   struct {
-    bool allocated LIBGEARMAN_BITFIELD;
-    bool assigned_in_use LIBGEARMAN_BITFIELD;
-    bool work_in_use LIBGEARMAN_BITFIELD;
-    bool finished LIBGEARMAN_BITFIELD;
+    bool allocated;
+    bool assigned_in_use;
+    bool work_in_use;
+    bool finished;
   } options;
   gearman_worker_st *worker;
   gearman_job_st *next;

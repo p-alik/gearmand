@@ -11,6 +11,7 @@
 # All paths should be given relative to the root
 
 nobase_include_HEADERS+= \
+			 libgearman/actions.h \
 			 libgearman/byteorder.h \
 			 libgearman/client.h \
 			 libgearman/command.h \
@@ -24,18 +25,23 @@ nobase_include_HEADERS+= \
 			 libgearman/log.h \
 			 libgearman/packet.h \
 			 libgearman/protocol.h \
-			 libgearman/status.h \
+			 libgearman/return.h \
 			 libgearman/strerror.h \
 			 libgearman/task.h \
 			 libgearman/unique.h \
 			 libgearman/universal.h \
+			 libgearman/version.h \
 			 libgearman/visibility.h \
 			 libgearman/worker.h \
 			 libgearman/workload.h
 
 noinst_HEADERS+= \
+		 libgearman/add.h \
 		 libgearman/common.h \
-		 libgearman/log.h
+		 libgearman/connection.hpp \
+		 libgearman/log.h \
+		 libgearman/strcommand.h \
+		 libgearman/string.h
 
 noinst_LTLIBRARIES+= libgearman/libgearmancore.la
 libgearman_libgearmancore_la_SOURCES= \
@@ -43,44 +49,36 @@ libgearman_libgearmancore_la_SOURCES= \
 				      libgearman/connection.cc \
 				      libgearman/log.cc \
 				      libgearman/packet.cc \
+				      libgearman/strerror.cc \
 				      libgearman/universal.cc
-
-libgearman_libgearmancore_la_CFLAGS= \
-				     -fno-exceptions \
-				     -fno-rtti \
-				     ${AM_CXXFLAGS}
-
-libgearman_libgearmancore_la_LDFLAGS= \
-				      -fno-exceptions \
-				      -fno-rtti \
-				      ${AM_LDFLAGS}
 
 lib_LTLIBRARIES+= libgearman/libgearman.la
 libgearman_libgearman_la_SOURCES= \
+				  libgearman/actions.cc \
+				  libgearman/add.cc \
+				  libgearman/byteorder.cc \
 				  libgearman/client.cc \
+				  libgearman/connection.cc \
 				  libgearman/function.cc \
 				  libgearman/gearman.cc \
 				  libgearman/job.cc \
-				  libgearman/status.cc \
+				  libgearman/log.cc \
+				  libgearman/packet.cc \
+				  libgearman/strcommand.cc \
 				  libgearman/strerror.cc \
+				  libgearman/string.cc \
 				  libgearman/task.cc \
 				  libgearman/unique.cc \
+				  libgearman/universal.cc \
 				  libgearman/worker.cc \
 				  libgearman/workload.cc
 
-libgearman_libgearman_la_DEPENDENCIES= \
-				       libgearman/libgearmancore.la
-
-libgearman_libgearman_la_CXXFLAGS= \
-				   ${AM_CXXFLAGS}
+libgearman_libgearman_la_DEPENDENCIES=
 
 libgearman_libgearman_la_LDFLAGS= \
-				  -fno-exceptions \
-				  -fno-rtti \
 				  $(AM_LDFLAGS) \
 				  -version-info $(GEARMAN_LIBRARY_VERSION)
 
 libgearman_libgearman_la_LIBADD= \
-				 libgearman/libgearmancore.la \
 				 $(LTLIBUUID)
 

@@ -22,7 +22,9 @@
 
 static gearman_server_function_st * gearman_server_function_create(gearman_server_st *server);
 
+#ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
 
 gearman_server_function_st *
 gearman_server_function_get(gearman_server_st *server,

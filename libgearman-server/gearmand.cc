@@ -62,8 +62,9 @@ static void gearmand_set_log_fn(gearmand_st *gearmand, gearmand_log_fn *function
 
 /** @} */
 
+#ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
-
+#endif
 
 /*
  * Public definitions
@@ -291,7 +292,7 @@ gearmand_error_t gearmand_run(gearmand_st *gearmand)
 
     gearmand_log_debug("Initializing libevent for main thread");
 
-    gearmand->base= event_base_new();
+    gearmand->base= static_cast<struct event_base *>(event_base_new());
     if (gearmand->base == NULL)
     {
       gearmand_fatal("event_base_new(NULL)");

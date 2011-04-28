@@ -252,7 +252,7 @@ void gearman_connection_set_host(gearman_connection_st *connection,
           NI_MAXHOST);
   connection->host[NI_MAXHOST - 1]= 0;
 
-  connection->port= (in_port_t)(port == 0 ? GEARMAN_DEFAULT_TCP_PORT : port);
+  connection->port= in_port_t(port == 0 ? GEARMAN_DEFAULT_TCP_PORT : port);
 }
 
 void gearman_connection_close(gearman_connection_st *connection)
@@ -416,14 +416,14 @@ gearman_return_t gearman_connection_send(gearman_connection_st *connection,
     if (connection->send_buffer_size < GEARMAN_SEND_BUFFER_SIZE)
     {
       memcpy(connection->send_buffer,
-             (char *)packet->data + connection->send_data_offset,
+             static_cast<char *>(const_cast<void *>(packet->data)) + connection->send_data_offset,
              connection->send_buffer_size);
       connection->send_data_size= 0;
       connection->send_data_offset= 0;
       break;
     }
 
-    connection->send_buffer_ptr= (char *)packet->data + connection->send_data_offset;
+    connection->send_buffer_ptr= static_cast<char *>(const_cast<void *>(packet->data)) + connection->send_data_offset;
     connection->send_state= GEARMAN_CON_SEND_UNIVERSAL_FLUSH_DATA;
 
   case GEARMAN_CON_SEND_UNIVERSAL_FLUSH:
@@ -473,7 +473,7 @@ size_t gearman_connection_send_data(gearman_connection_st *connection, const voi
     return GEARMAN_DATA_TOO_LARGE;
   }
 
-  connection->send_buffer_ptr= (char *)data;
+  connection->send_buffer_ptr= static_cast<char *>(const_cast<void *>(data));
   connection->send_buffer_size= data_size;
 
   *ret_ptr= gearman_connection_flush(connection);
@@ -500,7 +500,7 @@ gearman_return_t gearman_connection_flush(gearman_connection_st *connection)
         connection->addrinfo= NULL;
       }
 
-      snprintf(port_str, NI_MAXSERV, "%hu", (uint16_t)connection->port);
+      snprintf(port_str, NI_MAXSERV, "%hu", uint16_t(connection->port));
 
       memset(&ai, 0, sizeof(struct addrinfo));
       ai.ai_socktype= SOCK_STREAM;
@@ -663,10 +663,10 @@ gearman_return_t gearman_connection_flush(gearman_connection_st *connection)
           return GEARMAN_ERRNO;
         }
 
-        connection->send_buffer_size-= (size_t)write_size;
+        connection->send_buffer_size-= size_t(write_size);
         if (connection->send_state == GEARMAN_CON_SEND_UNIVERSAL_FLUSH_DATA)
         {
-          connection->send_data_offset+= (size_t)write_size;
+          connection->send_data_offset+= size_t(write_size);
           if (connection->send_data_offset == connection->send_data_size)
           {
             connection->send_data_size= 0;
@@ -776,7 +776,7 @@ gearman_packet_st *gearman_connection_recv(gearman_connection_st *connection,
     else
     {
       packet->data= packet->universal->workload_malloc_fn(packet->data_size,
-                                                        (void *)packet->universal->workload_malloc_context);
+                                                        static_cast<void *>(packet->universal->workload_malloc_context));
     }
     if (packet->data == NULL)
     {
@@ -792,7 +792,7 @@ gearman_packet_st *gearman_connection_recv(gearman_connection_st *connection,
     while (connection->recv_data_size != 0)
     {
       (void)gearman_connection_recv_data(connection,
-                                         ((uint8_t *)(packet->data)) +
+                                         static_cast<uint8_t *>(const_cast<void *>(packet->data)) +
                                          connection->recv_data_offset,
                                          packet->data_size -
                                          connection->recv_data_offset, ret_ptr);
@@ -844,7 +844,8 @@ size_t gearman_connection_recv_data(gearman_connection_st *connection, void *dat
 
   if (data_size != recv_size)
   {
-    recv_size+= gearman_connection_read(connection, ((uint8_t *)data) + recv_size,
+    recv_size+= gearman_connection_read(connection,
+                                        static_cast<uint8_t *>(const_cast<void *>(data)) + recv_size,
                                         data_size - recv_size, ret_ptr);
     connection->recv_data_offset+= recv_size;
   }
@@ -928,58 +929,26 @@ size_t gearman_connection_read(gearman_connection_st *connection, void *data, si
   }
 
   *ret_ptr= GEARMAN_SUCCESS;
-  return (size_t)read_size;
+  return size_t(read_size);
 }
 
 gearman_return_t gearman_connection_set_events(gearman_connection_st *connection, short events)
 {
-  gearman_return_t ret;
-
   if ((connection->events | events) == connection->events)
     return GEARMAN_SUCCESS;
 
   connection->events|= events;
-
-  if (connection->universal->event_watch_fn != NULL)
-  {
-    ret= connection->universal->event_watch_fn(connection, connection->events,
-                                      (void *)connection->universal->event_watch_context);
-    if (ret != GEARMAN_SUCCESS)
-    {
-      gearman_connection_close(connection);
-      return ret;
-    }
-  }
 
   return GEARMAN_SUCCESS;
 }
 
 gearman_return_t gearman_connection_set_revents(gearman_connection_st *connection, short revents)
 {
-  gearman_return_t ret;
-
   if (revents != 0)
     connection->options.ready= true;
 
   connection->revents= revents;
-
-  /* Remove external POLLOUT watch if we didn't ask for it. Otherwise we spin
-    forever until another POLLIN state change. This is much more efficient
-    than removing POLLOUT on every state change since some external polling
-    mechanisms need to use a system call to change flags (like Linux epoll). */
-  if (revents & POLLOUT && !(connection->events & POLLOUT) &&
-      connection->universal->event_watch_fn != NULL)
-  {
-    ret= connection->universal->event_watch_fn(connection, connection->events,
-                                      (void *)connection->universal->event_watch_context);
-    if (ret != GEARMAN_SUCCESS)
-    {
-      gearman_connection_close(connection);
-      return ret;
-    }
-  }
-
-  connection->events&= (short)~revents;
+  connection->events&= short(~revents);
 
   return GEARMAN_SUCCESS;
 }
@@ -996,7 +965,7 @@ static gearman_return_t _con_setsockopt(gearman_connection_st *connection)
 
   ret= 1;
   ret= setsockopt(connection->fd, IPPROTO_TCP, TCP_NODELAY, &ret,
-                  (socklen_t)sizeof(int));
+                  socklen_t(sizeof(int)));
   if (ret == -1 && errno != EOPNOTSUPP)
   {
     gearman_perror(connection->universal, "setsockopt(TCP_NODELAY)");
@@ -1006,7 +975,7 @@ static gearman_return_t _con_setsockopt(gearman_connection_st *connection)
   linger.l_onoff= 1;
   linger.l_linger= GEARMAN_DEFAULT_SOCKET_TIMEOUT;
   ret= setsockopt(connection->fd, SOL_SOCKET, SO_LINGER, &linger,
-                  (socklen_t)sizeof(struct linger));
+                  socklen_t(sizeof(struct linger)));
   if (ret == -1)
   {
     gearman_perror(connection->universal, "setsockopt(SO_LINGER)");
@@ -1016,7 +985,7 @@ static gearman_return_t _con_setsockopt(gearman_connection_st *connection)
   waittime.tv_sec= GEARMAN_DEFAULT_SOCKET_TIMEOUT;
   waittime.tv_usec= 0;
   ret= setsockopt(connection->fd, SOL_SOCKET, SO_SNDTIMEO, &waittime,
-                  (socklen_t)sizeof(struct timeval));
+                  socklen_t(sizeof(struct timeval)));
   if (ret == -1 && errno != ENOPROTOOPT)
   {
     gearman_perror(connection->universal, "setsockopt(SO_SNDTIMEO)");
@@ -1024,7 +993,7 @@ static gearman_return_t _con_setsockopt(gearman_connection_st *connection)
   }
 
   ret= setsockopt(connection->fd, SOL_SOCKET, SO_RCVTIMEO, &waittime,
-                  (socklen_t)sizeof(struct timeval));
+                  socklen_t(sizeof(struct timeval)));
   if (ret == -1 && errno != ENOPROTOOPT)
   {
     gearman_perror(connection->universal, "setsockopt(SO_RCVTIMEO)");
@@ -1032,7 +1001,7 @@ static gearman_return_t _con_setsockopt(gearman_connection_st *connection)
   }
 
   ret= GEARMAN_DEFAULT_SOCKET_SEND_SIZE;
-  ret= setsockopt(connection->fd, SOL_SOCKET, SO_SNDBUF, &ret, (socklen_t)sizeof(int));
+  ret= setsockopt(connection->fd, SOL_SOCKET, SO_SNDBUF, &ret, socklen_t(sizeof(int)));
   if (ret == -1)
   {
     gearman_perror(connection->universal, "setsockopt(SO_SNDBUF)");
@@ -1042,7 +1011,7 @@ static gearman_return_t _con_setsockopt(gearman_connection_st *connection)
 #if defined(__MACH__) && defined(__APPLE__) || defined(__FreeBSD__)
   {
     ret= 1;
-    setsockopt(connection->fd, SOL_SOCKET, SO_NOSIGPIPE, (void *)&ret, sizeof(int));
+    setsockopt(connection->fd, SOL_SOCKET, SO_NOSIGPIPE, static_cast<void *>(&ret), sizeof(int));
 
     // This is not considered a fatal error 
     if (ret == -1)
@@ -1053,7 +1022,7 @@ static gearman_return_t _con_setsockopt(gearman_connection_st *connection)
 #endif
 
   ret= GEARMAN_DEFAULT_SOCKET_RECV_SIZE;
-  ret= setsockopt(connection->fd, SOL_SOCKET, SO_RCVBUF, &ret, (socklen_t)sizeof(int));
+  ret= setsockopt(connection->fd, SOL_SOCKET, SO_RCVBUF, &ret, socklen_t(sizeof(int)));
   if (ret == -1)
   {
     gearman_perror(connection->universal, "setsockopt(SO_RCVBUF)");

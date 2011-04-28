@@ -22,7 +22,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 m4_define([_BOOST_SERIAL], [m4_translit([
-# serial 15
+# serial 16
 ], [#
 ], [])])
 
@@ -627,6 +627,20 @@ BOOST_DEFUN([Optional],
 # Look for Boost.Preprocessor
 BOOST_DEFUN([Preprocessor],
 [BOOST_FIND_HEADER([boost/preprocessor/repeat.hpp])])
+
+
+# BOOST_UNORDERED()
+# -----------------
+# Look for Boost.Unordered
+BOOST_DEFUN([Unordered],
+[BOOST_FIND_HEADER([boost/unordered_map.hpp])])
+
+
+# BOOST_UUID()
+# ------------
+# Look for Boost.Uuid
+BOOST_DEFUN([Uuid],
+[BOOST_FIND_HEADER([boost/uuid/uuid.hpp])])
 
 
 # BOOST_PROGRAM_OPTIONS([PREFERRED-RT-OPT])

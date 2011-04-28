@@ -187,7 +187,7 @@ void gearman_worker_free(gearman_worker_st *worker)
     else
     {
       (&worker->universal)->workload_free_fn(worker->work_result,
-                                (void *)(&worker->universal)->workload_free_context);
+                                static_cast<void *>((&worker->universal)->workload_free_context));
     }
   }
 
@@ -219,25 +219,25 @@ gearman_worker_options_t gearman_worker_options(const gearman_worker_st *worker)
   memset(&options, 0, sizeof(gearman_worker_options_t));
 
   if (worker->options.allocated)
-    options|= (int)GEARMAN_WORKER_ALLOCATED;
+    options|= int(GEARMAN_WORKER_ALLOCATED);
   if (worker->options.non_blocking)
-    options|= (int)GEARMAN_WORKER_NON_BLOCKING;
+    options|= int(GEARMAN_WORKER_NON_BLOCKING);
   if (worker->options.packet_init)
-    options|= (int)GEARMAN_WORKER_PACKET_INIT;
+    options|= int(GEARMAN_WORKER_PACKET_INIT);
   if (worker->options.grab_job_in_use)
-    options|= (int)GEARMAN_WORKER_GRAB_JOB_IN_USE;
+    options|= int(GEARMAN_WORKER_GRAB_JOB_IN_USE);
   if (worker->options.pre_sleep_in_use)
-    options|= (int)GEARMAN_WORKER_PRE_SLEEP_IN_USE;
+    options|= int(GEARMAN_WORKER_PRE_SLEEP_IN_USE);
   if (worker->options.work_job_in_use)
-    options|= (int)GEARMAN_WORKER_WORK_JOB_IN_USE;
+    options|= int(GEARMAN_WORKER_WORK_JOB_IN_USE);
   if (worker->options.change)
-    options|= (int)GEARMAN_WORKER_CHANGE;
+    options|= int(GEARMAN_WORKER_CHANGE);
   if (worker->options.grab_uniq)
-    options|= (int)GEARMAN_WORKER_GRAB_UNIQ;
+    options|= int(GEARMAN_WORKER_GRAB_UNIQ);
   if (worker->options.timeout_return)
-    options|= (int)GEARMAN_WORKER_TIMEOUT_RETURN;
+    options|= int(GEARMAN_WORKER_TIMEOUT_RETURN);
 
-  return (gearman_worker_options_t)options;
+  return gearman_worker_options_t(options);
 }
 
 void gearman_worker_set_options(gearman_worker_st *worker,
@@ -713,7 +713,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
         else
         {
           if ((&worker->universal)->timeout > 0)
-            usleep((unsigned int)(&worker->universal)->timeout * 1000);
+            usleep(static_cast<unsigned int>((&worker->universal)->timeout) * 1000);
 
           if (worker->options.timeout_return)
           {
@@ -841,7 +841,7 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
 
   case GEARMAN_WORKER_WORK_UNIVERSAL_FUNCTION:
     worker->work_result= worker->work_function->worker_fn(&(worker->work_job),
-                                         (void *)worker->work_function->context,
+                                         static_cast<void *>(worker->work_function->context),
                                          &(worker->work_result_size), &ret);
     if (ret == GEARMAN_WORK_FAIL)
     {
@@ -1020,7 +1020,8 @@ static gearman_return_t _worker_packet_init(gearman_worker_st *worker)
 static gearman_return_t _worker_add_server(const char *host, in_port_t port,
                                            void *context)
 {
-  return gearman_worker_add_server((gearman_worker_st *)context, host, port);
+  return gearman_worker_add_server(static_cast<gearman_worker_st *>(context),
+                                   host, port);
 }
 
 static gearman_return_t _worker_function_create(gearman_worker_st *worker,
