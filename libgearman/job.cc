@@ -112,6 +112,16 @@ gearman_return_t gearman_job_send_data(gearman_job_st *job, const void *data,
   const void *args[2];
   size_t args_size[2];
 
+#if 0
+  if (job->each_fn)
+  {
+    gearman_argument_t value1= gearman_argument_make(data, data_size);
+    gearman_task_add_work(task, &value1), gearman_client_error(client);
+
+    return GEARMAN_SUCCESS;
+  }
+#endif
+
   if (not (job->options.work_in_use))
   {
     args[0]= job->assigned.arg[0];

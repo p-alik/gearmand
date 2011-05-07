@@ -211,7 +211,10 @@ void gearman_worker_free(gearman_worker_st *worker)
     gearman_job_free(worker->job);
 
   if (worker->options.work_job_in_use)
-    gearman_job_free(&(worker->work_job));
+  {
+    gearman_job_free(worker->work_job);
+    worker->work_job= NULL;
+  }
 
   if (worker->work_result != NULL)
   {
@@ -849,18 +852,17 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
   case GEARMAN_WORKER_WORK_UNIVERSAL_GRAB_JOB:
     {
       gearman_return_t ret;
-      gearman_job_st *check= gearman_worker_grab_job(worker, &(worker->work_job), &ret);
-      (void)check; // @todo test this good values
+      worker->work_job= gearman_worker_grab_job(worker, NULL, &ret);
 
-      if (ret != GEARMAN_SUCCESS)
+      if (gearman_failed(ret))
 	return ret;
-      assert(check);
+      assert(worker->work_job);
 
       for (worker->work_function= worker->function_list;
 	   worker->work_function != NULL;
 	   worker->work_function= worker->work_function->next)
       {
-	if (not strcmp(gearman_job_function_name(&(worker->work_job)),
+	if (not strcmp(gearman_job_function_name(worker->work_job),
 		       worker->work_function->function_name))
 	{
 	  break;
@@ -869,14 +871,16 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
 
       if (worker->work_function == NULL)
       {
-	gearman_job_free(&(worker->work_job));
+	gearman_job_free(worker->work_job);
+        worker->work_job= NULL;
 	gearman_universal_set_error((&worker->universal), GEARMAN_INVALID_FUNCTION_NAME, AT, "function not found");
 	return GEARMAN_INVALID_FUNCTION_NAME;
       }
 
       if (worker->work_function->worker_fn == NULL)
       {
-	gearman_job_free(&(worker->work_job));
+	gearman_job_free(worker->work_job);
+        worker->work_job= NULL;
 	gearman_universal_set_error((&worker->universal), GEARMAN_INVALID_FUNCTION_NAME, AT, "no callback function supplied");
 	return GEARMAN_INVALID_FUNCTION_NAME;
       }
@@ -888,12 +892,12 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
   case GEARMAN_WORKER_WORK_UNIVERSAL_FUNCTION:
     {
       gearman_return_t ret;
-      worker->work_result= worker->work_function->worker_fn(&(worker->work_job),
+      worker->work_result= worker->work_function->worker_fn(worker->work_job,
 							    static_cast<void *>(worker->work_function->context),
 							    &(worker->work_result_size), &ret);
       if (ret == GEARMAN_WORK_FAIL)
       {
-	ret= gearman_job_send_fail(&(worker->work_job));
+	ret= gearman_job_send_fail(worker->work_job);
 	if (gearman_failed(ret))
 	{
 	  if (ret == GEARMAN_LOST_CONNECTION)
@@ -918,7 +922,7 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
 
   case GEARMAN_WORKER_WORK_UNIVERSAL_COMPLETE:
     {
-      gearman_return_t ret= gearman_job_send_complete(&(worker->work_job), worker->work_result,
+      gearman_return_t ret= gearman_job_send_complete(worker->work_job, worker->work_result,
 						      worker->work_result_size);
       if (ret == GEARMAN_IO_WAIT)
       {
@@ -954,7 +958,7 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
   case GEARMAN_WORKER_WORK_UNIVERSAL_FAIL:
     {
       gearman_return_t ret;
-      if (gearman_failed(ret= gearman_job_send_fail(&(worker->work_job))))
+      if (gearman_failed(ret= gearman_job_send_fail(worker->work_job)))
       {
 	if (ret == GEARMAN_LOST_CONNECTION)
 	  break;
@@ -966,7 +970,8 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
    break;
   }
 
-  gearman_job_free(&(worker->work_job));
+  gearman_job_free(worker->work_job);
+  worker->work_job= NULL;
   worker->options.work_job_in_use= false;
   worker->work_state= GEARMAN_WORKER_WORK_UNIVERSAL_GRAB_JOB;
 

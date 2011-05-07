@@ -104,7 +104,7 @@ struct gearman_worker_st
   struct gearman_universal_st universal;
   gearman_packet_st grab_job;
   gearman_packet_st pre_sleep;
-  gearman_job_st work_job;
+  gearman_job_st *work_job;
 };
 
 
