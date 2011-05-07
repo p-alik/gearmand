@@ -68,10 +68,10 @@ static gearman_return_t _job_send(gearman_job_st *job);
 
 gearman_job_st *gearman_job_create(gearman_worker_st *worker, gearman_job_st *job)
 {
-  if (job == NULL)
+  if (not job)
   {
     job= new (std::nothrow) gearman_job_st;
-    if (job == NULL)
+    if (not job)
     {
       gearman_universal_set_error((&worker->universal),
                                   GEARMAN_MEMORY_ALLOCATION_FAILURE,
@@ -112,7 +112,7 @@ gearman_return_t gearman_job_send_data(gearman_job_st *job, const void *data,
   const void *args[2];
   size_t args_size[2];
 
-  if (! (job->options.work_in_use))
+  if (not (job->options.work_in_use))
   {
     args[0]= job->assigned.arg[0];
     args_size[0]= job->assigned.arg_size[0];
@@ -122,7 +122,7 @@ gearman_return_t gearman_job_send_data(gearman_job_st *job, const void *data,
                                     GEARMAN_MAGIC_REQUEST,
                                     GEARMAN_COMMAND_WORK_DATA,
                                     args, args_size, 2);
-    if (ret != GEARMAN_SUCCESS)
+    if (gearman_failed(ret))
       return ret;
 
     job->options.work_in_use= true;
@@ -139,7 +139,7 @@ gearman_return_t gearman_job_send_warning(gearman_job_st *job,
   const void *args[2];
   size_t args_size[2];
 
-  if (! (job->options.work_in_use))
+  if (not (job->options.work_in_use))
   {
     args[0]= job->assigned.arg[0];
     args_size[0]= job->assigned.arg_size[0];
@@ -149,7 +149,7 @@ gearman_return_t gearman_job_send_warning(gearman_job_st *job,
                                     GEARMAN_MAGIC_REQUEST,
                                     GEARMAN_COMMAND_WORK_WARNING,
                                     args, args_size, 2);
-    if (ret != GEARMAN_SUCCESS)
+    if (gearman_failed(ret))
       return ret;
 
     job->options.work_in_use= true;
@@ -168,7 +168,7 @@ gearman_return_t gearman_job_send_status(gearman_job_st *job,
   const void *args[3];
   size_t args_size[3];
 
-  if (! (job->options.work_in_use))
+  if (not (job->options.work_in_use))
   {
     snprintf(numerator_string, 12, "%u", numerator);
     snprintf(denominator_string, 12, "%u", denominator);
@@ -183,7 +183,7 @@ gearman_return_t gearman_job_send_status(gearman_job_st *job,
                                     GEARMAN_MAGIC_REQUEST,
                                     GEARMAN_COMMAND_WORK_STATUS,
                                     args, args_size, 3);
-    if (ret != GEARMAN_SUCCESS)
+    if (gearman_failed(ret))
       return ret;
 
     job->options.work_in_use= true;
@@ -203,7 +203,7 @@ gearman_return_t gearman_job_send_complete(gearman_job_st *job,
   if (job->options.finished)
     return GEARMAN_SUCCESS;
 
-  if (! (job->options.work_in_use))
+  if (not (job->options.work_in_use))
   {
     args[0]= job->assigned.arg[0];
     args_size[0]= job->assigned.arg_size[0];
@@ -213,14 +213,14 @@ gearman_return_t gearman_job_send_complete(gearman_job_st *job,
                                  GEARMAN_MAGIC_REQUEST,
                                  GEARMAN_COMMAND_WORK_COMPLETE,
                                  args, args_size, 2);
-    if (ret != GEARMAN_SUCCESS)
+    if (gearman_failed(ret))
       return ret;
 
     job->options.work_in_use= true;
   }
 
   ret= _job_send(job);
-  if (ret != GEARMAN_SUCCESS)
+  if (gearman_failed(ret))
     return ret;
 
   job->options.finished= true;
@@ -235,7 +235,7 @@ gearman_return_t gearman_job_send_exception(gearman_job_st *job,
   const void *args[2];
   size_t args_size[2];
 
-  if (! (job->options.work_in_use))
+  if (not (job->options.work_in_use))
   {
     args[0]= job->assigned.arg[0];
     args_size[0]= job->assigned.arg_size[0];
@@ -247,7 +247,7 @@ gearman_return_t gearman_job_send_exception(gearman_job_st *job,
                                     GEARMAN_MAGIC_REQUEST,
                                     GEARMAN_COMMAND_WORK_EXCEPTION,
                                     args, args_size, 2);
-    if (ret != GEARMAN_SUCCESS)
+    if (gearman_failed(ret))
       return ret;
 
     job->options.work_in_use= true;
@@ -264,7 +264,7 @@ gearman_return_t gearman_job_send_fail(gearman_job_st *job)
   if (job->options.finished)
     return GEARMAN_SUCCESS;
 
-  if (! (job->options.work_in_use))
+  if (not (job->options.work_in_use))
   {
     args[0]= job->assigned.arg[0];
     args_size[0]= job->assigned.arg_size[0] - 1;
@@ -273,7 +273,7 @@ gearman_return_t gearman_job_send_fail(gearman_job_st *job)
                                     GEARMAN_MAGIC_REQUEST,
                                     GEARMAN_COMMAND_WORK_FAIL,
                                     args, args_size, 1);
-    if (ret != GEARMAN_SUCCESS)
+    if (gearman_failed(ret))
       return ret;
 
     job->options.work_in_use= true;
@@ -281,7 +281,7 @@ gearman_return_t gearman_job_send_fail(gearman_job_st *job)
 
   gearman_return_t ret;
   ret= _job_send(job);
-  if (ret != GEARMAN_SUCCESS)
+  if (gearman_failed(ret))
     return ret;
 
   job->options.finished= true;
@@ -330,7 +330,7 @@ static gearman_return_t _job_send(gearman_job_st *job)
   gearman_return_t ret;
 
   ret= gearman_connection_send(job->con, &(job->work), true);
-  if (ret != GEARMAN_SUCCESS)
+  if (gearman_failed(ret))
     return ret;
 
   gearman_packet_free(&(job->work));
