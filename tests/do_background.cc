@@ -54,7 +54,7 @@ test_return_t gearman_client_do_background_basic(void *object)
   gearman_return_t rc= gearman_client_do_background(client,
                                                     worker_function,
                                                     NULL,
-                                                    gearman_string_param("foobar"),
+                                                    gearman_literal_param("foobar"),
                                                     job_handle);
   test_true_got(rc == GEARMAN_SUCCESS, gearman_client_error(client));
   test_truth(job_handle[0]);
@@ -71,7 +71,7 @@ test_return_t gearman_client_do_high_background_basic(void *object)
   gearman_return_t rc= gearman_client_do_high_background(client,
                                                          worker_function,
                                                          NULL,
-                                                         gearman_string_param("foobar"),
+                                                         gearman_literal_param("foobar"),
                                                          job_handle);
   test_true_got(rc == GEARMAN_SUCCESS, gearman_client_error(client));
   test_truth(job_handle[0]);
@@ -88,7 +88,7 @@ test_return_t gearman_client_do_low_background_basic(void *object)
   gearman_return_t rc= gearman_client_do_low_background(client,
                                                          worker_function,
                                                          NULL,
-                                                         gearman_string_param("foobar"),
+                                                         gearman_literal_param("foobar"),
                                                          job_handle);
 
   test_true_got(rc == GEARMAN_SUCCESS, gearman_client_error(client));

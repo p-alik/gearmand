@@ -140,7 +140,8 @@ void gearman_universal_set_perror(const char *position, gearman_universal_st *un
 static inline const char *gearman_universal_error(const gearman_universal_st *gearman)
 {
   if (gearman->error.last_error[0] == 0)
-      return 0;
+      return NULL;
+
   return (const char *)(gearman->error.last_error);
 }
 
@@ -319,4 +320,9 @@ void gearman_free_all_packets(gearman_universal_st *gearman);
 
 #ifdef __cplusplus
 }
+
+
+bool gearman_request_option(gearman_universal_st &universal,
+                            gearman_string_t &option);
+
 #endif

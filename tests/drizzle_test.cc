@@ -46,7 +46,7 @@ test_return_t collection_init(void *object)
   Context *test= (Context *)object;
   assert(test);
 
-  test_truth(test->initialize(2, argv));
+  test_true_got(test->initialize(2, argv), getenv("GEARMAN_SERVER_STARTUP"));
 
   return TEST_SUCCESS;
 }

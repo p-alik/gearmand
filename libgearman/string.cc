@@ -37,13 +37,17 @@
 
 #include <libgearman/common.h>
 
+#include <cassert>
 #include <cstdlib>
 #include <cstring>
 
 #define GEARMAN_BLOCK_SIZE 1024*4
 
-inline static gearman_return_t _string_check(gearman_string_st *string, size_t need)
+inline static gearman_return_t _string_check(gearman_string_st *string, const size_t need)
 {
+  if (not string)
+    return GEARMAN_INVALID_ARGUMENT;
+
   if (need && need > size_t(string->current_size - size_t(string->end - string->string)))
   {
     size_t current_offset= size_t(string->end - string->string);
@@ -113,41 +117,45 @@ gearman_string_st *gearman_string_create(gearman_string_st *self, size_t initial
     return NULL;
   }
 
+  if (initial_size)
+    self->string[0]= 0;
+
   return self;
 }
 
-gearman_return_t gearman_string_append_character(gearman_string_st *string,
-                                                     char character)
+gearman_return_t gearman_string_append_character(gearman_string_st *string, char character)
 {
   gearman_return_t rc;
 
-  rc=  _string_check(string, 1);
+  rc=  _string_check(string, 1 +1); // Null terminate
 
-  if (rc != GEARMAN_SUCCESS)
+  if (gearman_failed(rc))
   {
     return rc;
   }
 
   *string->end= character;
   string->end++;
+  *string->end= 0;
 
   return GEARMAN_SUCCESS;
 }
 
 gearman_return_t gearman_string_append(gearman_string_st *string,
-                                           const char *value, size_t length)
+                                       const char *value, size_t length)
 {
   gearman_return_t rc;
 
-  rc= _string_check(string, length);
+  rc= _string_check(string, length +1);
 
-  if (rc != GEARMAN_SUCCESS)
+  if (gearman_failed(rc))
   {
     return rc;
   }
 
   memcpy(string->end, value, length);
   string->end+= length;
+  *string->end= 0; // Add a NULL
 
   return GEARMAN_SUCCESS;
 }
@@ -159,7 +167,7 @@ char *gearman_string_c_copy(gearman_string_st *string)
   if (gearman_string_length(string) == 0)
     return NULL;
 
-  c_ptr= static_cast<char *>(malloc((gearman_string_length(string)+1) * sizeof(char)));
+  c_ptr= static_cast<char *>(malloc((gearman_string_length(string) +1) * sizeof(char)));
 
   if (c_ptr == NULL)
     return NULL;
@@ -170,11 +178,10 @@ char *gearman_string_c_copy(gearman_string_st *string)
   return c_ptr;
 }
 
-gearman_return_t gearman_string_reset(gearman_string_st *string)
+void gearman_string_reset(gearman_string_st *string)
 {
+  assert(string);
   string->end= string->string;
-
-  return GEARMAN_SUCCESS;
 }
 
 void gearman_string_free(gearman_string_st *ptr)
@@ -200,32 +207,40 @@ gearman_return_t gearman_string_check(gearman_string_st *string, size_t need)
 
 size_t gearman_string_length(const gearman_string_st *self)
 {
+  if (not self)
+    return 0;
+
   return size_t(self->end - self->string);
 }
 
 size_t gearman_string_size(const gearman_string_st *self)
 {
+  if (not self)
+    return 0;
+
   return self->current_size;
 }
 
 const char *gearman_string_value(const gearman_string_st *self)
 {
+  if (not self)
+    return NULL;
+
   return self->string;
 }
 
-char *gearman_string_value_mutable(const gearman_string_st *self)
+gearman_string_t gearman_string(const gearman_string_st *self)
 {
-  return self->string;
+  assert(self);
+  gearman_string_t passable= { gearman_string_value(self), gearman_string_length(self) };
+  return passable;
 }
 
-char *gearman_string_value_take(gearman_string_st *self)
+gearman_string_t gearman_string_take_string(gearman_string_st *self)
 {
-  char *ptr= self->string;
+  assert(self);
+  gearman_string_t passable= gearman_string(self);
   _init_string(self);
-  return ptr;
-}
 
-void gearman_string_set_length(gearman_string_st *self, size_t length)
-{
-  self->end= self->string + length;
+  return passable;
 }

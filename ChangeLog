@@ -1,5 +1,7 @@
   * Support for "drop function" 
 
+  * Fixed issue where server would not report on a bad unique value due to size
+
   * Forces do operations to complete no matter how the worker is designed.
 
 0.20 Fri Apr  8 09:25:15 PDT 2011

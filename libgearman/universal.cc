@@ -320,7 +320,7 @@ gearman_return_t gearman_echo(gearman_universal_st *universal,
   ret= gearman_packet_create_args(universal, &packet, GEARMAN_MAGIC_REQUEST,
                                   GEARMAN_COMMAND_ECHO_REQ,
                                   &workload, &workload_size, 1);
-  if (ret != GEARMAN_SUCCESS)
+  if (gearman_failed(ret))
   {
     return ret;
   }
@@ -332,13 +332,13 @@ gearman_return_t gearman_echo(gearman_universal_st *universal,
     gearman_packet_st *packet_ptr;
 
     ret= gearman_connection_send(con, &packet, true);
-    if (ret != GEARMAN_SUCCESS)
+    if (gearman_failed(ret))
     {
       goto exit;
     }
 
     packet_ptr= gearman_connection_recv(con, &(con->packet), &ret, true);
-    if (ret != GEARMAN_SUCCESS)
+    if (gearman_failed(ret))
     {
       goto exit;
     }
@@ -367,6 +367,69 @@ exit:
   return ret;
 }
 
+bool gearman_request_option(gearman_universal_st &universal,
+                            gearman_string_t &option)
+{
+  gearman_connection_st *con;
+  gearman_packet_st packet;
+  gearman_return_t ret;
+  bool orig_block_universal;
+
+  const void *args[]= { gearman_c_str(option) };
+  size_t args_size[]= { gearman_size(option) };
+
+  ret= gearman_packet_create_args(&universal, &packet, GEARMAN_MAGIC_REQUEST,
+                                  GEARMAN_COMMAND_OPTION_REQ,
+                                  args, args_size, 1);
+  if (gearman_failed(ret))
+  {
+    gearman_error(&universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "gearman_packet_create_args()");
+    return ret;
+  }
+
+  _push_blocking(&universal, &orig_block_universal);
+
+  for (con= universal.con_list; con != NULL; con= con->next)
+  {
+    gearman_packet_st *packet_ptr;
+
+    ret= gearman_connection_send(con, &packet, true);
+    if (gearman_failed(ret))
+    {
+      gearman_packet_free(&(con->packet));
+      goto exit;
+    }
+
+    packet_ptr= gearman_connection_recv(con, &(con->packet), &ret, true);
+    if (gearman_failed(ret))
+    {
+      gearman_packet_free(&(con->packet));
+      goto exit;
+    }
+
+    assert(packet_ptr);
+
+    if (packet_ptr->command == GEARMAN_COMMAND_ERROR)
+    {
+      gearman_packet_free(&(con->packet));
+      gearman_error(&universal, GEARMAN_INVALID_ARGUMENT, "invalid server option");
+
+      ret= GEARMAN_INVALID_ARGUMENT;;
+      goto exit;
+    }
+
+    gearman_packet_free(&(con->packet));
+  }
+
+  ret= GEARMAN_SUCCESS;
+
+exit:
+  gearman_packet_free(&packet);
+  _pop_non_blocking(&universal, orig_block_universal);
+
+  return gearman_success(ret);
+}
+
 void gearman_free_all_packets(gearman_universal_st *universal)
 {
   while (universal->packet_list != NULL)
@@ -383,8 +446,8 @@ void gearman_universal_set_error(gearman_universal_st *universal,
                                  const char *format, ...)
 {
   size_t size;
-  char *ptr;
   char log_buffer[GEARMAN_MAX_ERROR_SIZE];
+  char *ptr= log_buffer;
   va_list args;
 
   universal->error.rc= rc;
@@ -394,8 +457,12 @@ void gearman_universal_set_error(gearman_universal_st *universal,
   }
 
   size= strlen(gearman_strerror(rc));
-  ptr= static_cast<char *>(memcpy(log_buffer, gearman_strerror(rc), size));
+  ptr= static_cast<char *>(memcpy(ptr, gearman_strerror(rc), size));
   ptr+= size;
+
+  ptr[0]= '-';
+  size++;
+  ptr++;
 
   ptr[0]= '>';
   size++;
@@ -406,6 +473,10 @@ void gearman_universal_set_error(gearman_universal_st *universal,
   ptr+= size;
 
   ptr[0]= ':';
+  size++;
+  ptr++;
+
+  ptr[0]= ' ';
   size++;
   ptr++;
 

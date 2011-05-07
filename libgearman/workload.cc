@@ -37,29 +37,21 @@
 
 #include <libgearman/common.h>
 #include <cstring>
+#include <memory>
 
-gearman_workload_t gearman_workload_make(const char *arg, size_t arg_size)
+gearman_workload_t gearman_workload_make()
 {
-  gearman_workload_t local= { false, GEARMAN_JOB_PRIORITY_NORMAL, 0, arg, arg_size, 0, {0 ,0}, 0};
+  static gearman_workload_t local= { false, false, GEARMAN_JOB_PRIORITY_NORMAL, 0, {0, 0},  0};
 
   return local;
 }
 
-gearman_workload_t gearman_workload_make_unique(const char *arg, size_t arg_size, const char *unique, size_t unique_size)
+gearman_argument_t gearman_argument_make(const char *value, size_t value_size)
 {
-  gearman_workload_t local= { false, GEARMAN_JOB_PRIORITY_NORMAL, 0, arg, arg_size, 0, {unique , unique_size}, 0};
+  gearman_argument_t arg= { {0, 0}, { value, value_size }};
 
-  return local;
+  return arg;
 }
-
-size_t gearman_workload_size(gearman_workload_t *self)
-{
-  if (not self)
-    return 0;
-
-  return self->size;
-}
-
 
 time_t gearman_workload_epoch(const gearman_workload_t *self)
 {
@@ -67,6 +59,22 @@ time_t gearman_workload_epoch(const gearman_workload_t *self)
     return 0;
 
   return self->epoch;
+}
+
+void gearman_workload_set_reducer(gearman_workload_t *self, const gearman_reducer_t reducer)
+{
+  if (not self)
+    return;
+
+  self->reducer= reducer;
+}
+
+void gearman_workload_set_batch(gearman_workload_t *self, bool batch)
+{
+  if (not self)
+    return;
+
+  self->batch= batch;
 }
 
 void gearman_workload_set_epoch(gearman_workload_t *self, time_t epoch)
@@ -116,45 +124,3 @@ void gearman_workload_set_context(gearman_workload_t *self, void *context)
 
   self->context= context;
 }
-
-gearman_task_st *gearman_workload_task(const gearman_workload_t *self)
-{
-  if (not self)
-    return false;
-
-  return self->task;
-}
-
-void gearman_workload_set_task(gearman_workload_t *self, gearman_task_st *task)
-{
-  if (not self)
-    return;
-
-  self->task= task;
-}
-
-const gearman_unique_t *gearman_workload_unique(const gearman_workload_t *self)
-{
-  if (not self)
-    return false;
-
-  return &self->unique;
-}
-
-bool gearman_workload_compare(const gearman_workload_t *self, const char* arg, size_t size)
-{
-  if (size != self->size)
-    return false;
-
-  return memcmp(self->c_str, arg, size) == 0;
-}
-
-#if 0
-void *gearman_workload_context(const gearman_workload_t *self)
-{
-  if (not self)
-    return NULL;
-
-  return self->context;
-}
-#endif

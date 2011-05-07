@@ -237,8 +237,6 @@ gearman_return_t gearman_packet_create_args(gearman_universal_st *gearman,
                                             const size_t args_size[],
                                             size_t args_count)
 {
-  gearman_return_t ret;
-
   packet= gearman_packet_create(gearman, packet);
   if (packet == NULL)
   {
@@ -250,17 +248,17 @@ gearman_return_t gearman_packet_create_args(gearman_universal_st *gearman,
 
   for (size_t x= 0; x < args_count; x++)
   {
-    ret= packet_create_arg(packet, args[x], args_size[x]);
-    if (ret != GEARMAN_SUCCESS)
+    gearman_return_t ret= packet_create_arg(packet, args[x], args_size[x]);
+    if (gearman_failed(ret))
     {
       gearman_packet_free(packet);
       return ret;
     }
   }
 
-  ret= gearman_packet_pack_header(packet);
+  gearman_return_t ret= gearman_packet_pack_header(packet);
 
-  if (ret !=  GEARMAN_SUCCESS)
+  if (gearman_failed(ret))
       gearman_packet_free(packet);
 
   return ret;
@@ -377,7 +375,7 @@ gearman_return_t gearman_packet_unpack_header(gearman_packet_st *packet)
 {
   uint32_t tmp;
 
-  if (!memcmp(packet->args, "\0REQ", 4))
+  if (not memcmp(packet->args, "\0REQ", 4))
   {
     packet->magic= GEARMAN_MAGIC_REQUEST;
   }

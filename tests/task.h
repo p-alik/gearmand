@@ -43,3 +43,5 @@ test_return_t gearman_client_add_task_test_bad_workload(void *object);
 test_return_t gearman_client_add_task_background_test(void *object);
 test_return_t gearman_client_add_task_high_background_test(void *object);
 test_return_t gearman_client_add_task_low_background_test(void *object);
+test_return_t gearman_client_add_task_exception(void *object);
+test_return_t gearman_client_add_task_warning(void *object);

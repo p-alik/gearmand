@@ -54,16 +54,40 @@
 
 
 gearman_task_st *add_task(gearman_client_st *client,
-			  gearman_task_st *task,
-			  void *context,
-			  gearman_command_t command,
-			  const char *function_name,
-			  size_t function_name_length,
-			  const char *unique,
-			  size_t unique_length,
-			  const void *workload,
-			  size_t workload_size,
-			  time_t when)
+                          void *context,
+                          gearman_command_t command,
+                          const char *function_name,
+                          size_t function_name_length,
+                          const gearman_unique_t &unique,
+                          const gearman_string_t &work,
+                          time_t when,
+                          struct gearman_actions_t &actions,
+                          struct gearman_reducer_t &reducer)
+{
+  gearman_task_st *task= add_task(client, NULL, context, command, function_name, function_name_length, unique, gearman_c_str(work), gearman_size(work), when);
+  if (not task)
+    return NULL;
+
+  if (reducer.each_fn)
+  {
+    task->reducer= reducer;
+  }
+
+  task->func= actions;
+
+  return task;
+}
+
+gearman_task_st *add_task(gearman_client_st *client,
+                          gearman_task_st *task,
+                          void *context,
+                          gearman_command_t command,
+                          const char *function_name,
+                          size_t function_name_length,
+                          const gearman_unique_t &unique,
+                          const void *workload,
+                          size_t workload_size,
+                          time_t when)
 {
   uuid_t uuid;
   char uuid_string[37];
@@ -76,7 +100,7 @@ gearman_task_st *add_task(gearman_client_st *client,
     return NULL;
   }
 
-  task= gearman_task_create(client, task);
+  task= gearman_task_internal_create(client, task);
   if (task == NULL)
   {
     gearman_error(&client->universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "");
@@ -85,22 +109,25 @@ gearman_task_st *add_task(gearman_client_st *client,
 
   task->context= context;
 
-  if (unique == NULL)
-  {
-    uuid_generate(uuid);
-    uuid_unparse(uuid, uuid_string);
-    uuid_string[36]= 0;
-    unique= uuid_string;
-    unique_length= 36; // @note This comes from uuid/uuid.h (which does not define a number)
-  }
-
   /**
     @todo fix it so that NULL is done by default by the API not by happenstance.
   */
   args[0]= function_name;
   args_size[0]= function_name_length + 1;
-  args[1]= unique;
-  args_size[1]= unique_length + 1;
+
+  if (gearman_size(unique))
+  {
+    args[1]= gearman_c_str(unique);
+    args_size[1]= gearman_size(unique) + 1;
+  }
+  else
+  {
+    uuid_generate(uuid);
+    uuid_unparse(uuid, uuid_string);
+    uuid_string[36]= 0;
+    args[1]= uuid_string;
+    args_size[1]= 36 + 1; // +1 is for the needed null
+  }
 
   gearman_return_t rc;
   if (command == GEARMAN_COMMAND_SUBMIT_JOB_EPOCH)

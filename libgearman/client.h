@@ -355,15 +355,7 @@ void *gearman_client_do_low(gearman_client_st *client,
 GEARMAN_API
 const char *gearman_client_do_job_handle(const gearman_client_st *client);
 
-/**
- * Get the status for the running task. This should be used between
- * repeated gearman_client_do() (and related) calls to get information.
- *
- * @param[in] client Structure previously initialized with
- *  gearman_client_create() or gearman_client_clone().
- * @param[out] numerator Optional parameter to store the numerator in.
- * @param[out] denominator Optional parameter to store the denominator in.
- */
+// Deprecatd 
 GEARMAN_API
 void gearman_client_do_status(gearman_client_st *client, uint32_t *numerator,
                               uint32_t *denominator);
@@ -479,15 +471,16 @@ GEARMAN_API
 void gearman_client_set_task_context_free_fn(gearman_client_st *client,
                                              gearman_task_context_free_fn *function);
 
-// Use the job handle in task for returning all information.
 GEARMAN_API
-bool gearman_client_execute(gearman_client_st *client,
-                            const gearman_function_st *function,
-                            gearman_workload_t *workload);
+bool gearman_task_add_work(gearman_task_st *self, gearman_argument_t *arguments);
 
 GEARMAN_API
-bool gearman_client_execute_batch(gearman_client_st *client,
-                                  gearman_batch_t *batch);
+gearman_task_st *gearman_client_execute(gearman_client_st *client,
+                                        const gearman_function_st *function,
+                                        gearman_workload_t *workload,
+                                        const char *unique, size_t unique_length,
+                                        gearman_argument_t *arguments);
+
 
 /**
  * Add a task to be run in parallel.
@@ -714,6 +707,9 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client);
 
 GEARMAN_API
 bool gearman_client_compare(const gearman_client_st *first, const gearman_client_st *second);
+
+GEARMAN_API
+bool gearman_client_set_server_option(gearman_client_st *self, const char *option_arg, size_t option_arg_size);
 
 /** @} */
 

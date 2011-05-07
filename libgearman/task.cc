@@ -54,8 +54,9 @@
  * Public Definitions
  */
 
-gearman_task_st *gearman_task_create(gearman_client_st *client, gearman_task_st *task)
+gearman_task_st *gearman_task_internal_create(gearman_client_st *client, gearman_task_st *task)
 {
+  assert(client);
   if (task == NULL)
   {
     task= new (std::nothrow) gearman_task_st;
@@ -75,6 +76,8 @@ gearman_task_st *gearman_task_create(gearman_client_st *client, gearman_task_st 
   task->options.send_in_use= false;
   task->options.is_known= false;
   task->options.is_running= false;
+  task->options.was_reduced= false;
+  task->options.is_reducer= false;
 
   task->state= GEARMAN_TASK_STATE_NEW;
   task->created_id= 0;
@@ -83,12 +86,14 @@ gearman_task_st *gearman_task_create(gearman_client_st *client, gearman_task_st 
   task->client= client;
 
   task->func= client->actions;
-  task->result_rc= GEARMAN_SUCCESS;
+  task->result_rc= GEARMAN_UNKNOWN_STATE;
+  task->reducer= gearman_reducer_default();
 
   if (client->task_list != NULL)
     client->task_list->prev= task;
   task->next= client->task_list;
   task->prev= NULL;
+  task->reducer_list= NULL;
   client->task_list= task;
   client->task_count++;
 
@@ -107,8 +112,8 @@ void gearman_task_free(gearman_task_st *task)
   if (not task)
     return;
 
-  if (task->result_ptr)
-    gearman_string_free(task->result_ptr);
+  delete task->result_ptr;
+  task->result_ptr= NULL;
 
   if (not task->client)
     return;
@@ -133,6 +138,65 @@ void gearman_task_free(gearman_task_st *task)
 
   if (task->options.allocated)
     delete task;
+}
+
+void gearman_task_add_subtask(gearman_task_st *task, gearman_task_st *subtask)
+{
+  assert(task); // Programmer error
+  subtask->reducer_list= task->reducer_list;
+  task->reducer_list= subtask;
+}
+
+void gearman_task_free_result(gearman_task_st *task)
+{
+  assert(task);
+  delete task->result_ptr;
+  task->result_ptr= NULL;
+}
+
+bool gearman_task_is_active(const gearman_task_st *self)
+{
+  switch (self->state)
+  {
+  case GEARMAN_TASK_STATE_NEW:
+  case GEARMAN_TASK_STATE_SUBMIT:
+  case GEARMAN_TASK_STATE_WORKLOAD:
+  case GEARMAN_TASK_STATE_WORK:
+  case GEARMAN_TASK_STATE_CREATED:
+  case GEARMAN_TASK_STATE_DATA:
+  case GEARMAN_TASK_STATE_WARNING:
+  case GEARMAN_TASK_STATE_STATUS:
+    return true;
+
+  case GEARMAN_TASK_STATE_COMPLETE:
+  case GEARMAN_TASK_STATE_EXCEPTION:
+  case GEARMAN_TASK_STATE_FAIL:
+  case GEARMAN_TASK_STATE_FINISHED:
+    break;
+  }
+
+  return false;
+}
+
+const char *gearman_task_strstate(gearman_task_st *self)
+{
+  switch (self->state)
+  {
+  case GEARMAN_TASK_STATE_NEW: return "GEARMAN_TASK_STATE_NEW";
+  case GEARMAN_TASK_STATE_SUBMIT: return "GEARMAN_TASK_STATE_SUBMIT";
+  case GEARMAN_TASK_STATE_WORKLOAD: return "GEARMAN_TASK_STATE_WORKLOAD";
+  case GEARMAN_TASK_STATE_WORK: return "GEARMAN_TASK_STATE_WORK";
+  case GEARMAN_TASK_STATE_CREATED: return "GEARMAN_TASK_STATE_CREATED";
+  case GEARMAN_TASK_STATE_DATA: return "GEARMAN_TASK_STATE_DATA";
+  case GEARMAN_TASK_STATE_WARNING: return "GEARMAN_TASK_STATE_WARNING";
+  case GEARMAN_TASK_STATE_STATUS: return "GEARMAN_TASK_STATE_STATUS";
+  case GEARMAN_TASK_STATE_COMPLETE: return "GEARMAN_TASK_STATE_COMPLETE";
+  case GEARMAN_TASK_STATE_EXCEPTION: return "GEARMAN_TASK_STATE_EXCEPTION";
+  case GEARMAN_TASK_STATE_FAIL: return "GEARMAN_TASK_STATE_FAIL";
+  case GEARMAN_TASK_STATE_FINISHED: return "GEARMAN_TASK_STATE_FINISHED";
+  }
+
+  return "";
 }
 
 void gearman_task_clear_fn(gearman_task_st *task)
@@ -233,26 +297,21 @@ size_t gearman_task_send_workload(gearman_task_st *task, const void *workload,
   return gearman_connection_send_data(task->con, workload, workload_size, ret_ptr);
 }
 
-const void *gearman_task_result(const gearman_task_st *task)
+gearman_result_st *gearman_task_result(gearman_task_st *task)
 {
   if (not task)
     return NULL;
 
-  if (task->result_ptr)
-    return gearman_string_value(task->result_ptr);
-
-  return NULL;
+  return task->result_ptr;
 }
 
-size_t gearman_task_result_size(const gearman_task_st *task)
+gearman_result_st *gearman_task_mutable_result(gearman_task_st *task)
 {
-  if (not task)
-    return 0;
+  assert(task); // Programmer error
+  if (not task->result_ptr)
+    task->result_ptr= new gearman_result_st();
 
-  if (task->result_ptr)
-    return gearman_string_length(task->result_ptr);
-
-  return 0;
+  return task->result_ptr;
 }
 
 const void *gearman_task_data(const gearman_task_st *task)

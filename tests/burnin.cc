@@ -95,7 +95,7 @@ static test_return_t burnin_test(void *object)
                                       &ret);
       }
 
-      if (ret != GEARMAN_SUCCESS)
+      if (gearman_failed(ret))
       {
         if (ret == GEARMAN_LOST_CONNECTION)
           continue;
@@ -199,7 +199,7 @@ void *world_create(test_return_t *error)
     return NULL;
   }
 
-  test->handle= test_worker_start(CLIENT_TEST_PORT, "burnin", worker_fn, NULL);
+  test->handle= test_worker_start(CLIENT_TEST_PORT, "burnin", worker_fn, NULL, gearman_worker_options_t());
 
   test->gearmand_pid= gearmand_pid;
 

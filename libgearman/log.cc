@@ -51,13 +51,7 @@ void gearman_log(gearman_universal_st *state, gearman_verbose_t verbose,
 {
   char log_buffer[GEARMAN_MAX_ERROR_SIZE];
 
-  if (state->log_fn == NULL)
-  {
-    printf("%5s: ", gearman_verbose_name(verbose));
-    vprintf(format, args);
-    printf("\n");
-  }
-  else
+  if (not state->log_fn)
   {
     vsnprintf(log_buffer, GEARMAN_MAX_ERROR_SIZE, format, args);
     state->log_fn(log_buffer, verbose, state->log_context);

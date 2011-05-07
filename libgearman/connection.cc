@@ -435,11 +435,6 @@ gearman_return_t gearman_connection_send(gearman_connection_st *connection,
       ret= GEARMAN_LOST_CONNECTION;
     }
     return ret;
-
-  default:
-    gearman_universal_set_error(connection->universal, GEARMAN_UNKNOWN_STATE, AT, "unknown state: %u",
-				connection->send_state);
-    return GEARMAN_UNKNOWN_STATE;
   }
 
   if (flush)
@@ -686,12 +681,6 @@ gearman_return_t gearman_connection_flush(gearman_connection_st *connection)
       connection->send_state= GEARMAN_CON_SEND_STATE_NONE;
       connection->send_buffer_ptr= connection->send_buffer;
       return GEARMAN_SUCCESS;
-
-    default:
-      gearman_universal_set_error(connection->universal, GEARMAN_UNKNOWN_STATE, AT, "unknown state: %u",
-				  connection->state);
-
-      return GEARMAN_UNKNOWN_STATE;
     }
   }
 }
@@ -802,12 +791,6 @@ gearman_packet_st *gearman_connection_recv(gearman_connection_st *connection,
 
     connection->recv_state= GEARMAN_CON_RECV_UNIVERSAL_NONE;
     break;
-
-  default:
-    gearman_universal_set_error(connection->universal, GEARMAN_UNKNOWN_STATE, AT, "unknown state: %u",
-				connection->recv_state);
-    *ret_ptr= GEARMAN_UNKNOWN_STATE;
-    return NULL;
   }
 
   packet= connection->recv_packet;

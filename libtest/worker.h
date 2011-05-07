@@ -26,7 +26,9 @@ extern "C" {
 
 LIBTEST_API
 struct worker_handle_st *test_worker_start(in_port_t port, const char *function_name,
-                                           gearman_worker_fn *function, void *function_arg);
+                                           gearman_worker_fn *function, void *function_arg,
+                                           gearman_worker_options_t options);
+
 LIBTEST_API
 void test_worker_stop(struct worker_handle_st *);
 

@@ -36,6 +36,18 @@
 
 #pragma once
 
+/* shallow structure we use externally */
+
+struct gearman_string_t {
+  const char *c_str;
+  const size_t size;
+};
+
+#define gearman_size(X) (X).size
+#define gearman_c_str(X) (X).c_str
+#define gearman_string_param(X) (X).c_str, (X).size
+
+#ifdef BUILDING_LIBGEARMAN
 /**
   Strings are always under our control so we make some assumptions
   about them.
@@ -44,7 +56,6 @@
   2) A string once intialized will always be, until free where we
      unset this flag.
 */
-
 struct gearman_string_st {
   char *end;
   char *string;
@@ -54,14 +65,10 @@ struct gearman_string_st {
   } options;
 };
 
-struct gearman_string_t {
-  size_t size;
-  const char *c_str;
-};
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 
 GEARMAN_LOCAL
 gearman_string_st *gearman_string_create(gearman_string_st *string,
@@ -79,7 +86,7 @@ GEARMAN_LOCAL
 gearman_return_t gearman_string_append(gearman_string_st *string,
                                            const char *value, size_t length);
 GEARMAN_LOCAL
-gearman_return_t gearman_string_reset(gearman_string_st *string);
+void gearman_string_reset(gearman_string_st *string);
 
 GEARMAN_LOCAL
 void gearman_string_free(gearman_string_st *string);
@@ -97,25 +104,21 @@ GEARMAN_LOCAL
 char *gearman_string_value_mutable(const gearman_string_st *self);
 
 GEARMAN_LOCAL
-char *gearman_string_value_take(gearman_string_st *self);
+gearman_string_t gearman_string(const gearman_string_st *self);
 
 GEARMAN_LOCAL
-void gearman_string_set_length(gearman_string_st *self, size_t length);
+gearman_string_t gearman_string_take_string(gearman_string_st *self);
 
 #ifdef __cplusplus
 }
 #endif
 
-#ifdef BUILDING_LIBMEMCACHED
+#endif
 
-#ifdef __cplusplus
-#define gearman_string_with_size(X) (X), (static_cast<size_t>((sizeof(X) - 1)))
+#ifdef __cplusplus // correct define
 #define gearman_string_make(X) (static_cast<size_t>((sizeof(X) - 1))), (X)
 #else
-#define gearman_string_with_size(X) (X), ((size_t)((sizeof(X) - 1)))
 #define gearman_string_make(X) (((size_t)((sizeof(X) - 1))), (X)
-#endif
+#endif // correct define
 
-#define gearman_string_make_from_cstr(X) (X), ((X) ? strlen(X) : 0)
-
-#endif
+#define gearman_string_make_from_cstr(X) ((X) ? strlen(X) : 0), X

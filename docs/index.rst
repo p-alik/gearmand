@@ -48,6 +48,7 @@ Function Calls
    :maxdepth: 2
 
    libgearman
+   do
    gearman_client
    gearman_worker
    gearman_client_execute

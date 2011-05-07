@@ -14,6 +14,7 @@
 #include <libgearman/common.h>
 #include <libgearman/connection.h>
 
+#include <cassert>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -37,6 +38,47 @@ struct _worker_function_st
   gearman_worker_fn *worker_fn;
   void *context;
   gearman_packet_st packet;
+
+  _worker_function_st(gearman_worker_fn *worker_fn_arg, void *context_arg) :
+    function_name(NULL),
+    function_length(0),
+    worker_fn(worker_fn_arg),
+    context(context_arg)
+  {
+    options.packet_in_use= true;
+    options.change= true;
+    options.remove= false;
+  }
+
+  bool init(const char *name_arg, size_t size)
+  {
+    function_name= new (std::nothrow) char[size +1];
+    if (not function_name)
+    {
+      return false;
+    }
+
+    memcpy(function_name, name_arg, size);
+    function_length= size;
+    function_name[size]= 0;
+
+    return true;
+  }
+
+  const char *name() const
+  {
+    return function_name;
+  }
+
+  size_t length() const
+  {
+    return function_length;
+  }
+
+  ~_worker_function_st()
+  {
+    delete [] function_name;
+  }
 };
 
 /**
@@ -75,8 +117,7 @@ static gearman_return_t _worker_packet_init(gearman_worker_st *worker);
 /**
  * Callback function used when parsing server lists.
  */
-static gearman_return_t _worker_add_server(const char *host, in_port_t port,
-                                           void *context);
+static gearman_return_t _worker_add_server(const char *host, in_port_t port, void *context);
 
 /**
  * Allocate and add a function to the register list.
@@ -105,10 +146,10 @@ gearman_worker_st *gearman_worker_create(gearman_worker_st *worker)
 {
   worker= _worker_allocate(worker, false);
 
-  if (worker == NULL)
+  if (not worker)
     return NULL;
 
-  if (_worker_packet_init(worker) != GEARMAN_SUCCESS)
+  if (gearman_failed(_worker_packet_init(worker)))
   {
     gearman_worker_free(worker);
     return NULL;
@@ -120,19 +161,15 @@ gearman_worker_st *gearman_worker_create(gearman_worker_st *worker)
 gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker,
                                         const gearman_worker_st *from)
 {
-  gearman_universal_st *check;
-
-  if (! from)
+  if (not from)
   {
     return _worker_allocate(worker, false);
   }
 
   worker= _worker_allocate(worker, true);
 
-  if (worker == NULL)
-  {
+  if (not worker)
     return worker;
-  }
 
   worker->options.non_blocking= from->options.non_blocking;
   worker->options.grab_job_in_use= from->options.grab_job_in_use;
@@ -142,8 +179,7 @@ gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker,
   worker->options.grab_uniq= from->options.grab_uniq;
   worker->options.timeout_return= from->options.timeout_return;
 
-  check= gearman_universal_clone(&(worker->universal), &from->universal);
-  if (check == NULL)
+  if (not gearman_universal_clone(&(worker->universal), &from->universal))
   {
     gearman_worker_free(worker);
     return NULL;
@@ -160,7 +196,7 @@ gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker,
 
 void gearman_worker_free(gearman_worker_st *worker)
 {
-  if (! worker)
+  if (not worker)
     return;
 
   gearman_worker_unregister_all(worker);
@@ -187,7 +223,7 @@ void gearman_worker_free(gearman_worker_st *worker)
     else
     {
       (&worker->universal)->workload_free_fn(worker->work_result,
-                                static_cast<void *>((&worker->universal)->workload_free_context));
+					     static_cast<void *>((&worker->universal)->workload_free_context));
     }
   }
 
@@ -278,7 +314,8 @@ void gearman_worker_add_options(gearman_worker_st *worker,
   if (options & GEARMAN_WORKER_GRAB_UNIQ)
   {
     worker->grab_job.command= GEARMAN_COMMAND_GRAB_JOB_UNIQ;
-    (void)gearman_packet_pack_header(&(worker->grab_job));
+    gearman_return_t rc= gearman_packet_pack_header(&(worker->grab_job));
+    assert(gearman_success(rc));
     worker->options.grab_uniq= true;
   }
 
@@ -323,11 +360,17 @@ void gearman_worker_set_timeout(gearman_worker_st *worker, int timeout)
 
 void *gearman_worker_context(const gearman_worker_st *worker)
 {
+  if (not worker)
+    return NULL;
+
   return worker->context;
 }
 
 void gearman_worker_set_context(gearman_worker_st *worker, void *context)
 {
+  if (not worker)
+    return;
+
   worker->context= context;
 }
 
@@ -410,8 +453,8 @@ static inline gearman_return_t _worker_unregister(gearman_worker_st *worker,
 
   gearman_packet_free(&(function->packet));
 
-  args[0]= function->function_name;
-  args_size[0]= function->function_length;
+  args[0]= function->name();
+  args_size[0]= function->length();
   ret= gearman_packet_create_args((&worker->universal), &(function->packet),
                                   GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_CANT_DO,
                                   args, args_size, 1);
@@ -567,9 +610,10 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
             if (*ret_ptr != GEARMAN_SUCCESS)
             {
               if (*ret_ptr == GEARMAN_IO_WAIT)
+	      {
                 worker->state= GEARMAN_WORKER_STATE_CONNECT;
-              else if (*ret_ptr == GEARMAN_COULD_NOT_CONNECT ||
-                       *ret_ptr == GEARMAN_LOST_CONNECTION)
+	      }
+              else if (*ret_ptr == GEARMAN_COULD_NOT_CONNECT || *ret_ptr == GEARMAN_LOST_CONNECTION)
               {
                 break;
               }
@@ -610,12 +654,14 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
         while (1)
         {
     case GEARMAN_WORKER_STATE_GRAB_JOB_RECV:
-          (void)gearman_connection_recv(worker->con, &(worker->job->assigned), ret_ptr,
-                                 true);
+          (void)gearman_connection_recv(worker->con, &(worker->job->assigned), ret_ptr, true);
+
           if (*ret_ptr != GEARMAN_SUCCESS)
           {
             if (*ret_ptr == GEARMAN_IO_WAIT)
+	    {
               worker->state= GEARMAN_WORKER_STATE_GRAB_JOB_RECV;
+	    }
             else
             {
               gearman_job_free(worker->job);
@@ -693,7 +739,9 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
 
         *ret_ptr= gearman_connection_set_events(worker->con, POLLIN);
         if (*ret_ptr != GEARMAN_SUCCESS)
+	{
           return NULL;
+	}
 
         active++;
       }
@@ -713,12 +761,15 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
         else
         {
           if ((&worker->universal)->timeout > 0)
+	  {
             usleep(static_cast<unsigned int>((&worker->universal)->timeout) * 1000);
+	  }
 
           if (worker->options.timeout_return)
           {
             gearman_error((&worker->universal), GEARMAN_TIMEOUT, "timeout reached");
             *ret_ptr= GEARMAN_TIMEOUT;
+
             return NULL;
           }
         }
@@ -734,12 +785,6 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
       }
 
       break;
-
-    default:
-      gearman_universal_set_error((&worker->universal), GEARMAN_UNKNOWN_STATE, AT,
-				  "unknown state: %u", worker->state);
-      *ret_ptr= GEARMAN_UNKNOWN_STATE;
-      return NULL;
     }
   }
 }
@@ -799,123 +844,126 @@ gearman_return_t gearman_worker_add_function(gearman_worker_st *worker,
 
 gearman_return_t gearman_worker_work(gearman_worker_st *worker)
 {
-  gearman_job_st *check;
-  gearman_return_t ret;
-
   switch (worker->work_state)
   {
   case GEARMAN_WORKER_WORK_UNIVERSAL_GRAB_JOB:
-    check= gearman_worker_grab_job(worker, &(worker->work_job), &ret);
-    (void)check; // @todo test this good values
-
-    if (ret != GEARMAN_SUCCESS)
-      return ret;
-
-    for (worker->work_function= worker->function_list;
-         worker->work_function != NULL;
-         worker->work_function= worker->work_function->next)
     {
-      if (!strcmp(gearman_job_function_name(&(worker->work_job)),
-                  worker->work_function->function_name))
+      gearman_return_t ret;
+      gearman_job_st *check= gearman_worker_grab_job(worker, &(worker->work_job), &ret);
+      (void)check; // @todo test this good values
+
+      if (ret != GEARMAN_SUCCESS)
+	return ret;
+      assert(check);
+
+      for (worker->work_function= worker->function_list;
+	   worker->work_function != NULL;
+	   worker->work_function= worker->work_function->next)
       {
-        break;
+	if (not strcmp(gearman_job_function_name(&(worker->work_job)),
+		       worker->work_function->function_name))
+	{
+	  break;
+	}
       }
-    }
 
-    if (worker->work_function == NULL)
-    {
-      gearman_job_free(&(worker->work_job));
-      gearman_universal_set_error((&worker->universal), GEARMAN_INVALID_FUNCTION_NAME, AT, "function not found");
-      return GEARMAN_INVALID_FUNCTION_NAME;
-    }
+      if (worker->work_function == NULL)
+      {
+	gearman_job_free(&(worker->work_job));
+	gearman_universal_set_error((&worker->universal), GEARMAN_INVALID_FUNCTION_NAME, AT, "function not found");
+	return GEARMAN_INVALID_FUNCTION_NAME;
+      }
 
-    if (worker->work_function->worker_fn == NULL)
-    {
-      gearman_job_free(&(worker->work_job));
-      gearman_universal_set_error((&worker->universal), GEARMAN_INVALID_FUNCTION_NAME, AT, "no callback function supplied");
-      return GEARMAN_INVALID_FUNCTION_NAME;
-    }
+      if (worker->work_function->worker_fn == NULL)
+      {
+	gearman_job_free(&(worker->work_job));
+	gearman_universal_set_error((&worker->universal), GEARMAN_INVALID_FUNCTION_NAME, AT, "no callback function supplied");
+	return GEARMAN_INVALID_FUNCTION_NAME;
+      }
 
-    worker->options.work_job_in_use= true;
-    worker->work_result_size= 0;
+      worker->options.work_job_in_use= true;
+      worker->work_result_size= 0;
+    }
 
   case GEARMAN_WORKER_WORK_UNIVERSAL_FUNCTION:
-    worker->work_result= worker->work_function->worker_fn(&(worker->work_job),
-                                         static_cast<void *>(worker->work_function->context),
-                                         &(worker->work_result_size), &ret);
-    if (ret == GEARMAN_WORK_FAIL)
     {
-      ret= gearman_job_send_fail(&(worker->work_job));
-      if (ret != GEARMAN_SUCCESS)
+      gearman_return_t ret;
+      worker->work_result= worker->work_function->worker_fn(&(worker->work_job),
+							    static_cast<void *>(worker->work_function->context),
+							    &(worker->work_result_size), &ret);
+      if (ret == GEARMAN_WORK_FAIL)
       {
-        if (ret == GEARMAN_LOST_CONNECTION)
-          break;
+	ret= gearman_job_send_fail(&(worker->work_job));
+	if (gearman_failed(ret))
+	{
+	  if (ret == GEARMAN_LOST_CONNECTION)
+	    break;
 
-        worker->work_state= GEARMAN_WORKER_WORK_UNIVERSAL_FAIL;
-        return ret;
+	  worker->work_state= GEARMAN_WORKER_WORK_UNIVERSAL_FAIL;
+	  return ret;
+	}
+
+	break;
       }
 
-      break;
-    }
+      if (gearman_failed(ret))
+      {
+	if (ret == GEARMAN_LOST_CONNECTION)
+	  break;
 
-    if (ret != GEARMAN_SUCCESS)
-    {
-      if (ret == GEARMAN_LOST_CONNECTION)
-        break;
-
-      worker->work_state= GEARMAN_WORKER_WORK_UNIVERSAL_FUNCTION;
-      return ret;
+	worker->work_state= GEARMAN_WORKER_WORK_UNIVERSAL_FUNCTION;
+	return ret;
+      }
     }
 
   case GEARMAN_WORKER_WORK_UNIVERSAL_COMPLETE:
-    ret= gearman_job_send_complete(&(worker->work_job), worker->work_result,
-                              worker->work_result_size);
-    if (ret == GEARMAN_IO_WAIT)
     {
-      worker->work_state= GEARMAN_WORKER_WORK_UNIVERSAL_COMPLETE;
-      return ret;
-    }
-
-    if (worker->work_result != NULL)
-    {
-      if ((&worker->universal)->workload_free_fn == NULL)
+      gearman_return_t ret= gearman_job_send_complete(&(worker->work_job), worker->work_result,
+						      worker->work_result_size);
+      if (ret == GEARMAN_IO_WAIT)
       {
-        free(worker->work_result);
+	worker->work_state= GEARMAN_WORKER_WORK_UNIVERSAL_COMPLETE;
+	return ret;
       }
-      else
+
+      if (worker->work_result != NULL)
       {
-        (&worker->universal)->workload_free_fn(worker->work_result,
-                                          (&worker->universal)->workload_free_context);
+	if ((&worker->universal)->workload_free_fn == NULL)
+	{
+	  free(worker->work_result);
+	}
+	else
+	{
+	  (&worker->universal)->workload_free_fn(worker->work_result,
+						 (&worker->universal)->workload_free_context);
+	}
+	worker->work_result= NULL;
       }
-      worker->work_result= NULL;
-    }
 
-    if (ret != GEARMAN_SUCCESS)
-    {
-      if (ret == GEARMAN_LOST_CONNECTION)
-        break;
+      if (gearman_failed(ret))
+      {
+	if (ret == GEARMAN_LOST_CONNECTION)
+	  break;
 
-      return ret;
+	return ret;
+      }
     }
 
     break;
 
   case GEARMAN_WORKER_WORK_UNIVERSAL_FAIL:
-    ret= gearman_job_send_fail(&(worker->work_job));
-    if (ret != GEARMAN_SUCCESS)
     {
-      if (ret == GEARMAN_LOST_CONNECTION)
-        break;
+      gearman_return_t ret;
+      if (gearman_failed(ret= gearman_job_send_fail(&(worker->work_job))))
+      {
+	if (ret == GEARMAN_LOST_CONNECTION)
+	  break;
 
-      return ret;
+	return ret;
+      }
     }
 
    break;
-
-  default:
-    gearman_universal_set_error((&worker->universal), GEARMAN_UNKNOWN_STATE, AT,
-				"unknown state: %u", worker->work_state);
-    return GEARMAN_UNKNOWN_STATE;
   }
 
   gearman_job_free(&(worker->work_job));
@@ -968,6 +1016,7 @@ static gearman_worker_st *_worker_allocate(gearman_worker_st *worker, bool is_cl
   worker->function_count= 0;
   worker->job_count= 0;
   worker->work_result_size= 0;
+  worker->context= NULL;
   worker->con= NULL;
   worker->job= NULL;
   worker->job_list= NULL;
@@ -1000,7 +1049,7 @@ static gearman_return_t _worker_packet_init(gearman_worker_st *worker)
   ret= gearman_packet_create_args((&worker->universal), &(worker->grab_job),
                                   GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_GRAB_JOB,
                                   NULL, NULL, 0);
-  if (ret != GEARMAN_SUCCESS)
+  if (gearman_failed(ret))
     return ret;
 
   ret= gearman_packet_create_args((&worker->universal), &(worker->pre_sleep),
@@ -1017,11 +1066,9 @@ static gearman_return_t _worker_packet_init(gearman_worker_st *worker)
   return GEARMAN_SUCCESS;
 }
 
-static gearman_return_t _worker_add_server(const char *host, in_port_t port,
-                                           void *context)
+static gearman_return_t _worker_add_server(const char *host, in_port_t port, void *context)
 {
-  return gearman_worker_add_server(static_cast<gearman_worker_st *>(context),
-                                   host, port);
+  return gearman_worker_add_server(static_cast<gearman_worker_st *>(context), host, port);
 }
 
 static gearman_return_t _worker_function_create(gearman_worker_st *worker,
@@ -1031,41 +1078,29 @@ static gearman_return_t _worker_function_create(gearman_worker_st *worker,
                                                 gearman_worker_fn *worker_fn,
                                                 void *context)
 {
-  gearman_return_t ret;
-  char timeout_buffer[11];
   const void *args[2];
   size_t args_size[2];
 
-  _worker_function_st *function= new (std::nothrow) _worker_function_st;
-  if (function == NULL)
+  _worker_function_st *function= new (std::nothrow) _worker_function_st(worker_fn, context);
+  if (not function)
   {
-    gearman_perror((&worker->universal), "_worker_function_st malloc");
+    gearman_perror((&worker->universal), "_worker_function_st::new()");
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
 
-  function->options.packet_in_use= true;
-  function->options.change= true;
-  function->options.remove= false;
-
-  function->function_name= new char[function_length +1];
-  if (function->function_name == NULL)
+  if (not function->init(function_name, function_length))
   {
-    delete function;
-    gearman_perror((&worker->universal), "function_name strdup");
+    gearman_perror((&worker->universal), "_worker_function_st::init()");
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
-  memcpy(function->function_name, function_name, function_length);
-  function->function_length= function_length;
-  function->function_name[function_length]= 0;
 
-  function->worker_fn= worker_fn;
-  function->context= context;
-
+  gearman_return_t ret;
   if (timeout > 0)
   {
-    snprintf(timeout_buffer, 11, "%u", timeout);
-    args[0]= function_name;
-    args_size[0]= strlen(function_name) + 1;
+    char timeout_buffer[11];
+    snprintf(timeout_buffer, sizeof(timeout_buffer), "%u", timeout);
+    args[0]= function->name();
+    args_size[0]= function->length() + 1;
     args[1]= timeout_buffer;
     args_size[1]= strlen(timeout_buffer);
     ret= gearman_packet_create_args((&worker->universal), &(function->packet),
@@ -1075,15 +1110,15 @@ static gearman_return_t _worker_function_create(gearman_worker_st *worker,
   }
   else
   {
-    args[0]= function->function_name;
-    args_size[0]= function->function_length= function_length;
+    args[0]= function->name();
+    args_size[0]= function->length();
     ret= gearman_packet_create_args((&worker->universal), &(function->packet),
                                     GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_CAN_DO,
                                     args, args_size, 1);
   }
-  if (ret != GEARMAN_SUCCESS)
+
+  if (gearman_failed(ret))
   {
-    delete [] function->function_name;
     delete function;
 
     return ret;
@@ -1116,6 +1151,12 @@ static void _worker_function_free(gearman_worker_st *worker,
   if (function->options.packet_in_use)
     gearman_packet_free(&(function->packet));
 
-  delete [] function->function_name;
   delete function;
+}
+
+bool gearman_worker_set_server_option(gearman_worker_st *self, const char *option_arg, size_t option_arg_size)
+{
+  gearman_string_t option= { option_arg, option_arg_size };
+
+  return gearman_request_option(self->universal, option);
 }

@@ -174,9 +174,10 @@ typedef struct gearman_job_st gearman_job_st;
 typedef struct gearman_worker_st gearman_worker_st;
 typedef struct gearman_function_st gearman_function_st;
 typedef struct gearman_workload_t gearman_workload_t;
-typedef struct gearman_batch_t gearman_batch_t;
 typedef struct gearman_unique_t gearman_unique_t;
-typedef struct gearman_status_t gearman_status_t;
+typedef struct gearman_result_st gearman_result_st;
+typedef struct gearman_string_t gearman_string_t;
+typedef struct gearman_argument_t gearman_argument_t;
 
 /* Function types. */
 typedef gearman_return_t (gearman_workload_fn)(gearman_task_st *task);
@@ -204,6 +205,9 @@ typedef void (gearman_task_context_free_fn)(gearman_task_st *task,
 
 typedef void (gearman_log_fn)(const char *line, gearman_verbose_t verbose,
                               void *context);
+
+typedef gearman_return_t (gearman_reducer_each_fn)(gearman_task_st *task, void *reducer_context);
+typedef gearman_return_t (gearman_reducer_final_fn)(gearman_task_st *task, void *reducer_context, gearman_result_st *result);
 
 /** @} */
 

@@ -35,73 +35,76 @@
  *
  */
 
+#include <config.h>
+
 #include <libgearman/common.h>
 #include <libgearman/unique.h>
 #include <cassert>
+#include <memory>
 
-static gearman_return_t _client_fail(gearman_task_st *task)
+struct gearman_result_st;
+
+struct gearman_reducer_t &gearman_reducer_default(void)
 {
-  task->result_rc= GEARMAN_WORK_FAIL;
-  return GEARMAN_SUCCESS;
+  static gearman_reducer_t defaults= { 0, 0 };
+
+  return defaults;
 }
 
-
-gearman_actions_t gearman_actions_default(void)
+struct gearman_reducer_t gearman_reducer_make(gearman_reducer_each_fn* each, gearman_reducer_final_fn *final)
 {
-  static gearman_actions_t default_actions= { 0, 0, 0, 0, 0, 0, 0, _client_fail };
-
-  return default_actions;
+  gearman_reducer_t arg= { each, final };
+  return arg;
 }
 
 static gearman_return_t _client_do_data(gearman_task_st *task)
 {
-  if (task->result_rc != GEARMAN_SUCCESS)
+  if (gearman_task_data_size(task))
   {
-    task->result_rc= GEARMAN_SUCCESS;
-    return GEARMAN_SUCCESS;
+    if (not task->result_ptr)
+      task->result_ptr= new (std::nothrow) gearman_result_st(gearman_task_data_size(task));
+    assert(task->result_ptr);
+
+    gearman_string_append(gearman_task_mutable_result(task)->string(), static_cast<const char*>(gearman_task_data(task)), gearman_task_data_size(task));
   }
 
-  if (not task->result_ptr)
-    task->result_ptr= gearman_string_create(NULL, gearman_task_data_size(task) +1);
-  assert(task->result_ptr);
-
-  gearman_string_append(task->result_ptr, static_cast<const char*>(gearman_task_data(task)), gearman_task_data_size(task));
-
-  if (task->recv->command == GEARMAN_COMMAND_WORK_DATA)
-  {
-    task->result_rc= GEARMAN_WORK_DATA;
-  }
-  else if (task->recv->command == GEARMAN_COMMAND_WORK_WARNING)
-  {
-    task->result_rc= GEARMAN_WORK_WARNING;
-  }
-  else if (task->recv->command == GEARMAN_COMMAND_WORK_EXCEPTION)
-  {
-    task->result_rc= GEARMAN_WORK_EXCEPTION;
-  }
-  else
-  {
-    return GEARMAN_SUCCESS;
-  }
-
-  return GEARMAN_PAUSE;
+  return GEARMAN_SUCCESS;
 }
 
-static gearman_return_t _client_do_status(gearman_task_st *task)
+static gearman_return_t _client_do_complete(gearman_task_st *task)
 {
-  if (task->result_rc != GEARMAN_SUCCESS)
+  if (gearman_task_data_size(task))
   {
-    task->result_rc= GEARMAN_SUCCESS;
-    return GEARMAN_SUCCESS;
+    if (not task->result_ptr)
+      task->result_ptr= new (std::nothrow) gearman_result_st(gearman_task_data_size(task));
+    assert(task->result_ptr);
+
+    gearman_string_append(gearman_task_mutable_result(task)->string(), static_cast<const char*>(gearman_task_data(task)), gearman_task_data_size(task));
   }
 
-  task->result_rc= GEARMAN_WORK_STATUS;
-  return GEARMAN_PAUSE;
+  task->result_rc= GEARMAN_SUCCESS;
+
+  return GEARMAN_SUCCESS;
 }
 
-gearman_actions_t gearman_actions_do_default(void)
+gearman_actions_t &gearman_actions_default(void)
 {
-  static gearman_actions_t default_actions= { 0, 0, _client_do_data, _client_do_data, _client_do_status, _client_do_data, _client_do_data, _client_fail };
+  static gearman_actions_t default_actions= { 0, 0, 0, 0, 0, 0, 0, 0 };
+
+  return default_actions;
+}
+
+
+gearman_actions_t &gearman_actions_do_default(void)
+{
+  static gearman_actions_t default_actions= { 0, 0, _client_do_data, 0, 0, _client_do_complete, 0, 0 };
+
+  return default_actions;
+}
+
+gearman_actions_t &gearman_actions_execute_defaults(void)
+{
+  static gearman_actions_t default_actions= { 0, 0, _client_do_data, 0, 0, _client_do_complete, 0, 0 };
 
   return default_actions;
 }

@@ -1,3 +1,4 @@
+
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
  *  Gearmand client and server library.
@@ -37,5 +38,55 @@
 
 #pragma once
 
-test_return_t gearman_client_execute_batch_basic(void *object);
-test_return_t gearman_client_execute_batch_mixed_bg(void *object);
+struct gearman_result_st
+{
+  bool _is_null;
+  enum gearman_result_t type;
+
+  union {
+    bool boolean;
+    int64_t integer;
+    gearman_string_st string;
+  } value;
+
+  gearman_result_st() :
+    _is_null(true),
+    type(GEARMAN_RESULT_BOOLEAN)
+  {
+    value.boolean= false;
+  }
+
+  gearman_result_st(size_t initial_size) :
+    _is_null(true),
+    type(GEARMAN_RESULT_BINARY)
+  {
+    gearman_string_create(&value.string, initial_size);
+  }
+
+  bool is_null() const
+  {
+    return _is_null;
+  }
+
+  gearman_string_st *string()
+  {
+    if (type == GEARMAN_RESULT_BINARY)
+      return &value.string;
+
+    return NULL;
+  }
+
+  int64_t integer()
+  {
+    if (type == GEARMAN_RESULT_INTEGER)
+      return value.integer;
+
+    return 0;
+  }
+
+  ~gearman_result_st()
+  {
+    if (type == GEARMAN_RESULT_BINARY)
+      gearman_string_free(&value.string);
+  }
+};

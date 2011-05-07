@@ -66,6 +66,8 @@
 #include <libgearman/core.h>
 #include <libgearman/task.h>
 #include <libgearman/job.h>
+#include <libgearman/string.h>
+#include <libgearman/result.h>
 
 #include <libgearman/worker.h>
 #include <libgearman/client.h>
@@ -154,3 +156,13 @@ gearman_return_t gearman_parse_servers(const char *servers,
 #ifdef __cplusplus
 }
 #endif
+
+#ifdef __cplusplus
+#define gearman_literal_param(X) (X), static_cast<size_t>(sizeof(X) - 1)
+#define gearman_literal_param_size(X) static_cast<size_t>(sizeof(X) - 1)
+#else
+#define gearman_literal_param(X) (X), (size_t)(sizeof(X) - 1)
+#define gearman_literal_param_size(X) (size_t)(sizeof(X) - 1)
+#endif
+
+#define gearman_c_str_param(X) (X) ? (X) : NULL, (X) ? strlen(X) : 0

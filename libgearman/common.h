@@ -53,4 +53,5 @@
 #include <libgearman/function.h>
 #include <libgearman/strcommand.h>
 #include <libgearman/string.h>
+#include <libgearman/result.hpp>
 #include <libgearman/actions.h>

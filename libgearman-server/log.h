@@ -12,8 +12,7 @@
 
 #include <stdio.h>
 
-#ifndef __GEARMAND_LOG_H__
-#define __GEARMAND_LOG_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -98,5 +97,3 @@ void gearmand_log_crazy(const char *format, ...);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GEARMAND_LOG_H__ */

@@ -29,17 +29,32 @@ struct context_st {
   gearman_worker_fn *function;
   void *function_arg;
   struct worker_handle_st *handle;
+  gearman_worker_options_t options;
 };
 
 static void *thread_runner(void *con)
 {
   struct context_st *context= (struct context_st *)con;
-  gearman_worker_st worker;
+  gearman_worker_st worker, *worker_ptr;
 
-  assert(gearman_worker_create(&worker) != NULL);
-  assert(gearman_worker_add_server(&worker, NULL, context->port) == GEARMAN_SUCCESS);
-  assert(gearman_worker_add_function(&worker, context->function_name, 0, context->function,
-                                     context->function_arg) == GEARMAN_SUCCESS);
+  worker_ptr= gearman_worker_create(&worker);
+  assert(worker_ptr);
+
+  gearman_return_t rc;
+  rc= gearman_worker_add_server(&worker, NULL, context->port);
+  assert(rc == GEARMAN_SUCCESS);
+
+  bool success= gearman_worker_set_server_option(&worker, gearman_literal_param("exceptions"));
+  assert(success);
+
+  rc= gearman_worker_add_function(&worker, context->function_name, 0, context->function,
+                                  context->function_arg);
+  assert(rc == GEARMAN_SUCCESS);
+
+  if (context->options != gearman_worker_options_t())
+  {
+    gearman_worker_add_options(&worker, context->options);
+  }
 
   gearman_worker_set_timeout(&worker, 100);
 
@@ -59,7 +74,8 @@ static void *thread_runner(void *con)
 }
 
 struct worker_handle_st *test_worker_start(in_port_t port, const char *function_name,
-                                           gearman_worker_fn *function, void *function_arg)
+                                           gearman_worker_fn *function, void *function_arg,
+                                           gearman_worker_options_t options)
 {
   pthread_attr_t attr;
 
@@ -76,6 +92,7 @@ struct worker_handle_st *test_worker_start(in_port_t port, const char *function_
   foo->function= function;
   foo->function_arg= function_arg;
   foo->handle= handle;
+  foo->options= options;
 
   int rc= pthread_create(&handle->thread, &attr, thread_runner, foo);
   assert(rc == 0);

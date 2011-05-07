@@ -39,49 +39,32 @@
 #include <cassert>
 #include <cstring>
 #include <libgearman/gearman.h>
-#include <tests/batch.h>
-#include <iostream>
+#include <tests/unique.h>
 
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
-test_return_t gearman_client_execute_batch_basic(void *object)
+
+test_return_t unique_compare_test(void *object)
 {
+  gearman_return_t rc;
   gearman_client_st *client= (gearman_client_st *)object;
   const char *worker_function= (const char *)gearman_client_context(client);
-  gearman_function_st *function= gearman_function_create(gearman_string_param(worker_function));
+  size_t job_length;
 
-  gearman_batch_t batch[]= {
-    { function, gearman_workload_make(gearman_literal_param("test load")) },
-    { function, gearman_workload_make(gearman_literal_param("test load2")) }
-  };
+  gearman_string_t unique= { gearman_literal_param("my little unique") };
 
-  test_true_got(gearman_client_execute_batch(client, batch), gearman_client_error(client));
-  gearman_client_task_free_all(client);
-  gearman_function_free(function);
+  void *job_result= gearman_client_do(client, worker_function, gearman_c_str(unique), 
+                                      gearman_string_param(unique),
+                                      &job_length, &rc);
+
+  test_true_got(rc == GEARMAN_SUCCESS, gearman_client_error(client) ? gearman_client_error(client) : gearman_strerror(rc));
+  test_compare(gearman_size(unique), job_length);
+  test_memcmp(gearman_c_str(unique), job_result, job_length);
+
+  free(job_result);
 
   return TEST_SUCCESS;
 }
 
-test_return_t gearman_client_execute_batch_mixed_bg(void *object)
-{
-  gearman_client_st *client= (gearman_client_st *)object;
-  const char *worker_function= (const char *)gearman_client_context(client);
-  gearman_function_st *function= gearman_function_create(gearman_string_param(worker_function));
-
-  gearman_batch_t batch[]= {
-    { function, gearman_workload_make(gearman_literal_param("test load")) },
-    { function, gearman_workload_make(gearman_literal_param("test load2")) },
-    { function, gearman_workload_make(gearman_literal_param("test load3")) },
-    { function, gearman_workload_make(gearman_literal_param("test load4")) },
-  };
-
-  gearman_workload_set_background(&batch[1].workload, true);
-
-  test_true_got(gearman_client_execute_batch(client, batch), gearman_client_error(client));
-  gearman_client_task_free_all(client);
-  gearman_function_free(function);
-
-  return TEST_SUCCESS;
-}

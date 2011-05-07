@@ -416,7 +416,7 @@ static gearmand_error_t _libdrizzle_done(gearman_server_st *,
   plugins::queue::Drizzle *queue= (plugins::queue::Drizzle *)context;
   Byte escaped_function_name(function_name_size*2);
   Byte escaped_unique_name(unique_size*2);
-  Byte query(unique_size*2 + unique_size*2 + GEARMAN_QUEUE_QUERY_BUFFER);
+  Byte query(function_name_size*2 + unique_size*2 +queue->table.size() +GEARMAN_QUEUE_QUERY_BUFFER);
 
   gearmand_log_debug("libdrizzle done: %.*s(%.*s)", 
                      uint32_t(function_name_size), (char *)function_name,

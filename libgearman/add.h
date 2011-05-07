@@ -43,15 +43,23 @@
 
 #pragma once
 
-GEARMAN_LOCAL
 gearman_task_st *add_task(gearman_client_st *client,
-			  gearman_task_st *task,
-			  void *context,
-			  gearman_command_t command,
-			  const char *function_name,
-			  size_t function_name_length,
-			  const char *unique,
-			  size_t unique_length,
-			  const void *workload,
-			  size_t workload_size,
-			  time_t when);
+                          void *context,
+                          gearman_command_t command,
+                          const char *function_name, size_t function_name_length,
+                          const gearman_unique_t &unique,
+                          const gearman_string_t &work,
+                          time_t when,
+                          struct gearman_actions_t &actions,
+                          struct gearman_reducer_t &reducer);
+
+gearman_task_st *add_task(gearman_client_st *client,
+                          gearman_task_st *task,
+                          void *context,
+                          gearman_command_t command,
+                          const char *function_name,
+                          size_t function_name_length,
+                          const gearman_unique_t &unique,
+                          const void *workload,
+                          size_t workload_size,
+                          time_t when);

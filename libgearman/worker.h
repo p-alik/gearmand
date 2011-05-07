@@ -434,6 +434,9 @@ gearman_return_t gearman_worker_echo(gearman_worker_st *worker,
                                      const void *workload,
                                      size_t workload_size);
 
+GEARMAN_API
+bool gearman_worker_set_server_option(gearman_worker_st *self, const char *option_arg, size_t option_arg_size);
+
 /** @} */
 
 #ifdef __cplusplus

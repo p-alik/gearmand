@@ -49,9 +49,35 @@ struct gearman_actions_t
   gearman_fail_fn *fail_fn;
 };
 
-GEARMAN_LOCAL
-struct gearman_actions_t gearman_actions_default(void);
+struct gearman_reducer_t
+{
+  gearman_reducer_each_fn *each_fn;
+  gearman_reducer_final_fn *final_fn;
+};
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+GEARMAN_API
+struct gearman_reducer_t gearman_reducer_make(gearman_reducer_each_fn *, gearman_reducer_final_fn *);
+
+#ifdef __cplusplus
+}
+#endif
+
+#ifdef __cplusplus // Local only
 
 GEARMAN_LOCAL
-struct gearman_actions_t gearman_actions_do_default(void);
+gearman_reducer_t &gearman_reducer_default(void);
 
+GEARMAN_LOCAL
+gearman_actions_t &gearman_actions_default(void);
+
+GEARMAN_LOCAL
+gearman_actions_t &gearman_actions_do_default(void);
+
+GEARMAN_LOCAL
+gearman_actions_t &gearman_actions_execute_defaults(void);
+
+#endif

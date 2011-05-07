@@ -11,10 +11,13 @@ VALGRIND_COMMAND= $(LIBTOOL) --mode=execute valgrind --leak-check=yes --show-rea
 noinst_HEADERS+= \
 		 tests/basic.h \
 		 tests/context.h \
-		 tests/do_background.cc \
+		 tests/do.h \
+		 tests/do_background.h \
 		 tests/execute.h \
 		 tests/gearman_client_do_job_handle.h \
-		 tests/task.h
+		 tests/server_options.h \
+		 tests/task.h \
+		 tests/unique.h
 
 CLIENT_LDADD= \
 	      libtest/libtest.la \
@@ -36,12 +39,14 @@ noinst_PROGRAMS+= \
 		  tests/worker_test
 
 tests_client_test_SOURCES= \
-			   tests/batch.cc \
 			   tests/client_test.cc \
+			   tests/do.cc \
 			   tests/do_background.cc \
 			   tests/execute.cc \
 			   tests/gearman_client_do_job_handle.cc \
-			   tests/task.cc
+			   tests/server_options.cc \
+			   tests/task.cc \
+			   tests/unique.cc
 tests_client_test_LDADD= ${CLIENT_LDADD}
 
 tests_burnin_test_SOURCES= tests/burnin.cc
@@ -69,13 +74,13 @@ tests_cpp_test_LDADD= ${CLIENT_LDADD}
 test-burnin:
 	@tests/burnin_test $(ARG1) $(ARG2)
 
-test-client:
+test-client: tests/client_test
 	@tests/client_test $(ARG1) $(ARG2)
 
 test-round-robin:
 	tests/round_robin_test $(ARG1) $(ARG2)
 
-test-worker:
+test-worker: tests/worker_test
 	@tests/worker_test $(ARG1) $(ARG2)
 
 test-internals:
@@ -103,7 +108,7 @@ valgrind-client:
 valgrind-round-robin:
 	$(VALGRIND_COMMAND) tests/round_robin_test $(ARG1) $(ARG2)
 
-valgrind-worker:
+valgrind-worker: tests/worker_test
 	$(VALGRIND_COMMAND) tests/worker_test $(ARG1) $(ARG2)
 
 valgrind-internals:

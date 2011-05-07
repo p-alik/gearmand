@@ -198,13 +198,13 @@ gearman_server_job_add(gearman_server_st *server,
     else if (server_client == NULL && server->queue._add_fn != NULL)
     {
       *ret_ptr= (*(server->queue._add_fn))(server,
-                                         (void *)server->queue._context,
-                                          server_job->unique,
-                                          unique_size,
-                                          function_name,
-                                          function_name_size,
-                                          data, data_size, priority, 
-                                          when);
+                                           (void *)server->queue._context,
+                                           server_job->unique,
+                                           unique_size,
+                                           function_name,
+                                           function_name_size,
+                                           data, data_size, priority, 
+                                           when);
       if (*ret_ptr != GEARMAN_SUCCESS)
       {
         server_job->data= NULL;

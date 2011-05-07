@@ -39,6 +39,7 @@
 #include <cassert>
 #include <cstring>
 #include <libgearman/gearman.h>
+#include <string>
 #include <tests/execute.h>
 
 #ifndef __INTEL_COMPILER
@@ -49,15 +50,15 @@ test_return_t gearman_client_execute_test(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
   const char *worker_function= (const char *)gearman_client_context(client);
-  gearman_function_st *function= gearman_function_create(gearman_string_param(worker_function));
+  gearman_function_st *function= gearman_function_create(gearman_c_str_param(worker_function));
 
-  gearman_workload_t workload= gearman_workload_make(gearman_literal_param("test load"));
+  gearman_workload_t workload= gearman_workload_make();
 
-  test_true_got(gearman_client_execute(client, function, &workload), gearman_client_error(client));
+  gearman_task_st *task;
+  gearman_argument_t value= gearman_argument_make(gearman_literal_param("test load"));
 
-  gearman_task_st *task= gearman_workload_task(&workload);
-  test_truth(task);
-  test_compare(gearman_workload_size(&workload), gearman_task_result_size(task));
+  test_true_got(task= gearman_client_execute(client, function, &workload, 0, 0, &value), gearman_client_error(client));
+  test_compare(gearman_literal_param_size("test load"), gearman_result_size(gearman_task_result(task)));
 
   gearman_task_free(task);
   gearman_function_free(function);
@@ -71,15 +72,15 @@ test_return_t gearman_client_execute_timeout_test(void *object)
   gearman_client_st *client= gearman_client_clone(NULL, original);
   test_truth(client);
   gearman_function_st *function= gearman_function_create(gearman_literal_param("no_worker_should_be_found"));
-  gearman_workload_t workload= gearman_workload_make(gearman_literal_param("test load"));
+  gearman_workload_t workload= gearman_workload_make();
 
-  int timeout= gearman_client_timeout(client);
   gearman_client_set_timeout(client, 4);
 
   // We should fail since the the timeout is small and the function should
   // not exist.
-  test_true_got(not gearman_client_execute(client, function, &workload), gearman_client_error(client));
-  gearman_client_set_timeout(client, timeout);
+  gearman_task_st *task;
+  gearman_argument_t value= gearman_argument_make(gearman_literal_param("test load"));
+  test_true_got(task= gearman_client_execute(client, function, &workload, 0, 0, &value), gearman_client_error(client));
 
   gearman_function_free(function);
   gearman_client_free(client);
@@ -91,13 +92,14 @@ test_return_t gearman_client_execute_epoch_test(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
   const char *worker_function= (const char *)gearman_client_context(client);
-  gearman_function_st *function= gearman_function_create(gearman_string_param(worker_function));
+  gearman_function_st *function= gearman_function_create(gearman_c_str_param(worker_function));
 
-  gearman_workload_t workload= gearman_workload_make(gearman_literal_param("test load"));
+  gearman_workload_t workload= gearman_workload_make();
   gearman_workload_set_epoch(&workload, time(NULL) +5);
 
-  test_true_got(gearman_client_execute(client, function, &workload), gearman_client_error(client));
-  gearman_task_st *task= gearman_workload_task(&workload);
+  gearman_task_st *task;
+  gearman_argument_t value= gearman_argument_make(gearman_literal_param("test load"));
+  test_true_got(task= gearman_client_execute(client, function, &workload, 0, 0, &value), gearman_client_error(client));
   test_truth(task);
   test_truth(gearman_task_job_handle(task));
   gearman_task_free(task);
@@ -111,23 +113,20 @@ test_return_t gearman_client_execute_bg_test(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
   const char *worker_function= (const char *)gearman_client_context(client);
-  gearman_function_st *function= gearman_function_create(gearman_string_param(worker_function));
+  gearman_function_st *function= gearman_function_create(gearman_c_str_param(worker_function));
 
-  gearman_workload_t workload= gearman_workload_make_unique(gearman_literal_param("test load"), gearman_literal_param("my id"));
+  gearman_workload_t workload= gearman_workload_make();
   gearman_workload_set_background(&workload, true);
 
-  test_true_got(gearman_client_execute(client, function, &workload), gearman_client_error(client));
+  gearman_task_st *task;
+  gearman_argument_t value= gearman_argument_make(gearman_literal_param("test load"));
+  test_true_got(task= gearman_client_execute(client, function, &workload, gearman_literal_param("my id"), &value), gearman_client_error(client));
 
   // Lets make sure we have a task
-  gearman_task_st *task= gearman_workload_task(&workload);
   test_truth(task);
   test_truth(gearman_task_job_handle(task));
 
-  gearman_return_t rc;
-  do {
-    rc= gearman_client_run_tasks(client);
-  } while (rc == GEARMAN_PAUSE);
-  test_false(gearman_task_is_running(task));
+  test_true_got(gearman_success(gearman_client_run_tasks(client)), gearman_client_error(client));
 
   gearman_task_free(task);
 
@@ -140,25 +139,24 @@ test_return_t gearman_client_execute_multile_bg_test(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
   const char *worker_function= (const char *)gearman_client_context(client);
-  gearman_function_st *function= gearman_function_create(gearman_string_param(worker_function));
+  gearman_function_st *function= gearman_function_create(gearman_c_str_param(worker_function));
 
   for (uint32_t x= 0; x < 4; /* No reason for number */ x++)
   {
-    gearman_workload_t workload= gearman_workload_make(gearman_literal_param("test load"));
+    gearman_workload_t workload= gearman_workload_make();
     gearman_workload_set_background(&workload, true);
 
-    test_true_got(gearman_client_execute(client, function, &workload), gearman_client_error(client));
+    gearman_task_st *task;
+    gearman_argument_t value= gearman_argument_make(gearman_literal_param("test load"));
+    test_true_got(task= gearman_client_execute(client, function, &workload, 0, 0, &value), gearman_client_error(client));
     
     // Lets make sure we have a task
-    gearman_task_st *task= gearman_workload_task(&workload);
     test_truth(task);
     test_truth(gearman_task_job_handle(task));
   }
 
   gearman_return_t rc;
-  do {
-    rc= gearman_client_run_tasks(client);
-  } while (rc == GEARMAN_PAUSE);
+  test_true_got(gearman_success(rc= gearman_client_run_tasks(client)), gearman_strerror(rc));
 
   gearman_client_task_free_all(client);
 
@@ -167,72 +165,162 @@ test_return_t gearman_client_execute_multile_bg_test(void *object)
   return TEST_SUCCESS;
 }
 
-test_return_t gearman_client_execute_in_bulk(void *object)
+static gearman_return_t cat_each_func(gearman_task_st *, void *)
+{
+  return GEARMAN_SUCCESS;
+}
+
+static gearman_return_t cat_final_func(gearman_task_st *task, void *, gearman_result_st *result)
+{
+  std::string string_value;
+
+  do
+  {
+    gearman_result_st *result_ptr= gearman_task_result(task);
+
+    if (result_ptr)
+    {
+      if (not gearman_result_size(result_ptr))
+        return GEARMAN_WORK_EXCEPTION;
+
+      string_value.append(gearman_result_value(result_ptr), gearman_result_size(result_ptr));
+    }
+  } while ((task= gearman_next(task)));
+
+  gearman_result_store_value(result, string_value.c_str(), string_value.size());
+
+  return GEARMAN_SUCCESS;
+}
+
+static gearman_return_t sum_each_func(gearman_task_st *, void *)
+{
+  return GEARMAN_SUCCESS;
+}
+
+static gearman_return_t time_two_final_func(gearman_task_st *task, void*, gearman_result_st *result)
+{
+  long sum= 0;
+
+  do
+  {
+    gearman_result_st *result_ptr= gearman_task_result(task);
+    sum+= gearman_result_integer(result_ptr);
+  } while ((task= gearman_next(task)));
+
+  sum= sum *2;
+
+  gearman_result_store_integer(result, sum);
+
+  return GEARMAN_SUCCESS;
+}
+
+test_return_t gearman_client_execute_simple_reducer(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
   const char *worker_function= (const char *)gearman_client_context(client);
-  gearman_function_st *function= gearman_function_create(gearman_string_param(worker_function));
+  gearman_function_st *function= gearman_function_create(gearman_c_str_param(worker_function));
 
-  gearman_workload_t workload[3]= { 
-    gearman_workload_make(gearman_literal_param("test load")),
-    gearman_workload_make(gearman_literal_param("test load2")),
-    gearman_workload_make(gearman_literal_param("test load3"))
-  };
+  gearman_workload_t workload= gearman_workload_make();
+  gearman_workload_set_reducer(&workload, gearman_reducer_make(sum_each_func, time_two_final_func));
 
-  gearman_workload_t *ptr= workload;
-  for (uint32_t x= 0; x < gearman_workload_array_size(workload); x++, ptr++)
-  {
-    gearman_workload_set_background(ptr, true);
-  }
-
-  test_true_got(gearman_client_execute(client, function, workload), gearman_client_error(client));
-
-  // Lets make sure we have a task
-  gearman_task_st *task= gearman_workload_task(&workload[0]);
+  gearman_task_st *task;
+  gearman_argument_t value= gearman_argument_make(gearman_literal_param("2"));
+  test_true_got(task= gearman_client_execute(client, function, &workload, 0, 0, &value), gearman_client_error(client));
   test_truth(task);
+
+  test_true_got(gearman_success(gearman_client_run_tasks(client)), gearman_client_error(client));
+
+  const gearman_result_st *result= gearman_task_result(task);
+  test_truth(result);
+
+  long final_value= gearman_result_integer(result);
+
+  test_truth(gearman_task_job_handle(task));
+  gearman_task_free(task);
+
+  test_compare(2 *2, final_value);
+
+  gearman_function_free(function);
+  gearman_client_task_free_all(client);
+
+  return TEST_SUCCESS;
+}
+
+test_return_t gearman_client_execute_simple_muti_value_cat_reducer(void *object)
+{
+  gearman_client_st *client= (gearman_client_st *)object;
+  const char *worker_function= (const char *)gearman_client_context(client);
+  gearman_function_st *function= gearman_function_create(gearman_c_str_param(worker_function));
+
+  gearman_workload_t workload= gearman_workload_make();
+  gearman_workload_set_reducer(&workload, gearman_reducer_make(cat_each_func, cat_final_func));
+
+  gearman_task_st *task;
+  gearman_argument_t value= gearman_argument_make(gearman_literal_param("You "));
+  test_true_got(task= gearman_client_execute(client, function, &workload, 0, 0, &value), gearman_client_error(client));
+  test_truth(task);
+
+  gearman_argument_t value1= gearman_argument_make(gearman_literal_param("are "));
+  test_true_got(gearman_task_add_work(task, &value1), gearman_client_error(client));
+
+  gearman_argument_t value2= gearman_argument_make(gearman_literal_param("my "));
+  test_true_got(gearman_task_add_work(task, &value2), gearman_client_error(client));
+
+  gearman_argument_t value3= gearman_argument_make(gearman_literal_param("sunshine"));
+  test_true_got(gearman_task_add_work(task, &value3), gearman_client_error(client));
+
+  test_true_got(gearman_success(gearman_client_run_tasks(client)), gearman_client_error(client));
+
+  const gearman_result_st *result= gearman_task_result(task);
+  test_truth(result);
+
+  test_compare(19, gearman_result_size(result));
+
+  test_truth(gearman_task_job_handle(task));
+  gearman_task_free(task);
+
+  gearman_function_free(function);
+  gearman_client_task_free_all(client);
+
+  return TEST_SUCCESS;
+}
+
+test_return_t gearman_client_execute_simple_muti_value_reducer(void *object)
+{
+  gearman_client_st *client= (gearman_client_st *)object;
+  const char *worker_function= (const char *)gearman_client_context(client);
+  gearman_function_st *function= gearman_function_create(gearman_c_str_param(worker_function));
+
+  gearman_workload_t workload= gearman_workload_make();
+  gearman_workload_set_reducer(&workload, gearman_reducer_make(sum_each_func, time_two_final_func));
+
+  gearman_task_st *task;
+  gearman_argument_t value= gearman_argument_make(gearman_literal_param("5"));
+  test_true_got(task= gearman_client_execute(client, function, &workload, 0, 0, &value), gearman_client_error(client));
+  test_truth(task);
+
+  gearman_argument_t value1= gearman_argument_make(gearman_literal_param("2"));
+  test_true_got(gearman_task_add_work(task, &value1), gearman_client_error(client));
+
+  gearman_argument_t value2= gearman_argument_make(gearman_literal_param("3"));
+  test_true_got(gearman_task_add_work(task, &value2), gearman_client_error(client));
+
+  gearman_argument_t value3= gearman_argument_make(gearman_literal_param("4"));
+  test_true_got(gearman_task_add_work(task, &value3), gearman_client_error(client));
+
   test_truth(gearman_task_job_handle(task));
 
-  gearman_return_t rc;
-  do {
-    rc= gearman_client_run_tasks(client);
-  } while (rc == GEARMAN_PAUSE);
+  test_true_got(gearman_success(gearman_client_run_tasks(client)), gearman_client_error(client));
 
-  gearman_client_task_free_all(client);
+  const gearman_result_st *result= gearman_task_result(task);
+  long final_value= gearman_result_integer(result);
+  test_truth(result);
 
+  test_compare((5 +2 +3 +4) *2, final_value);
+
+  gearman_task_free(task);
   gearman_function_free(function);
-
-  return TEST_SUCCESS;
-}
-
-test_return_t gearman_client_execute_in_bulk_fail(void *object)
-{
-  gearman_client_st *client= (gearman_client_st *)object;
-  const char *worker_function= (const char *)gearman_client_context(client);
-  gearman_function_st *function= gearman_function_create(gearman_string_param(worker_function));
-
-  gearman_workload_t workload[]= { 
-    gearman_workload_make(gearman_literal_param("test load")),
-    gearman_workload_make(gearman_literal_param("test load2")),
-    gearman_workload_make(gearman_literal_param("fail")),
-    gearman_workload_make(gearman_literal_param("test load3"))
-  };
-
-  test_true_got(gearman_client_execute(client, function, workload), gearman_client_error(client));
-
-  gearman_workload_t *ptr= workload;
-  for (uint32_t x= 0; x < gearman_workload_array_size(workload); x++, ptr++)
-  {
-    if (gearman_workload_compare(ptr, gearman_literal_param("fail")))
-    {
-      gearman_task_st *task= gearman_workload_task(ptr);
-      test_true_got(task or not memcmp(ptr->c_str, gearman_literal_param("fail")), ptr->c_str);
-      test_true_got(gearman_failed(gearman_task_error(task)), gearman_strerror(gearman_task_error(task)));
-    }
-  }
-
   gearman_client_task_free_all(client);
-
-  gearman_function_free(function);
 
   return TEST_SUCCESS;
 }
