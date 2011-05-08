@@ -105,9 +105,6 @@ static test_return_t option_test(void *)
     test_truth(gear->options.allocated);
     test_false(gear->options.non_blocking);
     test_truth(gear->options.packet_init);
-    test_false(gear->options.grab_job_in_use);
-    test_false(gear->options.pre_sleep_in_use);
-    test_false(gear->options.work_job_in_use);
     test_false(gear->options.change);
     test_false(gear->options.grab_uniq);
     test_false(gear->options.timeout_return);
@@ -125,9 +122,6 @@ static test_return_t option_test(void *)
     test_truth(gear->options.allocated);
     test_false(gear->options.non_blocking);
     test_truth(gear->options.packet_init);
-    test_false(gear->options.grab_job_in_use);
-    test_false(gear->options.pre_sleep_in_use);
-    test_false(gear->options.work_job_in_use);
     test_false(gear->options.change);
     test_false(gear->options.grab_uniq);
     test_false(gear->options.timeout_return);
@@ -142,9 +136,6 @@ static test_return_t option_test(void *)
       test_truth(gear->options.allocated);
       test_false(gear->options.non_blocking);
       test_truth(gear->options.packet_init);
-      test_false(gear->options.grab_job_in_use);
-      test_false(gear->options.pre_sleep_in_use);
-      test_false(gear->options.work_job_in_use);
       test_false(gear->options.change);
       test_false(gear->options.grab_uniq);
       test_false(gear->options.timeout_return);
@@ -155,9 +146,6 @@ static test_return_t option_test(void *)
       test_truth(gear->options.allocated);
       test_false(gear->options.non_blocking);
       test_truth(gear->options.packet_init);
-      test_false(gear->options.grab_job_in_use);
-      test_false(gear->options.pre_sleep_in_use);
-      test_false(gear->options.work_job_in_use);
       test_false(gear->options.change);
       test_false(gear->options.grab_uniq);
       test_false(gear->options.timeout_return);
@@ -173,9 +161,6 @@ static test_return_t option_test(void *)
       test_truth(gear->options.allocated);
       test_false(gear->options.non_blocking);
       test_truth(gear->options.packet_init);
-      test_false(gear->options.grab_job_in_use);
-      test_false(gear->options.pre_sleep_in_use);
-      test_false(gear->options.work_job_in_use);
       test_false(gear->options.change);
       test_false(gear->options.grab_uniq);
       test_false(gear->options.timeout_return);
@@ -185,9 +170,6 @@ static test_return_t option_test(void *)
       test_truth(gear->options.allocated);
       test_truth(gear->options.non_blocking);
       test_truth(gear->options.packet_init);
-      test_false(gear->options.grab_job_in_use);
-      test_false(gear->options.pre_sleep_in_use);
-      test_false(gear->options.work_job_in_use);
       test_false(gear->options.change);
       test_false(gear->options.grab_uniq);
       test_false(gear->options.timeout_return);
@@ -197,9 +179,6 @@ static test_return_t option_test(void *)
       test_truth(gear->options.allocated);
       test_truth(gear->options.non_blocking);
       test_truth(gear->options.packet_init);
-      test_false(gear->options.grab_job_in_use);
-      test_false(gear->options.pre_sleep_in_use);
-      test_false(gear->options.work_job_in_use);
       test_false(gear->options.change);
       test_false(gear->options.grab_uniq);
       test_false(gear->options.timeout_return);
@@ -209,9 +188,6 @@ static test_return_t option_test(void *)
       test_truth(gear->options.allocated);
       test_false(gear->options.non_blocking);
       test_truth(gear->options.packet_init);
-      test_false(gear->options.grab_job_in_use);
-      test_false(gear->options.pre_sleep_in_use);
-      test_false(gear->options.work_job_in_use);
       test_false(gear->options.change);
       test_truth(gear->options.grab_uniq);
       test_false(gear->options.timeout_return);
@@ -226,9 +202,6 @@ static test_return_t option_test(void *)
         test_truth(gear->options.allocated);
         test_false(gear->options.non_blocking);
         test_truth(gear->options.packet_init);
-        test_false(gear->options.grab_job_in_use);
-        test_false(gear->options.pre_sleep_in_use);
-        test_false(gear->options.work_job_in_use);
         test_false(gear->options.change);
         test_false(gear->options.grab_uniq);
         test_false(gear->options.timeout_return);
@@ -238,9 +211,6 @@ static test_return_t option_test(void *)
         test_truth(gear->options.allocated);
         test_false(gear->options.non_blocking);
         test_truth(gear->options.packet_init);
-        test_false(gear->options.grab_job_in_use);
-        test_false(gear->options.pre_sleep_in_use);
-        test_false(gear->options.work_job_in_use);
         test_false(gear->options.change);
         test_false(gear->options.grab_uniq);
         test_truth(gear->options.timeout_return);
@@ -250,9 +220,6 @@ static test_return_t option_test(void *)
         test_truth(gear->options.allocated);
         test_truth(gear->options.non_blocking);
         test_truth(gear->options.packet_init);
-        test_false(gear->options.grab_job_in_use);
-        test_false(gear->options.pre_sleep_in_use);
-        test_false(gear->options.work_job_in_use);
         test_false(gear->options.change);
         test_truth(gear->options.grab_uniq);
         test_truth(gear->options.timeout_return);
@@ -267,9 +234,6 @@ static test_return_t option_test(void *)
         test_truth(gear->options.allocated);
         test_false(gear->options.non_blocking);
         test_truth(gear->options.packet_init);
-        test_false(gear->options.grab_job_in_use);
-        test_false(gear->options.pre_sleep_in_use);
-        test_false(gear->options.work_job_in_use);
         test_false(gear->options.change);
         test_false(gear->options.grab_uniq);
         test_false(gear->options.timeout_return);
@@ -279,9 +243,6 @@ static test_return_t option_test(void *)
         test_truth(gear->options.allocated);
         test_false(gear->options.non_blocking);
         test_truth(gear->options.packet_init);
-        test_false(gear->options.grab_job_in_use);
-        test_false(gear->options.pre_sleep_in_use);
-        test_false(gear->options.work_job_in_use);
         test_false(gear->options.change);
         test_false(gear->options.grab_uniq);
         test_truth(gear->options.timeout_return);
@@ -291,9 +252,6 @@ static test_return_t option_test(void *)
         test_truth(gear->options.allocated);
         test_false(gear->options.non_blocking);
         test_truth(gear->options.packet_init);
-        test_false(gear->options.grab_job_in_use);
-        test_false(gear->options.pre_sleep_in_use);
-        test_false(gear->options.work_job_in_use);
         test_false(gear->options.change);
         test_truth(gear->options.grab_uniq);
         test_truth(gear->options.timeout_return);

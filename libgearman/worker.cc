@@ -91,7 +91,7 @@ static inline struct _worker_function_st *_function_exist(gearman_worker_st *wor
 {
   struct _worker_function_st *function;
 
-  for (function= worker->function_list; function != NULL;
+  for (function= worker->function_list; function;
        function= function->next)
   {
     if (function_length == function->function_length)
@@ -172,9 +172,6 @@ gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker,
     return worker;
 
   worker->options.non_blocking= from->options.non_blocking;
-  worker->options.grab_job_in_use= from->options.grab_job_in_use;
-  worker->options.pre_sleep_in_use= from->options.pre_sleep_in_use;
-  worker->options.work_job_in_use= from->options.work_job_in_use;
   worker->options.change= from->options.change;
   worker->options.grab_uniq= from->options.grab_uniq;
   worker->options.timeout_return= from->options.timeout_return;
@@ -185,7 +182,7 @@ gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker,
     return NULL;
   }
 
-  if (_worker_packet_init(worker) != GEARMAN_SUCCESS)
+  if (gearman_failed(_worker_packet_init(worker)))
   {
     gearman_worker_free(worker);
     return NULL;
@@ -207,16 +204,10 @@ void gearman_worker_free(gearman_worker_st *worker)
     gearman_packet_free(&(worker->pre_sleep));
   }
 
-  if (worker->job != NULL)
-    gearman_job_free(worker->job);
+  gearman_job_free(worker->job);
+  worker->work_job= NULL;
 
-  if (worker->options.work_job_in_use)
-  {
-    gearman_job_free(worker->work_job);
-    worker->work_job= NULL;
-  }
-
-  if (worker->work_result != NULL)
+  if (worker->work_result)
   {
     if ((&worker->universal)->workload_free_fn == NULL)
     {
@@ -230,12 +221,12 @@ void gearman_worker_free(gearman_worker_st *worker)
     }
   }
 
-  while (worker->function_list != NULL)
+  while (worker->function_list)
     _worker_function_free(worker, worker->function_list);
 
   gearman_job_free_all(worker);
 
-  if ((&worker->universal) != NULL)
+  if ((&worker->universal))
     gearman_universal_free((&worker->universal));
 
   if (worker->options.allocated)
@@ -263,12 +254,6 @@ gearman_worker_options_t gearman_worker_options(const gearman_worker_st *worker)
     options|= int(GEARMAN_WORKER_NON_BLOCKING);
   if (worker->options.packet_init)
     options|= int(GEARMAN_WORKER_PACKET_INIT);
-  if (worker->options.grab_job_in_use)
-    options|= int(GEARMAN_WORKER_GRAB_JOB_IN_USE);
-  if (worker->options.pre_sleep_in_use)
-    options|= int(GEARMAN_WORKER_PRE_SLEEP_IN_USE);
-  if (worker->options.work_job_in_use)
-    options|= int(GEARMAN_WORKER_WORK_JOB_IN_USE);
   if (worker->options.change)
     options|= int(GEARMAN_WORKER_CHANGE);
   if (worker->options.grab_uniq)
@@ -492,7 +477,7 @@ gearman_return_t gearman_worker_unregister_all(gearman_worker_st *worker)
 
 
   /* Lets find out if we have any functions left that are valid */
-  for (function= worker->function_list; function != NULL;
+  for (function= worker->function_list; function;
        function= function->next)
   {
     if (function->options.remove == false)
@@ -516,7 +501,7 @@ gearman_return_t gearman_worker_unregister_all(gearman_worker_st *worker)
     return ret;
   }
 
-  while (worker->function_list->next != NULL)
+  while (worker->function_list->next)
     _worker_function_free(worker, worker->function_list->next);
 
   worker->function_list->options.change= true;
@@ -543,7 +528,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
       if (worker->options.change)
       {
         worker->function= worker->function_list;
-        while (worker->function != NULL)
+        while (worker->function)
         {
           if (! (worker->function->options.change))
           {
@@ -551,7 +536,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
             continue;
           }
 
-          for (worker->con= (&worker->universal)->con_list; worker->con != NULL;
+          for (worker->con= (&worker->universal)->con_list; worker->con;
                worker->con= worker->con->next)
           {
             if (worker->con->fd == -1)
@@ -597,14 +582,14 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
         return NULL;
       }
 
-      for (worker->con= (&worker->universal)->con_list; worker->con != NULL;
+      for (worker->con= (&worker->universal)->con_list; worker->con;
            worker->con= worker->con->next)
       {
         /* If the connection to the job server is not active, start it. */
         if (worker->con->fd == -1)
         {
           for (worker->function= worker->function_list;
-               worker->function != NULL;
+               worker->function;
                worker->function= worker->function->next)
           {
     case GEARMAN_WORKER_STATE_CONNECT:
@@ -712,7 +697,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
       }
 
     case GEARMAN_WORKER_STATE_PRE_SLEEP:
-      for (worker->con= (&worker->universal)->con_list; worker->con != NULL;
+      for (worker->con= (&worker->universal)->con_list; worker->con;
            worker->con= worker->con->next)
       {
         if (worker->con->fd == -1)
@@ -734,7 +719,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
 
       /* Set a watch on all active connections that we sent a PRE_SLEEP to. */
       active= 0;
-      for (worker->con= (&worker->universal)->con_list; worker->con != NULL;
+      for (worker->con= (&worker->universal)->con_list; worker->con;
            worker->con= worker->con->next)
       {
         if (worker->con->fd == -1)
@@ -794,6 +779,9 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
 
 void gearman_job_free(gearman_job_st *job)
 {
+  if (not job)
+    return;
+
   if (job->options.assigned_in_use)
     gearman_packet_free(&(job->assigned));
 
@@ -802,9 +790,9 @@ void gearman_job_free(gearman_job_st *job)
 
   if (job->worker->job_list == job)
     job->worker->job_list= job->next;
-  if (job->prev != NULL)
+  if (job->prev)
     job->prev->next= job->next;
-  if (job->next != NULL)
+  if (job->next)
     job->next->prev= job->prev;
   job->worker->job_count--;
 
@@ -814,7 +802,7 @@ void gearman_job_free(gearman_job_st *job)
 
 void gearman_job_free_all(gearman_worker_st *worker)
 {
-  while (worker->job_list != NULL)
+  while (worker->job_list)
     gearman_job_free(worker->job_list);
 }
 
@@ -859,7 +847,7 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
       assert(worker->work_job);
 
       for (worker->work_function= worker->function_list;
-	   worker->work_function != NULL;
+	   worker->work_function;
 	   worker->work_function= worker->work_function->next)
       {
 	if (not strcmp(gearman_job_function_name(worker->work_job),
@@ -885,7 +873,6 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
 	return GEARMAN_INVALID_FUNCTION_NAME;
       }
 
-      worker->options.work_job_in_use= true;
       worker->work_result_size= 0;
     }
 
@@ -930,7 +917,7 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
 	return ret;
       }
 
-      if (worker->work_result != NULL)
+      if (worker->work_result)
       {
 	if ((&worker->universal)->workload_free_fn == NULL)
 	{
@@ -972,7 +959,7 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
 
   gearman_job_free(worker->work_job);
   worker->work_job= NULL;
-  worker->options.work_job_in_use= false;
+
   worker->work_state= GEARMAN_WORKER_WORK_UNIVERSAL_GRAB_JOB;
 
   return GEARMAN_SUCCESS;
@@ -991,7 +978,7 @@ gearman_return_t gearman_worker_echo(gearman_worker_st *worker,
 
 static gearman_worker_st *_worker_allocate(gearman_worker_st *worker, bool is_clone)
 {
-  if (worker == NULL)
+  if (not worker)
   {
     worker= new (std::nothrow) gearman_worker_st;
     if (worker == NULL)
@@ -1009,9 +996,6 @@ static gearman_worker_st *_worker_allocate(gearman_worker_st *worker, bool is_cl
 
   worker->options.non_blocking= false;
   worker->options.packet_init= false;
-  worker->options.grab_job_in_use= false;
-  worker->options.pre_sleep_in_use= false;
-  worker->options.work_job_in_use= false;
   worker->options.change= false;
   worker->options.grab_uniq= false;
   worker->options.timeout_return= false;
@@ -1035,7 +1019,7 @@ static gearman_worker_st *_worker_allocate(gearman_worker_st *worker, bool is_cl
     gearman_universal_st *check;
 
     check= gearman_universal_create(&worker->universal, NULL);
-    if (check == NULL)
+    if (not check)
     {
       gearman_worker_free(worker);
       return NULL;
@@ -1129,7 +1113,7 @@ static gearman_return_t _worker_function_create(gearman_worker_st *worker,
     return ret;
   }
 
-  if (worker->function_list != NULL)
+  if (worker->function_list)
     worker->function_list->prev= function;
 
   function->next= worker->function_list;
@@ -1147,9 +1131,9 @@ static void _worker_function_free(gearman_worker_st *worker,
 {
   if (worker->function_list == function)
     worker->function_list= function->next;
-  if (function->prev != NULL)
+  if (function->prev)
     function->prev->next= function->next;
-  if (function->next != NULL)
+  if (function->next)
     function->next->prev= function->prev;
   worker->function_count--;
 

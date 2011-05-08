@@ -81,9 +81,6 @@ struct gearman_worker_st
     bool allocated;
     bool non_blocking;
     bool packet_init;
-    bool grab_job_in_use;
-    bool pre_sleep_in_use;
-    bool work_job_in_use;
     bool change;
     bool grab_uniq;
     bool timeout_return;
