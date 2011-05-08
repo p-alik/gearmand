@@ -43,24 +43,7 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
-/**
- * @addtogroup gearman_job Job Declarations
- * @ingroup gearman_worker
- *
- * The job functions are used to manage jobs assigned to workers. It is most
- * commonly used with the worker interface.
- *
- * @{
- */
-
-
-/**
- * @ingroup gearman_job
- */
 struct gearman_job_st
 {
   struct {
@@ -76,6 +59,20 @@ struct gearman_job_st
   gearman_packet_st assigned;
   gearman_packet_st work;
 };
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/**
+ * @addtogroup gearman_job Job Declarations
+ * @ingroup gearman_worker
+ *
+ * The job functions are used to manage jobs assigned to workers. It is most
+ * commonly used with the worker interface.
+ *
+ * @{
+ */
 
 /**
  * Initialize a job structure. Always check the return value even if passing

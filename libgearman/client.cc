@@ -660,13 +660,13 @@ gearman_return_t gearman_client_job_status(gearman_client_st *client,
   ret= gearman_client_run_tasks(client);
   if (ret != GEARMAN_IO_WAIT)
   {
-    if (is_known != NULL)
+    if (is_known)
       *is_known= do_task.options.is_known;
-    if (is_running != NULL)
+    if (is_running)
       *is_running= do_task.options.is_running;
-    if (numerator != NULL)
+    if (numerator)
       *numerator= do_task.numerator;
-    if (denominator != NULL)
+    if (denominator)
       *denominator= do_task.denominator;
   }
   gearman_task_free(do_task_ptr);
@@ -683,7 +683,7 @@ gearman_return_t gearman_client_echo(gearman_client_st *client,
 
 void gearman_client_task_free_all(gearman_client_st *client)
 {
-  while (client->task_list != NULL)
+  while (client->task_list)
     gearman_task_free(client->task_list);
 }
 
@@ -993,7 +993,7 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
       /* Start any new tasks. */
       if (client->new_tasks > 0 && ! (client->options.no_new))
       {
-        for (client->task= client->task_list; client->task != NULL;
+        for (client->task= client->task_list; client->task;
              client->task= client->task->next)
         {
           if (client->task->state != GEARMAN_TASK_STATE_NEW)
@@ -1020,12 +1020,12 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
       }
 
       /* See if there are any connections ready for I/O. */
-      while ((client->con= gearman_ready(&client->universal)) != NULL)
+      while ((client->con= gearman_ready(&client->universal)))
       {
         if (client->con->revents & (POLLOUT | POLLERR | POLLHUP | POLLNVAL))
         {
           /* Socket is ready for writing, continue submitting jobs. */
-          for (client->task= client->task_list; client->task != NULL;
+          for (client->task= client->task_list; client->task;
                client->task= client->task->next)
           {
             if (client->task->con != client->con ||
@@ -1057,7 +1057,7 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
             /* If client is handling the data read, make sure it's complete. */
             if (client->con->recv_state == GEARMAN_CON_RECV_STATE_READ_DATA)
             {
-              for (client->task= client->task_list; client->task != NULL;
+              for (client->task= client->task_list; client->task;
                    client->task= client->task->next)
               {
                 if (client->task->con == client->con &&
@@ -1068,7 +1068,7 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
                 }
               }
 
-              assert(client->task != NULL);
+              assert(client->task);
             }
             else
             {
@@ -1101,7 +1101,7 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
             client->con->options.packet_in_use= true;
 
             /* We have a packet, see which task it belongs to. */
-            for (client->task= client->task_list; client->task != NULL;
+            for (client->task= client->task_list; client->task;
                  client->task= client->task->next)
             {
               if (client->task->con != client->con)
@@ -1343,7 +1343,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client, gearman_task
       return GEARMAN_NO_SERVERS;
     }
 
-    for (task->con= task->client->universal.con_list; task->con != NULL;
+    for (task->con= task->client->universal.con_list; task->con;
          task->con= task->con->next)
     {
       if (task->con->send_state == GEARMAN_CON_SEND_STATE_NONE)
@@ -1371,7 +1371,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client, gearman_task
       ret= gearman_connection_send(task->con, &(task->send),
                                    client->new_tasks == 0 ? true : false);
 
-      if (ret == GEARMAN_SUCCESS)
+      if (gearman_success(ret))
       {
         break;
       }
@@ -1387,7 +1387,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client, gearman_task
 
         if (ret == GEARMAN_COULD_NOT_CONNECT)
         {
-          for (task->con= task->con->next; task->con != NULL;
+          for (task->con= task->con->next; task->con;
                task->con= task->con->next)
           {
             if (task->con->send_state == GEARMAN_CON_SEND_STATE_NONE)
@@ -1415,7 +1415,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client, gearman_task
 
     if (task->send.data_size > 0 && task->send.data == NULL)
     {
-      if (task->func.workload_fn == NULL)
+      if (not task->func.workload_fn)
       {
         gearman_universal_set_error(&client->universal,
                                     GEARMAN_NEED_WORKLOAD_FN,
@@ -1445,7 +1445,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client, gearman_task
                static_cast<char *>(task->recv->arg[0]));
 
   case GEARMAN_TASK_STATE_CREATED:
-      if (task->func.created_fn != NULL)
+      if (task->func.created_fn)
       {
         gearman_return_t ret= task->func.created_fn(task);
         if (gearman_failed(ret))
@@ -1466,7 +1466,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client, gearman_task
     else if (task->recv->command == GEARMAN_COMMAND_WORK_DATA)
     {
   case GEARMAN_TASK_STATE_DATA:
-      if (task->func.data_fn != NULL)
+      if (task->func.data_fn)
       {
         gearman_return_t ret= task->func.data_fn(task);
         if (gearman_failed(ret))
@@ -1479,7 +1479,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client, gearman_task
     else if (task->recv->command == GEARMAN_COMMAND_WORK_WARNING)
     {
   case GEARMAN_TASK_STATE_WARNING:
-      if (task->func.warning_fn != NULL)
+      if (task->func.warning_fn)
       {
         gearman_return_t ret= task->func.warning_fn(task);
         if (gearman_failed(ret))
@@ -1521,7 +1521,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client, gearman_task
       task->denominator= uint32_t(atoi(status_buffer));
 
   case GEARMAN_TASK_STATE_STATUS:
-      if (task->func.status_fn != NULL)
+      if (task->func.status_fn)
       {
         gearman_return_t ret= task->func.status_fn(task);
         if (gearman_failed(ret))
@@ -1537,7 +1537,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client, gearman_task
     else if (task->recv->command == GEARMAN_COMMAND_WORK_COMPLETE)
     {
   case GEARMAN_TASK_STATE_COMPLETE:
-      if (task->func.complete_fn != NULL)
+      if (task->func.complete_fn)
       {
         gearman_return_t ret= task->func.complete_fn(task);
         if (gearman_failed(ret))
@@ -1558,7 +1558,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client, gearman_task
     else if (task->recv->command == GEARMAN_COMMAND_WORK_EXCEPTION)
     {
   case GEARMAN_TASK_STATE_EXCEPTION:
-      if (task->func.exception_fn != NULL)
+      if (task->func.exception_fn)
       {
         gearman_return_t ret= task->func.exception_fn(task);
         if (gearman_failed(ret))
@@ -1577,7 +1577,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client, gearman_task
       task->result_rc= GEARMAN_WORK_FAIL;
 
   case GEARMAN_TASK_STATE_FAIL:
-      if (task->func.fail_fn != NULL)
+      if (task->func.fail_fn)
       {
         gearman_return_t ret= task->func.fail_fn(task);
         if (gearman_failed(ret))

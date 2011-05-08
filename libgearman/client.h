@@ -43,12 +43,7 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/**
- * @addtogroup gearman_client Client Declarations
+/** @addtogroup gearman_client Client Declarations
  *
  * This is the interface gearman clients should use. You can run tasks one at a
  * time or concurrently.
@@ -88,6 +83,10 @@ struct gearman_client_st
   struct gearman_universal_st universal;
   struct gearman_actions_t actions;
 };
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * Initialize a client structure. Always check the return value even if passing
