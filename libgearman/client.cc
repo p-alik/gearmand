@@ -403,8 +403,7 @@ static inline gearman_command_t pick_command_by_priority_background(const gearma
   return GEARMAN_COMMAND_SUBMIT_JOB_LOW_BG;
 }
 
-#if 0
-static size_t _count_tasks(gearman_client_st *client)
+size_t gearman_client_count_tasks(gearman_client_st *client)
 {
   size_t count= 1;
   gearman_task_st *search= client->task_list;
@@ -417,6 +416,7 @@ static size_t _count_tasks(gearman_client_st *client)
   return count;
 }
 
+#if 0
 static bool _active_tasks(gearman_client_st *client)
 {
   assert(client);
@@ -481,29 +481,6 @@ static gearman_task_st *_task_setup(gearman_client_st *client,
   return task;
 }
 
-static gearman_return_t _task_subsetup(gearman_task_st *task, gearman_string_t &payload)
-{
-  gearman_command_t command= GEARMAN_COMMAND_SUBMIT_JOB;
-  static gearman_unique_t unique= gearman_unique_make(0, 0);
-
-  gearman_task_st *subtask= add_task(task->client,
-                                     task->context,
-                                     command,
-                                     gearman_c_str_param(gearman_task_function_name(task)),
-                                     unique,
-                                     payload,
-                                     0,
-                                     task->func,
-                                     task->reducer);
-  if (not subtask)
-  {
-    return gearman_universal_error_code(&task->client->universal);
-  }
-  gearman_task_add_subtask(task, subtask); 
-
-  return GEARMAN_SUCCESS;
-}
-
 gearman_task_st *gearman_client_execute(gearman_client_st *client,
                                         const gearman_function_st *function,
                                         gearman_workload_t *workload,
@@ -552,17 +529,6 @@ gearman_task_st *gearman_client_execute(gearman_client_st *client,
   }
 
   return task;
-}
-
-bool gearman_task_add_work(gearman_task_st *self, gearman_argument_t *arguments)
-{
-  if (not self)
-  {
-    errno= EINVAL;
-    return false;
-  }
-
-  return gearman_success(_task_subsetup(self, arguments->value));
 }
 
 const char *gearman_client_do_job_handle(const gearman_client_st *self)

@@ -777,29 +777,6 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
   }
 }
 
-void gearman_job_free(gearman_job_st *job)
-{
-  if (not job)
-    return;
-
-  if (job->options.assigned_in_use)
-    gearman_packet_free(&(job->assigned));
-
-  if (job->options.work_in_use)
-    gearman_packet_free(&(job->work));
-
-  if (job->worker->job_list == job)
-    job->worker->job_list= job->next;
-  if (job->prev)
-    job->prev->next= job->next;
-  if (job->next)
-    job->next->prev= job->prev;
-  job->worker->job_count--;
-
-  if (job->options.allocated)
-    delete job;
-}
-
 void gearman_job_free_all(gearman_worker_st *worker)
 {
   while (worker->job_list)
@@ -965,6 +942,14 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
   return GEARMAN_SUCCESS;
 }
 
+void gearman_worker_set_reducer(gearman_worker_st *self, gearman_reducer_t reducer)
+{
+  if (not self)
+    return;
+
+  self->reducer= reducer;
+}
+
 gearman_return_t gearman_worker_echo(gearman_worker_st *worker,
                                      const void *workload,
                                      size_t workload_size)
@@ -1013,6 +998,7 @@ static gearman_worker_st *_worker_allocate(gearman_worker_st *worker, bool is_cl
   worker->function_list= NULL;
   worker->work_function= NULL;
   worker->work_result= NULL;
+  worker->reducer= gearman_reducer_make(0, 0);
 
   if (not is_clone)
   {
@@ -1044,7 +1030,7 @@ static gearman_return_t _worker_packet_init(gearman_worker_st *worker)
   ret= gearman_packet_create_args((&worker->universal), &(worker->pre_sleep),
                                   GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_PRE_SLEEP,
                                   NULL, NULL, 0);
-  if (ret != GEARMAN_SUCCESS)
+  if (gearman_failed(ret))
   {
     gearman_packet_free(&(worker->grab_job));
     return ret;

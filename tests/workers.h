@@ -37,66 +37,17 @@
 
 #pragma once
 
-#include <time.h>
-#include <libgearman/actions.h>
-#include <libgearman/string.h>
-#include <libgearman/unique.h>
+void *echo_or_react_worker(gearman_job_st *job, void *,
+                           size_t *result_size, gearman_return_t *ret_ptr);
 
-struct gearman_argument_t {
-  gearman_string_t name;
-  gearman_string_t value;
-};
+void *echo_or_react_chunk_worker(gearman_job_st *job, void *,
+                                 size_t *result_size, gearman_return_t *ret_ptr);
 
-struct gearman_workload_t {
-  bool background;
-  bool batch;
-  gearman_job_priority_t priority;
-  time_t epoch;
-  struct gearman_reducer_t reducer;
-  void *context;
-};
+void *unique_worker(gearman_job_st *job, void *,
+                    size_t *result_size, gearman_return_t *ret_ptr);
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+void *split_worker(gearman_job_st *job, void *,
+                   size_t *result_size, gearman_return_t *ret_ptr);
 
-#define  gearman_next(X) (X) ? (X)->next : NULL
-
-GEARMAN_API
-gearman_workload_t gearman_workload_make(void);
-
-GEARMAN_API
-gearman_argument_t gearman_argument_make(const char *value, size_t value_size);
-
-GEARMAN_API
-void gearman_workload_set_epoch(gearman_workload_t *, time_t);
-
-GEARMAN_API
-void gearman_workload_set_reducer(gearman_workload_t *self, const struct gearman_reducer_t reducer);
-
-GEARMAN_API
-void gearman_workload_set_context(gearman_workload_t *, void *);
-
-GEARMAN_API
-void gearman_workload_set_priority(gearman_workload_t *, gearman_job_priority_t);
-
-GEARMAN_API
-void gearman_workload_set_background(gearman_workload_t *self, bool background);
-
-GEARMAN_API
-void gearman_workload_set_batch(gearman_workload_t *self, bool batch);
-
-// Everything below here is private
-
-GEARMAN_LOCAL
-time_t gearman_workload_epoch(const gearman_workload_t *);
-
-GEARMAN_LOCAL
-gearman_job_priority_t gearman_workload_priority(const gearman_workload_t *);
-
-GEARMAN_LOCAL
-bool gearman_workload_background(const gearman_workload_t *);
-
-#ifdef __cplusplus
-}
-#endif
+gearman_return_t cat_each_func(gearman_task_st *, void *);
+gearman_return_t cat_final_func(gearman_task_st *task, void *, gearman_result_st *result);

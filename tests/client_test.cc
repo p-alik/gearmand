@@ -31,14 +31,17 @@
 #define WORKER_FUNCTION_NAME "client_test"
 #define WORKER_CHUNKED_FUNCTION_NAME "reverse_test"
 #define WORKER_UNIQUE_FUNCTION_NAME "unique_test"
+#define WORKER_SPLIT_FUNCTION_NAME "split_worker"
 
 #include <tests/do.h>
 #include <tests/server_options.h>
 #include <tests/do_background.h>
 #include <tests/execute.h>
 #include <tests/gearman_client_do_job_handle.h>
+#include <tests/gearman_worker_set_reducer.h>
 #include <tests/task.h>
 #include <tests/unique.h>
+#include <tests/workers.h>
 
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -52,6 +55,7 @@ struct client_test_st
   struct worker_handle_st *completion_worker;
   struct worker_handle_st *chunky_worker;
   struct worker_handle_st *unique_check;
+  struct worker_handle_st *split_worker;
   const char *_worker_name;
 
   client_test_st() :
@@ -60,6 +64,7 @@ struct client_test_st
     completion_worker(NULL),
     chunky_worker(NULL),
     unique_check(NULL),
+    split_worker(NULL),
     _worker_name(WORKER_FUNCTION_NAME)
   { 
     if (not (_client= gearman_client_create(NULL)))
@@ -793,147 +798,6 @@ static test_return_t post_logging(void *)
   return TEST_SUCCESS;
 }
 
-
-static void *client_test_worker(gearman_job_st *job, void *,
-                                size_t *result_size, gearman_return_t *ret_ptr)
-{
-  const void *workload= gearman_job_workload(job);
-  *result_size= gearman_job_workload_size(job);
-
-  if (workload == NULL or *result_size == 0)
-  {
-    assert(workload == NULL and *result_size == 0);
-    *ret_ptr= GEARMAN_SUCCESS;
-    return NULL;
-  }
-  else if (*result_size == gearman_literal_param_size("fail") and (not memcmp(workload, gearman_literal_param("fail"))))
-  {
-    *ret_ptr= GEARMAN_WORK_FAIL;
-    return NULL;
-  }
-  else if (*result_size == gearman_literal_param_size("exception") and (not memcmp(workload, gearman_literal_param("exception"))))
-  {
-    gearman_return_t rc= gearman_job_send_exception(job, gearman_literal_param("test exception"));
-    if (gearman_failed(rc))
-    {
-      *ret_ptr= GEARMAN_WORK_FAIL;
-      return NULL;
-    }
-  }
-  else if (*result_size == gearman_literal_param_size("warning") and (not memcmp(workload, gearman_literal_param("warning"))))
-  {
-    gearman_return_t rc= gearman_job_send_warning(job, gearman_literal_param("test warning"));
-    if (gearman_failed(rc))
-    {
-      *ret_ptr= GEARMAN_WORK_FAIL;
-      return NULL;
-    }
-  }
-
-  void *result= malloc(*result_size);
-  assert(result);
-  memcpy(result, workload, *result_size);
-
-  *ret_ptr= GEARMAN_SUCCESS;
-  return result;
-}
-
-static void *client_chunk_test_worker(gearman_job_st *job, void *,
-                                      size_t *result_size, gearman_return_t *ret_ptr)
-{
-  const char *workload;
-  workload= (const char *)gearman_job_workload(job);
-  size_t workload_size= gearman_job_workload_size(job);
-
-  bool fail= false;
-  if (workload_size == gearman_literal_param_size("fail") and (not memcmp(workload, gearman_literal_param("fail"))))
-  {
-    fail= true;
-  }
-  else if (workload_size == gearman_literal_param_size("exception") and (not memcmp(workload, gearman_literal_param("exception"))))
-  {
-    gearman_return_t rc= gearman_job_send_exception(job, gearman_literal_param("test exception"));
-    if (gearman_failed(rc))
-    {
-      *ret_ptr= GEARMAN_WORK_FAIL;
-      return NULL;
-    }
-  }
-  else if (workload_size == gearman_literal_param_size("warning") and (not memcmp(workload, gearman_literal_param("warning"))))
-  {
-    gearman_return_t rc= gearman_job_send_warning(job, gearman_literal_param("test warning"));
-    if (gearman_failed(rc))
-    {
-      *ret_ptr= GEARMAN_WORK_FAIL;
-      return NULL;
-    }
-  }
-
-  for (size_t x= 0; x < workload_size; x++)
-  {
-    // Chunk
-    {
-      *ret_ptr= gearman_job_send_data(job, &workload[x], 1);
-      if (*ret_ptr != GEARMAN_SUCCESS)
-      {
-        return NULL;
-      }
-    }
-
-    // report status
-    {
-      *ret_ptr= gearman_job_send_status(job, (uint32_t)x,
-                                        (uint32_t)workload_size);
-      assert(gearman_success(*ret_ptr));
-      if (gearman_failed(*ret_ptr))
-      {
-        return NULL;
-      }
-
-      if (fail)
-      {
-        *ret_ptr= GEARMAN_WORK_FAIL;
-        return NULL;
-      }
-    }
-  }
-
-  *ret_ptr= GEARMAN_SUCCESS;
-  *result_size= 0;
-
-  return NULL;
-}
-
-// payload is unique value
-static void *client_test_unique_worker(gearman_job_st *job, void *,
-                                       size_t *result_size, gearman_return_t *ret_ptr)
-{
-  const void *workload= gearman_job_workload(job);
-
-  assert(job->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN_UNIQ);
-  assert(gearman_job_unique(job));
-  assert(gearman_job_workload_size(job));
-  assert(not memcmp(workload, gearman_job_unique(job), gearman_job_workload_size(job)));
-  if (gearman_job_workload_size(job) == strlen(gearman_job_unique(job)))
-  {
-    if (not memcmp(workload, gearman_job_unique(job), gearman_job_workload_size(job)))
-    {
-      void *result= malloc(gearman_job_workload_size(job));
-      assert(result);
-      memcpy(result, workload, gearman_job_workload_size(job));
-      *result_size= gearman_job_workload_size(job);
-      *ret_ptr= GEARMAN_SUCCESS;
-
-      return result;
-    }
-  }
-
-  *result_size= 0;
-  *ret_ptr= GEARMAN_WORK_FAIL;
-
-  return NULL;
-}
-
 void *client_test_temp_worker(gearman_job_st *, void *,
                               size_t *result_size, gearman_return_t *ret_ptr)
 {
@@ -970,13 +834,16 @@ void *world_create(test_return_t *error)
     return NULL;
   }
 
-  test->completion_worker= test_worker_start(CLIENT_TEST_PORT, WORKER_FUNCTION_NAME, client_test_worker, NULL, gearman_worker_options_t());
-  test->chunky_worker= test_worker_start(CLIENT_TEST_PORT, WORKER_CHUNKED_FUNCTION_NAME, client_chunk_test_worker, NULL, gearman_worker_options_t());
-  test->unique_check= test_worker_start(CLIENT_TEST_PORT, WORKER_UNIQUE_FUNCTION_NAME, client_test_unique_worker, NULL, GEARMAN_WORKER_GRAB_UNIQ);
+  test->completion_worker= test_worker_start(CLIENT_TEST_PORT, WORKER_FUNCTION_NAME, echo_or_react_worker, NULL, gearman_worker_options_t());
+  test->chunky_worker= test_worker_start(CLIENT_TEST_PORT, WORKER_CHUNKED_FUNCTION_NAME, echo_or_react_chunk_worker, NULL, gearman_worker_options_t());
+  test->unique_check= test_worker_start(CLIENT_TEST_PORT, WORKER_UNIQUE_FUNCTION_NAME, unique_worker, NULL, GEARMAN_WORKER_GRAB_UNIQ);
+
+  gearman_reducer_t reducer= gearman_reducer_make(cat_each_func, cat_final_func);
+  test->split_worker= test_worker_start_with_reducer(CLIENT_TEST_PORT, WORKER_SPLIT_FUNCTION_NAME, split_worker, NULL, GEARMAN_WORKER_GRAB_UNIQ, reducer);
 
   test->gearmand_pid= gearmand_pid;
 
-  if (gearman_client_add_server(test->client(), NULL, CLIENT_TEST_PORT) != GEARMAN_SUCCESS)
+  if (gearman_failed(gearman_client_add_server(test->client(), NULL, CLIENT_TEST_PORT)))
   {
     *error= TEST_FAILURE;
     return NULL;
@@ -1050,9 +917,6 @@ test_st gearman_client_execute_tests[] ={
   {"gearman_client_execute() timeout", 0, gearman_client_execute_timeout_test },
   {"gearman_client_execute() background", 0, gearman_client_execute_bg_test },
   {"gearman_client_execute() multiple background", 0, gearman_client_execute_multile_bg_test },
-  {"gearman_client_execute() reduce", 0, gearman_client_execute_simple_reducer },
-  {"gearman_client_execute() reduce cat", 0, gearman_client_execute_simple_muti_value_cat_reducer },
-  {"gearman_client_execute() reduce sum", 0, gearman_client_execute_simple_muti_value_reducer },
   {0, 0, 0}
 };
 
@@ -1066,6 +930,11 @@ test_st gearman_client_do_background_tests[] ={
 test_st gearman_client_do_job_handle_tests[] ={
   {"gearman_client_do_job_handle() no active tasks", 0, gearman_client_do_job_handle_no_active_task },
   {"gearman_client_do_job_handle() follow do command", 0, gearman_client_do_job_handle_follow_do },
+  {0, 0, 0}
+};
+
+test_st gearman_worker_set_reducer_tests[] ={
+  {"gearman_worker_set_reducer()", 0, gearman_worker_set_reducer_test },
   {0, 0, 0}
 };
 
@@ -1100,6 +969,7 @@ collection_st collection[] ={
   {"gearman_client_execute chunky", pre_chunk, post_function_reset, gearman_client_execute_tests},
   {"gearman_client_do_job_handle", 0, 0, gearman_client_do_job_handle_tests},
   {"gearman_client_do_background", 0, 0, gearman_client_do_background_tests},
+  {"gearman_worker_set_reducer()", 0, 0, gearman_worker_set_reducer_tests},
   {"gearman_client_set_server_option", 0, 0, gearman_client_set_server_option_tests},
   {"client-logging", pre_logging, post_logging, tests_log},
   {0, 0, 0, 0}

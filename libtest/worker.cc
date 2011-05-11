@@ -30,6 +30,7 @@ struct context_st {
   void *function_arg;
   struct worker_handle_st *handle;
   gearman_worker_options_t options;
+  struct gearman_reducer_t reducer;
 };
 
 static void *thread_runner(void *con)
@@ -60,6 +61,11 @@ static void *thread_runner(void *con)
 
   assert(context->handle);
 
+  if (context->reducer.final_fn)
+  {
+    gearman_worker_set_reducer(worker_ptr,  context->reducer);
+  }
+
   while (context->handle->shutdown == false)
   {
     gearman_return_t ret= gearman_worker_work(&worker);
@@ -72,10 +78,18 @@ static void *thread_runner(void *con)
 
   pthread_exit(0);
 }
-
 struct worker_handle_st *test_worker_start(in_port_t port, const char *function_name,
                                            gearman_worker_fn *function, void *function_arg,
                                            gearman_worker_options_t options)
+{
+  gearman_reducer_t reducer= gearman_reducer_make(0, 0);
+  return test_worker_start_with_reducer(port, function_name, function, function_arg, options, reducer);
+}
+
+struct worker_handle_st *test_worker_start_with_reducer(in_port_t port, const char *function_name,
+							gearman_worker_fn *function, void *function_arg,
+							gearman_worker_options_t options,
+							struct gearman_reducer_t reducer)
 {
   pthread_attr_t attr;
 
@@ -93,6 +107,7 @@ struct worker_handle_st *test_worker_start(in_port_t port, const char *function_
   foo->function_arg= function_arg;
   foo->handle= handle;
   foo->options= options;
+  foo->reducer= reducer;
 
   int rc= pthread_create(&handle->thread, &attr, thread_runner, foo);
   assert(rc == 0);

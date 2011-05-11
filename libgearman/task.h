@@ -95,7 +95,6 @@ struct gearman_task_st
   gearman_client_st *client;
   gearman_task_st *next;
   gearman_task_st *prev;
-  gearman_task_st *reducer_list;
   void *context;
   gearman_connection_st *con;
   gearman_packet_st *recv;
@@ -120,9 +119,6 @@ struct gearman_task_st
 GEARMAN_LOCAL
 gearman_task_st *gearman_task_internal_create(gearman_client_st *client,
                                               gearman_task_st *task);
-
-GEARMAN_LOCAL
-void gearman_task_add_subtask(gearman_task_st *task, gearman_task_st *subtask);
 
 GEARMAN_LOCAL
 const char *gearman_task_strstate(gearman_task_st *self);

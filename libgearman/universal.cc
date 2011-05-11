@@ -75,7 +75,6 @@ gearman_universal_st *gearman_universal_create(gearman_universal_st *universal, 
 gearman_universal_st *gearman_universal_clone(gearman_universal_st *destination, const gearman_universal_st *source)
 {
   gearman_universal_st *check;
-  gearman_connection_st *con;
 
   assert(destination);
   assert(source);
@@ -95,7 +94,7 @@ gearman_universal_st *gearman_universal_clone(gearman_universal_st *destination,
 
   destination->timeout= source->timeout;
 
-  for (con= source->con_list; con != NULL; con= con->next)
+  for (gearman_connection_st *con= source->con_list; con; con= con->next)
   {
     if (gearman_connection_clone(destination, NULL, con) == NULL)
     {

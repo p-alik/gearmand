@@ -42,6 +42,3 @@ test_return_t gearman_client_execute_timeout_test(void *object);
 test_return_t gearman_client_execute_epoch_test(void *object);
 test_return_t gearman_client_execute_bg_test(void *object);
 test_return_t gearman_client_execute_multile_bg_test(void *object);
-test_return_t gearman_client_execute_simple_reducer(void *object);
-test_return_t gearman_client_execute_simple_muti_value_reducer(void *object);
-test_return_t gearman_client_execute_simple_muti_value_cat_reducer(void *object);

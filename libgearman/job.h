@@ -43,7 +43,6 @@
 
 #pragma once
 
-
 struct gearman_job_st
 {
   struct {
@@ -58,6 +57,7 @@ struct gearman_job_st
   gearman_connection_st *con;
   gearman_packet_st assigned;
   gearman_packet_st work;
+  struct gearman_job_reducer_st *reducer;
 };
 
 #ifdef __cplusplus

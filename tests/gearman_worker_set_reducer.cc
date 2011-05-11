@@ -35,68 +35,38 @@
  *
  */
 
-#pragma once
+#include <libtest/test.h>
+#include <cassert>
+#include <cstring>
+#include <iostream>
+#include <libgearman/gearman.h>
+#include <tests/gearman_worker_set_reducer.h>
 
-#include <time.h>
-#include <libgearman/actions.h>
-#include <libgearman/string.h>
-#include <libgearman/unique.h>
-
-struct gearman_argument_t {
-  gearman_string_t name;
-  gearman_string_t value;
-};
-
-struct gearman_workload_t {
-  bool background;
-  bool batch;
-  gearman_job_priority_t priority;
-  time_t epoch;
-  struct gearman_reducer_t reducer;
-  void *context;
-};
-
-#ifdef __cplusplus
-extern "C" {
+#ifndef __INTEL_COMPILER
+#pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
-#define  gearman_next(X) (X) ? (X)->next : NULL
+test_return_t gearman_worker_set_reducer_test(void *object)
+{
+  gearman_client_st *client= (gearman_client_st *)object;
+  gearman_function_st *function= gearman_function_create(gearman_literal_param("split_worker"));
+  gearman_workload_t workload= gearman_workload_make();
 
-GEARMAN_API
-gearman_workload_t gearman_workload_make(void);
+  gearman_task_st *task;
+  gearman_argument_t work_args= gearman_argument_make(gearman_literal_param("this dog does not hunt"));
+  test_true_got(task= gearman_client_execute(client, function, &workload, 0, 0, &work_args), gearman_client_error(client));
 
-GEARMAN_API
-gearman_argument_t gearman_argument_make(const char *value, size_t value_size);
+  gearman_result_st *result= gearman_task_result(task);
+  test_truth(result);
+  const char *value= gearman_result_value(result);
+  test_truth(value);
+  test_compare(18, gearman_result_size(result));
 
-GEARMAN_API
-void gearman_workload_set_epoch(gearman_workload_t *, time_t);
+  std::cerr << "We got back " << value << " :" << gearman_result_size(result) << std::endl;
 
-GEARMAN_API
-void gearman_workload_set_reducer(gearman_workload_t *self, const struct gearman_reducer_t reducer);
+  gearman_task_free(task);
+  gearman_function_free(function);
+  gearman_client_task_free_all(client);
 
-GEARMAN_API
-void gearman_workload_set_context(gearman_workload_t *, void *);
-
-GEARMAN_API
-void gearman_workload_set_priority(gearman_workload_t *, gearman_job_priority_t);
-
-GEARMAN_API
-void gearman_workload_set_background(gearman_workload_t *self, bool background);
-
-GEARMAN_API
-void gearman_workload_set_batch(gearman_workload_t *self, bool batch);
-
-// Everything below here is private
-
-GEARMAN_LOCAL
-time_t gearman_workload_epoch(const gearman_workload_t *);
-
-GEARMAN_LOCAL
-gearman_job_priority_t gearman_workload_priority(const gearman_workload_t *);
-
-GEARMAN_LOCAL
-bool gearman_workload_background(const gearman_workload_t *);
-
-#ifdef __cplusplus
+  return TEST_SUCCESS;
 }
-#endif

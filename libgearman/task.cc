@@ -93,7 +93,6 @@ gearman_task_st *gearman_task_internal_create(gearman_client_st *client, gearman
     client->task_list->prev= task;
   task->next= client->task_list;
   task->prev= NULL;
-  task->reducer_list= NULL;
   client->task_list= task;
   client->task_count++;
 
@@ -129,22 +128,15 @@ void gearman_task_free(gearman_task_st *task)
   if (task->client->task_list == task)
     task->client->task_list= task->next;
 
-  if (task->prev != NULL)
+  if (task->prev)
     task->prev->next= task->next;
-  if (task->next != NULL)
+  if (task->next)
     task->next->prev= task->prev;
 
   task->client->task_count--;
 
   if (task->options.allocated)
     delete task;
-}
-
-void gearman_task_add_subtask(gearman_task_st *task, gearman_task_st *subtask)
-{
-  assert(task); // Programmer error
-  subtask->reducer_list= task->reducer_list;
-  task->reducer_list= subtask;
 }
 
 void gearman_task_free_result(gearman_task_st *task)

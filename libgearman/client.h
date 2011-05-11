@@ -471,9 +471,6 @@ void gearman_client_set_task_context_free_fn(gearman_client_st *client,
                                              gearman_task_context_free_fn *function);
 
 GEARMAN_API
-bool gearman_task_add_work(gearman_task_st *self, gearman_argument_t *arguments);
-
-GEARMAN_API
 gearman_task_st *gearman_client_execute(gearman_client_st *client,
                                         const gearman_function_st *function,
                                         gearman_workload_t *workload,
@@ -709,6 +706,9 @@ bool gearman_client_compare(const gearman_client_st *first, const gearman_client
 
 GEARMAN_API
 bool gearman_client_set_server_option(gearman_client_st *self, const char *option_arg, size_t option_arg_size);
+
+GEARMAN_LOCAL
+size_t gearman_client_count_tasks(gearman_client_st *client);
 
 /** @} */
 
