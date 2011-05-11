@@ -41,7 +41,7 @@
 
 gearman_workload_t gearman_workload_make()
 {
-  static gearman_workload_t local= { false, false, GEARMAN_JOB_PRIORITY_NORMAL, 0, {0, 0},  0};
+  static gearman_workload_t local= { false, false, GEARMAN_JOB_PRIORITY_NORMAL, 0, 0};
 
   return local;
 }
@@ -59,14 +59,6 @@ time_t gearman_workload_epoch(const gearman_workload_t *self)
     return 0;
 
   return self->epoch;
-}
-
-void gearman_workload_set_reducer(gearman_workload_t *self, const gearman_reducer_t reducer)
-{
-  if (not self)
-    return;
-
-  self->reducer= reducer;
 }
 
 void gearman_workload_set_batch(gearman_workload_t *self, bool batch)

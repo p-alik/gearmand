@@ -19,7 +19,6 @@ nobase_include_HEADERS+= \
 			 libgearman/connection.h \
 			 libgearman/constants.h \
 			 libgearman/core.h \
-			 libgearman/function.h \
 			 libgearman/gearman.h \
 			 libgearman/job.h \
 			 libgearman/log.h \
@@ -61,7 +60,6 @@ libgearman_libgearman_la_SOURCES= \
 				  libgearman/byteorder.cc \
 				  libgearman/client.cc \
 				  libgearman/connection.cc \
-				  libgearman/function.cc \
 				  libgearman/gearman.cc \
 				  libgearman/job.cc \
 				  libgearman/log.cc \

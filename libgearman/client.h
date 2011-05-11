@@ -472,9 +472,9 @@ void gearman_client_set_task_context_free_fn(gearman_client_st *client,
 
 GEARMAN_API
 gearman_task_st *gearman_client_execute(gearman_client_st *client,
-                                        const gearman_function_st *function,
-                                        gearman_workload_t *workload,
+                                        const char *function, size_t function_length,
                                         const char *unique, size_t unique_length,
+                                        gearman_workload_t *workload,
                                         gearman_argument_t *arguments);
 
 

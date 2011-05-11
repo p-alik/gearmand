@@ -49,12 +49,11 @@
 test_return_t gearman_worker_set_reducer_test(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
-  gearman_function_st *function= gearman_function_create(gearman_literal_param("split_worker"));
   gearman_workload_t workload= gearman_workload_make();
 
   gearman_task_st *task;
   gearman_argument_t work_args= gearman_argument_make(gearman_literal_param("this dog does not hunt"));
-  test_true_got(task= gearman_client_execute(client, function, &workload, 0, 0, &work_args), gearman_client_error(client));
+  test_true_got(task= gearman_client_execute(client, gearman_literal_param("split_worker"), NULL, 0, &workload, &work_args), gearman_client_error(client));
 
   gearman_result_st *result= gearman_task_result(task);
   test_truth(result);
@@ -62,10 +61,7 @@ test_return_t gearman_worker_set_reducer_test(void *object)
   test_truth(value);
   test_compare(18, gearman_result_size(result));
 
-  std::cerr << "We got back " << value << " :" << gearman_result_size(result) << std::endl;
-
   gearman_task_free(task);
-  gearman_function_free(function);
   gearman_client_task_free_all(client);
 
   return TEST_SUCCESS;

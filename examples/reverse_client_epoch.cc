@@ -126,16 +126,13 @@ int main(int args, char *argv[])
   if (timeout >= 0)
     gearman_client_set_timeout(&client, timeout);
 
-  gearman_function_st *function= gearman_function_create(gearman_literal_param("reverse"));
-
-  gearman_unique_t unique= gearman_unique_make(gearman_literal_param("epoch"));
   gearman_workload_t workload= gearman_workload_make();
   gearman_workload_set_epoch(&workload, time(NULL) +epoch);
 
   gearman_task_st *task;
   gearman_argument_t value= gearman_argument_make(text_to_echo.c_str(), text_to_echo.size());
 
-  if (not (task= gearman_client_execute(&client, function, &workload, 0, 0, &value)))
+  if (not (task= gearman_client_execute(&client, gearman_literal_param("reverse"), NULL, 0, &workload, &value)))
   {
     std::cerr << gearman_client_error(&client) << std::endl;
     return EXIT_FAILURE;

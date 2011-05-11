@@ -88,14 +88,14 @@ struct gearman_job_reducer_st {
 
   bool add(gearman_argument_t &arguments)
   {
+    gearman_string_t function= { gearman_literal_param("client_test") };
     gearman_unique_t unique= gearman_unique_make(0, 0);
     gearman_task_st *task= add_task(client,
                                     NULL,
                                     GEARMAN_COMMAND_SUBMIT_JOB,
-                                    gearman_literal_param("client_test"),
+                                    function,
                                     unique,
                                     arguments.value,
-                                    0,
                                     gearman_actions_execute_defaults(),
                                     actions);
     if (not task)

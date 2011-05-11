@@ -56,15 +56,13 @@
 gearman_task_st *add_task(gearman_client_st *client,
                           void *context,
                           gearman_command_t command,
-                          const char *function_name,
-                          size_t function_name_length,
+                          const gearman_string_t &function,
                           const gearman_unique_t &unique,
                           const gearman_string_t &work,
-                          time_t when,
                           struct gearman_actions_t &actions,
                           struct gearman_reducer_t &reducer)
 {
-  gearman_task_st *task= add_task(client, NULL, context, command, function_name, function_name_length, unique, gearman_c_str(work), gearman_size(work), when);
+  gearman_task_st *task= add_task(client, NULL, context, command, function, unique, gearman_c_str(work), gearman_size(work), 0);
   if (not task)
     return NULL;
 
@@ -79,11 +77,28 @@ gearman_task_st *add_task(gearman_client_st *client,
 }
 
 gearman_task_st *add_task(gearman_client_st *client,
+                          void *context,
+                          gearman_command_t command,
+                          const gearman_string_t &function,
+                          const gearman_unique_t &unique,
+                          const gearman_string_t &work,
+                          time_t when,
+                          struct gearman_actions_t &actions)
+{
+  gearman_task_st *task= add_task(client, NULL, context, command, function, unique, gearman_c_str(work), gearman_size(work), when);
+  if (not task)
+    return NULL;
+
+  task->func= actions;
+
+  return task;
+}
+
+gearman_task_st *add_task(gearman_client_st *client,
                           gearman_task_st *task,
                           void *context,
                           gearman_command_t command,
-                          const char *function_name,
-                          size_t function_name_length,
+                          const gearman_string_t &function,
                           const gearman_unique_t &unique,
                           const void *workload,
                           size_t workload_size,
@@ -112,8 +127,8 @@ gearman_task_st *add_task(gearman_client_st *client,
   /**
     @todo fix it so that NULL is done by default by the API not by happenstance.
   */
-  args[0]= function_name;
-  args_size[0]= function_name_length + 1;
+  args[0]= gearman_c_str(function);
+  args_size[0]= gearman_size(function) + 1;
 
   if (gearman_size(unique))
   {

@@ -40,7 +40,6 @@
 #include <time.h>
 #include <libgearman/actions.h>
 #include <libgearman/string.h>
-#include <libgearman/unique.h>
 
 struct gearman_argument_t {
   gearman_string_t name;
@@ -52,7 +51,6 @@ struct gearman_workload_t {
   bool batch;
   gearman_job_priority_t priority;
   time_t epoch;
-  struct gearman_reducer_t reducer;
   void *context;
 };
 
@@ -70,9 +68,6 @@ gearman_argument_t gearman_argument_make(const char *value, size_t value_size);
 
 GEARMAN_API
 void gearman_workload_set_epoch(gearman_workload_t *, time_t);
-
-GEARMAN_API
-void gearman_workload_set_reducer(gearman_workload_t *self, const struct gearman_reducer_t reducer);
 
 GEARMAN_API
 void gearman_workload_set_context(gearman_workload_t *, void *);

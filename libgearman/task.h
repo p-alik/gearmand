@@ -86,7 +86,6 @@ struct gearman_task_st
     bool is_known;
     bool is_running;
     bool was_reduced;
-    bool is_reducer;
   } options;
   enum gearman_task_state_t state;
   uint32_t created_id;

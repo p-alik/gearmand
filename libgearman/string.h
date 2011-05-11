@@ -116,9 +116,9 @@ gearman_string_t gearman_string_take_string(gearman_string_st *self);
 #endif
 
 #ifdef __cplusplus // correct define
-#define gearman_string_make(X) (static_cast<size_t>((sizeof(X) - 1))), (X)
+#define gearman_string_make(X) (X), size_t>((sizeof(X) - 1))
 #else
-#define gearman_string_make(X) (((size_t)((sizeof(X) - 1))), (X)
+#define gearman_string_make(X) (X), (((size_t)((sizeof(X) - 1)))
 #endif // correct define
 
-#define gearman_string_make_from_cstr(X) ((X) ? strlen(X) : 0), X
+#define gearman_string_make_from_cstr(X) (X), ((X) ? strlen(X) : 0)

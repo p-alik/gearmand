@@ -741,14 +741,6 @@ static test_return_t strerror_strings(void *object  __attribute__((unused)))
   return TEST_SUCCESS;
 }
 
-static test_return_t allocate_function(void *)
-{
-  gearman_function_st *function= gearman_function_create(gearman_literal_param("test"));
-  gearman_function_free(function);
-
-  return TEST_SUCCESS;
-}
-
 static uint32_t global_counter;
 
 static test_return_t pre_chunk(void *object)
@@ -911,7 +903,6 @@ test_st gearman_client_do_tests[] ={
 };
 
 test_st gearman_client_execute_tests[] ={
-  {"allocate", 0, allocate_function },
   {"gearman_client_execute()", 0, gearman_client_execute_test },
   {"gearman_client_execute() epoch", 0, gearman_client_execute_epoch_test },
   {"gearman_client_execute() timeout", 0, gearman_client_execute_timeout_test },
