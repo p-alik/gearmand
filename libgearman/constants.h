@@ -154,7 +154,8 @@ typedef enum
   GEARMAN_WORKER_CHANGE=           (1 << 6),
   GEARMAN_WORKER_GRAB_UNIQ=        (1 << 7),
   GEARMAN_WORKER_TIMEOUT_RETURN=   (1 << 8),
-  GEARMAN_WORKER_MAX=   (1 << 9)
+  GEARMAN_WORKER_GRAB_ALL=   (1 << 9),
+  GEARMAN_WORKER_MAX=   (1 << 10)
 } gearman_worker_options_t;
 
 /**
@@ -172,7 +173,7 @@ typedef struct gearman_task_st gearman_task_st;
 typedef struct gearman_client_st gearman_client_st;
 typedef struct gearman_job_st gearman_job_st;
 typedef struct gearman_worker_st gearman_worker_st;
-typedef struct gearman_workload_t gearman_workload_t;
+typedef struct gearman_work_t gearman_work_t;
 typedef struct gearman_result_st gearman_result_st;
 typedef struct gearman_string_t gearman_string_t;
 typedef struct gearman_argument_t gearman_argument_t;

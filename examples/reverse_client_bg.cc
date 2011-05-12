@@ -126,9 +126,7 @@ int main(int args, char *argv[])
     gearman_client_set_timeout(&client, timeout);
 
 
-  gearman_workload_t workload= gearman_workload_make();
-  gearman_workload_set_background(&workload, true);
-
+  gearman_work_t workload= gearman_work(GEARMAN_JOB_PRIORITY_NORMAL);
 
   gearman_task_st *task;
   gearman_argument_t values[]= {

@@ -47,6 +47,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <memory>
+#include <iostream>
 
 #ifdef HAVE_UUID_UUID_H
 #include <uuid/uuid.h>
@@ -58,11 +59,11 @@ gearman_task_st *add_task(gearman_client_st *client,
                           gearman_command_t command,
                           const gearman_string_t &function,
                           const gearman_unique_t &unique,
-                          const gearman_string_t &work,
+                          const gearman_string_t &workload,
                           struct gearman_actions_t &actions,
                           struct gearman_reducer_t &reducer)
 {
-  gearman_task_st *task= add_task(client, NULL, context, command, function, unique, gearman_c_str(work), gearman_size(work), 0);
+  gearman_task_st *task= add_task(client, NULL, context, command, function, unique, workload, time_t(0));
   if (not task)
     return NULL;
 
@@ -81,11 +82,11 @@ gearman_task_st *add_task(gearman_client_st *client,
                           gearman_command_t command,
                           const gearman_string_t &function,
                           const gearman_unique_t &unique,
-                          const gearman_string_t &work,
+                          const gearman_string_t &workload,
                           time_t when,
                           struct gearman_actions_t &actions)
 {
-  gearman_task_st *task= add_task(client, NULL, context, command, function, unique, gearman_c_str(work), gearman_size(work), when);
+  gearman_task_st *task= add_task(client, NULL, context, command, function, unique, workload, when);
   if (not task)
     return NULL;
 
@@ -100,8 +101,7 @@ gearman_task_st *add_task(gearman_client_st *client,
                           gearman_command_t command,
                           const gearman_string_t &function,
                           const gearman_unique_t &unique,
-                          const void *workload,
-                          size_t workload_size,
+                          const gearman_string_t &workload,
                           time_t when)
 {
   uuid_t uuid;
@@ -109,7 +109,7 @@ gearman_task_st *add_task(gearman_client_st *client,
   const void *args[4];
   size_t args_size[4];
 
-  if ((workload_size && workload == NULL) or (workload_size == 0 && workload))
+  if ((gearman_size(workload) && gearman_c_str(workload) == NULL) or (gearman_size(workload) == 0 && gearman_c_str(workload)))
   {
     gearman_error(&client->universal, GEARMAN_INVALID_ARGUMENT, "invalid workload");
     return NULL;
@@ -151,8 +151,8 @@ gearman_task_st *add_task(gearman_client_st *client,
     int length= snprintf(time_string, sizeof(time_string), "%lld", static_cast<long long>(when));
     args[2]= time_string;
     args_size[2]= length +1;
-    args[3]= workload;
-    args_size[3]= workload_size;
+    args[3]= gearman_c_str(workload);
+    args_size[3]= gearman_size(workload);
 
     rc= gearman_packet_create_args(&client->universal, &(task->send),
                                    GEARMAN_MAGIC_REQUEST, command,
@@ -161,8 +161,8 @@ gearman_task_st *add_task(gearman_client_st *client,
   }
   else
   {
-    args[2]= workload;
-    args_size[2]= workload_size;
+    args[2]= gearman_c_str(workload);
+    args_size[2]= gearman_size(workload);
 
     rc= gearman_packet_create_args(&client->universal, &(task->send),
                                    GEARMAN_MAGIC_REQUEST, command,
@@ -181,6 +181,115 @@ gearman_task_st *add_task(gearman_client_st *client,
     gearman_task_free(task);
     task= NULL;
     gearman_error((&client->universal), rc, "");
+  }
+
+  return task;
+}
+
+gearman_task_st *add_task(gearman_client_st &client,
+                          gearman_command_t command,
+                          const gearman_job_priority_t priority,
+                          const gearman_string_t &function,
+                          const gearman_string_t &reducer,
+                          const gearman_unique_t &unique,
+                          const gearman_string_t &workload,
+                          struct gearman_actions_t &actions,
+                          const time_t epoch,
+                          void *context)
+{
+  uuid_t uuid;
+  char uuid_string[37];
+  const void *args[5];
+  size_t args_size[5];
+
+  std::cerr << std::endl << __func__ << std::endl;
+  if ((gearman_size(workload) && gearman_c_str(workload) == NULL) or (gearman_size(workload) == 0 && gearman_c_str(workload)))
+  {
+    gearman_error(&client.universal, GEARMAN_INVALID_ARGUMENT, "invalid workload");
+    return NULL;
+  }
+
+  gearman_task_st *task= gearman_task_internal_create(&client, NULL);
+  if (not task)
+  {
+    gearman_error(&client.universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "");
+    return NULL;
+  }
+
+  task->context= context;
+  task->func= actions;
+
+  /**
+    @todo fix it so that NULL is done by default by the API not by happenstance.
+  */
+  args[0]= gearman_c_str(function);
+  args_size[0]= gearman_size(function) + 1;
+
+  if (gearman_size(unique))
+  {
+    args[1]= gearman_c_str(unique);
+    args_size[1]= gearman_size(unique) + 1;
+  }
+  else
+  {
+    uuid_generate(uuid);
+    uuid_unparse(uuid, uuid_string);
+    uuid_string[36]= 0;
+    args[1]= uuid_string;
+    args_size[1]= 36 + 1; // +1 is for the needed null
+  }
+
+  assert (command == GEARMAN_COMMAND_SUBMIT_REDUCE_JOB or command == GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND);
+  args[2]= gearman_c_str(reducer);
+  args_size[2]= gearman_size(reducer);
+
+  char time_string[30];
+  if (epoch)
+  {
+    int length= snprintf(time_string, sizeof(time_string), "%lld", static_cast<long long>(epoch));
+    args[3]= time_string;
+    args_size[3]= length +1;
+  }
+  else
+  {
+    switch(priority)
+    {
+    case GEARMAN_JOB_PRIORITY_HIGH:
+      args[3]= "HIGH";
+      args_size[3]= 5;
+    case GEARMAN_JOB_PRIORITY_NORMAL:
+      args[3]= "NORMAL";
+      args_size[3]= 7;
+    default:
+    case GEARMAN_JOB_PRIORITY_MAX:
+    case GEARMAN_JOB_PRIORITY_LOW:
+      args[3]= "LOW";
+      args_size[3]= 4;
+    }
+  }
+
+  assert(gearman_c_str(workload));
+  assert(gearman_size(workload));
+  args[4]= gearman_c_str(workload);
+  args_size[4]= gearman_size(workload);
+
+  gearman_return_t rc;
+  rc= gearman_packet_create_args(&client.universal, &(task->send),
+                                 GEARMAN_MAGIC_REQUEST, command,
+                                 args, args_size,
+                                 5);
+
+  if (gearman_success(rc))
+  {
+    client.new_tasks++;
+    client.running_tasks++;
+    task->options.send_in_use= true;
+    std::cerr << "success" << std::endl;
+  }
+  else
+  {
+    gearman_task_free(task);
+    task= NULL;
   }
 
   return task;

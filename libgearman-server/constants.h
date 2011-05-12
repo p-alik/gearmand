@@ -42,7 +42,7 @@ extern "C" {
 #define GEARMAND_JOB_HANDLE_SIZE 64
 #define GEARMAND_JOB_HASH_SIZE 383
 #define GEARMAN_MAX_COMMAND_ARGS 8
-#define GEARMAN_MAX_ERROR_SIZE 1024
+#define GEARMAN_MAX_ERROR_SIZE 2048
 #define GEARMAN_MAX_FREE_SERVER_CLIENT 1000
 #define GEARMAN_MAX_FREE_SERVER_CON 1000
 #define GEARMAN_MAX_FREE_SERVER_JOB 1000
@@ -105,10 +105,6 @@ typedef enum
  */
 
 /* Types. */
-typedef struct gearman_command_info_st gearman_command_info_st;
-typedef struct gearman_conf_module_st gearman_conf_module_st;
-typedef struct gearman_conf_option_st gearman_conf_option_st;
-typedef struct gearman_conf_st gearman_conf_st;
 typedef struct gearman_server_client_st gearman_server_client_st;
 typedef struct gearman_server_con_st gearman_server_con_st;
 typedef struct gearman_server_function_st gearman_server_function_st;

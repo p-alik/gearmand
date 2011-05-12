@@ -57,9 +57,12 @@ gearman_server_client_add(gearman_server_con_st *con)
 
 void gearman_server_client_free(gearman_server_client_st *client)
 {
+  if (not client)
+    return;
+
   GEARMAN_LIST_DEL(client->con->client, client, con_)
 
-  if (client->job != NULL)
+  if (client->job)
   {
     GEARMAN_LIST_DEL(client->job->client, client, job_)
 

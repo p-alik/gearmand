@@ -51,6 +51,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <iostream>
 #include <memory>
 #include <unistd.h>
 
@@ -322,12 +323,16 @@ gearman_return_t gearman_connection_send(gearman_connection_st *connection,
   gearman_return_t ret;
   size_t send_size;
 
+  if (GEARMAN_DEBUG)
+    std::cerr << __func__ << " " << __LINE__ << std::endl;
+
   switch (connection->send_state)
   {
   case GEARMAN_CON_SEND_STATE_NONE:
-    if (! (packet->options.complete))
+    if (not (packet->options.complete))
     {
       gearman_error(connection->universal, GEARMAN_INVALID_PACKET, "packet not complete");
+      std::cerr << __func__ << " " << __LINE__ << std::endl;
       return GEARMAN_INVALID_PACKET;
     }
 
@@ -338,26 +343,28 @@ gearman_return_t gearman_connection_send(gearman_connection_st *connection,
                                      connection->send_buffer + connection->send_buffer_size,
                                      GEARMAN_SEND_BUFFER_SIZE -
                                      connection->send_buffer_size, &ret);
-      if (ret == GEARMAN_SUCCESS)
+      if (gearman_success(ret))
       {
         connection->send_buffer_size+= send_size;
         break;
       }
       else if (ret == GEARMAN_IGNORE_PACKET)
       {
+        std::cerr << __func__ << " " << __LINE__ << std::endl;
         return GEARMAN_SUCCESS;
       }
       else if (ret != GEARMAN_FLUSH_DATA)
       {
+        std::cerr << __func__ << " " << __LINE__ << std::endl;
         return ret;
       }
 
       /* We were asked to flush when the buffer is already flushed! */
       if (connection->send_buffer_size == 0)
       {
+        std::cerr << __func__ << " " << __LINE__ << std::endl;
         gearman_universal_set_error(connection->universal, GEARMAN_SEND_BUFFER_TOO_SMALL, AT,
-				    "send buffer too small (%u)",
-				    GEARMAN_SEND_BUFFER_SIZE);
+                                    "send buffer too small (%u)", GEARMAN_SEND_BUFFER_SIZE);
         return GEARMAN_SEND_BUFFER_TOO_SMALL;
       }
 
@@ -366,18 +373,24 @@ gearman_return_t gearman_connection_send(gearman_connection_st *connection,
 
     case GEARMAN_CON_SEND_UNIVERSAL_PRE_FLUSH:
       ret= gearman_connection_flush(connection);
-      if (ret != GEARMAN_SUCCESS)
+      if (gearman_failed(ret))
+      {
+        std::cerr << __func__ << " " << __LINE__ << std::endl;
         return ret;
+      }
     }
 
     /* Return here if we have no data to send. */
-    if (packet->data_size == 0)
+    if (not packet->data_size)
+    {
       break;
+    }
 
     /* If there is any room in the buffer, copy in data. */
-    if (packet->data != NULL &&
+    if (packet->data and
         (GEARMAN_SEND_BUFFER_SIZE - connection->send_buffer_size) > 0)
     {
+      std::cerr << __func__ << " " << __LINE__ << std::endl;
       connection->send_data_offset= GEARMAN_SEND_BUFFER_SIZE - connection->send_buffer_size;
       if (connection->send_data_offset > packet->data_size)
         connection->send_data_offset= packet->data_size;
@@ -396,16 +409,17 @@ gearman_return_t gearman_connection_send(gearman_connection_st *connection,
 
     /* Flush buffer now so we can start writing directly from data buffer. */
     connection->send_state= GEARMAN_CON_SEND_UNIVERSAL_FORCE_FLUSH;
+    std::cerr << __func__ << " " << __LINE__ << std::endl;
 
   case GEARMAN_CON_SEND_UNIVERSAL_FORCE_FLUSH:
     ret= gearman_connection_flush(connection);
-    if (ret != GEARMAN_SUCCESS)
+    if (gearman_success(ret))
       return ret;
 
     connection->send_data_size= packet->data_size;
 
     /* If this is NULL, then gearman_connection_send_data function will be used. */
-    if (packet->data == NULL)
+    if (not packet->data)
     {
       connection->send_state= GEARMAN_CON_SEND_UNIVERSAL_FLUSH_DATA;
       return GEARMAN_SUCCESS;
@@ -429,7 +443,7 @@ gearman_return_t gearman_connection_send(gearman_connection_st *connection,
   case GEARMAN_CON_SEND_UNIVERSAL_FLUSH:
   case GEARMAN_CON_SEND_UNIVERSAL_FLUSH_DATA:
     ret= gearman_connection_flush(connection);
-    if (ret == GEARMAN_SUCCESS && connection->options.close_after_flush)
+    if (gearman_success(ret) and connection->options.close_after_flush)
     {
       gearman_connection_close(connection);
       ret= GEARMAN_LOST_CONNECTION;
@@ -448,6 +462,9 @@ gearman_return_t gearman_connection_send(gearman_connection_st *connection,
     }
     return ret;
   }
+
+  if (GEARMAN_DEBUG)
+    abort();
 
   connection->send_state= GEARMAN_CON_SEND_STATE_NONE;
   return GEARMAN_SUCCESS;

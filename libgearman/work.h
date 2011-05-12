@@ -37,20 +37,24 @@
 
 #pragma once
 
+#ifdef __cplusplus
+#include <ctime>
+#else
 #include <time.h>
-#include <libgearman/actions.h>
-#include <libgearman/string.h>
+#endif
 
-struct gearman_argument_t {
-  gearman_string_t name;
-  gearman_string_t value;
+enum gearman_work_kind_t {
+  GEARMAN_WORK_KIND_FOREGROUND,
+  GEARMAN_WORK_KIND_BACKGROUND,
+  GEARMAN_WORK_KIND_EPOCH
 };
 
-struct gearman_workload_t {
-  bool background;
-  bool batch;
+struct gearman_work_t {
+  enum gearman_work_kind_t kind;
   gearman_job_priority_t priority;
+  union {
   time_t epoch;
+  } options;
   void *context;
 };
 
@@ -61,36 +65,27 @@ extern "C" {
 #define  gearman_next(X) (X) ? (X)->next : NULL
 
 GEARMAN_API
-gearman_workload_t gearman_workload_make(void);
+  gearman_work_t gearman_work(gearman_job_priority_t priority);
 
 GEARMAN_API
-gearman_argument_t gearman_argument_make(const char *value, size_t value_size);
+  gearman_work_t gearman_work_epoch(time_t epoch);
 
 GEARMAN_API
-void gearman_workload_set_epoch(gearman_workload_t *, time_t);
+  gearman_work_t gearman_work_background(gearman_job_priority_t priority);
 
 GEARMAN_API
-void gearman_workload_set_context(gearman_workload_t *, void *);
-
-GEARMAN_API
-void gearman_workload_set_priority(gearman_workload_t *, gearman_job_priority_t);
-
-GEARMAN_API
-void gearman_workload_set_background(gearman_workload_t *self, bool background);
-
-GEARMAN_API
-void gearman_workload_set_batch(gearman_workload_t *self, bool batch);
+  void gearman_workload_set_context(gearman_work_t *, void *);
 
 // Everything below here is private
 
 GEARMAN_LOCAL
-time_t gearman_workload_epoch(const gearman_workload_t *);
+time_t gearman_workload_epoch(const gearman_work_t *);
 
 GEARMAN_LOCAL
-gearman_job_priority_t gearman_workload_priority(const gearman_workload_t *);
+gearman_job_priority_t gearman_workload_priority(const gearman_work_t *);
 
 GEARMAN_LOCAL
-bool gearman_workload_background(const gearman_workload_t *);
+bool gearman_workload_background(const gearman_work_t *);
 
 #ifdef __cplusplus
 }

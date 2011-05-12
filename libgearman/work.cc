@@ -39,45 +39,44 @@
 #include <cstring>
 #include <memory>
 
-gearman_workload_t gearman_workload_make()
+gearman_work_t gearman_work(gearman_job_priority_t priority)
 {
-  static gearman_workload_t local= { false, false, GEARMAN_JOB_PRIORITY_NORMAL, 0, 0};
+  gearman_work_t local= { GEARMAN_WORK_KIND_FOREGROUND, priority, {0}, 0};
 
   return local;
 }
 
-gearman_argument_t gearman_argument_make(const char *value, size_t value_size)
+gearman_work_t gearman_work_background(gearman_job_priority_t priority)
 {
-  gearman_argument_t arg= { {0, 0}, { value, value_size }};
+  gearman_work_t local= { GEARMAN_WORK_KIND_BACKGROUND, priority, {0}, 0};
 
-  return arg;
+  return local;
 }
 
-time_t gearman_workload_epoch(const gearman_workload_t *self)
+gearman_work_t gearman_work_epoch(time_t epoch)
+{
+  gearman_work_t local= { GEARMAN_WORK_KIND_BACKGROUND, GEARMAN_JOB_PRIORITY_NORMAL, { epoch }, 0};
+
+  return local;
+}
+
+time_t gearman_workload_epoch(const gearman_work_t *self)
 {
   if (not self)
     return 0;
 
-  return self->epoch;
+  return self->options.epoch;
 }
 
-void gearman_workload_set_batch(gearman_workload_t *self, bool batch)
+void gearman_workload_set_epoch(gearman_work_t *self, time_t epoch)
 {
   if (not self)
     return;
 
-  self->batch= batch;
+  self->options.epoch= epoch;
 }
 
-void gearman_workload_set_epoch(gearman_workload_t *self, time_t epoch)
-{
-  if (not self)
-    return;
-
-  self->epoch= epoch;
-}
-
-gearman_job_priority_t gearman_workload_priority(const gearman_workload_t *self)
+gearman_job_priority_t gearman_workload_priority(const gearman_work_t *self)
 {
   if (not self)
     return GEARMAN_JOB_PRIORITY_NORMAL;
@@ -85,31 +84,15 @@ gearman_job_priority_t gearman_workload_priority(const gearman_workload_t *self)
   return self->priority;
 }
 
-bool gearman_workload_background(const gearman_workload_t *self)
+bool gearman_workload_background(const gearman_work_t *self)
 {
   if (not self)
     return false;
 
-  return self->background;
+  return (self->kind == GEARMAN_WORK_KIND_BACKGROUND or self->kind == GEARMAN_WORK_KIND_EPOCH);
 }
 
-void gearman_workload_set_priority(gearman_workload_t *self, const gearman_job_priority_t priority)
-{
-  if (not self)
-    return;
-
-  self->priority= priority;
-}
-
-void gearman_workload_set_background(gearman_workload_t *self, bool background)
-{
-  if (not self)
-    return;
-
-  self->background= background;
-}
-
-void gearman_workload_set_context(gearman_workload_t *self, void *context)
+void gearman_workload_set_context(gearman_work_t *self, void *context)
 {
   if (not self)
     return;

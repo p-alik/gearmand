@@ -831,7 +831,7 @@ void *world_create(test_return_t *error)
   test->unique_check= test_worker_start(CLIENT_TEST_PORT, WORKER_UNIQUE_FUNCTION_NAME, unique_worker, NULL, GEARMAN_WORKER_GRAB_UNIQ);
 
   gearman_reducer_t reducer= gearman_reducer_make(cat_each_func, cat_final_func);
-  test->split_worker= test_worker_start_with_reducer(CLIENT_TEST_PORT, WORKER_SPLIT_FUNCTION_NAME, split_worker, NULL, GEARMAN_WORKER_GRAB_UNIQ, reducer);
+  test->split_worker= test_worker_start_with_reducer(CLIENT_TEST_PORT, WORKER_SPLIT_FUNCTION_NAME, split_worker, NULL, GEARMAN_WORKER_GRAB_ALL, reducer);
 
   test->gearmand_pid= gearmand_pid;
 
@@ -949,6 +949,8 @@ test_st gearman_task_tests[] ={
 
 
 collection_st collection[] ={
+  {"gearman_client_execute", 0, 0, gearman_client_execute_tests},
+  {"gearman_worker_set_reducer()", 0, 0, gearman_worker_set_reducer_tests},
   {"gearman_client_st", 0, 0, tests},
   {"gearman_client_st chunky", pre_chunk, post_function_reset, tests}, // Test with a worker that will respond in part
   {"gearman_strerror", 0, 0, gearman_strerror_tests},
@@ -956,11 +958,9 @@ collection_st collection[] ={
   {"gearman_task chunky", pre_chunk, post_function_reset, gearman_task_tests},
   {"unique", pre_unique, post_function_reset, unique_tests},
   {"gearman_client_do()", 0, 0, gearman_client_do_tests},
-  {"gearman_client_execute", 0, 0, gearman_client_execute_tests},
   {"gearman_client_execute chunky", pre_chunk, post_function_reset, gearman_client_execute_tests},
   {"gearman_client_do_job_handle", 0, 0, gearman_client_do_job_handle_tests},
   {"gearman_client_do_background", 0, 0, gearman_client_do_background_tests},
-  {"gearman_worker_set_reducer()", 0, 0, gearman_worker_set_reducer_tests},
   {"gearman_client_set_server_option", 0, 0, gearman_client_set_server_option_tests},
   {"client-logging", pre_logging, post_logging, tests_log},
   {0, 0, 0, 0}

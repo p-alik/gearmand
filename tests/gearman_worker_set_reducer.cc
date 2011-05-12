@@ -49,11 +49,19 @@
 test_return_t gearman_worker_set_reducer_test(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
-  gearman_workload_t workload= gearman_workload_make();
 
-  gearman_task_st *task;
+  gearman_client_set_server_option(client, gearman_literal_param("should fail"));
   gearman_argument_t work_args= gearman_argument_make(gearman_literal_param("this dog does not hunt"));
-  test_true_got(task= gearman_client_execute(client, gearman_literal_param("split_worker"), NULL, 0, &workload, &work_args), gearman_client_error(client));
+
+  gearman_string_t function= { gearman_literal_param("split_worker") };
+  gearman_string_t reducer= { gearman_literal_param("client_test") };
+  gearman_task_st *task;
+  test_true_got(task= gearman_client_execute_reduce(client,
+                                                    gearman_string_param(function),
+                                                    gearman_string_param(reducer),
+                                                    NULL, 0,  // unique
+                                                    NULL,
+                                                    &work_args), gearman_client_error(client));
 
   gearman_result_st *result= gearman_task_result(task);
   test_truth(result);

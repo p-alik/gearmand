@@ -12,6 +12,7 @@
 
 nobase_include_HEADERS+= \
 			 libgearman/actions.h \
+			 libgearman/argument.h \
 			 libgearman/byteorder.h \
 			 libgearman/client.h \
 			 libgearman/command.h \
@@ -34,7 +35,7 @@ nobase_include_HEADERS+= \
 			 libgearman/version.h \
 			 libgearman/visibility.h \
 			 libgearman/worker.h \
-			 libgearman/workload.h
+			 libgearman/work.h
 
 noinst_HEADERS+= \
 		 libgearman/add.h \
@@ -56,6 +57,7 @@ libgearman_libgearmancore_la_SOURCES= \
 lib_LTLIBRARIES+= libgearman/libgearman.la
 libgearman_libgearman_la_SOURCES= \
 				  libgearman/actions.cc \
+				  libgearman/argument.cc \
 				  libgearman/add.cc \
 				  libgearman/byteorder.cc \
 				  libgearman/client.cc \
@@ -72,7 +74,7 @@ libgearman_libgearman_la_SOURCES= \
 				  libgearman/unique.cc \
 				  libgearman/universal.cc \
 				  libgearman/worker.cc \
-				  libgearman/workload.cc
+				  libgearman/work.cc
 
 libgearman_libgearman_la_DEPENDENCIES=
 

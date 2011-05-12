@@ -42,7 +42,9 @@
  */
 
 #include <libgearman/common.h>
+#include <cassert>
 #include <cerrno>
+#include <iostream>
 #include <cstdlib>
 #include <cstring>
 #include <memory>
@@ -95,7 +97,11 @@ gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX]=
   { "SUBMIT_JOB_LOW",     2, true  },
   { "SUBMIT_JOB_LOW_BG",  2, true  },
   { "SUBMIT_JOB_SCHED",   7, true  },
-  { "SUBMIT_JOB_EPOCH",   3, true  }
+  { "SUBMIT_JOB_EPOCH",   3, true  },
+  { "GEARMAN_COMMAND_SUBMIT_REDUCE_JOB", 4, true },          /* C->J: MAP[0]REDUCER[0]UNIQ[0]PRIORITY[0]ARGS */
+  { "GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND", 4, true },          /* C->J: MAP[0]REDUCER[0]UNIQ[0]PRIORITY[0]ARGS */
+  { "GEARMAN_COMMAND_GRAB_JOB_ALL",    0, false  },
+  { "GEARMAN_COMMAND_JOB_ASSIGN_ALL",    3, true  }
 };
 
 #ifndef __INTEL_COMPILER
@@ -105,10 +111,8 @@ gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX]=
 inline static gearman_return_t packet_create_arg(gearman_packet_st *packet,
                                                  const void *arg, size_t arg_size)
 {
-  void *new_args;
-
   if (packet->argc == gearman_command_info_list[packet->command].argc and
-      (! (gearman_command_info_list[packet->command].data) || packet->data != NULL))
+      (not (gearman_command_info_list[packet->command].data) || packet->data != NULL))
   {
     gearman_universal_set_error(packet->universal, GEARMAN_TOO_MANY_ARGS, AT, "too many arguments for command (%s)",
                                 gearman_command_info_list[packet->command].name);
@@ -123,7 +127,9 @@ inline static gearman_return_t packet_create_arg(gearman_packet_st *packet,
   }
 
   if (packet->args_size == 0 && packet->magic != GEARMAN_MAGIC_TEXT)
+  {
     packet->args_size= GEARMAN_PACKET_HEADER_SIZE;
+  }
 
   if ((packet->args_size + arg_size) < GEARMAN_ARGS_BUFFER_SIZE)
   {
@@ -132,17 +138,21 @@ inline static gearman_return_t packet_create_arg(gearman_packet_st *packet,
   else
   {
     if (packet->args == packet->args_buffer)
+    {
       packet->args= NULL;
+    }
 
-    new_args= realloc(packet->args, packet->args_size + arg_size);
-    if (new_args == NULL)
+    void *new_args= realloc(packet->args, packet->args_size + arg_size);
+    if (not new_args)
     {
       gearman_perror(packet->universal, "packet realloc");
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
 
     if (packet->args_size > 0)
+    {
       memcpy(new_args, packet->args_buffer, packet->args_size);
+    }
 
     packet->args= (char *)new_args;
   }
@@ -177,7 +187,6 @@ inline static gearman_return_t packet_create_arg(gearman_packet_st *packet,
  * Public Definitions
  */
 
-
 gearman_packet_st *gearman_packet_create(gearman_universal_st *gearman,
                                          gearman_packet_st *packet)
 {
@@ -207,7 +216,7 @@ gearman_packet_st *gearman_packet_create(gearman_universal_st *gearman,
   packet->data_size= 0;
   packet->universal= gearman;
 
-  if (! (gearman->options.dont_track_packets))
+  if (not (gearman->options.dont_track_packets))
   {
     if (gearman->packet_list != NULL)
       gearman->packet_list->prev= packet;
@@ -238,13 +247,23 @@ gearman_return_t gearman_packet_create_args(gearman_universal_st *gearman,
                                             size_t args_count)
 {
   packet= gearman_packet_create(gearman, packet);
-  if (packet == NULL)
+  if (not packet)
   {
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
 
   packet->magic= magic;
   packet->command= command;
+
+  std::cerr << "Trying " << gearman_command_info_list[packet->command].name << " have:" << args_count << " need:" << int(gearman_command_info_list[packet->command].argc) << std::endl;
+  if (gearman_command_info_list[packet->command].data)
+  {
+    assert(args_count -1 == gearman_command_info_list[packet->command].argc);
+  }
+  else
+  {
+    assert(args_count == gearman_command_info_list[packet->command].argc);
+  }
 
   for (size_t x= 0; x < args_count; x++)
   {
@@ -257,9 +276,11 @@ gearman_return_t gearman_packet_create_args(gearman_universal_st *gearman,
   }
 
   gearman_return_t ret= gearman_packet_pack_header(packet);
-
   if (gearman_failed(ret))
-      gearman_packet_free(packet);
+  {
+    gearman_packet_free(packet);
+    return ret;
+  }
 
   return ret;
 }
@@ -302,6 +323,10 @@ void gearman_packet_free(gearman_packet_st *packet)
   if (packet->options.allocated)
   {
     delete packet;
+  }
+  else
+  {
+    memset(packet, 0, sizeof(gearman_packet_st));
   }
 }
 
@@ -361,7 +386,7 @@ gearman_return_t gearman_packet_pack_header(gearman_packet_st *packet)
     return GEARMAN_ARGUMENT_TOO_LARGE;
   }
 
-  tmp= (uint32_t)length_64;
+  tmp= uint32_t(length_64);
   tmp= htonl(tmp);
   // Record the length of the packet
   memcpy(packet->args + 8, &tmp, 4);
@@ -434,6 +459,7 @@ size_t gearman_packet_unpack(gearman_packet_st *packet,
   size_t used_size;
   size_t arg_size;
 
+  assert(packet);
   if (packet->args_size == 0)
   {
     if (data_size > 0 && ((uint8_t *)data)[0] != 0)

@@ -55,3 +55,5 @@
 #include <libgearman/unique.h>
 #include <libgearman/result.hpp>
 #include <libgearman/actions.h>
+
+extern bool GEARMAN_DEBUG;

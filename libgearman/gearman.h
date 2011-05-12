@@ -61,7 +61,8 @@
 #include <libgearman/strerror.h>
 
 // Everything above this line must be in the order specified.
-#include <libgearman/workload.h>
+#include <libgearman/argument.h>
+#include <libgearman/work.h>
 #include <libgearman/core.h>
 #include <libgearman/task.h>
 #include <libgearman/job.h>

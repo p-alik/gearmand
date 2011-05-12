@@ -78,6 +78,7 @@ struct gearman_worker_st
     bool packet_init;
     bool change;
     bool grab_uniq;
+    bool grab_all;
     bool timeout_return;
   } options;
   enum gearman_worker_state_t state;

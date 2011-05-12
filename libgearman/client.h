@@ -474,8 +474,15 @@ GEARMAN_API
 gearman_task_st *gearman_client_execute(gearman_client_st *client,
                                         const char *function, size_t function_length,
                                         const char *unique, size_t unique_length,
-                                        gearman_workload_t *workload,
+                                        gearman_work_t *workload,
                                         gearman_argument_t *arguments);
+
+gearman_task_st *gearman_client_execute_reduce(gearman_client_st *client,
+                                               const char *function, const size_t function_length,
+                                               const char *reducer, const size_t reducer_length,
+                                               const char *unique, const size_t unique_length,
+                                               gearman_work_t *workload,
+                                               gearman_argument_t *arguments);
 
 
 /**

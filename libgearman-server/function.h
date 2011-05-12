@@ -11,6 +11,7 @@
  * @brief Function Declarations
  */
 
+#pragma once
 #ifndef __GEARMAN_SERVER_FUNCTION_H__
 #define __GEARMAN_SERVER_FUNCTION_H__
 

@@ -174,6 +174,7 @@ gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker,
   worker->options.non_blocking= from->options.non_blocking;
   worker->options.change= from->options.change;
   worker->options.grab_uniq= from->options.grab_uniq;
+  worker->options.grab_all= from->options.grab_all;
   worker->options.timeout_return= from->options.timeout_return;
 
   if (not gearman_universal_clone(&(worker->universal), &from->universal))
@@ -258,6 +259,8 @@ gearman_worker_options_t gearman_worker_options(const gearman_worker_st *worker)
     options|= int(GEARMAN_WORKER_CHANGE);
   if (worker->options.grab_uniq)
     options|= int(GEARMAN_WORKER_GRAB_UNIQ);
+  if (worker->options.grab_all)
+    options|= int(GEARMAN_WORKER_GRAB_ALL);
   if (worker->options.timeout_return)
     options|= int(GEARMAN_WORKER_TIMEOUT_RETURN);
 
@@ -270,6 +273,7 @@ void gearman_worker_set_options(gearman_worker_st *worker,
   gearman_worker_options_t usable_options[]= {
     GEARMAN_WORKER_NON_BLOCKING,
     GEARMAN_WORKER_GRAB_UNIQ,
+    GEARMAN_WORKER_GRAB_ALL,
     GEARMAN_WORKER_TIMEOUT_RETURN,
     GEARMAN_WORKER_MAX
   };
@@ -307,6 +311,14 @@ void gearman_worker_add_options(gearman_worker_st *worker,
     worker->options.grab_uniq= true;
   }
 
+  if (options & GEARMAN_WORKER_GRAB_ALL)
+  {
+    worker->grab_job.command= GEARMAN_COMMAND_GRAB_JOB_ALL;
+    gearman_return_t rc= gearman_packet_pack_header(&(worker->grab_job));
+    assert(gearman_success(rc));
+    worker->options.grab_all= true;
+  }
+
   if (options & GEARMAN_WORKER_TIMEOUT_RETURN)
   {
     worker->options.timeout_return= true;
@@ -332,6 +344,13 @@ void gearman_worker_remove_options(gearman_worker_st *worker,
     worker->grab_job.command= GEARMAN_COMMAND_GRAB_JOB;
     (void)gearman_packet_pack_header(&(worker->grab_job));
     worker->options.grab_uniq= false;
+  }
+
+  if (options & GEARMAN_WORKER_GRAB_ALL)
+  {
+    worker->grab_job.command= GEARMAN_COMMAND_GRAB_JOB;
+    (void)gearman_packet_pack_header(&(worker->grab_job));
+    worker->options.grab_all= false;
   }
 }
 
@@ -472,7 +491,7 @@ gearman_return_t gearman_worker_unregister_all(gearman_worker_st *worker)
   struct _worker_function_st *function;
   uint32_t count= 0;
 
-  if (worker->function_list == NULL)
+  if (not worker->function_list)
     return GEARMAN_NO_REGISTERED_FUNCTIONS;
 
 
@@ -619,7 +638,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
           continue;
 
         *ret_ptr= gearman_connection_send(worker->con, &(worker->grab_job), true);
-        if (*ret_ptr != GEARMAN_SUCCESS)
+        if (gearman_failed(*ret_ptr))
         {
           if (*ret_ptr == GEARMAN_IO_WAIT)
             worker->state= GEARMAN_WORKER_STATE_GRAB_JOB_SEND;
@@ -642,9 +661,10 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
         while (1)
         {
     case GEARMAN_WORKER_STATE_GRAB_JOB_RECV:
+          assert(&(worker->job->assigned));
           (void)gearman_connection_recv(worker->con, &(worker->job->assigned), ret_ptr, true);
 
-          if (*ret_ptr != GEARMAN_SUCCESS)
+          if (gearman_failed(*ret_ptr))
           {
             if (*ret_ptr == GEARMAN_IO_WAIT)
 	    {

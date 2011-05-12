@@ -126,8 +126,7 @@ int main(int args, char *argv[])
   if (timeout >= 0)
     gearman_client_set_timeout(&client, timeout);
 
-  gearman_workload_t workload= gearman_workload_make();
-  gearman_workload_set_epoch(&workload, time(NULL) +epoch);
+  gearman_work_t workload= gearman_work_epoch(time(NULL) +epoch);
 
   gearman_task_st *task;
   gearman_argument_t value= gearman_argument_make(text_to_echo.c_str(), text_to_echo.size());
@@ -150,7 +149,7 @@ int main(int args, char *argv[])
     ret= gearman_client_job_status(&client, gearman_task_job_handle(task),
                                    &is_known, &is_running,
                                    &numerator, &denominator);
-    if (ret != GEARMAN_SUCCESS)
+    if (gearman_failed(ret))
     {
       std::cerr << gearman_client_error(&client) << std::endl;
       exit_code= EXIT_FAILURE;

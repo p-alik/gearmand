@@ -240,8 +240,18 @@ gearman_command_info_st gearmand_command_info_list[GEARMAN_COMMAND_MAX]=
   { "SUBMIT_JOB_LOW",     2, true  },
   { "SUBMIT_JOB_LOW_BG",  2, true  },
   { "SUBMIT_JOB_SCHED",   7, true  },
-  { "SUBMIT_JOB_EPOCH",   3, true  }
+  { "SUBMIT_JOB_EPOCH",   3, true  },
+  { "GEARMAN_COMMAND_SUBMIT_REDUCE_JOB", 5, true },
+  { "GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND", 5, true },
+  { "GEARMAN_COMMAND_GRAB_JOB_ALL",    0, false  },
+  { "GEARMAN_COMMAND_JOB_ASSIGN_ALL",    3, true  }
 };
+
+const char *gearmand_strcommand(gearmand_packet_st *packet)
+{
+  assert(packet);
+  return gearmand_command_info_list[packet->command].name;
+}
 
 inline static gearmand_error_t packet_create_arg(gearmand_packet_st *packet,
                                                  const void *arg, size_t arg_size)

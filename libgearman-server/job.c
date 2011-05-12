@@ -86,19 +86,35 @@ _server_job_get_unique(gearman_server_st *server, uint32_t unique_key,
 /*
  * Public definitions
  */
+gearman_server_job_st * gearman_server_job_add(gearman_server_st *server,
+                                               const char *function_name, size_t function_name_size,
+                                               const char *unique, size_t unique_size,
+                                               const void *data, size_t data_size,
+                                               gearmand_job_priority_t priority,
+                                               gearman_server_client_st *server_client,
+                                               gearmand_error_t *ret_ptr,
+                                               int64_t when)
+{
+  return gearman_server_job_add_reducer(server,
+                                        function_name, function_name_size,
+                                        NULL, 0,
+                                        unique, unique_size, 
+                                        data, data_size,
+                                        priority, server_client, ret_ptr, when);
+}
 
 gearman_server_job_st *
-gearman_server_job_add(gearman_server_st *server,
-                       const char *function_name, size_t function_name_size,
-                       const char *unique, size_t unique_size,
-                       const void *data, size_t data_size,
-                       gearmand_job_priority_t priority,
-                       gearman_server_client_st *server_client,
-                       gearmand_error_t *ret_ptr,
-                       int64_t when)
+gearman_server_job_add_reducer(gearman_server_st *server,
+                               const char *function_name, size_t function_name_size,
+                               const char *reducer_name, size_t reducer_size,
+                               const char *unique, size_t unique_size,
+                               const void *data, size_t data_size,
+                               gearmand_job_priority_t priority,
+                               gearman_server_client_st *server_client,
+                               gearmand_error_t *ret_ptr,
+                               int64_t when)
 {
-  gearman_server_function_st *server_function= gearman_server_function_get(server, function_name,
-                                                                           function_name_size);
+  gearman_server_function_st *server_function= gearman_server_function_get(server, function_name, function_name_size);
   if (server_function == NULL)
   {
     *ret_ptr= GEARMAN_MEMORY_ALLOCATION_FAILURE;
@@ -180,6 +196,15 @@ gearman_server_job_add(gearman_server_st *server,
     server_job->data= data;
     server_job->data_size= data_size;
 		server_job->when= when; 
+
+    if (reducer_size)
+    {
+      strncpy(server_job->reducer, reducer_name, reducer_size);
+    }
+    else
+    {
+      server_job->reducer[0]= 0;
+    }
 		
     server_job->unique_key= key;
     key= key % GEARMAND_JOB_HASH_SIZE;
@@ -205,7 +230,7 @@ gearman_server_job_add(gearman_server_st *server,
                                            function_name_size,
                                            data, data_size, priority, 
                                            when);
-      if (*ret_ptr != GEARMAN_SUCCESS)
+      if (gearmand_failed(*ret_ptr))
       {
         server_job->data= NULL;
         gearman_server_job_free(server_job);
@@ -228,7 +253,7 @@ gearman_server_job_add(gearman_server_st *server,
     }
 
     *ret_ptr= gearman_server_job_queue(server_job);
-    if (*ret_ptr != GEARMAN_SUCCESS)
+    if (gearmand_failed(*ret_ptr))
     {
       if (server_client == NULL && server->queue._done_fn != NULL)
       {
@@ -249,7 +274,7 @@ gearman_server_job_add(gearman_server_st *server,
     *ret_ptr= GEARMAN_JOB_EXISTS;
   }
 
-  if (server_client != NULL)
+  if (server_client)
   {
     server_client->job= server_job;
     GEARMAN_LIST_ADD(server_job->client, server_client, job_)
@@ -384,9 +409,9 @@ gearman_server_job_peek(gearman_server_con_st *server_con)
 
         int64_t current_time= (int64_t)time(NULL);
 
-        while(server_job != NULL && 
-             server_job->when != 0 && 
-             server_job->when > current_time)
+        while(server_job && 
+              server_job->when != 0 && 
+              server_job->when > current_time)
         {
           server_job = server_job->function_next;  
         }
