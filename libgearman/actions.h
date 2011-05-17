@@ -68,9 +68,6 @@ struct gearman_reducer_t gearman_reducer_make(gearman_reducer_each_fn* each);
 #ifdef __cplusplus // Local only
 
 GEARMAN_LOCAL
-gearman_reducer_t &gearman_reducer_default(void);
-
-GEARMAN_LOCAL
 gearman_actions_t &gearman_actions_default(void);
 
 GEARMAN_LOCAL

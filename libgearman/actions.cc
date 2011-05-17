@@ -44,13 +44,6 @@
 
 struct gearman_result_st;
 
-struct gearman_reducer_t &gearman_reducer_default(void)
-{
-  static gearman_reducer_t defaults= { 0 };
-
-  return defaults;
-}
-
 struct gearman_reducer_t gearman_reducer_make(gearman_reducer_each_fn* each)
 {
   gearman_reducer_t arg= { each };
