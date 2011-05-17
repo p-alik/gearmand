@@ -337,7 +337,7 @@ gearman_return_t gearman_connection_send(gearman_connection_st *connection,
       send_size= gearman_packet_pack(packet,
                                      connection->send_buffer + connection->send_buffer_size,
                                      GEARMAN_SEND_BUFFER_SIZE -
-                                     connection->send_buffer_size, &rc);
+                                     connection->send_buffer_size, rc);
       if (gearman_success(rc))
       {
         connection->send_buffer_size+= send_size;
@@ -769,7 +769,7 @@ gearman_packet_st *gearman_connection_recv(gearman_connection_st *connection,
       {
         size_t recv_size= gearman_packet_unpack(connection->recv_packet,
                                                 connection->recv_buffer_ptr,
-                                                connection->recv_buffer_size, ret_ptr);
+                                                connection->recv_buffer_size, *ret_ptr);
         connection->recv_buffer_ptr+= recv_size;
         connection->recv_buffer_size-= recv_size;
 

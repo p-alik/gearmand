@@ -43,10 +43,6 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * @addtogroup gearman_packet Packet Declarations
  * @ingroup gearman_universal
@@ -92,6 +88,11 @@ struct gearman_packet_st
 };
 
 #ifdef GEARMAN_CORE
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 typedef size_t (gearman_packet_pack_fn)(const gearman_packet_st *packet,
                                         void *data, size_t data_size,
@@ -188,22 +189,6 @@ GEARMAN_INTERNAL_API
 gearman_return_t gearman_packet_unpack_header(gearman_packet_st *packet);
 
 /**
- * Pack packet into output buffer.
- */
-GEARMAN_INTERNAL_API
-size_t gearman_packet_pack(const gearman_packet_st *packet,
-                           void *data, size_t data_size,
-                           gearman_return_t *ret_ptr);
-
-/**
- * Unpack packet from input data.
- */
-GEARMAN_INTERNAL_API
-size_t gearman_packet_unpack(gearman_packet_st *packet,
-                             const void *data, size_t data_size,
-                             gearman_return_t *ret_ptr);
-
-/**
  * Give allocated memory to packet. After this, the library will be responsible
  * for freeing the workload memory when the packet is destroyed.
  */
@@ -218,10 +203,26 @@ void gearman_packet_give_data(gearman_packet_st *packet, const void *data,
 GEARMAN_INTERNAL_API
 void *gearman_packet_take_data(gearman_packet_st *packet, size_t *data_size);
 
-#endif /* GEARMAN_CORE */
-
-/** @} */
 
 #ifdef __cplusplus
 }
+
+/**
+ * Pack packet into output buffer.
+ */
+GEARMAN_INTERNAL_API
+size_t gearman_packet_pack(const gearman_packet_st *packet,
+                           void *data, size_t data_size,
+                           gearman_return_t &ret);
+
+/**
+ * Unpack packet from input data.
+ */
+GEARMAN_INTERNAL_API
+size_t gearman_packet_unpack(gearman_packet_st *packet,
+                             const void *data, size_t data_size,
+                             gearman_return_t &ret);
 #endif
+
+#endif /* GEARMAN_CORE */
+
