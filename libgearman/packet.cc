@@ -237,7 +237,7 @@ gearman_return_t gearman_packet_create_args(gearman_universal_st *gearman,
 
 void gearman_packet_free(gearman_packet_st *packet)
 {
-  if (packet->args != packet->args_buffer && packet->args != NULL)
+  if (packet->args != packet->args_buffer and packet->args)
   {
     // Created with realloc
     free(packet->args);
@@ -246,20 +246,20 @@ void gearman_packet_free(gearman_packet_st *packet)
 
   if (packet->options.free_data && packet->data != NULL)
   {
-    if (packet->universal->workload_free_fn == NULL)
+    if (packet->universal->workload_free_fn)
+    {
+      packet->universal->workload_free_fn(const_cast<void *>((packet->data)),
+                                          const_cast<void *>(packet->universal->workload_free_context));
+    }
+    else
     {
       // Created with malloc()
       free(const_cast<void *>(packet->data)); //@todo fix the need for the casting.
       packet->data= NULL;
     }
-    else
-    {
-      packet->universal->workload_free_fn(const_cast<void *>((packet->data)),
-                                          const_cast<void *>(packet->universal->workload_free_context));
-    }
   }
 
-  if (! (packet->universal->options.dont_track_packets))
+  if (not (packet->universal->options.dont_track_packets))
   {
     if (packet->universal->packet_list == packet)
       packet->universal->packet_list= packet->next;
@@ -353,7 +353,7 @@ gearman_return_t gearman_packet_unpack_header(gearman_packet_st *packet)
   {
     packet->magic= GEARMAN_MAGIC_REQUEST;
   }
-  else if (!memcmp(packet->args, "\0RES", 4))
+  else if (not memcmp(packet->args, "\0RES", 4))
   {
     packet->magic= GEARMAN_MAGIC_RESPONSE;
   }
@@ -383,7 +383,7 @@ size_t gearman_packet_pack(const gearman_packet_st *packet,
                            void *data, size_t data_size,
                            gearman_return_t &ret)
 {
-  if (packet->args_size == 0)
+  if (not packet->args_size)
   {
     ret= GEARMAN_SUCCESS;
     return 0;
