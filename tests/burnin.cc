@@ -17,7 +17,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <iostream>
 
 #include <libgearman/gearman.h>
 
@@ -53,20 +52,13 @@ struct client_context_st {
     min_size(1024),
     max_size(1024 *2),
     num_tasks(10),
-    count(0), // 1000
+    count(1000),
     blob(NULL)
   { }
 };
 
 void *world_create(test_return_t *error);
 test_return_t world_destroy(void *object);
-
-static gearman_return_t _complete(gearman_task_st *task)
-{
-  std::cerr << "Completed " << gearman_task_job_handle(task) << std::endl;
-
-  return GEARMAN_SUCCESS;
-}
 
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -81,8 +73,6 @@ static test_return_t burnin_test(void *object)
   // This sketchy, don't do this in your own code.
   gearman_task_st *tasks= (gearman_task_st *)calloc(context->num_tasks, sizeof(gearman_task_st));
   test_true_got(tasks, strerror(errno));
-
-  gearman_client_set_complete_fn(client, _complete);
 
   test_true_got(gearman_success(gearman_client_echo(client, gearman_literal_param("echo_test"))), gearman_client_error(client));
 
@@ -123,16 +113,15 @@ static test_return_t burnin_test(void *object)
 
       test_true_got(gearman_success(ret), gearman_client_error(client));
       test_truth(task_ptr);
-      std::cerr << "Added job " << x << std::endl;
     }
 
-    gearman_client_set_timeout(client, 4000);
     gearman_return_t ret= gearman_client_run_tasks(client);
     for (uint32_t x= 0; x < context->num_tasks; x++)
     {
-      std::cerr << gearman_strerror(gearman_task_error(&tasks[x])) << std::endl;
+      test_compare(GEARMAN_TASK_STATE_FINISHED, tasks[x].state);
+      test_compare(GEARMAN_SUCCESS, tasks[x].result_rc);
     }
-    std::cerr << "run tasks left " << client->new_tasks << std::endl;
+    test_compare(0, client->new_tasks);
 
     test_true_got(gearman_success(ret), gearman_client_error(client));
 
@@ -140,7 +129,6 @@ static test_return_t burnin_test(void *object)
     {
       gearman_task_free(&(tasks[x]));
     }
-
   } while (context->count--);
 
   free(tasks);

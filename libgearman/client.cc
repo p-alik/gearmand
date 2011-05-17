@@ -723,10 +723,13 @@ gearman_return_t gearman_client_job_status(gearman_client_st *client,
   {
     if (is_known)
       *is_known= do_task.options.is_known;
+
     if (is_running)
       *is_running= do_task.options.is_running;
+
     if (numerator)
       *numerator= do_task.numerator;
+
     if (denominator)
       *denominator= do_task.denominator;
   }
@@ -1069,7 +1072,7 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
 
   case GEARMAN_CLIENT_STATE_NEW:
           gearman_return_t local_ret= _client_run_task(client, client->task);
-          if (gearman_failed(ret) and local_ret != GEARMAN_IO_WAIT)
+          if (gearman_failed(local_ret) and local_ret != GEARMAN_IO_WAIT)
           {
             client->state= GEARMAN_CLIENT_STATE_NEW;
 
@@ -1257,6 +1260,7 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
       {
         /* Let the caller wait for activity. */
         client->state= GEARMAN_CLIENT_STATE_IDLE;
+        gearman_gerror(&client->universal, GEARMAN_IO_WAIT);
 
         return GEARMAN_IO_WAIT;
       }
@@ -1267,7 +1271,7 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
       {
         client->state= GEARMAN_CLIENT_STATE_IDLE;
 
-        return ret;
+        return local_ret;
       }
     }
 
@@ -1301,6 +1305,13 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
 
   if (gearman_failed(rc))
   {
+#if 0
+    if (rc != gearman_universal_error_code(&client->universal))
+    {
+      std::cerr << "print error bad, expected " << gearman_strerror(rc) << " and got " << gearman_strerror(gearman_universal_error_code(&client->universal)) << std::endl;
+      std::cerr << "\t" << gearman_client_error(client) << " " << &client->universal << std::endl;
+    }
+#endif
     assert(gearman_universal_error_code(&client->universal) == rc);
   }
 
@@ -1389,6 +1400,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client, gearman_task
     if (task->con == NULL)
     {
       client->options.no_new= true;
+      gearman_gerror(&client->universal, GEARMAN_IO_WAIT);
       return GEARMAN_IO_WAIT;
     }
 
@@ -1414,9 +1426,9 @@ static gearman_return_t _client_run_task(gearman_client_st *client, gearman_task
       else if (ret == GEARMAN_IO_WAIT)
       {
         task->state= GEARMAN_TASK_STATE_SUBMIT;
-        return GEARMAN_IO_WAIT;
+        return ret;
       }
-      else if (ret != GEARMAN_SUCCESS)
+      else if (gearman_failed(ret))
       {
         /* Increment this since the job submission failed. */
         task->con->created_id++;
@@ -1453,10 +1465,8 @@ static gearman_return_t _client_run_task(gearman_client_st *client, gearman_task
     {
       if (not task->func.workload_fn)
       {
-        gearman_universal_set_error(&client->universal,
-                                    GEARMAN_NEED_WORKLOAD_FN,
-                                    "_client_run_task",
-                                    "workload size > 0, but no data pointer or workload_fn was given");
+        gearman_error(&client->universal, GEARMAN_NEED_WORKLOAD_FN,
+                      "workload size > 0, but no data pointer or workload_fn was given");
         return GEARMAN_NEED_WORKLOAD_FN;
       }
 

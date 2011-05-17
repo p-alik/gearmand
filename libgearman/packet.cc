@@ -365,9 +365,6 @@ gearman_return_t gearman_packet_unpack_header(gearman_packet_st *packet)
 
   memcpy(&tmp, packet->args + 4, 4);
   packet->command= (gearman_command_t)ntohl(tmp);
-#if 0
-  std::cerr << __func__ << " " << gearman_command_info_list[packet->command].name << std::endl;
-#endif
 
   if (packet->command == GEARMAN_COMMAND_TEXT ||
       packet->command >= GEARMAN_COMMAND_MAX)
@@ -419,6 +416,7 @@ size_t gearman_packet_unpack(gearman_packet_st *packet,
       uint8_t *ptr= (uint8_t *)memchr(data, '\n', data_size);
       if (not ptr)
       {
+        gearman_gerror(packet->universal, GEARMAN_IO_WAIT);
         *ret_ptr= GEARMAN_IO_WAIT;
         return 0;
       }
@@ -456,6 +454,7 @@ size_t gearman_packet_unpack(gearman_packet_st *packet,
     }
     else if (data_size < GEARMAN_PACKET_HEADER_SIZE)
     {
+      gearman_gerror(packet->universal, GEARMAN_IO_WAIT);
       *ret_ptr= GEARMAN_IO_WAIT;
       return 0;
     }
@@ -486,6 +485,7 @@ size_t gearman_packet_unpack(gearman_packet_st *packet,
       uint8_t *ptr= (uint8_t *)memchr((char *)data + used_size, 0, data_size - used_size);
       if (not ptr)
       {
+        gearman_gerror(packet->universal, GEARMAN_IO_WAIT);
         *ret_ptr= GEARMAN_IO_WAIT;
         return used_size;
       }
@@ -504,6 +504,7 @@ size_t gearman_packet_unpack(gearman_packet_st *packet,
     {
       if ((data_size - used_size) < packet->data_size)
       {
+        gearman_gerror(packet->universal, GEARMAN_IO_WAIT);
         *ret_ptr= GEARMAN_IO_WAIT;
         return used_size;
       }

@@ -129,6 +129,7 @@ void gearman_universal_set_perror(const char *position, gearman_universal_st *un
 
 #define gearman_perror(A, B) do { gearman_universal_set_perror(AT, (A), (B)); } while (0)
 #define gearman_error(A, B, C) do { gearman_universal_set_error((A), (B), AT, (C)); } while (0)
+#define gearman_gerror(A, B) do { gearman_universal_set_error((A), (B), AT, " "); } while (0)
 
 /**
  * Return an error string for last error encountered.

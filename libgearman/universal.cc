@@ -187,7 +187,7 @@ gearman_return_t gearman_flush_all(gearman_universal_st *universal)
       continue;
 
     gearman_return_t ret= gearman_connection_flush(con);
-    if (ret != GEARMAN_SUCCESS && ret != GEARMAN_IO_WAIT)
+    if (gearman_failed(ret) and ret != GEARMAN_IO_WAIT)
       return ret;
   }
 

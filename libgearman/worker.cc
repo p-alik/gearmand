@@ -570,9 +570,13 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
             if (*ret_ptr != GEARMAN_SUCCESS)
             {
               if (*ret_ptr == GEARMAN_IO_WAIT)
+              {
                 worker->state= GEARMAN_WORKER_STATE_FUNCTION_SEND;
+              }
               else if (*ret_ptr == GEARMAN_LOST_CONNECTION)
+              {
                 continue;
+              }
 
               return NULL;
             }
@@ -617,7 +621,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
     case GEARMAN_WORKER_STATE_CONNECT:
             *ret_ptr= gearman_connection_send(worker->con, &(worker->function->packet),
                                        true);
-            if (*ret_ptr != GEARMAN_SUCCESS)
+            if (gearman_failed(*ret_ptr))
             {
               if (*ret_ptr == GEARMAN_IO_WAIT)
 	      {
@@ -644,9 +648,13 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
         if (gearman_failed(*ret_ptr))
         {
           if (*ret_ptr == GEARMAN_IO_WAIT)
+          {
             worker->state= GEARMAN_WORKER_STATE_GRAB_JOB_SEND;
+          }
           else if (*ret_ptr == GEARMAN_LOST_CONNECTION)
+          {
             continue;
+          }
 
           return NULL;
         }
@@ -732,9 +740,13 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
         if (*ret_ptr != GEARMAN_SUCCESS)
         {
           if (*ret_ptr == GEARMAN_IO_WAIT)
+          {
             worker->state= GEARMAN_WORKER_STATE_PRE_SLEEP;
+          }
           else if (*ret_ptr == GEARMAN_LOST_CONNECTION)
+          {
             continue;
+          }
 
           return NULL;
         }
@@ -780,7 +792,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
 
           if (worker->options.timeout_return)
           {
-            gearman_error((&worker->universal), GEARMAN_TIMEOUT, "timeout reached");
+            gearman_error((&worker->universal), GEARMAN_TIMEOUT, "Option timeout return reached");
             *ret_ptr= GEARMAN_TIMEOUT;
 
             return NULL;
@@ -790,8 +802,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
       else
       {
         *ret_ptr= gearman_wait((&worker->universal));
-        if (*ret_ptr != GEARMAN_SUCCESS && (*ret_ptr != GEARMAN_TIMEOUT ||
-            worker->options.timeout_return))
+        if (gearman_failed(*ret_ptr) and (*ret_ptr != GEARMAN_TIMEOUT || worker->options.timeout_return))
         {
           return NULL;
         }
@@ -1048,9 +1059,7 @@ static gearman_worker_st *_worker_allocate(gearman_worker_st *worker, bool is_cl
 
   if (not is_clone)
   {
-    gearman_universal_st *check;
-
-    check= gearman_universal_create(&worker->universal, NULL);
+    gearman_universal_st *check= gearman_universal_create(&worker->universal, NULL);
     if (not check)
     {
       gearman_worker_free(worker);
