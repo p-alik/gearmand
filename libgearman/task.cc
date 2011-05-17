@@ -86,7 +86,6 @@ gearman_task_st *gearman_task_internal_create(gearman_client_st *client, gearman
 
   task->func= client->actions;
   task->result_rc= GEARMAN_UNKNOWN_STATE;
-  task->reducer= gearman_reducer_default();
 
   if (client->task_list)
     client->task_list->prev= task;

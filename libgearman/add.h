@@ -49,15 +49,6 @@ gearman_task_st *add_task(gearman_client_st *client,
                           const gearman_string_t &function,
                           const gearman_unique_t &unique,
                           const gearman_string_t &work,
-                          struct gearman_actions_t &actions,
-                          struct gearman_reducer_t &reducer);
-
-gearman_task_st *add_task(gearman_client_st *client,
-                          void *context,
-                          gearman_command_t command,
-                          const gearman_string_t &function,
-                          const gearman_unique_t &unique,
-                          const gearman_string_t &work,
                           time_t when,
                           struct gearman_actions_t &actions);
 

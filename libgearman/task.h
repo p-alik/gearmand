@@ -99,7 +99,6 @@ struct gearman_task_st
   gearman_packet_st *recv;
   gearman_packet_st send;
   struct gearman_actions_t func;
-  struct gearman_reducer_t reducer;
   gearman_return_t result_rc;
   struct gearman_result_st *result_ptr;
   char job_handle[GEARMAN_JOB_HANDLE_SIZE];

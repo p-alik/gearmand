@@ -52,30 +52,6 @@
 #include <uuid/uuid.h>
 #endif
 
-
-gearman_task_st *add_task(gearman_client_st *client,
-                          void *context,
-                          gearman_command_t command,
-                          const gearman_string_t &function,
-                          const gearman_unique_t &unique,
-                          const gearman_string_t &workload,
-                          struct gearman_actions_t &actions,
-                          struct gearman_reducer_t &reducer)
-{
-  gearman_task_st *task= add_task(client, NULL, context, command, function, unique, workload, time_t(0));
-  if (not task)
-    return NULL;
-
-  if (reducer.each_fn)
-  {
-    task->reducer= reducer;
-  }
-
-  task->func= actions;
-
-  return task;
-}
-
 gearman_task_st *add_task(gearman_client_st *client,
                           void *context,
                           gearman_command_t command,
@@ -188,7 +164,7 @@ gearman_task_st *add_task(gearman_client_st *client,
 gearman_task_st *add_task(gearman_client_st *client,
                           gearman_command_t command,
                           const gearman_job_priority_t priority,
-                          const gearman_string_t &function,
+                          const gearman_string_t &mapper_function,
                           const gearman_string_t &reducer,
                           const gearman_unique_t &unique,
                           const gearman_string_t &workload,
@@ -220,8 +196,8 @@ gearman_task_st *add_task(gearman_client_st *client,
   /**
     @todo fix it so that NULL is done by default by the API not by happenstance.
   */
-  args[0]= gearman_c_str(function);
-  args_size[0]= gearman_size(function) + 1;
+  args[0]= gearman_c_str(mapper_function);
+  args_size[0]= gearman_size(mapper_function) + 1;
 
   if (gearman_size(unique))
   {

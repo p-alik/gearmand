@@ -1595,12 +1595,6 @@ static gearman_return_t _client_run_task(gearman_client_st *client, gearman_task
         }
       }
 
-      if (task->reducer.each_fn and not task->options.was_reduced)
-      {
-        task->reducer.each_fn(task, task->context);
-        task->options.was_reduced= true;
-      }
-
       break;
     }
     else if (task->recv->command == GEARMAN_COMMAND_WORK_EXCEPTION)
