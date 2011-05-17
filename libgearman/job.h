@@ -102,8 +102,8 @@ void gearman_job_free(gearman_job_st *job);
  * Send data for a running job.
  */
 GEARMAN_API
-gearman_return_t gearman_job_send_data(gearman_job_st *job, const void *data,
-                                       size_t data_size);
+gearman_return_t gearman_job_send_data(gearman_job_st *job,
+                                       const void *data, size_t data_size);
 
 /**
  * Send warning for a running job.
@@ -153,13 +153,22 @@ const char *gearman_job_handle(const gearman_job_st *job);
  * Get the function name associated with a job.
  */
 GEARMAN_API
-const char *gearman_job_function_name(const gearman_job_st *job);
+  const char *gearman_job_function_name(const gearman_job_st *job);
 
 /**
  * Get the unique ID associated with a job.
  */
 GEARMAN_API
-const char *gearman_job_unique(const gearman_job_st *job);
+  const char *gearman_job_unique(const gearman_job_st *job);
+
+GEARMAN_LOCAL
+  const char *gearman_job_reducer(const gearman_job_st *job);
+
+GEARMAN_LOCAL
+  bool gearman_job_is_map(const gearman_job_st *job);
+
+GEARMAN_LOCAL
+  bool gearman_job_build_reducer(gearman_job_st *job, gearman_mapper_fn *mapper_fn);
 
 /**
  * Get a pointer to the workload for a job.

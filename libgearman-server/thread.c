@@ -192,9 +192,16 @@ gearman_server_thread_run(gearman_server_thread_st *thread,
 
     while ((server_con= gearmand_ready(thread->gearman)) != NULL)
     {
+      gearmand_log_debug("%15s:%5u gearmand_ready()",
+			 server_con->con.context == NULL ? "-" : server_con->con.context->host,
+			 server_con->con.context == NULL ? "-" : server_con->con.context->port);
+
       /* Try to read new packets. */
       if (server_con->con.revents & POLLIN)
       {
+	gearmand_log_debug("%15s:%5u reading new packets",
+			   server_con->con.context == NULL ? "-" : server_con->con.context->host,
+			   server_con->con.context == NULL ? "-" : server_con->con.context->port);
         *ret_ptr= _thread_packet_read(server_con);
         if (*ret_ptr != GEARMAN_SUCCESS && *ret_ptr != GEARMAN_IO_WAIT)
           return gearman_server_con_data(server_con);
@@ -203,6 +210,9 @@ gearman_server_thread_run(gearman_server_thread_st *thread,
       /* Flush existing outgoing packets. */
       if (server_con->con.revents & POLLOUT)
       {
+	gearmand_log_debug("%15s:%5u flushing existing packets",
+			   server_con->con.context == NULL ? "-" : server_con->con.context->host,
+			   server_con->con.context == NULL ? "-" : server_con->con.context->port);
         *ret_ptr= _thread_packet_flush(server_con);
         if (*ret_ptr != GEARMAN_SUCCESS && *ret_ptr != GEARMAN_IO_WAIT)
         {
@@ -258,6 +268,7 @@ static gearmand_error_t _thread_packet_read(gearman_server_con_st *con)
 {
   gearmand_error_t ret;
 
+  gearmand_log_debug("%s", __func__);
   while (1)
   {
     if (con->packet == NULL)
@@ -270,10 +281,13 @@ static gearmand_error_t _thread_packet_read(gearman_server_con_st *con)
     }
 
     ret= gearman_io_recv(con, true);
-    if (ret != GEARMAN_SUCCESS)
+    if (gearmand_failed(ret))
     {
       if (ret == GEARMAN_IO_WAIT)
+      {
+	gearmand_debug("gearman_io_recv(GEARMAN_IO_WAIT)");
         break;
+      }
 
       gearman_server_packet_free(con->packet, con->thread, true);
       con->packet= NULL;

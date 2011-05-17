@@ -68,14 +68,6 @@ time_t gearman_workload_epoch(const gearman_work_t *self)
   return self->options.epoch;
 }
 
-void gearman_workload_set_epoch(gearman_work_t *self, time_t epoch)
-{
-  if (not self)
-    return;
-
-  self->options.epoch= epoch;
-}
-
 gearman_job_priority_t gearman_workload_priority(const gearman_work_t *self)
 {
   if (not self)

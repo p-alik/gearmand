@@ -50,8 +50,6 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
-bool GEARMAN_DEBUG= false;
-
 /**
  * @addtogroup gearman_universal_static Static Gearman Declarations
  * @ingroup gearman_universal

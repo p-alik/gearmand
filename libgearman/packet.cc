@@ -44,7 +44,6 @@
 #include <libgearman/common.h>
 #include <cassert>
 #include <cerrno>
-#include <iostream>
 #include <cstdlib>
 #include <cstring>
 #include <memory>
@@ -98,10 +97,10 @@ gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX]=
   { "SUBMIT_JOB_LOW_BG",  2, true  },
   { "SUBMIT_JOB_SCHED",   7, true  },
   { "SUBMIT_JOB_EPOCH",   3, true  },
-  { "GEARMAN_COMMAND_SUBMIT_REDUCE_JOB", 4, true },          /* C->J: MAP[0]REDUCER[0]UNIQ[0]PRIORITY[0]ARGS */
-  { "GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND", 4, true },          /* C->J: MAP[0]REDUCER[0]UNIQ[0]PRIORITY[0]ARGS */
+  { "GEARMAN_COMMAND_SUBMIT_REDUCE_JOB", 4, true },          /* C->J: MAP[0]REDUCER[0]UNIQ[0]AGGREGATOR[0]ARGS */
+  { "GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND", 4, true },          /* C->J: MAP[0]REDUCER[0]UNIQ[0]AGGREGATOR[0]ARGS */
   { "GEARMAN_COMMAND_GRAB_JOB_ALL",    0, false  },
-  { "GEARMAN_COMMAND_JOB_ASSIGN_ALL",    3, true  }
+  { "GEARMAN_COMMAND_JOB_ASSIGN_ALL",    4, true  }
 };
 
 #ifndef __INTEL_COMPILER
@@ -255,7 +254,6 @@ gearman_return_t gearman_packet_create_args(gearman_universal_st *gearman,
   packet->magic= magic;
   packet->command= command;
 
-  std::cerr << "Trying " << gearman_command_info_list[packet->command].name << " have:" << args_count << " need:" << int(gearman_command_info_list[packet->command].argc) << std::endl;
   if (gearman_command_info_list[packet->command].data)
   {
     assert(args_count -1 == gearman_command_info_list[packet->command].argc);
@@ -333,7 +331,6 @@ void gearman_packet_free(gearman_packet_st *packet)
 gearman_return_t gearman_packet_pack_header(gearman_packet_st *packet)
 {
   uint64_t length_64;
-  uint32_t tmp;
 
   if (packet->magic == GEARMAN_MAGIC_TEXT)
   {
@@ -372,7 +369,7 @@ gearman_return_t gearman_packet_pack_header(gearman_packet_st *packet)
     return GEARMAN_INVALID_COMMAND;
   }
 
-  tmp= packet->command;
+  uint32_t tmp= packet->command;
   tmp= htonl(tmp);
   // Record the command
   memcpy(packet->args + 4, &tmp, 4);
@@ -416,6 +413,9 @@ gearman_return_t gearman_packet_unpack_header(gearman_packet_st *packet)
 
   memcpy(&tmp, packet->args + 4, 4);
   packet->command= (gearman_command_t)ntohl(tmp);
+#if 0
+  std::cerr << __func__ << " " << gearman_command_info_list[packet->command].name << std::endl;
+#endif
 
   if (packet->command == GEARMAN_COMMAND_TEXT ||
       packet->command >= GEARMAN_COMMAND_MAX)
@@ -455,7 +455,6 @@ size_t gearman_packet_unpack(gearman_packet_st *packet,
                              const void *data, size_t data_size,
                              gearman_return_t *ret_ptr)
 {
-  uint8_t *ptr;
   size_t used_size;
   size_t arg_size;
 
@@ -465,8 +464,8 @@ size_t gearman_packet_unpack(gearman_packet_st *packet,
     if (data_size > 0 && ((uint8_t *)data)[0] != 0)
     {
       /* Try to parse a text-based command. */
-      ptr= (uint8_t *)memchr(data, '\n', data_size);
-      if (ptr == NULL)
+      uint8_t *ptr= (uint8_t *)memchr(data, '\n', data_size);
+      if (not ptr)
       {
         *ret_ptr= GEARMAN_IO_WAIT;
         return 0;
@@ -495,8 +494,10 @@ size_t gearman_packet_unpack(gearman_packet_st *packet,
 
         *ret_ptr= packet_create_arg(packet, data, ptr == NULL ? arg_size :
                                     (size_t)(ptr - ((uint8_t *)data)));
-        if (*ret_ptr != GEARMAN_SUCCESS)
+        if (gearman_failed(*ret_ptr))
+        {
           return used_size;
+        }
       }
 
       return used_size;
@@ -512,8 +513,10 @@ size_t gearman_packet_unpack(gearman_packet_st *packet,
     memcpy(packet->args, data, GEARMAN_PACKET_HEADER_SIZE);
 
     *ret_ptr= gearman_packet_unpack_header(packet);
-    if (*ret_ptr != GEARMAN_SUCCESS)
+    if (gearman_failed(*ret_ptr))
+    {
       return 0;
+    }
 
     used_size= GEARMAN_PACKET_HEADER_SIZE;
   }
@@ -522,13 +525,22 @@ size_t gearman_packet_unpack(gearman_packet_st *packet,
     used_size= 0;
   }
 
+#if 0
+  std::cerr << __func__ << " " << gearman_command_info_list[packet->command].name << std::endl;
+#endif
   while (packet->argc != gearman_command_info_list[packet->command].argc)
   {
     if (packet->argc != (gearman_command_info_list[packet->command].argc - 1) ||
         gearman_command_info_list[packet->command].data)
     {
-      ptr= (uint8_t *)memchr((char *)data + used_size, 0, data_size - used_size);
-      if (ptr == NULL)
+#if 0
+      std::cerr << __func__ << " Failing in protocol " 
+        << gearman_command_info_list[packet->command].name
+        << " " << int(packet->argc) << " != " << gearman_command_info_list[packet->command].argc -1 <<  std::endl;
+#endif
+
+      uint8_t *ptr= (uint8_t *)memchr((char *)data + used_size, 0, data_size - used_size);
+      if (not ptr)
       {
         *ret_ptr= GEARMAN_IO_WAIT;
         return used_size;
@@ -536,9 +548,10 @@ size_t gearman_packet_unpack(gearman_packet_st *packet,
 
       arg_size= (size_t)(ptr - ((uint8_t *)data + used_size)) + 1;
       *ret_ptr= packet_create_arg(packet, (uint8_t *)data + used_size, arg_size);
-
-      if (*ret_ptr != GEARMAN_SUCCESS)
+      if (gearman_failed(*ret_ptr))
+      {
         return used_size;
+      }
 
       packet->data_size-= arg_size;
       used_size+= arg_size;
@@ -551,10 +564,11 @@ size_t gearman_packet_unpack(gearman_packet_st *packet,
         return used_size;
       }
 
-      *ret_ptr= packet_create_arg(packet, ((uint8_t *)data) + used_size,
-                                  packet->data_size);
-      if (*ret_ptr != GEARMAN_SUCCESS)
+      *ret_ptr= packet_create_arg(packet, ((uint8_t *)data) + used_size, packet->data_size);
+      if (gearman_failed(*ret_ptr))
+      {
         return used_size;
+      }
 
       used_size+= packet->data_size;
       packet->data_size= 0;

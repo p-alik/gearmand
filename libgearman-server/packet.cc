@@ -241,10 +241,10 @@ gearman_command_info_st gearmand_command_info_list[GEARMAN_COMMAND_MAX]=
   { "SUBMIT_JOB_LOW_BG",  2, true  },
   { "SUBMIT_JOB_SCHED",   7, true  },
   { "SUBMIT_JOB_EPOCH",   3, true  },
-  { "GEARMAN_COMMAND_SUBMIT_REDUCE_JOB", 5, true },
-  { "GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND", 5, true },
+  { "GEARMAN_COMMAND_SUBMIT_REDUCE_JOB", 4, true },
+  { "GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND", 4, true },
   { "GEARMAN_COMMAND_GRAB_JOB_ALL",    0, false  },
-  { "GEARMAN_COMMAND_JOB_ASSIGN_ALL",    3, true  }
+  { "GEARMAN_COMMAND_JOB_ASSIGN_ALL",    4, true  }
 };
 
 const char *gearmand_strcommand(gearmand_packet_st *packet)
@@ -437,11 +437,11 @@ static gearmand_error_t gearmand_packet_unpack_header(gearmand_packet_st *packet
 {
   uint32_t tmp;
 
-  if (! memcmp(packet->args, "\0REQ", 4))
+  if (not memcmp(packet->args, "\0REQ", 4))
   {
     packet->magic= GEARMAN_MAGIC_REQUEST;
   }
-  else if (! memcmp(packet->args, "\0RES", 4))
+  else if (not memcmp(packet->args, "\0RES", 4))
   {
     packet->magic= GEARMAN_MAGIC_RESPONSE;
   }
@@ -475,13 +475,13 @@ size_t gearmand_packet_pack(const gearmand_packet_st *packet,
   if (packet->args_size == 0)
   {
     *ret_ptr= GEARMAN_SUCCESS;
-    return EXIT_SUCCESS;
+    return 0;
   }
 
   if (packet->args_size > data_size)
   {
     *ret_ptr= GEARMAN_FLUSH_DATA;
-    return EXIT_SUCCESS;
+    return 0;
   }
 
   memcpy(data, packet->args, packet->args_size);
@@ -506,7 +506,7 @@ size_t gearmand_packet_unpack(gearmand_packet_st *packet,
       if (ptr == NULL)
       {
         *ret_ptr= GEARMAN_IO_WAIT;
-        return EXIT_SUCCESS;
+        return 0;
       }
 
       packet->magic= GEARMAN_MAGIC_TEXT;
@@ -542,7 +542,7 @@ size_t gearmand_packet_unpack(gearmand_packet_st *packet,
     else if (data_size < GEARMAN_PACKET_HEADER_SIZE)
     {
       *ret_ptr= GEARMAN_IO_WAIT;
-      return EXIT_SUCCESS;
+      return 0;
     }
 
     packet->args= packet->args_buffer;
@@ -550,8 +550,10 @@ size_t gearmand_packet_unpack(gearmand_packet_st *packet,
     memcpy(packet->args, data, GEARMAN_PACKET_HEADER_SIZE);
 
     *ret_ptr= gearmand_packet_unpack_header(packet);
-    if (*ret_ptr != GEARMAN_SUCCESS)
-      return EXIT_SUCCESS;
+    if (gearmand_failed(*ret_ptr))
+    {
+      return 0;
+    }
 
     used_size= GEARMAN_PACKET_HEADER_SIZE;
   }
@@ -568,6 +570,7 @@ size_t gearmand_packet_unpack(gearmand_packet_st *packet,
       ptr= (uint8_t *)memchr(((uint8_t *)data) + used_size, 0, data_size - used_size);
       if (ptr == NULL)
       {
+        gearmand_log_crazy("Possible protocol error for %s, recieved only %u args", gearmand_command_info_list[packet->command].name, packet->argc);
         *ret_ptr= GEARMAN_IO_WAIT;
         return used_size;
       }
@@ -575,7 +578,7 @@ size_t gearmand_packet_unpack(gearmand_packet_st *packet,
       size_t arg_size= (size_t)(ptr - (((uint8_t *)data) + used_size)) + 1;
       *ret_ptr= packet_create_arg(packet, ((uint8_t *)data) + used_size, arg_size);
 
-      if (*ret_ptr != GEARMAN_SUCCESS)
+      if (gearmand_failed(*ret_ptr))
         return used_size;
 
       packet->data_size-= arg_size;
@@ -589,10 +592,11 @@ size_t gearmand_packet_unpack(gearmand_packet_st *packet,
         return used_size;
       }
 
-      *ret_ptr= packet_create_arg(packet, ((uint8_t *)data) + used_size,
-                                  packet->data_size);
-      if (*ret_ptr != GEARMAN_SUCCESS)
+      *ret_ptr= packet_create_arg(packet, ((uint8_t *)data) + used_size, packet->data_size);
+      if (gearmand_failed(*ret_ptr))
+      {
         return used_size;
+      }
 
       used_size+= packet->data_size;
       packet->data_size= 0;

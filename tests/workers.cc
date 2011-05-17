@@ -39,6 +39,7 @@
 
 #include <libgearman/gearman.h>
 #include <cassert>
+#include <cstdlib>
 #include <cstring>
 #include <string>
 #include <tests/workers.h>
@@ -221,28 +222,32 @@ void *split_worker(gearman_job_st *job, void *,
   const char *workload= static_cast<const char *>(gearman_job_workload(job));
   size_t workload_size= gearman_job_workload_size(job);
 
-  const char *first= workload;
-  for (char *chunk= index(first, ' '); chunk; chunk= index(first, ' '))
+  const char *chunk_begin= workload;
+  for (size_t x= 0; x < workload_size; x++)
   {
-    // Chunk
+    if (int(workload[x]) == 0 or int(workload[x]) == int(' '))
     {
-      gearman_return_t rc= gearman_job_send_data(job, first, chunk -first);
+      // NULL Chunk
+      gearman_return_t rc= gearman_job_send_data(job, chunk_begin, workload +x -chunk_begin);
       if (gearman_failed(rc))
       {
+        *ret_ptr= rc;
         return NULL;
       }
+
+      chunk_begin= workload +x +1;
     }
-
-    first= chunk;
-    first++;
   }
 
-  gearman_return_t rc= gearman_job_send_data(job, first, workload_size -size_t(first -workload));
-  if (gearman_failed(rc))
+  if (chunk_begin < workload +workload_size)
   {
-    return NULL;
+    gearman_return_t rc= gearman_job_send_data(job, chunk_begin, size_t(workload +workload_size) -size_t(chunk_begin));
+    if (gearman_failed(rc))
+    {
+      *ret_ptr= rc;
+      return NULL;
+    }
   }
-
 
   *ret_ptr= GEARMAN_SUCCESS;
   *result_size= 0;

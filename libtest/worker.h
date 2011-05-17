@@ -6,8 +6,6 @@
  * the COPYING file in the parent directory for full text.
  */
 
-#include "config.h"
-
 #include <sys/types.h>
 #include <pthread.h>
 
@@ -20,6 +18,7 @@ struct worker_handle_st
   volatile bool shutdown;
 };
 
+#pragma once
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -33,7 +32,8 @@ LIBTEST_API
   struct worker_handle_st *test_worker_start_with_reducer(in_port_t port, const char *function_name,
 							  gearman_worker_fn *function, void *function_arg,
 							  gearman_worker_options_t options,
-							  struct gearman_reducer_t reducer);
+                                                          struct gearman_reducer_t reducer,
+                                                          gearman_mapper_fn *mapper_fn);
 
 LIBTEST_API
 void test_worker_stop(struct worker_handle_st *);

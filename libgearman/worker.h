@@ -416,6 +416,15 @@ gearman_return_t gearman_worker_add_function(gearman_worker_st *worker,
                                              gearman_worker_fn *function,
                                              void *context);
 
+GEARMAN_API
+  gearman_return_t gearman_worker_add_map_function(gearman_worker_st *worker,
+                                                   const char *function_name,
+                                                   size_t functiona_name_length,
+                                                   uint32_t timeout,
+                                                   gearman_worker_fn *worker_function,
+                                                   gearman_mapper_fn *mapper_function,
+                                                   void *context);
+
 /**
  * Wait for a job and call the appropriate callback function when it gets one.
  *

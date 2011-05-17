@@ -17,7 +17,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
-#include <iostream>
 
 #define GEARMAN_CORE
 #include <libgearman/gearman.h>
@@ -455,6 +454,7 @@ static test_return_t submit_exception_job_test(void *object)
                                 &job_length, &rc);
   test_true_got(rc == GEARMAN_SUCCESS, gearman_client_error(client) ? gearman_client_error(client) : gearman_strerror(rc));
   test_memcmp("exception", job_result, job_length);
+  free(job_result);
 
   return TEST_SUCCESS;
 }
@@ -472,6 +472,7 @@ static test_return_t submit_warning_job_test(void *object)
                                 &job_length, &rc);
   test_true_got(rc == GEARMAN_SUCCESS, gearman_client_error(client) ? gearman_client_error(client) : gearman_strerror(rc));
   test_memcmp("warning", job_result, job_length);
+  free(job_result);
 
   return TEST_SUCCESS;
 }
@@ -830,8 +831,8 @@ void *world_create(test_return_t *error)
   test->chunky_worker= test_worker_start(CLIENT_TEST_PORT, WORKER_CHUNKED_FUNCTION_NAME, echo_or_react_chunk_worker, NULL, gearman_worker_options_t());
   test->unique_check= test_worker_start(CLIENT_TEST_PORT, WORKER_UNIQUE_FUNCTION_NAME, unique_worker, NULL, GEARMAN_WORKER_GRAB_UNIQ);
 
-  gearman_reducer_t reducer= gearman_reducer_make(cat_each_func, cat_final_func);
-  test->split_worker= test_worker_start_with_reducer(CLIENT_TEST_PORT, WORKER_SPLIT_FUNCTION_NAME, split_worker, NULL, GEARMAN_WORKER_GRAB_ALL, reducer);
+  gearman_reducer_t reducer= gearman_reducer_make(cat_each_func);
+  test->split_worker= test_worker_start_with_reducer(CLIENT_TEST_PORT, WORKER_SPLIT_FUNCTION_NAME, split_worker, NULL, GEARMAN_WORKER_GRAB_ALL, reducer, cat_final_func);
 
   test->gearmand_pid= gearmand_pid;
 
@@ -854,6 +855,7 @@ test_return_t world_destroy(void *object)
   test_worker_stop(test->completion_worker);
   test_worker_stop(test->chunky_worker);
   test_worker_stop(test->unique_check);
+  test_worker_stop(test->split_worker);
   delete test;
 
   return TEST_SUCCESS;
@@ -949,7 +951,6 @@ test_st gearman_task_tests[] ={
 
 
 collection_st collection[] ={
-  {"gearman_client_execute", 0, 0, gearman_client_execute_tests},
   {"gearman_worker_set_reducer()", 0, 0, gearman_worker_set_reducer_tests},
   {"gearman_client_st", 0, 0, tests},
   {"gearman_client_st chunky", pre_chunk, post_function_reset, tests}, // Test with a worker that will respond in part
@@ -962,6 +963,7 @@ collection_st collection[] ={
   {"gearman_client_do_job_handle", 0, 0, gearman_client_do_job_handle_tests},
   {"gearman_client_do_background", 0, 0, gearman_client_do_background_tests},
   {"gearman_client_set_server_option", 0, 0, gearman_client_set_server_option_tests},
+  {"gearman_client_execute", 0, 0, gearman_client_execute_tests},
   {"client-logging", pre_logging, post_logging, tests_log},
   {0, 0, 0, 0}
 };

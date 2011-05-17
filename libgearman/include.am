@@ -51,6 +51,7 @@ libgearman_libgearmancore_la_SOURCES= \
 				      libgearman/connection.cc \
 				      libgearman/log.cc \
 				      libgearman/packet.cc \
+				      libgearman/strcommand.cc \
 				      libgearman/strerror.cc \
 				      libgearman/universal.cc
 

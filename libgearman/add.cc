@@ -47,7 +47,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <memory>
-#include <iostream>
 
 #ifdef HAVE_UUID_UUID_H
 #include <uuid/uuid.h>
@@ -186,7 +185,7 @@ gearman_task_st *add_task(gearman_client_st *client,
   return task;
 }
 
-gearman_task_st *add_task(gearman_client_st &client,
+gearman_task_st *add_task(gearman_client_st *client,
                           gearman_command_t command,
                           const gearman_job_priority_t priority,
                           const gearman_string_t &function,
@@ -202,17 +201,16 @@ gearman_task_st *add_task(gearman_client_st &client,
   const void *args[5];
   size_t args_size[5];
 
-  std::cerr << std::endl << __func__ << std::endl;
   if ((gearman_size(workload) && gearman_c_str(workload) == NULL) or (gearman_size(workload) == 0 && gearman_c_str(workload)))
   {
-    gearman_error(&client.universal, GEARMAN_INVALID_ARGUMENT, "invalid workload");
+    gearman_error(&client->universal, GEARMAN_INVALID_ARGUMENT, "invalid workload");
     return NULL;
   }
 
-  gearman_task_st *task= gearman_task_internal_create(&client, NULL);
+  gearman_task_st *task= gearman_task_internal_create(client, NULL);
   if (not task)
   {
-    gearman_error(&client.universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "");
+    gearman_error(&client->universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "");
     return NULL;
   }
 
@@ -241,7 +239,7 @@ gearman_task_st *add_task(gearman_client_st &client,
 
   assert (command == GEARMAN_COMMAND_SUBMIT_REDUCE_JOB or command == GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND);
   args[2]= gearman_c_str(reducer);
-  args_size[2]= gearman_size(reducer);
+  args_size[2]= gearman_size(reducer) +1;
 
   char time_string[30];
   if (epoch)
@@ -274,17 +272,16 @@ gearman_task_st *add_task(gearman_client_st &client,
   args_size[4]= gearman_size(workload);
 
   gearman_return_t rc;
-  rc= gearman_packet_create_args(&client.universal, &(task->send),
+  rc= gearman_packet_create_args(&client->universal, &(task->send),
                                  GEARMAN_MAGIC_REQUEST, command,
                                  args, args_size,
                                  5);
 
   if (gearman_success(rc))
   {
-    client.new_tasks++;
-    client.running_tasks++;
+    client->new_tasks++;
+    client->running_tasks++;
     task->options.send_in_use= true;
-    std::cerr << "success" << std::endl;
   }
   else
   {

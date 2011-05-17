@@ -456,12 +456,15 @@ static inline void _server_con_worker_list_append(gearman_server_worker_st *list
 
 gearman_server_job_st *gearman_server_job_take(gearman_server_con_st *server_con)
 {
-  for (gearman_server_worker_st *server_worker= server_con->worker_list; server_worker != NULL; server_worker= server_worker->con_next)
+  for (gearman_server_worker_st *server_worker= server_con->worker_list; server_worker; server_worker= server_worker->con_next)
   {
-    if (server_worker->function->job_count != 0)
+    gearmand_log_debug("Jobs available %lu", (unsigned long)(server_worker->function->job_count));
+    if (server_worker->function->job_count)
     {
       if (server_worker == NULL)
+      {
         return NULL;
+      }
 
       if (Server->flags.round_robin)
       {
@@ -477,8 +480,10 @@ gearman_server_job_st *gearman_server_job_take(gearman_server_con_st *server_con
       gearmand_job_priority_t priority;
       for (priority= GEARMAND_JOB_PRIORITY_HIGH; priority < GEARMAND_JOB_PRIORITY_LOW; priority++)
       {
-        if (server_worker->function->job_list[priority] != NULL)
+        if (server_worker->function->job_list[priority])
+        {
           break;
+        }
       }
 
       gearman_server_job_st *server_job= server_job= server_worker->function->job_list[priority];
@@ -486,13 +491,13 @@ gearman_server_job_st *gearman_server_job_take(gearman_server_con_st *server_con
   
       int64_t current_time= (int64_t)time(NULL);
   
-      while (server_job != NULL && server_job->when != 0 && server_job->when > current_time)
+      while (server_job && server_job->when != 0 && server_job->when > current_time)
       {
         previous_job= server_job;
         server_job= server_job->function_next;  
       }
   
-      if (server_job != NULL)
+      if (server_job)
       { 
         if (server_job->function->job_list[priority] == server_job)
         {

@@ -52,7 +52,6 @@ struct gearman_actions_t
 struct gearman_reducer_t
 {
   gearman_reducer_each_fn *each_fn;
-  gearman_reducer_final_fn *final_fn;
 };
 
 #ifdef __cplusplus
@@ -60,7 +59,7 @@ extern "C" {
 #endif
 
 GEARMAN_API
-struct gearman_reducer_t gearman_reducer_make(gearman_reducer_each_fn *, gearman_reducer_final_fn *);
+struct gearman_reducer_t gearman_reducer_make(gearman_reducer_each_fn* each);
 
 #ifdef __cplusplus
 }

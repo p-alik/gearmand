@@ -36,13 +36,15 @@ struct _worker_function_st
   char *function_name;
   size_t function_length;
   gearman_worker_fn *worker_fn;
+  gearman_mapper_fn *mapper_fn;
   void *context;
   gearman_packet_st packet;
 
-  _worker_function_st(gearman_worker_fn *worker_fn_arg, void *context_arg) :
+  _worker_function_st(gearman_worker_fn *worker_fn_arg, gearman_mapper_fn *mapper_fn_arg, void *context_arg) :
     function_name(NULL),
     function_length(0),
     worker_fn(worker_fn_arg),
+    mapper_fn(mapper_fn_arg),
     context(context_arg)
   {
     options.packet_in_use= true;
@@ -126,7 +128,8 @@ static gearman_return_t _worker_function_create(gearman_worker_st *worker,
                                                 const char *function_name,
                                                 size_t function_length,
                                                 uint32_t timeout,
-                                                gearman_worker_fn *worker_fn,
+                                                gearman_worker_fn *worker_fb,
+                                                gearman_mapper_fn *mapper_fn,
                                                 void *context);
 
 /**
@@ -431,7 +434,7 @@ gearman_return_t gearman_worker_register(gearman_worker_st *worker,
                                          const char *function_name,
                                          uint32_t timeout)
 {
-  return _worker_function_create(worker, function_name, strlen(function_name), timeout, NULL, NULL);
+  return _worker_function_create(worker, function_name, strlen(function_name), timeout, NULL, NULL, NULL);
 }
 
 bool gearman_worker_function_exist(gearman_worker_st *worker,
@@ -648,10 +651,10 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
           return NULL;
         }
 
-        if (worker->job == NULL)
+        if (not worker->job)
         {
           worker->job= gearman_job_create(worker, job);
-          if (worker->job == NULL)
+          if (not worker->job)
           {
             *ret_ptr= GEARMAN_MEMORY_ALLOCATION_FAILURE;
             return NULL;
@@ -682,7 +685,8 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
             return NULL;
           }
 
-          if (worker->job->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN ||
+          if (worker->job->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN or
+              worker->job->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN_ALL or
               worker->job->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN_UNIQ)
           {
             worker->job->options.assigned_in_use= true;
@@ -690,6 +694,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
             worker->state= GEARMAN_WORKER_STATE_GRAB_JOB_SEND;
             job= worker->job;
             worker->job= NULL;
+
             return job;
           }
 
@@ -809,24 +814,38 @@ gearman_return_t gearman_worker_add_function(gearman_worker_st *worker,
                                              gearman_worker_fn *worker_fn,
                                              void *context)
 {
-  if (function_name == NULL)
+  return gearman_worker_add_map_function(worker, function_name, strlen(function_name), timeout, worker_fn, NULL, context);
+}
+
+gearman_return_t gearman_worker_add_map_function(gearman_worker_st *worker,
+                                                 const char *function_name,
+                                                 size_t functiona_name_length,
+                                                 uint32_t timeout,
+                                                 gearman_worker_fn *worker_fn,
+                                                 gearman_mapper_fn *mapper_fn,
+                                                 void *context)
+{
+  if (not function_name)
   {
-    gearman_universal_set_error((&worker->universal), GEARMAN_INVALID_FUNCTION_NAME, AT,
+    gearman_universal_set_error((&worker->universal), GEARMAN_INVALID_ARGUMENT, AT,
 				"function name not given");
 
-    return GEARMAN_INVALID_FUNCTION_NAME;
+    return GEARMAN_INVALID_ARGUMENT;
   }
 
-  if (worker_fn == NULL)
+  if (not worker_fn)
   {
-    gearman_universal_set_error((&worker->universal), GEARMAN_INVALID_WORKER_FUNCTION, AT,
+    gearman_universal_set_error((&worker->universal), GEARMAN_INVALID_ARGUMENT, AT,
 				"function not given");
 
-    return GEARMAN_INVALID_WORKER_FUNCTION;
+    return GEARMAN_INVALID_ARGUMENT;
   }
 
-  return _worker_function_create(worker, function_name, strlen(function_name),
-                                 timeout, worker_fn,
+  return _worker_function_create(worker,
+                                 function_name, functiona_name_length,
+                                 timeout,
+                                 worker_fn,
+                                 mapper_fn,
                                  context);
 }
 
@@ -840,7 +859,9 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
       worker->work_job= gearman_worker_grab_job(worker, NULL, &ret);
 
       if (gearman_failed(ret))
+      {
 	return ret;
+      }
       assert(worker->work_job);
 
       for (worker->work_function= worker->function_list;
@@ -854,7 +875,7 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
 	}
       }
 
-      if (worker->work_function == NULL)
+      if (not worker->work_function)
       {
 	gearman_job_free(worker->work_job);
         worker->work_job= NULL;
@@ -862,7 +883,7 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
 	return GEARMAN_INVALID_FUNCTION_NAME;
       }
 
-      if (worker->work_function->worker_fn == NULL)
+      if (not worker->work_function->worker_fn)
       {
 	gearman_job_free(worker->work_job);
         worker->work_job= NULL;
@@ -875,6 +896,11 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
 
   case GEARMAN_WORKER_WORK_UNIVERSAL_FUNCTION:
     {
+      if (gearman_job_is_map(worker->work_job))
+      {
+        gearman_job_build_reducer(worker->work_job, worker->work_function->mapper_fn);
+      }
+
       gearman_return_t ret;
       worker->work_result= worker->work_function->worker_fn(worker->work_job,
 							    static_cast<void *>(worker->work_function->context),
@@ -1018,7 +1044,7 @@ static gearman_worker_st *_worker_allocate(gearman_worker_st *worker, bool is_cl
   worker->function_list= NULL;
   worker->work_function= NULL;
   worker->work_result= NULL;
-  worker->reducer= gearman_reducer_make(0, 0);
+  worker->reducer= gearman_reducer_make(0);
 
   if (not is_clone)
   {
@@ -1070,13 +1096,14 @@ static gearman_return_t _worker_function_create(gearman_worker_st *worker,
                                                 const char *function_name,
                                                 size_t function_length,
                                                 uint32_t timeout,
-                                                gearman_worker_fn *worker_fn,
+                                                gearman_worker_fn *worker_function,
+                                                gearman_mapper_fn *mapper_fn,
                                                 void *context)
 {
   const void *args[2];
   size_t args_size[2];
 
-  _worker_function_st *function= new (std::nothrow) _worker_function_st(worker_fn, context);
+  _worker_function_st *function= new (std::nothrow) _worker_function_st(worker_function, mapper_fn, context);
   if (not function)
   {
     gearman_perror((&worker->universal), "_worker_function_st::new()");

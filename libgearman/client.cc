@@ -51,7 +51,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <iostream>
 #include <memory>
 
 /**
@@ -550,6 +549,7 @@ gearman_task_st *gearman_client_execute_reduce(gearman_client_st *client,
   }
   assert(function_str and function_length);
 
+
   gearman_task_st *task= NULL;
   gearman_unique_t unique= gearman_unique_make(unique_str, unique_length);
   gearman_string_t function= { function_str, function_length };
@@ -560,7 +560,7 @@ gearman_task_st *gearman_client_execute_reduce(gearman_client_st *client,
     switch (workload->kind)
     {
     case GEARMAN_WORK_KIND_BACKGROUND:
-      task= add_task(*client,
+      task= add_task(client,
                      GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND,
                      workload->priority,
                      function,
@@ -572,7 +572,7 @@ gearman_task_st *gearman_client_execute_reduce(gearman_client_st *client,
                      workload->context);
       break;
     case GEARMAN_WORK_KIND_EPOCH:
-      task= add_task(*client,
+      task= add_task(client,
                      GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND,
                      workload->priority,
                      function,
@@ -584,7 +584,7 @@ gearman_task_st *gearman_client_execute_reduce(gearman_client_st *client,
                      workload->context);
       break;
     case GEARMAN_WORK_KIND_FOREGROUND:
-      task= add_task(*client,
+      task= add_task(client,
                      GEARMAN_COMMAND_SUBMIT_REDUCE_JOB,
                      workload->priority,
                      function,
@@ -599,7 +599,7 @@ gearman_task_st *gearman_client_execute_reduce(gearman_client_st *client,
   }
   else
   {
-    task= add_task(*client,
+    task= add_task(client,
                    GEARMAN_COMMAND_SUBMIT_REDUCE_JOB,
                    GEARMAN_JOB_PRIORITY_NORMAL,
                    function,
@@ -611,15 +611,9 @@ gearman_task_st *gearman_client_execute_reduce(gearman_client_st *client,
                    NULL);
   }
 
-  std::cerr << "Function " << gearman_c_str(function) << " " << gearman_size(function) << std::endl;
-
   if (task)
   {
     // Run!
-    std::cerr << __func__ << " " << __LINE__ << std::endl;
-#if 0
-    GEARMAN_DEBUG= true;
-#endif
     gearman_client_run_tasks(client);
   }
 
@@ -1501,7 +1495,6 @@ static gearman_return_t _client_run_task(gearman_client_st *client, gearman_task
           task->send.command == GEARMAN_COMMAND_SUBMIT_JOB_HIGH_BG ||
           task->send.command == GEARMAN_COMMAND_SUBMIT_JOB_LOW_BG ||
           task->send.command == GEARMAN_COMMAND_SUBMIT_JOB_EPOCH ||
-          task->send.command == GEARMAN_COMMAND_SUBMIT_REDUCE_JOB ||
           task->send.command == GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND)
       {
         break;

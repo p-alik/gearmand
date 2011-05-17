@@ -37,4 +37,12 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 const char *gearman_strcommand(gearman_command_t command);
+
+#ifdef __cplusplus
+}
+#endif

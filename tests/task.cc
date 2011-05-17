@@ -57,7 +57,7 @@ test_return_t gearman_client_add_task_test(void *object)
   gearman_task_st *task= gearman_client_add_task(client, NULL, NULL,
                                                  worker_function, NULL, "dog", 3,
                                                  &ret);
-  test_true_got(ret == GEARMAN_SUCCESS, gearman_strerror(ret));
+  test_true_got(gearman_success(ret), gearman_strerror(ret));
   test_truth(task);
 
   do
@@ -80,7 +80,8 @@ test_return_t gearman_client_add_task_test_fail(void *object)
 
   gearman_return_t ret;
   gearman_task_st *task= gearman_client_add_task(client, NULL, NULL,
-                                                 worker_function, NULL, "fail", 4,
+                                                 worker_function, NULL,
+                                                 gearman_literal_param("fail"),
                                                  &ret);
   test_true_got(ret == GEARMAN_SUCCESS, gearman_strerror(ret));
   test_truth(task);

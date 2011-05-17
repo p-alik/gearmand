@@ -38,7 +38,6 @@
 #include <libtest/test.h>
 #include <cassert>
 #include <cstring>
-#include <iostream>
 #include <libgearman/gearman.h>
 #include <tests/gearman_worker_set_reducer.h>
 
@@ -49,6 +48,8 @@
 test_return_t gearman_worker_set_reducer_test(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
+
+  test_true_got(gearman_success(gearman_client_echo(client, gearman_literal_param("this is mine"))), gearman_client_error(client));
 
   gearman_client_set_server_option(client, gearman_literal_param("should fail"));
   gearman_argument_t work_args= gearman_argument_make(gearman_literal_param("this dog does not hunt"));
@@ -63,6 +64,8 @@ test_return_t gearman_worker_set_reducer_test(void *object)
                                                     NULL,
                                                     &work_args), gearman_client_error(client));
 
+  gearman_return_t rc;
+  test_true_got(gearman_success(rc= gearman_task_error(task)), gearman_strerror(rc));
   gearman_result_st *result= gearman_task_result(task);
   test_truth(result);
   const char *value= gearman_result_value(result);

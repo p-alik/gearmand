@@ -86,11 +86,13 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
 
   if (packet->magic == GEARMAN_MAGIC_RESPONSE)
   {
-    return _server_error_packet(server_con, "bad_magic",
-                                "Request magic expected");
+    return _server_error_packet(server_con, "bad_magic", "Request magic expected");
   }
 
-  gearmand_log_debug("Packet comamnd, %s", gearmand_strcommand(packet));
+  gearmand_log_crazy("%15s:%5s packet command  %s",
+		     server_con->con.context == NULL ? "-" : server_con->con.context->host,
+		     server_con->con.context == NULL ? "-" : server_con->con.context->port, 
+		     gearmand_strcommand(packet));
 
   switch (packet->command)
   {
@@ -107,15 +109,15 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
     }
 
     packet->options.free_data= false;
-
     break;
-    // Reduce request
-  case GEARMAN_COMMAND_SUBMIT_REDUCE_JOB:
-      server_client= gearman_server_client_add(server_con);
-      if (server_client == NULL)
-      {
-        return GEARMAN_MEMORY_ALLOCATION_FAILURE;
-      }
+
+  case GEARMAN_COMMAND_SUBMIT_REDUCE_JOB: // Reduce request
+    server_client= gearman_server_client_add(server_con);
+    if (server_client == NULL)
+    {
+      return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+    }
+
   case GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND:
     {
       gearmand_log_debug("Received reduce submission, %.*s-%.*s/%.*s with %d arguments",

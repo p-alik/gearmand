@@ -8,7 +8,8 @@
 
 #include "config.h"
 
-#include <assert.h>
+#include <cassert>
+#include <cstring>
 #include <signal.h>
 #include <stdlib.h>
 #include <sys/wait.h>
@@ -31,6 +32,7 @@ struct context_st {
   struct worker_handle_st *handle;
   gearman_worker_options_t options;
   struct gearman_reducer_t reducer;
+  gearman_mapper_fn *mapper_fn;
 };
 
 static void *thread_runner(void *con)
@@ -48,8 +50,20 @@ static void *thread_runner(void *con)
   bool success= gearman_worker_set_server_option(&worker, gearman_literal_param("exceptions"));
   assert(success);
 
-  rc= gearman_worker_add_function(&worker, context->function_name, 0, context->function,
-                                  context->function_arg);
+  if (context->mapper_fn)
+  {
+    rc= gearman_worker_add_map_function(&worker,
+                                        context->function_name, strlen(context->function_name), 
+                                        0, 
+                                        context->function,
+                                        context->mapper_fn,
+                                        context->function_arg);
+  }
+  else
+  {
+    rc= gearman_worker_add_function(&worker, context->function_name, 0, context->function,
+                                    context->function_arg);
+  }
   assert(rc == GEARMAN_SUCCESS);
 
   if (context->options != gearman_worker_options_t())
@@ -61,7 +75,7 @@ static void *thread_runner(void *con)
 
   assert(context->handle);
 
-  if (context->reducer.final_fn)
+  if (context->reducer.each_fn)
   {
     gearman_worker_set_reducer(worker_ptr,  context->reducer);
   }
@@ -82,14 +96,15 @@ struct worker_handle_st *test_worker_start(in_port_t port, const char *function_
                                            gearman_worker_fn *function, void *function_arg,
                                            gearman_worker_options_t options)
 {
-  gearman_reducer_t reducer= gearman_reducer_make(0, 0);
-  return test_worker_start_with_reducer(port, function_name, function, function_arg, options, reducer);
+  gearman_reducer_t reducer= gearman_reducer_make(0);
+  return test_worker_start_with_reducer(port, function_name, function, function_arg, options, reducer, 0);
 }
 
 struct worker_handle_st *test_worker_start_with_reducer(in_port_t port, const char *function_name,
 							gearman_worker_fn *function, void *function_arg,
 							gearman_worker_options_t options,
-							struct gearman_reducer_t reducer)
+							struct gearman_reducer_t reducer,
+							gearman_mapper_fn *mapper_fn)
 {
   pthread_attr_t attr;
 
@@ -108,6 +123,7 @@ struct worker_handle_st *test_worker_start_with_reducer(in_port_t port, const ch
   foo->handle= handle;
   foo->options= options;
   foo->reducer= reducer;
+  foo->mapper_fn= mapper_fn;
 
   int rc= pthread_create(&handle->thread, &attr, thread_runner, foo);
   assert(rc == 0);

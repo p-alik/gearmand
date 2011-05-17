@@ -17,7 +17,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <unistd.h>
-#include <iostream>
 
 #include <libgearman/gearman.h>
 
