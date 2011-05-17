@@ -168,7 +168,7 @@ GEARMAN_LOCAL
   bool gearman_job_is_map(const gearman_job_st *job);
 
 GEARMAN_LOCAL
-  bool gearman_job_build_reducer(gearman_job_st *job, gearman_mapper_fn *mapper_fn);
+  bool gearman_job_build_reducer(gearman_job_st *job, gearman_aggregator_fn *aggregator_fn);
 
 /**
  * Get a pointer to the workload for a job.

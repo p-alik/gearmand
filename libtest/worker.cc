@@ -32,7 +32,7 @@ struct context_st {
   struct worker_handle_st *handle;
   gearman_worker_options_t options;
   struct gearman_reducer_t reducer;
-  gearman_mapper_fn *mapper_fn;
+  gearman_aggregator_fn *aggregator_fn;
 };
 
 static void *thread_runner(void *con)
@@ -50,13 +50,13 @@ static void *thread_runner(void *con)
   bool success= gearman_worker_set_server_option(&worker, gearman_literal_param("exceptions"));
   assert(success);
 
-  if (context->mapper_fn)
+  if (context->aggregator_fn)
   {
     rc= gearman_worker_add_map_function(&worker,
                                         context->function_name, strlen(context->function_name), 
                                         0, 
                                         context->function,
-                                        context->mapper_fn,
+                                        context->aggregator_fn,
                                         context->function_arg);
   }
   else
@@ -105,7 +105,7 @@ struct worker_handle_st *test_worker_start_with_reducer(in_port_t port, const ch
 							gearman_worker_fn *function, void *function_arg,
 							gearman_worker_options_t options,
 							struct gearman_reducer_t reducer,
-							gearman_mapper_fn *mapper_fn)
+							gearman_aggregator_fn *aggregator_fn)
 {
   pthread_attr_t attr;
 
@@ -124,7 +124,7 @@ struct worker_handle_st *test_worker_start_with_reducer(in_port_t port, const ch
   foo->handle= handle;
   foo->options= options;
   foo->reducer= reducer;
-  foo->mapper_fn= mapper_fn;
+  foo->aggregator_fn= aggregator_fn;
 
   int rc= pthread_create(&handle->thread, &attr, thread_runner, foo);
   assert(rc == 0);

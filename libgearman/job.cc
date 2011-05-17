@@ -56,15 +56,15 @@ struct gearman_job_reducer_st {
   gearman_client_st *client;
   gearman_result_st result;
   gearman_string_st *reducer_function;
-  gearman_mapper_fn *mapper_fn;
+  gearman_aggregator_fn *aggregator_fn;
 
   gearman_job_reducer_st(gearman_universal_st &universal_arg,
                          const gearman_string_t &reducer_function_name,
-                         gearman_mapper_fn *mapper_fn_arg):
+                         gearman_aggregator_fn *aggregator_fn_arg):
     universal(universal_arg),
     client(NULL),
     reducer_function(NULL),
-    mapper_fn(mapper_fn_arg)
+    aggregator_fn(aggregator_fn_arg)
   {
     assert(gearman_size(reducer_function_name));
     reducer_function= gearman_string_create(NULL, gearman_size(reducer_function_name));
@@ -124,9 +124,9 @@ struct gearman_job_reducer_st {
       return rc;
     }
 
-    if (mapper_fn)
+    if (aggregator_fn)
     {
-      mapper_fn(client->task_list, client->context, &result);
+      aggregator_fn(client->task_list, client->context, &result);
     }
 
     return GEARMAN_SUCCESS;
@@ -189,14 +189,14 @@ gearman_job_st *gearman_job_create(gearman_worker_st *worker, gearman_job_st *jo
   return job;
 }
 
-bool gearman_job_build_reducer(gearman_job_st *job, gearman_mapper_fn *mapper_fn)
+bool gearman_job_build_reducer(gearman_job_st *job, gearman_aggregator_fn *aggregator_fn)
 {
   if (job->reducer)
     return true;
 
   gearman_string_t reducer_func= { gearman_string_make_from_cstr(gearman_job_reducer(job)) };
 
-  job->reducer= new (std::nothrow) gearman_job_reducer_st(job->worker->universal, reducer_func, mapper_fn);
+  job->reducer= new (std::nothrow) gearman_job_reducer_st(job->worker->universal, reducer_func, aggregator_fn);
   if (not job->reducer)
   {
     gearman_job_free(job);

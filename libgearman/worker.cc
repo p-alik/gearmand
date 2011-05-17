@@ -36,15 +36,15 @@ struct _worker_function_st
   char *function_name;
   size_t function_length;
   gearman_worker_fn *worker_fn;
-  gearman_mapper_fn *mapper_fn;
+  gearman_aggregator_fn *aggregator_fn;
   void *context;
   gearman_packet_st packet;
 
-  _worker_function_st(gearman_worker_fn *worker_fn_arg, gearman_mapper_fn *mapper_fn_arg, void *context_arg) :
+  _worker_function_st(gearman_worker_fn *worker_fn_arg, gearman_aggregator_fn *aggregator_fn_arg, void *context_arg) :
     function_name(NULL),
     function_length(0),
     worker_fn(worker_fn_arg),
-    mapper_fn(mapper_fn_arg),
+    aggregator_fn(aggregator_fn_arg),
     context(context_arg)
   {
     options.packet_in_use= true;
@@ -129,7 +129,7 @@ static gearman_return_t _worker_function_create(gearman_worker_st *worker,
                                                 size_t function_length,
                                                 uint32_t timeout,
                                                 gearman_worker_fn *worker_fb,
-                                                gearman_mapper_fn *mapper_fn,
+                                                gearman_aggregator_fn *aggregator_fn,
                                                 void *context);
 
 /**
@@ -833,7 +833,7 @@ gearman_return_t gearman_worker_add_map_function(gearman_worker_st *worker,
                                                  size_t functiona_name_length,
                                                  uint32_t timeout,
                                                  gearman_worker_fn *worker_fn,
-                                                 gearman_mapper_fn *mapper_fn,
+                                                 gearman_aggregator_fn *aggregator_fn,
                                                  void *context)
 {
   if (not function_name)
@@ -856,7 +856,7 @@ gearman_return_t gearman_worker_add_map_function(gearman_worker_st *worker,
                                  function_name, functiona_name_length,
                                  timeout,
                                  worker_fn,
-                                 mapper_fn,
+                                 aggregator_fn,
                                  context);
 }
 
@@ -909,7 +909,7 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
     {
       if (gearman_job_is_map(worker->work_job))
       {
-        gearman_job_build_reducer(worker->work_job, worker->work_function->mapper_fn);
+        gearman_job_build_reducer(worker->work_job, worker->work_function->aggregator_fn);
       }
 
       gearman_return_t ret= GEARMAN_WORK_FAIL;
@@ -1106,13 +1106,13 @@ static gearman_return_t _worker_function_create(gearman_worker_st *worker,
                                                 size_t function_length,
                                                 uint32_t timeout,
                                                 gearman_worker_fn *worker_function,
-                                                gearman_mapper_fn *mapper_fn,
+                                                gearman_aggregator_fn *aggregator_fn,
                                                 void *context)
 {
   const void *args[2];
   size_t args_size[2];
 
-  _worker_function_st *function= new (std::nothrow) _worker_function_st(worker_function, mapper_fn, context);
+  _worker_function_st *function= new (std::nothrow) _worker_function_st(worker_function, aggregator_fn, context);
   if (not function)
   {
     gearman_perror((&worker->universal), "_worker_function_st::new()");

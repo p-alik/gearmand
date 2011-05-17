@@ -33,7 +33,7 @@ LIBTEST_API
 							  gearman_worker_fn *function, void *function_arg,
 							  gearman_worker_options_t options,
                                                           struct gearman_reducer_t reducer,
-                                                          gearman_mapper_fn *mapper_fn);
+                                                          gearman_aggregator_fn *aggregator_fn);
 
 LIBTEST_API
 void test_worker_stop(struct worker_handle_st *);
