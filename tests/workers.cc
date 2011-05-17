@@ -188,12 +188,7 @@ void *unique_worker(gearman_job_st *job, void *,
   return NULL;
 }
 
-gearman_return_t cat_each_func(gearman_task_st *, void *)
-{
-  return GEARMAN_SUCCESS;
-}
-
-gearman_return_t cat_final_func(gearman_task_st *task, void *, gearman_result_st *result)
+gearman_return_t cat_aggregator_fn(gearman_aggregator_st *, gearman_task_st *task, gearman_result_st *result)
 {
   std::string string_value;
 

@@ -35,18 +35,21 @@
  *
  */
 
-#pragma once
+#include <config.h>
 
-void *echo_or_react_worker(gearman_job_st *job, void *,
-                           size_t *result_size, gearman_return_t *ret_ptr);
+#include <cassert>
+#include <cstdlib>
+#include <limits>
+#include <memory>
 
-void *echo_or_react_chunk_worker(gearman_job_st *job, void *,
-                                 size_t *result_size, gearman_return_t *ret_ptr);
+#include <libgearman/common.h>
+#include <libgearman/aggregator.h>
+#include <libgearman/aggregator.hpp>
 
-void *unique_worker(gearman_job_st *job, void *,
-                    size_t *result_size, gearman_return_t *ret_ptr);
+void *gearman_aggegator_context(gearman_aggregator_st *self)
+{
+  if (not self)
+    return NULL;
 
-void *split_worker(gearman_job_st *job, void *,
-                   size_t *result_size, gearman_return_t *ret_ptr);
-
-gearman_return_t cat_aggregator_fn(gearman_aggregator_st *aggregator, gearman_task_st *task, gearman_result_st *result);
+  return self->context;
+}

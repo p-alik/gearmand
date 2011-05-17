@@ -43,6 +43,7 @@
  */
 
 #include <libgearman/common.h>
+#include <libgearman/aggregator.hpp>
 #include <libgearman/connection.h>
 #include <libgearman/packet.h>
 #include <libgearman/add.h>
@@ -126,7 +127,8 @@ struct gearman_job_reducer_st {
 
     if (aggregator_fn)
     {
-      aggregator_fn(client->task_list, client->context, &result);
+      gearman_aggregator_st aggregator(client->context);
+      aggregator_fn(&aggregator, client->task_list, &result);
     }
 
     return GEARMAN_SUCCESS;

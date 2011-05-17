@@ -12,6 +12,7 @@
 
 nobase_include_HEADERS+= \
 			 libgearman/actions.h \
+			 libgearman/aggregator.h \
 			 libgearman/argument.h \
 			 libgearman/byteorder.h \
 			 libgearman/client.h \
@@ -40,6 +41,7 @@ nobase_include_HEADERS+= \
 
 noinst_HEADERS+= \
 		 libgearman/add.h \
+		 libgearman/aggregator.hpp \
 		 libgearman/common.h \
 		 libgearman/connection.hpp \
 		 libgearman/log.h \
@@ -60,6 +62,7 @@ libgearman_libgearmancore_la_SOURCES= \
 lib_LTLIBRARIES+= libgearman/libgearman.la
 libgearman_libgearman_la_SOURCES= \
 				  libgearman/actions.cc \
+				  libgearman/aggregator.cc \
 				  libgearman/argument.cc \
 				  libgearman/add.cc \
 				  libgearman/byteorder.cc \
