@@ -3,6 +3,7 @@
  *  Gearmand client and server library.
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2008 Brian Aker, Eric Day
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -37,49 +38,14 @@
 
 #pragma once
 
-enum gearman_result_t {
-  GEARMAN_RESULT_BINARY,
-  GEARMAN_RESULT_BOOLEAN,
-  GEARMAN_RESULT_INTEGER
+enum gearman_job_priority_t
+{
+  GEARMAN_JOB_PRIORITY_HIGH,
+  GEARMAN_JOB_PRIORITY_NORMAL,
+  GEARMAN_JOB_PRIORITY_LOW,
+  GEARMAN_JOB_PRIORITY_MAX /* Always add new commands before this. */
 };
+
 #ifndef __cplusplus
-typedef enum gearman_result_t gearman_result_t;
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-  GEARMAN_API
-  int64_t gearman_result_integer(const gearman_result_st *self);
-
-  GEARMAN_API
-    bool gearman_result_boolean(const gearman_result_st *self);
-
-  GEARMAN_API
-  gearman_string_t gearman_result_string(const gearman_result_st *self);
-
-  GEARMAN_LOCAL
-  gearman_string_t gearman_result_take_string(gearman_result_st *self);
-
-  GEARMAN_API
-  gearman_return_t gearman_result_store_string(gearman_result_st *self, gearman_string_t arg);
-
-  GEARMAN_API
-  void gearman_result_store_integer(gearman_result_st *self, int64_t value);
-
-  GEARMAN_API
-  gearman_return_t gearman_result_store_value(gearman_result_st *self, const void *value, size_t size);
-
-  GEARMAN_API
-    size_t gearman_result_size(const gearman_result_st *self);
-
-  GEARMAN_API
-    const char *gearman_result_value(const gearman_result_st *self);
-
-  GEARMAN_API
-    bool gearman_result_is_null(const gearman_result_st *self);
-
-#ifdef __cplusplus
-}
+typedef enum gearman_job_priority_t gearman_job_priority_t;
 #endif

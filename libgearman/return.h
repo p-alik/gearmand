@@ -41,7 +41,7 @@
 /**
  * Return codes.
  */
-typedef enum
+enum gearman_return_t
 {
   GEARMAN_SUCCESS,
   GEARMAN_IO_WAIT,
@@ -94,7 +94,7 @@ typedef enum
   GEARMAN_ARGUMENT_TOO_LARGE,
   GEARMAN_INVALID_ARGUMENT,
   GEARMAN_MAX_RETURN /* Always add new error code before */
-} gearman_return_t;
+};
 
 
 
@@ -102,3 +102,6 @@ typedef enum
 #define gearman_success(X) (((X) == GEARMAN_SUCCESS) ? true : false)
 
 
+#ifndef __cplusplus
+typedef enum gearman_return_t gearman_return_t;
+#endif

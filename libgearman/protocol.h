@@ -59,12 +59,8 @@ enum gearman_command_t
   GEARMAN_COMMAND_MAX /* Always add new commands before this. */
 };
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#ifndef __cplusplus
 
 typedef enum gearman_command_t gearman_command_t;
 
-#ifdef __cplusplus
-}
 #endif
