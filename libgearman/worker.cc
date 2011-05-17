@@ -832,7 +832,7 @@ gearman_return_t gearman_worker_add_map_function(gearman_worker_st *worker,
                                                  const char *function_name,
                                                  size_t functiona_name_length,
                                                  uint32_t timeout,
-                                                 gearman_worker_fn *worker_fn,
+                                                 gearman_worker_fn *mapper_fn,
                                                  gearman_aggregator_fn *aggregator_fn,
                                                  void *context)
 {
@@ -844,7 +844,7 @@ gearman_return_t gearman_worker_add_map_function(gearman_worker_st *worker,
     return GEARMAN_INVALID_ARGUMENT;
   }
 
-  if (not worker_fn)
+  if (not mapper_fn)
   {
     gearman_universal_set_error((&worker->universal), GEARMAN_INVALID_ARGUMENT, AT,
 				"function not given");
@@ -855,7 +855,7 @@ gearman_return_t gearman_worker_add_map_function(gearman_worker_st *worker,
   return _worker_function_create(worker,
                                  function_name, functiona_name_length,
                                  timeout,
-                                 worker_fn,
+                                 mapper_fn,
                                  aggregator_fn,
                                  context);
 }
@@ -1105,14 +1105,14 @@ static gearman_return_t _worker_function_create(gearman_worker_st *worker,
                                                 const char *function_name,
                                                 size_t function_length,
                                                 uint32_t timeout,
-                                                gearman_worker_fn *worker_function,
+                                                gearman_worker_fn *mapper_fn,
                                                 gearman_aggregator_fn *aggregator_fn,
                                                 void *context)
 {
   const void *args[2];
   size_t args_size[2];
 
-  _worker_function_st *function= new (std::nothrow) _worker_function_st(worker_function, aggregator_fn, context);
+  _worker_function_st *function= new (std::nothrow) _worker_function_st(mapper_fn, aggregator_fn, context);
   if (not function)
   {
     gearman_perror((&worker->universal), "_worker_function_st::new()");
