@@ -37,7 +37,7 @@
 #include <tests/do_background.h>
 #include <tests/execute.h>
 #include <tests/gearman_client_do_job_handle.h>
-#include <tests/gearman_worker_set_reducer.h>
+#include <tests/gearman_client_execute_reduce.h>
 #include <tests/task.h>
 #include <tests/unique.h>
 #include <tests/workers.h>

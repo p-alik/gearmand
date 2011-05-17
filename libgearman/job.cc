@@ -55,7 +55,7 @@ struct gearman_job_reducer_st {
   gearman_universal_st &universal;
   gearman_client_st *client;
   gearman_result_st result;
-  gearman_string_st *reducer_function;
+  gearman_vector_st *reducer_function;
   gearman_aggregator_fn *aggregator_fn;
 
   gearman_job_reducer_st(gearman_universal_st &universal_arg,
@@ -332,7 +332,7 @@ gearman_return_t gearman_job_send_complete(gearman_job_st *job,
       return rc;
     }
 
-    gearman_string_st *reduced_value= job->reducer->result.string();
+    gearman_vector_st *reduced_value= job->reducer->result.string();
     if (reduced_value)
     {
       result= gearman_string_value(reduced_value);

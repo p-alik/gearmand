@@ -15,7 +15,7 @@ noinst_HEADERS+= \
 		 tests/do_background.h \
 		 tests/execute.h \
 		 tests/gearman_client_do_job_handle.h \
-		 tests/gearman_worker_set_reducer.h \
+		 tests/gearman_client_execute_reduce.h \
 		 tests/server_options.h \
 		 tests/task.h \
 		 tests/unique.h \
@@ -46,7 +46,7 @@ tests_client_test_SOURCES= \
 			   tests/do_background.cc \
 			   tests/execute.cc \
 			   tests/gearman_client_do_job_handle.cc \
-			   tests/gearman_worker_set_reducer.cc \
+			   tests/gearman_client_execute_reduce.cc \
 			   tests/server_options.cc \
 			   tests/task.cc \
 			   tests/unique.cc \

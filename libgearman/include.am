@@ -32,6 +32,7 @@ nobase_include_HEADERS+= \
 			 libgearman/task.h \
 			 libgearman/unique.h \
 			 libgearman/universal.h \
+			 libgearman/vector.hpp \
 			 libgearman/version.h \
 			 libgearman/visibility.h \
 			 libgearman/worker.h \
@@ -76,6 +77,7 @@ libgearman_libgearman_la_SOURCES= \
 				  libgearman/task.cc \
 				  libgearman/unique.cc \
 				  libgearman/universal.cc \
+				  libgearman/vector.cc \
 				  libgearman/worker.cc \
 				  libgearman/work.cc
 

@@ -36,24 +36,69 @@
 
 #pragma once
 
-/* shallow structure we use externally */
+#ifdef BUILDING_LIBGEARMAN
+/**
+  vectors are always under our control so we make some assumptions about them.
 
-struct gearman_string_t {
-  const char *c_str;
-  const size_t size;
+  1) is_initialized is always valid.
+  2) A string once intialized will always be, until free where we
+     unset this flag.
+*/
+struct gearman_vector_st {
+  char *end;
+  char *string;
+  size_t current_size;
+  struct {
+    bool is_allocated:1;
+  } options;
 };
 
-#define gearman_size(X) (X).size
-#define gearman_c_str(X) (X).c_str
-#define gearman_string_param(X) (X).c_str, (X).size
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#ifdef BUILDING_LIBGEARMAN
 
-#ifdef __cplusplus // correct define
-#define gearman_string_make(X) (X), size_t((sizeof(X) - 1))
-#else
-#define gearman_string_make(X) (X), (((size_t)((sizeof(X) - 1)))
-#endif // correct define
+GEARMAN_LOCAL
+gearman_vector_st *gearman_string_create(gearman_vector_st *string,
+                                         size_t initial_size);
+GEARMAN_LOCAL
+gearman_return_t gearman_string_check(gearman_vector_st *string, size_t need);
 
-#define gearman_string_make_from_cstr(X) (X), ((X) ? strlen(X) : 0)
+GEARMAN_LOCAL
+char *gearman_string_c_copy(gearman_vector_st *string);
+
+GEARMAN_LOCAL
+gearman_return_t gearman_string_append_character(gearman_vector_st *string,
+                                                     char character);
+GEARMAN_LOCAL
+gearman_return_t gearman_string_append(gearman_vector_st *string,
+                                           const char *value, size_t length);
+GEARMAN_LOCAL
+void gearman_string_reset(gearman_vector_st *string);
+
+GEARMAN_LOCAL
+void gearman_string_free(gearman_vector_st *string);
+
+GEARMAN_LOCAL
+size_t gearman_string_length(const gearman_vector_st *self);
+
+GEARMAN_LOCAL
+size_t gearman_string_size(const gearman_vector_st *self);
+
+GEARMAN_LOCAL
+const char *gearman_string_value(const gearman_vector_st *self);
+
+GEARMAN_LOCAL
+char *gearman_string_value_mutable(const gearman_vector_st *self);
+
+GEARMAN_LOCAL
+gearman_string_t gearman_string(const gearman_vector_st *self);
+
+GEARMAN_LOCAL
+gearman_string_t gearman_string_take_string(gearman_vector_st *self);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif // BUILDING_LIBGEARMAN

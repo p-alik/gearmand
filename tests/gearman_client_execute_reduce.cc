@@ -39,7 +39,7 @@
 #include <cassert>
 #include <cstring>
 #include <libgearman/gearman.h>
-#include <tests/gearman_worker_set_reducer.h>
+#include <tests/gearman_client_execute_reduce.h>
 
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"

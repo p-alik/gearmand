@@ -46,7 +46,7 @@ struct gearman_result_st
   union {
     bool boolean;
     int64_t integer;
-    gearman_string_st string;
+    gearman_vector_st string;
   } value;
 
   gearman_result_st() :
@@ -68,7 +68,7 @@ struct gearman_result_st
     return _is_null;
   }
 
-  gearman_string_st *string()
+  gearman_vector_st *string()
   {
     if (type == GEARMAN_RESULT_BINARY)
       return &value.string;
