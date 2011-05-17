@@ -13,10 +13,6 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
   @todo this is only used by the server and should be made private.
  */
@@ -58,6 +54,10 @@ struct gearman_universal_st
 
 #ifdef GEARMAN_CORE
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 /**
  * @addtogroup gearman_universal Gearman Declarations
@@ -96,15 +96,6 @@ gearman_universal_st *gearman_universal_create(gearman_universal_st *source, con
  */
 GEARMAN_INTERNAL_API
 gearman_universal_st *gearman_universal_clone(gearman_universal_st *destination, const gearman_universal_st *source);
-
-/**
- * Free a gearman structure.
- *
- * @param[in] gearman Structure previously initialized with gearman_universal_create() or
- *  gearman_clone().
- */
-GEARMAN_INTERNAL_API
-void gearman_universal_free(gearman_universal_st *gearman);
 
 /**
  * Set the error string.
@@ -306,6 +297,20 @@ GEARMAN_INTERNAL_API
 gearman_return_t gearman_echo(gearman_universal_st *gearman, const void *workload,
                               size_t workload_size);
 
+/** @} */
+
+#ifdef __cplusplus
+}
+
+/**
+ * Free a gearman structure.
+ *
+ * @param[in] gearman Structure previously initialized with gearman_universal_create() or
+ *  gearman_clone().
+ */
+GEARMAN_INTERNAL_API
+void gearman_universal_free(gearman_universal_st &gearman);
+
 /**
  * Free all packets for a gearman structure.
  *
@@ -313,17 +318,11 @@ gearman_return_t gearman_echo(gearman_universal_st *gearman, const void *workloa
  *  gearman_clone().
  */
 GEARMAN_INTERNAL_API
-void gearman_free_all_packets(gearman_universal_st *gearman);
-
-#endif /* GEARMAN_CORE */
-
-/** @} */
-
-#ifdef __cplusplus
-}
-
+void gearman_free_all_packets(gearman_universal_st &gearman);
 
 bool gearman_request_option(gearman_universal_st &universal,
                             gearman_string_t &option);
 
 #endif
+#endif /* GEARMAN_CORE */
+

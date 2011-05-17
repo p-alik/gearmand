@@ -397,7 +397,7 @@ static test_return_t abandoned_worker_test(void *)
   gearman_connection_free(worker1);
   gearman_connection_free(worker2);
   gearman_packet_free(&packet);
-  gearman_universal_free(&gearman);
+  gearman_universal_free(gearman);
 
   return TEST_SUCCESS;
 }

@@ -231,7 +231,7 @@ void gearman_worker_free(gearman_worker_st *worker)
   gearman_job_free_all(worker);
 
   if ((&worker->universal))
-    gearman_universal_free((&worker->universal));
+    gearman_universal_free((worker->universal));
 
   if (worker->options.allocated)
     delete worker;

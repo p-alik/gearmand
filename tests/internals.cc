@@ -73,12 +73,12 @@ static test_return_t init_test(void *not_used __attribute__((unused)))
   test_false(gear.options.stored_non_blocking);
   test_truth(gear_ptr == &gear);
 
-  gearman_universal_free(&gear);
+  gearman_universal_free(gear);
 
   return TEST_SUCCESS;
 }
 
-static test_return_t clone_test(void *not_used __attribute__((unused)))
+static test_return_t clone_test(void *)
 {
   gearman_universal_st gear;
   gearman_universal_st *gear_ptr;
@@ -86,18 +86,6 @@ static test_return_t clone_test(void *not_used __attribute__((unused)))
   gear_ptr= gearman_universal_create(&gear, NULL);
   test_truth(gear_ptr);
   test_truth(gear_ptr == &gear);
-
-#if 0
-    gearman_universal_st *gear_clone;
-
-    /* For gearman_universal_st we don't allow NULL cloning creation */
-    gear_clone= gearman_universal_clone(NULL, NULL);
-    test_truth(gear_clone);
-    gear_clone= gearman_universal_clone(NULL, &gear);
-    test_truth(gear_clone);
-    gear_clone= gearman_universal_clone(&gear, NULL);
-    test_truth(gear_clone);
-#endif
 
   /* Can we init from null? */
   {
@@ -127,10 +115,10 @@ static test_return_t clone_test(void *not_used __attribute__((unused)))
     test_truth(gear_clone->workload_free_fn == gear_ptr->workload_free_fn);
     test_truth(gear_clone->workload_free_context == gear_ptr->workload_free_context);
 
-    gearman_universal_free(gear_clone);
+    gearman_universal_free(gear);
   }
 
-  gearman_universal_free(gear_ptr);
+  gearman_universal_free(gear);
 
   return TEST_SUCCESS;
 }
@@ -157,7 +145,7 @@ static test_return_t set_timout_test(void *not_used __attribute__((unused)))
   test_truth (time_data == 10); // Current default
 
   test_truth(gear_ptr == &gear); // Make sure noting got slipped in :)
-  gearman_universal_free(gear_ptr);
+  gearman_universal_free(gear);
 
   return TEST_SUCCESS;
 }
@@ -179,7 +167,7 @@ static test_return_t basic_error_test(void *not_used __attribute__((unused)))
   test_truth(error_number == 0);
 
   test_truth(gear_ptr == &gear); // Make sure noting got slipped in :)
-  gearman_universal_free(gear_ptr);
+  gearman_universal_free(gear);
 
   return TEST_SUCCESS;
 }
@@ -197,7 +185,7 @@ static test_return_t state_option_test(void *object __attribute__((unused)))
     test_false(universal_ptr->options.non_blocking);
     test_false(universal_ptr->options.stored_non_blocking);
   }
-  gearman_universal_free(universal_ptr);
+  gearman_universal_free(universal);
 
   return TEST_SUCCESS;
 }
@@ -215,7 +203,7 @@ static test_return_t state_option_on_create_test(void *object __attribute__((unu
     test_truth(universal_ptr->options.non_blocking);
     test_false(universal_ptr->options.stored_non_blocking);
   }
-  gearman_universal_free(universal_ptr);
+  gearman_universal_free(universal);
 
   return TEST_SUCCESS;
 }
@@ -258,7 +246,7 @@ static test_return_t state_option_set_test(void *object __attribute__((unused)))
     test_false(universal_ptr->options.stored_non_blocking);
   }
 
-  gearman_universal_free(universal_ptr);
+  gearman_universal_free(universal);
 
   return TEST_SUCCESS;
 }
@@ -380,7 +368,7 @@ static test_return_t gearman_packet_give_data_test(void *not_used __attribute__(
   test_truth(packet_ptr->options.free_data);
 
   gearman_packet_free(packet_ptr);
-  gearman_universal_free(universal_ptr);
+  gearman_universal_free(universal);
 
   return TEST_SUCCESS;
 }
@@ -419,7 +407,7 @@ static test_return_t gearman_packet_take_data_test(void *not_used __attribute__(
   test_truth(data_size == mine_size);
 
   gearman_packet_free(packet_ptr);
-  gearman_universal_free(universal_ptr);
+  gearman_universal_free(universal);
   free(data);
 
   return TEST_SUCCESS;

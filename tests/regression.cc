@@ -193,7 +193,7 @@ static test_return_t bug372074_test(void *object __attribute__((unused)))
     gearman_connection_free(&con);
   }
 
-  gearman_universal_free(&gearman);
+  gearman_universal_free(gearman);
 
   return TEST_SUCCESS;
 }

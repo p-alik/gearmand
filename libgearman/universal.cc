@@ -98,7 +98,7 @@ gearman_universal_st *gearman_universal_clone(gearman_universal_st *destination,
   {
     if (gearman_connection_clone(destination, NULL, con) == NULL)
     {
-      gearman_universal_free(destination);
+      gearman_universal_free(*destination);
       return NULL;
     }
   }
@@ -109,15 +109,15 @@ gearman_universal_st *gearman_universal_clone(gearman_universal_st *destination,
   return destination;
 }
 
-void gearman_universal_free(gearman_universal_st *universal)
+void gearman_universal_free(gearman_universal_st &universal)
 {
-  gearman_free_all_cons(universal);
+  gearman_free_all_cons(&universal);
   gearman_free_all_packets(universal);
 
-  if (universal->pfds != NULL)
+  if (universal.pfds != NULL)
   {
     // created realloc()
-    free(universal->pfds);
+    free(universal.pfds);
   }
 }
 
@@ -429,10 +429,10 @@ exit:
   return gearman_success(ret);
 }
 
-void gearman_free_all_packets(gearman_universal_st *universal)
+void gearman_free_all_packets(gearman_universal_st &universal)
 {
-  while (universal->packet_list != NULL)
-    gearman_packet_free(universal->packet_list);
+  while (universal.packet_list)
+    gearman_packet_free(universal.packet_list);
 }
 
 /*
