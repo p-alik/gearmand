@@ -76,14 +76,14 @@ tests_worker_test_LDADD= \
 tests_cpp_test_SOURCES= tests/cpp_test.cc
 tests_cpp_test_LDADD= ${CLIENT_LDADD}
 
-test-burnin:
+test-burnin: tests/burnin_test
 	@tests/burnin_test $(ARG1) $(ARG2)
 
 test-client: tests/client_test
 	@tests/client_test $(ARG1) $(ARG2)
 
-test-round-robin:
-	tests/round_robin_test $(ARG1) $(ARG2)
+test-round-robin: tests/round_robin_test
+	@tests/round_robin_test $(ARG1) $(ARG2)
 
 test-worker: tests/worker_test
 	@tests/worker_test $(ARG1) $(ARG2)
@@ -106,6 +106,9 @@ gdb-worker: ${noinst_PROGRAMS}
 
 gdb-internals: ${noinst_PROGRAMS}
 	$(LIBTOOL) --mode=execute gdb tests/internals_test
+
+gdb-burnin: ${noinst_PROGRAMS}
+	$(LIBTOOL) --mode=execute gdb tests/burnin_test
 
 valgrind-client:
 	$(VALGRIND_COMMAND) tests/client_test $(ARG1) $(ARG2)

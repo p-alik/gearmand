@@ -1051,7 +1051,7 @@ static inline void _pop_non_blocking(gearman_client_st *client)
 
 static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
 {
-  gearman_return_t ret;
+  gearman_return_t ret= GEARMAN_MAX_RETURN;
 
   switch(client->state)
   {
@@ -1068,21 +1068,21 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
             continue;
 
   case GEARMAN_CLIENT_STATE_NEW:
-          ret= _client_run_task(client, client->task);
-          if (ret != GEARMAN_SUCCESS && ret != GEARMAN_IO_WAIT)
+          gearman_return_t local_ret= _client_run_task(client, client->task);
+          if (gearman_failed(ret) and local_ret != GEARMAN_IO_WAIT)
           {
             client->state= GEARMAN_CLIENT_STATE_NEW;
 
-            return ret;
+            return local_ret;
           }
         }
 
         if (client->new_tasks == 0)
         {
-          ret= gearman_flush_all(&client->universal);
-          if (gearman_failed(ret))
+          gearman_return_t local_ret= gearman_flush_all(&client->universal);
+          if (gearman_failed(local_ret))
           {
-            return ret;
+            return local_ret;
           }
         }
       }
@@ -1104,11 +1104,11 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
             }
 
   case GEARMAN_CLIENT_STATE_SUBMIT:
-            ret= _client_run_task(client, client->task);
-            if (ret != GEARMAN_SUCCESS && ret != GEARMAN_IO_WAIT)
+            gearman_return_t local_ret= _client_run_task(client, client->task);
+            if (gearman_failed(local_ret) and local_ret != GEARMAN_IO_WAIT)
             {
               client->state= GEARMAN_CLIENT_STATE_SUBMIT;
-              return ret;
+              return local_ret;
             }
           }
         }
@@ -1154,6 +1154,7 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
 
           if (client->task == NULL)
           {
+            assert(ret != GEARMAN_MAX_RETURN);
 
             /* Check the return of the gearman_connection_recv() calls above. */
             if (gearman_failed(ret))
@@ -1223,14 +1224,14 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
 
   case GEARMAN_CLIENT_STATE_PACKET:
           /* Let task process job created or result packet. */
-          ret= _client_run_task(client, client->task);
-          if (ret == GEARMAN_IO_WAIT)
+          gearman_return_t local_ret= _client_run_task(client, client->task);
+          if (local_ret == GEARMAN_IO_WAIT)
             break;
 
-          if (gearman_failed(ret))
+          if (gearman_failed(local_ret))
           {
             client->state= GEARMAN_CLIENT_STATE_PACKET;
-            return ret;
+            return local_ret;
           }
 
           /* Clean up the packet. */
@@ -1261,8 +1262,8 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
       }
 
       /* Wait for activity on one of the connections. */
-      ret= gearman_wait(&client->universal);
-      if (ret != GEARMAN_SUCCESS && ret != GEARMAN_IO_WAIT)
+      gearman_return_t local_ret= gearman_wait(&client->universal);
+      if (gearman_failed(local_ret) and local_ret != GEARMAN_IO_WAIT)
       {
         client->state= GEARMAN_CLIENT_STATE_IDLE;
 
@@ -1300,11 +1301,10 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
 
   if (gearman_failed(rc))
   {
-    gearman_error(&client->universal, rc, "occured during gearman_client_run_tasks()");
-    return rc;
+    assert(gearman_universal_error_code(&client->universal) == rc);
   }
 
-  return GEARMAN_SUCCESS;
+  return rc;
 }
 
 /*
@@ -1316,7 +1316,7 @@ static gearman_client_st *_client_allocate(gearman_client_st *client, bool is_cl
   if (client == NULL)
   {
     client= new (std::nothrow) gearman_client_st;
-    if (client == NULL)
+    if (not client)
       return NULL;
 
     client->options.allocated= true;
@@ -1573,6 +1573,8 @@ static gearman_return_t _client_run_task(gearman_client_st *client, gearman_task
     }
     else if (task->recv->command == GEARMAN_COMMAND_WORK_COMPLETE)
     {
+      task->result_rc= GEARMAN_SUCCESS;
+
   case GEARMAN_TASK_STATE_COMPLETE:
       if (task->func.complete_fn)
       {

@@ -92,6 +92,7 @@ static void *thread_runner(void *con)
 
   pthread_exit(0);
 }
+
 struct worker_handle_st *test_worker_start(in_port_t port, const char *function_name,
                                            gearman_worker_fn *function, void *function_arg,
                                            gearman_worker_options_t options)

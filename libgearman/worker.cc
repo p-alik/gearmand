@@ -901,20 +901,20 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
         gearman_job_build_reducer(worker->work_job, worker->work_function->mapper_fn);
       }
 
-      gearman_return_t ret;
+      gearman_return_t ret= GEARMAN_WORK_FAIL;
       worker->work_result= worker->work_function->worker_fn(worker->work_job,
 							    static_cast<void *>(worker->work_function->context),
 							    &(worker->work_result_size), &ret);
       if (ret == GEARMAN_WORK_FAIL)
       {
-	ret= gearman_job_send_fail(worker->work_job);
-	if (gearman_failed(ret))
+	gearman_return_t rc= gearman_job_send_fail(worker->work_job);
+	if (gearman_failed(rc))
 	{
-	  if (ret == GEARMAN_LOST_CONNECTION)
+	  if (rc == GEARMAN_LOST_CONNECTION)
 	    break;
 
 	  worker->work_state= GEARMAN_WORKER_WORK_UNIVERSAL_FAIL;
-	  return ret;
+	  return rc;
 	}
 
 	break;
