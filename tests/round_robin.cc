@@ -121,16 +121,12 @@ static test_return_t queue_worker(void *object)
 
   for (uint32_t x= 0; x < 10; x++)
   {
-    if (gearman_worker_work(worker) != GEARMAN_SUCCESS)
-      return TEST_FAILURE;
+    gearman_return_t rc;
+    test_true_got(gearman_success(rc= gearman_worker_work(worker)), gearman_strerror(rc));
   }
 
   // expect buffer to be reassembled in a predictable round robin order
-  if( strcmp(buffer, "1032547698") ) 
-  {
-    fprintf(stderr, "\n\nexpecting 0123456789, got %s\n\n", buffer);
-    return TEST_FAILURE;
-  }
+  test_strcmp("1032547698", buffer);
 
   return TEST_SUCCESS;
 }
