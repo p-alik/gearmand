@@ -48,6 +48,7 @@ noinst_HEADERS+= \
 noinst_LTLIBRARIES+= libgearman/libgearmancore.la
 libgearman_libgearmancore_la_SOURCES= \
 				      libgearman/byteorder.cc \
+				      libgearman/command.cc \
 				      libgearman/connection.cc \
 				      libgearman/log.cc \
 				      libgearman/packet.cc \
@@ -62,6 +63,7 @@ libgearman_libgearman_la_SOURCES= \
 				  libgearman/add.cc \
 				  libgearman/byteorder.cc \
 				  libgearman/client.cc \
+				  libgearman/command.cc \
 				  libgearman/connection.cc \
 				  libgearman/gearman.cc \
 				  libgearman/job.cc \

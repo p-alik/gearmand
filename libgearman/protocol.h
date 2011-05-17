@@ -13,7 +13,7 @@
 #define GEARMAN_DEFAULT_TCP_PORT_STRING "4730"
 #define GEARMAN_DEFAULT_TCP_SERVICE "gearman"
 
-typedef enum
+enum gearman_command_t
 {
   GEARMAN_COMMAND_TEXT,
   GEARMAN_COMMAND_CAN_DO,              /* W->J: FUNC */
@@ -57,4 +57,14 @@ typedef enum
   GEARMAN_COMMAND_GRAB_JOB_ALL,          /* J->W -- */
   GEARMAN_COMMAND_JOB_ASSIGN_ALL,          /* J->W: MAP[0]UNIQ[0]REDUCER[0]ARGS */
   GEARMAN_COMMAND_MAX /* Always add new commands before this. */
-} gearman_command_t;
+};
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef enum gearman_command_t gearman_command_t;
+
+#ifdef __cplusplus
+}
+#endif

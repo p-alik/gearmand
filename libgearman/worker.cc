@@ -709,7 +709,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
             gearman_universal_set_error((&worker->universal), GEARMAN_UNEXPECTED_PACKET,
 					"gearman_worker_grab_job",
 					"unexpected packet:%s",
-					gearman_command_info_list[worker->job->assigned.command].name);
+					gearman_command_info(worker->job->assigned.command)->name);
             gearman_packet_free(&(worker->job->assigned));
             gearman_job_free(worker->job);
             worker->job= NULL;

@@ -42,6 +42,7 @@
  */
 
 #include <libgearman/common.h>
+#include <libgearman/command.h>
 #include <cassert>
 #include <cerrno>
 #include <cstdlib>
@@ -54,55 +55,6 @@
  * @{
  */
 
-/**
- * Command info. Update GEARMAN_MAX_COMMAND_ARGS to the largest number in the
- * args column.
- */
-gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX]=
-{
-  { "TEXT",               3, false },
-  { "CAN_DO",             1, false },
-  { "CANT_DO",            1, false },
-  { "RESET_ABILITIES",    0, false },
-  { "PRE_SLEEP",          0, false },
-  { "UNUSED",             0, false },
-  { "NOOP",               0, false },
-  { "SUBMIT_JOB",         2, true  },
-  { "JOB_CREATED",        1, false },
-  { "GRAB_JOB",           0, false },
-  { "NO_JOB",             0, false },
-  { "JOB_ASSIGN",         2, true  },
-  { "WORK_STATUS",        3, false },
-  { "WORK_COMPLETE",      1, true  },
-  { "WORK_FAIL",          1, false },
-  { "GET_STATUS",         1, false },
-  { "ECHO_REQ",           0, true  },
-  { "ECHO_RES",           0, true  },
-  { "SUBMIT_JOB_BG",      2, true  },
-  { "ERROR",              2, false },
-  { "STATUS_RES",         5, false },
-  { "SUBMIT_JOB_HIGH",    2, true  },
-  { "SET_CLIENT_ID",      1, false },
-  { "CAN_DO_TIMEOUT",     2, false },
-  { "ALL_YOURS",          0, false },
-  { "WORK_EXCEPTION",     1, true  },
-  { "OPTION_REQ",         1, false },
-  { "OPTION_RES",         1, false },
-  { "WORK_DATA",          1, true  },
-  { "WORK_WARNING",       1, true  },
-  { "GRAB_JOB_UNIQ",      0, false },
-  { "JOB_ASSIGN_UNIQ",    3, true  },
-  { "SUBMIT_JOB_HIGH_BG", 2, true  },
-  { "SUBMIT_JOB_LOW",     2, true  },
-  { "SUBMIT_JOB_LOW_BG",  2, true  },
-  { "SUBMIT_JOB_SCHED",   7, true  },
-  { "SUBMIT_JOB_EPOCH",   3, true  },
-  { "GEARMAN_COMMAND_SUBMIT_REDUCE_JOB", 4, true },          /* C->J: MAP[0]REDUCER[0]UNIQ[0]AGGREGATOR[0]ARGS */
-  { "GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND", 4, true },          /* C->J: MAP[0]REDUCER[0]UNIQ[0]AGGREGATOR[0]ARGS */
-  { "GEARMAN_COMMAND_GRAB_JOB_ALL",    0, false  },
-  { "GEARMAN_COMMAND_JOB_ASSIGN_ALL",    4, true  }
-};
-
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
@@ -110,15 +62,15 @@ gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX]=
 inline static gearman_return_t packet_create_arg(gearman_packet_st *packet,
                                                  const void *arg, size_t arg_size)
 {
-  if (packet->argc == gearman_command_info_list[packet->command].argc and
-      (not (gearman_command_info_list[packet->command].data) || packet->data != NULL))
+  if (packet->argc == gearman_command_info(packet->command)->argc and
+      (not (gearman_command_info(packet->command)->data) || packet->data != NULL))
   {
     gearman_universal_set_error(packet->universal, GEARMAN_TOO_MANY_ARGS, AT, "too many arguments for command (%s)",
-                                gearman_command_info_list[packet->command].name);
+                                gearman_command_info(packet->command)->name);
     return GEARMAN_TOO_MANY_ARGS;
   }
 
-  if (packet->argc == gearman_command_info_list[packet->command].argc)
+  if (packet->argc == gearman_command_info(packet->command)->argc)
   {
     packet->data= arg;
     packet->data_size= arg_size;
@@ -254,13 +206,13 @@ gearman_return_t gearman_packet_create_args(gearman_universal_st *gearman,
   packet->magic= magic;
   packet->command= command;
 
-  if (gearman_command_info_list[packet->command].data)
+  if (gearman_command_info(packet->command)->data)
   {
-    assert(args_count -1 == gearman_command_info_list[packet->command].argc);
+    assert(args_count -1 == gearman_command_info(packet->command)->argc);
   }
   else
   {
-    assert(args_count == gearman_command_info_list[packet->command].argc);
+    assert(args_count == gearman_command_info(packet->command)->argc);
   }
 
   for (size_t x= 0; x < args_count; x++)
@@ -525,19 +477,11 @@ size_t gearman_packet_unpack(gearman_packet_st *packet,
     used_size= 0;
   }
 
-#if 0
-  std::cerr << __func__ << " " << gearman_command_info_list[packet->command].name << std::endl;
-#endif
-  while (packet->argc != gearman_command_info_list[packet->command].argc)
+  while (packet->argc != gearman_command_info(packet->command)->argc)
   {
-    if (packet->argc != (gearman_command_info_list[packet->command].argc - 1) ||
-        gearman_command_info_list[packet->command].data)
+    if (packet->argc != (gearman_command_info(packet->command)->argc - 1) ||
+        gearman_command_info(packet->command)->data)
     {
-#if 0
-      std::cerr << __func__ << " Failing in protocol " 
-        << gearman_command_info_list[packet->command].name
-        << " " << int(packet->argc) << " != " << gearman_command_info_list[packet->command].argc -1 <<  std::endl;
-#endif
 
       uint8_t *ptr= (uint8_t *)memchr((char *)data + used_size, 0, data_size - used_size);
       if (not ptr)

@@ -168,7 +168,6 @@ typedef enum
 
 /* Types. */
 typedef struct gearman_packet_st gearman_packet_st;
-typedef struct gearman_command_info_st gearman_command_info_st;
 typedef struct gearman_task_st gearman_task_st;
 typedef struct gearman_client_st gearman_client_st;
 typedef struct gearman_job_st gearman_job_st;

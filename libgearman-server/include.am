@@ -71,7 +71,8 @@ libgearman_server_libgearman_server_la_SOURCES+= \
 						 libgearman-server/server.c \
 						 libgearman-server/thread.c \
 						 libgearman-server/wakeup.cc \
-						 libgearman-server/worker.cc
+						 libgearman-server/worker.cc \
+						 libgearman/command.cc
 
 libgearman_server_libgearman_server_la_CFLAGS+= \
 					       ${AM_CFLAGS} \

@@ -13,8 +13,20 @@
 
 #include <libgearman-server/common.h>
 
+#define GEARMAN_CORE
+#include <libgearman/command.h>
+
+#ifdef __cplusplus
+
+#include <cassert>
+#include <cerrno>
+
+#else
+
 #include <assert.h>
 #include <errno.h>
+
+#endif
 
 /*
  * Private declarations
@@ -297,7 +309,7 @@ static gearmand_error_t _thread_packet_read(gearman_server_con_st *con)
     gearmand_log_debug("%15s:%5u Received  %s",
                        con->_host == NULL ? "-" : con->_host,
                        con->_port == NULL ? "-" : con->_port,
-                       gearmand_command_info_list[con->packet->packet.command].name);
+                       gearman_command_info(con->packet->packet.command)->name);
 
     /* We read a complete packet. */
     if (Server->flags.threaded)
@@ -341,7 +353,7 @@ static gearmand_error_t _thread_packet_flush(gearman_server_con_st *con)
     gearmand_log_debug("%15s:%5d Sent      %s",
                        con->_host == NULL ? "-" : con->_host,
                        con->_port == NULL ? "-" : con->_port,
-                       gearmand_command_info_list[con->io_packet_list->packet.command].name);
+                       gearman_command_info(con->io_packet_list->packet.command)->name);
 
     gearman_server_io_packet_remove(con);
   }
