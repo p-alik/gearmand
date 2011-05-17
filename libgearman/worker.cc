@@ -999,14 +999,6 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
   return GEARMAN_SUCCESS;
 }
 
-void gearman_worker_set_reducer(gearman_worker_st *self, gearman_reducer_t reducer)
-{
-  if (not self)
-    return;
-
-  self->reducer= reducer;
-}
-
 gearman_return_t gearman_worker_echo(gearman_worker_st *worker,
                                      const void *workload,
                                      size_t workload_size)
@@ -1055,7 +1047,6 @@ static gearman_worker_st *_worker_allocate(gearman_worker_st *worker, bool is_cl
   worker->function_list= NULL;
   worker->work_function= NULL;
   worker->work_result= NULL;
-  worker->reducer= gearman_reducer_make(0);
 
   if (not is_clone)
   {

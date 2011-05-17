@@ -204,7 +204,6 @@ typedef void (gearman_task_context_free_fn)(gearman_task_st *task,
 typedef void (gearman_log_fn)(const char *line, gearman_verbose_t verbose,
                               void *context);
 
-typedef gearman_return_t (gearman_reducer_each_fn)(gearman_task_st *task, void *reducer_context);
 typedef gearman_return_t (gearman_aggregator_fn)(gearman_task_st *task, void *reducer_context, gearman_result_st *result);
 
 /** @} */

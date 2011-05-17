@@ -98,7 +98,6 @@ struct gearman_worker_st
   gearman_packet_st grab_job;
   gearman_packet_st pre_sleep;
   gearman_job_st *work_job;
-  struct gearman_reducer_t reducer;
 };
 
 #ifdef __cplusplus
@@ -123,9 +122,6 @@ extern "C" {
  */
 GEARMAN_API
 gearman_worker_st *gearman_worker_create(gearman_worker_st *worker);
-
-GEARMAN_API
-void gearman_worker_set_reducer(gearman_worker_st *worker, struct gearman_reducer_t reducer);
 
 /**
  * Clone a worker structure.

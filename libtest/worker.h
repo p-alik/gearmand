@@ -32,7 +32,6 @@ LIBTEST_API
   struct worker_handle_st *test_worker_start_with_reducer(in_port_t port, const char *function_name,
 							  gearman_worker_fn *function, void *function_arg,
 							  gearman_worker_options_t options,
-                                                          struct gearman_reducer_t reducer,
                                                           gearman_aggregator_fn *aggregator_fn);
 
 LIBTEST_API

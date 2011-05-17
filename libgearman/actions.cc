@@ -44,12 +44,6 @@
 
 struct gearman_result_st;
 
-struct gearman_reducer_t gearman_reducer_make(gearman_reducer_each_fn* each)
-{
-  gearman_reducer_t arg= { each };
-  return arg;
-}
-
 static gearman_return_t _client_do_data(gearman_task_st *task)
 {
   if (gearman_task_data_size(task))
