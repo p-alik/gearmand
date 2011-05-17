@@ -518,9 +518,7 @@ void gearman_job_free(gearman_job_st *job)
 
 static gearman_return_t _job_send(gearman_job_st *job)
 {
-  gearman_return_t ret;
-
-  ret= gearman_connection_send(job->con, &(job->work), true);
+  gearman_return_t ret= gearman_connection_send(job->con, &(job->work), true);
   if (gearman_failed(ret))
     return ret;
 
