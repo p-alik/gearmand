@@ -88,7 +88,7 @@ test_return_t gearman_client_execute_epoch_test(void *object)
   const char *worker_function= (const char *)gearman_client_context(client);
   assert(worker_function);
 
-  gearman_work_t workload= gearman_work_epoch(time(NULL) +5);
+  gearman_work_t workload= gearman_work_epoch(time(NULL) +5, GEARMAN_JOB_PRIORITY_NORMAL);
 
   gearman_task_st *task;
   gearman_argument_t value= gearman_argument_make(gearman_literal_param("test load"));

@@ -68,7 +68,7 @@ GEARMAN_API
   gearman_work_t gearman_work(gearman_job_priority_t priority);
 
 GEARMAN_API
-  gearman_work_t gearman_work_epoch(time_t epoch);
+  gearman_work_t gearman_work_epoch(time_t epoch, gearman_job_priority_t priority);
 
 GEARMAN_API
   gearman_work_t gearman_work_background(gearman_job_priority_t priority);

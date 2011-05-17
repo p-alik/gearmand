@@ -126,7 +126,7 @@ int main(int args, char *argv[])
   if (timeout >= 0)
     gearman_client_set_timeout(&client, timeout);
 
-  gearman_work_t workload= gearman_work_epoch(time(NULL) +epoch);
+  gearman_work_t workload= gearman_work_epoch(time(NULL) +epoch, GEARMAN_JOB_PRIORITY_NORMAL);
 
   gearman_task_st *task;
   gearman_argument_t value= gearman_argument_make(text_to_echo.c_str(), text_to_echo.size());

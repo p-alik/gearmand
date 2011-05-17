@@ -53,9 +53,9 @@ gearman_work_t gearman_work_background(gearman_job_priority_t priority)
   return local;
 }
 
-gearman_work_t gearman_work_epoch(time_t epoch)
+gearman_work_t gearman_work_epoch(time_t epoch, gearman_job_priority_t priority)
 {
-  gearman_work_t local= { GEARMAN_WORK_KIND_BACKGROUND, GEARMAN_JOB_PRIORITY_NORMAL, { epoch }, 0};
+  gearman_work_t local= { GEARMAN_WORK_KIND_BACKGROUND, priority, { epoch }, 0};
 
   return local;
 }
@@ -65,7 +65,10 @@ time_t gearman_workload_epoch(const gearman_work_t *self)
   if (not self)
     return 0;
 
-  return self->options.epoch;
+  if (self->kind == GEARMAN_WORK_KIND_BACKGROUND)
+    return self->options.epoch;
+
+  return 0;
 }
 
 gearman_job_priority_t gearman_workload_priority(const gearman_work_t *self)

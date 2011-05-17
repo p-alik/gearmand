@@ -49,14 +49,6 @@ struct gearman_actions_t
   gearman_fail_fn *fail_fn;
 };
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#ifdef __cplusplus
-}
-#endif
-
 #ifdef __cplusplus // Local only
 
 GEARMAN_LOCAL
