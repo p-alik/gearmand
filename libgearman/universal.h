@@ -59,16 +59,6 @@ extern "C" {
 #endif
 
 /**
- * Clone a gearman structure.
- *
- * @param[in] destination gearman_universal_st.
- * @param[in] source gearman_universal_st to clone from.
- * @return Same return as gearman_universal_create().
- */
-GEARMAN_INTERNAL_API
-gearman_universal_st *gearman_universal_clone(gearman_universal_st *destination, const gearman_universal_st *source);
-
-/**
  * Set the error string.
  *
  * @param[in] gearman Structure previously initialized with gearman_universal_create() or
@@ -119,48 +109,6 @@ GEARMAN_INTERNAL_API
 void gearman_set_workload_free_fn(gearman_universal_st *gearman,
                                   gearman_free_fn *function,
                                   void *context);
-
-/**
- * Free all connections for a gearman structure.
- *
- * @param[in] gearman Structure previously initialized with gearman_universal_create() or
- *  gearman_clone().
- */
-GEARMAN_INTERNAL_API
-void gearman_free_all_cons(gearman_universal_st *gearman);
-
-/**
- * Flush the send buffer for all connections.
- *
- * @param[in] gearman Structure previously initialized with gearman_universal_create() or
- *  gearman_clone().
- * @return Standard gearman return value.
- */
-GEARMAN_INTERNAL_API
-gearman_return_t gearman_flush_all(gearman_universal_st *gearman);
-
-/**
- * Get next connection that is ready for I/O.
- *
- * @param[in] gearman Structure previously initialized with gearman_universal_create() or
- *  gearman_clone().
- * @return Connection that is ready for I/O, or NULL if there are none.
- */
-GEARMAN_INTERNAL_API
-gearman_connection_st *gearman_ready(gearman_universal_st *gearman);
-
-/**
- * Test echo with all connections.
- *
- * @param[in] gearman Structure previously initialized with gearman_universal_create() or
- *  gearman_clone().
- * @param[in] workload Data to send in echo packet.
- * @param[in] workload_size Size of workload.
- * @return Standard gearman return value.
- */
-GEARMAN_INTERNAL_API
-gearman_return_t gearman_echo(gearman_universal_st *gearman, const void *workload,
-                              size_t workload_size);
 
 /** @} */
 

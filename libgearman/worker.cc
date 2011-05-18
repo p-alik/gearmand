@@ -425,11 +425,17 @@ gearman_return_t gearman_worker_add_servers(gearman_worker_st *worker, const cha
 
 void gearman_worker_remove_servers(gearman_worker_st *worker)
 {
-  gearman_free_all_cons((&worker->universal));
+  if (not worker)
+    return;
+
+  gearman_free_all_cons(worker->universal);
 }
 
 gearman_return_t gearman_worker_wait(gearman_worker_st *worker)
 {
+  if (not worker)
+    return GEARMAN_INVALID_ARGUMENT;
+
   return gearman_wait(worker->universal);
 }
 
@@ -1001,7 +1007,10 @@ gearman_return_t gearman_worker_echo(gearman_worker_st *worker,
                                      const void *workload,
                                      size_t workload_size)
 {
-  return gearman_echo((&worker->universal), workload, workload_size);
+  if (not worker)
+    return GEARMAN_INVALID_ARGUMENT;
+
+  return gearman_echo(worker->universal, workload, workload_size);
 }
 
 /*

@@ -84,7 +84,7 @@ void gearman_universal_clone(gearman_universal_st &destination, const gearman_un
 
 void gearman_universal_free(gearman_universal_st &universal)
 {
-  gearman_free_all_cons(&universal);
+  gearman_free_all_cons(universal);
   gearman_free_all_packets(universal);
 
   if (universal.pfds)
@@ -146,15 +146,15 @@ void gearman_set_workload_free_fn(gearman_universal_st *universal,
   universal->workload_free_context= context;
 }
 
-void gearman_free_all_cons(gearman_universal_st *universal)
+void gearman_free_all_cons(gearman_universal_st& universal)
 {
-  while (universal->con_list)
-    delete universal->con_list;
+  while (universal.con_list)
+    delete universal.con_list;
 }
 
-gearman_return_t gearman_flush_all(gearman_universal_st *universal)
+gearman_return_t gearman_flush_all(gearman_universal_st& universal)
 {
-  for (gearman_connection_st *con= universal->con_list; con != NULL; con= con->next)
+  for (gearman_connection_st *con= universal.con_list; con; con= con->next)
   {
     if (con->events & POLLOUT)
       continue;
@@ -242,14 +242,13 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
   return GEARMAN_SUCCESS;
 }
 
-gearman_connection_st *gearman_ready(gearman_universal_st *universal)
+gearman_connection_st *gearman_ready(gearman_universal_st& universal)
 {
-  gearman_connection_st *con;
-
-  /* We can't keep universal between calls since connections may be removed during
-    processing. If this list ever gets big, we may want something faster. */
-
-  for (con= universal->con_list; con != NULL; con= con->next)
+  /* 
+    We can't keep universal between calls since connections may be removed during
+    processing. If this list ever gets big, we may want something faster.
+  */
+  for (gearman_connection_st *con= universal.con_list; con != NULL; con= con->next)
   {
     if (con->options.ready)
     {
@@ -265,37 +264,47 @@ gearman_connection_st *gearman_ready(gearman_universal_st *universal)
   @note _push_blocking is only used for echo (and should be fixed
   when tricky flip/flop in IO is fixed).
 */
-static inline void _push_blocking(gearman_universal_st *universal, bool *orig_block_universal)
+static inline void _push_blocking(gearman_universal_st& universal, bool &orig_block_universal)
 {
-  *orig_block_universal= universal->options.non_blocking;
-  universal->options.non_blocking= false;
+  orig_block_universal= universal.options.non_blocking;
+  universal.options.non_blocking= false;
 }
 
-static inline void _pop_non_blocking(gearman_universal_st *universal, bool orig_block_universal)
+static inline void _pop_non_blocking(gearman_universal_st& universal, bool orig_block_universal)
 {
-  universal->options.non_blocking= orig_block_universal;
+  universal.options.non_blocking= orig_block_universal;
 }
 
-gearman_return_t gearman_echo(gearman_universal_st *universal,
+gearman_return_t gearman_echo(gearman_universal_st& universal,
                               const void *workload,
                               size_t workload_size)
 {
-  gearman_connection_st *con;
   gearman_packet_st packet;
-  gearman_return_t ret;
   bool orig_block_universal;
 
-  ret= gearman_packet_create_args(*universal, &packet, GEARMAN_MAGIC_REQUEST,
-                                  GEARMAN_COMMAND_ECHO_REQ,
-                                  &workload, &workload_size, 1);
+  if (not workload)
+  {
+    gearman_universal_set_error(&universal, GEARMAN_INVALID_ARGUMENT, AT, "workload was NULL");
+    return GEARMAN_INVALID_ARGUMENT;
+  }
+
+  if (not workload_size)
+  {
+    gearman_universal_set_error(&universal, GEARMAN_INVALID_ARGUMENT, AT, "workload_size was 0");
+    return GEARMAN_INVALID_ARGUMENT;
+  }
+
+  gearman_return_t ret= gearman_packet_create_args(universal, &packet, GEARMAN_MAGIC_REQUEST,
+                                                   GEARMAN_COMMAND_ECHO_REQ,
+                                                   &workload, &workload_size, 1);
   if (gearman_failed(ret))
   {
     return ret;
   }
 
-  _push_blocking(universal, &orig_block_universal);
+  _push_blocking(universal, orig_block_universal);
 
-  for (con= universal->con_list; con != NULL; con= con->next)
+  for (gearman_connection_st *con= universal.con_list; con; con= con->next)
   {
     gearman_packet_st *packet_ptr;
 
@@ -317,7 +326,7 @@ gearman_return_t gearman_echo(gearman_universal_st *universal,
         memcmp(workload, con->_packet.data, workload_size))
     {
       gearman_packet_free(&(con->_packet));
-      gearman_error(universal, GEARMAN_ECHO_DATA_CORRUPTION, "corruption during echo");
+      gearman_error(&universal, GEARMAN_ECHO_DATA_CORRUPTION, "corruption during echo");
 
       ret= GEARMAN_ECHO_DATA_CORRUPTION;
       goto exit;
@@ -355,7 +364,7 @@ bool gearman_request_option(gearman_universal_st &universal,
     return ret;
   }
 
-  _push_blocking(&universal, &orig_block_universal);
+  _push_blocking(universal, orig_block_universal);
 
   for (con= universal.con_list; con != NULL; con= con->next)
   {
@@ -393,7 +402,7 @@ bool gearman_request_option(gearman_universal_st &universal,
 
 exit:
   gearman_packet_free(&packet);
-  _pop_non_blocking(&universal, orig_block_universal);
+  _pop_non_blocking(universal, orig_block_universal);
 
   return gearman_success(ret);
 }

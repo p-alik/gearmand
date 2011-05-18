@@ -335,7 +335,10 @@ gearman_return_t gearman_client_add_servers(gearman_client_st *client,
 
 void gearman_client_remove_servers(gearman_client_st *client)
 {
-  gearman_free_all_cons(&client->universal);
+  if (not client)
+    return;
+
+  gearman_free_all_cons(client->universal);
 }
 
 gearman_return_t gearman_client_wait(gearman_client_st *client)
@@ -743,7 +746,10 @@ gearman_return_t gearman_client_echo(gearman_client_st *client,
                                      const void *workload,
                                      size_t workload_size)
 {
-  return gearman_echo(&client->universal, workload, workload_size);
+  if (not client)
+    return GEARMAN_INVALID_ARGUMENT;
+
+  return gearman_echo(client->universal, workload, workload_size);
 }
 
 void gearman_client_task_free_all(gearman_client_st *client)
@@ -1082,7 +1088,7 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
 
         if (client->new_tasks == 0)
         {
-          gearman_return_t local_ret= gearman_flush_all(&client->universal);
+          gearman_return_t local_ret= gearman_flush_all(client->universal);
           if (gearman_failed(local_ret))
           {
             return local_ret;
@@ -1091,7 +1097,7 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
       }
 
       /* See if there are any connections ready for I/O. */
-      while ((client->con= gearman_ready(&client->universal)))
+      while ((client->con= gearman_ready(client->universal)))
       {
         if (client->con->revents & (POLLOUT | POLLERR | POLLHUP | POLLNVAL))
         {

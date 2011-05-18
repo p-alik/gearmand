@@ -41,6 +41,11 @@
 GEARMAN_LOCAL
 void gearman_universal_set_perror(const char *position, gearman_universal_st &universal, const char *message);
 
+
+// Get next connection that is ready for I/O.
+GEARMAN_LOCAL
+gearman_connection_st *gearman_ready(gearman_universal_st&);
+
 GEARMAN_LOCAL
 void gearman_universal_initialize(gearman_universal_st &self, const gearman_universal_options_t *options= NULL);
 
@@ -67,6 +72,20 @@ void gearman_universal_set_timeout(gearman_universal_st &self, int timeout);
 
 GEARMAN_LOCAL
 int gearman_universal_timeout(gearman_universal_st &self);
+
+
+// Flush the send buffer for all connections.
+GEARMAN_LOCAL
+gearman_return_t gearman_flush_all(gearman_universal_st&);
+
+
+// Free all connections for a gearman structure.
+GEARMAN_LOCAL
+void gearman_free_all_cons(gearman_universal_st&);
+
+// Test echo with all connections.
+GEARMAN_LOCAL
+gearman_return_t gearman_echo(gearman_universal_st&, const void *workload, size_t workload_size);
 
 /**
  * Wait for I/O on connections.
