@@ -290,7 +290,7 @@ void gearman_connection_reset_addrinfo(gearman_connection_st *connection)
   connection->addrinfo_next= NULL;
 }
 
-gearman_return_t gearman_connection_st::send(const gearman_packet_st *packet_arg, bool flush)
+gearman_return_t gearman_connection_st::send(const gearman_packet_st *packet_arg, const bool flush_buffer)
 {
   switch (send_state)
   {
@@ -338,7 +338,7 @@ gearman_return_t gearman_connection_st::send(const gearman_packet_st *packet_arg
 
     case GEARMAN_CON_SEND_UNIVERSAL_PRE_FLUSH:
       {
-        gearman_return_t ret= gearman_connection_flush(this);
+        gearman_return_t ret= flush();
         if (gearman_failed(ret))
         {
           return ret;
@@ -377,7 +377,7 @@ gearman_return_t gearman_connection_st::send(const gearman_packet_st *packet_arg
 
   case GEARMAN_CON_SEND_UNIVERSAL_FORCE_FLUSH:
     {
-      gearman_return_t ret= gearman_connection_flush(this);
+      gearman_return_t ret= flush();
       if (gearman_failed(ret))
         return ret;
     }
@@ -409,7 +409,7 @@ gearman_return_t gearman_connection_st::send(const gearman_packet_st *packet_arg
   case GEARMAN_CON_SEND_UNIVERSAL_FLUSH:
   case GEARMAN_CON_SEND_UNIVERSAL_FLUSH_DATA:
     {
-      gearman_return_t ret= gearman_connection_flush(this);
+      gearman_return_t ret= flush();
       if (gearman_success(ret) and options.close_after_flush)
       {
         gearman_connection_close(this);
@@ -419,10 +419,10 @@ gearman_return_t gearman_connection_st::send(const gearman_packet_st *packet_arg
     }
   }
 
-  if (flush)
+  if (flush_buffer)
   {
     send_state= GEARMAN_CON_SEND_UNIVERSAL_FLUSH;
-    gearman_return_t ret= gearman_connection_flush(this);
+    gearman_return_t ret= flush();
     if (ret == GEARMAN_SUCCESS && options.close_after_flush)
     {
       gearman_connection_close(this);
@@ -435,100 +435,97 @@ gearman_return_t gearman_connection_st::send(const gearman_packet_st *packet_arg
   return GEARMAN_SUCCESS;
 }
 
-size_t gearman_connection_send_data(gearman_connection_st *connection, const void *data,
-                                    size_t data_size, gearman_return_t *ret_ptr)
+size_t gearman_connection_st::send(const void *data, size_t data_size, gearman_return_t *ret_ptr)
 {
-  if (connection->send_state != GEARMAN_CON_SEND_UNIVERSAL_FLUSH_DATA)
+  if (send_state != GEARMAN_CON_SEND_UNIVERSAL_FLUSH_DATA)
   {
-    gearman_error(&connection->universal, GEARMAN_NOT_FLUSHING, "not flushing");
+    gearman_error(&universal, GEARMAN_NOT_FLUSHING, "not flushing");
     return GEARMAN_NOT_FLUSHING;
   }
 
-  if (data_size > (connection->send_data_size - connection->send_data_offset))
+  if (data_size > (send_data_size - send_data_offset))
   {
-    gearman_error(&connection->universal, GEARMAN_DATA_TOO_LARGE, "data too large");
+    gearman_error(&universal, GEARMAN_DATA_TOO_LARGE, "data too large");
     return GEARMAN_DATA_TOO_LARGE;
   }
 
-  connection->send_buffer_ptr= static_cast<char *>(const_cast<void *>(data));
-  connection->send_buffer_size= data_size;
+  send_buffer_ptr= static_cast<char *>(const_cast<void *>(data));
+  send_buffer_size= data_size;
 
-  *ret_ptr= gearman_connection_flush(connection);
+  *ret_ptr= flush();
 
-  return data_size - connection->send_buffer_size;
+  return data_size - send_buffer_size;
 }
 
-gearman_return_t gearman_connection_flush(gearman_connection_st *connection)
+gearman_return_t gearman_connection_st::flush()
 {
   while (1)
   {
-    switch (connection->state)
+    switch (state)
     {
     case GEARMAN_CON_UNIVERSAL_ADDRINFO:
       {
-        if (connection->addrinfo != NULL)
+        if (addrinfo)
         {
-          freeaddrinfo(connection->addrinfo);
-          connection->addrinfo= NULL;
+          freeaddrinfo(addrinfo);
+          addrinfo= NULL;
         }
 
         char port_str[NI_MAXSERV];
-        snprintf(port_str, NI_MAXSERV, "%hu", uint16_t(connection->port));
+        snprintf(port_str, NI_MAXSERV, "%hu", uint16_t(port));
 
         struct addrinfo ai;
         memset(&ai, 0, sizeof(struct addrinfo));
         ai.ai_socktype= SOCK_STREAM;
         ai.ai_protocol= IPPROTO_TCP;
 
-        int ret= getaddrinfo(connection->host, port_str, &ai, &(connection->addrinfo));
-        if (ret != 0)
+        int ret= getaddrinfo(host, port_str, &ai, &(addrinfo));
+        if (ret)
         {
-          gearman_universal_set_error(&connection->universal, GEARMAN_GETADDRINFO, AT, "getaddrinfo:%s",
+          gearman_universal_set_error(&universal, GEARMAN_GETADDRINFO, AT, "getaddrinfo:%s",
                                       gai_strerror(ret));
           return GEARMAN_GETADDRINFO;
         }
 
-        connection->addrinfo_next= connection->addrinfo;
+        addrinfo_next= addrinfo;
       }
 
     case GEARMAN_CON_UNIVERSAL_CONNECT:
-      if (connection->fd != -1)
-        gearman_connection_close(connection);
+      if (fd != -1)
+        gearman_connection_close(this);
 
-      if (connection->addrinfo_next == NULL)
+      if (addrinfo_next == NULL)
       {
-        connection->state= GEARMAN_CON_UNIVERSAL_ADDRINFO;
-        gearman_error(&connection->universal, GEARMAN_COULD_NOT_CONNECT, "could not connect");
+        state= GEARMAN_CON_UNIVERSAL_ADDRINFO;
+        gearman_error(&universal, GEARMAN_COULD_NOT_CONNECT, "could not connect");
         return GEARMAN_COULD_NOT_CONNECT;
       }
 
-      connection->fd= socket(connection->addrinfo_next->ai_family,
-                             connection->addrinfo_next->ai_socktype,
-                             connection->addrinfo_next->ai_protocol);
-      if (connection->fd == -1)
+      fd= socket(addrinfo_next->ai_family,
+                             addrinfo_next->ai_socktype,
+                             addrinfo_next->ai_protocol);
+      if (fd == -1)
       {
-        connection->state= GEARMAN_CON_UNIVERSAL_ADDRINFO;
-        gearman_perror(connection->universal, "socket");
+        state= GEARMAN_CON_UNIVERSAL_ADDRINFO;
+        gearman_perror(universal, "socket");
         return GEARMAN_ERRNO;
       }
 
       {
-        gearman_return_t gret= _con_setsockopt(connection);
+        gearman_return_t gret= _con_setsockopt(this);
         if (gearman_failed(gret))
         {
-          gearman_connection_close(connection);
+          gearman_connection_close(this);
           return gret;
         }
       }
 
       while (1)
       {
-        int ret= connect(connection->fd, connection->addrinfo_next->ai_addr,
-                         connection->addrinfo_next->ai_addrlen);
-        if (ret == 0)
+        if (not connect(fd, addrinfo_next->ai_addr, addrinfo_next->ai_addrlen))
         {
-          connection->state= GEARMAN_CON_UNIVERSAL_CONNECTED;
-          connection->addrinfo_next= NULL;
+          state= GEARMAN_CON_UNIVERSAL_CONNECTED;
+          addrinfo_next= NULL;
           break;
         }
 
@@ -537,72 +534,72 @@ gearman_return_t gearman_connection_flush(gearman_connection_st *connection)
 
         if (errno == EINPROGRESS)
         {
-          connection->state= GEARMAN_CON_UNIVERSAL_CONNECTING;
+          state= GEARMAN_CON_UNIVERSAL_CONNECTING;
           break;
         }
 
         if (errno == ECONNREFUSED || errno == ENETUNREACH || errno == ETIMEDOUT)
         {
-          connection->state= GEARMAN_CON_UNIVERSAL_CONNECT;
-          connection->addrinfo_next= connection->addrinfo_next->ai_next;
+          state= GEARMAN_CON_UNIVERSAL_CONNECT;
+          addrinfo_next= addrinfo_next->ai_next;
           break;
         }
 
-        gearman_perror(connection->universal, "connect");
-        gearman_connection_close(connection);
+        gearman_perror(universal, "connect");
+        gearman_connection_close(this);
         return GEARMAN_ERRNO;
       }
 
-      if (connection->state != GEARMAN_CON_UNIVERSAL_CONNECTING)
+      if (state != GEARMAN_CON_UNIVERSAL_CONNECTING)
         break;
 
     case GEARMAN_CON_UNIVERSAL_CONNECTING:
       while (1)
       {
-        if (connection->revents & (POLLERR | POLLHUP | POLLNVAL))
+        if (revents & (POLLERR | POLLHUP | POLLNVAL))
         {
-          connection->state= GEARMAN_CON_UNIVERSAL_CONNECT;
-          connection->addrinfo_next= connection->addrinfo_next->ai_next;
+          state= GEARMAN_CON_UNIVERSAL_CONNECT;
+          addrinfo_next= addrinfo_next->ai_next;
           break;
         }
-        else if (connection->revents & POLLOUT)
+        else if (revents & POLLOUT)
         {
-          connection->state= GEARMAN_CON_UNIVERSAL_CONNECTED;
+          state= GEARMAN_CON_UNIVERSAL_CONNECTED;
           break;
         }
 
-        gearman_return_t gret= gearman_connection_set_events(connection, POLLOUT);
+        gearman_return_t gret= gearman_connection_set_events(this, POLLOUT);
         if (gearman_failed(gret))
           return gret;
 
-        if (gearman_universal_is_non_blocking(connection->universal))
+        if (gearman_universal_is_non_blocking(universal))
         {
-          connection->state= GEARMAN_CON_UNIVERSAL_CONNECTING;
-          gearman_gerror(&connection->universal, GEARMAN_IO_WAIT);
+          state= GEARMAN_CON_UNIVERSAL_CONNECTING;
+          gearman_gerror(&universal, GEARMAN_IO_WAIT);
           return GEARMAN_IO_WAIT;
         }
 
-        gret= gearman_wait(connection->universal);
+        gret= gearman_wait(universal);
         if (gearman_failed(gret))
           return gret;
       }
 
-      if (connection->state != GEARMAN_CON_UNIVERSAL_CONNECTED)
+      if (state != GEARMAN_CON_UNIVERSAL_CONNECTED)
         break;
 
     case GEARMAN_CON_UNIVERSAL_CONNECTED:
-      while (connection->send_buffer_size != 0)
+      while (send_buffer_size != 0)
       {
 #if 0
         {
-          std::cerr << "send() " << connection->send_buffer_size << std::endl;
-          if (connection->send_buffer_ptr[0] == 0)
+          std::cerr << "send() " << send_buffer_size << std::endl;
+          if (send_buffer_ptr[0] == 0)
           {
-            for (size_t x= 1; x < connection->send_buffer_size; x++)
+            for (size_t x= 1; x < send_buffer_size; x++)
             {
               if (x == 1)
               {
-                std::cerr.write(connection->send_buffer_ptr +x, 3);
+                std::cerr.write(send_buffer_ptr +x, 3);
                 std::cerr << " ";
                 x+= 2;
                 continue;
@@ -611,56 +608,56 @@ gearman_return_t gearman_connection_flush(gearman_connection_st *connection)
               if (x == 4)
               {
                 uint32_t tmp;
-                memcpy(&tmp, connection->send_buffer_ptr +x, sizeof(uint32_t));
+                memcpy(&tmp, send_buffer_ptr +x, sizeof(uint32_t));
                 tmp= htonl(tmp);
                 std::cerr << " " << gearman_strcommand(gearman_command_t(tmp)) << " ";
                 x+= sizeof(uint32_t);
 
-                memcpy(&tmp, connection->send_buffer_ptr +x, sizeof(uint32_t));
+                memcpy(&tmp, send_buffer_ptr +x, sizeof(uint32_t));
                 tmp= htonl(tmp);
                 std::cerr << " " << tmp << " ";
                 x+= sizeof(uint32_t) -1;
                 continue;
               }
 
-              if (connection->send_buffer_ptr[x] == 0)
+              if (send_buffer_ptr[x] == 0)
               {
                 std::cerr <<  "<NULL>";
                 continue;
               }
-              std::cerr << char(connection->send_buffer_ptr[x]);
+              std::cerr << char(send_buffer_ptr[x]);
             }
           }
           std::cerr << std::endl;
         }
 #endif
-        ssize_t write_size= send(connection->fd, connection->send_buffer_ptr, connection->send_buffer_size, 
-                                 gearman_universal_is_non_blocking(connection->universal) ? MSG_NOSIGNAL| MSG_DONTWAIT : MSG_NOSIGNAL);
+        ssize_t write_size= ::send(fd, send_buffer_ptr, send_buffer_size, 
+                                   gearman_universal_is_non_blocking(universal) ? MSG_NOSIGNAL| MSG_DONTWAIT : MSG_NOSIGNAL);
 
         if (write_size == 0)
         {
-          if (not (connection->options.ignore_lost_connection))
+          if (not (options.ignore_lost_connection))
           {
-            gearman_error(&connection->universal, GEARMAN_LOST_CONNECTION, "lost connection to server (EOF)");
+            gearman_error(&universal, GEARMAN_LOST_CONNECTION, "lost connection to server (EOF)");
           }
-          gearman_connection_close(connection);
+          gearman_connection_close(this);
           return GEARMAN_LOST_CONNECTION;
         }
         else if (write_size == -1)
         {
           if (errno == EAGAIN)
           {
-            gearman_return_t gret= gearman_connection_set_events(connection, POLLOUT);
+            gearman_return_t gret= gearman_connection_set_events(this, POLLOUT);
             if (gearman_failed(gret))
               return gret;
 
-            if (gearman_universal_is_non_blocking(connection->universal))
+            if (gearman_universal_is_non_blocking(universal))
             {
-              gearman_gerror(&connection->universal, GEARMAN_IO_WAIT);
+              gearman_gerror(&universal, GEARMAN_IO_WAIT);
               return GEARMAN_IO_WAIT;
             }
 
-            gret= gearman_wait(connection->universal);
+            gret= gearman_wait(universal);
             if (gearman_failed(gret))
               return gret;
 
@@ -672,41 +669,41 @@ gearman_return_t gearman_connection_flush(gearman_connection_st *connection)
           }
           else if (errno == EPIPE || errno == ECONNRESET || errno == EHOSTDOWN)
           {
-            if (not (connection->options.ignore_lost_connection))
+            if (not (options.ignore_lost_connection))
             {
-              gearman_perror(connection->universal, "lost connection to server during send");
+              gearman_perror(universal, "lost connection to server during send");
             }
-            gearman_connection_close(connection);
+            gearman_connection_close(this);
             return GEARMAN_LOST_CONNECTION;
           }
 
-          gearman_perror(connection->universal, "send");
-          gearman_connection_close(connection);
+          gearman_perror(universal, "send");
+          gearman_connection_close(this);
           return GEARMAN_ERRNO;
         }
 
-        connection->send_buffer_size-= size_t(write_size);
-        if (connection->send_state == GEARMAN_CON_SEND_UNIVERSAL_FLUSH_DATA)
+        send_buffer_size-= size_t(write_size);
+        if (send_state == GEARMAN_CON_SEND_UNIVERSAL_FLUSH_DATA)
         {
-          connection->send_data_offset+= size_t(write_size);
-          if (connection->send_data_offset == connection->send_data_size)
+          send_data_offset+= size_t(write_size);
+          if (send_data_offset == send_data_size)
           {
-            connection->send_data_size= 0;
-            connection->send_data_offset= 0;
+            send_data_size= 0;
+            send_data_offset= 0;
             break;
           }
 
-          if (connection->send_buffer_size == 0)
+          if (send_buffer_size == 0)
             return GEARMAN_SUCCESS;
         }
-        else if (connection->send_buffer_size == 0)
+        else if (send_buffer_size == 0)
           break;
 
-        connection->send_buffer_ptr+= write_size;
+        send_buffer_ptr+= write_size;
       }
 
-      connection->send_state= GEARMAN_CON_SEND_STATE_NONE;
-      connection->send_buffer_ptr= connection->send_buffer;
+      send_state= GEARMAN_CON_SEND_STATE_NONE;
+      send_buffer_ptr= send_buffer;
       return GEARMAN_SUCCESS;
     }
   }

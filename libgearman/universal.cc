@@ -148,7 +148,7 @@ void gearman_set_workload_free_fn(gearman_universal_st *universal,
 
 void gearman_free_all_cons(gearman_universal_st *universal)
 {
-  while (universal->con_list != NULL)
+  while (universal->con_list)
     gearman_connection_free(universal->con_list);
 }
 
@@ -159,7 +159,7 @@ gearman_return_t gearman_flush_all(gearman_universal_st *universal)
     if (con->events & POLLOUT)
       continue;
 
-    gearman_return_t ret= gearman_connection_flush(con);
+    gearman_return_t ret= con->flush();
     if (gearman_failed(ret) and ret != GEARMAN_IO_WAIT)
       return ret;
   }

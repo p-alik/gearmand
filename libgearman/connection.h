@@ -102,20 +102,6 @@ GEARMAN_INTERNAL_API
 void gearman_connection_close(gearman_connection_st *connection);
 
 /**
- * Send packet to a connection.
- */
-GEARMAN_INTERNAL_API
-gearman_return_t gearman_connection_send(gearman_connection_st *connection,
-                                         const gearman_packet_st *packet, bool flush);
-
-/**
- * Send packet data to a connection.
- */
-GEARMAN_INTERNAL_API
-size_t gearman_connection_send_data(gearman_connection_st *connection, const void *data,
-                                    size_t data_size, gearman_return_t *ret_ptr);
-
-/**
  * Flush the send buffer.
  */
 GEARMAN_INTERNAL_API

@@ -285,7 +285,7 @@ size_t gearman_task_send_workload(gearman_task_st *task, const void *workload,
   if (not task)
     return 0;
 
-  return gearman_connection_send_data(task->con, workload, workload_size, ret_ptr);
+  return task->con->send(workload, workload_size, ret_ptr);
 }
 
 gearman_result_st *gearman_task_result(gearman_task_st *task)
@@ -340,7 +340,9 @@ size_t gearman_task_recv_data(gearman_task_st *task, void *data,
                                   gearman_return_t *ret_ptr)
 {
   if (not task)
+  {
     return 0;
+  }
 
   return gearman_connection_recv_data(task->con, data, data_size, ret_ptr);
 }
