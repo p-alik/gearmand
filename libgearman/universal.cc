@@ -307,7 +307,7 @@ gearman_return_t gearman_echo(gearman_universal_st *universal,
       goto exit;
     }
 
-    packet_ptr= con->recv(&(con->_packet), &ret, true);
+    packet_ptr= con->recv(con->_packet, ret, true);
     if (gearman_failed(ret))
     {
       goto exit;
@@ -370,7 +370,7 @@ bool gearman_request_option(gearman_universal_st &universal,
       goto exit;
     }
 
-    packet_ptr= con->recv(&(con->_packet), &ret, true);
+    packet_ptr= con->recv(con->_packet, ret, true);
     if (gearman_failed(ret))
     {
       gearman_packet_free(&(con->_packet));

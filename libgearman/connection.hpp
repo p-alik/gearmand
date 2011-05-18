@@ -91,11 +91,11 @@ struct gearman_connection_st
   void close();
 
   // Receive packet from a connection.
-  gearman_packet_st *recv(gearman_packet_st *packet,
-                          gearman_return_t *ret_ptr, bool recv_data);
+  gearman_packet_st *recv(gearman_packet_st&,
+                          gearman_return_t& , const bool recv_data);
 
   // Receive packet data from a connection.
-  size_t recv(void *data, size_t data_size, gearman_return_t *ret_ptr);
+  size_t recv(void *data, size_t data_size, gearman_return_t&);
 };
 
 /**

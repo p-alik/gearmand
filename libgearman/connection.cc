@@ -709,8 +709,8 @@ gearman_return_t gearman_connection_st::flush()
   }
 }
 
-gearman_packet_st *gearman_connection_st::recv(gearman_packet_st *packet_arg,
-                                               gearman_return_t *ret_ptr, bool recv_data)
+gearman_packet_st *gearman_connection_st::recv(gearman_packet_st& packet_arg,
+                                               gearman_return_t& ret, const bool recv_data)
 {
   switch (recv_state)
   {
@@ -718,14 +718,14 @@ gearman_packet_st *gearman_connection_st::recv(gearman_packet_st *packet_arg,
     if (state != GEARMAN_CON_UNIVERSAL_CONNECTED)
     {
       gearman_error(&universal, GEARMAN_NOT_CONNECTED, "not connected");
-      *ret_ptr= GEARMAN_NOT_CONNECTED;
+      ret= GEARMAN_NOT_CONNECTED;
       return NULL;
     }
 
-    recv_packet= gearman_packet_create(universal, packet_arg);
+    recv_packet= gearman_packet_create(universal, &packet_arg);
     if (not recv_packet)
     {
-      *ret_ptr= GEARMAN_MEMORY_ALLOCATION_FAILURE;
+      ret= GEARMAN_MEMORY_ALLOCATION_FAILURE;
       return NULL;
     }
 
@@ -738,15 +738,15 @@ gearman_packet_st *gearman_connection_st::recv(gearman_packet_st *packet_arg,
       {
         size_t recv_size= gearman_packet_unpack(*recv_packet,
                                                 recv_buffer_ptr,
-                                                recv_buffer_size, *ret_ptr);
+                                                recv_buffer_size, ret);
         recv_buffer_ptr+= recv_size;
         recv_buffer_size-= recv_size;
 
-        if (gearman_success(*ret_ptr))
+        if (gearman_success(ret))
         {
           break;
         }
-        else if (*ret_ptr != GEARMAN_IO_WAIT)
+        else if (ret != GEARMAN_IO_WAIT)
         {
           close();
           return NULL;
@@ -759,8 +759,8 @@ gearman_packet_st *gearman_connection_st::recv(gearman_packet_st *packet_arg,
       recv_buffer_ptr= recv_buffer;
 
       size_t recv_size= gearman_connection_read(this, recv_buffer + recv_buffer_size,
-                                                GEARMAN_RECV_BUFFER_SIZE - recv_buffer_size, ret_ptr);
-      if (gearman_failed(*ret_ptr))
+                                                GEARMAN_RECV_BUFFER_SIZE - recv_buffer_size, &ret);
+      if (gearman_failed(ret))
       {
         return NULL;
       }
@@ -768,13 +768,13 @@ gearman_packet_st *gearman_connection_st::recv(gearman_packet_st *packet_arg,
       recv_buffer_size+= recv_size;
     }
 
-    if (packet_arg->data_size == 0)
+    if (packet_arg.data_size == 0)
     {
       recv_state= GEARMAN_CON_RECV_UNIVERSAL_NONE;
       break;
     }
 
-    recv_data_size= packet_arg->data_size;
+    recv_data_size= packet_arg.data_size;
 
     if (not recv_data)
     {
@@ -782,33 +782,33 @@ gearman_packet_st *gearman_connection_st::recv(gearman_packet_st *packet_arg,
       break;
     }
 
-    if (packet_arg->universal->workload_malloc_fn == NULL)
+    if (packet_arg.universal->workload_malloc_fn == NULL)
     {
       // Since it may be C on the other side, don't use new
-      packet_arg->data= malloc(packet_arg->data_size);
+      packet_arg.data= malloc(packet_arg.data_size);
     }
     else
     {
-      packet_arg->data= packet_arg->universal->workload_malloc_fn(packet_arg->data_size,
-                                                                  static_cast<void *>(packet_arg->universal->workload_malloc_context));
+      packet_arg.data= packet_arg.universal->workload_malloc_fn(packet_arg.data_size,
+                                                                  static_cast<void *>(packet_arg.universal->workload_malloc_context));
     }
-    if (packet_arg->data == NULL)
+    if (not packet_arg.data)
     {
-      *ret_ptr= GEARMAN_MEMORY_ALLOCATION_FAILURE;
+      ret= GEARMAN_MEMORY_ALLOCATION_FAILURE;
       close();
       return NULL;
     }
 
-    packet_arg->options.free_data= true;
+    packet_arg.options.free_data= true;
     recv_state= GEARMAN_CON_RECV_STATE_READ_DATA;
 
   case GEARMAN_CON_RECV_STATE_READ_DATA:
     while (recv_data_size)
     {
-      (void)recv(static_cast<uint8_t *>(const_cast<void *>(packet_arg->data)) +
+      (void)recv(static_cast<uint8_t *>(const_cast<void *>(packet_arg.data)) +
                  recv_data_offset,
-                 packet_arg->data_size -recv_data_offset, ret_ptr);
-      if (gearman_failed(*ret_ptr))
+                 packet_arg.data_size -recv_data_offset, ret);
+      if (gearman_failed(ret))
       {
         return NULL;
       }
@@ -818,19 +818,19 @@ gearman_packet_st *gearman_connection_st::recv(gearman_packet_st *packet_arg,
     break;
   }
 
-  packet_arg= recv_packet;
+  gearman_packet_st *tmp_packet_arg= recv_packet;
   recv_packet= NULL;
 
-  return packet_arg;
+  return tmp_packet_arg;
 }
 
-size_t gearman_connection_st::recv(void *data, size_t data_size, gearman_return_t *ret_ptr)
+size_t gearman_connection_st::recv(void *data, size_t data_size, gearman_return_t& ret)
 {
   size_t recv_size= 0;
 
   if (recv_data_size == 0)
   {
-    *ret_ptr= GEARMAN_SUCCESS;
+    ret= GEARMAN_SUCCESS;
     return 0;
   }
 
@@ -853,13 +853,13 @@ size_t gearman_connection_st::recv(void *data, size_t data_size, gearman_return_
   {
     recv_size+= gearman_connection_read(this,
                                         static_cast<uint8_t *>(const_cast<void *>(data)) + recv_size,
-                                        data_size - recv_size, ret_ptr);
+                                        data_size - recv_size, &ret);
     recv_data_offset+= recv_size;
   }
   else
   {
     recv_data_offset+= recv_size;
-    *ret_ptr= GEARMAN_SUCCESS;
+    ret= GEARMAN_SUCCESS;
   }
 
   if (recv_data_size == recv_data_offset)
