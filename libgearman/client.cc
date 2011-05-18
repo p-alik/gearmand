@@ -1145,14 +1145,14 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
             {
               /* Read the next packet, without buffering the data part. */
               client->task= NULL;
-              (void)gearman_connection_recv(client->con, &(client->con->packet), &ret, false);
+              (void)client->con->recv(&(client->con->packet), &ret, false);
             }
           }
           else
           {
             /* Read the next packet, buffering the data part. */
             client->task= NULL;
-            (void)gearman_connection_recv(client->con, &(client->con->packet), &ret, true);
+            (void)client->con->recv(&(client->con->packet), &ret, true);
           }
 
           if (client->task == NULL)

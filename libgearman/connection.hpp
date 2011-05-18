@@ -88,6 +88,14 @@ struct gearman_connection_st
   size_t send(const void *data, size_t data_size, gearman_return_t *ret_ptr);
 
   gearman_return_t flush();
+  void close();
+
+  // Receive packet from a connection.
+  gearman_packet_st *recv(gearman_packet_st *packet,
+                          gearman_return_t *ret_ptr, bool recv_data);
+
+  // Receive packet data from a connection.
+  size_t recv(void *data, size_t data_size, gearman_return_t *ret_ptr);
 };
 
 /**

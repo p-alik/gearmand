@@ -96,33 +96,6 @@ GEARMAN_INTERNAL_API
 void gearman_connection_free(gearman_connection_st *connection);
 
 /**
- * Close a connection.
- */
-GEARMAN_INTERNAL_API
-void gearman_connection_close(gearman_connection_st *connection);
-
-/**
- * Flush the send buffer.
- */
-GEARMAN_INTERNAL_API
-gearman_return_t gearman_connection_flush(gearman_connection_st *connection);
-
-/**
- * Receive packet from a connection.
- */
-GEARMAN_INTERNAL_API
-gearman_packet_st *gearman_connection_recv(gearman_connection_st *connection,
-                                           gearman_packet_st *packet,
-                                           gearman_return_t *ret_ptr, bool recv_data);
-
-/**
- * Receive packet data from a connection.
- */
-GEARMAN_INTERNAL_API
-size_t gearman_connection_recv_data(gearman_connection_st *connection, void *data, size_t data_size,
-                                    gearman_return_t *ret_ptr);
-
-/**
  * Read data from a connection.
  */
 GEARMAN_INTERNAL_API

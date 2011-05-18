@@ -367,7 +367,11 @@ typedef unsigned long int ulong;
 #else
 #define INVALID_SOCKET -1
 #define SOCKET_ERROR -1
+#ifdef __cplusplus
+#define closesocket(a) ::close(a)
+#else
 #define closesocket(a) close(a)
+#endif
 #define get_socket_errno() errno
 #endif // TARGET_OS_WINDOWS
 

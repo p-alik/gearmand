@@ -344,7 +344,7 @@ size_t gearman_task_recv_data(gearman_task_st *task, void *data,
     return 0;
   }
 
-  return gearman_connection_recv_data(task->con, data, data_size, ret_ptr);
+  return task->con->recv(data, data_size, ret_ptr);
 }
 
 gearman_return_t gearman_task_error(const gearman_task_st *task)

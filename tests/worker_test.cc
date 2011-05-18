@@ -354,7 +354,7 @@ static test_return_t abandoned_worker_test(void *)
 
   gearman_packet_free(&packet);
 
-  gearman_connection_recv(worker1, &packet, &ret, false);
+  worker1->recv(&packet, &ret, false);
   test_truth(not (ret != GEARMAN_SUCCESS || packet.command != GEARMAN_COMMAND_JOB_ASSIGN));
 
   test_strcmp(job_handle, packet.arg[0]); // unexepcted job
@@ -389,7 +389,7 @@ static test_return_t abandoned_worker_test(void *)
   gearman_packet_free(&packet);
 
   gearman_universal_set_timeout(universal, 1000);
-  gearman_connection_recv(worker2, &packet, &ret, false);
+  worker2->recv(&packet, &ret, false);
   test_truth(not (ret != GEARMAN_SUCCESS || packet.command != GEARMAN_COMMAND_ERROR));
 
   gearman_connection_free(worker1);

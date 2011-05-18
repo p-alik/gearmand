@@ -672,7 +672,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
         {
     case GEARMAN_WORKER_STATE_GRAB_JOB_RECV:
           assert(&(worker->job->assigned));
-          (void)gearman_connection_recv(worker->con, &(worker->job->assigned), ret_ptr, true);
+          (void)worker->con->recv(&(worker->job->assigned), ret_ptr, true);
 
           if (gearman_failed(*ret_ptr))
           {
