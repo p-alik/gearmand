@@ -1145,14 +1145,14 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
             {
               /* Read the next packet, without buffering the data part. */
               client->task= NULL;
-              (void)client->con->recv(&(client->con->packet), &ret, false);
+              (void)client->con->recv(&(client->con->_packet), &ret, false);
             }
           }
           else
           {
             /* Read the next packet, buffering the data part. */
             client->task= NULL;
-            (void)client->con->recv(&(client->con->packet), &ret, true);
+            (void)client->con->recv(&(client->con->_packet), &ret, true);
           }
 
           if (client->task == NULL)
@@ -1178,7 +1178,7 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
               if (client->task->con != client->con)
                 continue;
 
-              if (client->con->packet.command == GEARMAN_COMMAND_JOB_CREATED)
+              if (client->con->_packet.command == GEARMAN_COMMAND_JOB_CREATED)
               {
                 if (client->task->created_id != client->con->created_id)
                   continue;
@@ -1186,25 +1186,25 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
                 /* New job created, drop through below and notify task. */
                 client->con->created_id++;
               }
-              else if (client->con->packet.command == GEARMAN_COMMAND_ERROR)
+              else if (client->con->_packet.command == GEARMAN_COMMAND_ERROR)
               {
                 gearman_universal_set_error(&client->universal,
                                             GEARMAN_SERVER_ERROR,
                                             "gearman_client_run_tasks",
                                             "%s:%.*s",
-                                            static_cast<char *>(client->con->packet.arg[0]),
-                                            int(client->con->packet.arg_size[1]),
-                                            static_cast<char *>(client->con->packet.arg[1]));
+                                            static_cast<char *>(client->con->_packet.arg[0]),
+                                            int(client->con->_packet.arg_size[1]),
+                                            static_cast<char *>(client->con->_packet.arg[1]));
 
                 return GEARMAN_SERVER_ERROR;
               }
               else if (strncmp(client->task->job_handle,
-                               static_cast<char *>(client->con->packet.arg[0]),
-                               client->con->packet.arg_size[0]) ||
-                       (client->con->packet.command != GEARMAN_COMMAND_WORK_FAIL &&
-                        strlen(client->task->job_handle) != client->con->packet.arg_size[0] - 1) ||
-                       (client->con->packet.command == GEARMAN_COMMAND_WORK_FAIL &&
-                        strlen(client->task->job_handle) != client->con->packet.arg_size[0]))
+                               static_cast<char *>(client->con->_packet.arg[0]),
+                               client->con->_packet.arg_size[0]) ||
+                       (client->con->_packet.command != GEARMAN_COMMAND_WORK_FAIL &&
+                        strlen(client->task->job_handle) != client->con->_packet.arg_size[0] - 1) ||
+                       (client->con->_packet.command == GEARMAN_COMMAND_WORK_FAIL &&
+                        strlen(client->task->job_handle) != client->con->_packet.arg_size[0]))
               {
                 continue;
               }
@@ -1217,12 +1217,12 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
             if (client->task == NULL)
             {
               /* The client has stopped waiting for the response, ignore it. */
-              gearman_packet_free(&(client->con->packet));
+              gearman_packet_free(&(client->con->_packet));
               client->con->options.packet_in_use= false;
               continue;
             }
 
-            client->task->recv= &(client->con->packet);
+            client->task->recv= &(client->con->_packet);
           }
 
   case GEARMAN_CLIENT_STATE_PACKET:
@@ -1238,7 +1238,7 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
           }
 
           /* Clean up the packet. */
-          gearman_packet_free(&(client->con->packet));
+          gearman_packet_free(&(client->con->_packet));
           client->con->options.packet_in_use= false;
 
           /* If all tasks are done, return. */

@@ -186,7 +186,7 @@ void gearman_connection_free(gearman_connection_st *connection)
   connection->universal.con_count--;
 
   if (connection->options.packet_in_use)
-    gearman_packet_free(&(connection->packet));
+    gearman_packet_free(&(connection->_packet));
 
   delete connection;
 }

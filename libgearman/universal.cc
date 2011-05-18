@@ -307,7 +307,7 @@ gearman_return_t gearman_echo(gearman_universal_st *universal,
       goto exit;
     }
 
-    packet_ptr= con->recv(&(con->packet), &ret, true);
+    packet_ptr= con->recv(&(con->_packet), &ret, true);
     if (gearman_failed(ret))
     {
       goto exit;
@@ -315,17 +315,17 @@ gearman_return_t gearman_echo(gearman_universal_st *universal,
 
     assert(packet_ptr);
 
-    if (con->packet.data_size != workload_size ||
-        memcmp(workload, con->packet.data, workload_size))
+    if (con->_packet.data_size != workload_size ||
+        memcmp(workload, con->_packet.data, workload_size))
     {
-      gearman_packet_free(&(con->packet));
+      gearman_packet_free(&(con->_packet));
       gearman_error(universal, GEARMAN_ECHO_DATA_CORRUPTION, "corruption during echo");
 
       ret= GEARMAN_ECHO_DATA_CORRUPTION;
       goto exit;
     }
 
-    gearman_packet_free(&(con->packet));
+    gearman_packet_free(&(con->_packet));
   }
 
   ret= GEARMAN_SUCCESS;
@@ -366,14 +366,14 @@ bool gearman_request_option(gearman_universal_st &universal,
     ret= con->send(&packet, true);
     if (gearman_failed(ret))
     {
-      gearman_packet_free(&(con->packet));
+      gearman_packet_free(&(con->_packet));
       goto exit;
     }
 
-    packet_ptr= con->recv(&(con->packet), &ret, true);
+    packet_ptr= con->recv(&(con->_packet), &ret, true);
     if (gearman_failed(ret))
     {
-      gearman_packet_free(&(con->packet));
+      gearman_packet_free(&(con->_packet));
       goto exit;
     }
 
@@ -381,14 +381,14 @@ bool gearman_request_option(gearman_universal_st &universal,
 
     if (packet_ptr->command == GEARMAN_COMMAND_ERROR)
     {
-      gearman_packet_free(&(con->packet));
+      gearman_packet_free(&(con->_packet));
       gearman_error(&universal, GEARMAN_INVALID_ARGUMENT, "invalid server option");
 
       ret= GEARMAN_INVALID_ARGUMENT;;
       goto exit;
     }
 
-    gearman_packet_free(&(con->packet));
+    gearman_packet_free(&(con->_packet));
   }
 
   ret= GEARMAN_SUCCESS;
