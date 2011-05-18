@@ -319,7 +319,7 @@ gearman_return_t gearman_client_add_server(gearman_client_st *client,
     return GEARMAN_INVALID_ARGUMENT;
   }
 
-  if (gearman_connection_create_args(&client->universal, NULL, host, port) == NULL)
+  if (gearman_connection_create_args(client->universal, NULL, host, port) == NULL)
   {
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }

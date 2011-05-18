@@ -112,3 +112,15 @@ GEARMAN_LOCAL
 gearman_return_t gearman_packet_create_arg(gearman_packet_st& packet,
                                            const void *arg, size_t arg_size);
 
+
+/**
+ * Pack header.
+ */
+GEARMAN_LOCAL
+gearman_return_t gearman_packet_pack_header(gearman_packet_st *packet);
+
+/**
+ * Unpack header.
+ */
+GEARMAN_LOCAL
+gearman_return_t gearman_packet_unpack_header(gearman_packet_st *packet);

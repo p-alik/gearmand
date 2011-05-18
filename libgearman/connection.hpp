@@ -86,7 +86,27 @@ struct gearman_connection_st
  * failed.
  */
 
-GEARMAN_INTERNAL_API
+GEARMAN_LOCAL
 gearman_connection_st *gearman_connection_create(gearman_universal_st &universal,
                                                  gearman_connection_st *connection,
                                                  gearman_connection_options_t *options);
+
+GEARMAN_LOCAL
+gearman_connection_st *gearman_connection_clone(gearman_universal_st& universal, gearman_connection_st *src,
+                                                const gearman_connection_st *from);
+
+/**
+ * Create a connection structure with the given host and port.
+ *
+ * @param[in] gearman Structure previously initialized with gearman_create() or
+ *  gearman_clone().
+ * @param[in] connection Caller allocated structure, or NULL to allocate one.
+ * @param[in] host Host or IP address to connect to.
+ * @param[in] port Port to connect to.
+ * @return On success, a pointer to the (possibly allocated) structure. On
+ *  failure this will be NULL.
+ */
+GEARMAN_LOCAL
+gearman_connection_st *gearman_connection_create_args(gearman_universal_st &universal,
+                                                      gearman_connection_st *connection,
+                                                      const char *host, in_port_t port);

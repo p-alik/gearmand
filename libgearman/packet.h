@@ -36,24 +36,7 @@
  *
  */
 
-/**
- * @file
- * @brief Packet Declarations
- */
-
 #pragma once
-
-/**
- * @addtogroup gearman_packet Packet Declarations
- * @ingroup gearman_universal
- *
- * This is a low level interface for gearman packet. This is used internally
- * internally by both client and worker interfaces (or more specifically, tasks
- * and jobs), so you probably want to look there first. This is usually used to
- * write lower level clients, workers, proxies, or your own server.
- *
- * @{
- */
 
 enum gearman_magic_t
 {
@@ -86,37 +69,3 @@ struct gearman_packet_st
   size_t arg_size[GEARMAN_MAX_COMMAND_ARGS];
   char args_buffer[GEARMAN_ARGS_BUFFER_SIZE];
 };
-
-#ifdef GEARMAN_CORE
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
-typedef size_t (gearman_packet_pack_fn)(const gearman_packet_st *packet,
-                                        void *data, size_t data_size,
-                                        gearman_return_t *ret_ptr);
-typedef size_t (gearman_packet_unpack_fn)(gearman_packet_st *packet,
-                                          const void *data, size_t data_size,
-                                          gearman_return_t *ret_ptr);
-
-/**
- * Pack header.
- */
-GEARMAN_INTERNAL_API
-gearman_return_t gearman_packet_pack_header(gearman_packet_st *packet);
-
-/**
- * Unpack header.
- */
-GEARMAN_INTERNAL_API
-gearman_return_t gearman_packet_unpack_header(gearman_packet_st *packet);
-
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* GEARMAN_CORE */
-

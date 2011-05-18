@@ -147,10 +147,10 @@ gearman_connection_st *gearman_connection_create(gearman_universal_st &universal
   return connection;
 }
 
-gearman_connection_st *gearman_connection_create_args(gearman_universal_st *gearman, gearman_connection_st *connection,
+gearman_connection_st *gearman_connection_create_args(gearman_universal_st& universal, gearman_connection_st *connection,
                                                       const char *host, in_port_t port)
 {
-  connection= gearman_connection_create(*gearman, connection, NULL);
+  connection= gearman_connection_create(universal, connection, NULL);
   if (not connection)
     return NULL;
 
@@ -159,10 +159,10 @@ gearman_connection_st *gearman_connection_create_args(gearman_universal_st *gear
   return connection;
 }
 
-gearman_connection_st *gearman_connection_clone(gearman_universal_st *gearman, gearman_connection_st *connection,
+gearman_connection_st *gearman_connection_clone(gearman_universal_st& universal, gearman_connection_st *connection,
                                                 const gearman_connection_st *from)
 {
-  connection= gearman_connection_create(*gearman, connection, NULL);
+  connection= gearman_connection_create(universal, connection, NULL);
 
   if (not from or  not connection)
     return connection;

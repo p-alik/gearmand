@@ -72,7 +72,7 @@ gearman_return_t gearman_string_append_character(gearman_vector_st *string,
                                                      char character);
 GEARMAN_LOCAL
 gearman_return_t gearman_string_append(gearman_vector_st *string,
-                                           const char *value, size_t length);
+                                       const char *value, size_t length);
 GEARMAN_LOCAL
 void gearman_string_reset(gearman_vector_st *string);
 

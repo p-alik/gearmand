@@ -87,36 +87,6 @@ enum gearman_con_universal_t {
 #ifdef GEARMAN_CORE
 
 /**
- * Create a connection structure with the given host and port.
- *
- * @param[in] gearman Structure previously initialized with gearman_create() or
- *  gearman_clone().
- * @param[in] connection Caller allocated structure, or NULL to allocate one.
- * @param[in] host Host or IP address to connect to.
- * @param[in] port Port to connect to.
- * @return On success, a pointer to the (possibly allocated) structure. On
- *  failure this will be NULL.
- */
-GEARMAN_INTERNAL_API
-gearman_connection_st *gearman_connection_create_args(gearman_universal_st *gearman,
-                                                      gearman_connection_st *connection,
-                                                      const char *host, in_port_t port);
-
-/**
- * Clone a connection structure.
- *
- * @param[in] gearman Structure previously initialized with gearman_create() or
- *  gearman_clone().
- * @param[in] connection Caller allocated structure, or NULL to allocate one.
- * @param[in] from Structure to use as a source to clone from.
- * @return On success, a pointer to the (possibly allocated) structure. On
- *  failure this will be NULL.
- */
-GEARMAN_INTERNAL_API
-gearman_connection_st *gearman_connection_clone(gearman_universal_st *gearman, gearman_connection_st *src,
-                                                const gearman_connection_st *from);
-
-/**
  * Free a connection structure.
  *
  * @param[in] connection Structure previously initialized with gearman_connection_create(),
