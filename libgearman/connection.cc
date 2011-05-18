@@ -611,7 +611,7 @@ gearman_return_t gearman_connection_flush(gearman_connection_st *connection)
           return GEARMAN_IO_WAIT;
         }
 
-        gret= gearman_wait(connection->universal);
+        gret= gearman_wait(*connection->universal);
         if (gearman_failed(gret))
           return gret;
       }
@@ -690,7 +690,7 @@ gearman_return_t gearman_connection_flush(gearman_connection_st *connection)
               return GEARMAN_IO_WAIT;
             }
 
-            gret= gearman_wait(connection->universal);
+            gret= gearman_wait(*connection->universal);
             if (gearman_failed(gret))
               return gret;
 
@@ -943,7 +943,7 @@ size_t gearman_connection_read(gearman_connection_st *connection, void *data, si
           return 0;
         }
 
-        *ret_ptr= gearman_wait(connection->universal);
+        *ret_ptr= gearman_wait(*connection->universal);
         if (gearman_failed(*ret_ptr))
         {
           return 0;

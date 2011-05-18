@@ -68,6 +68,13 @@ void gearman_universal_set_timeout(gearman_universal_st &self, int timeout);
 GEARMAN_LOCAL
 int gearman_universal_timeout(gearman_universal_st &self);
 
+/**
+ * Wait for I/O on connections.
+ *
+ */
+GEARMAN_LOCAL
+gearman_return_t gearman_wait(gearman_universal_st&);
+
 static inline void gearman_universal_add_options(gearman_universal_st &self, gearman_universal_options_t options)
 {
   (void)gearman_universal_set_option(self, options, true);

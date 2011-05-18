@@ -430,7 +430,7 @@ void gearman_worker_remove_servers(gearman_worker_st *worker)
 
 gearman_return_t gearman_worker_wait(gearman_worker_st *worker)
 {
-  return gearman_wait((&worker->universal));
+  return gearman_wait(worker->universal);
 }
 
 gearman_return_t gearman_worker_register(gearman_worker_st *worker,
@@ -498,7 +498,6 @@ gearman_return_t gearman_worker_unregister_all(gearman_worker_st *worker)
 
   if (not worker->function_list)
     return GEARMAN_NO_REGISTERED_FUNCTIONS;
-
 
   /* Lets find out if we have any functions left that are valid */
   for (function= worker->function_list; function;
@@ -781,13 +780,13 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
 
       if (active == 0)
       {
-        if ((&worker->universal)->timeout < 0)
+        if (worker->universal.timeout < 0)
         {
           usleep(GEARMAN_WORKER_WAIT_TIMEOUT * 1000);
         }
         else
         {
-          if ((&worker->universal)->timeout > 0)
+          if (worker->universal.timeout > 0)
 	  {
             usleep(static_cast<unsigned int>((&worker->universal)->timeout) * 1000);
 	  }
@@ -803,7 +802,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
       }
       else
       {
-        *ret_ptr= gearman_wait((&worker->universal));
+        *ret_ptr= gearman_wait(worker->universal);
         if (gearman_failed(*ret_ptr) and (*ret_ptr != GEARMAN_TIMEOUT || worker->options.timeout_return))
         {
           return NULL;

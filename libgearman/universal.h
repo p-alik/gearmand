@@ -140,16 +140,6 @@ GEARMAN_INTERNAL_API
 gearman_return_t gearman_flush_all(gearman_universal_st *gearman);
 
 /**
- * Wait for I/O on connections.
- *
- * @param[in] gearman Structure previously initialized with gearman_universal_create() or
- *  gearman_clone().
- * @return Standard gearman return value.
- */
-GEARMAN_INTERNAL_API
-gearman_return_t gearman_wait(gearman_universal_st *gearman);
-
-/**
  * Get next connection that is ready for I/O.
  *
  * @param[in] gearman Structure previously initialized with gearman_universal_create() or

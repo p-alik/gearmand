@@ -167,32 +167,29 @@ gearman_return_t gearman_flush_all(gearman_universal_st *universal)
   return GEARMAN_SUCCESS;
 }
 
-gearman_return_t gearman_wait(gearman_universal_st *universal)
+gearman_return_t gearman_wait(gearman_universal_st& universal)
 {
   struct pollfd *pfds;
-  nfds_t x;
-  int ret;
-  gearman_return_t gret;
 
-  if (universal->pfds_size < universal->con_count)
+  if (universal.pfds_size < universal.con_count)
   {
-    pfds= static_cast<pollfd*>(realloc(universal->pfds, universal->con_count * sizeof(struct pollfd)));
+    pfds= static_cast<pollfd*>(realloc(universal.pfds, universal.con_count * sizeof(struct pollfd)));
     if (pfds == NULL)
     {
-      gearman_perror(*universal, "pollfd realloc");
+      gearman_perror(universal, "pollfd realloc");
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
 
-    universal->pfds= pfds;
-    universal->pfds_size= universal->con_count;
+    universal.pfds= pfds;
+    universal.pfds_size= universal.con_count;
   }
   else
   {
-    pfds= universal->pfds;
+    pfds= universal.pfds;
   }
 
-  x= 0;
-  for (gearman_connection_st *con= universal->con_list; con != NULL; con= con->next)
+  nfds_t x= 0;
+  for (gearman_connection_st *con= universal.con_list; con != NULL; con= con->next)
   {
     if (con->events == 0)
       continue;
@@ -205,19 +202,20 @@ gearman_return_t gearman_wait(gearman_universal_st *universal)
 
   if (x == 0)
   {
-    gearman_error(universal, GEARMAN_NO_ACTIVE_FDS, "no active file descriptors");
+    gearman_error(&universal, GEARMAN_NO_ACTIVE_FDS, "no active file descriptors");
     return GEARMAN_NO_ACTIVE_FDS;
   }
 
+  int ret;
   while (1)
   {
-    ret= poll(pfds, x, universal->timeout);
+    ret= poll(pfds, x, universal.timeout);
     if (ret == -1)
     {
       if (errno == EINTR)
         continue;
 
-      gearman_perror(*universal, "poll");
+      gearman_perror(universal, "poll");
       return GEARMAN_ERRNO;
     }
 
@@ -226,18 +224,18 @@ gearman_return_t gearman_wait(gearman_universal_st *universal)
 
   if (ret == 0)
   {
-    gearman_error(universal, GEARMAN_TIMEOUT, "timeout reached");
+    gearman_error(&universal, GEARMAN_TIMEOUT, "timeout reached");
     return GEARMAN_TIMEOUT;
   }
 
   x= 0;
-  for (gearman_connection_st *con= universal->con_list; con != NULL; con= con->next)
+  for (gearman_connection_st *con= universal.con_list; con != NULL; con= con->next)
   {
     if (con->events == 0)
       continue;
 
-    gret= gearman_connection_set_revents(con, pfds[x].revents);
-    if (gret != GEARMAN_SUCCESS)
+    gearman_return_t gret= gearman_connection_set_revents(con, pfds[x].revents);
+    if (gearman_failed(gret))
       return gret;
 
     x++;

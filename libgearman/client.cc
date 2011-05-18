@@ -340,7 +340,7 @@ void gearman_client_remove_servers(gearman_client_st *client)
 
 gearman_return_t gearman_client_wait(gearman_client_st *client)
 {
-  return gearman_wait(&client->universal);
+  return gearman_wait(client->universal);
 }
 
 void *gearman_client_do(gearman_client_st *client, const char *function_name,
@@ -1266,7 +1266,7 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
       }
 
       /* Wait for activity on one of the connections. */
-      gearman_return_t local_ret= gearman_wait(&client->universal);
+      gearman_return_t local_ret= gearman_wait(client->universal);
       if (gearman_failed(local_ret) and local_ret != GEARMAN_IO_WAIT)
       {
         client->state= GEARMAN_CLIENT_STATE_IDLE;
