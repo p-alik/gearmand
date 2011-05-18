@@ -236,12 +236,18 @@ void gearman_worker_free(gearman_worker_st *worker)
 
 const char *gearman_worker_error(const gearman_worker_st *worker)
 {
-  return gearman_universal_error((&worker->universal));
+  if (not worker)
+    return NULL;
+
+  return gearman_universal_error(worker->universal);
 }
 
 int gearman_worker_errno(gearman_worker_st *worker)
 {
-  return gearman_universal_errno((&worker->universal));
+  if (not worker)
+    return 0;
+
+  return gearman_universal_errno(worker->universal);
 }
 
 gearman_worker_options_t gearman_worker_options(const gearman_worker_st *worker)

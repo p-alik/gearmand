@@ -43,6 +43,7 @@
  */
 
 #include <libgearman/common.h>
+#include <libgearman/universal.hpp>
 #include <libgearman/aggregator.hpp>
 #include <libgearman/connection.h>
 #include <libgearman/packet.h>
@@ -109,7 +110,7 @@ struct gearman_job_reducer_st {
                                     gearman_actions_execute_defaults());
     if (not task)
     {
-      gearman_universal_error_code(&client->universal);
+      gearman_universal_error_code(client->universal);
 
       return false;
     }

@@ -79,3 +79,21 @@ static inline bool gearman_universal_is_non_blocking(gearman_universal_st &self)
 {
   return self.options.non_blocking;
 }
+
+static inline const char *gearman_universal_error(const gearman_universal_st &self)
+{
+  if (self.error.last_error[0] == 0)
+      return NULL;
+
+  return static_cast<const char *>(self.error.last_error);
+}
+
+static inline gearman_return_t gearman_universal_error_code(const gearman_universal_st &self)
+{
+  return self.error.rc;
+}
+
+static inline int gearman_universal_errno(const gearman_universal_st &self)
+{
+  return self.error.last_errno;
+}

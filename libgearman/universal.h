@@ -94,38 +94,6 @@ void gearman_universal_set_perror(const char *position, gearman_universal_st *un
 #define gearman_gerror(A, B) do { gearman_universal_set_error((A), (B), AT, " "); } while (0)
 
 /**
- * Return an error string for last error encountered.
- *
- * @param[in] gearman Structure previously initialized with gearman_universal_create() or
- *  gearman_clone().
- * @return Pointer to a buffer in the structure that holds an error string.
- */
-static inline const char *gearman_universal_error(const gearman_universal_st *gearman)
-{
-  if (gearman->error.last_error[0] == 0)
-      return NULL;
-
-  return (const char *)(gearman->error.last_error);
-}
-
-static inline gearman_return_t gearman_universal_error_code(const gearman_universal_st *gearman)
-{
-  return gearman->error.rc;
-}
-
-/**
- * Value of errno in the case of a GEARMAN_ERRNO return value.
- *
- * @param[in] gearman Structure previously initialized with gearman_universal_create() or
- *  gearman_clone().
- * @return An errno value as defined in your system errno.h file.
- */
-static inline int gearman_universal_errno(const gearman_universal_st *gearman)
-{
-  return gearman->error.last_errno;
-}
-
-/**
  * Set custom memory allocation function for workloads. Normally gearman uses
  * the standard system malloc to allocate memory used with workloads. The
  * provided function will be used instead.

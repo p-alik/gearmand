@@ -126,15 +126,15 @@ static test_return_t set_timout_test(void *)
   gearman_universal_initialize(universal);
 
   time_data= gearman_universal_timeout(universal);
-  test_truth (time_data == -1); // Current default
+  test_compare(-1, time_data); // Current default
 
   gearman_universal_set_timeout(universal, 20);
   time_data= gearman_universal_timeout(universal);
-  test_truth (time_data == 20); // Current default
+  test_compare(20, time_data); // Current default
 
   gearman_universal_set_timeout(universal, 10);
   time_data= gearman_universal_timeout(universal);
-  test_truth (time_data == 10); // Current default
+  test_compare(10, time_data); // Current default
 
   gearman_universal_free(universal);
 
@@ -147,11 +147,11 @@ static test_return_t basic_error_test(void *)
 
   gearman_universal_initialize(universal);
 
-  const char *error= gearman_universal_error(&universal);
-  test_truth(error == NULL);
+  const char *error= gearman_universal_error(universal);
+  test_false(error);
 
-  int error_number= gearman_universal_errno(&universal);
-  test_truth(error_number == 0);
+  int error_number= gearman_universal_errno(universal);
+  test_compare(0, error_number);
 
   gearman_universal_free(universal);
 
@@ -350,33 +350,31 @@ static test_return_t gearman_packet_give_data_test(void *)
 static test_return_t gearman_packet_take_data_test(void *)
 {
   char *data = strdup("Mine!");
-  char *mine;
   size_t data_size= strlen(data);
-  size_t mine_size;
   gearman_universal_st universal;
 
   gearman_packet_st packet;
-  gearman_packet_st *packet_ptr;
 
   gearman_universal_initialize(universal);
 
-  packet_ptr= gearman_packet_create(&universal, &packet);
+  gearman_packet_st *packet_ptr= gearman_packet_create(&universal, &packet);
   test_truth(packet_ptr);
 
   gearman_packet_give_data(packet_ptr, data, data_size);
 
   test_truth(packet_ptr->data == data);
-  test_truth(packet_ptr->data_size == data_size);
+  test_compare(data_size, packet_ptr->data_size);
   test_truth(packet_ptr->options.free_data);
 
-  mine= (char *)gearman_packet_take_data(packet_ptr, &mine_size);
+  size_t mine_size;
+  char *mine= (char *)gearman_packet_take_data(packet_ptr, &mine_size);
 
   test_false(packet_ptr->data);
-  test_false(packet_ptr->data_size);
+  test_compare(0, packet_ptr->data_size);
   test_false(packet_ptr->options.free_data);
 
-  test_truth(mine == data);
-  test_truth(data_size == mine_size);
+  test_compare(mine, data);
+  test_compare(data_size, mine_size);
 
   gearman_packet_free(packet_ptr);
   gearman_universal_free(universal);

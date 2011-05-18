@@ -163,17 +163,23 @@ const char *gearman_client_error(const gearman_client_st *client)
   if (not client)
     return NULL;
 
-  return gearman_universal_error(&client->universal);
+  return gearman_universal_error(client->universal);
 }
 
 gearman_return_t gearman_client_error_code(const gearman_client_st *client)
 {
-  return gearman_universal_error_code(&client->universal);
+  if (not client)
+    return GEARMAN_SUCCESS;
+
+  return gearman_universal_error_code(client->universal);
 }
 
 int gearman_client_errno(const gearman_client_st *client)
 {
-  return gearman_universal_errno(&client->universal);
+  if (not client)
+    return 0;
+
+  return gearman_universal_errno(client->universal);
 }
 
 gearman_client_options_t gearman_client_options(const gearman_client_st *client)
@@ -505,7 +511,7 @@ gearman_task_st *gearman_client_execute(gearman_client_st *client,
 
   if (not task)
   {
-    gearman_universal_error_code(&client->universal);
+    gearman_universal_error_code(client->universal);
 
     return NULL;
   }
@@ -777,7 +783,7 @@ gearman_task_st *gearman_client_add_task(gearman_client_st *client,
                  time_t(0));
   if (not task and ret_ptr)
   {
-    *ret_ptr= gearman_universal_error_code(&client->universal);
+    *ret_ptr= gearman_universal_error_code(client->universal);
   }
   else if (ret_ptr)
   {
@@ -808,7 +814,7 @@ gearman_task_st *gearman_client_add_task_high(gearman_client_st *client,
 
   if (not task and ret_ptr)
   {
-    *ret_ptr= gearman_universal_error_code(&client->universal);
+    *ret_ptr= gearman_universal_error_code(client->universal);
   }
   else if (ret_ptr)
   {
@@ -838,7 +844,7 @@ gearman_task_st *gearman_client_add_task_low(gearman_client_st *client,
 
   if (not task and ret_ptr)
   {
-    *ret_ptr= gearman_universal_error_code(&client->universal);
+    *ret_ptr= gearman_universal_error_code(client->universal);
   }
   else if (ret_ptr)
   {
@@ -868,7 +874,7 @@ gearman_task_st *gearman_client_add_task_background(gearman_client_st *client,
 
   if (not task and ret_ptr)
   {
-    *ret_ptr= gearman_universal_error_code(&client->universal);
+    *ret_ptr= gearman_universal_error_code(client->universal);
   }
   else if (ret_ptr)
   {
@@ -900,7 +906,7 @@ gearman_client_add_task_high_background(gearman_client_st *client,
 
   if (not task and ret_ptr)
   {
-    *ret_ptr= gearman_universal_error_code(&client->universal);
+    *ret_ptr= gearman_universal_error_code(client->universal);
   }
   else if (ret_ptr)
   {
@@ -931,7 +937,7 @@ gearman_client_add_task_low_background(gearman_client_st *client,
 
   if (not task and ret_ptr)
   {
-    *ret_ptr= gearman_universal_error_code(&client->universal);
+    *ret_ptr= gearman_universal_error_code(client->universal);
   }
   else if (ret_ptr)
   {
@@ -1300,13 +1306,13 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
   if (gearman_failed(rc))
   {
 #if 0
-    if (rc != gearman_universal_error_code(&client->universal))
+    if (rc != gearman_universal_error_code(client->universal))
     {
-      std::cerr << "print error bad, expected " << gearman_strerror(rc) << " and got " << gearman_strerror(gearman_universal_error_code(&client->universal)) << std::endl;
+      std::cerr << "print error bad, expected " << gearman_strerror(rc) << " and got " << gearman_strerror(gearman_universal_error_code(client->universal)) << std::endl;
       std::cerr << "\t" << gearman_client_error(client) << " " << &client->universal << std::endl;
     }
 #endif
-    assert(gearman_universal_error_code(&client->universal) == rc);
+    assert(gearman_universal_error_code(client->universal) == rc);
   }
 
   return rc;
@@ -1655,7 +1661,7 @@ static void *_client_do(gearman_client_st *client, gearman_command_t command,
   if (not do_task_ptr)
   {
     if (ret_ptr)
-      *ret_ptr= gearman_universal_error_code(&client->universal);
+      *ret_ptr= gearman_universal_error_code(client->universal);
 
     return NULL;
   }
@@ -1722,7 +1728,7 @@ static gearman_return_t _client_do_background(gearman_client_st *client,
                         0);
   if (not do_task_ptr)
   {
-    return gearman_universal_error_code(&client->universal);
+    return gearman_universal_error_code(client->universal);
   }
 
   gearman_task_clear_fn(do_task_ptr);
