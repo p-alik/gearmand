@@ -269,9 +269,9 @@ static test_return_t option_test(void *)
 static test_return_t echo_test(void *object)
 {
   gearman_worker_st *worker= (gearman_worker_st *)object;
+  assert(worker);
 
-  gearman_return_t rc;
-  test_true_got(gearman_success(rc= gearman_worker_echo(worker, gearman_literal_param("This is my echo test"))), gearman_strerror(rc));
+  test_true_got(gearman_success(gearman_worker_echo(worker, gearman_literal_param("This is my echo test"))), gearman_worker_error(worker));
 
   return TEST_SUCCESS;
 }
@@ -279,6 +279,7 @@ static test_return_t echo_test(void *object)
 static test_return_t echo_multi_test(void *object)
 {
   gearman_worker_st *worker= (gearman_worker_st *)object;
+  assert(worker);
   const char *value[]= {
     "This is my echo test",
     "This land is my land",
@@ -292,8 +293,7 @@ static test_return_t echo_multi_test(void *object)
 
   while (*ptr)
   {
-    gearman_return_t rc;
-    test_true_got(gearman_success(rc= gearman_worker_echo(worker, gearman_c_str_param(*ptr))), gearman_strerror(rc));
+    test_true_got(gearman_success(gearman_worker_echo(worker, gearman_c_str_param(*ptr))), gearman_worker_error(worker));
     ptr++;
   }
 
@@ -303,9 +303,9 @@ static test_return_t echo_multi_test(void *object)
 static test_return_t echo_max_test(void *object)
 {
   gearman_worker_st *worker= (gearman_worker_st *)object;
+  assert(worker);
 
-  gearman_return_t rc= gearman_worker_echo(worker, "This is my echo test", SIZE_MAX);
-  test_truth(rc == GEARMAN_ARGUMENT_TOO_LARGE);
+  test_compare(GEARMAN_ARGUMENT_TOO_LARGE, gearman_worker_echo(worker, "This is my echo test", SIZE_MAX));
 
   return TEST_SUCCESS;
 }
