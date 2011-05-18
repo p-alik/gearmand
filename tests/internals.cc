@@ -122,20 +122,16 @@ static test_return_t clone_test(void *)
 static test_return_t set_timout_test(void *)
 {
   gearman_universal_st universal;
-  int time_data;
 
   gearman_universal_initialize(universal);
 
-  time_data= gearman_universal_timeout(universal);
-  test_compare(-1, time_data); // Current default
+  test_compare(-1, gearman_universal_timeout(universal)); // Current default
 
   gearman_universal_set_timeout(universal, 20);
-  time_data= gearman_universal_timeout(universal);
-  test_compare(20, time_data); // Current default
+  test_compare(20, gearman_universal_timeout(universal)); // New value of 20
 
   gearman_universal_set_timeout(universal, 10);
-  time_data= gearman_universal_timeout(universal);
-  test_compare(10, time_data); // Current default
+  test_compare(10, gearman_universal_timeout(universal)); // New value of 10
 
   gearman_universal_free(universal);
 
@@ -151,8 +147,7 @@ static test_return_t basic_error_test(void *)
   const char *error= gearman_universal_error(universal);
   test_false(error);
 
-  int error_number= gearman_universal_errno(universal);
-  test_compare(0, error_number);
+  test_compare(0, gearman_universal_errno(universal));
 
   gearman_universal_free(universal);
 
@@ -248,13 +243,10 @@ static test_return_t connection_init_test(void *)
 {
   gearman_universal_st universal;
 
-  gearman_connection_st *connection_ptr;
-
   gearman_universal_initialize(universal);
 
-  connection_ptr= gearman_connection_create(universal, NULL);
-  test_truth(connection_ptr->options.allocated);
-  test_truth(connection_ptr->options.allocated);
+  gearman_connection_st *connection_ptr= gearman_connection_create(universal, NULL);
+  test_truth(connection_ptr);
 
   test_false(connection_ptr->options.ready);
   test_false(connection_ptr->options.packet_in_use);
@@ -270,12 +262,11 @@ static test_return_t connection_init_test(void *)
 static test_return_t connection_alloc_test(void *)
 {
   gearman_universal_st universal;
-  gearman_connection_st *connection_ptr;
 
   gearman_universal_initialize(universal);
 
-  connection_ptr= gearman_connection_create(universal, NULL);
-  test_truth(connection_ptr->options.allocated);
+  gearman_connection_st *connection_ptr= gearman_connection_create(universal, NULL);
+  test_truth(connection_ptr);
 
   test_false(connection_ptr->options.ready);
   test_false(connection_ptr->options.packet_in_use);

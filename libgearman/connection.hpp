@@ -43,7 +43,6 @@
 struct gearman_connection_st
 {
   struct {
-    bool allocated;
     bool ready;
     bool packet_in_use;
     bool external_fd;
@@ -65,7 +64,7 @@ struct gearman_connection_st
   size_t recv_buffer_size;
   size_t recv_data_size;
   size_t recv_data_offset;
-  gearman_universal_st *universal;
+  gearman_universal_st &universal;
   gearman_connection_st *next;
   gearman_connection_st *prev;
   void *context;
@@ -78,6 +77,10 @@ struct gearman_connection_st
   char host[NI_MAXHOST];
   char send_buffer[GEARMAN_SEND_BUFFER_SIZE];
   char recv_buffer[GEARMAN_RECV_BUFFER_SIZE];
+
+  gearman_connection_st(gearman_universal_st &universal_arg) :
+    universal(universal_arg)
+  { }
 };
 
 /**
