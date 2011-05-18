@@ -56,22 +56,22 @@
 #include "libtest/server.h"
 #include <libtest/worker.h>
 
+#include "libgearman/universal.hpp"
+
 #define CLIENT_TEST_PORT 32123
 
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
-static test_return_t init_test(void *not_used __attribute__((unused)))
+static test_return_t init_test(void *)
 {
   gearman_universal_st gear;
-  gearman_universal_st *gear_ptr;
 
-  gear_ptr= gearman_universal_create(&gear, NULL);
+  gearman_universal_initialize(gear);
   test_false(gear.options.dont_track_packets);
   test_false(gear.options.non_blocking);
   test_false(gear.options.stored_non_blocking);
-  test_truth(gear_ptr == &gear);
 
   gearman_universal_free(gear);
 
@@ -81,39 +81,34 @@ static test_return_t init_test(void *not_used __attribute__((unused)))
 static test_return_t clone_test(void *)
 {
   gearman_universal_st gear;
-  gearman_universal_st *gear_ptr;
 
-  gear_ptr= gearman_universal_create(&gear, NULL);
-  test_truth(gear_ptr);
-  test_truth(gear_ptr == &gear);
+  gearman_universal_initialize(gear);
 
   /* Can we init from null? */
   {
-    gearman_universal_st *gear_clone;
     gearman_universal_st destination;
-    gear_clone= gearman_universal_clone(&destination, &gear);
-    test_truth(gear_clone);
+    gearman_universal_clone(destination, gear);
 
     { // Test all of the flags
-      test_truth(gear_clone->options.dont_track_packets == gear_ptr->options.dont_track_packets);
-      test_truth(gear_clone->options.non_blocking == gear_ptr->options.non_blocking);
-      test_truth(gear_clone->options.stored_non_blocking == gear_ptr->options.stored_non_blocking);
+      test_truth(destination.options.dont_track_packets == gear.options.dont_track_packets);
+      test_truth(destination.options.non_blocking == gear.options.non_blocking);
+      test_truth(destination.options.stored_non_blocking == gear.options.stored_non_blocking);
     }
-    test_truth(gear_clone->verbose == gear_ptr->verbose);
-    test_truth(gear_clone->con_count == gear_ptr->con_count);
-    test_truth(gear_clone->packet_count == gear_ptr->packet_count);
-    test_truth(gear_clone->pfds_size == gear_ptr->pfds_size);
-    test_truth(gear_clone->error.last_errno == gear_ptr->error.last_errno);
-    test_truth(gear_clone->timeout == gear_ptr->timeout);
-    test_truth(gear_clone->con_list == gear_ptr->con_list);
-    test_truth(gear_clone->packet_list == gear_ptr->packet_list);
-    test_truth(gear_clone->pfds == gear_ptr->pfds);
-    test_truth(gear_clone->log_fn == gear_ptr->log_fn);
-    test_truth(gear_clone->log_context == gear_ptr->log_context);
-    test_truth(gear_clone->workload_malloc_fn == gear_ptr->workload_malloc_fn);
-    test_truth(gear_clone->workload_malloc_context == gear_ptr->workload_malloc_context);
-    test_truth(gear_clone->workload_free_fn == gear_ptr->workload_free_fn);
-    test_truth(gear_clone->workload_free_context == gear_ptr->workload_free_context);
+    test_truth(destination.verbose == gear.verbose);
+    test_truth(destination.con_count == gear.con_count);
+    test_truth(destination.packet_count == gear.packet_count);
+    test_truth(destination.pfds_size == gear.pfds_size);
+    test_truth(destination.error.last_errno == gear.error.last_errno);
+    test_truth(destination.timeout == gear.timeout);
+    test_truth(destination.con_list == gear.con_list);
+    test_truth(destination.packet_list == gear.packet_list);
+    test_truth(destination.pfds == gear.pfds);
+    test_truth(destination.log_fn == gear.log_fn);
+    test_truth(destination.log_context == gear.log_context);
+    test_truth(destination.workload_malloc_fn == gear.workload_malloc_fn);
+    test_truth(destination.workload_malloc_context == gear.workload_malloc_context);
+    test_truth(destination.workload_free_fn == gear.workload_free_fn);
+    test_truth(destination.workload_free_context == gear.workload_free_context);
 
     gearman_universal_free(gear);
   }
@@ -123,127 +118,112 @@ static test_return_t clone_test(void *)
   return TEST_SUCCESS;
 }
 
-static test_return_t set_timout_test(void *not_used __attribute__((unused)))
+static test_return_t set_timout_test(void *)
 {
-  gearman_universal_st gear;
-  gearman_universal_st *gear_ptr;
+  gearman_universal_st universal;
   int time_data;
 
-  gear_ptr= gearman_universal_create(&gear, NULL);
-  test_truth(gear_ptr);
-  test_truth(gear_ptr == &gear);
+  gearman_universal_initialize(universal);
 
-  time_data= gearman_universal_timeout(gear_ptr);
+  time_data= gearman_universal_timeout(universal);
   test_truth (time_data == -1); // Current default
 
-  gearman_universal_set_timeout(gear_ptr, 20);
-  time_data= gearman_universal_timeout(gear_ptr);
+  gearman_universal_set_timeout(universal, 20);
+  time_data= gearman_universal_timeout(universal);
   test_truth (time_data == 20); // Current default
 
-  gearman_universal_set_timeout(gear_ptr, 10);
-  time_data= gearman_universal_timeout(gear_ptr);
+  gearman_universal_set_timeout(universal, 10);
+  time_data= gearman_universal_timeout(universal);
   test_truth (time_data == 10); // Current default
 
-  test_truth(gear_ptr == &gear); // Make sure noting got slipped in :)
-  gearman_universal_free(gear);
+  gearman_universal_free(universal);
 
   return TEST_SUCCESS;
 }
 
-static test_return_t basic_error_test(void *not_used __attribute__((unused)))
+static test_return_t basic_error_test(void *)
 {
-  gearman_universal_st gear;
-  gearman_universal_st *gear_ptr;
-  int error_number;
+  gearman_universal_st universal;
 
-  gear_ptr= gearman_universal_create(&gear, NULL);
-  test_truth(gear_ptr);
-  test_truth(gear_ptr == &gear);
+  gearman_universal_initialize(universal);
 
-  const char *error= gearman_universal_error(gear_ptr);
+  const char *error= gearman_universal_error(&universal);
   test_truth(error == NULL);
 
-  error_number= gearman_universal_errno(gear_ptr);
+  int error_number= gearman_universal_errno(&universal);
   test_truth(error_number == 0);
 
-  test_truth(gear_ptr == &gear); // Make sure noting got slipped in :)
-  gearman_universal_free(gear);
-
-  return TEST_SUCCESS;
-}
-
-
-static test_return_t state_option_test(void *object __attribute__((unused)))
-{
-  gearman_universal_st universal;
-  gearman_universal_st *universal_ptr;
-
-  universal_ptr= gearman_universal_create(&universal, NULL);
-  test_truth(universal_ptr);
-  { // Initial Allocated, no changes
-    test_false(universal_ptr->options.dont_track_packets);
-    test_false(universal_ptr->options.non_blocking);
-    test_false(universal_ptr->options.stored_non_blocking);
-  }
-  gearman_universal_free(universal);
-
-  return TEST_SUCCESS;
-}
-
-static test_return_t state_option_on_create_test(void *object __attribute__((unused)))
-{
-  gearman_universal_st universal;
-  gearman_universal_st *universal_ptr;
-  gearman_universal_options_t options[]= { GEARMAN_NON_BLOCKING, GEARMAN_DONT_TRACK_PACKETS, GEARMAN_MAX};
-
-  universal_ptr= gearman_universal_create(&universal, options);
-  test_truth(universal_ptr);
-  { // Initial Allocated, no changes
-    test_truth(universal_ptr->options.dont_track_packets);
-    test_truth(universal_ptr->options.non_blocking);
-    test_false(universal_ptr->options.stored_non_blocking);
-  }
   gearman_universal_free(universal);
 
   return TEST_SUCCESS;
 }
 
 
-static test_return_t state_option_set_test(void *object __attribute__((unused)))
+static test_return_t state_option_test(void *)
 {
   gearman_universal_st universal;
-  gearman_universal_st *universal_ptr;
+
+  gearman_universal_initialize(universal);
+  { // Initial Allocated, no changes
+    test_false(universal.options.dont_track_packets);
+    test_false(universal.options.non_blocking);
+    test_false(universal.options.stored_non_blocking);
+  }
+  gearman_universal_free(universal);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t state_option_on_create_test(void *)
+{
+  gearman_universal_st universal;
   gearman_universal_options_t options[]= { GEARMAN_NON_BLOCKING, GEARMAN_DONT_TRACK_PACKETS, GEARMAN_MAX};
 
-  universal_ptr= gearman_universal_create(&universal, options);
-  test_truth(universal_ptr);
+  gearman_universal_initialize(universal, options);
   { // Initial Allocated, no changes
-    test_truth(universal_ptr->options.dont_track_packets);
-    test_truth(universal_ptr->options.non_blocking);
-    test_false(universal_ptr->options.stored_non_blocking);
+    test_truth(universal.options.dont_track_packets);
+    test_truth(universal.options.non_blocking);
+    test_false(universal.options.stored_non_blocking);
+  }
+  gearman_universal_free(universal);
+
+  return TEST_SUCCESS;
+}
+
+
+static test_return_t state_option_set_test(void *)
+{
+  gearman_universal_st universal;
+  gearman_universal_options_t options[]= { GEARMAN_NON_BLOCKING, GEARMAN_DONT_TRACK_PACKETS, GEARMAN_MAX};
+
+  gearman_universal_initialize(universal, options);
+  { // Initial Allocated, no changes
+    test_truth(universal.options.dont_track_packets);
+    test_truth(universal.options.non_blocking);
+    test_false(universal.options.stored_non_blocking);
   }
 
-  test_truth(gearman_universal_is_non_blocking(universal_ptr));
+  test_truth(gearman_universal_is_non_blocking(universal));
 
-  universal_ptr= gearman_universal_create(&universal, NULL);
+  gearman_universal_initialize(universal);
   { // Initial Allocated, no changes
-    test_false(universal_ptr->options.dont_track_packets);
-    test_false(universal_ptr->options.non_blocking);
-    test_false(universal_ptr->options.stored_non_blocking);
+    test_false(universal.options.dont_track_packets);
+    test_false(universal.options.non_blocking);
+    test_false(universal.options.stored_non_blocking);
   }
 
-  gearman_universal_add_options(universal_ptr, GEARMAN_DONT_TRACK_PACKETS);
+  gearman_universal_add_options(universal, GEARMAN_DONT_TRACK_PACKETS);
   { // Initial Allocated, no changes
-    test_truth(universal_ptr->options.dont_track_packets);
-    test_false(universal_ptr->options.non_blocking);
-    test_false(universal_ptr->options.stored_non_blocking);
+    test_truth(universal.options.dont_track_packets);
+    test_false(universal.options.non_blocking);
+    test_false(universal.options.stored_non_blocking);
   }
 
-  gearman_universal_remove_options(universal_ptr, GEARMAN_DONT_TRACK_PACKETS);
+  gearman_universal_remove_options(universal, GEARMAN_DONT_TRACK_PACKETS);
   { // Initial Allocated, no changes
-    test_false(universal_ptr->options.dont_track_packets);
-    test_false(universal_ptr->options.non_blocking);
-    test_false(universal_ptr->options.stored_non_blocking);
+    test_false(universal.options.dont_track_packets);
+    test_false(universal.options.non_blocking);
+    test_false(universal.options.stored_non_blocking);
   }
 
   gearman_universal_free(universal);
@@ -263,17 +243,16 @@ test_st universal_st_test[] ={
 };
 
 
-static test_return_t connection_init_test(void *not_used __attribute__((unused)))
+static test_return_t connection_init_test(void *)
 {
   gearman_universal_st universal;
-  gearman_universal_st *universal_ptr;
 
   gearman_connection_st connection;
   gearman_connection_st *connection_ptr;
 
-  universal_ptr= gearman_universal_create(&universal, NULL);
+  gearman_universal_initialize(universal);
 
-  connection_ptr= gearman_connection_create(universal_ptr, &connection, NULL);
+  connection_ptr= gearman_connection_create(&universal, &connection, NULL);
   test_false(connection.options.allocated);
   test_false(connection_ptr->options.allocated);
 
@@ -291,16 +270,14 @@ static test_return_t connection_init_test(void *not_used __attribute__((unused))
   return TEST_SUCCESS;
 }
 
-static test_return_t connection_alloc_test(void *not_used __attribute__((unused)))
+static test_return_t connection_alloc_test(void *)
 {
   gearman_universal_st universal;
-  gearman_universal_st *universal_ptr;
-
   gearman_connection_st *connection_ptr;
 
-  universal_ptr= gearman_universal_create(&universal, NULL);
+  gearman_universal_initialize(universal);
 
-  connection_ptr= gearman_connection_create(universal_ptr, NULL, NULL);
+  connection_ptr= gearman_connection_create(&universal, NULL, NULL);
   test_truth(connection_ptr->options.allocated);
 
   test_false(connection_ptr->options.ready);
@@ -320,17 +297,16 @@ test_st connection_st_test[] ={
   {0, 0, 0}
 };
 
-static test_return_t packet_init_test(void *not_used __attribute__((unused)))
+static test_return_t packet_init_test(void *)
 {
   gearman_universal_st universal;
-  gearman_universal_st *universal_ptr;
 
   gearman_packet_st packet;
   gearman_packet_st *packet_ptr;
 
-  universal_ptr= gearman_universal_create(&universal, NULL);
+  gearman_universal_initialize(universal);
 
-  packet_ptr= gearman_packet_create(universal_ptr, &packet);
+  packet_ptr= gearman_packet_create(&universal, &packet);
   test_false(packet.options.allocated);
   test_false(packet_ptr->options.allocated);
 
@@ -345,20 +321,18 @@ static test_return_t packet_init_test(void *not_used __attribute__((unused)))
   return TEST_SUCCESS;
 }
 
-static test_return_t gearman_packet_give_data_test(void *not_used __attribute__((unused)))
+static test_return_t gearman_packet_give_data_test(void *)
 {
   char *data = strdup("Mine!");
   size_t data_size= strlen(data);
   gearman_universal_st universal;
-  gearman_universal_st *universal_ptr;
 
   gearman_packet_st packet;
   gearman_packet_st *packet_ptr;
 
-  universal_ptr= gearman_universal_create(&universal, NULL);
-  test_truth(universal_ptr);
+  gearman_universal_initialize(universal);
 
-  packet_ptr= gearman_packet_create(universal_ptr, &packet);
+  packet_ptr= gearman_packet_create(&universal, &packet);
   test_truth(packet_ptr);
 
   gearman_packet_give_data(packet_ptr, data, data_size);
@@ -373,22 +347,20 @@ static test_return_t gearman_packet_give_data_test(void *not_used __attribute__(
   return TEST_SUCCESS;
 }
 
-static test_return_t gearman_packet_take_data_test(void *not_used __attribute__((unused)))
+static test_return_t gearman_packet_take_data_test(void *)
 {
   char *data = strdup("Mine!");
   char *mine;
   size_t data_size= strlen(data);
   size_t mine_size;
   gearman_universal_st universal;
-  gearman_universal_st *universal_ptr;
 
   gearman_packet_st packet;
   gearman_packet_st *packet_ptr;
 
-  universal_ptr= gearman_universal_create(&universal, NULL);
-  test_truth(universal_ptr);
+  gearman_universal_initialize(universal);
 
-  packet_ptr= gearman_packet_create(universal_ptr, &packet);
+  packet_ptr= gearman_packet_create(&universal, &packet);
   test_truth(packet_ptr);
 
   gearman_packet_give_data(packet_ptr, data, data_size);

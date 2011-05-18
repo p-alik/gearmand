@@ -45,6 +45,7 @@
 
 #include <libgearman/common.h>
 #include <libgearman/connection.h>
+#include <libgearman/universal.hpp>
 
 #include <assert.h>
 #include <cerrno>
@@ -602,7 +603,8 @@ gearman_return_t gearman_connection_flush(gearman_connection_st *connection)
         if (gearman_failed(gret))
           return gret;
 
-        if (gearman_universal_is_non_blocking(connection->universal))
+        assert(connection->universal);
+        if (gearman_universal_is_non_blocking(*connection->universal))
         {
           connection->state= GEARMAN_CON_UNIVERSAL_CONNECTING;
           gearman_gerror(connection->universal, GEARMAN_IO_WAIT);
@@ -662,7 +664,7 @@ gearman_return_t gearman_connection_flush(gearman_connection_st *connection)
         }
 #endif
         ssize_t write_size= send(connection->fd, connection->send_buffer_ptr, connection->send_buffer_size, 
-                                 gearman_universal_is_non_blocking(connection->universal) ? MSG_NOSIGNAL| MSG_DONTWAIT : MSG_NOSIGNAL);
+                                 gearman_universal_is_non_blocking(*connection->universal) ? MSG_NOSIGNAL| MSG_DONTWAIT : MSG_NOSIGNAL);
 
         if (write_size == 0)
         {
@@ -681,7 +683,8 @@ gearman_return_t gearman_connection_flush(gearman_connection_st *connection)
             if (gearman_failed(gret))
               return gret;
 
-            if (gearman_universal_is_non_blocking(connection->universal))
+            assert(connection->universal);
+            if (gearman_universal_is_non_blocking(*connection->universal))
             {
               gearman_gerror(connection->universal, GEARMAN_IO_WAIT);
               return GEARMAN_IO_WAIT;
@@ -932,7 +935,8 @@ size_t gearman_connection_read(gearman_connection_st *connection, void *data, si
         if (*ret_ptr != GEARMAN_SUCCESS)
           return 0;
 
-        if (gearman_universal_is_non_blocking(connection->universal))
+        assert(connection->universal);
+        if (gearman_universal_is_non_blocking(*connection->universal))
         {
           gearman_gerror(connection->universal, GEARMAN_IO_WAIT);
           *ret_ptr= GEARMAN_IO_WAIT;

@@ -13,29 +13,21 @@
 
 #include <libgearman/common.h>
 #include <libgearman/connection.h>
+#include <libgearman/universal.hpp>
 
-#include <assert.h>
-
+#include <cassert>
 #include <cerrno>
 #include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 
-/**
- * @addtogroup gearman_universal Static Gearman Declarations
- * @ingroup universal
- * @{
- */
-
-gearman_universal_st *gearman_universal_create(gearman_universal_st *universal, const gearman_universal_options_t *options)
+void gearman_universal_initialize(gearman_universal_st &self, const gearman_universal_options_t *options)
 {
-  assert(universal);
-
   { // Set defaults on all options.
-    universal->options.dont_track_packets= false;
-    universal->options.non_blocking= false;
-    universal->options.stored_non_blocking= false;
+    self.options.dont_track_packets= false;
+    self.options.non_blocking= false;
+    self.options.stored_non_blocking= false;
   }
 
   if (options)
@@ -45,68 +37,48 @@ gearman_universal_st *gearman_universal_create(gearman_universal_st *universal, 
       /**
         @note Check for bad value, refactor gearman_add_options().
       */
-      gearman_universal_add_options(universal, *options);
+      gearman_universal_add_options(self, *options);
       options++;
     }
   }
 
-  universal->verbose= GEARMAN_VERBOSE_NEVER;
-  universal->con_count= 0;
-  universal->packet_count= 0;
-  universal->pfds_size= 0;
-  universal->sending= 0;
-  universal->timeout= -1;
-  universal->con_list= NULL;
-  universal->packet_list= NULL;
-  universal->pfds= NULL;
-  universal->log_fn= NULL;
-  universal->log_context= NULL;
-  universal->workload_malloc_fn= NULL;
-  universal->workload_malloc_context= NULL;
-  universal->workload_free_fn= NULL;
-  universal->workload_free_context= NULL;
-  universal->error.rc= GEARMAN_SUCCESS;
-  universal->error.last_errno= 0;
-  universal->error.last_error[0]= 0;
-
-  return universal;
+  self.verbose= GEARMAN_VERBOSE_NEVER;
+  self.con_count= 0;
+  self.packet_count= 0;
+  self.pfds_size= 0;
+  self.sending= 0;
+  self.timeout= -1;
+  self.con_list= NULL;
+  self.packet_list= NULL;
+  self.pfds= NULL;
+  self.log_fn= NULL;
+  self.log_context= NULL;
+  self.workload_malloc_fn= NULL;
+  self.workload_malloc_context= NULL;
+  self.workload_free_fn= NULL;
+  self.workload_free_context= NULL;
+  self.error.rc= GEARMAN_SUCCESS;
+  self.error.last_errno= 0;
+  self.error.last_error[0]= 0;
 }
 
-gearman_universal_st *gearman_universal_clone(gearman_universal_st *destination, const gearman_universal_st *source)
+void gearman_universal_clone(gearman_universal_st &destination, const gearman_universal_st &source)
 {
-  gearman_universal_st *check;
+  gearman_universal_initialize(destination);
 
-  assert(destination);
-  assert(source);
+  (void)gearman_universal_set_option(destination, GEARMAN_NON_BLOCKING, source.options.non_blocking);
+  (void)gearman_universal_set_option(destination, GEARMAN_DONT_TRACK_PACKETS, source.options.dont_track_packets);
 
-  if (! destination || ! source)
-    return NULL;
+  destination.timeout= source.timeout;
 
-  check= gearman_universal_create(destination, NULL);
-
-  if (! check)
+  for (gearman_connection_st *con= source.con_list; con; con= con->next)
   {
-    return destination;
-  }
-
-  (void)gearman_universal_set_option(destination, GEARMAN_NON_BLOCKING, source->options.non_blocking);
-  (void)gearman_universal_set_option(destination, GEARMAN_DONT_TRACK_PACKETS, source->options.dont_track_packets);
-
-  destination->timeout= source->timeout;
-
-  for (gearman_connection_st *con= source->con_list; con; con= con->next)
-  {
-    if (gearman_connection_clone(destination, NULL, con) == NULL)
+    if (gearman_connection_clone(&destination, NULL, con) == NULL)
     {
-      gearman_universal_free(*destination);
-      return NULL;
+      gearman_universal_free(destination);
+      return;
     }
   }
-
-  /* Don't clone job or packet information, this is universal information for
-    old and active jobs/connections. */
-
-  return destination;
 }
 
 void gearman_universal_free(gearman_universal_st &universal)
@@ -114,22 +86,22 @@ void gearman_universal_free(gearman_universal_st &universal)
   gearman_free_all_cons(&universal);
   gearman_free_all_packets(universal);
 
-  if (universal.pfds != NULL)
+  if (universal.pfds)
   {
     // created realloc()
     free(universal.pfds);
   }
 }
 
-gearman_return_t gearman_universal_set_option(gearman_universal_st *universal, gearman_universal_options_t option, bool value)
+gearman_return_t gearman_universal_set_option(gearman_universal_st &self, gearman_universal_options_t option, bool value)
 {
   switch (option)
   {
   case GEARMAN_NON_BLOCKING:
-    universal->options.non_blocking= value;
+    self.options.non_blocking= value;
     break;
   case GEARMAN_DONT_TRACK_PACKETS:
-    universal->options.dont_track_packets= value;
+    self.options.dont_track_packets= value;
     break;
   case GEARMAN_MAX:
   default:
@@ -139,22 +111,22 @@ gearman_return_t gearman_universal_set_option(gearman_universal_st *universal, g
   return GEARMAN_SUCCESS;
 }
 
-int gearman_universal_timeout(gearman_universal_st *universal)
+int gearman_universal_timeout(gearman_universal_st &self)
 {
-  return universal->timeout;
+  return self.timeout;
 }
 
-void gearman_universal_set_timeout(gearman_universal_st *universal, int timeout)
+void gearman_universal_set_timeout(gearman_universal_st &self, int timeout)
 {
-  universal->timeout= timeout;
+  self.timeout= timeout;
 }
 
-void gearman_set_log_fn(gearman_universal_st *universal, gearman_log_fn *function,
+void gearman_set_log_fn(gearman_universal_st &self, gearman_log_fn *function,
                         void *context, gearman_verbose_t verbose)
 {
-  universal->log_fn= function;
-  universal->log_context= context;
-  universal->verbose= verbose;
+  self.log_fn= function;
+  self.log_context= context;
+  self.verbose= verbose;
 }
 
 void gearman_set_workload_malloc_fn(gearman_universal_st *universal,

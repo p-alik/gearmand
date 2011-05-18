@@ -58,35 +58,6 @@ struct gearman_universal_st
 extern "C" {
 #endif
 
-
-/**
- * @addtogroup gearman_universal Gearman Declarations
- *
- * This is a low level interface for gearman library instances. This is used
- * internally by both client and worker interfaces, so you probably want to
- * look there first.
- *
- * There is no locking within a single gearman_universal_st structure, so for threaded
- * applications you must either ensure isolation in the application or use
- * multiple gearman_universal_st structures (for example, one for each thread).
- *
- * @{
- */
-
-
-/**
- * Initialize a gearman_universal_st structure. Always check the return value for failure.
- * Some other initialization may have failed. It is not required to memset()
- * a structure before providing it. These are for internal use only.
- *
- * @param[in] source Caller allocated structure.
- * @param[in] options gearman_universal_options_t options used to modify creation.
- * @return On success, a pointer to the (possibly allocated) structure. On
- *  failure this will be NULL.
- */
-GEARMAN_INTERNAL_API
-gearman_universal_st *gearman_universal_create(gearman_universal_st *source, const gearman_universal_options_t *options);
-
 /**
  * Clone a gearman structure.
  *
@@ -153,67 +124,6 @@ static inline int gearman_universal_errno(const gearman_universal_st *gearman)
 {
   return gearman->error.last_errno;
 }
-
-/**
- * Add options for a gearman structure.
- *
- * @param[in] gearman Structure previously initialized with gearman_universal_create() or
- *  gearman_clone().
- * @param[in] options Available options for gearman structures.
- */
-GEARMAN_INTERNAL_API
-gearman_return_t gearman_universal_set_option(gearman_universal_st *gearman, gearman_universal_options_t option, bool value);
-
-static inline void gearman_universal_add_options(gearman_universal_st *gearman, gearman_universal_options_t options)
-{
-  (void)gearman_universal_set_option(gearman, options, true);
-}
-
-static inline void gearman_universal_remove_options(gearman_universal_st *gearman, gearman_universal_options_t options)
-{
-  (void)gearman_universal_set_option(gearman, options, false);
-}
-
-static inline bool gearman_universal_is_non_blocking(gearman_universal_st *gearman)
-{
-  return gearman->options.non_blocking;
-}
-
-/**
- * Get current socket I/O activity timeout value.
- *
- * @param[in] gearman Structure previously initialized with gearman_universal_create() or
- *  gearman_clone().
- * @return Timeout in milliseconds to wait for I/O activity. A negative value
- *  means an infinite timeout.
- */
-GEARMAN_INTERNAL_API
-int gearman_universal_timeout(gearman_universal_st *gearman);
-
-/**
- * Set socket I/O activity timeout for connections in a Gearman structure.
- *
- * @param[in] gearman Structure previously initialized with gearman_universal_create() or
- *  gearman_clone().
- * @param[in] timeout Milliseconds to wait for I/O activity. A negative value
- *  means an infinite timeout.
- */
-GEARMAN_INTERNAL_API
-void gearman_universal_set_timeout(gearman_universal_st *gearman, int timeout);
-
-/**
- * Set logging function for a gearman structure.
- *
- * @param[in] gearman Structure previously initialized with gearman_universal_create() or
- *  gearman_clone().
- * @param[in] function Function to call when there is a logging message.
- * @param[in] context Argument to pass into the callback function.
- * @param[in] verbose Verbosity level threshold. Only call function when the
- *  logging message is equal to or less verbose that this.
- */
-GEARMAN_INTERNAL_API
-void gearman_set_log_fn(gearman_universal_st *gearman, gearman_log_fn *function,
-                        void *context, gearman_verbose_t verbose);
 
 /**
  * Set custom memory allocation function for workloads. Normally gearman uses
@@ -301,28 +211,6 @@ gearman_return_t gearman_echo(gearman_universal_st *gearman, const void *workloa
 
 #ifdef __cplusplus
 }
-
-/**
- * Free a gearman structure.
- *
- * @param[in] gearman Structure previously initialized with gearman_universal_create() or
- *  gearman_clone().
- */
-GEARMAN_INTERNAL_API
-void gearman_universal_free(gearman_universal_st &gearman);
-
-/**
- * Free all packets for a gearman structure.
- *
- * @param[in] gearman Structure previously initialized with gearman_universal_create() or
- *  gearman_clone().
- */
-GEARMAN_INTERNAL_API
-void gearman_free_all_packets(gearman_universal_st &gearman);
-
-bool gearman_request_option(gearman_universal_st &universal,
-                            gearman_string_t &option);
-
 #endif
-#endif /* GEARMAN_CORE */
 
+#endif /* GEARMAN_CORE */

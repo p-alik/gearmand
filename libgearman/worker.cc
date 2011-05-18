@@ -13,6 +13,7 @@
 
 #include <libgearman/common.h>
 #include <libgearman/connection.h>
+#include <libgearman/universal.hpp>
 
 #include <cassert>
 #include <cstdio>
@@ -180,11 +181,7 @@ gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker,
   worker->options.grab_all= from->options.grab_all;
   worker->options.timeout_return= from->options.timeout_return;
 
-  if (not gearman_universal_clone(&(worker->universal), &from->universal))
-  {
-    gearman_worker_free(worker);
-    return NULL;
-  }
+  gearman_universal_clone(worker->universal, from->universal);
 
   if (gearman_failed(_worker_packet_init(worker)))
   {
@@ -302,7 +299,7 @@ void gearman_worker_add_options(gearman_worker_st *worker,
 {
   if (options & GEARMAN_WORKER_NON_BLOCKING)
   {
-    gearman_universal_add_options((&worker->universal), GEARMAN_NON_BLOCKING);
+    gearman_universal_add_options(worker->universal, GEARMAN_NON_BLOCKING);
     worker->options.non_blocking= true;
   }
 
@@ -333,7 +330,7 @@ void gearman_worker_remove_options(gearman_worker_st *worker,
 {
   if (options & GEARMAN_WORKER_NON_BLOCKING)
   {
-    gearman_universal_remove_options((&worker->universal), GEARMAN_NON_BLOCKING);
+    gearman_universal_remove_options(worker->universal, GEARMAN_NON_BLOCKING);
     worker->options.non_blocking= false;
   }
 
@@ -359,13 +356,13 @@ void gearman_worker_remove_options(gearman_worker_st *worker,
 
 int gearman_worker_timeout(gearman_worker_st *worker)
 {
-  return gearman_universal_timeout((&worker->universal));
+  return gearman_universal_timeout(worker->universal);
 }
 
 void gearman_worker_set_timeout(gearman_worker_st *worker, int timeout)
 {
   gearman_worker_add_options(worker, GEARMAN_WORKER_TIMEOUT_RETURN);
-  gearman_universal_set_timeout((&worker->universal), timeout);
+  gearman_universal_set_timeout(worker->universal, timeout);
 }
 
 void *gearman_worker_context(const gearman_worker_st *worker)
@@ -388,7 +385,7 @@ void gearman_worker_set_log_fn(gearman_worker_st *worker,
                                gearman_log_fn *function, void *context,
                                gearman_verbose_t verbose)
 {
-  gearman_set_log_fn((&worker->universal), function, context, verbose);
+  gearman_set_log_fn(worker->universal, function, context, verbose);
 }
 
 void gearman_worker_set_workload_malloc_fn(gearman_worker_st *worker,
@@ -1050,14 +1047,8 @@ static gearman_worker_st *_worker_allocate(gearman_worker_st *worker, bool is_cl
 
   if (not is_clone)
   {
-    gearman_universal_st *check= gearman_universal_create(&worker->universal, NULL);
-    if (not check)
-    {
-      gearman_worker_free(worker);
-      return NULL;
-    }
-
-    gearman_universal_set_timeout((&worker->universal), GEARMAN_WORKER_WAIT_TIMEOUT);
+    gearman_universal_initialize(worker->universal);
+    gearman_universal_set_timeout(worker->universal, GEARMAN_WORKER_WAIT_TIMEOUT);
   }
 
   return worker;

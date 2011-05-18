@@ -42,6 +42,7 @@
  */
 
 #include <libgearman/common.h>
+#include <libgearman/universal.hpp>
 
 #include <libgearman/add.h>
 #include <libgearman/connection.h>
@@ -124,8 +125,6 @@ gearman_client_st *gearman_client_create(gearman_client_st *client)
 gearman_client_st *gearman_client_clone(gearman_client_st *client,
                                         const gearman_client_st *from)
 {
-  gearman_universal_st *check;
-
   if (not from)
   {
     return _client_allocate(client, false);
@@ -144,12 +143,7 @@ gearman_client_st *gearman_client_clone(gearman_client_st *client,
   client->options.free_tasks= from->options.free_tasks;
   client->actions= from->actions;
 
-  check= gearman_universal_clone((&client->universal), &(from->universal));
-  if (not check)
-  {
-    gearman_client_free(client);
-    return NULL;
-  }
+  gearman_universal_clone(client->universal, from->universal);
 
   return client;
 }
@@ -236,7 +230,7 @@ void gearman_client_add_options(gearman_client_st *client,
 {
   if (options & GEARMAN_CLIENT_NON_BLOCKING)
   {
-    gearman_universal_add_options(&client->universal, GEARMAN_NON_BLOCKING);
+    gearman_universal_add_options(client->universal, GEARMAN_NON_BLOCKING);
     client->options.non_blocking= true;
   }
 
@@ -256,7 +250,7 @@ void gearman_client_remove_options(gearman_client_st *client,
 {
   if (options & GEARMAN_CLIENT_NON_BLOCKING)
   {
-    gearman_universal_remove_options(&client->universal, GEARMAN_NON_BLOCKING);
+    gearman_universal_remove_options(client->universal, GEARMAN_NON_BLOCKING);
     client->options.non_blocking= false;
   }
 
@@ -273,12 +267,12 @@ void gearman_client_remove_options(gearman_client_st *client,
 
 int gearman_client_timeout(gearman_client_st *client)
 {
-  return gearman_universal_timeout(&client->universal);
+  return gearman_universal_timeout(client->universal);
 }
 
 void gearman_client_set_timeout(gearman_client_st *client, int timeout)
 {
-  gearman_universal_set_timeout(&client->universal, timeout);
+  gearman_universal_set_timeout(client->universal, timeout);
 }
 
 void *gearman_client_context(const gearman_client_st *client)
@@ -295,7 +289,7 @@ void gearman_client_set_log_fn(gearman_client_st *client,
                                gearman_log_fn *function, void *context,
                                gearman_verbose_t verbose)
 {
-  gearman_set_log_fn(&client->universal, function, context, verbose);
+  gearman_set_log_fn(client->universal, function, context, verbose);
 }
 
 void gearman_client_set_workload_malloc_fn(gearman_client_st *client,
@@ -1355,14 +1349,7 @@ static gearman_client_st *_client_allocate(gearman_client_st *client, bool is_cl
 
   if (not is_clone)
   {
-    gearman_universal_st *check;
-
-    check= gearman_universal_create(&client->universal, NULL);
-    if (check == NULL)
-    {
-      gearman_client_free(client);
-      return NULL;
-    }
+    gearman_universal_initialize(client->universal);
   }
 
   return client;

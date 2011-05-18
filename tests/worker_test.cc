@@ -22,6 +22,7 @@
 
 #include <libgearman/gearman.h>
 #include <libgearman/connection.h>
+#include "libgearman/universal.hpp"
 
 #include "libtest/test.h"
 #include "libtest/server.h"
@@ -325,17 +326,17 @@ static test_return_t abandoned_worker_test(void *)
   }
 
   /* Now take job with one worker. */
-  gearman_universal_st gearman;
-  test_truth(gearman_universal_create(&gearman, NULL));
+  gearman_universal_st universal;
+  gearman_universal_initialize(universal);
 
   gearman_connection_st *worker1;
-  test_truth(worker1= gearman_connection_create(&gearman, NULL, NULL));
+  test_truth(worker1= gearman_connection_create(&universal, NULL, NULL));
 
   gearman_connection_set_host(worker1, NULL, WORKER_TEST_PORT);
 
   args[0]= "abandoned_worker";
   args_size[0]= strlen("abandoned_worker");
-  test_truth(gearman_success(gearman_packet_create_args(&gearman, &packet, GEARMAN_MAGIC_REQUEST,
+  test_truth(gearman_success(gearman_packet_create_args(&universal, &packet, GEARMAN_MAGIC_REQUEST,
                                                         GEARMAN_COMMAND_CAN_DO,
                                                         args, args_size, 1)));
 
@@ -344,7 +345,7 @@ static test_return_t abandoned_worker_test(void *)
 
   gearman_packet_free(&packet);
 
-  test_true_got(gearman_success(ret= gearman_packet_create_args(&gearman, &packet, GEARMAN_MAGIC_REQUEST,
+  test_true_got(gearman_success(ret= gearman_packet_create_args(&universal, &packet, GEARMAN_MAGIC_REQUEST,
                                                                 GEARMAN_COMMAND_GRAB_JOB,
                                                                 NULL, NULL, 0)), gearman_strerror(ret));
 
@@ -361,13 +362,13 @@ static test_return_t abandoned_worker_test(void *)
   gearman_packet_free(&packet);
 
   gearman_connection_st *worker2;
-  test_truth(worker2= gearman_connection_create(&gearman, NULL, NULL));
+  test_truth(worker2= gearman_connection_create(&universal, NULL, NULL));
 
   gearman_connection_set_host(worker2, NULL, WORKER_TEST_PORT);
 
   args[0]= "abandoned_worker";
   args_size[0]= strlen("abandoned_worker");
-  ret= gearman_packet_create_args(&gearman, &packet, GEARMAN_MAGIC_REQUEST,
+  ret= gearman_packet_create_args(&universal, &packet, GEARMAN_MAGIC_REQUEST,
                                   GEARMAN_COMMAND_CAN_DO,
                                   args, args_size, 1);
   test_true_got(ret == GEARMAN_SUCCESS, gearman_strerror(ret));
@@ -380,7 +381,7 @@ static test_return_t abandoned_worker_test(void *)
   args_size[0]= strlen(job_handle) + 1;
   args[1]= "test";
   args_size[1]= 4;
-  ret= gearman_packet_create_args(&gearman, &packet, GEARMAN_MAGIC_REQUEST,
+  ret= gearman_packet_create_args(&universal, &packet, GEARMAN_MAGIC_REQUEST,
                                   GEARMAN_COMMAND_WORK_COMPLETE,
                                   args, args_size, 2);
   test_true_got(ret == GEARMAN_SUCCESS, gearman_strerror(ret));
@@ -390,14 +391,14 @@ static test_return_t abandoned_worker_test(void *)
 
   gearman_packet_free(&packet);
 
-  gearman_universal_set_timeout(&gearman, 1000);
+  gearman_universal_set_timeout(universal, 1000);
   gearman_connection_recv(worker2, &packet, &ret, false);
   test_truth(not (ret != GEARMAN_SUCCESS || packet.command != GEARMAN_COMMAND_ERROR));
 
   gearman_connection_free(worker1);
   gearman_connection_free(worker2);
   gearman_packet_free(&packet);
-  gearman_universal_free(gearman);
+  gearman_universal_free(universal);
 
   return TEST_SUCCESS;
 }

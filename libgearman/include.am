@@ -32,9 +32,7 @@ nobase_include_HEADERS+= \
 			 libgearman/strerror.h \
 			 libgearman/string.h \
 			 libgearman/task.h \
-			 libgearman/unique.h \
 			 libgearman/universal.h \
-			 libgearman/vector.hpp \
 			 libgearman/version.h \
 			 libgearman/visibility.h \
 			 libgearman/worker.h \
@@ -47,7 +45,10 @@ noinst_HEADERS+= \
 		 libgearman/connection.hpp \
 		 libgearman/log.h \
 		 libgearman/result.hpp \
-		 libgearman/strcommand.h
+		 libgearman/strcommand.h \
+		 libgearman/unique.h \
+		 libgearman/universal.hpp \
+		 libgearman/vector.hpp
 
 noinst_LTLIBRARIES+= libgearman/libgearmancore.la
 libgearman_libgearmancore_la_SOURCES= \
