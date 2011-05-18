@@ -349,12 +349,12 @@ bool gearman_request_option(gearman_universal_st &universal,
 {
   gearman_connection_st *con;
   gearman_packet_st packet;
-  gearman_return_t ret;
   bool orig_block_universal;
 
   const void *args[]= { gearman_c_str(option) };
   size_t args_size[]= { gearman_size(option) };
 
+  gearman_return_t ret;
   ret= gearman_packet_create_args(universal, &packet, GEARMAN_MAGIC_REQUEST,
                                   GEARMAN_COMMAND_OPTION_REQ,
                                   args, args_size, 1);

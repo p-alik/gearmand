@@ -254,7 +254,6 @@ gearman_return_t gearman_job_send_warning(gearman_job_st *job,
                                           const void *warning,
                                           size_t warning_size)
 {
-  gearman_return_t ret;
   const void *args[2];
   size_t args_size[2];
 
@@ -264,6 +263,8 @@ gearman_return_t gearman_job_send_warning(gearman_job_st *job,
     args_size[0]= job->assigned.arg_size[0];
     args[1]= warning;
     args_size[1]= warning_size;
+
+    gearman_return_t ret;
     ret= gearman_packet_create_args(job->worker->universal, &(job->work),
                                     GEARMAN_MAGIC_REQUEST,
                                     GEARMAN_COMMAND_WORK_WARNING,
@@ -281,7 +282,6 @@ gearman_return_t gearman_job_send_status(gearman_job_st *job,
                                          uint32_t numerator,
                                          uint32_t denominator)
 {
-  gearman_return_t ret;
   char numerator_string[12];
   char denominator_string[12];
   const void *args[3];
@@ -298,6 +298,8 @@ gearman_return_t gearman_job_send_status(gearman_job_st *job,
     args_size[1]= strlen(numerator_string) + 1;
     args[2]= denominator_string;
     args_size[2]= strlen(denominator_string);
+
+    gearman_return_t ret;
     ret= gearman_packet_create_args(job->worker->universal, &(job->work),
                                     GEARMAN_MAGIC_REQUEST,
                                     GEARMAN_COMMAND_WORK_STATUS,
