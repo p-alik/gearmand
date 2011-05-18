@@ -77,60 +77,64 @@ static gearman_return_t gearman_connection_set_option(gearman_connection_st *con
  * @{
  */
 
+gearman_connection_st::gearman_connection_st(gearman_universal_st &universal_arg,
+                                             gearman_connection_options_t *options_args) :
+  state(GEARMAN_CON_UNIVERSAL_ADDRINFO),
+  send_state(GEARMAN_CON_SEND_STATE_NONE),
+  recv_state(GEARMAN_CON_RECV_UNIVERSAL_NONE),
+  port(0),
+  events(0),
+  revents(0),
+  fd(-1),
+  created_id(0),
+  created_id_next(0),
+  send_buffer_size(0),
+  send_data_size(0),
+  send_data_offset(0),
+  recv_buffer_size(0),
+  recv_data_size(0),
+  recv_data_offset(0),
+  universal(universal_arg)
+{
+  options.ready= false;
+  options.packet_in_use= false;
+  options.ignore_lost_connection= false;
+  options.close_after_flush= false;
+
+  if (options_args)
+  {
+    while (*options_args != GEARMAN_CON_MAX)
+    {
+      gearman_connection_set_option(this, *options_args, true);
+      options_args++;
+    }
+  }
+
+  if (universal.con_list)
+    universal.con_list->prev= this;
+  next= universal.con_list;
+  prev= NULL;
+  universal.con_list= this;
+  universal.con_count++;
+
+  context= NULL;
+  addrinfo= NULL;
+  addrinfo_next= NULL;
+  send_buffer_ptr= send_buffer;
+  recv_packet= NULL;
+  recv_buffer_ptr= recv_buffer;
+  host[0]= 0;
+}
+
 gearman_connection_st *gearman_connection_create(gearman_universal_st &universal,
                                                  gearman_connection_options_t *options)
 {
-  gearman_connection_st *connection= new (std::nothrow) gearman_connection_st(universal);
+  gearman_connection_st *connection= new (std::nothrow) gearman_connection_st(universal, options);
   if (not connection)
   {
     gearman_perror(universal, "gearman_connection_st new");
     return NULL;
   }
-
-  connection->options.ready= false;
-  connection->options.packet_in_use= false;
-  connection->options.ignore_lost_connection= false;
-  connection->options.close_after_flush= false;
-
-  if (options)
-  {
-    while (*options != GEARMAN_CON_MAX)
-    {
-      gearman_connection_set_option(connection, *options, true);
-      options++;
-    }
-  }
-
-  connection->state= GEARMAN_CON_UNIVERSAL_ADDRINFO;
-  connection->send_state= GEARMAN_CON_SEND_STATE_NONE;
-  connection->recv_state= GEARMAN_CON_RECV_UNIVERSAL_NONE;
-  connection->port= 0;
-  connection->events= 0;
-  connection->revents= 0;
-  connection->fd= -1;
-  connection->created_id= 0;
-  connection->created_id_next= 0;
-  connection->send_buffer_size= 0;
-  connection->send_data_size= 0;
-  connection->send_data_offset= 0;
-  connection->recv_buffer_size= 0;
-  connection->recv_data_size= 0;
-  connection->recv_data_offset= 0;
-
-  if (universal.con_list != NULL)
-    universal.con_list->prev= connection;
-  connection->next= universal.con_list;
-  connection->prev= NULL;
-  universal.con_list= connection;
-  universal.con_count++;
-
-  connection->context= NULL;
-  connection->addrinfo= NULL;
-  connection->addrinfo_next= NULL;
-  connection->send_buffer_ptr= connection->send_buffer;
-  connection->recv_packet= NULL;
-  connection->recv_buffer_ptr= connection->recv_buffer;
-  connection->host[0]= 0;
 
   return connection;
 }
@@ -231,8 +235,7 @@ void gearman_connection_set_host(gearman_connection_st *connection,
 {
   gearman_connection_reset_addrinfo(connection);
 
-  strncpy(connection->host, host == NULL ? GEARMAN_DEFAULT_TCP_HOST : host,
-          NI_MAXHOST);
+  strncpy(connection->host, host == NULL ? GEARMAN_DEFAULT_TCP_HOST : host, NI_MAXHOST);
   connection->host[NI_MAXHOST - 1]= 0;
 
   connection->port= in_port_t(port == 0 ? GEARMAN_DEFAULT_TCP_PORT : port);
