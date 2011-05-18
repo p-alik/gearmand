@@ -95,15 +95,6 @@ enum gearman_con_universal_t {
 GEARMAN_INTERNAL_API
 void gearman_connection_free(gearman_connection_st *connection);
 
-
-/**
- * Set host for a connection.
- */
-GEARMAN_INTERNAL_API
-void gearman_connection_set_host(gearman_connection_st *connection,
-                                 const char *host,
-                                 in_port_t port);
-
 /**
  * Close a connection.
  */

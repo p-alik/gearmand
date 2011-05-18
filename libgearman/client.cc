@@ -1408,8 +1408,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client, gearman_task
   case GEARMAN_TASK_STATE_SUBMIT:
     while (1)
     {
-      gearman_return_t ret= gearman_connection_send(task->con, &(task->send),
-                                                    client->new_tasks == 0 ? true : false);
+      gearman_return_t ret= task->con->send(&(task->send), client->new_tasks == 0 ? true : false);
 
       if (gearman_success(ret))
       {

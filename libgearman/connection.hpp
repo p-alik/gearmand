@@ -82,6 +82,8 @@ struct gearman_connection_st
                         gearman_connection_options_t *options);
 
   void set_host( const char *host, const in_port_t port);
+
+  gearman_return_t send(const gearman_packet_st *packet, bool flush);
 };
 
 /**

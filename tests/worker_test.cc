@@ -342,7 +342,7 @@ static test_return_t abandoned_worker_test(void *)
 							args, args_size, 1)));
 
   gearman_return_t ret;
-  test_true_got(gearman_success(ret= gearman_connection_send(worker1, &packet, true)), gearman_strerror(ret));
+  test_true_got(gearman_success(ret= worker1->send(&packet, true)), gearman_strerror(ret));
 
   gearman_packet_free(&packet);
 
@@ -350,7 +350,7 @@ static test_return_t abandoned_worker_test(void *)
                                                                 GEARMAN_COMMAND_GRAB_JOB,
                                                                 NULL, NULL, 0)), gearman_strerror(ret));
 
-  test_true_got(gearman_success(ret= gearman_connection_send(worker1, &packet, true)), gearman_strerror(ret));
+  test_true_got(gearman_success(ret= worker1->send(&packet, true)), gearman_strerror(ret));
 
   gearman_packet_free(&packet);
 
@@ -372,7 +372,7 @@ static test_return_t abandoned_worker_test(void *)
 								GEARMAN_COMMAND_CAN_DO,
 								args, args_size, 1)), gearman_strerror(ret));
 
-  test_true_got(gearman_success(ret= gearman_connection_send(worker2, &packet, true)), gearman_strerror(ret));
+  test_true_got(gearman_success(ret= worker2->send(&packet, true)), gearman_strerror(ret));
 
   gearman_packet_free(&packet);
 
@@ -384,7 +384,7 @@ static test_return_t abandoned_worker_test(void *)
 								GEARMAN_COMMAND_WORK_COMPLETE,
 								args, args_size, 2)), gearman_strerror(ret));
 
-  test_true_got(gearman_success(ret= gearman_connection_send(worker2, &packet, true)), gearman_strerror(ret));
+  test_true_got(gearman_success(ret= worker2->send(&packet, true)), gearman_strerror(ret));
 
   gearman_packet_free(&packet);
 
@@ -485,9 +485,7 @@ static test_return_t gearman_worker_add_function_multi_test(void *object)
     char buffer[1024];
     snprintf(buffer, 1024, "%u%s", x, function_name_ext);
 
-    gearman_return_t rc= gearman_worker_add_function(worker, buffer, 0, fail_worker, NULL);
-
-    test_true_got(rc == GEARMAN_SUCCESS, gearman_strerror(rc));
+    test_true_got(gearman_success(gearman_worker_add_function(worker, buffer, 0, fail_worker, NULL)), gearman_worker_error(worker));
   }
 
   for (uint32_t x= 0; x < 100; x++)
@@ -495,8 +493,7 @@ static test_return_t gearman_worker_add_function_multi_test(void *object)
     char buffer[1024];
 
     snprintf(buffer, 1024, "%u%s", x, function_name_ext);
-    gearman_return_t rc= gearman_worker_unregister(worker, buffer);
-    test_true_got(rc == GEARMAN_SUCCESS, gearman_strerror(rc));
+    test_true_got(gearman_success(gearman_worker_unregister(worker, buffer)), gearman_worker_error(worker));
   }
 
   for (uint32_t x= 0; x < 100; x++)
@@ -504,8 +501,7 @@ static test_return_t gearman_worker_add_function_multi_test(void *object)
     char buffer[1024];
 
     snprintf(buffer, 1024, "%u%s", x, function_name_ext);
-    gearman_return_t rc= gearman_worker_unregister(worker, buffer);
-    test_true_got(rc == GEARMAN_NO_REGISTERED_FUNCTION, gearman_strerror(rc));
+    test_true_got(GEARMAN_NO_REGISTERED_FUNCTION == gearman_worker_unregister(worker, buffer), gearman_worker_error(worker));
   }
 
   return TEST_SUCCESS;

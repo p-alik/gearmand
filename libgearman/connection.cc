@@ -290,17 +290,14 @@ void gearman_connection_reset_addrinfo(gearman_connection_st *connection)
   connection->addrinfo_next= NULL;
 }
 
-gearman_return_t gearman_connection_send(gearman_connection_st *connection,
-                                         const gearman_packet_st *packet, bool flush)
+gearman_return_t gearman_connection_st::send(const gearman_packet_st *packet_arg, bool flush)
 {
-  size_t send_size;
-
-  switch (connection->send_state)
+  switch (send_state)
   {
   case GEARMAN_CON_SEND_STATE_NONE:
-    if (not (packet->options.complete))
+    if (not (packet_arg->options.complete))
     {
-      gearman_error(&connection->universal, GEARMAN_INVALID_PACKET, "packet not complete");
+      gearman_error(&universal, GEARMAN_INVALID_PACKET, "packet not complete");
       return GEARMAN_INVALID_PACKET;
     }
 
@@ -308,38 +305,40 @@ gearman_return_t gearman_connection_send(gearman_connection_st *connection,
     while (1)
     {
       gearman_return_t rc;
-      send_size= gearman_packet_pack(*packet,
-                                     connection->send_buffer + connection->send_buffer_size,
-                                     GEARMAN_SEND_BUFFER_SIZE -
-                                     connection->send_buffer_size, rc);
-      if (gearman_success(rc))
-      {
-        connection->send_buffer_size+= send_size;
-        break;
-      }
-      else if (rc == GEARMAN_IGNORE_PACKET)
-      {
-        return GEARMAN_SUCCESS;
-      }
-      else if (rc != GEARMAN_FLUSH_DATA)
-      {
-        return rc;
+      { // Scoping to shut compiler up about switch/case jump
+        size_t send_size= gearman_packet_pack(*packet_arg,
+                                              send_buffer + send_buffer_size,
+                                              GEARMAN_SEND_BUFFER_SIZE -
+                                              send_buffer_size, rc);
+        if (gearman_success(rc))
+        {
+          send_buffer_size+= send_size;
+          break;
+        }
+        else if (rc == GEARMAN_IGNORE_PACKET)
+        {
+          return GEARMAN_SUCCESS;
+        }
+        else if (rc != GEARMAN_FLUSH_DATA)
+        {
+          return rc;
+        }
       }
 
       /* We were asked to flush when the buffer is already flushed! */
-      if (connection->send_buffer_size == 0)
+      if (send_buffer_size == 0)
       {
-        gearman_universal_set_error(&connection->universal, GEARMAN_SEND_BUFFER_TOO_SMALL, AT,
+        gearman_universal_set_error(&universal, GEARMAN_SEND_BUFFER_TOO_SMALL, AT,
                                     "send buffer too small (%u)", GEARMAN_SEND_BUFFER_SIZE);
         return GEARMAN_SEND_BUFFER_TOO_SMALL;
       }
 
       /* Flush buffer now if first part of packet won't fit in. */
-      connection->send_state= GEARMAN_CON_SEND_UNIVERSAL_PRE_FLUSH;
+      send_state= GEARMAN_CON_SEND_UNIVERSAL_PRE_FLUSH;
 
     case GEARMAN_CON_SEND_UNIVERSAL_PRE_FLUSH:
       {
-        gearman_return_t ret= gearman_connection_flush(connection);
+        gearman_return_t ret= gearman_connection_flush(this);
         if (gearman_failed(ret))
         {
           return ret;
@@ -348,72 +347,72 @@ gearman_return_t gearman_connection_send(gearman_connection_st *connection,
     }
 
     /* Return here if we have no data to send. */
-    if (not packet->data_size)
+    if (not packet_arg->data_size)
     {
       break;
     }
 
     /* If there is any room in the buffer, copy in data. */
-    if (packet->data and
-        (GEARMAN_SEND_BUFFER_SIZE - connection->send_buffer_size) > 0)
+    if (packet_arg->data and
+        (GEARMAN_SEND_BUFFER_SIZE - send_buffer_size) > 0)
     {
-      connection->send_data_offset= GEARMAN_SEND_BUFFER_SIZE - connection->send_buffer_size;
-      if (connection->send_data_offset > packet->data_size)
-        connection->send_data_offset= packet->data_size;
+      send_data_offset= GEARMAN_SEND_BUFFER_SIZE - send_buffer_size;
+      if (send_data_offset > packet_arg->data_size)
+        send_data_offset= packet_arg->data_size;
 
-      memcpy(connection->send_buffer + connection->send_buffer_size, packet->data,
-             connection->send_data_offset);
-      connection->send_buffer_size+= connection->send_data_offset;
+      memcpy(send_buffer + send_buffer_size, packet_arg->data,
+             send_data_offset);
+      send_buffer_size+= send_data_offset;
 
       /* Return if all data fit in the send buffer. */
-      if (connection->send_data_offset == packet->data_size)
+      if (send_data_offset == packet_arg->data_size)
       {
-        connection->send_data_offset= 0;
+        send_data_offset= 0;
         break;
       }
     }
 
     /* Flush buffer now so we can start writing directly from data buffer. */
-    connection->send_state= GEARMAN_CON_SEND_UNIVERSAL_FORCE_FLUSH;
+    send_state= GEARMAN_CON_SEND_UNIVERSAL_FORCE_FLUSH;
 
   case GEARMAN_CON_SEND_UNIVERSAL_FORCE_FLUSH:
     {
-      gearman_return_t ret= gearman_connection_flush(connection);
+      gearman_return_t ret= gearman_connection_flush(this);
       if (gearman_failed(ret))
         return ret;
     }
 
-    connection->send_data_size= packet->data_size;
+    send_data_size= packet_arg->data_size;
 
     /* If this is NULL, then gearman_connection_send_data function will be used. */
-    if (not packet->data)
+    if (not packet_arg->data)
     {
-      connection->send_state= GEARMAN_CON_SEND_UNIVERSAL_FLUSH_DATA;
+      send_state= GEARMAN_CON_SEND_UNIVERSAL_FLUSH_DATA;
       return GEARMAN_SUCCESS;
     }
 
     /* Copy into the buffer if it fits, otherwise flush from packet buffer. */
-    connection->send_buffer_size= packet->data_size - connection->send_data_offset;
-    if (connection->send_buffer_size < GEARMAN_SEND_BUFFER_SIZE)
+    send_buffer_size= packet_arg->data_size - send_data_offset;
+    if (send_buffer_size < GEARMAN_SEND_BUFFER_SIZE)
     {
-      memcpy(connection->send_buffer,
-             static_cast<char *>(const_cast<void *>(packet->data)) + connection->send_data_offset,
-             connection->send_buffer_size);
-      connection->send_data_size= 0;
-      connection->send_data_offset= 0;
+      memcpy(send_buffer,
+             static_cast<char *>(const_cast<void *>(packet_arg->data)) + send_data_offset,
+             send_buffer_size);
+      send_data_size= 0;
+      send_data_offset= 0;
       break;
     }
 
-    connection->send_buffer_ptr= static_cast<char *>(const_cast<void *>(packet->data)) + connection->send_data_offset;
-    connection->send_state= GEARMAN_CON_SEND_UNIVERSAL_FLUSH_DATA;
+    send_buffer_ptr= static_cast<char *>(const_cast<void *>(packet_arg->data)) + send_data_offset;
+    send_state= GEARMAN_CON_SEND_UNIVERSAL_FLUSH_DATA;
 
   case GEARMAN_CON_SEND_UNIVERSAL_FLUSH:
   case GEARMAN_CON_SEND_UNIVERSAL_FLUSH_DATA:
     {
-      gearman_return_t ret= gearman_connection_flush(connection);
-      if (gearman_success(ret) and connection->options.close_after_flush)
+      gearman_return_t ret= gearman_connection_flush(this);
+      if (gearman_success(ret) and options.close_after_flush)
       {
-        gearman_connection_close(connection);
+        gearman_connection_close(this);
         ret= GEARMAN_LOST_CONNECTION;
       }
       return ret;
@@ -422,17 +421,17 @@ gearman_return_t gearman_connection_send(gearman_connection_st *connection,
 
   if (flush)
   {
-    connection->send_state= GEARMAN_CON_SEND_UNIVERSAL_FLUSH;
-    gearman_return_t ret= gearman_connection_flush(connection);
-    if (ret == GEARMAN_SUCCESS && connection->options.close_after_flush)
+    send_state= GEARMAN_CON_SEND_UNIVERSAL_FLUSH;
+    gearman_return_t ret= gearman_connection_flush(this);
+    if (ret == GEARMAN_SUCCESS && options.close_after_flush)
     {
-      gearman_connection_close(connection);
+      gearman_connection_close(this);
       ret= GEARMAN_LOST_CONNECTION;
     }
     return ret;
   }
 
-  connection->send_state= GEARMAN_CON_SEND_STATE_NONE;
+  send_state= GEARMAN_CON_SEND_STATE_NONE;
   return GEARMAN_SUCCESS;
 }
 

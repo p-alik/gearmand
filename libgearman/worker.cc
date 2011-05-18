@@ -566,9 +566,8 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
               continue;
 
     case GEARMAN_WORKER_STATE_FUNCTION_SEND:
-            *ret_ptr= gearman_connection_send(worker->con, &(worker->function->packet),
-                                       true);
-            if (*ret_ptr != GEARMAN_SUCCESS)
+            *ret_ptr= worker->con->send(&(worker->function->packet), true);
+            if (gearman_failed(*ret_ptr))
             {
               if (*ret_ptr == GEARMAN_IO_WAIT)
               {
@@ -620,8 +619,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
                worker->function= worker->function->next)
           {
     case GEARMAN_WORKER_STATE_CONNECT:
-            *ret_ptr= gearman_connection_send(worker->con, &(worker->function->packet),
-                                       true);
+            *ret_ptr= worker->con->send(&(worker->function->packet), true);
             if (gearman_failed(*ret_ptr))
             {
               if (*ret_ptr == GEARMAN_IO_WAIT)
@@ -645,7 +643,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
         if (worker->con->fd == -1)
           continue;
 
-        *ret_ptr= gearman_connection_send(worker->con, &(worker->grab_job), true);
+        *ret_ptr= worker->con->send(&(worker->grab_job), true);
         if (gearman_failed(*ret_ptr))
         {
           if (*ret_ptr == GEARMAN_IO_WAIT)
@@ -737,8 +735,8 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
         if (worker->con->fd == -1)
           continue;
 
-        *ret_ptr= gearman_connection_send(worker->con, &(worker->pre_sleep), true);
-        if (*ret_ptr != GEARMAN_SUCCESS)
+        *ret_ptr= worker->con->send(&(worker->pre_sleep), true);
+        if (gearman_failed(*ret_ptr))
         {
           if (*ret_ptr == GEARMAN_IO_WAIT)
           {
@@ -764,7 +762,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
           continue;
 
         *ret_ptr= gearman_connection_set_events(worker->con, POLLIN);
-        if (*ret_ptr != GEARMAN_SUCCESS)
+        if (gearman_failed(*ret_ptr))
 	{
           return NULL;
 	}
