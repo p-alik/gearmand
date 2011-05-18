@@ -87,7 +87,7 @@ static test_return_t bug372074_test(void *)
     gearman_connection_st *con_ptr;
     test_truth(con_ptr= gearman_connection_create(universal, NULL));
 
-    gearman_connection_set_host(con_ptr, NULL, WORKER_TEST_PORT);
+    con_ptr->set_host(NULL, WORKER_TEST_PORT);
 
     args[0]= "testUnregisterFunction";
     args_size[0]= strlen("testUnregisterFunction");
@@ -120,7 +120,7 @@ static test_return_t bug372074_test(void *)
 
     test_truth(con_ptr= gearman_connection_create(universal, NULL));
 
-    gearman_connection_set_host(con_ptr, NULL, WORKER_TEST_PORT);
+    con_ptr->set_host(NULL, WORKER_TEST_PORT);
 
     args[0]= "testUnregisterFunction";
     args_size[0]= strlen("testUnregisterFunction");

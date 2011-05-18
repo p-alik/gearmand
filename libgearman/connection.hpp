@@ -80,6 +80,8 @@ struct gearman_connection_st
 
   gearman_connection_st(gearman_universal_st &universal_arg,
                         gearman_connection_options_t *options);
+
+  void set_host( const char *host, const in_port_t port);
 };
 
 /**

@@ -146,7 +146,7 @@ gearman_connection_st *gearman_connection_create_args(gearman_universal_st& univ
   if (not connection)
     return NULL;
 
-  gearman_connection_set_host(connection, host, port);
+  connection->set_host(host, port);
 
   return connection;
 }
@@ -229,16 +229,14 @@ static gearman_return_t _con_setsockopt(gearman_connection_st *connection);
  * Public Definitions
  */
 
-void gearman_connection_set_host(gearman_connection_st *connection,
-                                 const char *host,
-                                 in_port_t port)
+void gearman_connection_st::set_host(const char *host_arg, const in_port_t port_arg)
 {
-  gearman_connection_reset_addrinfo(connection);
+  gearman_connection_reset_addrinfo(this);
 
-  strncpy(connection->host, host == NULL ? GEARMAN_DEFAULT_TCP_HOST : host, NI_MAXHOST);
-  connection->host[NI_MAXHOST - 1]= 0;
+  strncpy(host, host_arg == NULL ? GEARMAN_DEFAULT_TCP_HOST : host_arg, NI_MAXHOST);
+  host[NI_MAXHOST - 1]= 0;
 
-  connection->port= in_port_t(port == 0 ? GEARMAN_DEFAULT_TCP_PORT : port);
+  port= in_port_t(port_arg == 0 ? GEARMAN_DEFAULT_TCP_PORT : port_arg);
 }
 
 void gearman_connection_close(gearman_connection_st *connection)
