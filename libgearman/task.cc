@@ -275,7 +275,7 @@ void gearman_task_give_workload(gearman_task_st *task, const void *workload,
   if (not task)
     return;
 
-  gearman_packet_give_data(&(task->send), workload, workload_size);
+  gearman_packet_give_data(task->send, workload, workload_size);
 }
 
 size_t gearman_task_send_workload(gearman_task_st *task, const void *workload,
@@ -332,7 +332,7 @@ void *gearman_task_take_data(gearman_task_st *task, size_t *data_size)
   if (not task)
     return 0;
 
-  return gearman_packet_take_data(task->recv, data_size);
+  return gearman_packet_take_data(*task->recv, data_size);
 }
 
 size_t gearman_task_recv_data(gearman_task_st *task, void *data,

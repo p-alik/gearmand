@@ -73,3 +73,42 @@ gearman_return_t gearman_packet_create_args(gearman_universal_st&,
                                             const void *args[],
                                             const size_t args_size[],
                                             size_t args_count);
+
+/**
+ * Give allocated memory to packet. After this, the library will be responsible
+ * for freeing the workload memory when the packet is destroyed.
+ */
+GEARMAN_LOCAL
+void gearman_packet_give_data(gearman_packet_st& packet, 
+                              const void *data, size_t data_size);
+
+/**
+ * Take allocated data from packet. After this, the caller is responsible for
+ * free()ing the memory.
+ */
+GEARMAN_LOCAL
+void *gearman_packet_take_data(gearman_packet_st& packet, size_t *data_size);
+
+/**
+ * Pack packet into output buffer.
+ */
+GEARMAN_LOCAL
+size_t gearman_packet_pack(const gearman_packet_st& packet,
+                           void *data, size_t data_size,
+                           gearman_return_t &ret);
+
+/**
+ * Unpack packet from input data.
+ */
+GEARMAN_LOCAL
+size_t gearman_packet_unpack(gearman_packet_st& packet,
+                             const void *data, size_t data_size,
+                             gearman_return_t &ret);
+
+/**
+ * Add an argument to a packet.
+ */
+GEARMAN_LOCAL
+gearman_return_t gearman_packet_create_arg(gearman_packet_st& packet,
+                                           const void *arg, size_t arg_size);
+

@@ -100,19 +100,6 @@ typedef size_t (gearman_packet_pack_fn)(const gearman_packet_st *packet,
 typedef size_t (gearman_packet_unpack_fn)(gearman_packet_st *packet,
                                           const void *data, size_t data_size,
                                           gearman_return_t *ret_ptr);
-/**
- * Command information array.
- * @ingroup gearman_constants
- */
-extern GEARMAN_INTERNAL_API
-gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX];
-
-/**
- * Add an argument to a packet.
- */
-GEARMAN_INTERNAL_API
-gearman_return_t gearman_packet_create_arg(gearman_packet_st *packet,
-                                           const void *arg, size_t arg_size);
 
 /**
  * Pack header.
@@ -126,40 +113,9 @@ gearman_return_t gearman_packet_pack_header(gearman_packet_st *packet);
 GEARMAN_INTERNAL_API
 gearman_return_t gearman_packet_unpack_header(gearman_packet_st *packet);
 
-/**
- * Give allocated memory to packet. After this, the library will be responsible
- * for freeing the workload memory when the packet is destroyed.
- */
-GEARMAN_INTERNAL_API
-void gearman_packet_give_data(gearman_packet_st *packet, const void *data,
-                              size_t data_size);
-
-/**
- * Take allocated data from packet. After this, the caller is responsible for
- * free()ing the memory.
- */
-GEARMAN_INTERNAL_API
-void *gearman_packet_take_data(gearman_packet_st *packet, size_t *data_size);
-
 
 #ifdef __cplusplus
 }
-
-/**
- * Pack packet into output buffer.
- */
-GEARMAN_INTERNAL_API
-size_t gearman_packet_pack(const gearman_packet_st *packet,
-                           void *data, size_t data_size,
-                           gearman_return_t &ret);
-
-/**
- * Unpack packet from input data.
- */
-GEARMAN_INTERNAL_API
-size_t gearman_packet_unpack(gearman_packet_st *packet,
-                             const void *data, size_t data_size,
-                             gearman_return_t &ret);
 #endif
 
 #endif /* GEARMAN_CORE */

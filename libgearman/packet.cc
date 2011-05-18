@@ -186,10 +186,10 @@ gearman_packet_st *gearman_packet_create(gearman_universal_st &universal,
   return packet;
 }
 
-gearman_return_t gearman_packet_create_arg(gearman_packet_st *packet,
+gearman_return_t gearman_packet_create_arg(gearman_packet_st& self,
                                            const void *arg, size_t arg_size)
 {
-  return packet_create_arg(packet, arg, arg_size);
+  return packet_create_arg(&self, arg, arg_size);
 }
 
 gearman_return_t gearman_packet_create_args(gearman_universal_st& universal,
@@ -247,7 +247,7 @@ void gearman_packet_free(gearman_packet_st *packet)
     packet->args= NULL;
   }
 
-  if (packet->options.free_data && packet->data != NULL)
+  if (packet->options.free_data && packet->data)
   {
     if (packet->universal->workload_free_fn)
     {
@@ -266,9 +266,11 @@ void gearman_packet_free(gearman_packet_st *packet)
   {
     if (packet->universal->packet_list == packet)
       packet->universal->packet_list= packet->next;
-    if (packet->prev != NULL)
+
+    if (packet->prev)
       packet->prev->next= packet->next;
-    if (packet->next != NULL)
+
+    if (packet->next)
       packet->next->prev= packet->prev;
     packet->universal->packet_count--;
   }
@@ -285,8 +287,6 @@ void gearman_packet_free(gearman_packet_st *packet)
 
 gearman_return_t gearman_packet_pack_header(gearman_packet_st *packet)
 {
-  uint64_t length_64;
-
   if (packet->magic == GEARMAN_MAGIC_TEXT)
   {
     packet->options.complete= true;
@@ -329,7 +329,7 @@ gearman_return_t gearman_packet_pack_header(gearman_packet_st *packet)
   // Record the command
   memcpy(packet->args + 4, &tmp, 4);
 
-  length_64= packet->args_size + packet->data_size - GEARMAN_PACKET_HEADER_SIZE;
+  uint64_t length_64= packet->args_size + packet->data_size - GEARMAN_PACKET_HEADER_SIZE;
 
   // Check for overflow on 32bit(portable?).
   if (length_64 >= UINT32_MAX || length_64 < packet->data_size)
@@ -382,36 +382,35 @@ gearman_return_t gearman_packet_unpack_header(gearman_packet_st *packet)
   return GEARMAN_SUCCESS;
 }
 
-size_t gearman_packet_pack(const gearman_packet_st *packet,
+size_t gearman_packet_pack(const gearman_packet_st &self,
                            void *data, size_t data_size,
                            gearman_return_t &ret)
 {
-  if (not packet->args_size)
+  if (not self.args_size)
   {
     ret= GEARMAN_SUCCESS;
     return 0;
   }
 
-  if (packet->args_size > data_size)
+  if (self.args_size > data_size)
   {
     ret= GEARMAN_FLUSH_DATA;
     return 0;
   }
 
-  memcpy(data, packet->args, packet->args_size);
+  memcpy(data, self.args, self.args_size);
   ret= GEARMAN_SUCCESS;
-  return packet->args_size;
+  return self.args_size;
 }
 
-size_t gearman_packet_unpack(gearman_packet_st *packet,
+size_t gearman_packet_unpack(gearman_packet_st& self,
                              const void *data, size_t data_size,
                              gearman_return_t &ret)
 {
   size_t used_size;
   size_t arg_size;
 
-  assert(packet);
-  if (packet->args_size == 0)
+  if (self.args_size == 0)
   {
     if (data_size > 0 && ((uint8_t *)data)[0] != 0)
     {
@@ -419,13 +418,13 @@ size_t gearman_packet_unpack(gearman_packet_st *packet,
       uint8_t *ptr= (uint8_t *)memchr(data, '\n', data_size);
       if (not ptr)
       {
-        gearman_gerror(packet->universal, GEARMAN_IO_WAIT);
+        gearman_gerror(self.universal, GEARMAN_IO_WAIT);
         ret= GEARMAN_IO_WAIT;
         return 0;
       }
 
-      packet->magic= GEARMAN_MAGIC_TEXT;
-      packet->command= GEARMAN_COMMAND_TEXT;
+      self.magic= GEARMAN_MAGIC_TEXT;
+      self.command= GEARMAN_COMMAND_TEXT;
 
       used_size= (size_t)(ptr - ((uint8_t *)data)) + 1;
       *ptr= 0;
@@ -445,8 +444,8 @@ size_t gearman_packet_unpack(gearman_packet_st *packet,
           arg_size-= (size_t)(ptr - ((uint8_t *)data));
         }
 
-        ret= packet_create_arg(packet, data, ptr == NULL ? arg_size :
-                               (size_t)(ptr - ((uint8_t *)data)));
+        ret= packet_create_arg(&self, data, 
+                               ptr == NULL ? arg_size : size_t(ptr - ((uint8_t *)data)));
         if (gearman_failed(ret))
         {
           return used_size;
@@ -457,16 +456,16 @@ size_t gearman_packet_unpack(gearman_packet_st *packet,
     }
     else if (data_size < GEARMAN_PACKET_HEADER_SIZE)
     {
-      gearman_gerror(packet->universal, GEARMAN_IO_WAIT);
+      gearman_gerror(self.universal, GEARMAN_IO_WAIT);
       ret= GEARMAN_IO_WAIT;
       return 0;
     }
 
-    packet->args= packet->args_buffer;
-    packet->args_size= GEARMAN_PACKET_HEADER_SIZE;
-    memcpy(packet->args, data, GEARMAN_PACKET_HEADER_SIZE);
+    self.args= self.args_buffer;
+    self.args_size= GEARMAN_PACKET_HEADER_SIZE;
+    memcpy(self.args, data, GEARMAN_PACKET_HEADER_SIZE);
 
-    ret= gearman_packet_unpack_header(packet);
+    ret= gearman_packet_unpack_header(&self);
     if (gearman_failed(ret))
     {
       return 0;
@@ -479,47 +478,47 @@ size_t gearman_packet_unpack(gearman_packet_st *packet,
     used_size= 0;
   }
 
-  while (packet->argc != gearman_command_info(packet->command)->argc)
+  while (self.argc != gearman_command_info(self.command)->argc)
   {
-    if (packet->argc != (gearman_command_info(packet->command)->argc - 1) ||
-        gearman_command_info(packet->command)->data)
+    if (self.argc != (gearman_command_info(self.command)->argc - 1) ||
+        gearman_command_info(self.command)->data)
     {
 
       uint8_t *ptr= (uint8_t *)memchr((char *)data + used_size, 0, data_size - used_size);
       if (not ptr)
       {
-        gearman_gerror(packet->universal, GEARMAN_IO_WAIT);
+        gearman_gerror(self.universal, GEARMAN_IO_WAIT);
         ret= GEARMAN_IO_WAIT;
         return used_size;
       }
 
       arg_size= (size_t)(ptr - ((uint8_t *)data + used_size)) + 1;
-      ret= packet_create_arg(packet, (uint8_t *)data + used_size, arg_size);
+      ret= packet_create_arg(&self, (uint8_t *)data + used_size, arg_size);
       if (gearman_failed(ret))
       {
         return used_size;
       }
 
-      packet->data_size-= arg_size;
+      self.data_size-= arg_size;
       used_size+= arg_size;
     }
     else
     {
-      if ((data_size - used_size) < packet->data_size)
+      if ((data_size - used_size) < self.data_size)
       {
-        gearman_gerror(packet->universal, GEARMAN_IO_WAIT);
+        gearman_gerror(self.universal, GEARMAN_IO_WAIT);
         ret= GEARMAN_IO_WAIT;
         return used_size;
       }
 
-      ret= packet_create_arg(packet, ((uint8_t *)data) + used_size, packet->data_size);
+      ret= packet_create_arg(&self, ((uint8_t *)data) + used_size, self.data_size);
       if (gearman_failed(ret))
       {
         return used_size;
       }
 
-      used_size+= packet->data_size;
-      packet->data_size= 0;
+      used_size+= self.data_size;
+      self.data_size= 0;
     }
   }
 
@@ -527,23 +526,23 @@ size_t gearman_packet_unpack(gearman_packet_st *packet,
   return used_size;
 }
 
-void gearman_packet_give_data(gearman_packet_st *packet, const void *data,
-                              size_t data_size)
+void gearman_packet_give_data(gearman_packet_st& self,
+                              const void *data, size_t data_size)
 {
-  packet->data= data;
-  packet->data_size= data_size;
-  packet->options.free_data= true;
+  self.data= data;
+  self.data_size= data_size;
+  self.options.free_data= true;
 }
 
-void *gearman_packet_take_data(gearman_packet_st *packet, size_t *data_size)
+void *gearman_packet_take_data(gearman_packet_st& self, size_t *data_size)
 {
-  void *data= const_cast<void *>(packet->data);
+  void *data= const_cast<void *>(self.data);
 
-  *data_size= packet->data_size;
+  *data_size= self.data_size;
 
-  packet->data= NULL;
-  packet->data_size= 0;
-  packet->options.free_data= false;
+  self.data= NULL;
+  self.data_size= 0;
+  self.options.free_data= false;
 
   return data;
 }
