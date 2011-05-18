@@ -84,7 +84,7 @@ static test_return_t bug372074_test(void *)
 
   for (uint32_t x= 0; x < 2; x++)
   {
-    if (not gearman_connection_create(&universal, &con, NULL))
+    if (not gearman_connection_create(universal, &con, NULL))
       return TEST_FAILURE;
 
     gearman_connection_set_host(&con, NULL, WORKER_TEST_PORT);
@@ -124,15 +124,13 @@ static test_return_t bug372074_test(void *)
       return TEST_FAILURE;
     }
 
-    if (gearman_connection_send(&con, &packet, true) != GEARMAN_SUCCESS)
-      return TEST_FAILURE;
+    test_truth(gearman_success(gearman_connection_send(&con, &packet, true)));
 
     gearman_packet_free(&packet);
 
     gearman_connection_free(&con);
 
-    if (gearman_connection_create(&universal, &con, NULL) == NULL)
-      return TEST_FAILURE;
+    test_truth(gearman_connection_create(universal, &con, NULL));
 
     gearman_connection_set_host(&con, NULL, WORKER_TEST_PORT);
 

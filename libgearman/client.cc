@@ -453,7 +453,7 @@ gearman_task_st *gearman_client_execute(gearman_client_st *client,
   if (not function_str or not function_length)
   {
     errno= EINVAL;
-    gearman_perror(&client->universal, "gearman_function_st was NULL");
+    gearman_perror(client->universal, "gearman_function_st was NULL");
     return NULL;
   }
   assert(function_str and function_length);
@@ -544,7 +544,7 @@ gearman_task_st *gearman_client_execute_reduce(gearman_client_st *client,
   if (not function_str or not function_length)
   {
     errno= EINVAL;
-    gearman_perror(&client->universal, "gearman_function_st was NULL");
+    gearman_perror(client->universal, "gearman_function_st was NULL");
     return NULL;
   }
   assert(function_str and function_length);

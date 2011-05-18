@@ -82,9 +82,6 @@ void gearman_universal_set_error(gearman_universal_st *gearman,
 				 const char *function,
                                  const char *format, ...);
 
-GEARMAN_INTERNAL_API
-void gearman_universal_set_perror(const char *position, gearman_universal_st *universal, const char *message);
-
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 #define AT __FILE__ ":" TOSTRING(__LINE__)

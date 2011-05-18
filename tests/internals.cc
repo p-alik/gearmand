@@ -51,6 +51,7 @@
 
 #define GEARMAN_CORE
 #include <libgearman/common.h>
+#include <libgearman/packet.hpp>
 
 #include "libtest/test.h"
 #include "libtest/server.h"
@@ -252,7 +253,7 @@ static test_return_t connection_init_test(void *)
 
   gearman_universal_initialize(universal);
 
-  connection_ptr= gearman_connection_create(&universal, &connection, NULL);
+  connection_ptr= gearman_connection_create(universal, &connection, NULL);
   test_false(connection.options.allocated);
   test_false(connection_ptr->options.allocated);
 
@@ -277,7 +278,7 @@ static test_return_t connection_alloc_test(void *)
 
   gearman_universal_initialize(universal);
 
-  connection_ptr= gearman_connection_create(&universal, NULL, NULL);
+  connection_ptr= gearman_connection_create(universal, NULL, NULL);
   test_truth(connection_ptr->options.allocated);
 
   test_false(connection_ptr->options.ready);
@@ -306,7 +307,7 @@ static test_return_t packet_init_test(void *)
 
   gearman_universal_initialize(universal);
 
-  packet_ptr= gearman_packet_create(&universal, &packet);
+  packet_ptr= gearman_packet_create(universal, &packet);
   test_false(packet.options.allocated);
   test_false(packet_ptr->options.allocated);
 
@@ -332,7 +333,7 @@ static test_return_t gearman_packet_give_data_test(void *)
 
   gearman_universal_initialize(universal);
 
-  packet_ptr= gearman_packet_create(&universal, &packet);
+  packet_ptr= gearman_packet_create(universal, &packet);
   test_truth(packet_ptr);
 
   gearman_packet_give_data(packet_ptr, data, data_size);
@@ -357,7 +358,7 @@ static test_return_t gearman_packet_take_data_test(void *)
 
   gearman_universal_initialize(universal);
 
-  gearman_packet_st *packet_ptr= gearman_packet_create(&universal, &packet);
+  gearman_packet_st *packet_ptr= gearman_packet_create(universal, &packet);
   test_truth(packet_ptr);
 
   gearman_packet_give_data(packet_ptr, data, data_size);

@@ -44,6 +44,7 @@ noinst_HEADERS+= \
 		 libgearman/common.h \
 		 libgearman/connection.hpp \
 		 libgearman/log.h \
+		 libgearman/packet.hpp \
 		 libgearman/result.hpp \
 		 libgearman/strcommand.h \
 		 libgearman/unique.h \

@@ -3,7 +3,6 @@
  *  Gearmand client and server library.
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  Copyright (C) 2008 Brian Aker, Eric Day
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -36,57 +35,8 @@
  *
  */
 
+
 #pragma once
 
-#include <libgearman/connection.h>
-
-struct gearman_connection_st
-{
-  struct {
-    bool allocated;
-    bool ready;
-    bool packet_in_use;
-    bool external_fd;
-    bool ignore_lost_connection;
-    bool close_after_flush;
-  } options;
-  enum gearman_con_universal_t state;
-  enum gearman_con_send_t send_state;
-  enum gearman_con_recv_t recv_state;
-  in_port_t port;
-  short events;
-  short revents;
-  int fd;
-  uint32_t created_id;
-  uint32_t created_id_next;
-  size_t send_buffer_size;
-  size_t send_data_size;
-  size_t send_data_offset;
-  size_t recv_buffer_size;
-  size_t recv_data_size;
-  size_t recv_data_offset;
-  gearman_universal_st *universal;
-  gearman_connection_st *next;
-  gearman_connection_st *prev;
-  void *context;
-  struct addrinfo *addrinfo;
-  struct addrinfo *addrinfo_next;
-  char *send_buffer_ptr;
-  gearman_packet_st *recv_packet;
-  char *recv_buffer_ptr;
-  gearman_packet_st packet;
-  char host[NI_MAXHOST];
-  char send_buffer[GEARMAN_SEND_BUFFER_SIZE];
-  char recv_buffer[GEARMAN_RECV_BUFFER_SIZE];
-};
-
-/**
- * Initialize a connection structure. Always check the return value even if
- * passing in a pre-allocated structure. Some other initialization may have
- * failed.
- */
-
-GEARMAN_INTERNAL_API
-gearman_connection_st *gearman_connection_create(gearman_universal_st &universal,
-                                                 gearman_connection_st *connection,
-                                                 gearman_connection_options_t *options);
+GEARMAN_LOCAL
+gearman_packet_st *gearman_packet_create(gearman_universal_st &, gearman_packet_st *packet);

@@ -178,7 +178,7 @@ gearman_return_t gearman_wait(gearman_universal_st *universal)
     pfds= static_cast<pollfd*>(realloc(universal->pfds, universal->con_count * sizeof(struct pollfd)));
     if (pfds == NULL)
     {
-      gearman_perror(universal, "pollfd realloc");
+      gearman_perror(*universal, "pollfd realloc");
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
 
@@ -216,7 +216,7 @@ gearman_return_t gearman_wait(gearman_universal_st *universal)
       if (errno == EINTR)
         continue;
 
-      gearman_perror(universal, "poll");
+      gearman_perror(*universal, "poll");
       return GEARMAN_ERRNO;
     }
 
@@ -469,24 +469,24 @@ void gearman_universal_set_error(gearman_universal_st *universal,
   }
 }
 
-void gearman_universal_set_perror(const char *position, gearman_universal_st *universal, const char *message)
+void gearman_universal_set_perror(const char *position, gearman_universal_st &self, const char *message)
 {
-  universal->error.rc= GEARMAN_ERRNO;
-  universal->error.last_errno= errno;
+  self.error.rc= GEARMAN_ERRNO;
+  self.error.last_errno= errno;
 
   const char *errmsg_ptr;
   char errmsg[GEARMAN_MAX_ERROR_SIZE]; 
   errmsg[0]= 0; 
 
 #ifdef STRERROR_R_CHAR_P
-  errmsg_ptr= strerror_r(universal->error.last_errno, errmsg, sizeof(errmsg));
+  errmsg_ptr= strerror_r(self.error.last_errno, errmsg, sizeof(errmsg));
 #else
-  strerror_r(universal->error.last_errno, errmsg, sizeof(errmsg));
+  strerror_r(self.error.last_errno, errmsg, sizeof(errmsg));
   errmsg_ptr= errmsg;
 #endif
 
   char final[GEARMAN_MAX_ERROR_SIZE];
   snprintf(final, sizeof(final), "%s(%s)", message, errmsg_ptr);
 
-  gearman_universal_set_error(universal, GEARMAN_ERRNO, position, final);
+  gearman_universal_set_error(&self, GEARMAN_ERRNO, position, final);
 }

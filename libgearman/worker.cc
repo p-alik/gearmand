@@ -1020,7 +1020,7 @@ static gearman_worker_st *_worker_allocate(gearman_worker_st *worker, bool is_cl
     worker= new (std::nothrow) gearman_worker_st;
     if (worker == NULL)
     {
-      gearman_perror((&worker->universal), "gearman_worker_st new");
+      gearman_perror(worker->universal, "gearman_worker_st new");
       return NULL;
     }
 
@@ -1103,13 +1103,13 @@ static gearman_return_t _worker_function_create(gearman_worker_st *worker,
   _worker_function_st *function= new (std::nothrow) _worker_function_st(mapper_fn, aggregator_fn, context);
   if (not function)
   {
-    gearman_perror((&worker->universal), "_worker_function_st::new()");
+    gearman_perror(worker->universal, "_worker_function_st::new()");
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
 
   if (not function->init(function_name, function_length))
   {
-    gearman_perror((&worker->universal), "_worker_function_st::init()");
+    gearman_perror(worker->universal, "_worker_function_st::init()");
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
 

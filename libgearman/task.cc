@@ -42,6 +42,7 @@
  */
 
 #include <libgearman/common.h>
+#include <libgearman/universal.hpp>
 #include <libgearman/connection.h>
 #include <libgearman/packet.h>
 
@@ -62,7 +63,7 @@ gearman_task_st *gearman_task_internal_create(gearman_client_st *client, gearman
     task= new (std::nothrow) gearman_task_st;
     if (task == NULL)
     {
-      gearman_perror(&client->universal, "gearman_task_st new");
+      gearman_perror(client->universal, "gearman_task_st new");
       return NULL;
     }
 

@@ -87,22 +87,6 @@ enum gearman_con_universal_t {
 #ifdef GEARMAN_CORE
 
 /**
- * Initialize a connection structure. Always check the return value even if
- * passing in a pre-allocated structure. Some other initialization may have
- * failed.
- *
- * @param[in] gearman Structure previously initialized with gearman_create() or
- *  gearman_clone().
- * @param[in] connection Caller allocated structure, or NULL to allocate one.
- * @return On success, a pointer to the (possibly allocated) structure. On
- *  failure this will be NULL.
- */
-GEARMAN_INTERNAL_API
-gearman_connection_st *gearman_connection_create(gearman_universal_st *gearman,
-                                                 gearman_connection_st *connection,
-                                                 gearman_connection_options_t *options);
-
-/**
  * Create a connection structure with the given host and port.
  *
  * @param[in] gearman Structure previously initialized with gearman_create() or

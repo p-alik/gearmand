@@ -107,20 +107,6 @@ typedef size_t (gearman_packet_unpack_fn)(gearman_packet_st *packet,
 extern GEARMAN_INTERNAL_API
 gearman_command_info_st gearman_command_info_list[GEARMAN_COMMAND_MAX];
 
-
-/**
- * Initialize a packet structure.
- *
- * @param[in] gearman Structure previously initialized with gearman_create() or
- *  gearman_clone().
- * @param[in] packet Caller allocated structure, or NULL to allocate one.
- * @return On success, a pointer to the (possibly allocated) structure. On
- *  failure this will be NULL.
- */
-GEARMAN_INTERNAL_API
-gearman_packet_st *gearman_packet_create(gearman_universal_st *gearman,
-                                         gearman_packet_st *packet);
-
 /**
  * Free a packet structure.
  *

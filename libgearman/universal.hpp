@@ -39,6 +39,9 @@
 #pragma once
 
 GEARMAN_LOCAL
+void gearman_universal_set_perror(const char *position, gearman_universal_st &universal, const char *message);
+
+GEARMAN_LOCAL
 void gearman_universal_initialize(gearman_universal_st &self, const gearman_universal_options_t *options= NULL);
 
 GEARMAN_LOCAL

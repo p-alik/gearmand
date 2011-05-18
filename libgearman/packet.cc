@@ -42,7 +42,10 @@
  */
 
 #include <libgearman/common.h>
+#include <libgearman/universal.hpp>
 #include <libgearman/command.h>
+#include <libgearman/packet.hpp>
+
 #include <cassert>
 #include <cerrno>
 #include <cstdlib>
@@ -96,7 +99,7 @@ inline static gearman_return_t packet_create_arg(gearman_packet_st *packet,
     void *new_args= realloc(packet->args, packet->args_size + arg_size);
     if (not new_args)
     {
-      gearman_perror(packet->universal, "packet realloc");
+      gearman_perror(*packet->universal, "packet realloc");
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
 
@@ -138,15 +141,15 @@ inline static gearman_return_t packet_create_arg(gearman_packet_st *packet,
  * Public Definitions
  */
 
-gearman_packet_st *gearman_packet_create(gearman_universal_st *gearman,
+gearman_packet_st *gearman_packet_create(gearman_universal_st &universal,
                                          gearman_packet_st *packet)
 {
-  if (packet == NULL)
+  if (not packet)
   {
     packet= new (std::nothrow) gearman_packet_st;
     if (packet == NULL)
     {
-      gearman_perror(gearman, "gearman_packet_st malloc");
+      gearman_perror(universal, "gearman_packet_st malloc");
       errno= ENOMEM;
       return NULL;
     }
@@ -165,16 +168,16 @@ gearman_packet_st *gearman_packet_create(gearman_universal_st *gearman,
   packet->argc= 0;
   packet->args_size= 0;
   packet->data_size= 0;
-  packet->universal= gearman;
+  packet->universal= &universal;
 
-  if (not (gearman->options.dont_track_packets))
+  if (not (universal.options.dont_track_packets))
   {
-    if (gearman->packet_list != NULL)
-      gearman->packet_list->prev= packet;
-    packet->next= gearman->packet_list;
+    if (universal.packet_list != NULL)
+      universal.packet_list->prev= packet;
+    packet->next= universal.packet_list;
     packet->prev= NULL;
-    gearman->packet_list= packet;
-    gearman->packet_count++;
+    universal.packet_list= packet;
+    universal.packet_count++;
   }
 
   packet->args= NULL;
@@ -197,7 +200,7 @@ gearman_return_t gearman_packet_create_args(gearman_universal_st *gearman,
                                             const size_t args_size[],
                                             size_t args_count)
 {
-  packet= gearman_packet_create(gearman, packet);
+  packet= gearman_packet_create(*gearman, packet);
   if (not packet)
   {
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
