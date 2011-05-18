@@ -88,12 +88,11 @@ struct gearman_connection_st
 
 GEARMAN_LOCAL
 gearman_connection_st *gearman_connection_create(gearman_universal_st &universal,
-                                                 gearman_connection_st *connection,
                                                  gearman_connection_options_t *options);
 
 GEARMAN_LOCAL
-gearman_connection_st *gearman_connection_clone(gearman_universal_st& universal, gearman_connection_st *src,
-                                                const gearman_connection_st *from);
+gearman_connection_st *gearman_connection_copy(gearman_universal_st& universal,
+                                               const gearman_connection_st& from);
 
 /**
  * Create a connection structure with the given host and port.
@@ -108,5 +107,4 @@ gearman_connection_st *gearman_connection_clone(gearman_universal_st& universal,
  */
 GEARMAN_LOCAL
 gearman_connection_st *gearman_connection_create_args(gearman_universal_st &universal,
-                                                      gearman_connection_st *connection,
                                                       const char *host, in_port_t port);

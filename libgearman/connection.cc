@@ -78,24 +78,15 @@ static gearman_return_t gearman_connection_set_option(gearman_connection_st *con
  */
 
 gearman_connection_st *gearman_connection_create(gearman_universal_st &universal,
-                                                 gearman_connection_st *connection,
                                                  gearman_connection_options_t *options)
 {
-  if (connection == NULL)
+  gearman_connection_st *connection= new (std::nothrow) gearman_connection_st;
+  if (not connection)
   {
-    connection= new (std::nothrow) gearman_connection_st;
-    if (connection == NULL)
-    {
-      gearman_perror(universal, "gearman_connection_st new");
-      return NULL;
-    }
-
-    connection->options.allocated= true;
+    gearman_perror(universal, "gearman_connection_st new");
+    return NULL;
   }
-  else
-  {
-    connection->options.allocated= false;
-  }
+  connection->options.allocated= true;
 
   connection->options.ready= false;
   connection->options.packet_in_use= false;
@@ -147,10 +138,10 @@ gearman_connection_st *gearman_connection_create(gearman_universal_st &universal
   return connection;
 }
 
-gearman_connection_st *gearman_connection_create_args(gearman_universal_st& universal, gearman_connection_st *connection,
+gearman_connection_st *gearman_connection_create_args(gearman_universal_st& universal,
                                                       const char *host, in_port_t port)
 {
-  connection= gearman_connection_create(universal, connection, NULL);
+  gearman_connection_st *connection= gearman_connection_create(universal, NULL);
   if (not connection)
     return NULL;
 
@@ -159,22 +150,22 @@ gearman_connection_st *gearman_connection_create_args(gearman_universal_st& univ
   return connection;
 }
 
-gearman_connection_st *gearman_connection_clone(gearman_universal_st& universal, gearman_connection_st *connection,
-                                                const gearman_connection_st *from)
+gearman_connection_st *gearman_connection_copy(gearman_universal_st& universal,
+                                               const gearman_connection_st& from)
 {
-  connection= gearman_connection_create(universal, connection, NULL);
+  gearman_connection_st *connection= gearman_connection_create(universal, NULL);
 
-  if (not from or  not connection)
+  if (not connection)
     return connection;
 
-  connection->options.ready= from->options.ready;
-  connection->options.packet_in_use= from->options.packet_in_use;
-  connection->options.external_fd= from->options.external_fd;
-  connection->options.ignore_lost_connection= from->options.ignore_lost_connection;
-  connection->options.close_after_flush= from->options.close_after_flush;
+  connection->options.ready= from.options.ready;
+  connection->options.packet_in_use= from.options.packet_in_use;
+  connection->options.external_fd= from.options.external_fd;
+  connection->options.ignore_lost_connection= from.options.ignore_lost_connection;
+  connection->options.close_after_flush= from.options.close_after_flush;
 
-  strcpy(connection->host, from->host);
-  connection->port= from->port;
+  strcpy(connection->host, from.host);
+  connection->port= from.port;
 
   return connection;
 }

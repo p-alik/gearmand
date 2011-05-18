@@ -331,7 +331,7 @@ static test_return_t abandoned_worker_test(void *)
   gearman_universal_initialize(universal);
 
   gearman_connection_st *worker1;
-  test_truth(worker1= gearman_connection_create(universal, NULL, NULL));
+  test_truth(worker1= gearman_connection_create(universal, NULL));
 
   gearman_connection_set_host(worker1, NULL, WORKER_TEST_PORT);
 
@@ -362,7 +362,7 @@ static test_return_t abandoned_worker_test(void *)
   gearman_packet_free(&packet);
 
   gearman_connection_st *worker2;
-  test_truth(worker2= gearman_connection_create(universal, NULL, NULL));
+  test_truth(worker2= gearman_connection_create(universal, NULL));
 
   gearman_connection_set_host(worker2, NULL, WORKER_TEST_PORT);
 

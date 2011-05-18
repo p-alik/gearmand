@@ -248,25 +248,21 @@ static test_return_t connection_init_test(void *)
 {
   gearman_universal_st universal;
 
-  gearman_connection_st connection;
   gearman_connection_st *connection_ptr;
 
   gearman_universal_initialize(universal);
 
-  connection_ptr= gearman_connection_create(universal, &connection, NULL);
-  test_false(connection.options.allocated);
-  test_false(connection_ptr->options.allocated);
+  connection_ptr= gearman_connection_create(universal, NULL);
+  test_truth(connection_ptr->options.allocated);
+  test_truth(connection_ptr->options.allocated);
 
-  test_false(connection.options.ready);
-  test_false(connection.options.packet_in_use);
-  test_false(connection.options.external_fd);
-  test_false(connection.options.ignore_lost_connection);
-  test_false(connection.options.close_after_flush);
-
-  test_truth(connection_ptr == &connection);
+  test_false(connection_ptr->options.ready);
+  test_false(connection_ptr->options.packet_in_use);
+  test_false(connection_ptr->options.external_fd);
+  test_false(connection_ptr->options.ignore_lost_connection);
+  test_false(connection_ptr->options.close_after_flush);
 
   gearman_connection_free(connection_ptr);
-  test_false(connection.options.allocated);
 
   return TEST_SUCCESS;
 }
@@ -278,7 +274,7 @@ static test_return_t connection_alloc_test(void *)
 
   gearman_universal_initialize(universal);
 
-  connection_ptr= gearman_connection_create(universal, NULL, NULL);
+  connection_ptr= gearman_connection_create(universal, NULL);
   test_truth(connection_ptr->options.allocated);
 
   test_false(connection_ptr->options.ready);

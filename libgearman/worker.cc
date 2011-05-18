@@ -412,7 +412,7 @@ void gearman_worker_set_workload_free_fn(gearman_worker_st *worker,
 gearman_return_t gearman_worker_add_server(gearman_worker_st *worker,
                                            const char *host, in_port_t port)
 {
-  if (gearman_connection_create_args(worker->universal, NULL, host, port) == NULL)
+  if (not gearman_connection_create_args(worker->universal, host, port))
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
 
   return GEARMAN_SUCCESS;
