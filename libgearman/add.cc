@@ -130,7 +130,7 @@ gearman_task_st *add_task(gearman_client_st *client,
     args[3]= gearman_c_str(workload);
     args_size[3]= gearman_size(workload);
 
-    rc= gearman_packet_create_args(client->universal, &(task->send),
+    rc= gearman_packet_create_args(client->universal, task->send,
                                    GEARMAN_MAGIC_REQUEST, command,
                                    args, args_size,
                                    4);
@@ -140,7 +140,7 @@ gearman_task_st *add_task(gearman_client_st *client,
     args[2]= gearman_c_str(workload);
     args_size[2]= gearman_size(workload);
 
-    rc= gearman_packet_create_args(client->universal, &(task->send),
+    rc= gearman_packet_create_args(client->universal, task->send,
                                    GEARMAN_MAGIC_REQUEST, command,
                                    args, args_size,
                                    3);
@@ -249,7 +249,7 @@ gearman_task_st *add_task(gearman_client_st *client,
   args_size[4]= gearman_size(workload);
 
   gearman_return_t rc;
-  rc= gearman_packet_create_args(client->universal, &(task->send),
+  rc= gearman_packet_create_args(client->universal, task->send,
                                  GEARMAN_MAGIC_REQUEST, command,
                                  args, args_size,
                                  5);

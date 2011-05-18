@@ -270,7 +270,7 @@ void gearman_connection_st::close()
   send_data_offset= 0;
 
   recv_state= GEARMAN_CON_RECV_UNIVERSAL_NONE;
-  if (recv_packet != NULL)
+  if (recv_packet)
   {
     gearman_packet_free(recv_packet);
     recv_packet= NULL;
@@ -291,12 +291,12 @@ void gearman_connection_st::reset_addrinfo()
   addrinfo_next= NULL;
 }
 
-gearman_return_t gearman_connection_st::send(const gearman_packet_st *packet_arg, const bool flush_buffer)
+gearman_return_t gearman_connection_st::send(const gearman_packet_st& packet_arg, const bool flush_buffer)
 {
   switch (send_state)
   {
   case GEARMAN_CON_SEND_STATE_NONE:
-    if (not (packet_arg->options.complete))
+    if (not (packet_arg.options.complete))
     {
       gearman_error(&universal, GEARMAN_INVALID_PACKET, "packet not complete");
       return GEARMAN_INVALID_PACKET;
@@ -307,7 +307,7 @@ gearman_return_t gearman_connection_st::send(const gearman_packet_st *packet_arg
     {
       gearman_return_t rc;
       { // Scoping to shut compiler up about switch/case jump
-        size_t send_size= gearman_packet_pack(*packet_arg,
+        size_t send_size= gearman_packet_pack(packet_arg,
                                               send_buffer + send_buffer_size,
                                               GEARMAN_SEND_BUFFER_SIZE -
                                               send_buffer_size, rc);
@@ -348,25 +348,24 @@ gearman_return_t gearman_connection_st::send(const gearman_packet_st *packet_arg
     }
 
     /* Return here if we have no data to send. */
-    if (not packet_arg->data_size)
+    if (not packet_arg.data_size)
     {
       break;
     }
 
     /* If there is any room in the buffer, copy in data. */
-    if (packet_arg->data and
+    if (packet_arg.data and
         (GEARMAN_SEND_BUFFER_SIZE - send_buffer_size) > 0)
     {
       send_data_offset= GEARMAN_SEND_BUFFER_SIZE - send_buffer_size;
-      if (send_data_offset > packet_arg->data_size)
-        send_data_offset= packet_arg->data_size;
+      if (send_data_offset > packet_arg.data_size)
+        send_data_offset= packet_arg.data_size;
 
-      memcpy(send_buffer + send_buffer_size, packet_arg->data,
-             send_data_offset);
+      memcpy(send_buffer + send_buffer_size, packet_arg.data, send_data_offset);
       send_buffer_size+= send_data_offset;
 
       /* Return if all data fit in the send buffer. */
-      if (send_data_offset == packet_arg->data_size)
+      if (send_data_offset == packet_arg.data_size)
       {
         send_data_offset= 0;
         break;
@@ -383,28 +382,28 @@ gearman_return_t gearman_connection_st::send(const gearman_packet_st *packet_arg
         return ret;
     }
 
-    send_data_size= packet_arg->data_size;
+    send_data_size= packet_arg.data_size;
 
     /* If this is NULL, then gearman_connection_send_data function will be used. */
-    if (not packet_arg->data)
+    if (not packet_arg.data)
     {
       send_state= GEARMAN_CON_SEND_UNIVERSAL_FLUSH_DATA;
       return GEARMAN_SUCCESS;
     }
 
     /* Copy into the buffer if it fits, otherwise flush from packet buffer. */
-    send_buffer_size= packet_arg->data_size - send_data_offset;
+    send_buffer_size= packet_arg.data_size - send_data_offset;
     if (send_buffer_size < GEARMAN_SEND_BUFFER_SIZE)
     {
       memcpy(send_buffer,
-             static_cast<char *>(const_cast<void *>(packet_arg->data)) + send_data_offset,
+             static_cast<char *>(const_cast<void *>(packet_arg.data)) + send_data_offset,
              send_buffer_size);
       send_data_size= 0;
       send_data_offset= 0;
       break;
     }
 
-    send_buffer_ptr= static_cast<char *>(const_cast<void *>(packet_arg->data)) + send_data_offset;
+    send_buffer_ptr= static_cast<char *>(const_cast<void *>(packet_arg.data)) + send_data_offset;
     send_state= GEARMAN_CON_SEND_UNIVERSAL_FLUSH_DATA;
 
   case GEARMAN_CON_SEND_UNIVERSAL_FLUSH:

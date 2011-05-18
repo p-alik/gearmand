@@ -193,45 +193,45 @@ gearman_return_t gearman_packet_create_arg(gearman_packet_st& self,
 }
 
 gearman_return_t gearman_packet_create_args(gearman_universal_st& universal,
-                                            gearman_packet_st *packet,
+                                            gearman_packet_st& packet,
                                             enum gearman_magic_t magic,
                                             gearman_command_t command,
                                             const void *args[],
                                             const size_t args_size[],
                                             size_t args_count)
 {
-  packet= gearman_packet_create(universal, packet);
-  if (not packet)
+  if (not gearman_packet_create(universal, &packet))
   {
+    gearman_perror(universal, "failed in gearman_packet_create()");
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
 
-  packet->magic= magic;
-  packet->command= command;
+  packet.magic= magic;
+  packet.command= command;
 
-  if (gearman_command_info(packet->command)->data)
+  if (gearman_command_info(packet.command)->data)
   {
-    assert(args_count -1 == gearman_command_info(packet->command)->argc);
+    assert(args_count -1 == gearman_command_info(packet.command)->argc);
   }
   else
   {
-    assert(args_count == gearman_command_info(packet->command)->argc);
+    assert(args_count == gearman_command_info(packet.command)->argc);
   }
 
   for (size_t x= 0; x < args_count; x++)
   {
-    gearman_return_t ret= packet_create_arg(packet, args[x], args_size[x]);
+    gearman_return_t ret= packet_create_arg(&packet, args[x], args_size[x]);
     if (gearman_failed(ret))
     {
-      gearman_packet_free(packet);
+      gearman_packet_free(&packet);
       return ret;
     }
   }
 
-  gearman_return_t ret= gearman_packet_pack_header(packet);
+  gearman_return_t ret= gearman_packet_pack_header(&packet);
   if (gearman_failed(ret))
   {
-    gearman_packet_free(packet);
+    gearman_packet_free(&packet);
     return ret;
   }
 

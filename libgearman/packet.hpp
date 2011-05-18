@@ -67,7 +67,7 @@ void gearman_packet_free(gearman_packet_st*);
 
 GEARMAN_LOCAL
 gearman_return_t gearman_packet_create_args(gearman_universal_st&,
-                                            gearman_packet_st *packet,
+                                            gearman_packet_st& packet,
                                             enum gearman_magic_t magic,
                                             gearman_command_t command,
                                             const void *args[],

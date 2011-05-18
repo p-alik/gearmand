@@ -474,7 +474,7 @@ static inline gearman_return_t _worker_unregister(gearman_worker_st *worker,
 
   args[0]= function->name();
   args_size[0]= function->length();
-  ret= gearman_packet_create_args(worker->universal, &(function->packet),
+  ret= gearman_packet_create_args(worker->universal, function->packet,
                                   GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_CANT_DO,
                                   args, args_size, 1);
   if (gearman_failed(ret))
@@ -519,7 +519,7 @@ gearman_return_t gearman_worker_unregister_all(gearman_worker_st *worker)
   gearman_packet_free(&(worker->function_list->packet));
 
   gearman_return_t ret= gearman_packet_create_args(worker->universal,
-						   &(worker->function_list->packet),
+						   worker->function_list->packet,
 						   GEARMAN_MAGIC_REQUEST,
 						   GEARMAN_COMMAND_RESET_ABILITIES,
 						   NULL, NULL, 0);
@@ -576,7 +576,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
               continue;
 
     case GEARMAN_WORKER_STATE_FUNCTION_SEND:
-            *ret_ptr= worker->con->send(&(worker->function->packet), true);
+            *ret_ptr= worker->con->send(worker->function->packet, true);
             if (gearman_failed(*ret_ptr))
             {
               if (*ret_ptr == GEARMAN_IO_WAIT)
@@ -629,7 +629,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
                worker->function= worker->function->next)
           {
     case GEARMAN_WORKER_STATE_CONNECT:
-            *ret_ptr= worker->con->send(&(worker->function->packet), true);
+            *ret_ptr= worker->con->send(worker->function->packet, true);
             if (gearman_failed(*ret_ptr))
             {
               if (*ret_ptr == GEARMAN_IO_WAIT)
@@ -653,7 +653,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
         if (worker->con->fd == -1)
           continue;
 
-        *ret_ptr= worker->con->send(&(worker->grab_job), true);
+        *ret_ptr= worker->con->send(worker->grab_job, true);
         if (gearman_failed(*ret_ptr))
         {
           if (*ret_ptr == GEARMAN_IO_WAIT)
@@ -745,7 +745,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
         if (worker->con->fd == -1)
           continue;
 
-        *ret_ptr= worker->con->send(&(worker->pre_sleep), true);
+        *ret_ptr= worker->con->send(worker->pre_sleep, true);
         if (gearman_failed(*ret_ptr))
         {
           if (*ret_ptr == GEARMAN_IO_WAIT)
@@ -1067,13 +1067,13 @@ static gearman_worker_st *_worker_allocate(gearman_worker_st *worker, bool is_cl
 
 static gearman_return_t _worker_packet_init(gearman_worker_st *worker)
 {
-  gearman_return_t ret= gearman_packet_create_args(worker->universal, &(worker->grab_job),
+  gearman_return_t ret= gearman_packet_create_args(worker->universal, worker->grab_job,
 						   GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_GRAB_JOB,
 						   NULL, NULL, 0);
   if (gearman_failed(ret))
     return ret;
 
-  ret= gearman_packet_create_args(worker->universal, &(worker->pre_sleep),
+  ret= gearman_packet_create_args(worker->universal, worker->pre_sleep,
 				  GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_PRE_SLEEP,
 				  NULL, NULL, 0);
   if (gearman_failed(ret))
@@ -1125,7 +1125,7 @@ static gearman_return_t _worker_function_create(gearman_worker_st *worker,
     args_size[0]= function->length() + 1;
     args[1]= timeout_buffer;
     args_size[1]= strlen(timeout_buffer);
-    ret= gearman_packet_create_args(worker->universal, &(function->packet),
+    ret= gearman_packet_create_args(worker->universal, function->packet,
                                     GEARMAN_MAGIC_REQUEST,
                                     GEARMAN_COMMAND_CAN_DO_TIMEOUT,
                                     args, args_size, 2);
@@ -1134,7 +1134,7 @@ static gearman_return_t _worker_function_create(gearman_worker_st *worker,
   {
     args[0]= function->name();
     args_size[0]= function->length();
-    ret= gearman_packet_create_args(worker->universal, &(function->packet),
+    ret= gearman_packet_create_args(worker->universal, function->packet,
 				    GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_CAN_DO,
 				    args, args_size, 1);
   }

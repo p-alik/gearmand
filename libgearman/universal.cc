@@ -294,7 +294,7 @@ gearman_return_t gearman_echo(gearman_universal_st& universal,
     return GEARMAN_INVALID_ARGUMENT;
   }
 
-  gearman_return_t ret= gearman_packet_create_args(universal, &packet, GEARMAN_MAGIC_REQUEST,
+  gearman_return_t ret= gearman_packet_create_args(universal, packet, GEARMAN_MAGIC_REQUEST,
                                                    GEARMAN_COMMAND_ECHO_REQ,
                                                    &workload, &workload_size, 1);
   if (gearman_failed(ret))
@@ -308,7 +308,7 @@ gearman_return_t gearman_echo(gearman_universal_st& universal,
   {
     gearman_packet_st *packet_ptr;
 
-    ret= con->send(&packet, true);
+    ret= con->send(packet, true);
     if (gearman_failed(ret))
     {
       goto exit;
@@ -355,7 +355,7 @@ bool gearman_request_option(gearman_universal_st &universal,
   size_t args_size[]= { gearman_size(option) };
 
   gearman_return_t ret;
-  ret= gearman_packet_create_args(universal, &packet, GEARMAN_MAGIC_REQUEST,
+  ret= gearman_packet_create_args(universal, packet, GEARMAN_MAGIC_REQUEST,
                                   GEARMAN_COMMAND_OPTION_REQ,
                                   args, args_size, 1);
   if (gearman_failed(ret))
@@ -370,7 +370,7 @@ bool gearman_request_option(gearman_universal_st &universal,
   {
     gearman_packet_st *packet_ptr;
 
-    ret= con->send(&packet, true);
+    ret= con->send(packet, true);
     if (gearman_failed(ret))
     {
       gearman_packet_free(&(con->_packet));
