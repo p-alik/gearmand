@@ -149,7 +149,7 @@ void gearman_set_workload_free_fn(gearman_universal_st *universal,
 void gearman_free_all_cons(gearman_universal_st *universal)
 {
   while (universal->con_list)
-    gearman_connection_free(universal->con_list);
+    delete universal->con_list;
 }
 
 gearman_return_t gearman_flush_all(gearman_universal_st *universal)
@@ -234,9 +234,7 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
     if (con->events == 0)
       continue;
 
-    gearman_return_t gret= gearman_connection_set_revents(con, pfds[x].revents);
-    if (gearman_failed(gret))
-      return gret;
+    con->set_revents(pfds[x].revents);
 
     x++;
   }

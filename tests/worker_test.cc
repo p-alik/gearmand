@@ -392,8 +392,8 @@ static test_return_t abandoned_worker_test(void *)
   worker2->recv(packet, ret, false);
   test_truth(not (ret != GEARMAN_SUCCESS || packet.command != GEARMAN_COMMAND_ERROR));
 
-  gearman_connection_free(worker1);
-  gearman_connection_free(worker2);
+  delete worker1;
+  delete worker2;
   gearman_packet_free(&packet);
   gearman_universal_free(universal);
 

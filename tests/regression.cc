@@ -116,7 +116,7 @@ static test_return_t bug372074_test(void *)
 
     gearman_packet_free(&packet);
 
-    gearman_connection_free(con_ptr);
+    delete con_ptr;
 
     test_truth(con_ptr= gearman_connection_create(universal, NULL));
 
@@ -160,7 +160,7 @@ static test_return_t bug372074_test(void *)
 
     gearman_packet_free(&packet);
 
-    gearman_connection_free(con_ptr);
+    delete con_ptr;
   }
 
   gearman_universal_free(universal);

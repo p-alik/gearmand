@@ -541,6 +541,10 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
 {
   struct _worker_function_st *function;
   uint32_t active;
+  gearman_return_t unused;
+
+  if (not ret_ptr)
+    ret_ptr= &unused;
 
   while (1)
   {
@@ -761,12 +765,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
         if (worker->con->fd == -1)
           continue;
 
-        *ret_ptr= gearman_connection_set_events(worker->con, POLLIN);
-        if (gearman_failed(*ret_ptr))
-	{
-          return NULL;
-	}
-
+        worker->con->set_events(POLLIN);
         active++;
       }
 
@@ -1031,6 +1030,7 @@ static gearman_worker_st *_worker_allocate(gearman_worker_st *worker, bool is_cl
   worker->options.packet_init= false;
   worker->options.change= false;
   worker->options.grab_uniq= false;
+  worker->options.grab_all= false;
   worker->options.timeout_return= false;
 
   worker->state= GEARMAN_WORKER_STATE_START;

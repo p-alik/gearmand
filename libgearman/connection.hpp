@@ -81,6 +81,8 @@ struct gearman_connection_st
   gearman_connection_st(gearman_universal_st &universal_arg,
                         gearman_connection_options_t *options);
 
+  ~gearman_connection_st();
+
   void set_host( const char *host, const in_port_t port);
 
   gearman_return_t send(const gearman_packet_st *packet, const bool flush_buffer);
@@ -96,6 +98,17 @@ struct gearman_connection_st
 
   // Receive packet data from a connection.
   size_t recv(void *data, size_t data_size, gearman_return_t&);
+
+  size_t read(void *data, size_t data_size, gearman_return_t&);
+
+  // Set events to be watched for a connection.
+  void set_events(short events);
+
+ // Set events that are ready for a connection. This is used with the
+ // external event callbacks.
+  void set_revents(short revents);
+
+  void reset_addrinfo();
 };
 
 /**

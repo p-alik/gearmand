@@ -254,7 +254,7 @@ static test_return_t connection_init_test(void *)
   test_false(connection_ptr->options.ignore_lost_connection);
   test_false(connection_ptr->options.close_after_flush);
 
-  gearman_connection_free(connection_ptr);
+  delete connection_ptr;
 
   return TEST_SUCCESS;
 }
@@ -274,7 +274,7 @@ static test_return_t connection_alloc_test(void *)
   test_false(connection_ptr->options.ignore_lost_connection);
   test_false(connection_ptr->options.close_after_flush);
 
-  gearman_connection_free(connection_ptr);
+  delete connection_ptr;
 
   return TEST_SUCCESS;
 }

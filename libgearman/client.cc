@@ -1472,7 +1472,8 @@ static gearman_return_t _client_run_task(gearman_client_st *client, gearman_task
 
     client->options.no_new= false;
     task->state= GEARMAN_TASK_STATE_WORK;
-    return gearman_connection_set_events(task->con, POLLIN);
+    task->con->set_events(POLLIN);
+    return GEARMAN_SUCCESS;
 
   case GEARMAN_TASK_STATE_WORK:
     if (task->recv->command == GEARMAN_COMMAND_JOB_CREATED)
