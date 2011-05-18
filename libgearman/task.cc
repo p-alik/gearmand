@@ -44,7 +44,7 @@
 #include <libgearman/common.h>
 #include <libgearman/universal.hpp>
 #include <libgearman/connection.h>
-#include <libgearman/packet.h>
+#include <libgearman/packet.hpp>
 
 #include <cerrno>
 #include <cassert>

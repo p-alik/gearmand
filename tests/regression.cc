@@ -44,14 +44,15 @@
 # undef NDEBUG
 #endif
 
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cassert>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #define GEARMAN_CORE
 
 #include <libgearman/common.h>
+#include <libgearman/packet.hpp>
 #include <libgearman/universal.hpp>
 
 #include <libtest/test.h>
@@ -91,12 +92,9 @@ static test_return_t bug372074_test(void *)
 
     args[0]= "testUnregisterFunction";
     args_size[0]= strlen("testUnregisterFunction");
-    if (gearman_packet_create_args(&universal, &packet, GEARMAN_MAGIC_REQUEST,
-                                   GEARMAN_COMMAND_SET_CLIENT_ID,
-                                   args, args_size, 1) != GEARMAN_SUCCESS)
-    {
-      return TEST_FAILURE;
-    }
+    test_truth(gearman_success(gearman_packet_create_args(universal, &packet, GEARMAN_MAGIC_REQUEST,
+                                                          GEARMAN_COMMAND_SET_CLIENT_ID,
+                                                          args, args_size, 1)));
 
     if (gearman_connection_send(&con, &packet, true) != GEARMAN_SUCCESS)
       return TEST_FAILURE;
@@ -105,24 +103,16 @@ static test_return_t bug372074_test(void *)
 
     args[0]= "reverse";
     args_size[0]= strlen("reverse");
-    if (gearman_packet_create_args(&universal, &packet, GEARMAN_MAGIC_REQUEST,
-                                   GEARMAN_COMMAND_CAN_DO,
-                                   args, args_size, 1) != GEARMAN_SUCCESS)
-    {
-      return TEST_FAILURE;
-    }
+    test_truth(gearman_success(gearman_packet_create_args(universal, &packet, GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_CAN_DO,
+                                                          args, args_size, 1)));
 
-    if (gearman_connection_send(&con, &packet, true) != GEARMAN_SUCCESS)
-      return TEST_FAILURE;
+    test_truth(gearman_success(gearman_connection_send(&con, &packet, true)));
 
     gearman_packet_free(&packet);
 
-    if (gearman_packet_create_args(&universal, &packet, GEARMAN_MAGIC_REQUEST,
-                                   GEARMAN_COMMAND_CANT_DO,
-                                   args, args_size, 1) != GEARMAN_SUCCESS)
-    {
-      return TEST_FAILURE;
-    }
+    test_truth(gearman_success(gearman_packet_create_args(universal, &packet, GEARMAN_MAGIC_REQUEST,
+                                                          GEARMAN_COMMAND_CANT_DO,
+                                                          args, args_size, 1)));
 
     test_truth(gearman_success(gearman_connection_send(&con, &packet, true)));
 
@@ -136,7 +126,7 @@ static test_return_t bug372074_test(void *)
 
     args[0]= "testUnregisterFunction";
     args_size[0]= strlen("testUnregisterFunction");
-    if (gearman_packet_create_args(&universal, &packet, GEARMAN_MAGIC_REQUEST,
+    if (gearman_packet_create_args(universal, &packet, GEARMAN_MAGIC_REQUEST,
                                    GEARMAN_COMMAND_SET_CLIENT_ID,
                                    args, args_size, 1) != GEARMAN_SUCCESS)
     {
@@ -150,7 +140,7 @@ static test_return_t bug372074_test(void *)
 
     args[0]= "digest";
     args_size[0]= strlen("digest");
-    if (gearman_packet_create_args(&universal, &packet, GEARMAN_MAGIC_REQUEST,
+    if (gearman_packet_create_args(universal, &packet, GEARMAN_MAGIC_REQUEST,
                                    GEARMAN_COMMAND_CAN_DO,
                                    args, args_size, 1) != GEARMAN_SUCCESS)
     {
@@ -164,7 +154,7 @@ static test_return_t bug372074_test(void *)
 
     args[0]= "reverse";
     args_size[0]= strlen("reverse");
-    if (gearman_packet_create_args(&universal, &packet, GEARMAN_MAGIC_REQUEST,
+    if (gearman_packet_create_args(universal, &packet, GEARMAN_MAGIC_REQUEST,
                                    GEARMAN_COMMAND_CAN_DO,
                                    args, args_size, 1) != GEARMAN_SUCCESS)
     {
@@ -176,7 +166,7 @@ static test_return_t bug372074_test(void *)
 
     gearman_packet_free(&packet);
 
-    if (gearman_packet_create_args(&universal, &packet, GEARMAN_MAGIC_REQUEST,
+    if (gearman_packet_create_args(universal, &packet, GEARMAN_MAGIC_REQUEST,
                                    GEARMAN_COMMAND_RESET_ABILITIES,
                                    NULL, NULL, 0) != GEARMAN_SUCCESS)
     {

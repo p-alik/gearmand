@@ -38,5 +38,38 @@
 
 #pragma once
 
+#include <libgearman/packet.h>
+
 GEARMAN_LOCAL
-gearman_packet_st *gearman_packet_create(gearman_universal_st &, gearman_packet_st *packet);
+gearman_packet_st *gearman_packet_create(gearman_universal_st&, gearman_packet_st *packet);
+
+GEARMAN_LOCAL
+void gearman_packet_free(gearman_packet_st*);
+
+/**
+ * Initialize a packet with all arguments. For example:
+ *
+ * void *args[3];
+ * size_t args_suze[3];
+ *
+ * args[0]= function_name;
+ * args_size[0]= strlen(function_name) + 1;
+ * args[1]= unique_string;
+ * args_size[1]= strlen(unique_string,) + 1;
+ * args[2]= workload;
+ * args_size[2]= workload_size;
+ *
+ * ret= gearman_packet_create_args(gearman, packet,
+ *                              GEARMAN_MAGIC_REQUEST,
+ *                              GEARMAN_COMMAND_SUBMIT_JOB,
+ *                              args, args_size, 3);
+ */
+
+GEARMAN_LOCAL
+gearman_return_t gearman_packet_create_args(gearman_universal_st&,
+                                            gearman_packet_st *packet,
+                                            enum gearman_magic_t magic,
+                                            gearman_command_t command,
+                                            const void *args[],
+                                            const size_t args_size[],
+                                            size_t args_count);

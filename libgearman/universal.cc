@@ -13,6 +13,7 @@
 
 #include <libgearman/common.h>
 #include <libgearman/connection.h>
+#include <libgearman/packet.hpp>
 #include <libgearman/universal.hpp>
 
 #include <cassert>
@@ -288,7 +289,7 @@ gearman_return_t gearman_echo(gearman_universal_st *universal,
   gearman_return_t ret;
   bool orig_block_universal;
 
-  ret= gearman_packet_create_args(universal, &packet, GEARMAN_MAGIC_REQUEST,
+  ret= gearman_packet_create_args(*universal, &packet, GEARMAN_MAGIC_REQUEST,
                                   GEARMAN_COMMAND_ECHO_REQ,
                                   &workload, &workload_size, 1);
   if (gearman_failed(ret))
@@ -349,7 +350,7 @@ bool gearman_request_option(gearman_universal_st &universal,
   const void *args[]= { gearman_c_str(option) };
   size_t args_size[]= { gearman_size(option) };
 
-  ret= gearman_packet_create_args(&universal, &packet, GEARMAN_MAGIC_REQUEST,
+  ret= gearman_packet_create_args(universal, &packet, GEARMAN_MAGIC_REQUEST,
                                   GEARMAN_COMMAND_OPTION_REQ,
                                   args, args_size, 1);
   if (gearman_failed(ret))

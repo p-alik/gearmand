@@ -192,7 +192,7 @@ gearman_return_t gearman_packet_create_arg(gearman_packet_st *packet,
   return packet_create_arg(packet, arg, arg_size);
 }
 
-gearman_return_t gearman_packet_create_args(gearman_universal_st *gearman,
+gearman_return_t gearman_packet_create_args(gearman_universal_st& universal,
                                             gearman_packet_st *packet,
                                             enum gearman_magic_t magic,
                                             gearman_command_t command,
@@ -200,7 +200,7 @@ gearman_return_t gearman_packet_create_args(gearman_universal_st *gearman,
                                             const size_t args_size[],
                                             size_t args_count)
 {
-  packet= gearman_packet_create(*gearman, packet);
+  packet= gearman_packet_create(universal, packet);
   if (not packet)
   {
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;

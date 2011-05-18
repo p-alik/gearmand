@@ -46,6 +46,7 @@
 
 #include <libgearman/add.h>
 #include <libgearman/connection.h>
+#include <libgearman/packet.hpp>
 
 #include <cassert>
 #include <cerrno>
@@ -969,11 +970,10 @@ gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
 
   args[0]= job_handle;
   args_size[0]= strlen(job_handle);
-  gearman_return_t rc;
-  rc= gearman_packet_create_args(&client->universal, &(task->send),
-                                 GEARMAN_MAGIC_REQUEST,
-                                 GEARMAN_COMMAND_GET_STATUS,
-                                 args, args_size, 1);
+  gearman_return_t rc= gearman_packet_create_args(client->universal, &(task->send),
+                                                  GEARMAN_MAGIC_REQUEST,
+                                                  GEARMAN_COMMAND_GET_STATUS,
+                                                  args, args_size, 1);
   if (gearman_success(rc))
   {
     client->new_tasks++;
