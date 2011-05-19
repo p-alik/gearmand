@@ -60,7 +60,8 @@ gearman_task_st *add_task(gearman_client_st *client,
                           const char *unique,
                           const void *workload_str, size_t workload_size,
                           time_t when,
-                          gearman_return_t *ret_ptr);
+                          gearman_return_t *ret_ptr,
+                          struct gearman_actions_t &actions);
 
 gearman_task_st *add_task(gearman_client_st *client,
                           gearman_task_st *task,
@@ -69,7 +70,8 @@ gearman_task_st *add_task(gearman_client_st *client,
                           const gearman_string_t &function,
                           const gearman_unique_t &unique,
                           const gearman_string_t &workload,
-                          time_t when);
+                          time_t when,
+                          struct gearman_actions_t &actions);
 
 gearman_task_st *add_task(gearman_client_st *client,
                           gearman_command_t command,

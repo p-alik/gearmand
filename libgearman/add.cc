@@ -63,11 +63,9 @@ gearman_task_st *add_task(gearman_client_st *client,
                           time_t when,
                           struct gearman_actions_t &actions)
 {
-  gearman_task_st *task= add_task(client, NULL, context, command, function, unique, workload, when);
+  gearman_task_st *task= add_task(client, NULL, context, command, function, unique, workload, when, actions);
   if (not task)
     return NULL;
-
-  task->func= actions;
 
   return task;
 }
@@ -80,28 +78,31 @@ gearman_task_st *add_task(gearman_client_st *client,
                           const char *unique,
                           const void *workload_str, size_t workload_size,
                           time_t when,
-                          gearman_return_t *ret_ptr)
+                          gearman_return_t *ret_ptr,
+                          struct gearman_actions_t &actions)
 {
-  if (not client)
-  {
-    errno= EINVAL;
-    return NULL;
-  }
-
   gearman_return_t unused;
   if (not ret_ptr)
     ret_ptr= &unused;
+
+  if (not client)
+  {
+    *ret_ptr= GEARMAN_ERRNO;
+    errno= EINVAL;
+    return NULL;
+  }
 
   gearman_string_t function= { gearman_string_make_from_cstr(function_name) };
   gearman_unique_t local_unique= gearman_unique_make(unique, unique ? strlen(unique) : 0);
   gearman_string_t workload= { static_cast<const char *>(workload_str), workload_size };
 
-  task= add_task(client, task, context, command, function, local_unique, workload, when);
+  task= add_task(client, task, context, command, function, local_unique, workload, when, actions);
   if (not task)
   {
     *ret_ptr= gearman_universal_error_code(client->universal);
     return NULL;
   }
+
   *ret_ptr= GEARMAN_SUCCESS;
 
   return task;
@@ -114,7 +115,8 @@ gearman_task_st *add_task(gearman_client_st *client,
                           const gearman_string_t &function,
                           const gearman_unique_t &unique,
                           const gearman_string_t &workload,
-                          time_t when)
+                          time_t when,
+                          struct gearman_actions_t &actions)
 {
   uuid_t uuid;
   char uuid_string[37];
@@ -135,6 +137,7 @@ gearman_task_st *add_task(gearman_client_st *client,
   }
 
   task->context= context;
+  task->func= actions;
 
   /**
     @todo fix it so that NULL is done by default by the API not by happenstance.

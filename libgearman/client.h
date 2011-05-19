@@ -352,7 +352,7 @@ void *gearman_client_do_low(gearman_client_st *client,
  *  handle.
  */
 GEARMAN_API
-const char *gearman_client_do_job_handle(const gearman_client_st *client);
+const char *gearman_client_do_job_handle(gearman_client_st *client);
 
 // Deprecatd 
 GEARMAN_API
