@@ -76,6 +76,41 @@ gearman_task_st *add_task(gearman_client_st *client,
                           gearman_task_st *task,
                           void *context,
                           gearman_command_t command,
+                          const char *function_name,
+                          const char *unique,
+                          const void *workload_str, size_t workload_size,
+                          time_t when,
+                          gearman_return_t *ret_ptr)
+{
+  if (not client)
+  {
+    errno= EINVAL;
+    return NULL;
+  }
+
+  gearman_return_t unused;
+  if (not ret_ptr)
+    ret_ptr= &unused;
+
+  gearman_string_t function= { gearman_string_make_from_cstr(function_name) };
+  gearman_unique_t local_unique= gearman_unique_make(unique, unique ? strlen(unique) : 0);
+  gearman_string_t workload= { static_cast<const char *>(workload_str), workload_size };
+
+  task= add_task(client, task, context, command, function, local_unique, workload, when);
+  if (not task)
+  {
+    *ret_ptr= gearman_universal_error_code(client->universal);
+    return NULL;
+  }
+  *ret_ptr= GEARMAN_SUCCESS;
+
+  return task;
+}
+
+gearman_task_st *add_task(gearman_client_st *client,
+                          gearman_task_st *task,
+                          void *context,
+                          gearman_command_t command,
                           const gearman_string_t &function,
                           const gearman_unique_t &unique,
                           const gearman_string_t &workload,
@@ -152,15 +187,14 @@ gearman_task_st *add_task(gearman_client_st *client,
     client->new_tasks++;
     client->running_tasks++;
     task->options.send_in_use= true;
-  }
-  else
-  {
-    gearman_task_free(task);
-    task= NULL;
-    gearman_error(client->universal, rc, "");
+
+    return task;
   }
 
-  return task;
+  gearman_task_free(task);
+  gearman_error(client->universal, rc, "");
+
+  return NULL;
 }
 
 gearman_task_st *add_task(gearman_client_st *client,
