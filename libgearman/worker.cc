@@ -399,14 +399,20 @@ void gearman_worker_set_workload_malloc_fn(gearman_worker_st *worker,
                                            gearman_malloc_fn *function,
                                            void *context)
 {
-  gearman_set_workload_malloc_fn((&worker->universal), function, context);
+  if (not worker)
+    return;
+
+  gearman_set_workload_malloc_fn(worker->universal, function, context);
 }
 
 void gearman_worker_set_workload_free_fn(gearman_worker_st *worker,
                                          gearman_free_fn *function,
                                          void *context)
 {
-  gearman_set_workload_free_fn((&worker->universal), function, context);
+  if (not worker)
+    return;
+
+  gearman_set_workload_free_fn(worker->universal, function, context);
 }
 
 gearman_return_t gearman_worker_add_server(gearman_worker_st *worker,
@@ -613,7 +619,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
 
       if (worker->function_list == NULL)
       {
-        gearman_error((&worker->universal), GEARMAN_NO_REGISTERED_FUNCTIONS, "no functions have been registered");
+        gearman_error(worker->universal, GEARMAN_NO_REGISTERED_FUNCTIONS, "no functions have been registered");
         *ret_ptr= GEARMAN_NO_REGISTERED_FUNCTIONS;
         return NULL;
       }
@@ -723,8 +729,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
 
           if (worker->job->assigned.command != GEARMAN_COMMAND_NOOP)
           {
-            gearman_universal_set_error((&worker->universal), GEARMAN_UNEXPECTED_PACKET,
-					"gearman_worker_grab_job",
+            gearman_universal_set_error(worker->universal, GEARMAN_UNEXPECTED_PACKET, AT,
 					"unexpected packet:%s",
 					gearman_command_info(worker->job->assigned.command)->name);
             gearman_packet_free(&(worker->job->assigned));
@@ -796,7 +801,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
 
           if (worker->options.timeout_return)
           {
-            gearman_error((&worker->universal), GEARMAN_TIMEOUT, "Option timeout return reached");
+            gearman_error(worker->universal, GEARMAN_TIMEOUT, "Option timeout return reached");
             *ret_ptr= GEARMAN_TIMEOUT;
 
             return NULL;
@@ -842,7 +847,7 @@ gearman_return_t gearman_worker_add_map_function(gearman_worker_st *worker,
 {
   if (not function_name)
   {
-    gearman_universal_set_error((&worker->universal), GEARMAN_INVALID_ARGUMENT, AT,
+    gearman_universal_set_error(worker->universal, GEARMAN_INVALID_ARGUMENT, AT,
 				"function name not given");
 
     return GEARMAN_INVALID_ARGUMENT;
@@ -850,7 +855,7 @@ gearman_return_t gearman_worker_add_map_function(gearman_worker_st *worker,
 
   if (not mapper_fn)
   {
-    gearman_universal_set_error((&worker->universal), GEARMAN_INVALID_ARGUMENT, AT,
+    gearman_universal_set_error(worker->universal, GEARMAN_INVALID_ARGUMENT, AT,
 				"function not given");
 
     return GEARMAN_INVALID_ARGUMENT;
@@ -894,7 +899,7 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
       {
 	gearman_job_free(worker->work_job);
         worker->work_job= NULL;
-	gearman_universal_set_error((&worker->universal), GEARMAN_INVALID_FUNCTION_NAME, AT, "function not found");
+	gearman_universal_set_error(worker->universal, GEARMAN_INVALID_FUNCTION_NAME, AT, "function not found");
 	return GEARMAN_INVALID_FUNCTION_NAME;
       }
 
@@ -902,7 +907,7 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
       {
 	gearman_job_free(worker->work_job);
         worker->work_job= NULL;
-	gearman_universal_set_error((&worker->universal), GEARMAN_INVALID_FUNCTION_NAME, AT, "no callback function supplied");
+	gearman_universal_set_error(worker->universal, GEARMAN_INVALID_FUNCTION_NAME, AT, "no callback function supplied");
 	return GEARMAN_INVALID_FUNCTION_NAME;
       }
 

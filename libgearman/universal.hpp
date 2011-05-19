@@ -38,6 +38,14 @@
 
 #pragma once
 
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+#define AT __FILE__ ":" TOSTRING(__LINE__)
+
+#define gearman_perror(A, B) do { gearman_universal_set_perror(AT, (A), (B)); } while (0)
+#define gearman_error(A, B, C) do { gearman_universal_set_error((A), (B), AT, (C)); } while (0)
+#define gearman_gerror(A, B) do { gearman_universal_set_error((A), (B), AT, " "); } while (0)
+
 GEARMAN_LOCAL
 void gearman_universal_set_perror(const char *position, gearman_universal_st &universal, const char *message);
 
@@ -77,6 +85,40 @@ int gearman_universal_timeout(gearman_universal_st &self);
 // Flush the send buffer for all connections.
 GEARMAN_LOCAL
 gearman_return_t gearman_flush_all(gearman_universal_st&);
+
+/**
+ * Set the error string.
+ *
+ * @param[in] gearman Structure previously initialized with gearman_universal_create() or
+ *  gearman_clone().
+ * @param[in] function Name of function the error happened in.
+ * @param[in] format Format and variable argument list of message.
+ */
+GEARMAN_LOCAL
+void gearman_universal_set_error(gearman_universal_st &,
+                                 gearman_return_t rc,
+                                 const char *function,
+                                 const char *format, ...);
+
+/**
+ * Set custom memory allocation function for workloads. Normally gearman uses
+ * the standard system malloc to allocate memory used with workloads. The
+ * provided function will be used instead.
+ */
+GEARMAN_LOCAL
+void gearman_set_workload_malloc_fn(gearman_universal_st&,
+                                    gearman_malloc_fn *function,
+                                    void *context);
+
+/**
+ * Set custom memory free function for workloads. Normally gearman uses the
+ * standard system free to free memory used with workloads. The provided
+ * function will be used instead.
+ */
+GEARMAN_LOCAL
+void gearman_set_workload_free_fn(gearman_universal_st&,
+                                  gearman_free_fn *function,
+                                  void *context);
 
 
 // Free all connections for a gearman structure.

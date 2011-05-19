@@ -37,6 +37,7 @@
  */
 
 #include <libgearman/common.h>
+#include <libgearman/universal.hpp>
 
 #include <libgearman/add.h>
 #include <libgearman/connection.h>
@@ -87,14 +88,14 @@ gearman_task_st *add_task(gearman_client_st *client,
 
   if ((gearman_size(workload) && gearman_c_str(workload) == NULL) or (gearman_size(workload) == 0 && gearman_c_str(workload)))
   {
-    gearman_error(&client->universal, GEARMAN_INVALID_ARGUMENT, "invalid workload");
+    gearman_error(client->universal, GEARMAN_INVALID_ARGUMENT, "invalid workload");
     return NULL;
   }
 
   task= gearman_task_internal_create(client, task);
-  if (task == NULL)
+  if (not task)
   {
-    gearman_error(&client->universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "");
+    gearman_error(client->universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "");
     return NULL;
   }
 
@@ -156,7 +157,7 @@ gearman_task_st *add_task(gearman_client_st *client,
   {
     gearman_task_free(task);
     task= NULL;
-    gearman_error((&client->universal), rc, "");
+    gearman_error(client->universal, rc, "");
   }
 
   return task;
@@ -180,14 +181,14 @@ gearman_task_st *add_task(gearman_client_st *client,
 
   if ((gearman_size(workload) && gearman_c_str(workload) == NULL) or (gearman_size(workload) == 0 && gearman_c_str(workload)))
   {
-    gearman_error(&client->universal, GEARMAN_INVALID_ARGUMENT, "invalid workload");
+    gearman_error(client->universal, GEARMAN_INVALID_ARGUMENT, "invalid workload");
     return NULL;
   }
 
   gearman_task_st *task= gearman_task_internal_create(client, NULL);
   if (not task)
   {
-    gearman_error(&client->universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "");
+    gearman_error(client->universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "");
     return NULL;
   }
 

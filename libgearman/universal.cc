@@ -130,20 +130,20 @@ void gearman_set_log_fn(gearman_universal_st &self, gearman_log_fn *function,
   self.verbose= verbose;
 }
 
-void gearman_set_workload_malloc_fn(gearman_universal_st *universal,
+void gearman_set_workload_malloc_fn(gearman_universal_st& universal,
                                     gearman_malloc_fn *function,
                                     void *context)
 {
-  universal->workload_malloc_fn= function;
-  universal->workload_malloc_context= context;
+  universal.workload_malloc_fn= function;
+  universal.workload_malloc_context= context;
 }
 
-void gearman_set_workload_free_fn(gearman_universal_st *universal,
+void gearman_set_workload_free_fn(gearman_universal_st& universal,
                                   gearman_free_fn *function,
                                   void *context)
 {
-  universal->workload_free_fn= function;
-  universal->workload_free_context= context;
+  universal.workload_free_fn= function;
+  universal.workload_free_context= context;
 }
 
 void gearman_free_all_cons(gearman_universal_st& universal)
@@ -202,7 +202,7 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
 
   if (x == 0)
   {
-    gearman_error(&universal, GEARMAN_NO_ACTIVE_FDS, "no active file descriptors");
+    gearman_error(universal, GEARMAN_NO_ACTIVE_FDS, "no active file descriptors");
     return GEARMAN_NO_ACTIVE_FDS;
   }
 
@@ -224,7 +224,7 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
 
   if (ret == 0)
   {
-    gearman_error(&universal, GEARMAN_TIMEOUT, "timeout reached");
+    gearman_error(universal, GEARMAN_TIMEOUT, "timeout reached");
     return GEARMAN_TIMEOUT;
   }
 
@@ -284,13 +284,13 @@ gearman_return_t gearman_echo(gearman_universal_st& universal,
 
   if (not workload)
   {
-    gearman_universal_set_error(&universal, GEARMAN_INVALID_ARGUMENT, AT, "workload was NULL");
+    gearman_universal_set_error(universal, GEARMAN_INVALID_ARGUMENT, AT, "workload was NULL");
     return GEARMAN_INVALID_ARGUMENT;
   }
 
   if (not workload_size)
   {
-    gearman_universal_set_error(&universal, GEARMAN_INVALID_ARGUMENT, AT, "workload_size was 0");
+    gearman_universal_set_error(universal, GEARMAN_INVALID_ARGUMENT, AT, "workload_size was 0");
     return GEARMAN_INVALID_ARGUMENT;
   }
 
@@ -326,7 +326,7 @@ gearman_return_t gearman_echo(gearman_universal_st& universal,
         memcmp(workload, con->_packet.data, workload_size))
     {
       gearman_packet_free(&(con->_packet));
-      gearman_error(&universal, GEARMAN_ECHO_DATA_CORRUPTION, "corruption during echo");
+      gearman_error(universal, GEARMAN_ECHO_DATA_CORRUPTION, "corruption during echo");
 
       ret= GEARMAN_ECHO_DATA_CORRUPTION;
       goto exit;
@@ -360,7 +360,7 @@ bool gearman_request_option(gearman_universal_st &universal,
                                   args, args_size, 1);
   if (gearman_failed(ret))
   {
-    gearman_error(&universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "gearman_packet_create_args()");
+    gearman_error(universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "gearman_packet_create_args()");
     return ret;
   }
 
@@ -389,7 +389,7 @@ bool gearman_request_option(gearman_universal_st &universal,
     if (packet_ptr->command == GEARMAN_COMMAND_ERROR)
     {
       gearman_packet_free(&(con->_packet));
-      gearman_error(&universal, GEARMAN_INVALID_ARGUMENT, "invalid server option");
+      gearman_error(universal, GEARMAN_INVALID_ARGUMENT, "invalid server option");
 
       ret= GEARMAN_INVALID_ARGUMENT;;
       goto exit;
@@ -417,7 +417,7 @@ void gearman_free_all_packets(gearman_universal_st &universal)
  * Local Definitions
  */
 
-void gearman_universal_set_error(gearman_universal_st *universal, 
+void gearman_universal_set_error(gearman_universal_st& universal, 
 				 gearman_return_t rc,
 				 const char *function,
                                  const char *format, ...)
@@ -427,10 +427,10 @@ void gearman_universal_set_error(gearman_universal_st *universal,
   char *ptr= log_buffer;
   va_list args;
 
-  universal->error.rc= rc;
+  universal.error.rc= rc;
   if (rc != GEARMAN_ERRNO)
   {
-    universal->error.last_errno= 0;
+    universal.error.last_errno= 0;
   }
 
   size= strlen(gearman_strerror(rc));
@@ -461,17 +461,17 @@ void gearman_universal_set_error(gearman_universal_st *universal,
   size+= size_t(vsnprintf(ptr, GEARMAN_MAX_ERROR_SIZE - size, format, args));
   va_end(args);
 
-  if (universal->log_fn == NULL)
+  if (universal.log_fn)
+  {
+    universal.log_fn(log_buffer, GEARMAN_VERBOSE_FATAL,
+                      static_cast<void *>(universal.log_context));
+  }
+  else
   {
     if (size >= GEARMAN_MAX_ERROR_SIZE)
       size= GEARMAN_MAX_ERROR_SIZE - 1;
 
-    memcpy(universal->error.last_error, log_buffer, size + 1);
-  }
-  else
-  {
-    universal->log_fn(log_buffer, GEARMAN_VERBOSE_FATAL,
-                      static_cast<void *>(universal->log_context));
+    memcpy(universal.error.last_error, log_buffer, size + 1);
   }
 }
 
@@ -494,5 +494,5 @@ void gearman_universal_set_perror(const char *position, gearman_universal_st &se
   char final[GEARMAN_MAX_ERROR_SIZE];
   snprintf(final, sizeof(final), "%s(%s)", message, errmsg_ptr);
 
-  gearman_universal_set_error(&self, GEARMAN_ERRNO, position, final);
+  gearman_universal_set_error(self, GEARMAN_ERRNO, position, final);
 }

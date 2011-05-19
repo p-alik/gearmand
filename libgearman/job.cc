@@ -161,9 +161,7 @@ gearman_job_st *gearman_job_create(gearman_worker_st *worker, gearman_job_st *jo
     job= new (std::nothrow) gearman_job_st;
     if (not job)
     {
-      gearman_universal_set_error((&worker->universal),
-                                  GEARMAN_MEMORY_ALLOCATION_FAILURE,
-                                  "_job_create", "malloc");
+      gearman_perror(worker->universal, "malloc");
       return NULL;
     }
 

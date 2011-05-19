@@ -298,7 +298,7 @@ gearman_return_t gearman_connection_st::send(const gearman_packet_st& packet_arg
   case GEARMAN_CON_SEND_STATE_NONE:
     if (not (packet_arg.options.complete))
     {
-      gearman_error(&universal, GEARMAN_INVALID_PACKET, "packet not complete");
+      gearman_error(universal, GEARMAN_INVALID_PACKET, "packet not complete");
       return GEARMAN_INVALID_PACKET;
     }
 
@@ -329,7 +329,7 @@ gearman_return_t gearman_connection_st::send(const gearman_packet_st& packet_arg
       /* We were asked to flush when the buffer is already flushed! */
       if (send_buffer_size == 0)
       {
-        gearman_universal_set_error(&universal, GEARMAN_SEND_BUFFER_TOO_SMALL, AT,
+        gearman_universal_set_error(universal, GEARMAN_SEND_BUFFER_TOO_SMALL, AT,
                                     "send buffer too small (%u)", GEARMAN_SEND_BUFFER_SIZE);
         return GEARMAN_SEND_BUFFER_TOO_SMALL;
       }
@@ -439,13 +439,13 @@ size_t gearman_connection_st::send(const void *data, size_t data_size, gearman_r
 {
   if (send_state != GEARMAN_CON_SEND_UNIVERSAL_FLUSH_DATA)
   {
-    gearman_error(&universal, GEARMAN_NOT_FLUSHING, "not flushing");
+    gearman_error(universal, GEARMAN_NOT_FLUSHING, "not flushing");
     return GEARMAN_NOT_FLUSHING;
   }
 
   if (data_size > (send_data_size - send_data_offset))
   {
-    gearman_error(&universal, GEARMAN_DATA_TOO_LARGE, "data too large");
+    gearman_error(universal, GEARMAN_DATA_TOO_LARGE, "data too large");
     return GEARMAN_DATA_TOO_LARGE;
   }
 
@@ -482,8 +482,7 @@ gearman_return_t gearman_connection_st::flush()
         int ret= getaddrinfo(host, port_str, &ai, &(addrinfo));
         if (ret)
         {
-          gearman_universal_set_error(&universal, GEARMAN_GETADDRINFO, AT, "getaddrinfo:%s",
-                                      gai_strerror(ret));
+          gearman_universal_set_error(universal, GEARMAN_GETADDRINFO, AT, "getaddrinfo:%s", gai_strerror(ret));
           return GEARMAN_GETADDRINFO;
         }
 
@@ -497,7 +496,7 @@ gearman_return_t gearman_connection_st::flush()
       if (addrinfo_next == NULL)
       {
         state= GEARMAN_CON_UNIVERSAL_ADDRINFO;
-        gearman_error(&universal, GEARMAN_COULD_NOT_CONNECT, "could not connect");
+        gearman_error(universal, GEARMAN_COULD_NOT_CONNECT, "could not connect");
         return GEARMAN_COULD_NOT_CONNECT;
       }
 
@@ -573,7 +572,7 @@ gearman_return_t gearman_connection_st::flush()
         if (gearman_universal_is_non_blocking(universal))
         {
           state= GEARMAN_CON_UNIVERSAL_CONNECTING;
-          gearman_gerror(&universal, GEARMAN_IO_WAIT);
+          gearman_gerror(universal, GEARMAN_IO_WAIT);
           return GEARMAN_IO_WAIT;
         }
 
@@ -636,7 +635,7 @@ gearman_return_t gearman_connection_st::flush()
         {
           if (not (options.ignore_lost_connection))
           {
-            gearman_error(&universal, GEARMAN_LOST_CONNECTION, "lost connection to server (EOF)");
+            gearman_error(universal, GEARMAN_LOST_CONNECTION, "lost connection to server (EOF)");
           }
           close();
           return GEARMAN_LOST_CONNECTION;
@@ -649,7 +648,7 @@ gearman_return_t gearman_connection_st::flush()
 
             if (gearman_universal_is_non_blocking(universal))
             {
-              gearman_gerror(&universal, GEARMAN_IO_WAIT);
+              gearman_gerror(universal, GEARMAN_IO_WAIT);
               return GEARMAN_IO_WAIT;
             }
 
@@ -713,7 +712,7 @@ gearman_packet_st *gearman_connection_st::recv(gearman_packet_st& packet_arg,
   case GEARMAN_CON_RECV_UNIVERSAL_NONE:
     if (state != GEARMAN_CON_UNIVERSAL_CONNECTED)
     {
-      gearman_error(&universal, GEARMAN_NOT_CONNECTED, "not connected");
+      gearman_error(universal, GEARMAN_NOT_CONNECTED, "not connected");
       ret= GEARMAN_NOT_CONNECTED;
       return NULL;
     }
@@ -876,7 +875,7 @@ size_t gearman_connection_st::read(void *data, size_t data_size, gearman_return_
     {
       if (not (options.ignore_lost_connection))
       {
-        gearman_error(&universal, GEARMAN_LOST_CONNECTION, "lost connection to server (EOF)");
+        gearman_error(universal, GEARMAN_LOST_CONNECTION, "lost connection to server (EOF)");
       }
       close();
       ret= GEARMAN_LOST_CONNECTION;
@@ -890,7 +889,7 @@ size_t gearman_connection_st::read(void *data, size_t data_size, gearman_return_
 
         if (gearman_universal_is_non_blocking(universal))
         {
-          gearman_gerror(&universal, GEARMAN_IO_WAIT);
+          gearman_gerror(universal, GEARMAN_IO_WAIT);
           ret= GEARMAN_IO_WAIT;
           return 0;
         }

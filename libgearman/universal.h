@@ -1,14 +1,39 @@
-/* Gearman server and library
- * Copyright (C) 2008 Brian Aker, Eric Day
- * All rights reserved.
+/*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
+ * 
+ *  Gearmand client and server library.
  *
- * Use and distribution licensed under the BSD license.  See
- * the COPYING file in the parent directory for full text.
- */
-
-/**
- * @file
- * @brief Gearman Declarations
+ *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2008 Brian Aker, Eric Day
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions are
+ *  met:
+ *
+ *      * Redistributions of source code must retain the above copyright
+ *  notice, this list of conditions and the following disclaimer.
+ *
+ *      * Redistributions in binary form must reproduce the above
+ *  copyright notice, this list of conditions and the following disclaimer
+ *  in the documentation and/or other materials provided with the
+ *  distribution.
+ *
+ *      * The names of its contributors may not be used to endorse or
+ *  promote products derived from this software without specific prior
+ *  written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ *  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ *  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ *  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ *  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ *  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ *  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
 #pragma once
@@ -51,69 +76,3 @@ struct gearman_universal_st
     char last_error[GEARMAN_MAX_ERROR_SIZE];
   } error;
 };
-
-#ifdef GEARMAN_CORE
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/**
- * Set the error string.
- *
- * @param[in] gearman Structure previously initialized with gearman_universal_create() or
- *  gearman_clone().
- * @param[in] function Name of function the error happened in.
- * @param[in] format Format and variable argument list of message.
- */
-GEARMAN_INTERNAL_API
-void gearman_universal_set_error(gearman_universal_st *gearman,
-				 gearman_return_t rc,
-				 const char *function,
-                                 const char *format, ...);
-
-#define STRINGIFY(x) #x
-#define TOSTRING(x) STRINGIFY(x)
-#define AT __FILE__ ":" TOSTRING(__LINE__)
-
-#define gearman_perror(A, B) do { gearman_universal_set_perror(AT, (A), (B)); } while (0)
-#define gearman_error(A, B, C) do { gearman_universal_set_error((A), (B), AT, (C)); } while (0)
-#define gearman_gerror(A, B) do { gearman_universal_set_error((A), (B), AT, " "); } while (0)
-
-/**
- * Set custom memory allocation function for workloads. Normally gearman uses
- * the standard system malloc to allocate memory used with workloads. The
- * provided function will be used instead.
- *
- * @param[in] gearman Structure previously initialized with gearman_universal_create() or
- *  gearman_clone().
- * @param[in] function Memory allocation function to use instead of malloc().
- * @param[in] context Argument to pass into the callback function.
- */
-GEARMAN_INTERNAL_API
-void gearman_set_workload_malloc_fn(gearman_universal_st *gearman,
-                                    gearman_malloc_fn *function,
-                                    void *context);
-
-/**
- * Set custom memory free function for workloads. Normally gearman uses the
- * standard system free to free memory used with workloads. The provided
- * function will be used instead.
- *
- * @param[in] gearman Structure previously initialized with gearman_universal_create() or
- *  gearman_clone().
- * @param[in] function Memory free function to use instead of free().
- * @param[in] context Argument to pass into the callback function.
- */
-GEARMAN_INTERNAL_API
-void gearman_set_workload_free_fn(gearman_universal_st *gearman,
-                                  gearman_free_fn *function,
-                                  void *context);
-
-/** @} */
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* GEARMAN_CORE */

@@ -255,6 +255,9 @@ void gearman_client_add_options(gearman_client_st *client,
 void gearman_client_remove_options(gearman_client_st *client,
                                    gearman_client_options_t options)
 {
+  if (not client)
+    return;
+
   if (options & GEARMAN_CLIENT_NON_BLOCKING)
   {
     gearman_universal_remove_options(client->universal, GEARMAN_NON_BLOCKING);
@@ -279,16 +282,25 @@ int gearman_client_timeout(gearman_client_st *client)
 
 void gearman_client_set_timeout(gearman_client_st *client, int timeout)
 {
+  if (not client)
+    return;
+
   gearman_universal_set_timeout(client->universal, timeout);
 }
 
 void *gearman_client_context(const gearman_client_st *client)
 {
+  if (not client)
+    return NULL;
+
   return const_cast<void *>(client->context);
 }
 
 void gearman_client_set_context(gearman_client_st *client, void *context)
 {
+  if (not client)
+    return;
+
   client->context= context;
 }
 
@@ -296,6 +308,9 @@ void gearman_client_set_log_fn(gearman_client_st *client,
                                gearman_log_fn *function, void *context,
                                gearman_verbose_t verbose)
 {
+  if (not client)
+    return;
+
   gearman_set_log_fn(client->universal, function, context, verbose);
 }
 
@@ -303,12 +318,18 @@ void gearman_client_set_workload_malloc_fn(gearman_client_st *client,
                                            gearman_malloc_fn *function,
                                            void *context)
 {
-  gearman_set_workload_malloc_fn(&client->universal, function, context);
+  if (not client)
+    return;
+
+  gearman_set_workload_malloc_fn(client->universal, function, context);
 }
 
 void gearman_client_set_workload_free_fn(gearman_client_st *client, gearman_free_fn *function, void *context)
 {
-  gearman_set_workload_free_fn(&client->universal, function, context);
+  if (not client)
+    return;
+
+  gearman_set_workload_free_fn(client->universal, function, context);
 }
 
 gearman_return_t gearman_client_add_server(gearman_client_st *client,
@@ -1194,9 +1215,7 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
               }
               else if (client->con->_packet.command == GEARMAN_COMMAND_ERROR)
               {
-                gearman_universal_set_error(&client->universal,
-                                            GEARMAN_SERVER_ERROR,
-                                            "gearman_client_run_tasks",
+                gearman_universal_set_error(client->universal, GEARMAN_SERVER_ERROR, AT,
                                             "%s:%.*s",
                                             static_cast<char *>(client->con->_packet.arg[0]),
                                             int(client->con->_packet.arg_size[1]),
@@ -1266,7 +1285,7 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
       {
         /* Let the caller wait for activity. */
         client->state= GEARMAN_CLIENT_STATE_IDLE;
-        gearman_gerror(&client->universal, GEARMAN_IO_WAIT);
+        gearman_gerror(client->universal, GEARMAN_IO_WAIT);
 
         return GEARMAN_IO_WAIT;
       }
@@ -1298,7 +1317,7 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
 
   if (not client->task_list)
   {
-    gearman_error(&client->universal, GEARMAN_INVALID_ARGUMENT, "No active tasks");
+    gearman_error(client->universal, GEARMAN_INVALID_ARGUMENT, "No active tasks");
     return GEARMAN_INVALID_ARGUMENT;
   }
 
@@ -1382,10 +1401,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client, gearman_task
     {
       client->new_tasks--;
       client->running_tasks--;
-      gearman_universal_set_error(&client->universal,
-                                  GEARMAN_NO_SERVERS,
-                                  "_client_run_task",
-                                  "no servers added");
+      gearman_universal_set_error(client->universal, GEARMAN_NO_SERVERS, AT, "no servers added");
       return GEARMAN_NO_SERVERS;
     }
 
@@ -1399,7 +1415,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client, gearman_task
     if (task->con == NULL)
     {
       client->options.no_new= true;
-      gearman_gerror(&client->universal, GEARMAN_IO_WAIT);
+      gearman_gerror(client->universal, GEARMAN_IO_WAIT);
       return GEARMAN_IO_WAIT;
     }
 
@@ -1462,7 +1478,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client, gearman_task
     {
       if (not task->func.workload_fn)
       {
-        gearman_error(&client->universal, GEARMAN_NEED_WORKLOAD_FN,
+        gearman_error(client->universal, GEARMAN_NEED_WORKLOAD_FN,
                       "workload size > 0, but no data pointer or workload_fn was given");
         return GEARMAN_NEED_WORKLOAD_FN;
       }
@@ -1680,7 +1696,7 @@ static void *_client_do(gearman_client_st *client, gearman_command_t command,
   // gearman_client_run_tasks failed
   if (gearman_failed(ret))
   {
-    gearman_error(&client->universal, ret, "occured during gearman_client_run_tasks()");
+    gearman_error(client->universal, ret, "occured during gearman_client_run_tasks()");
 
     if (ret_ptr)
       *ret_ptr= ret;
@@ -1703,7 +1719,7 @@ static void *_client_do(gearman_client_st *client, gearman_command_t command,
   }
   else // gearman_client_run_tasks() was successful, but the task was not
   {
-    gearman_error(&client->universal, do_task_ptr->result_rc, "occured during gearman_client_run_tasks()");
+    gearman_error(client->universal, do_task_ptr->result_rc, "occured during gearman_client_run_tasks()");
 
     *ret_ptr= do_task_ptr->result_rc;
     *result_size= 0;
