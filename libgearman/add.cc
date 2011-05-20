@@ -185,7 +185,7 @@ gearman_task_st *add_task(gearman_client_st *client,
                                    3);
   }
 
-  if (rc == GEARMAN_SUCCESS)
+  if (gearman_success(rc))
   {
     client->new_tasks++;
     client->running_tasks++;
@@ -202,13 +202,13 @@ gearman_task_st *add_task(gearman_client_st *client,
 
 gearman_task_st *add_task(gearman_client_st *client,
                           gearman_command_t command,
-                          const gearman_job_priority_t priority,
+                          const gearman_job_priority_t,
                           const gearman_string_t &mapper_function,
                           const gearman_string_t &reducer,
                           const gearman_unique_t &unique,
                           const gearman_string_t &workload,
                           struct gearman_actions_t &actions,
-                          const time_t epoch,
+                          const time_t,
                           void *context)
 {
   uuid_t uuid;
@@ -256,6 +256,7 @@ gearman_task_st *add_task(gearman_client_st *client,
   args[2]= gearman_c_str(reducer);
   args_size[2]= gearman_size(reducer) +1;
 
+#if 0
   char time_string[30];
   if (epoch)
   {
@@ -280,6 +281,11 @@ gearman_task_st *add_task(gearman_client_st *client,
       args_size[3]= 4;
     }
   }
+#endif
+  char aggregate[1];
+  aggregate[0]= 0;
+  args[3]= aggregate;
+  args_size[3]= 1;
 
   assert(gearman_c_str(workload));
   assert(gearman_size(workload));
