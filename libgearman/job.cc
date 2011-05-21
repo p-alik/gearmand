@@ -178,6 +178,7 @@ gearman_job_st *gearman_job_create(gearman_worker_st *worker, gearman_job_st *jo
 
   job->worker= worker;
   job->reducer= NULL;
+  job->error_code= GEARMAN_UNKNOWN_STATE;
 
   if (worker->job_list)
     worker->job_list->prev= job;
@@ -333,7 +334,8 @@ gearman_return_t gearman_job_send_complete(gearman_job_st *job,
     gearman_return_t rc= job->reducer->complete();
     if (gearman_failed(rc))
     {
-      return rc;
+      return gearman_universal_set_error(job->worker->universal, rc, 
+                                         __func__, AT, "complete() returned an error");
     }
 
     gearman_vector_st *reduced_value= job->reducer->result.string();

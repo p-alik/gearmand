@@ -96,12 +96,21 @@ enum gearman_return_t
   GEARMAN_MAX_RETURN /* Always add new error code before */
 };
 
-
-
 #define gearman_failed(X) (((X) != GEARMAN_SUCCESS) ? true : false)
 #define gearman_success(X) (((X) == GEARMAN_SUCCESS) ? true : false)
+
+enum gearman_worker_error_t
+{
+  GEARMAN_WORKER_SUCCESS,
+  GEARMAN_WORKER_LOST_CONNECTION,
+  GEARMAN_WORKER_FAILED
+};
+
+#define gearman_worker_failed(X) (((X) != GEARMAN_WORKER_SUCCESS) ? true : false)
+#define gearman_worker_success(X) (((X) == GEARMAN_SUCCESS) ? true : false)
 
 
 #ifndef __cplusplus
 typedef enum gearman_return_t gearman_return_t;
+typedef enum gearman_worker_error_t gearman_worker_error_t;
 #endif

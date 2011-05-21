@@ -284,13 +284,13 @@ gearman_return_t gearman_echo(gearman_universal_st& universal,
 
   if (not workload)
   {
-    gearman_universal_set_error(universal, GEARMAN_INVALID_ARGUMENT, AT, "workload was NULL");
+    gearman_universal_set_error(universal, GEARMAN_INVALID_ARGUMENT, __func__, AT, "workload was NULL");
     return GEARMAN_INVALID_ARGUMENT;
   }
 
   if (not workload_size)
   {
-    gearman_universal_set_error(universal, GEARMAN_INVALID_ARGUMENT, AT, "workload_size was 0");
+    gearman_universal_set_error(universal, GEARMAN_INVALID_ARGUMENT,  __func__, AT, "workload_size was 0");
     return GEARMAN_INVALID_ARGUMENT;
   }
 
@@ -417,14 +417,12 @@ void gearman_free_all_packets(gearman_universal_st &universal)
  * Local Definitions
  */
 
-void gearman_universal_set_error(gearman_universal_st& universal, 
-				 gearman_return_t rc,
-				 const char *function,
-                                 const char *format, ...)
+gearman_return_t gearman_universal_set_error(gearman_universal_st& universal, 
+                                             gearman_return_t rc,
+                                             const char *function,
+                                             const char *position,
+                                             const char *format, ...)
 {
-  size_t size;
-  char log_buffer[GEARMAN_MAX_ERROR_SIZE];
-  char *ptr= log_buffer;
   va_list args;
 
   universal.error.rc= rc;
@@ -433,66 +431,107 @@ void gearman_universal_set_error(gearman_universal_st& universal,
     universal.error.last_errno= 0;
   }
 
-  size= strlen(gearman_strerror(rc));
-  ptr= static_cast<char *>(memcpy(ptr, gearman_strerror(rc), size));
-  ptr+= size;
-
-  ptr[0]= '-';
-  size++;
-  ptr++;
-
-  ptr[0]= '>';
-  size++;
-  ptr++;
-
-  size= strlen(function);
-  ptr= static_cast<char *>(memcpy(ptr, static_cast<void*>(const_cast<char *>(function)), size));
-  ptr+= size;
-
-  ptr[0]= ':';
-  size++;
-  ptr++;
-
-  ptr[0]= ' ';
-  size++;
-  ptr++;
-
+  char last_error[GEARMAN_MAX_ERROR_SIZE];
   va_start(args, format);
-  size+= size_t(vsnprintf(ptr, GEARMAN_MAX_ERROR_SIZE - size, format, args));
+  int length= vsnprintf(last_error, GEARMAN_MAX_ERROR_SIZE, format, args);
   va_end(args);
+
+  if (length > int(GEARMAN_MAX_ERROR_SIZE) or length < 0)
+  {
+    assert(length > int(GEARMAN_MAX_ERROR_SIZE));
+    assert(length < 0);
+    universal.error.last_error[GEARMAN_MAX_ERROR_SIZE -1]= 0;
+    return GEARMAN_ARGUMENT_TOO_LARGE;
+  }
+
+  length= snprintf(universal.error.last_error, GEARMAN_MAX_ERROR_SIZE, "%s(%s) %s -> %s", function, gearman_strerror(rc), last_error, position);
+  if (length > int(GEARMAN_MAX_ERROR_SIZE) or length < 0)
+  {
+    assert(length > int(GEARMAN_MAX_ERROR_SIZE));
+    assert(length < 0);
+    universal.error.last_error[GEARMAN_MAX_ERROR_SIZE -1]= 0;
+    return GEARMAN_ARGUMENT_TOO_LARGE;
+  }
 
   if (universal.log_fn)
   {
-    universal.log_fn(log_buffer, GEARMAN_VERBOSE_FATAL,
-                      static_cast<void *>(universal.log_context));
+    universal.log_fn(universal.error.last_error, GEARMAN_VERBOSE_FATAL,
+                     static_cast<void *>(universal.log_context));
   }
-  else
-  {
-    if (size >= GEARMAN_MAX_ERROR_SIZE)
-      size= GEARMAN_MAX_ERROR_SIZE - 1;
 
-    memcpy(universal.error.last_error, log_buffer, size + 1);
-  }
+  return rc;
 }
 
-void gearman_universal_set_perror(const char *position, gearman_universal_st &self, const char *message)
+gearman_return_t gearman_universal_set_gerror(gearman_universal_st& universal, 
+                                              gearman_return_t rc,
+                                              const char *func,
+                                              const char *position)
 {
-  self.error.rc= GEARMAN_ERRNO;
-  self.error.last_errno= errno;
+  universal.error.rc= rc;
+  if (rc != GEARMAN_ERRNO)
+  {
+    universal.error.last_errno= 0;
+  }
+
+  int length= snprintf(universal.error.last_error, GEARMAN_MAX_ERROR_SIZE, "%s(%s) -> %s", func, gearman_strerror(rc), position);
+  if (length > int(GEARMAN_MAX_ERROR_SIZE) or length < 0)
+  {
+    assert(length > int(GEARMAN_MAX_ERROR_SIZE));
+    assert(length < 0);
+    universal.error.last_error[GEARMAN_MAX_ERROR_SIZE -1]= 0;
+    return GEARMAN_ARGUMENT_TOO_LARGE;
+  }
+
+  if (universal.log_fn)
+  {
+    universal.log_fn(universal.error.last_error, GEARMAN_VERBOSE_FATAL,
+                     static_cast<void *>(universal.log_context));
+  }
+
+  return rc;
+}
+
+gearman_return_t gearman_universal_set_perror(gearman_universal_st &universal,
+                                              const char *function, const char *position, 
+                                              const char *message)
+{
+  universal.error.rc= GEARMAN_ERRNO;
+  universal.error.last_errno= errno;
 
   const char *errmsg_ptr;
   char errmsg[GEARMAN_MAX_ERROR_SIZE]; 
   errmsg[0]= 0; 
 
 #ifdef STRERROR_R_CHAR_P
-  errmsg_ptr= strerror_r(self.error.last_errno, errmsg, sizeof(errmsg));
+  errmsg_ptr= strerror_r(universal.error.last_errno, errmsg, sizeof(errmsg));
 #else
-  strerror_r(self.error.last_errno, errmsg, sizeof(errmsg));
+  strerror_r(universal.error.last_errno, errmsg, sizeof(errmsg));
   errmsg_ptr= errmsg;
 #endif
 
-  char final[GEARMAN_MAX_ERROR_SIZE];
-  snprintf(final, sizeof(final), "%s(%s)", message, errmsg_ptr);
+  int length;
+  if (message)
+  {
+    length= snprintf(universal.error.last_error, GEARMAN_MAX_ERROR_SIZE, "%s(%s) %s -> %s", function, errmsg_ptr, message, position);
+  }
+  else
+  {
+    length= snprintf(universal.error.last_error, GEARMAN_MAX_ERROR_SIZE, "%s(%s) -> %s", function, errmsg_ptr, position);
+  }
 
-  gearman_universal_set_error(self, GEARMAN_ERRNO, position, final);
+  if (length > int(GEARMAN_MAX_ERROR_SIZE) or length < 0)
+  {
+    assert(length > int(GEARMAN_MAX_ERROR_SIZE));
+    assert(length < 0);
+    universal.error.last_error[GEARMAN_MAX_ERROR_SIZE -1]= 0;
+    return GEARMAN_ARGUMENT_TOO_LARGE;
+  }
+
+  if (universal.log_fn)
+  {
+    universal.log_fn(universal.error.last_error, GEARMAN_VERBOSE_FATAL,
+                     static_cast<void *>(universal.log_context));
+  }
+
+  return GEARMAN_ERRNO;
 }

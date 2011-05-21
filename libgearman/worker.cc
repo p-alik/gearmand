@@ -1,14 +1,39 @@
-/* Gearman server and library
- * Copyright (C) 2008 Brian Aker, Eric Day
- * All rights reserved.
+/*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
+ * 
+ *  Gearmand client and server library.
  *
- * Use and distribution licensed under the BSD license.  See
- * the COPYING file in the parent directory for full text.
- */
-
-/**
- * @file
- * @brief Worker Definitions
+ *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2008 Brian Aker, Eric Day
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions are
+ *  met:
+ *
+ *      * Redistributions of source code must retain the above copyright
+ *  notice, this list of conditions and the following disclaimer.
+ *
+ *      * Redistributions in binary form must reproduce the above
+ *  copyright notice, this list of conditions and the following disclaimer
+ *  in the documentation and/or other materials provided with the
+ *  distribution.
+ *
+ *      * The names of its contributors may not be used to endorse or
+ *  promote products derived from this software without specific prior
+ *  written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ *  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ *  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ *  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ *  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ *  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ *  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
 #include <libgearman/common.h>
@@ -28,30 +53,100 @@
 */
 struct _worker_function_st
 {
-  struct {
+  struct _options {
     bool packet_in_use:1;
     bool change:1;
     bool remove:1;
+
+    _options() :
+      packet_in_use(true),
+      change(true),
+      remove(false)
+    { }
+
   } options;
   struct _worker_function_st *next;
   struct _worker_function_st *prev;
   char *function_name;
   size_t function_length;
-  gearman_worker_fn *worker_fn;
+  gearman_worker_fn *_worker_fn;
+  gearman_mapper_fn *_mapper_fn;
   gearman_aggregator_fn *aggregator_fn;
   void *context;
   gearman_packet_st packet;
 
-  _worker_function_st(gearman_worker_fn *worker_fn_arg, gearman_aggregator_fn *aggregator_fn_arg, void *context_arg) :
+  _worker_function_st(gearman_worker_fn *worker_fn_arg, void *context_arg) :
     function_name(NULL),
     function_length(0),
-    worker_fn(worker_fn_arg),
+    _worker_fn(worker_fn_arg),
+    _mapper_fn(NULL),
+    aggregator_fn(NULL),
+    context(context_arg)
+  { }
+
+  _worker_function_st(gearman_mapper_fn *mapper_fn_arg, gearman_aggregator_fn *aggregator_fn_arg, void *context_arg) :
+    function_name(NULL),
+    function_length(0),
+    _worker_fn(NULL),
+    _mapper_fn(mapper_fn_arg),
     aggregator_fn(aggregator_fn_arg),
     context(context_arg)
   {
     options.packet_in_use= true;
     options.change= true;
     options.remove= false;
+  }
+
+  bool has_callback() const
+  {
+    return bool(_worker_fn) or bool(_mapper_fn);
+  }
+
+  gearman_worker_error_t callback(gearman_job_st* job, void *context_arg)
+  {
+    if (_worker_fn)
+    {
+      job->error_code= GEARMAN_SUCCESS;
+      job->worker->work_result= _worker_fn(job, context_arg, &(job->worker->work_result_size), &job->error_code);
+      
+      if (job->error_code == GEARMAN_LOST_CONNECTION)
+      {
+        return GEARMAN_WORKER_LOST_CONNECTION;
+      }
+
+      if (gearman_failed(job->error_code))
+      {
+        return GEARMAN_WORKER_FAILED;
+      }
+
+      return GEARMAN_WORKER_SUCCESS;
+    }
+    else if (_mapper_fn)
+    {
+      if (gearman_job_is_map(job))
+        gearman_job_build_reducer(job, job->worker->work_function->aggregator_fn);
+
+      gearman_worker_error_t error= _mapper_fn(job, context_arg);
+      switch (error)
+      {
+      case GEARMAN_WORKER_FAILED:
+        if (job->error_code == GEARMAN_UNKNOWN_STATE)
+          job->error_code= GEARMAN_WORK_FAIL;
+        break;
+
+      case GEARMAN_WORKER_LOST_CONNECTION:
+        job->error_code= GEARMAN_LOST_CONNECTION;
+        break;
+
+      case GEARMAN_WORKER_SUCCESS:
+        job->error_code= GEARMAN_SUCCESS;
+        break;
+      }
+
+      return error;
+    }
+
+    return GEARMAN_WORKER_FAILED;
   }
 
   bool init(const char *name_arg, size_t size)
@@ -131,6 +226,7 @@ static gearman_return_t _worker_function_create(gearman_worker_st *worker,
                                                 size_t function_length,
                                                 uint32_t timeout,
                                                 gearman_worker_fn *worker_fb,
+                                                gearman_mapper_fn *mapper_fn,
                                                 gearman_aggregator_fn *aggregator_fn,
                                                 void *context);
 
@@ -449,7 +545,7 @@ gearman_return_t gearman_worker_register(gearman_worker_st *worker,
                                          const char *function_name,
                                          uint32_t timeout)
 {
-  return _worker_function_create(worker, function_name, strlen(function_name), timeout, NULL, NULL, NULL);
+  return _worker_function_create(worker, function_name, strlen(function_name), timeout, NULL, NULL, NULL, NULL);
 }
 
 bool gearman_worker_function_exist(gearman_worker_st *worker,
@@ -834,29 +930,54 @@ gearman_return_t gearman_worker_add_function(gearman_worker_st *worker,
                                              gearman_worker_fn *worker_fn,
                                              void *context)
 {
-  return gearman_worker_add_map_function(worker, function_name, strlen(function_name), timeout, worker_fn, NULL, context);
+  if (not function_name)
+  {
+    gearman_universal_set_error(worker->universal, GEARMAN_INVALID_ARGUMENT,
+                                __func__, AT,
+                                "function name not given");
+
+    return GEARMAN_INVALID_ARGUMENT;
+  }
+
+  if (not worker_fn)
+  {
+    gearman_universal_set_error(worker->universal, GEARMAN_INVALID_ARGUMENT,
+                                __func__, AT,
+                                "function not given");
+
+    return GEARMAN_INVALID_ARGUMENT;
+  }
+
+  return _worker_function_create(worker,
+                                 function_name, strlen(function_name),
+                                 timeout,
+                                 worker_fn,
+                                 NULL, NULL,
+                                 context);
 }
 
 gearman_return_t gearman_worker_add_map_function(gearman_worker_st *worker,
                                                  const char *function_name,
                                                  size_t functiona_name_length,
                                                  uint32_t timeout,
-                                                 gearman_worker_fn *mapper_fn,
+                                                 gearman_mapper_fn *mapper_fn,
                                                  gearman_aggregator_fn *aggregator_fn,
                                                  void *context)
 {
   if (not function_name)
   {
-    gearman_universal_set_error(worker->universal, GEARMAN_INVALID_ARGUMENT, AT,
-				"function name not given");
+    gearman_universal_set_error(worker->universal, GEARMAN_INVALID_ARGUMENT, 
+                                __func__, AT,
+                                "function name not given");
 
     return GEARMAN_INVALID_ARGUMENT;
   }
 
   if (not mapper_fn)
   {
-    gearman_universal_set_error(worker->universal, GEARMAN_INVALID_ARGUMENT, AT,
-				"function not given");
+    gearman_universal_set_error(worker->universal, GEARMAN_INVALID_ARGUMENT,
+                                __func__, AT,
+                                "mapper_fn not given");
 
     return GEARMAN_INVALID_ARGUMENT;
   }
@@ -864,6 +985,7 @@ gearman_return_t gearman_worker_add_map_function(gearman_worker_st *worker,
   return _worker_function_create(worker,
                                  function_name, functiona_name_length,
                                  timeout,
+                                 NULL,
                                  mapper_fn,
                                  aggregator_fn,
                                  context);
@@ -880,35 +1002,35 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
 
       if (gearman_failed(ret))
       {
-	return ret;
+        return ret;
       }
       assert(worker->work_job);
 
       for (worker->work_function= worker->function_list;
-	   worker->work_function;
-	   worker->work_function= worker->work_function->next)
+           worker->work_function;
+           worker->work_function= worker->work_function->next)
       {
-	if (not strcmp(gearman_job_function_name(worker->work_job),
-		       worker->work_function->function_name))
-	{
-	  break;
-	}
+        if (not strcmp(gearman_job_function_name(worker->work_job),
+                       worker->work_function->function_name))
+        {
+          break;
+        }
       }
 
       if (not worker->work_function)
       {
-	gearman_job_free(worker->work_job);
+        gearman_job_free(worker->work_job);
         worker->work_job= NULL;
-	gearman_universal_set_error(worker->universal, GEARMAN_INVALID_FUNCTION_NAME, AT, "function not found");
-	return GEARMAN_INVALID_FUNCTION_NAME;
+        return gearman_universal_set_error(worker->universal, GEARMAN_INVALID_FUNCTION_NAME,
+                                           __func__, AT, "function not found");
       }
 
-      if (not worker->work_function->worker_fn)
+      if (not worker->work_function->has_callback())
       {
-	gearman_job_free(worker->work_job);
+        gearman_job_free(worker->work_job);
         worker->work_job= NULL;
-	gearman_universal_set_error(worker->universal, GEARMAN_INVALID_FUNCTION_NAME, AT, "no callback function supplied");
-	return GEARMAN_INVALID_FUNCTION_NAME;
+        return gearman_universal_set_error(worker->universal, GEARMAN_INVALID_FUNCTION_NAME, 
+                                           __func__, AT, "no callback function supplied");
       }
 
       worker->work_result_size= 0;
@@ -916,70 +1038,60 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
 
   case GEARMAN_WORKER_WORK_UNIVERSAL_FUNCTION:
     {
-      if (gearman_job_is_map(worker->work_job))
+      switch (worker->work_function->callback(worker->work_job,
+                                              static_cast<void *>(worker->work_function->context)))
       {
-        gearman_job_build_reducer(worker->work_job, worker->work_function->aggregator_fn);
+      case GEARMAN_WORKER_LOST_CONNECTION:
+        break;
+
+      case GEARMAN_WORKER_FAILED:
+        if (gearman_job_send_fail(worker->work_job) == GEARMAN_LOST_CONNECTION) // If we fail this, we have no connection
+        {
+          worker->work_job->error_code= GEARMAN_LOST_CONNECTION;
+          break;
+        }
+        worker->work_state= GEARMAN_WORKER_WORK_UNIVERSAL_FAIL;
+        return worker->work_job->error_code;
+
+      case GEARMAN_WORKER_SUCCESS:
+        break;
       }
 
-      gearman_return_t ret= GEARMAN_WORK_FAIL;
-      worker->work_result= worker->work_function->worker_fn(worker->work_job,
-							    static_cast<void *>(worker->work_function->context),
-							    &(worker->work_result_size), &ret);
-      if (ret == GEARMAN_WORK_FAIL)
-      {
-	gearman_return_t rc= gearman_job_send_fail(worker->work_job);
-	if (gearman_failed(rc))
-	{
-	  if (rc == GEARMAN_LOST_CONNECTION)
-	    break;
-
-	  worker->work_state= GEARMAN_WORKER_WORK_UNIVERSAL_FAIL;
-	  return rc;
-	}
-
-	break;
-      }
-
-      if (gearman_failed(ret))
-      {
-	if (ret == GEARMAN_LOST_CONNECTION)
-	  break;
-
-	worker->work_state= GEARMAN_WORKER_WORK_UNIVERSAL_FUNCTION;
-	return ret;
-      }
+      if (worker->work_job->error_code == GEARMAN_LOST_CONNECTION)
+        break;
     }
 
   case GEARMAN_WORKER_WORK_UNIVERSAL_COMPLETE:
     {
-      gearman_return_t ret= gearman_job_send_complete(worker->work_job, worker->work_result,
-						      worker->work_result_size);
-      if (ret == GEARMAN_IO_WAIT)
+      worker->work_job->error_code= gearman_job_send_complete(worker->work_job,
+                                                              worker->work_result, worker->work_result_size);
+      if (worker->work_job->error_code == GEARMAN_IO_WAIT)
       {
-	worker->work_state= GEARMAN_WORKER_WORK_UNIVERSAL_COMPLETE;
-	return ret;
+        worker->work_state= GEARMAN_WORKER_WORK_UNIVERSAL_COMPLETE;
+        return gearman_universal_set_error(worker->universal, worker->work_job->error_code, 
+                                           __func__, AT, "gearman_job_send_complete()");
       }
 
       if (worker->work_result)
       {
-	if ((&worker->universal)->workload_free_fn == NULL)
-	{
-	  free(worker->work_result);
-	}
-	else
-	{
-	  (&worker->universal)->workload_free_fn(worker->work_result,
-						 (&worker->universal)->workload_free_context);
-	}
-	worker->work_result= NULL;
+        if (worker->universal.workload_free_fn)
+        {
+          worker->universal.workload_free_fn(worker->work_result,
+                                             (&worker->universal)->workload_free_context);
+        }
+        else
+        {
+          free(worker->work_result);
+        }
+        worker->work_result= NULL;
       }
 
-      if (gearman_failed(ret))
+      if (gearman_failed(worker->work_job->error_code))
       {
-	if (ret == GEARMAN_LOST_CONNECTION)
-	  break;
+        if (worker->work_job->error_code == GEARMAN_LOST_CONNECTION)
+          break;
 
-	return ret;
+        return worker->work_job->error_code;
       }
     }
 
@@ -987,17 +1099,16 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
 
   case GEARMAN_WORKER_WORK_UNIVERSAL_FAIL:
     {
-      gearman_return_t ret;
-      if (gearman_failed(ret= gearman_job_send_fail(worker->work_job)))
+      if (gearman_failed(worker->work_job->error_code= gearman_job_send_fail(worker->work_job)))
       {
-	if (ret == GEARMAN_LOST_CONNECTION)
-	  break;
+        if (worker->work_job->error_code == GEARMAN_LOST_CONNECTION)
+          break;
 
-	return ret;
+        return worker->work_job->error_code;
       }
     }
 
-   break;
+    break;
   }
 
   gearman_job_free(worker->work_job);
@@ -1101,14 +1212,24 @@ static gearman_return_t _worker_function_create(gearman_worker_st *worker,
                                                 const char *function_name,
                                                 size_t function_length,
                                                 uint32_t timeout,
-                                                gearman_worker_fn *mapper_fn,
+                                                gearman_worker_fn *worker_fn,
+                                                gearman_mapper_fn *mapper_fn,
                                                 gearman_aggregator_fn *aggregator_fn,
                                                 void *context)
 {
   const void *args[2];
   size_t args_size[2];
 
-  _worker_function_st *function= new (std::nothrow) _worker_function_st(mapper_fn, aggregator_fn, context);
+  _worker_function_st *function;
+  if (mapper_fn and aggregator_fn)
+  {
+    function= new (std::nothrow) _worker_function_st(mapper_fn, aggregator_fn, context);
+  }
+  else
+  {
+    function= new (std::nothrow) _worker_function_st(worker_fn, context);
+  }
+
   if (not function)
   {
     gearman_perror(worker->universal, "_worker_function_st::new()");

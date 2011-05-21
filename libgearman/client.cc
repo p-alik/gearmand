@@ -657,7 +657,7 @@ const char *gearman_client_do_job_handle(gearman_client_st *self)
 
   if (not self->task_list)
   {
-    gearman_universal_set_error(self->universal, GEARMAN_INVALID_ARGUMENT, AT, "client has an empty task list");
+    gearman_universal_set_error(self->universal, GEARMAN_INVALID_ARGUMENT, __func__, AT, "client has an empty task list");
     return NULL;
   }
 
@@ -1322,7 +1322,7 @@ static gearman_return_t _client_run_task(gearman_client_st *client, gearman_task
     {
       client->new_tasks--;
       client->running_tasks--;
-      gearman_universal_set_error(client->universal, GEARMAN_NO_SERVERS, AT, "no servers added");
+      gearman_universal_set_error(client->universal, GEARMAN_NO_SERVERS, __func__, AT, "no servers added");
       return GEARMAN_NO_SERVERS;
     }
 

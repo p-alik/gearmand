@@ -278,26 +278,22 @@ gearman_server_thread_run(gearman_server_thread_st *thread,
 
 static gearmand_error_t _thread_packet_read(gearman_server_con_st *con)
 {
-  gearmand_error_t ret;
-
   gearmand_log_debug("%s", __func__);
   while (1)
   {
     if (con->packet == NULL)
     {
-      con->packet= gearman_server_packet_create(con->thread, true);
-      if (con->packet == NULL)
+      if (! (con->packet= gearman_server_packet_create(con->thread, true)))
       {
         return GEARMAN_MEMORY_ALLOCATION_FAILURE;
       }
     }
 
-    ret= gearman_io_recv(con, true);
-    if (gearmand_failed(ret))
+    gearmand_error_t ret;
+    if (gearmand_failed(ret= gearman_io_recv(con, true)))
     {
       if (ret == GEARMAN_IO_WAIT)
       {
-	gearmand_debug("gearman_io_recv(GEARMAN_IO_WAIT)");
         break;
       }
 
@@ -321,12 +317,12 @@ static gearmand_error_t _thread_packet_read(gearman_server_con_st *con)
     else
     {
       /* Single threaded, run the command here. */
-      ret= gearman_server_run_command(con, &(con->packet->packet));
+      gearmand_error_t rc= gearman_server_run_command(con, &(con->packet->packet));
       gearmand_packet_free(&(con->packet->packet));
       gearman_server_packet_free(con->packet, con->thread, true);
       con->packet= NULL;
-      if (ret != GEARMAN_SUCCESS)
-        return ret;
+      if (gearmand_failed(rc))
+        return rc;
     }
   }
 

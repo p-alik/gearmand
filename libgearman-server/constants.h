@@ -11,17 +11,12 @@
  * @brief Defines, typedefs, and enums
  */
 
-#ifndef __GEARMAN_SERVER_CONSTANTS_H__
-#define __GEARMAN_SERVER_CONSTANTS_H__
+#pragma once
 
 #ifdef __cplusplus
 #include <cstdlib>
 #else
 #include <stdlib.h>
-#endif
-
-#ifdef __cplusplus
-extern "C" {
 #endif
 
 /**
@@ -98,13 +93,15 @@ typedef enum
 } gearmand_connection_options_t;
 
 
-/**
- * @addtogroup gearman_server_types Types
- * @ingroup gearman_server
- * @{
- */
+#ifdef __cplusplus
 
-/* Types. */
+struct gearman_server_thread_st;
+struct gearman_server_st;
+struct gearman_server_con_st;
+struct gearmand_io_st;
+
+#else /* Types. */
+
 typedef struct gearman_server_client_st gearman_server_client_st;
 typedef struct gearman_server_con_st gearman_server_con_st;
 typedef struct gearman_server_function_st gearman_server_function_st;
@@ -118,6 +115,12 @@ typedef struct gearmand_io_st gearmand_io_st;
 typedef struct gearmand_port_st gearmand_port_st;
 typedef struct gearmand_st gearmand_st;
 typedef struct gearmand_thread_st gearmand_thread_st;
+
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Function types. */
 typedef void (gearman_server_thread_run_fn)(gearman_server_thread_st *thread,
@@ -188,5 +191,3 @@ typedef void (gearmand_log_fn)(const char *line, gearmand_verbose_t verbose,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GEARMAN_SERVER_CONSTANTS_H__ */

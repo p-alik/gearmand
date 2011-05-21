@@ -329,7 +329,7 @@ gearman_return_t gearman_connection_st::send(const gearman_packet_st& packet_arg
       /* We were asked to flush when the buffer is already flushed! */
       if (send_buffer_size == 0)
       {
-        gearman_universal_set_error(universal, GEARMAN_SEND_BUFFER_TOO_SMALL, AT,
+        gearman_universal_set_error(universal, GEARMAN_SEND_BUFFER_TOO_SMALL, __func__, AT,
                                     "send buffer too small (%u)", GEARMAN_SEND_BUFFER_SIZE);
         return GEARMAN_SEND_BUFFER_TOO_SMALL;
       }
@@ -572,8 +572,7 @@ gearman_return_t gearman_connection_st::flush()
         if (gearman_universal_is_non_blocking(universal))
         {
           state= GEARMAN_CON_UNIVERSAL_CONNECTING;
-          gearman_gerror(universal, GEARMAN_IO_WAIT);
-          return GEARMAN_IO_WAIT;
+          return gearman_gerror(universal, GEARMAN_IO_WAIT);
         }
 
         gearman_return_t gret= gearman_wait(universal);

@@ -42,12 +42,25 @@
 #define TOSTRING(x) STRINGIFY(x)
 #define AT __FILE__ ":" TOSTRING(__LINE__)
 
-#define gearman_perror(A, B) do { gearman_universal_set_perror(AT, (A), (B)); } while (0)
-#define gearman_error(A, B, C) do { gearman_universal_set_error((A), (B), AT, (C)); } while (0)
-#define gearman_gerror(A, B) do { gearman_universal_set_error((A), (B), AT, " "); } while (0)
+#define gearman_perror(A, B) gearman_universal_set_perror((A), __func__, AT, (B))
+#define gearman_error(A, B, C) gearman_universal_set_error((A), (B), __func__, AT, (C))
+#define gearman_gerror(A, B) gearman_universal_set_gerror((A), (B), __func__, AT)
 
 GEARMAN_LOCAL
-void gearman_universal_set_perror(const char *position, gearman_universal_st &universal, const char *message);
+gearman_return_t gearman_universal_set_error(gearman_universal_st&,
+                                             gearman_return_t rc,
+                                             const char *function,
+                                             const char *position,
+                                             const char *format, ...);
+GEARMAN_LOCAL
+gearman_return_t gearman_universal_set_perror(gearman_universal_st&,
+                                              const char *function, const char *position, 
+                                              const char *message);
+GEARMAN_LOCAL
+gearman_return_t gearman_universal_set_gerror(gearman_universal_st&,
+                                              gearman_return_t rc,
+                                              const char *func,
+                                              const char *position);
 
 
 // Get next connection that is ready for I/O.
@@ -85,20 +98,6 @@ int gearman_universal_timeout(gearman_universal_st &self);
 // Flush the send buffer for all connections.
 GEARMAN_LOCAL
 gearman_return_t gearman_flush_all(gearman_universal_st&);
-
-/**
- * Set the error string.
- *
- * @param[in] gearman Structure previously initialized with gearman_universal_create() or
- *  gearman_clone().
- * @param[in] function Name of function the error happened in.
- * @param[in] format Format and variable argument list of message.
- */
-GEARMAN_LOCAL
-void gearman_universal_set_error(gearman_universal_st &,
-                                 gearman_return_t rc,
-                                 const char *function,
-                                 const char *format, ...);
 
 /**
  * Set custom memory allocation function for workloads. Normally gearman uses

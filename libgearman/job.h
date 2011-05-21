@@ -58,6 +58,7 @@ struct gearman_job_st
   gearman_packet_st assigned;
   gearman_packet_st work;
   struct gearman_job_reducer_st *reducer;
+  gearman_return_t error_code;
 };
 
 #ifdef __cplusplus

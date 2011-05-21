@@ -40,6 +40,7 @@
 
 #pragma once
 
+#include <libgearman/priority.h>
 #include <libgearman/protocol.h>
 #include <libgearman/return.h>
 
@@ -113,18 +114,6 @@ typedef enum
 } gearman_connection_options_t;
 
 /**
- * @ingroup gearman_job
- * Priority levels for a job.
- */
-typedef enum
-{
-  GEARMAN_JOB_PRIORITY_HIGH,
-  GEARMAN_JOB_PRIORITY_NORMAL,
-  GEARMAN_JOB_PRIORITY_LOW,
-  GEARMAN_JOB_PRIORITY_MAX /* Always add new commands before this. */
-} gearman_job_priority_t;
-
-/**
  * @ingroup gearman_client
  * Options for gearman_client_st.
  */
@@ -194,6 +183,8 @@ typedef gearman_return_t (gearman_parse_server_fn)(const char *host,
 typedef void* (gearman_worker_fn)(gearman_job_st *job, void *context,
                                   size_t *result_size,
                                   gearman_return_t *ret_ptr);
+
+typedef gearman_worker_error_t (gearman_mapper_fn)(gearman_job_st *job, void *context);
 
 typedef void* (gearman_malloc_fn)(size_t size, void *context);
 typedef void (gearman_free_fn)(void *ptr, void *context);

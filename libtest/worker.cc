@@ -27,11 +27,21 @@
 struct context_st {
   in_port_t port;
   const char *function_name;
-  gearman_worker_fn *function;
   void *function_arg;
   struct worker_handle_st *handle;
   gearman_worker_options_t options;
+  gearman_worker_fn *worker_fn;
+  gearman_mapper_fn *mapper_fn;
   gearman_aggregator_fn *aggregator_fn;
+
+  context_st() :
+    port(0),
+    function_arg(0),
+    handle(0),
+    options(gearman_worker_options_t()),
+    mapper_fn(0),
+    aggregator_fn(0)
+  { }
 };
 
 static void *thread_runner(void *con)
@@ -54,13 +64,13 @@ static void *thread_runner(void *con)
     rc= gearman_worker_add_map_function(&worker,
                                         context->function_name, strlen(context->function_name), 
                                         0, 
-                                        context->function,
+                                        context->mapper_fn,
                                         context->aggregator_fn,
                                         context->function_arg);
   }
   else
   {
-    rc= gearman_worker_add_function(&worker, context->function_name, 0, context->function,
+    rc= gearman_worker_add_function(&worker, context->function_name, 0, context->worker_fn,
                                     context->function_arg);
   }
   assert(rc == GEARMAN_SUCCESS);
@@ -87,17 +97,13 @@ static void *thread_runner(void *con)
   pthread_exit(0);
 }
 
-struct worker_handle_st *test_worker_start(in_port_t port, const char *function_name,
-                                           gearman_worker_fn *function, void *function_arg,
-                                           gearman_worker_options_t options)
-{
-  return test_worker_start_with_reducer(port, function_name, function, function_arg, options, NULL);
-}
-
-struct worker_handle_st *test_worker_start_with_reducer(in_port_t port, const char *function_name,
-							gearman_worker_fn *function, void *function_arg,
-							gearman_worker_options_t options,
-							gearman_aggregator_fn *aggregator_fn)
+static struct worker_handle_st *_test_worker_start(in_port_t port, 
+                                                   const char *function_name,
+                                                   gearman_worker_fn *worker_fn,
+                                                   gearman_mapper_fn *mapper_fn,
+                                                   gearman_aggregator_fn *aggregator_fn,
+                                                   void *function_arg,
+                                                   gearman_worker_options_t options)
 {
   pthread_attr_t attr;
 
@@ -111,10 +117,11 @@ struct worker_handle_st *test_worker_start_with_reducer(in_port_t port, const ch
 
   foo->port= port;
   foo->function_name= function_name;
-  foo->function= function;
+  foo->worker_fn= worker_fn;
   foo->function_arg= function_arg;
   foo->handle= handle;
   foo->options= options;
+  foo->mapper_fn= mapper_fn;
   foo->aggregator_fn= aggregator_fn;
 
   int rc= pthread_create(&handle->thread, &attr, thread_runner, foo);
@@ -131,6 +138,23 @@ struct worker_handle_st *test_worker_start_with_reducer(in_port_t port, const ch
   nanosleep(&dream, &rem);
 
   return handle;
+}
+
+struct worker_handle_st *test_worker_start(in_port_t port,
+                                           const char *function_name,
+                                           gearman_worker_fn *worker_fn, 
+                                           void *function_arg, gearman_worker_options_t options)
+{
+  return _test_worker_start(port, function_name, worker_fn, NULL, NULL, function_arg, options);
+}
+
+struct worker_handle_st *test_worker_start_with_reducer(in_port_t port,
+                                                        const char *function_name,
+                                                        gearman_mapper_fn *mapper_fn, gearman_aggregator_fn *aggregator_fn,  
+                                                        void *function_arg,
+                                                        gearman_worker_options_t options)
+{
+  return _test_worker_start(port, function_name, NULL, mapper_fn, aggregator_fn, function_arg, options);
 }
 
 void test_worker_stop(struct worker_handle_st *handle)

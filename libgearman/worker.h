@@ -417,7 +417,7 @@ GEARMAN_API
                                                    const char *function_name,
                                                    size_t functiona_name_length,
                                                    uint32_t timeout,
-                                                   gearman_worker_fn *worker_function,
+                                                   gearman_mapper_fn *mapper_function,
                                                    gearman_aggregator_fn *aggregator_function,
                                                    void *context);
 
