@@ -221,6 +221,11 @@ gearman_worker_error_t  split_worker(gearman_job_st *job, void *)
   {
     if (int(workload[x]) == 0 or int(workload[x]) == int(' '))
     {
+      if ((workload +x -chunk_begin) == 11 and not memcmp(chunk_begin, gearman_literal_param("mapper_fail")))
+      {
+        return GEARMAN_WORKER_FAILED;
+      }
+
       // NULL Chunk
       gearman_return_t rc= gearman_job_send_data(job, chunk_begin, workload +x -chunk_begin);
       if (gearman_failed(rc))
@@ -234,6 +239,11 @@ gearman_worker_error_t  split_worker(gearman_job_st *job, void *)
 
   if (chunk_begin < workload +workload_size)
   {
+    if ((size_t(workload +workload_size) -size_t(chunk_begin) ) == 11 and not memcmp(chunk_begin, gearman_literal_param("mapper_fail")))
+    {
+      return GEARMAN_WORKER_FAILED;
+    }
+
     gearman_return_t rc= gearman_job_send_data(job, chunk_begin, size_t(workload +workload_size) -size_t(chunk_begin));
     if (gearman_failed(rc))
     {

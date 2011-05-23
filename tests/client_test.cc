@@ -956,8 +956,9 @@ test_st gearman_client_do_job_handle_tests[] ={
   {0, 0, 0}
 };
 
-test_st gearman_client_execute_reduces[] ={
+test_st gearman_client_execute_reduce_tests[] ={
   {"gearman_worker_set_reducer()", 0, gearman_client_execute_reduce_basic },
+  {"gearman_client_execute_reduce_workfail(GEARMAN_WORK_FAIL)", 0, gearman_client_execute_reduce_workfail },
   {"gearman_worker_set_reducer() fail in reduction", 0, gearman_client_execute_reduce_fail_in_reduction },
   {0, 0, 0}
 };
@@ -994,7 +995,7 @@ collection_st collection[] ={
   {"gearman_client_do_background", 0, 0, gearman_client_do_background_tests},
   {"gearman_client_set_server_option", 0, 0, gearman_client_set_server_option_tests},
   {"gearman_client_execute", 0, 0, gearman_client_execute_tests},
-  {"gearman_worker_set_reducer()", 0, 0, gearman_client_execute_reduces},
+  {"gearman_worker_set_reducer()", 0, 0, gearman_client_execute_reduce_tests},
   {"client-logging", pre_logging, post_logging, tests_log},
   {0, 0, 0, 0}
 };
