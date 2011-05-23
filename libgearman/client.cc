@@ -475,7 +475,6 @@ gearman_task_st *gearman_client_execute(gearman_client_st *client,
 
   if (not function_str or not function_length)
   {
-    errno= EINVAL;
     gearman_perror(client->universal, "gearman_function_st was NULL");
     return NULL;
   }
@@ -568,7 +567,6 @@ gearman_task_st *gearman_client_execute_reduce(gearman_client_st *client,
 
   if (not function_str or not function_length)
   {
-    errno= EINVAL;
     gearman_perror(client->universal, "gearman_function_st was NULL");
     return NULL;
   }
@@ -598,6 +596,9 @@ gearman_task_st *gearman_client_execute_reduce(gearman_client_st *client,
       break;
 
     case GEARMAN_WORK_KIND_EPOCH:
+      gearman_error(client->universal, GEARMAN_INVALID_ARGUMENT, "EPOCH is not currently supported for gearman_client_execute_reduce()");
+      return NULL;
+#if 0
       task= add_task(client,
                      GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND,
                      workload->priority,
@@ -608,6 +609,7 @@ gearman_task_st *gearman_client_execute_reduce(gearman_client_st *client,
                      gearman_actions_execute_defaults(),
                      gearman_workload_epoch(workload),
                      workload->context);
+#endif
       break;
 
     case GEARMAN_WORK_KIND_FOREGROUND:
@@ -661,7 +663,7 @@ const char *gearman_client_do_job_handle(gearman_client_st *self)
 
   if (not self->task_list)
   {
-    gearman_universal_set_error(self->universal, GEARMAN_INVALID_ARGUMENT, __func__, AT, "client has an empty task list");
+    gearman_error(self->universal, GEARMAN_INVALID_ARGUMENT, "client has an empty task list");
     return NULL;
   }
 
@@ -1242,8 +1244,7 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
 
   if (not client->task_list)
   {
-    gearman_error(client->universal, GEARMAN_INVALID_ARGUMENT, "No active tasks");
-    return GEARMAN_INVALID_ARGUMENT;
+    return gearman_error(client->universal, GEARMAN_INVALID_ARGUMENT, "No active tasks");
   }
 
 

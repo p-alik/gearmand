@@ -219,6 +219,9 @@ int gearman_worker_errno(gearman_worker_st *worker)
 
 gearman_worker_options_t gearman_worker_options(const gearman_worker_st *worker)
 {
+  if (not worker)
+    return gearman_worker_options_t();
+
   int options;
   memset(&options, 0, sizeof(gearman_worker_options_t));
 
@@ -243,6 +246,9 @@ gearman_worker_options_t gearman_worker_options(const gearman_worker_st *worker)
 void gearman_worker_set_options(gearman_worker_st *worker,
                                 gearman_worker_options_t options)
 {
+  if (not worker)
+    return;
+
   gearman_worker_options_t usable_options[]= {
     GEARMAN_WORKER_NON_BLOCKING,
     GEARMAN_WORKER_GRAB_UNIQ,
@@ -270,6 +276,9 @@ void gearman_worker_set_options(gearman_worker_st *worker,
 void gearman_worker_add_options(gearman_worker_st *worker,
                                 gearman_worker_options_t options)
 {
+  if (not worker)
+    return;
+
   if (options & GEARMAN_WORKER_NON_BLOCKING)
   {
     gearman_universal_add_options(worker->universal, GEARMAN_NON_BLOCKING);
@@ -301,6 +310,9 @@ void gearman_worker_add_options(gearman_worker_st *worker,
 void gearman_worker_remove_options(gearman_worker_st *worker,
                                    gearman_worker_options_t options)
 {
+  if (not worker)
+    return;
+
   if (options & GEARMAN_WORKER_NON_BLOCKING)
   {
     gearman_universal_remove_options(worker->universal, GEARMAN_NON_BLOCKING);
@@ -329,11 +341,17 @@ void gearman_worker_remove_options(gearman_worker_st *worker,
 
 int gearman_worker_timeout(gearman_worker_st *worker)
 {
+  if (not worker)
+    return 0;
+
   return gearman_universal_timeout(worker->universal);
 }
 
 void gearman_worker_set_timeout(gearman_worker_st *worker, int timeout)
 {
+  if (not worker)
+    return;
+
   gearman_worker_add_options(worker, GEARMAN_WORKER_TIMEOUT_RETURN);
   gearman_universal_set_timeout(worker->universal, timeout);
 }
@@ -800,22 +818,17 @@ gearman_return_t gearman_worker_add_function(gearman_worker_st *worker,
                                              gearman_worker_fn *worker_fn,
                                              void *context)
 {
+  if (not worker)
+    return GEARMAN_INVALID_ARGUMENT;
+
   if (not function_name)
   {
-    gearman_universal_set_error(worker->universal, GEARMAN_INVALID_ARGUMENT,
-                                __func__, AT,
-                                "function name not given");
-
-    return GEARMAN_INVALID_ARGUMENT;
+    return gearman_error(worker->universal, GEARMAN_INVALID_ARGUMENT, "function name not given");
   }
 
   if (not worker_fn)
   {
-    gearman_universal_set_error(worker->universal, GEARMAN_INVALID_ARGUMENT,
-                                __func__, AT,
-                                "function not given");
-
-    return GEARMAN_INVALID_ARGUMENT;
+    return gearman_error(worker->universal, GEARMAN_INVALID_ARGUMENT, "function not given");
   }
 
   return _worker_function_create(worker,
@@ -834,22 +847,17 @@ gearman_return_t gearman_worker_add_map_function(gearman_worker_st *worker,
                                                  gearman_aggregator_fn *aggregator_fn,
                                                  void *context)
 {
+  if (not worker)
+    return GEARMAN_INVALID_ARGUMENT;
+
   if (not function_name)
   {
-    gearman_universal_set_error(worker->universal, GEARMAN_INVALID_ARGUMENT, 
-                                __func__, AT,
-                                "function name not given");
-
-    return GEARMAN_INVALID_ARGUMENT;
+    return gearman_error(worker->universal, GEARMAN_INVALID_ARGUMENT, "function name not given");
   }
 
   if (not mapper_fn)
   {
-    gearman_universal_set_error(worker->universal, GEARMAN_INVALID_ARGUMENT,
-                                __func__, AT,
-                                "mapper_fn not given");
-
-    return GEARMAN_INVALID_ARGUMENT;
+    return gearman_error(worker->universal, GEARMAN_INVALID_ARGUMENT, "mapper_fn not given");
   }
 
   return _worker_function_create(worker,
@@ -863,6 +871,9 @@ gearman_return_t gearman_worker_add_map_function(gearman_worker_st *worker,
 
 gearman_return_t gearman_worker_work(gearman_worker_st *worker)
 {
+  if (not worker)
+    return GEARMAN_INVALID_ARGUMENT;
+
   switch (worker->work_state)
   {
   case GEARMAN_WORKER_WORK_UNIVERSAL_GRAB_JOB:
