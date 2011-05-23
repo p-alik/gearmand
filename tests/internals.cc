@@ -250,7 +250,6 @@ static test_return_t connection_init_test(void *)
 
   test_false(connection_ptr->options.ready);
   test_false(connection_ptr->options.packet_in_use);
-  test_false(connection_ptr->options.external_fd);
   test_false(connection_ptr->options.ignore_lost_connection);
   test_false(connection_ptr->options.close_after_flush);
 
@@ -270,7 +269,6 @@ static test_return_t connection_alloc_test(void *)
 
   test_false(connection_ptr->options.ready);
   test_false(connection_ptr->options.packet_in_use);
-  test_false(connection_ptr->options.external_fd);
   test_false(connection_ptr->options.ignore_lost_connection);
   test_false(connection_ptr->options.close_after_flush);
 

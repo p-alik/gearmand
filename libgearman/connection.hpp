@@ -45,7 +45,6 @@ struct gearman_connection_st
   struct {
     bool ready;
     bool packet_in_use;
-    bool external_fd;
     bool ignore_lost_connection;
     bool close_after_flush;
   } options;

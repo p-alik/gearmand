@@ -1160,9 +1160,6 @@ static void _worker_function_free(gearman_worker_st *worker,
     function->next->prev= function->prev;
   worker->function_count--;
 
-  if (function->options.packet_in_use)
-    gearman_packet_free(&(function->packet));
-
   delete function;
 }
 

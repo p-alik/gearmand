@@ -100,6 +100,9 @@ struct _worker_function_st
 
   virtual ~_worker_function_st()
   {
+    if (options.packet_in_use)
+      gearman_packet_free(&packet);
+
     delete [] function_name;
   }
 };
