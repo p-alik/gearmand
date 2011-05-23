@@ -63,6 +63,23 @@ test_return_t gearman_client_execute_test(void *object)
   return TEST_SUCCESS;
 }
 
+test_return_t gearman_client_execute_fail_test(void *object)
+{
+  gearman_client_st *client= (gearman_client_st *)object;
+  const char *worker_function= (const char *)gearman_client_context(client);
+  assert(worker_function);
+
+  gearman_task_st *task;
+  gearman_argument_t value= gearman_argument_make(gearman_literal_param("fail"));
+
+  test_true_got(task= gearman_client_execute(client, gearman_c_str_param(worker_function), NULL, 0, NULL, &value), gearman_client_error(client));
+  test_compare_got(GEARMAN_WORK_FAIL, gearman_task_error(task), gearman_strerror(gearman_task_error(task)));
+
+  gearman_task_free(task);
+
+  return TEST_SUCCESS;
+}
+
 test_return_t gearman_client_execute_timeout_test(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;

@@ -46,6 +46,8 @@ struct gearman_string_t {
 #define gearman_size(X) (X).size
 #define gearman_c_str(X) (X).c_str
 #define gearman_string_param(X) (X).c_str, (X).size
+#define gearman_string_param_null NULL, 0
+#define gearman_string_param_cstr(X) (X), ((X) ? strlen(X) : 0)
 
 #ifdef BUILDING_LIBGEARMAN
 
@@ -55,5 +57,4 @@ struct gearman_string_t {
 #define gearman_string_make(X) (X), (((size_t)((sizeof(X) - 1)))
 #endif // correct define
 
-#define gearman_string_make_from_cstr(X) (X), ((X) ? strlen(X) : 0)
 #endif // BUILDING_LIBGEARMAN

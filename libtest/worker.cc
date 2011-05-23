@@ -6,7 +6,7 @@
  * the COPYING file in the parent directory for full text.
  */
 
-#include "config.h"
+#include <config.h>
 
 #include <cassert>
 #include <cstring>
@@ -16,9 +16,10 @@
 #include <unistd.h>
 #include <pthread.h>
 
-#include <stdio.h>
+#include <cstdio>
 
-#include "libtest/worker.h"
+#include <libtest/test.h>
+#include <libtest/worker.h>
 
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -124,8 +125,7 @@ static struct worker_handle_st *_test_worker_start(in_port_t port,
   foo->mapper_fn= mapper_fn;
   foo->aggregator_fn= aggregator_fn;
 
-  int rc= pthread_create(&handle->thread, &attr, thread_runner, foo);
-  assert(rc == 0);
+  test_assert_errno(pthread_create(&handle->thread, &attr, thread_runner, foo));
 
   pthread_attr_destroy(&attr);
 

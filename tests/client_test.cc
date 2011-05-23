@@ -259,7 +259,7 @@ static test_return_t clone_test(void *object)
   return TEST_SUCCESS;
 }
 
-static test_return_t option_test(void *object __attribute__((unused)))
+static test_return_t option_test(void *)
 {
   gearman_client_st *gear;
   gearman_client_options_t default_options;
@@ -935,6 +935,7 @@ test_st gearman_client_do_tests[] ={
 
 test_st gearman_client_execute_tests[] ={
   {"gearman_client_execute()", 0, gearman_client_execute_test },
+  {"gearman_client_execute(GEARMAN_WORK_FAIL)", 0, gearman_client_execute_fail_test },
   {"gearman_client_execute() epoch", 0, gearman_client_execute_epoch_test },
   {"gearman_client_execute() timeout", 0, gearman_client_execute_timeout_test },
   {"gearman_client_execute() background", 0, gearman_client_execute_bg_test },
@@ -955,8 +956,9 @@ test_st gearman_client_do_job_handle_tests[] ={
   {0, 0, 0}
 };
 
-test_st gearman_worker_set_reducer_tests[] ={
-  {"gearman_worker_set_reducer()", 0, gearman_worker_set_reducer_test },
+test_st gearman_client_execute_reduces[] ={
+  {"gearman_worker_set_reducer()", 0, gearman_client_execute_reduce_basic },
+  {"gearman_worker_set_reducer() fail in reduction", 0, gearman_client_execute_reduce_fail_in_reduction },
   {0, 0, 0}
 };
 
@@ -980,7 +982,6 @@ test_st gearman_task_tests[] ={
 
 
 collection_st collection[] ={
-  {"gearman_worker_set_reducer()", 0, 0, gearman_worker_set_reducer_tests},
   {"gearman_client_st", 0, 0, tests},
   {"gearman_client_st chunky", pre_chunk, post_function_reset, tests}, // Test with a worker that will respond in part
   {"gearman_strerror", 0, 0, gearman_strerror_tests},
@@ -993,6 +994,7 @@ collection_st collection[] ={
   {"gearman_client_do_background", 0, 0, gearman_client_do_background_tests},
   {"gearman_client_set_server_option", 0, 0, gearman_client_set_server_option_tests},
   {"gearman_client_execute", 0, 0, gearman_client_execute_tests},
+  {"gearman_worker_set_reducer()", 0, 0, gearman_client_execute_reduces},
   {"client-logging", pre_logging, post_logging, tests_log},
   {0, 0, 0, 0}
 };

@@ -641,7 +641,11 @@ gearman_task_st *gearman_client_execute_reduce(gearman_client_st *client,
   if (task)
   {
     // Run!
-    gearman_client_run_tasks(client);
+    if (gearman_failed(gearman_client_run_tasks(client)))
+    {
+      gearman_task_free(task);
+      task= NULL;
+    }
   }
 
   return task;
@@ -680,7 +684,7 @@ gearman_return_t gearman_client_do_background(gearman_client_st *client,
                                               size_t workload_size,
                                               char *job_handle)
 {
-  gearman_string_t function= { gearman_string_make_from_cstr(function_name) };
+  gearman_string_t function= { gearman_string_param_cstr(function_name) };
   gearman_unique_t local_unique= gearman_unique_make(unique, unique ? strlen(unique) : 0);
   gearman_string_t workload= { static_cast<const char*>(workload_str), workload_size };
 
@@ -698,7 +702,7 @@ gearman_return_t gearman_client_do_high_background(gearman_client_st *client,
                                                    size_t workload_size,
                                                    char *job_handle)
 {
-  gearman_string_t function= { gearman_string_make_from_cstr(function_name) };
+  gearman_string_t function= { gearman_string_param_cstr(function_name) };
   gearman_unique_t local_unique= gearman_unique_make(unique, unique ? strlen(unique) : 0);
   gearman_string_t workload= { static_cast<const char*>(workload_str), workload_size };
 
@@ -716,7 +720,7 @@ gearman_return_t gearman_client_do_low_background(gearman_client_st *client,
                                                   size_t workload_size,
                                                   char *job_handle)
 {
-  gearman_string_t function= { gearman_string_make_from_cstr(function_name) };
+  gearman_string_t function= { gearman_string_param_cstr(function_name) };
   gearman_unique_t local_unique= gearman_unique_make(unique, unique ? strlen(unique) : 0);
   gearman_string_t workload= { static_cast<const char*>(workload_str), workload_size };
 
@@ -1160,7 +1164,7 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
               break;
             }
 
-            if (client->task == NULL)
+            if (not client->task)
             {
               /* The client has stopped waiting for the response, ignore it. */
               gearman_packet_free(&(client->con->_packet));
@@ -1251,6 +1255,7 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
 
   if (gearman_failed(rc))
   {
+    gearman_gerror(client->universal, rc);
 #if 0
     if (rc != gearman_universal_error_code(client->universal))
     {
@@ -1594,7 +1599,7 @@ static void *_client_do(gearman_client_st *client, gearman_command_t command,
 {
   gearman_task_st do_task, *do_task_ptr;
   gearman_client_task_free_all(client);
-  gearman_string_t function= { gearman_string_make_from_cstr(function_name) };
+  gearman_string_t function= { gearman_string_param_cstr(function_name) };
   gearman_unique_t local_unique= gearman_unique_make(unique, unique ? strlen(unique) : 0);
   gearman_string_t workload= { static_cast<const char*>(workload_str), workload_size };
 

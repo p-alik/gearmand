@@ -127,6 +127,13 @@ struct gearman_job_reducer_st {
       return rc;
     }
 
+    gearman_task_st *check_task= client->task_list;
+    do
+    {
+      if (gearman_failed(check_task->result_rc))
+        return check_task->result_rc;
+    } while ((check_task= gearman_next(check_task)));
+
     if (aggregator_fn)
     {
       gearman_aggregator_st aggregator(client->context);
@@ -197,7 +204,7 @@ bool gearman_job_build_reducer(gearman_job_st *job, gearman_aggregator_fn *aggre
   if (job->reducer)
     return true;
 
-  gearman_string_t reducer_func= { gearman_string_make_from_cstr(gearman_job_reducer(job)) };
+  gearman_string_t reducer_func= { gearman_string_param_cstr(gearman_job_reducer(job)) };
 
   job->reducer= new (std::nothrow) gearman_job_reducer_st(job->worker->universal, reducer_func, aggregator_fn);
   if (not job->reducer)

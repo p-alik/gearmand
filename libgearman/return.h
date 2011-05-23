@@ -96,8 +96,8 @@ enum gearman_return_t
   GEARMAN_MAX_RETURN /* Always add new error code before */
 };
 
-#define gearman_failed(X) (((X) != GEARMAN_SUCCESS) ? true : false)
-#define gearman_success(X) (((X) == GEARMAN_SUCCESS) ? true : false)
+#define gearman_failed(X) ((X) != GEARMAN_SUCCESS)
+#define gearman_success(X) ((X) == GEARMAN_SUCCESS)
 
 enum gearman_worker_error_t
 {

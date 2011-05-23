@@ -45,12 +45,15 @@
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
-test_return_t gearman_worker_set_reducer_test(void *object)
+test_return_t gearman_client_execute_reduce_basic(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
 
   test_true_got(gearman_success(gearman_client_echo(client, gearman_literal_param("this is mine"))), gearman_client_error(client));
 
+  // This just hear to make it easier to trace when
+  // gearman_client_execute_reduce() is called (look in the log to see the
+  // failed option setting.
   gearman_client_set_server_option(client, gearman_literal_param("should fail"));
   gearman_argument_t work_args= gearman_argument_make(gearman_literal_param("this dog does not hunt"));
 
@@ -71,6 +74,32 @@ test_return_t gearman_worker_set_reducer_test(void *object)
   const char *value= gearman_result_value(result);
   test_truth(value);
   test_compare(18, gearman_result_size(result));
+
+  gearman_task_free(task);
+  gearman_client_task_free_all(client);
+
+  return TEST_SUCCESS;
+}
+
+test_return_t gearman_client_execute_reduce_fail_in_reduction(void *object)
+{
+  gearman_client_st *client= (gearman_client_st *)object;
+  const char *worker_function= (const char *)gearman_client_context(client);
+
+  test_true_got(gearman_success(gearman_client_echo(client, gearman_literal_param("this is mine"))), gearman_client_error(client));
+
+  gearman_argument_t work_args= gearman_argument_make(gearman_literal_param("this dog does not hunt fail"));
+
+  gearman_string_t function= { gearman_literal_param("split_worker") };
+  gearman_task_st *task;
+  test_true_got(task= gearman_client_execute_reduce(client,
+                                                    gearman_string_param(function),
+                                                    gearman_string_param_cstr(worker_function),
+                                                    NULL, 0,  // unique
+                                                    NULL,
+                                                    &work_args), gearman_client_error(client));
+
+  test_compare_got(GEARMAN_WORK_FAIL, gearman_task_error(task), gearman_strerror(gearman_task_error(task)));
 
   gearman_task_free(task);
   gearman_client_task_free_all(client);

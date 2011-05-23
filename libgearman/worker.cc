@@ -65,7 +65,7 @@ static inline struct _worker_function_st *_function_exist(gearman_worker_st *wor
   {
     if (function_length == function->function_length)
     {
-      if (! memcmp(function_name, function->function_name, function_length))
+      if (not memcmp(function_name, function->function_name, function_length))
         break;
     }
   }
@@ -535,7 +535,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
         worker->function= worker->function_list;
         while (worker->function)
         {
-          if (! (worker->function->options.change))
+          if (not (worker->function->options.change))
           {
             worker->function= worker->function->next;
             continue;
@@ -960,6 +960,8 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
       {
         if (worker->work_job->error_code == GEARMAN_LOST_CONNECTION)
           break;
+
+        worker->work_state= GEARMAN_WORKER_WORK_UNIVERSAL_FAIL;
 
         return worker->work_job->error_code;
       }

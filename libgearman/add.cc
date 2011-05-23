@@ -92,7 +92,7 @@ gearman_task_st *add_task(gearman_client_st *client,
     return NULL;
   }
 
-  gearman_string_t function= { gearman_string_make_from_cstr(function_name) };
+  gearman_string_t function= { gearman_string_param_cstr(function_name) };
   gearman_unique_t local_unique= gearman_unique_make(unique, unique ? strlen(unique) : 0);
   gearman_string_t workload= { static_cast<const char *>(workload_str), workload_size };
 

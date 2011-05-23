@@ -37,4 +37,5 @@
 
 #pragma once
 
-test_return_t gearman_worker_set_reducer_test(void *object);
+test_return_t gearman_client_execute_reduce_basic(void *object);
+test_return_t gearman_client_execute_reduce_fail_in_reduction(void *object);
