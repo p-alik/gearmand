@@ -43,6 +43,9 @@ noinst_HEADERS+= \
 		 libgearman/aggregator.hpp \
 		 libgearman/common.h \
 		 libgearman/connection.hpp \
+		 libgearman/function/basic.hpp \
+		 libgearman/function/make.hpp \
+		 libgearman/function/mapper.hpp \
 		 libgearman/log.h \
 		 libgearman/packet.hpp \
 		 libgearman/result.hpp \
@@ -72,6 +75,7 @@ libgearman_libgearman_la_SOURCES= \
 				  libgearman/client.cc \
 				  libgearman/command.cc \
 				  libgearman/connection.cc \
+				  libgearman/function/make.cc \
 				  libgearman/gearman.cc \
 				  libgearman/job.cc \
 				  libgearman/log.cc \

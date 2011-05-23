@@ -40,6 +40,8 @@
 #include <libgearman/connection.h>
 #include <libgearman/packet.hpp>
 #include <libgearman/universal.hpp>
+#include <libgearman/function/base.hpp>
+#include <libgearman/function/make.hpp>
 
 #include <cassert>
 #include <cstdio>
@@ -47,138 +49,6 @@
 #include <cstring>
 #include <memory>
 #include <unistd.h>
-
-/**
-  Private structure.
-*/
-struct _worker_function_st
-{
-  struct _options {
-    bool packet_in_use:1;
-    bool change:1;
-    bool remove:1;
-
-    _options() :
-      packet_in_use(true),
-      change(true),
-      remove(false)
-    { }
-
-  } options;
-  struct _worker_function_st *next;
-  struct _worker_function_st *prev;
-  char *function_name;
-  size_t function_length;
-  gearman_worker_fn *_worker_fn;
-  gearman_mapper_fn *_mapper_fn;
-  gearman_aggregator_fn *aggregator_fn;
-  void *context;
-  gearman_packet_st packet;
-
-  _worker_function_st(gearman_worker_fn *worker_fn_arg, void *context_arg) :
-    function_name(NULL),
-    function_length(0),
-    _worker_fn(worker_fn_arg),
-    _mapper_fn(NULL),
-    aggregator_fn(NULL),
-    context(context_arg)
-  { }
-
-  _worker_function_st(gearman_mapper_fn *mapper_fn_arg, gearman_aggregator_fn *aggregator_fn_arg, void *context_arg) :
-    function_name(NULL),
-    function_length(0),
-    _worker_fn(NULL),
-    _mapper_fn(mapper_fn_arg),
-    aggregator_fn(aggregator_fn_arg),
-    context(context_arg)
-  {
-    options.packet_in_use= true;
-    options.change= true;
-    options.remove= false;
-  }
-
-  bool has_callback() const
-  {
-    return bool(_worker_fn) or bool(_mapper_fn);
-  }
-
-  gearman_worker_error_t callback(gearman_job_st* job, void *context_arg)
-  {
-    if (_worker_fn)
-    {
-      job->error_code= GEARMAN_SUCCESS;
-      job->worker->work_result= _worker_fn(job, context_arg, &(job->worker->work_result_size), &job->error_code);
-      
-      if (job->error_code == GEARMAN_LOST_CONNECTION)
-      {
-        return GEARMAN_WORKER_LOST_CONNECTION;
-      }
-
-      if (gearman_failed(job->error_code))
-      {
-        return GEARMAN_WORKER_FAILED;
-      }
-
-      return GEARMAN_WORKER_SUCCESS;
-    }
-    else if (_mapper_fn)
-    {
-      if (gearman_job_is_map(job))
-        gearman_job_build_reducer(job, job->worker->work_function->aggregator_fn);
-
-      gearman_worker_error_t error= _mapper_fn(job, context_arg);
-      switch (error)
-      {
-      case GEARMAN_WORKER_FAILED:
-        if (job->error_code == GEARMAN_UNKNOWN_STATE)
-          job->error_code= GEARMAN_WORK_FAIL;
-        break;
-
-      case GEARMAN_WORKER_LOST_CONNECTION:
-        job->error_code= GEARMAN_LOST_CONNECTION;
-        break;
-
-      case GEARMAN_WORKER_SUCCESS:
-        job->error_code= GEARMAN_SUCCESS;
-        break;
-      }
-
-      return error;
-    }
-
-    return GEARMAN_WORKER_FAILED;
-  }
-
-  bool init(const char *name_arg, size_t size)
-  {
-    function_name= new (std::nothrow) char[size +1];
-    if (not function_name)
-    {
-      return false;
-    }
-
-    memcpy(function_name, name_arg, size);
-    function_length= size;
-    function_name[size]= 0;
-
-    return true;
-  }
-
-  const char *name() const
-  {
-    return function_name;
-  }
-
-  size_t length() const
-  {
-    return function_length;
-  }
-
-  ~_worker_function_st()
-  {
-    delete [] function_name;
-  }
-};
 
 /**
  * @addtogroup gearman_worker_static Static Worker Declarations
@@ -1223,22 +1093,16 @@ static gearman_return_t _worker_function_create(gearman_worker_st *worker,
   _worker_function_st *function;
   if (mapper_fn and aggregator_fn)
   {
-    function= new (std::nothrow) _worker_function_st(mapper_fn, aggregator_fn, context);
+    function= make(function_name, function_length, mapper_fn, aggregator_fn, context);
   }
   else
   {
-    function= new (std::nothrow) _worker_function_st(worker_fn, context);
+    function= make(function_name, function_length, worker_fn, context);
   }
 
   if (not function)
   {
     gearman_perror(worker->universal, "_worker_function_st::new()");
-    return GEARMAN_MEMORY_ALLOCATION_FAILURE;
-  }
-
-  if (not function->init(function_name, function_length))
-  {
-    gearman_perror(worker->universal, "_worker_function_st::init()");
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
 

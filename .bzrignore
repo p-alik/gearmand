@@ -69,6 +69,7 @@ scripts/gearmand.xml
 scripts/smf_install.sh
 support/gearmand.pc
 support/gearmand.spec
+tags
 tests/Xugear.pid
 tests/burnin_test
 tests/client_test
