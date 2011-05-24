@@ -449,6 +449,9 @@ gearman_return_t gearman_worker_echo(gearman_worker_st *worker,
 GEARMAN_API
 bool gearman_worker_set_server_option(gearman_worker_st *self, const char *option_arg, size_t option_arg_size);
 
+GEARMAN_API
+void gearman_worker_set_namespace(gearman_worker_st *self, const char *namespace_key, size_t namespace_key_size);
+
 /** @} */
 
 #ifdef __cplusplus

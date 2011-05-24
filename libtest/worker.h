@@ -29,7 +29,14 @@ LIBTEST_API
                                              gearman_worker_options_t options);
 
 LIBTEST_API
+  struct worker_handle_st *test_worker_start_with_namespace(in_port_t port, const char *function_name,
+							    gearman_worker_fn *function, void *function_arg,
+							    const char *namespace_key,
+							    gearman_worker_options_t options);
+
+LIBTEST_API
   struct worker_handle_st *test_worker_start_with_reducer(in_port_t port,
+							  const char *namespace_key,
                                                           const char *function_name,
                                                           gearman_mapper_fn *mapper_fn, gearman_aggregator_fn *aggregator_fn,  
                                                           void *function_arg,

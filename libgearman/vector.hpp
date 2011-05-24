@@ -53,14 +53,21 @@ struct gearman_vector_st {
   } options;
 };
 
+GEARMAN_LOCAL
+gearman_vector_st *gearman_string_create(gearman_vector_st *string,
+                                         size_t initial_size);
+
+GEARMAN_LOCAL
+gearman_vector_st *gearman_string_create(gearman_vector_st *self, const char *str, size_t initial_size);
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 
 GEARMAN_LOCAL
-gearman_vector_st *gearman_string_create(gearman_vector_st *string,
-                                         size_t initial_size);
+gearman_vector_st *gearman_string_clone(const gearman_vector_st *);
+
 GEARMAN_LOCAL
 gearman_return_t gearman_string_check(gearman_vector_st *string, size_t need);
 
@@ -69,7 +76,7 @@ char *gearman_string_c_copy(gearman_vector_st *string);
 
 GEARMAN_LOCAL
 gearman_return_t gearman_string_append_character(gearman_vector_st *string,
-                                                     char character);
+                                                 char character);
 GEARMAN_LOCAL
 gearman_return_t gearman_string_append(gearman_vector_st *string,
                                        const char *value, size_t length);

@@ -142,8 +142,24 @@ gearman_task_st *add_task(gearman_client_st *client,
   /**
     @todo fix it so that NULL is done by default by the API not by happenstance.
   */
-  args[0]= gearman_c_str(function);
-  args_size[0]= gearman_size(function) + 1;
+  char function_buffer[1024];
+  if (client->universal._namespace)
+  {
+    char *ptr= function_buffer;
+    memcpy(ptr, gearman_string_value(client->universal._namespace), gearman_string_length(client->universal._namespace)); 
+    ptr+= gearman_string_length(client->universal._namespace);
+
+    memcpy(ptr, gearman_c_str(function), gearman_size(function) +1);
+    ptr+= gearman_size(function);
+
+    args[0]= function_buffer;
+    args_size[0]= ptr -function_buffer +1;
+  }
+  else
+  {
+    args[0]= gearman_c_str(function);
+    args_size[0]= gearman_size(function) + 1;
+  }
 
   if (gearman_size(unique))
   {
@@ -195,7 +211,7 @@ gearman_task_st *add_task(gearman_client_st *client,
   }
 
   gearman_task_free(task);
-  gearman_error(client->universal, rc, "");
+  gearman_gerror(client->universal, rc);
 
   return NULL;
 }
@@ -216,7 +232,7 @@ gearman_task_st *add_task(gearman_client_st *client,
   const void *args[5];
   size_t args_size[5];
 
-  if ((gearman_size(workload) && gearman_c_str(workload) == NULL) or (gearman_size(workload) == 0 && gearman_c_str(workload)))
+  if ((gearman_size(workload) and not gearman_c_str(workload)) or (gearman_size(workload) == 0 && gearman_c_str(workload)))
   {
     gearman_error(client->universal, GEARMAN_INVALID_ARGUMENT, "invalid workload");
     return NULL;
@@ -235,8 +251,24 @@ gearman_task_st *add_task(gearman_client_st *client,
   /**
     @todo fix it so that NULL is done by default by the API not by happenstance.
   */
-  args[0]= gearman_c_str(mapper_function);
-  args_size[0]= gearman_size(mapper_function) + 1;
+  char function_buffer[1024];
+  if (client->universal._namespace)
+  {
+    char *ptr= function_buffer;
+    memcpy(ptr, gearman_string_value(client->universal._namespace), gearman_string_length(client->universal._namespace)); 
+    ptr+= gearman_string_length(client->universal._namespace);
+
+    memcpy(ptr, gearman_c_str(mapper_function), gearman_size(mapper_function) +1);
+    ptr+= gearman_size(mapper_function);
+
+    args[0]= function_buffer;
+    args_size[0]= ptr- function_buffer +1;
+  }
+  else
+  {
+    args[0]= gearman_c_str(mapper_function);
+    args_size[0]= gearman_size(mapper_function) + 1;
+  }
 
   if (gearman_size(unique))
   {
@@ -253,35 +285,26 @@ gearman_task_st *add_task(gearman_client_st *client,
   }
 
   assert (command == GEARMAN_COMMAND_SUBMIT_REDUCE_JOB or command == GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND);
-  args[2]= gearman_c_str(reducer);
-  args_size[2]= gearman_size(reducer) +1;
 
-#if 0
-  char time_string[30];
-  if (epoch)
+  char reducer_buffer[1024];
+  if (client->universal._namespace)
   {
-    int length= snprintf(time_string, sizeof(time_string), "%lld", static_cast<long long>(epoch));
-    args[3]= time_string;
-    args_size[3]= length +1;
+    char *ptr= reducer_buffer;
+    memcpy(ptr, gearman_string_value(client->universal._namespace), gearman_string_length(client->universal._namespace)); 
+    ptr+= gearman_string_length(client->universal._namespace);
+
+    memcpy(ptr, gearman_c_str(reducer), gearman_size(reducer) +1);
+    ptr+= gearman_size(reducer);
+
+    args[0]= reducer_buffer;
+    args_size[0]= ptr- reducer_buffer +1;
   }
   else
   {
-    switch(priority)
-    {
-    case GEARMAN_JOB_PRIORITY_HIGH:
-      args[3]= "HIGH";
-      args_size[3]= 5;
-    case GEARMAN_JOB_PRIORITY_NORMAL:
-      args[3]= "NORMAL";
-      args_size[3]= 7;
-    default:
-    case GEARMAN_JOB_PRIORITY_MAX:
-    case GEARMAN_JOB_PRIORITY_LOW:
-      args[3]= "LOW";
-      args_size[3]= 4;
-    }
+    args[2]= gearman_c_str(reducer);
+    args_size[2]= gearman_size(reducer) +1;
   }
-#endif
+
   char aggregate[1];
   aggregate[0]= 0;
   args[3]= aggregate;
@@ -293,12 +316,10 @@ gearman_task_st *add_task(gearman_client_st *client,
   args_size[4]= gearman_size(workload);
 
   gearman_return_t rc;
-  rc= gearman_packet_create_args(client->universal, task->send,
-                                 GEARMAN_MAGIC_REQUEST, command,
-                                 args, args_size,
-                                 5);
-
-  if (gearman_success(rc))
+  if (gearman_success(rc= gearman_packet_create_args(client->universal, task->send,
+                                                     GEARMAN_MAGIC_REQUEST, command,
+                                                     args, args_size,
+                                                     5)))
   {
     client->new_tasks++;
     client->running_tasks++;
@@ -306,6 +327,7 @@ gearman_task_st *add_task(gearman_client_st *client,
   }
   else
   {
+    gearman_gerror(client->universal, rc);
     gearman_task_free(task);
     task= NULL;
   }

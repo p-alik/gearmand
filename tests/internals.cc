@@ -73,6 +73,7 @@ static test_return_t init_test(void *)
   test_false(gear.options.dont_track_packets);
   test_false(gear.options.non_blocking);
   test_false(gear.options.stored_non_blocking);
+  test_false(gear._namespace);
 
   gearman_universal_free(gear);
 
@@ -95,6 +96,7 @@ static test_return_t clone_test(void *)
       test_truth(destination.options.non_blocking == gear.options.non_blocking);
       test_truth(destination.options.stored_non_blocking == gear.options.stored_non_blocking);
     }
+    test_truth(destination._namespace == gear._namespace);
     test_truth(destination.verbose == gear.verbose);
     test_truth(destination.con_count == gear.con_count);
     test_truth(destination.packet_count == gear.packet_count);
@@ -187,6 +189,41 @@ static test_return_t state_option_on_create_test(void *)
 }
 
 
+static test_return_t gearman_universal_set_namespace_test(void *)
+{
+  gearman_universal_st universal;
+  gearman_universal_initialize(universal);
+
+  test_false(universal._namespace);
+
+  gearman_universal_set_namespace(universal, gearman_literal_param("foo23"));
+  test_truth(universal._namespace);
+
+  gearman_universal_free(universal);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t clone_gearman_universal_set_namespace_test(void *)
+{
+  gearman_universal_st universal;
+  gearman_universal_initialize(universal);
+
+  test_false(universal._namespace);
+
+  gearman_universal_set_namespace(universal, gearman_literal_param("my_dog"));
+  test_truth(universal._namespace);
+
+  gearman_universal_st clone;
+  gearman_universal_clone(clone, universal);
+  test_truth(clone._namespace);
+
+  gearman_universal_free(universal);
+  gearman_universal_free(clone);
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t state_option_set_test(void *)
 {
   gearman_universal_st universal;
@@ -235,6 +272,8 @@ test_st universal_st_test[] ={
   {"state_options", 0, state_option_test },
   {"state_options_on_create", 0, state_option_on_create_test},
   {"state_options_set", 0, state_option_set_test },
+  {"gearman_universal_set_namespace()", 0, gearman_universal_set_namespace_test },
+  {"gearman_universal_clone() with gearman_universal_set_namespace()", 0, clone_gearman_universal_set_namespace_test },
   {0, 0, 0}
 };
 

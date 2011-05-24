@@ -37,79 +37,15 @@
 
 #pragma once
 
-#include <cstring>
-#include <memory>
+void *client_do(gearman_client_st *client, gearman_command_t command,
+		const char *function_name,
+		const char *unique,
+		const void *workload_str, size_t workload_size,
+		size_t *result_size, gearman_return_t *ret_ptr);
 
-struct _worker_function_st
-{
-  struct _options {
-    bool packet_in_use:1;
-    bool change:1;
-    bool remove:1;
-
-    _options() :
-      packet_in_use(true),
-      change(true),
-      remove(false)
-    { }
-
-  } options;
-  struct _worker_function_st *next;
-  struct _worker_function_st *prev;
-  char *function_name;
-  size_t function_length;
-  void *context;
-  gearman_packet_st packet;
-
-  _worker_function_st(void *context_arg) : 
-    next(NULL),
-    prev(NULL),
-    function_name(NULL),
-    function_length(0),
-    context(context_arg)
-  { }
-
-  virtual bool has_callback() const= 0;
-
-  virtual gearman_worker_error_t callback(gearman_job_st* job, void *context_arg)= 0;
-
-  bool init(gearman_vector_st* namespace_arg, const char *name_arg, size_t size)
-  {
-    function_length= gearman_string_length(namespace_arg) +size;
-    function_name= new (std::nothrow) char[function_length +1];
-    if (not function_name)
-    {
-      return false;
-    }
-
-    char *ptr= function_name;
-    if (gearman_string_length(namespace_arg))
-    {
-      memcpy(ptr, gearman_string_value(namespace_arg), gearman_string_length(namespace_arg));
-      ptr+= gearman_string_length(namespace_arg);
-    }
-
-    memcpy(ptr, name_arg, size);
-    function_name[function_length]= 0;
-
-    return true;
-  }
-
-  const char *name() const
-  {
-    return function_name;
-  }
-
-  size_t length() const
-  {
-    return function_length;
-  }
-
-  virtual ~_worker_function_st()
-  {
-    if (options.packet_in_use)
-      gearman_packet_free(&packet);
-
-    delete [] function_name;
-  }
-};
+gearman_return_t client_do_background(gearman_client_st *client,
+				      gearman_command_t command,
+				      gearman_string_t &function,
+				      gearman_unique_t &unique,
+				      gearman_string_t &workload,
+				      char *job_handle);

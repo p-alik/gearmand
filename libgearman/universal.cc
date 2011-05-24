@@ -1,10 +1,41 @@
-/* Gearman server and library
- * Copyright (C) 2008 Brian Aker, Eric Day
- * All rights reserved.
+/*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
+ * 
+ *  Gearmand client and server library.
  *
- * Use and distribution licensed under the BSD license.  See
- * the COPYING file in the parent directory for full text.
+ *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2008 Brian Aker, Eric Day
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions are
+ *  met:
+ *
+ *      * Redistributions of source code must retain the above copyright
+ *  notice, this list of conditions and the following disclaimer.
+ *
+ *      * Redistributions in binary form must reproduce the above
+ *  copyright notice, this list of conditions and the following disclaimer
+ *  in the documentation and/or other materials provided with the
+ *  distribution.
+ *
+ *      * The names of its contributors may not be used to endorse or
+ *  promote products derived from this software without specific prior
+ *  written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ *  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ *  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ *  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ *  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ *  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ *  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
+
 
 /**
  * @file
@@ -15,6 +46,7 @@
 #include <libgearman/connection.h>
 #include <libgearman/packet.hpp>
 #include <libgearman/universal.hpp>
+#include <libgearman/vector.hpp>
 
 #include <cassert>
 #include <cerrno>
@@ -58,6 +90,7 @@ void gearman_universal_initialize(gearman_universal_st &self, const gearman_univ
   self.workload_malloc_context= NULL;
   self.workload_free_fn= NULL;
   self.workload_free_context= NULL;
+  self._namespace= NULL;
   self.error.rc= GEARMAN_SUCCESS;
   self.error.last_errno= 0;
   self.error.last_error[0]= 0;
@@ -71,6 +104,8 @@ void gearman_universal_clone(gearman_universal_st &destination, const gearman_un
   (void)gearman_universal_set_option(destination, GEARMAN_DONT_TRACK_PACKETS, source.options.dont_track_packets);
 
   destination.timeout= source.timeout;
+
+  destination._namespace= gearman_string_clone(source._namespace);
 
   for (gearman_connection_st *con= source.con_list; con; con= con->next)
   {
@@ -86,6 +121,7 @@ void gearman_universal_free(gearman_universal_st &universal)
 {
   gearman_free_all_cons(universal);
   gearman_free_all_packets(universal);
+  gearman_string_free(universal._namespace);
 
   if (universal.pfds)
   {
@@ -101,9 +137,11 @@ gearman_return_t gearman_universal_set_option(gearman_universal_st &self, gearma
   case GEARMAN_NON_BLOCKING:
     self.options.non_blocking= value;
     break;
+
   case GEARMAN_DONT_TRACK_PACKETS:
     self.options.dont_track_packets= value;
     break;
+
   case GEARMAN_MAX:
   default:
     return GEARMAN_INVALID_COMMAND;
@@ -222,7 +260,7 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
     break;
   }
 
-  if (ret == 0)
+  if (not ret)
   {
     gearman_error(universal, GEARMAN_TIMEOUT, "timeout reached");
     return GEARMAN_TIMEOUT;
@@ -248,7 +286,7 @@ gearman_connection_st *gearman_ready(gearman_universal_st& universal)
     We can't keep universal between calls since connections may be removed during
     processing. If this list ever gets big, we may want something faster.
   */
-  for (gearman_connection_st *con= universal.con_list; con != NULL; con= con->next)
+  for (gearman_connection_st *con= universal.con_list; con; con= con->next)
   {
     if (con->options.ready)
     {
@@ -284,13 +322,13 @@ gearman_return_t gearman_echo(gearman_universal_st& universal,
 
   if (not workload)
   {
-    gearman_universal_set_error(universal, GEARMAN_INVALID_ARGUMENT, __func__, AT, "workload was NULL");
+    gearman_error(universal, GEARMAN_INVALID_ARGUMENT, "workload was NULL");
     return GEARMAN_INVALID_ARGUMENT;
   }
 
   if (not workload_size)
   {
-    gearman_universal_set_error(universal, GEARMAN_INVALID_ARGUMENT,  __func__, AT, "workload_size was 0");
+    gearman_error(universal, GEARMAN_INVALID_ARGUMENT,  "workload_size was 0");
     return GEARMAN_INVALID_ARGUMENT;
   }
 
@@ -534,4 +572,10 @@ gearman_return_t gearman_universal_set_perror(gearman_universal_st &universal,
   }
 
   return GEARMAN_ERRNO;
+}
+
+void gearman_universal_set_namespace(gearman_universal_st& universal, const char *namespace_key, size_t namespace_key_size)
+{
+  gearman_string_free(universal._namespace);
+  universal._namespace= gearman_string_create(NULL, namespace_key, namespace_key_size);
 }

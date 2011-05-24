@@ -177,15 +177,15 @@ void gearman_worker_free(gearman_worker_st *worker)
 
   if (worker->work_result)
   {
-    if ((&worker->universal)->workload_free_fn == NULL)
+    if (worker->universal.workload_free_fn)
     {
-      // Created with malloc
-      free(worker->work_result);
+      worker->universal.workload_free_fn(worker->work_result,
+                                         static_cast<void *>((&worker->universal)->workload_free_context));
     }
     else
     {
-      (&worker->universal)->workload_free_fn(worker->work_result,
-					     static_cast<void *>((&worker->universal)->workload_free_context));
+      // Created with malloc
+      free(worker->work_result);
     }
   }
 
@@ -194,8 +194,7 @@ void gearman_worker_free(gearman_worker_st *worker)
 
   gearman_job_free_all(worker);
 
-  if ((&worker->universal))
-    gearman_universal_free((worker->universal));
+  gearman_universal_free(worker->universal);
 
   if (worker->options.allocated)
     delete worker;
@@ -902,16 +901,14 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
       {
         gearman_job_free(worker->work_job);
         worker->work_job= NULL;
-        return gearman_universal_set_error(worker->universal, GEARMAN_INVALID_FUNCTION_NAME,
-                                           __func__, AT, "function not found");
+        return gearman_error(worker->universal, GEARMAN_INVALID_FUNCTION_NAME, "function not found");
       }
 
       if (not worker->work_function->has_callback())
       {
         gearman_job_free(worker->work_job);
         worker->work_job= NULL;
-        return gearman_universal_set_error(worker->universal, GEARMAN_INVALID_FUNCTION_NAME, 
-                                           __func__, AT, "no callback function supplied");
+        return gearman_error(worker->universal, GEARMAN_INVALID_FUNCTION_NAME, "no callback function supplied");
       }
 
       worker->work_result_size= 0;
@@ -949,8 +946,8 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
       if (worker->work_job->error_code == GEARMAN_IO_WAIT)
       {
         worker->work_state= GEARMAN_WORKER_WORK_UNIVERSAL_COMPLETE;
-        return gearman_universal_set_error(worker->universal, worker->work_job->error_code, 
-                                           __func__, AT, "gearman_job_send_complete()");
+        return gearman_error(worker->universal, worker->work_job->error_code,
+                             "gearman_job_send_complete() failed after worker had successful complete");
       }
 
       if (worker->work_result)
@@ -1067,14 +1064,14 @@ static gearman_worker_st *_worker_allocate(gearman_worker_st *worker, bool is_cl
 static gearman_return_t _worker_packet_init(gearman_worker_st *worker)
 {
   gearman_return_t ret= gearman_packet_create_args(worker->universal, worker->grab_job,
-						   GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_GRAB_JOB,
-						   NULL, NULL, 0);
+                                                   GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_GRAB_JOB,
+                                                   NULL, NULL, 0);
   if (gearman_failed(ret))
     return ret;
 
   ret= gearman_packet_create_args(worker->universal, worker->pre_sleep,
-				  GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_PRE_SLEEP,
-				  NULL, NULL, 0);
+                                  GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_PRE_SLEEP,
+                                  NULL, NULL, 0);
   if (gearman_failed(ret))
   {
     gearman_packet_free(&(worker->grab_job));
@@ -1106,11 +1103,11 @@ static gearman_return_t _worker_function_create(gearman_worker_st *worker,
   _worker_function_st *function;
   if (mapper_fn and aggregator_fn)
   {
-    function= make(function_name, function_length, mapper_fn, aggregator_fn, context);
+    function= make(worker->universal._namespace, function_name, function_length, mapper_fn, aggregator_fn, context);
   }
   else
   {
-    function= make(function_name, function_length, worker_fn, context);
+    function= make(worker->universal._namespace, function_name, function_length, worker_fn, context);
   }
 
   if (not function)
@@ -1181,4 +1178,12 @@ bool gearman_worker_set_server_option(gearman_worker_st *self, const char *optio
   gearman_string_t option= { option_arg, option_arg_size };
 
   return gearman_request_option(self->universal, option);
+}
+
+void gearman_worker_set_namespace(gearman_worker_st *self, const char *namespace_key, size_t namespace_key_size)
+{
+  if (not self)
+    return;
+
+  gearman_universal_set_namespace(self->universal, namespace_key, namespace_key_size);
 }

@@ -34,6 +34,7 @@ struct context_st {
   gearman_worker_fn *worker_fn;
   gearman_mapper_fn *mapper_fn;
   gearman_aggregator_fn *aggregator_fn;
+  const char *namespace_key;
 
   context_st() :
     port(0),
@@ -41,7 +42,8 @@ struct context_st {
     handle(0),
     options(gearman_worker_options_t()),
     mapper_fn(0),
-    aggregator_fn(0)
+    aggregator_fn(0),
+    namespace_key(NULL)
   { }
 };
 
@@ -52,6 +54,9 @@ static void *thread_runner(void *con)
 
   worker_ptr= gearman_worker_create(&worker);
   assert(worker_ptr);
+
+  if (context->namespace_key)
+    gearman_worker_set_namespace(worker_ptr, context->namespace_key, strlen(context->namespace_key));
 
   gearman_return_t rc;
   rc= gearman_worker_add_server(&worker, NULL, context->port);
@@ -99,6 +104,7 @@ static void *thread_runner(void *con)
 }
 
 static struct worker_handle_st *_test_worker_start(in_port_t port, 
+                                                   const char *namespace_key,
                                                    const char *function_name,
                                                    gearman_worker_fn *worker_fn,
                                                    gearman_mapper_fn *mapper_fn,
@@ -124,6 +130,7 @@ static struct worker_handle_st *_test_worker_start(in_port_t port,
   foo->options= options;
   foo->mapper_fn= mapper_fn;
   foo->aggregator_fn= aggregator_fn;
+  foo->namespace_key= namespace_key;
 
   test_assert_errno(pthread_create(&handle->thread, &attr, thread_runner, foo));
 
@@ -145,16 +152,27 @@ struct worker_handle_st *test_worker_start(in_port_t port,
                                            gearman_worker_fn *worker_fn, 
                                            void *function_arg, gearman_worker_options_t options)
 {
-  return _test_worker_start(port, function_name, worker_fn, NULL, NULL, function_arg, options);
+  return _test_worker_start(port, NULL, function_name, worker_fn, NULL, NULL, function_arg, options);
+}
+
+struct worker_handle_st *test_worker_start_with_namespace(in_port_t port,
+                                           const char *function_name,
+                                           gearman_worker_fn *worker_fn, 
+                                           void *function_arg,
+                                           const char *namespace_key,
+                                           gearman_worker_options_t options)
+{
+  return _test_worker_start(port, namespace_key, function_name, worker_fn, NULL, NULL, function_arg, options);
 }
 
 struct worker_handle_st *test_worker_start_with_reducer(in_port_t port,
+                                                        const char *namespace_key,
                                                         const char *function_name,
                                                         gearman_mapper_fn *mapper_fn, gearman_aggregator_fn *aggregator_fn,  
                                                         void *function_arg,
                                                         gearman_worker_options_t options)
 {
-  return _test_worker_start(port, function_name, NULL, mapper_fn, aggregator_fn, function_arg, options);
+  return _test_worker_start(port, namespace_key, function_name, NULL, mapper_fn, aggregator_fn, function_arg, options);
 }
 
 void test_worker_stop(struct worker_handle_st *handle)

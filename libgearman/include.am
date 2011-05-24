@@ -2,7 +2,7 @@
 # Gearman server and library 
 # Copyright (C) 2008 Brian Aker, Eric Day 
 # Copyright (C) 2009-2010 Brian Aker, Eric Day, Monty Taylor All rights
-# reserved.
+# Copyright (C) 2011 Data Differential, http://datadifferential.com/
 #
 # Use and distribution licensed under the BSD license.  See
 # the COPYING file in the parent directory for full text.
@@ -43,6 +43,7 @@ noinst_HEADERS+= \
 		 libgearman/aggregator.hpp \
 		 libgearman/common.h \
 		 libgearman/connection.hpp \
+		 libgearman/do.hpp \
 		 libgearman/function/basic.hpp \
 		 libgearman/function/make.hpp \
 		 libgearman/function/mapper.hpp \
@@ -63,7 +64,8 @@ libgearman_libgearmancore_la_SOURCES= \
 				      libgearman/packet.cc \
 				      libgearman/strcommand.cc \
 				      libgearman/strerror.cc \
-				      libgearman/universal.cc
+				      libgearman/universal.cc \
+				      libgearman/vector.cc
 
 lib_LTLIBRARIES+= libgearman/libgearman.la
 libgearman_libgearman_la_SOURCES= \
@@ -75,6 +77,7 @@ libgearman_libgearman_la_SOURCES= \
 				  libgearman/client.cc \
 				  libgearman/command.cc \
 				  libgearman/connection.cc \
+				  libgearman/do.cc \
 				  libgearman/function/make.cc \
 				  libgearman/gearman.cc \
 				  libgearman/job.cc \

@@ -62,7 +62,9 @@ inline static gearman_return_t _string_check(gearman_vector_st *string, const si
     new_size= sizeof(char) * size_t((adjust * GEARMAN_BLOCK_SIZE) + string->current_size);
     /* Test for overflow */
     if (new_size < need)
+    {
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+    }
 
     new_value= static_cast<char *>(realloc(string->string, new_size));
 
@@ -86,10 +88,27 @@ static inline void _init_string(gearman_vector_st *self)
   self->end= self->string= NULL;
 }
 
+gearman_vector_st *gearman_string_create(gearman_vector_st *self, const char *str, size_t initial_size)
+{
+  if (not str)
+    return NULL;
+
+  self= gearman_string_create(self, initial_size);
+
+  if (not self)
+    return NULL;
+
+   if (gearman_failed(gearman_string_append(self, str, initial_size)))
+   {
+     gearman_string_free(self);
+     return NULL;
+   }
+
+   return self;
+}
+
 gearman_vector_st *gearman_string_create(gearman_vector_st *self, size_t initial_size)
 {
-  gearman_return_t rc;
-
   /* Saving malloc calls :) */
   if (self)
   {
@@ -99,7 +118,7 @@ gearman_vector_st *gearman_string_create(gearman_vector_st *self, size_t initial
   {
     self= static_cast<gearman_vector_st *>(malloc(sizeof(gearman_vector_st)));
 
-    if (self == NULL)
+    if (not self)
     {
       return NULL;
     }
@@ -109,8 +128,7 @@ gearman_vector_st *gearman_string_create(gearman_vector_st *self, size_t initial
 
   _init_string(self);
 
-  rc=  _string_check(self, initial_size);
-  if (rc != GEARMAN_SUCCESS)
+  if (gearman_failed(_string_check(self, initial_size)))
   {
     free(self);
 
@@ -123,13 +141,33 @@ gearman_vector_st *gearman_string_create(gearman_vector_st *self, size_t initial
   return self;
 }
 
+gearman_vector_st *gearman_string_clone(const gearman_vector_st *self)
+{
+  if (not self)
+    return NULL;
+
+  gearman_vector_st *clone= gearman_string_create(NULL, gearman_string_length(self));
+  if (not clone)
+    return NULL;
+
+  if (gearman_string_length(self))
+  {
+    if (gearman_failed(gearman_string_append(clone, gearman_string_value(self), gearman_string_length(self))))
+    {
+      gearman_string_free(clone);
+      return NULL;
+    }
+  }
+
+  return clone;
+}
+
 gearman_return_t gearman_string_append_character(gearman_vector_st *string, char character)
 {
   gearman_return_t rc;
 
-  rc=  _string_check(string, 1 +1); // Null terminate
 
-  if (gearman_failed(rc))
+  if (gearman_failed(rc= _string_check(string, 1 +1))) // Null terminate
   {
     return rc;
   }
@@ -146,9 +184,7 @@ gearman_return_t gearman_string_append(gearman_vector_st *string,
 {
   gearman_return_t rc;
 
-  rc= _string_check(string, length +1);
-
-  if (gearman_failed(rc))
+  if (gearman_failed(rc= _string_check(string, length +1)))
   {
     return rc;
   }
@@ -169,7 +205,7 @@ char *gearman_string_c_copy(gearman_vector_st *string)
 
   c_ptr= static_cast<char *>(malloc((gearman_string_length(string) +1) * sizeof(char)));
 
-  if (c_ptr == NULL)
+  if (not c_ptr)
     return NULL;
 
   memcpy(c_ptr, gearman_string_value(string), gearman_string_length(string));
@@ -186,7 +222,7 @@ void gearman_string_reset(gearman_vector_st *string)
 
 void gearman_string_free(gearman_vector_st *ptr)
 {
-  if (ptr == NULL)
+  if (not ptr)
     return;
 
   if (ptr->string)

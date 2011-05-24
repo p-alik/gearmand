@@ -70,6 +70,7 @@ struct gearman_universal_st
   void *workload_malloc_context;
   gearman_free_fn *workload_free_fn;
   void *workload_free_context;
+  struct gearman_vector_st *_namespace;
   struct {
     gearman_return_t rc;
     int last_errno;

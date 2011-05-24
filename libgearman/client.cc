@@ -1727,3 +1727,11 @@ bool gearman_client_set_server_option(gearman_client_st *self, const char *optio
 
   return gearman_request_option(self->universal, option);
 }
+
+void gearman_client_set_namespace(gearman_client_st *self, const char *namespace_key, size_t namespace_key_size)
+{
+  if (not self)
+    return;
+
+  gearman_universal_set_namespace(self->universal, namespace_key, namespace_key_size);
+}

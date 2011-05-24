@@ -718,6 +718,9 @@ bool gearman_client_set_server_option(gearman_client_st *self, const char *optio
 GEARMAN_LOCAL
 size_t gearman_client_count_tasks(gearman_client_st *client);
 
+GEARMAN_API
+void gearman_client_set_namespace(gearman_client_st *self, const char *namespace_key, size_t namespace_key_size);
+
 /** @} */
 
 #ifdef __cplusplus

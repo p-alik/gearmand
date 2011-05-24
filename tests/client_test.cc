@@ -57,6 +57,8 @@
 
 #define CLIENT_TEST_PORT 32123
 
+#define NAMESPACE_KEY "foo123"
+
 #define WORKER_FUNCTION_NAME "client_test"
 #define WORKER_CHUNKED_FUNCTION_NAME "reverse_test"
 #define WORKER_UNIQUE_FUNCTION_NAME "unique_test"
@@ -85,6 +87,9 @@ struct client_test_st
   struct worker_handle_st *chunky_worker;
   struct worker_handle_st *unique_check;
   struct worker_handle_st *split_worker;
+  struct worker_handle_st *namespace_completion_worker;
+  struct worker_handle_st *namespace_chunky_worker;
+  struct worker_handle_st *namespace_split_worker;
   const char *_worker_name;
 
   client_test_st() :
@@ -94,6 +99,7 @@ struct client_test_st
     chunky_worker(NULL),
     unique_check(NULL),
     split_worker(NULL),
+    namespace_completion_worker(NULL),
     _worker_name(WORKER_FUNCTION_NAME)
   { 
     if (not (_client= gearman_client_create(NULL)))
@@ -101,6 +107,19 @@ struct client_test_st
       abort(); // This would only happen from a programming error
     }
 
+  }
+
+  ~client_test_st()
+  {
+    test_gearmand_stop(gearmand_pid);
+    test_worker_stop(completion_worker);
+    test_worker_stop(chunky_worker);
+    test_worker_stop(unique_check);
+    test_worker_stop(split_worker);
+    test_worker_stop(namespace_completion_worker);
+    test_worker_stop(namespace_chunky_worker);
+    test_worker_stop(namespace_split_worker);
+    gearman_client_free(_client);
   }
 
   const char *worker_name() const
@@ -133,12 +152,6 @@ struct client_test_st
     gearman_client_free(_client);
     _client= gearman_client_create(NULL);
   }
-
-  ~client_test_st()
-  {
-    gearman_client_free(_client);
-  }
-
 };
 
 #ifndef __INTEL_COMPILER
@@ -784,6 +797,15 @@ static test_return_t pre_chunk(void *object)
   return TEST_SUCCESS;
 }
 
+static test_return_t pre_namespace(void *object)
+{
+  client_test_st *all= (client_test_st *)object;
+
+  gearman_client_set_namespace(all->client(), NAMESPACE_KEY, strlen(NAMESPACE_KEY));
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t pre_unique(void *object)
 {
   client_test_st *all= (client_test_st *)object;
@@ -798,6 +820,7 @@ static test_return_t post_function_reset(void *object)
   client_test_st *all= (client_test_st *)object;
 
   all->set_worker_name(WORKER_FUNCTION_NAME);
+  gearman_client_set_namespace(all->client(), 0, 0);
 
   return TEST_SUCCESS;
 }
@@ -861,7 +884,11 @@ void *world_create(test_return_t *error)
   test->completion_worker= test_worker_start(CLIENT_TEST_PORT, WORKER_FUNCTION_NAME, echo_or_react_worker, NULL, gearman_worker_options_t());
   test->chunky_worker= test_worker_start(CLIENT_TEST_PORT, WORKER_CHUNKED_FUNCTION_NAME, echo_or_react_chunk_worker, NULL, gearman_worker_options_t());
   test->unique_check= test_worker_start(CLIENT_TEST_PORT, WORKER_UNIQUE_FUNCTION_NAME, unique_worker, NULL, GEARMAN_WORKER_GRAB_UNIQ);
-  test->split_worker= test_worker_start_with_reducer(CLIENT_TEST_PORT, WORKER_SPLIT_FUNCTION_NAME, split_worker, cat_aggregator_fn,  NULL, GEARMAN_WORKER_GRAB_ALL);
+  test->split_worker= test_worker_start_with_reducer(CLIENT_TEST_PORT, NULL, WORKER_SPLIT_FUNCTION_NAME, split_worker, cat_aggregator_fn,  NULL, GEARMAN_WORKER_GRAB_ALL);
+
+  test->namespace_completion_worker= test_worker_start_with_namespace(CLIENT_TEST_PORT, WORKER_FUNCTION_NAME, echo_or_react_worker, NULL, NAMESPACE_KEY, gearman_worker_options_t());
+  test->namespace_chunky_worker= test_worker_start_with_namespace(CLIENT_TEST_PORT, WORKER_CHUNKED_FUNCTION_NAME, echo_or_react_worker, NULL, NAMESPACE_KEY, gearman_worker_options_t());
+  test->namespace_split_worker= test_worker_start_with_reducer(CLIENT_TEST_PORT, NAMESPACE_KEY, WORKER_SPLIT_FUNCTION_NAME, split_worker, cat_aggregator_fn,  NULL, GEARMAN_WORKER_GRAB_ALL);
 
   test->gearmand_pid= gearmand_pid;
 
@@ -880,11 +907,6 @@ void *world_create(test_return_t *error)
 test_return_t world_destroy(void *object)
 {
   client_test_st *test= (client_test_st *)object;
-  test_gearmand_stop(test->gearmand_pid);
-  test_worker_stop(test->completion_worker);
-  test_worker_stop(test->chunky_worker);
-  test_worker_stop(test->unique_check);
-  test_worker_stop(test->split_worker);
   delete test;
 
   return TEST_SUCCESS;
@@ -988,10 +1010,13 @@ collection_st collection[] ={
   {"gearman_strerror", 0, 0, gearman_strerror_tests},
   {"gearman_task", 0, 0, gearman_task_tests},
   {"gearman_task chunky", pre_chunk, post_function_reset, gearman_task_tests},
+  {"gearman_task namespace", pre_namespace, post_function_reset, gearman_task_tests},
   {"unique", pre_unique, post_function_reset, unique_tests},
   {"gearman_client_do()", 0, 0, gearman_client_do_tests},
+  {"gearman_client_do() namespace", pre_namespace, post_function_reset, gearman_client_do_tests},
   {"gearman_client_execute chunky", pre_chunk, post_function_reset, gearman_client_execute_tests},
   {"gearman_client_do_job_handle", 0, 0, gearman_client_do_job_handle_tests},
+  {"gearman_client_do_job_handle namespace", pre_namespace, post_function_reset, gearman_client_do_job_handle_tests},
   {"gearman_client_do_background", 0, 0, gearman_client_do_background_tests},
   {"gearman_client_set_server_option", 0, 0, gearman_client_set_server_option_tests},
   {"gearman_client_execute", 0, 0, gearman_client_execute_tests},

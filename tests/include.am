@@ -88,7 +88,7 @@ test-round-robin: tests/round_robin_test
 test-worker: tests/worker_test
 	@tests/worker_test $(ARG1) $(ARG2)
 
-test-internals:
+test-internals: tests/internals_test
 	@tests/internals_test $(ARG1) $(ARG2)
 
 check-local: tests/var gearmand-test-args client-test libtest-tests
@@ -119,7 +119,7 @@ valgrind-round-robin:
 valgrind-worker: tests/worker_test
 	$(VALGRIND_COMMAND) tests/worker_test $(ARG1) $(ARG2)
 
-valgrind-internals:
+valgrind-internals: tests/internals_test
 	$(VALGRIND_COMMAND) tests/internals_test $(ARG1) $(ARG2)
 
 tests/var: tests/var/log tests/var/tmp
@@ -131,7 +131,7 @@ tests/var/log:
 tests/var/tmp:
 	$(mkdir_p) tests/var/tmp
 
-valgrind: ${noinst_PROGRAMS} valgrind-client valgrind-round-robin valgrind-worker valgrind-internals valgrind-sqlite valgrind-tokyocabinet
+algrind: ${noinst_PROGRAMS} valgrind-client valgrind-round-robin valgrind-worker valgrind-internals valgrind-sqlite valgrind-tokyocabinet
 
 include tests/httpd.am
 include tests/libdrizzle.am

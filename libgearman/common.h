@@ -56,3 +56,4 @@
 #include <libgearman/unique.h>
 #include <libgearman/result.hpp>
 #include <libgearman/actions.h>
+#include <libgearman/do.hpp>
