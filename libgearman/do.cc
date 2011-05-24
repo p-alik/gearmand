@@ -39,14 +39,15 @@
 #include <libgearman/add.h>
 #include <libgearman/universal.hpp>
 
+#include <cassert>
 #include <cerrno>
 #include <cstring>
 
 void *client_do(gearman_client_st *client, gearman_command_t command,
-		const char *function_name,
-		const char *unique,
-		const void *workload_str, size_t workload_size,
-		size_t *result_size, gearman_return_t *ret_ptr)
+                const char *function_name,
+                const char *unique,
+                const void *workload_str, size_t workload_size,
+                size_t *result_size, gearman_return_t *ret_ptr)
 {
   gearman_task_st do_task;
   gearman_client_task_free_all(client);
@@ -66,11 +67,11 @@ void *client_do(gearman_client_st *client, gearman_command_t command,
   }
 
   gearman_task_st *do_task_ptr= add_task(client, &do_task, NULL, command,
-					 function,
-					 local_unique,
-					 workload,
-					 time_t(0),
-					 gearman_actions_do_default());
+                                         function,
+                                         local_unique,
+                                         workload,
+                                         time_t(0),
+                                         gearman_actions_do_default());
   if (not do_task_ptr)
   {
     *ret_ptr= gearman_universal_error_code(client->universal);
@@ -121,21 +122,21 @@ void *client_do(gearman_client_st *client, gearman_command_t command,
 }
 
 gearman_return_t client_do_background(gearman_client_st *client,
-				      gearman_command_t command,
-				      gearman_string_t &function,
-				      gearman_unique_t &unique,
-				      gearman_string_t &workload,
-				      char *job_handle)
+                                      gearman_command_t command,
+                                      gearman_string_t &function,
+                                      gearman_unique_t &unique,
+                                      gearman_string_t &workload,
+                                      char *job_handle)
 {
   gearman_task_st do_task;
   gearman_task_st *do_task_ptr= add_task(client, &do_task, 
-					 client, 
-					 command,
-					 function,
-					 unique,
-					 workload,
-					 time_t(0),
-					 gearman_actions_do_default());
+                                         client, 
+                                         command,
+                                         function,
+                                         unique,
+                                         workload,
+                                         time_t(0),
+                                         gearman_actions_do_default());
   if (not do_task_ptr)
   {
     return gearman_universal_error_code(client->universal);
