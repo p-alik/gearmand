@@ -41,7 +41,6 @@
 
 #include <cassert>
 #include <cerrno>
-#include <iostream>
 
 
 static inline gearman_command_t pick_command_by_priority(const gearman_job_priority_t &arg)
@@ -261,7 +260,6 @@ gearman_task_st *gearman_execute_map_reduce(gearman_client_st *client,
       return NULL;
     }
   } while (gearman_continue(gearman_task_error(task)));
-  std::cerr << __func__ << " " << gearman_strerror(gearman_task_error(task)) << std::endl;
 
   return task;
 }

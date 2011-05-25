@@ -941,8 +941,8 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
 
   case GEARMAN_WORKER_WORK_UNIVERSAL_COMPLETE:
     {
-      worker->work_job->error_code= gearman_job_send_complete(worker->work_job,
-                                                              worker->work_result, worker->work_result_size);
+      worker->work_job->error_code= gearman_job_send_complete_fin(worker->work_job,
+                                                                  worker->work_result, worker->work_result_size);
       if (worker->work_job->error_code == GEARMAN_IO_WAIT)
       {
         worker->work_state= GEARMAN_WORKER_WORK_UNIVERSAL_COMPLETE;

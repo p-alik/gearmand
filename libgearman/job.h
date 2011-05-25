@@ -130,6 +130,10 @@ gearman_return_t gearman_job_send_complete(gearman_job_st *job,
                                            const void *result,
                                            size_t result_size);
 
+GEARMAN_LOCAL
+gearman_return_t gearman_job_send_complete_fin(gearman_job_st *job,
+                                               const void *result, size_t result_size);
+
 /**
  * Send exception for a running job.
  */

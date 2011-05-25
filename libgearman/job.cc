@@ -327,10 +327,14 @@ gearman_return_t gearman_job_send_complete(gearman_job_st *job,
                                            size_t result_size)
 {
   if (job->reducer)
-  {
-    return gearman_error(job->worker->universal, GEARMAN_INVALID_ARGUMENT, "gearman_job_send_complete() cannot be used with mapper functions");
-  }
+    return GEARMAN_INVALID_ARGUMENT;
 
+  return gearman_job_send_complete(job, result, result_size);
+}
+
+gearman_return_t gearman_job_send_complete_fin(gearman_job_st *job,
+                                               const void *result, size_t result_size)
+{
   if (job->options.finished)
   {
     return GEARMAN_SUCCESS;

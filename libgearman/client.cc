@@ -49,7 +49,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <memory>
-#include <iostream>
 
 /** Allocate a client structure.
  */
@@ -1015,7 +1014,6 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
 
   _pop_non_blocking(client);
 
-  std::cerr << std::endl << gearman_strerror(rc) << " " << __func__ << std::endl;
   if (gearman_failed(rc))
   {
     gearman_gerror(client->universal, rc);
