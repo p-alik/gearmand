@@ -14,12 +14,7 @@ SYNOPSIS
 
 #include <libgearman/gearman.h>
 
-.. c:function:: gearman_task_st *gearman_client_execute_reduce(gearman_client_st *client,
-                                               const char *mapper_name, const size_t mapper_length,
-                                               const char *reducer_name, const size_t reducer_length,
-                                               const char *unique_str, const size_t unique_length,
-                                               gearman_work_t *workload,
-                                               gearman_argument_t *arguments);
+.. c:function:: gearman_task_st *gearman_execute_map_reduce(gearman_client_st *client, const char *mapper_name, const size_t mapper_length, const char *reducer_name, const size_t reducer_length, const char *unique_str, const size_t unique_length, gearman_work_t *workload, gearman_argument_t *arguments);
 
 .. c::type typedef gearman_worker_error_t (gearman_mapper_fn)(gearman_job_st *job, void *context);
 

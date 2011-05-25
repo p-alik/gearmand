@@ -37,18 +37,14 @@
  */
 
 
-/**
- * @file
- * @brief Job Definitions
- */
-
 #include <libgearman/common.h>
+
 #include <libgearman/universal.hpp>
 #include <libgearman/aggregator.hpp>
 #include <libgearman/connection.h>
 #include <libgearman/packet.hpp>
 #include <libgearman/packet.h>
-#include <libgearman/add.h>
+#include <libgearman/add.hpp>
 #include <cassert>
 #include <cstdio>
 #include <cstring>
@@ -162,8 +158,6 @@ struct gearman_job_reducer_st {
  */
 static gearman_return_t _job_send(gearman_job_st *job);
 
-/** @} */
-
 /*
  * Public Definitions
  */
@@ -175,7 +169,7 @@ gearman_job_st *gearman_job_create(gearman_worker_st *worker, gearman_job_st *jo
     job= new (std::nothrow) gearman_job_st;
     if (not job)
     {
-      gearman_perror(worker->universal, "malloc");
+      gearman_perror(worker->universal, "new");
       return NULL;
     }
 
@@ -332,6 +326,11 @@ gearman_return_t gearman_job_send_complete(gearman_job_st *job,
                                            const void *result,
                                            size_t result_size)
 {
+  if (job->reducer)
+  {
+    return gearman_error(job->worker->universal, GEARMAN_INVALID_ARGUMENT, "gearman_job_send_complete() cannot be used with mapper functions");
+  }
+
   if (job->options.finished)
   {
     return GEARMAN_SUCCESS;
@@ -348,8 +347,7 @@ gearman_return_t gearman_job_send_complete(gearman_job_st *job,
     gearman_return_t rc= job->reducer->complete();
     if (gearman_failed(rc))
     {
-      return gearman_universal_set_error(job->worker->universal, rc, 
-                                         __func__, AT, "complete() returned an error");
+      return gearman_error(job->worker->universal, rc, "The reducer's complete() returned an error");
     }
 
     gearman_vector_st *reduced_value= job->reducer->result.string();

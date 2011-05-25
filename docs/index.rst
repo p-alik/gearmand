@@ -58,8 +58,8 @@ Client Calls
 
    gearman_client
    do
-   gearman_client_execute 
-   gearman_client_execute_reduce
+   gearman_execute 
+   gearman_execute_map_reduce
 
 ************
 Worker Calls

@@ -69,7 +69,7 @@
 #include <tests/do_background.h>
 #include <tests/execute.h>
 #include <tests/gearman_client_do_job_handle.h>
-#include <tests/gearman_client_execute_reduce.h>
+#include <tests/gearman_execute_map_reduce.h>
 #include <tests/task.h>
 #include <tests/unique.h>
 #include <tests/workers.h>
@@ -955,13 +955,13 @@ test_st gearman_client_do_tests[] ={
   {0, 0, 0}
 };
 
-test_st gearman_client_execute_tests[] ={
-  {"gearman_client_execute()", 0, gearman_client_execute_test },
-  {"gearman_client_execute(GEARMAN_WORK_FAIL)", 0, gearman_client_execute_fail_test },
-  {"gearman_client_execute() epoch", 0, gearman_client_execute_epoch_test },
-  {"gearman_client_execute() timeout", 0, gearman_client_execute_timeout_test },
-  {"gearman_client_execute() background", 0, gearman_client_execute_bg_test },
-  {"gearman_client_execute() multiple background", 0, gearman_client_execute_multile_bg_test },
+test_st gearman_execute_tests[] ={
+  {"gearman_execute()", 0, gearman_execute_test },
+  {"gearman_execute(GEARMAN_WORK_FAIL)", 0, gearman_execute_fail_test },
+  {"gearman_execute() epoch", 0, gearman_execute_epoch_test },
+  {"gearman_execute() timeout", 0, gearman_execute_timeout_test },
+  {"gearman_execute() background", 0, gearman_execute_bg_test },
+  {"gearman_execute() multiple background", 0, gearman_execute_multile_bg_test },
   {0, 0, 0}
 };
 
@@ -978,10 +978,10 @@ test_st gearman_client_do_job_handle_tests[] ={
   {0, 0, 0}
 };
 
-test_st gearman_client_execute_reduce_tests[] ={
-  {"gearman_worker_set_reducer()", 0, gearman_client_execute_reduce_basic },
-  {"gearman_client_execute_reduce_workfail(GEARMAN_WORK_FAIL)", 0, gearman_client_execute_reduce_workfail },
-  {"gearman_worker_set_reducer() fail in reduction", 0, gearman_client_execute_reduce_fail_in_reduction },
+test_st gearman_execute_map_reduce_tests[] ={
+  {"gearman_execute_map_reduce()", 0, gearman_execute_map_reduce_basic },
+  {"gearman_execute_map_reduce(GEARMAN_WORK_FAIL)", 0, gearman_execute_map_reduce_workfail },
+  {"gearman_execute_map_reduce() fail in reduction", 0, gearman_execute_map_reduce_fail_in_reduction },
   {0, 0, 0}
 };
 
@@ -1014,13 +1014,13 @@ collection_st collection[] ={
   {"unique", pre_unique, post_function_reset, unique_tests},
   {"gearman_client_do()", 0, 0, gearman_client_do_tests},
   {"gearman_client_do() namespace", pre_namespace, post_function_reset, gearman_client_do_tests},
-  {"gearman_client_execute chunky", pre_chunk, post_function_reset, gearman_client_execute_tests},
+  {"gearman_execute chunky", pre_chunk, post_function_reset, gearman_execute_tests},
   {"gearman_client_do_job_handle", 0, 0, gearman_client_do_job_handle_tests},
   {"gearman_client_do_job_handle namespace", pre_namespace, post_function_reset, gearman_client_do_job_handle_tests},
   {"gearman_client_do_background", 0, 0, gearman_client_do_background_tests},
   {"gearman_client_set_server_option", 0, 0, gearman_client_set_server_option_tests},
-  {"gearman_client_execute", 0, 0, gearman_client_execute_tests},
-  {"gearman_worker_set_reducer()", 0, 0, gearman_client_execute_reduce_tests},
+  {"gearman_execute", 0, 0, gearman_execute_tests},
+  {"gearman_execute_map_reduce()", 0, 0, gearman_execute_map_reduce_tests},
   {"client-logging", pre_logging, post_logging, tests_log},
   {0, 0, 0, 0}
 };

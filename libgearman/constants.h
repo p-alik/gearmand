@@ -189,8 +189,7 @@ typedef gearman_worker_error_t (gearman_mapper_fn)(gearman_job_st *job, void *co
 typedef void* (gearman_malloc_fn)(size_t size, void *context);
 typedef void (gearman_free_fn)(void *ptr, void *context);
 
-typedef void (gearman_task_context_free_fn)(gearman_task_st *task,
-                                            void *context);
+typedef void (gearman_task_context_free_fn)(gearman_task_st *task, void *context);
 
 typedef void (gearman_log_fn)(const char *line, gearman_verbose_t verbose, void *context);
 

@@ -134,7 +134,7 @@ int main(int args, char *argv[])
     gearman_argument_make(0, 0)
   };
 
-  if (not (task= gearman_client_execute(&client, gearman_literal_param("reverse"), NULL, 0, &workload, values)))
+  if (not (task= gearman_execute(&client, gearman_literal_param("reverse"), NULL, 0, &workload, values)))
   {
     std::cerr << "Failed to process job (" << gearman_client_error(&client) << std::endl;
     gearman_client_free(&client);

@@ -36,7 +36,7 @@
  */
 
 #include <libgearman/common.h>
-#include <libgearman/add.h>
+#include <libgearman/add.hpp>
 #include <libgearman/universal.hpp>
 
 #include <cassert>

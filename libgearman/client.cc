@@ -36,15 +36,10 @@
  *
  */
 
-/**
- * @file
- * @brief Client Definitions
- */
-
 #include <libgearman/common.h>
 #include <libgearman/universal.hpp>
 
-#include <libgearman/add.h>
+#include <libgearman/add.hpp>
 #include <libgearman/connection.h>
 #include <libgearman/packet.hpp>
 
@@ -54,15 +49,9 @@
 #include <cstdlib>
 #include <cstring>
 #include <memory>
+#include <iostream>
 
-/**
- * @addtogroup gearman_client_static Static Client Declarations
- * @ingroup gearman_client
- * @{
- */
-
-/**
- * Allocate a client structure.
+/** Allocate a client structure.
  */
 static gearman_client_st *_client_allocate(gearman_client_st *client, bool is_clone);
 
@@ -97,22 +86,6 @@ static gearman_return_t _client_do_background(gearman_client_st *client,
                                               gearman_string_t &workload,
                                               char *job_handle);
 
-/** @} */
-
-#if 0
-const char *gearman_client_strstate(gearman_client_st *self)
-{
-  switch(self->state)
-  {
-  case GEARMAN_CLIENT_STATE_IDLE: return "GEARMAN_CLIENT_STATE_IDLE";
-  case GEARMAN_CLIENT_STATE_NEW: return "GEARMAN_CLIENT_STATE_NEW";
-  case GEARMAN_CLIENT_STATE_SUBMIT: return "GEARMAN_CLIENT_STATE_SUBMIT";
-  case GEARMAN_CLIENT_STATE_PACKET: return "GEARMAN_CLIENT_STATE_PACKET";
-  }
-
-  return "";
-}
-#endif
 
 /*
  * Public Definitions
@@ -407,26 +380,6 @@ void *gearman_client_do_low(gearman_client_st *client,
                     result_size, ret_ptr);
 }
 
-static inline gearman_command_t pick_command_by_priority(const gearman_job_priority_t &arg)
-{
-  if (arg == GEARMAN_JOB_PRIORITY_NORMAL)
-    return GEARMAN_COMMAND_SUBMIT_JOB;
-  else if (arg == GEARMAN_JOB_PRIORITY_HIGH)
-    return GEARMAN_COMMAND_SUBMIT_JOB_HIGH;
-
-  return GEARMAN_COMMAND_SUBMIT_JOB_LOW;
-}
-
-static inline gearman_command_t pick_command_by_priority_background(const gearman_job_priority_t &arg)
-{
-  if (arg == GEARMAN_JOB_PRIORITY_NORMAL)
-    return GEARMAN_COMMAND_SUBMIT_JOB_BG;
-  else if (arg == GEARMAN_JOB_PRIORITY_HIGH)
-    return GEARMAN_COMMAND_SUBMIT_JOB_HIGH_BG;
-
-  return GEARMAN_COMMAND_SUBMIT_JOB_LOW_BG;
-}
-
 size_t gearman_client_count_tasks(gearman_client_st *client)
 {
   size_t count= 1;
@@ -460,198 +413,6 @@ static bool _active_tasks(gearman_client_st *client)
   return false;
 }
 #endif
-
-gearman_task_st *gearman_client_execute(gearman_client_st *client,
-                                        const char *function_str, size_t function_length,
-                                        const char *unique_str, size_t unique_length,
-                                        gearman_work_t *workload,
-                                        gearman_argument_t *arguments)
-{
-  if (not client)
-  {
-    errno= EINVAL;
-    return NULL;
-  }
-
-  if (not function_str or not function_length)
-  {
-    gearman_perror(client->universal, "gearman_function_st was NULL");
-    return NULL;
-  }
-  assert(function_str and function_length);
-
-  gearman_task_st *task= NULL;
-  gearman_unique_t unique= gearman_unique_make(unique_str, unique_length);
-  gearman_string_t function= { function_str, function_length };
-  if (workload)
-  {
-    switch (workload->kind)
-    {
-    case GEARMAN_WORK_KIND_BACKGROUND:
-      task= add_task(client,
-                     workload->context,
-                     pick_command_by_priority_background(workload->priority),
-                     function,
-                     unique,
-                     arguments->value,
-                     time_t(0),
-                     gearman_actions_execute_defaults());
-      break;
-
-    case GEARMAN_WORK_KIND_EPOCH:
-      task= add_task(client,
-                     workload->context,
-                     GEARMAN_COMMAND_SUBMIT_JOB_EPOCH,
-                     function,
-                     unique,
-                     arguments->value,
-                     gearman_workload_epoch(workload),
-                     gearman_actions_execute_defaults());
-      break;
-
-    case GEARMAN_WORK_KIND_FOREGROUND:
-      task= add_task(client,
-                     workload->context,
-                     pick_command_by_priority(workload->priority),
-                     function,
-                     unique,
-                     arguments->value,
-                     time_t(0),
-                     gearman_actions_execute_defaults());
-      break;
-    }
-  }
-  else
-  {
-    task= add_task(client,
-                   NULL,
-                   GEARMAN_COMMAND_SUBMIT_JOB,
-                   function,
-                   unique,
-                   arguments->value,
-                   time_t(0),
-                   gearman_actions_execute_defaults());
-  }
-
-  if (not task)
-  {
-    gearman_universal_error_code(client->universal);
-
-    return NULL;
-  }
-
-  if (not workload) // We have no description, so we just run it
-  {
-    gearman_client_run_tasks(client);
-  }
-  else // Everything else, we do now.
-  {
-    gearman_client_run_tasks(client);
-  }
-
-  return task;
-}
-
-gearman_task_st *gearman_client_execute_reduce(gearman_client_st *client,
-                                               const char *function_str, const size_t function_length,
-                                               const char *reducer_str, const size_t reducer_length,
-                                               const char *unique_str, const size_t unique_length,
-                                               gearman_work_t *workload,
-                                               gearman_argument_t *arguments)
-{
-  if (not client)
-  {
-    errno= EINVAL;
-    return NULL;
-  }
-
-  if (not function_str or not function_length)
-  {
-    gearman_perror(client->universal, "gearman_function_st was NULL");
-    return NULL;
-  }
-  assert(function_str and function_length);
-
-
-  gearman_task_st *task= NULL;
-  gearman_unique_t unique= gearman_unique_make(unique_str, unique_length);
-  gearman_string_t function= { function_str, function_length };
-  gearman_string_t reducer= { reducer_str, reducer_length };
-
-  if (workload)
-  {
-    switch (workload->kind)
-    {
-    case GEARMAN_WORK_KIND_BACKGROUND:
-      task= add_task(client,
-                     GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND,
-                     workload->priority,
-                     function,
-                     reducer,
-                     unique,
-                     arguments->value,
-                     gearman_actions_execute_defaults(),
-                     time_t(0),
-                     workload->context);
-      break;
-
-    case GEARMAN_WORK_KIND_EPOCH:
-      gearman_error(client->universal, GEARMAN_INVALID_ARGUMENT, "EPOCH is not currently supported for gearman_client_execute_reduce()");
-      return NULL;
-#if 0
-      task= add_task(client,
-                     GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND,
-                     workload->priority,
-                     function,
-                     reducer,
-                     unique,
-                     arguments->value,
-                     gearman_actions_execute_defaults(),
-                     gearman_workload_epoch(workload),
-                     workload->context);
-#endif
-      break;
-
-    case GEARMAN_WORK_KIND_FOREGROUND:
-      task= add_task(client,
-                     GEARMAN_COMMAND_SUBMIT_REDUCE_JOB,
-                     workload->priority,
-                     function,
-                     reducer,
-                     unique,
-                     arguments->value,
-                     gearman_actions_execute_defaults(),
-                     time_t(0),
-                     workload->context);
-      break;
-    }
-  }
-  else
-  {
-    task= add_task(client,
-                   GEARMAN_COMMAND_SUBMIT_REDUCE_JOB,
-                   GEARMAN_JOB_PRIORITY_NORMAL,
-                   function,
-                   reducer,
-                   unique,
-                   arguments->value,
-                   gearman_actions_execute_defaults(),
-                   time_t(0),
-                   NULL);
-  }
-
-  if (task)
-  {
-    // Run!
-    if (gearman_failed(gearman_client_run_tasks(client)))
-    {
-      gearman_task_free(task);
-      task= NULL;
-    }
-  }
-
-  return task;
-}
 
 const char *gearman_client_do_job_handle(gearman_client_st *self)
 {
@@ -1254,6 +1015,7 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
 
   _pop_non_blocking(client);
 
+  std::cerr << std::endl << gearman_strerror(rc) << " " << __func__ << std::endl;
   if (gearman_failed(rc))
   {
     gearman_gerror(client->universal, rc);
@@ -1276,17 +1038,17 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
 
 static gearman_client_st *_client_allocate(gearman_client_st *client, bool is_clone)
 {
-  if (client == NULL)
+  if (client)
+  {
+    client->options.allocated= false;
+  }
+  else
   {
     client= new (std::nothrow) gearman_client_st;
     if (not client)
       return NULL;
 
     client->options.allocated= true;
-  }
-  else
-  {
-    client->options.allocated= false;
   }
 
   client->options.non_blocking= false;

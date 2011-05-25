@@ -68,6 +68,7 @@
 #include <libgearman/job.h>
 #include <libgearman/string.h>
 #include <libgearman/result.h>
+#include <libgearman/execute.h>
 
 #include <libgearman/worker.h>
 #include <libgearman/client.h>

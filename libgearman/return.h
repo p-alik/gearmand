@@ -96,6 +96,7 @@ enum gearman_return_t
   GEARMAN_MAX_RETURN /* Always add new error code before */
 };
 
+#define gearman_continue(X) ((X) == GEARMAN_IO_WAIT)
 #define gearman_failed(X) ((X) != GEARMAN_SUCCESS)
 #define gearman_success(X) ((X) == GEARMAN_SUCCESS)
 

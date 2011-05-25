@@ -21,6 +21,7 @@ nobase_include_HEADERS+= \
 			 libgearman/connection.h \
 			 libgearman/constants.h \
 			 libgearman/core.h \
+			 libgearman/execute.h \
 			 libgearman/gearman.h \
 			 libgearman/job.h \
 			 libgearman/log.h \
@@ -39,7 +40,7 @@ nobase_include_HEADERS+= \
 			 libgearman/work.h
 
 noinst_HEADERS+= \
-		 libgearman/add.h \
+		 libgearman/add.hpp \
 		 libgearman/aggregator.hpp \
 		 libgearman/common.h \
 		 libgearman/connection.hpp \
@@ -78,6 +79,7 @@ libgearman_libgearman_la_SOURCES= \
 				  libgearman/command.cc \
 				  libgearman/connection.cc \
 				  libgearman/do.cc \
+				  libgearman/execute.cc \
 				  libgearman/function/make.cc \
 				  libgearman/gearman.cc \
 				  libgearman/job.cc \

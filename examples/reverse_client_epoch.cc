@@ -131,7 +131,7 @@ int main(int args, char *argv[])
   gearman_task_st *task;
   gearman_argument_t value= gearman_argument_make(text_to_echo.c_str(), text_to_echo.size());
 
-  if (not (task= gearman_client_execute(&client, gearman_literal_param("reverse"), NULL, 0, &workload, &value)))
+  if (not (task= gearman_execute(&client, gearman_literal_param("reverse"), NULL, 0, &workload, &value)))
   {
     std::cerr << gearman_client_error(&client) << std::endl;
     return EXIT_FAILURE;

@@ -37,9 +37,25 @@
 
 #pragma once
 
-test_return_t gearman_execute_test(void *object);
-test_return_t gearman_execute_fail_test(void *object);
-test_return_t gearman_execute_timeout_test(void *object);
-test_return_t gearman_execute_epoch_test(void *object);
-test_return_t gearman_execute_bg_test(void *object);
-test_return_t gearman_execute_multile_bg_test(void *object);
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+GEARMAN_API
+gearman_task_st *gearman_execute(gearman_client_st *client,
+                                 const char *function, size_t function_length,
+                                 const char *unique, size_t unique_length,
+                                 gearman_work_t *workload,
+                                 gearman_argument_t *arguments);
+
+GEARMAN_API
+gearman_task_st *gearman_execute_map_reduce(gearman_client_st *client,
+                                            const char *mapper_name, const size_t mapper_length,
+                                            const char *reducer_name, const size_t reducer_length,
+                                            const char *unique_str, const size_t unique_length,
+                                            gearman_work_t *workload,
+                                            gearman_argument_t *arguments);
+
+#ifdef __cplusplus
+}
+#endif

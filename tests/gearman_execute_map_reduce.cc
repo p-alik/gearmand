@@ -39,36 +39,36 @@
 #include <cassert>
 #include <cstring>
 #include <libgearman/gearman.h>
-#include <tests/gearman_client_execute_reduce.h>
+#include <tests/gearman_execute_map_reduce.h>
 
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
-test_return_t gearman_client_execute_reduce_basic(void *object)
+test_return_t gearman_execute_map_reduce_basic(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
 
   test_true_got(gearman_success(gearman_client_echo(client, gearman_literal_param("this is mine"))), gearman_client_error(client));
 
   // This just hear to make it easier to trace when
-  // gearman_client_execute_reduce() is called (look in the log to see the
+  // gearman_execute_map_reduce() is called (look in the log to see the
   // failed option setting.
   gearman_client_set_server_option(client, gearman_literal_param("should fail"));
   gearman_argument_t work_args= gearman_argument_make(gearman_literal_param("this dog does not hunt"));
 
-  gearman_string_t function= { gearman_literal_param("split_worker") };
+  gearman_string_t mapper= { gearman_literal_param("split_worker") };
   gearman_string_t reducer= { gearman_literal_param("client_test") };
   gearman_task_st *task;
-  test_true_got(task= gearman_client_execute_reduce(client,
-                                                    gearman_string_param(function),
-                                                    gearman_string_param(reducer),
-                                                    NULL, 0,  // unique
-                                                    NULL,
-                                                    &work_args), gearman_client_error(client));
+  test_true_got(task= gearman_execute_map_reduce(client,
+                                                 gearman_string_param(mapper),
+                                                 gearman_string_param(reducer),
+                                                 NULL, 0,  // unique
+                                                 NULL,
+                                                 &work_args), gearman_client_error(client));
 
   gearman_return_t rc;
-  test_true_got(gearman_success(rc= gearman_task_error(task)), gearman_strerror(rc));
+  test_true_got(gearman_success(rc= gearman_task_error(task)), gearman_client_error(client) ? gearman_client_error(client) : gearman_strerror(rc));
   gearman_result_st *result= gearman_task_result(task);
   test_truth(result);
   const char *value= gearman_result_value(result);
@@ -81,7 +81,7 @@ test_return_t gearman_client_execute_reduce_basic(void *object)
   return TEST_SUCCESS;
 }
 
-test_return_t gearman_client_execute_reduce_workfail(void *object)
+test_return_t gearman_execute_map_reduce_workfail(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
   const char *worker_function= (const char *)gearman_client_context(client);
@@ -92,12 +92,12 @@ test_return_t gearman_client_execute_reduce_workfail(void *object)
 
   gearman_string_t function= { gearman_literal_param("split_worker") };
   gearman_task_st *task;
-  test_true_got(task= gearman_client_execute_reduce(client,
-                                                    gearman_string_param(function),
-                                                    gearman_string_param_cstr(worker_function),
-                                                    NULL, 0,  // unique
-                                                    NULL,
-                                                    &work_args), gearman_client_error(client));
+  test_true_got(task= gearman_execute_map_reduce(client,
+                                                 gearman_string_param(function),
+                                                 gearman_string_param_cstr(worker_function),
+                                                 NULL, 0,  // unique
+                                                 NULL,
+                                                 &work_args), gearman_client_error(client));
 
   test_compare_got(GEARMAN_WORK_FAIL, gearman_task_error(task), gearman_strerror(gearman_task_error(task)));
 
@@ -107,7 +107,7 @@ test_return_t gearman_client_execute_reduce_workfail(void *object)
   return TEST_SUCCESS;
 }
 
-test_return_t gearman_client_execute_reduce_fail_in_reduction(void *object)
+test_return_t gearman_execute_map_reduce_fail_in_reduction(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
   const char *worker_function= (const char *)gearman_client_context(client);
@@ -118,12 +118,12 @@ test_return_t gearman_client_execute_reduce_fail_in_reduction(void *object)
 
   gearman_string_t function= { gearman_literal_param("split_worker") };
   gearman_task_st *task;
-  test_true_got(task= gearman_client_execute_reduce(client,
-                                                    gearman_string_param(function),
-                                                    gearman_string_param_cstr(worker_function),
-                                                    NULL, 0,  // unique
-                                                    NULL,
-                                                    &work_args), gearman_client_error(client));
+  test_true_got(task= gearman_execute_map_reduce(client,
+                                                 gearman_string_param(function),
+                                                 gearman_string_param_cstr(worker_function),
+                                                 NULL, 0,  // unique
+                                                 NULL,
+                                                 &work_args), gearman_client_error(client));
 
   test_compare_got(GEARMAN_WORK_FAIL, gearman_task_error(task), gearman_strerror(gearman_task_error(task)));
 
