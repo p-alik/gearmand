@@ -71,14 +71,15 @@ Worker Calls
    gearman_worker
    gearman_worker_add_map_function
 
-********************
-Other Function Calls
-********************
+****
+Misc
+****
 
 .. toctree::
    :maxdepth: 2
 
    gearman_misc_functions
+   namespace
 
 **********
 Structures

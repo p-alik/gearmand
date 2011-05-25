@@ -63,6 +63,7 @@ man_MANS+= \
 	   docs/man/gearman_client_set_exception_fn.3 \
 	   docs/man/gearman_client_set_fail_fn.3 \
 	   docs/man/gearman_client_set_log_fn.3 \
+	   docs/man/gearman_client_set_namespace.3 \
 	   docs/man/gearman_client_set_options.3 \
 	   docs/man/gearman_client_set_status_fn.3 \
 	   docs/man/gearman_client_set_task_context_free_fn.3 \
@@ -132,6 +133,7 @@ man_MANS+= \
 	   docs/man/gearman_worker_remove_servers.3 \
 	   docs/man/gearman_worker_set_context.3 \
 	   docs/man/gearman_worker_set_log_fn.3 \
+	   docs/man/gearman_worker_set_namespace.3 \
 	   docs/man/gearman_worker_set_options.3 \
 	   docs/man/gearman_worker_set_timeout.3 \
 	   docs/man/gearman_worker_set_workload_free_fn.3 \

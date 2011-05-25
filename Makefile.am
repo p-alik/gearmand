@@ -35,6 +35,8 @@ include tests/include.am
 include support/include.am
 include docs/include.am
 
+docs: html man
+
 TESTS += ${check_PROGRAMS}
 
 EXTRA_DIST+= ${man_MANS}
