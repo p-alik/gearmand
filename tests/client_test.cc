@@ -980,6 +980,7 @@ test_st gearman_client_do_job_handle_tests[] ={
 
 test_st gearman_execute_map_reduce_tests[] ={
   {"gearman_execute_map_reduce()", 0, gearman_execute_map_reduce_basic },
+  {"gearman_execute_map_reduce(GEARMAN_ARGUMENT_TOO_LARGE)", 0, gearman_execute_map_reduce_check_parameters },
   {"gearman_execute_map_reduce(GEARMAN_WORK_FAIL)", 0, gearman_execute_map_reduce_workfail },
   {"gearman_execute_map_reduce() fail in reduction", 0, gearman_execute_map_reduce_fail_in_reduction },
   {0, 0, 0}

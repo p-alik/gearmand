@@ -45,6 +45,49 @@
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
+test_return_t gearman_execute_map_reduce_check_parameters(void *object)
+{
+  gearman_client_st *client= (gearman_client_st *)object;
+
+  test_true_got(gearman_success(gearman_client_echo(client, gearman_literal_param("this is mine"))), gearman_client_error(client));
+
+  // This just hear to make it easier to trace when
+  // gearman_execute_map_reduce() is called (look in the log to see the
+  // failed option setting.
+  gearman_client_set_server_option(client, gearman_literal_param("should fail"));
+  gearman_argument_t work_args= gearman_argument_make(gearman_literal_param("this dog does not hunt"));
+
+  gearman_string_t mapper= { gearman_literal_param("split_worker") };
+  gearman_string_t reducer= { gearman_literal_param("client_test") };
+  gearman_task_st *task;
+
+  // Test client as NULL
+  test_false(task= gearman_execute_map_reduce(NULL,
+                                              gearman_string_param(mapper),
+                                              gearman_string_param(reducer),
+                                              NULL, 0,  // unique
+                                              NULL,
+                                              &work_args));
+
+  // Test no mapper
+  test_false(task= gearman_execute_map_reduce(client,
+                                              NULL, 0,
+                                              gearman_string_param(reducer),
+                                              NULL, 0,  // unique
+                                              NULL,
+                                              &work_args));
+  
+  // Test no aggregator
+  test_false(task= gearman_execute_map_reduce(client,
+                                              gearman_string_param(mapper),
+                                              NULL, 0,
+                                              NULL, 0,  // unique
+                                              NULL,
+                                              &work_args));
+
+  return TEST_SUCCESS;
+}
+
 test_return_t gearman_execute_map_reduce_basic(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
