@@ -1010,7 +1010,7 @@ static gearman_return_t _con_setsockopt(gearman_connection_st *connection)
     // This is not considered a fatal error 
     if (ret == -1)
     {
-      gearman_perror(*connection->universal, "setsockopt(SO_NOSIGPIPE)");
+      gearman_perror(connection->universal, "setsockopt(SO_NOSIGPIPE)");
     }
   }
 #endif
