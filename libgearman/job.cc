@@ -329,7 +329,7 @@ gearman_return_t gearman_job_send_complete(gearman_job_st *job,
   if (job->reducer)
     return GEARMAN_INVALID_ARGUMENT;
 
-  return gearman_job_send_complete(job, result, result_size);
+  return gearman_job_send_complete_fin(job, result, result_size);
 }
 
 gearman_return_t gearman_job_send_complete_fin(gearman_job_st *job,
