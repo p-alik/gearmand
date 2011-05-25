@@ -16,6 +16,7 @@ nobase_include_HEADERS+= \
 			 libgearman/argument.h \
 			 libgearman/byteorder.h \
 			 libgearman/client.h \
+			 libgearman/client_callbacks.h \
 			 libgearman/command.h \
 			 libgearman/configure.h \
 			 libgearman/connection.h \

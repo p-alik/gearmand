@@ -147,14 +147,6 @@ typedef enum
   GEARMAN_WORKER_MAX=   (1 << 10)
 } gearman_worker_options_t;
 
-/**
- * @addtogroup gearman_types Types
- * @ingroup gearman_universal
- * @ingroup gearman_client
- * @ingroup gearman_worker
- * @{
- */
-
 /* Types. */
 typedef struct gearman_packet_st gearman_packet_st;
 typedef struct gearman_task_st gearman_task_st;
@@ -166,25 +158,9 @@ typedef struct gearman_result_st gearman_result_st;
 typedef struct gearman_string_t gearman_string_t;
 typedef struct gearman_argument_t gearman_argument_t;
 
-/* Function types. */
-typedef gearman_return_t (gearman_workload_fn)(gearman_task_st *task);
-typedef gearman_return_t (gearman_created_fn)(gearman_task_st *task);
-typedef gearman_return_t (gearman_data_fn)(gearman_task_st *task);
-typedef gearman_return_t (gearman_warning_fn)(gearman_task_st *task);
-typedef gearman_return_t (gearman_universal_status_fn)(gearman_task_st *task);
-typedef gearman_return_t (gearman_complete_fn)(gearman_task_st *task);
-typedef gearman_return_t (gearman_exception_fn)(gearman_task_st *task);
-typedef gearman_return_t (gearman_fail_fn)(gearman_task_st *task);
-
 typedef gearman_return_t (gearman_parse_server_fn)(const char *host,
                                                    in_port_t port,
                                                    void *context);
-
-typedef void* (gearman_worker_fn)(gearman_job_st *job, void *context,
-                                  size_t *result_size,
-                                  gearman_return_t *ret_ptr);
-
-typedef gearman_worker_error_t (gearman_mapper_fn)(gearman_job_st *job, void *context);
 
 typedef void* (gearman_malloc_fn)(size_t size, void *context);
 typedef void (gearman_free_fn)(void *ptr, void *context);
@@ -193,6 +169,14 @@ typedef void (gearman_task_context_free_fn)(gearman_task_st *task, void *context
 
 typedef void (gearman_log_fn)(const char *line, gearman_verbose_t verbose, void *context);
 
+
+// Worker types
+
+typedef void* (gearman_worker_fn)(gearman_job_st *job, void *context,
+                                  size_t *result_size,
+                                  gearman_return_t *ret_ptr);
+
+typedef gearman_worker_error_t (gearman_mapper_fn)(gearman_job_st *job, void *worker_context);
 
 typedef struct gearman_aggregator_st gearman_aggregator_st;
 typedef gearman_return_t (gearman_aggregator_fn)(gearman_aggregator_st *, gearman_task_st *, gearman_result_st *);

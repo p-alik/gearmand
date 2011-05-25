@@ -58,6 +58,7 @@
 #include <libgearman/visibility.h>
 #include <libgearman/version.h>
 #include <libgearman/constants.h>
+#include <libgearman/client_callbacks.h>
 #include <libgearman/strerror.h>
 
 // Everything above this line must be in the order specified.
