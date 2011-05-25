@@ -192,8 +192,7 @@ typedef void (gearman_free_fn)(void *ptr, void *context);
 typedef void (gearman_task_context_free_fn)(gearman_task_st *task,
                                             void *context);
 
-typedef void (gearman_log_fn)(const char *line, gearman_verbose_t verbose,
-                              void *context);
+typedef void (gearman_log_fn)(const char *line, gearman_verbose_t verbose, void *context);
 
 
 typedef struct gearman_aggregator_st gearman_aggregator_st;

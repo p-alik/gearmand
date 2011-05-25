@@ -40,20 +40,45 @@ Command Line Tools
 C/C++ Client Library:
 ---------------------
 
-**************
-Function Calls
-**************
+******
+Basics
+******
 
 .. toctree::
    :maxdepth: 2
 
    libgearman
-   do
-   gearman_client
-   gearman_worker
-   gearman_client_execute
-   gearman_misc_functions
 
+************
+Client Calls
+************
+
+.. toctree::
+   :maxdepth: 2
+
+   gearman_client
+   do
+   gearman_client_execute 
+   gearman_client_execute_reduce
+
+************
+Worker Calls
+************
+
+.. toctree::
+   :maxdepth: 2
+
+   gearman_worker
+   gearman_worker_add_map_function
+
+********************
+Other Function Calls
+********************
+
+.. toctree::
+   :maxdepth: 2
+
+   gearman_misc_functions
 
 **********
 Structures
@@ -63,12 +88,12 @@ Structures
    :maxdepth: 2
 
    gearman_client_st 
-   gearman_function_st
    gearman_job_st
-   gearman_status_t
    gearman_task_st
-   gearman_unique_t
-   gearman_worker_st
+   gearman_worker_st 
+   gearman_return_t 
+   error_descriptions
+
 
 ------------------
 Indices and tables

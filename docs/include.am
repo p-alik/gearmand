@@ -76,7 +76,6 @@ man_MANS+= \
 	   docs/man/gearman_client_timeout.3 \
 	   docs/man/gearman_client_wait.3 \
 	   docs/man/gearman_create.3 \
-	   docs/man/gearman_function_st.3 \
 	   docs/man/gearman_job_free.3 \
 	   docs/man/gearman_job_free_all.3 \
 	   docs/man/gearman_job_function_name.3 \
@@ -94,9 +93,6 @@ man_MANS+= \
 	   docs/man/gearman_job_workload_size.3 \
 	   docs/man/gearman_parse_servers.3 \
 	   docs/man/gearman_state_t.3 \
-	   docs/man/gearman_status_is_successful.3 \
-	   docs/man/gearman_status_t.3 \
-	   docs/man/gearman_status_task.3 \
 	   docs/man/gearman_task_context.3 \
 	   docs/man/gearman_task_data.3 \
 	   docs/man/gearman_task_data_size.3 \
