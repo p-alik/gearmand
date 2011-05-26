@@ -600,7 +600,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
         worker->options.change= false;
       }
 
-      if (worker->function_list == NULL)
+      if (not worker->function_list)
       {
         gearman_error(worker->universal, GEARMAN_NO_REGISTERED_FUNCTIONS, "no functions have been registered");
         *ret_ptr= GEARMAN_NO_REGISTERED_FUNCTIONS;
@@ -622,9 +622,9 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
             if (gearman_failed(*ret_ptr))
             {
               if (*ret_ptr == GEARMAN_IO_WAIT)
-	      {
+              {
                 worker->state= GEARMAN_WORKER_STATE_CONNECT;
-	      }
+              }
               else if (*ret_ptr == GEARMAN_COULD_NOT_CONNECT || *ret_ptr == GEARMAN_LOST_CONNECTION)
               {
                 break;
@@ -670,7 +670,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
         while (1)
         {
     case GEARMAN_WORKER_STATE_GRAB_JOB_RECV:
-          assert(&(worker->job->assigned));
+          assert(worker->job);
           (void)worker->con->receiving(worker->job->assigned, *ret_ptr, true);
 
           if (gearman_failed(*ret_ptr))
@@ -713,8 +713,8 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
           if (worker->job->assigned.command != GEARMAN_COMMAND_NOOP)
           {
             gearman_universal_set_error(worker->universal, GEARMAN_UNEXPECTED_PACKET, AT,
-					"unexpected packet:%s",
-					gearman_command_info(worker->job->assigned.command)->name);
+                                        "unexpected packet:%s",
+                                        gearman_command_info(worker->job->assigned.command)->name);
             gearman_packet_free(&(worker->job->assigned));
             gearman_job_free(worker->job);
             worker->job= NULL;
@@ -753,7 +753,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
 
       /* Set a watch on all active connections that we sent a PRE_SLEEP to. */
       active= 0;
-      for (worker->con= (&worker->universal)->con_list; worker->con;
+      for (worker->con= worker->universal.con_list; worker->con;
            worker->con= worker->con->next)
       {
         if (worker->con->fd == -1)
@@ -778,9 +778,9 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
         else
         {
           if (worker->universal.timeout > 0)
-	  {
+          {
             usleep(static_cast<unsigned int>((&worker->universal)->timeout) * 1000);
-	  }
+          }
 
           if (worker->options.timeout_return)
           {

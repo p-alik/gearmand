@@ -51,8 +51,8 @@ struct client_context_st {
     latch(0),
     min_size(1024),
     max_size(1024 *2),
-    num_tasks(10),
-    count(1000),
+    num_tasks(20),
+    count(2000),
     blob(NULL)
   { }
 };
