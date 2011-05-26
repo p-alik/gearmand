@@ -285,7 +285,7 @@ size_t gearman_task_send_workload(gearman_task_st *task, const void *workload,
   if (not task)
     return 0;
 
-  return task->con->send(workload, workload_size, ret_ptr);
+  return task->con->send_and_flush(workload, workload_size, ret_ptr);
 }
 
 gearman_result_st *gearman_task_result(gearman_task_st *task)

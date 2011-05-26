@@ -435,18 +435,16 @@ gearman_return_t gearman_connection_st::send(const gearman_packet_st& packet_arg
   return GEARMAN_SUCCESS;
 }
 
-size_t gearman_connection_st::send(const void *data, size_t data_size, gearman_return_t *ret_ptr)
+size_t gearman_connection_st::send_and_flush(const void *data, size_t data_size, gearman_return_t *ret_ptr)
 {
   if (send_state != GEARMAN_CON_SEND_UNIVERSAL_FLUSH_DATA)
   {
-    gearman_error(universal, GEARMAN_NOT_FLUSHING, "not flushing");
-    return GEARMAN_NOT_FLUSHING;
+    return gearman_error(universal, GEARMAN_NOT_FLUSHING, "not flushing");
   }
 
   if (data_size > (send_data_size - send_data_offset))
   {
-    gearman_error(universal, GEARMAN_DATA_TOO_LARGE, "data too large");
-    return GEARMAN_DATA_TOO_LARGE;
+    return gearman_error(universal, GEARMAN_DATA_TOO_LARGE, "data too large");
   }
 
   send_buffer_ptr= static_cast<char *>(const_cast<void *>(data));
@@ -454,7 +452,7 @@ size_t gearman_connection_st::send(const void *data, size_t data_size, gearman_r
 
   *ret_ptr= flush();
 
-  return data_size - send_buffer_size;
+  return data_size -send_buffer_size;
 }
 
 gearman_return_t gearman_connection_st::flush()
@@ -479,8 +477,8 @@ gearman_return_t gearman_connection_st::flush()
         ai.ai_socktype= SOCK_STREAM;
         ai.ai_protocol= IPPROTO_TCP;
 
-        int ret= getaddrinfo(host, port_str, &ai, &(addrinfo));
-        if (ret)
+        int ret;
+        if ((ret= getaddrinfo(host, port_str, &ai, &(addrinfo))))
         {
           gearman_universal_set_error(universal, GEARMAN_GETADDRINFO, AT, "getaddrinfo:%s", gai_strerror(ret));
           return GEARMAN_GETADDRINFO;
@@ -500,9 +498,7 @@ gearman_return_t gearman_connection_st::flush()
         return GEARMAN_COULD_NOT_CONNECT;
       }
 
-      fd= socket(addrinfo_next->ai_family,
-                             addrinfo_next->ai_socktype,
-                             addrinfo_next->ai_protocol);
+      fd= socket(addrinfo_next->ai_family, addrinfo_next->ai_socktype, addrinfo_next->ai_protocol);
       if (fd == INVALID_SOCKET)
       {
         state= GEARMAN_CON_UNIVERSAL_ADDRINFO;
@@ -586,59 +582,11 @@ gearman_return_t gearman_connection_st::flush()
     case GEARMAN_CON_UNIVERSAL_CONNECTED:
       while (send_buffer_size != 0)
       {
-#if 0
-        {
-          std::cerr << "send() " << send_buffer_size << std::endl;
-          if (send_buffer_ptr[0] == 0)
-          {
-            for (size_t x= 1; x < send_buffer_size; x++)
-            {
-              if (x == 1)
-              {
-                std::cerr.write(send_buffer_ptr +x, 3);
-                std::cerr << " ";
-                x+= 2;
-                continue;
-              }
-
-              if (x == 4)
-              {
-                uint32_t tmp;
-                memcpy(&tmp, send_buffer_ptr +x, sizeof(uint32_t));
-                tmp= htonl(tmp);
-                std::cerr << " " << gearman_strcommand(gearman_command_t(tmp)) << " ";
-                x+= sizeof(uint32_t);
-
-                memcpy(&tmp, send_buffer_ptr +x, sizeof(uint32_t));
-                tmp= htonl(tmp);
-                std::cerr << " " << tmp << " ";
-                x+= sizeof(uint32_t) -1;
-                continue;
-              }
-
-              if (send_buffer_ptr[x] == 0)
-              {
-                std::cerr <<  "<NULL>";
-                continue;
-              }
-              std::cerr << char(send_buffer_ptr[x]);
-            }
-          }
-          std::cerr << std::endl;
-        }
-#endif
         ssize_t write_size= ::send(fd, send_buffer_ptr, send_buffer_size, 
                                    gearman_universal_is_non_blocking(universal) ? MSG_NOSIGNAL| MSG_DONTWAIT : MSG_NOSIGNAL);
 
-        if (write_size == 0)
-        {
-          if (not (options.ignore_lost_connection))
-          {
-            gearman_error(universal, GEARMAN_LOST_CONNECTION, "lost connection to server (EOF)");
-          }
-          close();
-          return GEARMAN_LOST_CONNECTION;
-        }
+        if (write_size == 0) // Zero value on send()
+        { }
         else if (write_size == -1)
         {
           if (errno == EAGAIN)
@@ -691,7 +639,9 @@ gearman_return_t gearman_connection_st::flush()
             return GEARMAN_SUCCESS;
         }
         else if (send_buffer_size == 0)
+        {
           break;
+        }
 
         send_buffer_ptr+= write_size;
       }
