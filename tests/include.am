@@ -6,7 +6,7 @@
 # Use and distribution licensed under the BSD license.  See
 # the COPYING file in the parent directory for full text.
 
-VALGRIND_COMMAND= $(LIBTOOL) --mode=execute valgrind --leak-check=yes --show-reachable=yes
+VALGRIND_COMMAND= $(LIBTOOL) --mode=execute valgrind --leak-check=yes --show-reachable=yes --malloc-fill=A5 --free-fill=DE --track-fds=yes
 
 noinst_HEADERS+= \
 		 tests/basic.h \
@@ -96,31 +96,34 @@ check-local: tests/var gearmand-test-args client-test libtest-tests
 libtest-tests: test-client test-round-robin test-worker test-internals test-libmemcached test-sqlite test-tokyocabinet test-burnin
 
 gdb-client: ${noinst_PROGRAMS}
-	$(LIBTOOL) --mode=execute gdb tests/client_test
+	@$(LIBTOOL) --mode=execute gdb tests/client_test
 
 gdb-round-robin: ${noinst_PROGRAMS}
-	$(LIBTOOL) --mode=execute gdb tests/round_robin_test
+	@$(LIBTOOL) --mode=execute gdb tests/round_robin_test
 
 gdb-worker: ${noinst_PROGRAMS}
-	$(LIBTOOL) --mode=execute gdb tests/worker_test
+	@$(LIBTOOL) --mode=execute gdb tests/worker_test
 
 gdb-internals: ${noinst_PROGRAMS}
-	$(LIBTOOL) --mode=execute gdb tests/internals_test
+	@$(LIBTOOL) --mode=execute gdb tests/internals_test
 
 gdb-burnin: ${noinst_PROGRAMS}
-	$(LIBTOOL) --mode=execute gdb tests/burnin_test
+	@$(LIBTOOL) --mode=execute gdb tests/burnin_test
 
 valgrind-client:
-	$(VALGRIND_COMMAND) tests/client_test $(ARG1) $(ARG2)
+	@$(VALGRIND_COMMAND) tests/client_test $(ARG1) $(ARG2)
 
 valgrind-round-robin:
-	$(VALGRIND_COMMAND) tests/round_robin_test $(ARG1) $(ARG2)
+	@$(VALGRIND_COMMAND) tests/round_robin_test $(ARG1) $(ARG2)
 
 valgrind-worker: tests/worker_test
-	$(VALGRIND_COMMAND) tests/worker_test $(ARG1) $(ARG2)
+	@$(VALGRIND_COMMAND) tests/worker_test $(ARG1) $(ARG2)
 
 valgrind-internals: tests/internals_test
-	$(VALGRIND_COMMAND) tests/internals_test $(ARG1) $(ARG2)
+	@$(VALGRIND_COMMAND) tests/internals_test $(ARG1) $(ARG2)
+
+valgrind-burnin: tests/burnin_test
+	@$(VALGRIND_COMMAND) tests/burnin_test $(ARG1) $(ARG2)
 
 tests/var: tests/var/log tests/var/tmp
 	$(mkdir_p) tests/var
@@ -131,7 +134,7 @@ tests/var/log:
 tests/var/tmp:
 	$(mkdir_p) tests/var/tmp
 
-algrind: ${noinst_PROGRAMS} valgrind-client valgrind-round-robin valgrind-worker valgrind-internals valgrind-sqlite valgrind-tokyocabinet
+valgrind: ${noinst_PROGRAMS} valgrind-client valgrind-round-robin valgrind-worker valgrind-internals valgrind-sqlite valgrind-tokyocabinet valgrind-burnin
 
 include tests/httpd.am
 include tests/libdrizzle.am
