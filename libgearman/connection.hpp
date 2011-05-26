@@ -45,7 +45,6 @@ struct gearman_connection_st
   struct {
     bool ready;
     bool packet_in_use;
-    bool close_after_flush;
   } options;
   enum gearman_con_universal_t state;
   enum gearman_con_send_t send_state;

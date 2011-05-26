@@ -122,8 +122,6 @@ gearmand_error_t gearman_io_set_option(gearmand_io_st *connection,
   case GEARMAND_CON_EXTERNAL_FD:
     connection->options.external_fd= value;
     break;
-  case GEARMAND_CON_IGNORE_LOST_CONNECTION:
-    break;
   case GEARMAND_CON_CLOSE_AFTER_FLUSH:
     connection->options.close_after_flush= value;
     break;

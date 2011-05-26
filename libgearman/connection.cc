@@ -96,7 +96,6 @@ gearman_connection_st::gearman_connection_st(gearman_universal_st &universal_arg
 {
   options.ready= false;
   options.packet_in_use= false;
-  options.close_after_flush= false;
 
   if (options_args)
   {
@@ -158,7 +157,6 @@ gearman_connection_st *gearman_connection_copy(gearman_universal_st& universal,
 
   connection->options.ready= from.options.ready;
   connection->options.packet_in_use= from.options.packet_in_use;
-  connection->options.close_after_flush= from.options.close_after_flush;
 
   strcpy(connection->host, from.host);
   connection->port= from.port;
@@ -205,7 +203,6 @@ gearman_return_t gearman_connection_set_option(gearman_connection_st *connection
   case GEARMAN_CON_IGNORE_LOST_CONNECTION:
     break;
   case GEARMAN_CON_CLOSE_AFTER_FLUSH:
-    connection->options.close_after_flush= value;
     break;
   case GEARMAN_CON_EXTERNAL_FD:
   case GEARMAN_CON_MAX:
@@ -405,27 +402,13 @@ gearman_return_t gearman_connection_st::send(const gearman_packet_st& packet_arg
 
   case GEARMAN_CON_SEND_UNIVERSAL_FLUSH:
   case GEARMAN_CON_SEND_UNIVERSAL_FLUSH_DATA:
-    {
-      gearman_return_t ret= flush();
-      if (gearman_success(ret) and options.close_after_flush)
-      {
-        close();
-        ret= GEARMAN_LOST_CONNECTION;
-      }
-      return ret;
-    }
+    return flush();
   }
 
   if (flush_buffer)
   {
     send_state= GEARMAN_CON_SEND_UNIVERSAL_FLUSH;
-    gearman_return_t ret= flush();
-    if (ret == GEARMAN_SUCCESS && options.close_after_flush)
-    {
-      close();
-      ret= GEARMAN_LOST_CONNECTION;
-    }
-    return ret;
+    return flush();
   }
 
   send_state= GEARMAN_CON_SEND_STATE_NONE;
