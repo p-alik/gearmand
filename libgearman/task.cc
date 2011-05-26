@@ -347,10 +347,10 @@ size_t gearman_task_recv_data(gearman_task_st *task, void *data,
   if (not ret_ptr)
   {
     gearman_return_t unused;
-    return task->con->recv(data, data_size, unused);
+    return task->con->receiving(data, data_size, unused);
   }
 
-  return task->con->recv(data, data_size, *ret_ptr);
+  return task->con->receiving(data, data_size, *ret_ptr);
 }
 
 gearman_return_t gearman_task_error(const gearman_task_st *task)

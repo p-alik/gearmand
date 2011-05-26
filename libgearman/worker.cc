@@ -671,14 +671,14 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
         {
     case GEARMAN_WORKER_STATE_GRAB_JOB_RECV:
           assert(&(worker->job->assigned));
-          (void)worker->con->recv(worker->job->assigned, *ret_ptr, true);
+          (void)worker->con->receiving(worker->job->assigned, *ret_ptr, true);
 
           if (gearman_failed(*ret_ptr))
           {
             if (*ret_ptr == GEARMAN_IO_WAIT)
-	    {
+            {
               worker->state= GEARMAN_WORKER_STATE_GRAB_JOB_RECV;
-	    }
+            }
             else
             {
               gearman_job_free(worker->job);

@@ -85,20 +85,17 @@ struct gearman_connection_st
   void set_host( const char *host, const in_port_t port);
 
   gearman_return_t send(const gearman_packet_st&, const bool flush_buffer);
-
   size_t send(const void *data, size_t data_size, gearman_return_t *ret_ptr);
 
   gearman_return_t flush();
   void close();
 
   // Receive packet from a connection.
-  gearman_packet_st *recv(gearman_packet_st&,
-                          gearman_return_t& , const bool recv_data);
+  gearman_packet_st *receiving(gearman_packet_st&,
+                               gearman_return_t& , const bool recv_data);
 
   // Receive packet data from a connection.
-  size_t recv(void *data, size_t data_size, gearman_return_t&);
-
-  size_t read(void *data, size_t data_size, gearman_return_t&);
+  size_t receiving(void *data, size_t data_size, gearman_return_t&);
 
   // Set events to be watched for a connection.
   void set_events(short events);
@@ -108,6 +105,9 @@ struct gearman_connection_st
   void set_revents(short revents);
 
   void reset_addrinfo();
+
+private:
+  size_t recv(void *data, size_t data_size, gearman_return_t&);
 };
 
 /**

@@ -703,8 +703,8 @@ gearman_return_t gearman_connection_st::flush()
   }
 }
 
-gearman_packet_st *gearman_connection_st::recv(gearman_packet_st& packet_arg,
-                                               gearman_return_t& ret, const bool recv_data)
+gearman_packet_st *gearman_connection_st::receiving(gearman_packet_st& packet_arg,
+                                                    gearman_return_t& ret, const bool recv_data)
 {
   switch (recv_state)
   {
@@ -752,7 +752,7 @@ gearman_packet_st *gearman_connection_st::recv(gearman_packet_st& packet_arg,
         memmove(recv_buffer, recv_buffer_ptr, recv_buffer_size);
       recv_buffer_ptr= recv_buffer;
 
-      size_t recv_size= read(recv_buffer + recv_buffer_size, GEARMAN_RECV_BUFFER_SIZE - recv_buffer_size, ret);
+      size_t recv_size= recv(recv_buffer + recv_buffer_size, GEARMAN_RECV_BUFFER_SIZE - recv_buffer_size, ret);
       if (gearman_failed(ret))
       {
         return NULL;
@@ -798,9 +798,9 @@ gearman_packet_st *gearman_connection_st::recv(gearman_packet_st& packet_arg,
   case GEARMAN_CON_RECV_STATE_READ_DATA:
     while (recv_data_size)
     {
-      (void)recv(static_cast<uint8_t *>(const_cast<void *>(packet_arg.data)) +
-                 recv_data_offset,
-                 packet_arg.data_size -recv_data_offset, ret);
+      (void)receiving(static_cast<uint8_t *>(const_cast<void *>(packet_arg.data)) +
+                      recv_data_offset,
+                      packet_arg.data_size -recv_data_offset, ret);
       if (gearman_failed(ret))
       {
         return NULL;
@@ -817,7 +817,7 @@ gearman_packet_st *gearman_connection_st::recv(gearman_packet_st& packet_arg,
   return tmp_packet_arg;
 }
 
-size_t gearman_connection_st::recv(void *data, size_t data_size, gearman_return_t& ret)
+size_t gearman_connection_st::receiving(void *data, size_t data_size, gearman_return_t& ret)
 {
   size_t recv_size= 0;
 
@@ -844,7 +844,7 @@ size_t gearman_connection_st::recv(void *data, size_t data_size, gearman_return_
 
   if (data_size != recv_size)
   {
-    recv_size+= read(static_cast<uint8_t *>(const_cast<void *>(data)) + recv_size, data_size - recv_size, ret);
+    recv_size+= recv(static_cast<uint8_t *>(const_cast<void *>(data)) + recv_size, data_size - recv_size, ret);
     recv_data_offset+= recv_size;
   }
   else
@@ -863,13 +863,13 @@ size_t gearman_connection_st::recv(void *data, size_t data_size, gearman_return_
   return recv_size;
 }
 
-size_t gearman_connection_st::read(void *data, size_t data_size, gearman_return_t& ret)
+size_t gearman_connection_st::recv(void *data, size_t data_size, gearman_return_t& ret)
 {
   ssize_t read_size;
 
   while (1)
   {
-    read_size= ::read(fd, data, data_size);
+    read_size= ::recv(fd, data, data_size, 0);
     if (read_size == 0)
     {
       if (not (options.ignore_lost_connection))
