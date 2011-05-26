@@ -215,9 +215,9 @@ inline static gearmand_error_t packet_create_arg(gearmand_packet_st *packet,
 
   if (packet->argc == gearman_command_info(packet->command)->argc &&
       (not (gearman_command_info(packet->command)->data) ||
-       packet->data != NULL))
+       packet->data))
   {
-    gearmand_log_error("too many arguments for command(%s)", gearman_command_info(packet->command)->name);
+    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "too many arguments for command(%s)", gearman_command_info(packet->command)->name);
     return GEARMAN_TOO_MANY_ARGS;
   }
 
@@ -524,7 +524,7 @@ size_t gearmand_packet_unpack(gearmand_packet_st *packet,
       ptr= (uint8_t *)memchr(((uint8_t *)data) + used_size, 0, data_size - used_size);
       if (not ptr)
       {
-        gearmand_log_crazy("Possible protocol error for %s, recieved only %u args", gearman_command_info(packet->command)->name, packet->argc);
+        gearmand_log_crazy(GEARMAN_DEFAULT_LOG_PARAM, "Possible protocol error for %s, recieved only %u args", gearman_command_info(packet->command)->name, packet->argc);
         *ret_ptr= GEARMAN_IO_WAIT;
         return used_size;
       }

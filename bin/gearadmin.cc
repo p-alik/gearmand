@@ -139,7 +139,7 @@ int main(int args, char *argv[])
 
   if (vm.count("shutdown"))
   {
-    instance.push(new Operation(STRING_WITH_LEN("shutdown graceful\r\n"), false));
+    instance.push(new Operation(STRING_WITH_LEN("shutdown\r\n"), false));
   }
 
   if (vm.count("status"))

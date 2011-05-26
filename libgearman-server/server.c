@@ -89,7 +89,8 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
     return _server_error_packet(server_con, "bad_magic", "Request magic expected");
   }
 
-  gearmand_log_crazy("%15s:%5s packet command  %s",
+  gearmand_log_crazy(GEARMAN_DEFAULT_LOG_PARAM,
+                     "%15s:%5s packet command  %s",
 		     server_con->con.context == NULL ? "-" : server_con->con.context->host,
 		     server_con->con.context == NULL ? "-" : server_con->con.context->port, 
 		     gearmand_strcommand(packet));
@@ -104,8 +105,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
                                       packet->data_size, NULL);
     if (gearmand_failed(ret))
     {
-      gearmand_gerror("gearman_server_io_packet_add", ret);
-      return ret;
+      return gearmand_gerror("gearman_server_io_packet_add", ret);
     }
 
     packet->options.free_data= false;
@@ -120,7 +120,8 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
 
   case GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND:
     {
-      gearmand_log_debug("Received reduce submission, %.*s-%.*s/%.*s with %d arguments",
+      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
+                         "Received reduce submission, %.*s-%.*s/%.*s with %d arguments",
                          packet->arg_size[0], packet->arg[0],
                          packet->arg_size[1], packet->arg[1],
                          packet->arg_size[2], packet->arg[2],
@@ -226,7 +227,8 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
       }
     }
 
-    gearmand_log_debug("Received submission, %.*s/%.*s with %d arguments",
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
+                       "Received submission, %.*s/%.*s with %d arguments",
                        packet->arg_size[0], packet->arg[0],
                        packet->arg_size[1], packet->arg[1],
                        (int)packet->argc);
@@ -234,7 +236,8 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
     if (packet->command == GEARMAN_COMMAND_SUBMIT_JOB_EPOCH)
     {
       sscanf((char *)packet->arg[2], "%lld", (long long *)&when);
-      gearmand_log_debug("Received EPOCH job submission, %.*s/%.*s, with data for %jd at %jd, args %d",
+      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, 
+                         "Received EPOCH job submission, %.*s/%.*s, with data for %jd at %jd, args %d",
                          packet->arg_size[0], packet->arg[0],
                          packet->arg_size[1], packet->arg[1],
                          when, time(NULL),
@@ -296,7 +299,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
 
       if (checked_length >= GEARMAND_JOB_HANDLE_SIZE || checked_length < 0)
       {
-        gearmand_error("snprintf");
+        gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "snprintf(%d)", checked_length);
         return GEARMAN_MEMORY_ALLOCATION_FAILURE;
       }
 
@@ -317,14 +320,14 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
         checked_length= snprintf(numerator_buffer, sizeof(numerator_buffer), "%u", server_job->numerator);
         if ((size_t)checked_length >= sizeof(numerator_buffer) || checked_length < 0)
         {
-          gearmand_log_error("_server_command_get_status", "snprintf");
+          gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "snprintf(%d)", checked_length);
           return GEARMAN_MEMORY_ALLOCATION_FAILURE;
         }
 
         checked_length= snprintf(denominator_buffer, sizeof(denominator_buffer), "%u", server_job->denominator);
         if ((size_t)checked_length >= sizeof(denominator_buffer) || checked_length < 0)
         {
-          gearmand_log_error("_server_command_get_status", "snprintf");
+          gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "snprintf(%d)", checked_length);
           return GEARMAN_MEMORY_ALLOCATION_FAILURE;
         }
 
@@ -357,14 +360,14 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
 
     if (checked_length >= GEARMAN_OPTION_SIZE || checked_length < 0)
     {
-      gearmand_log_error("_server_command_option_request", "snprintf");
+      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "snprintf(%d)", checked_length);
       return _server_error_packet(server_con, "unknown_option",
                                   "Server does not recognize given option");
     }
 
     if (! strcasecmp(option, "exceptions"))
     {
-      gearmand_log_debug("GEARMAN_COMMAND_OPTION_RES 'exceptions'");
+      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "'exceptions'");
       server_con->is_exceptions= true;
     }
     else
@@ -821,7 +824,7 @@ static gearmand_error_t _server_run_text(gearman_server_con_st *server_con,
 
   if (packet->argc)
   {
-    gearmand_log_debug("text command %.*s", packet->arg_size[0],  packet->arg[0]);
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "text command %.*s", packet->arg_size[0],  packet->arg[0]);
   }
 
   if (packet->argc == 0)
@@ -1106,7 +1109,7 @@ static gearmand_error_t _server_run_text(gearman_server_con_st *server_con,
   }
   else
   {
-    gearmand_log_debug("Failed to find command %.*s(%llu)", packet->arg_size[0], packet->arg[0], 
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Failed to find command %.*s(%llu)", packet->arg_size[0], packet->arg[0], 
                        (unsigned long long)packet->arg_size[0]);
     snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, TEXT_ERROR_UNKNOWN_COMMAND, (int)packet->arg_size[0], (char *)(packet->arg[0]));
   }
@@ -1164,12 +1167,12 @@ _server_queue_work_data(gearman_server_job_st *server_job,
   {
     if (command == GEARMAN_COMMAND_WORK_EXCEPTION && !(server_client->con->is_exceptions))
     {
-      gearmand_log_debug("Dropping GEARMAN_COMMAND_WORK_EXCEPTION");
+      gearmand_debug("Dropping GEARMAN_COMMAND_WORK_EXCEPTION");
       continue;
     }
     else if (command == GEARMAN_COMMAND_WORK_EXCEPTION)
     {
-      gearmand_log_debug("Sending GEARMAN_COMMAND_WORK_EXCEPTION");
+      gearmand_debug("Sending GEARMAN_COMMAND_WORK_EXCEPTION");
     }
 
     if (packet->data_size > 0)

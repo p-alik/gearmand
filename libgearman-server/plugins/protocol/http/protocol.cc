@@ -82,9 +82,9 @@ static gearmand_error_t _http_con_add(gearman_server_con_st *connection)
   gearmand::protocol::HTTP *http;
 
   http= new gearmand::protocol::HTTP;
-  if (http == NULL)
+  if (not http)
   {
-    gearmand_log_error("_http_con_add", "malloc");
+    gearmand_error("new");
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
 
@@ -179,9 +179,9 @@ static size_t _http_unpack(gearmand_packet_st *packet, gearman_server_con_st *co
   /* Parse out the method, URI, and HTTP version from the request line. */
   method= request;
   uri= (const char *)memchr(request, ' ', request_size);
-  if (uri == NULL)
+  if (not uri)
   {
-    gearmand_log_error("_http_unpack", "bad request line: %.*s", (uint32_t)request_size, request);
+    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "bad request line: %.*s", (uint32_t)request_size, request);
     *ret_ptr= GEARMAN_INVALID_PACKET;
     return 0;
   }
@@ -191,7 +191,7 @@ static size_t _http_unpack(gearmand_packet_st *packet, gearman_server_con_st *co
        (strncasecmp(method, "GET", 3) && strncasecmp(method, "PUT", 3))) &&
       (method_size != 4 || strncasecmp(method, "POST", 4)))
   {
-    gearmand_log_error("_http_unpack", "bad method: %.*s", (uint32_t)method_size, method);
+    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "bad method: %.*s", (uint32_t)method_size, method);
     *ret_ptr= GEARMAN_INVALID_PACKET;
     return 0;
   }
@@ -205,7 +205,7 @@ static size_t _http_unpack(gearmand_packet_st *packet, gearman_server_con_st *co
   version= (const char *)memchr(uri, ' ', request_size - (size_t)(uri - request));
   if (version == NULL)
   {
-    gearmand_log_error("_http_unpack", "bad request line: %.*s",
+    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "bad request line: %.*s",
                       (uint32_t)request_size, request);
     *ret_ptr= GEARMAN_INVALID_PACKET;
     return 0;
@@ -214,8 +214,7 @@ static size_t _http_unpack(gearmand_packet_st *packet, gearman_server_con_st *co
   uri_size= version - uri;
   if (uri_size == 0)
   {
-    gearmand_log_error("_http_unpack",
-                      "must give function name in URI");
+    gearmand_error("must give function name in URI");
     *ret_ptr= GEARMAN_INVALID_PACKET;
     return 0;
   }
@@ -231,8 +230,7 @@ static size_t _http_unpack(gearmand_packet_st *packet, gearman_server_con_st *co
   }
   else if (version_size != 8 || strncasecmp(version, "HTTP/1.0", 8))
   {
-    gearmand_log_error("_http_unpack", "bad version: %.*s",
-                      (uint32_t)version_size, version);
+    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "bad version: %.*s", (uint32_t)version_size, version);
     *ret_ptr= GEARMAN_INVALID_PACKET;
     return 0;
   }

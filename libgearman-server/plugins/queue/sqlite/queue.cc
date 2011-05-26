@@ -229,7 +229,7 @@ gearmand_error_t _initialize(gearman_server_st *server, gearmand::plugins::queue
 
     if (not queue->table.compare(table))
     {
-      gearmand_log_info("sqlite module using table '%s'", table);
+      gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "sqlite module using table '%s'", table);
       found= true;
       break;
     }
@@ -246,7 +246,7 @@ gearmand_error_t _initialize(gearman_server_st *server, gearmand::plugins::queue
     query+= queue->table;
     query+= " ( unique_key TEXT, function_name TEXT, priority INTEGER, data BLOB, when_to_run INTEGER, PRIMARY KEY (unique_key, function_name))";
 
-    gearmand_log_info("sqlite module creating table '%s'", queue->table.c_str());
+    gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "sqlite module creating table '%s'", queue->table.c_str());
 
     if (_sqlite_query(server, queue, query.c_str(), query.size(), &sth) != SQLITE_OK)
     {
@@ -272,7 +272,7 @@ gearmand_error_t _initialize(gearman_server_st *server, gearmand::plugins::queue
 
     if (_sqlite_query(server, queue, query.c_str(), query.size(), &sth) != SQLITE_OK)
     {
-      gearmand_log_info("No epoch support in sqlite queue");
+      gearmand_info("No epoch support in sqlite queue");
       queue->set_epoch_support(false);
     }
   }
@@ -292,12 +292,11 @@ int _sqlite_query(gearman_server_st *,
 {
   if (query_size > UINT32_MAX)
   {
-    gearmand_log_error("_sqlite_query", "query size too big [%u]",
-                       (uint32_t)query_size);
+    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "query size too big [%u]", (uint32_t)query_size);
     return SQLITE_ERROR;
   }
 
-  gearmand_log_crazy("sqlite query: %s", query);
+  gearmand_log_crazy(GEARMAN_DEFAULT_LOG_PARAM, "sqlite query: %s", query);
   int ret= sqlite3_prepare(queue->db, query, (int)query_size, sth, NULL);
   if (ret  != SQLITE_OK)
   {
@@ -440,12 +439,11 @@ static gearmand_error_t _sqlite_add(gearman_server_st *server, void *context,
   if (unique_size > UINT32_MAX || function_name_size > UINT32_MAX ||
       data_size > UINT32_MAX)
   {
-    gearmand_log_error("_sqlite_add", "size too big [%u]",
-                       (uint32_t)unique_size);
+    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "size too big [%u]", (uint32_t)unique_size);
     return GEARMAN_QUEUE_ERROR;
   }
 
-  gearmand_log_debug("sqlite add: %.*s at %ld", (uint32_t)unique_size, (char *)unique, (long int)when);
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "sqlite add: %.*s at %ld", (uint32_t)unique_size, (char *)unique, (long int)when);
 
   if (_sqlite_lock(server, queue) !=  SQLITE_OK)
     return GEARMAN_QUEUE_ERROR;
@@ -456,7 +454,7 @@ static gearmand_error_t _sqlite_add(gearman_server_st *server, void *context,
   if (sqlite3_bind_int(sth,  1, priority) != SQLITE_OK)
   {
     _sqlite_rollback(server, queue);
-    gearmand_log_error("_sqlite_add", "failed to bind int [%d]: %s", priority, sqlite3_errmsg(queue->db));
+    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "failed to bind int [%d]: %s", priority, sqlite3_errmsg(queue->db));
     sqlite3_finalize(sth);
 
     return GEARMAN_QUEUE_ERROR;
@@ -466,10 +464,7 @@ static gearmand_error_t _sqlite_add(gearman_server_st *server, void *context,
                         SQLITE_TRANSIENT) != SQLITE_OK)
   {
     _sqlite_rollback(server, queue);
-    gearmand_log_error("_sqlite_add",
-                       "failed to bind text [%.*s]: %s",
-                       (uint32_t)unique_size, (char*)unique,
-                       sqlite3_errmsg(queue->db));
+    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "failed to bind text [%.*s]: %s", (uint32_t)unique_size, (char*)unique, sqlite3_errmsg(queue->db));
     sqlite3_finalize(sth);
     return GEARMAN_QUEUE_ERROR;
   }
@@ -478,10 +473,7 @@ static gearmand_error_t _sqlite_add(gearman_server_st *server, void *context,
                         SQLITE_TRANSIENT) != SQLITE_OK)
   {
     _sqlite_rollback(server, queue);
-    gearmand_log_error("_sqlite_add",
-                       "failed to bind text [%.*s]: %s",
-                       (uint32_t)function_name_size, (char*)function_name,
-                       sqlite3_errmsg(queue->db));
+    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "failed to bind text [%.*s]: %s", (uint32_t)function_name_size, (char*)function_name, sqlite3_errmsg(queue->db));
     sqlite3_finalize(sth);
     return GEARMAN_QUEUE_ERROR;
   }
@@ -490,8 +482,7 @@ static gearmand_error_t _sqlite_add(gearman_server_st *server, void *context,
                         SQLITE_TRANSIENT) != SQLITE_OK)
   {
     _sqlite_rollback(server, queue);
-    gearmand_log_error("_sqlite_add", "failed to bind blob: %s",
-                       sqlite3_errmsg(queue->db));
+    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "failed to bind blob: %s", sqlite3_errmsg(queue->db));
     sqlite3_finalize(sth);
     return GEARMAN_QUEUE_ERROR;
   }
@@ -500,27 +491,23 @@ static gearmand_error_t _sqlite_add(gearman_server_st *server, void *context,
   if (sqlite3_bind_int64(sth,  5, when) != SQLITE_OK)
   {
     _sqlite_rollback(server, queue);
-    gearmand_log_error("_sqlite_add", "failed to bind int64_t(%ld): %s",
-                       (long int)when,
-                       sqlite3_errmsg(queue->db));
+    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "failed to bind int64_t(%ld): %s", (long int)when, sqlite3_errmsg(queue->db));
     sqlite3_finalize(sth);
     return GEARMAN_QUEUE_ERROR;
   }
   
   if (sqlite3_step(sth) != SQLITE_DONE)
   {
-    gearmand_log_error("_sqlite_add", "insert error: %s",
-                       sqlite3_errmsg(queue->db));
+    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "insert error: %s", sqlite3_errmsg(queue->db));
     if (sqlite3_finalize(sth) != SQLITE_OK )
     {
-      gearmand_log_error("_sqlite_add", "finalize error: %s",
-                         sqlite3_errmsg(queue->db));
+      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "finalize error: %s", sqlite3_errmsg(queue->db));
     }
 
     return GEARMAN_QUEUE_ERROR;
   }
 
-  gearmand_log_crazy(
+  gearmand_log_crazy(GEARMAN_DEFAULT_LOG_PARAM,
                      "sqlite data: priority: %d, unique_key: %s, function_name: %s",
                      priority, (char*)unique, (char*)function_name);
 
@@ -536,7 +523,7 @@ static gearmand_error_t _sqlite_flush(gearman_server_st *server,
                                       void *context __attribute__((unused)))
 {
   (void)server;
-  gearmand_log_debug("sqlite flush");
+  gearmand_debug("sqlite flush");
 
   return GEARMAN_SUCCESS;
 }
@@ -552,13 +539,12 @@ static gearmand_error_t _sqlite_done(gearman_server_st *server, void *context,
 
   if (unique_size > UINT32_MAX)
   {
-    gearmand_log_error(
-                       "_sqlite_query", "unique key size too big [%u]",
-                       (uint32_t)unique_size);
+    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM,
+                       "unique key size too big [%u]", (uint32_t)unique_size);
     return GEARMAN_QUEUE_ERROR;
   }
 
-  gearmand_log_debug("sqlite done: %.*s", (uint32_t)unique_size, (char *)unique);
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "sqlite done: %.*s", (uint32_t)unique_size, (char *)unique);
 
   if (_sqlite_lock(server, queue) !=  SQLITE_OK)
     return GEARMAN_QUEUE_ERROR;
@@ -591,7 +577,7 @@ static gearmand_error_t _sqlite_replay(gearman_server_st *server, void *context,
 {
   gearmand::plugins::queue::Sqlite *queue= (gearmand::plugins::queue::Sqlite *)context;
 
-  gearmand_log_info("sqlite replay start");
+  gearmand_info("sqlite replay start");
 
   std::string query;
   if (queue->epoch_support())
@@ -622,7 +608,7 @@ static gearmand_error_t _sqlite_replay(gearman_server_st *server, void *context,
     else
     {
       sqlite3_finalize(sth);
-      gearmand_log_error("_sqlite_replay",
+      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM,
                          "column %d is not type TEXT", 0);
       return GEARMAN_QUEUE_ERROR;
     }
@@ -635,7 +621,7 @@ static gearmand_error_t _sqlite_replay(gearman_server_st *server, void *context,
     else
     {
       sqlite3_finalize(sth);
-      gearmand_log_error("_sqlite_replay",
+      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM,
                          "column %d is not type TEXT", 1);
       return GEARMAN_QUEUE_ERROR;
     }
@@ -648,7 +634,7 @@ static gearmand_error_t _sqlite_replay(gearman_server_st *server, void *context,
     else
     {
       sqlite3_finalize(sth);
-      gearmand_log_error("_sqlite_replay",
+      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM,
                          "column %d is not type INTEGER", 2);
       return GEARMAN_QUEUE_ERROR;
     }
@@ -669,7 +655,7 @@ static gearmand_error_t _sqlite_replay(gearman_server_st *server, void *context,
     else
     {
       sqlite3_finalize(sth);
-      gearmand_log_error("_sqlite_replay", "column %d is not type TEXT", 3);
+      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "column %d is not type TEXT", 3);
       return GEARMAN_QUEUE_ERROR;
     }
     
@@ -683,7 +669,7 @@ static gearmand_error_t _sqlite_replay(gearman_server_st *server, void *context,
       else
       {
         sqlite3_finalize(sth);
-        gearmand_log_error("_sqlite_replay", "column %d is not type INTEGER", 3);
+        gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "column %d is not type INTEGER", 3);
         return GEARMAN_QUEUE_ERROR;
       }
     }
@@ -692,7 +678,7 @@ static gearmand_error_t _sqlite_replay(gearman_server_st *server, void *context,
       when= 0;
     }
 
-    gearmand_log_debug("sqlite replay: %s", (char*)function_name);
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "sqlite replay: %s", (char*)function_name);
 
     gearmand_error_t gret= (*add_fn)(server, add_context,
                                      unique, unique_size,

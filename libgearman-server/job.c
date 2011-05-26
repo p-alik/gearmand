@@ -181,7 +181,7 @@ gearman_server_job_add_reducer(gearman_server_st *server,
 
     if (checked_length >= GEARMAND_JOB_HANDLE_SIZE || checked_length < 0)
     {
-      gearmand_log_error("Job handle plus handle count beyond GEARMAND_JOB_HANDLE_SIZE: %s:%u",
+      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "Job handle plus handle count beyond GEARMAND_JOB_HANDLE_SIZE: %s:%u",
                          server->job_handle_prefix, server->job_handle_count);
     }
 
@@ -189,7 +189,7 @@ gearman_server_job_add_reducer(gearman_server_st *server,
                              (int)unique_size, unique);
     if (checked_length >= GEARMAN_UNIQUE_SIZE || checked_length < 0)
     {
-      gearmand_log_error("We recieved a unique beyond GEARMAN_UNIQUE_SIZE: %.*s", (int)unique_size, unique);
+      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "We recieved a unique beyond GEARMAN_UNIQUE_SIZE: %.*s", (int)unique_size, unique);
     }
 
     server->job_handle_count++;
@@ -458,7 +458,7 @@ gearman_server_job_st *gearman_server_job_take(gearman_server_con_st *server_con
 {
   for (gearman_server_worker_st *server_worker= server_con->worker_list; server_worker; server_worker= server_worker->con_next)
   {
-    gearmand_log_debug("Jobs available %lu", (unsigned long)(server_worker->function->job_count));
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Jobs available %lu", (unsigned long)(server_worker->function->job_count));
     if (server_worker->function->job_count)
     {
       if (server_worker == NULL)
@@ -542,12 +542,13 @@ gearmand_error_t gearman_server_job_queue(gearman_server_job_st *job)
   uint32_t noop_sent;
   gearmand_error_t ret;
 
-  if (job->worker != NULL)
+  if (job->worker)
   {
     job->retries++;
     if (Server->job_retries == job->retries)
     {
-      gearmand_log_error("Dropped job due to max retry count: %s %s",
+      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM,
+                         "Dropped job due to max retry count: %s %s",
                          job->job_handle, job->unique);
 
       for (client= job->client_list; client != NULL; client= client->job_next)
@@ -558,7 +559,7 @@ gearmand_error_t gearman_server_job_queue(gearman_server_job_st *job)
                                           job->job_handle,
                                           (size_t)strlen(job->job_handle),
                                           NULL);
-        if (ret != GEARMAN_SUCCESS)
+        if (gearmand_failed(ret))
         {
           return ret;
         }
@@ -567,12 +568,12 @@ gearmand_error_t gearman_server_job_queue(gearman_server_job_st *job)
       /* Remove from persistent queue if one exists. */
       if (job->job_queued && Server->queue._done_fn != NULL)
       {
-	ret= (*(Server->queue._done_fn))(Server,
-					 (void *)Server->queue._context,
-					 job->unique,
-					 (size_t)strlen(job->unique),
-					 job->function->function_name,
-					 job->function->function_name_size);
+        ret= (*(Server->queue._done_fn))(Server,
+                                         (void *)Server->queue._context,
+                                         job->unique,
+                                         (size_t)strlen(job->unique),
+                                         job->function->function_name,
+                                         job->function->function_name_size);
         if (ret != GEARMAN_SUCCESS)
           return ret;
       }

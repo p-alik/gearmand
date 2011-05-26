@@ -31,15 +31,15 @@ gearman_server_client_add(gearman_server_con_st *con)
   else
   {
     client= static_cast<gearman_server_client_st *>(malloc(sizeof(gearman_server_client_st)));
-    if (client == NULL)
+    if (not client)
     {
-      gearmand_log_error("gearman_server_client_create", "malloc");
+      gearmand_merror("malloc", gearman_server_client_st,  0);
       return NULL;
     }
   }
   assert(client);
 
-  if (!client)
+  if (not client)
   {
     gearmand_error("In gearman_server_client_add() we failed to either allocorate of find a free one");
     return NULL;
