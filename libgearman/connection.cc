@@ -96,7 +96,6 @@ gearman_connection_st::gearman_connection_st(gearman_universal_st &universal_arg
 {
   options.ready= false;
   options.packet_in_use= false;
-  options.ignore_lost_connection= false;
   options.close_after_flush= false;
 
   if (options_args)
@@ -159,7 +158,6 @@ gearman_connection_st *gearman_connection_copy(gearman_universal_st& universal,
 
   connection->options.ready= from.options.ready;
   connection->options.packet_in_use= from.options.packet_in_use;
-  connection->options.ignore_lost_connection= from.options.ignore_lost_connection;
   connection->options.close_after_flush= from.options.close_after_flush;
 
   strcpy(connection->host, from.host);
@@ -205,7 +203,6 @@ gearman_return_t gearman_connection_set_option(gearman_connection_st *connection
     connection->options.packet_in_use= value;
     break;
   case GEARMAN_CON_IGNORE_LOST_CONNECTION:
-    connection->options.ignore_lost_connection= value;
     break;
   case GEARMAN_CON_CLOSE_AFTER_FLUSH:
     connection->options.close_after_flush= value;
@@ -611,10 +608,7 @@ gearman_return_t gearman_connection_st::flush()
           }
           else if (errno == EPIPE || errno == ECONNRESET || errno == EHOSTDOWN)
           {
-            if (not (options.ignore_lost_connection))
-            {
-              gearman_perror(universal, "lost connection to server during send");
-            }
+            gearman_perror(universal, "lost connection to server during send");
             close();
             return GEARMAN_LOST_CONNECTION;
           }
@@ -822,10 +816,7 @@ size_t gearman_connection_st::recv(void *data, size_t data_size, gearman_return_
     read_size= ::recv(fd, data, data_size, 0);
     if (read_size == 0)
     {
-      if (not (options.ignore_lost_connection))
-      {
-        gearman_error(universal, GEARMAN_LOST_CONNECTION, "lost connection to server (EOF)");
-      }
+      gearman_error(universal, GEARMAN_LOST_CONNECTION, "lost connection to server (EOF)");
       close();
       ret= GEARMAN_LOST_CONNECTION;
       return 0;
@@ -857,10 +848,7 @@ size_t gearman_connection_st::recv(void *data, size_t data_size, gearman_return_
       }
       else if (errno == EPIPE || errno == ECONNRESET || errno == EHOSTDOWN)
       {
-        if (not (options.ignore_lost_connection))
-        {
-          gearman_perror(universal, "lost connection to server during read");
-        }
+        gearman_perror(universal, "lost connection to server during read");
         ret= GEARMAN_LOST_CONNECTION;
       }
       else
