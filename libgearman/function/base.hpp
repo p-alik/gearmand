@@ -54,6 +54,7 @@ struct _worker_function_st
     { }
 
   } options;
+
   struct _worker_function_st *next;
   struct _worker_function_st *prev;
   char *function_name;

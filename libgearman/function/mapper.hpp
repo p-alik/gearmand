@@ -35,22 +35,10 @@
  *
  */
 
-#include <libgearman/common.h>
-#include <libgearman/connection.h>
-#include <libgearman/packet.hpp>
-#include <libgearman/universal.hpp>
+#pragma once
 
-#include <libgearman/function/base.hpp>
-
-#include <cassert>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <memory>
-#include <unistd.h>
-
-/**
-  Private structure.
+/*
+  Mapper function
 */
 class Mapper: public _worker_function_st
 {

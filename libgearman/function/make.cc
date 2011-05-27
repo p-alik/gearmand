@@ -37,6 +37,9 @@
 
 #include <libgearman/common.h>
 
+#include <libgearman/packet.hpp>
+#include <libgearman/function/base.hpp>
+
 #include <libgearman/function/make.hpp>
 #include <libgearman/function/basic.hpp>
 #include <libgearman/function/mapper.hpp>

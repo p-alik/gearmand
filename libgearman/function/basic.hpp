@@ -35,19 +35,7 @@
  *
  */
 
-#include <libgearman/common.h>
-#include <libgearman/connection.h>
-#include <libgearman/packet.hpp>
-#include <libgearman/universal.hpp>
-
-#include <libgearman/function/base.hpp>
-
-#include <cassert>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <memory>
-#include <unistd.h>
+#pragma once
 
 /**
   Private structure.
