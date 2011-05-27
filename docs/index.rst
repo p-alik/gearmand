@@ -32,8 +32,8 @@ Command Line Tools
 .. toctree::
    :maxdepth: 1
 
-   gearman
-   gearadmin
+   bin/gearman
+   bin/gearadmin
 
 ---------------------
 C/C++ Client Library:
@@ -55,10 +55,10 @@ Client Calls
 .. toctree::
    :maxdepth: 1
 
-   gearman_client
-   do
-   gearman_execute 
-   gearman_execute_map_reduce
+   libgearman/gearman_client
+   libgearman/do
+   libgearman/gearman_execute 
+   libgearman/gearman_execute_map_reduce
 
 ************
 Worker Calls
@@ -67,9 +67,9 @@ Worker Calls
 .. toctree::
    :maxdepth: 1
 
-   gearman_worker
-   gearman_worker_add_function
-   gearman_worker_add_map_function
+   libgearman/gearman_worker
+   libgearman/gearman_worker_add_function
+   libgearman/gearman_worker_add_map_function
 
 ****
 Misc
@@ -78,8 +78,8 @@ Misc
 .. toctree::
    :maxdepth: 1
 
-   gearman_misc_functions
-   namespace
+   libgearman/gearman_misc_functions
+   libgearman/namespace
 
 **********
 Structures
@@ -88,12 +88,12 @@ Structures
 .. toctree::
    :maxdepth: 1
 
-   gearman_client_st 
-   gearman_job_st
-   gearman_task_st
-   gearman_worker_st 
-   gearman_return_t 
-   gearman_actions_t
+   libgearman/gearman_client_st 
+   libgearman/gearman_job_st
+   libgearman/gearman_task_st
+   libgearman/gearman_worker_st 
+   libgearman/gearman_return_t 
+   libgearman/gearman_actions_t
 
 *****
 Extra
@@ -102,7 +102,7 @@ Extra
 .. toctree::
    :maxdepth: 1
 
-   error_descriptions
+   libgearman/error_descriptions
 
 
 

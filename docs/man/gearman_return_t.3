@@ -1,4 +1,4 @@
-.TH "GEARMAN_RETURN_T" "3" "May 26, 2011" "0.20" "Gearmand"
+.TH "GEARMAN_RETURN_T" "3" "May 27, 2011" "0.20" "Gearmand"
 .SH NAME
 gearman_return_t \- Gearmand Documentation
 .
@@ -30,9 +30,6 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 ..
 .\" Man page generated from reStructeredText.
 .
-.SH LIBRARY
-.sp
-C Client Library for Gearmand (libgearman, \-lgearman)
 .SH SYNOPSIS
 .sp
 #include <libgearman/gearman.h>
@@ -56,6 +53,8 @@ C Client Library for Gearmand (libgearman, \-lgearman)
 .TP
 .B bool gearman_continue(\fI\%gearman_return_t\fP\fI\ rc\fP)
 .UNINDENT
+.sp
+Compile and link with \-lgearman
 .SH DESCRIPTION
 .sp
 \fI\%gearman_return_t\fP is used as a return/error type for all calls using \fBgearman_client_st\fP and \fBgearman_worker_st\fP.
@@ -145,7 +144,7 @@ be made.
 .UNINDENT
 .sp
 Either \fBgearman_client_echo()\fP or
-\fBgearman_client_echo()\fP echo was unsuccessful.
+\fBgearman_work_echo()\fP echo was unsuccessful.
 .INDENT 0.0
 .TP
 .B GEARMAN_UNKNOWN_STATE
@@ -182,7 +181,7 @@ Argument was too large for the current buffer.
 .UNINDENT
 .sp
 One of the arguments to the given API call was invalid. EINVAL will be set if \fBgearman_client_error()\fP or \fBgearman_worker_error()\fP were not settable.
-.SH CLIENT ONLY
+.SS CLIENT ONLY
 .INDENT 0.0
 .TP
 .B GEARMAN_NEED_WORKLOAD_FN
@@ -196,7 +195,7 @@ specified. See \fBgearman_client_set_workload_fn()\fP
 .UNINDENT
 .sp
 A task has failed, and the worker has exited with an error or it called \fBggearman_job_send_fail()\fP
-.SH WORKER ONLY
+.SS WORKER ONLY
 .INDENT 0.0
 .TP
 .B GEARMAN_INVALID_FUNCTION_NAME
@@ -227,9 +226,9 @@ The worker has not registered any functions.
 .UNINDENT
 .sp
 No jobs were found for the worker.
-.SH WORKER TO CLIENT
+.SS WORKER TO CLIENT
 .sp
-Client which have registed a custom :c:type::\fIgearman_actions_t\fP may use these
+Client which have registed a custom \fBgearman_actions_t\fP may use these
 value as return values to the calling client.
 .INDENT 0.0
 .TP
@@ -266,8 +265,8 @@ A task has failed, and the worker has exited with an error or it called \fBggear
 .B GEARMAN_PAUSE
 .UNINDENT
 .sp
-Used only in custom application for client return based on \fI\%GEARMAN_WORK_DATA\fP, \fI\%GEARMAN_WORK_WARNING\fP, \fBGEARMAN_TASK_STATE_EXCEPTION\fP, \fI\%GEARMAN_WORK_FAIL\fP, or i:c:type:\fIGEARMAN_WORK_STATUS\fP. \fI\%gearman_continue()\fP can be used to check for this value.
-.SH TASK ONLY
+Used only in custom application for client return based on \fI\%GEARMAN_WORK_DATA\fP, \fI\%GEARMAN_WORK_WARNING\fP, \fI\%GEARMAN_WORK_EXCEPTION\fP, \fI\%GEARMAN_WORK_FAIL\fP, or \fI\%GEARMAN_WORK_STATUS\fP. \fI\%gearman_continue()\fP can be used to check for this value.
+.SS TASK ONLY
 .INDENT 0.0
 .TP
 .B GEARMAN_NOT_FLUSHING
@@ -280,7 +279,7 @@ Used only in custom application for client return based on \fI\%GEARMAN_WORK_DAT
 .UNINDENT
 .sp
 \fBgearman_task_send_workload()\fP failed, the data was too large to be sent.
-.SH PROTOCOL
+.SS PROTOCOL
 .sp
 If any of these errors occurred the connection will be dropped/reset.
 .INDENT 0.0

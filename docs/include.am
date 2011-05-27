@@ -3,8 +3,10 @@
 # All paths should be given relative to the root
 
 EXTRA_DIST+= \
+	     docs/*.rst \
+	     docs/bin/*.rst \
 	     docs/conf.py \
-	     docs/*.rst
+	     docs/libgearman/*.rst
 
 # Makefile for Sphinx documentation
 #
