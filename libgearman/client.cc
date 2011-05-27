@@ -766,6 +766,18 @@ static inline void _pop_non_blocking(gearman_client_st *client)
   assert(client->universal.options.stored_non_blocking == client->options.non_blocking);
 }
 
+static inline void _push_blocking(gearman_client_st *client)
+{
+  client->universal.options.stored_non_blocking= client->universal.options.non_blocking;
+  client->universal.options.non_blocking= false;
+}
+
+static inline void _pop_blocking(gearman_client_st *client)
+{
+  client->universal.options.non_blocking= client->options.non_blocking;
+  assert(client->universal.options.stored_non_blocking == client->options.non_blocking);
+}
+
 static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
 {
   gearman_return_t ret= GEARMAN_MAX_RETURN;
@@ -1016,14 +1028,33 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
 
   if (gearman_failed(rc))
   {
-    gearman_gerror(client->universal, rc);
-#if 0
-    if (rc != gearman_universal_error_code(client->universal))
-    {
-      std::cerr << "print error bad, expected " << gearman_strerror(rc) << " and got " << gearman_strerror(gearman_universal_error_code(client->universal)) << std::endl;
-      std::cerr << "\t" << gearman_client_error(client) << " " << &client->universal << std::endl;
-    }
-#endif
+    assert(gearman_universal_error_code(client->universal) == rc);
+  }
+
+  return rc;
+}
+
+gearman_return_t gearman_client_run_block_tasks(gearman_client_st *client)
+{
+  if (not client)
+  {
+    return GEARMAN_INVALID_ARGUMENT;
+  }
+
+  if (not client->task_list)
+  {
+    return gearman_error(client->universal, GEARMAN_INVALID_ARGUMENT, "No active tasks");
+  }
+
+
+  _push_blocking(client);
+
+  gearman_return_t rc= _client_run_tasks(client);
+
+  _pop_blocking(client);
+
+  if (gearman_failed(rc))
+  {
     assert(gearman_universal_error_code(client->universal) == rc);
   }
 

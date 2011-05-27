@@ -428,6 +428,14 @@ gearman_return_t gearman_job_send_exception(gearman_job_st *job,
 
 gearman_return_t gearman_job_send_fail(gearman_job_st *job)
 {
+  if (job->reducer)
+    return GEARMAN_INVALID_ARGUMENT;
+
+  return gearman_job_send_fail_fin(job);
+}
+
+gearman_return_t gearman_job_send_fail_fin(gearman_job_st *job)
+{
   const void *args[1];
   size_t args_size[1];
 

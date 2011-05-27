@@ -1,6 +1,6 @@
-=====================
-Client Error messages
-=====================
+============================
+List of client/worker errors
+============================
 
 .. toctree::
    :maxdepth: 1

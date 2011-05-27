@@ -82,7 +82,7 @@ public:
         job->error_code= GEARMAN_WORK_FAIL;
       break;
 
-    case GEARMAN_WORKER_LOST_CONNECTION:
+    case GEARMAN_WORKER_TRY_AGAIN:
       job->error_code= GEARMAN_LOST_CONNECTION;
       break;
 

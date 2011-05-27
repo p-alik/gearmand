@@ -78,11 +78,12 @@ void *client_do(gearman_client_st *client, gearman_command_t command,
     return NULL;
   }
 
-  gearman_return_t ret= gearman_client_run_tasks(client);
+  gearman_return_t ret= gearman_client_run_block_tasks(client);
 
   const void *returnable= NULL;
+  *result_size= 0;
   
-  // gearman_client_run_tasks failed
+  // gearman_client_run_block_tasks failed
   if (gearman_failed(ret))
   {
     gearman_error(client->universal, ret, "occured during gearman_client_run_tasks()");
@@ -90,27 +91,28 @@ void *client_do(gearman_client_st *client, gearman_command_t command,
     *ret_ptr= ret;
     *result_size= 0;
   }
-  else if (gearman_success(ret) and gearman_success(do_task_ptr->result_rc))
+  else // Now we check the task itself
   {
-    *ret_ptr= do_task_ptr->result_rc;
-    assert(do_task_ptr);
-    if (do_task_ptr->result_ptr)
+    assert(ret == GEARMAN_SUCCESS); // Programmer mistake
+    if (gearman_success(do_task_ptr->result_rc))
     {
-      gearman_string_t result= gearman_result_take_string(do_task_ptr->result_ptr);
-      *result_size= gearman_size(result);
-      returnable= gearman_c_str(result);
+      *ret_ptr= do_task_ptr->result_rc;
+      if (do_task_ptr->result_ptr)
+      {
+        gearman_string_t result= gearman_result_take_string(do_task_ptr->result_ptr);
+        *result_size= gearman_size(result);
+        returnable= gearman_c_str(result);
+      }
+      else // NULL SUCCESSFUL job
+      { }
     }
-    else // NULL job
+    else // gearman_client_run_block_tasks() was successful, but the task was not
     {
+      gearman_error(client->universal, do_task_ptr->result_rc, "occured during gearman_client_run_tasks()");
+
+      *ret_ptr= do_task_ptr->result_rc;
       *result_size= 0;
     }
-  }
-  else // gearman_client_run_tasks() was successful, but the task was not
-  {
-    gearman_error(client->universal, do_task_ptr->result_rc, "occured during gearman_client_run_tasks()");
-
-    *ret_ptr= do_task_ptr->result_rc;
-    *result_size= 0;
   }
 
   assert(client->task_list);
@@ -144,7 +146,8 @@ gearman_return_t client_do_background(gearman_client_st *client,
 
   gearman_task_clear_fn(do_task_ptr);
 
-  gearman_return_t ret= gearman_client_run_tasks(client);
+  gearman_return_t ret= gearman_client_run_block_tasks(client);
+  assert(ret != GEARMAN_IO_WAIT);
   if (ret != GEARMAN_IO_WAIT)
   {
     if (job_handle)

@@ -227,7 +227,7 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
   }
 
   nfds_t x= 0;
-  for (gearman_connection_st *con= universal.con_list; con != NULL; con= con->next)
+  for (gearman_connection_st *con= universal.con_list; con; con= con->next)
   {
     if (con->events == 0)
       continue;

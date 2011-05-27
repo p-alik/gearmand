@@ -75,6 +75,11 @@ man_MANS+= \
 	   docs/man/gearman_client_task_free_all.3 \
 	   docs/man/gearman_client_timeout.3 \
 	   docs/man/gearman_client_wait.3 \
+	   docs/man/gearman_return_t.3 \
+	   docs/man/gearman_success.3 \
+	   docs/man/gearman_continue.3 \
+	   docs/man/gearman_strerror.3 \
+	   docs/man/gearman_failed.3 \
 	   docs/man/gearman_create.3 \
 	   docs/man/gearman_execute.3 \
 	   docs/man/gearman_execute_map_reduce.3 \

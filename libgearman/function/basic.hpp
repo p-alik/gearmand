@@ -74,7 +74,7 @@ public:
 
     if (job->error_code == GEARMAN_LOST_CONNECTION)
     {
-      return GEARMAN_WORKER_LOST_CONNECTION;
+      return GEARMAN_WORKER_TRY_AGAIN;
     }
 
     if (gearman_failed(job->error_code))

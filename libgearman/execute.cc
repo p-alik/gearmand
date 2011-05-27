@@ -143,14 +143,7 @@ gearman_task_st *gearman_execute(gearman_client_st *client,
     return NULL;
   }
 
-  if (not workload) // We have no description, so we just run it
-  {
-    gearman_client_run_tasks(client);
-  }
-  else // Everything else, we do now.
-  {
-    gearman_client_run_tasks(client);
-  }
+  gearman_client_run_tasks(client);
 
   return task;
 }

@@ -148,6 +148,9 @@ gearman_return_t gearman_job_send_exception(gearman_job_st *job,
 GEARMAN_API
 gearman_return_t gearman_job_send_fail(gearman_job_st *job);
 
+GEARMAN_LOCAL
+gearman_return_t gearman_job_send_fail_fin(gearman_job_st *job);
+
 /**
  * Get job handle.
  */

@@ -457,7 +457,9 @@ static inline gearman_return_t _worker_unregister(gearman_worker_st *worker,
   function= _function_exist(worker, function_name, function_length);
 
   if (function == NULL || function->options.remove)
+  {
     return GEARMAN_NO_REGISTERED_FUNCTION;
+  }
 
   gearman_packet_free(&(function->packet));
 
@@ -901,14 +903,14 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
       {
         gearman_job_free(worker->work_job);
         worker->work_job= NULL;
-        return gearman_error(worker->universal, GEARMAN_INVALID_FUNCTION_NAME, "function not found");
+        return gearman_error(worker->universal, GEARMAN_INVALID_FUNCTION_NAME, "Function/Mapper not found");
       }
 
       if (not worker->work_function->has_callback())
       {
         gearman_job_free(worker->work_job);
         worker->work_job= NULL;
-        return gearman_error(worker->universal, GEARMAN_INVALID_FUNCTION_NAME, "no callback function supplied");
+        return gearman_error(worker->universal, GEARMAN_INVALID_FUNCTION_NAME, "Neither a gearman_worker_fn, or gearman_mapper_fn  callback was supplied");
       }
 
       worker->work_result_size= 0;
@@ -919,11 +921,11 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
       switch (worker->work_function->callback(worker->work_job,
                                               static_cast<void *>(worker->work_function->context)))
       {
-      case GEARMAN_WORKER_LOST_CONNECTION:
+      case GEARMAN_WORKER_TRY_AGAIN:
         break;
 
       case GEARMAN_WORKER_FAILED:
-        if (gearman_job_send_fail(worker->work_job) == GEARMAN_LOST_CONNECTION) // If we fail this, we have no connection
+        if (gearman_job_send_fail_fin(worker->work_job) == GEARMAN_LOST_CONNECTION) // If we fail this, we have no connection
         {
           worker->work_job->error_code= GEARMAN_LOST_CONNECTION;
           break;
@@ -947,7 +949,7 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
       {
         worker->work_state= GEARMAN_WORKER_WORK_UNIVERSAL_COMPLETE;
         return gearman_error(worker->universal, worker->work_job->error_code,
-                             "gearman_job_send_complete() failed after worker had successful complete");
+                             "A failure occurred after worker had successful complete, unless gearman_job_send_complete() was called directly by worker, client has not been informed of success.");
       }
 
       if (worker->work_result)
@@ -979,7 +981,7 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
 
   case GEARMAN_WORKER_WORK_UNIVERSAL_FAIL:
     {
-      if (gearman_failed(worker->work_job->error_code= gearman_job_send_fail(worker->work_job)))
+      if (gearman_failed(worker->work_job->error_code= gearman_job_send_fail_fin(worker->work_job)))
       {
         if (worker->work_job->error_code == GEARMAN_LOST_CONNECTION)
           break;
