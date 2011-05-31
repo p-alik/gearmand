@@ -46,6 +46,7 @@ noinst_HEADERS+= \
 		 libgearman/common.h \
 		 libgearman/connection.hpp \
 		 libgearman/do.hpp \
+		 libgearman/function/base.hpp \
 		 libgearman/function/basic.hpp \
 		 libgearman/function/make.hpp \
 		 libgearman/function/mapper.hpp \
@@ -106,3 +107,4 @@ libgearman_libgearman_la_LDFLAGS= \
 libgearman_libgearman_la_LIBADD= \
 				 $(LTLIBUUID)
 
+DISTCLEANFILES+= config/top.h
