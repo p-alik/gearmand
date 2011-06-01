@@ -5,7 +5,7 @@
 # Makefile for Sphinx documentation
 #
 
-SPHINXOPTS    = ${SPHINX_WARNINGS} -D release=${PANDORA_RELEASE_VERSION}
+SPHINXOPTS    = ${SPHINX_WARNINGS}
 PAPER         =
 SPHINX_BUILDDIR      = ${top_builddir}/docs
 
@@ -83,6 +83,7 @@ man_MANS+= \
 	   docs/man/gearman_job_free_all.3 \
 	   docs/man/gearman_job_function_name.3 \
 	   docs/man/gearman_job_handle.3 \
+	   docs/man/gearman_job_handle_t.3 \
 	   docs/man/gearman_job_send_complete.3 \
 	   docs/man/gearman_job_send_data.3 \
 	   docs/man/gearman_job_send_exception.3 \
@@ -263,3 +264,13 @@ doctest:
 	      "results in $(SPHINX_BUILDDIR)/doctest/output.txt."
 endif
 
+noinst_PROGRAMS+= \
+		  docs/libgearman/examples/gearman_client_do_example \
+		  docs/libgearman/examples/gearman_client_do_background_example
+
+
+docs_libgearman_examples_gearman_client_do_example_SOURCES= docs/libgearman/examples/gearman_client_do_example.c
+docs_libgearman_examples_gearman_client_do_example_LDADD= libgearman/libgearman.la
+
+docs_libgearman_examples_gearman_client_do_background_example_SOURCES= docs/libgearman/examples/gearman_client_do_background_example.c
+docs_libgearman_examples_gearman_client_do_background_example_LDADD= libgearman/libgearman.la

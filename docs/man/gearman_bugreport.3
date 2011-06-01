@@ -1,4 +1,4 @@
-.TH "GEARMAN_BUGREPORT" "3" "May 27, 2011" "0.20" "Gearmand"
+.TH "GEARMAN_BUGREPORT" "3" "May 31, 2011" "0.21" "Gearmand"
 .SH NAME
 gearman_bugreport \- Gearmand Documentation
 .
@@ -40,9 +40,11 @@ C Client Library for Gearmand (libgearman, \-lgearman)
 .TP
 .B const char *gearman_bugreport(void);
 .UNINDENT
+.sp
+Link with \-lgearman
 .SH DESCRIPTION
 .sp
-gearman_bugreport() returns the url to the bug tracking site for Gearmand
+\fBgearman_bugreport()\fP returns the url to the bug tracking site for Gearmand
 .SH RETURN
 .sp
 A url;

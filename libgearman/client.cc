@@ -444,7 +444,7 @@ gearman_return_t gearman_client_do_background(gearman_client_st *client,
                                               const char *unique,
                                               const void *workload_str,
                                               size_t workload_size,
-                                              char *job_handle)
+                                              gearman_job_handle_t job_handle)
 {
   gearman_string_t function= { gearman_string_param_cstr(function_name) };
   gearman_unique_t local_unique= gearman_unique_make(unique, unique ? strlen(unique) : 0);
@@ -462,7 +462,7 @@ gearman_return_t gearman_client_do_high_background(gearman_client_st *client,
                                                    const char *unique,
                                                    const void *workload_str,
                                                    size_t workload_size,
-                                                   char *job_handle)
+                                                   gearman_job_handle_t job_handle)
 {
   gearman_string_t function= { gearman_string_param_cstr(function_name) };
   gearman_unique_t local_unique= gearman_unique_make(unique, unique ? strlen(unique) : 0);
@@ -480,7 +480,7 @@ gearman_return_t gearman_client_do_low_background(gearman_client_st *client,
                                                   const char *unique,
                                                   const void *workload_str,
                                                   size_t workload_size,
-                                                  char *job_handle)
+                                                  gearman_job_handle_t job_handle)
 {
   gearman_string_t function= { gearman_string_param_cstr(function_name) };
   gearman_unique_t local_unique= gearman_unique_make(unique, unique ? strlen(unique) : 0);

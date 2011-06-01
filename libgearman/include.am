@@ -25,6 +25,7 @@ nobase_include_HEADERS+= \
 			 libgearman/execute.h \
 			 libgearman/gearman.h \
 			 libgearman/job.h \
+			 libgearman/job_handle.h \
 			 libgearman/log.h \
 			 libgearman/packet.h \
 			 libgearman/priority.h \

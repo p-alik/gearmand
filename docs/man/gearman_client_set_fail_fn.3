@@ -1,4 +1,4 @@
-.TH "GEARMAN_CLIENT_SET_FAIL_FN" "3" "May 27, 2011" "0.20" "Gearmand"
+.TH "GEARMAN_CLIENT_SET_FAIL_FN" "3" "May 31, 2011" "0.21" "Gearmand"
 .SH NAME
 gearman_client_set_fail_fn \- Gearmand Documentation
 .
@@ -47,10 +47,6 @@ C Client Library for Gearmand (libgearman, \-lgearman)
 .INDENT 0.0
 .TP
 .B gearman_client_st *gearman_client_clone(gearman_client_st *client, const gearman_client_st *from);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B void gearman_client_free(gearman_client_st *client);
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -118,26 +114,6 @@ C Client Library for Gearmand (libgearman, \-lgearman)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void *gearman_client_do(gearman_client_st *client, const char *function_name, const char *unique, const void *workload, size_t workload_size, size_t *result_size, gearman_return_t *ret_ptr);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B void *gearman_client_do_high(gearman_client_st *client, const char *function_name, const char *unique, const void *workload, size_t workload_size, size_t *result_size, gearman_return_t *ret_ptr);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B void *gearman_client_do_low(gearman_client_st *client, const char *function_name, const char *unique, const void *workload, size_t workload_size, size_t *result_size, gearman_return_t *ret_ptr);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B const char *gearman_client_do_job_handle(const gearman_client_st *client);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B void gearman_client_do_status(gearman_client_st *client, uint32_t *numerator, uint32_t *denominator);
-.UNINDENT
-.INDENT 0.0
-.TP
 .B gearman_return_t gearman_client_do_background(gearman_client_st *client, const char *function_name, const char *unique, const void *workload, size_t workload_size, char *job_handle);
 .UNINDENT
 .INDENT 0.0
@@ -166,75 +142,7 @@ C Client Library for Gearmand (libgearman, \-lgearman)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_task_st *gearman_client_add_task(gearman_client_st *client, gearman_task_st *task, void *context, const char *function_name, const char *unique, const void *workload, size_t workload_size, gearman_return_t *ret_ptr);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_task_st *gearman_client_add_task_high(gearman_client_st *client, gearman_task_st *task, void *context, const char *function_name, const char *unique, const void *workload, size_t workload_size, gearman_return_t *ret_ptr);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_task_st *gearman_client_add_task_low(gearman_client_st *client, gearman_task_st *task, void *context, const char *function_name, const char *unique, const void *workload, size_t workload_size, gearman_return_t *ret_ptr);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_task_st *gearman_client_add_task_background(gearman_client_st *client, gearman_task_st *task, void *context, const char *function_name, const char *unique, const void *workload, size_t workload_size, gearman_return_t *ret_ptr);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_task_st * gearman_client_add_task_high_background(gearman_client_st *client, gearman_task_st *task, void *context, const char *function_name, const char *unique, const void *workload, size_t workload_size, gearman_return_t *ret_ptr);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_task_st * gearman_client_add_task_low_background(gearman_client_st *client, gearman_task_st *task, void *context, const char *function_name, const char *unique, const void *workload, size_t workload_size, gearman_return_t *ret_ptr);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_task_st *gearman_client_add_task_status(gearman_client_st *client, gearman_task_st *task, void *context, const char *job_handle, gearman_return_t *ret_ptr);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B void gearman_client_set_workload_fn(gearman_client_st *client, gearman_workload_fn *function);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B void gearman_client_set_created_fn(gearman_client_st *client, gearman_created_fn *function);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B void gearman_client_set_data_fn(gearman_client_st *client, gearman_data_fn *function);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B void gearman_client_set_warning_fn(gearman_client_st *client, gearman_warning_fn *function);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B void gearman_client_set_status_fn(gearman_client_st *client, gearman_universal_status_fn *function);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B void gearman_client_set_complete_fn(gearman_client_st *client, gearman_complete_fn *function);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B void gearman_client_set_exception_fn(gearman_client_st *client, gearman_exception_fn *function);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B void gearman_client_set_fail_fn(gearman_client_st *client, gearman_fail_fn *function);
-.UNINDENT
-.INDENT 0.0
-.TP
 .B void gearman_client_clear_fn(gearman_client_st *client);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_return_t gearman_client_run_tasks(gearman_client_st *client);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B bool gearman_client_compare(const gearman_client_st *first, const gearman_client_st *second);
 .UNINDENT
 .SH DESCRIPTION
 .sp

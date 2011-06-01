@@ -56,9 +56,22 @@ Client Calls
    :maxdepth: 1
 
    libgearman/gearman_client
-   libgearman/do
+   libgearman/gearman_client_do
+   libgearman/gearman_client_do_background
    libgearman/gearman_execute 
    libgearman/gearman_execute_map_reduce
+
+**************
+Creating Tasks
+**************
+
+.. toctree::
+   :maxdepth: 1
+
+   libgearman/gearman_client_add_task
+   libgearman/gearman_client_run_tasks
+   libgearman/gearman_client_add_task_background
+   libgearman/gearman_client_add_task_status
 
 ************
 Worker Calls
@@ -80,6 +93,7 @@ Misc
 
    libgearman/gearman_misc_functions
    libgearman/namespace
+   libgearman/gearman_client_wait
 
 **********
 Structures
@@ -93,6 +107,7 @@ Structures
    libgearman/gearman_task_st
    libgearman/gearman_worker_st 
    libgearman/gearman_return_t 
+   libgearman/gearman_job_handle_t
    libgearman/gearman_actions_t
 
 *****
@@ -103,7 +118,6 @@ Extra
    :maxdepth: 1
 
    libgearman/error_descriptions
-
 
 
 ------------------

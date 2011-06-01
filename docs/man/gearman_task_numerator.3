@@ -1,4 +1,4 @@
-.TH "GEARMAN_TASK_NUMERATOR" "3" "May 27, 2011" "0.20" "Gearmand"
+.TH "GEARMAN_TASK_NUMERATOR" "3" "May 31, 2011" "0.21" "Gearmand"
 .SH NAME
 gearman_task_numerator \- Gearmand Documentation
 .
@@ -30,9 +30,6 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 ..
 .\" Man page generated from reStructeredText.
 .
-.SH LIBRARY
-.sp
-C Client Library for Gearmand (libgearman, \-lgearman)
 .SH SYNOPSIS
 .sp
 #include <libgearman/gearman.h>
@@ -104,13 +101,32 @@ C Client Library for Gearmand (libgearman, \-lgearman)
 .TP
 .B size_t gearman_task_recv_data(gearman_task_st *task, void *data, size_t data_size, gearman_return_t *ret_ptr);
 .UNINDENT
+.sp
+Link with \-lgearman
 .SH DESCRIPTION
 .sp
-This a complete list of all functions that work with a gearman_task_st,
-see their individual pages to learn more about them.
+A \fI\%gearman_task_st\fP represents a "task". Each task is a single unit of work that is executed via \fBgearman_client_run_tasks()\fP.
+.sp
+\fI\%gearman_task_st\fP structures are create via
+\fBgearman_execute()\fP, c:func:\fIgearman_client_add_task()\fP, or
+\fBgearman_client_add_task_background()\fP.
+.sp
+\fBgearman_client_add_task_status()\fP can be used to create a \fI\%gearman_task_st\fP to
+monitor a previously created \fI\%gearman_task_st\fP.
+.sp
+\fBgearman_task_free()\fP is used to free a task. This only needs to be
+done if a task was created with a preallocated structure.
+.sp
+\fBgearman_task_set_context()\fP sets the given context of the \fI\%gearman_task_st\fP. The context can be used to pass information to a \fI\%gearman_task_st\fP.
+.sp
+\fBgearman_task_context()\fP returns the context that was used in the creation of the \fI\%gearman_task_st\fP (or that was set with \fBgearman_task_set_context()\fP.
+.sp
+\fBgearman_task_data()\fP returns the current data that has been returned to the task. \fBgearman_task_data_size()\fP will give you the size of the value. \fBgearman_task_take_data()\fP is the same as \fBgearman_task_data()\fP but the value that is returned must be freed by the client (\fIfree(3)\fP). \fBgearman_task_recv_data()\fP can be used with pre\-allocated buffers.
+.sp
+\fBgearman_task_is_known()\fP, \fBgearman_task_is_running()\fP, \fBgearman_task_numerator()\fP, and \fBgearman_task_denominator()\fP, return values related to the last status update that was made to the \fI\%gearman_task_st\fP. They do not cause the \fI\%gearman_task_st\fP to update itself.
 .SH RETURN
 .sp
-Various
+Various. Values that are returned by \fBgearman_task_take_data()\fP must have \fIfree(3)\fP called on them.
 .SH HOME
 .sp
 To find out more information please check:

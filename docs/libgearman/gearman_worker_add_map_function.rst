@@ -24,18 +24,26 @@ SYNOPSIS
 DESCRIPTION
 -----------
 
-gearman_worker_add_map_function() creates a worker that will be used to execute
-jobs created by c:type: `gearman_client_execute_reduce` (). c:type:`gearman_mapper_fn` are passed a job and will need to return a c:type:`gearman_worker_error_t` upon exit. 
-For each call of c:function:`gearman_job_send_data` () a c:type:`gearman_job_st` is created. 
+:c:func:`gearman_worker_add_map_function()` creates a worker that will be
+used to execute jobs created by :c:type:`gearman_client_execute_reduce()`.
+:c:type:`gearman_mapper_fn` are passed a job and will need to return
+a :c:type:`gearman_worker_error_t` upon exit.  For each call of
+:c:func:`gearman_job_send_data()` a :c:type:`gearman_job_st` is created. 
 
-Each job will be executed against the aggregate function that c:type: `gearman_client_execute_reduce` () specified. If any errors are detected then the entire job is cancelled. 
-The gearman_aggregator_fn will be called when all mapped jobs have completed. The result of this function will be what is returned to the client.
+Each job will be executed against the aggregate function that
+:c:type:`gearman_client_execute_reduce()` specified. If any errors are
+detected then the entire job is cancelled.  The gearman_aggregator_fn will
+be called when all mapped jobs have completed. The result of this function
+will be what is returned to the client.
+
+:c:func:`gearman_job_send_complete()` and :c:func:`gearman_job_send_fail()`
+cannot be used with mapper functions.
 
 ------
 RETURN
 ------
 
-gearman_worker_add_map_function() returns c:type:`gearman_return_t`.
+:c:type:`gearman_return_t`
 
 ----
 HOME

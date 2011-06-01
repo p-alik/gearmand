@@ -378,7 +378,7 @@ gearman_return_t gearman_client_do_background(gearman_client_st *client,
                                               const char *unique,
                                               const void *workload,
                                               size_t workload_size,
-                                              char *job_handle);
+                                              gearman_job_handle_t job_handle);
 
 /**
  * Run a high priority task in the background. See
@@ -390,7 +390,7 @@ gearman_return_t gearman_client_do_high_background(gearman_client_st *client,
                                                    const char *unique,
                                                    const void *workload,
                                                    size_t workload_size,
-                                                   char *job_handle);
+                                                   gearman_job_handle_t job_handle);
 
 /**
  * Run a low priority task in the background. See
@@ -402,7 +402,7 @@ gearman_return_t gearman_client_do_low_background(gearman_client_st *client,
                                                   const char *unique,
                                                   const void *workload,
                                                   size_t workload_size,
-                                                  char *job_handle);
+                                                  gearman_job_handle_t job_handle);
 
 /**
  * Get the status for a backgound job.
@@ -418,7 +418,7 @@ gearman_return_t gearman_client_do_low_background(gearman_client_st *client,
  */
 GEARMAN_API
 gearman_return_t gearman_client_job_status(gearman_client_st *client,
-                                           const char *job_handle,
+                                           const gearman_job_handle_t job_handle,
                                            bool *is_known, bool *is_running,
                                            uint32_t *numerator,
                                            uint32_t *denominator);

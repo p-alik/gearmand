@@ -1,4 +1,4 @@
-.TH "GEARMAN_JOB_SEND_COMPLETE" "3" "May 27, 2011" "0.20" "Gearmand"
+.TH "GEARMAN_JOB_SEND_COMPLETE" "3" "May 31, 2011" "0.21" "Gearmand"
 .SH NAME
 gearman_job_send_complete \- Gearmand Documentation
 .
@@ -94,13 +94,32 @@ C Client Library for Gearmand (libgearman, \-lgearman)
 .UNINDENT
 .SH DESCRIPTION
 .sp
-This a complete list of all functions that work with a gearman_job_st,
-see their individual pages to learn more about them.
+This a complete list of all functions that work with
+a \fI\%gearman_job_st\fP, see their individual pages to learn more about
+them.
+.sp
+\fBgearman_job_free()\fP is used to free a job. This only needs to be
+done if a task was created with a preallocated structure.
+.sp
+\fBgearman_job_handle()\fP returns the job handle(see
+\fBgearman_job_t\fP for more information).
+.sp
+\fBgearman_job_function_name()\fP return the name of the function that
+the job was set to execute against.
+.sp
+\fBgearman_job_unique()\fP return the unique value that was used for
+\fI\%gearman_job_st\fP.
+.sp
+returns the \fI\%gearman_job_st\fP workload. The size of it can be
+determined with \fBgearman_job_workload_size()\fP.
+\fBgearman_job_take_workload()\fP is the same as
+\fBgearman_job_workload()\fP with the exception that the result must be
+\fIfree(3)\fP by the caller.
 .SH RETURN
 .sp
-A value of type \fBgearman_return_t\fP is returned.
-On success that value will be \fBGEARMAN_SUCCESS\fP.
-Use gearman_strerror() to translate this value to a printable string.
+A value of \fBgearman_return_t\fP  is returned.  On success that value
+will be :c:type::\fIGEARMAN_SUCCESS\fP.  Use \fBgearman_strerror()\fP to
+translate this value to a printable string.
 .SH HOME
 .sp
 To find out more information please check:

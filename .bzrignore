@@ -40,6 +40,8 @@ configure
 docs/_static
 docs/doctrees
 docs/html
+docs/libgearman/examples/gearman_client_do_background_example
+docs/libgearman/examples/gearman_client_do_example
 examples/echo_client
 examples/echo_worker
 examples/reverse_client
@@ -77,6 +79,7 @@ tests/client_test.res
 tests/cpp_test
 tests/drizzle_test
 tests/gearman.pi*
+tests/gearman.sql
 tests/gearmand.log*
 tests/internals_test
 tests/memcached_test
@@ -97,3 +100,6 @@ tests/var/tmp/*
 tests/worker_test
 tests/worker_test.res
 unittests/unittests
+docs/conf.py
+docs/linkcheck/
+

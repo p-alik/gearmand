@@ -16,19 +16,21 @@ SYNOPSIS
 
 #include <libgearman/gearman.h>
 
-.. c:function:: const char *gearman_bugreport(void);
+.. c:function:: const char *gearman_bugreport(void)
+
+Link with -lgearman
 
 -----------
 DESCRIPTION
 -----------
 
-gearman_bugreport() returns the url to the bug tracking site for Gearmand
+:c:func:`gearman_bugreport()` returns the url to the bug tracking site for Gearmand
 
 ------
 RETURN
 ------
 
-A url;
+URL
 
 ----
 HOME

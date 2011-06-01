@@ -48,16 +48,35 @@ SYNOPSIS
 DESCRIPTION
 -----------
 
-This a complete list of all functions that work with a gearman_job_st,
-see their individual pages to learn more about them.
+This a complete list of all functions that work with
+a :c:type:`gearman_job_st`, see their individual pages to learn more about
+them.
+
+:c:func:`gearman_job_free()` is used to free a job. This only needs to be
+done if a task was created with a preallocated structure.
+
+:c:func:`gearman_job_handle()` returns the job handle(see
+:c:type:`gearman_job_t` for more information).
+
+:c:func:`gearman_job_function_name()` return the name of the function that
+the job was set to execute against.
+
+:c:func:`gearman_job_unique()` return the unique value that was used for
+:c:type:`gearman_job_st`. 
+
+returns the :c:type:`gearman_job_st` workload. The size of it can be
+determined with :c:func:`gearman_job_workload_size()`.
+:c:func:`gearman_job_take_workload()` is the same as
+:c:func:`gearman_job_workload()` with the exception that the result must be
+:manpage:`free(3)` by the caller.
 
 ------
 RETURN
 ------
 
-A value of type \ ``gearman_return_t``\  is returned.
-On success that value will be \ ``GEARMAN_SUCCESS``\ .
-Use gearman_strerror() to translate this value to a printable string.
+A value of :c:type:`gearman_return_t`  is returned.  On success that value
+will be :c:type::`GEARMAN_SUCCESS`.  Use :c:func:`gearman_strerror()` to
+translate this value to a printable string.
 
 ----
 HOME

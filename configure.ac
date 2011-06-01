@@ -94,6 +94,7 @@ AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([dup2 gettimeofday memchr memmove memset socket strcasecmp strdup strerror strncasecmp uname])
 
 AC_CONFIG_FILES(Makefile
+                docs/conf.py
                 libgearman/version.h
                 scripts/gearmand
                 scripts/gearmand-init
