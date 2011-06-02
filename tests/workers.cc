@@ -216,6 +216,8 @@ gearman_worker_error_t  split_worker(gearman_job_st *job, void *)
   const char *workload= static_cast<const char *>(gearman_job_workload(job));
   size_t workload_size= gearman_job_workload_size(job);
 
+  assert(job->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN_ALL);
+
   const char *chunk_begin= workload;
   for (size_t x= 0; x < workload_size; x++)
   {

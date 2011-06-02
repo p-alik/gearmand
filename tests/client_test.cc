@@ -70,6 +70,7 @@
 #include <tests/execute.h>
 #include <tests/gearman_client_do_job_handle.h>
 #include <tests/gearman_execute_map_reduce.h>
+#include <tests/protocol.h>
 #include <tests/task.h>
 #include <tests/unique.h>
 #include <tests/workers.h>
@@ -933,6 +934,11 @@ test_st tests[] ={
   {0, 0, 0}
 };
 
+test_st gearman_command_t_tests[] ={
+  {"gearman_command_t", 0, check_gearman_command_t },
+  {0, 0, 0}
+};
+
 
 test_st tests_log[] ={
   {"submit_log_failure", 0, submit_log_failure },
@@ -1022,6 +1028,7 @@ collection_st collection[] ={
   {"gearman_client_set_server_option", 0, 0, gearman_client_set_server_option_tests},
   {"gearman_execute", 0, 0, gearman_execute_tests},
   {"gearman_execute_map_reduce()", 0, 0, gearman_execute_map_reduce_tests},
+  {"gearman_command_t", 0, 0, gearman_command_t_tests},
   {"client-logging", pre_logging, post_logging, tests_log},
   {0, 0, 0, 0}
 };
