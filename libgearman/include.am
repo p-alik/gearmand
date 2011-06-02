@@ -54,6 +54,7 @@ noinst_HEADERS+= \
 		 libgearman/log.h \
 		 libgearman/packet.hpp \
 		 libgearman/result.hpp \
+		 libgearman/run.hpp \
 		 libgearman/strcommand.h \
 		 libgearman/unique.h \
 		 libgearman/universal.hpp \
@@ -89,6 +90,7 @@ libgearman_libgearman_la_SOURCES= \
 				  libgearman/log.cc \
 				  libgearman/packet.cc \
 				  libgearman/result.cc \
+				  libgearman/run.cc \
 				  libgearman/strcommand.cc \
 				  libgearman/strerror.cc \
 				  libgearman/string.cc \
