@@ -87,7 +87,7 @@ be made.
 .. c:type:: GEARMAN_ECHO_DATA_CORRUPTION 
 
 Either :c:func:`gearman_client_echo()` or
-:c:func:`gearman_work_echo()` echo was unsuccessful.
+:c:func:`gearman_work_echo()` echo was unsuccessful because the data was returned from :program:`gearmand` corrupted.
 
 .. c:type:: GEARMAN_UNKNOWN_STATE 
 

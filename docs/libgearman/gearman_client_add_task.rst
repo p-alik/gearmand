@@ -31,9 +31,9 @@ If the unique value is not set, then a unique will be assigned.
 identical to :c:func:`gearman_client_do()`, only they set the priority to
 either high or low. 
 
-------
-RETURN
-------
+------------
+RETURN VALUE
+------------
 
 The :c:type:`gearman_task_st` is created and a pointer to it is returned. On error NULL is returned and ret_ptr is set with a :c:type:`gearman_return_t`.
 
@@ -45,8 +45,5 @@ To find out more information please check:
 `https://launchpad.net/gearmand <https://launchpad.net/gearmand>`_
 
 
---------
-SEE ALSO
---------
-
-:manpage:`gearmand(8)` :manpage:`libgearman(3)`
+.. seealso::
+  :manpage:`gearmand(8)` :manpage:`libgearman(3)`

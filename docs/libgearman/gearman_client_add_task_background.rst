@@ -36,9 +36,9 @@ either high or low.
   :c:type:`gearman_task_st`. The most common issues related to ABI safety involve stack allocated structures. If you use a stack based
   :c:type:`gearman_task_st` you must free it with :c:func:`gearman_task_free()`.
 
-------
-RETURN
-------
+------------
+RETURN VALUE
+------------
 
 The :c:type:`gearman_task_st` is created and a pointer to it is returned. On error NULL is returned and ret_ptr is set with a :c:type:`gearman_return_t`.
 
@@ -50,9 +50,7 @@ To find out more information please check:
 `https://launchpad.net/gearmand <https://launchpad.net/gearmand>`_
 
 
---------
-SEE ALSO
---------
+.. seealso::
 
 :manpage:`gearmand(8)` :manpage:`libgearman(3)` :manpage:`gearman_task_st`
 

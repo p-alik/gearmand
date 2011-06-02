@@ -18,20 +18,6 @@ SYNOPSIS
 
 .. c:type:: gearman_client_st
 
-.. c:function:: gearman_client_st *gearman_client_create(gearman_client_st *client);
-
-.. c:function:: gearman_client_st *gearman_client_clone(gearman_client_st *client, const gearman_client_st *from);
-
-.. c:function:: const char *gearman_client_error(const gearman_client_st *client);
-
-.. c:function:: int gearman_client_errno(const gearman_client_st *client);
-
-.. c:function:: gearman_client_options_t gearman_client_options(const gearman_client_st *client);
-
-.. c:function:: void gearman_client_add_options(gearman_client_st *client, gearman_client_options_t options);
-
-.. c:function:: void gearman_client_remove_options(gearman_client_st *client, gearman_client_options_t options);
-
 .. c:function:: int gearman_client_timeout(gearman_client_st *client);
 
 .. c:function:: void gearman_client_set_timeout(gearman_client_st *client, int timeout);
@@ -46,23 +32,7 @@ SYNOPSIS
 
 .. c:function:: void gearman_client_set_workload_free_fn(gearman_client_st *client, gearman_free_fn *function, void *context);
 
-.. c:function:: gearman_return_t gearman_client_add_server(gearman_client_st *client, const char *host, in_port_t port); 
-
-.. c:function:: gearman_return_t gearman_client_add_servers(gearman_client_st *client, const char *servers);
-
-.. c:function:: void gearman_client_remove_servers(gearman_client_st *client); 
-
-.. c:function:: gearman_return_t gearman_client_wait(gearman_client_st *client);
-
-.. c:function:: gearman_return_t gearman_client_do_background(gearman_client_st *client, const char *function_name, const char *unique, const void *workload, size_t workload_size, char *job_handle);
-
-.. c:function:: gearman_return_t gearman_client_do_high_background(gearman_client_st *client, const char *function_name, const char *unique, const void *workload, size_t workload_size, char *job_handle);
-
-.. c:function:: gearman_return_t gearman_client_do_low_background(gearman_client_st *client, const char *function_name, const char *unique, const void *workload, size_t workload_size, char *job_handle);
-
 .. c:function:: gearman_return_t gearman_client_job_status(gearman_client_st *client, const char *job_handle, bool *is_known, bool *is_running, uint32_t *numerator, uint32_t *denominator);
-
-.. c:function:: gearman_return_t gearman_client_echo(gearman_client_st *client, const void *workload, size_t workload_size);
 
 .. c:function:: void gearman_client_task_free_all(gearman_client_st *client);
 
@@ -81,9 +51,9 @@ This a complete list of all functions that work with a gearman_client_st.
 
 
 
-------
-RETURN
-------
+------------
+RETURN VALUE
+------------
 
 
 Various
@@ -97,9 +67,5 @@ HOME
 To find out more information please check:
 `https://launchpad.net/gearmand <https://launchpad.net/gearmand>`_
 
-
---------
-SEE ALSO
---------
-
-:manpage:`gearmand(8)` :manpage:`libgearman(3)`
+.. seealso::
+  :manpage:`gearmand(8)` :manpage:`libgearman(3)`

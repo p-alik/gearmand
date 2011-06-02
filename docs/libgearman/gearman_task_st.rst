@@ -71,9 +71,9 @@ done if a task was created with a preallocated structure.
 :c:func:`gearman_task_is_known()`, :c:func:`gearman_task_is_running()`, :c:func:`gearman_task_numerator()`, and :c:func:`gearman_task_denominator()`, return values related to the last status update that was made to the :c:type:`gearman_task_st`. They do not cause the :c:type:`gearman_task_st` to update itself.
 
 
-------
-RETURN
-------
+------------
+RETURN VALUE
+------------
 
 Various. Values that are returned by :c:func:`gearman_task_take_data()` must have :manpage:`free(3)` called on them.
 

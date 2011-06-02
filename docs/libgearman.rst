@@ -1,15 +1,8 @@
-=============
-libgearman(3)
-=============
+=============================
+Gearman Client/Worker Library
+=============================
 
 .. index:: object: libgearman
-
--------
-LIBRARY
--------
-
- C Client Library for Gearmand (libgearman, -lgearman)
-
 
 --------
 SYNOPSIS
@@ -17,18 +10,20 @@ SYNOPSIS
 
 #include <libgearman/gearman.h>
 
+Link -lgearman
+
 -----------
 DESCRIPTION
 -----------
 
-\ **libgearman**\  is a small, thread-safe client library for the
+:doc:`libgearman` is a small, thread-safe client library for the
 gearman protocol. The code has all been written with an eye to allow
 for both web and embedded usage. It handles the work behind routing
 particular keys to specific servers that you specify (and values are
 matched based on server order as supplied by you). It implements both
 the client and worker interfaces.
 
-All operations are performed against either a \ ``gearman_client_st``\  structure
+All operations are performed against either a :c:type:`gearman_client_st`  structure
 or a \ ``gearman_worker_st``\.
 These structures can either be dynamically allocated or statically
 allocated and then initialized by gearman_create(). Functions have been
@@ -52,30 +47,37 @@ AC_SUBST(DEPS_LIBS)
 
 Hope you enjoy it!
 
+---------
 CONSTANTS
 ---------
 
 
 A number of constants have been provided for in the library.
 
-
-.. c:var:: GEARMAN_DEFAULT_TCP_PORT
+.. c:macro:: GEARMAN_DEFAULT_TCP_PORT
  
 The default port used by gearmand(3).
 
-.. c:var:: GEARMAN_DEFAULT_TCP_PORT
+.. c:macro:: GEARMAN_DEFAULT_TCP_PORT
  
 The default service used by gearmand(3).
 
-.. c:var:: LIBGEARMAN_VERSION_STRING
+.. c:macro:: LIBGEARMAN_VERSION_STRING
  
 String value of the libgearman version such as "0.20.4"
 
-
-.. c:var:: LIBGEARMAN_VERSION_HEX
+.. c:macro:: LIBGEARMAN_VERSION_HEX
  
 Hex value of the version number. "0x00048000" This can be used for comparing versions based on number.
 
+.. c:macro:: GEARMAN_UNIQUE_SIZE
+
+Largest number of characters that can be used for a unique value.
+
+.. c:macro:: GEARMAN_JOB_HANDLE_SIZE
+
+Largest number of characters that can will be used for a job handle. Please
+see :c:type:`gearman_job_handle_t` for additional information.
 
 ---------------------
 THREADS AND PROCESSES
@@ -83,8 +85,9 @@ THREADS AND PROCESSES
 
 
 When using threads or forked processes it is important to keep an instance
-of \ ``gearman_client_st``\ or \ ``gearman_worker_st``\  per process or thread. Without creating your own locking
-structures you can not share a single \ ``gearman_client_st``\  or \ ``gearman_worker_st``\.
+of :c:type:`gearman_client_st` or :c:type:`gearman_worker_st`  per process
+or thread.  Without creating your own locking structures you can not share
+a single :c:type:`gearman_client_st` or :c:type:`gearman_worker_st`.
 
 
 ----
@@ -94,14 +97,6 @@ HOME
 
 To find out more information please check:
 `https://launchpad.net/libgearman <https://launchpad.net/gearmand>`_
-
-
-------
-AUTHOR
-------
-
-
-Brian Aker, <brian@tangent.org> of Data Differential, http://datadifferential.com/
 
 
 --------

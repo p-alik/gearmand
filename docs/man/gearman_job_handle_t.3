@@ -1,4 +1,4 @@
-.TH "GEARMAN_JOB_HANDLE_T" "3" "May 31, 2011" "0.21" "Gearmand"
+.TH "GEARMAN_JOB_HANDLE_T" "3" "June 02, 2011" "0.21" "Gearmand"
 .SH NAME
 gearman_job_handle_t \- Gearmand Documentation
 .
@@ -39,10 +39,13 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .UNINDENT
 .SH DESCRIPTION
 .sp
-A \fI\%gearman_job_handle_t\fP represents a "job handle". A job handle is a text string that represents the name of a task (in truth gearman_job_handle_t is a typedef\(aqed char[GEARMAN_JOB_HANDLE_SIZE]).
+A \fI\%gearman_job_handle_t\fP represents a "job handle". A job handle is
+a text string that represents the name of a task (in truth
+gearman_job_handle_t is a typedef\(aqed
+char[\fBGEARMAN_JOB_HANDLE_SIZE\fP]).
 .sp
 \fBgearman_client_job_status()\fP use handles to find the status of tasks. When passed to \fBgearman_client_do_background()\fP it will be populated with the job handle.
-.SH RETURN
+.SH RETURN VALUE
 .sp
 None.
 .SH HOME
@@ -51,7 +54,7 @@ To find out more information please check:
 \fI\%https://launchpad.net/gearmand\fP
 .SH SEE ALSO
 .sp
-\fIgearmand(8)\fP \fIlibgearman(3)\fP
+\fIgearmand(8)\fP \fIlibgearman(3)\fP \fBgearman_job_st\fP
 .SH AUTHOR
 Data Differential http://datadifferential.com/
 .SH COPYRIGHT

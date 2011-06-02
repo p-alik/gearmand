@@ -29,9 +29,9 @@ If job_handle is not NULL, it will be populated with the name of the job_handle
 for the task created. The job handle needs to be the size of
 :c:macro:`GEARMAN_JOB_HANDLE_SIZE`.
 
-------
-RETURN
-------
+------------
+RETURN VALUE
+------------
 
 :c:type:`gearman_return_t`
 
@@ -52,9 +52,6 @@ To find out more information please check:
 `https://launchpad.net/gearmand <https://launchpad.net/gearmand>`_
 
 
---------
-SEE ALSO
---------
-
-:manpage:`gearmand(8)` :manpage:`libgearman(3)` :manpage:`gearman_strerror(3)`
+.. seealso::
+  :manpage:`gearmand(8)` :manpage:`libgearman(3)` :manpage:`gearman_strerror(3)`
 

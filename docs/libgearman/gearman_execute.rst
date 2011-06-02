@@ -17,15 +17,15 @@ Link with -lgearman
 DESCRIPTION
 -----------
 
-gearman_execute() can be used to execute tasks against a gearman network. 
+:c:func:`gearman_execute()` can be used to execute tasks against a gearman network. 
 
 
-------
-RETURN
-------
+------------
+RETURN VALUE
+------------
 
 
-gearman_execute() returns a c:type:`gearman_task_st`.  
+:c:func:`gearman_execute()` returns a c:type:`gearman_task_st`.  
 
 
 ----

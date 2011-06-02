@@ -1,4 +1,4 @@
-.TH "GEARMAN_TASK_JOB_HANDLE" "3" "May 31, 2011" "0.21" "Gearmand"
+.TH "GEARMAN_TASK_JOB_HANDLE" "3" "June 02, 2011" "0.21" "Gearmand"
 .SH NAME
 gearman_task_job_handle \- Gearmand Documentation
 .
@@ -39,67 +39,67 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void gearman_task_free(gearman_task_st *task);
+.B void gearman_task_free(\fI\%gearman_task_st\fP\fI\ *task\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B const void *gearman_task_context(const gearman_task_st *task);
+.B const void *gearman_task_context(const \fI\%gearman_task_st\fP\fI\ *task\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void gearman_task_set_context(gearman_task_st *task, void *context);
+.B void gearman_task_set_context(\fI\%gearman_task_st\fP\fI\ *task\fP, void\fI\ *context\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B const char *gearman_task_function_name(const gearman_task_st *task);
+.B const char *gearman_task_function_name(const \fI\%gearman_task_st\fP\fI\ *task\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B const char *gearman_task_unique(const gearman_task_st *task);
+.B const char *gearman_task_unique(const \fI\%gearman_task_st\fP\fI\ *task\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B const char *gearman_task_job_handle(const gearman_task_st *task);
+.B const char *gearman_task_job_handle(const \fI\%gearman_task_st\fP\fI\ *task\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B bool gearman_task_is_known(const gearman_task_st *task);
+.B bool gearman_task_is_known(const \fI\%gearman_task_st\fP\fI\ *task\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B bool gearman_task_is_running(const gearman_task_st *task);
+.B bool gearman_task_is_running(const \fI\%gearman_task_st\fP\fI\ *task\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B uint32_t gearman_task_numerator(const gearman_task_st *task);
+.B uint32_t gearman_task_numerator(const \fI\%gearman_task_st\fP\fI\ *task\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B uint32_t gearman_task_denominator(const gearman_task_st *task);
+.B uint32_t gearman_task_denominator(const \fI\%gearman_task_st\fP\fI\ *task\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void gearman_task_give_workload(gearman_task_st *task, const void *workload, size_t workload_size);
+.B void gearman_task_give_workload(\fI\%gearman_task_st\fP\fI\ *task\fP, const void\fI\ *workload\fP, size_t\fI\ workload_size\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B size_t gearman_task_send_workload(gearman_task_st *task, const void *workload, size_t workload_size, gearman_return_t *ret_ptr);
+.B size_t gearman_task_send_workload(\fI\%gearman_task_st\fP\fI\ *task\fP, const void\fI\ *workload\fP, size_t\fI\ workload_size\fP, gearman_return_t\fI\ *ret_ptr\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B const void *gearman_task_data(const gearman_task_st *task);
+.B const void *gearman_task_data(const \fI\%gearman_task_st\fP\fI\ *task\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B size_t gearman_task_data_size(const gearman_task_st *task);
+.B size_t gearman_task_data_size(const \fI\%gearman_task_st\fP\fI\ *task\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void *gearman_task_take_data(gearman_task_st *task, size_t *data_size);
+.B void *gearman_task_take_data(\fI\%gearman_task_st\fP\fI\ *task\fP, size_t\fI\ *data_size\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B size_t gearman_task_recv_data(gearman_task_st *task, void *data, size_t data_size, gearman_return_t *ret_ptr);
+.B size_t gearman_task_recv_data(\fI\%gearman_task_st\fP\fI\ *task\fP, void\fI\ *data\fP, size_t\fI\ data_size\fP, gearman_return_t\fI\ *ret_ptr\fP)
 .UNINDENT
 .sp
 Link with \-lgearman
@@ -114,19 +114,19 @@ A \fI\%gearman_task_st\fP represents a "task". Each task is a single unit of wor
 \fBgearman_client_add_task_status()\fP can be used to create a \fI\%gearman_task_st\fP to
 monitor a previously created \fI\%gearman_task_st\fP.
 .sp
-\fBgearman_task_free()\fP is used to free a task. This only needs to be
+\fI\%gearman_task_free()\fP is used to free a task. This only needs to be
 done if a task was created with a preallocated structure.
 .sp
-\fBgearman_task_set_context()\fP sets the given context of the \fI\%gearman_task_st\fP. The context can be used to pass information to a \fI\%gearman_task_st\fP.
+\fI\%gearman_task_set_context()\fP sets the given context of the \fI\%gearman_task_st\fP. The context can be used to pass information to a \fI\%gearman_task_st\fP.
 .sp
-\fBgearman_task_context()\fP returns the context that was used in the creation of the \fI\%gearman_task_st\fP (or that was set with \fBgearman_task_set_context()\fP.
+\fI\%gearman_task_context()\fP returns the context that was used in the creation of the \fI\%gearman_task_st\fP (or that was set with \fI\%gearman_task_set_context()\fP.
 .sp
-\fBgearman_task_data()\fP returns the current data that has been returned to the task. \fBgearman_task_data_size()\fP will give you the size of the value. \fBgearman_task_take_data()\fP is the same as \fBgearman_task_data()\fP but the value that is returned must be freed by the client (\fIfree(3)\fP). \fBgearman_task_recv_data()\fP can be used with pre\-allocated buffers.
+\fI\%gearman_task_data()\fP returns the current data that has been returned to the task. \fI\%gearman_task_data_size()\fP will give you the size of the value. \fI\%gearman_task_take_data()\fP is the same as \fI\%gearman_task_data()\fP but the value that is returned must be freed by the client (\fIfree(3)\fP). \fI\%gearman_task_recv_data()\fP can be used with pre\-allocated buffers.
 .sp
-\fBgearman_task_is_known()\fP, \fBgearman_task_is_running()\fP, \fBgearman_task_numerator()\fP, and \fBgearman_task_denominator()\fP, return values related to the last status update that was made to the \fI\%gearman_task_st\fP. They do not cause the \fI\%gearman_task_st\fP to update itself.
-.SH RETURN
+\fI\%gearman_task_is_known()\fP, \fI\%gearman_task_is_running()\fP, \fI\%gearman_task_numerator()\fP, and \fI\%gearman_task_denominator()\fP, return values related to the last status update that was made to the \fI\%gearman_task_st\fP. They do not cause the \fI\%gearman_task_st\fP to update itself.
+.SH RETURN VALUE
 .sp
-Various. Values that are returned by \fBgearman_task_take_data()\fP must have \fIfree(3)\fP called on them.
+Various. Values that are returned by \fI\%gearman_task_take_data()\fP must have \fIfree(3)\fP called on them.
 .SH HOME
 .sp
 To find out more information please check:

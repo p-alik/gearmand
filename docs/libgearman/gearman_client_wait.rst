@@ -19,9 +19,9 @@ DESCRIPTION
 
 Calling :c:func:`gearman_client_wait()` causes the calling code to sleep until either the timeout in :c:type:`gearman_client_st` is reached or :program:`gearmand` responds to the client.
 
-------
-RETURN
-------
+------------
+RETURN VALUE
+------------
 
 :c:type:`gearman_return_t`
 

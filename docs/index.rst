@@ -44,45 +44,54 @@ Basics
 ******
 
 .. toctree::
-   :maxdepth: 1
+   :titlesonly:
 
    libgearman
+   changes
 
-************
-Client Calls
-************
+****************
+Client Functions
+****************
 
 .. toctree::
-   :maxdepth: 1
+   :titlesonly:
 
    libgearman/gearman_client
+   libgearman/gearman_client_add_server
+   libgearman/gearman_client_options
    libgearman/gearman_client_do
    libgearman/gearman_client_do_background
-   libgearman/gearman_execute 
+   libgearman/gearman_execute
    libgearman/gearman_execute_map_reduce
+   libgearman/gearman_client_error
+   libgearman/gearman_client_set_log_fn
 
 **************
 Creating Tasks
 **************
 
 .. toctree::
-   :maxdepth: 1
+   :titlesonly:
 
    libgearman/gearman_client_add_task
    libgearman/gearman_client_run_tasks
    libgearman/gearman_client_add_task_background
    libgearman/gearman_client_add_task_status
 
-************
-Worker Calls
-************
+****************
+Worker Functions
+****************
 
 .. toctree::
-   :maxdepth: 1
+   :titlesonly:
 
-   libgearman/gearman_worker
+   libgearman/gearman_worker_create
+   libgearman/gearman_worker_add_server
+   libgearman/gearman_worker_options
    libgearman/gearman_worker_add_function
    libgearman/gearman_worker_add_map_function
+   libgearman/gearman_worker_error
+   libgearman/gearman_worker_set_log_fn
 
 ****
 Misc
@@ -94,6 +103,7 @@ Misc
    libgearman/gearman_misc_functions
    libgearman/namespace
    libgearman/gearman_client_wait
+   libgearman/gearman_client_echo
 
 **********
 Structures
@@ -109,6 +119,7 @@ Structures
    libgearman/gearman_return_t 
    libgearman/gearman_job_handle_t
    libgearman/gearman_actions_t
+   libgearman/gearman_log_fn
 
 *****
 Extra

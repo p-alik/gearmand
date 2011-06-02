@@ -1,14 +1,6 @@
-=====================
-gearman_parse_servers
-=====================
-
-.. index:: object: gearman_parse_servers
-
--------
-LIBRARY
--------
-
-C Client Library for Gearmand (libgearman, -lgearman)
+====================
+Parsing server lists
+====================
 
 --------
 SYNOPSIS
@@ -20,19 +12,21 @@ SYNOPSIS
                                        gearman_parse_server_fn *function,
                                        void *context)
 
+Link with -lgearman
+
 -----------
 DESCRIPTION
 -----------
 
-gearman_parse_servers(3) parses a list of servers and call the
-gearman_parse_server_fn for each server.
+:c:func:`gearman_parse_servers()` parses a list of servers and call the
+:c:func:`gearman_parse_server_fn` for each server.
 
-------
-RETURN
-------
+------------
+RETURN VALUE
+------------
 
-A value of type \ ``gearman_return_t``\  is returned.
-On success that value will be \ ``GEARMAN_SUCCESS``\ .
+A value of type :c:type:`gearman_return_t`  is returned.
+On success that value will be :c:type:`GEARMAN_SUCCESS`.
 Use gearman_strerror() to translate this value to a printable string.
 
 ----

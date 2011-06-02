@@ -70,9 +70,9 @@ determined with :c:func:`gearman_job_workload_size()`.
 :c:func:`gearman_job_workload()` with the exception that the result must be
 :manpage:`free(3)` by the caller.
 
-------
-RETURN
-------
+------------
+RETURN VALUE
+------------
 
 A value of :c:type:`gearman_return_t`  is returned.  On success that value
 will be :c:type::`GEARMAN_SUCCESS`.  Use :c:func:`gearman_strerror()` to

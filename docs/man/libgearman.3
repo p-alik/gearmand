@@ -1,4 +1,4 @@
-.TH "LIBGEARMAN" "3" "May 31, 2011" "0.21" "Gearmand"
+.TH "LIBGEARMAN" "3" "June 02, 2011" "0.21" "Gearmand"
 .SH NAME
 libgearman \- Gearmand Documentation
 .
@@ -30,16 +30,11 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 ..
 .\" Man page generated from reStructeredText.
 .
-.SH LIBRARY
-.INDENT 0.0
-.INDENT 3.5
-.sp
-C Client Library for Gearmand (libgearman, \-lgearman)
-.UNINDENT
-.UNINDENT
 .SH SYNOPSIS
 .sp
 #include <libgearman/gearman.h>
+.sp
+Link \-lgearman
 .SH DESCRIPTION
 .sp
 \fBlibgearman\fP is a small, thread\-safe client library for the
@@ -49,7 +44,7 @@ particular keys to specific servers that you specify (and values are
 matched based on server order as supplied by you). It implements both
 the client and worker interfaces.
 .sp
-All operations are performed against either a \fBgearman_client_st\fP structure
+All operations are performed against either a \fBgearman_client_st\fP  structure
 or a \fBgearman_worker_st\fP.
 These structures can either be dynamically allocated or statically
 allocated and then initialized by gearman_create(). Functions have been
@@ -72,7 +67,7 @@ AC_SUBST(DEPS_CFLAGS)
 AC_SUBST(DEPS_LIBS)
 .sp
 Hope you enjoy it!
-.SS CONSTANTS
+.SH CONSTANTS
 .sp
 A number of constants have been provided for in the library.
 .INDENT 0.0
@@ -99,18 +94,29 @@ String value of the libgearman version such as "0.20.4"
 .UNINDENT
 .sp
 Hex value of the version number. "0x00048000" This can be used for comparing versions based on number.
+.INDENT 0.0
+.TP
+.B GEARMAN_UNIQUE_SIZE
+.UNINDENT
+.sp
+Largest number of characters that can be used for a unique value.
+.INDENT 0.0
+.TP
+.B GEARMAN_JOB_HANDLE_SIZE
+.UNINDENT
+.sp
+Largest number of characters that can will be used for a job handle. Please
+see \fBgearman_job_handle_t\fP for additional information.
 .SH THREADS AND PROCESSES
 .sp
 When using threads or forked processes it is important to keep an instance
-of \fBgearman_client_st\fPor \fBgearman_worker_st\fP per process or thread. Without creating your own locking
-structures you can not share a single \fBgearman_client_st\fP or \fBgearman_worker_st\fP.
+of \fBgearman_client_st\fP or \fBgearman_worker_st\fP  per process
+or thread.  Without creating your own locking structures you can not share
+a single \fBgearman_client_st\fP or \fBgearman_worker_st\fP.
 .SH HOME
 .sp
 To find out more information please check:
 \fI\%https://launchpad.net/libgearman\fP
-.SH AUTHOR
-.sp
-Brian Aker, <\fI\%brian@tangent.org\fP> of Data Differential, \fI\%http://datadifferential.com/\fP
 .SH SEE ALSO
 .sp
 \fIgearmand(8)\fP \fIlibgearman_examples(3)\fP

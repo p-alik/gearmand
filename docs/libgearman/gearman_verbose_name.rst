@@ -2,15 +2,6 @@
 gearman_verbose_name()
 ======================
 
-.. index:: object: gearman_verbose_name
-
-
--------
-LIBRARY
--------
-
-C Client Library for Gearmand (libgearman, -lgearman)
-
 --------
 SYNOPSIS 
 --------
@@ -19,15 +10,17 @@ SYNOPSIS
 
 .. c:function:: const char *gearman_verbose_name(gearman_verbose_t verbose)
 
+Link with -lgearman
+
 -----------
 DESCRIPTION 
 -----------
 
 Take a gearman_verbose_t and return a character representation of it.
 
-------
-RETURN
-------
+------------
+RETURN VALUE
+------------
 
 A character string representing the verbose leval.
 

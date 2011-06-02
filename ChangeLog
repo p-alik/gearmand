@@ -10,8 +10,7 @@
 
   * Support for namespaces.
 
-  * gearman_worker_add_map_function() has been added. It allows jobs to map
-  out work to other workers and then aggregate the results.
+  * gearman_worker_add_map_function() has been added. It allows jobs to map out work to other workers and then aggregate the results.
 
 0.20 Fri Apr  8 09:25:15 PDT 2011
   * gearman_client_execute() interface added
@@ -25,10 +24,8 @@
 0.19 Fri Apr  1 09:50:22 PDT 2011
   * Fix bug where gearman util would create duplicate output.
   * Update sqlite queue so that it uses a prepared statement.
-  * Fixes a number cases where server was not initializing default values
-  internally correctly.  
-  * gearman_client_compare()  API added. Returns true if the client
-  connections are connects are equivalent.
+  * Fixes a number cases where server was not initializing default values internally correctly.  
+  * gearman_client_compare()  API added. Returns true if the client connections are connects are equivalent.
 
 0.18 Tue Mar 15 13:32:33 PDT 2011
   * Bug fix for compile when no plugins are requested.
@@ -37,8 +34,7 @@
 
 
 0.17 Tue Mar  8 08:27:04 PST 2011
-  * gearadmin added, easy access to shutdown, version, and verbose commands
-  on the server.
+  * gearadmin added, easy access to shutdown, version, and verbose commands on the server.
   * Bug fixes related to CLI.
   * Bug fixes related to Memcached support.
   * Bug fixes related to Drizzle support.
@@ -53,8 +49,7 @@
   * Error log now reports failure location in compiled code for ERROR conditions.
   * Fix for failover.
   * Fixed issue in client where it would silently die based on signal issues.
-  * "verbose" has been added to the string protocol. It allows you to see
-    what the verbose setting is.
+  * "verbose" has been added to the string protocol. It allows you to see what the verbose setting is.
 
 0.15 Mon Feb 14 18:44:32 PST 2011
   * Numerous issues around overflow on buffers are now fixed.
@@ -72,10 +67,8 @@
  * Use OR REPLACE syntax for inserting items into the sqlite.
  * Changed default bitfield optimize setting to only be off for Solaris.
  * Refactoring on server.
- * Various bug fixes as reported on mailing list, such as a bad return
-   code and treating EHOSTDOWN as lost connection for FreeBSD.
- * Fixed bug #543402 so jobs taking more than max job retries will
-   be removed from persistentn queue as well.
+ * Various bug fixes as reported on mailing list, such as a bad return code and treating EHOSTDOWN as lost connection for FreeBSD.
+ * Fixed bug #543402 so jobs taking more than max job retries will be removed from persistentn queue as well.
  * Check to make sure worker job results match assigned worker.
 
 0.12 Thu Feb 18 11:28:49 PST 2010
@@ -96,8 +89,7 @@
 0.11 - 2009-11-30
  * Added max wakeup-worker option to gearmand. Default is still to wakeup all.
  * API and documentation cleanup.
- * Fixed bug where task context free function was getting called for do()
-   functions. This was PECL/Gearman bug #16899 as well.
+ * Fixed bug where task context free function was getting called for do() functions. This was PECL/Gearman bug #16899 as well.
  * Fixed bug #458912, not flushing with multiple gearmands in client.
  * Fixed PECL/Gearman bug #16847, was actually in C library and not in PHP.
  * Fixed C++ build/test/ issue, updated pandora build system.
@@ -109,12 +101,10 @@
  * Added server option for max job retry.
  * Changed queue_libdrizzle to overwrite the password string to hide in ps.
  * Worker unregister bug fixed. Bug #372074
- * Added memory ownership functions so applications can pass control with
-   tasks, jobs, and packets.
+ * Added memory ownership functions so applications can pass control with tasks, jobs, and packets.
  * Changed gearmand to remap stdio to /dev/null for detaching. Bug #407242
  * Fixed bug that now allows workers to run concurrent jobs.
- * Changed behavior of sending NOOPs to one per PRESLEEP, rather than only
-   having one in the outgoing queue at any time.
+ * Changed behavior of sending NOOPs to one per PRESLEEP, rather than only having one in the outgoing queue at any time.
  * API cleanup to make the code more consistent and object-oriented.
  * Added more documentation for base classes, client, and worker.
  * Build system updates.
@@ -137,27 +127,21 @@
  * Fixed server spinning bug with long running jobs and large workloads.
 
 0.7 - 2009-05-31
- * Added libmodconf for config option processing. Eventually this will be split
-   into a separate library. Updated gearmand and tests to use libmodconf.
+ * Added libmodconf for config option processing. Eventually this will be split into a separate library. Updated gearmand and tests to use libmodconf.
  * Fixed persistent queue bug where jobs were not removed after replay.
  * Fix for bug #379198.
- * Changed done() function for queue, function_name is now passed to it as
-   well as unique.
+ * Changed done() function for queue, function_name is now passed to it as well as unique.
  * Fixed text protocol command response to be dynamic length.
  * Fixed libevent usage to support libevent 1.1 (still used in CentOS and Suse).
- * Added gearman_*_add_servers to client/worker interfaces for taking
-   server lists.
+ * Added gearman_*_add_servers to client/worker interfaces for taking server lists.
 
 0.6 - 2009-05-19
- * Changed behavior so forground jobs are not run when their connected clients
-   disconnect. This is how the Perl server behaves.
+ * Changed behavior so forground jobs are not run when their connected clients disconnect. This is how the Perl server behaves.
  * Changed to named logging macros, making it easier for module writers to use.
- * Added persistent queue support with a libdrizzle module. This allows queue
-   storage for both Drizzle and MySQL.
+ * Added persistent queue support with a libdrizzle module. This allows queue storage for both Drizzle and MySQL.
  * Added Solaris service scripts (Trond Norbye).
  * Fixed rpm building (make rpm).
- * Removed AI_V4MAPPED for client/worker connect lookup, not fully
-   supported in all operating systems (like FreeBSD, bug #373060).
+ * Removed AI_V4MAPPED for client/worker connect lookup, not fully supported in all operating systems (like FreeBSD, bug #373060).
  * Support for gearmand to bind to multiple addresses.
  * Protocol document updates and fixes (Eric Day, Eric Herman).
  * Bind to specific hostname in gearmand (Brian Moon).
@@ -177,8 +161,7 @@
  * New priority queue in server to support new protocol options.
  * Reworked the unique ID checking in server.
  * Added hooks to aid in client memory cleanup.
- * Added gearman command line utility to allow you to use clients and
-   workers from the shell.
+ * Added gearman command line utility to allow you to use clients and workers from the shell.
  * Build fixes (Monty Taylor).
  * Basic init script added.
  * Fixed getopt bugs with variable type and EOF.

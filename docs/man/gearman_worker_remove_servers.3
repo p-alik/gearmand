@@ -1,4 +1,4 @@
-.TH "GEARMAN_WORKER_REMOVE_SERVERS" "3" "May 31, 2011" "0.21" "Gearmand"
+.TH "GEARMAN_WORKER_REMOVE_SERVERS" "3" "June 02, 2011" "0.21" "Gearmand"
 .SH NAME
 gearman_worker_remove_servers \- Gearmand Documentation
 .
@@ -30,84 +30,9 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 ..
 .\" Man page generated from reStructeredText.
 .
-.SH LIBRARY
-.sp
-C Client Library for Gearmand (libgearman, \-lgearman)
 .SH SYNOPSIS
 .sp
 #include <libgearman/gearman.h>
-.INDENT 0.0
-.TP
-.B gearman_worker_st
-.UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_client_st *gearman_client_create(gearman_client_st *client);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_worker_st *gearman_worker_create(gearman_worker_st *worker);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker, const gearman_worker_st *from);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B void gearman_worker_free(gearman_worker_st *worker);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B const char *gearman_worker_error(const gearman_worker_st *worker);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B int gearman_worker_errno(gearman_worker_st *worker);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_worker_options_t gearman_worker_options(const gearman_worker_st *worker);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B void gearman_worker_set_options(gearman_worker_st *worker, gearman_worker_options_t options);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B void gearman_worker_add_options(gearman_worker_st *worker, gearman_worker_options_t options);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B void gearman_worker_remove_options(gearman_worker_st *worker, gearman_worker_options_t options);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B int gearman_worker_timeout(gearman_worker_st *worker);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B void gearman_worker_set_timeout(gearman_worker_st *worker, int timeout);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B void *gearman_worker_context(const gearman_worker_st *worker);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B void gearman_worker_set_context(gearman_worker_st *worker, void *context);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B void gearman_worker_set_log_fn(gearman_worker_st *worker, gearman_log_fn *function, void *context, gearman_verbose_t verbose);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B void gearman_worker_set_workload_malloc_fn(gearman_worker_st *worker, gearman_malloc_fn *function, void *context);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B void gearman_worker_set_workload_free_fn(gearman_worker_st *worker, gearman_free_fn *function, void *context);
-.UNINDENT
 .INDENT 0.0
 .TP
 .B gearman_return_t gearman_worker_add_server(gearman_worker_st *worker, const char *host, in_port_t port);
@@ -120,60 +45,33 @@ C Client Library for Gearmand (libgearman, \-lgearman)
 .TP
 .B void gearman_worker_remove_servers(gearman_worker_st *worker);
 .UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_return_t gearman_worker_wait(gearman_worker_st *worker);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_return_t gearman_worker_register(gearman_worker_st *worker, const char *function_name, uint32_t timeout);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_return_t gearman_worker_unregister(gearman_worker_st *worker, const char *function_name);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_return_t gearman_worker_unregister_all(gearman_worker_st *worker);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker, gearman_job_st *job, gearman_return_t *ret_ptr);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B void gearman_job_free_all(gearman_worker_st *worker);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B bool gearman_worker_function_exist(gearman_worker_st *worker, const char *function_name, size_t function_length);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_return_t gearman_worker_add_function(gearman_worker_st *worker, const char *function_name, uint32_t timeout, gearman_worker_fn *function, void *context);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_return_t gearman_worker_work(gearman_worker_st *worker);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_return_t gearman_worker_echo(gearman_worker_st *worker, const void *workload, size_t workload_size);
-.UNINDENT
+.sp
+Link with \-lgearman
 .SH DESCRIPTION
 .sp
-This a complete list of all functions that work with a gearman_worker_st,
-see their individual pages to learn more about them.
-.SH RETURN
+\fBgearman_worker_add_server()\fP will add an additional \fBgearmand\fP server to the list of servers that the worker will take work from.
 .sp
-Various
+\fBgearman_worker_remove_servers()\fP will remove all servers from the \fBgearman_worker_st\fP.
+.sp
+\fBgearman_worker_add_servers()\fP takes a list of \fBgearmand\fP servers that will be parsed to provide servers for the worker. The format for this is SERVER[:PORT][,SERVER[:PORT]]...
+.INDENT 0.0
+.TP
+.B Examples of this are:
+.
+10.0.0.1,10.0.0.2,10.0.0.3
+localhost234,jobserver2.domain.com:7003,10.0.0.3
+.UNINDENT
+.SH RETURN VALUE
+.sp
+\fBgearman_worker_add_server()\fP and \fBgearman_worker_remove_servers()\fP return \fBgearman_return_t\fP.
 .SH HOME
 .sp
 To find out more information please check:
 \fI\%https://launchpad.net/gearmand\fP
 .SH SEE ALSO
 .sp
-\fIgearmand(8)\fP \fIlibgearman(3)\fP
+\fBgearmand\fP \fB../libgearman\fP  \fBgearman_worker_st\fP
+.RE
 .SH AUTHOR
 Data Differential http://datadifferential.com/
 .SH COPYRIGHT

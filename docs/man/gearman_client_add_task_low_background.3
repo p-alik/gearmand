@@ -1,4 +1,4 @@
-.TH "GEARMAN_CLIENT_ADD_TASK_LOW_BACKGROUND" "3" "May 31, 2011" "0.21" "Gearmand"
+.TH "GEARMAN_CLIENT_ADD_TASK_LOW_BACKGROUND" "3" "June 02, 2011" "0.21" "Gearmand"
 .SH NAME
 gearman_client_add_task_low_background \- Gearmand Documentation
 .
@@ -49,7 +49,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .TP
 .B size_t workload_size,
 .TP
-.B gearman_return_t *ret_ptr);
+.B gearman_return_t *ret_ptr)
 .UNINDENT
 .sp
 Link with \-lgearman
@@ -68,7 +68,7 @@ You may wish to avoid using \fBgearman_client_add_task_background()\fP with a st
 \fBgearman_task_st\fP. The most common issues related to ABI safety involve stack allocated structures. If you use a stack based
 \fBgearman_task_st\fP you must free it with \fBgearman_task_free()\fP.
 .RE
-.SH RETURN
+.SH RETURN VALUE
 .sp
 The \fBgearman_task_st\fP is created and a pointer to it is returned. On error NULL is returned and ret_ptr is set with a \fBgearman_return_t\fP.
 .SH HOME
@@ -76,6 +76,7 @@ The \fBgearman_task_st\fP is created and a pointer to it is returned. On error N
 To find out more information please check:
 \fI\%https://launchpad.net/gearmand\fP
 .SH SEE ALSO
+.RE
 .sp
 \fIgearmand(8)\fP \fIlibgearman(3)\fP \fIgearman_task_st\fP
 .SH AUTHOR

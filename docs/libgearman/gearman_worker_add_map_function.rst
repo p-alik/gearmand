@@ -2,12 +2,6 @@
 Creating a worker to handle a map/reduce job 
 ============================================
 
--------
-LIBRARY
--------
-
-C Client Library for Gearmand (libgearman, -lgearman)
-
 --------
 SYNOPSIS
 --------
@@ -19,6 +13,8 @@ SYNOPSIS
 .. c::type:: gearman_worker_error_t (gearman_mapper_fn)(gearman_job_st *job, void *context)
 
 .. c::type:: gearman_return_t (gearman_aggregator_fn)(gearman_aggregator_st *, gearman_task_st *, gearman_result_st *)
+
+Link with -lgearman
 
 -----------
 DESCRIPTION
@@ -36,12 +32,17 @@ detected then the entire job is cancelled.  The gearman_aggregator_fn will
 be called when all mapped jobs have completed. The result of this function
 will be what is returned to the client.
 
-:c:func:`gearman_job_send_complete()` and :c:func:`gearman_job_send_fail()`
-cannot be used with mapper functions.
+The callback function needs to populute the ret value with one of the following errors:
 
-------
-RETURN
-------
+:c:type:`GEARMAN_WORKER_SUCCESS`
+
+:c:type:`GEARMAN_WORKER_FAIL`
+
+:c:func:`gearman_job_send_complete()` and :c:func:`gearman_job_send_fail()` cannot be used with mapper functions.
+
+------------
+RETURN VALUE
+------------
 
 :c:type:`gearman_return_t`
 

@@ -1,4 +1,4 @@
-.TH "GEARMAN_CLIENT_SET_WORKLOAD_MALLOC_FN" "3" "May 31, 2011" "0.21" "Gearmand"
+.TH "GEARMAN_CLIENT_SET_WORKLOAD_MALLOC_FN" "3" "June 02, 2011" "0.21" "Gearmand"
 .SH NAME
 gearman_client_set_workload_malloc_fn \- Gearmand Documentation
 .
@@ -42,34 +42,6 @@ C Client Library for Gearmand (libgearman, \-lgearman)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_client_st *gearman_client_create(gearman_client_st *client);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_client_st *gearman_client_clone(gearman_client_st *client, const gearman_client_st *from);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B const char *gearman_client_error(const gearman_client_st *client);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B int gearman_client_errno(const gearman_client_st *client);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_client_options_t gearman_client_options(const gearman_client_st *client);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B void gearman_client_add_options(gearman_client_st *client, gearman_client_options_t options);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B void gearman_client_remove_options(gearman_client_st *client, gearman_client_options_t options);
-.UNINDENT
-.INDENT 0.0
-.TP
 .B int gearman_client_timeout(gearman_client_st *client);
 .UNINDENT
 .INDENT 0.0
@@ -98,39 +70,7 @@ C Client Library for Gearmand (libgearman, \-lgearman)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_client_add_server(gearman_client_st *client, const char *host, in_port_t port);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_return_t gearman_client_add_servers(gearman_client_st *client, const char *servers);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B void gearman_client_remove_servers(gearman_client_st *client);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_return_t gearman_client_wait(gearman_client_st *client);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_return_t gearman_client_do_background(gearman_client_st *client, const char *function_name, const char *unique, const void *workload, size_t workload_size, char *job_handle);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_return_t gearman_client_do_high_background(gearman_client_st *client, const char *function_name, const char *unique, const void *workload, size_t workload_size, char *job_handle);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_return_t gearman_client_do_low_background(gearman_client_st *client, const char *function_name, const char *unique, const void *workload, size_t workload_size, char *job_handle);
-.UNINDENT
-.INDENT 0.0
-.TP
 .B gearman_return_t gearman_client_job_status(gearman_client_st *client, const char *job_handle, bool *is_known, bool *is_running, uint32_t *numerator, uint32_t *denominator);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_return_t gearman_client_echo(gearman_client_st *client, const void *workload, size_t workload_size);
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -150,7 +90,7 @@ gearman_client_st is used to create a client that can communicate with a
 Gearman server.
 .sp
 This a complete list of all functions that work with a gearman_client_st.
-.SH RETURN
+.SH RETURN VALUE
 .sp
 Various
 .SH HOME

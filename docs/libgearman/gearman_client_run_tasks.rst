@@ -18,9 +18,9 @@ DESCRIPTION
 
 :c:func:`gearman_client_run_tasks()` executes all tasks that have been added via :c:func:`gearman_client_add_task()`, :c:func:`gearman_client_add_task_status()` or :c:func:`gearman_client_add_task_background()`.
 
-------
-RETURN
-------
+------------
+RETURN VALUE
+------------
 
 :c:type:`gearman_return_t`
 
@@ -32,8 +32,5 @@ To find out more information please check:
 `https://launchpad.net/gearmand <https://launchpad.net/gearmand>`_
 
 
---------
-SEE ALSO
---------
-
-:manpage:`gearmand(8)` :manpage:`libgearman(3)`
+.. seealso::
+  :manpage:`gearmand(8)` :manpage:`libgearman(3)`

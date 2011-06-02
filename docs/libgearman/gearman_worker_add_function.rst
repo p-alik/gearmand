@@ -2,14 +2,6 @@
 Create a function with a callback
 =================================
 
-.. index:: object: gearman_worker_add_function
-
--------
-LIBRARY
--------
-
-C Client Library for Gearmand (libgearman, -lgearman)
-
 --------
 SYNOPSIS
 --------
@@ -24,21 +16,18 @@ Compile and link with -lgearman
 DESCRIPTION
 -----------
 
-gearman_worker_add_function() adds function with a callback to a :c:type::`gearman_worker_st` . A c:type::`gearman_job_st` is passed to the callback, it can be used to send messages to the client about the state of the work. The callback function needs to populute the ret value with one of the following errors:
+:c:func:`gearman_worker_add_function()` adds function with a callback to a :c:type:`gearman_worker_st` . 
+A :c:type:`gearman_job_st` is passed to the callback, it can be used to send messages to the client about the state of the work. 
 
-GEARMAN_WORK_SUCCESS
-
-GEARMAN_WORK_FAIL
-
-See :c:type::`gearman_return_t` for details.
+See :c:type:`gearman_return_t` for details.
 
 
-------
-RETURN
-------
+------------
+RETURN VALUE
+------------
 
 
-gearman_worker_add_function() returns a c:type:`gearman_return_t` with either GEARMAN_SUCCESS, or an error. Additional information on the error can be found with :c:function::`gearman_worker_error()` 
+:c:func:`gearman_worker_add_function()` returns a :c:type:`gearman_return_t` with either :c:type:`GEARMAN_SUCCESS`, or an error. Additional information on the error can be found with :c:function::`gearman_worker_error()` 
 
 
 ----

@@ -2,11 +2,6 @@
 Executing a map/reduce job
 ==========================
 
--------
-LIBRARY
--------
-
-C Client Library for Gearmand (libgearman, -lgearman)
 
 --------
 SYNOPSIS
@@ -18,6 +13,8 @@ SYNOPSIS
 
 .. c::type typedef gearman_worker_error_t (gearman_mapper_fn)(gearman_job_st *job, void *context);
 
+Link with -lgearman
+
 -----------
 DESCRIPTION
 -----------
@@ -28,9 +25,9 @@ mapper_name argument. The mapper function will then break the work up into units
 If any of the units of work error, the job will be aborted. The resulting value will be stored in the :c:type::`gearman_task_st`.
 
 
-------
-RETURN
-------
+------------
+RETURN VALUE
+------------
 
 gearman_client_execute_reduce() returns a pointer to a gearman_task_st. On error a NULL will be returned. The error can be examined with c:function::`gearman_client_error()`.
 

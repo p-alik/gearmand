@@ -321,6 +321,7 @@ void gearman_worker_remove_options(gearman_worker_st *worker,
   if (options & GEARMAN_WORKER_TIMEOUT_RETURN)
   {
     worker->options.timeout_return= false;
+    gearman_universal_set_timeout(worker->universal, GEARMAN_WORKER_WAIT_TIMEOUT);
   }
 
   if (options & GEARMAN_WORKER_GRAB_UNIQ)

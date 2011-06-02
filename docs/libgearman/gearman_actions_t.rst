@@ -50,8 +50,12 @@ different states of execution for a client request. Each request, ie
 a creation of :c:type:`gearman_task_st`, keeps a copy of callbacks when it
 is created.  
 
---------
-SEE ALSO
---------
+------------
+RETURN VALUE
+------------
 
-:manpage:`gearmand(8)` :manpage:`libgearman(3)` :manpage:`gearman_client_error()` or :manpage:`gearman_worker_error()`
+None
+
+.. seealso::
+
+:manpage:`gearmand(8)` :manpage:`libgearman(3)` :manpage:`gearman_client_error(3)` or :manpage:`gearman_worker_error(3)`

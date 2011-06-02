@@ -2,13 +2,6 @@
 gearman_version()
 =================
 
-.. index:: object: gearman_version
-
--------
-LIBRARY
--------
-
- C Client Library for Gearmand (libgearman, -lgearman)
 
 --------
 SYNOPSIS 
@@ -18,6 +11,8 @@ SYNOPSIS
 
 .. c:function:: const char *gearman_version(gearman_verbose_t verbose)
 
+Link with -lgearman
+
 -----------
 DESCRIPTION
 -----------
@@ -26,9 +21,9 @@ DESCRIPTION
 Return the version of the library.
 
 
-------
-RETURN
-------
+------------
+RETURN VALUE
+------------
 
 A constant C style string. No deallocation is required.
 

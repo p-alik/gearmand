@@ -41,9 +41,9 @@ the structure.
         stack based allocation, ie the first parameter. The most common issues related to ABI safety involve
         stack allocated structures.
 
-------
-RETURN
-------
+------------
+RETURN VALUE
+------------
 
 :c:type:`gearman_client_create()` returns a pointer to the gearman_client_st
 that was created (or initialized). On an allocation failure, it returns
@@ -61,9 +61,4 @@ HOME
 To find out more information please check:
 `https://launchpad.net/gearmand <https://launchpad.net/gearmand>`_
 
-
---------
-SEE ALSO
---------
-
-:manpage:`gearmand(8)` :manpage:`libgearman(3)` :manpage:`gearman_strerror(3)`
+.. seealso:: :manpage:`gearmand(8)` :manpage:`libgearman(3)` :manpage:`gearman_strerror(3)` :manpage:`gearman_client_st(3)`
