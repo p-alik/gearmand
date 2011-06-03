@@ -216,8 +216,7 @@ int main(int argc, char *argv[])
     gearman_client_set_complete_fn(&client, _complete);
     gearman_client_set_fail_fn(&client, _fail);
 
-    gearman_return_t ret;
-    ret= gearman_client_run_tasks(&client);
+    gearman_return_t ret= gearman_client_run_tasks(&client);
 
     if (ret != GEARMAN_SUCCESS && ret != GEARMAN_LOST_CONNECTION)
     {
@@ -318,6 +317,7 @@ static gearman_return_t _complete(gearman_task_st *task)
     size= gearman_task_recv_data(task, buffer, BLOBSLAP_BUFFER_SIZE, &ret);
     if (ret != GEARMAN_SUCCESS)
       return ret;
+
     if (size == 0)
       break;
   }

@@ -40,6 +40,8 @@
 #include <libgearman/gearman.h>
 #include <tests/task.h>
 
+#include <iostream>
+
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
@@ -55,7 +57,7 @@ test_return_t gearman_client_add_task_test(void *object)
   gearman_task_st *task= gearman_client_add_task(client, NULL, NULL,
                                                  worker_function, NULL, "dog", 3,
                                                  &ret);
-  test_true_got(ret == GEARMAN_SUCCESS, gearman_strerror(ret));
+  test_true_got(gearman_success(ret), gearman_strerror(ret));
   test_truth(task);
 
   do
@@ -78,7 +80,8 @@ test_return_t gearman_client_add_task_test_fail(void *object)
 
   gearman_return_t ret;
   gearman_task_st *task= gearman_client_add_task(client, NULL, NULL,
-                                                 worker_function, NULL, "fail", 4,
+                                                 worker_function, NULL,
+                                                 gearman_literal_param("fail"),
                                                  &ret);
   test_true_got(ret == GEARMAN_SUCCESS, gearman_strerror(ret));
   test_truth(task);
@@ -91,7 +94,7 @@ test_return_t gearman_client_add_task_test_fail(void *object)
   } while (gearman_task_is_running(task));
 
   test_true_got(ret == GEARMAN_SUCCESS, gearman_client_error(client));
-  test_true_got(gearman_task_error(task) == GEARMAN_WORK_FAIL, gearman_strerror(task->result_rc));
+  test_true_got(gearman_task_error(task) == GEARMAN_WORK_FAIL, gearman_strerror(gearman_task_error(task)));
 
   test_truth(task->client);
   gearman_task_free(task);
@@ -121,6 +124,47 @@ test_return_t gearman_client_add_task_test_bad_workload(void *object)
                                 &ret);
   test_true_got(ret == GEARMAN_INVALID_ARGUMENT, gearman_strerror(ret));
   test_false(task);
+
+  return TEST_SUCCESS;
+}
+
+static gearman_return_t gearman_exception_test_function(gearman_task_st *task)
+{
+  bool *success= (bool *)gearman_task_context(task);
+  if (not success)
+    return GEARMAN_WORK_FAIL;
+
+  *success= true;
+  return GEARMAN_SUCCESS;
+}
+
+test_return_t gearman_client_add_task_exception(void *object)
+{
+  gearman_client_st *client= (gearman_client_st *)object;
+  const char *worker_function= (const char *)gearman_client_context(client);
+
+  assert(worker_function);
+
+  gearman_return_t ret;
+
+  test_truth(gearman_client_set_server_option(client, gearman_literal_param("exceptions")));
+
+  gearman_client_set_exception_fn(client, gearman_exception_test_function);
+
+  bool exception_success= false;
+  gearman_task_st *task= gearman_client_add_task(client, NULL, &exception_success,
+                                                 worker_function, NULL,
+                                                 gearman_literal_param("exception"),
+                                                 &ret);
+  test_true_got(ret == GEARMAN_SUCCESS, gearman_strerror(ret));
+  test_truth(task);
+
+  ret= gearman_client_run_tasks(client);
+  test_true_got(ret == GEARMAN_SUCCESS, gearman_strerror(ret));
+  test_truth(exception_success);
+
+  gearman_client_set_exception_fn(client, NULL);
+  gearman_task_free(task);
 
   return TEST_SUCCESS;
 }
@@ -195,6 +239,45 @@ test_return_t gearman_client_add_task_low_background_test(void *object)
     test_true_got(ret == GEARMAN_SUCCESS, gearman_client_error(client));
   } while (gearman_task_is_running(task));
 
+  gearman_task_free(task);
+
+  return TEST_SUCCESS;
+}
+
+static gearman_return_t gearman_warning_test_function(gearman_task_st *task)
+{
+  bool *success= (bool *)gearman_task_context(task);
+  if (not success)
+    return GEARMAN_WORK_FAIL;
+
+  *success= true;
+  return GEARMAN_SUCCESS;
+}
+
+test_return_t gearman_client_add_task_warning(void *object)
+{
+  gearman_client_st *client= (gearman_client_st *)object;
+  const char *worker_function= (const char *)gearman_client_context(client);
+
+  assert(worker_function);
+
+  gearman_return_t ret;
+
+  gearman_client_set_warning_fn(client, gearman_warning_test_function);
+
+  bool warning_success= false;
+  gearman_task_st *task= gearman_client_add_task(client, NULL, &warning_success,
+                                                 worker_function, NULL,
+                                                 gearman_literal_param("warning"),
+                                                 &ret);
+  test_true_got(ret == GEARMAN_SUCCESS, gearman_strerror(ret));
+  test_truth(task);
+
+  ret= gearman_client_run_tasks(client);
+  test_true_got(ret == GEARMAN_SUCCESS, gearman_strerror(ret));
+  test_truth(warning_success);
+
+  gearman_client_set_warning_fn(client, NULL);
   gearman_task_free(task);
 
   return TEST_SUCCESS;

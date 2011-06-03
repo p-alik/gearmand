@@ -7,14 +7,14 @@
 # the COPYING file in this directory for full text.
 
 AC_PREREQ(2.59)
-AC_INIT([gearmand],[0.20],[https://launchpad.net/gearmand])
+AC_INIT([gearmand],[0.21],[https://launchpad.net/gearmand])
 AC_CONFIG_SRCDIR(libgearman/gearman.cc)
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIR(m4)
 
 PANDORA_CANONICAL_TARGET(require-cxx, no-vc-changelog)
 
-GEARMAN_LIBRARY_VERSION=5:1:1
+GEARMAN_LIBRARY_VERSION=6:0:0
 #                       | | |
 #                +------+ | +---+
 #                |        |     |
@@ -94,6 +94,7 @@ AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([dup2 gettimeofday memchr memmove memset socket strcasecmp strdup strerror strncasecmp uname])
 
 AC_CONFIG_FILES(Makefile
+                docs/conf.py
                 libgearman/version.h
                 scripts/gearmand
                 scripts/gearmand-init

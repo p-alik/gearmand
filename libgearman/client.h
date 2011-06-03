@@ -43,12 +43,7 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/**
- * @addtogroup gearman_client Client Declarations
+/** @addtogroup gearman_client Client Declarations
  *
  * This is the interface gearman clients should use. You can run tasks one at a
  * time or concurrently.
@@ -88,6 +83,10 @@ struct gearman_client_st
   struct gearman_universal_st universal;
   struct gearman_actions_t actions;
 };
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * Initialize a client structure. Always check the return value even if passing
@@ -353,17 +352,9 @@ void *gearman_client_do_low(gearman_client_st *client,
  *  handle.
  */
 GEARMAN_API
-const char *gearman_client_do_job_handle(const gearman_client_st *client);
+const char *gearman_client_do_job_handle(gearman_client_st *client);
 
-/**
- * Get the status for the running task. This should be used between
- * repeated gearman_client_do() (and related) calls to get information.
- *
- * @param[in] client Structure previously initialized with
- *  gearman_client_create() or gearman_client_clone().
- * @param[out] numerator Optional parameter to store the numerator in.
- * @param[out] denominator Optional parameter to store the denominator in.
- */
+// Deprecatd 
 GEARMAN_API
 void gearman_client_do_status(gearman_client_st *client, uint32_t *numerator,
                               uint32_t *denominator);
@@ -387,7 +378,7 @@ gearman_return_t gearman_client_do_background(gearman_client_st *client,
                                               const char *unique,
                                               const void *workload,
                                               size_t workload_size,
-                                              char *job_handle);
+                                              gearman_job_handle_t job_handle);
 
 /**
  * Run a high priority task in the background. See
@@ -399,7 +390,7 @@ gearman_return_t gearman_client_do_high_background(gearman_client_st *client,
                                                    const char *unique,
                                                    const void *workload,
                                                    size_t workload_size,
-                                                   char *job_handle);
+                                                   gearman_job_handle_t job_handle);
 
 /**
  * Run a low priority task in the background. See
@@ -411,7 +402,7 @@ gearman_return_t gearman_client_do_low_background(gearman_client_st *client,
                                                   const char *unique,
                                                   const void *workload,
                                                   size_t workload_size,
-                                                  char *job_handle);
+                                                  gearman_job_handle_t job_handle);
 
 /**
  * Get the status for a backgound job.
@@ -427,7 +418,7 @@ gearman_return_t gearman_client_do_low_background(gearman_client_st *client,
  */
 GEARMAN_API
 gearman_return_t gearman_client_job_status(gearman_client_st *client,
-                                           const char *job_handle,
+                                           const gearman_job_handle_t job_handle,
                                            bool *is_known, bool *is_running,
                                            uint32_t *numerator,
                                            uint32_t *denominator);
@@ -479,15 +470,6 @@ GEARMAN_API
 void gearman_client_set_task_context_free_fn(gearman_client_st *client,
                                              gearman_task_context_free_fn *function);
 
-// Use the job handle in task for returning all information.
-GEARMAN_API
-bool gearman_client_execute(gearman_client_st *client,
-                            const gearman_function_st *function,
-                            gearman_workload_t *workload);
-
-GEARMAN_API
-bool gearman_client_execute_batch(gearman_client_st *client,
-                                  gearman_batch_t *batch);
 
 /**
  * Add a task to be run in parallel.
@@ -712,8 +694,20 @@ void gearman_client_clear_fn(gearman_client_st *client);
 GEARMAN_API
 gearman_return_t gearman_client_run_tasks(gearman_client_st *client);
 
+GEARMAN_LOCAL
+gearman_return_t gearman_client_run_block_tasks(gearman_client_st *client);
+
 GEARMAN_API
 bool gearman_client_compare(const gearman_client_st *first, const gearman_client_st *second);
+
+GEARMAN_API
+bool gearman_client_set_server_option(gearman_client_st *self, const char *option_arg, size_t option_arg_size);
+
+GEARMAN_LOCAL
+size_t gearman_client_count_tasks(gearman_client_st *client);
+
+GEARMAN_API
+void gearman_client_set_namespace(gearman_client_st *self, const char *namespace_key, size_t namespace_key_size);
 
 /** @} */
 

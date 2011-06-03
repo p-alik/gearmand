@@ -85,6 +85,7 @@ struct gearman_task_st
     bool send_in_use;
     bool is_known;
     bool is_running;
+    bool was_reduced;
   } options;
   enum gearman_task_state_t state;
   uint32_t created_id;
@@ -99,10 +100,11 @@ struct gearman_task_st
   gearman_packet_st send;
   struct gearman_actions_t func;
   gearman_return_t result_rc;
-  struct gearman_string_st *result_ptr;
+  struct gearman_result_st *result_ptr;
   char job_handle[GEARMAN_JOB_HANDLE_SIZE];
 };
 
+#ifdef __cplusplus
 /**
  * Initialize a task structure.
  *
@@ -113,8 +115,13 @@ struct gearman_task_st
  *  failure this will be NULL.
  */
 GEARMAN_LOCAL
-gearman_task_st *gearman_task_create(gearman_client_st *client,
-                                     gearman_task_st *task);
+gearman_task_st *gearman_task_internal_create(gearman_client_st *client,
+                                              gearman_task_st *task);
+
+GEARMAN_LOCAL
+const char *gearman_task_strstate(gearman_task_st *self);
+
+#endif
 
 GEARMAN_LOCAL
 void gearman_task_clear_fn(gearman_task_st *task);
@@ -134,6 +141,9 @@ void gearman_task_free(gearman_task_st *task);
  */
 GEARMAN_API
 const void *gearman_task_context(const gearman_task_st *task);
+
+GEARMAN_LOCAL
+bool gearman_task_is_active(const gearman_task_st *self);
 
 /**
  * Set context for a task.
@@ -229,10 +239,13 @@ GEARMAN_API
 gearman_return_t gearman_task_error(const gearman_task_st *task);
 
 GEARMAN_API
-size_t gearman_task_result_size(const gearman_task_st *task);
+gearman_result_st *gearman_task_result(gearman_task_st *task);
 
-GEARMAN_API
-const void *gearman_task_result(const gearman_task_st *task);
+GEARMAN_LOCAL
+gearman_result_st *gearman_task_mutable_result(gearman_task_st *task);
+
+GEARMAN_LOCAL
+void gearman_task_free_result(gearman_task_st *task);
 
 /** @} */
 

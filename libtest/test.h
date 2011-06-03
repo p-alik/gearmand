@@ -158,11 +158,23 @@ void create_core(void);
 LIBTEST_INTERNAL_API
 const char *test_strerror(test_return_t code);
 
+#define test_assert_errno(A) \
+do \
+{ \
+  if ((A)) { \
+    fprintf(stderr, "\nAssertion failed at %s:%d: ", __FILE__, __LINE__);\
+    perror(#A); \
+    fprintf(stderr, "\n"); \
+    create_core(); \
+    assert((A)); \
+  } \
+} while (0)
+
 #define test_truth(A) \
 do \
 { \
   if (! (A)) { \
-    fprintf(stderr, "\nAssertion failed in %s:%d: %s\n", __FILE__, __LINE__, #A);\
+    fprintf(stderr, "\nAssertion failed at %s:%d: %s\n", __FILE__, __LINE__, #A);\
     create_core(); \
     return TEST_FAILURE; \
   } \
@@ -193,7 +205,18 @@ do \
 { \
   if ((A) != (B)) \
   { \
-    fprintf(stderr, "\n%s:%d: Expected %lu == %lu\n", __FILE__, __LINE__, (unsigned long)(A), (unsigned long)(B)); \
+    fprintf(stderr, "\n%s:%d: Expected %lu, got %lu\n", __FILE__, __LINE__, (unsigned long)(A), (unsigned long)(B)); \
+    create_core(); \
+    return TEST_FAILURE; \
+  } \
+} while (0)
+
+#define test_compare_got(A,B,C) \
+do \
+{ \
+  if ((A) != (B)) \
+  { \
+    fprintf(stderr, "\n%s:%d: Expected %s, got %s\n", __FILE__, __LINE__, #A, (C)); \
     create_core(); \
     return TEST_FAILURE; \
   } \
@@ -205,7 +228,7 @@ do \
 { \
   if (strcmp((A), (B))) \
   { \
-    fprintf(stderr, "\n%s:%d: %s -> %s\n", __FILE__, __LINE__, (A), (B)); \
+    fprintf(stderr, "\n%s:%d: Expected %s, got %s\n", __FILE__, __LINE__, (A), (B)); \
     create_core(); \
     return TEST_FAILURE; \
   } \

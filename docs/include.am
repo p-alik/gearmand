@@ -2,14 +2,10 @@
 # included from Top Level Makefile.am
 # All paths should be given relative to the root
 
-EXTRA_DIST+= \
-	     docs/conf.py \
-	     docs/*.rst
-
 # Makefile for Sphinx documentation
 #
 
-SPHINXOPTS    = ${SPHINX_WARNINGS} -D release=${PANDORA_RELEASE_VERSION}
+SPHINXOPTS    = ${SPHINX_WARNINGS}
 PAPER         =
 SPHINX_BUILDDIR      = ${top_builddir}/docs
 
@@ -23,6 +19,7 @@ ALLSPHINXOPTS   = -d $(SPHINX_BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOP
 man_MANS+= \
 	   docs/man/gearadmin.1 \
 	   docs/man/gearman.1 \
+	   docs/man/gearman_actions_t.3 \
 	   docs/man/gearman_bugreport.3 \
 	   docs/man/gearman_client_add_options.3 \
 	   docs/man/gearman_client_add_server.3 \
@@ -49,7 +46,6 @@ man_MANS+= \
 	   docs/man/gearman_client_echo.3 \
 	   docs/man/gearman_client_errno.3 \
 	   docs/man/gearman_client_error.3 \
-	   docs/man/gearman_client_execute.3 \
 	   docs/man/gearman_client_free.3 \
 	   docs/man/gearman_client_job_status.3 \
 	   docs/man/gearman_client_options.3 \
@@ -63,6 +59,7 @@ man_MANS+= \
 	   docs/man/gearman_client_set_exception_fn.3 \
 	   docs/man/gearman_client_set_fail_fn.3 \
 	   docs/man/gearman_client_set_log_fn.3 \
+	   docs/man/gearman_client_set_namespace.3 \
 	   docs/man/gearman_client_set_options.3 \
 	   docs/man/gearman_client_set_status_fn.3 \
 	   docs/man/gearman_client_set_task_context_free_fn.3 \
@@ -75,12 +72,19 @@ man_MANS+= \
 	   docs/man/gearman_client_task_free_all.3 \
 	   docs/man/gearman_client_timeout.3 \
 	   docs/man/gearman_client_wait.3 \
+	   docs/man/gearman_return_t.3 \
+	   docs/man/gearman_success.3 \
+	   docs/man/gearman_continue.3 \
+	   docs/man/gearman_strerror.3 \
+	   docs/man/gearman_failed.3 \
 	   docs/man/gearman_create.3 \
-	   docs/man/gearman_function_st.3 \
+	   docs/man/gearman_execute.3 \
+	   docs/man/gearman_execute_map_reduce.3 \
 	   docs/man/gearman_job_free.3 \
 	   docs/man/gearman_job_free_all.3 \
 	   docs/man/gearman_job_function_name.3 \
 	   docs/man/gearman_job_handle.3 \
+	   docs/man/gearman_job_handle_t.3 \
 	   docs/man/gearman_job_send_complete.3 \
 	   docs/man/gearman_job_send_data.3 \
 	   docs/man/gearman_job_send_exception.3 \
@@ -94,9 +98,6 @@ man_MANS+= \
 	   docs/man/gearman_job_workload_size.3 \
 	   docs/man/gearman_parse_servers.3 \
 	   docs/man/gearman_state_t.3 \
-	   docs/man/gearman_status_is_successful.3 \
-	   docs/man/gearman_status_t.3 \
-	   docs/man/gearman_status_task.3 \
 	   docs/man/gearman_task_context.3 \
 	   docs/man/gearman_task_data.3 \
 	   docs/man/gearman_task_data_size.3 \
@@ -136,6 +137,7 @@ man_MANS+= \
 	   docs/man/gearman_worker_remove_servers.3 \
 	   docs/man/gearman_worker_set_context.3 \
 	   docs/man/gearman_worker_set_log_fn.3 \
+	   docs/man/gearman_worker_set_namespace.3 \
 	   docs/man/gearman_worker_set_options.3 \
 	   docs/man/gearman_worker_set_timeout.3 \
 	   docs/man/gearman_worker_set_workload_free_fn.3 \
@@ -169,38 +171,38 @@ sphinx-help:
 	@echo "  linkcheck  to check all external links for integrity"
 	@echo "  doctest    to run all doctests embedded in the documentation (if enabled)"
 
-html-local:
+html-local: docs/conf.py
 	PYTHONPATH=${top_srcdir}/docs $(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(SPHINX_BUILDDIR)/html."
 
-dirhtml:
+dirhtml: docs/conf.py
 	PYTHONPATH=${top_srcdir}/docs $(SPHINXBUILD) -b dirhtml $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/dirhtml
 	@echo
 	@echo "Build finished. The HTML pages are in $(SPHINX_BUILDDIR)/dirhtml."
 
-singlehtml:
+singlehtml: docs/conf.py
 	PYTHONPATH=${top_srcdir}/docs  $(SPHINXBUILD) -b singlehtml $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/singlehtml
 	@echo
 	@echo "Build finished. The HTML page is in $(SPHINX_BUILDDIR)/singlehtml."
 
-pickle:
+pickle: docs/conf.py
 	PYTHONPATH=${top_srcdir}/docs  $(SPHINXBUILD) -b pickle $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/pickle
 	@echo
 	@echo "Build finished; now you can process the pickle files."
 
-json:
+json: docs/conf.py
 	PYTHONPATH=${top_srcdir}/docs  $(SPHINXBUILD) -b json $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/json
 	@echo
 	@echo "Build finished; now you can process the JSON files."
 
-htmlhelp:
+htmlhelp: docs/conf.py
 	PYTHONPATH=${top_srcdir}/docs  $(SPHINXBUILD) -b htmlhelp $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/htmlhelp
 	@echo
 	@echo "Build finished; now you can run HTML Help Workshop with the" \
 	      ".hhp project file in $(SPHINX_BUILDDIR)/htmlhelp."
 
-qthelp:
+qthelp: docs/conf.py
 	PYTHONPATH=${top_srcdir}/docs  $(SPHINXBUILD) -b qthelp $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/qthelp
 	@echo
 	@echo "Build finished; now you can run "qcollectiongenerator" with the" \
@@ -209,7 +211,7 @@ qthelp:
 	@echo "To view the help file:"
 	@echo "# assistant -collectionFile $(SPHINX_BUILDDIR)/qthelp/Libmemcached.qhc"
 
-devhelp:
+devhelp: docs/conf.py
 	PYTHONPATH=${top_srcdir}/docs  $(SPHINXBUILD) -b devhelp $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/devhelp
 	@echo
 	@echo "Build finished."
@@ -218,12 +220,12 @@ devhelp:
 	@echo "# ln -s $(SPHINX_BUILDDIR)/devhelp $$HOME/.local/share/devhelp/Libmemcached"
 	@echo "# devhelp"
 
-epub:
+epub: docs/conf.py
 	PYTHONPATH=${top_srcdir}/docs  $(SPHINXBUILD) -b epub $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/epub
 	@echo
 	@echo "Build finished. The epub file is in $(SPHINX_BUILDDIR)/epub."
 
-latex:
+latex: docs/conf.py
 	PYTHONPATH=${top_srcdir}/docs  $(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/latex
 	@echo
 	@echo "Build finished; the LaTeX files are in $(SPHINX_BUILDDIR)/latex."
@@ -236,30 +238,47 @@ latexpdf: latex
 	make -C $(SPHINX_BUILDDIR)/latex all-pdf
 	@echo "pdflatex finished; the PDF files are in $(SPHINX_BUILDDIR)/latex."
 
-text:
+text: docs/conf.py
 	PYTHONPATH=${top_srcdir}/docs  $(SPHINXBUILD) -b text $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/text
 	@echo
 	@echo "Build finished. The text files are in $(SPHINX_BUILDDIR)/text."
 
-man:
+man: docs/conf.py
 	PYTHONPATH=${top_srcdir}/docs  $(SPHINXBUILD) -b man $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/man
 	@echo
 	@echo "Build finished. The manual pages are in $(SPHINX_BUILDDIR)/man."
 
-changes:
+changes: docs/conf.py
 	PYTHONPATH=${top_srcdir}/docs  $(SPHINXBUILD) -b changes $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/changes
 	@echo
 	@echo "The overview file is in $(SPHINX_BUILDDIR)/changes."
 
-linkcheck:
+linkcheck: docs/conf.py
 	PYTHONPATH=${top_srcdir}/docs  $(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/linkcheck
 	@echo
 	@echo "Link check complete; look for any errors in the above output " \
 	      "or in $(SPHINX_BUILDDIR)/linkcheck/output.txt."
 
-doctest:
+doctest: docs/conf.py
 	PYTHONPATH=${top_srcdir}/docs  $(SPHINXBUILD) -b doctest $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/doctest
 	@echo "Testing of doctests in the sources finished, look at the " \
 	      "results in $(SPHINX_BUILDDIR)/doctest/output.txt."
+
+SUFFIXES: .3 .1 .8
+
+.1: man
+.3: man
+.8: man
+
 endif
 
+noinst_PROGRAMS+= \
+		  docs/libgearman/examples/gearman_client_do_example \
+		  docs/libgearman/examples/gearman_client_do_background_example
+
+
+docs_libgearman_examples_gearman_client_do_example_SOURCES= docs/libgearman/examples/gearman_client_do_example.c
+docs_libgearman_examples_gearman_client_do_example_LDADD= libgearman/libgearman.la
+
+docs_libgearman_examples_gearman_client_do_background_example_SOURCES= docs/libgearman/examples/gearman_client_do_background_example.c
+docs_libgearman_examples_gearman_client_do_background_example_LDADD= libgearman/libgearman.la

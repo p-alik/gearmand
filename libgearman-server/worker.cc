@@ -55,9 +55,9 @@ gearman_server_worker_create(gearman_server_con_st *con, gearman_server_function
   else
   {
     worker= static_cast<gearman_server_worker_st *>(malloc(sizeof(gearman_server_worker_st)));
-    if (worker == NULL)
+    if (not worker)
     {
-      gearmand_log_error("gearman_server_worker_create", "malloc");
+      gearmand_merror("malloc", 0, sizeof(gearman_server_worker_st));
       return NULL;
     }
   }

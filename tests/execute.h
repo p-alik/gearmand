@@ -37,10 +37,9 @@
 
 #pragma once
 
-test_return_t gearman_client_execute_test(void *object);
-test_return_t gearman_client_execute_timeout_test(void *object);
-test_return_t gearman_client_execute_epoch_test(void *object);
-test_return_t gearman_client_execute_bg_test(void *object);
-test_return_t gearman_client_execute_multile_bg_test(void *object);
-test_return_t gearman_client_execute_in_bulk(void *object);
-test_return_t gearman_client_execute_in_bulk_fail(void *object);
+test_return_t gearman_execute_test(void *object);
+test_return_t gearman_execute_fail_test(void *object);
+test_return_t gearman_execute_timeout_test(void *object);
+test_return_t gearman_execute_epoch_test(void *object);
+test_return_t gearman_execute_bg_test(void *object);
+test_return_t gearman_execute_multile_bg_test(void *object);

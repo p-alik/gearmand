@@ -37,6 +37,8 @@
 
 #pragma once
 
+#include <libgearman/client_callbacks.h>
+
 struct gearman_actions_t
 {
   gearman_workload_fn *workload_fn;
@@ -49,9 +51,15 @@ struct gearman_actions_t
   gearman_fail_fn *fail_fn;
 };
 
-GEARMAN_LOCAL
-struct gearman_actions_t gearman_actions_default(void);
+#ifdef __cplusplus // Local only
 
 GEARMAN_LOCAL
-struct gearman_actions_t gearman_actions_do_default(void);
+gearman_actions_t &gearman_actions_default(void);
 
+GEARMAN_LOCAL
+gearman_actions_t &gearman_actions_do_default(void);
+
+GEARMAN_LOCAL
+gearman_actions_t &gearman_actions_execute_defaults(void);
+
+#endif

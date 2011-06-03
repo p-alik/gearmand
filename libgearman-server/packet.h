@@ -50,13 +50,6 @@ struct gearmand_packet_st
   char args_buffer[GEARMAN_ARGS_BUFFER_SIZE];
 };
 
-struct gearman_command_info_st
-{
-  const char *name;
-  const uint8_t argc; // Number of arguments to commands.
-  const bool data;
-};
-
 /**
  * @addtogroup gearman_server_packet Packet Declarations
  * @ingroup gearman_server
@@ -81,6 +74,9 @@ GEARMAN_API
 gearman_server_packet_st *
 gearman_server_packet_create(gearman_server_thread_st *thread,
                              bool from_thread);
+
+GEARMAN_LOCAL
+const char *gearmand_strcommand(gearmand_packet_st *packet);
 
 /**
  * Free a server connection structure.
@@ -119,13 +115,6 @@ void gearman_server_proc_packet_add(gearman_server_con_st *con,
 GEARMAN_API
 gearman_server_packet_st *
 gearman_server_proc_packet_remove(gearman_server_con_st *con);
-
-/**
- * Command information array.
- * @ingroup gearman_constants
- */
-extern GEARMAN_INTERNAL_API
-struct gearman_command_info_st gearmand_command_info_list[GEARMAN_COMMAND_MAX];
 
 
 /**

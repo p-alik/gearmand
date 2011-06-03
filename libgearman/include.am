@@ -2,7 +2,7 @@
 # Gearman server and library 
 # Copyright (C) 2008 Brian Aker, Eric Day 
 # Copyright (C) 2009-2010 Brian Aker, Eric Day, Monty Taylor All rights
-# reserved.
+# Copyright (C) 2011 Data Differential, http://datadifferential.com/
 #
 # Use and distribution licensed under the BSD license.  See
 # the COPYING file in the parent directory for full text.
@@ -12,66 +12,96 @@
 
 nobase_include_HEADERS+= \
 			 libgearman/actions.h \
+			 libgearman/aggregator.h \
+			 libgearman/argument.h \
 			 libgearman/byteorder.h \
 			 libgearman/client.h \
+			 libgearman/client_callbacks.h \
 			 libgearman/command.h \
 			 libgearman/configure.h \
 			 libgearman/connection.h \
 			 libgearman/constants.h \
 			 libgearman/core.h \
-			 libgearman/function.h \
+			 libgearman/execute.h \
 			 libgearman/gearman.h \
 			 libgearman/job.h \
+			 libgearman/job_handle.h \
 			 libgearman/log.h \
 			 libgearman/packet.h \
+			 libgearman/parse.h \
+			 libgearman/priority.h \
 			 libgearman/protocol.h \
+			 libgearman/result.h \
 			 libgearman/return.h \
 			 libgearman/strerror.h \
+			 libgearman/string.h \
 			 libgearman/task.h \
-			 libgearman/unique.h \
 			 libgearman/universal.h \
 			 libgearman/version.h \
 			 libgearman/visibility.h \
 			 libgearman/worker.h \
-			 libgearman/workload.h
+			 libgearman/work.h
 
 noinst_HEADERS+= \
-		 libgearman/add.h \
+		 libgearman/add.hpp \
+		 libgearman/aggregator.hpp \
 		 libgearman/common.h \
 		 libgearman/connection.hpp \
+		 libgearman/do.hpp \
+		 libgearman/function/base.hpp \
+		 libgearman/function/basic.hpp \
+		 libgearman/function/make.hpp \
+		 libgearman/function/mapper.hpp \
 		 libgearman/log.h \
+		 libgearman/packet.hpp \
+		 libgearman/result.hpp \
+		 libgearman/run.hpp \
 		 libgearman/strcommand.h \
-		 libgearman/string.h
+		 libgearman/unique.h \
+		 libgearman/universal.hpp \
+		 libgearman/vector.hpp
 
 noinst_LTLIBRARIES+= libgearman/libgearmancore.la
 libgearman_libgearmancore_la_SOURCES= \
 				      libgearman/byteorder.cc \
+				      libgearman/command.cc \
 				      libgearman/connection.cc \
 				      libgearman/log.cc \
 				      libgearman/packet.cc \
+				      libgearman/strcommand.cc \
 				      libgearman/strerror.cc \
-				      libgearman/universal.cc
+				      libgearman/universal.cc \
+				      libgearman/vector.cc
 
 lib_LTLIBRARIES+= libgearman/libgearman.la
 libgearman_libgearman_la_SOURCES= \
 				  libgearman/actions.cc \
+				  libgearman/aggregator.cc \
+				  libgearman/argument.cc \
 				  libgearman/add.cc \
 				  libgearman/byteorder.cc \
 				  libgearman/client.cc \
+				  libgearman/command.cc \
 				  libgearman/connection.cc \
-				  libgearman/function.cc \
+				  libgearman/do.cc \
+				  libgearman/execute.cc \
+				  libgearman/function/make.cc \
 				  libgearman/gearman.cc \
 				  libgearman/job.cc \
 				  libgearman/log.cc \
 				  libgearman/packet.cc \
+				  libgearman/parse.cc \
+				  libgearman/result.cc \
+				  libgearman/run.cc \
 				  libgearman/strcommand.cc \
 				  libgearman/strerror.cc \
 				  libgearman/string.cc \
 				  libgearman/task.cc \
 				  libgearman/unique.cc \
 				  libgearman/universal.cc \
+				  libgearman/vector.cc \
 				  libgearman/worker.cc \
-				  libgearman/workload.cc
+				  libgearman/work.cc
 
 libgearman_libgearman_la_DEPENDENCIES=
 
@@ -82,3 +112,4 @@ libgearman_libgearman_la_LDFLAGS= \
 libgearman_libgearman_la_LIBADD= \
 				 $(LTLIBUUID)
 
+DISTCLEANFILES+= config/top.h

@@ -1,4 +1,4 @@
-.TH "GEARMAN_CLIENT_EXECUTE" "3" "April 13, 2011" "0.20" "Gearmand"
+.TH "GEARMAN_CLIENT_EXECUTE" "3" "May 24, 2011" "0.20" "Gearmand"
 .SH NAME
 gearman_client_execute \- Gearmand Documentation
 .
@@ -38,27 +38,21 @@ C Client Library for Gearmand (libgearman, \-lgearman)
 #include <libgearman/gearman.h>
 .INDENT 0.0
 .TP
-.B gearman_status_t gearman_client_execute(gearman_client_st *client,
-.TP
-.B const gearman_function_st *function,
-.TP
-.B gearman_unique_t *unique,
-.TP
-.B const gearman_workload_t *workload);
+.B gearman_task_st *gearman_client_execute(gearman_client_st\fI\ *client\fP, const char\fI\ *function_str\fP, size_t\fI\ function_length\fP, const char\fI\ *unique_str\fP, size_t\fI\ unique_length\fP, gearman_work_t\fI\ *workload\fP, gearman_argument_t\fI\ *arguments\fP)
 .UNINDENT
 .SH DESCRIPTION
 .sp
 gearman_client_execute() can be used to execute tasks against a gearman network.
 .SH RETURN
 .sp
-gearman_client_execute() returns a gearman_status_t.
+gearman_client_execute() returns a c:type:\fIgearman_task_st\fP.
 .SH HOME
 .sp
 To find out more information please check:
 \fI\%https://launchpad.net/gearmand\fP
 .SH SEE ALSO
 .sp
-\fIgearmand(8)\fP \fIlibgearman(3)\fP \fIgearman_status_t(3)\fP
+\fIgearmand(8)\fP \fIlibgearman(3)\fP
 .SH AUTHOR
 Data Differential http://datadifferential.com/
 .SH COPYRIGHT

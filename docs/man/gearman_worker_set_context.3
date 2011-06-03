@@ -1,4 +1,4 @@
-.TH "GEARMAN_WORKER_SET_CONTEXT" "3" "April 13, 2011" "0.20" "Gearmand"
+.TH "GEARMAN_WORKER_SET_CONTEXT" "3" "June 02, 2011" "0.21" "Gearmand"
 .SH NAME
 gearman_worker_set_context \- Gearmand Documentation
 .
@@ -30,55 +30,12 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 ..
 .\" Man page generated from reStructeredText.
 .
-.SH LIBRARY
-.sp
-C Client Library for Gearmand (libgearman, \-lgearman)
 .SH SYNOPSIS
 .sp
 #include <libgearman/gearman.h>
 .INDENT 0.0
 .TP
 .B gearman_worker_st
-.UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_client_st *gearman_client_create(gearman_client_st *client);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_worker_st *gearman_worker_create(gearman_worker_st *worker);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker, const gearman_worker_st *from);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B void gearman_worker_free(gearman_worker_st *worker);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B const char *gearman_worker_error(const gearman_worker_st *worker);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B int gearman_worker_errno(gearman_worker_st *worker);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_worker_options_t gearman_worker_options(const gearman_worker_st *worker);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B void gearman_worker_set_options(gearman_worker_st *worker, gearman_worker_options_t options);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B void gearman_worker_add_options(gearman_worker_st *worker, gearman_worker_options_t options);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B void gearman_worker_remove_options(gearman_worker_st *worker, gearman_worker_options_t options);
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -155,10 +112,6 @@ C Client Library for Gearmand (libgearman, \-lgearman)
 .INDENT 0.0
 .TP
 .B gearman_return_t gearman_worker_work(gearman_worker_st *worker);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_return_t gearman_worker_echo(gearman_worker_st *worker, const void *workload, size_t workload_size);
 .UNINDENT
 .SH DESCRIPTION
 .sp

@@ -13,8 +13,20 @@
 
 #include <libgearman-server/common.h>
 
+#define GEARMAN_CORE
+#include <libgearman/command.h>
+
+#ifdef __cplusplus
+
+#include <cassert>
+#include <cerrno>
+
+#else
+
 #include <assert.h>
 #include <errno.h>
+
+#endif
 
 /*
  * Private declarations
@@ -190,7 +202,7 @@ gearman_server_thread_run(gearman_server_thread_st *thread,
   {
     gearman_server_con_st *server_con;
 
-    while ((server_con= gearmand_ready(thread->gearman)) != NULL)
+    while ((server_con= gearmand_ready(thread->gearman)))
     {
       /* Try to read new packets. */
       if (server_con->con.revents & POLLIN)
@@ -216,7 +228,7 @@ gearman_server_thread_run(gearman_server_thread_st *thread,
   if (! (Server->flags.threaded))
   {
     gearman_server_con_st *server_con;
-    while ((server_con= gearman_server_con_io_next(thread)) != NULL)
+    while ((server_con= gearman_server_con_io_next(thread)))
     {
       *ret_ptr= _thread_packet_flush(server_con);
       if (*ret_ptr != GEARMAN_SUCCESS && *ret_ptr != GEARMAN_IO_WAIT)
@@ -256,34 +268,34 @@ gearman_server_thread_run(gearman_server_thread_st *thread,
 
 static gearmand_error_t _thread_packet_read(gearman_server_con_st *con)
 {
-  gearmand_error_t ret;
-
   while (1)
   {
     if (con->packet == NULL)
     {
-      con->packet= gearman_server_packet_create(con->thread, true);
-      if (con->packet == NULL)
+      if (! (con->packet= gearman_server_packet_create(con->thread, true)))
       {
         return GEARMAN_MEMORY_ALLOCATION_FAILURE;
       }
     }
 
-    ret= gearman_io_recv(con, true);
-    if (ret != GEARMAN_SUCCESS)
+    gearmand_error_t ret;
+    if (gearmand_failed(ret= gearman_io_recv(con, true)))
     {
       if (ret == GEARMAN_IO_WAIT)
+      {
         break;
+      }
 
       gearman_server_packet_free(con->packet, con->thread, true);
       con->packet= NULL;
       return ret;
     }
 
-    gearmand_log_debug("%15s:%5u Received  %s",
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
+                       "Received %s %s:%u",
+                       gearman_command_info(con->packet->packet.command)->name,
                        con->_host == NULL ? "-" : con->_host,
-                       con->_port == NULL ? "-" : con->_port,
-                       gearmand_command_info_list[con->packet->packet.command].name);
+                       con->_port == NULL ? "-" : con->_port);
 
     /* We read a complete packet. */
     if (Server->flags.threaded)
@@ -295,12 +307,12 @@ static gearmand_error_t _thread_packet_read(gearman_server_con_st *con)
     else
     {
       /* Single threaded, run the command here. */
-      ret= gearman_server_run_command(con, &(con->packet->packet));
+      gearmand_error_t rc= gearman_server_run_command(con, &(con->packet->packet));
       gearmand_packet_free(&(con->packet->packet));
       gearman_server_packet_free(con->packet, con->thread, true);
       con->packet= NULL;
-      if (ret != GEARMAN_SUCCESS)
-        return ret;
+      if (gearmand_failed(rc))
+        return rc;
     }
   }
 
@@ -313,21 +325,22 @@ static gearmand_error_t _thread_packet_flush(gearman_server_con_st *con)
   if (con->con.events & POLLOUT)
     return GEARMAN_IO_WAIT;
 
-  while (con->io_packet_list != NULL)
+  while (con->io_packet_list)
   {
     gearmand_error_t ret;
 
     ret= gearman_io_send(con, &(con->io_packet_list->packet),
-                                 con->io_packet_list->next == NULL ? true : false);
-    if (ret != GEARMAN_SUCCESS)
+                         con->io_packet_list->next == NULL ? true : false);
+    if (gearmand_failed(ret))
     {
       return ret;
     }
 
-    gearmand_log_debug("%15s:%5d Sent      %s",
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, 
+                       "Sent %s to %s:%d",
+                       gearman_command_info(con->io_packet_list->packet.command)->name,
                        con->_host == NULL ? "-" : con->_host,
-                       con->_port == NULL ? "-" : con->_port,
-                       gearmand_command_info_list[con->io_packet_list->packet.command].name);
+                       con->_port == NULL ? "-" : con->_port);
 
     gearman_server_io_packet_remove(con);
   }
@@ -338,36 +351,37 @@ static gearmand_error_t _thread_packet_flush(gearman_server_con_st *con)
 
 static gearmand_error_t _proc_thread_start(gearman_server_st *server)
 {
-  pthread_attr_t attr;
-
-  if (pthread_mutex_init(&(server->proc_lock), NULL))
+  if ((errno= pthread_mutex_init(&(server->proc_lock), NULL)))
   {
     gearmand_perror("pthread_mutex_init");
-    return GEARMAN_PTHREAD;
+    return GEARMAN_ERRNO;
   }
 
-  if (pthread_cond_init(&(server->proc_cond), NULL))
+  if ((errno= pthread_cond_init(&(server->proc_cond), NULL)))
   {
     gearmand_perror("pthread_cond_init");
-    return GEARMAN_PTHREAD;
+    return GEARMAN_ERRNO;
   }
 
-  if (pthread_attr_init(&attr))
+  pthread_attr_t attr;
+  if ((errno= pthread_attr_init(&attr)))
   {
     gearmand_perror("pthread_attr_init");
-    return GEARMAN_PTHREAD;
+    return GEARMAN_ERRNO;
   }
 
-  if (pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM))
+  if ((errno= pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM)))
   {
     gearmand_perror("pthread_attr_setscope");
-    return GEARMAN_PTHREAD;
+    (void) pthread_attr_destroy(&attr);
+    return GEARMAN_ERRNO;
   }
 
-  if (pthread_create(&(server->proc_id), &attr, _proc, server))
+  if ((errno= pthread_create(&(server->proc_id), &attr, _proc, server)))
   {
     gearmand_perror("pthread_create");
-    return GEARMAN_PTHREAD;
+    (void) pthread_attr_destroy(&attr);
+    return GEARMAN_ERRNO;
   }
 
   (void) pthread_attr_destroy(&attr);

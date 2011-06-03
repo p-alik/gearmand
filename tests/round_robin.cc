@@ -48,17 +48,21 @@ test_return_t world_destroy(void *object);
 #endif
 
 /* append test for worker */
-static void *append_function(gearman_job_st *job __attribute__((unused)),
+static void *append_function(gearman_job_st *job,
                              void *context, size_t *result_size,
-                             gearman_return_t *ret_ptr __attribute__((unused)))
+                             gearman_return_t *ret_ptr)
 {
   /* this will will set the last char in the context (buffer) to the */
   /* first char of the work */
-  char * buf = (char *)context;
-  char * work = (char *)gearman_job_workload(job);
+  char *buf = (char *)context;
+  assert(buf);
+
+  char *work = (char *)gearman_job_workload(job);
   buf += strlen(buf);
-  *buf = *work;
+  *buf= *work;
   *result_size= 0;
+  *ret_ptr= GEARMAN_SUCCESS;
+
   return NULL;
 }
 
@@ -103,34 +107,34 @@ static test_return_t queue_add(void *object)
 static test_return_t queue_worker(void *object)
 {
   worker_test_st *test= (worker_test_st *)object;
+  test_truth(test);
+
   gearman_worker_st *worker= &(test->worker);
+  test_truth(worker);
+
   char buffer[11];
   memset(buffer, 0, sizeof(buffer));
 
   test_truth(test->run_worker);
 
-  if (gearman_worker_add_function(worker, "queue1", 5, append_function, buffer) != GEARMAN_SUCCESS)
-  {
-    return TEST_FAILURE;
-  }
+  test_compare_got(GEARMAN_SUCCESS,
+                   gearman_worker_add_function(worker, "queue1", 5, append_function, buffer),
+                   gearman_worker_error(worker));
 
-  if (gearman_worker_add_function(worker, "queue2", 5, append_function, buffer) != GEARMAN_SUCCESS)
-  {
-    return TEST_FAILURE;
-  }
+  test_compare_got(GEARMAN_SUCCESS,
+                   gearman_worker_add_function(worker, "queue2", 5, append_function, buffer),
+                   gearman_worker_error(worker));
 
   for (uint32_t x= 0; x < 10; x++)
   {
-    if (gearman_worker_work(worker) != GEARMAN_SUCCESS)
-      return TEST_FAILURE;
+    gearman_return_t rc;
+    test_compare_got(GEARMAN_SUCCESS,
+                     rc= gearman_worker_work(worker),
+                     gearman_worker_error(worker) ? gearman_worker_error(worker) : gearman_strerror(rc));
   }
 
   // expect buffer to be reassembled in a predictable round robin order
-  if( strcmp(buffer, "1032547698") ) 
-  {
-    fprintf(stderr, "\n\nexpecting 0123456789, got %s\n\n", buffer);
-    return TEST_FAILURE;
-  }
+  test_strcmp("1032547698", buffer);
 
   return TEST_SUCCESS;
 }

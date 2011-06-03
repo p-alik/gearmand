@@ -41,14 +41,14 @@
 /**
  * Return codes.
  */
-typedef enum
+enum gearman_return_t
 {
   GEARMAN_SUCCESS,
   GEARMAN_IO_WAIT,
   GEARMAN_SHUTDOWN,
   GEARMAN_SHUTDOWN_GRACEFUL,
   GEARMAN_ERRNO,
-  GEARMAN_EVENT,
+  GEARMAN_EVENT, // DEPRECATED, SERVER ONLY
   GEARMAN_TOO_MANY_ARGS,
   GEARMAN_NO_ACTIVE_FDS,
   GEARMAN_INVALID_MAGIC,
@@ -62,7 +62,7 @@ typedef enum
   GEARMAN_JOB_EXISTS,
   GEARMAN_JOB_QUEUE_FULL,
   GEARMAN_SERVER_ERROR,
-  GEARMAN_WORK_ERROR,
+  GEARMAN_WORK_ERROR, // DEPRECATED
   GEARMAN_WORK_DATA,
   GEARMAN_WORK_WARNING,
   GEARMAN_WORK_STATUS,
@@ -70,8 +70,8 @@ typedef enum
   GEARMAN_WORK_FAIL,
   GEARMAN_NOT_CONNECTED,
   GEARMAN_COULD_NOT_CONNECT,
-  GEARMAN_SEND_IN_PROGRESS,
-  GEARMAN_RECV_IN_PROGRESS,
+  GEARMAN_SEND_IN_PROGRESS, // DEPRECATED, SERVER ONLY
+  GEARMAN_RECV_IN_PROGRESS, // DEPRECATED, SERVER ONLY
   GEARMAN_NOT_FLUSHING,
   GEARMAN_DATA_TOO_LARGE,
   GEARMAN_INVALID_FUNCTION_NAME,
@@ -81,22 +81,37 @@ typedef enum
   GEARMAN_NO_JOBS,
   GEARMAN_ECHO_DATA_CORRUPTION,
   GEARMAN_NEED_WORKLOAD_FN,
-  GEARMAN_PAUSE,
+  GEARMAN_PAUSE, // Used only in custom application for client return based on work status, exception, or warning.
   GEARMAN_UNKNOWN_STATE,
-  GEARMAN_PTHREAD,
-  GEARMAN_PIPE_EOF,
-  GEARMAN_QUEUE_ERROR,
-  GEARMAN_FLUSH_DATA,
+  GEARMAN_PTHREAD, // DEPRECATED, SERVER ONLY
+  GEARMAN_PIPE_EOF, // DEPRECATED, SERVER ONLY
+  GEARMAN_QUEUE_ERROR, // DEPRECATED, SERVER ONLY
+  GEARMAN_FLUSH_DATA, // Internal state, should never be seen by either client or worker.
   GEARMAN_SEND_BUFFER_TOO_SMALL,
-  GEARMAN_IGNORE_PACKET,
-  GEARMAN_UNKNOWN_OPTION,
+  GEARMAN_IGNORE_PACKET, // Internal only
+  GEARMAN_UNKNOWN_OPTION, // DEPRECATED
   GEARMAN_TIMEOUT,
   GEARMAN_ARGUMENT_TOO_LARGE,
   GEARMAN_INVALID_ARGUMENT,
   GEARMAN_MAX_RETURN /* Always add new error code before */
-} gearman_return_t;
+};
 
-#define gearman_failed(X) (((X) != GEARMAN_SUCCESS) ? true : false)
-#define gearman_success(X) (((X) == GEARMAN_SUCCESS) ? true : false)
+#define gearman_continue(__gearman_return_t) (((__gearman_return_t) == GEARMAN_IO_WAIT) || ((__gearman_return_t) == GEARMAN_PAUSE) || ((__gearman_return_t) == GEARMAN_NO_ACTIVE_FDS))
+#define gearman_failed(__gearman_return_t) ((__gearman_return_t) != GEARMAN_SUCCESS)
+#define gearman_success(__gearman_return_t) ((__gearman_return_t) == GEARMAN_SUCCESS)
+
+enum gearman_worker_error_t
+{
+  GEARMAN_WORKER_SUCCESS= GEARMAN_SUCCESS,
+  GEARMAN_WORKER_FAILED= GEARMAN_WORK_FAIL,
+  GEARMAN_WORKER_TRY_AGAIN= GEARMAN_LOST_CONNECTION
+};
+
+#define gearman_worker_failed(X) (((X) != GEARMAN_WORKER_SUCCESS) ? true : false)
+#define gearman_worker_success(X) (((X) == GEARMAN_SUCCESS) ? true : false)
 
 
+#ifndef __cplusplus
+typedef enum gearman_return_t gearman_return_t;
+typedef enum gearman_worker_error_t gearman_worker_error_t;
+#endif

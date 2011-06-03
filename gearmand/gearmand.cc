@@ -96,9 +96,11 @@ struct gearmand_log_info_st
 
 static bool _set_fdlimit(rlim_t fds);
 static bool _switch_user(const char *user);
+
 extern "C" {
 static bool _set_signals(void);
 }
+
 static void _shutdown_handler(int signal_arg);
 static void _log(const char *line, gearmand_verbose_t verbose, void *context);
 
@@ -218,16 +220,24 @@ int main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
+  if (fds > 0 && _set_fdlimit(fds))
+  { 
+    return EXIT_FAILURE;
+  }
+
+  if (not user.empty() and _switch_user(user.c_str()))
+  {
+    return EXIT_FAILURE;
+  }
+
+  if (_set_signals())
+  {
+    return EXIT_FAILURE;
+  }
+
   if (opt_daemon)
   {
     gearmand::daemonize(false, true);
-  }
-
-  if ((fds > 0 && _set_fdlimit(fds))
-      or _switch_user(user.empty() ? NULL : user.c_str()) 
-      or _set_signals())
-  {
-    return EXIT_FAILURE;
   }
 
   if (opt_daemon)
@@ -252,7 +262,7 @@ int main(int argc, char *argv[])
 			     static_cast<uint8_t>(worker_wakeup),
                              _log, &log_info, verbose,
                              opt_round_robin);
-  if (_gearmand == NULL)
+  if (not _gearmand)
   {
     error::message("Could not create gearmand library instance.");
     return EXIT_FAILURE;
@@ -321,18 +331,12 @@ static bool _set_fdlimit(rlim_t fds)
 
 static bool _switch_user(const char *user)
 {
-  struct passwd *pw;
 
   if (getuid() == 0 || geteuid() == 0)
   {
-    if (user == NULL || user[0] == 0)
-    {
-      error::message("Must specify '-u root' if you want to run as root");
-      return true;
-    }
+    struct passwd *pw= getpwnam(user);
 
-    pw= getpwnam(user);
-    if (pw == NULL)
+    if (not pw)
     {
       error::message("Could not find user", user);
       return EXIT_FAILURE;
@@ -344,7 +348,7 @@ static bool _switch_user(const char *user)
       return EXIT_FAILURE;
     }
   }
-  else if (user != NULL)
+  else
   {
     error::message("Must be root to switch users.");
     return true;

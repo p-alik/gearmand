@@ -43,12 +43,7 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/**
- * @addtogroup gearman_worker Worker Declarations
+/** @addtogroup gearman_worker Worker Declarations
  *
  * This is the interface gearman workers should use.
  *
@@ -81,11 +76,9 @@ struct gearman_worker_st
     bool allocated;
     bool non_blocking;
     bool packet_init;
-    bool grab_job_in_use;
-    bool pre_sleep_in_use;
-    bool work_job_in_use;
     bool change;
     bool grab_uniq;
+    bool grab_all;
     bool timeout_return;
   } options;
   enum gearman_worker_state_t state;
@@ -104,8 +97,18 @@ struct gearman_worker_st
   struct gearman_universal_st universal;
   gearman_packet_st grab_job;
   gearman_packet_st pre_sleep;
-  gearman_job_st work_job;
+  gearman_job_st *work_job;
 };
+
+#ifdef __cplusplus
+#define gearman_has_reducer(A) (A) ? static_cast<bool>((A)->reducer.final_fn) : false
+#else
+#define gearman_has_reducer(A) (A) ? (bool)((A)->reducer.final_fn) : false
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 /**
@@ -409,6 +412,15 @@ gearman_return_t gearman_worker_add_function(gearman_worker_st *worker,
                                              gearman_worker_fn *function,
                                              void *context);
 
+GEARMAN_API
+  gearman_return_t gearman_worker_add_map_function(gearman_worker_st *worker,
+                                                   const char *function_name,
+                                                   size_t functiona_name_length,
+                                                   uint32_t timeout,
+                                                   gearman_mapper_fn *mapper_function,
+                                                   gearman_aggregator_fn *aggregator_function,
+                                                   void *context);
+
 /**
  * Wait for a job and call the appropriate callback function when it gets one.
  *
@@ -433,6 +445,12 @@ GEARMAN_API
 gearman_return_t gearman_worker_echo(gearman_worker_st *worker,
                                      const void *workload,
                                      size_t workload_size);
+
+GEARMAN_API
+bool gearman_worker_set_server_option(gearman_worker_st *self, const char *option_arg, size_t option_arg_size);
+
+GEARMAN_API
+void gearman_worker_set_namespace(gearman_worker_st *self, const char *namespace_key, size_t namespace_key_size);
 
 /** @} */
 

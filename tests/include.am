@@ -6,15 +6,21 @@
 # Use and distribution licensed under the BSD license.  See
 # the COPYING file in the parent directory for full text.
 
-VALGRIND_COMMAND= $(LIBTOOL) --mode=execute valgrind --leak-check=yes --show-reachable=yes
+VALGRIND_COMMAND= $(LIBTOOL) --mode=execute valgrind --leak-check=yes --show-reachable=yes --malloc-fill=A5 --free-fill=DE --track-fds=yes
 
 noinst_HEADERS+= \
 		 tests/basic.h \
 		 tests/context.h \
-		 tests/do_background.cc \
+		 tests/do.h \
+		 tests/do_background.h \
 		 tests/execute.h \
 		 tests/gearman_client_do_job_handle.h \
-		 tests/task.h
+		 tests/gearman_execute_map_reduce.h \
+		 tests/protocol.h \
+		 tests/server_options.h \
+		 tests/task.h \
+		 tests/unique.h \
+		 tests/workers.h
 
 CLIENT_LDADD= \
 	      libtest/libtest.la \
@@ -36,13 +42,19 @@ noinst_PROGRAMS+= \
 		  tests/worker_test
 
 tests_client_test_SOURCES= \
-			   tests/batch.cc \
 			   tests/client_test.cc \
+			   tests/do.cc \
 			   tests/do_background.cc \
 			   tests/execute.cc \
 			   tests/gearman_client_do_job_handle.cc \
-			   tests/task.cc
+			   tests/gearman_execute_map_reduce.cc \
+			   tests/protocol.cc \
+			   tests/server_options.cc \
+			   tests/task.cc \
+			   tests/unique.cc \
+			   tests/workers.cc
 tests_client_test_LDADD= ${CLIENT_LDADD}
+tests_client_test_DEPENDENCIES= ${CLIENT_LDADD}
 
 tests_burnin_test_SOURCES= tests/burnin.cc
 tests_burnin_test_LDADD= ${CLIENT_LDADD}
@@ -66,19 +78,19 @@ tests_worker_test_LDADD= \
 tests_cpp_test_SOURCES= tests/cpp_test.cc
 tests_cpp_test_LDADD= ${CLIENT_LDADD}
 
-test-burnin:
+test-burnin: tests/burnin_test
 	@tests/burnin_test $(ARG1) $(ARG2)
 
-test-client:
+test-client: tests/client_test
 	@tests/client_test $(ARG1) $(ARG2)
 
-test-round-robin:
-	tests/round_robin_test $(ARG1) $(ARG2)
+test-round-robin: tests/round_robin_test
+	@tests/round_robin_test $(ARG1) $(ARG2)
 
-test-worker:
+test-worker: tests/worker_test
 	@tests/worker_test $(ARG1) $(ARG2)
 
-test-internals:
+test-internals: tests/internals_test
 	@tests/internals_test $(ARG1) $(ARG2)
 
 check-local: tests/var gearmand-test-args client-test libtest-tests
@@ -86,28 +98,34 @@ check-local: tests/var gearmand-test-args client-test libtest-tests
 libtest-tests: test-client test-round-robin test-worker test-internals test-libmemcached test-sqlite test-tokyocabinet test-burnin
 
 gdb-client: ${noinst_PROGRAMS}
-	$(LIBTOOL) --mode=execute gdb tests/client_test
+	@$(LIBTOOL) --mode=execute gdb tests/client_test
 
 gdb-round-robin: ${noinst_PROGRAMS}
-	$(LIBTOOL) --mode=execute gdb tests/round_robin_test
+	@$(LIBTOOL) --mode=execute gdb tests/round_robin_test
 
 gdb-worker: ${noinst_PROGRAMS}
-	$(LIBTOOL) --mode=execute gdb tests/worker_test
+	@$(LIBTOOL) --mode=execute gdb tests/worker_test
 
 gdb-internals: ${noinst_PROGRAMS}
-	$(LIBTOOL) --mode=execute gdb tests/internals_test
+	@$(LIBTOOL) --mode=execute gdb tests/internals_test
+
+gdb-burnin: ${noinst_PROGRAMS}
+	@$(LIBTOOL) --mode=execute gdb tests/burnin_test
 
 valgrind-client:
-	$(VALGRIND_COMMAND) tests/client_test $(ARG1) $(ARG2)
+	@$(VALGRIND_COMMAND) tests/client_test $(ARG1) $(ARG2)
 
 valgrind-round-robin:
-	$(VALGRIND_COMMAND) tests/round_robin_test $(ARG1) $(ARG2)
+	@$(VALGRIND_COMMAND) tests/round_robin_test $(ARG1) $(ARG2)
 
-valgrind-worker:
-	$(VALGRIND_COMMAND) tests/worker_test $(ARG1) $(ARG2)
+valgrind-worker: tests/worker_test
+	@$(VALGRIND_COMMAND) tests/worker_test $(ARG1) $(ARG2)
 
-valgrind-internals:
-	$(VALGRIND_COMMAND) tests/internals_test $(ARG1) $(ARG2)
+valgrind-internals: tests/internals_test
+	@$(VALGRIND_COMMAND) tests/internals_test $(ARG1) $(ARG2)
+
+valgrind-burnin: tests/burnin_test
+	@$(VALGRIND_COMMAND) tests/burnin_test $(ARG1) $(ARG2)
 
 tests/var: tests/var/log tests/var/tmp
 	$(mkdir_p) tests/var
@@ -118,7 +136,7 @@ tests/var/log:
 tests/var/tmp:
 	$(mkdir_p) tests/var/tmp
 
-valgrind: ${noinst_PROGRAMS} valgrind-client valgrind-round-robin valgrind-worker valgrind-internals valgrind-sqlite valgrind-tokyocabinet
+valgrind: ${noinst_PROGRAMS} valgrind-client valgrind-round-robin valgrind-worker valgrind-internals valgrind-sqlite valgrind-tokyocabinet valgrind-burnin
 
 include tests/httpd.am
 include tests/libdrizzle.am

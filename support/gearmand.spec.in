@@ -50,8 +50,10 @@ Gearman provides a generic framework to farm out work to other machines, dispatc
 %{_includedir}/libgearman/log.h
 %{_includedir}/libgearman/packet.h
 %{_includedir}/libgearman/protocol.h
+%{_includedir}/libgearman/result.h
 %{_includedir}/libgearman/return.h
 %{_includedir}/libgearman/strerror.h
+%{_includedir}/libgearman/string.h
 %{_includedir}/libgearman/task.h
 %{_includedir}/libgearman/unique.h
 %{_includedir}/libgearman/universal.h

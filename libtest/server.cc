@@ -141,7 +141,7 @@ pid_t test_gearmand_start(in_port_t port, int argc, const char *argv[])
   }
   else
   {
-    std::cerr << "Starting up with:" << buffer.str() << std::endl;
+    setenv("GEARMAN_SERVER_STARTUP", buffer.str().c_str(), 1);
     int err= system(buffer.str().c_str());
     assert(err != -1);
   }
@@ -167,6 +167,7 @@ pid_t test_gearmand_start(in_port_t port, int argc, const char *argv[])
 
     char fgets_buffer[1024];
     char *found= fgets(fgets_buffer, sizeof(fgets_buffer), file);
+    fclose(file);
     if (not found)
     {
       return -1;
@@ -174,9 +175,9 @@ pid_t test_gearmand_start(in_port_t port, int argc, const char *argv[])
     gearmand_pid= atoi(fgets_buffer);
 
     if (gearmand_pid > 0)
+    {
       break;
-
-    fclose(file);
+    }
   }
 
   if (gearmand_pid == -1)

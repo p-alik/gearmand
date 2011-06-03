@@ -43,24 +43,6 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/**
- * @addtogroup gearman_job Job Declarations
- * @ingroup gearman_worker
- *
- * The job functions are used to manage jobs assigned to workers. It is most
- * commonly used with the worker interface.
- *
- * @{
- */
-
-
-/**
- * @ingroup gearman_job
- */
 struct gearman_job_st
 {
   struct {
@@ -75,7 +57,23 @@ struct gearman_job_st
   gearman_connection_st *con;
   gearman_packet_st assigned;
   gearman_packet_st work;
+  struct gearman_job_reducer_st *reducer;
+  gearman_return_t error_code;
 };
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/**
+ * @addtogroup gearman_job Job Declarations
+ * @ingroup gearman_worker
+ *
+ * The job functions are used to manage jobs assigned to workers. It is most
+ * commonly used with the worker interface.
+ *
+ * @{
+ */
 
 /**
  * Initialize a job structure. Always check the return value even if passing
@@ -105,8 +103,8 @@ void gearman_job_free(gearman_job_st *job);
  * Send data for a running job.
  */
 GEARMAN_API
-gearman_return_t gearman_job_send_data(gearman_job_st *job, const void *data,
-                                       size_t data_size);
+gearman_return_t gearman_job_send_data(gearman_job_st *job,
+                                       const void *data, size_t data_size);
 
 /**
  * Send warning for a running job.
@@ -132,6 +130,10 @@ gearman_return_t gearman_job_send_complete(gearman_job_st *job,
                                            const void *result,
                                            size_t result_size);
 
+GEARMAN_LOCAL
+gearman_return_t gearman_job_send_complete_fin(gearman_job_st *job,
+                                               const void *result, size_t result_size);
+
 /**
  * Send exception for a running job.
  */
@@ -146,6 +148,9 @@ gearman_return_t gearman_job_send_exception(gearman_job_st *job,
 GEARMAN_API
 gearman_return_t gearman_job_send_fail(gearman_job_st *job);
 
+GEARMAN_LOCAL
+gearman_return_t gearman_job_send_fail_fin(gearman_job_st *job);
+
 /**
  * Get job handle.
  */
@@ -156,13 +161,22 @@ const char *gearman_job_handle(const gearman_job_st *job);
  * Get the function name associated with a job.
  */
 GEARMAN_API
-const char *gearman_job_function_name(const gearman_job_st *job);
+  const char *gearman_job_function_name(const gearman_job_st *job);
 
 /**
  * Get the unique ID associated with a job.
  */
 GEARMAN_API
-const char *gearman_job_unique(const gearman_job_st *job);
+  const char *gearman_job_unique(const gearman_job_st *job);
+
+GEARMAN_LOCAL
+  const char *gearman_job_reducer(const gearman_job_st *job);
+
+GEARMAN_LOCAL
+  bool gearman_job_is_map(const gearman_job_st *job);
+
+GEARMAN_LOCAL
+  bool gearman_job_build_reducer(gearman_job_st *job, gearman_aggregator_fn *aggregator_fn);
 
 /**
  * Get a pointer to the workload for a job.

@@ -17,14 +17,11 @@ nobase_include_HEADERS =
 noinst_HEADERS =
 man_MANS =
 DISTCLEANFILES =
-EXTRA_DIST = config/top.h
+EXTRA_DIST =
 CLEANFILES =
 TESTS =
 
 GEARMAN_TMP = ${abs_top_builddir}/tests/var/tmp/
-
-CLEANFILES+= config/top.h
-
 
 include benchmark/include.am
 include bin/include.am
@@ -37,6 +34,8 @@ include libtest/include.am
 include tests/include.am
 include support/include.am
 include docs/include.am
+
+docs: html man
 
 TESTS += ${check_PROGRAMS}
 

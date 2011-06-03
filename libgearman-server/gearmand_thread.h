@@ -11,14 +11,13 @@
  * @brief Thread Declarations
  */
 
-#ifndef __GEARMAND_THREAD_H__
-#define __GEARMAND_THREAD_H__
+#pragma once
+
+#include <pthread.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <pthread.h>
 
 /**
  * @addtogroup gearmand_thread Thread Declarations
@@ -57,7 +56,7 @@ struct gearmand_thread_st
  * @return Standard gearman return value.
  */
 GEARMAN_API
-gearmand_error_t gearmand_thread_create(gearmand_st *gearmand);
+gearmand_error_t gearmand_thread_create(struct gearmand_st *gearmand);
 
 /**
  * Free resources used by a thread.
@@ -89,5 +88,3 @@ void gearmand_thread_run(gearmand_thread_st *thread);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GEARMAND_THREAD_H__ */

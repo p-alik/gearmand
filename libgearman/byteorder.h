@@ -13,8 +13,7 @@
  *
  */
 
-#ifndef GEARMAN_BYTEORDER_H
-#define GEARMAN_BYTEORDER_H
+#pragma once
 
 #ifndef HAVE_HTONLL
 
@@ -37,5 +36,3 @@ uint64_t htonll(uint64_t);
 #undef htons
 #undef htonl
 #endif
-
-#endif /* GEARMAN_BYTEORDER_H */

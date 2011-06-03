@@ -233,8 +233,7 @@ test_return_t lp_734663(void *object)
   for (uint32_t x= 0; x < NUMBER_OF_JOBS; x++)
   {
     char job_handle[GEARMAN_JOB_HANDLE_SIZE]= {};
-    gearman_return_t rc= gearman_client_do_background(&client, worker_function_name, NULL, value,
-                                     sizeof(value), job_handle);
+    gearman_return_t rc= gearman_client_do_background(&client, worker_function_name, NULL, value, sizeof(value), job_handle);
     test_truth(rc == GEARMAN_SUCCESS);
     test_truth(job_handle[0]);
   }
@@ -246,7 +245,7 @@ test_return_t lp_734663(void *object)
   uint32_t counter= 0;
   for (uint32_t x= 0; x < NUMBER_OF_WORKERS; x++)
   {
-    worker_handle[x]= test_worker_start(test->port(), worker_function_name, counter_function, &counter);
+    worker_handle[x]= test_worker_start(test->port(), worker_function_name, counter_function, &counter, gearman_worker_options_t());
   }
 
   time_t end_time= time(NULL) + 5;

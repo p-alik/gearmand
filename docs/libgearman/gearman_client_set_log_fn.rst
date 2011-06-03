@@ -1,0 +1,38 @@
+Logging Clients and Workers
+
+--------
+SYNOPSIS
+--------
+
+#include <libgearman/gearman.h>
+
+.. c:function:: void gearman_client_set_log_fn(gearman_client_st *client, gearman_log_fn *function, void *context, gearman_verbose_t verbose);
+
+----------- 
+DESCRIPTION 
+-----------
+
+:c:func:`gearman_client_set_log_fn()` is similar to :c:func:`gearman_worker_set_log_fn()` but it used with clients, aka, :c:type:`gearman_client_st`.
+:c:func:`gearman_client_set_log_fn()` allows you to register a callback that will be passed all error messages that are givin to the client.  
+
+See :c:type:`gearman_log_fn` for more information on the callback.
+
+------------ 
+RETURN VALUE 
+------------
+
+None
+
+----
+HOME
+----
+
+To find out more information please check:
+`https://launchpad.net/gearmand <https://launchpad.net/gearmand>`_
+
+--------
+SEE ALSO
+--------
+
+:manpage:`gearmand(8)` :manpage:`libgearman(3)`
+

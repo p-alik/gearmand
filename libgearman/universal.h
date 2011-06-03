@@ -1,21 +1,42 @@
-/* Gearman server and library
- * Copyright (C) 2008 Brian Aker, Eric Day
- * All rights reserved.
+/*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
+ * 
+ *  Gearmand client and server library.
  *
- * Use and distribution licensed under the BSD license.  See
- * the COPYING file in the parent directory for full text.
- */
-
-/**
- * @file
- * @brief Gearman Declarations
+ *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2008 Brian Aker, Eric Day
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions are
+ *  met:
+ *
+ *      * Redistributions of source code must retain the above copyright
+ *  notice, this list of conditions and the following disclaimer.
+ *
+ *      * Redistributions in binary form must reproduce the above
+ *  copyright notice, this list of conditions and the following disclaimer
+ *  in the documentation and/or other materials provided with the
+ *  distribution.
+ *
+ *      * The names of its contributors may not be used to endorse or
+ *  promote products derived from this software without specific prior
+ *  written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ *  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ *  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ *  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ *  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ *  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ *  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
 #pragma once
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
   @todo this is only used by the server and should be made private.
@@ -49,274 +70,10 @@ struct gearman_universal_st
   void *workload_malloc_context;
   gearman_free_fn *workload_free_fn;
   void *workload_free_context;
+  struct gearman_vector_st *_namespace;
   struct {
     gearman_return_t rc;
     int last_errno;
     char last_error[GEARMAN_MAX_ERROR_SIZE];
   } error;
 };
-
-#ifdef GEARMAN_CORE
-
-
-/**
- * @addtogroup gearman_universal Gearman Declarations
- *
- * This is a low level interface for gearman library instances. This is used
- * internally by both client and worker interfaces, so you probably want to
- * look there first.
- *
- * There is no locking within a single gearman_universal_st structure, so for threaded
- * applications you must either ensure isolation in the application or use
- * multiple gearman_universal_st structures (for example, one for each thread).
- *
- * @{
- */
-
-
-/**
- * Initialize a gearman_universal_st structure. Always check the return value for failure.
- * Some other initialization may have failed. It is not required to memset()
- * a structure before providing it. These are for internal use only.
- *
- * @param[in] source Caller allocated structure.
- * @param[in] options gearman_universal_options_t options used to modify creation.
- * @return On success, a pointer to the (possibly allocated) structure. On
- *  failure this will be NULL.
- */
-GEARMAN_INTERNAL_API
-gearman_universal_st *gearman_universal_create(gearman_universal_st *source, const gearman_universal_options_t *options);
-
-/**
- * Clone a gearman structure.
- *
- * @param[in] destination gearman_universal_st.
- * @param[in] source gearman_universal_st to clone from.
- * @return Same return as gearman_universal_create().
- */
-GEARMAN_INTERNAL_API
-gearman_universal_st *gearman_universal_clone(gearman_universal_st *destination, const gearman_universal_st *source);
-
-/**
- * Free a gearman structure.
- *
- * @param[in] gearman Structure previously initialized with gearman_universal_create() or
- *  gearman_clone().
- */
-GEARMAN_INTERNAL_API
-void gearman_universal_free(gearman_universal_st *gearman);
-
-/**
- * Set the error string.
- *
- * @param[in] gearman Structure previously initialized with gearman_universal_create() or
- *  gearman_clone().
- * @param[in] function Name of function the error happened in.
- * @param[in] format Format and variable argument list of message.
- */
-GEARMAN_INTERNAL_API
-void gearman_universal_set_error(gearman_universal_st *gearman,
-				 gearman_return_t rc,
-				 const char *function,
-                                 const char *format, ...);
-
-GEARMAN_INTERNAL_API
-void gearman_universal_set_perror(const char *position, gearman_universal_st *universal, const char *message);
-
-#define STRINGIFY(x) #x
-#define TOSTRING(x) STRINGIFY(x)
-#define AT __FILE__ ":" TOSTRING(__LINE__)
-
-#define gearman_perror(A, B) do { gearman_universal_set_perror(AT, (A), (B)); } while (0)
-#define gearman_error(A, B, C) do { gearman_universal_set_error((A), (B), AT, (C)); } while (0)
-
-/**
- * Return an error string for last error encountered.
- *
- * @param[in] gearman Structure previously initialized with gearman_universal_create() or
- *  gearman_clone().
- * @return Pointer to a buffer in the structure that holds an error string.
- */
-static inline const char *gearman_universal_error(const gearman_universal_st *gearman)
-{
-  if (gearman->error.last_error[0] == 0)
-      return 0;
-  return (const char *)(gearman->error.last_error);
-}
-
-static inline gearman_return_t gearman_universal_error_code(const gearman_universal_st *gearman)
-{
-  return gearman->error.rc;
-}
-
-/**
- * Value of errno in the case of a GEARMAN_ERRNO return value.
- *
- * @param[in] gearman Structure previously initialized with gearman_universal_create() or
- *  gearman_clone().
- * @return An errno value as defined in your system errno.h file.
- */
-static inline int gearman_universal_errno(const gearman_universal_st *gearman)
-{
-  return gearman->error.last_errno;
-}
-
-/**
- * Add options for a gearman structure.
- *
- * @param[in] gearman Structure previously initialized with gearman_universal_create() or
- *  gearman_clone().
- * @param[in] options Available options for gearman structures.
- */
-GEARMAN_INTERNAL_API
-gearman_return_t gearman_universal_set_option(gearman_universal_st *gearman, gearman_universal_options_t option, bool value);
-
-static inline void gearman_universal_add_options(gearman_universal_st *gearman, gearman_universal_options_t options)
-{
-  (void)gearman_universal_set_option(gearman, options, true);
-}
-
-static inline void gearman_universal_remove_options(gearman_universal_st *gearman, gearman_universal_options_t options)
-{
-  (void)gearman_universal_set_option(gearman, options, false);
-}
-
-static inline bool gearman_universal_is_non_blocking(gearman_universal_st *gearman)
-{
-  return gearman->options.non_blocking;
-}
-
-/**
- * Get current socket I/O activity timeout value.
- *
- * @param[in] gearman Structure previously initialized with gearman_universal_create() or
- *  gearman_clone().
- * @return Timeout in milliseconds to wait for I/O activity. A negative value
- *  means an infinite timeout.
- */
-GEARMAN_INTERNAL_API
-int gearman_universal_timeout(gearman_universal_st *gearman);
-
-/**
- * Set socket I/O activity timeout for connections in a Gearman structure.
- *
- * @param[in] gearman Structure previously initialized with gearman_universal_create() or
- *  gearman_clone().
- * @param[in] timeout Milliseconds to wait for I/O activity. A negative value
- *  means an infinite timeout.
- */
-GEARMAN_INTERNAL_API
-void gearman_universal_set_timeout(gearman_universal_st *gearman, int timeout);
-
-/**
- * Set logging function for a gearman structure.
- *
- * @param[in] gearman Structure previously initialized with gearman_universal_create() or
- *  gearman_clone().
- * @param[in] function Function to call when there is a logging message.
- * @param[in] context Argument to pass into the callback function.
- * @param[in] verbose Verbosity level threshold. Only call function when the
- *  logging message is equal to or less verbose that this.
- */
-GEARMAN_INTERNAL_API
-void gearman_set_log_fn(gearman_universal_st *gearman, gearman_log_fn *function,
-                        void *context, gearman_verbose_t verbose);
-
-/**
- * Set custom memory allocation function for workloads. Normally gearman uses
- * the standard system malloc to allocate memory used with workloads. The
- * provided function will be used instead.
- *
- * @param[in] gearman Structure previously initialized with gearman_universal_create() or
- *  gearman_clone().
- * @param[in] function Memory allocation function to use instead of malloc().
- * @param[in] context Argument to pass into the callback function.
- */
-GEARMAN_INTERNAL_API
-void gearman_set_workload_malloc_fn(gearman_universal_st *gearman,
-                                    gearman_malloc_fn *function,
-                                    void *context);
-
-/**
- * Set custom memory free function for workloads. Normally gearman uses the
- * standard system free to free memory used with workloads. The provided
- * function will be used instead.
- *
- * @param[in] gearman Structure previously initialized with gearman_universal_create() or
- *  gearman_clone().
- * @param[in] function Memory free function to use instead of free().
- * @param[in] context Argument to pass into the callback function.
- */
-GEARMAN_INTERNAL_API
-void gearman_set_workload_free_fn(gearman_universal_st *gearman,
-                                  gearman_free_fn *function,
-                                  void *context);
-
-/**
- * Free all connections for a gearman structure.
- *
- * @param[in] gearman Structure previously initialized with gearman_universal_create() or
- *  gearman_clone().
- */
-GEARMAN_INTERNAL_API
-void gearman_free_all_cons(gearman_universal_st *gearman);
-
-/**
- * Flush the send buffer for all connections.
- *
- * @param[in] gearman Structure previously initialized with gearman_universal_create() or
- *  gearman_clone().
- * @return Standard gearman return value.
- */
-GEARMAN_INTERNAL_API
-gearman_return_t gearman_flush_all(gearman_universal_st *gearman);
-
-/**
- * Wait for I/O on connections.
- *
- * @param[in] gearman Structure previously initialized with gearman_universal_create() or
- *  gearman_clone().
- * @return Standard gearman return value.
- */
-GEARMAN_INTERNAL_API
-gearman_return_t gearman_wait(gearman_universal_st *gearman);
-
-/**
- * Get next connection that is ready for I/O.
- *
- * @param[in] gearman Structure previously initialized with gearman_universal_create() or
- *  gearman_clone().
- * @return Connection that is ready for I/O, or NULL if there are none.
- */
-GEARMAN_INTERNAL_API
-gearman_connection_st *gearman_ready(gearman_universal_st *gearman);
-
-/**
- * Test echo with all connections.
- *
- * @param[in] gearman Structure previously initialized with gearman_universal_create() or
- *  gearman_clone().
- * @param[in] workload Data to send in echo packet.
- * @param[in] workload_size Size of workload.
- * @return Standard gearman return value.
- */
-GEARMAN_INTERNAL_API
-gearman_return_t gearman_echo(gearman_universal_st *gearman, const void *workload,
-                              size_t workload_size);
-
-/**
- * Free all packets for a gearman structure.
- *
- * @param[in] gearman Structure previously initialized with gearman_universal_create() or
- *  gearman_clone().
- */
-GEARMAN_INTERNAL_API
-void gearman_free_all_packets(gearman_universal_st *gearman);
-
-#endif /* GEARMAN_CORE */
-
-/** @} */
-
-#ifdef __cplusplus
-}
-#endif

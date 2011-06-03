@@ -6,15 +6,13 @@ Gearman provides a generic application framework to farm out work to other
 machines or processes that are better suited to do the work. It allows you
 to do work in parallel, to load balance processing, and to call functions
 between languages. It can be used in a variety of applications, from
-high-availability web sites to the transport of database replication events.
-In other words, it is the nervous system for how distributed processing
-communi
+high-availability web sites, to the transport of database replication events.
 
 -------------
 Introduction:
 -------------
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    
    license
    how_to_report_a_bug
@@ -23,51 +21,115 @@ Introduction:
 Server
 ------
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    gearmand
 
 ------------------
 Command Line Tools
 ------------------
-.. toctree::
-   :maxdepth: 2
 
-   gearman
-   gearadmin
+.. toctree::
+   :maxdepth: 1
+
+   bin/gearman
+   bin/gearadmin
 
 ---------------------
 C/C++ Client Library:
 ---------------------
 
+******
+Basics
+******
+
+.. toctree::
+   :titlesonly:
+
+   libgearman
+   changes
+
+****************
+Client Functions
+****************
+
+.. toctree::
+   :titlesonly:
+
+   libgearman/gearman_client
+   libgearman/gearman_client_add_server
+   libgearman/gearman_client_options
+   libgearman/gearman_client_do
+   libgearman/gearman_client_do_background
+   libgearman/gearman_execute
+   libgearman/gearman_execute_map_reduce
+   libgearman/gearman_client_error
+   libgearman/gearman_client_set_log_fn
+
 **************
-Function Calls
+Creating Tasks
 **************
 
 .. toctree::
-   :maxdepth: 2
+   :titlesonly:
 
-   libgearman
-   gearman_client
-   gearman_worker
-   gearman_client_execute
-   gearman_misc_functions
+   libgearman/gearman_client_add_task
+   libgearman/gearman_client_run_tasks
+   libgearman/gearman_client_add_task_background
+   libgearman/gearman_client_add_task_status
 
+****************
+Worker Functions
+****************
+
+.. toctree::
+   :titlesonly:
+
+   libgearman/gearman_worker_create
+   libgearman/gearman_worker_add_server
+   libgearman/gearman_worker_options
+   libgearman/gearman_worker_add_function
+   libgearman/gearman_worker_add_map_function
+   libgearman/gearman_worker_error
+   libgearman/gearman_worker_set_log_fn
+
+****
+Misc
+****
+
+.. toctree::
+   :maxdepth: 1
+
+   libgearman/gearman_misc_functions
+   libgearman/namespace
+   libgearman/gearman_client_wait
+   libgearman/gearman_client_echo
 
 **********
 Structures
 **********
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
-   gearman_client_st 
-   gearman_function_st
-   gearman_job_st
-   gearman_status_t
-   gearman_task_st
-   gearman_unique_t
-   gearman_worker_st
+   libgearman/gearman_client_st 
+   libgearman/gearman_job_st
+   libgearman/gearman_task_st
+   libgearman/gearman_worker_st 
+   libgearman/gearman_return_t 
+   libgearman/gearman_job_handle_t
+   libgearman/gearman_actions_t
+   libgearman/gearman_log_fn
+
+*****
+Extra
+*****
+
+.. toctree::
+   :maxdepth: 1
+
+   libgearman/error_descriptions
+
 
 ------------------
 Indices and tables

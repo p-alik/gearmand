@@ -125,24 +125,26 @@ int main(int args, char *argv[])
   if (timeout >= 0)
     gearman_client_set_timeout(&client, timeout);
 
-  gearman_function_st *function= gearman_function_create(gearman_literal_param("reverse"));
 
-  gearman_workload_t workload= gearman_workload_make(text_to_echo.c_str(), text_to_echo.size());
-  gearman_workload_set_background(&workload, true);
+  gearman_work_t workload= gearman_work(GEARMAN_JOB_PRIORITY_NORMAL);
 
+  gearman_task_st *task;
+  gearman_argument_t values[]= {
+    gearman_argument_make(text_to_echo.c_str(), text_to_echo.size()),
+    gearman_argument_make(0, 0)
+  };
 
-  if (not gearman_client_execute(&client, function, &workload))
+  if (not (task= gearman_execute(&client, gearman_literal_param("reverse"), NULL, 0, &workload, values)))
   {
     std::cerr << "Failed to process job (" << gearman_client_error(&client) << std::endl;
     gearman_client_free(&client);
     return EXIT_FAILURE;
   }
 
-  gearman_task_st *task= gearman_workload_task(&workload);
   std::cout << "Background Job Handle=" << gearman_task_job_handle(task) << std::endl;
 
   int exit_code= EXIT_SUCCESS;
-  while (gearman_task_is_running(task))
+  do
   {
     bool is_known;
     bool is_running;
@@ -152,7 +154,7 @@ int main(int args, char *argv[])
     ret= gearman_client_job_status(&client, gearman_task_job_handle(task),
                                    &is_known, &is_running,
                                    &numerator, &denominator);
-    if (ret != GEARMAN_SUCCESS)
+    if (gearman_failed(ret))
     {
       std::cerr << gearman_client_error(&client) << std::endl;
       exit_code= EXIT_FAILURE;
@@ -166,8 +168,7 @@ int main(int args, char *argv[])
     if (not is_known)
       break;
 
-    sleep(1);
-  }
+  } while (gearman_task_is_running(task));
 
   gearman_client_free(&client);
 

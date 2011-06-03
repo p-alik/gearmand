@@ -1,4 +1,4 @@
-.TH "GEARMAN_BUGREPORT" "3" "April 13, 2011" "0.20" "Gearmand"
+.TH "GEARMAN_BUGREPORT" "3" "June 02, 2011" "0.21" "Gearmand"
 .SH NAME
 gearman_bugreport \- Gearmand Documentation
 .
@@ -30,27 +30,27 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 ..
 .\" Man page generated from reStructeredText.
 .
-.SH LIBRARY
-.sp
-C Client Library for Gearmand (libgearman, \-lgearman)
 .SH SYNOPSIS
 .sp
 #include <libgearman/gearman.h>
 .INDENT 0.0
 .TP
-.B const char *gearman_bugreport(void);
+.B const char *gearman_bugreport(void)
 .UNINDENT
+.sp
+Link with \-lgearman
 .SH DESCRIPTION
 .sp
-gearman_bugreport() returns the url to the bug tracking site for Gearmand
-.SH RETURN
+\fI\%gearman_bugreport()\fP returns the url to the bug tracking site for Gearmand
+.SH RETURN VALUE
 .sp
-A url;
+URL
 .SH HOME
 .sp
 To find out more information please check:
 \fI\%https://launchpad.net/gearmand\fP
 .SH SEE ALSO
+.RE
 .sp
 \fIgearmand(8)\fP \fIlibgearman(3)\fP
 .SH AUTHOR

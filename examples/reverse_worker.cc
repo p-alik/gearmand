@@ -135,8 +135,7 @@ int main(int args, char *argv[])
     return EXIT_FAILURE;
   }
 
-  ret= gearman_worker_add_function(&worker, "reverse", 0, reverse,
-                                   &options);
+  ret= gearman_worker_add_function(&worker, "reverse", 0, reverse, &options);
   if (ret != GEARMAN_SUCCESS)
   {
     std::cerr << gearman_worker_error(&worker) << std::endl;

@@ -12,11 +12,11 @@
 # undef NDEBUG
 #endif
 
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
+#include <cassert>
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include <libgearman/gearman.h>
 
@@ -24,16 +24,20 @@
 #include <libtest/server.h>
 #include <libtest/worker.h>
 
-#define CLIENT_TEST_PORT 32123
+#define CLIENT_TEST_PORT 32143
 
 #define DEFAULT_WORKER_NAME "burnin"
 
-typedef struct
-{
+struct client_test_st {
   gearman_client_st client;
   pid_t gearmand_pid;
   struct worker_handle_st *handle;
-} client_test_st;
+
+  client_test_st():
+    gearmand_pid(-1),
+    handle(NULL)
+  { }
+};
 
 struct client_context_st {
   int latch;
@@ -42,6 +46,15 @@ struct client_context_st {
   size_t num_tasks;
   size_t count;
   char *blob;
+
+  client_context_st():
+    latch(0),
+    min_size(1024),
+    max_size(1024 *2),
+    num_tasks(20),
+    count(2000),
+    blob(NULL)
+  { }
 };
 
 void *world_create(test_return_t *error);
@@ -60,6 +73,8 @@ static test_return_t burnin_test(void *object)
   // This sketchy, don't do this in your own code.
   gearman_task_st *tasks= (gearman_task_st *)calloc(context->num_tasks, sizeof(gearman_task_st));
   test_true_got(tasks, strerror(errno));
+
+  test_true_got(gearman_success(gearman_client_echo(client, gearman_literal_param("echo_test"))), gearman_client_error(client));
 
   do
   {
@@ -81,42 +96,39 @@ static test_return_t burnin_test(void *object)
         blob_size= (blob_size % (context->max_size - context->min_size)) + context->min_size;
       }
 
+      gearman_task_st *task_ptr;
       gearman_return_t ret;
       if (context->latch)
       {
-        (void)gearman_client_add_task_background(client, &(tasks[x]),
-                                                 NULL, DEFAULT_WORKER_NAME, NULL,
-                                                 (void *)context->blob, blob_size, &ret);
+        task_ptr= gearman_client_add_task_background(client, &(tasks[x]),
+                                                     NULL, DEFAULT_WORKER_NAME, NULL,
+                                                     (void *)context->blob, blob_size, &ret);
       }
       else
       {
-        (void)gearman_client_add_task(client, &(tasks[x]), NULL,
-                                      DEFAULT_WORKER_NAME, NULL, (void *)context->blob, blob_size,
-                                      &ret);
+        task_ptr= gearman_client_add_task(client, &(tasks[x]), NULL,
+                                          DEFAULT_WORKER_NAME, NULL, (void *)context->blob, blob_size,
+                                          &ret);
       }
 
-      if (ret != GEARMAN_SUCCESS)
-      {
-        if (ret == GEARMAN_LOST_CONNECTION)
-          continue;
-
-        test_true_got(false, gearman_client_error(client));
-      }
+      test_true_got(gearman_success(ret), gearman_client_error(client));
+      test_truth(task_ptr);
     }
 
-    gearman_return_t ret;
-    ret= gearman_client_run_tasks(client);
-
-    if (ret != GEARMAN_SUCCESS && ret != GEARMAN_LOST_CONNECTION)
+    gearman_return_t ret= gearman_client_run_tasks(client);
+    for (uint32_t x= 0; x < context->num_tasks; x++)
     {
-      test_true_got(false, gearman_client_error(client));
+      test_compare(GEARMAN_TASK_STATE_FINISHED, tasks[x].state);
+      test_compare(GEARMAN_SUCCESS, tasks[x].result_rc);
     }
+    test_compare(0, client->new_tasks);
+
+    test_true_got(gearman_success(ret), gearman_client_error(client));
 
     for (uint32_t x= 0; x < context->num_tasks; x++)
     {
       gearman_task_free(&(tasks[x]));
     }
-
   } while (context->count--);
 
   free(tasks);
@@ -130,13 +142,8 @@ static test_return_t setup(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
 
-  struct client_context_st *context= (struct client_context_st *)calloc(1, sizeof(struct client_context_st));
+  struct client_context_st *context= new client_context_st;
   test_true_got(context, strerror(errno));
-
-  context->min_size= 1024;
-  context->max_size= context->min_size *2;
-  context->num_tasks= 10;
-  context->count= 1000;
 
   context->blob= (char *)malloc(context->max_size);
   test_true_got(context->blob, strerror(errno));
@@ -154,25 +161,22 @@ static test_return_t cleanup(void *object)
   struct client_context_st *context= (struct client_context_st *)gearman_client_context(client);
 
   free(context->blob);
+  delete(context);
 
   return TEST_SUCCESS;
 }
 
 
-static void *worker_fn(gearman_job_st *job, void *context,
+static void *worker_fn(gearman_job_st *, void *,
                        size_t *result_size, gearman_return_t *ret_ptr)
 {
-  (void)job;
-  (void)context;
-  (void)result_size;
-
+  result_size= 0;
   *ret_ptr= GEARMAN_SUCCESS;
   return NULL;
 }
 
 void *world_create(test_return_t *error)
 {
-  client_test_st *test;
   pid_t gearmand_pid;
 
   /**
@@ -181,8 +185,8 @@ void *world_create(test_return_t *error)
    */
   const char *argv[1]= { "client_gearmand" };
 
-  test= (client_test_st *)calloc(1, sizeof(client_test_st));
-  if (! test)
+  client_test_st *test= new client_test_st;
+  if (not test)
   {
     *error= TEST_MEMORY_ALLOCATION_FAILURE;
     return NULL;
@@ -191,25 +195,27 @@ void *world_create(test_return_t *error)
   /**
     We start up everything before we allocate so that we don't have to track memory in the forked process.
   */
-  gearmand_pid= test_gearmand_start(CLIENT_TEST_PORT, 1, argv);
-  
-  if (gearmand_pid == -1)
+  test->gearmand_pid= gearmand_pid= test_gearmand_start(CLIENT_TEST_PORT, 1, argv);
+  if (test->gearmand_pid == -1)
   {
     *error= TEST_FAILURE;
     return NULL;
   }
 
-  test->handle= test_worker_start(CLIENT_TEST_PORT, "burnin", worker_fn, NULL);
-
-  test->gearmand_pid= gearmand_pid;
-
-  if (gearman_client_create(&(test->client)) == NULL)
+  test->handle= test_worker_start(CLIENT_TEST_PORT, DEFAULT_WORKER_NAME, worker_fn, NULL, gearman_worker_options_t());
+  if (not test->handle)
   {
     *error= TEST_FAILURE;
     return NULL;
   }
 
-  if (gearman_client_add_server(&(test->client), NULL, CLIENT_TEST_PORT) != GEARMAN_SUCCESS)
+  if (not gearman_client_create(&(test->client)))
+  {
+    *error= TEST_FAILURE;
+    return NULL;
+  }
+
+  if (gearman_failed(gearman_client_add_server(&(test->client), NULL, CLIENT_TEST_PORT)))
   {
     *error= TEST_FAILURE;
     return NULL;
@@ -226,7 +232,7 @@ test_return_t world_destroy(void *object)
   gearman_client_free(&(test->client));
   test_gearmand_stop(test->gearmand_pid);
   test_worker_stop(test->handle);
-  free(test);
+  delete test;
 
   return TEST_SUCCESS;
 }
