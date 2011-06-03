@@ -90,6 +90,7 @@ libgearman_libgearman_la_SOURCES= \
 				  libgearman/job.cc \
 				  libgearman/log.cc \
 				  libgearman/packet.cc \
+				  libgearman/parse.cc \
 				  libgearman/result.cc \
 				  libgearman/run.cc \
 				  libgearman/strcommand.cc \

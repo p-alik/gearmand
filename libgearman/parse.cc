@@ -36,59 +36,63 @@
  *
  */
 
-
-
-/**
- * @file
- * @brief Gearman State Definitions
- */
-
 #include <libgearman/common.h>
-
 #include <cstdlib>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
 
-/**
- * @addtogroup gearman_universal_static Static Gearman Declarations
- * @ingroup gearman_universal
- * @{
- */
-
-/**
- * Names of the verbose levels provided.
- */
-static const char *_verbose_name[GEARMAN_VERBOSE_MAX]=
+gearman_return_t gearman_parse_servers(const char *servers,
+                                       gearman_parse_server_fn *function,
+                                       void *context)
 {
-  "NEVER",
-  "FATAL",
-  "ERROR",
-  "INFO",
-  "DEBUG",
-  "CRAZY"
-};
+  const char *ptr= servers;
+  size_t x;
+  char host[NI_MAXHOST];
+  char port[NI_MAXSERV];
+  gearman_return_t ret;
 
-/** @} */
+  if (ptr == NULL)
+    return (*function)(NULL, 0, context);
 
-/*
- * Public Definitions
- */
+  while (1)
+  {
+    x= 0;
 
-const char *gearman_version(void)
-{
-    return PACKAGE_VERSION;
-}
+    while (*ptr != 0 && *ptr != ',' && *ptr != ':')
+    {
+      if (x < (NI_MAXHOST - 1))
+        host[x++]= *ptr;
 
-const char *gearman_bugreport(void)
-{
-    return PACKAGE_BUGREPORT;
-}
+      ptr++;
+    }
 
-const char *gearman_verbose_name(gearman_verbose_t verbose)
-{
-  if (verbose >= GEARMAN_VERBOSE_MAX)
-    return "UNKNOWN";
+    host[x]= 0;
 
-  return _verbose_name[verbose];
+    if (*ptr == ':')
+    {
+      ptr++;
+      x= 0;
+
+      while (*ptr != 0 && *ptr != ',')
+      {
+        if (x < (NI_MAXSERV - 1))
+          port[x++]= *ptr;
+
+        ptr++;
+      }
+
+      port[x]= 0;
+    }
+    else
+      port[0]= 0;
+
+    ret= (*function)(host, static_cast<in_port_t>(atoi(port)), context);
+    if (ret != GEARMAN_SUCCESS)
+      return ret;
+
+    if (*ptr == 0)
+      break;
+
+    ptr++;
+  }
+
+  return GEARMAN_SUCCESS;
 }
