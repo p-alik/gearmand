@@ -75,6 +75,7 @@
 #include <libgearman/worker.h>
 #include <libgearman/client.h>
 #include <libgearman/connection.h>
+#include <libgearman/parse.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -119,19 +120,6 @@ const char *gearman_bugreport(void);
  */
 GEARMAN_API
 const char *gearman_verbose_name(gearman_verbose_t verbose);
-
-/**
- * Utility function used for parsing server lists.
- *
- * @param[in] servers String containing a list of servers to parse.
- * @param[in] callback Function to call for each server that is found.
- * @param[in] context Argument to pass along with callback function.
- * @return Standard Gearman return value.
- */
-GEARMAN_API
-gearman_return_t gearman_parse_servers(const char *servers,
-                                       gearman_parse_server_fn *callback,
-                                       void *context);
 
 /**
  * Get current socket I/O activity timeout value.

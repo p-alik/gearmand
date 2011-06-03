@@ -28,6 +28,7 @@ nobase_include_HEADERS+= \
 			 libgearman/job_handle.h \
 			 libgearman/log.h \
 			 libgearman/packet.h \
+			 libgearman/parse.h \
 			 libgearman/priority.h \
 			 libgearman/protocol.h \
 			 libgearman/result.h \

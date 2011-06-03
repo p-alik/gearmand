@@ -11,7 +11,7 @@
  * @brief Gearman Command Line Tool
  */
 
-#include "config.h"
+#include <config.h>
 
 #include <assert.h>
 #include <errno.h>

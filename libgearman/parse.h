@@ -3,6 +3,7 @@
  *  Gearmand client and server library.
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2008 Brian Aker, Eric Day
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -37,29 +38,23 @@
 
 #pragma once
 
-#include <libgearman/client_callbacks.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-struct gearman_actions_t
-{
-  gearman_workload_fn *workload_fn;
-  gearman_created_fn *created_fn;
-  gearman_data_fn *data_fn;
-  gearman_warning_fn *warning_fn;
-  gearman_universal_status_fn *status_fn;
-  gearman_complete_fn *complete_fn;
-  gearman_exception_fn *exception_fn;
-  gearman_fail_fn *fail_fn;
-};
+/**
+ * Utility function used for parsing server lists.
+ *
+ * @param[in] servers String containing a list of servers to parse.
+ * @param[in] callback Function to call for each server that is found.
+ * @param[in] context Argument to pass along with callback function.
+ * @return Standard Gearman return value.
+ */
+GEARMAN_API
+gearman_return_t gearman_parse_servers(const char *servers,
+                                       gearman_parse_server_fn *callback,
+                                       void *context);
 
-#ifdef __cplusplus // Local only
-
-GEARMAN_LOCAL
-gearman_actions_t &gearman_actions_default(void);
-
-GEARMAN_LOCAL
-gearman_actions_t &gearman_actions_do_default(void);
-
-GEARMAN_LOCAL
-gearman_actions_t &gearman_actions_execute_defaults(void);
-
+#ifdef __cplusplus
+}
 #endif

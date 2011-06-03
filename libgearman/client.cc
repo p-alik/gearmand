@@ -36,20 +36,43 @@
  *
  */
 
-#include <libgearman/common.h>
-#include <libgearman/universal.hpp>
+#include <config.h>
 
-#include <libgearman/add.hpp>
-#include <libgearman/connection.h>
-#include <libgearman/packet.hpp>
-#include <libgearman/run.hpp>
-
+#include <arpa/inet.h>
 #include <cassert>
 #include <cerrno>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <memory>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <poll.h>
+
+#define BUILDING_LIBGEARMAN
+#define GEARMAN_CORE
+
+#include <libgearman/visibility.h>
+#include <libgearman/constants.h>
+#include <libgearman/return.h>
+#include <libgearman/job_handle.h>
+#include <libgearman/actions.h>
+#include <libgearman/unique.h>
+#include <libgearman/universal.h>
+#include <libgearman/universal.hpp>
+#include <libgearman/string.h>
+
+#include <libgearman/client.h>
+#include <libgearman/packet.hpp>
+#include <libgearman/connection.hpp>
+#include <libgearman/add.hpp>
+#include <libgearman/connection.h>
+#include <libgearman/task.h>
+#include <libgearman/packet.hpp>
+#include <libgearman/run.hpp>
+#include <libgearman/parse.h>
+#include <libgearman/result.h>
 
 /** Allocate a client structure.
  */
