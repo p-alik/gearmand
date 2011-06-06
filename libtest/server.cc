@@ -198,8 +198,6 @@ pid_t test_gearmand_start(in_port_t port, int argc, const char *argv[])
 
 void test_gearmand_stop(pid_t gearmand_pid)
 {
-  pid_t pid;
-  
   if ((kill(gearmand_pid, SIGTERM) == -1))
   {
     switch (errno)
@@ -220,7 +218,8 @@ void test_gearmand_stop(pid_t gearmand_pid)
   }
 
   int status= 0;
-  pid= waitpid(gearmand_pid, &status, 0);
+  pid_t pid= waitpid(gearmand_pid, &status, 0);
+  (void)pid; // @todo update such that we look at the return value for waitpid()
 
   if (WCOREDUMP(status))
   {
