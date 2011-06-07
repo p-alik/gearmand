@@ -958,6 +958,7 @@ test_st unique_tests[] ={
 
 test_st gearman_client_do_tests[] ={
   {"gearman_client_do() fail huge unique", 0, gearman_client_do_huge_unique },
+  {"gearman_client_do() with active background task", 0, gearman_client_do_with_active_background_task },
   {0, 0, 0}
 };
 
