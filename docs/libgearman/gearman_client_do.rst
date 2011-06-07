@@ -31,8 +31,6 @@ either high or low.
 All of the functions will block until either a response or an error is
 returned.
 
-All previous tasks created with the gearman_client_st will be released once :c:func:`gearman_client_do()` is executed.
-
 ------------
 RETURN VALUE
 ------------
