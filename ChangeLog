@@ -17,7 +17,7 @@
   * New types of gearman_unique_t, gearman_function_st, gearman_workload_t
   * Better error reporting from clients.
   * Server no longer hangs because of bad job list.
-  * First bit of work on supporting epoch portion of protocol.  
+  * First bit of work on supporting epoch portion of protocol. John Ewart, john@johnewart.net 
   * Improved error message handling in client. 
   * Updates for manpages.
 
