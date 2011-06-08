@@ -292,8 +292,7 @@ gearman_return_t gearman_connection_st::send(const gearman_packet_st& packet_arg
   case GEARMAN_CON_SEND_STATE_NONE:
     if (not (packet_arg.options.complete))
     {
-      gearman_error(universal, GEARMAN_INVALID_PACKET, "packet not complete");
-      return GEARMAN_INVALID_PACKET;
+      return gearman_error(universal, GEARMAN_INVALID_PACKET, "packet not complete");
     }
 
     /* Pack first part of packet, which is everything but the payload. */

@@ -73,6 +73,32 @@ test_return_t post(void *object);
 test_return_t flush(void);
 
 
+static test_return_t regression_bug_783141_test(void *)
+{
+  gearman_client_st *client= gearman_client_create(NULL);
+  test_truth(client);
+
+  test_truth(gearman_success(gearman_client_add_server(client, "10.0.2.253", WORKER_TEST_PORT)));
+
+  gearman_return_t ret;
+  gearman_task_st *task= gearman_client_add_task(client, NULL, NULL,
+                                                 "does not exist", NULL,
+                                                 gearman_literal_param("dog"),
+                                                 &ret);
+  test_true_got(gearman_success(ret), gearman_strerror(ret));
+  test_truth(task);
+
+  gearman_return_t local_ret= gearman_client_run_tasks(client);
+  test_compare_got(GEARMAN_COULD_NOT_CONNECT, local_ret, gearman_client_error(client));
+
+  local_ret= gearman_client_run_tasks(client);
+  test_compare_got(GEARMAN_NO_ACTIVE_FDS, local_ret, gearman_client_error(client));
+
+  gearman_client_free(client);
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t bug372074_test(void *)
 {
   gearman_universal_st universal;
@@ -174,9 +200,15 @@ test_st worker_tests[] ={
   {0, 0, 0}
 };
 
+test_st gearman_client_run_tasks_regression[] ={
+  {"lp:783141, multiple calls for bad host", 0, regression_bug_783141_test },
+  {0, 0, 0}
+};
+
 
 collection_st collection[] ={
   {"worker_tests", 0, 0, worker_tests },
+  {"gearman_client_run_tasks()", 0, 0, gearman_client_run_tasks_regression },
   {0, 0, 0, 0}
 };
 

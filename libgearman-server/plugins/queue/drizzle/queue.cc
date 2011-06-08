@@ -436,8 +436,7 @@ static gearmand_error_t _libdrizzle_done(gearman_server_st *,
 
   if (query_size < 0 || size_t(query_size) > query.size())
   {
-    gearmand_perror("snprintf(DELETE)");
-    return GEARMAN_QUEUE_ERROR;
+    return gearmand_gerror("snprintf(DELETE)", GEARMAN_MEMORY_ALLOCATION_FAILURE);
   }
 
   gearmand_log_crazy(GEARMAN_DEFAULT_LOG_PARAM, "%.*", size_t(query_size), query.c_str());

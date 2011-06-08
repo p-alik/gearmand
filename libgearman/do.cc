@@ -50,7 +50,6 @@ void *client_do(gearman_client_st *client, gearman_command_t command,
                 size_t *result_size, gearman_return_t *ret_ptr)
 {
   gearman_task_st do_task;
-  gearman_client_task_free_all(client);
   gearman_string_t function= { gearman_string_param_cstr(function_name) };
   gearman_unique_t local_unique= gearman_unique_make(unique, unique ? strlen(unique) : 0);
   gearman_string_t workload= { static_cast<const char*>(workload_str), workload_size };

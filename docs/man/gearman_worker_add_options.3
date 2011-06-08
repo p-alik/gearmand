@@ -1,4 +1,4 @@
-.TH "GEARMAN_WORKER_ADD_OPTIONS" "3" "June 02, 2011" "0.21" "Gearmand"
+.TH "GEARMAN_WORKER_ADD_OPTIONS" "3" "June 07, 2011" "0.21" "Gearmand"
 .SH NAME
 gearman_worker_add_options \- Gearmand Documentation
 .
@@ -39,21 +39,21 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void gearman_worker_set_options(gearman_worker_st\fI\ *worker\fP, gearman_worker_options_t\fI\ options\fP)
-.UNINDENT
-.INDENT 0.0
-.TP
 .B void gearman_worker_add_options(gearman_worker_st\fI\ *worker\fP, gearman_worker_options_t\fI\ options\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
 .B void gearman_worker_remove_options(gearman_worker_st\fI\ *worker\fP, gearman_worker_options_t\fI\ options\fP)
 .UNINDENT
+.INDENT 0.0
+.TP
+.B void gearman_worker_set_options(gearman_worker_st\fI\ *worker\fP, gearman_worker_options_t\fI\ options\fP)
+.UNINDENT
+.sp
+Deprecated since version 0.21.
 .SH DESCRIPTION
 .sp
 \fI\%gearman_worker_options()\fP returns the \fBgearman_worker_options_t\fP for \fBgearman_worker_st\fP. You enable options via \fI\%gearman_worker_add_options()\fP and disable options via \fI\%gearman_worker_remove_options()\fP.
-.sp
-Deprecated since version :c:func:`gearman_worker_set_options()`.
 .sp
 The currently supported options are:
 .sp

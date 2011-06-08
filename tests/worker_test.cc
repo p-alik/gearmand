@@ -312,14 +312,12 @@ static test_return_t echo_max_test(void *object)
 
 static test_return_t abandoned_worker_test(void *)
 {
-  char job_handle[GEARMAN_JOB_HANDLE_SIZE];
-  gearman_packet_st packet;
+  gearman_job_handle_t job_handle;
   const void *args[2];
   size_t args_size[2];
 
   {
-    gearman_client_st *client;
-    client= gearman_client_create(NULL);
+    gearman_client_st *client= gearman_client_create(NULL);
     test_truth(client);
     gearman_client_add_server(client, NULL, WORKER_TEST_PORT);
     test_true_got(gearman_success(gearman_client_do_background(client, "abandoned_worker", NULL, NULL, 0, job_handle)), gearman_client_error(client));
@@ -335,17 +333,18 @@ static test_return_t abandoned_worker_test(void *)
 
   worker1->set_host(NULL, WORKER_TEST_PORT);
 
+  gearman_packet_st packet;
   args[0]= "abandoned_worker";
   args_size[0]= strlen("abandoned_worker");
   test_truth(gearman_success(gearman_packet_create_args(universal, packet, GEARMAN_MAGIC_REQUEST,
 							GEARMAN_COMMAND_CAN_DO,
 							args, args_size, 1)));
 
-  gearman_return_t ret;
-  test_true_got(gearman_success(ret= worker1->send(packet, true)), gearman_universal_error(universal));
+  test_true_got(gearman_success(worker1->send(packet, true)), gearman_universal_error(universal));
 
   gearman_packet_free(&packet);
 
+  gearman_return_t ret;
   test_true_got(gearman_success(ret= gearman_packet_create_args(universal, packet, GEARMAN_MAGIC_REQUEST,
                                                                 GEARMAN_COMMAND_GRAB_JOB,
                                                                 NULL, NULL, 0)), gearman_strerror(ret));

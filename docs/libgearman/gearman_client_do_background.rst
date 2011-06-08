@@ -27,7 +27,7 @@ high or low.
 
 If job_handle is not NULL, it will be populated with the name of the job_handle
 for the task created. The job handle needs to be the size of
-:c:macro:`GEARMAN_JOB_HANDLE_SIZE`.
+:c:macro:`GEARMAN_JOB_HANDLE_SIZE`. Please see :c:type:`gearman_job_handle_t` for more information.
 
 ------------
 RETURN VALUE

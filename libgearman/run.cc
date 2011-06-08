@@ -38,6 +38,7 @@
 
 #include <libgearman/common.h>
 
+#include <cassert>
 #include <cstdio>
 #include <cstdlib>
 
@@ -49,7 +50,7 @@ gearman_return_t _client_run_task(gearman_client_st *client, gearman_task_st *ta
   switch(task->state)
   {
   case GEARMAN_TASK_STATE_NEW:
-    if (task->client->universal.con_list == NULL)
+    if (not task->client->universal.con_list)
     {
       client->new_tasks--;
       client->running_tasks--;
@@ -82,6 +83,7 @@ gearman_return_t _client_run_task(gearman_client_st *client, gearman_task_st *ta
   case GEARMAN_TASK_STATE_SUBMIT:
     while (1)
     {
+      assert(task->con);
       gearman_return_t ret= task->con->send(task->send, client->new_tasks == 0 ? true : false);
 
       if (gearman_success(ret))
@@ -112,8 +114,9 @@ gearman_return_t _client_run_task(gearman_client_st *client, gearman_task_st *ta
           task->con= NULL;
         }
 
-        if (task->con == NULL)
+        if (not task->con)
         {
+          task->state= GEARMAN_TASK_STATE_FAIL;
           client->running_tasks--;
           return ret;
         }
@@ -126,7 +129,7 @@ gearman_return_t _client_run_task(gearman_client_st *client, gearman_task_st *ta
       }
     }
 
-    if (task->send.data_size > 0 && task->send.data == NULL)
+    if (task->send.data_size > 0 and not task->send.data)
     {
       if (not task->func.workload_fn)
       {

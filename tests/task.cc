@@ -270,11 +270,11 @@ test_return_t gearman_client_add_task_warning(void *object)
                                                  worker_function, NULL,
                                                  gearman_literal_param("warning"),
                                                  &ret);
-  test_true_got(ret == GEARMAN_SUCCESS, gearman_strerror(ret));
+  test_compare_got(GEARMAN_SUCCESS, ret, gearman_strerror(ret));
   test_truth(task);
 
   ret= gearman_client_run_tasks(client);
-  test_true_got(ret == GEARMAN_SUCCESS, gearman_strerror(ret));
+  test_compare_got(GEARMAN_SUCCESS, ret, gearman_strerror(ret));
   test_truth(warning_success);
 
   gearman_client_set_warning_fn(client, NULL);
