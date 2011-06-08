@@ -87,6 +87,9 @@ test-client: tests/client_test
 test-round-robin: tests/round_robin_test
 	@tests/round_robin_test $(ARG1) $(ARG2)
 
+test-regression: tests/regression_test
+	@tests/regression_test $(ARG1) $(ARG2)
+
 test-worker: tests/worker_test
 	@tests/worker_test $(ARG1) $(ARG2)
 
@@ -95,7 +98,7 @@ test-internals: tests/internals_test
 
 check-local: tests/var gearmand-test-args client-test libtest-tests
 
-libtest-tests: test-client test-round-robin test-worker test-internals test-libmemcached test-sqlite test-tokyocabinet test-burnin
+libtest-tests: test-client test-round-robin test-worker test-internals test-libmemcached test-sqlite test-tokyocabinet test-burnin test-regression
 
 gdb-client: ${noinst_PROGRAMS}
 	@$(LIBTOOL) --mode=execute gdb tests/client_test
@@ -109,6 +112,9 @@ gdb-worker: ${noinst_PROGRAMS}
 gdb-internals: ${noinst_PROGRAMS}
 	@$(LIBTOOL) --mode=execute gdb tests/internals_test
 
+gdb-regression: tests/regression_test
+	@$(LIBTOOL) --mode=execute gdb tests/regression_test
+
 gdb-burnin: ${noinst_PROGRAMS}
 	@$(LIBTOOL) --mode=execute gdb tests/burnin_test
 
@@ -117,6 +123,9 @@ valgrind-client:
 
 valgrind-round-robin:
 	@$(VALGRIND_COMMAND) tests/round_robin_test $(ARG1) $(ARG2)
+
+valgrind-regression: tests/regression_test
+	@$(VALGRIND_COMMAND) tests/regression_test $(ARG1) $(ARG2)
 
 valgrind-worker: tests/worker_test
 	@$(VALGRIND_COMMAND) tests/worker_test $(ARG1) $(ARG2)

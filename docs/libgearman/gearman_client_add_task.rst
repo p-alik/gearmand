@@ -8,14 +8,7 @@ SYNOPSIS
 
 #include <libgearman/gearman.h>
 
-.. c:function:: gearman_task_st *gearman_client_add_task(gearman_client_st *client,
-                                         gearman_task_st *task,
-                                         void *context,
-                                         const char *function_name,
-                                         const char *unique,
-                                         const void *workload,
-                                         size_t workload_size,
-                                         gearman_return_t *ret_ptr)
+.. c:function:: gearman_task_st *gearman_client_add_task(gearman_client_st *client, gearman_task_st *task, void *context, const char *function_name, const char *unique, const void *workload, size_t workload_size, gearman_return_t *ret_ptr)
 
 Link with -lgearman
 
