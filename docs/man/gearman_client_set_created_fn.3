@@ -1,4 +1,4 @@
-.TH "GEARMAN_CLIENT_SET_CREATED_FN" "3" "June 07, 2011" "0.21" "Gearmand"
+.TH "GEARMAN_CLIENT_SET_CREATED_FN" "3" "June 09, 2011" "0.21" "Gearmand"
 .SH NAME
 gearman_client_set_created_fn \- Gearmand Documentation
 .
@@ -69,6 +69,10 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .TP
 .B void gearman_client_set_fail_fn(gearman_client_st\fI\ *client\fP, gearman_fail_fn\fI\ *function\fP)
 .UNINDENT
+.INDENT 0.0
+.TP
+.B void gearman_client_clear_fn(gearman_client_st\fI\ *client\fP)
+.UNINDENT
 .sp
 Link to \-lgearman
 .SH DESCRIPTION
@@ -77,6 +81,9 @@ Callbacks for client execution task states.
 .sp
 \fBgearman_client_do_job_handle()\fP sets the callback function that will
 be called if server is to make a request to the client to provide more data.
+.sp
+\fI\%gearman_client_clear_fn()\fP can be called to remove all existing
+\fI\%gearman_actions_t\fP that have been set.
 .sp
 \fI\%gearman_client_set_created_fn()\fP,
 \fI\%gearman_client_set_data_fn()\fP,

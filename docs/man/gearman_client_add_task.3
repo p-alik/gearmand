@@ -1,4 +1,4 @@
-.TH "GEARMAN_CLIENT_ADD_TASK" "3" "June 07, 2011" "0.21" "Gearmand"
+.TH "GEARMAN_CLIENT_ADD_TASK" "3" "June 09, 2011" "0.21" "Gearmand"
 .SH NAME
 gearman_client_add_task \- Gearmand Documentation
 .
@@ -35,27 +35,13 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 #include <libgearman/gearman.h>
 .INDENT 0.0
 .TP
-.B gearman_task_st *gearman_client_add_task(gearman_client_st *client,
-.TP
-.B gearman_task_st *task,
-.TP
-.B void *context,
-.TP
-.B const char *function_name,
-.TP
-.B const char *unique,
-.TP
-.B const void *workload,
-.TP
-.B size_t workload_size,
-.TP
-.B gearman_return_t *ret_ptr)
+.B gearman_task_st *gearman_client_add_task(gearman_client_st\fI\ *client\fP, gearman_task_st\fI\ *task\fP, void\fI\ *context\fP, const char\fI\ *function_name\fP, const char\fI\ *unique\fP, const void\fI\ *workload\fP, size_t\fI\ workload_size\fP, gearman_return_t\fI\ *ret_ptr\fP)
 .UNINDENT
 .sp
 Link with \-lgearman
 .SH DESCRIPTION
 .sp
-\fBgearman_client_add_task()\fP creates a task and adds it to the given \fBgearman_client_st\fP. Execution of the task does now begin until \fBgearman_client_run_tasks()\fP is called.
+\fI\%gearman_client_add_task()\fP creates a task and adds it to the given \fBgearman_client_st\fP. Execution of the task does now begin until \fBgearman_client_run_tasks()\fP is called.
 .sp
 If the unique value is not set, then a unique will be assigned.
 .sp

@@ -59,7 +59,7 @@ enum gearman_return_t
   GEARMAN_NO_SERVERS,
   GEARMAN_LOST_CONNECTION,
   GEARMAN_MEMORY_ALLOCATION_FAILURE,
-  GEARMAN_JOB_EXISTS,
+  GEARMAN_JOB_EXISTS, // see gearman_client_job_status()
   GEARMAN_JOB_QUEUE_FULL,
   GEARMAN_SERVER_ERROR,
   GEARMAN_WORK_ERROR, // DEPRECATED
@@ -93,10 +93,11 @@ enum gearman_return_t
   GEARMAN_TIMEOUT,
   GEARMAN_ARGUMENT_TOO_LARGE,
   GEARMAN_INVALID_ARGUMENT,
+  GEARMAN_IN_PROGRESS, // See gearman_client_job_status()
   GEARMAN_MAX_RETURN /* Always add new error code before */
 };
 
-#define gearman_continue(__gearman_return_t) (((__gearman_return_t) == GEARMAN_IO_WAIT) || ((__gearman_return_t) == GEARMAN_PAUSE) || ((__gearman_return_t) == GEARMAN_NO_ACTIVE_FDS))
+#define gearman_continue(__gearman_return_t) (((__gearman_return_t) == GEARMAN_IO_WAIT) || ((__gearman_return_t) == GEARMAN_IN_PROGRESS) ||  ((__gearman_return_t) == GEARMAN_PAUSE) || ((__gearman_return_t) == GEARMAN_JOB_EXISTS) || ((__gearman_return_t) == GEARMAN_NO_ACTIVE_FDS))
 #define gearman_failed(__gearman_return_t) ((__gearman_return_t) != GEARMAN_SUCCESS)
 #define gearman_success(__gearman_return_t) ((__gearman_return_t) == GEARMAN_SUCCESS)
 

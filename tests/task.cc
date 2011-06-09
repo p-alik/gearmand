@@ -89,11 +89,11 @@ test_return_t gearman_client_add_task_test_fail(void *object)
   do
   {
     ret= gearman_client_run_tasks(client);
-    test_true_got(ret == GEARMAN_SUCCESS, gearman_client_error(client));
-    test_truth(task->client);
-  } while (gearman_task_is_running(task));
+  } while (gearman_continue(ret));
 
-  test_true_got(ret == GEARMAN_SUCCESS, gearman_client_error(client));
+  test_compare_got(GEARMAN_SUCCESS, ret, gearman_client_error(client));
+  test_truth(task->client);
+
   test_true_got(gearman_task_error(task) == GEARMAN_WORK_FAIL, gearman_strerror(gearman_task_error(task)));
 
   test_truth(task->client);

@@ -28,6 +28,8 @@ SYNOPSIS
 
 .. c:function:: void gearman_client_set_fail_fn(gearman_client_st *client, gearman_fail_fn *function)
 
+.. c:function:: void gearman_client_clear_fn(gearman_client_st *client)
+
 Link to -lgearman
 
 -----------
@@ -38,6 +40,9 @@ Callbacks for client execution task states.
 
 :c:func:`gearman_client_do_job_handle` sets the callback function that will
 be called if server is to make a request to the client to provide more data.
+
+:c:func:`gearman_client_clear_fn()` can be called to remove all existing
+:c:type:`gearman_actions_t` that have been set.
 
 :c:func:`gearman_client_set_created_fn`,
 :c:func:`gearman_client_set_data_fn`,

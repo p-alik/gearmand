@@ -571,7 +571,7 @@ static test_return_t submit_multiple_do(void *object)
   return TEST_SUCCESS;
 }
 
-static test_return_t background_test(void *object)
+static test_return_t gearman_client_job_status_test(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
   test_truth(client);
@@ -586,19 +586,45 @@ static test_return_t background_test(void *object)
                    gearman_client_do_background(client, worker_function, NULL, gearman_string_param(value), job_handle), 
                    gearman_client_error(client));
 
-  while (1)
+  bool is_known;
+  do
   {
-    bool is_known;
     bool is_running;
     uint32_t numerator;
     uint32_t denominator;
 
-    test_true_got(gearman_success(gearman_client_job_status(client, job_handle, &is_known, &is_running, &numerator, &denominator)),
-                  gearman_client_error(client));
+    test_compare_got(GEARMAN_SUCCESS,
+                     gearman_client_job_status(client, job_handle, &is_known, &is_running, &numerator, &denominator),
+                     gearman_client_error(client));
+  } while (is_known);
 
-    if (not is_known)
-      break;
-  }
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_client_job_status_with_return(void *object)
+{
+  gearman_client_st *client= (gearman_client_st *)object;
+  test_truth(client);
+
+  gearman_string_t value= { gearman_literal_param("background_test") };
+
+  const char *worker_function= (const char *)gearman_client_context(client);
+  test_truth(worker_function);
+
+  gearman_job_handle_t job_handle;
+  test_compare_got(GEARMAN_SUCCESS,
+                   gearman_client_do_background(client, worker_function, NULL, gearman_string_param(value), job_handle), 
+                   gearman_client_error(client));
+
+  gearman_return_t ret;
+  do
+  {
+    uint32_t numerator;
+    uint32_t denominator;
+
+    ret= gearman_client_job_status(client, job_handle, NULL, NULL, &numerator, &denominator);
+  } while (gearman_continue(ret));
+  test_compare(GEARMAN_SUCCESS, ret);
 
   return TEST_SUCCESS;
 }
@@ -617,14 +643,12 @@ static test_return_t background_failure_test(void *object)
                                                     job_handle);
   test_compare_got(GEARMAN_SUCCESS, rc, gearman_client_error(client));
 
-  rc= gearman_client_job_status(client, job_handle, &is_known, &is_running,
-                                &numerator, &denominator);
-  if (rc != GEARMAN_SUCCESS || is_known != true || is_running != false ||
-      numerator != 0 || denominator != 0)
-  {
-    printf("background_failure_test:%s\n", gearman_client_error(client));
-    return TEST_FAILURE;
-  }
+  do {
+    rc= gearman_client_job_status(client, job_handle, &is_known, &is_running,
+                                  &numerator, &denominator);
+    test_true(is_known == true and is_running == false and numerator == 0 and denominator == 0);
+  } while (gearman_continue(rc));
+  test_compare(GEARMAN_SUCCESS, rc);
 
   return TEST_SUCCESS;
 }
@@ -807,7 +831,7 @@ static void log_counter(const char *line, gearman_verbose_t verbose,
 
 static test_return_t strerror_count(void *)
 {
-  test_compare((int)GEARMAN_MAX_RETURN, 50);
+  test_compare((int)GEARMAN_MAX_RETURN, 51);
 
   return TEST_SUCCESS;
 }
@@ -822,21 +846,22 @@ static char * make_number(uint32_t expected, uint32_t got)
   return strdup(buffer);
 }
 
-static test_return_t strerror_strings(void *object  __attribute__((unused)))
+static test_return_t strerror_strings(void *)
 {
-  uint32_t values[] = { 324335284U, 1940666259U, 4156775927U, 18028287U,
-			1834995715U, 1009419836U, 1038124396U, 3050095617U,
-			4004269877U, 2913489720U, 1389266665U, 1374361090U,
-			3775104989U, 1158738795U, 2490507301U, 426780991U,
-			2421852085U, 426121997U, 3669711613U, 2620567638U,
-			48094985U, 4052600452U, 2697110207U, 4260329382U,
-			3706494438U, 1765339649U, 1176029865U, 2899482444U,
-			2255507756U, 1844534215U, 1685626311U, 3134591697U,
-			1469920452U, 2236059486U, 1693700353U, 1173962212U,
-			2491943732U, 1864825729U, 523632457U, 1342225548U,
-			245155833U, 3999913926U, 2789053153U, 2576033598U,
-			463490826U, 1983660343U, 2268979717U, 1656388188U,
-                        1558344702U, 3577742799U};
+  uint32_t values[]= {
+    2723107532U, 1294272985U, 949848612U, 646434617U, 
+    2273096667U, 3411376012U, 978198404U, 2644287234U, 
+    1762137345U, 1727436301U, 1103093142U, 2958899803U, 
+    3844590487U, 3520316764U, 3288532333U, 697573278U, 
+    2328987341U, 1321921098U, 1475770122U, 4011631587U, 
+    2468981698U, 2935753385U, 884320816U, 3006705975U, 
+    2840498210U, 2953034368U, 501858685U, 1635925784U, 
+    880765771U, 15612712U, 1489284002U, 2968621609U, 
+    79936336U, 3059874010U, 3562217099U, 13337402U, 
+    132823274U, 3950859856U, 237150774U, 290535510U, 
+    2101976744U, 2262698284U, 3182950564U, 2391595326U, 
+    1764731897U, 3485422815U, 99607280U, 2348849961U, 
+    607991020U, 1597605008U, 1377573125U };
 
   for (int rc= GEARMAN_SUCCESS; rc < GEARMAN_MAX_RETURN; rc++)
   {
@@ -995,7 +1020,8 @@ test_st tests[] ={
   {"exception", 0, submit_exception_job_test },
   {"warning", 0, submit_warning_job_test },
   {"submit_multiple_do", 0, submit_multiple_do },
-  {"background", 0, background_test },
+  {"gearman_client_job_status()", 0, gearman_client_job_status_test },
+  {"gearman_client_job_status() with gearman_return_t", 0, gearman_client_job_status_with_return },
   {"background_failure", 0, background_failure_test },
   {"add_servers", 0, add_servers_test },
   {"bug_518512_test", 0, bug_518512_test },

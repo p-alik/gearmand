@@ -165,6 +165,10 @@ test_return_t queue_add(void *object)
   test_true_got(rc == GEARMAN_SUCCESS, gearman_strerror(rc));
   test_truth(job_handle[0]);
 
+  do {
+    rc= gearman_client_job_status(client_ptr, job_handle, NULL, NULL, NULL, NULL);
+  } while (gearman_continue(rc));
+
   gearman_client_free(&client);
 
   test->run_worker= true;

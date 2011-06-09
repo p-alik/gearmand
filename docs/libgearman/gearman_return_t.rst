@@ -125,7 +125,15 @@ specified. See :c:func:`gearman_client_set_workload_fn()`
 
 .. c:type:: GEARMAN_WORK_FAIL  
 
-A task has failed, and the worker has exited with an error or it called :c:func:`ggearman_job_send_fail()`
+A task has failed, and the worker has exited with an error or it called :c:func:`gearman_job_send_fail()`
+
+.. c:type:: GEARMAN_IN_PROGRESS
+
+:c:func:`gearman_client_job_status()` has been called for a :c:type:`gearman_job_handle_t` and the Job is currently being run by a worker.
+
+.. c:type:: GEARMAN_JOB_EXISTS
+
+:c:func:`gearman_client_job_status()` has been called for a :c:type:`gearman_job_handle_t` and the Job is currently known by a server, but is not being run by a worker.
 
 ***********
 WORKER ONLY

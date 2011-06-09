@@ -546,6 +546,32 @@ gearman_return_t gearman_client_job_status(gearman_client_st *client,
 
     if (denominator)
       *denominator= do_task.denominator;
+
+    if (not is_known and not is_running)
+    {
+      if (do_task.options.is_running) 
+      {
+        ret= GEARMAN_IN_PROGRESS;
+      }
+      else if (do_task.options.is_known)
+      {
+        ret= GEARMAN_JOB_EXISTS;
+      }
+    }
+  }
+  else
+  {
+    if (is_known)
+      *is_known= false;
+
+    if (is_running)
+      *is_running= false;
+
+    if (numerator)
+      *numerator= 0;
+
+    if (denominator)
+      *denominator= 0;
   }
   gearman_task_free(do_task_ptr);
 
