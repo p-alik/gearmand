@@ -20,6 +20,7 @@ man_MANS+= \
 	   docs/man/gearadmin.1 \
 	   docs/man/gearman.1 \
 	   docs/man/gearman_actions_t.3 \
+	   docs/man/gearman_log_fn.3 \
 	   docs/man/gearman_bugreport.3 \
 	   docs/man/gearman_client_add_options.3 \
 	   docs/man/gearman_client_add_server.3 \
