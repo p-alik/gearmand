@@ -1110,6 +1110,7 @@ test_st gearman_task_tests[] ={
   {"gearman_client_add_task_high_background()", 0, gearman_client_add_task_high_background_test},
   {"gearman_client_add_task() exception", 0, gearman_client_add_task_exception},
   {"gearman_client_add_task() warning", 0, gearman_client_add_task_warning},
+  {"gearman_client_add_task(GEARMAN_NO_SERVERS)", 0, gearman_client_add_task_no_servers},
   {0, 0, 0}
 };
 

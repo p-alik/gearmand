@@ -282,3 +282,27 @@ test_return_t gearman_client_add_task_warning(void *object)
 
   return TEST_SUCCESS;
 }
+
+test_return_t gearman_client_add_task_no_servers(void *)
+{
+  gearman_client_st *client= gearman_client_create(NULL);
+  test_truth(client);
+
+  gearman_return_t ret;
+  gearman_task_st *task= gearman_client_add_task(client, NULL, NULL,
+                                                 "does not exist", NULL,
+                                                 gearman_literal_param("dog"),
+                                                 &ret);
+  test_true_got(gearman_success(ret), gearman_strerror(ret));
+  test_truth(task);
+
+  gearman_return_t local_ret= gearman_client_run_tasks(client);
+  test_compare_got(GEARMAN_NO_SERVERS, local_ret, gearman_client_error(client));
+
+  local_ret= gearman_client_run_tasks(client);
+  test_compare_got(GEARMAN_NO_SERVERS, local_ret, gearman_client_error(client));
+
+  gearman_client_free(client);
+
+  return TEST_SUCCESS;
+}

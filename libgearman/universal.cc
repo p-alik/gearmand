@@ -212,7 +212,7 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
   if (universal.pfds_size < universal.con_count)
   {
     pfds= static_cast<pollfd*>(realloc(universal.pfds, universal.con_count * sizeof(struct pollfd)));
-    if (pfds == NULL)
+    if (not pfds)
     {
       gearman_perror(universal, "pollfd realloc");
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
@@ -240,8 +240,7 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
 
   if (x == 0)
   {
-    gearman_error(universal, GEARMAN_NO_ACTIVE_FDS, "no active file descriptors");
-    return GEARMAN_NO_ACTIVE_FDS;
+    return gearman_error(universal, GEARMAN_NO_ACTIVE_FDS, "no active file descriptors");
   }
 
   int ret;
@@ -253,8 +252,7 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
       if (errno == EINTR)
         continue;
 
-      gearman_perror(universal, "poll");
-      return GEARMAN_ERRNO;
+      return gearman_perror(universal, "poll");
     }
 
     break;
