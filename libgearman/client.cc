@@ -123,7 +123,7 @@ gearman_client_st *gearman_client_clone(gearman_client_st *client,
 
   client= _client_allocate(client, true);
 
-  if (client == NULL)
+  if (not client)
   {
     return client;
   }
@@ -531,6 +531,11 @@ gearman_return_t gearman_client_job_status(gearman_client_st *client,
 
   do {
     ret= gearman_client_run_tasks(client);
+    
+    // If either of the following is ever true, we will end up in an
+    // infinite loop
+    assert(ret != GEARMAN_IN_PROGRESS and ret != GEARMAN_JOB_EXISTS);
+
   } while (gearman_continue(ret));
 
   if (gearman_success(ret))

@@ -37,6 +37,8 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .TP
 .B gearman_return_t gearman_client_job_status(gearman_client_st *client, gearman_job_handle_t job_handle, bool *is_known, bool *is_running, uint32_t *numerator, uint32_t *denominator);
 .UNINDENT
+.sp
+Link with \-lgearman
 .SH DESCRIPTION
 .sp
 \fBgearman_client_job_status()\fP is used to find the status of a job via its \fBgearman_job_handle_t\fP. The arguments is_known, is_running, numerator, and denominator are all optional. Unless a Gearman worker has sent numerator/denominator via \fBgearman_job_send_status()\fP, those values will be zero.
@@ -47,13 +49,17 @@ If the arguments is_known and is_running are ommitted then the function returns 
 \fBgearman_return_t\fP will be returned. \fBGEARMAN_SUCCESS\fP will be returned upon success of the status being updated.
 If the arguments is_known and is_running are omitted then \fBgearman_client_job_status()\fP will return \fBGEARMAN_JOB_EXISTS\fP if the \fBgearman_job_handle_t\fP is known on the server, and
 \fBGEARMAN_IN_PROGRESS\fP if it is running. Knowing whether the job is running or not has higher precedence. \fBgearman_continue()\fP can be used for loops where you want to exit from the loop once the job has been completed.
+.IP Warning
+.
+For loops you should always check \fBgearman_return_t\fP with \fBgearman_continue()\fP even if you specifiy the argument is_known or is_running. A non\-blocking IO call can return something other then \fBGEARMAN_SUCCESS\fP, in some cases you will want to treat those values not as errors.
+.RE
 .SH HOME
 .sp
 To find out more information please check:
 \fI\%https://launchpad.net/gearmand\fP
 .SH SEE ALSO
 .sp
-\fIgearmand(8)\fP \fIlibgearman(3)\fP \fIgearman_client_st(3)\fP \fIgearman_job_handle_t(3)\fP
+\fIgearmand(8)\fP \fIlibgearman(3)\fP \fIgearman_client_st(3)\fP \fIgearman_job_handle_t(3)\fP \fIgearman_continue(3\fP
 .RE
 .SH AUTHOR
 Data Differential http://datadifferential.com/

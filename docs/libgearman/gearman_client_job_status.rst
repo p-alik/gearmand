@@ -10,6 +10,7 @@ SYNOPSIS
 
 .. c:function:: gearman_return_t gearman_client_job_status(gearman_client_st *client, gearman_job_handle_t job_handle, bool *is_known, bool *is_running, uint32_t *numerator, uint32_t *denominator);
 
+Link with -lgearman
 
 -----------
 DESCRIPTION
@@ -27,6 +28,8 @@ RETURN VALUE
 If the arguments is_known and is_running are omitted then :c:func:`gearman_client_job_status()` will return :c:type:`GEARMAN_JOB_EXISTS` if the :c:type:`gearman_job_handle_t` is known on the server, and
 :c:type:`GEARMAN_IN_PROGRESS` if it is running. Knowing whether the job is running or not has higher precedence. :c:func:`gearman_continue()` can be used for loops where you want to exit from the loop once the job has been completed. 
 
+.. warning:: 
+  For loops you should always check :c:type:`gearman_return_t` with :c:func:`gearman_continue()` even if you specifiy the argument is_known or is_running. A non-blocking IO call can return something other then :c:type:`GEARMAN_SUCCESS`, in some cases you will want to treat those values not as errors.
 
 
 ----
@@ -38,5 +41,5 @@ To find out more information please check:
 `https://launchpad.net/gearmand <https://launchpad.net/gearmand>`_
 
 .. seealso::
-  :manpage:`gearmand(8)` :manpage:`libgearman(3)` :manpage:`gearman_client_st(3)` :manpage:`gearman_job_handle_t(3)`
+  :manpage:`gearmand(8)` :manpage:`libgearman(3)` :manpage:`gearman_client_st(3)` :manpage:`gearman_job_handle_t(3)` :manpage:`gearman_continue(3`
 

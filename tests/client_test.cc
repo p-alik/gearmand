@@ -586,6 +586,7 @@ static test_return_t gearman_client_job_status_test(void *object)
                    gearman_client_do_background(client, worker_function, NULL, gearman_string_param(value), job_handle), 
                    gearman_client_error(client));
 
+  gearman_return_t ret;
   bool is_known;
   do
   {
@@ -594,9 +595,9 @@ static test_return_t gearman_client_job_status_test(void *object)
     uint32_t denominator;
 
     test_compare_got(GEARMAN_SUCCESS,
-                     gearman_client_job_status(client, job_handle, &is_known, &is_running, &numerator, &denominator),
+                     ret= gearman_client_job_status(client, job_handle, &is_known, &is_running, &numerator, &denominator),
                      gearman_client_error(client));
-  } while (is_known);
+  } while (gearman_continue(ret) and is_known);
 
   return TEST_SUCCESS;
 }
@@ -647,7 +648,7 @@ static test_return_t background_failure_test(void *object)
     rc= gearman_client_job_status(client, job_handle, &is_known, &is_running,
                                   &numerator, &denominator);
     test_true(is_known == true and is_running == false and numerator == 0 and denominator == 0);
-  } while (gearman_continue(rc));
+  } while (gearman_continue(rc)); // We do not test for is_known since the server will keep the job around until a worker comes along
   test_compare(GEARMAN_SUCCESS, rc);
 
   return TEST_SUCCESS;

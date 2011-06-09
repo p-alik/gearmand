@@ -37,6 +37,7 @@
 
 #include <config.h>
 #include <cstring>
+#include <cassert>
 
 #include <libgearman/gearman.h>
 
@@ -162,12 +163,14 @@ test_return_t queue_add(void *object)
   rc= gearman_client_do_background(&client, test->worker_function_name(), NULL, 
                                    gearman_literal_param("background_payload"),
                                    job_handle);
-  test_true_got(rc == GEARMAN_SUCCESS, gearman_strerror(rc));
+  test_compare(GEARMAN_SUCCESS, rc);
   test_truth(job_handle[0]);
 
   do {
     rc= gearman_client_job_status(client_ptr, job_handle, NULL, NULL, NULL, NULL);
-  } while (gearman_continue(rc));
+    test_true(rc != GEARMAN_IN_PROGRESS);
+  } while (gearman_continue(rc) and rc != GEARMAN_JOB_EXISTS); // We need to exit on these values since the job will never run
+  test_true(rc == GEARMAN_JOB_EXISTS or rc == GEARMAN_SUCCESS);
 
   gearman_client_free(&client);
 
