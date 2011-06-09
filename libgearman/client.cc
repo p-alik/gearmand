@@ -529,8 +529,11 @@ gearman_return_t gearman_client_job_status(gearman_client_st *client,
 
   gearman_task_clear_fn(do_task_ptr);
 
-  ret= gearman_client_run_tasks(client);
-  if (ret != GEARMAN_IO_WAIT)
+  do {
+    ret= gearman_client_run_tasks(client);
+  } while (gearman_continue(ret));
+
+  if (gearman_success(ret))
   {
     if (is_known)
       *is_known= do_task.options.is_known;

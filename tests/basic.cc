@@ -146,7 +146,7 @@ test_return_t queue_add(void *object)
 {
   Context *test= (Context *)object;
   gearman_client_st client, *client_ptr;
-  char job_handle[GEARMAN_JOB_HANDLE_SIZE]= {};
+  gearman_job_handle_t job_handle= {};
   test_truth(test);
 
   test->run_worker= false;
@@ -232,7 +232,7 @@ test_return_t lp_734663(void *object)
 
   for (uint32_t x= 0; x < NUMBER_OF_JOBS; x++)
   {
-    char job_handle[GEARMAN_JOB_HANDLE_SIZE]= {};
+    gearman_job_handle_t job_handle= {};
     gearman_return_t rc= gearman_client_do_background(&client, worker_function_name, NULL, value, sizeof(value), job_handle);
     test_truth(rc == GEARMAN_SUCCESS);
     test_truth(job_handle[0]);

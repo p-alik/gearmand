@@ -581,7 +581,7 @@ static test_return_t background_test(void *object)
   const char *worker_function= (const char *)gearman_client_context(client);
   test_truth(worker_function);
 
-  char job_handle[GEARMAN_JOB_HANDLE_SIZE];
+  gearman_job_handle_t job_handle;
   test_compare_got(GEARMAN_SUCCESS,
                    gearman_client_do_background(client, worker_function, NULL, gearman_string_param(value), job_handle), 
                    gearman_client_error(client));
@@ -606,7 +606,7 @@ static test_return_t background_test(void *object)
 static test_return_t background_failure_test(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
-  char job_handle[GEARMAN_JOB_HANDLE_SIZE];
+  gearman_job_handle_t job_handle;
   bool is_known;
   bool is_running;
   uint32_t numerator;
@@ -1040,7 +1040,8 @@ test_st gearman_execute_tests[] ={
   {"gearman_execute()", 0, gearman_execute_test },
   {"gearman_execute(GEARMAN_WORK_FAIL)", 0, gearman_execute_fail_test },
   {"gearman_execute() epoch", 0, gearman_execute_epoch_test },
-  {"gearman_execute() timeout", 0, gearman_execute_timeout_test },
+  {"gearman_execute() epoch and test gearman_job_handle_t", 0, gearman_execute_epoch_check_job_handle_test },
+  {"gearman_execute(GEARMAN_TIMEOUT)", 0, gearman_execute_timeout_test },
   {"gearman_execute() background", 0, gearman_execute_bg_test },
   {"gearman_execute() multiple background", 0, gearman_execute_multile_bg_test },
   {0, 0, 0}

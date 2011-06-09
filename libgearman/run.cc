@@ -155,6 +155,7 @@ gearman_return_t _client_run_task(gearman_client_st *client, gearman_task_st *ta
   case GEARMAN_TASK_STATE_WORK:
     if (task->recv->command == GEARMAN_COMMAND_JOB_CREATED)
     {
+      task->options.is_known= true;
       snprintf(task->job_handle, GEARMAN_JOB_HANDLE_SIZE, "%.*s",
                int(task->recv->arg_size[0]),
                static_cast<char *>(task->recv->arg[0]));
@@ -181,6 +182,9 @@ gearman_return_t _client_run_task(gearman_client_st *client, gearman_task_st *ta
     }
     else if (task->recv->command == GEARMAN_COMMAND_WORK_DATA)
     {
+      task->options.is_known= true;
+      task->options.is_running= true;
+
   case GEARMAN_TASK_STATE_DATA:
       if (task->func.data_fn)
       {
@@ -248,10 +252,14 @@ gearman_return_t _client_run_task(gearman_client_st *client, gearman_task_st *ta
       }
 
       if (task->send.command == GEARMAN_COMMAND_GET_STATUS)
+      {
         break;
+      }
     }
     else if (task->recv->command == GEARMAN_COMMAND_WORK_COMPLETE)
     {
+      task->options.is_known= false;
+      task->options.is_running= false;
       task->result_rc= GEARMAN_SUCCESS;
 
   case GEARMAN_TASK_STATE_COMPLETE:
@@ -284,6 +292,8 @@ gearman_return_t _client_run_task(gearman_client_st *client, gearman_task_st *ta
     {
       // If things fail we need to delete the result, and set the result_rc
       // correctly.
+      task->options.is_known= false;
+      task->options.is_running= false;
       delete task->result_ptr;
       task->result_ptr= NULL;
       task->result_rc= GEARMAN_WORK_FAIL;
