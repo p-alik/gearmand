@@ -49,3 +49,5 @@ void *unique_worker(gearman_job_st *job, void *,
 gearman_worker_error_t  split_worker(gearman_job_st *job, void *);
 
 gearman_return_t cat_aggregator_fn(gearman_aggregator_st *aggregator, gearman_task_st *task, gearman_result_st *result);
+
+void *increment_reset_worker(gearman_job_st *job, void *, size_t *result_size, gearman_return_t *ret_ptr);

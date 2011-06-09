@@ -141,6 +141,10 @@ struct world_stats_st {
   { }
 };
 
+#define TEST_STRINGIFY(x) #x
+#define TEST_TOSTRING(x) TEST_STRINGIFY(x)
+#define TEST_AT __FILE__ ":" TEST_TOSTRING(__LINE__)
+
 #ifdef	__cplusplus
 extern "C" {
 #endif
@@ -180,6 +184,16 @@ do \
   } \
 } while (0)
 
+#define test_true(A) \
+do \
+{ \
+  if (! (A)) { \
+    fprintf(stderr, "\nAssertion failed at %s:%d: %s\n", __FILE__, __LINE__, #A);\
+    create_core(); \
+    return TEST_FAILURE; \
+  } \
+} while (0)
+
 #define test_true_got(A,B) \
 do \
 { \
@@ -205,7 +219,7 @@ do \
 { \
   if ((A) != (B)) \
   { \
-    fprintf(stderr, "\n%s:%d: Expected %lu, got %lu\n", __FILE__, __LINE__, (unsigned long)(A), (unsigned long)(B)); \
+    fprintf(stderr, "\n%s:%d: Expected %s, got %lu\n", __FILE__, __LINE__, #A, (unsigned long)(B)); \
     create_core(); \
     return TEST_FAILURE; \
   } \

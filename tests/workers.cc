@@ -39,8 +39,11 @@
 
 #include <libgearman/gearman.h>
 #include <cassert>
+#include <cerrno>
 #include <cstdlib>
 #include <cstring>
+#include <climits>
+#include <cstdio>
 #include <string>
 #include <tests/workers.h>
 
@@ -254,4 +257,54 @@ gearman_worker_error_t  split_worker(gearman_job_st *job, void *)
   }
 
   return GEARMAN_WORKER_SUCCESS;
+}
+
+pthread_mutex_t increment_reset_worker_mutex= PTHREAD_MUTEX_INITIALIZER;
+
+void *increment_reset_worker(gearman_job_st *job, void *,
+                             size_t *result_size, gearman_return_t *ret_ptr)
+{
+  static long counter= 0;
+  const char *workload= (const char*)gearman_job_workload(job);
+
+  if (workload == NULL or gearman_job_workload_size(job) == 0)
+  { } // We do nothing
+  else if (gearman_job_workload_size(job) == gearman_literal_param_size("reset") and (not memcmp(workload, gearman_literal_param("reset"))))
+  {
+    pthread_mutex_lock(&increment_reset_worker_mutex);
+    counter= 0;
+    pthread_mutex_unlock(&increment_reset_worker_mutex);
+    *ret_ptr= GEARMAN_SUCCESS;
+    return NULL;
+  }
+
+  long change= strtol(workload, (char **)NULL, 10);
+  if (change ==  LONG_MIN or change == LONG_MAX or ( change == 0 and errno < 0))
+  {
+    gearman_job_send_warning(job, gearman_literal_param("strtol() failed"));
+    *ret_ptr= GEARMAN_WORK_FAIL;
+    return NULL;
+  }
+
+  char *result;
+  {
+    pthread_mutex_lock(&increment_reset_worker_mutex);
+    counter= counter +change;
+
+    result= (char *)malloc(40);
+    if (not result)
+    {
+      gearman_job_send_warning(job, gearman_literal_param("malloc() failed"));
+      *ret_ptr= GEARMAN_WORK_FAIL;
+      return NULL;
+    }
+    *result_size= size_t(snprintf(result, 40, "%ld", counter));
+
+    pthread_mutex_unlock(&increment_reset_worker_mutex);
+  }
+
+
+  *ret_ptr= GEARMAN_SUCCESS;
+
+  return result;
 }

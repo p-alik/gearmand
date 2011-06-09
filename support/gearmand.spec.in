@@ -6,7 +6,7 @@ License: BSD
 Group: System Environment/Libraries
 BuildRequires: gcc-c++
 URL: http://launchpad.net/gearmand
-Requires: sqlite
+Requires: sqlite, libevent >= 1.4, boost-program-options >=  1.39
 
 Packager: Brian Aker <brian@tangent.org>
 
