@@ -1225,7 +1225,7 @@ static void *_client_do(gearman_client_st *client, gearman_command_t command,
     *ret_ptr= ret;
     *result_size= 0;
   }
-  else if (ret == GEARMAN_SUCCESS and do_task_ptr->result_rc == GEARMAN_SUCCESS)
+  else if (gearman_success(ret) and do_task_ptr->result_rc == GEARMAN_SUCCESS)
   {
     *ret_ptr= do_task_ptr->result_rc;
     assert(do_task_ptr);

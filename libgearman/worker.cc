@@ -190,7 +190,9 @@ void gearman_worker_free(gearman_worker_st *worker)
   }
 
   while (worker->function_list)
+  {
     _worker_function_free(worker, worker->function_list);
+  }
 
   gearman_job_free_all(worker);
 
@@ -887,6 +889,10 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
 
       if (gearman_failed(ret))
       {
+        if (ret == GEARMAN_COULD_NOT_CONNECT)
+        {
+          gearman_reset(worker->universal);
+        }
         return ret;
       }
       assert(worker->work_job);
@@ -987,7 +993,9 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
       if (gearman_failed(worker->work_job->error_code= gearman_job_send_fail_fin(worker->work_job)))
       {
         if (worker->work_job->error_code == GEARMAN_LOST_CONNECTION)
+        {
           break;
+        }
 
         return worker->work_job->error_code;
       }
