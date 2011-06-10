@@ -253,8 +253,8 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
     return gearman_error(universal, GEARMAN_NO_ACTIVE_FDS, "no active file descriptors");
   }
 
-  int ret;
-  while (1)
+  int ret= 0;
+  while (1 and universal.timeout)
   {
     ret= poll(pfds, x, universal.timeout);
     if (ret == -1)
@@ -279,6 +279,14 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
   {
     if (con->events == 0)
       continue;
+
+    int err;
+    socklen_t len= sizeof (err);
+    (void)getsockopt(con->fd, SOL_SOCKET, SO_ERROR, &err, &len);
+    if (err)
+    {
+      con->cached_errno= err;
+    }
 
     con->set_revents(pfds[x].revents);
 

@@ -84,6 +84,7 @@ gearman_connection_st::gearman_connection_st(gearman_universal_st &universal_arg
   events(0),
   revents(0),
   fd(-1),
+  cached_errno(0),
   created_id(0),
   created_id_next(0),
   send_buffer_size(0),
