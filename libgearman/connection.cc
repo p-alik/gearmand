@@ -468,21 +468,21 @@ gearman_return_t gearman_connection_st::flush()
 
     case GEARMAN_CON_UNIVERSAL_CONNECT:
       if (fd != INVALID_SOCKET)
+      {
         close();
+      }
 
       if (addrinfo_next == NULL)
       {
         state= GEARMAN_CON_UNIVERSAL_ADDRINFO;
-        gearman_error(universal, GEARMAN_COULD_NOT_CONNECT, "could not connect");
-        return GEARMAN_COULD_NOT_CONNECT;
+        return gearman_error(universal, GEARMAN_COULD_NOT_CONNECT, host);
       }
 
       fd= socket(addrinfo_next->ai_family, addrinfo_next->ai_socktype, addrinfo_next->ai_protocol);
       if (fd == INVALID_SOCKET)
       {
         state= GEARMAN_CON_UNIVERSAL_ADDRINFO;
-        gearman_perror(universal, "socket");
-        return GEARMAN_ERRNO;
+        return gearman_perror(universal, "socket");
       }
 
       {

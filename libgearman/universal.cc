@@ -187,7 +187,17 @@ void gearman_set_workload_free_fn(gearman_universal_st& universal,
 void gearman_free_all_cons(gearman_universal_st& universal)
 {
   while (universal.con_list)
+  {
     delete universal.con_list;
+  }
+}
+
+void gearman_reset(gearman_universal_st& universal)
+{
+  for (gearman_connection_st *con= universal.con_list; con; con= con->next)
+  {
+    con->close();
+  }
 }
 
 gearman_return_t gearman_flush_all(gearman_universal_st& universal)
@@ -265,7 +275,7 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
   }
 
   x= 0;
-  for (gearman_connection_st *con= universal.con_list; con != NULL; con= con->next)
+  for (gearman_connection_st *con= universal.con_list; con; con= con->next)
   {
     if (con->events == 0)
       continue;

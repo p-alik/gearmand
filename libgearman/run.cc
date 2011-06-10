@@ -62,7 +62,9 @@ gearman_return_t _client_run_task(gearman_client_st *client, gearman_task_st *ta
          task->con= task->con->next)
     {
       if (task->con->send_state == GEARMAN_CON_SEND_STATE_NONE)
+      {
         break;
+      }
     }
 
     if (not task->con)
@@ -102,11 +104,14 @@ gearman_return_t _client_run_task(gearman_client_st *client, gearman_task_st *ta
 
         if (ret == GEARMAN_COULD_NOT_CONNECT)
         {
-          for (task->con= task->con->next; task->con;
+          for (task->con= task->con->next; 
+               task->con;
                task->con= task->con->next)
           {
             if (task->con->send_state == GEARMAN_CON_SEND_STATE_NONE)
+            {
               break;
+            }
           }
         }
         else
@@ -116,8 +121,18 @@ gearman_return_t _client_run_task(gearman_client_st *client, gearman_task_st *ta
 
         if (not task->con)
         {
-          task->state= GEARMAN_TASK_STATE_FAIL;
-          client->running_tasks--;
+          task->result_rc= ret;
+
+          if (ret == GEARMAN_COULD_NOT_CONNECT) // If no connection is found, we will let the user try again
+          {
+            task->state= GEARMAN_TASK_STATE_NEW;
+            client->new_tasks++;
+          }
+          else
+          {
+            task->state= GEARMAN_TASK_STATE_FAIL;
+            client->running_tasks--;
+          }
           return ret;
         }
 

@@ -628,7 +628,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
               {
                 worker->state= GEARMAN_WORKER_STATE_CONNECT;
               }
-              else if (*ret_ptr == GEARMAN_COULD_NOT_CONNECT || *ret_ptr == GEARMAN_LOST_CONNECTION)
+              else if (*ret_ptr == GEARMAN_COULD_NOT_CONNECT or *ret_ptr == GEARMAN_LOST_CONNECTION)
               {
                 break;
               }
@@ -638,7 +638,9 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
           }
 
           if (*ret_ptr == GEARMAN_COULD_NOT_CONNECT)
+          {
             continue;
+          }
         }
 
     case GEARMAN_WORKER_STATE_GRAB_JOB_SEND:

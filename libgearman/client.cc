@@ -848,7 +848,9 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
              client->task= client->task->next)
         {
           if (client->task->state != GEARMAN_TASK_STATE_NEW)
+          {
             continue;
+          }
 
   case GEARMAN_CLIENT_STATE_NEW:
           gearman_return_t local_ret= _client_run_task(client, client->task);
@@ -879,8 +881,8 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
           for (client->task= client->task_list; client->task;
                client->task= client->task->next)
           {
-            if (client->task->con != client->con ||
-                (client->task->state != GEARMAN_TASK_STATE_SUBMIT &&
+            if (client->task->con != client->con or
+                (client->task->state != GEARMAN_TASK_STATE_SUBMIT and
                  client->task->state != GEARMAN_TASK_STATE_WORKLOAD))
             {
               continue;
@@ -888,7 +890,12 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
 
   case GEARMAN_CLIENT_STATE_SUBMIT:
             gearman_return_t local_ret= _client_run_task(client, client->task);
-            if (gearman_failed(local_ret) and local_ret != GEARMAN_IO_WAIT)
+            if (gearman_failed(local_ret) and local_ret == GEARMAN_COULD_NOT_CONNECT)
+            {
+              client->state= GEARMAN_CLIENT_STATE_IDLE;
+              return local_ret;
+            }
+            else if (gearman_failed(local_ret) and local_ret != GEARMAN_IO_WAIT)
             {
               client->state= GEARMAN_CLIENT_STATE_SUBMIT;
               return local_ret;
@@ -1082,6 +1089,10 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
 
   if (gearman_failed(rc))
   {
+    if (rc == GEARMAN_COULD_NOT_CONNECT)
+    {
+      gearman_reset(client->universal);
+    }
     assert(gearman_universal_error_code(client->universal) == rc);
   }
 
@@ -1109,6 +1120,11 @@ gearman_return_t gearman_client_run_block_tasks(gearman_client_st *client)
 
   if (gearman_failed(rc))
   {
+    if (rc == GEARMAN_COULD_NOT_CONNECT)
+    {
+      gearman_reset(client->universal);
+    }
+
     assert(gearman_universal_error_code(client->universal) == rc);
   }
 
