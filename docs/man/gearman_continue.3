@@ -1,6 +1,6 @@
-.TH "GEARMAN_CONTINUE" "3" "June 07, 2011" "0.21" "Gearmand"
+.TH "GEARMAN_CONTINUE" "3" "June 09, 2011" "0.21" "Gearmand"
 .SH NAME
-gearman_continue \- Gearmand Documentation
+gearman_continue \- Gearmand Documentation, http://gearman.info/
 .
 .nr rst2man-indent-level 0
 .
@@ -194,7 +194,19 @@ specified. See \fBgearman_client_set_workload_fn()\fP
 .B GEARMAN_WORK_FAIL
 .UNINDENT
 .sp
-A task has failed, and the worker has exited with an error or it called \fBggearman_job_send_fail()\fP
+A task has failed, and the worker has exited with an error or it called \fBgearman_job_send_fail()\fP
+.INDENT 0.0
+.TP
+.B GEARMAN_IN_PROGRESS
+.UNINDENT
+.sp
+\fBgearman_client_job_status()\fP has been called for a \fBgearman_job_handle_t\fP and the Job is currently being run by a worker.
+.INDENT 0.0
+.TP
+.B GEARMAN_JOB_EXISTS
+.UNINDENT
+.sp
+\fBgearman_client_job_status()\fP has been called for a \fBgearman_job_handle_t\fP and the Job is currently known by a server, but is not being run by a worker.
 .SS WORKER ONLY
 .INDENT 0.0
 .TP

@@ -62,7 +62,9 @@ gearman_return_t _client_run_task(gearman_client_st *client, gearman_task_st *ta
          task->con= task->con->next)
     {
       if (task->con->send_state == GEARMAN_CON_SEND_STATE_NONE)
+      {
         break;
+      }
     }
 
     if (not task->con)
@@ -102,11 +104,14 @@ gearman_return_t _client_run_task(gearman_client_st *client, gearman_task_st *ta
 
         if (ret == GEARMAN_COULD_NOT_CONNECT)
         {
-          for (task->con= task->con->next; task->con;
+          for (task->con= task->con->next; 
+               task->con;
                task->con= task->con->next)
           {
             if (task->con->send_state == GEARMAN_CON_SEND_STATE_NONE)
+            {
               break;
+            }
           }
         }
         else
@@ -116,8 +121,18 @@ gearman_return_t _client_run_task(gearman_client_st *client, gearman_task_st *ta
 
         if (not task->con)
         {
-          task->state= GEARMAN_TASK_STATE_FAIL;
-          client->running_tasks--;
+          task->result_rc= ret;
+
+          if (ret == GEARMAN_COULD_NOT_CONNECT) // If no connection is found, we will let the user try again
+          {
+            task->state= GEARMAN_TASK_STATE_NEW;
+            client->new_tasks++;
+          }
+          else
+          {
+            task->state= GEARMAN_TASK_STATE_FAIL;
+            client->running_tasks--;
+          }
           return ret;
         }
 
@@ -155,6 +170,7 @@ gearman_return_t _client_run_task(gearman_client_st *client, gearman_task_st *ta
   case GEARMAN_TASK_STATE_WORK:
     if (task->recv->command == GEARMAN_COMMAND_JOB_CREATED)
     {
+      task->options.is_known= true;
       snprintf(task->job_handle, GEARMAN_JOB_HANDLE_SIZE, "%.*s",
                int(task->recv->arg_size[0]),
                static_cast<char *>(task->recv->arg[0]));
@@ -181,6 +197,9 @@ gearman_return_t _client_run_task(gearman_client_st *client, gearman_task_st *ta
     }
     else if (task->recv->command == GEARMAN_COMMAND_WORK_DATA)
     {
+      task->options.is_known= true;
+      task->options.is_running= true;
+
   case GEARMAN_TASK_STATE_DATA:
       if (task->func.data_fn)
       {
@@ -248,10 +267,14 @@ gearman_return_t _client_run_task(gearman_client_st *client, gearman_task_st *ta
       }
 
       if (task->send.command == GEARMAN_COMMAND_GET_STATUS)
+      {
         break;
+      }
     }
     else if (task->recv->command == GEARMAN_COMMAND_WORK_COMPLETE)
     {
+      task->options.is_known= false;
+      task->options.is_running= false;
       task->result_rc= GEARMAN_SUCCESS;
 
   case GEARMAN_TASK_STATE_COMPLETE:
@@ -284,6 +307,8 @@ gearman_return_t _client_run_task(gearman_client_st *client, gearman_task_st *ta
     {
       // If things fail we need to delete the result, and set the result_rc
       // correctly.
+      task->options.is_known= false;
+      task->options.is_running= false;
       delete task->result_ptr;
       task->result_ptr= NULL;
       task->result_rc= GEARMAN_WORK_FAIL;

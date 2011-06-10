@@ -59,6 +59,8 @@
 #include <libtest/server.h>
 #include <libtest/worker.h>
 
+#include <iostream>
+
 #define WORKER_TEST_PORT 32123
 
 typedef struct
@@ -75,26 +77,53 @@ test_return_t flush(void);
 
 static test_return_t regression_bug_783141_test(void *)
 {
-  gearman_client_st *client= gearman_client_create(NULL);
-  test_truth(client);
+  { // Try with one bad host
+    gearman_client_st *client= gearman_client_create(NULL);
+    test_truth(client);
 
-  test_truth(gearman_success(gearman_client_add_server(client, "10.0.2.253", WORKER_TEST_PORT)));
+    test_truth(gearman_success(gearman_client_add_server(client, "10.0.2.253", WORKER_TEST_PORT)));
 
-  gearman_return_t ret;
-  gearman_task_st *task= gearman_client_add_task(client, NULL, NULL,
-                                                 "does not exist", NULL,
-                                                 gearman_literal_param("dog"),
-                                                 &ret);
-  test_true_got(gearman_success(ret), gearman_strerror(ret));
-  test_truth(task);
+    gearman_return_t ret;
+    gearman_task_st *task= gearman_client_add_task(client, NULL, NULL,
+                                                   "does not exist", NULL,
+                                                   gearman_literal_param("dog"),
+                                                   &ret);
+    test_true_got(gearman_success(ret), gearman_strerror(ret));
+    test_truth(task);
 
-  gearman_return_t local_ret= gearman_client_run_tasks(client);
-  test_compare_got(GEARMAN_COULD_NOT_CONNECT, local_ret, gearman_client_error(client));
+    gearman_return_t local_ret= gearman_client_run_tasks(client);
+    test_compare_got(GEARMAN_COULD_NOT_CONNECT, local_ret, gearman_client_error(client));
 
-  local_ret= gearman_client_run_tasks(client);
-  test_compare_got(GEARMAN_NO_ACTIVE_FDS, local_ret, gearman_client_error(client));
+    local_ret= gearman_client_run_tasks(client);
+    test_compare_got(GEARMAN_COULD_NOT_CONNECT, local_ret, gearman_strerror(local_ret));
 
-  gearman_client_free(client);
+    gearman_client_free(client);
+  }
+
+  { // Try with three bad hosts
+    gearman_client_st *client= gearman_client_create(NULL);
+    test_truth(client);
+
+    test_truth(gearman_success(gearman_client_add_server(client, "10.0.2.253", WORKER_TEST_PORT)));
+    test_truth(gearman_success(gearman_client_add_server(client, "10.0.2.252", WORKER_TEST_PORT)));
+    test_truth(gearman_success(gearman_client_add_server(client, "10.0.2.251", WORKER_TEST_PORT)));
+
+    gearman_return_t ret;
+    gearman_task_st *task= gearman_client_add_task(client, NULL, NULL,
+                                                   "does not exist", NULL,
+                                                   gearman_literal_param("dog"),
+                                                   &ret);
+    test_true_got(gearman_success(ret), gearman_strerror(ret));
+    test_truth(task);
+
+    gearman_return_t local_ret= gearman_client_run_tasks(client);
+    test_compare_got(GEARMAN_COULD_NOT_CONNECT, local_ret, gearman_client_error(client));
+
+    local_ret= gearman_client_run_tasks(client);
+    test_compare_got(GEARMAN_COULD_NOT_CONNECT, local_ret, gearman_strerror(local_ret));
+
+    gearman_client_free(client);
+  }
 
   return TEST_SUCCESS;
 }

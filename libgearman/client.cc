@@ -123,7 +123,7 @@ gearman_client_st *gearman_client_clone(gearman_client_st *client,
 
   client= _client_allocate(client, true);
 
-  if (client == NULL)
+  if (not client)
   {
     return client;
   }
@@ -529,8 +529,16 @@ gearman_return_t gearman_client_job_status(gearman_client_st *client,
 
   gearman_task_clear_fn(do_task_ptr);
 
-  ret= gearman_client_run_tasks(client);
-  if (ret != GEARMAN_IO_WAIT)
+  do {
+    ret= gearman_client_run_tasks(client);
+    
+    // If either of the following is ever true, we will end up in an
+    // infinite loop
+    assert(ret != GEARMAN_IN_PROGRESS and ret != GEARMAN_JOB_EXISTS);
+
+  } while (gearman_continue(ret));
+
+  if (gearman_success(ret))
   {
     if (is_known)
       *is_known= do_task.options.is_known;
@@ -543,6 +551,32 @@ gearman_return_t gearman_client_job_status(gearman_client_st *client,
 
     if (denominator)
       *denominator= do_task.denominator;
+
+    if (not is_known and not is_running)
+    {
+      if (do_task.options.is_running) 
+      {
+        ret= GEARMAN_IN_PROGRESS;
+      }
+      else if (do_task.options.is_known)
+      {
+        ret= GEARMAN_JOB_EXISTS;
+      }
+    }
+  }
+  else
+  {
+    if (is_known)
+      *is_known= false;
+
+    if (is_running)
+      *is_running= false;
+
+    if (numerator)
+      *numerator= 0;
+
+    if (denominator)
+      *denominator= 0;
   }
   gearman_task_free(do_task_ptr);
 
@@ -814,7 +848,9 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
              client->task= client->task->next)
         {
           if (client->task->state != GEARMAN_TASK_STATE_NEW)
+          {
             continue;
+          }
 
   case GEARMAN_CLIENT_STATE_NEW:
           gearman_return_t local_ret= _client_run_task(client, client->task);
@@ -845,8 +881,8 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
           for (client->task= client->task_list; client->task;
                client->task= client->task->next)
           {
-            if (client->task->con != client->con ||
-                (client->task->state != GEARMAN_TASK_STATE_SUBMIT &&
+            if (client->task->con != client->con or
+                (client->task->state != GEARMAN_TASK_STATE_SUBMIT and
                  client->task->state != GEARMAN_TASK_STATE_WORKLOAD))
             {
               continue;
@@ -854,7 +890,12 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
 
   case GEARMAN_CLIENT_STATE_SUBMIT:
             gearman_return_t local_ret= _client_run_task(client, client->task);
-            if (gearman_failed(local_ret) and local_ret != GEARMAN_IO_WAIT)
+            if (gearman_failed(local_ret) and local_ret == GEARMAN_COULD_NOT_CONNECT)
+            {
+              client->state= GEARMAN_CLIENT_STATE_IDLE;
+              return local_ret;
+            }
+            else if (gearman_failed(local_ret) and local_ret != GEARMAN_IO_WAIT)
             {
               client->state= GEARMAN_CLIENT_STATE_SUBMIT;
               return local_ret;
@@ -1048,6 +1089,10 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
 
   if (gearman_failed(rc))
   {
+    if (rc == GEARMAN_COULD_NOT_CONNECT)
+    {
+      gearman_reset(client->universal);
+    }
     assert(gearman_universal_error_code(client->universal) == rc);
   }
 
@@ -1075,6 +1120,11 @@ gearman_return_t gearman_client_run_block_tasks(gearman_client_st *client)
 
   if (gearman_failed(rc))
   {
+    if (rc == GEARMAN_COULD_NOT_CONNECT)
+    {
+      gearman_reset(client->universal);
+    }
+
     assert(gearman_universal_error_code(client->universal) == rc);
   }
 

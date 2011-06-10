@@ -91,6 +91,7 @@ struct client_test_st
   struct worker_handle_st *namespace_completion_worker;
   struct worker_handle_st *namespace_chunky_worker;
   struct worker_handle_st *namespace_split_worker;
+  struct worker_handle_st* increment_reset_worker[10]; 
   const char *_worker_name;
 
   client_test_st() :
@@ -120,6 +121,11 @@ struct client_test_st
     test_worker_stop(namespace_completion_worker);
     test_worker_stop(namespace_chunky_worker);
     test_worker_stop(namespace_split_worker);
+
+    for (uint32_t x= 0; x < 10; x++)
+    {
+      test_worker_stop(increment_reset_worker[x]);
+    }
     gearman_client_free(_client);
   }
 
@@ -565,7 +571,7 @@ static test_return_t submit_multiple_do(void *object)
   return TEST_SUCCESS;
 }
 
-static test_return_t background_test(void *object)
+static test_return_t gearman_client_job_status_test(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
   test_truth(client);
@@ -575,24 +581,51 @@ static test_return_t background_test(void *object)
   const char *worker_function= (const char *)gearman_client_context(client);
   test_truth(worker_function);
 
-  char job_handle[GEARMAN_JOB_HANDLE_SIZE];
+  gearman_job_handle_t job_handle;
   test_compare_got(GEARMAN_SUCCESS,
                    gearman_client_do_background(client, worker_function, NULL, gearman_string_param(value), job_handle), 
                    gearman_client_error(client));
 
-  while (1)
+  gearman_return_t ret;
+  bool is_known;
+  do
   {
-    bool is_known;
     bool is_running;
     uint32_t numerator;
     uint32_t denominator;
 
-    test_true_got(gearman_success(gearman_client_job_status(client, job_handle, &is_known, &is_running, &numerator, &denominator)),
-                  gearman_client_error(client));
+    test_compare_got(GEARMAN_SUCCESS,
+                     ret= gearman_client_job_status(client, job_handle, &is_known, &is_running, &numerator, &denominator),
+                     gearman_client_error(client));
+  } while (gearman_continue(ret) and is_known);
 
-    if (not is_known)
-      break;
-  }
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_client_job_status_with_return(void *object)
+{
+  gearman_client_st *client= (gearman_client_st *)object;
+  test_truth(client);
+
+  gearman_string_t value= { gearman_literal_param("background_test") };
+
+  const char *worker_function= (const char *)gearman_client_context(client);
+  test_truth(worker_function);
+
+  gearman_job_handle_t job_handle;
+  test_compare_got(GEARMAN_SUCCESS,
+                   gearman_client_do_background(client, worker_function, NULL, gearman_string_param(value), job_handle), 
+                   gearman_client_error(client));
+
+  gearman_return_t ret;
+  do
+  {
+    uint32_t numerator;
+    uint32_t denominator;
+
+    ret= gearman_client_job_status(client, job_handle, NULL, NULL, &numerator, &denominator);
+  } while (gearman_continue(ret));
+  test_compare(GEARMAN_SUCCESS, ret);
 
   return TEST_SUCCESS;
 }
@@ -600,7 +633,7 @@ static test_return_t background_test(void *object)
 static test_return_t background_failure_test(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
-  char job_handle[GEARMAN_JOB_HANDLE_SIZE];
+  gearman_job_handle_t job_handle;
   bool is_known;
   bool is_running;
   uint32_t numerator;
@@ -611,14 +644,12 @@ static test_return_t background_failure_test(void *object)
                                                     job_handle);
   test_compare_got(GEARMAN_SUCCESS, rc, gearman_client_error(client));
 
-  rc= gearman_client_job_status(client, job_handle, &is_known, &is_running,
-                                &numerator, &denominator);
-  if (rc != GEARMAN_SUCCESS || is_known != true || is_running != false ||
-      numerator != 0 || denominator != 0)
-  {
-    printf("background_failure_test:%s\n", gearman_client_error(client));
-    return TEST_FAILURE;
-  }
+  do {
+    rc= gearman_client_job_status(client, job_handle, &is_known, &is_running,
+                                  &numerator, &denominator);
+    test_true(is_known == true and is_running == false and numerator == 0 and denominator == 0);
+  } while (gearman_continue(rc)); // We do not test for is_known since the server will keep the job around until a worker comes along
+  test_compare(GEARMAN_SUCCESS, rc);
 
   return TEST_SUCCESS;
 }
@@ -711,6 +742,62 @@ static test_return_t loop_test(void *)
   return TEST_SUCCESS;
 }
 
+static test_return_t regression_768317_test(void *object)
+{
+  gearman_client_st *client= (gearman_client_st *)object;
+
+  size_t result_length;
+  gearman_return_t rc;
+  char *job_result;
+
+  job_result= (char*)gearman_client_do(client, "increment_reset_worker", 
+                                       NULL, 
+                                       gearman_literal_param("reset"),
+                                       &result_length, &rc);
+  test_compare_got(GEARMAN_SUCCESS, rc, gearman_strerror(rc));
+  test_false(job_result);
+
+  // Check to see that the task ran just once
+  job_result= (char*)gearman_client_do(client, "increment_reset_worker", 
+                                       NULL, 
+                                       gearman_literal_param("10"),
+                                       &result_length, &rc);
+  test_compare_got(GEARMAN_SUCCESS, rc, gearman_client_error(client));
+  test_truth(job_result);
+  long count= strtol(job_result, (char **)NULL, 10);
+  test_compare(10, count);
+  free(job_result);
+
+  // Check to see that the task ran just once out of the bg queue
+  {
+    gearman_job_handle_t job_handle;
+    rc= gearman_client_do_background(client,
+                                     "increment_reset_worker",
+                                     NULL,
+                                     gearman_literal_param("14"),
+                                     job_handle);
+    test_compare(GEARMAN_SUCCESS, rc);
+
+    bool is_known;
+    do {
+      rc= gearman_client_job_status(client, job_handle, &is_known, NULL, NULL, NULL);
+    }  while (gearman_continue(rc) or is_known);
+    test_compare(GEARMAN_SUCCESS, rc);
+
+    job_result= (char*)gearman_client_do(client, "increment_reset_worker", 
+                                         NULL, 
+                                         gearman_literal_param("10"),
+                                         &result_length, &rc);
+    test_compare(GEARMAN_SUCCESS, rc);
+    test_truth(job_result);
+    count= atol(job_result);
+    test_compare(34, count);
+    free(job_result);
+  }
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t submit_log_failure(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
@@ -745,7 +832,7 @@ static void log_counter(const char *line, gearman_verbose_t verbose,
 
 static test_return_t strerror_count(void *)
 {
-  test_compare((int)GEARMAN_MAX_RETURN, 50);
+  test_compare((int)GEARMAN_MAX_RETURN, 51);
 
   return TEST_SUCCESS;
 }
@@ -760,21 +847,22 @@ static char * make_number(uint32_t expected, uint32_t got)
   return strdup(buffer);
 }
 
-static test_return_t strerror_strings(void *object  __attribute__((unused)))
+static test_return_t strerror_strings(void *)
 {
-  uint32_t values[] = { 324335284U, 1940666259U, 4156775927U, 18028287U,
-			1834995715U, 1009419836U, 1038124396U, 3050095617U,
-			4004269877U, 2913489720U, 1389266665U, 1374361090U,
-			3775104989U, 1158738795U, 2490507301U, 426780991U,
-			2421852085U, 426121997U, 3669711613U, 2620567638U,
-			48094985U, 4052600452U, 2697110207U, 4260329382U,
-			3706494438U, 1765339649U, 1176029865U, 2899482444U,
-			2255507756U, 1844534215U, 1685626311U, 3134591697U,
-			1469920452U, 2236059486U, 1693700353U, 1173962212U,
-			2491943732U, 1864825729U, 523632457U, 1342225548U,
-			245155833U, 3999913926U, 2789053153U, 2576033598U,
-			463490826U, 1983660343U, 2268979717U, 1656388188U,
-                        1558344702U, 3577742799U};
+  uint32_t values[]= {
+    2723107532U, 1294272985U, 949848612U, 646434617U, 
+    2273096667U, 3411376012U, 978198404U, 2644287234U, 
+    1762137345U, 1727436301U, 1103093142U, 2958899803U, 
+    3844590487U, 3520316764U, 3288532333U, 697573278U, 
+    2328987341U, 1321921098U, 1475770122U, 4011631587U, 
+    2468981698U, 2935753385U, 884320816U, 3006705975U, 
+    2840498210U, 2953034368U, 501858685U, 1635925784U, 
+    880765771U, 15612712U, 1489284002U, 2968621609U, 
+    79936336U, 3059874010U, 3562217099U, 13337402U, 
+    132823274U, 3950859856U, 237150774U, 290535510U, 
+    2101976744U, 2262698284U, 3182950564U, 2391595326U, 
+    1764731897U, 3485422815U, 99607280U, 2348849961U, 
+    607991020U, 1597605008U, 1377573125U };
 
   for (int rc= GEARMAN_SUCCESS; rc < GEARMAN_MAX_RETURN; rc++)
   {
@@ -891,6 +979,13 @@ void *world_create(test_return_t *error)
   test->namespace_chunky_worker= test_worker_start_with_namespace(CLIENT_TEST_PORT, WORKER_CHUNKED_FUNCTION_NAME, echo_or_react_worker, NULL, NAMESPACE_KEY, gearman_worker_options_t());
   test->namespace_split_worker= test_worker_start_with_reducer(CLIENT_TEST_PORT, NAMESPACE_KEY, WORKER_SPLIT_FUNCTION_NAME, split_worker, cat_aggregator_fn,  NULL, GEARMAN_WORKER_GRAB_ALL);
 
+  for (uint32_t x= 0; x < 10; x++)
+  {
+    test->increment_reset_worker[x]= test_worker_start(CLIENT_TEST_PORT, 
+                                                       "increment_reset_worker", increment_reset_worker, 
+                                                       NULL, gearman_worker_options_t());
+  }
+
   test->gearmand_pid= gearmand_pid;
 
   if (gearman_failed(gearman_client_add_server(test->client(), NULL, CLIENT_TEST_PORT)))
@@ -926,7 +1021,8 @@ test_st tests[] ={
   {"exception", 0, submit_exception_job_test },
   {"warning", 0, submit_warning_job_test },
   {"submit_multiple_do", 0, submit_multiple_do },
-  {"background", 0, background_test },
+  {"gearman_client_job_status()", 0, gearman_client_job_status_test },
+  {"gearman_client_job_status() with gearman_return_t", 0, gearman_client_job_status_with_return },
   {"background_failure", 0, background_failure_test },
   {"add_servers", 0, add_servers_test },
   {"bug_518512_test", 0, bug_518512_test },
@@ -956,6 +1052,11 @@ test_st unique_tests[] ={
   {0, 0, 0}
 };
 
+test_st regression_tests[] ={
+  {"lp:768317", 0, regression_768317_test },
+  {0, 0, 0}
+};
+
 test_st gearman_client_do_tests[] ={
   {"gearman_client_do() fail huge unique", 0, gearman_client_do_huge_unique },
   {"gearman_client_do() with active background task", 0, gearman_client_do_with_active_background_task },
@@ -966,7 +1067,8 @@ test_st gearman_execute_tests[] ={
   {"gearman_execute()", 0, gearman_execute_test },
   {"gearman_execute(GEARMAN_WORK_FAIL)", 0, gearman_execute_fail_test },
   {"gearman_execute() epoch", 0, gearman_execute_epoch_test },
-  {"gearman_execute() timeout", 0, gearman_execute_timeout_test },
+  {"gearman_execute() epoch and test gearman_job_handle_t", 0, gearman_execute_epoch_check_job_handle_test },
+  {"gearman_execute(GEARMAN_TIMEOUT)", 0, gearman_execute_timeout_test },
   {"gearman_execute() background", 0, gearman_execute_bg_test },
   {"gearman_execute() multiple background", 0, gearman_execute_multile_bg_test },
   {0, 0, 0}
@@ -1008,6 +1110,7 @@ test_st gearman_task_tests[] ={
   {"gearman_client_add_task_high_background()", 0, gearman_client_add_task_high_background_test},
   {"gearman_client_add_task() exception", 0, gearman_client_add_task_exception},
   {"gearman_client_add_task() warning", 0, gearman_client_add_task_warning},
+  {"gearman_client_add_task(GEARMAN_NO_SERVERS)", 0, gearman_client_add_task_no_servers},
   {0, 0, 0}
 };
 
@@ -1030,6 +1133,7 @@ collection_st collection[] ={
   {"gearman_execute", 0, 0, gearman_execute_tests},
   {"gearman_execute_map_reduce()", 0, 0, gearman_execute_map_reduce_tests},
   {"gearman_command_t", 0, 0, gearman_command_t_tests},
+  {"regression_tests", 0, 0, regression_tests},
   {"client-logging", pre_logging, post_logging, tests_log},
   {0, 0, 0, 0}
 };

@@ -80,28 +80,28 @@ fi
 if test x$ACLOCAL = x; then
   ACLOCAL=`locate_binary aclocal-1.11 aclocal-1.10 aclocal-1.9 aclocal19 aclocal`
   if test x$ACLOCAL = x; then
-    die "Did not find a supported aclocal"
+    die "Did not find a supported aclocal, a version of 1.9 or better is required."
   fi
 fi
 
 if test x$AUTOMAKE = x; then
   AUTOMAKE=`locate_binary automake-1.11 automake-1.10 automake-1.9 automake19 automake`
   if test x$AUTOMAKE = x; then
-    die "Did not find a supported automake"
+    die "Did not find a supported automake, a version of 1.9 or better is required."
   fi
 fi
 
 if test x$AUTOCONF = x; then
-  AUTOCONF=`locate_binary autoconf-2.59 autoconf259 autoconf`
+  AUTOCONF=`locate_binary autoconf-2.60 autoconf260 autoconf`
   if test x$AUTOCONF = x; then
-    die "Did not find a supported autoconf"
+    die "Did not find a supported autoconf, a version of 2.60 or better is required."
   fi
 fi
 
 if test x$AUTOHEADER = x; then
   AUTOHEADER=`locate_binary autoheader-2.59 autoheader259 autoheader`
   if test x$AUTOHEADER = x; then
-    die "Did not find a supported autoheader"
+    die "Did not find a supported autoheader, a version of 2.59 or better is required."
   fi
 fi
 

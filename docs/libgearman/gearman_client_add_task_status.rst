@@ -8,11 +8,7 @@ SYNOPSIS
 
 #include <libgearman/gearman.h>
 
-.. c:function:: gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
-                                                gearman_task_st *task,
-                                                void *context,
-                                                const char *job_handle,
-                                                gearman_return_t *ret_ptr)
+.. c:function:: gearman_task_st *gearman_client_add_task_status(gearman_client_st *client, gearman_task_st *task, void *context, const char *job_handle, gearman_return_t *ret_ptr)
 
 Link with -lgearman
 

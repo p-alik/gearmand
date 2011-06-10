@@ -37,6 +37,7 @@
 
 #include <config.h>
 #include <cstring>
+#include <cassert>
 
 #include <libgearman/gearman.h>
 
@@ -146,7 +147,7 @@ test_return_t queue_add(void *object)
 {
   Context *test= (Context *)object;
   gearman_client_st client, *client_ptr;
-  char job_handle[GEARMAN_JOB_HANDLE_SIZE]= {};
+  gearman_job_handle_t job_handle= {};
   test_truth(test);
 
   test->run_worker= false;
@@ -162,8 +163,14 @@ test_return_t queue_add(void *object)
   rc= gearman_client_do_background(&client, test->worker_function_name(), NULL, 
                                    gearman_literal_param("background_payload"),
                                    job_handle);
-  test_true_got(rc == GEARMAN_SUCCESS, gearman_strerror(rc));
+  test_compare(GEARMAN_SUCCESS, rc);
   test_truth(job_handle[0]);
+
+  do {
+    rc= gearman_client_job_status(client_ptr, job_handle, NULL, NULL, NULL, NULL);
+    test_true(rc != GEARMAN_IN_PROGRESS);
+  } while (gearman_continue(rc) and rc != GEARMAN_JOB_EXISTS); // We need to exit on these values since the job will never run
+  test_true(rc == GEARMAN_JOB_EXISTS or rc == GEARMAN_SUCCESS);
 
   gearman_client_free(&client);
 
@@ -232,7 +239,7 @@ test_return_t lp_734663(void *object)
 
   for (uint32_t x= 0; x < NUMBER_OF_JOBS; x++)
   {
-    char job_handle[GEARMAN_JOB_HANDLE_SIZE]= {};
+    gearman_job_handle_t job_handle= {};
     gearman_return_t rc= gearman_client_do_background(&client, worker_function_name, NULL, value, sizeof(value), job_handle);
     test_truth(rc == GEARMAN_SUCCESS);
     test_truth(job_handle[0]);

@@ -66,6 +66,8 @@ Client Functions
    libgearman/gearman_client_error
    libgearman/gearman_client_set_log_fn
 
+   libgearman/gearman_client_job_status
+
 **************
 Creating Tasks
 **************

@@ -139,9 +139,9 @@ int main(int args, char *argv[])
   std::cout << "Background Job Handle=" << gearman_task_job_handle(task) << std::endl;
 
   int exit_code= EXIT_SUCCESS;
+  bool is_known;
   do
   {
-    bool is_known;
     bool is_running;
     uint32_t numerator;
     uint32_t denominator;
@@ -149,10 +149,15 @@ int main(int args, char *argv[])
     ret= gearman_client_job_status(&client, gearman_task_job_handle(task),
                                    &is_known, &is_running,
                                    &numerator, &denominator);
-    if (gearman_failed(ret))
+    if (gearman_continue(ret)) // Non-blocking event occurred, try again
+    {
+      continue;
+    }
+    else if (gearman_failed(ret))
     {
       std::cerr << gearman_client_error(&client) << std::endl;
       exit_code= EXIT_FAILURE;
+      break;
     }
 
     std::cout << std::boolalpha 
@@ -160,11 +165,7 @@ int main(int args, char *argv[])
       << ", Running=" << is_running
       << ", Percent Complete=" << numerator << "/" <<  denominator << std::endl;
 
-    if (not is_known)
-      break;
-
-    sleep(1);
-  } while (gearman_task_is_running(task));
+  } while (is_known);
 
   gearman_client_free(&client);
 

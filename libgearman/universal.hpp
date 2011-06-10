@@ -97,6 +97,9 @@ int gearman_universal_timeout(gearman_universal_st &self);
 GEARMAN_LOCAL
 void gearman_universal_set_namespace(gearman_universal_st &self, const char *namespace_key, size_t namespace_key_size);
 
+GEARMAN_LOCAL
+void gearman_reset(gearman_universal_st& universal);
+
 
 // Flush the send buffer for all connections.
 GEARMAN_LOCAL
