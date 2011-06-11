@@ -19,7 +19,7 @@ Gearman provides a generic framework to farm out work to other machines, dispatc
 %prep
 %setup -q
 
-%configure --disable-libpq --disable-libtokyocabinet --disable-libdrizzle
+%configure --disable-libpq --disable-libtokyocabinet --disable-libdrizzle --disable-libmemcached
 
 
 %build

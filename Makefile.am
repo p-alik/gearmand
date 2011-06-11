@@ -47,14 +47,22 @@ test: check
 clean-local:
 	-rm -rf docs/_build docs/doctrees
 
-rpm: man all dist
-	cp gearmand-$(VERSION).tar.gz ~/rpmbuild/SOURCES/
-	rpmbuild -ba support/gearmand.spec
-	cp ~/rpmbuild/RPMS/x86_64/gearmand-$(VERSION)*.rpm .
-	cp ~/rpmbuild/SRPMS/gearmand-$(VERSION)*.rpm .
+rpm: man distcheck
+	@cp gearmand-$(VERSION).tar.gz ~/rpmbuild/SOURCES/
+	@rpmbuild -ba support/gearmand.spec
+	@cp ~/rpmbuild/RPMS/x86_64/gearmand-$(VERSION)*.rpm .
+	@cp ~/rpmbuild/RPMS/x86_64/gearmand-debuginfo-$(VERSION)*.rpm .
+	@cp ~/rpmbuild/SRPMS/gearmand-$(VERSION)*.rpm .
+
+release: rpm
+	@rpm --addsign gearmand-$(VERSION)*.rpm
+	@rpm --checksig gearmand-$(VERSION)*.rpm
+	@rpm --addsign gearmand-debuginfo-$(VERSION)*.rpm
+	@rpm --checksig gearmand-debuginfo-$(VERSION)*.rpm
 
 merge-clean:
-	find ./ | $(GREP) \.orig | xargs rm -f
-	find ./ | $(GREP) \.rej | xargs rm -f
-	find ./ | $(GREP) \~$$ | xargs rm -f
-	bzr unknowns
+	@find ./ | $(GREP) \.orig | xargs rm -f
+	@find ./ | $(GREP) \.rej | xargs rm -f
+	@find ./ | $(GREP) \~$$ | xargs rm -f
+	@echo "The follow files need to be removed or checked in:"
+	@bzr unknowns
