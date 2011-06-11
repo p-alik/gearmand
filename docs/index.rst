@@ -65,7 +65,6 @@ Client Functions
    libgearman/gearman_execute_map_reduce
    libgearman/gearman_client_error
    libgearman/gearman_client_set_log_fn
-
    libgearman/gearman_client_job_status
 
 **************
@@ -100,7 +99,7 @@ Misc
 ****
 
 .. toctree::
-   :maxdepth: 1
+   :titlesonly:
 
    libgearman/gearman_misc_functions
    libgearman/namespace
@@ -112,7 +111,7 @@ Structures
 **********
 
 .. toctree::
-   :maxdepth: 1
+   :titlesonly:
 
    libgearman/gearman_client_st 
    libgearman/gearman_job_st
@@ -128,7 +127,7 @@ Extra
 *****
 
 .. toctree::
-   :maxdepth: 1
+   :titlesonly:
 
    libgearman/error_descriptions
 
