@@ -121,6 +121,7 @@ Structures
    libgearman/gearman_job_handle_t
    libgearman/gearman_actions_t
    libgearman/gearman_log_fn
+   libgearman/gearman_verbose_t
 
 *****
 Extra

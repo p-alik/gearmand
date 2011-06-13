@@ -27,11 +27,11 @@ import sys, os
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = []
 
-#extensions = ['sphinxcontrib.googleanalytics']
+extensions = ['sphinxcontrib.googleanalytics']
 
 # Google 
-#googleanalytics_id = 'UA-1'
-#googleanalytics_enabled = 'True'
+googleanalytics_id = 'UA-23928702-1'
+googleanalytics_enabled = 'True'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -153,7 +153,7 @@ html_static_path = ['_static']
 #html_split_index = False
 
 # If true, links to the reST sources are added to the pages.
-#html_show_sourcelink = True
+html_show_sourcelink = False
 
 # If true, "Created using Sphinx" is shown in the HTML footer. Default is True.
 #html_show_sphinx = True
@@ -263,7 +263,7 @@ man_pages = [
   ('libgearman/gearman_client_options', 'gearman_client_set_options', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),
   ('libgearman/gearman_client_run_tasks', 'gearman_client_run_tasks', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),
   ('libgearman/gearman_client_set_log_fn', 'gearman_client_set_log_fn', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),
-  ('libgearman/gearman_client_set_log_fn', 'gearman_worker_set_log_fn', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),
+  ('libgearman/gearman_worker_set_log_fn', 'gearman_worker_set_log_fn', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),
   ('libgearman/gearman_client_st', 'gearman_client_context', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),
   ('libgearman/gearman_client_st', 'gearman_client_do_job_handle', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),
   ('libgearman/gearman_client_st', 'gearman_client_do_status', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),
@@ -291,6 +291,7 @@ man_pages = [
   ('libgearman/gearman_job_st', 'gearman_job_send_warning', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),
   ('libgearman/gearman_job_st', 'gearman_job_st', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),
   ('libgearman/gearman_job_st', 'gearman_job_take_workload', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),
+  ('libgearman/gearman_job_st', 'gearman_job_unique', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),
   ('libgearman/gearman_job_st', 'gearman_job_workload', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),
   ('libgearman/gearman_job_st', 'gearman_job_workload_size', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),
   ('libgearman/gearman_log_fn', 'gearman_log_fn', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),
@@ -317,7 +318,8 @@ man_pages = [
   ('libgearman/gearman_task_st', 'gearman_task_st', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),
   ('libgearman/gearman_task_st', 'gearman_task_take_data', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),
   ('libgearman/gearman_task_st', 'gearman_task_unique', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),
-  ('libgearman/gearman_verbose_name', 'gearman_verbose_name', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),
+  ('libgearman/gearman_verbose_t', 'gearman_verbose_name', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),
+  ('libgearman/gearman_verbose_t', 'gearman_verbose_t', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),
   ('libgearman/gearman_version', 'gearman_version', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),
   ('libgearman/gearman_worker_add_server', 'gearman_worker_add_server', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),
   ('libgearman/gearman_worker_add_server', 'gearman_worker_add_servers', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),

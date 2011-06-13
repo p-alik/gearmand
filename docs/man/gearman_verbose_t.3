@@ -1,6 +1,6 @@
-.TH "GEARMAN_CLIENT_EXECUTE" "3" "May 24, 2011" "0.20" "Gearmand"
+.TH "GEARMAN_VERBOSE_T" "3" "June 13, 2011" "0.21" "Gearmand"
 .SH NAME
-gearman_client_execute \- Gearmand Documentation
+gearman_verbose_t \- Gearmand Documentation, http://gearman.info/
 .
 .nr rst2man-indent-level 0
 .
@@ -30,22 +30,47 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 ..
 .\" Man page generated from reStructeredText.
 .
-.SH LIBRARY
-.sp
-C Client Library for Gearmand (libgearman, \-lgearman)
 .SH SYNOPSIS
 .sp
 #include <libgearman/gearman.h>
 .INDENT 0.0
 .TP
-.B gearman_task_st *gearman_client_execute(gearman_client_st\fI\ *client\fP, const char\fI\ *function_str\fP, size_t\fI\ function_length\fP, const char\fI\ *unique_str\fP, size_t\fI\ unique_length\fP, gearman_work_t\fI\ *workload\fP, gearman_argument_t\fI\ *arguments\fP)
+.B const char *gearman_verbose_name(gearman_verbose_t\fI\ verbose\fP)
 .UNINDENT
+.sp
+Link with \-lgearman
 .SH DESCRIPTION
 .sp
-gearman_client_execute() can be used to execute tasks against a gearman network.
-.SH RETURN
+\fI\%gearman_verbose_name()\fP takes a \fBgearman_verbose_t\fP and returns a character representation of it.
 .sp
-gearman_client_execute() returns a c:type:\fIgearman_task_st\fP.
+Possible values of \fBgearman_verbose_t\fP:
+.INDENT 0.0
+.TP
+.B GEARMAN_VERBOSE_FATAL
+.UNINDENT
+.sp
+Fatal errors.
+.INDENT 0.0
+.TP
+.B GEARMAN_VERBOSE_ERROR
+.UNINDENT
+.sp
+All errors.
+.INDENT 0.0
+.TP
+.B GEARMAN_VERBOSE_INFO
+.UNINDENT
+.sp
+General information state about any events.
+.INDENT 0.0
+.TP
+.B GEARMAN_VERBOSE_DEBUG
+.UNINDENT
+.sp
+Information calls left in the code for debugging events.
+.SH RETURN VALUE
+.sp
+A character string representing the verbose leval.
 .SH HOME
 .sp
 To find out more information please check:
