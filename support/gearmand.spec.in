@@ -169,6 +169,7 @@ Gearman provides a generic framework to farm out work to other machines, dispatc
 %{_mandir}/man3/gearman_task_take_data.3.gz
 %{_mandir}/man3/gearman_task_unique.3.gz
 %{_mandir}/man3/gearman_verbose_name.3.gz
+%{_mandir}/man3/gearman_verbose_t.3.gz
 %{_mandir}/man3/gearman_version.3.gz
 %{_mandir}/man3/gearman_worker_add_function.3.gz
 %{_mandir}/man3/gearman_worker_add_options.3.gz

@@ -1,4 +1,4 @@
-0.21
+0.21 Mon Jun 13 10:59:34 PDT 2011
   * Support for "drop function" in admin client
   * Fixed issue where server would not report on a bad unique value due to size
   * Forces do operations to complete no matter how the worker is designed.
@@ -6,6 +6,7 @@
   * Support for namespaces.
   * gearman_worker_add_map_function() has been added. It allows jobs to map out work to other workers and then aggregate the results.
   * gearman_client_run_tasks() will now reset the IO state for all connections on exit if all hosts have been marked down. The next call will check all hosts.
+  * Lots of bug fixes.
 
 0.20 Fri Apr  8 09:25:15 PDT 2011
   * gearman_client_execute() interface added
