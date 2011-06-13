@@ -96,7 +96,7 @@ test-worker: tests/worker_test
 test-internals: tests/internals_test
 	@tests/internals_test $(ARG1) $(ARG2)
 
-check-local: tests/var gearmand-test-args client-test libtest-tests
+check-local: tests/var gearmand-test-args client-test libtest-tests benchmark-test
 
 libtest-tests: test-client test-round-robin test-worker test-internals test-libmemcached test-sqlite test-tokyocabinet test-burnin test-regression
 

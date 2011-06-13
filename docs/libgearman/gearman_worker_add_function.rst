@@ -19,7 +19,9 @@ DESCRIPTION
 :c:func:`gearman_worker_add_function()` adds function with a callback to a :c:type:`gearman_worker_st` . 
 A :c:type:`gearman_job_st` is passed to the callback, it can be used to send messages to the client about the state of the work. 
 
-See :c:type:`gearman_return_t` for details.
+The context provided will only be shared with the function created.
+
+To remove the function call :c:func:`gearman_worker_unregister()`.
 
 
 ------------
@@ -43,4 +45,4 @@ To find out more information please check:
 SEE ALSO
 --------
 
-:manpage:`gearmand(8)` :manpage:`libgearman(3)`
+:manpage:`gearmand(8)` :manpage:`libgearman(3)` :manpage:`gearman_worker_st(3)`

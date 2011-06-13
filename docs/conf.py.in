@@ -301,6 +301,8 @@ man_pages = [
   ('libgearman/gearman_return_t', 'gearman_return_t', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),
   ('libgearman/gearman_return_t', 'gearman_strerror', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),
   ('libgearman/gearman_return_t', 'gearman_success', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),
+  ('libgearman/gearman_task_st', 'gearman_task_error', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),
+  ('libgearman/gearman_task_st', 'gearman_task_return', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),
   ('libgearman/gearman_task_st', 'gearman_task_context', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),
   ('libgearman/gearman_task_st', 'gearman_task_data', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),
   ('libgearman/gearman_task_st', 'gearman_task_data_size', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),

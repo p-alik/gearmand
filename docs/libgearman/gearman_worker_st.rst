@@ -1,6 +1,6 @@
-================
-Worker structure
-================
+==========================
+Worker (gearman_worker_st)
+==========================
 
 
 --------
@@ -18,8 +18,6 @@ SYNOPSIS
 .. c:function:: void *gearman_worker_context(const gearman_worker_st *worker);
 
 .. c:function:: void gearman_worker_set_context(gearman_worker_st *worker, void *context);
-
-.. c:function:: void gearman_worker_set_log_fn(gearman_worker_st *worker, gearman_log_fn *function, void *context, gearman_verbose_t verbose);
 
 .. c:function:: void gearman_worker_set_workload_malloc_fn(gearman_worker_st *worker, gearman_malloc_fn *function, void *context);
 
@@ -39,16 +37,27 @@ SYNOPSIS
 
 .. c:function:: bool gearman_worker_function_exist(gearman_worker_st *worker, const char *function_name, size_t function_length);
 
-.. c:function:: gearman_return_t gearman_worker_add_function(gearman_worker_st *worker, const char *function_name, uint32_t timeout, gearman_worker_fn *function, void *context);
-
 .. c:function:: gearman_return_t gearman_worker_work(gearman_worker_st *worker);
+
+Link with -lgearman
 
 -----------
 DESCRIPTION
 -----------
 
-This a complete list of all functions that work with a gearman_worker_st,
-see their individual pages to learn more about them.
+:c:type:`gearman_worker_st` is used for worker communication with the server. 
+
+:c:func:`gearman_worker_context()` and :c:func:`gearman_worker_set_context()` can be used to store an arbitrary object for the user.
+
+:c:func:`gearman_worker_set_task_context_free_fn()` sets a trigger that will be called when a :c:type:`gearman_task_st` is released.
+
+:c:func:`gearman_worker_timeout()` and :c:func:`gearman_worker_set_timeout()` get and set the current timeout value, in milliseconds, for the worker.
+
+:c:func:`gearman_worker_function_exist()` is used to determine if a given worker has a specific function.
+
+Normally :manpage:`malloc(3)` and :manpage:`free(3)` are used for allocation and releasing workloads. :c:func:`gearman_worker_set_workload_malloc_fn()` and :c:func:`gearman_worker_set_workload_free_fn` can be used to replace these with custom functions.
+
+If you need to remove a function from the server you can call either :c:func:`gearman_worker_unregister_all()` to remove all functions that the worker has told the :program:`gearmand` server about, or you can use :c:func:`gearman_worker_unregister()` to remove just a single function. 
 
 ------
 RETURN

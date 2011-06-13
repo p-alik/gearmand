@@ -30,9 +30,6 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 ..
 .\" Man page generated from reStructeredText.
 .
-.SH LIBRARY
-.sp
-C Client Library for Gearmand (libgearman, \-lgearman)
 .SH SYNOPSIS
 .sp
 #include <libgearman/gearman.h>
@@ -92,6 +89,8 @@ C Client Library for Gearmand (libgearman, \-lgearman)
 .TP
 .B void *gearman_job_take_workload(gearman_job_st *job, size_t *data_size);
 .UNINDENT
+.sp
+Link with \-lgearman
 .SH DESCRIPTION
 .sp
 This a complete list of all functions that work with

@@ -1,14 +1,6 @@
-===========================
-Working with gearman_job_st
-===========================
-
-.. index:: object: gearman_job_st
-
--------
-LIBRARY
--------
-
-C Client Library for Gearmand (libgearman, -lgearman)
+====================
+Job (gearman_job_st)
+====================
 
 --------
 SYNOPSIS
@@ -44,13 +36,13 @@ SYNOPSIS
 
 .. c:function:: void *gearman_job_take_workload(gearman_job_st *job, size_t *data_size);
 
+Link with -lgearman
+
 -----------
 DESCRIPTION
 -----------
 
-This a complete list of all functions that work with
-a :c:type:`gearman_job_st`, see their individual pages to learn more about
-them.
+:c:type:`geaman_job_st` are passed to worker functions to represent jobs that are being run by :c:func:`gearman_worker_work()`.
 
 :c:func:`gearman_job_free()` is used to free a job. This only needs to be
 done if a task was created with a preallocated structure.

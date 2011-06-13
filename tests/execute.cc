@@ -75,7 +75,7 @@ test_return_t gearman_execute_fail_test(void *object)
   gearman_argument_t value= gearman_argument_make(gearman_literal_param("fail"));
 
   test_true_got(task= gearman_execute(client, gearman_c_str_param(worker_function), NULL, 0, NULL, &value), gearman_client_error(client));
-  test_compare_got(GEARMAN_WORK_FAIL, gearman_task_error(task), gearman_strerror(gearman_task_error(task)));
+  test_compare_got(GEARMAN_WORK_FAIL, gearman_task_return(task), gearman_task_error(task));
   test_false(gearman_task_is_known(task));
   test_false(gearman_task_is_running(task));
 

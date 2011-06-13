@@ -254,7 +254,7 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
   }
 
   int ret= 0;
-  while (1 and universal.timeout)
+  while (universal.timeout)
   {
     ret= poll(pfds, x, universal.timeout);
     if (ret == -1)

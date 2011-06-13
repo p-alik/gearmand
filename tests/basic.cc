@@ -127,7 +127,7 @@ test_return_t queue_clean(void *object)
   gearman_worker_st *worker= test->worker;
   test_truth(worker);
 
-  gearman_worker_set_timeout(worker, 200);
+  gearman_worker_set_timeout(worker, 1000);
 
   uint32_t counter= 0;
   test_true_got(gearman_success(gearman_worker_add_function(worker, test->worker_function_name(), 5, counter_function, &counter)), gearman_worker_error(worker));
@@ -185,7 +185,7 @@ test_return_t queue_worker(void *object)
   test_truth(test);
 
   // Setup job
-  test_truth(queue_add(object) == TEST_SUCCESS);
+  test_compare(TEST_SUCCESS, queue_add(object));
 
   gearman_worker_st *worker= test->worker;
   test_truth(worker);
@@ -193,18 +193,16 @@ test_return_t queue_worker(void *object)
   test_true_got(test->run_worker, "run_worker was not set");
 
   uint32_t counter= 0;
-  gearman_return_t rc= gearman_worker_add_function(worker, test->worker_function_name(), 5, counter_function, &counter);
-  test_true_got(rc == GEARMAN_SUCCESS, gearman_strerror(rc));
+  test_compare_got(GEARMAN_SUCCESS, 
+                   gearman_worker_add_function(worker, test->worker_function_name(), 5, counter_function, &counter),
+                   gearman_worker_error(worker));
 
-  gearman_worker_set_timeout(worker, 5);
+  gearman_worker_set_timeout(worker, 1000);
 
-  rc= gearman_worker_work(worker);
-  test_true_got(rc == GEARMAN_SUCCESS, (rc == GEARMAN_TIMEOUT) ? "Worker was not able to connection to the server, is it running?": gearman_strerror(rc));
+  gearman_return_t rc= gearman_worker_work(worker);
+  test_compare_got(GEARMAN_SUCCESS, rc, (rc == GEARMAN_TIMEOUT) ? "Worker was not able to connection to the server, is it running?": gearman_strerror(rc));
 
-  if (rc == GEARMAN_SUCCESS)
-  {
-    test_truth (counter != 0);
-  }
+  test_truth(counter);
 
   return TEST_SUCCESS;
 }

@@ -73,13 +73,10 @@ man_MANS+= \
 	   docs/man/gearman_client_task_free_all.3 \
 	   docs/man/gearman_client_timeout.3 \
 	   docs/man/gearman_client_wait.3 \
-	   docs/man/gearman_return_t.3 \
-	   docs/man/gearman_success.3 \
 	   docs/man/gearman_continue.3 \
-	   docs/man/gearman_strerror.3 \
-	   docs/man/gearman_failed.3 \
 	   docs/man/gearman_execute.3 \
 	   docs/man/gearman_execute_map_reduce.3 \
+	   docs/man/gearman_failed.3 \
 	   docs/man/gearman_job_free.3 \
 	   docs/man/gearman_job_free_all.3 \
 	   docs/man/gearman_job_function_name.3 \
@@ -97,10 +94,14 @@ man_MANS+= \
 	   docs/man/gearman_job_workload.3 \
 	   docs/man/gearman_job_workload_size.3 \
 	   docs/man/gearman_parse_servers.3 \
+	   docs/man/gearman_return_t.3 \
+	   docs/man/gearman_strerror.3 \
+	   docs/man/gearman_success.3 \
 	   docs/man/gearman_task_context.3 \
 	   docs/man/gearman_task_data.3 \
 	   docs/man/gearman_task_data_size.3 \
 	   docs/man/gearman_task_denominator.3 \
+	   docs/man/gearman_task_error.3 \
 	   docs/man/gearman_task_free.3 \
 	   docs/man/gearman_task_function_name.3 \
 	   docs/man/gearman_task_give_workload.3 \
@@ -109,6 +110,7 @@ man_MANS+= \
 	   docs/man/gearman_task_job_handle.3 \
 	   docs/man/gearman_task_numerator.3 \
 	   docs/man/gearman_task_recv_data.3 \
+	   docs/man/gearman_task_return.3 \
 	   docs/man/gearman_task_send_workload.3 \
 	   docs/man/gearman_task_set_context.3 \
 	   docs/man/gearman_task_st.3 \

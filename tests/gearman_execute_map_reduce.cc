@@ -111,7 +111,7 @@ test_return_t gearman_execute_map_reduce_basic(void *object)
                                                  &work_args), gearman_client_error(client));
 
   gearman_return_t rc;
-  test_true_got(gearman_success(rc= gearman_task_error(task)), gearman_client_error(client) ? gearman_client_error(client) : gearman_strerror(rc));
+  test_true_got(gearman_success(rc= gearman_task_return(task)), gearman_client_error(client) ? gearman_client_error(client) : gearman_strerror(rc));
   gearman_result_st *result= gearman_task_result(task);
   test_truth(result);
   const char *value= gearman_result_value(result);
@@ -142,7 +142,7 @@ test_return_t gearman_execute_map_reduce_workfail(void *object)
                                                  NULL,
                                                  &work_args), gearman_client_error(client));
 
-  test_compare_got(GEARMAN_WORK_FAIL, gearman_task_error(task), gearman_strerror(gearman_task_error(task)));
+  test_compare_got(GEARMAN_WORK_FAIL, gearman_task_return(task), gearman_task_error(task));
 
   gearman_task_free(task);
   gearman_client_task_free_all(client);
@@ -168,7 +168,7 @@ test_return_t gearman_execute_map_reduce_fail_in_reduction(void *object)
                                                  NULL,
                                                  &work_args), gearman_client_error(client));
 
-  test_compare_got(GEARMAN_WORK_FAIL, gearman_task_error(task), gearman_strerror(gearman_task_error(task)));
+  test_compare_got(GEARMAN_WORK_FAIL, gearman_task_return(task), gearman_task_error(task));
 
   gearman_task_free(task);
   gearman_client_task_free_all(client);

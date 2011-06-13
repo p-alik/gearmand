@@ -145,15 +145,6 @@ gearman_task_st *gearman_execute(gearman_client_st *client,
 
   gearman_client_run_tasks(client);
 
-#if 0
-  gearman_task_st *check_task= client->task_list;
-  std::cerr << std::endl;
-  do
-  {
-    std::cerr << __func__ << " " << gearman_task_job_handle(check_task) << " " << gearman_strerror(check_task->result_rc) << " " << check_task->options.is_known << std::endl;
-  } while ((check_task= gearman_next(check_task)));
-#endif
-
   return task;
 }
 
@@ -261,7 +252,7 @@ gearman_task_st *gearman_execute_map_reduce(gearman_client_st *client,
       gearman_task_free(task);
       return NULL;
     }
-  } while (gearman_continue(gearman_task_error(task)));
+  } while (gearman_continue(gearman_task_return(task)));
 
   return task;
 }

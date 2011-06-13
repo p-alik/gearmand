@@ -37,6 +37,8 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .TP
 .B void *gearman_client_do(gearman_client_st\fI\ *client\fP, const char\fI\ *function_name\fP, const char\fI\ *unique\fP, const void\fI\ *workload\fP, size_t\fI\ workload_size\fP, size_t\fI\ *result_size\fP, gearman_return_t *ret_ptr)\fI\ *client\fP)
 .UNINDENT
+.sp
+Changed in version 0.21: \fBGEARMAN_PAUSE\fP will no longer be returned. A do operation will now run till completion or error.
 .INDENT 0.0
 .TP
 .B void *gearman_client_do_high(gearman_client_st\fI\ *client\fP, const char\fI\ *function_name\fP, const char\fI\ *unique\fP, const void\fI\ *workload\fP, size_t\fI\ workload_size\fP, size_t\fI\ *result_size\fP, gearman_return_t\fI\ *ret_ptr\fP)

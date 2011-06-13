@@ -1,6 +1,6 @@
-===============
-gearman_task_st
-===============
+======================
+Task (gearman_task_st)
+======================
 
 
 -------- 
@@ -14,7 +14,7 @@ SYNOPSIS
 
 .. c:function:: void gearman_task_free(gearman_task_st *task)
 
-.. c:function:: const void *gearman_task_context(const gearman_task_st *task)
+.. c:function:: void *gearman_task_context(const gearman_task_st *task)
 
 .. c:function:: void gearman_task_set_context(gearman_task_st *task, void *context)
 
@@ -42,7 +42,15 @@ SYNOPSIS
 
 .. c:function:: void *gearman_task_take_data(gearman_task_st *task, size_t *data_size)
 
-.. c:function:: size_t gearman_task_recv_data(gearman_task_st *task, void *data, size_t data_size, gearman_return_t *ret_ptr)
+.. c:function:: size_t gearman_task_recv_data(gearman_task_st *task, void *data, size_t data_size, gearman_return_t *ret_ptr) 
+
+.. c:function:: const char *gearman_task_error(const gearman_task_st *task)
+
+.. versionadded:: 0.21
+
+.. c:function:: gearman_return_t gearman_task_return(const gearman_task_st *task)
+
+.. versionadded:: 0.21
 
 Link with -lgearman
 
@@ -60,7 +68,7 @@ A :c:type:`gearman_task_st` represents a "task". Each task is a single unit of w
 monitor a previously created :c:type:`gearman_task_st`.
 
 :c:func:`gearman_task_free()` is used to free a task. This only needs to be
-done if a task was created with a preallocated structure.
+done if a task was created with a preallocated structure or if you want to clean up the memory of a specific task.
 
 :c:func:`gearman_task_set_context()` sets the given context of the :c:type:`gearman_task_st`. The context can be used to pass information to a :c:type:`gearman_task_st`.
 
@@ -70,6 +78,11 @@ done if a task was created with a preallocated structure.
 
 :c:func:`gearman_task_is_known()`, :c:func:`gearman_task_is_running()`, :c:func:`gearman_task_numerator()`, and :c:func:`gearman_task_denominator()`, return values related to the last status update that was made to the :c:type:`gearman_task_st`. They do not cause the :c:type:`gearman_task_st` to update itself.
 
+:c:func:`gearman_task_error()` return the last error message that the
+:c:type:`gearman_task_st` encountered. :c:func:`gearman_task_return()`
+return the last :c:type:`gearman_return_t` stored. A value of
+:c:type:`GEARMAN_UNKNOWN_STATE` means that the task has not been submitted
+yet.
 
 ------------
 RETURN VALUE

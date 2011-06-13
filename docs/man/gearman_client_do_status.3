@@ -79,7 +79,7 @@ Link with \-lgearman
 .sp
 \fI\%gearman_client_set_task_context_free_fn()\fP sets a trigger that will be called when a \fBgearman_task_st\fP is released.
 .sp
-\fI\%gearman_client_timeout()\fP and \fI\%gearman_client_set_timeout()\fP are to get and set the current timeout value for the client.
+\fI\%gearman_client_timeout()\fP and \fI\%gearman_client_set_timeout()\fP get and set the current timeout value, in milliseconds, for the client.
 .sp
 Normally \fImalloc(3)\fP and \fIfree(3)\fP are used for allocation and releasing workloads. \fI\%gearman_client_set_workload_malloc_fn()\fP and \fI\%gearman_client_set_workload_free_fn()\fP can be used to replace these with custom functions.
 .sp

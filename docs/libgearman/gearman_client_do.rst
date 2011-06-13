@@ -11,6 +11,9 @@ SYNOPSIS
 
 .. c:function:: void *gearman_client_do(gearman_client_st *client, const char *function_name, const char *unique, const void *workload, size_t workload_size, size_t *result_size, gearman_return_t *ret_ptr) *client)
 
+.. versionchanged:: 0.21
+   :c:type:`GEARMAN_PAUSE` will no longer be returned. A do operation will now run till completion or error.
+
 .. c:function:: void *gearman_client_do_high(gearman_client_st *client, const char *function_name, const char *unique, const void *workload, size_t workload_size, size_t *result_size, gearman_return_t *ret_ptr) 
 
 .. c:function:: void *gearman_client_do_low(gearman_client_st *client, const char *function_name, const char *unique, const void *workload, size_t workload_size, size_t *result_size, gearman_return_t *ret_ptr)
