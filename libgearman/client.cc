@@ -101,7 +101,7 @@ static gearman_return_t _client_do_background(gearman_client_st *client,
                                               gearman_string_t &function,
                                               gearman_unique_t &unique,
                                               gearman_string_t &workload,
-                                              char *job_handle);
+                                              gearman_job_handle_t job_handle);
 
 
 /*
@@ -711,7 +711,7 @@ gearman_client_add_task_low_background(gearman_client_st *client,
 gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
                                                 gearman_task_st *task,
                                                 void *context,
-                                                const char *job_handle,
+                                                const gearman_job_handle_t job_handle,
                                                 gearman_return_t *ret_ptr)
 {
   const void *args[1];
@@ -1253,7 +1253,7 @@ static gearman_return_t _client_do_background(gearman_client_st *client,
                                               gearman_string_t &function,
                                               gearman_unique_t &unique,
                                               gearman_string_t &workload,
-                                              char *job_handle)
+                                              gearman_job_handle_t job_handle)
 {
   gearman_task_st do_task, *do_task_ptr;
   do_task_ptr= add_task(client, &do_task, 

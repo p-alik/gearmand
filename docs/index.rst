@@ -117,8 +117,17 @@ Structures
    libgearman/gearman_job_st
    libgearman/gearman_task_st
    libgearman/gearman_worker_st 
-   libgearman/gearman_return_t 
    libgearman/gearman_job_handle_t
+
+
+*****
+Types
+*****
+
+.. toctree::
+   :titlesonly:
+
+   libgearman/gearman_return_t 
    libgearman/gearman_actions_t
    libgearman/gearman_log_fn
    libgearman/gearman_verbose_t

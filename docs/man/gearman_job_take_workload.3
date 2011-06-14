@@ -93,9 +93,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 Link with \-lgearman
 .SH DESCRIPTION
 .sp
-This a complete list of all functions that work with
-a \fI\%gearman_job_st\fP, see their individual pages to learn more about
-them.
+\fBgeaman_job_st\fP are passed to worker functions to represent jobs that are being run by \fBgearman_worker_work()\fP.
 .sp
 \fBgearman_job_free()\fP is used to free a job. This only needs to be
 done if a task was created with a preallocated structure.

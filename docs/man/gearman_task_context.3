@@ -127,7 +127,7 @@ A \fI\%gearman_task_st\fP represents a "task". Each task is a single unit of wor
 monitor a previously created \fI\%gearman_task_st\fP.
 .sp
 \fI\%gearman_task_free()\fP is used to free a task. This only needs to be
-done if a task was created with a preallocated structure.
+done if a task was created with a preallocated structure or if you want to clean up the memory of a specific task.
 .sp
 \fI\%gearman_task_set_context()\fP sets the given context of the \fI\%gearman_task_st\fP. The context can be used to pass information to a \fI\%gearman_task_st\fP.
 .sp
