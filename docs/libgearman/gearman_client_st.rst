@@ -33,7 +33,7 @@ Link with -lgearman
 DESCRIPTION
 -----------
 
-:c:type:`gearman_client_st` is used for client communication with the server.
+:c:type:`gearman_client_st` is used for :term:`client` communication with the server.
 
 :c:func:`gearman_client_context()` and :c:func:`gearman_client_set_context()` can be used to store an arbitrary object for the user.
 

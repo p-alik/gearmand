@@ -16,6 +16,7 @@ Introduction:
    
    license
    how_to_report_a_bug
+   glossary
 
 ------
 Server
