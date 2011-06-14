@@ -165,11 +165,13 @@ void *echo_or_react_chunk_worker(gearman_job_st *job, void *,
 void *unique_worker(gearman_job_st *job, void *,
                     size_t *result_size, gearman_return_t *ret_ptr)
 {
-  const void *workload= gearman_job_workload(job);
+  const char *workload= static_cast<const char *>(gearman_job_workload(job));
 
   assert(job->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN_UNIQ);
   assert(gearman_job_unique(job));
+  assert(strlen(gearman_job_unique(job)));
   assert(gearman_job_workload_size(job));
+  assert(strlen(gearman_job_unique(job)) == gearman_job_workload_size(job));
   assert(not memcmp(workload, gearman_job_unique(job), gearman_job_workload_size(job)));
   if (gearman_job_workload_size(job) == strlen(gearman_job_unique(job)))
   {
@@ -265,11 +267,10 @@ void *increment_reset_worker(gearman_job_st *job, void *,
                              size_t *result_size, gearman_return_t *ret_ptr)
 {
   static long counter= 0;
+  long change= 0;
   const char *workload= (const char*)gearman_job_workload(job);
 
-  if (workload == NULL or gearman_job_workload_size(job) == 0)
-  { } // We do nothing
-  else if (gearman_job_workload_size(job) == gearman_literal_param_size("reset") and (not memcmp(workload, gearman_literal_param("reset"))))
+  if (gearman_job_workload_size(job) == gearman_literal_param_size("reset") and (not memcmp(workload, gearman_literal_param("reset"))))
   {
     pthread_mutex_lock(&increment_reset_worker_mutex);
     counter= 0;
@@ -277,13 +278,20 @@ void *increment_reset_worker(gearman_job_st *job, void *,
     *ret_ptr= GEARMAN_SUCCESS;
     return NULL;
   }
-
-  long change= strtol(workload, (char **)NULL, 10);
-  if (change ==  LONG_MIN or change == LONG_MAX or ( change == 0 and errno < 0))
+  else if (workload and gearman_job_workload_size(job))
   {
-    gearman_job_send_warning(job, gearman_literal_param("strtol() failed"));
-    *ret_ptr= GEARMAN_WORK_FAIL;
-    return NULL;
+    char *temp= static_cast<char *>(malloc(gearman_job_workload_size(job) +1));
+    assert(temp);
+    memcpy(temp, workload, gearman_job_workload_size(job));
+    temp[gearman_job_workload_size(job)]= 0;
+    change= strtol(temp, (char **)NULL, 10);
+    free(temp);
+    if (change ==  LONG_MIN or change == LONG_MAX or ( change == 0 and errno < 0))
+    {
+      gearman_job_send_warning(job, gearman_literal_param("strtol() failed"));
+      *ret_ptr= GEARMAN_WORK_FAIL;
+      return NULL;
+    }
   }
 
   char *result;

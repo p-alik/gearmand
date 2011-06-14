@@ -37,8 +37,59 @@
 
 #pragma once
 
-test_return_t gearman_execute_map_reduce_check_parameters(void *);
-test_return_t gearman_execute_map_reduce_basic(void *);
-test_return_t gearman_execute_map_reduce_fail_in_reduction(void *);
-test_return_t gearman_execute_map_reduce_workfail(void *);
-test_return_t gearman_execute_map_reduce_use_as_function(void *);
+#ifdef __cplusplus
+#include <ctime>
+#else
+#include <time.h>
+#endif
+
+enum gearman_function_kind_t {
+  GEARMAN_WORKER_FUNCTION_V1,
+  GEARMAN_WORKER_FUNCTION_V2,
+  GEARMAN_WORKER_MAPPER
+};
+
+struct _function_v1_t {
+  gearman_worker_fn *func;
+};
+
+struct _function_v2_t {
+  gearman_function_fn *func;
+};
+
+struct _mapper_st {
+  gearman_function_fn *func;
+  gearman_aggregator_fn *aggregator;
+};
+
+struct gearman_function_t {
+  const enum gearman_function_kind_t kind;
+  union {
+    char bytes[sizeof(struct _mapper_st)];
+    struct _function_v1_t function_v1;
+    struct _function_v2_t function_v2;
+    struct _mapper_st mapper;
+  } callback;
+};
+
+#ifndef __cplusplus
+typedef struct gearman_function_t gearman_function_t;
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+GEARMAN_API
+  gearman_function_t gearman_function_create(gearman_function_fn func);
+
+GEARMAN_API
+  gearman_function_t gearman_function_create_mapper(gearman_function_fn func,
+                                                    gearman_aggregator_fn aggregator);
+
+GEARMAN_API
+  gearman_function_t gearman_function_create_v1(gearman_worker_fn func);
+
+#ifdef __cplusplus
+}
+#endif

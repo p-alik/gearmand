@@ -23,6 +23,7 @@ nobase_include_HEADERS+= \
 			 libgearman/constants.h \
 			 libgearman/core.h \
 			 libgearman/execute.h \
+			 libgearman/function.h \
 			 libgearman/gearman.h \
 			 libgearman/job.h \
 			 libgearman/job_handle.h \
@@ -85,6 +86,7 @@ libgearman_libgearman_la_SOURCES= \
 				  libgearman/connection.cc \
 				  libgearman/do.cc \
 				  libgearman/execute.cc \
+				  libgearman/function.cc \
 				  libgearman/function/make.cc \
 				  libgearman/gearman.cc \
 				  libgearman/job.cc \

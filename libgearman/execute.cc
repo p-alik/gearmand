@@ -184,16 +184,16 @@ gearman_task_st *gearman_execute_map_reduce(gearman_client_st *client,
     switch (workload->kind)
     {
     case GEARMAN_WORK_KIND_BACKGROUND:
-      task= add_task(client,
-                     GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND,
-                     workload->priority,
-                     mapper,
-                     reducer,
-                     unique,
-                     arguments->value,
-                     gearman_actions_execute_defaults(),
-                     time_t(0),
-                     workload->context);
+      task= add_reducer_task(client,
+                             GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND,
+                             workload->priority,
+                             mapper,
+                             reducer,
+                             unique,
+                             arguments->value,
+                             gearman_actions_execute_defaults(),
+                             time_t(0),
+                             workload->context);
       break;
 
     case GEARMAN_WORK_KIND_EPOCH:
@@ -214,31 +214,31 @@ gearman_task_st *gearman_execute_map_reduce(gearman_client_st *client,
       break;
 
     case GEARMAN_WORK_KIND_FOREGROUND:
-      task= add_task(client,
-                     GEARMAN_COMMAND_SUBMIT_REDUCE_JOB,
-                     workload->priority,
-                     mapper,
-                     reducer,
-                     unique,
-                     arguments->value,
-                     gearman_actions_execute_defaults(),
-                     time_t(0),
-                     workload->context);
+      task= add_reducer_task(client,
+                             GEARMAN_COMMAND_SUBMIT_REDUCE_JOB,
+                             workload->priority,
+                             mapper,
+                             reducer,
+                             unique,
+                             arguments->value,
+                             gearman_actions_execute_defaults(),
+                             time_t(0),
+                             workload->context);
       break;
     }
   }
   else
   {
-    task= add_task(client,
-                   GEARMAN_COMMAND_SUBMIT_REDUCE_JOB,
-                   GEARMAN_JOB_PRIORITY_NORMAL,
-                   mapper,
-                   reducer,
-                   unique,
-                   arguments->value,
-                   gearman_actions_execute_defaults(),
-                   time_t(0),
-                   NULL);
+    task= add_reducer_task(client,
+                           GEARMAN_COMMAND_SUBMIT_REDUCE_JOB,
+                           GEARMAN_JOB_PRIORITY_NORMAL,
+                           mapper,
+                           reducer,
+                           unique,
+                           arguments->value,
+                           gearman_actions_execute_defaults(),
+                           time_t(0),
+                           NULL);
   }
 
   if (not task)

@@ -35,10 +35,32 @@
  *
  */
 
-#pragma once
+#include <libgearman/common.h>
 
-test_return_t gearman_execute_map_reduce_check_parameters(void *);
-test_return_t gearman_execute_map_reduce_basic(void *);
-test_return_t gearman_execute_map_reduce_fail_in_reduction(void *);
-test_return_t gearman_execute_map_reduce_workfail(void *);
-test_return_t gearman_execute_map_reduce_use_as_function(void *);
+gearman_function_t gearman_function_create_v1(gearman_worker_fn func)
+{
+  gearman_function_t _function= { GEARMAN_WORKER_FUNCTION_V1, { { 0 } } };
+
+  _function.callback.function_v1.func= func;
+
+  return _function;
+}
+
+gearman_function_t gearman_function_create(gearman_function_fn func)
+{
+  gearman_function_t _function= { GEARMAN_WORKER_FUNCTION_V2, { { 0 } } };
+
+  _function.callback.function_v2.func= func;
+
+  return _function;
+}
+
+gearman_function_t gearman_function_create_mapper(gearman_function_fn func,
+                                                  gearman_aggregator_fn aggregator)
+{
+  gearman_function_t _function= { GEARMAN_WORKER_MAPPER, { { 0 } } };
+
+  _function.callback.mapper.func= func;
+  _function.callback.mapper.aggregator= aggregator;
+  return _function;
+}

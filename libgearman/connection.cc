@@ -702,16 +702,17 @@ gearman_packet_st *gearman_connection_st::receiving(gearman_packet_st& packet_ar
       break;
     }
 
-    if (packet_arg.universal->workload_malloc_fn == NULL)
-    {
-      // Since it may be C on the other side, don't use new
-      packet_arg.data= malloc(packet_arg.data_size);
-    }
-    else
+    if (packet_arg.universal->workload_malloc_fn)
     {
       packet_arg.data= packet_arg.universal->workload_malloc_fn(packet_arg.data_size,
                                                                   static_cast<void *>(packet_arg.universal->workload_malloc_context));
     }
+    else
+    {
+      // Since it may be C on the other side, don't use new
+      packet_arg.data= malloc(packet_arg.data_size);
+    }
+
     if (not packet_arg.data)
     {
       ret= GEARMAN_MEMORY_ALLOCATION_FAILURE;

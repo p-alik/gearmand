@@ -60,7 +60,7 @@ _worker_function_st *make(gearman_vector_st* namespace_arg,
 
 _worker_function_st *make(gearman_vector_st* namespace_arg,
                           const char *name, size_t name_length, 
-                          gearman_mapper_fn *mapper_fn_arg, gearman_aggregator_fn *aggregator_fn_arg, void *context_arg)
+                          gearman_function_fn *mapper_fn_arg, gearman_aggregator_fn *aggregator_fn_arg, void *context_arg)
 {
   _worker_function_st *function=  new (std::nothrow) Mapper(mapper_fn_arg, aggregator_fn_arg, context_arg);
   if (function and not function->init(namespace_arg, name, name_length))

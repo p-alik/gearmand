@@ -126,6 +126,7 @@ man_MANS+= \
 	   docs/man/gearman_worker_clone.3 \
 	   docs/man/gearman_worker_context.3 \
 	   docs/man/gearman_worker_create.3 \
+	   docs/man/gearman_worker_define_function.3 \
 	   docs/man/gearman_worker_echo.3 \
 	   docs/man/gearman_worker_errno.3 \
 	   docs/man/gearman_worker_error.3 \

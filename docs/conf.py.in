@@ -329,6 +329,7 @@ man_pages = [
   ('libgearman/gearman_worker_create', 'gearman_worker_clone', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),
   ('libgearman/gearman_worker_create', 'gearman_worker_create', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),
   ('libgearman/gearman_worker_create', 'gearman_worker_free', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),
+  ('libgearman/gearman_worker_define_function', 'gearman_worker_define_function', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),
   ('libgearman/gearman_worker_error', 'gearman_worker_errno', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),
   ('libgearman/gearman_worker_error', 'gearman_worker_error', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),
   ('libgearman/gearman_worker_options', 'gearman_worker_add_options', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://datadifferential.com/'], 3),

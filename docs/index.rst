@@ -90,7 +90,7 @@ Worker Functions
    libgearman/gearman_worker_add_server
    libgearman/gearman_worker_options
    libgearman/gearman_worker_add_function
-   libgearman/gearman_worker_add_map_function
+   libgearman/gearman_worker_define_function
    libgearman/gearman_worker_error
    libgearman/gearman_worker_set_log_fn
 
