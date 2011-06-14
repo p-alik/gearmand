@@ -37,30 +37,47 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .TP
 .B gearman_return_t gearman_worker_define_function(gearman_worker_st\fI\ *worker\fP, const char\fI\ *function_name\fP, const size_t\fI\ function_name_length\fP, const gearman_function_t\fI\ function\fP, const uint32_t\fI\ timeout\fP, void\fI\ *context\fP)
 .UNINDENT
+.INDENT 0.0
+.TP
+.B gearman_function_fn
+.UNINDENT
+.INDENT 0.0
+.TP
+.B gearman_aggregator_fn
+.UNINDENT
 .sp
 Link with \-lgearman
 .SH DESCRIPTION
 .sp
-\fI\%gearman_worker_define_function()\fP creates a worker that will be
-used to execute jobs created by \fBgearman_client_execute_reduce()\fP.
+\fI\%gearman_worker_define_function()\fP defines functions for a worker.
 .sp
-\fBgearman_function_fn\fP are passed a job and will need to return
-a \fBgearman_worker_error_t\fP upon exit.  For each call of
-\fBgearman_job_send_data()\fP a \fBgearman_job_st\fP is created.
+The interface is callback by design. When the server has a job for the worker, \fI\%gearman_function_fn\fP is evoked with a \fBgearman_job_st\fP representing the job, and the context that was defined originally when the function was defined.
 .sp
-Each job will be executed against the aggregate function that
-\fBgearman_client_execute_reduce()\fP specified. If any errors are
-detected then the entire job is cancelled.  The gearman_aggregator_fn will
+Results are sent back to the client by invoking \fBgearman_job_send_data()\fP.
+.sp
+If the client specified an reducer function, then the output of the \fI\%gearman_function_fn\fP will be sent to that function. You can split the work out to the reducer function by sending data multiple times with \fBgearman_job_send_data()\fP.
+.sp
+If any errors are detected then the entire job is cancelled.  The \fI\%gearman_aggregator_fn\fP will
 be called when all mapped jobs have completed. The result of this function
 will be what is returned to the client.
 .sp
-The callback function needs to populute the ret value with one of the following errors:
+The callback function needs to return one of the following errors:
 .sp
-\fBGEARMAN_WORKER_SUCCESS\fP
+\fBGEARMAN_SUCCESS\fP
 .sp
-\fBGEARMAN_WORKER_FAIL\fP
+The function was successful.
 .sp
-\fBgearman_job_send_complete()\fP and \fBgearman_job_send_fail()\fP cannot be used with mapper functions.
+\fBGEARMAN_FATAL\fP
+.sp
+An error has occurred, the job we not processed, and the worker cannot continue.
+.sp
+\fBGEARMAN_ERROR\fP
+.sp
+A transient error has occurred, like a network failure, and the job can be restarted.
+.sp
+If a value other then the above are returned it is converted to a \fBGEARMAN_FATAL\fP and \fBgearman_worker_work()\fP returns \fBGEARMAN_INVALID_ARGUMENT\fP.
+.sp
+\fBgearman_job_send_complete()\fP and \fBgearman_job_send_fail()\fP cannot be used with any functions created with \fI\%gearman_worker_define_function()\fP.
 .SH RETURN VALUE
 .sp
 \fBgearman_return_t\fP

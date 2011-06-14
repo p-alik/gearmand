@@ -35,27 +35,40 @@
  *
  */
 
-#pragma once
+#include <libgearman/common.h>
+
+#include <libgearman/packet.hpp>
+#include <libgearman/function/base.hpp>
+#include <libgearman/function/mapper.hpp>
+
+#ifndef __INTEL_COMPILER
+#pragma GCC diagnostic ignored "-Wswitch-enum"
+#pragma GCC diagnostic ignored "-Wswitch"
+#endif
 
 /*
   Mapper function
 */
-class Mapper: public _worker_function_st
+gearman_function_error_t Mapper::callback(gearman_job_st* job, void *context_arg)
 {
-  gearman_function_fn *_mapper_fn;
-  gearman_aggregator_fn *aggregator_fn;
+  if (gearman_job_is_map(job))
+    gearman_job_build_reducer(job, aggregator_fn);
 
-public:
-  Mapper(gearman_function_fn *mapper_fn_arg, gearman_aggregator_fn *aggregator_fn_arg, void *context_arg) :
-    _worker_function_st(context_arg),
-    _mapper_fn(mapper_fn_arg),
-    aggregator_fn(aggregator_fn_arg)
-  { }
-
-  bool has_callback() const
+  gearman_return_t error= _mapper_fn(job, context_arg);
+  switch (error)
   {
-    return bool(_mapper_fn);
+  case GEARMAN_FATAL:
+    job->error_code= GEARMAN_FATAL;
+    return GEARMAN_FUNCTION_FATAL;
+
+  case GEARMAN_ERROR:
+    job->error_code= GEARMAN_ERROR;
+    return GEARMAN_FUNCTION_ERROR;
+
+  case GEARMAN_SUCCESS:
+    job->error_code= GEARMAN_SUCCESS;
+    return GEARMAN_FUNCTION_SUCCESS;
   }
 
-  gearman_function_error_t callback(gearman_job_st* job, void *context_arg);
-};
+  return GEARMAN_FUNCTION_INVALID_ARGUMENT;
+}

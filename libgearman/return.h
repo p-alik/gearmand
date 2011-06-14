@@ -62,7 +62,7 @@ enum gearman_return_t
   GEARMAN_JOB_EXISTS, // see gearman_client_job_status()
   GEARMAN_JOB_QUEUE_FULL,
   GEARMAN_SERVER_ERROR,
-  GEARMAN_WORK_ERROR, // DEPRECATED
+  GEARMAN_WORK_ERROR,
   GEARMAN_WORK_DATA,
   GEARMAN_WORK_WARNING,
   GEARMAN_WORK_STATUS,
@@ -94,25 +94,15 @@ enum gearman_return_t
   GEARMAN_ARGUMENT_TOO_LARGE,
   GEARMAN_INVALID_ARGUMENT,
   GEARMAN_IN_PROGRESS, // See gearman_client_job_status()
-  GEARMAN_MAX_RETURN /* Always add new error code before */
+  GEARMAN_MAX_RETURN, /* Always add new error code before */
+  GEARMAN_FATAL= GEARMAN_WORK_FAIL,
+  GEARMAN_ERROR= GEARMAN_WORK_ERROR
 };
 
 #define gearman_continue(__gearman_return_t) (((__gearman_return_t) == GEARMAN_IO_WAIT) || ((__gearman_return_t) == GEARMAN_IN_PROGRESS) ||  ((__gearman_return_t) == GEARMAN_PAUSE) || ((__gearman_return_t) == GEARMAN_JOB_EXISTS) || ((__gearman_return_t) == GEARMAN_NO_ACTIVE_FDS))
 #define gearman_failed(__gearman_return_t) ((__gearman_return_t) != GEARMAN_SUCCESS)
 #define gearman_success(__gearman_return_t) ((__gearman_return_t) == GEARMAN_SUCCESS)
 
-enum gearman_worker_error_t
-{
-  GEARMAN_WORKER_SUCCESS= GEARMAN_SUCCESS,
-  GEARMAN_WORKER_FAILED= GEARMAN_WORK_FAIL,
-  GEARMAN_WORKER_TRY_AGAIN= GEARMAN_LOST_CONNECTION
-};
-
-#define gearman_worker_failed(X) (((X) != GEARMAN_WORKER_SUCCESS) ? true : false)
-#define gearman_worker_success(X) (((X) == GEARMAN_SUCCESS) ? true : false)
-
-
 #ifndef __cplusplus
 typedef enum gearman_return_t gearman_return_t;
-typedef enum gearman_worker_error_t gearman_worker_error_t;
 #endif

@@ -950,8 +950,10 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
       switch (worker->work_function->callback(worker->work_job,
                                               static_cast<void *>(worker->work_function->context)))
       {
-      case GEARMAN_WORKER_FAILED:
-        if (gearman_job_send_fail_fin(worker->work_job) == GEARMAN_LOST_CONNECTION) // If we fail this, we have no connection
+      case GEARMAN_FUNCTION_INVALID_ARGUMENT:
+        worker->work_job->error_code= GEARMAN_INVALID_ARGUMENT;
+      case GEARMAN_FUNCTION_FATAL:
+        if (gearman_job_send_fail_fin(worker->work_job) == GEARMAN_LOST_CONNECTION) // If we fail this, we have no connection, @note this causes us to lose the current error
         {
           worker->work_job->error_code= GEARMAN_LOST_CONNECTION;
           break;
@@ -959,8 +961,11 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
         worker->work_state= GEARMAN_WORKER_WORK_UNIVERSAL_FAIL;
         return worker->work_job->error_code;
 
-      case GEARMAN_WORKER_TRY_AGAIN:
-      case GEARMAN_WORKER_SUCCESS:
+      case GEARMAN_FUNCTION_ERROR: // retry 
+        worker->work_job->error_code= GEARMAN_LOST_CONNECTION;
+        break;
+
+      case GEARMAN_FUNCTION_SUCCESS:
         break;
       }
 
@@ -993,17 +998,18 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
         worker->work_result= NULL;
       }
 
-      if (gearman_failed(worker->work_job->error_code))
+      // If we lost the connection, we retry the work, otherwise we error
+      if (worker->work_job->error_code == GEARMAN_LOST_CONNECTION)
       {
-        if (worker->work_job->error_code == GEARMAN_LOST_CONNECTION)
-          break;
-
+        break;
+      }
+      else if (gearman_failed(worker->work_job->error_code))
+      {
         worker->work_state= GEARMAN_WORKER_WORK_UNIVERSAL_FAIL;
 
         return worker->work_job->error_code;
       }
     }
-
     break;
 
   case GEARMAN_WORKER_WORK_UNIVERSAL_FAIL:
@@ -1018,7 +1024,6 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
         return worker->work_job->error_code;
       }
     }
-
     break;
   }
 

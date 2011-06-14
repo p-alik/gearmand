@@ -40,12 +40,19 @@
 #include <cstring>
 #include <memory>
 
+enum gearman_function_error_t {
+  GEARMAN_FUNCTION_SUCCESS= GEARMAN_SUCCESS,
+  GEARMAN_FUNCTION_INVALID_ARGUMENT= GEARMAN_INVALID_ARGUMENT,
+  GEARMAN_FUNCTION_FATAL= GEARMAN_FATAL,
+  GEARMAN_FUNCTION_ERROR= GEARMAN_ERROR
+};
+
 struct _worker_function_st
 {
   struct _options {
-    bool packet_in_use:1;
-    bool change:1;
-    bool remove:1;
+    bool packet_in_use;
+    bool change;
+    bool remove;
 
     _options() :
       packet_in_use(true),
@@ -72,7 +79,7 @@ struct _worker_function_st
 
   virtual bool has_callback() const= 0;
 
-  virtual gearman_worker_error_t callback(gearman_job_st* job, void *context_arg)= 0;
+  virtual gearman_function_error_t callback(gearman_job_st* job, void *context_arg)= 0;
 
   bool init(gearman_vector_st* namespace_arg, const char *name_arg, size_t size)
   {

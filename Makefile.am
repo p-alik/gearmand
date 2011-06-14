@@ -15,7 +15,9 @@ lib_LTLIBRARIES =
 noinst_LTLIBRARIES =
 nobase_include_HEADERS =
 noinst_HEADERS =
-man_MANS =
+man1_MANS =
+man3_MANS =
+man8_MANS =
 DISTCLEANFILES =
 EXTRA_DIST =
 CLEANFILES =
@@ -39,7 +41,9 @@ docs: html man
 
 TESTS += ${check_PROGRAMS}
 
-EXTRA_DIST+= ${man_MANS}
+EXTRA_DIST+= ${man1_MANS}
+EXTRA_DIST+= ${man3_MANS}
+EXTRA_DIST+= ${man8_MANS}
 EXTRA_DIST+= scripts/README.solaris
 
 test: check

@@ -174,7 +174,7 @@ typedef void* (gearman_worker_fn)(gearman_job_st *job, void *context,
                                   size_t *result_size,
                                   gearman_return_t *ret_ptr);
 
-typedef gearman_worker_error_t (gearman_function_fn)(gearman_job_st *job, void *worker_context);
+typedef gearman_return_t (gearman_function_fn)(gearman_job_st *job, void *worker_context);
 
 typedef struct gearman_aggregator_st gearman_aggregator_st;
 typedef gearman_return_t (gearman_aggregator_fn)(gearman_aggregator_st *, gearman_task_st *, gearman_result_st *);

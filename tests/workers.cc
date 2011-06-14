@@ -216,7 +216,7 @@ gearman_return_t cat_aggregator_fn(gearman_aggregator_st *, gearman_task_st *tas
   return GEARMAN_SUCCESS;
 }
 
-gearman_worker_error_t  split_worker(gearman_job_st *job, void *)
+gearman_return_t split_worker(gearman_job_st *job, void* /* context */)
 {
   const char *workload= static_cast<const char *>(gearman_job_workload(job));
   size_t workload_size= gearman_job_workload_size(job);
@@ -230,14 +230,14 @@ gearman_worker_error_t  split_worker(gearman_job_st *job, void *)
     {
       if ((workload +x -chunk_begin) == 11 and not memcmp(chunk_begin, gearman_literal_param("mapper_fail")))
       {
-        return GEARMAN_WORKER_FAILED;
+        return GEARMAN_FATAL;
       }
 
       // NULL Chunk
       gearman_return_t rc= gearman_job_send_data(job, chunk_begin, workload +x -chunk_begin);
       if (gearman_failed(rc))
       {
-        return GEARMAN_WORKER_FAILED;
+        return GEARMAN_FATAL;
       }
 
       chunk_begin= workload +x +1;
@@ -248,17 +248,17 @@ gearman_worker_error_t  split_worker(gearman_job_st *job, void *)
   {
     if ((size_t(workload +workload_size) -size_t(chunk_begin) ) == 11 and not memcmp(chunk_begin, gearman_literal_param("mapper_fail")))
     {
-      return GEARMAN_WORKER_FAILED;
+      return GEARMAN_FATAL;
     }
 
     gearman_return_t rc= gearman_job_send_data(job, chunk_begin, size_t(workload +workload_size) -size_t(chunk_begin));
     if (gearman_failed(rc))
     {
-      return GEARMAN_WORKER_FAILED;
+      return GEARMAN_FATAL;
     }
   }
 
-  return GEARMAN_WORKER_SUCCESS;
+  return GEARMAN_SUCCESS;
 }
 
 pthread_mutex_t increment_reset_worker_mutex= PTHREAD_MUTEX_INITIALIZER;
