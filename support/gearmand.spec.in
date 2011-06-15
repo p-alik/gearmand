@@ -67,7 +67,7 @@ Gearman provides a generic framework to farm out work to other machines, dispatc
 %{_includedir}/libgearman/visibility.h
 %{_includedir}/libgearman/work.h
 %{_includedir}/libgearman/worker.h
-%{_includedir}libgearman/function.h
+%{_includedir}/libgearman/function.h
 %{_libdir}/libgearman.la
 %{_libdir}/libgearman.so
 %{_libdir}/libgearman.so.6
@@ -76,6 +76,8 @@ Gearman provides a generic framework to farm out work to other machines, dispatc
 %{_mandir}/man1/gearadmin.1.gz
 %{_mandir}/man1/gearman.1.gz
 %{_mandir}/man3/gearman_actions_t.3.gz
+%{_mandir}/man3/gearman_argument_make.3.gz
+%{_mandir}/man3/gearman_argument_t.3.gz
 %{_mandir}/man3/gearman_bugreport.3.gz
 %{_mandir}/man3/gearman_client_add_options.3.gz
 %{_mandir}/man3/gearman_client_add_server.3.gz
@@ -150,8 +152,17 @@ Gearman provides a generic framework to farm out work to other machines, dispatc
 %{_mandir}/man3/gearman_job_workload_size.3.gz
 %{_mandir}/man3/gearman_log_fn.3.gz
 %{_mandir}/man3/gearman_parse_servers.3.gz
+%{_mandir}/man3/gearman_result_boolean.3.gz
+%{_mandir}/man3/gearman_result_integer.3.gz
+%{_mandir}/man3/gearman_result_is_null.3.gz
+%{_mandir}/man3/gearman_result_size.3.gz
+%{_mandir}/man3/gearman_result_store_integer.3.gz
+%{_mandir}/man3/gearman_result_store_string.3.gz
+%{_mandir}/man3/gearman_result_store_value.3.gz
+%{_mandir}/man3/gearman_result_string.3.gz
 %{_mandir}/man3/gearman_return_t.3.gz
 %{_mandir}/man3/gearman_strerror.3.gz
+%{_mandir}/man3/gearman_string_t.3.gz
 %{_mandir}/man3/gearman_success.3.gz
 %{_mandir}/man3/gearman_task_context.3.gz
 %{_mandir}/man3/gearman_task_data.3.gz
