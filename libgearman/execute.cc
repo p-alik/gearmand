@@ -42,6 +42,12 @@
 #include <cassert>
 #include <cerrno>
 
+static gearman_task_st *gearman_execute_map_reduce(gearman_client_st *client,
+                                                   const char *mapper_name, const size_t mapper_length,
+                                                   gearman_string_t &reducer,
+                                                   const char *unique_str, const size_t unique_length,
+                                                   gearman_work_t *workload,
+                                                   gearman_argument_t *arguments);
 
 static inline gearman_command_t pick_command_by_priority(const gearman_job_priority_t &arg)
 {
@@ -83,6 +89,16 @@ gearman_task_st *gearman_execute(gearman_client_st *client,
     return NULL;
   }
 
+  if (workload and gearman_work_has_reducer(workload))
+  {
+    return gearman_execute_map_reduce(client,
+                                      function_name, function_length,
+                                      workload->reducer,
+                                      unique_str, unique_length,
+                                      workload,
+                                      arguments);
+  }
+
   gearman_task_st *task= NULL;
   gearman_unique_t unique= gearman_unique_make(unique_str, unique_length);
   gearman_string_t function= { function_name, function_length };
@@ -108,7 +124,7 @@ gearman_task_st *gearman_execute(gearman_client_st *client,
                      function,
                      unique,
                      arguments->value,
-                     gearman_workload_epoch(workload),
+                     gearman_work_has_epoch(workload),
                      gearman_actions_execute_defaults());
       break;
 
@@ -150,34 +166,14 @@ gearman_task_st *gearman_execute(gearman_client_st *client,
 
 gearman_task_st *gearman_execute_map_reduce(gearman_client_st *client,
                                             const char *mapper_name, const size_t mapper_length,
-                                            const char *reducer_name, const size_t reducer_length,
+                                            gearman_string_t &reducer,
                                             const char *unique_str, const size_t unique_length,
                                             gearman_work_t *workload,
                                             gearman_argument_t *arguments)
 {
-  if (not client)
-  {
-    errno= EINVAL;
-    return NULL;
-  }
-
-  if (not mapper_name or not mapper_length)
-  {
-    gearman_error(client->universal, GEARMAN_INVALID_ARGUMENT, "mapper_name was NULL");
-    return NULL;
-  }
-
-  if (not reducer_name or not reducer_length)
-  {
-    gearman_error(client->universal, GEARMAN_INVALID_ARGUMENT, "reducer_name was NULL");
-    return NULL;
-  }
-
-
   gearman_task_st *task= NULL;
   gearman_unique_t unique= gearman_unique_make(unique_str, unique_length);
   gearman_string_t mapper= { mapper_name, mapper_length };
-  gearman_string_t reducer= { reducer_name, reducer_length };
 
   if (workload)
   {
@@ -208,7 +204,7 @@ gearman_task_st *gearman_execute_map_reduce(gearman_client_st *client,
                      unique,
                      arguments->value,
                      gearman_actions_execute_defaults(),
-                     gearman_workload_epoch(workload),
+                     gearman_work_epoch(workload),
                      workload->context);
 #endif
       break;

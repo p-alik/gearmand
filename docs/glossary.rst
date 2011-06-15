@@ -1,5 +1,6 @@
-========
-Glossary
+.. _glossary:
+
+Glossary 
 ========
 
 
@@ -16,4 +17,13 @@ Glossary
 
    job
       A job represents a task once it is sent to worker. It is represented as :c:type:`gearman_job_st`.
+
+   function 
+      A "subprogram" that takes a set of parameters and returns a result (or just just a status). Functions are defined for workers.
+  
+   reducer 
+      A function that takes a piece of data from mapper and returns a value that will be seent to an aggregator function.
+
+   aggregator 
+      A function which takes data and compiles it into a single return value. Aggregator functions are defined by :c:type:`gearman_aggregator_fn`.
 

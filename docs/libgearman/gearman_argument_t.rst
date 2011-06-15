@@ -10,7 +10,7 @@ SYNOPSIS
 
 .. c:type:: gearman_argument_t
 
-.. c:function:: gearman_argument_t gearman_argument_make(const char *value, size_t value_size)
+.. c:function:: gearman_argument_t gearman_argument_make(const char *name, const size_t name_length, const char *value, const size_t value_size)
 
 Compile and link with -lgearman
 

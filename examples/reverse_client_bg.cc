@@ -130,8 +130,8 @@ int main(int args, char *argv[])
 
   gearman_task_st *task;
   gearman_argument_t values[]= {
-    gearman_argument_make(text_to_echo.c_str(), text_to_echo.size()),
-    gearman_argument_make(0, 0)
+    gearman_argument_make(0, 0, text_to_echo.c_str(), text_to_echo.size()),
+    gearman_argument_make(0, 0, 0, 0)
   };
 
   if (not (task= gearman_execute(&client, gearman_literal_param("reverse"), NULL, 0, &workload, values)))

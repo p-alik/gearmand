@@ -119,9 +119,10 @@ Structures
    libgearman/gearman_task_st
    libgearman/gearman_worker_st 
    libgearman/gearman_job_handle_t
-   libgearman/gearman_argument_t
-   libgearman/gearman_string_t
-   libgearman/gearman_result_t
+   libgearman/gearman_argument_t 
+   libgearman/gearman_string_t 
+   libgearman/gearman_result_t 
+   libgearman/gearman_work_t
 
 
 *****

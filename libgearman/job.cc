@@ -232,7 +232,7 @@ gearman_return_t gearman_job_send_data(gearman_job_st *job, const void *data, si
 
   if (job->reducer)
   {
-    gearman_argument_t value= gearman_argument_make(static_cast<const char *>(data), data_size);
+    gearman_argument_t value= gearman_argument_make(NULL, 0, static_cast<const char *>(data), data_size);
     job->reducer->add(value);
 
     return GEARMAN_SUCCESS;
@@ -344,7 +344,7 @@ gearman_return_t gearman_job_send_complete_fin(gearman_job_st *job,
   {
     if (result_size)
     {
-      gearman_argument_t value= gearman_argument_make(static_cast<const char *>(result), result_size);
+      gearman_argument_t value= gearman_argument_make(NULL, 0, static_cast<const char *>(result), result_size);
       job->reducer->add(value);
     }
 

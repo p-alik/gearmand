@@ -49,15 +49,15 @@ enum gearman_function_kind_t {
   GEARMAN_WORKER_MAPPER
 };
 
-struct _function_v1_t {
+struct gearman_function_v1_t {
   gearman_worker_fn *func;
 };
 
-struct _function_v2_t {
+struct gearman_function_v2_t {
   gearman_function_fn *func;
 };
 
-struct _mapper_st {
+struct gearman_mapper_v1_t {
   gearman_function_fn *func;
   gearman_aggregator_fn *aggregator;
 };
@@ -65,10 +65,10 @@ struct _mapper_st {
 struct gearman_function_t {
   const enum gearman_function_kind_t kind;
   union {
-    char bytes[sizeof(struct _mapper_st)];
-    struct _function_v1_t function_v1;
-    struct _function_v2_t function_v2;
-    struct _mapper_st mapper;
+    char bytes[sizeof(struct gearman_mapper_v1_t)]; // @note gearman_mapper_v1_t is the largest structure
+    struct gearman_function_v1_t function_v1;
+    struct gearman_function_v2_t function_v2;
+    struct gearman_mapper_v1_t mapper;
   } callback;
 };
 
