@@ -111,7 +111,7 @@ test_return_t gearman_execute_map_reduce_basic(void *object)
                                                  &work_args), gearman_client_error(client));
 
   gearman_return_t rc;
-  test_true_got(gearman_success(rc= gearman_task_error(task)), gearman_client_error(client) ? gearman_client_error(client) : gearman_strerror(rc));
+  test_true_got(gearman_success(rc= gearman_task_return(task)), gearman_client_error(client) ? gearman_client_error(client) : gearman_strerror(rc));
   gearman_result_st *result= gearman_task_result(task);
   test_truth(result);
   const char *value= gearman_result_value(result);
@@ -142,7 +142,7 @@ test_return_t gearman_execute_map_reduce_workfail(void *object)
                                                  NULL,
                                                  &work_args), gearman_client_error(client));
 
-  test_compare_got(GEARMAN_WORK_FAIL, gearman_task_error(task), gearman_strerror(gearman_task_error(task)));
+  test_compare_got(GEARMAN_WORK_FAIL, gearman_task_return(task), gearman_task_error(task));
 
   gearman_task_free(task);
   gearman_client_task_free_all(client);
@@ -168,7 +168,41 @@ test_return_t gearman_execute_map_reduce_fail_in_reduction(void *object)
                                                  NULL,
                                                  &work_args), gearman_client_error(client));
 
-  test_compare_got(GEARMAN_WORK_FAIL, gearman_task_error(task), gearman_strerror(gearman_task_error(task)));
+  test_compare_got(GEARMAN_WORK_FAIL, gearman_task_return(task), gearman_task_error(task));
+
+  gearman_task_free(task);
+  gearman_client_task_free_all(client);
+
+  return TEST_SUCCESS;
+}
+
+test_return_t gearman_execute_map_reduce_use_as_function(void *object)
+{
+  gearman_client_st *client= (gearman_client_st *)object;
+
+  test_true_got(gearman_success(gearman_client_echo(client, gearman_literal_param("this is mine"))), gearman_client_error(client));
+
+  // This just hear to make it easier to trace when
+  // gearman_execute_map_reduce() is called (look in the log to see the
+  // failed option setting.
+  gearman_client_set_server_option(client, gearman_literal_param("should fail"));
+  gearman_argument_t work_args= gearman_argument_make(gearman_literal_param("this dog does not hunt"));
+
+  gearman_string_t mapper= { gearman_literal_param("split_worker") };
+  gearman_task_st *task;
+  test_true_got(task= gearman_execute(client,
+                                      gearman_string_param(mapper),
+                                      NULL, 0,  // unique
+                                      NULL,
+                                      &work_args), gearman_client_error(client));
+
+  gearman_return_t rc;
+  test_true_got(gearman_success(rc= gearman_task_return(task)), gearman_client_error(client) ? gearman_client_error(client) : gearman_strerror(rc));
+  gearman_result_st *result= gearman_task_result(task);
+  test_truth(result);
+  const char *value= gearman_result_value(result);
+  test_truth(value);
+  test_compare(18, gearman_result_size(result));
 
   gearman_task_free(task);
   gearman_client_task_free_all(client);

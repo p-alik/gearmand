@@ -132,7 +132,7 @@ void initialize_sqlite()
 }
 
 } // namespace queue
-} // namespace plugin
+} // namespace plugins
 } // namespace gearmand
 
 /**

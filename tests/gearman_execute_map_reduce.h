@@ -37,7 +37,8 @@
 
 #pragma once
 
-test_return_t gearman_execute_map_reduce_check_parameters(void *object);
-test_return_t gearman_execute_map_reduce_basic(void *object);
-test_return_t gearman_execute_map_reduce_fail_in_reduction(void *object);
-test_return_t gearman_execute_map_reduce_workfail(void *object);
+test_return_t gearman_execute_map_reduce_check_parameters(void *);
+test_return_t gearman_execute_map_reduce_basic(void *);
+test_return_t gearman_execute_map_reduce_fail_in_reduction(void *);
+test_return_t gearman_execute_map_reduce_workfail(void *);
+test_return_t gearman_execute_map_reduce_use_as_function(void *);

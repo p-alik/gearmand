@@ -1,4 +1,6 @@
-Logging Clients and Workers
+===============
+Logging Workers
+===============
 
 --------
 SYNOPSIS
@@ -6,7 +8,7 @@ SYNOPSIS
 
 #include <libgearman/gearman.h>
 
-.. c:function:: void gearman_client_set_log_fn(gearman_client_st *client, gearman_log_fn *function, void *context, gearman_verbose_t verbose);
+.. c:function:: void gearman_worker_set_log_fn(gearman_worker_st *worker, gearman_log_fn *function, void *context, gearman_verbose_t verbose);
 
 ----------- 
 DESCRIPTION 
@@ -16,6 +18,8 @@ DESCRIPTION
 :c:func:`gearman_client_set_log_fn()` allows you to register a callback that will be passed all error messages that are givin to the client.  
 
 See :c:type:`gearman_log_fn` for more information on the callback.
+
+See :c:type:`gearman_verbose_t` for more information on logging levels.
 
 ------------ 
 RETURN VALUE 
@@ -34,5 +38,5 @@ To find out more information please check:
 SEE ALSO
 --------
 
-:manpage:`gearmand(8)` :manpage:`libgearman(3)`
+:manpage:`gearmand(8)` :manpage:`libgearman(3)` :manpage:`gearman_log_fn(3)`
 

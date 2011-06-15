@@ -1,6 +1,6 @@
-.TH "GEARMAN_STATUS_IS_SUCCESSFUL" "3" "May 02, 2011" "0.20" "Gearmand"
+.TH "GEARMAN_ARGUMENT_T" "3" "June 14, 2011" "0.21" "Gearmand"
 .SH NAME
-gearman_status_is_successful \- Gearmand Documentation
+gearman_argument_t \- Gearmand Documentation, http://gearman.info/
 .
 .nr rst2man-indent-level 0
 .
@@ -35,34 +35,22 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 #include <libgearman/gearman.h>
 .INDENT 0.0
 .TP
-.B gearman_status_t
+.B gearman_argument_t
 .UNINDENT
 .INDENT 0.0
 .TP
-.B bool gearman_status_is_successful(const gearman_status_t);
+.B \fI\%gearman_argument_t\fP gearman_argument_make(const char\fI\ *value\fP, size_t\fI\ value_size\fP)
 .UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_task_st *gearman_status_task(const gearman_status_t);
-.UNINDENT
+.sp
+Compile and link with \-lgearman
 .SH DESCRIPTION
 .sp
-gearman_status_t requires no allocation or deallocation.
+The \fI\%gearman_argument_make()\fP function initializes \fI\%gearman_argument_t\fP.
 .sp
-gearman_status_is_successful() determines whether or not a call to \fIgearman_client_execute(3)\fP was successful or not.
-.sp
-gearman_status_task() will provide a gearman_task_st if one is available.
-.SH RETURN
-.sp
-gearman_status_is_successful() return true on success. gearman_status_task()
-will return a gearman_task_st if one is available.
-.SH HOME
-.sp
-To find out more information please check:
-\fI\%https://launchpad.net/gearmand\fP
+\fI\%gearman_argument_t\fP is an abstraction used passing arguments too \fBgearman_execute()\fP. The arguments are not copied, so any object that is used to initialize \fI\%gearman_argument_t\fP must continue to exist throughout the lifetime/usage of the structure.
 .SH SEE ALSO
 .sp
-\fIgearmand(8)\fP \fIlibgearman(3)\fP
+\fIgearmand(8)\fP \fIlibgearman(3)\fP \fIgearman_client_error()\fP or \fIgearman_worker_error()\fP
 .SH AUTHOR
 Data Differential http://datadifferential.com/
 .SH COPYRIGHT

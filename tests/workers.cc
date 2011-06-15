@@ -165,11 +165,13 @@ void *echo_or_react_chunk_worker(gearman_job_st *job, void *,
 void *unique_worker(gearman_job_st *job, void *,
                     size_t *result_size, gearman_return_t *ret_ptr)
 {
-  const void *workload= gearman_job_workload(job);
+  const char *workload= static_cast<const char *>(gearman_job_workload(job));
 
   assert(job->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN_UNIQ);
   assert(gearman_job_unique(job));
+  assert(strlen(gearman_job_unique(job)));
   assert(gearman_job_workload_size(job));
+  assert(strlen(gearman_job_unique(job)) == gearman_job_workload_size(job));
   assert(not memcmp(workload, gearman_job_unique(job), gearman_job_workload_size(job)));
   if (gearman_job_workload_size(job) == strlen(gearman_job_unique(job)))
   {
@@ -214,7 +216,7 @@ gearman_return_t cat_aggregator_fn(gearman_aggregator_st *, gearman_task_st *tas
   return GEARMAN_SUCCESS;
 }
 
-gearman_worker_error_t  split_worker(gearman_job_st *job, void *)
+gearman_return_t split_worker(gearman_job_st *job, void* /* context */)
 {
   const char *workload= static_cast<const char *>(gearman_job_workload(job));
   size_t workload_size= gearman_job_workload_size(job);
@@ -228,14 +230,14 @@ gearman_worker_error_t  split_worker(gearman_job_st *job, void *)
     {
       if ((workload +x -chunk_begin) == 11 and not memcmp(chunk_begin, gearman_literal_param("mapper_fail")))
       {
-        return GEARMAN_WORKER_FAILED;
+        return GEARMAN_FATAL;
       }
 
       // NULL Chunk
       gearman_return_t rc= gearman_job_send_data(job, chunk_begin, workload +x -chunk_begin);
       if (gearman_failed(rc))
       {
-        return GEARMAN_WORKER_FAILED;
+        return GEARMAN_FATAL;
       }
 
       chunk_begin= workload +x +1;
@@ -246,17 +248,17 @@ gearman_worker_error_t  split_worker(gearman_job_st *job, void *)
   {
     if ((size_t(workload +workload_size) -size_t(chunk_begin) ) == 11 and not memcmp(chunk_begin, gearman_literal_param("mapper_fail")))
     {
-      return GEARMAN_WORKER_FAILED;
+      return GEARMAN_FATAL;
     }
 
     gearman_return_t rc= gearman_job_send_data(job, chunk_begin, size_t(workload +workload_size) -size_t(chunk_begin));
     if (gearman_failed(rc))
     {
-      return GEARMAN_WORKER_FAILED;
+      return GEARMAN_FATAL;
     }
   }
 
-  return GEARMAN_WORKER_SUCCESS;
+  return GEARMAN_SUCCESS;
 }
 
 pthread_mutex_t increment_reset_worker_mutex= PTHREAD_MUTEX_INITIALIZER;
@@ -265,11 +267,10 @@ void *increment_reset_worker(gearman_job_st *job, void *,
                              size_t *result_size, gearman_return_t *ret_ptr)
 {
   static long counter= 0;
+  long change= 0;
   const char *workload= (const char*)gearman_job_workload(job);
 
-  if (workload == NULL or gearman_job_workload_size(job) == 0)
-  { } // We do nothing
-  else if (gearman_job_workload_size(job) == gearman_literal_param_size("reset") and (not memcmp(workload, gearman_literal_param("reset"))))
+  if (gearman_job_workload_size(job) == gearman_literal_param_size("reset") and (not memcmp(workload, gearman_literal_param("reset"))))
   {
     pthread_mutex_lock(&increment_reset_worker_mutex);
     counter= 0;
@@ -277,13 +278,20 @@ void *increment_reset_worker(gearman_job_st *job, void *,
     *ret_ptr= GEARMAN_SUCCESS;
     return NULL;
   }
-
-  long change= strtol(workload, (char **)NULL, 10);
-  if (change ==  LONG_MIN or change == LONG_MAX or ( change == 0 and errno < 0))
+  else if (workload and gearman_job_workload_size(job))
   {
-    gearman_job_send_warning(job, gearman_literal_param("strtol() failed"));
-    *ret_ptr= GEARMAN_WORK_FAIL;
-    return NULL;
+    char *temp= static_cast<char *>(malloc(gearman_job_workload_size(job) +1));
+    assert(temp);
+    memcpy(temp, workload, gearman_job_workload_size(job));
+    temp[gearman_job_workload_size(job)]= 0;
+    change= strtol(temp, (char **)NULL, 10);
+    free(temp);
+    if (change ==  LONG_MIN or change == LONG_MAX or ( change == 0 and errno < 0))
+    {
+      gearman_job_send_warning(job, gearman_literal_param("strtol() failed"));
+      *ret_ptr= GEARMAN_WORK_FAIL;
+      return NULL;
+    }
   }
 
   char *result;

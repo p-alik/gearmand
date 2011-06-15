@@ -32,7 +32,7 @@ struct context_st {
   struct worker_handle_st *handle;
   gearman_worker_options_t options;
   gearman_worker_fn *worker_fn;
-  gearman_mapper_fn *mapper_fn;
+  gearman_function_fn *mapper_fn;
   gearman_aggregator_fn *aggregator_fn;
   const char *namespace_key;
 
@@ -67,12 +67,12 @@ static void *thread_runner(void *con)
 
   if (context->aggregator_fn)
   {
-    rc= gearman_worker_add_map_function(&worker,
-                                        context->function_name, strlen(context->function_name), 
-                                        0, 
-                                        context->mapper_fn,
-                                        context->aggregator_fn,
-                                        context->function_arg);
+    gearman_function_t function= gearman_function_create_mapper(context->mapper_fn, context->aggregator_fn);
+    rc= gearman_worker_define_function(&worker,
+                                       context->function_name, strlen(context->function_name), 
+                                       function,
+                                       0, 
+                                       context->function_arg);
   }
   else
   {
@@ -107,7 +107,7 @@ static struct worker_handle_st *_test_worker_start(in_port_t port,
                                                    const char *namespace_key,
                                                    const char *function_name,
                                                    gearman_worker_fn *worker_fn,
-                                                   gearman_mapper_fn *mapper_fn,
+                                                   gearman_function_fn *mapper_fn,
                                                    gearman_aggregator_fn *aggregator_fn,
                                                    void *function_arg,
                                                    gearman_worker_options_t options)
@@ -168,7 +168,7 @@ struct worker_handle_st *test_worker_start_with_namespace(in_port_t port,
 struct worker_handle_st *test_worker_start_with_reducer(in_port_t port,
                                                         const char *namespace_key,
                                                         const char *function_name,
-                                                        gearman_mapper_fn *mapper_fn, gearman_aggregator_fn *aggregator_fn,  
+                                                        gearman_function_fn *mapper_fn, gearman_aggregator_fn *aggregator_fn,  
                                                         void *function_arg,
                                                         gearman_worker_options_t options)
 {

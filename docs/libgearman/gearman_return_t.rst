@@ -176,19 +176,42 @@ Worker has issued a warning to the client via :c:func:`gearman_job_send_warning(
 
 .. c:type:: GEARMAN_WORK_STATUS 
 
-Status has been updated by the worker via :c:func:`ggearman_job_send_status()`
+Status has been updated by the worker via :c:func:`gearman_job_send_status()`
 
 .. c:type:: GEARMAN_WORK_EXCEPTION 
 
-Worker has sent an exception the client via :c:func:`ggearman_job_send_exception()`
+Worker has sent an exception the client via :c:func:`gearman_job_send_exception()`
 
 .. c:type:: GEARMAN_WORK_FAIL  
 
-A task has failed, and the worker has exited with an error or it called :c:func:`ggearman_job_send_fail()`
+A task has failed, and the worker has exited with an error or it called :c:func:`gearman_job_send_fail()`
+
+.. c:type:: GEARMAN_WORK_ERROR  
+
+A task has had an error and will be retried.
 
 .. c:type:: GEARMAN_PAUSE 
 
 Used only in custom application for client return based on :c:type:`GEARMAN_WORK_DATA`, :c:type:`GEARMAN_WORK_WARNING`, :c:type:`GEARMAN_WORK_EXCEPTION`, :c:type:`GEARMAN_WORK_FAIL`, or :c:type:`GEARMAN_WORK_STATUS`. :c:func:`gearman_continue()` can be used to check for this value.
+
+****************
+WORKER TO CLIENT
+****************
+
+Any function defined by :c:func:`gearman_worker_define_function()` may, and can only, return the following :c:type:`gearman_return_t` values.
+
+.. c:type:: GEARMAN_SUCCESS 
+
+The function successfully completed the job.
+
+.. c:type:: GEARMAN_FATAL  
+
+The function failed to complete the job.
+
+.. c:type:: GEARMAN_ERROR  
+
+A task has had an error and will be retried.
+
 
 *********
 TASK ONLY

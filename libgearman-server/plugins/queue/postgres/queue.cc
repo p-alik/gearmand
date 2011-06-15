@@ -116,7 +116,7 @@ void initialize_postgres()
 }
 
 } // namespace queue
-} // namespace plugin
+} // namespace plugins
 } // namespace gearmand
 
 /**

@@ -94,7 +94,7 @@ test_return_t gearman_client_add_task_test_fail(void *object)
   test_compare_got(GEARMAN_SUCCESS, ret, gearman_client_error(client));
   test_truth(task->client);
 
-  test_true_got(gearman_task_error(task) == GEARMAN_WORK_FAIL, gearman_strerror(gearman_task_error(task)));
+  test_compare_got(GEARMAN_WORK_FAIL, gearman_task_return(task), gearman_task_error(task));
 
   test_truth(task->client);
   gearman_task_free(task);

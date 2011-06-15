@@ -140,7 +140,7 @@ void gearman_task_free(gearman_task_st *task);
  * Get context for a task.
  */
 GEARMAN_API
-const void *gearman_task_context(const gearman_task_st *task);
+void *gearman_task_context(const gearman_task_st *task);
 
 GEARMAN_LOCAL
 bool gearman_task_is_active(const gearman_task_st *self);
@@ -236,10 +236,13 @@ size_t gearman_task_recv_data(gearman_task_st *task, void *data,
                               size_t data_size, gearman_return_t *ret_ptr);
 
 GEARMAN_API
-gearman_return_t gearman_task_error(const gearman_task_st *task);
+const char *gearman_task_error(const gearman_task_st *task);
 
 GEARMAN_API
 gearman_result_st *gearman_task_result(gearman_task_st *task);
+
+GEARMAN_API
+gearman_return_t gearman_task_return(const gearman_task_st *task);
 
 GEARMAN_LOCAL
 gearman_result_st *gearman_task_mutable_result(gearman_task_st *task);

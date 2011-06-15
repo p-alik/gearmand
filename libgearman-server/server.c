@@ -16,6 +16,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <string.h>
+#include <iso646.h>
 
 /*
  * Private declarations
@@ -122,9 +123,9 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
     {
       gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
                          "Received reduce submission, %.*s-%.*s/%.*s with %d arguments",
-                         packet->arg_size[0], packet->arg[0],
-                         packet->arg_size[1], packet->arg[1],
-                         packet->arg_size[2], packet->arg[2],
+                         packet->arg_size[0], packet->arg[0] -1,
+                         packet->arg_size[2], packet->arg[2] -1, // reducer
+                         packet->arg_size[1], packet->arg[1] -1,
                          (int)packet->argc);
       if (packet->arg_size[2] -1 > GEARMAN_UNIQUE_SIZE)
       {
@@ -133,24 +134,13 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
         return _server_error_packet(server_con, "job failure", "Unique value too large");
       }
 
-      gearmand_job_priority_t map_priority= GEARMAND_JOB_PRIORITY_LOW;
-      if (packet->arg_size[3] > 1) 
-      {
-        if (packet->arg_size[3] == 4 && ! memcmp(packet->arg[3], gearman_literal_param("HIGH")))
-        {
-          map_priority= GEARMAND_JOB_PRIORITY_HIGH;
-        }
-        else if (packet->arg_size[3] == 6 && ! memcmp(packet->arg[3], gearman_literal_param("NORMAL")))
-        {
-          priority= GEARMAND_JOB_PRIORITY_NORMAL;
-        }
-      }
+      gearmand_job_priority_t map_priority= GEARMAND_JOB_PRIORITY_NORMAL;
 
       /* Schedule job. */
       server_job= gearman_server_job_add_reducer(Server,
                                                  (char *)(packet->arg[0]), packet->arg_size[0] -1, // Function
-                                                 (char *)(packet->arg[1]), packet->arg_size[1] -1, // Reducer
-                                                 (char *)(packet->arg[2]), packet->arg_size[2] -1, // unique
+                                                 (char *)(packet->arg[1]), packet->arg_size[1] -1, // unique
+                                                 (char *)(packet->arg[2]), packet->arg_size[2] -1, // reducer
                                                  packet->data, packet->data_size, map_priority,
                                                  server_client, &ret, 0);
 
@@ -468,7 +458,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
                                         server_job->data, server_job->data_size,
                                         NULL);
     }
-    else if (packet->command == GEARMAN_COMMAND_GRAB_JOB_ALL)
+    else if (packet->command == GEARMAN_COMMAND_GRAB_JOB_ALL and server_job->reducer)
     {
       /* 
         We found a runnable job, queue job assigned packet and take the job off the queue. 
@@ -476,11 +466,24 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
       ret= gearman_server_io_packet_add(server_con, false,
                                         GEARMAN_MAGIC_RESPONSE,
                                         GEARMAN_COMMAND_JOB_ASSIGN_ALL,
-                                        server_job->job_handle,
-                                        (size_t)(strlen(server_job->job_handle) + 1),
+                                        server_job->job_handle, (size_t)(strlen(server_job->job_handle) + 1),
                                         server_job->function->function_name, server_job->function->function_name_size + 1,
-                                        server_job->reducer, (size_t)(strlen(server_job->reducer) +1),
                                         server_job->unique, (size_t)(strlen(server_job->unique) + 1),
+                                        server_job->reducer, (size_t)(strlen(server_job->reducer) +1),
+                                        server_job->data, server_job->data_size,
+                                        NULL);
+    }
+    else if (packet->command == GEARMAN_COMMAND_GRAB_JOB_ALL)
+    {
+      /* 
+        We found a runnable job, queue job assigned packet and take the job off the queue. 
+      */
+      ret= gearman_server_io_packet_add(server_con, false,
+                                        GEARMAN_MAGIC_RESPONSE,
+                                        GEARMAN_COMMAND_JOB_ASSIGN_UNIQ,
+                                        server_job->job_handle, (size_t)(strlen(server_job->job_handle) +1),
+                                        server_job->function->function_name, server_job->function->function_name_size +1,
+                                        server_job->unique, (size_t)(strlen(server_job->unique) +1),
                                         server_job->data, server_job->data_size,
                                         NULL);
     }

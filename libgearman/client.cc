@@ -101,7 +101,7 @@ static gearman_return_t _client_do_background(gearman_client_st *client,
                                               gearman_string_t &function,
                                               gearman_unique_t &unique,
                                               gearman_string_t &workload,
-                                              char *job_handle);
+                                              gearman_job_handle_t job_handle);
 
 
 /*
@@ -155,14 +155,6 @@ const char *gearman_client_error(const gearman_client_st *client)
     return NULL;
 
   return gearman_universal_error(client->universal);
-}
-
-gearman_return_t gearman_client_error_code(const gearman_client_st *client)
-{
-  if (not client)
-    return GEARMAN_SUCCESS;
-
-  return gearman_universal_error_code(client->universal);
 }
 
 int gearman_client_errno(const gearman_client_st *client)
@@ -719,7 +711,7 @@ gearman_client_add_task_low_background(gearman_client_st *client,
 gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
                                                 gearman_task_st *task,
                                                 void *context,
-                                                const char *job_handle,
+                                                const gearman_job_handle_t job_handle,
                                                 gearman_return_t *ret_ptr)
 {
   const void *args[1];
@@ -1225,7 +1217,7 @@ static void *_client_do(gearman_client_st *client, gearman_command_t command,
     *ret_ptr= ret;
     *result_size= 0;
   }
-  else if (ret == GEARMAN_SUCCESS and do_task_ptr->result_rc == GEARMAN_SUCCESS)
+  else if (gearman_success(ret) and do_task_ptr->result_rc == GEARMAN_SUCCESS)
   {
     *ret_ptr= do_task_ptr->result_rc;
     assert(do_task_ptr);
@@ -1261,7 +1253,7 @@ static gearman_return_t _client_do_background(gearman_client_st *client,
                                               gearman_string_t &function,
                                               gearman_unique_t &unique,
                                               gearman_string_t &workload,
-                                              char *job_handle)
+                                              gearman_job_handle_t job_handle)
 {
   gearman_task_st do_task, *do_task_ptr;
   do_task_ptr= add_task(client, &do_task, 

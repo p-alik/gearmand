@@ -7,5 +7,4 @@ Misc libgearman Functions
 
    gearman_parse_servers
    gearman_bugreport
-   gearman_verbose_name
    gearman_version

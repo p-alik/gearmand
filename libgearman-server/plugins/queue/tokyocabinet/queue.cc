@@ -66,7 +66,7 @@ void initialize_tokyocabinet()
 }
 
 } // namespace queue
-} // namespace plugin
+} // namespace plugins
 } // namespace gearmand
 
 

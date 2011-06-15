@@ -127,7 +127,7 @@ gearman_return_t client_do_background(gearman_client_st *client,
                                       gearman_string_t &function,
                                       gearman_unique_t &unique,
                                       gearman_string_t &workload,
-                                      char *job_handle)
+                                      gearman_job_handle_t job_handle)
 {
   gearman_task_st do_task;
   gearman_task_st *do_task_ptr= add_task(client, &do_task, 

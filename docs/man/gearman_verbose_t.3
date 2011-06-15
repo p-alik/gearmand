@@ -1,6 +1,6 @@
-.TH "GEARMAN_STATUS_T" "3" "May 02, 2011" "0.20" "Gearmand"
+.TH "GEARMAN_VERBOSE_T" "3" "June 14, 2011" "0.21" "Gearmand"
 .SH NAME
-gearman_status_t \- Gearmand Documentation
+gearman_verbose_t \- Gearmand Documentation, http://gearman.info/
 .
 .nr rst2man-indent-level 0
 .
@@ -35,27 +35,42 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 #include <libgearman/gearman.h>
 .INDENT 0.0
 .TP
-.B gearman_status_t
+.B const char *gearman_verbose_name(gearman_verbose_t\fI\ verbose\fP)
 .UNINDENT
-.INDENT 0.0
-.TP
-.B bool gearman_status_is_successful(const gearman_status_t);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_task_st *gearman_status_task(const gearman_status_t);
-.UNINDENT
+.sp
+Link with \-lgearman
 .SH DESCRIPTION
 .sp
-gearman_status_t requires no allocation or deallocation.
+\fI\%gearman_verbose_name()\fP takes a \fBgearman_verbose_t\fP and returns a character representation of it.
 .sp
-gearman_status_is_successful() determines whether or not a call to \fIgearman_client_execute(3)\fP was successful or not.
+Possible values of \fBgearman_verbose_t\fP:
+.INDENT 0.0
+.TP
+.B GEARMAN_VERBOSE_FATAL
+.UNINDENT
 .sp
-gearman_status_task() will provide a gearman_task_st if one is available.
-.SH RETURN
+Fatal errors.
+.INDENT 0.0
+.TP
+.B GEARMAN_VERBOSE_ERROR
+.UNINDENT
 .sp
-gearman_status_is_successful() return true on success. gearman_status_task()
-will return a gearman_task_st if one is available.
+All errors.
+.INDENT 0.0
+.TP
+.B GEARMAN_VERBOSE_INFO
+.UNINDENT
+.sp
+General information state about any events.
+.INDENT 0.0
+.TP
+.B GEARMAN_VERBOSE_DEBUG
+.UNINDENT
+.sp
+Information calls left in the code for debugging events.
+.SH RETURN VALUE
+.sp
+A character string representing the verbose leval.
 .SH HOME
 .sp
 To find out more information please check:

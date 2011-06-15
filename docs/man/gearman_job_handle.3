@@ -1,4 +1,4 @@
-.TH "GEARMAN_JOB_HANDLE" "3" "June 09, 2011" "0.21" "Gearmand"
+.TH "GEARMAN_JOB_HANDLE" "3" "June 14, 2011" "0.21" "Gearmand"
 .SH NAME
 gearman_job_handle \- Gearmand Documentation, http://gearman.info/
 .
@@ -30,9 +30,6 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 ..
 .\" Man page generated from reStructeredText.
 .
-.SH LIBRARY
-.sp
-C Client Library for Gearmand (libgearman, \-lgearman)
 .SH SYNOPSIS
 .sp
 #include <libgearman/gearman.h>
@@ -92,11 +89,11 @@ C Client Library for Gearmand (libgearman, \-lgearman)
 .TP
 .B void *gearman_job_take_workload(gearman_job_st *job, size_t *data_size);
 .UNINDENT
+.sp
+Link with \-lgearman
 .SH DESCRIPTION
 .sp
-This a complete list of all functions that work with
-a \fI\%gearman_job_st\fP, see their individual pages to learn more about
-them.
+\fBgeaman_job_st\fP are passed to worker functions to represent jobs that are being run by \fBgearman_worker_work()\fP.
 .sp
 \fBgearman_job_free()\fP is used to free a job. This only needs to be
 done if a task was created with a preallocated structure.

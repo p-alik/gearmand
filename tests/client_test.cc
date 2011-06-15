@@ -746,14 +746,13 @@ static test_return_t regression_768317_test(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
 
+  test_true(client);
   size_t result_length;
   gearman_return_t rc;
-  char *job_result;
-
-  job_result= (char*)gearman_client_do(client, "increment_reset_worker", 
-                                       NULL, 
-                                       gearman_literal_param("reset"),
-                                       &result_length, &rc);
+  char *job_result= (char*)gearman_client_do(client, "increment_reset_worker", 
+                                             NULL, 
+                                             gearman_literal_param("reset"),
+                                             &result_length, &rc);
   test_compare_got(GEARMAN_SUCCESS, rc, gearman_strerror(rc));
   test_false(job_result);
 
@@ -1092,6 +1091,7 @@ test_st gearman_execute_map_reduce_tests[] ={
   {"gearman_execute_map_reduce(GEARMAN_ARGUMENT_TOO_LARGE)", 0, gearman_execute_map_reduce_check_parameters },
   {"gearman_execute_map_reduce(GEARMAN_WORK_FAIL)", 0, gearman_execute_map_reduce_workfail },
   {"gearman_execute_map_reduce() fail in reduction", 0, gearman_execute_map_reduce_fail_in_reduction },
+  {"gearman_execute() with mapper function", 0, gearman_execute_map_reduce_use_as_function },
   {0, 0, 0}
 };
 

@@ -164,7 +164,11 @@ static gearman_return_t _job_send(gearman_job_st *job);
 
 gearman_job_st *gearman_job_create(gearman_worker_st *worker, gearman_job_st *job)
 {
-  if (not job)
+  if (job)
+  {
+    job->options.allocated= false;
+  }
+  else
   {
     job= new (std::nothrow) gearman_job_st;
     if (not job)
@@ -174,10 +178,6 @@ gearman_job_st *gearman_job_create(gearman_worker_st *worker, gearman_job_st *jo
     }
 
     job->options.allocated= true;
-  }
-  else
-  {
-    job->options.allocated= false;
   }
 
   job->options.assigned_in_use= false;
@@ -488,7 +488,7 @@ const char *gearman_job_unique(const gearman_job_st *job)
 
 bool gearman_job_is_map(const gearman_job_st *job)
 {
-  return bool(job->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN_ALL);
+  return bool(job->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN_ALL) and job->assigned.arg_size[3] > 1;
 }
 
 const char *gearman_job_reducer(const gearman_job_st *job)

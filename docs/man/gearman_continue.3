@@ -1,4 +1,4 @@
-.TH "GEARMAN_CONTINUE" "3" "June 09, 2011" "0.21" "Gearmand"
+.TH "GEARMAN_CONTINUE" "3" "June 14, 2011" "0.21" "Gearmand"
 .SH NAME
 gearman_continue \- Gearmand Documentation, http://gearman.info/
 .
@@ -259,25 +259,52 @@ Worker has issued a warning to the client via \fBgearman_job_send_warning()\fP
 .B GEARMAN_WORK_STATUS
 .UNINDENT
 .sp
-Status has been updated by the worker via \fBggearman_job_send_status()\fP
+Status has been updated by the worker via \fBgearman_job_send_status()\fP
 .INDENT 0.0
 .TP
 .B GEARMAN_WORK_EXCEPTION
 .UNINDENT
 .sp
-Worker has sent an exception the client via \fBggearman_job_send_exception()\fP
+Worker has sent an exception the client via \fBgearman_job_send_exception()\fP
 .INDENT 0.0
 .TP
 .B GEARMAN_WORK_FAIL
 .UNINDENT
 .sp
-A task has failed, and the worker has exited with an error or it called \fBggearman_job_send_fail()\fP
+A task has failed, and the worker has exited with an error or it called \fBgearman_job_send_fail()\fP
+.INDENT 0.0
+.TP
+.B GEARMAN_WORK_ERROR
+.UNINDENT
+.sp
+A task has had an error and will be retried.
 .INDENT 0.0
 .TP
 .B GEARMAN_PAUSE
 .UNINDENT
 .sp
 Used only in custom application for client return based on \fI\%GEARMAN_WORK_DATA\fP, \fI\%GEARMAN_WORK_WARNING\fP, \fI\%GEARMAN_WORK_EXCEPTION\fP, \fI\%GEARMAN_WORK_FAIL\fP, or \fI\%GEARMAN_WORK_STATUS\fP. \fI\%gearman_continue()\fP can be used to check for this value.
+.SS WORKER TO CLIENT
+.sp
+Any function defined by \fBgearman_worker_define_function()\fP may, and can only, return the following \fI\%gearman_return_t\fP values.
+.INDENT 0.0
+.TP
+.B GEARMAN_SUCCESS
+.UNINDENT
+.sp
+The function successfully completed the job.
+.INDENT 0.0
+.TP
+.B GEARMAN_FATAL
+.UNINDENT
+.sp
+The function failed to complete the job.
+.INDENT 0.0
+.TP
+.B GEARMAN_ERROR
+.UNINDENT
+.sp
+A task has had an error and will be retried.
 .SS TASK ONLY
 .INDENT 0.0
 .TP

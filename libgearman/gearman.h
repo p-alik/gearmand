@@ -61,6 +61,7 @@
 #include <libgearman/job_handle.h>
 #include <libgearman/client_callbacks.h>
 #include <libgearman/strerror.h>
+#include <libgearman/function.h>
 
 // Everything above this line must be in the order specified.
 #include <libgearman/argument.h>

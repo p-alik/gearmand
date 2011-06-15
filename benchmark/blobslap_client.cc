@@ -12,7 +12,7 @@
  */
 
 #include <benchmark/benchmark.h>
-#include <stdio.h>
+#include <iostream>
 
 #define BLOBSLAP_DEFAULT_NUM_TASKS 10
 #define BLOBSLAP_DEFAULT_BLOB_MIN_SIZE 0
@@ -37,17 +37,15 @@ int main(int argc, char *argv[])
   uint32_t num_tasks= BLOBSLAP_DEFAULT_NUM_TASKS;
   size_t min_size= BLOBSLAP_DEFAULT_BLOB_MIN_SIZE;
   size_t max_size= BLOBSLAP_DEFAULT_BLOB_MAX_SIZE;
-  uint32_t count= 1;
+  unsigned long int count= 1;
   gearman_client_st client;
-  gearman_task_st *tasks;
-  char *blob;
 
   benchmark_init(&benchmark);
 
-  if (gearman_client_create(&client) == NULL)
+  if (not gearman_client_create(&client))
   {
-    fprintf(stderr, "Memory allocation failure on client creation\n");
-    exit(1);
+    std::cerr << "Failed to allocate memory for client" << std::endl;
+    exit(EXIT_FAILURE);
   }
 
   gearman_client_add_options(&client, GEARMAN_CLIENT_UNBUFFERED_RESULT);
@@ -61,7 +59,7 @@ int main(int argc, char *argv[])
       break;
 
     case 'c':
-      count= (uint32_t)atoi(optarg);
+      count= strtoul(optarg, NULL, 10);
       break;
 
     case 'f':
@@ -70,35 +68,32 @@ int main(int argc, char *argv[])
 
     case 'h':
       {
-        host= optarg;
-        gearman_return_t ret= gearman_client_add_server(&client, host, port);
-
-        if (ret != GEARMAN_SUCCESS)
+        if (gearman_failed(gearman_client_add_server(&client, host, port)))
         {
-          fprintf(stderr, "gearman_client_add_server() -> %s\n", gearman_client_error(&client));
-          exit(1);
+          std::cerr << "Failed while adding server " << host << ":" << port << " :" << gearman_client_error(&client) << std::endl;
+          exit(EXIT_FAILURE);
         }
       }
       break;
 
     case 'm':
-      min_size= (size_t)atoi(optarg);
+      min_size= static_cast<size_t>(strtoul(optarg, NULL, 10));
       break;
 
     case 'M':
-      max_size= (size_t)atoi(optarg);
+      max_size= static_cast<size_t>(strtoul(optarg, NULL, 10));
       break;
 
     case 'n':
-      num_tasks= (uint32_t)atoi(optarg);
+      num_tasks= uint32_t(strtoul(optarg, NULL, 10));
       break;
 
     case 'p':
-      port= (in_port_t)atoi(optarg);
+      port= in_port_t(atoi(optarg));
       break;
 
     case 's':
-      srand((unsigned int)atoi(optarg));
+      srand(uint32_t(atoi(optarg)));
       break;
 
     case 'v':
@@ -108,48 +103,44 @@ int main(int argc, char *argv[])
     default:
       gearman_client_free(&client);
       _usage(argv[0]);
-      exit(1);
+      exit(EXIT_FAILURE);
     }
   }
 
-  if (host == NULL)
+  if (not host)
   {
-    gearman_return_t ret;
-    ret= gearman_client_add_server(&client, NULL, port);
-
-    if (ret != GEARMAN_SUCCESS)
+    if (gearman_failed(gearman_client_add_server(&client, NULL, port)))
     {
-      fprintf(stderr, "gearman_client_add_server() -> %s\n", gearman_client_error(&client));
-      exit(1);
+      std::cerr << "Failing to add localhost:" << port << " :" << gearman_client_error(&client) << std::endl;
+      exit(EXIT_FAILURE);
     }
   }
 
   if (min_size > max_size)
   {
-    fprintf(stderr, "Min data size must be smaller than max data size\n");
-    exit(1);
+    std::cerr << "Min data size must be smaller than max data size" << std::endl;
+    exit(EXIT_FAILURE);
   }
 
   if (num_tasks == 0)
   {
-    fprintf(stderr, "Number of tasks must be larger than zero\n");
-    exit(1);
+    std::cerr << "Number of tasks must be larger than zero\n" << std::endl;
+    exit(EXIT_FAILURE);
   }
 
-  tasks= malloc(num_tasks * sizeof(gearman_task_st));
-  if (tasks == NULL)
+  gearman_task_st *tasks= new gearman_task_st[num_tasks];
+  if (not tasks)
   {
-    fprintf(stderr, "Memory allocation failure on malloc\n");
-    exit(1);
+    std::cerr << "Failed to allocate " << num_tasks << " tasks" << std::endl;
+    exit(EXIT_FAILURE);
   }
   
-  blob= malloc(max_size);
-  if (blob == NULL)
+  char *blob= new char[max_size];
+  if (not blob)
   {
-    fprintf(stderr, "Memory allocation failure on malloc\n");
-    exit(1);
+    std::cerr << "Failed to allocate blob with length of " << max_size << std::endl;
+    exit(EXIT_FAILURE);
   }
-
   memset(blob, 'x', max_size); 
 
   while (1)
@@ -164,10 +155,10 @@ int main(int argc, char *argv[])
       }
       else
       {
-        blob_size= (size_t)rand();
+        blob_size= size_t(rand());
 
         if (max_size > RAND_MAX)
-          blob_size*= (size_t)(rand() + 1);
+          blob_size*= size_t(rand()) + 1;
 
         blob_size= (blob_size % (max_size - min_size)) + min_size;
       }
@@ -179,34 +170,30 @@ int main(int argc, char *argv[])
       {
         (void)gearman_client_add_task_background(&client, &(tasks[x]),
                                                  &benchmark, function, NULL,
-                                                 (void *)blob_ptr, blob_size, &ret);
+                                                 blob_ptr, blob_size, &ret);
       }
       else
       {
         (void)gearman_client_add_task(&client, &(tasks[x]), &benchmark,
-                                      function, NULL, (void *)blob_ptr, blob_size,
+                                      function, NULL, blob_ptr, blob_size,
                                       &ret);
       }
 
-      if (ret != GEARMAN_SUCCESS)
+      if (gearman_failed(ret))
       {
         if (ret == GEARMAN_LOST_CONNECTION)
           continue;
 
         if (benchmark.background)
         {
-          fprintf(stderr, "#%u gearman_client_add_task_background(%s) -> %s\n",
-                  x, gearman_strerror(ret),
-                  gearman_client_error(&client));
+          std::cerr << "Task #" << x << " failed during gearman_client_add_task_background(" << gearman_strerror(ret) << " -> " << gearman_client_error(&client) << std::endl ;
         }
         else
         {
-          fprintf(stderr, "%u gearman_client_add_task(%s) -> %s\n",
-                  x, gearman_strerror(ret),
-                  gearman_client_error(&client));
+          std::cerr << "Task #" << x << " failed during gearman_client_add_task(" << gearman_strerror(ret) << " -> " << gearman_client_error(&client) << std::endl ;
         }
 
-        exit(1);
+        exit(EXIT_FAILURE);
       }
     }
 
@@ -216,12 +203,23 @@ int main(int argc, char *argv[])
     gearman_client_set_complete_fn(&client, _complete);
     gearman_client_set_fail_fn(&client, _fail);
 
-    gearman_return_t ret= gearman_client_run_tasks(&client);
+    gearman_return_t ret;
+    
+    do {
+      ret= gearman_client_run_tasks(&client);
+    } while (gearman_continue(ret));
 
-    if (ret != GEARMAN_SUCCESS && ret != GEARMAN_LOST_CONNECTION)
+    if (gearman_failed(ret) and ret != GEARMAN_LOST_CONNECTION)
     {
-      fprintf(stderr, "gearman_client_run_tasks() -> %s\n", gearman_client_error(&client));
-      exit(1);
+      std::cerr << "gearman_client_run_tasks(" << gearman_strerror(ret) << ") -> " << gearman_client_error(&client);
+      for (uint32_t x= 0; x < num_tasks; x++)
+      {
+        if (gearman_task_error(&tasks[x]))
+        {
+          std::cerr << "\t Task #" << x << " failed with " << gearman_task_error(&tasks[x]) << std::endl; 
+        }
+      }
+      exit(EXIT_FAILURE);
     }
 
     for (uint32_t x= 0; x < num_tasks; x++)
@@ -237,40 +235,38 @@ int main(int argc, char *argv[])
     }
   }
 
-  free(blob);
-  free(tasks);
+  delete [] blob;
+  delete [] tasks;
   gearman_client_free(&client);
 
-  fprintf(stderr, "Success\n");
+  if (benchmark.verbose)
+    std::cout << "Successfully completed all tasks" << std::endl;
 
   return 0;
 }
 
 static gearman_return_t _created(gearman_task_st *task)
 {
-  gearman_benchmark_st *benchmark;
-
-  benchmark= (gearman_benchmark_st *)gearman_task_context(task);
+  gearman_benchmark_st *benchmark= static_cast<gearman_benchmark_st *>(gearman_task_context(task));
 
   if (benchmark->background && benchmark->verbose > 0)
     benchmark_check_time(benchmark);
 
   if (benchmark->verbose > 2)
-    printf("Created: %s\n", gearman_task_job_handle(task));
+  {
+    std::cout << "Created: " << gearman_task_job_handle(task) << std::endl;
+  }
 
   return GEARMAN_SUCCESS;
 }
 
 static gearman_return_t _status(gearman_task_st *task)
 {
-  gearman_benchmark_st *benchmark;
-
-  benchmark= (gearman_benchmark_st *)gearman_task_context(task);
+  gearman_benchmark_st *benchmark= static_cast<gearman_benchmark_st *>(gearman_task_context(task));
 
   if (benchmark->verbose > 2)
   {
-    printf("Status: %s (%u/%u)\n", gearman_task_job_handle(task),
-           gearman_task_numerator(task), gearman_task_denominator(task));
+    std::cout << "Status " << gearman_task_job_handle(task) << " " << gearman_task_numerator(task) << " " << gearman_task_denominator(task) << std::endl;
   }
 
   return GEARMAN_SUCCESS;
@@ -278,17 +274,15 @@ static gearman_return_t _status(gearman_task_st *task)
 
 static gearman_return_t _data(gearman_task_st *task)
 {
-  gearman_benchmark_st *benchmark;
   char buffer[BLOBSLAP_BUFFER_SIZE];
-  size_t size;
   gearman_return_t ret;
 
-  benchmark= (gearman_benchmark_st *)gearman_task_context(task);
+  gearman_benchmark_st *benchmark= static_cast<gearman_benchmark_st *>(gearman_task_context(task));
 
   while (1)
   {
-    size= gearman_task_recv_data(task, buffer, BLOBSLAP_BUFFER_SIZE, &ret);
-    if (ret != GEARMAN_SUCCESS)
+    size_t size= gearman_task_recv_data(task, buffer, BLOBSLAP_BUFFER_SIZE, &ret);
+    if (gearman_failed(GEARMAN_SUCCESS))
       return ret;
     if (size == 0)
       break;
@@ -296,8 +290,7 @@ static gearman_return_t _data(gearman_task_st *task)
 
   if (benchmark->verbose > 2)
   {
-    printf("Data: %s %zu\n", gearman_task_job_handle(task),
-           gearman_task_data_size(task));
+    std::cerr << "Data: " <<  gearman_task_job_handle(task)  << " " << gearman_task_data_size(task) << std::endl;
   }
 
   return GEARMAN_SUCCESS;
@@ -305,17 +298,15 @@ static gearman_return_t _data(gearman_task_st *task)
 
 static gearman_return_t _complete(gearman_task_st *task)
 {
-  gearman_benchmark_st *benchmark;
   char buffer[BLOBSLAP_BUFFER_SIZE];
-  size_t size;
   gearman_return_t ret;
 
-  benchmark= (gearman_benchmark_st *)gearman_task_context(task);
+  gearman_benchmark_st *benchmark= static_cast<gearman_benchmark_st *>(gearman_task_context(task));
 
   while (1)
   {
-    size= gearman_task_recv_data(task, buffer, BLOBSLAP_BUFFER_SIZE, &ret);
-    if (ret != GEARMAN_SUCCESS)
+    size_t size= gearman_task_recv_data(task, buffer, BLOBSLAP_BUFFER_SIZE, &ret);
+    if (gearman_failed(ret))
       return ret;
 
     if (size == 0)
@@ -327,8 +318,7 @@ static gearman_return_t _complete(gearman_task_st *task)
 
   if (benchmark->verbose > 1)
   {
-    printf("Completed: %s %zu\n", gearman_task_job_handle(task),
-           gearman_task_data_size(task));
+    std::cout << "Completed: " << gearman_task_job_handle(task) << " " << gearman_task_data_size(task) << std::endl;
   }
 
   return GEARMAN_SUCCESS;
@@ -336,15 +326,15 @@ static gearman_return_t _complete(gearman_task_st *task)
 
 static gearman_return_t _fail(gearman_task_st *task)
 {
-  gearman_benchmark_st *benchmark;
-
-  benchmark= (gearman_benchmark_st *)gearman_task_context(task);
+  gearman_benchmark_st *benchmark= static_cast<gearman_benchmark_st *>(gearman_task_context(task));
 
   if (benchmark->verbose > 0)
     benchmark_check_time(benchmark);
 
   if (benchmark->verbose > 1)
-    printf("Failed: %s\n", gearman_task_job_handle(task));
+  {
+    std::cerr << "Failed " << gearman_task_job_handle(task) << " " << gearman_task_error(task) << std::endl;
+  }
 
   return GEARMAN_SUCCESS;
 }
@@ -355,15 +345,11 @@ static void _usage(char *name)
          "\t[-c count] [-f <function>] [-h <host>] [-m <min_size>]\n"
          "\t[-M <max_size>] [-n <num_tasks>] [-p <port>] [-s] [-v]\n\n", name);
   printf("\t-c <count>     - number of times to run all tasks\n");
-  printf("\t-f <function>  - function name for tasks (default %s)\n",
-         GEARMAN_BENCHMARK_DEFAULT_FUNCTION);
+  printf("\t-f <function>  - function name for tasks (default %s)\n", GEARMAN_BENCHMARK_DEFAULT_FUNCTION);
   printf("\t-h <host>      - job server host, can specify many\n");
-  printf("\t-m <min_size>  - minimum blob size (default %d)\n",
-         BLOBSLAP_DEFAULT_BLOB_MIN_SIZE);
-  printf("\t-M <max_size>  - maximum blob size (default %d)\n",
-         BLOBSLAP_DEFAULT_BLOB_MAX_SIZE);
-  printf("\t-n <num_tasks> - number of tasks to run at once (default %d)\n",
-         BLOBSLAP_DEFAULT_NUM_TASKS);
+  printf("\t-m <min_size>  - minimum blob size (default %d)\n", BLOBSLAP_DEFAULT_BLOB_MIN_SIZE);
+  printf("\t-M <max_size>  - maximum blob size (default %d)\n", BLOBSLAP_DEFAULT_BLOB_MAX_SIZE);
+  printf("\t-n <num_tasks> - number of tasks to run at once (default %d)\n", BLOBSLAP_DEFAULT_NUM_TASKS);
   printf("\t-p <port>      - job server port\n");
   printf("\t-s <seed>      - seed random number for blobsize with <seed>\n");
   printf("\t-v            - increase verbose level\n");

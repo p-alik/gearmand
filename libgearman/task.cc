@@ -195,12 +195,12 @@ void gearman_task_clear_fn(gearman_task_st *task)
   task->func= gearman_actions_default();
 }
 
-const void *gearman_task_context(const gearman_task_st *task)
+void *gearman_task_context(const gearman_task_st *task)
 {
   if (not task)
     return NULL;
 
-  return task->context;
+  return const_cast<void *>(task->context);
 }
 
 void gearman_task_set_context(gearman_task_st *task, void *context)
@@ -353,12 +353,25 @@ size_t gearman_task_recv_data(gearman_task_st *task, void *data,
   return task->con->receiving(data, data_size, *ret_ptr);
 }
 
-gearman_return_t gearman_task_error(const gearman_task_st *task)
+const char *gearman_task_error(const gearman_task_st *task)
 {
   if (not task)
   {
-    errno= EINVAL;
-    return GEARMAN_ERRNO;
+    return NULL;
+  }
+
+  if (task->result_rc == GEARMAN_UNKNOWN_STATE or task->result_rc == GEARMAN_SUCCESS)
+    return NULL;
+
+  return gearman_strerror(task->result_rc);
+}
+
+gearman_return_t gearman_task_return(const gearman_task_st *task)
+{
+  assert(task); // Only used internally.
+  if (not task)
+  {
+    return GEARMAN_INVALID_ARGUMENT;
   }
 
   return task->result_rc;

@@ -1,4 +1,4 @@
-.TH "GEARMAN_TASK_SEND_WORKLOAD" "3" "June 09, 2011" "0.21" "Gearmand"
+.TH "GEARMAN_TASK_SEND_WORKLOAD" "3" "June 14, 2011" "0.21" "Gearmand"
 .SH NAME
 gearman_task_send_workload \- Gearmand Documentation, http://gearman.info/
 .
@@ -43,7 +43,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .UNINDENT
 .INDENT 0.0
 .TP
-.B const void *gearman_task_context(const \fI\%gearman_task_st\fP\fI\ *task\fP)
+.B void *gearman_task_context(const \fI\%gearman_task_st\fP\fI\ *task\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -101,6 +101,18 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .TP
 .B size_t gearman_task_recv_data(\fI\%gearman_task_st\fP\fI\ *task\fP, void\fI\ *data\fP, size_t\fI\ data_size\fP, gearman_return_t\fI\ *ret_ptr\fP)
 .UNINDENT
+.INDENT 0.0
+.TP
+.B const char *gearman_task_error(const \fI\%gearman_task_st\fP\fI\ *task\fP)
+.UNINDENT
+.sp
+New in version 0.21.
+.INDENT 0.0
+.TP
+.B gearman_return_t gearman_task_return(const \fI\%gearman_task_st\fP\fI\ *task\fP)
+.UNINDENT
+.sp
+New in version 0.21.
 .sp
 Link with \-lgearman
 .SH DESCRIPTION
@@ -115,7 +127,7 @@ A \fI\%gearman_task_st\fP represents a "task". Each task is a single unit of wor
 monitor a previously created \fI\%gearman_task_st\fP.
 .sp
 \fI\%gearman_task_free()\fP is used to free a task. This only needs to be
-done if a task was created with a preallocated structure.
+done if a task was created with a preallocated structure or if you want to clean up the memory of a specific task.
 .sp
 \fI\%gearman_task_set_context()\fP sets the given context of the \fI\%gearman_task_st\fP. The context can be used to pass information to a \fI\%gearman_task_st\fP.
 .sp
@@ -124,6 +136,12 @@ done if a task was created with a preallocated structure.
 \fI\%gearman_task_data()\fP returns the current data that has been returned to the task. \fI\%gearman_task_data_size()\fP will give you the size of the value. \fI\%gearman_task_take_data()\fP is the same as \fI\%gearman_task_data()\fP but the value that is returned must be freed by the client (\fIfree(3)\fP). \fI\%gearman_task_recv_data()\fP can be used with pre\-allocated buffers.
 .sp
 \fI\%gearman_task_is_known()\fP, \fI\%gearman_task_is_running()\fP, \fI\%gearman_task_numerator()\fP, and \fI\%gearman_task_denominator()\fP, return values related to the last status update that was made to the \fI\%gearman_task_st\fP. They do not cause the \fI\%gearman_task_st\fP to update itself.
+.sp
+\fI\%gearman_task_error()\fP return the last error message that the
+\fI\%gearman_task_st\fP encountered. \fI\%gearman_task_return()\fP
+return the last \fBgearman_return_t\fP stored. A value of
+\fBGEARMAN_UNKNOWN_STATE\fP means that the task has not been submitted
+yet.
 .SH RETURN VALUE
 .sp
 Various. Values that are returned by \fI\%gearman_task_take_data()\fP must have \fIfree(3)\fP called on them.

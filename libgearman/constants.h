@@ -158,9 +158,7 @@ typedef struct gearman_result_st gearman_result_st;
 typedef struct gearman_string_t gearman_string_t;
 typedef struct gearman_argument_t gearman_argument_t;
 
-typedef gearman_return_t (gearman_parse_server_fn)(const char *host,
-                                                   in_port_t port,
-                                                   void *context);
+typedef gearman_return_t (gearman_parse_server_fn)(const char *host, in_port_t port, void *context);
 
 typedef void* (gearman_malloc_fn)(size_t size, void *context);
 typedef void (gearman_free_fn)(void *ptr, void *context);
@@ -176,7 +174,7 @@ typedef void* (gearman_worker_fn)(gearman_job_st *job, void *context,
                                   size_t *result_size,
                                   gearman_return_t *ret_ptr);
 
-typedef gearman_worker_error_t (gearman_mapper_fn)(gearman_job_st *job, void *worker_context);
+typedef gearman_return_t (gearman_function_fn)(gearman_job_st *job, void *worker_context);
 
 typedef struct gearman_aggregator_st gearman_aggregator_st;
 typedef gearman_return_t (gearman_aggregator_fn)(gearman_aggregator_st *, gearman_task_st *, gearman_result_st *);
