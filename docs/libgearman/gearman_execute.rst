@@ -29,7 +29,7 @@ the to the server
 
 If :c:func:`gearman_execute()` is given a :c:type:`gearman_work_t` that has been built with a reducer, it takes the :c:type:`gearman_argument_t` and executs it against a :term:`function` as it normally would, but it tells the function to then process the results through a :term:`reducer` function that the :c:type:`gearman_work_t` was created with.
 
-What is happening is that the function is mappping work up into units, and then sending each of them to the reducer function. Once all work is completed, the mapper function will aggregate the work and return a result.
+What is happening is that the function is mappping/splitting work up into units, and then sending each of them to the reducer function. Once all work is completed, the :term:`mapper` function will aggregate the work via an aggregator function, :c:type:`gearman_aggregator_fn`, and return a result.
 
 If any of the units of work error, the job will be aborted. The resulting value will be stored in the :c:type:`gearman_task_st`.
 
