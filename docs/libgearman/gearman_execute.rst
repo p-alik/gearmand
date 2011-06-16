@@ -33,6 +33,9 @@ What is happening is that the function is mappping work up into units, and then 
 
 If any of the units of work error, the job will be aborted. The resulting value will be stored in the :c:type:`gearman_task_st`.
 
+The result can be obtained from the task by calling
+:c:func:`gearman_task_result()` to gain the :c:type:`gearman_result_st`.
+
 ------------
 RETURN VALUE
 ------------
@@ -40,6 +43,12 @@ RETURN VALUE
 
 :c:func:`gearman_execute()` returns a c:type:`gearman_task_st`.  
 
+------- 
+Example 
+-------
+
+.. literalinclude:: examples/gearman_execute_example.c  
+   :language: c
 
 ----
 HOME

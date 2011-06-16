@@ -27,3 +27,5 @@ Glossary
    aggregator 
       A function which takes data and compiles it into a single return value. Aggregator functions are defined by :c:type:`gearman_aggregator_fn`.
 
+   context 
+      Context are user supplied variables/structures that can be attached to :c:type:`gearman_worker_st`, :c:type:`gearman_client_st`, :c:type:`gearman_task_st`, :c:type:`gearman_job_st`, and similar objects that are passed as opaque objects that the library will ignore (i.e. they are there for developers to use to store state).

@@ -25,6 +25,7 @@ Server
    :maxdepth: 1
 
    gearmand
+   gearmand/queues
 
 ------------------
 Command Line Tools
@@ -48,6 +49,7 @@ Basics
    :titlesonly:
 
    libgearman
+   libgearman/examples
    changes
 
 ****************
