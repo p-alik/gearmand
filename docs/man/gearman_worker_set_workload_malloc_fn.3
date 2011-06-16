@@ -1,4 +1,4 @@
-.TH "GEARMAN_WORKER_SET_WORKLOAD_MALLOC_FN" "3" "June 09, 2011" "0.21" "Gearmand"
+.TH "GEARMAN_WORKER_SET_WORKLOAD_MALLOC_FN" "3" "June 15, 2011" "0.21" "Gearmand"
 .SH NAME
 gearman_worker_set_workload_malloc_fn \- Gearmand Documentation, http://gearman.info/
 .
@@ -55,10 +55,6 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void gearman_worker_set_log_fn(gearman_worker_st *worker, gearman_log_fn *function, void *context, gearman_verbose_t verbose);
-.UNINDENT
-.INDENT 0.0
-.TP
 .B void gearman_worker_set_workload_malloc_fn(gearman_worker_st *worker, gearman_malloc_fn *function, void *context);
 .UNINDENT
 .INDENT 0.0
@@ -95,16 +91,25 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_worker_add_function(gearman_worker_st *worker, const char *function_name, uint32_t timeout, gearman_worker_fn *function, void *context);
-.UNINDENT
-.INDENT 0.0
-.TP
 .B gearman_return_t gearman_worker_work(gearman_worker_st *worker);
 .UNINDENT
+.sp
+Link with \-lgearman
 .SH DESCRIPTION
 .sp
-This a complete list of all functions that work with a gearman_worker_st,
-see their individual pages to learn more about them.
+\fI\%gearman_worker_st\fP is used for worker communication with the server.
+.sp
+\fBgearman_worker_context()\fP and \fBgearman_worker_set_context()\fP can be used to store an arbitrary object for the user.
+.sp
+\fBgearman_worker_set_task_context_free_fn()\fP sets a trigger that will be called when a \fBgearman_task_st\fP is released.
+.sp
+\fBgearman_worker_timeout()\fP and \fBgearman_worker_set_timeout()\fP get and set the current timeout value, in milliseconds, for the worker.
+.sp
+\fBgearman_worker_function_exist()\fP is used to determine if a given worker has a specific function.
+.sp
+Normally \fImalloc(3)\fP and \fIfree(3)\fP are used for allocation and releasing workloads. \fBgearman_worker_set_workload_malloc_fn()\fP and \fBgearman_worker_set_workload_free_fn()\fP can be used to replace these with custom functions.
+.sp
+If you need to remove a function from the server you can call either \fBgearman_worker_unregister_all()\fP to remove all functions that the worker has told the \fBgearmand\fP server about, or you can use \fBgearman_worker_unregister()\fP to remove just a single function.
 .SH RETURN
 .sp
 Various

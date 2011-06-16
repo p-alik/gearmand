@@ -549,10 +549,13 @@ static test_return_t gearman_worker_work_with_test(void *object)
 				  0, fail_worker, NULL);
   test_true_got(rc == GEARMAN_SUCCESS, gearman_strerror(rc));
 
-  gearman_worker_set_timeout(worker, 2);
+  gearman_worker_set_timeout(worker, 0);
 
   rc= gearman_worker_work(worker);
-  test_true_got(rc == GEARMAN_TIMEOUT, gearman_strerror(rc));
+  test_compare(GEARMAN_TIMEOUT, rc);
+
+  rc= gearman_worker_work(worker);
+  test_compare_got(GEARMAN_TIMEOUT, rc, gearman_strerror(rc));
 
   /* Make sure we have remove worker function */
   rc= gearman_worker_unregister(worker, function_name);

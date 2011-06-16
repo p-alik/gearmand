@@ -42,11 +42,11 @@
 */
 class Mapper: public _worker_function_st
 {
-  gearman_mapper_fn *_mapper_fn;
+  gearman_function_fn *_mapper_fn;
   gearman_aggregator_fn *aggregator_fn;
 
 public:
-  Mapper(gearman_mapper_fn *mapper_fn_arg, gearman_aggregator_fn *aggregator_fn_arg, void *context_arg) :
+  Mapper(gearman_function_fn *mapper_fn_arg, gearman_aggregator_fn *aggregator_fn_arg, void *context_arg) :
     _worker_function_st(context_arg),
     _mapper_fn(mapper_fn_arg),
     aggregator_fn(aggregator_fn_arg)
@@ -57,28 +57,5 @@ public:
     return bool(_mapper_fn);
   }
 
-  gearman_worker_error_t callback(gearman_job_st* job, void *context_arg)
-  {
-    if (gearman_job_is_map(job))
-      gearman_job_build_reducer(job, aggregator_fn);
-
-    gearman_worker_error_t error= _mapper_fn(job, context_arg);
-    switch (error)
-    {
-    case GEARMAN_WORKER_FAILED:
-      if (job->error_code == GEARMAN_UNKNOWN_STATE)
-        job->error_code= GEARMAN_WORK_FAIL;
-      break;
-
-    case GEARMAN_WORKER_TRY_AGAIN:
-      job->error_code= GEARMAN_LOST_CONNECTION;
-      break;
-
-    case GEARMAN_WORKER_SUCCESS:
-      job->error_code= GEARMAN_SUCCESS;
-      break;
-    }
-
-    return error;
-  }
+  gearman_function_error_t callback(gearman_job_st* job, void *context_arg);
 };

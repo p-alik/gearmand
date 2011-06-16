@@ -63,11 +63,7 @@ gearman_task_st *add_task(gearman_client_st *client,
                           time_t when,
                           struct gearman_actions_t &actions)
 {
-  gearman_task_st *task= add_task(client, NULL, context, command, function, unique, workload, when, actions);
-  if (not task)
-    return NULL;
-
-  return task;
+  return add_task(client, NULL, context, command, function, unique, workload, when, actions);
 }
 
 gearman_task_st *add_task(gearman_client_st *client,
@@ -216,16 +212,16 @@ gearman_task_st *add_task(gearman_client_st *client,
   return NULL;
 }
 
-gearman_task_st *add_task(gearman_client_st *client,
-                          gearman_command_t command,
-                          const gearman_job_priority_t,
-                          const gearman_string_t &mapper_function,
-                          const gearman_string_t &reducer,
-                          const gearman_unique_t &unique,
-                          const gearman_string_t &workload,
-                          struct gearman_actions_t &actions,
-                          const time_t,
-                          void *context)
+gearman_task_st *add_reducer_task(gearman_client_st *client,
+                                  gearman_command_t command,
+                                  const gearman_job_priority_t,
+                                  const gearman_string_t &function,
+                                  const gearman_string_t &reducer,
+                                  const gearman_unique_t &unique,
+                                  const gearman_string_t &workload,
+                                  struct gearman_actions_t &actions,
+                                  const time_t,
+                                  void *context)
 {
   uuid_t uuid;
   char uuid_string[37];
@@ -258,16 +254,16 @@ gearman_task_st *add_task(gearman_client_st *client,
     memcpy(ptr, gearman_string_value(client->universal._namespace), gearman_string_length(client->universal._namespace)); 
     ptr+= gearman_string_length(client->universal._namespace);
 
-    memcpy(ptr, gearman_c_str(mapper_function), gearman_size(mapper_function) +1);
-    ptr+= gearman_size(mapper_function);
+    memcpy(ptr, gearman_c_str(function), gearman_size(function) +1);
+    ptr+= gearman_size(function);
 
     args[0]= function_buffer;
     args_size[0]= ptr- function_buffer +1;
   }
   else
   {
-    args[0]= gearman_c_str(mapper_function);
-    args_size[0]= gearman_size(mapper_function) + 1;
+    args[0]= gearman_c_str(function);
+    args_size[0]= gearman_size(function) + 1;
   }
 
   if (gearman_size(unique))
@@ -296,8 +292,8 @@ gearman_task_st *add_task(gearman_client_st *client,
     memcpy(ptr, gearman_c_str(reducer), gearman_size(reducer) +1);
     ptr+= gearman_size(reducer);
 
-    args[0]= reducer_buffer;
-    args_size[0]= ptr- reducer_buffer +1;
+    args[2]= reducer_buffer;
+    args_size[2]= ptr- reducer_buffer +1;
   }
   else
   {

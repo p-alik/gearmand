@@ -1,4 +1,4 @@
-.TH "GEARMAN_CLIENT_TASK_FREE_ALL" "3" "June 09, 2011" "0.21" "Gearmand"
+.TH "GEARMAN_CLIENT_TASK_FREE_ALL" "3" "June 15, 2011" "0.21" "Gearmand"
 .SH NAME
 gearman_client_task_free_all \- Gearmand Documentation, http://gearman.info/
 .
@@ -73,13 +73,13 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 Link with \-lgearman
 .SH DESCRIPTION
 .sp
-\fI\%gearman_client_st\fP is used for client communication with the server.
+\fI\%gearman_client_st\fP is used for \fIclient\fP communication with the server.
 .sp
 \fI\%gearman_client_context()\fP and \fI\%gearman_client_set_context()\fP can be used to store an arbitrary object for the user.
 .sp
 \fI\%gearman_client_set_task_context_free_fn()\fP sets a trigger that will be called when a \fBgearman_task_st\fP is released.
 .sp
-\fI\%gearman_client_timeout()\fP and \fI\%gearman_client_set_timeout()\fP are to get and set the current timeout value for the client.
+\fI\%gearman_client_timeout()\fP and \fI\%gearman_client_set_timeout()\fP get and set the current timeout value, in milliseconds, for the client.
 .sp
 Normally \fImalloc(3)\fP and \fIfree(3)\fP are used for allocation and releasing workloads. \fI\%gearman_client_set_workload_malloc_fn()\fP and \fI\%gearman_client_set_workload_free_fn()\fP can be used to replace these with custom functions.
 .sp

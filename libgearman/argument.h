@@ -51,7 +51,7 @@ extern "C" {
 #endif
 
 GEARMAN_API
-gearman_argument_t gearman_argument_make(const char *value, size_t value_size);
+gearman_argument_t gearman_argument_make(const char *name, const size_t name_length, const char *value, const size_t value_size);
 
 #ifdef __cplusplus
 }

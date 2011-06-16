@@ -19,7 +19,7 @@ Gearman provides a generic framework to farm out work to other machines, dispatc
 %prep
 %setup -q
 
-%configure --disable-libpq --disable-libtokyocabinet --disable-libdrizzle
+%configure --disable-libpq --disable-libtokyocabinet --disable-libdrizzle --disable-libmemcached
 
 
 %build
@@ -48,6 +48,7 @@ Gearman provides a generic framework to farm out work to other machines, dispatc
 %{_includedir}/libgearman/constants.h
 %{_includedir}/libgearman/core.h
 %{_includedir}/libgearman/execute.h
+%{_includedir}/libgearman/function.h
 %{_includedir}/libgearman/gearman.h
 %{_includedir}/libgearman/job.h
 %{_includedir}/libgearman/job_handle.h
@@ -66,6 +67,7 @@ Gearman provides a generic framework to farm out work to other machines, dispatc
 %{_includedir}/libgearman/visibility.h
 %{_includedir}/libgearman/work.h
 %{_includedir}/libgearman/worker.h
+%{_includedir}/libgearman/function.h
 %{_libdir}/libgearman.la
 %{_libdir}/libgearman.so
 %{_libdir}/libgearman.so.6
@@ -74,6 +76,8 @@ Gearman provides a generic framework to farm out work to other machines, dispatc
 %{_mandir}/man1/gearadmin.1.gz
 %{_mandir}/man1/gearman.1.gz
 %{_mandir}/man3/gearman_actions_t.3.gz
+%{_mandir}/man3/gearman_argument_make.3.gz
+%{_mandir}/man3/gearman_argument_t.3.gz
 %{_mandir}/man3/gearman_bugreport.3.gz
 %{_mandir}/man3/gearman_client_add_options.3.gz
 %{_mandir}/man3/gearman_client_add_server.3.gz
@@ -127,9 +131,7 @@ Gearman provides a generic framework to farm out work to other machines, dispatc
 %{_mandir}/man3/gearman_client_timeout.3.gz
 %{_mandir}/man3/gearman_client_wait.3.gz
 %{_mandir}/man3/gearman_continue.3.gz
-%{_mandir}/man3/gearman_create.3.gz
 %{_mandir}/man3/gearman_execute.3.gz
-%{_mandir}/man3/gearman_execute_map_reduce.3.gz
 %{_mandir}/man3/gearman_failed.3.gz
 %{_mandir}/man3/gearman_job_free.3.gz
 %{_mandir}/man3/gearman_job_free_all.3.gz
@@ -147,15 +149,25 @@ Gearman provides a generic framework to farm out work to other machines, dispatc
 %{_mandir}/man3/gearman_job_unique.3.gz
 %{_mandir}/man3/gearman_job_workload.3.gz
 %{_mandir}/man3/gearman_job_workload_size.3.gz
+%{_mandir}/man3/gearman_log_fn.3.gz
 %{_mandir}/man3/gearman_parse_servers.3.gz
+%{_mandir}/man3/gearman_result_boolean.3.gz
+%{_mandir}/man3/gearman_result_integer.3.gz
+%{_mandir}/man3/gearman_result_is_null.3.gz
+%{_mandir}/man3/gearman_result_size.3.gz
+%{_mandir}/man3/gearman_result_store_integer.3.gz
+%{_mandir}/man3/gearman_result_store_string.3.gz
+%{_mandir}/man3/gearman_result_store_value.3.gz
+%{_mandir}/man3/gearman_result_string.3.gz
 %{_mandir}/man3/gearman_return_t.3.gz
-%{_mandir}/man3/gearman_state_t.3.gz
 %{_mandir}/man3/gearman_strerror.3.gz
+%{_mandir}/man3/gearman_string_t.3.gz
 %{_mandir}/man3/gearman_success.3.gz
 %{_mandir}/man3/gearman_task_context.3.gz
 %{_mandir}/man3/gearman_task_data.3.gz
 %{_mandir}/man3/gearman_task_data_size.3.gz
 %{_mandir}/man3/gearman_task_denominator.3.gz
+%{_mandir}/man3/gearman_task_error.3.gz
 %{_mandir}/man3/gearman_task_free.3.gz
 %{_mandir}/man3/gearman_task_function_name.3.gz
 %{_mandir}/man3/gearman_task_give_workload.3.gz
@@ -164,14 +176,22 @@ Gearman provides a generic framework to farm out work to other machines, dispatc
 %{_mandir}/man3/gearman_task_job_handle.3.gz
 %{_mandir}/man3/gearman_task_numerator.3.gz
 %{_mandir}/man3/gearman_task_recv_data.3.gz
+%{_mandir}/man3/gearman_task_return.3.gz
 %{_mandir}/man3/gearman_task_send_workload.3.gz
 %{_mandir}/man3/gearman_task_set_context.3.gz
 %{_mandir}/man3/gearman_task_st.3.gz
 %{_mandir}/man3/gearman_task_take_data.3.gz
 %{_mandir}/man3/gearman_task_unique.3.gz
-%{_mandir}/man3/gearman_unique_t.3.gz
 %{_mandir}/man3/gearman_verbose_name.3.gz
+%{_mandir}/man3/gearman_verbose_t.3.gz
 %{_mandir}/man3/gearman_version.3.gz
+%{_mandir}/man3/gearman_work.3.gz
+%{_mandir}/man3/gearman_work_background.3.gz
+%{_mandir}/man3/gearman_work_background_with_reducer.3.gz
+%{_mandir}/man3/gearman_work_epoch.3.gz
+%{_mandir}/man3/gearman_work_epoch_with_reducer.3.gz
+%{_mandir}/man3/gearman_work_reducer.3.gz
+%{_mandir}/man3/gearman_work_t.3.gz
 %{_mandir}/man3/gearman_worker_add_function.3.gz
 %{_mandir}/man3/gearman_worker_add_options.3.gz
 %{_mandir}/man3/gearman_worker_add_server.3.gz
@@ -179,6 +199,7 @@ Gearman provides a generic framework to farm out work to other machines, dispatc
 %{_mandir}/man3/gearman_worker_clone.3.gz
 %{_mandir}/man3/gearman_worker_context.3.gz
 %{_mandir}/man3/gearman_worker_create.3.gz
+%{_mandir}/man3/gearman_worker_define_function.3.gz
 %{_mandir}/man3/gearman_worker_echo.3.gz
 %{_mandir}/man3/gearman_worker_errno.3.gz
 %{_mandir}/man3/gearman_worker_error.3.gz

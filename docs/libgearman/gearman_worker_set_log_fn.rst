@@ -1,4 +1,6 @@
+===========================
 Logging Clients and Workers
+===========================
 
 --------
 SYNOPSIS
@@ -18,6 +20,8 @@ DESCRIPTION
 
 See :c:type:`gearman_log_fn` for a description of the callback.
 
+See :c:type:`gearman_verbose_t` for more information on logging levels.
+
 ------------ 
 RETURN VALUE 
 ------------
@@ -35,5 +39,5 @@ To find out more information please check:
 SEE ALSO
 --------
 
-:manpage:`gearmand(8)` :manpage:`libgearman(3)` :manpage:`gearman_client_set_log_fn(3)`
+:manpage:`gearmand(8)` :manpage:`libgearman(3)` :manpage:`gearman_client_set_log_fn(3)` :manpage:`gearman_log_fn`  :manpage:`gearman_verbose_t`
 

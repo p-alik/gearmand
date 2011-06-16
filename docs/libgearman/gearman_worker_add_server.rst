@@ -16,8 +16,6 @@ SYNOPSIS
 
 .. c:function:: void gearman_worker_remove_servers(gearman_worker_st *worker);
 
-.. c:type:: gearman_worker_error_t
-
 Link with -lgearman
 
 -----------

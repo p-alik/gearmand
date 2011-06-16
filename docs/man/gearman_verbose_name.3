@@ -1,4 +1,4 @@
-.TH "GEARMAN_VERBOSE_NAME" "3" "June 09, 2011" "0.21" "Gearmand"
+.TH "GEARMAN_VERBOSE_NAME" "3" "June 15, 2011" "0.21" "Gearmand"
 .SH NAME
 gearman_verbose_name \- Gearmand Documentation, http://gearman.info/
 .
@@ -41,7 +41,33 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 Link with \-lgearman
 .SH DESCRIPTION
 .sp
-Take a gearman_verbose_t and return a character representation of it.
+\fI\%gearman_verbose_name()\fP takes a \fBgearman_verbose_t\fP and returns a character representation of it.
+.sp
+Possible values of \fBgearman_verbose_t\fP:
+.INDENT 0.0
+.TP
+.B GEARMAN_VERBOSE_FATAL
+.UNINDENT
+.sp
+Fatal errors.
+.INDENT 0.0
+.TP
+.B GEARMAN_VERBOSE_ERROR
+.UNINDENT
+.sp
+All errors.
+.INDENT 0.0
+.TP
+.B GEARMAN_VERBOSE_INFO
+.UNINDENT
+.sp
+General information state about any events.
+.INDENT 0.0
+.TP
+.B GEARMAN_VERBOSE_DEBUG
+.UNINDENT
+.sp
+Information calls left in the code for debugging events.
 .SH RETURN VALUE
 .sp
 A character string representing the verbose leval.

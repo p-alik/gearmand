@@ -49,12 +49,18 @@ enum gearman_work_kind_t {
   GEARMAN_WORK_KIND_EPOCH
 };
 
+struct gearman_work_epoch_t {
+  time_t value;
+};
+
 struct gearman_work_t {
   enum gearman_work_kind_t kind;
   gearman_job_priority_t priority;
   union {
-  time_t epoch;
+    char bytes[sizeof(struct gearman_work_epoch_t)];
+    struct gearman_work_epoch_t epoch;
   } options;
+  gearman_string_t reducer;
   void *context;
 };
 
@@ -74,18 +80,30 @@ GEARMAN_API
   gearman_work_t gearman_work_background(gearman_job_priority_t priority);
 
 GEARMAN_API
-  void gearman_workload_set_context(gearman_work_t *, void *);
+  gearman_work_t gearman_work_reducer(const char *name, size_t name_length, gearman_job_priority_t priority);
+
+GEARMAN_API
+  gearman_work_t gearman_work_epoch_with_reducer(time_t epoch, gearman_job_priority_t priority, const char *name, size_t name_length);
+
+GEARMAN_API
+  gearman_work_t gearman_work_background_with_reducer(gearman_job_priority_t priority, const char *name, size_t name_length);
+
+GEARMAN_API
+  void gearman_work_set_context(gearman_work_t *, void *);
 
 // Everything below here is private
 
 GEARMAN_LOCAL
-time_t gearman_workload_epoch(const gearman_work_t *);
+time_t gearman_work_has_epoch(const gearman_work_t *);
 
 GEARMAN_LOCAL
-gearman_job_priority_t gearman_workload_priority(const gearman_work_t *);
+gearman_job_priority_t gearman_work_priority(const gearman_work_t *);
 
 GEARMAN_LOCAL
-bool gearman_workload_background(const gearman_work_t *);
+bool gearman_work_is_background(const gearman_work_t *);
+
+GEARMAN_LOCAL
+bool gearman_work_has_reducer(const gearman_work_t *);
 
 #ifdef __cplusplus
 }

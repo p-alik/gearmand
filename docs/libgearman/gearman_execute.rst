@@ -1,6 +1,6 @@
-=============== 
-gearman_execute
-=============== 
+============== 
+Executing Work
+============== 
 
 
 --------
@@ -9,7 +9,7 @@ SYNOPSIS
 
 #include <libgearman/gearman.h>
 
-.. c:function:: gearman_task_st *gearman_execute(gearman_client_st *client, const char *function_str, size_t function_length, const char *unique_str, size_t unique_length, gearman_work_t *workload, gearman_argument_t *arguments)
+.. c:function:: gearman_task_st *gearman_execute(gearman_client_st *client, const char *function_name, size_t function_name_length, const char *unique_str, size_t unique_length, gearman_work_t *workload, gearman_argument_t *arguments)
 
 Link with -lgearman
 
@@ -17,8 +17,21 @@ Link with -lgearman
 DESCRIPTION
 -----------
 
-:c:func:`gearman_execute()` can be used to execute tasks against a gearman network. 
+:c:func:`gearman_execute()` is used to create a new :c:type:`gearman_task_st` that is executed against the function that is found via the function_name argument. 
 
+:c:type:`gearman_work_t` can be used to describe the work that will be
+executed, it is built with :c:func:`gearman_argument_make()`.  The argument
+unique_str is optional, but if supplied it is used for coalescence by
+:program:`gearmand`.
+
+:c:type:`gearman_argument_t` is the work that the :term:`client` will send
+the to the server
+
+If :c:func:`gearman_execute()` is given a :c:type:`gearman_work_t` that has been built with a reducer, it takes the :c:type:`gearman_argument_t` and executs it against a :term:`function` as it normally would, but it tells the function to then process the results through a :term:`reducer` function that the :c:type:`gearman_work_t` was created with.
+
+What is happening is that the function is mappping work up into units, and then sending each of them to the reducer function. Once all work is completed, the mapper function will aggregate the work and return a result.
+
+If any of the units of work error, the job will be aborted. The resulting value will be stored in the :c:type:`gearman_task_st`.
 
 ------------
 RETURN VALUE

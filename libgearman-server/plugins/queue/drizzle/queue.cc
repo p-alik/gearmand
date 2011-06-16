@@ -140,7 +140,7 @@ void initialize_drizzle()
 }
 
 } // namespace queue
-} // namespace plugin
+} // namespace plugins
 } // namespace gearmand
 
 /**

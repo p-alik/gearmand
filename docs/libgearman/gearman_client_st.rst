@@ -1,6 +1,6 @@
-==================================
-Gearman Client (gearman_client_st)
-==================================
+==========================
+Client (gearman_client_st)
+==========================
 
 
 --------
@@ -33,13 +33,13 @@ Link with -lgearman
 DESCRIPTION
 -----------
 
-:c:type:`gearman_client_st` is used for client communication with the server.
+:c:type:`gearman_client_st` is used for :term:`client` communication with the server.
 
 :c:func:`gearman_client_context()` and :c:func:`gearman_client_set_context()` can be used to store an arbitrary object for the user.
 
 :c:func:`gearman_client_set_task_context_free_fn()` sets a trigger that will be called when a :c:type:`gearman_task_st` is released.
 
-:c:func:`gearman_client_timeout()` and :c:func:`gearman_client_set_timeout()` are to get and set the current timeout value for the client.
+:c:func:`gearman_client_timeout()` and :c:func:`gearman_client_set_timeout()` get and set the current timeout value, in milliseconds, for the client.
 
 Normally :manpage:`malloc(3)` and :manpage:`free(3)` are used for allocation and releasing workloads. :c:func:`gearman_client_set_workload_malloc_fn()` and :c:func:`gearman_client_set_workload_free_fn` can be used to replace these with custom functions.
 

@@ -36,42 +36,74 @@
  */
 
 #include <libgearman/common.h>
+
+#include <cassert>
 #include <cstring>
 #include <memory>
 
 gearman_work_t gearman_work(gearman_job_priority_t priority)
 {
-  gearman_work_t local= { GEARMAN_WORK_KIND_FOREGROUND, priority, {0}, 0};
+  gearman_work_t local= { GEARMAN_WORK_KIND_FOREGROUND, priority, {{0}}, { 0, 0 }, 0};
 
   return local;
 }
 
 gearman_work_t gearman_work_background(gearman_job_priority_t priority)
 {
-  gearman_work_t local= { GEARMAN_WORK_KIND_BACKGROUND, priority, {0}, 0};
+  gearman_work_t local= { GEARMAN_WORK_KIND_BACKGROUND, priority, {{0}}, { 0, 0 }, 0};
 
   return local;
 }
 
 gearman_work_t gearman_work_epoch(time_t epoch, gearman_job_priority_t priority)
 {
-  gearman_work_t local= { GEARMAN_WORK_KIND_BACKGROUND, priority, { epoch }, 0};
+  gearman_work_t local= { GEARMAN_WORK_KIND_BACKGROUND, priority, {{0}}, { 0, 0 }, 0};
+  local.options.epoch.value= epoch;
 
   return local;
 }
 
-time_t gearman_workload_epoch(const gearman_work_t *self)
+gearman_work_t gearman_work_reducer(const char *name, size_t name_length, gearman_job_priority_t priority)
+{
+  gearman_work_t local= { GEARMAN_WORK_KIND_FOREGROUND, priority, {{0}}, { name, name_length }, 0};
+
+  return local;
+}
+
+gearman_work_t gearman_work_background_with_reducer(gearman_job_priority_t priority, const char *name, size_t name_length)
+{
+  gearman_work_t local= { GEARMAN_WORK_KIND_BACKGROUND, priority, {{0}}, { name, name_length }, 0};
+
+  return local;
+}
+
+gearman_work_t gearman_work_epoch_with_reducer(time_t epoch, gearman_job_priority_t priority, const char *name, size_t name_length)
+{
+  gearman_work_t local= { GEARMAN_WORK_KIND_BACKGROUND, priority, {{0}}, { name, name_length }, 0};
+  local.options.epoch.value= epoch;
+
+  return local;
+}
+
+time_t gearman_work_has_epoch(const gearman_work_t *self)
 {
   if (not self)
     return 0;
 
   if (self->kind == GEARMAN_WORK_KIND_BACKGROUND)
-    return self->options.epoch;
+    return self->options.epoch.value;
 
   return 0;
 }
 
-gearman_job_priority_t gearman_workload_priority(const gearman_work_t *self)
+bool gearman_work_has_reducer(const gearman_work_t *self)
+{
+  assert(self);
+
+  return gearman_size(self->reducer);
+}
+
+gearman_job_priority_t gearman_work_priority(const gearman_work_t *self)
 {
   if (not self)
     return GEARMAN_JOB_PRIORITY_NORMAL;
@@ -79,7 +111,7 @@ gearman_job_priority_t gearman_workload_priority(const gearman_work_t *self)
   return self->priority;
 }
 
-bool gearman_workload_background(const gearman_work_t *self)
+bool gearman_work_is_background(const gearman_work_t *self)
 {
   if (not self)
     return false;
@@ -87,7 +119,7 @@ bool gearman_workload_background(const gearman_work_t *self)
   return (self->kind == GEARMAN_WORK_KIND_BACKGROUND or self->kind == GEARMAN_WORK_KIND_EPOCH);
 }
 
-void gearman_workload_set_context(gearman_work_t *self, void *context)
+void gearman_work_set_context(gearman_work_t *self, void *context)
 {
   if (not self)
     return;

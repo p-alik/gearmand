@@ -35,16 +35,16 @@ void benchmark_check_time(gearman_benchmark_st *benchmark)
     benchmark->total_jobs+= benchmark->jobs;
 
     printf("[Current: %6"PRIu64" jobs/s, Total: %6"PRIu64" jobs/s]\n",
-           ((uint64_t)(benchmark->jobs) * 1000000) /
-           ((((uint64_t)(benchmark->end.tv_sec) * 1000000) +
-              (uint64_t)(benchmark->end.tv_usec)) -
-            (((uint64_t)(benchmark->begin.tv_sec) * 1000000) +
-              (uint64_t)(benchmark->begin.tv_usec))),
-           ((uint64_t)(benchmark->total_jobs) * 1000000) /
-           ((((uint64_t)(benchmark->end.tv_sec) * 1000000) +
-              (uint64_t)(benchmark->end.tv_usec)) -
-            (((uint64_t)(benchmark->total.tv_sec) * 1000000) +
-              (uint64_t)(benchmark->total.tv_usec))));
+           (uint64_t(benchmark->jobs) * 1000000) /
+           (((uint64_t(benchmark->end.tv_sec) * 1000000) +
+             uint64_t(benchmark->end.tv_usec)) -
+            ((uint64_t(benchmark->begin.tv_sec) * 1000000) +
+             uint64_t(benchmark->begin.tv_usec))),
+           (uint64_t(benchmark->total_jobs) * 1000000) /
+           (((uint64_t(benchmark->end.tv_sec) * 1000000) +
+             uint64_t(benchmark->end.tv_usec)) -
+            ((uint64_t(benchmark->total.tv_sec) * 1000000) +
+             uint64_t(benchmark->total.tv_usec))));
 
     benchmark->jobs= 0;
     gettimeofday(&(benchmark->begin), NULL);

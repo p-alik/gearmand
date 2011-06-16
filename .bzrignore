@@ -38,10 +38,12 @@ config/plugin.ac
 config/top.h
 configure
 docs/_static
+docs/conf.py
 docs/doctrees
 docs/html
 docs/libgearman/examples/gearman_client_do_background_example
 docs/libgearman/examples/gearman_client_do_example
+docs/linkcheck/
 examples/echo_client
 examples/echo_worker
 examples/reverse_client
@@ -100,6 +102,3 @@ tests/var/tmp/*
 tests/worker_test
 tests/worker_test.res
 unittests/unittests
-docs/conf.py
-docs/linkcheck/
-

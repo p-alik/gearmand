@@ -110,25 +110,21 @@ gearmand_error_t gearman_server_io_packet_add(gearman_server_con_st *con,
 {
   gearman_server_packet_st *server_packet;
   va_list ap;
-  size_t arg_size;
-  gearmand_error_t ret;
 
   server_packet= gearman_server_packet_create(con->thread, false);
-  if (server_packet == NULL)
+  if (not server_packet)
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
 
   gearmand_packet_init(&(server_packet->packet), magic, command);
-  server_packet->packet.magic= magic;
-  server_packet->packet.command= command;
 
   va_start(ap, arg);
 
-  while (arg != NULL)
+  while (arg)
   {
-    arg_size= va_arg(ap, size_t);
+    size_t arg_size= va_arg(ap, size_t);
 
-    ret= gearmand_packet_create(&(server_packet->packet), arg, arg_size);
-    if (ret != GEARMAN_SUCCESS)
+    gearmand_error_t ret= gearmand_packet_create(&(server_packet->packet), arg, arg_size);
+    if (gearmand_failed(ret))
     {
       va_end(ap);
       gearmand_packet_free(&(server_packet->packet));
@@ -136,13 +132,13 @@ gearmand_error_t gearman_server_io_packet_add(gearman_server_con_st *con,
       return ret;
     }
 
-    arg = va_arg(ap, void *);
+    arg= va_arg(ap, void *);
   }
 
   va_end(ap);
 
-  ret= gearmand_packet_pack_header(&(server_packet->packet));
-  if (ret != GEARMAN_SUCCESS)
+  gearmand_error_t ret= gearmand_packet_pack_header(&(server_packet->packet));
+  if (gearmand_failed(ret))
   {
     gearmand_packet_free(&(server_packet->packet));
     gearman_server_packet_free(server_packet, con->thread, false);
@@ -210,7 +206,6 @@ const char *gearmand_strcommand(gearmand_packet_st *packet)
 inline static gearmand_error_t packet_create_arg(gearmand_packet_st *packet,
                                                  const void *arg, size_t arg_size)
 {
-  void *new_args;
   size_t offset;
 
   if (packet->argc == gearman_command_info(packet->command)->argc &&
@@ -228,7 +223,7 @@ inline static gearmand_error_t packet_create_arg(gearmand_packet_st *packet,
     return GEARMAN_SUCCESS;
   }
 
-  if (packet->args_size == 0 && packet->magic != GEARMAN_MAGIC_TEXT)
+  if (packet->args_size == 0 and packet->magic != GEARMAN_MAGIC_TEXT)
     packet->args_size= GEARMAN_PACKET_HEADER_SIZE;
 
   if ((packet->args_size + arg_size) < GEARMAN_ARGS_BUFFER_SIZE)
@@ -240,8 +235,8 @@ inline static gearmand_error_t packet_create_arg(gearmand_packet_st *packet,
     if (packet->args == packet->args_buffer)
       packet->args= NULL;
 
-    new_args= realloc(packet->args, packet->args_size + arg_size);
-    if (new_args == NULL)
+    void *new_args= realloc(packet->args, packet->args_size + arg_size);
+    if (not new_args)
     {
       gearmand_perror("realloc");
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;

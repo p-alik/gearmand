@@ -53,6 +53,7 @@ struct gearman_connection_st
   short events;
   short revents;
   int fd;
+  int cached_errno;
   uint32_t created_id;
   uint32_t created_id_next;
   size_t send_buffer_size;
