@@ -19,10 +19,10 @@ int main(void)
   }
 
   gearman_argument_t value= gearman_argument_make(0, 0, "this dog does not hunt", strlen("this dog does not hunt"));
-  gearman_work_t workload= gearman_work_reducer("count", strlen("count"), GEARMAN_JOB_PRIORITY_NORMAL);
+  gearman_work_t workload= gearman_work_map("word_split", strlen("word_split"), GEARMAN_JOB_PRIORITY_NORMAL);
 
   gearman_task_st *task= gearman_execute(client, 
-                                         "word_split", strlen("word_split"),  // function
+                                         "count", strlen("count"),  // function
                                          NULL, 0,  // no unique value provided
                                          &workload, 
                                          &value);

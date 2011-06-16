@@ -63,21 +63,21 @@ gearman_work_t gearman_work_epoch(time_t epoch, gearman_job_priority_t priority)
   return local;
 }
 
-gearman_work_t gearman_work_reducer(const char *name, size_t name_length, gearman_job_priority_t priority)
+gearman_work_t gearman_work_map(const char *name, size_t name_length, gearman_job_priority_t priority)
 {
   gearman_work_t local= { GEARMAN_WORK_KIND_FOREGROUND, priority, {{0}}, { name, name_length }, 0};
 
   return local;
 }
 
-gearman_work_t gearman_work_background_with_reducer(gearman_job_priority_t priority, const char *name, size_t name_length)
+gearman_work_t gearman_work_background_with_map(gearman_job_priority_t priority, const char *name, size_t name_length)
 {
   gearman_work_t local= { GEARMAN_WORK_KIND_BACKGROUND, priority, {{0}}, { name, name_length }, 0};
 
   return local;
 }
 
-gearman_work_t gearman_work_epoch_with_reducer(time_t epoch, gearman_job_priority_t priority, const char *name, size_t name_length)
+gearman_work_t gearman_work_epoch_with_map(time_t epoch, gearman_job_priority_t priority, const char *name, size_t name_length)
 {
   gearman_work_t local= { GEARMAN_WORK_KIND_BACKGROUND, priority, {{0}}, { name, name_length }, 0};
   local.options.epoch.value= epoch;
@@ -96,11 +96,11 @@ time_t gearman_work_has_epoch(const gearman_work_t *self)
   return 0;
 }
 
-bool gearman_work_has_reducer(const gearman_work_t *self)
+bool gearman_work_has_map(const gearman_work_t *self)
 {
   assert(self);
 
-  return gearman_size(self->reducer);
+  return gearman_size(self->map);
 }
 
 gearman_job_priority_t gearman_work_priority(const gearman_work_t *self)

@@ -16,7 +16,8 @@ The following examples shows how to use :c:func:`gearman_execute)` to request da
 gearman_execute() with reducer function
 ---------------------------------------
 
-In this example we call the function word_split and tell it to reduce its results with the function count.
+In this example we call the function count and tell it to map values using
+word_split.
 
 .. literalinclude:: examples/gearman_execute_map_reduce.c
   :language: c

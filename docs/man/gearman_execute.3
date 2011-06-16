@@ -1,4 +1,4 @@
-.TH "GEARMAN_EXECUTE" "3" "June 16, 2011" "0.21" "Gearmand"
+.TH "GEARMAN_EXECUTE" "3" "June 16, 2011" "0.22" "Gearmand"
 .SH NAME
 gearman_execute \- Gearmand Documentation, http://gearman.info/
 .
@@ -56,6 +56,9 @@ If \fI\%gearman_execute()\fP is given a \fBgearman_work_t\fP that has been built
 What is happening is that the function is mappping work up into units, and then sending each of them to the reducer function. Once all work is completed, the mapper function will aggregate the work and return a result.
 .sp
 If any of the units of work error, the job will be aborted. The resulting value will be stored in the \fBgearman_task_st\fP.
+.sp
+The result can be obtained from the task by calling
+\fBgearman_task_result()\fP to gain the \fBgearman_result_st\fP.
 .SH RETURN VALUE
 .sp
 \fI\%gearman_execute()\fP returns a c:type:\fIgearman_task_st\fP.
@@ -65,7 +68,8 @@ If any of the units of work error, the job will be aborted. The resulting value 
 .ft C
 /*
   Example code to show how to send a string to a function called "reverse" and print the results.
-  */
+*/
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>

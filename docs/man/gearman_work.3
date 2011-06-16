@@ -1,4 +1,4 @@
-.TH "GEARMAN_WORK" "3" "June 16, 2011" "0.21" "Gearmand"
+.TH "GEARMAN_WORK" "3" "June 16, 2011" "0.22" "Gearmand"
 .SH NAME
 gearman_work \- Gearmand Documentation, http://gearman.info/
 .
@@ -51,15 +51,15 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_work_t gearman_work_reducer(const char *name, size_t name_length, gearman_job_priority_t priority);
+.B gearman_work_t gearman_work_map(const char *name, size_t name_length, gearman_job_priority_t priority);
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_work_t gearman_work_epoch_with_reducer(time_t epoch, gearman_job_priority_t priority, const char *name, size_t name_length);
+.B gearman_work_t gearman_work_epoch_with_map(time_t epoch, gearman_job_priority_t priority, const char *name, size_t name_length);
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_work_t gearman_work_background_with_reducer(gearman_job_priority_t priority, const char *name, size_t name_length);
+.B gearman_work_t gearman_work_background_with_map(gearman_job_priority_t priority, const char *name, size_t name_length);
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -77,7 +77,7 @@ Compile and link with \-lgearman
 .sp
 \fBgearman_work_background()\fP creates a \fI\%gearman_work_t\fP which tells \fBgearman_execute()\fP to execute the workload as a background job.
 .sp
-\fBgearman_work_reducer()\fP, \fBgearman_work_reducer()\fP, and \fBgearman_work_reducer()\fP, do the same as there non\-reducer counterparts but specify a reducer function that will be executed on the result of the function specified for \fBgearman_execute()\fP.
+\fBgearman_work_map()\fP, \fBgearman_work_map()\fP, and \fBgearman_work_map()\fP, do the same as there non\-map counterparts but specify a map function that will be executed on the result of the function specified for \fBgearman_execute()\fP.
 .SH SEE ALSO
 .sp
 \fIgearmand(8)\fP \fIlibgearman(3)\fP \fIgearman_execute()\fP
