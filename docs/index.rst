@@ -63,7 +63,6 @@ Client Functions
    libgearman/gearman_client_do
    libgearman/gearman_client_do_background
    libgearman/gearman_execute
-   libgearman/gearman_execute_map_reduce
    libgearman/gearman_client_error
    libgearman/gearman_client_set_log_fn
    libgearman/gearman_client_job_status

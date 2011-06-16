@@ -65,6 +65,7 @@ release: rpm
 	@rpm --checksig gearmand-debuginfo-$(VERSION)*.rpm
 
 merge-clean:
+	@find ./ | $(GREP) \.moved | xargs rm -r -f
 	@find ./ | $(GREP) \.orig | xargs rm -f
 	@find ./ | $(GREP) \.rej | xargs rm -f
 	@find ./ | $(GREP) \~$$ | xargs rm -f

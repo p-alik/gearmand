@@ -132,7 +132,6 @@ Gearman provides a generic framework to farm out work to other machines, dispatc
 %{_mandir}/man3/gearman_client_wait.3.gz
 %{_mandir}/man3/gearman_continue.3.gz
 %{_mandir}/man3/gearman_execute.3.gz
-%{_mandir}/man3/gearman_execute_map_reduce.3.gz
 %{_mandir}/man3/gearman_failed.3.gz
 %{_mandir}/man3/gearman_job_free.3.gz
 %{_mandir}/man3/gearman_job_free_all.3.gz
@@ -186,13 +185,13 @@ Gearman provides a generic framework to farm out work to other machines, dispatc
 %{_mandir}/man3/gearman_verbose_name.3.gz
 %{_mandir}/man3/gearman_verbose_t.3.gz
 %{_mandir}/man3/gearman_version.3.gz
-%{_mandir}/man3/gearman_work.3 \
-%{_mandir}/man3/gearman_work_background.3 \
-%{_mandir}/man3/gearman_work_background_with_reducer.3 \
-%{_mandir}/man3/gearman_work_epoch.3 \
-%{_mandir}/man3/gearman_work_epoch_with_reducer.3 \
-%{_mandir}/man3/gearman_work_reducer.3 \
-%{_mandir}/man3/gearman_work_t.3 \
+%{_mandir}/man3/gearman_work.3.gz
+%{_mandir}/man3/gearman_work_background.3.gz
+%{_mandir}/man3/gearman_work_background_with_reducer.3.gz
+%{_mandir}/man3/gearman_work_epoch.3.gz
+%{_mandir}/man3/gearman_work_epoch_with_reducer.3.gz
+%{_mandir}/man3/gearman_work_reducer.3.gz
+%{_mandir}/man3/gearman_work_t.3.gz
 %{_mandir}/man3/gearman_worker_add_function.3.gz
 %{_mandir}/man3/gearman_worker_add_options.3.gz
 %{_mandir}/man3/gearman_worker_add_server.3.gz
