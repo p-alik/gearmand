@@ -167,10 +167,10 @@ man3_MANS+= \
 	    docs/man/gearman_worker_work.3 \
 	    docs/man/gearman_work.3 \
 	    docs/man/gearman_work_background.3 \
-	    docs/man/gearman_work_background_with_reducer.3 \
+	    docs/man/gearman_work_background_with_map.3 \
 	    docs/man/gearman_work_epoch.3 \
-	    docs/man/gearman_work_epoch_with_reducer.3 \
-	    docs/man/gearman_work_reducer.3 \
+	    docs/man/gearman_work_epoch_with_map.3 \
+	    docs/man/gearman_work_map.3 \
 	    docs/man/gearman_work_t.3 \
 	    docs/man/libgearman.3
 
