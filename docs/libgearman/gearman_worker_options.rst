@@ -33,7 +33,6 @@ DESCRIPTION
 The currently supported options are:
 
 .. c:type: GEARMAN_WORKER_NON_BLOCKING
-  :option: deprecated
 
 Enable non-block IO for the worker.
 
