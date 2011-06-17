@@ -53,7 +53,7 @@ the to the server
 .sp
 If \fI\%gearman_execute()\fP is given a \fBgearman_work_t\fP that has been built with a reducer, it takes the \fBgearman_argument_t\fP and executs it against a \fIfunction\fP as it normally would, but it tells the function to then process the results through a \fIreducer\fP function that the \fBgearman_work_t\fP was created with.
 .sp
-What is happening is that the function is mappping work up into units, and then sending each of them to the reducer function. Once all work is completed, the mapper function will aggregate the work and return a result.
+What is happening is that the function is mappping/splitting work up into units, and then sending each of them to the reducer function. Once all work is completed, the \fImapper\fP function will aggregate the work via an aggregator function, \fBgearman_aggregator_fn\fP, and return a result.
 .sp
 If any of the units of work error, the job will be aborted. The resulting value will be stored in the \fBgearman_task_st\fP.
 .sp

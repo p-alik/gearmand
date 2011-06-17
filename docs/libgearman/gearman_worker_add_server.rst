@@ -28,9 +28,10 @@ DESCRIPTION
 
 :c:func:`gearman_worker_add_servers()` takes a list of :program:`gearmand` servers that will be parsed to provide servers for the worker. The format for this is SERVER[:PORT][,SERVER[:PORT]]...
 
-Examples of this are:
- 10.0.0.1,10.0.0.2,10.0.0.3
- localhost234,jobserver2.domain.com:7003,10.0.0.3
+Examples of this are::
+ 
+  10.0.0.1,10.0.0.2,10.0.0.3
+  localhost234,jobserver2.domain.com:7003,10.0.0.3
 
 
 ------------

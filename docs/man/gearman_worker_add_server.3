@@ -54,13 +54,15 @@ Link with \-lgearman
 \fBgearman_worker_remove_servers()\fP will remove all servers from the \fBgearman_worker_st\fP.
 .sp
 \fBgearman_worker_add_servers()\fP takes a list of \fBgearmand\fP servers that will be parsed to provide servers for the worker. The format for this is SERVER[:PORT][,SERVER[:PORT]]...
-.INDENT 0.0
-.TP
-.B Examples of this are:
-.
+.sp
+Examples of this are:
+.sp
+.nf
+.ft C
 10.0.0.1,10.0.0.2,10.0.0.3
 localhost234,jobserver2.domain.com:7003,10.0.0.3
-.UNINDENT
+.ft P
+.fi
 .SH RETURN VALUE
 .sp
 \fBgearman_worker_add_server()\fP and \fBgearman_worker_remove_servers()\fP return \fBgearman_return_t\fP.
