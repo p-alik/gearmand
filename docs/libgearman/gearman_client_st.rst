@@ -62,7 +62,7 @@ HOME
 
 
 To find out more information please check:
-`https://launchpad.net/gearmand <https://launchpad.net/gearmand>`_
+`http://gearman.info/ <http://gearman.info/>`_
 
 .. seealso::
   :manpage:`gearmand(8)` :manpage:`libgearman(3)` :manpage:`gearman_client_create(3)`

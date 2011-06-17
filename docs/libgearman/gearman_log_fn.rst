@@ -30,7 +30,7 @@ HOME
 ----
 
 To find out more information please check:
-`https://launchpad.net/gearmand <https://launchpad.net/gearmand>`_
+`http://gearman.info/ <http://gearman.info/>`_
 
 --------
 SEE ALSO
