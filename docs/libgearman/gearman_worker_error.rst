@@ -13,7 +13,7 @@ SYNOPSIS
 
 .. c:function:: int gearman_worker_errno(gearman_worker_st *worker);
 
-Ling with -lgearman
+Link with -lgearman
 
 
 -----------

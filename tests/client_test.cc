@@ -441,7 +441,7 @@ static test_return_t echo_test(void *object)
 
   gearman_string_t value= { gearman_literal_param("This is my echo test") };
 
-  test_true_got(gearman_success(gearman_client_echo(client, gearman_string_param(value))), gearman_client_error(client));
+  test_compare(GEARMAN_SUCCESS, gearman_client_echo(client, gearman_string_param(value)));
 
   return TEST_SUCCESS;
 }
@@ -456,7 +456,7 @@ static test_return_t submit_job_test(void *object)
   gearman_return_t rc;
   void *job_result= gearman_client_do(client, worker_function, NULL, gearman_string_param(value), &result_length, &rc);
 
-  test_true_got(rc == GEARMAN_SUCCESS, gearman_client_error(client) ? gearman_client_error(client) : gearman_strerror(rc));
+  test_compare_got(GEARMAN_SUCCESS, rc, gearman_client_error(client) ? gearman_client_error(client) : gearman_strerror(rc));
   test_truth(job_result);
   test_compare(gearman_size(value), result_length);
 
@@ -480,9 +480,9 @@ static test_return_t submit_null_job_test(void *object)
   gearman_return_t rc;
   void *job_result= gearman_client_do(client, worker_function, NULL, NULL, 0,
                                       &result_length, &rc);
-  test_true_got(rc == GEARMAN_SUCCESS, gearman_client_error(client));
+  test_compare_got(GEARMAN_SUCCESS, rc, gearman_client_error(client));
   test_compare(0, result_length);
-  test_truth(not job_result);
+  test_false(job_result);
 
   return TEST_SUCCESS;
 }
@@ -500,7 +500,7 @@ static test_return_t submit_exception_job_test(void *object)
   void *job_result= gearman_client_do(client, worker_function, NULL,
                                       gearman_literal_param("exception"),
                                       &result_length, &rc);
-  test_true_got(rc == GEARMAN_SUCCESS, gearman_client_error(client) ? gearman_client_error(client) : gearman_strerror(rc));
+  test_compare_got(GEARMAN_SUCCESS, rc, gearman_client_error(client) ? gearman_client_error(client) : gearman_strerror(rc));
   test_memcmp("exception", job_result, result_length);
   free(job_result);
 
@@ -520,7 +520,7 @@ static test_return_t submit_warning_job_test(void *object)
   void *job_result= gearman_client_do(client, worker_function, NULL,
                                       gearman_literal_param("warning"),
                                       &result_length, &rc);
-  test_true_got(rc == GEARMAN_SUCCESS, gearman_client_error(client) ? gearman_client_error(client) : gearman_strerror(rc));
+  test_compare_got(GEARMAN_SUCCESS, rc, gearman_client_error(client) ? gearman_client_error(client) : gearman_strerror(rc));
   test_memcmp("warning", job_result, result_length);
   free(job_result);
 
@@ -540,7 +540,7 @@ static test_return_t submit_fail_job_test(void *object)
   gearman_return_t rc;
   void *job_result= gearman_client_do(client, worker_function, NULL, "fail", 4,
                                       &result_length, &rc);
-  test_true_got(rc == GEARMAN_WORK_FAIL, gearman_client_error(client));
+  test_compare_got(GEARMAN_WORK_FAIL, rc, gearman_client_error(client));
   test_false(job_result);
   test_false(result_length);
 
@@ -663,12 +663,28 @@ static test_return_t add_servers_test(void *)
 
   gearman_return_t rc;
   rc= gearman_client_add_servers(&client, "127.0.0.1:4730,localhost");
-  test_true_got(rc == GEARMAN_SUCCESS, gearman_strerror(rc));
+  test_compare_got(GEARMAN_SUCCESS, rc, gearman_strerror(rc));
 
   rc= gearman_client_add_servers(&client, "old_jobserver:7003,broken:12345");
-  test_true_got(rc == GEARMAN_SUCCESS, gearman_strerror(rc));
+  test_compare_got(GEARMAN_SUCCESS, rc, gearman_strerror(rc));
 
   gearman_client_free(&client);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t hostname_resolution(void *)
+{
+  gearman_client_st *client= gearman_client_create(NULL);
+  test_truth(client);
+
+  test_compare(GEARMAN_SUCCESS,
+               gearman_client_add_servers(client, "exist.gearman.info"));
+
+  test_compare(GEARMAN_GETADDRINFO,
+               gearman_client_echo(client, gearman_literal_param("foo")));
+
+  gearman_client_free(client);
 
   return TEST_SUCCESS;
 }
@@ -681,13 +697,13 @@ static test_return_t bug_518512_test(void *)
   test_truth(gearman_client_create(&client));
 
   gearman_return_t rc;
-  rc= gearman_client_add_server(&client, NULL, CLIENT_TEST_PORT);
-  test_true_got(rc == GEARMAN_SUCCESS, gearman_strerror(rc));
+  test_compare(GEARMAN_SUCCESS,
+               gearman_client_add_server(&client, NULL, CLIENT_TEST_PORT));
 
   gearman_client_set_timeout(&client, 100);
   void *result= gearman_client_do(&client, "client_test_temp", NULL, NULL, 0,
                                   &result_size, &rc);
-  test_true_got(rc == GEARMAN_TIMEOUT, gearman_strerror(rc));
+  test_compare_got(GEARMAN_TIMEOUT, rc, gearman_strerror(rc));
   test_false(result);
   test_compare(0, result_size);
 
@@ -811,7 +827,7 @@ static test_return_t submit_log_failure(void *object)
   void *job_result= gearman_client_do(client, worker_function, NULL, 
                                       gearman_string_param(value),
                                       &result_length, &rc);
-  test_true_got(rc == GEARMAN_NO_SERVERS, gearman_strerror(rc));
+  test_compare(GEARMAN_NO_SERVERS, rc);
   test_false(job_result);
   test_compare(0, result_length);
 
@@ -868,7 +884,7 @@ static test_return_t strerror_strings(void *)
     uint32_t hash_val;
     const char *msg=  gearman_strerror((gearman_return_t)rc);
     hash_val= internal_generate_hash(msg, strlen(msg));
-    test_true_got(values[rc] == hash_val, make_number(values[rc], hash_val));
+    test_compare_got(values[rc], hash_val, make_number(values[rc], hash_val));
   }
 
   return TEST_SUCCESS;
@@ -1025,6 +1041,7 @@ test_st tests[] ={
   {"background_failure", 0, background_failure_test },
   {"add_servers", 0, add_servers_test },
   {"bug_518512_test", 0, bug_518512_test },
+  {"gearman_client_add_servers(GEARMAN_GETADDRINFO)", 0, hostname_resolution },
   {"loop_test", 0, loop_test },
   {0, 0, 0}
 };

@@ -1,6 +1,6 @@
-=======
-Drizzle
-=======
+======
+SQLite
+======
 
 
 The current schema, as of .21 is::

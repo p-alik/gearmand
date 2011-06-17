@@ -2,7 +2,7 @@
 Gearman Client/Worker Library
 =============================
 
-.. index:: object: libgearman
+.. index:: libgearman
 
 --------
 SYNOPSIS
@@ -21,19 +21,21 @@ gearman protocol. The code has all been written with an eye to allow
 for both web and embedded usage. It handles the work behind routing
 particular keys to specific servers that you specify (and values are
 matched based on server order as supplied by you). It implements both
-the client and worker interfaces.
+the :term:`client` and :term:`worker` interfaces.
 
-All operations are performed against either a :c:type:`gearman_client_st`  structure
-or a :c:type:`gearman_worker_st`.
-These structures can either be dynamically allocated or statically
-allocated and then initialized by gearman_create(). Functions have been
-written in order to encapsulate all structures in the library. It is
-recommended that you operate directly against the structure.
+All operations are performed against either a client, ie :c:type:`gearman_client_st`
+or worker, ie :c:type:`gearman_worker_st`.
 
-Nearly all functions return a :c:type:`gearman_return_t`  value.
+Client and Worker structures can either be dynamically allocated or statically
+allocated. They must then b initialized by :c:func:`gearman_client_create()` or :c:func:`gearman_worker_create()`. 
+
+Functions have been written in order to encapsulate all structures in the library. It is
+recommended that you do not operate directly against the structure.
+
+Nearly all functions return a :c:type:`gearman_return_t` value.
 This value can be translated to a printable string with :c:func:`gearman_strerror()`.
 
-:c:type:`gearman_client_st`  and :c:type:`gearman_worker_st` structures are thread-safe, but each thread must
+:c:type:`gearman_client_st` and :c:type:`gearman_worker_st` structures are thread-safe, but each thread must
 contain its own structure (that is, if you want to share these among
 threads you must provide your own locking). No global variables are
 used in this library.
