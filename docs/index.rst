@@ -16,6 +16,7 @@ Introduction:
    :maxdepth: 1
    
    license
+   install
    how_to_report_a_bug
    glossary
 
