@@ -8,6 +8,7 @@ to do work in parallel, to load balance processing, and to call functions
 between languages. It can be used in a variety of applications, from
 high-availability web sites, to the transport of database replication events.
 
+
 -------------
 Introduction:
 -------------
@@ -15,6 +16,7 @@ Introduction:
    :maxdepth: 1
    
    license
+   install
    how_to_report_a_bug
    glossary
 
@@ -25,6 +27,7 @@ Server
    :maxdepth: 1
 
    gearmand
+   gearmand/queues
 
 ------------------
 Command Line Tools
@@ -48,6 +51,7 @@ Basics
    :titlesonly:
 
    libgearman
+   libgearman/examples
    changes
 
 ****************

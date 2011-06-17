@@ -2,53 +2,53 @@
 Gearman Admin Tool
 ==================
 
+Run Administrative commands against a server.
+
 --------
 SYNOPSIS
 --------
-
-:program: `gearadmin`
 
 .. program:: gearadmin
 
 .. option:: --help
 
-Provice help about the program.
+   Provice help about the program.
 
 .. option:: --create-function
 
-Create a function from the server.
+   Create a function from the server.
 
 .. option:: -h [ --host ] arg (=localhost)i
 
-Connect to the host
+   Connect to the host
 
 .. option:: -p [ --port ] arg (=4730)
 
-Port number or service to use for connection
+   Port number or service to use for connection
 
 .. option:: --drop-function
 
-Drop a function from the server.
+   Drop a function from the server.
 
 .. option:: --server-version
 
-Fetch the version number for the server.
+   Fetch the version number for the server.
 
 .. option:: --server-verbose
 
-Fetch the verbose setting for the server.
+   Fetch the verbose setting for the server.
 
 .. option:: --status
 
-Status for the server.
+   Status for the server.
 
 .. option:: --workers
 
-Workers for the server.
+   Workers for the server.
 
 .. option:: --shutdown
 
-Shutdown server.
+   Shutdown server.
 
 
 -----------
@@ -62,7 +62,7 @@ HOME
 ----
 
 To find out more information please check:
-`https://launchpad.net/gearmand <https://launchpad.net/gearmand>`_
+`http://gearman.info/ <http://gearman.info/>`_
 
 
 --------

@@ -13,7 +13,7 @@ SYNOPSIS
 
 .. c:function:: int gearman_worker_errno(gearman_worker_st *worker);
 
-Ling with -lgearman
+Link with -lgearman
 
 
 -----------
@@ -33,7 +33,7 @@ HOME
 ----
 
 To find out more information please check:
-`https://launchpad.net/gearmand <https://launchpad.net/gearmand>`_
+`http://gearman.info/ <http://gearman.info/>`_
 
 
 .. seealso::

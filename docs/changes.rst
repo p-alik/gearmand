@@ -2,7 +2,7 @@
 
 .. _changes:
 
-Gearman Changelog
-******************
+Changelog
+*********
 
 .. include:: ../ChangeLog

@@ -102,3 +102,5 @@ tests/var/tmp/*
 tests/worker_test
 tests/worker_test.res
 unittests/unittests
+docs/libgearman/examples/gearman_execute_example
+docs/libgearman/examples/gearman_execute_map_reduce

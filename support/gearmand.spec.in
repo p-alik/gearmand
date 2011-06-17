@@ -16,6 +16,16 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 %description
 Gearman provides a generic framework to farm out work to other machines, dispatching function calls to machines that are better suited to do work, to do work in parallel, to load balance processing, or to call functions between languages.
 
+%package devel
+Summary: Header files and development libraries for %{name}
+Group: Development/Libraries
+Requires: %{name} = %{version}-%{release}
+
+%description devel
+This package contains the header files and development libraries
+for %{name}. If you like to develop programs using %{name}, 
+you will need to install %{name}-devel.
+
 %prep
 %setup -q
 
@@ -33,9 +43,19 @@ Gearman provides a generic framework to farm out work to other machines, dispatc
 %{__rm} -rf %{buildroot}
 
 %files
-
+%doc AUTHORS COPYING NEWS README HACKING
 %{_bindir}/gearadmin
 %{_bindir}/gearman
+%{_libdir}/libgearman.la
+%{_libdir}/libgearman.so.6
+%{_libdir}/libgearman.so.6.0.0
+%{_mandir}/man1/gearadmin.1.gz
+%{_mandir}/man1/gearman.1.gz
+%{_mandir}/man8/gearmand.8.gz
+%{_sbindir}/gearmand
+
+%files devel
+
 %{_includedir}/libgearman/actions.h
 %{_includedir}/libgearman/aggregator.h
 %{_includedir}/libgearman/argument.h
@@ -68,13 +88,8 @@ Gearman provides a generic framework to farm out work to other machines, dispatc
 %{_includedir}/libgearman/work.h
 %{_includedir}/libgearman/worker.h
 %{_includedir}/libgearman/function.h
-%{_libdir}/libgearman.la
-%{_libdir}/libgearman.so
-%{_libdir}/libgearman.so.6
-%{_libdir}/libgearman.so.6.0.0
 %{_libdir}/pkgconfig/gearmand.pc
-%{_mandir}/man1/gearadmin.1.gz
-%{_mandir}/man1/gearman.1.gz
+%{_libdir}/libgearman.so
 %{_mandir}/man3/gearman_actions_t.3.gz
 %{_mandir}/man3/gearman_argument_make.3.gz
 %{_mandir}/man3/gearman_argument_t.3.gz
@@ -187,10 +202,10 @@ Gearman provides a generic framework to farm out work to other machines, dispatc
 %{_mandir}/man3/gearman_version.3.gz
 %{_mandir}/man3/gearman_work.3.gz
 %{_mandir}/man3/gearman_work_background.3.gz
-%{_mandir}/man3/gearman_work_background_with_reducer.3.gz
+%{_mandir}/man3/gearman_work_background_with_map.3.gz
 %{_mandir}/man3/gearman_work_epoch.3.gz
-%{_mandir}/man3/gearman_work_epoch_with_reducer.3.gz
-%{_mandir}/man3/gearman_work_reducer.3.gz
+%{_mandir}/man3/gearman_work_epoch_with_map.3.gz
+%{_mandir}/man3/gearman_work_map.3.gz
 %{_mandir}/man3/gearman_work_t.3.gz
 %{_mandir}/man3/gearman_worker_add_function.3.gz
 %{_mandir}/man3/gearman_worker_add_options.3.gz
@@ -224,8 +239,6 @@ Gearman provides a generic framework to farm out work to other machines, dispatc
 %{_mandir}/man3/gearman_worker_wait.3.gz
 %{_mandir}/man3/gearman_worker_work.3.gz
 %{_mandir}/man3/libgearman.3.gz
-%{_mandir}/man8/gearmand.8.gz
-%{_sbindir}/gearmand
 
 
 %changelog

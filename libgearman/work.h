@@ -60,7 +60,7 @@ struct gearman_work_t {
     char bytes[sizeof(struct gearman_work_epoch_t)];
     struct gearman_work_epoch_t epoch;
   } options;
-  gearman_string_t reducer;
+  gearman_string_t map;
   void *context;
 };
 
@@ -80,13 +80,13 @@ GEARMAN_API
   gearman_work_t gearman_work_background(gearman_job_priority_t priority);
 
 GEARMAN_API
-  gearman_work_t gearman_work_reducer(const char *name, size_t name_length, gearman_job_priority_t priority);
+  gearman_work_t gearman_work_map(const char *name, size_t name_length, gearman_job_priority_t priority);
 
 GEARMAN_API
-  gearman_work_t gearman_work_epoch_with_reducer(time_t epoch, gearman_job_priority_t priority, const char *name, size_t name_length);
+  gearman_work_t gearman_work_epoch_with_map(time_t epoch, gearman_job_priority_t priority, const char *name, size_t name_length);
 
 GEARMAN_API
-  gearman_work_t gearman_work_background_with_reducer(gearman_job_priority_t priority, const char *name, size_t name_length);
+  gearman_work_t gearman_work_background_with_map(gearman_job_priority_t priority, const char *name, size_t name_length);
 
 GEARMAN_API
   void gearman_work_set_context(gearman_work_t *, void *);
@@ -103,7 +103,7 @@ GEARMAN_LOCAL
 bool gearman_work_is_background(const gearman_work_t *);
 
 GEARMAN_LOCAL
-bool gearman_work_has_reducer(const gearman_work_t *);
+bool gearman_work_has_map(const gearman_work_t *);
 
 #ifdef __cplusplus
 }

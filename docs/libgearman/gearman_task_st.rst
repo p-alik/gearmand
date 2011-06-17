@@ -58,13 +58,13 @@ Link with -lgearman
 DESCRIPTION
 -----------
 
-A :c:type:`gearman_task_st` represents a "task". Each task is a single unit of work that is executed via :c:func:`gearman_client_run_tasks()`.
+A :c:type:`gearman_task_st` represents a :term:`task`.  Work that is sent by a :term:`client` to a gearman server is seen as a task (a :term:`worker` recieves a task in the form of a :term:`job`.
 
-:c:type:`gearman_task_st` structures are create via
-:c:func:`gearman_execute()`, c:func:`gearman_client_add_task()`, or
+Tasks, i.e. :c:type:`gearman_task_st` are created by calling either
+:c:func:`gearman_execute()`, :c:func:`gearman_client_add_task()`, or
 :c:func:`gearman_client_add_task_background()`.
 
-:c:func:`gearman_client_add_task_status()` can be used to create a :c:type:`gearman_task_st` to
+:c:func:`gearman_client_add_task_status()` can also create :c:type:`gearman_task_st`, these tasks will be used to
 monitor a previously created :c:type:`gearman_task_st`.
 
 :c:func:`gearman_task_free()` is used to free a task. This only needs to be
@@ -81,8 +81,7 @@ done if a task was created with a preallocated structure or if you want to clean
 :c:func:`gearman_task_error()` return the last error message that the
 :c:type:`gearman_task_st` encountered. :c:func:`gearman_task_return()`
 return the last :c:type:`gearman_return_t` stored. A value of
-:c:type:`GEARMAN_UNKNOWN_STATE` means that the task has not been submitted
-yet.
+:c:type:`GEARMAN_UNKNOWN_STATE` means that the task has not been submitted to server yet.
 
 ------------
 RETURN VALUE
@@ -95,7 +94,7 @@ HOME
 ----
 
 To find out more information please check:
-`https://launchpad.net/gearmand <https://launchpad.net/gearmand>`_
+`http://gearman.info/ <http://gearman.info/>`_
 
 --------
 SEE ALSO

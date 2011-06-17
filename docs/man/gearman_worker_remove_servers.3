@@ -1,4 +1,4 @@
-.TH "GEARMAN_WORKER_REMOVE_SERVERS" "3" "June 15, 2011" "0.21" "Gearmand"
+.TH "GEARMAN_WORKER_REMOVE_SERVERS" "3" "June 17, 2011" "0.22" "Gearmand"
 .SH NAME
 gearman_worker_remove_servers \- Gearmand Documentation, http://gearman.info/
 .
@@ -54,20 +54,22 @@ Link with \-lgearman
 \fBgearman_worker_remove_servers()\fP will remove all servers from the \fBgearman_worker_st\fP.
 .sp
 \fBgearman_worker_add_servers()\fP takes a list of \fBgearmand\fP servers that will be parsed to provide servers for the worker. The format for this is SERVER[:PORT][,SERVER[:PORT]]...
-.INDENT 0.0
-.TP
-.B Examples of this are:
-.
+.sp
+Examples of this are:
+.sp
+.nf
+.ft C
 10.0.0.1,10.0.0.2,10.0.0.3
 localhost234,jobserver2.domain.com:7003,10.0.0.3
-.UNINDENT
+.ft P
+.fi
 .SH RETURN VALUE
 .sp
 \fBgearman_worker_add_server()\fP and \fBgearman_worker_remove_servers()\fP return \fBgearman_return_t\fP.
 .SH HOME
 .sp
 To find out more information please check:
-\fI\%https://launchpad.net/gearmand\fP
+\fI\%http://gearman.info/\fP
 .SH SEE ALSO
 .sp
 \fBgearmand\fP \fB../libgearman\fP  \fBgearman_worker_st\fP

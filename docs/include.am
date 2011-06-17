@@ -167,10 +167,10 @@ man3_MANS+= \
 	    docs/man/gearman_worker_work.3 \
 	    docs/man/gearman_work.3 \
 	    docs/man/gearman_work_background.3 \
-	    docs/man/gearman_work_background_with_reducer.3 \
+	    docs/man/gearman_work_background_with_map.3 \
 	    docs/man/gearman_work_epoch.3 \
-	    docs/man/gearman_work_epoch_with_reducer.3 \
-	    docs/man/gearman_work_reducer.3 \
+	    docs/man/gearman_work_epoch_with_map.3 \
+	    docs/man/gearman_work_map.3 \
 	    docs/man/gearman_work_t.3 \
 	    docs/man/libgearman.3
 
@@ -290,9 +290,16 @@ doctest: docs/conf.py
 endif
 
 noinst_PROGRAMS+= \
+		  docs/libgearman/examples/gearman_client_do_background_example \
 		  docs/libgearman/examples/gearman_client_do_example \
-		  docs/libgearman/examples/gearman_client_do_background_example
+		  docs/libgearman/examples/gearman_execute_example \
+		  docs/libgearman/examples/gearman_execute_map_reduce
 
+docs_libgearman_examples_gearman_execute_example_SOURCES= docs/libgearman/examples/gearman_execute_example.c
+docs_libgearman_examples_gearman_execute_example_LDADD= libgearman/libgearman.la
+
+docs_libgearman_examples_gearman_execute_map_reduce_SOURCES= docs/libgearman/examples/gearman_execute_map_reduce.c
+docs_libgearman_examples_gearman_execute_map_reduce_LDADD= libgearman/libgearman.la
 
 docs_libgearman_examples_gearman_client_do_example_SOURCES= docs/libgearman/examples/gearman_client_do_example.c
 docs_libgearman_examples_gearman_client_do_example_LDADD= libgearman/libgearman.la

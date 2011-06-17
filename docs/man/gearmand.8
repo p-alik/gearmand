@@ -1,4 +1,4 @@
-.TH "GEARMAND" "8" "June 15, 2011" "0.21" "Gearmand"
+.TH "GEARMAND" "8" "June 17, 2011" "0.22" "Gearmand"
 .SH NAME
 gearmand \- Gearmand Documentation, http://gearman.info/
 .
@@ -36,161 +36,161 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .INDENT 0.0
 .TP
 .B \-b [ \-\-backlog ] arg (=32)
-.UNINDENT
 .sp
 Number of backlog connections for listen.
+.UNINDENT
 .INDENT 0.0
 .TP
 .B \-\-check\-args
-.UNINDENT
-.sp
+.
 Check command line and configuration file argments and then exit.
+.UNINDENT
 .INDENT 0.0
 .TP
 .B \-d [ \-\-daemon ]
-.UNINDENT
 .sp
 Daemon, detach and run in the background.
+.UNINDENT
 .INDENT 0.0
 .TP
 .B \-f [ \-\-file\-descriptors ] arg
-.UNINDENT
 .sp
 Number of file descriptors to allow for the process (total connections will be slightly less). Default is max allowed for user.
+.UNINDENT
 .INDENT 0.0
 .TP
 .B \-h [ \-\-help ]
-.UNINDENT
 .sp
 Print this help menu.
+.UNINDENT
 .INDENT 0.0
 .TP
 .B \-j [ \-\-job\-retries ] arg (=0)
-.UNINDENT
 .sp
 Number of attempts to run the job before the job server removes it. This is helpful to ensure a bad job does not crash all available workers. Default is no limit.
+.UNINDENT
 .INDENT 0.0
 .TP
 .B \-l [ \-\-log\-file ] arg
-.UNINDENT
 .sp
 Log file to write errors and information to.  Turning this option on also forces the first verbose level to be enabled.
+.UNINDENT
 .INDENT 0.0
 .TP
 .B \-L [ \-\-listen ] arg
-.UNINDENT
 .sp
 Address the server should listen on. Default is INADDR_ANY.
+.UNINDENT
 .INDENT 0.0
 .TP
 .B \-p [ \-\-port ] arg (=4730)
-.UNINDENT
 .sp
 Port the server should listen on.
+.UNINDENT
 .INDENT 0.0
 .TP
 .B \-P [ \-\-pid\-file ] arg
-.UNINDENT
 .sp
 File to write process ID out to.
+.UNINDENT
 .INDENT 0.0
 .TP
 .B \-r [ \-\-protocol ] arg
-.UNINDENT
 .sp
 Load protocol module.
+.UNINDENT
 .INDENT 0.0
 .TP
 .B \-R [ \-\-round\-robin ]
-.UNINDENT
 .sp
 Assign work in round\-robin order per worker connection. The default is to assign work in the order of functions added by the worker.
+.UNINDENT
 .INDENT 0.0
 .TP
 .B \-q [ \-\-queue\-type ] arg
-.UNINDENT
 .sp
 Persistent queue type to use.
+.UNINDENT
 .INDENT 0.0
 .TP
 .B \-t [ \-\-threads ] arg (=4)
-.UNINDENT
 .sp
 Number of I/O threads to use. Default=4.
+.UNINDENT
 .INDENT 0.0
 .TP
 .B \-u [ \-\-user ] arg
-.UNINDENT
 .sp
 Switch to given user after startup.
+.UNINDENT
 .INDENT 0.0
 .TP
 .B \-v [ \-\-verbose ] arg (=v)
-.UNINDENT
 .sp
 Increase verbosity level by one.
+.UNINDENT
 .INDENT 0.0
 .TP
 .B \-V [ \-\-version ]
-.UNINDENT
 .sp
 Display the version of gearmand and exit.
+.UNINDENT
 .INDENT 0.0
 .TP
 .B \-w [ \-\-worker\-wakeup ] arg (=0)
-.UNINDENT
 .sp
 Number of workers to wakeup for each job received. The default is to wakeup all available workers.
+.UNINDENT
 .sp
 \fBHTTP:\fP
 .INDENT 0.0
 .TP
 .B \-\-http\-port arg (=8080)
-.UNINDENT
 .sp
 Port to listen on.
+.UNINDENT
 .sp
 \fBsqlite\fP
 .INDENT 0.0
 .TP
 .B \-\-libsqlite3\-db arg
-.UNINDENT
 .sp
 Database file to use.
+.UNINDENT
 .INDENT 0.0
 .TP
 .B \-\-libsqlite3\-table arg (=gearman_queue)
-.UNINDENT
 .sp
 Table to use.
+.UNINDENT
 .sp
 \fBPostgres\fP
 .INDENT 0.0
 .TP
 .B \-\-libpq\-conninfo arg
-.UNINDENT
 .sp
 PostgreSQL connection information string.
+.UNINDENT
 .INDENT 0.0
 .TP
 .B \-\-libpq\-table arg (=queue)
-.UNINDENT
 .sp
 Table to use.
+.UNINDENT
 .sp
 \fBtokyocabinet\fP
 .INDENT 0.0
 .TP
 .B \-\-libtokyocabinet\-file arg
-.UNINDENT
 .sp
 File name of the database. [see: man tcadb, tcadbopen() for name guidelines]
+.UNINDENT
 .INDENT 0.0
 .TP
 .B \-\-libtokyocabinet\-optimize
-.UNINDENT
-.sp
+.
 Optimize database on open. [default=true]
+.UNINDENT
 .SH DESCRIPTION
 .sp
 Gearman provides a generic application framework to farm out work to other machines or processes that are better suited to do the work. It allows you to do work in parallel, to load balance processing, and to call functions between languages. It can be used in a variety of applications, from high\-availability web sites to the transport of database replication events. In other words, it is the nervous system for how distributed processing communicates. A few strong points about Gearman:
@@ -217,7 +217,7 @@ No single point of failure \- Gearman can not only help scale systems, but can d
 .SH HOME
 .sp
 To find out more information please check:
-\fI\%https://launchpad.net/gearmand\fP
+\fI\%http://gearman.info/\fP
 .SH SEE ALSO
 .sp
 \fIgearman(1)\fP \fIgearadmin(1)\fP \fIlibgearmand(3)\fP
