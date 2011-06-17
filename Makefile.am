@@ -41,6 +41,7 @@ docs: html man
 
 TESTS += ${check_PROGRAMS}
 
+EXTRA_DIST+= HACKING
 EXTRA_DIST+= ${man1_MANS}
 EXTRA_DIST+= ${man3_MANS}
 EXTRA_DIST+= ${man8_MANS}
@@ -52,17 +53,22 @@ clean-local:
 	-rm -rf docs/_build docs/doctrees
 
 rpm: man distcheck
+	@rm -f ~/rpmbuild/RPMS/x86_64/gearmand-$(VERSION)*.rpm
+	@rm -f ~/rpmbuild/SRPMS/gearmand-$(VERSION)*.rpm
 	@cp gearmand-$(VERSION).tar.gz ~/rpmbuild/SOURCES/
 	@rpmbuild -ba support/gearmand.spec
 	@cp ~/rpmbuild/RPMS/x86_64/gearmand-$(VERSION)*.rpm .
+	@cp ~/rpmbuild/RPMS/x86_64/gearmand-devel-$(VERSION)*.rpm .
 	@cp ~/rpmbuild/RPMS/x86_64/gearmand-debuginfo-$(VERSION)*.rpm .
 	@cp ~/rpmbuild/SRPMS/gearmand-$(VERSION)*.rpm .
 
 release: rpm
-	@rpm --addsign gearmand-$(VERSION)*.rpm
-	@rpm --checksig gearmand-$(VERSION)*.rpm
-	@rpm --addsign gearmand-debuginfo-$(VERSION)*.rpm
-	@rpm --checksig gearmand-debuginfo-$(VERSION)*.rpm
+	@rpm --addsign gearmand-$(VERSION)*.rpm .
+	@rpm --checksig gearmand-$(VERSION)*.rpm .
+	@rpm --addsign gearmand-devel-$(VERSION)*.rpm .
+	@rpm --checksig gearmand-devel-$(VERSION)*.rpm .
+	@rpm --addsign gearmand-debuginfo-$(VERSION)*.rpm .
+	@rpm --checksig gearmand-debuginfo-$(VERSION)*.rpm .
 
 merge-clean:
 	@find ./ | $(GREP) \.moved | xargs rm -r -f
