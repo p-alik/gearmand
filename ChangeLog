@@ -3,6 +3,9 @@
   * gearman_execute() uses the function parameter for the reducer, not the mapper/split function.
   * Additional documentation update.
 
+
+  * Issue with PHP client using automated task free (Thanks rosmiitto!)
+
 0.21 Wed Jun 15 21:01:04 PDT 2011
   * Support for "drop function" in admin client
   * Fixed issue where server would not report on a bad unique value due to size

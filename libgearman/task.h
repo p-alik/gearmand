@@ -78,6 +78,12 @@ enum gearman_task_state_t {
   GEARMAN_TASK_STATE_FINISHED
 };
 
+enum gearman_task_kind_t {
+  GEARMAN_TASK_KIND_ADD_TASK,
+  GEARMAN_TASK_KIND_EXECUTE,
+  GEARMAN_TASK_KIND_DO
+};
+
 struct gearman_task_st
 {
   struct {
@@ -87,6 +93,7 @@ struct gearman_task_st
     bool is_running;
     bool was_reduced;
   } options;
+  enum gearman_task_kind_t type;
   enum gearman_task_state_t state;
   uint32_t created_id;
   uint32_t numerator;

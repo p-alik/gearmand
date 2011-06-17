@@ -337,7 +337,7 @@ gearman_return_t _client_run_task(gearman_client_st *client, gearman_task_st *ta
   client->running_tasks--;
   task->state= GEARMAN_TASK_STATE_FINISHED;
 
-  if (client->options.free_tasks)
+  if (client->options.free_tasks and task->type == GEARMAN_TASK_KIND_ADD_TASK)
   {
     gearman_task_free(task);
   }

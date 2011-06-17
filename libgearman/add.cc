@@ -327,6 +327,7 @@ gearman_task_st *add_reducer_task(gearman_client_st *client,
     gearman_task_free(task);
     task= NULL;
   }
+  task->type= GEARMAN_TASK_KIND_EXECUTE;
 
   return task;
 }
