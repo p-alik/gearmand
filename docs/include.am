@@ -172,6 +172,8 @@ man3_MANS+= \
 	    docs/man/gearman_work_epoch_with_map.3 \
 	    docs/man/gearman_work_map.3 \
 	    docs/man/gearman_work_t.3 \
+	    docs/man/gearman_client_options_t.3 \
+	    docs/man/gearman_client_has_option.3 \
 	    docs/man/libgearman.3
 
 if HAVE_SPHINX

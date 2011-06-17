@@ -164,6 +164,10 @@ GEARMAN_API
 void gearman_client_add_options(gearman_client_st *client,
                                 gearman_client_options_t options);
 
+GEARMAN_API
+  bool gearman_client_has_option(gearman_client_st *client,
+                                 gearman_client_options_t option);
+
 /**
  * Remove options for a client structure.
  *

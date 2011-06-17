@@ -10,6 +10,8 @@ SYNOPSIS
 
 #include <libgearman/gearman.h>
 
+.. c:type:: gearman_client_options_t
+
 .. c:function:: gearman_client_options_t gearman_client_options(const gearman_client_st *client)
 
 .. c:function:: void gearman_client_set_options(gearman_client_st *client, gearman_client_options_t options)
@@ -18,6 +20,9 @@ SYNOPSIS
 
 .. c:function:: void gearman_client_remove_options(gearman_client_st *client, gearman_client_options_t options)
 
+.. c:function:: bool gearman_client_has_option(gearman_client_st *client, gearman_client_options_t option)
+
+Link with -lgearman
 
 -----------
 DESCRIPTION
@@ -32,16 +37,16 @@ The currently supported options are:
 
 .. c:type:: GEARMAN_CLIENT_NON_BLOCKING
 
-Enable non-block IO for the client.
-
-.. c:type:: GEARMAN_CLIENT_UNBUFFERED_RESULT
-
-Only grab jobs that have been assigned unique values.
+Run the cient in a non-blocking mode.
 
 .. c:type:: GEARMAN_CLIENT_FREE_TASKS
 
-Free clients after 
+Automatically free task objects once they are complete.
 
+.. c:type:: GEARMAN_CLIENT_UNBUFFERED_RESULT
+
+Allow the client to read data in chunks rather than have the library buffer
+the entire data result and pass that back.
 
 ------------
 RETURN VALUE

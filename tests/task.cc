@@ -62,8 +62,20 @@ test_return_t gearman_client_add_task_test(void *object)
 
   do
   {
-    ret= gearman_client_run_tasks(client);
-    test_true_got(ret == GEARMAN_SUCCESS, gearman_client_error(client));
+
+    // just for async IO
+    do {
+      ret= gearman_client_run_tasks(client);
+    } while (gearman_continue(ret));
+
+    test_compare_got(GEARMAN_SUCCESS, ret, gearman_client_error(client));
+
+    // If the task has been built to be freed, we won't have it to test
+    if (gearman_client_has_option(client, GEARMAN_CLIENT_FREE_TASKS))
+    {
+      return TEST_SUCCESS;
+    }
+
   } while (gearman_task_is_running(task));
 
   gearman_task_free(task);
@@ -83,15 +95,22 @@ test_return_t gearman_client_add_task_test_fail(void *object)
                                                  worker_function, NULL,
                                                  gearman_literal_param("fail"),
                                                  &ret);
-  test_true_got(ret == GEARMAN_SUCCESS, gearman_strerror(ret));
+  test_compare(GEARMAN_SUCCESS,ret);
   test_truth(task);
   test_truth(task->client);
-  do
-  {
+
+  do {
     ret= gearman_client_run_tasks(client);
   } while (gearman_continue(ret));
 
   test_compare_got(GEARMAN_SUCCESS, ret, gearman_client_error(client));
+
+  // If the task has been free() then we can't check anything about it
+  if (gearman_client_has_option(client, GEARMAN_CLIENT_FREE_TASKS))
+  {
+    return TEST_SUCCESS;
+  }
+
   test_truth(task->client);
 
   test_compare_got(GEARMAN_WORK_FAIL, gearman_task_return(task), gearman_task_error(task));
@@ -145,6 +164,11 @@ test_return_t gearman_client_add_task_exception(void *object)
 
   assert(worker_function);
 
+  if (gearman_client_has_option(client, GEARMAN_CLIENT_FREE_TASKS))
+  {
+    return TEST_SKIPPED;
+  }
+
   gearman_return_t ret;
 
   test_truth(gearman_client_set_server_option(client, gearman_literal_param("exceptions")));
@@ -156,14 +180,25 @@ test_return_t gearman_client_add_task_exception(void *object)
                                                  worker_function, NULL,
                                                  gearman_literal_param("exception"),
                                                  &ret);
-  test_true_got(ret == GEARMAN_SUCCESS, gearman_strerror(ret));
+  test_compare_got(GEARMAN_SUCCESS, ret, gearman_strerror(ret));
   test_truth(task);
 
-  ret= gearman_client_run_tasks(client);
-  test_true_got(ret == GEARMAN_SUCCESS, gearman_strerror(ret));
+  do {
+    ret= gearman_client_run_tasks(client);
+  } while (gearman_continue(ret));
+  test_compare_got(GEARMAN_SUCCESS, ret, gearman_client_error(client));
+
   test_truth(exception_success);
 
   gearman_client_set_exception_fn(client, NULL);
+
+  // If the task has been free() then we can't check anything about it
+  if (gearman_client_has_option(client, GEARMAN_CLIENT_FREE_TASKS))
+  {
+    return TEST_SUCCESS;
+  }
+
+  assert(client->task_list);
   gearman_task_free(task);
 
   return TEST_SUCCESS;
@@ -180,15 +215,28 @@ test_return_t gearman_client_add_task_background_test(void *object)
   gearman_task_st *task= gearman_client_add_task_background(client, NULL, NULL,
                                                             worker_function, NULL, "dog", 3,
                                                             &ret);
-  test_true_got(ret == GEARMAN_SUCCESS, gearman_strerror(ret));
+  test_compare_got(GEARMAN_SUCCESS, ret, gearman_strerror(ret));
   test_truth(task);
 
   do
   {
-    ret= gearman_client_run_tasks(client);
-    test_true_got(ret == GEARMAN_SUCCESS, gearman_client_error(client));
+
+    // just for async IO
+    do {
+      ret= gearman_client_run_tasks(client);
+    } while (gearman_continue(ret));
+
+    test_compare_got(GEARMAN_SUCCESS, ret, gearman_client_error(client));
+
+    // If the task has been built to be freed, we won't have it to test
+    if (gearman_client_has_option(client, GEARMAN_CLIENT_FREE_TASKS))
+    {
+      return TEST_SUCCESS;
+    }
+
   } while (gearman_task_is_running(task));
 
+  assert(client->task_list);
   gearman_task_free(task);
 
   return TEST_SUCCESS;
@@ -205,13 +253,23 @@ test_return_t gearman_client_add_task_high_background_test(void *object)
   gearman_task_st *task= gearman_client_add_task_high_background(client, NULL, NULL,
                                                                  worker_function, NULL, "dog", 3,
                                                                  &ret);
-  test_true_got(ret == GEARMAN_SUCCESS, gearman_strerror(ret));
+  test_compare_got(GEARMAN_SUCCESS, ret, gearman_strerror(ret));
   test_truth(task);
 
   do
   {
-    ret= gearman_client_run_tasks(client);
-    test_true_got(ret == GEARMAN_SUCCESS, gearman_client_error(client));
+
+    // just for async IO
+    do {
+      ret= gearman_client_run_tasks(client);
+    } while (gearman_continue(ret));
+    test_compare_got(GEARMAN_SUCCESS, ret, gearman_client_error(client));
+
+    // If the task has been built to be freed, we won't have it to test
+    if (gearman_client_has_option(client, GEARMAN_CLIENT_FREE_TASKS))
+    {
+      return TEST_SUCCESS;
+    }
   } while (gearman_task_is_running(task));
 
   gearman_task_free(task);
@@ -230,16 +288,29 @@ test_return_t gearman_client_add_task_low_background_test(void *object)
   gearman_task_st *task= gearman_client_add_task_high_background(client, NULL, NULL,
                                                                  worker_function, NULL, "dog", 3,
                                                                  &ret);
-  test_true_got(ret == GEARMAN_SUCCESS, gearman_strerror(ret));
+  test_compare_got(GEARMAN_SUCCESS, ret, gearman_strerror(ret));
   test_truth(task);
 
   do
   {
-    ret= gearman_client_run_tasks(client);
-    test_true_got(ret == GEARMAN_SUCCESS, gearman_client_error(client));
+
+    // just for async IO
+    do {
+      ret= gearman_client_run_tasks(client);
+    } while (gearman_continue(ret));
+
+    test_compare_got(GEARMAN_SUCCESS, ret, gearman_client_error(client));
+
+    // If the task has been built to be freed, we won't have it to test
+    if (gearman_client_has_option(client, GEARMAN_CLIENT_FREE_TASKS))
+    {
+      return TEST_SUCCESS;
+    }
+
   } while (gearman_task_is_running(task));
 
-  gearman_task_free(task);
+  if (not gearman_client_has_option(client, GEARMAN_CLIENT_FREE_TASKS))
+    gearman_task_free(task);
 
   return TEST_SUCCESS;
 }
@@ -273,12 +344,13 @@ test_return_t gearman_client_add_task_warning(void *object)
   test_compare_got(GEARMAN_SUCCESS, ret, gearman_strerror(ret));
   test_truth(task);
 
-  ret= gearman_client_run_tasks(client);
-  test_compare_got(GEARMAN_SUCCESS, ret, gearman_strerror(ret));
+  test_compare(GEARMAN_SUCCESS, 
+               gearman_client_run_tasks(client));
   test_truth(warning_success);
 
   gearman_client_set_warning_fn(client, NULL);
-  gearman_task_free(task);
+  if (not gearman_client_has_option(client, GEARMAN_CLIENT_FREE_TASKS))
+    gearman_task_free(task);
 
   return TEST_SUCCESS;
 }
@@ -293,14 +365,14 @@ test_return_t gearman_client_add_task_no_servers(void *)
                                                  "does not exist", NULL,
                                                  gearman_literal_param("dog"),
                                                  &ret);
-  test_true_got(gearman_success(ret), gearman_strerror(ret));
+  test_compare_got(GEARMAN_SUCCESS, ret, gearman_strerror(ret));
   test_truth(task);
 
-  gearman_return_t local_ret= gearman_client_run_tasks(client);
-  test_compare_got(GEARMAN_NO_SERVERS, local_ret, gearman_client_error(client));
+  test_compare(GEARMAN_NO_SERVERS, 
+               gearman_client_run_tasks(client));
 
-  local_ret= gearman_client_run_tasks(client);
-  test_compare_got(GEARMAN_NO_SERVERS, local_ret, gearman_client_error(client));
+  test_compare(GEARMAN_NO_SERVERS, 
+               gearman_client_run_tasks(client));
 
   gearman_client_free(client);
 

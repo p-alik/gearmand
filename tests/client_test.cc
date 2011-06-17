@@ -1008,6 +1008,7 @@ static test_return_t pre_namespace(void *object)
   client_test_st *all= (client_test_st *)object;
 
   gearman_client_set_namespace(all->client(), NAMESPACE_KEY, strlen(NAMESPACE_KEY));
+  assert(not gearman_client_has_option(all->client(), GEARMAN_CLIENT_FREE_TASKS));
 
   return TEST_SUCCESS;
 }
@@ -1027,6 +1028,7 @@ static test_return_t post_function_reset(void *object)
 
   all->set_worker_name(WORKER_FUNCTION_NAME);
   gearman_client_set_namespace(all->client(), 0, 0);
+  assert(not gearman_client_has_option(all->client(), GEARMAN_CLIENT_FREE_TASKS));
 
   return TEST_SUCCESS;
 }
@@ -1243,7 +1245,7 @@ collection_st collection[] ={
   {"gearman_task_add_task()", 0, 0, gearman_task_tests},
   {"gearman_task_add_task() chunky", pre_chunk, post_function_reset, gearman_task_tests},
   {"gearman_task_add_task() namespace", pre_namespace, post_function_reset, gearman_task_tests},
-  {"gearman_task_add_task(GEARMAN_CLIENT_FREE_TASKS)", pre_namespace, post_function_reset, gearman_task_tests},
+  {"gearman_task_add_task(GEARMAN_CLIENT_FREE_TASKS)", pre_free_tasks, post_free_tasks, gearman_task_tests},
   {"unique", pre_unique, post_function_reset, unique_tests},
   {"gearman_client_do()", 0, 0, gearman_client_do_tests},
   {"gearman_client_do() namespace", pre_namespace, post_function_reset, gearman_client_do_tests},
@@ -1290,7 +1292,10 @@ static test_return_t _runner_default(libgearman_test_callback_fn func, client_te
       gearman_client_set_context(client, (void *)container->worker_name());
       rc= func(client);
       if (rc == TEST_SUCCESS)
-        test_truth(not client->task_list);
+      {
+        test_true_got(not client->task_list, "Client still had tasks");
+      }
+
       gearman_client_free(client);
     }
     else

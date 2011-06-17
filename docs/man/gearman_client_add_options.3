@@ -35,23 +35,33 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 #include <libgearman/gearman.h>
 .INDENT 0.0
 .TP
-.B gearman_client_options_t gearman_client_options(const gearman_client_st\fI\ *client\fP)
+.B gearman_client_options_t
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void gearman_client_set_options(gearman_client_st\fI\ *client\fP, gearman_client_options_t\fI\ options\fP)
+.B \fI\%gearman_client_options_t\fP gearman_client_options(const gearman_client_st\fI\ *client\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void gearman_client_add_options(gearman_client_st\fI\ *client\fP, gearman_client_options_t\fI\ options\fP)
+.B void gearman_client_set_options(gearman_client_st\fI\ *client\fP, \fI\%gearman_client_options_t\fP\fI\ options\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void gearman_client_remove_options(gearman_client_st\fI\ *client\fP, gearman_client_options_t\fI\ options\fP)
+.B void gearman_client_add_options(gearman_client_st\fI\ *client\fP, \fI\%gearman_client_options_t\fP\fI\ options\fP)
 .UNINDENT
+.INDENT 0.0
+.TP
+.B void gearman_client_remove_options(gearman_client_st\fI\ *client\fP, \fI\%gearman_client_options_t\fP\fI\ options\fP)
+.UNINDENT
+.INDENT 0.0
+.TP
+.B bool gearman_client_has_option(gearman_client_st\fI\ *client\fP, \fI\%gearman_client_options_t\fP\fI\ option\fP)
+.UNINDENT
+.sp
+Link with \-lgearman
 .SH DESCRIPTION
 .sp
-\fI\%gearman_client_options()\fP returns the \fBgearman_client_options_t\fP for \fBgearman_client_st\fP. You enable options via \fI\%gearman_client_add_options()\fP and disable options via \fI\%gearman_client_remove_options()\fP.
+\fI\%gearman_client_options()\fP returns the \fI\%gearman_client_options_t\fP for \fBgearman_client_st\fP. You enable options via \fI\%gearman_client_add_options()\fP and disable options via \fI\%gearman_client_remove_options()\fP.
 .sp
 \fI\%gearman_client_set_options()\fP has been DEPRECATED.
 .sp
@@ -61,19 +71,20 @@ The currently supported options are:
 .B GEARMAN_CLIENT_NON_BLOCKING
 .UNINDENT
 .sp
-Enable non\-block IO for the client.
-.INDENT 0.0
-.TP
-.B GEARMAN_CLIENT_UNBUFFERED_RESULT
-.UNINDENT
-.sp
-Only grab jobs that have been assigned unique values.
+Run the cient in a non\-blocking mode.
 .INDENT 0.0
 .TP
 .B GEARMAN_CLIENT_FREE_TASKS
 .UNINDENT
 .sp
-Free clients after
+Automatically free task objects once they are complete.
+.INDENT 0.0
+.TP
+.B GEARMAN_CLIENT_UNBUFFERED_RESULT
+.UNINDENT
+.sp
+Allow the client to read data in chunks rather than have the library buffer
+the entire data result and pass that back.
 .SH RETURN VALUE
 .sp
 Various
