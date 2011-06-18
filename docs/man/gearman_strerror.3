@@ -61,7 +61,8 @@ Compile and link with \-lgearman
 \fI\%GEARMAN_SUCCESS\fP is returned upon success, otherwise an error is returned. \fI\%gearman_failed()\fP can be used to see if the return value is a failing value.
 You can print a text version of the error message with \fI\%gearman_strerror()\fP.
 .sp
-\fI\%gearman_success()\fP return true if \fI\%GEARMAN_SUCCESS\fP tested true.
+\fI\%gearman_success()\fP return true if \fI\%GEARMAN_SUCCESS\fP or if
+\fI\%GEARMAN_NO_PENDING_TASKS\fP tests true.
 .sp
 \fI\%gearman_failed()\fP return true if any value other then \fI\%GEARMAN_SUCCESS\fP was provided.
 .sp
@@ -75,6 +76,12 @@ Possible values of \fI\%gearman_return_t\fP:
 .UNINDENT
 .sp
 Success
+.INDENT 0.0
+.TP
+.B GEARMAN_NO_PENDING_TASKS
+.UNINDENT
+.sp
+\fBgearman_client_run_tasks()\fP was called and it has completed all tasks assigned to the client.
 .INDENT 0.0
 .TP
 .B GEARMAN_IO_WAIT
@@ -180,7 +187,11 @@ Argument was too large for the current buffer.
 .B GEARMAN_INVALID_ARGUMENT
 .UNINDENT
 .sp
-One of the arguments to the given API call was invalid. EINVAL will be set if \fBgearman_client_error()\fP or \fBgearman_worker_error()\fP were not settable.
+One of the arguments to the given API call was invalid. EINVAL will be set
+if \fBgearman_client_error()\fP or \fBgearman_worker_error()\fP were
+not settable. This can also be returned if
+\fBGEARMAN_CLIENT_UNBUFFERED_RESULT\fP was set, but the client is not
+handling the data correctly.
 .SS CLIENT ONLY
 .INDENT 0.0
 .TP

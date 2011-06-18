@@ -63,12 +63,8 @@ rpm: man distcheck
 	@cp ~/rpmbuild/SRPMS/gearmand-$(VERSION)*.rpm .
 
 release: rpm
-	@rpm --addsign gearmand-$(VERSION)*.rpm .
-	@rpm --checksig gearmand-$(VERSION)*.rpm .
-	@rpm --addsign gearmand-devel-$(VERSION)*.rpm .
-	@rpm --checksig gearmand-devel-$(VERSION)*.rpm .
-	@rpm --addsign gearmand-debuginfo-$(VERSION)*.rpm .
-	@rpm --checksig gearmand-debuginfo-$(VERSION)*.rpm .
+	@rpm --addsign gearmand-$(VERSION)*.rpm gearmand-devel-$(VERSION)*.rpm gearmand-debuginfo-$(VERSION)*.rpm
+	@rpm --checksig gearmand-$(VERSION)*.rpm gearmand-devel-$(VERSION)*.rpm gearmand-debuginfo-$(VERSION)*.rpm
 
 merge-clean:
 	@find ./ | $(GREP) \.moved | xargs rm -r -f

@@ -9,8 +9,9 @@ SYNOPSIS
 
 #include <libgearman/gearman.h>
 
-.. c:function:: gearman_worker_options_t gearman_worker_options(const gearman_worker_st *worker)
+.. c:type: gearman_worker_options_t
 
+.. c:function:: gearman_worker_options_t gearman_worker_options(const gearman_worker_st *worker)
 
 .. c:function:: void gearman_worker_add_options(gearman_worker_st *worker, gearman_worker_options_t options)
 
@@ -32,7 +33,6 @@ DESCRIPTION
 The currently supported options are:
 
 .. c:type: GEARMAN_WORKER_NON_BLOCKING
-  :option: deprecated
 
 Enable non-block IO for the worker.
 

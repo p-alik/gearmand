@@ -54,12 +54,15 @@ struct gearman_actions_t
 #ifdef __cplusplus // Local only
 
 GEARMAN_LOCAL
-gearman_actions_t &gearman_actions_default(void);
+gearman_actions_t &gearman_actions_default();
 
 GEARMAN_LOCAL
-gearman_actions_t &gearman_actions_do_default(void);
+gearman_actions_t &gearman_actions_do_default();
 
 GEARMAN_LOCAL
-gearman_actions_t &gearman_actions_execute_defaults(void);
+gearman_actions_t &gearman_actions_execute_defaults();
+
+GEARMAN_API
+gearman_actions_t &gearman_actions_pause();
 
 #endif

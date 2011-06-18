@@ -78,6 +78,9 @@ gearman_task_st *gearman_task_internal_create(gearman_client_st *client, gearman
   task->options.is_known= false;
   task->options.is_running= false;
   task->options.was_reduced= false;
+  task->options.is_paused= false;
+
+  task->type= GEARMAN_TASK_KIND_ADD_TASK;
 
   task->state= GEARMAN_TASK_STATE_NEW;
   task->created_id= 0;

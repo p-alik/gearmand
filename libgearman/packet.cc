@@ -262,6 +262,7 @@ void gearman_packet_free(gearman_packet_st *packet)
     }
   }
 
+  assert(packet->universal);
   if (not (packet->universal->options.dont_track_packets))
   {
     if (packet->universal->packet_list == packet)

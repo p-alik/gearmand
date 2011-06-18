@@ -41,10 +41,22 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 Link with \-lgearman
 .SH DESCRIPTION
 .sp
-\fBgearman_client_run_tasks()\fP executes all tasks that have been added via \fBgearman_client_add_task()\fP, \fBgearman_client_add_task_status()\fP or \fBgearman_client_add_task_background()\fP.
+\fBgearman_client_run_tasks()\fP executes one or more tasks that have
+been added via \fBgearman_client_add_task()\fP,
+\fBgearman_client_add_task_status()\fP or
+\fBgearman_client_add_task_background()\fP.
+.sp
+\fBgearman_client_run_tasks()\fP can also be used with
+\fBgearman_execute()\fP if either non\-blocking or background tasks were
+created with it.
 .SH RETURN VALUE
 .sp
 \fBgearman_return_t\fP
+.sp
+If \fBGEARMAN_PAUSE\fP is returned one of the tasks has "paused" in
+order to give the caller an opportunity to take some actions (like read
+data, handle an exception, etc...). See \fBgearman_task_st\fP for more
+information about the state of a task.
 .SH HOME
 .sp
 To find out more information please check:

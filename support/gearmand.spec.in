@@ -121,7 +121,9 @@ you will need to install %{name}-devel.
 %{_mandir}/man3/gearman_client_error.3.gz
 %{_mandir}/man3/gearman_client_free.3.gz
 %{_mandir}/man3/gearman_client_job_status.3.gz
+%{_mandir}/man3/gearman_client_has_option.3 \
 %{_mandir}/man3/gearman_client_options.3.gz
+%{_mandir}/man3/gearman_client_options_t.3 \
 %{_mandir}/man3/gearman_client_remove_options.3.gz
 %{_mandir}/man3/gearman_client_remove_servers.3.gz
 %{_mandir}/man3/gearman_client_run_tasks.3.gz
@@ -221,6 +223,7 @@ you will need to install %{name}-devel.
 %{_mandir}/man3/gearman_worker_free.3.gz
 %{_mandir}/man3/gearman_worker_function_exist.3.gz
 %{_mandir}/man3/gearman_worker_grab_job.3.gz
+%{_mandir}/man3/gearman_worker_options_t.3.gz
 %{_mandir}/man3/gearman_worker_options.3.gz
 %{_mandir}/man3/gearman_worker_register.3.gz
 %{_mandir}/man3/gearman_worker_remove_options.3.gz

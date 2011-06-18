@@ -68,6 +68,21 @@ struct gearman_result_st
     return _is_null;
   }
 
+  void clear()
+  {
+    if (type == GEARMAN_RESULT_BINARY)
+    {
+      gearman_string_free(&value.string);
+    }
+    else if (type == GEARMAN_RESULT_INTEGER)
+    {
+      value.integer= 0;
+    }
+
+    type= GEARMAN_RESULT_BOOLEAN;
+    _is_null= true;
+  }
+
   gearman_vector_st *string()
   {
     if (type == GEARMAN_RESULT_BINARY)

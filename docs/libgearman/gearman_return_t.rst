@@ -28,7 +28,8 @@ DESCRIPTION
 :c:type:`GEARMAN_SUCCESS` is returned upon success, otherwise an error is returned. :c:func:`gearman_failed()` can be used to see if the return value is a failing value.
 You can print a text version of the error message with :c:func:`gearman_strerror()`.
 
-:c:func:`gearman_success()` return true if :c:type:`GEARMAN_SUCCESS` tested true.
+:c:func:`gearman_success()` return true if :c:type:`GEARMAN_SUCCESS` or if
+:c:type:`GEARMAN_NO_PENDING_TASKS` tests true.
 
 :c:func:`gearman_failed()` return true if any value other then :c:type:`GEARMAN_SUCCESS` was provided.
 
@@ -40,6 +41,10 @@ Possible values of :c:type:`gearman_return_t`:
 .. c:type:: GEARMAN_SUCCESS
 
 Success
+
+.. c:type:: GEARMAN_NO_PENDING_TASKS
+
+:c:func:`gearman_client_run_tasks()` was called and it has completed all tasks assigned to the client.
 
 .. c:type:: GEARMAN_IO_WAIT 
 
@@ -111,7 +116,11 @@ Argument was too large for the current buffer.
 
 .. c:type:: GEARMAN_INVALID_ARGUMENT 
 
-One of the arguments to the given API call was invalid. EINVAL will be set if :c:func:`gearman_client_error()` or :c:func:`gearman_worker_error()` were not settable.
+One of the arguments to the given API call was invalid. EINVAL will be set
+if :c:func:`gearman_client_error()` or :c:func:`gearman_worker_error()` were
+not settable. This can also be returned if
+:c:type:`GEARMAN_CLIENT_UNBUFFERED_RESULT` was set, but the client is not
+handling the data correctly.
 
 
 ***********
