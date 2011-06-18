@@ -1237,6 +1237,11 @@ test_st gearman_task_tests[] ={
   {0, 0, 0}
 };
 
+test_st gearman_task_pause_tests[] ={
+  {"gearman_client_add_task(GEARMAN_PAUSE)", 0, gearman_client_add_task_pause_test},
+  {0, 0, 0}
+};
+
 
 collection_st collection[] ={
   {"gearman_client_st", 0, 0, tests},
@@ -1246,6 +1251,7 @@ collection_st collection[] ={
   {"gearman_task_add_task() chunky", pre_chunk, post_function_reset, gearman_task_tests},
   {"gearman_task_add_task() namespace", pre_namespace, post_function_reset, gearman_task_tests},
   {"gearman_task_add_task(GEARMAN_CLIENT_FREE_TASKS)", pre_free_tasks, post_free_tasks, gearman_task_tests},
+  {"gearman_task_add_task(GEARMAN_PAUSE)", pre_chunk, post_function_reset, gearman_task_pause_tests},
   {"unique", pre_unique, post_function_reset, unique_tests},
   {"gearman_client_do()", 0, 0, gearman_client_do_tests},
   {"gearman_client_do() namespace", pre_namespace, post_function_reset, gearman_client_do_tests},

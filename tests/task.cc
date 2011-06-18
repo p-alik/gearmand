@@ -378,3 +378,48 @@ test_return_t gearman_client_add_task_no_servers(void *)
 
   return TEST_SUCCESS;
 }
+
+test_return_t gearman_client_add_task_pause_test(void *object)
+{
+  gearman_client_st *client= (gearman_client_st *)object;
+  const char *worker_function= (const char *)gearman_client_context(client);
+
+  assert(worker_function);
+  // Don't do this.
+  gearman_actions_t pause_actions= gearman_actions_pause();
+  client->actions= pause_actions;
+
+  gearman_return_t ret;
+  gearman_task_st *task= gearman_client_add_task(client, NULL, NULL,
+                                                 worker_function, NULL, "dog", 3,
+                                                 &ret);
+  test_true(client->actions.data_fn == pause_actions.data_fn);
+  test_true_got(gearman_success(ret), gearman_strerror(ret));
+  test_truth(task);
+
+  do
+  {
+    // just for async IO
+    uint32_t count= 0;
+    do {
+      count++;
+      test_true(client->actions.data_fn == pause_actions.data_fn);
+      ret= gearman_client_run_tasks(client);
+      test_true(client->actions.data_fn == pause_actions.data_fn);
+    } while (gearman_continue(ret));
+
+    test_compare_got(GEARMAN_SUCCESS, ret, gearman_client_error(client));
+    test_true(count > 1);
+
+    // If the task has been built to be freed, we won't have it to test
+    if (gearman_client_has_option(client, GEARMAN_CLIENT_FREE_TASKS))
+    {
+      return TEST_SUCCESS;
+    }
+
+  } while (gearman_task_is_running(task));
+
+  gearman_task_free(task);
+
+  return TEST_SUCCESS;
+}

@@ -39,10 +39,84 @@
 
 #include <libgearman/common.h>
 #include <libgearman/unique.h>
+#include <libgearman/result.hpp>
 #include <cassert>
 #include <memory>
+#include <iostream>
 
 struct gearman_result_st;
+
+static gearman_return_t _client_pause_data(gearman_task_st *task)
+{
+  if (task->options.is_paused)
+  {
+    task->options.is_paused= false;
+    return GEARMAN_SUCCESS;
+  }
+
+  if (gearman_task_data_size(task))
+  {
+    if (not task->result_ptr)
+    {
+      task->result_ptr= new (std::nothrow) gearman_result_st(gearman_task_data_size(task));
+    }
+    else
+    {
+      task->result_ptr->clear();
+    }
+    assert(task->result_ptr);
+
+    gearman_string_append(gearman_task_mutable_result(task)->string(), static_cast<const char*>(gearman_task_data(task)), gearman_task_data_size(task));
+  }
+
+  if (task->recv->command == GEARMAN_COMMAND_WORK_DATA)
+  { }
+  else if (task->recv->command == GEARMAN_COMMAND_WORK_WARNING)
+  { }
+  else if (task->recv->command == GEARMAN_COMMAND_WORK_EXCEPTION)
+  { }
+  else // GEARMAN_COMMAND_WORK_COMPLETE
+  {
+    return GEARMAN_SUCCESS;
+  }
+
+  task->options.is_paused= true;
+
+  return GEARMAN_PAUSE;
+}
+
+static gearman_return_t _client_pause_complete(gearman_task_st *task)
+{
+  return _client_pause_data(task);
+}
+
+
+static gearman_return_t _client_pause_status(gearman_task_st *task)
+{
+  assert(task->recv->command == GEARMAN_COMMAND_WORK_STATUS ||
+         task->recv->command == GEARMAN_COMMAND_STATUS_RES);
+  if (task->options.is_paused)
+  {
+    task->options.is_paused= false;
+    return GEARMAN_SUCCESS;
+  }
+  task->options.is_paused= true;
+
+  return GEARMAN_PAUSE;
+}
+
+static gearman_return_t _client_pause_fail(gearman_task_st *task)
+{
+  assert(task->recv->command == GEARMAN_COMMAND_WORK_FAIL);
+  if (task->options.is_paused)
+  {
+    task->options.is_paused= false;
+    return GEARMAN_SUCCESS;
+  }
+  task->options.is_paused= true;
+
+  return GEARMAN_PAUSE;
+}
 
 static gearman_return_t _client_do_data(gearman_task_st *task)
 {
@@ -92,6 +166,19 @@ gearman_actions_t &gearman_actions_do_default(void)
 gearman_actions_t &gearman_actions_execute_defaults(void)
 {
   static gearman_actions_t default_actions= { 0, 0, _client_do_data, 0, 0, _client_do_complete, 0, 0 };
+
+  return default_actions;
+}
+
+gearman_actions_t &gearman_actions_pause(void)
+{
+  static gearman_actions_t default_actions= { 0, 0, 
+    _client_pause_data,  // gearman_data_fn
+    _client_pause_data,  // gearman_warning_fn
+    _client_pause_status,  // gearman_universal_status_fn
+    _client_pause_complete, // gearman_complete_fn 
+    _client_pause_data, // gearman_exception_fn
+    _client_pause_fail }; // gearman_fail_fn
 
   return default_actions;
 }

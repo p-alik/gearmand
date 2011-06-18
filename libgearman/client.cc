@@ -917,7 +917,7 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
 
   case GEARMAN_CLIENT_STATE_SUBMIT:
             gearman_return_t local_ret= _client_run_task(client, client->task);
-            if (gearman_failed(local_ret) and local_ret == GEARMAN_COULD_NOT_CONNECT)
+            if (local_ret == GEARMAN_COULD_NOT_CONNECT)
             {
               client->state= GEARMAN_CLIENT_STATE_IDLE;
               return local_ret;
@@ -959,7 +959,6 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
               */
               return gearman_universal_set_error(client->universal, GEARMAN_INVALID_ARGUMENT, AT,
                                                  "client created with GEARMAN_CLIENT_UNBUFFERED_RESULT, but was not setup to use it. %s", __func__);
-              assert(client->task);
             }
             else
             {
@@ -1046,6 +1045,7 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
   case GEARMAN_CLIENT_STATE_PACKET:
           /* Let task process job created or result packet. */
           gearman_return_t local_ret= _client_run_task(client, client->task);
+
           if (local_ret == GEARMAN_IO_WAIT)
             break;
 
@@ -1120,13 +1120,9 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
 
   _pop_non_blocking(client);
 
-  if (gearman_failed(rc))
+  if (rc == GEARMAN_COULD_NOT_CONNECT)
   {
-    if (rc == GEARMAN_COULD_NOT_CONNECT)
-    {
-      gearman_reset(client->universal);
-    }
-    assert(gearman_universal_error_code(client->universal) == rc);
+    gearman_reset(client->universal);
   }
 
   return rc;

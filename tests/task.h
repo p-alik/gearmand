@@ -38,11 +38,12 @@
 #pragma once
 
 test_return_t gearman_client_add_task_test(void *);
-test_return_t gearman_client_add_task_test_fail(void *object);
-test_return_t gearman_client_add_task_test_bad_workload(void *object);
-test_return_t gearman_client_add_task_background_test(void *object);
-test_return_t gearman_client_add_task_high_background_test(void *object);
-test_return_t gearman_client_add_task_low_background_test(void *object);
-test_return_t gearman_client_add_task_exception(void *object);
-test_return_t gearman_client_add_task_warning(void *object);
+test_return_t gearman_client_add_task_test_fail(void *);
+test_return_t gearman_client_add_task_test_bad_workload(void *);
+test_return_t gearman_client_add_task_background_test(void *);
+test_return_t gearman_client_add_task_high_background_test(void *);
+test_return_t gearman_client_add_task_low_background_test(void *);
+test_return_t gearman_client_add_task_exception(void *);
+test_return_t gearman_client_add_task_warning(void *);
 test_return_t gearman_client_add_task_no_servers(void *);
+test_return_t gearman_client_add_task_pause_test(void *);
