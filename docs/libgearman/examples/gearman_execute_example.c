@@ -23,7 +23,7 @@ int main(void)
                                          "reverse", strlen("reverse"),  // function
                                          NULL, 0,  // no unique value provided
                                          NULL, 
-                                         &value);
+                                         &value, 0);
 
   if (task == NULL) // If gearman_execute() can return NULL on error
   {

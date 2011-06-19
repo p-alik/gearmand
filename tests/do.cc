@@ -76,9 +76,9 @@ test_return_t gearman_client_do_with_active_background_task(void *object)
   
   gearman_task_st *epoch_task;
   { // Start up epoch_task
-    gearman_work_t work_description= gearman_work_epoch(time(NULL) +5, GEARMAN_JOB_PRIORITY_NORMAL);
+    gearman_task_attr_t work_description= gearman_task_attr_init_epoch(time(NULL) +5, GEARMAN_JOB_PRIORITY_NORMAL);
     gearman_argument_t value= gearman_argument_make(0, 0, gearman_literal_param("test load"));
-    test_true_got(epoch_task= gearman_execute(client, gearman_c_str_param(worker_function), NULL, 0, &work_description, &value), gearman_client_error(client));
+    test_true_got(epoch_task= gearman_execute(client, gearman_c_str_param(worker_function), NULL, 0, &work_description, &value, 0), gearman_client_error(client));
     test_truth(epoch_task);
     test_truth(gearman_task_job_handle(epoch_task));
   }

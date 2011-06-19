@@ -65,7 +65,7 @@
 
 // Everything above this line must be in the order specified.
 #include <libgearman/argument.h>
-#include <libgearman/work.h>
+#include <libgearman/task_attr.h>
 #include <libgearman/core.h>
 #include <libgearman/task.h>
 #include <libgearman/job.h>

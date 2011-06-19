@@ -153,7 +153,7 @@ typedef struct gearman_task_st gearman_task_st;
 typedef struct gearman_client_st gearman_client_st;
 typedef struct gearman_job_st gearman_job_st;
 typedef struct gearman_worker_st gearman_worker_st;
-typedef struct gearman_work_t gearman_work_t;
+typedef struct gearman_task_attr_t gearman_task_attr_t;
 typedef struct gearman_result_st gearman_result_st;
 typedef struct gearman_string_t gearman_string_t;
 typedef struct gearman_argument_t gearman_argument_t;

@@ -15,7 +15,7 @@ noinst_HEADERS+= \
 		 tests/do_background.h \
 		 tests/execute.h \
 		 tests/gearman_client_do_job_handle.h \
-		 tests/gearman_execute_map_reduce.h \
+		 tests/gearman_execute_partition.h \
 		 tests/protocol.h \
 		 tests/server_options.h \
 		 tests/task.h \
@@ -47,7 +47,7 @@ tests_client_test_SOURCES= \
 			   tests/do_background.cc \
 			   tests/execute.cc \
 			   tests/gearman_client_do_job_handle.cc \
-			   tests/gearman_execute_map_reduce.cc \
+			   tests/gearman_execute_partition.cc \
 			   tests/protocol.cc \
 			   tests/server_options.cc \
 			   tests/task.cc \

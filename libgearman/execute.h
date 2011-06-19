@@ -45,8 +45,18 @@ GEARMAN_API
 gearman_task_st *gearman_execute(gearman_client_st *client,
                                  const char *function_name, size_t function_name_length,
                                  const char *unique, size_t unique_length,
-                                 gearman_work_t *workload,
-                                 gearman_argument_t *arguments);
+                                 gearman_task_attr_t *workload,
+                                 gearman_argument_t *arguments,
+                                 void *context);
+
+GEARMAN_API
+gearman_task_st *gearman_execute_by_partition(gearman_client_st *client,
+                                              const char *partition_function, const size_t partition_function_length,
+                                              const char *function_name, const size_t function_name_length,
+                                              const char *unique_str, const size_t unique_length,
+                                              gearman_task_attr_t *workload,
+                                              gearman_argument_t *arguments,
+                                              void *context);
 
 #ifdef __cplusplus
 }

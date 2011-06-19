@@ -37,11 +37,11 @@ nobase_include_HEADERS+= \
 			 libgearman/strerror.h \
 			 libgearman/string.h \
 			 libgearman/task.h \
+			 libgearman/task_attr.h \
 			 libgearman/universal.h \
 			 libgearman/version.h \
 			 libgearman/visibility.h \
-			 libgearman/worker.h \
-			 libgearman/work.h
+			 libgearman/worker.h
 
 noinst_HEADERS+= \
 		 libgearman/add.hpp \
@@ -100,11 +100,11 @@ libgearman_libgearman_la_SOURCES= \
 				  libgearman/strerror.cc \
 				  libgearman/string.cc \
 				  libgearman/task.cc \
+				  libgearman/task_attr.cc \
 				  libgearman/unique.cc \
 				  libgearman/universal.cc \
 				  libgearman/vector.cc \
-				  libgearman/worker.cc \
-				  libgearman/work.cc
+				  libgearman/worker.cc
 
 libgearman_libgearman_la_DEPENDENCIES=
 

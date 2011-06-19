@@ -125,7 +125,7 @@ Structures
    libgearman/gearman_argument_t 
    libgearman/gearman_string_t 
    libgearman/gearman_result_t 
-   libgearman/gearman_work_t
+   libgearman/gearman_task_attr_t
 
 
 *****

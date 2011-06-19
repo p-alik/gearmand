@@ -35,76 +35,57 @@
  *
  */
 
-#pragma once
+#include <libgearman/common.h>
 
-#ifdef __cplusplus
-#include <ctime>
-#else
-#include <time.h>
-#endif
+#include <cassert>
+#include <cstring>
+#include <memory>
 
-enum gearman_work_kind_t {
-  GEARMAN_WORK_KIND_FOREGROUND,
-  GEARMAN_WORK_KIND_BACKGROUND,
-  GEARMAN_WORK_KIND_EPOCH
-};
+gearman_task_attr_t gearman_task_attr_init(gearman_job_priority_t priority)
+{
+  gearman_task_attr_t local= { GEARMAN_TASK_ATTR_FOREGROUND, priority, {{0}}};
 
-struct gearman_work_epoch_t {
-  time_t value;
-};
-
-struct gearman_work_t {
-  enum gearman_work_kind_t kind;
-  gearman_job_priority_t priority;
-  union {
-    char bytes[sizeof(struct gearman_work_epoch_t)];
-    struct gearman_work_epoch_t epoch;
-  } options;
-  gearman_string_t map;
-  void *context;
-};
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#define  gearman_next(X) (X) ? (X)->next : NULL
-
-GEARMAN_API
-  gearman_work_t gearman_work(gearman_job_priority_t priority);
-
-GEARMAN_API
-  gearman_work_t gearman_work_epoch(time_t epoch, gearman_job_priority_t priority);
-
-GEARMAN_API
-  gearman_work_t gearman_work_background(gearman_job_priority_t priority);
-
-GEARMAN_API
-  gearman_work_t gearman_work_map(const char *name, size_t name_length, gearman_job_priority_t priority);
-
-GEARMAN_API
-  gearman_work_t gearman_work_epoch_with_map(time_t epoch, gearman_job_priority_t priority, const char *name, size_t name_length);
-
-GEARMAN_API
-  gearman_work_t gearman_work_background_with_map(gearman_job_priority_t priority, const char *name, size_t name_length);
-
-GEARMAN_API
-  void gearman_work_set_context(gearman_work_t *, void *);
-
-// Everything below here is private
-
-GEARMAN_LOCAL
-time_t gearman_work_has_epoch(const gearman_work_t *);
-
-GEARMAN_LOCAL
-gearman_job_priority_t gearman_work_priority(const gearman_work_t *);
-
-GEARMAN_LOCAL
-bool gearman_work_is_background(const gearman_work_t *);
-
-GEARMAN_LOCAL
-bool gearman_work_has_map(const gearman_work_t *);
-
-#ifdef __cplusplus
+  return local;
 }
-#endif
+
+gearman_task_attr_t gearman_task_attr_init_background(gearman_job_priority_t priority)
+{
+  gearman_task_attr_t local= { GEARMAN_TASK_ATTR_BACKGROUND, priority, {{0}}};
+
+  return local;
+}
+
+gearman_task_attr_t gearman_task_attr_init_epoch(time_t epoch, gearman_job_priority_t priority)
+{
+  gearman_task_attr_t local= { GEARMAN_TASK_ATTR_BACKGROUND, priority, {{0}}};
+  local.options.epoch.value= epoch;
+
+  return local;
+}
+
+time_t gearman_task_attr_has_epoch(const gearman_task_attr_t *self)
+{
+  if (not self)
+    return 0;
+
+  if (self->kind == GEARMAN_TASK_ATTR_BACKGROUND)
+    return self->options.epoch.value;
+
+  return 0;
+}
+
+gearman_job_priority_t gearman_task_attr_priority(const gearman_task_attr_t *self)
+{
+  if (not self)
+    return GEARMAN_JOB_PRIORITY_NORMAL;
+
+  return self->priority;
+}
+
+bool gearman_task_attr_is_background(const gearman_task_attr_t *self)
+{
+  if (not self)
+    return false;
+
+  return (self->kind == GEARMAN_TASK_ATTR_BACKGROUND or self->kind == GEARMAN_TASK_ATTR_EPOCH);
+}

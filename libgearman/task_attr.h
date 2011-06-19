@@ -37,8 +37,57 @@
 
 #pragma once
 
-test_return_t gearman_execute_map_reduce_check_parameters(void *);
-test_return_t gearman_execute_map_reduce_basic(void *);
-test_return_t gearman_execute_map_reduce_fail_in_reduction(void *);
-test_return_t gearman_execute_map_reduce_workfail(void *);
-test_return_t gearman_execute_map_reduce_use_as_function(void *);
+#ifdef __cplusplus
+#include <ctime>
+#else
+#include <time.h>
+#endif
+
+enum gearman_task_attr_kind_t {
+  GEARMAN_TASK_ATTR_FOREGROUND,
+  GEARMAN_TASK_ATTR_BACKGROUND,
+  GEARMAN_TASK_ATTR_EPOCH
+};
+
+struct gearman_task_attr_epoch_t {
+  time_t value;
+};
+
+struct gearman_task_attr_t {
+  enum gearman_task_attr_kind_t kind;
+  gearman_job_priority_t priority;
+  union {
+    char bytes[sizeof(struct gearman_task_attr_epoch_t)];
+    struct gearman_task_attr_epoch_t epoch;
+  } options;
+};
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define  gearman_next(X) (X) ? (X)->next : NULL
+
+GEARMAN_API
+  gearman_task_attr_t gearman_task_attr_init(gearman_job_priority_t priority);
+
+GEARMAN_API
+  gearman_task_attr_t gearman_task_attr_init_epoch(time_t epoch, gearman_job_priority_t priority);
+
+GEARMAN_API
+  gearman_task_attr_t gearman_task_attr_init_background(gearman_job_priority_t priority);
+
+// Everything below here is private
+
+GEARMAN_LOCAL
+time_t gearman_task_attr_has_epoch(const gearman_task_attr_t *);
+
+GEARMAN_LOCAL
+gearman_job_priority_t gearman_task_attr_priority(const gearman_task_attr_t *);
+
+GEARMAN_LOCAL
+bool gearman_task_attr_is_background(const gearman_task_attr_t *);
+
+#ifdef __cplusplus
+}
+#endif

@@ -69,7 +69,7 @@
 #include <tests/do_background.h>
 #include <tests/execute.h>
 #include <tests/gearman_client_do_job_handle.h>
-#include <tests/gearman_execute_map_reduce.h>
+#include <tests/gearman_execute_partition.h>
 #include <tests/protocol.h>
 #include <tests/task.h>
 #include <tests/unique.h>
@@ -1209,12 +1209,12 @@ test_st gearman_client_do_job_handle_tests[] ={
   {0, 0, 0}
 };
 
-test_st gearman_execute_map_reduce_tests[] ={
-  {"gearman_execute() map reduce", 0, gearman_execute_map_reduce_basic },
-  {"gearman_execute(GEARMAN_ARGUMENT_TOO_LARGE) map reduce", 0, gearman_execute_map_reduce_check_parameters },
-  {"gearman_execute(GEARMAN_WORK_FAIL) map reduce", 0, gearman_execute_map_reduce_workfail },
-  {"gearman_execute() fail in reduction", 0, gearman_execute_map_reduce_fail_in_reduction },
-  {"gearman_execute() with mapper function", 0, gearman_execute_map_reduce_use_as_function },
+test_st gearman_execute_partition_tests[] ={
+  {"gearman_execute() map reduce", 0, gearman_execute_partition_basic },
+  {"gearman_execute(GEARMAN_ARGUMENT_TOO_LARGE) map reduce", 0, gearman_execute_partition_check_parameters },
+  {"gearman_execute(GEARMAN_WORK_FAIL) map reduce", 0, gearman_execute_partition_workfail },
+  {"gearman_execute() fail in reduction", 0, gearman_execute_partition_fail_in_reduction },
+  {"gearman_execute() with mapper function", 0, gearman_execute_partition_use_as_function },
   {0, 0, 0}
 };
 
@@ -1265,8 +1265,8 @@ collection_st collection[] ={
   {"gearman_execute()", 0, 0, gearman_execute_tests},
   {"gearman_execute(GEARMAN_CLIENT_FREE_TASKS)", pre_free_tasks, post_free_tasks, gearman_execute_tests},
   {"gearman_execute() chunked return", pre_chunk, post_function_reset, gearman_execute_tests},
-  {"gearman_execute_map_reduce()", 0, 0, gearman_execute_map_reduce_tests},
-  {"gearman_execute_map_reduce(GEARMAN_CLIENT_FREE_TASKS)", pre_free_tasks, post_free_tasks, gearman_execute_map_reduce_tests},
+  {"gearman_execute_partition()", 0, 0, gearman_execute_partition_tests},
+  {"gearman_execute_partition(GEARMAN_CLIENT_FREE_TASKS)", pre_free_tasks, post_free_tasks, gearman_execute_partition_tests},
   {"gearman_command_t", 0, 0, gearman_command_t_tests},
   {"regression_tests", 0, 0, regression_tests},
   {"client-logging", pre_logging, post_logging, tests_log},

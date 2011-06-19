@@ -55,12 +55,12 @@ gearman_function_t gearman_function_create(gearman_function_fn func)
   return _function;
 }
 
-gearman_function_t gearman_function_create_mapper(gearman_function_fn func,
-                                                  gearman_aggregator_fn aggregator)
+gearman_function_t gearman_function_create_partition(gearman_function_fn func,
+                                                     gearman_aggregator_fn aggregator)
 {
-  gearman_function_t _function= { GEARMAN_WORKER_MAPPER, { { 0 } } };
+  gearman_function_t _function= { GEARMAN_WORKER_FUNCTION_PARTITION, { { 0 } } };
 
-  _function.callback.mapper.func= func;
-  _function.callback.mapper.aggregator= aggregator;
+  _function.callback.partitioner.func= func;
+  _function.callback.partitioner.aggregator= aggregator;
   return _function;
 }

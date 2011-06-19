@@ -19,7 +19,7 @@ gearman_execute() with reducer function
 In this example we call the function count and tell it to map values using
 word_split.
 
-.. literalinclude:: examples/gearman_execute_map_reduce.c
+.. literalinclude:: examples/gearman_execute_partition.c
   :language: c
 
 

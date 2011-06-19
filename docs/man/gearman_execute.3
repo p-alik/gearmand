@@ -1,4 +1,4 @@
-.TH "GEARMAN_EXECUTE" "3" "June 17, 2011" "0.22" "Gearmand"
+.TH "GEARMAN_EXECUTE" "3" "June 18, 2011" "0.22" "Gearmand"
 .SH NAME
 gearman_execute \- Gearmand Documentation, http://gearman.info/
 .
@@ -35,7 +35,11 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 #include <libgearman/gearman.h>
 .INDENT 0.0
 .TP
-.B gearman_task_st *gearman_execute(gearman_client_st\fI\ *client\fP, const char\fI\ *function_name\fP, size_t\fI\ function_name_length\fP, const char\fI\ *unique_str\fP, size_t\fI\ unique_length\fP, gearman_work_t\fI\ *workload\fP, gearman_argument_t\fI\ *arguments\fP)
+.B gearman_task_st *gearman_execute(gearman_client_st\fI\ *client\fP, const char\fI\ *function_name\fP, size_t\fI\ function_name_length\fP, const char\fI\ *unique\fP, size_t\fI\ unique_length\fP, gearman_work_t\fI\ *workload\fP, gearman_argument_t\fI\ *arguments\fP, void\fI\ *context\fP)
+.UNINDENT
+.INDENT 0.0
+.TP
+.B gearman_task_st *gearman_execute_by_partition(gearman_client_st\fI\ *client\fP, const char\fI\ *partition_function\fP, const size_t\fI\ partition_function_length\fP, const char\fI\ *function_name\fP, const size_t\fI\ function_name_length\fP, const char\fI\ *unique_str\fP, const size_t\fI\ unique_length\fP, gearman_work_t\fI\ *workload\fP, gearman_argument_t\fI\ *arguments\fP, void\fI\ *context\fP)
 .UNINDENT
 .sp
 Link with \-lgearman
@@ -91,7 +95,7 @@ int main(void)
                                          "reverse", strlen("reverse"),  // function
                                          NULL, 0,  // no unique value provided
                                          NULL, 
-                                         &value);
+                                         &value, 0);
 
   if (task == NULL) // If gearman_execute() can return NULL on error
   {

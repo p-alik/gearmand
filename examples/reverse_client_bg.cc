@@ -126,7 +126,7 @@ int main(int args, char *argv[])
     gearman_client_set_timeout(&client, timeout);
 
 
-  gearman_work_t workload= gearman_work(GEARMAN_JOB_PRIORITY_NORMAL);
+  gearman_task_attr_t workload= gearman_task_attr_init(GEARMAN_JOB_PRIORITY_NORMAL);
 
   gearman_task_st *task;
   gearman_argument_t values[]= {
@@ -134,7 +134,7 @@ int main(int args, char *argv[])
     gearman_argument_make(0, 0, 0, 0)
   };
 
-  if (not (task= gearman_execute(&client, gearman_literal_param("reverse"), NULL, 0, &workload, values)))
+  if (not (task= gearman_execute(&client, gearman_literal_param("reverse"), NULL, 0, &workload, values, 0)))
   {
     std::cerr << "Failed to process job (" << gearman_client_error(&client) << std::endl;
     gearman_client_free(&client);

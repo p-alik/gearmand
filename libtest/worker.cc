@@ -32,7 +32,7 @@ struct context_st {
   struct worker_handle_st *handle;
   gearman_worker_options_t options;
   gearman_worker_fn *worker_fn;
-  gearman_function_fn *mapper_fn;
+  gearman_function_fn *partition_fn;
   gearman_aggregator_fn *aggregator_fn;
   const char *namespace_key;
 
@@ -41,7 +41,7 @@ struct context_st {
     function_arg(0),
     handle(0),
     options(gearman_worker_options_t()),
-    mapper_fn(0),
+    partition_fn(0),
     aggregator_fn(0),
     namespace_key(NULL)
   { }
@@ -67,7 +67,7 @@ static void *thread_runner(void *con)
 
   if (context->aggregator_fn)
   {
-    gearman_function_t function= gearman_function_create_mapper(context->mapper_fn, context->aggregator_fn);
+    gearman_function_t function= gearman_function_create_partition(context->partition_fn, context->aggregator_fn);
     rc= gearman_worker_define_function(&worker,
                                        context->function_name, strlen(context->function_name), 
                                        function,
@@ -107,7 +107,7 @@ static struct worker_handle_st *_test_worker_start(in_port_t port,
                                                    const char *namespace_key,
                                                    const char *function_name,
                                                    gearman_worker_fn *worker_fn,
-                                                   gearman_function_fn *mapper_fn,
+                                                   gearman_function_fn *partition_fn,
                                                    gearman_aggregator_fn *aggregator_fn,
                                                    void *function_arg,
                                                    gearman_worker_options_t options)
@@ -128,7 +128,7 @@ static struct worker_handle_st *_test_worker_start(in_port_t port,
   foo->function_arg= function_arg;
   foo->handle= handle;
   foo->options= options;
-  foo->mapper_fn= mapper_fn;
+  foo->partition_fn= partition_fn;
   foo->aggregator_fn= aggregator_fn;
   foo->namespace_key= namespace_key;
 
@@ -168,11 +168,11 @@ struct worker_handle_st *test_worker_start_with_namespace(in_port_t port,
 struct worker_handle_st *test_worker_start_with_reducer(in_port_t port,
                                                         const char *namespace_key,
                                                         const char *function_name,
-                                                        gearman_function_fn *mapper_fn, gearman_aggregator_fn *aggregator_fn,  
+                                                        gearman_function_fn *partition_fn, gearman_aggregator_fn *aggregator_fn,  
                                                         void *function_arg,
                                                         gearman_worker_options_t options)
 {
-  return _test_worker_start(port, namespace_key, function_name, NULL, mapper_fn, aggregator_fn, function_arg, options);
+  return _test_worker_start(port, namespace_key, function_name, NULL, partition_fn, aggregator_fn, function_arg, options);
 }
 
 void test_worker_stop(struct worker_handle_st *handle)

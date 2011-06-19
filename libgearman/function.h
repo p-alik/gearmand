@@ -46,7 +46,7 @@
 enum gearman_function_kind_t {
   GEARMAN_WORKER_FUNCTION_V1,
   GEARMAN_WORKER_FUNCTION_V2,
-  GEARMAN_WORKER_MAPPER
+  GEARMAN_WORKER_FUNCTION_PARTITION
 };
 
 struct gearman_function_v1_t {
@@ -57,7 +57,7 @@ struct gearman_function_v2_t {
   gearman_function_fn *func;
 };
 
-struct gearman_mapper_v1_t {
+struct gearman_function_partition_v1_t {
   gearman_function_fn *func;
   gearman_aggregator_fn *aggregator;
 };
@@ -65,10 +65,10 @@ struct gearman_mapper_v1_t {
 struct gearman_function_t {
   const enum gearman_function_kind_t kind;
   union {
-    char bytes[sizeof(struct gearman_mapper_v1_t)]; // @note gearman_mapper_v1_t is the largest structure
+    char bytes[sizeof(struct gearman_function_partition_v1_t)]; // @note gearman_function_partition_v1_t is the largest structure
     struct gearman_function_v1_t function_v1;
     struct gearman_function_v2_t function_v2;
-    struct gearman_mapper_v1_t mapper;
+    struct gearman_function_partition_v1_t partitioner;
   } callback;
 };
 
@@ -84,8 +84,8 @@ GEARMAN_API
   gearman_function_t gearman_function_create(gearman_function_fn func);
 
 GEARMAN_API
-  gearman_function_t gearman_function_create_mapper(gearman_function_fn func,
-                                                    gearman_aggregator_fn aggregator);
+  gearman_function_t gearman_function_create_partition(gearman_function_fn func,
+                                                       gearman_aggregator_fn aggregator);
 
 GEARMAN_API
   gearman_function_t gearman_function_create_v1(gearman_worker_fn func);

@@ -82,14 +82,18 @@ you will need to install %{name}-devel.
 %{_includedir}/libgearman/strerror.h
 %{_includedir}/libgearman/string.h
 %{_includedir}/libgearman/task.h
+%{_includedir}/libgearman/task_attr.h
 %{_includedir}/libgearman/universal.h
 %{_includedir}/libgearman/version.h
 %{_includedir}/libgearman/visibility.h
-%{_includedir}/libgearman/work.h
 %{_includedir}/libgearman/worker.h
 %{_includedir}/libgearman/function.h
 %{_libdir}/pkgconfig/gearmand.pc
 %{_libdir}/libgearman.so
+%{_mandir}/man3/gearman_task_attr_init_epoch.3.gz
+%{_mandir}/man3/gearman_task_attr_init_background.3.gz
+%{_mandir}/man3/gearman_task_attr_init.3.gz
+%{_mandir}/man3/gearman_task_attr_t.3.gz
 %{_mandir}/man3/gearman_actions_t.3.gz
 %{_mandir}/man3/gearman_argument_make.3.gz
 %{_mandir}/man3/gearman_argument_t.3.gz
@@ -121,9 +125,9 @@ you will need to install %{name}-devel.
 %{_mandir}/man3/gearman_client_error.3.gz
 %{_mandir}/man3/gearman_client_free.3.gz
 %{_mandir}/man3/gearman_client_job_status.3.gz
-%{_mandir}/man3/gearman_client_has_option.3 \
+%{_mandir}/man3/gearman_client_has_option.3.gz
 %{_mandir}/man3/gearman_client_options.3.gz
-%{_mandir}/man3/gearman_client_options_t.3 \
+%{_mandir}/man3/gearman_client_options_t.3.gz
 %{_mandir}/man3/gearman_client_remove_options.3.gz
 %{_mandir}/man3/gearman_client_remove_servers.3.gz
 %{_mandir}/man3/gearman_client_run_tasks.3.gz
@@ -202,13 +206,6 @@ you will need to install %{name}-devel.
 %{_mandir}/man3/gearman_verbose_name.3.gz
 %{_mandir}/man3/gearman_verbose_t.3.gz
 %{_mandir}/man3/gearman_version.3.gz
-%{_mandir}/man3/gearman_work.3.gz
-%{_mandir}/man3/gearman_work_background.3.gz
-%{_mandir}/man3/gearman_work_background_with_map.3.gz
-%{_mandir}/man3/gearman_work_epoch.3.gz
-%{_mandir}/man3/gearman_work_epoch_with_map.3.gz
-%{_mandir}/man3/gearman_work_map.3.gz
-%{_mandir}/man3/gearman_work_t.3.gz
 %{_mandir}/man3/gearman_worker_add_function.3.gz
 %{_mandir}/man3/gearman_worker_add_options.3.gz
 %{_mandir}/man3/gearman_worker_add_server.3.gz
@@ -223,7 +220,6 @@ you will need to install %{name}-devel.
 %{_mandir}/man3/gearman_worker_free.3.gz
 %{_mandir}/man3/gearman_worker_function_exist.3.gz
 %{_mandir}/man3/gearman_worker_grab_job.3.gz
-%{_mandir}/man3/gearman_worker_options_t.3.gz
 %{_mandir}/man3/gearman_worker_options.3.gz
 %{_mandir}/man3/gearman_worker_register.3.gz
 %{_mandir}/man3/gearman_worker_remove_options.3.gz

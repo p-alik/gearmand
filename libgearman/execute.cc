@@ -42,13 +42,6 @@
 #include <cassert>
 #include <cerrno>
 
-static gearman_task_st *gearman_execute_map_reduce(gearman_client_st *client,
-                                                   gearman_string_t &mapper,
-                                                   gearman_string_t &reducer,
-                                                   const char *unique_str, const size_t unique_length,
-                                                   gearman_work_t *workload,
-                                                   gearman_argument_t *arguments);
-
 static inline gearman_command_t pick_command_by_priority(const gearman_job_priority_t &arg)
 {
   if (arg == GEARMAN_JOB_PRIORITY_NORMAL)
@@ -74,8 +67,9 @@ static inline gearman_command_t pick_command_by_priority_background(const gearma
 gearman_task_st *gearman_execute(gearman_client_st *client,
                                  const char *function_name, size_t function_length,
                                  const char *unique_str, size_t unique_length,
-                                 gearman_work_t *workload,
-                                 gearman_argument_t *arguments)
+                                 gearman_task_attr_t *workload,
+                                 gearman_argument_t *arguments,
+                                 void *context)
 {
   if (not client)
   {
@@ -90,25 +84,15 @@ gearman_task_st *gearman_execute(gearman_client_st *client,
   }
   gearman_string_t function= { function_name, function_length };
 
-  if (workload and gearman_work_has_map(workload))
-  {
-    return gearman_execute_map_reduce(client,
-                                      workload->map,
-                                      function,
-                                      unique_str, unique_length,
-                                      workload,
-                                      arguments);
-  }
-
   gearman_task_st *task= NULL;
   gearman_unique_t unique= gearman_unique_make(unique_str, unique_length);
   if (workload)
   {
     switch (workload->kind)
     {
-    case GEARMAN_WORK_KIND_BACKGROUND:
+    case GEARMAN_TASK_ATTR_BACKGROUND:
       task= add_task(client,
-                     workload->context,
+                     context,
                      pick_command_by_priority_background(workload->priority),
                      function,
                      unique,
@@ -117,20 +101,20 @@ gearman_task_st *gearman_execute(gearman_client_st *client,
                      gearman_actions_execute_defaults());
       break;
 
-    case GEARMAN_WORK_KIND_EPOCH:
+    case GEARMAN_TASK_ATTR_EPOCH:
       task= add_task(client,
-                     workload->context,
+                     context,
                      GEARMAN_COMMAND_SUBMIT_JOB_EPOCH,
                      function,
                      unique,
                      arguments->value,
-                     gearman_work_has_epoch(workload),
+                     gearman_task_attr_has_epoch(workload),
                      gearman_actions_execute_defaults());
       break;
 
-    case GEARMAN_WORK_KIND_FOREGROUND:
+    case GEARMAN_TASK_ATTR_FOREGROUND:
       task= add_task(client,
-                     workload->context,
+                     context,
                      pick_command_by_priority(workload->priority),
                      function,
                      unique,
@@ -165,61 +149,82 @@ gearman_task_st *gearman_execute(gearman_client_st *client,
   return task;
 }
 
-gearman_task_st *gearman_execute_map_reduce(gearman_client_st *client,
-                                            gearman_string_t &mapper,
-                                            gearman_string_t &reducer,
-                                            const char *unique_str, const size_t unique_length,
-                                            gearman_work_t *workload,
-                                            gearman_argument_t *arguments)
+gearman_task_st *gearman_execute_by_partition(gearman_client_st *client,
+                                              const char *partition_function, const size_t partition_function_length,
+                                              const char *function_name, const size_t function_name_length,
+                                              const char *unique_str, const size_t unique_length,
+                                              gearman_task_attr_t *workload,
+                                              gearman_argument_t *arguments,
+                                              void *context)
 {
+  if (not client)
+  {
+    errno= EINVAL;
+    return NULL;
+  }
+
+  if (not partition_function or partition_function_length == 0)
+  {
+    gearman_error(client->universal, GEARMAN_INVALID_ARGUMENT, "function_name was NULL");
+    return NULL;
+  }
+
+  if (not function_name or function_name_length == 0)
+  {
+    gearman_error(client->universal, GEARMAN_INVALID_ARGUMENT, "function_name was NULL");
+    return NULL;
+  }
+
   gearman_task_st *task= NULL;
+  gearman_string_t partition= { partition_function, partition_function_length };
+  gearman_string_t function= { function_name, function_name_length };
   gearman_unique_t unique= gearman_unique_make(unique_str, unique_length);
 
   if (workload)
   {
     switch (workload->kind)
     {
-    case GEARMAN_WORK_KIND_BACKGROUND:
+    case GEARMAN_TASK_ATTR_BACKGROUND:
       task= add_reducer_task(client,
                              GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND,
                              workload->priority,
-                             mapper,
-                             reducer,
+                             partition,
+                             function,
                              unique,
                              arguments->value,
                              gearman_actions_execute_defaults(),
                              time_t(0),
-                             workload->context);
+                             context);
       break;
 
-    case GEARMAN_WORK_KIND_EPOCH:
+    case GEARMAN_TASK_ATTR_EPOCH:
       gearman_error(client->universal, GEARMAN_INVALID_ARGUMENT, "EPOCH is not currently supported for gearman_client_execute_reduce()");
       return NULL;
 #if 0
       task= add_task(client,
                      GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND,
                      workload->priority,
-                     mapper,
-                     reducer,
+                     partition,
+                     function,
                      unique,
                      arguments->value,
                      gearman_actions_execute_defaults(),
                      gearman_work_epoch(workload),
-                     workload->context);
+                     context);
 #endif
       break;
 
-    case GEARMAN_WORK_KIND_FOREGROUND:
+    case GEARMAN_TASK_ATTR_FOREGROUND:
       task= add_reducer_task(client,
                              GEARMAN_COMMAND_SUBMIT_REDUCE_JOB,
                              workload->priority,
-                             mapper,
-                             reducer,
+                             partition,
+                             function,
                              unique,
                              arguments->value,
                              gearman_actions_execute_defaults(),
                              time_t(0),
-                             workload->context);
+                             context);
       break;
     }
   }
@@ -228,8 +233,8 @@ gearman_task_st *gearman_execute_map_reduce(gearman_client_st *client,
     task= add_reducer_task(client,
                            GEARMAN_COMMAND_SUBMIT_REDUCE_JOB,
                            GEARMAN_JOB_PRIORITY_NORMAL,
-                           mapper,
-                           reducer,
+                           partition,
+                           function,
                            unique,
                            arguments->value,
                            gearman_actions_execute_defaults(),

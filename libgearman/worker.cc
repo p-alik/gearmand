@@ -96,7 +96,7 @@ static gearman_return_t _worker_function_create(gearman_worker_st *worker,
                                                 size_t function_length,
                                                 uint32_t timeout,
                                                 gearman_worker_fn *worker_fb,
-                                                gearman_function_fn *mapper_fn,
+                                                gearman_function_fn *partitioner_fn,
                                                 gearman_aggregator_fn *aggregator_fn,
                                                 void *context);
 
@@ -872,14 +872,14 @@ gearman_return_t gearman_worker_define_function(gearman_worker_st *worker,
                                    NULL,
                                    context);
 
-  case GEARMAN_WORKER_MAPPER:
+  case GEARMAN_WORKER_FUNCTION_PARTITION:
     {
       gearman_return_t ret= _worker_function_create(worker,
                                                     function_name, function_name_length,
                                                     timeout,
                                                     NULL,
-                                                    function.callback.mapper.func,
-                                                    function.callback.mapper.aggregator,
+                                                    function.callback.partitioner.func,
+                                                    function.callback.partitioner.aggregator,
                                                     context);
       worker->options.grab_all= gearman_success(ret);
 
@@ -1129,7 +1129,7 @@ static gearman_return_t _worker_function_create(gearman_worker_st *worker,
                                                 size_t function_length,
                                                 uint32_t timeout,
                                                 gearman_worker_fn *worker_fn,
-                                                gearman_function_fn *mapper_fn,
+                                                gearman_function_fn *partitioner_fn,
                                                 gearman_aggregator_fn *aggregator_fn,
                                                 void *context)
 {
@@ -1137,9 +1137,9 @@ static gearman_return_t _worker_function_create(gearman_worker_st *worker,
   size_t args_size[2];
 
   _worker_function_st *function;
-  if (mapper_fn and aggregator_fn)
+  if (partitioner_fn and aggregator_fn)
   {
-    function= make(worker->universal._namespace, function_name, function_length, mapper_fn, aggregator_fn, context);
+    function= make(worker->universal._namespace, function_name, function_length, partitioner_fn, aggregator_fn, context);
   }
   else
   {
