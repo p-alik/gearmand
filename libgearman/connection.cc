@@ -476,7 +476,7 @@ gearman_return_t gearman_connection_st::flush()
       if (addrinfo_next == NULL)
       {
         state= GEARMAN_CON_UNIVERSAL_ADDRINFO;
-        return gearman_error(universal, GEARMAN_COULD_NOT_CONNECT, host);
+        return gearman_universal_set_error(universal, GEARMAN_COULD_NOT_CONNECT, GEARMAN_AT, "%s:%hu", host, uint16_t(port));
       }
 
       fd= socket(addrinfo_next->ai_family, addrinfo_next->ai_socktype, addrinfo_next->ai_protocol);
@@ -702,17 +702,7 @@ gearman_packet_st *gearman_connection_st::receiving(gearman_packet_st& packet_ar
       break;
     }
 
-    if (packet_arg.universal->workload_malloc_fn)
-    {
-      packet_arg.data= packet_arg.universal->workload_malloc_fn(packet_arg.data_size,
-                                                                  static_cast<void *>(packet_arg.universal->workload_malloc_context));
-    }
-    else
-    {
-      // Since it may be C on the other side, don't use new
-      packet_arg.data= malloc(packet_arg.data_size);
-    }
-
+    packet_arg.data= gearman_malloc(*packet_arg.universal, packet_arg.data_size);
     if (not packet_arg.data)
     {
       ret= GEARMAN_MEMORY_ALLOCATION_FAILURE;

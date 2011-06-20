@@ -41,6 +41,7 @@
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 #define AT __FILE__ ":" TOSTRING(__LINE__)
+#define GEARMAN_AT __func__, AT
 
 #define gearman_perror(__universal, B) gearman_universal_set_perror((__universal), __func__, AT, (B))
 #define gearman_error(__universal, B, C) gearman_universal_set_error((__universal), (B), __func__, AT, (C))
@@ -100,7 +101,6 @@ void gearman_universal_set_namespace(gearman_universal_st &self, const char *nam
 GEARMAN_LOCAL
 void gearman_reset(gearman_universal_st& universal);
 
-
 // Flush the send buffer for all connections.
 GEARMAN_LOCAL
 gearman_return_t gearman_flush_all(gearman_universal_st&);
@@ -124,6 +124,16 @@ GEARMAN_LOCAL
 void gearman_set_workload_free_fn(gearman_universal_st&,
                                   gearman_free_fn *function,
                                   void *context);
+
+GEARMAN_LOCAL
+void *gearman_real_malloc(gearman_universal_st& universal, size_t size, const char *func, const char *file, int line);
+
+#define gearman_malloc(__gearman_universal_st, __size) gearman_real_malloc((__gearman_universal_st), (__size), __func__, __FILE__, __LINE__)
+
+GEARMAN_LOCAL
+void gearman_real_free(gearman_universal_st& universal, void *ptr, const char *func, const char *file, int line);
+
+#define gearman_free(__gearman_universal_st, __ptr) gearman_real_free((__gearman_universal_st), (__ptr), __func__, __FILE__, __LINE__)
 
 
 // Free all connections for a gearman structure.

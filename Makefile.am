@@ -52,19 +52,27 @@ test: check
 clean-local:
 	-rm -rf docs/_build docs/doctrees
 
-rpm: man distcheck
+rpm-build: support/gearmand.spec
 	@rm -f ~/rpmbuild/RPMS/x86_64/gearmand-$(VERSION)*.rpm
 	@rm -f ~/rpmbuild/SRPMS/gearmand-$(VERSION)*.rpm
 	@cp gearmand-$(VERSION).tar.gz ~/rpmbuild/SOURCES/
+	@cp support/gearmand.init ~/rpmbuild/SOURCES/
 	@rpmbuild -ba support/gearmand.spec
 	@cp ~/rpmbuild/RPMS/x86_64/gearmand-$(VERSION)*.rpm .
 	@cp ~/rpmbuild/RPMS/x86_64/gearmand-devel-$(VERSION)*.rpm .
 	@cp ~/rpmbuild/RPMS/x86_64/gearmand-debuginfo-$(VERSION)*.rpm .
+	@cp ~/rpmbuild/RPMS/x86_64/gearmand-server-$(VERSION)*.rpm .
 	@cp ~/rpmbuild/SRPMS/gearmand-$(VERSION)*.rpm .
 
-release: rpm
-	@rpm --addsign gearmand-$(VERSION)*.rpm gearmand-devel-$(VERSION)*.rpm gearmand-debuginfo-$(VERSION)*.rpm
-	@rpm --checksig gearmand-$(VERSION)*.rpm gearmand-devel-$(VERSION)*.rpm gearmand-debuginfo-$(VERSION)*.rpm
+rpm-sign: rpm-build
+	@rpm --addsign gearmand-$(VERSION)*.rpm gearmand-devel-$(VERSION)*.rpm gearmand-debuginfo-$(VERSION)*.rpm gearmand-server-$(VERSION)*.rpm
+	@rpm --checksig gearmand-$(VERSION)*.rpm gearmand-devel-$(VERSION)*.rpm gearmand-debuginfo-$(VERSION)*.rpm gearmand-server-$(VERSION)*.rpm
+
+rpm: man distcheck rpm-build
+
+release: rpm rpm-sign
+	@rpm --addsign gearmand-$(VERSION)*.rpm gearmand-devel-$(VERSION)*.rpm gearmand-debuginfo-$(VERSION)*.rpm gearmand-server-$(VERSION)*.rpm
+	@rpm --checksig gearmand-$(VERSION)*.rpm gearmand-devel-$(VERSION)*.rpm gearmand-debuginfo-$(VERSION)*.rpm gearmand-server-$(VERSION)*.rpm
 
 merge-clean:
 	@find ./ | $(GREP) \.moved | xargs rm -r -f

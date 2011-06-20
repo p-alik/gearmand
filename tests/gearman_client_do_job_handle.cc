@@ -48,8 +48,12 @@
 test_return_t gearman_client_do_job_handle_no_active_task(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
+  assert(client);
 
-  test_false(gearman_client_do_job_handle(client));
+  const char *job_handle= gearman_client_do_job_handle(client);
+  test_true(job_handle);
+  test_compare(0, job_handle[0]);
+
   return TEST_SUCCESS;
 }
 
@@ -67,7 +71,7 @@ test_return_t gearman_client_do_job_handle_follow_do(void *object)
 				value_length, &job_length, &rc);
 
   test_true_got(rc == GEARMAN_SUCCESS, gearman_client_error(client) ? gearman_client_error(client) : gearman_strerror(rc));
-  test_false(gearman_client_do_job_handle(client));
+  test_true(gearman_client_do_job_handle(client));
   test_truth(job_result);
   test_compare(value_length, job_length);
 

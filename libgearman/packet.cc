@@ -247,22 +247,13 @@ void gearman_packet_free(gearman_packet_st *packet)
     packet->args= NULL;
   }
 
+  assert(packet->universal);
   if (packet->options.free_data && packet->data)
   {
-    if (packet->universal->workload_free_fn)
-    {
-      packet->universal->workload_free_fn(const_cast<void *>((packet->data)),
-                                          const_cast<void *>(packet->universal->workload_free_context));
-    }
-    else
-    {
-      // Created with malloc()
-      free(const_cast<void *>(packet->data)); //@todo fix the need for the casting.
-      packet->data= NULL;
-    }
+    gearman_free(*packet->universal, const_cast<void *>(packet->data));
+    packet->data= NULL;
   }
 
-  assert(packet->universal);
   if (not (packet->universal->options.dont_track_packets))
   {
     if (packet->universal->packet_list == packet)

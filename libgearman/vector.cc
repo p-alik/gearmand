@@ -67,7 +67,6 @@ inline static gearman_return_t _string_check(gearman_vector_st *string, const si
     }
 
     new_value= static_cast<char *>(realloc(string->string, new_size));
-
     if (new_value == NULL)
     {
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
