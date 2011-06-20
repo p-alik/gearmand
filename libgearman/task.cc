@@ -122,7 +122,7 @@ void gearman_task_free(gearman_task_st *task)
   if (task->options.send_in_use)
     gearman_packet_free(&(task->send));
 
-  if (task->context and  task->client->task_context_free_fn)
+  if (task->type != GEARMAN_TASK_KIND_DO  and task->context and  task->client->task_context_free_fn)
   {
     task->client->task_context_free_fn(task, static_cast<void *>(task->context));
   }

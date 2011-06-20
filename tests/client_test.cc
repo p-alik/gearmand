@@ -604,6 +604,112 @@ static test_return_t gearman_client_job_status_test(void *object)
   return TEST_SUCCESS;
 }
 
+static void* test_malloc_fn(size_t size, void *context)
+{
+  bool *malloc_check= (bool *)context;
+  *malloc_check= true;
+  return malloc(size);
+}
+
+static void test_free_fn(void *ptr, void *context)
+{
+  bool *free_check= (bool *)context;
+  *free_check= true;
+  return free(ptr);
+}
+
+static test_return_t gearman_client_set_workload_malloc_fn_test(void *object)
+{
+  gearman_client_st *client= (gearman_client_st *)object;
+  test_truth(client);
+
+  bool malloc_check= false;
+  gearman_client_set_workload_malloc_fn(client, test_malloc_fn, &malloc_check);
+
+  test_compare(TEST_SUCCESS, submit_job_test(object));
+  test_compare(true, malloc_check);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_client_set_workload_free_fn_test(void *object)
+{
+  gearman_client_st *client= (gearman_client_st *)object;
+  test_truth(client);
+
+  bool free_check= false;
+  gearman_client_set_workload_free_fn(client, test_free_fn, &free_check);
+
+  test_compare(TEST_SUCCESS, submit_job_test(object));
+  test_compare(true, free_check);
+
+  return TEST_SUCCESS;
+}
+
+struct _alloc_test_st {
+  int64_t count;
+  int64_t total;
+
+  _alloc_test_st():
+    count(0),
+    total(0)
+  { }
+
+  void add() 
+  {
+    count++;
+    total++;
+  }
+
+  void subtract() 
+  {
+    count--;
+  }
+
+  bool success()
+  {
+    if (total and count == 0)
+      return true;
+
+    return false;
+  }
+};
+
+static void* test_malloc_count_fn(size_t size, void *context)
+{
+  _alloc_test_st *_foo= (_alloc_test_st *)context;
+
+  _foo->add();
+  
+  return malloc(size);
+}
+
+static void test_free_count_fn(void *ptr, void *context)
+{
+  _alloc_test_st *_foo= (_alloc_test_st *)context;
+
+  _foo->subtract();
+
+  return free(ptr);
+}
+
+
+static test_return_t gearman_client_set_workload_allocators_test(void *object)
+{
+  gearman_client_st *client= (gearman_client_st *)object;
+  test_truth(client);
+
+  _alloc_test_st _foo;
+
+  gearman_client_set_workload_malloc_fn(client, test_malloc_count_fn, &_foo);
+  gearman_client_set_workload_free_fn(client, test_free_count_fn, &_foo);
+
+  test_compare(TEST_SUCCESS, submit_job_test(object));
+  test_true(_foo.success());
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t gearman_client_job_status_with_return(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
@@ -1172,6 +1278,13 @@ test_st unique_tests[] ={
   {0, 0, 0}
 };
 
+test_st gearman_client_set_workload_malloc_fn_tests[] ={
+  {"gearman_client_set_workload_malloc_fn()", 0, gearman_client_set_workload_malloc_fn_test },
+  {"gearman_client_set_workload_free_fn()", 0, gearman_client_set_workload_free_fn_test },
+  {"submit job and check for usage of both malloc/free", 0, gearman_client_set_workload_allocators_test },
+  {0, 0, 0}
+};
+
 test_st regression_tests[] ={
   {"lp:768317", 0, regression_768317_test },
   {"lp:785203 gearman_client_do()", 0, regression_785203_do_test },
@@ -1234,6 +1347,7 @@ test_st gearman_task_tests[] ={
   {"gearman_client_add_task() exception", 0, gearman_client_add_task_exception},
   {"gearman_client_add_task() warning", 0, gearman_client_add_task_warning},
   {"gearman_client_add_task(GEARMAN_NO_SERVERS)", 0, gearman_client_add_task_no_servers},
+  {"gearman_client_set_task_context_free_fn()", 0, gearman_client_set_task_context_free_fn_test},
   {0, 0, 0}
 };
 
@@ -1253,6 +1367,7 @@ collection_st collection[] ={
   {"gearman_task_add_task(GEARMAN_CLIENT_FREE_TASKS)", pre_free_tasks, post_free_tasks, gearman_task_tests},
   {"gearman_task_add_task(GEARMAN_PAUSE)", pre_chunk, post_function_reset, gearman_task_pause_tests},
   {"unique", pre_unique, post_function_reset, unique_tests},
+  {"gearman_client_set_workload_malloc_fn()", 0, 0, gearman_client_set_workload_malloc_fn_tests},
   {"gearman_client_do()", 0, 0, gearman_client_do_tests},
   {"gearman_client_do() namespace", pre_namespace, post_function_reset, gearman_client_do_tests},
   {"gearman_client_do(GEARMAN_CLIENT_FREE_TASKS)", pre_free_tasks, post_free_tasks, gearman_client_do_tests},

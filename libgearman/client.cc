@@ -133,6 +133,7 @@ gearman_client_st *gearman_client_clone(gearman_client_st *client,
   client->options.no_new= from->options.no_new;
   client->options.free_tasks= from->options.free_tasks;
   client->actions= from->actions;
+  client->_do_handle[0]= 0;
 
   gearman_universal_clone(client->universal, from->universal);
 
@@ -141,6 +142,9 @@ gearman_client_st *gearman_client_clone(gearman_client_st *client,
 
 void gearman_client_free(gearman_client_st *client)
 {
+  if (not client)
+    return;
+
   gearman_client_task_free_all(client);
 
   gearman_universal_free(client->universal);
@@ -221,6 +225,9 @@ bool gearman_client_has_option(gearman_client_st *client,
 void gearman_client_set_options(gearman_client_st *client,
                                 gearman_client_options_t options)
 {
+  if (not client)
+    return;
+
   gearman_client_options_t usable_options[]= {
     GEARMAN_CLIENT_NON_BLOCKING,
     GEARMAN_CLIENT_UNBUFFERED_RESULT,
@@ -247,6 +254,9 @@ void gearman_client_set_options(gearman_client_st *client,
 void gearman_client_add_options(gearman_client_st *client,
                                 gearman_client_options_t options)
 {
+  if (not client)
+    return;
+
   if (options & GEARMAN_CLIENT_NON_BLOCKING)
   {
     gearman_universal_add_options(client->universal, GEARMAN_NON_BLOCKING);
@@ -376,6 +386,9 @@ void gearman_client_remove_servers(gearman_client_st *client)
 
 gearman_return_t gearman_client_wait(gearman_client_st *client)
 {
+  if (not client)
+    return GEARMAN_INVALID_ARGUMENT;
+
   return gearman_wait(client->universal);
 }
 
@@ -421,6 +434,9 @@ void *gearman_client_do_low(gearman_client_st *client,
 
 size_t gearman_client_count_tasks(gearman_client_st *client)
 {
+  if (not client)
+    return 0;
+
   size_t count= 1;
   gearman_task_st *search= client->task_list;
 
@@ -461,13 +477,7 @@ const char *gearman_client_do_job_handle(gearman_client_st *self)
     return NULL;
   }
 
-  if (not self->task_list)
-  {
-    gearman_error(self->universal, GEARMAN_INVALID_ARGUMENT, "client has an empty task list");
-    return NULL;
-  }
-
-  return gearman_task_job_handle(self->task_list);
+  return self->_do_handle;
 }
 
 void gearman_client_do_status(gearman_client_st *, uint32_t *numerator, uint32_t *denominator)
@@ -534,12 +544,15 @@ gearman_return_t gearman_client_do_low_background(gearman_client_st *client,
 }
 
 gearman_return_t gearman_client_job_status(gearman_client_st *client,
-                                           const char *job_handle,
+                                           const gearman_job_handle_t job_handle,
                                            bool *is_known, bool *is_running,
                                            uint32_t *numerator,
                                            uint32_t *denominator)
 {
   gearman_return_t ret;
+
+  if (not client)
+    return GEARMAN_INVALID_ARGUMENT;
 
   gearman_task_st do_task;
   gearman_task_st *do_task_ptr= gearman_client_add_task_status(client, &do_task, client,
@@ -622,6 +635,9 @@ gearman_return_t gearman_client_echo(gearman_client_st *client,
 
 void gearman_client_task_free_all(gearman_client_st *client)
 {
+  if (not client)
+    return;
+
   while (client->task_list)
   {
     gearman_task_free(client->task_list);
@@ -629,8 +645,11 @@ void gearman_client_task_free_all(gearman_client_st *client)
 }
 
 void gearman_client_set_task_context_free_fn(gearman_client_st *client,
-                                        gearman_task_context_free_fn *function)
+                                             gearman_task_context_free_fn *function)
 {
+  if (not client)
+    return;
+
   client->task_context_free_fn= function;
 }
 
@@ -785,53 +804,80 @@ gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
 void gearman_client_set_workload_fn(gearman_client_st *client,
                                     gearman_workload_fn *function)
 {
+  if (not client)
+    return;
+
   client->actions.workload_fn= function;
 }
 
 void gearman_client_set_created_fn(gearman_client_st *client,
                                    gearman_created_fn *function)
 {
+  if (not client)
+    return;
+
   client->actions.created_fn= function;
 }
 
 void gearman_client_set_data_fn(gearman_client_st *client,
                                 gearman_data_fn *function)
 {
+  if (not client)
+    return;
+
   client->actions.data_fn= function;
 }
 
 void gearman_client_set_warning_fn(gearman_client_st *client,
                                    gearman_warning_fn *function)
 {
+  if (not client)
+    return;
+
   client->actions.warning_fn= function;
 }
 
 void gearman_client_set_status_fn(gearman_client_st *client,
                                   gearman_universal_status_fn *function)
 {
+  if (not client)
+    return;
+
   client->actions.status_fn= function;
 }
 
 void gearman_client_set_complete_fn(gearman_client_st *client,
                                     gearman_complete_fn *function)
 {
+  if (not client)
+    return;
+
   client->actions.complete_fn= function;
 }
 
 void gearman_client_set_exception_fn(gearman_client_st *client,
                                      gearman_exception_fn *function)
 {
+  if (not client)
+    return;
+
   client->actions.exception_fn= function;
 }
 
 void gearman_client_set_fail_fn(gearman_client_st *client,
                                 gearman_fail_fn *function)
 {
+  if (not client)
+    return;
+
   client->actions.fail_fn= function;
 }
 
 void gearman_client_clear_fn(gearman_client_st *client)
 {
+  if (not client)
+    return;
+
   client->actions= gearman_actions_default();
 }
 
@@ -1258,10 +1304,15 @@ static void *_client_do(gearman_client_st *client, gearman_command_t command,
   // gearman_client_run_tasks failed
   assert(client->task_list); // Programmer error, we should always have the task that we used for do
 
-  const void *returnable= NULL;
+  char *returnable= NULL;
   if (gearman_failed(ret))
   {
-    gearman_error(client->universal, ret, "occured during gearman_client_run_tasks()");
+    if (ret == GEARMAN_COULD_NOT_CONNECT)
+    { }
+    else
+    {
+      gearman_error(client->universal, ret, "occured during gearman_client_run_tasks()");
+    }
 
     *ret_ptr= ret;
     *result_size= 0;
@@ -1271,9 +1322,28 @@ static void *_client_do(gearman_client_st *client, gearman_command_t command,
     *ret_ptr= do_task_ptr->result_rc;
     if (do_task_ptr->result_ptr)
     {
-      gearman_string_t result= gearman_result_take_string(do_task_ptr->result_ptr);
-      *result_size= gearman_size(result);
-      returnable= gearman_c_str(result);
+      if (client->universal.workload_malloc_fn)
+      {
+        gearman_string_t result= gearman_result_string(do_task_ptr->result_ptr);
+        returnable= static_cast<char *>(gearman_malloc(client->universal, gearman_size(result) +1));
+        if (not returnable)
+        {
+          gearman_error(client->universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "custom workload_fn failed to allocate memory");
+          *result_size= 0;
+        }
+        else // NULL terminate
+        {
+          memcpy(returnable, gearman_c_str(result), gearman_size(result));
+          returnable[gearman_size(result)]= 0;
+          *result_size= gearman_size(result);
+        }
+      }
+      else
+      {
+        gearman_string_t result= gearman_result_take_string(do_task_ptr->result_ptr);
+        *result_size= gearman_size(result);
+        returnable= const_cast<char *>(gearman_c_str(result));
+      }
     }
     else // NULL job
     {
@@ -1292,7 +1362,7 @@ static void *_client_do(gearman_client_st *client, gearman_command_t command,
   client->new_tasks= 0;
   client->running_tasks= 0;
 
-  return const_cast<void *>(returnable);
+  return returnable;
 }
 
 static gearman_return_t _client_do_background(gearman_client_st *client,
@@ -1312,6 +1382,8 @@ static gearman_return_t _client_do_background(gearman_client_st *client,
   {
     return gearman_error(client->universal, GEARMAN_INVALID_ARGUMENT, "function arguement was empty");
   }
+
+  client->_do_handle[0]= 0; // Reset the job_handle we store in client
 
   gearman_task_st do_task, *do_task_ptr;
   do_task_ptr= add_task(client, &do_task, 
@@ -1342,6 +1414,7 @@ static gearman_return_t _client_do_background(gearman_client_st *client,
   {
     strncpy(job_handle, do_task.job_handle, GEARMAN_JOB_HANDLE_SIZE);
   }
+  strncpy(client->_do_handle, do_task.job_handle, GEARMAN_JOB_HANDLE_SIZE);
   client->new_tasks= 0;
   client->running_tasks= 0;
   gearman_task_free(&do_task);
@@ -1365,6 +1438,9 @@ bool gearman_client_compare(const gearman_client_st *first, const gearman_client
 
 bool gearman_client_set_server_option(gearman_client_st *self, const char *option_arg, size_t option_arg_size)
 {
+  if (not self)
+    return false;
+
   gearman_string_t option= { option_arg, option_arg_size };
 
   return gearman_request_option(self->universal, option);

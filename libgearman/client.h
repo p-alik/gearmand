@@ -82,6 +82,7 @@ struct gearman_client_st
   gearman_task_context_free_fn *task_context_free_fn;
   struct gearman_universal_st universal;
   struct gearman_actions_t actions;
+  gearman_job_handle_t _do_handle; // Backwards compatible
 };
 
 #ifdef __cplusplus

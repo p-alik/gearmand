@@ -3,8 +3,9 @@
 # All paths should be given relative to the root
 
 EXTRA_DIST += \
+	      support/gearmand.init \
+	      support/gearmand.pc \
 	      support/gearmand.spec
-	      support/gearmand.pc
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = support/gearmand.pc

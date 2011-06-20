@@ -168,6 +168,34 @@ void gearman_set_log_fn(gearman_universal_st &self, gearman_log_fn *function,
   self.verbose= verbose;
 }
 
+void *gearman_malloc(gearman_universal_st& universal, size_t size)
+{
+  void *ptr;
+
+  if (universal.workload_malloc_fn)
+  {
+    ptr= universal.workload_malloc_fn(size, universal.workload_malloc_context);
+  }
+  else
+  {
+    ptr= malloc(size);
+  }
+
+  return ptr;
+}
+
+void gearman_free(gearman_universal_st& universal, void *ptr)
+{
+  if (universal.workload_free_fn)
+  {
+    universal.workload_free_fn(ptr, universal.workload_free_context);
+  }
+  else
+  {
+    free(ptr);
+  }
+}
+
 void gearman_set_workload_malloc_fn(gearman_universal_st& universal,
                                     gearman_malloc_fn *function,
                                     void *context)
