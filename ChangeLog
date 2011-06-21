@@ -8,7 +8,7 @@
   * gearman_execute_by_partition() added. 
   * gearamn_task_attr_t added.
   * Additional documentation update.
-  * Issue with PHP client using automated task free (Thanks rosmiitto!)
+  * Issue with PHP client using automated task free (Thanks Taneli Leppä!!)
   * Fixed issue where PHP client's custom allocator was free'ing memory that did not belong to it.
 
 0.21 Wed Jun 15 21:01:04 PDT 2011
