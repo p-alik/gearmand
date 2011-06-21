@@ -1172,7 +1172,7 @@ gearman_return_t gearman_worker_set_memory_allocators(gearman_worker_st *worker,
   if (not worker)
     return GEARMAN_INVALID_ARGUMENT;
 
-  return gearman_set_memory_allocators(worker->universal.allocator, malloc_fn, free_fn, realloc_fn, calloc_fn, context);
+  return gearman_set_memory_allocator(worker->universal.allocator, malloc_fn, free_fn, realloc_fn, calloc_fn, context);
 }
 
 bool gearman_worker_set_server_option(gearman_worker_st *self, const char *option_arg, size_t option_arg_size)

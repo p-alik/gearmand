@@ -159,6 +159,13 @@ typedef struct gearman_result_st gearman_result_st;
 typedef struct gearman_string_t gearman_string_t;
 typedef struct gearman_argument_t gearman_argument_t;
 
+// Custom allocators
+typedef void* (gearman_malloc_fn)(size_t size, void *context);
+typedef void* (gearman_realloc_fn)(void *ptr, size_t size, void *context);
+typedef void* (gearman_calloc_fn)(size_t nelm, size_t size, void *context);
+typedef void (gearman_free_fn)(void *ptr, void *context);
+
+
 typedef gearman_return_t (gearman_parse_server_fn)(const char *host, in_port_t port, void *context);
 
 typedef void (gearman_task_context_free_fn)(gearman_task_st *task, void *context);

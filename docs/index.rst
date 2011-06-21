@@ -135,6 +135,7 @@ Types
 .. toctree::
    :titlesonly:
 
+   libgearman/gearman_allocator_t
    libgearman/gearman_return_t 
    libgearman/gearman_actions_t
    libgearman/gearman_log_fn

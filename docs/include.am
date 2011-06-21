@@ -24,6 +24,9 @@ man8_MANS+= \
 	    docs/man/gearmand.8
 
 man3_MANS+= \
+	    docs/man/gearman_allocator_t.3 \
+	    docs/man/gearman_client_set_memory_allocators.3 \
+	    docs/man/gearman_worker_set_memory_allocators.3 \
 	    docs/man/gearman_actions_t.3 \
 	    docs/man/gearman_argument_make.3 \
 	    docs/man/gearman_argument_t.3 \

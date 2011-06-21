@@ -40,12 +40,13 @@
 #include <libtest/test.h>
 #include <cassert>
 #include <libgearman/gearman.h>
-#include <tests/task.h>
+#include <tests/regression.h>
 #include <libgearman/universal.hpp>
 #include <libgearman/connection.hpp>
 #include <libgearman/packet.hpp>
 
 #include <iostream>
+#include <cstring>
 
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"

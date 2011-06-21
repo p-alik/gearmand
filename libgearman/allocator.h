@@ -36,11 +36,6 @@
 
 #pragma once
 
-typedef void* (gearman_malloc_fn)(size_t size, void *context);
-typedef void* (gearman_realloc_fn)(void *ptr, size_t size, void *context);
-typedef void* (gearman_calloc_fn)(size_t nelm, size_t size, void *context);
-typedef void (gearman_free_fn)(void *ptr, void *context);
-
 struct gearman_allocator_t {
   gearman_calloc_fn *calloc;
   gearman_free_fn *free;

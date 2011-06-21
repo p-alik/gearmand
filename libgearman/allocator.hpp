@@ -36,8 +36,6 @@
 
 #pragma once
 
-#include <libgearman/allocator.h>
-
 GEARMAN_LOCAL
 void *gearman_real_malloc(gearman_allocator_t& allocator, size_t size, const char *func, const char *file, int line);
 
@@ -61,12 +59,12 @@ void gearman_real_free(gearman_allocator_t& allocator, void *ptr, const char *fu
 #define gearman_has_allocator(__gearman_universal_st) bool(__gearman_universal_st.allocator.malloc)
 
 GEARMAN_LOCAL
-gearman_return_t gearman_set_memory_allocators(gearman_allocator_t& allocator,
-                                               gearman_malloc_fn *malloc_fn,
-                                               gearman_free_fn *free_fn,
-                                               gearman_realloc_fn *realloc_fn,
-                                               gearman_calloc_fn *calloc_fn,
-                                               void *context);
+gearman_return_t gearman_set_memory_allocator(gearman_allocator_t& allocator,
+                                              gearman_malloc_fn *malloc_fn,
+                                              gearman_free_fn *free_fn,
+                                              gearman_realloc_fn *realloc_fn,
+                                              gearman_calloc_fn *calloc_fn,
+                                              void *context);
 
 
 GEARMAN_LOCAL

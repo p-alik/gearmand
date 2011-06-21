@@ -145,7 +145,7 @@ gearman_allocator_t gearman_default_allocator()
   return _defaults;
 }
 
-gearman_return_t gearman_set_memory_allocator(gearman_universal_st* universal,
+gearman_return_t gearman_set_memory_allocator(gearman_allocator_t& allocator,
                                               gearman_malloc_fn *malloc_fn,
                                               gearman_free_fn *free_fn,
                                               gearman_realloc_fn *realloc_fn,
@@ -155,7 +155,7 @@ gearman_return_t gearman_set_memory_allocator(gearman_universal_st* universal,
   /* All should be set, or none should be set */
   if (malloc_fn == NULL and free_fn == NULL and realloc_fn == NULL and calloc_fn == NULL) 
   {
-    universal->allocator= gearman_default_allocator();
+    allocator= gearman_default_allocator();
   }
   else if (malloc_fn == NULL or free_fn == NULL or realloc_fn == NULL or calloc_fn == NULL)
   {
@@ -163,11 +163,11 @@ gearman_return_t gearman_set_memory_allocator(gearman_universal_st* universal,
   }
   else
   {
-    universal->allocator.malloc= malloc_fn;
-    universal->allocator.free= free_fn;
-    universal->allocator.realloc= realloc_fn;
-    universal->allocator.calloc= calloc_fn;
-    universal->allocator.context= context;
+    allocator.malloc= malloc_fn;
+    allocator.free= free_fn;
+    allocator.realloc= realloc_fn;
+    allocator.calloc= calloc_fn;
+    allocator.context= context;
   }
 
   return GEARMAN_SUCCESS;

@@ -1,6 +1,6 @@
-.TH "GEARADMIN" "1" "June 21, 2011" "0.22" "Gearmand"
+.TH "GEARMAN_ALLOCATOR_T" "3" "June 21, 2011" "0.22" "Gearmand"
 .SH NAME
-gearadmin \- Gearmand Documentation, http://gearman.info/
+gearman_allocator_t \- Gearmand Documentation, http://gearman.info/
 .
 .nr rst2man-indent-level 0
 .
@@ -30,79 +30,51 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 ..
 .\" Man page generated from reStructeredText.
 .
-.sp
-Run Administrative commands against a server.
 .SH SYNOPSIS
-.INDENT 0.0
-.TP
-.B \-\-help
-.
-Provice help about the program.
-.UNINDENT
-.INDENT 0.0
-.TP
-.B \-\-create\-function
-.
-Create a function from the server.
-.UNINDENT
-.INDENT 0.0
-.TP
-.B \-h [ \-\-host ] arg (=localhost)i
 .sp
-Connect to the host
+#include <libgearman/gearman.h>
+.INDENT 0.0
+.TP
+.B gearman_allocator_t
 .UNINDENT
 .INDENT 0.0
 .TP
-.B \-p [ \-\-port ] arg (=4730)
+.B gearman_malloc_fn
+.UNINDENT
+.INDENT 0.0
+.TP
+.B gearman_free_fn
+.UNINDENT
+.INDENT 0.0
+.TP
+.B gearman_realloc_fn
+.UNINDENT
+.INDENT 0.0
+.TP
+.B gearman_calloc_fn
+.UNINDENT
+.INDENT 0.0
+.TP
+.B gearman_return_t gearman_client_set_memory_allocators(gearman_client_st *, gearman_malloc_fn *malloc_fn, gearman_free_fn *free_fn, gearman_realloc_fn *realloc_fn, gearman_calloc_fn *calloc_fn, void *context);
+.UNINDENT
+.INDENT 0.0
+.TP
+.B gearman_return_t gearman_worker_set_memory_allocators(gearman_worker_st *, gearman_malloc_fn *malloc_fn, gearman_free_fn *free_fn, gearman_realloc_fn *realloc_fn, gearman_calloc_fn *calloc_fn, void *context);
+.UNINDENT
 .sp
-Port number or service to use for connection
-.UNINDENT
-.INDENT 0.0
-.TP
-.B \-\-drop\-function
-.
-Drop a function from the server.
-.UNINDENT
-.INDENT 0.0
-.TP
-.B \-\-server\-version
-.
-Fetch the version number for the server.
-.UNINDENT
-.INDENT 0.0
-.TP
-.B \-\-server\-verbose
-.
-Fetch the verbose setting for the server.
-.UNINDENT
-.INDENT 0.0
-.TP
-.B \-\-status
-.
-Status for the server.
-.UNINDENT
-.INDENT 0.0
-.TP
-.B \-\-workers
-.
-Workers for the server.
-.UNINDENT
-.INDENT 0.0
-.TP
-.B \-\-shutdown
-.
-Shutdown server.
-.UNINDENT
+Link to \-lgearman
 .SH DESCRIPTION
 .sp
-Command line tool for manipulating gearmand servers.
-.SH HOME
+Install callbacks for custom allocation.
 .sp
-To find out more information please check:
-\fI\%http://gearman.info/\fP
+Normally \fImalloc(3)\fP and \fIfree(3)\fP are used for allocation and releasing workloads. You can use \fBgearman_client_set_memory_allocators()\fP and \fBgearman_worker_set_memory_allocators()\fP to set your own custom allocators.
+.SH RETURN VALUE
+.sp
+None
 .SH SEE ALSO
+.RE
 .sp
-\fIgearmand(8)\fP \fIlibgearman(3)\fP
+\fIgearmand(8)\fP \fIlibgearman(3)\fP \fIgearman_client_st(3)\fP
 .SH AUTHOR
 Data Differential http://datadifferential.com/
 .SH COPYRIGHT

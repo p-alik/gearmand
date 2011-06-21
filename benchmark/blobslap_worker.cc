@@ -14,6 +14,7 @@
 #include <benchmark/benchmark.h>
 #include <cerrno>
 #include <cstdio>
+#include <climits>
 #include <iostream>
 #include "util/daemon.h"
 

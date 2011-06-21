@@ -1,4 +1,4 @@
-.TH "GEARMAN_RETURN_T" "3" "June 19, 2011" "0.22" "Gearmand"
+.TH "GEARMAN_RETURN_T" "3" "June 21, 2011" "0.22" "Gearmand"
 .SH NAME
 gearman_return_t \- Gearmand Documentation, http://gearman.info/
 .
@@ -316,6 +316,14 @@ The function failed to complete the job.
 .UNINDENT
 .sp
 A task has had an error and will be retried.
+.INDENT 0.0
+.TP
+.B GEARMAN_SHUTDOWN
+.UNINDENT
+.sp
+\fI\%GEARMAN_SHUTDOWN\fP is a special case. If it is returned the client
+will be sent \fI\%GEARMAN_SUCCESS\fP, but \fBgearman_worker_work()\fP
+will exit with \fI\%GEARMAN_SHUTDOWN\fP.
 .SS TASK ONLY
 .INDENT 0.0
 .TP

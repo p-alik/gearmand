@@ -20,8 +20,12 @@ SYNOPSIS
 .. c:function:: void gearman_client_set_context(gearman_client_st *client, void *context)
 
 .. c:function:: void gearman_client_set_workload_malloc_fn(gearman_client_st *client, gearman_malloc_fn *function, void *context)
+.. deprecated:: 0.23
+   Use :c:type:`gearman_allocator_t`
 
 .. c:function:: void gearman_client_set_workload_free_fn(gearman_client_st *client, gearman_free_fn *function, void *context)
+.. deprecated:: 0.23
+   Use :c:type:`gearman_allocator_t`
 
 .. c:function:: void gearman_client_task_free_all(gearman_client_st *client)
 
@@ -41,7 +45,7 @@ DESCRIPTION
 
 :c:func:`gearman_client_timeout()` and :c:func:`gearman_client_set_timeout()` get and set the current timeout value, in milliseconds, for the client.
 
-Normally :manpage:`malloc(3)` and :manpage:`free(3)` are used for allocation and releasing workloads. :c:func:`gearman_client_set_workload_malloc_fn()` and :c:func:`gearman_client_set_workload_free_fn` can be used to replace these with custom functions.
+Normally :manpage:`malloc(3)` and :manpage:`free(3)` are used for allocation and releasing workloads. :c:func:`gearman_client_set_workload_malloc_fn()` and :c:func:`gearman_client_set_workload_free_fn` can be used to replace these with custom functions. (These have been deprecated, please see :c:type:`gearman_allocator_t` for the updated interface.
 
 :c:func:`gearman_client_task_free_all()` is used to free all current :c:type:`gearman_task_st` that have been created with the :c:type:`gearman_client_st`. 
 

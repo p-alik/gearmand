@@ -112,6 +112,7 @@ fi
 %doc AUTHORS COPYING NEWS README HACKING THANKS
 %{_includedir}/libgearman/actions.h
 %{_includedir}/libgearman/aggregator.h
+%{_includedir}/libgearman/allocator.h
 %{_includedir}/libgearman/argument.h
 %{_includedir}/libgearman/byteorder.h
 %{_includedir}/libgearman/client.h
@@ -144,6 +145,9 @@ fi
 %{_includedir}/libgearman/function.h
 %{_libdir}/pkgconfig/gearmand.pc
 %{_libdir}/libgearman.so
+%{_mandir}/man3/gearman_allocator_t.3.gz \
+%{_mandir}/man3/gearman_client_set_memory_allocators.3.gz \
+%{_mandir}/man3/gearman_worker_set_memory_allocators.3.gz \
 %{_mandir}/man3/gearman_task_attr_init_epoch.3.gz
 %{_mandir}/man3/gearman_task_attr_init_background.3.gz
 %{_mandir}/man3/gearman_task_attr_init.3.gz

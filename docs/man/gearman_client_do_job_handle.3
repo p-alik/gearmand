@@ -1,4 +1,4 @@
-.TH "GEARMAN_CLIENT_DO_JOB_HANDLE" "3" "June 19, 2011" "0.22" "Gearmand"
+.TH "GEARMAN_CLIENT_DO_JOB_HANDLE" "3" "June 21, 2011" "0.22" "Gearmand"
 .SH NAME
 gearman_client_do_job_handle \- Gearmand Documentation, http://gearman.info/
 .
@@ -57,10 +57,14 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .TP
 .B void gearman_client_set_workload_malloc_fn(\fI\%gearman_client_st\fP\fI\ *client\fP, gearman_malloc_fn\fI\ *function\fP, void\fI\ *context\fP)
 .UNINDENT
+.sp
+Deprecated since version 0.23: Use \fBgearman_allocator_t\fP
 .INDENT 0.0
 .TP
 .B void gearman_client_set_workload_free_fn(\fI\%gearman_client_st\fP\fI\ *client\fP, gearman_free_fn\fI\ *function\fP, void\fI\ *context\fP)
 .UNINDENT
+.sp
+Deprecated since version 0.23: Use \fBgearman_allocator_t\fP
 .INDENT 0.0
 .TP
 .B void gearman_client_task_free_all(\fI\%gearman_client_st\fP\fI\ *client\fP)
@@ -81,7 +85,7 @@ Link with \-lgearman
 .sp
 \fI\%gearman_client_timeout()\fP and \fI\%gearman_client_set_timeout()\fP get and set the current timeout value, in milliseconds, for the client.
 .sp
-Normally \fImalloc(3)\fP and \fIfree(3)\fP are used for allocation and releasing workloads. \fI\%gearman_client_set_workload_malloc_fn()\fP and \fI\%gearman_client_set_workload_free_fn()\fP can be used to replace these with custom functions.
+Normally \fImalloc(3)\fP and \fIfree(3)\fP are used for allocation and releasing workloads. \fI\%gearman_client_set_workload_malloc_fn()\fP and \fI\%gearman_client_set_workload_free_fn()\fP can be used to replace these with custom functions. (These have been deprecated, please see \fBgearman_allocator_t\fP for the updated interface.
 .sp
 \fI\%gearman_client_task_free_all()\fP is used to free all current \fBgearman_task_st\fP that have been created with the \fI\%gearman_client_st\fP.
 .IP Warning

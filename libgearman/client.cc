@@ -666,7 +666,7 @@ gearman_return_t gearman_client_set_memory_allocators(gearman_client_st *client,
   if (not client)
     return GEARMAN_INVALID_ARGUMENT;
 
-  return gearman_set_memory_allocators(client->universal.allocator, malloc_fn, free_fn, realloc_fn, calloc_fn, context);
+  return gearman_set_memory_allocator(client->universal.allocator, malloc_fn, free_fn, realloc_fn, calloc_fn, context);
 }
 
 
