@@ -37,51 +37,32 @@
  */
 
 
-
-#include "config.h"
-
-#if defined(NDEBUG)
-# undef NDEBUG
-#endif
-
-#include <cassert>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-
-#define GEARMAN_CORE
-
-#include <libgearman/common.h>
-#include <libgearman/packet.hpp>
-#include <libgearman/universal.hpp>
-
 #include <libtest/test.h>
-#include <libtest/server.h>
-#include <libtest/worker.h>
+#include <cassert>
+#include <libgearman/gearman.h>
+#include <tests/task.h>
+#include <libgearman/universal.hpp>
+#include <libgearman/connection.hpp>
+#include <libgearman/packet.hpp>
 
 #include <iostream>
 
-#define WORKER_TEST_PORT 32123
+#ifndef __INTEL_COMPILER
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
 
-typedef struct
+test_return_t regression_bug_783141_test(void *)
 {
-  pid_t gearmand_pid;
-} regression_st;
 
-void *create(void *object);
-void destroy(void *object);
-test_return_t pre(void *object);
-test_return_t post(void *object);
-test_return_t flush(void);
+#ifdef __APPLE__
+  return TEST_SKIPPED;
+#endif  
 
-
-static test_return_t regression_bug_783141_test(void *)
-{
   { // Try with one bad host
     gearman_client_st *client= gearman_client_create(NULL);
     test_truth(client);
 
-    test_truth(gearman_success(gearman_client_add_server(client, "10.0.2.253", WORKER_TEST_PORT)));
+    test_truth(gearman_success(gearman_client_add_server(client, "10.0.2.253", 0)));
 
     gearman_return_t ret;
     gearman_task_st *task= gearman_client_add_task(client, NULL, NULL,
@@ -104,9 +85,9 @@ static test_return_t regression_bug_783141_test(void *)
     gearman_client_st *client= gearman_client_create(NULL);
     test_truth(client);
 
-    test_truth(gearman_success(gearman_client_add_server(client, "10.0.2.253", WORKER_TEST_PORT)));
-    test_truth(gearman_success(gearman_client_add_server(client, "10.0.2.252", WORKER_TEST_PORT)));
-    test_truth(gearman_success(gearman_client_add_server(client, "10.0.2.251", WORKER_TEST_PORT)));
+    test_truth(gearman_success(gearman_client_add_server(client, "10.0.2.253", 0)));
+    test_truth(gearman_success(gearman_client_add_server(client, "10.0.2.252", 0)));
+    test_truth(gearman_success(gearman_client_add_server(client, "10.0.2.251", 0)));
 
     gearman_return_t ret;
     gearman_task_st *task= gearman_client_add_task(client, NULL, NULL,
@@ -128,7 +109,7 @@ static test_return_t regression_bug_783141_test(void *)
   return TEST_SUCCESS;
 }
 
-static test_return_t bug372074_test(void *)
+test_return_t regression_bug_372074_test(void *)
 {
   gearman_universal_st universal;
   const void *args[1];
@@ -142,7 +123,7 @@ static test_return_t bug372074_test(void *)
     gearman_connection_st *con_ptr;
     test_truth(con_ptr= gearman_connection_create(universal, NULL));
 
-    con_ptr->set_host(NULL, WORKER_TEST_PORT);
+    con_ptr->set_host(NULL, default_port());
 
     args[0]= "testUnregisterFunction";
     args_size[0]= strlen("testUnregisterFunction");
@@ -175,7 +156,7 @@ static test_return_t bug372074_test(void *)
 
     test_truth(con_ptr= gearman_connection_create(universal, NULL));
 
-    con_ptr->set_host(NULL, WORKER_TEST_PORT);
+    con_ptr->set_host(NULL, default_port());
 
     args[0]= "testUnregisterFunction";
     args_size[0]= strlen("testUnregisterFunction");
@@ -221,63 +202,4 @@ static test_return_t bug372074_test(void *)
   gearman_universal_free(universal);
 
   return TEST_SUCCESS;
-}
-
-
-test_st worker_tests[] ={
-  {"bug372074", 0, bug372074_test },
-  {0, 0, 0}
-};
-
-test_st gearman_client_run_tasks_regression[] ={
-  {"lp:783141, multiple calls for bad host", 0, regression_bug_783141_test },
-  {0, 0, 0}
-};
-
-
-collection_st collection[] ={
-  {"worker_tests", 0, 0, worker_tests },
-  {"gearman_client_run_tasks()", 0, 0, gearman_client_run_tasks_regression },
-  {0, 0, 0, 0}
-};
-
-#ifndef __INTEL_COMPILER
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#endif
-
-static void *world_create(test_return_t *error)
-{
-  regression_st *test;
-
-  test= (regression_st *)malloc(sizeof(regression_st));
-
-  test->gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, 0, NULL);
-
-  if (test->gearmand_pid == -1)
-  {
-    *error= TEST_FAILURE;
-    return NULL;
-  }
-
-  *error= TEST_SUCCESS;
-
-  return (void *)test;
-}
-
-
-static test_return_t world_destroy(void *object)
-{
-  regression_st *test= (regression_st *)object;
-  test_gearmand_stop(test->gearmand_pid);
-  free(test);
-
-  return TEST_SUCCESS;
-}
-
-
-void get_world(world_st *world)
-{
-  world->collections= collection;
-  world->create= world_create;
-  world->destroy= world_destroy;
 }

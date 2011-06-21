@@ -61,7 +61,9 @@
 #include <libgearman/unique.h>
 #include <libgearman/universal.h>
 #include <libgearman/universal.hpp>
+#include <libgearman/allocator.hpp>
 #include <libgearman/string.h>
+#include <libgearman/allocator.hpp>
 
 #include <libgearman/client.h>
 #include <libgearman/packet.hpp>
@@ -651,7 +653,23 @@ void gearman_client_set_task_context_free_fn(gearman_client_st *client,
     return;
 
   client->task_context_free_fn= function;
+
 }
+
+gearman_return_t gearman_client_set_memory_allocators(gearman_client_st *client,
+                                                      gearman_malloc_fn *malloc_fn,
+                                                      gearman_free_fn *free_fn,
+                                                      gearman_realloc_fn *realloc_fn,
+                                                      gearman_calloc_fn *calloc_fn,
+                                                      void *context)
+{
+  if (not client)
+    return GEARMAN_INVALID_ARGUMENT;
+
+  return gearman_set_memory_allocators(client->universal.allocator, malloc_fn, free_fn, realloc_fn, calloc_fn, context);
+}
+
+
 
 gearman_task_st *gearman_client_add_task(gearman_client_st *client,
                                          gearman_task_st *task,
@@ -1269,6 +1287,10 @@ static void *_client_do(gearman_client_st *client, gearman_command_t command,
   if (not ret_ptr)
     ret_ptr= &unused;
 
+  size_t unused_size;
+  if (not result_size)
+    result_size= &unused_size;
+
   if (not client)
   {
     *ret_ptr= GEARMAN_INVALID_ARGUMENT;
@@ -1322,7 +1344,7 @@ static void *_client_do(gearman_client_st *client, gearman_command_t command,
     *ret_ptr= do_task_ptr->result_rc;
     if (do_task_ptr->result_ptr)
     {
-      if (client->universal.workload_malloc_fn)
+      if (gearman_has_allocator(client->universal))
       {
         gearman_string_t result= gearman_result_string(do_task_ptr->result_ptr);
         returnable= static_cast<char *>(gearman_malloc(client->universal, gearman_size(result) +1));

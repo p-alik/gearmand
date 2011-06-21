@@ -98,6 +98,19 @@ static world_runner_st defualt_runners= {
   _runner_default
 };
 
+static in_port_t global_port= 0;
+
+in_port_t default_port()
+{
+  assert(global_port);
+  return global_port;
+}
+
+void set_default_port(in_port_t port)
+{
+  global_port= port;
+}
+
 
 int main(int argc, char *argv[])
 {

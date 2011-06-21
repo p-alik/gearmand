@@ -39,8 +39,7 @@ int main(int argc, char *argv[])
   size_t max_size= BLOBSLAP_DEFAULT_BLOB_MAX_SIZE;
   unsigned long int count= 1;
   gearman_client_st client;
-
-  benchmark_init(&benchmark);
+  bool shutdown_worker= false;
 
   if (not gearman_client_create(&client))
   {
@@ -50,7 +49,7 @@ int main(int argc, char *argv[])
 
   gearman_client_add_options(&client, GEARMAN_CLIENT_UNBUFFERED_RESULT);
 
-  while ((c= getopt(argc, argv, "bc:f:h:m:M:n:p:s:v")) != -1)
+  while ((c= getopt(argc, argv, "bc:f:h:m:M:n:p:s:ve")) != -1)
   {
     switch(c)
     {
@@ -94,6 +93,10 @@ int main(int argc, char *argv[])
 
     case 's':
       srand(uint32_t(atoi(optarg)));
+      break;
+
+    case 'e':
+      shutdown_worker= true;
       break;
 
     case 'v':
@@ -143,7 +146,8 @@ int main(int argc, char *argv[])
   }
   memset(blob, 'x', max_size); 
 
-  while (1)
+  bool error= false;
+  do
   {
     for (uint32_t x= 0; x < num_tasks; x++)
     {
@@ -193,7 +197,8 @@ int main(int argc, char *argv[])
           std::cerr << "Task #" << x << " failed during gearman_client_add_task(" << gearman_strerror(ret) << " -> " << gearman_client_error(&client) << std::endl ;
         }
 
-        exit(EXIT_FAILURE);
+	error= true;
+	goto exit_immediatly;
       }
     }
 
@@ -203,13 +208,17 @@ int main(int argc, char *argv[])
     gearman_client_set_complete_fn(&client, _complete);
     gearman_client_set_fail_fn(&client, _fail);
 
+    gearman_client_set_timeout(&client, 1000);
     gearman_return_t ret;
-    
     do {
       ret= gearman_client_run_tasks(&client);
     } while (gearman_continue(ret));
 
-    if (gearman_failed(ret) and ret != GEARMAN_LOST_CONNECTION)
+    if (ret == GEARMAN_TIMEOUT)
+    {
+      error= true;
+    }
+    else if (gearman_failed(ret) and ret != GEARMAN_LOST_CONNECTION)
     {
       std::cerr << "gearman_client_run_tasks(" << gearman_strerror(ret) << ") -> " << gearman_client_error(&client);
       for (uint32_t x= 0; x < num_tasks; x++)
@@ -219,7 +228,8 @@ int main(int argc, char *argv[])
           std::cerr << "\t Task #" << x << " failed with " << gearman_task_error(&tasks[x]) << std::endl; 
         }
       }
-      exit(EXIT_FAILURE);
+
+      error= true;
     }
 
     for (uint32_t x= 0; x < num_tasks; x++)
@@ -227,12 +237,13 @@ int main(int argc, char *argv[])
       gearman_task_free(&(tasks[x]));
     }
 
-    if (count > 0)
-    {
-      count--;
-      if (count == 0)
-        break;
-    }
+    count--;
+  } while (count or error);
+
+exit_immediatly:
+  if (shutdown_worker)
+  {
+    gearman_client_do(&client, "shutdown", 0, 0, 0, 0, 0);
   }
 
   delete [] blob;
@@ -242,7 +253,7 @@ int main(int argc, char *argv[])
   if (benchmark.verbose)
     std::cout << "Successfully completed all tasks" << std::endl;
 
-  return 0;
+  return error ? EXIT_FAILURE : 0;
 }
 
 static gearman_return_t _created(gearman_task_st *task)
@@ -314,7 +325,9 @@ static gearman_return_t _complete(gearman_task_st *task)
   }
 
   if (benchmark->verbose > 0)
+  {
     benchmark_check_time(benchmark);
+  }
 
   if (benchmark->verbose > 1)
   {
@@ -352,5 +365,6 @@ static void _usage(char *name)
   printf("\t-n <num_tasks> - number of tasks to run at once (default %d)\n", BLOBSLAP_DEFAULT_NUM_TASKS);
   printf("\t-p <port>      - job server port\n");
   printf("\t-s <seed>      - seed random number for blobsize with <seed>\n");
+  printf("\t-e             - tell worker to shutdown when done\n");
   printf("\t-v            - increase verbose level\n");
 }

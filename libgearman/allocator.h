@@ -1,9 +1,8 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  Gearmand client and server library.
+ *  Gearman library
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -35,50 +34,17 @@
  *
  */
 
-#include <libgearman/common.h>
+#pragma once
 
-#include <libgearman/packet.hpp>
-#include <libgearman/function/base.hpp>
+typedef void* (gearman_malloc_fn)(size_t size, void *context);
+typedef void* (gearman_realloc_fn)(void *ptr, size_t size, void *context);
+typedef void* (gearman_calloc_fn)(size_t nelm, size_t size, void *context);
+typedef void (gearman_free_fn)(void *ptr, void *context);
 
-#include <libgearman/function/make.hpp>
-#include <libgearman/function/basic.hpp>
-#include <libgearman/function/function_v2.hpp>
-#include <libgearman/function/mapper.hpp>
-#include <libgearman/function/null.hpp>
-
-_worker_function_st *make(gearman_vector_st* namespace_arg,
-                          const char *name, size_t name_length, 
-                          const gearman_function_t &function_arg, 
-                          void *context_arg)
-{
-  _worker_function_st *function= NULL;
-
-  switch (function_arg.kind)
-  {
-    case GEARMAN_WORKER_FUNCTION_V1:
-      function= new (std::nothrow) Basic(function_arg.callback.function_v1.func, context_arg);
-      break;
-
-    case GEARMAN_WORKER_FUNCTION_V2:
-      function=  new (std::nothrow) FunctionV2(function_arg.callback.function_v2.func, context_arg);
-      break;
-
-    case GEARMAN_WORKER_FUNCTION_PARTITION:
-      function=  new (std::nothrow) Mapper(function_arg.callback.partitioner.func, 
-                                           function_arg.callback.partitioner.aggregator,
-                                           context_arg);
-      break;
-
-    case GEARMAN_WORKER_FUNCTION_NULL:
-      function=  new (std::nothrow) Null(context_arg);
-      break;
-  }
-
-  if (function and not function->init(namespace_arg, name, name_length))
-  {
-    delete function;
-    return NULL;
-  }
-
-  return function;
-}
+struct gearman_allocator_t {
+  gearman_calloc_fn *calloc;
+  gearman_free_fn *free;
+  gearman_malloc_fn *malloc;
+  gearman_realloc_fn *realloc;
+  void *context;
+};

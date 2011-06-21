@@ -44,6 +44,7 @@
 #endif
 
 enum gearman_function_kind_t {
+  GEARMAN_WORKER_FUNCTION_NULL,
   GEARMAN_WORKER_FUNCTION_V1,
   GEARMAN_WORKER_FUNCTION_V2,
   GEARMAN_WORKER_FUNCTION_PARTITION
@@ -82,6 +83,9 @@ extern "C" {
 
 GEARMAN_API
   gearman_function_t gearman_function_create(gearman_function_fn func);
+
+GEARMAN_LOCAL
+  gearman_function_t gearman_function_create_null(void);
 
 GEARMAN_API
   gearman_function_t gearman_function_create_partition(gearman_function_fn func,

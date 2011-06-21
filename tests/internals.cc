@@ -53,17 +53,32 @@
 #include <libgearman/common.h>
 #include <libgearman/packet.hpp>
 
-#include "libtest/test.h"
-#include "libtest/server.h"
+#include <libtest/test.h>
+#include <libtest/server.h>
 #include <libtest/worker.h>
 
-#include "libgearman/universal.hpp"
+#include <libgearman/universal.hpp>
 
-#define CLIENT_TEST_PORT 32123
+#include <tests/regression.h>
+
+#define INTERNAL_TEST_PORT 32120
 
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
+
+struct internal_test_st
+{
+  pid_t gearmand_pid;
+
+  internal_test_st() :
+    gearmand_pid(-1)
+  { 
+  }
+
+  ~internal_test_st()
+  { }
+};
 
 static test_return_t init_test(void *)
 {
@@ -108,10 +123,9 @@ static test_return_t clone_test(void *)
     test_truth(destination.pfds == gear.pfds);
     test_truth(destination.log_fn == gear.log_fn);
     test_truth(destination.log_context == gear.log_context);
-    test_truth(destination.workload_malloc_fn == gear.workload_malloc_fn);
-    test_truth(destination.workload_malloc_context == gear.workload_malloc_context);
-    test_truth(destination.workload_free_fn == gear.workload_free_fn);
-    test_truth(destination.workload_free_context == gear.workload_free_context);
+    test_truth(destination.allocator.malloc == gear.allocator.malloc);
+    test_truth(destination.allocator.context == gear.allocator.context);
+    test_truth(destination.allocator.free == gear.allocator.free);
 
     gearman_universal_free(gear);
   }
@@ -409,15 +423,64 @@ test_st packet_st_test[] ={
   {0, 0, 0}
 };
 
+test_st regression_tests[] ={
+  {"lp:783141, multiple calls for bad host", 0, regression_bug_783141_test },
+  {"lp:372074", 0, regression_bug_372074_test },
+  {0, 0, 0}
+};
 
 collection_st collection[] ={
   {"gearman_universal_st", 0, 0, universal_st_test},
   {"gearman_connection_st", 0, 0, connection_st_test},
   {"gearman_packet_st", 0, 0, packet_st_test},
+  {"regression", 0, 0, regression_tests},
   {0, 0, 0, 0}
 };
+
+static void *world_create(test_return_t *error)
+{
+  internal_test_st *test= new internal_test_st();
+
+  /**
+   *  @TODO We cast this to char ** below, which is evil. We need to do the
+   *  right thing
+   */
+  const char *argv[1]= { "client_gearmand" };
+
+  if (not test)
+  {
+    *error= TEST_MEMORY_ALLOCATION_FAILURE;
+    return NULL;
+  }
+
+  /**
+    We start up everything before we allocate so that we don't have to track memory in the forked process.
+  */
+  test->gearmand_pid= test_gearmand_start(INTERNAL_TEST_PORT, 1, argv);
+
+  if (test->gearmand_pid == -1)
+  {
+    *error= TEST_FAILURE;
+    return NULL;
+  }
+  set_default_port(INTERNAL_TEST_PORT);
+
+  *error= TEST_SUCCESS;
+
+  return (void *)test;
+}
+
+static test_return_t world_destroy(void *object)
+{
+  internal_test_st *test= (internal_test_st *)object;
+  delete test;
+
+  return TEST_SUCCESS;
+}
 
 void get_world(world_st *world)
 {
   world->collections= collection;
+  world->create= world_create;
+  world->destroy= world_destroy;
 }

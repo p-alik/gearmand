@@ -43,6 +43,9 @@ docs/doctrees
 docs/html
 docs/libgearman/examples/gearman_client_do_background_example
 docs/libgearman/examples/gearman_client_do_example
+docs/libgearman/examples/gearman_execute_example
+docs/libgearman/examples/gearman_execute_map_reduce
+docs/libgearman/examples/gearman_execute_partition
 docs/linkcheck/
 examples/echo_client
 examples/echo_worker
@@ -76,6 +79,7 @@ support/gearmand.spec
 tags
 tests/Xugear.pid
 tests/burnin_test
+tests/c_test
 tests/client_test
 tests/client_test.res
 tests/cpp_test
@@ -102,5 +106,3 @@ tests/var/tmp/*
 tests/worker_test
 tests/worker_test.res
 unittests/unittests
-docs/libgearman/examples/gearman_execute_example
-docs/libgearman/examples/gearman_execute_map_reduce

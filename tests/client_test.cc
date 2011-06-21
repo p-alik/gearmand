@@ -72,6 +72,7 @@
 #include <tests/gearman_client_do_job_handle.h>
 #include <tests/gearman_execute_partition.h>
 #include <tests/protocol.h>
+#include <tests/regression.h>
 #include <tests/task.h>
 #include <tests/unique.h>
 #include <tests/workers.h>

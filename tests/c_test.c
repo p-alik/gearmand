@@ -1,9 +1,8 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  Gearmand client and server library.
+ *  Gearman C test app
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -35,50 +34,15 @@
  *
  */
 
-#include <libgearman/common.h>
+/*
+ * @file @brief C dummy test, aka testing C linking, etc
+ */
 
-#include <libgearman/packet.hpp>
-#include <libgearman/function/base.hpp>
+#include <stdlib.h>
 
-#include <libgearman/function/make.hpp>
-#include <libgearman/function/basic.hpp>
-#include <libgearman/function/function_v2.hpp>
-#include <libgearman/function/mapper.hpp>
-#include <libgearman/function/null.hpp>
+#include <libgearman/gearman.h>
 
-_worker_function_st *make(gearman_vector_st* namespace_arg,
-                          const char *name, size_t name_length, 
-                          const gearman_function_t &function_arg, 
-                          void *context_arg)
+int main(void)
 {
-  _worker_function_st *function= NULL;
-
-  switch (function_arg.kind)
-  {
-    case GEARMAN_WORKER_FUNCTION_V1:
-      function= new (std::nothrow) Basic(function_arg.callback.function_v1.func, context_arg);
-      break;
-
-    case GEARMAN_WORKER_FUNCTION_V2:
-      function=  new (std::nothrow) FunctionV2(function_arg.callback.function_v2.func, context_arg);
-      break;
-
-    case GEARMAN_WORKER_FUNCTION_PARTITION:
-      function=  new (std::nothrow) Mapper(function_arg.callback.partitioner.func, 
-                                           function_arg.callback.partitioner.aggregator,
-                                           context_arg);
-      break;
-
-    case GEARMAN_WORKER_FUNCTION_NULL:
-      function=  new (std::nothrow) Null(context_arg);
-      break;
-  }
-
-  if (function and not function->init(namespace_arg, name, name_length))
-  {
-    delete function;
-    return NULL;
-  }
-
-  return function;
+  return EXIT_SUCCESS;
 }

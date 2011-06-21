@@ -445,6 +445,14 @@ gearman_return_t gearman_worker_echo(gearman_worker_st *worker,
                                      size_t workload_size);
 
 GEARMAN_API
+  gearman_return_t gearman_worker_set_memory_allocators(gearman_worker_st *,
+                                                        gearman_malloc_fn *malloc_fn,
+                                                        gearman_free_fn *free_fn,
+                                                        gearman_realloc_fn *realloc_fn,
+                                                        gearman_calloc_fn *calloc_fn,
+                                                        void *context);
+
+GEARMAN_API
 bool gearman_worker_set_server_option(gearman_worker_st *self, const char *option_arg, size_t option_arg_size);
 
 GEARMAN_API

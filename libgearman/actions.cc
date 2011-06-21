@@ -38,6 +38,7 @@
 #include <config.h>
 
 #include <libgearman/common.h>
+
 #include <libgearman/unique.h>
 #include <libgearman/result.hpp>
 #include <cassert>

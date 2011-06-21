@@ -153,15 +153,13 @@ typedef struct gearman_task_st gearman_task_st;
 typedef struct gearman_client_st gearman_client_st;
 typedef struct gearman_job_st gearman_job_st;
 typedef struct gearman_worker_st gearman_worker_st;
+typedef struct gearman_allocator_t gearman_allocator_t;
 typedef struct gearman_task_attr_t gearman_task_attr_t;
 typedef struct gearman_result_st gearman_result_st;
 typedef struct gearman_string_t gearman_string_t;
 typedef struct gearman_argument_t gearman_argument_t;
 
 typedef gearman_return_t (gearman_parse_server_fn)(const char *host, in_port_t port, void *context);
-
-typedef void* (gearman_malloc_fn)(size_t size, void *context);
-typedef void (gearman_free_fn)(void *ptr, void *context);
 
 typedef void (gearman_task_context_free_fn)(gearman_task_st *task, void *context);
 

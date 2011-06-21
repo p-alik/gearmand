@@ -23,6 +23,12 @@ static void *worker_fn(gearman_job_st *job, void *context,
 static void usage(char *name);
 
 
+static gearman_return_t shutdown_fn(gearman_job_st*, void* /* context */)
+{
+  return GEARMAN_SHUTDOWN;
+}
+
+
 int main(int argc, char *argv[])
 {
   gearman_benchmark_st benchmark;
@@ -31,10 +37,8 @@ int main(int argc, char *argv[])
   in_port_t port= 0;
   char *function= NULL;
   bool opt_daemon= false;
-  unsigned long int count= 0;
+  unsigned long int count= ULONG_MAX;
   gearman_worker_st worker;
-
-  benchmark_init(&benchmark);
 
   if (not gearman_worker_create(&worker))
   {
@@ -114,21 +118,34 @@ int main(int argc, char *argv[])
     }
   }
 
-  while (1)
+  gearman_function_t shutdown_function= gearman_function_create(shutdown_fn);
+  if (gearman_failed(gearman_worker_define_function(&worker,
+						    gearman_literal_param("shutdown"), 
+						    shutdown_function,
+						    0, 0)))
   {
-    if (gearman_failed(gearman_worker_work(&worker)))
+    std::cerr << "Failed to add default function: " << gearman_worker_error(&worker) << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+  do
+  {
+    gearman_return_t rc= gearman_worker_work(&worker);
+
+    if (rc == GEARMAN_SHUTDOWN)
+    {
+      if (benchmark.verbose > 0)
+        std::cerr << "shutdown" << std::endl;
+      break;
+    }
+    else if (gearman_failed(rc))
     {
       std::cerr << "gearman_worker_work(): " << gearman_worker_error(&worker) << std::endl;
       break;
     }
 
-    if (count > 0)
-    {
-      count--;
-      if (count == 0)
-        break;
-    }
-  }
+    count--;
+  } while(count);
 
   gearman_worker_free(&worker);
 

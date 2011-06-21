@@ -221,6 +221,12 @@ The function failed to complete the job.
 
 A task has had an error and will be retried.
 
+.. c:type:: GEARMAN_SHUTDOWN  
+
+:c:type:`GEARMAN_SHUTDOWN` is a special case. If it is returned the client
+will be sent :c:type:`GEARMAN_SUCCESS`, but :c:func:`gearman_worker_work()`
+will exit with :c:type:`GEARMAN_SHUTDOWN`.
+
 
 *********
 TASK ONLY

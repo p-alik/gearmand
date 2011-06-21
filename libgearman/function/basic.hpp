@@ -65,7 +65,7 @@ public:
       return GEARMAN_FUNCTION_ERROR;
     }
 
-    if (gearman_failed(job->error_code))
+    if (gearman_failed(job->error_code) and job->error_code != GEARMAN_SHUTDOWN)
     {
       return GEARMAN_FUNCTION_FATAL;
     }

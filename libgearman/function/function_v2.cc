@@ -39,26 +39,23 @@
 
 #include <libgearman/packet.hpp>
 #include <libgearman/function/base.hpp>
-#include <libgearman/function/mapper.hpp>
+#include <libgearman/function/function_v2.hpp>
 
 /*
-  Mapper function
+  FunctionV2 function
 */
-gearman_function_error_t Mapper::callback(gearman_job_st* job, void *context_arg)
+gearman_function_error_t FunctionV2::callback(gearman_job_st* job, void *context_arg)
 {
-  if (gearman_job_is_map(job))
-    gearman_job_build_reducer(job, aggregator_fn);
-
-  gearman_return_t error= _mapper_fn(job, context_arg);
+  gearman_return_t error= _function(job, context_arg);
   switch (error)
   {
-  case GEARMAN_FATAL:
-    job->error_code= GEARMAN_FATAL;
-    return GEARMAN_FUNCTION_FATAL;
-
   case GEARMAN_SHUTDOWN:
     job->error_code= GEARMAN_SUCCESS;
     return GEARMAN_FUNCTION_SHUTDOWN;
+
+  case GEARMAN_FATAL:
+    job->error_code= GEARMAN_FATAL;
+    return GEARMAN_FUNCTION_FATAL;
 
   case GEARMAN_ERROR:
     job->error_code= GEARMAN_ERROR;

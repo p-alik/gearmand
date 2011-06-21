@@ -18,13 +18,6 @@
  * Public definitions
  */
 
-void benchmark_init(gearman_benchmark_st *benchmark)
-{
-  memset(benchmark, 0, sizeof(gearman_benchmark_st));
-  gettimeofday(&(benchmark->total), NULL);
-  gettimeofday(&(benchmark->begin), NULL);
-}
-
 void benchmark_check_time(gearman_benchmark_st *benchmark)
 {
   benchmark->jobs++;
