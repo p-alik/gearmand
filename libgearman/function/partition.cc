@@ -39,17 +39,17 @@
 
 #include <libgearman/packet.hpp>
 #include <libgearman/function/base.hpp>
-#include <libgearman/function/mapper.hpp>
+#include <libgearman/function/partition.hpp>
 
 /*
-  Mapper function
+  Partition function
 */
-gearman_function_error_t Mapper::callback(gearman_job_st* job, void *context_arg)
+gearman_function_error_t Partition::callback(gearman_job_st* job, void *context_arg)
 {
   if (gearman_job_is_map(job))
     gearman_job_build_reducer(job, aggregator_fn);
 
-  gearman_return_t error= _mapper_fn(job, context_arg);
+  gearman_return_t error= _partition_fn(job, context_arg);
   switch (error)
   {
   case GEARMAN_FATAL:

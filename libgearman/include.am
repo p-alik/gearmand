@@ -52,10 +52,10 @@ noinst_HEADERS+= \
 		 libgearman/connection.hpp \
 		 libgearman/do.hpp \
 		 libgearman/function/base.hpp \
-		 libgearman/function/basic.hpp \
+		 libgearman/function/function_v1.hpp \
 		 libgearman/function/function_v2.hpp \
 		 libgearman/function/make.hpp \
-		 libgearman/function/mapper.hpp \
+		 libgearman/function/partition.hpp \
 		 libgearman/log.h \
 		 libgearman/packet.hpp \
 		 libgearman/result.hpp \
@@ -94,7 +94,7 @@ libgearman_libgearman_la_SOURCES= \
 				  libgearman/function.cc \
 				  libgearman/function/function_v2.cc \
 				  libgearman/function/make.cc \
-				  libgearman/function/mapper.cc \
+				  libgearman/function/partition.cc \
 				  libgearman/gearman.cc \
 				  libgearman/job.cc \
 				  libgearman/log.cc \

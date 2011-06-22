@@ -40,12 +40,12 @@
 /**
   Private structure.
 */
-class Basic: public _worker_function_st
+class FunctionV1: public _worker_function_st
 {
   gearman_worker_fn *_worker_fn;
 
 public:
-  Basic(gearman_worker_fn *worker_fn_arg, void *context_arg) :
+  FunctionV1(gearman_worker_fn *worker_fn_arg, void *context_arg) :
     _worker_function_st(context_arg),
     _worker_fn(worker_fn_arg)
   { }
