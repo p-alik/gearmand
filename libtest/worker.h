@@ -24,23 +24,12 @@ extern "C" {
 #endif
 
 LIBTEST_API
-  struct worker_handle_st *test_worker_start(in_port_t port, const char *function_name,
-                                             gearman_worker_fn *function, void *function_arg,
-                                             gearman_worker_options_t options);
-
-LIBTEST_API
-  struct worker_handle_st *test_worker_start_with_namespace(in_port_t port, const char *function_name,
-							    gearman_worker_fn *function, void *function_arg,
-							    const char *namespace_key,
-							    gearman_worker_options_t options);
-
-LIBTEST_API
-  struct worker_handle_st *test_worker_start_with_reducer(in_port_t port,
-							  const char *namespace_key,
-                                                          const char *function_name,
-                                                          gearman_function_fn *mapper_fn, gearman_aggregator_fn *aggregator_fn,  
-                                                          void *function_arg,
-                                                          gearman_worker_options_t options);
+  struct worker_handle_st *test_worker_start(in_port_t port, 
+					     const char *namespace_key,
+					     const char *function_name,
+					     gearman_function_t &worker_fn,
+					     void *context,
+					     gearman_worker_options_t options);
 
 LIBTEST_API
 void test_worker_stop(struct worker_handle_st *);

@@ -214,9 +214,7 @@ void _client(Args &args)
     gearman_client_set_timeout(&client, args.timeout());
   }
 
-  gearman_return_t ret;
-  ret= gearman_client_add_server(&client, args.host(), args.port());
-  if (ret != GEARMAN_SUCCESS)
+  if (gearman_failed(gearman_client_add_server(&client, args.host(), args.port())))
   {
     error::message("gearman_client_add_server", client);
     return;
@@ -242,12 +240,18 @@ void _client(Args &args)
       while (1)
       {
         if (fgets(&workload[0], static_cast<int>(workload.size()), stdin) == NULL)
+        {
           break;
+        }
 
         if (args.strip_newline())
+        {
           _client_run(client, args, &workload[0], strlen(&workload[0]) - 1);
+        }
         else
+        {
           _client_run(client, args, &workload[0], strlen(&workload[0]));
+        }
       }
     }
     else
@@ -284,7 +288,7 @@ void _client_run(gearman_client_st& client, Args &args,
       {
       case GEARMAN_JOB_PRIORITY_HIGH:
         (void)gearman_client_add_task_high_background(&client,
-                                                      function.task(),
+                                                      NULL,
                                                       &args,
                                                       function.name(),
                                                       args.unique(),
@@ -294,7 +298,7 @@ void _client_run(gearman_client_st& client, Args &args,
 
       case GEARMAN_JOB_PRIORITY_NORMAL:
         (void)gearman_client_add_task_background(&client,
-                                                 function.task(),
+                                                 NULL,
                                                  &args,
                                                  function.name(),
                                                  args.unique(),
@@ -304,7 +308,7 @@ void _client_run(gearman_client_st& client, Args &args,
 
       case GEARMAN_JOB_PRIORITY_LOW:
         (void)gearman_client_add_task_low_background(&client,
-                                                     function.task(),
+                                                     NULL,
                                                      &args,
                                                      function.name(),
                                                      args.unique(),
@@ -325,7 +329,7 @@ void _client_run(gearman_client_st& client, Args &args,
       {
       case GEARMAN_JOB_PRIORITY_HIGH:
         (void)gearman_client_add_task_high(&client,
-                                           function.task(),
+                                           NULL,
                                            &args,
                                            function.name(),
                                            args.unique(),
@@ -334,7 +338,7 @@ void _client_run(gearman_client_st& client, Args &args,
 
       case GEARMAN_JOB_PRIORITY_NORMAL:
         (void)gearman_client_add_task(&client,
-                                      function.task(),
+                                      NULL,
                                       &args,
                                       function.name(),
                                       args.unique(),
@@ -344,7 +348,7 @@ void _client_run(gearman_client_st& client, Args &args,
 
       case GEARMAN_JOB_PRIORITY_LOW:
         (void)gearman_client_add_task_low(&client,
-                                          function.task(),
+                                          NULL,
                                           &args,
                                           function.name(),
                                           args.unique(),
@@ -359,14 +363,13 @@ void _client_run(gearman_client_st& client, Args &args,
       }
     }
 
-    if (ret != GEARMAN_SUCCESS)
+    if (gearman_failed(ret))
     {
       error::message("gearman_client_add_task", client);
     }
   }
 
-  ret= gearman_client_run_tasks(&client);
-  if (ret != GEARMAN_SUCCESS)
+  if (gearman_failed(gearman_client_run_tasks(&client)))
   {
     error::message("gearman_client_run_tasks", client);
   }
@@ -374,9 +377,7 @@ void _client_run(gearman_client_st& client, Args &args,
 
 static gearman_return_t _client_data(gearman_task_st *task)
 {
-  const Args *args;
-
-  args= static_cast<const Args*>(gearman_task_context(task));
+  const Args *args= static_cast<const Args*>(gearman_task_context(task));
   if (args->prefix())
   {
     fprintf(stdout, "%s: ", gearman_task_function_name(task));
@@ -394,9 +395,7 @@ static gearman_return_t _client_data(gearman_task_st *task)
 
 static gearman_return_t _client_warning(gearman_task_st *task)
 {
-  const Args *args;
-
-  args= static_cast<const Args*>(gearman_task_context(task));
+  const Args *args= static_cast<const Args*>(gearman_task_context(task));
   if (args->prefix())
   {
     fprintf(stderr, "%s: ", gearman_task_function_name(task));
@@ -413,9 +412,8 @@ static gearman_return_t _client_warning(gearman_task_st *task)
 
 static gearman_return_t _client_status(gearman_task_st *task)
 {
-  const Args *args;
+  const Args *args= static_cast<const Args*>(gearman_task_context(task));
 
-  args= static_cast<const Args*>(gearman_task_context(task));
   if (args->prefix())
     printf("%s: ", gearman_task_function_name(task));
 
@@ -427,9 +425,8 @@ static gearman_return_t _client_status(gearman_task_st *task)
 
 static gearman_return_t _client_fail(gearman_task_st *task)
 {
-  const Args *args;
+  const Args *args= static_cast<const Args *>(gearman_task_context(task));
 
-  args= static_cast<const Args *>(gearman_task_context(task));
   if (args->prefix())
     fprintf(stderr, "%s: ", gearman_task_function_name(task));
 
@@ -440,23 +437,21 @@ static gearman_return_t _client_fail(gearman_task_st *task)
   return GEARMAN_SUCCESS;
 }
 
-static void _worker_free(void *ptr, void *context)
+static void _worker_free(void *, void *)
 {
-  (void)ptr;
-  (void)context;
 }
 
 void _worker(Args &args)
 {
-  gearman_return_t ret;
   Worker local_worker;
   gearman_worker_st &worker= local_worker.worker();
 
   if (args.timeout() >= 0)
+  {
     gearman_worker_set_timeout(&worker, args.timeout());
+  }
 
-  ret= gearman_worker_add_server(&worker, args.host(), args.port());
-  if (ret != GEARMAN_SUCCESS)
+  if (gearman_failed(gearman_worker_add_server(&worker, args.host(), args.port())))
   {
     error::message("gearman_worker_add_server", worker);
     _exit(EXIT_FAILURE);
@@ -470,8 +465,7 @@ void _worker(Args &args)
   {
     Function &function= *iter;
     worker_argument_t pass(args, *iter);
-    ret= gearman_worker_add_function(&worker, function.name(), 0, _worker_cb, &pass);
-    if (ret != GEARMAN_SUCCESS)
+    if (gearman_failed(gearman_worker_add_function(&worker, function.name(), 0, _worker_cb, &pass)))
     {
       error::message("gearman_worker_add_function", worker);
       _exit(EXIT_FAILURE);
@@ -480,8 +474,7 @@ void _worker(Args &args)
 
   while (1)
   {
-    ret= gearman_worker_work(&worker);
-    if (ret != GEARMAN_SUCCESS)
+    if (gearman_failed(gearman_worker_work(&worker)))
     {
       error::message("gearman_worker_work", worker);
     }

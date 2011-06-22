@@ -1,8 +1,8 @@
 # vim:ft=automake
 # Gearman server and library 
-# Copyright (C) 2008 Brian Aker, Eric Day 
-# Copyright (C) 2009-2010 Brian Aker, Eric Day, Monty Taylor All rights
 # Copyright (C) 2011 Data Differential, http://datadifferential.com/
+# Copyright (C) 2009-2010 Brian Aker, Eric Day, Monty Taylor All rights
+# Copyright (C) 2008 Brian Aker, Eric Day 
 #
 # Use and distribution licensed under the BSD license.  See
 # the COPYING file in the parent directory for full text.
@@ -13,6 +13,7 @@
 nobase_include_HEADERS+= \
 			 libgearman/actions.h \
 			 libgearman/aggregator.h \
+			 libgearman/allocator.h \
 			 libgearman/argument.h \
 			 libgearman/byteorder.h \
 			 libgearman/client.h \
@@ -46,13 +47,15 @@ nobase_include_HEADERS+= \
 noinst_HEADERS+= \
 		 libgearman/add.hpp \
 		 libgearman/aggregator.hpp \
+		 libgearman/allocator.hpp \
 		 libgearman/common.h \
 		 libgearman/connection.hpp \
 		 libgearman/do.hpp \
 		 libgearman/function/base.hpp \
-		 libgearman/function/basic.hpp \
+		 libgearman/function/function_v1.hpp \
+		 libgearman/function/function_v2.hpp \
 		 libgearman/function/make.hpp \
-		 libgearman/function/mapper.hpp \
+		 libgearman/function/partition.hpp \
 		 libgearman/log.h \
 		 libgearman/packet.hpp \
 		 libgearman/result.hpp \
@@ -64,6 +67,7 @@ noinst_HEADERS+= \
 
 noinst_LTLIBRARIES+= libgearman/libgearmancore.la
 libgearman_libgearmancore_la_SOURCES= \
+				      libgearman/allocator.cc \
 				      libgearman/byteorder.cc \
 				      libgearman/command.cc \
 				      libgearman/connection.cc \
@@ -78,6 +82,7 @@ lib_LTLIBRARIES+= libgearman/libgearman.la
 libgearman_libgearman_la_SOURCES= \
 				  libgearman/actions.cc \
 				  libgearman/aggregator.cc \
+				  libgearman/allocator.cc \
 				  libgearman/argument.cc \
 				  libgearman/add.cc \
 				  libgearman/byteorder.cc \
@@ -87,8 +92,9 @@ libgearman_libgearman_la_SOURCES= \
 				  libgearman/do.cc \
 				  libgearman/execute.cc \
 				  libgearman/function.cc \
+				  libgearman/function/function_v2.cc \
 				  libgearman/function/make.cc \
-				  libgearman/function/mapper.cc \
+				  libgearman/function/partition.cc \
 				  libgearman/gearman.cc \
 				  libgearman/job.cc \
 				  libgearman/log.cc \

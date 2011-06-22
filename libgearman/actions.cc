@@ -38,11 +38,11 @@
 #include <config.h>
 
 #include <libgearman/common.h>
+
 #include <libgearman/unique.h>
 #include <libgearman/result.hpp>
 #include <cassert>
 #include <memory>
-#include <iostream>
 
 struct gearman_result_st;
 

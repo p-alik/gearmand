@@ -49,7 +49,6 @@ typedef std::vector<char> Bytes;
 
 class Function {
   Bytes _name;
-  gearman_task_st _task;
   Bytes _buffer;
 
 public:
@@ -58,8 +57,6 @@ public:
   Function(const char *name_arg);
 
   ~Function();
-
-  gearman_task_st *task();
 
   const char *name() const
   {

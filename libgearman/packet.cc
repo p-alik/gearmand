@@ -42,6 +42,8 @@
  */
 
 #include <libgearman/common.h>
+
+#include <libgearman/allocator.hpp>
 #include <libgearman/universal.hpp>
 #include <libgearman/command.h>
 #include <libgearman/packet.hpp>
@@ -250,7 +252,7 @@ void gearman_packet_free(gearman_packet_st *packet)
   assert(packet->universal);
   if (packet->options.free_data && packet->data)
   {
-    gearman_free(*packet->universal, const_cast<void *>(packet->data));
+    gearman_free((*packet->universal), const_cast<void *>(packet->data));
     packet->data= NULL;
   }
 

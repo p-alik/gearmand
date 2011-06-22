@@ -395,8 +395,8 @@ test_return_t gearman_client_add_task_pause_test(void *object)
   gearman_task_st *task= gearman_client_add_task(client, NULL, NULL,
                                                  worker_function, NULL, "dog", 3,
                                                  &ret);
-  test_true(client->actions.data_fn == pause_actions.data_fn);
-  test_true_got(gearman_success(ret), gearman_strerror(ret));
+  test_compare(client->actions.data_fn, pause_actions.data_fn);
+  test_compare_got(GEARMAN_SUCCESS, ret, gearman_strerror(ret));
   test_truth(task);
 
   do
@@ -405,9 +405,9 @@ test_return_t gearman_client_add_task_pause_test(void *object)
     uint32_t count= 0;
     do {
       count++;
-      test_true(client->actions.data_fn == pause_actions.data_fn);
+      test_compare(client->actions.data_fn, pause_actions.data_fn);
       ret= gearman_client_run_tasks(client);
-      test_true(client->actions.data_fn == pause_actions.data_fn);
+      test_compare(client->actions.data_fn, pause_actions.data_fn);
     } while (gearman_continue(ret));
 
     test_compare_got(GEARMAN_SUCCESS, ret, gearman_client_error(client));

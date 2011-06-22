@@ -40,6 +40,6 @@ benchmark-test: benchmark/blobslap_client benchmark/blobslap_worker gearmand/gea
 	@echo Running benchmarking tool, this may take a couple of seconds
 	@gearmand/gearmand --port=$(GEARMAND_BENCHMARK_PORT) --daemon --pid-file=$(GEARMAND_BE_PIDFILE)
 	@libtest/wait $(GEARMAND_BE_PIDFILE)
-	@benchmark/blobslap_worker  -c $(BENCHMARK_TASK_COUNT_TOTAL) -p $(GEARMAND_BENCHMARK_PORT) -d
-	@benchmark/blobslap_client  -c $(BENCHMARK_COUNT) -n $(BENCHMARK_TASK_COUNT) -p $(GEARMAND_BENCHMARK_PORT) 
-	@cat $(GEARMAND_BE_PIDFILE) | xargs kill
+	@benchmark/blobslap_worker  -p $(GEARMAND_BENCHMARK_PORT) -d
+	@benchmark/blobslap_client  -c $(BENCHMARK_COUNT) -n $(BENCHMARK_TASK_COUNT) -p $(GEARMAND_BENCHMARK_PORT) -e
+	cat $(GEARMAND_BE_PIDFILE) | xargs kill

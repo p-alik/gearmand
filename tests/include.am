@@ -1,5 +1,6 @@
 # vim:ft=automake
 # Gearman server and library
+# Copyright (C) 2011 Data Differential, http://datadifferential.com/
 # Copyright (C) 2008 Brian Aker, Eric Day
 # All rights reserved.
 #
@@ -20,7 +21,8 @@ noinst_HEADERS+= \
 		 tests/server_options.h \
 		 tests/task.h \
 		 tests/unique.h \
-		 tests/workers.h
+		 tests/workers.h \
+		 tests/workers_v1.h
 
 CLIENT_LDADD= \
 	      libtest/libtest.la \
@@ -34,10 +36,10 @@ CLEANFILES+= \
 noinst_PROGRAMS+= \
 		  tests/burnin_test \
 		  tests/client_test \
+		  tests/c_test \
 		  tests/cpp_test \
 		  tests/drizzle_test \
 		  tests/internals_test \
-		  tests/regression_test \
 		  tests/round_robin_test \
 		  tests/worker_test
 
@@ -52,19 +54,20 @@ tests_client_test_SOURCES= \
 			   tests/server_options.cc \
 			   tests/task.cc \
 			   tests/unique.cc \
-			   tests/workers.cc
+			   tests/workers.cc \
+			   tests/workers_v1.cc
 tests_client_test_LDADD= ${CLIENT_LDADD}
 tests_client_test_DEPENDENCIES= ${CLIENT_LDADD}
 
 tests_burnin_test_SOURCES= tests/burnin.cc
 tests_burnin_test_LDADD= ${CLIENT_LDADD}
 
-tests_internals_test_SOURCES= tests/internals.cc
+tests_internals_test_SOURCES= \
+			      tests/internals.cc \
+			      tests/regression.cc
+
 tests_internals_test_LDADD= ${CLIENT_LDADD} libgearman/libgearmancore.la
 tests_internals_test_DEPENDENCIES= ${CLIENT_LDADD} libgearman/libgearmancore.la
-
-tests_regression_test_SOURCES= tests/regression.cc
-tests_regression_test_LDADD= ${CLIENT_LDADD} libgearman/libgearmancore.la
 
 tests_round_robin_test_SOURCES= tests/round_robin.cc
 tests_round_robin_test_LDADD= ${CLIENT_LDADD} libgearman/libgearmancore.la
@@ -78,6 +81,10 @@ tests_worker_test_LDADD= \
 tests_cpp_test_SOURCES= tests/cpp_test.cc
 tests_cpp_test_LDADD= ${CLIENT_LDADD}
 
+# Test linking with C application
+tests_c_test_SOURCES= tests/c_test.c
+tests_c_test_LDADD= ${CLIENT_LDADD}
+
 test-burnin: tests/burnin_test
 	@tests/burnin_test $(ARG1) $(ARG2)
 
@@ -87,9 +94,6 @@ test-client: tests/client_test
 test-round-robin: tests/round_robin_test
 	@tests/round_robin_test $(ARG1) $(ARG2)
 
-test-regression: tests/regression_test
-	@tests/regression_test $(ARG1) $(ARG2)
-
 test-worker: tests/worker_test
 	@tests/worker_test $(ARG1) $(ARG2)
 
@@ -98,7 +102,7 @@ test-internals: tests/internals_test
 
 check-local: tests/var gearmand-test-args client-test libtest-tests benchmark-test
 
-libtest-tests: test-client test-round-robin test-worker test-internals test-libmemcached test-sqlite test-tokyocabinet test-burnin test-regression
+libtest-tests: test-client test-round-robin test-worker test-internals test-libmemcached test-sqlite test-tokyocabinet test-burnin
 
 gdb-client: ${noinst_PROGRAMS}
 	@$(LIBTOOL) --mode=execute gdb tests/client_test
@@ -112,9 +116,6 @@ gdb-worker: ${noinst_PROGRAMS}
 gdb-internals: ${noinst_PROGRAMS}
 	@$(LIBTOOL) --mode=execute gdb tests/internals_test
 
-gdb-regression: tests/regression_test
-	@$(LIBTOOL) --mode=execute gdb tests/regression_test
-
 gdb-burnin: ${noinst_PROGRAMS}
 	@$(LIBTOOL) --mode=execute gdb tests/burnin_test
 
@@ -123,9 +124,6 @@ valgrind-client:
 
 valgrind-round-robin:
 	@$(VALGRIND_COMMAND) tests/round_robin_test $(ARG1) $(ARG2)
-
-valgrind-regression: tests/regression_test
-	@$(VALGRIND_COMMAND) tests/regression_test $(ARG1) $(ARG2)
 
 valgrind-worker: tests/worker_test
 	@$(VALGRIND_COMMAND) tests/worker_test $(ARG1) $(ARG2)

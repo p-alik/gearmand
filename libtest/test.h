@@ -15,6 +15,9 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+
 #include <libtest/visibility.h>
 
 #pragma once
@@ -155,6 +158,12 @@ void get_world(world_st *world);
 
 LIBTEST_INTERNAL_API
 void create_core(void);
+
+LIBTEST_API
+  in_port_t default_port();
+
+LIBTEST_API
+  void set_default_port(in_port_t port);
 
 /**
   @note Friendly print function for errors.

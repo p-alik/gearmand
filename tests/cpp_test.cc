@@ -6,15 +6,11 @@
  * the COPYING file in the parent directory for full text.
  */
 
-/**
- * @file
+/*
  * @brief C++ dummy test, aka testing C++ linking, etc
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
+#include <cstdlib> // For EXIT_SUCCESS
 
 #include <libgearman/gearman.h>
 

@@ -57,19 +57,20 @@ extern "C" {
  */
 
 /* Defines. */
-#define GEARMAN_DEFAULT_TCP_HOST "127.0.0.1"
-#define GEARMAN_DEFAULT_SOCKET_TIMEOUT 10
-#define GEARMAN_DEFAULT_SOCKET_SEND_SIZE 32768
-#define GEARMAN_DEFAULT_SOCKET_RECV_SIZE 32768
-#define GEARMAN_MAX_ERROR_SIZE 1024
-#define GEARMAN_PACKET_HEADER_SIZE 12
-#define GEARMAN_JOB_HANDLE_SIZE 64
-#define GEARMAN_OPTION_SIZE 64
-#define GEARMAN_UNIQUE_SIZE 64
-#define GEARMAN_MAX_COMMAND_ARGS 8
 #define GEARMAN_ARGS_BUFFER_SIZE 128
-#define GEARMAN_SEND_BUFFER_SIZE 8192
+#define GEARMAN_DEFAULT_SOCKET_RECV_SIZE 32768
+#define GEARMAN_DEFAULT_SOCKET_SEND_SIZE 32768
+#define GEARMAN_DEFAULT_SOCKET_TIMEOUT 10
+#define GEARMAN_DEFAULT_TCP_HOST "127.0.0.1"
+#define GEARMAN_JOB_HANDLE_SIZE 64
+#define GEARMAN_MAXIMUM_INTEGER_DISPLAY_LENGTH 20
+#define GEARMAN_MAX_COMMAND_ARGS 8
+#define GEARMAN_MAX_ERROR_SIZE 1024
+#define GEARMAN_OPTION_SIZE 64
+#define GEARMAN_PACKET_HEADER_SIZE 12
 #define GEARMAN_RECV_BUFFER_SIZE 8192
+#define GEARMAN_SEND_BUFFER_SIZE 8192
+#define GEARMAN_UNIQUE_SIZE 64
 #define GEARMAN_WORKER_WAIT_TIMEOUT (10 * 1000) /* Milliseconds */
 
 /**
@@ -153,15 +154,20 @@ typedef struct gearman_task_st gearman_task_st;
 typedef struct gearman_client_st gearman_client_st;
 typedef struct gearman_job_st gearman_job_st;
 typedef struct gearman_worker_st gearman_worker_st;
+typedef struct gearman_allocator_t gearman_allocator_t;
 typedef struct gearman_task_attr_t gearman_task_attr_t;
 typedef struct gearman_result_st gearman_result_st;
 typedef struct gearman_string_t gearman_string_t;
 typedef struct gearman_argument_t gearman_argument_t;
 
-typedef gearman_return_t (gearman_parse_server_fn)(const char *host, in_port_t port, void *context);
-
+// Custom allocators
 typedef void* (gearman_malloc_fn)(size_t size, void *context);
+typedef void* (gearman_realloc_fn)(void *ptr, size_t size, void *context);
+typedef void* (gearman_calloc_fn)(size_t nelm, size_t size, void *context);
 typedef void (gearman_free_fn)(void *ptr, void *context);
+
+
+typedef gearman_return_t (gearman_parse_server_fn)(const char *host, in_port_t port, void *context);
 
 typedef void (gearman_task_context_free_fn)(gearman_task_st *task, void *context);
 

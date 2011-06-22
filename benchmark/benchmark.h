@@ -54,7 +54,7 @@
  * @addtogroup benchmark Common Benchmark Utilities
  * @{
  */
-typedef struct
+struct gearman_benchmark_st
 {
   bool background;
   uint8_t verbose;
@@ -63,12 +63,18 @@ typedef struct
   struct timeval total;
   struct timeval begin;
   struct timeval end;
-} gearman_benchmark_st;
 
-/**
- * Initialize a benchmark strucutre.
- */
-void benchmark_init(gearman_benchmark_st *benchmark);
+  gearman_benchmark_st() :
+    background(false),
+    verbose(0),
+    total_jobs(0),
+    jobs(0),
+    end()
+    { 
+      gettimeofday(&total, NULL);
+      gettimeofday(&begin, NULL);
+    }
+};
 
 /**
  * Check and possibly print time.

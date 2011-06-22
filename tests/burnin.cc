@@ -202,7 +202,8 @@ void *world_create(test_return_t *error)
     return NULL;
   }
 
-  test->handle= test_worker_start(CLIENT_TEST_PORT, DEFAULT_WORKER_NAME, worker_fn, NULL, gearman_worker_options_t());
+  gearman_function_t func_arg= gearman_function_create_v1(worker_fn);
+  test->handle= test_worker_start(CLIENT_TEST_PORT, NULL, DEFAULT_WORKER_NAME, func_arg, NULL, gearman_worker_options_t());
   if (not test->handle)
   {
     *error= TEST_FAILURE;

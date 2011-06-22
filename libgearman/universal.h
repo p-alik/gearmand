@@ -38,6 +38,8 @@
 
 #pragma once
 
+#include <libgearman/allocator.h>
+
 /**
   @todo this is only used by the server and should be made private.
  */
@@ -66,10 +68,7 @@ struct gearman_universal_st
   struct pollfd *pfds;
   gearman_log_fn *log_fn;
   void *log_context;
-  gearman_malloc_fn *workload_malloc_fn;
-  void *workload_malloc_context;
-  gearman_free_fn *workload_free_fn;
-  void *workload_free_context;
+  gearman_allocator_t allocator;
   struct gearman_vector_st *_namespace;
   struct {
     gearman_return_t rc;

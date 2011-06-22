@@ -1,9 +1,14 @@
+0.23
+  * Defined workers can now return GEARMAN_SHUTDOWN.
+  * Benchmark worker can now be told to shutdown.
+  * Allocator code has been cleaned up (gearman_allocator_t).
+
 0.22 Sun Jun 19 20:32:18 PDT 2011
   * Added gearman_work_map() for gearman_work_t describer.
   * gearman_execute_by_partition() added. 
   * gearamn_task_attr_t added.
   * Additional documentation update.
-  * Issue with PHP client using automated task free (Thanks rosmiitto!)
+  * Issue with PHP client using automated task free (Thanks Taneli Leppä!!)
   * Fixed issue where PHP client's custom allocator was free'ing memory that did not belong to it.
 
 0.21 Wed Jun 15 21:01:04 PDT 2011

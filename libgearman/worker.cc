@@ -39,6 +39,7 @@
 #include <libgearman/common.h>
 #include <libgearman/connection.h>
 #include <libgearman/packet.hpp>
+#include <libgearman/allocator.hpp>
 #include <libgearman/universal.hpp>
 #include <libgearman/function/base.hpp>
 #include <libgearman/function/make.hpp>
@@ -92,12 +93,9 @@ static gearman_return_t _worker_add_server(const char *host, in_port_t port, voi
  * Allocate and add a function to the register list.
  */
 static gearman_return_t _worker_function_create(gearman_worker_st *worker,
-                                                const char *function_name,
-                                                size_t function_length,
+                                                const char *function_name, size_t function_length,
+                                                const gearman_function_t &function,
                                                 uint32_t timeout,
-                                                gearman_worker_fn *worker_fb,
-                                                gearman_function_fn *partitioner_fn,
-                                                gearman_aggregator_fn *aggregator_fn,
                                                 void *context);
 
 /**
@@ -177,16 +175,7 @@ void gearman_worker_free(gearman_worker_st *worker)
 
   if (worker->work_result)
   {
-    if (worker->universal.workload_free_fn)
-    {
-      worker->universal.workload_free_fn(worker->work_result,
-                                         static_cast<void *>((&worker->universal)->workload_free_context));
-    }
-    else
-    {
-      // Created with malloc
-      free(worker->work_result);
-    }
+    gearman_free(worker->universal, worker->work_result);
   }
 
   while (worker->function_list)
@@ -435,7 +424,8 @@ gearman_return_t gearman_worker_register(gearman_worker_st *worker,
                                          const char *function_name,
                                          uint32_t timeout)
 {
-  return _worker_function_create(worker, function_name, strlen(function_name), timeout, NULL, NULL, NULL, NULL);
+  gearman_function_t null_func= gearman_function_create_null();
+  return _worker_function_create(worker, function_name, strlen(function_name), null_func, timeout, NULL);
 }
 
 bool gearman_worker_function_exist(gearman_worker_st *worker,
@@ -836,12 +826,12 @@ gearman_return_t gearman_worker_add_function(gearman_worker_st *worker,
   {
     return gearman_error(worker->universal, GEARMAN_INVALID_ARGUMENT, "function not given");
   }
+  gearman_function_t local= gearman_function_create_v1(worker_fn);
 
   return _worker_function_create(worker,
                                  function_name, strlen(function_name),
+                                 local,
                                  timeout,
-                                 worker_fn,
-                                 NULL, NULL,
                                  context);
 }
 
@@ -861,40 +851,19 @@ gearman_return_t gearman_worker_define_function(gearman_worker_st *worker,
     return gearman_error(worker->universal, GEARMAN_INVALID_ARGUMENT, "function name not given");
   }
 
-  switch (function.kind)
-  {
-  case GEARMAN_WORKER_FUNCTION_V2:
-    return _worker_function_create(worker,
-                                   function_name, function_name_length,
-                                   timeout,
-                                   NULL,
-                                   function.callback.function_v2.func,
-                                   NULL,
-                                   context);
-
-  case GEARMAN_WORKER_FUNCTION_PARTITION:
-    {
-      gearman_return_t ret= _worker_function_create(worker,
-                                                    function_name, function_name_length,
-                                                    timeout,
-                                                    NULL,
-                                                    function.callback.partitioner.func,
-                                                    function.callback.partitioner.aggregator,
-                                                    context);
-      worker->options.grab_all= gearman_success(ret);
-
-      return ret;
-    }
-
-  case GEARMAN_WORKER_FUNCTION_V1:
-    break;
-  }
+  return _worker_function_create(worker,
+                                 function_name, function_name_length,
+                                 function,
+                                 timeout,
+                                 context);
 
   return GEARMAN_INVALID_ARGUMENT;
 }
 
 gearman_return_t gearman_worker_work(gearman_worker_st *worker)
 {
+  bool shutdown= false;
+
   if (not worker)
   {
     return GEARMAN_INVALID_ARGUMENT;
@@ -965,6 +934,9 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
         worker->work_job->error_code= GEARMAN_LOST_CONNECTION;
         break;
 
+      case GEARMAN_FUNCTION_SHUTDOWN:
+        shutdown= true;
+
       case GEARMAN_FUNCTION_SUCCESS:
         break;
       }
@@ -986,15 +958,7 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
 
       if (worker->work_result)
       {
-        if (worker->universal.workload_free_fn)
-        {
-          worker->universal.workload_free_fn(worker->work_result,
-                                             (&worker->universal)->workload_free_context);
-        }
-        else
-        {
-          free(worker->work_result);
-        }
+        gearman_free(worker->universal, worker->work_result);
         worker->work_result= NULL;
       }
 
@@ -1032,7 +996,7 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
 
   worker->work_state= GEARMAN_WORKER_WORK_UNIVERSAL_GRAB_JOB;
 
-  return GEARMAN_SUCCESS;
+  return shutdown ? GEARMAN_SHUTDOWN : GEARMAN_SUCCESS;
 }
 
 gearman_return_t gearman_worker_echo(gearman_worker_st *worker,
@@ -1125,26 +1089,15 @@ static gearman_return_t _worker_add_server(const char *host, in_port_t port, voi
 }
 
 static gearman_return_t _worker_function_create(gearman_worker_st *worker,
-                                                const char *function_name,
-                                                size_t function_length,
+                                                const char *function_name, size_t function_length,
+                                                const gearman_function_t &function_arg,
                                                 uint32_t timeout,
-                                                gearman_worker_fn *worker_fn,
-                                                gearman_function_fn *partitioner_fn,
-                                                gearman_aggregator_fn *aggregator_fn,
                                                 void *context)
 {
   const void *args[2];
   size_t args_size[2];
 
-  _worker_function_st *function;
-  if (partitioner_fn and aggregator_fn)
-  {
-    function= make(worker->universal._namespace, function_name, function_length, partitioner_fn, aggregator_fn, context);
-  }
-  else
-  {
-    function= make(worker->universal._namespace, function_name, function_length, worker_fn, context);
-  }
+  _worker_function_st *function= make(worker->universal._namespace, function_name, function_length, function_arg, context);
 
   if (not function)
   {
@@ -1207,6 +1160,19 @@ static void _worker_function_free(gearman_worker_st *worker,
   worker->function_count--;
 
   delete function;
+}
+
+gearman_return_t gearman_worker_set_memory_allocators(gearman_worker_st *worker,
+                                                      gearman_malloc_fn *malloc_fn,
+                                                      gearman_free_fn *free_fn,
+                                                      gearman_realloc_fn *realloc_fn,
+                                                      gearman_calloc_fn *calloc_fn,
+                                                      void *context)
+{
+  if (not worker)
+    return GEARMAN_INVALID_ARGUMENT;
+
+  return gearman_set_memory_allocator(worker->universal.allocator, malloc_fn, free_fn, realloc_fn, calloc_fn, context);
 }
 
 bool gearman_worker_set_server_option(gearman_worker_st *self, const char *option_arg, size_t option_arg_size)

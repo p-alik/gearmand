@@ -236,6 +236,15 @@ void gearman_client_set_workload_free_fn(gearman_client_st *client,
                                          gearman_free_fn *function,
                                          void *context);
 
+
+GEARMAN_API
+  gearman_return_t gearman_client_set_memory_allocators(gearman_client_st *,
+                                                        gearman_malloc_fn *malloc_fn,
+                                                        gearman_free_fn *free_fn,
+                                                        gearman_realloc_fn *realloc_fn,
+                                                        gearman_calloc_fn *calloc_fn,
+                                                        void *context);
+
 /**
  * Add a job server to a client. This goes into a list of servers that can be
  * used to run tasks. No socket I/O happens here, it is just added to a list.

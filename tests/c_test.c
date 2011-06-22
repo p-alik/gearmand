@@ -1,9 +1,8 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  Gearmand client and server library.
+ *  Gearman C test app
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -35,42 +34,15 @@
  *
  */
 
-#pragma once
+/*
+ * @file @brief C dummy test, aka testing C linking, etc
+ */
 
-/**
-  Private structure.
-*/
-class Basic: public _worker_function_st
+#include <stdlib.h>
+
+#include <libgearman/gearman.h>
+
+int main(void)
 {
-  gearman_worker_fn *_worker_fn;
-
-public:
-  Basic(gearman_worker_fn *worker_fn_arg, void *context_arg) :
-    _worker_function_st(context_arg),
-    _worker_fn(worker_fn_arg)
-  { }
-
-  bool has_callback() const
-  {
-    return bool(_worker_fn);
-  }
-
-  gearman_function_error_t callback(gearman_job_st* job, void *context_arg)
-  {
-    job->error_code= GEARMAN_SUCCESS;
-    job->worker->work_result= _worker_fn(job, context_arg, &(job->worker->work_result_size), &job->error_code);
-
-    if (job->error_code == GEARMAN_LOST_CONNECTION)
-    {
-      return GEARMAN_FUNCTION_ERROR;
-    }
-
-    if (gearman_failed(job->error_code))
-    {
-      return GEARMAN_FUNCTION_FATAL;
-    }
-
-    return GEARMAN_FUNCTION_SUCCESS;
-  }
-};
-
+  return EXIT_SUCCESS;
+}

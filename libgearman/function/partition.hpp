@@ -38,23 +38,23 @@
 #pragma once
 
 /*
-  Mapper function
+  Partition function
 */
-class Mapper: public _worker_function_st
+class Partition: public _worker_function_st
 {
-  gearman_function_fn *_mapper_fn;
+  gearman_function_fn *_partition_fn;
   gearman_aggregator_fn *aggregator_fn;
 
 public:
-  Mapper(gearman_function_fn *mapper_fn_arg, gearman_aggregator_fn *aggregator_fn_arg, void *context_arg) :
+  Partition(gearman_function_fn *partition_fn_arg, gearman_aggregator_fn *aggregator_fn_arg, void *context_arg) :
     _worker_function_st(context_arg),
-    _mapper_fn(mapper_fn_arg),
+    _partition_fn(partition_fn_arg),
     aggregator_fn(aggregator_fn_arg)
   { }
 
   bool has_callback() const
   {
-    return bool(_mapper_fn);
+    return bool(_partition_fn);
   }
 
   gearman_function_error_t callback(gearman_job_st* job, void *context_arg);

@@ -41,28 +41,39 @@
 #include <libgearman/function/base.hpp>
 
 #include <libgearman/function/make.hpp>
-#include <libgearman/function/basic.hpp>
-#include <libgearman/function/mapper.hpp>
+#include <libgearman/function/function_v1.hpp>
+#include <libgearman/function/function_v2.hpp>
+#include <libgearman/function/partition.hpp>
+#include <libgearman/function/null.hpp>
 
 _worker_function_st *make(gearman_vector_st* namespace_arg,
                           const char *name, size_t name_length, 
-                          gearman_worker_fn *worker_fn_arg, void *context_arg)
+                          const gearman_function_t &function_arg, 
+                          void *context_arg)
 {
-  _worker_function_st *function= new (std::nothrow) Basic(worker_fn_arg, context_arg);
-  if (function and not function->init(namespace_arg, name, name_length))
+  _worker_function_st *function= NULL;
+
+  switch (function_arg.kind)
   {
-    delete function;
-    return NULL;
+    case GEARMAN_WORKER_FUNCTION_V1:
+      function= new (std::nothrow) FunctionV1(function_arg.callback.function_v1.func, context_arg);
+      break;
+
+    case GEARMAN_WORKER_FUNCTION_V2:
+      function=  new (std::nothrow) FunctionV2(function_arg.callback.function_v2.func, context_arg);
+      break;
+
+    case GEARMAN_WORKER_FUNCTION_PARTITION:
+      function=  new (std::nothrow) Partition(function_arg.callback.partitioner.func, 
+                                              function_arg.callback.partitioner.aggregator,
+                                              context_arg);
+      break;
+
+    case GEARMAN_WORKER_FUNCTION_NULL:
+      function=  new (std::nothrow) Null(context_arg);
+      break;
   }
 
-  return function;
-}
-
-_worker_function_st *make(gearman_vector_st* namespace_arg,
-                          const char *name, size_t name_length, 
-                          gearman_function_fn *mapper_fn_arg, gearman_aggregator_fn *aggregator_fn_arg, void *context_arg)
-{
-  _worker_function_st *function=  new (std::nothrow) Mapper(mapper_fn_arg, aggregator_fn_arg, context_arg);
   if (function and not function->init(namespace_arg, name, name_length))
   {
     delete function;

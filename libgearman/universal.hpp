@@ -125,17 +125,6 @@ void gearman_set_workload_free_fn(gearman_universal_st&,
                                   gearman_free_fn *function,
                                   void *context);
 
-GEARMAN_LOCAL
-void *gearman_real_malloc(gearman_universal_st& universal, size_t size, const char *func, const char *file, int line);
-
-#define gearman_malloc(__gearman_universal_st, __size) gearman_real_malloc((__gearman_universal_st), (__size), __func__, __FILE__, __LINE__)
-
-GEARMAN_LOCAL
-void gearman_real_free(gearman_universal_st& universal, void *ptr, const char *func, const char *file, int line);
-
-#define gearman_free(__gearman_universal_st, __ptr) gearman_real_free((__gearman_universal_st), (__ptr), __func__, __FILE__, __LINE__)
-
-
 // Free all connections for a gearman structure.
 GEARMAN_LOCAL
 void gearman_free_all_cons(gearman_universal_st&);

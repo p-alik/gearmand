@@ -45,6 +45,7 @@
 #include <libgearman/common.h>
 #include <libgearman/connection.h>
 #include <libgearman/packet.hpp>
+#include <libgearman/allocator.hpp>
 #include <libgearman/universal.hpp>
 #include <libgearman/vector.hpp>
 
@@ -86,10 +87,7 @@ void gearman_universal_initialize(gearman_universal_st &self, const gearman_univ
   self.pfds= NULL;
   self.log_fn= NULL;
   self.log_context= NULL;
-  self.workload_malloc_fn= NULL;
-  self.workload_malloc_context= NULL;
-  self.workload_free_fn= NULL;
-  self.workload_free_context= NULL;
+  self.allocator= gearman_default_allocator();
   self._namespace= NULL;
   self.error.rc= GEARMAN_SUCCESS;
   self.error.last_errno= 0;
@@ -168,60 +166,20 @@ void gearman_set_log_fn(gearman_universal_st &self, gearman_log_fn *function,
   self.verbose= verbose;
 }
 
-void *gearman_real_malloc(gearman_universal_st& universal, size_t size, const char *func, const char *file, int line)
-{
-  void *ptr;
-  if (universal.workload_malloc_fn)
-  {
-    ptr= universal.workload_malloc_fn(size, universal.workload_malloc_context);
-  }
-  else
-  {
-    ptr= malloc(size);
-  }
-
-#if 0
-  fprintf(stderr, "gearman_real_malloc(%s, %lu) : %p -> %s:%d\n", func, static_cast<unsigned long>(size), ptr,  file, line);
-#else
-  (void)func; (void)file; (void)line;
-#endif
-
-
-  return ptr;
-}
-
-void gearman_real_free(gearman_universal_st& universal, void *ptr, const char *func, const char *file, int line)
-{
-#if 0
-  fprintf(stderr, "gearman_real_free(%s) : %p -> %s:%d\n", func, ptr, file, line);
-#else
-  (void)func; (void)file; (void)line;
-#endif
-
-  if (universal.workload_free_fn)
-  {
-    universal.workload_free_fn(ptr, universal.workload_free_context);
-  }
-  else
-  {
-    free(ptr);
-  }
-}
-
 void gearman_set_workload_malloc_fn(gearman_universal_st& universal,
                                     gearman_malloc_fn *function,
                                     void *context)
 {
-  universal.workload_malloc_fn= function;
-  universal.workload_malloc_context= context;
+  universal.allocator.malloc= function;
+  universal.allocator.context= context;
 }
 
 void gearman_set_workload_free_fn(gearman_universal_st& universal,
                                   gearman_free_fn *function,
                                   void *context)
 {
-  universal.workload_free_fn= function;
-  universal.workload_free_context= context;
+  universal.allocator.free= function;
+  universal.allocator.context= context;
 }
 
 void gearman_free_all_cons(gearman_universal_st& universal)
@@ -299,10 +257,14 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
     ret= poll(pfds, x, universal.timeout);
     if (ret == -1)
     {
-      if (errno == EINTR)
+      switch(errno)
+      {
+      case EINTR:
         continue;
 
-      return gearman_perror(universal, "poll");
+      default:
+        return gearman_perror(universal, "poll");
+      }
     }
 
     break;
