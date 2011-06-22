@@ -58,7 +58,11 @@
 gearman_task_st *gearman_task_internal_create(gearman_client_st *client, gearman_task_st *task)
 {
   assert(client);
-  if (task == NULL)
+  if (task)
+  {
+    task->options.allocated= false;
+  }
+  else
   {
     task= new (std::nothrow) gearman_task_st;
     if (task == NULL)
@@ -68,10 +72,6 @@ gearman_task_st *gearman_task_internal_create(gearman_client_st *client, gearman
     }
 
     task->options.allocated= true;
-  }
-  else
-  {
-    task->options.allocated= false;
   }
 
   task->options.send_in_use= false;
@@ -120,7 +120,9 @@ void gearman_task_free(gearman_task_st *task)
     return;
 
   if (task->options.send_in_use)
+  {
     gearman_packet_free(&(task->send));
+  }
 
   if (task->type != GEARMAN_TASK_KIND_DO  and task->context and  task->client->task_context_free_fn)
   {
