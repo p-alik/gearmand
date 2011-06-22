@@ -248,12 +248,13 @@ test_return_t lp_734663(void *object)
   struct worker_handle_st *worker_handle[NUMBER_OF_WORKERS];
 
   uint32_t counter= 0;
+  gearman_function_t counter_function_fn= gearman_function_create_v1(counter_function);
   for (uint32_t x= 0; x < NUMBER_OF_WORKERS; x++)
   {
-    worker_handle[x]= test_worker_start(test->port(), worker_function_name, counter_function, &counter, gearman_worker_options_t());
+    worker_handle[x]= test_worker_start(test->port(), NULL, worker_function_name, counter_function_fn, &counter, gearman_worker_options_t());
   }
 
-  time_t end_time= time(NULL) + 5;
+  time_t end_time= time(NULL) +5;
   time_t current_time= 0;
   while (counter < NUMBER_OF_JOBS || current_time < end_time)
   {

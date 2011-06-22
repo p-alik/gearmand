@@ -21,7 +21,8 @@ noinst_HEADERS+= \
 		 tests/server_options.h \
 		 tests/task.h \
 		 tests/unique.h \
-		 tests/workers.h
+		 tests/workers.h \
+		 tests/workers_v1.h
 
 CLIENT_LDADD= \
 	      libtest/libtest.la \
@@ -53,7 +54,8 @@ tests_client_test_SOURCES= \
 			   tests/server_options.cc \
 			   tests/task.cc \
 			   tests/unique.cc \
-			   tests/workers.cc
+			   tests/workers.cc \
+			   tests/workers_v1.cc
 tests_client_test_LDADD= ${CLIENT_LDADD}
 tests_client_test_DEPENDENCIES= ${CLIENT_LDADD}
 

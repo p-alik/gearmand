@@ -43,7 +43,6 @@
 #include <libgearman/result.hpp>
 #include <cassert>
 #include <memory>
-#include <iostream>
 
 struct gearman_result_st;
 

@@ -45,61 +45,55 @@
 #include <climits>
 #include <cstdio>
 #include <string>
+#include <iostream>
 #include <tests/workers.h>
 
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
-void *echo_or_react_worker(gearman_job_st *job, void *,
-                           size_t *result_size, gearman_return_t *ret_ptr)
+gearman_return_t echo_or_react_worker_v2(gearman_job_st *job, void *)
 {
   const void *workload= gearman_job_workload(job);
-  *result_size= gearman_job_workload_size(job);
+  size_t result_size= gearman_job_workload_size(job);
 
-  if (workload == NULL or *result_size == 0)
+  if (workload == NULL or result_size == 0)
   {
-    assert(workload == NULL and *result_size == 0);
-    *ret_ptr= GEARMAN_SUCCESS;
-    return NULL;
+    assert(workload == NULL and result_size == 0);
+    return GEARMAN_SUCCESS;
   }
-  else if (*result_size == gearman_literal_param_size("fail") and (not memcmp(workload, gearman_literal_param("fail"))))
+  else if (result_size == gearman_literal_param_size("fail") and (not memcmp(workload, gearman_literal_param("fail"))))
   {
-    *ret_ptr= GEARMAN_WORK_FAIL;
-    return NULL;
+    return GEARMAN_FATAL;
   }
-  else if (*result_size == gearman_literal_param_size("exception") and (not memcmp(workload, gearman_literal_param("exception"))))
+  else if (result_size == gearman_literal_param_size("exception") and (not memcmp(workload, gearman_literal_param("exception"))))
   {
     gearman_return_t rc= gearman_job_send_exception(job, gearman_literal_param("test exception"));
     if (gearman_failed(rc))
     {
-      *ret_ptr= GEARMAN_WORK_FAIL;
-      return NULL;
+      return GEARMAN_ERROR;
     }
   }
-  else if (*result_size == gearman_literal_param_size("warning") and (not memcmp(workload, gearman_literal_param("warning"))))
+  else if (result_size == gearman_literal_param_size("warning") and (not memcmp(workload, gearman_literal_param("warning"))))
   {
     gearman_return_t rc= gearman_job_send_warning(job, gearman_literal_param("test warning"));
     if (gearman_failed(rc))
     {
-      *ret_ptr= GEARMAN_WORK_FAIL;
-      return NULL;
+      return GEARMAN_ERROR;
     }
   }
 
-  void *result= malloc(*result_size);
-  assert(result);
-  memcpy(result, workload, *result_size);
+  if (gearman_failed(gearman_job_send_data(job, workload, result_size)))
+  {
+    return GEARMAN_ERROR;
+  }
 
-  *ret_ptr= GEARMAN_SUCCESS;
-  return result;
+  return GEARMAN_SUCCESS;
 }
 
-void *echo_or_react_chunk_worker(gearman_job_st *job, void *,
-                                 size_t *result_size, gearman_return_t *ret_ptr)
+gearman_return_t echo_or_react_chunk_worker_v2(gearman_job_st *job, void *)
 {
-  const char *workload;
-  workload= (const char *)gearman_job_workload(job);
+  const char *workload= (const char *)gearman_job_workload(job);
   size_t workload_size= gearman_job_workload_size(job);
 
   bool fail= false;
@@ -109,20 +103,16 @@ void *echo_or_react_chunk_worker(gearman_job_st *job, void *,
   }
   else if (workload_size == gearman_literal_param_size("exception") and (not memcmp(workload, gearman_literal_param("exception"))))
   {
-    gearman_return_t rc= gearman_job_send_exception(job, gearman_literal_param("test exception"));
-    if (gearman_failed(rc))
+    if (gearman_failed(gearman_job_send_exception(job, gearman_literal_param("test exception"))))
     {
-      *ret_ptr= GEARMAN_WORK_FAIL;
-      return NULL;
+      return GEARMAN_ERROR;
     }
   }
   else if (workload_size == gearman_literal_param_size("warning") and (not memcmp(workload, gearman_literal_param("warning"))))
   {
-    gearman_return_t rc= gearman_job_send_warning(job, gearman_literal_param("test warning"));
-    if (gearman_failed(rc))
+    if (gearman_failed(gearman_job_send_warning(job, gearman_literal_param("test warning"))))
     {
-      *ret_ptr= GEARMAN_WORK_FAIL;
-      return NULL;
+      return GEARMAN_ERROR;
     }
   }
 
@@ -130,40 +120,31 @@ void *echo_or_react_chunk_worker(gearman_job_st *job, void *,
   {
     // Chunk
     {
-      *ret_ptr= gearman_job_send_data(job, &workload[x], 1);
-      if (*ret_ptr != GEARMAN_SUCCESS)
+      if (gearman_failed(gearman_job_send_data(job, &workload[x], 1)))
       {
-        return NULL;
+        return GEARMAN_ERROR;
       }
     }
 
     // report status
     {
-      *ret_ptr= gearman_job_send_status(job, (uint32_t)x,
-                                        (uint32_t)workload_size);
-      assert(gearman_success(*ret_ptr));
-      if (gearman_failed(*ret_ptr))
+      if (gearman_failed(gearman_job_send_status(job, (uint32_t)x, (uint32_t)workload_size)))
       {
-        return NULL;
+        return GEARMAN_ERROR;
       }
 
       if (fail)
       {
-        *ret_ptr= GEARMAN_WORK_FAIL;
-        return NULL;
+        return GEARMAN_FATAL;
       }
     }
   }
 
-  *ret_ptr= GEARMAN_SUCCESS;
-  *result_size= 0;
-
-  return NULL;
+  return GEARMAN_SUCCESS;
 }
 
 // payload is unique value
-void *unique_worker(gearman_job_st *job, void *,
-                    size_t *result_size, gearman_return_t *ret_ptr)
+gearman_return_t unique_worker_v2(gearman_job_st *job, void *)
 {
   const char *workload= static_cast<const char *>(gearman_job_workload(job));
 
@@ -177,94 +158,21 @@ void *unique_worker(gearman_job_st *job, void *,
   {
     if (not memcmp(workload, gearman_job_unique(job), gearman_job_workload_size(job)))
     {
-      void *result= malloc(gearman_job_workload_size(job));
-      assert(result);
-      memcpy(result, workload, gearman_job_workload_size(job));
-      *result_size= gearman_job_workload_size(job);
-      *ret_ptr= GEARMAN_SUCCESS;
-
-      return result;
-    }
-  }
-
-  *result_size= 0;
-  *ret_ptr= GEARMAN_WORK_FAIL;
-
-  return NULL;
-}
-
-gearman_return_t cat_aggregator_fn(gearman_aggregator_st *, gearman_task_st *task, gearman_result_st *result)
-{
-  std::string string_value;
-
-  do
-  {
-    assert(task);
-    gearman_result_st *result_ptr= gearman_task_result(task);
-
-    if (result_ptr)
-    {
-      if (not gearman_result_size(result_ptr))
-        return GEARMAN_WORK_EXCEPTION;
-
-      string_value.append(gearman_result_value(result_ptr), gearman_result_size(result_ptr));
-    }
-  } while ((task= gearman_next(task)));
-
-  gearman_result_store_value(result, string_value.c_str(), string_value.size());
-
-  return GEARMAN_SUCCESS;
-}
-
-gearman_return_t split_worker(gearman_job_st *job, void* /* context */)
-{
-  const char *workload= static_cast<const char *>(gearman_job_workload(job));
-  size_t workload_size= gearman_job_workload_size(job);
-
-  assert(job->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN_ALL);
-
-  const char *chunk_begin= workload;
-  for (size_t x= 0; x < workload_size; x++)
-  {
-    if (int(workload[x]) == 0 or int(workload[x]) == int(' '))
-    {
-      if ((workload +x -chunk_begin) == 11 and not memcmp(chunk_begin, gearman_literal_param("mapper_fail")))
+      if (gearman_failed(gearman_job_send_data(job, workload, gearman_job_workload_size(job))))
       {
-        return GEARMAN_FATAL;
+        return GEARMAN_ERROR;
       }
 
-      // NULL Chunk
-      gearman_return_t rc= gearman_job_send_data(job, chunk_begin, workload +x -chunk_begin);
-      if (gearman_failed(rc))
-      {
-        return GEARMAN_FATAL;
-      }
-
-      chunk_begin= workload +x +1;
+      return GEARMAN_SUCCESS;
     }
   }
 
-  if (chunk_begin < workload +workload_size)
-  {
-    if ((size_t(workload +workload_size) -size_t(chunk_begin) ) == 11 and not memcmp(chunk_begin, gearman_literal_param("mapper_fail")))
-    {
-      return GEARMAN_FATAL;
-    }
-
-    gearman_return_t rc= gearman_job_send_data(job, chunk_begin, size_t(workload +workload_size) -size_t(chunk_begin));
-    if (gearman_failed(rc))
-    {
-      return GEARMAN_FATAL;
-    }
-  }
-
-  return GEARMAN_SUCCESS;
+  return GEARMAN_FATAL;
 }
 
-pthread_mutex_t increment_reset_worker_mutex= PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t increment_reset_worker_mutex= PTHREAD_MUTEX_INITIALIZER;
 
-void *increment_reset_worker(gearman_job_st *job, void *,
-                             size_t *result_size, gearman_return_t *ret_ptr)
+gearman_return_t increment_reset_worker_v2(gearman_job_st *job, void *)
 {
   static long counter= 0;
   long change= 0;
@@ -275,44 +183,40 @@ void *increment_reset_worker(gearman_job_st *job, void *,
     pthread_mutex_lock(&increment_reset_worker_mutex);
     counter= 0;
     pthread_mutex_unlock(&increment_reset_worker_mutex);
-    *ret_ptr= GEARMAN_SUCCESS;
-    return NULL;
+
+    return GEARMAN_SUCCESS;
   }
   else if (workload and gearman_job_workload_size(job))
   {
-    char *temp= static_cast<char *>(malloc(gearman_job_workload_size(job) +1));
-    assert(temp);
+    if (gearman_job_workload_size(job) > GEARMAN_MAXIMUM_INTEGER_DISPLAY_LENGTH)
+    {
+      return GEARMAN_FATAL;
+    }
+
+    char temp[GEARMAN_MAXIMUM_INTEGER_DISPLAY_LENGTH +1];
     memcpy(temp, workload, gearman_job_workload_size(job));
     temp[gearman_job_workload_size(job)]= 0;
     change= strtol(temp, (char **)NULL, 10);
-    free(temp);
     if (change ==  LONG_MIN or change == LONG_MAX or ( change == 0 and errno < 0))
     {
       gearman_job_send_warning(job, gearman_literal_param("strtol() failed"));
-      *ret_ptr= GEARMAN_WORK_FAIL;
-      return NULL;
+      return GEARMAN_FATAL;
     }
   }
 
-  char *result;
   {
     pthread_mutex_lock(&increment_reset_worker_mutex);
     counter= counter +change;
 
-    result= (char *)malloc(40);
-    if (not result)
+    char result[GEARMAN_MAXIMUM_INTEGER_DISPLAY_LENGTH +1];
+    size_t result_size= size_t(snprintf(result, sizeof(result), "%ld", counter));
+    if (gearman_failed(gearman_job_send_data(job, result, result_size)))
     {
-      gearman_job_send_warning(job, gearman_literal_param("malloc() failed"));
-      *ret_ptr= GEARMAN_WORK_FAIL;
-      return NULL;
+      return GEARMAN_FATAL;
     }
-    *result_size= size_t(snprintf(result, 40, "%ld", counter));
 
     pthread_mutex_unlock(&increment_reset_worker_mutex);
   }
 
-
-  *ret_ptr= GEARMAN_SUCCESS;
-
-  return result;
+  return GEARMAN_SUCCESS;
 }
