@@ -65,7 +65,7 @@ struct gearman_job_reducer_st {
     reducer_function(NULL),
     aggregator_fn(aggregator_fn_arg)
   {
-    assert(gearman_size(reducer_function_name));
+    assert_msg(gearman_size(reducer_function_name), "Trying to creat a function with zero length");
     reducer_function= gearman_string_create(NULL, gearman_size(reducer_function_name));
     gearman_string_append(reducer_function, gearman_string_param(reducer_function_name));
   }

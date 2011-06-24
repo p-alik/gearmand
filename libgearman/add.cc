@@ -43,7 +43,6 @@
 #include <libgearman/connection.h>
 #include <libgearman/packet.hpp>
 
-#include <cassert>
 #include <cerrno>
 #include <cstdio>
 #include <cstdlib>
@@ -280,7 +279,8 @@ gearman_task_st *add_reducer_task(gearman_client_st *client,
     args_size[1]= 36 + 1; // +1 is for the needed null
   }
 
-  assert (command == GEARMAN_COMMAND_SUBMIT_REDUCE_JOB or command == GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND);
+  assert_msg(command == GEARMAN_COMMAND_SUBMIT_REDUCE_JOB or command == GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND,
+             "Command was not appropriate for request");
 
   char reducer_buffer[1024];
   if (client->universal._namespace)
@@ -306,8 +306,8 @@ gearman_task_st *add_reducer_task(gearman_client_st *client,
   args[3]= aggregate;
   args_size[3]= 1;
 
-  assert(gearman_c_str(workload));
-  assert(gearman_size(workload));
+  assert_msg(gearman_c_str(workload), "Invalid workload (NULL)");
+  assert_msg(gearman_size(workload), "Invalid workload of zero");
   args[4]= gearman_c_str(workload);
   args_size[4]= gearman_size(workload);
 

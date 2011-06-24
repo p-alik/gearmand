@@ -36,7 +36,7 @@
  *
  */
 
-#include <config.h>
+#include <libgearman/common.h>
 
 #include <arpa/inet.h>
 #include <cassert>
@@ -49,9 +49,6 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <poll.h>
-
-#define BUILDING_LIBGEARMAN
-#define GEARMAN_CORE
 
 #include <libgearman/visibility.h>
 #include <libgearman/constants.h>

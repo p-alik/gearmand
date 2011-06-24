@@ -41,8 +41,6 @@
 
 #include <libgearman/protocol.h>
 
-#ifdef GEARMAN_CORE
-
 struct gearman_command_info_st
 {
   const char *name;
@@ -60,5 +58,3 @@ GEARMAN_LOCAL
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* GEARMAN_CORE */

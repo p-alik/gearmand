@@ -36,7 +36,6 @@
 
 #pragma once
 
-#ifdef BUILDING_LIBGEARMAN
 /**
   vectors are always under our control so we make some assumptions about them.
 
@@ -107,5 +106,3 @@ gearman_string_t gearman_string_take_string(gearman_vector_st *self);
 #ifdef __cplusplus
 }
 #endif
-
-#endif // BUILDING_LIBGEARMAN

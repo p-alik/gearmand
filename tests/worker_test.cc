@@ -6,7 +6,7 @@
  * the COPYING file in the parent directory for full text.
  */
 
-#include "config.h"
+#include <config.h>
 
 #if defined(NDEBUG)
 # undef NDEBUG
@@ -18,15 +18,13 @@
 #include <string.h>
 #include <unistd.h>
 
-#define GEARMAN_CORE
-
 #include <libgearman/gearman.h>
 #include <libgearman/connection.hpp>
 #include "libgearman/packet.hpp"
 #include "libgearman/universal.hpp"
 
-#include "libtest/test.h"
-#include "libtest/server.h"
+#include <libtest/test.hpp>
+#include <libtest/server.h>
 
 #define WORKER_TEST_PORT 32125
 
@@ -823,16 +821,16 @@ static test_return_t _runner_default(libgearman_test_callback_fn func, worker_te
 }
 
 
-static world_runner_st runner= {
-  (test_callback_runner_fn)_runner_prepost_default,
-  (test_callback_runner_fn)_runner_default,
-  (test_callback_runner_fn)_runner_prepost_default
+static Runner runner= {
+  (test_callback_runner_fn*)_runner_prepost_default,
+  (test_callback_runner_fn*)_runner_default,
+  (test_callback_runner_fn*)_runner_prepost_default
 };
 
-void get_world(world_st *world)
+void get_world(Framework *world)
 {
   world->collections= collection;
-  world->create= world_create;
-  world->destroy= world_destroy;
+  world->_create= world_create;
+  world->_destroy= world_destroy;
   world->runner= &runner;
 }

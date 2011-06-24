@@ -18,7 +18,7 @@
 
 #include <cstdio>
 
-#include <libtest/test.h>
+#include <libtest/test.hpp>
 #include <libtest/worker.h>
 
 #ifndef __INTEL_COMPILER

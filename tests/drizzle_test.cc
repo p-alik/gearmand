@@ -12,6 +12,8 @@
 # undef NDEBUG
 #endif
 
+#include <config.h>
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,7 +22,8 @@
 
 #include <libgearman/gearman.h>
 
-#include <libtest/test.h>
+#include <libtest/test.hpp>
+
 #include <libtest/server.h>
 #include <libtest/worker.h>
 
@@ -106,9 +109,9 @@ collection_st collection[] ={
   {0, 0, 0, 0}
 };
 
-void get_world(world_st *world)
+void get_world(Framework *world)
 {
   world->collections= collection;
-  world->create= world_create;
-  world->destroy= world_destroy;
+  world->_create= world_create;
+  world->_destroy= world_destroy;
 }

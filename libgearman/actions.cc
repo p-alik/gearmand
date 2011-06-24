@@ -35,13 +35,10 @@
  *
  */
 
-#include <config.h>
-
 #include <libgearman/common.h>
 
 #include <libgearman/unique.h>
 #include <libgearman/result.hpp>
-#include <cassert>
 #include <memory>
 
 struct gearman_result_st;
@@ -64,7 +61,7 @@ static gearman_return_t _client_pause_data(gearman_task_st *task)
     {
       task->result_ptr->clear();
     }
-    assert(task->result_ptr);
+    assert_msg(task->result_ptr, "programmer error, result_ptr has not been allocated for task");
 
     gearman_string_append(gearman_task_mutable_result(task)->string(), static_cast<const char*>(gearman_task_data(task)), gearman_task_data_size(task));
   }
@@ -93,8 +90,8 @@ static gearman_return_t _client_pause_complete(gearman_task_st *task)
 
 static gearman_return_t _client_pause_status(gearman_task_st *task)
 {
-  assert(task->recv->command == GEARMAN_COMMAND_WORK_STATUS ||
-         task->recv->command == GEARMAN_COMMAND_STATUS_RES);
+  assert_msg(task->recv->command == GEARMAN_COMMAND_WORK_STATUS or
+         task->recv->command == GEARMAN_COMMAND_STATUS_RES, "status has been called out of order for task, or was registered to run on non-status callback, see gearman_actions_t(3)");
   if (task->options.is_paused)
   {
     task->options.is_paused= false;
@@ -107,7 +104,8 @@ static gearman_return_t _client_pause_status(gearman_task_st *task)
 
 static gearman_return_t _client_pause_fail(gearman_task_st *task)
 {
-  assert(task->recv->command == GEARMAN_COMMAND_WORK_FAIL);
+  assert_msg(task->recv->command == GEARMAN_COMMAND_WORK_FAIL, 
+             "fail callback has been called out of order for task, or was registered to run on non-fail callback, see gearman_actions_t(3)");
   if (task->options.is_paused)
   {
     task->options.is_paused= false;
@@ -123,8 +121,13 @@ static gearman_return_t _client_do_data(gearman_task_st *task)
   if (gearman_task_data_size(task))
   {
     if (not task->result_ptr)
+    {
       task->result_ptr= new (std::nothrow) gearman_result_st(gearman_task_data_size(task));
-    assert(task->result_ptr);
+      if (not task->result_ptr)
+      {
+        return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+      }
+    }
 
     gearman_string_append(gearman_task_mutable_result(task)->string(), static_cast<const char*>(gearman_task_data(task)), gearman_task_data_size(task));
   }
@@ -137,8 +140,13 @@ static gearman_return_t _client_do_complete(gearman_task_st *task)
   if (gearman_task_data_size(task))
   {
     if (not task->result_ptr)
+    {
       task->result_ptr= new (std::nothrow) gearman_result_st(gearman_task_data_size(task));
-    assert(task->result_ptr);
+      if (not task->result_ptr)
+      {
+        return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+      }
+    }
 
     gearman_string_append(gearman_task_mutable_result(task)->string(), static_cast<const char*>(gearman_task_data(task)), gearman_task_data_size(task));
   }

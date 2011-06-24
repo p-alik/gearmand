@@ -6,7 +6,7 @@
  * the COPYING file in the parent directory for full text.
  */
 
-#include "config.h"
+#include <config.h>
 
 #if defined(NDEBUG)
 # undef NDEBUG
@@ -21,7 +21,7 @@
 
 #include <libgearman/gearman.h>
 
-#include <libtest/test.h>
+#include <libtest/test.hpp>
 #include <libtest/server.h>
 
 #define ROUND_ROBIN_WORKER_TEST_PORT 32124
@@ -176,7 +176,7 @@ void *world_create(test_return_t *error)
 
   *error= TEST_SUCCESS;
 
-  return (void *)test;
+  return test;
 }
 
 test_return_t world_destroy(void *object)
@@ -200,9 +200,9 @@ collection_st collection[] ={
   {0, 0, 0, 0}
 };
 
-void get_world(world_st *world)
+void get_world(Framework *world)
 {
   world->collections= collection;
-  world->create= world_create;
-  world->destroy= world_destroy;
+  world->_create= world_create;
+  world->_destroy= world_destroy;
 }

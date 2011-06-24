@@ -36,6 +36,9 @@
  */
 
 #include <config.h>
+
+#include <libtest/test.hpp>
+
 #include <cstring>
 #include <cassert>
 

@@ -3,6 +3,7 @@
  *  Gearmand client and server library.
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2008 Brian Aker, Eric Day
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -37,6 +38,21 @@
 
 #pragma once
 
-test_return_t gearman_client_do_huge_unique(void *);
+#include <cstdlib>
+#include <cstdio>
 
-test_return_t gearman_client_do_with_active_background_task(void *);
+#ifdef NDEBUG
+#define	assert(__expr, __mesg)	((void)0)
+#else
+
+#define assert_msg(__expr, __mesg) \
+do \
+{ \
+  if (not (__expr)) \
+  { \
+    fprintf(stderr, "\nAssertion \"%s\" failed for function \"%s\" likely for %s, at %s:%d\n", #__expr, __func__, (#__mesg),  __FILE__, __LINE__);\
+    abort(); \
+  } \
+} while (0)
+
+#endif

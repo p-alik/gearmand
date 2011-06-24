@@ -38,6 +38,7 @@
 #include <libgearman/common.h>
 #include <libgearman/add.hpp>
 #include <libgearman/universal.hpp>
+#include <libgearman/do.hpp>
 
 #include <cassert>
 #include <cerrno>

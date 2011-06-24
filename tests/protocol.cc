@@ -35,7 +35,9 @@
  *
  */
 
-#include <libtest/test.h>
+#include <config.h>
+
+#include <libtest/test.hpp>
 #include <cassert>
 #include <cstring>
 #include <libgearman/gearman.h>
