@@ -48,6 +48,7 @@ noinst_HEADERS+= \
 		 libgearman/add.hpp \
 		 libgearman/aggregator.hpp \
 		 libgearman/allocator.hpp \
+		 libgearman/assert.hpp \
 		 libgearman/common.h \
 		 libgearman/connection.hpp \
 		 libgearman/do.hpp \
@@ -56,6 +57,7 @@ noinst_HEADERS+= \
 		 libgearman/function/function_v1.hpp \
 		 libgearman/function/function_v2.hpp \
 		 libgearman/function/make.hpp \
+		 libgearman/function/null.hpp \
 		 libgearman/function/partition.hpp \
 		 libgearman/log.h \
 		 libgearman/packet.hpp \

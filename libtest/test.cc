@@ -87,9 +87,14 @@ const char *test_strerror(test_return_t code)
   return "failed";
 }
 
+bool test_is_local()
+{
+  return (getenv("LIBTEST_LOCAL"));
+}
+
 void create_core(void)
 {
-  if (getenv("LIBMEMCACHED_NO_COREDUMP") == NULL)
+  if (getenv("LIBTEST_NO_COREDUMP") == NULL)
   {
     pid_t pid= fork();
 
@@ -315,5 +320,5 @@ cleanup:
 
   stats_print(&stats);
 
-  return stats.failed == 0 ? 0 : 1;
+  return stats.failed == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }

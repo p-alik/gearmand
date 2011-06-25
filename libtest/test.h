@@ -7,6 +7,10 @@
 
 #pragma once
 
+#ifndef __INTEL_COMPILER
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
+
 /**
   A structure describing the test case.
 */
@@ -20,6 +24,8 @@ struct test_st {
 #define TEST_TOSTRING(x) TEST_STRINGIFY(x)
 #define TEST_AT __FILE__ ":" TEST_TOSTRING(__LINE__)
 
+LIBTEST_API
+bool test_is_local(void);
 
 #define test_assert_errno(A) \
 do \

@@ -43,6 +43,10 @@
 
 #include <config.h>
 
+#if defined(NDEBUG)
+# undef NDEBUG
+#endif
+
 #include <inttypes.h>
 #include <cstdlib>
 #include <sys/types.h>

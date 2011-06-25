@@ -36,11 +36,7 @@
  *
  */
 
-#include <config.h>
-
-#if defined(NDEBUG)
-# undef NDEBUG
-#endif
+#include <libtest/common.h>
 
 #include <cassert>
 #include <cstdio>
@@ -55,7 +51,6 @@
 #include <libgearman/gearman.h>
 
 #include <libtest/server.h>
-#include <libtest/test.hpp>
 #include <libtest/worker.h>
 
 #define CLIENT_TEST_PORT 32123

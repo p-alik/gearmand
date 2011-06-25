@@ -6,13 +6,7 @@
  * the COPYING file in the parent directory for full text.
  */
 
-#include "config.h"
-
-#if defined(NDEBUG)
-# undef NDEBUG
-#endif
-
-#include <config.h>
+#include <libtest/common.h>
 
 #include <assert.h>
 #include <stdio.h>
@@ -21,8 +15,6 @@
 #include <unistd.h>
 
 #include <libgearman/gearman.h>
-
-#include <libtest/test.hpp>
 
 #include <libtest/server.h>
 #include <libtest/worker.h>

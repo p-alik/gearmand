@@ -38,11 +38,7 @@
 
 
 
-#include <config.h>
-
-#if defined(NDEBUG)
-# undef NDEBUG
-#endif
+#include <libtest/common.h>
 
 #include <assert.h>
 #include <stdio.h>
@@ -52,8 +48,6 @@
 #define GEARMAN_CORE
 #include <libgearman/common.h>
 #include <libgearman/packet.hpp>
-
-#include <libtest/test.hpp>
 
 #include <libtest/server.h>
 #include <libtest/worker.h>

@@ -6,11 +6,7 @@
  * the COPYING file in the parent directory for full text.
  */
 
-#include <config.h>
-
-#if defined(NDEBUG)
-# undef NDEBUG
-#endif
+#include <libtest/common.h>
 
 #include <cassert>
 #include <cstdio>
@@ -21,7 +17,6 @@
 
 #include <libgearman/gearman.h>
 
-#include <libtest/test.hpp>
 #include <libtest/server.h>
 
 #define ROUND_ROBIN_WORKER_TEST_PORT 32124

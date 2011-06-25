@@ -39,7 +39,15 @@ libtest_libtest_la_SOURCES= \
 			    libtest/framework.cc \
 			    libtest/test.cc
 
+libtest_unittest_LDADD= \
+			  libtest/libtest.la
+libtest_unittest_SOURCES= \
+			    libtest/unittest.cc
+
 noinst_PROGRAMS+= libtest/wait
+noinst_PROGRAMS+= libtest/unittest
+
+check_PROGRAMS+= libtest/unittest
 
 libtest_wait_SOURCES= libtest/wait.cc
 
