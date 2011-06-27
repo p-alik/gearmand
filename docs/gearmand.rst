@@ -99,6 +99,12 @@ SYNOPSIS
 
    Table to use.  
 
+**Memcached(libmemcached)**
+
+.. option:: --libmemcached-servers arg 
+
+   List of Memcached servers to use.
+
 **Postgres**
 
 .. option:: --libpq-conninfo arg
