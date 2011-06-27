@@ -111,7 +111,7 @@ static test_return_t option_test(void *)
     test_false(gear->options.non_blocking);
     test_truth(gear->options.packet_init);
     test_false(gear->options.change);
-    test_false(gear->options.grab_uniq);
+    test_true(gear->options.grab_uniq);
     test_false(gear->options.timeout_return);
   }
 
@@ -128,7 +128,7 @@ static test_return_t option_test(void *)
     test_false(gear->options.non_blocking);
     test_truth(gear->options.packet_init);
     test_false(gear->options.change);
-    test_false(gear->options.grab_uniq);
+    test_true(gear->options.grab_uniq);
     test_false(gear->options.timeout_return);
   }
 
@@ -142,7 +142,7 @@ static test_return_t option_test(void *)
       test_false(gear->options.non_blocking);
       test_truth(gear->options.packet_init);
       test_false(gear->options.change);
-      test_false(gear->options.grab_uniq);
+      test_true(gear->options.grab_uniq);
       test_false(gear->options.timeout_return);
     }
 
@@ -152,7 +152,7 @@ static test_return_t option_test(void *)
       test_false(gear->options.non_blocking);
       test_truth(gear->options.packet_init);
       test_false(gear->options.change);
-      test_false(gear->options.grab_uniq);
+      test_true(gear->options.grab_uniq);
       test_false(gear->options.timeout_return);
     }
   }
@@ -167,7 +167,7 @@ static test_return_t option_test(void *)
       test_false(gear->options.non_blocking);
       test_truth(gear->options.packet_init);
       test_false(gear->options.change);
-      test_false(gear->options.grab_uniq);
+      test_true(gear->options.grab_uniq);
       test_false(gear->options.timeout_return);
     }
     gearman_worker_add_options(gear, GEARMAN_WORKER_NON_BLOCKING);
@@ -176,7 +176,7 @@ static test_return_t option_test(void *)
       test_truth(gear->options.non_blocking);
       test_truth(gear->options.packet_init);
       test_false(gear->options.change);
-      test_false(gear->options.grab_uniq);
+      test_true(gear->options.grab_uniq);
       test_false(gear->options.timeout_return);
     }
     gearman_worker_set_options(gear, GEARMAN_WORKER_NON_BLOCKING);
@@ -208,7 +208,7 @@ static test_return_t option_test(void *)
         test_false(gear->options.non_blocking);
         test_truth(gear->options.packet_init);
         test_false(gear->options.change);
-        test_false(gear->options.grab_uniq);
+        test_true(gear->options.grab_uniq);
         test_false(gear->options.timeout_return);
       }
       gearman_worker_add_options(gear, GEARMAN_WORKER_TIMEOUT_RETURN);
@@ -217,7 +217,7 @@ static test_return_t option_test(void *)
         test_false(gear->options.non_blocking);
         test_truth(gear->options.packet_init);
         test_false(gear->options.change);
-        test_false(gear->options.grab_uniq);
+        test_true(gear->options.grab_uniq);
         test_truth(gear->options.timeout_return);
       }
       gearman_worker_add_options(gear, (gearman_worker_options_t)(GEARMAN_WORKER_NON_BLOCKING|GEARMAN_WORKER_GRAB_UNIQ));
@@ -240,7 +240,7 @@ static test_return_t option_test(void *)
         test_false(gear->options.non_blocking);
         test_truth(gear->options.packet_init);
         test_false(gear->options.change);
-        test_false(gear->options.grab_uniq);
+        test_true(gear->options.grab_uniq);
         test_false(gear->options.timeout_return);
       }
       gearman_worker_add_options(gear, GEARMAN_WORKER_TIMEOUT_RETURN);
@@ -249,7 +249,7 @@ static test_return_t option_test(void *)
         test_false(gear->options.non_blocking);
         test_truth(gear->options.packet_init);
         test_false(gear->options.change);
-        test_false(gear->options.grab_uniq);
+        test_true(gear->options.grab_uniq);
         test_truth(gear->options.timeout_return);
       }
       gearman_worker_add_options(gear, (gearman_worker_options_t)(GEARMAN_WORKER_TIMEOUT_RETURN|GEARMAN_WORKER_GRAB_UNIQ));
@@ -606,7 +606,7 @@ static test_return_t gearman_worker_remove_options_GEARMAN_WORKER_GRAB_UNIQ(void
     gearman_client_free(client);
   }
 
-  test_false(worker->options.grab_uniq);
+  test_true(worker->options.grab_uniq);
   gearman_worker_add_options(worker, GEARMAN_WORKER_GRAB_UNIQ);
   test_truth(worker->options.grab_uniq);
 
@@ -641,13 +641,13 @@ static test_return_t gearman_worker_add_options_GEARMAN_WORKER_GRAB_UNIQ(void *o
     gearman_client_st *client;
     test_truth(client= gearman_client_create(NULL));
     gearman_client_add_server(client, NULL, WORKER_TEST_PORT);
-    test_true_got(gearman_success(gearman_client_do_background(client, function_name, unique_name, gearman_c_str_param(unique_name), NULL)), gearman_client_error(client));
+    test_compare_got(GEARMAN_SUCCESS, 
+                     gearman_client_do_background(client, function_name, unique_name, gearman_c_str_param(unique_name), NULL), 
+                     gearman_client_error(client));
     gearman_client_free(client);
   }
 
-  test_false(worker->options.grab_uniq);
-  gearman_worker_add_options(worker, GEARMAN_WORKER_GRAB_UNIQ);
-  test_truth(worker->options.grab_uniq);
+  test_true(worker->options.grab_uniq);
   gearman_job_st *job= gearman_worker_grab_job(worker, NULL, &rc);
   test_true_got(gearman_success(rc), gearman_strerror(rc));
   test_truth(job);
@@ -682,7 +682,7 @@ static test_return_t gearman_worker_add_options_GEARMAN_WORKER_GRAB_UNIQ_worker_
     gearman_client_free(client);
   }
 
-  test_false(worker->options.grab_uniq);
+  test_true(worker->options.grab_uniq);
   gearman_worker_add_options(worker, GEARMAN_WORKER_GRAB_UNIQ);
   test_truth(worker->options.grab_uniq);
 

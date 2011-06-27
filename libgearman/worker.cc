@@ -1036,7 +1036,7 @@ static gearman_worker_st *_worker_allocate(gearman_worker_st *worker, bool is_cl
   worker->options.non_blocking= false;
   worker->options.packet_init= false;
   worker->options.change= false;
-  worker->options.grab_uniq= false;
+  worker->options.grab_uniq= true;
   worker->options.grab_all= false;
   worker->options.timeout_return= false;
 
@@ -1068,7 +1068,7 @@ static gearman_worker_st *_worker_allocate(gearman_worker_st *worker, bool is_cl
 static gearman_return_t _worker_packet_init(gearman_worker_st *worker)
 {
   gearman_return_t ret= gearman_packet_create_args(worker->universal, worker->grab_job,
-                                                   GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_GRAB_JOB,
+                                                   GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_GRAB_JOB_UNIQ,
                                                    NULL, NULL, 0);
   if (gearman_failed(ret))
     return ret;
