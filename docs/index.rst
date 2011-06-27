@@ -39,117 +39,30 @@ Command Line Tools
    bin/gearman
    bin/gearadmin
 
+
 ---------------------
 C/C++ Client Library:
 ---------------------
 
-******
-Basics
-******
+.. toctree::
+   :maxdepth: 1
+
+   libgearman/index
+
+-------------------
+Version Information
+-------------------
 
 .. toctree::
-   :titlesonly:
+   :maxdepth: 1
 
-   libgearman
-   libgearman/examples
    changes
 
-****************
-Client Functions
-****************
 
 .. toctree::
-   :titlesonly:
+   :hidden:
 
-   libgearman/gearman_client
-   libgearman/gearman_client_add_server
-   libgearman/gearman_client_options
-   libgearman/gearman_client_do
-   libgearman/gearman_client_do_background
-   libgearman/gearman_execute
-   libgearman/gearman_client_error
-   libgearman/gearman_client_set_log_fn
-   libgearman/gearman_client_job_status
-
-**************
-Creating Tasks
-**************
-
-.. toctree::
-   :titlesonly:
-
-   libgearman/gearman_client_add_task
-   libgearman/gearman_client_run_tasks
-   libgearman/gearman_client_add_task_background
-   libgearman/gearman_client_add_task_status
-
-****************
-Worker Functions
-****************
-
-.. toctree::
-   :titlesonly:
-
-   libgearman/gearman_worker_create
-   libgearman/gearman_worker_add_server
-   libgearman/gearman_worker_options
-   libgearman/gearman_worker_add_function
-   libgearman/gearman_worker_define_function
-   libgearman/gearman_worker_error
-   libgearman/gearman_worker_set_log_fn
-
-****
-Misc
-****
-
-.. toctree::
-   :titlesonly:
-
-   libgearman/gearman_misc_functions
-   libgearman/namespace
-   libgearman/gearman_client_wait
-   libgearman/gearman_client_echo
-
-**********
-Structures
-**********
-
-.. toctree::
-   :titlesonly:
-
-   libgearman/gearman_client_st 
-   libgearman/gearman_job_st
-   libgearman/gearman_task_st
-   libgearman/gearman_worker_st 
-   libgearman/gearman_job_handle_t
-   libgearman/gearman_argument_t 
-   libgearman/gearman_string_t 
-   libgearman/gearman_result_t 
-   libgearman/gearman_task_attr_t
-
-
-*****
-Types
-*****
-
-.. toctree::
-   :titlesonly:
-
-   libgearman/gearman_allocator_t
-   libgearman/gearman_return_t 
-   libgearman/gearman_actions_t
-   libgearman/gearman_log_fn
-   libgearman/gearman_verbose_t
-
-*****
-Extra
-*****
-
-.. toctree::
-   :titlesonly:
-
-   libgearman/error_descriptions
-
+   libgearman
 
 ------------------
 Indices and tables
