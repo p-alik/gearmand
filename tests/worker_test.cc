@@ -8,10 +8,10 @@
 
 #include <libtest/common.h>
 
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cassert>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <unistd.h>
 
 #include <libgearman/gearman.h>
@@ -85,6 +85,16 @@ static test_return_t clone_test(void *object)
   test_truth(worker= gearman_worker_clone(NULL, from));
 
   gearman_worker_free(worker);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_worker_timeout_default_test(void *)
+{
+  gearman_worker_st *worker= gearman_worker_create(NULL);
+  test_true(worker);
+
+  test_compare(-1, gearman_worker_timeout(worker));
 
   return TEST_SUCCESS;
 }
@@ -699,11 +709,11 @@ static test_return_t gearman_worker_failover_test(void *object)
 
   gearman_worker_set_timeout(worker, 2);
 
-  rc= gearman_worker_work(worker);
-  test_true_got(rc == GEARMAN_TIMEOUT, gearman_strerror(rc));
+  test_compare_got(GEARMAN_TIMEOUT, gearman_worker_work(worker), gearman_strerror(rc));
 
   /* Make sure we have remove worker function */
-  test_true_got(gearman_success(rc= gearman_worker_unregister(worker, function_name)) , gearman_strerror(rc));
+  test_compare(GEARMAN_SUCCESS,
+               gearman_worker_unregister(worker, function_name));
 
   return TEST_SUCCESS;
 }
@@ -773,8 +783,14 @@ test_st tests[] ={
   {0, 0, 0}
 };
 
+test_st worker_defaults[] ={
+  {"gearman_worker_timeout()", 0, gearman_worker_timeout_default_test },
+  {0, 0, 0}
+};
+
 collection_st collection[] ={
   {"worker", 0, 0, tests},
+  {"worker defaults", 0, 0, worker_defaults},
   {0, 0, 0, 0}
 };
 

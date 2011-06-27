@@ -899,6 +899,17 @@ static gearman_return_t _con_setsockopt(gearman_connection_st *connection)
     return GEARMAN_ERRNO;
   }
 
+  {
+    int optval= 1;
+    ret= setsockopt(connection->fd, SOL_SOCKET, SO_KEEPALIVE, &optval, sizeof(optval));
+    if (ret == -1 && errno != ENOPROTOOPT)
+    {
+      gearman_perror(connection->universal, "setsockopt(SO_RCVTIMEO)");
+      return GEARMAN_ERRNO;
+    }
+  }
+
+
   ret= setsockopt(connection->fd, SOL_SOCKET, SO_RCVTIMEO, &waittime,
                   socklen_t(sizeof(struct timeval)));
   if (ret == -1 && errno != ENOPROTOOPT)

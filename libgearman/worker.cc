@@ -1057,7 +1057,9 @@ static gearman_worker_st *_worker_allocate(gearman_worker_st *worker, bool is_cl
   if (not is_clone)
   {
     gearman_universal_initialize(worker->universal);
+#if 0
     gearman_universal_set_timeout(worker->universal, GEARMAN_WORKER_WAIT_TIMEOUT);
+#endif
   }
 
   return worker;
