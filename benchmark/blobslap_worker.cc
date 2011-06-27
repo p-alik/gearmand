@@ -1,10 +1,41 @@
-/* Gearman server and library
- * Copyright (C) 2008 Brian Aker, Eric Day
- * All rights reserved.
+/*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
+ * 
+ *  Gearmand client and server library.
  *
- * Use and distribution licensed under the BSD license.  See
- * the COPYING file in the parent directory for full text.
+ *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2008 Brian Aker, Eric Day
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions are
+ *  met:
+ *
+ *      * Redistributions of source code must retain the above copyright
+ *  notice, this list of conditions and the following disclaimer.
+ *
+ *      * Redistributions in binary form must reproduce the above
+ *  copyright notice, this list of conditions and the following disclaimer
+ *  in the documentation and/or other materials provided with the
+ *  distribution.
+ *
+ *      * The names of its contributors may not be used to endorse or
+ *  promote products derived from this software without specific prior
+ *  written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ *  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ *  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ *  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ *  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ *  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ *  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
+
 
 /**
  * @file
@@ -12,17 +43,16 @@
  */
 
 #include <benchmark/benchmark.h>
+#include <boost/program_options.hpp>
 #include <cerrno>
 #include <cstdio>
 #include <climits>
 #include <iostream>
+#include <vector>
 #include "util/daemon.h"
 
 static void *worker_fn(gearman_job_st *job, void *context,
                        size_t *result_size, gearman_return_t *ret_ptr);
-
-static void usage(char *name);
-
 
 static gearman_return_t shutdown_fn(gearman_job_st*, void* /* context */)
 {
@@ -30,65 +60,50 @@ static gearman_return_t shutdown_fn(gearman_job_st*, void* /* context */)
 }
 
 
-int main(int argc, char *argv[])
+int main(int args, char *argv[])
 {
   gearman_benchmark_st benchmark;
-  int c;
-  char *host= NULL;
-  in_port_t port= 0;
-  char *function= NULL;
-  bool opt_daemon= false;
-  unsigned long int count= ULONG_MAX;
-  gearman_worker_st worker;
+  bool opt_daemon;
+  bool opt_chunk;
+  bool opt_status;
+  bool opt_unique;
+  int32_t timeout;
+  uint32_t count= UINT_MAX;
+  in_port_t port;
+  std::string host;
+  std::vector<std::string>* functions= NULL;
+  std::string verbose_string;
+  boost::program_options::options_description desc("Options");
+  desc.add_options()
+    ("help", "Options related to the program.")
+    ("host,h", boost::program_options::value<std::string>(&host)->default_value("localhost"),"Connect to the host")
+    ("port,p", boost::program_options::value<in_port_t>(&port)->default_value(GEARMAN_DEFAULT_TCP_PORT), "Port number use for connection")
+    ("count,c", boost::program_options::value<uint32_t>(&count)->default_value(0), "Number of jobs to run before exiting")
+    ("timeout,u", boost::program_options::value<int32_t>(&timeout)->default_value(-1), "Timeout in milliseconds")
+    ("chunk", boost::program_options::bool_switch(&opt_chunk)->default_value(false), "Send result back in data chunks")
+    ("status,s", boost::program_options::bool_switch(&opt_status)->default_value(false), "Send status updates and sleep while running job")
+    ("unique,u", boost::program_options::bool_switch(&opt_unique)->default_value(false), "When grabbing jobs, grab the uniqie id")
+    ("daemon,d", boost::program_options::bool_switch(&opt_daemon)->default_value(false), "Daemonize")
+    ("function,f", boost::program_options::value(functions), "Function to use.")
+    ("verbose,v", boost::program_options::value(&verbose_string)->default_value("v"), "Increase verbosity level by one.")
+            ;
 
-  if (not gearman_worker_create(&worker))
+  boost::program_options::variables_map vm;
+  try
   {
-    std::cerr << "Failed to allocate worker" << std::endl;
-    exit(EXIT_FAILURE);
+    boost::program_options::store(boost::program_options::parse_command_line(args, argv, desc), vm);
+    boost::program_options::notify(vm);
+  }
+  catch(std::exception &e)
+  { 
+    std::cout << e.what() << std::endl;
+    return EXIT_FAILURE;
   }
 
-  while ((c = getopt(argc, argv, "dc:f:h:p:v")) != -1)
+  if (vm.count("help"))
   {
-    switch(c)
-    {
-    case 'c':
-      count= strtoul(optarg, NULL, 10);
-      break;
-
-    case 'f':
-      function= optarg;
-      if (gearman_failed(gearman_worker_add_function(&worker, function, 0, worker_fn, &benchmark)))
-      {
-        std::cerr << "Failed adding function " << optarg << "() :" << gearman_worker_error(&worker) << std::endl;
-        exit(EXIT_FAILURE);
-      }
-      break;
-
-    case 'h':
-      host= optarg;
-      if (gearman_failed(gearman_worker_add_server(&worker, host, port)))
-      {
-        std::cerr << "Failed while adding server " << host << ":" << port << " :" << gearman_worker_error(&worker) << std::endl;
-        exit(EXIT_FAILURE);
-      }
-      break;
-
-    case 'p':
-      port= in_port_t(atoi(optarg));
-      break;
-
-    case 'd':
-      opt_daemon= true;
-      break;
-
-    case 'v':
-      benchmark.verbose++;
-      break;
-
-    default:
-      usage(argv[0]);
-      exit(EXIT_FAILURE);
-    }
+    std::cout << desc << std::endl;
+    return EXIT_SUCCESS;
   }
 
   if (opt_daemon)
@@ -97,58 +112,86 @@ int main(int argc, char *argv[])
   }
 
   if (opt_daemon)
-    gearmand::daemon_is_ready(benchmark.verbose == 0);
-
-  if (not host)
   {
-    if (gearman_failed(gearman_worker_add_server(&worker, NULL, port)))
-    {
-      std::cerr << "Failing to add localhost:" << port << " :" << gearman_worker_error(&worker) << std::endl;
-      exit(EXIT_FAILURE);
-    }
+    gearmand::daemon_is_ready(benchmark.verbose == 0);
   }
 
-  if (not function)
+  gearman_worker_st *worker;
+  if (not (worker= gearman_worker_create(NULL)))
   {
-    if (gearman_failed(gearman_worker_add_function(&worker,
-                                                   GEARMAN_BENCHMARK_DEFAULT_FUNCTION, 0,
-                                                   worker_fn, &benchmark)))
-    {
-      std::cerr << "Failed to add default function: " << gearman_worker_error(&worker) << std::endl;
-      exit(EXIT_FAILURE);
-    }
+    std::cerr << "Failed to allocate worker" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+
+  benchmark.verbose= static_cast<uint8_t>(verbose_string.length());
+
+  if (gearman_failed(gearman_worker_add_server(worker, host.c_str(), port)))
+  {
+    std::cerr << "Failed while adding server " << host << ":" << port << " :" << gearman_worker_error(worker) << std::endl;
+    exit(EXIT_FAILURE);
   }
 
   gearman_function_t shutdown_function= gearman_function_create(shutdown_fn);
-  if (gearman_failed(gearman_worker_define_function(&worker,
+  if (gearman_failed(gearman_worker_define_function(worker,
 						    gearman_literal_param("shutdown"), 
 						    shutdown_function,
 						    0, 0)))
   {
-    std::cerr << "Failed to add default function: " << gearman_worker_error(&worker) << std::endl;
+    std::cerr << "Failed to add shutdown function: " << gearman_worker_error(worker) << std::endl;
     exit(EXIT_FAILURE);
   }
 
+  if (functions and functions->size())
+  {
+    for (std::vector<std::string>::iterator iter= functions->begin();
+         iter != functions->end();
+         iter++)
+    {
+      if (gearman_failed(gearman_worker_add_function(worker,
+                                                     (*iter).c_str(), 0,
+                                                     worker_fn, &benchmark)))
+      {
+        std::cerr << "Failed to add default function: " << gearman_worker_error(worker) << std::endl;
+        exit(EXIT_FAILURE);
+      }
+    }
+  }
+  else
+  {
+    if (gearman_failed(gearman_worker_add_function(worker,
+                                                   GEARMAN_BENCHMARK_DEFAULT_FUNCTION, 0,
+                                                   worker_fn, &benchmark)))
+    {
+      std::cerr << "Failed to add default function: " << gearman_worker_error(worker) << std::endl;
+      exit(EXIT_FAILURE);
+    }
+  }
+
+  gearman_worker_set_timeout(worker, timeout);
+
   do
   {
-    gearman_return_t rc= gearman_worker_work(&worker);
+    gearman_return_t rc= gearman_worker_work(worker);
 
     if (rc == GEARMAN_SHUTDOWN)
     {
       if (benchmark.verbose > 0)
+      {
         std::cerr << "shutdown" << std::endl;
+      }
       break;
     }
     else if (gearman_failed(rc))
     {
-      std::cerr << "gearman_worker_work(): " << gearman_worker_error(&worker) << std::endl;
+      std::cerr << "gearman_worker_work(): " << gearman_worker_error(worker) << std::endl;
       break;
     }
 
     count--;
   } while(count);
 
-  gearman_worker_free(&worker);
+  gearman_worker_free(worker);
 
   return 0;
 }
@@ -168,17 +211,4 @@ static void *worker_fn(gearman_job_st *job, void *context,
 
   *ret_ptr= GEARMAN_SUCCESS;
   return NULL;
-}
-
-static void usage(char *name)
-{
-  printf("\nusage: %s\n"
-         "\t[-c count] [-f function] [-h <host>] [-p <port>] [-v]\n\n", name);
-  printf("\t-c <count>    - number of jobs to run before exiting\n");
-  printf("\t-f <function> - function name for tasks, can specify many\n"
-         "\t                (default %s)\n",
-                            GEARMAN_BENCHMARK_DEFAULT_FUNCTION);
-  printf("\t-h <host>     - job server host, can specify many\n");
-  printf("\t-p <port>     - job server port\n");
-  printf("\t-v            - increase verbose level\n");
 }

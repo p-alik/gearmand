@@ -603,7 +603,7 @@ gearmand_error_t gearman_server_job_queue(gearman_server_job_st *job)
         ret= gearman_server_io_packet_add(worker->con, false,
                                           GEARMAN_MAGIC_RESPONSE,
                                           GEARMAN_COMMAND_NOOP, NULL);
-        if (ret != GEARMAN_SUCCESS)
+        if (gearmand_failed(ret))
         {
           gearmand_gerror("gearman_server_io_packet_add", ret);
           return ret;

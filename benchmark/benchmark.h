@@ -11,10 +11,9 @@
  * @brief Common benchmark header
  */
 
-#ifndef __GEARMAN_BENCHMARK_H__
-#define __GEARMAN_BENCHMARK_H__
+#pragma once
 
-#include "config.h"
+#include <config.h>
 
 #include <libgearman/gearman.h>
 
@@ -80,7 +79,3 @@ struct gearman_benchmark_st
  * Check and possibly print time.
  */
 void benchmark_check_time(gearman_benchmark_st *benchmark);
-
-/** @} */
-
-#endif /* __GEARMAN_BENCHMARK_H__ */

@@ -2,6 +2,7 @@
   * Defined workers can now return GEARMAN_SHUTDOWN.
   * Benchmark worker can now be told to shutdown.
   * Allocator code has been cleaned up (gearman_allocator_t).
+  * Added "workers" option to gearadmin
 
 0.22 Sun Jun 19 20:32:18 PDT 2011
   * Added gearman_work_map() for gearman_work_t describer.
