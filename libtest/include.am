@@ -30,7 +30,7 @@ noinst_HEADERS+= \
 
 noinst_LTLIBRARIES+= libtest/libserver.la
 libtest_libserver_la_SOURCES= \
-			      libtest/server.cc \
+			      libtest/gearmand.cc \
 			      libtest/worker.cc
 
 noinst_LTLIBRARIES+= libtest/libtest.la
