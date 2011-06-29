@@ -17,6 +17,7 @@ noinst_HEADERS+= \
 		 tests/execute.h \
 		 tests/gearman_client_do_job_handle.h \
 		 tests/gearman_execute_partition.h \
+		 tests/ports.h \
 		 tests/protocol.h \
 		 tests/regression.h \
 		 tests/server_options.h \
