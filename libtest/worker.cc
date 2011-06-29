@@ -132,11 +132,11 @@ struct worker_handle_st *test_worker_start(in_port_t port,
   return handle;
 }
 
-void test_worker_stop(struct worker_handle_st *handle)
+void test_worker_stop(worker_handle_st *handle)
 {
   void *unused;
   fflush(stderr);
   handle->shutdown= true;
   pthread_join(handle->thread, &unused);
-  free(handle);
+  delete handle;
 }

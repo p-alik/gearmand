@@ -149,7 +149,9 @@ pid_t test_gearmand_start(in_port_t port, int argc, const char *argv[])
   libtest::Wait wait(file_buffer);
   
   if (not wait.successful())
+  {
     return -1;
+  }
 
   // Sleep to make sure the server is up and running (or we could poll....)
   pid_t gearmand_pid= -1;

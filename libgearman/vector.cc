@@ -111,7 +111,7 @@ gearman_vector_st *gearman_string_create(gearman_vector_st *self, size_t initial
   /* Saving malloc calls :) */
   if (self)
   {
-    self->options.is_allocated= false;
+    gearman_set_allocated(self, false);
   }
   else
   {
@@ -122,14 +122,17 @@ gearman_vector_st *gearman_string_create(gearman_vector_st *self, size_t initial
       return NULL;
     }
 
-    self->options.is_allocated= true;
+    gearman_set_allocated(self, true);
   }
 
   _init_string(self);
 
   if (gearman_failed(_string_check(self, initial_size)))
   {
-    free(self);
+    if (gearman_is_allocated(self))
+    {
+      free(self);
+    }
 
     return NULL;
   }
@@ -246,14 +249,6 @@ size_t gearman_string_length(const gearman_vector_st *self)
     return 0;
 
   return size_t(self->end - self->string);
-}
-
-size_t gearman_string_size(const gearman_vector_st *self)
-{
-  if (not self)
-    return 0;
-
-  return self->current_size;
 }
 
 const char *gearman_string_value(const gearman_vector_st *self)

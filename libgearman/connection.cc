@@ -677,7 +677,9 @@ gearman_packet_st *gearman_connection_st::receiving(gearman_packet_st& packet_ar
 
       /* Shift buffer contents if needed. */
       if (recv_buffer_size > 0)
+      {
         memmove(recv_buffer, recv_buffer_ptr, recv_buffer_size);
+      }
       recv_buffer_ptr= recv_buffer;
 
       size_t recv_size= recv(recv_buffer + recv_buffer_size, GEARMAN_RECV_BUFFER_SIZE - recv_buffer_size, ret);

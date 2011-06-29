@@ -19,7 +19,7 @@
 
 #include <libtest/server.h>
 
-#define ROUND_ROBIN_WORKER_TEST_PORT 32124
+#include <tests/ports.h>
 
 struct worker_test_st
 {
@@ -77,8 +77,8 @@ static test_return_t queue_add(void *object)
   client_ptr= gearman_client_create(&client);
   test_truth(client_ptr);
 
-  rc= gearman_client_add_server(&client, NULL, ROUND_ROBIN_WORKER_TEST_PORT);
-    test_truth(GEARMAN_SUCCESS == rc);
+  test_compare(GEARMAN_SUCCESS,
+               gearman_client_add_server(&client, NULL, ROUND_ROBIN_WORKER_TEST_PORT));
 
   /* send strings "0", "1" ... "9" to alternating between 2 queues */
   /* queue1 = 1,3,5,7,9 */

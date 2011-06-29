@@ -35,14 +35,18 @@
  *
  */
 
+
 #pragma once
 
-gearman_return_t echo_or_react_worker_v2(gearman_job_st *job, void *context);
+#define GEARMAN_BASE_TEST_PORT 32143
+#define BURNIN_TEST_PORT GEARMAN_BASE_TEST_PORT +1
+#define CLIENT_TEST_PORT GEARMAN_BASE_TEST_PORT +2
+#define DRIZZLE_TEST_PORT GEARMAN_BASE_TEST_PORT +3
+#define INTERNAL_TEST_PORT GEARMAN_BASE_TEST_PORT +4
+#define MEMCACHED_TEST_PORT GEARMAN_BASE_TEST_PORT +5
+#define ROUND_ROBIN_WORKER_TEST_PORT GEARMAN_BASE_TEST_PORT +6
+#define SQLITE_TEST_PORT GEARMAN_BASE_TEST_PORT +7
+#define TOKYOCABINET_TEST_PORT GEARMAN_BASE_TEST_PORT +8
+#define WORKER_TEST_PORT GEARMAN_BASE_TEST_PORT +9
 
-gearman_return_t echo_or_react_chunk_worker_v2(gearman_job_st *job, void *context);
 
-gearman_return_t unique_worker_v2(gearman_job_st *job, void *context);
-
-gearman_return_t increment_reset_worker_v2(gearman_job_st *job, void *context);
-
-gearman_return_t count_worker(gearman_job_st *job, void *context);

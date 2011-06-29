@@ -56,7 +56,7 @@
 
 #include <tests/regression.h>
 
-#define INTERNAL_TEST_PORT 32120
+#include <tests/ports.h>
 
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -72,7 +72,9 @@ struct internal_test_st
   }
 
   ~internal_test_st()
-  { }
+  {
+    test_gearmand_stop(gearmand_pid);
+  }
 };
 
 static test_return_t init_test(void *)

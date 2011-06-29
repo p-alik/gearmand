@@ -134,7 +134,9 @@ struct gearman_job_reducer_st {
     do
     {
       if (gearman_failed(check_task->result_rc))
+      {
         return check_task->result_rc;
+      }
     } while ((check_task= gearman_next(check_task)));
 
     if (aggregator_fn)
@@ -203,9 +205,11 @@ gearman_job_st *gearman_job_create(gearman_worker_st *worker, gearman_job_st *jo
 bool gearman_job_build_reducer(gearman_job_st *job, gearman_aggregator_fn *aggregator_fn)
 {
   if (job->reducer)
+  {
     return true;
+  }
 
-  gearman_string_t reducer_func= { gearman_string_param_cstr(gearman_job_reducer(job)) };
+  gearman_string_t reducer_func= gearman_job_reducer_string(job);
 
   job->reducer= new (std::nothrow) gearman_job_reducer_st(job->worker->universal, reducer_func, aggregator_fn);
   if (not job->reducer)
@@ -327,7 +331,9 @@ gearman_return_t gearman_job_send_complete(gearman_job_st *job,
                                            size_t result_size)
 {
   if (job->reducer)
+  {
     return GEARMAN_INVALID_ARGUMENT;
+  }
 
   return gearman_job_send_complete_fin(job, result, result_size);
 }
@@ -472,7 +478,13 @@ const char *gearman_job_handle(const gearman_job_st *job)
 
 const char *gearman_job_function_name(const gearman_job_st *job)
 {
-  return static_cast<const char *>(job->assigned.arg[1]);
+  return static_cast<char *>(job->assigned.arg[1]);
+}
+
+gearman_string_t gearman_job_function_name_string(const gearman_job_st *job)
+{
+  gearman_string_t temp= { job->assigned.arg[1], job->assigned.arg_size[1] };
+  return temp;
 }
 
 const char *gearman_job_unique(const gearman_job_st *job)
@@ -489,6 +501,19 @@ const char *gearman_job_unique(const gearman_job_st *job)
 bool gearman_job_is_map(const gearman_job_st *job)
 {
   return bool(job->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN_ALL) and job->assigned.arg_size[3] > 1;
+}
+
+gearman_string_t gearman_job_reducer_string(const gearman_job_st *job)
+{
+  if (job->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN_ALL and job->assigned.arg_size[3] > 1)
+  {
+    gearman_string_t temp= { job->assigned.arg[3], job->assigned.arg_size[3] -1 };
+    return temp;
+  }
+
+  static gearman_string_t null_temp= { gearman_literal_param("") };
+
+  return null_temp;
 }
 
 const char *gearman_job_reducer(const gearman_job_st *job)

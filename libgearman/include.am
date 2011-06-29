@@ -59,6 +59,7 @@ noinst_HEADERS+= \
 		 libgearman/function/make.hpp \
 		 libgearman/function/null.hpp \
 		 libgearman/function/partition.hpp \
+		 libgearman/is.hpp \
 		 libgearman/log.h \
 		 libgearman/packet.hpp \
 		 libgearman/result.hpp \

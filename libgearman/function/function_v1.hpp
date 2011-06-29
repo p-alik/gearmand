@@ -57,6 +57,11 @@ public:
 
   gearman_function_error_t callback(gearman_job_st* job, void *context_arg)
   {
+    if (gearman_job_is_map(job))
+    {
+      gearman_job_build_reducer(job, NULL);
+    }
+
     job->error_code= GEARMAN_SUCCESS;
     job->worker->work_result= _worker_fn(job, context_arg, &(job->worker->work_result_size), &job->error_code);
 

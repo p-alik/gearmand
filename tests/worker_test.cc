@@ -21,7 +21,7 @@
 
 #include <libtest/server.h>
 
-#define WORKER_TEST_PORT 32125
+#include <tests/ports.h>
 
 struct worker_test_st
 {
@@ -95,6 +95,7 @@ static test_return_t gearman_worker_timeout_default_test(void *)
   test_true(worker);
 
   test_compare(-1, gearman_worker_timeout(worker));
+  gearman_worker_free(worker);
 
   return TEST_SUCCESS;
 }

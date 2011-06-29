@@ -21,7 +21,7 @@
 #include <tests/basic.h>
 #include <tests/context.h>
 
-#define WORKER_TEST_PORT 32123
+#include <tests/ports.h>
 
 void *world_create(test_return_t *error);
 test_return_t world_destroy(void *object);
@@ -55,7 +55,7 @@ static test_return_t collection_cleanup(void *object)
 
 void *world_create(test_return_t *error)
 {
-  Context *test= new Context(WORKER_TEST_PORT);
+  Context *test= new Context(TOKYOCABINET_TEST_PORT);
   if (not test)
   {
     *error= TEST_MEMORY_ALLOCATION_FAILURE;

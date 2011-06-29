@@ -435,7 +435,9 @@ size_t gearman_packet_unpack(gearman_packet_st& self,
           *ptr= 0;
           ptr++;
           while (*ptr == ' ')
+          {
             ptr++;
+          }
 
           arg_size-= (size_t)(ptr - ((uint8_t *)data));
         }
@@ -476,7 +478,7 @@ size_t gearman_packet_unpack(gearman_packet_st& self,
 
   while (self.argc != gearman_command_info(self.command)->argc)
   {
-    if (self.argc != (gearman_command_info(self.command)->argc - 1) ||
+    if (self.argc != (gearman_command_info(self.command)->argc - 1) or
         gearman_command_info(self.command)->data)
     {
 
@@ -488,7 +490,7 @@ size_t gearman_packet_unpack(gearman_packet_st& self,
         return used_size;
       }
 
-      arg_size= (size_t)(ptr - ((uint8_t *)data + used_size)) + 1;
+      arg_size= (size_t)(ptr - ((uint8_t *)data + used_size)) +1;
       ret= packet_create_arg(&self, (uint8_t *)data + used_size, arg_size);
       if (gearman_failed(ret))
       {

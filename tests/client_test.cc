@@ -47,13 +47,13 @@
 #include <vector>
 #include <boost/foreach.hpp>
 
+#include <tests/ports.h>
+
 #define GEARMAN_CORE
 #include <libgearman/gearman.h>
 
 #include <libtest/server.h>
 #include <libtest/worker.h>
-
-#define CLIENT_TEST_PORT 32123
 
 #define NAMESPACE_KEY "foo123"
 
@@ -1235,6 +1235,11 @@ void *world_create(test_return_t *error)
                                  NULL, gearman_worker_options_t()));
   }
 
+  // Count worker
+  gearman_function_t count_worker_fn= gearman_function_create(count_worker);
+  test->push(test_worker_start(CLIENT_TEST_PORT, NULL, "count", count_worker_fn, NULL, gearman_worker_options_t()));
+
+
   test->gearmand_pid= gearmand_pid;
 
   if (gearman_failed(gearman_client_add_server(test->client(), NULL, CLIENT_TEST_PORT)))
@@ -1347,11 +1352,12 @@ test_st gearman_client_do_job_handle_tests[] ={
 };
 
 test_st gearman_execute_partition_tests[] ={
-  {"gearman_execute() map reduce", 0, gearman_execute_partition_basic },
-  {"gearman_execute(GEARMAN_ARGUMENT_TOO_LARGE) map reduce", 0, gearman_execute_partition_check_parameters },
-  {"gearman_execute(GEARMAN_WORK_FAIL) map reduce", 0, gearman_execute_partition_workfail },
-  {"gearman_execute() fail in reduction", 0, gearman_execute_partition_fail_in_reduction },
-  {"gearman_execute() with mapper function", 0, gearman_execute_partition_use_as_function },
+  {"gearman_execute_by_partition() map reduce", 0, gearman_execute_partition_basic },
+  {"gearman_execute_by_partition(GEARMAN_ARGUMENT_TOO_LARGE) map reduce", 0, gearman_execute_partition_check_parameters },
+  {"gearman_execute_by_partition(GEARMAN_WORK_FAIL) map reduce", 0, gearman_execute_partition_workfail },
+  {"gearman_execute_by_partition() fail in reduction", 0, gearman_execute_partition_fail_in_reduction },
+  {"gearman_execute() with V2 Worker that has aggregate defined", 0, gearman_execute_partition_use_as_function },
+  {"gearman_execute_by_partition() no aggregate function", 0, gearman_execute_partition_no_aggregate },
   {0, 0, 0}
 };
 

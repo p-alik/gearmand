@@ -200,6 +200,7 @@ gearman_server_job_add_reducer(gearman_server_st *server,
     if (reducer_size)
     {
       strncpy(server_job->reducer, reducer_name, reducer_size);
+      server_job->reducer[reducer_size]= 0;
     }
     else
     {

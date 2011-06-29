@@ -170,6 +170,20 @@ gearman_return_t unique_worker_v2(gearman_job_st *job, void *)
   return GEARMAN_FATAL;
 }
 
+gearman_return_t count_worker(gearman_job_st *job, void *)
+{
+  char buffer[GEARMAN_MAXIMUM_INTEGER_DISPLAY_LENGTH +1];
+
+  int length= snprintf(buffer, sizeof(buffer), "%lu", static_cast<unsigned long>(gearman_job_workload_size(job)));
+
+  if (size_t(length) > sizeof(buffer) or length < 0)
+  {
+    return GEARMAN_FATAL;
+  }
+
+  return GEARMAN_SUCCESS;
+}
+
 static pthread_mutex_t increment_reset_worker_mutex= PTHREAD_MUTEX_INITIALIZER;
 
 gearman_return_t increment_reset_worker_v2(gearman_job_st *job, void *)

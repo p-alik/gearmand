@@ -194,3 +194,30 @@ test_return_t gearman_execute_partition_use_as_function(void *object)
 
   return TEST_SUCCESS;
 }
+
+test_return_t gearman_execute_partition_no_aggregate(void *object)
+{
+  gearman_client_st *client= (gearman_client_st *)object;
+
+  gearman_argument_t workload= gearman_argument_make(0, 0, gearman_literal_param("this dog does not hunt"));
+
+  gearman_task_st *task;
+  test_true_got(task= gearman_execute_by_partition(client,
+                                                   gearman_literal_param("client_test"),
+                                                   gearman_literal_param("count"),
+                                                   NULL, 0,  // unique
+                                                   NULL,
+                                                   &workload, 0), gearman_client_error(client));
+
+  test_compare_got(GEARMAN_SUCCESS, 
+                   gearman_task_return(task), 
+                   gearman_client_error(client));
+
+  test_compare(GEARMAN_SUCCESS, gearman_task_return(task));
+  test_false(gearman_task_result(task));
+
+  gearman_task_free(task);
+  gearman_client_task_free_all(client);
+
+  return TEST_SUCCESS;
+}

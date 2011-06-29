@@ -89,9 +89,6 @@ GEARMAN_LOCAL
 size_t gearman_string_length(const gearman_vector_st *self);
 
 GEARMAN_LOCAL
-size_t gearman_string_size(const gearman_vector_st *self);
-
-GEARMAN_LOCAL
 const char *gearman_string_value(const gearman_vector_st *self);
 
 GEARMAN_LOCAL

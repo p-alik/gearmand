@@ -276,7 +276,7 @@ gearman_task_st *add_reducer_task(gearman_client_st *client,
     uuid_unparse(uuid, uuid_string);
     uuid_string[36]= 0;
     args[1]= uuid_string;
-    args_size[1]= 36 + 1; // +1 is for the needed null
+    args_size[1]= 36 +1; // +1 is for the needed null
   }
 
   assert_msg(command == GEARMAN_COMMAND_SUBMIT_REDUCE_JOB or command == GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND,

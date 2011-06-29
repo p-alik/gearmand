@@ -1,6 +1,6 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  Gearmand client and server library.
+ *  Gearman
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
  *  All rights reserved.
@@ -37,12 +37,12 @@
 
 #pragma once
 
-gearman_return_t echo_or_react_worker_v2(gearman_job_st *job, void *context);
-
-gearman_return_t echo_or_react_chunk_worker_v2(gearman_job_st *job, void *context);
-
-gearman_return_t unique_worker_v2(gearman_job_st *job, void *context);
-
-gearman_return_t increment_reset_worker_v2(gearman_job_st *job, void *context);
-
-gearman_return_t count_worker(gearman_job_st *job, void *context);
+/* These are private */ 
+#define gearman_is_allocated(__object) ((__object)->options.is_allocated)
+#define gearman_is_initialized(__object) ((__object)->options.is_initialized)
+#define gearman_is_purging(__object) ((__object)->state.is_purging)
+#define gearman_is_processing_input(__object) ((__object)->state.is_processing_input)
+#define gearman_set_purging(__object, __value) ((__object)->state.is_purging= (__value))
+#define gearman_set_processing_input(__object, __value) ((__object)->state.is_processing_input= (__value))
+#define gearman_set_initialized(__object, __value) ((__object)->options.is_initialized(= (__value))
+#define gearman_set_allocated(__object, __value) ((__object)->options.is_allocated= (__value))

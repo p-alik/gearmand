@@ -22,6 +22,9 @@
 #include <fnmatch.h>
 #include <iostream>
 
+static const char RED[]= "\x1b[31m";
+const char COLOR_RESET[]= "\x1b[0m";
+
 #include <libtest/stats.h>
 
 #ifndef __INTEL_COMPILER
@@ -235,7 +238,7 @@ int main(int argc, char *argv[])
 	continue;
       }
 
-      std::cerr << "\tTesting " << run->name;
+      std::cerr << RED << "\tTesting " << run->name << COLOR_RESET;
 
       world.item.startup(world_ptr);
 
@@ -260,7 +263,7 @@ int main(int argc, char *argv[])
       switch (return_code)
       {
       case TEST_SUCCESS:
-	std::cerr << load_time / 1000 << "." << load_time % 1000;
+	std::cerr << RED << load_time / 1000 << "." << load_time % 1000 << COLOR_RESET;
 	stats.success++;
 	break;
 
@@ -279,7 +282,7 @@ int main(int argc, char *argv[])
 	test_assert(0, "Memory Allocation Error");
       }
 
-      std::cerr << "[ " << test_strerror(return_code) << " ]" << std::endl;
+      std::cerr << RED << "[ " << test_strerror(return_code) << " ]" << COLOR_RESET << std::endl;
 
       if (test_failed(world.on_error(return_code, world_ptr)))
       {
