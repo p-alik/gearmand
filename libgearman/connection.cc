@@ -677,7 +677,9 @@ gearman_packet_st *gearman_connection_st::receiving(gearman_packet_st& packet_ar
 
       /* Shift buffer contents if needed. */
       if (recv_buffer_size > 0)
+      {
         memmove(recv_buffer, recv_buffer_ptr, recv_buffer_size);
+      }
       recv_buffer_ptr= recv_buffer;
 
       size_t recv_size= recv(recv_buffer + recv_buffer_size, GEARMAN_RECV_BUFFER_SIZE - recv_buffer_size, ret);
@@ -898,6 +900,17 @@ static gearman_return_t _con_setsockopt(gearman_connection_st *connection)
     gearman_perror(connection->universal, "setsockopt(SO_SNDTIMEO)");
     return GEARMAN_ERRNO;
   }
+
+  {
+    int optval= 1;
+    ret= setsockopt(connection->fd, SOL_SOCKET, SO_KEEPALIVE, &optval, sizeof(optval));
+    if (ret == -1 && errno != ENOPROTOOPT)
+    {
+      gearman_perror(connection->universal, "setsockopt(SO_RCVTIMEO)");
+      return GEARMAN_ERRNO;
+    }
+  }
+
 
   ret= setsockopt(connection->fd, SOL_SOCKET, SO_RCVTIMEO, &waittime,
                   socklen_t(sizeof(struct timeval)));

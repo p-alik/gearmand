@@ -6,11 +6,7 @@
  * the COPYING file in the parent directory for full text.
  */
 
-#include "config.h"
-
-#if defined(NDEBUG)
-# undef NDEBUG
-#endif
+#include <libtest/common.h>
 
 #include <cassert>
 #include <cerrno>
@@ -20,11 +16,11 @@
 
 #include <libgearman/gearman.h>
 
-#include <libtest/test.h>
+#include <libtest/test.hpp>
 #include <libtest/server.h>
 #include <libtest/worker.h>
 
-#define CLIENT_TEST_PORT 32143
+#include <tests/ports.h>
 
 #define DEFAULT_WORKER_NAME "burnin"
 
@@ -195,7 +191,7 @@ void *world_create(test_return_t *error)
   /**
     We start up everything before we allocate so that we don't have to track memory in the forked process.
   */
-  test->gearmand_pid= gearmand_pid= test_gearmand_start(CLIENT_TEST_PORT, 1, argv);
+  test->gearmand_pid= gearmand_pid= test_gearmand_start(BURNIN_TEST_PORT, 1, argv);
   if (test->gearmand_pid == -1)
   {
     *error= TEST_FAILURE;
@@ -203,7 +199,7 @@ void *world_create(test_return_t *error)
   }
 
   gearman_function_t func_arg= gearman_function_create_v1(worker_fn);
-  test->handle= test_worker_start(CLIENT_TEST_PORT, NULL, DEFAULT_WORKER_NAME, func_arg, NULL, gearman_worker_options_t());
+  test->handle= test_worker_start(BURNIN_TEST_PORT, NULL, DEFAULT_WORKER_NAME, func_arg, NULL, gearman_worker_options_t());
   if (not test->handle)
   {
     *error= TEST_FAILURE;
@@ -216,7 +212,7 @@ void *world_create(test_return_t *error)
     return NULL;
   }
 
-  if (gearman_failed(gearman_client_add_server(&(test->client), NULL, CLIENT_TEST_PORT)))
+  if (gearman_failed(gearman_client_add_server(&(test->client), NULL, BURNIN_TEST_PORT)))
   {
     *error= TEST_FAILURE;
     return NULL;
@@ -264,17 +260,17 @@ static test_return_t _runner_default(libgearman_test_callback_fn func, client_te
   }
 }
 
-static world_runner_st runner= {
-  (test_callback_runner_fn)_runner_default,
-  (test_callback_runner_fn)_runner_default,
-  (test_callback_runner_fn)_runner_default
+static Runner runner= {
+  (test_callback_runner_fn*)_runner_default,
+  (test_callback_runner_fn*)_runner_default,
+  (test_callback_runner_fn*)_runner_default
 };
 
 
-void get_world(world_st *world)
+void get_world(Framework *world)
 {
   world->collections= collection;
-  world->create= world_create;
-  world->destroy= world_destroy;
+  world->_create= world_create;
+  world->_destroy= world_destroy;
   world->runner= &runner;
 }

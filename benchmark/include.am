@@ -28,7 +28,10 @@ benchmark_blobslap_worker_SOURCES= \
 				   benchmark/blobslap_worker.cc \
 				   util/daemon.cc
 
-benchmark_blobslap_worker_LDADD= benchmark/libbenchmark.la libgearman/libgearman.la
+benchmark_blobslap_worker_LDADD= \
+				 $(BOOST_PROGRAM_OPTIONS_LIBS) \
+				 benchmark/libbenchmark.la \
+				 libgearman/libgearman.la
 
 GEARMAND_BE_PIDFILE = ${abs_top_builddir}/tests/var/tmp/Begearmand.pid
 GEARMAND_BENCHMARK_PORT = 6000

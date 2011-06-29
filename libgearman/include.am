@@ -48,14 +48,18 @@ noinst_HEADERS+= \
 		 libgearman/add.hpp \
 		 libgearman/aggregator.hpp \
 		 libgearman/allocator.hpp \
+		 libgearman/assert.hpp \
 		 libgearman/common.h \
 		 libgearman/connection.hpp \
 		 libgearman/do.hpp \
+		 libgearman/error.hpp \
 		 libgearman/function/base.hpp \
 		 libgearman/function/function_v1.hpp \
 		 libgearman/function/function_v2.hpp \
 		 libgearman/function/make.hpp \
+		 libgearman/function/null.hpp \
 		 libgearman/function/partition.hpp \
+		 libgearman/is.hpp \
 		 libgearman/log.h \
 		 libgearman/packet.hpp \
 		 libgearman/result.hpp \
@@ -71,12 +75,17 @@ libgearman_libgearmancore_la_SOURCES= \
 				      libgearman/byteorder.cc \
 				      libgearman/command.cc \
 				      libgearman/connection.cc \
+				      libgearman/error.cc \
 				      libgearman/log.cc \
 				      libgearman/packet.cc \
 				      libgearman/strcommand.cc \
 				      libgearman/strerror.cc \
 				      libgearman/universal.cc \
 				      libgearman/vector.cc
+
+libgearman_libgearmancore_la_CXXFLAGS= \
+				       ${AM_CXXFLAGS} \
+				       -DBUILDING_LIBGEARMAN
 
 lib_LTLIBRARIES+= libgearman/libgearman.la
 libgearman_libgearman_la_SOURCES= \
@@ -90,6 +99,7 @@ libgearman_libgearman_la_SOURCES= \
 				  libgearman/command.cc \
 				  libgearman/connection.cc \
 				  libgearman/do.cc \
+				  libgearman/error.cc \
 				  libgearman/execute.cc \
 				  libgearman/function.cc \
 				  libgearman/function/function_v2.cc \
@@ -113,6 +123,10 @@ libgearman_libgearman_la_SOURCES= \
 				  libgearman/worker.cc
 
 libgearman_libgearman_la_DEPENDENCIES=
+
+libgearman_libgearman_la_CXXFLAGS= \
+				   ${AM_CXXFLAGS} \
+				   -DBUILDING_LIBGEARMAN
 
 libgearman_libgearman_la_LDFLAGS= \
 				  $(AM_LDFLAGS) \

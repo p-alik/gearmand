@@ -36,9 +36,7 @@
  *
  */
 
-#include <config.h>
-
-#define GEARMAN_CORE
+#include <libgearman/common.h>
 
 #include <libgearman/visibility.h>
 #include <libgearman/command.h>

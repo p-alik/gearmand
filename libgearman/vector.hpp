@@ -36,7 +36,6 @@
 
 #pragma once
 
-#ifdef BUILDING_LIBGEARMAN
 /**
   vectors are always under our control so we make some assumptions about them.
 
@@ -90,9 +89,6 @@ GEARMAN_LOCAL
 size_t gearman_string_length(const gearman_vector_st *self);
 
 GEARMAN_LOCAL
-size_t gearman_string_size(const gearman_vector_st *self);
-
-GEARMAN_LOCAL
 const char *gearman_string_value(const gearman_vector_st *self);
 
 GEARMAN_LOCAL
@@ -107,5 +103,3 @@ gearman_string_t gearman_string_take_string(gearman_vector_st *self);
 #ifdef __cplusplus
 }
 #endif
-
-#endif // BUILDING_LIBGEARMAN

@@ -1,7 +1,11 @@
-0.23
+0.23 Wed Jun 29 13:26:26 PDT 2011
   * Defined workers can now return GEARMAN_SHUTDOWN.
   * Benchmark worker can now be told to shutdown.
   * Allocator code has been cleaned up (gearman_allocator_t).
+  * Added "workers" option to gearadmin
+  * Workers will now default to -1 as timeout (lowers CPU on gearmand server for non-active workers).
+  * SO_KEEPALIVE is now enabled on client/worker connections.
+  * By default, workers now grab the unique value of the job.
 
 0.22 Sun Jun 19 20:32:18 PDT 2011
   * Added gearman_work_map() for gearman_work_t describer.

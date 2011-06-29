@@ -37,8 +37,6 @@
 
 #pragma once
 
-#include <libtest/test.h>
-
 test_return_t gearman_client_do_huge_unique(void *);
 
 test_return_t gearman_client_do_with_active_background_task(void *);

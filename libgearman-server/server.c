@@ -122,10 +122,10 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
   case GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND:
     {
       gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
-                         "Received reduce submission, %.*s-%.*s/%.*s with %d arguments",
-                         packet->arg_size[0], packet->arg[0] -1,
-                         packet->arg_size[2], packet->arg[2] -1, // reducer
-                         packet->arg_size[1], packet->arg[1] -1,
+                         "Received reduce submission, Partitioner: %.*s(%lu) Reducer: %.*s(%lu) Unique: %.*s(%lu) with %d arguments",
+                         packet->arg_size[0] -1, packet->arg[0], packet->arg_size[0] -1,
+                         packet->arg_size[2] -1, packet->arg[2], packet->arg_size[2] -1, // reducer
+                         packet->arg_size[1] -1, packet->arg[1], packet->arg_size[1] -1,
                          (int)packet->argc);
       if (packet->arg_size[2] -1 > GEARMAN_UNIQUE_SIZE)
       {
@@ -460,6 +460,12 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
     }
     else if (packet->command == GEARMAN_COMMAND_GRAB_JOB_ALL and server_job->reducer)
     {
+      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
+                         "Sending reduce submission, Partitioner: %.*s(%lu) Reducer: %.*s(%lu) Unique: %.*s(%lu) with data sized (%lu)" ,
+                         server_job->function->function_name_size, server_job->function->function_name, server_job->function->function_name_size,
+                         strlen(server_job->reducer), server_job->reducer, strlen(server_job->reducer),
+                         strlen(server_job->unique), server_job->unique, strlen(server_job->unique),
+                         (unsigned long)server_job->data_size);
       /* 
         We found a runnable job, queue job assigned packet and take the job off the queue. 
       */

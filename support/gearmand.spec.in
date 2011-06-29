@@ -142,17 +142,10 @@ fi
 %{_includedir}/libgearman/version.h
 %{_includedir}/libgearman/visibility.h
 %{_includedir}/libgearman/worker.h
-%{_includedir}/libgearman/function.h
 %{_libdir}/pkgconfig/gearmand.pc
 %{_libdir}/libgearman.so
-%{_mandir}/man3/gearman_allocator_t.3.gz \
-%{_mandir}/man3/gearman_client_set_memory_allocators.3.gz \
-%{_mandir}/man3/gearman_worker_set_memory_allocators.3.gz \
-%{_mandir}/man3/gearman_task_attr_init_epoch.3.gz
-%{_mandir}/man3/gearman_task_attr_init_background.3.gz
-%{_mandir}/man3/gearman_task_attr_init.3.gz
-%{_mandir}/man3/gearman_task_attr_t.3.gz
 %{_mandir}/man3/gearman_actions_t.3.gz
+%{_mandir}/man3/gearman_allocator_t.3.gz
 %{_mandir}/man3/gearman_argument_make.3.gz
 %{_mandir}/man3/gearman_argument_t.3.gz
 %{_mandir}/man3/gearman_bugreport.3.gz
@@ -182,8 +175,8 @@ fi
 %{_mandir}/man3/gearman_client_errno.3.gz
 %{_mandir}/man3/gearman_client_error.3.gz
 %{_mandir}/man3/gearman_client_free.3.gz
-%{_mandir}/man3/gearman_client_job_status.3.gz
 %{_mandir}/man3/gearman_client_has_option.3.gz
+%{_mandir}/man3/gearman_client_job_status.3.gz
 %{_mandir}/man3/gearman_client_options.3.gz
 %{_mandir}/man3/gearman_client_options_t.3.gz
 %{_mandir}/man3/gearman_client_remove_options.3.gz
@@ -196,6 +189,7 @@ fi
 %{_mandir}/man3/gearman_client_set_exception_fn.3.gz
 %{_mandir}/man3/gearman_client_set_fail_fn.3.gz
 %{_mandir}/man3/gearman_client_set_log_fn.3.gz
+%{_mandir}/man3/gearman_client_set_memory_allocators.3.gz
 %{_mandir}/man3/gearman_client_set_namespace.3.gz
 %{_mandir}/man3/gearman_client_set_options.3.gz
 %{_mandir}/man3/gearman_client_set_status_fn.3.gz
@@ -242,6 +236,10 @@ fi
 %{_mandir}/man3/gearman_strerror.3.gz
 %{_mandir}/man3/gearman_string_t.3.gz
 %{_mandir}/man3/gearman_success.3.gz
+%{_mandir}/man3/gearman_task_attr_init.3.gz
+%{_mandir}/man3/gearman_task_attr_init_background.3.gz
+%{_mandir}/man3/gearman_task_attr_init_epoch.3.gz
+%{_mandir}/man3/gearman_task_attr_t.3.gz
 %{_mandir}/man3/gearman_task_context.3.gz
 %{_mandir}/man3/gearman_task_data.3.gz
 %{_mandir}/man3/gearman_task_data_size.3.gz
@@ -284,6 +282,7 @@ fi
 %{_mandir}/man3/gearman_worker_remove_servers.3.gz
 %{_mandir}/man3/gearman_worker_set_context.3.gz
 %{_mandir}/man3/gearman_worker_set_log_fn.3.gz
+%{_mandir}/man3/gearman_worker_set_memory_allocators.3.gz
 %{_mandir}/man3/gearman_worker_set_namespace.3.gz
 %{_mandir}/man3/gearman_worker_set_options.3.gz
 %{_mandir}/man3/gearman_worker_set_timeout.3.gz

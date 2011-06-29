@@ -163,11 +163,17 @@ const char *gearman_job_handle(const gearman_job_st *job);
 GEARMAN_API
   const char *gearman_job_function_name(const gearman_job_st *job);
 
+GEARMAN_LOCAL
+  gearman_string_t gearman_job_function_name_string(const gearman_job_st *);
+
 /**
  * Get the unique ID associated with a job.
  */
 GEARMAN_API
   const char *gearman_job_unique(const gearman_job_st *job);
+
+GEARMAN_LOCAL
+  gearman_string_t gearman_job_reducer_string(const gearman_job_st *job);
 
 GEARMAN_LOCAL
   const char *gearman_job_reducer(const gearman_job_st *job);

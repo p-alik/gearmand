@@ -42,3 +42,4 @@ test_return_t gearman_execute_partition_basic(void *);
 test_return_t gearman_execute_partition_fail_in_reduction(void *);
 test_return_t gearman_execute_partition_workfail(void *);
 test_return_t gearman_execute_partition_use_as_function(void *);
+test_return_t gearman_execute_partition_no_aggregate(void *);

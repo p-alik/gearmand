@@ -38,11 +38,7 @@
 
 
 
-#include "config.h"
-
-#if defined(NDEBUG)
-# undef NDEBUG
-#endif
+#include <libtest/common.h>
 
 #include <assert.h>
 #include <stdio.h>
@@ -53,7 +49,6 @@
 #include <libgearman/common.h>
 #include <libgearman/packet.hpp>
 
-#include <libtest/test.h>
 #include <libtest/server.h>
 #include <libtest/worker.h>
 
@@ -61,7 +56,7 @@
 
 #include <tests/regression.h>
 
-#define INTERNAL_TEST_PORT 32120
+#include <tests/ports.h>
 
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -77,7 +72,9 @@ struct internal_test_st
   }
 
   ~internal_test_st()
-  { }
+  {
+    test_gearmand_stop(gearmand_pid);
+  }
 };
 
 static test_return_t init_test(void *)
@@ -478,9 +475,9 @@ static test_return_t world_destroy(void *object)
   return TEST_SUCCESS;
 }
 
-void get_world(world_st *world)
+void get_world(Framework *world)
 {
   world->collections= collection;
-  world->create= world_create;
-  world->destroy= world_destroy;
+  world->_create= world_create;
+  world->_destroy= world_destroy;
 }

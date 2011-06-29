@@ -37,7 +37,8 @@
  */
 
 
-#include <libtest/test.h>
+#include <libtest/common.h>
+
 #include <cassert>
 #include <libgearman/gearman.h>
 #include <tests/regression.h>
@@ -54,6 +55,7 @@
 
 test_return_t regression_bug_783141_test(void *)
 {
+  test_skip(true, test_is_local());
 
 #ifdef __APPLE__
   return TEST_SKIPPED;

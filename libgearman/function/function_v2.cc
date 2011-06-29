@@ -46,6 +46,11 @@
 */
 gearman_function_error_t FunctionV2::callback(gearman_job_st* job, void *context_arg)
 {
+  if (gearman_job_is_map(job))
+  {
+    gearman_job_build_reducer(job, NULL);
+  }
+
   gearman_return_t error= _function(job, context_arg);
   switch (error)
   {

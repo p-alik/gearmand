@@ -727,8 +727,10 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
       for (worker->con= (&worker->universal)->con_list; worker->con;
            worker->con= worker->con->next)
       {
-        if (worker->con->fd == -1)
+        if (worker->con->fd == INVALID_SOCKET)
+        {
           continue;
+        }
 
         *ret_ptr= worker->con->send(worker->pre_sleep, true);
         if (gearman_failed(*ret_ptr))
@@ -753,7 +755,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
       for (worker->con= worker->universal.con_list; worker->con;
            worker->con= worker->con->next)
       {
-        if (worker->con->fd == -1)
+        if (worker->con->fd == INVALID_SOCKET)
           continue;
 
         worker->con->set_events(POLLIN);
@@ -791,7 +793,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
       else
       {
         *ret_ptr= gearman_wait(worker->universal);
-        if (gearman_failed(*ret_ptr) and (*ret_ptr != GEARMAN_TIMEOUT || worker->options.timeout_return))
+        if (gearman_failed(*ret_ptr) and (*ret_ptr != GEARMAN_TIMEOUT or worker->options.timeout_return))
         {
           return NULL;
         }
@@ -1034,8 +1036,8 @@ static gearman_worker_st *_worker_allocate(gearman_worker_st *worker, bool is_cl
   worker->options.non_blocking= false;
   worker->options.packet_init= false;
   worker->options.change= false;
-  worker->options.grab_uniq= false;
-  worker->options.grab_all= false;
+  worker->options.grab_uniq= true;
+  worker->options.grab_all= true;
   worker->options.timeout_return= false;
 
   worker->state= GEARMAN_WORKER_STATE_START;
@@ -1055,7 +1057,9 @@ static gearman_worker_st *_worker_allocate(gearman_worker_st *worker, bool is_cl
   if (not is_clone)
   {
     gearman_universal_initialize(worker->universal);
+#if 0
     gearman_universal_set_timeout(worker->universal, GEARMAN_WORKER_WAIT_TIMEOUT);
+#endif
   }
 
   return worker;
@@ -1064,7 +1068,7 @@ static gearman_worker_st *_worker_allocate(gearman_worker_st *worker, bool is_cl
 static gearman_return_t _worker_packet_init(gearman_worker_st *worker)
 {
   gearman_return_t ret= gearman_packet_create_args(worker->universal, worker->grab_job,
-                                                   GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_GRAB_JOB,
+                                                   GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_GRAB_JOB_ALL,
                                                    NULL, NULL, 0);
   if (gearman_failed(ret))
     return ret;

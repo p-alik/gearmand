@@ -6,11 +6,7 @@
  * the COPYING file in the parent directory for full text.
  */
 
-#include "config.h"
-
-#if defined(NDEBUG)
-# undef NDEBUG
-#endif
+#include <libtest/common.h>
 
 #include <assert.h>
 #include <stdio.h>
@@ -20,13 +16,12 @@
 
 #include <libgearman/gearman.h>
 
-#include "libtest/test.h"
-#include "libtest/server.h"
+#include <libtest/server.h>
 
 #include <tests/basic.h>
 #include <tests/context.h>
 
-#define WORKER_TEST_PORT 32123
+#include <tests/ports.h>
 
 void *world_create(test_return_t *error);
 test_return_t world_destroy(void *object);
@@ -60,7 +55,7 @@ static test_return_t collection_cleanup(void *object)
 
 void *world_create(test_return_t *error)
 {
-  Context *test= new Context(WORKER_TEST_PORT);
+  Context *test= new Context(TOKYOCABINET_TEST_PORT);
   if (not test)
   {
     *error= TEST_MEMORY_ALLOCATION_FAILURE;
@@ -98,9 +93,9 @@ collection_st collection[] ={
   {0, 0, 0, 0}
 };
 
-void get_world(world_st *world)
+void get_world(Framework *world)
 {
   world->collections= collection;
-  world->create= world_create;
-  world->destroy= world_destroy;
+  world->_create= world_create;
+  world->_destroy= world_destroy;
 }

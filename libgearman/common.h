@@ -40,13 +40,14 @@
 #pragma once
 
 #include <config.h>
-#include <libgearman/version.h>
 
-#define BUILDING_LIBGEARMAN
-#define GEARMAN_CORE
+#include <libgearman/version.h>
+#include <libgearman/assert.hpp>
 
 #include <libgearman/gearman.h>
 #include <libgearman/connection.hpp>
+
+#include <libgearman/error.hpp>
 
 /* These are private not to be installed headers */
 #include <libgearman/byteorder.h>
@@ -56,4 +57,4 @@
 #include <libgearman/unique.h>
 #include <libgearman/result.hpp>
 #include <libgearman/actions.h>
-#include <libgearman/do.hpp>
+#include <libgearman/is.hpp>

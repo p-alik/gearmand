@@ -48,7 +48,6 @@
 #include <libgearman/command.h>
 #include <libgearman/packet.hpp>
 
-#include <cassert>
 #include <cerrno>
 #include <cstdlib>
 #include <cstring>
@@ -213,11 +212,13 @@ gearman_return_t gearman_packet_create_args(gearman_universal_st& universal,
 
   if (gearman_command_info(packet.command)->data)
   {
-    assert(args_count -1 == gearman_command_info(packet.command)->argc);
+    assert_msg(args_count -1 == gearman_command_info(packet.command)->argc, 
+               "Programmer error, number of arguments incorrect for protocol");
   }
   else
   {
-    assert(args_count == gearman_command_info(packet.command)->argc);
+    assert_msg(args_count == gearman_command_info(packet.command)->argc, 
+               "Programmer error, number of arguments incorrect for protocol");
   }
 
   for (size_t x= 0; x < args_count; x++)
@@ -249,7 +250,8 @@ void gearman_packet_free(gearman_packet_st *packet)
     packet->args= NULL;
   }
 
-  assert(packet->universal);
+  assert_msg(packet->universal, 
+             "Packet that is being freed has not been allocated, most likely this is do to freeing a gearman_task_st or other object twice");
   if (packet->options.free_data && packet->data)
   {
     gearman_free((*packet->universal), const_cast<void *>(packet->data));
@@ -433,7 +435,9 @@ size_t gearman_packet_unpack(gearman_packet_st& self,
           *ptr= 0;
           ptr++;
           while (*ptr == ' ')
+          {
             ptr++;
+          }
 
           arg_size-= (size_t)(ptr - ((uint8_t *)data));
         }
@@ -474,7 +478,7 @@ size_t gearman_packet_unpack(gearman_packet_st& self,
 
   while (self.argc != gearman_command_info(self.command)->argc)
   {
-    if (self.argc != (gearman_command_info(self.command)->argc - 1) ||
+    if (self.argc != (gearman_command_info(self.command)->argc - 1) or
         gearman_command_info(self.command)->data)
     {
 
@@ -486,7 +490,7 @@ size_t gearman_packet_unpack(gearman_packet_st& self,
         return used_size;
       }
 
-      arg_size= (size_t)(ptr - ((uint8_t *)data + used_size)) + 1;
+      arg_size= (size_t)(ptr - ((uint8_t *)data + used_size)) +1;
       ret= packet_create_arg(&self, (uint8_t *)data + used_size, arg_size);
       if (gearman_failed(ret))
       {
