@@ -7,6 +7,16 @@
 #
 # included from Top Level Makefile.am
 # All paths should be given relative to the root
+# 
+
+LIBUTEST_TMP = ${abs_top_builddir}/tests/var/tmp/
+
+VALGRIND_COMMAND= $(LIBTOOL) --mode=execute valgrind --error-exitcode=1 --leak-check=yes --show-reachable=yes --track-fds=yes --malloc-fill=A5 --free-fill=DE
+
+CLEANFILES+= \
+	     tests/var/log/* \
+	     tests/var/run/* \
+	     tests/var/tmp/*
 
 noinst_HEADERS+= \
 		 libtest/callbacks.h \
@@ -15,29 +25,60 @@ noinst_HEADERS+= \
 		 libtest/common.h \
 		 libtest/core.h \
 		 libtest/error.h \
+		 libtest/failed.h \
 		 libtest/framework.cc \
 		 libtest/framework.h \
 		 libtest/get.h \
+		 libtest/killpid.h \
 		 libtest/runner.h \
 		 libtest/server.h \
+		 libtest/signal.h \
 		 libtest/stats.h \
 		 libtest/strerror.h \
 		 libtest/test.h \
 		 libtest/test.hpp \
 		 libtest/visibility.h \
-		 libtest/wait.h \
-		 libtest/worker.h
+		 libtest/wait.h
 
 noinst_LTLIBRARIES+= libtest/libserver.la
 libtest_libserver_la_SOURCES= \
 			      libtest/gearmand.cc \
+			      libtest/killpid.cc \
+			      libtest/server.cc \
 			      libtest/worker.cc
 
 noinst_LTLIBRARIES+= libtest/libtest.la
 libtest_libtest_la_SOURCES= \
 			    libtest/cmdline.cc \
 			    libtest/framework.cc \
+			    libtest/gearmand.cc \
+			    util/instance.cc \
+			    libtest/killpid.cc \
+			    libtest/server.cc \
+			    libtest/signal.cc \
 			    libtest/test.cc
+
+libtest_libtest_la_CFLAGS= ${AM_CFLAGS} ${NO_CONVERSION} -DBUILDING_LIBTEST
+libtest_libtest_la_CXXFLAGS= ${AM_CXXFLAGS} ${NO_CONVERSION} -DBUILDING_LIBTEST
+
+clearn-var:
+	@rm -f tests/var/log/*
+	@rm -f tests/var/run/*
+	@rm -f tests/var/tmp/*
+
+
+tests/var: tests/var/log tests/var/tmp tests/var/run clearn-var
+	$(mkdir_p) tests/var
+
+tests/var/log:
+	$(mkdir_p) tests/var/log
+
+tests/var/tmp:
+	$(mkdir_p) tests/var/tmp
+
+tests/var/run:
+	$(mkdir_p) tests/var/run
+
 
 libtest_unittest_LDADD= \
 			  libtest/libtest.la

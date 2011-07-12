@@ -1,6 +1,6 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  uTest
+ *  uTest Framework
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
  *  All rights reserved.
@@ -35,44 +35,40 @@
  *
  */
 
-#pragma once
+#include <libtest/common.h>
 
-#include <unistd.h>
+#include <libtest/failed.h>
+
+#include <iostream>
 #include <string>
+#include <vector>
 
-namespace libtest {
-
-class Wait 
+struct failed_test_names_st
 {
-public:
-
-  Wait(const std::string &filename, uint32_t timeout= 6) :
-    _successful(false)
+  failed_test_names_st(const char *collection_arg, const char *test_arg) :
+    collection(collection_arg),
+    test(test_arg)
   {
-    uint32_t waited;
-    uint32_t this_wait;
-    uint32_t retry;
-
-    for (waited= 0, retry= 1; ; retry++, waited+= this_wait)
-    {
-      if ((not access(filename.c_str(), R_OK)) or (waited >= timeout))
-      {
-        _successful= true;
-        break;
-      }
-
-      this_wait= retry * retry / 3 + 1;
-      sleep(this_wait);
-    }
   }
 
-  bool successful() const
-  {
-    return _successful;
-  }
-
-private:
-  bool _successful;
+  std::string collection;
+  std::string test;
 };
 
-} // namespace libtest
+typedef std::vector<failed_test_names_st> Failures;
+
+static Failures failures;
+
+void push_failed_test(const char *collection, const char *test)
+{
+  failures.push_back(failed_test_names_st(collection, test));
+}
+
+void print_failed_test(void)
+{
+  for (Failures::iterator iter= failures.begin(); iter != failures.end(); iter++)
+  {
+    Error << "\t" << (*iter).collection << " " << (*iter).test;
+  }
+}
+

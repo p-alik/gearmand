@@ -3,7 +3,6 @@
  *  uTest
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -35,44 +34,93 @@
  *
  */
 
-#pragma once
+#include <libtest/common.h>
 
-#include <unistd.h>
-#include <string>
+#include <cstdlib>
+#include <cstring>
+#include <iostream>
+#include <signal.h>
+#include <sys/types.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
-namespace libtest {
 
-class Wait 
+#include <libtest/killpid.h>
+#include <libtest/stream.h>
+
+using namespace libtest;
+
+bool kill_pid(pid_t pid_arg)
 {
-public:
-
-  Wait(const std::string &filename, uint32_t timeout= 6) :
-    _successful(false)
+  assert(pid_arg > 0);
+  if (pid_arg < 1)
   {
-    uint32_t waited;
-    uint32_t this_wait;
-    uint32_t retry;
+    Error << "Invalid pid";
+    return false;
+  }
 
-    for (waited= 0, retry= 1; ; retry++, waited+= this_wait)
+  if ((::kill(pid_arg, SIGTERM) == -1))
+  {
+    switch (errno)
     {
-      if ((not access(filename.c_str(), R_OK)) or (waited >= timeout))
-      {
-        _successful= true;
-        break;
-      }
+    case EPERM:
+      Error << "Does someone else have a process running locally for " << int(pid_arg) << "?";
+      return false;
 
-      this_wait= retry * retry / 3 + 1;
-      sleep(this_wait);
+    case ESRCH:
+      Error << "Process " << int(pid_arg) << " not found.";
+      return false;
+
+    default:
+    case EINVAL:
+      Error << "kill() " << strerror(errno);
+      return false;
     }
   }
 
-  bool successful() const
+  int status= 0;
+  if (waitpid(pid_arg, &status, 0) == -1)
   {
-    return _successful;
+    switch (errno)
+    {
+      // Just means that the server has already gone away
+    case ECHILD:
+      {
+        return true;
+      }
+    }
+
+    Error << "Error occured while waitpid(" << strerror(errno) << ") on pid " << int(pid_arg);
+
+    return false;
   }
 
-private:
-  bool _successful;
-};
+  return true;
+}
 
-} // namespace libtest
+
+void kill_file(const std::string &filename)
+{
+  FILE *fp;
+
+  if (filename.empty())
+    return;
+
+  if ((fp= fopen(filename.c_str(), "r")))
+  {
+    char pid_buffer[1024];
+
+    char *ptr= fgets(pid_buffer, sizeof(pid_buffer), fp);
+    fclose(fp);
+
+    if (ptr)
+    {
+      pid_t pid= (pid_t)atoi(pid_buffer);
+      if (pid != 0)
+      {
+        kill_pid(pid);
+        unlink(filename.c_str()); // If this happens we may be dealing with a dead server that left its pid file.
+      }
+    }
+  }
+}

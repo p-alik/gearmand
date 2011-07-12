@@ -3,7 +3,6 @@
  *  uTest
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -37,42 +36,7 @@
 
 #pragma once
 
-#include <unistd.h>
-#include <string>
 
-namespace libtest {
+bool kill_pid(pid_t pid_arg);
 
-class Wait 
-{
-public:
-
-  Wait(const std::string &filename, uint32_t timeout= 6) :
-    _successful(false)
-  {
-    uint32_t waited;
-    uint32_t this_wait;
-    uint32_t retry;
-
-    for (waited= 0, retry= 1; ; retry++, waited+= this_wait)
-    {
-      if ((not access(filename.c_str(), R_OK)) or (waited >= timeout))
-      {
-        _successful= true;
-        break;
-      }
-
-      this_wait= retry * retry / 3 + 1;
-      sleep(this_wait);
-    }
-  }
-
-  bool successful() const
-  {
-    return _successful;
-  }
-
-private:
-  bool _successful;
-};
-
-} // namespace libtest
+void kill_file(const std::string &filename);

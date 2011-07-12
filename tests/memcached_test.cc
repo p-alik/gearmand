@@ -23,9 +23,6 @@
 
 #include <tests/ports.h>
 
-void *world_create(test_return_t *error);
-test_return_t world_destroy(void *object);
-
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
@@ -55,21 +52,19 @@ test_return_t collection_cleanup(void *object)
 }
 
 
-void *world_create(test_return_t *error)
+static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  Context *test= new Context(MEMCACHED_TEST_PORT);
+  Context *test= new Context(MEMCACHED_TEST_PORT, servers);
   if (not test)
   {
-    *error= TEST_MEMORY_ALLOCATION_FAILURE;
+    error= TEST_MEMORY_ALLOCATION_FAILURE;
     return NULL;
   }
-
-  *error= TEST_SUCCESS;
 
   return test;
 }
 
-test_return_t world_destroy(void *object)
+static bool world_destroy(void *object)
 {
   Context *test= (Context *)object;
 

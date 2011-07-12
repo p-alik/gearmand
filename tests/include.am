@@ -7,8 +7,6 @@
 # Use and distribution licensed under the BSD license.  See
 # the COPYING file in the parent directory for full text.
 
-VALGRIND_COMMAND= $(LIBTOOL) --mode=execute valgrind --leak-check=yes --show-reachable=yes --malloc-fill=A5 --free-fill=DE --track-fds=yes
-
 noinst_HEADERS+= \
 		 tests/basic.h \
 		 tests/context.h \
@@ -31,14 +29,12 @@ CLIENT_LDADD= \
 	      libtest/libserver.la \
 	      libgearman/libgearman.la
 
-CLEANFILES+= \
-	     tests/var/log/* \
-	     tests/var/tmp/*
 
 noinst_PROGRAMS+= \
 		  tests/burnin_test \
 		  tests/client_test \
 		  tests/c_test \
+		  tests/cycle \
 		  tests/cpp_test \
 		  tests/drizzle_test \
 		  tests/internals_test \
@@ -63,6 +59,9 @@ tests_client_test_DEPENDENCIES= ${CLIENT_LDADD}
 
 tests_burnin_test_SOURCES= tests/burnin.cc
 tests_burnin_test_LDADD= ${CLIENT_LDADD}
+
+tests_cycle_SOURCES= tests/cycle.cc
+tests_cycle_LDADD= ${CLIENT_LDADD}
 
 tests_internals_test_SOURCES= \
 			      tests/internals.cc \
@@ -89,6 +88,9 @@ tests_c_test_LDADD= ${CLIENT_LDADD}
 
 test-burnin: tests/burnin_test
 	@tests/burnin_test $(ARG1) $(ARG2)
+
+test-cycle: tests/cycle
+	@tests/cycle $(ARG1) $(ARG2)
 
 test-client: tests/client_test
 	@tests/client_test $(ARG1) $(ARG2)
@@ -121,6 +123,9 @@ gdb-internals: ${noinst_PROGRAMS}
 gdb-burnin: ${noinst_PROGRAMS}
 	@$(LIBTOOL) --mode=execute gdb tests/burnin_test
 
+gdb-cycle: ${noinst_PROGRAMS}
+	@$(LIBTOOL) --mode=execute gdb tests/cycle
+
 valgrind-client:
 	@$(VALGRIND_COMMAND) tests/client_test $(ARG1) $(ARG2)
 
@@ -136,16 +141,10 @@ valgrind-internals: tests/internals_test
 valgrind-burnin: tests/burnin_test
 	@$(VALGRIND_COMMAND) tests/burnin_test $(ARG1) $(ARG2)
 
-tests/var: tests/var/log tests/var/tmp
-	$(mkdir_p) tests/var
+valgrind-cycle: tests/cycle
+	@$(VALGRIND_COMMAND) tests/cycle $(ARG1) $(ARG2)
 
-tests/var/log:
-	$(mkdir_p) tests/var/log
-
-tests/var/tmp:
-	$(mkdir_p) tests/var/tmp
-
-valgrind: ${noinst_PROGRAMS} valgrind-client valgrind-round-robin valgrind-worker valgrind-internals valgrind-sqlite valgrind-tokyocabinet valgrind-burnin
+valgrind: ${noinst_PROGRAMS} valgrind-cycle valgrind-client valgrind-round-robin valgrind-worker valgrind-internals valgrind-sqlite valgrind-tokyocabinet valgrind-burnin
 
 include tests/httpd.am
 include tests/libdrizzle.am

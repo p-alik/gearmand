@@ -23,20 +23,14 @@
 
 struct worker_test_st
 {
-  pid_t gearmand_pid;
   gearman_worker_st worker;
   bool run_worker;
 
   worker_test_st() :
-    gearmand_pid(-1),
     worker(),
     run_worker(false)
     { }
 };
-
-/* Prototypes */
-void *world_create(test_return_t *error);
-test_return_t world_destroy(void *object);
 
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -135,50 +129,41 @@ static test_return_t queue_worker(void *object)
 }
 
 
-void *world_create(test_return_t *error)
+static void *world_create(server_startup_st& servers, test_return_t& error)
 {
   const char *argv[2]= { "test_gearmand", "--round-robin"};
-  pid_t gearmand_pid;
-
-  gearmand_pid= test_gearmand_start(ROUND_ROBIN_WORKER_TEST_PORT, 2, argv);
-
-  if (gearmand_pid == -1)
+  if (not server_startup(servers, ROUND_ROBIN_WORKER_TEST_PORT, 2, argv))
   {
-    *error= TEST_FAILURE;
+    error= TEST_FAILURE;
     return NULL;
   }
 
   worker_test_st *test= new (std::nothrow) worker_test_st;;
   if (not test)
   {
-    *error= TEST_MEMORY_ALLOCATION_FAILURE;
+    error= TEST_MEMORY_ALLOCATION_FAILURE;
     return NULL;
   }
 
   if (gearman_worker_create(&(test->worker)) == NULL)
   {
-    *error= TEST_FAILURE;
+    error= TEST_FAILURE;
     return NULL;
   }
 
-  if (gearman_worker_add_server(&(test->worker), NULL, ROUND_ROBIN_WORKER_TEST_PORT) != GEARMAN_SUCCESS)
+  if (gearman_failed(gearman_worker_add_server(&(test->worker), NULL, ROUND_ROBIN_WORKER_TEST_PORT)))
   {
-    *error= TEST_FAILURE;
+    error= TEST_FAILURE;
     return NULL;
   }
-
-  test->gearmand_pid= gearmand_pid;
-
-  *error= TEST_SUCCESS;
 
   return test;
 }
 
-test_return_t world_destroy(void *object)
+static bool world_destroy(void *object)
 {
   worker_test_st *test= (worker_test_st *)object;
   gearman_worker_free(&(test->worker));
-  test_gearmand_stop(test->gearmand_pid);
   delete test;
 
   return TEST_SUCCESS;

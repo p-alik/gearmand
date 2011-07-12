@@ -88,7 +88,7 @@ static void *thread_runner(void *con)
 
   gearman_worker_free(worker);
 
-  free(context);
+  delete context;
 
   pthread_exit(0);
 }

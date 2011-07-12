@@ -53,7 +53,7 @@ public:
   Operation(const char *command, size_t command_length, bool expect_response= true) :
     _expect_response(expect_response),
     packet(),
-    response()
+    _response()
   {
     packet.resize(command_length);
     memcpy(&packet[0], command, command_length);
@@ -79,38 +79,34 @@ public:
 
   void push(const char *buffer, size_t buffer_size)
   {
-    size_t response_size= response.size();
-    response.resize(response_size + buffer_size);
-    memcpy(&response[0] +response_size, buffer, buffer_size);
+    size_t response_size= _response.size();
+    _response.resize(response_size +buffer_size);
+    memcpy(&_response[0] +response_size, buffer, buffer_size);
   }
 
-  void print() const
+  // Return false on error
+  bool response(std::string &arg)
   {
-    if (response.empty())
-      return;
+    if (_response.empty())
+      return false;
 
-    if (not memcmp("OK\r\n", &response[0], 3))
+    if (not memcmp("OK\r\n", &_response[0], 3))
+    { }
+    else if (not memcmp("OK ", &_response[0], 3))
     {
-      std::cout << "OK" << std::endl;
-      return;
+      arg.append(&_response[3], _response.size() -3);
     }
-    else if (not memcmp("OK ", &response[0], 3))
+    else if (not memcmp("ERR ", &_response[0], 4))
     {
-      std::cout.write(&response[3], response.size() -3);
-    }
-    else if (not memcmp("ERR ", &response[0], 4))
-    {
-      std::cerr << "Error: ";
-      std::cerr.write(&response[4], response.size() -4);
+      arg.append(&_response[4], _response.size() -4);
+      return false;
     }
     else 
     {
-#if 0 // Do this until we have the factory in place for admin language
-      std::cerr <<  "Unknown reponse returned:";
-#endif
-      std::cerr.write(&response[0], response.size());
-      std::cerr << std::endl;
+      arg.append(&_response[0], _response.size());
     }
+
+    return true;
   }
 
   bool reconnect() const
@@ -121,7 +117,7 @@ public:
 private:
   bool _expect_response;
   Packet packet;
-  Packet response;
+  Packet _response;
 };
 
 } // namespace gearman_util

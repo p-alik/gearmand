@@ -92,6 +92,12 @@ struct gearmand_log_info_st
     reopen(0)
   {
   }
+
+  ~gearmand_log_info_st()
+  {
+    if (fd != -1)
+      close(fd);
+  }
 };
 
 static bool _set_fdlimit(rlim_t fds);
@@ -230,18 +236,15 @@ int main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
-  if (_set_signals())
-  {
-    return EXIT_FAILURE;
-  }
-
   if (opt_daemon)
   {
     gearmand::daemonize(false, true);
   }
 
-  if (opt_daemon)
-    gearmand::daemon_is_ready(verbose_count == 0);
+  if (_set_signals())
+  {
+    return EXIT_FAILURE;
+  }
 
   gearmand_verbose_t verbose= verbose_count > static_cast<int>(GEARMAND_VERBOSE_CRAZY) ? GEARMAND_VERBOSE_CRAZY : static_cast<gearmand_verbose_t>(verbose_count);
 
@@ -273,6 +276,7 @@ int main(int argc, char *argv[])
     gearmand_error_t rc;
     if ((rc= gearmand::queue::initialize(_gearmand, queue_type.c_str())) != GEARMAN_SUCCESS)
     {
+      error::message("Error while initializing the queue", protocol.c_str());
       gearmand_free(_gearmand);
 
       return EXIT_FAILURE;
@@ -284,22 +288,31 @@ int main(int argc, char *argv[])
     if (http.start(_gearmand) != GEARMAN_SUCCESS)
     {
       error::message("Error while enabling protocol module", protocol.c_str());
+      gearmand_free(_gearmand);
+
       return EXIT_FAILURE;
     }
   }
   else if (not protocol.empty())
   {
     error::message("Unknown protocol module", protocol.c_str());
+    gearmand_free(_gearmand);
+
     return EXIT_FAILURE;
   }
 
-  gearmand_error_t ret;
-  ret= gearmand_run(_gearmand);
+  if (opt_daemon)
+  {
+    bool close_io= verbose_count == 0 or log_file.size();
+    if (not gearmand::daemon_is_ready(close_io))
+    {
+      return EXIT_FAILURE;
+    }
+  }
+
+  gearmand_error_t ret= gearmand_run(_gearmand);
 
   gearmand_free(_gearmand);
-
-  if (log_info.fd != -1)
-    (void) close(log_info.fd);
 
   return (ret == GEARMAN_SUCCESS || ret == GEARMAN_SHUTDOWN) ? 0 : 1;
 }

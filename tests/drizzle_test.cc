@@ -26,28 +26,23 @@
 
 #define WORKER_FUNCTION "drizzle_queue_test"
 
-void *world_create(test_return_t *error);
-test_return_t world_destroy(void *object);
-test_return_t collection_init(void *object);
-test_return_t collection_cleanup(void *object);
-
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
-test_return_t collection_init(void *object)
+static test_return_t collection_init(void *object)
 {
-  const char *argv[2]= { "test_gearmand", "--queue-type=libdrizzle" };
-
   Context *test= (Context *)object;
   assert(test);
 
-  test_true_got(test->initialize(2, argv), getenv("GEARMAN_SERVER_STARTUP"));
+  const char *argv[2]= { "test_gearmand", "--queue-type=libdrizzle" };
+
+  test->initialize(2, argv);
 
   return TEST_SUCCESS;
 }
 
-test_return_t collection_cleanup(void *object)
+static test_return_t collection_cleanup(void *object)
 {
   Context *test= (Context *)object;
   test->reset();
@@ -56,21 +51,24 @@ test_return_t collection_cleanup(void *object)
 }
 
 
-void *world_create(test_return_t *error)
+static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  Context *test= new Context(DRIZZLE_TEST_PORT);
+  (void)collection_init;
+  (void)collection_cleanup;
+
+  Context *test= new Context(DRIZZLE_TEST_PORT, servers);
   if (not test)
   {
-    *error= TEST_MEMORY_ALLOCATION_FAILURE;
+    error= TEST_MEMORY_ALLOCATION_FAILURE;
     return NULL;
   }
 
-  *error= TEST_SUCCESS;
+  error= TEST_SUCCESS;
 
   return test;
 }
 
-test_return_t world_destroy(void *object)
+static bool world_destroy(void *object)
 {
   Context *test= (Context *)object;
 

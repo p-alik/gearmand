@@ -49,6 +49,8 @@
 
 #include <util/daemon.h>
 
+#include <iostream>
+
 namespace gearmand
 {
 
@@ -69,10 +71,16 @@ static void sigusr1_handler(int sig)
 
 bool daemon_is_ready(bool close_io)
 {
-  kill(parent_pid, SIGUSR1);
+  if (kill(parent_pid, SIGUSR1) == -1)
+  {
+    perror("kill");
+    return false;
+  }
 
   if (not close_io)
+  {
     return true;;
+  }
 
   int fd;
   if ((fd = open("/dev/null", O_RDWR, 0)) < 0)
@@ -82,19 +90,19 @@ bool daemon_is_ready(bool close_io)
   }
   else
   {
-    if(dup2(fd, STDIN_FILENO) < 0)
+    if (dup2(fd, STDIN_FILENO) < 0)
     {
       perror("dup2 stdin");
       return false;
     }
 
-    if(dup2(fd, STDOUT_FILENO) < 0)
+    if (dup2(fd, STDOUT_FILENO) < 0)
     {
       perror("dup2 stdout");
       return false;
     }
 
-    if(dup2(fd, STDERR_FILENO) < 0)
+    if (dup2(fd, STDERR_FILENO) < 0)
     {
       perror("dup2 stderr");
       return false;
@@ -119,12 +127,16 @@ bool daemon_is_ready(bool close_io)
 
 bool daemonize(bool is_chdir, bool wait_sigusr1)
 {
-  pid_t child= -1;
+  struct sigaction new_action;
+
+  new_action.sa_handler= sigusr1_handler;
+  sigemptyset(&new_action.sa_mask);
+  new_action.sa_flags= 0;
+  sigaction(SIGUSR1, &new_action, NULL);
 
   parent_pid= getpid();
-  signal(SIGUSR1, sigusr1_handler);
 
-  child= fork();
+  pid_t child= fork();
 
   switch (child)
   {

@@ -93,6 +93,35 @@ using namespace gearman_util;
 
 #define STRING_WITH_LEN(X) (X), (static_cast<size_t>((sizeof(X) - 1)))
 
+class Finish : public Instance::Finish
+{
+public:
+  bool call(bool success, const std::string &response)
+  {
+    if (success)
+    {
+      if (response.empty())
+      {
+        std::cout << "OK" << std::endl;
+      }
+      else
+      {
+        std::cout << response;
+      }
+    }
+    else if (not response.empty())
+    {
+      std::cerr << "Error: " << response;
+    }
+    else
+    {
+      std::cerr << "Error" << std::endl;
+    }
+
+    return true;
+  }
+};
+
 
 int main(int args, char *argv[])
 {
@@ -108,6 +137,7 @@ int main(int args, char *argv[])
     ("server-verbose", "Fetch the verbose setting for the server.")
     ("create-function",  boost::program_options::value<std::string>(), "Create the function from the server.") 
     ("drop-function",  boost::program_options::value<std::string>(), "Drop the function from the server.")
+    ("getpid", "Get Process ID for the server.")
     ("status", "Status for the server.")
     ("workers", "Workers for the server.")
     ("shutdown", "Shutdown server.")
@@ -126,10 +156,8 @@ int main(int args, char *argv[])
     return EXIT_FAILURE;
   }
 
-  Instance instance;
-
-  instance.set_host(host);
-  instance.set_port(port);
+  Instance instance(host, port);
+  instance.set_finish(new Finish);
 
   if (vm.count("help"))
   {
@@ -176,6 +204,11 @@ int main(int args, char *argv[])
     execute.append(vm["create-function"].as<std::string>());
     execute.append("\r\n");
     instance.push(new Operation(execute.c_str(), execute.size()));
+  }
+
+  if (vm.count("getpid"))
+  {
+    instance.push(new Operation(STRING_WITH_LEN("getpid\r\n"), true));
   }
 
   instance.run();

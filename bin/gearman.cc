@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
     switch (fork())
     {
     case -1:
-      fprintf(stderr, "gearmand: fork:%d\n", errno);
+      error::perror("fork");
       return EXIT_FAILURE;
 
     case 0:
@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
 
     if (setsid() == -1)
     {
-      fprintf(stderr, "gearmand: setsid:%d\n", errno);
+      error::perror("setsid");
       return EXIT_FAILURE;
     }
 
@@ -164,19 +164,19 @@ int main(int argc, char *argv[])
     {
       if (dup2(fd, STDIN_FILENO) == -1)
       {
-        fprintf(stderr, "gearmand: dup2:%d\n", errno);
+        error::perror("dup2");
         return EXIT_FAILURE;
       }
 
       if (dup2(fd, STDOUT_FILENO) == -1)
       {
-        fprintf(stderr, "gearmand: dup2:%d\n", errno);
+        error::perror("dup2");
         return EXIT_FAILURE;
       }
 
       if (dup2(fd, STDERR_FILENO) == -1)
       {
-        fprintf(stderr, "gearmand: dup2:%d\n", errno);
+        error::perror("dup2");
         return EXIT_FAILURE;
       }
 

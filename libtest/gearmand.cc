@@ -7,19 +7,20 @@
  * the COPYING file in the parent directory for full text.
  */
 
-#include <config.h>
+#include <libtest/common.h>
 
-#if defined(NDEBUG)
-# undef NDEBUG
-#endif
+#include "util/instance.h"
+#include "util/operation.h"
 
-#include <assert.h>
-#include <iostream>
-#include <errno.h>
-#include <signal.h>
+using namespace gearman_util;
+
+#include <cassert>
+#include <cerrno>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <iostream>
+#include <signal.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -33,203 +34,235 @@
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
-static bool wait_and_check_startup(const char *hostname, in_port_t port)
+class GetPid : public Instance::Finish
 {
-  gearman_client_st *client;
+private:
+  pid_t _pid;
 
-  client= gearman_client_create(NULL);
-  if (not client)
+public:
+  GetPid() :
+    _pid(-1)
+  { }
+
+  pid_t pid()
   {
+    return _pid;
+  }
+
+
+  bool call(const bool success, const std::string &response)
+  {
+    _pid= -1;
+
+    if (success and response.size())
+    {
+      _pid= atoi(response.c_str());
+    }
+
+    if (_pid < 1)
+    {
+      _pid= -1;
+      return true;
+    }
+
     return false;
   }
+};
 
-  gearman_return_t rc;
-  if ((rc= gearman_client_add_server(client, hostname, port)) == GEARMAN_SUCCESS)
+using namespace libtest;
+
+class Gearmand : public Server
+{
+private:
+public:
+  Gearmand(const std::string& host_arg, in_port_t port_arg) :
+    Server(host_arg, port_arg)
+  { }
+
+  pid_t get_pid()
   {
-    int counter= 5; // sleep cycles
-    while (--counter)
+    GetPid *getpid;
+    Instance instance(hostname(), port());
+    instance.set_finish(getpid= new GetPid);
+
+    instance.push(new Operation(test_literal_param("getpid\r\n"), true));
+
+    instance.run();
+
+    _pid= getpid->pid();
+
+    return _pid;
+  }
+
+  bool ping()
+  {
+    int limit= 5; // sleep cycles
+    while (--limit)
     {
-      rc= gearman_client_echo(client, gearman_literal_param("This is my echo test"));
-
-      if (rc == GEARMAN_SUCCESS)
-        break;
-
-      if (rc == GEARMAN_ERRNO && gearman_client_errno(client) == ECONNREFUSED)
+      gearman_client_st *client= gearman_client_create(NULL);
+      if (not client)
       {
-        sleep(1);
-        continue;
+        Error << "Could not allocate memory for gearman_client_create()";
+        return false;
       }
-    }
-  }
-  
-  if (rc != GEARMAN_SUCCESS)
-  {
-    std::cerr << "wait_and_check_startup(" <<  gearman_client_error(client) << ")" << std::endl;
-  }
-  gearman_client_free(client);
 
-  return rc == GEARMAN_SUCCESS;
-}
+      if (gearman_success(gearman_client_add_server(client, hostname().c_str(), port())))
+      {
+        gearman_return_t rc= gearman_client_echo(client, gearman_literal_param("This is my echo test"));
+
+        if (gearman_success(rc))
+        {
+          gearman_client_free(client);
+          return true;
+        }
+
+        if (rc == GEARMAN_COULD_NOT_CONNECT)
+        {
+          sleep();
+          continue;
+        }
+      }
+
+      gearman_client_free(client);
+    }
+
+    return false;;
+  }
+
+  const char *name()
+  {
+    return "gearmand";
+  };
+
+  const char *executable()
+  {
+    return "./gearmand/gearmand";
+  }
+
+  const char *pid_file_option()
+  {
+    return "--pid-file=";
+  }
+
+  const char *daemon_file_option()
+  {
+    return "--daemon";
+  }
+
+  const char *log_file_option()
+  {
+    return "--log_file=";
+  }
+
+  const char *port_option()
+  {
+    return "--port=";
+  }
+
+  bool is_libtool()
+  {
+    return true;
+  }
+
+  bool build(int argc, const char *argv[]);
+};
+
 
 #include <sstream>
 
-pid_t test_gearmand_start(in_port_t port, int argc, const char *argv[])
+bool Gearmand::build(int argc, const char *argv[])
 {
-  std::stringstream buffer;
+  std::stringstream arg_buffer;
 
-  char file_buffer[1024];
-  char log_buffer[1024];
-
-  log_buffer[0]= 0;
-  file_buffer[0]= 0;
-
-  if (getenv("GEARMAN_MANUAL_GDB"))
+  if (getuid() == 0 or geteuid() == 0)
   {
-    buffer << "libtool --mode=execute gdb gearmand/gearmand";
-  }
-  else if (getenv("GEARMAN_VALGRIND"))
-  {
-    buffer << "libtool --mode=execute valgrind --log-file=tests/var/tmp/valgrind.out --leak-check=full  --show-reachable=yes ";
-  }
-
-  {
-    snprintf(file_buffer, sizeof(file_buffer), "tests/var/tmp/gearmand.pidXXXXXX");
-    int fd;
-    if ((fd= mkstemp(file_buffer)) == -1)
-    {
-      perror("mkstemp");
-      return -1;
-    }
-    close(fd);
-  }
-
-  if (getenv("GEARMAN_MANUAL_GDB"))
-  {
-    buffer << std::endl << "run --pid-file=" << file_buffer << " -vvvvvv --port=" << port;
-  }
-  else if (getenv("GEARMAN_LOG"))
-  {
-    snprintf(log_buffer, sizeof(log_buffer), "tests/var/log/gearmand.logXXXXXX");
-    int log_fd;
-    if ((log_fd= mkstemp(log_buffer)) == -1)
-    {
-      perror("mkstemp");
-      return -1;
-    }
-    close(log_fd);
-    buffer << "./gearmand/gearmand --pid-file=" << file_buffer << " --daemon --port=" << port << " -vvvvvv --log-file=" << log_buffer;
-  }
-  else
-  {
-    buffer << "./gearmand/gearmand --pid-file=" << file_buffer << " --daemon --port=" << port;
-  }
-
-  if (getuid() == 0 || geteuid() == 0)
-  {
-    buffer << " -u root ";
+    arg_buffer << " -u root ";
   }
 
   for (int x= 1 ; x < argc ; x++)
   {
-    buffer << " " << argv[x] << " ";
+    arg_buffer << " " << argv[x] << " ";
   }
 
-  if (getenv("GEARMAN_MANUAL_GDB"))
+  set_extra_args(arg_buffer.str());
+
+  return true;
+}
+
+bool libtest::server_startup(server_startup_st& construct, in_port_t try_port, int argc, const char *argv[])
+{
+  Logn();
+
+  // Look to see if we are being provided ports to use
   {
-    std::cerr << "Pausing for startup, hit return when ready." << std::endl;
+    char variable_buffer[1024];
+    snprintf(variable_buffer, sizeof(variable_buffer), "LIBTEST_PORT_%lu", (unsigned long)construct.count());
+
+    char *var;
+    if ((var= getenv(variable_buffer)))
+    {
+      in_port_t tmp= in_port_t(atoi(var));
+
+      if (tmp > 0)
+        try_port= tmp;
+    }
+  }
+
+  Gearmand *server= new Gearmand("localhost", try_port);
+  assert(server);
+
+  /*
+    We will now cycle the server we have created.
+  */
+  if (not server->cycle())
+  {
+    Error << "Could not start up server " << *server;
+    return false;
+  }
+
+  server->build(argc, argv);
+
+  if (construct.is_debug())
+  {
+    Log << "Pausing for startup, hit return when ready.";
+    std::string gdb_command= server->base_command();
+    std::string options;
+    Log << "run " << server->args(options);
     getchar();
+  }
+  else if (not server->start())
+  {
+    Error << "Failed to start " << *server;
+    delete server;
+    return false;
   }
   else
   {
-    setenv("GEARMAN_SERVER_STARTUP", buffer.str().c_str(), 1);
-    int err= system(buffer.str().c_str());
-    assert(err != -1);
+    Log << "STARTING SERVER: " << server->running() << " pid:" << server->pid();
   }
+  construct.push_server(server);
 
-  libtest::Wait wait(file_buffer);
-  
-  if (not wait.successful())
+  if (default_port() == 0)
   {
-    return -1;
+    assert(server->has_port());
+    set_default_port(server->port());
   }
 
-  // Sleep to make sure the server is up and running (or we could poll....)
-  pid_t gearmand_pid= -1;
-  uint32_t counter= 3;
-  while (--counter)
-  {
-    sleep(1);
+  char port_str[NI_MAXSERV];
+  snprintf(port_str, sizeof(port_str), "%u", int(server->port()));
 
-    FILE *file;
-    file= fopen(file_buffer, "r");
-    if (file == NULL)
-    {
-      continue;
-    }
+  std::string server_config_string;
+  server_config_string+= "--server=";
+  server_config_string+= server->hostname();
+  server_config_string+= ":";
+  server_config_string+= port_str;
+  server_config_string+= " ";
 
-    char fgets_buffer[1024];
-    char *found= fgets(fgets_buffer, sizeof(fgets_buffer), file);
-    fclose(file);
-    if (not found)
-    {
-      return -1;
-    }
-    gearmand_pid= atoi(fgets_buffer);
+  construct.server_list+= server_config_string;
 
-    if (gearmand_pid > 0)
-    {
-      break;
-    }
-  }
+  Logn();
 
-  if (gearmand_pid == -1)
-  {
-    std::cerr << "Could not attach to gearman server, could server already be running on port(" << port << ")?" << std::endl;
-    return -1;
-  }
+  srandom((unsigned int)time(NULL));
 
-  if (not wait_and_check_startup(NULL, port))
-  {
-    test_gearmand_stop(gearmand_pid);
-    std::cerr << "Failed wait_and_check_startup()" << std::endl;
-    return -1;
-  }
-
-  return gearmand_pid;
-}
-
-void test_gearmand_stop(pid_t gearmand_pid)
-{
-  if ((kill(gearmand_pid, SIGTERM) == -1))
-  {
-    switch (errno)
-    {
-    case EPERM:
-      perror(__func__);
-      std::cerr << __func__ << " -> Does someone else have a gearmand server running locally?" << std::endl;
-      return;
-    case ESRCH:
-      perror(__func__);
-      std::cerr << "Process " << (int)gearmand_pid << " not found." << std::endl;
-      return;
-    default:
-    case EINVAL:
-      perror(__func__);
-      return;
-    }
-  }
-
-  int status= 0;
-  pid_t pid= waitpid(gearmand_pid, &status, 0);
-  (void)pid; // @todo update such that we look at the return value for waitpid()
-
-  if (WCOREDUMP(status))
-  {
-    std::cerr << "A core dump was created from the server." << std::endl;
-  }
-
-  if (WIFEXITED(status))
-    return;
-
-  sleep(3);
+  return true;
 }

@@ -11,6 +11,13 @@
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
+LIBTEST_API
+const char* default_socket();
+
+LIBTEST_API
+void set_default_socket(const char *socket);
+
+
 /**
   A structure describing the test case.
 */

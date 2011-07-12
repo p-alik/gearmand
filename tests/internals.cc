@@ -72,9 +72,7 @@ struct internal_test_st
   }
 
   ~internal_test_st()
-  {
-    test_gearmand_stop(gearmand_pid);
-  }
+  { }
 };
 
 static test_return_t init_test(void *)
@@ -434,44 +432,26 @@ collection_st collection[] ={
   {0, 0, 0, 0}
 };
 
-static void *world_create(test_return_t *error)
+static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  internal_test_st *test= new internal_test_st();
-
-  /**
-   *  @TODO We cast this to char ** below, which is evil. We need to do the
-   *  right thing
-   */
-  const char *argv[1]= { "client_gearmand" };
-
-  if (not test)
-  {
-    *error= TEST_MEMORY_ALLOCATION_FAILURE;
-    return NULL;
-  }
-
   /**
     We start up everything before we allocate so that we don't have to track memory in the forked process.
   */
-  test->gearmand_pid= test_gearmand_start(INTERNAL_TEST_PORT, 1, argv);
-
-  if (test->gearmand_pid == -1)
+  const char *argv[1]= { "client_gearmand" };
+  if (not server_startup(servers, INTERNAL_TEST_PORT, 1, argv))
   {
-    *error= TEST_FAILURE;
+    error= TEST_FAILURE;
     return NULL;
   }
   set_default_port(INTERNAL_TEST_PORT);
 
-  *error= TEST_SUCCESS;
+  error= TEST_SUCCESS;
 
-  return (void *)test;
+  return NULL;
 }
 
-static test_return_t world_destroy(void *object)
+static bool world_destroy(void *)
 {
-  internal_test_st *test= (internal_test_st *)object;
-  delete test;
-
   return TEST_SUCCESS;
 }
 

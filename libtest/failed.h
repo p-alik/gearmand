@@ -1,6 +1,6 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  uTest
+ *  uTest Framework
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
  *  All rights reserved.
@@ -37,42 +37,16 @@
 
 #pragma once
 
-#include <unistd.h>
-#include <string>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-namespace libtest {
+LIBTEST_INTERNAL_API
+  void push_failed_test(const char *collection, const char *test);
 
-class Wait 
-{
-public:
+LIBTEST_INTERNAL_API
+  void print_failed_test(void);
 
-  Wait(const std::string &filename, uint32_t timeout= 6) :
-    _successful(false)
-  {
-    uint32_t waited;
-    uint32_t this_wait;
-    uint32_t retry;
-
-    for (waited= 0, retry= 1; ; retry++, waited+= this_wait)
-    {
-      if ((not access(filename.c_str(), R_OK)) or (waited >= timeout))
-      {
-        _successful= true;
-        break;
-      }
-
-      this_wait= retry * retry / 3 + 1;
-      sleep(this_wait);
-    }
-  }
-
-  bool successful() const
-  {
-    return _successful;
-  }
-
-private:
-  bool _successful;
-};
-
-} // namespace libtest
+#ifdef __cplusplus
+}
+#endif

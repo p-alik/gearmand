@@ -53,9 +53,6 @@ struct client_context_st {
   { }
 };
 
-void *world_create(test_return_t *error);
-test_return_t world_destroy(void *object);
-
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
@@ -171,10 +168,8 @@ static void *worker_fn(gearman_job_st *, void *,
   return NULL;
 }
 
-void *world_create(test_return_t *error)
+static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  pid_t gearmand_pid;
-
   /**
    *  @TODO We cast this to char ** below, which is evil. We need to do the
    *  right thing
@@ -184,17 +179,16 @@ void *world_create(test_return_t *error)
   client_test_st *test= new client_test_st;
   if (not test)
   {
-    *error= TEST_MEMORY_ALLOCATION_FAILURE;
+    error= TEST_MEMORY_ALLOCATION_FAILURE;
     return NULL;
   }
 
   /**
     We start up everything before we allocate so that we don't have to track memory in the forked process.
   */
-  test->gearmand_pid= gearmand_pid= test_gearmand_start(BURNIN_TEST_PORT, 1, argv);
-  if (test->gearmand_pid == -1)
+  if (not server_startup(servers, BURNIN_TEST_PORT, 1, argv))
   {
-    *error= TEST_FAILURE;
+    error= TEST_FAILURE;
     return NULL;
   }
 
@@ -202,33 +196,33 @@ void *world_create(test_return_t *error)
   test->handle= test_worker_start(BURNIN_TEST_PORT, NULL, DEFAULT_WORKER_NAME, func_arg, NULL, gearman_worker_options_t());
   if (not test->handle)
   {
-    *error= TEST_FAILURE;
+    error= TEST_FAILURE;
     return NULL;
   }
 
   if (not gearman_client_create(&(test->client)))
   {
-    *error= TEST_FAILURE;
+    error= TEST_FAILURE;
     return NULL;
   }
 
   if (gearman_failed(gearman_client_add_server(&(test->client), NULL, BURNIN_TEST_PORT)))
   {
-    *error= TEST_FAILURE;
+    error= TEST_FAILURE;
     return NULL;
   }
 
-  *error= TEST_SUCCESS;
+  error= TEST_SUCCESS;
 
   return (void *)test;
 }
 
-test_return_t world_destroy(void *object)
+static bool world_destroy(void *object)
 {
   client_test_st *test= (client_test_st *)object;
   gearman_client_free(&(test->client));
-  test_gearmand_stop(test->gearmand_pid);
   test_worker_stop(test->handle);
+
   delete test;
 
   return TEST_SUCCESS;

@@ -83,13 +83,11 @@ struct client_test_st
 {
   gearman_client_st *_client;
   bool _clone;
-  pid_t gearmand_pid;
   std::vector<worker_handle_st *> workers;
   const char *_worker_name;
 
   client_test_st() :
     _clone(true),
-    gearmand_pid(-1),
     _worker_name(WORKER_FUNCTION_NAME)
   { 
     if (not (_client= gearman_client_create(NULL)))
@@ -101,8 +99,6 @@ struct client_test_st
 
   ~client_test_st()
   {
-    test_gearmand_stop(gearmand_pid);
-
     BOOST_FOREACH(worker_handle_st *worker, workers)
     {
       test_worker_stop(worker);
@@ -176,8 +172,6 @@ static uint32_t internal_generate_hash(const char *key, size_t key_length)
 /* Prototypes */
 void *client_test_temp_worker(gearman_job_st *job, void *context,
                               size_t *result_size, gearman_return_t *ret_ptr);
-void *world_create(test_return_t *error);
-test_return_t world_destroy(void *object);
 
 
 static void *client_thread(void *object)
@@ -1175,31 +1169,20 @@ void *client_test_temp_worker(gearman_job_st *, void *,
   return NULL;
 }
 
-void *world_create(test_return_t *error)
+static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  client_test_st *test= new client_test_st();
-  pid_t gearmand_pid;
-
-  /**
-   *  @TODO We cast this to char ** below, which is evil. We need to do the
-   *  right thing
-   */
   const char *argv[1]= { "client_gearmand" };
-
-  if (not test)
+  if (not server_startup(servers, CLIENT_TEST_PORT, 1, argv))
   {
-    *error= TEST_MEMORY_ALLOCATION_FAILURE;
+    error= TEST_FAILURE;
     return NULL;
   }
 
-  /**
-    We start up everything before we allocate so that we don't have to track memory in the forked process.
-  */
-  gearmand_pid= test_gearmand_start(CLIENT_TEST_PORT, 1, argv);
-  
-  if (gearmand_pid == -1)
+  client_test_st *test= new client_test_st();
+
+  if (not test)
   {
-    *error= TEST_FAILURE;
+    error= TEST_MEMORY_ALLOCATION_FAILURE;
     return NULL;
   }
 
@@ -1239,22 +1222,19 @@ void *world_create(test_return_t *error)
   gearman_function_t count_worker_fn= gearman_function_create(count_worker);
   test->push(test_worker_start(CLIENT_TEST_PORT, NULL, "count", count_worker_fn, NULL, gearman_worker_options_t()));
 
-
-  test->gearmand_pid= gearmand_pid;
-
   if (gearman_failed(gearman_client_add_server(test->client(), NULL, CLIENT_TEST_PORT)))
   {
-    *error= TEST_FAILURE;
+    error= TEST_FAILURE;
     return NULL;
   }
 
-  *error= TEST_SUCCESS;
+  error= TEST_SUCCESS;
 
   return (void *)test;
 }
 
 
-test_return_t world_destroy(void *object)
+static bool world_destroy(void *object)
 {
   client_test_st *test= (client_test_st *)object;
   delete test;

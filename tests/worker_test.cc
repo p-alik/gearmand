@@ -25,7 +25,6 @@
 
 struct worker_test_st
 {
-  pid_t gearmand_pid;
   gearman_worker_st *_worker;
 
   gearman_worker_st *worker()
@@ -33,8 +32,7 @@ struct worker_test_st
     return _worker;
   }
 
-  worker_test_st() :
-    gearmand_pid(-1)
+  worker_test_st()
   {
     _worker= gearman_worker_create(NULL);
   }
@@ -721,42 +719,34 @@ static test_return_t gearman_worker_failover_test(void *object)
 
 /*********************** World functions **************************************/
 
-static void *world_create(test_return_t *error)
+static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  pid_t gearmand_pid;
-
-  gearmand_pid= test_gearmand_start(WORKER_TEST_PORT, 0, NULL);
-  if (gearmand_pid == -1)
+  if (not server_startup(servers, WORKER_TEST_PORT, 0, NULL))
   {
-    *error= TEST_FAILURE;
+    error= TEST_FAILURE;
     return NULL;
   }
 
   worker_test_st *test= new worker_test_st;
   if (not test)
   {
-    *error= TEST_MEMORY_ALLOCATION_FAILURE;
+    error= TEST_MEMORY_ALLOCATION_FAILURE;
     return NULL;
   }
-
-  test->gearmand_pid= gearmand_pid;
 
   if (gearman_worker_add_server(test->worker(), NULL, WORKER_TEST_PORT) != GEARMAN_SUCCESS)
   {
-    *error= TEST_FAILURE;
+    error= TEST_FAILURE;
     return NULL;
   }
-
-  *error= TEST_SUCCESS;
 
   return (void *)test;
 }
 
-static test_return_t world_destroy(void *object)
+static bool world_destroy(void *object)
 {
   worker_test_st *test= (worker_test_st *)object;
-
-  test_gearmand_stop(test->gearmand_pid);
+  assert(test);
 
   delete test;
 

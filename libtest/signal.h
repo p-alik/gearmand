@@ -1,9 +1,8 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  uTest
+ *  uTest, libtest
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -35,44 +34,23 @@
  *
  */
 
-#pragma once
 
-#include <unistd.h>
-#include <string>
+#pragma once 
 
-namespace libtest {
-
-class Wait 
-{
-public:
-
-  Wait(const std::string &filename, uint32_t timeout= 6) :
-    _successful(false)
-  {
-    uint32_t waited;
-    uint32_t this_wait;
-    uint32_t retry;
-
-    for (waited= 0, retry= 1; ; retry++, waited+= this_wait)
-    {
-      if ((not access(filename.c_str(), R_OK)) or (waited >= timeout))
-      {
-        _successful= true;
-        break;
-      }
-
-      this_wait= retry * retry / 3 + 1;
-      sleep(this_wait);
-    }
-  }
-
-  bool successful() const
-  {
-    return _successful;
-  }
-
-private:
-  bool _successful;
+enum shutdown_t {
+  SHUTDOWN_RUNNING,
+  SHUTDOWN_GRACEFUL,
+  SHUTDOWN_FORCED
 };
 
-} // namespace libtest
+LIBTEST_INTERNAL_API
+bool is_shutdown();
+
+LIBTEST_INTERNAL_API
+shutdown_t get_shutdown();
+
+LIBTEST_INTERNAL_API
+void set_shutdown(shutdown_t arg);
+
+LIBTEST_INTERNAL_API
+void setup_signals(void);

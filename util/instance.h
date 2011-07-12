@@ -37,18 +37,32 @@
 
 #pragma once
 
+#include <arpa/inet.h>
+#include <cstdio>
+#include <cerrno>
+#include <cassert>
+#include <cstddef>
 #include <sys/socket.h>
-#include <errno.h>
 
 #include "util/operation.h"
 #include <libgearman/protocol.h>
 
 struct addrinfo;
 
+#ifdef	__cplusplus
+extern "C" {
+#endif
+
+#ifdef	__cplusplus
+}
+#endif
+
+
 namespace gearman_util {
 
 class Instance
 {
+private:
   enum connection_state_t {
     NOT_WRITING,
     NEXT_CONNECT_ADDRINFO,
@@ -59,36 +73,31 @@ class Instance
     READING,
     FINISHED
   };
+  std::string _last_error;
+
+public: // Callbacks
+  class Finish {
+
+  public:
+    virtual ~Finish() { }
+
+    virtual bool call(const bool, const std::string &)= 0;
+  };
+
 
 public:
-  Instance() :
-    _host("localhost"),
-    _port(GEARMAN_DEFAULT_TCP_PORT_STRING),
-    _sockfd(INVALID_SOCKET),
-    state(NOT_WRITING),
-    _addrinfo(0),
-    _addrinfo_next(0),
-    _operations()
-  {
-  }
+  Instance(const std::string& hostname_arg, const std::string& service_arg);
 
-  ~Instance()
-  {
-    close_socket();
-    free_addrinfo();
-  }
+  Instance(const std::string& hostname_arg, const in_port_t port_arg);
 
-  void set_host(const std::string &host)
-  {
-    _host= host;
-  }
-
-  void set_port(const std::string &port)
-  {
-    _port= port;
-  }
+  ~Instance();
 
   bool run();
+
+  void set_finish(Finish *arg)
+  {
+    _finish_fn= arg;
+  }
 
   void push(Operation *next)
   {
@@ -103,11 +112,12 @@ private:
   bool more_to_read() const;
 
   std::string _host;
-  std::string _port;
+  std::string _service;
   int _sockfd;
   connection_state_t state;
   struct addrinfo *_addrinfo;
   struct addrinfo *_addrinfo_next;
+  Finish *_finish_fn;
   Operation::vector _operations;
 };
 

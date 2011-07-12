@@ -24,20 +24,17 @@
 #include <tests/ports.h>
 
 // Prototypes
-void *world_create(test_return_t *error);
-test_return_t world_destroy(void *object);
-
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
 static test_return_t collection_init(void *object)
 {
-  const char *argv[3]= { "test_gearmand", "--libsqlite3-db=tests/gearman.sql", "--queue-type=libsqlite3"};
+  const char *argv[3]= { "test_gearmand", "--libsqlite3-db=tests/var/tmp/gearman.sql", "--queue-type=libsqlite3"};
 
   // Delete whatever might have been sitting around for the sql files
-  unlink("tests/gearman.sql");
-  unlink("tests/gearman.sql-journal");
+  unlink("tests/var/tmp/gearman.sql");
+  unlink("tests/var/tmp/gearman.sql-journal");
 
   Context *test= (Context *)object;
   assert(test);
@@ -56,21 +53,19 @@ static test_return_t collection_cleanup(void *object)
 }
 
 
-void *world_create(test_return_t *error)
+static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  Context *test= new Context(SQLITE_TEST_PORT);
+  Context *test= new Context(SQLITE_TEST_PORT, servers);
   if (not test)
   {
-    *error= TEST_MEMORY_ALLOCATION_FAILURE;
+    error= TEST_MEMORY_ALLOCATION_FAILURE;
     return NULL;
   }
-
-  *error= TEST_SUCCESS;
 
   return test;
 }
 
-test_return_t world_destroy(void *object)
+static bool world_destroy(void *object)
 {
   Context *test= (Context *)object;
 

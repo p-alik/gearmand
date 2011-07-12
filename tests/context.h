@@ -40,22 +40,21 @@
 
 #include <string>
 #include <unistd.h>
-#include <libtest/server.h>
 
 class Context
 {
 public:
-  pid_t gearmand_pid;
   gearman_worker_st *worker;
   in_port_t _port;
   std::string _worker_function_name;
+  server_startup_st &_servers;
   bool run_worker;
 
-  Context(in_port_t port_arg):
-    gearmand_pid(-1),
+  Context(in_port_t port_arg, server_startup_st &server_arg):
     worker(NULL),
     _port(port_arg),
     _worker_function_name("queue_test"),
+    _servers(server_arg),
     run_worker(false)
   {
   }
@@ -72,14 +71,15 @@ public:
 
   bool initialize(int argc, const char *argv[])
   {
-    gearmand_pid= test_gearmand_start(_port, argc, argv);
-    if (gearmand_pid == -1)
-      return false;
+    if (not server_startup(_servers, _port, argc, argv))
+    {
+      return NULL;
+    }
 
     if ((worker= gearman_worker_create(NULL)) == NULL)
       return false;
 
-    if (gearman_worker_add_server(worker, NULL, _port) != GEARMAN_SUCCESS)
+    if (gearman_failed(gearman_worker_add_server(worker, NULL, _port)))
       return false;
 
     return true;
@@ -87,13 +87,12 @@ public:
 
   void reset()
   {
-    test_gearmand_stop(gearmand_pid);
+    _servers.shutdown();
     gearman_worker_free(worker);
 
     unlink("tests/gearman.sql");
     unlink("tests/gearman.sql-journal");
 
     worker= NULL;
-    gearmand_pid= -1;
   }
 };

@@ -1,9 +1,8 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  uTest
+ *  Cycle the Gearmand server
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -35,44 +34,37 @@
  *
  */
 
-#pragma once
 
-#include <unistd.h>
-#include <string>
+/*
+  Test that we are cycling the servers we are creating during testing.
+*/
 
-namespace libtest {
+#include <libtest/common.h>
 
-class Wait 
-{
-public:
+#ifndef __INTEL_COMPILER
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+#endif
 
-  Wait(const std::string &filename, uint32_t timeout= 6) :
-    _successful(false)
-  {
-    uint32_t waited;
-    uint32_t this_wait;
-    uint32_t retry;
+#include "tests/ports.h"
 
-    for (waited= 0, retry= 1; ; retry++, waited+= this_wait)
-    {
-      if ((not access(filename.c_str(), R_OK)) or (waited >= timeout))
-      {
-        _successful= true;
-        break;
-      }
-
-      this_wait= retry * retry / 3 + 1;
-      sleep(this_wait);
-    }
-  }
-
-  bool successful() const
-  {
-    return _successful;
-  }
-
-private:
-  bool _successful;
+collection_st collection[] ={
+  {0, 0, 0, 0}
 };
 
-} // namespace libtest
+static void *world_create(server_startup_st& servers, test_return_t& error)
+{
+  const char *argv[1]= { "client_gearmand" };
+  if (not server_startup(servers, CYCLE_TEST_PORT, 1, argv))
+  {
+    error= TEST_FAILURE;
+  }
+
+  return NULL;
+}
+
+void get_world(Framework *world)
+{
+  world->collections= collection;
+  world->_create= world_create;
+}
+
