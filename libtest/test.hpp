@@ -59,6 +59,7 @@
 #include <libtest/framework.h>
 #include <libtest/get.h>
 #include <libtest/stream.h>
+#include <libtest/cmdline.h>
 
 #pragma once
 

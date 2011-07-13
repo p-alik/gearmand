@@ -77,14 +77,11 @@ Framework::Framework() :
 
 Framework::~Framework()
 {
-  server_shutdown(_servers);
+  _servers.shutdown();
 
-  if (_destroy)
+  if (_destroy and _destroy(_creators_ptr))
   {
-    if (_destroy(_creators_ptr))
-    {
-      Error << "Failure in _destroy(), some resources may not have been cleaned up.";
-    }
+    Error << "Failure in _destroy(), some resources may not have been cleaned up.";
   }
 }
 

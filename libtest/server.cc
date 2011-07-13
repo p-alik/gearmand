@@ -116,7 +116,7 @@ bool Server::cycle()
   {
     if (kill())
     {
-      Error << "Killed existing server," << *this << " with pid:" << current_pid;
+      Log << "Killed existing server," << *this << " with pid:" << current_pid;
       sleep();
       continue;
     }
@@ -333,6 +333,13 @@ void server_startup_st::push_server(Server *arg)
   servers.push_back(arg);
 }
 
+Server* server_startup_st::pop_server()
+{
+  Server *tmp= servers.back();
+  servers.pop_back();
+  return tmp;
+}
+
 void server_startup_st::shutdown()
 {
   for (std::vector<Server *>::iterator iter= servers.begin(); iter != servers.end(); iter++)
@@ -361,12 +368,6 @@ bool server_startup_st::is_debug() const
 bool server_startup_st::is_valgrind() const
 {
   return bool(getenv("LIBTEST_MANUAL_VALGRIND"));
-}
-
-
-void server_shutdown(server_startup_st& construct)
-{
-  construct.shutdown();
 }
 
 } // namespace libtest

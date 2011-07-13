@@ -86,6 +86,14 @@ public:
     return (_port != 0);
   }
 
+  // Reset a server if another process has killed the server
+  void reset()
+  {
+    _pid= -1;
+    _pid_file.clear();
+    _log_file.clear();
+  }
+
   void set_extra_args(const std::string &arg);
 
   bool args(std::string& options);
@@ -152,12 +160,12 @@ struct server_startup_st
 
   void shutdown();
   void push_server(Server *);
+  Server *pop_server();
 
   ~server_startup_st();
 };
 
 bool server_startup(server_startup_st&, in_port_t try_port, int argc, const char *argv[]);
-void server_shutdown(server_startup_st&);
 
 } // namespace libtest
 

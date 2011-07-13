@@ -119,7 +119,6 @@ public:
         if (rc == GEARMAN_COULD_NOT_CONNECT)
         {
           sleep();
-          continue;
         }
       }
 
@@ -210,6 +209,11 @@ bool libtest::server_startup(server_startup_st& construct, in_port_t try_port, i
 
   Gearmand *server= new Gearmand("localhost", try_port);
   assert(server);
+  if (server == NULL)
+  {
+    Error << "Failure calling new for Gearmand";
+    return false;
+  }
 
   /*
     We will now cycle the server we have created.
@@ -217,6 +221,7 @@ bool libtest::server_startup(server_startup_st& construct, in_port_t try_port, i
   if (not server->cycle())
   {
     Error << "Could not start up server " << *server;
+    delete server;
     return false;
   }
 
@@ -238,7 +243,7 @@ bool libtest::server_startup(server_startup_st& construct, in_port_t try_port, i
   }
   else
   {
-    Log << "STARTING SERVER: " << server->running() << " pid:" << server->pid();
+    Log << "STARTING SERVER(pid:" << server->pid() << "): " << server->running();
   }
   construct.push_server(server);
 

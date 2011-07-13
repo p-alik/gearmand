@@ -63,6 +63,10 @@ tests_burnin_test_LDADD= ${CLIENT_LDADD}
 tests_cycle_SOURCES= tests/cycle.cc
 tests_cycle_LDADD= ${CLIENT_LDADD}
 
+tests_gearadmin_SOURCES= tests/gearadmin.cc
+tests_gearadmin_LDADD= ${CLIENT_LDADD}
+check_PROGRAMS+= tests/gearadmin
+
 tests_internals_test_SOURCES= \
 			      tests/internals.cc \
 			      tests/regression.cc
@@ -91,6 +95,9 @@ test-burnin: tests/burnin_test
 
 test-cycle: tests/cycle
 	@tests/cycle $(ARG1) $(ARG2)
+
+test-gearadmin: tests/gearadmin
+	@tests/gearadmin $(ARG1) $(ARG2)
 
 test-client: tests/client_test
 	@tests/client_test $(ARG1) $(ARG2)
@@ -126,6 +133,9 @@ gdb-burnin: ${noinst_PROGRAMS}
 gdb-cycle: ${noinst_PROGRAMS}
 	@$(LIBTOOL) --mode=execute gdb tests/cycle
 
+gdb-gearadmin: ${noinst_PROGRAMS}
+	@$(LIBTOOL) --mode=execute gdb tests/gearadmin
+
 valgrind-client:
 	@$(VALGRIND_COMMAND) tests/client_test $(ARG1) $(ARG2)
 
@@ -141,10 +151,13 @@ valgrind-internals: tests/internals_test
 valgrind-burnin: tests/burnin_test
 	@$(VALGRIND_COMMAND) tests/burnin_test $(ARG1) $(ARG2)
 
+valgrind-gearadmin: tests/gearadmin
+	@$(VALGRIND_COMMAND) tests/gearadmin $(ARG1) $(ARG2)
+
 valgrind-cycle: tests/cycle
 	@$(VALGRIND_COMMAND) tests/cycle $(ARG1) $(ARG2)
 
-valgrind: ${noinst_PROGRAMS} valgrind-cycle valgrind-client valgrind-round-robin valgrind-worker valgrind-internals valgrind-sqlite valgrind-tokyocabinet valgrind-burnin
+valgrind: ${noinst_PROGRAMS} valgrind-gearadmin valgrind-cycle valgrind-client valgrind-round-robin valgrind-worker valgrind-internals valgrind-sqlite valgrind-tokyocabinet valgrind-burnin
 
 include tests/httpd.am
 include tests/libdrizzle.am

@@ -60,6 +60,7 @@ gearmand/gearmand_hostile
 gearmand/gearmand_test
 libgearman/version.h
 libhostile
+libtest/unittest
 libtest/wait
 libtool
 m4/libtool.m4
@@ -84,6 +85,7 @@ tests/client_test
 tests/client_test.res
 tests/cpp_test
 tests/drizzle_test
+tests/gearadmin
 tests/gearman.pi*
 tests/gearman.sql
 tests/gearmand.log*
@@ -106,4 +108,3 @@ tests/var/tmp/*
 tests/worker_test
 tests/worker_test.res
 unittests/unittests
-libtest/unittest

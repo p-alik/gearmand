@@ -36,3 +36,4 @@
 
 #pragma once
 
+bool exec_cmdline(const std::string& executable, const char *args[]);
