@@ -15,13 +15,12 @@ test-sqlite: tests/sqlite_test tests-sqlite-args test-sqlite-queue
 tests-sqlite-args: gearmand/gearmand
 if HAVE_LIBSQLITE3
 	@gearmand/gearmand --check-args --libsqlite3-db=tmp/schema --libsqlite3-table=tmp/table
-
 endif
 
 if HAVE_LIBSQLITE3
 SQLITE_TEST= tests/sqlite_test
 CLEANFILES+= tests/gearman.sql tests/gearman.sql-journal tests/gearmand.log*
-noinst_PROGRAMS += tests/sqlite_test
+check_PROGRAMS+= tests/sqlite_test
 endif
 
 tests_sqlite_test_SOURCES= \
@@ -36,7 +35,7 @@ sqlite-nuke:
 
 test-sqlite-queue: tests/sqlite_test sqlite-nuke
 if HAVE_LIBSQLITE3
-	$(SQLITE_TEST) $(ARG1) $(ARG2)
+	$(SQLITE_TEST)
 endif
 
 gdb-sqlite: tests/sqlite_test sqlite-nuke
@@ -46,5 +45,5 @@ endif
 
 valgrind-sqlite: tests/sqlite_test sqlite-nuke
 if HAVE_LIBSQLITE3
-	$(VALGRIND_COMMAND) $(SQLITE_TEST) $(ARG1) $(ARG2)
+	$(VALGRIND_COMMAND) $(SQLITE_TEST)
 endif

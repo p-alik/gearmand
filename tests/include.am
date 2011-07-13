@@ -30,17 +30,6 @@ CLIENT_LDADD= \
 	      libgearman/libgearman.la
 
 
-noinst_PROGRAMS+= \
-		  tests/burnin_test \
-		  tests/client_test \
-		  tests/c_test \
-		  tests/cycle \
-		  tests/cpp_test \
-		  tests/drizzle_test \
-		  tests/internals_test \
-		  tests/round_robin_test \
-		  tests/worker_test
-
 tests_client_test_SOURCES= \
 			   tests/client_test.cc \
 			   tests/do.cc \
@@ -56,12 +45,15 @@ tests_client_test_SOURCES= \
 			   tests/workers_v1.cc
 tests_client_test_LDADD= ${CLIENT_LDADD}
 tests_client_test_DEPENDENCIES= ${CLIENT_LDADD}
+check_PROGRAMS+=tests/client_test
 
 tests_burnin_test_SOURCES= tests/burnin.cc
 tests_burnin_test_LDADD= ${CLIENT_LDADD}
+check_PROGRAMS+=tests/burnin_test
 
 tests_cycle_SOURCES= tests/cycle.cc
 tests_cycle_LDADD= ${CLIENT_LDADD}
+check_PROGRAMS+=tests/cycle
 
 tests_gearadmin_SOURCES= tests/gearadmin.cc
 tests_gearadmin_LDADD= ${CLIENT_LDADD}
@@ -73,43 +65,48 @@ tests_internals_test_SOURCES= \
 
 tests_internals_test_LDADD= ${CLIENT_LDADD} libgearman/libgearmancore.la
 tests_internals_test_DEPENDENCIES= ${CLIENT_LDADD} libgearman/libgearmancore.la
+check_PROGRAMS+= tests/internals_test
 
 tests_round_robin_test_SOURCES= tests/round_robin.cc
 tests_round_robin_test_LDADD= ${CLIENT_LDADD} libgearman/libgearmancore.la
+check_PROGRAMS+= tests/round_robin_test
 
 tests_worker_test_SOURCES= tests/worker_test.cc
 tests_worker_test_LDADD= \
 			 ${CLIENT_LDADD} \
 			 libgearman/libgearmancore.la
+check_PROGRAMS+=tests/worker_test
 
 # Test linking with C++ application
 tests_cpp_test_SOURCES= tests/cpp_test.cc
 tests_cpp_test_LDADD= ${CLIENT_LDADD}
+check_PROGRAMS+=tests/cpp_test
 
 # Test linking with C application
 tests_c_test_SOURCES= tests/c_test.c
 tests_c_test_LDADD= ${CLIENT_LDADD}
+check_PROGRAMS+=tests/c_test
 
 test-burnin: tests/burnin_test
-	@tests/burnin_test $(ARG1) $(ARG2)
+	@tests/burnin_test
 
 test-cycle: tests/cycle
-	@tests/cycle $(ARG1) $(ARG2)
+	@tests/cycle
 
 test-gearadmin: tests/gearadmin
-	@tests/gearadmin $(ARG1) $(ARG2)
+	@tests/gearadmin
 
 test-client: tests/client_test
-	@tests/client_test $(ARG1) $(ARG2)
+	@tests/client_test
 
 test-round-robin: tests/round_robin_test
-	@tests/round_robin_test $(ARG1) $(ARG2)
+	@tests/round_robin_test
 
 test-worker: tests/worker_test
-	@tests/worker_test $(ARG1) $(ARG2)
+	@tests/worker_test
 
 test-internals: tests/internals_test
-	@tests/internals_test $(ARG1) $(ARG2)
+	@tests/internals_test
 
 check-local: tests/var gearmand-test-args client-test libtest-tests benchmark-test
 
@@ -137,25 +134,25 @@ gdb-gearadmin: ${noinst_PROGRAMS}
 	@$(LIBTOOL) --mode=execute gdb tests/gearadmin
 
 valgrind-client:
-	@$(VALGRIND_COMMAND) tests/client_test $(ARG1) $(ARG2)
+	@$(VALGRIND_COMMAND) tests/client_test
 
 valgrind-round-robin:
-	@$(VALGRIND_COMMAND) tests/round_robin_test $(ARG1) $(ARG2)
+	@$(VALGRIND_COMMAND) tests/round_robin_test
 
 valgrind-worker: tests/worker_test
-	@$(VALGRIND_COMMAND) tests/worker_test $(ARG1) $(ARG2)
+	@$(VALGRIND_COMMAND) tests/worker_test
 
 valgrind-internals: tests/internals_test
-	@$(VALGRIND_COMMAND) tests/internals_test $(ARG1) $(ARG2)
+	@$(VALGRIND_COMMAND) tests/internals_test
 
 valgrind-burnin: tests/burnin_test
-	@$(VALGRIND_COMMAND) tests/burnin_test $(ARG1) $(ARG2)
+	@$(VALGRIND_COMMAND) tests/burnin_test
 
 valgrind-gearadmin: tests/gearadmin
-	@$(VALGRIND_COMMAND) tests/gearadmin $(ARG1) $(ARG2)
+	@$(VALGRIND_COMMAND) tests/gearadmin
 
 valgrind-cycle: tests/cycle
-	@$(VALGRIND_COMMAND) tests/cycle $(ARG1) $(ARG2)
+	@$(VALGRIND_COMMAND) tests/cycle
 
 valgrind: ${noinst_PROGRAMS} valgrind-gearadmin valgrind-cycle valgrind-client valgrind-round-robin valgrind-worker valgrind-internals valgrind-sqlite valgrind-tokyocabinet valgrind-burnin
 
