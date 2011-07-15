@@ -21,8 +21,7 @@ extern "C" {
 #endif
 
 LIBTEST_API
-pid_t test_gearmand_start(in_port_t port, const char *queue_type,
-                          int argc, const char *argv[]);
+pid_t test_gearmand_start(in_port_t port, int argc, const char *argv[]);
 
 LIBTEST_API
 void test_gearmand_stop(pid_t gearmand_pid);

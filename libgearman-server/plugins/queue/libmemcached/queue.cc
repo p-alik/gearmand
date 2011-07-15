@@ -14,6 +14,7 @@
 #include <libgearman-server/common.h>
 
 #include <libgearman-server/plugins/queue/base.h>
+#include <libgearman-server/plugins/queue/libmemcached/queue.h>
 #include <libmemcached/memcached.h>
 
 #pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -79,7 +80,7 @@ void initialize_libmemcached()
 }
 
 } // namespace queue
-} // namespace plugin
+} // namespace plugins
 } // namespace gearmand
 
 /* Queue callback functions. */
@@ -121,7 +122,7 @@ gearmand_error_t _initialize(plugins::queue::Libmemcached *queue,
 
   if (servers == NULL)
   {
-    gearmand_log_error("gearman_queue_libmemcached_init", "memcached_servers_parse");
+    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "memcached_servers_parse");
 
     return GEARMAN_QUEUE_ERROR;
   }
@@ -158,10 +159,10 @@ static gearmand_error_t _libmemcached_add(gearman_server_st *server,
 
   (void)server;
 
-  gearmand_log_debug("libmemcached add: %.*s", (uint32_t)unique_size, (char *)unique);
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "libmemcached add: %.*s", (uint32_t)unique_size, (char *)unique);
 
   key_length= (size_t)snprintf(key, MEMCACHED_MAX_KEY, "%s%.*s-%.*s",
-                               GEARMAN_QUEUE_LIBMEMCACHED_DEFAULT_PREFIX,
+			       GEARMAN_QUEUE_LIBMEMCACHED_DEFAULT_PREFIX,
                                (int)function_name_size,
                                (const char *)function_name, (int)unique_size,
                                (const char *)unique);
@@ -196,7 +197,7 @@ static gearmand_error_t _libmemcached_done(gearman_server_st *server,
   gearmand::plugins::queue::Libmemcached *queue= (gearmand::plugins::queue::Libmemcached *)context;
   (void)server;
 
-  gearmand_log_debug("libmemcached done: %.*s", (uint32_t)unique_size, (char *)unique);
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "libmemcached done: %.*s", (uint32_t)unique_size, (char *)unique);
 
   key_length= (size_t)snprintf(key, MEMCACHED_MAX_KEY, "%s%.*s-%.*s",
                                GEARMAN_QUEUE_LIBMEMCACHED_DEFAULT_PREFIX,

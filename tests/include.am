@@ -1,117 +1,140 @@
 # vim:ft=automake
 # Gearman server and library
+# Copyright (C) 2011 Data Differential, http://datadifferential.com/
 # Copyright (C) 2008 Brian Aker, Eric Day
 # All rights reserved.
 #
 # Use and distribution licensed under the BSD license.  See
 # the COPYING file in the parent directory for full text.
 
-VALGRIND_COMMAND= $(LIBTOOL) --mode=execute valgrind --leak-check=yes --show-reachable=yes
+VALGRIND_COMMAND= $(LIBTOOL) --mode=execute valgrind --leak-check=yes --show-reachable=yes --malloc-fill=A5 --free-fill=DE --track-fds=yes
 
 noinst_HEADERS+= \
 		 tests/basic.h \
-		 tests/context.h
+		 tests/context.h \
+		 tests/do.h \
+		 tests/do_background.h \
+		 tests/execute.h \
+		 tests/gearman_client_do_job_handle.h \
+		 tests/gearman_execute_partition.h \
+		 tests/ports.h \
+		 tests/protocol.h \
+		 tests/regression.h \
+		 tests/server_options.h \
+		 tests/task.h \
+		 tests/unique.h \
+		 tests/workers.h \
+		 tests/workers_v1.h
 
 CLIENT_LDADD= \
 	      libtest/libtest.la \
 	      libtest/libserver.la \
-	      libgearman/libgearman.la \
-	      libgearman/libgearmancore.la
+	      libgearman/libgearman.la
 
 CLEANFILES+= \
 	     tests/var/log/* \
 	     tests/var/tmp/*
 
-tests_memcached_test_SOURCES= tests/memcached_test.cc
-tests_memcached_test_LDADD= ${CLIENT_LDADD}
-
-tests_queue_regression_SOURCES= tests/queue_regression.cc
-tests_queue_regression_LDADD= ${CLIENT_LDADD}
-
 noinst_PROGRAMS+= \
 		  tests/burnin_test \
 		  tests/client_test \
+		  tests/c_test \
 		  tests/cpp_test \
 		  tests/drizzle_test \
 		  tests/internals_test \
-		  tests/regression_test \
 		  tests/round_robin_test \
 		  tests/worker_test
 
-tests_client_test_SOURCES= tests/client_test.cc
+tests_client_test_SOURCES= \
+			   tests/client_test.cc \
+			   tests/do.cc \
+			   tests/do_background.cc \
+			   tests/execute.cc \
+			   tests/gearman_client_do_job_handle.cc \
+			   tests/gearman_execute_partition.cc \
+			   tests/protocol.cc \
+			   tests/server_options.cc \
+			   tests/task.cc \
+			   tests/unique.cc \
+			   tests/workers.cc \
+			   tests/workers_v1.cc
 tests_client_test_LDADD= ${CLIENT_LDADD}
+tests_client_test_DEPENDENCIES= ${CLIENT_LDADD}
 
 tests_burnin_test_SOURCES= tests/burnin.cc
 tests_burnin_test_LDADD= ${CLIENT_LDADD}
 
-tests_internals_test_SOURCES= tests/internals.cc
+tests_internals_test_SOURCES= \
+			      tests/internals.cc \
+			      tests/regression.cc
+
 tests_internals_test_LDADD= ${CLIENT_LDADD} libgearman/libgearmancore.la
 tests_internals_test_DEPENDENCIES= ${CLIENT_LDADD} libgearman/libgearmancore.la
-
-tests_regression_test_SOURCES= tests/regression.cc
-tests_regression_test_LDADD= ${CLIENT_LDADD} libgearman/libgearmancore.la
 
 tests_round_robin_test_SOURCES= tests/round_robin.cc
 tests_round_robin_test_LDADD= ${CLIENT_LDADD} libgearman/libgearmancore.la
 
 tests_worker_test_SOURCES= tests/worker_test.cc
-tests_worker_test_LDADD= ${CLIENT_LDADD}
+tests_worker_test_LDADD= \
+			 ${CLIENT_LDADD} \
+			 libgearman/libgearmancore.la
 
 # Test linking with C++ application
 tests_cpp_test_SOURCES= tests/cpp_test.cc
 tests_cpp_test_LDADD= ${CLIENT_LDADD}
 
-test-burnin:
+# Test linking with C application
+tests_c_test_SOURCES= tests/c_test.c
+tests_c_test_LDADD= ${CLIENT_LDADD}
+
+test-burnin: tests/burnin_test
 	@tests/burnin_test $(ARG1) $(ARG2)
 
-test-client:
+test-client: tests/client_test
 	@tests/client_test $(ARG1) $(ARG2)
 
-test-round-robin:
-	tests/round_robin_test $(ARG1) $(ARG2)
+test-round-robin: tests/round_robin_test
+	@tests/round_robin_test $(ARG1) $(ARG2)
 
-test-worker:
+test-worker: tests/worker_test
 	@tests/worker_test $(ARG1) $(ARG2)
 
-test-internals:
+test-internals: tests/internals_test
 	@tests/internals_test $(ARG1) $(ARG2)
 
-GEARADMIN_TOOL= bin/gearadmin
-test-shutdown: bin/gearadmin
-	$(GEARADMIN_TOOL) --port 32123 --shutdown 2>&1 > /dev/null
+check-local: tests/var gearmand-test-args client-test libtest-tests benchmark-test
 
-check-local: tests/var gearmand-test-args client-test test-shutdown libtest-tests
-
-libtest-tests: test-client test-round-robin test-worker test-internals test-libmemcached test-sqlite test-tokyocabinet test-burnin queue-regression
+libtest-tests: test-client test-round-robin test-worker test-internals test-libmemcached test-sqlite test-tokyocabinet test-burnin
 
 gdb-client: ${noinst_PROGRAMS}
-	$(LIBTOOL) --mode=execute gdb tests/client_test
+	@$(LIBTOOL) --mode=execute gdb tests/client_test
 
 gdb-round-robin: ${noinst_PROGRAMS}
-	$(LIBTOOL) --mode=execute gdb tests/round_robin_test
+	@$(LIBTOOL) --mode=execute gdb tests/round_robin_test
 
 gdb-worker: ${noinst_PROGRAMS}
-	$(LIBTOOL) --mode=execute gdb tests/worker_test
+	@$(LIBTOOL) --mode=execute gdb tests/worker_test
 
 gdb-internals: ${noinst_PROGRAMS}
-	$(LIBTOOL) --mode=execute gdb tests/internals_test
+	@$(LIBTOOL) --mode=execute gdb tests/internals_test
+
+gdb-burnin: ${noinst_PROGRAMS}
+	@$(LIBTOOL) --mode=execute gdb tests/burnin_test
 
 valgrind-client:
-	$(VALGRIND_COMMAND) tests/client_test $(ARG1) $(ARG2)
+	@$(VALGRIND_COMMAND) tests/client_test $(ARG1) $(ARG2)
 
 valgrind-round-robin:
-	$(VALGRIND_COMMAND) tests/round_robin_test $(ARG1) $(ARG2)
+	@$(VALGRIND_COMMAND) tests/round_robin_test $(ARG1) $(ARG2)
 
-valgrind-worker:
-	$(VALGRIND_COMMAND) tests/worker_test $(ARG1) $(ARG2)
+valgrind-worker: tests/worker_test
+	@$(VALGRIND_COMMAND) tests/worker_test $(ARG1) $(ARG2)
 
-valgrind-internals:
-	$(VALGRIND_COMMAND) tests/internals_test $(ARG1) $(ARG2)
+valgrind-internals: tests/internals_test
+	@$(VALGRIND_COMMAND) tests/internals_test $(ARG1) $(ARG2)
 
-valgrind-libmemcached:
-	$(LIBMEMCACHED_SETUP)
-	$(VALGRIND_COMMAND) $(LIBMEMCACHED_TEST) $(ARG1) $(ARG2)
-	$(LIBMEMCACHED_TEARDOWN)
+valgrind-burnin: tests/burnin_test
+	@$(VALGRIND_COMMAND) tests/burnin_test $(ARG1) $(ARG2)
 
 tests/var: tests/var/log tests/var/tmp
 	$(mkdir_p) tests/var
@@ -122,7 +145,7 @@ tests/var/log:
 tests/var/tmp:
 	$(mkdir_p) tests/var/tmp
 
-valgrind: ${noinst_PROGRAMS} valgrind-client valgrind-round-robin valgrind-worker valgrind-internals valgrind-sqlite valgrind-tokyocabinet
+valgrind: ${noinst_PROGRAMS} valgrind-client valgrind-round-robin valgrind-worker valgrind-internals valgrind-sqlite valgrind-tokyocabinet valgrind-burnin
 
 include tests/httpd.am
 include tests/libdrizzle.am

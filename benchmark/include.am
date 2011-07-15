@@ -19,10 +19,30 @@ noinst_HEADERS+= \
 		 benchmark/benchmark.h
 
 noinst_LTLIBRARIES+= benchmark/libbenchmark.la
-benchmark_libbenchmark_la_SOURCES= benchmark/benchmark.c
+benchmark_libbenchmark_la_SOURCES= benchmark/benchmark.cc
 
-benchmark_blobslap_client_SOURCES= benchmark/blobslap_client.c
+benchmark_blobslap_client_SOURCES= benchmark/blobslap_client.cc
 benchmark_blobslap_client_LDADD= benchmark/libbenchmark.la libgearman/libgearman.la
 
-benchmark_blobslap_worker_SOURCES= benchmark/blobslap_worker.c
-benchmark_blobslap_worker_LDADD= benchmark/libbenchmark.la libgearman/libgearman.la
+benchmark_blobslap_worker_SOURCES= \
+				   benchmark/blobslap_worker.cc \
+				   util/daemon.cc
+
+benchmark_blobslap_worker_LDADD= \
+				 $(BOOST_PROGRAM_OPTIONS_LIBS) \
+				 benchmark/libbenchmark.la \
+				 libgearman/libgearman.la
+
+GEARMAND_BE_PIDFILE = ${abs_top_builddir}/tests/var/tmp/Begearmand.pid
+GEARMAND_BENCHMARK_PORT = 6000
+BENCHMARK_COUNT = 100
+BENCHMARK_TASK_COUNT = 10
+BENCHMARK_TASK_COUNT_TOTAL = 1000
+
+benchmark-test: benchmark/blobslap_client benchmark/blobslap_worker gearmand/gearmand
+	@echo Running benchmarking tool, this may take a couple of seconds
+	@gearmand/gearmand --port=$(GEARMAND_BENCHMARK_PORT) --daemon --pid-file=$(GEARMAND_BE_PIDFILE)
+	@libtest/wait $(GEARMAND_BE_PIDFILE)
+	@benchmark/blobslap_worker  -p $(GEARMAND_BENCHMARK_PORT) -d
+	@benchmark/blobslap_client  -c $(BENCHMARK_COUNT) -n $(BENCHMARK_TASK_COUNT) -p $(GEARMAND_BENCHMARK_PORT) -e
+	cat $(GEARMAND_BE_PIDFILE) | xargs kill

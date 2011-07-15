@@ -22,7 +22,9 @@
 
 static gearman_server_function_st * gearman_server_function_create(gearman_server_st *server);
 
+#ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
 
 gearman_server_function_st *
 gearman_server_function_get(gearman_server_st *server,
@@ -42,12 +44,13 @@ gearman_server_function_get(gearman_server_st *server,
   }
 
   function= gearman_server_function_create(server);
-  if (function == NULL)
+  if (not function)
     return NULL;
 
-  function->function_name= (char *)malloc(function_name_size + 1);
-  if (function->function_name == NULL)
+  function->function_name= (char *)malloc(function_name_size +1);
+  if (not function->function_name)
   {
+    gearmand_merror("malloc", char,  function_name_size +1);
     gearman_server_function_free(server, function);
     return NULL;
   }
@@ -67,7 +70,7 @@ static gearman_server_function_st * gearman_server_function_create(gearman_serve
 
   if (function == NULL)
   {
-    gearmand_perror("malloc");
+    gearmand_merror("malloc", gearman_server_function_st, 0);
     return NULL;
   }
 

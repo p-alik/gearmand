@@ -7,14 +7,14 @@
 # the COPYING file in this directory for full text.
 
 AC_PREREQ(2.59)
-AC_INIT([gearmand],[0.20],[https://launchpad.net/gearmand])
+AC_INIT([gearmand],[0.23],[https://launchpad.net/gearmand])
 AC_CONFIG_SRCDIR(libgearman/gearman.cc)
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIR(m4)
 
-PANDORA_CANONICAL_TARGET(require-cxx)
+PANDORA_CANONICAL_TARGET(require-cxx, no-vc-changelog)
 
-GEARMAN_LIBRARY_VERSION=5:1:1
+GEARMAN_LIBRARY_VERSION=6:0:0
 #                       | | |
 #                +------+ | +---+
 #                |        |     |
@@ -28,9 +28,12 @@ GEARMAN_LIBRARY_VERSION=5:1:1
 #                +- increment if interfaces have been added, removed or changed
 AC_SUBST(GEARMAN_LIBRARY_VERSION)
 
-BOOST_REQUIRE(1.37.0)
+BOOST_REQUIRE(1.39.0)
 BOOST_PROGRAM_OPTIONS(mt-)
 
+WITH_LIBMEMCACHED
+WITH_MEMCACHED
+WITH_LIBDRIZZLE
 
 PANDORA_REQUIRE_PTHREAD
 PANDORA_REQUIRE_LIBEVENT
@@ -38,9 +41,6 @@ PANDORA_REQUIRE_LIBUUID
 
 PANDORA_HAVE_BETTER_MALLOC
 PANDORA_HAVE_LIBSQLITE3
-PANDORA_HAVE_LIBDRIZZLE
-PANDORA_HAVE_LIBMEMCACHED(0.42)
-PANDORA_HAVE_MEMCACHED
 PANDORA_HAVE_LIBPQ
 PANDORA_HAVE_LIBTOKYOCABINET
 AC_FUNC_STRERROR_R
@@ -94,7 +94,8 @@ AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([dup2 gettimeofday memchr memmove memset socket strcasecmp strdup strerror strncasecmp uname])
 
 AC_CONFIG_FILES(Makefile
-                libgearman/configure.h
+                docs/conf.py
+                libgearman/version.h
                 scripts/gearmand
                 scripts/gearmand-init
                 scripts/gearmand.xml
@@ -115,8 +116,8 @@ echo "   * Assertions enabled:        $ac_cv_assert"
 echo "   * Debug enabled:             $with_debug"
 echo "   * Warnings as failure:       $ac_cv_warnings_as_errors"
 echo "   * Building with libsqlite3   $ac_cv_libsqlite3"
-echo "   * Building with libdrizzle   $ac_cv_libdrizzle"
-echo "   * Building with libmemcached $ac_cv_libmemcached"
+echo "   * Building with libdrizzle   $ac_enable_libdrizzle"
+echo "   * Building with libmemcached $ac_enable_libmemcached"
 echo "   * Building with libpq        $ac_cv_libpq"
 echo "   * Building with tokyocabinet $ac_cv_libtokyocabinet"
 echo ""

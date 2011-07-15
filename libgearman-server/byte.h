@@ -43,7 +43,8 @@ namespace gearmand_internal {
 
 class Byte {
 public:
-  Byte ()
+  Byte () :
+    _array()
   { }
 
   Byte (size_t arg):

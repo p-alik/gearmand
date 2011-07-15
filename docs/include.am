@@ -2,14 +2,10 @@
 # included from Top Level Makefile.am
 # All paths should be given relative to the root
 
-EXTRA_DIST+= \
-	     docs/conf.py \
-	     docs/*.rst
-
 # Makefile for Sphinx documentation
 #
 
-SPHINXOPTS    = ${SPHINX_WARNINGS} -D release=${PANDORA_RELEASE_VERSION}
+SPHINXOPTS    = ${SPHINX_WARNINGS}
 PAPER         =
 SPHINX_BUILDDIR      = ${top_builddir}/docs
 
@@ -20,134 +16,165 @@ ALLSPHINXOPTS   = -d $(SPHINX_BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOP
 
 .PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest
 
-man_MANS+= \
-	   docs/man/gearadmin.1 \
-	   docs/man/gearman.1 \
-	   docs/man/gearman_bugreport.3 \
-	   docs/man/gearman_client_add_options.3 \
-	   docs/man/gearman_client_add_server.3 \
-	   docs/man/gearman_client_add_servers.3 \
-	   docs/man/gearman_client_add_task.3 \
-	   docs/man/gearman_client_add_task_background.3 \
-	   docs/man/gearman_client_add_task_high.3 \
-	   docs/man/gearman_client_add_task_high_background.3 \
-	   docs/man/gearman_client_add_task_low.3 \
-	   docs/man/gearman_client_add_task_low_background.3 \
-	   docs/man/gearman_client_add_task_status.3 \
-	   docs/man/gearman_client_clear_fn.3 \
-	   docs/man/gearman_client_clone.3 \
-	   docs/man/gearman_client_context.3 \
-	   docs/man/gearman_client_create.3 \
-	   docs/man/gearman_client_do.3 \
-	   docs/man/gearman_client_do_background.3 \
-	   docs/man/gearman_client_do_high.3 \
-	   docs/man/gearman_client_do_high_background.3 \
-	   docs/man/gearman_client_do_job_handle.3 \
-	   docs/man/gearman_client_do_low.3 \
-	   docs/man/gearman_client_do_low_background.3 \
-	   docs/man/gearman_client_do_status.3 \
-	   docs/man/gearman_client_echo.3 \
-	   docs/man/gearman_client_errno.3 \
-	   docs/man/gearman_client_error.3 \
-	   docs/man/gearman_client_execute.3 \
-	   docs/man/gearman_client_free.3 \
-	   docs/man/gearman_client_job_status.3 \
-	   docs/man/gearman_client_options.3 \
-	   docs/man/gearman_client_remove_options.3 \
-	   docs/man/gearman_client_remove_servers.3 \
-	   docs/man/gearman_client_run_tasks.3 \
-	   docs/man/gearman_client_set_complete_fn.3 \
-	   docs/man/gearman_client_set_context.3 \
-	   docs/man/gearman_client_set_created_fn.3 \
-	   docs/man/gearman_client_set_data_fn.3 \
-	   docs/man/gearman_client_set_exception_fn.3 \
-	   docs/man/gearman_client_set_fail_fn.3 \
-	   docs/man/gearman_client_set_log_fn.3 \
-	   docs/man/gearman_client_set_options.3 \
-	   docs/man/gearman_client_set_status_fn.3 \
-	   docs/man/gearman_client_set_task_context_free_fn.3 \
-	   docs/man/gearman_client_set_timeout.3 \
-	   docs/man/gearman_client_set_warning_fn.3 \
-	   docs/man/gearman_client_set_workload_fn.3 \
-	   docs/man/gearman_client_set_workload_free_fn.3 \
-	   docs/man/gearman_client_set_workload_malloc_fn.3 \
-	   docs/man/gearman_client_st.3 \
-	   docs/man/gearman_client_task_free_all.3 \
-	   docs/man/gearman_client_timeout.3 \
-	   docs/man/gearman_client_wait.3 \
-	   docs/man/gearman_create.3 \
-	   docs/man/gearman_function_st.3 \
-	   docs/man/gearman_job_free.3 \
-	   docs/man/gearman_job_free_all.3 \
-	   docs/man/gearman_job_function_name.3 \
-	   docs/man/gearman_job_handle.3 \
-	   docs/man/gearman_job_send_complete.3 \
-	   docs/man/gearman_job_send_data.3 \
-	   docs/man/gearman_job_send_exception.3 \
-	   docs/man/gearman_job_send_fail.3 \
-	   docs/man/gearman_job_send_status.3 \
-	   docs/man/gearman_job_send_warning.3 \
-	   docs/man/gearman_job_st.3 \
-	   docs/man/gearman_job_take_workload.3 \
-	   docs/man/gearman_job_unique.3 \
-	   docs/man/gearman_job_workload.3 \
-	   docs/man/gearman_job_workload_size.3 \
-	   docs/man/gearman_parse_servers.3 \
-	   docs/man/gearman_state_t.3 \
-	   docs/man/gearman_status_is_successful.3 \
-	   docs/man/gearman_status_t.3 \
-	   docs/man/gearman_status_task.3 \
-	   docs/man/gearman_task_context.3 \
-	   docs/man/gearman_task_data.3 \
-	   docs/man/gearman_task_data_size.3 \
-	   docs/man/gearman_task_denominator.3 \
-	   docs/man/gearman_task_free.3 \
-	   docs/man/gearman_task_function_name.3 \
-	   docs/man/gearman_task_give_workload.3 \
-	   docs/man/gearman_task_is_known.3 \
-	   docs/man/gearman_task_is_running.3 \
-	   docs/man/gearman_task_job_handle.3 \
-	   docs/man/gearman_task_numerator.3 \
-	   docs/man/gearman_task_recv_data.3 \
-	   docs/man/gearman_task_send_workload.3 \
-	   docs/man/gearman_task_set_context.3 \
-	   docs/man/gearman_task_st.3 \
-	   docs/man/gearman_task_take_data.3 \
-	   docs/man/gearman_task_unique.3 \
-	   docs/man/gearman_unique_t.3 \
-	   docs/man/gearman_verbose_name.3 \
-	   docs/man/gearman_version.3 \
-	   docs/man/gearman_worker_add_function.3 \
-	   docs/man/gearman_worker_add_options.3 \
-	   docs/man/gearman_worker_add_server.3 \
-	   docs/man/gearman_worker_add_servers.3 \
-	   docs/man/gearman_worker_clone.3 \
-	   docs/man/gearman_worker_context.3 \
-	   docs/man/gearman_worker_create.3 \
-	   docs/man/gearman_worker_echo.3 \
-	   docs/man/gearman_worker_errno.3 \
-	   docs/man/gearman_worker_error.3 \
-	   docs/man/gearman_worker_free.3 \
-	   docs/man/gearman_worker_function_exist.3 \
-	   docs/man/gearman_worker_grab_job.3 \
-	   docs/man/gearman_worker_options.3 \
-	   docs/man/gearman_worker_register.3 \
-	   docs/man/gearman_worker_remove_options.3 \
-	   docs/man/gearman_worker_remove_servers.3 \
-	   docs/man/gearman_worker_set_context.3 \
-	   docs/man/gearman_worker_set_log_fn.3 \
-	   docs/man/gearman_worker_set_options.3 \
-	   docs/man/gearman_worker_set_timeout.3 \
-	   docs/man/gearman_worker_set_workload_free_fn.3 \
-	   docs/man/gearman_worker_set_workload_malloc_fn.3 \
-	   docs/man/gearman_worker_st.3 \
-	   docs/man/gearman_worker_timeout.3 \
-	   docs/man/gearman_worker_unregister.3 \
-	   docs/man/gearman_worker_unregister_all.3 \
-	   docs/man/gearman_worker_wait.3 \
-	   docs/man/gearman_worker_work.3 \
-	   docs/man/gearmand.8 \
-	   docs/man/libgearman.3
+man1_MANS+= \
+	    docs/man/gearadmin.1 \
+	    docs/man/gearman.1
+
+man8_MANS+= \
+	    docs/man/gearmand.8
+
+man3_MANS+= \
+	    docs/man/gearman_allocator_t.3 \
+	    docs/man/gearman_client_set_memory_allocators.3 \
+	    docs/man/gearman_worker_set_memory_allocators.3 \
+	    docs/man/gearman_actions_t.3 \
+	    docs/man/gearman_argument_make.3 \
+	    docs/man/gearman_argument_t.3 \
+	    docs/man/gearman_bugreport.3 \
+	    docs/man/gearman_client_add_options.3 \
+	    docs/man/gearman_client_add_server.3 \
+	    docs/man/gearman_client_add_servers.3 \
+	    docs/man/gearman_client_add_task.3 \
+	    docs/man/gearman_client_add_task_background.3 \
+	    docs/man/gearman_client_add_task_high.3 \
+	    docs/man/gearman_client_add_task_high_background.3 \
+	    docs/man/gearman_client_add_task_low.3 \
+	    docs/man/gearman_client_add_task_low_background.3 \
+	    docs/man/gearman_client_add_task_status.3 \
+	    docs/man/gearman_client_clear_fn.3 \
+	    docs/man/gearman_client_clone.3 \
+	    docs/man/gearman_client_context.3 \
+	    docs/man/gearman_client_create.3 \
+	    docs/man/gearman_client_do.3 \
+	    docs/man/gearman_client_do_background.3 \
+	    docs/man/gearman_client_do_high.3 \
+	    docs/man/gearman_client_do_high_background.3 \
+	    docs/man/gearman_client_do_job_handle.3 \
+	    docs/man/gearman_client_do_low.3 \
+	    docs/man/gearman_client_do_low_background.3 \
+	    docs/man/gearman_client_do_status.3 \
+	    docs/man/gearman_client_echo.3 \
+	    docs/man/gearman_client_errno.3 \
+	    docs/man/gearman_client_error.3 \
+	    docs/man/gearman_client_free.3 \
+	    docs/man/gearman_client_job_status.3 \
+	    docs/man/gearman_client_options.3 \
+	    docs/man/gearman_client_remove_options.3 \
+	    docs/man/gearman_client_remove_servers.3 \
+	    docs/man/gearman_client_run_tasks.3 \
+	    docs/man/gearman_client_set_complete_fn.3 \
+	    docs/man/gearman_client_set_context.3 \
+	    docs/man/gearman_client_set_created_fn.3 \
+	    docs/man/gearman_client_set_data_fn.3 \
+	    docs/man/gearman_client_set_exception_fn.3 \
+	    docs/man/gearman_client_set_fail_fn.3 \
+	    docs/man/gearman_client_set_log_fn.3 \
+	    docs/man/gearman_client_set_namespace.3 \
+	    docs/man/gearman_client_set_options.3 \
+	    docs/man/gearman_client_set_status_fn.3 \
+	    docs/man/gearman_client_set_task_context_free_fn.3 \
+	    docs/man/gearman_client_set_timeout.3 \
+	    docs/man/gearman_client_set_warning_fn.3 \
+	    docs/man/gearman_client_set_workload_fn.3 \
+	    docs/man/gearman_client_set_workload_free_fn.3 \
+	    docs/man/gearman_client_set_workload_malloc_fn.3 \
+	    docs/man/gearman_client_st.3 \
+	    docs/man/gearman_client_task_free_all.3 \
+	    docs/man/gearman_client_timeout.3 \
+	    docs/man/gearman_client_wait.3 \
+	    docs/man/gearman_continue.3 \
+	    docs/man/gearman_execute.3 \
+	    docs/man/gearman_failed.3 \
+	    docs/man/gearman_job_free.3 \
+	    docs/man/gearman_job_free_all.3 \
+	    docs/man/gearman_job_function_name.3 \
+	    docs/man/gearman_job_handle.3 \
+	    docs/man/gearman_job_handle_t.3 \
+	    docs/man/gearman_job_send_complete.3 \
+	    docs/man/gearman_job_send_data.3 \
+	    docs/man/gearman_job_send_exception.3 \
+	    docs/man/gearman_job_send_fail.3 \
+	    docs/man/gearman_job_send_status.3 \
+	    docs/man/gearman_job_send_warning.3 \
+	    docs/man/gearman_job_st.3 \
+	    docs/man/gearman_job_take_workload.3 \
+	    docs/man/gearman_job_unique.3 \
+	    docs/man/gearman_job_workload.3 \
+	    docs/man/gearman_job_workload_size.3 \
+	    docs/man/gearman_log_fn.3 \
+	    docs/man/gearman_parse_servers.3 \
+	    docs/man/gearman_result_boolean.3 \
+	    docs/man/gearman_result_integer.3 \
+	    docs/man/gearman_result_is_null.3 \
+	    docs/man/gearman_result_size.3 \
+	    docs/man/gearman_result_store_integer.3 \
+	    docs/man/gearman_result_store_string.3 \
+	    docs/man/gearman_result_store_value.3 \
+	    docs/man/gearman_result_string.3 \
+	    docs/man/gearman_return_t.3 \
+	    docs/man/gearman_strerror.3 \
+	    docs/man/gearman_string_t.3 \
+	    docs/man/gearman_success.3 \
+	    docs/man/gearman_task_context.3 \
+	    docs/man/gearman_task_data.3 \
+	    docs/man/gearman_task_data_size.3 \
+	    docs/man/gearman_task_denominator.3 \
+	    docs/man/gearman_task_error.3 \
+	    docs/man/gearman_task_free.3 \
+	    docs/man/gearman_task_function_name.3 \
+	    docs/man/gearman_task_give_workload.3 \
+	    docs/man/gearman_task_is_known.3 \
+	    docs/man/gearman_task_is_running.3 \
+	    docs/man/gearman_task_job_handle.3 \
+	    docs/man/gearman_task_numerator.3 \
+	    docs/man/gearman_task_recv_data.3 \
+	    docs/man/gearman_task_return.3 \
+	    docs/man/gearman_task_send_workload.3 \
+	    docs/man/gearman_task_set_context.3 \
+	    docs/man/gearman_task_st.3 \
+	    docs/man/gearman_task_take_data.3 \
+	    docs/man/gearman_task_unique.3 \
+	    docs/man/gearman_verbose_name.3 \
+	    docs/man/gearman_verbose_t.3 \
+	    docs/man/gearman_version.3 \
+	    docs/man/gearman_worker_add_function.3 \
+	    docs/man/gearman_worker_add_options.3 \
+	    docs/man/gearman_worker_add_server.3 \
+	    docs/man/gearman_worker_add_servers.3 \
+	    docs/man/gearman_worker_clone.3 \
+	    docs/man/gearman_worker_context.3 \
+	    docs/man/gearman_worker_create.3 \
+	    docs/man/gearman_worker_define_function.3 \
+	    docs/man/gearman_worker_echo.3 \
+	    docs/man/gearman_worker_errno.3 \
+	    docs/man/gearman_worker_error.3 \
+	    docs/man/gearman_worker_free.3 \
+	    docs/man/gearman_worker_function_exist.3 \
+	    docs/man/gearman_worker_grab_job.3 \
+	    docs/man/gearman_worker_options.3 \
+	    docs/man/gearman_worker_register.3 \
+	    docs/man/gearman_worker_remove_options.3 \
+	    docs/man/gearman_worker_remove_servers.3 \
+	    docs/man/gearman_worker_set_context.3 \
+	    docs/man/gearman_worker_set_log_fn.3 \
+	    docs/man/gearman_worker_set_namespace.3 \
+	    docs/man/gearman_worker_set_options.3 \
+	    docs/man/gearman_worker_set_timeout.3 \
+	    docs/man/gearman_worker_set_workload_free_fn.3 \
+	    docs/man/gearman_worker_set_workload_malloc_fn.3 \
+	    docs/man/gearman_worker_st.3 \
+	    docs/man/gearman_worker_timeout.3 \
+	    docs/man/gearman_worker_unregister.3 \
+	    docs/man/gearman_worker_unregister_all.3 \
+	    docs/man/gearman_worker_wait.3 \
+	    docs/man/gearman_worker_work.3 \
+	    docs/man/gearman_task_attr_init.3 \
+	    docs/man/gearman_task_attr_init_background.3 \
+	    docs/man/gearman_task_attr_init_epoch.3 \
+	    docs/man/gearman_task_attr_t.3 \
+	    docs/man/gearman_client_options_t.3 \
+	    docs/man/gearman_client_has_option.3 \
+	    docs/man/libgearman.3
 
 if HAVE_SPHINX
 sphinx-help:
@@ -169,38 +196,38 @@ sphinx-help:
 	@echo "  linkcheck  to check all external links for integrity"
 	@echo "  doctest    to run all doctests embedded in the documentation (if enabled)"
 
-html-local:
+html-local: docs/conf.py
 	PYTHONPATH=${top_srcdir}/docs $(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(SPHINX_BUILDDIR)/html."
 
-dirhtml:
+dirhtml: docs/conf.py
 	PYTHONPATH=${top_srcdir}/docs $(SPHINXBUILD) -b dirhtml $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/dirhtml
 	@echo
 	@echo "Build finished. The HTML pages are in $(SPHINX_BUILDDIR)/dirhtml."
 
-singlehtml:
+singlehtml: docs/conf.py
 	PYTHONPATH=${top_srcdir}/docs  $(SPHINXBUILD) -b singlehtml $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/singlehtml
 	@echo
 	@echo "Build finished. The HTML page is in $(SPHINX_BUILDDIR)/singlehtml."
 
-pickle:
+pickle: docs/conf.py
 	PYTHONPATH=${top_srcdir}/docs  $(SPHINXBUILD) -b pickle $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/pickle
 	@echo
 	@echo "Build finished; now you can process the pickle files."
 
-json:
+json: docs/conf.py
 	PYTHONPATH=${top_srcdir}/docs  $(SPHINXBUILD) -b json $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/json
 	@echo
 	@echo "Build finished; now you can process the JSON files."
 
-htmlhelp:
+htmlhelp: docs/conf.py
 	PYTHONPATH=${top_srcdir}/docs  $(SPHINXBUILD) -b htmlhelp $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/htmlhelp
 	@echo
 	@echo "Build finished; now you can run HTML Help Workshop with the" \
 	      ".hhp project file in $(SPHINX_BUILDDIR)/htmlhelp."
 
-qthelp:
+qthelp: docs/conf.py
 	PYTHONPATH=${top_srcdir}/docs  $(SPHINXBUILD) -b qthelp $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/qthelp
 	@echo
 	@echo "Build finished; now you can run "qcollectiongenerator" with the" \
@@ -209,7 +236,7 @@ qthelp:
 	@echo "To view the help file:"
 	@echo "# assistant -collectionFile $(SPHINX_BUILDDIR)/qthelp/Libmemcached.qhc"
 
-devhelp:
+devhelp: docs/conf.py
 	PYTHONPATH=${top_srcdir}/docs  $(SPHINXBUILD) -b devhelp $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/devhelp
 	@echo
 	@echo "Build finished."
@@ -218,12 +245,12 @@ devhelp:
 	@echo "# ln -s $(SPHINX_BUILDDIR)/devhelp $$HOME/.local/share/devhelp/Libmemcached"
 	@echo "# devhelp"
 
-epub:
+epub: docs/conf.py
 	PYTHONPATH=${top_srcdir}/docs  $(SPHINXBUILD) -b epub $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/epub
 	@echo
 	@echo "Build finished. The epub file is in $(SPHINX_BUILDDIR)/epub."
 
-latex:
+latex: docs/conf.py
 	PYTHONPATH=${top_srcdir}/docs  $(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/latex
 	@echo
 	@echo "Build finished; the LaTeX files are in $(SPHINX_BUILDDIR)/latex."
@@ -236,30 +263,48 @@ latexpdf: latex
 	make -C $(SPHINX_BUILDDIR)/latex all-pdf
 	@echo "pdflatex finished; the PDF files are in $(SPHINX_BUILDDIR)/latex."
 
-text:
+text: docs/conf.py
 	PYTHONPATH=${top_srcdir}/docs  $(SPHINXBUILD) -b text $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/text
 	@echo
 	@echo "Build finished. The text files are in $(SPHINX_BUILDDIR)/text."
 
-man:
+man: docs/conf.py
 	PYTHONPATH=${top_srcdir}/docs  $(SPHINXBUILD) -b man $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/man
 	@echo
 	@echo "Build finished. The manual pages are in $(SPHINX_BUILDDIR)/man."
 
-changes:
+changes: docs/conf.py
 	PYTHONPATH=${top_srcdir}/docs  $(SPHINXBUILD) -b changes $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/changes
 	@echo
 	@echo "The overview file is in $(SPHINX_BUILDDIR)/changes."
 
-linkcheck:
+linkcheck: docs/conf.py
 	PYTHONPATH=${top_srcdir}/docs  $(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/linkcheck
 	@echo
 	@echo "Link check complete; look for any errors in the above output " \
 	      "or in $(SPHINX_BUILDDIR)/linkcheck/output.txt."
 
-doctest:
+doctest: docs/conf.py
 	PYTHONPATH=${top_srcdir}/docs  $(SPHINXBUILD) -b doctest $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/doctest
 	@echo "Testing of doctests in the sources finished, look at the " \
 	      "results in $(SPHINX_BUILDDIR)/doctest/output.txt."
+
 endif
 
+noinst_PROGRAMS+= \
+		  docs/libgearman/examples/gearman_client_do_background_example \
+		  docs/libgearman/examples/gearman_client_do_example \
+		  docs/libgearman/examples/gearman_execute_example \
+		  docs/libgearman/examples/gearman_execute_partition
+
+docs_libgearman_examples_gearman_execute_example_SOURCES= docs/libgearman/examples/gearman_execute_example.c
+docs_libgearman_examples_gearman_execute_example_LDADD= libgearman/libgearman.la
+
+docs_libgearman_examples_gearman_execute_partition_SOURCES= docs/libgearman/examples/gearman_execute_partition.c
+docs_libgearman_examples_gearman_execute_partition_LDADD= libgearman/libgearman.la
+
+docs_libgearman_examples_gearman_client_do_example_SOURCES= docs/libgearman/examples/gearman_client_do_example.c
+docs_libgearman_examples_gearman_client_do_example_LDADD= libgearman/libgearman.la
+
+docs_libgearman_examples_gearman_client_do_background_example_SOURCES= docs/libgearman/examples/gearman_client_do_background_example.c
+docs_libgearman_examples_gearman_client_do_background_example_LDADD= libgearman/libgearman.la

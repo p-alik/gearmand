@@ -27,7 +27,7 @@ void gearmand_connection_list_init(gearmand_connection_list_st *universal,
 
 void gearman_connection_list_free(gearmand_connection_list_st *universal)
 {
-  while (universal->con_list != NULL)
+  while (universal->con_list)
     gearmand_io_free(universal->con_list);
 }
 
@@ -36,7 +36,7 @@ gearman_server_con_st *gearmand_ready(gearmand_connection_list_st *universal)
   /* We can't keep universal between calls since connections may be removed during
     processing. If this list ever gets big, we may want something faster. */
 
-  for (gearmand_io_st *con= universal->con_list; con != NULL; con= con->next)
+  for (gearmand_io_st *con= universal->con_list; con; con= con->next)
   {
     if (con->options.ready)
     {

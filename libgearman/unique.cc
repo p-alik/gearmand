@@ -45,7 +45,7 @@ gearman_unique_t gearman_unique_make(const char *arg, size_t arg_size)
 
 size_t gearman_unique_size(gearman_unique_t *self)
 {
-  if (! self)
+  if (not self)
     return 0;
 
   return self->size;

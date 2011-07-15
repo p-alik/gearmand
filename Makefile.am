@@ -15,23 +15,15 @@ lib_LTLIBRARIES =
 noinst_LTLIBRARIES =
 nobase_include_HEADERS =
 noinst_HEADERS =
-man_MANS =
+man1_MANS =
+man3_MANS =
+man8_MANS =
 DISTCLEANFILES =
-EXTRA_DIST = config/top.h
+EXTRA_DIST =
 CLEANFILES =
 TESTS =
 
 GEARMAN_TMP = ${abs_top_builddir}/tests/var/tmp/
-
-CLEANFILES+= config/top.h
-
-CLIENT_LD_FLAGS=
-if TARGET_OSX
-CLIENT_LD_FLAGS+= $(BOOST_PROGRAM_OPTIONS_LDFLAGS)
-else
-CLIENT_LD_FLAGS+= -L$(BOOST_PROGRAM_OPTIONS_LDPATH)
-endif
-
 
 include benchmark/include.am
 include bin/include.am
@@ -45,9 +37,14 @@ include tests/include.am
 include support/include.am
 include docs/include.am
 
+docs: html man
+
 TESTS += ${check_PROGRAMS}
 
-EXTRA_DIST+= ${man_MANS}
+EXTRA_DIST+= HACKING
+EXTRA_DIST+= ${man1_MANS}
+EXTRA_DIST+= ${man3_MANS}
+EXTRA_DIST+= ${man8_MANS}
 EXTRA_DIST+= scripts/README.solaris
 
 test: check
@@ -55,14 +52,32 @@ test: check
 clean-local:
 	-rm -rf docs/_build docs/doctrees
 
-rpm: man all dist
-	cp gearmand-$(VERSION).tar.gz ~/rpmbuild/SOURCES/
-	rpmbuild -ba support/gearmand.spec
-	cp ~/rpmbuild/RPMS/x86_64/gearmand-$(VERSION)*.rpm .
-	cp ~/rpmbuild/SRPMS/gearmand-$(VERSION)*.rpm .
+rpm-build: support/gearmand.spec
+	@rm -f ~/rpmbuild/RPMS/x86_64/gearmand-$(VERSION)*.rpm
+	@rm -f ~/rpmbuild/SRPMS/gearmand-$(VERSION)*.rpm
+	@cp gearmand-$(VERSION).tar.gz ~/rpmbuild/SOURCES/
+	@cp support/gearmand.init ~/rpmbuild/SOURCES/
+	@rpmbuild -ba support/gearmand.spec
+	@cp ~/rpmbuild/RPMS/x86_64/gearmand-$(VERSION)*.rpm .
+	@cp ~/rpmbuild/RPMS/x86_64/gearmand-devel-$(VERSION)*.rpm .
+	@cp ~/rpmbuild/RPMS/x86_64/gearmand-debuginfo-$(VERSION)*.rpm .
+	@cp ~/rpmbuild/RPMS/x86_64/gearmand-server-$(VERSION)*.rpm .
+	@cp ~/rpmbuild/SRPMS/gearmand-$(VERSION)*.rpm .
+
+rpm-sign: rpm-build
+	@rpm --addsign gearmand-$(VERSION)*.rpm gearmand-devel-$(VERSION)*.rpm gearmand-debuginfo-$(VERSION)*.rpm gearmand-server-$(VERSION)*.rpm
+	@rpm --checksig gearmand-$(VERSION)*.rpm gearmand-devel-$(VERSION)*.rpm gearmand-debuginfo-$(VERSION)*.rpm gearmand-server-$(VERSION)*.rpm
+
+rpm: man distcheck rpm-build
+
+release: rpm rpm-sign
+	@rpm --addsign gearmand-$(VERSION)*.rpm gearmand-devel-$(VERSION)*.rpm gearmand-debuginfo-$(VERSION)*.rpm gearmand-server-$(VERSION)*.rpm
+	@rpm --checksig gearmand-$(VERSION)*.rpm gearmand-devel-$(VERSION)*.rpm gearmand-debuginfo-$(VERSION)*.rpm gearmand-server-$(VERSION)*.rpm
 
 merge-clean:
-	find ./ | $(GREP) \.orig | xargs rm -f
-	find ./ | $(GREP) \.rej | xargs rm -f
-	find ./ | $(GREP) \~$$ | xargs rm -f
-	bzr unknowns
+	@find ./ | $(GREP) \.moved | xargs rm -r -f
+	@find ./ | $(GREP) \.orig | xargs rm -f
+	@find ./ | $(GREP) \.rej | xargs rm -f
+	@find ./ | $(GREP) \~$$ | xargs rm -f
+	@echo "The follow files need to be removed or checked in:"
+	@bzr unknowns

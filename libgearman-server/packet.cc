@@ -13,11 +13,16 @@
 
 #include <libgearman-server/common.h>
 
+#define GEARMAN_CORE
+#include <libgearman/command.h>
+
 #include <libgearman-server/fifo.h>
 #include <assert.h>
 #include <cstring>
 
+#ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
 
 /*
  * Public definitions
@@ -105,25 +110,21 @@ gearmand_error_t gearman_server_io_packet_add(gearman_server_con_st *con,
 {
   gearman_server_packet_st *server_packet;
   va_list ap;
-  size_t arg_size;
-  gearmand_error_t ret;
 
   server_packet= gearman_server_packet_create(con->thread, false);
-  if (server_packet == NULL)
+  if (not server_packet)
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
 
   gearmand_packet_init(&(server_packet->packet), magic, command);
-  server_packet->packet.magic= magic;
-  server_packet->packet.command= command;
 
   va_start(ap, arg);
 
-  while (arg != NULL)
+  while (arg)
   {
-    arg_size= va_arg(ap, size_t);
+    size_t arg_size= va_arg(ap, size_t);
 
-    ret= gearmand_packet_create(&(server_packet->packet), arg, arg_size);
-    if (ret != GEARMAN_SUCCESS)
+    gearmand_error_t ret= gearmand_packet_create(&(server_packet->packet), arg, arg_size);
+    if (gearmand_failed(ret))
     {
       va_end(ap);
       gearmand_packet_free(&(server_packet->packet));
@@ -131,13 +132,13 @@ gearmand_error_t gearman_server_io_packet_add(gearman_server_con_st *con,
       return ret;
     }
 
-    arg = va_arg(ap, void *);
+    arg= va_arg(ap, void *);
   }
 
   va_end(ap);
 
-  ret= gearmand_packet_pack_header(&(server_packet->packet));
-  if (ret != GEARMAN_SUCCESS)
+  gearmand_error_t ret= gearmand_packet_pack_header(&(server_packet->packet));
+  if (gearmand_failed(ret))
   {
     gearmand_packet_free(&(server_packet->packet));
     gearman_server_packet_free(server_packet, con->thread, false);
@@ -196,73 +197,33 @@ gearman_server_proc_packet_remove(gearman_server_con_st *con)
   return server_packet;
 }
 
-/**
- * Command info. Update GEARMAN_MAX_COMMAND_ARGS to the largest number in the
- * args column.
- */
-gearman_command_info_st gearmand_command_info_list[GEARMAN_COMMAND_MAX]=
+const char *gearmand_strcommand(gearmand_packet_st *packet)
 {
-  { "TEXT",               5, false },
-  { "CAN_DO",             1, false },
-  { "CANT_DO",            1, false },
-  { "RESET_ABILITIES",    0, false },
-  { "PRE_SLEEP",          0, false },
-  { "UNUSED",             0, false },
-  { "NOOP",               0, false },
-  { "SUBMIT_JOB",         2, true  },
-  { "JOB_CREATED",        1, false },
-  { "GRAB_JOB",           0, false },
-  { "NO_JOB",             0, false },
-  { "JOB_ASSIGN",         2, true  },
-  { "WORK_STATUS",        3, false },
-  { "WORK_COMPLETE",      1, true  },
-  { "WORK_FAIL",          1, false },
-  { "GET_STATUS",         1, false },
-  { "ECHO_REQ",           0, true  },
-  { "ECHO_RES",           0, true  },
-  { "SUBMIT_JOB_BG",      2, true  },
-  { "ERROR",              2, false },
-  { "STATUS_RES",         5, false },
-  { "SUBMIT_JOB_HIGH",    2, true  },
-  { "SET_CLIENT_ID",      1, false },
-  { "CAN_DO_TIMEOUT",     2, false },
-  { "ALL_YOURS",          0, false },
-  { "WORK_EXCEPTION",     1, true  },
-  { "OPTION_REQ",         1, false },
-  { "OPTION_RES",         1, false },
-  { "WORK_DATA",          1, true  },
-  { "WORK_WARNING",       1, true  },
-  { "GRAB_JOB_UNIQ",      0, false },
-  { "JOB_ASSIGN_UNIQ",    3, true  },
-  { "SUBMIT_JOB_HIGH_BG", 2, true  },
-  { "SUBMIT_JOB_LOW",     2, true  },
-  { "SUBMIT_JOB_LOW_BG",  2, true  },
-  { "SUBMIT_JOB_SCHED",   7, true  },
-  { "SUBMIT_JOB_EPOCH",   3, true  }
-};
+  assert(packet);
+  return gearman_command_info(packet->command)->name;
+}
 
 inline static gearmand_error_t packet_create_arg(gearmand_packet_st *packet,
                                                  const void *arg, size_t arg_size)
 {
-  void *new_args;
   size_t offset;
 
-  if (packet->argc == gearmand_command_info_list[packet->command].argc &&
-      (! (gearmand_command_info_list[packet->command].data) ||
-       packet->data != NULL))
+  if (packet->argc == gearman_command_info(packet->command)->argc &&
+      (not (gearman_command_info(packet->command)->data) ||
+       packet->data))
   {
-    gearmand_log_error("too many arguments for command(%s)", gearmand_command_info_list[packet->command].name);
+    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "too many arguments for command(%s)", gearman_command_info(packet->command)->name);
     return GEARMAN_TOO_MANY_ARGS;
   }
 
-  if (packet->argc == gearmand_command_info_list[packet->command].argc)
+  if (packet->argc == gearman_command_info(packet->command)->argc)
   {
     packet->data= static_cast<const char *>(arg);
     packet->data_size= arg_size;
     return GEARMAN_SUCCESS;
   }
 
-  if (packet->args_size == 0 && packet->magic != GEARMAN_MAGIC_TEXT)
+  if (packet->args_size == 0 and packet->magic != GEARMAN_MAGIC_TEXT)
     packet->args_size= GEARMAN_PACKET_HEADER_SIZE;
 
   if ((packet->args_size + arg_size) < GEARMAN_ARGS_BUFFER_SIZE)
@@ -274,8 +235,8 @@ inline static gearmand_error_t packet_create_arg(gearmand_packet_st *packet,
     if (packet->args == packet->args_buffer)
       packet->args= NULL;
 
-    new_args= realloc(packet->args, packet->args_size + arg_size);
-    if (new_args == NULL)
+    void *new_args= realloc(packet->args, packet->args_size + arg_size);
+    if (not new_args)
     {
       gearmand_perror("realloc");
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
@@ -425,11 +386,11 @@ static gearmand_error_t gearmand_packet_unpack_header(gearmand_packet_st *packet
 {
   uint32_t tmp;
 
-  if (! memcmp(packet->args, "\0REQ", 4))
+  if (not memcmp(packet->args, "\0REQ", 4))
   {
     packet->magic= GEARMAN_MAGIC_REQUEST;
   }
-  else if (! memcmp(packet->args, "\0RES", 4))
+  else if (not memcmp(packet->args, "\0RES", 4))
   {
     packet->magic= GEARMAN_MAGIC_RESPONSE;
   }
@@ -463,13 +424,13 @@ size_t gearmand_packet_pack(const gearmand_packet_st *packet,
   if (packet->args_size == 0)
   {
     *ret_ptr= GEARMAN_SUCCESS;
-    return EXIT_SUCCESS;
+    return 0;
   }
 
   if (packet->args_size > data_size)
   {
     *ret_ptr= GEARMAN_FLUSH_DATA;
-    return EXIT_SUCCESS;
+    return 0;
   }
 
   memcpy(data, packet->args, packet->args_size);
@@ -494,7 +455,7 @@ size_t gearmand_packet_unpack(gearmand_packet_st *packet,
       if (ptr == NULL)
       {
         *ret_ptr= GEARMAN_IO_WAIT;
-        return EXIT_SUCCESS;
+        return 0;
       }
 
       packet->magic= GEARMAN_MAGIC_TEXT;
@@ -530,7 +491,7 @@ size_t gearmand_packet_unpack(gearmand_packet_st *packet,
     else if (data_size < GEARMAN_PACKET_HEADER_SIZE)
     {
       *ret_ptr= GEARMAN_IO_WAIT;
-      return EXIT_SUCCESS;
+      return 0;
     }
 
     packet->args= packet->args_buffer;
@@ -538,8 +499,10 @@ size_t gearmand_packet_unpack(gearmand_packet_st *packet,
     memcpy(packet->args, data, GEARMAN_PACKET_HEADER_SIZE);
 
     *ret_ptr= gearmand_packet_unpack_header(packet);
-    if (*ret_ptr != GEARMAN_SUCCESS)
-      return EXIT_SUCCESS;
+    if (gearmand_failed(*ret_ptr))
+    {
+      return 0;
+    }
 
     used_size= GEARMAN_PACKET_HEADER_SIZE;
   }
@@ -548,14 +511,15 @@ size_t gearmand_packet_unpack(gearmand_packet_st *packet,
     used_size= 0;
   }
 
-  while (packet->argc != gearmand_command_info_list[packet->command].argc)
+  while (packet->argc != gearman_command_info(packet->command)->argc)
   {
-    if (packet->argc != (gearmand_command_info_list[packet->command].argc - 1) ||
-        gearmand_command_info_list[packet->command].data)
+    if (packet->argc != (gearman_command_info(packet->command)->argc - 1) ||
+        gearman_command_info(packet->command)->data)
     {
       ptr= (uint8_t *)memchr(((uint8_t *)data) + used_size, 0, data_size - used_size);
-      if (ptr == NULL)
+      if (not ptr)
       {
+        gearmand_log_crazy(GEARMAN_DEFAULT_LOG_PARAM, "Possible protocol error for %s, recieved only %u args", gearman_command_info(packet->command)->name, packet->argc);
         *ret_ptr= GEARMAN_IO_WAIT;
         return used_size;
       }
@@ -563,7 +527,7 @@ size_t gearmand_packet_unpack(gearmand_packet_st *packet,
       size_t arg_size= (size_t)(ptr - (((uint8_t *)data) + used_size)) + 1;
       *ret_ptr= packet_create_arg(packet, ((uint8_t *)data) + used_size, arg_size);
 
-      if (*ret_ptr != GEARMAN_SUCCESS)
+      if (gearmand_failed(*ret_ptr))
         return used_size;
 
       packet->data_size-= arg_size;
@@ -577,10 +541,11 @@ size_t gearmand_packet_unpack(gearmand_packet_st *packet,
         return used_size;
       }
 
-      *ret_ptr= packet_create_arg(packet, ((uint8_t *)data) + used_size,
-                                  packet->data_size);
-      if (*ret_ptr != GEARMAN_SUCCESS)
+      *ret_ptr= packet_create_arg(packet, ((uint8_t *)data) + used_size, packet->data_size);
+      if (gearmand_failed(*ret_ptr))
+      {
         return used_size;
+      }
 
       used_size+= packet->data_size;
       packet->data_size= 0;

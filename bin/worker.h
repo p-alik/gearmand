@@ -40,7 +40,8 @@
 class Worker
 {
 public:
-  Worker()
+  Worker() :
+    _worker()
   {
     if (gearman_worker_create(&_worker) == NULL)
     {

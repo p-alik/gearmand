@@ -56,22 +56,27 @@
 #include <sys/uio.h>
 
 #include <libgearman/visibility.h>
-#include <libgearman/configure.h>
+#include <libgearman/version.h>
 #include <libgearman/constants.h>
+#include <libgearman/job_handle.h>
+#include <libgearman/client_callbacks.h>
 #include <libgearman/strerror.h>
+#include <libgearman/function.h>
 
 // Everything above this line must be in the order specified.
-#include <libgearman/workload.h>
-#include <libgearman/unique.h>
+#include <libgearman/argument.h>
+#include <libgearman/task_attr.h>
 #include <libgearman/core.h>
 #include <libgearman/task.h>
 #include <libgearman/job.h>
+#include <libgearman/string.h>
+#include <libgearman/result.h>
+#include <libgearman/execute.h>
 
 #include <libgearman/worker.h>
 #include <libgearman/client.h>
-#include <libgearman/function.h>
-#include <libgearman/status.h>
 #include <libgearman/connection.h>
+#include <libgearman/parse.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -118,19 +123,6 @@ GEARMAN_API
 const char *gearman_verbose_name(gearman_verbose_t verbose);
 
 /**
- * Utility function used for parsing server lists.
- *
- * @param[in] servers String containing a list of servers to parse.
- * @param[in] callback Function to call for each server that is found.
- * @param[in] context Argument to pass along with callback function.
- * @return Standard Gearman return value.
- */
-GEARMAN_API
-gearman_return_t gearman_parse_servers(const char *servers,
-                                       gearman_parse_server_fn *callback,
-                                       void *context);
-
-/**
  * Get current socket I/O activity timeout value.
  *
  * @param[in] gearman_client_st or gearman_worker_st Structure previously initialized.
@@ -155,3 +147,13 @@ gearman_return_t gearman_parse_servers(const char *servers,
 #ifdef __cplusplus
 }
 #endif
+
+#ifdef __cplusplus
+#define gearman_literal_param(X) (X), static_cast<size_t>(sizeof(X) - 1)
+#define gearman_literal_param_size(X) static_cast<size_t>(sizeof(X) - 1)
+#else
+#define gearman_literal_param(X) (X), (size_t)(sizeof(X) - 1)
+#define gearman_literal_param_size(X) (size_t)(sizeof(X) - 1)
+#endif
+
+#define gearman_c_str_param(X) (X) ? (X) : NULL, (X) ? strlen(X) : 0

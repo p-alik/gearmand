@@ -40,7 +40,8 @@
 class Client
 {
 public:
-  Client()
+  Client() :
+    _client()
   {
     if (gearman_client_create(&_client) == NULL)
     {

@@ -35,7 +35,7 @@
  *
  */
 
-#include "config.h"
+#include <config.h>
 
 #include <cstdio>
 #include <cstdlib>
@@ -139,12 +139,17 @@ int main(int args, char *argv[])
 
   if (vm.count("shutdown"))
   {
-    instance.push(new Operation(STRING_WITH_LEN("shutdown graceful\r\n"), false));
+    instance.push(new Operation(STRING_WITH_LEN("shutdown\r\n"), false));
   }
 
   if (vm.count("status"))
   {
     instance.push(new Operation(STRING_WITH_LEN("status\r\n")));
+  }
+
+  if (vm.count("workers"))
+  {
+    instance.push(new Operation(STRING_WITH_LEN("workers\r\n")));
   }
 
   if (vm.count("server-version"))

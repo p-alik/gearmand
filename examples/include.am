@@ -12,16 +12,14 @@
 # All paths should be given relative to the root
 
 EXAMPLES_LDADD= \
-		$(AM_LDADD) \
 		$(BOOST_PROGRAM_OPTIONS_LIBS) \
-		$(LTLIBEVENT) \
-		$(LTLIBUUID) \
 		libgearman/libgearman.la
 
 EXAMPLES_LD_FLAGS= \
-		  $(CLIENT_LDFLAGS) \
-		  $(AM_LDFLAGS)
-
+		   $(AM_LDFLAGS) \
+		   $(CLIENT_LDFLAGS) \
+		   $(LTLIBEVENT) \
+		   $(LTLIBUUID)
 EXAMPLES_CPPFLAGS= \
 		   $(AM_CPPFLAGS) \
 		   $(BOOST_CPPFLAGS)

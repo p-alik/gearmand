@@ -110,8 +110,8 @@ struct gearman_server_con_st
   gearman_server_con_st *io_prev;
   gearman_server_con_st *proc_next;
   gearman_server_con_st *proc_prev;
-  gearman_server_worker_st *worker_list;
-  gearman_server_client_st *client_list;
+  struct gearman_server_worker_st *worker_list;
+  struct gearman_server_client_st *client_list;
   const char *_host; // client host
   const char *_port; // client port
   char id[GEARMAN_SERVER_CON_ID_SIZE];

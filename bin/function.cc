@@ -9,15 +9,17 @@
 #include <config.h>
 
 #include <cstring>
+#include <iostream>
 
 #include <bin/function.h>
 
 namespace gearman_client
 {
-Function::Function(const char *name_arg)
-{
-  memset(&_task, 0, sizeof(gearman_task_st));
 
+Function::Function(const char *name_arg) :
+  _name(),
+  _buffer()
+{
   // copy the name into the _name vector
   size_t length= strlen(name_arg);
   _name.resize(length +1);
@@ -26,12 +28,6 @@ Function::Function(const char *name_arg)
 
 Function::~Function()
 {
-  gearman_task_free(&_task);
-}
-
-gearman_task_st * Function::task()
-{
-  return &_task;
 }
 
 } // namespace gearman_client

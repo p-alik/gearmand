@@ -20,9 +20,8 @@ endif
 
 if HAVE_LIBSQLITE3
 SQLITE_TEST= tests/sqlite_test
-QUEUE_REGRESSION_TEST= tests/queue_regression
 CLEANFILES+= tests/gearman.sql tests/gearman.sql-journal tests/gearmand.log*
-noinst_PROGRAMS += tests/sqlite_test tests/queue_regression
+noinst_PROGRAMS += tests/sqlite_test
 endif
 
 tests_sqlite_test_SOURCES= \
@@ -30,22 +29,22 @@ tests_sqlite_test_SOURCES= \
 			   tests/sqlite_test.cc
 tests_sqlite_test_LDADD= ${CLIENT_LDADD}
 
-queue-regression:
-if HAVE_LIBSQLITE3
-	$(QUEUE_REGRESSION_TEST) $(ARG1) $(ARG2)
-endif
+sqlite-nuke: 
+	@rm -f tests/gearman.sql
+	@rm -f tests/gearman.sql-journal
+	@rm -f tests/gearmand.log*
 
-test-sqlite-queue:
+test-sqlite-queue: sqlite-nuke
 if HAVE_LIBSQLITE3
 	$(SQLITE_TEST) $(ARG1) $(ARG2)
 endif
 
-gdb-sqlite:
+gdb-sqlite: sqlite-nuke
 if HAVE_LIBSQLITE3
 	$(LIBTOOL) --mode=execute gdb tests/sqlite_test
 endif
 
-valgrind-sqlite:
+valgrind-sqlite: sqlite-nuke
 if HAVE_LIBSQLITE3
 	$(VALGRIND_COMMAND) $(SQLITE_TEST) $(ARG1) $(ARG2)
 endif

@@ -45,7 +45,9 @@ void gearmand_initialize_thread_logging(const char *identity)
   }
 }
 
+#ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
 
 /**
  * Log a message.
@@ -57,14 +59,14 @@ void gearmand_initialize_thread_logging(const char *identity)
  * @param[in] args Variable argument list that has been initialized.
  */
 
-static void gearmand_log(gearmand_verbose_t verbose, const char *format, va_list args)
+static void gearmand_log(const char *position, const char *func, gearmand_verbose_t verbose, const char *format, va_list args)
 {
+  (void)func;
   char log_buffer[GEARMAN_MAX_ERROR_SIZE*2];
 
   (void) pthread_once(&intitialize_log_once, create_log);
 
-  const char *identity;
-  identity= (const char *)pthread_getspecific(logging_key);
+  const char *identity= (const char *)pthread_getspecific(logging_key);
 
   if (identity == NULL)
     identity= "[  main ]";
@@ -83,7 +85,15 @@ static void gearmand_log(gearmand_verbose_t verbose, const char *format, va_list
     char *ptr= log_buffer;
     ptr+= length;
 
-    vsnprintf(ptr, remaining_size, format, args);
+    int format_length= vsnprintf(ptr, remaining_size, format, args);
+    remaining_size-= format_length;
+
+    ptr+= format_length;
+
+    if (position and verbose != GEARMAND_VERBOSE_INFO)
+      snprintf(ptr, remaining_size, " -> %s", position);
+
+
     Gearmand()->log_fn(log_buffer, verbose, (void *)Gearmand()->log_context);
   }
   else
@@ -95,21 +105,21 @@ static void gearmand_log(gearmand_verbose_t verbose, const char *format, va_list
 }
 
 
-void gearmand_log_fatal(const char *format, ...)
+void gearmand_log_fatal(const char *position, const char *func, const char *format, ...)
 {
   va_list args;
 
-  if (!Gearmand() || Gearmand()->verbose >= GEARMAND_VERBOSE_FATAL)
+  if (not Gearmand() || Gearmand()->verbose >= GEARMAND_VERBOSE_FATAL)
   {
     va_start(args, format);
-    gearmand_log(GEARMAND_VERBOSE_FATAL, format, args);
+    gearmand_log(position, func, GEARMAND_VERBOSE_FATAL, format, args);
     va_end(args);
   }
 }
 
-void gearmand_log_fatal_perror(const char *position, const char *message)
+void gearmand_log_fatal_perror(const char *position, const char *function, const char *message)
 {
-  if (!Gearmand() || Gearmand()->verbose >= GEARMAND_VERBOSE_FATAL)
+  if (not Gearmand() || Gearmand()->verbose >= GEARMAND_VERBOSE_FATAL)
   {
     const char *errmsg_ptr;
     char errmsg[GEARMAN_MAX_ERROR_SIZE]; 
@@ -122,67 +132,69 @@ void gearmand_log_fatal_perror(const char *position, const char *message)
     errmsg_ptr= errmsg;
 #endif
 
-    char final[BUFSIZ];
-    snprintf(final, sizeof(final), "%s(%s) -> %s ", message, errmsg_ptr, position);
-    gearmand_log_fatal(final);
+    gearmand_log_fatal(position, function, "%s(%s)", message, errmsg_ptr);
   }
 }
 
-void gearmand_log_error(const char *format, ...)
+gearmand_error_t gearmand_log_error(const char *position, const char *function, const char *format, ...)
 {
   va_list args;
 
-  if (!Gearmand() || Gearmand()->verbose >= GEARMAND_VERBOSE_ERROR)
+  if (not Gearmand() || Gearmand()->verbose >= GEARMAND_VERBOSE_ERROR)
   {
     va_start(args, format);
-    gearmand_log(GEARMAND_VERBOSE_ERROR, format, args);
+    gearmand_log(position, function, GEARMAND_VERBOSE_ERROR, format, args);
+    va_end(args);
+  }
+
+  return GEARMAN_UNKNOWN_OPTION;
+}
+
+void gearmand_log_info(const char *position, const char *function, const char *format, ...)
+{
+  va_list args;
+
+  if (not Gearmand() || Gearmand()->verbose >= GEARMAND_VERBOSE_INFO)
+  {
+    va_start(args, format);
+    gearmand_log(position, function, GEARMAND_VERBOSE_INFO, format, args);
     va_end(args);
   }
 }
 
-void gearmand_log_info(const char *format, ...)
+void gearmand_log_debug(const char *position, const char *function, const char *format, ...)
 {
   va_list args;
 
-  if (!Gearmand() || Gearmand()->verbose >= GEARMAND_VERBOSE_INFO)
+  if (not Gearmand() || Gearmand()->verbose >= GEARMAND_VERBOSE_DEBUG)
   {
     va_start(args, format);
-    gearmand_log(GEARMAND_VERBOSE_INFO, format, args);
+    gearmand_log(position, function, GEARMAND_VERBOSE_DEBUG, format, args);
     va_end(args);
   }
 }
 
-void gearmand_log_debug(const char *format, ...)
-{
-  va_list args;
-
-  if (!Gearmand() || Gearmand()->verbose >= GEARMAND_VERBOSE_DEBUG)
-  {
-    va_start(args, format);
-    gearmand_log(GEARMAND_VERBOSE_DEBUG, format, args);
-    va_end(args);
-  }
-}
-
-void gearmand_log_crazy(const char *format, ...)
+void gearmand_log_crazy(const char *position, const char *function, const char *format, ...)
 {
 #ifdef DEBUG
   va_list args;
 
-  if (!Gearmand() || Gearmand()->verbose >= GEARMAND_VERBOSE_CRAZY)
+  if (not Gearmand() || Gearmand()->verbose >= GEARMAND_VERBOSE_CRAZY)
   {
     va_start(args, format);
-    gearmand_log(GEARMAND_VERBOSE_CRAZY, format, args);
+    gearmand_log(position, function, GEARMAND_VERBOSE_CRAZY, format, args);
     va_end(args);
   }
 #else
+  (void)position;
+  (void)function;
   (void)format;
 #endif
 }
 
-void gearmand_log_perror(const char *position, const char *message)
+gearmand_error_t gearmand_log_perror(const char *position, const char *function, const char *message)
 {
-  if (!Gearmand() || Gearmand()->verbose >= GEARMAND_VERBOSE_ERROR)
+  if (not Gearmand() or (Gearmand()->verbose >= GEARMAND_VERBOSE_ERROR))
   {
     const char *errmsg_ptr;
     char errmsg[GEARMAN_MAX_ERROR_SIZE]; 
@@ -194,22 +206,48 @@ void gearmand_log_perror(const char *position, const char *message)
     strerror_r(errno, errmsg, sizeof(errmsg));
     errmsg_ptr= errmsg;
 #endif
-    gearmand_log_error("%s(%s) -> %s ", message, errmsg_ptr, position);
+    gearmand_log_error(position, function, "%s(%s)", message, errmsg_ptr);
   }
+
+  return GEARMAN_ERRNO;
 }
 
-void gearmand_log_gerror(const char *position, const char *message, const gearmand_error_t rc)
+gearmand_error_t gearmand_log_gerror(const char *position, const char *function, const gearmand_error_t rc, const char *message)
 {
-  gearmand_log_error("%s(%s) -> %s ", message, gearmand_strerror(rc), position);
+  if (gearmand_failed(rc) and rc != GEARMAN_IO_WAIT)
+  {
+    gearmand_log_error(position, function, "%s(%s)", message, gearmand_strerror(rc));
+  }
+  else if (rc == GEARMAN_IO_WAIT)
+  {
+    gearmand_log_crazy(position, function, "%s(%s)", message, gearmand_strerror(rc));
+  }
+
+  return rc;
 }
 
-void gearmand_log_gai_error(const char *position, const char *message, const int rc)
+gearmand_error_t gearmand_log_gai_error(const char *position, const char *function, const int rc, const char *message)
 {
   if (rc == EAI_SYSTEM)
   {
-    gearmand_log_perror(position, message);
-    return;
+    return gearmand_log_perror(position, function, message);
   }
 
-  gearmand_log_error("%s getaddrinfo(%s) -> %s", message, gai_strerror(rc), position);
+  gearmand_log_error(position, function, "%s getaddrinfo(%s)", message, gai_strerror(rc));
+
+  return GEARMAN_GETADDRINFO;
+}
+
+gearmand_error_t gearmand_log_memory_error(const char *position, const char *function, const char *allocator, const char *object_type, size_t count, size_t size)
+{
+  if (count > 1)
+  {
+    gearmand_log_error(position, function, "%s(%s, count: %lu size: %lu)", allocator, object_type, static_cast<unsigned long>(count), static_cast<unsigned long>(size));
+  }
+  else
+  {
+    gearmand_log_error(position, function, "%s(%s, size: %lu)", allocator, object_type, static_cast<unsigned long>(count), static_cast<unsigned long>(size));
+  }
+
+  return GEARMAN_MEMORY_ALLOCATION_FAILURE;
 }

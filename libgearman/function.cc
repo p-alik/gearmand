@@ -36,59 +36,38 @@
  */
 
 #include <libgearman/common.h>
-#include <cerrno>
-#include <cstdlib>
-#include <cstring>
 
-struct gearman_function_st {
-  size_t size;
-  char *name;
-};
-
-gearman_function_st *gearman_function_create(const char *name, size_t size)
+gearman_function_t gearman_function_create_v1(gearman_worker_fn func)
 {
-  errno= 0;
-  if (not name or not size)
-  {
-    errno= EINVAL;
-    return NULL;
-  }
+  gearman_function_t _function= { GEARMAN_WORKER_FUNCTION_V1, { { 0 } } };
 
-  gearman_function_st *function= static_cast<gearman_function_st *>(malloc(sizeof(struct gearman_function_st) +size +1));
+  _function.callback.function_v1.func= func;
 
-  if (not function)
-  {
-    return NULL;
-  }
-
-  function->name= reinterpret_cast<char *>(function) + sizeof(struct gearman_function_st);
-  memcpy(function->name, name, size);
-  function->name[size]= 0;
-  function->size= size;
-
-  return function;
+  return _function;
 }
 
-void gearman_function_free(gearman_function_st *function)
+gearman_function_t gearman_function_create(gearman_function_fn func)
 {
-  if (not  function)
-    return;
+  gearman_function_t _function= { GEARMAN_WORKER_FUNCTION_V2, { { 0 } } };
 
-  free(function);
+  _function.callback.function_v2.func= func;
+
+  return _function;
 }
 
-const char *gearman_function_name(const gearman_function_st *self)
+gearman_function_t gearman_function_create_null()
 {
-  if (not self)
-    return 0;
+  gearman_function_t _function= { GEARMAN_WORKER_FUNCTION_NULL, { { 0 } } };
 
-  return self->name;
+  return _function;
 }
 
-size_t gearman_function_size(const gearman_function_st *self)
+gearman_function_t gearman_function_create_partition(gearman_function_fn func,
+                                                     gearman_aggregator_fn aggregator)
 {
-  if (not self)
-    return 0;
+  gearman_function_t _function= { GEARMAN_WORKER_FUNCTION_PARTITION, { { 0 } } };
 
-  return self->size;
+  _function.callback.partitioner.func= func;
+  _function.callback.partitioner.aggregator= aggregator;
+  return _function;
 }

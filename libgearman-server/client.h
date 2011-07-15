@@ -11,6 +11,7 @@
  * @brief Client Declarations
  */
 
+#pragma once
 #ifndef __GEARMAN_SERVER_CLIENT_H__
 #define __GEARMAN_SERVER_CLIENT_H__
 

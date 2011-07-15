@@ -51,7 +51,9 @@ public:
   typedef std::vector<Operation *> vector;
 
   Operation(const char *command, size_t command_length, bool expect_response= true) :
-    _expect_response(expect_response)
+    _expect_response(expect_response),
+    packet(),
+    response()
   {
     packet.resize(command_length);
     memcpy(&packet[0], command, command_length);

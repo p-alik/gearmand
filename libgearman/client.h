@@ -43,12 +43,7 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/**
- * @addtogroup gearman_client Client Declarations
+/** @addtogroup gearman_client Client Declarations
  *
  * This is the interface gearman clients should use. You can run tasks one at a
  * time or concurrently.
@@ -64,43 +59,35 @@ enum gearman_client_t {
   GEARMAN_CLIENT_STATE_PACKET
 };
 
-
 /**
  * @ingroup gearman_client
  */
 struct gearman_client_st
 {
   struct {
-    bool allocated LIBGEARMAN_BITFIELD;
-    bool non_blocking LIBGEARMAN_BITFIELD;
-    bool task_in_use LIBGEARMAN_BITFIELD;
-    bool unbuffered_result LIBGEARMAN_BITFIELD;
-    bool no_new LIBGEARMAN_BITFIELD;
-    bool free_tasks LIBGEARMAN_BITFIELD;
+    bool allocated;
+    bool non_blocking;
+    bool unbuffered_result;
+    bool no_new;
+    bool free_tasks;
   } options;
   enum gearman_client_t state;
-  gearman_return_t do_ret;
   uint32_t new_tasks;
   uint32_t running_tasks;
   uint32_t task_count;
-  size_t do_data_size;
   void *context;
   gearman_connection_st *con;
   gearman_task_st *task;
   gearman_task_st *task_list;
   gearman_task_context_free_fn *task_context_free_fn;
-  void *do_data;
-  gearman_workload_fn *workload_fn;
-  gearman_created_fn *created_fn;
-  gearman_data_fn *data_fn;
-  gearman_warning_fn *warning_fn;
-  gearman_universal_status_fn *status_fn;
-  gearman_complete_fn *complete_fn;
-  gearman_exception_fn *exception_fn;
-  gearman_fail_fn *fail_fn;
-  gearman_universal_st universal;
-  gearman_task_st do_task;
+  struct gearman_universal_st universal;
+  struct gearman_actions_t actions;
+  gearman_job_handle_t _do_handle; // Backwards compatible
 };
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * Initialize a client structure. Always check the return value even if passing
@@ -178,6 +165,10 @@ GEARMAN_API
 void gearman_client_add_options(gearman_client_st *client,
                                 gearman_client_options_t options);
 
+GEARMAN_API
+  bool gearman_client_has_option(gearman_client_st *client,
+                                 gearman_client_options_t option);
+
 /**
  * Remove options for a client structure.
  *
@@ -245,6 +236,15 @@ void gearman_client_set_workload_free_fn(gearman_client_st *client,
                                          gearman_free_fn *function,
                                          void *context);
 
+
+GEARMAN_API
+  gearman_return_t gearman_client_set_memory_allocators(gearman_client_st *,
+                                                        gearman_malloc_fn *malloc_fn,
+                                                        gearman_free_fn *free_fn,
+                                                        gearman_realloc_fn *realloc_fn,
+                                                        gearman_calloc_fn *calloc_fn,
+                                                        void *context);
+
 /**
  * Add a job server to a client. This goes into a list of servers that can be
  * used to run tasks. No socket I/O happens here, it is just added to a list.
@@ -264,7 +264,7 @@ gearman_return_t gearman_client_add_server(gearman_client_st *client,
  * SERVER[:PORT][,SERVER[:PORT]]...
  * Some examples are:
  * 10.0.0.1,10.0.0.2,10.0.0.3
- * localhost LIBGEARMAN_BITFIELD234,jobserver2.domain.com:7003,10.0.0.3
+ * localhost234,jobserver2.domain.com:7003,10.0.0.3
  *
  * @param[in] client Structure previously initialized with
  *  gearman_client_create() or gearman_client_clone().
@@ -363,17 +363,9 @@ void *gearman_client_do_low(gearman_client_st *client,
  *  handle.
  */
 GEARMAN_API
-const char *gearman_client_do_job_handle(const gearman_client_st *client);
+const char *gearman_client_do_job_handle(gearman_client_st *client);
 
-/**
- * Get the status for the running task. This should be used between
- * repeated gearman_client_do() (and related) calls to get information.
- *
- * @param[in] client Structure previously initialized with
- *  gearman_client_create() or gearman_client_clone().
- * @param[out] numerator Optional parameter to store the numerator in.
- * @param[out] denominator Optional parameter to store the denominator in.
- */
+// Deprecatd 
 GEARMAN_API
 void gearman_client_do_status(gearman_client_st *client, uint32_t *numerator,
                               uint32_t *denominator);
@@ -397,7 +389,7 @@ gearman_return_t gearman_client_do_background(gearman_client_st *client,
                                               const char *unique,
                                               const void *workload,
                                               size_t workload_size,
-                                              char *job_handle);
+                                              gearman_job_handle_t job_handle);
 
 /**
  * Run a high priority task in the background. See
@@ -409,7 +401,7 @@ gearman_return_t gearman_client_do_high_background(gearman_client_st *client,
                                                    const char *unique,
                                                    const void *workload,
                                                    size_t workload_size,
-                                                   char *job_handle);
+                                                   gearman_job_handle_t job_handle);
 
 /**
  * Run a low priority task in the background. See
@@ -421,7 +413,7 @@ gearman_return_t gearman_client_do_low_background(gearman_client_st *client,
                                                   const char *unique,
                                                   const void *workload,
                                                   size_t workload_size,
-                                                  char *job_handle);
+                                                  gearman_job_handle_t job_handle);
 
 /**
  * Get the status for a backgound job.
@@ -437,7 +429,7 @@ gearman_return_t gearman_client_do_low_background(gearman_client_st *client,
  */
 GEARMAN_API
 gearman_return_t gearman_client_job_status(gearman_client_st *client,
-                                           const char *job_handle,
+                                           const gearman_job_handle_t job_handle,
                                            bool *is_known, bool *is_running,
                                            uint32_t *numerator,
                                            uint32_t *denominator);
@@ -489,12 +481,6 @@ GEARMAN_API
 void gearman_client_set_task_context_free_fn(gearman_client_st *client,
                                              gearman_task_context_free_fn *function);
 
-// Use the job handle in task for returning all information.
-GEARMAN_API
-gearman_status_t gearman_client_execute(gearman_client_st *client,
-                                        const gearman_function_st *function,
-                                        gearman_unique_t *unique,
-                                        const gearman_workload_t *workload);
 
 /**
  * Add a task to be run in parallel.
@@ -719,8 +705,20 @@ void gearman_client_clear_fn(gearman_client_st *client);
 GEARMAN_API
 gearman_return_t gearman_client_run_tasks(gearman_client_st *client);
 
+GEARMAN_LOCAL
+gearman_return_t gearman_client_run_block_tasks(gearman_client_st *client);
+
 GEARMAN_API
 bool gearman_client_compare(const gearman_client_st *first, const gearman_client_st *second);
+
+GEARMAN_API
+bool gearman_client_set_server_option(gearman_client_st *self, const char *option_arg, size_t option_arg_size);
+
+GEARMAN_LOCAL
+size_t gearman_client_count_tasks(gearman_client_st *client);
+
+GEARMAN_API
+void gearman_client_set_namespace(gearman_client_st *self, const char *namespace_key, size_t namespace_key_size);
 
 /** @} */
 

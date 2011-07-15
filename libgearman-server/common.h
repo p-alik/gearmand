@@ -147,6 +147,8 @@ extern "C" {
   __hash ## _count--; \
 }
 
+#define gearmand_array_size(__object) (sizeof((__object)) / sizeof(*(__object)))
+
 /* All thread-safe libevent functions are not in libevent 1.3x, and this is the
    common package version. Make this work for these earlier versions. */
 #ifndef HAVE_EVENT_BASE_NEW

@@ -86,19 +86,35 @@ _server_job_get_unique(gearman_server_st *server, uint32_t unique_key,
 /*
  * Public definitions
  */
+gearman_server_job_st * gearman_server_job_add(gearman_server_st *server,
+                                               const char *function_name, size_t function_name_size,
+                                               const char *unique, size_t unique_size,
+                                               const void *data, size_t data_size,
+                                               gearmand_job_priority_t priority,
+                                               gearman_server_client_st *server_client,
+                                               gearmand_error_t *ret_ptr,
+                                               int64_t when)
+{
+  return gearman_server_job_add_reducer(server,
+                                        function_name, function_name_size,
+                                        unique, unique_size, 
+                                        NULL, 0, // reducer 
+                                        data, data_size,
+                                        priority, server_client, ret_ptr, when);
+}
 
 gearman_server_job_st *
-gearman_server_job_add(gearman_server_st *server,
-                       const char *function_name, size_t function_name_size,
-                       const char *unique, size_t unique_size,
-                       const void *data, size_t data_size,
-                       gearmand_job_priority_t priority,
-                       gearman_server_client_st *server_client,
-                       gearmand_error_t *ret_ptr,
-                       int64_t when)
+gearman_server_job_add_reducer(gearman_server_st *server,
+                               const char *function_name, size_t function_name_size,
+                               const char *unique, size_t unique_size,
+                               const char *reducer_name, size_t reducer_size,
+                               const void *data, size_t data_size,
+                               gearmand_job_priority_t priority,
+                               gearman_server_client_st *server_client,
+                               gearmand_error_t *ret_ptr,
+                               int64_t when)
 {
-  gearman_server_function_st *server_function= gearman_server_function_get(server, function_name,
-                                                                           function_name_size);
+  gearman_server_function_st *server_function= gearman_server_function_get(server, function_name, function_name_size);
   if (server_function == NULL)
   {
     *ret_ptr= GEARMAN_MEMORY_ALLOCATION_FAILURE;
@@ -168,7 +184,7 @@ gearman_server_job_add(gearman_server_st *server,
 
     if (checked_length >= GEARMAND_JOB_HANDLE_SIZE || checked_length < 0)
     {
-      gearmand_log_error("Job handle plus handle count beyond GEARMAND_JOB_HANDLE_SIZE: %s:%u",
+      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "Job handle plus handle count beyond GEARMAND_JOB_HANDLE_SIZE: %s:%u",
                          server->job_handle_prefix, server->job_handle_count);
     }
 
@@ -176,13 +192,23 @@ gearman_server_job_add(gearman_server_st *server,
                              (int)unique_size, unique);
     if (checked_length >= GEARMAN_UNIQUE_SIZE || checked_length < 0)
     {
-      gearmand_log_error("We recieved a unique beyond GEARMAN_UNIQUE_SIZE: %.*s", (int)unique_size, unique);
+      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "We recieved a unique beyond GEARMAN_UNIQUE_SIZE: %.*s", (int)unique_size, unique);
     }
 
     server->job_handle_count++;
     server_job->data= data;
     server_job->data_size= data_size;
 		server_job->when= when; 
+
+    if (reducer_size)
+    {
+      strncpy(server_job->reducer, reducer_name, reducer_size);
+      server_job->reducer[reducer_size]= 0;
+    }
+    else
+    {
+      server_job->reducer[0]= 0;
+    }
 		
     server_job->unique_key= key;
     key= key % GEARMAND_JOB_HASH_SIZE;
@@ -201,14 +227,14 @@ gearman_server_job_add(gearman_server_st *server,
     else if (server_client == NULL && server->queue._add_fn != NULL)
     {
       *ret_ptr= (*(server->queue._add_fn))(server,
-                                         (void *)server->queue._context,
-                                          server_job->unique,
-                                          unique_size,
-                                          function_name,
-                                          function_name_size,
-                                          data, data_size, priority, 
-                                          when);
-      if (*ret_ptr != GEARMAN_SUCCESS)
+                                           (void *)server->queue._context,
+                                           server_job->unique,
+                                           unique_size,
+                                           function_name,
+                                           function_name_size,
+                                           data, data_size, priority, 
+                                           when);
+      if (gearmand_failed(*ret_ptr))
       {
         server_job->data= NULL;
         gearman_server_job_free(server_job);
@@ -231,7 +257,7 @@ gearman_server_job_add(gearman_server_st *server,
     }
 
     *ret_ptr= gearman_server_job_queue(server_job);
-    if (*ret_ptr != GEARMAN_SUCCESS)
+    if (gearmand_failed(*ret_ptr))
     {
       if (server_client == NULL && server->queue._done_fn != NULL)
       {
@@ -252,7 +278,7 @@ gearman_server_job_add(gearman_server_st *server,
     *ret_ptr= GEARMAN_JOB_EXISTS;
   }
 
-  if (server_client != NULL)
+  if (server_client)
   {
     server_client->job= server_job;
     GEARMAN_LIST_ADD(server_job->client, server_client, job_)
@@ -387,9 +413,9 @@ gearman_server_job_peek(gearman_server_con_st *server_con)
 
         int64_t current_time= (int64_t)time(NULL);
 
-        while(server_job != NULL && 
-             server_job->when != 0 && 
-             server_job->when > current_time)
+        while(server_job && 
+              server_job->when != 0 && 
+              server_job->when > current_time)
         {
           server_job = server_job->function_next;  
         }
@@ -434,12 +460,15 @@ static inline void _server_con_worker_list_append(gearman_server_worker_st *list
 
 gearman_server_job_st *gearman_server_job_take(gearman_server_con_st *server_con)
 {
-  for (gearman_server_worker_st *server_worker= server_con->worker_list; server_worker != NULL; server_worker= server_worker->con_next)
+  for (gearman_server_worker_st *server_worker= server_con->worker_list; server_worker; server_worker= server_worker->con_next)
   {
-    if (server_worker->function->job_count != 0)
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Jobs available %lu", (unsigned long)(server_worker->function->job_count));
+    if (server_worker->function->job_count)
     {
       if (server_worker == NULL)
+      {
         return NULL;
+      }
 
       if (Server->flags.round_robin)
       {
@@ -455,8 +484,10 @@ gearman_server_job_st *gearman_server_job_take(gearman_server_con_st *server_con
       gearmand_job_priority_t priority;
       for (priority= GEARMAND_JOB_PRIORITY_HIGH; priority < GEARMAND_JOB_PRIORITY_LOW; priority++)
       {
-        if (server_worker->function->job_list[priority] != NULL)
+        if (server_worker->function->job_list[priority])
+        {
           break;
+        }
       }
 
       gearman_server_job_st *server_job= server_job= server_worker->function->job_list[priority];
@@ -464,13 +495,13 @@ gearman_server_job_st *gearman_server_job_take(gearman_server_con_st *server_con
   
       int64_t current_time= (int64_t)time(NULL);
   
-      while (server_job != NULL && server_job->when != 0 && server_job->when > current_time)
+      while (server_job && server_job->when != 0 && server_job->when > current_time)
       {
         previous_job= server_job;
         server_job= server_job->function_next;  
       }
   
-      if (server_job != NULL)
+      if (server_job)
       { 
         if (server_job->function->job_list[priority] == server_job)
         {
@@ -515,12 +546,13 @@ gearmand_error_t gearman_server_job_queue(gearman_server_job_st *job)
   uint32_t noop_sent;
   gearmand_error_t ret;
 
-  if (job->worker != NULL)
+  if (job->worker)
   {
     job->retries++;
     if (Server->job_retries == job->retries)
     {
-      gearmand_log_error("Dropped job due to max retry count: %s %s",
+      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM,
+                         "Dropped job due to max retry count: %s %s",
                          job->job_handle, job->unique);
 
       for (client= job->client_list; client != NULL; client= client->job_next)
@@ -531,7 +563,7 @@ gearmand_error_t gearman_server_job_queue(gearman_server_job_st *job)
                                           job->job_handle,
                                           (size_t)strlen(job->job_handle),
                                           NULL);
-        if (ret != GEARMAN_SUCCESS)
+        if (gearmand_failed(ret))
         {
           return ret;
         }
@@ -540,12 +572,12 @@ gearmand_error_t gearman_server_job_queue(gearman_server_job_st *job)
       /* Remove from persistent queue if one exists. */
       if (job->job_queued && Server->queue._done_fn != NULL)
       {
-	ret= (*(Server->queue._done_fn))(Server,
-					 (void *)Server->queue._context,
-					 job->unique,
-					 (size_t)strlen(job->unique),
-					 job->function->function_name,
-					 job->function->function_name_size);
+        ret= (*(Server->queue._done_fn))(Server,
+                                         (void *)Server->queue._context,
+                                         job->unique,
+                                         (size_t)strlen(job->unique),
+                                         job->function->function_name,
+                                         job->function->function_name_size);
         if (ret != GEARMAN_SUCCESS)
           return ret;
       }
@@ -575,7 +607,7 @@ gearmand_error_t gearman_server_job_queue(gearman_server_job_st *job)
         ret= gearman_server_io_packet_add(worker->con, false,
                                           GEARMAN_MAGIC_RESPONSE,
                                           GEARMAN_COMMAND_NOOP, NULL);
-        if (ret != GEARMAN_SUCCESS)
+        if (gearmand_failed(ret))
         {
           gearmand_gerror("gearman_server_io_packet_add", ret);
           return ret;

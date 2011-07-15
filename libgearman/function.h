@@ -38,20 +38,61 @@
 #pragma once
 
 #ifdef __cplusplus
+#include <ctime>
+#else
+#include <time.h>
+#endif
+
+enum gearman_function_kind_t {
+  GEARMAN_WORKER_FUNCTION_NULL,
+  GEARMAN_WORKER_FUNCTION_V1,
+  GEARMAN_WORKER_FUNCTION_V2,
+  GEARMAN_WORKER_FUNCTION_PARTITION
+};
+
+struct gearman_function_v1_t {
+  gearman_worker_fn *func;
+};
+
+struct gearman_function_v2_t {
+  gearman_function_fn *func;
+};
+
+struct gearman_function_partition_v1_t {
+  gearman_function_fn *func;
+  gearman_aggregator_fn *aggregator;
+};
+
+struct gearman_function_t {
+  const enum gearman_function_kind_t kind;
+  union {
+    char bytes[sizeof(struct gearman_function_partition_v1_t)]; // @note gearman_function_partition_v1_t is the largest structure
+    struct gearman_function_v1_t function_v1;
+    struct gearman_function_v2_t function_v2;
+    struct gearman_function_partition_v1_t partitioner;
+  } callback;
+};
+
+#ifndef __cplusplus
+typedef struct gearman_function_t gearman_function_t;
+#endif
+
+#ifdef __cplusplus
 extern "C" {
 #endif
 
 GEARMAN_API
-gearman_function_st *gearman_function_create(const char *, size_t size);
+  gearman_function_t gearman_function_create(gearman_function_fn func);
+
+GEARMAN_LOCAL
+  gearman_function_t gearman_function_create_null(void);
 
 GEARMAN_API
-void gearman_function_free(gearman_function_st *);
+  gearman_function_t gearman_function_create_partition(gearman_function_fn func,
+                                                       gearman_aggregator_fn aggregator);
 
-GEARMAN_LOCAL
-const char *gearman_function_name(const gearman_function_st *);
-
-GEARMAN_LOCAL
-size_t gearman_function_size(const gearman_function_st *);
+GEARMAN_API
+  gearman_function_t gearman_function_create_v1(gearman_worker_fn func);
 
 #ifdef __cplusplus
 }

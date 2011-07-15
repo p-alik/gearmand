@@ -38,7 +38,7 @@
 
 
 
-#include "config.h"
+#include <config.h>
 
 #include <cerrno>
 #include <cstdio>
@@ -63,7 +63,9 @@ struct reverse_worker_options_t
   { }
 };
 
+#ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
 
 static void *reverse(gearman_job_st *job, void *context,
                      size_t *result_size, gearman_return_t *ret_ptr);
@@ -133,8 +135,7 @@ int main(int args, char *argv[])
     return EXIT_FAILURE;
   }
 
-  ret= gearman_worker_add_function(&worker, "reverse", 0, reverse,
-                                   &options);
+  ret= gearman_worker_add_function(&worker, "reverse", 0, reverse, &options);
   if (ret != GEARMAN_SUCCESS)
   {
     std::cerr << gearman_worker_error(&worker) << std::endl;

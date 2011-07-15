@@ -20,18 +20,15 @@ bin_PROGRAMS+= \
 bin_gearadmin_SOURCES= \
 		       bin/gearadmin.cc \
 		       util/instance.cc
-
 bin_gearadmin_CPPFLAGS= \
 			$(AM_CPPFLAGS) \
 			$(BOOST_CPPFLAGS)
-
 bin_gearadmin_LDFLAGS= \
-		       $(CLIENT_LD_FLAGS) \
-		       $(AM_LDFLAGS)
-
+		       $(AM_LDFLAGS) \
+		       $(BOOST_PROGRAM_OPTIONS_LDFLAGS)
 bin_gearadmin_LDADD= \
-		     $(AM_LDADD) \
-		     $(BOOST_PROGRAM_OPTIONS_LIBS)
+		     $(BOOST_PROGRAM_OPTIONS_LIBS) \
+		     ${BETTER_MALLOC_LIBS}
 
 bin_gearman_SOURCES= \
 		     bin/arguments.cc \
@@ -39,8 +36,8 @@ bin_gearman_SOURCES= \
 		     bin/gearman.cc \
 		     util/error.cc \
 		     util/pidfile.cc
-
-bin_gearman_LDADD= libgearman/libgearman.la ${BETTER_MALLOC_LIBS}
+bin_gearman_LDADD= \
+		   libgearman/libgearman.la
 
 noinst_HEADERS+= \
 		 bin/arguments.h \

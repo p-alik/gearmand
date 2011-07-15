@@ -1,6 +1,6 @@
-.TH "GEARMAN_WORKER_CONTEXT" "3" "April 13, 2011" "0.20" "Gearmand"
+.TH "GEARMAN_WORKER_CONTEXT" "3" "June 29, 2011" "0.22" "Gearmand"
 .SH NAME
-gearman_worker_context \- Gearmand Documentation
+gearman_worker_context \- Gearmand Documentation, http://gearman.info/
 .
 .nr rst2man-indent-level 0
 .
@@ -30,55 +30,12 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 ..
 .\" Man page generated from reStructeredText.
 .
-.SH LIBRARY
-.sp
-C Client Library for Gearmand (libgearman, \-lgearman)
 .SH SYNOPSIS
 .sp
 #include <libgearman/gearman.h>
 .INDENT 0.0
 .TP
 .B gearman_worker_st
-.UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_client_st *gearman_client_create(gearman_client_st *client);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_worker_st *gearman_worker_create(gearman_worker_st *worker);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker, const gearman_worker_st *from);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B void gearman_worker_free(gearman_worker_st *worker);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B const char *gearman_worker_error(const gearman_worker_st *worker);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B int gearman_worker_errno(gearman_worker_st *worker);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_worker_options_t gearman_worker_options(const gearman_worker_st *worker);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B void gearman_worker_set_options(gearman_worker_st *worker, gearman_worker_options_t options);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B void gearman_worker_add_options(gearman_worker_st *worker, gearman_worker_options_t options);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B void gearman_worker_remove_options(gearman_worker_st *worker, gearman_worker_options_t options);
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -98,27 +55,11 @@ C Client Library for Gearmand (libgearman, \-lgearman)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void gearman_worker_set_log_fn(gearman_worker_st *worker, gearman_log_fn *function, void *context, gearman_verbose_t verbose);
-.UNINDENT
-.INDENT 0.0
-.TP
 .B void gearman_worker_set_workload_malloc_fn(gearman_worker_st *worker, gearman_malloc_fn *function, void *context);
 .UNINDENT
 .INDENT 0.0
 .TP
 .B void gearman_worker_set_workload_free_fn(gearman_worker_st *worker, gearman_free_fn *function, void *context);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_return_t gearman_worker_add_server(gearman_worker_st *worker, const char *host, in_port_t port);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_return_t gearman_worker_add_servers(gearman_worker_st *worker, const char *servers);
-.UNINDENT
-.INDENT 0.0
-.TP
-.B void gearman_worker_remove_servers(gearman_worker_st *worker);
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -150,27 +91,32 @@ C Client Library for Gearmand (libgearman, \-lgearman)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_worker_add_function(gearman_worker_st *worker, const char *function_name, uint32_t timeout, gearman_worker_fn *function, void *context);
-.UNINDENT
-.INDENT 0.0
-.TP
 .B gearman_return_t gearman_worker_work(gearman_worker_st *worker);
 .UNINDENT
-.INDENT 0.0
-.TP
-.B gearman_return_t gearman_worker_echo(gearman_worker_st *worker, const void *workload, size_t workload_size);
-.UNINDENT
+.sp
+Link with \-lgearman
 .SH DESCRIPTION
 .sp
-This a complete list of all functions that work with a gearman_worker_st,
-see their individual pages to learn more about them.
+\fI\%gearman_worker_st\fP is used for worker communication with the server.
+.sp
+\fBgearman_worker_context()\fP and \fBgearman_worker_set_context()\fP can be used to store an arbitrary object for the user.
+.sp
+\fBgearman_worker_set_task_context_free_fn()\fP sets a trigger that will be called when a \fBgearman_task_st\fP is released.
+.sp
+\fBgearman_worker_timeout()\fP and \fBgearman_worker_set_timeout()\fP get and set the current timeout value, in milliseconds, for the worker.
+.sp
+\fBgearman_worker_function_exist()\fP is used to determine if a given worker has a specific function.
+.sp
+Normally \fImalloc(3)\fP and \fIfree(3)\fP are used for allocation and releasing workloads. \fBgearman_worker_set_workload_malloc_fn()\fP and \fBgearman_worker_set_workload_free_fn()\fP can be used to replace these with custom functions.
+.sp
+If you need to remove a function from the server you can call either \fBgearman_worker_unregister_all()\fP to remove all functions that the worker has told the \fBgearmand\fP server about, or you can use \fBgearman_worker_unregister()\fP to remove just a single function.
 .SH RETURN
 .sp
 Various
 .SH HOME
 .sp
 To find out more information please check:
-\fI\%https://launchpad.net/gearmand\fP
+\fI\%http://gearman.info/\fP
 .SH SEE ALSO
 .sp
 \fIgearmand(8)\fP \fIlibgearman(3)\fP

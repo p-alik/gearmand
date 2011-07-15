@@ -11,8 +11,7 @@
  * @brief Function Declarations
  */
 
-#ifndef __GEARMAN_SERVER_FUNCTION_H__
-#define __GEARMAN_SERVER_FUNCTION_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,7 +42,7 @@ struct gearman_server_function_st
   gearman_server_function_st *prev;
   char *function_name;
   gearman_server_worker_st *worker_list;
-  gearman_server_job_st *job_list[GEARMAND_JOB_PRIORITY_MAX];
+  struct gearman_server_job_st *job_list[GEARMAND_JOB_PRIORITY_MAX];
   gearman_server_job_st *job_end[GEARMAND_JOB_PRIORITY_MAX];
 };
 
@@ -67,5 +66,3 @@ void gearman_server_function_free(gearman_server_st *server, gearman_server_func
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GEARMAN_SERVER_FUNCTION_H__ */

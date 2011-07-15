@@ -46,7 +46,9 @@
 #include <libgearman/gearman.h>
 #include <boost/program_options.hpp>
 
+#ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
 
 int main(int args, char *argv[])
 {

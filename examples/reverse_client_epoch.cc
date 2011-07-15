@@ -46,7 +46,9 @@
 #include <libgearman/gearman.h>
 #include <boost/program_options.hpp>
 
+#ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
 
 int main(int args, char *argv[])
 {
@@ -124,29 +126,22 @@ int main(int args, char *argv[])
   if (timeout >= 0)
     gearman_client_set_timeout(&client, timeout);
 
-  gearman_function_st *function= gearman_function_create(gearman_literal_param("reverse"));
+  gearman_task_attr_t workload= gearman_task_attr_init_epoch(time(NULL) +epoch, GEARMAN_JOB_PRIORITY_NORMAL);
 
-  gearman_unique_t unique= gearman_unique_make(gearman_literal_param("epoch"));
-  gearman_workload_t workload= gearman_workload_make(text_to_echo.c_str(), text_to_echo.size());
-  gearman_workload_set_epoch(&workload, time(NULL) +epoch);
+  gearman_task_st *task;
+  gearman_argument_t value= gearman_argument_make(0, 0, text_to_echo.c_str(), text_to_echo.size());
 
-  gearman_status_t status= gearman_client_execute(&client,
-                                                  function,
-                                                  NULL,
-                                                  &workload);
-  if (not gearman_status_is_successful(status))
+  if (not (task= gearman_execute(&client, gearman_literal_param("reverse"), NULL, 0, &workload, &value, 0)))
   {
     std::cerr << gearman_client_error(&client) << std::endl;
     return EXIT_FAILURE;
   }
-  gearman_task_st *task= gearman_status_task(status);
-
   std::cout << "Background Job Handle=" << gearman_task_job_handle(task) << std::endl;
 
   int exit_code= EXIT_SUCCESS;
-  while (gearman_task_is_running(task))
+  bool is_known;
+  do
   {
-    bool is_known;
     bool is_running;
     uint32_t numerator;
     uint32_t denominator;
@@ -154,10 +149,15 @@ int main(int args, char *argv[])
     ret= gearman_client_job_status(&client, gearman_task_job_handle(task),
                                    &is_known, &is_running,
                                    &numerator, &denominator);
-    if (ret != GEARMAN_SUCCESS)
+    if (gearman_continue(ret)) // Non-blocking event occurred, try again
+    {
+      continue;
+    }
+    else if (gearman_failed(ret))
     {
       std::cerr << gearman_client_error(&client) << std::endl;
       exit_code= EXIT_FAILURE;
+      break;
     }
 
     std::cout << std::boolalpha 
@@ -165,11 +165,7 @@ int main(int args, char *argv[])
       << ", Running=" << is_running
       << ", Percent Complete=" << numerator << "/" <<  denominator << std::endl;
 
-    if (not is_known)
-      break;
-
-    sleep(1);
-  }
+  } while (is_known);
 
   gearman_client_free(&client);
 

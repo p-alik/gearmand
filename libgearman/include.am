@@ -1,8 +1,8 @@
 # vim:ft=automake
 # Gearman server and library 
-# Copyright (C) 2008 Brian Aker, Eric Day 
+# Copyright (C) 2011 Data Differential, http://datadifferential.com/
 # Copyright (C) 2009-2010 Brian Aker, Eric Day, Monty Taylor All rights
-# reserved.
+# Copyright (C) 2008 Brian Aker, Eric Day 
 #
 # Use and distribution licensed under the BSD license.  See
 # the COPYING file in the parent directory for full text.
@@ -11,76 +11,128 @@
 # All paths should be given relative to the root
 
 nobase_include_HEADERS+= \
+			 libgearman/actions.h \
+			 libgearman/aggregator.h \
+			 libgearman/allocator.h \
+			 libgearman/argument.h \
 			 libgearman/byteorder.h \
 			 libgearman/client.h \
+			 libgearman/client_callbacks.h \
 			 libgearman/command.h \
 			 libgearman/configure.h \
 			 libgearman/connection.h \
 			 libgearman/constants.h \
 			 libgearman/core.h \
+			 libgearman/execute.h \
 			 libgearman/function.h \
 			 libgearman/gearman.h \
 			 libgearman/job.h \
+			 libgearman/job_handle.h \
 			 libgearman/log.h \
 			 libgearman/packet.h \
+			 libgearman/parse.h \
+			 libgearman/priority.h \
 			 libgearman/protocol.h \
-			 libgearman/status.h \
+			 libgearman/result.h \
+			 libgearman/return.h \
 			 libgearman/strerror.h \
+			 libgearman/string.h \
 			 libgearman/task.h \
-			 libgearman/unique.h \
+			 libgearman/task_attr.h \
 			 libgearman/universal.h \
+			 libgearman/version.h \
 			 libgearman/visibility.h \
-			 libgearman/worker.h \
-			 libgearman/workload.h
+			 libgearman/worker.h
 
 noinst_HEADERS+= \
+		 libgearman/add.hpp \
+		 libgearman/aggregator.hpp \
+		 libgearman/allocator.hpp \
+		 libgearman/assert.hpp \
 		 libgearman/common.h \
-		 libgearman/log.h
+		 libgearman/connection.hpp \
+		 libgearman/do.hpp \
+		 libgearman/error.hpp \
+		 libgearman/function/base.hpp \
+		 libgearman/function/function_v1.hpp \
+		 libgearman/function/function_v2.hpp \
+		 libgearman/function/make.hpp \
+		 libgearman/function/null.hpp \
+		 libgearman/function/partition.hpp \
+		 libgearman/is.hpp \
+		 libgearman/log.h \
+		 libgearman/packet.hpp \
+		 libgearman/result.hpp \
+		 libgearman/run.hpp \
+		 libgearman/strcommand.h \
+		 libgearman/unique.h \
+		 libgearman/universal.hpp \
+		 libgearman/vector.hpp
 
 noinst_LTLIBRARIES+= libgearman/libgearmancore.la
 libgearman_libgearmancore_la_SOURCES= \
+				      libgearman/allocator.cc \
 				      libgearman/byteorder.cc \
+				      libgearman/command.cc \
 				      libgearman/connection.cc \
+				      libgearman/error.cc \
 				      libgearman/log.cc \
 				      libgearman/packet.cc \
-				      libgearman/universal.cc
+				      libgearman/strcommand.cc \
+				      libgearman/strerror.cc \
+				      libgearman/universal.cc \
+				      libgearman/vector.cc
 
-libgearman_libgearmancore_la_CFLAGS= \
-				     -fno-exceptions \
-				     -fno-rtti \
-				     ${AM_CXXFLAGS}
-
-libgearman_libgearmancore_la_LDFLAGS= \
-				      -fno-exceptions \
-				      -fno-rtti \
-				      ${AM_LDFLAGS}
+libgearman_libgearmancore_la_CXXFLAGS= \
+				       ${AM_CXXFLAGS} \
+				       -DBUILDING_LIBGEARMAN
 
 lib_LTLIBRARIES+= libgearman/libgearman.la
 libgearman_libgearman_la_SOURCES= \
+				  libgearman/actions.cc \
+				  libgearman/aggregator.cc \
+				  libgearman/allocator.cc \
+				  libgearman/argument.cc \
+				  libgearman/add.cc \
+				  libgearman/byteorder.cc \
 				  libgearman/client.cc \
+				  libgearman/command.cc \
+				  libgearman/connection.cc \
+				  libgearman/do.cc \
+				  libgearman/error.cc \
+				  libgearman/execute.cc \
 				  libgearman/function.cc \
+				  libgearman/function/function_v2.cc \
+				  libgearman/function/make.cc \
+				  libgearman/function/partition.cc \
 				  libgearman/gearman.cc \
 				  libgearman/job.cc \
-				  libgearman/status.cc \
+				  libgearman/log.cc \
+				  libgearman/packet.cc \
+				  libgearman/parse.cc \
+				  libgearman/result.cc \
+				  libgearman/run.cc \
+				  libgearman/strcommand.cc \
 				  libgearman/strerror.cc \
+				  libgearman/string.cc \
 				  libgearman/task.cc \
+				  libgearman/task_attr.cc \
 				  libgearman/unique.cc \
-				  libgearman/worker.cc \
-				  libgearman/workload.cc
+				  libgearman/universal.cc \
+				  libgearman/vector.cc \
+				  libgearman/worker.cc
 
-libgearman_libgearman_la_DEPENDENCIES= \
-				       libgearman/libgearmancore.la
+libgearman_libgearman_la_DEPENDENCIES=
 
 libgearman_libgearman_la_CXXFLAGS= \
-				   ${AM_CXXFLAGS}
+				   ${AM_CXXFLAGS} \
+				   -DBUILDING_LIBGEARMAN
 
 libgearman_libgearman_la_LDFLAGS= \
-				  -fno-exceptions \
-				  -fno-rtti \
 				  $(AM_LDFLAGS) \
 				  -version-info $(GEARMAN_LIBRARY_VERSION)
 
 libgearman_libgearman_la_LIBADD= \
-				 libgearman/libgearmancore.la \
 				 $(LTLIBUUID)
 
+DISTCLEANFILES+= config/top.h

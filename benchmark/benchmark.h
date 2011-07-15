@@ -11,10 +11,9 @@
  * @brief Common benchmark header
  */
 
-#ifndef __GEARMAN_BENCHMARK_H__
-#define __GEARMAN_BENCHMARK_H__
+#pragma once
 
-#include "config.h"
+#include <config.h>
 
 #include <libgearman/gearman.h>
 
@@ -54,7 +53,7 @@
  * @addtogroup benchmark Common Benchmark Utilities
  * @{
  */
-typedef struct
+struct gearman_benchmark_st
 {
   bool background;
   uint8_t verbose;
@@ -63,18 +62,20 @@ typedef struct
   struct timeval total;
   struct timeval begin;
   struct timeval end;
-} gearman_benchmark_st;
 
-/**
- * Initialize a benchmark strucutre.
- */
-void benchmark_init(gearman_benchmark_st *benchmark);
+  gearman_benchmark_st() :
+    background(false),
+    verbose(0),
+    total_jobs(0),
+    jobs(0),
+    end()
+    { 
+      gettimeofday(&total, NULL);
+      gettimeofday(&begin, NULL);
+    }
+};
 
 /**
  * Check and possibly print time.
  */
 void benchmark_check_time(gearman_benchmark_st *benchmark);
-
-/** @} */
-
-#endif /* __GEARMAN_BENCHMARK_H__ */

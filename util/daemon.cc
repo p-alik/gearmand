@@ -113,7 +113,9 @@ bool daemon_is_ready(bool close_io)
   return true;
 }
 
+#ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
 
 bool daemonize(bool is_chdir, bool wait_sigusr1)
 {

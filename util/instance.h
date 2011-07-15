@@ -67,7 +67,8 @@ public:
     _sockfd(INVALID_SOCKET),
     state(NOT_WRITING),
     _addrinfo(0),
-    _addrinfo_next(0)
+    _addrinfo_next(0),
+    _operations()
   {
   }
 
@@ -101,14 +102,13 @@ private:
 
   bool more_to_read() const;
 
-private:
-    std::string _host;
-    std::string _port;
-    int _sockfd;
-    connection_state_t state;
-    struct addrinfo *_addrinfo;
-    struct addrinfo *_addrinfo_next;
-    Operation::vector _operations;
+  std::string _host;
+  std::string _port;
+  int _sockfd;
+  connection_state_t state;
+  struct addrinfo *_addrinfo;
+  struct addrinfo *_addrinfo_next;
+  Operation::vector _operations;
 };
 
 } // namespace gearman_util

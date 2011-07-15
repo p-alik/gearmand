@@ -17,6 +17,7 @@
 
 #include <errno.h>
 #include <assert.h>
+#include <iso646.h>
 
 /*
  * Private declarations
@@ -180,7 +181,7 @@ void gearmand_con_free(gearmand_con_st *dcon)
     {
       /* Lock here because the main thread may be emptying this. */
       int error;
-      if (! (error=  pthread_mutex_lock(&(dcon->thread->lock))))
+      if (not (error=  pthread_mutex_lock(&(dcon->thread->lock))))
       {
         GEARMAN_LIST_ADD(dcon->thread->free_dcon, dcon,);
         (void ) pthread_mutex_unlock(&(dcon->thread->lock));
@@ -210,7 +211,7 @@ void gearmand_con_check_queue(gearmand_thread_st *thread)
   while (thread->dcon_add_list != NULL)
   {
     int error;
-    if (! (error= pthread_mutex_lock(&(thread->lock))))
+    if (not (error= pthread_mutex_lock(&(thread->lock))))
     {
       gearmand_con_st *dcon= thread->dcon_add_list;
       GEARMAN_LIST_DEL(thread->dcon_add, dcon,);
@@ -256,7 +257,7 @@ gearmand_error_t gearmand_connection_watch(gearmand_io_st *con, short events,
 
   if (dcon->last_events != set_events)
   {
-    if (dcon->last_events != 0)
+    if (dcon->last_events)
     {
       if (event_del(&(dcon->event)) < 0)
       {
@@ -276,7 +277,8 @@ gearmand_error_t gearmand_connection_watch(gearmand_io_st *con, short events,
     dcon->last_events= set_events;
   }
 
-  gearmand_log_crazy("%15s:%5s Watching  %6s %s",
+  gearmand_log_crazy(GEARMAN_DEFAULT_LOG_PARAM,
+                     "%15s:%5s Watching  %6s %s",
                      dcon->host, dcon->port,
                      events & POLLIN ? "POLLIN" : "",
                      events & POLLOUT ? "POLLOUT" : "");
@@ -299,16 +301,16 @@ static void _con_ready(int fd __attribute__ ((unused)), short events,
   if (events & EV_WRITE)
     revents|= POLLOUT;
 
-  gearmand_error_t ret;
-  ret= gearmand_io_set_revents(dcon->server_con, revents);
-  if (ret != GEARMAN_SUCCESS)
+  gearmand_error_t ret= gearmand_io_set_revents(dcon->server_con, revents);
+  if (gearmand_failed(ret))
   {
     gearmand_gerror("gearmand_io_set_revents", ret);
     gearmand_con_free(dcon);
     return;
   }
 
-  gearmand_log_crazy("%15s:%5s Ready     %6s %s",
+  gearmand_log_crazy(GEARMAN_DEFAULT_LOG_PARAM, 
+                     "%15:%5 Ready     %6s %s",
                      dcon->host, dcon->port,
                      revents & POLLIN ? "POLLIN" : "",
                      revents & POLLOUT ? "POLLOUT" : "");
@@ -325,17 +327,17 @@ static gearmand_error_t _con_add(gearmand_thread_st *thread,
   assert(dcon->server_con || ret != GEARMAN_SUCCESS);
   assert(! dcon->server_con || ret == GEARMAN_SUCCESS);
 
-  if (dcon->server_con == NULL)
+  if (not dcon->server_con)
   {
     gearmand_sockfd_close(dcon->fd);
 
     return ret;
   }
 
-  if (dcon->add_fn != NULL)
+  if (dcon->add_fn)
   {
     ret= (*dcon->add_fn)(dcon->server_con);
-    if (ret != GEARMAN_SUCCESS)
+    if (gearmand_failed(ret))
     {
       gearman_server_con_free(dcon->server_con);
 
@@ -344,8 +346,6 @@ static gearmand_error_t _con_add(gearmand_thread_st *thread,
       return ret;
     }
   }
-
-  gearmand_log_info("%15s:%5s Connected", dcon->host, dcon->port);
 
   GEARMAN_LIST_ADD(thread->dcon, dcon,)
 

@@ -57,7 +57,7 @@ typedef enum
   GEARMAN_UNEXPECTED_PACKET,
   GEARMAN_GETADDRINFO,
   GEARMAN_NO_SERVERS,
-  GEARMAN_LOST_CONNECTION,
+  GEARMAN_LOST_CONNECTION, // Valid for worker return
   GEARMAN_MEMORY_ALLOCATION_FAILURE,
   GEARMAN_JOB_EXISTS,
   GEARMAN_JOB_QUEUE_FULL,
@@ -94,3 +94,6 @@ typedef enum
   GEARMAN_ARGUMENT_TOO_LARGE,
   GEARMAN_MAX_RETURN /* Always add new error code before */
 } gearmand_error_t;
+
+#define gearmand_success(X) ((X) == GEARMAN_SUCCESS)
+#define gearmand_failed(X) ((X) != GEARMAN_SUCCESS)
