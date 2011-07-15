@@ -48,6 +48,11 @@ public:
   virtual const char *log_file_option()= 0;
   virtual bool is_libtool()= 0;
 
+  virtual bool broken_pid_file()
+  {
+    return false;
+  }
+
   const std::string& pid_file() const
   {
     return _pid_file;
@@ -127,7 +132,7 @@ public:
   bool command(std::string& command_arg);
 
 protected:
-  void sleep();
+  void nap();
 
 private:
   bool is_valgrind() const;
@@ -158,14 +163,14 @@ struct server_startup_st
   bool is_debug() const;
   bool is_valgrind() const;
 
-  void shutdown();
+  void shutdown(bool remove= false);
   void push_server(Server *);
   Server *pop_server();
 
   ~server_startup_st();
 };
 
-bool server_startup(server_startup_st&, in_port_t try_port, int argc, const char *argv[]);
+bool server_startup(server_startup_st&, const std::string&, in_port_t try_port, int argc, const char *argv[]);
 
 } // namespace libtest
 

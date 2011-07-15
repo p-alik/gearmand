@@ -182,7 +182,7 @@ collection_st collection[] ={
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
   const char *argv[1]= { "gearadmin_gearmand" };
-  if (not server_startup(servers, GEARADMIN_TEST_PORT, 1, argv))
+  if (not server_startup(servers, "gearmand", GEARADMIN_TEST_PORT, 1, argv))
   {
     error= TEST_FAILURE;
   }

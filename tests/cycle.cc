@@ -40,21 +40,60 @@
 */
 
 #include <libtest/common.h>
-
-#ifndef __INTEL_COMPILER
-#pragma GCC diagnostic ignored "-Wstrict-aliasing"
-#endif
+#include <libgearman/gearman.h>
 
 #include "tests/ports.h"
+#include "tests/start_worker.h"
+
+static gearman_return_t success_fn(gearman_job_st*, void* /* context */)
+{
+  return GEARMAN_SUCCESS;
+}
+
+static test_return_t single_cycle(void *)
+{
+  gearman_function_t success_function= gearman_function_create(success_fn);
+  worker_handle_st *worker= test_worker_start(CYCLE_TEST_PORT, NULL, "success", success_function, NULL, gearman_worker_options_t());
+  test_true(worker);
+  test_true(worker->shutdown());
+  delete worker;
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t kill_test(void *)
+{
+  static struct timespec global_sleep_value= { 2, 0 };
+
+#ifdef WIN32
+  sleep(1);
+#else
+  nanosleep(&global_sleep_value, NULL);
+#endif
+
+  return TEST_SUCCESS;
+}
+
+test_st kill_tests[] ={
+  {"kill", true, (test_callback_fn*)kill_test },
+  {0, 0, 0}
+};
+
+test_st worker_tests[] ={
+  {"single startup/shutdown", true, (test_callback_fn*)single_cycle },
+  {0, 0, 0}
+};
 
 collection_st collection[] ={
+  {"kill", 0, 0, kill_tests},
+  {"worker", 0, 0, worker_tests},
   {0, 0, 0, 0}
 };
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
   const char *argv[1]= { "client_gearmand" };
-  if (not server_startup(servers, CYCLE_TEST_PORT, 1, argv))
+  if (not server_startup(servers, "gearmand", CYCLE_TEST_PORT, 1, argv))
   {
     error= TEST_FAILURE;
   }

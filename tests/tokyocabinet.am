@@ -16,7 +16,8 @@ if HAVE_LIBTOKYOCABINET
 TOKYOCABINET_TEST= tests/tokyocabinet_test
 TOKYOCABINET_RM= @rm -f tests/gearman.tcb
 CLEANFILES+= tests/gearman.tcb
-noinst_PROGRAMS += tests/tokyocabinet_test
+check_PROGRAMS+= tests/tokyocabinet_test
+noinst_PROGRAMS+= tests/tokyocabinet_test
 endif
 
 tests_tokyocabinet_test_SOURCES= tests/tokyocabinet_test.cc tests/basic.cc

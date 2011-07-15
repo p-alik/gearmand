@@ -45,6 +45,7 @@ nobase_include_HEADERS+= \
 			 libgearman/worker.h
 
 noinst_HEADERS+= \
+		 libgearman/actions.hpp \
 		 libgearman/add.hpp \
 		 libgearman/aggregator.hpp \
 		 libgearman/allocator.hpp \

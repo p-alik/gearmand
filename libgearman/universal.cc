@@ -94,6 +94,26 @@ void gearman_universal_initialize(gearman_universal_st &self, const gearman_univ
   self.error.last_error[0]= 0;
 }
 
+void gearman_nap(int arg)
+{
+  if (arg < 1)
+  { }
+  else
+  {
+#ifdef WIN32
+    sleep(arg/1000000);
+#else
+    struct timespec global_sleep_value= { 0, static_cast<long>(arg * 1000)};
+    nanosleep(&global_sleep_value, NULL);
+#endif
+  }
+}
+
+void gearman_nap(gearman_universal_st &self)
+{
+  gearman_nap(self.timeout);
+}
+
 void gearman_universal_clone(gearman_universal_st &destination, const gearman_universal_st &source)
 {
   gearman_universal_initialize(destination);

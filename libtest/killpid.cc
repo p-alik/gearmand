@@ -55,7 +55,7 @@ bool kill_pid(pid_t pid_arg)
   assert(pid_arg > 0);
   if (pid_arg < 1)
   {
-    Error << "Invalid pid";
+    Error << "Invalid pid:" << pid_arg;
     return false;
   }
 

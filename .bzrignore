@@ -108,3 +108,5 @@ tests/var/tmp/*
 tests/worker_test
 tests/worker_test.res
 unittests/unittests
+libtest/.hg/
+libtest/.hgignore

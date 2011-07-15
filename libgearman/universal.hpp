@@ -114,6 +114,12 @@ gearman_return_t gearman_echo(gearman_universal_st&, const void *workload, size_
 GEARMAN_LOCAL
 gearman_return_t gearman_wait(gearman_universal_st&);
 
+GEARMAN_LOCAL
+void gearman_nap(gearman_universal_st &self);
+
+GEARMAN_LOCAL
+void gearman_nap(int arg);
+
 static inline void gearman_universal_add_options(gearman_universal_st &self, gearman_universal_options_t options)
 {
   (void)gearman_universal_set_option(self, options, true);

@@ -44,12 +44,50 @@
 
 #include <tests/basic.h>
 #include <tests/context.h>
-#include <libtest/worker.h>
+#include <tests/start_worker.h>
 
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 pthread_mutex_t counter_lock= PTHREAD_MUTEX_INITIALIZER;
+
+struct counter_st
+{
+  int32_t _count;
+  pthread_mutex_t _lock;
+
+  counter_st() :
+    _count(0)
+  {
+    pthread_mutex_init(&_lock, NULL);
+  }
+
+  void increment()
+  {
+    pthread_mutex_lock(&_lock);
+    _count++;
+    pthread_mutex_unlock(&_lock);
+  }
+
+  int32_t count()
+  {
+    int32_t tmp;
+    pthread_mutex_lock(&_lock);
+    tmp= _count;
+    pthread_mutex_unlock(&_lock);
+
+    return tmp;
+  }
+};
+
+static gearman_return_t counter_function2(gearman_job_st *, void *object)
+{
+  counter_st *count= (counter_st*)object;
+  assert(count);
+  count->increment();
+
+  return GEARMAN_SUCCESS;
+}
 
 /* Counter test for worker */
 static void *counter_function(gearman_job_st *,
@@ -159,7 +197,7 @@ test_return_t queue_add(void *object)
   test_true_got(gearman_success(gearman_client_add_server(&client, NULL, test->port())), gearman_client_error(client_ptr));
 
   gearman_return_t rc= gearman_client_echo(&client, gearman_literal_param("background_payload"));
-  test_true_got(rc == GEARMAN_SUCCESS, gearman_strerror(rc));
+  test_compare_got(GEARMAN_SUCCESS, rc, gearman_strerror(rc));
 
   rc= gearman_client_do_background(&client, test->worker_function_name(), NULL, 
                                    gearman_literal_param("background_payload"),
@@ -227,20 +265,14 @@ test_return_t lp_734663(void *object)
 
   test_true_got(gearman_success(gearman_client_add_server(&client, NULL, test->port())), gearman_client_error(client_ptr));
 
-  uint32_t echo_loop= 3;
-  do {
-    if (echo_loop != 3)
-      sleep(1); // Yes, rigging sleep() in order to make sue the server is there
-
-    gearman_return_t rc= gearman_client_echo(&client, value, sizeof(JOB_SIZE));
-    test_true_got(rc == GEARMAN_SUCCESS, gearman_strerror(rc));
-  } while (--echo_loop);
+  gearman_return_t rc;
+  test_compare_got(GEARMAN_SUCCESS, rc= gearman_client_echo(&client, value, sizeof(JOB_SIZE)), gearman_strerror(rc));
 
   for (uint32_t x= 0; x < NUMBER_OF_JOBS; x++)
   {
     gearman_job_handle_t job_handle= {};
-    gearman_return_t rc= gearman_client_do_background(&client, worker_function_name, NULL, value, sizeof(value), job_handle);
-    test_truth(rc == GEARMAN_SUCCESS);
+    gearman_return_t scoped_rc= gearman_client_do_background(&client, worker_function_name, NULL, value, sizeof(value), job_handle);
+    test_compare(GEARMAN_SUCCESS, scoped_rc);
     test_truth(job_handle[0]);
   }
 
@@ -248,24 +280,27 @@ test_return_t lp_734663(void *object)
 
   struct worker_handle_st *worker_handle[NUMBER_OF_WORKERS];
 
-  uint32_t counter= 0;
-  gearman_function_t counter_function_fn= gearman_function_create_v1(counter_function);
+  counter_st counter;
+  gearman_function_t counter_function_fn= gearman_function_create(counter_function2);
   for (uint32_t x= 0; x < NUMBER_OF_WORKERS; x++)
   {
     worker_handle[x]= test_worker_start(test->port(), NULL, worker_function_name, counter_function_fn, &counter, gearman_worker_options_t());
   }
 
-  time_t end_time= time(NULL) +5;
-  time_t current_time= 0;
-  while (counter < NUMBER_OF_JOBS || current_time < end_time)
+  while (counter.count() < NUMBER_OF_JOBS)
   {
-    sleep(1);
-    current_time= time(NULL);
+#ifdef WIN32
+    sleep(gearman_timeout(worker)/100000);
+#else
+    struct timespec global_sleep_value= { 0, static_cast<long>(gearman_timeout(client_ptr) *1000) };
+    nanosleep(&global_sleep_value, NULL);
+#endif
   }
 
+  std::cerr << "Going to shutdown the workers " << counter.count() << std::endl;
   for (uint32_t x= 0; x < NUMBER_OF_WORKERS; x++)
   {
-    test_worker_stop(worker_handle[x]);
+    delete worker_handle[x];
   }
 
   return TEST_SUCCESS;

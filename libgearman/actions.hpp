@@ -1,8 +1,9 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  uTest, libtest
+ *  Gearmand client and server library.
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -34,104 +35,21 @@
  *
  */
 
+#pragma once
 
-#include <libtest/common.h>
-#include <iostream>
+#ifdef __cplusplus // Local only
 
-using namespace libtest;
+GEARMAN_LOCAL
+const gearman_actions_t &gearman_actions_default();
 
-static test_return_t _runner_default(test_callback_fn func, void *p)
-{
-  if (func)
-  {
-    return func(p);
-  }
+GEARMAN_LOCAL
+const gearman_actions_t &gearman_actions_do_default();
 
-  return TEST_SUCCESS;
-}
+GEARMAN_LOCAL
+const gearman_actions_t &gearman_actions_execute_defaults();
 
-static Runner defualt_runners= {
-  _runner_default,
-  _runner_default,
-  _runner_default
-};
+GEARMAN_API
+const gearman_actions_t &gearman_actions_pause();
 
-static test_return_t _default_callback(void *p)
-{
-  (void)p;
+#endif
 
-  return TEST_SUCCESS;
-}
-
-Framework::Framework() :
-  collections(NULL),
-  _create(NULL),
-  _destroy(NULL),
-  collection_startup(_default_callback),
-  collection_shutdown(_default_callback),
-  _on_error(NULL),
-  runner(&defualt_runners),
-  _creators_ptr(NULL)
-{
-}
-
-Framework::~Framework()
-{
-  if (_destroy and _destroy(_creators_ptr))
-  {
-    Error << "Failure in _destroy(), some resources may not have been cleaned up.";
-  }
-
-  _servers.shutdown();
-}
-
-test_return_t Framework::Item::flush(void* arg, test_st* run)
-{
-  if (run->requires_flush and _flush)
-  {
-    return _flush(arg);
-  }
-
-  return TEST_SUCCESS;
-}
-
-test_return_t Framework::on_error(const test_return_t rc, void* arg)
-{
-  if (_on_error and test_failed(_on_error(rc, arg)))
-  {
-    return TEST_FAILURE;
-  }
-
-  return TEST_SUCCESS;
-}
-
-test_return_t Framework::startup(void* arg)
-{
-  if (collection_startup)
-  {
-    return collection_startup(arg);
-  }
-
-  return TEST_SUCCESS;
-}
-
-test_return_t Framework::Item::startup(void* arg)
-{
-  if (_startup)
-  {
-    return _startup(arg);
-  }
-
-  return TEST_SUCCESS;
-}
-
-void* Framework::create(test_return_t& arg)
-{
-  arg= TEST_SUCCESS;
-  if (_create)
-  {
-    return _creators_ptr= _create(_servers, arg);
-  }
-
-  return NULL;
-}

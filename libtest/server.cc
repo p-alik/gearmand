@@ -34,7 +34,7 @@
  *
  */
 
-#include <config.h>
+#include <libtest/common.h>
 
 #include <cassert>
 #include <cerrno>
@@ -44,6 +44,8 @@
 #include <libtest/server.h>
 #include <libtest/stream.h>
 #include <libtest/killpid.h>
+#include <libtest/gearmand.h>
+#include <libtest/memcached.h>
 
 namespace libtest {
 
@@ -72,7 +74,7 @@ std::ostream& operator<<(std::ostream& output, const Server &arg)
   return output;  // for multiple << operators
 }
 
-void Server::sleep(void)
+void Server::nap(void)
 {
 #ifdef WIN32
   sleep(1);
@@ -117,7 +119,7 @@ bool Server::cycle()
     if (kill())
     {
       Log << "Killed existing server," << *this << " with pid:" << current_pid;
-      sleep();
+      nap();
       continue;
     }
   }
@@ -166,15 +168,25 @@ bool Server::start()
 
   if (system(_running.c_str()) == -1)
   {
-    Error << " failed:" << strerror(errno);
+    Error << "system() failed:" << strerror(errno);
     _running.clear();
     return false;
   }
 
-  int count= 30;
+  if (pid_file_option() and not pid_file().empty())
+  {
+    Wait wait(pid_file());
+
+    if (not wait.successful())
+    {
+      Error << "Unable to open pidfile: " << pid_file();
+    }
+  }
+
+  int count= 5;
   while (not ping() and --count)
   {
-    sleep();
+    nap();
   }
 
   if (count == 0)
@@ -206,7 +218,15 @@ bool Server::set_pid_file()
   char file_buffer[FILENAME_MAX];
   file_buffer[0]= 0;
 
-  snprintf(file_buffer, sizeof(file_buffer), "tests/var/tmp/%s.pidXXXXXX", name());
+  if (broken_pid_file())
+  {
+    snprintf(file_buffer, sizeof(file_buffer), "/tmp/%s.pidXXXXXX", name());
+  }
+  else
+  {
+    snprintf(file_buffer, sizeof(file_buffer), "tests/var/run/%s.pidXXXXXX", name());
+  }
+
   int fd;
   if ((fd= mkstemp(file_buffer)) == -1)
   {
@@ -214,6 +234,7 @@ bool Server::set_pid_file()
     return false;
   }
   close(fd);
+  unlink(file_buffer);
 
   _pid_file= file_buffer;
 
@@ -225,7 +246,7 @@ bool Server::set_log_file()
   char file_buffer[FILENAME_MAX];
   file_buffer[0]= 0;
 
-  snprintf(file_buffer, sizeof(file_buffer), "tests/var/tmp/%s.logXXXXXX", name());
+  snprintf(file_buffer, sizeof(file_buffer), "tests/var/log/%s.logXXXXXX", name());
   int fd;
   if ((fd= mkstemp(file_buffer)) == -1)
   {
@@ -320,6 +341,11 @@ bool Server::kill()
 {
   if (has_pid() and kill_pid(_pid)) // If we kill it, reset
   {
+    if (broken_pid_file() and not pid_file().empty())
+    {
+      unlink(pid_file().c_str());
+    }
+
     reset_pid();
 
     return true;
@@ -340,24 +366,31 @@ Server* server_startup_st::pop_server()
   return tmp;
 }
 
-void server_startup_st::shutdown()
+void server_startup_st::shutdown(bool remove)
 {
-  for (std::vector<Server *>::iterator iter= servers.begin(); iter != servers.end(); iter++)
+  if (remove)
   {
-    if ((*iter)->has_pid() and not (*iter)->kill())
+    for (std::vector<Server *>::iterator iter= servers.begin(); iter != servers.end(); iter++)
     {
-      Error << "Unable to kill:" <<  *(*iter);
+      delete *iter;
+    }
+    servers.clear();
+  }
+  else
+  {
+    for (std::vector<Server *>::iterator iter= servers.begin(); iter != servers.end(); iter++)
+    {
+      if ((*iter)->has_pid() and not (*iter)->kill())
+      {
+        Error << "Unable to kill:" <<  *(*iter);
+      }
     }
   }
 }
 
 server_startup_st::~server_startup_st()
 {
-  for (std::vector<Server *>::iterator iter= servers.begin(); iter != servers.end(); iter++)
-  {
-    delete *iter;
-  }
-  servers.clear();
+  shutdown(true);
 }
 
 bool server_startup_st::is_debug() const
@@ -368,6 +401,120 @@ bool server_startup_st::is_debug() const
 bool server_startup_st::is_valgrind() const
 {
   return bool(getenv("LIBTEST_MANUAL_VALGRIND"));
+}
+
+bool server_startup(server_startup_st& construct, const std::string& server_type,  in_port_t try_port, int argc, const char *argv[])
+{
+  Logn();
+
+  // Look to see if we are being provided ports to use
+  {
+    char variable_buffer[1024];
+    snprintf(variable_buffer, sizeof(variable_buffer), "LIBTEST_PORT_%lu", (unsigned long)construct.count());
+
+    char *var;
+    if ((var= getenv(variable_buffer)))
+    {
+      in_port_t tmp= in_port_t(atoi(var));
+
+      if (tmp > 0)
+        try_port= tmp;
+    }
+  }
+
+  Server *server= NULL;
+  if (0)
+  { }
+  else if (server_type.compare("gearmand") == 0)
+  {
+#ifdef GEARMAND_BINARY
+  #ifdef HAVE_LIBGEARMAN
+    server= build_gearmand("localhost", try_port);
+  #else
+    Error << "Libgearman was not found";
+  #endif
+#else
+    Error << "No memcached bindery is available";
+#endif
+  }
+  else if (server_type.compare("memcached") == 0)
+  {
+#ifdef MEMCACHED_BINARY
+#ifdef HAVE_LIBMEMCACHED
+    server= build_memcached("localhost", try_port);
+#else
+    Error << "Libmemcached was not found";
+#endif
+#else
+    Error << "No memcached bindery is available";
+#endif
+  }
+  else
+  {
+    Error << "Failed to start " << server_type << ", no support was found to be compiled in for it.";
+  }
+
+  if (server == NULL)
+  {
+    Error << "Failure occured while creating server: " <<  server_type;
+    return false;
+  }
+
+  /*
+    We will now cycle the server we have created.
+  */
+  if (not server->cycle())
+  {
+    Error << "Could not start up server " << *server;
+    delete server;
+    return false;
+  }
+
+  server->build(argc, argv);
+
+  if (construct.is_debug())
+  {
+    Log << "Pausing for startup, hit return when ready.";
+    std::string gdb_command= server->base_command();
+    std::string options;
+    Log << "run " << server->args(options);
+    getchar();
+  }
+  else if (not server->start())
+  {
+    Error << "Failed to start " << *server;
+    delete server;
+    return false;
+  }
+  else
+  {
+    Log << "STARTING SERVER(pid:" << server->pid() << "): " << server->running();
+  }
+  construct.push_server(server);
+
+  if (default_port() == 0)
+  {
+    assert(server->has_port());
+    set_default_port(server->port());
+  }
+
+  char port_str[NI_MAXSERV];
+  snprintf(port_str, sizeof(port_str), "%u", int(server->port()));
+
+  std::string server_config_string;
+  server_config_string+= "--server=";
+  server_config_string+= server->hostname();
+  server_config_string+= ":";
+  server_config_string+= port_str;
+  server_config_string+= " ";
+
+  construct.server_list+= server_config_string;
+
+  Logn();
+
+  srandom((unsigned int)time(NULL));
+
+  return true;
 }
 
 } // namespace libtest

@@ -37,12 +37,45 @@
 #include <libtest/common.h>
 
 #include <pthread.h>
+#include <semaphore.h>
 #include <signal.h>
 
 #include <libtest/signal.h>
 
-static volatile shutdown_t __shutdown= SHUTDOWN_RUNNING;
-pthread_mutex_t shutdown_mutex= PTHREAD_MUTEX_INITIALIZER;
+struct context_st {
+  sigset_t set;
+  sem_t lock;
+
+  context_st()
+  {
+    sigemptyset(&set);
+    sigaddset(&set, SIGABRT);
+    sigaddset(&set, SIGINT);
+    sigaddset(&set, SIGUSR2);
+
+    sem_init(&lock, 0, 0);
+  }
+  
+  void test()
+  {
+    assert(sigismember(&set, SIGABRT));
+    assert(sigismember(&set, SIGINT));
+    assert(sigismember(&set, SIGUSR2));
+  }
+
+  int wait(int& sig)
+  {
+    return sigwait(&set, &sig);
+  }
+
+  ~context_st()
+  {
+    sem_destroy(&lock);
+  }
+};
+
+static volatile shutdown_t __shutdown;
+static pthread_mutex_t shutdown_mutex;
 static pthread_t thread;
 
 bool is_shutdown()
@@ -84,13 +117,21 @@ extern "C" {
 
 static void *sig_thread(void *arg)
 {   
-  sigset_t *set= (sigset_t *) arg;
+  context_st *context= (context_st*)arg;
+  assert(context);
 
-  while (is_shutdown())
+  context->test();
+  sem_post(&context->lock);
+
+  while (get_shutdown() == SHUTDOWN_RUNNING)
   {
     int sig;
-    int error;
-    while ((error= sigwait(set, &sig)) == EINTR) ;
+
+    if (context->wait(sig) == -1)
+    {
+      Error << "sigwait() returned errno:" << strerror(errno);
+      continue;
+    }
 
     switch (sig)
     {
@@ -110,6 +151,8 @@ static void *sig_thread(void *arg)
     }
   }
 
+  delete context;
+
   return NULL;
 }
 
@@ -117,23 +160,25 @@ static void *sig_thread(void *arg)
 
 void setup_signals()
 {
-  sigset_t set;
+  pthread_mutex_init(&shutdown_mutex, NULL);
+  set_shutdown(SHUTDOWN_RUNNING);
 
-  sigemptyset(&set);
-  sigaddset(&set, SIGABRT);
-  sigaddset(&set, SIGINT);
-  sigaddset(&set, SIGUSR2);
+  context_st *context= new context_st;
+
+  assert(context);
 
   int error;
-  if ((error= pthread_sigmask(SIG_BLOCK, &set, NULL)) != 0)
+  if ((error= pthread_sigmask(SIG_BLOCK, &context->set, NULL)) != 0)
   {
-    Error << " died during pthread_sigmask(" << strerror(error) << ")";
+    Error << "pthread_sigmask() died during pthread_sigmask(" << strerror(error) << ")";
     exit(EXIT_FAILURE);
   }
 
-  if ((error= pthread_create(&thread, NULL, &sig_thread, (void *) &set)) != 0)
+  if ((error= pthread_create(&thread, NULL, &sig_thread, (void *) &context->set)) != 0)
   {
-    Error << " died during pthread_create(" << strerror(error) << ")";
+    Error << "pthread_create() died during pthread_create(" << strerror(error) << ")";
     exit(EXIT_FAILURE);
   }
+
+  sem_wait(&context->lock);
 }

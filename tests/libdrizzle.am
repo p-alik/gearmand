@@ -24,7 +24,7 @@ endif
 
 if HAVE_LIBDRIZZLE
 DRIZZLE_TEST= tests/drizzle_test
-check_PROGRAMS+= tests/drizzle_test
+noinst_PROGRAMS+= tests/drizzle_test
 endif
 
 tests_drizzle_test_SOURCES= \

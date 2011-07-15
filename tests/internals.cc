@@ -49,9 +49,6 @@
 #include <libgearman/common.h>
 #include <libgearman/packet.hpp>
 
-#include <libtest/server.h>
-#include <libtest/worker.h>
-
 #include <libgearman/universal.hpp>
 
 #include <tests/regression.h>
@@ -438,7 +435,7 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
     We start up everything before we allocate so that we don't have to track memory in the forked process.
   */
   const char *argv[1]= { "client_gearmand" };
-  if (not server_startup(servers, INTERNAL_TEST_PORT, 1, argv))
+  if (not server_startup(servers, "gearmand", INTERNAL_TEST_PORT, 1, argv))
   {
     error= TEST_FAILURE;
     return NULL;

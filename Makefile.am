@@ -39,7 +39,7 @@ include docs/include.am
 
 docs: html man
 
-TESTS += ${check_PROGRAMS}
+TESTS += $(check_PROGRAMS)
 
 EXTRA_DIST+= HACKING
 EXTRA_DIST+= ${man1_MANS}

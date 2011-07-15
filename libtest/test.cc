@@ -89,15 +89,15 @@ void set_default_socket(const char *socket)
 
 static void stats_print(Stats *stats)
 {
-  std::cout << "\tTotal Collections\t\t\t\t" << stats->collection_total << std::endl;
-  std::cout << "\tFailed Collections\t\t\t\t" << stats->collection_failed << std::endl;
-  std::cout << "\tSkipped Collections\t\t\t\t" << stats->collection_skipped << std::endl;
-  std::cout << "\tSucceeded Collections\t\t\t\t" << stats->collection_success << std::endl;
-  std::cout << std::endl;
-  std::cout << "Total\t\t\t\t" << stats->total << std::endl;
-  std::cout << "\tFailed\t\t\t" << stats->failed << std::endl;
-  std::cout << "\tSkipped\t\t\t" << stats->skipped << std::endl;
-  std::cout << "\tSucceeded\t\t" << stats->success << std::endl;
+  Log << "\tTotal Collections\t\t\t\t" << stats->collection_total;
+  Log << "\tFailed Collections\t\t\t\t" << stats->collection_failed;
+  Log << "\tSkipped Collections\t\t\t\t" << stats->collection_skipped;
+  Log << "\tSucceeded Collections\t\t\t\t" << stats->collection_success;
+  Logn();
+  Log << "Total\t\t\t\t" << stats->total;
+  Log << "\tFailed\t\t\t" << stats->failed;
+  Log << "\tSkipped\t\t\t" << stats->skipped;
+  Log << "\tSucceeded\t\t" << stats->success;
 }
 
 static long int timedif(struct timeval a, struct timeval b)
@@ -186,7 +186,7 @@ int main(int argc, char *argv[])
 
   if (collection_to_run)
   {
-    std::cout << "Only testing " <<  collection_to_run << std::endl;
+    Log << "Only testing " <<  collection_to_run;
   }
 
   char *wildcard= NULL;
@@ -359,6 +359,8 @@ cleanup:
   stats_print(&stats);
 
   delete world;
+
+  Logn(); // Generate a blank to break up the messages if make check/test has been run
 
   return exit_code;
 }

@@ -16,9 +16,6 @@
 
 #include <libgearman/gearman.h>
 
-#include <libtest/server.h>
-#include <libtest/worker.h>
-
 #include <tests/basic.h>
 #include <tests/context.h>
 

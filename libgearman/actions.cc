@@ -156,7 +156,7 @@ static gearman_return_t _client_do_complete(gearman_task_st *task)
   return GEARMAN_SUCCESS;
 }
 
-gearman_actions_t &gearman_actions_default(void)
+const gearman_actions_t &gearman_actions_default(void)
 {
   static gearman_actions_t default_actions= { 0, 0, 0, 0, 0, 0, 0, 0 };
 
@@ -164,21 +164,21 @@ gearman_actions_t &gearman_actions_default(void)
 }
 
 
-gearman_actions_t &gearman_actions_do_default(void)
+const gearman_actions_t &gearman_actions_do_default(void)
 {
   static gearman_actions_t default_actions= { 0, 0, _client_do_data, 0, 0, _client_do_complete, 0, 0 };
 
   return default_actions;
 }
 
-gearman_actions_t &gearman_actions_execute_defaults(void)
+const gearman_actions_t &gearman_actions_execute_defaults(void)
 {
   static gearman_actions_t default_actions= { 0, 0, _client_do_data, 0, 0, _client_do_complete, 0, 0 };
 
   return default_actions;
 }
 
-gearman_actions_t &gearman_actions_pause(void)
+const gearman_actions_t &gearman_actions_pause(void)
 {
   static gearman_actions_t default_actions= { 0, 0, 
     _client_pause_data,  // gearman_data_fn

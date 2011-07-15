@@ -21,6 +21,7 @@ if HAVE_LIBSQLITE3
 SQLITE_TEST= tests/sqlite_test
 CLEANFILES+= tests/gearman.sql tests/gearman.sql-journal tests/gearmand.log*
 check_PROGRAMS+= tests/sqlite_test
+noinst_PROGRAMS+= tests/sqlite_test
 endif
 
 tests_sqlite_test_SOURCES= \
@@ -41,6 +42,11 @@ endif
 gdb-sqlite: tests/sqlite_test sqlite-nuke
 if HAVE_LIBSQLITE3
 	$(LIBTOOL) --mode=execute gdb tests/sqlite_test
+endif
+
+helgrind-sqlite: tests/sqlite_test sqlite-nuke
+if HAVE_LIBSQLITE3
+	$(HELGRIND_COMMAND) $(SQLITE_TEST)
 endif
 
 valgrind-sqlite: tests/sqlite_test sqlite-nuke

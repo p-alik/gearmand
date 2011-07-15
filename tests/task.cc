@@ -39,6 +39,7 @@
 
 #include <cassert>
 #include <libgearman/gearman.h>
+#include <libgearman/actions.hpp>
 #include <tests/task.h>
 
 #include <iostream>

@@ -17,8 +17,8 @@
 #include <libgearman/gearman.h>
 
 #include <libtest/test.hpp>
-#include <libtest/server.h>
-#include <libtest/worker.h>
+
+#include <tests/start_worker.h>
 
 #include <tests/ports.h>
 
@@ -186,7 +186,7 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
   /**
     We start up everything before we allocate so that we don't have to track memory in the forked process.
   */
-  if (not server_startup(servers, BURNIN_TEST_PORT, 1, argv))
+  if (not server_startup(servers, "gearmand", BURNIN_TEST_PORT, 1, argv))
   {
     error= TEST_FAILURE;
     return NULL;
@@ -221,7 +221,7 @@ static bool world_destroy(void *object)
 {
   client_test_st *test= (client_test_st *)object;
   gearman_client_free(&(test->client));
-  test_worker_stop(test->handle);
+  delete test->handle;
 
   delete test;
 

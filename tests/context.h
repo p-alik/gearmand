@@ -71,7 +71,7 @@ public:
 
   bool initialize(int argc, const char *argv[])
   {
-    if (not server_startup(_servers, _port, argc, argv))
+    if (not server_startup(_servers, "gearmand", _port, argc, argv))
     {
       return NULL;
     }
@@ -87,7 +87,7 @@ public:
 
   void reset()
   {
-    _servers.shutdown();
+    _servers.shutdown(true);
     gearman_worker_free(worker);
 
     unlink("tests/gearman.sql");

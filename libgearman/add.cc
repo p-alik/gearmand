@@ -60,7 +60,7 @@ gearman_task_st *add_task(gearman_client_st *client,
                           const gearman_unique_t &unique,
                           const gearman_string_t &workload,
                           time_t when,
-                          struct gearman_actions_t &actions)
+                          const gearman_actions_t &actions)
 {
   return add_task(client, NULL, context, command, function, unique, workload, when, actions);
 }
@@ -74,7 +74,7 @@ gearman_task_st *add_task(gearman_client_st *client,
                           const void *workload_str, size_t workload_size,
                           time_t when,
                           gearman_return_t *ret_ptr,
-                          struct gearman_actions_t &actions)
+                          const gearman_actions_t &actions)
 {
   gearman_return_t unused;
   if (not ret_ptr)
@@ -111,7 +111,7 @@ gearman_task_st *add_task(gearman_client_st *client,
                           const gearman_unique_t &unique,
                           const gearman_string_t &workload,
                           time_t when,
-                          struct gearman_actions_t &actions)
+                          const gearman_actions_t &actions)
 {
   uuid_t uuid;
   char uuid_string[37];
@@ -218,7 +218,7 @@ gearman_task_st *add_reducer_task(gearman_client_st *client,
                                   const gearman_string_t &reducer,
                                   const gearman_unique_t &unique,
                                   const gearman_string_t &workload,
-                                  struct gearman_actions_t &actions,
+                                  const gearman_actions_t &actions,
                                   const time_t,
                                   void *context)
 {

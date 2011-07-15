@@ -772,13 +772,13 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
       {
         if (worker->universal.timeout < 0)
         {
-          usleep(GEARMAN_WORKER_WAIT_TIMEOUT * 1000);
+          gearman_nap(GEARMAN_WORKER_WAIT_TIMEOUT);
         }
         else
         {
           if (worker->universal.timeout > 0)
           {
-            usleep(static_cast<unsigned int>((&worker->universal)->timeout) * 1000);
+            gearman_nap(worker->universal);
           }
 
           if (worker->options.timeout_return)

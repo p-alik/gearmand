@@ -48,7 +48,7 @@ static test_return_t collection_cleanup(void *object)
 {
   Context *test= (Context *)object;
   test->reset();
-
+ 
   return TEST_SUCCESS;
 }
 

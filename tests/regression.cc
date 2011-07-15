@@ -206,3 +206,58 @@ test_return_t regression_bug_372074_test(void *)
 
   return TEST_SUCCESS;
 }
+
+test_return_t regression_768317_test(void *object)
+{
+  gearman_client_st *client= (gearman_client_st *)object;
+
+  test_true(client);
+  size_t result_length;
+  gearman_return_t rc;
+  char *job_result= (char*)gearman_client_do(client, "increment_reset_worker", 
+                                             NULL, 
+                                             gearman_literal_param("reset"),
+                                             &result_length, &rc);
+  test_compare_got(GEARMAN_SUCCESS, rc, gearman_strerror(rc));
+  test_false(job_result);
+
+  // Check to see that the task ran just once
+  job_result= (char*)gearman_client_do(client, "increment_reset_worker", 
+                                       NULL, 
+                                       gearman_literal_param("10"),
+                                       &result_length, &rc);
+  test_compare_got(GEARMAN_SUCCESS, rc, gearman_client_error(client));
+  test_truth(job_result);
+  long count= strtol(job_result, (char **)NULL, 10);
+  test_compare(10, count);
+  free(job_result);
+
+  // Check to see that the task ran just once out of the bg queue
+  {
+    gearman_job_handle_t job_handle;
+    rc= gearman_client_do_background(client,
+                                     "increment_reset_worker",
+                                     NULL,
+                                     gearman_literal_param("14"),
+                                     job_handle);
+    test_compare(GEARMAN_SUCCESS, rc);
+
+    bool is_known;
+    do {
+      rc= gearman_client_job_status(client, job_handle, &is_known, NULL, NULL, NULL);
+    }  while (gearman_continue(rc) or is_known);
+    test_compare(GEARMAN_SUCCESS, rc);
+
+    job_result= (char*)gearman_client_do(client, "increment_reset_worker", 
+                                         NULL, 
+                                         gearman_literal_param("10"),
+                                         &result_length, &rc);
+    test_compare(GEARMAN_SUCCESS, rc);
+    test_truth(job_result);
+    count= atol(job_result);
+    test_compare(34, count);
+    free(job_result);
+  }
+
+  return TEST_SUCCESS;
+}

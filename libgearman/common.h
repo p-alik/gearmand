@@ -57,4 +57,5 @@
 #include <libgearman/unique.h>
 #include <libgearman/result.hpp>
 #include <libgearman/actions.h>
+#include <libgearman/actions.hpp>
 #include <libgearman/is.hpp>

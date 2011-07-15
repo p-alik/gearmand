@@ -54,6 +54,12 @@ test_return_t collection_cleanup(void *object)
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
+  if (not server_startup(servers, "memcached", 12555, 0, NULL))
+  {
+    error= TEST_FAILURE;
+    return NULL;
+  }
+
   Context *test= new Context(MEMCACHED_TEST_PORT, servers);
   if (not test)
   {

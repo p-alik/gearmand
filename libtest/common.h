@@ -51,5 +51,6 @@
 #include <cassert>
 
 #include <libtest/test.hpp>
+#include <libtest/wait.h>
 
 using namespace libtest;
