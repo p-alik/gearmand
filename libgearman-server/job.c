@@ -156,7 +156,7 @@ gearman_server_job_add_reducer(gearman_server_st *server,
 
   if (server_job == NULL)
   {
-    gearmand_log_debug("Comparing queue %u to limit %u for priority %u",
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Comparing queue %u to limit %u for priority %u",
       server_function->job_total, server_function->max_queue_size[priority],
       priority);
     if (server_function->max_queue_size[priority] > 0 &&

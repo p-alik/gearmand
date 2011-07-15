@@ -1096,7 +1096,7 @@ static gearmand_error_t _server_run_text(gearman_server_con_st *server_con,
             !memcmp(packet->arg[1], function->function_name,
                     function->function_name_size))
         {
-          gearmand_log_debug("Applying queue limits to %s",
+          gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Applying queue limits to %s",
                              function->function_name);
           memcpy(function->max_queue_size, max_queue_size,
                  sizeof(uint32_t) * GEARMAND_JOB_PRIORITY_MAX);
