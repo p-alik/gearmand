@@ -58,6 +58,8 @@
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
+using namespace libtest;
+
 static in_port_t global_port= 0;
 static char global_socket[1024];
 
@@ -84,20 +86,23 @@ bool test_is_local()
 
 void set_default_socket(const char *socket)
 {
-  strncpy(global_socket, socket, strlen(socket));
+  if (socket)
+  {
+    strncpy(global_socket, socket, strlen(socket));
+  }
 }
 
 static void stats_print(Stats *stats)
 {
-  Log << "\tTotal Collections\t\t\t\t" << stats->collection_total;
-  Log << "\tFailed Collections\t\t\t\t" << stats->collection_failed;
-  Log << "\tSkipped Collections\t\t\t\t" << stats->collection_skipped;
-  Log << "\tSucceeded Collections\t\t\t\t" << stats->collection_success;
-  Logn();
-  Log << "Total\t\t\t\t" << stats->total;
-  Log << "\tFailed\t\t\t" << stats->failed;
-  Log << "\tSkipped\t\t\t" << stats->skipped;
-  Log << "\tSucceeded\t\t" << stats->success;
+  Out << "\tTotal Collections\t\t\t\t" << stats->collection_total;
+  Out << "\tFailed Collections\t\t\t\t" << stats->collection_failed;
+  Out << "\tSkipped Collections\t\t\t\t" << stats->collection_skipped;
+  Out << "\tSucceeded Collections\t\t\t\t" << stats->collection_success;
+  Outn();
+  Out << "Total\t\t\t\t" << stats->total;
+  Out << "\tFailed\t\t\t" << stats->failed;
+  Out << "\tSkipped\t\t\t" << stats->skipped;
+  Out << "\tSucceeded\t\t" << stats->success;
 }
 
 static long int timedif(struct timeval a, struct timeval b)
@@ -153,6 +158,8 @@ void create_core(void)
 static Framework *world= NULL;
 int main(int argc, char *argv[])
 {
+  srandom((unsigned int)time(NULL));
+
   world= new Framework();
 
   if (not world)
@@ -160,7 +167,11 @@ int main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
-  setup_signals();
+  libtest::SignalThread signal;
+  if (not signal.setup())
+  {
+    return EXIT_FAILURE;
+  }
 
   Stats stats;
 
@@ -171,6 +182,7 @@ int main(int argc, char *argv[])
   if (test_failed(error))
   {
     Error << "create() failed";
+    delete world;
     return EXIT_FAILURE;
   }
 
@@ -186,7 +198,7 @@ int main(int argc, char *argv[])
 
   if (collection_to_run)
   {
-    Log << "Only testing " <<  collection_to_run;
+    Out << "Only testing " <<  collection_to_run;
   }
 
   char *wildcard= NULL;
@@ -195,7 +207,7 @@ int main(int argc, char *argv[])
     wildcard= argv[2];
   }
 
-  for (collection_st *next= world->collections; next->name and (not is_shutdown()); next++)
+  for (collection_st *next= world->collections; next->name and (not signal.is_shutdown()); next++)
   {
     test_return_t collection_rc= TEST_SUCCESS;
     bool failed= false;
@@ -210,7 +222,7 @@ int main(int argc, char *argv[])
 
     if (collection_rc == TEST_SUCCESS and next->pre)
     {
-      collection_rc= world->runner->pre(next->pre, creators_ptr);
+      collection_rc= world->runner()->pre(next->pre, creators_ptr);
     }
 
     switch (collection_rc)
@@ -220,21 +232,21 @@ int main(int argc, char *argv[])
 
     case TEST_FATAL:
     case TEST_FAILURE:
-      Error << next->name << " [ failed ]";
-      stats.collection_failed++;
-      set_shutdown(SHUTDOWN_GRACEFUL);
+      Out << next->name << " [ failed ]";
+      failed= true;
+      signal.set_shutdown(SHUTDOWN_GRACEFUL);
       goto cleanup;
 
     case TEST_SKIPPED:
-      Log << next->name << " [ skipping ]";
-      stats.collection_skipped++;
+      Out << next->name << " [ skipping ]";
+      skipped= true;
       goto cleanup;
 
     case TEST_MEMORY_ALLOCATION_FAILURE:
       test_assert(0, "Allocation failure, or unknown return");
     }
 
-    Log << "Collection: " << next->name;
+    Out << "Collection: " << next->name;
 
     for (test_st *run= next->tests; run->name; run++)
     {
@@ -256,7 +268,9 @@ int main(int argc, char *argv[])
           {
             { // Runner Code
               gettimeofday(&start_time, NULL);
-              return_code= world->runner->run(run->test_fn, creators_ptr);
+              assert(world->runner());
+              assert(run->test_fn);
+              return_code= world->runner()->run(run->test_fn, creators_ptr);
               gettimeofday(&end_time, NULL);
               load_time= timedif(end_time, start_time);
             }
@@ -270,7 +284,7 @@ int main(int argc, char *argv[])
         else if (return_code == TEST_FAILURE)
         {
           Error << " item.flush(failure)";
-          set_shutdown(SHUTDOWN_GRACEFUL);
+          signal.set_shutdown(SHUTDOWN_GRACEFUL);
         }
       }
       else if (return_code == TEST_SKIPPED)
@@ -278,7 +292,7 @@ int main(int argc, char *argv[])
       else if (return_code == TEST_FAILURE)
       {
         Error << " item.startup(failure)";
-        set_shutdown(SHUTDOWN_GRACEFUL);
+        signal.set_shutdown(SHUTDOWN_GRACEFUL);
       }
 
       stats.total++;
@@ -286,7 +300,7 @@ int main(int argc, char *argv[])
       switch (return_code)
       {
       case TEST_SUCCESS:
-        Log << "\tTesting " << run->name <<  "\t\t\t\t\t" << load_time / 1000 << "." << load_time % 1000 << "[ " << test_strerror(return_code) << " ]";
+        Out << "\tTesting " << run->name <<  "\t\t\t\t\t" << load_time / 1000 << "." << load_time % 1000 << "[ " << test_strerror(return_code) << " ]";
         stats.success++;
         break;
 
@@ -294,13 +308,13 @@ int main(int argc, char *argv[])
       case TEST_FAILURE:
         stats.failed++;
         failed= true;
-        Log << "\tTesting " << run->name <<  "\t\t\t\t\t" << "[ " << test_strerror(return_code) << " ]";
+        Out << "\tTesting " << run->name <<  "\t\t\t\t\t" << "[ " << test_strerror(return_code) << " ]";
         break;
 
       case TEST_SKIPPED:
         stats.skipped++;
         skipped= true;
-        Log << "\tTesting " << run->name <<  "\t\t\t\t\t" << "[ " << test_strerror(return_code) << " ]";
+        Out << "\tTesting " << run->name <<  "\t\t\t\t\t" << "[ " << test_strerror(return_code) << " ]";
         break;
 
       case TEST_MEMORY_ALLOCATION_FAILURE:
@@ -310,57 +324,65 @@ int main(int argc, char *argv[])
       if (test_failed(world->on_error(return_code, creators_ptr)))
       {
         Error << "Failed while running on_error()";
-        set_shutdown(SHUTDOWN_GRACEFUL);
+        signal.set_shutdown(SHUTDOWN_GRACEFUL);
         break;
       }
     }
 
-    if (next->post and world->runner->post)
-    {
-      (void) world->runner->post(next->post, creators_ptr);
-    }
+    (void) world->runner()->post(next->post, creators_ptr);
 
-    if (failed == 0 and skipped == 0)
+cleanup:
+    if (failed == false and skipped == false)
     {
       stats.collection_success++;
     }
-cleanup:
+
+    if (failed)
+    {
+      stats.collection_failed++;
+    }
+
+    if (skipped)
+    {
+      stats.collection_skipped++;
+    }
 
     world->shutdown(creators_ptr);
-    Logn();
+    Outn();
   }
 
-  if (not is_shutdown())
+  if (not signal.is_shutdown())
   {
-    set_shutdown(SHUTDOWN_GRACEFUL);
+    signal.set_shutdown(SHUTDOWN_GRACEFUL);
   }
 
   int exit_code= EXIT_SUCCESS;
-  shutdown_t status= get_shutdown();
+  shutdown_t status= signal.get_shutdown();
   if (status == SHUTDOWN_FORCED)
   {
-    Log << "Tests were aborted.";
+    Out << "Tests were aborted.";
     exit_code= EXIT_FAILURE;
   }
   else if (stats.collection_failed)
   {
-    Log << "Some test failed.";
+    Out << "Some test failed.";
     exit_code= EXIT_FAILURE;
   }
   else if (stats.collection_skipped)
   {
-    Log << "Some tests were skipped.";
+    Out << "Some tests were skipped.";
   }
   else
   {
-    Log << "All tests completed successfully.";
+    Out << "All tests completed successfully.";
   }
 
   stats_print(&stats);
 
   delete world;
 
-  Logn(); // Generate a blank to break up the messages if make check/test has been run
+  Outn(); // Generate a blank to break up the messages if make check/test has been run
 
+  Error << argv[0] << " exit with:" << exit_code;
   return exit_code;
 }

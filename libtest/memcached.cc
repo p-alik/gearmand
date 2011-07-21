@@ -39,10 +39,6 @@
 #include <libmemcached/memcached.h>
 #include <libmemcached/util.h>
 
-#include "util/instance.h"
-#include "util/operation.h"
-
-using namespace gearman_util;
 using namespace libtest;
 
 #include <cassert>
@@ -65,72 +61,46 @@ using namespace libtest;
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
-class GetPid : public Instance::Finish
-{
-private:
-  pid_t _pid;
-
-public:
-  GetPid() :
-    _pid(-1)
-  { }
-
-  pid_t pid()
-  {
-    return _pid;
-  }
-
-
-  bool call(const bool success, const std::string &response)
-  {
-    _pid= -1;
-
-    if (success and response.size())
-    {
-      _pid= atoi(response.c_str());
-    }
-
-    if (_pid < 1)
-    {
-      _pid= -1;
-      return true;
-    }
-
-    return false;
-  }
-};
-
 using namespace libtest;
 
 class Memcached : public Server
 {
 public:
-  Memcached(const std::string& host_arg, in_port_t port_arg) :
-    Server(host_arg, port_arg)
+  Memcached(const std::string& host_arg, const in_port_t port_arg, const bool is_socket_arg) :
+    Server(host_arg, port_arg, is_socket_arg)
   { }
 
-  pid_t get_pid()
+  pid_t get_pid(bool error_is_ok)
   {
     // Memcached is slow to start, so we need to do this
     if (not pid_file().empty())
     {
       Wait wait(pid_file(), 0);
 
-      if (not wait.successful())
+      if (error_is_ok and not wait.successful())
       {
         Error << "Pidfile was not found:" << pid_file();
         return -1;
       }
     }
 
+    pid_t local_pid;
     memcached_return_t rc;
-    _pid= libmemcached_util_getpid(hostname().c_str(), port(), &rc);
-    if (memcached_failed(rc))
+    if (has_socket())
     {
-      Error << "libmemcached_util_getpid(" << memcached_strerror(NULL, rc) << ") pid: " << _pid << " for:" << *this;
+      local_pid= libmemcached_util_getpid(socket().c_str(), port(), &rc);
+    }
+    else
+    {
+      local_pid= libmemcached_util_getpid(hostname().c_str(), port(), &rc);
     }
 
-    return _pid;
+    if (error_is_ok and ((memcached_failed(rc) or local_pid < 1)))
+    {
+      Error << "libmemcached_util_getpid(" << memcached_strerror(NULL, rc) << ") pid: " << local_pid << " for:" << *this;
+    }
+
+    return local_pid;
   }
 
   bool ping()
@@ -148,8 +118,17 @@ public:
     }
 
     memcached_return_t rc;
-    bool ret= libmemcached_util_ping(hostname().c_str(), port(), &rc);
-    if (memcached_failed(rc))
+    bool ret;
+    if (has_socket())
+    {
+      ret= libmemcached_util_ping(socket().c_str(), 0, &rc);
+    }
+    else
+    {
+      ret= libmemcached_util_ping(hostname().c_str(), port(), &rc);
+    }
+
+    if (memcached_failed(rc) or not ret)
     {
       Error << "libmemcached_util_ping(" << memcached_strerror(NULL, rc) << ")";
     }
@@ -169,6 +148,11 @@ public:
   const char *pid_file_option()
   {
     return "-P ";
+  }
+
+  const char *socket_file_option() const
+  {
+    return "-s ";
   }
 
   const char *daemon_file_option()
@@ -224,9 +208,14 @@ bool Memcached::build(int argc, const char *argv[])
 
 namespace libtest {
 
-Server *build_memcached(const char *hostname, in_port_t try_port)
+Server *build_memcached(const std::string& hostname, const in_port_t try_port)
 {
-  return new Memcached(hostname, try_port);
+  return new Memcached(hostname, try_port, false);
+}
+
+Server *build_memcached_socket(const std::string& hostname, const in_port_t try_port)
+{
+  return new Memcached(hostname, try_port, true);
 }
 
 }

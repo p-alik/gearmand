@@ -6,7 +6,10 @@
  * the COPYING file in the parent directory for full text.
  */
 
-#include <libtest/common.h>
+#include <config.h>
+#include <libtest/test.hpp>
+
+using namespace libtest;
 
 #include <cassert>
 #include <cstdio>
@@ -116,10 +119,7 @@ static test_return_t queue_worker(void *object)
 
   for (uint32_t x= 0; x < 10; x++)
   {
-    gearman_return_t rc;
-    test_compare_got(GEARMAN_SUCCESS,
-                     rc= gearman_worker_work(worker),
-                     gearman_worker_error(worker) ? gearman_worker_error(worker) : gearman_strerror(rc));
+    test_compare(GEARMAN_SUCCESS, gearman_worker_work(worker));
   }
 
   // expect buffer to be reassembled in a predictable round robin order

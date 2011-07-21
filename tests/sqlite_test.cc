@@ -6,9 +6,12 @@
  * the COPYING file in the parent directory for full text.
  */
 
-#include <libtest/common.h>
+#include <config.h>
+#include <libtest/test.hpp>
 
-#include <assert.h>
+using namespace libtest;
+
+#include <cassert>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -90,10 +93,12 @@ test_st regressions[] ={
 };
 
 collection_st collection[] ={
+#ifdef HAVE_LIBSQLITE3
   {"sqlite queue", collection_init, collection_cleanup, tests},
   {"queue regression", collection_init, collection_cleanup, regressions},
 #if 0
   {"sqlite queue change table", collection_init, collection_cleanup, tests},
+#endif
 #endif
   {0, 0, 0, 0}
 };

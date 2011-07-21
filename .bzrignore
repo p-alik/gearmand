@@ -13,6 +13,9 @@
 *gz
 *rpm
 *stamp-h1
+.hg/
+.hgsub
+.hgsubstate
 INSTALL
 TAGS
 aclocal.m4
@@ -60,6 +63,8 @@ gearmand/gearmand_hostile
 gearmand/gearmand_test
 libgearman/version.h
 libhostile
+libtest/.hg/
+libtest/.hgignore
 libtest/unittest
 libtest/wait
 libtool
@@ -78,7 +83,9 @@ scripts/smf_install.sh
 support/gearmand.pc
 support/gearmand.spec
 tags
+tests/*.tcb
 tests/Xugear.pid
+tests/blobslap_client
 tests/burnin_test
 tests/c_test
 tests/client_test
@@ -108,5 +115,5 @@ tests/var/tmp/*
 tests/worker_test
 tests/worker_test.res
 unittests/unittests
-libtest/.hg/
-libtest/.hgignore
+util/.hg/
+util/.hgignore

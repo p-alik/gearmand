@@ -1,8 +1,9 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  uTest
+ *  Gearmand client and server library.
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -34,11 +35,8 @@
  *
  */
 
-#pragma once
 
-
-bool kill_pid(pid_t pid_arg);
-
-pid_t kill_file(const std::string &filename);
-
-pid_t get_pid_from_file(const std::string &filename);
+#define gearman_literal_param(X) (X), static_cast<size_t>(sizeof(X) - 1)
+#define gearman_literal_param_size(X) static_cast<size_t>(sizeof(X) - 1)
+#define gearman_c_str_param(X) (X) ? (X) : NULL, (X) ? strlen(X) : 0
+#define gearman_array_length(__array) sizeof(__array)/sizeof(&__array)

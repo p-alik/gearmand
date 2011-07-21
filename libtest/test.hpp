@@ -48,6 +48,7 @@
 
 #include <libtest/error.h>
 #include <libtest/server.h>
+#include <libtest/wait.h>
 #include <libtest/callbacks.h>
 #include <libtest/test.h>
 #include <libtest/strerror.h>
@@ -59,25 +60,21 @@
 #include <libtest/get.h>
 #include <libtest/stream.h>
 #include <libtest/cmdline.h>
+#include <libtest/string.hpp>
 
 #pragma once
 
 LIBTEST_API
-  in_port_t default_port();
+in_port_t default_port();
 
 LIBTEST_API
-  void set_default_port(in_port_t port);
+void set_default_port(in_port_t port);
 
 LIBTEST_API
-  const char* default_socket();
+const char* default_socket();
 
 LIBTEST_API
-  void set_default_socket(const char *socket);
+void set_default_socket(const char *socket);
 
-#ifdef __cplusplus
-#define test_literal_param(X) (X), (static_cast<size_t>((sizeof(X) - 1)))
-#else
-#define test_literal_param(X) (X), ((size_t)((sizeof(X) - 1)))
-#endif
-
-#define test_string_make_from_cstr(X) (X), ((X) ? strlen(X) : 0)
+LIBTEST_API
+bool test_is_local(void);

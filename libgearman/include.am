@@ -66,6 +66,7 @@ noinst_HEADERS+= \
 		 libgearman/result.hpp \
 		 libgearman/run.hpp \
 		 libgearman/strcommand.h \
+		 libgearman/string.hpp \
 		 libgearman/unique.h \
 		 libgearman/universal.hpp \
 		 libgearman/vector.hpp

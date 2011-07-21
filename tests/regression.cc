@@ -70,7 +70,7 @@ test_return_t regression_bug_783141_test(void *)
     gearman_return_t ret;
     gearman_task_st *task= gearman_client_add_task(client, NULL, NULL,
                                                    "does not exist", NULL,
-                                                   gearman_literal_param("dog"),
+                                                   test_literal_param("dog"),
                                                    &ret);
     test_true_got(gearman_success(ret), gearman_strerror(ret));
     test_truth(task);
@@ -95,7 +95,7 @@ test_return_t regression_bug_783141_test(void *)
     gearman_return_t ret;
     gearman_task_st *task= gearman_client_add_task(client, NULL, NULL,
                                                    "does not exist", NULL,
-                                                   gearman_literal_param("dog"),
+                                                   test_literal_param("dog"),
                                                    &ret);
     test_true_got(gearman_success(ret), gearman_strerror(ret));
     test_truth(task);
@@ -216,7 +216,7 @@ test_return_t regression_768317_test(void *object)
   gearman_return_t rc;
   char *job_result= (char*)gearman_client_do(client, "increment_reset_worker", 
                                              NULL, 
-                                             gearman_literal_param("reset"),
+                                             test_literal_param("reset"),
                                              &result_length, &rc);
   test_compare_got(GEARMAN_SUCCESS, rc, gearman_strerror(rc));
   test_false(job_result);
@@ -224,12 +224,12 @@ test_return_t regression_768317_test(void *object)
   // Check to see that the task ran just once
   job_result= (char*)gearman_client_do(client, "increment_reset_worker", 
                                        NULL, 
-                                       gearman_literal_param("10"),
+                                       test_literal_param("10"),
                                        &result_length, &rc);
   test_compare_got(GEARMAN_SUCCESS, rc, gearman_client_error(client));
   test_truth(job_result);
   long count= strtol(job_result, (char **)NULL, 10);
-  test_compare(10, count);
+  test_compare(10L, count);
   free(job_result);
 
   // Check to see that the task ran just once out of the bg queue
@@ -238,7 +238,7 @@ test_return_t regression_768317_test(void *object)
     rc= gearman_client_do_background(client,
                                      "increment_reset_worker",
                                      NULL,
-                                     gearman_literal_param("14"),
+                                     test_literal_param("14"),
                                      job_handle);
     test_compare(GEARMAN_SUCCESS, rc);
 
@@ -250,12 +250,12 @@ test_return_t regression_768317_test(void *object)
 
     job_result= (char*)gearman_client_do(client, "increment_reset_worker", 
                                          NULL, 
-                                         gearman_literal_param("10"),
+                                         test_literal_param("10"),
                                          &result_length, &rc);
     test_compare(GEARMAN_SUCCESS, rc);
     test_truth(job_result);
     count= atol(job_result);
-    test_compare(34, count);
+    test_compare(34L, count);
     free(job_result);
   }
 

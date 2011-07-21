@@ -56,11 +56,11 @@
 #include <cstdio>
 
 #include <libtest/test.hpp>
-#include <util/instance.h>
 #include <tests/start_worker.h>
+#include <util/instance.hpp>
 
 using namespace libtest;
-using namespace gearman_util;
+using namespace datadifferential;
 
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -69,7 +69,7 @@ using namespace gearman_util;
 /*
   Print to debug the output of what workers a server might have.
 */
-class Finish : public Instance::Finish
+class Finish : public util::Instance::Finish
 {
 public:
   bool call(bool success, const std::string &response)
@@ -98,7 +98,7 @@ public:
   }
 };
 
-class Status : public Instance::Finish
+class Status : public util::Instance::Finish
 {
   bool _dropped;
 
@@ -178,7 +178,7 @@ static void *thread_runner(void *con)
   gearman_return_t rc= gearman_worker_add_server(worker, NULL, context->port);
   assert(rc == GEARMAN_SUCCESS);
 
-  bool success= gearman_worker_set_server_option(worker, gearman_literal_param("exceptions"));
+  bool success= gearman_worker_set_server_option(worker, test_literal_param("exceptions"));
   assert(success);
 
   if (gearman_failed(gearman_worker_define_function(worker,
@@ -305,6 +305,10 @@ bool worker_handle_st::shutdown()
     return false;
   }
 
+  // If the worker is non-responsive this will allow us to not get stuck in
+  // gearman_wait().
+  gearman_client_set_timeout(client, 1000);
+
   gearman_return_t rc;
   (void)gearman_client_do(client, shutdown_function(true).c_str(), NULL, NULL, 0, 0, &rc);
   gearman_client_free(client);
@@ -312,10 +316,10 @@ bool worker_handle_st::shutdown()
   if (gearman_failed(rc))
   {
     Error << "Trying to see what workers are registered:" << port();
-    Instance instance("localhost", port());
+    util::Instance instance("localhost", port());
     instance.set_finish(new Finish);
 
-    instance.push(new Operation(test_literal_param("workers\r\n")));
+    instance.push(new util::Operation(test_literal_param("workers\r\n")));
 
     instance.run();
 
@@ -326,13 +330,13 @@ bool worker_handle_st::shutdown()
   else
   {
     Status *status;
-    Instance instance("localhost", port());
+    util::Instance instance("localhost", port());
     instance.set_finish(status= new Status);
 
     std::string execute(test_literal_param("drop function "));
     execute.append(shutdown_function(true));
     execute.append("\r\n");
-    instance.push(new Operation(execute.c_str(), execute.size()));
+    instance.push(new util::Operation(execute.c_str(), execute.size()));
 
     instance.run();
 

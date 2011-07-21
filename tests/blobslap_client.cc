@@ -1,6 +1,6 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  Cycle the Gearmand server
+ *  Test the blobslap_client program
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
  *
@@ -39,73 +39,82 @@
   Test that we are cycling the servers we are creating during testing.
 */
 
-#include <config.h>
 #include <libtest/test.hpp>
 
 using namespace libtest;
-#include <libgearman/gearman.h>
 
-#include "tests/ports.h"
-#include "tests/start_worker.h"
-
-static gearman_return_t success_fn(gearman_job_st*, void* /* context */)
-{
-  return GEARMAN_SUCCESS;
-}
-
-static test_return_t single_cycle(void *)
-{
-  gearman_function_t success_function= gearman_function_create(success_fn);
-  worker_handle_st *worker= test_worker_start(CYCLE_TEST_PORT, NULL, "success", success_function, NULL, gearman_worker_options_t());
-  test_true(worker);
-  test_true(worker->shutdown());
-  delete worker;
-
-  return TEST_SUCCESS;
-}
-
-static test_return_t kill_test(void *)
-{
-  static struct timespec global_sleep_value= { 2, 0 };
-
-#ifdef WIN32
-  sleep(1);
-#else
-  nanosleep(&global_sleep_value, NULL);
+#ifndef __INTEL_COMPILER
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #endif
 
+#include "tests/ports.h"
+
+static std::string executable;
+
+static test_return_t help_test(void *)
+{
+  char buffer[1024];
+  snprintf(buffer, sizeof(buffer), "-p %d", int(default_port()));
+  const char *args[]= { buffer, "-?", 0 };
+
+  test_success(exec_cmdline(executable, args));
   return TEST_SUCCESS;
 }
 
-test_st kill_tests[] ={
-  {"kill", true, (test_callback_fn*)kill_test },
-  {0, 0, 0}
-};
+static test_return_t unknown_test(void *)
+{
+  char buffer[1024];
+  snprintf(buffer, sizeof(buffer), "-p %d", int(default_port()));
+  const char *args[]= { buffer, "--unknown", 0 };
 
-test_st worker_tests[] ={
-  {"single startup/shutdown", true, (test_callback_fn*)single_cycle },
+  // The argument doesn't exist, so we should see an error
+  test_failed(exec_cmdline(executable, args));
+  return TEST_SUCCESS;
+}
+
+static test_return_t basic_benchmark_test(void *)
+{
+  char buffer[1024];
+  snprintf(buffer, sizeof(buffer), "-p %d", int(default_port()));
+  const char *args[]= { buffer, "-c 100", "-n 10", "-e", 0 };
+
+  // The argument doesn't exist, so we should see an error
+  test_success(exec_cmdline(executable, args));
+  return TEST_SUCCESS;
+}
+
+test_st benchmark_tests[] ={
+  {"--help", 0, help_test},
+  {"--unknown", 0, unknown_test},
+  {"-c 100 -n 10", 0, basic_benchmark_test},
   {0, 0, 0}
 };
 
 collection_st collection[] ={
-  {"kill", 0, 0, kill_tests},
-  {"worker", 0, 0, worker_tests},
+  {"blobslap_client", 0, 0, benchmark_tests},
   {0, 0, 0, 0}
 };
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  const char *argv[1]= { "client_gearmand" };
-  if (not server_startup(servers, "gearmand", CYCLE_TEST_PORT, 1, argv))
+  const char *argv[1]= { "blobslap_client" };
+  if (not server_startup(servers, "gearmand", BLOBSLAP_CLIENT_TEST_PORT, 1, argv))
   {
     error= TEST_FAILURE;
   }
 
-  return NULL;
+  if (not server_startup(servers, "blobslap_worker", BLOBSLAP_CLIENT_TEST_PORT, 1, argv))
+  {
+    error= TEST_FAILURE;
+  }
+
+  return &servers;
 }
+
 
 void get_world(Framework *world)
 {
+  executable= "./benchmark/blobslap_client";
   world->collections= collection;
   world->_create= world_create;
 }

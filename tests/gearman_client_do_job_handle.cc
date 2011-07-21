@@ -53,7 +53,7 @@ test_return_t gearman_client_do_job_handle_no_active_task(void *object)
 
   const char *job_handle= gearman_client_do_job_handle(client);
   test_true(job_handle);
-  test_compare(0, job_handle[0]);
+  test_zero(job_handle[0]);
 
   return TEST_SUCCESS;
 }

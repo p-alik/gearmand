@@ -35,7 +35,10 @@
  *
  */
 
-#include <libtest/common.h>
+#include <config.h>
+#include <libtest/test.hpp>
+
+using namespace libtest;
 
 #include <cstring>
 #include <cassert>
@@ -117,7 +120,7 @@ test_return_t client_echo_fail_test(void *object)
 
   test_true_got(gearman_success(gearman_client_add_server(&client, NULL, 20)), gearman_client_error(client_ptr));
 
-  gearman_return_t rc= gearman_client_echo(&client, gearman_literal_param("This should never work"));
+  gearman_return_t rc= gearman_client_echo(&client, test_literal_param("This should never work"));
   test_true_got(gearman_failed(rc), gearman_strerror(rc));
 
   gearman_client_free(&client);
@@ -137,7 +140,7 @@ test_return_t client_echo_test(void *object)
 
   test_true_got(gearman_success(gearman_client_add_server(&client, NULL, test->port())), gearman_client_error(client_ptr));
 
-  gearman_return_t rc= gearman_client_echo(&client, gearman_literal_param("This is my echo test"));
+  gearman_return_t rc= gearman_client_echo(&client, test_literal_param("This is my echo test"));
   test_true_got(rc == GEARMAN_SUCCESS, gearman_strerror(rc));
 
   gearman_client_free(&client);
@@ -153,7 +156,7 @@ test_return_t worker_echo_test(void *object)
   gearman_worker_st *worker= test->worker;
   test_truth(worker);
 
-  gearman_return_t rc= gearman_worker_echo(worker, gearman_literal_param("This is my echo test"));
+  gearman_return_t rc= gearman_worker_echo(worker, test_literal_param("This is my echo test"));
   test_true_got(rc == GEARMAN_SUCCESS, gearman_strerror(rc));
 
   return TEST_SUCCESS;
@@ -196,15 +199,16 @@ test_return_t queue_add(void *object)
 
   test_true_got(gearman_success(gearman_client_add_server(&client, NULL, test->port())), gearman_client_error(client_ptr));
 
-  gearman_return_t rc= gearman_client_echo(&client, gearman_literal_param("background_payload"));
-  test_compare_got(GEARMAN_SUCCESS, rc, gearman_strerror(rc));
+  test_compare(GEARMAN_SUCCESS,
+               gearman_client_echo(&client, test_literal_param("background_payload")));
 
-  rc= gearman_client_do_background(&client, test->worker_function_name(), NULL, 
-                                   gearman_literal_param("background_payload"),
-                                   job_handle);
-  test_compare(GEARMAN_SUCCESS, rc);
+  test_compare(GEARMAN_SUCCESS,
+               gearman_client_do_background(&client, test->worker_function_name(), NULL, 
+                                            test_literal_param("background_payload"),
+                                            job_handle));
   test_truth(job_handle[0]);
 
+  gearman_return_t rc;
   do {
     rc= gearman_client_job_status(client_ptr, job_handle, NULL, NULL, NULL, NULL);
     test_true(rc != GEARMAN_IN_PROGRESS);
@@ -265,14 +269,12 @@ test_return_t lp_734663(void *object)
 
   test_true_got(gearman_success(gearman_client_add_server(&client, NULL, test->port())), gearman_client_error(client_ptr));
 
-  gearman_return_t rc;
-  test_compare_got(GEARMAN_SUCCESS, rc= gearman_client_echo(&client, value, sizeof(JOB_SIZE)), gearman_strerror(rc));
+  test_compare(GEARMAN_SUCCESS, gearman_client_echo(&client, value, sizeof(JOB_SIZE)));
 
   for (uint32_t x= 0; x < NUMBER_OF_JOBS; x++)
   {
     gearman_job_handle_t job_handle= {};
-    gearman_return_t scoped_rc= gearman_client_do_background(&client, worker_function_name, NULL, value, sizeof(value), job_handle);
-    test_compare(GEARMAN_SUCCESS, scoped_rc);
+    test_compare(GEARMAN_SUCCESS, gearman_client_do_background(&client, worker_function_name, NULL, value, sizeof(value), job_handle));
     test_truth(job_handle[0]);
   }
 
@@ -297,7 +299,11 @@ test_return_t lp_734663(void *object)
 #endif
   }
 
-  std::cerr << "Going to shutdown the workers " << counter.count() << std::endl;
+  for (uint32_t x= 0; x < NUMBER_OF_WORKERS; x++)
+  {
+    worker_handle[x]->shutdown();
+  }
+
   for (uint32_t x= 0; x < NUMBER_OF_WORKERS; x++)
   {
     delete worker_handle[x];

@@ -1,6 +1,6 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  Gearmand client and server library.
+ *  DataDifferential Utility Library
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
  *  All rights reserved.
@@ -38,7 +38,7 @@
 
 #include <config.h>
 
-#include "util/instance.h"
+#include "util/instance.hpp"
 
 #include <cstdio>
 #include <sstream>
@@ -49,7 +49,8 @@
 #include <netinet/in.h>
 
 
-namespace gearman_util {
+namespace datadifferential {
+namespace util {
 
 Instance::Instance(const std::string& hostname_arg, const std::string& service_arg) :
   _host(hostname_arg),
@@ -299,4 +300,5 @@ void Instance::free_addrinfo()
   _addrinfo_next= NULL;
 }
 
-} // namespace gearman_util
+} /* namespace util */
+} /* namespace datadifferential */

@@ -1,9 +1,8 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  Gearmand client and server library.
+ *  DataDifferential Utility Library
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -35,59 +34,20 @@
  *
  */
 
-#include <cstdio>
+
+/*
+  Simple defines
+*/
+
 #include <cstring>
-#include <errno.h>
-#include <iostream>
+#include <cstddef>
 
-#include <libgearman/gearman.h>
-#include <util/error.h>
+#pragma once
 
-namespace gearman_util
-{
+#define util_literal_param(X) (X), (static_cast<size_t>((sizeof(X) - 1)))
+#define util_literal_param_size(X) static_cast<size_t>(sizeof(X) - 1)
 
-namespace error {
+#define util_string_make_from_cstr(X) (X), ((X) ? strlen(X) : 0)
 
-void perror(const char *message)
-{
-  char *errmsg_ptr;
-  char errmsg[BUFSIZ];
-  errmsg[0]= 0;
+#define util_array_length(__array) sizeof(__array)/sizeof(&__array)
 
-#ifdef STRERROR_R_CHAR_P
-  errmsg_ptr= strerror_r(errno, errmsg, sizeof(errmsg));
-#else
-  strerror_r(errno, errmsg, sizeof(errmsg));
-  errmsg_ptr= errmsg;
-#endif
-  std::cerr << "gearman: " << message << " (" << errmsg_ptr << ")" << std::endl;
-}
-
-void message(const char *arg)
-{
-  std::cerr << "gearman: " << arg << std::endl;
-}
-
-void message(const char *arg, const char *arg2)
-{
-  std::cerr << "gearman: " << arg << " : " << arg2 << std::endl;
-}
-
-void message(const std::string &arg, gearman_return_t rc)
-{
-  std::cerr << "gearman: " << arg << " : " << gearman_strerror(rc) << std::endl;
-}
-
-void message(const char *arg, const gearman_client_st &client)
-{
-  std::cerr << "gearman: " << arg << " : " << gearman_client_error(&client) << std::endl;
-}
-
-void message(const char *arg, const gearman_worker_st &worker)
-{
-  std::cerr << "gearman: " << arg << " : " << gearman_worker_error(&worker) << std::endl;
-}
-
-} // namespace error
-
-} // namespace gearman_util

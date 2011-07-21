@@ -34,11 +34,11 @@
 #include "bin/arguments.h"
 #include "bin/client.h"
 #include "bin/worker.h"
-#include "util/pidfile.h"
-#include "util/error.h"
+#include "util/pidfile.hpp"
+#include "bin/error.h"
 
 using namespace gearman_client;
-using namespace gearman_util;
+using namespace datadifferential;
 
 #define GEARMAN_INITIAL_WORKLOAD_SIZE 8192
 
@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
     }
   }
 
-  Pidfile _pid_file(args.pid_file());
+  util::Pidfile _pid_file(args.pid_file());
 
   if (not _pid_file.create())
   {

@@ -1,6 +1,6 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  Gearmand client and server library.
+ *  DataDifferential Utility Library
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
  *  All rights reserved.
@@ -37,7 +37,7 @@
 
 #include "config.h"
 
-#include "pidfile.h"
+#include "util/pidfile.hpp"
 
 #include <cstdio>
 #include <cstdlib>
@@ -48,9 +48,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-
-namespace gearman_util
-{
+namespace datadifferential {
+namespace util {
 
 Pidfile::Pidfile(const std::string &arg) :
   _last_errno(0),
@@ -90,11 +89,12 @@ bool Pidfile::create()
   { 
     _error_message+= "Could not write pid to file: "; 
     _error_message+= _filename;
+    close(file);
 
     return false;
   }
 
-  if (close(file < 0))
+  if (close(file) < 0)
   {
     _error_message+= "Could not close() file after writing pid to it: "; 
     _error_message+= _filename;
@@ -104,4 +104,5 @@ bool Pidfile::create()
   return true;
 }
 
-} // namespace gearman_util
+} /* namespace util */
+} /* namespace datadifferential */

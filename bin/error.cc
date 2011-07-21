@@ -1,8 +1,9 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  uTest
+ *  DataDifferential Utility Library
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -34,11 +35,58 @@
  *
  */
 
-#pragma once
+#include <cstdio>
+#include <cstring>
+#include <errno.h>
+#include <iostream>
 
+#include <libgearman/gearman.h>
+#include <bin/error.h>
 
-bool kill_pid(pid_t pid_arg);
+namespace gearman_client {
 
-pid_t kill_file(const std::string &filename);
+namespace error {
 
-pid_t get_pid_from_file(const std::string &filename);
+void perror(const char *message)
+{
+  char *errmsg_ptr;
+  char errmsg[BUFSIZ];
+  errmsg[0]= 0;
+
+#ifdef STRERROR_R_CHAR_P
+  errmsg_ptr= strerror_r(errno, errmsg, sizeof(errmsg));
+#else
+  strerror_r(errno, errmsg, sizeof(errmsg));
+  errmsg_ptr= errmsg;
+#endif
+  std::cerr << "gearman: " << message << " (" << errmsg_ptr << ")" << std::endl;
+}
+
+void message(const char *arg)
+{
+  std::cerr << "gearman: " << arg << std::endl;
+}
+
+void message(const char *arg, const char *arg2)
+{
+  std::cerr << "gearman: " << arg << " : " << arg2 << std::endl;
+}
+
+void message(const std::string &arg, gearman_return_t rc)
+{
+  std::cerr << "gearman: " << arg << " : " << gearman_strerror(rc) << std::endl;
+}
+
+void message(const char *arg, const gearman_client_st &client)
+{
+  std::cerr << "gearman: " << arg << " : " << gearman_client_error(&client) << std::endl;
+}
+
+void message(const char *arg, const gearman_worker_st &worker)
+{
+  std::cerr << "gearman: " << arg << " : " << gearman_worker_error(&worker) << std::endl;
+}
+
+} // namespace error
+
+} /* namespace gearman_client */

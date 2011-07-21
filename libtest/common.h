@@ -49,8 +49,7 @@
 
 #include <cerrno>
 #include <cassert>
+#include <sstream>
+#include <string>
 
 #include <libtest/test.hpp>
-#include <libtest/wait.h>
-
-using namespace libtest;

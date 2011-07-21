@@ -45,6 +45,7 @@
 
 #include <libgearman/gearman.h>
 #include <boost/program_options.hpp>
+#include "util/string.hpp"
 
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -131,7 +132,7 @@ int main(int args, char *argv[])
   gearman_task_st *task;
   gearman_argument_t value= gearman_argument_make(0, 0, text_to_echo.c_str(), text_to_echo.size());
 
-  if (not (task= gearman_execute(&client, gearman_literal_param("reverse"), NULL, 0, &workload, &value, 0)))
+  if (not (task= gearman_execute(&client, util_literal_param("reverse"), NULL, 0, &workload, &value, 0)))
   {
     std::cerr << gearman_client_error(&client) << std::endl;
     return EXIT_FAILURE;

@@ -36,32 +36,94 @@
  */
 
 #include <config.h>
+
 #include <libtest/test.hpp>
 
+#include <cstdlib>
+#include <unistd.h>
+
 using namespace libtest;
+
+static test_return_t LIBTOOL_COMMAND_test(void *)
+{
+  test_true(getenv("LIBTOOL_COMMAND"));
+  return TEST_SUCCESS;
+}
+
+static test_return_t VALGRIND_COMMAND_test(void *)
+{
+  test_true(getenv("VALGRIND_COMMAND"));
+  return TEST_SUCCESS;
+}
+
+static test_return_t HELGRIND_COMMAND_test(void *)
+{
+  test_true(getenv("HELGRIND_COMMAND"));
+  return TEST_SUCCESS;
+}
+
+static test_return_t GDB_COMMAND_test(void *)
+{
+  test_true(getenv("GDB_COMMAND"));
+  return TEST_SUCCESS;
+}
 
 static test_return_t test_success_test(void *)
 {
   return TEST_SUCCESS;
 }
 
+static test_return_t test_failure_test(void *)
+{
+  return TEST_SKIPPED; // Only run this when debugging
+
+  test_compare(1, 2);
+  return TEST_SUCCESS;
+}
+
 static test_return_t local_test(void *)
 {
-  char buffer[sizeof("LIBTEST_LOCAL=1")];
-
-  snprintf(buffer, sizeof(buffer), "%s", "LIBTEST_LOCAL=1");
-  test_compare(0, putenv(buffer));
-
-  test_true(test_is_local());
+  if (getenv("LIBTEST_LOCAL"))
+  {
+    test_true(test_is_local());
+  }
+  else
+  {
+    test_false(test_is_local());
+  }
 
   return TEST_SUCCESS;
 }
 
 static test_return_t local_not_test(void *)
 {
-  test_compare(0, unsetenv("LIBTEST_LOCAL"));
+  return TEST_SKIPPED;
 
+  std::string temp;
+
+  const char *ptr;
+  if ((ptr= getenv("LIBTEST_LOCAL")) == NULL)
+  {
+    temp.append(ptr);
+  }
+
+  // unsetenv() will cause issues with valgrind
+  _compare(__FILE__, __LINE__, __func__, 0, unsetenv("LIBTEST_LOCAL"));
+  test_compare(0, unsetenv("LIBTEST_LOCAL"));
   test_false(test_is_local());
+
+  test_compare(0, setenv("LIBTEST_LOCAL", "1", 1));
+  test_true(test_is_local());
+
+  if (temp.empty())
+  {
+    test_compare(0, unsetenv("LIBTEST_LOCAL"));
+  }
+  else
+  {
+    char *old_string= strdup(temp.c_str());
+    test_compare(0, setenv("LIBTEST_LOCAL", old_string, 1));
+  }
 
   return TEST_SUCCESS;
 }
@@ -80,24 +142,45 @@ static test_return_t gearmand_cycle_test(void *object)
   server_startup_st *servers= (server_startup_st*)object;
   test_true(servers);
 
+#ifndef HAVE_LIBGEARMAN
+  return TEST_SKIPPED;
+#endif
+
   const char *argv[1]= { "cycle_gearmand" };
   test_true(server_startup(*servers, "gearmand", 9999, 1, argv));
 
   return TEST_SUCCESS;
 }
 
-#if defined(MEMCACHED_BINARY) && defined(HAVE_LIBMEMCACHED)
 static test_return_t memcached_cycle_test(void *object)
 {
   server_startup_st *servers= (server_startup_st*)object;
   test_true(servers);
+
+#if !defined(MEMCACHED_BINARY) || !defined(HAVE_LIBMEMCACHED)
+  return TEST_SKIPPED;
+#endif
 
   const char *argv[1]= { "cycle_memcached" };
   test_true(server_startup(*servers, "memcached", 9998, 1, argv));
 
   return TEST_SUCCESS;
 }
+
+static test_return_t memcached_socket_cycle_test(void *object)
+{
+  server_startup_st *servers= (server_startup_st*)object;
+  test_true(servers);
+
+#if !defined(MEMCACHED_BINARY) || !defined(HAVE_LIBMEMCACHED)
+  return TEST_SKIPPED;
 #endif
+
+  const char *argv[1]= { "cycle_memcached" };
+  test_true(servers->start_socket_server("memcached", 9997, 1, argv));
+
+  return TEST_SUCCESS;
+}
 
 test_st gearmand_tests[] ={
 #if 0
@@ -108,14 +191,22 @@ test_st gearmand_tests[] ={
 };
 
 test_st memcached_tests[] ={
-#if defined(MEMCACHED_BINARY) && defined(HAVE_LIBMEMCACHED)
   {"memcached startup-shutdown", 0, memcached_cycle_test },
-#endif
+  {"memcached(socket file) startup-shutdown", 0, memcached_socket_cycle_test },
+  {0, 0, 0}
+};
+
+test_st environment_tests[] ={
+  {"LIBTOOL_COMMAND", 0, LIBTOOL_COMMAND_test },
+  {"VALGRIND_COMMAND", 0, VALGRIND_COMMAND_test },
+  {"HELGRIND_COMMAND", 0, HELGRIND_COMMAND_test },
+  {"GDB_COMMAND", 0, GDB_COMMAND_test },
   {0, 0, 0}
 };
 
 test_st tests_log[] ={
   {"TEST_SUCCESS", 0, test_success_test },
+  {"TEST_FAILURE", 0, test_failure_test },
   {0, 0, 0}
 };
 
@@ -126,6 +217,7 @@ test_st local_log[] ={
 };
 
 collection_st collection[] ={
+  {"environment", 0, 0, environment_tests},
   {"return values", 0, 0, tests_log},
   {"local", 0, 0, local_log},
   {"gearmand", 0, 0, gearmand_tests},

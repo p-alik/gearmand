@@ -169,5 +169,5 @@ int main(int args, char *argv[])
 
   gearman_client_free(&client);
 
-  return EXIT_SUCCESS;
+  return exit_code;
 }

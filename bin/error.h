@@ -3,6 +3,7 @@
  *  Gearmand client and server library.
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2008 Brian Aker, Eric Day
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -37,30 +38,21 @@
 
 #pragma once
 
-
 #include <string>
 
-namespace gearman_util
-{
+struct gearman_client_st;
+struct gearman_worker_st;
 
-class Pidfile
-{
-public:
-  Pidfile(const std::string &arg);
+namespace gearman_client {
+namespace error {
 
-  ~Pidfile();
+void perror(const char *);
+void message(const char *);
+void message(const std::string &arg, gearman_return_t rc);
+void message(const char *arg, const char *arg2);
+void message(const char *arg, const gearman_client_st &);
+void message(const char *arg, const gearman_worker_st &);
 
-  const std::string &error_message()
-  {
-    return _error_message;
-  }
+} // namespace error
 
-  bool create();
-
-private:
-  int _last_errno;
-  std::string _filename;
-  std::string _error_message;
-};
-
-} // namespace gearman_util
+} /* namespace gearman_client */

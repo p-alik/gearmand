@@ -6,7 +6,10 @@
  * the COPYING file in the parent directory for full text.
  */
 
-#include <libtest/common.h>
+#include <config.h>
+#include <libtest/test.hpp>
+
+using namespace libtest;
 
 #include <cassert>
 #include <cerrno>
@@ -67,7 +70,7 @@ static test_return_t burnin_test(void *object)
   gearman_task_st *tasks= (gearman_task_st *)calloc(context->num_tasks, sizeof(gearman_task_st));
   test_true_got(tasks, strerror(errno));
 
-  test_true_got(gearman_success(gearman_client_echo(client, gearman_literal_param("echo_test"))), gearman_client_error(client));
+  test_true_got(gearman_success(gearman_client_echo(client, test_literal_param("echo_test"))), gearman_client_error(client));
 
   do
   {
@@ -114,7 +117,7 @@ static test_return_t burnin_test(void *object)
       test_compare(GEARMAN_TASK_STATE_FINISHED, tasks[x].state);
       test_compare(GEARMAN_SUCCESS, tasks[x].result_rc);
     }
-    test_compare(0, client->new_tasks);
+    test_zero(client->new_tasks);
 
     test_true_got(gearman_success(ret), gearman_client_error(client));
 
@@ -163,7 +166,7 @@ static test_return_t cleanup(void *object)
 static void *worker_fn(gearman_job_st *, void *,
                        size_t *result_size, gearman_return_t *ret_ptr)
 {
-  result_size= 0;
+  *result_size= 0;
   *ret_ptr= GEARMAN_SUCCESS;
   return NULL;
 }
@@ -242,29 +245,55 @@ collection_st collection[] ={
 };
 
 typedef test_return_t (*libgearman_test_callback_fn)(gearman_client_st *);
-static test_return_t _runner_default(libgearman_test_callback_fn func, client_test_st *container)
-{
-  if (func)
+class GearmandRunner : public Runner {
+public:
+  test_return_t run(test_callback_fn* func, void *object)
   {
-    return func(&container->client);
-  }
-  else
-  {
+    if (func)
+    {
+      libgearman_test_callback_fn actual= libgearman_test_callback_fn(func);
+      client_test_st *container= (client_test_st*)object;
+
+      return actual(&container->client);
+    }
+
     return TEST_SUCCESS;
   }
-}
 
-static Runner runner= {
-  (test_callback_runner_fn*)_runner_default,
-  (test_callback_runner_fn*)_runner_default,
-  (test_callback_runner_fn*)_runner_default
+  test_return_t pre(test_callback_fn* func, void *object)
+  {
+    if (func)
+    {
+      libgearman_test_callback_fn actual= libgearman_test_callback_fn(func);
+      client_test_st *container= (client_test_st*)object;
+
+
+      return actual(&container->client);
+    }
+
+    return TEST_SUCCESS;
+  }
+
+  test_return_t post(test_callback_fn* func, void *object)
+  {
+    if (func)
+    {
+      libgearman_test_callback_fn actual= libgearman_test_callback_fn(func);
+      client_test_st *container= (client_test_st*)object;
+
+      return actual(&container->client);
+    }
+
+    return TEST_SUCCESS;
+  }
 };
 
+static GearmandRunner defualt_runner;
 
 void get_world(Framework *world)
 {
   world->collections= collection;
   world->_create= world_create;
   world->_destroy= world_destroy;
-  world->runner= &runner;
+  world->set_runner(&defualt_runner);
 }

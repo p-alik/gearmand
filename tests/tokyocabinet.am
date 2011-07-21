@@ -10,12 +10,9 @@
 # All paths should be given relative to the root
 #
 
-test-tokyocabinet: test-tokyocabinet-args test-tokyocabinet-queue
+test-tokyocabinet: test-tokyocabinet-args test-tokyocabinet
 
 if HAVE_LIBTOKYOCABINET
-TOKYOCABINET_TEST= tests/tokyocabinet_test
-TOKYOCABINET_RM= @rm -f tests/gearman.tcb
-CLEANFILES+= tests/gearman.tcb
 check_PROGRAMS+= tests/tokyocabinet_test
 noinst_PROGRAMS+= tests/tokyocabinet_test
 endif
@@ -28,14 +25,17 @@ if HAVE_LIBTOKYOCABINET
 	@gearmand/gearmand --check-args --libtokyocabinet-file=tmp/file --libtokyocabinet-optimize
 endif
 
-test-tokyocabinet-queue:
+test-tokyocabinet: tests/tokyocabinet_test
 if HAVE_LIBTOKYOCABINET
-	$(TOKYOCABINET_TEST)
-	$(TOKYOCABINET_RM)
+	@tests/tokyocabinet_test
 endif
 
-valgrind-tokyocabinet:
+gdb-tokyocabinet: tests/tokyocabinet_test
 if HAVE_LIBTOKYOCABINET
-	$(VALGRIND_COMMAND) $(TOKYOCABINET_TEST)
-	$(TOKYOCABINET_RM)
+	@$(GDB_COMMAND) tests/tokyocabinet_test
+endif
+
+valgrind-tokyocabinet: tests/tokyocabinet_test
+if HAVE_LIBTOKYOCABINET
+	@$(VALGRIND_COMMAND) tests/tokyocabinet_test
 endif

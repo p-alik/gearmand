@@ -54,7 +54,7 @@ test_return_t unique_compare_test(void *object)
   const char *worker_function= (const char *)gearman_client_context(client);
   size_t job_length;
 
-  gearman_string_t unique= { gearman_literal_param("my little unique") };
+  gearman_string_t unique= { test_literal_param("my little unique") };
 
   void *job_result= gearman_client_do(client, worker_function, gearman_c_str(unique), 
                                       gearman_string_param(unique),

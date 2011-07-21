@@ -1,5 +1,5 @@
 # vim:ft=automake
-# Gearman server and library
+# DataDifferential Utility Library
 # Copyright (C) 2011 Data Differential
 # All rights reserved.
 #
@@ -11,8 +11,8 @@
 
 
 noinst_HEADERS+= \
-		 util/daemon.h \
-		 util/error.h \
-		 util/instance.h \
-		 util/operation.h \
-		 util/pidfile.h
+		 util/daemon.hpp \
+		 util/instance.hpp \
+		 util/operation.hpp \
+		 util/string.hpp \
+		 util/pidfile.hpp

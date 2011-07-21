@@ -1,6 +1,6 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  uTest
+ *  libtest
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
  *
@@ -36,9 +36,55 @@
 
 #pragma once
 
+namespace libtest {
 
-bool kill_pid(pid_t pid_arg);
+template <class T_comparable, class T_hint>
+bool _compare_true_hint(const char *file, int line, const char *func, T_comparable __expected, const char *assertation_label,  T_hint __hint)
+{
+  if (__expected == false)
+  {
+    libtest::stream::make_cerr(file, line, func) << "Assertation  \"" << assertation_label << "\" failed, hint: " << __hint;
+    return false;
+  }
 
-pid_t kill_file(const std::string &filename);
+  return true;
+}
 
-pid_t get_pid_from_file(const std::string &filename);
+template <class T_comparable>
+bool _compare(const char *file, int line, const char *func, T_comparable __expected, T_comparable __actual)
+{
+  if (__expected != __actual)
+  {
+    libtest::stream::make_cerr(file, line, func) << "Expected \"" << __expected << "\" got \"" << __actual << "\"";
+    return false;
+  }
+
+  return true;
+}
+
+template <class T_comparable>
+bool _compare_zero(const char *file, int line, const char *func, T_comparable __actual)
+{
+  if (T_comparable(0) != __actual)
+  {
+    libtest::stream::make_cerr(file, line, func) << "Expected 0 got \"" << __actual << "\"";
+    return false;
+  }
+
+  return true;
+}
+
+template <class T_comparable, class T_hint>
+bool _compare_hint(const char *file, int line, const char *func, T_comparable __expected, T_comparable __actual, T_hint __hint)
+{
+  if (__expected != __actual)
+  {
+    libtest::stream::make_cerr(file, line, func) << "Expected \"" << __expected << "\" got \"" << __actual << "\" Additionally: \"" << __hint << "\"";
+
+    return false;
+  }
+
+  return true;
+}
+
+} // namespace libtest

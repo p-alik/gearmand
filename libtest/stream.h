@@ -57,6 +57,20 @@ template<class Ch, class Tr, class A>
   public:
     void operator()(const stream_buffer &s)
     {
+      std::cerr << s.str() << std::endl;
+    }
+  };
+
+template<class Ch, class Tr, class A>
+  class make_cerr {
+  private:
+
+  public:
+    typedef std::basic_ostringstream<Ch, Tr, A> stream_buffer;
+
+  public:
+    void operator()(const stream_buffer &s)
+    {
       std::cerr << std::endl << s.str() << std::endl;
     }
   };
@@ -85,7 +99,7 @@ template<class Ch, class Tr, class A>
   public:
     void operator()(const stream_buffer &s)
     {
-      std::cerr << s.str() << std::endl;
+      std::cerr<< s.str() << std::endl;
     }
   };
 
@@ -121,7 +135,7 @@ template<template <class Ch, class Tr, class A> class OutputPolicy, class Ch = c
       {
         if (_filename)
         {
-          arg << _filename << ":" << _line_number << " in " << _func << "() ";
+          arg << _filename << ":" << _line_number << ": in " << _func << "() ";
           _filename= NULL;
         }
         arg << x;
@@ -132,6 +146,14 @@ template<template <class Ch, class Tr, class A> class OutputPolicy, class Ch = c
     typename output_policy::stream_buffer arg;
   };
 }
+
+class make_cerr : public detail::log<detail::make_cerr> {
+public:
+  make_cerr(const char *filename, int line_number, const char *func)
+  {
+    set_filename(filename, line_number, func);
+  }
+};
 
 class cerr : public detail::log<detail::cerr> {
 public:
@@ -159,6 +181,8 @@ public:
 #define Error stream::cerr(__FILE__, __LINE__, __func__)
 
 #define Out stream::cout(NULL, __LINE__, __func__)
+
+#define Outn() stream::cout(NULL, __LINE__, __func__) << " "
 
 #define Log stream::clog(NULL, __LINE__, __func__)
 

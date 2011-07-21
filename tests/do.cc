@@ -59,7 +59,7 @@ test_return_t gearman_client_do_huge_unique(void *object)
   const char *worker_function= (const char *)gearman_client_context(client);
   job_result= gearman_client_do(client, worker_function, 
                                 buffer, 
-                                gearman_literal_param("gearman_client_do_huge_unique"),
+                                test_literal_param("gearman_client_do_huge_unique"),
                                 &job_length,
                                 &rc);
   test_true_got(rc == GEARMAN_SERVER_ERROR, gearman_strerror(rc));
@@ -78,13 +78,13 @@ test_return_t gearman_client_do_with_active_background_task(void *object)
   gearman_task_st *epoch_task;
   { // Start up epoch_task
     gearman_task_attr_t work_description= gearman_task_attr_init_epoch(time(NULL) +5, GEARMAN_JOB_PRIORITY_NORMAL);
-    gearman_argument_t value= gearman_argument_make(0, 0, gearman_literal_param("test load"));
-    test_true_got(epoch_task= gearman_execute(client, gearman_c_str_param(worker_function), NULL, 0, &work_description, &value, 0), gearman_client_error(client));
+    gearman_argument_t value= gearman_argument_make(0, 0, test_literal_param("test load"));
+    test_true_got(epoch_task= gearman_execute(client, test_string_make_from_cstr(worker_function), NULL, 0, &work_description, &value, 0), gearman_client_error(client));
     test_truth(epoch_task);
     test_truth(gearman_task_job_handle(epoch_task));
   }
 
-  gearman_string_t value= { gearman_literal_param("submit_job_test") };
+  gearman_string_t value= { test_literal_param("submit_job_test") };
   size_t result_length;
   gearman_return_t rc;
   void *job_result= gearman_client_do(client, worker_function, NULL, gearman_string_param(value), &result_length, &rc);

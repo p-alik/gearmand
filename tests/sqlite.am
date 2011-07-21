@@ -30,8 +30,6 @@ tests_sqlite_test_SOURCES= \
 tests_sqlite_test_LDADD= ${CLIENT_LDADD}
 
 sqlite-nuke: 
-	@rm -f tests/var/gearman.sql
-	@rm -f tests/var/gearman.sql-journal
 	@rm -f tests/var/gearmand.log*
 
 test-sqlite-queue: tests/sqlite_test sqlite-nuke
@@ -41,7 +39,7 @@ endif
 
 gdb-sqlite: tests/sqlite_test sqlite-nuke
 if HAVE_LIBSQLITE3
-	$(LIBTOOL) --mode=execute gdb tests/sqlite_test
+	@$(GDB_COMMAND) tests/sqlite_test
 endif
 
 helgrind-sqlite: tests/sqlite_test sqlite-nuke

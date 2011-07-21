@@ -38,12 +38,15 @@
 
 
 
-#include <libtest/common.h>
+#include <config.h>
+#include <libtest/test.hpp>
 
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+using namespace libtest;
+
+#include <cassert>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #define GEARMAN_CORE
 #include <libgearman/common.h>
@@ -395,7 +398,7 @@ static test_return_t gearman_packet_take_data_test(void *)
   char *mine= (char *)gearman_packet_take_data(packet, &mine_size);
 
   test_false(packet_ptr->data);
-  test_compare(0, packet_ptr->data_size);
+  test_zero(packet_ptr->data_size);
   test_false(packet_ptr->options.free_data);
 
   test_compare(mine, data);

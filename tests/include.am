@@ -71,6 +71,11 @@ tests_gearadmin_LDADD= ${CLIENT_LDADD}
 check_PROGRAMS+= tests/gearadmin
 noinst_PROGRAMS+= tests/gearadmin
 
+tests_blobslap_client_SOURCES= tests/blobslap_client.cc
+tests_blobslap_client_LDADD= ${CLIENT_LDADD}
+#check_PROGRAMS+= tests/blobslap_client
+noinst_PROGRAMS+= tests/blobslap_client
+
 tests_internals_test_SOURCES= \
 			      tests/internals.cc \
 			      tests/regression.cc
@@ -113,6 +118,9 @@ test-cycle: tests/cycle
 test-gearadmin: tests/gearadmin
 	@tests/gearadmin
 
+tests-blobslap_client: tests/blobslap_client
+	@tests/blobslap_client
+
 test-client: tests/client_test
 	@tests/client_test
 
@@ -125,30 +133,35 @@ test-worker: tests/worker_test
 test-internals: tests/internals_test
 	@tests/internals_test
 
-check-local: tests/var gearmand-test-args client-test libtest-tests benchmark-test
+check-local: gearmand-test-args client-test libtest-tests
 
 libtest-tests: test-client test-round-robin test-worker test-internals test-libmemcached test-sqlite test-tokyocabinet test-burnin
 
-gdb-client: ${noinst_PROGRAMS}
-	@$(LIBTOOL) --mode=execute gdb tests/client_test
+gdb-client:
+	@$(GDB_COMMAND) tests/client_test
 
-gdb-round-robin: ${noinst_PROGRAMS}
-	@$(LIBTOOL) --mode=execute gdb tests/round_robin_test
+gdb-round-robin:
+	@$(GDB_COMMAND) tests/round_robin_test
 
-gdb-worker: ${noinst_PROGRAMS}
-	@$(LIBTOOL) --mode=execute gdb tests/worker_test
+gdb-worker: tests/worker_test
+	@$(GDB_COMMAND) tests/worker_test
 
-gdb-internals: ${noinst_PROGRAMS}
-	@$(LIBTOOL) --mode=execute gdb tests/internals_test
+gdb-internals: tests/internals_test
+	@$(GDB_COMMAND) tests/internals_test
 
-gdb-burnin: ${noinst_PROGRAMS}
-	@$(LIBTOOL) --mode=execute gdb tests/burnin_test
+gdb-burnin: tests/burnin_test
+	@$(GDB_COMMAND) tests/burnin_test
 
-gdb-cycle: ${noinst_PROGRAMS}
-	@$(LIBTOOL) --mode=execute gdb tests/cycle
+gdb-gearadmin: tests/gearadmin
+	@$(GDB_COMMAND) tests/gearadmin
 
-gdb-gearadmin: ${noinst_PROGRAMS}
-	@$(LIBTOOL) --mode=execute gdb tests/gearadmin
+gdb-blobslap_client: tests/blobslap_client
+	@$(GDB_COMMAND) tests/blobslap_client
+
+gdb-cycle: tests/cycle
+	@$(GDB_COMMAND) tests/cycle
+
+gdb-all: ${noinst_PROGRAMS} gdb-gearadmin gdb-cycle gdb-client gdb-round-robin gdb-worker gdb-internals gdb-sqlite gdb-tokyocabinet gdb-burnin
 
 valgrind-client:
 	@$(VALGRIND_COMMAND) tests/client_test

@@ -11,6 +11,7 @@ AC_DEFUN([_WITH_LIBMEMCACHED],
 			   [ac_enable_libmemcached="no"] )])
 
      AM_CONDITIONAL(HAVE_LIBMEMCACHED, test "x${ac_enable_libmemcached}" = "xyes")
+     AM_CONDITIONAL(BUILD_LIBMEMCACHEDUTIL, false)
      ])
 
 AC_DEFUN([WITH_LIBMEMCACHED], [ AC_REQUIRE([_WITH_LIBMEMCACHED]) ])

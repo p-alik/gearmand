@@ -1,8 +1,9 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  uTest
+ *  DataDifferential Utility Library
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -36,9 +37,80 @@
 
 #pragma once
 
+#include <arpa/inet.h>
+#include <cstdio>
+#include <cerrno>
+#include <cassert>
+#include <cstddef>
+#include <sys/socket.h>
 
-bool kill_pid(pid_t pid_arg);
+#include "util/operation.hpp"
 
-pid_t kill_file(const std::string &filename);
+struct addrinfo;
 
-pid_t get_pid_from_file(const std::string &filename);
+namespace datadifferential {
+namespace util {
+
+class Instance
+{
+private:
+  enum connection_state_t {
+    NOT_WRITING,
+    NEXT_CONNECT_ADDRINFO,
+    CONNECT,
+    CONNECTING,
+    CONNECTED,
+    WRITING,
+    READING,
+    FINISHED
+  };
+  std::string _last_error;
+
+public: // Callbacks
+  class Finish {
+
+  public:
+    virtual ~Finish() { }
+
+    virtual bool call(const bool, const std::string &)= 0;
+  };
+
+
+public:
+  Instance(const std::string& hostname_arg, const std::string& service_arg);
+
+  Instance(const std::string& hostname_arg, const in_port_t port_arg);
+
+  ~Instance();
+
+  bool run();
+
+  void set_finish(Finish *arg)
+  {
+    _finish_fn= arg;
+  }
+
+  void push(util::Operation *next)
+  {
+    _operations.push_back(next);
+  }
+
+private:
+  void close_socket();
+
+  void free_addrinfo();
+
+  bool more_to_read() const;
+
+  std::string _host;
+  std::string _service;
+  int _sockfd;
+  connection_state_t state;
+  struct addrinfo *_addrinfo;
+  struct addrinfo *_addrinfo_next;
+  Finish *_finish_fn;
+  Operation::vector _operations;
+};
+
+} /* namespace util */
+} /* namespace datadifferential */

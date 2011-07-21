@@ -9,12 +9,21 @@
 # All paths should be given relative to the root
 # 
 
-LIBUTEST_TMP = ${abs_top_builddir}/tests/var/tmp/
+LIBTEST_TMP = ${abs_top_builddir}/tests/var/tmp/
 
-VALGRIND_COMMAND= $(LIBTOOL) --mode=execute valgrind --error-exitcode=1 --leak-check=yes --show-reachable=yes --track-fds=yes --malloc-fill=A5 --free-fill=DE
-HELGRIND_COMMAND= $(LIBTOOL) --mode=execute valgrind --tool=helgrind --read-var-info=yes --error-exitcode=1 
-DRD_COMMAND= $(LIBTOOL) --mode=execute valgrind --tool=drd
-GDB_COMMAND= $(LIBTOOL) --mode=execute gdb
+LIBTOOL_COMMAND=$(LIBTOOL) --mode=execute
+VALGRIND_COMMAND= $(LIBTOOL_COMMAND) valgrind --error-exitcode=1 --leak-check=yes --show-reachable=yes --track-fds=yes --malloc-fill=A5 --free-fill=DE
+HELGRIND_COMMAND= $(LIBTOOL_COMMAND) valgrind --tool=helgrind --read-var-info=yes --error-exitcode=1  -v
+DRD_COMMAND= $(LIBTOOL_COMMAND) valgrind --tool=drd
+GDB_COMMAND= $(LIBTOOL_COMMAND) gdb -f -x libtest/run.gdb
+
+export LIBTOOL_COMMAND
+export VALGRIND_COMMAND
+export HELGRIND_COMMAND
+export DRD_COMMAND
+export GDB_COMMAND
+
+EXTRA_DIST+= libtest/run.gdb
 
 CLEANFILES+= \
 	     tests/var/log/* \
@@ -22,10 +31,12 @@ CLEANFILES+= \
 	     tests/var/tmp/*
 
 noinst_HEADERS+= \
+		 libtest/blobslap_worker.h \
 		 libtest/callbacks.h \
 		 libtest/cmdline.h \
 		 libtest/collection.h \
 		 libtest/common.h \
+		 libtest/comparison.hpp \
 		 libtest/core.h \
 		 libtest/error.h \
 		 libtest/failed.h \
@@ -38,7 +49,9 @@ noinst_HEADERS+= \
 		 libtest/server.h \
 		 libtest/signal.h \
 		 libtest/stats.h \
+		 libtest/stream.h \
 		 libtest/strerror.h \
+		 libtest/string.hpp \
 		 libtest/test.h \
 		 libtest/test.hpp \
 		 libtest/visibility.h \
@@ -46,12 +59,11 @@ noinst_HEADERS+= \
 
 noinst_LTLIBRARIES+= libtest/libtest.la
 libtest_libtest_la_SOURCES= \
+			    libtest/blobslap_worker.cc \
 			    libtest/cmdline.cc \
 			    libtest/framework.cc \
-			    libtest/gearmand.cc \
-			    libtest/memcached.cc \
-			    util/instance.cc \
 			    libtest/killpid.cc \
+			    libtest/runner.cc \
 			    libtest/server.cc \
 			    libtest/signal.cc \
 			    libtest/test.cc
@@ -63,42 +75,53 @@ libtest_libtest_la_LIBADD=
 LIBTEST_LDADD= libtest/libtest.la
 
 if HAVE_LIBMEMCACHED
-LIBTEST_LDADD+= $(libmemcached_LIBS) -lmemcachedutil
+if BUILD_LIBMEMCACHEDUTIL
+LIBTEST_LDADD+= libmemcached/libmemcached.la
+LIBTEST_LDADD+= libmemcached/libmemcachedutil.la
+else
+LIBTEST_LDADD+= $(libmemcached_LIBS)
+endif
+libtest_libtest_la_SOURCES+= libtest/memcached.cc
 endif
 
 if HAVE_LIBGEARMAN
 LIBTEST_LDADD+= libgearman/libgearman.la
+libtest_libtest_la_SOURCES+= libtest/blobslap_worker.cc
+libtest_libtest_la_SOURCES+= libtest/gearmand.cc
+libtest_libtest_la_SOURCES+= util/instance.cc
 endif
-LIBTEST_LDADD+= libgearman/libgearman.la
+
+libtest_tmp_dir: tests/var/log tests/var/tmp tests/var/run clearn-var
 
 clearn-var:
 	@rm -f tests/var/log/*
 	@rm -f tests/var/run/*
 	@rm -f tests/var/tmp/*
 
+tests/var:
+	@$(mkdir_p) tests/var
 
-tests/var: tests/var/log tests/var/tmp tests/var/run clearn-var
-	$(mkdir_p) tests/var
+tests/var/log: tests/var
+	@$(mkdir_p) tests/var/log
 
-tests/var/log:
-	$(mkdir_p) tests/var/log
+tests/var/tmp: tests/var
+	@$(mkdir_p) tests/var/tmp
 
-tests/var/tmp:
-	$(mkdir_p) tests/var/tmp
-
-tests/var/run:
-	$(mkdir_p) tests/var/run
+tests/var/run: tests/var
+	@$(mkdir_p) tests/var/run
 
 
 libtest_unittest_CFLAGS=
-libtest_unittest_LDADD= \
-			${LIBTEST_LDADD} \
-			libtest/libtest.la
+libtest_unittest_LDADD= ${LIBTEST_LDADD}
+libtest_unittest_DEPENDENCIES= ${LIBTEST_LDADD} libtest_tmp_dir
 libtest_unittest_SOURCES= libtest/unittest.cc
 check_PROGRAMS+= libtest/unittest
 noinst_PROGRAMS+= libtest/unittest
 test-unittest: libtest/unittest
 	@libtest/unittest
+
+valgrind-unittest: libtest/unittest
+	@$(VALGRIND_COMMAND) libtest/unittest
 
 gdb-unittest: libtest/unittest
 	@$(GDB_COMMAND) libtest/unittest

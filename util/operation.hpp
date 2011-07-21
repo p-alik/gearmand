@@ -1,6 +1,6 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  Gearmand client and server library.
+ *  DataDifferential Utility Library
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
  *  All rights reserved.
@@ -37,88 +37,89 @@
 
 #pragma once
 
-#include <arpa/inet.h>
-#include <cstdio>
-#include <cerrno>
-#include <cassert>
-#include <cstddef>
-#include <sys/socket.h>
 
-#include "util/operation.h"
-#include <libgearman/protocol.h>
+#include <cstring>
+#include <iostream>
+#include <vector>
 
-struct addrinfo;
+namespace datadifferential {
+namespace util {
 
-#ifdef	__cplusplus
-extern "C" {
-#endif
-
-#ifdef	__cplusplus
-}
-#endif
-
-
-namespace gearman_util {
-
-class Instance
-{
-private:
-  enum connection_state_t {
-    NOT_WRITING,
-    NEXT_CONNECT_ADDRINFO,
-    CONNECT,
-    CONNECTING,
-    CONNECTED,
-    WRITING,
-    READING,
-    FINISHED
-  };
-  std::string _last_error;
-
-public: // Callbacks
-  class Finish {
-
-  public:
-    virtual ~Finish() { }
-
-    virtual bool call(const bool, const std::string &)= 0;
-  };
-
+class Operation {
+  typedef std::vector<char> Packet;
 
 public:
-  Instance(const std::string& hostname_arg, const std::string& service_arg);
+  typedef std::vector<Operation *> vector;
 
-  Instance(const std::string& hostname_arg, const in_port_t port_arg);
-
-  ~Instance();
-
-  bool run();
-
-  void set_finish(Finish *arg)
+  Operation(const char *command, size_t command_length, bool expect_response= true) :
+    _expect_response(expect_response),
+    packet(),
+    _response()
   {
-    _finish_fn= arg;
+    packet.resize(command_length);
+    memcpy(&packet[0], command, command_length);
   }
 
-  void push(Operation *next)
+  ~Operation()
+  { }
+
+  size_t size() const
   {
-    _operations.push_back(next);
+    return packet.size();
+  }
+
+  const char* ptr() const
+  {
+    return &(packet)[0];
+  }
+
+  bool has_response() const
+  {
+    return _expect_response;
+  }
+
+  void push(const char *buffer, size_t buffer_size)
+  {
+    size_t response_size= _response.size();
+    _response.resize(response_size +buffer_size);
+    memcpy(&_response[0] +response_size, buffer, buffer_size);
+  }
+
+  // Return false on error
+  bool response(std::string &arg)
+  {
+    if (_response.empty())
+      return false;
+
+    if (not memcmp("OK\r\n", &_response[0], 3))
+    { }
+    else if (not memcmp("OK ", &_response[0], 3))
+    {
+      arg.append(&_response[3], _response.size() -3);
+    }
+    else if (not memcmp("ERR ", &_response[0], 4))
+    {
+      arg.append(&_response[4], _response.size() -4);
+      return false;
+    }
+    else 
+    {
+      arg.append(&_response[0], _response.size());
+    }
+
+    return true;
+  }
+
+  bool reconnect() const
+  {
+    return false;
   }
 
 private:
-  void close_socket();
-
-  void free_addrinfo();
-
-  bool more_to_read() const;
-
-  std::string _host;
-  std::string _service;
-  int _sockfd;
-  connection_state_t state;
-  struct addrinfo *_addrinfo;
-  struct addrinfo *_addrinfo_next;
-  Finish *_finish_fn;
-  Operation::vector _operations;
+  bool _expect_response;
+  Packet packet;
+  Packet _response;
 };
 
-} // namespace gearman_util
+} /* namespace util */
+} /* namespace datadifferential */

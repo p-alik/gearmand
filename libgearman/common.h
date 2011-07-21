@@ -59,3 +59,4 @@
 #include <libgearman/actions.h>
 #include <libgearman/actions.hpp>
 #include <libgearman/is.hpp>
+#include <libgearman/string.hpp>

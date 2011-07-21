@@ -47,12 +47,12 @@
 #include <unistd.h>
 #include <sys/select.h>
 
-#include <util/daemon.h>
+#include <util/daemon.hpp>
 
 #include <iostream>
 
-namespace gearmand
-{
+namespace datadifferential {
+namespace util {
 
 pid_t parent_pid;
 
@@ -190,4 +190,5 @@ bool daemonize(bool is_chdir, bool wait_sigusr1)
   return true; 
 }
 
-} /* namespace drizzled */
+} /* namespace util */
+} /* namespace datadifferential */

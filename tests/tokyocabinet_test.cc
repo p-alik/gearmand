@@ -6,7 +6,10 @@
  * the COPYING file in the parent directory for full text.
  */
 
-#include <libtest/common.h>
+#include <config.h>
+#include <libtest/test.hpp>
+
+using namespace libtest;
 
 #include <assert.h>
 #include <stdio.h>
@@ -45,6 +48,7 @@ static test_return_t collection_cleanup(void *object)
 {
   Context *test= (Context *)object;
   test->reset();
+  unlink("tests/gearman.tcb");
 
   return TEST_SUCCESS;
 }
@@ -58,6 +62,7 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
     error= TEST_MEMORY_ALLOCATION_FAILURE;
     return NULL;
   }
+  unlink("tests/gearman.tcb");
 
   return test;
 }
@@ -66,6 +71,7 @@ static bool world_destroy(void *object)
 {
   Context *test= (Context *)object;
 
+  unlink("tests/gearman.tcb");
   delete test;
 
   return TEST_SUCCESS;

@@ -1,6 +1,6 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  uTest
+ *  libtest
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
  *
@@ -36,9 +36,9 @@
 
 #pragma once
 
+#include "util/string.hpp"
 
-bool kill_pid(pid_t pid_arg);
-
-pid_t kill_file(const std::string &filename);
-
-pid_t get_pid_from_file(const std::string &filename);
+#define test_literal_param util_literal_param
+#define test_literal_param_size util_literal_param_size
+#define test_string_make_from_cstr util_string_make_from_cstr
+#define test_array_length util_array_length

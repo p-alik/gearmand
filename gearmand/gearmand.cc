@@ -38,13 +38,13 @@
 
 #define GEARMAND_LOG_REOPEN_TIME 60
 
-#include "util/daemon.h"
-#include "util/pidfile.h"
+#include "util/daemon.hpp"
+#include "util/pidfile.hpp"
 
 #include <boost/program_options.hpp>
 #include <iostream>
 
-using namespace gearman_util;
+using namespace datadifferential;
 
 namespace error {
 
@@ -238,7 +238,7 @@ int main(int argc, char *argv[])
 
   if (opt_daemon)
   {
-    gearmand::daemonize(false, true);
+    util::daemonize(false, true);
   }
 
   if (_set_signals())
@@ -248,7 +248,7 @@ int main(int argc, char *argv[])
 
   gearmand_verbose_t verbose= verbose_count > static_cast<int>(GEARMAND_VERBOSE_CRAZY) ? GEARMAND_VERBOSE_CRAZY : static_cast<gearmand_verbose_t>(verbose_count);
 
-  Pidfile _pid_file(pid_file);
+  util::Pidfile _pid_file(pid_file);
 
   if (not _pid_file.create())
   {
@@ -304,7 +304,7 @@ int main(int argc, char *argv[])
   if (opt_daemon)
   {
     bool close_io= verbose_count == 0 or log_file.size();
-    if (not gearmand::daemon_is_ready(close_io))
+    if (not util::daemon_is_ready(close_io))
     {
       return EXIT_FAILURE;
     }
@@ -345,7 +345,7 @@ static bool _set_fdlimit(rlim_t fds)
 static bool _switch_user(const char *user)
 {
 
-  if (getuid() == 0 || geteuid() == 0)
+  if (getuid() == 0 or geteuid() == 0)
   {
     struct passwd *pw= getpwnam(user);
 
@@ -378,7 +378,7 @@ static bool _set_signals(void)
   memset(&sa, 0, sizeof(struct sigaction));
 
   sa.sa_handler= SIG_IGN;
-  if (sigemptyset(&sa.sa_mask) == -1 ||
+  if (sigemptyset(&sa.sa_mask) == -1 or
       sigaction(SIGPIPE, &sa, 0) == -1)
   {
     error::perror("Could not set SIGPIPE handler.");
@@ -411,9 +411,13 @@ static bool _set_signals(void)
 static void _shutdown_handler(int signal_arg)
 {
   if (signal_arg == SIGUSR1)
+  {
     gearmand_wakeup(Gearmand(), GEARMAND_WAKEUP_SHUTDOWN_GRACEFUL);
+  }
   else
+  {
     gearmand_wakeup(Gearmand(), GEARMAND_WAKEUP_SHUTDOWN);
+  }
 }
 
 static void _log(const char *line, gearmand_verbose_t verbose, void *context)
