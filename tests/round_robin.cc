@@ -20,8 +20,6 @@ using namespace libtest;
 
 #include <libgearman/gearman.h>
 
-#include <libtest/server.h>
-
 #include <tests/ports.h>
 
 struct worker_test_st

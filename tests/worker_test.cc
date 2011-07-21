@@ -22,8 +22,6 @@ using namespace libtest;
 #include "libgearman/packet.hpp"
 #include "libgearman/universal.hpp"
 
-#include <libtest/server.h>
-
 #include <tests/ports.h>
 
 struct worker_test_st

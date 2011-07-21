@@ -6,7 +6,10 @@
  * the COPYING file in the parent directory for full text.
  */
 
-#include <libtest/common.h>
+#include <config.h>
+#include <libtest/test.hpp>
+
+using namespace libtest;
 
 #include <cassert>
 #include <cstdio>
@@ -15,8 +18,6 @@
 #include <unistd.h>
 
 #include <libgearman/gearman.h>
-
-#include <libtest/server.h>
 
 #include <tests/basic.h>
 #include <tests/context.h>

@@ -14,11 +14,11 @@ test-tokyocabinet: test-tokyocabinet-args test-tokyocabinet
 
 if HAVE_LIBTOKYOCABINET
 check_PROGRAMS+= tests/tokyocabinet_test
-noinst_PROGRAMS+= tests/tokyocabinet_test
 endif
 
 tests_tokyocabinet_test_SOURCES= tests/tokyocabinet_test.cc tests/basic.cc
 tests_tokyocabinet_test_LDADD= ${CLIENT_LDADD}
+noinst_PROGRAMS+= tests/tokyocabinet_test
 
 test-tokyocabinet-args: gearmand/gearmand
 if HAVE_LIBTOKYOCABINET

@@ -383,6 +383,5 @@ cleanup:
 
   Outn(); // Generate a blank to break up the messages if make check/test has been run
 
-  Error << argv[0] << " exit with:" << exit_code;
   return exit_code;
 }

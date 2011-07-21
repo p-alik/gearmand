@@ -19,8 +19,6 @@ using namespace libtest;
 
 #include <libgearman/gearman.h>
 
-#include <libtest/server.h>
-
 #include <tests/basic.h>
 #include <tests/context.h>
 

@@ -19,15 +19,15 @@ endif
 
 test-drizzle-queue: gearmand/gearmand
 if HAVE_LIBDRIZZLE
-	$(DRIZZLE_TEST)
+	@tests/drizzle_test
 endif
 
 if HAVE_LIBDRIZZLE
 DRIZZLE_TEST= tests/drizzle_test
-noinst_PROGRAMS+= tests/drizzle_test
 endif
 
 tests_drizzle_test_SOURCES= \
 			    tests/basic.cc \
 			    tests/drizzle_test.cc
 tests_drizzle_test_LDADD= ${CLIENT_LDADD}
+noinst_PROGRAMS+= tests/drizzle_test

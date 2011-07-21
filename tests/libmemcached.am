@@ -22,11 +22,11 @@ tests_memcached_test_SOURCES= \
 			      tests/memcached_test.cc
 tests_memcached_test_LDADD= ${CLIENT_LDADD}
 tests_memcached_test_CXXFLAGS= ${AM_CXXFLAGS}
+noinst_PROGRAMS += tests/memcached_test
 
 if HAVE_LIBMEMCACHED
 if HAVE_MEMCACHED
 check_PROGRAMS += tests/memcached_test
-noinst_PROGRAMS += tests/memcached_test
 endif
 endif
 
