@@ -17,3 +17,6 @@ check_PROGRAMS+= tests/tokyocabinet_test
 
 test-tokyocabinet: tests/tokyocabinet_test
 	@tests/tokyocabinet_test
+
+valgrind-tokyocabinet:
+	@$(VALGRIND_COMMAND) tests/tokyocabinet_test

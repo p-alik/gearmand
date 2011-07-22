@@ -143,10 +143,10 @@ test-internals: tests/internals_test
 
 check-local: client-test
 
-gdb-client:
+gdb-client: tests/client_test
 	@$(GDB_COMMAND) tests/client_test
 
-gdb-round-robin:
+gdb-round-robin: tests/round_robin_test
 	@$(GDB_COMMAND) tests/round_robin_test
 
 gdb-worker: tests/worker_test
@@ -167,12 +167,12 @@ gdb-blobslap_client: tests/blobslap_client
 gdb-cycle: tests/cycle
 	@$(GDB_COMMAND) tests/cycle
 
-gdb-all: ${noinst_PROGRAMS} gdb-gearadmin gdb-cycle gdb-client gdb-round-robin gdb-worker gdb-internals gdb-sqlite gdb-tokyocabinet gdb-burnin
+gdb-all: gdb-gearadmin gdb-cycle gdb-client gdb-round-robin gdb-worker gdb-internals gdb-sqlite gdb-tokyocabinet gdb-burnin
 
-valgrind-client:
+valgrind-client: tests/client_test
 	@$(VALGRIND_COMMAND) tests/client_test
 
-valgrind-round-robin:
+valgrind-round-robin: tests/round_robin_test
 	@$(VALGRIND_COMMAND) tests/round_robin_test
 
 valgrind-worker: tests/worker_test
@@ -190,12 +190,12 @@ valgrind-gearadmin: tests/gearadmin
 valgrind-cycle: tests/cycle
 	@$(VALGRIND_COMMAND) tests/cycle
 
-valgrind: ${noinst_PROGRAMS} valgrind-gearadmin valgrind-cycle valgrind-client valgrind-round-robin valgrind-worker valgrind-internals valgrind-sqlite valgrind-tokyocabinet valgrind-burnin
+valgrind: valgrind-unittest valgrind-gearadmin valgrind-cycle valgrind-client valgrind-round-robin valgrind-worker valgrind-internals valgrind-sqlite valgrind-tokyocabinet valgrind-burnin
 
-helgrind-client:
+helgrind-client: tests/client_test
 	@$(HELGRIND_COMMAND) tests/client_test
 
-helgrind-round-robin:
+helgrind-round-robin: tests/round_robin_test
 	@$(HELGRIND_COMMAND) tests/round_robin_test
 
 helgrind-worker: tests/worker_test
@@ -216,7 +216,7 @@ helgrind-cycle: tests/cycle
 drd-cycle: tests/cycle
 	@$(DRD_COMMAND) tests/cycle
 
-helgrind: ${noinst_PROGRAMS} helgrind-gearadmin helgrind-cycle helgrind-client helgrind-round-robin helgrind-worker helgrind-internals helgrind-sqlite helgrind-tokyocabinet helgrind-burnin
+helgrind: helgrind-gearadmin helgrind-cycle helgrind-client helgrind-round-robin helgrind-worker helgrind-internals helgrind-sqlite helgrind-tokyocabinet helgrind-burnin
 
 include tests/libdrizzle.am
 include tests/libmemcached.am

@@ -39,6 +39,22 @@ static test_return_t test_for_HAVE_LIBDRIZZLE(void *)
 #endif
 }
 
+static test_return_t gearmand_basic_option_test(void *)
+{
+  const char *args[]= { "--check-args", 
+    "--libdrizzle-host=localhost",
+    "--libdrizzle-port=90",
+    "--libdrizzle-uds=tmp/foo.socket",
+    "--libdrizzle-user=root",
+    "--libdrizzle-password=test",
+    "--libdrizzle-db=gearman",
+    "--libdrizzle-table=gearman",
+    "--libdrizzle-mysql",
+    0 };
+
+  test_success(exec_cmdline(GEARMAND_BINARY, args));
+  return TEST_SUCCESS;
+}
 
 static test_return_t collection_init(void *object)
 {
@@ -89,6 +105,11 @@ static bool world_destroy(void *object)
 
   return TEST_SUCCESS;
 }
+
+test_st gearmand_basic_option_tests[] ={
+  {"all options", 0, gearmand_basic_option_test },
+  {0, 0, 0}
+};
 
 test_st tests[] ={
   {"gearman_client_echo()", 0, client_echo_test },
