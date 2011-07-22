@@ -71,6 +71,11 @@ tests_gearadmin_LDADD= ${CLIENT_LDADD}
 check_PROGRAMS+= tests/gearadmin
 noinst_PROGRAMS+= tests/gearadmin
 
+tests_gearmand_SOURCES= tests/gearmand.cc
+tests_gearmand_LDADD= ${CLIENT_LDADD}
+check_PROGRAMS+= tests/gearmand
+noinst_PROGRAMS+= tests/gearmand
+
 tests_blobslap_client_SOURCES= tests/blobslap_client.cc
 tests_blobslap_client_LDADD= ${CLIENT_LDADD}
 #check_PROGRAMS+= tests/blobslap_client
@@ -118,6 +123,9 @@ test-cycle: tests/cycle
 test-gearadmin: tests/gearadmin
 	@tests/gearadmin
 
+test-gearmand: tests/gearmand
+	@tests/gearmand
+
 tests-blobslap_client: tests/blobslap_client
 	@tests/blobslap_client
 
@@ -133,9 +141,7 @@ test-worker: tests/worker_test
 test-internals: tests/internals_test
 	@tests/internals_test
 
-check-local: gearmand-test-args client-test libtest-tests
-
-libtest-tests: test-client test-round-robin test-worker test-internals test-libmemcached test-sqlite test-tokyocabinet test-burnin
+check-local: client-test
 
 gdb-client:
 	@$(GDB_COMMAND) tests/client_test
@@ -212,7 +218,6 @@ drd-cycle: tests/cycle
 
 helgrind: ${noinst_PROGRAMS} helgrind-gearadmin helgrind-cycle helgrind-client helgrind-round-robin helgrind-worker helgrind-internals helgrind-sqlite helgrind-tokyocabinet helgrind-burnin
 
-include tests/httpd.am
 include tests/libdrizzle.am
 include tests/libmemcached.am
 include tests/postgres.am

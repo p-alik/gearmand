@@ -10,37 +10,17 @@
 # All paths should be given relative to the root
 #
 
-test-libmemcached: tests-libmemcached-args test-libmemcached-queue 
-
-tests-libmemcached-args: gearmand/gearmand
-if HAVE_LIBMEMCACHED
-	@gearmand/gearmand --check-args --queue=libmemcached --libmemcached-servers=localhost:12555
-endif
-
 tests_memcached_test_SOURCES= \
 			      tests/basic.cc \
 			      tests/memcached_test.cc
 tests_memcached_test_LDADD= ${CLIENT_LDADD}
 tests_memcached_test_CXXFLAGS= ${AM_CXXFLAGS}
 noinst_PROGRAMS += tests/memcached_test
-
-if HAVE_LIBMEMCACHED
-if HAVE_MEMCACHED
 check_PROGRAMS += tests/memcached_test
-endif
-endif
 
 
-test-libmemcached-queue:
-if HAVE_LIBMEMCACHED
-if HAVE_MEMCACHED
+test-libmemcached:
 	@tests/memcached_test  
-endif
-endif
 
 valgrind-libmemcached:
-if HAVE_LIBMEMCACHED
-if HAVE_MEMCACHED
 	@tests/memcached_test  
-endif
-endif

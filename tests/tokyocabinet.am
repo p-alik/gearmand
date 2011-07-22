@@ -10,32 +10,10 @@
 # All paths should be given relative to the root
 #
 
-test-tokyocabinet: test-tokyocabinet-args test-tokyocabinet
-
-if HAVE_LIBTOKYOCABINET
-check_PROGRAMS+= tests/tokyocabinet_test
-endif
-
 tests_tokyocabinet_test_SOURCES= tests/tokyocabinet_test.cc tests/basic.cc
 tests_tokyocabinet_test_LDADD= ${CLIENT_LDADD}
 noinst_PROGRAMS+= tests/tokyocabinet_test
-
-test-tokyocabinet-args: gearmand/gearmand
-if HAVE_LIBTOKYOCABINET
-	@gearmand/gearmand --check-args --libtokyocabinet-file=tmp/file --libtokyocabinet-optimize
-endif
+check_PROGRAMS+= tests/tokyocabinet_test
 
 test-tokyocabinet: tests/tokyocabinet_test
-if HAVE_LIBTOKYOCABINET
 	@tests/tokyocabinet_test
-endif
-
-gdb-tokyocabinet: tests/tokyocabinet_test
-if HAVE_LIBTOKYOCABINET
-	@$(GDB_COMMAND) tests/tokyocabinet_test
-endif
-
-valgrind-tokyocabinet: tests/tokyocabinet_test
-if HAVE_LIBTOKYOCABINET
-	@$(VALGRIND_COMMAND) tests/tokyocabinet_test
-endif

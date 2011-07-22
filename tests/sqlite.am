@@ -10,44 +10,23 @@
 # All paths should be given relative to the root
 #
 
-test-sqlite: tests/sqlite_test tests-sqlite-args test-sqlite-queue
-
-tests-sqlite-args: gearmand/gearmand
-if HAVE_LIBSQLITE3
-	@gearmand/gearmand --check-args --libsqlite3-db=tmp/schema --libsqlite3-table=tmp/table
-endif
-
-if HAVE_LIBSQLITE3
-SQLITE_TEST= tests/sqlite_test
 CLEANFILES+= tests/gearman.sql tests/gearman.sql-journal tests/gearmand.log*
-noinst_PROGRAMS+= tests/sqlite_test
-endif
 
 tests_sqlite_test_SOURCES= \
 			   tests/basic.cc \
 			   tests/sqlite_test.cc
 tests_sqlite_test_LDADD= ${CLIENT_LDADD}
+noinst_PROGRAMS+= tests/sqlite_test
 check_PROGRAMS+= tests/sqlite_test
 
-sqlite-nuke: 
-	@rm -f tests/var/gearmand.log*
+tests-sqlite: tests/sqlite_test
+	@tests/sqlite_test
 
-test-sqlite-queue: tests/sqlite_test sqlite-nuke
-if HAVE_LIBSQLITE3
-	$(SQLITE_TEST)
-endif
-
-gdb-sqlite: tests/sqlite_test sqlite-nuke
-if HAVE_LIBSQLITE3
+gdb-sqlite: tests/sqlite_test
 	@$(GDB_COMMAND) tests/sqlite_test
-endif
 
-helgrind-sqlite: tests/sqlite_test sqlite-nuke
-if HAVE_LIBSQLITE3
-	$(HELGRIND_COMMAND) $(SQLITE_TEST)
-endif
+helgrind-sqlite: tests/sqlite_test
+	@$(HELGRIND_COMMAND) tests/sqlite_test
 
-valgrind-sqlite: tests/sqlite_test sqlite-nuke
-if HAVE_LIBSQLITE3
-	$(VALGRIND_COMMAND) $(SQLITE_TEST)
-endif
+valgrind-sqlite: tests/sqlite_test
+	@$(VALGRIND_COMMAND) tests/sqlite_test

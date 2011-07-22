@@ -26,13 +26,29 @@ using namespace libtest;
 
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+
 #endif
 
-// prototype
-test_return_t collection_init(void *object);
-test_return_t collection_cleanup(void *object);
+static bool test_for_HAVE_LIBMEMCACHED(test_return_t &error)
+{
+#ifdef test_for_HAVE_LIBMEMCACHED
+  error= TEST_SUCCESS;
+  return true;
+#else
+  error= TEST_SKIPPED;
+  return false;
+#endif
+}
 
-test_return_t collection_init(void *object)
+static test_return_t gearmand_basic_option_test(void *)
+{
+  const char *args[]= { "--queue=libmemcached",  "--libmemcached-servers=localhost:12555", "--check-args", 0 };
+
+  test_success(exec_cmdline(GEARMAND_BINARY, args));
+  return TEST_SUCCESS;
+}
+
+static test_return_t collection_init(void *object)
 {
   const char *argv[3]= { "test_gearmand", "--libmemcached-servers=localhost:12555", "--queue-type=libmemcached" };
 
@@ -44,7 +60,7 @@ test_return_t collection_init(void *object)
   return TEST_SUCCESS;
 }
 
-test_return_t collection_cleanup(void *object)
+static test_return_t collection_cleanup(void *object)
 {
   Context *test= (Context *)object;
   test->reset();
@@ -55,6 +71,11 @@ test_return_t collection_cleanup(void *object)
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
+  if (not test_for_HAVE_LIBMEMCACHED(error))
+  {
+    return NULL;
+  }
+
   if (not server_startup(servers, "memcached", 12555, 0, NULL))
   {
     error= TEST_FAILURE;
@@ -80,6 +101,11 @@ static bool world_destroy(void *object)
   return TEST_SUCCESS;
 }
 
+test_st gearmand_basic_option_tests[] ={
+  {"--queue=libmemcached --libmemcached-servers=", 0, gearmand_basic_option_test },
+  {0, 0, 0}
+};
+
 test_st tests[] ={
   {"gearman_client_echo()", 0, client_echo_test },
   {"gearman_client_echo() fail", 0, client_echo_fail_test },
@@ -91,9 +117,8 @@ test_st tests[] ={
 };
 
 collection_st collection[] ={
-#ifdef HAVE_LIBMEMCACHED
+  {"gearmand options", 0, 0, gearmand_basic_option_tests},
   {"memcached queue", collection_init, collection_cleanup, tests},
-#endif
   {0, 0, 0, 0}
 };
 

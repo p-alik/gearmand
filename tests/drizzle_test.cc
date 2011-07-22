@@ -30,6 +30,16 @@ using namespace libtest;
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
+static test_return_t test_for_HAVE_LIBDRIZZLE(void *)
+{
+#ifdef HAVE_LIBDRIZZLE
+  return TEST_SUCCESS;
+#else
+  return TEST_SKIPPED;
+#endif
+}
+
+
 static test_return_t collection_init(void *object)
 {
   Context *test= (Context *)object;
@@ -53,8 +63,11 @@ static test_return_t collection_cleanup(void *object)
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  (void)collection_init;
-  (void)collection_cleanup;
+  if (test_for_HAVE_LIBDRIZZLE(NULL) == TEST_SKIPPED)
+  {
+    error= TEST_SKIPPED;
+    return NULL;
+  }
 
   Context *test= new Context(DRIZZLE_TEST_PORT, servers);
   if (not test)
@@ -93,10 +106,8 @@ test_st regressions[] ={
 };
 
 collection_st collection[] ={
-#ifdef HAVE_LIBDRIZZLE
   {"drizzle queue", collection_init, collection_cleanup, tests},
   {"regressions", collection_init, collection_cleanup, regressions},
-#endif
   {0, 0, 0, 0}
 };
 

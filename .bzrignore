@@ -95,6 +95,7 @@ tests/drizzle_test
 tests/gearadmin
 tests/gearman.pi*
 tests/gearman.sql
+tests/gearmand
 tests/gearmand.log*
 tests/internals_test
 tests/memcached_test

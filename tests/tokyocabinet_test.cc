@@ -28,8 +28,26 @@ using namespace libtest;
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
+static test_return_t test_for_HAVE_LIBTOKYOCABINET(void *)
+{
+#ifdef HAVE_LIBSQLITE3
+  return TEST_SUCCESS;
+#else
+  return TEST_SKIPPED;
+#endif
+}
+
+static test_return_t gearmand_basic_option_test(void *)
+{
+  const char *args[]= { "--queue=libtokyocabinet",  "--libtokyocabinet-file=tmp/file", "--libtokyocabinet-optimize", "--check-args", 0 };
+
+  test_success(exec_cmdline(GEARMAND_BINARY, args));
+  return TEST_SUCCESS;
+}
+
 static test_return_t collection_init(void *object)
 {
+  test_skip(TEST_SUCCESS, test_for_HAVE_LIBTOKYOCABINET(object));
   const char *argv[3]= { "test_gearmand", "--libtokyocabinet-file=tests/gearman.tcb", "--queue-type=libtokyocabinet" };
 
   unlink("tests/gearman.tcb");
@@ -75,6 +93,12 @@ static bool world_destroy(void *object)
   return TEST_SUCCESS;
 }
 
+test_st gearmand_basic_option_tests[] ={
+  {"--libtokyocabinet-file=tmp/file --libtokyocabinet-optimize", 0, gearmand_basic_option_test },
+  {0, 0, 0}
+};
+
+
 test_st tests[] ={
   {"gearman_client_echo()", 0, client_echo_test },
   {"gearman_client_echo() fail", 0, client_echo_fail_test },
@@ -86,9 +110,8 @@ test_st tests[] ={
 };
 
 collection_st collection[] ={
-#ifdef HAVE_LIBTOKYOCABINET
+  {"gearmand options", test_for_HAVE_LIBTOKYOCABINET, 0, gearmand_basic_option_tests},
   {"tokyocabinet queue", collection_init, collection_cleanup, tests},
-#endif
   {0, 0, 0, 0}
 };
 
