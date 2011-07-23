@@ -315,13 +315,16 @@ bool worker_handle_st::shutdown()
 
   if (gearman_failed(rc))
   {
-    Error << "Trying to see what workers are registered:" << port();
-    util::Instance instance("localhost", port());
-    instance.set_finish(new Finish);
+    if (0)
+    {
+      Error << "Trying to see what workers are registered:" << port();
+      util::Instance instance("localhost", port());
+      instance.set_finish(new Finish);
 
-    instance.push(new util::Operation(test_literal_param("workers\r\n")));
+      instance.push(new util::Operation(test_literal_param("workers\r\n")));
 
-    instance.run();
+      instance.run();
+    }
 
     pthread_cancel(thread);
 
