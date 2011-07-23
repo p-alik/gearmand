@@ -32,7 +32,7 @@ using namespace libtest;
 
 static test_return_t test_for_HAVE_LIBDRIZZLE(void *)
 {
-#ifdef HAVE_LIBDRIZZLE
+#if defined HAVE_LIBDRIZZLE && defined HAVE_DRIZZLED
   return TEST_SUCCESS;
 #else
   return TEST_SKIPPED;

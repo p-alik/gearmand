@@ -25,7 +25,8 @@ bin_PROGRAMS+= \
 
 bin_gearadmin_SOURCES= \
 		       bin/gearadmin.cc \
-		       util/instance.cc
+		       util/instance.cc \
+		       util/operation.cc
 bin_gearadmin_CPPFLAGS= \
 			$(AM_CPPFLAGS) \
 			$(BOOST_CPPFLAGS)

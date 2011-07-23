@@ -89,6 +89,7 @@ LIBTEST_LDADD+= libgearman/libgearman.la
 libtest_libtest_la_SOURCES+= libtest/blobslap_worker.cc
 libtest_libtest_la_SOURCES+= libtest/gearmand.cc
 libtest_libtest_la_SOURCES+= util/instance.cc
+libtest_libtest_la_SOURCES+= util/operation.cc
 endif
 
 libtest_tmp_dir: tests/var/log tests/var/tmp tests/var/run clearn-var
