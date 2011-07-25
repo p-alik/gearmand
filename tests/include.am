@@ -141,7 +141,7 @@ test-worker: tests/worker_test
 test-internals: tests/internals_test
 	@tests/internals_test
 
-check-local: client-test
+check-local:
 
 gdb-client: tests/client_test
 	@$(GDB_COMMAND) tests/client_test
