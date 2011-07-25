@@ -23,10 +23,8 @@ extern "C" {
 #define AT __FILE__ ":" TOSTRING(__LINE__)
 
 #ifdef __cplusplus
-#define STRING_WITH_LEN(X) (X), (size_t((sizeof(X) - 1)))
 #define gearman_literal_param(X) (X), (size_t(sizeof(X) - 1))
 #else
-#define STRING_WITH_LEN(X) (X), ((size_t)((sizeof(X) - 1)))
 #define gearman_literal_param(X) (X), ((size_t)((sizeof(X) - 1)))
 #endif
 

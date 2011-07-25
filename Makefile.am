@@ -5,6 +5,7 @@
 # Use and distribution licensed under the BSD license.  See
 # the COPYING file in this directory for full text.
 
+#AUTOMAKE_OPTIONS = std-options
 ACLOCAL_AMFLAGS= -I m4
 
 bin_PROGRAMS =
@@ -22,8 +23,13 @@ DISTCLEANFILES =
 EXTRA_DIST =
 CLEANFILES =
 TESTS =
+.PHONY =
 
-GEARMAN_TMP = ${abs_top_builddir}/tests/var/tmp/
+%.hpp.gch: %.hpp 
+	$(CXXCOMPILE) -c $<
+
+# Should always be first
+include libtest/include.am
 
 include benchmark/include.am
 include bin/include.am
@@ -32,14 +38,13 @@ include gearmand/include.am
 include libgearman-server/include.am
 include libgearman/include.am
 include util/include.am
-include libtest/include.am
 include tests/include.am
 include support/include.am
 include docs/include.am
 
 docs: html man
 
-TESTS += ${check_PROGRAMS}
+TESTS += $(check_PROGRAMS)
 
 EXTRA_DIST+= HACKING
 EXTRA_DIST+= ${man1_MANS}

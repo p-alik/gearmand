@@ -33,10 +33,11 @@
 
 #pragma once
 
-namespace gearmand
-{
+namespace datadifferential {
+namespace util {
 
 bool daemon_is_ready(bool close_io);
 bool daemonize(bool is_chdir= true, bool wait_sigusr1= true);
 
-}
+} /* namespace util */
+} /* namespace datadifferential */

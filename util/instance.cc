@@ -1,6 +1,6 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  Gearmand client and server library.
+ *  DataDifferential Utility Library
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
  *  All rights reserved.
@@ -36,11 +36,13 @@
  */
 
 
-#include "config.h"
+#include <config.h>
 
-#include "util/instance.h"
+#include "util/instance.hpp"
 
 #include <cstdio>
+#include <sstream>
+#include <iostream>
 #include <netdb.h>
 #include <poll.h>
 #include <sys/socket.h>
@@ -48,7 +50,47 @@
 #include <netinet/in.h>
 
 
-namespace gearman_util {
+namespace datadifferential {
+namespace util {
+
+Instance::Instance(const std::string& hostname_arg, const std::string& service_arg) :
+  _host(hostname_arg),
+  _service(service_arg),
+  _sockfd(INVALID_SOCKET),
+  state(NOT_WRITING),
+  _addrinfo(0),
+  _addrinfo_next(0),
+  _finish_fn(NULL),
+  _operations()
+  {
+  }
+
+Instance::Instance(const std::string& hostname_arg, const in_port_t port_arg) :
+  _host(hostname_arg),
+  _sockfd(INVALID_SOCKET),
+  state(NOT_WRITING),
+  _addrinfo(0),
+  _addrinfo_next(0),
+  _finish_fn(NULL),
+  _operations()
+  {
+    char tmp[BUFSIZ];
+    snprintf(tmp, sizeof(tmp), "%u", static_cast<unsigned int>(port_arg));
+    _service= tmp;
+  }
+
+Instance::~Instance()
+{
+  close_socket();
+  free_addrinfo();
+  for (Operation::vector::iterator iter= _operations.begin(); iter != _operations.end(); ++iter)
+  {
+    delete *iter;
+  }
+  _operations.clear();
+
+  delete _finish_fn;
+}
 
 bool Instance::run()
 {
@@ -67,10 +109,12 @@ bool Instance::run()
         ai.ai_socktype= SOCK_STREAM;
         ai.ai_protocol= IPPROTO_TCP;
 
-        int ret= getaddrinfo(_host.c_str(), _port.c_str(), &ai, &_addrinfo);
+        int ret= getaddrinfo(_host.c_str(), _service.c_str(), &ai, &_addrinfo);
         if (ret)
         {
-          std::cerr << "Failed to connect on " << _host.c_str() << ":" << _port.c_str() << " with "  << gai_strerror(ret) << std::endl;
+          std::stringstream message;
+          message << "Failed to connect on " << _host.c_str() << ":" << _service.c_str() << " with "  << gai_strerror(ret);
+          _last_error= message.str();
           return false;
         }
       }
@@ -81,7 +125,9 @@ bool Instance::run()
     case NEXT_CONNECT_ADDRINFO:
       if (_addrinfo_next->ai_next == NULL)
       {
-        std::cerr << "Error connecting to " << _host.c_str() << "." << std::endl;
+        std::stringstream message;
+        message << "Error connecting to " << _host.c_str() << "." << std::endl;
+        _last_error= message.str();
         return false;
       }
       _addrinfo_next= _addrinfo_next->ai_next;
@@ -107,9 +153,11 @@ bool Instance::run()
         case EINTR:
           state= CONNECT;
           break;
+
         case EINPROGRESS:
           state= CONNECTING;
           break;
+
         case ECONNREFUSED:
         case ENETUNREACH:
         case ETIMEDOUT:
@@ -164,7 +212,7 @@ bool Instance::run()
 
         do
         {
-          char buffer[1024];
+          char buffer[BUFSIZ];
           read_length= recv(_sockfd, buffer, sizeof(buffer), 0);
 
           if (read_length < 0)
@@ -186,7 +234,16 @@ bool Instance::run()
       break;
 
     case FINISHED:
-      operation->print();
+      std::string response;
+      bool success= operation->response(response);
+      if (_finish_fn)
+      {
+        if (not _finish_fn->call(success, response))
+        {
+          // Error was sent from _finish_fn 
+          return false;
+        }
+      }
 
       if (operation->reconnect())
       {
@@ -244,4 +301,5 @@ void Instance::free_addrinfo()
   _addrinfo_next= NULL;
 }
 
-} // namespace gearman_util
+} /* namespace util */
+} /* namespace datadifferential */

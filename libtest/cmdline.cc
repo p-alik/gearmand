@@ -34,3 +34,33 @@
  *
  */
 
+#include <libtest/common.h>
+
+#include <libtest/cmdline.h>
+
+using namespace libtest;
+
+#include <cstdlib>
+#include <string>
+#include <sstream>
+
+bool exec_cmdline(const std::string& executable, const char *args[])
+{
+  std::stringstream arg_buffer;
+
+  arg_buffer << "./libtool --mode=execute ";
+
+  arg_buffer << executable;
+  for (const char **ptr= args; *ptr; ++ptr)
+  {
+    arg_buffer << " " << *ptr;
+  }
+
+  arg_buffer << " > /dev/null 2>&1";
+  if (system(arg_buffer.str().c_str()) == -1)
+  {
+    return false;
+  }
+
+  return true;
+}

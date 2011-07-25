@@ -10,24 +10,12 @@
 # All paths should be given relative to the root
 #
 
-test-drizzle: test-libdrizzle-args test-drizzle-queue
-
-tests-libdrizzle-args: gearmand/gearmand
-if HAVE_LIBDRIZZLE
-	@gearmand/gearmand --check-args --libdrizzle-host=localhost --libdrizzle-port=90 --libdrizzle-uds=tmp/foo.socket --libdrizzle-user=root --libdrizzle-password=test --libdrizzle-db=gearman --libdrizzle-table=gearman --libdrizzle-mysql
-endif
-
-test-drizzle-queue: gearmand/gearmand
-if HAVE_LIBDRIZZLE
-	$(DRIZZLE_TEST) $(ARG1) $(ARG2)
-endif
-
-if HAVE_LIBDRIZZLE
-DRIZZLE_TEST= tests/drizzle_test
-noinst_PROGRAMS += tests/drizzle_test
-endif
+test-drizzle: tests/drizzle_test
+	@tests/drizzle_test
 
 tests_drizzle_test_SOURCES= \
 			    tests/basic.cc \
 			    tests/drizzle_test.cc
 tests_drizzle_test_LDADD= ${CLIENT_LDADD}
+noinst_PROGRAMS+= tests/drizzle_test
+check_PROGRAMS += tests/drizzle_test

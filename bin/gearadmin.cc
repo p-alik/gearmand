@@ -83,15 +83,43 @@
 #include <libgearman/protocol.h>
 #include <boost/program_options.hpp>
 
-#include <util/instance.h>
+#include <util/instance.hpp>
+#include <util/string.hpp>
 
-using namespace gearman_util;
+using namespace datadifferential;
 
 /*
   This is a very quickly build application, I am just tired of telneting to the port.
 */
 
-#define STRING_WITH_LEN(X) (X), (static_cast<size_t>((sizeof(X) - 1)))
+class Finish : public util::Instance::Finish
+{
+public:
+  bool call(bool success, const std::string &response)
+  {
+    if (success)
+    {
+      if (response.empty())
+      {
+        std::cout << "OK" << std::endl;
+      }
+      else
+      {
+        std::cout << response;
+      }
+    }
+    else if (not response.empty())
+    {
+      std::cerr << "Error: " << response;
+    }
+    else
+    {
+      std::cerr << "Error" << std::endl;
+    }
+
+    return true;
+  }
+};
 
 
 int main(int args, char *argv[])
@@ -108,6 +136,7 @@ int main(int args, char *argv[])
     ("server-verbose", "Fetch the verbose setting for the server.")
     ("create-function",  boost::program_options::value<std::string>(), "Create the function from the server.") 
     ("drop-function",  boost::program_options::value<std::string>(), "Drop the function from the server.")
+    ("getpid", "Get Process ID for the server.")
     ("status", "Status for the server.")
     ("workers", "Workers for the server.")
     ("shutdown", "Shutdown server.")
@@ -126,10 +155,8 @@ int main(int args, char *argv[])
     return EXIT_FAILURE;
   }
 
-  Instance instance;
-
-  instance.set_host(host);
-  instance.set_port(port);
+  util::Instance instance(host, port);
+  instance.set_finish(new Finish);
 
   if (vm.count("help"))
   {
@@ -139,43 +166,48 @@ int main(int args, char *argv[])
 
   if (vm.count("shutdown"))
   {
-    instance.push(new Operation(STRING_WITH_LEN("shutdown\r\n"), false));
+    instance.push(new util::Operation(util_literal_param("shutdown\r\n"), false));
   }
 
   if (vm.count("status"))
   {
-    instance.push(new Operation(STRING_WITH_LEN("status\r\n")));
+    instance.push(new util::Operation(util_literal_param("status\r\n")));
   }
 
   if (vm.count("workers"))
   {
-    instance.push(new Operation(STRING_WITH_LEN("workers\r\n")));
+    instance.push(new util::Operation(util_literal_param("workers\r\n")));
   }
 
   if (vm.count("server-version"))
   {
-    instance.push(new Operation(STRING_WITH_LEN("version\r\n")));
+    instance.push(new util::Operation(util_literal_param("version\r\n")));
   }
 
   if (vm.count("server-verbose"))
   {
-    instance.push(new Operation(STRING_WITH_LEN("verbose\r\n")));
+    instance.push(new util::Operation(util_literal_param("verbose\r\n")));
   }
 
   if (vm.count("drop-function"))
   {
-    std::string execute(STRING_WITH_LEN("drop function "));
+    std::string execute(util_literal_param("drop function "));
     execute.append(vm["drop-function"].as<std::string>());
     execute.append("\r\n");
-    instance.push(new Operation(execute.c_str(), execute.size()));
+    instance.push(new util::Operation(execute.c_str(), execute.size()));
   }
 
   if (vm.count("create-function"))
   {
-    std::string execute(STRING_WITH_LEN("create function "));
+    std::string execute(util_literal_param("create function "));
     execute.append(vm["create-function"].as<std::string>());
     execute.append("\r\n");
-    instance.push(new Operation(execute.c_str(), execute.size()));
+    instance.push(new util::Operation(execute.c_str(), execute.size()));
+  }
+
+  if (vm.count("getpid"))
+  {
+    instance.push(new util::Operation(util_literal_param("getpid\r\n"), true));
   }
 
   instance.run();

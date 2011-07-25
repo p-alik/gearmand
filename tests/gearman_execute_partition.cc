@@ -35,7 +35,10 @@
  *
  */
 
-#include <libtest/common.h>
+#include <config.h>
+#include <libtest/test.hpp>
+
+using namespace libtest;
 
 #include <cassert>
 #include <cstring>
@@ -50,19 +53,19 @@ test_return_t gearman_execute_partition_check_parameters(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
 
-  test_true_got(gearman_success(gearman_client_echo(client, gearman_literal_param("this is mine"))), gearman_client_error(client));
+  test_true_got(gearman_success(gearman_client_echo(client, test_literal_param("this is mine"))), gearman_client_error(client));
 
   // This just hear to make it easier to trace when gearman_execute() is
   // called (look in the log to see the failed option setting.
-  gearman_client_set_server_option(client, gearman_literal_param("should fail"));
-  gearman_argument_t workload= gearman_argument_make(0, 0, gearman_literal_param("this dog does not hunt"));
+  gearman_client_set_server_option(client, test_literal_param("should fail"));
+  gearman_argument_t workload= gearman_argument_make(0, 0, test_literal_param("this dog does not hunt"));
 
   gearman_task_st *task;
 
   // Test client as NULL
   test_false(task= gearman_execute_by_partition(NULL,
-                                                gearman_literal_param("split_worker"),
-                                                gearman_literal_param("client_test"),
+                                                test_literal_param("split_worker"),
+                                                test_literal_param("client_test"),
                                                 NULL, 0,  // unique
                                                 NULL,
                                                 &workload, 0));
@@ -82,29 +85,28 @@ test_return_t gearman_execute_partition_basic(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
 
-  test_true_got(gearman_success(gearman_client_echo(client, gearman_literal_param("this is mine"))), gearman_client_error(client));
+  test_true_got(gearman_success(gearman_client_echo(client, test_literal_param("this is mine"))), gearman_client_error(client));
 
   // This just hear to make it easier to trace when
   // gearman_execute_partition() is called (look in the log to see the
   // failed option setting.
-  gearman_client_set_server_option(client, gearman_literal_param("should fail"));
-  gearman_argument_t workload= gearman_argument_make(0, 0, gearman_literal_param("this dog does not hunt"));
+  gearman_client_set_server_option(client, test_literal_param("should fail"));
+  gearman_argument_t workload= gearman_argument_make(0, 0, test_literal_param("this dog does not hunt"));
 
   gearman_task_st *task;
   test_true_got(task= gearman_execute_by_partition(client,
-                                                   gearman_literal_param("split_worker"),
-                                                   gearman_literal_param("client_test"),
+                                                   test_literal_param("split_worker"),
+                                                   test_literal_param("client_test"),
                                                    NULL, 0,  // unique
                                                    NULL,
                                                    &workload, 0), gearman_client_error(client));
 
-  gearman_return_t rc;
-  test_true_got(gearman_success(rc= gearman_task_return(task)), gearman_client_error(client) ? gearman_client_error(client) : gearman_strerror(rc));
+  test_compare(GEARMAN_SUCCESS, gearman_task_return(task));
   gearman_result_st *result= gearman_task_result(task);
   test_truth(result);
   const char *value= gearman_result_value(result);
   test_truth(value);
-  test_compare(18, gearman_result_size(result));
+  test_compare(18UL, gearman_result_size(result));
 
   gearman_task_free(task);
   gearman_client_task_free_all(client);
@@ -117,13 +119,13 @@ test_return_t gearman_execute_partition_workfail(void *object)
   gearman_client_st *client= (gearman_client_st *)object;
   const char *worker_function= (const char *)gearman_client_context(client);
 
-  test_true_got(gearman_success(gearman_client_echo(client, gearman_literal_param("this is mine"))), gearman_client_error(client));
+  test_true_got(gearman_success(gearman_client_echo(client, test_literal_param("this is mine"))), gearman_client_error(client));
 
-  gearman_argument_t workload= gearman_argument_make(0, 0, gearman_literal_param("this dog does not hunt mapper_fail"));
+  gearman_argument_t workload= gearman_argument_make(0, 0, test_literal_param("this dog does not hunt mapper_fail"));
 
   gearman_task_st *task;
   test_true_got(task= gearman_execute_by_partition(client,
-                                                   gearman_literal_param("split_worker"),
+                                                   test_literal_param("split_worker"),
                                                    gearman_string_param_cstr(worker_function),
                                                    NULL, 0,  // unique
                                                    NULL,
@@ -142,13 +144,13 @@ test_return_t gearman_execute_partition_fail_in_reduction(void *object)
   gearman_client_st *client= (gearman_client_st *)object;
   const char *worker_function= (const char *)gearman_client_context(client);
 
-  test_true_got(gearman_success(gearman_client_echo(client, gearman_literal_param("this is mine"))), gearman_client_error(client));
+  test_true_got(gearman_success(gearman_client_echo(client, test_literal_param("this is mine"))), gearman_client_error(client));
 
-  gearman_argument_t workload= gearman_argument_make(0, 0, gearman_literal_param("this dog does not hunt fail"));
+  gearman_argument_t workload= gearman_argument_make(0, 0, test_literal_param("this dog does not hunt fail"));
 
   gearman_task_st *task;
   test_true_got(task= gearman_execute_by_partition(client,
-                                                   gearman_literal_param("split_worker"),
+                                                   test_literal_param("split_worker"),
                                                    gearman_string_param_cstr(worker_function),
                                                    NULL, 0,  // unique
                                                    NULL,
@@ -166,28 +168,27 @@ test_return_t gearman_execute_partition_use_as_function(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
 
-  test_true_got(gearman_success(gearman_client_echo(client, gearman_literal_param("this is mine"))), gearman_client_error(client));
+  test_true_got(gearman_success(gearman_client_echo(client, test_literal_param("this is mine"))), gearman_client_error(client));
 
   // This just hear to make it easier to trace when
   // gearman_execute_partition() is called (look in the log to see the
   // failed option setting.
-  gearman_client_set_server_option(client, gearman_literal_param("should fail"));
-  gearman_argument_t workload= gearman_argument_make(0, 0, gearman_literal_param("this dog does not hunt"));
+  gearman_client_set_server_option(client, test_literal_param("should fail"));
+  gearman_argument_t workload= gearman_argument_make(0, 0, test_literal_param("this dog does not hunt"));
 
   gearman_task_st *task;
   test_true_got(task= gearman_execute(client,
-                                      gearman_literal_param("split_worker"),
+                                      test_literal_param("split_worker"),
                                       NULL, 0,  // unique
                                       NULL,
                                       &workload, 0), gearman_client_error(client));
 
-  gearman_return_t rc;
-  test_true_got(gearman_success(rc= gearman_task_return(task)), gearman_client_error(client) ? gearman_client_error(client) : gearman_strerror(rc));
+  test_compare(GEARMAN_SUCCESS, gearman_task_return(task));
   gearman_result_st *result= gearman_task_result(task);
   test_truth(result);
   const char *value= gearman_result_value(result);
   test_truth(value);
-  test_compare(18, gearman_result_size(result));
+  test_compare(18UL, gearman_result_size(result));
 
   gearman_task_free(task);
   gearman_client_task_free_all(client);
@@ -199,12 +200,12 @@ test_return_t gearman_execute_partition_no_aggregate(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
 
-  gearman_argument_t workload= gearman_argument_make(0, 0, gearman_literal_param("this dog does not hunt"));
+  gearman_argument_t workload= gearman_argument_make(0, 0, test_literal_param("this dog does not hunt"));
 
   gearman_task_st *task;
   test_true_got(task= gearman_execute_by_partition(client,
-                                                   gearman_literal_param("client_test"),
-                                                   gearman_literal_param("count"),
+                                                   test_literal_param("client_test"),
+                                                   test_literal_param("count"),
                                                    NULL, 0,  // unique
                                                    NULL,
                                                    &workload, 0), gearman_client_error(client));

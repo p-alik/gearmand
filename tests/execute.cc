@@ -35,7 +35,10 @@
  *
  */
 
-#include <libtest/common.h>
+#include <config.h>
+#include <libtest/test.hpp>
+
+using namespace libtest;
 
 #include <cassert>
 #include <cstring>
@@ -54,10 +57,10 @@ test_return_t gearman_execute_test(void *object)
   assert(worker_function);
 
   gearman_task_st *task;
-  gearman_argument_t value= gearman_argument_make(0, 0, gearman_literal_param("test load"));
+  gearman_argument_t value= gearman_argument_make(0, 0, test_literal_param("test load"));
 
-  test_true_got(task= gearman_execute(client, gearman_c_str_param(worker_function), NULL, 0, NULL, &value, 0), gearman_client_error(client));
-  test_compare(gearman_literal_param_size("test load"), gearman_result_size(gearman_task_result(task)));
+  test_true_got(task= gearman_execute(client, test_string_make_from_cstr(worker_function), NULL, 0, NULL, &value, 0), gearman_client_error(client));
+  test_compare(test_literal_param_size("test load"), gearman_result_size(gearman_task_result(task)));
   test_false(gearman_task_is_known(task));
   test_false(gearman_task_is_running(task));
 
@@ -73,9 +76,9 @@ test_return_t gearman_execute_fail_test(void *object)
   assert(worker_function);
 
   gearman_task_st *task;
-  gearman_argument_t value= gearman_argument_make(0, 0, gearman_literal_param("fail"));
+  gearman_argument_t value= gearman_argument_make(0, 0, test_literal_param("fail"));
 
-  test_true_got(task= gearman_execute(client, gearman_c_str_param(worker_function), NULL, 0, NULL, &value, 0), gearman_client_error(client));
+  test_true_got(task= gearman_execute(client, test_string_make_from_cstr(worker_function), NULL, 0, NULL, &value, 0), gearman_client_error(client));
   test_compare_got(GEARMAN_WORK_FAIL, gearman_task_return(task), gearman_task_error(task));
   test_false(gearman_task_is_known(task));
   test_false(gearman_task_is_running(task));
@@ -97,8 +100,8 @@ test_return_t gearman_execute_timeout_test(void *object)
   // We should fail since the the timeout is small and the function should
   // not exist.
   gearman_task_st *task;
-  gearman_argument_t value= gearman_argument_make(0, 0, gearman_literal_param("test load"));
-  test_true_got(task= gearman_execute(client, gearman_c_str_param(worker_function), NULL, 0, NULL, &value, 0), gearman_client_error(client));
+  gearman_argument_t value= gearman_argument_make(0, 0, test_literal_param("test load"));
+  test_true_got(task= gearman_execute(client, test_string_make_from_cstr(worker_function), NULL, 0, NULL, &value, 0), gearman_client_error(client));
   gearman_task_free(task);
 
   return TEST_SUCCESS;
@@ -113,8 +116,8 @@ test_return_t gearman_execute_epoch_test(void *object)
   gearman_task_attr_t workload= gearman_task_attr_init_epoch(time(NULL) +5, GEARMAN_JOB_PRIORITY_NORMAL);
 
   gearman_task_st *task;
-  gearman_argument_t value= gearman_argument_make(0, 0, gearman_literal_param("test load"));
-  test_true_got(task= gearman_execute(client, gearman_c_str_param(worker_function), NULL, 0, &workload, &value, 0), gearman_client_error(client));
+  gearman_argument_t value= gearman_argument_make(0, 0, test_literal_param("test load"));
+  test_true_got(task= gearman_execute(client, test_string_make_from_cstr(worker_function), NULL, 0, &workload, &value, 0), gearman_client_error(client));
   test_truth(task);
   test_truth(gearman_task_job_handle(task));
   test_true(gearman_task_is_known(task));
@@ -133,8 +136,8 @@ test_return_t gearman_execute_epoch_check_job_handle_test(void *object)
   gearman_task_attr_t workload= gearman_task_attr_init_epoch(time(NULL) +5, GEARMAN_JOB_PRIORITY_NORMAL);
 
   gearman_task_st *task;
-  gearman_argument_t value= gearman_argument_make(0, 0, gearman_literal_param("test load"));
-  test_true_got(task= gearman_execute(client, gearman_c_str_param(worker_function), NULL, 0, &workload, &value, 0), gearman_client_error(client));
+  gearman_argument_t value= gearman_argument_make(0, 0, test_literal_param("test load"));
+  test_true_got(task= gearman_execute(client, test_string_make_from_cstr(worker_function), NULL, 0, &workload, &value, 0), gearman_client_error(client));
 
   test_truth(task);
   test_truth(gearman_task_job_handle(task));
@@ -160,8 +163,8 @@ test_return_t gearman_execute_bg_test(void *object)
   gearman_task_attr_t workload= gearman_task_attr_init_background(GEARMAN_JOB_PRIORITY_NORMAL);
 
   gearman_task_st *task;
-  gearman_argument_t value= gearman_argument_make(0, 0, gearman_literal_param("test load"));
-  test_true_got(task= gearman_execute(client, gearman_c_str_param(worker_function), gearman_literal_param("my id"), &workload, &value, 0), 
+  gearman_argument_t value= gearman_argument_make(0, 0, test_literal_param("test load"));
+  test_true_got(task= gearman_execute(client, test_string_make_from_cstr(worker_function), test_literal_param("my id"), &workload, &value, 0), 
                 gearman_client_error(client));
 
   // Lets make sure we have a task
@@ -186,8 +189,8 @@ test_return_t gearman_execute_multile_bg_test(void *object)
     gearman_task_attr_t workload= gearman_task_attr_init_background(GEARMAN_JOB_PRIORITY_NORMAL);
 
     gearman_task_st *task;
-    gearman_argument_t value= gearman_argument_make(0, 0, gearman_literal_param("test load"));
-    test_true_got(task= gearman_execute(client, gearman_c_str_param(worker_function), NULL, 0, &workload, &value, 0), 
+    gearman_argument_t value= gearman_argument_make(0, 0, test_literal_param("test load"));
+    test_true_got(task= gearman_execute(client, test_string_make_from_cstr(worker_function), NULL, 0, &workload, &value, 0), 
                   gearman_client_error(client));
     
     // Lets make sure we have a task
@@ -195,8 +198,8 @@ test_return_t gearman_execute_multile_bg_test(void *object)
     test_truth(gearman_task_job_handle(task));
   }
 
-  gearman_return_t rc;
-  test_true_got(gearman_success(rc= gearman_client_run_tasks(client)), gearman_strerror(rc));
+  test_compare(GEARMAN_SUCCESS,
+               gearman_client_run_tasks(client));
 
   gearman_client_task_free_all(client);
 

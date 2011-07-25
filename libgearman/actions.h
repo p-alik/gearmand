@@ -50,19 +50,3 @@ struct gearman_actions_t
   gearman_exception_fn *exception_fn;
   gearman_fail_fn *fail_fn;
 };
-
-#ifdef __cplusplus // Local only
-
-GEARMAN_LOCAL
-gearman_actions_t &gearman_actions_default();
-
-GEARMAN_LOCAL
-gearman_actions_t &gearman_actions_do_default();
-
-GEARMAN_LOCAL
-gearman_actions_t &gearman_actions_execute_defaults();
-
-GEARMAN_API
-gearman_actions_t &gearman_actions_pause();
-
-#endif

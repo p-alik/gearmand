@@ -1089,6 +1089,10 @@ static gearmand_error_t _server_run_text(gearman_server_con_st *server_con,
       snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, TEXT_SUCCESS);
     }
   }
+  else if (strcasecmp("getpid", (char *)(packet->arg[0])) == 0)
+  {
+    snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, "OK %d\n", (int)getpid());
+  }
   else if (!strcasecmp("shutdown", (char *)(packet->arg[0])))
   {
     if (packet->argc == 1)

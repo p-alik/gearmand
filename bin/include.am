@@ -12,6 +12,12 @@
 # Included from Top Level Makefile.am
 # All paths should be given relative to the root
 
+noinst_HEADERS+= \
+		 bin/arguments.h \
+		 bin/error.h \
+		 bin/function.h \
+		 bin/client.h \
+		 bin/worker.h
 
 bin_PROGRAMS+= \
 	       bin/gearman \
@@ -19,7 +25,8 @@ bin_PROGRAMS+= \
 
 bin_gearadmin_SOURCES= \
 		       bin/gearadmin.cc \
-		       util/instance.cc
+		       util/instance.cc \
+		       util/operation.cc
 bin_gearadmin_CPPFLAGS= \
 			$(AM_CPPFLAGS) \
 			$(BOOST_CPPFLAGS)
@@ -34,16 +41,10 @@ bin_gearman_SOURCES= \
 		     bin/arguments.cc \
 		     bin/function.cc \
 		     bin/gearman.cc \
-		     util/error.cc \
+		     bin/error.cc \
 		     util/pidfile.cc
 bin_gearman_LDADD= \
 		   libgearman/libgearman.la
-
-noinst_HEADERS+= \
-		 bin/arguments.h \
-		 bin/function.h \
-		 bin/client.h \
-		 bin/worker.h
 
 GEARMAN_CLIENT_TEST= bin/gearman
 GEARMAN_VALGRIND_CLIENT_TEST= $(VALGRIND_COMMAND) bin/gearman

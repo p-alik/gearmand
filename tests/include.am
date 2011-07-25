@@ -7,8 +7,6 @@
 # Use and distribution licensed under the BSD license.  See
 # the COPYING file in the parent directory for full text.
 
-VALGRIND_COMMAND= $(LIBTOOL) --mode=execute valgrind --leak-check=yes --show-reachable=yes --malloc-fill=A5 --free-fill=DE --track-fds=yes
-
 noinst_HEADERS+= \
 		 tests/basic.h \
 		 tests/context.h \
@@ -21,29 +19,24 @@ noinst_HEADERS+= \
 		 tests/protocol.h \
 		 tests/regression.h \
 		 tests/server_options.h \
+		 tests/start_worker.h \
 		 tests/task.h \
 		 tests/unique.h \
 		 tests/workers.h \
 		 tests/workers_v1.h
 
+noinst_LTLIBRARIES+= tests/libstartworker.la
+tests_libstartworker_la_SOURCES= tests/start_worker.cc
+
 CLIENT_LDADD= \
-	      libtest/libtest.la \
-	      libtest/libserver.la \
-	      libgearman/libgearman.la
+	      ${LIBTEST_LDADD} \
+	      libgearman/libgearman.la \
+	      tests/libstartworker.la
 
-CLEANFILES+= \
-	     tests/var/log/* \
-	     tests/var/tmp/*
+if HAVE_LIBMEMCACHED
+CLIENT_LDADD+= $(libmemcached_LIBS) -lmemcachedutil
+endif
 
-noinst_PROGRAMS+= \
-		  tests/burnin_test \
-		  tests/client_test \
-		  tests/c_test \
-		  tests/cpp_test \
-		  tests/drizzle_test \
-		  tests/internals_test \
-		  tests/round_robin_test \
-		  tests/worker_test
 
 tests_client_test_SOURCES= \
 			   tests/client_test.cc \
@@ -60,9 +53,33 @@ tests_client_test_SOURCES= \
 			   tests/workers_v1.cc
 tests_client_test_LDADD= ${CLIENT_LDADD}
 tests_client_test_DEPENDENCIES= ${CLIENT_LDADD}
+check_PROGRAMS+=tests/client_test
+noinst_PROGRAMS+=tests/client_test
 
 tests_burnin_test_SOURCES= tests/burnin.cc
 tests_burnin_test_LDADD= ${CLIENT_LDADD}
+check_PROGRAMS+=tests/burnin_test
+noinst_PROGRAMS+=tests/burnin_test
+
+tests_cycle_SOURCES= tests/cycle.cc
+tests_cycle_LDADD= ${CLIENT_LDADD}
+check_PROGRAMS+=tests/cycle
+noinst_PROGRAMS+=tests/cycle
+
+tests_gearadmin_SOURCES= tests/gearadmin.cc
+tests_gearadmin_LDADD= ${CLIENT_LDADD}
+check_PROGRAMS+= tests/gearadmin
+noinst_PROGRAMS+= tests/gearadmin
+
+tests_gearmand_SOURCES= tests/gearmand.cc
+tests_gearmand_LDADD= ${CLIENT_LDADD}
+check_PROGRAMS+= tests/gearmand
+noinst_PROGRAMS+= tests/gearmand
+
+tests_blobslap_client_SOURCES= tests/blobslap_client.cc
+tests_blobslap_client_LDADD= ${CLIENT_LDADD}
+#check_PROGRAMS+= tests/blobslap_client
+noinst_PROGRAMS+= tests/blobslap_client
 
 tests_internals_test_SOURCES= \
 			      tests/internals.cc \
@@ -70,84 +87,137 @@ tests_internals_test_SOURCES= \
 
 tests_internals_test_LDADD= ${CLIENT_LDADD} libgearman/libgearmancore.la
 tests_internals_test_DEPENDENCIES= ${CLIENT_LDADD} libgearman/libgearmancore.la
+check_PROGRAMS+= tests/internals_test
+noinst_PROGRAMS+= tests/internals_test
 
 tests_round_robin_test_SOURCES= tests/round_robin.cc
 tests_round_robin_test_LDADD= ${CLIENT_LDADD} libgearman/libgearmancore.la
+check_PROGRAMS+= tests/round_robin_test
+noinst_PROGRAMS+= tests/round_robin_test
 
 tests_worker_test_SOURCES= tests/worker_test.cc
 tests_worker_test_LDADD= \
 			 ${CLIENT_LDADD} \
 			 libgearman/libgearmancore.la
+check_PROGRAMS+=tests/worker_test
+noinst_PROGRAMS+=tests/worker_test
 
 # Test linking with C++ application
 tests_cpp_test_SOURCES= tests/cpp_test.cc
 tests_cpp_test_LDADD= ${CLIENT_LDADD}
+check_PROGRAMS+=tests/cpp_test
+noinst_PROGRAMS+=tests/cpp_test
 
 # Test linking with C application
 tests_c_test_SOURCES= tests/c_test.c
 tests_c_test_LDADD= ${CLIENT_LDADD}
+check_PROGRAMS+=tests/c_test
+noinst_PROGRAMS+=tests/c_test
 
 test-burnin: tests/burnin_test
-	@tests/burnin_test $(ARG1) $(ARG2)
+	@tests/burnin_test
+
+test-cycle: tests/cycle
+	@tests/cycle
+
+test-gearadmin: tests/gearadmin
+	@tests/gearadmin
+
+test-gearmand: tests/gearmand
+	@tests/gearmand
+
+tests-blobslap_client: tests/blobslap_client
+	@tests/blobslap_client
 
 test-client: tests/client_test
-	@tests/client_test $(ARG1) $(ARG2)
+	@tests/client_test
 
 test-round-robin: tests/round_robin_test
-	@tests/round_robin_test $(ARG1) $(ARG2)
+	@tests/round_robin_test
 
 test-worker: tests/worker_test
-	@tests/worker_test $(ARG1) $(ARG2)
+	@tests/worker_test
 
 test-internals: tests/internals_test
-	@tests/internals_test $(ARG1) $(ARG2)
+	@tests/internals_test
 
-check-local: tests/var gearmand-test-args client-test libtest-tests benchmark-test
+check-local:
 
-libtest-tests: test-client test-round-robin test-worker test-internals test-libmemcached test-sqlite test-tokyocabinet test-burnin
+gdb-client: tests/client_test
+	@$(GDB_COMMAND) tests/client_test
 
-gdb-client: ${noinst_PROGRAMS}
-	@$(LIBTOOL) --mode=execute gdb tests/client_test
+gdb-round-robin: tests/round_robin_test
+	@$(GDB_COMMAND) tests/round_robin_test
 
-gdb-round-robin: ${noinst_PROGRAMS}
-	@$(LIBTOOL) --mode=execute gdb tests/round_robin_test
+gdb-worker: tests/worker_test
+	@$(GDB_COMMAND) tests/worker_test
 
-gdb-worker: ${noinst_PROGRAMS}
-	@$(LIBTOOL) --mode=execute gdb tests/worker_test
+gdb-internals: tests/internals_test
+	@$(GDB_COMMAND) tests/internals_test
 
-gdb-internals: ${noinst_PROGRAMS}
-	@$(LIBTOOL) --mode=execute gdb tests/internals_test
+gdb-burnin: tests/burnin_test
+	@$(GDB_COMMAND) tests/burnin_test
 
-gdb-burnin: ${noinst_PROGRAMS}
-	@$(LIBTOOL) --mode=execute gdb tests/burnin_test
+gdb-gearadmin: tests/gearadmin
+	@$(GDB_COMMAND) tests/gearadmin
 
-valgrind-client:
-	@$(VALGRIND_COMMAND) tests/client_test $(ARG1) $(ARG2)
+gdb-blobslap_client: tests/blobslap_client
+	@$(GDB_COMMAND) tests/blobslap_client
 
-valgrind-round-robin:
-	@$(VALGRIND_COMMAND) tests/round_robin_test $(ARG1) $(ARG2)
+gdb-cycle: tests/cycle
+	@$(GDB_COMMAND) tests/cycle
+
+gdb-all: gdb-gearadmin gdb-cycle gdb-client gdb-round-robin gdb-worker gdb-internals gdb-sqlite gdb-tokyocabinet gdb-burnin
+
+valgrind-client: tests/client_test
+	@$(VALGRIND_COMMAND) tests/client_test
+
+valgrind-round-robin: tests/round_robin_test
+	@$(VALGRIND_COMMAND) tests/round_robin_test
 
 valgrind-worker: tests/worker_test
-	@$(VALGRIND_COMMAND) tests/worker_test $(ARG1) $(ARG2)
+	@$(VALGRIND_COMMAND) tests/worker_test
 
 valgrind-internals: tests/internals_test
-	@$(VALGRIND_COMMAND) tests/internals_test $(ARG1) $(ARG2)
+	@$(VALGRIND_COMMAND) tests/internals_test
 
 valgrind-burnin: tests/burnin_test
-	@$(VALGRIND_COMMAND) tests/burnin_test $(ARG1) $(ARG2)
+	@$(VALGRIND_COMMAND) tests/burnin_test
 
-tests/var: tests/var/log tests/var/tmp
-	$(mkdir_p) tests/var
+valgrind-gearadmin: tests/gearadmin
+	@$(VALGRIND_COMMAND) tests/gearadmin
 
-tests/var/log:
-	$(mkdir_p) tests/var/log
+valgrind-cycle: tests/cycle
+	@$(VALGRIND_COMMAND) tests/cycle
 
-tests/var/tmp:
-	$(mkdir_p) tests/var/tmp
+valgrind: valgrind-unittest valgrind-gearadmin valgrind-cycle valgrind-client valgrind-round-robin valgrind-worker valgrind-internals valgrind-sqlite valgrind-tokyocabinet valgrind-burnin
 
-valgrind: ${noinst_PROGRAMS} valgrind-client valgrind-round-robin valgrind-worker valgrind-internals valgrind-sqlite valgrind-tokyocabinet valgrind-burnin
+helgrind-client: tests/client_test
+	@$(HELGRIND_COMMAND) tests/client_test
 
-include tests/httpd.am
+helgrind-round-robin: tests/round_robin_test
+	@$(HELGRIND_COMMAND) tests/round_robin_test
+
+helgrind-worker: tests/worker_test
+	@$(HELGRIND_COMMAND) tests/worker_test
+
+helgrind-internals: tests/internals_test
+	@$(HELGRIND_COMMAND) tests/internals_test
+
+helgrind-burnin: tests/burnin_test
+	@$(HELGRIND_COMMAND) tests/burnin_test
+
+helgrind-gearadmin: tests/gearadmin
+	@$(HELGRIND_COMMAND) tests/gearadmin
+
+helgrind-cycle: tests/cycle
+	@$(HELGRIND_COMMAND) tests/cycle
+
+drd-cycle: tests/cycle
+	@$(DRD_COMMAND) tests/cycle
+
+helgrind: helgrind-gearadmin helgrind-cycle helgrind-client helgrind-round-robin helgrind-worker helgrind-internals helgrind-sqlite helgrind-tokyocabinet helgrind-burnin
+
 include tests/libdrizzle.am
 include tests/libmemcached.am
 include tests/postgres.am

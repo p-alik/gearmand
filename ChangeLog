@@ -1,3 +1,8 @@
+0.24 Sun Jul 24 20:57:02 PDT 2011
+  * Minor bug fixes.
+  * Updated test framework.
+  * make fixes for Fedora.
+
 0.23 Wed Jun 29 13:26:26 PDT 2011
   * Defined workers can now return GEARMAN_SHUTDOWN.
   * Benchmark worker can now be told to shutdown.

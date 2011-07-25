@@ -7,7 +7,7 @@
 # the COPYING file in this directory for full text.
 
 AC_PREREQ(2.59)
-AC_INIT([gearmand],[0.23],[https://launchpad.net/gearmand])
+AC_INIT([gearmand],[0.24],[https://launchpad.net/gearmand])
 AC_CONFIG_SRCDIR(libgearman/gearman.cc)
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIR(m4)
@@ -31,9 +31,18 @@ AC_SUBST(GEARMAN_LIBRARY_VERSION)
 BOOST_REQUIRE(1.39.0)
 BOOST_PROGRAM_OPTIONS(mt-)
 
+AC_DEFINE_UNQUOTED([GEARMAND_BINARY], "./gearmand/gearmand", [Location of the gearmand binary])
+AC_SUBST(GEARMAND_BINARY)
+AC_DEFINE_UNQUOTED([GEARMAND_BLOBSLAP_WORKER], "./benchmark/blobslap_worker", [Location of the blobslap_worker binary])
+AC_SUBST(GEARMAND_BLOBSLAP_WORKER)
+AC_DEFINE([HAVE_LIBGEARMAN], [ 1 ], [dummy rule for libtest])
+AC_SUBST(HAVE_LIBGEARMAN, 1)
+AM_CONDITIONAL(HAVE_LIBGEARMAN, true)
+
 WITH_LIBMEMCACHED
 WITH_MEMCACHED
 WITH_LIBDRIZZLE
+WITH_DRIZZLED
 
 PANDORA_REQUIRE_PTHREAD
 PANDORA_REQUIRE_LIBEVENT

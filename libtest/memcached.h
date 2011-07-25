@@ -1,9 +1,8 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  Gearmand client and server library.
+ *  libtest
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -37,78 +36,13 @@
 
 #pragma once
 
-#include <sys/socket.h>
-#include <errno.h>
+namespace libtest {
 
-#include "util/operation.h"
-#include <libgearman/protocol.h>
+LIBTEST_API
+Server *build_memcached(const std::string& hostname, const in_port_t try_port);
 
-struct addrinfo;
+LIBTEST_API
+Server *build_memcached_socket(const std::string& socket_file, const in_port_t try_port);
 
-namespace gearman_util {
+}
 
-class Instance
-{
-  enum connection_state_t {
-    NOT_WRITING,
-    NEXT_CONNECT_ADDRINFO,
-    CONNECT,
-    CONNECTING,
-    CONNECTED,
-    WRITING,
-    READING,
-    FINISHED
-  };
-
-public:
-  Instance() :
-    _host("localhost"),
-    _port(GEARMAN_DEFAULT_TCP_PORT_STRING),
-    _sockfd(INVALID_SOCKET),
-    state(NOT_WRITING),
-    _addrinfo(0),
-    _addrinfo_next(0),
-    _operations()
-  {
-  }
-
-  ~Instance()
-  {
-    close_socket();
-    free_addrinfo();
-  }
-
-  void set_host(const std::string &host)
-  {
-    _host= host;
-  }
-
-  void set_port(const std::string &port)
-  {
-    _port= port;
-  }
-
-  bool run();
-
-  void push(Operation *next)
-  {
-    _operations.push_back(next);
-  }
-
-private:
-  void close_socket();
-
-  void free_addrinfo();
-
-  bool more_to_read() const;
-
-  std::string _host;
-  std::string _port;
-  int _sockfd;
-  connection_state_t state;
-  struct addrinfo *_addrinfo;
-  struct addrinfo *_addrinfo_next;
-  Operation::vector _operations;
-};
-
-} // namespace gearman_util

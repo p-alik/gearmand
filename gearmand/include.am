@@ -34,39 +34,3 @@ gearmand-valgrind: gearmand/gearmand
 
 gearmand-debug: gearmand/gearmand
 	$(LIBTOOL) --mode=execute gdb gearmand/gearmand
-
-gearmand-test-args: gearmand/gearmand
-	@gearmand/gearmand --check-args
-	@gearmand/gearmand --backlog=10 --check-args
-	@gearmand/gearmand --b 10 --check-args
-	@gearmand/gearmand --d --check-args
-	@gearmand/gearmand --daemon --check-args
-	@gearmand/gearmand --file-descriptors=100 --check-args
-	@gearmand/gearmand --f 100 --check-args
-	@gearmand/gearmand -h --check-args
-	@gearmand/gearmand --help --check-args
-	@gearmand/gearmand -l "tmp/foo" --check-args
-	@gearmand/gearmand --log-file="tmp/foo" --check-args
-	@gearmand/gearmand --listen=10 --check-args
-	@gearmand/gearmand -L 10 --check-args
-	@gearmand/gearmand --port=10 --check-args
-	@gearmand/gearmand -p 10 --check-args
-	@gearmand/gearmand --pid-file="tmp/file.pid" --check-args
-	@gearmand/gearmand -P "tmp/file.pid" --check-args
-	@gearmand/gearmand --round-robin --check-args
-	@gearmand/gearmand -R --check-args
-	@gearmand/gearmand --pid-file="tmp/file.pid" --check-args
-	@gearmand/gearmand -P "tmp/file.pid" --check-args
-	@gearmand/gearmand --threads=10 --check-args
-	@gearmand/gearmand -t 10  --check-args
-	@gearmand/gearmand --user=nobody --check-args
-	@gearmand/gearmand -u nobody --check-args
-	@gearmand/gearmand --check-args -vvvv
-	@gearmand/gearmand -V --check-args
-	@gearmand/gearmand --version --check-args
-	@gearmand/gearmand -w 10 --check-args
-	@gearmand/gearmand --worker-wakeup=10 --check-args
-	@gearmand/gearmand --protocol=http --check-args
-	@gearmand/gearmand --queue-type=http --check-args
-	@gearmand/gearmand -j 10 --check-args
-	@gearmand/gearmand --job-retries=10 --check-args

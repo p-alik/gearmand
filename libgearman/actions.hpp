@@ -3,7 +3,6 @@
  *  Gearmand client and server library.
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  Copyright (C) 2008 Brian Aker, Eric Day
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -38,26 +37,19 @@
 
 #pragma once
 
+#ifdef __cplusplus // Local only
 
-#include <string>
+GEARMAN_LOCAL
+const gearman_actions_t &gearman_actions_default();
 
-struct gearman_client_st;
-struct gearman_worker_st;
+GEARMAN_LOCAL
+const gearman_actions_t &gearman_actions_do_default();
 
-namespace gearman_util
-{
+GEARMAN_LOCAL
+const gearman_actions_t &gearman_actions_execute_defaults();
 
-namespace error {
+GEARMAN_API
+const gearman_actions_t &gearman_actions_pause();
 
-void perror(const char *);
-void message(const char *);
-void message(const std::string &arg, gearman_return_t rc);
-void message(const char *arg, const char *arg2);
-void message(const char *arg, const gearman_client_st &);
-void message(const char *arg, const gearman_worker_st &);
+#endif
 
-} // namespace error
-
-
-
-} // namespace gearman_util

@@ -6,7 +6,10 @@
  * the COPYING file in the parent directory for full text.
  */
 
-#include <libtest/common.h>
+#include <config.h>
+#include <libtest/test.hpp>
+
+using namespace libtest;
 
 #include <cassert>
 #include <cerrno>
@@ -17,8 +20,8 @@
 #include <libgearman/gearman.h>
 
 #include <libtest/test.hpp>
-#include <libtest/server.h>
-#include <libtest/worker.h>
+
+#include <tests/start_worker.h>
 
 #include <tests/ports.h>
 
@@ -53,9 +56,6 @@ struct client_context_st {
   { }
 };
 
-void *world_create(test_return_t *error);
-test_return_t world_destroy(void *object);
-
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
@@ -70,7 +70,7 @@ static test_return_t burnin_test(void *object)
   gearman_task_st *tasks= (gearman_task_st *)calloc(context->num_tasks, sizeof(gearman_task_st));
   test_true_got(tasks, strerror(errno));
 
-  test_true_got(gearman_success(gearman_client_echo(client, gearman_literal_param("echo_test"))), gearman_client_error(client));
+  test_true_got(gearman_success(gearman_client_echo(client, test_literal_param("echo_test"))), gearman_client_error(client));
 
   do
   {
@@ -117,7 +117,7 @@ static test_return_t burnin_test(void *object)
       test_compare(GEARMAN_TASK_STATE_FINISHED, tasks[x].state);
       test_compare(GEARMAN_SUCCESS, tasks[x].result_rc);
     }
-    test_compare(0, client->new_tasks);
+    test_zero(client->new_tasks);
 
     test_true_got(gearman_success(ret), gearman_client_error(client));
 
@@ -166,15 +166,13 @@ static test_return_t cleanup(void *object)
 static void *worker_fn(gearman_job_st *, void *,
                        size_t *result_size, gearman_return_t *ret_ptr)
 {
-  result_size= 0;
+  *result_size= 0;
   *ret_ptr= GEARMAN_SUCCESS;
   return NULL;
 }
 
-void *world_create(test_return_t *error)
+static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  pid_t gearmand_pid;
-
   /**
    *  @TODO We cast this to char ** below, which is evil. We need to do the
    *  right thing
@@ -184,17 +182,16 @@ void *world_create(test_return_t *error)
   client_test_st *test= new client_test_st;
   if (not test)
   {
-    *error= TEST_MEMORY_ALLOCATION_FAILURE;
+    error= TEST_MEMORY_ALLOCATION_FAILURE;
     return NULL;
   }
 
   /**
     We start up everything before we allocate so that we don't have to track memory in the forked process.
   */
-  test->gearmand_pid= gearmand_pid= test_gearmand_start(BURNIN_TEST_PORT, 1, argv);
-  if (test->gearmand_pid == -1)
+  if (not server_startup(servers, "gearmand", BURNIN_TEST_PORT, 1, argv))
   {
-    *error= TEST_FAILURE;
+    error= TEST_FAILURE;
     return NULL;
   }
 
@@ -202,33 +199,33 @@ void *world_create(test_return_t *error)
   test->handle= test_worker_start(BURNIN_TEST_PORT, NULL, DEFAULT_WORKER_NAME, func_arg, NULL, gearman_worker_options_t());
   if (not test->handle)
   {
-    *error= TEST_FAILURE;
+    error= TEST_FAILURE;
     return NULL;
   }
 
   if (not gearman_client_create(&(test->client)))
   {
-    *error= TEST_FAILURE;
+    error= TEST_FAILURE;
     return NULL;
   }
 
   if (gearman_failed(gearman_client_add_server(&(test->client), NULL, BURNIN_TEST_PORT)))
   {
-    *error= TEST_FAILURE;
+    error= TEST_FAILURE;
     return NULL;
   }
 
-  *error= TEST_SUCCESS;
+  error= TEST_SUCCESS;
 
   return (void *)test;
 }
 
-test_return_t world_destroy(void *object)
+static bool world_destroy(void *object)
 {
   client_test_st *test= (client_test_st *)object;
   gearman_client_free(&(test->client));
-  test_gearmand_stop(test->gearmand_pid);
-  test_worker_stop(test->handle);
+  delete test->handle;
+
   delete test;
 
   return TEST_SUCCESS;
@@ -248,29 +245,55 @@ collection_st collection[] ={
 };
 
 typedef test_return_t (*libgearman_test_callback_fn)(gearman_client_st *);
-static test_return_t _runner_default(libgearman_test_callback_fn func, client_test_st *container)
-{
-  if (func)
+class GearmandRunner : public Runner {
+public:
+  test_return_t run(test_callback_fn* func, void *object)
   {
-    return func(&container->client);
-  }
-  else
-  {
+    if (func)
+    {
+      libgearman_test_callback_fn actual= libgearman_test_callback_fn(func);
+      client_test_st *container= (client_test_st*)object;
+
+      return actual(&container->client);
+    }
+
     return TEST_SUCCESS;
   }
-}
 
-static Runner runner= {
-  (test_callback_runner_fn*)_runner_default,
-  (test_callback_runner_fn*)_runner_default,
-  (test_callback_runner_fn*)_runner_default
+  test_return_t pre(test_callback_fn* func, void *object)
+  {
+    if (func)
+    {
+      libgearman_test_callback_fn actual= libgearman_test_callback_fn(func);
+      client_test_st *container= (client_test_st*)object;
+
+
+      return actual(&container->client);
+    }
+
+    return TEST_SUCCESS;
+  }
+
+  test_return_t post(test_callback_fn* func, void *object)
+  {
+    if (func)
+    {
+      libgearman_test_callback_fn actual= libgearman_test_callback_fn(func);
+      client_test_st *container= (client_test_st*)object;
+
+      return actual(&container->client);
+    }
+
+    return TEST_SUCCESS;
+  }
 };
 
+static GearmandRunner defualt_runner;
 
 void get_world(Framework *world)
 {
   world->collections= collection;
   world->_create= world_create;
   world->_destroy= world_destroy;
-  world->runner= &runner;
+  world->set_runner(&defualt_runner);
 }

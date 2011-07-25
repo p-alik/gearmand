@@ -39,3 +39,4 @@
 
 test_return_t regression_bug_783141_test(void *);
 test_return_t regression_bug_372074_test(void *);
+test_return_t regression_768317_test(void *);

@@ -11,6 +11,9 @@
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
+#include <libtest/stream.h>
+#include <libtest/comparison.hpp>
+
 /**
   A structure describing the test case.
 */
@@ -19,9 +22,6 @@ struct test_st {
   bool requires_flush;
   test_callback_fn *test_fn;
 };
-
-LIBTEST_API
-bool test_is_local(void);
 
 #define test_assert_errno(A) \
 do \
@@ -66,11 +66,11 @@ do \
   } \
 } while (0)
 
-#define test_true_got(A,B) \
+#define test_true_got(__expected, __hint) \
 do \
 { \
-  if (! (A)) { \
-    fprintf(stderr, "\n%s:%d: Assertion \"%s\" failed, received \"%s\"\n", __FILE__, __LINE__, #A, (B));\
+  if (not libtest::_compare_true_hint(__FILE__, __LINE__, __func__, ((__expected)), #__expected, ((__hint)))) \
+  { \
     create_core(); \
     return TEST_FAILURE; \
   } \
@@ -116,24 +116,31 @@ do \
   } \
 } while (0)
 
-
-#define test_compare(A,B) \
+#define test_compare(__expected, __actual) \
 do \
 { \
-  if ((A) != (B)) \
+  if (not libtest::_compare(__FILE__, __LINE__, __func__, ((__expected)), ((__actual)))) \
   { \
-    fprintf(stderr, "\n%s:%d: Expected %s, got %lu\n", __FILE__, __LINE__, #A, (unsigned long)(B)); \
     create_core(); \
     return TEST_FAILURE; \
   } \
 } while (0)
 
-#define test_compare_got(A,B,C) \
+#define test_zero(__actual) \
 do \
 { \
-  if ((A) != (B)) \
+  if (not libtest::_compare_zero(__FILE__, __LINE__, __func__, ((__actual)))) \
   { \
-    fprintf(stderr, "\n%s:%d: Expected %s, got %s\n", __FILE__, __LINE__, #A, (C)); \
+    create_core(); \
+    return TEST_FAILURE; \
+  } \
+} while (0)
+
+#define test_compare_got(__expected, __actual, __hint) \
+do \
+{ \
+  if (not libtest::_compare_hint(__FILE__, __LINE__, __func__, (__expected), (__actual), (__hint))) \
+  { \
     create_core(); \
     return TEST_FAILURE; \
   } \

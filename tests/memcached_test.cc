@@ -6,7 +6,10 @@
  * the COPYING file in the parent directory for full text.
  */
 
-#include <libtest/common.h>
+#include <config.h>
+#include <libtest/test.hpp>
+
+using namespace libtest;
 
 #include <cassert>
 #include <cstdio>
@@ -16,25 +19,36 @@
 
 #include <libgearman/gearman.h>
 
-#include <libtest/server.h>
-
 #include <tests/basic.h>
 #include <tests/context.h>
 
 #include <tests/ports.h>
 
-void *world_create(test_return_t *error);
-test_return_t world_destroy(void *object);
-
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+
 #endif
 
-// prototype
-test_return_t collection_init(void *object);
-test_return_t collection_cleanup(void *object);
+static bool test_for_HAVE_LIBMEMCACHED(test_return_t &error)
+{
+#ifdef test_for_HAVE_LIBMEMCACHED
+  error= TEST_SUCCESS;
+  return true;
+#else
+  error= TEST_SKIPPED;
+  return false;
+#endif
+}
 
-test_return_t collection_init(void *object)
+static test_return_t gearmand_basic_option_test(void *)
+{
+  const char *args[]= { "--queue=libmemcached",  "--libmemcached-servers=localhost:12555", "--check-args", 0 };
+
+  test_success(exec_cmdline(GEARMAND_BINARY, args));
+  return TEST_SUCCESS;
+}
+
+static test_return_t collection_init(void *object)
 {
   const char *argv[3]= { "test_gearmand", "--libmemcached-servers=localhost:12555", "--queue-type=libmemcached" };
 
@@ -46,7 +60,7 @@ test_return_t collection_init(void *object)
   return TEST_SUCCESS;
 }
 
-test_return_t collection_cleanup(void *object)
+static test_return_t collection_cleanup(void *object)
 {
   Context *test= (Context *)object;
   test->reset();
@@ -55,21 +69,30 @@ test_return_t collection_cleanup(void *object)
 }
 
 
-void *world_create(test_return_t *error)
+static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  Context *test= new Context(MEMCACHED_TEST_PORT);
-  if (not test)
+  if (not test_for_HAVE_LIBMEMCACHED(error))
   {
-    *error= TEST_MEMORY_ALLOCATION_FAILURE;
     return NULL;
   }
 
-  *error= TEST_SUCCESS;
+  if (not server_startup(servers, "memcached", 12555, 0, NULL))
+  {
+    error= TEST_FAILURE;
+    return NULL;
+  }
+
+  Context *test= new Context(MEMCACHED_TEST_PORT, servers);
+  if (not test)
+  {
+    error= TEST_MEMORY_ALLOCATION_FAILURE;
+    return NULL;
+  }
 
   return test;
 }
 
-test_return_t world_destroy(void *object)
+static bool world_destroy(void *object)
 {
   Context *test= (Context *)object;
 
@@ -77,6 +100,11 @@ test_return_t world_destroy(void *object)
 
   return TEST_SUCCESS;
 }
+
+test_st gearmand_basic_option_tests[] ={
+  {"--queue=libmemcached --libmemcached-servers=", 0, gearmand_basic_option_test },
+  {0, 0, 0}
+};
 
 test_st tests[] ={
   {"gearman_client_echo()", 0, client_echo_test },
@@ -89,9 +117,8 @@ test_st tests[] ={
 };
 
 collection_st collection[] ={
-#ifdef HAVE_LIBMEMCACHED
+  {"gearmand options", 0, 0, gearmand_basic_option_tests},
   {"memcached queue", collection_init, collection_cleanup, tests},
-#endif
   {0, 0, 0, 0}
 };
 

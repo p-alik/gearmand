@@ -6,9 +6,12 @@
  * the COPYING file in the parent directory for full text.
  */
 
-#include <libtest/common.h>
+#include <config.h>
+#include <libtest/test.hpp>
 
-#include <assert.h>
+using namespace libtest;
+
+#include <cassert>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -16,28 +19,50 @@
 
 #include <libgearman/gearman.h>
 
-#include <libtest/server.h>
-
 #include <tests/basic.h>
 #include <tests/context.h>
 
 #include <tests/ports.h>
 
 // Prototypes
-void *world_create(test_return_t *error);
-test_return_t world_destroy(void *object);
-
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
+static bool test_for_HAVE_LIBSQLITE3(test_return_t &error)
+{
+#ifdef HAVE_LIBSQLITE3
+  error= TEST_SUCCESS;
+  return true;
+#else
+  error= TEST_SKIPPED;
+  return false;
+#endif
+}
+
+static test_return_t gearmand_basic_option_test(void *)
+{
+  const char *args[]= { "--queue-type=libsqlite3",  "--libsqlite3-db=tests/var/tmp/gearman.sql", "--libsqlite3-table=tmp/table", "--check-args", 0 };
+
+  test_success(exec_cmdline(GEARMAND_BINARY, args));
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearmand_basic_option_without_table_test(void *)
+{
+  const char *args[]= { "--queue-type=libsqlite3",  "--libsqlite3-db=tests/var/tmp/gearman.sql", "--check-args", 0 };
+
+  test_success(exec_cmdline(GEARMAND_BINARY, args));
+  return TEST_SUCCESS;
+}
+
 static test_return_t collection_init(void *object)
 {
-  const char *argv[3]= { "test_gearmand", "--libsqlite3-db=tests/gearman.sql", "--queue-type=libsqlite3"};
+  const char *argv[3]= { "test_gearmand", "--libsqlite3-db=tests/var/tmp/gearman.sql", "--queue-type=libsqlite3"};
 
   // Delete whatever might have been sitting around for the sql files
-  unlink("tests/gearman.sql");
-  unlink("tests/gearman.sql-journal");
+  unlink("tests/var/tmp/gearman.sql");
+  unlink("tests/var/tmp/gearman.sql-journal");
 
   Context *test= (Context *)object;
   assert(test);
@@ -51,26 +76,29 @@ static test_return_t collection_cleanup(void *object)
 {
   Context *test= (Context *)object;
   test->reset();
-
+ 
   return TEST_SUCCESS;
 }
 
 
-void *world_create(test_return_t *error)
+static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  Context *test= new Context(SQLITE_TEST_PORT);
-  if (not test)
+  if (not test_for_HAVE_LIBSQLITE3(error))
   {
-    *error= TEST_MEMORY_ALLOCATION_FAILURE;
     return NULL;
   }
 
-  *error= TEST_SUCCESS;
+  Context *test= new Context(SQLITE_TEST_PORT, servers);
+  if (not test)
+  {
+    error= TEST_MEMORY_ALLOCATION_FAILURE;
+    return NULL;
+  }
 
   return test;
 }
 
-test_return_t world_destroy(void *object)
+static bool world_destroy(void *object)
 {
   Context *test= (Context *)object;
 
@@ -78,6 +106,12 @@ test_return_t world_destroy(void *object)
 
   return TEST_SUCCESS;
 }
+
+test_st gearmand_basic_option_tests[] ={
+  {"--libsqlite3-db=tmp/schema --libsqlite3-table=tmp/table", 0, gearmand_basic_option_test },
+  {"--libsqlite3-db=tmp/schema", 0, gearmand_basic_option_without_table_test },
+  {0, 0, 0}
+};
 
 test_st tests[] ={
   {"gearman_client_echo()", 0, client_echo_test },
@@ -95,6 +129,7 @@ test_st regressions[] ={
 };
 
 collection_st collection[] ={
+  {"gearmand options", 0, 0, gearmand_basic_option_tests},
   {"sqlite queue", collection_init, collection_cleanup, tests},
   {"queue regression", collection_init, collection_cleanup, regressions},
 #if 0

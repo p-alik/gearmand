@@ -35,7 +35,10 @@
  *
  */
 
-#include <libtest/common.h>
+#include <config.h>
+#include <libtest/test.hpp>
+
+using namespace libtest;
 
 #include <libgearman/gearman.h>
 #include <cassert>
@@ -64,23 +67,23 @@ void *echo_or_react_worker(gearman_job_st *job, void *,
     *ret_ptr= GEARMAN_SUCCESS;
     return NULL;
   }
-  else if (*result_size == gearman_literal_param_size("fail") and (not memcmp(workload, gearman_literal_param("fail"))))
+  else if (*result_size == test_literal_param_size("fail") and (not memcmp(workload, test_literal_param("fail"))))
   {
     *ret_ptr= GEARMAN_WORK_FAIL;
     return NULL;
   }
-  else if (*result_size == gearman_literal_param_size("exception") and (not memcmp(workload, gearman_literal_param("exception"))))
+  else if (*result_size == test_literal_param_size("exception") and (not memcmp(workload, test_literal_param("exception"))))
   {
-    gearman_return_t rc= gearman_job_send_exception(job, gearman_literal_param("test exception"));
+    gearman_return_t rc= gearman_job_send_exception(job, test_literal_param("test exception"));
     if (gearman_failed(rc))
     {
       *ret_ptr= GEARMAN_WORK_FAIL;
       return NULL;
     }
   }
-  else if (*result_size == gearman_literal_param_size("warning") and (not memcmp(workload, gearman_literal_param("warning"))))
+  else if (*result_size == test_literal_param_size("warning") and (not memcmp(workload, test_literal_param("warning"))))
   {
-    gearman_return_t rc= gearman_job_send_warning(job, gearman_literal_param("test warning"));
+    gearman_return_t rc= gearman_job_send_warning(job, test_literal_param("test warning"));
     if (gearman_failed(rc))
     {
       *ret_ptr= GEARMAN_WORK_FAIL;
@@ -104,22 +107,22 @@ void *echo_or_react_chunk_worker(gearman_job_st *job, void *,
   size_t workload_size= gearman_job_workload_size(job);
 
   bool fail= false;
-  if (workload_size == gearman_literal_param_size("fail") and (not memcmp(workload, gearman_literal_param("fail"))))
+  if (workload_size == test_literal_param_size("fail") and (not memcmp(workload, test_literal_param("fail"))))
   {
     fail= true;
   }
-  else if (workload_size == gearman_literal_param_size("exception") and (not memcmp(workload, gearman_literal_param("exception"))))
+  else if (workload_size == test_literal_param_size("exception") and (not memcmp(workload, test_literal_param("exception"))))
   {
-    gearman_return_t rc= gearman_job_send_exception(job, gearman_literal_param("test exception"));
+    gearman_return_t rc= gearman_job_send_exception(job, test_literal_param("test exception"));
     if (gearman_failed(rc))
     {
       *ret_ptr= GEARMAN_WORK_FAIL;
       return NULL;
     }
   }
-  else if (workload_size == gearman_literal_param_size("warning") and (not memcmp(workload, gearman_literal_param("warning"))))
+  else if (workload_size == test_literal_param_size("warning") and (not memcmp(workload, test_literal_param("warning"))))
   {
-    gearman_return_t rc= gearman_job_send_warning(job, gearman_literal_param("test warning"));
+    gearman_return_t rc= gearman_job_send_warning(job, test_literal_param("test warning"));
     if (gearman_failed(rc))
     {
       *ret_ptr= GEARMAN_WORK_FAIL;
@@ -229,7 +232,7 @@ gearman_return_t split_worker(gearman_job_st *job, void* /* context */)
   {
     if (int(workload[x]) == 0 or int(workload[x]) == int(' '))
     {
-      if ((workload +x -chunk_begin) == 11 and not memcmp(chunk_begin, gearman_literal_param("mapper_fail")))
+      if ((workload +x -chunk_begin) == 11 and not memcmp(chunk_begin, test_literal_param("mapper_fail")))
       {
         return GEARMAN_FATAL;
       }
@@ -247,7 +250,7 @@ gearman_return_t split_worker(gearman_job_st *job, void* /* context */)
 
   if (chunk_begin < workload +workload_size)
   {
-    if ((size_t(workload +workload_size) -size_t(chunk_begin) ) == 11 and not memcmp(chunk_begin, gearman_literal_param("mapper_fail")))
+    if ((size_t(workload +workload_size) -size_t(chunk_begin) ) == 11 and not memcmp(chunk_begin, test_literal_param("mapper_fail")))
     {
       return GEARMAN_FATAL;
     }
@@ -271,7 +274,7 @@ void *increment_reset_worker(gearman_job_st *job, void *,
   long change= 0;
   const char *workload= (const char*)gearman_job_workload(job);
 
-  if (gearman_job_workload_size(job) == gearman_literal_param_size("reset") and (not memcmp(workload, gearman_literal_param("reset"))))
+  if (gearman_job_workload_size(job) == test_literal_param_size("reset") and (not memcmp(workload, test_literal_param("reset"))))
   {
     pthread_mutex_lock(&increment_reset_worker_mutex);
     counter= 0;
@@ -289,7 +292,7 @@ void *increment_reset_worker(gearman_job_st *job, void *,
     free(temp);
     if (change ==  LONG_MIN or change == LONG_MAX or ( change == 0 and errno < 0))
     {
-      gearman_job_send_warning(job, gearman_literal_param("strtol() failed"));
+      gearman_job_send_warning(job, test_literal_param("strtol() failed"));
       *ret_ptr= GEARMAN_WORK_FAIL;
       return NULL;
     }
@@ -303,7 +306,7 @@ void *increment_reset_worker(gearman_job_st *job, void *,
     result= (char *)malloc(40);
     if (not result)
     {
-      gearman_job_send_warning(job, gearman_literal_param("malloc() failed"));
+      gearman_job_send_warning(job, test_literal_param("malloc() failed"));
       *ret_ptr= GEARMAN_WORK_FAIL;
       return NULL;
     }

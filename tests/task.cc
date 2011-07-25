@@ -35,10 +35,14 @@
  *
  */
 
-#include <libtest/common.h>
+#include <config.h>
+#include <libtest/test.hpp>
+
+using namespace libtest;
 
 #include <cassert>
 #include <libgearman/gearman.h>
+#include <libgearman/actions.hpp>
 #include <tests/task.h>
 
 #include <iostream>
@@ -95,7 +99,7 @@ test_return_t gearman_client_add_task_test_fail(void *object)
   gearman_return_t ret;
   gearman_task_st *task= gearman_client_add_task(client, NULL, NULL,
                                                  worker_function, NULL,
-                                                 gearman_literal_param("fail"),
+                                                 test_literal_param("fail"),
                                                  &ret);
   test_compare(GEARMAN_SUCCESS,ret);
   test_truth(task);
@@ -173,14 +177,14 @@ test_return_t gearman_client_add_task_exception(void *object)
 
   gearman_return_t ret;
 
-  test_truth(gearman_client_set_server_option(client, gearman_literal_param("exceptions")));
+  test_truth(gearman_client_set_server_option(client, test_literal_param("exceptions")));
 
   gearman_client_set_exception_fn(client, gearman_exception_test_function);
 
   bool exception_success= false;
   gearman_task_st *task= gearman_client_add_task(client, NULL, &exception_success,
                                                  worker_function, NULL,
-                                                 gearman_literal_param("exception"),
+                                                 test_literal_param("exception"),
                                                  &ret);
   test_compare_got(GEARMAN_SUCCESS, ret, gearman_strerror(ret));
   test_truth(task);
@@ -341,7 +345,7 @@ test_return_t gearman_client_add_task_warning(void *object)
   bool warning_success= false;
   gearman_task_st *task= gearman_client_add_task(client, NULL, &warning_success,
                                                  worker_function, NULL,
-                                                 gearman_literal_param("warning"),
+                                                 test_literal_param("warning"),
                                                  &ret);
   test_compare_got(GEARMAN_SUCCESS, ret, gearman_strerror(ret));
   test_truth(task);
@@ -365,7 +369,7 @@ test_return_t gearman_client_add_task_no_servers(void *)
   gearman_return_t ret;
   gearman_task_st *task= gearman_client_add_task(client, NULL, NULL,
                                                  "does not exist", NULL,
-                                                 gearman_literal_param("dog"),
+                                                 test_literal_param("dog"),
                                                  &ret);
   test_compare_got(GEARMAN_SUCCESS, ret, gearman_strerror(ret));
   test_truth(task);

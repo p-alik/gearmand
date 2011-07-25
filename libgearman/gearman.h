@@ -130,7 +130,7 @@ const char *gearman_verbose_name(gearman_verbose_t verbose);
  *  means an infinite timeout.
  * @note This is a utility macro.
  */
-#define gearman_timeout(__object) ((__object)->gearman.timeout)
+#define gearman_timeout(__object) ((__object)->universal.timeout)
 
 /**
  * Set socket I/O activity timeout for connections in a Gearman structure.
@@ -140,20 +140,10 @@ const char *gearman_verbose_name(gearman_verbose_t verbose);
  *  means an infinite timeout.
  * @note This is a utility macro.
  */
-#define gearman_set_timeout(__object, __value) ((__object)->gearman.timeout)=(__value);
+#define gearman_set_timeout(__object, __value) ((__object)->universal.timeout)=(__value);
 
 /** @} */
 
 #ifdef __cplusplus
 }
 #endif
-
-#ifdef __cplusplus
-#define gearman_literal_param(X) (X), static_cast<size_t>(sizeof(X) - 1)
-#define gearman_literal_param_size(X) static_cast<size_t>(sizeof(X) - 1)
-#else
-#define gearman_literal_param(X) (X), (size_t)(sizeof(X) - 1)
-#define gearman_literal_param_size(X) (size_t)(sizeof(X) - 1)
-#endif
-
-#define gearman_c_str_param(X) (X) ? (X) : NULL, (X) ? strlen(X) : 0

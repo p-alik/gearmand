@@ -6,7 +6,10 @@
  * the COPYING file in the parent directory for full text.
  */
 
-#include <libtest/common.h>
+#include <config.h>
+#include <libtest/test.hpp>
+
+using namespace libtest;
 
 #include <assert.h>
 #include <stdio.h>
@@ -16,22 +19,35 @@
 
 #include <libgearman/gearman.h>
 
-#include <libtest/server.h>
-
 #include <tests/basic.h>
 #include <tests/context.h>
 
 #include <tests/ports.h>
 
-void *world_create(test_return_t *error);
-test_return_t world_destroy(void *object);
-
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
+static test_return_t test_for_HAVE_LIBTOKYOCABINET(void *)
+{
+#ifdef HAVE_LIBSQLITE3
+  return TEST_SUCCESS;
+#else
+  return TEST_SKIPPED;
+#endif
+}
+
+static test_return_t gearmand_basic_option_test(void *)
+{
+  const char *args[]= { "--queue=libtokyocabinet",  "--libtokyocabinet-file=tmp/file", "--libtokyocabinet-optimize", "--check-args", 0 };
+
+  test_success(exec_cmdline(GEARMAND_BINARY, args));
+  return TEST_SUCCESS;
+}
+
 static test_return_t collection_init(void *object)
 {
+  test_skip(TEST_SUCCESS, test_for_HAVE_LIBTOKYOCABINET(object));
   const char *argv[3]= { "test_gearmand", "--libtokyocabinet-file=tests/gearman.tcb", "--queue-type=libtokyocabinet" };
 
   unlink("tests/gearman.tcb");
@@ -48,33 +64,40 @@ static test_return_t collection_cleanup(void *object)
 {
   Context *test= (Context *)object;
   test->reset();
+  unlink("tests/gearman.tcb");
 
   return TEST_SUCCESS;
 }
 
 
-void *world_create(test_return_t *error)
+static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  Context *test= new Context(TOKYOCABINET_TEST_PORT);
+  Context *test= new Context(TOKYOCABINET_TEST_PORT, servers);
   if (not test)
   {
-    *error= TEST_MEMORY_ALLOCATION_FAILURE;
+    error= TEST_MEMORY_ALLOCATION_FAILURE;
     return NULL;
   }
-
-  *error= TEST_SUCCESS;
+  unlink("tests/gearman.tcb");
 
   return test;
 }
 
-test_return_t world_destroy(void *object)
+static bool world_destroy(void *object)
 {
   Context *test= (Context *)object;
 
+  unlink("tests/gearman.tcb");
   delete test;
 
   return TEST_SUCCESS;
 }
+
+test_st gearmand_basic_option_tests[] ={
+  {"--libtokyocabinet-file=tmp/file --libtokyocabinet-optimize", 0, gearmand_basic_option_test },
+  {0, 0, 0}
+};
+
 
 test_st tests[] ={
   {"gearman_client_echo()", 0, client_echo_test },
@@ -87,9 +110,8 @@ test_st tests[] ={
 };
 
 collection_st collection[] ={
-#ifdef HAVE_LIBTOKYOCABINET
+  {"gearmand options", test_for_HAVE_LIBTOKYOCABINET, 0, gearmand_basic_option_tests},
   {"tokyocabinet queue", collection_init, collection_cleanup, tests},
-#endif
   {0, 0, 0, 0}
 };
 

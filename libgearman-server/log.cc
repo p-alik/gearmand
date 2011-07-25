@@ -93,7 +93,6 @@ static void gearmand_log(const char *position, const char *func, gearmand_verbos
     if (position and verbose != GEARMAND_VERBOSE_INFO)
       snprintf(ptr, remaining_size, " -> %s", position);
 
-
     Gearmand()->log_fn(log_buffer, verbose, (void *)Gearmand()->log_context);
   }
   else

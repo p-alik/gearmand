@@ -201,7 +201,7 @@ gearmand_error_t _initialize(gearman_server_st *server, gearmand::plugins::queue
   }
 
   sqlite3_stmt* sth;
-  if (_sqlite_query(server, queue, STRING_WITH_LEN("SELECT name FROM sqlite_master WHERE type='table'"), &sth) != SQLITE_OK)
+  if (_sqlite_query(server, queue, gearman_literal_param("SELECT name FROM sqlite_master WHERE type='table'"), &sth) != SQLITE_OK)
   {
     std::string error_string("Unknown error while calling SELECT on sqlite file ");
     error_string+= queue->schema;
@@ -321,7 +321,7 @@ int _sqlite_lock(gearman_server_st *server,
   }
 
   sqlite3_stmt* sth;
-  int ret= _sqlite_query(server, queue, STRING_WITH_LEN("BEGIN TRANSACTION"), &sth);
+  int ret= _sqlite_query(server, queue, gearman_literal_param("BEGIN TRANSACTION"), &sth);
   if (ret != SQLITE_OK)
   {
     gearmand_log_error(AT, "failed to begin transaction: %s", sqlite3_errmsg(queue->db));
@@ -357,7 +357,7 @@ int _sqlite_commit(gearman_server_st *server,
   }
 
   sqlite3_stmt* sth;
-  int ret= _sqlite_query(server, queue, STRING_WITH_LEN("COMMIT"), &sth);
+  int ret= _sqlite_query(server, queue, gearman_literal_param("COMMIT"), &sth);
   if (ret != SQLITE_OK)
   {
     gearmand_log_error("_sqlite_commit",
@@ -393,7 +393,7 @@ int _sqlite_rollback(gearman_server_st *server,
   }
 
   sqlite3_stmt* sth;
-  int ret= _sqlite_query(server, queue, STRING_WITH_LEN("ROLLBACK"), &sth);
+  int ret= _sqlite_query(server, queue, gearman_literal_param("ROLLBACK"), &sth);
   if (ret != SQLITE_OK)
   {
     gearmand_log_error("_sqlite_rollback",

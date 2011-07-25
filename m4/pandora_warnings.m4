@@ -132,7 +132,7 @@ AC_DEFUN([PANDORA_WARNINGS],[
       m4_if(PW_LESS_WARNINGS,[no],[
         BASE_WARNINGS_FULL="${W_CONVERSION} -Wstrict-aliasing -Wswitch-enum "
         CC_WARNINGS_FULL="-Wswitch-default -Wswitch-enum -Wwrite-strings"
-        CXX_WARNINGS_FULL="-Wold-style-cast"
+        CXX_WARNINGS_FULL=""
         NO_OLD_STYLE_CAST="-Wno-old-style-cast"
         NO_EFF_CXX="-Wno-effc++"
       ],[
@@ -156,7 +156,7 @@ AC_DEFUN([PANDORA_WARNINGS],[
         [ac_cv_safe_to_use_Wextra_=no])
       CFLAGS="$save_CFLAGS"])
 
-      BASE_WARNINGS="${W_FAIL} -pedantic -Wall -Wundef -Wshadow ${NO_UNUSED} ${F_DIAGNOSTICS_SHOW_OPTION} ${F_LOOP_PARALLELIZE_ALL} ${BASE_WARNINGS_FULL}"
+      BASE_WARNINGS="${W_FAIL} -pedantic -Wall -Wundef -Wshadow ${NO_UNUSED} ${F_DIAGNOSTICS_SHOW_OPTION} ${F_LOOP_PARALLELIZE_ALL} ${BASE_WARNINGS_FULL} -H -Winvalid-pch"
       AS_IF([test "$ac_cv_safe_to_use_Wextra_" = "yes"],
             [BASE_WARNINGS="${BASE_WARNINGS} -Wextra"],
             [BASE_WARNINGS="${BASE_WARNINGS} -W"])

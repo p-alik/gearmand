@@ -3,7 +3,6 @@
  *  Gearmand client and server library.
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  Copyright (C) 2008 Brian Aker, Eric Day
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -36,66 +35,15 @@
  *
  */
 
-/**
- * @file
- * @brief Local Gearman Declarations
- */
-
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+struct gearman_unique_t {
+  const char *c_str;
+  const size_t size;
+};
 
-/** @addtogroup gearman_local Local Gearman Declarations @ingroup
- * gearman_universal @{
- */
+GEARMAN_LOCAL
+gearman_unique_t gearman_unique_make(const char *arg, size_t arg_size);
 
-/**
- * Log a message.
- *
- * @param[in] gearman Structure previously initialized with gearman_create() or
- *  gearman_clone().
- * @param[in] verbose Logging level of the message.
- * @param[in] format Format and variable argument list of message.
- * @param[in] args Variable argument list that has been initialized.
- */
-GEARMAN_INTERNAL_API
-void gearman_log(gearman_universal_st *gearman, gearman_verbose_t verbose,
-                 const char *format, va_list args);
-
-/**
- * Log a fatal message, see gearman_log() for argument details.
- */
-GEARMAN_INTERNAL_API
-void gearman_log_fatal(gearman_universal_st *gearman, const char *format, ...);
-
-/**
- * Log an error message, see gearman_log() for argument details.
- */
-GEARMAN_INTERNAL_API
-void gearman_log_error(gearman_universal_st *gearman, const char *format, ...);
-
-/**
- * Log an info message, see gearman_log() for argument details.
- */
-GEARMAN_INTERNAL_API
-void gearman_log_info(gearman_universal_st *gearman, const char *format, ...);
-
-/**
- * Log a debug message, see gearman_log() for argument details.
- */
-GEARMAN_INTERNAL_API
-void gearman_log_debug(gearman_universal_st *gearman, const char *format, ...);
-
-/**
- * Log a crazy message, see gearman_log() for argument details.
- */
-GEARMAN_INTERNAL_API
-void gearman_log_crazy(gearman_universal_st *gearman, const char *format, ...);
-
-/** @} */
-
-#ifdef __cplusplus
-}
-#endif
+GEARMAN_LOCAL
+size_t gearman_unique_size(gearman_unique_t *self);

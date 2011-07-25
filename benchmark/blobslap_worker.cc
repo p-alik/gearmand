@@ -49,7 +49,11 @@
 #include <climits>
 #include <iostream>
 #include <vector>
-#include "util/daemon.h"
+#include "util/daemon.hpp"
+#include "util/string.hpp"
+#include "util/pidfile.hpp"
+
+using namespace datadifferential;
 
 static void *worker_fn(gearman_job_st *job, void *context,
                        size_t *result_size, gearman_return_t *ret_ptr);
@@ -57,6 +61,11 @@ static void *worker_fn(gearman_job_st *job, void *context,
 static gearman_return_t shutdown_fn(gearman_job_st*, void* /* context */)
 {
   return GEARMAN_SHUTDOWN;
+}
+
+static gearman_return_t ping_fn(gearman_job_st*, void* /* context */)
+{
+  return GEARMAN_SUCCESS;
 }
 
 
@@ -67,6 +76,7 @@ int main(int args, char *argv[])
   bool opt_chunk;
   bool opt_status;
   bool opt_unique;
+  std::string pid_file;
   int32_t timeout;
   uint32_t count= UINT_MAX;
   in_port_t port;
@@ -86,6 +96,7 @@ int main(int args, char *argv[])
     ("daemon,d", boost::program_options::bool_switch(&opt_daemon)->default_value(false), "Daemonize")
     ("function,f", boost::program_options::value(functions), "Function to use.")
     ("verbose,v", boost::program_options::value(&verbose_string)->default_value("v"), "Increase verbosity level by one.")
+    ("pid-file", boost::program_options::value(&pid_file), "File to write process ID out to.")
             ;
 
   boost::program_options::variables_map vm;
@@ -108,19 +119,27 @@ int main(int args, char *argv[])
 
   if (opt_daemon)
   {
-    gearmand::daemonize(false, true);
+    util::daemonize(false, true);
   }
 
   if (opt_daemon)
   {
-    gearmand::daemon_is_ready(benchmark.verbose == 0);
+    util::daemon_is_ready(benchmark.verbose == 0);
+  }
+
+  util::Pidfile _pid_file(pid_file);
+
+  if (not _pid_file.create())
+  {
+    perror(_pid_file.error_message().c_str());
+    return EXIT_FAILURE;
   }
 
   gearman_worker_st *worker;
   if (not (worker= gearman_worker_create(NULL)))
   {
     std::cerr << "Failed to allocate worker" << std::endl;
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
 
 
@@ -129,31 +148,39 @@ int main(int args, char *argv[])
   if (gearman_failed(gearman_worker_add_server(worker, host.c_str(), port)))
   {
     std::cerr << "Failed while adding server " << host << ":" << port << " :" << gearman_worker_error(worker) << std::endl;
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
 
   gearman_function_t shutdown_function= gearman_function_create(shutdown_fn);
   if (gearman_failed(gearman_worker_define_function(worker,
-						    gearman_literal_param("shutdown"), 
+						    util_literal_param("shutdown"), 
 						    shutdown_function,
 						    0, 0)))
   {
     std::cerr << "Failed to add shutdown function: " << gearman_worker_error(worker) << std::endl;
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
+  }
+
+  gearman_function_t ping_function= gearman_function_create(ping_fn);
+  if (gearman_failed(gearman_worker_define_function(worker,
+						    util_literal_param("blobslap_worker_ping"), 
+						    ping_function,
+						    0, 0)))
+  {
+    std::cerr << "Failed to add blobslap_worker_ping function: " << gearman_worker_error(worker) << std::endl;
+    return EXIT_FAILURE;
   }
 
   if (functions and functions->size())
   {
-    for (std::vector<std::string>::iterator iter= functions->begin();
-         iter != functions->end();
-         iter++)
+    for (std::vector<std::string>::iterator iter= functions->begin(); iter != functions->end(); iter++)
     {
       if (gearman_failed(gearman_worker_add_function(worker,
                                                      (*iter).c_str(), 0,
                                                      worker_fn, &benchmark)))
       {
         std::cerr << "Failed to add default function: " << gearman_worker_error(worker) << std::endl;
-        exit(EXIT_FAILURE);
+        return EXIT_FAILURE;
       }
     }
   }
@@ -164,7 +191,7 @@ int main(int args, char *argv[])
                                                    worker_fn, &benchmark)))
     {
       std::cerr << "Failed to add default function: " << gearman_worker_error(worker) << std::endl;
-      exit(EXIT_FAILURE);
+      return EXIT_FAILURE;
     }
   }
 
@@ -193,7 +220,7 @@ int main(int args, char *argv[])
 
   gearman_worker_free(worker);
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 static void *worker_fn(gearman_job_st *job, void *context,
@@ -202,7 +229,9 @@ static void *worker_fn(gearman_job_st *job, void *context,
   gearman_benchmark_st *benchmark= static_cast<gearman_benchmark_st *>(context);
 
   if (benchmark->verbose > 0)
+  {
     benchmark_check_time(benchmark);
+  }
 
   if (benchmark->verbose > 1)
   {
@@ -210,5 +239,6 @@ static void *worker_fn(gearman_job_st *job, void *context,
   }
 
   *ret_ptr= GEARMAN_SUCCESS;
+
   return NULL;
 }

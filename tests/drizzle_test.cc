@@ -6,18 +6,18 @@
  * the COPYING file in the parent directory for full text.
  */
 
-#include <libtest/common.h>
+#include <config.h>
+#include <libtest/test.hpp>
 
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+using namespace libtest;
+
+#include <cassert>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <unistd.h>
 
 #include <libgearman/gearman.h>
-
-#include <libtest/server.h>
-#include <libtest/worker.h>
 
 #include <tests/basic.h>
 #include <tests/context.h>
@@ -26,28 +26,49 @@
 
 #define WORKER_FUNCTION "drizzle_queue_test"
 
-void *world_create(test_return_t *error);
-test_return_t world_destroy(void *object);
-test_return_t collection_init(void *object);
-test_return_t collection_cleanup(void *object);
-
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
-test_return_t collection_init(void *object)
+static test_return_t test_for_HAVE_LIBDRIZZLE(void *)
 {
-  const char *argv[2]= { "test_gearmand", "--queue-type=libdrizzle" };
+#if defined HAVE_LIBDRIZZLE && defined HAVE_DRIZZLED
+  return TEST_SUCCESS;
+#else
+  return TEST_SKIPPED;
+#endif
+}
 
+static test_return_t gearmand_basic_option_test(void *)
+{
+  const char *args[]= { "--check-args", 
+    "--libdrizzle-host=localhost",
+    "--libdrizzle-port=90",
+    "--libdrizzle-uds=tmp/foo.socket",
+    "--libdrizzle-user=root",
+    "--libdrizzle-password=test",
+    "--libdrizzle-db=gearman",
+    "--libdrizzle-table=gearman",
+    "--libdrizzle-mysql",
+    0 };
+
+  test_success(exec_cmdline(GEARMAND_BINARY, args));
+  return TEST_SUCCESS;
+}
+
+static test_return_t collection_init(void *object)
+{
   Context *test= (Context *)object;
   assert(test);
 
-  test_true_got(test->initialize(2, argv), getenv("GEARMAN_SERVER_STARTUP"));
+  const char *argv[2]= { "test_gearmand", "--queue-type=libdrizzle" };
+
+  test->initialize(2, argv);
 
   return TEST_SUCCESS;
 }
 
-test_return_t collection_cleanup(void *object)
+static test_return_t collection_cleanup(void *object)
 {
   Context *test= (Context *)object;
   test->reset();
@@ -56,21 +77,27 @@ test_return_t collection_cleanup(void *object)
 }
 
 
-void *world_create(test_return_t *error)
+static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  Context *test= new Context(DRIZZLE_TEST_PORT);
-  if (not test)
+  if (test_for_HAVE_LIBDRIZZLE(NULL) == TEST_SKIPPED)
   {
-    *error= TEST_MEMORY_ALLOCATION_FAILURE;
+    error= TEST_SKIPPED;
     return NULL;
   }
 
-  *error= TEST_SUCCESS;
+  Context *test= new Context(DRIZZLE_TEST_PORT, servers);
+  if (not test)
+  {
+    error= TEST_MEMORY_ALLOCATION_FAILURE;
+    return NULL;
+  }
+
+  error= TEST_SUCCESS;
 
   return test;
 }
 
-test_return_t world_destroy(void *object)
+static bool world_destroy(void *object)
 {
   Context *test= (Context *)object;
 
@@ -78,6 +105,11 @@ test_return_t world_destroy(void *object)
 
   return TEST_SUCCESS;
 }
+
+test_st gearmand_basic_option_tests[] ={
+  {"all options", 0, gearmand_basic_option_test },
+  {0, 0, 0}
+};
 
 test_st tests[] ={
   {"gearman_client_echo()", 0, client_echo_test },
@@ -95,10 +127,8 @@ test_st regressions[] ={
 };
 
 collection_st collection[] ={
-#ifdef HAVE_LIBDRIZZLE
   {"drizzle queue", collection_init, collection_cleanup, tests},
   {"regressions", collection_init, collection_cleanup, regressions},
-#endif
   {0, 0, 0, 0}
 };
 

@@ -28,7 +28,6 @@ nobase_include_HEADERS+= \
 			 libgearman/gearman.h \
 			 libgearman/job.h \
 			 libgearman/job_handle.h \
-			 libgearman/log.h \
 			 libgearman/packet.h \
 			 libgearman/parse.h \
 			 libgearman/priority.h \
@@ -45,6 +44,7 @@ nobase_include_HEADERS+= \
 			 libgearman/worker.h
 
 noinst_HEADERS+= \
+		 libgearman/actions.hpp \
 		 libgearman/add.hpp \
 		 libgearman/aggregator.hpp \
 		 libgearman/allocator.hpp \
@@ -60,12 +60,13 @@ noinst_HEADERS+= \
 		 libgearman/function/null.hpp \
 		 libgearman/function/partition.hpp \
 		 libgearman/is.hpp \
-		 libgearman/log.h \
+		 libgearman/log.hpp \
 		 libgearman/packet.hpp \
 		 libgearman/result.hpp \
 		 libgearman/run.hpp \
 		 libgearman/strcommand.h \
-		 libgearman/unique.h \
+		 libgearman/string.hpp \
+		 libgearman/unique.hpp \
 		 libgearman/universal.hpp \
 		 libgearman/vector.hpp
 

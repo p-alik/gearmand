@@ -34,11 +34,11 @@
 #include "bin/arguments.h"
 #include "bin/client.h"
 #include "bin/worker.h"
-#include "util/pidfile.h"
-#include "util/error.h"
+#include "util/pidfile.hpp"
+#include "bin/error.h"
 
 using namespace gearman_client;
-using namespace gearman_util;
+using namespace datadifferential;
 
 #define GEARMAN_INITIAL_WORKLOAD_SIZE 8192
 
@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
     switch (fork())
     {
     case -1:
-      fprintf(stderr, "gearmand: fork:%d\n", errno);
+      error::perror("fork");
       return EXIT_FAILURE;
 
     case 0:
@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
 
     if (setsid() == -1)
     {
-      fprintf(stderr, "gearmand: setsid:%d\n", errno);
+      error::perror("setsid");
       return EXIT_FAILURE;
     }
 
@@ -164,19 +164,19 @@ int main(int argc, char *argv[])
     {
       if (dup2(fd, STDIN_FILENO) == -1)
       {
-        fprintf(stderr, "gearmand: dup2:%d\n", errno);
+        error::perror("dup2");
         return EXIT_FAILURE;
       }
 
       if (dup2(fd, STDOUT_FILENO) == -1)
       {
-        fprintf(stderr, "gearmand: dup2:%d\n", errno);
+        error::perror("dup2");
         return EXIT_FAILURE;
       }
 
       if (dup2(fd, STDERR_FILENO) == -1)
       {
-        fprintf(stderr, "gearmand: dup2:%d\n", errno);
+        error::perror("dup2");
         return EXIT_FAILURE;
       }
 
@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
     }
   }
 
-  Pidfile _pid_file(args.pid_file());
+  util::Pidfile _pid_file(args.pid_file());
 
   if (not _pid_file.create())
   {

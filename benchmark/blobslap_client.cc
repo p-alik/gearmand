@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
 
   gearman_client_add_options(&client, GEARMAN_CLIENT_UNBUFFERED_RESULT);
 
-  while ((c= getopt(argc, argv, "bc:f:h:m:M:n:p:s:ve")) != -1)
+  while ((c= getopt(argc, argv, "bc:f:h:m:M:n:p:s:ve?")) != -1)
   {
     switch(c)
     {
@@ -101,6 +101,12 @@ int main(int argc, char *argv[])
 
     case 'v':
       benchmark.verbose++;
+      break;
+
+    case '?':
+      gearman_client_free(&client);
+      _usage(argv[0]);
+      exit(EXIT_SUCCESS);
       break;
 
     default:

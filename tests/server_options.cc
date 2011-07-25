@@ -35,7 +35,10 @@
  *
  */
 
-#include <libtest/common.h>
+#include <config.h>
+#include <libtest/test.hpp>
+
+using namespace libtest;
 
 #include <cassert>
 #include <cstring>
@@ -49,14 +52,14 @@
 test_return_t gearman_client_set_server_option_exception(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
-  test_true_got(gearman_client_set_server_option(client, gearman_literal_param("exceptions")), gearman_client_error(client));
+  test_true_got(gearman_client_set_server_option(client, test_literal_param("exceptions")), gearman_client_error(client));
   return TEST_SUCCESS;
 }
 
 test_return_t gearman_client_set_server_option_bad(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
-  test_false(gearman_client_set_server_option(client, gearman_literal_param("bad")));
+  test_false(gearman_client_set_server_option(client, test_literal_param("bad")));
   return TEST_SUCCESS;
 }
 

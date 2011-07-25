@@ -36,7 +36,10 @@
  *
  */
 
-#include <libtest/common.h>
+#include <config.h>
+
+#include <libtest/test.hpp>
+using namespace libtest;
 
 #include <cassert>
 #include <cstdio>
@@ -52,8 +55,7 @@
 #define GEARMAN_CORE
 #include <libgearman/gearman.h>
 
-#include <libtest/server.h>
-#include <libtest/worker.h>
+#include <tests/start_worker.h>
 
 #define NAMESPACE_KEY "foo123"
 
@@ -83,13 +85,11 @@ struct client_test_st
 {
   gearman_client_st *_client;
   bool _clone;
-  pid_t gearmand_pid;
   std::vector<worker_handle_st *> workers;
   const char *_worker_name;
 
   client_test_st() :
     _clone(true),
-    gearmand_pid(-1),
     _worker_name(WORKER_FUNCTION_NAME)
   { 
     if (not (_client= gearman_client_create(NULL)))
@@ -101,12 +101,11 @@ struct client_test_st
 
   ~client_test_st()
   {
-    test_gearmand_stop(gearmand_pid);
-
-    BOOST_FOREACH(worker_handle_st *worker, workers)
+    for (std::vector<worker_handle_st *>::iterator iter= workers.begin(); iter != workers.end(); iter++)
     {
-      test_worker_stop(worker);
+      delete *iter;
     }
+    workers.clear();
     gearman_client_free(_client);
   }
 
@@ -176,13 +175,11 @@ static uint32_t internal_generate_hash(const char *key, size_t key_length)
 /* Prototypes */
 void *client_test_temp_worker(gearman_job_st *job, void *context,
                               size_t *result_size, gearman_return_t *ret_ptr);
-void *world_create(test_return_t *error);
-test_return_t world_destroy(void *object);
 
 
 static void *client_thread(void *object)
 {
-  (void)object;
+  volatile gearman_return_t *ret= (volatile gearman_return_t *)object;
   gearman_client_st client;
   gearman_client_st *client_ptr;
   size_t result_size;
@@ -190,20 +187,28 @@ static void *client_thread(void *object)
   client_ptr= gearman_client_create(&client);
 
   if (client_ptr == NULL)
-    abort(); // This would be pretty bad.
+  {
+    *ret= GEARMAN_MEMORY_ALLOCATION_FAILURE;
+    pthread_exit(0);
+  }
 
   gearman_return_t rc= gearman_client_add_server(&client, NULL, CLIENT_TEST_PORT);
   if (gearman_failed(rc))
   {
+    *ret= rc;
     pthread_exit(0);
   }
 
   gearman_client_set_timeout(&client, 400);
   for (size_t x= 0; x < 5; x++)
   {
-    (void) gearman_client_do(&client, "client_test_temp", NULL, NULL, 0,
-                             &result_size, &rc);
+    (void)gearman_client_do(&client, "client_test_temp", NULL, NULL, 0, &result_size, &rc);
 
+    if (gearman_failed(rc))
+    {
+      *ret= rc;
+      pthread_exit(0);
+    }
   }
   gearman_client_free(client_ptr);
 
@@ -425,7 +430,7 @@ static test_return_t echo_test(void *object)
   gearman_client_st *client= (gearman_client_st *)object;
   test_truth(client);
 
-  gearman_string_t value= { gearman_literal_param("This is my echo test") };
+  gearman_string_t value= { test_literal_param("This is my echo test") };
 
   test_compare(GEARMAN_SUCCESS, gearman_client_echo(client, gearman_string_param(value)));
 
@@ -436,7 +441,7 @@ static test_return_t submit_job_test(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
   const char *worker_function= (const char *)gearman_client_context(client);
-  gearman_string_t value= { gearman_literal_param("submit_job_test") };
+  gearman_string_t value= { test_literal_param("submit_job_test") };
 
   size_t result_length;
   gearman_return_t rc;
@@ -469,7 +474,7 @@ static test_return_t submit_null_job_test(void *object)
   void *job_result= gearman_client_do(client, worker_function, NULL, NULL, 0,
                                       &result_length, &rc);
   test_compare_got(GEARMAN_SUCCESS, rc, gearman_client_error(client));
-  test_compare(0, result_length);
+  test_zero(result_length);
   test_false(job_result);
 
   return TEST_SUCCESS;
@@ -486,7 +491,7 @@ static test_return_t submit_exception_job_test(void *object)
   size_t result_length;
   gearman_return_t rc;
   void *job_result= gearman_client_do(client, worker_function, NULL,
-                                      gearman_literal_param("exception"),
+                                      test_literal_param("exception"),
                                       &result_length, &rc);
   test_compare_got(GEARMAN_SUCCESS, rc, gearman_client_error(client) ? gearman_client_error(client) : gearman_strerror(rc));
   test_memcmp("exception", job_result, result_length);
@@ -506,7 +511,7 @@ static test_return_t submit_warning_job_test(void *object)
   size_t result_length;
   gearman_return_t rc;
   void *job_result= gearman_client_do(client, worker_function, NULL,
-                                      gearman_literal_param("warning"),
+                                      test_literal_param("warning"),
                                       &result_length, &rc);
   test_compare_got(GEARMAN_SUCCESS, rc, gearman_client_error(client) ? gearman_client_error(client) : gearman_strerror(rc));
   test_memcmp("warning", job_result, result_length);
@@ -564,7 +569,7 @@ static test_return_t gearman_client_job_status_test(void *object)
   gearman_client_st *client= (gearman_client_st *)object;
   test_truth(client);
 
-  gearman_string_t value= { gearman_literal_param("background_test") };
+  gearman_string_t value= { test_literal_param("background_test") };
 
   const char *worker_function= (const char *)gearman_client_context(client);
   test_truth(worker_function);
@@ -703,7 +708,7 @@ static test_return_t gearman_client_job_status_with_return(void *object)
   gearman_client_st *client= (gearman_client_st *)object;
   test_truth(client);
 
-  gearman_string_t value= { gearman_literal_param("background_test") };
+  gearman_string_t value= { test_literal_param("background_test") };
 
   const char *worker_function= (const char *)gearman_client_context(client);
   test_truth(worker_function);
@@ -736,7 +741,7 @@ static test_return_t background_failure_test(void *object)
   uint32_t denominator;
 
   gearman_return_t rc= gearman_client_do_background(client, "does_not_exist", NULL,
-                                                    gearman_literal_param("background_failure_test"),
+                                                    test_literal_param("background_failure_test"),
                                                     job_handle);
   test_compare_got(GEARMAN_SUCCESS, rc, gearman_client_error(client));
 
@@ -778,7 +783,7 @@ static test_return_t hostname_resolution(void *)
                gearman_client_add_servers(client, "exist.gearman.info"));
 
   test_compare(GEARMAN_GETADDRINFO,
-               gearman_client_echo(client, gearman_literal_param("foo")));
+               gearman_client_echo(client, test_literal_param("foo")));
 
   gearman_client_free(client);
 
@@ -792,16 +797,16 @@ static test_return_t bug_518512_test(void *)
 
   test_truth(gearman_client_create(&client));
 
-  gearman_return_t rc;
   test_compare(GEARMAN_SUCCESS,
                gearman_client_add_server(&client, NULL, CLIENT_TEST_PORT));
 
-  gearman_client_set_timeout(&client, 100);
+  gearman_client_set_timeout(&client, 0);
+  gearman_return_t rc;
   void *result= gearman_client_do(&client, "client_test_temp", NULL, NULL, 0,
                                   &result_size, &rc);
   test_compare_got(GEARMAN_TIMEOUT, rc, gearman_strerror(rc));
   test_false(result);
-  test_compare(0, result_size);
+  test_zero(result_size);
 
   gearman_function_t func_arg= gearman_function_create_v1(client_test_temp_worker);
   struct worker_handle_st *completion_worker= test_worker_start(CLIENT_TEST_PORT, NULL, "client_test_temp",
@@ -813,7 +818,7 @@ static test_return_t bug_518512_test(void *)
   test_true_got(rc != GEARMAN_TIMEOUT, gearman_strerror(rc));
   (void)result;
 
-  test_worker_stop(completion_worker);
+  delete completion_worker;
   gearman_client_free(&client);
 
   return TEST_SUCCESS;
@@ -823,14 +828,8 @@ static test_return_t bug_518512_test(void *)
 
 static test_return_t loop_test(void *)
 {
-  void *unused;
-  pthread_attr_t attr;
-
   pthread_t one;
   pthread_t two;
-
-  pthread_attr_init(&attr);
-  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
   struct worker_handle_st *handles[NUMBER_OF_WORKERS];
   gearman_function_t func_arg= gearman_function_create_v1(client_test_temp_worker);
@@ -840,18 +839,23 @@ static test_return_t loop_test(void *)
                                   func_arg, NULL, gearman_worker_options_t());
   }
 
-  pthread_create(&one, &attr, client_thread, NULL);
-  pthread_create(&two, &attr, client_thread, NULL);
+  gearman_return_t one_rc= GEARMAN_SUCCESS;
+  pthread_create(&one, NULL, client_thread, &one_rc);
 
+  gearman_return_t two_rc= GEARMAN_SUCCESS;
+  pthread_create(&two, NULL, client_thread, &two_rc);
+
+  void *unused;
   pthread_join(one, &unused);
   pthread_join(two, &unused);
 
   for (size_t x= 0; x < NUMBER_OF_WORKERS; x++)
   {
-    test_worker_stop(handles[x]);
+    delete handles[x];
   }
 
-  pthread_attr_destroy(&attr);
+  test_compare(GEARMAN_SUCCESS, one_rc);
+  test_compare(GEARMAN_SUCCESS, two_rc);
 
   return TEST_SUCCESS;
 }
@@ -882,7 +886,7 @@ static test_return_t regression_785203_do_test(void *object)
   gearman_return_t rc;
   size_t result_length;
   void *result= gearman_client_do(client, worker_function, NULL, 
-                                  gearman_literal_param("keep it rocking and sing"),
+                                  test_literal_param("keep it rocking and sing"),
                                   &result_length, &rc);
   test_true(result);
   free(result);
@@ -919,7 +923,7 @@ static test_return_t regression_785203_do_background_test(void *object)
   test_compare_got(GEARMAN_SUCCESS,
                    gearman_client_do_background(client, worker_function, 
                                                 NULL,  // No unique requested
-                                                gearman_literal_param("keep it rocking and sing"),
+                                                test_literal_param("keep it rocking and sing"),
                                                 job_handle), 
                    gearman_client_error(client));
 
@@ -938,66 +942,11 @@ static test_return_t regression_785203_do_background_test(void *object)
   return TEST_SUCCESS;
 }
 
-static test_return_t regression_768317_test(void *object)
-{
-  gearman_client_st *client= (gearman_client_st *)object;
-
-  test_true(client);
-  size_t result_length;
-  gearman_return_t rc;
-  char *job_result= (char*)gearman_client_do(client, "increment_reset_worker", 
-                                             NULL, 
-                                             gearman_literal_param("reset"),
-                                             &result_length, &rc);
-  test_compare_got(GEARMAN_SUCCESS, rc, gearman_strerror(rc));
-  test_false(job_result);
-
-  // Check to see that the task ran just once
-  job_result= (char*)gearman_client_do(client, "increment_reset_worker", 
-                                       NULL, 
-                                       gearman_literal_param("10"),
-                                       &result_length, &rc);
-  test_compare_got(GEARMAN_SUCCESS, rc, gearman_client_error(client));
-  test_truth(job_result);
-  long count= strtol(job_result, (char **)NULL, 10);
-  test_compare(10, count);
-  free(job_result);
-
-  // Check to see that the task ran just once out of the bg queue
-  {
-    gearman_job_handle_t job_handle;
-    rc= gearman_client_do_background(client,
-                                     "increment_reset_worker",
-                                     NULL,
-                                     gearman_literal_param("14"),
-                                     job_handle);
-    test_compare(GEARMAN_SUCCESS, rc);
-
-    bool is_known;
-    do {
-      rc= gearman_client_job_status(client, job_handle, &is_known, NULL, NULL, NULL);
-    }  while (gearman_continue(rc) or is_known);
-    test_compare(GEARMAN_SUCCESS, rc);
-
-    job_result= (char*)gearman_client_do(client, "increment_reset_worker", 
-                                         NULL, 
-                                         gearman_literal_param("10"),
-                                         &result_length, &rc);
-    test_compare(GEARMAN_SUCCESS, rc);
-    test_truth(job_result);
-    count= atol(job_result);
-    test_compare(34, count);
-    free(job_result);
-  }
-
-  return TEST_SUCCESS;
-}
-
 static test_return_t submit_log_failure(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
   test_truth(client);
-  gearman_string_t value= { gearman_literal_param("submit_log_failure") };
+  gearman_string_t value= { test_literal_param("submit_log_failure") };
 
   const char *worker_function= (const char *)gearman_client_context(client);
   test_truth(worker_function);
@@ -1009,7 +958,7 @@ static test_return_t submit_log_failure(void *object)
                                       &result_length, &rc);
   test_compare(GEARMAN_NO_SERVERS, rc);
   test_false(job_result);
-  test_compare(0, result_length);
+  test_zero(result_length);
 
   return TEST_SUCCESS;
 }
@@ -1061,10 +1010,12 @@ static test_return_t strerror_strings(void *)
 
   for (int rc= GEARMAN_SUCCESS; rc < GEARMAN_MAX_RETURN; rc++)
   {
+    char *make_number_str;
     uint32_t hash_val;
     const char *msg=  gearman_strerror((gearman_return_t)rc);
     hash_val= internal_generate_hash(msg, strlen(msg));
-    test_compare_got(values[rc], hash_val, make_number(values[rc], hash_val));
+    test_compare_got(values[rc], hash_val, make_number_str= make_number(values[rc], hash_val));
+    free(make_number_str);
   }
 
   return TEST_SUCCESS;
@@ -1175,31 +1126,21 @@ void *client_test_temp_worker(gearman_job_st *, void *,
   return NULL;
 }
 
-void *world_create(test_return_t *error)
+static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  client_test_st *test= new client_test_st();
-  pid_t gearmand_pid;
-
-  /**
-   *  @TODO We cast this to char ** below, which is evil. We need to do the
-   *  right thing
-   */
   const char *argv[1]= { "client_gearmand" };
+  if (not server_startup(servers, "gearmand", CLIENT_TEST_PORT, 1, argv))
+  {
+    error= TEST_FAILURE;
+    return NULL;
+  }
+  (void)pre_namespace;
+
+  client_test_st *test= new client_test_st();
 
   if (not test)
   {
-    *error= TEST_MEMORY_ALLOCATION_FAILURE;
-    return NULL;
-  }
-
-  /**
-    We start up everything before we allocate so that we don't have to track memory in the forked process.
-  */
-  gearmand_pid= test_gearmand_start(CLIENT_TEST_PORT, 1, argv);
-  
-  if (gearmand_pid == -1)
-  {
-    *error= TEST_FAILURE;
+    error= TEST_MEMORY_ALLOCATION_FAILURE;
     return NULL;
   }
 
@@ -1239,22 +1180,19 @@ void *world_create(test_return_t *error)
   gearman_function_t count_worker_fn= gearman_function_create(count_worker);
   test->push(test_worker_start(CLIENT_TEST_PORT, NULL, "count", count_worker_fn, NULL, gearman_worker_options_t()));
 
-
-  test->gearmand_pid= gearmand_pid;
-
   if (gearman_failed(gearman_client_add_server(test->client(), NULL, CLIENT_TEST_PORT)))
   {
-    *error= TEST_FAILURE;
+    error= TEST_FAILURE;
     return NULL;
   }
 
-  *error= TEST_SUCCESS;
+  error= TEST_SUCCESS;
 
   return (void *)test;
 }
 
 
-test_return_t world_destroy(void *object)
+static bool world_destroy(void *object)
 {
   client_test_st *test= (client_test_st *)object;
   delete test;
@@ -1264,6 +1202,7 @@ test_return_t world_destroy(void *object)
 
 
 test_st tests[] ={
+  {"bug_518512_test", 0, bug_518512_test },
   {"init", 0, init_test },
   {"allocation", 0, allocation_test },
   {"clone_test", 0, clone_test },
@@ -1279,7 +1218,6 @@ test_st tests[] ={
   {"gearman_client_job_status() with gearman_return_t", 0, gearman_client_job_status_with_return },
   {"background_failure", 0, background_failure_test },
   {"add_servers", 0, add_servers_test },
-  {"bug_518512_test", 0, bug_518512_test },
   {"gearman_client_add_servers(GEARMAN_GETADDRINFO)", 0, hostname_resolution },
   {"loop_test", 0, loop_test },
   {0, 0, 0}
@@ -1315,7 +1253,9 @@ test_st gearman_client_set_workload_malloc_fn_tests[] ={
 };
 
 test_st regression_tests[] ={
+#if 0
   {"lp:768317", 0, regression_768317_test },
+#endif
   {"lp:785203 gearman_client_do()", 0, regression_785203_do_test },
   {"lp:785203 gearman_client_do_background()", 0, regression_785203_do_background_test },
   {0, 0, 0}
@@ -1356,8 +1296,10 @@ test_st gearman_execute_partition_tests[] ={
   {"gearman_execute_by_partition(GEARMAN_ARGUMENT_TOO_LARGE) map reduce", 0, gearman_execute_partition_check_parameters },
   {"gearman_execute_by_partition(GEARMAN_WORK_FAIL) map reduce", 0, gearman_execute_partition_workfail },
   {"gearman_execute_by_partition() fail in reduction", 0, gearman_execute_partition_fail_in_reduction },
+#if 0
   {"gearman_execute() with V2 Worker that has aggregate defined", 0, gearman_execute_partition_use_as_function },
   {"gearman_execute_by_partition() no aggregate function", 0, gearman_execute_partition_no_aggregate },
+#endif
   {0, 0, 0}
 };
 
@@ -1466,17 +1408,30 @@ static test_return_t _runner_default(libgearman_test_callback_fn func, client_te
   return TEST_SUCCESS;
 }
 
-static Runner runner= {
-  (test_callback_runner_fn*)_runner_prepost_default,
-  (test_callback_runner_fn*)_runner_default,
-  (test_callback_runner_fn*)_runner_prepost_default
+class GearmandRunner : public Runner {
+public:
+  test_return_t run(test_callback_fn* func, void *object)
+  {
+    return _runner_default(libgearman_test_callback_fn(func), (client_test_st*)object);
+  }
+
+  test_return_t pre(test_callback_fn* func, void *object)
+  {
+    return _runner_prepost_default(libgearman_test_prepost_callback_fn(func), (client_test_st*)object);
+  }
+
+  test_return_t post(test_callback_fn* func, void *object)
+  {
+    return _runner_prepost_default(libgearman_test_prepost_callback_fn(func), (client_test_st*)object);
+  }
 };
 
+static GearmandRunner defualt_runner;
 
 void get_world(Framework *world)
 {
   world->collections= collection;
   world->_create= world_create;
   world->_destroy= world_destroy;
-  world->runner= &runner;
+  world->set_runner(&defualt_runner);
 }
