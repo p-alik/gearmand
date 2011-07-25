@@ -25,6 +25,9 @@ CLEANFILES =
 TESTS =
 .PHONY =
 
+%.hpp.gch: %.hpp 
+	$(CXXCOMPILE) -c $<
+
 # Should always be first
 include libtest/include.am
 

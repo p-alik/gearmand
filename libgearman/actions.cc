@@ -37,7 +37,7 @@
 
 #include <libgearman/common.h>
 
-#include <libgearman/unique.h>
+#include <libgearman/unique.hpp>
 #include <libgearman/result.hpp>
 #include <memory>
 

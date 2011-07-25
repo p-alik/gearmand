@@ -42,16 +42,8 @@ struct gearman_unique_t {
   const size_t size;
 };
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-GEARMAN_API
+GEARMAN_LOCAL
 gearman_unique_t gearman_unique_make(const char *arg, size_t arg_size);
 
 GEARMAN_LOCAL
 size_t gearman_unique_size(gearman_unique_t *self);
-
-#ifdef __cplusplus
-}
-#endif

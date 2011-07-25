@@ -54,7 +54,7 @@
 #include <libgearman/strcommand.h>
 #include <libgearman/string.h>
 #include <libgearman/vector.hpp>
-#include <libgearman/unique.h>
+#include <libgearman/unique.hpp>
 #include <libgearman/result.hpp>
 #include <libgearman/actions.h>
 #include <libgearman/actions.hpp>

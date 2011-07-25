@@ -35,6 +35,7 @@
  *
  */
 
+#pragma once
 
 #define gearman_literal_param(X) (X), static_cast<size_t>(sizeof(X) - 1)
 #define gearman_literal_param_size(X) static_cast<size_t>(sizeof(X) - 1)

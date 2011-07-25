@@ -42,7 +42,7 @@
 
 #include <cstdarg>
 
-#include <libgearman/log.h>
+#include <libgearman/log.hpp>
 
 #include <cstdio>
 

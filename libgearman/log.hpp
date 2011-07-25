@@ -43,10 +43,6 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /** @addtogroup gearman_local Local Gearman Declarations @ingroup
  * gearman_universal @{
  */
@@ -93,9 +89,3 @@ void gearman_log_debug(gearman_universal_st *gearman, const char *format, ...);
  */
 GEARMAN_INTERNAL_API
 void gearman_log_crazy(gearman_universal_st *gearman, const char *format, ...);
-
-/** @} */
-
-#ifdef __cplusplus
-}
-#endif

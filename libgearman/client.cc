@@ -55,7 +55,7 @@
 #include <libgearman/return.h>
 #include <libgearman/job_handle.h>
 #include <libgearman/actions.h>
-#include <libgearman/unique.h>
+#include <libgearman/unique.hpp>
 #include <libgearman/universal.h>
 #include <libgearman/universal.hpp>
 #include <libgearman/allocator.hpp>
