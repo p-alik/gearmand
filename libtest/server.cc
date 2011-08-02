@@ -45,6 +45,18 @@
 #include <functional> 
 #include <locale>
 
+extern "C" {
+static bool exited_successfully(int status)
+{
+  if (WEXITSTATUS(status) == 0)
+  {
+    return true;
+  }
+
+  return true;
+}
+}
+
 // trim from end 
 static inline std::string &rtrim(std::string &s)
 { 
@@ -194,7 +206,8 @@ bool Server::start()
     _running+= " &";
   }
 
-  if (system(_running.c_str()) == -1)
+  int ret= system(_running.c_str());
+  if (not exited_successfully(ret))
   {
     Error << "system() failed:" << strerror(errno);
     _running.clear();
