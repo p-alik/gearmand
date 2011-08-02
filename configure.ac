@@ -87,6 +87,7 @@ AC_TYPE_UID_T
 AC_TYPE_UINT16_T
 AC_TYPE_UINT32_T
 AC_TYPE_UINT64_T
+AC_TYPE_INT64_T
 AC_TYPE_UINT8_T
 AC_C_VOLATILE
 AC_CHECK_TYPES([ptrdiff_t])
@@ -102,6 +103,11 @@ AC_TYPE_SIGNAL
 AC_FUNC_STRERROR_R
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([dup2 gettimeofday memchr memmove memset socket strcasecmp strdup strerror strncasecmp uname])
+AC_CHECK_FUNCS([select])
+AC_CHECK_FUNCS([setenv])
+AC_CHECK_FUNCS([strtol])
+AC_CHECK_FUNCS([strtoul])
+
 
 AC_CONFIG_FILES(Makefile
                 docs/conf.py
