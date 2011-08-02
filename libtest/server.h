@@ -1,10 +1,22 @@
-/*
- * Copyright (C) 2011 Data Differential, http://datadifferential.com/
- * Copyright (C) 2006-2009 Brian Aker
- * All rights reserved.
+/*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
+ * 
+ *  libtest
  *
- * Use and distribution licensed under the BSD license.  See
- * the COPYING file in the parent directory for full text.
+ *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 3 of the License, or (at your option) any later version.
+ *
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #pragma once
@@ -171,6 +183,7 @@ class server_startup_st
 {
 private:
   std::string server_list;
+  bool _socket;
 
 public:
 
@@ -178,6 +191,7 @@ public:
   std::vector<Server *> servers;
 
   server_startup_st() :
+    _socket(false),
     udp(0)
   { }
 
@@ -193,6 +207,17 @@ public:
   bool is_debug() const;
   bool is_helgrind() const;
   bool is_valgrind() const;
+
+  bool socket()
+  {
+    return _socket;
+  }
+
+  void set_socket()
+  {
+    _socket= true;
+  }
+
 
   void shutdown(bool remove= false);
   void push_server(Server *);
