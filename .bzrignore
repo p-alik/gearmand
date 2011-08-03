@@ -12,6 +12,7 @@
 *Makefile.in
 *gz
 *rpm
+*tar
 *stamp-h1
 .hg/
 .hgsub
@@ -91,6 +92,7 @@ tests/c_test
 tests/client_test
 tests/client_test.res
 tests/cpp_test
+tests/cycle
 tests/drizzle_test
 tests/gearadmin
 tests/gearman.pi*
