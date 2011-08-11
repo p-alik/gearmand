@@ -85,11 +85,18 @@ void SignalThread::test()
 
 SignalThread::~SignalThread()
 {
+  if (not is_shutdown())
+  {
+    set_shutdown(SHUTDOWN_GRACEFUL);
+  }
+
+#if 0
   if (pthread_equal(thread, pthread_self()) != 0 and (pthread_kill(thread, 0) == ESRCH) == true)
   {
     void *retval;
     pthread_join(thread, &retval);
   }
+#endif
   sem_destroy(&lock);
 }
 

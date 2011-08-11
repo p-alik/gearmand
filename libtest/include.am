@@ -145,6 +145,7 @@ libtest_libtest_la_SOURCES+= util/instance.cc
 libtest_libtest_la_SOURCES+= util/operation.cc
 else
 libtest_libtest_la_CXXFLAGS+= -DGEARMAND_BINARY=0
+libtest_libtest_la_CXXFLAGS+= -DGEARMAND_BLOBSLAP_WORKER=0
 libtest_libtest_la_CXXFLAGS+= -DHAVE_LIBGEARMAN=0
 libtest_unittest_CXXFLAGS+= -DGEARMAND_BINARY=0
 libtest_unittest_CXXFLAGS+= -DHAVE_LIBGEARMAN=0
@@ -185,6 +186,10 @@ helgrind-unittest: libtest/unittest
 
 drd-unittest: libtest/unittest
 	@$(DRD_COMMAND) libtest/unittest
+
+libtest_skiptest_LDADD= libtest/libtest.la
+libtest_skiptest_SOURCES= libtest/skiptest.cc
+check_PROGRAMS+= libtest/skiptest
 
 libtest_wait_SOURCES= libtest/wait.cc
 noinst_PROGRAMS+= libtest/wait

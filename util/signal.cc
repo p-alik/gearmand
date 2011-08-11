@@ -89,7 +89,6 @@ void SignalThread::test()
 
 SignalThread::~SignalThread()
 {
-  std::cerr << "Normal shutdown occurring" << std::endl;
   if (not is_shutdown())
   {
     set_shutdown(SHUTDOWN_GRACEFUL);
