@@ -1,6 +1,6 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  Gearmand client and server library.
+ *  DataDifferential Utility Library
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
  *  All rights reserved.
@@ -35,68 +35,32 @@
  *
  */
 
-
 #pragma once
 
 #include <string>
-#include <unistd.h>
+#include <fstream>
 
-class Context
+namespace datadifferential {
+namespace util {
+
+class Logfile
 {
 public:
-  gearman_worker_st *worker;
-  in_port_t _port;
-  std::string _worker_function_name;
-  server_startup_st &_servers;
-  bool run_worker;
+  Logfile(const std::string &arg);
 
-  Context(in_port_t port_arg, server_startup_st &server_arg):
-    worker(NULL),
-    _port(port_arg),
-    _worker_function_name("queue_test"),
-    _servers(server_arg),
-    run_worker(false)
+  ~Logfile();
+
+  std::ofstream &log()
   {
+    return _log_file;
   }
 
-  const char *worker_function_name() const
-  {
-    return _worker_function_name.c_str();
-  }
+  bool open();
 
-  in_port_t port() const
-  {
-    return _port;
-  }
-
-  bool initialize(int argc, const char *argv[])
-  {
-    if (not server_startup(_servers, "gearmand", _port, argc, argv))
-    {
-      return NULL;
-    }
-
-    if ((worker= gearman_worker_create(NULL)) == NULL)
-    {
-      return false;
-    }
-
-    if (gearman_failed(gearman_worker_add_server(worker, NULL, _port)))
-    {
-      return false;
-    }
-
-    return true;
-  }
-
-  void reset()
-  {
-    _servers.shutdown(true);
-    gearman_worker_free(worker);
-
-    unlink("tests/gearman.sql");
-    unlink("tests/gearman.sql-journal");
-
-    worker= NULL;
-  }
+private:
+  const std::string _filename;
+  std::ofstream _log_file;
 };
+
+} /* namespace util */
+} /* namespace datadifferential */

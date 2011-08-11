@@ -149,10 +149,28 @@ int main(int argc, char *argv[])
 {
   srandom((unsigned int)time(NULL));
 
+  if (getenv("srcdir"))
+  {
+    char buffer[1024];
+    snprintf(buffer, sizeof(buffer), "%s/%s", getenv("srcdir"), "tests");
+    chdir(buffer);
+  }
+  else
+  {
+    chdir("tests");
+  }
+
+  if (libtest::libtool() == NULL)
+  {
+    Error << "Failed to locate libtool";
+    return EXIT_FAILURE;
+  }
+
   world= new Framework();
 
   if (not world)
   {
+    Error << "Failed to create Framework()";
     return EXIT_FAILURE;
   }
 
@@ -182,7 +200,7 @@ int main(int argc, char *argv[])
   case TEST_FATAL:
   case TEST_FAILURE:
   case TEST_MEMORY_ALLOCATION_FAILURE:
-    Error << argv[0] << "create() failed";
+    Error << argv[0] << " failed in Framework::create()";
     delete world;
     return EXIT_FAILURE;
   }

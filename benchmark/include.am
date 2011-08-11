@@ -27,13 +27,16 @@ benchmark_blobslap_client_LDADD= benchmark/libbenchmark.la libgearman/libgearman
 benchmark_blobslap_worker_SOURCES= \
 				   benchmark/blobslap_worker.cc \
 				   util/daemon.cc \
-				   util/pidfile.cc
-
-
+				   util/logfile.cc \
+				   util/pidfile.cc \
+				   util/signal.cc
+benchmark_blobslap_worker_CXXFLAGS= $(AM_CXXFLAGS)
+benchmark_blobslap_worker_CXXFLAGS+= $(PTHREAD_CFLAGS)
 benchmark_blobslap_worker_LDADD= \
 				 $(BOOST_PROGRAM_OPTIONS_LIBS) \
 				 benchmark/libbenchmark.la \
 				 libgearman/libgearman.la
+benchmark_blobslap_worker_LDADD+= $(PTHREAD_LIBS)
 
 GEARMAND_BE_PIDFILE = ${abs_top_builddir}/tests/var/tmp/Begearmand.pid
 GEARMAND_BENCHMARK_PORT = 6000
@@ -47,4 +50,4 @@ benchmark-test: benchmark/blobslap_client benchmark/blobslap_worker gearmand/gea
 	@libtest/wait $(GEARMAND_BE_PIDFILE)
 	@benchmark/blobslap_worker  -p $(GEARMAND_BENCHMARK_PORT) -d
 	@benchmark/blobslap_client  -c $(BENCHMARK_COUNT) -n $(BENCHMARK_TASK_COUNT) -p $(GEARMAND_BENCHMARK_PORT) -e
-	cat $(GEARMAND_BE_PIDFILE) | xargs kill
+	@cat $(GEARMAND_BE_PIDFILE) | xargs kill

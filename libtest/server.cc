@@ -1,6 +1,6 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  Libtest library
+ *  libtest
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
  *
@@ -17,8 +17,8 @@
  *  You should have received a copy of the GNU Lesser General Public
  *  License along with this library; if not, write to the Free Software
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- *
  */
+
 
 #include <libtest/common.h>
 
@@ -31,18 +31,6 @@
 #include <functional> 
 #include <locale>
 
-extern "C" {
-static bool exited_successfully(int status)
-{
-  if (WEXITSTATUS(status) == 0)
-  {
-    return true;
-  }
-
-  return true;
-}
-}
-
 // trim from end 
 static inline std::string &rtrim(std::string &s)
 { 
@@ -54,14 +42,18 @@ static inline std::string &rtrim(std::string &s)
 #include <libtest/stream.h>
 #include <libtest/killpid.h>
 
-#ifdef HAVE_LIBGEARMAN
-#include <libtest/gearmand.h>
-#include <libtest/blobslap_worker.h>
-#endif
+extern "C" {
+  static bool exited_successfully(int status)
+  {
+    if (WEXITSTATUS(status) == 0)
+    {
+      return true;
+    }
 
-#ifdef HAVE_LIBMEMCACHED
-#include <libtest/memcached.h>
-#endif
+    return true;
+  }
+}
+
 
 namespace libtest {
 
@@ -135,7 +127,7 @@ bool Server::cycle()
 
   // Try to ping, and kill the server #limit number of times
   pid_t current_pid;
-  while (--limit and (current_pid= get_pid()) != -1)
+  while (--limit and is_pid_valid(current_pid= get_pid()))
   {
     if (kill(current_pid))
     {
@@ -200,22 +192,22 @@ bool Server::start()
     return false;
   }
 
-  if (is_helgrind())
+  if (is_helgrind() or is_valgrind())
   {
     sleep(4);
   }
 
   if (pid_file_option() and not pid_file().empty())
   {
-    Wait wait(pid_file());
+    Wait wait(pid_file(), 8);
 
     if (not wait.successful())
     {
-      Error << "Unable to open pidfile: " << pid_file();
+      Error << "Unable to open pidfile for: " << _running;
     }
   }
 
-  int count= is_helgrind() ? 20 : 5;
+  int count= is_helgrind() or is_valgrind() ? 20 : 5;
   while (not ping() and --count)
   {
     nap();
@@ -223,7 +215,7 @@ bool Server::start()
 
   if (count == 0)
   {
-    Error << "Failed to ping() server once started:" << *this;
+    Error << "Failed to ping() server started with:" << _running;
     _running.clear();
     return false;
   }
@@ -257,7 +249,7 @@ bool Server::set_socket_file()
   }
   else
   {
-    snprintf(file_buffer, sizeof(file_buffer), "tests/var/run/%s.socketXXXXXX", name());
+    snprintf(file_buffer, sizeof(file_buffer), "var/run/%s.socketXXXXXX", name());
   }
 
   int fd;
@@ -285,7 +277,7 @@ bool Server::set_pid_file()
   }
   else
   {
-    snprintf(file_buffer, sizeof(file_buffer), "tests/var/run/%s.pidXXXXXX", name());
+    snprintf(file_buffer, sizeof(file_buffer), "var/run/%s.pidXXXXXX", name());
   }
 
   int fd;
@@ -307,7 +299,7 @@ bool Server::set_log_file()
   char file_buffer[FILENAME_MAX];
   file_buffer[0]= 0;
 
-  snprintf(file_buffer, sizeof(file_buffer), "tests/var/log/%s.logXXXXXX", name());
+  snprintf(file_buffer, sizeof(file_buffer), "var/log/%s.logXXXXXX", name());
   int fd;
   if ((fd= mkstemp(file_buffer)) == -1)
   {
@@ -326,21 +318,20 @@ void Server::rebuild_base_command()
   _base_command.clear();
   if (is_libtool())
   {
-    _base_command+= getenv("LIBTOOL_COMMAND");
-    _base_command+= " ";
+    _base_command+= libtool();
   }
 
-  if (is_debug())
+  if (is_debug() and getenv("GDB_COMMAND"))
   {
     _base_command+= getenv("GDB_COMMAND");
     _base_command+= " ";
   }
-  else if (is_valgrind())
+  else if (is_valgrind() and getenv("VALGRIND_COMMAND"))
   {
     _base_command+= getenv("VALGRIND_COMMAND");
     _base_command+= " ";
   }
-  else if (is_helgrind())
+  else if (is_helgrind() and getenv("HELGRIND_COMMAND"))
   {
     _base_command+= getenv("HELGRIND_COMMAND");
     _base_command+= " ";
@@ -372,7 +363,7 @@ bool Server::args(std::string& options)
   // Update pid_file
   if (pid_file_option())
   {
-    if (not set_pid_file())
+    if (_pid_file.empty() and not set_pid_file())
     {
       return false;
     }
@@ -434,6 +425,11 @@ bool Server::kill(pid_t pid_arg)
     if (broken_pid_file() and not pid_file().empty())
     {
       unlink(pid_file().c_str());
+    }
+
+    if (broken_socket_cleanup() and has_socket() and not socket().empty())
+    {
+      unlink(socket().c_str());
     }
 
     reset_pid();
@@ -526,6 +522,7 @@ bool server_startup_st::is_helgrind() const
 bool server_startup(server_startup_st& construct, const std::string& server_type, in_port_t try_port, int argc, const char *argv[])
 {
   Outn();
+  (void)try_port;
 
   // Look to see if we are being provided ports to use
   {
@@ -542,44 +539,62 @@ bool server_startup(server_startup_st& construct, const std::string& server_type
     }
   }
 
-  Server *server= NULL;
+  libtest::Server *server= NULL;
   if (0)
   { }
   else if (server_type.compare("gearmand") == 0)
   {
-#ifdef GEARMAND_BINARY
-  #ifdef HAVE_LIBGEARMAN
-    server= build_gearmand("localhost", try_port);
-  #else
-    Error << "Libgearman was not found";
-  #endif
-#else
-    Error << "No gearmand binary is available";
-#endif
+    if (GEARMAND_BINARY)
+    {
+      if (HAVE_LIBGEARMAN)
+      {
+        server= build_gearmand("localhost", try_port);
+      }
+      else
+      {
+        Error << "Libgearman was not found";
+      }
+    } 
+    else
+    {
+      Error << "No gearmand binary is available";
+    }
   }
   else if (server_type.compare("blobslap_worker") == 0)
   {
-#ifdef GEARMAND_BINARY
-  #ifdef HAVE_LIBGEARMAN
-    server= build_blobslap_worker(try_port);
-  #else
-    Error << "Libgearman was not found";
-  #endif
-#else
-    Error << "No gearmand binary is available";
-#endif
+    if (GEARMAND_BINARY and GEARMAND_BLOBSLAP_WORKER)
+    {
+      if (HAVE_LIBGEARMAN)
+      {
+        server= build_blobslap_worker(try_port);
+      }
+      else
+      {
+        Error << "Libgearman was not found";
+      }
+    }
+    else
+    {
+      Error << "No gearmand binary is available";
+    }
   }
   else if (server_type.compare("memcached") == 0)
   {
-#ifdef MEMCACHED_BINARY
-#ifdef HAVE_LIBMEMCACHED
-    server= build_memcached("localhost", try_port);
-#else
-    Error << "Libmemcached was not found";
-#endif
-#else
-    Error << "No memcached binary is available";
-#endif
+    if (MEMCACHED_BINARY)
+    {
+      if (HAVE_LIBMEMCACHED)
+      {
+        server= build_memcached("localhost", try_port);
+      }
+      else
+      {
+        Error << "Libmemcached was not found";
+      }
+    }
+    else
+    {
+      Error << "No memcached binary is available";
+    }
   }
   else
   {
@@ -650,15 +665,21 @@ bool server_startup_st::start_socket_server(const std::string& server_type, cons
   }
   else if (server_type.compare("memcached") == 0)
   {
-#ifdef MEMCACHED_BINARY
-#ifdef HAVE_LIBMEMCACHED
-    server= build_memcached_socket("localhost", try_port);
-#else
-    Error << "Libmemcached was not found";
-#endif
-#else
-    Error << "No memcached binary is available";
-#endif
+    if (MEMCACHED_BINARY)
+    {
+      if (HAVE_LIBMEMCACHED)
+      {
+        server= build_memcached_socket("localhost", try_port);
+      }
+      else
+      {
+        Error << "Libmemcached was not found";
+      }
+    }
+    else
+    {
+      Error << "No memcached binary is available";
+    }
   }
   else
   {

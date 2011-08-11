@@ -49,12 +49,14 @@ using namespace libtest;
 
 using namespace libtest;
 
-class Memcached : public Server
+class Memcached : public libtest::Server
 {
 public:
   Memcached(const std::string& host_arg, const in_port_t port_arg, const bool is_socket_arg) :
-    Server(host_arg, port_arg, is_socket_arg)
-  { }
+    libtest::Server(host_arg, port_arg, is_socket_arg)
+  {
+    set_pid_file();
+  }
 
   pid_t get_pid(bool error_is_ok)
   {
@@ -81,7 +83,7 @@ public:
       local_pid= libmemcached_util_getpid(hostname().c_str(), port(), &rc);
     }
 
-    if (error_is_ok and ((memcached_failed(rc) or local_pid < 1)))
+    if (error_is_ok and ((memcached_failed(rc) or not is_pid_valid(local_pid))))
     {
       Error << "libmemcached_util_getpid(" << memcached_strerror(NULL, rc) << ") pid: " << local_pid << " for:" << *this;
     }
@@ -161,6 +163,11 @@ public:
     return false;
   }
 
+  bool broken_socket_cleanup()
+  {
+    return true;
+  }
+
   // Memcached's pidfile is broken
   bool broken_pid_file()
   {
@@ -198,12 +205,12 @@ bool Memcached::build(int argc, const char *argv[])
 
 namespace libtest {
 
-Server *build_memcached(const std::string& hostname, const in_port_t try_port)
+libtest::Server *build_memcached(const std::string& hostname, const in_port_t try_port)
 {
   return new Memcached(hostname, try_port, false);
 }
 
-Server *build_memcached_socket(const std::string& hostname, const in_port_t try_port)
+libtest::Server *build_memcached_socket(const std::string& hostname, const in_port_t try_port)
 {
   return new Memcached(hostname, try_port, true);
 }

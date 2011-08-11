@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
   if (not gearman_client_create(&client))
   {
     std::cerr << "Failed to allocate memory for client" << std::endl;
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
 
   gearman_client_add_options(&client, GEARMAN_CLIENT_UNBUFFERED_RESULT);

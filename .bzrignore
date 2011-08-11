@@ -120,3 +120,7 @@ tests/worker_test.res
 unittests/unittests
 util/.hg/
 util/.hgignore
+libtest/version.h
+configure.scan
+autoscan.log
+config.in

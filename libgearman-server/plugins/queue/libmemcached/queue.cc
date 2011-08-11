@@ -279,7 +279,6 @@ static memcached_return callback_for_key(const memcached_st *ptr __attribute__((
                                          const char *key, size_t key_length,
                                          void *context)
 {
-  memcached_return rc;
   struct replay_context *container= (struct replay_context *)context;
   memcached_execute_function callbacks[1];
   char *passable[1];
@@ -287,7 +286,8 @@ static memcached_return callback_for_key(const memcached_st *ptr __attribute__((
   callbacks[0]= (memcached_execute_fn)&callback_loader;
 
   passable[0]= (char *)key;
-  rc= memcached_mget(&container->clone, passable, &key_length, 1);
+  memcached_return_t rc= memcached_mget(&container->clone, passable, &key_length, 1);
+  (void)rc;
 
   /* Just void errors for the moment, since other treads might have picked up the object. */
   (void)memcached_fetch_execute(&container->clone, callbacks, context, 1);

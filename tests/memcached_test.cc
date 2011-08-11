@@ -44,7 +44,7 @@ static test_return_t gearmand_basic_option_test(void *)
 {
   const char *args[]= { "--queue=libmemcached",  "--libmemcached-servers=localhost:12555", "--check-args", 0 };
 
-  test_success(exec_cmdline(GEARMAND_BINARY, args));
+  test_success(exec_cmdline(gearmand_binary(), args));
   return TEST_SUCCESS;
 }
 

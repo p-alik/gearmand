@@ -95,7 +95,9 @@ Sqlite::Sqlite() :
 Sqlite::~Sqlite()
 {
   if (db)
+  {
     sqlite3_close(db);
+  }
 }
 
 gearmand_error_t Sqlite::initialize()
