@@ -12,8 +12,8 @@
 *Makefile.in
 *gz
 *rpm
-*tar
 *stamp-h1
+*tar
 .hg/
 .hgsub
 .hgsubstate
@@ -21,6 +21,7 @@ INSTALL
 TAGS
 aclocal.m4
 autom4te.cache
+autoscan.log
 benchmark/blobslap_client
 benchmark/blobslap_worker
 bin/gearadmin
@@ -28,6 +29,7 @@ bin/gearman
 bin/wait
 config.h
 config.h.in
+config.in
 config.log
 config.status
 config/compile
@@ -41,6 +43,7 @@ config/pandora_vc_revinfo
 config/plugin.ac
 config/top.h
 configure
+configure.scan
 docs/_static
 docs/conf.py
 docs/doctrees
@@ -66,7 +69,9 @@ libgearman/version.h
 libhostile
 libtest/.hg/
 libtest/.hgignore
+libtest/skiptest
 libtest/unittest
+libtest/version.h
 libtest/wait
 libtool
 m4/libtool.m4
@@ -117,10 +122,7 @@ tests/var/log/*
 tests/var/tmp/*
 tests/worker_test
 tests/worker_test.res
+tmp_chroot/
 unittests/unittests
 util/.hg/
 util/.hgignore
-libtest/version.h
-configure.scan
-autoscan.log
-config.in

@@ -149,15 +149,28 @@ int main(int argc, char *argv[])
 {
   srandom((unsigned int)time(NULL));
 
-  if (getenv("srcdir"))
+  if (getenv("LIBTEST_QUIET"))
   {
-    char buffer[1024];
-    snprintf(buffer, sizeof(buffer), "%s/%s", getenv("srcdir"), "tests");
-    chdir(buffer);
+    close(STDOUT_FILENO);
+  }
+
+  char buffer[1024];
+  if (getenv("LIBTEST_TMP"))
+  {
+    snprintf(buffer, sizeof(buffer), "%s", getenv("LIBTEST_TMP"));
   }
   else
   {
-    chdir("tests");
+    snprintf(buffer, sizeof(buffer), "%s", LIBTEST_TEMP);
+  }
+
+  if (chdir(buffer) == -1)
+  {
+    char getcwd_buffer[1024];
+    char *dir= getcwd(getcwd_buffer, sizeof(getcwd_buffer));
+
+    Error << "Unable to chdir() from " << dir << " to " << buffer << " errno:" << strerror(errno);
+    return EXIT_FAILURE;
   }
 
   if (libtest::libtool() == NULL)

@@ -24,11 +24,11 @@
 #include <typeinfo>
 #include <libtest/strerror.h>
 
-#if defined(HAVE_LIBMEMCACHED) && HAVE_LIBMEMCACHED
+#if defined(LIBTEST_WITH_LIBMEMCACHED_SUPPORT) && LIBTEST_WITH_LIBMEMCACHED_SUPPORT
 #include <libmemcached/memcached.h>
 #endif
 
-#if defined(HAVE_LIBGEARMAN) && HAVE_LIBGEARMAN
+#if defined(LIBTEST_WITH_LIBGEARMAN_SUPPORT) && LIBTEST_WITH_LIBGEARMAN_SUPPORT
 #include <libgearman/gearman.h>
 #endif
 
@@ -62,7 +62,7 @@ bool _compare(const char *file, int line, const char *func, const T_comparable _
         << got_str
         << "\"";
     }
-#if defined(HAVE_LIBMEMCACHED) && HAVE_LIBMEMCACHED
+#if (defined(LIBTEST_WITH_LIBMEMCACHED_SUPPORT) && LIBTEST_WITH_LIBMEMCACHED_SUPPORT)
     else if (typeid(__expected) == typeid(memcached_return_t))
     {
       libtest::stream::make_cerr(file, line, func) << "Expected \"" 
@@ -71,7 +71,7 @@ bool _compare(const char *file, int line, const char *func, const T_comparable _
         << memcached_strerror(NULL, memcached_return_t(__actual)) << "\"";
     }
 #endif
-#if defined(HAVE_LIBGEARMAN) && HAVE_LIBGEARMAN
+#if defined(LIBTEST_WITH_LIBGEARMAN_SUPPORT) && LIBTEST_WITH_LIBGEARMAN_SUPPORT
     else if (typeid(__expected) == typeid(gearman_return_t))
     {
       libtest::stream::make_cerr(file, line, func) << "Expected \"" 
