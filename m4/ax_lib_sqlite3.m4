@@ -130,6 +130,7 @@ AC_DEFUN([AX_LIB_SQLITE3],
 
         if test "$success" = "yes"; then
 
+            ac_cv_libsqlite3=yes
             SQLITE3_CFLAGS="$ac_sqlite3_cppflags"
             SQLITE3_LDFLAGS="$ac_sqlite3_ldflags"
 

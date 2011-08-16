@@ -64,16 +64,15 @@ PANDORA_REQUIRE_LIBEVENT
 PANDORA_REQUIRE_LIBUUID
 
 AX_LIB_SQLITE3
-AS_IF([test -n "${ac_sqlite3_ldflags}"],
+AS_IF([test "x${ac_cv_libsqlite3}" = "xyes"],
       [
-       ac_cv_libsqlite3=yes
        AC_DEFINE([HAVE_LIBSQLITE3], [ 1 ], [Have the SQLITE3 library])
       ],
       [
        ac_cv_libsqlite3=no
        AC_DEFINE([HAVE_LIBSQLITE3], [ 0 ], [Have the SQLITE3 library])
       ])
-AM_CONDITIONAL(HAVE_LIBSQLITE3, test -n "${ac_sqlite3_ldflags}")
+AM_CONDITIONAL(HAVE_LIBSQLITE3, test "x${ac_cv_libsqlite3}" = "xyes")
 
 
 PANDORA_HAVE_BETTER_MALLOC
