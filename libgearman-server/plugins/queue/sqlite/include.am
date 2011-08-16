@@ -9,14 +9,13 @@
 # All paths should be given relative to the root
 #
 
-if HAVE_LIBSQLITE3
 noinst_HEADERS+= libgearman-server/plugins/queue/sqlite/queue.h
 
+if HAVE_LIBSQLITE3
 libgearman_server_libgearman_server_la_SOURCES+= libgearman-server/plugins/queue/sqlite/queue.cc
 
 libgearman_server_libgearman_server_la_CFLAGS+= $(SQLITE3_CFLAGS)
 libgearman_server_libgearman_server_la_CXXFLAGS+= $(SQLITE3_CFLAGS)
 libgearman_server_libgearman_server_la_LIBADD+= $(SQLITE3_LDFLAGS)
-
 endif
 

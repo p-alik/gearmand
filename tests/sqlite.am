@@ -18,6 +18,7 @@ tests_sqlite_test_SOURCES= \
 tests_sqlite_test_DEPENDENCIES= $(CLIENT_LDADD)
 tests_sqlite_test_LDADD= $(tests_sqlite_test_DEPENDENCIES)
 check_PROGRAMS+= tests/sqlite_test
+noinst_PROGRAMS+= tests/sqlite_test
 
 tests-sqlite: tests/sqlite_test
 	@tests/sqlite_test

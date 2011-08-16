@@ -52,9 +52,10 @@ void initialize(boost::program_options::options_description &all)
   queue::initialize_drizzle();
 #endif
 
-#ifdef HAVE_LIBMEMCACHED
-  queue::initialize_libmemcached();
-#endif
+  if (HAVE_LIBMEMCACHED)
+  {
+    queue::initialize_libmemcached();
+  }
 
   if (HAVE_LIBSQLITE3)
   {
@@ -65,9 +66,10 @@ void initialize(boost::program_options::options_description &all)
   queue::initialize_postgres();
 #endif
 
-#ifdef HAVE_LIBTOKYOCABINET
-  queue::initialize_tokyocabinet();
-#endif
+  if (HAVE_LIBTOKYOCABINET)
+  {
+    queue::initialize_tokyocabinet();
+  }
 
   gearmand::queue::load_options(all);
 }

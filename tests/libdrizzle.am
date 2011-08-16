@@ -19,3 +19,4 @@ tests_drizzle_test_SOURCES= \
 tests_drizzle_test_DEPENDENCIES= ${CLIENT_LDADD}
 tests_drizzle_test_LDADD= $(tests_drizzle_test_DEPENDENCIES)
 check_PROGRAMS += tests/drizzle_test
+noinst_PROGRAMS += tests/drizzle_test

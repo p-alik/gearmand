@@ -15,7 +15,8 @@ tests_memcached_test_SOURCES= \
 			      tests/memcached_test.cc
 tests_memcached_test_DEPENDENCIES= $(CLIENT_LDADD)
 tests_memcached_test_LDADD= $(tests_memcached_test_DEPENDENCIES)
-check_PROGRAMS += tests/memcached_test
+check_PROGRAMS+= tests/memcached_test
+noinst_PROGRAMS+= tests/memcached_test
 
 test-libmemcached:
 	@tests/memcached_test  

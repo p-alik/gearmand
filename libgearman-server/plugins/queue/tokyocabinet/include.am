@@ -9,8 +9,9 @@
 # All paths should be given relative to the root
 #
 
-if HAVE_LIBTOKYOCABINET
 noinst_HEADERS+= libgearman-server/plugins/queue/tokyocabinet/queue.h
+
+if HAVE_LIBTOKYOCABINET
 
 libgearman_server_libgearman_server_la_SOURCES+= libgearman-server/plugins/queue/tokyocabinet/queue.cc
 

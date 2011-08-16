@@ -9,11 +9,10 @@
 # All paths should be given relative to the root
 #
 
-if HAVE_LIBPQ
 noinst_HEADERS+= libgearman-server/plugins/queue/postgres/queue.h
 
+if HAVE_LIBPQ
 libgearman_server_libgearman_server_la_SOURCES+= libgearman-server/plugins/queue/postgres/queue.cc
-
 libgearman_server_libgearman_server_la_LIBADD+= $(LTLIBPQ)
 endif
 
