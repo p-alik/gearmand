@@ -30,10 +30,9 @@ using namespace libtest;
 
 static test_return_t test_for_HAVE_LIBTOKYOCABINET(void *)
 {
-  if (HAVE_LIBSQLITE3)
-    return TEST_SUCCESS;
+  test_skip(HAVE_LIBSQLITE3, 1);
 
-  return TEST_SKIPPED;
+  return TEST_SUCCESS;
 }
 
 static test_return_t gearmand_basic_option_test(void *)

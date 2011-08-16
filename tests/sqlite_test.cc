@@ -31,13 +31,14 @@ using namespace libtest;
 
 static bool test_for_HAVE_LIBSQLITE3(test_return_t &error)
 {
-#ifdef HAVE_LIBSQLITE3
-  error= TEST_SUCCESS;
-  return true;
-#else
+  if (HAVE_LIBSQLITE3)
+  {
+    error= TEST_SUCCESS;
+    return true;
+  }
+
   error= TEST_SKIPPED;
   return false;
-#endif
 }
 
 static test_return_t gearmand_basic_option_test(void *)

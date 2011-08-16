@@ -56,9 +56,10 @@ void initialize(boost::program_options::options_description &all)
   queue::initialize_libmemcached();
 #endif
 
-#ifdef HAVE_LIBSQLITE3
-  queue::initialize_sqlite();
-#endif
+  if (HAVE_LIBSQLITE3)
+  {
+    queue::initialize_sqlite();
+  }
 
 #ifdef HAVE_LIBPQ
   queue::initialize_postgres();

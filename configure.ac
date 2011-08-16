@@ -63,8 +63,20 @@ AX_PTHREAD(, [AC_MSG_ERROR(could not find libpthread)])
 PANDORA_REQUIRE_LIBEVENT
 PANDORA_REQUIRE_LIBUUID
 
+AX_LIB_SQLITE3
+AS_IF([test -n "${ac_sqlite3_ldflags}"],
+      [
+       ac_cv_libsqlite3=yes
+       AC_DEFINE([HAVE_LIBSQLITE3], [ 1 ], [Have the SQLITE3 library])
+      ],
+      [
+       ac_cv_libsqlite3=no
+       AC_DEFINE([HAVE_LIBSQLITE3], [ 0 ], [Have the SQLITE3 library])
+      ])
+AM_CONDITIONAL(HAVE_LIBSQLITE3, test -n "${ac_sqlite3_ldflags}")
+
+
 PANDORA_HAVE_BETTER_MALLOC
-PANDORA_HAVE_LIBSQLITE3
 PANDORA_HAVE_LIBPQ
 PANDORA_HAVE_LIBTOKYOCABINET
 AC_FUNC_STRERROR_R
