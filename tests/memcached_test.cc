@@ -26,7 +26,6 @@ using namespace libtest;
 
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
-
 #endif
 
 static bool test_for_HAVE_LIBMEMCACHED(test_return_t &error)

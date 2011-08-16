@@ -26,7 +26,7 @@ noinst_HEADERS+= \
 		 tests/workers_v1.h
 
 noinst_LTLIBRARIES+= tests/libstartworker.la
-tests_libstartworker_la_CXXFLAGS= ${AM_CXXFLAGS}
+tests_libstartworker_la_CXXFLAGS=
 tests_libstartworker_la_CXXFLAGS+= $(PTHREAD_CFLAGS)
 tests_libstartworker_la_LIBADD= $(PTHREAD_LIBS)
 tests_libstartworker_la_SOURCES= tests/start_worker.cc
