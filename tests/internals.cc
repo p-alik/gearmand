@@ -401,7 +401,7 @@ static test_return_t gearman_packet_take_data_test(void *)
   test_zero(packet_ptr->data_size);
   test_false(packet_ptr->options.free_data);
 
-  test_compare(mine, data);
+  test_strcmp(mine, data);
   test_compare(data_size, mine_size);
 
   gearman_packet_free(packet_ptr);

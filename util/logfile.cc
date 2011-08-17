@@ -1,6 +1,6 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  Gearmand client and server library.
+ *  DataDifferential Utility Library
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
  *  All rights reserved.
@@ -35,68 +35,62 @@
  *
  */
 
+#include "config.h"
 
-#pragma once
+#include "util/logfile.hpp"
 
-#include <string>
-#include <unistd.h>
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <fcntl.h>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <sys/stat.h>
+#include <sys/types.h>
 
-class Context
+namespace datadifferential {
+namespace util {
+
+Logfile::Logfile(const std::string &arg) :
+  _filename(arg)
 {
-public:
-  gearman_worker_st *worker;
-  in_port_t _port;
-  std::string _worker_function_name;
-  server_startup_st &_servers;
-  bool run_worker;
+  time_t tmp= time(NULL);
+  _log_file << "shutdown: " << ctime(&tmp) << std::endl;
+}
 
-  Context(in_port_t port_arg, server_startup_st &server_arg):
-    worker(NULL),
-    _port(port_arg),
-    _worker_function_name("queue_test"),
-    _servers(server_arg),
-    run_worker(false)
+Logfile::~Logfile()
+{
+  if (not _filename.empty())
   {
+    _log_file.close();
+    if (access(_filename.c_str(), F_OK) == -1)
+    { }
+    else if (unlink(_filename.c_str()) == -1)
+    { }
   }
+}
 
-  const char *worker_function_name() const
+bool Logfile::open()
+{
+  if (_filename.empty())
   {
-    return _worker_function_name.c_str();
-  }
-
-  in_port_t port() const
-  {
-    return _port;
-  }
-
-  bool initialize(int argc, const char *argv[])
-  {
-    if (not server_startup(_servers, "gearmand", _port, argc, argv))
-    {
-      return NULL;
-    }
-
-    if ((worker= gearman_worker_create(NULL)) == NULL)
-    {
-      return false;
-    }
-
-    if (gearman_failed(gearman_worker_add_server(worker, NULL, _port)))
-    {
-      return false;
-    }
-
+    _log_file.open("/dev/stderr");
     return true;
   }
 
-  void reset()
+  _log_file.open(_filename.c_str());
+  if (not _log_file.good())
   {
-    _servers.shutdown(true);
-    gearman_worker_free(worker);
-
-    unlink("tests/gearman.sql");
-    unlink("tests/gearman.sql-journal");
-
-    worker= NULL;
+    return false;
   }
-};
+
+  time_t tmp= time(NULL);
+  _log_file << "startup: " << ctime(&tmp) << std::endl;
+
+  return true;
+}
+
+} /* namespace util */
+} /* namespace datadifferential */

@@ -16,6 +16,7 @@ test-drizzle: tests/drizzle_test
 tests_drizzle_test_SOURCES= \
 			    tests/basic.cc \
 			    tests/drizzle_test.cc
-tests_drizzle_test_LDADD= ${CLIENT_LDADD}
-noinst_PROGRAMS+= tests/drizzle_test
+tests_drizzle_test_DEPENDENCIES= ${CLIENT_LDADD}
+tests_drizzle_test_LDADD= $(tests_drizzle_test_DEPENDENCIES)
 check_PROGRAMS += tests/drizzle_test
+noinst_PROGRAMS += tests/drizzle_test

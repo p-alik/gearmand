@@ -19,22 +19,50 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-
 /*
-  Common include file for libmemached
+  Common include file for libtest
 */
 
 #pragma once
 
 #include <config.h>
 
-#include <inttypes.h>
-#include <cstdlib>
-#include <sys/types.h>
-
-#include <cerrno>
 #include <cassert>
+#include <cerrno>
+#include <cstdlib>
 #include <sstream>
 #include <string>
+
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
+
+#ifdef HAVE_SYS_WAIT_H
+#include <sys/wait.h>
+#endif
+
+#ifdef HAVE_SYS_RESOURCE_H 
+#include <sys/resource.h> 
+#endif
+ 
+#ifdef HAVE_FNMATCH_H
+#include <fnmatch.h>
+#endif
+
+static inline bool is_pid_valid(const pid_t pid)
+{
+  return (pid > 1) ? true : false;
+}
+
+#include <libtest/gearmand.h>
+#include <libtest/blobslap_worker.h>
+#include <libtest/memcached.h>
+
+#include <libtest/libtool.hpp>
+#include <libtest/killpid.h>
 
 #include <libtest/test.hpp>

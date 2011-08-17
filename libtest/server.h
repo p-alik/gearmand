@@ -36,6 +36,7 @@ struct Server {
 private:
   bool _is_socket;
   std::string _socket;
+  std::string _sasl;
   std::string _pid_file;
   std::string _log_file;
   std::string _base_command; // executable command which include libtool, valgrind, gdb, etc
@@ -59,6 +60,11 @@ public:
   virtual const char *daemon_file_option()= 0;
   virtual const char *log_file_option()= 0;
   virtual bool is_libtool()= 0;
+
+  virtual bool broken_socket_cleanup()
+  {
+    return false;
+  }
 
   virtual const char *socket_file_option() const
   {
@@ -165,68 +171,19 @@ public:
 
 protected:
   void nap();
+  bool set_pid_file();
 
 private:
   bool is_helgrind() const;
   bool is_valgrind() const;
   bool is_debug() const;
   bool set_log_file();
-  bool set_pid_file();
   bool set_socket_file();
   void rebuild_base_command();
   void reset_pid();
 };
 
 std::ostream& operator<<(std::ostream& output, const libtest::Server &arg);
-
-class server_startup_st
-{
-private:
-  std::string server_list;
-  bool _socket;
-
-public:
-
-  uint8_t udp;
-  std::vector<Server *> servers;
-
-  server_startup_st() :
-    _socket(false),
-    udp(0)
-  { }
-
-  bool start_socket_server(const std::string& server_type, const in_port_t try_port, int argc, const char *argv[]);
-
-  std::string option_string() const;
-
-  size_t count() const
-  {
-    return servers.size();
-  }
-
-  bool is_debug() const;
-  bool is_helgrind() const;
-  bool is_valgrind() const;
-
-  bool socket()
-  {
-    return _socket;
-  }
-
-  void set_socket()
-  {
-    _socket= true;
-  }
-
-
-  void shutdown(bool remove= false);
-  void push_server(Server *);
-  Server *pop_server();
-
-  ~server_startup_st();
-};
-
-bool server_startup(server_startup_st&, const std::string&, in_port_t try_port, int argc, const char *argv[]);
 
 } // namespace libtest
 

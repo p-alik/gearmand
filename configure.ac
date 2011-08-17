@@ -6,11 +6,24 @@
 # Use and distribution licensed under the BSD license.  See
 # the COPYING file in this directory for full text.
 
-AC_PREREQ(2.59)
 AC_INIT([gearmand],[0.24],[https://launchpad.net/gearmand])
-AC_CONFIG_SRCDIR(libgearman/gearman.cc)
+
 AC_CONFIG_AUX_DIR(config)
+
+AC_CANONICAL_TARGET
+
+AM_INIT_AUTOMAKE
+
+AC_CANONICAL_HOST
+AC_CANONICAL_BUILD
+
+AC_PREREQ([2.61])
+
 AC_CONFIG_MACRO_DIR(m4)
+
+AC_CONFIG_HEADERS([config.h:config.in])dnl Keep filename to 8.3 for MS-DOS.
+
+AC_CONFIG_SRCDIR(libgearman/gearman.cc)
 
 PANDORA_CANONICAL_TARGET(require-cxx, no-vc-changelog)
 
@@ -28,28 +41,41 @@ GEARMAN_LIBRARY_VERSION=6:0:0
 #                +- increment if interfaces have been added, removed or changed
 AC_SUBST(GEARMAN_LIBRARY_VERSION)
 
+LT_INIT
+WITH_LIBMEMCACHED
+m4_include([m4/memcached.m4])
+m4_include([m4/memcached_sasl.m4])
+AM_CONDITIONAL(BUILDING_LIBMEMCACHED, false)
+
+LDFLAGS="$LDFLAGS -z relro -z now"
+
+AM_CONDITIONAL(BUILDING_GEARMAN, true)
+AM_CONDITIONAL(HAVE_LIBGEARMAN, true)
+AC_SUBST(_WITH_LIBGEARMAN_SUPPORT, ["_WITH_LIBGEARMAN_SUPPORT 0"])
+
 BOOST_REQUIRE(1.39.0)
 BOOST_PROGRAM_OPTIONS(mt-)
 
-AC_DEFINE_UNQUOTED([GEARMAND_BINARY], "./gearmand/gearmand", [Location of the gearmand binary])
-AC_SUBST(GEARMAND_BINARY)
-AC_DEFINE_UNQUOTED([GEARMAND_BLOBSLAP_WORKER], "./benchmark/blobslap_worker", [Location of the blobslap_worker binary])
-AC_SUBST(GEARMAND_BLOBSLAP_WORKER)
-AC_DEFINE([HAVE_LIBGEARMAN], [ 1 ], [dummy rule for libtest])
-AC_SUBST(HAVE_LIBGEARMAN, 1)
-AM_CONDITIONAL(HAVE_LIBGEARMAN, true)
-
-WITH_LIBMEMCACHED
-WITH_MEMCACHED
 WITH_LIBDRIZZLE
 WITH_DRIZZLED
 
-PANDORA_REQUIRE_PTHREAD
+AX_PTHREAD(, [AC_MSG_ERROR(could not find libpthread)])
 PANDORA_REQUIRE_LIBEVENT
 PANDORA_REQUIRE_LIBUUID
 
+AX_LIB_SQLITE3
+AS_IF([test "x${ac_cv_libsqlite3}" = "xyes"],
+      [
+       AC_DEFINE([HAVE_LIBSQLITE3], [ 1 ], [Have the SQLITE3 library])
+      ],
+      [
+       ac_cv_libsqlite3=no
+       AC_DEFINE([HAVE_LIBSQLITE3], [ 0 ], [Have the SQLITE3 library])
+      ])
+AM_CONDITIONAL(HAVE_LIBSQLITE3, test "x${ac_cv_libsqlite3}" = "xyes")
+
+
 PANDORA_HAVE_BETTER_MALLOC
-PANDORA_HAVE_LIBSQLITE3
 PANDORA_HAVE_LIBPQ
 PANDORA_HAVE_LIBTOKYOCABINET
 AC_FUNC_STRERROR_R
@@ -63,7 +89,6 @@ AC_PROG_CPP
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
-AC_PROG_RANLIB
 
 # Checks for header files.
 AC_HEADER_STDC
@@ -109,6 +134,7 @@ AC_CHECK_FUNCS([strtol])
 AC_CHECK_FUNCS([strtoul])
 
 
+AC_CONFIG_FILES([libtest/version.h])
 AC_CONFIG_FILES(Makefile
                 docs/conf.py
                 libgearman/version.h

@@ -30,9 +30,11 @@
 #include <arpa/inet.h>
 
 #include <libtest/visibility.h>
+#include <libtest/version.h>
 
 #include <libtest/error.h>
 #include <libtest/server.h>
+#include <libtest/server_container.h>
 #include <libtest/wait.h>
 #include <libtest/callbacks.h>
 #include <libtest/test.h>

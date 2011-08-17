@@ -77,14 +77,6 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
     ])
   ])
 
-  AC_CONFIG_MACRO_DIR([m4])
-
-  m4_if(m4_substr(m4_esyscmd(test -d src && echo 0),0,1),0,[
-    AC_CONFIG_HEADERS([src/config.h])
-  ],[
-    AC_CONFIG_HEADERS([config.h])
-  ])
-
   PANDORA_BLOCK_BAD_OPTIONS
 
   # We need to prevent canonical target
@@ -103,7 +95,7 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
     AM_INIT_AUTOMAKE(-Wall -Werror -Wno-portability nostdinc subdir-objects foreign tar-ustar)
   ])
 
-  m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
+  #m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 
   m4_if(m4_substr(m4_esyscmd(test -d gnulib && echo 0),0,1),0,[
     gl_EARLY

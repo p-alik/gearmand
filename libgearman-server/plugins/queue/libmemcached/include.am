@@ -9,8 +9,9 @@
 # All paths should be given relative to the root
 #
 
-if HAVE_LIBMEMCACHED
 noinst_HEADERS+= libgearman-server/plugins/queue/libmemcached/queue.h
+
+if HAVE_LIBMEMCACHED
 
 libgearman_server_libgearman_server_la_SOURCES+= libgearman-server/plugins/queue/libmemcached/queue.cc
 libgearman_server_libgearman_server_la_CXXFLAGS+= $(libmemcached_CFLAGS)

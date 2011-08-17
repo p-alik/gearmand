@@ -59,20 +59,28 @@ void gearmand_initialize_thread_logging(const char *identity)
  * @param[in] args Variable argument list that has been initialized.
  */
 
-static void gearmand_log(const char *position, const char *func, gearmand_verbose_t verbose, const char *format, va_list args)
+static void gearmand_log(const char *position, const char * /* func */, gearmand_verbose_t verbose, const char *format, va_list args)
 {
-  (void)func;
-  char log_buffer[GEARMAN_MAX_ERROR_SIZE*2];
+  if (not Gearmand())
+  {
+    fprintf(stderr, "%s %7s: ", position,  gearmand_verbose_name(verbose));
+    vprintf(format, args);
+    fprintf(stderr, "\n");
+    return;
+  }
 
   (void) pthread_once(&intitialize_log_once, create_log);
 
   const char *identity= (const char *)pthread_getspecific(logging_key);
 
   if (identity == NULL)
+  {
     identity= "[  main ]";
+  }
 
   if (Gearmand() && Gearmand()->log_fn)
   {
+    char log_buffer[GEARMAN_MAX_ERROR_SIZE*2];
     int length= snprintf(log_buffer, sizeof(log_buffer), "%s ", identity);
 
     // We just return whatever we have if this occurs
@@ -139,7 +147,7 @@ gearmand_error_t gearmand_log_error(const char *position, const char *function, 
 {
   va_list args;
 
-  if (not Gearmand() || Gearmand()->verbose >= GEARMAND_VERBOSE_ERROR)
+  if (not Gearmand() or Gearmand()->verbose >= GEARMAND_VERBOSE_ERROR)
   {
     va_start(args, format);
     gearmand_log(position, function, GEARMAND_VERBOSE_ERROR, format, args);

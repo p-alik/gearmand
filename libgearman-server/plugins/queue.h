@@ -37,22 +37,12 @@
 
 #pragma once
 
-#ifdef HAVE_LIBDRIZZLE
 #include <libgearman-server/plugins/queue/drizzle/queue.h>
-#endif
 
-#ifdef HAVE_LIBMEMCACHED
 #include <libgearman-server/plugins/queue/libmemcached/queue.h>
-#endif
 
-#ifdef HAVE_LIBSQLITE3
 #include <libgearman-server/plugins/queue/sqlite/queue.h>
-#endif
 
-#ifdef HAVE_LIBPQ
 #include <libgearman-server/plugins/queue/postgres/queue.h>
-#endif
 
-#ifdef HAVE_LIBTOKYOCABINET
 #include <libgearman-server/plugins/queue/tokyocabinet/queue.h>
-#endif

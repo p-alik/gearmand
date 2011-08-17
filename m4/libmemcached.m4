@@ -7,11 +7,17 @@ AC_DEFUN([_WITH_LIBMEMCACHED],
 
      AS_IF([test "x$ac_enable_libmemcached" = "xyes"],
        [ PKG_CHECK_MODULES([libmemcached], [ libmemcached >= 0.51 ], 
-			   [AC_DEFINE([HAVE_LIBMEMCACHED], [ 1 ], [Enable libmemcached support])],
-			   [ac_enable_libmemcached="no"] )])
+			   [
+                            AC_DEFINE([HAVE_LIBMEMCACHED], [ 1 ], [Enable libmemcached support])
+                            AC_SUBST(_WITH_LIBMEMCACHED_SUPPORT, ["_WITH_LIBMEMCACHED_SUPPORT 1"])
+                            ],
+                           [
+                             [ac_enable_libmemcached="no"]
+                             AC_DEFINE([HAVE_LIBMEMCACHED], [ 0 ], [Enable libmemcached support])
+                             AC_SUBST(_WITH_LIBMEMCACHED_SUPPORT, ["_WITH_LIBMEMCACHED_SUPPORT 1"])
+                             ])])
 
      AM_CONDITIONAL(HAVE_LIBMEMCACHED, test "x${ac_enable_libmemcached}" = "xyes")
-     AM_CONDITIONAL(BUILD_LIBMEMCACHEDUTIL, false)
      ])
 
 AC_DEFUN([WITH_LIBMEMCACHED], [ AC_REQUIRE([_WITH_LIBMEMCACHED]) ])

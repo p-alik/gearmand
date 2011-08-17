@@ -30,27 +30,27 @@ using namespace libtest;
 
 static test_return_t test_for_HAVE_LIBTOKYOCABINET(void *)
 {
-#ifdef HAVE_LIBSQLITE3
+  test_skip(HAVE_LIBSQLITE3, 1);
+
   return TEST_SUCCESS;
-#else
-  return TEST_SKIPPED;
-#endif
 }
 
 static test_return_t gearmand_basic_option_test(void *)
 {
-  const char *args[]= { "--queue=libtokyocabinet",  "--libtokyocabinet-file=tmp/file", "--libtokyocabinet-optimize", "--check-args", 0 };
+  const char *args[]= { "--queue=libtokyocabinet",  "--libtokyocabinet-file=var/tmp/gearman_basic.tcb", "--libtokyocabinet-optimize", "--check-args", 0 };
 
-  test_success(exec_cmdline(GEARMAND_BINARY, args));
+  unlink("var/tmp/gearman.tcb");
+  test_success(exec_cmdline(gearmand_binary(), args));
+
   return TEST_SUCCESS;
 }
 
 static test_return_t collection_init(void *object)
 {
   test_skip(TEST_SUCCESS, test_for_HAVE_LIBTOKYOCABINET(object));
-  const char *argv[3]= { "test_gearmand", "--libtokyocabinet-file=tests/gearman.tcb", "--queue-type=libtokyocabinet" };
+  const char *argv[3]= { "test_gearmand", "--libtokyocabinet-file=var/tmp/gearman.tcb", "--queue-type=libtokyocabinet" };
 
-  unlink("tests/gearman.tcb");
+  unlink("var/tmp/gearman.tcb");
 
   Context *test= (Context *)object;
   assert(test);
@@ -64,7 +64,7 @@ static test_return_t collection_cleanup(void *object)
 {
   Context *test= (Context *)object;
   test->reset();
-  unlink("tests/gearman.tcb");
+  unlink("var/tmp/gearman.tcb");
 
   return TEST_SUCCESS;
 }
@@ -78,7 +78,7 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
     error= TEST_MEMORY_ALLOCATION_FAILURE;
     return NULL;
   }
-  unlink("tests/gearman.tcb");
+  unlink("var/tmp/gearman.tcb");
 
   return test;
 }
@@ -87,14 +87,14 @@ static bool world_destroy(void *object)
 {
   Context *test= (Context *)object;
 
-  unlink("tests/gearman.tcb");
+  unlink("var/tmp/gearman.tcb");
   delete test;
 
   return TEST_SUCCESS;
 }
 
 test_st gearmand_basic_option_tests[] ={
-  {"--libtokyocabinet-file=tmp/file --libtokyocabinet-optimize", 0, gearmand_basic_option_test },
+  {"--libtokyocabinet-file=var/tmp/gearman_basic.tcb --libtokyocabinet-optimize", 0, gearmand_basic_option_test },
   {0, 0, 0}
 };
 
