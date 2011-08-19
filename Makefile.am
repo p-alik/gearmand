@@ -5,8 +5,7 @@
 # Use and distribution licensed under the BSD license.  See
 # the COPYING file in this directory for full text.
 
-#AUTOMAKE_OPTIONS = std-options
-ACLOCAL_AMFLAGS= -I m4
+ACLOCAL_AMFLAGS= -I m4 --install
 
 bin_PROGRAMS =
 sbin_PROGRAMS = 
