@@ -87,13 +87,13 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
   AS_IF([test "x${ac_cv_env_CXXFLAGS_set}" = "x"],
         [CXXFLAGS=""])
   
-  AC_CANONICAL_TARGET
-  
   m4_if(PCT_DONT_SUPRESS_INCLUDE,yes,[
-    AM_INIT_AUTOMAKE(-Wall -Werror -Wno-portability subdir-objects foreign tar-ustar silent-rules)
+    AM_INIT_AUTOMAKE(-Wall -Werror -Wno-portability subdir-objects foreign tar-ustar)
   ],[
-    AM_INIT_AUTOMAKE(-Wall -Werror -Wno-portability nostdinc subdir-objects foreign tar-ustar silent-rules)
+    AM_INIT_AUTOMAKE(-Wall -Werror -Wno-portability nostdinc subdir-objects foreign tar-ustar)
   ])
+
+  m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 
   m4_if(m4_substr(m4_esyscmd(test -d gnulib && echo 0),0,1),0,[
     gl_EARLY

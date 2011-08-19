@@ -12,12 +12,12 @@ AC_CONFIG_AUX_DIR(config)
 
 AC_CANONICAL_TARGET
 
-AM_INIT_AUTOMAKE(-Wall -Werror -Wno-portability subdir-objects foreign tar-ustar silent-rules)
+AM_INIT_AUTOMAKE(-Wall -Werror -Wno-portability subdir-objects foreign tar-ustar)
 
 AC_CANONICAL_HOST
 AC_CANONICAL_BUILD
 
-AC_PREREQ([2.61])
+AC_PREREQ(2.61)
 
 AC_CONFIG_MACRO_DIR(m4)
 
@@ -41,7 +41,12 @@ GEARMAN_LIBRARY_VERSION=6:0:0
 #                +- increment if interfaces have been added, removed or changed
 AC_SUBST(GEARMAN_LIBRARY_VERSION)
 
-LT_INIT
+LT_PREREQ([2.2])
+LT_INIT()
+LT_LANG([C++])
+LT_LANG([C])
+gl_VISIBILITY
+
 WITH_LIBMEMCACHED
 m4_include([m4/memcached.m4])
 m4_include([m4/memcached_sasl.m4])
