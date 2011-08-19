@@ -1,3 +1,2 @@
 #!/bin/sh
-autoreconf --install --force --verbose  
-#-Wall
+autoreconf --install --verbose  
