@@ -141,8 +141,6 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
 
   PANDORA_PLATFORM
 
-  PANDORA_LIBTOOL
-
   dnl autoconf doesn't automatically provide a fail-if-no-C++ macro
   dnl so we check c++98 features and fail if we don't have them, mainly
   dnl for that reason
@@ -227,13 +225,6 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
     AC_DEFINE([RUSAGE_THREAD], [RUSAGE_SELF],
       [Define if system doesn't define])
   ])
-
-  AC_CHECK_LIBM
-  dnl Bug on FreeBSD - LIBM check doesn't set the damn variable
-  AC_SUBST([LIBM])
-  
-  AC_CHECK_FUNC(setsockopt, [], [AC_CHECK_LIB(socket, setsockopt)])
-  AC_CHECK_FUNC(bind, [], [AC_CHECK_LIB(bind, bind)])
 
 
 

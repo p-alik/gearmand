@@ -123,6 +123,7 @@ AC_C_VOLATILE
 AC_CHECK_TYPES([ptrdiff_t])
 
 # Checks for library functions.
+LT_LIB_M
 AC_FUNC_ERROR_AT_LINE
 AC_REPLACE_FNMATCH
 AC_FUNC_FORK
@@ -137,6 +138,9 @@ AC_CHECK_FUNCS([select])
 AC_CHECK_FUNCS([setenv])
 AC_CHECK_FUNCS([strtol])
 AC_CHECK_FUNCS([strtoul])
+
+AC_CHECK_FUNC(setsockopt, [], [AC_CHECK_LIB(socket, setsockopt)])
+AC_CHECK_FUNC(bind, [], [AC_CHECK_LIB(bind, bind)])
 
 
 AC_CONFIG_FILES([libtest/version.h])
