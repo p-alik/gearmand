@@ -98,7 +98,7 @@ public:
   {
     if (not pid_file().empty())
     {
-      Wait wait(pid_file(), 4);
+      Wait wait(pid_file(), 0);
 
       if (error_is_ok and not wait.successful())
       {

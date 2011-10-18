@@ -121,3 +121,4 @@ tmp_chroot/
 unittests/unittests
 util/.hg/
 util/.hgignore
+.hgignore

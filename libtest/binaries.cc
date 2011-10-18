@@ -19,50 +19,45 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-/*
-  Common include file for libtest
-*/
 
-#pragma once
+#include <libtest/common.h>
 
-#include <config.h>
+namespace libtest {
 
-#include <cassert>
-#include <cerrno>
-#include <cstdlib>
-#include <sstream>
-#include <string>
-
-#ifdef HAVE_SYS_TYPES_H
-#include <sys/types.h>
+bool has_gearmand_binary()
+{
+#if defined(HAVE_GEARMAND_BINARY) && HAVE_GEARMAND_BINARY
+  if (access(GEARMAND_BINARY,R_OK|X_OK) == 0)
+  {
+    return true;
+  }
 #endif
 
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
+  return false;
+}
+
+bool has_memcached_binary()
+{
+#if defined(HAVE_MEMCACHED_BINARY) && HAVE_MEMCACHED_BINARY
+  if (access(MEMCACHED_BINARY,R_OK|X_OK) == 0)
+  {
+    return true;
+  }
 #endif
 
-#ifdef HAVE_SYS_WAIT_H
-#include <sys/wait.h>
+  return false;
+}
+
+bool has_memcached_sasl_binary()
+{
+#if defined(HAVE_MEMCACHED_SASL_BINARY) && HAVE_MEMCACHED_SASL_BINARY
+  if (access(MEMCACHED_SASL_BINARY, R_OK|X_OK) == 0)
+  {
+    return true;
+  }
 #endif
 
-#ifdef HAVE_SYS_RESOURCE_H 
-#include <sys/resource.h> 
-#endif
- 
-#ifdef HAVE_FNMATCH_H
-#include <fnmatch.h>
-#endif
+  return false;
+}
 
-#include <libtest/test.hpp>
-
-#include <libtest/is_pid.hpp>
-
-#include <libtest/gearmand.h>
-#include <libtest/blobslap_worker.h>
-#include <libtest/memcached.h>
-
-#include <libtest/libtool.hpp>
-#include <libtest/killpid.h>
-#include <libtest/stats.h>
-#include <libtest/signal.h>
-
+}
