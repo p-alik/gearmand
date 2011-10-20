@@ -57,7 +57,7 @@ static test_return_t help_test(void *)
   snprintf(buffer, sizeof(buffer), "-p %d", int(default_port()));
   const char *args[]= { buffer, "-?", 0 };
 
-  test_success(exec_cmdline(executable, args));
+  test_true(exec_cmdline(executable, args));
   return TEST_SUCCESS;
 }
 
@@ -68,7 +68,7 @@ static test_return_t unknown_test(void *)
   const char *args[]= { buffer, "--unknown", 0 };
 
   // The argument doesn't exist, so we should see an error
-  test_failed(exec_cmdline(executable, args));
+  test_false(exec_cmdline(executable, args));
   return TEST_SUCCESS;
 }
 
@@ -79,7 +79,7 @@ static test_return_t basic_benchmark_test(void *)
   const char *args[]= { buffer, "-c 100", "-n 10", "-e", 0 };
 
   // The argument doesn't exist, so we should see an error
-  test_success(exec_cmdline(executable, args));
+  test_true(exec_cmdline(executable, args));
   return TEST_SUCCESS;
 }
 

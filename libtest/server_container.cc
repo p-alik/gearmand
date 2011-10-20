@@ -77,7 +77,6 @@ Server* server_startup_st::pop_server()
 
 bool server_startup_st::shutdown(uint32_t number_of_host)
 {
-  assert(servers.size() > number_of_host);
   if (servers.size() > number_of_host)
   {
     Server* tmp= servers[number_of_host];
@@ -187,7 +186,7 @@ bool server_startup(server_startup_st& construct, const std::string& server_type
   }
   else if (server_type.compare("blobslap_worker") == 0)
   {
-    if (GEARMAND_BINARY and GEARMAND_BLOBSLAP_WORKER)
+    if (GEARMAND_BINARY)
     {
       if (HAVE_LIBGEARMAN)
       {

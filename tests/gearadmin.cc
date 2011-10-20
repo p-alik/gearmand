@@ -57,7 +57,7 @@ static test_return_t help_test(void *)
   snprintf(buffer, sizeof(buffer), "--port=%d", int(default_port()));
   const char *args[]= { buffer, "--help", 0 };
 
-  test_success(exec_cmdline(executable, args));
+  test_true(exec_cmdline(executable, args));
   return TEST_SUCCESS;
 }
 
@@ -69,14 +69,14 @@ static test_return_t shutdown_test(void *object)
   snprintf(buffer, sizeof(buffer), "--port=%d", int(default_port()));
   const char *args[]= { buffer, "--shutdown", 0 };
 
-  test_success(exec_cmdline(executable, args));
-
-  // We have already shut the server down so it should fail
-  test_failed(exec_cmdline(executable, args));
+  test_true(exec_cmdline(executable, args));
 
   Server *server= servers->pop_server();
   test_true(server);
-  test_failed(server->ping());
+  while (server->ping()) 
+  {
+    // Wait out the death of the server
+  }
 
   // Since we killed the server above, we need to reset it
   server->reset();
@@ -91,7 +91,7 @@ static test_return_t version_test(void *)
   snprintf(buffer, sizeof(buffer), "--port=%d", int(default_port()));
   const char *args[]= { buffer, "--server-version", 0 };
 
-  test_success(exec_cmdline(executable, args));
+  test_true(exec_cmdline(executable, args));
   return TEST_SUCCESS;
 }
 
@@ -101,7 +101,7 @@ static test_return_t verbose_test(void *)
   snprintf(buffer, sizeof(buffer), "--port=%d", int(default_port()));
   const char *args[]= { buffer, "--server-verbose", 0 };
 
-  test_success(exec_cmdline(executable, args));
+  test_true(exec_cmdline(executable, args));
   return TEST_SUCCESS;
 }
 
@@ -111,7 +111,7 @@ static test_return_t status_test(void *)
   snprintf(buffer, sizeof(buffer), "--port=%d", int(default_port()));
   const char *args[]= { buffer, "--status", 0 };
 
-  test_success(exec_cmdline(executable, args));
+  test_true(exec_cmdline(executable, args));
   return TEST_SUCCESS;
 }
 
@@ -121,7 +121,7 @@ static test_return_t workers_test(void *)
   snprintf(buffer, sizeof(buffer), "--port=%d", int(default_port()));
   const char *args[]= { buffer, "--workers", 0 };
 
-  test_success(exec_cmdline(executable, args));
+  test_true(exec_cmdline(executable, args));
   return TEST_SUCCESS;
 }
 
@@ -131,10 +131,10 @@ static test_return_t create_drop_test(void *)
   snprintf(buffer, sizeof(buffer), "--port=%d", int(default_port()));
 
   const char *create_args[]= { buffer, "--create-function=test_function", 0 };
-  test_success(exec_cmdline(executable, create_args));
+  test_true(exec_cmdline(executable, create_args));
 
   const char *drop_args[]= { buffer, "--drop-function=test_function", 0 };
-  test_success(exec_cmdline(executable, drop_args));
+  test_true(exec_cmdline(executable, drop_args));
 
 
   return TEST_SUCCESS;
@@ -146,7 +146,7 @@ static test_return_t getpid_test(void *)
   snprintf(buffer, sizeof(buffer), "--port=%d", int(default_port()));
   const char *args[]= { buffer, "--getpid", 0 };
 
-  test_success(exec_cmdline(executable, args));
+  test_true(exec_cmdline(executable, args));
   return TEST_SUCCESS;
 }
 
@@ -157,7 +157,8 @@ static test_return_t unknown_test(void *)
   const char *args[]= { buffer, "--unknown", 0 };
 
   // The argument doesn't exist, so we should see an error
-  test_failed(exec_cmdline(executable, args));
+  test_false(exec_cmdline(executable, args));
+
   return TEST_SUCCESS;
 }
 
@@ -182,7 +183,7 @@ collection_st collection[] ={
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
   const char *argv[1]= { "gearadmin_gearmand" };
-  if (not server_startup(servers, "gearmand", GEARADMIN_TEST_PORT, 1, argv))
+  if (server_startup(servers, "gearmand", GEARADMIN_TEST_PORT, 1, argv) == false)
   {
     error= TEST_FAILURE;
   }

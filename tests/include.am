@@ -83,7 +83,6 @@ noinst_PROGRAMS+= tests/gearmand
 tests_blobslap_client_SOURCES= tests/blobslap_client.cc
 tests_blobslap_client_DEPENDENCIES= ${CLIENT_LDADD}
 tests_blobslap_client_LDADD= ${tests_blobslap_client_DEPENDENCIES}
-check_PROGRAMS+= tests/blobslap_client
 noinst_PROGRAMS+= tests/blobslap_client
 
 tests_internals_test_SOURCES= \

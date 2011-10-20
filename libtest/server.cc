@@ -45,12 +45,35 @@ static inline std::string &rtrim(std::string &s)
 extern "C" {
   static bool exited_successfully(int status)
   {
-    if (WEXITSTATUS(status) == 0)
+    if (status == 0)
     {
       return true;
     }
 
-    return true;
+    if (WIFEXITED(status) == true)
+    {
+      int ret= WEXITSTATUS(status);
+
+      if (ret == 0)
+      {
+        return true;
+      }
+      else if (ret == EXIT_FAILURE)
+      {
+        libtest::Error << "Command executed, but returned EXIT_FAILURE";
+      }
+      else
+      {
+        libtest::Error << "Command executed, but returned " << ret;
+      }
+    }
+    else if (WIFSIGNALED(status) == true)
+    {
+      int ret_signal= WTERMSIG(status);
+      libtest::Error << "Died from signal " << strsignal(ret_signal);
+    }
+
+    return false;
   }
 }
 
@@ -194,7 +217,12 @@ bool Server::start()
 
   if (is_helgrind() or is_valgrind())
   {
+#ifdef WIN32
     sleep(4);
+#else
+    struct timespec global_sleep_value= { 4, 50000 };
+    nanosleep(&global_sleep_value, NULL);
+#endif
   }
 
   if (pid_file_option() and not pid_file().empty())
@@ -340,6 +368,15 @@ void Server::rebuild_base_command()
   {
     _base_command+= getenv("HELGRIND_COMMAND");
     _base_command+= " ";
+  }
+
+  if (is_libtool())
+  {
+    if (getenv("PWD"))
+    {
+      _base_command+= getenv("PWD");
+      _base_command+= "/";
+    }
   }
 
   _base_command+= executable();

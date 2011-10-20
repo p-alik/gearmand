@@ -230,16 +230,16 @@ static test_return_t gearmand_cycle_test(void *object)
   server_startup_st *servers= (server_startup_st*)object;
   test_true(servers);
 
-  if (HAVE_LIBGEARMAN and GEARMAND_BINARY)
-  {
-    test_true(has_gearmand_binary());
-    const char *argv[1]= { "cycle_gearmand" };
-    test_true(server_startup(*servers, "gearmand", 9999, 1, argv));
+#if defined(HAVE_GEARMAND_BINARY) && HAVE_GEARMAND_BINARY
+  test_true(has_gearmand_binary());
+#else
+  test_skip(true, has_gearmand_binary());
+#endif
 
-    return TEST_SUCCESS;
-  }
+  const char *argv[1]= { "cycle_gearmand" };
+  test_true(server_startup(*servers, "gearmand", 9999, 1, argv));
 
-  return TEST_SKIPPED;
+  return TEST_SUCCESS;
 }
 
 static test_return_t memcached_cycle_test(void *object)
@@ -302,7 +302,7 @@ static test_return_t wait_BINARY(void *)
 {
   const char *args[]= { "--quiet", 0 };
 
-  test_true(exec_cmdline("libtest/wait", args));
+  test_false(exec_cmdline("libtest/wait", args));
 
   return TEST_SUCCESS;
 }

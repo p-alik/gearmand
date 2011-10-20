@@ -50,7 +50,6 @@ static void help_command(const char *command_name,
   }
 
   std::cout << std::endl;
-  exit(EXIT_SUCCESS);
 }
 
 static void close_stdio(void)
@@ -118,6 +117,10 @@ static void options_parse(int argc, char *argv[])
       opt_help= true;
       break;
 
+    case OPT_VERSION: /* --version or -v */
+      opt_version= true;
+      break;
+
     case OPT_QUIET:
       close_stdio();
       break;
@@ -127,7 +130,8 @@ static void options_parse(int argc, char *argv[])
       exit(EXIT_SUCCESS);
 
     default:
-      abort();
+      help_command(argv[0], 1, 0, long_options);
+      exit(EXIT_FAILURE);
     }
   }
 
