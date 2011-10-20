@@ -28,12 +28,12 @@ namespace libtest {
 
 const char *libtool(void)
 {
-  if (_libtool[0])
+  if (_libtool[0] == 0)
   {
     std::string libtool_buffer;
-    if (getenv("srcdir"))
+    if (getenv("PWD"))
     {
-      libtool_buffer+= getenv("srcdir");
+      libtool_buffer+= getenv("PWD");
       libtool_buffer+= "/";
     }
     else
@@ -44,6 +44,7 @@ const char *libtool(void)
     libtool_buffer+= "libtool";
     if (access(libtool_buffer.c_str(), R_OK | W_OK | X_OK))
     {
+      Error << "Could not find libtool via access(" << libtool_buffer << ") :" << strerror(errno);
       return NULL;
     }
 

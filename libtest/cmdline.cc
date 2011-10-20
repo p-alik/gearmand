@@ -24,8 +24,44 @@
 using namespace libtest;
 
 #include <cstdlib>
+#include <cstring>
 #include <string>
 #include <sstream>
+
+extern "C" {
+  static bool exited_successfully(int status)
+  {
+    if (status == 0)
+    {
+      return true;
+    }
+
+    if (WIFEXITED(status) == true)
+    {
+      int ret= WEXITSTATUS(status);
+
+      if (ret == 0)
+      {
+        return true;
+      }
+      else if (ret == EXIT_FAILURE)
+      {
+        Error << "Command executed, but returned EXIT_FAILURE";
+      }
+      else
+      {
+        Error << "Command executed, but returned " << ret;
+      }
+    }
+    else if (WIFSIGNALED(status) == true)
+    {
+      int ret_signal= WTERMSIG(status);
+      Error << "Died from signal " << strsignal(ret_signal);
+    }
+
+    return false;
+  }
+}
 
 namespace libtest {
 
@@ -35,10 +71,10 @@ bool exec_cmdline(const std::string& executable, const char *args[])
 
   arg_buffer << libtool();
 
-  if (getenv("LIBTEST_TEST_ENVIRONMENT"))
+  if (getenv("PWD"))
   {
-    arg_buffer << getenv("LIBTEST_TEST_ENVIRONMENT");
-    arg_buffer << " ";
+    arg_buffer << getenv("PWD");
+    arg_buffer << "/";
   }
 
   arg_buffer << executable;
@@ -47,16 +83,12 @@ bool exec_cmdline(const std::string& executable, const char *args[])
     arg_buffer << " " << *ptr;
   }
 
-  if (getenv("LIBTEST_TEST_ENVIRONMENT"))
-  {
-    std::cerr << std::endl << arg_buffer.str() << std::endl;
-  }
-  else
-  {
+#if 0
     arg_buffer << " > /dev/null 2>&1";
-  }
+#endif
 
-  if (system(arg_buffer.str().c_str()) == -1)
+  int ret= system(arg_buffer.str().c_str());
+  if (exited_successfully(ret) == false)
   {
     return false;
   }

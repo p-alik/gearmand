@@ -57,6 +57,9 @@ LDFLAGS="$LDFLAGS -z relro -z now"
 AM_CONDITIONAL(BUILDING_GEARMAN, true)
 AM_CONDITIONAL(HAVE_LIBGEARMAN, true)
 AC_SUBST(_WITH_LIBGEARMAN_SUPPORT, ["_WITH_LIBGEARMAN_SUPPORT 0"])
+AC_DEFINE([GEARMAND_BINARY], "./gearmand/gearmand", [Name of the gearmand binary used in make test])
+AC_DEFINE([HAVE_LIBGEARMAN], 1, [libgearman support])
+AC_DEFINE([HAVE_GEARMAND_BINARY], 1, [libgearman support])
 
 BOOST_REQUIRE(1.39.0)
 BOOST_PROGRAM_OPTIONS(mt-)
@@ -130,7 +133,6 @@ AC_FUNC_FORK
 AC_FUNC_MALLOC
 AC_FUNC_MEMCMP
 AC_FUNC_REALLOC
-AC_TYPE_SIGNAL
 AC_FUNC_STRERROR_R
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([dup2 gettimeofday memchr memmove memset socket strcasecmp strdup strerror strncasecmp uname])

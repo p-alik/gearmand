@@ -219,7 +219,7 @@ static test_return_t _compare_gearman_return_t_test(void *)
 {
   test_skip(HAVE_LIBGEARMAN, true);
 #if defined(HAVE_LIBGEARMAN) && HAVE_LIBGEARMAN
-    test_compare(GEARMAN_SUCCESS, GEARMAN_SUCCESS);
+  test_compare(GEARMAN_SUCCESS, GEARMAN_SUCCESS);
 #endif
 
   return TEST_SUCCESS;
@@ -230,15 +230,16 @@ static test_return_t gearmand_cycle_test(void *object)
   server_startup_st *servers= (server_startup_st*)object;
   test_true(servers);
 
-  if (HAVE_LIBGEARMAN)
-  {
-    const char *argv[1]= { "cycle_gearmand" };
-    test_true(server_startup(*servers, "gearmand", 9999, 1, argv));
+#if defined(HAVE_GEARMAND_BINARY) && HAVE_GEARMAND_BINARY
+  test_true(has_gearmand_binary());
+#else
+  test_skip(true, has_gearmand_binary());
+#endif
 
-    return TEST_SUCCESS;
-  }
+  const char *argv[1]= { "cycle_gearmand" };
+  test_true(server_startup(*servers, "gearmand", 9999, 1, argv));
 
-  return TEST_SKIPPED;
+  return TEST_SUCCESS;
 }
 
 static test_return_t memcached_cycle_test(void *object)
@@ -248,6 +249,7 @@ static test_return_t memcached_cycle_test(void *object)
 
   if (MEMCACHED_BINARY and HAVE_LIBMEMCACHED) 
   {
+    test_true(has_memcached_binary());
     const char *argv[1]= { "cycle_memcached" };
     test_true(server_startup(*servers, "memcached", 9998, 1, argv));
 
@@ -264,6 +266,7 @@ static test_return_t memcached_socket_cycle_test(void *object)
 
   if (MEMCACHED_BINARY and HAVE_LIBMEMCACHED)
   {
+    test_true(has_memcached_binary());
     const char *argv[1]= { "cycle_memcached" };
     test_true(servers->start_socket_server("memcached", 9997, 1, argv));
 
@@ -285,6 +288,7 @@ static test_return_t memcached_sasl_test(void *object)
 
   if (MEMCACHED_SASL_BINARY and HAVE_LIBMEMCACHED)
   {
+    test_true(has_memcached_sasl_binary());
     const char *argv[1]= { "cycle_memcached_sasl" };
     test_true(server_startup(*servers, "memcached-sasl", 9996, 1, argv));
 
@@ -292,6 +296,33 @@ static test_return_t memcached_sasl_test(void *object)
   }
 
   return TEST_SKIPPED;
+}
+
+static test_return_t wait_BINARY(void *)
+{
+  const char *args[]= { "--quiet", 0 };
+
+  test_false(exec_cmdline("libtest/wait", args));
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t wait_help_BINARY(void *)
+{
+  const char *args[]= { "--quiet", "--help", 0 };
+
+  test_true(exec_cmdline("libtest/wait", args));
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t wait_version_BINARY(void *)
+{
+  const char *args[]= { "--quiet", "--version", 0 };
+
+  test_true(exec_cmdline("libtest/wait", args));
+
+  return TEST_SUCCESS;
 }
 
 test_st gearmand_tests[] ={
@@ -351,6 +382,13 @@ test_st comparison_tests[] ={
   {0, 0, 0}
 };
 
+test_st cmdline_tests[] ={
+  {"wait --quiet", 0, wait_BINARY },
+  {"wait --quiet --help", 0, wait_help_BINARY },
+  {"wait --quiet --version", 0, wait_version_BINARY },
+  {0, 0, 0}
+};
+
 collection_st collection[] ={
   {"environment", 0, 0, environment_tests},
   {"return values", 0, 0, tests_log},
@@ -359,6 +397,7 @@ collection_st collection[] ={
   {"comparison", 0, 0, comparison_tests},
   {"gearmand", 0, 0, gearmand_tests},
   {"memcached", 0, 0, memcached_tests},
+  {"cmdline", 0, 0, cmdline_tests},
   {0, 0, 0, 0}
 };
 

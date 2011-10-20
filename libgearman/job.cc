@@ -131,18 +131,22 @@ struct gearman_job_reducer_st {
     }
 
     gearman_task_st *check_task= client->task_list;
-    do
-    {
-      if (gearman_failed(check_task->result_rc))
-      {
-        return check_task->result_rc;
-      }
-    } while ((check_task= gearman_next(check_task)));
 
-    if (aggregator_fn)
+    if (check_task)
     {
-      gearman_aggregator_st aggregator(client->context);
-      aggregator_fn(&aggregator, client->task_list, &result);
+      do
+      {
+        if (gearman_failed(check_task->result_rc))
+        {
+          return check_task->result_rc;
+        }
+      } while ((check_task= gearman_next(check_task)));
+
+      if (aggregator_fn)
+      {
+        gearman_aggregator_st aggregator(client->context);
+        aggregator_fn(&aggregator, client->task_list, &result);
+      }
     }
 
     return GEARMAN_SUCCESS;

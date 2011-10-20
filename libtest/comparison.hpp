@@ -22,10 +22,10 @@
 #pragma once
 
 #include <typeinfo>
-#include <libtest/strerror.h>
 
 #if defined(HAVE_LIBMEMCACHED) && HAVE_LIBMEMCACHED
-#include <libmemcached/memcached.h>
+#include <libmemcached-1.0/memcached.h>
+#include <libmemcachedutil-1.0/ostream.hpp>
 #endif
 
 #if defined(HAVE_LIBGEARMAN) && HAVE_LIBGEARMAN
@@ -35,7 +35,7 @@
 namespace libtest {
 
 template <class T_comparable, class T_hint>
-bool _compare_true_hint(const char *file, int line, const char *func, T_comparable __expected, const char *assertation_label,  T_hint __hint)
+bool _compare_truth_hint(const char *file, int line, const char *func, T_comparable __expected, const char *assertation_label,  T_hint __hint)
 {
   if (__expected == false)
   {
@@ -46,44 +46,12 @@ bool _compare_true_hint(const char *file, int line, const char *func, T_comparab
   return true;
 }
 
-template <class T_comparable>
-bool _compare(const char *file, int line, const char *func, const T_comparable __expected, const T_comparable __actual)
+template <class T1_comparable, class T2_comparable>
+bool _compare(const char *file, int line, const char *func, const T1_comparable& __expected, const T2_comparable& __actual)
 {
   if (__expected != __actual)
   {
-    if (typeid(__expected) == typeid(test_return_t))
-    {
-      const char *expected_str= test_strerror(test_return_t(__expected));
-      const char *got_str= test_strerror(test_return_t(__actual));
-
-      libtest::stream::make_cerr(file, line, func) << "Expected \"" 
-        << expected_str
-        << "\" got \"" 
-        << got_str
-        << "\"";
-    }
-#if (defined(HAVE_LIBMEMCACHED) && HAVE_LIBMEMCACHED)
-    else if (typeid(__expected) == typeid(memcached_return_t))
-    {
-      libtest::stream::make_cerr(file, line, func) << "Expected \"" 
-        << memcached_strerror(NULL, memcached_return_t(__expected)) 
-        << "\" got \"" 
-        << memcached_strerror(NULL, memcached_return_t(__actual)) << "\"";
-    }
-#endif
-#if defined(HAVE_LIBGEARMAN) && HAVE_LIBGEARMAN
-    else if (typeid(__expected) == typeid(gearman_return_t))
-    {
-      libtest::stream::make_cerr(file, line, func) << "Expected \"" 
-        << gearman_strerror(gearman_return_t(__expected)) 
-        << "\" got \"" 
-        << gearman_strerror(gearman_return_t(__actual)) << "\"";
-    }
-#endif
-    else
-    {
-      libtest::stream::make_cerr(file, line, func) << "Expected \"" << __expected << "\" got \"" << __actual << "\"";
-    }
+    libtest::stream::make_cerr(file, line, func) << "Expected \"" << __expected << "\" got \"" << __actual << "\"";
     return false;
   }
 
@@ -102,12 +70,24 @@ bool _compare_zero(const char *file, int line, const char *func, T_comparable __
   return true;
 }
 
-template <class T_comparable, class T_hint>
-bool _compare_hint(const char *file, int line, const char *func, T_comparable __expected, T_comparable __actual, T_hint __hint)
+template <class T_comparable>
+bool _truth(const char *file, int line, const char *func, T_comparable __truth)
+{
+  if (bool(__truth))
+  {
+    libtest::stream::make_cerr(file, line, func) << "Assertion failed for " << func << "() with \"" << __truth << "\"";
+    return false;
+  }
+
+  return true;
+}
+
+template <class T1_comparable, class T2_comparable, class T_hint>
+bool _compare_hint(const char *file, int line, const char *func, T1_comparable __expected, T2_comparable __actual, T_hint __hint)
 {
   if (__expected != __actual)
   {
-    libtest::stream::make_cerr(file, line, func) << "Expected \"" << __expected << "\" got \"" << __actual << "\" Additionally: \"" << __hint << "\"";
+    libtest::stream::make_cerr(file, line, func) << "Expected \"" << __expected << "\" got \"" << __actual << "\"" << " Additionally: \"" << __hint << "\"";
 
     return false;
   }
