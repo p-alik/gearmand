@@ -40,8 +40,6 @@ bool has_gearmand_binary()
   {
     return true;
   }
-  char buffer[1024];
-  getcwd(buffer, sizeof(buffer));
 #endif
 
   return false;
