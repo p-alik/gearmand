@@ -109,7 +109,9 @@ gearman_connection_st::gearman_connection_st(gearman_universal_st &universal_arg
   }
 
   if (universal.con_list)
+  {
     universal.con_list->prev= this;
+  }
   next= universal.con_list;
   prev= NULL;
   universal.con_list= this;
@@ -128,7 +130,7 @@ gearman_connection_st *gearman_connection_create(gearman_universal_st &universal
                                                  gearman_connection_options_t *options)
 {
   gearman_connection_st *connection= new (std::nothrow) gearman_connection_st(universal, options);
-  if (not connection)
+  if (connection == NULL)
   {
     gearman_perror(universal, "gearman_connection_st new");
     return NULL;
@@ -141,8 +143,10 @@ gearman_connection_st *gearman_connection_create_args(gearman_universal_st& univ
                                                       const char *host, in_port_t port)
 {
   gearman_connection_st *connection= gearman_connection_create(universal, NULL);
-  if (not connection)
+  if (connection == NULL)
+  {
     return NULL;
+  }
 
   connection->set_host(host, port);
 
@@ -154,10 +158,13 @@ gearman_connection_st *gearman_connection_copy(gearman_universal_st& universal,
 {
   gearman_connection_st *connection= gearman_connection_create(universal, NULL);
 
-  if (not connection)
-    return connection;
+  if (connection == NULL)
+  {
+    return NULL;
+  }
 
   connection->options.ready= from.options.ready;
+  // @todo Is this right?
   connection->options.packet_in_use= from.options.packet_in_use;
 
   strcpy(connection->host, from.host);
@@ -169,7 +176,9 @@ gearman_connection_st *gearman_connection_copy(gearman_universal_st& universal,
 gearman_connection_st::~gearman_connection_st()
 {
   if (fd != -1)
+  {
     close();
+  }
 
   reset_addrinfo();
 
@@ -187,7 +196,17 @@ gearman_connection_st::~gearman_connection_st()
   }
 
   if (options.packet_in_use)
+  {
     gearman_packet_free(&(_packet));
+  }
+}
+
+void gearman_connection_st::free_private_packet()
+{
+  if (options.packet_in_use)
+  {
+    gearman_packet_free(&_packet);
+  }
 }
 
 gearman_return_t gearman_connection_set_option(gearman_connection_st *connection,
@@ -199,13 +218,17 @@ gearman_return_t gearman_connection_set_option(gearman_connection_st *connection
   case GEARMAN_CON_READY:
     connection->options.ready= value;
     break;
+
   case GEARMAN_CON_PACKET_IN_USE:
     connection->options.packet_in_use= value;
     break;
+
   case GEARMAN_CON_IGNORE_LOST_CONNECTION:
     break;
+
   case GEARMAN_CON_CLOSE_AFTER_FLUSH:
     break;
+
   case GEARMAN_CON_EXTERNAL_FD:
   case GEARMAN_CON_MAX:
   default:
@@ -239,19 +262,22 @@ void gearman_connection_st::set_host(const char *host_arg, const in_port_t port_
 void gearman_connection_st::close()
 {
   if (fd == INVALID_SOCKET)
+  {
     return;
+  }
 
   /* in case of death shutdown to avoid blocking at close() */
   if (shutdown(fd, SHUT_RDWR) == SOCKET_ERROR && get_socket_errno() != ENOTCONN)
   {
     gearman_perror(universal, "shutdown");
     assert(errno != ENOTSOCK);
-    return;
   }
-
-  if (closesocket(fd) == SOCKET_ERROR)
+  else
   {
-    gearman_perror(universal, "close");
+    if (closesocket(fd) == SOCKET_ERROR)
+    {
+      gearman_perror(universal, "close");
+    }
   }
 
   state= GEARMAN_CON_UNIVERSAL_ADDRINFO;
@@ -292,7 +318,7 @@ gearman_return_t gearman_connection_st::send(const gearman_packet_st& packet_arg
   switch (send_state)
   {
   case GEARMAN_CON_SEND_STATE_NONE:
-    if (not (packet_arg.options.complete))
+    if (packet_arg.options.complete == false)
     {
       return gearman_error(universal, GEARMAN_INVALID_PACKET, "packet not complete");
     }
@@ -343,14 +369,13 @@ gearman_return_t gearman_connection_st::send(const gearman_packet_st& packet_arg
     }
 
     /* Return here if we have no data to send. */
-    if (not packet_arg.data_size)
+    if (packet_arg.data_size == 0)
     {
       break;
     }
 
     /* If there is any room in the buffer, copy in data. */
-    if (packet_arg.data and
-        (GEARMAN_SEND_BUFFER_SIZE - send_buffer_size) > 0)
+    if (packet_arg.data and (GEARMAN_SEND_BUFFER_SIZE - send_buffer_size) > 0)
     {
       send_data_offset= GEARMAN_SEND_BUFFER_SIZE - send_buffer_size;
       if (send_data_offset > packet_arg.data_size)

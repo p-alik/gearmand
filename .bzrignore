@@ -114,3 +114,4 @@ unittests/unittests
 util/.hg/
 util/.hgignore
 .hgignore
+tests/hostileworker_test

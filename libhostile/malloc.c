@@ -1,6 +1,6 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  libtest
+ *  libhostile
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
  *
@@ -19,39 +19,46 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-
 /*
-  Structures for generic tests.
+  Random malloc failing library for testing malloc failures.
+  LD_PRELOAD="/usr/lib/libdl.so ./util/libhostile_malloc.so" ./binary
 */
 
-#include <cstdio>
-#include <cstdlib>
-#include <stdint.h>
-#include <arpa/inet.h>
+#define _GNU_SOURCE
+#include <dlfcn.h>
 
-#include <libtest/visibility.h>
-#include <libtest/version.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <errno.h>
 
-#include <libtest/error.h>
-#include <libtest/strerror.h>
-#include <libtest/stream.h>
-#include <libtest/comparison.hpp>
-#include <libtest/server.h>
-#include <libtest/server_container.h>
-#include <libtest/wait.h>
-#include <libtest/callbacks.h>
-#include <libtest/test.h>
-#include <libtest/dream.h>
-#include <libtest/core.h>
-#include <libtest/runner.h>
-#include <libtest/port.h>
-#include <libtest/is_local.hpp>
-#include <libtest/socket.hpp>
-#include <libtest/stats.h>
-#include <libtest/collection.h>
-#include <libtest/framework.h>
-#include <libtest/get.h>
-#include <libtest/stream.h>
-#include <libtest/cmdline.h>
-#include <libtest/string.hpp>
-#include <libtest/binaries.h>
+#include <libhostile/initialize.h>
+
+static int not_until= 500;
+
+static struct function_st __function;
+
+static pthread_once_t function_lookup_once = PTHREAD_ONCE_INIT;
+static void set_malloc(void)
+{
+  __function= set_function("malloc", "HOSTILE_MALLOC");
+}
+
+void *malloc(size_t size)
+{
+  hostile_initialize();
+  (void) pthread_once(&function_lookup_once, set_malloc);
+
+  if (__function.frequency)
+  {
+    if (--not_until < 0 && random() % __function.frequency)
+    {
+      fprintf(stderr, "Mid=evil on malloc()\n");
+      errno= ENOMEM;
+      return NULL;
+    }
+  }
+
+  return __function.function.malloc(size);
+
+}

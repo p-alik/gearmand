@@ -1,6 +1,6 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  libtest
+ *  libhostile
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
  *
@@ -20,38 +20,14 @@
  */
 
 
-/*
-  Structures for generic tests.
-*/
+#pragma once
 
-#include <cstdio>
-#include <cstdlib>
-#include <stdint.h>
-#include <arpa/inet.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#include <libtest/visibility.h>
-#include <libtest/version.h>
+void set_recv_close(bool arg, int frequency, int not_until_arg);
 
-#include <libtest/error.h>
-#include <libtest/strerror.h>
-#include <libtest/stream.h>
-#include <libtest/comparison.hpp>
-#include <libtest/server.h>
-#include <libtest/server_container.h>
-#include <libtest/wait.h>
-#include <libtest/callbacks.h>
-#include <libtest/test.h>
-#include <libtest/dream.h>
-#include <libtest/core.h>
-#include <libtest/runner.h>
-#include <libtest/port.h>
-#include <libtest/is_local.hpp>
-#include <libtest/socket.hpp>
-#include <libtest/stats.h>
-#include <libtest/collection.h>
-#include <libtest/framework.h>
-#include <libtest/get.h>
-#include <libtest/stream.h>
-#include <libtest/cmdline.h>
-#include <libtest/string.hpp>
-#include <libtest/binaries.h>
+#ifdef __cplusplus
+}
+#endif

@@ -39,6 +39,8 @@
 
 #include <config.h>
 
+#include <libtest/test.hpp>
+
 #include <cassert>
 #include <cstring>
 #include <signal.h>
@@ -55,7 +57,6 @@
 
 #include <cstdio>
 
-#include <libtest/test.hpp>
 #include <tests/start_worker.h>
 #include <util/instance.hpp>
 
@@ -181,37 +182,39 @@ static void *thread_runner(void *con)
   bool success= gearman_worker_set_server_option(worker, test_literal_param("exceptions"));
   assert(success);
 
-  if (gearman_failed(gearman_worker_define_function(worker,
-                                                    context->function_name, strlen(context->function_name), 
-                                                    context->worker_fn,
-                                                    0, 
-                                                    context->context)))
+  if (gearman_success(gearman_worker_define_function(worker,
+                                                     context->function_name, strlen(context->function_name), 
+                                                     context->worker_fn,
+                                                     0, 
+                                                     context->context)))
+  {
+    gearman_function_t shutdown_function= gearman_function_create(shutdown_fn);
+    if (gearman_success(gearman_worker_define_function(worker,
+                                                       context->shutdown_function().c_str(), context->shutdown_function().size(),
+                                                       shutdown_function,
+                                                       0, 0)))
+    {
+      if (context->options != gearman_worker_options_t())
+      {
+        gearman_worker_add_options(worker, context->options);
+      }
+
+      assert(context->handle);
+      sem_post(&context->lock);
+      while (context->handle->is_shutdown() == false)
+      {
+        gearman_return_t ret= gearman_worker_work(worker);
+        (void)ret;
+      }
+    }
+    else
+    {
+      Error << "Failed to add function shutdown(" << gearman_worker_error(worker) << ")";
+    }
+  }
+  else
   {
     Error << "Failed to add function " << context->function_name << "(" << gearman_worker_error(worker) << ")";
-    pthread_exit(0);
-  }
-
-  gearman_function_t shutdown_function= gearman_function_create(shutdown_fn);
-  if (gearman_failed(gearman_worker_define_function(worker,
-                                                    context->shutdown_function().c_str(), context->shutdown_function().size(),
-                                                    shutdown_function,
-                                                    0, 0)))
-  {
-    Error << "Failed to add function shutdown(" << gearman_worker_error(worker) << ")";
-    pthread_exit(0);
-  }
-
-  if (context->options != gearman_worker_options_t())
-  {
-    gearman_worker_add_options(worker, context->options);
-  }
-
-  assert(context->handle);
-  sem_post(&context->lock);
-  while (context->handle->is_shutdown() == false)
-  {
-    gearman_return_t ret= gearman_worker_work(worker);
-    (void)ret;
   }
 
   gearman_worker_free(worker);
@@ -240,7 +243,11 @@ struct worker_handle_st *test_worker_start(in_port_t port,
   context->options= options;
   context->namespace_key= namespace_key;
 
-  test_assert_errno(pthread_create(&handle->thread, NULL, thread_runner, context));
+  if (pthread_create(&handle->thread, NULL, thread_runner, context) != 0)
+  {
+    Error << "pthread_create(" << strerror(errno) << ")";
+    abort();
+  }
 
   sem_wait(&context->lock);
 

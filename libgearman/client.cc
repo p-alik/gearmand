@@ -141,29 +141,37 @@ gearman_client_st *gearman_client_clone(gearman_client_st *client,
 
 void gearman_client_free(gearman_client_st *client)
 {
-  if (not client)
+  if (client == NULL)
+  {
     return;
+  }
 
   gearman_client_task_free_all(client);
 
   gearman_universal_free(client->universal);
 
   if (client->options.allocated)
+  {
     delete client;
+  }
 }
 
 const char *gearman_client_error(const gearman_client_st *client)
 {
-  if (not client)
+  if (client == NULL)
+  {
     return NULL;
+  }
 
   return gearman_universal_error(client->universal);
 }
 
 int gearman_client_errno(const gearman_client_st *client)
 {
-  if (not client)
+  if (client == NULL)
+  {
     return 0;
+  }
 
   return gearman_universal_errno(client->universal);
 }

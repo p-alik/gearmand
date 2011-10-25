@@ -113,6 +113,8 @@ int main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
+  assert(sigignore(SIGPIPE) == 0);
+
   libtest::SignalThread signal;
   if (not signal.setup())
   {

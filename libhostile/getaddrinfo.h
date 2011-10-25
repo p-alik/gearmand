@@ -1,6 +1,6 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  libtest
+ *  libhostile
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
  *
@@ -20,38 +20,15 @@
  */
 
 
-/*
-  Structures for generic tests.
-*/
+#pragma once
 
-#include <cstdio>
-#include <cstdlib>
-#include <stdint.h>
-#include <arpa/inet.h>
+#include <stdbool.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
 
-#include <libtest/visibility.h>
-#include <libtest/version.h>
+typedef ssize_t (getaddrinfo_fn) (const char *node, const char *service,
+                                  const struct addrinfo *hints,
+                                  struct addrinfo **res);
 
-#include <libtest/error.h>
-#include <libtest/strerror.h>
-#include <libtest/stream.h>
-#include <libtest/comparison.hpp>
-#include <libtest/server.h>
-#include <libtest/server_container.h>
-#include <libtest/wait.h>
-#include <libtest/callbacks.h>
-#include <libtest/test.h>
-#include <libtest/dream.h>
-#include <libtest/core.h>
-#include <libtest/runner.h>
-#include <libtest/port.h>
-#include <libtest/is_local.hpp>
-#include <libtest/socket.hpp>
-#include <libtest/stats.h>
-#include <libtest/collection.h>
-#include <libtest/framework.h>
-#include <libtest/get.h>
-#include <libtest/stream.h>
-#include <libtest/cmdline.h>
-#include <libtest/string.hpp>
-#include <libtest/binaries.h>
+bool is_getaddrinfo(void);

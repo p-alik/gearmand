@@ -1,6 +1,6 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  libtest
+ *  libhostile
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
  *
@@ -20,38 +20,11 @@
  */
 
 
-/*
-  Structures for generic tests.
-*/
+#pragma once
 
-#include <cstdio>
-#include <cstdlib>
-#include <stdint.h>
-#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
 
-#include <libtest/visibility.h>
-#include <libtest/version.h>
-
-#include <libtest/error.h>
-#include <libtest/strerror.h>
-#include <libtest/stream.h>
-#include <libtest/comparison.hpp>
-#include <libtest/server.h>
-#include <libtest/server_container.h>
-#include <libtest/wait.h>
-#include <libtest/callbacks.h>
-#include <libtest/test.h>
-#include <libtest/dream.h>
-#include <libtest/core.h>
-#include <libtest/runner.h>
-#include <libtest/port.h>
-#include <libtest/is_local.hpp>
-#include <libtest/socket.hpp>
-#include <libtest/stats.h>
-#include <libtest/collection.h>
-#include <libtest/framework.h>
-#include <libtest/get.h>
-#include <libtest/stream.h>
-#include <libtest/cmdline.h>
-#include <libtest/string.hpp>
-#include <libtest/binaries.h>
+typedef int (setsockopt_fn)(int sockfd, int level, int optname,
+                            const void *optval, socklen_t optlen);
