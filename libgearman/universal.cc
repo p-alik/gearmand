@@ -382,33 +382,32 @@ gearman_return_t gearman_echo(gearman_universal_st& universal,
 
   for (gearman_connection_st *con= universal.con_list; con; con= con->next)
   {
-    gearman_packet_st *packet_ptr;
-
     ret= con->send(packet, true);
     if (gearman_failed(ret))
     {
       goto exit;
     }
 
-    packet_ptr= con->receiving(con->_packet, ret, true);
+    con->options.packet_in_use= true;
+    gearman_packet_st *packet_ptr= con->receiving(con->_packet, ret, true);
     if (gearman_failed(ret))
     {
+      con->free_private_packet();
       goto exit;
     }
-
     assert(packet_ptr);
 
-    if (con->_packet.data_size != workload_size ||
+    if (con->_packet.data_size != workload_size or
         memcmp(workload, con->_packet.data, workload_size))
     {
-      gearman_packet_free(&(con->_packet));
+      con->free_private_packet();
       gearman_error(universal, GEARMAN_ECHO_DATA_CORRUPTION, "corruption during echo");
 
       ret= GEARMAN_ECHO_DATA_CORRUPTION;
       goto exit;
     }
 
-    gearman_packet_free(&(con->_packet));
+    con->free_private_packet();
   }
 
   ret= GEARMAN_SUCCESS;
@@ -443,21 +442,19 @@ bool gearman_request_option(gearman_universal_st &universal,
 
   for (gearman_connection_st *con= universal.con_list; con != NULL; con= con->next)
   {
-    gearman_packet_st *packet_ptr;
-
     ret= con->send(packet, true);
     if (gearman_failed(ret))
     {
       goto exit;
     }
 
-    packet_ptr= con->receiving(con->_packet, ret, true);
+    con->options.packet_in_use= true;
+    gearman_packet_st *packet_ptr= con->receiving(con->_packet, ret, true);
     if (gearman_failed(ret))
     {
       con->free_private_packet();
       goto exit;
     }
-
     assert(packet_ptr);
 
     if (packet_ptr->command == GEARMAN_COMMAND_ERROR)

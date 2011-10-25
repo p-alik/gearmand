@@ -195,10 +195,7 @@ gearman_connection_st::~gearman_connection_st()
     universal.con_count--;
   }
 
-  if (options.packet_in_use)
-  {
-    gearman_packet_free(&(_packet));
-  }
+  free_private_packet();
 }
 
 void gearman_connection_st::free_private_packet()
@@ -206,6 +203,7 @@ void gearman_connection_st::free_private_packet()
   if (options.packet_in_use)
   {
     gearman_packet_free(&_packet);
+    options.packet_in_use= false;
   }
 }
 

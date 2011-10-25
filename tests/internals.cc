@@ -353,8 +353,11 @@ static test_return_t packet_init_test(void *)
 
 static test_return_t gearman_packet_give_data_test(void *)
 {
-  char *data = strdup("Mine!");
-  size_t data_size= strlen(data);
+  size_t data_size= test_literal_param_size("Mine!");
+  char *data= (char *)calloc(sizeof(char), data_size +1);
+  test_true(data);
+  memcpy(data, "Mine!", data_size);
+
   gearman_universal_st universal;
 
   gearman_packet_st packet;
@@ -377,8 +380,11 @@ static test_return_t gearman_packet_give_data_test(void *)
 
 static test_return_t gearman_packet_take_data_test(void *)
 {
-  char *data = strdup("Mine!");
-  size_t data_size= strlen(data);
+  size_t data_size= test_literal_param_size("Mine!");
+  char *data= (char *)calloc(sizeof(char), data_size +1);
+  test_true(data);
+  memcpy(data, "Mine!", data_size);
+
   gearman_universal_st universal;
 
   gearman_packet_st packet;
@@ -401,12 +407,12 @@ static test_return_t gearman_packet_take_data_test(void *)
   test_zero(packet_ptr->data_size);
   test_false(packet_ptr->options.free_data);
 
-  test_strcmp(mine, data);
+  test_strcmp(mine, "Mine!");
   test_compare(data_size, mine_size);
 
   gearman_packet_free(packet_ptr);
   gearman_universal_free(universal);
-  free(data);
+  free(mine);
 
   return TEST_SUCCESS;
 }

@@ -1103,8 +1103,7 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
             if (not client->task)
             {
               /* The client has stopped waiting for the response, ignore it. */
-              gearman_packet_free(&(client->con->_packet));
-              client->con->options.packet_in_use= false;
+              client->con->free_private_packet();
               continue;
             }
 
@@ -1125,8 +1124,7 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
           }
 
           /* Clean up the packet. */
-          gearman_packet_free(&(client->con->_packet));
-          client->con->options.packet_in_use= false;
+          client->con->free_private_packet();
 
           /* If all tasks are done, return. */
           if (client->running_tasks == 0)
