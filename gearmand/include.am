@@ -13,7 +13,6 @@
 sbin_PROGRAMS+= gearmand/gearmand
 
 gearmand_gearmand_LDADD= \
-			 $(AM_LDADD) \
 			 $(BOOST_PROGRAM_OPTIONS_LIBS) \
 			 $(PTHREAD_LIBS) \
 			 ${BETTER_MALLOC_LIBS} \
@@ -21,13 +20,7 @@ gearmand_gearmand_LDADD= \
 
 gearmand_gearmand_LDFLAGS= $(BOOST_PROGRAM_OPTIONS_LDFLAGS)
 
-gearmand_gearmand_CPPFLAGS= \
-			    $(AM_CPPFLAGS) \
-			    $(BOOST_CPPFLAGS)
-gearmand_gearmand_CXXFLAGS= \
-			    $(AM_CXXFLAGS) \
-			    $(BOOST_CXXFLAGS) \
-			    $(PTHREAD_CFLAGS)
+gearmand_gearmand_CXXFLAGS= $(BOOST_CXXFLAGS)
 
 gearmand_gearmand_SOURCES= \
 			   gearmand/gearmand.cc \

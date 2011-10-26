@@ -61,8 +61,9 @@ AC_DEFINE([GEARMAND_BINARY], "./gearmand/gearmand", [Name of the gearmand binary
 AC_DEFINE([HAVE_LIBGEARMAN], 1, [libgearman support])
 AC_DEFINE([HAVE_GEARMAND_BINARY], 1, [libgearman support])
 
-BOOST_REQUIRE(1.39.0)
-BOOST_PROGRAM_OPTIONS(mt-)
+dnl First look for Boost, maybe for a specific minimum version:
+BOOST_REQUIRE([1.39])
+BOOST_PROGRAM_OPTIONS([mt-])
 
 WITH_LIBDRIZZLE
 WITH_DRIZZLED

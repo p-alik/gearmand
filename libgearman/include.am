@@ -133,7 +133,11 @@ libgearman_libgearman_la_LDFLAGS= \
 				  $(AM_LDFLAGS) \
 				  -version-info $(GEARMAN_LIBRARY_VERSION)
 
-libgearman_libgearman_la_LIBADD= \
-				 $(LTLIBUUID)
+libgearman_libgearman_la_LIBADD= $(LTLIBUUID)
+
+if TARGET_LINUX
+libgearman_libgearman_la_LIBADD+= -lm
+endif
+
 
 DISTCLEANFILES+= config/top.h
