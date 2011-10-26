@@ -74,15 +74,15 @@ libgearman_server_libgearman_server_la_SOURCES+= \
 						 libgearman-server/worker.cc \
 						 libgearman/command.cc
 
-libgearman_server_libgearman_server_la_CFLAGS+= \
-					       ${AM_CFLAGS} \
-					       $(PTHREAD_CFLAGS) \
-					       -DBUILDING_LIBGEARMAN
+libgearman_server_libgearman_server_la_CFLAGS+= $(PTHREAD_CFLAGS)
+libgearman_server_libgearman_server_la_CFLAGS+= -DBUILDING_LIBGEARMAN
 
-libgearman_server_libgearman_server_la_CXXFLAGS+= \
-						  ${AM_CXXFLAGS} \
-						  $(PTHREAD_CFLAGS) \
-						  -DBUILDING_LIBGEARMAN
+libgearman_server_libgearman_server_la_CXXFLAGS+= $(PTHREAD_CFLAGS)
+libgearman_server_libgearman_server_la_CXXFLAGS+= -DBUILDING_LIBGEARMAN
 
 libgearman_server_libgearman_server_la_LIBADD+= $(LTLIBEVENT)
 libgearman_server_libgearman_server_la_LIBADD+= $(PTHREAD_LIBS)
+
+if TARGET_LINUX
+libgearman_server_libgearman_server_la_LIBADD+= -lm
+endif

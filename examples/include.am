@@ -20,10 +20,6 @@ EXAMPLES_LD_FLAGS= \
 		   $(CLIENT_LDFLAGS) \
 		   $(LTLIBEVENT) \
 		   $(LTLIBUUID)
-EXAMPLES_CPPFLAGS= \
-		   $(AM_CPPFLAGS) \
-		   $(BOOST_CPPFLAGS)
-
 noinst_PROGRAMS+= \
 		  examples/echo_client \
 		  examples/echo_worker \
@@ -36,40 +32,40 @@ noinst_PROGRAMS+= \
 
 examples_echo_client_SOURCES= examples/echo_client.cc
 examples_echo_client_LDADD= $(EXAMPLES_LDADD)
-examples_echo_client_CPPFLAGS= $(EXAMPLES_CPPFLAGS)
+examples_echo_client_CXXFLAGS= $(BOOST_CPPFLAGS)
 examples_echo_client_LDFLAGS= $(EXAMPLES_LD_FLAGS)
 
 examples_echo_worker_SOURCES= examples/echo_worker.cc
 examples_echo_worker_LDADD= $(EXAMPLES_LDADD)
-examples_echo_worker_CPPFLAGS= $(EXAMPLES_CPPFLAGS)
+examples_echo_worker_CXXFLAGS= $(BOOST_CPPFLAGS)
 examples_echo_worker_LDFLAGS= $(EXAMPLES_LD_FLAGS)
 
 examples_reverse_client_SOURCES= examples/reverse_client.cc
 examples_reverse_client_LDADD= $(EXAMPLES_LDADD)
-examples_reverse_client_CPPFLAGS= $(EXAMPLES_CPPFLAGS)
+examples_reverse_client_CXXFLAGS= $(BOOST_CPPFLAGS)
 examples_reverse_client_LDFLAGS= $(EXAMPLES_LD_FLAGS)
 
 examples_reverse_client_bg_SOURCES= examples/reverse_client_bg.cc
 examples_reverse_client_bg_LDADD= $(EXAMPLES_LDADD)
-examples_reverse_client_bg_CPPFLAGS= $(EXAMPLES_CPPFLAGS)
+examples_reverse_client_bg_CXXFLAGS= $(BOOST_CPPFLAGS)
 examples_reverse_client_bg_LDFLAGS= $(EXAMPLES_LD_FLAGS)
 
 examples_reverse_client_epoch_SOURCES= examples/reverse_client_epoch.cc
 examples_reverse_client_epoch_LDADD= $(EXAMPLES_LDADD)
-examples_reverse_client_epoch_CPPFLAGS= $(EXAMPLES_CPPFLAGS)
+examples_reverse_client_epoch_CXXFLAGS= $(BOOST_CPPFLAGS)
 examples_reverse_client_epoch_LDFLAGS= $(EXAMPLES_LD_FLAGS)
 
 examples_reverse_client_cb_SOURCES= examples/reverse_client_cb.cc
 examples_reverse_client_cb_LDADD= $(EXAMPLES_LDADD)
-examples_reverse_client_cb_CPPFLAGS= $(EXAMPLES_CPPFLAGS)
+examples_reverse_client_cb_CXXFLAGS= $(BOOST_CPPFLAGS)
 examples_reverse_client_cb_LDFLAGS= $(EXAMPLES_LD_FLAGS)
 
 examples_reverse_worker_SOURCES= examples/reverse_worker.cc
 examples_reverse_worker_LDADD= $(EXAMPLES_LDADD)
-examples_reverse_worker_CPPFLAGS= $(EXAMPLES_CPPFLAGS)
+examples_reverse_worker_CXXFLAGS= $(BOOST_CPPFLAGS)
 examples_reverse_worker_LDFLAGS= $(EXAMPLES_LD_FLAGS)
 
 examples_wc_worker_SOURCES= examples/wc_worker.cc
 examples_wc_worker_LDADD= $(EXAMPLES_LDADD)
-examples_wc_worker_CPPFLAGS= $(EXAMPLES_CPPFLAGS)
+examples_wc_worker_CXXFLAGS= $(BOOST_CPPFLAGS)
 examples_wc_worker_LDFLAGS= $(EXAMPLES_LD_FLAGS)

@@ -27,9 +27,7 @@ bin_gearadmin_SOURCES= \
 		       bin/gearadmin.cc \
 		       util/instance.cc \
 		       util/operation.cc
-bin_gearadmin_CPPFLAGS= \
-			$(AM_CPPFLAGS) \
-			$(BOOST_CPPFLAGS)
+bin_gearadmin_CXXFLAGS= $(BOOST_CPPFLAGS)
 bin_gearadmin_LDFLAGS= \
 		       $(AM_LDFLAGS) \
 		       $(BOOST_PROGRAM_OPTIONS_LDFLAGS)

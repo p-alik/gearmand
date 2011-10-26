@@ -18,6 +18,5 @@ libgearman_server_libgearman_server_la_LIBADD+= $(libdrizzle_LIBS)
 libgearman_server_libgearman_server_la_CXXFLAGS+= $(libdrizzle_CFLAGS)
 
 gearmand_gearmand_LDADD+= $(libdrizzle_LIBS)
-gearmand_gearmand_CPPFLAGS+= $(libdrizzle_CFLAGS) 
 
 endif
