@@ -102,11 +102,21 @@ noinst_PROGRAMS+= tests/round_robin_test
 
 tests_worker_test_SOURCES= tests/worker_test.cc
 tests_worker_test_DEPENDENCIES= \
-			 ${CLIENT_LDADD} \
-			 libgearman/libgearmancore.la
+				${CLIENT_LDADD} \
+				libgearman/libgearmancore.la
 tests_worker_test_LDADD= $(tests_worker_test_DEPENDENCIES)
 check_PROGRAMS+=tests/worker_test
 noinst_PROGRAMS+=tests/worker_test
+
+if TARGET_LINUX
+tests_hostileworker_test_SOURCES= tests/stress_worker.cc \
+				  tests/workers.cc
+tests_hostileworker_test_DEPENDENCIES= ${CLIENT_LDADD} libhostile/libhostile.la
+tests_hostileworker_test_LDADD= $(tests_hostileworker_test_DEPENDENCIES)
+tests_hostileworker_test_LDADD+= libhostile/libhostile.la
+tests_hostileworker_test_LDADD+= -ldl
+noinst_PROGRAMS+=tests/hostileworker_test
+endif
 
 # Test linking with C++ application
 tests_cpp_test_SOURCES= tests/cpp_test.cc

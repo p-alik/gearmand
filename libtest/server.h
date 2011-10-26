@@ -172,7 +172,6 @@ public:
   bool command(std::string& command_arg);
 
 protected:
-  void nap();
   bool set_pid_file();
 
 private:

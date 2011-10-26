@@ -29,6 +29,7 @@ TESTS =
 
 # Should always be first
 include libtest/include.am
+include libhostile/include.am
 
 include benchmark/include.am
 include bin/include.am

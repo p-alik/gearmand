@@ -76,6 +76,8 @@ struct gearman_connection_st
   char send_buffer[GEARMAN_SEND_BUFFER_SIZE];
   char recv_buffer[GEARMAN_RECV_BUFFER_SIZE];
 
+  void free_private_packet();
+
   gearman_connection_st(gearman_universal_st &universal_arg,
                         gearman_connection_options_t *options);
 

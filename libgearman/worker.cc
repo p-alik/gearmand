@@ -393,8 +393,10 @@ void gearman_worker_set_workload_free_fn(gearman_worker_st *worker,
 gearman_return_t gearman_worker_add_server(gearman_worker_st *worker,
                                            const char *host, in_port_t port)
 {
-  if (not gearman_connection_create_args(worker->universal, host, port))
+  if (gearman_connection_create_args(worker->universal, host, port) == NULL)
+  {
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+  }
 
   return GEARMAN_SUCCESS;
 }
@@ -682,7 +684,9 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
               worker->job= NULL;
 
               if (*ret_ptr == GEARMAN_LOST_CONNECTION)
+              {
                 break;
+              }
             }
 
             return NULL;
@@ -752,11 +756,12 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
 
       /* Set a watch on all active connections that we sent a PRE_SLEEP to. */
       active= 0;
-      for (worker->con= worker->universal.con_list; worker->con;
-           worker->con= worker->con->next)
+      for (worker->con= worker->universal.con_list; worker->con; worker->con= worker->con->next)
       {
         if (worker->con->fd == INVALID_SOCKET)
+        {
           continue;
+        }
 
         worker->con->set_events(POLLIN);
         active++;

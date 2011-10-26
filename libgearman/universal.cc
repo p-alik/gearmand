@@ -382,33 +382,32 @@ gearman_return_t gearman_echo(gearman_universal_st& universal,
 
   for (gearman_connection_st *con= universal.con_list; con; con= con->next)
   {
-    gearman_packet_st *packet_ptr;
-
     ret= con->send(packet, true);
     if (gearman_failed(ret))
     {
       goto exit;
     }
 
-    packet_ptr= con->receiving(con->_packet, ret, true);
+    con->options.packet_in_use= true;
+    gearman_packet_st *packet_ptr= con->receiving(con->_packet, ret, true);
     if (gearman_failed(ret))
     {
+      con->free_private_packet();
       goto exit;
     }
-
     assert(packet_ptr);
 
-    if (con->_packet.data_size != workload_size ||
+    if (con->_packet.data_size != workload_size or
         memcmp(workload, con->_packet.data, workload_size))
     {
-      gearman_packet_free(&(con->_packet));
+      con->free_private_packet();
       gearman_error(universal, GEARMAN_ECHO_DATA_CORRUPTION, "corruption during echo");
 
       ret= GEARMAN_ECHO_DATA_CORRUPTION;
       goto exit;
     }
 
-    gearman_packet_free(&(con->_packet));
+    con->free_private_packet();
   }
 
   ret= GEARMAN_SUCCESS;
@@ -423,7 +422,6 @@ exit:
 bool gearman_request_option(gearman_universal_st &universal,
                             gearman_string_t &option)
 {
-  gearman_connection_st *con;
   gearman_packet_st packet;
   bool orig_block_universal;
 
@@ -442,36 +440,33 @@ bool gearman_request_option(gearman_universal_st &universal,
 
   _push_blocking(universal, orig_block_universal);
 
-  for (con= universal.con_list; con != NULL; con= con->next)
+  for (gearman_connection_st *con= universal.con_list; con != NULL; con= con->next)
   {
-    gearman_packet_st *packet_ptr;
-
     ret= con->send(packet, true);
     if (gearman_failed(ret))
     {
-      gearman_packet_free(&(con->_packet));
       goto exit;
     }
 
-    packet_ptr= con->receiving(con->_packet, ret, true);
+    con->options.packet_in_use= true;
+    gearman_packet_st *packet_ptr= con->receiving(con->_packet, ret, true);
     if (gearman_failed(ret))
     {
-      gearman_packet_free(&(con->_packet));
+      con->free_private_packet();
       goto exit;
     }
-
     assert(packet_ptr);
 
     if (packet_ptr->command == GEARMAN_COMMAND_ERROR)
     {
-      gearman_packet_free(&(con->_packet));
+      con->free_private_packet();
       gearman_error(universal, GEARMAN_INVALID_ARGUMENT, "invalid server option");
 
       ret= GEARMAN_INVALID_ARGUMENT;;
       goto exit;
     }
 
-    gearman_packet_free(&(con->_packet));
+    con->free_private_packet();
   }
 
   ret= GEARMAN_SUCCESS;
@@ -486,7 +481,9 @@ exit:
 void gearman_free_all_packets(gearman_universal_st &universal)
 {
   while (universal.packet_list)
+  {
     gearman_packet_free(universal.packet_list);
+  }
 }
 
 /*

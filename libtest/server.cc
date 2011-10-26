@@ -110,16 +110,6 @@ std::ostream& operator<<(std::ostream& output, const Server &arg)
   return output;  // for multiple << operators
 }
 
-void Server::nap(void)
-{
-#ifdef WIN32
-  sleep(1);
-#else
-  struct timespec global_sleep_value= { 0, 50000 };
-  nanosleep(&global_sleep_value, NULL);
-#endif
-}
-
 Server::Server(const std::string& host_arg, const in_port_t port_arg, bool is_socket_arg) :
   _is_socket(is_socket_arg),
   _pid(-1),
@@ -148,7 +138,7 @@ bool Server::cycle()
     if (kill(current_pid))
     {
       Log << "Killed existing server," << *this << " with pid:" << current_pid;
-      nap();
+      dream(0, 50000);
       continue;
     }
   }
@@ -217,12 +207,7 @@ bool Server::start()
 
   if (is_helgrind() or is_valgrind())
   {
-#ifdef WIN32
-    sleep(4);
-#else
-    struct timespec global_sleep_value= { 4, 50000 };
-    nanosleep(&global_sleep_value, NULL);
-#endif
+    dream(5, 50000);
   }
 
   if (pid_file_option() and not pid_file().empty())
@@ -238,7 +223,7 @@ bool Server::start()
   int count= is_helgrind() or is_valgrind() ? 20 : 5;
   while (not ping() and --count)
   {
-    nap();
+    dream(0, 50000);
   }
 
   if (count == 0)

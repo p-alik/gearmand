@@ -130,6 +130,11 @@ static void *sig_thread(void *arg)
         context->set_shutdown(SHUTDOWN_FORCED);
       }
       break;
+    case SIGPIPE:
+      {
+        Error << "Ignoring SIGPIPE";
+      }
+      break;
 
     default:
       Error << "Signal handling thread got unexpected signal " <<  strsignal(sig);
@@ -154,6 +159,7 @@ SignalThread::SignalThread() :
     sigaddset(&set, SIGQUIT);
     sigaddset(&set, SIGINT);
   }
+  sigaddset(&set, SIGPIPE);
 
   sigaddset(&set, SIGUSR2);
 

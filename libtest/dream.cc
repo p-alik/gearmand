@@ -20,38 +20,24 @@
  */
 
 
-/*
-  Structures for generic tests.
-*/
+#include <libtest/common.h>
 
-#include <cstdio>
-#include <cstdlib>
-#include <stdint.h>
-#include <arpa/inet.h>
+namespace libtest {
 
-#include <libtest/visibility.h>
-#include <libtest/version.h>
+void dream(time_t tv_sec, long tv_nsec)
+{
+#ifdef WIN32
+  if (tv_sec == 0 and tv_nsec)
+  {
+    tv_sec++;
+  }
+  sleep(tv_sec);
+#else
+  struct timespec requested;
+  requested.tv_sec= tv_sec;
+  requested.tv_nsec= tv_nsec;
+  nanosleep(&requested, NULL);
+#endif
+}
 
-#include <libtest/error.h>
-#include <libtest/strerror.h>
-#include <libtest/stream.h>
-#include <libtest/comparison.hpp>
-#include <libtest/server.h>
-#include <libtest/server_container.h>
-#include <libtest/wait.h>
-#include <libtest/callbacks.h>
-#include <libtest/test.h>
-#include <libtest/dream.h>
-#include <libtest/core.h>
-#include <libtest/runner.h>
-#include <libtest/port.h>
-#include <libtest/is_local.hpp>
-#include <libtest/socket.hpp>
-#include <libtest/stats.h>
-#include <libtest/collection.h>
-#include <libtest/framework.h>
-#include <libtest/get.h>
-#include <libtest/stream.h>
-#include <libtest/cmdline.h>
-#include <libtest/string.hpp>
-#include <libtest/binaries.h>
+}

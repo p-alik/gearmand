@@ -1,0 +1,35 @@
+# vim:ft=automake
+# libhostile
+# Copyright (C) 2011 Data Differential
+# All rights reserved.
+#
+# Use and distribution licensed under the BSD license.  See
+# the COPYING file in the parent directory for full text.
+#
+# Included from Top Level Makefile.am
+# All paths should be given relative to the root
+
+
+lib_LTLIBRARIES+= libhostile/libhostile.la
+
+noinst_HEADERS+= \
+		 libhostile/action.h \
+		 libhostile/getaddrinfo.h \
+		 libhostile/hostile.h \
+		 libhostile/initialize.h \
+		 libhostile/malloc.h \
+		 libhostile/realloc.h \
+		 libhostile/recv.h \
+		 libhostile/send.h \
+		 libhostile/setsockopt.h \
+		 libhostile/write.h
+
+libhostile_libhostile_la_SOURCES= \
+				  libhostile/getaddrinfo.c \
+				  libhostile/initialize.c \
+				  libhostile/malloc.c \
+				  libhostile/realloc.c \
+				  libhostile/recv.c \
+				  libhostile/send.c \
+				  libhostile/setsockopt.c \
+				  libhostile/write.c
