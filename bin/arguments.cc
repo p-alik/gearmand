@@ -38,6 +38,7 @@ Args::Args(int p_argc, char *p_argv[]) :
   _background(false),
   _daemon(false),
   _usage(false),
+  _is_error(false),
   _priority(GEARMAN_JOB_PRIORITY_NORMAL),
   _timeout(-1),
   argv(p_argv),
@@ -124,8 +125,12 @@ void Args::init(int argc)
       break;
 
     case 'H':
+      _usage= true;
+      return;
+
     default:
       _usage= true;
+      _is_error= true;
       return;
     }
   }

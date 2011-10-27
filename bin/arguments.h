@@ -135,6 +135,11 @@ public:
     return argv;
   }
 
+  bool is_error() const
+  {
+    return _is_error;
+  }
+
 private:
   Function::vector _functions;
   char *_host;
@@ -150,6 +155,7 @@ private:
   bool _background;
   bool _daemon;
   bool _usage;
+  bool _is_error;
   gearman_job_priority_t _priority;
   int _timeout;
   char **argv;

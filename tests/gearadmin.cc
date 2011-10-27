@@ -39,8 +39,9 @@
   Test that we are cycling the servers we are creating during testing.
 */
 
-#include <libtest/test.hpp>
+#include <config.h>
 
+#include <libtest/test.hpp>
 using namespace libtest;
 
 #ifndef __INTEL_COMPILER

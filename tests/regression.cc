@@ -264,3 +264,4 @@ test_return_t regression_768317_test(void *object)
 
   return TEST_SUCCESS;
 }
+

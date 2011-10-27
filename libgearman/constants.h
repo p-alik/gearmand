@@ -71,7 +71,9 @@ extern "C" {
 #define GEARMAN_RECV_BUFFER_SIZE 8192
 #define GEARMAN_SEND_BUFFER_SIZE 8192
 #define GEARMAN_UNIQUE_SIZE 64
+#define GEARMAN_UNIQUE_MAX_SIZE 64
 #define GEARMAN_WORKER_WAIT_TIMEOUT (10 * 1000) /* Milliseconds */
+#define GEARMAN_FUNCTION_MAX_SIZE 512
 
 /**
  * Verbosity levels.

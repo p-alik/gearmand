@@ -115,3 +115,4 @@ util/.hg/
 util/.hgignore
 .hgignore
 tests/hostileworker_test
+tests/gearman

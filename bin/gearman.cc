@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
   if (args.usage())
   {
     usage(argv[0]);
-    return EXIT_SUCCESS;
+    return args.is_error() ? EXIT_FAILURE : EXIT_SUCCESS;
   }
 
   signal_setup();

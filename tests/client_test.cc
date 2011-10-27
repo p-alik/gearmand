@@ -64,6 +64,7 @@ using namespace libtest;
 #define WORKER_UNIQUE_FUNCTION_NAME "unique_test"
 #define WORKER_SPLIT_FUNCTION_NAME "split_worker"
 
+#include <tests/limits.h>
 #include <tests/do.h>
 #include <tests/server_options.h>
 #include <tests/do_background.h>
@@ -1021,6 +1022,30 @@ static test_return_t strerror_strings(void *)
   return TEST_SUCCESS;
 }
 
+#define REGRESSION_FUNCTION_833394 "55_char_function_name_________________________________"
+
+static test_return_t regression_833394_test(void *object)
+{
+  gearman_client_st *client= (gearman_client_st *)object;
+
+  for (size_t x= 0; x < 100; x++)
+  {
+    test_true(client);
+    size_t result_length;
+    gearman_return_t rc;
+    char *job_result= (char*)gearman_client_do(client, REGRESSION_FUNCTION_833394, 
+                                               NULL, 
+                                               test_literal_param("reset"),
+                                               &result_length, &rc);
+    test_compare_got(GEARMAN_SUCCESS, rc, gearman_strerror(rc));
+    test_true(job_result);
+    test_compare(test_literal_param_size("reset"), result_length);
+    free(job_result);
+  }
+
+  return TEST_SUCCESS;
+}
+
 static uint32_t global_counter;
 
 static test_return_t pre_chunk(void *object)
@@ -1167,6 +1192,9 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
   test->push(test_worker_start(CLIENT_TEST_PORT, NAMESPACE_KEY, WORKER_CHUNKED_FUNCTION_NAME, echo_react_chunk_fn_v1, NULL, gearman_worker_options_t()));
   test->push(test_worker_start(CLIENT_TEST_PORT, NAMESPACE_KEY, WORKER_SPLIT_FUNCTION_NAME, split_worker_fn,  NULL, GEARMAN_WORKER_GRAB_ALL));
 
+  // Long function name
+  test->push(test_worker_start(CLIENT_TEST_PORT, NULL, REGRESSION_FUNCTION_833394, echo_react_fn_v2, NULL, gearman_worker_options_t()));
+
   gearman_function_t increment_reset_worker_fn= gearman_function_create_v1(increment_reset_worker);
   for (uint32_t x= 0; x < 10; x++)
   {
@@ -1258,6 +1286,7 @@ test_st regression_tests[] ={
 #endif
   {"lp:785203 gearman_client_do()", 0, regression_785203_do_test },
   {"lp:785203 gearman_client_do_background()", 0, regression_785203_do_background_test },
+  {"lp:833394 long function names", 0, regression_833394_test },
   {0, 0, 0}
 };
 
@@ -1328,6 +1357,13 @@ test_st gearman_task_pause_tests[] ={
   {0, 0, 0}
 };
 
+test_st limit_tests[] ={
+  {"GEARMAN_FUNCTION_MAX_SIZE", 0, function_name_limit_test},
+  {"GEARMAN_UNIQUE_MAX_SIZE", 0, unique_name_limit_test},
+  {0, 0, 0}
+};
+
+
 
 collection_st collection[] ={
   {"gearman_client_st", 0, 0, tests},
@@ -1360,6 +1396,7 @@ collection_st collection[] ={
   {"gearman_execute_partition(GEARMAN_CLIENT_FREE_TASKS)", pre_free_tasks, post_free_tasks, gearman_execute_partition_tests},
   {"gearman_command_t", 0, 0, gearman_command_t_tests},
   {"regression_tests", 0, 0, regression_tests},
+  {"limits", 0, 0, limit_tests},
   {"client-logging", pre_logging, post_logging, tests_log},
   {0, 0, 0, 0}
 };
