@@ -179,8 +179,16 @@ static void *thread_runner(void *con)
   gearman_return_t rc= gearman_worker_add_server(worker, NULL, context->port);
   assert(rc == GEARMAN_SUCCESS);
 
-  bool success= gearman_worker_set_server_option(worker, test_literal_param("exceptions"));
-  assert(success);
+  // Check for a working server by "asking" it for an option
+  {
+    size_t count= 5;
+    bool success= false;
+    while (--count and success == false)
+    {
+      success= gearman_worker_set_server_option(worker, test_literal_param("exceptions"));
+    }
+    assert(success);
+  }
 
   if (gearman_success(gearman_worker_define_function(worker,
                                                      context->function_name, strlen(context->function_name), 

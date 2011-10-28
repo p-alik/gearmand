@@ -1,9 +1,8 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  Gearmand client and server library.
+ *  Kill all Gearmand servers that we might use during testing (i.e. cleanup previous runs)
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -36,20 +35,45 @@
  */
 
 
-#pragma once
+/*
+  Test that we are cycling the servers we are creating during testing.
+*/
 
-#define GEARMAN_BASE_TEST_PORT 32143
-#define BURNIN_TEST_PORT GEARMAN_BASE_TEST_PORT +1
-#define CLIENT_TEST_PORT GEARMAN_BASE_TEST_PORT +2
-#define DRIZZLE_TEST_PORT GEARMAN_BASE_TEST_PORT +3
-#define INTERNAL_TEST_PORT GEARMAN_BASE_TEST_PORT +4
-#define MEMCACHED_TEST_PORT GEARMAN_BASE_TEST_PORT +5
-#define ROUND_ROBIN_WORKER_TEST_PORT GEARMAN_BASE_TEST_PORT +6
-#define SQLITE_TEST_PORT GEARMAN_BASE_TEST_PORT +7
-#define TOKYOCABINET_TEST_PORT GEARMAN_BASE_TEST_PORT +8
-#define WORKER_TEST_PORT GEARMAN_BASE_TEST_PORT +9
-#define CYCLE_TEST_PORT GEARMAN_BASE_TEST_PORT +10
-#define GEARADMIN_TEST_PORT GEARMAN_BASE_TEST_PORT +11
-#define BLOBSLAP_CLIENT_TEST_PORT GEARMAN_BASE_TEST_PORT +11
-#define STRESS_WORKER_PORT GEARMAN_BASE_TEST_PORT +12
-#define GEARMAN_MAX_TEST_PORT STRESS_WORKER_PORT
+#include <config.h>
+#include <libtest/test.hpp>
+
+using namespace libtest;
+#include <libgearman/gearman.h>
+
+#include <tests/ports.h>
+
+static test_return_t kill_test(void *)
+{
+  for (size_t port= GEARMAN_BASE_TEST_PORT; port <= GEARMAN_MAX_TEST_PORT; port++)
+  {
+    char buffer[1024];
+    snprintf(buffer, sizeof(buffer), "--port=%d", int(port));
+    const char *args[]= { buffer, "--shutdown", 0 };
+
+    exec_cmdline("bin/gearadmin", args);
+  }
+
+  return TEST_SUCCESS;
+}
+
+test_st kill_tests[] ={
+  {"via port", true, (test_callback_fn*)kill_test },
+  {0, 0, 0}
+};
+
+collection_st collection[] ={
+  {"killall", 0, 0, kill_tests},
+  {0, 0, 0, 0}
+};
+
+void get_world(Framework *world)
+{
+  world->collections= collection;
+}
+
+
