@@ -117,3 +117,4 @@ util/.hgignore
 tests/hostileworker_test
 tests/gearman
 tests/killall
+tests/cli

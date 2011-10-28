@@ -77,18 +77,12 @@ tests_burnin_test_LDADD= ${CLIENT_LDADD}
 check_PROGRAMS+=tests/burnin_test
 noinst_PROGRAMS+=tests/burnin_test
 
-tests_gearadmin_SOURCES= tests/gearadmin.cc
-tests_gearadmin_DEPENDENCIES= ${CLIENT_LDADD} gearmand/gearmand bin/gearman
-tests_gearadmin_LDADD= ${CLIENT_LDADD}
-check_PROGRAMS+= tests/gearadmin
-noinst_PROGRAMS+= tests/gearadmin
-
-tests_gearman_SOURCES= tests/gearman.cc
-tests_gearman_SOURCES+= tests/workers.cc
-tests_gearman_DEPENDENCIES= ${CLIENT_LDADD} gearmand/gearmand bin/gearman
-tests_gearman_LDADD= ${CLIENT_LDADD}
-check_PROGRAMS+= tests/gearman
-noinst_PROGRAMS+= tests/gearman
+tests_cli_SOURCES= tests/cli.cc
+tests_cli_SOURCES+= tests/workers.cc
+tests_cli_DEPENDENCIES= ${CLIENT_LDADD} gearmand/gearmand bin/gearman bin/gearadmin
+tests_cli_LDADD= ${CLIENT_LDADD}
+check_PROGRAMS+= tests/cli
+noinst_PROGRAMS+= tests/cli
 
 tests_gearmand_SOURCES= tests/gearmand.cc
 tests_gearmand_DEPENDENCIES= ${CLIENT_LDADD} gearmand/gearmand
@@ -152,8 +146,8 @@ test-burnin: tests/burnin_test
 test-cycle: tests/cycle
 	@tests/cycle
 
-test-gearadmin: tests/gearadmin
-	@tests/gearadmin
+test-cli: tests/cli
+	@tests/cli
 
 test-gearmand: tests/gearmand
 	@tests/gearmand
@@ -173,9 +167,6 @@ test-worker: tests/worker_test
 test-internals: tests/internals_test
 	@tests/internals_test
 
-test-gearman: tests/gearman
-	@tests/gearman
-
 check-local:
 
 gdb-client: tests/client_test
@@ -193,8 +184,8 @@ gdb-internals: tests/internals_test
 gdb-burnin: tests/burnin_test
 	@$(GDB_COMMAND) tests/burnin_test
 
-gdb-gearadmin: tests/gearadmin
-	@$(GDB_COMMAND) tests/gearadmin
+gdb-cli: tests/cli
+	@$(GDB_COMMAND) tests/cli
 
 gdb-blobslap_client: tests/blobslap_client
 	@$(GDB_COMMAND) tests/blobslap_client
@@ -202,7 +193,7 @@ gdb-blobslap_client: tests/blobslap_client
 gdb-cycle: tests/cycle
 	@$(GDB_COMMAND) tests/cycle
 
-gdb-all: gdb-gearadmin gdb-cycle gdb-client gdb-round-robin gdb-worker gdb-internals gdb-sqlite gdb-tokyocabinet gdb-burnin
+gdb-all: gdb-cycle gdb-client gdb-round-robin gdb-worker gdb-internals gdb-sqlite gdb-tokyocabinet gdb-burnin
 
 valgrind-client: tests/client_test
 	@$(VALGRIND_COMMAND) tests/client_test
@@ -218,9 +209,6 @@ valgrind-internals: tests/internals_test
 
 valgrind-burnin: tests/burnin_test
 	@$(VALGRIND_COMMAND) tests/burnin_test
-
-valgrind-gearadmin: tests/gearadmin
-	@$(VALGRIND_COMMAND) tests/gearadmin
 
 valgrind-cycle: tests/cycle
 	@$(VALGRIND_COMMAND) tests/cycle
@@ -240,16 +228,13 @@ helgrind-internals: tests/internals_test
 helgrind-burnin: tests/burnin_test
 	@$(HELGRIND_COMMAND) tests/burnin_test
 
-helgrind-gearadmin: tests/gearadmin
-	@$(HELGRIND_COMMAND) tests/gearadmin
-
 helgrind-cycle: tests/cycle
 	@$(HELGRIND_COMMAND) tests/cycle
 
 drd-cycle: tests/cycle
 	@$(DRD_COMMAND) tests/cycle
 
-helgrind-test: helgrind-gearadmin helgrind-cycle helgrind-client helgrind-round-robin helgrind-worker helgrind-internals helgrind-sqlite helgrind-tokyocabinet helgrind-burnin
+helgrind-test: helgrind-cycle helgrind-client helgrind-round-robin helgrind-worker helgrind-internals helgrind-sqlite helgrind-tokyocabinet helgrind-burnin
 
 include tests/libdrizzle.am
 include tests/libmemcached.am
