@@ -168,7 +168,7 @@ int main(int args, char *argv[])
 
   if (vm.count("shutdown"))
   {
-    instance.push(new util::Operation(util_literal_param("shutdown\r\n"), false));
+    instance.push(new util::Operation(util_literal_param("shutdown\r\n")));
   }
 
   if (vm.count("status"))
@@ -209,7 +209,7 @@ int main(int args, char *argv[])
 
   if (vm.count("getpid"))
   {
-    instance.push(new util::Operation(util_literal_param("getpid\r\n"), true));
+    instance.push(new util::Operation(util_literal_param("getpid\r\n")));
   }
 
   instance.run();
