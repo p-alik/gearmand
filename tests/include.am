@@ -71,12 +71,6 @@ tests_client_test_LDADD= ${CLIENT_LDADD}
 check_PROGRAMS+=tests/client_test
 noinst_PROGRAMS+=tests/client_test
 
-tests_burnin_test_SOURCES= tests/burnin.cc
-tests_burnin_test_DEPENDENCIES= ${CLIENT_LDADD} gearmand/gearmand
-tests_burnin_test_LDADD= ${CLIENT_LDADD}
-check_PROGRAMS+=tests/burnin_test
-noinst_PROGRAMS+=tests/burnin_test
-
 tests_cli_SOURCES= tests/cli.cc
 tests_cli_SOURCES+= tests/workers.cc
 tests_cli_DEPENDENCIES= ${CLIENT_LDADD} gearmand/gearmand bin/gearman bin/gearadmin
@@ -139,6 +133,12 @@ tests_c_test_DEPENDENCIES= ${CLIENT_LDADD} gearmand/gearmand
 tests_c_test_LDADD= ${CLIENT_LDADD}
 check_PROGRAMS+=tests/c_test
 noinst_PROGRAMS+=tests/c_test
+
+tests_burnin_test_SOURCES= tests/burnin.cc
+tests_burnin_test_DEPENDENCIES= ${CLIENT_LDADD} gearmand/gearmand
+tests_burnin_test_LDADD= ${CLIENT_LDADD}
+check_PROGRAMS+=tests/burnin_test
+noinst_PROGRAMS+=tests/burnin_test
 
 test-burnin: tests/burnin_test
 	@tests/burnin_test

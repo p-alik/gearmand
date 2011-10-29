@@ -114,7 +114,9 @@ public:
     }
     else
     {
+#if 0
       std::cerr << "Error" << std::endl;
+#endif
     }
 
     return true;
@@ -150,8 +152,8 @@ int main(int args, char *argv[])
   }
   catch(std::exception &e)
   { 
-    std::cerr <<  argv[0] << " : " << e.what() << std::endl;
-    std::cerr <<  std::endl << desc << std::endl;
+    std::cout <<  argv[0] << " : " << e.what() << std::endl;
+    std::cout <<  std::endl << desc << std::endl;
     return EXIT_FAILURE;
   }
 

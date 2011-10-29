@@ -47,7 +47,7 @@ using namespace libtest;
 
 #include <tests/ports.h>
 
-static test_return_t kill_test(void *)
+static void *world_create(server_startup_st&, test_return_t&)
 {
   for (size_t port= GEARMAN_BASE_TEST_PORT; port <= GEARMAN_MAX_TEST_PORT; port++)
   {
@@ -58,22 +58,10 @@ static test_return_t kill_test(void *)
     exec_cmdline("bin/gearadmin", args);
   }
 
-  return TEST_SUCCESS;
+  return NULL;
 }
-
-test_st kill_tests[] ={
-  {"via port", true, (test_callback_fn*)kill_test },
-  {0, 0, 0}
-};
-
-collection_st collection[] ={
-  {"killall", 0, 0, kill_tests},
-  {0, 0, 0, 0}
-};
 
 void get_world(Framework *world)
 {
-  world->collections= collection;
+  world->_create= world_create;
 }
-
-

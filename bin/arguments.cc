@@ -6,7 +6,7 @@
  * the COPYING file in the parent directory for full text.
  */
 
-#include "config.h"
+#include <config.h>
 
 #include <cstdlib>
 #include <cstring>
@@ -54,6 +54,8 @@ Args::~Args()
 void Args::init(int argc)
 {
   int c;
+
+  opterr= 0;
 
   while ((c = getopt(argc, argv, "bc:f:h:HILnNp:Pst:u:wi:d")) != -1)
   {
