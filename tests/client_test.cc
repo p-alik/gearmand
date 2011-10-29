@@ -1035,11 +1035,11 @@ static test_return_t regression_833394_test(void *object)
     gearman_return_t rc;
     char *job_result= (char*)gearman_client_do(client, REGRESSION_FUNCTION_833394, 
                                                NULL, 
-                                               test_literal_param("reset"),
+                                               test_literal_param("this should be echo'ed"),
                                                &result_length, &rc);
     test_compare_got(GEARMAN_SUCCESS, rc, gearman_strerror(rc));
     test_true(job_result);
-    test_compare(test_literal_param_size("reset"), result_length);
+    test_compare(test_literal_param_size("this should be echo'ed"), result_length);
     free(job_result);
   }
 
