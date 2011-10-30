@@ -42,7 +42,7 @@
 
 #pragma once
 
-gearman_task_st *add_task(gearman_client_st *client,
+gearman_task_st *add_task(gearman_client_st& client,
                           void *context,
                           gearman_command_t command,
                           const gearman_string_t &function,
@@ -51,7 +51,7 @@ gearman_task_st *add_task(gearman_client_st *client,
                           time_t when,
                           const gearman_actions_t &actions);
 
-gearman_task_st *add_task(gearman_client_st *client,
+gearman_task_st *add_task(gearman_client_st& client,
                           gearman_task_st *task,
                           void *context,
                           gearman_command_t command,
@@ -62,7 +62,7 @@ gearman_task_st *add_task(gearman_client_st *client,
                           gearman_return_t *ret_ptr,
                           const gearman_actions_t &actions);
 
-gearman_task_st *add_task(gearman_client_st *client,
+gearman_task_st *add_task(gearman_client_st& client,
                           gearman_task_st *task,
                           void *context,
                           gearman_command_t command,

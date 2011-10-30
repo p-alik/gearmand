@@ -702,7 +702,19 @@ gearman_task_st *gearman_client_add_task(gearman_client_st *client,
                                          const void *workload, size_t workload_size,
                                          gearman_return_t *ret_ptr)
 {
-  return add_task(client, task,
+  gearman_return_t unused;
+  if (ret_ptr == NULL)
+  {
+    ret_ptr= &unused;
+  }
+
+  if (client == NULL)
+  {
+    *ret_ptr= GEARMAN_INVALID_ARGUMENT;
+    return NULL;
+  }
+
+  return add_task(*client, task,
                   context, GEARMAN_COMMAND_SUBMIT_JOB,
                   function,
                   unique,
@@ -720,7 +732,19 @@ gearman_task_st *gearman_client_add_task_high(gearman_client_st *client,
                                               const void *workload, size_t workload_size,
                                               gearman_return_t *ret_ptr)
 {
-  return add_task(client, task, context,
+  gearman_return_t unused;
+  if (ret_ptr == NULL)
+  {
+    ret_ptr= &unused;
+  }
+
+  if (client == NULL)
+  {
+    *ret_ptr= GEARMAN_INVALID_ARGUMENT;
+    return NULL;
+  }
+
+  return add_task(*client, task, context,
                   GEARMAN_COMMAND_SUBMIT_JOB_HIGH,
                   function,
                   unique,
@@ -738,7 +762,19 @@ gearman_task_st *gearman_client_add_task_low(gearman_client_st *client,
                                              const void *workload, size_t workload_size,
                                              gearman_return_t *ret_ptr)
 {
-  return add_task(client, task, context, GEARMAN_COMMAND_SUBMIT_JOB_LOW,
+  gearman_return_t unused;
+  if (ret_ptr == NULL)
+  {
+    ret_ptr= &unused;
+  }
+
+  if (client == NULL)
+  {
+    *ret_ptr= GEARMAN_INVALID_ARGUMENT;
+    return NULL;
+  }
+
+  return add_task(*client, task, context, GEARMAN_COMMAND_SUBMIT_JOB_LOW,
                   function,
                   unique,
                   workload, workload_size,
@@ -755,7 +791,19 @@ gearman_task_st *gearman_client_add_task_background(gearman_client_st *client,
                                                     const void *workload, size_t workload_size,
                                                     gearman_return_t *ret_ptr)
 {
-  return add_task(client, task, context, GEARMAN_COMMAND_SUBMIT_JOB_BG,
+  gearman_return_t unused;
+  if (ret_ptr == NULL)
+  {
+    ret_ptr= &unused;
+  }
+
+  if (client == NULL)
+  {
+    *ret_ptr= GEARMAN_INVALID_ARGUMENT;
+    return NULL;
+  }
+
+  return add_task(*client, task, context, GEARMAN_COMMAND_SUBMIT_JOB_BG,
                   function,
                   unique,
                   workload, workload_size,
@@ -773,7 +821,19 @@ gearman_client_add_task_high_background(gearman_client_st *client,
                                         const void *workload, size_t workload_size,
                                         gearman_return_t *ret_ptr)
 {
-  return add_task(client, task, context,
+  gearman_return_t unused;
+  if (ret_ptr == NULL)
+  {
+    ret_ptr= &unused;
+  }
+
+  if (client == NULL)
+  {
+    *ret_ptr= GEARMAN_INVALID_ARGUMENT;
+    return NULL;
+  }
+
+  return add_task(*client, task, context,
                   GEARMAN_COMMAND_SUBMIT_JOB_HIGH_BG,
                   function,
                   unique,
@@ -792,7 +852,19 @@ gearman_client_add_task_low_background(gearman_client_st *client,
                                        const void *workload, size_t workload_size,
                                        gearman_return_t *ret_ptr)
 {
-  return add_task(client, task, context,
+  gearman_return_t unused;
+  if (ret_ptr == NULL)
+  {
+    ret_ptr= &unused;
+  }
+
+  if (client == NULL)
+  {
+    *ret_ptr= GEARMAN_INVALID_ARGUMENT;
+    return NULL;
+  }
+
+  return add_task(*client, task, context,
                   GEARMAN_COMMAND_SUBMIT_JOB_LOW_BG,
                   function,
                   unique,
@@ -811,9 +883,9 @@ gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
 {
   const void *args[1];
   size_t args_size[1];
-  gearman_return_t unused;
 
-  if (not ret_ptr)
+  gearman_return_t unused;
+  if (ret_ptr == NULL)
   {
     ret_ptr= &unused;
   }
@@ -1336,7 +1408,6 @@ static void *_client_do(gearman_client_st *client, gearman_command_t command,
   if (client == NULL)
   {
     *ret_ptr= GEARMAN_INVALID_ARGUMENT;
-    errno= EINVAL;
     return NULL;
   }
 
@@ -1346,7 +1417,7 @@ static void *_client_do(gearman_client_st *client, gearman_command_t command,
 
 
   gearman_task_st do_task;
-  gearman_task_st *do_task_ptr= add_task(client, &do_task, NULL, command,
+  gearman_task_st *do_task_ptr= add_task(*client, &do_task, NULL, command,
                                          function,
                                          local_unique,
                                          workload,
@@ -1437,7 +1508,6 @@ static gearman_return_t _client_do_background(gearman_client_st *client,
 {
   if (client == NULL)
   {
-    errno= EINVAL;
     return GEARMAN_INVALID_ARGUMENT;
   }
 
@@ -1449,7 +1519,7 @@ static gearman_return_t _client_do_background(gearman_client_st *client,
   client->_do_handle[0]= 0; // Reset the job_handle we store in client
 
   gearman_task_st do_task, *do_task_ptr;
-  do_task_ptr= add_task(client, &do_task, 
+  do_task_ptr= add_task(*client, &do_task, 
                         client, 
                         command,
                         function,

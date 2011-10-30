@@ -58,7 +58,7 @@ using namespace libtest;
 gearman_return_t echo_or_react_worker_v2(gearman_job_st *job, void *)
 {
   const void *workload= gearman_job_workload(job);
-  size_t result_size= gearman_job_workload_size(job);
+  const size_t result_size= gearman_job_workload_size(job);
 
   if (workload == NULL or result_size == 0)
   {
@@ -97,7 +97,7 @@ gearman_return_t echo_or_react_worker_v2(gearman_job_st *job, void *)
 gearman_return_t echo_or_react_chunk_worker_v2(gearman_job_st *job, void *)
 {
   const char *workload= (const char *)gearman_job_workload(job);
-  size_t workload_size= gearman_job_workload_size(job);
+  const size_t workload_size= gearman_job_workload_size(job);
 
   bool fail= false;
   if (workload_size == test_literal_param_size("fail") and (not memcmp(workload, test_literal_param("fail"))))

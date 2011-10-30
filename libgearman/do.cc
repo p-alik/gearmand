@@ -71,12 +71,11 @@ void *client_do(gearman_client_st *client, gearman_command_t command,
 
   if (client == NULL)
   {
-    *ret_ptr= GEARMAN_ERRNO;
-    errno= EINVAL;
+    *ret_ptr= GEARMAN_INVALID_ARGUMENT;
     return NULL;
   }
 
-  gearman_task_st *do_task_ptr= add_task(client, &do_task, NULL, command,
+  gearman_task_st *do_task_ptr= add_task(*client, &do_task, NULL, command,
                                          function,
                                          local_unique,
                                          workload,
@@ -139,8 +138,13 @@ gearman_return_t client_do_background(gearman_client_st *client,
                                       gearman_string_t &workload,
                                       gearman_job_handle_t job_handle)
 {
+  if (client == NULL)
+  {
+    return GEARMAN_INVALID_ARGUMENT;
+  }
+
   gearman_task_st do_task;
-  gearman_task_st *do_task_ptr= add_task(client, &do_task, 
+  gearman_task_st *do_task_ptr= add_task(*client, &do_task, 
                                          client, 
                                          command,
                                          function,

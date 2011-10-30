@@ -71,13 +71,12 @@ gearman_task_st *gearman_execute(gearman_client_st *client,
                                  gearman_argument_t *arguments,
                                  void *context)
 {
-  if (not client)
+  if (client == NULL)
   {
-    errno= EINVAL;
     return NULL;
   }
 
-  if (not function_name or not function_length)
+  if (function_name == NULL or function_length == 0)
   {
     gearman_error(client->universal, GEARMAN_INVALID_ARGUMENT, "function_name was NULL");
     return NULL;
@@ -91,7 +90,7 @@ gearman_task_st *gearman_execute(gearman_client_st *client,
     switch (workload->kind)
     {
     case GEARMAN_TASK_ATTR_BACKGROUND:
-      task= add_task(client,
+      task= add_task(*client,
                      context,
                      pick_command_by_priority_background(workload->priority),
                      function,
@@ -102,7 +101,7 @@ gearman_task_st *gearman_execute(gearman_client_st *client,
       break;
 
     case GEARMAN_TASK_ATTR_EPOCH:
-      task= add_task(client,
+      task= add_task(*client,
                      context,
                      GEARMAN_COMMAND_SUBMIT_JOB_EPOCH,
                      function,
@@ -113,7 +112,7 @@ gearman_task_st *gearman_execute(gearman_client_st *client,
       break;
 
     case GEARMAN_TASK_ATTR_FOREGROUND:
-      task= add_task(client,
+      task= add_task(*client,
                      context,
                      pick_command_by_priority(workload->priority),
                      function,
@@ -126,7 +125,7 @@ gearman_task_st *gearman_execute(gearman_client_st *client,
   }
   else
   {
-    task= add_task(client,
+    task= add_task(*client,
                    NULL,
                    GEARMAN_COMMAND_SUBMIT_JOB,
                    function,
@@ -136,7 +135,7 @@ gearman_task_st *gearman_execute(gearman_client_st *client,
                    gearman_actions_execute_defaults());
   }
 
-  if (not task)
+  if (task == NULL)
   {
     gearman_universal_error_code(client->universal);
 
