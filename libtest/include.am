@@ -106,7 +106,7 @@ libtest_libtest_la_SOURCES= \
 			    libtest/strerror.cc \
 			    libtest/test.cc
 
-libtest_libtest_la_CXXFLAGS= ${AM_CXXFLAGS}
+libtest_libtest_la_CXXFLAGS=
 libtest_libtest_la_CXXFLAGS+= ${NO_CONVERSION}
 libtest_libtest_la_CXXFLAGS+= -DBUILDING_LIBTEST
 libtest_libtest_la_CXXFLAGS+= $(PTHREAD_CFLAGS)
@@ -184,7 +184,6 @@ tmp_chroot/var/run: tmp_chroot/var
 	@$(mkdir_p) tmp_chroot/var/run
 
 
-libtest_unittest_CXXFLAGS+= ${AM_CXXFLAGS}
 libtest_unittest_DEPENDENCIES+= libtest/libtest.la libtest_tmp_dir
 libtest_unittest_LDADD+= libtest/libtest.la
 libtest_unittest_SOURCES= libtest/unittest.cc

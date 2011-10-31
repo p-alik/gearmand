@@ -16,7 +16,6 @@ EXAMPLES_LDADD= \
 		libgearman/libgearman.la
 
 EXAMPLES_LD_FLAGS= \
-		   $(AM_LDFLAGS) \
 		   $(CLIENT_LDFLAGS) \
 		   $(LTLIBEVENT) \
 		   $(LTLIBUUID)
