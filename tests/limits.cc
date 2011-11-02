@@ -35,21 +35,56 @@
  *
  */
 
+#include <config.h>
+#include <libtest/test.hpp>
 
-#pragma once
+using namespace libtest;
 
-#define GEARMAN_BASE_TEST_PORT 32143
-#define BURNIN_TEST_PORT GEARMAN_BASE_TEST_PORT +1
-#define CLIENT_TEST_PORT GEARMAN_BASE_TEST_PORT +2
-#define DRIZZLE_TEST_PORT GEARMAN_BASE_TEST_PORT +3
-#define INTERNAL_TEST_PORT GEARMAN_BASE_TEST_PORT +4
-#define MEMCACHED_TEST_PORT GEARMAN_BASE_TEST_PORT +5
-#define ROUND_ROBIN_WORKER_TEST_PORT GEARMAN_BASE_TEST_PORT +6
-#define SQLITE_TEST_PORT GEARMAN_BASE_TEST_PORT +7
-#define TOKYOCABINET_TEST_PORT GEARMAN_BASE_TEST_PORT +8
-#define WORKER_TEST_PORT GEARMAN_BASE_TEST_PORT +9
-#define CYCLE_TEST_PORT GEARMAN_BASE_TEST_PORT +10
-#define GEARADMIN_TEST_PORT GEARMAN_BASE_TEST_PORT +11
-#define BLOBSLAP_CLIENT_TEST_PORT GEARMAN_BASE_TEST_PORT +12
-#define STRESS_WORKER_PORT GEARMAN_BASE_TEST_PORT +13
-#define GEARMAN_MAX_TEST_PORT STRESS_WORKER_PORT
+#include <tests/limits.h>
+
+
+test_return_t function_name_limit_test(void *object)
+{
+  gearman_client_st *client= (gearman_client_st *)object;
+  test_true(client);
+
+  std::vector<char> function_name;
+  function_name.resize(GEARMAN_FUNCTION_MAX_SIZE +2);
+  memset(&function_name[0], 'b', GEARMAN_FUNCTION_MAX_SIZE +1);
+
+  size_t result_length;
+  gearman_return_t rc;
+  char *job_result= (char*)gearman_client_do(client, &function_name[0],
+                                             NULL, 
+                                             test_literal_param("reset"),
+                                             &result_length, &rc);
+  test_compare_got(GEARMAN_INVALID_ARGUMENT, rc, gearman_strerror(rc));
+  test_null(job_result);
+
+  return TEST_SUCCESS;
+}
+
+test_return_t unique_name_limit_test(void *object)
+{
+  gearman_client_st *client= (gearman_client_st *)object;
+  test_true(client);
+
+  std::vector<char> function_name;
+  function_name.resize(GEARMAN_FUNCTION_MAX_SIZE +1);
+  memset(&function_name[0], 'b', GEARMAN_FUNCTION_MAX_SIZE);
+
+  std::vector<char> unique_name;
+  unique_name.resize(GEARMAN_UNIQUE_MAX_SIZE +2);
+  memset(&unique_name[0], 'b', GEARMAN_UNIQUE_MAX_SIZE +1);
+
+  size_t result_length;
+  gearman_return_t rc;
+  char *job_result= (char*)gearman_client_do(client, &function_name[0],
+                                             &unique_name[0],
+                                             test_literal_param("reset"),
+                                             &result_length, &rc);
+  test_compare_got(GEARMAN_INVALID_ARGUMENT, rc, gearman_strerror(rc));
+  test_null(job_result);
+
+  return TEST_SUCCESS;
+}

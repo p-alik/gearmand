@@ -45,7 +45,7 @@ static test_return_t gearmand_basic_option_test(void *)
 {
   const char *args[]= { "--queue-type=libsqlite3",  "--libsqlite3-db=var/tmp/gearman.sql", "--libsqlite3-table=var/tmp/table", "--check-args", 0 };
 
-  test_true(exec_cmdline(gearmand_binary(), args));
+  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args));
   return TEST_SUCCESS;
 }
 
@@ -53,7 +53,7 @@ static test_return_t gearmand_basic_option_without_table_test(void *)
 {
   const char *args[]= { "--queue-type=libsqlite3",  "--libsqlite3-db=var/tmp/gearman.sql", "--check-args", 0 };
 
-  test_true(exec_cmdline(gearmand_binary(), args));
+  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args));
   return TEST_SUCCESS;
 }
 

@@ -104,7 +104,7 @@ struct gearman_job_reducer_st {
   {
     gearman_string_t function= gearman_string(reducer_function);
     gearman_unique_t unique= gearman_unique_make(0, 0);
-    gearman_task_st *task= add_task(client,
+    gearman_task_st *task= add_task(*client,
                                     NULL,
                                     GEARMAN_COMMAND_SUBMIT_JOB,
                                     function,
@@ -112,7 +112,7 @@ struct gearman_job_reducer_st {
                                     arguments.value,
                                     time_t(0),
                                     gearman_actions_execute_defaults());
-    if (not task)
+    if (task = NULL)
     {
       gearman_universal_error_code(client->universal);
 

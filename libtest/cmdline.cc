@@ -29,43 +29,29 @@ using namespace libtest;
 #include <sstream>
 
 extern "C" {
-  static bool exited_successfully(int status)
+  static int exited_successfully(int status)
   {
     if (status == 0)
     {
-      return true;
+      return EXIT_SUCCESS;
     }
 
     if (WIFEXITED(status) == true)
     {
-      int ret= WEXITSTATUS(status);
-
-      if (ret == 0)
-      {
-        return true;
-      }
-      else if (ret == EXIT_FAILURE)
-      {
-        Error << "Command executed, but returned EXIT_FAILURE";
-      }
-      else
-      {
-        Error << "Command executed, but returned " << ret;
-      }
+      return WEXITSTATUS(status);
     }
     else if (WIFSIGNALED(status) == true)
     {
-      int ret_signal= WTERMSIG(status);
-      Error << "Died from signal " << strsignal(ret_signal);
+      return WTERMSIG(status);
     }
 
-    return false;
+    return -1;
   }
 }
 
 namespace libtest {
 
-bool exec_cmdline(const std::string& executable, const char *args[])
+int exec_cmdline(const std::string& executable, const char *args[])
 {
   std::stringstream arg_buffer;
 
@@ -83,17 +69,9 @@ bool exec_cmdline(const std::string& executable, const char *args[])
     arg_buffer << " " << *ptr;
   }
 
-#if 0
-    arg_buffer << " > /dev/null 2>&1";
-#endif
-
   int ret= system(arg_buffer.str().c_str());
-  if (exited_successfully(ret) == false)
-  {
-    return false;
-  }
 
-  return true;
+  return exited_successfully(ret);
 }
 
 const char *gearmand_binary() 

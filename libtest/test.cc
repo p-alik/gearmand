@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
     wildcard= argv[2];
   }
 
-  for (collection_st *next= world->collections; next->name and (not signal.is_shutdown()); next++)
+  for (collection_st *next= world->collections; next and next->name and (not signal.is_shutdown()); next++)
   {
     test_return_t collection_rc= TEST_SUCCESS;
     bool failed= false;

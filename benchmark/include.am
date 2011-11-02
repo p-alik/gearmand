@@ -30,8 +30,7 @@ benchmark_blobslap_worker_SOURCES= \
 				   util/logfile.cc \
 				   util/pidfile.cc \
 				   util/signal.cc
-benchmark_blobslap_worker_CXXFLAGS= $(AM_CXXFLAGS)
-benchmark_blobslap_worker_CXXFLAGS+= $(PTHREAD_CFLAGS)
+benchmark_blobslap_worker_CXXFLAGS= $(PTHREAD_CFLAGS)
 benchmark_blobslap_worker_LDADD= \
 				 $(BOOST_PROGRAM_OPTIONS_LIBS) \
 				 benchmark/libbenchmark.la \

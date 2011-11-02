@@ -302,7 +302,7 @@ static test_return_t wait_BINARY(void *)
 {
   const char *args[]= { "--quiet", 0 };
 
-  test_false(exec_cmdline("libtest/wait", args));
+  test_compare(EXIT_FAILURE, exec_cmdline("libtest/wait", args));
 
   return TEST_SUCCESS;
 }
@@ -311,7 +311,7 @@ static test_return_t wait_help_BINARY(void *)
 {
   const char *args[]= { "--quiet", "--help", 0 };
 
-  test_true(exec_cmdline("libtest/wait", args));
+  test_compare(EXIT_SUCCESS, exec_cmdline("libtest/wait", args));
 
   return TEST_SUCCESS;
 }
@@ -320,7 +320,7 @@ static test_return_t wait_version_BINARY(void *)
 {
   const char *args[]= { "--quiet", "--version", 0 };
 
-  test_true(exec_cmdline("libtest/wait", args));
+  test_compare(EXIT_SUCCESS, exec_cmdline("libtest/wait", args));
 
   return TEST_SUCCESS;
 }

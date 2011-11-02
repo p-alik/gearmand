@@ -1,6 +1,6 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  Test the blobslap_client program
+ *  Kill all Gearmand servers that we might use during testing (i.e. cleanup previous runs)
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
  *
@@ -39,86 +39,29 @@
   Test that we are cycling the servers we are creating during testing.
 */
 
+#include <config.h>
 #include <libtest/test.hpp>
 
 using namespace libtest;
+#include <libgearman/gearman.h>
 
-#ifndef __INTEL_COMPILER
-#pragma GCC diagnostic ignored "-Wstrict-aliasing"
-#endif
+#include <tests/ports.h>
 
-#include "tests/ports.h"
-
-static std::string executable;
-
-static test_return_t help_test(void *)
+static void *world_create(server_startup_st&, test_return_t&)
 {
-  char buffer[1024];
-  snprintf(buffer, sizeof(buffer), "-p %d", int(default_port()));
-  const char *args[]= { buffer, "-?", 0 };
-
-  test_compare(EXIT_SUCCESS, exec_cmdline(executable, args));
-
-  return TEST_SUCCESS;
-}
-
-static test_return_t unknown_test(void *)
-{
-  char buffer[1024];
-  snprintf(buffer, sizeof(buffer), "-p %d", int(default_port()));
-  const char *args[]= { buffer, "--unknown", 0 };
-
-  // The argument doesn't exist, so we should see an error
-  test_compare(EXIT_FAILURE, exec_cmdline(executable, args));
-
-  return TEST_SUCCESS;
-}
-
-static test_return_t basic_benchmark_test(void *)
-{
-  char buffer[1024];
-  snprintf(buffer, sizeof(buffer), "-p %d", int(default_port()));
-  const char *args[]= { buffer, "-c 100", "-n 10", "-e", 0 };
-
-  // The argument doesn't exist, so we should see an error
-  test_compare(EXIT_SUCCESS, exec_cmdline(executable, args));
-
-  return TEST_SUCCESS;
-}
-
-test_st benchmark_tests[] ={
-  {"--help", 0, help_test},
-  {"--unknown", 0, unknown_test},
-  {"-c 100 -n 10", 0, basic_benchmark_test},
-  {0, 0, 0}
-};
-
-collection_st collection[] ={
-  {"blobslap_client", 0, 0, benchmark_tests},
-  {0, 0, 0, 0}
-};
-
-static void *world_create(server_startup_st& servers, test_return_t& error)
-{
-  const char *argv[1]= { "blobslap_client" };
-  if (not server_startup(servers, "gearmand", BLOBSLAP_CLIENT_TEST_PORT, 1, argv))
+  for (size_t port= GEARMAN_BASE_TEST_PORT; port <= GEARMAN_MAX_TEST_PORT; port++)
   {
-    error= TEST_FAILURE;
+    char buffer[1024];
+    snprintf(buffer, sizeof(buffer), "--port=%d", int(port));
+    const char *args[]= { buffer, "--shutdown", 0 };
+
+    exec_cmdline("bin/gearadmin", args);
   }
 
-  if (not server_startup(servers, "blobslap_worker", BLOBSLAP_CLIENT_TEST_PORT, 1, argv))
-  {
-    error= TEST_FAILURE;
-  }
-
-  return &servers;
+  return NULL;
 }
-
 
 void get_world(Framework *world)
 {
-  executable= "./benchmark/blobslap_client";
-  world->collections= collection;
   world->_create= world_create;
 }
-

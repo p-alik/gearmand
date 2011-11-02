@@ -220,13 +220,24 @@ bool Instance::run()
             switch(errno)
             {
             default:
-              std::cerr << "Error occured while reading data from " << _host.c_str() << std::endl;
+              _last_error.clear();
+              _last_error+= "Error occured while reading data from ";
+              _last_error+= _host;
               return false;
             }
+          }
+          else if (read_length == 0)
+          {
+            _last_error.clear();
+            _last_error+= "Socket was shutdown while reading from ";
+            _last_error+= _host;
+
+            return false;
           }
 
           operation->push(buffer, static_cast<size_t>(read_length));
           total_read+= static_cast<size_t>(read_length);
+
         } while (more_to_read());
       } // end has_response
 

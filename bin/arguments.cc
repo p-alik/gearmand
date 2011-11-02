@@ -6,7 +6,7 @@
  * the COPYING file in the parent directory for full text.
  */
 
-#include "config.h"
+#include <config.h>
 
 #include <cstdlib>
 #include <cstring>
@@ -38,6 +38,7 @@ Args::Args(int p_argc, char *p_argv[]) :
   _background(false),
   _daemon(false),
   _usage(false),
+  _is_error(false),
   _priority(GEARMAN_JOB_PRIORITY_NORMAL),
   _timeout(-1),
   argv(p_argv),
@@ -53,6 +54,8 @@ Args::~Args()
 void Args::init(int argc)
 {
   int c;
+
+  opterr= 0;
 
   while ((c = getopt(argc, argv, "bc:f:h:HILnNp:Pst:u:wi:d")) != -1)
   {
@@ -124,8 +127,12 @@ void Args::init(int argc)
       break;
 
     case 'H':
+      _usage= true;
+      return;
+
     default:
       _usage= true;
+      _is_error= true;
       return;
     }
   }

@@ -40,7 +40,7 @@ static test_return_t gearmand_basic_option_test(void *)
   const char *args[]= { "--queue=libtokyocabinet",  "--libtokyocabinet-file=var/tmp/gearman_basic.tcb", "--libtokyocabinet-optimize", "--check-args", 0 };
 
   unlink("var/tmp/gearman.tcb");
-  test_true(exec_cmdline(gearmand_binary(), args));
+  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args));
 
   return TEST_SUCCESS;
 }
