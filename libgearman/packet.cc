@@ -478,20 +478,21 @@ size_t gearman_packet_unpack(gearman_packet_st& self,
 
   while (self.argc != gearman_command_info(self.command)->argc)
   {
+    char *location= (char *)data +used_size;
+
     if (self.argc != (gearman_command_info(self.command)->argc - 1) or
         gearman_command_info(self.command)->data)
     {
-
-      uint8_t *ptr= (uint8_t *)memchr((char *)data + used_size, 0, data_size - used_size);
-      if (not ptr)
+      void *ptr= memchr(location, 0, data_size - used_size);
+      if (ptr == NULL)
       {
         gearman_gerror(*self.universal, GEARMAN_IO_WAIT);
         ret= GEARMAN_IO_WAIT;
         return used_size;
       }
 
-      arg_size= (size_t)(ptr - ((uint8_t *)data + used_size)) +1;
-      ret= packet_create_arg(&self, (uint8_t *)data + used_size, arg_size);
+      arg_size= size_t((char*)ptr -location) +1;
+      ret= packet_create_arg(&self, location, arg_size);
       if (gearman_failed(ret))
       {
         return used_size;
@@ -509,7 +510,7 @@ size_t gearman_packet_unpack(gearman_packet_st& self,
         return used_size;
       }
 
-      ret= packet_create_arg(&self, ((uint8_t *)data) + used_size, self.data_size);
+      ret= packet_create_arg(&self, location, self.data_size);
       if (gearman_failed(ret))
       {
         return used_size;
