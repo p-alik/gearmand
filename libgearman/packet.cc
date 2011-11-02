@@ -408,10 +408,10 @@ size_t gearman_packet_unpack(gearman_packet_st& self,
 
   if (self.args_size == 0)
   {
-    if (data_size > 0 && ((uint8_t *)data)[0] != 0)
+    if (data_size > 0 && ((char *)data)[0] != 0)
     {
       /* Try to parse a text-based command. */
-      uint8_t *ptr= (uint8_t *)memchr(data, '\n', data_size);
+      char *ptr= (char *)memchr(data, '\n', data_size);
       if (not ptr)
       {
         gearman_gerror(*self.universal, GEARMAN_IO_WAIT);
@@ -422,14 +422,14 @@ size_t gearman_packet_unpack(gearman_packet_st& self,
       self.magic= GEARMAN_MAGIC_TEXT;
       self.command= GEARMAN_COMMAND_TEXT;
 
-      used_size= (size_t)(ptr - ((uint8_t *)data)) + 1;
+      used_size= (size_t)(ptr - ((char *)data)) + 1;
       *ptr= 0;
       if (used_size > 1 && *(ptr - 1) == '\r')
         *(ptr - 1)= 0;
 
-      for (arg_size= used_size, ptr= (uint8_t *)data; ptr != NULL; data= ptr)
+      for (arg_size= used_size, ptr= (char *)data; ptr != NULL; data= ptr)
       {
-        ptr= (uint8_t *)memchr(data, ' ', arg_size);
+        ptr= (char *)memchr(data, ' ', arg_size);
         if (ptr != NULL)
         {
           *ptr= 0;
@@ -439,11 +439,11 @@ size_t gearman_packet_unpack(gearman_packet_st& self,
             ptr++;
           }
 
-          arg_size-= (size_t)(ptr - ((uint8_t *)data));
+          arg_size-= (size_t)(ptr - ((char *)data));
         }
 
         ret= packet_create_arg(&self, data, 
-                               ptr == NULL ? arg_size : size_t(ptr - ((uint8_t *)data)));
+                               ptr == NULL ? arg_size : size_t(ptr - ((char *)data)));
         if (gearman_failed(ret))
         {
           return used_size;
