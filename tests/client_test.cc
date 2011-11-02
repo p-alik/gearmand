@@ -1022,7 +1022,9 @@ static test_return_t strerror_strings(void *)
   return TEST_SUCCESS;
 }
 
-#define REGRESSION_FUNCTION_833394 "55_char_function_name_________________________________"
+#define REGRESSION_FUNCTION_833394_54 "54_char_function_name________________________________"
+#define REGRESSION_FUNCTION_833394_55 "55_char_function_name_________________________________"
+#define REGRESSION_FUNCTION_833394_65 "65_char_function_name___________________________________________"
 
 static test_return_t regression_833394_test(void *object)
 {
@@ -1033,7 +1035,37 @@ static test_return_t regression_833394_test(void *object)
     test_true(client);
     size_t result_length;
     gearman_return_t rc;
-    char *job_result= (char*)gearman_client_do(client, REGRESSION_FUNCTION_833394, 
+    char *job_result= (char*)gearman_client_do(client, REGRESSION_FUNCTION_833394_54, 
+                                               NULL, 
+                                               test_literal_param("this should be echo'ed"),
+                                               &result_length, &rc);
+    test_compare_got(GEARMAN_SUCCESS, rc, gearman_strerror(rc));
+    test_true(job_result);
+    test_compare(test_literal_param_size("this should be echo'ed"), result_length);
+    free(job_result);
+  }
+
+  for (size_t x= 0; x < 100; x++)
+  {
+    test_true(client);
+    size_t result_length;
+    gearman_return_t rc;
+    char *job_result= (char*)gearman_client_do(client, REGRESSION_FUNCTION_833394_55, 
+                                               NULL, 
+                                               test_literal_param("this should be echo'ed"),
+                                               &result_length, &rc);
+    test_compare_got(GEARMAN_SUCCESS, rc, gearman_strerror(rc));
+    test_true(job_result);
+    test_compare(test_literal_param_size("this should be echo'ed"), result_length);
+    free(job_result);
+  }
+
+  for (size_t x= 0; x < 100; x++)
+  {
+    test_true(client);
+    size_t result_length;
+    gearman_return_t rc;
+    char *job_result= (char*)gearman_client_do(client, REGRESSION_FUNCTION_833394_65, 
                                                NULL, 
                                                test_literal_param("this should be echo'ed"),
                                                &result_length, &rc);
@@ -1193,7 +1225,9 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
   test->push(test_worker_start(CLIENT_TEST_PORT, NAMESPACE_KEY, WORKER_SPLIT_FUNCTION_NAME, split_worker_fn,  NULL, GEARMAN_WORKER_GRAB_ALL));
 
   // Long function name
-  test->push(test_worker_start(CLIENT_TEST_PORT, NULL, REGRESSION_FUNCTION_833394, echo_react_fn_v2, NULL, gearman_worker_options_t()));
+  test->push(test_worker_start(CLIENT_TEST_PORT, NULL, REGRESSION_FUNCTION_833394_54, echo_react_fn_v2, NULL, gearman_worker_options_t()));
+  test->push(test_worker_start(CLIENT_TEST_PORT, NULL, REGRESSION_FUNCTION_833394_55, echo_react_fn_v2, NULL, gearman_worker_options_t()));
+  test->push(test_worker_start(CLIENT_TEST_PORT, NULL, REGRESSION_FUNCTION_833394_65, echo_react_fn_v2, NULL, gearman_worker_options_t()));
 
   gearman_function_t increment_reset_worker_fn= gearman_function_create_v1(increment_reset_worker);
   for (uint32_t x= 0; x < 10; x++)

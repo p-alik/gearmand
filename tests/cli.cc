@@ -62,17 +62,23 @@ namespace cli {
 struct Context
 {
   server_startup_st& servers;
-  worker_handle_st *worker;
+  std::vector<worker_handle_st *>workers;
 
-  Context(server_startup_st& servers_arg,
-          worker_handle_st *worker_arg) :
-    servers(servers_arg),
-    worker(worker_arg)
+  Context(server_startup_st& servers_arg) :
+    servers(servers_arg)
   { }
+
+  void push(worker_handle_st *worker_arg)
+  {
+    workers.push_back(worker_arg);
+  }
 
   ~Context()
   {
-    delete worker;
+    for (std::vector<worker_handle_st *>::iterator iter= workers.begin(); iter != workers.end(); iter++)
+    {
+      delete *iter;
+    }
   }
 };
 
@@ -282,7 +288,11 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
   gearman_function_t echo_react_fn_v2= gearman_function_create(echo_or_react_worker_v2);
   worker_handle_st *worker= test_worker_start(default_port(), NULL, WORKER_FUNCTION_NAME, echo_react_fn_v2, NULL, gearman_worker_options_t());
 
-  cli::Context *context= new cli::Context(servers, worker);
+  cli::Context *context= new cli::Context(servers);
+
+  assert(context);
+
+  context->push(worker);
 
   return context;
 }

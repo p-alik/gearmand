@@ -232,20 +232,22 @@ inline static gearmand_error_t packet_create_arg(gearmand_packet_st *packet,
   }
   else
   {
+    gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "resizing packet buffer");
     if (packet->args == packet->args_buffer)
-      packet->args= NULL;
-
-    void *new_args= realloc(packet->args, packet->args_size + arg_size);
-    if (not new_args)
     {
-      gearmand_perror("realloc");
-      return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+      packet->args= (char *)malloc(packet->args_size + arg_size);
+      memcpy(packet->args, packet->args_buffer, packet->args_size);
     }
-
-    if (packet->args_size > 0)
-      memcpy(new_args, packet->args_buffer, packet->args_size);
-
-    packet->args= static_cast<char *>(new_args);
+    else
+    {
+      char *new_args= (char *)realloc(packet->args, packet->args_size + arg_size);
+      if (not new_args)
+      {
+        gearmand_perror("realloc");
+        return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+      }
+      packet->args= new_args;
+    }
   }
 
   memcpy(packet->args + packet->args_size, arg, arg_size);
