@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include <libgearman/visibility.h>
+#include <libgearman-1.0/visibility.h>
 
 typedef enum
 {

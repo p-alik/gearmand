@@ -38,7 +38,7 @@
 
 #pragma once
 
-#include <libgearman/connection.h>
+#include <libgearman-1.0/connection.h>
 
 struct gearman_connection_st
 {

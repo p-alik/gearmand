@@ -40,7 +40,6 @@
 #include <libgearman/universal.hpp>
 
 #include <libgearman/add.hpp>
-#include <libgearman/connection.h>
 #include <libgearman/packet.hpp>
 
 #include <cerrno>

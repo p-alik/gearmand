@@ -11,10 +11,9 @@
  * @brief Packet Declarations
  */
 
-#ifndef __GEARMAN_SERVER_PACKET_H__
-#define __GEARMAN_SERVER_PACKET_H__
+#pragma once
 
-#include <libgearman/protocol.h>
+#include <libgearman-1.0/protocol.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -174,5 +173,3 @@ GEARMAN_INTERNAL_API
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GEARMAN_SERVER_PACKET_H__ */

@@ -38,7 +38,7 @@
 
 #include <libgearman/common.h>
 
-#include <libgearman/visibility.h>
+#include <libgearman-1.0/visibility.h>
 #include <libgearman/command.h>
 #include <cassert>
 

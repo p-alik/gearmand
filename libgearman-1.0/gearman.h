@@ -36,43 +36,52 @@
  *
  */
 
+
+/**
+ * @file
+ * @brief Gearman Declarations
+ */
+
 #pragma once
 
-#include <libgearman/allocator.h>
+#include <inttypes.h>
+#ifndef __cplusplus
+#  include <stdbool.h>
+#endif
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <arpa/inet.h>
+#include <poll.h>
+#include <sys/uio.h>
+#include <time.h>
 
-/**
-  @todo this is only used by the server and should be made private.
- */
-typedef struct gearman_connection_st gearman_connection_st;
-typedef gearman_return_t (gearman_event_watch_fn)(gearman_connection_st *con,
-                                                  short events, void *context);
+#include <libgearman-1.0/visibility.h>
+#include <libgearman-1.0/version.h>
+#include <libgearman-1.0/constants.h>
+#include <libgearman-1.0/job_handle.h>
+#include <libgearman-1.0/client_callbacks.h>
+#include <libgearman-1.0/strerror.h>
+#include <libgearman-1.0/function.h>
+#include <libgearman-1.0/string.h>
 
-/**
- * @ingroup gearman_universal
- */
-struct gearman_universal_st
-{
-  struct {
-    bool dont_track_packets;
-    bool non_blocking;
-    bool stored_non_blocking;
-  } options;
-  gearman_verbose_t verbose;
-  uint32_t con_count;
-  uint32_t packet_count;
-  uint32_t pfds_size;
-  uint32_t sending;
-  int timeout; // Used by poll()
-  gearman_connection_st *con_list;
-  gearman_packet_st *packet_list;
-  struct pollfd *pfds;
-  gearman_log_fn *log_fn;
-  void *log_context;
-  gearman_allocator_t allocator;
-  struct gearman_vector_st *_namespace;
-  struct {
-    gearman_return_t rc;
-    int last_errno;
-    char last_error[GEARMAN_MAX_ERROR_SIZE];
-  } error;
-};
+#include <libgearman-1.0/actions.h>
+#include <libgearman-1.0/string.h>
+
+#include <libgearman-1.0/aggregator.h>
+
+// Everything above this line must be in the order specified.
+#include <libgearman-1.0/argument.h>
+#include <libgearman-1.0/task_attr.h>
+#include <libgearman-1.0/core.h>
+#include <libgearman-1.0/task.h>
+#include <libgearman-1.0/job.h>
+#include <libgearman-1.0/string.h>
+#include <libgearman-1.0/result.h>
+#include <libgearman-1.0/execute.h>
+#include <libgearman-1.0/util.h>
+
+#include <libgearman-1.0/worker.h>
+#include <libgearman-1.0/client.h>
+#include <libgearman-1.0/connection.h>
+#include <libgearman-1.0/parse.h>

@@ -42,9 +42,6 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include <libgearman/run.hpp>
-#include <libgearman/universal.hpp>
-
 gearman_return_t _client_run_task(gearman_client_st *client, gearman_task_st *task)
 {
   switch(task->state)

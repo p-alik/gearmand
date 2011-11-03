@@ -37,10 +37,6 @@
 
 #pragma once
 
-#include <time.h>
-#include <libgearman/actions.h>
-#include <libgearman/string.h>
-
 struct gearman_argument_t {
   gearman_string_t name;
   gearman_string_t value;

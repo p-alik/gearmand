@@ -43,7 +43,7 @@
 
 #pragma once
 
-#include <libgearman/actions.h>
+#include <libgearman-1.0/actions.h>
 
 #ifdef __cplusplus
 extern "C" {

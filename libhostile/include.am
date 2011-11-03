@@ -10,7 +10,7 @@
 # All paths should be given relative to the root
 
 
-lib_LTLIBRARIES+= libhostile/libhostile.la
+noinst_LTLIBRARIES+= libhostile/libhostile.la
 
 noinst_HEADERS+= \
 		 libhostile/action.h \

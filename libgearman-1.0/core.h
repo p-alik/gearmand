@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include <libgearman/allocator.h>
-#include <libgearman/universal.h>
-#include <libgearman/command.h>
-#include <libgearman/packet.h>
+#include <libgearman-1.0/allocator.h>
+#include <libgearman-1.0/universal.h>
+#include <libgearman-1.0/packet.h>

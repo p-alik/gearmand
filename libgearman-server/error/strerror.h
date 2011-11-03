@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <libgearman/visibility.h>
+#include <libgearman-1.0/visibility.h>
 #include <libgearman-server/error/type.h>
 
 #ifdef __cplusplus

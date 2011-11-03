@@ -10,38 +10,7 @@
 # Included from Top Level Makefile.am
 # All paths should be given relative to the root
 
-nobase_include_HEADERS+= \
-			 libgearman/actions.h \
-			 libgearman/aggregator.h \
-			 libgearman/allocator.h \
-			 libgearman/argument.h \
-			 libgearman/byteorder.h \
-			 libgearman/client.h \
-			 libgearman/client_callbacks.h \
-			 libgearman/command.h \
-			 libgearman/configure.h \
-			 libgearman/connection.h \
-			 libgearman/constants.h \
-			 libgearman/core.h \
-			 libgearman/execute.h \
-			 libgearman/function.h \
-			 libgearman/gearman.h \
-			 libgearman/job.h \
-			 libgearman/job_handle.h \
-			 libgearman/packet.h \
-			 libgearman/parse.h \
-			 libgearman/priority.h \
-			 libgearman/protocol.h \
-			 libgearman/result.h \
-			 libgearman/return.h \
-			 libgearman/strerror.h \
-			 libgearman/string.h \
-			 libgearman/task.h \
-			 libgearman/task_attr.h \
-			 libgearman/universal.h \
-			 libgearman/version.h \
-			 libgearman/visibility.h \
-			 libgearman/worker.h
+nobase_include_HEADERS+= libgearman/gearman.h
 
 noinst_HEADERS+= \
 		 libgearman/actions.hpp \
@@ -49,6 +18,8 @@ noinst_HEADERS+= \
 		 libgearman/aggregator.hpp \
 		 libgearman/allocator.hpp \
 		 libgearman/assert.hpp \
+		 libgearman/byteorder.h \
+		 libgearman/command.h \
 		 libgearman/common.h \
 		 libgearman/connection.hpp \
 		 libgearman/do.hpp \

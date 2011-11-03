@@ -43,7 +43,6 @@
 #include <memory>
 
 #include <libgearman/common.h>
-#include <libgearman/aggregator.h>
 #include <libgearman/aggregator.hpp>
 
 void *gearman_aggegator_context(gearman_aggregator_st *self)

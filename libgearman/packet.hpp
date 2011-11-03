@@ -38,8 +38,6 @@
 
 #pragma once
 
-#include <libgearman/packet.h>
-
 GEARMAN_LOCAL
 gearman_packet_st *gearman_packet_create(gearman_universal_st&, gearman_packet_st *packet);
 

@@ -50,29 +50,6 @@
 #include <sys/socket.h>
 #include <poll.h>
 
-#include <libgearman/visibility.h>
-#include <libgearman/constants.h>
-#include <libgearman/return.h>
-#include <libgearman/job_handle.h>
-#include <libgearman/actions.h>
-#include <libgearman/unique.hpp>
-#include <libgearman/universal.h>
-#include <libgearman/universal.hpp>
-#include <libgearman/allocator.hpp>
-#include <libgearman/string.h>
-#include <libgearman/allocator.hpp>
-
-#include <libgearman/client.h>
-#include <libgearman/packet.hpp>
-#include <libgearman/connection.hpp>
-#include <libgearman/add.hpp>
-#include <libgearman/connection.h>
-#include <libgearman/task.h>
-#include <libgearman/packet.hpp>
-#include <libgearman/run.hpp>
-#include <libgearman/parse.h>
-#include <libgearman/result.h>
-
 /*
   Allocate a client structure.
  */

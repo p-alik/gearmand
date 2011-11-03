@@ -52,8 +52,8 @@
 
 #include <event.h>
 
-#include <libgearman/visibility.h>
-#include <libgearman/protocol.h>
+#include <libgearman-1.0/visibility.h>
+#include <libgearman-1.0/protocol.h>
 
 #include <libgearman-server/error.h>
 

@@ -37,6 +37,7 @@ include examples/include.am
 include gearmand/include.am
 include libgearman-server/include.am
 include libgearman/include.am
+include libgearman-1.0/include.am
 include util/include.am
 include tests/include.am
 include support/include.am
