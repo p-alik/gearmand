@@ -6,7 +6,7 @@
 # Use and distribution licensed under the BSD license.  See
 # the COPYING file in this directory for full text.
 
-AC_INIT([gearmand],[0.24],[https://launchpad.net/gearmand])
+AC_INIT([gearmand],[0.25],[https://launchpad.net/gearmand])
 
 AC_CONFIG_AUX_DIR(config)
 
