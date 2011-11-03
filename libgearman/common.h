@@ -41,22 +41,27 @@
 
 #include <config.h>
 
-#include <libgearman/version.h>
 #include <libgearman/assert.hpp>
 
-#include <libgearman/gearman.h>
+#include <libgearman-1.0/gearman.h>
+
 #include <libgearman/connection.hpp>
+#include <libgearman/universal.hpp>
+#include <libgearman/allocator.hpp>
+#include <libgearman/packet.hpp>
+#include <libgearman/run.hpp>
+#include <libgearman/aggregator.hpp>
 
 #include <libgearman/error.hpp>
 
 /* These are private not to be installed headers */
 #include <libgearman/byteorder.h>
 #include <libgearman/strcommand.h>
-#include <libgearman/string.h>
 #include <libgearman/vector.hpp>
 #include <libgearman/unique.hpp>
+#include <libgearman/add.hpp>
 #include <libgearman/result.hpp>
-#include <libgearman/actions.h>
 #include <libgearman/actions.hpp>
 #include <libgearman/is.hpp>
 #include <libgearman/string.hpp>
+#include <libgearman/command.h>

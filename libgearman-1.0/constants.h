@@ -40,9 +40,9 @@
 
 #pragma once
 
-#include <libgearman/priority.h>
-#include <libgearman/protocol.h>
-#include <libgearman/return.h>
+#include <libgearman-1.0/priority.h>
+#include <libgearman-1.0/protocol.h>
+#include <libgearman-1.0/return.h>
 
 #ifdef __cplusplus
 extern "C" {

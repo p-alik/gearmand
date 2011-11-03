@@ -39,12 +39,6 @@
 
 #include <libgearman/common.h>
 
-#include <libgearman/universal.hpp>
-#include <libgearman/aggregator.hpp>
-#include <libgearman/connection.h>
-#include <libgearman/packet.hpp>
-#include <libgearman/packet.h>
-#include <libgearman/add.hpp>
 #include <cassert>
 #include <cstdio>
 #include <cstring>

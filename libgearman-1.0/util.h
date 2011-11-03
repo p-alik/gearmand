@@ -3,7 +3,6 @@
  *  Gearmand client and server library.
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  Copyright (C) 2008 Brian Aker, Eric Day
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -36,25 +35,26 @@
  *
  */
 
-
 #pragma once
-
-#include <libgearman-1.0/protocol.h>
-
-struct gearman_command_info_st
-{
-  const char *name;
-  const uint8_t argc; // Number of arguments to commands.
-  const bool data;
-};
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-GEARMAN_LOCAL
-  struct gearman_command_info_st *gearman_command_info(gearman_command_t command);
+GEARMAN_API
+const char *gearman_version(void);
+
+GEARMAN_API
+const char *gearman_bugreport(void);
+
+GEARMAN_API
+const char *gearman_verbose_name(gearman_verbose_t verbose);
+
+#define gearman_timeout(__object) ((__object)->universal.timeout)
+
+#define gearman_set_timeout(__object, __value) ((__object)->universal.timeout)=(__value);
 
 #ifdef __cplusplus
 }
 #endif
+

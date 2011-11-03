@@ -28,13 +28,6 @@ using namespace libtest;
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
-static test_return_t test_for_HAVE_LIBTOKYOCABINET(void *)
-{
-  test_skip(HAVE_LIBSQLITE3, 1);
-
-  return TEST_SUCCESS;
-}
-
 static test_return_t gearmand_basic_option_test(void *)
 {
   const char *args[]= { "--queue=libtokyocabinet",  "--libtokyocabinet-file=var/tmp/gearman_basic.tcb", "--libtokyocabinet-optimize", "--check-args", 0 };
@@ -47,7 +40,6 @@ static test_return_t gearmand_basic_option_test(void *)
 
 static test_return_t collection_init(void *object)
 {
-  test_skip(TEST_SUCCESS, test_for_HAVE_LIBTOKYOCABINET(object));
   const char *argv[3]= { "test_gearmand", "--libtokyocabinet-file=var/tmp/gearman.tcb", "--queue-type=libtokyocabinet" };
 
   unlink("var/tmp/gearman.tcb");
@@ -72,6 +64,12 @@ static test_return_t collection_cleanup(void *object)
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
+  if (HAVE_LIBTOKYOCABINET == 0)
+  {
+    error= TEST_SKIPPED;
+    return NULL;
+  }
+
   Context *test= new Context(TOKYOCABINET_TEST_PORT, servers);
   if (not test)
   {
@@ -110,7 +108,7 @@ test_st tests[] ={
 };
 
 collection_st collection[] ={
-  {"gearmand options", test_for_HAVE_LIBTOKYOCABINET, 0, gearmand_basic_option_tests},
+  {"gearmand options", 0, 0, gearmand_basic_option_tests},
   {"tokyocabinet queue", collection_init, collection_cleanup, tests},
   {0, 0, 0, 0}
 };

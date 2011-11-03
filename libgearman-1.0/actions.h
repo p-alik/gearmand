@@ -37,7 +37,7 @@
 
 #pragma once
 
-#include <libgearman/client_callbacks.h>
+#include <libgearman-1.0/client_callbacks.h>
 
 struct gearman_actions_t
 {

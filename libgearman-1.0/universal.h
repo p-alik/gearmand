@@ -36,25 +36,43 @@
  *
  */
 
-
 #pragma once
 
-#include <libgearman-1.0/protocol.h>
+#include <libgearman-1.0/allocator.h>
 
-struct gearman_command_info_st
+/**
+  @todo this is only used by the server and should be made private.
+ */
+typedef struct gearman_connection_st gearman_connection_st;
+typedef gearman_return_t (gearman_event_watch_fn)(gearman_connection_st *con,
+                                                  short events, void *context);
+
+/**
+ * @ingroup gearman_universal
+ */
+struct gearman_universal_st
 {
-  const char *name;
-  const uint8_t argc; // Number of arguments to commands.
-  const bool data;
+  struct {
+    bool dont_track_packets;
+    bool non_blocking;
+    bool stored_non_blocking;
+  } options;
+  gearman_verbose_t verbose;
+  uint32_t con_count;
+  uint32_t packet_count;
+  uint32_t pfds_size;
+  uint32_t sending;
+  int timeout; // Used by poll()
+  gearman_connection_st *con_list;
+  gearman_packet_st *packet_list;
+  struct pollfd *pfds;
+  gearman_log_fn *log_fn;
+  void *log_context;
+  gearman_allocator_t allocator;
+  struct gearman_vector_st *_namespace;
+  struct {
+    gearman_return_t rc;
+    int last_errno;
+    char last_error[GEARMAN_MAX_ERROR_SIZE];
+  } error;
 };
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-GEARMAN_LOCAL
-  struct gearman_command_info_st *gearman_command_info(gearman_command_t command);
-
-#ifdef __cplusplus
-}
-#endif

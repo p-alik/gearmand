@@ -37,10 +37,6 @@
  */
 
 #include <libgearman/common.h>
-#include <libgearman/connection.h>
-#include <libgearman/packet.hpp>
-#include <libgearman/allocator.hpp>
-#include <libgearman/universal.hpp>
 #include <libgearman/function/base.hpp>
 #include <libgearman/function/make.hpp>
 

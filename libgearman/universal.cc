@@ -43,11 +43,6 @@
  */
 
 #include <libgearman/common.h>
-#include <libgearman/connection.h>
-#include <libgearman/packet.hpp>
-#include <libgearman/allocator.hpp>
-#include <libgearman/universal.hpp>
-#include <libgearman/vector.hpp>
 
 #include <cassert>
 #include <cerrno>

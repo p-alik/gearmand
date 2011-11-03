@@ -149,7 +149,7 @@ AC_CHECK_FUNC(bind, [], [AC_CHECK_LIB(bind, bind)])
 AC_CONFIG_FILES([libtest/version.h])
 AC_CONFIG_FILES(Makefile
                 docs/conf.py
-                libgearman/version.h
+                libgearman-1.0/version.h
                 scripts/gearmand
                 scripts/gearmand-init
                 scripts/gearmand.xml

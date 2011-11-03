@@ -80,7 +80,7 @@
 #include <unistd.h>
 #endif
 
-#include <libgearman/protocol.h>
+#include <libgearman-1.0/protocol.h>
 #include <boost/program_options.hpp>
 
 #include <util/instance.hpp>
