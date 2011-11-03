@@ -1,3 +1,10 @@
+0.25 Thu Nov  3 09:18:46 PDT 2011
+  * 1.0 libgearman API extracted.
+  * Fix for long function names.
+  * Fix for Worker consuming CPU by hanging.
+  * TokyoCabinet build fix.
+  * Fix for 32bit fix.
+
 0.24 Sun Jul 24 20:57:02 PDT 2011
   * Minor bug fixes.
   * Updated test framework.
