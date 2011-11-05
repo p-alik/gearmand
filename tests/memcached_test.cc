@@ -30,7 +30,7 @@ using namespace libtest;
 
 static bool test_for_HAVE_LIBMEMCACHED(test_return_t &error)
 {
-#ifdef test_for_HAVE_LIBMEMCACHED
+#if defined(HAVE_LIBMEMCACHED) && HAVE_LIBMEMCACHED & defined(HAVE_MEMCACHED_BINARY) && HAVE_MEMCACHED_BINARY
   error= TEST_SUCCESS;
   return true;
 #else

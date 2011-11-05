@@ -25,7 +25,7 @@
 #include <libtest/test.hpp>
 
 #if defined(LIBTEST_WITH_LIBMEMCACHED_SUPPORT) && LIBTEST_WITH_LIBMEMCACHED_SUPPORT
-#include <libmemcached/memcached.h>
+#include <libmemcached-1.0/memcached.h>
 #endif
 
 #if defined(LIBTEST_WITH_LIBGEARMAN_SUPPORT) && LIBTEST_WITH_LIBGEARMAN_SUPPORT

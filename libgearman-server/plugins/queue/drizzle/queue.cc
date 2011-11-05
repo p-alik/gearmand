@@ -20,7 +20,7 @@
 
 #include <libgearman-server/plugins/queue/drizzle/queue.h>
 #include <libgearman-server/plugins/queue/base.h>
-#include <libdrizzle/drizzle_client.h>
+#include <libdrizzle-1.0/drizzle_client.h>
 
 using namespace gearmand_internal;
 using namespace gearmand;
