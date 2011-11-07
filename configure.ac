@@ -6,7 +6,7 @@
 # Use and distribution licensed under the BSD license.  See
 # the COPYING file in this directory for full text.
 
-AC_INIT([gearmand],[0.25],[https://launchpad.net/gearmand])
+AC_INIT([gearmand],[0.25],[https://launchpad.net/gearmand], [gearmand], [http://gearman.info/])
 
 AC_CONFIG_AUX_DIR(config)
 
@@ -65,6 +65,7 @@ dnl First look for Boost, maybe for a specific minimum version:
 BOOST_REQUIRE([1.39])
 BOOST_PROGRAM_OPTIONS([mt-])
 
+m4_include([m4/drizzled.m4])
 WITH_LIBDRIZZLE
 WITH_DRIZZLED
 

@@ -19,40 +19,8 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#pragma once
 
-/*
-  Structures for generic tests.
-*/
+bool has_memcached_support(void);
 
-#include <cstdio>
-#include <cstdlib>
-#include <stdint.h>
-#include <arpa/inet.h>
-
-#include <libtest/visibility.h>
-#include <libtest/version.h>
-
-#include <libtest/has.hpp>
-#include <libtest/error.h>
-#include <libtest/strerror.h>
-#include <libtest/stream.h>
-#include <libtest/comparison.hpp>
-#include <libtest/server.h>
-#include <libtest/server_container.h>
-#include <libtest/wait.h>
-#include <libtest/callbacks.h>
-#include <libtest/test.h>
-#include <libtest/dream.h>
-#include <libtest/core.h>
-#include <libtest/runner.h>
-#include <libtest/port.h>
-#include <libtest/is_local.hpp>
-#include <libtest/socket.hpp>
-#include <libtest/stats.h>
-#include <libtest/collection.h>
-#include <libtest/framework.h>
-#include <libtest/get.h>
-#include <libtest/stream.h>
-#include <libtest/cmdline.h>
-#include <libtest/string.hpp>
-#include <libtest/binaries.h>
+bool has_drizzle_support(void);

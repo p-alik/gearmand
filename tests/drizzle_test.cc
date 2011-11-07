@@ -26,18 +26,46 @@ using namespace libtest;
 
 #define WORKER_FUNCTION "drizzle_queue_test"
 
+#if defined(HAVE_LIBDRIZZLE) && HAVE_LIBDRIZZLE
+
+#include <libdrizzle-1.0/drizzle_client.h>
+
+static bool ping_drizzled(void)
+{
+  drizzle_st *drizzle= drizzle_create(NULL);
+
+  if (drizzle == NULL)
+  {
+    return false;
+  }
+
+  drizzle_con_st *con;
+
+  if ((con= drizzle_con_create(drizzle, NULL)) == NULL)
+  {
+    drizzle_free(drizzle);
+    return false;
+  }
+
+  drizzle_con_set_tcp(con, NULL, 0);
+  drizzle_con_set_auth(con, "root", 0);
+  drizzle_return_t rc;
+  drizzle_result_st *result= drizzle_ping(con, NULL, &rc);
+
+  bool success= bool(result);
+
+  drizzle_result_free(result);
+  drizzle_con_free(con);
+  drizzle_free(drizzle);
+
+  return success;
+}
+
+#endif
+
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
-
-static test_return_t test_for_HAVE_LIBDRIZZLE(void *)
-{
-#if defined HAVE_LIBDRIZZLE && defined HAVE_DRIZZLED
-  return TEST_SUCCESS;
-#else
-  return TEST_SKIPPED;
-#endif
-}
 
 static test_return_t gearmand_basic_option_test(void *)
 {
@@ -79,7 +107,13 @@ static test_return_t collection_cleanup(void *object)
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  if (test_for_HAVE_LIBDRIZZLE(NULL) == TEST_SKIPPED)
+  if (has_drizzle_support() == false)
+  {
+    error= TEST_SKIPPED;
+    return NULL;
+  }
+
+  if (ping_drizzled() == false)
   {
     error= TEST_SKIPPED;
     return NULL;

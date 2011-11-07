@@ -28,17 +28,6 @@ using namespace libtest;
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
-static bool test_for_HAVE_LIBMEMCACHED(test_return_t &error)
-{
-#if defined(HAVE_LIBMEMCACHED) && HAVE_LIBMEMCACHED & defined(HAVE_MEMCACHED_BINARY) && HAVE_MEMCACHED_BINARY
-  error= TEST_SUCCESS;
-  return true;
-#else
-  error= TEST_SKIPPED;
-  return false;
-#endif
-}
-
 static test_return_t gearmand_basic_option_test(void *)
 {
   const char *args[]= { "--queue=libmemcached",  "--libmemcached-servers=localhost:12555", "--check-args", 0 };
@@ -70,8 +59,9 @@ static test_return_t collection_cleanup(void *object)
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  if (not test_for_HAVE_LIBMEMCACHED(error))
+  if (has_memcached_support() == false)
   {
+    error= TEST_SKIPPED;
     return NULL;
   }
 
