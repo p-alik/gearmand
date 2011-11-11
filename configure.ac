@@ -6,7 +6,7 @@
 # Use and distribution licensed under the BSD license.  See
 # the COPYING file in this directory for full text.
 
-AC_INIT([gearmand],[0.25],[https://launchpad.net/gearmand], [gearmand], [http://gearman.info/])
+AC_INIT([gearmand],[0.25],[https://bugs.launchpad.net/gearmand], [gearmand], [http://gearman.info/])
 
 AC_CONFIG_AUX_DIR(config)
 
@@ -47,12 +47,19 @@ LT_LANG([C++])
 LT_LANG([C])
 gl_VISIBILITY
 
+AX_PTHREAD(, [AC_MSG_ERROR(could not find libpthread)])
+
+dnl First look for Boost, maybe for a specific minimum version:
+BOOST_REQUIRE([1.39])
+BOOST_PROGRAM_OPTIONS
+
+PANDORA_CXX_CSTDINT
+PANDORA_CXX_CINTTYPES
+
 WITH_LIBMEMCACHED
 m4_include([m4/memcached.m4])
 m4_include([m4/memcached_sasl.m4])
 AM_CONDITIONAL(BUILDING_LIBMEMCACHED, false)
-
-LDFLAGS="$LDFLAGS -z relro -z now"
 
 AM_CONDITIONAL(BUILDING_GEARMAN, true)
 AM_CONDITIONAL(HAVE_LIBGEARMAN, true)
@@ -61,15 +68,10 @@ AC_DEFINE([GEARMAND_BINARY], "./gearmand/gearmand", [Name of the gearmand binary
 AC_DEFINE([HAVE_LIBGEARMAN], 1, [libgearman support])
 AC_DEFINE([HAVE_GEARMAND_BINARY], 1, [libgearman support])
 
-dnl First look for Boost, maybe for a specific minimum version:
-BOOST_REQUIRE([1.39])
-BOOST_PROGRAM_OPTIONS([mt-])
-
 m4_include([m4/drizzled.m4])
 WITH_LIBDRIZZLE
 WITH_DRIZZLED
 
-AX_PTHREAD(, [AC_MSG_ERROR(could not find libpthread)])
 PANDORA_REQUIRE_LIBEVENT
 PANDORA_REQUIRE_LIBUUID
 
@@ -145,6 +147,8 @@ AC_CHECK_FUNCS([strtoul])
 
 AC_CHECK_FUNC(setsockopt, [], [AC_CHECK_LIB(socket, setsockopt)])
 AC_CHECK_FUNC(bind, [], [AC_CHECK_LIB(bind, bind)])
+
+m4_include([m4/relro.m4])
 
 
 AC_CONFIG_FILES([libtest/version.h])

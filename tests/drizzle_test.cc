@@ -27,41 +27,46 @@ using namespace libtest;
 #define WORKER_FUNCTION "drizzle_queue_test"
 
 #if defined(HAVE_LIBDRIZZLE) && HAVE_LIBDRIZZLE
-
 #include <libdrizzle-1.0/drizzle_client.h>
+#endif
 
 static bool ping_drizzled(void)
 {
-  drizzle_st *drizzle= drizzle_create(NULL);
-
-  if (drizzle == NULL)
+#if defined(HAVE_LIBDRIZZLE) && HAVE_LIBDRIZZLE
+  if (HAVE_LIBDRIZZLE)
   {
-    return false;
-  }
+    drizzle_st *drizzle= drizzle_create(NULL);
 
-  drizzle_con_st *con;
+    if (drizzle == NULL)
+    {
+      return false;
+    }
 
-  if ((con= drizzle_con_create(drizzle, NULL)) == NULL)
-  {
+    drizzle_con_st *con;
+
+    if ((con= drizzle_con_create(drizzle, NULL)) == NULL)
+    {
+      drizzle_free(drizzle);
+      return false;
+    }
+
+    drizzle_con_set_tcp(con, NULL, 0);
+    drizzle_con_set_auth(con, "root", 0);
+    drizzle_return_t rc;
+    drizzle_result_st *result= drizzle_ping(con, NULL, &rc);
+
+    bool success= bool(result);
+
+    drizzle_result_free(result);
+    drizzle_con_free(con);
     drizzle_free(drizzle);
-    return false;
+
+    return success;
   }
-
-  drizzle_con_set_tcp(con, NULL, 0);
-  drizzle_con_set_auth(con, "root", 0);
-  drizzle_return_t rc;
-  drizzle_result_st *result= drizzle_ping(con, NULL, &rc);
-
-  bool success= bool(result);
-
-  drizzle_result_free(result);
-  drizzle_con_free(con);
-  drizzle_free(drizzle);
-
-  return success;
-}
-
 #endif
+
+  return false;
+}
 
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -113,10 +118,13 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
     return NULL;
   }
 
-  if (ping_drizzled() == false)
+  if (HAVE_LIBDRIZZLE)
   {
-    error= TEST_SKIPPED;
-    return NULL;
+    if (ping_drizzled() == false)
+    {
+      error= TEST_SKIPPED;
+      return NULL;
+    }
   }
 
   Context *test= new Context(DRIZZLE_TEST_PORT, servers);

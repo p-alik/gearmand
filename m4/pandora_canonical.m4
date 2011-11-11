@@ -43,33 +43,18 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
   ifdef([m4_define],,[define([m4_define],   defn([define]))])
   ifdef([m4_undefine],,[define([m4_undefine],   defn([undefine]))])
   m4_define([PCT_ALL_ARGS],[$*])
-  m4_define([PCT_REQUIRE_CXX],[no])
   m4_define([PCT_FORCE_GCC42],[no])
   m4_define([PCT_DONT_SUPPRESS_INCLUDE],[no])
-  m4_define([PCT_NO_VC_CHANGELOG],[no])
   m4_define([PCT_VERSION_FROM_VC],[no])
-  m4_define([PCT_USE_VISIBILITY],[yes])
   m4_foreach([pct_arg],[$*],[
     m4_case(pct_arg,
-      [require-cxx], [
-        m4_undefine([PCT_REQUIRE_CXX])
-        m4_define([PCT_REQUIRE_CXX],[yes])
-      ],
       [force-gcc42], [
         m4_undefine([PCT_FORCE_GCC42])
         m4_define([PCT_FORCE_GCC42],[yes])
       ],
-      [skip-visibility], [
-        m4_undefine([PCT_USE_VISIBILITY])
-        m4_define([PCT_USE_VISIBILITY],[no])
-      ],
       [dont-suppress-include], [
         m4_undefine([PCT_DONT_SUPPRESS_INCLUDE])
         m4_define([PCT_DONT_SUPPRESS_INCLUDE],[yes])
-      ],
-      [no-vc-changelog], [
-        m4_undefine([PCT_NO_VC_CHANGELOG])
-        m4_define([PCT_NO_VC_CHANGELOG],[yes])
       ],
       [version-from-vc], [
         m4_undefine([PCT_VERSION_FROM_VC])
@@ -107,11 +92,6 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
   ])
   AC_REQUIRE([PANDORA_64BIT])
 
-  m4_if(PCT_NO_VC_CHANGELOG,yes,[
-    vc_changelog=no
-  ],[
-    vc_changelog=yes
-  ])
   m4_if(PCT_VERSION_FROM_VC,yes,[
     PANDORA_VC_INFO_HEADER
   ],[
@@ -141,18 +121,6 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
 
   PANDORA_PLATFORM
 
-  dnl autoconf doesn't automatically provide a fail-if-no-C++ macro
-  dnl so we check c++98 features and fail if we don't have them, mainly
-  dnl for that reason
-  PANDORA_CHECK_CXX_STANDARD
-  m4_if(PCT_REQUIRE_CXX, [yes], [
-    AS_IF([test "$ac_cv_cxx_stdcxx_98" = "no"],[
-      PANDORA_MSG_ERROR([No working C++ Compiler has been found. ${PACKAGE} requires a C++ compiler that can handle C++98])
-    ])
-  ])
-  PANDORA_CXX_CSTDINT
-  PANDORA_CXX_CINTTYPES
-  
   m4_if(m4_substr(m4_esyscmd(test -d gnulib && echo 0),0,1),0,[
     gl_INIT
     AC_CONFIG_LIBOBJ_DIR([gnulib])

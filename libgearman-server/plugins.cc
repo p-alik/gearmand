@@ -48,9 +48,10 @@ namespace plugins {
 
 void initialize(boost::program_options::options_description &all)
 {
-#ifdef HAVE_LIBDRIZZLE
-  queue::initialize_drizzle();
-#endif
+  if (HAVE_LIBDRIZZLE)
+  {
+    queue::initialize_drizzle();
+  }
 
   if (HAVE_LIBMEMCACHED)
   {

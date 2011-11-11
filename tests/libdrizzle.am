@@ -25,5 +25,5 @@ tests_drizzle_test_LDADD+= $(libdrizzle_LIBS)
 tests_drizzle_test_CXXFLAGS+= $(libdrizzle_CFLAGS)
 endif
 
-check_PROGRAMS += tests/drizzle_test
+#check_PROGRAMS += tests/drizzle_test
 noinst_PROGRAMS += tests/drizzle_test
