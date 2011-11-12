@@ -137,6 +137,7 @@ struct context_st {
   std::string _shutdown_function;
   void *context;
   sem_t lock;
+  volatile bool failed_startup;
 
   context_st(worker_handle_st* handle_arg, gearman_function_t& arg) :
     port(handle_arg->port()),
@@ -145,7 +146,8 @@ struct context_st {
     worker_fn(arg),
     namespace_key(NULL),
     _shutdown_function(handle_arg->shutdown_function()),
-    context(0)
+    context(0),
+    failed_startup(false)
   {
     sem_init(&lock, 0, 0);
   }
@@ -161,47 +163,62 @@ struct context_st {
   }
 };
 
-static void *thread_runner(void *con)
-{
-  context_st *context= (context_st *)con;
+extern "C" {
 
-  assert(context);
-
-  gearman_worker_st *worker= gearman_worker_create(NULL);
-  assert(worker);
-  context->handle->_worker_ptr= worker;
-
-  if (context->namespace_key)
+  static void *thread_runner(void *con)
   {
-    gearman_worker_set_namespace(worker, context->namespace_key, strlen(context->namespace_key));
-  }
+    context_st *context= (context_st *)con;
 
-  gearman_return_t rc= gearman_worker_add_server(worker, NULL, context->port);
-  assert(rc == GEARMAN_SUCCESS);
+    assert(context);
 
-  // Check for a working server by "asking" it for an option
-  {
-    size_t count= 5;
-    bool success= false;
-    while (--count and success == false)
+    gearman_worker_st *worker= gearman_worker_create(NULL);
+    assert(worker);
+    context->handle->_worker_ptr= worker;
+
+    if (context->namespace_key)
     {
-      success= gearman_worker_set_server_option(worker, test_literal_param("exceptions"));
+      gearman_worker_set_namespace(worker, context->namespace_key, strlen(context->namespace_key));
     }
-    assert(success);
-  }
 
-  if (gearman_success(gearman_worker_define_function(worker,
-                                                     context->function_name, strlen(context->function_name), 
-                                                     context->worker_fn,
-                                                     0, 
-                                                     context->context)))
-  {
-    gearman_function_t shutdown_function= gearman_function_create(shutdown_fn);
-    if (gearman_success(gearman_worker_define_function(worker,
-                                                       context->shutdown_function().c_str(), context->shutdown_function().size(),
-                                                       shutdown_function,
-                                                       0, 0)))
+    gearman_return_t rc= gearman_worker_add_server(worker, NULL, context->port);
+    assert(rc == GEARMAN_SUCCESS);
+
+    // Check for a working server by "asking" it for an option
     {
+      size_t count= 5;
+      bool success= false;
+      while (--count and success == false)
+      {
+        success= gearman_worker_set_server_option(worker, test_literal_param("exceptions"));
+      }
+      assert(success);
+    }
+
+    do {
+      gearman_function_t shutdown_function= gearman_function_create(shutdown_fn);
+      if (gearman_failed(gearman_worker_define_function(worker,
+                                                        context->shutdown_function().c_str(), context->shutdown_function().size(),
+                                                        shutdown_function,
+                                                        0, 0)))
+      {
+        Error << "Failed to add function shutdown(" << gearman_worker_error(worker) << ")";
+        context->failed_startup= true;
+        sem_post(&context->lock);
+        break;
+      }
+
+      if (gearman_failed(gearman_worker_define_function(worker,
+                                                        context->function_name, strlen(context->function_name), 
+                                                        context->worker_fn,
+                                                        0, 
+                                                        context->context)))
+      {
+        Error << "Failed to add function " << context->function_name << "(" << gearman_worker_error(worker) << ")";
+        context->failed_startup= true;
+        sem_post(&context->lock);
+        break;
+      }
+
       if (context->options != gearman_worker_options_t())
       {
         gearman_worker_add_options(worker, context->options);
@@ -214,22 +231,14 @@ static void *thread_runner(void *con)
         gearman_return_t ret= gearman_worker_work(worker);
         (void)ret;
       }
-    }
-    else
-    {
-      Error << "Failed to add function shutdown(" << gearman_worker_error(worker) << ")";
-    }
+    } while (0);
+
+    gearman_worker_free(worker);
+
+    delete context;
+
+    pthread_exit(0);
   }
-  else
-  {
-    Error << "Failed to add function " << context->function_name << "(" << gearman_worker_error(worker) << ")";
-  }
-
-  gearman_worker_free(worker);
-
-  delete context;
-
-  pthread_exit(0);
 }
 
 struct worker_handle_st *test_worker_start(in_port_t port, 
@@ -258,6 +267,14 @@ struct worker_handle_st *test_worker_start(in_port_t port,
   }
 
   sem_wait(&context->lock);
+
+  if (context->failed_startup)
+  {
+    delete context;
+    delete handle;
+    Error << "Now aborting from failed worker startup";
+    abort(); // @todo test all code for failure case
+  }
 
   return handle;
 }

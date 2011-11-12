@@ -86,7 +86,7 @@ struct _worker_function_st
   {
     function_length= gearman_string_length(namespace_arg) +size;
     function_name= new (std::nothrow) char[function_length +1];
-    if (not function_name)
+    if (function_name == NULL)
     {
       return false;
     }

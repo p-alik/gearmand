@@ -178,42 +178,45 @@ void *client_test_temp_worker(gearman_job_st *job, void *context,
                               size_t *result_size, gearman_return_t *ret_ptr);
 
 
-static void *client_thread(void *object)
+extern "C"
 {
-  volatile gearman_return_t *ret= (volatile gearman_return_t *)object;
-  gearman_client_st client;
-  gearman_client_st *client_ptr;
-  size_t result_size;
-
-  client_ptr= gearman_client_create(&client);
-
-  if (client_ptr == NULL)
+  static void *client_thread(void *object)
   {
-    *ret= GEARMAN_MEMORY_ALLOCATION_FAILURE;
-    pthread_exit(0);
-  }
+    volatile gearman_return_t *ret= (volatile gearman_return_t *)object;
+    gearman_client_st client;
+    gearman_client_st *client_ptr;
+    size_t result_size;
 
-  gearman_return_t rc= gearman_client_add_server(&client, NULL, CLIENT_TEST_PORT);
-  if (gearman_failed(rc))
-  {
-    *ret= rc;
-    pthread_exit(0);
-  }
+    client_ptr= gearman_client_create(&client);
 
-  gearman_client_set_timeout(&client, 400);
-  for (size_t x= 0; x < 5; x++)
-  {
-    (void)gearman_client_do(&client, "client_test_temp", NULL, NULL, 0, &result_size, &rc);
+    if (client_ptr == NULL)
+    {
+      *ret= GEARMAN_MEMORY_ALLOCATION_FAILURE;
+      pthread_exit(0);
+    }
 
+    gearman_return_t rc= gearman_client_add_server(&client, NULL, CLIENT_TEST_PORT);
     if (gearman_failed(rc))
     {
       *ret= rc;
       pthread_exit(0);
     }
-  }
-  gearman_client_free(client_ptr);
 
-  pthread_exit(0);
+    gearman_client_set_timeout(&client, 400);
+    for (size_t x= 0; x < 5; x++)
+    {
+      (void)gearman_client_do(&client, "client_test_temp", NULL, NULL, 0, &result_size, &rc);
+
+      if (gearman_failed(rc))
+      {
+        *ret= rc;
+        pthread_exit(0);
+      }
+    }
+    gearman_client_free(client_ptr);
+
+    pthread_exit(0);
+  }
 }
 
 static test_return_t init_test(void *)
