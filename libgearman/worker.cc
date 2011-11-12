@@ -1176,7 +1176,6 @@ static gearman_return_t _worker_function_create(gearman_worker_st *worker,
   }
 
   _worker_function_st *function= make(worker->universal._namespace, function_name, function_length, function_arg, context);
-
   if (function == NULL)
   {
     gearman_perror(worker->universal, "_worker_function_st::new()");
