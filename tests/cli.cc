@@ -62,7 +62,6 @@ namespace cli {
 struct Context
 {
   server_startup_st& servers;
-  std::vector<worker_handle_st *>workers;
 
   Context(server_startup_st& servers_arg) :
     servers(servers_arg)
@@ -70,16 +69,26 @@ struct Context
 
   void push(worker_handle_st *worker_arg)
   {
-    workers.push_back(worker_arg);
+    _workers.push_back(worker_arg);
+  }
+
+  void shutdown_workers()
+  {
+    for (std::vector<worker_handle_st *>::iterator iter= _workers.begin(); iter != _workers.end(); iter++)
+    {
+      delete *iter;
+    }
+    _workers.clear();
   }
 
   ~Context()
   {
-    for (std::vector<worker_handle_st *>::iterator iter= workers.begin(); iter != workers.end(); iter++)
-    {
-      delete *iter;
-    }
+    shutdown_workers();
   }
+
+private:
+  std::vector<worker_handle_st *>_workers;
+
 };
 
 }
@@ -124,13 +133,8 @@ static test_return_t regression_833394_test(void *)
   snprintf(buffer, sizeof(buffer), "-p %d", int(default_port()));
   const char *args[]= { buffer, "-f", REGRESSION_FUNCTION_833394, "-b", "payload", 0 };
 
-  gearman_function_t echo_react_fn_v2= gearman_function_create(echo_or_react_worker_v2);
-  worker_handle_st *worker= test_worker_start(default_port(), NULL, REGRESSION_FUNCTION_833394, echo_react_fn_v2, NULL, gearman_worker_options_t());
-
   // The argument doesn't exist, so we should see an error
   test_compare(EXIT_SUCCESS, exec_cmdline("bin/gearman", args));
-
-  delete worker;
 
   return TEST_SUCCESS;
 }
@@ -246,6 +250,15 @@ static test_return_t gearadmin_unknown_test(void *)
   return TEST_SUCCESS;
 }
 
+static test_return_t shutdown_workers(void *object)
+{
+  cli::Context *context= (cli::Context*)object;
+
+  context->shutdown_workers();
+
+  return TEST_SUCCESS;
+}
+
 
 test_st gearman_tests[] ={
   { "--help", 0, gearman_help_test },
@@ -266,6 +279,10 @@ test_st gearadmin_tests[] ={
   {"--workers", 0, gearadmin_workers_test},
   {"--create-function and --drop-function", 0, gearadmin_create_drop_test},
   {"--unknown", 0, gearadmin_unknown_test},
+  {0, 0, 0}
+};
+
+test_st gearadmin_shutdown_tests[] ={
   {"--shutdown", 0, gearadmin_shutdown_test}, // Must be run last since it shuts down the server
   {0, 0, 0}
 };
@@ -273,6 +290,7 @@ test_st gearadmin_tests[] ={
 collection_st collection[] ={
   {"gearman", 0, 0, gearman_tests},
   {"gearadmin", 0, 0, gearadmin_tests},
+  {"gearadmin --shutdown", shutdown_workers, 0, gearadmin_shutdown_tests},
   {0, 0, 0, 0}
 };
 
@@ -282,17 +300,21 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
   if (server_startup(servers, "gearmand", GEARADMIN_TEST_PORT, 1, argv) == false)
   {
     error= TEST_FAILURE;
+    return NULL;
+  }
+
+  cli::Context *context= new cli::Context(servers);
+
+  if (context == NULL)
+  {
+    error= TEST_FAILURE;
+    return NULL;
   }
   
   // Echo function
   gearman_function_t echo_react_fn_v2= gearman_function_create(echo_or_react_worker_v2);
-  worker_handle_st *worker= test_worker_start(default_port(), NULL, WORKER_FUNCTION_NAME, echo_react_fn_v2, NULL, gearman_worker_options_t());
-
-  cli::Context *context= new cli::Context(servers);
-
-  assert(context);
-
-  context->push(worker);
+  context->push(test_worker_start(default_port(), NULL, WORKER_FUNCTION_NAME, echo_react_fn_v2, NULL, gearman_worker_options_t()));
+  context->push(test_worker_start(default_port(), NULL, REGRESSION_FUNCTION_833394, echo_react_fn_v2, NULL, gearman_worker_options_t()));
 
   return context;
 }

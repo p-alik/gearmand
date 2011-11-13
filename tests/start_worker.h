@@ -21,7 +21,6 @@ struct worker_handle_st
   std::string _shutdown_function;
   std::string _name;
   in_port_t _port;
-  gearman_worker_st *_worker_ptr;
 
   in_port_t port() const
   {
@@ -31,7 +30,9 @@ struct worker_handle_st
   const std::string& shutdown_function(bool fully_qualified= false) const
   {
     if (fully_qualified)
+    {
       return _fully_shutdown_function;
+    }
 
     return _shutdown_function;
   }

@@ -93,11 +93,12 @@ struct client_test_st
     _clone(true),
     _worker_name(WORKER_FUNCTION_NAME)
   { 
-    if (not (_client= gearman_client_create(NULL)))
-    {
-      abort(); // This would only happen from a programming error
-    }
+    _client= gearman_client_create(NULL);
 
+    if (_client == NULL)
+    {
+      throw "gearman_client_create() failed";
+    }
   }
 
   ~client_test_st()
