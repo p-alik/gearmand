@@ -119,3 +119,4 @@ tests/gearman
 tests/killall
 tests/cli
 libgearman-1.0/version.h
+tests/ephemeral_test

@@ -91,11 +91,8 @@ public:
 
   void reset()
   {
-    _servers.shutdown(true);
+    _servers.shutdown_and_remove();
     gearman_worker_free(worker);
-
-    unlink("tests/gearman.sql");
-    unlink("tests/gearman.sql-journal");
 
     worker= NULL;
   }

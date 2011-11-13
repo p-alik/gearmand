@@ -84,29 +84,13 @@ struct counter_st
   }
 };
 
-static gearman_return_t counter_function2(gearman_job_st *, void *object)
+static gearman_return_t counter_fn(gearman_job_st *, void *object)
 {
   counter_st *count= (counter_st*)object;
   assert(count);
   count->increment();
 
   return GEARMAN_SUCCESS;
-}
-
-/* Counter test for worker */
-static void *counter_function(gearman_job_st *,
-                              void *context, size_t *result_size,
-                              gearman_return_t *)
-{
-  uint32_t *counter= (uint32_t *)context;
-
-  *result_size= 0;
-
-  pthread_mutex_lock(&counter_lock);
-  *counter= *counter + 1;
-  pthread_mutex_unlock(&counter_lock);
-
-  return NULL;
 }
 
 test_return_t client_echo_fail_test(void *object)
@@ -170,18 +154,17 @@ test_return_t queue_clean(void *object)
   gearman_worker_st *worker= test->worker;
   test_truth(worker);
 
-  gearman_worker_set_timeout(worker, 1000);
+  gearman_worker_set_timeout(worker, 3000);
 
-  uint32_t counter= 0;
-  test_true_got(gearman_success(gearman_worker_add_function(worker, test->worker_function_name(), 5, counter_function, &counter)), gearman_worker_error(worker));
+  counter_st counter;
+  gearman_function_t counter_function= gearman_function_create(counter_fn);
+  test_compare_got(GEARMAN_SUCCESS, gearman_worker_define_function(worker,
+                                                                   test->worker_function_name(), strlen(test->worker_function_name()),
+                                                                   counter_function,
+                                                                   5, &counter), gearman_worker_error(worker));
 
   // Clean out any jobs that might still be in the queue from failed tests.
-  while (1)
-  {
-    gearman_return_t rc= gearman_worker_work(worker);
-    if (rc != GEARMAN_SUCCESS)
-      break;
-  }
+  while (GEARMAN_SUCCESS == gearman_worker_work(worker)) {};
 
   return TEST_SUCCESS;
 }
@@ -190,7 +173,6 @@ test_return_t queue_add(void *object)
 {
   Context *test= (Context *)object;
   gearman_client_st client, *client_ptr;
-  gearman_job_handle_t job_handle= {};
   test_truth(test);
 
   test->run_worker= false;
@@ -201,20 +183,23 @@ test_return_t queue_add(void *object)
   test_true_got(gearman_success(gearman_client_add_server(&client, NULL, test->port())), gearman_client_error(client_ptr));
 
   test_compare(GEARMAN_SUCCESS,
-               gearman_client_echo(&client, test_literal_param("background_payload")));
+               gearman_client_echo(&client, test_literal_param("echo test message")));
 
-  test_compare(GEARMAN_SUCCESS,
-               gearman_client_do_background(&client, test->worker_function_name(), NULL, 
-                                            test_literal_param("background_payload"),
-                                            job_handle));
-  test_truth(job_handle[0]);
+  {
+    gearman_job_handle_t job_handle= {};
+    test_compare(GEARMAN_SUCCESS,
+                 gearman_client_do_background(&client, test->worker_function_name(), NULL, 
+                                              test_literal_param("background_payload"),
+                                              job_handle));
+    test_truth(job_handle[0]);
 
-  gearman_return_t rc;
-  do {
-    rc= gearman_client_job_status(client_ptr, job_handle, NULL, NULL, NULL, NULL);
-    test_true(rc != GEARMAN_IN_PROGRESS);
-  } while (gearman_continue(rc) and rc != GEARMAN_JOB_EXISTS); // We need to exit on these values since the job will never run
-  test_true(rc == GEARMAN_JOB_EXISTS or rc == GEARMAN_SUCCESS);
+    gearman_return_t rc;
+    do {
+      rc= gearman_client_job_status(client_ptr, job_handle, NULL, NULL, NULL, NULL);
+      test_true(rc != GEARMAN_IN_PROGRESS);
+    } while (gearman_continue(rc) and rc != GEARMAN_JOB_EXISTS); // We need to exit on these values since the job will never run
+    test_true(rc == GEARMAN_JOB_EXISTS or rc == GEARMAN_SUCCESS);
+  }
 
   gearman_client_free(&client);
 
@@ -236,17 +221,17 @@ test_return_t queue_worker(void *object)
 
   test_true_got(test->run_worker, "run_worker was not set");
 
-  uint32_t counter= 0;
-  test_compare_got(GEARMAN_SUCCESS, 
-                   gearman_worker_add_function(worker, test->worker_function_name(), 5, counter_function, &counter),
-                   gearman_worker_error(worker));
-
-  gearman_worker_set_timeout(worker, 1000);
+  counter_st counter;
+  gearman_function_t counter_function= gearman_function_create(counter_fn);
+  test_compare_got(GEARMAN_SUCCESS, gearman_worker_define_function(worker,
+                                                                   test->worker_function_name(), strlen(test->worker_function_name()),
+                                                                   counter_function,
+                                                                   1000, &counter), gearman_worker_error(worker));
 
   gearman_return_t rc= gearman_worker_work(worker);
   test_compare_got(GEARMAN_SUCCESS, rc, (rc == GEARMAN_TIMEOUT) ? "Worker was not able to connection to the server, is it running?": gearman_strerror(rc));
 
-  test_truth(counter);
+  test_truth(counter.count());
 
   return TEST_SUCCESS;
 }
@@ -284,7 +269,7 @@ test_return_t lp_734663(void *object)
   struct worker_handle_st *worker_handle[NUMBER_OF_WORKERS];
 
   counter_st counter;
-  gearman_function_t counter_function_fn= gearman_function_create(counter_function2);
+  gearman_function_t counter_function_fn= gearman_function_create(counter_fn);
   for (uint32_t x= 0; x < NUMBER_OF_WORKERS; x++)
   {
     worker_handle[x]= test_worker_start(test->port(), NULL, worker_function_name, counter_function_fn, &counter, gearman_worker_options_t());

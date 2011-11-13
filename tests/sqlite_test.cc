@@ -77,7 +77,10 @@ static test_return_t collection_cleanup(void *object)
 {
   Context *test= (Context *)object;
   test->reset();
- 
+
+  unlink("tests/gearman.sql");
+  unlink("tests/gearman.sql-journal");
+
   return TEST_SUCCESS;
 }
 

@@ -236,6 +236,7 @@ drd-cycle: tests/cycle
 
 helgrind-test: helgrind-cycle helgrind-client helgrind-round-robin helgrind-worker helgrind-internals helgrind-sqlite helgrind-tokyocabinet helgrind-burnin
 
+include tests/ephemeral.am
 include tests/libdrizzle.am
 include tests/libmemcached.am
 include tests/postgres.am
