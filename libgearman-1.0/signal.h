@@ -3,7 +3,6 @@
  *  Gearmand client and server library.
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  Copyright (C) 2008 Brian Aker, Eric Day
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -36,54 +35,15 @@
  *
  */
 
-
-/**
- * @file
- * @brief Gearman Declarations
- */
-
 #pragma once
 
-#include <inttypes.h>
+enum gearman_signal_t
+{
+  GEARMAN_INTERRUPT,
+  GEARMAN_KILL
+};
+
 #ifndef __cplusplus
-#  include <stdbool.h>
+typedef enum gearman_signal_t gearman_signal_t;
 #endif
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <poll.h>
-#include <sys/uio.h>
-#include <time.h>
 
-#include <libgearman-1.0/visibility.h>
-#include <libgearman-1.0/version.h>
-#include <libgearman-1.0/constants.h>
-#include <libgearman-1.0/signal.h>
-#include <libgearman-1.0/kill.h>
-#include <libgearman-1.0/job_handle.h>
-#include <libgearman-1.0/client_callbacks.h>
-#include <libgearman-1.0/strerror.h>
-#include <libgearman-1.0/function.h>
-#include <libgearman-1.0/string.h>
-
-#include <libgearman-1.0/actions.h>
-#include <libgearman-1.0/string.h>
-
-#include <libgearman-1.0/aggregator.h>
-
-// Everything above this line must be in the order specified.
-#include <libgearman-1.0/argument.h>
-#include <libgearman-1.0/task_attr.h>
-#include <libgearman-1.0/core.h>
-#include <libgearman-1.0/task.h>
-#include <libgearman-1.0/job.h>
-#include <libgearman-1.0/string.h>
-#include <libgearman-1.0/result.h>
-#include <libgearman-1.0/execute.h>
-#include <libgearman-1.0/util.h>
-
-#include <libgearman-1.0/worker.h>
-#include <libgearman-1.0/client.h>
-#include <libgearman-1.0/connection.h>
-#include <libgearman-1.0/parse.h>

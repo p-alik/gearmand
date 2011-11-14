@@ -36,54 +36,32 @@
  *
  */
 
+#include <libgearman/common.h>
+#include <unistd.h>
 
-/**
- * @file
- * @brief Gearman Declarations
- */
+gearman_return_t gearman_kill(gearman_id_t handle, gearman_signal_t sig)
+{
+  if (handle.fd == INVALID_SOCKET)
+  {
+    return GEARMAN_INVALID_ARGUMENT;
+  }
 
-#pragma once
+  switch (sig)
+  {
+  case GEARMAN_INTERRUPT:
+    if (write(handle.fd, "1", 1) == 1);
+    {
+      return GEARMAN_SUCCESS;
+    }
+    break;
 
-#include <inttypes.h>
-#ifndef __cplusplus
-#  include <stdbool.h>
-#endif
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <poll.h>
-#include <sys/uio.h>
-#include <time.h>
+  case GEARMAN_KILL:
+    if (close(handle.fd) == 0)
+    {
+      return GEARMAN_SUCCESS;
+    }
+    break;
+  }
 
-#include <libgearman-1.0/visibility.h>
-#include <libgearman-1.0/version.h>
-#include <libgearman-1.0/constants.h>
-#include <libgearman-1.0/signal.h>
-#include <libgearman-1.0/kill.h>
-#include <libgearman-1.0/job_handle.h>
-#include <libgearman-1.0/client_callbacks.h>
-#include <libgearman-1.0/strerror.h>
-#include <libgearman-1.0/function.h>
-#include <libgearman-1.0/string.h>
-
-#include <libgearman-1.0/actions.h>
-#include <libgearman-1.0/string.h>
-
-#include <libgearman-1.0/aggregator.h>
-
-// Everything above this line must be in the order specified.
-#include <libgearman-1.0/argument.h>
-#include <libgearman-1.0/task_attr.h>
-#include <libgearman-1.0/core.h>
-#include <libgearman-1.0/task.h>
-#include <libgearman-1.0/job.h>
-#include <libgearman-1.0/string.h>
-#include <libgearman-1.0/result.h>
-#include <libgearman-1.0/execute.h>
-#include <libgearman-1.0/util.h>
-
-#include <libgearman-1.0/worker.h>
-#include <libgearman-1.0/client.h>
-#include <libgearman-1.0/connection.h>
-#include <libgearman-1.0/parse.h>
+  return GEARMAN_COULD_NOT_CONNECT;
+}

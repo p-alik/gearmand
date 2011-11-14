@@ -258,7 +258,7 @@ void gearman_packet_free(gearman_packet_st *packet)
     packet->data= NULL;
   }
 
-  if (not (packet->universal->options.dont_track_packets))
+  if (packet->universal->options.dont_track_packets == false)
   {
     if (packet->universal->packet_list == packet)
       packet->universal->packet_list= packet->next;

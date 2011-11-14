@@ -152,3 +152,5 @@ static inline int gearman_universal_errno(const gearman_universal_st &self)
 {
   return self.error.last_errno;
 }
+
+gearman_id_t gearman_universal_id(gearman_universal_st &universal);

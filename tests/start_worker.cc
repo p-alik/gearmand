@@ -214,6 +214,7 @@ extern "C" {
     assert(&worker);
 
     assert(context->handle);
+    context->handle->worker_id= gearman_worker_id(&worker);
 
     if (context->namespace_key)
     {
@@ -272,10 +273,10 @@ extern "C" {
     }
 
     sem_post(&context->lock);
-    while (context->handle->is_shutdown() == false)
+    gearman_return_t ret= GEARMAN_SUCCESS;
+    while (context->handle->is_shutdown() == false or ret != GEARMAN_SHUTDOWN)
     {
-      gearman_return_t ret= gearman_worker_work(&worker);
-      (void)ret;
+      ret= gearman_worker_work(&worker);
     }
 
     pthread_exit(context);
@@ -327,6 +328,7 @@ struct worker_handle_st *test_worker_start(in_port_t port,
 worker_handle_st::worker_handle_st(const char *namespace_key, const std::string& name_arg, in_port_t port_arg) :
   _shutdown(false),
   _name(name_arg),
+  worker_id(gearman_id_t()),
   _port(port_arg)
 {
   pthread_mutex_init(&_shutdown_lock, NULL);
@@ -367,6 +369,14 @@ bool worker_handle_st::shutdown()
 
   set_shutdown();
 
+  gearman_return_t rc;
+  if (gearman_failed(rc=  gearman_kill(worker_id, GEARMAN_KILL)))
+  {
+    Error << "failed to shutdown " << rc;
+    return false;
+  }
+
+#if 0
   gearman_client_st *client= gearman_client_create(NULL);
 
   if (client == NULL)
@@ -426,6 +436,7 @@ bool worker_handle_st::shutdown()
       Error << "Was unable to drop function " << shutdown_function(true);
     }
   }
+#endif
 
   void *ret;
   pthread_join(thread, &ret);

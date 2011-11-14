@@ -458,6 +458,12 @@ bool gearman_worker_set_server_option(gearman_worker_st *self, const char *optio
 GEARMAN_API
 void gearman_worker_set_namespace(gearman_worker_st *self, const char *namespace_key, size_t namespace_key_size);
 
+GEARMAN_API
+  gearman_id_t gearman_worker_shutdown_handle(gearman_worker_st *self);
+
+GEARMAN_API
+  gearman_id_t gearman_worker_id(gearman_worker_st *self);
+
 /** @} */
 
 #ifdef __cplusplus

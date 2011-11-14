@@ -46,6 +46,7 @@
 #include <cstring>
 #include <memory>
 #include <unistd.h>
+#include <fcntl.h>
 
 /**
  * @addtogroup gearman_worker_static Static Worker Declarations
@@ -162,6 +163,16 @@ void gearman_worker_free(gearman_worker_st *worker)
   if (worker == NULL)
   {
     return;
+  }
+
+  if (worker->universal.wakeup_fd[0] != INVALID_SOCKET)
+  {
+    closesocket(worker->universal.wakeup_fd[0]);
+  }
+
+  if (worker->universal.wakeup_fd[1] != INVALID_SOCKET)
+  {
+    closesocket(worker->universal.wakeup_fd[1]);
   }
 
   gearman_worker_unregister_all(worker);
@@ -1070,20 +1081,19 @@ gearman_return_t gearman_worker_echo(gearman_worker_st *worker,
 
 static gearman_worker_st *_worker_allocate(gearman_worker_st *worker, bool is_clone)
 {
-  if (not worker)
+  if (worker)
+  {
+    worker->options.allocated= false;
+  }
+  else
   {
     worker= new (std::nothrow) gearman_worker_st;
     if (worker == NULL)
     {
-      gearman_perror(worker->universal, "gearman_worker_st new");
       return NULL;
     }
 
     worker->options.allocated= true;
-  }
-  else
-  {
-    worker->options.allocated= false;
   }
 
   worker->options.non_blocking= false;
@@ -1107,12 +1117,31 @@ static gearman_worker_st *_worker_allocate(gearman_worker_st *worker, bool is_cl
   worker->work_function= NULL;
   worker->work_result= NULL;
 
-  if (not is_clone)
+  if (is_clone == false)
   {
     gearman_universal_initialize(worker->universal);
 #if 0
     gearman_universal_set_timeout(worker->universal, GEARMAN_WORKER_WAIT_TIMEOUT);
 #endif
+  }
+
+  if (pipe(worker->universal.wakeup_fd) != 0)
+  {
+    delete worker;
+    return NULL;
+  }
+
+  int returned_flags;
+  if ((returned_flags= fcntl(worker->universal.wakeup_fd[0], F_GETFL, 0)) < 0)
+  {
+    delete worker;
+    return NULL;
+  }
+
+  if (fcntl(worker->universal.wakeup_fd[0], F_SETFL, returned_flags | O_NONBLOCK) < 0)
+  {
+    delete worker;
+    return NULL;
   }
 
   return worker;
@@ -1279,4 +1308,15 @@ void gearman_worker_set_namespace(gearman_worker_st *self, const char *namespace
   }
 
   gearman_universal_set_namespace(self->universal, namespace_key, namespace_key_size);
+}
+
+gearman_id_t gearman_worker_id(gearman_worker_st *self)
+{
+  if (self == NULL)
+  {
+    gearman_id_t handle= { INVALID_SOCKET };
+    return handle;
+  }
+
+  return gearman_universal_id(self->universal);
 }

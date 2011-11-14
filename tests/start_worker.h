@@ -20,6 +20,7 @@ struct worker_handle_st
   std::string _fully_shutdown_function;
   std::string _shutdown_function;
   std::string _name;
+  gearman_id_t worker_id;
   in_port_t _port;
 
   in_port_t port() const
