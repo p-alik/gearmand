@@ -17,22 +17,9 @@ struct worker_handle_st
   pthread_t thread;
   bool _shutdown;
   pthread_mutex_t _shutdown_lock;
-  std::string _shutdown_function;
-  std::string _name;
   gearman_id_t worker_id;
-  in_port_t _port;
 
-  in_port_t port() const
-  {
-    return _port;
-  }
-
-  const std::string& name() const
-  {
-    return _name;
-  }
-
-  worker_handle_st(const char *namespace_key, const std::string& name_arg, in_port_t);
+  worker_handle_st();
   ~worker_handle_st();
 
   void set_shutdown()
@@ -43,6 +30,7 @@ struct worker_handle_st
   }
 
   bool is_shutdown();
+
   bool shutdown();
 };
 

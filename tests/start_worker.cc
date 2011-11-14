@@ -52,10 +52,6 @@
 #include <semaphore.h>
 
 
-#ifdef HAVE_UUID_UUID_H
-#include <uuid/uuid.h>
-#endif
-
 #include <cstdio>
 
 #include <tests/start_worker.h>
@@ -80,8 +76,10 @@ struct context_st {
   sem_t lock;
   volatile bool failed_startup;
 
-  context_st(worker_handle_st* handle_arg, gearman_function_t& arg) :
-    port(handle_arg->port()),
+  context_st(worker_handle_st* handle_arg,
+             gearman_function_t& arg,
+             in_port_t port_arg) :
+    port(port_arg),
     handle(handle_arg),
     options(gearman_worker_options_t()),
     worker_fn(arg),
@@ -218,12 +216,11 @@ struct worker_handle_st *test_worker_start(in_port_t port,
                                            void *context_arg,
                                            gearman_worker_options_t options)
 {
-  worker_handle_st *handle= new worker_handle_st(namespace_key, function_name, port);
+  worker_handle_st *handle= new worker_handle_st();
   assert(handle);
 
-  context_st *context= new context_st(handle, worker_fn);
+  context_st *context= new context_st(handle, worker_fn, port);
 
-  context->port= port;
   context->function_name= function_name;
   context->context= context_arg;
   context->handle= handle;
@@ -253,11 +250,9 @@ struct worker_handle_st *test_worker_start(in_port_t port,
   return handle;
 }
 
-worker_handle_st::worker_handle_st(const char *, const std::string& name_arg, in_port_t port_arg) :
+worker_handle_st::worker_handle_st() :
   _shutdown(false),
-  _name(name_arg),
-  worker_id(gearman_id_t()),
-  _port(port_arg)
+  worker_id(gearman_id_t())
 {
   pthread_mutex_init(&_shutdown_lock, NULL);
 }
