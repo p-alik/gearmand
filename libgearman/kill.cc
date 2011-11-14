@@ -3,6 +3,7 @@
  *  Gearmand client and server library.
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2008 Brian Aker, Eric Day
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -35,45 +36,32 @@
  *
  */
 
-#include <config.h>
-#include <iostream>
+#include <libgearman/common.h>
+#include <unistd.h>
 
-#include <libgearman-server/plugins.h>
-
-#include <libgearman-server/queue.h>
-#include <libgearman-server/plugins/queue.h>
-
-namespace gearmand {
-namespace plugins {
-
-void initialize(boost::program_options::options_description &all)
+gearman_return_t gearman_kill(gearman_id_t handle, gearman_signal_t sig)
 {
-  if (HAVE_LIBDRIZZLE)
+  if (handle.fd == INVALID_SOCKET)
   {
-    queue::initialize_drizzle();
+    return GEARMAN_INVALID_ARGUMENT;
   }
 
-  if (HAVE_LIBMEMCACHED)
+  switch (sig)
   {
-    queue::initialize_libmemcached();
+  case GEARMAN_INTERRUPT:
+    if (write(handle.fd, "1", 1) == 1);
+    {
+      return GEARMAN_SUCCESS;
+    }
+    break;
+
+  case GEARMAN_KILL:
+    if (close(handle.fd) == 0)
+    {
+      return GEARMAN_SUCCESS;
+    }
+    break;
   }
 
-  if (HAVE_LIBSQLITE3)
-  {
-    queue::initialize_sqlite();
-  }
-
-#ifdef HAVE_LIBPQ
-  queue::initialize_postgres();
-#endif
-
-  if (HAVE_LIBTOKYOCABINET)
-  {
-    queue::initialize_tokyocabinet();
-  }
-
-  gearmand::queue::load_options(all);
+  return GEARMAN_COULD_NOT_CONNECT;
 }
-
-} //namespace plugins
-} //namespace gearmand

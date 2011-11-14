@@ -20,7 +20,7 @@
 
 #include <libgearman-server/plugins/queue/drizzle/queue.h>
 #include <libgearman-server/plugins/queue/base.h>
-#include <libdrizzle/drizzle_client.h>
+#include <libdrizzle-1.0/drizzle_client.h>
 
 using namespace gearmand_internal;
 using namespace gearmand;
@@ -197,7 +197,9 @@ gearmand_error_t gearman_server_queue_libdrizzle_init(plugins::queue::Drizzle *q
   drizzle_con_set_db(queue->con, queue->schema.c_str());
 
   if (queue->mysql_protocol)
+  {
     drizzle_con_set_options(queue->con, DRIZZLE_CON_MYSQL);
+  }
 
   if (queue->uds.empty())
   {
@@ -262,7 +264,7 @@ gearmand_error_t gearman_server_queue_libdrizzle_init(plugins::queue::Drizzle *q
       return gearmand_gerror(drizzle_error(queue->drizzle), GEARMAN_QUEUE_ERROR);
     }
 
-    if (libdrizzle_failed(drizzle_column_skip(queue->result())))
+    if (libdrizzle_failed(drizzle_column_skip_all(queue->result())))
     {
       drizzle_result_free(queue->result());
       return gearmand_gerror(drizzle_error(queue->drizzle), GEARMAN_QUEUE_ERROR);
@@ -463,14 +465,14 @@ static gearmand_error_t _dump_queue(plugins::queue::Drizzle *queue)
 
   if (_libdrizzle_query(NULL, queue, query, query_size) != DRIZZLE_RETURN_OK)
   {
-    gearmand_log_error("drizzle_column_skip:%s", drizzle_error(queue->drizzle));
+    gearmand_log_error("drizzle_column_skip_all:%s", drizzle_error(queue->drizzle));
     return GEARMAN_QUEUE_ERROR;
   }
 
-  if (drizzle_column_skip(queue->result()) != DRIZZLE_RETURN_OK)
+  if (drizzle_column_skip_all(queue->result()) != DRIZZLE_RETURN_OK)
   {
     drizzle_result_free(queue->result());
-    gearmand_log_error("drizzle_column_skip:%s", drizzle_error(queue->drizzle));
+    gearmand_log_error("drizzle_column_skip_all:%s", drizzle_error(queue->drizzle));
 
     return GEARMAN_QUEUE_ERROR;
   }
@@ -535,7 +537,7 @@ static gearmand_error_t _libdrizzle_replay(gearman_server_st *server,
     return gearmand_gerror(drizzle_error(queue->drizzle), GEARMAN_QUEUE_ERROR);
   }
 
-  if (drizzle_column_skip(queue->result()) != DRIZZLE_RETURN_OK)
+  if (drizzle_column_skip_all(queue->result()) != DRIZZLE_RETURN_OK)
   {
     drizzle_result_free(queue->result());
     return gearmand_gerror(drizzle_error(queue->drizzle), GEARMAN_QUEUE_ERROR);
@@ -555,7 +557,9 @@ static gearmand_error_t _libdrizzle_replay(gearman_server_st *server,
     }
 
     if (row == NULL)
+    {
       break;
+    }
 
     field_sizes= drizzle_row_field_sizes(queue->result());
 

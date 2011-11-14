@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
 {
   srandom((unsigned int)time(NULL));
 
-  if (getenv("LIBTEST_QUIET"))
+  if (getenv("LIBTEST_QUIET") and strcmp(getenv("LIBTEST_QUIET"), "0") == 0)
   {
     close(STDOUT_FILENO);
   }

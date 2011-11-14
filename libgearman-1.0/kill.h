@@ -35,45 +35,24 @@
  *
  */
 
-#include <config.h>
-#include <iostream>
+#pragma once
 
-#include <libgearman-server/plugins.h>
-
-#include <libgearman-server/queue.h>
-#include <libgearman-server/plugins/queue.h>
-
-namespace gearmand {
-namespace plugins {
-
-void initialize(boost::program_options::options_description &all)
+struct gearman_id_t
 {
-  if (HAVE_LIBDRIZZLE)
-  {
-    queue::initialize_drizzle();
-  }
+  int fd;
+};
 
-  if (HAVE_LIBMEMCACHED)
-  {
-    queue::initialize_libmemcached();
-  }
-
-  if (HAVE_LIBSQLITE3)
-  {
-    queue::initialize_sqlite();
-  }
-
-#ifdef HAVE_LIBPQ
-  queue::initialize_postgres();
+#ifndef __cplusplus
+typedef struct gearman_id_t gearman_id_t;
 #endif
 
-  if (HAVE_LIBTOKYOCABINET)
-  {
-    queue::initialize_tokyocabinet();
-  }
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-  gearmand::queue::load_options(all);
+GEARMAN_API
+  gearman_return_t gearman_kill(gearman_id_t handle, gearman_signal_t);
+
+#ifdef __cplusplus
 }
-
-} //namespace plugins
-} //namespace gearmand
+#endif

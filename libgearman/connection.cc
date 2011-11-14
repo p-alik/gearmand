@@ -572,7 +572,9 @@ gearman_return_t gearman_connection_st::flush()
 
         gearman_return_t gret= gearman_wait(universal);
         if (gearman_failed(gret))
+        {
           return gret;
+        }
       }
 
       if (state != GEARMAN_CON_UNIVERSAL_CONNECTED)
@@ -600,7 +602,9 @@ gearman_return_t gearman_connection_st::flush()
 
             gearman_return_t gret= gearman_wait(universal);
             if (gearman_failed(gret))
+            {
               return gret;
+            }
 
             continue;
           }
@@ -831,6 +835,22 @@ size_t gearman_connection_st::recv(void *data, size_t data_size, gearman_return_
         }
 
         ret= gearman_wait(universal);
+
+        if (ret == GEARMAN_SHUTDOWN_GRACEFUL)
+        {
+          ret= gearman_kill(gearman_universal_id(universal), GEARMAN_INTERRUPT);
+
+          if (gearman_failed(ret))
+          {
+            ret= GEARMAN_SHUTDOWN;
+          }
+        }
+        else if (ret == GEARMAN_SHUTDOWN)
+        {
+          close();
+          return 0;
+        }
+
         if (gearman_failed(ret))
         {
           return 0;

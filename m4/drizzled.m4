@@ -1,29 +1,10 @@
-AC_DEFUN([WITH_DRIZZLED],
-  [AC_ARG_WITH([drizzled],
-    [AS_HELP_STRING([--with-drizzled],
-      [Drizzled binary to use for make test])],
-    [ac_cv_with_drizzled="$withval"],
-    [ac_cv_with_drizzled=drizzled])
-
-  # Disable if --without-drizzled
-  # only used by make test
-  AS_IF([test "x$withval" = "xno"],
-    [
-      ac_cv_with_drizzled=
-      DRIZZLED_BINARY=
-    ],
-    [
-       AS_IF([test -f "$withval"],
-         [
-           ac_cv_with_drizzled=$withval
-           DRIZZLED_BINARY=$withval
-           AC_DEFINE_UNQUOTED([DRIZZLED_BINARY], "$DRIZZLED_BINARY", [Name of the drizzled binary used in make test])
-         ],
-         [
-           ac_cv_with_drizzled=
-           DRIZZLED_BINARY=
-         ])
-    ])
-  AM_CONDITIONAL(HAVE_DRIZZLED, test -n ${ac_cv_with_drizzled})
-  AC_SUBST(DRIZZLED_BINARY)
-])
+AX_WITH_PROG(DRIZZLED_BINARY, drizzled)
+AS_IF([test -f "$ac_cv_path_DRIZZLED_BINARY"],
+      [
+        AC_DEFINE([HAVE_DRIZZLED_BINARY], [1], [If Drizzled binary is available])
+        AC_DEFINE_UNQUOTED([DRIZZLED_BINARY], "$ac_cv_path_DRIZZLED_BINARY", [Name of the drizzled binary used in make test])
+       ],
+       [
+        AC_DEFINE([HAVE_DRIZZLED_BINARY], [0], [If Drizzled binary is available])
+        AC_DEFINE([DRIZZLED_BINARY], [0], [Name of the drizzled binary used in make test])
+      ])

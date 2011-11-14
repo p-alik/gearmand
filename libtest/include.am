@@ -35,6 +35,9 @@ export GDB_COMMAND
 valgrind:
 	@echo make check TESTS_ENVIRONMENT="\"$(VALGRIND_COMMAND)\""
 
+gdb:
+	@echo make check TESTS_ENVIRONMENT="\"$(GDB_COMMAND)\""
+
 helgrind:
 	@echo make check TESTS_ENVIRONMENT="\"$(HELGRIND_COMMAND)\""
 
@@ -67,6 +70,7 @@ noinst_HEADERS+= \
 		 libtest/framework.h \
 		 libtest/gearmand.h \
 		 libtest/get.h \
+		 libtest/has.hpp \
 		 libtest/is_pid.hpp \
 		 libtest/is_local.hpp \
 		 libtest/killpid.h \
@@ -94,6 +98,7 @@ libtest_libtest_la_SOURCES= \
 			    libtest/core.cc \
 			    libtest/dream.cc \
 			    libtest/framework.cc \
+			    libtest/has.cc \
 			    libtest/is_local.cc \
 			    libtest/killpid.cc \
 			    libtest/libtool.cc \

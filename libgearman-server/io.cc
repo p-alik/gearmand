@@ -812,7 +812,9 @@ void gearmand_sockfd_close(int sockfd)
 void gearmand_pipe_close(int pipefd)
 {
   if (pipefd == INVALID_SOCKET)
+  {
     return;
+  }
 
   if (closesocket(pipefd) == SOCKET_ERROR)
   {

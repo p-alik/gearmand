@@ -18,12 +18,14 @@ nobase_include_HEADERS+= \
 			 libgearman-1.0/gearman.h \
 			 libgearman-1.0/job.h \
 			 libgearman-1.0/job_handle.h \
+			 libgearman-1.0/kill.h \
 			 libgearman-1.0/packet.h \
 			 libgearman-1.0/parse.h \
 			 libgearman-1.0/priority.h \
 			 libgearman-1.0/protocol.h \
 			 libgearman-1.0/result.h \
 			 libgearman-1.0/return.h \
+			 libgearman-1.0/signal.h \
 			 libgearman-1.0/strerror.h \
 			 libgearman-1.0/string.h \
 			 libgearman-1.0/task.h \

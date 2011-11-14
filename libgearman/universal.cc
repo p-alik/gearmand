@@ -50,6 +50,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <unistd.h>
 
 void gearman_universal_initialize(gearman_universal_st &self, const gearman_universal_options_t *options)
 {
@@ -87,6 +88,8 @@ void gearman_universal_initialize(gearman_universal_st &self, const gearman_univ
   self.error.rc= GEARMAN_SUCCESS;
   self.error.last_errno= 0;
   self.error.last_error[0]= 0;
+  self.wakeup_fd[0]= INVALID_SOCKET;
+  self.wakeup_fd[1]= INVALID_SOCKET;
 }
 
 void gearman_nap(int arg)
@@ -218,11 +221,15 @@ gearman_return_t gearman_flush_all(gearman_universal_st& universal)
   for (gearman_connection_st *con= universal.con_list; con; con= con->next)
   {
     if (con->events & POLLOUT)
+    {
       continue;
+    }
 
     gearman_return_t ret= con->flush();
     if (gearman_failed(ret) and ret != GEARMAN_IO_WAIT)
+    {
       return ret;
+    }
   }
 
   return GEARMAN_SUCCESS;
@@ -232,17 +239,20 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
 {
   struct pollfd *pfds;
 
-  if (universal.pfds_size < universal.con_count)
+  bool have_shutdown_pipe= universal.wakeup_fd[0] == INVALID_SOCKET ? false : true;
+  size_t con_count= universal.con_count + int(have_shutdown_pipe);
+
+  if (universal.pfds_size < con_count)
   {
-    pfds= static_cast<pollfd*>(realloc(universal.pfds, universal.con_count * sizeof(struct pollfd)));
-    if (not pfds)
+    pfds= static_cast<pollfd*>(realloc(universal.pfds, con_count * sizeof(struct pollfd)));
+    if (pfds == NULL)
     {
       gearman_perror(universal, "pollfd realloc");
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
 
     universal.pfds= pfds;
-    universal.pfds_size= universal.con_count;
+    universal.pfds_size= con_count;
   }
   else
   {
@@ -266,6 +276,17 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
     return gearman_error(universal, GEARMAN_NO_ACTIVE_FDS, "no active file descriptors");
   }
 
+  // Wakeup handling, we only make use of this if we have active connections
+  size_t pipe_array_iterator= 0;
+  if (have_shutdown_pipe)
+  {
+    pipe_array_iterator= x;
+    pfds[x].fd= universal.wakeup_fd[0];
+    pfds[x].events= POLLIN;
+    pfds[x].revents= 0;
+    x++;
+  }
+
   int ret= 0;
   while (universal.timeout)
   {
@@ -285,7 +306,7 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
     break;
   }
 
-  if (not ret)
+  if (ret == 0)
   {
     gearman_error(universal, GEARMAN_TIMEOUT, "timeout reached");
     return GEARMAN_TIMEOUT;
@@ -295,7 +316,9 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
   for (gearman_connection_st *con= universal.con_list; con; con= con->next)
   {
     if (con->events == 0)
+    {
       continue;
+    }
 
     int err;
     socklen_t len= sizeof (err);
@@ -308,6 +331,23 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
     con->set_revents(pfds[x].revents);
 
     x++;
+  }
+
+  if (have_shutdown_pipe and pfds[pipe_array_iterator].revents)
+  {
+    char buffer[1];
+    ssize_t read_length= read(universal.wakeup_fd[0], buffer, sizeof(buffer));
+    if (read_length > 0)
+    {
+      return GEARMAN_SHUTDOWN_GRACEFUL;
+    }
+    if (read_length == 0)
+    {
+      return GEARMAN_SHUTDOWN;
+    }
+
+    perror("shudown read");
+    // @todo figure out what happens in an error
   }
 
   return GEARMAN_SUCCESS;
@@ -479,6 +519,13 @@ void gearman_free_all_packets(gearman_universal_st &universal)
   {
     gearman_packet_free(universal.packet_list);
   }
+}
+
+gearman_id_t gearman_universal_id(gearman_universal_st &universal)
+{
+  gearman_id_t handle= { universal.wakeup_fd[1] };
+
+  return handle;
 }
 
 /*

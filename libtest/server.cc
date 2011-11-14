@@ -43,7 +43,7 @@ static inline std::string &rtrim(std::string &s)
 #include <libtest/killpid.h>
 
 extern "C" {
-  static bool exited_successfully(int status)
+  static bool exited_successfully(int status, const std::string &command)
   {
     if (status == 0)
     {
@@ -60,7 +60,7 @@ extern "C" {
       }
       else if (ret == EXIT_FAILURE)
       {
-        libtest::Error << "Command executed, but returned EXIT_FAILURE";
+        libtest::Error << "Command executed, but returned EXIT_FAILURE: " << command;
       }
       else
       {
@@ -198,7 +198,7 @@ bool Server::start()
   }
 
   int ret= system(_running.c_str());
-  if (not exited_successfully(ret))
+  if (not exited_successfully(ret, _running))
   {
     Error << "system() failed:" << strerror(errno);
     _running.clear();

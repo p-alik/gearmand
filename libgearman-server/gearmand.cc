@@ -723,7 +723,6 @@ static gearmand_error_t _wakeup_init(gearmand_st *gearmand)
   }
 
   if (fcntl(gearmand->wakeup_fd[0], F_SETFL, returned_flags | O_NONBLOCK) < 0)
-
   {
     gearmand_perror("F_SETFL");
     return GEARMAN_ERRNO;

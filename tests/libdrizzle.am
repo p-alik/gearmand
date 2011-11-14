@@ -16,7 +16,14 @@ test-drizzle: tests/drizzle_test
 tests_drizzle_test_SOURCES= \
 			    tests/basic.cc \
 			    tests/drizzle_test.cc
-tests_drizzle_test_DEPENDENCIES= ${CLIENT_LDADD}
-tests_drizzle_test_LDADD= $(tests_drizzle_test_DEPENDENCIES)
-check_PROGRAMS += tests/drizzle_test
+tests_drizzle_test_CXXFLAGS=
+tests_drizzle_test_DEPENDENCIES= ${CLIENT_LDADD} gearmand/gearmand
+tests_drizzle_test_LDADD= ${CLIENT_LDADD}
+
+if HAVE_LIBDRIZZLE
+tests_drizzle_test_LDADD+= $(libdrizzle_LIBS)
+tests_drizzle_test_CXXFLAGS+= $(libdrizzle_CFLAGS)
+endif
+
+#check_PROGRAMS += tests/drizzle_test
 noinst_PROGRAMS += tests/drizzle_test

@@ -24,12 +24,15 @@ noinst_HEADERS+= \
 		 libhostile/setsockopt.h \
 		 libhostile/write.h
 
-libhostile_libhostile_la_SOURCES= \
-				  libhostile/getaddrinfo.c \
-				  libhostile/initialize.c \
-				  libhostile/malloc.c \
-				  libhostile/realloc.c \
-				  libhostile/recv.c \
-				  libhostile/send.c \
-				  libhostile/setsockopt.c \
-				  libhostile/write.c
+libhostile_libhostile_la_SOURCES= libhostile/initialize.c
+
+if TARGET_LINUX
+libhostile_libhostile_la_SOURCES+= \
+				   libhostile/getaddrinfo.c \
+				   libhostile/malloc.c \
+				   libhostile/realloc.c \
+				   libhostile/recv.c \
+				   libhostile/send.c \
+				   libhostile/setsockopt.c \
+				   libhostile/write.c
+endif

@@ -99,9 +99,20 @@ enum gearman_return_t
   GEARMAN_ERROR= GEARMAN_WORK_ERROR
 };
 
-#define gearman_continue(__gearman_return_t) (((__gearman_return_t) == GEARMAN_IO_WAIT) || ((__gearman_return_t) == GEARMAN_IN_PROGRESS) ||  ((__gearman_return_t) == GEARMAN_PAUSE) || ((__gearman_return_t) == GEARMAN_JOB_EXISTS))
-#define gearman_failed(__gearman_return_t) ((__gearman_return_t) != GEARMAN_SUCCESS)
-#define gearman_success(__gearman_return_t) ((__gearman_return_t) == GEARMAN_SUCCESS)
+static inline bool gearman_continue(enum gearman_return_t rc)
+{
+  return rc == GEARMAN_IO_WAIT || rc == GEARMAN_IN_PROGRESS ||  rc == GEARMAN_PAUSE || rc == GEARMAN_JOB_EXISTS;
+}
+
+static inline bool gearman_failed(enum gearman_return_t rc)
+{
+  return rc != GEARMAN_SUCCESS;
+}
+
+static inline bool gearman_success(enum gearman_return_t rc)
+{
+  return rc == GEARMAN_SUCCESS;
+}
 
 #ifndef __cplusplus
 typedef enum gearman_return_t gearman_return_t;

@@ -1,5 +1,5 @@
 /* Gearman server and library
- * Copyright (C) 2008 Brian Aker, Eric Day
+ * Copyright (C) 2011 Data Differential, http://datadifferential.com/
  * All rights reserved.
  *
  * Use and distribution licensed under the BSD license.  See
@@ -28,22 +28,14 @@ using namespace libtest;
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
-static test_return_t gearmand_basic_option_test(void *)
-{
-  const char *args[]= { "--queue=libmemcached",  "--libmemcached-servers=localhost:12555", "--check-args", 0 };
-
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args));
-  return TEST_SUCCESS;
-}
-
 static test_return_t collection_init(void *object)
 {
-  const char *argv[3]= { "test_gearmand", "--libmemcached-servers=localhost:12555", "--queue-type=libmemcached" };
+  const char *argv[3]= { "test_gearmand" };
 
   Context *test= (Context *)object;
   assert(test);
 
-  test_truth(test->initialize(3, argv));
+  test_truth(test->initialize(1, argv));
 
   return TEST_SUCCESS;
 }
@@ -59,20 +51,8 @@ static test_return_t collection_cleanup(void *object)
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  if (has_memcached_support() == false)
-  {
-    error= TEST_SKIPPED;
-    return NULL;
-  }
-
-  if (not server_startup(servers, "memcached", 12555, 0, NULL))
-  {
-    error= TEST_FAILURE;
-    return NULL;
-  }
-
-  Context *test= new Context(MEMCACHED_TEST_PORT, servers);
-  if (not test)
+  Context *test= new Context(EPHEMERAL_PORT, servers);
+  if (test == NULL)
   {
     error= TEST_MEMORY_ALLOCATION_FAILURE;
     return NULL;
@@ -90,11 +70,6 @@ static bool world_destroy(void *object)
   return TEST_SUCCESS;
 }
 
-test_st gearmand_basic_option_tests[] ={
-  {"--queue=libmemcached --libmemcached-servers=", 0, gearmand_basic_option_test },
-  {0, 0, 0}
-};
-
 test_st tests[] ={
   {"gearman_client_echo()", 0, client_echo_test },
   {"gearman_client_echo() fail", 0, client_echo_fail_test },
@@ -106,8 +81,7 @@ test_st tests[] ={
 };
 
 collection_st collection[] ={
-  {"gearmand options", 0, 0, gearmand_basic_option_tests},
-  {"memcached queue", collection_init, collection_cleanup, tests},
+  {"ephemeral queue", collection_init, collection_cleanup, tests},
   {0, 0, 0, 0}
 };
 

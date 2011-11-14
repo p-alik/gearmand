@@ -59,6 +59,8 @@
 #include <libgearman-1.0/visibility.h>
 #include <libgearman-1.0/version.h>
 #include <libgearman-1.0/constants.h>
+#include <libgearman-1.0/signal.h>
+#include <libgearman-1.0/kill.h>
 #include <libgearman-1.0/job_handle.h>
 #include <libgearman-1.0/client_callbacks.h>
 #include <libgearman-1.0/strerror.h>

@@ -60,21 +60,21 @@ _worker_function_st *make(gearman_vector_st* namespace_arg,
       break;
 
     case GEARMAN_WORKER_FUNCTION_V2:
-      function=  new (std::nothrow) FunctionV2(function_arg.callback.function_v2.func, context_arg);
+      function= new (std::nothrow) FunctionV2(function_arg.callback.function_v2.func, context_arg);
       break;
 
     case GEARMAN_WORKER_FUNCTION_PARTITION:
-      function=  new (std::nothrow) Partition(function_arg.callback.partitioner.func, 
-                                              function_arg.callback.partitioner.aggregator,
-                                              context_arg);
+      function= new (std::nothrow) Partition(function_arg.callback.partitioner.func, 
+                                             function_arg.callback.partitioner.aggregator,
+                                             context_arg);
       break;
 
     case GEARMAN_WORKER_FUNCTION_NULL:
-      function=  new (std::nothrow) Null(context_arg);
+      function= new (std::nothrow) Null(context_arg);
       break;
   }
 
-  if (function and not function->init(namespace_arg, name, name_length))
+  if (function and function->init(namespace_arg, name, name_length) == false)
   {
     delete function;
     return NULL;

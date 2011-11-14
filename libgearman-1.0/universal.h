@@ -75,4 +75,5 @@ struct gearman_universal_st
     int last_errno;
     char last_error[GEARMAN_MAX_ERROR_SIZE];
   } error;
+  int wakeup_fd[2];
 };
