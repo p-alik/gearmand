@@ -17,7 +17,6 @@ struct worker_handle_st
   pthread_t thread;
   bool _shutdown;
   pthread_mutex_t _shutdown_lock;
-  std::string _fully_shutdown_function;
   std::string _shutdown_function;
   std::string _name;
   gearman_id_t worker_id;
@@ -26,16 +25,6 @@ struct worker_handle_st
   in_port_t port() const
   {
     return _port;
-  }
-
-  const std::string& shutdown_function(bool fully_qualified= false) const
-  {
-    if (fully_qualified)
-    {
-      return _fully_shutdown_function;
-    }
-
-    return _shutdown_function;
   }
 
   const std::string& name() const

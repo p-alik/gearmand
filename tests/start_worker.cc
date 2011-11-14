@@ -68,66 +68,6 @@ using namespace datadifferential;
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
-/*
-  Print to debug the output of what workers a server might have.
-*/
-class Finish : public util::Instance::Finish
-{
-public:
-  bool call(bool success, const std::string &response)
-  {
-    if (success)
-    {
-      if (response.empty())
-      {
-        std::cout << "OK" << std::endl;
-      }
-      else
-      {
-        std::cout << response;
-      }
-    }
-    else if (not response.empty())
-    {
-      std::cerr << "Error: " << response;
-    }
-    else
-    {
-      std::cerr << "Error" << std::endl;
-    }
-
-    return true;
-  }
-};
-
-class Status : public util::Instance::Finish
-{
-  bool _dropped;
-
-public:
-
-  Status() :
-    _dropped(false)
-  { }
-
-  bool call(bool success, const std::string &)
-  {
-    _dropped= success;
-
-    return true;
-  }
-
-  bool dropped() const
-  {
-    return _dropped;
-  }
-};
-
-static gearman_return_t shutdown_fn(gearman_job_st*, void* /* context */)
-{
-  return GEARMAN_SHUTDOWN;
-}
-
 struct context_st {
   in_port_t port;
   const char *function_name;
@@ -146,7 +86,6 @@ struct context_st {
     options(gearman_worker_options_t()),
     worker_fn(arg),
     namespace_key(NULL),
-    _shutdown_function(handle_arg->shutdown_function()),
     context(0),
     failed_startup(false)
   {
@@ -245,17 +184,6 @@ extern "C" {
       }
     }
 
-    gearman_function_t shutdown_function= gearman_function_create(shutdown_fn);
-    if (gearman_failed(gearman_worker_define_function(&worker,
-                                                      context->shutdown_function().c_str(), context->shutdown_function().size(),
-                                                      shutdown_function,
-                                                      0, 0)))
-    {
-      Error << "Failed to add function shutdown(" << gearman_worker_error(&worker) << ")";
-      context->fail();
-      pthread_exit(0);
-    }
-
     if (gearman_failed(gearman_worker_define_function(&worker,
                                                       context->function_name, strlen(context->function_name), 
                                                       context->worker_fn,
@@ -325,28 +253,13 @@ struct worker_handle_st *test_worker_start(in_port_t port,
   return handle;
 }
 
-worker_handle_st::worker_handle_st(const char *namespace_key, const std::string& name_arg, in_port_t port_arg) :
+worker_handle_st::worker_handle_st(const char *, const std::string& name_arg, in_port_t port_arg) :
   _shutdown(false),
   _name(name_arg),
   worker_id(gearman_id_t()),
   _port(port_arg)
 {
   pthread_mutex_init(&_shutdown_lock, NULL);
-
-  uuid_t uuid;
-  char uuid_string[37];
-  uuid_generate(uuid);
-  uuid_unparse(uuid, uuid_string);
-  uuid_string[36]= 0;
-
-  _shutdown_function.append(uuid_string);
-  _shutdown_function.append("_SHUTDOWN");
-
-  if (namespace_key)
-  {
-    _fully_shutdown_function.append(namespace_key);
-  }
-  _fully_shutdown_function+= _shutdown_function;
 }
 
 bool worker_handle_st::is_shutdown()
@@ -375,68 +288,6 @@ bool worker_handle_st::shutdown()
     Error << "failed to shutdown " << rc;
     return false;
   }
-
-#if 0
-  gearman_client_st *client= gearman_client_create(NULL);
-
-  if (client == NULL)
-  {
-    Error << "gearman_client_create(" << gearman_client_error(client) << ")";
-    gearman_client_free(client);
-    return false;
-  }
-
-  if (gearman_failed(gearman_client_add_server(client, NULL, port())))
-  {
-    Error << "gearman_client_add_server(" << gearman_client_error(client) << ")";
-    gearman_client_free(client);
-    return false;
-  }
-
-  // If the worker is non-responsive this will allow us to not get stuck in
-  // gearman_wait().
-  gearman_client_set_timeout(client, 1000);
-
-  gearman_return_t rc;
-  (void)gearman_client_do(client, shutdown_function(true).c_str(), NULL, NULL, 0, 0, &rc);
-  gearman_client_free(client);
-
-  if (gearman_failed(rc))
-  {
-    if (0)
-    {
-      Error << "Trying to see what workers are registered:" << port();
-      util::Instance instance("localhost", port());
-      instance.set_finish(new Finish);
-
-      instance.push(new util::Operation(test_literal_param("workers\r\n")));
-
-      instance.run();
-    }
-
-    pthread_cancel(thread);
-
-    return false;
-  }
-  else
-  {
-    Status *status;
-    util::Instance instance("localhost", port());
-    instance.set_finish(status= new Status);
-
-    std::string execute(test_literal_param("drop function "));
-    execute.append(shutdown_function(true));
-    execute.append("\r\n");
-    instance.push(new util::Operation(execute.c_str(), execute.size()));
-
-    instance.run();
-
-    if (not status->dropped())
-    {
-      Error << "Was unable to drop function " << shutdown_function(true);
-    }
-  }
-#endif
 
   void *ret;
   pthread_join(thread, &ret);
