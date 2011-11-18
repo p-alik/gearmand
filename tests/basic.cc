@@ -180,17 +180,17 @@ test_return_t queue_add(void *object)
   client_ptr= gearman_client_create(&client);
   test_truth(client_ptr);
 
-  test_true_got(gearman_success(gearman_client_add_server(&client, NULL, test->port())), gearman_client_error(client_ptr));
+  test_compare_hint(GEARMAN_SUCCESS, 
+                    gearman_client_add_server(&client, NULL, test->port()),
+                    gearman_client_error(client_ptr));
 
-  test_compare(GEARMAN_SUCCESS,
-               gearman_client_echo(&client, test_literal_param("echo test message")));
+  gearman_return_t rctmp= gearman_client_echo(&client, test_literal_param("echo test message"));
+  test_compare_hint(GEARMAN_SUCCESS, rctmp, gearman_strerror(rctmp));
 
   {
     gearman_job_handle_t job_handle= {};
-    test_compare(GEARMAN_SUCCESS,
-                 gearman_client_do_background(&client, test->worker_function_name(), NULL, 
-                                              test_literal_param("background_payload"),
-                                              job_handle));
+    gearman_return_t ret= gearman_client_do_background(&client, test->worker_function_name(), NULL, test_literal_param("background_payload"), job_handle);
+    test_compare_hint(GEARMAN_SUCCESS, ret, gearman_strerror(ret));
     test_truth(job_handle[0]);
 
     gearman_return_t rc;

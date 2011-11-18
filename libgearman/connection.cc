@@ -170,22 +170,28 @@ gearman_connection_st *gearman_connection_copy(gearman_universal_st& universal,
 
 gearman_connection_st::~gearman_connection_st()
 {
-  if (fd != -1)
+  if (fd != INVALID_SOCKET)
   {
-    close();
+    close_socket();
   }
 
   reset_addrinfo();
 
   { // Remove from universal list
     if (universal.con_list == this)
+    {
       universal.con_list= next;
+    }
 
     if (prev)
+    {
       prev->next= next;
+    }
 
     if (next)
+    {
       next->prev= prev;
+    }
 
     universal.con_count--;
   }
@@ -252,14 +258,14 @@ void gearman_connection_st::set_host(const char *host_arg, const in_port_t port_
   port= in_port_t(port_arg == 0 ? GEARMAN_DEFAULT_TCP_PORT : port_arg);
 }
 
-void gearman_connection_st::close()
+void gearman_connection_st::close_socket()
 {
   if (fd == INVALID_SOCKET)
   {
     return;
   }
 
-  /* in case of death shutdown to avoid blocking at close() */
+  /* in case of death shutdown to avoid blocking at close_socket() */
   if (shutdown(fd, SHUT_RDWR) == SOCKET_ERROR && get_socket_errno() != ENOTCONN)
   {
     gearman_perror(universal, "shutdown");
@@ -489,7 +495,7 @@ gearman_return_t gearman_connection_st::flush()
     case GEARMAN_CON_UNIVERSAL_CONNECT:
       if (fd != INVALID_SOCKET)
       {
-        close();
+        close_socket();
       }
 
       if (addrinfo_next == NULL)
@@ -509,7 +515,7 @@ gearman_return_t gearman_connection_st::flush()
         gearman_return_t gret= _con_setsockopt(this);
         if (gearman_failed(gret))
         {
-          close();
+          close_socket();
           return gret;
         }
       }
@@ -540,7 +546,7 @@ gearman_return_t gearman_connection_st::flush()
         }
 
         gearman_perror(universal, "connect");
-        close();
+        close_socket();
         return GEARMAN_ERRNO;
       }
 
@@ -615,12 +621,13 @@ gearman_return_t gearman_connection_st::flush()
           else if (errno == EPIPE || errno == ECONNRESET || errno == EHOSTDOWN)
           {
             gearman_perror(universal, "lost connection to server during send");
-            close();
+            close_socket();
             return GEARMAN_LOST_CONNECTION;
           }
 
           gearman_perror(universal, "send");
-          close();
+          close_socket();
+
           return GEARMAN_ERRNO;
         }
 
@@ -654,7 +661,8 @@ gearman_return_t gearman_connection_st::flush()
 }
 
 gearman_packet_st *gearman_connection_st::receiving(gearman_packet_st& packet_arg,
-                                                    gearman_return_t& ret, const bool recv_data)
+                                                    gearman_return_t& ret,
+                                                    const bool recv_data)
 {
   switch (recv_state)
   {
@@ -667,7 +675,7 @@ gearman_packet_st *gearman_connection_st::receiving(gearman_packet_st& packet_ar
     }
 
     recv_packet= gearman_packet_create(universal, &packet_arg);
-    if (not recv_packet)
+    if (recv_packet == NULL)
     {
       ret= GEARMAN_MEMORY_ALLOCATION_FAILURE;
       return NULL;
@@ -692,7 +700,7 @@ gearman_packet_st *gearman_connection_st::receiving(gearman_packet_st& packet_ar
         }
         else if (ret != GEARMAN_IO_WAIT)
         {
-          close();
+          close_socket();
           return NULL;
         }
       }
@@ -704,7 +712,7 @@ gearman_packet_st *gearman_connection_st::receiving(gearman_packet_st& packet_ar
       }
       recv_buffer_ptr= recv_buffer;
 
-      size_t recv_size= recv(recv_buffer + recv_buffer_size, GEARMAN_RECV_BUFFER_SIZE - recv_buffer_size, ret);
+      size_t recv_size= recv_socket(recv_buffer + recv_buffer_size, GEARMAN_RECV_BUFFER_SIZE - recv_buffer_size, ret);
       if (gearman_failed(ret))
       {
         return NULL;
@@ -732,7 +740,7 @@ gearman_packet_st *gearman_connection_st::receiving(gearman_packet_st& packet_ar
     if (not packet_arg.data)
     {
       ret= GEARMAN_MEMORY_ALLOCATION_FAILURE;
-      close();
+      close_socket();
       return NULL;
     }
 
@@ -788,7 +796,7 @@ size_t gearman_connection_st::receiving(void *data, size_t data_size, gearman_re
 
   if (data_size != recv_size)
   {
-    recv_size+= recv(static_cast<uint8_t *>(const_cast<void *>(data)) + recv_size, data_size - recv_size, ret);
+    recv_size+= recv_socket(static_cast<uint8_t *>(const_cast<void *>(data)) + recv_size, data_size - recv_size, ret);
     recv_data_offset+= recv_size;
   }
   else
@@ -807,7 +815,7 @@ size_t gearman_connection_st::receiving(void *data, size_t data_size, gearman_re
   return recv_size;
 }
 
-size_t gearman_connection_st::recv(void *data, size_t data_size, gearman_return_t& ret)
+size_t gearman_connection_st::recv_socket(void *data, size_t data_size, gearman_return_t& ret)
 {
   ssize_t read_size;
 
@@ -817,8 +825,9 @@ size_t gearman_connection_st::recv(void *data, size_t data_size, gearman_return_
     if (read_size == 0)
     {
       gearman_error(universal, GEARMAN_LOST_CONNECTION, "lost connection to server (EOF)");
-      close();
+      close_socket();
       ret= GEARMAN_LOST_CONNECTION;
+
       return 0;
     }
     else if (read_size == -1)
@@ -847,7 +856,7 @@ size_t gearman_connection_st::recv(void *data, size_t data_size, gearman_return_
         }
         else if (ret == GEARMAN_SHUTDOWN)
         {
-          close();
+          close_socket();
           return 0;
         }
 
@@ -873,7 +882,7 @@ size_t gearman_connection_st::recv(void *data, size_t data_size, gearman_return_
         ret= GEARMAN_ERRNO;
       }
 
-      close();
+      close_socket();
       return 0;
     }
 

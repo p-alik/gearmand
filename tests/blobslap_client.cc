@@ -101,12 +101,12 @@ collection_st collection[] ={
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
   const char *argv[1]= { "blobslap_client" };
-  if (not server_startup(servers, "gearmand", BLOBSLAP_CLIENT_TEST_PORT, 1, argv))
+  if (server_startup(servers, "gearmand", BLOBSLAP_CLIENT_TEST_PORT, 1, argv) == false)
   {
     error= TEST_FAILURE;
   }
 
-  if (not server_startup(servers, "blobslap_worker", BLOBSLAP_CLIENT_TEST_PORT, 1, argv))
+  if (server_startup(servers, "blobslap_worker", BLOBSLAP_CLIENT_TEST_PORT, 1, argv) == false)
   {
     error= TEST_FAILURE;
   }

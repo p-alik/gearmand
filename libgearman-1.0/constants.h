@@ -43,6 +43,7 @@
 #include <libgearman-1.0/priority.h>
 #include <libgearman-1.0/protocol.h>
 #include <libgearman-1.0/return.h>
+#include <libgearman-1.0/limits.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -55,25 +56,6 @@ extern "C" {
  * @ingroup gearman_worker
  * @{
  */
-
-/* Defines. */
-#define GEARMAN_ARGS_BUFFER_SIZE 128
-#define GEARMAN_DEFAULT_SOCKET_RECV_SIZE 32768
-#define GEARMAN_DEFAULT_SOCKET_SEND_SIZE 32768
-#define GEARMAN_DEFAULT_SOCKET_TIMEOUT 10
-#define GEARMAN_DEFAULT_TCP_HOST "127.0.0.1"
-#define GEARMAN_JOB_HANDLE_SIZE 64
-#define GEARMAN_MAXIMUM_INTEGER_DISPLAY_LENGTH 20
-#define GEARMAN_MAX_COMMAND_ARGS 8
-#define GEARMAN_MAX_ERROR_SIZE 1024
-#define GEARMAN_OPTION_SIZE 64
-#define GEARMAN_PACKET_HEADER_SIZE 12
-#define GEARMAN_RECV_BUFFER_SIZE 8192
-#define GEARMAN_SEND_BUFFER_SIZE 8192
-#define GEARMAN_UNIQUE_SIZE 64
-#define GEARMAN_UNIQUE_MAX_SIZE 64
-#define GEARMAN_WORKER_WAIT_TIMEOUT (10 * 1000) /* Milliseconds */
-#define GEARMAN_FUNCTION_MAX_SIZE 512
 
 /**
  * Verbosity levels.

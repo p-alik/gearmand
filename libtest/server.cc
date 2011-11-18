@@ -198,9 +198,9 @@ bool Server::start()
   }
 
   int ret= system(_running.c_str());
-  if (not exited_successfully(ret, _running))
+  if (exited_successfully(ret, _running) == false)
   {
-    Error << "system() failed:" << strerror(errno);
+    Error << "system(" << _running << ") failed: " << strerror(errno);
     _running.clear();
     return false;
   }
@@ -210,7 +210,7 @@ bool Server::start()
     dream(5, 50000);
   }
 
-  if (pid_file_option() and not pid_file().empty())
+  if (pid_file_option() and pid_file().empty() == false)
   {
     Wait wait(pid_file(), 8);
 
@@ -229,7 +229,7 @@ bool Server::start()
   if (count == 0)
   {
     // If we happen to have a pid file, lets try to kill it
-    if (pid_file_option() and not pid_file().empty())
+    if (pid_file_option() and pid_file().empty() == false)
     {
       kill_file(pid_file());
     }
@@ -390,7 +390,7 @@ bool Server::args(std::string& options)
   // Update pid_file
   if (pid_file_option())
   {
-    if (_pid_file.empty() and not set_pid_file())
+    if (_pid_file.empty() and set_pid_file() == false)
     {
       return false;
     }
@@ -449,7 +449,7 @@ bool Server::kill(pid_t pid_arg)
 {
   if (check_pid(pid_arg) and kill_pid(pid_arg)) // If we kill it, reset
   {
-    if (broken_pid_file() and not pid_file().empty())
+    if (broken_pid_file() and pid_file().empty() == false)
     {
       unlink(pid_file().c_str());
     }

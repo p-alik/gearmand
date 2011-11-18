@@ -720,7 +720,7 @@ static test_return_t gearman_worker_failover_test(void *object)
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  if (not server_startup(servers, "gearmand", WORKER_TEST_PORT, 0, NULL))
+  if (server_startup(servers, "gearmand", WORKER_TEST_PORT, 0, NULL) == false)
   {
     error= TEST_FAILURE;
     return NULL;

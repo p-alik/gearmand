@@ -212,7 +212,7 @@ void gearman_reset(gearman_universal_st& universal)
 {
   for (gearman_connection_st *con= universal.con_list; con; con= con->next)
   {
-    con->close();
+    con->close_socket();
   }
 }
 
@@ -390,26 +390,27 @@ gearman_return_t gearman_echo(gearman_universal_st& universal,
                               const void *workload,
                               size_t workload_size)
 {
-  gearman_packet_st packet;
   bool orig_block_universal;
 
-  if (not workload)
+  if (workload == NULL)
   {
     gearman_error(universal, GEARMAN_INVALID_ARGUMENT, "workload was NULL");
     return GEARMAN_INVALID_ARGUMENT;
   }
 
-  if (not workload_size)
+  if (workload_size == 0)
   {
     gearman_error(universal, GEARMAN_INVALID_ARGUMENT,  "workload_size was 0");
     return GEARMAN_INVALID_ARGUMENT;
   }
 
+  gearman_packet_st packet;
   gearman_return_t ret= gearman_packet_create_args(universal, packet, GEARMAN_MAGIC_REQUEST,
                                                    GEARMAN_COMMAND_ECHO_REQ,
                                                    &workload, &workload_size, 1);
   if (gearman_failed(ret))
   {
+    gearman_packet_free(&packet);
     return ret;
   }
 
@@ -428,6 +429,8 @@ gearman_return_t gearman_echo(gearman_universal_st& universal,
     if (gearman_failed(ret))
     {
       con->free_private_packet();
+      con->recv_packet= NULL;
+
       goto exit;
     }
     assert(packet_ptr);
@@ -436,12 +439,13 @@ gearman_return_t gearman_echo(gearman_universal_st& universal,
         memcmp(workload, con->_packet.data, workload_size))
     {
       con->free_private_packet();
-      gearman_error(universal, GEARMAN_ECHO_DATA_CORRUPTION, "corruption during echo");
+      con->recv_packet= NULL;
+      ret= gearman_error(universal, GEARMAN_ECHO_DATA_CORRUPTION, "corruption during echo");
 
-      ret= GEARMAN_ECHO_DATA_CORRUPTION;
       goto exit;
     }
 
+    con->recv_packet= NULL;
     con->free_private_packet();
   }
 
@@ -457,18 +461,18 @@ exit:
 bool gearman_request_option(gearman_universal_st &universal,
                             gearman_string_t &option)
 {
-  gearman_packet_st packet;
   bool orig_block_universal;
 
   const void *args[]= { gearman_c_str(option) };
   size_t args_size[]= { gearman_size(option) };
 
-  gearman_return_t ret;
-  ret= gearman_packet_create_args(universal, packet, GEARMAN_MAGIC_REQUEST,
-                                  GEARMAN_COMMAND_OPTION_REQ,
-                                  args, args_size, 1);
+  gearman_packet_st packet;
+  gearman_return_t ret= gearman_packet_create_args(universal, packet, GEARMAN_MAGIC_REQUEST,
+                                                   GEARMAN_COMMAND_OPTION_REQ,
+                                                   args, args_size, 1);
   if (gearman_failed(ret))
   {
+    gearman_packet_free(&packet);
     gearman_error(universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "gearman_packet_create_args()");
     return ret;
   }
@@ -488,6 +492,7 @@ bool gearman_request_option(gearman_universal_st &universal,
     if (gearman_failed(ret))
     {
       con->free_private_packet();
+      con->recv_packet= NULL;
       goto exit;
     }
     assert(packet_ptr);
@@ -495,12 +500,13 @@ bool gearman_request_option(gearman_universal_st &universal,
     if (packet_ptr->command == GEARMAN_COMMAND_ERROR)
     {
       con->free_private_packet();
-      gearman_error(universal, GEARMAN_INVALID_ARGUMENT, "invalid server option");
+      con->recv_packet= NULL;
+      ret= gearman_error(universal, GEARMAN_INVALID_ARGUMENT, "invalid server option");
 
-      ret= GEARMAN_INVALID_ARGUMENT;;
       goto exit;
     }
 
+    con->recv_packet= NULL;
     con->free_private_packet();
   }
 

@@ -268,6 +268,7 @@ void gearman_packet_free(gearman_packet_st *packet)
 
     if (packet->next)
       packet->next->prev= packet->prev;
+
     packet->universal->packet_count--;
   }
 

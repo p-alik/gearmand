@@ -13,6 +13,9 @@
 test-drizzle: tests/drizzle_test
 	@tests/drizzle_test
 
+gdb-drizzle: tests/drizzle_test
+	@$(GDB_COMMAND) tests/drizzle_test
+
 tests_drizzle_test_SOURCES= \
 			    tests/basic.cc \
 			    tests/drizzle_test.cc
@@ -25,5 +28,5 @@ tests_drizzle_test_LDADD+= $(libdrizzle_LIBS)
 tests_drizzle_test_CXXFLAGS+= $(libdrizzle_CFLAGS)
 endif
 
-#check_PROGRAMS += tests/drizzle_test
+check_PROGRAMS += tests/drizzle_test
 noinst_PROGRAMS += tests/drizzle_test

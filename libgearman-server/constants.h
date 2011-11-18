@@ -19,6 +19,8 @@
 #include <stdlib.h>
 #endif
 
+#include <libgearman-1.0/limits.h>
+
 /**
  * @addtogroup gearman_server_constants Constants
  * @ingroup gearman_server
@@ -37,7 +39,6 @@
 #define GEARMAND_JOB_HANDLE_SIZE 64
 #define GEARMAND_JOB_HASH_SIZE 383
 #define GEARMAN_MAX_COMMAND_ARGS 8
-#define GEARMAN_MAX_ERROR_SIZE 2048
 #define GEARMAN_MAX_FREE_SERVER_CLIENT 1000
 #define GEARMAN_MAX_FREE_SERVER_CON 1000
 #define GEARMAN_MAX_FREE_SERVER_JOB 1000
@@ -50,7 +51,6 @@
 #define GEARMAN_SEND_BUFFER_SIZE 8192
 #define GEARMAN_SERVER_CON_ID_SIZE 128
 #define GEARMAN_TEXT_RESPONSE_SIZE 8192
-#define GEARMAN_UNIQUE_SIZE 64
 
 /** @} */
 

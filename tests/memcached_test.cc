@@ -65,7 +65,7 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
     return NULL;
   }
 
-  if (not server_startup(servers, "memcached", 12555, 0, NULL))
+  if (server_startup(servers, "memcached", 12555, 0, NULL) == false)
   {
     error= TEST_FAILURE;
     return NULL;
