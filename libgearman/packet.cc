@@ -145,7 +145,13 @@ inline static gearman_return_t packet_create_arg(gearman_packet_st *packet,
 gearman_packet_st *gearman_packet_create(gearman_universal_st &universal,
                                          gearman_packet_st *packet)
 {
-  if (not packet)
+  if (packet)
+  {
+    packet->options.allocated= false;
+    packet->options.complete= false;
+    packet->options.free_data= false;
+  }
+  else
   {
     packet= new (std::nothrow) gearman_packet_st;
     if (packet == NULL)
@@ -157,12 +163,6 @@ gearman_packet_st *gearman_packet_create(gearman_universal_st &universal,
 
     packet->options.allocated= true;
   }
-  else
-  {
-    packet->options.allocated= false;
-    packet->options.complete= false;
-    packet->options.free_data= false;
-  }
 
   packet->magic= GEARMAN_MAGIC_TEXT;
   packet->command= GEARMAN_COMMAND_TEXT;
@@ -171,10 +171,12 @@ gearman_packet_st *gearman_packet_create(gearman_universal_st &universal,
   packet->data_size= 0;
   packet->universal= &universal;
 
-  if (not (universal.options.dont_track_packets))
+  if (universal.options.dont_track_packets == false)
   {
     if (universal.packet_list != NULL)
+    {
       universal.packet_list->prev= packet;
+    }
     packet->next= universal.packet_list;
     packet->prev= NULL;
     universal.packet_list= packet;
@@ -201,7 +203,7 @@ gearman_return_t gearman_packet_create_args(gearman_universal_st& universal,
                                             const size_t args_size[],
                                             size_t args_count)
 {
-  if (not gearman_packet_create(universal, &packet))
+  if (gearman_packet_create(universal, &packet) == NULL)
   {
     gearman_perror(universal, "failed in gearman_packet_create()");
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;

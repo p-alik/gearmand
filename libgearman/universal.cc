@@ -394,14 +394,17 @@ gearman_return_t gearman_echo(gearman_universal_st& universal,
 
   if (workload == NULL)
   {
-    gearman_error(universal, GEARMAN_INVALID_ARGUMENT, "workload was NULL");
-    return GEARMAN_INVALID_ARGUMENT;
+    return gearman_error(universal, GEARMAN_INVALID_ARGUMENT, "workload was NULL");
   }
 
   if (workload_size == 0)
   {
-    gearman_error(universal, GEARMAN_INVALID_ARGUMENT,  "workload_size was 0");
-    return GEARMAN_INVALID_ARGUMENT;
+    return gearman_error(universal, GEARMAN_INVALID_ARGUMENT,  "workload_size was 0");
+  }
+
+  if (workload_size > GEARMAN_MAX_ECHO_SIZE)
+  {
+    return gearman_error(universal, GEARMAN_ARGUMENT_TOO_LARGE,  "workload_size was greater then GEARMAN_MAX_ECHO_SIZE");
   }
 
   gearman_packet_st packet;

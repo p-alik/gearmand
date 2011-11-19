@@ -484,7 +484,7 @@ static gearmand_error_t _libdrizzle_add(gearman_server_st *,
   // @todo test for overallocation failure
   size_t query_size;
 
-  char query_buffer[GEARMAN_QUEUE_QUERY_BUFFER +GEARMAN_UNIQUE_MAX_SIZE*2 +GEARMAN_FUNCTION_MAX_SIZE*2];
+  char query_buffer[GEARMAN_QUEUE_QUERY_BUFFER +(GEARMAN_MAX_UNIQUE_SIZE*2) +(GEARMAN_FUNCTION_MAX_SIZE*2)];
   if (queue->epoch_support())
   {
     query_size= (size_t)snprintf(query_buffer, sizeof(query_buffer),

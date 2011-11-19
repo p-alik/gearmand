@@ -308,7 +308,7 @@ static test_return_t echo_max_test(void *object)
   gearman_worker_st *worker= (gearman_worker_st *)object;
   assert(worker);
 
-  test_compare(GEARMAN_ARGUMENT_TOO_LARGE, gearman_worker_echo(worker, "This is my echo test", SIZE_MAX));
+  test_compare(GEARMAN_ARGUMENT_TOO_LARGE, gearman_worker_echo(worker, "This is my echo test", GEARMAN_MAX_ECHO_SIZE +1));
 
   return TEST_SUCCESS;
 }
