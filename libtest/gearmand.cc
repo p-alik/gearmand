@@ -96,7 +96,7 @@ public:
 
   pid_t get_pid(bool error_is_ok)
   {
-    if (not pid_file().empty())
+    if (pid_file().empty() == false)
     {
       Wait wait(pid_file(), 0);
 
@@ -124,12 +124,12 @@ public:
   bool ping()
   {
     gearman_client_st *client= gearman_client_create(NULL);
-    if (not client)
+    if (client == NULL)
     {
       Error << "Could not allocate memory for gearman_client_create()";
       return false;
     }
-    gearman_client_set_timeout(client, 1000);
+    gearman_client_set_timeout(client, 3000);
 
     if (gearman_success(gearman_client_add_server(client, hostname().c_str(), port())))
     {
@@ -140,6 +140,10 @@ public:
         gearman_client_free(client);
         return true;
       }
+    }
+    else
+    {
+      Error << "gearman_client_add_server() failed";
     }
 
     gearman_client_free(client);

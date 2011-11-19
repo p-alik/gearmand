@@ -269,7 +269,7 @@ bool server_startup(server_startup_st& construct, const std::string& server_type
     Out << "run " << server->args(options);
     getchar();
   }
-  else if (not server->start())
+  else if (server->start() == false)
   {
     Error << "Failed to start " << *server;
     delete server;

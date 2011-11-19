@@ -101,7 +101,7 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
   }
 
   const char *argv[1]= { "client_gearmand" };
-  if (not server_startup(servers, "gearmand", CYCLE_TEST_PORT, 1, argv))
+  if (server_startup(servers, "gearmand", CYCLE_TEST_PORT, 1, argv) == false)
   {
     error= TEST_FAILURE;
   }

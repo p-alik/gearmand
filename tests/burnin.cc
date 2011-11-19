@@ -189,7 +189,7 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
   /**
     We start up everything before we allocate so that we don't have to track memory in the forked process.
   */
-  if (not server_startup(servers, "gearmand", BURNIN_TEST_PORT, 1, argv))
+  if (server_startup(servers, "gearmand", BURNIN_TEST_PORT, 1, argv) == false)
   {
     error= TEST_FAILURE;
     return NULL;

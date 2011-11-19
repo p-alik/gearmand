@@ -74,8 +74,8 @@ test_return_t unique_name_limit_test(void *object)
   memset(&function_name[0], 'b', GEARMAN_FUNCTION_MAX_SIZE);
 
   std::vector<char> unique_name;
-  unique_name.resize(GEARMAN_UNIQUE_MAX_SIZE +2);
-  memset(&unique_name[0], 'b', GEARMAN_UNIQUE_MAX_SIZE +1);
+  unique_name.resize(GEARMAN_MAX_UNIQUE_SIZE +2);
+  memset(&unique_name[0], 'b', GEARMAN_MAX_UNIQUE_SIZE +1);
 
   size_t result_length;
   gearman_return_t rc;

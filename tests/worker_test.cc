@@ -308,7 +308,7 @@ static test_return_t echo_max_test(void *object)
   gearman_worker_st *worker= (gearman_worker_st *)object;
   assert(worker);
 
-  test_compare(GEARMAN_ARGUMENT_TOO_LARGE, gearman_worker_echo(worker, "This is my echo test", SIZE_MAX));
+  test_compare(GEARMAN_ARGUMENT_TOO_LARGE, gearman_worker_echo(worker, "This is my echo test", GEARMAN_MAX_ECHO_SIZE +1));
 
   return TEST_SUCCESS;
 }
@@ -720,7 +720,7 @@ static test_return_t gearman_worker_failover_test(void *object)
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  if (not server_startup(servers, "gearmand", WORKER_TEST_PORT, 0, NULL))
+  if (server_startup(servers, "gearmand", WORKER_TEST_PORT, 0, NULL) == false)
   {
     error= TEST_FAILURE;
     return NULL;

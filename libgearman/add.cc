@@ -126,9 +126,9 @@ gearman_task_st *add_task(gearman_client_st& client,
     return NULL;
   }
 
-  if (gearman_size(unique) > GEARMAN_UNIQUE_MAX_SIZE)
+  if (gearman_size(unique) > GEARMAN_MAX_UNIQUE_SIZE)
   {
-    gearman_error(client.universal, GEARMAN_INVALID_ARGUMENT, "unique name longer then GEARMAN_UNIQUE_MAX_SIZE");
+    gearman_error(client.universal, GEARMAN_INVALID_ARGUMENT, "unique name longer then GEARMAN_MAX_UNIQUE_SIZE");
 
     return NULL;
   }
@@ -256,9 +256,9 @@ gearman_task_st *add_reducer_task(gearman_client_st *client,
     return NULL;
   }
 
-  if (gearman_size(unique) > GEARMAN_UNIQUE_MAX_SIZE)
+  if (gearman_size(unique) > GEARMAN_MAX_UNIQUE_SIZE)
   {
-    gearman_error(client->universal, GEARMAN_INVALID_ARGUMENT, "unique name longer then GEARMAN_UNIQUE_MAX_SIZE");
+    gearman_error(client->universal, GEARMAN_INVALID_ARGUMENT, "unique name longer then GEARMAN_MAX_UNIQUE_SIZE");
 
     return NULL;
   }

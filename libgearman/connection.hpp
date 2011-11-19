@@ -89,7 +89,7 @@ struct gearman_connection_st
   size_t send_and_flush(const void *data, size_t data_size, gearman_return_t *ret_ptr);
 
   gearman_return_t flush();
-  void close();
+  void close_socket();
 
   // Receive packet from a connection.
   gearman_packet_st *receiving(gearman_packet_st&,
@@ -108,7 +108,7 @@ struct gearman_connection_st
   void reset_addrinfo();
 
 private:
-  size_t recv(void *data, size_t data_size, gearman_return_t&);
+  size_t recv_socket(void *data, size_t data_size, gearman_return_t&);
 };
 
 /**
