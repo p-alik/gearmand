@@ -290,6 +290,7 @@ static test_return_t queue_test(void *)
   const char *args[]= { "--check-args", "--queue=builtin", 0 };
 
   test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args));
+
   return TEST_SUCCESS;
 }
 

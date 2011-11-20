@@ -21,7 +21,7 @@
 
 #include <libgearman-server/plugins/queue/drizzle/queue.h>
 #include <libgearman-server/plugins/queue/base.h>
-#include <libdrizzle-2.0/drizzle_client.h>
+#include <libdrizzle/drizzle_client.h>
 
 using namespace gearmand_internal;
 using namespace gearmand;
@@ -572,11 +572,11 @@ static gearmand_error_t _libdrizzle_done(gearman_server_st *,
     return gearmand_gerror("snprintf(DELETE)", GEARMAN_MEMORY_ALLOCATION_FAILURE);
   }
 
-  gearmand_log_crazy(GEARMAN_DEFAULT_LOG_PARAM, "%.*", query.size(), &query[0]);
+  gearmand_log_crazy(GEARMAN_DEFAULT_LOG_PARAM, "%.*", query_size, &query[0]);
   
-  if (libdrizzle_failed(_libdrizzle_query(queue, &query[0], query.size())))
+  if (libdrizzle_failed(_libdrizzle_query(queue, &query[0], query_size)))
   {
-    return gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "Error occured from %.*s", query.size(), &query[0]);
+    return gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "Error occured from %.*s", query_size, &query[0]);
   }
 
   drizzle_result_free(queue->result());
