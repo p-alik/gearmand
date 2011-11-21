@@ -87,6 +87,7 @@ do \
     return TEST_FAILURE; \
   } \
 } while (0)
+#define test_true_hint test_true_got
 
 #define test_skip(A,B) \
 do \

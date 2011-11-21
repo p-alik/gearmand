@@ -107,6 +107,8 @@ struct gearman_connection_st
 
   void reset_addrinfo();
 
+  gearman_return_t lookup();
+
 private:
   size_t recv_socket(void *data, size_t data_size, gearman_return_t&);
   gearman_return_t connect_poll();

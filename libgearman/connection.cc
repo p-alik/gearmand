@@ -227,6 +227,12 @@ gearman_connection_st *gearman_connection_create_args(gearman_universal_st& univ
 
   connection->set_host(host, port);
 
+  if (gearman_failed(connection->lookup()))
+  {
+    delete connection;
+    return NULL;
+  }
+
   return connection;
 }
 
@@ -542,6 +548,34 @@ size_t gearman_connection_st::send_and_flush(const void *data, size_t data_size,
   return data_size -send_buffer_size;
 }
 
+gearman_return_t gearman_connection_st::lookup()
+{
+  if (addrinfo)
+  {
+    freeaddrinfo(addrinfo);
+    addrinfo= NULL;
+  }
+
+  char port_str[NI_MAXSERV];
+  snprintf(port_str, NI_MAXSERV, "%hu", uint16_t(port));
+
+  struct addrinfo ai;
+  memset(&ai, 0, sizeof(struct addrinfo));
+  ai.ai_socktype= SOCK_STREAM;
+  ai.ai_protocol= IPPROTO_TCP;
+
+  int ret;
+  if ((ret= getaddrinfo(host, port_str, &ai, &(addrinfo))))
+  {
+    return gearman_universal_set_error(universal, GEARMAN_GETADDRINFO, AT, "getaddrinfo:%s", gai_strerror(ret));
+  }
+
+  addrinfo_next= addrinfo;
+  state= GEARMAN_CON_UNIVERSAL_CONNECT;
+
+  return GEARMAN_SUCCESS;
+}
+
 gearman_return_t gearman_connection_st::flush()
 {
   while (1)
@@ -550,28 +584,12 @@ gearman_return_t gearman_connection_st::flush()
     {
     case GEARMAN_CON_UNIVERSAL_ADDRINFO:
       {
-        if (addrinfo)
+        gearman_return_t ret= lookup();
+
+        if (gearman_failed(ret))
         {
-          freeaddrinfo(addrinfo);
-          addrinfo= NULL;
+          return ret;
         }
-
-        char port_str[NI_MAXSERV];
-        snprintf(port_str, NI_MAXSERV, "%hu", uint16_t(port));
-
-        struct addrinfo ai;
-        memset(&ai, 0, sizeof(struct addrinfo));
-        ai.ai_socktype= SOCK_STREAM;
-        ai.ai_protocol= IPPROTO_TCP;
-
-        int ret;
-        if ((ret= getaddrinfo(host, port_str, &ai, &(addrinfo))))
-        {
-          gearman_universal_set_error(universal, GEARMAN_GETADDRINFO, AT, "getaddrinfo:%s", gai_strerror(ret));
-          return GEARMAN_GETADDRINFO;
-        }
-
-        addrinfo_next= addrinfo;
       }
 
     case GEARMAN_CON_UNIVERSAL_CONNECT:
@@ -736,7 +754,9 @@ gearman_return_t gearman_connection_st::flush()
           }
 
           if (send_buffer_size == 0)
+          {
             return GEARMAN_SUCCESS;
+          }
         }
         else if (send_buffer_size == 0)
         {

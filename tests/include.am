@@ -118,6 +118,7 @@ tests_hostileworker_test_DEPENDENCIES= ${CLIENT_LDADD} libhostile/libhostile.la 
 tests_hostileworker_test_LDADD= ${CLIENT_LDADD}
 tests_hostileworker_test_LDADD+= libhostile/libhostile.la
 tests_hostileworker_test_LDADD+= -ldl
+check_PROGRAMS+=tests/hostileworker_test
 noinst_PROGRAMS+=tests/hostileworker_test
 endif
 

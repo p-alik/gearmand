@@ -20,6 +20,7 @@ nobase_include_HEADERS+= \
 			 libgearman-1.0/job_handle.h \
 			 libgearman-1.0/kill.h \
 			 libgearman-1.0/limits.h \
+			 libgearman-1.0/ostream.hpp \
 			 libgearman-1.0/packet.h \
 			 libgearman-1.0/parse.h \
 			 libgearman-1.0/priority.h \
