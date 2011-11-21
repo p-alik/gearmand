@@ -125,7 +125,7 @@ void gearman_universal_clone(gearman_universal_st &destination, const gearman_un
 
   for (gearman_connection_st *con= source.con_list; con; con= con->next)
   {
-    if (not gearman_connection_copy(destination, *con))
+    if (gearman_connection_copy(destination, *con) == NULL)
     {
       gearman_universal_free(destination);
       return;
