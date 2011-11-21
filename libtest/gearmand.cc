@@ -140,10 +140,12 @@ public:
         gearman_client_free(client);
         return true;
       }
+
+      Error << hostname().c_str() << ":" << port() << " was " << gearman_strerror(rc) << " extended: " << gearman_client_error(client);
     }
     else
     {
-      Error << "gearman_client_add_server() failed";
+      Error << "gearman_client_add_server() " << gearman_client_error(client);
     }
 
     gearman_client_free(client);

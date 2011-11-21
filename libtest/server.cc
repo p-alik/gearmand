@@ -178,7 +178,7 @@ bool Server::wait_for_pidfile() const
 bool Server::start()
 {
   // If we find that we already have a pid then kill it.
-  if (has_pid() and not kill(_pid))
+  if (has_pid() and kill(_pid) == false)
   {
     Error << "Could not kill() existing server during start() pid:" << _pid;
     return false;
@@ -186,7 +186,7 @@ bool Server::start()
   assert(not has_pid());
 
   _running.clear();
-  if (not command(_running))
+  if (command(_running) == false)
   {
     Error << "Could not build command()";
     return false;

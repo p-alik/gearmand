@@ -64,6 +64,88 @@ static gearman_return_t gearman_connection_set_option(gearman_connection_st *con
 
 
 
+gearman_return_t gearman_connection_st::connect_poll()
+{
+  struct pollfd fds[1];
+  fds[0].fd= fd;
+  fds[0].events= POLLOUT;
+
+  size_t loop_max= 5;
+
+#if 0
+  if (universal.timeout == 0)
+  {
+    return gearman_error(universal, GEARMAN_TIMEOUT, "not connected");
+  }
+#endif
+
+  while (--loop_max) // Should only loop on cases of ERESTART or EINTR
+  {
+    int error= poll(fds, 1, GEARMAN_DEFAULT_CONNECT_TIMEOUT);
+    switch (error)
+    {
+    case 1:
+      {
+        int err;
+        socklen_t len= sizeof (err);
+        (void)getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &len);
+
+        // We check the value to see what happened wth the socket.
+        if (err == 0)
+        {
+          return GEARMAN_SUCCESS;
+        }
+
+	errno= (err == 0) ? get_socket_errno() : err;
+
+        return gearman_perror(universal, "getsockopt() failed");
+      }
+    case 0:
+      {
+        return gearman_error(universal, GEARMAN_TIMEOUT, "timeout occurred while trying to connect");
+      }
+
+    default: // A real error occurred and we need to completely bail
+      switch (get_socket_errno())
+      {
+#ifdef TARGET_OS_LINUX
+      case ERESTART:
+#endif
+      case EINTR:
+        continue;
+
+      case EFAULT:
+      case ENOMEM:
+        return gearman_perror(universal, "poll() failure");
+
+      case EINVAL:
+        return gearman_perror(universal, "RLIMIT_NOFILE exceeded, or if OSX the timeout value was invalid");
+
+      default: // This should not happen
+        if (fds[0].revents & POLLERR)
+        {
+          int err;
+          socklen_t len= sizeof (err);
+          (void)getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &len);
+	  errno= (err == 0) ? get_socket_errno() : err;
+          gearman_perror(universal, "Error found by getsockopt()");
+        }
+        else
+        {
+          errno= get_socket_errno();
+          gearman_perror(universal, "socket error occurred");
+        }
+
+        assert_msg(fd != INVALID_SOCKET, "poll() was passed an invalid file descriptor");
+
+        return gearman_universal_error_code(universal);
+      }
+    }
+  }
+
+  // This should only be possible from ERESTART or EINTR;
+  return gearman_perror(universal, "connection failed (error should be from either ERESTART or EINTR");
+}
 
 /**
  * @addtogroup gearman_connection_static Static Connection Declarations
@@ -522,7 +604,7 @@ gearman_return_t gearman_connection_st::flush()
 
       while (1)
       {
-        if (not connect(fd, addrinfo_next->ai_addr, addrinfo_next->ai_addrlen))
+        if (connect(fd, addrinfo_next->ai_addr, addrinfo_next->ai_addrlen) == 0)
         {
           state= GEARMAN_CON_UNIVERSAL_CONNECTED;
           addrinfo_next= NULL;
@@ -530,10 +612,19 @@ gearman_return_t gearman_connection_st::flush()
         }
 
         if (errno == EAGAIN || errno == EINTR)
+	{
           continue;
+	}
 
         if (errno == EINPROGRESS)
         {
+          gearman_return_t gret= connect_poll();
+	  if (gearman_failed(gret))
+	  {
+            close_socket();
+	    return gret;
+	  }
+
           state= GEARMAN_CON_UNIVERSAL_CONNECTING;
           break;
         }
@@ -551,7 +642,9 @@ gearman_return_t gearman_connection_st::flush()
       }
 
       if (state != GEARMAN_CON_UNIVERSAL_CONNECTING)
+      {
         break;
+      }
 
     case GEARMAN_CON_UNIVERSAL_CONNECTING:
       while (1)
