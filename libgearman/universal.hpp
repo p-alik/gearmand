@@ -138,7 +138,9 @@ static inline bool gearman_universal_is_non_blocking(gearman_universal_st &self)
 static inline const char *gearman_universal_error(const gearman_universal_st &self)
 {
   if (self.error.last_error[0] == 0)
-      return NULL;
+  {
+    return NULL;
+  }
 
   return static_cast<const char *>(self.error.last_error);
 }

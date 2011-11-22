@@ -125,7 +125,7 @@ void gearman_universal_clone(gearman_universal_st &destination, const gearman_un
 
   for (gearman_connection_st *con= source.con_list; con; con= con->next)
   {
-    if (not gearman_connection_copy(destination, *con))
+    if (gearman_connection_copy(destination, *con) == NULL)
     {
       gearman_universal_free(destination);
       return;
@@ -308,7 +308,7 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
 
   if (ret == 0)
   {
-    gearman_error(universal, GEARMAN_TIMEOUT, "timeout reached");
+    gearman_error(universal, GEARMAN_TIMEOUT, "timeout reached, no servers were available");
     return GEARMAN_TIMEOUT;
   }
 
@@ -413,6 +413,7 @@ gearman_return_t gearman_echo(gearman_universal_st& universal,
                                                    &workload, &workload_size, 1);
   if (gearman_failed(ret))
   {
+    assert_msg(universal.error.rc != GEARMAN_SUCCESS, "Programmer error, error returned but not recorded");
     gearman_packet_free(&packet);
     return ret;
   }
@@ -421,9 +422,10 @@ gearman_return_t gearman_echo(gearman_universal_st& universal,
 
   for (gearman_connection_st *con= universal.con_list; con; con= con->next)
   {
-    ret= con->send(packet, true);
+    ret= con->send_packet(packet, true);
     if (gearman_failed(ret))
     {
+      assert_msg(con->universal.error.rc != GEARMAN_SUCCESS, "Programmer error, error returned but not recorded");
       goto exit;
     }
 
@@ -431,6 +433,7 @@ gearman_return_t gearman_echo(gearman_universal_st& universal,
     gearman_packet_st *packet_ptr= con->receiving(con->_packet, ret, true);
     if (gearman_failed(ret))
     {
+      assert_msg(con->universal.error.rc != GEARMAN_SUCCESS, "Programmer error, error returned but not recorded");
       con->free_private_packet();
       con->recv_packet= NULL;
 
@@ -441,6 +444,7 @@ gearman_return_t gearman_echo(gearman_universal_st& universal,
     if (con->_packet.data_size != workload_size or
         memcmp(workload, con->_packet.data, workload_size))
     {
+      assert_msg(con->universal.error.rc != GEARMAN_SUCCESS, "Programmer error, error returned but not recorded");
       con->free_private_packet();
       con->recv_packet= NULL;
       ret= gearman_error(universal, GEARMAN_ECHO_DATA_CORRUPTION, "corruption during echo");
@@ -484,7 +488,7 @@ bool gearman_request_option(gearman_universal_st &universal,
 
   for (gearman_connection_st *con= universal.con_list; con != NULL; con= con->next)
   {
-    ret= con->send(packet, true);
+    ret= con->send_packet(packet, true);
     if (gearman_failed(ret))
     {
       goto exit;

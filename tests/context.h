@@ -71,7 +71,7 @@ public:
 
   bool initialize(int argc, const char *argv[])
   {
-    if (not server_startup(_servers, "gearmand", _port, argc, argv))
+    if (server_startup(_servers, "gearmand", _port, argc, argv) == false)
     {
       return NULL;
     }

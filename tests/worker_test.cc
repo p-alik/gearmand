@@ -343,7 +343,7 @@ static test_return_t abandoned_worker_test(void *)
 							GEARMAN_COMMAND_CAN_DO,
 							args, args_size, 1)));
 
-  test_true_got(gearman_success(worker1->send(packet, true)), gearman_universal_error(universal));
+  test_true_got(gearman_success(worker1->send_packet(packet, true)), gearman_universal_error(universal));
 
   gearman_packet_free(&packet);
 
@@ -352,7 +352,7 @@ static test_return_t abandoned_worker_test(void *)
                                                         GEARMAN_COMMAND_GRAB_JOB,
                                                         NULL, NULL, 0));
 
-  test_compare(GEARMAN_SUCCESS, worker1->send(packet, true));
+  test_compare(GEARMAN_SUCCESS, worker1->send_packet(packet, true));
 
   gearman_packet_free(&packet);
 
@@ -374,7 +374,7 @@ static test_return_t abandoned_worker_test(void *)
                                                            GEARMAN_COMMAND_CAN_DO,
                                                            args, args_size, 1));
 
-  test_compare(GEARMAN_SUCCESS, worker2->send(packet, true));
+  test_compare(GEARMAN_SUCCESS, worker2->send_packet(packet, true));
 
   gearman_packet_free(&packet);
 
@@ -386,7 +386,7 @@ static test_return_t abandoned_worker_test(void *)
                                                            GEARMAN_COMMAND_WORK_COMPLETE,
                                                            args, args_size, 2));
 
-  test_compare(GEARMAN_SUCCESS, worker2->send(packet, true));
+  test_compare(GEARMAN_SUCCESS, worker2->send_packet(packet, true));
 
   gearman_packet_free(&packet);
 

@@ -83,7 +83,7 @@ gearman_return_t _client_run_task(gearman_client_st *client, gearman_task_st *ta
     while (1)
     {
       assert(task->con);
-      gearman_return_t ret= task->con->send(task->send, client->new_tasks == 0 ? true : false);
+      gearman_return_t ret= task->con->send_packet(task->send, client->new_tasks == 0 ? true : false);
 
       if (gearman_success(ret))
       {

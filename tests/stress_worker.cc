@@ -131,6 +131,13 @@ static test_return_t worker_ramp_TEST(void *)
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
+  // Assume we are running under valgrind, and bail 
+  if (getenv("TESTS_ENVIRONMENT")) 
+  {
+    error= TEST_SKIPPED;
+    return NULL;
+  }
+
   if (server_startup(servers, "gearmand", STRESS_WORKER_PORT, 0, NULL) == false)
   {
     error= TEST_FAILURE;

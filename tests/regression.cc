@@ -137,7 +137,7 @@ test_return_t regression_bug_372074_test(void *)
                                                           GEARMAN_COMMAND_SET_CLIENT_ID,
                                                           args, args_size, 1)));
 
-    test_truth(gearman_success(con_ptr->send(packet, true)));
+    test_truth(gearman_success(con_ptr->send_packet(packet, true)));
 
     gearman_packet_free(&packet);
 
@@ -146,7 +146,7 @@ test_return_t regression_bug_372074_test(void *)
     test_truth(gearman_success(gearman_packet_create_args(universal, packet, GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_CAN_DO,
                                                           args, args_size, 1)));
 
-    test_truth(gearman_success(con_ptr->send(packet, true)));
+    test_truth(gearman_success(con_ptr->send_packet(packet, true)));
 
     gearman_packet_free(&packet);
 
@@ -154,7 +154,7 @@ test_return_t regression_bug_372074_test(void *)
                                                           GEARMAN_COMMAND_CANT_DO,
                                                           args, args_size, 1)));
 
-    test_truth(gearman_success(con_ptr->send(packet, true)));
+    test_truth(gearman_success(con_ptr->send_packet(packet, true)));
 
     gearman_packet_free(&packet);
 
@@ -170,7 +170,7 @@ test_return_t regression_bug_372074_test(void *)
                                                           GEARMAN_COMMAND_SET_CLIENT_ID,
                                                           args, args_size, 1)));
 
-    test_truth(gearman_success(con_ptr->send(packet, true)));
+    test_truth(gearman_success(con_ptr->send_packet(packet, true)));
 
     gearman_packet_free(&packet);
 
@@ -180,7 +180,7 @@ test_return_t regression_bug_372074_test(void *)
                                                           GEARMAN_COMMAND_CAN_DO,
                                                           args, args_size, 1)));
 
-    test_truth(gearman_success(con_ptr->send(packet, true)));
+    test_truth(gearman_success(con_ptr->send_packet(packet, true)));
 
     gearman_packet_free(&packet);
 
@@ -190,7 +190,7 @@ test_return_t regression_bug_372074_test(void *)
                                                           GEARMAN_COMMAND_CAN_DO,
                                                           args, args_size, 1)));
 
-    test_truth(gearman_success(con_ptr->send(packet, true)));
+    test_truth(gearman_success(con_ptr->send_packet(packet, true)));
 
     gearman_packet_free(&packet);
 
@@ -198,7 +198,7 @@ test_return_t regression_bug_372074_test(void *)
                                                           GEARMAN_COMMAND_RESET_ABILITIES,
                                                           NULL, NULL, 0)));
 
-    test_truth(gearman_success(con_ptr->send(packet, true)));
+    test_truth(gearman_success(con_ptr->send_packet(packet, true)));
 
     gearman_packet_free(&packet);
 

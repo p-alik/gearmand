@@ -64,6 +64,87 @@ static gearman_return_t gearman_connection_set_option(gearman_connection_st *con
 
 
 
+gearman_return_t gearman_connection_st::connect_poll()
+{
+  struct pollfd fds[1];
+  fds[0].fd= fd;
+  fds[0].events= POLLOUT;
+
+  size_t loop_max= 5;
+
+#if 0
+  if (universal.timeout == 0)
+  {
+    return gearman_error(universal, GEARMAN_TIMEOUT, "not connected");
+  }
+#endif
+
+  while (--loop_max) // Should only loop on cases of ERESTART or EINTR
+  {
+    int error= poll(fds, 1, GEARMAN_DEFAULT_CONNECT_TIMEOUT);
+    switch (error)
+    {
+    case 1:
+      {
+        int err;
+        socklen_t len= sizeof (err);
+        (void)getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &len);
+
+        // We check the value to see what happened wth the socket.
+        if (err == 0)
+        {
+          return GEARMAN_SUCCESS;
+        }
+
+        errno= err;
+
+        return gearman_perror(universal, "getsockopt() failed");
+      }
+
+    case 0:
+      {
+        return gearman_error(universal, GEARMAN_TIMEOUT, "timeout occurred while trying to connect");
+      }
+
+    default: // A real error occurred and we need to completely bail
+      switch (get_socket_errno())
+      {
+#ifdef TARGET_OS_LINUX
+      case ERESTART:
+#endif
+      case EINTR:
+        continue;
+
+      case EFAULT:
+      case ENOMEM:
+        return gearman_perror(universal, "poll() failure");
+
+      case EINVAL:
+        return gearman_perror(universal, "RLIMIT_NOFILE exceeded, or if OSX the timeout value was invalid");
+
+      default: // This should not happen
+        if (fds[0].revents & POLLERR)
+        {
+          int err;
+          socklen_t len= sizeof (err);
+          (void)getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &len);
+          errno= err;
+        }
+        else
+        {
+          errno= get_socket_errno();
+        }
+
+        assert_msg(fd != INVALID_SOCKET, "poll() was passed an invalid file descriptor");
+
+        return gearman_perror(universal, "socket error occurred");
+      }
+    }
+  }
+
+  // This should only be possible from ERESTART or EINTR;
+  return gearman_perror(universal, "connection failed (error should be from either ERESTART or EINTR");
+}
 
 /**
  * @addtogroup gearman_connection_static Static Connection Declarations
@@ -144,6 +225,12 @@ gearman_connection_st *gearman_connection_create_args(gearman_universal_st& univ
   }
 
   connection->set_host(host, port);
+
+  if (gearman_failed(connection->lookup()))
+  {
+    delete connection;
+    return NULL;
+  }
 
   return connection;
 }
@@ -312,7 +399,7 @@ void gearman_connection_st::reset_addrinfo()
   addrinfo_next= NULL;
 }
 
-gearman_return_t gearman_connection_st::send(const gearman_packet_st& packet_arg, const bool flush_buffer)
+gearman_return_t gearman_connection_st::send_packet(const gearman_packet_st& packet_arg, const bool flush_buffer)
 {
   switch (send_state)
   {
@@ -328,9 +415,9 @@ gearman_return_t gearman_connection_st::send(const gearman_packet_st& packet_arg
       gearman_return_t rc;
       { // Scoping to shut compiler up about switch/case jump
         size_t send_size= gearman_packet_pack(packet_arg,
-                                              send_buffer + send_buffer_size,
-                                              GEARMAN_SEND_BUFFER_SIZE -
-                                              send_buffer_size, rc);
+                                              send_buffer +send_buffer_size,
+                                              GEARMAN_SEND_BUFFER_SIZE -send_buffer_size, rc);
+
         if (gearman_success(rc))
         {
           send_buffer_size+= send_size;
@@ -378,7 +465,9 @@ gearman_return_t gearman_connection_st::send(const gearman_packet_st& packet_arg
     {
       send_data_offset= GEARMAN_SEND_BUFFER_SIZE - send_buffer_size;
       if (send_data_offset > packet_arg.data_size)
+      {
         send_data_offset= packet_arg.data_size;
+      }
 
       memcpy(send_buffer + send_buffer_size, packet_arg.data, send_data_offset);
       send_buffer_size+= send_data_offset;
@@ -398,7 +487,9 @@ gearman_return_t gearman_connection_st::send(const gearman_packet_st& packet_arg
     {
       gearman_return_t ret= flush();
       if (gearman_failed(ret))
+      {
         return ret;
+      }
     }
 
     send_data_size= packet_arg.data_size;
@@ -460,6 +551,34 @@ size_t gearman_connection_st::send_and_flush(const void *data, size_t data_size,
   return data_size -send_buffer_size;
 }
 
+gearman_return_t gearman_connection_st::lookup()
+{
+  if (addrinfo)
+  {
+    freeaddrinfo(addrinfo);
+    addrinfo= NULL;
+  }
+
+  char port_str[NI_MAXSERV];
+  snprintf(port_str, NI_MAXSERV, "%hu", uint16_t(port));
+
+  struct addrinfo ai;
+  memset(&ai, 0, sizeof(struct addrinfo));
+  ai.ai_socktype= SOCK_STREAM;
+  ai.ai_protocol= IPPROTO_TCP;
+
+  int ret;
+  if ((ret= getaddrinfo(host, port_str, &ai, &(addrinfo))))
+  {
+    return gearman_universal_set_error(universal, GEARMAN_GETADDRINFO, AT, "getaddrinfo:%s", gai_strerror(ret));
+  }
+
+  addrinfo_next= addrinfo;
+  state= GEARMAN_CON_UNIVERSAL_CONNECT;
+
+  return GEARMAN_SUCCESS;
+}
+
 gearman_return_t gearman_connection_st::flush()
 {
   while (1)
@@ -468,28 +587,12 @@ gearman_return_t gearman_connection_st::flush()
     {
     case GEARMAN_CON_UNIVERSAL_ADDRINFO:
       {
-        if (addrinfo)
+        gearman_return_t ret= lookup();
+
+        if (gearman_failed(ret))
         {
-          freeaddrinfo(addrinfo);
-          addrinfo= NULL;
+          return ret;
         }
-
-        char port_str[NI_MAXSERV];
-        snprintf(port_str, NI_MAXSERV, "%hu", uint16_t(port));
-
-        struct addrinfo ai;
-        memset(&ai, 0, sizeof(struct addrinfo));
-        ai.ai_socktype= SOCK_STREAM;
-        ai.ai_protocol= IPPROTO_TCP;
-
-        int ret;
-        if ((ret= getaddrinfo(host, port_str, &ai, &(addrinfo))))
-        {
-          gearman_universal_set_error(universal, GEARMAN_GETADDRINFO, AT, "getaddrinfo:%s", gai_strerror(ret));
-          return GEARMAN_GETADDRINFO;
-        }
-
-        addrinfo_next= addrinfo;
       }
 
     case GEARMAN_CON_UNIVERSAL_CONNECT:
@@ -522,7 +625,7 @@ gearman_return_t gearman_connection_st::flush()
 
       while (1)
       {
-        if (not connect(fd, addrinfo_next->ai_addr, addrinfo_next->ai_addrlen))
+        if (connect(fd, addrinfo_next->ai_addr, addrinfo_next->ai_addrlen) == 0)
         {
           state= GEARMAN_CON_UNIVERSAL_CONNECTED;
           addrinfo_next= NULL;
@@ -530,10 +633,20 @@ gearman_return_t gearman_connection_st::flush()
         }
 
         if (errno == EAGAIN || errno == EINTR)
+        {
           continue;
+        }
 
         if (errno == EINPROGRESS)
         {
+          gearman_return_t gret= connect_poll();
+          if (gearman_failed(gret))
+          {
+            assert_msg(universal.error.rc != GEARMAN_SUCCESS, "Programmer error, connect_poll() returned an error, but it was not set");
+            close_socket();
+            return gret;
+          }
+
           state= GEARMAN_CON_UNIVERSAL_CONNECTING;
           break;
         }
@@ -547,11 +660,13 @@ gearman_return_t gearman_connection_st::flush()
 
         gearman_perror(universal, "connect");
         close_socket();
-        return GEARMAN_ERRNO;
+        return GEARMAN_COULD_NOT_CONNECT;
       }
 
       if (state != GEARMAN_CON_UNIVERSAL_CONNECTING)
+      {
         break;
+      }
 
     case GEARMAN_CON_UNIVERSAL_CONNECTING:
       while (1)
@@ -584,7 +699,9 @@ gearman_return_t gearman_connection_st::flush()
       }
 
       if (state != GEARMAN_CON_UNIVERSAL_CONNECTED)
+      {
         break;
+      }
 
     case GEARMAN_CON_UNIVERSAL_CONNECTED:
       while (send_buffer_size != 0)
@@ -643,7 +760,9 @@ gearman_return_t gearman_connection_st::flush()
           }
 
           if (send_buffer_size == 0)
+          {
             return GEARMAN_SUCCESS;
+          }
         }
         else if (send_buffer_size == 0)
         {
@@ -655,6 +774,7 @@ gearman_return_t gearman_connection_st::flush()
 
       send_state= GEARMAN_CON_SEND_STATE_NONE;
       send_buffer_ptr= send_buffer;
+
       return GEARMAN_SUCCESS;
     }
   }

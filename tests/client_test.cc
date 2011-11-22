@@ -148,6 +148,38 @@ struct client_test_st
   }
 };
 
+class Client {
+public:
+  Client()
+  {
+    _client= gearman_client_create(NULL);
+
+    if (_client == NULL)
+    {
+      throw "gearman_client_create() failed";
+    }
+  }
+
+  gearman_client_st* operator&() const
+  { 
+    return _client;
+  }
+
+  gearman_client_st* operator->() const
+  { 
+    return _client;
+  }
+
+  ~Client()
+  {
+    gearman_client_free(_client);
+  }
+
+private:
+  gearman_client_st *_client;
+
+};
+
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
@@ -772,7 +804,7 @@ static test_return_t add_servers_test(void *)
   test_compare_got(GEARMAN_SUCCESS, rc, gearman_strerror(rc));
 
   rc= gearman_client_add_servers(&client, "old_jobserver:7003,broken:12345");
-  test_compare_got(GEARMAN_SUCCESS, rc, gearman_strerror(rc));
+  test_compare_got(GEARMAN_GETADDRINFO, rc, gearman_strerror(rc));
 
   gearman_client_free(&client);
 
@@ -781,16 +813,16 @@ static test_return_t add_servers_test(void *)
 
 static test_return_t hostname_resolution(void *)
 {
-  gearman_client_st *client= gearman_client_create(NULL);
-  test_truth(client);
+  Client client;
+  assert(&client);
 
-  test_compare(GEARMAN_SUCCESS,
-               gearman_client_add_servers(client, "exist.gearman.info"));
+  test_skip(GEARMAN_SUCCESS, gearman_client_add_servers(&client, "exist.gearman.info"));
 
-  test_compare(GEARMAN_GETADDRINFO,
-               gearman_client_echo(client, test_literal_param("foo")));
+  test_compare(GEARMAN_SUCCESS, client->universal.error.rc);
 
-  gearman_client_free(client);
+  test_compare_hint(GEARMAN_COULD_NOT_CONNECT,
+                    gearman_client_echo(&client, test_literal_param("foo")),
+                    gearman_client_error(&client));
 
   return TEST_SUCCESS;
 }

@@ -167,12 +167,12 @@ void gearman_worker_free(gearman_worker_st *worker)
 
   if (worker->universal.wakeup_fd[0] != INVALID_SOCKET)
   {
-    closesocket(worker->universal.wakeup_fd[0]);
+    close(worker->universal.wakeup_fd[0]);
   }
 
   if (worker->universal.wakeup_fd[1] != INVALID_SOCKET)
   {
-    closesocket(worker->universal.wakeup_fd[1]);
+    close(worker->universal.wakeup_fd[1]);
   }
 
   gearman_worker_unregister_all(worker);
@@ -615,7 +615,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
               continue;
 
     case GEARMAN_WORKER_STATE_FUNCTION_SEND:
-            *ret_ptr= worker->con->send(worker->function->packet, true);
+            *ret_ptr= worker->con->send_packet(worker->function->packet, true);
             if (gearman_failed(*ret_ptr))
             {
               if (*ret_ptr == GEARMAN_IO_WAIT)
@@ -668,7 +668,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
                worker->function= worker->function->next)
           {
     case GEARMAN_WORKER_STATE_CONNECT:
-            *ret_ptr= worker->con->send(worker->function->packet, true);
+            *ret_ptr= worker->con->send_packet(worker->function->packet, true);
             if (gearman_failed(*ret_ptr))
             {
               if (*ret_ptr == GEARMAN_IO_WAIT)
@@ -694,7 +694,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
         if (worker->con->fd == -1)
           continue;
 
-        *ret_ptr= worker->con->send(worker->grab_job, true);
+        *ret_ptr= worker->con->send_packet(worker->grab_job, true);
         if (gearman_failed(*ret_ptr))
         {
           if (*ret_ptr == GEARMAN_IO_WAIT)
@@ -789,7 +789,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
           continue;
         }
 
-        *ret_ptr= worker->con->send(worker->pre_sleep, true);
+        *ret_ptr= worker->con->send_packet(worker->pre_sleep, true);
         if (gearman_failed(*ret_ptr))
         {
           if (*ret_ptr == GEARMAN_IO_WAIT)
@@ -1128,19 +1128,26 @@ static gearman_worker_st *_worker_allocate(gearman_worker_st *worker, bool is_cl
   if (pipe(worker->universal.wakeup_fd) != 0)
   {
     delete worker;
+
     return NULL;
   }
 
   int returned_flags;
   if ((returned_flags= fcntl(worker->universal.wakeup_fd[0], F_GETFL, 0)) < 0)
   {
+    close(worker->universal.wakeup_fd[0]);
+    close(worker->universal.wakeup_fd[1]);
     delete worker;
+
     return NULL;
   }
 
   if (fcntl(worker->universal.wakeup_fd[0], F_SETFL, returned_flags | O_NONBLOCK) < 0)
   {
+    close(worker->universal.wakeup_fd[0]);
+    close(worker->universal.wakeup_fd[1]);
     delete worker;
+
     return NULL;
   }
 
