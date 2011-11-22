@@ -422,7 +422,7 @@ gearman_return_t gearman_echo(gearman_universal_st& universal,
 
   for (gearman_connection_st *con= universal.con_list; con; con= con->next)
   {
-    ret= con->send(packet, true);
+    ret= con->send_packet(packet, true);
     if (gearman_failed(ret))
     {
       assert_msg(con->universal.error.rc != GEARMAN_SUCCESS, "Programmer error, error returned but not recorded");
@@ -488,7 +488,7 @@ bool gearman_request_option(gearman_universal_st &universal,
 
   for (gearman_connection_st *con= universal.con_list; con != NULL; con= con->next)
   {
-    ret= con->send(packet, true);
+    ret= con->send_packet(packet, true);
     if (gearman_failed(ret))
     {
       goto exit;

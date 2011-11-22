@@ -85,7 +85,7 @@ struct gearman_connection_st
 
   void set_host( const char *host, const in_port_t port);
 
-  gearman_return_t send(const gearman_packet_st&, const bool flush_buffer);
+  gearman_return_t send_packet(const gearman_packet_st&, const bool flush_buffer);
   size_t send_and_flush(const void *data, size_t data_size, gearman_return_t *ret_ptr);
 
   gearman_return_t flush();

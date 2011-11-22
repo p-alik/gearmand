@@ -818,6 +818,8 @@ static test_return_t hostname_resolution(void *)
 
   test_skip(GEARMAN_SUCCESS, gearman_client_add_servers(&client, "exist.gearman.info"));
 
+  test_compare(GEARMAN_SUCCESS, client->universal.error.rc);
+
   test_compare_hint(GEARMAN_COULD_NOT_CONNECT,
                     gearman_client_echo(&client, test_literal_param("foo")),
                     gearman_client_error(&client));

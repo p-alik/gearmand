@@ -385,9 +385,10 @@ size_t gearman_packet_pack(const gearman_packet_st &self,
                            void *data, size_t data_size,
                            gearman_return_t &ret)
 {
-  if (not self.args_size)
+  ret= GEARMAN_SUCCESS;
+
+  if (self.args_size == 0)
   {
-    ret= GEARMAN_SUCCESS;
     return 0;
   }
 
@@ -398,7 +399,7 @@ size_t gearman_packet_pack(const gearman_packet_st &self,
   }
 
   memcpy(data, self.args, self.args_size);
-  ret= GEARMAN_SUCCESS;
+
   return self.args_size;
 }
 

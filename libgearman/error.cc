@@ -44,19 +44,52 @@
 #include <cstdio>
 #include <cstring>
 
+static void correct_from_errno(gearman_universal_st& universal)
+{
+  if (universal.error.rc == GEARMAN_ERRNO)
+  {
+    switch (universal.error.last_errno)
+    {
+    case EFAULT:
+    case ENOMEM:
+      universal.error.rc= GEARMAN_MEMORY_ALLOCATION_FAILURE;
+      break;
+
+    case EINVAL:
+      universal.error.rc= GEARMAN_INVALID_ARGUMENT;
+      break;
+
+    case ECONNREFUSED:
+    case ENETUNREACH:
+    case ETIMEDOUT:
+      universal.error.rc= GEARMAN_COULD_NOT_CONNECT;
+      break;
+
+    default:
+      break;
+    }
+  }
+  else
+  {
+    universal.error.last_errno= 0;
+  }
+}
+
 gearman_return_t gearman_universal_set_error(gearman_universal_st& universal, 
                                              gearman_return_t rc,
                                              const char *function,
                                              const char *position,
                                              const char *format, ...)
 {
+  if (rc == GEARMAN_SUCCESS)
+  {
+    return GEARMAN_SUCCESS;
+  }
+
   va_list args;
 
   universal.error.rc= rc;
-  if (rc != GEARMAN_ERRNO)
-  {
-    universal.error.last_errno= 0;
-  }
+  correct_from_errno(universal);
 
   char last_error[GEARMAN_MAX_ERROR_SIZE];
   va_start(args, format);
@@ -68,16 +101,14 @@ gearman_return_t gearman_universal_set_error(gearman_universal_st& universal,
     assert(length > int(GEARMAN_MAX_ERROR_SIZE));
     assert(length < 0);
     universal.error.last_error[GEARMAN_MAX_ERROR_SIZE -1]= 0;
-    return GEARMAN_ARGUMENT_TOO_LARGE;
   }
 
-  length= snprintf(universal.error.last_error, GEARMAN_MAX_ERROR_SIZE, "%s(%s) %s -> %s", function, gearman_strerror(rc), last_error, position);
+  length= snprintf(universal.error.last_error, GEARMAN_MAX_ERROR_SIZE, "%s(%s) %s -> %s", function, gearman_strerror(universal.error.rc), last_error, position);
   if (length > int(GEARMAN_MAX_ERROR_SIZE) or length < 0)
   {
     assert(length > int(GEARMAN_MAX_ERROR_SIZE));
     assert(length < 0);
     universal.error.last_error[GEARMAN_MAX_ERROR_SIZE -1]= 0;
-    return GEARMAN_ARGUMENT_TOO_LARGE;
   }
 
   if (universal.log_fn)
@@ -86,7 +117,7 @@ gearman_return_t gearman_universal_set_error(gearman_universal_st& universal,
                      static_cast<void *>(universal.log_context));
   }
 
-  return rc;
+  return universal.error.rc;
 }
 
 gearman_return_t gearman_universal_set_gerror(gearman_universal_st& universal, 
@@ -94,11 +125,13 @@ gearman_return_t gearman_universal_set_gerror(gearman_universal_st& universal,
                                               const char *func,
                                               const char *position)
 {
-  universal.error.rc= rc;
-  if (rc != GEARMAN_ERRNO)
+  if (rc == GEARMAN_SUCCESS)
   {
-    universal.error.last_errno= 0;
+    return GEARMAN_SUCCESS;
   }
+
+  universal.error.rc= rc;
+  correct_from_errno(universal);
 
   int length= snprintf(universal.error.last_error, GEARMAN_MAX_ERROR_SIZE, "%s(%s) -> %s", func, gearman_strerror(rc), position);
   if (length > int(GEARMAN_MAX_ERROR_SIZE) or length < 0)
@@ -122,8 +155,15 @@ gearman_return_t gearman_universal_set_perror(gearman_universal_st &universal,
                                               const char *function, const char *position, 
                                               const char *message)
 {
+  if (errno == 0)
+  {
+    return GEARMAN_SUCCESS;
+  }
+
   universal.error.rc= GEARMAN_ERRNO;
   universal.error.last_errno= errno;
+
+  correct_from_errno(universal);
 
   const char *errmsg_ptr;
   char errmsg[GEARMAN_MAX_ERROR_SIZE]; 
@@ -151,7 +191,6 @@ gearman_return_t gearman_universal_set_perror(gearman_universal_st &universal,
     assert(length > int(GEARMAN_MAX_ERROR_SIZE));
     assert(length < 0);
     universal.error.last_error[GEARMAN_MAX_ERROR_SIZE -1]= 0;
-    return GEARMAN_ARGUMENT_TOO_LARGE;
   }
 
   if (universal.log_fn)
@@ -160,5 +199,5 @@ gearman_return_t gearman_universal_set_perror(gearman_universal_st &universal,
                      static_cast<void *>(universal.log_context));
   }
 
-  return GEARMAN_ERRNO;
+  return universal.error.rc;
 }

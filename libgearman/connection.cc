@@ -96,10 +96,11 @@ gearman_return_t gearman_connection_st::connect_poll()
           return GEARMAN_SUCCESS;
         }
 
-	errno= (err == 0) ? get_socket_errno() : err;
+        errno= err;
 
         return gearman_perror(universal, "getsockopt() failed");
       }
+
     case 0:
       {
         return gearman_error(universal, GEARMAN_TIMEOUT, "timeout occurred while trying to connect");
@@ -127,18 +128,16 @@ gearman_return_t gearman_connection_st::connect_poll()
           int err;
           socklen_t len= sizeof (err);
           (void)getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &len);
-	  errno= (err == 0) ? get_socket_errno() : err;
-          gearman_perror(universal, "Error found by getsockopt()");
+          errno= err;
         }
         else
         {
           errno= get_socket_errno();
-          gearman_perror(universal, "socket error occurred");
         }
 
         assert_msg(fd != INVALID_SOCKET, "poll() was passed an invalid file descriptor");
 
-        return gearman_universal_error_code(universal);
+        return gearman_perror(universal, "socket error occurred");
       }
     }
   }
@@ -400,7 +399,7 @@ void gearman_connection_st::reset_addrinfo()
   addrinfo_next= NULL;
 }
 
-gearman_return_t gearman_connection_st::send(const gearman_packet_st& packet_arg, const bool flush_buffer)
+gearman_return_t gearman_connection_st::send_packet(const gearman_packet_st& packet_arg, const bool flush_buffer)
 {
   switch (send_state)
   {
@@ -416,9 +415,9 @@ gearman_return_t gearman_connection_st::send(const gearman_packet_st& packet_arg
       gearman_return_t rc;
       { // Scoping to shut compiler up about switch/case jump
         size_t send_size= gearman_packet_pack(packet_arg,
-                                              send_buffer + send_buffer_size,
-                                              GEARMAN_SEND_BUFFER_SIZE -
-                                              send_buffer_size, rc);
+                                              send_buffer +send_buffer_size,
+                                              GEARMAN_SEND_BUFFER_SIZE -send_buffer_size, rc);
+
         if (gearman_success(rc))
         {
           send_buffer_size+= send_size;
@@ -466,7 +465,9 @@ gearman_return_t gearman_connection_st::send(const gearman_packet_st& packet_arg
     {
       send_data_offset= GEARMAN_SEND_BUFFER_SIZE - send_buffer_size;
       if (send_data_offset > packet_arg.data_size)
+      {
         send_data_offset= packet_arg.data_size;
+      }
 
       memcpy(send_buffer + send_buffer_size, packet_arg.data, send_data_offset);
       send_buffer_size+= send_data_offset;
@@ -486,7 +487,9 @@ gearman_return_t gearman_connection_st::send(const gearman_packet_st& packet_arg
     {
       gearman_return_t ret= flush();
       if (gearman_failed(ret))
+      {
         return ret;
+      }
     }
 
     send_data_size= packet_arg.data_size;
@@ -630,18 +633,19 @@ gearman_return_t gearman_connection_st::flush()
         }
 
         if (errno == EAGAIN || errno == EINTR)
-	{
+        {
           continue;
-	}
+        }
 
         if (errno == EINPROGRESS)
         {
           gearman_return_t gret= connect_poll();
-	  if (gearman_failed(gret))
-	  {
+          if (gearman_failed(gret))
+          {
+            assert_msg(universal.error.rc != GEARMAN_SUCCESS, "Programmer error, connect_poll() returned an error, but it was not set");
             close_socket();
-	    return gret;
-	  }
+            return gret;
+          }
 
           state= GEARMAN_CON_UNIVERSAL_CONNECTING;
           break;
@@ -656,7 +660,7 @@ gearman_return_t gearman_connection_st::flush()
 
         gearman_perror(universal, "connect");
         close_socket();
-        return GEARMAN_ERRNO;
+        return GEARMAN_COULD_NOT_CONNECT;
       }
 
       if (state != GEARMAN_CON_UNIVERSAL_CONNECTING)
@@ -695,7 +699,9 @@ gearman_return_t gearman_connection_st::flush()
       }
 
       if (state != GEARMAN_CON_UNIVERSAL_CONNECTED)
+      {
         break;
+      }
 
     case GEARMAN_CON_UNIVERSAL_CONNECTED:
       while (send_buffer_size != 0)
@@ -768,6 +774,7 @@ gearman_return_t gearman_connection_st::flush()
 
       send_state= GEARMAN_CON_SEND_STATE_NONE;
       send_buffer_ptr= send_buffer;
+
       return GEARMAN_SUCCESS;
     }
   }
