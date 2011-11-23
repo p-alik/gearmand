@@ -886,16 +886,6 @@ static void _close_events(gearmand_st *gearmand)
   _wakeup_close(gearmand);
 }
 
-static const char *_verbose_name[GEARMAND_VERBOSE_MAX]=
-{
-  "NEVER",
-  "FATAL",
-  "ERROR",
-  "INFO",
-  "DEBUG",
-  "CRAZY"
-};
-
 /** @} */
 
 /*
@@ -914,10 +904,37 @@ const char *gearmand_bugreport(void)
 
 const char *gearmand_verbose_name(gearmand_verbose_t verbose)
 {
-  if (verbose >= GEARMAND_VERBOSE_MAX)
-    return "UNKNOWN";
+  switch (verbose)
+  {
+  case GEARMAND_VERBOSE_FATAL:
+    return "FATAL";
 
-  return _verbose_name[verbose];
+  case GEARMAND_VERBOSE_ALERT:
+    return "ALERT";
+
+  case GEARMAND_VERBOSE_CRITICAL:
+    return "CRITICAL";
+
+  case GEARMAND_VERBOSE_ERROR:
+    return "ERROR";
+
+  case GEARMAND_VERBOSE_WARN:
+    return "WARNING";
+
+  case GEARMAND_VERBOSE_NOTICE:
+    return "NOTICE";
+
+  case GEARMAND_VERBOSE_INFO:
+    return "INFO";
+
+  case GEARMAND_VERBOSE_DEBUG:
+    return "DEBUG";
+
+  default:
+    break;
+  }
+
+  return "UNKNOWN";
 }
 
 static bool gearman_server_create(gearman_server_st *server, 

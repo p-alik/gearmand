@@ -177,7 +177,7 @@ public:
 
   const char *log_file_option()
   {
-    return "-vvvvv --log-file=";
+    return "-vvvvv --syslog --log-file=";
   }
 
   const char *port_option()

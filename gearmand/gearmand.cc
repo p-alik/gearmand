@@ -8,17 +8,17 @@
 
 #include <config.h>
 
-#include <errno.h>
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <fcntl.h>
 #include <pwd.h>
 #include <signal.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <syslog.h>
 #include <unistd.h>
 
 #ifdef TIME_WITH_SYS_TIME
@@ -80,6 +80,23 @@ inline void message(const std::string &arg, gearmand_error_t rc)
 
 } // namespace error
 
+struct gearmand_log_syslog_st
+{
+public:
+
+  gearmand_log_syslog_st()
+  {
+    openlog("gearmand", LOG_PID | LOG_NDELAY, LOG_USER);
+  }
+
+  ~gearmand_log_syslog_st()
+  {
+    closelog();
+  }
+
+private:
+};
+
 struct gearmand_log_info_st
 {
   std::string filename;
@@ -93,10 +110,17 @@ struct gearmand_log_info_st
   {
   }
 
+  int file() const
+  {
+    return fd;
+  }
+
   ~gearmand_log_info_st()
   {
     if (fd != -1)
+    {
       close(fd);
+    }
   }
 };
 
@@ -109,6 +133,8 @@ static bool _set_signals(void);
 
 static void _shutdown_handler(int signal_arg);
 static void _log(const char *line, gearmand_verbose_t verbose, void *context);
+
+static bool opt_syslog;
 
 int main(int argc, char *argv[])
 {
@@ -171,6 +197,9 @@ int main(int argc, char *argv[])
 
   ("queue-type,q", boost::program_options::value(&queue_type),
    "Persistent queue type to use.")
+
+  ("syslog", boost::program_options::bool_switch(&opt_syslog)->default_value(false),
+   "Use syslog.")
 
   ("threads,t", boost::program_options::value(&threads)->default_value(4),
    "Number of I/O threads to use. Default=4.")
@@ -246,7 +275,7 @@ int main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
-  gearmand_verbose_t verbose= verbose_count > static_cast<int>(GEARMAND_VERBOSE_CRAZY) ? GEARMAND_VERBOSE_CRAZY : static_cast<gearmand_verbose_t>(verbose_count);
+  gearmand_verbose_t verbose= static_cast<gearmand_verbose_t>(verbose_count);
 
   util::Pidfile _pid_file(pid_file);
 
@@ -256,16 +285,16 @@ int main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
+  gearmand_log_syslog_st log_syslog;
   gearmand_log_info_st log_info(log_file);
 
-  gearmand_st *_gearmand;
-  _gearmand= gearmand_create(host.empty() ? NULL : host.c_str(),
-                             port.c_str(), threads, backlog,
-			     static_cast<uint8_t>(job_retries),
-			     static_cast<uint8_t>(worker_wakeup),
-                             _log, &log_info, verbose,
-                             opt_round_robin);
-  if (not _gearmand)
+  gearmand_st *_gearmand= gearmand_create(host.empty() ? NULL : host.c_str(),
+                                          port.c_str(), threads, backlog,
+                                          static_cast<uint8_t>(job_retries),
+                                          static_cast<uint8_t>(worker_wakeup),
+                                          _log, &log_info, verbose,
+                                          opt_round_robin);
+  if (_gearmand == NULL)
   {
     error::message("Could not create gearmand library instance.");
     return EXIT_FAILURE;
@@ -455,9 +484,13 @@ static void _log(const char *line, gearmand_verbose_t verbose, void *context)
   }
 
   char buffer[GEARMAN_MAX_ERROR_SIZE];
-  snprintf(buffer, GEARMAN_MAX_ERROR_SIZE, "%5s %s\n",
-           gearmand_verbose_name(verbose), line);
-  if (write(fd, buffer, strlen(buffer)) == -1)
+  int buffer_length= snprintf(buffer, GEARMAN_MAX_ERROR_SIZE, "%5s %s\n", gearmand_verbose_name(verbose), line);
+  if (opt_syslog)
+  {
+    syslog(int(verbose), "%.*s", buffer_length, buffer);
+  }
+
+  if (write(log_info->file(), buffer, strlen(buffer)) == -1)
   {
     error::perror("Could not write to log file.");
   }

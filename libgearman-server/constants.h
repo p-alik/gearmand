@@ -20,6 +20,7 @@
 #endif
 
 #include <libgearman-1.0/limits.h>
+#include <libgearman-server/verbose.h>
 
 /**
  * @addtogroup gearman_server_constants Constants
@@ -58,27 +59,17 @@
  * @ingroup gearman_job
  * Priority levels for a job.
  */
-typedef enum
+enum gearmand_job_priority_t
 {
   GEARMAND_JOB_PRIORITY_HIGH,
   GEARMAND_JOB_PRIORITY_NORMAL,
   GEARMAND_JOB_PRIORITY_LOW,
   GEARMAND_JOB_PRIORITY_MAX /* Always add new commands before this. */
-} gearmand_job_priority_t;
+};
 
-/**
- * Verbosity levels.
- */
-typedef enum
-{
-  GEARMAND_VERBOSE_NEVER,
-  GEARMAND_VERBOSE_FATAL,
-  GEARMAND_VERBOSE_ERROR,
-  GEARMAND_VERBOSE_INFO,
-  GEARMAND_VERBOSE_DEBUG,
-  GEARMAND_VERBOSE_CRAZY,
-  GEARMAND_VERBOSE_MAX
-} gearmand_verbose_t;
+#ifndef __cplusplus
+typedef enum gearmand_job_priority_t gearmand_job_priority_t;
+#endif
 
 /** @} */
 
