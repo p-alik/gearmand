@@ -381,4 +381,3 @@ void get_world(Framework *world)
 {
   world->collections= collection;
 }
-

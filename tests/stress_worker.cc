@@ -182,11 +182,6 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
   return NULL;
 }
 
-static bool world_destroy(void *)
-{
-  return TEST_SUCCESS;
-}
-
 test_st tests[] ={
   {"first pass", 0, worker_ramp_TEST },
   {"second pass", 0, worker_ramp_TEST },
@@ -199,53 +194,8 @@ collection_st collection[] ={
   {0, 0, 0, 0}
 };
 
-
-typedef test_return_t (*libgearman_test_prepost_callback_fn)(void *);
-typedef test_return_t (*libgearman_test_callback_fn)(gearman_worker_st *);
-static test_return_t _runner_prepost_default(libgearman_test_prepost_callback_fn func, void *)
-{
-  if (func)
-  {
-    return func(NULL);
-  }
-
-  return TEST_SUCCESS;
-}
-
-static test_return_t _runner_default(libgearman_test_callback_fn func, void *)
-{
-  if (func)
-  {
-    return func(NULL);
-  }
-
-  return TEST_SUCCESS;
-}
-
-class GearmandRunner : public Runner {
-public:
-  test_return_t run(test_callback_fn* func, void *object)
-  {
-    return _runner_default(libgearman_test_callback_fn(func), object);
-  }
-
-  test_return_t pre(test_callback_fn* func, void *object)
-  {
-    return _runner_prepost_default(libgearman_test_prepost_callback_fn(func), object);
-  }
-
-  test_return_t post(test_callback_fn* func, void *object)
-  {
-    return _runner_prepost_default(libgearman_test_prepost_callback_fn(func), object);
-  }
-};
-
-static GearmandRunner defualt_runner;
-
 void get_world(Framework *world)
 {
   world->collections= collection;
   world->_create= world_create;
-  world->_destroy= world_destroy;
-  world->set_runner(&defualt_runner);
 }

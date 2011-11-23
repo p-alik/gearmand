@@ -71,4 +71,3 @@ test_return_t unique_compare_test(void *object)
 
   return TEST_SUCCESS;
 }
-

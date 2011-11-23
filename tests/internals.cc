@@ -456,14 +456,8 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
   return NULL;
 }
 
-static bool world_destroy(void *)
-{
-  return TEST_SUCCESS;
-}
-
 void get_world(Framework *world)
 {
   world->collections= collection;
   world->_create= world_create;
-  world->_destroy= world_destroy;
 }

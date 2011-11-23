@@ -120,3 +120,4 @@ tests/killall
 tests/cli
 libgearman-1.0/version.h
 tests/ephemeral_test
+gearmand/hostile_gearmand
