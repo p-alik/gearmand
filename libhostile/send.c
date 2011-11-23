@@ -50,6 +50,20 @@ static void set_local(void)
   __function= set_function("send", "HOSTILE_SEND");
 }
 
+void set_send_close(bool arg, int frequency, int not_until_arg)
+{
+  if (arg)
+  {
+    __function.frequency= frequency;
+    not_until= not_until_arg;
+  }
+  else
+  {
+    __function.frequency= 0;
+    not_until= 0;
+  }
+}
+
 ssize_t send(int sockfd, const void *buf, size_t len, int flags)
 {
 

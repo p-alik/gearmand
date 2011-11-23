@@ -127,6 +127,34 @@ static test_return_t worker_ramp_TEST(void *)
   return TEST_SUCCESS;
 }
 
+static test_return_t pre_recv(void *)
+{
+  set_recv_close(true, 20, 20);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t post_recv(void *)
+{
+  set_recv_close(true, 0, 0);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t pre_send(void *)
+{
+  set_send_close(true, 20, 20);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t post_send(void *)
+{
+  set_send_close(true, 0, 0);
+
+  return TEST_SUCCESS;
+}
+
 /*********************** World functions **************************************/
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
@@ -160,13 +188,14 @@ static bool world_destroy(void *)
 }
 
 test_st tests[] ={
-  {"load", 0, worker_ramp_TEST },
-  {"load 2", 0, worker_ramp_TEST },
+  {"first pass", 0, worker_ramp_TEST },
+  {"second pass", 0, worker_ramp_TEST },
   {0, 0, 0}
 };
 
 collection_st collection[] ={
-  {"worker", 0, 0, tests},
+  {"recv()", pre_recv, post_recv, tests},
+  {"send()", pre_send, post_send, tests},
   {0, 0, 0, 0}
 };
 
