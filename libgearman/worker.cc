@@ -127,9 +127,9 @@ gearman_worker_st *gearman_worker_create(gearman_worker_st *worker)
 }
 
 gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker,
-                                        const gearman_worker_st *from)
+                                        const gearman_worker_st *source)
 {
-  if (from == NULL)
+  if (source == NULL)
   {
     return _worker_allocate(worker, false);
   }
@@ -141,13 +141,13 @@ gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker,
     return worker;
   }
 
-  worker->options.non_blocking= from->options.non_blocking;
-  worker->options.change= from->options.change;
-  worker->options.grab_uniq= from->options.grab_uniq;
-  worker->options.grab_all= from->options.grab_all;
-  worker->options.timeout_return= from->options.timeout_return;
+  worker->options.non_blocking= source->options.non_blocking;
+  worker->options.change= source->options.change;
+  worker->options.grab_uniq= source->options.grab_uniq;
+  worker->options.grab_all= source->options.grab_all;
+  worker->options.timeout_return= source->options.timeout_return;
 
-  gearman_universal_clone(worker->universal, from->universal);
+  gearman_universal_clone(worker->universal, source->universal, true);
 
   if (gearman_failed(_worker_packet_init(worker)))
   {

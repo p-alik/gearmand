@@ -112,16 +112,23 @@ void gearman_nap(gearman_universal_st &self)
   gearman_nap(self.timeout);
 }
 
-void gearman_universal_clone(gearman_universal_st &destination, const gearman_universal_st &source)
+void gearman_universal_clone(gearman_universal_st &destination, const gearman_universal_st &source, bool has_wakeup_fd)
 {
   int wakeup_fd[2];
-  wakeup_fd[0]= destination.wakeup_fd[0];
-  wakeup_fd[1]= destination.wakeup_fd[1];
+
+  if (has_wakeup_fd)
+  {
+    wakeup_fd[0]= destination.wakeup_fd[0];
+    wakeup_fd[1]= destination.wakeup_fd[1];
+  }
 
   gearman_universal_initialize(destination);
 
-  destination.wakeup_fd[0]= wakeup_fd[0];
-  destination.wakeup_fd[1]= wakeup_fd[1];
+  if (has_wakeup_fd)
+  {
+    destination.wakeup_fd[0]= wakeup_fd[0];
+    destination.wakeup_fd[1]= wakeup_fd[1];
+  }
 
   (void)gearman_universal_set_option(destination, GEARMAN_NON_BLOCKING, source.options.non_blocking);
   (void)gearman_universal_set_option(destination, GEARMAN_DONT_TRACK_PACKETS, source.options.dont_track_packets);
@@ -247,7 +254,7 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
   struct pollfd *pfds;
 
   bool have_shutdown_pipe= universal.wakeup_fd[0] == INVALID_SOCKET ? false : true;
-  size_t con_count= universal.con_count + int(have_shutdown_pipe);
+  size_t con_count= universal.con_count +int(have_shutdown_pipe);
 
   if (universal.pfds_size < con_count)
   {
@@ -420,7 +427,9 @@ gearman_return_t gearman_echo(gearman_universal_st& universal,
                                                    &workload, &workload_size, 1);
   if (gearman_failed(ret))
   {
+#if 0
     assert_msg(universal.error.rc != GEARMAN_SUCCESS, "Programmer error, error returned but not recorded");
+#endif
     gearman_packet_free(&packet);
     return ret;
   }
@@ -432,7 +441,9 @@ gearman_return_t gearman_echo(gearman_universal_st& universal,
     ret= con->send_packet(packet, true);
     if (gearman_failed(ret))
     {
+#if 0
       assert_msg(con->universal.error.rc != GEARMAN_SUCCESS, "Programmer error, error returned but not recorded");
+#endif
       goto exit;
     }
 
@@ -440,7 +451,9 @@ gearman_return_t gearman_echo(gearman_universal_st& universal,
     gearman_packet_st *packet_ptr= con->receiving(con->_packet, ret, true);
     if (gearman_failed(ret))
     {
+#if 0
       assert_msg(con->universal.error.rc != GEARMAN_SUCCESS, "Programmer error, error returned but not recorded");
+#endif
       con->free_private_packet();
       con->recv_packet= NULL;
 
@@ -451,7 +464,9 @@ gearman_return_t gearman_echo(gearman_universal_st& universal,
     if (con->_packet.data_size != workload_size or
         memcmp(workload, con->_packet.data, workload_size))
     {
+#if 0
       assert_msg(con->universal.error.rc != GEARMAN_SUCCESS, "Programmer error, error returned but not recorded");
+#endif
       con->free_private_packet();
       con->recv_packet= NULL;
       ret= gearman_error(universal, GEARMAN_ECHO_DATA_CORRUPTION, "corruption during echo");

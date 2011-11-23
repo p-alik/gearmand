@@ -60,7 +60,10 @@ static void correct_from_errno(gearman_universal_st& universal)
       break;
 
     case ECONNREFUSED:
+    case ECONNRESET:
+    case EHOSTDOWN:
     case ENETUNREACH:
+    case EPIPE:
     case ETIMEDOUT:
       universal.error.rc= GEARMAN_COULD_NOT_CONNECT;
       break;

@@ -355,14 +355,18 @@ void gearman_connection_st::close_socket()
   /* in case of death shutdown to avoid blocking at close_socket() */
   if (shutdown(fd, SHUT_RDWR) == SOCKET_ERROR && get_socket_errno() != ENOTCONN)
   {
+#if 0
     gearman_perror(universal, "shutdown");
+#endif
     assert(errno != ENOTSOCK);
   }
   else
   {
     if (closesocket(fd) == SOCKET_ERROR)
     {
+#if 0
       gearman_perror(universal, "close");
+#endif
     }
   }
 
@@ -436,9 +440,8 @@ gearman_return_t gearman_connection_st::send_packet(const gearman_packet_st& pac
       /* We were asked to flush when the buffer is already flushed! */
       if (send_buffer_size == 0)
       {
-        gearman_universal_set_error(universal, GEARMAN_SEND_BUFFER_TOO_SMALL, __func__, AT,
-                                    "send buffer too small (%u)", GEARMAN_SEND_BUFFER_SIZE);
-        return GEARMAN_SEND_BUFFER_TOO_SMALL;
+        return gearman_universal_set_error(universal, GEARMAN_SEND_BUFFER_TOO_SMALL, __func__, AT,
+                                           "send buffer too small (%u)", GEARMAN_SEND_BUFFER_SIZE);
       }
 
       /* Flush buffer now if first part of packet won't fit in. */
@@ -528,6 +531,7 @@ gearman_return_t gearman_connection_st::send_packet(const gearman_packet_st& pac
   }
 
   send_state= GEARMAN_CON_SEND_STATE_NONE;
+
   return GEARMAN_SUCCESS;
 }
 
@@ -737,15 +741,15 @@ gearman_return_t gearman_connection_st::flush()
           }
           else if (errno == EPIPE || errno == ECONNRESET || errno == EHOSTDOWN)
           {
-            gearman_perror(universal, "lost connection to server during send");
+            gearman_return_t ret= gearman_perror(universal, "lost connection to server during send");
             close_socket();
-            return GEARMAN_LOST_CONNECTION;
+            return ret;
           }
 
-          gearman_perror(universal, "send");
+          gearman_return_t ret= gearman_perror(universal, "send");
           close_socket();
 
-          return GEARMAN_ERRNO;
+          return ret;
         }
 
         send_buffer_size-= size_t(write_size);
