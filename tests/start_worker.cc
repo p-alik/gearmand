@@ -60,6 +60,8 @@
 using namespace libtest;
 using namespace datadifferential;
 
+#include <tests/worker.h>
+
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
@@ -105,38 +107,6 @@ struct context_st {
   {
     sem_destroy(&lock);
   }
-};
-
-class Worker {
-public:
-  Worker()
-  {
-    _worker= gearman_worker_create(NULL);
-
-    if (_worker == NULL)
-    {
-      throw "gearman_worker_create() failed";
-    }
-  }
-
-  gearman_worker_st* operator&() const
-  { 
-    return _worker;
-  }
-
-  gearman_worker_st* operator->() const
-  { 
-    return _worker;
-  }
-
-  ~Worker()
-  {
-    gearman_worker_free(_worker);
-  }
-
-private:
-  gearman_worker_st *_worker;
-
 };
 
 extern "C" {

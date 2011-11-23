@@ -114,7 +114,14 @@ void gearman_nap(gearman_universal_st &self)
 
 void gearman_universal_clone(gearman_universal_st &destination, const gearman_universal_st &source)
 {
+  int wakeup_fd[2];
+  wakeup_fd[0]= destination.wakeup_fd[0];
+  wakeup_fd[1]= destination.wakeup_fd[1];
+
   gearman_universal_initialize(destination);
+
+  destination.wakeup_fd[0]= wakeup_fd[0];
+  destination.wakeup_fd[1]= wakeup_fd[1];
 
   (void)gearman_universal_set_option(destination, GEARMAN_NON_BLOCKING, source.options.non_blocking);
   (void)gearman_universal_set_option(destination, GEARMAN_DONT_TRACK_PACKETS, source.options.dont_track_packets);

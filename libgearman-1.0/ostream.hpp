@@ -36,6 +36,8 @@
 
 #pragma once
 
+#include <libgearman-1.0/gearman.h>
+
 static inline std::ostream& operator<<(std::ostream& output, const enum gearman_return_t &arg)
 {
   output << gearman_strerror(arg);
