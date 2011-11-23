@@ -9,6 +9,7 @@
 
 noinst_HEADERS+= \
 		 tests/basic.h \
+		 tests/client.h \
 		 tests/context.h \
 		 tests/do.h \
 		 tests/do_background.h \
@@ -23,6 +24,7 @@ noinst_HEADERS+= \
 		 tests/start_worker.h \
 		 tests/task.h \
 		 tests/unique.h \
+		 tests/worker.h \
 		 tests/workers.h \
 		 tests/workers_v1.h
 

@@ -141,7 +141,9 @@ public:
         return true;
       }
 
+#if 0
       Error << hostname().c_str() << ":" << port() << " was " << gearman_strerror(rc) << " extended: " << gearman_client_error(client);
+#endif
     }
     else
     {

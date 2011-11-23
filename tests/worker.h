@@ -1,8 +1,9 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  DataDifferential Utility Library
+ *  Gearmand client and server library.
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -34,22 +35,36 @@
  *
  */
 
-
-/*
-  Simple defines
-*/
-
-#include <cstring>
-#include <cstddef>
-
 #pragma once
 
-#define util_literal_param(X) (X), (static_cast<size_t>((sizeof(X) - 1)))
-#define util_literal_param_size(X) static_cast<size_t>(sizeof(X) - 1)
+class Worker {
+public:
+  Worker()
+  {
+    _worker= gearman_worker_create(NULL);
 
-#define util_string_make_from_cstr(X) (X), ((X) ? strlen(X) : 0)
+    if (_worker == NULL)
+    {
+      throw "gearman_worker_create() failed";
+    }
+  }
 
-#define util_string_make_from_array(__array) (__array), (strlen(__array))
+  gearman_worker_st* operator&() const
+  { 
+    return _worker;
+  }
 
-#define util_array_length(__array) sizeof(__array)/sizeof(&__array)
+  gearman_worker_st* operator->() const
+  { 
+    return _worker;
+  }
 
+  ~Worker()
+  {
+    gearman_worker_free(_worker);
+  }
+
+private:
+  gearman_worker_st *_worker;
+
+};

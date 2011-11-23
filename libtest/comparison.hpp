@@ -29,7 +29,6 @@
 #endif
 
 #if defined(HAVE_LIBGEARMAN) && HAVE_LIBGEARMAN
-#include <libgearman-1.0/gearman.h>
 #include <libgearman-1.0/ostream.hpp>
 #endif
 

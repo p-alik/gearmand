@@ -46,7 +46,7 @@ GEARMAN_LOCAL
 void gearman_universal_initialize(gearman_universal_st &self, const gearman_universal_options_t *options= NULL);
 
 GEARMAN_LOCAL
-void gearman_universal_clone(gearman_universal_st &destination, const gearman_universal_st &source);
+void gearman_universal_clone(gearman_universal_st &destination, const gearman_universal_st &source, bool has_wakeup_fd= false);
 
 GEARMAN_LOCAL
 void gearman_universal_free(gearman_universal_st &gearman);
