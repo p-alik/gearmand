@@ -122,6 +122,9 @@ tests_hostileworker_test_LDADD+= libhostile/libhostile.la
 tests_hostileworker_test_LDADD+= -ldl
 check_PROGRAMS+=tests/hostileworker_test
 noinst_PROGRAMS+=tests/hostileworker_test
+
+valgrind-hostileworker: tests/hostileworker_test gearmand/gearmand
+	@$(VALGRIND_COMMAND) tests/hostileworker_test
 endif
 
 # Test linking with C++ application
@@ -144,101 +147,101 @@ tests_burnin_test_LDADD= ${CLIENT_LDADD}
 check_PROGRAMS+=tests/burnin_test
 noinst_PROGRAMS+=tests/burnin_test
 
-test-burnin: tests/burnin_test
+test-burnin: tests/burnin_test gearmand/gearmand
 	@tests/burnin_test
 
-test-cycle: tests/cycle
+test-cycle: tests/cycle gearmand/gearmand
 	@tests/cycle
 
-test-cli: tests/cli
+test-cli: tests/cli gearmand/gearmand
 	@tests/cli
 
-test-gearmand: tests/gearmand
+test-gearmand: tests/gearmand gearmand/gearmand
 	@tests/gearmand
 
-tests-blobslap_client: tests/blobslap_client
+tests-blobslap_client: tests/blobslap_client gearmand/gearmand
 	@tests/blobslap_client
 
-test-client: tests/client_test
+test-client: tests/client_test gearmand/gearmand
 	@tests/client_test
 
-test-round-robin: tests/round_robin_test
+test-round-robin: tests/round_robin_test gearmand/gearmand
 	@tests/round_robin_test
 
-test-worker: tests/worker_test
+test-worker: tests/worker_test gearmand/gearmand
 	@tests/worker_test
 
-test-internals: tests/internals_test
+test-internals: tests/internals_test gearmand/gearmand
 	@tests/internals_test
 
 check-local:
 
-gdb-client: tests/client_test
+gdb-client: tests/client_test gearmand/gearmand
 	@$(GDB_COMMAND) tests/client_test
 
-gdb-round-robin: tests/round_robin_test
+gdb-round-robin: tests/round_robin_test gearmand/gearmand
 	@$(GDB_COMMAND) tests/round_robin_test
 
-gdb-worker: tests/worker_test
+gdb-worker: tests/worker_test gearmand/gearmand
 	@$(GDB_COMMAND) tests/worker_test
 
-gdb-internals: tests/internals_test
+gdb-internals: tests/internals_test gearmand/gearmand
 	@$(GDB_COMMAND) tests/internals_test
 
-gdb-burnin: tests/burnin_test
+gdb-burnin: tests/burnin_test gearmand/gearmand
 	@$(GDB_COMMAND) tests/burnin_test
 
-gdb-cli: tests/cli
+gdb-cli: tests/cli gearmand/gearmand
 	@$(GDB_COMMAND) tests/cli
 
-gdb-blobslap_client: tests/blobslap_client
+gdb-blobslap_client: tests/blobslap_client gearmand/gearmand
 	@$(GDB_COMMAND) tests/blobslap_client
 
-gdb-cycle: tests/cycle
+gdb-cycle: tests/cycle gearmand/gearmand
 	@$(GDB_COMMAND) tests/cycle
 
 gdb-all: gdb-cycle gdb-client gdb-round-robin gdb-worker gdb-internals gdb-sqlite gdb-tokyocabinet gdb-burnin
 
-valgrind-client: tests/client_test
+valgrind-client: tests/client_test gearmand/gearmand
 	@$(VALGRIND_COMMAND) tests/client_test
 
-valgrind-cli: tests/cli
-	@$(VALGRIND_COMMAND) tests/cli
+valgrind-cli: tests/cli gearmand/gearmand
+	@$(VALGRIND_COMMAND) tests/cli gearmand/gearmand
 
-valgrind-round-robin: tests/round_robin_test
+valgrind-round-robin: tests/round_robin_test gearmand/gearmand
 	@$(VALGRIND_COMMAND) tests/round_robin_test
 
-valgrind-worker: tests/worker_test
+valgrind-worker: tests/worker_test gearmand/gearmand
 	@$(VALGRIND_COMMAND) tests/worker_test
 
-valgrind-internals: tests/internals_test
+valgrind-internals: tests/internals_test gearmand/gearmand
 	@$(VALGRIND_COMMAND) tests/internals_test
 
-valgrind-burnin: tests/burnin_test
+valgrind-burnin: tests/burnin_test gearmand/gearmand
 	@$(VALGRIND_COMMAND) tests/burnin_test
 
-valgrind-cycle: tests/cycle
+valgrind-cycle: tests/cycle gearmand/gearmand
 	@$(VALGRIND_COMMAND) tests/cycle
 
-helgrind-client: tests/client_test
+helgrind-client: tests/client_test gearmand/gearmand
 	@$(HELGRIND_COMMAND) tests/client_test
 
-helgrind-round-robin: tests/round_robin_test
+helgrind-round-robin: tests/round_robin_test gearmand/gearmand
 	@$(HELGRIND_COMMAND) tests/round_robin_test
 
-helgrind-worker: tests/worker_test
+helgrind-worker: tests/worker_test gearmand/gearmand
 	@$(HELGRIND_COMMAND) tests/worker_test
 
-helgrind-internals: tests/internals_test
+helgrind-internals: tests/internals_test gearmand/gearmand
 	@$(HELGRIND_COMMAND) tests/internals_test
 
-helgrind-burnin: tests/burnin_test
+helgrind-burnin: tests/burnin_test gearmand/gearmand
 	@$(HELGRIND_COMMAND) tests/burnin_test
 
-helgrind-cycle: tests/cycle
+helgrind-cycle: tests/cycle gearmand/gearmand
 	@$(HELGRIND_COMMAND) tests/cycle
 
-drd-cycle: tests/cycle
+drd-cycle: tests/cycle gearmand/gearmand
 	@$(DRD_COMMAND) tests/cycle
 
 helgrind-test: helgrind-cycle helgrind-client helgrind-round-robin helgrind-worker helgrind-internals helgrind-sqlite helgrind-tokyocabinet helgrind-burnin

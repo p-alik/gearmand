@@ -71,14 +71,13 @@ ssize_t send(int sockfd, const void *buf, size_t len, int flags)
 
   (void) pthread_once(&function_lookup_once, set_local);
 
-  if (__function.frequency)
+  if (is_getaddrinfo() == false && __function.frequency)
   {
     if (--not_until < 0 && random() % __function.frequency)
     {
       shutdown(sockfd, SHUT_RDWR);
       close(sockfd);
       errno= ECONNRESET;
-      perror("HOSTILE CLOSE() of socket");
       return -1;
     }
   }

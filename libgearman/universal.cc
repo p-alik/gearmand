@@ -336,8 +336,7 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
 
     int err;
     socklen_t len= sizeof (err);
-    (void)getsockopt(con->fd, SOL_SOCKET, SO_ERROR, &err, &len);
-    if (err)
+    if (getsockopt(con->fd, SOL_SOCKET, SO_ERROR, &err, &len) == 0)
     {
       con->cached_errno= err;
     }

@@ -160,11 +160,13 @@ static test_return_t post_send(void *)
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
   // Assume we are running under valgrind, and bail 
+#if 0
   if (getenv("TESTS_ENVIRONMENT")) 
   {
     error= TEST_SKIPPED;
     return NULL;
   }
+#endif
 
   if (server_startup(servers, "gearmand", STRESS_WORKER_PORT, 0, NULL) == false)
   {
@@ -176,7 +178,11 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
 
   for (uint32_t x= 0; x < 100; x++)
   {
-    test_worker_start(STRESS_WORKER_PORT, NULL, WORKER_FUNCTION_NAME, echo_react_fn, NULL, gearman_worker_options_t());
+    if (test_worker_start(STRESS_WORKER_PORT, NULL, WORKER_FUNCTION_NAME, echo_react_fn, NULL, gearman_worker_options_t()) == NULL)
+    {
+      error= TEST_FAILURE;
+      return NULL;
+    }
   }
 
   return NULL;
@@ -189,8 +195,9 @@ test_st tests[] ={
 };
 
 collection_st collection[] ={
-  {"recv()", pre_recv, post_recv, tests},
-  {"send()", pre_send, post_send, tests},
+  {"plain", pre_recv, post_recv, tests},
+  {"hostile recv()", pre_recv, post_recv, tests},
+  {"hostile send()", pre_send, post_send, tests},
   {0, 0, 0, 0}
 };
 
