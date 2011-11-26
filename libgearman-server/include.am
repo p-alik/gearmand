@@ -48,6 +48,7 @@ noinst_HEADERS+= \
 		 libgearman-server/port.h \
 		 libgearman-server/server.h \
 		 libgearman-server/thread.h \
+		 libgearman-server/verbose.h \
 		 libgearman-server/wakeup.h \
 		 libgearman-server/worker.h
 
