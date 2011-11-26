@@ -66,6 +66,8 @@ using namespace datadifferential;
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
+#define CONTEXT_MAGIC_MARKER 45
+
 struct context_st {
   in_port_t port;
   const char *function_name;
@@ -77,6 +79,7 @@ struct context_st {
   void *context;
   sem_t lock;
   volatile bool failed_startup;
+  int magic;
 
   context_st(worker_handle_st* handle_arg,
              gearman_function_t& arg,
@@ -87,7 +90,8 @@ struct context_st {
     worker_fn(arg),
     namespace_key(NULL),
     context(0),
-    failed_startup(false)
+    failed_startup(false),
+    magic(CONTEXT_MAGIC_MARKER)
   {
     sem_init(&lock, 0, 0);
   }
@@ -115,10 +119,27 @@ extern "C" {
   {
     context_st *context= (context_st *)con;
 
-    assert(context);
+    if (context == NULL)
+    {
+      Error << "context_st passed to function was NULL";
+      context->fail();
+      pthread_exit(0);
+    }
+
+    if (context->magic != CONTEXT_MAGIC_MARKER)
+    {
+      Error << "context_st had bad magic";
+      context->fail();
+      pthread_exit(0);
+    }
 
     Worker worker;
-    assert(&worker);
+    if (&worker == NULL)
+    {
+      Error << "Failed to create Worker";
+      context->fail();
+      pthread_exit(0);
+    }
 
     assert(context->handle);
     context->handle->worker_id= gearman_worker_id(&worker);
@@ -132,7 +153,7 @@ extern "C" {
     {
       Error << "gearman_worker_add_server()";
       context->fail();
-      pthread_exit(0);
+      pthread_exit(context);
     }
 
     // Check for a working server by "asking" it for an option
@@ -148,7 +169,7 @@ extern "C" {
       {
         Error << "gearman_worker_set_server_option() failed";
         context->fail();
-        pthread_exit(0);
+        pthread_exit(context);
       }
     }
 
@@ -160,7 +181,7 @@ extern "C" {
     {
       Error << "Failed to add function " << context->function_name << "(" << gearman_worker_error(&worker) << ")";
       context->fail();
-      pthread_exit(0);
+      pthread_exit(context);
     }
 
     if (context->options != gearman_worker_options_t())
@@ -177,14 +198,41 @@ extern "C" {
 
     pthread_exit(context);
   }
+
+  static void *dummy_runner(void *object)
+  {
+    sem_t *lock= (sem_t*)object;
+    sem_post(lock);
+    pthread_exit(0);
+  }
+
 }
 
-struct worker_handle_st *test_worker_start(in_port_t port, 
-                                           const char *namespace_key,
-                                           const char *function_name,
-                                           gearman_function_t &worker_fn,
-                                           void *context_arg,
-                                           gearman_worker_options_t options)
+static pthread_once_t dummy_thread_once = PTHREAD_ONCE_INIT;
+static void run_dummy_thread(void)
+{
+  pthread_t dummy_thread;
+
+  sem_t lock;
+  sem_init(&lock, 0, 0);
+
+  if (pthread_create(&dummy_thread, NULL, dummy_runner, &lock) == 0)
+  {
+    sem_wait(&lock);
+    void *unused;
+    pthread_join(dummy_thread, &unused);
+  }
+
+  sem_destroy(&lock);
+}
+
+
+worker_handle_st *test_worker_start(in_port_t port, 
+                                    const char *namespace_key,
+                                    const char *function_name,
+                                    gearman_function_t &worker_fn,
+                                    void *context_arg,
+                                    gearman_worker_options_t options)
 {
   worker_handle_st *handle= new worker_handle_st();
   assert(handle);
@@ -197,24 +245,39 @@ struct worker_handle_st *test_worker_start(in_port_t port,
   context->options= options;
   context->namespace_key= namespace_key;
 
+  (void)pthread_once(&dummy_thread_once, run_dummy_thread);
+
   if (pthread_create(&handle->thread, NULL, thread_runner, context) != 0)
   {
     Error << "pthread_create(" << strerror(errno) << ")";
     delete context;
     delete handle;
-    abort();
+
+    return NULL;
   }
 
   sem_wait(&context->lock);
 
   if (context->failed_startup)
   {
-    void *unused;
-    pthread_join(handle->thread, &unused);
-    delete context;
+    void *ret;
+    pthread_join(handle->thread, &ret);
+    context_st *ret_con= (context_st *)ret;
+
+    if (ret_con)
+    {
+      delete ret_con;
+    }
+    else
+    {
+      delete context;
+    }
+
     delete handle;
+
     Error << "Now aborting from failed worker startup";
-    abort(); // @todo test all code for failure case
+
+    return NULL;
   }
 
   return handle;

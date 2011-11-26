@@ -28,6 +28,8 @@ extern "C" {
 
 void set_recv_close(bool arg, int frequency, int not_until_arg);
 
+void set_send_close(bool arg, int frequency, int not_until_arg);
+
 #ifdef __cplusplus
 }
 #endif

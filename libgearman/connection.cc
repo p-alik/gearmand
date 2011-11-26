@@ -88,15 +88,17 @@ gearman_return_t gearman_connection_st::connect_poll()
       {
         int err;
         socklen_t len= sizeof (err);
-        (void)getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &len);
-
-        // We check the value to see what happened wth the socket.
-        if (err == 0)
+        // We replace errno with err if getsockopt() passes, but err has been
+        // set.
+        if (getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &len) == 0)
         {
-          return GEARMAN_SUCCESS;
+          // We check the value to see what happened wth the socket.
+          if (err == 0)
+          {
+            return GEARMAN_SUCCESS;
+          }
+          errno= err;
         }
-
-        errno= err;
 
         return gearman_perror(universal, "getsockopt() failed");
       }

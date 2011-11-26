@@ -205,6 +205,14 @@ static test_return_t short_round_robin_test(void *)
   return TEST_SUCCESS;
 }
 
+static test_return_t long_syslog_test(void *)
+{
+  const char *args[]= { "--check-args", "--syslog", 0 };
+
+  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args));
+  return TEST_SUCCESS;
+}
+
 static test_return_t long_threads_test(void *)
 {
   const char *args[]= { "--check-args", "--threads=10", 0 };
@@ -339,6 +347,7 @@ test_st gearmand_option_tests[] ={
   {"-P", 0, short_pid_file_test},
   {"--round-robin", 0, long_round_robin_test},
   {"-R", 0, short_round_robin_test},
+  {"--syslog=", 0, long_syslog_test},
   {"--threads=", 0, long_threads_test},
   {"-T", 0, short_threads_test},
   {"--user=", 0, long_user_test},
@@ -372,4 +381,3 @@ void get_world(Framework *world)
 {
   world->collections= collection;
 }
-

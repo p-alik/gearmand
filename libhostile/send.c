@@ -50,6 +50,20 @@ static void set_local(void)
   __function= set_function("send", "HOSTILE_SEND");
 }
 
+void set_send_close(bool arg, int frequency, int not_until_arg)
+{
+  if (arg)
+  {
+    __function.frequency= frequency;
+    not_until= not_until_arg;
+  }
+  else
+  {
+    __function.frequency= 0;
+    not_until= 0;
+  }
+}
+
 ssize_t send(int sockfd, const void *buf, size_t len, int flags)
 {
 
@@ -57,14 +71,13 @@ ssize_t send(int sockfd, const void *buf, size_t len, int flags)
 
   (void) pthread_once(&function_lookup_once, set_local);
 
-  if (__function.frequency)
+  if (is_getaddrinfo() == false && __function.frequency)
   {
     if (--not_until < 0 && random() % __function.frequency)
     {
       shutdown(sockfd, SHUT_RDWR);
       close(sockfd);
       errno= ECONNRESET;
-      perror("HOSTILE CLOSE() of socket");
       return -1;
     }
   }

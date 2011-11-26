@@ -35,39 +35,33 @@
  *
  */
 
-#include <config.h>
-#include <libtest/test.hpp>
+#pragma once
 
-using namespace libtest;
+#include <syslog.h>
 
-#include <cassert>
-#include <cstring>
-#include <libgearman/gearman.h>
-#include <tests/unique.h>
+/**
+ * Verbosity levels.
+ */
+enum gearmand_verbose_t
+{
+  // Logging this will cause gearmand to shutdown
+  GEARMAND_VERBOSE_FATAL= LOG_EMERG, // syslog:LOG_EMERG
 
-#ifndef __INTEL_COMPILER
-#pragma GCC diagnostic ignored "-Wold-style-cast"
+  // Next two are currently unused
+  GEARMAND_VERBOSE_ALERT= LOG_ALERT, // syslog:LOG_ALERT
+  GEARMAND_VERBOSE_CRITICAL= LOG_CRIT, //  syslog:LOG_CRIT
+
+  GEARMAND_VERBOSE_ERROR= LOG_ERR, // syslog:LOG_ERR
+
+  GEARMAND_VERBOSE_WARN= LOG_WARNING, // syslog:LOG_WARNING
+  GEARMAND_VERBOSE_NOTICE= LOG_NOTICE, // syslog:LOG_NOTICE
+  GEARMAND_VERBOSE_INFO= LOG_INFO, // syslog:LOG_INFO
+
+  // @todo Fix it so that these will not be compiled in by default
+  GEARMAND_VERBOSE_DEBUG= LOG_DEBUG, // syslog:LOG_DEBUG
+};
+
+#ifndef __cplusplus
+typedef enum gearmand_verbose_t gearmand_verbose_t;
 #endif
 
-
-test_return_t unique_compare_test(void *object)
-{
-  gearman_return_t rc;
-  gearman_client_st *client= (gearman_client_st *)object;
-  const char *worker_function= (const char *)gearman_client_context(client);
-  size_t job_length;
-
-  gearman_string_t unique= { test_literal_param("my little unique") };
-
-  void *job_result= gearman_client_do(client, worker_function, gearman_c_str(unique), 
-                                      gearman_string_param(unique),
-                                      &job_length, &rc);
-
-  test_true_got(rc == GEARMAN_SUCCESS, gearman_client_error(client) ? gearman_client_error(client) : gearman_strerror(rc));
-  test_compare(gearman_size(unique), job_length);
-  test_memcmp(gearman_c_str(unique), job_result, job_length);
-
-  free(job_result);
-
-  return TEST_SUCCESS;
-}

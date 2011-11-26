@@ -62,4 +62,3 @@ test_return_t gearman_client_set_server_option_bad(void *object)
   test_false(gearman_client_set_server_option(client, test_literal_param("bad")));
   return TEST_SUCCESS;
 }
-
