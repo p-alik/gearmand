@@ -36,7 +36,7 @@
 #   and this notice are preserved. This file is offered as-is, without any
 #   warranty.
 
-#serial 11
+#serial 13
 
 AC_DEFUN([AX_LIB_SQLITE3],
 [
@@ -102,7 +102,7 @@ AC_DEFUN([AX_LIB_SQLITE3],
         saved_CPPFLAGS="$CPPFLAGS"
         CPPFLAGS="$CPPFLAGS $ac_sqlite3_cppflags"
 
-        AC_LANG_PUSH(C++)
+        AC_LANG_PUSH(C)
         AC_COMPILE_IFELSE(
             [
             AC_LANG_PROGRAM([[@%:@include <sqlite3.h>]],
@@ -124,13 +124,12 @@ AC_DEFUN([AX_LIB_SQLITE3],
             success="no"
             ]
         )
-        AC_LANG_POP([C++])
+        AC_LANG_POP(C)
 
         CPPFLAGS="$saved_CPPFLAGS"
 
         if test "$success" = "yes"; then
 
-            ac_cv_libsqlite3=yes
             SQLITE3_CFLAGS="$ac_sqlite3_cppflags"
             SQLITE3_LDFLAGS="$ac_sqlite3_ldflags"
 

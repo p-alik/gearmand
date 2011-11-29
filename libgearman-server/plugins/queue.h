@@ -46,3 +46,5 @@
 #include <libgearman-server/plugins/queue/postgres/queue.h>
 
 #include <libgearman-server/plugins/queue/tokyocabinet/queue.h>
+
+#include <libgearman-server/plugins/queue/redis/queue.h>

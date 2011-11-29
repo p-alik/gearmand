@@ -604,10 +604,10 @@ size_t _connection_read(gearman_server_con_st *con, void *data, size_t data_size
     if (read_size == 0)
     {
       ret= GEARMAN_LOST_CONNECTION;
-      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, 
-                         "lost connection to client recv(peer has closed connection) %s:%s",
-                         connection->context == NULL ? "-" : connection->context->host,
-                         connection->context == NULL ? "-" : connection->context->port);
+      gearmand_log_warning(GEARMAN_DEFAULT_LOG_PARAM, 
+                           "lost connection to client recv(peer has closed connection) %s:%s",
+                           connection->context == NULL ? "-" : connection->context->host,
+                           connection->context == NULL ? "-" : connection->context->port);
       _connection_close(connection);
       return 0;
     }

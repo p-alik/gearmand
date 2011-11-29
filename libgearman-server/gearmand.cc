@@ -166,6 +166,9 @@ gearmand_st *gearmand_create(const char *host_arg,
   _global_gearmand= gearmand;
 
   gearmand_set_log_fn(gearmand, log_function, log_context, verbose_arg);
+  char buffer[1024];
+  snprintf(buffer, sizeof(buffer), "Starting up with verbose set to %s", gearmand_verbose_name(verbose_arg));
+  gearmand_info("");
 
   return gearmand;
 }
