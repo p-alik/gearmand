@@ -1,4 +1,4 @@
-.TH "GEARMAN_CLIENT_SET_WORKLOAD_FN" "3" "November 03, 2011" "0.25" "Gearmand"
+.TH "GEARMAN_CLIENT_SET_WORKLOAD_FN" "3" "November 29, 2011" "0.25" "Gearmand"
 .SH NAME
 gearman_client_set_workload_fn \- Gearmand Documentation, http://gearman.info/
 .
@@ -89,7 +89,6 @@ Normally \fImalloc(3)\fP and \fIfree(3)\fP are used for allocation and releasing
 .sp
 \fI\%gearman_client_task_free_all()\fP is used to free all current \fBgearman_task_st\fP that have been created with the \fI\%gearman_client_st\fP.
 .IP Warning
-.
 By calling \fI\%gearman_client_task_free_all()\fP you can end up with a SEGFAULT if you try to use any \fBgearman_task_st\fP that you have kept pointers too.
 .RE
 .SH RETURN VALUE

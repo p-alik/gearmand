@@ -1,4 +1,4 @@
-.TH "GEARMAN_CLIENT_FREE" "3" "November 03, 2011" "0.25" "Gearmand"
+.TH "GEARMAN_CLIENT_FREE" "3" "November 29, 2011" "0.25" "Gearmand"
 .SH NAME
 gearman_client_free \- Gearmand Documentation, http://gearman.info/
 .
@@ -64,7 +64,6 @@ it to gearman_client_free() when you are finished using it. \fI\%gearman_client_
 the only way to make sure all memory is deallocated when you finish using
 the structure.
 .IP Warning
-.
 You may wish to avoid using \fI\%gearman_client_create()\fP or \fI\%gearman_client_clone()\fP with a
 stack based allocation, ie the first parameter. The most common issues related to ABI safety involve
 stack allocated structures.
