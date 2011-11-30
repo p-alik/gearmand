@@ -1,6 +1,7 @@
-0.26
+0.26 Wed Nov 30 09:25:49 PST 2011
 * Completed support for syslog for gearmand
-* Fix libdrizzle issues;
+* Fix libdrizzle issues
+* Add API for killing a worker.
 
 0.25 Thu Nov  3 09:18:46 PDT 2011
   * 1.0 libgearman API extracted.
