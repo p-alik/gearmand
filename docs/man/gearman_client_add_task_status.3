@@ -1,4 +1,4 @@
-.TH "GEARMAN_CLIENT_ADD_TASK_STATUS" "3" "November 03, 2011" "0.25" "Gearmand"
+.TH "GEARMAN_CLIENT_ADD_TASK_STATUS" "3" "November 29, 2011" "0.25" "Gearmand"
 .SH NAME
 gearman_client_add_task_status \- Gearmand Documentation, http://gearman.info/
 .
@@ -43,7 +43,6 @@ Link with \-lgearman
 .sp
 \fI\%gearman_client_add_task_status()\fP creates a \fBgearman_task_st\fP that can be used to monitor a previously created task.
 .IP Warning
-.
 You may wish to avoid using \fBgearman_client_add_task()\fP with a
 stack based allocated \fBgearman_task_st\fP. The most common issues related to ABI safety involve
 stack allocated structures. If you use a stack based \fBgearman_task_st\fP you must free it with \fBgearman_task_free()\fP.

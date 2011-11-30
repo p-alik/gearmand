@@ -114,12 +114,10 @@ static gearmand_error_t _libmemcached_replay(gearman_server_st *server,
 gearmand_error_t _initialize(plugins::queue::Libmemcached *queue,
                              gearman_server_st *server)
 {
-  memcached_server_st *servers;
 
   gearmand_info("Initializing libmemcached module");
 
-  servers= memcached_servers_parse(queue->server_list.c_str());
-
+  memcached_server_st *servers= memcached_servers_parse(queue->server_list.c_str());
   if (servers == NULL)
   {
     gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "memcached_servers_parse");
@@ -193,7 +191,6 @@ static gearmand_error_t _libmemcached_done(gearman_server_st *server,
 {
   size_t key_length;
   char key[MEMCACHED_MAX_KEY];
-  memcached_return rc;
   gearmand::plugins::queue::Libmemcached *queue= (gearmand::plugins::queue::Libmemcached *)context;
   (void)server;
 
@@ -206,10 +203,11 @@ static gearmand_error_t _libmemcached_done(gearman_server_st *server,
                                (const char *)unique);
 
   /* For the moment we will assume it happened */
-  rc= memcached_delete(&queue->memc, (const char *)key, key_length, 0);
-
+  memcached_return rc= memcached_delete(&queue->memc, (const char *)key, key_length, 0);
   if (rc != MEMCACHED_SUCCESS)
+  {
     return GEARMAN_QUEUE_ERROR;
+  }
 
   return GEARMAN_SUCCESS;
 }

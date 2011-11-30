@@ -67,6 +67,10 @@ void initialize(boost::program_options::options_description &all)
   queue::initialize_postgres();
 #endif
 
+#ifdef HAVE_LIBHIREDIS
+  queue::initialize_redis();
+#endif
+
   if (HAVE_LIBTOKYOCABINET)
   {
     queue::initialize_tokyocabinet();

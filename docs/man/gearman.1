@@ -1,4 +1,4 @@
-.TH "GEARMAN" "1" "November 03, 2011" "0.25" "Gearmand"
+.TH "GEARMAN" "1" "November 29, 2011" "0.25" "Gearmand"
 .SH NAME
 gearman \- Gearmand Documentation, http://gearman.info/
 .
@@ -38,49 +38,41 @@ Command line client for Gearmand
 .INDENT 0.0
 .TP
 .B \-f <function>
-.sp
 Function name to use for jobs (can give many)
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-h <host>
-.sp
 Job server host
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-H
-.
 Print this help menu
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-p <port>
-.sp
 Gearman server port
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-t <timeout>
-.sp
 Timeout in milliseconds
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-i <pidfile>
-.sp
 Create a pidfile for the process
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-n
-.
 In client mode run one job per line, in worker mode send data packet for each line
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-N
-.
 Same as \-n, but strip off the newline
 .UNINDENT
 .sp
@@ -88,37 +80,31 @@ Same as \-n, but strip off the newline
 .INDENT 0.0
 .TP
 .B \-b
-.
 Run jobs in the background
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-I
-.
 Run jobs as high priority
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-L
-.
 Run jobs as low priority
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-P
-.
 Prefix all output lines with functions names
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-s
-.
 Send job without reading from standard input
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-u <unique>
-.sp
 Unique key to use for job
 .UNINDENT
 .sp
@@ -126,13 +112,11 @@ Unique key to use for job
 .INDENT 0.0
 .TP
 .B \-c <count>
-.sp
 Number of jobs for worker to run before exiting
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-w
-.
 Run in worker mode
 .UNINDENT
 .SH DESCRIPTION

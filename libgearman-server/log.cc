@@ -157,6 +157,18 @@ gearmand_error_t gearmand_log_error(const char *position, const char *function, 
   return GEARMAN_UNKNOWN_OPTION;
 }
 
+void gearmand_log_warning(const char *position, const char *function, const char *format, ...)
+{
+  va_list args;
+
+  if (not Gearmand() || Gearmand()->verbose >= GEARMAND_VERBOSE_WARN)
+  {
+    va_start(args, format);
+    gearmand_log(position, function, GEARMAND_VERBOSE_WARN, format, args);
+    va_end(args);
+  }
+}
+
 void gearmand_log_info(const char *position, const char *function, const char *format, ...)
 {
   va_list args;
@@ -219,16 +231,21 @@ gearmand_error_t gearmand_log_perror(const char *position, const char *function,
   return GEARMAN_ERRNO;
 }
 
-gearmand_error_t gearmand_log_gerror(const char *position, const char *function, const gearmand_error_t rc, const char *message)
+gearmand_error_t gearmand_log_gerror(const char *position, const char *function, const gearmand_error_t rc, const char *format, ...)
 {
   if (gearmand_failed(rc) and rc != GEARMAN_IO_WAIT)
   {
-    gearmand_log_error(position, function, "%s(%s)", message, gearmand_strerror(rc));
+    va_list args;
+
+    if (not Gearmand() or Gearmand()->verbose >= GEARMAND_VERBOSE_ERROR)
+    {
+      va_start(args, format);
+      gearmand_log(position, function, GEARMAND_VERBOSE_ERROR, format, args);
+      va_end(args);
+    }
   }
   else if (rc == GEARMAN_IO_WAIT)
-  {
-    gearmand_log_crazy(position, function, "%s(%s)", message, gearmand_strerror(rc));
-  }
+  { }
 
   return rc;
 }

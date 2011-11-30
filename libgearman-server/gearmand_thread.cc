@@ -384,7 +384,7 @@ static void _wakeup_event(int fd, short events __attribute__ ((unused)), void *a
       switch ((gearmand_wakeup_t)buffer[x])
       {
       case GEARMAND_WAKEUP_PAUSE:
-        gearmand_info("Received PAUSE wakeup event");
+        gearmand_debug("Received PAUSE wakeup event");
         break;
 
       case GEARMAND_WAKEUP_SHUTDOWN_GRACEFUL:
@@ -401,7 +401,7 @@ static void _wakeup_event(int fd, short events __attribute__ ((unused)), void *a
         break;
 
       case GEARMAND_WAKEUP_CON:
-        gearmand_info("Received CON wakeup event");
+        gearmand_debug("Received CON wakeup event");
         gearmand_con_check_queue(thread);
         break;
 

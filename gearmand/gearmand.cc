@@ -152,6 +152,8 @@ int main(int argc, char *argv[])
   std::string queue_type;
   std::string verbose_string;
 
+  verbose_string.insert(verbose_string.begin(), size_t(GEARMAND_VERBOSE_NOTICE), 'v');
+
   uint32_t threads;
   bool opt_round_robin;
   bool opt_daemon;
@@ -207,7 +209,7 @@ int main(int argc, char *argv[])
   ("user,u", boost::program_options::value(&user),
    "Switch to given user after startup.")
 
-  ("verbose,v", boost::program_options::value(&verbose_string)->default_value("v"),
+  ("verbose,v", boost::program_options::value(&verbose_string)->default_value(verbose_string),
    "Increase verbosity level by one.")
 
   ("version,V", "Display the version of gearmand and exit.")
@@ -234,9 +236,6 @@ int main(int argc, char *argv[])
     std::cout << e.what() << std::endl;
     return EXIT_FAILURE;
   }
-
-  uint8_t verbose_count;
-  verbose_count= static_cast<gearmand_verbose_t>(verbose_string.length());
 
   if (opt_check_args)
   {
@@ -275,7 +274,15 @@ int main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
-  gearmand_verbose_t verbose= static_cast<gearmand_verbose_t>(verbose_count);
+  gearmand_verbose_t verbose= GEARMAND_VERBOSE_ERROR;
+  if (verbose_string.length() <= int(GEARMAND_VERBOSE_DEBUG))
+  {
+    verbose= static_cast<gearmand_verbose_t>(verbose_string.length());
+  }
+  else
+  {
+    verbose= GEARMAND_VERBOSE_DEBUG;
+  }
 
   util::Pidfile _pid_file(pid_file);
 
@@ -332,7 +339,7 @@ int main(int argc, char *argv[])
 
   if (opt_daemon)
   {
-    bool close_io= verbose_count == 0 or log_file.size();
+    bool close_io= int(verbose) == 0 or log_file.size();
     if (not util::daemon_is_ready(close_io))
     {
       return EXIT_FAILURE;
@@ -484,7 +491,7 @@ static void _log(const char *line, gearmand_verbose_t verbose, void *context)
   }
 
   char buffer[GEARMAN_MAX_ERROR_SIZE];
-  int buffer_length= snprintf(buffer, GEARMAN_MAX_ERROR_SIZE, "%5s %s\n", gearmand_verbose_name(verbose), line);
+  int buffer_length= snprintf(buffer, GEARMAN_MAX_ERROR_SIZE, "%7s %s\n", gearmand_verbose_name(verbose), line);
   if (opt_syslog)
   {
     syslog(int(verbose), "%.*s", buffer_length, buffer);

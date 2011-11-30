@@ -15,5 +15,6 @@ noinst_HEADERS+= \
 include libgearman-server/plugins/queue/drizzle/include.am
 include libgearman-server/plugins/queue/libmemcached/include.am
 include libgearman-server/plugins/queue/postgres/include.am
+include libgearman-server/plugins/queue/redis/include.am
 include libgearman-server/plugins/queue/sqlite/include.am
 include libgearman-server/plugins/queue/tokyocabinet/include.am
