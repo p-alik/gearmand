@@ -23,5 +23,5 @@ tests_redis_test_CXXFLAGS=
 tests_redis_test_DEPENDENCIES= ${CLIENT_LDADD} gearmand/gearmand
 tests_redis_test_LDADD= ${CLIENT_LDADD}
 
-check_PROGRAMS += tests/redis_test
+#check_PROGRAMS += tests/redis_test
 noinst_PROGRAMS += tests/redis_test
