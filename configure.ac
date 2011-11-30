@@ -148,6 +148,8 @@ AC_CHECK_FUNCS([strtoul])
 AC_CHECK_FUNC(setsockopt, [], [AC_CHECK_LIB(socket, setsockopt)])
 AC_CHECK_FUNC(bind, [], [AC_CHECK_LIB(bind, bind)])
 
+AC_TEST_FOR_REPOSITORY
+
 m4_include([m4/relro.m4])
 
 

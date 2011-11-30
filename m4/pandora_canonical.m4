@@ -355,7 +355,7 @@ inline To down_cast(From* f) {                   // so we only accept pointers
 #endif /* __CONFIG_H__ */
   ])
 
-  AM_CFLAGS="${AM_CFLAGS} ${CC_WARNINGS} ${CC_PROFILING} ${CC_COVERAGE}"
+  AM_CFLAGS="-std=c99 ${AM_CFLAGS} ${CC_WARNINGS} ${CC_PROFILING} ${CC_COVERAGE}"
   AM_CXXFLAGS="${AM_CXXFLAGS} ${CXX_WARNINGS} ${CC_PROFILING} ${CC_COVERAGE}"
 
   AC_SUBST([AM_CFLAGS])
