@@ -250,6 +250,25 @@ gearmand_error_t gearmand_log_gerror(const char *position, const char *function,
   return rc;
 }
 
+gearmand_error_t gearmand_log_gerror_warn(const char *position, const char *function, const gearmand_error_t rc, const char *format, ...)
+{
+  if (gearmand_failed(rc) and rc != GEARMAN_IO_WAIT)
+  {
+    va_list args;
+
+    if (Gearmand() == NULL or Gearmand()->verbose >= GEARMAND_VERBOSE_WARN)
+    {
+      va_start(args, format);
+      gearmand_log(position, function, GEARMAND_VERBOSE_WARN, format, args);
+      va_end(args);
+    }
+  }
+  else if (rc == GEARMAN_IO_WAIT)
+  { }
+
+  return rc;
+}
+
 gearmand_error_t gearmand_log_gai_error(const char *position, const char *function, const int rc, const char *message)
 {
   if (rc == EAI_SYSTEM)

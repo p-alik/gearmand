@@ -99,7 +99,7 @@ void gearman_server_worker_free(gearman_server_worker_st *worker)
     ret= gearman_server_job_queue(worker->job_list);
     if (ret != GEARMAN_SUCCESS)
     {
-      gearmand_gerror("gearman_server_job_queue", ret);
+      gearmand_gerror_warn("gearman_server_job_queue", ret);
     }
   }
 
