@@ -12,25 +12,12 @@
  */
 
 #pragma once
-#ifndef __GEARMAN_SERVER_CLIENT_H__
-#define __GEARMAN_SERVER_CLIENT_H__
+
+#include <libgearman-server/struct/client.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/**
- * @ingroup gearman_server_client
- */
-struct gearman_server_client_st
-{
-  gearman_server_con_st *con;
-  gearman_server_client_st *con_next;
-  gearman_server_client_st *con_prev;
-  gearman_server_job_st *job;
-  gearman_server_client_st *job_next;
-  gearman_server_client_st *job_prev;
-};
 
 /**
  * @addtogroup gearman_server_client Client Declarations
@@ -60,5 +47,3 @@ void gearman_server_client_free(gearman_server_client_st *client);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GEARMAN_SERVER_CLIENT_H__ */

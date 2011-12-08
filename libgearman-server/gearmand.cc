@@ -21,7 +21,7 @@
 
 #include <libgearman-server/gearmand.h>
 
-#include <libgearman-server/port.h>
+#include <libgearman-server/struct/port.h>
 #include <libgearman-server/plugins.h>
 
 using namespace gearmand;

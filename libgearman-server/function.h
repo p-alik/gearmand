@@ -13,6 +13,8 @@
 
 #pragma once
 
+#include <libgearman-server/struct/function.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -27,27 +29,7 @@ extern "C" {
  * @{
  */
 
-/**
- * @ingroup gearman_server_function
- */
-struct gearman_server_function_st
-{
-  uint32_t worker_count;
-  uint32_t job_count;
-  uint32_t job_total;
-  uint32_t job_running;
-  uint32_t max_queue_size;
-  size_t function_name_size;
-  gearman_server_function_st *next;
-  gearman_server_function_st *prev;
-  char *function_name;
-  gearman_server_worker_st *worker_list;
-  struct gearman_server_job_st *job_list[GEARMAND_JOB_PRIORITY_MAX];
-  gearman_server_job_st *job_end[GEARMAND_JOB_PRIORITY_MAX];
-};
-
-/**
- * Add a new function to a server instance.
+/** Add a new function to a server instance.
  */
 GEARMAN_API
 gearman_server_function_st *

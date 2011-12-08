@@ -73,31 +73,7 @@
 #include <libgearman-server/gearmand_thread.h>
 #include <libgearman-server/gearmand_con.h>
 
-struct gearmand_st
-{
-  gearmand_verbose_t verbose;
-  gearmand_error_t ret;
-  int backlog; // Set socket backlog for listening connection
-  bool is_listen_event;
-  bool is_wakeup_event;
-  int timeout;
-  uint32_t port_count;
-  uint32_t threads;
-  uint32_t thread_count;
-  uint32_t free_dcon_count;
-  uint32_t max_thread_free_dcon_count;
-  int wakeup_fd[2];
-  const char *host;
-  gearmand_log_fn *log_fn;
-  void *log_context;
-  struct event_base *base;
-  struct gearmand_port_st *port_list;
-  gearmand_thread_st *thread_list;
-  gearmand_thread_st *thread_add_next;
-  gearmand_con_st *free_dcon_list;
-  gearman_server_st server;
-  struct event wakeup_event;
-};
+#include <libgearman-server/struct/gearmand.h>
 
 #ifdef __cplusplus
 extern "C" {
