@@ -122,3 +122,8 @@ libgearman-1.0/version.h
 tests/ephemeral_test
 gearmand/hostile_gearmand
 tests/redis_test
+tests/libgearman-1.0/client_test
+tests/libgearman-1.0/internals_test
+tests/libgearman-1.0/worker_test
+libgearman-1.0/t/c_test
+libgearman-1.0/t/cc_test

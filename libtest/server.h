@@ -124,6 +124,11 @@ public:
     return (_port != 0);
   }
 
+  virtual bool has_syslog() const
+  {
+    return false;
+  }
+
   // Reset a server if another process has killed the server
   void reset()
   {

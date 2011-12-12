@@ -1,9 +1,9 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  Gearmand client and server library.
+ *  Test C interface
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  All rights reserved.
+ *  Copyright (C) 2011 Data Differential, http://datadifferential.com/ All
+ *  rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -35,25 +35,19 @@
  *
  */
 
-#pragma once
+#include <stdlib.h>
+#include <libgearman-1.0/gearman.h>
 
-/* Defines. */
-#define GEARMAN_ARGS_BUFFER_SIZE 128
-#define GEARMAN_DEFAULT_SOCKET_RECV_SIZE 32768
-#define GEARMAN_DEFAULT_SOCKET_SEND_SIZE 32768
-#define GEARMAN_DEFAULT_SOCKET_TIMEOUT 10
-#define GEARMAN_DEFAULT_CONNECT_TIMEOUT 4000
-#define GEARMAN_DEFAULT_TCP_HOST "localhost"
-#define GEARMAN_FUNCTION_MAX_SIZE 512
-#define GEARMAN_JOB_HANDLE_SIZE 64
-#define GEARMAN_MAXIMUM_INTEGER_DISPLAY_LENGTH 20
-#define GEARMAN_MAX_COMMAND_ARGS 8
-#define GEARMAN_MAX_ECHO_SIZE (UINT32_MAX -GEARMAN_ARGS_BUFFER_SIZE)
-#define GEARMAN_MAX_ERROR_SIZE 2048
-#define GEARMAN_MAX_UNIQUE_SIZE 64
-#define GEARMAN_OPTION_SIZE 64
-#define GEARMAN_PACKET_HEADER_SIZE 12
-#define GEARMAN_RECV_BUFFER_SIZE 8192
-#define GEARMAN_SEND_BUFFER_SIZE 8192
-#define GEARMAN_UNIQUE_SIZE GEARMAN_MAX_UNIQUE_SIZE
-#define GEARMAN_WORKER_WAIT_TIMEOUT (10 * 1000) /* Milliseconds */
+int main(void)
+{
+  gearman_client_st *client= gearman_client_create(NULL);
+
+  if (client == NULL)
+  {
+    return EXIT_FAILURE;
+  }
+
+  gearman_client_free(client);
+
+  return EXIT_SUCCESS;
+}

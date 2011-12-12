@@ -1,8 +1,9 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  Cycle the Gearmand server
+ *  Test C interface
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2011 Data Differential, http://datadifferential.com/ All
+ *  rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -34,76 +35,20 @@
  *
  */
 
+#include <cstdlib>
+#include <libgearman-1.0/gearman.h>
 
-/*
-  Test that we are cycling the servers we are creating during testing.
-*/
-
-#include <config.h>
-#include <libtest/test.hpp>
-
-using namespace libtest;
-#include <libgearman/gearman.h>
-
-#include "tests/ports.h"
-#include "tests/start_worker.h"
-
-static gearman_return_t success_fn(gearman_job_st*, void* /* context */)
+int main(void)
 {
-  return GEARMAN_SUCCESS;
-}
+  gearman_client_st *client= gearman_client_create(NULL);
 
-static test_return_t single_cycle(void *)
-{
-  (void)success_fn;
-#if 0
-  gearman_function_t success_function= gearman_function_create(success_fn);
-  worker_handle_st *worker= test_worker_start(CYCLE_TEST_PORT, NULL, "success", success_function, NULL, gearman_worker_options_t());
-  test_true(worker);
-  test_true(worker->shutdown());
-  delete worker;
-#endif
-
-  return TEST_SUCCESS;
-}
-
-static test_return_t kill_test(void *)
-{
-  libtest::dream(2, 0);
-
-  return TEST_SUCCESS;
-}
-
-test_st kill_tests[] ={
-  {"kill", true, (test_callback_fn*)kill_test },
-  {0, 0, 0}
-};
-
-test_st worker_tests[] ={
-  {"single startup/shutdown", true, (test_callback_fn*)single_cycle },
-  {0, 0, 0}
-};
-
-collection_st collection[] ={
-  {"kill", 0, 0, kill_tests},
-  {"worker", 0, 0, worker_tests},
-  {0, 0, 0, 0}
-};
-
-static void *world_create(server_startup_st& servers, test_return_t& error)
-{
-  const char *argv[1]= { "client_gearmand" };
-  if (server_startup(servers, "gearmand", CYCLE_TEST_PORT, 1, argv) == false)
+  if (client == NULL)
   {
-    error= TEST_FAILURE;
+    return EXIT_FAILURE;
   }
 
-  return NULL;
-}
+  gearman_client_free(client);
 
-void get_world(Framework *world)
-{
-  world->collections= collection;
-  world->_create= world_create;
+  return EXIT_SUCCESS;
 }
 

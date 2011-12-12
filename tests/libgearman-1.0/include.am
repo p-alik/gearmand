@@ -1,0 +1,51 @@
+# vim:ft=automake
+
+tests_libgearman_1_0_client_test_SOURCES= \
+					  tests/libgearman-1.0/client_test.cc \
+					  tests/libgearman-1.0/do.cc \
+					  tests/libgearman-1.0/do_background.cc \
+					  tests/libgearman-1.0/execute.cc \
+					  tests/libgearman-1.0/gearman_client_do_job_handle.cc \
+					  tests/libgearman-1.0/gearman_execute_partition.cc \
+					  tests/libgearman-1.0/limits.cc \
+					  tests/libgearman-1.0/protocol.cc \
+					  tests/libgearman-1.0/server_options.cc \
+					  tests/libgearman-1.0/task.cc \
+					  tests/libgearman-1.0/unique.cc \
+					  tests/libgearman-1.0/workers.cc \
+					  tests/libgearman-1.0/workers_v1.cc
+tests_libgearman_1_0_client_test_DEPENDENCIES= ${CLIENT_LDADD} gearmand/gearmand
+tests_libgearman_1_0_client_test_LDADD= ${CLIENT_LDADD}
+check_PROGRAMS+=tests/libgearman-1.0/client_test
+noinst_PROGRAMS+=tests/libgearman-1.0/client_test
+
+tests_libgearman_1_0_internals_test_SOURCES= \
+					     tests/libgearman-1.0/internals.cc \
+					     tests/libgearman-1.0/regression.cc
+tests_libgearman_1_0_internals_test_DEPENDENCIES= ${CLIENT_LDADD} libgearman/libgearmancore.la gearmand/gearmand
+tests_libgearman_1_0_internals_test_LDADD= ${CLIENT_LDADD} libgearman/libgearmancore.la
+check_PROGRAMS+= tests/libgearman-1.0/internals_test
+noinst_PROGRAMS+= tests/libgearman-1.0/internals_test
+
+tests_libgearman_1_0_worker_test_SOURCES= tests/libgearman-1.0/worker_test.cc
+tests_libgearman_1_0_worker_test_DEPENDENCIES= ${CLIENT_LDADD} libgearman/libgearmancore.la gearmand/gearmand
+tests_libgearman_1_0_worker_test_LDADD= ${CLIENT_LDADD} libgearman/libgearmancore.la
+check_PROGRAMS+=tests/libgearman-1.0/worker_test
+noinst_PROGRAMS+=tests/libgearman-1.0/worker_test
+
+test-internals: tests/libgearman-1.0/internals_test gearmand/gearmand
+	@tests/internals_test
+
+gdb-internals: tests/libgearman-1.0/internals_test gearmand/gearmand
+	@$(GDB_COMMAND) tests/internals_test
+
+helgrind-internals: tests/internals_test gearmand/gearmand
+	@$(HELGRIND_COMMAND) tests/internals_test
+
+
+valgrind-internals: tests/internals_test gearmand/gearmand
+	@$(VALGRIND_COMMAND) tests/internals_test
+
+gdb-worker: tests/worker_test gearmand/gearmand
+	@$(GDB_COMMAND) tests/worker_test
+

@@ -87,11 +87,15 @@ struct gearmand_log_info_st
   std::string filename;
   int fd;
   bool opt_syslog;
+  bool opt_file;
+  bool init_success;
 
   gearmand_log_info_st(const std::string &filename_arg, bool syslog_arg) :
     filename(filename_arg),
     fd(-1),
-    opt_syslog(syslog_arg)
+    opt_syslog(syslog_arg),
+    opt_file(false),
+    init_success(false)
   {
     if (opt_syslog)
     {
@@ -103,22 +107,35 @@ struct gearmand_log_info_st
 
   void init()
   {
-    if (filename.empty())
+    if (filename.size())
     {
-      return;
-    }
-
-    fd= open(filename.c_str(), O_CREAT | O_WRONLY | O_APPEND, 0644);
-    if (fd == -1)
-    {
-      if (opt_syslog)
+      fd= open(filename.c_str(), O_CREAT | O_WRONLY | O_APPEND, 0644);
+      if (fd == -1)
       {
-        syslog(LOG_ERR, "Could not open log file for writing:%.*s", int(filename.size()), filename.c_str());
-      }
-      error::perror("Could not open log file for writing.");
+        if (opt_syslog)
+        {
+          char buffer[1024];
+          getcwd(buffer, sizeof(buffer));
+          syslog(LOG_ERR, "Could not open log file \"%.*s\", from \"%s\", open failed with (%s)", 
+                 int(filename.size()), filename.c_str(), 
+                 buffer,
+                 strerror(errno));
+        }
+        error::perror("Could not open log file for writing.");
 
-      fd= STDERR_FILENO;
+        fd= STDERR_FILENO;
+        return;
+      }
+
+      opt_file= true;
     }
+
+    init_success= true;
+  }
+
+  bool initialized() const
+  {
+    return init_success;
   }
 
   int file() const
@@ -126,14 +143,9 @@ struct gearmand_log_info_st
     return fd;
   }
 
-  bool has_file() const
-  {
-    return fd != STDERR_FILENO;
-  }
-
   void write(gearmand_verbose_t verbose, const char *mesg)
   {
-    if (has_file())
+    if (opt_file)
     {
       char buffer[GEARMAN_MAX_ERROR_SIZE];
       int buffer_length= snprintf(buffer, GEARMAN_MAX_ERROR_SIZE, "%7s %s\n", gearmand_verbose_name(verbose), mesg);
@@ -335,6 +347,11 @@ int main(int argc, char *argv[])
 
   gearmand_log_info_st log_info(log_file, opt_syslog);
 
+  if (log_info.initialized() == false)
+  {
+    return EXIT_FAILURE;
+  }
+
   gearmand_st *_gearmand= gearmand_create(host.empty() ? NULL : host.c_str(),
                                           port.c_str(), threads, backlog,
                                           static_cast<uint8_t>(job_retries),
@@ -404,7 +421,9 @@ static bool _set_fdlimit(rlim_t fds)
 
   rl.rlim_cur= fds;
   if (rl.rlim_max < rl.rlim_cur)
+  {
     rl.rlim_max= rl.rlim_cur;
+  }
 
   if (setrlimit(RLIMIT_NOFILE, &rl) == -1)
   {
