@@ -82,7 +82,7 @@ noinst_PROGRAMS+= tests/round_robin_test
 
 if TARGET_LINUX
 tests_hostileworker_test_SOURCES= tests/stress_worker.cc
-tests_hostileworker_test_SOURCES+= tests/workers.cc
+tests_hostileworker_test_SOURCES+= tests/libgearman-1.0/workers.cc
 tests_hostileworker_test_DEPENDENCIES= ${CLIENT_LDADD} libhostile/libhostile.la gearmand/gearmand
 tests_hostileworker_test_LDADD= ${CLIENT_LDADD}
 tests_hostileworker_test_LDADD+= libhostile/libhostile.la
@@ -129,9 +129,6 @@ test-gearmand: tests/gearmand gearmand/gearmand
 tests-blobslap_client: tests/blobslap_client gearmand/gearmand
 	@tests/blobslap_client
 
-test-client: tests/client_test gearmand/gearmand
-	@tests/client_test
-
 test-round-robin: tests/round_robin_test gearmand/gearmand
 	@tests/round_robin_test
 
@@ -139,9 +136,6 @@ test-worker: tests/worker_test gearmand/gearmand
 	@tests/worker_test
 
 check-local:
-
-gdb-client: tests/client_test gearmand/gearmand
-	@$(GDB_COMMAND) tests/client_test
 
 gdb-round-robin: tests/round_robin_test gearmand/gearmand
 	@$(GDB_COMMAND) tests/round_robin_test
@@ -157,9 +151,6 @@ gdb-blobslap_client: tests/blobslap_client gearmand/gearmand
 
 gdb-cycle: tests/cycle gearmand/gearmand
 	@$(GDB_COMMAND) tests/cycle
-
-valgrind-client: tests/client_test gearmand/gearmand
-	@$(VALGRIND_COMMAND) tests/client_test
 
 valgrind-cli: tests/cli gearmand/gearmand
 	@$(VALGRIND_COMMAND) tests/cli gearmand/gearmand

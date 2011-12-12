@@ -293,7 +293,7 @@ static test_return_t clone_test(void *object)
 
   from_with_host= gearman_client_create(NULL);
   test_truth(from_with_host);
-  gearman_client_add_server(from_with_host, "127.0.0.1", 12345);
+  gearman_client_add_server(from_with_host, "localhost", 12345);
 
   client= gearman_client_clone(NULL, from_with_host);
   test_truth(client);
@@ -800,7 +800,7 @@ static test_return_t add_servers_test(void *)
   test_truth(client_ptr);
 
   gearman_return_t rc;
-  rc= gearman_client_add_servers(&client, "127.0.0.1:4730,localhost");
+  rc= gearman_client_add_servers(&client, "localhost:4730,localhost");
   test_compare_got(GEARMAN_SUCCESS, rc, gearman_strerror(rc));
 
   rc= gearman_client_add_servers(&client, "old_jobserver:7003,broken:12345");
