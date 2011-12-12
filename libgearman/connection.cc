@@ -359,8 +359,8 @@ void gearman_connection_st::close_socket()
   {
 #if 0
     gearman_perror(universal, "shutdown");
-#endif
     assert(errno != ENOTSOCK);
+#endif
   }
   else
   {
