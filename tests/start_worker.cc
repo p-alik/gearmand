@@ -323,4 +323,5 @@ bool worker_handle_st::shutdown()
 worker_handle_st::~worker_handle_st()
 {
   shutdown();
+  pthread_mutex_destroy(&_shutdown_lock);
 }
