@@ -73,9 +73,8 @@ struct context_st {
   const char *function_name;
   struct worker_handle_st *handle;
   gearman_worker_options_t options;
-  gearman_function_t& worker_fn;
+  gearman_function_t worker_fn;
   const char *namespace_key;
-  std::string _shutdown_function;
   void *context;
   sem_t lock;
   volatile bool failed_startup;
@@ -94,11 +93,6 @@ struct context_st {
     magic(CONTEXT_MAGIC_MARKER)
   {
     sem_init(&lock, 0, 0);
-  }
-
-  const std::string& shutdown_function() const
-  {
-    return _shutdown_function;
   }
 
   void fail(void)
