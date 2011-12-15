@@ -341,8 +341,8 @@ void gearman_connection_st::set_host(const char *host_arg, const in_port_t port_
 {
   reset_addrinfo();
 
-  strncpy(host, host_arg == NULL ? GEARMAN_DEFAULT_TCP_HOST : host_arg, NI_MAXHOST);
-  host[NI_MAXHOST - 1]= 0;
+  strncpy(host, host_arg == NULL ? GEARMAN_DEFAULT_TCP_HOST : host_arg, GEARMAN_NI_MAXHOST);
+  host[GEARMAN_NI_MAXHOST - 1]= 0;
 
   port= in_port_t(port_arg == 0 ? GEARMAN_DEFAULT_TCP_PORT : port_arg);
 }
@@ -565,8 +565,8 @@ gearman_return_t gearman_connection_st::lookup()
     addrinfo= NULL;
   }
 
-  char port_str[NI_MAXSERV];
-  snprintf(port_str, NI_MAXSERV, "%hu", uint16_t(port));
+  char port_str[GEARMAN_NI_MAXSERV];
+  snprintf(port_str, GEARMAN_NI_MAXSERV, "%hu", uint16_t(port));
 
   struct addrinfo ai;
   memset(&ai, 0, sizeof(struct addrinfo));

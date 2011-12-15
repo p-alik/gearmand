@@ -43,6 +43,18 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
+#ifdef NI_MAXHOST
+#define GEARMAN_NI_MAXHOST NI_MAXHOST
+#else
+#define GEARMAN_NI_MAXHOST 1025
+#endif
+
+#ifdef NI_MAXSERV
+#define GEARMAN_NI_MAXSERV NI_MAXSERV
+#else
+#define GEARMAN_NI_MAXSERV 32
+#endif
+
 /*
   Do not define these enum in your application. There are left publically due to one client.
 */

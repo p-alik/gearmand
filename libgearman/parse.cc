@@ -44,7 +44,7 @@ gearman_return_t gearman_parse_servers(const char *servers,
                                        void *context)
 {
   const char *ptr= servers;
-  char host[NI_MAXHOST];
+  char host[GEARMAN_NI_MAXHOST];
   char port[NI_MAXSERV];
 
   if (not ptr)
