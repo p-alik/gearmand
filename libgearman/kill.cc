@@ -37,30 +37,66 @@
  */
 
 #include <libgearman/common.h>
+#include <cerrno>
 #include <unistd.h>
 
-gearman_return_t gearman_kill(gearman_id_t handle, gearman_signal_t sig)
+gearman_id_t gearman_id_initialize(void)
 {
-  if (handle.fd == INVALID_SOCKET)
+  static gearman_id_t tmp= { -1, -1 };
+
+  return tmp;
+}
+
+bool gearman_id_valid(const gearman_id_t handle)
+{
+  if (handle.write_fd <= 0 and handle.read_fd <= 0)
   {
-    return GEARMAN_INVALID_ARGUMENT;
+    return false;
+  }
+
+  return true;
+}
+
+gearman_return_t gearman_kill(const gearman_id_t handle, const gearman_signal_t sig)
+{
+  if (handle.write_fd <= 0 or handle.read_fd <= 0)
+  {
+    return GEARMAN_COULD_NOT_CONNECT;
   }
 
   switch (sig)
   {
-  case GEARMAN_INTERRUPT:
-    if (write(handle.fd, "1", 1) == 1);
+  case GEARMAN_SIGNAL_INTERRUPT:
+    if (write(handle.write_fd, "1", 1) == 1);
     {
       return GEARMAN_SUCCESS;
     }
     break;
 
-  case GEARMAN_KILL:
-    if (close(handle.fd) == 0)
+  case GEARMAN_SIGNAL_KILL:
+    if (close(handle.write_fd) == 0)
     {
       return GEARMAN_SUCCESS;
     }
     break;
+
+  case GEARMAN_SIGNAL_CHECK:
+    {
+      struct pollfd pfds[1];
+      pfds[0].fd= handle.read_fd;
+      pfds[0].events= POLLIN;
+      pfds[0].revents= 0;
+      char buffer[1];
+
+      int ret= ::poll(pfds, sizeof(pfds), 1500);
+
+      if (ret >= 0)
+      {
+        return GEARMAN_SUCCESS;
+      }
+
+      return GEARMAN_COULD_NOT_CONNECT;
+    }
   }
 
   return GEARMAN_COULD_NOT_CONNECT;

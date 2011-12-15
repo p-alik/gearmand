@@ -1151,6 +1151,17 @@ static gearman_worker_st *_worker_allocate(gearman_worker_st *worker, bool is_cl
     return NULL;
   }
 
+#ifdef F_SETNOSIGPIPE
+  if (fcntl(worker->universal.wakeup_fd[1], F_SETNOSIGPIPE, 0) < 0)
+  {
+    close(worker->universal.wakeup_fd[0]);
+    close(worker->universal.wakeup_fd[1]);
+    delete worker;
+
+    return NULL;
+  }
+#endif
+
   return worker;
 }
 

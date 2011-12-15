@@ -39,7 +39,8 @@
 
 struct gearman_id_t
 {
-  int fd;
+  int read_fd;
+  int write_fd;
 };
 
 #ifndef __cplusplus
@@ -51,7 +52,15 @@ extern "C" {
 #endif
 
 GEARMAN_API
-  gearman_return_t gearman_kill(gearman_id_t handle, gearman_signal_t);
+  gearman_return_t gearman_kill(const gearman_id_t handle, const gearman_signal_t);
+
+GEARMAN_API
+  bool gearman_id_valid(const gearman_id_t handle);
+
+GEARMAN_API
+  gearman_id_t gearman_id_initialize(void);
+
+#define GEARMAN_ID_INITIALIZER gearman_id_initialize()
 
 #ifdef __cplusplus
 }
