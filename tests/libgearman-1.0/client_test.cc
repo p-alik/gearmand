@@ -816,7 +816,7 @@ static test_return_t hostname_resolution(void *)
   Client client;
   assert(&client);
 
-  test_skip(GEARMAN_SUCCESS, gearman_client_add_servers(&client, "exist.gearman.info"));
+  test_skip(GEARMAN_SUCCESS, gearman_client_add_servers(&client, "exist.gearman.info:12345"));
 
   test_compare(GEARMAN_SUCCESS, client->universal.error.rc);
 
