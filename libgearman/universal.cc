@@ -515,27 +515,31 @@ bool gearman_request_option(gearman_universal_st &universal,
       goto exit;
     }
 
-    con->options.packet_in_use= true;
-    gearman_packet_st *packet_ptr= con->receiving(con->_packet, ret, true);
-    if (gearman_failed(ret))
+    gearman_packet_st recv_packet;
+    assert(con->recv_state == GEARMAN_CON_RECV_UNIVERSAL_NONE);
+    gearman_packet_st *packet_ptr= con->receiving(recv_packet, ret, true);
+    if (ret == GEARMAN_NOT_CONNECTED)
     {
-      con->free_private_packet();
+      goto exit;
+    }
+    else if (gearman_failed(ret))
+    {
       con->recv_packet= NULL;
+      gearman_packet_free(&recv_packet);
       goto exit;
     }
     assert(packet_ptr);
 
     if (packet_ptr->command == GEARMAN_COMMAND_ERROR)
     {
-      con->free_private_packet();
       con->recv_packet= NULL;
+      gearman_packet_free(&recv_packet);
       ret= gearman_error(universal, GEARMAN_INVALID_ARGUMENT, "invalid server option");
 
       goto exit;
     }
 
-    con->recv_packet= NULL;
-    con->free_private_packet();
+    gearman_packet_free(&recv_packet);
   }
 
   ret= GEARMAN_SUCCESS;
@@ -557,7 +561,7 @@ void gearman_free_all_packets(gearman_universal_st &universal)
 
 gearman_id_t gearman_universal_id(gearman_universal_st &universal)
 {
-  gearman_id_t handle= { universal.wakeup_fd[1] };
+  gearman_id_t handle= { universal.wakeup_fd[0], universal.wakeup_fd[1] };
 
   return handle;
 }

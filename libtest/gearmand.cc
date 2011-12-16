@@ -140,10 +140,7 @@ public:
         gearman_client_free(client);
         return true;
       }
-
-#if 0
       Error << hostname().c_str() << ":" << port() << " was " << gearman_strerror(rc) << " extended: " << gearman_client_error(client);
-#endif
     }
     else
     {
@@ -190,6 +187,11 @@ public:
     return true;
   }
 
+  bool has_syslog() const
+  {
+    return true;
+  }
+
   bool build(int argc, const char *argv[]);
 };
 
@@ -202,7 +204,7 @@ bool Gearmand::build(int argc, const char *argv[])
     arg_buffer << " -u root ";
   }
 
-  arg_buffer << " --listen=127.0.0.1 ";
+  arg_buffer << " --listen=localhost ";
 
   for (int x= 1 ; x < argc ; x++)
   {

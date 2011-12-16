@@ -13,41 +13,13 @@
 
 #pragma once
 
+#include <libgearman-server/struct/packet.h>
+
 #include <libgearman-1.0/protocol.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-enum gearman_magic_t
-{
-  GEARMAN_MAGIC_TEXT,
-  GEARMAN_MAGIC_REQUEST,
-  GEARMAN_MAGIC_RESPONSE
-};
-
-/**
- * @ingroup gearman_packet
- */
-struct gearmand_packet_st
-{
-  struct {
-    bool complete;
-    bool free_data;
-  } options;
-  enum gearman_magic_t magic;
-  gearman_command_t command;
-  uint8_t argc;
-  size_t args_size;
-  size_t data_size;
-  struct gearmand_packet_st *next;
-  struct gearmand_packet_st *prev;
-  char *args;
-  const char *data;
-  char *arg[GEARMAN_MAX_COMMAND_ARGS];
-  size_t arg_size[GEARMAN_MAX_COMMAND_ARGS];
-  char args_buffer[GEARMAN_ARGS_BUFFER_SIZE];
-};
 
 /**
  * @addtogroup gearman_server_packet Packet Declarations
@@ -59,12 +31,6 @@ struct gearmand_packet_st
  * @{
  */
 
-
-struct gearman_server_packet_st
-{
-  gearmand_packet_st packet;
-  gearman_server_packet_st *next;
-};
 
 /**
  * Initialize a server packet structure.

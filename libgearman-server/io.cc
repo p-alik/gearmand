@@ -317,7 +317,7 @@ gearmand_error_t gearman_io_send(gearman_server_con_st *con,
     {
       _connection_close(connection);
       ret= GEARMAN_LOST_CONNECTION;
-      gearmand_gerror("failure while flusing data, closing connection", ret);
+      gearmand_gerror_warn("failure while flusing data, closing connection", ret);
     }
     return ret;
   }
@@ -330,7 +330,7 @@ gearmand_error_t gearman_io_send(gearman_server_con_st *con,
     {
       _connection_close(connection);
       ret= GEARMAN_LOST_CONNECTION;
-      gearmand_gerror("failure while flusing data, closing connection", ret);
+      gearmand_gerror_warn("failure while flusing data, closing connection", ret);
     }
     return ret;
   }
@@ -471,7 +471,7 @@ gearmand_error_t gearman_io_recv(gearman_server_con_st *con, bool recv_data)
         }
         else if (ret != GEARMAN_IO_WAIT)
         {
-	  gearmand_gerror("protocol failure, closing connection", ret);
+	  gearmand_gerror_warn("protocol failure, closing connection", ret);
           _connection_close(connection);
           return ret;
         }
@@ -670,7 +670,7 @@ gearmand_error_t gearmand_io_set_events(gearman_server_con_st *con, short events
                                                                 (void *)connection->universal->event_watch_context);
     if (gearmand_failed(ret))
     {
-      gearmand_gerror("event watch failed, closing connection", ret);
+      gearmand_gerror_warn("event watch failed, closing connection", ret);
       _connection_close(connection);
       return ret;
     }
@@ -699,7 +699,7 @@ gearmand_error_t gearmand_io_set_revents(gearman_server_con_st *con, short reven
                                                                 (void *)connection->universal->event_watch_context);
     if (gearmand_failed(ret))
     {
-      gearmand_gerror("event watch failed, closing connection", ret);
+      gearmand_gerror_warn("event watch failed, closing connection", ret);
       _connection_close(connection);
       return ret;
     }

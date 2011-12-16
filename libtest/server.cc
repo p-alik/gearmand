@@ -220,17 +220,20 @@ bool Server::start()
     }
   }
 
-  int count= is_helgrind() or is_valgrind() ? 20 : 5;
-  while (not ping() and --count)
+  int counter= 0;
+  bool pinged= false;
+  while ((pinged= ping()) == false and
+         counter < (is_helgrind() or is_valgrind() ? 20 : 5))
   {
-    dream(0, 50000);
+    dream(counter++, 50000);
   }
 
-  if (count == 0)
+  if (pinged == false)
   {
     // If we happen to have a pid file, lets try to kill it
     if (pid_file_option() and pid_file().empty() == false)
     {
+      Error << "We are going to kill it off";
       kill_file(pid_file());
     }
     Error << "Failed to ping() server started with:" << _running;
@@ -385,6 +388,11 @@ bool Server::args(std::string& options)
     }
 
     arg_buffer << " " << log_file_option() << _log_file;
+  }
+
+  if (getenv("LIBTEST_SYSLOG") and has_syslog())
+  {
+    arg_buffer << " --syslog";
   }
 
   // Update pid_file

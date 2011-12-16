@@ -44,11 +44,13 @@ gearman_return_t gearman_parse_servers(const char *servers,
                                        void *context)
 {
   const char *ptr= servers;
-  char host[NI_MAXHOST];
-  char port[NI_MAXSERV];
+  char host[GEARMAN_NI_MAXHOST];
+  char port[GEARMAN_NI_MAXSERV];
 
-  if (not ptr)
+  if (ptr == NULL)
+  {
     return (*function)(NULL, 0, context);
+  }
 
   while (1)
   {
@@ -57,7 +59,9 @@ gearman_return_t gearman_parse_servers(const char *servers,
     while (*ptr != 0 && *ptr != ',' && *ptr != ':')
     {
       if (x < (NI_MAXHOST - 1))
+      {
         host[x++]= *ptr;
+      }
 
       ptr++;
     }
@@ -84,7 +88,9 @@ gearman_return_t gearman_parse_servers(const char *servers,
 
     gearman_return_t ret= (*function)(host, static_cast<in_port_t>(atoi(port)), context);
     if (gearman_failed(ret))
+    {
       return ret;
+    }
 
     if (*ptr == 0)
       break;

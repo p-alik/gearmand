@@ -293,7 +293,7 @@ static test_return_t clone_test(void *object)
 
   from_with_host= gearman_client_create(NULL);
   test_truth(from_with_host);
-  gearman_client_add_server(from_with_host, "127.0.0.1", 12345);
+  gearman_client_add_server(from_with_host, "localhost", 12345);
 
   client= gearman_client_clone(NULL, from_with_host);
   test_truth(client);
@@ -800,7 +800,7 @@ static test_return_t add_servers_test(void *)
   test_truth(client_ptr);
 
   gearman_return_t rc;
-  rc= gearman_client_add_servers(&client, "127.0.0.1:4730,localhost");
+  rc= gearman_client_add_servers(&client, "localhost:4730,localhost");
   test_compare_got(GEARMAN_SUCCESS, rc, gearman_strerror(rc));
 
   rc= gearman_client_add_servers(&client, "old_jobserver:7003,broken:12345");
@@ -816,13 +816,40 @@ static test_return_t hostname_resolution(void *)
   Client client;
   assert(&client);
 
-  test_skip(GEARMAN_SUCCESS, gearman_client_add_servers(&client, "exist.gearman.info"));
+  test_skip(GEARMAN_SUCCESS, gearman_client_add_servers(&client, "exist.gearman.info:12345"));
 
   test_compare(GEARMAN_SUCCESS, client->universal.error.rc);
 
   test_compare_hint(GEARMAN_COULD_NOT_CONNECT,
                     gearman_client_echo(&client, test_literal_param("foo")),
                     gearman_client_error(&client));
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_client_st_id_t_TEST(void *)
+{
+  return TEST_SKIPPED;
+
+  // @todo, test the internal value of client, no API is available for this
+  // right now.
+#if 0
+  gearman_client_st *client= gearman_client_create(NULL);
+  test_true(client);
+  test_compare(false, gearman_id_valid(client));
+  gearman_client_free(client);
+
+  return TEST_SUCCESS;
+#endif
+}
+
+static test_return_t gearman_worker_st_id_t_TEST(void *)
+{
+  gearman_worker_st *worker= gearman_worker_create(NULL);
+  test_true(worker);
+  gearman_id_t id= gearman_worker_id(worker);
+  test_compare(true, gearman_id_valid(id));
+  gearman_worker_free(worker);
 
   return TEST_SUCCESS;
 }
@@ -848,6 +875,8 @@ static test_return_t bug_518512_test(void *)
   gearman_function_t func_arg= gearman_function_create_v1(client_test_temp_worker);
   struct worker_handle_st *completion_worker= test_worker_start(CLIENT_TEST_PORT, NULL, "client_test_temp",
                                                                 func_arg, NULL, gearman_worker_options_t());
+
+  test_true(completion_worker);
 
   gearman_client_set_timeout(&client, -1);
   result= gearman_client_do(&client, "client_test_temp", NULL, NULL, 0,
@@ -1299,6 +1328,12 @@ static bool world_destroy(void *object)
 }
 
 
+test_st gearman_id_t_TESTS[] ={
+  {"gearman_client_st", 0, gearman_client_st_id_t_TEST },
+  {"gearman_worker_st", 0, gearman_worker_st_id_t_TEST },
+  {0, 0, 0}
+};
+
 test_st tests[] ={
   {"bug_518512_test", 0, bug_518512_test },
   {"init", 0, init_test },
@@ -1436,6 +1471,7 @@ test_st limit_tests[] ={
 
 
 collection_st collection[] ={
+  {"gearman_id_t", 0, 0, gearman_id_t_TESTS},
   {"gearman_client_st", 0, 0, tests},
   {"gearman_client_st chunky", pre_chunk, post_function_reset, tests}, // Test with a worker that will respond in part
   {"gearman_strerror()", 0, 0, gearman_strerror_tests},

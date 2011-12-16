@@ -72,7 +72,7 @@ struct gearman_connection_st
   gearman_packet_st *recv_packet;
   char *recv_buffer_ptr;
   gearman_packet_st _packet;
-  char host[NI_MAXHOST];
+  char host[GEARMAN_NI_MAXHOST];
   char send_buffer[GEARMAN_SEND_BUFFER_SIZE];
   char recv_buffer[GEARMAN_RECV_BUFFER_SIZE];
 

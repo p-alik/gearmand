@@ -10,17 +10,11 @@
 
 struct gearmand_io_st;
 
+#include <libgearman-server/struct/connection_list.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct gearmand_connection_list_st
-{
-  uint32_t con_count;
-  gearmand_io_st *con_list;
-  gearmand_event_watch_fn *event_watch_fn; // Function to be called when events need to be watched
-  void *event_watch_context;
-};
 
 typedef struct gearmand_connection_list_st gearmand_connection_list_st;
 

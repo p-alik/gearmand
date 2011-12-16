@@ -18,6 +18,7 @@ libgearman_server_libgearman_server_la_LDFLAGS=
 libgearman_server_libgearman_server_la_LIBADD=
 libgearman_server_libgearman_server_la_SOURCES=
 
+include libgearman-server/struct/include.am
 include libgearman-server/error/include.am
 include libgearman-server/plugins/include.am
 
@@ -45,7 +46,7 @@ noinst_HEADERS+= \
 		 libgearman-server/packet.h \
 		 libgearman-server/queue.h \
 		 libgearman-server/plugins.h \
-		 libgearman-server/port.h \
+		 libgearman-server/struct/port.h \
 		 libgearman-server/server.h \
 		 libgearman-server/thread.h \
 		 libgearman-server/verbose.h \

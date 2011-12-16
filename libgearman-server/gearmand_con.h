@@ -11,12 +11,13 @@
  * @brief Connection Declarations
  */
 
-#ifndef __GEARMAND_CON_H__
-#define __GEARMAND_CON_H__
+#pragma once
 
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
+
+#include <libgearman-server/struct/gearmand_con.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -30,20 +31,6 @@ extern "C" {
  *
  * @{
  */
-
-struct gearmand_con_st
-{
-  short last_events;
-  int fd;
-  gearmand_thread_st *thread;
-  gearmand_con_st *next;
-  gearmand_con_st *prev;
-  gearman_server_con_st *server_con;
-  gearmand_connection_add_fn *add_fn;
-  struct event event;
-  char host[NI_MAXHOST];
-  char port[NI_MAXSERV];
-};
 
 /**
  * Create a new gearmand connection.
@@ -86,5 +73,3 @@ gearmand_error_t gearmand_connection_watch(gearmand_io_st *con, short events,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GEARMAND_CON_H__ */

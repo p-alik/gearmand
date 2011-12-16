@@ -2,6 +2,8 @@
 # Gearman server and library 
 # Copyright (C) 2011 Data Differential, http://datadifferential.com/
 
+include libgearman-1.0/t/include.am
+
 nobase_include_HEADERS+= \
 			 libgearman-1.0/actions.h \
 			 libgearman-1.0/aggregator.h \

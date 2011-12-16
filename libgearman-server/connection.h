@@ -11,64 +11,16 @@
  * @brief Connection Declarations
  */
 
-#ifndef __GEARMAN_SERVER_CON_H__
-#define __GEARMAN_SERVER_CON_H__
+#pragma once
 
 #include <libgearman-server/io.h>
 #include <libgearman-server/packet.h>
 
+#include <libgearman-server/struct/io.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct gearmand_io_st
-{
-  struct {
-    bool ready;
-    bool packet_in_use;
-    bool external_fd;
-    bool ignore_lost_connection;
-    bool close_after_flush;
-  } options;
-  enum {
-    GEARMAND_CON_UNIVERSAL_INVALID,
-    GEARMAND_CON_UNIVERSAL_CONNECTED
-  } _state;
-  enum {
-    GEARMAND_CON_SEND_STATE_NONE,
-    GEARMAND_CON_SEND_UNIVERSAL_PRE_FLUSH,
-    GEARMAND_CON_SEND_UNIVERSAL_FORCE_FLUSH,
-    GEARMAND_CON_SEND_UNIVERSAL_FLUSH,
-    GEARMAND_CON_SEND_UNIVERSAL_FLUSH_DATA
-  } send_state;
-  enum {
-    GEARMAND_CON_RECV_UNIVERSAL_NONE,
-    GEARMAND_CON_RECV_UNIVERSAL_READ,
-    GEARMAND_CON_RECV_STATE_READ_DATA
-  } recv_state;
-  short events;
-  short revents;
-  int fd;
-  uint32_t created_id;
-  uint32_t created_id_next;
-  size_t send_buffer_size;
-  size_t send_data_size;
-  size_t send_data_offset;
-  size_t recv_buffer_size;
-  size_t recv_data_size;
-  size_t recv_data_offset;
-  gearmand_connection_list_st *universal;
-  gearmand_io_st *next;
-  gearmand_io_st *prev;
-  gearmand_con_st *context;
-  char *send_buffer_ptr;
-  gearmand_packet_st *recv_packet;
-  char *recv_buffer_ptr;
-  gearmand_packet_st packet;
-  gearman_server_con_st *root;
-  char send_buffer[GEARMAN_SEND_BUFFER_SIZE];
-  char recv_buffer[GEARMAN_RECV_BUFFER_SIZE];
-};
 
 /**
  * @addtogroup gearman_server_con Connection Declarations
@@ -79,49 +31,6 @@ struct gearmand_io_st
  *
  * @{
  */
-
-/*
-  Free list for these are stored in gearman_server_thread_st[], otherwise they are owned by gearmand_con_st[]
-  */
-struct gearman_server_con_st
-{
-  gearmand_io_st con;
-  bool is_sleeping;
-  bool is_exceptions;
-  bool is_dead;
-  bool is_noop_sent;
-  gearmand_error_t ret;
-  bool io_list;
-  bool proc_list;
-  bool proc_removed;
-  uint32_t io_packet_count;
-  uint32_t proc_packet_count;
-  uint32_t worker_count;
-  uint32_t client_count;
-  gearman_server_thread_st *thread;
-  gearman_server_con_st *next;
-  gearman_server_con_st *prev;
-  gearman_server_packet_st *packet;
-  gearman_server_packet_st *io_packet_list;
-  gearman_server_packet_st *io_packet_end;
-  gearman_server_packet_st *proc_packet_list;
-  gearman_server_packet_st *proc_packet_end;
-  gearman_server_con_st *io_next;
-  gearman_server_con_st *io_prev;
-  gearman_server_con_st *proc_next;
-  gearman_server_con_st *proc_prev;
-  struct gearman_server_worker_st *worker_list;
-  struct gearman_server_client_st *client_list;
-  const char *_host; // client host
-  const char *_port; // client port
-  char id[GEARMAN_SERVER_CON_ID_SIZE];
-  struct {
-    void *context;
-    gearmand_connection_protocol_context_free_fn *context_free_fn;
-    gearmand_packet_pack_fn *packet_pack_fn;
-    gearmand_packet_unpack_fn *packet_unpack_fn;
-  } protocol;
-};
 
 /**
  * Add a connection to a server thread. This goes into a list of connections
@@ -237,5 +146,3 @@ void *gearmand_connection_protocol_context(const gearman_server_con_st *connecti
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GEARMAN_SERVER_CON_H__ */

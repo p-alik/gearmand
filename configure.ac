@@ -52,6 +52,7 @@ AX_PTHREAD(, [AC_MSG_ERROR(could not find libpthread)])
 dnl First look for Boost, maybe for a specific minimum version:
 BOOST_REQUIRE([1.39])
 BOOST_PROGRAM_OPTIONS
+BOOST_THREADS
 
 PANDORA_CXX_CSTDINT
 PANDORA_CXX_CINTTYPES

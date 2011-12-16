@@ -49,7 +49,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <pthread.h>
-#include <semaphore.h>
+#include <boost/thread.hpp>
 
 
 #include <cstdio>
@@ -73,11 +73,10 @@ struct context_st {
   const char *function_name;
   struct worker_handle_st *handle;
   gearman_worker_options_t options;
-  gearman_function_t& worker_fn;
+  gearman_function_t worker_fn;
   const char *namespace_key;
-  std::string _shutdown_function;
   void *context;
-  sem_t lock;
+  boost::barrier *sync_point;
   volatile bool failed_startup;
   int magic;
 
@@ -90,26 +89,19 @@ struct context_st {
     worker_fn(arg),
     namespace_key(NULL),
     context(0),
+    sync_point(NULL),
     failed_startup(false),
     magic(CONTEXT_MAGIC_MARKER)
   {
-    sem_init(&lock, 0, 0);
-  }
-
-  const std::string& shutdown_function() const
-  {
-    return _shutdown_function;
   }
 
   void fail(void)
   {
     failed_startup= true;
-    sem_post(&lock);
   }
 
   ~context_st()
   {
-    sem_destroy(&lock);
   }
 };
 
@@ -189,7 +181,8 @@ extern "C" {
       gearman_worker_add_options(&worker, context->options);
     }
 
-    sem_post(&context->lock);
+    context->sync_point->wait();
+
     gearman_return_t ret= GEARMAN_SUCCESS;
     while (context->handle->is_shutdown() == false or ret != GEARMAN_SHUTDOWN)
     {
@@ -198,32 +191,6 @@ extern "C" {
 
     pthread_exit(context);
   }
-
-  static void *dummy_runner(void *object)
-  {
-    sem_t *lock= (sem_t*)object;
-    sem_post(lock);
-    pthread_exit(0);
-  }
-
-}
-
-static pthread_once_t dummy_thread_once = PTHREAD_ONCE_INIT;
-static void run_dummy_thread(void)
-{
-  pthread_t dummy_thread;
-
-  sem_t lock;
-  sem_init(&lock, 0, 0);
-
-  if (pthread_create(&dummy_thread, NULL, dummy_runner, &lock) == 0)
-  {
-    sem_wait(&lock);
-    void *unused;
-    pthread_join(dummy_thread, &unused);
-  }
-
-  sem_destroy(&lock);
 }
 
 
@@ -234,6 +201,7 @@ worker_handle_st *test_worker_start(in_port_t port,
                                     void *context_arg,
                                     gearman_worker_options_t options)
 {
+  boost::barrier sync_point(2);
   worker_handle_st *handle= new worker_handle_st();
   assert(handle);
 
@@ -244,8 +212,7 @@ worker_handle_st *test_worker_start(in_port_t port,
   context->handle= handle;
   context->options= options;
   context->namespace_key= namespace_key;
-
-  (void)pthread_once(&dummy_thread_once, run_dummy_thread);
+  context->sync_point= &sync_point;
 
   if (pthread_create(&handle->thread, NULL, thread_runner, context) != 0)
   {
@@ -256,7 +223,7 @@ worker_handle_st *test_worker_start(in_port_t port,
     return NULL;
   }
 
-  sem_wait(&context->lock);
+  sync_point.wait();
 
   if (context->failed_startup)
   {
@@ -329,4 +296,5 @@ bool worker_handle_st::shutdown()
 worker_handle_st::~worker_handle_st()
 {
   shutdown();
+  pthread_mutex_destroy(&_shutdown_lock);
 }

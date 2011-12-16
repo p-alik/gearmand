@@ -13,6 +13,8 @@
 
 #pragma once
 
+#include <libgearman-server/struct/job.h>
+
 /** @addtogroup gearman_server_job Job Declarations @ingroup gearman_server
  *
  * This is a low level interface for gearman server jobs. This is used
@@ -20,35 +22,6 @@
  *
  * @{
  */
-
-struct gearman_server_job_st
-{
-  uint8_t retries;
-  gearmand_job_priority_t priority;
-  bool ignore_job;
-  bool job_queued;
-  uint32_t job_handle_key;
-  uint32_t unique_key;
-  uint32_t client_count;
-  uint32_t numerator;
-  uint32_t denominator;
-  size_t data_size;
-  int64_t when;
-  gearman_server_job_st *next;
-  gearman_server_job_st *prev;
-  gearman_server_job_st *unique_next;
-  gearman_server_job_st *unique_prev;
-  gearman_server_job_st *worker_next;
-  gearman_server_job_st *worker_prev;
-  gearman_server_function_st *function;
-  gearman_server_job_st *function_next;
-  const void *data;
-  gearman_server_client_st *client_list;
-  gearman_server_worker_st *worker;
-  char job_handle[GEARMAND_JOB_HANDLE_SIZE];
-  char unique[GEARMAN_UNIQUE_SIZE];
-  char reducer[GEARMAN_UNIQUE_SIZE];
-};
 
 
 #ifdef __cplusplus

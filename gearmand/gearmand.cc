@@ -1,5 +1,7 @@
-/* Gearman server and library
- * Copyright (C) 2008 Brian Aker, Eric Day
+/* Gearman server and library 
+ *
+ * Copyright (C) 2011 Data Differential LLC 
+ * Copyright (C) 2008 Brian Aker, Eric Day 
  * All rights reserved.
  *
  * Use and distribution licensed under the BSD license.  See
@@ -80,34 +82,60 @@ inline void message(const std::string &arg, gearmand_error_t rc)
 
 } // namespace error
 
-struct gearmand_log_syslog_st
-{
-public:
-
-  gearmand_log_syslog_st()
-  {
-    openlog("gearmand", LOG_PID | LOG_NDELAY, LOG_USER);
-  }
-
-  ~gearmand_log_syslog_st()
-  {
-    closelog();
-  }
-
-private:
-};
-
 struct gearmand_log_info_st
 {
   std::string filename;
   int fd;
-  time_t reopen;
+  bool opt_syslog;
+  bool opt_file;
+  bool init_success;
 
-  gearmand_log_info_st(const std::string &filename_arg) :
+  gearmand_log_info_st(const std::string &filename_arg, bool syslog_arg) :
     filename(filename_arg),
     fd(-1),
-    reopen(0)
+    opt_syslog(syslog_arg),
+    opt_file(false),
+    init_success(false)
   {
+    if (opt_syslog)
+    {
+      openlog("gearmand", LOG_PID | LOG_NDELAY, LOG_USER);
+    }
+
+    init();
+  }
+
+  void init()
+  {
+    if (filename.size())
+    {
+      fd= open(filename.c_str(), O_CREAT | O_WRONLY | O_APPEND, 0644);
+      if (fd == -1)
+      {
+        if (opt_syslog)
+        {
+          char buffer[1024];
+          getcwd(buffer, sizeof(buffer));
+          syslog(LOG_ERR, "Could not open log file \"%.*s\", from \"%s\", open failed with (%s)", 
+                 int(filename.size()), filename.c_str(), 
+                 buffer,
+                 strerror(errno));
+        }
+        error::perror("Could not open log file for writing.");
+
+        fd= STDERR_FILENO;
+        return;
+      }
+
+      opt_file= true;
+    }
+
+    init_success= true;
+  }
+
+  bool initialized() const
+  {
+    return init_success;
   }
 
   int file() const
@@ -115,11 +143,36 @@ struct gearmand_log_info_st
     return fd;
   }
 
+  void write(gearmand_verbose_t verbose, const char *mesg)
+  {
+    if (opt_file)
+    {
+      char buffer[GEARMAN_MAX_ERROR_SIZE];
+      int buffer_length= snprintf(buffer, GEARMAN_MAX_ERROR_SIZE, "%7s %s\n", gearmand_verbose_name(verbose), mesg);
+      if (::write(file(), buffer, buffer_length) == -1)
+      {
+        error::perror("Could not write to log file.");
+        syslog(LOG_EMERG, "gearmand could not open log file %s, got error %s", filename.c_str(), strerror(errno));
+      }
+
+    }
+
+    if (opt_syslog)
+    {
+      syslog(int(verbose), "%7s %s", gearmand_verbose_name(verbose), mesg);
+    }
+  }
+
   ~gearmand_log_info_st()
   {
-    if (fd != -1)
+    if (fd != -1 and fd != STDERR_FILENO)
     {
       close(fd);
+    }
+
+    if (opt_syslog)
+    {
+      closelog();
     }
   }
 };
@@ -133,8 +186,6 @@ static bool _set_signals(void);
 
 static void _shutdown_handler(int signal_arg);
 static void _log(const char *line, gearmand_verbose_t verbose, void *context);
-
-static bool opt_syslog;
 
 int main(int argc, char *argv[])
 {
@@ -158,6 +209,8 @@ int main(int argc, char *argv[])
   bool opt_round_robin;
   bool opt_daemon;
   bool opt_check_args;
+  bool opt_syslog;
+
 
   boost::program_options::options_description general("General options");
 
@@ -292,8 +345,12 @@ int main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
-  gearmand_log_syslog_st log_syslog;
-  gearmand_log_info_st log_info(log_file);
+  gearmand_log_info_st log_info(log_file, opt_syslog);
+
+  if (log_info.initialized() == false)
+  {
+    return EXIT_FAILURE;
+  }
 
   gearmand_st *_gearmand= gearmand_create(host.empty() ? NULL : host.c_str(),
                                           port.c_str(), threads, backlog,
@@ -319,7 +376,7 @@ int main(int argc, char *argv[])
     }
   }
 
-  if (not protocol.compare("http"))
+  if (protocol.compare("http") == 0)
   {
     if (http.start(_gearmand) != GEARMAN_SUCCESS)
     {
@@ -329,7 +386,7 @@ int main(int argc, char *argv[])
       return EXIT_FAILURE;
     }
   }
-  else if (not protocol.empty())
+  else if (protocol.empty() == 0)
   {
     error::message("Unknown protocol module", protocol.c_str());
     gearmand_free(_gearmand);
@@ -339,8 +396,7 @@ int main(int argc, char *argv[])
 
   if (opt_daemon)
   {
-    bool close_io= int(verbose) == 0 or log_file.size();
-    if (not util::daemon_is_ready(close_io))
+    if (util::daemon_is_ready(true) == false)
     {
       return EXIT_FAILURE;
     }
@@ -365,7 +421,9 @@ static bool _set_fdlimit(rlim_t fds)
 
   rl.rlim_cur= fds;
   if (rl.rlim_max < rl.rlim_cur)
+  {
     rl.rlim_max= rl.rlim_cur;
+  }
 
   if (setrlimit(RLIMIT_NOFILE, &rl) == -1)
   {
@@ -456,49 +514,9 @@ static void _shutdown_handler(int signal_arg)
   }
 }
 
-static void _log(const char *line, gearmand_verbose_t verbose, void *context)
+static void _log(const char *mesg, gearmand_verbose_t verbose, void *context)
 {
   gearmand_log_info_st *log_info= static_cast<gearmand_log_info_st *>(context);
-  int fd;
 
-  if (log_info->filename.empty())
-  {
-    fd= 1;
-  }
-  else
-  {
-    time_t t= time(NULL);
-
-    if (log_info->fd != -1 && log_info->reopen < t)
-    {
-      (void) close(log_info->fd);
-      log_info->fd= -1;
-    }
-
-    if (log_info->fd == -1)
-    {
-      log_info->fd= open(log_info->filename.c_str(), O_CREAT | O_WRONLY | O_APPEND, 0644);
-      if (log_info->fd == -1)
-      {
-	error::perror("Could not open log file for writing.");
-        return;
-      }
-
-      log_info->reopen= t + GEARMAND_LOG_REOPEN_TIME;
-    }
-
-    fd= log_info->fd;
-  }
-
-  char buffer[GEARMAN_MAX_ERROR_SIZE];
-  int buffer_length= snprintf(buffer, GEARMAN_MAX_ERROR_SIZE, "%7s %s\n", gearmand_verbose_name(verbose), line);
-  if (opt_syslog)
-  {
-    syslog(int(verbose), "%.*s", buffer_length, buffer);
-  }
-
-  if (write(log_info->file(), buffer, strlen(buffer)) == -1)
-  {
-    error::perror("Could not write to log file.");
-  }
+  log_info->write(verbose, mesg);
 }

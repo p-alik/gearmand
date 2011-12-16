@@ -61,6 +61,10 @@ gearmand_error_t gearmand_log_gerror(const char *position, const char *function,
 #define gearmand_gerror(_mesg, _gearmand_errot_t) gearmand_log_gerror(GEARMAN_DEFAULT_LOG_PARAM, (_gearmand_errot_t), (_mesg))
 
 GEARMAN_INTERNAL_API
+gearmand_error_t gearmand_log_gerror_warn(const char *position, const char *function, const gearmand_error_t rc, const char *format, ...);
+#define gearmand_gerror_warn(_mesg, _gearmand_errot_t) gearmand_log_gerror(GEARMAN_DEFAULT_LOG_PARAM, (_gearmand_errot_t), (_mesg))
+
+GEARMAN_INTERNAL_API
 gearmand_error_t gearmand_log_gai_error(const char *position, const char *function, const int rc, const char *message);
 #define gearmand_gai_error(_mesg, _gai_int) gearmand_log_gai_error(GEARMAN_DEFAULT_LOG_PARAM, (_gai_int), (_mesg))
 

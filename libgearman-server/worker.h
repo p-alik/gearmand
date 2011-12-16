@@ -11,32 +11,16 @@
  * @brief Worker Declarations
  */
 
-#ifndef __GEARMAN_SERVER_WORKER_H__
-#define __GEARMAN_SERVER_WORKER_H__
+#pragma once
+
+#include <libgearman-server/struct/worker.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/**
- * @ingroup gearman_server_worker
- */
-struct gearman_server_worker_st
-{
-  uint32_t job_count;
-  uint32_t timeout;
-  gearman_server_con_st *con;
-  gearman_server_worker_st *con_next;
-  gearman_server_worker_st *con_prev;
-  gearman_server_function_st *function;
-  gearman_server_worker_st *function_next;
-  gearman_server_worker_st *function_prev;
-  gearman_server_job_st *job_list;
-};
-
-/**
- * @addtogroup gearman_server_worker Worker Declarations
- * @ingroup gearman_server
+/** @addtogroup gearman_server_worker Worker Declarations @ingroup
+ * gearman_server
  *
  * This is a low level interface for gearman server workers. This is used
  * internally by the server interface, so you probably want to look there first.
@@ -63,5 +47,3 @@ void gearman_server_worker_free(gearman_server_worker_st *worker);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GEARMAN_SERVER_WORKER_H__ */

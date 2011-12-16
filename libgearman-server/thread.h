@@ -6,13 +6,9 @@
  * the COPYING file in the parent directory for full text.
  */
 
-/**
- * @file
- * @brief Thread Declarations
- */
+#pragma once
 
-#ifndef __GEARMAN_SERVER_THREAD_H__
-#define __GEARMAN_SERVER_THREAD_H__
+#include <libgearman-server/struct/thread.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,31 +24,6 @@ extern "C" {
  *
  * @{
  */
-
-// Owned by gearmand_thread_st
-
-struct gearman_server_thread_st
-{
-  uint32_t con_count;
-  uint32_t io_count;
-  uint32_t proc_count;
-  uint32_t free_con_count;
-  uint32_t free_packet_count;
-  gearmand_connection_list_st *gearman;
-  gearman_server_thread_st *next;
-  gearman_server_thread_st *prev;
-  gearman_log_server_fn *log_fn;
-  gearmand_thread_st *log_context;
-  gearman_server_thread_run_fn *run_fn;
-  void *run_fn_arg;
-  gearman_server_con_st *con_list;
-  gearman_server_con_st *io_list;
-  gearman_server_con_st *proc_list;
-  gearman_server_con_st *free_con_list;
-  gearman_server_packet_st *free_packet_list;
-  gearmand_connection_list_st gearmand_connection_list_static;
-  pthread_mutex_t lock;
-};
 
 /**
  * Initialize a thread structure. This cannot fail if the caller supplies a
@@ -107,5 +78,3 @@ gearman_server_thread_run(gearman_server_thread_st *thread,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GEARMAN_SERVER_THREAD_H__ */
