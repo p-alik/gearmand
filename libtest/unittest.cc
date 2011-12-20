@@ -298,11 +298,35 @@ static test_return_t memcached_sasl_test(void *object)
   return TEST_SKIPPED;
 }
 
+static test_return_t true_BINARY(void *)
+{
+  const char *args[]= { 0 };
+  test_compare(EXIT_SUCCESS, exec_cmdline("true", args));
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t true_fubar_BINARY(void *)
+{
+  const char *args[]= { "--fubar", 0 };
+  test_compare(EXIT_SUCCESS, exec_cmdline("true", args));
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t echo_fubar_BINARY(void *)
+{
+  const char *args[]= { "fubar", 0 };
+  test_compare(EXIT_SUCCESS, exec_cmdline("echo", args));
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t wait_BINARY(void *)
 {
   const char *args[]= { "--quiet", 0 };
 
-  test_compare(EXIT_FAILURE, exec_cmdline("libtest/wait", args));
+  test_compare(EXIT_FAILURE, exec_cmdline("libtest/wait", args, true));
 
   return TEST_SUCCESS;
 }
@@ -311,7 +335,7 @@ static test_return_t wait_help_BINARY(void *)
 {
   const char *args[]= { "--quiet", "--help", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline("libtest/wait", args));
+  test_compare(EXIT_SUCCESS, exec_cmdline("libtest/wait", args, true));
 
   return TEST_SUCCESS;
 }
@@ -320,7 +344,25 @@ static test_return_t wait_version_BINARY(void *)
 {
   const char *args[]= { "--quiet", "--version", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline("libtest/wait", args));
+  test_compare(EXIT_SUCCESS, exec_cmdline("libtest/wait", args, true));
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t wait_services_BINARY(void *)
+{
+  const char *args[]= { "--quiet", "/etc/services", 0 };
+
+  test_compare(EXIT_SUCCESS, exec_cmdline("libtest/wait", args, true));
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t wait_services_BINARY2(void *)
+{
+  const char *args[]= { "/etc/services", 0 };
+
+  test_compare(EXIT_SUCCESS, exec_cmdline("libtest/wait", args, true));
 
   return TEST_SUCCESS;
 }
@@ -383,9 +425,14 @@ test_st comparison_tests[] ={
 };
 
 test_st cmdline_tests[] ={
+  {"true", 0, true_BINARY },
+  {"true --fubar", 0, true_fubar_BINARY },
+  {"echo fubar", 0, echo_fubar_BINARY },
   {"wait --quiet", 0, wait_BINARY },
   {"wait --quiet --help", 0, wait_help_BINARY },
   {"wait --quiet --version", 0, wait_version_BINARY },
+  {"wait --quiet /etc/services", 0, wait_services_BINARY },
+  {"wait /etc/services", 0, wait_services_BINARY2 },
   {0, 0, 0}
 };
 

@@ -23,7 +23,7 @@
 
 namespace libtest {
 
-int exec_cmdline(const std::string& executable, const char *args[]);
+int exec_cmdline(const std::string& executable, const char *args[], bool use_libtool= false);
 
 const char *gearmand_binary(); 
 

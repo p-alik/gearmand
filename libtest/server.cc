@@ -340,6 +340,7 @@ void Server::rebuild_base_command()
   if (is_libtool())
   {
     _base_command+= libtool();
+    _base_command+= " --mode=execute ";
   }
 
   if (is_debug() and getenv("GDB_COMMAND"))

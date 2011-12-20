@@ -97,7 +97,7 @@ static test_return_t gearman_help_test(void *)
 {
   const char *args[]= { "-H", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline("bin/gearman", args));
+  test_compare(EXIT_SUCCESS, exec_cmdline("bin/gearman", args, true));
   return TEST_SUCCESS;
 }
 
@@ -108,7 +108,7 @@ static test_return_t gearman_unknown_test(void *)
   const char *args[]= { buffer, "--unknown", 0 };
 
   // The argument doesn't exist, so we should see an error
-  test_compare(EXIT_FAILURE, exec_cmdline("bin/gearman", args));
+  test_compare(EXIT_FAILURE, exec_cmdline("bin/gearman", args, true));
 
   return TEST_SUCCESS;
 }
@@ -120,7 +120,7 @@ static test_return_t gearman_client_background_test(void *)
   const char *args[]= { buffer, "-f", WORKER_FUNCTION_NAME, "-b", "payload", 0 };
 
   // The argument doesn't exist, so we should see an error
-  test_compare(EXIT_SUCCESS, exec_cmdline("bin/gearman", args));
+  test_compare(EXIT_SUCCESS, exec_cmdline("bin/gearman", args, true));
 
   return TEST_SUCCESS;
 }
@@ -134,7 +134,7 @@ static test_return_t regression_833394_test(void *)
   const char *args[]= { buffer, "-f", REGRESSION_FUNCTION_833394, "-b", "payload", 0 };
 
   // The argument doesn't exist, so we should see an error
-  test_compare(EXIT_SUCCESS, exec_cmdline("bin/gearman", args));
+  test_compare(EXIT_SUCCESS, exec_cmdline("bin/gearman", args, true));
 
   return TEST_SUCCESS;
 }
@@ -145,7 +145,7 @@ static test_return_t gearadmin_help_test(void *)
   snprintf(buffer, sizeof(buffer), "--port=%d", int(default_port()));
   const char *args[]= { buffer, "--help", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline("bin/gearadmin", args));
+  test_compare(EXIT_SUCCESS, exec_cmdline("bin/gearadmin", args, true));
   return TEST_SUCCESS;
 }
 
@@ -157,7 +157,7 @@ static test_return_t gearadmin_shutdown_test(void *object)
   snprintf(buffer, sizeof(buffer), "--port=%d", int(default_port()));
   const char *args[]= { buffer, "--shutdown", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline("bin/gearadmin", args));
+  test_compare(EXIT_SUCCESS, exec_cmdline("bin/gearadmin", args, true));
 
   Server *server= context->servers.pop_server();
   test_true(server);
@@ -179,7 +179,7 @@ static test_return_t gearadmin_version_test(void *)
   snprintf(buffer, sizeof(buffer), "--port=%d", int(default_port()));
   const char *args[]= { buffer, "--server-version", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline("bin/gearadmin", args));
+  test_compare(EXIT_SUCCESS, exec_cmdline("bin/gearadmin", args, true));
   return TEST_SUCCESS;
 }
 
@@ -189,7 +189,7 @@ static test_return_t gearadmin_verbose_test(void *)
   snprintf(buffer, sizeof(buffer), "--port=%d", int(default_port()));
   const char *args[]= { buffer, "--server-verbose", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline("bin/gearadmin", args));
+  test_compare(EXIT_SUCCESS, exec_cmdline("bin/gearadmin", args, true));
   return TEST_SUCCESS;
 }
 
@@ -199,7 +199,7 @@ static test_return_t gearadmin_status_test(void *)
   snprintf(buffer, sizeof(buffer), "--port=%d", int(default_port()));
   const char *args[]= { buffer, "--status", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline("bin/gearadmin", args));
+  test_compare(EXIT_SUCCESS, exec_cmdline("bin/gearadmin", args, true));
   return TEST_SUCCESS;
 }
 
@@ -209,7 +209,7 @@ static test_return_t gearadmin_workers_test(void *)
   snprintf(buffer, sizeof(buffer), "--port=%d", int(default_port()));
   const char *args[]= { buffer, "--workers", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline("bin/gearadmin", args));
+  test_compare(EXIT_SUCCESS, exec_cmdline("bin/gearadmin", args, true));
   return TEST_SUCCESS;
 }
 
@@ -219,10 +219,10 @@ static test_return_t gearadmin_create_drop_test(void *)
   snprintf(buffer, sizeof(buffer), "--port=%d", int(default_port()));
 
   const char *create_args[]= { buffer, "--create-function=test_function", 0 };
-  test_compare(EXIT_SUCCESS, exec_cmdline("bin/gearadmin", create_args));
+  test_compare(EXIT_SUCCESS, exec_cmdline("bin/gearadmin", create_args, true));
 
   const char *drop_args[]= { buffer, "--drop-function=test_function", 0 };
-  test_compare(EXIT_SUCCESS, exec_cmdline("bin/gearadmin", drop_args));
+  test_compare(EXIT_SUCCESS, exec_cmdline("bin/gearadmin", drop_args, true));
 
 
   return TEST_SUCCESS;
@@ -234,7 +234,7 @@ static test_return_t gearadmin_getpid_test(void *)
   snprintf(buffer, sizeof(buffer), "--port=%d", int(default_port()));
   const char *args[]= { buffer, "--getpid", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline("bin/gearadmin", args));
+  test_compare(EXIT_SUCCESS, exec_cmdline("bin/gearadmin", args, true));
   return TEST_SUCCESS;
 }
 
@@ -245,7 +245,7 @@ static test_return_t gearadmin_unknown_test(void *)
   const char *args[]= { buffer, "--unknown", 0 };
 
   // The argument doesn't exist, so we should see an error
-  test_compare(EXIT_FAILURE, exec_cmdline("bin/gearadmin", args));
+  test_compare(EXIT_FAILURE, exec_cmdline("bin/gearadmin", args, true));
 
   return TEST_SUCCESS;
 }

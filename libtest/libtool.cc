@@ -48,12 +48,10 @@ const char *libtool(void)
       return NULL;
     }
 
-    libtool_buffer+= " --mode=execute ";
-
     snprintf(_libtool, sizeof(_libtool), "%s", libtool_buffer.c_str());
   }
 
   return _libtool;
 }
 
-}
+} // namespace libtest

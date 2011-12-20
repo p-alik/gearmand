@@ -55,7 +55,7 @@ static void *world_create(server_startup_st&, test_return_t&)
     snprintf(buffer, sizeof(buffer), "--port=%d", int(port));
     const char *args[]= { buffer, "--shutdown", 0 };
 
-    exec_cmdline("bin/gearadmin", args);
+    exec_cmdline("bin/gearadmin", args, true);
   }
 
   return NULL;
