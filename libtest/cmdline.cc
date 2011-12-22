@@ -110,117 +110,52 @@ namespace {
 
 namespace libtest {
 
-int exec_cmdline(const std::string& command, const char *args[], bool use_libtool)
+Application::Application(const std::string& arg, const bool _use_libtool_arg) :
+  _use_libtool(_use_libtool_arg),
+  argc(0),
+  _exectuble(arg)
+  { 
+    if (_use_libtool)
+    {
+      if (libtool() == NULL)
+      {
+        throw "libtool requested, but know libtool was found";
+      }
+    }
+
+    if (_use_libtool and getenv("PWD"))
+    {
+      _exectuble_with_path+= getenv("PWD");
+      _exectuble_with_path+= "/";
+    }
+    _exectuble_with_path+= _exectuble;
+  }
+
+Application::~Application()
 {
-  int stdin_fd[2];
-  int stdout_fd[2];
-  int stderr_fd[2];
+}
 
-  int ret;
-  if ((ret= pipe(stdin_fd)) < 0)
-  {
-    Error << "posix_spawn(" << strerror(ret) << ")";
-    return EXIT_FAILURE;
-  }
-
-  if ((ret= pipe(stdout_fd)) < 0)
-  {
-    Error << "posix_spawn(" << strerror(ret) << ")";
-    close(stdin_fd[0]);
-    close(stdin_fd[1]);
-
-    return EXIT_FAILURE;
-  }
-
-  if ((ret= pipe(stderr_fd)) < 0)
-  {
-    Error << "posix_spawn(" << strerror(ret) << ")";
-    close(stdout_fd[0]);
-    close(stdout_fd[1]);
-    close(stderr_fd[0]);
-    close(stderr_fd[1]);
-
-    return EXIT_FAILURE;
-  }
-
-  {
-    ret= fcntl(stdin_fd[0], F_GETFL, 0);
-    if (ret == -1)
-    {
-      Error << "fcntl(F_GETFL) " << strerror(ret);
-      return EXIT_FAILURE;
-    }
-
-    ret= fcntl(stdin_fd[0], F_SETFL, ret | O_NONBLOCK);
-    if (ret == -1)
-    {
-      Error << "fcntl(F_SETFL) " << strerror(ret);
-      return EXIT_FAILURE;
-    }
-  }
+Application::error_t Application::run(const char *args[])
+{
+  stdin_fd.reset();
+  stdout_fd.reset();
+  stderr_fd.reset();
 
   posix_spawn_file_actions_t file_actions;
   posix_spawn_file_actions_init(&file_actions);
 
-  if ((ret= posix_spawn_file_actions_adddup2(&file_actions, stdin_fd[0], STDIN_FILENO)) < 0)
-  {
-    Error << "posix_spawn_file_actions_adddup2(" << strerror(ret) << ")";
-    return EXIT_FAILURE;
-  }
-
-  if ((ret= posix_spawn_file_actions_adddup2(&file_actions, stdout_fd[1], STDOUT_FILENO)) < 0)
-  {
-    Error << "posix_spawn_file_actions_adddup2(" << strerror(ret) << ")";
-    return EXIT_FAILURE;
-  }
-
-  if ((ret= posix_spawn_file_actions_adddup2(&file_actions, stderr_fd[1], STDERR_FILENO)) < 0)
-  {
-    Error << "posix_spawn_file_actions_adddup2(" << strerror(ret) << ")";
-    return EXIT_FAILURE;
-  }
-
-  if ((ret= posix_spawn_file_actions_addclose(&file_actions, stdin_fd[1])) < 0)
-  {
-    Error << "posix_spawn_file_actions_adddup2(" << strerror(ret) << ")";
-    return EXIT_FAILURE;
-  }
-
-  if ((ret= posix_spawn_file_actions_addclose(&file_actions, stdout_fd[0])) < 0)
-  {
-    Error << "posix_spawn_file_actions_adddup2(" << strerror(ret) << ")";
-    return EXIT_FAILURE;
-  }
-
-  if ((ret= posix_spawn_file_actions_addclose(&file_actions, stderr_fd[0])) < 0)
-  {
-    Error << "posix_spawn_file_actions_adddup2(" << strerror(ret) << ")";
-    return EXIT_FAILURE;
-  }
-
-  std::string command_with_path;
-  if (use_libtool and getenv("PWD"))
-  {
-    command_with_path+= getenv("PWD");
-    command_with_path+= "/";
-  }
-  command_with_path+= command;
+  stdin_fd.dup_for_spawn(Application::Pipe::READ, file_actions, STDIN_FILENO);
+  stdout_fd.dup_for_spawn(Application::Pipe::WRITE, file_actions, STDOUT_FILENO);
+  stderr_fd.dup_for_spawn(Application::Pipe::WRITE, file_actions, STDERR_FILENO);
   
   char * * built_argv;
   size_t argc= 0;
-  if (use_libtool and libtool())
-  {
-    create_argv(command_with_path, built_argv, argc, args, true);
-  }
-  else
-  {
-    create_argv(command_with_path, built_argv, argc, args, false);
-  }
+  create_argv(_exectuble_with_path, built_argv, argc, args, _use_libtool);
 
   pid_t pid;
   int spawn_ret;
 
-  if (use_libtool)
+  if (_use_libtool)
   {
     spawn_ret= posix_spawn(&pid, built_argv[0], &file_actions, NULL, built_argv, NULL);
   }
@@ -232,29 +167,18 @@ int exec_cmdline(const std::string& command, const char *args[], bool use_libtoo
   posix_spawn_file_actions_destroy(&file_actions);
   delete_argv(built_argv, argc);
 
-  if ((ret= close(stdin_fd[0])) < 0)
-  {
-    Error << "close(" << strerror(ret) << ")";
-  }
-
-  if ((ret= close(stdout_fd[1])) < 0)
-  {
-    Error << "close(" << strerror(ret) << ")";
-  }
-
-  if ((ret= close(stderr_fd[1])) < 0)
-  {
-    Error << "close(" << strerror(ret) << ")";
-  }
+  stdin_fd.close(Application::Pipe::READ);
+  stdout_fd.close(Application::Pipe::WRITE);
+  stderr_fd.close(Application::Pipe::WRITE);
 
   ssize_t read_length;
   char buffer[1024]= { 0 };
-  while ((read_length= ::read(stdout_fd[0], buffer, sizeof(buffer))) != 0)
+  while ((read_length= ::read(stdout_fd.fd()[0], buffer, sizeof(buffer))) != 0)
   {
     // @todo Suck up all output code here
   }
 
-  int exit_code= EXIT_FAILURE;
+  error_t exit_code= FAILURE;
   if (spawn_ret == 0)
   {
     int status= 0;
@@ -266,26 +190,105 @@ int exec_cmdline(const std::string& command, const char *args[], bool use_libtoo
     else
     {
       assert(waited_pid == pid);
-      exit_code= exited_successfully(status);
+      exit_code= error_t(exited_successfully(status));
     }
   }
 
-  if ((ret= close(stdin_fd[1])) < 0)
-  {
-    Error << "close(" << strerror(ret) << ")";
-  }
-
-  if ((ret= close(stdout_fd[0])) < 0)
-  {
-    Error << "close(" << strerror(ret) << ")";
-  }
-
-  if ((ret= close(stderr_fd[0])) < 0)
-  {
-    Error << "close(" << strerror(ret) << ")";
-  }
-
   return exit_code;
+}
+
+void Application::add_option(const std::string& arg)
+{
+  _options.push_back(std::make_pair(arg, std::string()));
+}
+
+void Application::add_option(const std::string& name, const std::string& value)
+{
+  _options.push_back(std::make_pair(name, value));
+}
+
+Application::Pipe::Pipe()
+{
+  _fd[0]= -1;
+  _fd[1]= -1;
+  _open[0]= false;
+  _open[1]= false;
+}
+
+void Application::Pipe::reset()
+{
+  close(READ);
+  close(WRITE);
+
+  int ret;
+  if ((ret= pipe(_fd)) < 0)
+  {
+    throw strerror(ret);
+  }
+  _open[0]= true;
+  _open[1]= true;
+
+  {
+    ret= fcntl(_fd[0], F_GETFL, 0);
+    if (ret == -1)
+    {
+      Error << "fcntl(F_GETFL) " << strerror(ret);
+      throw strerror(ret);
+    }
+
+    ret= fcntl(_fd[0], F_SETFL, ret | O_NONBLOCK);
+    if (ret == -1)
+    {
+      Error << "fcntl(F_SETFL) " << strerror(ret);
+      throw strerror(ret);
+    }
+  }
+}
+
+Application::Pipe::~Pipe()
+{
+  close(READ);
+  close(WRITE);
+}
+
+void Application::Pipe::dup_for_spawn(const close_t& arg, posix_spawn_file_actions_t& file_actions, const int newfildes)
+{
+  int type= int(arg);
+
+  int ret;
+  if ((ret= posix_spawn_file_actions_adddup2(&file_actions, _fd[type], newfildes )) < 0)
+  {
+    Error << "posix_spawn_file_actions_adddup2(" << strerror(ret) << ")";
+    throw strerror(ret);
+  }
+
+  if ((ret= posix_spawn_file_actions_addclose(&file_actions, _fd[type])) < 0)
+  {
+    Error << "posix_spawn_file_actions_adddup2(" << strerror(ret) << ")";
+    throw strerror(ret);
+  }
+}
+
+void Application::Pipe::close(const close_t& arg)
+{
+  int type= int(arg);
+
+  if (_open[type])
+  {
+    int ret;
+    if ((ret= ::close(_fd[type])) < 0)
+    {
+      Error << "close(" << strerror(ret) << ")";
+    }
+    _open[type]= false;
+  }
+}
+
+int exec_cmdline(const std::string& command, const char *args[], bool use_libtool)
+{
+  Application app(command, use_libtool);
+
+  return int(app.run(args));
 }
 
 const char *gearmand_binary() 

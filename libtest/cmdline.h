@@ -21,7 +21,64 @@
 
 #pragma once
 
+#include <spawn.h>
+
 namespace libtest {
+
+class Application {
+public:
+
+  enum error_t {
+    SUCCESS= EXIT_SUCCESS,
+    FAILURE= EXIT_FAILURE,
+    INVALID= 127
+  };
+
+  class Pipe {
+  public:
+    Pipe();
+    ~Pipe();
+
+    int* fd()
+    {
+      return _fd;
+    }
+
+    enum close_t {
+      READ,
+      WRITE
+    };
+
+    void reset();
+    void close(const close_t& arg);
+    void dup_for_spawn(const close_t& arg,
+                       posix_spawn_file_actions_t& file_actions,
+                       const int newfildes);
+
+  private:
+    int _fd[2];
+    bool _open[2];
+  };
+
+public:
+  Application(const std::string& arg, const bool _use_libtool_arg= false);
+
+  ~Application();
+
+  void add_option(const std::string&);
+  void add_option(const std::string&, const std::string&);
+  error_t run(const char *args[]);
+
+private:
+  const bool _use_libtool;
+  int argc;
+  std::string _exectuble;
+  std::string _exectuble_with_path;
+  std::vector< std::pair<std::string, std::string> > _options;
+  Pipe stdin_fd;
+  Pipe stdout_fd;
+  Pipe stderr_fd;
+};
 
 int exec_cmdline(const std::string& executable, const char *args[], bool use_libtool= false);
 
