@@ -113,7 +113,8 @@ namespace libtest {
 Application::Application(const std::string& arg, const bool _use_libtool_arg) :
   _use_libtool(_use_libtool_arg),
   argc(0),
-  _exectuble(arg)
+  _exectuble(arg),
+  _pid(-1)
   { 
     if (_use_libtool)
     {
@@ -152,16 +153,14 @@ Application::error_t Application::run(const char *args[])
   size_t argc= 0;
   create_argv(_exectuble_with_path, built_argv, argc, args, _use_libtool);
 
-  pid_t pid;
   int spawn_ret;
-
   if (_use_libtool)
   {
-    spawn_ret= posix_spawn(&pid, built_argv[0], &file_actions, NULL, built_argv, NULL);
+    spawn_ret= posix_spawn(&_pid, built_argv[0], &file_actions, NULL, built_argv, NULL);
   }
   else
   {
-    spawn_ret= posix_spawnp(&pid, built_argv[0], &file_actions, NULL, built_argv, NULL);
+    spawn_ret= posix_spawnp(&_pid, built_argv[0], &file_actions, NULL, built_argv, NULL);
   }
 
   posix_spawn_file_actions_destroy(&file_actions);
@@ -171,6 +170,21 @@ Application::error_t Application::run(const char *args[])
   stdout_fd.close(Application::Pipe::WRITE);
   stderr_fd.close(Application::Pipe::WRITE);
 
+  if (spawn_ret)
+  {
+    return Application::INVALID;
+  }
+
+  return Application::SUCCESS;
+}
+
+Application::error_t Application::wait()
+{
+  if (_pid == -1)
+  {
+    return Application::INVALID;
+  }
+
   ssize_t read_length;
   char buffer[1024]= { 0 };
   while ((read_length= ::read(stdout_fd.fd()[0], buffer, sizeof(buffer))) != 0)
@@ -179,17 +193,16 @@ Application::error_t Application::run(const char *args[])
   }
 
   error_t exit_code= FAILURE;
-  if (spawn_ret == 0)
   {
     int status= 0;
     pid_t waited_pid;
-    if ((waited_pid= waitpid(pid, &status, 0)) == -1)
+    if ((waited_pid= waitpid(_pid, &status, 0)) == -1)
     {
-      Error << "Error occured while waitpid(" << strerror(errno) << ") on pid " << int(pid);
+      Error << "Error occured while waitpid(" << strerror(errno) << ") on pid " << int(_pid);
     }
     else
     {
-      assert(waited_pid == pid);
+      assert(waited_pid == _pid);
       exit_code= error_t(exited_successfully(status));
     }
   }
@@ -288,7 +301,18 @@ int exec_cmdline(const std::string& command, const char *args[], bool use_libtoo
 {
   Application app(command, use_libtool);
 
-  return int(app.run(args));
+  Application::error_t ret= app.run(args);
+
+  if (ret != Application::SUCCESS)
+  {
+    return int(ret);
+  }
+  else
+  {
+    ret= app.wait();
+  }
+
+  return int(ret);
 }
 
 const char *gearmand_binary() 

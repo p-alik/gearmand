@@ -63,11 +63,12 @@ public:
 public:
   Application(const std::string& arg, const bool _use_libtool_arg= false);
 
-  ~Application();
+  virtual ~Application();
 
   void add_option(const std::string&);
   void add_option(const std::string&, const std::string&);
   error_t run(const char *args[]);
+  error_t wait();
 
 private:
   const bool _use_libtool;
@@ -78,6 +79,7 @@ private:
   Pipe stdin_fd;
   Pipe stdout_fd;
   Pipe stderr_fd;
+  pid_t _pid;
 };
 
 int exec_cmdline(const std::string& executable, const char *args[], bool use_libtool= false);
