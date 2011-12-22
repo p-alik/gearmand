@@ -298,6 +298,39 @@ static test_return_t memcached_sasl_test(void *object)
   return TEST_SKIPPED;
 }
 
+static test_return_t application_true_BINARY(void *)
+{
+  Application true_app("true");
+
+  test_compare(Application::SUCCESS, true_app.run());
+  test_compare(Application::SUCCESS, true_app.wait());
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t application_true_fubar_BINARY(void *)
+{
+  Application true_app("true");
+
+  const char *args[]= { "--fubar", 0 };
+  test_compare(Application::SUCCESS, true_app.run(args));
+  test_compare(Application::SUCCESS, true_app.wait());
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t application_echo_fubar_BINARY(void *)
+{
+  Application true_app("true");
+
+  const char *args[]= { "fubar", 0 };
+  test_compare(Application::SUCCESS, true_app.run(args));
+  test_compare(Application::SUCCESS, true_app.wait());
+  test_strcmp("fubar", true_app.stdout_result());
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t true_BINARY(void *)
 {
   const char *args[]= { 0 };
@@ -360,6 +393,16 @@ static test_return_t wait_services_BINARY(void *)
 
 static test_return_t wait_services_BINARY2(void *)
 {
+  const char *args[]= { "/etc/services", 0 };
+
+  test_compare(EXIT_SUCCESS, exec_cmdline("libtest/wait", args, true));
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t application_wait_services_BINARY2(void *)
+{
+  libtest::Application("libtest/wait", true);
   const char *args[]= { "/etc/services", 0 };
 
   test_compare(EXIT_SUCCESS, exec_cmdline("libtest/wait", args, true));
@@ -433,6 +476,13 @@ test_st cmdline_tests[] ={
   {"wait --quiet --version", 0, wait_version_BINARY },
   {"wait --quiet /etc/services", 0, wait_services_BINARY },
   {"wait /etc/services", 0, wait_services_BINARY2 },
+  {0, 0, 0}
+};
+
+test_st application_tests[] ={
+  {"true", 0, application_true_BINARY },
+  {"true --fubar", 0, application_true_fubar_BINARY },
+  {"echo fubar", 0, application_echo_fubar_BINARY },
   {0, 0, 0}
 };
 

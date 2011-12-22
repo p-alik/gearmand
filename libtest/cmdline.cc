@@ -141,6 +141,7 @@ Application::error_t Application::run(const char *args[])
   stdin_fd.reset();
   stdout_fd.reset();
   stderr_fd.reset();
+  _stdout_buffer.clear();
 
   posix_spawn_file_actions_t file_actions;
   posix_spawn_file_actions_init(&file_actions);
@@ -187,8 +188,14 @@ Application::error_t Application::wait()
 
   ssize_t read_length;
   char buffer[1024]= { 0 };
-  while ((read_length= ::read(stdout_fd.fd()[0], buffer, sizeof(buffer))) != 0)
+  while ((read_length= ::read(stdout_fd.fd()[0], buffer, sizeof(buffer))) >= 1)
   {
+    Error << "Going to resize to " << _stdout_buffer.size() << " " << read_length;
+    _stdout_buffer.resize(_stdout_buffer.size() +read_length);
+    for (size_t x= 0; x < read_length; x++)
+    {
+      _stdout_buffer.push_back(buffer[x]);
+    }
     // @todo Suck up all output code here
   }
 

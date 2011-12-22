@@ -67,8 +67,13 @@ public:
 
   void add_option(const std::string&);
   void add_option(const std::string&, const std::string&);
-  error_t run(const char *args[]);
+  error_t run(const char *args[]= NULL);
   error_t wait();
+
+  const char *stdout_result() const
+  {
+    return &_stdout_buffer[0];
+  }
 
 private:
   const bool _use_libtool;
@@ -80,7 +85,28 @@ private:
   Pipe stdout_fd;
   Pipe stderr_fd;
   pid_t _pid;
+  std::vector<char> _stdout_buffer;
 };
+
+static inline std::ostream& operator<<(std::ostream& output, const enum Application::error_t &arg)
+{
+  switch (arg)
+  {
+    case Application::SUCCESS:
+      output << "EXIT_SUCCESS";
+      break;
+
+    case Application::FAILURE:
+      output << "EXIT_FAILURE";
+      break;
+
+    case Application::INVALID:
+      output << "127";
+      break;
+  }
+
+  return output;
+}
 
 int exec_cmdline(const std::string& executable, const char *args[], bool use_libtool= false);
 
