@@ -191,9 +191,10 @@ do \
 #define test_strcmp(A,B) \
 do \
 { \
-  if (strcmp((A), (B))) \
+  if ((A) == NULL or (B) == NULL or strcmp((A), (B))) \
   { \
-    fprintf(stderr, "\n%s:%d: Expected %s, got %s\n", __FILE__, __LINE__, (A), (B)); \
+    if ((B) == NULL) fprintf(stderr, "\n%s:%d: Expected %s, got <null>\n", __FILE__, __LINE__, (A)); \
+    else fprintf(stderr, "\n%s:%d: Expected %s, got \"%s\"\n", __FILE__, __LINE__, (A), (B)); \
     libtest::create_core(); \
     return TEST_FAILURE; \
   } \
@@ -202,7 +203,7 @@ do \
 #define test_memcmp(A,B,C) \
 do \
 { \
-  if (memcmp((A), (B), (C))) \
+  if ((A) == NULL or (B) == NULL or memcmp((A), (B), (C))) \
   { \
     fprintf(stderr, "\n%s:%d: %.*s -> %.*s\n", __FILE__, __LINE__, (int)(C), (char *)(A), (int)(C), (char *)(B)); \
     libtest::create_core(); \

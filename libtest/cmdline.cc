@@ -25,12 +25,13 @@ using namespace libtest;
 
 #include <cstdlib>
 #include <cstring>
-#include <string>
-#include <sstream>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
+#include <memory>
 #include <spawn.h>
+#include <sstream>
+#include <string>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 extern "C" {
   static int exited_successfully(int status)
@@ -65,45 +66,18 @@ namespace {
     }
   }
 
-  void create_argv(const std::string& command, char * * & built_argv, size_t& argc, const char *args[], const bool use_libtool)
-  {
-    argc= 2 + use_libtool ? 2 : 0; // +1 for the command, +2 for libtool/mode=execute, +1 for the NULL
-
-    if (use_libtool)
-    {
-      argc+= 2; // +2 for libtool --mode=execute
-    }
-
-    for (const char **ptr= args; *ptr; ++ptr)
-    {
-      argc++;
-    }
-    built_argv= new char * [argc];
-
-    size_t x= 0;
-    if (use_libtool)
-    {
-      assert(libtool());
-      built_argv[x++]= strdup(libtool());
-      built_argv[x++]= strdup("--mode=execute");
-    }
-    built_argv[x++]= strdup(command.c_str());
-
-    for (const char **ptr= args; *ptr; ++ptr)
-    {
-      built_argv[x++]= strdup(*ptr);
-    }
-    built_argv[argc -1]= NULL;
-  }
-
-  void delete_argv(char * * & built_argv, const size_t& argc)
+  void delete_argv(char * * & built_argv, size_t& argc)
   {
     for (size_t x= 0; x < argc; x++)
     {
-      ::free(built_argv[x]);
+      if (built_argv[x])
+      {
+        ::free(built_argv[x]);
+      }
     }
     delete[] built_argv;
     built_argv= NULL;
+    argc= 0;
   }
 
 }
@@ -112,7 +86,7 @@ namespace libtest {
 
 Application::Application(const std::string& arg, const bool _use_libtool_arg) :
   _use_libtool(_use_libtool_arg),
-  argc(0),
+  _argc(0),
   _exectuble(arg),
   _pid(-1)
   { 
@@ -141,7 +115,7 @@ Application::error_t Application::run(const char *args[])
   stdin_fd.reset();
   stdout_fd.reset();
   stderr_fd.reset();
-  _stdout_buffer.clear();
+  (*_stdout_buffer).clear();
 
   posix_spawn_file_actions_t file_actions;
   posix_spawn_file_actions_init(&file_actions);
@@ -151,8 +125,7 @@ Application::error_t Application::run(const char *args[])
   stderr_fd.dup_for_spawn(Application::Pipe::WRITE, file_actions, STDERR_FILENO);
   
   char * * built_argv;
-  size_t argc= 0;
-  create_argv(_exectuble_with_path, built_argv, argc, args, _use_libtool);
+  create_argv(built_argv, args);
 
   int spawn_ret;
   if (_use_libtool)
@@ -165,7 +138,7 @@ Application::error_t Application::run(const char *args[])
   }
 
   posix_spawn_file_actions_destroy(&file_actions);
-  delete_argv(built_argv, argc);
+  delete_argv(built_argv, _argc);
 
   stdin_fd.close(Application::Pipe::READ);
   stdout_fd.close(Application::Pipe::WRITE);
@@ -188,13 +161,25 @@ Application::error_t Application::wait()
 
   ssize_t read_length;
   char buffer[1024]= { 0 };
-  while ((read_length= ::read(stdout_fd.fd()[0], buffer, sizeof(buffer))) >= 1)
+  bool bail= false;
+  while (((read_length= ::read(stdout_fd.fd()[0], buffer, sizeof(buffer))) != 0) or bail)
   {
-    Error << "Going to resize to " << _stdout_buffer.size() << " " << read_length;
-    _stdout_buffer.resize(_stdout_buffer.size() +read_length);
+    if (read_length == -1)
+    {
+      switch(errno)
+      {
+      case EAGAIN:
+        continue;
+
+      default:
+        Error << strerror(errno);
+        bail= true;
+      }
+    }
+    (*_stdout_buffer).reserve(read_length +1);
     for (size_t x= 0; x < read_length; x++)
     {
-      _stdout_buffer.push_back(buffer[x]);
+      (*_stdout_buffer).push_back(buffer[x]);
     }
     // @todo Suck up all output code here
   }
@@ -302,6 +287,61 @@ void Application::Pipe::close(const close_t& arg)
     }
     _open[type]= false;
   }
+}
+
+void Application::create_argv(char * * & built_argv, const char *args[])
+{
+  _argc= 2 +_use_libtool ? 2 : 0; // +1 for the command, +2 for libtool/mode=execute, +1 for the NULL
+
+  if (_use_libtool)
+  {
+    _argc+= 2; // +2 for libtool --mode=execute
+  }
+
+  for (Options::const_iterator iter= _options.begin(); iter != _options.end(); iter++)
+  {
+    _argc++;
+    if ((*iter).second.empty() == false)
+    {
+      _argc++;
+    }
+  }
+
+  if (args)
+  {
+    for (const char **ptr= args; *ptr; ++ptr)
+    {
+      _argc++;
+    }
+  }
+  built_argv= new char * [_argc];
+
+  size_t x= 0;
+  if (_use_libtool)
+  {
+    assert(libtool());
+    built_argv[x++]= strdup(libtool());
+    built_argv[x++]= strdup("--mode=execute");
+  }
+  built_argv[x++]= strdup(_exectuble_with_path.c_str());
+
+  for (Options::const_iterator iter= _options.begin(); iter != _options.end(); iter++)
+  {
+    built_argv[x++]= strdup((*iter).first.c_str());
+    if ((*iter).second.empty() == false)
+    {
+      built_argv[x++]= strdup((*iter).second.c_str());
+    }
+  }
+
+  if (args)
+  {
+    for (const char **ptr= args; *ptr; ++ptr)
+    {
+      built_argv[x++]= strdup(*ptr);
+    }
+  }
+  built_argv[_argc -1]= NULL;
 }
 
 int exec_cmdline(const std::string& command, const char *args[], bool use_libtool)

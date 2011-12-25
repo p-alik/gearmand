@@ -315,18 +315,43 @@ static test_return_t application_true_fubar_BINARY(void *)
   const char *args[]= { "--fubar", 0 };
   test_compare(Application::SUCCESS, true_app.run(args));
   test_compare(Application::SUCCESS, true_app.wait());
+  test_compare(0, (*true_app.stdout_result()).size());
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t vchar_t_TEST(void *)
+{
+  libtest::vchar_t response(test_literal_param("fubar\n"));
+  test_compare(response, response);
 
   return TEST_SUCCESS;
 }
 
 static test_return_t application_echo_fubar_BINARY(void *)
 {
-  Application true_app("true");
+  Application true_app("echo");
 
   const char *args[]= { "fubar", 0 };
   test_compare(Application::SUCCESS, true_app.run(args));
   test_compare(Application::SUCCESS, true_app.wait());
-  test_strcmp("fubar", true_app.stdout_result());
+
+  libtest::vchar_t response(test_literal_param("fubar\n"));
+  test_compare(response, true_app.stdout_result());
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t application_echo_fubar_BINARY2(void *)
+{
+  Application true_app("echo");
+
+  true_app.add_option("fubar");
+
+  test_compare(Application::SUCCESS, true_app.run());
+  test_compare(Application::SUCCESS, true_app.wait());
+  libtest::vchar_t response(test_literal_param("fubar\n"));
+  test_compare(response, true_app.stdout_result());
 
   return TEST_SUCCESS;
 }
@@ -480,9 +505,11 @@ test_st cmdline_tests[] ={
 };
 
 test_st application_tests[] ={
+  {"vchar_t", 0, vchar_t_TEST },
   {"true", 0, application_true_BINARY },
   {"true --fubar", 0, application_true_fubar_BINARY },
   {"echo fubar", 0, application_echo_fubar_BINARY },
+  {"echo fubar (as option)", 0, application_echo_fubar_BINARY2 },
   {0, 0, 0}
 };
 
@@ -495,6 +522,7 @@ collection_st collection[] ={
   {"gearmand", 0, 0, gearmand_tests},
   {"memcached", 0, 0, memcached_tests},
   {"cmdline", 0, 0, cmdline_tests},
+  {"application", 0, 0, application_tests},
   {0, 0, 0, 0}
 };
 

@@ -26,6 +26,9 @@
 namespace libtest {
 
 class Application {
+private:
+  typedef std::vector< std::pair<std::string, std::string> > Options;
+
 public:
 
   enum error_t {
@@ -70,22 +73,30 @@ public:
   error_t run(const char *args[]= NULL);
   error_t wait();
 
-  const char *stdout_result() const
+  libtest::vchar_t stdout_result() const
   {
-    return &_stdout_buffer[0];
+    return _stdout_buffer;
+  }
+
+  size_t stdout_result_length() const
+  {
+    return (*_stdout_buffer).size();
   }
 
 private:
+  void create_argv(char * * & built_argv, const char *args[]);
+
+private:
   const bool _use_libtool;
-  int argc;
+  size_t _argc;
   std::string _exectuble;
   std::string _exectuble_with_path;
-  std::vector< std::pair<std::string, std::string> > _options;
+  Options _options;
   Pipe stdin_fd;
   Pipe stdout_fd;
   Pipe stderr_fd;
   pid_t _pid;
-  std::vector<char> _stdout_buffer;
+  libtest::vchar_t _stdout_buffer;
 };
 
 static inline std::ostream& operator<<(std::ostream& output, const enum Application::error_t &arg)
