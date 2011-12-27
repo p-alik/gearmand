@@ -20,38 +20,59 @@
  */
 
 #include <libtest/common.h>
-#include <string>
-
-char _libtool[1024]= { 0 };
 
 namespace libtest {
 
-const char *libtool(void)
+bool vchar_t::operator!=(const vchar_t& right) const
 {
-  if (_libtool[0] == 0)
+  if (_vchar.size() == (*right).size())
   {
-    std::string libtool_buffer;
-    if (getenv("PWD"))
+    if (::memcmp(&_vchar[0], &(*right)[0], _vchar.size()) == 0)
     {
-      libtool_buffer+= getenv("PWD");
-      libtool_buffer+= "/";
+      return false;
+    }
+  }
+
+  return true;
+}
+
+bool vchar_t::operator==(const vchar_t& right) const
+{ 
+  if (_vchar.size() == (*right).size())
+  {
+    if (::memcmp(&_vchar[0], &(*right)[0], _vchar.size()) == 0)
+    {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+static std::string printer(const char *str, size_t length)
+{
+  std::ostringstream buf;
+  for (size_t x= 0; x < length; x++)
+  {
+    if (isprint(str[x]))
+    {
+      buf << str[x];
     }
     else
     {
-      libtool_buffer+= "./";
+      buf << "(" << int(str[x]) << ")";
     }
-
-    libtool_buffer+= "libtool";
-    if (access(libtool_buffer.c_str(), R_OK | W_OK | X_OK))
-    {
-      Error << "Could not find libtool via access(" << libtool_buffer << ") :" << strerror(errno);
-      return NULL;
-    }
-
-    snprintf(_libtool, sizeof(_libtool), "%s", libtool_buffer.c_str());
   }
 
-  return _libtool;
+  return buf.str();
+}
+
+std::ostream& operator<<(std::ostream& output, const libtest::vchar_t& arg)
+{
+  std::string tmp= libtest::printer(&(*arg)[0], (*arg).size());
+  output << tmp <<  "[" << (*arg).size() << "]";
+
+  return output;
 }
 
 } // namespace libtest

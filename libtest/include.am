@@ -88,6 +88,7 @@ noinst_HEADERS+= \
 		 libtest/string.hpp \
 		 libtest/test.h \
 		 libtest/test.hpp \
+		 libtest/vchar.hpp \
 		 libtest/visibility.h \
 		 libtest/wait.h
 
@@ -109,7 +110,8 @@ libtest_libtest_la_SOURCES= \
 			    libtest/signal.cc \
 			    libtest/socket.cc \
 			    libtest/strerror.cc \
-			    libtest/test.cc
+			    libtest/test.cc \
+			    libtest/vchar.cc
 
 libtest_libtest_la_CXXFLAGS=
 libtest_libtest_la_CXXFLAGS+= ${NO_CONVERSION}

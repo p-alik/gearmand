@@ -19,39 +19,54 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <libtest/common.h>
-#include <string>
 
-char _libtool[1024]= { 0 };
+#pragma once
+
+#include <cstring>
+#include <iostream>
+#include <ostream>
+#include <sstream>
+#include <vector>
 
 namespace libtest {
 
-const char *libtool(void)
-{
-  if (_libtool[0] == 0)
+typedef std::vector<char> _vchar_t;
+
+class vchar_t {
+public:
+  vchar_t()
   {
-    std::string libtool_buffer;
-    if (getenv("PWD"))
-    {
-      libtool_buffer+= getenv("PWD");
-      libtool_buffer+= "/";
-    }
-    else
-    {
-      libtool_buffer+= "./";
-    }
-
-    libtool_buffer+= "libtool";
-    if (access(libtool_buffer.c_str(), R_OK | W_OK | X_OK))
-    {
-      Error << "Could not find libtool via access(" << libtool_buffer << ") :" << strerror(errno);
-      return NULL;
-    }
-
-    snprintf(_libtool, sizeof(_libtool), "%s", libtool_buffer.c_str());
   }
 
-  return _libtool;
-}
+  vchar_t(const char *arg, const size_t arg_size)
+  {
+    _vchar.resize(arg_size);
+    memcpy(&_vchar[0], arg, arg_size);
+  }
+
+  const _vchar_t& operator*() const
+  { 
+    return _vchar;
+  }
+
+  _vchar_t& operator*()
+  { 
+    return _vchar;
+  }
+
+  bool operator==(const vchar_t& right) const;
+
+  bool operator!=(const vchar_t& right) const;
+
+  ~vchar_t()
+  {
+  }
+
+private:
+  _vchar_t _vchar;
+};
+
+std::ostream& operator<<(std::ostream& output, const libtest::vchar_t& arg);
 
 } // namespace libtest
+

@@ -76,15 +76,14 @@ PANDORA_REQUIRE_LIBEVENT
 PANDORA_REQUIRE_LIBUUID
 
 AX_LIB_SQLITE3
-AS_IF([test "x${ac_cv_libsqlite3}" = "xyes"],
+AS_IF([test "x${WANT_SQLITE3}" = "xyes"],
       [
        AC_DEFINE([HAVE_LIBSQLITE3], [ 1 ], [Have the SQLITE3 library])
       ],
       [
-       ac_cv_libsqlite3=no
        AC_DEFINE([HAVE_LIBSQLITE3], [ 0 ], [Have the SQLITE3 library])
       ])
-AM_CONDITIONAL(HAVE_LIBSQLITE3, test "x${ac_cv_libsqlite3}" = "xyes")
+AM_CONDITIONAL(HAVE_LIBSQLITE3, test "x${WANT_SQLITE3}" = "xyes")
 
 
 PANDORA_HAVE_BETTER_MALLOC
@@ -177,7 +176,7 @@ echo "   * C Compiler:                $CC_VERSION"
 echo "   * Assertions enabled:        $ac_cv_assert"
 echo "   * Debug enabled:             $with_debug"
 echo "   * Warnings as failure:       $ac_cv_warnings_as_errors"
-echo "   * Building with libsqlite3   $ac_cv_libsqlite3"
+echo "   * Building with libsqlite3   $WANT_SQLITE3"
 echo "   * Building with libdrizzle   $ac_enable_libdrizzle"
 echo "   * Building with libmemcached $ac_enable_libmemcached"
 echo "   * Building with libpq        $ac_cv_libpq"

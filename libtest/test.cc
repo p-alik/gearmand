@@ -221,40 +221,53 @@ int main(int argc, char *argv[])
       }
 
       test_return_t return_code;
-      if (test_success(return_code= world->item.startup(creators_ptr)))
-      {
-        if (test_success(return_code= world->item.flush(creators_ptr, run)))
+      try {
+        if (test_success(return_code= world->item.startup(creators_ptr)))
         {
-          // @note pre will fail is SKIPPED is returned
-          if (test_success(return_code= world->item.pre(creators_ptr)))
+          if (test_success(return_code= world->item.flush(creators_ptr, run)))
           {
-            { // Runner Code
-              gettimeofday(&start_time, NULL);
-              assert(world->runner());
-              assert(run->test_fn);
-              return_code= world->runner()->run(run->test_fn, creators_ptr);
-              gettimeofday(&end_time, NULL);
-              load_time= timedif(end_time, start_time);
+            // @note pre will fail is SKIPPED is returned
+            if (test_success(return_code= world->item.pre(creators_ptr)))
+            {
+              { // Runner Code
+                gettimeofday(&start_time, NULL);
+                assert(world->runner());
+                assert(run->test_fn);
+                return_code= world->runner()->run(run->test_fn, creators_ptr);
+                gettimeofday(&end_time, NULL);
+                load_time= timedif(end_time, start_time);
+              }
             }
-          }
 
-          // @todo do something if post fails
-          (void)world->item.post(creators_ptr);
+            // @todo do something if post fails
+            (void)world->item.post(creators_ptr);
+          }
+          else if (return_code == TEST_SKIPPED)
+          { }
+          else if (return_code == TEST_FAILURE)
+          {
+            Error << " item.flush(failure)";
+            signal.set_shutdown(SHUTDOWN_GRACEFUL);
+          }
         }
         else if (return_code == TEST_SKIPPED)
         { }
         else if (return_code == TEST_FAILURE)
         {
-          Error << " item.flush(failure)";
+          Error << " item.startup(failure)";
           signal.set_shutdown(SHUTDOWN_GRACEFUL);
         }
       }
-      else if (return_code == TEST_SKIPPED)
-      { }
-      else if (return_code == TEST_FAILURE)
+
+      catch (std::exception &e)
       {
-        Error << " item.startup(failure)";
-        signal.set_shutdown(SHUTDOWN_GRACEFUL);
+        Error << "Exception was thrown: " << e.what();
+        return_code= TEST_FAILURE;
+      }
+      catch (...)
+      {
+        Error << "Unknown exception occurred";
+        return_code= TEST_FAILURE;
       }
 
       stats.total++;

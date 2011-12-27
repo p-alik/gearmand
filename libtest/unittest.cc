@@ -298,11 +298,93 @@ static test_return_t memcached_sasl_test(void *object)
   return TEST_SKIPPED;
 }
 
+static test_return_t application_true_BINARY(void *)
+{
+  Application true_app("true");
+
+  test_compare(Application::SUCCESS, true_app.run());
+  test_compare(Application::SUCCESS, true_app.wait());
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t application_true_fubar_BINARY(void *)
+{
+  Application true_app("true");
+
+  const char *args[]= { "--fubar", 0 };
+  test_compare(Application::SUCCESS, true_app.run(args));
+  test_compare(Application::SUCCESS, true_app.wait());
+  test_compare(0, (*true_app.stdout_result()).size());
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t vchar_t_TEST(void *)
+{
+  libtest::vchar_t response(test_literal_param("fubar\n"));
+  test_compare(response, response);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t application_echo_fubar_BINARY(void *)
+{
+  Application true_app("echo");
+
+  const char *args[]= { "fubar", 0 };
+  test_compare(Application::SUCCESS, true_app.run(args));
+  test_compare(Application::SUCCESS, true_app.wait());
+
+  libtest::vchar_t response(test_literal_param("fubar\n"));
+  test_compare(response, true_app.stdout_result());
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t application_echo_fubar_BINARY2(void *)
+{
+  Application true_app("echo");
+
+  true_app.add_option("fubar");
+
+  test_compare(Application::SUCCESS, true_app.run());
+  test_compare(Application::SUCCESS, true_app.wait());
+  libtest::vchar_t response(test_literal_param("fubar\n"));
+  test_compare(response, true_app.stdout_result());
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t true_BINARY(void *)
+{
+  const char *args[]= { 0 };
+  test_compare(EXIT_SUCCESS, exec_cmdline("true", args));
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t true_fubar_BINARY(void *)
+{
+  const char *args[]= { "--fubar", 0 };
+  test_compare(EXIT_SUCCESS, exec_cmdline("true", args));
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t echo_fubar_BINARY(void *)
+{
+  const char *args[]= { "fubar", 0 };
+  test_compare(EXIT_SUCCESS, exec_cmdline("echo", args));
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t wait_BINARY(void *)
 {
   const char *args[]= { "--quiet", 0 };
 
-  test_compare(EXIT_FAILURE, exec_cmdline("libtest/wait", args));
+  test_compare(EXIT_FAILURE, exec_cmdline("libtest/wait", args, true));
 
   return TEST_SUCCESS;
 }
@@ -311,7 +393,7 @@ static test_return_t wait_help_BINARY(void *)
 {
   const char *args[]= { "--quiet", "--help", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline("libtest/wait", args));
+  test_compare(EXIT_SUCCESS, exec_cmdline("libtest/wait", args, true));
 
   return TEST_SUCCESS;
 }
@@ -320,7 +402,35 @@ static test_return_t wait_version_BINARY(void *)
 {
   const char *args[]= { "--quiet", "--version", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline("libtest/wait", args));
+  test_compare(EXIT_SUCCESS, exec_cmdline("libtest/wait", args, true));
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t wait_services_BINARY(void *)
+{
+  const char *args[]= { "--quiet", "/etc/services", 0 };
+
+  test_compare(EXIT_SUCCESS, exec_cmdline("libtest/wait", args, true));
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t wait_services_BINARY2(void *)
+{
+  const char *args[]= { "/etc/services", 0 };
+
+  test_compare(EXIT_SUCCESS, exec_cmdline("libtest/wait", args, true));
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t application_wait_services_BINARY2(void *)
+{
+  libtest::Application("libtest/wait", true);
+  const char *args[]= { "/etc/services", 0 };
+
+  test_compare(EXIT_SUCCESS, exec_cmdline("libtest/wait", args, true));
 
   return TEST_SUCCESS;
 }
@@ -383,9 +493,23 @@ test_st comparison_tests[] ={
 };
 
 test_st cmdline_tests[] ={
+  {"true", 0, true_BINARY },
+  {"true --fubar", 0, true_fubar_BINARY },
+  {"echo fubar", 0, echo_fubar_BINARY },
   {"wait --quiet", 0, wait_BINARY },
   {"wait --quiet --help", 0, wait_help_BINARY },
   {"wait --quiet --version", 0, wait_version_BINARY },
+  {"wait --quiet /etc/services", 0, wait_services_BINARY },
+  {"wait /etc/services", 0, wait_services_BINARY2 },
+  {0, 0, 0}
+};
+
+test_st application_tests[] ={
+  {"vchar_t", 0, vchar_t_TEST },
+  {"true", 0, application_true_BINARY },
+  {"true --fubar", 0, application_true_fubar_BINARY },
+  {"echo fubar", 0, application_echo_fubar_BINARY },
+  {"echo fubar (as option)", 0, application_echo_fubar_BINARY2 },
   {0, 0, 0}
 };
 
@@ -398,6 +522,7 @@ collection_st collection[] ={
   {"gearmand", 0, 0, gearmand_tests},
   {"memcached", 0, 0, memcached_tests},
   {"cmdline", 0, 0, cmdline_tests},
+  {"application", 0, 0, application_tests},
   {0, 0, 0, 0}
 };
 

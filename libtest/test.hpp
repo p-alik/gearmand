@@ -32,6 +32,8 @@
 #include <libtest/visibility.h>
 #include <libtest/version.h>
 
+#include <libtest/vchar.hpp>
+
 #include <libtest/has.hpp>
 #include <libtest/error.h>
 #include <libtest/strerror.h>

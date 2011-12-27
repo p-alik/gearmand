@@ -44,7 +44,7 @@ CLIENT_LDADD= \
 	      tests/libstartworker.la
 
 tests_killall_SOURCES= tests/killall.cc
-tests_killall_DEPENDENCIES= ${CLIENT_LDADD} gearmand/gearmand
+tests_killall_DEPENDENCIES= ${CLIENT_LDADD} gearmand/gearmand bin/gearadmin
 tests_killall_LDADD= ${CLIENT_LDADD}
 check_PROGRAMS+=tests/killall
 noinst_PROGRAMS+=tests/killall

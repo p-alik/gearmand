@@ -1,6 +1,7 @@
-/* Gearman server and library
- * Copyright (C) 2011 DataDifferential
- * All rights reserved.
+/* vim:expandtab:shiftwidth=2:tabstop=2:smarttab: 
+ * 
+ * Gearman server and library 
+ * Copyright (C) 2011 DataDifferential All rights reserved.
  *
  * Use and distribution licensed under the BSD license.  See
  * the COPYING file in the parent directory for full text.
@@ -137,7 +138,17 @@ public:
 
   bool is_error() const
   {
+    if (_functions.size() == 0)
+    {
+      return true;
+    }
+
     return _is_error;
+  }
+
+  bool is_valid() const
+  {
+    return _functions.size();
   }
 
 private:
