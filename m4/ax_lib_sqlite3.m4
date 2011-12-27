@@ -122,6 +122,7 @@ AC_DEFUN([AX_LIB_SQLITE3],
             [
             AC_MSG_RESULT([not found])
             success="no"
+            WANT_SQLITE3="no"
             ]
         )
         AC_LANG_POP(C)
