@@ -18,7 +18,7 @@
 #include <cstring>
 
 static pthread_key_t logging_key;
-static pthread_once_t intitialize_log_once = PTHREAD_ONCE_INIT;
+static pthread_once_t intitialize_log_once= PTHREAD_ONCE_INIT;
 
 static void delete_log(void *ptr)
 {
@@ -38,7 +38,7 @@ void gearmand_initialize_thread_logging(const char *identity)
   (void) pthread_once(&intitialize_log_once, create_log);
 
   void *ptr;
-  if ((ptr = pthread_getspecific(logging_key)) == NULL)
+  if ((ptr= pthread_getspecific(logging_key)) == NULL)
   {
     const char *key_to_use= strdup(identity);
     (void) pthread_setspecific(logging_key, key_to_use);
