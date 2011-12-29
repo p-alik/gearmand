@@ -85,7 +85,7 @@ static test_return_t gearmand_basic_option_test(void *)
     "--libdrizzle-mysql",
     0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args));
+  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -94,7 +94,7 @@ static test_return_t collection_init(void *object)
   Context *test= (Context *)object;
   assert(test);
 
-  const char *argv[2]= { "test_gearmand", "--queue-type=libdrizzle" };
+  const char *argv[]= { "test_gearmand", "--queue-type=libdrizzle", 0 };
 
   test->initialize(2, argv);
 

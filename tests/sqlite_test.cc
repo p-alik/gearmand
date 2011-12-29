@@ -43,23 +43,33 @@ static bool test_for_HAVE_LIBSQLITE3(test_return_t &error)
 
 static test_return_t gearmand_basic_option_test(void *)
 {
-  const char *args[]= { "--queue-type=libsqlite3",  "--libsqlite3-db=var/tmp/gearman.sql", "--libsqlite3-table=var/tmp/table", "--check-args", 0 };
+  const char *args[]= { "--check-args",
+    "--queue-type=libsqlite3",
+    "--libsqlite3-db=var/tmp/gearman.sql",
+    "--libsqlite3-table=var/tmp/table", 
+    0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args));
+  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
 static test_return_t gearmand_basic_option_without_table_test(void *)
 {
-  const char *args[]= { "--queue-type=libsqlite3",  "--libsqlite3-db=var/tmp/gearman.sql", "--check-args", 0 };
+  const char *args[]= { "--check-args",
+    "--queue-type=libsqlite3",
+    "--libsqlite3-db=var/tmp/gearman.sql",
+    0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args));
+  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
 static test_return_t collection_init(void *object)
 {
-  const char *argv[3]= { "test_gearmand", "--libsqlite3-db=var/tmp/gearman.sql", "--queue-type=libsqlite3"};
+  const char *argv[]= { "test_gearmand",
+    "--libsqlite3-db=var/tmp/gearman.sql",
+    "--queue-type=libsqlite3", 
+    0 };
 
   // Delete whatever might have been sitting around for the sql files
   unlink("var/tmp/gearman.sql");
@@ -112,8 +122,8 @@ static bool world_destroy(void *object)
 }
 
 test_st gearmand_basic_option_tests[] ={
-  {"--libsqlite3-db=val/tmp/schema --libsqlite3-table=val/tmp/table", 0, gearmand_basic_option_test },
-  {"--libsqlite3-db=val/tmp/schema", 0, gearmand_basic_option_without_table_test },
+  {"--libsqlite3-db=var/tmp/schema --libsqlite3-table=var/tmp/table", 0, gearmand_basic_option_test },
+  {"--libsqlite3-db=var/tmp/schema", 0, gearmand_basic_option_without_table_test },
   {0, 0, 0}
 };
 

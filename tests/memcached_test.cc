@@ -30,15 +30,22 @@ using namespace libtest;
 
 static test_return_t gearmand_basic_option_test(void *)
 {
-  const char *args[]= { "--queue=libmemcached",  "--libmemcached-servers=localhost:12555", "--check-args", 0 };
+  const char *args[]= { "--check-args",
+    "--queue=libmemcached",
+    "--libmemcached-servers=localhost:12555", 
+    0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args));
+  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+
   return TEST_SUCCESS;
 }
 
 static test_return_t collection_init(void *object)
 {
-  const char *argv[3]= { "test_gearmand", "--libmemcached-servers=localhost:12555", "--queue-type=libmemcached" };
+  const char *argv[]= { "test_gearmand", 
+    "--libmemcached-servers=localhost:12555", 
+    "--queue-type=libmemcached",
+    0 };
 
   Context *test= (Context *)object;
   assert(test);

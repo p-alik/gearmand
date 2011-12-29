@@ -22,61 +22,59 @@
 
 #pragma once
 
-#include <cstring>
-#include <iostream>
-#include <ostream>
-#include <sstream>
-#include <vector>
-
 namespace libtest {
+namespace http {
 
-typedef std::vector<char> _vchar_t;
-
-class vchar_t {
+class HTTP {
 public:
-  vchar_t()
+
+  HTTP(const std::string& url_arg) :
+    _url(url_arg)
+  { }
+
+  virtual bool execute()= 0;
+
+  virtual ~HTTP()
+  { }
+
+  const std::string& url() const
   {
-  }
-
-  vchar_t(const char *arg, const size_t arg_size)
-  {
-    _vchar.resize(arg_size);
-    memcpy(&_vchar[0], arg, arg_size);
-  }
-
-  const _vchar_t& operator*() const
-  { 
-    return _vchar;
-  }
-
-  _vchar_t& operator*()
-  { 
-    return _vchar;
-  }
-
-  const _vchar_t& get() const
-  { 
-    return _vchar;
-  }
-
-  _vchar_t& get()
-  { 
-    return _vchar;
-  }
-
-  bool operator==(const vchar_t& right) const;
-
-  bool operator!=(const vchar_t& right) const;
-
-  ~vchar_t()
-  {
+    return _url;
   }
 
 private:
-  _vchar_t _vchar;
+  std::string _url;
 };
 
-std::ostream& operator<<(std::ostream& output, const libtest::vchar_t& arg);
+class GET: public HTTP {
+public:
 
+  GET(const std::string& url_arg) :
+    HTTP(url_arg)
+  {
+  }
+
+  bool execute();
+
+private:
+  libtest::vchar_t _body;
+};
+
+class POST: public HTTP {
+public:
+
+  POST(const std::string& url_arg,
+       const vchar_t& body_arg) :
+    HTTP(url_arg),
+    _body(body_arg)
+  {
+  }
+
+  bool execute();
+
+private:
+  libtest::vchar_t _body;
+};
+
+} // namespace http
 } // namespace libtest
-

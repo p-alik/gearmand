@@ -83,8 +83,21 @@ public:
     return (*_stdout_buffer).size();
   }
 
+  libtest::vchar_t stderr_result() const
+  {
+    return _stderr_buffer;
+  }
+
+  size_t stderr_result_length() const
+  {
+    return (*_stderr_buffer).size();
+  }
+
+  std::string print();
+
 private:
-  void create_argv(char * * & built_argv, const char *args[]);
+  void create_argv(const char *args[]);
+  void delete_argv();
 
 private:
   const bool _use_libtool;
@@ -95,8 +108,10 @@ private:
   Pipe stdin_fd;
   Pipe stdout_fd;
   Pipe stderr_fd;
+  char * * built_argv;
   pid_t _pid;
   libtest::vchar_t _stdout_buffer;
+  libtest::vchar_t _stderr_buffer;
 };
 
 static inline std::ostream& operator<<(std::ostream& output, const enum Application::error_t &arg)

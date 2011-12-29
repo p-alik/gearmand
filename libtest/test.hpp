@@ -58,3 +58,4 @@
 #include <libtest/cmdline.h>
 #include <libtest/string.hpp>
 #include <libtest/binaries.h>
+#include <libtest/http.hpp>

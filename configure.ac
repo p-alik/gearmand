@@ -69,6 +69,15 @@ AC_DEFINE([GEARMAND_BINARY], "./gearmand/gearmand", [Name of the gearmand binary
 AC_DEFINE([HAVE_LIBGEARMAN], 1, [libgearman support])
 AC_DEFINE([HAVE_GEARMAND_BINARY], 1, [libgearman support])
 
+AX_LIB_CURL([7.21.7],
+            [
+             AC_DEFINE([HAVE_LIBCURL], [ 1 ], [libcurl support])
+             ],
+            [
+             AC_DEFINE([HAVE_LIBCURL], [ 0 ], [libcurl support])
+             ]
+            )
+
 m4_include([m4/drizzled.m4])
 WITH_LIBDRIZZLE
 

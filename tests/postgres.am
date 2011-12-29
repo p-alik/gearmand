@@ -14,5 +14,5 @@ test-postgres: tests-postgres-args
 
 tests-postgres-args: gearmand/gearmand
 if HAVE_LIBPQ
-	@gearmand/gearmand --libpq-conninfo="foo" --libpq-table="gearmand"
+	@gearmand/gearmand --check-args --libpq-conninfo="foo" --libpq-table="gearmand"
 endif
