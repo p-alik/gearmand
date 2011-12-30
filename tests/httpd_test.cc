@@ -36,23 +36,75 @@
  */
 
 
-#pragma once
+#include <config.h>
+#include <libtest/test.hpp>
 
-#define GEARMAN_BASE_TEST_PORT 32143
-#define BURNIN_TEST_PORT GEARMAN_BASE_TEST_PORT +1
-#define CLIENT_TEST_PORT GEARMAN_BASE_TEST_PORT +2
-#define DRIZZLE_TEST_PORT GEARMAN_BASE_TEST_PORT +3
-#define INTERNAL_TEST_PORT GEARMAN_BASE_TEST_PORT +4
-#define MEMCACHED_TEST_PORT GEARMAN_BASE_TEST_PORT +5
-#define ROUND_ROBIN_WORKER_TEST_PORT GEARMAN_BASE_TEST_PORT +6
-#define SQLITE_TEST_PORT GEARMAN_BASE_TEST_PORT +7
-#define TOKYOCABINET_TEST_PORT GEARMAN_BASE_TEST_PORT +8
-#define WORKER_TEST_PORT GEARMAN_BASE_TEST_PORT +9
-#define CYCLE_TEST_PORT GEARMAN_BASE_TEST_PORT +10
-#define GEARADMIN_TEST_PORT GEARMAN_BASE_TEST_PORT +11
-#define BLOBSLAP_CLIENT_TEST_PORT GEARMAN_BASE_TEST_PORT +12
-#define STRESS_WORKER_PORT GEARMAN_BASE_TEST_PORT +13
-#define EPHEMERAL_PORT GEARMAN_BASE_TEST_PORT +14
-#define REDIS_PORT GEARMAN_BASE_TEST_PORT +15
-#define HTTPD_PORT GEARMAN_BASE_TEST_PORT +16
-#define GEARMAN_MAX_TEST_PORT HTTPD_PORT
+using namespace libtest;
+
+#include <cassert>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <unistd.h>
+
+#include <libgearman/gearman.h>
+
+#include <tests/basic.h>
+#include <tests/context.h>
+
+#include <tests/ports.h>
+
+// Prototypes
+#ifndef __INTEL_COMPILER
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
+
+static test_return_t get_TEST(void *)
+{
+  libtest::http::GET get("http://localhost:8090/");
+
+  test_compare(false, get.execute());
+
+  return TEST_SUCCESS;
+}
+
+
+static void *world_create(server_startup_st& servers, test_return_t& error)
+{
+  const char *argv[]= { "gearmand", "--protocol=http", "--http-port=8090", 0 };
+  if (server_startup(servers, "gearmand", HTTPD_PORT, 3, argv) == false)
+  {
+    error= TEST_FAILURE;
+    return NULL;
+  }
+
+  return NULL;
+}
+
+static test_return_t check_for_curl(void *)
+{
+  test_skip(true, HAVE_LIBCURL);
+  return TEST_SUCCESS;
+}
+
+
+test_st GET_TESTS[] ={
+  { "GET /", 0, get_TEST },
+  { 0, 0, 0 }
+};
+
+test_st regression_TESTS[] ={
+  { 0, 0, 0 }
+};
+
+collection_st collection[] ={
+  { "GET", check_for_curl, 0, GET_TESTS },
+  { "regression", 0, 0, regression_TESTS },
+  { 0, 0, 0, 0 }
+};
+
+void get_world(Framework *world)
+{
+  world->collections= collection;
+  world->_create= world_create;
+}
