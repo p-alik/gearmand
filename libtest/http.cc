@@ -21,7 +21,9 @@
 
 #include <libtest/common.h>
 
+#ifdef HAVE_LIBCURL
 #include <curl/curl.h>
+#endif
 
 namespace libtest {
 namespace http {
