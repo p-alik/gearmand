@@ -71,7 +71,14 @@ AC_DEFINE([HAVE_GEARMAND_BINARY], 1, [libgearman support])
 
 AX_LIB_CURL([7.21.7],
             [
-             AC_DEFINE([HAVE_LIBCURL], [ 1 ], [libcurl support])
+             AC_CHECK_HEADERS([curl/curl.h], 
+                              [
+                               AC_DEFINE([HAVE_LIBCURL], [ 1 ], [libcurl support])
+                               ],
+                               [
+                                AC_DEFINE([HAVE_LIBCURL], [ 0 ], [libcurl support])
+                                ]
+                               )
              ],
             [
              AC_DEFINE([HAVE_LIBCURL], [ 0 ], [libcurl support])
