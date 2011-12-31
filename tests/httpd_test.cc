@@ -59,11 +59,20 @@ using namespace libtest;
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
-static test_return_t get_TEST(void *)
+static test_return_t GET_TEST(void *)
 {
   libtest::http::GET get("http://localhost:8090/");
 
   test_compare(false, get.execute());
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t HEAD_TEST(void *)
+{
+  libtest::http::HEAD head("http://localhost:8090/");
+
+  test_compare(false, head.execute());
 
   return TEST_SUCCESS;
 }
@@ -89,7 +98,12 @@ static test_return_t check_for_curl(void *)
 
 
 test_st GET_TESTS[] ={
-  { "GET /", 0, get_TEST },
+  { "GET /", 0, GET_TEST },
+  { 0, 0, 0 }
+};
+
+test_st HEAD_TESTS[] ={
+  { "HEAD /", 0, HEAD_TEST },
   { 0, 0, 0 }
 };
 

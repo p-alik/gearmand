@@ -29,7 +29,8 @@ class HTTP {
 public:
 
   HTTP(const std::string& url_arg) :
-    _url(url_arg)
+    _url(url_arg),
+    _response(0)
   { }
 
   virtual bool execute()= 0;
@@ -42,8 +43,16 @@ public:
     return _url;
   }
 
+  long response()
+  {
+    return _response;
+  }
+
 private:
   std::string _url;
+
+protected:
+  long _response;
 };
 
 class GET: public HTTP {
@@ -64,7 +73,24 @@ class POST: public HTTP {
 public:
 
   POST(const std::string& url_arg,
-       const vchar_t& body_arg) :
+       const vchar_t& post_arg) :
+    HTTP(url_arg),
+    _post(post_arg)
+  {
+  }
+
+  bool execute();
+
+private:
+  libtest::vchar_t _post;
+  libtest::vchar_t _body;
+};
+
+class TRACE: public HTTP {
+public:
+
+  TRACE(const std::string& url_arg,
+        const vchar_t& body_arg) :
     HTTP(url_arg),
     _body(body_arg)
   {
@@ -74,6 +100,19 @@ public:
 
 private:
   libtest::vchar_t _body;
+};
+
+class HEAD: public HTTP {
+public:
+
+  HEAD(const std::string& url_arg) :
+    HTTP(url_arg)
+  {
+  }
+
+  bool execute();
+
+private:
 };
 
 } // namespace http

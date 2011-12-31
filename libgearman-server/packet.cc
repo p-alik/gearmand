@@ -485,7 +485,9 @@ size_t gearmand_packet_unpack(gearmand_packet_st *packet,
         *ret_ptr= packet_create_arg(packet, data, ptr == NULL ? arg_size :
                                     (size_t)(ptr - ((uint8_t *)data)));
         if (*ret_ptr != GEARMAN_SUCCESS)
+        {
           return used_size;
+        }
       }
 
       return used_size;

@@ -43,19 +43,26 @@ extern "C" size_t
     return _body->get().size();
   }
 
+static void init(CURL *curl, const std::string& url)
+{
+  assert(curl);
+  curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+  curl_easy_setopt(curl, CURLOPT_USERAGENT, YATL_USERAGENT);
+}
 
 bool GET::execute()
 {
   if (HAVE_LIBCURL)
   {
-    CURL *curl= curl_easy_init();;
+    CURL *curl= curl_easy_init();
 
-    curl_easy_setopt(curl, CURLOPT_URL, url().c_str());
+    init(curl, url());
+
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, http_get_result_callback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&_body);
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, YATL_USERAGENT);
 
     CURLcode retref= curl_easy_perform(curl);
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, _response);
 
     curl_easy_cleanup(curl);
 
@@ -70,8 +77,62 @@ bool POST::execute()
   if (HAVE_LIBCURL)
   {
     CURL *curl= curl_easy_init();;
+
+    init(curl, url());
+
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, _body.get().size());
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (void *)&_body);
+
+    CURLcode retref= curl_easy_perform(curl);
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, _response);
+
     curl_easy_cleanup(curl);
   }
+  return false;
+}
+
+bool TRACE::execute()
+{
+  if (HAVE_LIBCURL)
+  {
+    CURL *curl= curl_easy_init();;
+
+    init(curl, url());
+
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "TRACE");
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, http_get_result_callback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&_body);
+
+    CURLcode retref= curl_easy_perform(curl);
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, _response);
+
+    curl_easy_cleanup(curl);
+
+    return retref == CURLE_OK;
+  }
+
+  return false;
+}
+
+bool HEAD::execute()
+{
+  if (HAVE_LIBCURL)
+  {
+    CURL *curl= curl_easy_init();;
+
+    init(curl, url());
+
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "HEAD");
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, http_get_result_callback);
+
+    CURLcode retref= curl_easy_perform(curl);
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, _response);
+
+    curl_easy_cleanup(curl);
+
+    return retref == CURLE_OK;
+  }
+
   return false;
 }
 

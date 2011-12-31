@@ -365,6 +365,16 @@ static test_return_t POST_TEST(void *)
   return TEST_SUCCESS;
 }
 
+static test_return_t TRACE_TEST(void *)
+{
+  libtest::vchar_t body;
+  libtest::http::TRACE trace("http://foo.example.com/", body);
+
+  test_compare(false, trace.execute());
+
+  return TEST_SUCCESS;
+}
+
 
 static test_return_t vchar_t_TEST(void *)
 {
@@ -585,6 +595,7 @@ static test_return_t check_for_curl(void *)
 test_st http_tests[] ={
   {"GET", 0, GET_TEST },
   {"POST", 0, POST_TEST },
+  {"TRACE", 0, TRACE_TEST },
   {0, 0, 0}
 };
 
