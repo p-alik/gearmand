@@ -21,7 +21,7 @@
 
 #include <libtest/common.h>
 
-#ifdef HAVE_LIBCURL
+#if defined(HAVE_CURL_CURL_H) && HAVE_CURL_CURL_H
 #include <curl/curl.h>
 #endif
 
