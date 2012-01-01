@@ -43,19 +43,39 @@ extern "C" size_t
     return _body->get().size();
   }
 
+#if defined(HAVE_LIBCURL) && HAVE_LIBCURL
+bool GET::execute()
+{
+  return true;
+}
+
+bool POST::execute()
+{
+  return true;
+}
+
+bool HEAD::execute()
+{
+  return true;
+}
+
+bool TRACE::execute()
+{
+  return true;
+}
+
+#else
+
 static void init(CURL *curl, const std::string& url)
 {
-#if defined(HAVE_LIBCURL) && HAVE_LIBCURL
   if (HAVE_LIBCURL)
   assert(curl);
   curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
   curl_easy_setopt(curl, CURLOPT_USERAGENT, YATL_USERAGENT);
-#endif
 }
 
 bool GET::execute()
 {
-#if defined(HAVE_LIBCURL) && HAVE_LIBCURL
   if (HAVE_LIBCURL)
   {
     CURL *curl= curl_easy_init();
@@ -72,14 +92,12 @@ bool GET::execute()
 
     return retref == CURLE_OK;
   }
-#endif
 
   return false;
 }
 
 bool POST::execute()
 {
-#if defined(HAVE_LIBCURL) && HAVE_LIBCURL
   if (HAVE_LIBCURL)
   {
     CURL *curl= curl_easy_init();;
@@ -94,14 +112,12 @@ bool POST::execute()
 
     curl_easy_cleanup(curl);
   }
-#endif
 
   return false;
 }
 
 bool TRACE::execute()
 {
-#if defined(HAVE_LIBCURL) && HAVE_LIBCURL
   if (HAVE_LIBCURL)
   {
     CURL *curl= curl_easy_init();;
@@ -119,14 +135,12 @@ bool TRACE::execute()
 
     return retref == CURLE_OK;
   }
-#endif
 
   return false;
 }
 
 bool HEAD::execute()
 {
-#if defined(HAVE_LIBCURL) && HAVE_LIBCURL
   if (HAVE_LIBCURL)
   {
     CURL *curl= curl_easy_init();;
@@ -143,10 +157,10 @@ bool HEAD::execute()
 
     return retref == CURLE_OK;
   }
-#endif
 
   return false;
 }
+#endif
 
 } // namespace http
 } // namespace libtest
