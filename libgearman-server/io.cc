@@ -486,6 +486,7 @@ gearmand_error_t gearman_io_recv(gearman_server_con_st *con, bool recv_data)
 					 GEARMAN_RECV_BUFFER_SIZE - connection->recv_buffer_size, ret);
       if (gearmand_failed(ret))
       {
+        gearmand_gerror_warn("Failed while in _connection_read()", ret);
         return ret;
       }
       gearmand_log_crazy(GEARMAN_DEFAULT_LOG_PARAM, "read %lu bytes", (unsigned long)recv_size);

@@ -414,7 +414,7 @@ gearman_server_job_peek(gearman_server_con_st *server_con)
               server_job->when != 0 && 
               server_job->when > current_time)
         {
-          server_job = server_job->function_next;  
+          server_job= server_job->function_next;  
         }
         
         if (server_job != NULL)
@@ -508,7 +508,7 @@ gearman_server_job_st *gearman_server_job_take(gearman_server_con_st *server_con
         else
         {
           // Otherwise, just remove the item from the list
-          previous_job->function_next = server_job->function_next;
+          previous_job->function_next= server_job->function_next;
         }
         
         // If it's the tail of the list, move the tail back

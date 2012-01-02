@@ -21,6 +21,18 @@ namespace gearmand {
 namespace protocol {
 
 class HTTP : public gearmand::Plugin {
+public:
+  enum method_t 
+  {
+    HEAD,
+    GET,
+    PUT,
+    POST,
+    TRACE,
+  };
+
+private:
+  HTTP::method_t _method;
   bool _background;
   bool _keep_alive;
   std::string global_port;
@@ -37,14 +49,14 @@ public:
     return _background;
   }
 
-  bool keep_alive()
-  {
-    return _keep_alive;
-  }
-
   void set_background(bool arg)
   {
     _background= arg;
+  }
+
+  bool keep_alive()
+  {
+    return _keep_alive;
   }
 
   void set_keep_alive(bool arg)
@@ -52,10 +64,21 @@ public:
     _keep_alive= arg;
   }
 
+  HTTP::method_t method()
+  {
+    return _method;
+  }
+
+  void set_method(HTTP::method_t arg)
+  {
+    _method= arg;
+  }
+
   void reset()
   {
     _background= false;
     _keep_alive= false;
+    _method= HTTP::TRACE;
   }
 };
 

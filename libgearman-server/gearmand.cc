@@ -377,7 +377,6 @@ static gearmand_error_t _listen_init(gearmand_st *gearmand)
 {
   for (uint32_t x= 0; x < gearmand->port_count; x++)
   {
-    int ret;
     struct linger ling= {0, 0};
     struct gearmand_port_st *port;
     struct addrinfo hints;
@@ -386,10 +385,10 @@ static gearmand_error_t _listen_init(gearmand_st *gearmand)
     port= &gearmand->port_list[x];
 
     memset(&hints, 0, sizeof(struct addrinfo));
-    hints.ai_flags  = AI_PASSIVE;
-    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags= AI_PASSIVE;
+    hints.ai_socktype= SOCK_STREAM;
 
-    ret= getaddrinfo(gearmand->host, port->port, &hints, &addrinfo);
+    int ret= getaddrinfo(gearmand->host, port->port, &hints, &addrinfo);
     if (ret != 0)
     {
       char buffer[1024];

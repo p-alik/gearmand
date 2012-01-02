@@ -106,7 +106,7 @@ struct gearman_job_reducer_st {
                                     arguments.value,
                                     time_t(0),
                                     gearman_actions_execute_defaults());
-    if (task = NULL)
+    if (task == NULL)
     {
       gearman_universal_error_code(client->universal);
 

@@ -78,7 +78,7 @@ static gearman_server_con_st * _server_con_create(gearman_server_thread_st *thre
     return NULL;
   }
 
-  gearmand_connection_options_t options[] = { GEARMAND_CON_MAX };
+  gearmand_connection_options_t options[]= { GEARMAND_CON_MAX };
   gearmand_connection_init(thread->gearman, &(con->con), dcon, options);
 
   con->con.root= con;

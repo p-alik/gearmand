@@ -1,8 +1,9 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  Test the blobslap_client program
+ *  Gearmand client and server library.
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -35,90 +36,89 @@
  */
 
 
-/*
-  Test that we are cycling the servers we are creating during testing.
-*/
-
+#include <config.h>
 #include <libtest/test.hpp>
 
 using namespace libtest;
 
+#include <cassert>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <unistd.h>
+
+#include <libgearman/gearman.h>
+
+#include <tests/basic.h>
+#include <tests/context.h>
+
+#include <tests/ports.h>
+
+// Prototypes
 #ifndef __INTEL_COMPILER
-#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+#pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
-#include "tests/ports.h"
-
-static std::string executable;
-
-static test_return_t help_test(void *)
+static test_return_t GET_TEST(void *)
 {
-  char buffer[1024];
-  snprintf(buffer, sizeof(buffer), "-p %d", int(default_port()));
-  const char *args[]= { buffer, "-?", 0 };
+  libtest::http::GET get("http://localhost:8090/");
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(executable, args, true));
+  test_compare(false, get.execute());
 
   return TEST_SUCCESS;
 }
 
-static test_return_t unknown_test(void *)
+static test_return_t HEAD_TEST(void *)
 {
-  char buffer[1024];
-  snprintf(buffer, sizeof(buffer), "-p %d", int(default_port()));
-  const char *args[]= { buffer, "--unknown", 0 };
+  libtest::http::HEAD head("http://localhost:8090/");
 
-  // The argument doesn't exist, so we should see an error
-  test_compare(EXIT_FAILURE, exec_cmdline(executable, args, true));
+  test_compare(false, head.execute());
 
   return TEST_SUCCESS;
 }
 
-static test_return_t basic_benchmark_test(void *)
-{
-  char buffer[1024];
-  snprintf(buffer, sizeof(buffer), "-p %d", int(default_port()));
-  const char *args[]= { buffer, "-c 100", "-n 10", "-e", 0 };
-
-  // The argument doesn't exist, so we should see an error
-  test_compare(EXIT_SUCCESS, exec_cmdline(executable, args, true));
-
-  return TEST_SUCCESS;
-}
-
-test_st benchmark_tests[] ={
-  {"--help", 0, help_test},
-  {"--unknown", 0, unknown_test},
-  {"-c 100 -n 10", 0, basic_benchmark_test},
-  {0, 0, 0}
-};
-
-collection_st collection[] ={
-  {"blobslap_client", 0, 0, benchmark_tests},
-  {0, 0, 0, 0}
-};
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  const char *argv[1]= { "blobslap_client" };
-  if (server_startup(servers, "gearmand", BLOBSLAP_CLIENT_TEST_PORT, 1, argv) == false)
+  const char *argv[]= { "gearmand", "--protocol=http", "--http-port=8090", 0 };
+  if (server_startup(servers, "gearmand", HTTPD_PORT, 3, argv) == false)
   {
     error= TEST_FAILURE;
+    return NULL;
   }
 
-  if (server_startup(servers, "blobslap_worker", BLOBSLAP_CLIENT_TEST_PORT, 1, argv) == false)
-  {
-    error= TEST_FAILURE;
-  }
-
-  return &servers;
+  return NULL;
 }
 
+static test_return_t check_for_curl(void *)
+{
+  test_skip(true, HAVE_LIBCURL);
+  return TEST_SUCCESS;
+}
+
+
+test_st GET_TESTS[] ={
+  { "GET /", 0, GET_TEST },
+  { 0, 0, 0 }
+};
+
+test_st HEAD_TESTS[] ={
+  { "HEAD /", 0, HEAD_TEST },
+  { 0, 0, 0 }
+};
+
+test_st regression_TESTS[] ={
+  { 0, 0, 0 }
+};
+
+collection_st collection[] ={
+  { "GET", check_for_curl, 0, GET_TESTS },
+  { "regression", 0, 0, regression_TESTS },
+  { 0, 0, 0, 0 }
+};
 
 void get_world(Framework *world)
 {
-  executable= "./benchmark/blobslap_client";
   world->collections= collection;
   world->_create= world_create;
 }
-

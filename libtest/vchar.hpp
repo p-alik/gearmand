@@ -54,6 +54,16 @@ public:
     return _vchar;
   }
 
+  const _vchar_t& get() const
+  { 
+    return _vchar;
+  }
+
+  _vchar_t& get()
+  { 
+    return _vchar;
+  }
+
   bool operator==(const vchar_t& right) const;
 
   bool operator!=(const vchar_t& right) const;

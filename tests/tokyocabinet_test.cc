@@ -30,17 +30,24 @@ using namespace libtest;
 
 static test_return_t gearmand_basic_option_test(void *)
 {
-  const char *args[]= { "--queue=libtokyocabinet",  "--libtokyocabinet-file=var/tmp/gearman_basic.tcb", "--libtokyocabinet-optimize", "--check-args", 0 };
+  const char *args[]= { "--check-args",
+    "--queue=libtokyocabinet",
+    "--libtokyocabinet-file=var/tmp/gearman_basic.tcb",
+    "--libtokyocabinet-optimize", 
+    0 };
 
   unlink("var/tmp/gearman.tcb");
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args));
+  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
 
   return TEST_SUCCESS;
 }
 
 static test_return_t collection_init(void *object)
 {
-  const char *argv[3]= { "test_gearmand", "--libtokyocabinet-file=var/tmp/gearman.tcb", "--queue-type=libtokyocabinet" };
+  const char *argv[]= { "test_gearmand",
+    "--libtokyocabinet-file=", "var/tmp/gearman.tcb",
+    "--queue-type=", "libtokyocabinet",
+    0 };
 
   unlink("var/tmp/gearman.tcb");
 
