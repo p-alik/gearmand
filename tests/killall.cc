@@ -49,11 +49,11 @@ using namespace libtest;
 
 static void *world_create(server_startup_st&, test_return_t&)
 {
-  for (size_t port= GEARMAN_BASE_TEST_PORT; port <= GEARMAN_MAX_TEST_PORT; port++)
+  for (int port= GEARMAN_BASE_TEST_PORT; port <= int(GEARMAN_MAX_TEST_PORT); port++)
   {
     char buffer[1024];
-    snprintf(buffer, sizeof(buffer), "--port=%d", int(port));
-    const char *args[]= { buffer, "--shutdown", 0 };
+    snprintf(buffer, sizeof(buffer), "%d", port);
+    const char *args[]= { "--port", buffer, "--shutdown", 0 };
 
     exec_cmdline("bin/gearadmin", args, true);
   }

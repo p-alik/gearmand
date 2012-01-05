@@ -35,6 +35,10 @@
 
 #include <signal.h>
 
+#if defined(HAVE_CURL_CURL_H) && HAVE_CURL_CURL_H
+#include <curl/curl.h>
+#endif
+
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
@@ -70,9 +74,29 @@ static long int timedif(struct timeval a, struct timeval b)
   return s + us;
 }
 
-static Framework *world= NULL;
+static void cleanup_curl(void)
+{
+#if defined(HAVE_CURL_CURL_H) && HAVE_CURL_CURL_H
+  curl_global_cleanup();
+#endif
+}
+
 int main(int argc, char *argv[])
 {
+#if defined(HAVE_CURL_CURL_H) && HAVE_CURL_CURL_H
+  if (curl_global_init(CURL_GLOBAL_ALL))
+  {
+    Error << "curl_global_init(CURL_GLOBAL_ALL) failed";
+    return EXIT_FAILURE;
+  }
+#endif
+
+  if (atexit(cleanup_curl))
+  {
+    Error << "atexit() failed";
+    return EXIT_FAILURE;
+  }
+
   srandom((unsigned int)time(NULL));
 
   if (getenv("LIBTEST_QUIET") and strcmp(getenv("LIBTEST_QUIET"), "0") == 0)
@@ -105,7 +129,7 @@ int main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
-  world= new Framework();
+  Framework *world= new Framework();
 
   if (world == NULL)
   {
