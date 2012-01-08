@@ -34,6 +34,7 @@ tests_libstartworker_la_CXXFLAGS+= $(PTHREAD_CFLAGS)
 tests_libstartworker_la_CXXFLAGS+= $(BOOST_CPPFLAGS)
 tests_libstartworker_la_LIBADD= $(PTHREAD_LIBS)
 tests_libstartworker_la_LIBADD+= $(BOOST_THREAD_LIBS)
+tests_libstartworker_la_LIBADD+= libgearman/libgearman.la
 tests_libstartworker_la_SOURCES= tests/start_worker.cc
 tests_libstartworker_la_SOURCES+= util/instance.cc
 tests_libstartworker_la_SOURCES+= util/operation.cc
