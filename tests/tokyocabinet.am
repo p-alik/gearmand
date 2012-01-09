@@ -19,5 +19,5 @@ noinst_PROGRAMS+= tests/tokyocabinet_test
 test-tokyocabinet: tests/tokyocabinet_test
 	@tests/tokyocabinet_test
 
-valgrind-tokyocabinet:
+valgrind-tokyocabinet: tests/tokyocabinet_test
 	@$(VALGRIND_COMMAND) tests/tokyocabinet_test

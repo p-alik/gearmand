@@ -25,6 +25,8 @@ noinst_HEADERS+= \
 		 libhostile/write.h
 
 libhostile_libhostile_la_SOURCES= libhostile/initialize.c
+libhostile_libhostile_la_LIBADD= $(DL_LIB)
+libhostile_libhostile_la_LIBADD+= $(RT_LIB)
 
 if TARGET_LINUX
 libhostile_libhostile_la_SOURCES+= \

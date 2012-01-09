@@ -161,6 +161,39 @@ AC_CHECK_FUNCS([setenv])
 AC_CHECK_FUNCS([strtol])
 AC_CHECK_FUNCS([strtoul])
 
+# Check for the ability to call dlopen (used in libhostile)
+AC_CHECK_LIB([dl], [dlopen], 
+             [
+              DL_LIB="-ldl"
+              AC_SUBST(DL_LIB)
+              AC_DEFINE([HAVE_LIBDL], [ 1 ], [Have dlopen])
+              ],
+             [
+              AC_DEFINE([HAVE_LIBDL], [ 0 ], [Have dlopen])
+              ])
+
+# Check for -lrt
+AC_CHECK_LIB([rt], [clock_gettime], 
+             [
+              RT_LIB="-lrt"
+              AC_SUBST(RT_LIB)
+              AC_DEFINE([HAVE_LIBRT], [ 1 ], [Have clock_gettime])
+              ], 
+             [
+              AC_DEFINE([HAVE_LIBRT], [ 0 ], [Have clock_gettime])
+              ])
+
+# Check for -lm
+AC_CHECK_LIB([m], [floor], 
+             [
+              M_LIB="-lrt"
+              AC_SUBST(M_LIB)
+              AC_DEFINE([HAVE_LIBRT], [ 1 ], [Have clock_gettime])
+              ], 
+             [
+              AC_DEFINE([HAVE_LIBRT], [ 0 ], [Have clock_gettime])
+              ])
+
 AC_CHECK_FUNC(setsockopt, [], [AC_CHECK_LIB(socket, setsockopt)])
 AC_CHECK_FUNC(bind, [], [AC_CHECK_LIB(bind, bind)])
 

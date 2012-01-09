@@ -88,7 +88,8 @@ tests_hostileworker_test_SOURCES+= tests/libgearman-1.0/workers.cc
 tests_hostileworker_test_DEPENDENCIES= ${CLIENT_LDADD} libhostile/libhostile.la gearmand/gearmand
 tests_hostileworker_test_LDADD= ${CLIENT_LDADD}
 tests_hostileworker_test_LDADD+= libhostile/libhostile.la
-tests_hostileworker_test_LDADD+= -ldl
+tests_hostileworker_test_LDADD+= $(DL_LIB)
+tests_hostileworker_test_LDADD+= $(RT_LIB)
 check_PROGRAMS+=tests/hostileworker_test
 noinst_PROGRAMS+=tests/hostileworker_test
 

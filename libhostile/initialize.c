@@ -28,7 +28,7 @@
 
 #include <libhostile/initialize.h>
 
-static pthread_once_t start_key_once = PTHREAD_ONCE_INIT;
+static pthread_once_t start_key_once= PTHREAD_ONCE_INIT;
 
 static void startup(void)
 {
@@ -38,7 +38,7 @@ static void startup(void)
   fprintf(stderr, "\t\tHostile Engaged\n\n");
   fprintf(stderr, "Seed used %lu\n", (unsigned long)time_seed);
   fprintf(stderr, "\n--------------------------------------------------------\n");
-  srandom((unsigned int)time_seed);
+  srand((unsigned int)time_seed);
 }
 
 struct function_st set_function(const char *name, const char *environ_name)
