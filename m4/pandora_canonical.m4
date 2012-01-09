@@ -43,15 +43,10 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
   ifdef([m4_define],,[define([m4_define],   defn([define]))])
   ifdef([m4_undefine],,[define([m4_undefine],   defn([undefine]))])
   m4_define([PCT_ALL_ARGS],[$*])
-  m4_define([PCT_FORCE_GCC42],[no])
   m4_define([PCT_DONT_SUPPRESS_INCLUDE],[no])
   m4_define([PCT_VERSION_FROM_VC],[no])
   m4_foreach([pct_arg],[$*],[
     m4_case(pct_arg,
-      [force-gcc42], [
-        m4_undefine([PCT_FORCE_GCC42])
-        m4_define([PCT_FORCE_GCC42],[yes])
-      ],
       [dont-suppress-include], [
         m4_undefine([PCT_DONT_SUPPRESS_INCLUDE])
         m4_define([PCT_DONT_SUPPRESS_INCLUDE],[yes])
@@ -87,9 +82,6 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
   ])
   
   AC_REQUIRE([AC_PROG_CC])
-  m4_if(PCT_FORCE_GCC42, [yes], [
-    AC_REQUIRE([PANDORA_ENSURE_GCC_VERSION])
-  ])
   AC_REQUIRE([PANDORA_64BIT])
 
   m4_if(PCT_VERSION_FROM_VC,yes,[
@@ -139,7 +131,6 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
   AC_STRUCT_TM
   AC_TYPE_SIZE_T
   AC_SYS_LARGEFILE
-  PANDORA_CLOCK_GETTIME
 
   AC_CHECK_HEADERS(sys/socket.h)
 
@@ -175,39 +166,8 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
     AC_DEFINE([TIME_T_UNSIGNED], 1, [Define to 1 if time_t is unsigned])
   ])
 
-  AC_CACHE_CHECK([if system defines RUSAGE_THREAD], [ac_cv_rusage_thread],[
-  AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-      [[
-#include <sys/time.h>
-#include <sys/resource.h>
-      ]],[[
-      int x= RUSAGE_THREAD;
-      ]])
-    ],[
-      ac_cv_rusage_thread=yes
-    ],[
-      ac_cv_rusage_thread=no
-    ])
-  ])
-  AS_IF([test "$ac_cv_rusage_thread" = "no"],[
-    AC_DEFINE([RUSAGE_THREAD], [RUSAGE_SELF],
-      [Define if system doesn't define])
-  ])
-
-
 
   PANDORA_OPTIMIZE
-
-  AC_LANG_PUSH(C++)
-  # Test whether madvise() is declared in C++ code -- it is not on some
-  # systems, such as Solaris
-  AC_CHECK_DECLS([madvise], [], [], [AC_INCLUDES_DEFAULT[
-  #if HAVE_SYS_MMAN_H
-  #include <sys/types.h>
-  #include <sys/mman.h>
-  #endif
-  ]])
-  AC_LANG_POP()
 
   PANDORA_HAVE_GCC_ATOMICS
 

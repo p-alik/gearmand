@@ -37,16 +37,17 @@ bool ret= tcadboptimize(NULL, "params");
       ac_cv_libtokyocabinet=yes
       LTLIBTOKYOCABINET=${LIBTOKYOCABINET_LIBS}
       LIBTOKYOCABINET=${LIBTOKYOCABINET_LIBS}
-      AC_DEFINE([HAVE_LIBTOKYOCABINET], [ 1 ], [Enable libtokyocabinet support])
     ],
     [
-    test x = y
-    AC_DEFINE([HAVE_LIBTOKYOCABINET], [ 0 ], [Enable libtokyocabinet support])
+      ac_cv_libtokyocabinet=no
     ])
-  ],
-  [
-    AC_DEFINE([HAVE_LIBTOKYOCABINET], [ 0 ], [Enable libtokyocabinet support])
   ])
+
+  if test "${ac_cv_libtokyocabinet}" = "yes" ; then
+    AC_DEFINE([HAVE_LIBTOKYOCABINET], [ 1 ], [Enable libtokyocabinet support])
+  else
+    AC_DEFINE([HAVE_LIBTOKYOCABINET], [ 0 ], [Enable libtokyocabinet support])
+  fi
 
   AM_CONDITIONAL(HAVE_LIBTOKYOCABINET, [test "${ac_cv_libtokyocabinet}" = "yes"])
 ])

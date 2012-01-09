@@ -74,7 +74,7 @@ ssize_t recv(int sockfd, void *buf, size_t len, int flags)
 
   if (is_getaddrinfo() == false && __function.frequency)
   {
-    if (--not_until < 0 && random() % __function.frequency)
+    if (--not_until < 0 && rand() % __function.frequency)
     {
       shutdown(sockfd, SHUT_RDWR);
       close(sockfd);

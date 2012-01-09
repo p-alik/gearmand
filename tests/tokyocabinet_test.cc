@@ -45,8 +45,8 @@ static test_return_t gearmand_basic_option_test(void *)
 static test_return_t collection_init(void *object)
 {
   const char *argv[]= { "test_gearmand",
-    "--libtokyocabinet-file=", "var/tmp/gearman.tcb",
-    "--queue-type=", "libtokyocabinet",
+    "--libtokyocabinet-file=var/tmp/gearman.tcb",
+    "--queue-type=libtokyocabinet",
     0 };
 
   unlink("var/tmp/gearman.tcb");

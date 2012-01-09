@@ -17,6 +17,7 @@ using namespace libtest;
 #include <cstdlib>
 #include <cstring>
 #include <unistd.h>
+#include <sys/time.h>
 
 #include <libgearman/gearman.h>
 
@@ -100,14 +101,27 @@ static test_return_t worker_ramp_TEST(void *)
   
   for (size_t x= 0; x < children.size(); x++)
   {
-#ifdef _GNU_SOURCE
+#if _GNU_SOURCE
     {
       struct timespec ts;
 
-      if (clock_gettime(CLOCK_REALTIME, &ts) == -1) 
+      if (HAVE_LIBRT)
       {
-        Error << strerror(errno);
+        if (clock_gettime(CLOCK_REALTIME, &ts) == -1) 
+        {
+          Error << strerror(errno);
+        }
       }
+      else
+      {
+        struct timeval tv;
+        if (gettimeofday(&tv, NULL) == -1) 
+        {
+          Error << strerror(errno);
+        }
+        TIMEVAL_TO_TIMESPEC(&tv, &ts);
+      }
+
       ts.tv_sec+= 10;
 
       int error= pthread_timedjoin_np(children[x], NULL, &ts);
