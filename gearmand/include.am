@@ -36,7 +36,6 @@ gearmand_hostile_gearmand_SOURCES= $(gearmand_gearmand_SOURCES)
 
 gearmand_hostile_gearmand_LDADD+= libhostile/libhostile.la
 gearmand_hostile_gearmand_LDADD+= $(DL_lib)
-gearmand_hostile_gearmand_LDADD+= $(M_LIB)
 gearmand_hostile_gearmand_DEPENDENCIES= libhostile/libhostile.la
 
 noinst_PROGRAMS+=gearmand/hostile_gearmand
