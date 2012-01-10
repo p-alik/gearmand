@@ -13,9 +13,9 @@
 
 #include <libgearman-server/common.h>
 
-#include <string.h>
-#include <errno.h>
-#include <assert.h>
+#include <cstring>
+#include <cerrno>
+#include <cassert>
 
 static gearmand_error_t gearmand_connection_recv_data(gearman_server_con_st *con, void *data, size_t data_size);
 
