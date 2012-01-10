@@ -48,7 +48,7 @@
 #include <libgearman/universal.hpp>
 #include <libgearman/allocator.hpp>
 
-#include <assert.h>
+#include <cassert>
 #include <cerrno>
 #include <cstdio>
 #include <cstdlib>
@@ -705,6 +705,7 @@ gearman_packet_st *gearman_connection_st::receiving(gearman_packet_st& packet_ar
       break;
     }
 
+    assert(packet_arg.universal);
     packet_arg.data= gearman_malloc((*packet_arg.universal), packet_arg.data_size);
     if (not packet_arg.data)
     {

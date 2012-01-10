@@ -166,7 +166,7 @@ static test_return_t cleanup(void *object)
 static void *worker_fn(gearman_job_st *, void *,
                        size_t *result_size, gearman_return_t *ret_ptr)
 {
-  result_size= 0;
+  *result_size= 0;
   *ret_ptr= GEARMAN_SUCCESS;
   return NULL;
 }

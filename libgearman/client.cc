@@ -989,6 +989,15 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
               return local_ret;
             }
           }
+
+          /* Connection errors are fatal. */
+          if (client->con->revents & (POLLERR | POLLHUP | POLLNVAL))
+          {
+            gearman_error(client->universal, GEARMAN_LOST_CONNECTION, "detected lost connection in _client_run_tasks()");
+            client->con->close();
+            client->state= GEARMAN_CLIENT_STATE_IDLE;
+            return GEARMAN_LOST_CONNECTION;
+          }
         }
 
         if (not (client->con->revents & POLLIN))

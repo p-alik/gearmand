@@ -40,6 +40,7 @@
 
 #include <libgearman/visibility.h>
 #include <libgearman/command.h>
+#include <cassert>
 
 /**
  * Command info. Update GEARMAN_MAX_COMMAND_ARGS to the largest number in the
@@ -92,5 +93,7 @@ gearman_command_info_st gearmand_command_info_list[GEARMAN_COMMAND_MAX]=
 
 gearman_command_info_st *gearman_command_info(gearman_command_t command)
 {
+  assert(command >= GEARMAN_COMMAND_TEXT);
+  assert(command < GEARMAN_COMMAND_MAX);
   return &gearmand_command_info_list[command];
 }
