@@ -1,3 +1,7 @@
+0.27 Mon Jan  9 20:02:16 PST 2012
+* Fix for TokyoCabinet
+* Build updates for building on Ubuntu
+
 0.26 Wed Nov 30 09:25:49 PST 2011
 * Completed support for syslog for gearmand
 * Fix libdrizzle issues
