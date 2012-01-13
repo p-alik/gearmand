@@ -49,6 +49,11 @@ struct gearman_string_t {
 #define gearman_string_param_null NULL, 0
 #define gearman_string_param_cstr(X) (X), ((X) ? strlen(X) : 0)
 
+#ifdef __cplusplus
+# define gearman_literal_param(X) (X), (static_cast<size_t>((sizeof(X) - 1)))
+# define gearman_literal_param_size(X) static_cast<size_t>(sizeof(X) - 1)
+#endif
+
 #ifdef BUILDING_LIBGEARMAN
 
 #ifdef __cplusplus // correct define

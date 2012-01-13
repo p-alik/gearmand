@@ -1006,7 +1006,9 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
       }
 
       if (worker->work_job->error_code == GEARMAN_LOST_CONNECTION)
+      {
         break;
+      }
     }
 
   case GEARMAN_WORKER_WORK_UNIVERSAL_COMPLETE:
@@ -1337,4 +1339,9 @@ gearman_id_t gearman_worker_id(gearman_worker_st *self)
   }
 
   return gearman_universal_id(self->universal);
+}
+
+gearman_worker_st *gearman_job_clone_worker(gearman_job_st *job)
+{
+  return gearman_worker_clone(NULL, job->worker);
 }

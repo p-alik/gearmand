@@ -203,6 +203,9 @@ size_t gearman_job_workload_size(const gearman_job_st *job);
 GEARMAN_API
 void *gearman_job_take_workload(gearman_job_st *job, size_t *data_size);
 
+GEARMAN_API
+gearman_worker_st *gearman_job_clone_worker(gearman_job_st *job);
+
 /** @} */
 
 #ifdef __cplusplus
