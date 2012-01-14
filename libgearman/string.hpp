@@ -37,7 +37,5 @@
 
 #pragma once
 
-#define gearman_literal_param(X) (X), static_cast<size_t>(sizeof(X) - 1)
-#define gearman_literal_param_size(X) static_cast<size_t>(sizeof(X) - 1)
 #define gearman_c_str_param(X) (X) ? (X) : NULL, (X) ? strlen(X) : 0
 #define gearman_array_length(__array) sizeof(__array)/sizeof(&__array)

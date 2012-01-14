@@ -41,13 +41,17 @@
 #include "util/instance.hpp"
 
 #include <cstdio>
-#include <sstream>
 #include <iostream>
 #include <netdb.h>
+#include <netinet/in.h>
 #include <poll.h>
+#include <sstream>
 #include <sys/socket.h>
 #include <sys/types.h>
-#include <netinet/in.h>
+
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 
 
 namespace datadifferential {
@@ -213,7 +217,7 @@ bool Instance::run()
         do
         {
           char buffer[BUFSIZ];
-          read_length= recv(_sockfd, buffer, sizeof(buffer), 0);
+          read_length= ::recv(_sockfd, buffer, sizeof(buffer), 0);
 
           if (read_length < 0)
           {
@@ -287,7 +291,9 @@ bool Instance::more_to_read() const
 void Instance::close_socket()
 {
   if (_sockfd == INVALID_SOCKET)
+  {
     return;
+  }
 
   /* in case of death shutdown to avoid blocking at close() */
   if (shutdown(_sockfd, SHUT_RDWR) == SOCKET_ERROR && get_socket_errno() != ENOTCONN)
@@ -304,8 +310,10 @@ void Instance::close_socket()
 
 void Instance::free_addrinfo()
 {
-  if (not _addrinfo)
+  if (_addrinfo == NULL)
+  {
     return;
+  }
 
   freeaddrinfo(_addrinfo);
   _addrinfo= NULL;
