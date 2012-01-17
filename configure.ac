@@ -199,6 +199,8 @@ AC_TEST_FOR_REPOSITORY
 
 m4_include([m4/relro.m4])
 
+AX_CHECK_LIBRARY([LIBEVENT], [event.h], [event], [],
+                 [AC_MSG_ERROR([Unable to find libevent])])
 
 AC_CONFIG_FILES([libtest/version.h])
 AC_CONFIG_FILES(Makefile
