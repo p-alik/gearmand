@@ -758,7 +758,8 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
             return job;
           }
 
-          if (worker->job->assigned.command == GEARMAN_COMMAND_NO_JOB)
+          if (worker->job->assigned.command == GEARMAN_COMMAND_NO_JOB or
+              worker->job->assigned.command == GEARMAN_COMMAND_OPTION_RES)
           {
             gearman_packet_free(&(worker->job->assigned));
             break;
