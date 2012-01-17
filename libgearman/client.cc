@@ -1312,7 +1312,7 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
                 Someone has set GEARMAN_CLIENT_UNBUFFERED_RESULT but hasn't setup the client to fetch data correctly.
                 Fatal error :(
               */
-              return gearman_universal_set_error(client->universal, GEARMAN_INVALID_ARGUMENT, AT,
+              return gearman_universal_set_error(client->universal, GEARMAN_INVALID_ARGUMENT, GEARMAN_AT,
                                                  "client created with GEARMAN_CLIENT_UNBUFFERED_RESULT, but was not setup to use it. %s", __func__);
             }
             else
@@ -1362,7 +1362,7 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
               }
               else if (client->con->_packet.command == GEARMAN_COMMAND_ERROR)
               {
-                gearman_universal_set_error(client->universal, GEARMAN_SERVER_ERROR, AT,
+                gearman_universal_set_error(client->universal, GEARMAN_SERVER_ERROR, GEARMAN_AT,
                                             "%s:%.*s",
                                             static_cast<char *>(client->con->_packet.arg[0]),
                                             int(client->con->_packet.arg_size[1]),

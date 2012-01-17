@@ -51,7 +51,7 @@ gearman_return_t _client_run_task(gearman_client_st *client, gearman_task_st *ta
     {
       client->new_tasks--;
       client->running_tasks--;
-      gearman_universal_set_error(client->universal, GEARMAN_NO_SERVERS, __func__, AT, "no servers added");
+      gearman_universal_set_error(client->universal, GEARMAN_NO_SERVERS, GEARMAN_AT, "no servers added");
       return GEARMAN_NO_SERVERS;
     }
 

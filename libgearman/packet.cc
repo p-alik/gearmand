@@ -69,7 +69,7 @@ inline static gearman_return_t packet_create_arg(gearman_packet_st *packet,
   if (packet->argc == gearman_command_info(packet->command)->argc and
       (not (gearman_command_info(packet->command)->data) || packet->data != NULL))
   {
-    gearman_universal_set_error(*packet->universal, GEARMAN_TOO_MANY_ARGS, AT, "too many arguments for command (%s)",
+    gearman_universal_set_error(*packet->universal, GEARMAN_TOO_MANY_ARGS, GEARMAN_AT, "too many arguments for command (%s)",
                                 gearman_command_info(packet->command)->name);
     return GEARMAN_TOO_MANY_ARGS;
   }
