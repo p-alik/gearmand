@@ -104,9 +104,9 @@ AM_CONDITIONAL(HAVE_LIBSQLITE3, test "x${WANT_SQLITE3}" = "xyes")
 PANDORA_HAVE_BETTER_MALLOC
 PANDORA_HAVE_LIBPQ
 PANDORA_HAVE_LIBTOKYOCABINET
-AX_HAVE_LIBHIREDIS
 AC_FUNC_STRERROR_R
 SOCKET_SEND_FLAGS
+AX_HAVE_LIBHIREDIS
 
 AX_TLS
 
@@ -199,8 +199,14 @@ AC_TEST_FOR_REPOSITORY
 
 m4_include([m4/relro.m4])
 
-AX_CHECK_LIBRARY([LIBEVENT], [event.h], [event], [],
-                 [AC_MSG_ERROR([Unable to find libevent])])
+AX_CHECK_LIBRARY([LIBEVENT], [event.h], [event], 
+                 [
+                  LIBEVENT_LDFLAGS="-levent"
+                  ],
+                 [
+                  AC_MSG_ERROR([Unable to find libevent])
+                  ])
+
 
 AC_CONFIG_FILES([libtest/version.h])
 AC_CONFIG_FILES(Makefile

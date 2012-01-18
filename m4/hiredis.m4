@@ -5,28 +5,19 @@ dnl with or without modifications, as long as this notice is preserved.
 dnl
 
 AC_DEFUN([_SEARCH_LIBHIREDIS],[
-  AC_REQUIRE([AC_LIB_PREFIX])
+  AC_REQUIRE([AX_CHECK_LIBRARY])
 
-  dnl Do this by hand. Need to check for hiredis/hiredis.h, but hires may or may
-  dnl not be a lib is weird.
-  AC_CHECK_HEADERS(hiredis/hiredis.h)
-  AC_LIB_HAVE_LINKFLAGS(hiredis,,
-  [
-    #include <hiredis/hiredis.h>
-  ],
-  [
-    redisConnect("127.0.0.1", 5555);
+  AX_CHECK_LIBRARY([LIBHIREDIS], [hiredis/hiredis.h], [hiredis],
+    [
+    AC_DEFINE([HAVE_HIREDIS], [1], [If Hiredis available])
+    ],
+    [
+    AC_DEFINE([HAVE_HIREDIS], [0], [If Hiredis is available])
+    ])
+
+  AM_CONDITIONAL(HAVE_HIREDIS, [test "x$ac_cv_lib_hiredis_main" = "xyes"])
+
   ])
-
-  AM_CONDITIONAL(HAVE_HIREDIS, [test "x${ac_cv_libhiredis}" = "xyes"])
-  AS_IF([test "x${ac_cv_libhiredis}" = "xyes"],
-        [
-          AC_DEFINE([HAVE_HIREDIS], [1], [If Hiredis available])
-         ],
-         [
-          AC_DEFINE([HAVE_HIREDIS], [0], [If Hiredis is available])
-        ])
-])
 
 AC_DEFUN([_AX_HAVE_LIBHIREDIS],[
 

@@ -17,7 +17,6 @@ EXAMPLES_LDADD= \
 
 EXAMPLES_LD_FLAGS= \
 		   $(CLIENT_LDFLAGS) \
-		   $(LTLIBEVENT) \
 		   $(LTLIBUUID)
 noinst_PROGRAMS+= \
 		  examples/echo_client \
