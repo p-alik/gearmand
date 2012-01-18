@@ -7,11 +7,28 @@ dnl Provides support for finding libtokyocabinet.
 dnl LIBTOKYOCABINET_CFLAGS will be set, in addition to LIBTOKYOCABINET and LTLIBTOKYOCABINET
 
 AC_DEFUN([_PANDORA_SEARCH_LIBTOKYOCABINET],[
-  AC_REQUIRE([AC_LIB_PREFIX])
+  AC_REQUIRE([AX_CHECK_LIBRARY])
 
-  dnl --------------------------------------------------------------------
-  dnl  Check for libtokyocabinet
-  dnl --------------------------------------------------------------------
+  AS_IF([test "x$ac_enable_libtokyocabinet" = "xyes"],[
+    AX_CHECK_LIBRARY([LIBTOKYOCABINET], [tcadb.h], [tokyocabinet],
+      [
+      LIBTOKYOCABINET_LDFLAGS="-ltokyocabinet"
+      AC_DEFINE([HAVE_LIBTOKYOCABINET], [1], [If TokyoCabinet is available])
+      ],
+      [
+      AC_DEFINE([HAVE_LIBTOKYOCABINET], [0], [If TokyoCabinet is available])
+      ac_enable_libtokyocabinet="no"
+      ])
+
+    ],
+    [
+    AC_DEFINE([HAVE_LIBTOKYOCABINET], [0], [If TokyoCabinet is available])
+    ])
+
+  AM_CONDITIONAL(HAVE_LIBTOKYOCABINET, [test "x$ac_cv_lib_tokyocabinet_main" = "xyes"])
+  ])
+
+AC_DEFUN([PANDORA_HAVE_LIBTOKYOCABINET],[
 
   AC_ARG_ENABLE([libtokyocabinet],
     [AS_HELP_STRING([--disable-libtokyocabinet],
@@ -19,45 +36,5 @@ AC_DEFUN([_PANDORA_SEARCH_LIBTOKYOCABINET],[
     [ac_enable_libtokyocabinet="$enableval"],
     [ac_enable_libtokyocabinet="yes"])
 
-  AS_IF([test "x$ac_enable_libtokyocabinet" = "xyes"],[
-    AC_LIB_HAVE_LINKFLAGS(tokyocabinet,,[
-#include <tcutil.h>
-#include <tcadb.h>
-    ],[
-const char *test= tcversion;
-bool ret= tcadboptimize(NULL, "params");
-    ])
-  ],[
-    ac_cv_libtokyocabinet="no"
-  ])
-
-  AS_IF([test "${ac_cv_libtokyocabinet}" = "no" -a "${ac_enable_libtokyocabinet}" = "yes"],[
-
-    PKG_CHECK_MODULES([LIBTOKYOCABINET], [libtokyocabinet >= 1.4.15], [
-      ac_cv_libtokyocabinet=yes
-      LTLIBTOKYOCABINET=${LIBTOKYOCABINET_LIBS}
-      LIBTOKYOCABINET=${LIBTOKYOCABINET_LIBS}
-    ],
-    [
-      ac_cv_libtokyocabinet=no
-    ])
-  ])
-
-  if test "${ac_cv_libtokyocabinet}" = "yes" ; then
-    AC_DEFINE([HAVE_LIBTOKYOCABINET], [ 1 ], [Enable libtokyocabinet support])
-  else
-    AC_DEFINE([HAVE_LIBTOKYOCABINET], [ 0 ], [Enable libtokyocabinet support])
-  fi
-
-  AM_CONDITIONAL(HAVE_LIBTOKYOCABINET, [test "${ac_cv_libtokyocabinet}" = "yes"])
-])
-
-AC_DEFUN([PANDORA_HAVE_LIBTOKYOCABINET],[
-  AC_REQUIRE([_PANDORA_SEARCH_LIBTOKYOCABINET])
-])
-
-AC_DEFUN([PANDORA_REQUIRE_LIBTOKYOCABINET],[
-  AC_REQUIRE([_PANDORA_SEARCH_LIBTOKYOCABINET])
-  AS_IF([test "x${ac_cv_libtokyocabinet}" = "xno"],
-    PANDORA_MSG_ERROR([libtokyocabinet is required for ${PACKAGE}. On Debian systems this is found in libtokyocabinet-dev. On RedHat, in tokyocabinet-devel.]))
+  _PANDORA_SEARCH_LIBTOKYOCABINET
 ])
