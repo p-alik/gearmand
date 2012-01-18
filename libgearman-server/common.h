@@ -42,9 +42,6 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#ifdef HAVE_UUID_UUID_H
-#include <uuid/uuid.h>
-#endif
 
 #ifdef TIME_WITH_SYS_TIME
 # include <sys/time.h>

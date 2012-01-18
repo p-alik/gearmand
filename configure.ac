@@ -79,16 +79,13 @@ AX_LIB_CURL([7.21.7],
                                 ]
                                )
              ],
-            [
-             AC_DEFINE([HAVE_LIBCURL], [ 0 ], [libcurl support])
-             ]
-            )
+             [
+              AC_DEFINE([HAVE_LIBCURL], [ 0 ], [libcurl support])
+              ]
+             )
 
 m4_include([m4/drizzled.m4])
 WITH_LIBDRIZZLE
-
-PANDORA_REQUIRE_LIBEVENT
-PANDORA_REQUIRE_LIBUUID
 
 AX_LIB_SQLITE3
 AS_IF([test "x${WANT_SQLITE3}" = "xyes"],
@@ -205,6 +202,14 @@ AX_CHECK_LIBRARY([LIBEVENT], [event.h], [event],
                   ],
                  [
                   AC_MSG_ERROR([Unable to find libevent])
+                  ])
+
+AX_CHECK_LIBRARY([LIBUUID], [uuid/uuid.h], [uuid], 
+                 [
+                  LIBUUID_LDFLAGS="-luuid"
+                  ],
+                 [
+                  AC_MSG_ERROR([Unable to find libuuid])
                   ])
 
 

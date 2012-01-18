@@ -48,9 +48,7 @@
 #include <cstring>
 #include <memory>
 
-#ifdef HAVE_UUID_UUID_H
 #include <uuid/uuid.h>
-#endif
 
 gearman_task_st *add_task(gearman_client_st& client,
                           void *context,
