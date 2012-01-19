@@ -44,13 +44,13 @@
 #   and this notice are preserved. This file is offered as-is, without any
 #   warranty.
 
-#serial 10
+#serial 11
 
 AC_DEFUN([AX_LIB_POSTGRESQL],
 [
     AC_ARG_WITH([postgresql],
         AS_HELP_STRING([--with-postgresql=@<:@ARG@:>@],
-            [use PostgreSQL library @<:@default=no@:>@, optionally specify path to pg_config]
+            [use PostgreSQL library @<:@default=yes@:>@, optionally specify path to pg_config]
         ),
         [
         if test "$withval" = "no"; then
@@ -80,7 +80,7 @@ AC_DEFUN([AX_LIB_POSTGRESQL],
         fi
 
         if test ! -x "$PG_CONFIG"; then
-            AC_MSG_ERROR([$PG_CONFIG does not exist or it is not an exectuable file])
+            AC_MSG_WARN([$PG_CONFIG does not exist or it is not an exectuable file])
             PG_CONFIG="no"
             found_postgresql="no"
         fi
