@@ -180,6 +180,13 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
     return NULL;
   }
 
+  // Assume we are running under valgrind, and bail 
+  if (getenv("YATL_RUN_MASSIVE_TESTS") == NULL) 
+  {
+    error= TEST_SKIPPED;
+    return NULL;
+  }
+
   if (server_startup(servers, "gearmand", STRESS_WORKER_PORT, 0, NULL) == false)
   {
     error= TEST_FAILURE;
