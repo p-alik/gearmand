@@ -17,7 +17,7 @@ AM_INIT_AUTOMAKE(-Wall -Werror -Wno-portability subdir-objects foreign tar-ustar
 AC_CANONICAL_HOST
 AC_CANONICAL_BUILD
 
-AC_PREREQ(2.61)
+AC_PREREQ([2.61])
 
 AC_CONFIG_MACRO_DIR(m4)
 
