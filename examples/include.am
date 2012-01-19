@@ -15,10 +15,7 @@ EXAMPLES_LDADD= \
 		$(BOOST_PROGRAM_OPTIONS_LIBS) \
 		libgearman/libgearman.la
 
-EXAMPLES_LD_FLAGS= \
-		   $(CLIENT_LDFLAGS) \
-		   $(LTLIBEVENT) \
-		   $(LTLIBUUID)
+EXAMPLES_LD_FLAGS= $(CLIENT_LDFLAGS)
 noinst_PROGRAMS+= \
 		  examples/echo_client \
 		  examples/echo_worker \

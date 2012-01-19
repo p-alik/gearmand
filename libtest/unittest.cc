@@ -465,6 +465,8 @@ static test_return_t wait_version_BINARY(void *)
 
 static test_return_t wait_services_BINARY(void *)
 {
+  test_skip(0, access("/etc/services", R_OK ));
+
   const char *args[]= { "--quiet", "/etc/services", 0 };
 
   test_compare(EXIT_SUCCESS, exec_cmdline("libtest/wait", args, true));
@@ -474,6 +476,8 @@ static test_return_t wait_services_BINARY(void *)
 
 static test_return_t wait_services_BINARY2(void *)
 {
+  test_skip(0, access("/etc/services", R_OK ));
+
   const char *args[]= { "/etc/services", 0 };
 
   test_compare(EXIT_SUCCESS, exec_cmdline("libtest/wait", args, true));
@@ -483,6 +487,8 @@ static test_return_t wait_services_BINARY2(void *)
 
 static test_return_t application_wait_services_BINARY2(void *)
 {
+  test_skip(0, access("/etc/services", R_OK ));
+
   libtest::Application("libtest/wait", true);
   const char *args[]= { "/etc/services", 0 };
 

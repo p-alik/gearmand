@@ -758,7 +758,8 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
             return job;
           }
 
-          if (worker->job->assigned.command == GEARMAN_COMMAND_NO_JOB)
+          if (worker->job->assigned.command == GEARMAN_COMMAND_NO_JOB or
+              worker->job->assigned.command == GEARMAN_COMMAND_OPTION_RES)
           {
             gearman_packet_free(&(worker->job->assigned));
             break;
@@ -766,7 +767,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
 
           if (worker->job->assigned.command != GEARMAN_COMMAND_NOOP)
           {
-            gearman_universal_set_error(worker->universal, GEARMAN_UNEXPECTED_PACKET, AT,
+            gearman_universal_set_error(worker->universal, GEARMAN_UNEXPECTED_PACKET, GEARMAN_AT,
                                         "unexpected packet:%s",
                                         gearman_command_info(worker->job->assigned.command)->name);
             gearman_packet_free(&(worker->job->assigned));

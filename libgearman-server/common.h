@@ -42,9 +42,6 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#ifdef HAVE_UUID_UUID_H
-#include <uuid/uuid.h>
-#endif
 
 #ifdef TIME_WITH_SYS_TIME
 # include <sys/time.h>
@@ -148,20 +145,6 @@ extern "C" {
 }
 
 #define gearmand_array_size(__object) (sizeof((__object)) / sizeof(*(__object)))
-
-/* All thread-safe libevent functions are not in libevent 1.3x, and this is the
-   common package version. Make this work for these earlier versions. */
-#ifndef HAVE_EVENT_BASE_NEW
-#define event_base_new event_init
-#endif
-
-#ifndef HAVE_EVENT_BASE_FREE
-#define event_base_free (void)
-#endif
-
-#ifndef HAVE_EVENT_BASE_GET_METHOD
-#define event_base_get_method(__base) event_get_method()
-#endif
 
 #ifdef __cplusplus
 }

@@ -77,13 +77,15 @@ libgearman_server_libgearman_server_la_SOURCES+= \
 						 libgearman-server/worker.cc \
 						 libgearman/command.cc
 
+libgearman_server_libgearman_server_la_CFLAGS+= $(LIBEVENT_CPPFLAGS)
 libgearman_server_libgearman_server_la_CFLAGS+= $(PTHREAD_CFLAGS)
 libgearman_server_libgearman_server_la_CFLAGS+= -DBUILDING_LIBGEARMAN
 
+libgearman_server_libgearman_server_la_CXXFLAGS+= $(LIBEVENT_CPPFLAGS)
 libgearman_server_libgearman_server_la_CXXFLAGS+= $(PTHREAD_CFLAGS)
 libgearman_server_libgearman_server_la_CXXFLAGS+= -DBUILDING_LIBGEARMAN
 
-libgearman_server_libgearman_server_la_LIBADD+= $(LTLIBEVENT)
+libgearman_server_libgearman_server_la_LIBADD+= $(LIBEVENT_LDFLAGS)
 libgearman_server_libgearman_server_la_LIBADD+= $(PTHREAD_LIBS)
 libgearman_server_libgearman_server_la_LIBADD+= $(BOOST_PROGRAM_OPTIONS_LIBS)
 

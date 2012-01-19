@@ -15,7 +15,7 @@ if HAVE_LIBTOKYOCABINET
 
 libgearman_server_libgearman_server_la_SOURCES+= libgearman-server/plugins/queue/tokyocabinet/queue.cc
 
-libgearman_server_libgearman_server_la_LIBADD+= $(LTLIBTOKYOCABINET)
+libgearman_server_libgearman_server_la_LIBADD+= $(LIBTOKYOCABINET_LDFLAGS)
 
 endif
 

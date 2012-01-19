@@ -6,7 +6,7 @@
 # Use and distribution licensed under the BSD license.  See
 # the COPYING file in this directory for full text.
 
-AC_INIT([gearmand],[0.27],[https://bugs.launchpad.net/gearmand], [gearmand], [http://gearman.info/])
+AC_INIT([gearmand],[0.27],[https://bugs.launchpad.net/gearmand],[gearmand],[http://gearman.info/])
 
 AC_CONFIG_AUX_DIR(config)
 
@@ -17,7 +17,7 @@ AM_INIT_AUTOMAKE(-Wall -Werror -Wno-portability subdir-objects foreign tar-ustar
 AC_CANONICAL_HOST
 AC_CANONICAL_BUILD
 
-AC_PREREQ(2.61)
+AC_PREREQ([2.61])
 
 AC_CONFIG_MACRO_DIR(m4)
 
@@ -42,9 +42,8 @@ GEARMAN_LIBRARY_VERSION=6:0:0
 AC_SUBST(GEARMAN_LIBRARY_VERSION)
 
 LT_PREREQ([2.2])
-LT_INIT()
+LT_INIT([disable-static])
 LT_LANG([C++])
-LT_LANG([C])
 gl_VISIBILITY
 
 AX_PTHREAD(, [AC_MSG_ERROR(could not find libpthread)])
@@ -54,8 +53,8 @@ BOOST_REQUIRE([1.39])
 BOOST_PROGRAM_OPTIONS
 BOOST_THREADS
 
-PANDORA_CXX_CSTDINT
-PANDORA_CXX_CINTTYPES
+AX_CXX_CINTTYPES
+CONFIG_EXTRA
 
 WITH_LIBMEMCACHED
 m4_include([m4/memcached.m4])
@@ -80,16 +79,13 @@ AX_LIB_CURL([7.21.7],
                                 ]
                                )
              ],
-            [
-             AC_DEFINE([HAVE_LIBCURL], [ 0 ], [libcurl support])
-             ]
-            )
+             [
+              AC_DEFINE([HAVE_LIBCURL], [ 0 ], [libcurl support])
+              ]
+             )
 
 m4_include([m4/drizzled.m4])
 WITH_LIBDRIZZLE
-
-PANDORA_REQUIRE_LIBEVENT
-PANDORA_REQUIRE_LIBUUID
 
 AX_LIB_SQLITE3
 AS_IF([test "x${WANT_SQLITE3}" = "xyes"],
@@ -103,18 +99,14 @@ AM_CONDITIONAL(HAVE_LIBSQLITE3, test "x${WANT_SQLITE3}" = "xyes")
 
 
 PANDORA_HAVE_BETTER_MALLOC
-PANDORA_HAVE_LIBPQ
+AX_HAVE_LIBPQ
 PANDORA_HAVE_LIBTOKYOCABINET
-AX_HAVE_LIBHIREDIS
 AC_FUNC_STRERROR_R
 SOCKET_SEND_FLAGS
-
-AX_TLS
+AX_HAVE_LIBHIREDIS
 
 # Checks for programs.
-AC_PROG_CXX
 AC_PROG_AWK
-AC_PROG_CPP
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
@@ -202,6 +194,22 @@ AC_TEST_FOR_REPOSITORY
 
 m4_include([m4/relro.m4])
 
+AX_CHECK_LIBRARY([LIBEVENT], [event.h], [event], 
+                 [
+                  LIBEVENT_LDFLAGS="-levent"
+                  ],
+                 [
+                  AC_MSG_ERROR([Unable to find libevent])
+                  ])
+
+AX_CHECK_LIBRARY([LIBUUID], [uuid/uuid.h], [uuid], 
+                 [
+                  LIBUUID_LDFLAGS="-luuid"
+                  ],
+                 [
+                  AC_MSG_ERROR([Unable to find libuuid])
+                  ])
+
 
 AC_CONFIG_FILES([libtest/version.h])
 AC_CONFIG_FILES(Makefile
@@ -230,6 +238,6 @@ echo "   * Building with libsqlite3   $WANT_SQLITE3"
 echo "   * Building with libdrizzle   $ac_enable_libdrizzle"
 echo "   * Building with libmemcached $ac_enable_libmemcached"
 echo "   * Building with libpq        $ac_cv_libpq"
-echo "   * Building with tokyocabinet $ac_cv_libtokyocabinet"
+echo "   * Building with tokyocabinet $ac_enable_libtokyocabinet"
 echo ""
 echo "---"

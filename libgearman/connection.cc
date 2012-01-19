@@ -442,7 +442,7 @@ gearman_return_t gearman_connection_st::send_packet(const gearman_packet_st& pac
       /* We were asked to flush when the buffer is already flushed! */
       if (send_buffer_size == 0)
       {
-        return gearman_universal_set_error(universal, GEARMAN_SEND_BUFFER_TOO_SMALL, __func__, AT,
+        return gearman_universal_set_error(universal, GEARMAN_SEND_BUFFER_TOO_SMALL, GEARMAN_AT,
                                            "send buffer too small (%u)", GEARMAN_SEND_BUFFER_SIZE);
       }
 
@@ -576,7 +576,7 @@ gearman_return_t gearman_connection_st::lookup()
   int ret;
   if ((ret= getaddrinfo(host, port_str, &ai, &(addrinfo))))
   {
-    return gearman_universal_set_error(universal, GEARMAN_GETADDRINFO, AT, "getaddrinfo:%s", gai_strerror(ret));
+    return gearman_universal_set_error(universal, GEARMAN_GETADDRINFO, GEARMAN_AT, "getaddrinfo:%s", gai_strerror(ret));
   }
 
   addrinfo_next= addrinfo;

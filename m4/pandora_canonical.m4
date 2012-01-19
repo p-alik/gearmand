@@ -67,11 +67,7 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
   AS_IF([test "x${ac_cv_env_CXXFLAGS_set}" = "x"],
         [CXXFLAGS=""])
   
-  m4_if(PCT_DONT_SUPRESS_INCLUDE,yes,[
-    AM_INIT_AUTOMAKE(-Wall -Werror -Wno-portability subdir-objects foreign tar-ustar)
-  ],[
-    AM_INIT_AUTOMAKE(-Wall -Werror -Wno-portability nostdinc subdir-objects foreign tar-ustar)
-  ])
+  AM_INIT_AUTOMAKE([-Wall -Werror -Wno-portability nostdinc subdir-objects foreign tar-ustar])
 
   m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 
@@ -82,7 +78,6 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
   ])
   
   AC_REQUIRE([AC_PROG_CC])
-  AC_REQUIRE([PANDORA_64BIT])
 
   m4_if(PCT_VERSION_FROM_VC,yes,[
     PANDORA_VC_INFO_HEADER
@@ -149,6 +144,8 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
   AC_CHECK_SIZEOF(long long)
   AC_DEFINE_UNQUOTED([SIZEOF_LONG_LONG],[$ac_cv_sizeof_long_long],[Size of long long as computed by sizeof()])
   AC_CACHE_CHECK([if time_t is unsigned], [ac_cv_time_t_unsigned],[
+
+  AC_LANG_PUSH([C])
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
       [[
 #include <time.h>
@@ -165,6 +162,7 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
   AS_IF([test "$ac_cv_time_t_unsigned" = "yes"],[
     AC_DEFINE([TIME_T_UNSIGNED], 1, [Define to 1 if time_t is unsigned])
   ])
+  AC_LANG_POP
 
 
   PANDORA_OPTIMIZE
@@ -241,79 +239,6 @@ EOF_CONFIG_TOP
 
   diff config/top.h.stamp config/top.h >/dev/null 2>&1 || mv config/top.h.stamp config/top.h
   rm -f config/top.h.stamp
-
-  AH_BOTTOM([
-#if defined(__cplusplus)
-# include CSTDINT_H
-# include CINTTYPES_H
-#else
-# include <stdint.h>
-# include <inttypes.h>
-#endif
-
-#if !defined(HAVE_ULONG) && !defined(__USE_MISC)
-# define HAVE_ULONG 1
-typedef unsigned long int ulong;
-#endif
-
-/* To hide the platform differences between MS Windows and Unix, I am
- * going to use the Microsoft way and #define the Microsoft-specific
- * functions to the unix way. Microsoft use a separate subsystem for sockets,
- * but Unix normally just use a filedescriptor on the same functions. It is
- * a lot easier to map back to the unix way with macros than going the other
- * way without side effect ;-)
- */
-#ifdef TARGET_OS_WINDOWS
-#define random() rand()
-#define srandom(a) srand(a)
-#define get_socket_errno() WSAGetLastError()
-#else
-#define INVALID_SOCKET -1
-#define SOCKET_ERROR -1
-#ifdef __cplusplus
-#define closesocket(a) ::close(a)
-#else
-#define closesocket(a) close(a)
-#endif
-#define get_socket_errno() errno
-#endif // TARGET_OS_WINDOWS
-
-#ifndef HAVE_MSG_NOSIGNAL
-#define MSG_NOSIGNAL 0
-#endif // HAVE_MSG_NOSIGNAL
-
-#ifndef HAVE_MSG_DONTWAIT
-#define MSG_DONTWAIT 0
-#endif // HAVE_MSG_DONTWAIT
-
-#if defined(__cplusplus)
-# if defined(DEBUG)
-#  include <cassert>
-#  include <cstddef>
-# endif
-template<typename To, typename From>
-inline To implicit_cast(From const &f) {
-  return f;
-}
-template<typename To, typename From>     // use like this: down_cast<T*>(foo);
-inline To down_cast(From* f) {                   // so we only accept pointers
-  // Ensures that To is a sub-type of From *.  This test is here only
-  // for compile-time type checking, and has no overhead in an
-  // optimized build at run-time, as it will be optimized away
-  // completely.
-  if (false) {
-    implicit_cast<From*, To>(0);
-  }
-
-#if defined(DEBUG)
-  assert(f == NULL || dynamic_cast<To>(f) != NULL);  // RTTI: debug mode only!
-#endif
-  return static_cast<To>(f);
-}
-#endif /* defined(__cplusplus) */
-
-#endif /* __CONFIG_H__ */
-  ])
 
   AM_CFLAGS="-std=c99 ${AM_CFLAGS} ${CC_WARNINGS} ${CC_PROFILING} ${CC_COVERAGE}"
   AM_CXXFLAGS="${AM_CXXFLAGS} ${CXX_WARNINGS} ${CC_PROFILING} ${CC_COVERAGE}"
