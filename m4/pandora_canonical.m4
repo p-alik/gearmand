@@ -144,6 +144,8 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
   AC_CHECK_SIZEOF(long long)
   AC_DEFINE_UNQUOTED([SIZEOF_LONG_LONG],[$ac_cv_sizeof_long_long],[Size of long long as computed by sizeof()])
   AC_CACHE_CHECK([if time_t is unsigned], [ac_cv_time_t_unsigned],[
+
+  AC_LANG_PUSH([C])
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
       [[
 #include <time.h>
@@ -160,6 +162,7 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
   AS_IF([test "$ac_cv_time_t_unsigned" = "yes"],[
     AC_DEFINE([TIME_T_UNSIGNED], 1, [Define to 1 if time_t is unsigned])
   ])
+  AC_LANG_POP
 
 
   PANDORA_OPTIMIZE
