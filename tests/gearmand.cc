@@ -53,6 +53,22 @@ using namespace libtest;
 
 static std::string executable;
 
+static test_return_t postion_TEST(void *)
+{
+  const char *args[]= { "foo", 0 };
+
+  test_compare(EXIT_FAILURE, exec_cmdline(gearmand_binary(), args, true));
+  return TEST_SUCCESS;
+}
+
+static test_return_t partial_TEST(void *)
+{
+  const char *args[]= { "--log", 0 };
+
+  test_compare(EXIT_FAILURE, exec_cmdline(gearmand_binary(), args, true));
+  return TEST_SUCCESS;
+}
+
 static test_return_t check_args_test(void *)
 {
   const char *args[]= { "--check-args", 0 };
@@ -295,7 +311,7 @@ static test_return_t protocol_test(void *)
 
 static test_return_t queue_test(void *)
 {
-  const char *args[]= { "--check-args", "--queue=builtin", 0 };
+  const char *args[]= { "--check-args", "--queue-type=builtin", 0 };
 
   test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
 
@@ -326,6 +342,12 @@ static test_return_t http_port_test(void *)
   return TEST_SUCCESS;
 }
 
+
+test_st bad_option_TESTS[] ={
+  {"position argument", 0, postion_TEST },
+  {"partial argument", 0, partial_TEST },
+  {0, 0, 0}
+};
 
 test_st gearmand_option_tests[] ={
   {"--check-args", 0, check_args_test},
@@ -360,7 +382,7 @@ test_st gearmand_option_tests[] ={
   {"--worker_wakeup=", 0, long_worker_wakeup_test},
   {"-w", 0, short_worker_wakeup_test},
   {"--protocol=", 0, protocol_test},
-  {"--queue=", 0, queue_test},
+  {"--queue-type=", 0, queue_test},
   {"--job-retries=", 0, long_job_retries_test},
   {"-j", 0, short_job_retries_test},
   {0, 0, 0}
@@ -372,8 +394,9 @@ test_st gearmand_httpd_option_tests[] ={
 };
 
 collection_st collection[] ={
-  {"basic options", 0, 0, gearmand_option_tests},
-  {"httpd options", 0, 0, gearmand_httpd_option_tests},
+  { "bad options", 0, 0, bad_option_TESTS },
+  { "basic options", 0, 0, gearmand_option_tests },
+  { "httpd options", 0, 0, gearmand_httpd_option_tests },
   {0, 0, 0, 0}
 };
 
