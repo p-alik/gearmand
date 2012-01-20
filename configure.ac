@@ -46,6 +46,11 @@ LT_INIT([disable-static])
 LT_LANG([C++])
 gl_VISIBILITY
 
+AX_CXX_HEADER_STDCXX_98
+  if test "$ax_cv_cxx_stdcxx_98" = no; then
+    AC_MSG_ERROR([Your system lacks a new enough C++ compiler])
+  fi
+
 AX_PTHREAD(, [AC_MSG_ERROR(could not find libpthread)])
 
 dnl First look for Boost, maybe for a specific minimum version:
