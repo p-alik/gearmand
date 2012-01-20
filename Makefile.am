@@ -74,7 +74,7 @@ rpm-sign: rpm-build
 	@rpm --addsign gearmand-$(VERSION)*.rpm gearmand-devel-$(VERSION)*.rpm gearmand-debuginfo-$(VERSION)*.rpm gearmand-server-$(VERSION)*.rpm
 	@rpm --checksig gearmand-$(VERSION)*.rpm gearmand-devel-$(VERSION)*.rpm gearmand-debuginfo-$(VERSION)*.rpm gearmand-server-$(VERSION)*.rpm
 
-rpm: man distcheck rpm-build
+rpm: support/gearmand.spec man distcheck rpm-build
 
 release: rpm rpm-sign
 	@rpm --addsign gearmand-$(VERSION)*.rpm gearmand-devel-$(VERSION)*.rpm gearmand-debuginfo-$(VERSION)*.rpm gearmand-server-$(VERSION)*.rpm
