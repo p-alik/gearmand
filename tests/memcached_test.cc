@@ -31,7 +31,7 @@ using namespace libtest;
 static test_return_t gearmand_basic_option_test(void *)
 {
   const char *args[]= { "--check-args",
-    "--queue=libmemcached",
+    "--queue-type=libmemcached",
     "--libmemcached-servers=localhost:12555", 
     0 };
 
@@ -98,7 +98,7 @@ static bool world_destroy(void *object)
 }
 
 test_st gearmand_basic_option_tests[] ={
-  {"--queue=libmemcached --libmemcached-servers=", 0, gearmand_basic_option_test },
+  {"--queue-type=libmemcached --libmemcached-servers=", 0, gearmand_basic_option_test },
   {0, 0, 0}
 };
 

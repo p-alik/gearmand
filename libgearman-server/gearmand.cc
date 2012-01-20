@@ -19,6 +19,9 @@
 #include <sys/types.h>
 #include <sys/utsname.h>
 
+#include <set>
+#include <string>
+
 #include <libgearman-server/gearmand.h>
 
 #include <libgearman-server/struct/port.h>
@@ -367,6 +370,8 @@ void gearmand_wakeup(gearmand_st *gearmand, gearmand_wakeup_t wakeup)
 
 static const uint32_t bind_timeout= 6; // Number is not special, but look at INFO messages if you decide to change it.
 
+typedef std::pair<std::string, std::string> host_port_t;
+
 static gearmand_error_t _listen_init(gearmand_st *gearmand)
 {
   for (uint32_t x= 0; x < gearmand->port_count; x++)
@@ -392,6 +397,7 @@ static gearmand_error_t _listen_init(gearmand_st *gearmand)
       return GEARMAN_ERRNO;
     }
 
+    std::set<host_port_t> unique_hosts;
     for (struct addrinfo *addrinfo_next= addrinfo; addrinfo_next != NULL;
          addrinfo_next= addrinfo_next->ai_next)
     {
@@ -407,6 +413,16 @@ static gearmand_error_t _listen_init(gearmand_st *gearmand)
         strcpy(host, "-");
         strcpy(port->port, "-");
       }
+
+      std::string host_string(host);
+      std::string port_string(port->port);
+      host_port_t check= std::make_pair(host_string, port_string);
+      if (unique_hosts.find(check) != unique_hosts.end())
+      {
+        gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Already listening on %s:%s", host, port->port);
+        continue;
+      }
+      unique_hosts.insert(check);
 
       gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Trying to listen on %s:%s", host, port->port);
 

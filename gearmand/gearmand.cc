@@ -278,9 +278,22 @@ int main(int argc, char *argv[])
 
   gearmand::plugins::initialize(all);
 
+  boost::program_options::positional_options_description positional;
+  positional.add("provided", -1);
+
+  // Disable allow_guessing 
+  int style= boost::program_options::command_line_style::default_style ^ boost::program_options::command_line_style::allow_guessing;
   boost::program_options::variables_map vm;
   try {
-    store(parse_command_line(argc, argv, all), vm);
+    boost::program_options::parsed_options parsed= boost::program_options::command_line_parser(argc, argv)
+      .options(all)
+      .positional(positional)
+      .style(style)
+      .run();
+    store(parsed, vm);
+#if 0
+    store(parse_command_line(argc, argv, all, style), vm);
+#endif
     notify(vm);
   }
 
@@ -298,13 +311,13 @@ int main(int argc, char *argv[])
   if (vm.count("help"))
   {
     std::cout << all << std::endl;
-    return EXIT_FAILURE;
+    return EXIT_SUCCESS;
   }
 
   if (vm.count("version"))
   {
     std::cout << std::endl << "gearmand " << gearmand_version() << " - " <<  gearmand_bugreport() << std::endl;
-    return EXIT_FAILURE;
+    return EXIT_SUCCESS;
   }
 
   if (fds > 0 && _set_fdlimit(fds))

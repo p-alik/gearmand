@@ -31,7 +31,7 @@ using namespace libtest;
 static test_return_t gearmand_basic_option_test(void *)
 {
   const char *args[]= { "--check-args",
-    "--queue=libtokyocabinet",
+    "--queue-type=libtokyocabinet",
     "--libtokyocabinet-file=var/tmp/gearman_basic.tcb",
     "--libtokyocabinet-optimize", 
     0 };
