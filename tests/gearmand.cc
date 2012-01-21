@@ -277,11 +277,83 @@ static test_return_t short_version_test(void *)
   return TEST_SUCCESS;
 }
 
-static test_return_t verbose_test(void *)
+static test_return_t verbose_bad_option_TEST(void *)
+{
+  const char *args[]= { "--check-args", "--verbose=BAD", 0 };
+
+  test_compare(EXIT_FAILURE, exec_cmdline(gearmand_binary(), args, true));
+  return TEST_SUCCESS;
+}
+
+static test_return_t verbose_DEBUG_TEST(void *)
+{
+  const char *args[]= { "--check-args", "--verbose=DEBUG", 0 };
+
+  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  return TEST_SUCCESS;
+}
+
+static test_return_t verbose_ERROR_TEST(void *)
+{
+  const char *args[]= { "--check-args", "--verbose=ERROR", 0 };
+
+  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  return TEST_SUCCESS;
+}
+
+static test_return_t verbose_ALERT_TEST(void *)
+{
+  const char *args[]= { "--check-args", "--verbose=ALERT", 0 };
+
+  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  return TEST_SUCCESS;
+}
+
+static test_return_t verbose_INFO_TEST(void *)
+{
+  const char *args[]= { "--check-args", "--verbose=INFO", 0 };
+
+  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  return TEST_SUCCESS;
+}
+
+static test_return_t verbose_WARNING_TEST(void *)
+{
+  const char *args[]= { "--check-args", "--verbose=WARNING", 0 };
+
+  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  return TEST_SUCCESS;
+}
+
+static test_return_t verbose_NOTICE_TEST(void *)
+{
+  const char *args[]= { "--check-args", "--verbose=NOTICE", 0 };
+
+  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  return TEST_SUCCESS;
+}
+
+static test_return_t verbose_FATAL_TEST(void *)
+{
+  const char *args[]= { "--check-args", "--verbose=FATAL", 0 };
+
+  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  return TEST_SUCCESS;
+}
+
+static test_return_t verbose_CRITICAL_TEST(void *)
+{
+  const char *args[]= { "--check-args", "--verbose=CRITICAL", 0 };
+
+  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  return TEST_SUCCESS;
+}
+
+static test_return_t verbose_deprecated_TEST(void *)
 {
   const char *args[]= { "--check-args", "-vvv", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  test_compare(EXIT_FAILURE, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -376,7 +448,16 @@ test_st gearmand_option_tests[] ={
   {"-u", 0, short_user_test},
   {"--user=", 0, long_user_test},
   {"-u", 0, short_user_test},
-  {"-vvv", 0, verbose_test},
+  {"-vvv", 0, verbose_deprecated_TEST},
+  {"--verbose=FATAL", 0, verbose_FATAL_TEST},
+  {"--verbose=ALERT", 0, verbose_ALERT_TEST},
+  {"--verbose=CRITICAL", 0, verbose_CRITICAL_TEST},
+  {"--verbose=ERROR", 0, verbose_ERROR_TEST},
+  {"--verbose=WARNING", 0, verbose_WARNING_TEST},
+  {"--verbose=NOTICE", 0, verbose_NOTICE_TEST},
+  {"--verbose=INFO", 0, verbose_INFO_TEST},
+  {"--verbose=DEBUG", 0, verbose_DEBUG_TEST},
+  {"--verbose=BAD", 0, verbose_bad_option_TEST},
   {"--version", 0, long_version_test},
   {"-V", 0, short_version_test},
   {"--worker_wakeup=", 0, long_worker_wakeup_test},

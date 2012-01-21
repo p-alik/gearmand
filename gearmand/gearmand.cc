@@ -62,7 +62,7 @@ inline void perror(const char *message)
   strerror_r(errno, errmsg, sizeof(errmsg));
   errmsg_ptr= errmsg;
 #endif
-  std::cerr << "gearman: " << message << " (" << errmsg_ptr << ")" << std::endl;
+  std::cerr << "gearmand: " << message << " (" << errmsg_ptr << ")" << std::endl;
 }
 
 inline void message(const char *arg)
@@ -201,9 +201,7 @@ int main(int argc, char *argv[])
   std::string port;
   std::string protocol;
   std::string queue_type;
-  std::string verbose_string;
-
-  verbose_string.insert(verbose_string.begin(), size_t(GEARMAND_VERBOSE_NOTICE), 'v');
+  std::string verbose_string= "ERROR";
 
   uint32_t threads;
   bool opt_round_robin;
@@ -211,15 +209,11 @@ int main(int argc, char *argv[])
   bool opt_check_args;
   bool opt_syslog;
 
-
   boost::program_options::options_description general("General options");
 
   general.add_options()
   ("backlog,b", boost::program_options::value(&backlog)->default_value(32),
    "Number of backlog connections for listen.")
-
-  ("check-args", boost::program_options::bool_switch(&opt_check_args)->default_value(false),
-   "Check command line and configuration file argments and then exit.")
 
   ("daemon,d", boost::program_options::bool_switch(&opt_daemon)->default_value(false),
    "Daemon, detach and run in the background.")
@@ -262,8 +256,8 @@ int main(int argc, char *argv[])
   ("user,u", boost::program_options::value(&user),
    "Switch to given user after startup.")
 
-  ("verbose,v", boost::program_options::value(&verbose_string)->default_value(verbose_string),
-   "Increase verbosity level by one.")
+  ("verbose", boost::program_options::value(&verbose_string)->default_value(verbose_string),
+   "Set verbose level (FATAL, ALERT, CRITICAL, ERROR, WARNING, NOTICE, INFO, DEBUG).")
 
   ("version,V", "Display the version of gearmand and exit.")
   ("worker-wakeup,w", boost::program_options::value(&worker_wakeup)->default_value(0),
@@ -281,6 +275,16 @@ int main(int argc, char *argv[])
   boost::program_options::positional_options_description positional;
   positional.add("provided", -1);
 
+  // Now insert all options that we want to make visible to the user
+  boost::program_options::options_description visible("Allowed options");
+  visible.add(all);
+
+  boost::program_options::options_description hidden("Hidden options");
+  hidden.add_options()
+  ("check-args", boost::program_options::bool_switch(&opt_check_args)->default_value(false),
+   "Check command line and configuration file argments and then exit.");
+  all.add(hidden);
+
   // Disable allow_guessing 
   int style= boost::program_options::command_line_style::default_style ^ boost::program_options::command_line_style::allow_guessing;
   boost::program_options::variables_map vm;
@@ -296,7 +300,22 @@ int main(int argc, char *argv[])
 
   catch(std::exception &e)
   {
-    std::cout << e.what() << std::endl;
+    if (e.what() and strncmp("-v", e.what(), 2) == 0)
+    {
+      error::message("Option -v has been deprecated, please use --verbose");
+    }
+    else
+    {
+      error::message(e.what());
+    }
+
+    return EXIT_FAILURE;
+  }
+
+  gearmand_verbose_t verbose= GEARMAND_VERBOSE_ERROR;
+  if (gearmand_verbose_check(verbose_string.c_str(), verbose) == false)
+  {
+    error::message("Invalid value for --verbose supplied");
     return EXIT_FAILURE;
   }
 
@@ -307,7 +326,7 @@ int main(int argc, char *argv[])
 
   if (vm.count("help"))
   {
-    std::cout << all << std::endl;
+    std::cout << visible << std::endl;
     return EXIT_SUCCESS;
   }
 
@@ -335,16 +354,6 @@ int main(int argc, char *argv[])
   if (_set_signals())
   {
     return EXIT_FAILURE;
-  }
-
-  gearmand_verbose_t verbose= GEARMAND_VERBOSE_ERROR;
-  if (verbose_string.length() <= int(GEARMAND_VERBOSE_DEBUG))
-  {
-    verbose= static_cast<gearmand_verbose_t>(verbose_string.length());
-  }
-  else
-  {
-    verbose= GEARMAND_VERBOSE_DEBUG;
   }
 
   util::Pidfile _pid_file(pid_file);
