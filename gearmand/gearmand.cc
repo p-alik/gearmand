@@ -253,7 +253,7 @@ int main(int argc, char *argv[])
   ("queue-type,q", boost::program_options::value(&queue_type),
    "Persistent queue type to use.")
 
-  ("syslog", boost::program_options::bool_switch(&opt_syslog)->default_value(true),
+  ("syslog", boost::program_options::bool_switch(&opt_syslog)->default_value(false),
    "Use syslog.")
 
   ("threads,t", boost::program_options::value(&threads)->default_value(4),
@@ -291,9 +291,6 @@ int main(int argc, char *argv[])
       .style(style)
       .run();
     store(parsed, vm);
-#if 0
-    store(parse_command_line(argc, argv, all, style), vm);
-#endif
     notify(vm);
   }
 
