@@ -168,3 +168,9 @@ const char *gearmand_verbose_name(gearmand_verbose_t verbose);
 #ifdef __cplusplus
 }
 #endif
+
+
+#ifdef __cplusplus
+GEARMAN_API
+bool gearmand_verbose_check(const char *name, gearmand_verbose_t& level);
+#endif

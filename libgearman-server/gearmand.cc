@@ -949,6 +949,49 @@ const char *gearmand_verbose_name(gearmand_verbose_t verbose)
   return "UNKNOWN";
 }
 
+bool gearmand_verbose_check(const char *name, gearmand_verbose_t& level)
+{
+  bool success= true;
+  if (strcmp("FATAL", name) == 0)
+  {
+    level= GEARMAND_VERBOSE_FATAL;
+  }
+  else if (strcmp("ALERT", name) == 0)
+  {
+    level= GEARMAND_VERBOSE_ALERT;
+  }
+  else if (strcmp("CRITICAL", name) == 0)
+  {
+    level= GEARMAND_VERBOSE_CRITICAL;
+  }
+  else if (strcmp("ERROR", name) == 0)
+  {
+    level= GEARMAND_VERBOSE_ERROR;
+  }
+  else if (strcmp("WARNING", name) == 0)
+  {
+    level= GEARMAND_VERBOSE_WARN;
+  }
+  else if (strcmp("NOTICE", name) == 0)
+  {
+    level= GEARMAND_VERBOSE_NOTICE;
+  }
+  else if (strcmp("INFO", name) == 0)
+  {
+    level= GEARMAND_VERBOSE_INFO;
+  }
+  else if (strcmp("DEBUG", name) == 0)
+  {
+    level= GEARMAND_VERBOSE_DEBUG;
+  }
+  else
+  {
+    success= false;
+  }
+
+  return success;
+}
+
 static bool gearman_server_create(gearman_server_st *server, 
                                   uint8_t job_retries_arg,
                                   uint8_t worker_wakeup_arg,
