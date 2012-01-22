@@ -359,9 +359,9 @@ static gearmand_error_t _connection_flush(gearman_server_con_st *con)
 
         if (write_size == 0) // detect infinite loop?
         {
-          gearmand_log_info("send() sent zero bytes to peer %s:%s",
-                            connection->context == NULL ? "-" : connection->context->host,
-                            connection->context == NULL ? "-" : connection->context->port);
+          gearmand_log_debug("send() sent zero bytes to peer %s:%s",
+                             connection->context == NULL ? "-" : connection->context->host,
+                             connection->context == NULL ? "-" : connection->context->port);
           continue;
         }
         else if (write_size == -1)

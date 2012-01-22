@@ -151,8 +151,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
       else if (ret == GEARMAN_JOB_QUEUE_FULL)
       {
         gearman_server_client_free(server_client);
-        return _server_error_packet(server_con, "queue_full",
-                                    "Job queue is full");
+        return _server_error_packet(server_con, "queue_full", "Job queue is full");
       }
       else if (ret != GEARMAN_JOB_EXISTS)
       {
@@ -173,6 +172,11 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
         gearmand_gerror("gearman_server_io_packet_add", ret);
         return ret;
       }
+
+      gearmand_log_notice(GEARMAN_DEFAULT_LOG_PARAM,"accepted,%.*s,%.*s,%.*u",
+                          packet->arg_size[0] -1, packet->arg[0], packet->arg_size[0] -1,
+                          packet->arg_size[2] -1, packet->arg[2], packet->arg_size[2] -1, // reducer
+                          packet->arg_size[1] -1, packet->arg[1], packet->arg_size[1] -1);
     }
     break;
 
@@ -278,6 +282,11 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
       gearmand_gerror("gearman_server_io_packet_add", ret);
       return ret;
     }
+
+    gearmand_log_notice(GEARMAN_DEFAULT_LOG_PARAM,"accepted,%.*s,%.*s,%jd",
+                        packet->arg_size[0], packet->arg[0],
+                        packet->arg_size[1], packet->arg[1],
+                        when);
 
     break;
 
@@ -590,8 +599,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
                                        server_con);
     if (server_job == NULL)
     {
-      return _server_error_packet(server_con, "job_not_found",
-                                  "Job given in work result not found");
+      return _server_error_packet(server_con, "job_not_found", "Job given in work result not found");
     }
 
     /* Queue the complete packet for all clients. */
@@ -628,8 +636,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
                                        server_con);
     if (server_job == NULL)
     {
-      return _server_error_packet(server_con, "job_not_found",
-                                  "Job given in work result not found");
+      return _server_error_packet(server_con, "job_not_found", "Job given in work result not found");
     }
 
     /* Queue the exception packet for all clients. */

@@ -54,7 +54,11 @@ enum gearmand_verbose_t
   GEARMAND_VERBOSE_ERROR= LOG_ERR, // syslog:LOG_ERR
 
   GEARMAND_VERBOSE_WARN= LOG_WARNING, // syslog:LOG_WARNING
+
+  // Notice should only be used for job creation/completion
   GEARMAND_VERBOSE_NOTICE= LOG_NOTICE, // syslog:LOG_NOTICE
+
+  // Info is used for state of the system (i.e. startup, shutdown, etc)
   GEARMAND_VERBOSE_INFO= LOG_INFO, // syslog:LOG_INFO
 
   // @todo Fix it so that these will not be compiled in by default

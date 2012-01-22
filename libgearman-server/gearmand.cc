@@ -179,7 +179,7 @@ void gearmand_free(gearmand_st *gearmand)
 
   if (gearmand->threads > 0)
   {
-    gearmand_info("Shutting down all threads");
+    gearmand_debug("Shutting down all threads");
   }
 
   while (gearmand->thread_list != NULL)
@@ -329,7 +329,7 @@ gearmand_error_t gearmand_run(gearmand_st *gearmand)
   if (gearmand->ret != GEARMAN_SUCCESS)
     return gearmand->ret;
 
-  gearmand_info("Entering main event loop");
+  gearmand_debug("Entering main event loop");
 
   if (event_base_loop(gearmand->base, 0) == -1)
   {
@@ -337,7 +337,7 @@ gearmand_error_t gearmand_run(gearmand_st *gearmand)
     return GEARMAN_EVENT;
   }
 
-  gearmand_info("Exited main event loop");
+  gearmand_debug("Exited main event loop");
 
   return gearmand->ret;
 }
@@ -506,8 +506,8 @@ static gearmand_error_t _listen_init(gearmand_st *gearmand)
         }
 
         // We are in single user threads, so strerror() is fine.
-        gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "Retrying bind(%s) on %s:%s %u >= %u", strerror(ret), host, port->port,
-                          waited, bind_timeout);
+        gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Retrying bind(%s) on %s:%s %u >= %u", strerror(ret), host, port->port,
+                           waited, bind_timeout);
         this_wait= retry * retry / 3 + 1;
         sleep(this_wait);
       }
@@ -540,8 +540,6 @@ static gearmand_error_t _listen_init(gearmand_st *gearmand)
 
         return GEARMAN_ERRNO;
       }
-
-      gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "Listening on %s:%s", host, port->port);
 
       // Scoping note for eventual transformation
       {
@@ -717,7 +715,7 @@ static void _listen_event(int fd, short events __attribute__ ((unused)), void *a
 
 static gearmand_error_t _wakeup_init(gearmand_st *gearmand)
 {
-  gearmand_info("Creating wakeup pipe");
+  gearmand_debug("Creating wakeup pipe");
 
   if (pipe(gearmand->wakeup_fd) < 0)
   {
@@ -751,7 +749,7 @@ static void _wakeup_close(gearmand_st *gearmand)
 
   if (gearmand->wakeup_fd[0] >= 0)
   {
-    gearmand_info("Closing wakeup pipe");
+    gearmand_debug("Closing wakeup pipe");
     gearmand_pipe_close(gearmand->wakeup_fd[0]);
     gearmand->wakeup_fd[0]= -1;
     gearmand_pipe_close(gearmand->wakeup_fd[1]);
@@ -764,7 +762,7 @@ static gearmand_error_t _wakeup_watch(gearmand_st *gearmand)
   if (gearmand->is_wakeup_event)
     return GEARMAN_SUCCESS;
 
-  gearmand_info("Adding event for wakeup pipe");
+  gearmand_debug("Adding event for wakeup pipe");
 
   if (event_add(&(gearmand->wakeup_event), NULL) < 0)
   {
@@ -780,7 +778,7 @@ static void _wakeup_clear(gearmand_st *gearmand)
 {
   if (gearmand->is_wakeup_event)
   {
-    gearmand_info("Clearing event for wakeup pipe");
+    gearmand_debug("Clearing event for wakeup pipe");
     if (event_del(&(gearmand->wakeup_event)) < 0)
     {
       gearmand_perror("We tried to event_del() an event which no longer existed");
@@ -827,13 +825,13 @@ static void _wakeup_event(int fd, short events __attribute__ ((unused)),
       switch ((gearmand_wakeup_t)buffer[x])
       {
       case GEARMAND_WAKEUP_PAUSE:
-        gearmand_info("Received PAUSE wakeup event");
+        gearmand_debug("Received PAUSE wakeup event");
         _clear_events(gearmand);
         gearmand->ret= GEARMAN_PAUSE;
         break;
 
       case GEARMAND_WAKEUP_SHUTDOWN_GRACEFUL:
-        gearmand_info("Received SHUTDOWN_GRACEFUL wakeup event");
+        gearmand_debug("Received SHUTDOWN_GRACEFUL wakeup event");
         _listen_close(gearmand);
 
         for (thread= gearmand->thread_list; thread != NULL;
@@ -846,7 +844,7 @@ static void _wakeup_event(int fd, short events __attribute__ ((unused)),
         break;
 
       case GEARMAND_WAKEUP_SHUTDOWN:
-        gearmand_info("Received SHUTDOWN wakeup event");
+        gearmand_debug("Received SHUTDOWN wakeup event");
         _clear_events(gearmand);
         gearmand->ret= GEARMAN_SHUTDOWN;
         break;
@@ -1065,7 +1063,9 @@ static void gearman_server_free(gearman_server_st *server)
   for (key= 0; key < GEARMAND_JOB_HASH_SIZE; key++)
   {
     while (server->job_hash[key] != NULL)
+    {
       gearman_server_job_free(server->job_hash[key]);
+    }
   }
 
   while (server->function_list != NULL)
