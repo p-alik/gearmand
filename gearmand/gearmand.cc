@@ -46,142 +46,11 @@
 #include <boost/program_options.hpp>
 #include <iostream>
 
+#include "gearmand/error.hpp"
+#include "gearmand/log.hpp"
+
 using namespace datadifferential;
-
-namespace error {
-
-inline void perror(const char *message)
-{
-  char *errmsg_ptr;
-  char errmsg[BUFSIZ];
-  errmsg[0]= 0;
-
-#ifdef STRERROR_R_CHAR_P
-  errmsg_ptr= strerror_r(errno, errmsg, sizeof(errmsg));
-#else
-  strerror_r(errno, errmsg, sizeof(errmsg));
-  errmsg_ptr= errmsg;
-#endif
-  std::cerr << "gearmand: " << message << " (" << errmsg_ptr << ")" << std::endl;
-}
-
-inline void message(const char *arg)
-{
-  std::cerr << "gearmand: " << arg << std::endl;
-}
-
-inline void message(const char *arg, const char *arg2)
-{
-  std::cerr << "gearmand: " << arg << " : " << arg2 << std::endl;
-}
-
-inline void message(const std::string &arg, gearmand_error_t rc)
-{
-  std::cerr << "gearmand: " << arg << " : " << gearmand_strerror(rc) << std::endl;
-}
-
-} // namespace error
-
-struct gearmand_log_info_st
-{
-  std::string filename;
-  int fd;
-  bool opt_syslog;
-  bool opt_file;
-  bool init_success;
-
-  gearmand_log_info_st(const std::string &filename_arg, bool syslog_arg) :
-    filename(filename_arg),
-    fd(-1),
-    opt_syslog(syslog_arg),
-    opt_file(false),
-    init_success(false)
-  {
-    if (opt_syslog)
-    {
-      openlog("gearmand", LOG_PID | LOG_NDELAY, LOG_USER);
-    }
-
-    init();
-  }
-
-  void init()
-  {
-    if (filename.size())
-    {
-      if (filename.compare("stderr") == 0)
-      {
-        fd= STDERR_FILENO;
-      }
-      else
-      {
-        fd= open(filename.c_str(), O_CREAT | O_WRONLY | O_APPEND, 0644);
-        if (fd == -1)
-        {
-          if (opt_syslog)
-          {
-            char buffer[1024];
-            getcwd(buffer, sizeof(buffer));
-            syslog(LOG_ERR, "Could not open log file \"%.*s\", from \"%s\", open failed with (%s)", 
-                   int(filename.size()), filename.c_str(), 
-                   buffer,
-                   strerror(errno));
-          }
-          error::perror("Could not open log file for writing, switching to stderr.");
-
-          fd= STDERR_FILENO;
-        }
-      }
-
-      opt_file= true;
-    }
-
-    init_success= true;
-  }
-
-  bool initialized() const
-  {
-    return init_success;
-  }
-
-  int file() const
-  {
-    return fd;
-  }
-
-  void write(gearmand_verbose_t verbose, const char *mesg)
-  {
-    if (opt_file)
-    {
-      char buffer[GEARMAN_MAX_ERROR_SIZE];
-      int buffer_length= snprintf(buffer, GEARMAN_MAX_ERROR_SIZE, "%7s %s\n", gearmand_verbose_name(verbose), mesg);
-      if (::write(file(), buffer, buffer_length) == -1)
-      {
-        error::perror("Could not write to log file.");
-        syslog(LOG_EMERG, "gearmand could not open log file %s, got error %s", filename.c_str(), strerror(errno));
-      }
-
-    }
-
-    if (opt_syslog)
-    {
-      syslog(int(verbose), "%7s %s", gearmand_verbose_name(verbose), mesg);
-    }
-  }
-
-  ~gearmand_log_info_st()
-  {
-    if (fd != -1 and fd != STDERR_FILENO)
-    {
-      close(fd);
-    }
-
-    if (opt_syslog)
-    {
-      closelog();
-    }
-  }
-};
+using namespace gearmand;
 
 static bool _set_fdlimit(rlim_t fds);
 static bool _switch_user(const char *user);
@@ -370,7 +239,7 @@ int main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
-  gearmand_log_info_st log_info(log_file, opt_syslog);
+  gearmand::gearmand_log_info_st log_info(log_file, opt_syslog);
 
   if (log_info.initialized() == false)
   {
