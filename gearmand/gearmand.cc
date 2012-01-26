@@ -109,22 +109,28 @@ struct gearmand_log_info_st
   {
     if (filename.size())
     {
-      fd= open(filename.c_str(), O_CREAT | O_WRONLY | O_APPEND, 0644);
-      if (fd == -1)
+      if (filename.compare("stderr") == 0)
       {
-        if (opt_syslog)
-        {
-          char buffer[1024];
-          getcwd(buffer, sizeof(buffer));
-          syslog(LOG_ERR, "Could not open log file \"%.*s\", from \"%s\", open failed with (%s)", 
-                 int(filename.size()), filename.c_str(), 
-                 buffer,
-                 strerror(errno));
-        }
-        error::perror("Could not open log file for writing.");
-
         fd= STDERR_FILENO;
-        return;
+      }
+      else
+      {
+        fd= open(filename.c_str(), O_CREAT | O_WRONLY | O_APPEND, 0644);
+        if (fd == -1)
+        {
+          if (opt_syslog)
+          {
+            char buffer[1024];
+            getcwd(buffer, sizeof(buffer));
+            syslog(LOG_ERR, "Could not open log file \"%.*s\", from \"%s\", open failed with (%s)", 
+                   int(filename.size()), filename.c_str(), 
+                   buffer,
+                   strerror(errno));
+          }
+          error::perror("Could not open log file for writing, switching to stderr.");
+
+          fd= STDERR_FILENO;
+        }
       }
 
       opt_file= true;
@@ -227,7 +233,7 @@ int main(int argc, char *argv[])
    "Number of attempts to run the job before the job server removes it. This is helpful to ensure a bad job does not crash all available workers. Default is no limit.")
 
   ("log-file,l", boost::program_options::value(&log_file),
-   "Log file to write errors and information to. Turning this option on also forces the first verbose level to be enabled.")
+   "Log file to write errors and information to. If the log-file paramater is specified as 'stderr', then output will go to stderr")
 
   ("listen,L", boost::program_options::value(&host),
    "Address the server should listen on. Default is INADDR_ANY.")
