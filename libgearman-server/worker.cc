@@ -26,16 +26,18 @@ gearman_server_worker_add(gearman_server_con_st *con, const char *function_name,
                           size_t function_name_size, uint32_t timeout)
 {
   gearman_server_worker_st *worker;
-  gearman_server_function_st *function;
-
-  function= gearman_server_function_get(Server, function_name,
-                                        function_name_size);
+  gearman_server_function_st *function= gearman_server_function_get(Server, function_name,
+                                                                    function_name_size);
   if (function == NULL)
+  {
     return NULL;
+  }
 
   worker= gearman_server_worker_create(con, function);
   if (worker == NULL)
+  {
     return NULL;
+  }
 
   worker->timeout= timeout;
 
@@ -115,7 +117,9 @@ void gearman_server_worker_free(gearman_server_worker_st *worker)
     worker->function_prev->function_next= worker->function_next;
 
     if (worker == worker->function->worker_list)
+    {
       worker->function->worker_list= worker->function_next;
+    }
   }
   worker->function->worker_count--;
 

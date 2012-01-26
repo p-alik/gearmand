@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -37,35 +37,40 @@
 
 #pragma once
 
-#include <syslog.h>
+namespace gearmand {
 
-/**
- * Verbosity levels.
- */
-enum gearmand_verbose_t
+namespace error {
+
+inline void perror(const char *message)
 {
-  // Logging this will cause gearmand to shutdown
-  GEARMAND_VERBOSE_FATAL= LOG_EMERG, // syslog:LOG_EMERG
+  char *errmsg_ptr;
+  char errmsg[BUFSIZ];
+  errmsg[0]= 0;
 
-  // Next two are currently unused
-  GEARMAND_VERBOSE_ALERT= LOG_ALERT, // syslog:LOG_ALERT
-  GEARMAND_VERBOSE_CRITICAL= LOG_CRIT, //  syslog:LOG_CRIT
-
-  GEARMAND_VERBOSE_ERROR= LOG_ERR, // syslog:LOG_ERR
-
-  GEARMAND_VERBOSE_WARN= LOG_WARNING, // syslog:LOG_WARNING
-
-  // Notice should only be used for job creation/completion
-  GEARMAND_VERBOSE_NOTICE= LOG_NOTICE, // syslog:LOG_NOTICE
-
-  // Info is used for state of the system (i.e. startup, shutdown, etc)
-  GEARMAND_VERBOSE_INFO= LOG_INFO, // syslog:LOG_INFO
-
-  // @todo Fix it so that these will not be compiled in by default
-  GEARMAND_VERBOSE_DEBUG= LOG_DEBUG, // syslog:LOG_DEBUG
-};
-
-#ifndef __cplusplus
-typedef enum gearmand_verbose_t gearmand_verbose_t;
+#ifdef STRERROR_R_CHAR_P
+  errmsg_ptr= strerror_r(errno, errmsg, sizeof(errmsg));
+#else
+  strerror_r(errno, errmsg, sizeof(errmsg));
+  errmsg_ptr= errmsg;
 #endif
+  std::cerr << "gearmand: " << message << " (" << errmsg_ptr << ")" << std::endl;
+}
 
+inline void message(const char *arg)
+{
+  std::cerr << "gearmand: " << arg << std::endl;
+}
+
+inline void message(const char *arg, const char *arg2)
+{
+  std::cerr << "gearmand: " << arg << " : " << arg2 << std::endl;
+}
+
+inline void message(const std::string &arg, gearmand_error_t rc)
+{
+  std::cerr << "gearmand: " << arg << " : " << gearmand_strerror(rc) << std::endl;
+}
+
+} // namespace error
+
+} // namespace gearmand

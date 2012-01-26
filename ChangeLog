@@ -1,4 +1,5 @@
 * -v has been deprecated because of parsing issues. Please use --verbose instead
+* --log-file=stderr will set output to stderr.
 
 0.27 Mon Jan  9 20:02:16 PST 2012
 * Fix for TokyoCabinet

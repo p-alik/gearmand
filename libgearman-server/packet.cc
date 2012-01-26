@@ -232,7 +232,7 @@ inline static gearmand_error_t packet_create_arg(gearmand_packet_st *packet,
   }
   else
   {
-    gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "resizing packet buffer");
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "resizing packet buffer");
     if (packet->args == packet->args_buffer)
     {
       packet->args= (char *)malloc(packet->args_size + arg_size);

@@ -87,7 +87,7 @@ gearmand_error_t gearmand_thread_create(gearmand_st *gearmand)
   }
   else
   {
-    gearmand_info("Initializing libevent for IO thread");
+    gearmand_debug("Initializing libevent for IO thread");
 
     thread->base= static_cast<struct event_base *>(event_base_new());
     if (thread->base == NULL)
@@ -139,7 +139,7 @@ gearmand_error_t gearmand_thread_create(gearmand_st *gearmand)
     return GEARMAN_ERRNO;
   }
 
-  gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "Thread %u created", thread->count);
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Thread %u created", thread->count);
 
   return GEARMAN_SUCCESS;
 }
@@ -150,14 +150,16 @@ void gearmand_thread_free(gearmand_thread_st *thread)
 
   if (Gearmand()->threads && thread->count > 0)
   {
-    gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "Shutting down thread %u", thread->count);
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Shutting down thread %u", thread->count);
 
     gearmand_thread_wakeup(thread, GEARMAND_WAKEUP_SHUTDOWN);
     (void) pthread_join(thread->id, NULL);
   }
 
   if (thread->is_thread_lock)
+  {
     (void) pthread_mutex_destroy(&(thread->lock));
+  }
 
   _wakeup_close(thread);
 
@@ -188,9 +190,11 @@ void gearmand_thread_free(gearmand_thread_st *thread)
   if (Gearmand()->threads > 0)
   {
     if (thread->base != NULL)
+    {
       event_base_free(thread->base);
+    }
 
-    gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "Thread %u shutdown complete", thread->count);
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Thread %u shutdown complete", thread->count);
   }
 
   free(thread);
@@ -253,7 +257,7 @@ static void *_thread(void *data)
 
   gearmand_initialize_thread_logging(buffer);
 
-  gearmand_info("Entering thread event loop");
+  gearmand_debug("Entering thread event loop");
 
   if (event_base_loop(thread->base, 0) == -1)
   {
@@ -261,7 +265,7 @@ static void *_thread(void *data)
     Gearmand()->ret= GEARMAN_EVENT;
   }
 
-  gearmand_info("Exiting thread event loop");
+  gearmand_debug("Exiting thread event loop");
 
   return NULL;
 }
@@ -283,7 +287,7 @@ static gearmand_error_t _wakeup_init(gearmand_thread_st *thread)
 {
   int ret;
 
-  gearmand_info("Creating IO thread wakeup pipe");
+  gearmand_debug("Creating IO thread wakeup pipe");
 
   ret= pipe(thread->wakeup_fd);
   if (ret == -1)
@@ -327,7 +331,7 @@ static void _wakeup_close(gearmand_thread_st *thread)
 
   if (thread->wakeup_fd[0] >= 0)
   {
-    gearmand_info("Closing IO thread wakeup pipe");
+    gearmand_debug("Closing IO thread wakeup pipe");
     gearmand_pipe_close(thread->wakeup_fd[0]);
     thread->wakeup_fd[0]= -1;
     gearmand_pipe_close(thread->wakeup_fd[1]);
@@ -339,7 +343,7 @@ static void _wakeup_clear(gearmand_thread_st *thread)
 {
   if (thread->is_wakeup_event)
   {
-    gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "Clearing event for IO thread wakeup pipe %u", thread->count);
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Clearing event for IO thread wakeup pipe %u", thread->count);
     if (event_del(&(thread->wakeup_event)) < 0)
     {
       gearmand_perror("event_del");
@@ -388,7 +392,7 @@ static void _wakeup_event(int fd, short events __attribute__ ((unused)), void *a
         break;
 
       case GEARMAND_WAKEUP_SHUTDOWN_GRACEFUL:
-        gearmand_info("Received SHUTDOWN_GRACEFUL wakeup event");
+        gearmand_debug("Received SHUTDOWN_GRACEFUL wakeup event");
         if (gearman_server_shutdown_graceful(&(Gearmand()->server)) == GEARMAN_SHUTDOWN)
         {
           gearmand_wakeup(Gearmand(), GEARMAND_WAKEUP_SHUTDOWN);
@@ -396,7 +400,7 @@ static void _wakeup_event(int fd, short events __attribute__ ((unused)), void *a
         break;
 
       case GEARMAND_WAKEUP_SHUTDOWN:
-        gearmand_info("Received SHUTDOWN wakeup event");
+        gearmand_debug("Received SHUTDOWN wakeup event");
         _clear_events(thread);
         break;
 

@@ -73,6 +73,8 @@ gearmand_error_t gearmand_log_memory_error(const char *position, const char *fun
 #define gearmand_merror(__allocator, __object_type, __count) gearmand_log_memory_error(GEARMAN_DEFAULT_LOG_PARAM, (__allocator), (#__object_type), (__count), (sizeof(__object_type)))
 
 
+GEARMAN_INTERNAL_API
+void gearmand_log_notice(const char *position, const char *function, const char *format, ...);
 
 /**
  * Log an info message, see gearmand_log() for argument details.

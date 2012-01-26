@@ -169,6 +169,18 @@ void gearmand_log_warning(const char *position, const char *function, const char
   }
 }
 
+void gearmand_log_notice(const char *position, const char *function, const char *format, ...)
+{
+  va_list args;
+
+  if (not Gearmand() || Gearmand()->verbose >= GEARMAND_VERBOSE_NOTICE)
+  {
+    va_start(args, format);
+    gearmand_log(position, function, GEARMAND_VERBOSE_NOTICE, format, args);
+    va_end(args);
+  }
+}
+
 void gearmand_log_info(const char *position, const char *function, const char *format, ...)
 {
   va_list args;

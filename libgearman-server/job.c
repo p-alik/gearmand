@@ -333,10 +333,14 @@ void gearman_server_job_free(gearman_server_job_st *server_job)
   uint32_t key;
 
   if (! server_job)
+  {
     return;
+  }
 
   if (server_job->worker != NULL)
+  {
     server_job->function->job_running--;
+  }
 
   server_job->function->job_total--;
 
