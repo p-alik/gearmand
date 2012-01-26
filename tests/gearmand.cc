@@ -149,6 +149,14 @@ static test_return_t long_log_file_test(void *)
   return TEST_SUCCESS;
 }
 
+static test_return_t long_log_file_stderr_TEST(void *)
+{
+  const char *args[]= { "--check-args", "--log-file=stderr", 0 };
+
+  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  return TEST_SUCCESS;
+}
+
 static test_return_t short_log_file_test(void *)
 {
   const char *args[]= { "--check-args", "-l", "\"tmp/foo\"", 0 };
@@ -432,6 +440,7 @@ test_st gearmand_option_tests[] ={
   {"--help", 0, long_help_test},
   {"-h", 0, short_help_test},
   {"--log-file=", 0, long_log_file_test},
+  {"--log-file=stderr", 0, long_log_file_stderr_TEST},
   {"-l", 0, short_log_file_test},
   {"--listen=", 0, long_listen_test},
   {"-L", 0, short_listen_test},
