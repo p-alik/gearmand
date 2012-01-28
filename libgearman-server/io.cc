@@ -479,14 +479,21 @@ gearmand_error_t gearman_io_recv(gearman_server_con_st *con, bool recv_data)
 
       /* Shift buffer contents if needed. */
       if (connection->recv_buffer_size > 0)
+      {
         memmove(connection->recv_buffer, connection->recv_buffer_ptr, connection->recv_buffer_size);
+      }
       connection->recv_buffer_ptr= connection->recv_buffer;
 
       size_t recv_size= _connection_read(con, connection->recv_buffer + connection->recv_buffer_size,
 					 GEARMAN_RECV_BUFFER_SIZE - connection->recv_buffer_size, ret);
       if (gearmand_failed(ret))
       {
-        gearmand_gerror_warn("Failed while in _connection_read()", ret);
+        // GEARMAN_LOST_CONNECTION is not worth a warning, clients/workers just
+        // drop connections for close.
+        if (ret != GEARMAN_LOST_CONNECTION)
+        {
+          gearmand_gerror_warn("Failed while in _connection_read()", ret);
+        }
         return ret;
       }
       gearmand_log_crazy(GEARMAN_DEFAULT_LOG_PARAM, "read %lu bytes", (unsigned long)recv_size);
@@ -605,10 +612,10 @@ size_t _connection_read(gearman_server_con_st *con, void *data, size_t data_size
     if (read_size == 0)
     {
       ret= GEARMAN_LOST_CONNECTION;
-      gearmand_log_warning(GEARMAN_DEFAULT_LOG_PARAM, 
-                           "lost connection to client recv(peer has closed connection) %s:%s",
-                           connection->context == NULL ? "-" : connection->context->host,
-                           connection->context == NULL ? "-" : connection->context->port);
+      gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, 
+                        "Peer connection has called close() %s:%s",
+                        connection->context == NULL ? "-" : connection->context->host,
+                        connection->context == NULL ? "-" : connection->context->port);
       _connection_close(connection);
       return 0;
     }
