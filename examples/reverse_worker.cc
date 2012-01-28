@@ -67,12 +67,64 @@ struct reverse_worker_options_t
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
-static void *reverse(gearman_job_st *job, void *context,
-                     size_t *result_size, gearman_return_t *ret_ptr);
+static gearman_return_t reverse_worker(gearman_job_st *job, void *context)
+{
+  reverse_worker_options_t options= *((reverse_worker_options_t *)context);
+
+
+  const char *workload= (const char *)gearman_job_workload(job);
+  const size_t workload_size= gearman_job_workload_size(job);
+
+  char *result= (char *)malloc(workload_size);
+  if (result == NULL)
+  {
+    perror("malloc");
+    return GEARMAN_ERROR;
+  }
+
+  size_t x;
+  size_t y;
+  for (size_t y= 0, x= workload_size; x; x--, y++)
+  {
+    result[y]= ((uint8_t *)workload)[x - 1];
+
+    if (options.chunk) // Chunk the result set
+    {
+      if (gearman_failed(gearman_job_send_data(job, &result[y], 1)))
+      {
+        return GEARMAN_ERROR;
+      }
+    }
+
+    if (options.status)
+    {
+      // Notice that we send based on y divided by zero.
+      if (gearman_failed(gearman_job_send_status(job, (uint32_t)y, (uint32_t)workload_size)))
+      {
+        return GEARMAN_ERROR;
+      }
+    }
+  }
+
+  std::cout << "Job=" << gearman_job_handle(job);
+
+  if (options.unique)
+  {
+    std::cout << "Unique=" << gearman_job_unique(job);
+  }
+
+
+  std::cout << "  Reversed=";
+  std::cout.write(workload, workload_size);
+
+  std::cout << std::endl;
+
+  return GEARMAN_SUCCESS;
+}
 
 int main(int args, char *argv[])
 {
-  uint32_t count;
+  uint64_t limit;
   reverse_worker_options_t options;
   int timeout;
 
@@ -83,7 +135,7 @@ int main(int args, char *argv[])
     ("help", "Options related to the program.")
     ("host,h", boost::program_options::value<std::string>(&host)->default_value("localhost"),"Connect to the host")
     ("port,p", boost::program_options::value<in_port_t>(&port)->default_value(GEARMAN_DEFAULT_TCP_PORT), "Port number use for connection")
-    ("count,c", boost::program_options::value<uint32_t>(&count)->default_value(0), "Number of jobs to run before exiting")
+    ("count,c", boost::program_options::value<uint64_t>(&limit)->default_value(0), "Number of jobs to run before exiting")
     ("timeout,u", boost::program_options::value<int>(&timeout)->default_value(-1), "Timeout in milliseconds")
     ("chunk,d", boost::program_options::bool_switch(&options.chunk)->default_value(false), "Send result back in data chunks")
     ("status,s", boost::program_options::bool_switch(&options.status)->default_value(false), "Send status updates and sleep while running job")
@@ -114,128 +166,56 @@ int main(int args, char *argv[])
     return EXIT_FAILURE;
   }
 
-  gearman_worker_st worker;
-  if (gearman_worker_create(&worker) == NULL)
+  gearman_worker_st *worker;
+  if ((worker= gearman_worker_create(NULL)) == NULL)
   {
     std::cerr << "Memory allocation failure on worker creation." << std::endl;
     return EXIT_FAILURE;
   }
 
   if (options.unique)
-    gearman_worker_add_options(&worker, GEARMAN_WORKER_GRAB_UNIQ);
+  {
+    gearman_worker_add_options(worker, GEARMAN_WORKER_GRAB_UNIQ);
+  }
 
   if (timeout >= 0)
-    gearman_worker_set_timeout(&worker, timeout);
-
-  gearman_return_t ret;
-  ret= gearman_worker_add_server(&worker, host.c_str(), port);
-  if (ret != GEARMAN_SUCCESS)
   {
-    std::cerr << gearman_worker_error(&worker) << std::endl;
+    gearman_worker_set_timeout(worker, timeout);
+  }
+
+  if (gearman_failed(gearman_worker_add_server(worker, host.c_str(), port)))
+  {
+    std::cerr << gearman_worker_error(worker) << std::endl;
     return EXIT_FAILURE;
   }
 
-  ret= gearman_worker_add_function(&worker, "reverse", 0, reverse, &options);
-  if (ret != GEARMAN_SUCCESS)
+  gearman_function_t worker_fn= gearman_function_create(reverse_worker);
+  if (gearman_failed(gearman_worker_define_function(worker,
+                                                    gearman_literal_param("reverse"),
+                                                    worker_fn,
+                                                    0, 
+                                                    &options)))
   {
-    std::cerr << gearman_worker_error(&worker) << std::endl;
+    std::cerr << gearman_worker_error(worker) << std::endl;
     return EXIT_FAILURE;
   }
 
-  while (1)
+  // Add one if count is not zero
+  if (limit != 0)
   {
-    ret= gearman_worker_work(&worker);
-    if (ret != GEARMAN_SUCCESS)
+    limit++;
+  }
+
+  while (--limit)
+  {
+    if (gearman_failed(gearman_worker_work(worker)))
     {
-      std::cerr << gearman_worker_error(&worker) << std::endl;
+      std::cerr << gearman_worker_error(worker) << std::endl;
       break;
     }
-
-    if (count > 0)
-    {
-      count--;
-      if (count == 0)
-        break;
-    }
   }
 
-  gearman_worker_free(&worker);
+  gearman_worker_free(worker);
 
   return EXIT_SUCCESS;
-}
-
-static void *reverse(gearman_job_st *job, void *context,
-                     size_t *result_size, gearman_return_t *ret_ptr)
-{
-  reverse_worker_options_t options= *((reverse_worker_options_t *)context);
-
-
-  const char *workload;
-  workload= (const char *)gearman_job_workload(job);
-  *result_size= gearman_job_workload_size(job);
-
-  char *result;
-  result= (char *)malloc(*result_size);
-  if (result == NULL)
-  {
-    perror("malloc");
-    *ret_ptr= GEARMAN_WORK_FAIL;
-    return NULL;
-  }
-
-  size_t x;
-  size_t y;
-  for (y= 0, x= *result_size; x; x--, y++)
-  {
-    result[y]= ((uint8_t *)workload)[x - 1];
-
-    if (options.chunk)
-    {
-      *ret_ptr= gearman_job_send_data(job, &(result[y]), 1);
-      if (*ret_ptr != GEARMAN_SUCCESS)
-      {
-        free(result);
-        return NULL;
-      }
-    }
-
-    if (options.status)
-    {
-      *ret_ptr= gearman_job_send_status(job, (uint32_t)y,
-                                        (uint32_t)*result_size);
-      if (*ret_ptr != GEARMAN_SUCCESS)
-      {
-        free(result);
-        return NULL;
-      }
-
-      sleep(1);
-    }
-  }
-
-  std::cout << "Job=" << gearman_job_handle(job);
-
-  if (options.unique)
-  {
-    std::cout << "Unique=" << gearman_job_unique(job);
-  }
-
-
-  std::cout << "  Workload=";
-  std::cout.write(workload, *result_size);
-
-  std::cout << "  Result=";
-  std::cout.write(result, *result_size);
-
-  std::cout << std::endl;
-
-  *ret_ptr= GEARMAN_SUCCESS;
-
-  if (options.chunk)
-  {
-    *result_size= 0;
-    return NULL;
-  }
-
-  return result;
 }

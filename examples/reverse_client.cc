@@ -114,10 +114,11 @@ int main(int args, char *argv[])
   }
 
   if (timeout >= 0)
+  {
     gearman_client_set_timeout(&client, timeout);
+  }
 
-  gearman_return_t ret;
-  ret= gearman_client_add_server(&client, host.c_str(), port);
+  gearman_return_t ret= gearman_client_add_server(&client, host.c_str(), port);
   if (ret != GEARMAN_SUCCESS)
   {
     std::cerr << gearman_client_error(&client) << std::endl;
