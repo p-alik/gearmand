@@ -230,6 +230,7 @@ gearman_connection_st *gearman_connection_create_args(gearman_universal_st& univ
 
   if (gearman_failed(connection->lookup()))
   {
+    gearman_gerror(universal, GEARMAN_GETADDRINFO);
     delete connection;
     return NULL;
   }

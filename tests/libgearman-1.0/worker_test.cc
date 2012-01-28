@@ -293,6 +293,24 @@ static test_return_t echo_multi_test(void *)
   return TEST_SUCCESS;
 }
 
+static test_return_t gearman_worker_add_server_GEARMAN_INVALID_ARGUMENT_TEST(void *)
+{
+  test_compare(GEARMAN_INVALID_ARGUMENT,
+               gearman_worker_add_server(NULL, "nonexist.gearman.info", WORKER_TEST_PORT));
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_worker_add_server_GEARMAN_GETADDRINFO_TEST(void *)
+{
+  gearman_worker_st *worker= gearman_worker_create(NULL);
+  test_true(worker);
+  test_compare(GEARMAN_GETADDRINFO, gearman_worker_add_server(worker, "nonexist.gearman.info", WORKER_TEST_PORT));
+  gearman_worker_free(worker);
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t echo_max_test(void *)
 {
   Worker worker;
@@ -776,6 +794,8 @@ test_st tests[] ={
   {"allocation", 0, allocation_test },
   {"gearman_worker_clone(NULL, NULL)", 0, gearman_worker_clone_NULL_NULL },
   {"gearman_worker_clone(NULL, source)", 0, gearman_worker_clone_NULL_SOURCE },
+  {"gearman_worker_add_server(GEARMAN_GETADDRINFO)", false, gearman_worker_add_server_GEARMAN_GETADDRINFO_TEST },
+  {"gearman_worker_add_server(GEARMAN_INVALID_ARGUMENT)", false, gearman_worker_add_server_GEARMAN_INVALID_ARGUMENT_TEST },
   {"echo", 0, echo_test },
   {"echo_multi", 0, echo_multi_test },
   {"options", 0, option_test },
