@@ -163,7 +163,16 @@ gearman_return_t gearman_universal_set_perror(gearman_universal_st &universal,
     return GEARMAN_SUCCESS;
   }
 
-  universal.error.rc= GEARMAN_ERRNO;
+  switch (errno)
+  {
+  case ENOMEM:
+    universal.error.rc= GEARMAN_MEMORY_ALLOCATION_FAILURE;
+    break;
+
+  default:
+    universal.error.rc= GEARMAN_ERRNO;
+    break;
+  }
   universal.error.last_errno= errno;
 
   correct_from_errno(universal);
