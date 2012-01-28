@@ -1,10 +1,41 @@
-/* Gearman server and library
- * Copyright (C) 2008 Brian Aker, Eric Day
- * All rights reserved.
+/*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
+ * 
+ *  Gearmand client and server library.
  *
- * Use and distribution licensed under the BSD license.  See
- * the COPYING file in the parent directory for full text.
+ *  Copyright (C) 2011-2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2008 Brian Aker, Eric Day
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions are
+ *  met:
+ *
+ *      * Redistributions of source code must retain the above copyright
+ *  notice, this list of conditions and the following disclaimer.
+ *
+ *      * Redistributions in binary form must reproduce the above
+ *  copyright notice, this list of conditions and the following disclaimer
+ *  in the documentation and/or other materials provided with the
+ *  distribution.
+ *
+ *      * The names of its contributors may not be used to endorse or
+ *  promote products derived from this software without specific prior
+ *  written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ *  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ *  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ *  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ *  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ *  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ *  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
+
 
 /**
  * @file
@@ -12,6 +43,9 @@
  */
 
 #include <libgearman-server/common.h>
+
+#include <cstdio>
+#include <cstdlib>
 
 #include <libgearman-server/plugins/protocol/http/protocol.h>
 
@@ -29,70 +63,25 @@
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 
 /* Protocol callback functions. */
-static gearmand_error_t _http_con_add(gearman_server_con_st *connection);
-static void _http_free(gearman_server_con_st *connection, void *context);
-static size_t _http_pack(const gearmand_packet_st *packet, gearman_server_con_st *connection,
-                         void *data, size_t data_size,
-                         gearmand_error_t *ret_ptr);
-static size_t _http_unpack(gearmand_packet_st *packet, gearman_server_con_st *connection,
-                           const void *data, size_t data_size,
-                           gearmand_error_t *ret_ptr);
 
-namespace gearmand {
-namespace protocol {
-
-HTTP::HTTP() :
-  Plugin("HTTP"),
-  _method(gearmand::protocol::HTTP::TRACE),
-  _background(false),
-  _keep_alive(false)
-{
-  command_line_options().add_options()
-    ("http-port", boost::program_options::value(&global_port)->default_value(GEARMAN_PROTOCOL_HTTP_DEFAULT_PORT), "Port to listen on.");
-}
-
-HTTP::~HTTP()
-{
-}
-
-gearmand_error_t HTTP::start(gearmand_st *gearmand)
-{
-  gearmand_info("Initializing HTTP");
-  return gearmand_port_add(gearmand, global_port.c_str(), _http_con_add);
-}
-
-} // namespace protocol
-} // namespace gearmand
-
-/* Line parsing helper function. */
 static const char *_http_line(const void *data, size_t data_size,
-                              size_t *line_size, size_t *offset);
-
-/** @} */
-
-/*
- * Public definitions
- */
-
-
-/*
- * Static definitions
- */
-
-static gearmand_error_t _http_con_add(gearman_server_con_st *connection)
+                              size_t *line_size, size_t *offset)
 {
-  gearmand_info("HTTP connection made");
+  const char *start= (const char *)data + *offset;
+  const char *end;
 
-  gearmand::protocol::HTTP *http= new (std::nothrow) gearmand::protocol::HTTP;
-  if (http == NULL)
-  {
-    gearmand_error("new");
-    return GEARMAN_MEMORY_ALLOCATION_FAILURE;
-  }
+  end= (const char *)memchr(start, '\n', data_size - *offset);
+  if (end == NULL)
+    return NULL;
 
-  gearmand_connection_set_protocol(connection, http, _http_free, _http_pack, _http_unpack);
+  *offset+= (size_t)(end - start) + 1;
 
-  return GEARMAN_SUCCESS;
+  if (end != start && *(end - 1) == '\r')
+    end--;
+
+  *line_size= (size_t)(end - start);
+
+  return start;
 }
 
 static void _http_free(gearman_server_con_st *connection __attribute__ ((unused)),
@@ -173,21 +162,11 @@ static size_t _http_pack(const gearmand_packet_st *packet, gearman_server_con_st
   *ret_ptr= GEARMAN_SUCCESS;
   return pack_size;
 }
-
 static size_t _http_unpack(gearmand_packet_st *packet, gearman_server_con_st *connection,
                            const void *data, size_t data_size,
                            gearmand_error_t *ret_ptr)
 {
   gearmand::protocol::HTTP *http;
-  size_t offset= 0;
-  const char *request;
-  size_t request_size;
-  ptrdiff_t method_size;
-  ptrdiff_t uri_size;
-  size_t version_size;
-  const char *header;
-  size_t header_size;
-  char content_length[11]; /* 11 bytes to fit max display length of uint32_t */
   const char *unique= "-";
   size_t unique_size= 2;
   gearmand_job_priority_t priority= GEARMAND_JOB_PRIORITY_NORMAL;
@@ -195,8 +174,10 @@ static size_t _http_unpack(gearmand_packet_st *packet, gearman_server_con_st *co
   gearmand_info("Receiving HTTP response");
 
   /* Get the request line first. */
-  request= _http_line(data, data_size, &request_size, &offset);
-  if (request == NULL || request_size == 0)
+  size_t request_size;
+  size_t offset= 0;
+  const char *request= _http_line(data, data_size, &request_size, &offset);
+  if (request == NULL or request_size == 0)
   {
     gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "Zero length request made");
     *ret_ptr= GEARMAN_IO_WAIT;
@@ -216,7 +197,7 @@ static size_t _http_unpack(gearmand_packet_st *packet, gearman_server_con_st *co
     return 0;
   }
 
-  method_size= uri - request;
+  ptrdiff_t method_size= uri - request;
 
   if (method_size == 3 and strncmp(method, "GET", 3) == 0)
   {
@@ -264,7 +245,7 @@ static size_t _http_unpack(gearmand_packet_st *packet, gearman_server_con_st *co
     return 0;
   }
 
-  uri_size= version - uri;
+  ptrdiff_t uri_size= version -uri;
   switch (http->method())
   {
   case gearmand::protocol::HTTP::POST:
@@ -287,8 +268,7 @@ static size_t _http_unpack(gearmand_packet_st *packet, gearman_server_con_st *co
     version++;
   }
 
-  version_size= request_size - (size_t)(version - request);
-
+  size_t version_size= request_size - (size_t)(version - request);
   if (version_size == 8 && !strncasecmp(version, "HTTP/1.1", 8))
   {
     http->set_keep_alive(true);
@@ -301,6 +281,8 @@ static size_t _http_unpack(gearmand_packet_st *packet, gearman_server_con_st *co
   }
 
   /* Loop through all the headers looking for ones of interest. */
+  const char *header;
+  size_t header_size;
   while ((header= _http_line(data, data_size, &header_size, &offset)) != NULL)
   {
     if (header_size == 0)
@@ -313,7 +295,8 @@ static size_t _http_unpack(gearmand_packet_st *packet, gearman_server_con_st *co
       if ((method_size == 4 && !strncasecmp(method, "POST", 4)) ||
           (method_size == 3 && !strncasecmp(method, "PUT", 3)))
       {
-        snprintf(content_length, 11, "%.*s", (int)header_size - 16,
+        char content_length[11]; /* 11 bytes to fit max display length of uint32_t */
+        snprintf(content_length, sizeof(content_length), "%.*s", (int)header_size - 16,
                  header + 16);
         packet->data_size= (size_t)atoi(content_length);
       }
@@ -430,22 +413,46 @@ static size_t _http_unpack(gearmand_packet_st *packet, gearman_server_con_st *co
   return offset;
 }
 
-static const char *_http_line(const void *data, size_t data_size,
-                              size_t *line_size, size_t *offset)
+static gearmand_error_t _http_con_add(gearman_server_con_st *connection)
 {
-  const char *start= (const char *)data + *offset;
-  const char *end;
+  gearmand_info("HTTP connection made");
 
-  end= (const char *)memchr(start, '\n', data_size - *offset);
-  if (end == NULL)
-    return NULL;
+  gearmand::protocol::HTTP *http= new (std::nothrow) gearmand::protocol::HTTP;
+  if (http == NULL)
+  {
+    gearmand_error("new");
+    return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+  }
 
-  *offset+= (size_t)(end - start) + 1;
+  gearmand_connection_set_protocol(connection, http, _http_free, _http_pack, _http_unpack);
 
-  if (end != start && *(end - 1) == '\r')
-    end--;
-
-  *line_size= (size_t)(end - start);
-
-  return start;
+  return GEARMAN_SUCCESS;
 }
+
+namespace gearmand {
+namespace protocol {
+
+HTTP::HTTP() :
+  Plugin("HTTP"),
+  _method(gearmand::protocol::HTTP::TRACE),
+  _background(false),
+  _keep_alive(false)
+{
+  command_line_options().add_options()
+    ("http-port", boost::program_options::value(&global_port)->default_value(GEARMAN_PROTOCOL_HTTP_DEFAULT_PORT), "Port to listen on.");
+}
+
+HTTP::~HTTP()
+{
+}
+
+gearmand_error_t HTTP::start(gearmand_st *gearmand)
+{
+  gearmand_info("Initializing HTTP");
+  return gearmand_port_add(gearmand, global_port.c_str(), _http_con_add);
+}
+
+} // namespace protocol
+} // namespace gearmand
+
+/** @} */
