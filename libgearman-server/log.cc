@@ -59,7 +59,10 @@ void gearmand_initialize_thread_logging(const char *identity)
  * @param[in] args Variable argument list that has been initialized.
  */
 
-static void gearmand_log(const char *position, const char * /* func */, gearmand_verbose_t verbose, const char *format, va_list args)
+static void gearmand_log(const char *position, const char *func /* func */, 
+                         gearmand_verbose_t verbose,
+                         const gearmand_error_t error_arg,
+                         const char *format, va_list args)
 {
   if (Gearmand() == NULL)
   {
@@ -81,25 +84,56 @@ static void gearmand_log(const char *position, const char * /* func */, gearmand
   if (Gearmand() && Gearmand()->log_fn)
   {
     char log_buffer[GEARMAN_MAX_ERROR_SIZE*2];
-    int length= snprintf(log_buffer, sizeof(log_buffer), "%s ", identity);
+    char *log_buffer_ptr= log_buffer;
+    size_t remaining_size= sizeof(log_buffer);
 
-    // We just return whatever we have if this occurs
-    if (length < -1 || (size_t)length >= sizeof(log_buffer))
     {
-      Gearmand()->log_fn(log_buffer, verbose, (void *)Gearmand()->log_context);
-      return;
+      int length= snprintf(log_buffer_ptr, sizeof(log_buffer), "%s ", identity);
+      // We just return whatever we have if this occurs
+      if (length < -1 || (size_t)length >= sizeof(log_buffer))
+      {
+        remaining_size= 0;
+      }
+      else
+      {
+        remaining_size-= size_t(length);
+        log_buffer_ptr+= length;
+      }
     }
-    size_t remaining_size= sizeof(log_buffer) - (size_t)length;
-    char *ptr= log_buffer;
-    ptr+= length;
 
-    int format_length= vsnprintf(ptr, remaining_size, format, args);
-    remaining_size-= format_length;
+    if (remaining_size)
+    {
+      int length= vsnprintf(log_buffer_ptr, remaining_size, format, args);
+      if (length < -1 or size_t(length) >= remaining_size)
+      { 
+        remaining_size= 0;
+      }
+      else
+      {
+        remaining_size-= size_t(length);
+        log_buffer_ptr+= length;
+      }
+    }
 
-    ptr+= format_length;
+    if (remaining_size and error_arg != GEARMAN_SUCCESS)
+    {
+      int length= snprintf(log_buffer_ptr, remaining_size, " %s(%s)", func, gearmand_strerror(error_arg));
+      if (length < -1 or size_t(length) >= remaining_size)
+      { }
+      else
+      {
+        remaining_size-= size_t(length);
+        log_buffer_ptr+= length;
+      }
+    }
 
-    if (position and verbose != GEARMAND_VERBOSE_INFO)
-      snprintf(ptr, remaining_size, " -> %s", position);
+    if (remaining_size and position and verbose != GEARMAND_VERBOSE_INFO)
+    {
+      snprintf(log_buffer_ptr, remaining_size, " -> %s", position);
+    }
+
+    // Make sure this is null terminated
+    log_buffer[sizeof(log_buffer)]= 0;
 
     Gearmand()->log_fn(log_buffer, verbose, (void *)Gearmand()->log_context);
   }
@@ -119,7 +153,7 @@ void gearmand_log_fatal(const char *position, const char *func, const char *form
   if (not Gearmand() || Gearmand()->verbose >= GEARMAND_VERBOSE_FATAL)
   {
     va_start(args, format);
-    gearmand_log(position, func, GEARMAND_VERBOSE_FATAL, format, args);
+    gearmand_log(position, func, GEARMAND_VERBOSE_FATAL, GEARMAN_SUCCESS, format, args);
     va_end(args);
   }
 }
@@ -150,7 +184,7 @@ gearmand_error_t gearmand_log_error(const char *position, const char *function, 
   if (not Gearmand() or Gearmand()->verbose >= GEARMAND_VERBOSE_ERROR)
   {
     va_start(args, format);
-    gearmand_log(position, function, GEARMAND_VERBOSE_ERROR, format, args);
+    gearmand_log(position, function, GEARMAND_VERBOSE_ERROR, GEARMAN_SUCCESS, format, args);
     va_end(args);
   }
 
@@ -164,11 +198,12 @@ void gearmand_log_warning(const char *position, const char *function, const char
   if (not Gearmand() || Gearmand()->verbose >= GEARMAND_VERBOSE_WARN)
   {
     va_start(args, format);
-    gearmand_log(position, function, GEARMAND_VERBOSE_WARN, format, args);
+    gearmand_log(position, function, GEARMAND_VERBOSE_WARN, GEARMAN_SUCCESS, format, args);
     va_end(args);
   }
 }
 
+// LOG_NOTICE is only used for reporting job status.
 void gearmand_log_notice(const char *position, const char *function, const char *format, ...)
 {
   va_list args;
@@ -176,7 +211,7 @@ void gearmand_log_notice(const char *position, const char *function, const char 
   if (not Gearmand() || Gearmand()->verbose >= GEARMAND_VERBOSE_NOTICE)
   {
     va_start(args, format);
-    gearmand_log(position, function, GEARMAND_VERBOSE_NOTICE, format, args);
+    gearmand_log(position, function, GEARMAND_VERBOSE_NOTICE, GEARMAN_SUCCESS, format, args);
     va_end(args);
   }
 }
@@ -188,7 +223,7 @@ void gearmand_log_info(const char *position, const char *function, const char *f
   if (not Gearmand() || Gearmand()->verbose >= GEARMAND_VERBOSE_INFO)
   {
     va_start(args, format);
-    gearmand_log(position, function, GEARMAND_VERBOSE_INFO, format, args);
+    gearmand_log(position, function, GEARMAND_VERBOSE_INFO, GEARMAN_SUCCESS, format, args);
     va_end(args);
   }
 }
@@ -200,7 +235,7 @@ void gearmand_log_debug(const char *position, const char *function, const char *
   if (not Gearmand() || Gearmand()->verbose >= GEARMAND_VERBOSE_DEBUG)
   {
     va_start(args, format);
-    gearmand_log(position, function, GEARMAND_VERBOSE_DEBUG, format, args);
+    gearmand_log(position, function, GEARMAND_VERBOSE_DEBUG, GEARMAN_SUCCESS, format, args);
     va_end(args);
   }
 }
@@ -213,7 +248,7 @@ void gearmand_log_crazy(const char *position, const char *function, const char *
   if (not Gearmand() || Gearmand()->verbose >= GEARMAND_VERBOSE_CRAZY)
   {
     va_start(args, format);
-    gearmand_log(position, function, GEARMAND_VERBOSE_CRAZY, format, args);
+    gearmand_log(position, function, GEARMAND_VERBOSE_CRAZY, GEARMAN_SUCCESS, format, args);
     va_end(args);
   }
 #else
@@ -252,7 +287,7 @@ gearmand_error_t gearmand_log_gerror(const char *position, const char *function,
     if (Gearmand() == NULL or Gearmand()->verbose >= GEARMAND_VERBOSE_ERROR)
     {
       va_start(args, format);
-      gearmand_log(position, function, GEARMAND_VERBOSE_ERROR, format, args);
+      gearmand_log(position, function, GEARMAND_VERBOSE_ERROR, rc, format, args);
       va_end(args);
     }
   }
@@ -271,7 +306,7 @@ gearmand_error_t gearmand_log_gerror_warn(const char *position, const char *func
     if (Gearmand() == NULL or Gearmand()->verbose >= GEARMAND_VERBOSE_WARN)
     {
       va_start(args, format);
-      gearmand_log(position, function, GEARMAND_VERBOSE_WARN, format, args);
+      gearmand_log(position, function, GEARMAND_VERBOSE_WARN, rc, format, args);
       va_end(args);
     }
   }
