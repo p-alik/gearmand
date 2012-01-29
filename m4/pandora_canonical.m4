@@ -216,8 +216,7 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
   PANDORA_USE_PIPE
 
   AH_TOP([
-#ifndef __CONFIG_H__
-#define __CONFIG_H__
+#pragma once
 
 /* _SYS_FEATURE_TESTS_H is Solaris, _FEATURES_H is GCC */
 #if defined( _SYS_FEATURE_TESTS_H) || defined(_FEATURES_H)
