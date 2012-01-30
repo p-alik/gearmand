@@ -12,7 +12,7 @@
  */
 
 #include <benchmark/benchmark.h>
-#include <stdio.h>
+#include <cstdio>
 
 /*
  * Public definitions

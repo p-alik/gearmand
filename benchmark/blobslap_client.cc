@@ -12,7 +12,11 @@
  */
 
 #include <benchmark/benchmark.h>
+
 #include <iostream>
+#include <cstdlib>
+#include <cstring>
+#include <cstdio>
 
 #define BLOBSLAP_DEFAULT_NUM_TASKS 10
 #define BLOBSLAP_DEFAULT_BLOB_MIN_SIZE 0
