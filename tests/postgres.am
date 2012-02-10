@@ -10,9 +10,19 @@
 # All paths should be given relative to the root
 #
 
-test-postgres: tests-postgres-args
+test-postgres: tests/postgres_test
+	@tests/postgres_test
 
-tests-postgres-args: gearmand/gearmand
-if HAVE_LIBPQ
-	@gearmand/gearmand --check-args --libpq-conninfo="foo" --libpq-table="gearmand"
-endif
+gdb-postgres: tests/postgres_test
+	@$(GDB_COMMAND) tests/postgres_test
+
+tests_postgres_test_SOURCES=
+tests_postgres_test_SOURCES+= tests/basic.cc
+tests_postgres_test_SOURCES+= tests/postgres_test.cc
+
+tests_postgres_test_CXXFLAGS=
+tests_postgres_test_DEPENDENCIES= ${CLIENT_LDADD} gearmand/gearmand
+tests_postgres_test_LDADD= ${CLIENT_LDADD}
+
+check_PROGRAMS += tests/postgres_test
+noinst_PROGRAMS += tests/postgres_test

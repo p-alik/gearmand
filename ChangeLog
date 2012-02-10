@@ -1,3 +1,6 @@
+0.29
+* Additional Fixes for Postgres
+
 0.28 Thu Jan 26 22:43:46 PST 2012
 * -v has been deprecated because of parsing issues. Please use --verbose instead
 * --log-file=stderr will set output to stderr.

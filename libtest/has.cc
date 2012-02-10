@@ -1,5 +1,5 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
- * 
+ *
  *  libtest
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
@@ -22,6 +22,8 @@
 #include <config.h>
 #include <libtest/has.hpp>
 
+#include <cstdlib>
+
 bool has_memcached_support(void)
 {
   if (HAVE_LIBMEMCACHED and HAVE_MEMCACHED_BINARY)
@@ -37,6 +39,20 @@ bool has_drizzle_support(void)
   if (HAVE_LIBDRIZZLE and HAVE_DRIZZLED_BINARY)
   {
     return true;
+  }
+
+  return false;
+}
+
+bool has_postgres_support(void)
+{
+  if (getenv("POSTGES_IS_RUNNING_AND_SETUP"))
+  {
+
+    if (HAVE_LIBPQ)
+    {
+      return true;
+    }
   }
 
   return false;

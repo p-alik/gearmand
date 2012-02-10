@@ -1,5 +1,5 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
- * 
+ *
  *  libtest
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
@@ -24,3 +24,5 @@
 bool has_memcached_support(void);
 
 bool has_drizzle_support(void);
+
+bool has_postgres_support(void);

@@ -3,13 +3,16 @@ dnl  Copyright (C) 2011 Brian Aker (brian@tangent.org)
 AC_DEFUN([_SEARCH_LIBPQ],[
   AC_REQUIRE([AX_LIB_POSTGRESQL])
 
-  AS_IF([test "x$found_postgresql" = "xyes"],[ ],
+  AS_IF([test "x$found_postgresql" = "xyes"],
     [
-    AC_DEFINE([HAVE_POSTGRESQL], [0], [If libpq is available])
+      AC_DEFINE([HAVE_LIBPQ], [ 1 ], [Enable libpq support])
+    ],
+    [
+    AC_DEFINE([HAVE_LIBPQ], [ 0 ], [Enable libpq support])
     ac_cv_libpq="no"
     ])
 
-  AM_CONDITIONAL(HAVE_LIBPQ, [test "x$ac_cv_lib_pq_main" = "xyes"])
+  AM_CONDITIONAL(HAVE_LIBPQ, [test "x$ac_cv_libpq" = "xyes"])
   ])
 
 AC_DEFUN([AX_HAVE_LIBPQ],[

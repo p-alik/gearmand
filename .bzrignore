@@ -86,6 +86,7 @@ tests/client_test.res
 tests/cpp_test
 tests/cycle
 tests/drizzle_test
+tests/postgres_test
 tests/gearadmin
 tests/gearman.pi*
 tests/gearman.sql
