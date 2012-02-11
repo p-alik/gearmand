@@ -1,5 +1,5 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
- * 
+ *
  *  Gearmand client and server library.
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
@@ -55,4 +55,5 @@
 #define EPHEMERAL_PORT GEARMAN_BASE_TEST_PORT +14
 #define REDIS_PORT GEARMAN_BASE_TEST_PORT +15
 #define HTTPD_PORT GEARMAN_BASE_TEST_PORT +16
-#define GEARMAN_MAX_TEST_PORT HTTPD_PORT
+#define POSTGRES_TEST_PORT GEARMAN_BASE_TEST_PORT +17
+#define GEARMAN_MAX_TEST_PORT POSTGRES_TEST_PORT

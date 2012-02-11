@@ -1,5 +1,5 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
- * 
+ *
  *  Gearmand client and server library.
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
@@ -63,9 +63,11 @@ void initialize(boost::program_options::options_description &all)
     queue::initialize_sqlite();
   }
 
-#ifdef HAVE_LIBPQ
-  queue::initialize_postgres();
-#endif
+  if (HAVE_LIBPQ)
+  {
+    queue::initialize_postgres();
+  }
+
 
 #ifdef HAVE_LIBHIREDIS
   queue::initialize_redis();
