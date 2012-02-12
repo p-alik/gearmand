@@ -173,6 +173,8 @@ gearman_task_st *gearman_execute_by_partition(gearman_client_st *client,
     gearman_error(client->universal, GEARMAN_INVALID_ARGUMENT, "function_name was NULL");
     return NULL;
   }
+  
+  universal_reset_error(client->universal);
 
   gearman_task_st *task= NULL;
   gearman_string_t partition= { partition_function, partition_function_length };
@@ -242,7 +244,9 @@ gearman_task_st *gearman_execute_by_partition(gearman_client_st *client,
   }
 
   if (not task)
+  {
     return NULL;
+  }
 
   do {
     gearman_return_t rc;

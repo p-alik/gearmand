@@ -130,10 +130,12 @@ int main(int args, char *argv[])
 
   in_port_t port;
   std::string host;
+  std::string identifier;
   boost::program_options::options_description desc("Options");
   desc.add_options()
     ("help", "Options related to the program.")
     ("host,h", boost::program_options::value<std::string>(&host)->default_value("localhost"),"Connect to the host")
+    ("identifier", boost::program_options::value<std::string>(&identifier),"Assign identifier")
     ("port,p", boost::program_options::value<in_port_t>(&port)->default_value(GEARMAN_DEFAULT_TCP_PORT), "Port number use for connection")
     ("count,c", boost::program_options::value<uint64_t>(&limit)->default_value(0), "Number of jobs to run before exiting")
     ("timeout,u", boost::program_options::value<int>(&timeout)->default_value(-1), "Timeout in milliseconds")
@@ -187,6 +189,15 @@ int main(int args, char *argv[])
   {
     std::cerr << gearman_worker_error(worker) << std::endl;
     return EXIT_FAILURE;
+  }
+
+  if (identifier.empty() == false)
+  {
+    if (gearman_failed(gearman_worker_set_identifier(worker, identifier.c_str(), identifier.size())))
+    {
+      std::cerr << gearman_worker_error(worker) << std::endl;
+      return EXIT_FAILURE;
+    }
   }
 
   gearman_function_t worker_fn= gearman_function_create(reverse_worker);

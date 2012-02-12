@@ -720,6 +720,10 @@ size_t gearman_client_count_tasks(gearman_client_st *client);
 GEARMAN_API
 void gearman_client_set_namespace(gearman_client_st *self, const char *namespace_key, size_t namespace_key_size);
 
+GEARMAN_API
+gearman_return_t gearman_client_set_identifier(gearman_client_st *client,
+                                               const char *id, size_t id_size);
+
 /** @} */
 
 #ifdef __cplusplus

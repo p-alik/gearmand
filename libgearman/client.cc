@@ -117,6 +117,8 @@ static void *_client_do(gearman_client_st *client, gearman_command_t command,
     ret_ptr= &unused;
   }
 
+  universal_reset_error(client->universal);
+
   size_t unused_size;
   if (result_size == NULL)
   {
@@ -232,6 +234,8 @@ static gearman_return_t _client_do_background(gearman_client_st *client,
   {
     return GEARMAN_INVALID_ARGUMENT;
   }
+
+  universal_reset_error(client->universal);
 
   if (gearman_size(function) == 0)
   {
@@ -744,6 +748,8 @@ gearman_return_t gearman_client_job_status(gearman_client_st *client,
   {
     return GEARMAN_INVALID_ARGUMENT;
   }
+
+  universal_reset_error(client->universal);
 
   gearman_task_st do_task;
   gearman_task_st *do_task_ptr= gearman_client_add_task_status(client, &do_task, client,
@@ -1558,3 +1564,10 @@ void gearman_client_set_namespace(gearman_client_st *self, const char *namespace
 
   gearman_universal_set_namespace(self->universal, namespace_key, namespace_key_size);
 }
+
+gearman_return_t gearman_client_set_identifier(gearman_client_st *client,
+                                               const char *id, size_t id_size)
+{
+  return gearman_set_identifier(client->universal, id, id_size);
+}
+

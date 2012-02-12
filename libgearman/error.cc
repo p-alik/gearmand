@@ -78,6 +78,13 @@ static void correct_from_errno(gearman_universal_st& universal)
   }
 }
 
+void universal_reset_error(gearman_universal_st& universal)
+{
+  universal.error.rc= GEARMAN_SUCCESS;
+  universal.error.last_errno= 0;
+  universal.error.last_error[0]= 0;
+}
+
 gearman_return_t gearman_universal_set_error(gearman_universal_st& universal, 
                                              gearman_return_t rc,
                                              const char *function,
