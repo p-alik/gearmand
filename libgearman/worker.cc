@@ -1351,3 +1351,9 @@ gearman_worker_st *gearman_job_clone_worker(gearman_job_st *job)
 {
   return gearman_worker_clone(NULL, job->worker);
 }
+
+gearman_return_t gearman_worker_set_identifier(gearman_worker_st *worker,
+                                               const char *id, size_t id_size)
+{
+  return gearman_set_identifier(worker->universal, id, id_size);
+}

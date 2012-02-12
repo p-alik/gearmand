@@ -1143,6 +1143,16 @@ static test_return_t regression_833394_test(void *object)
   return TEST_SUCCESS;
 }
 
+static test_return_t gearman_client_set_identifier_TEST(void* object)
+{
+  gearman_client_st *client= (gearman_client_st *)object;
+
+  test_compare(GEARMAN_SUCCESS,
+               gearman_client_set_identifier(client, test_literal_param(__func__)));
+
+  return TEST_SUCCESS;
+}
+
 static uint32_t global_counter;
 
 static test_return_t pre_chunk(void *object)
@@ -1327,6 +1337,10 @@ static bool world_destroy(void *object)
   return TEST_SUCCESS;
 }
 
+test_st gearman_client_set_identifier_TESTS[] ={
+  {"gearman_client_set_identifier()", 0, gearman_client_set_identifier_TEST },
+  {0, 0, 0}
+};
 
 test_st gearman_id_t_TESTS[] ={
   {"gearman_client_st", 0, gearman_client_st_id_t_TEST },

@@ -156,3 +156,7 @@ static inline int gearman_universal_errno(const gearman_universal_st &self)
 }
 
 gearman_id_t gearman_universal_id(gearman_universal_st &universal);
+
+gearman_return_t gearman_set_identifier(gearman_universal_st& universal,
+                                        const char *id,
+                                        size_t id_size);

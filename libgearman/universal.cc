@@ -50,6 +50,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <cctype>
 #include <unistd.h>
 
 void gearman_universal_initialize(gearman_universal_st &self, const gearman_universal_options_t *options)
@@ -397,6 +398,100 @@ static inline void _push_blocking(gearman_universal_st& universal, bool &orig_bl
 static inline void _pop_non_blocking(gearman_universal_st& universal, bool orig_block_universal)
 {
   universal.options.non_blocking= orig_block_universal;
+}
+
+gearman_return_t gearman_set_identifier(gearman_universal_st& universal,
+                                        const char *id, size_t id_size)
+{
+  bool orig_block_universal;
+
+  if (id == NULL)
+  {
+    return gearman_error(universal, GEARMAN_INVALID_ARGUMENT, "id was NULL");
+  }
+
+  if (id_size == 0)
+  {
+    return gearman_error(universal, GEARMAN_INVALID_ARGUMENT,  "id_size was 0");
+  }
+
+  if (id_size > GEARMAN_MAX_IDENTIFIER)
+  {
+    return gearman_error(universal, GEARMAN_ARGUMENT_TOO_LARGE,  "id_size was greater then GEARMAN_MAX_ECHO_SIZE");
+  }
+
+  for (size_t x= 0; x < id_size; x++)
+  {
+    if (isgraph(id[x]) == false)
+    {
+      return gearman_error(universal, GEARMAN_INVALID_ARGUMENT,  "Invalid character found in identifier");
+    }
+  }
+
+  gearman_packet_st packet;
+  gearman_return_t ret= gearman_packet_create_args(universal, packet, GEARMAN_MAGIC_REQUEST,
+                                                   GEARMAN_COMMAND_SET_CLIENT_ID,
+                                                   (const void**)&id, &id_size, 1);
+  if (gearman_failed(ret))
+  {
+#if 0
+    assert_msg(universal.error.rc != GEARMAN_SUCCESS, "Programmer error, error returned but not recorded");
+#endif
+    gearman_packet_free(&packet);
+    return ret;
+  }
+
+  _push_blocking(universal, orig_block_universal);
+
+  for (gearman_connection_st *con= universal.con_list; con; con= con->next)
+  {
+    ret= con->send_packet(packet, true);
+    if (gearman_failed(ret))
+    {
+#if 0
+      assert_msg(con->universal.error.rc != GEARMAN_SUCCESS, "Programmer error, error returned but not recorded");
+#endif
+      goto exit;
+    }
+
+    con->options.packet_in_use= true;
+    gearman_packet_st *packet_ptr= con->receiving(con->_packet, ret, true);
+    if (gearman_failed(ret))
+    {
+#if 0
+      assert_msg(con->universal.error.rc != GEARMAN_SUCCESS, "Programmer error, error returned but not recorded");
+#endif
+      con->free_private_packet();
+      con->recv_packet= NULL;
+
+      goto exit;
+    }
+    assert(packet_ptr);
+
+    if (con->_packet.data_size != id_size or
+        memcmp(id, con->_packet.data, id_size))
+    {
+#if 0
+      assert_msg(con->universal.error.rc != GEARMAN_SUCCESS, "Programmer error, error returned but not recorded");
+#endif
+      con->free_private_packet();
+      con->recv_packet= NULL;
+      ret= gearman_error(universal, GEARMAN_ECHO_DATA_CORRUPTION, "corruption during echo");
+
+      goto exit;
+    }
+
+    con->recv_packet= NULL;
+    con->free_private_packet();
+  }
+
+  ret= GEARMAN_SUCCESS;
+
+exit:
+  gearman_packet_free(&packet);
+  _pop_non_blocking(universal, orig_block_universal);
+
+  return ret;
 }
 
 gearman_return_t gearman_echo(gearman_universal_st& universal,

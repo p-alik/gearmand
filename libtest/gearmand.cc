@@ -176,7 +176,7 @@ public:
 
   const char *log_file_option()
   {
-    return "-vvvvvvvv --log-file=";
+    return "--verbose=DEBUG --log-file=";
   }
 
   const char *port_option()

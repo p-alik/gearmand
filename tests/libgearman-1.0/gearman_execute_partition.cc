@@ -52,8 +52,11 @@ using namespace libtest;
 test_return_t gearman_execute_partition_check_parameters(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
+  test_true(client);
 
-  test_true_got(gearman_success(gearman_client_echo(client, test_literal_param("this is mine"))), gearman_client_error(client));
+  test_compare_got(GEARMAN_SUCCESS,
+                   gearman_client_echo(client, test_literal_param("this is mine")),
+                   gearman_client_error(client));
 
   // This just hear to make it easier to trace when gearman_execute() is
   // called (look in the log to see the failed option setting.
@@ -101,8 +104,7 @@ test_return_t gearman_execute_partition_basic(void *object)
                                                       NULL, 0,  // unique
                                                       NULL,
                                                       &workload, 0);
-  test_true(task);
-
+  test_true_hint(task, gearman_client_error(client));
   test_compare(GEARMAN_SUCCESS, gearman_task_return(task));
   gearman_result_st *result= gearman_task_result(task);
   test_truth(result);

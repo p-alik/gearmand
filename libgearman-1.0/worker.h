@@ -464,6 +464,10 @@ GEARMAN_API
 GEARMAN_API
   gearman_id_t gearman_worker_id(gearman_worker_st *self);
 
+GEARMAN_API
+  gearman_return_t gearman_worker_set_identifier(gearman_worker_st *worker,
+                                                 const char *id, size_t id_size);
+
 /** @} */
 
 #ifdef __cplusplus

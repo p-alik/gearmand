@@ -712,6 +712,19 @@ static test_return_t gearman_worker_add_options_GEARMAN_WORKER_GRAB_UNIQ(void *)
   return TEST_SUCCESS;
 }
 
+static test_return_t gearman_worker_set_identifier_TEST(void *)
+{
+  Worker worker;
+
+  test_compare(GEARMAN_SUCCESS,
+               gearman_worker_add_server(&worker, NULL, WORKER_TEST_PORT));
+
+  test_compare(GEARMAN_SUCCESS,
+               gearman_worker_set_identifier(&worker, test_literal_param(__func__)));
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t gearman_worker_add_options_GEARMAN_WORKER_GRAB_UNIQ_worker_work(void *)
 {
   Worker worker;
@@ -819,14 +832,23 @@ test_st worker_defaults[] ={
   {0, 0, 0}
 };
 
+test_st gearman_worker_set_identifier_TESTS[] ={
+#if 0
+  {"gearman_worker_set_identifier()", 0, gearman_worker_set_identifier_TEST },
+#endif
+  {0, 0, 0}
+};
+
 collection_st collection[] ={
   {"worker", 0, 0, tests},
   {"worker defaults", 0, 0, worker_defaults},
+  {"gearman_worker_set_identifier()", 0, 0, gearman_worker_set_identifier_TESTS},
   {0, 0, 0, 0}
 };
 
 void get_world(Framework *world)
 {
+  (void)gearman_worker_set_identifier_TEST;
   world->collections= collection;
   world->_create= world_create;
 }
