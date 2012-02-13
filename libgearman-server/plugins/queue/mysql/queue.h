@@ -1,5 +1,4 @@
-/*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
- *
+/*  
  *  Gearmand client and server library.
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
@@ -35,56 +34,15 @@
  *
  */
 
-#include <config.h>
-#include <iostream>
+#pragma once
 
-#include <libgearman-server/plugins.h>
-
-#include <libgearman-server/queue.h>
-#include <libgearman-server/plugins/queue.h>
 
 namespace gearmand {
 namespace plugins {
+namespace queue {
 
-void initialize(boost::program_options::options_description &all)
-{
-  if (HAVE_LIBDRIZZLE)
-  {
-    queue::initialize_drizzle();
-  }
+void initialize_mysql();
 
-  if (HAVE_LIBMEMCACHED)
-  {
-    queue::initialize_libmemcached();
-  }
-
-  if (HAVE_LIBSQLITE3)
-  {
-    queue::initialize_sqlite();
-  }
-
-  if (HAVE_LIBPQ)
-  {
-    queue::initialize_postgres();
-  }
-
-
-#ifdef HAVE_LIBHIREDIS
-  queue::initialize_redis();
-#endif
-
-  if (HAVE_LIBTOKYOCABINET)
-  {
-    queue::initialize_tokyocabinet();
-  }
-
-  if (HAVE_MYSQL)
-  {
-    queue::initialize_mysql();
-  }
-
-  gearmand::queue::load_options(all);
-}
-
-} //namespace plugins
-} //namespace gearmand
+} // namespace queue
+} // namespace plugin
+} // namespace gearmand
