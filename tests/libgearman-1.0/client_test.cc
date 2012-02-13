@@ -1348,7 +1348,7 @@ test_st gearman_id_t_TESTS[] ={
   {0, 0, 0}
 };
 
-test_st tests[] ={
+test_st gearman_client_st_TESTS[] ={
   {"bug_518512_test", 0, bug_518512_test },
   {"init", 0, init_test },
   {"allocation", 0, allocation_test },
@@ -1486,8 +1486,8 @@ test_st limit_tests[] ={
 
 collection_st collection[] ={
   {"gearman_id_t", 0, 0, gearman_id_t_TESTS},
-  {"gearman_client_st", 0, 0, tests},
-  {"gearman_client_st chunky", pre_chunk, post_function_reset, tests}, // Test with a worker that will respond in part
+  {"gearman_client_st", 0, 0, gearman_client_st_TESTS},
+  {"gearman_client_st chunky", pre_chunk, post_function_reset, gearman_client_st_TESTS}, // Test with a worker that will respond in part
   {"gearman_strerror()", 0, 0, gearman_strerror_tests},
   {"gearman_task_add_task()", 0, 0, gearman_task_tests},
   {"gearman_task_add_task() v2 workers", pre_v2, post_function_reset, gearman_task_tests},
@@ -1535,6 +1535,8 @@ static test_return_t _runner_prepost_default(libgearman_test_prepost_callback_fn
 
 static test_return_t _runner_default(libgearman_test_callback_fn func, client_test_st *container)
 {
+  test_compare(GEARMAN_SUCCESS, gearman_client_echo(container->client(), test_literal_param("check")));
+
   if (func)
   {
     test_return_t rc;

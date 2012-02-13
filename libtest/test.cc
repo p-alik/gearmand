@@ -101,17 +101,20 @@ int main(int argc, char *argv[])
   }
 
   bool opt_repeat= false;
+  std::string collection_to_run;
 
   // Options parsing
   {
     enum long_option_t {
       OPT_LIBYATL_VERSION,
+      OPT_LIBYATL_MATCH_COLLECTION,
       OPT_LIBYATL_REPEAT
     };
 
     static struct option long_options[]=
     {
       {"repeat", no_argument, NULL, OPT_LIBYATL_REPEAT},
+      {"collection", required_argument, NULL, OPT_LIBYATL_MATCH_COLLECTION},
       {0, 0, 0, 0}
     };
 
@@ -131,6 +134,10 @@ int main(int argc, char *argv[])
 
       case OPT_LIBYATL_REPEAT:
         opt_repeat= true;
+        break;
+
+      case OPT_LIBYATL_MATCH_COLLECTION:
+        collection_to_run= optarg;
         break;
 
       case '?':
@@ -220,14 +227,7 @@ int main(int argc, char *argv[])
       return EXIT_FAILURE;
     }
 
-    char *collection_to_run= NULL;
-    if (argc > 1)
-    {
-#if 0
-      collection_to_run= argv[1];
-#endif
-    }
-    else if (getenv("TEST_COLLECTION"))
+    if (getenv("TEST_COLLECTION"))
     {
       if (strlen(getenv("TEST_COLLECTION")))
       {
@@ -235,7 +235,7 @@ int main(int argc, char *argv[])
       }
     }
 
-    if (collection_to_run)
+    if (collection_to_run.empty() == false)
     {
       Out << "Only testing " <<  collection_to_run;
     }
@@ -248,16 +248,17 @@ int main(int argc, char *argv[])
 
     for (collection_st *next= world->collections; next and next->name and (not signal.is_shutdown()); next++)
     {
-      test_return_t collection_rc= TEST_SUCCESS;
       bool failed= false;
       bool skipped= false;
 
-      if (collection_to_run && fnmatch(collection_to_run, next->name, 0))
+      if (collection_to_run.empty() == false and fnmatch(collection_to_run.c_str(), next->name, 0))
+      {
         continue;
+      }
 
       stats.collection_total++;
 
-      collection_rc= world->startup(creators_ptr);
+      test_return_t collection_rc= world->startup(creators_ptr);
 
       if (collection_rc == TEST_SUCCESS and next->pre)
       {
