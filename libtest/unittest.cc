@@ -264,13 +264,16 @@ static test_return_t memcached_socket_cycle_test(void *object)
   server_startup_st *servers= (server_startup_st*)object;
   test_true(servers);
 
-  if (MEMCACHED_BINARY and HAVE_LIBMEMCACHED)
+  if (MEMCACHED_BINARY)
   {
-    test_true(has_memcached_binary());
-    const char *argv[1]= { "cycle_memcached" };
-    test_true(servers->start_socket_server("memcached", 9997, 1, argv));
+    if (HAVE_LIBMEMCACHED)
+    {
+      test_true(has_memcached_binary());
+      const char *argv[1]= { "cycle_memcached" };
+      test_true(servers->start_socket_server("memcached", 9997, 1, argv));
 
-    return TEST_SUCCESS;
+      return TEST_SUCCESS;
+    }
   }
 
   return TEST_SKIPPED;
@@ -286,13 +289,16 @@ static test_return_t memcached_sasl_test(void *object)
     return TEST_SKIPPED;
   }
 
-  if (MEMCACHED_SASL_BINARY and HAVE_LIBMEMCACHED)
+  if (MEMCACHED_SASL_BINARY)
   {
-    test_true(has_memcached_sasl_binary());
-    const char *argv[1]= { "cycle_memcached_sasl" };
-    test_true(server_startup(*servers, "memcached-sasl", 9996, 1, argv));
+    if (HAVE_LIBMEMCACHED)
+    {
+      test_true(has_memcached_sasl_binary());
+      const char *argv[1]= { "cycle_memcached_sasl" };
+      test_true(server_startup(*servers, "memcached-sasl", 9996, 1, argv));
 
-    return TEST_SUCCESS;
+      return TEST_SUCCESS;
+    }
   }
 
   return TEST_SKIPPED;
@@ -315,7 +321,7 @@ static test_return_t application_true_fubar_BINARY(void *)
   const char *args[]= { "--fubar", 0 };
   test_compare(Application::SUCCESS, true_app.run(args));
   test_compare(Application::SUCCESS, true_app.wait());
-  test_compare(0, (*true_app.stdout_result()).size());
+  test_compare(0, true_app.stdout_result().size());
 
   return TEST_SUCCESS;
 }
@@ -327,7 +333,7 @@ static test_return_t application_true_fubar_eq_doh_BINARY(void *)
   const char *args[]= { "--fubar=doh", 0 };
   test_compare(Application::SUCCESS, true_app.run(args));
   test_compare(Application::SUCCESS, true_app.wait());
-  test_compare(0, (*true_app.stdout_result()).size());
+  test_compare(0, true_app.stdout_result().size());
 
   return TEST_SUCCESS;
 }
@@ -340,7 +346,7 @@ static test_return_t application_true_fubar_eq_doh_option_BINARY(void *)
 
   test_compare(Application::SUCCESS, true_app.run());
   test_compare(Application::SUCCESS, true_app.wait());
-  test_compare(0, (*true_app.stdout_result()).size());
+  test_compare(0, true_app.stdout_result().size());
 
   return TEST_SUCCESS;
 }
@@ -378,7 +384,8 @@ static test_return_t TRACE_TEST(void *)
 
 static test_return_t vchar_t_TEST(void *)
 {
-  libtest::vchar_t response(test_literal_param("fubar\n"));
+  libtest::vchar_t response;
+  libtest::make_vector(response, test_literal_param("fubar\n"));
   test_compare(response, response);
 
   return TEST_SUCCESS;
@@ -392,7 +399,8 @@ static test_return_t application_echo_fubar_BINARY(void *)
   test_compare(Application::SUCCESS, true_app.run(args));
   test_compare(Application::SUCCESS, true_app.wait());
 
-  libtest::vchar_t response(test_literal_param("fubar\n"));
+  libtest::vchar_t response;
+  make_vector(response, test_literal_param("fubar\n"));
   test_compare(response, true_app.stdout_result());
 
   return TEST_SUCCESS;
@@ -406,7 +414,8 @@ static test_return_t application_echo_fubar_BINARY2(void *)
 
   test_compare(Application::SUCCESS, true_app.run());
   test_compare(Application::SUCCESS, true_app.wait());
-  libtest::vchar_t response(test_literal_param("fubar\n"));
+  libtest::vchar_t response;
+  make_vector(response, test_literal_param("fubar\n"));
   test_compare(response, true_app.stdout_result());
 
   return TEST_SUCCESS;
