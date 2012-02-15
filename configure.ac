@@ -195,6 +195,8 @@ AC_CHECK_LIB([m], [floor],
 AC_CHECK_FUNC(setsockopt, [], [AC_CHECK_LIB(socket, setsockopt)])
 AC_CHECK_FUNC(bind, [], [AC_CHECK_LIB(bind, bind)])
 
+AC_DEFINE([GEARMAND_BLOBSLAP_WORKER], [ 1 ], [Have Gearman Blobslap Worker])
+
 AC_TEST_FOR_REPOSITORY
 
 m4_include([m4/relro.m4])

@@ -39,10 +39,10 @@ extern "C" size_t
 
     vchar_t *_body= (vchar_t*)data;
 
-    _body->get().resize(size * nmemb);
-    memcpy(&(_body)[0], ptr, _body->get().size());
+    _body->resize(size * nmemb);
+    memcpy(&_body[0], ptr, _body->size());
 
-    return _body->get().size();
+    return _body->size();
   }
 
 
@@ -91,8 +91,8 @@ bool POST::execute()
 
     init(curl, url());
 
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, _body.get().size());
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (void *)&_body);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, _body.size());
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (void *)&_body[0]);
 
     CURLcode retref= curl_easy_perform(curl);
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, _response);
@@ -115,7 +115,7 @@ bool TRACE::execute()
 
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "TRACE");
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, http_get_result_callback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&_body);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&_body[0]);
 
     CURLcode retref= curl_easy_perform(curl);
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, _response);

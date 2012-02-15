@@ -30,51 +30,10 @@
 
 namespace libtest {
 
-typedef std::vector<char> _vchar_t;
+typedef std::vector<char*> vchar_ptr_t;
+typedef std::vector<char> vchar_t;
 
-class vchar_t {
-public:
-  vchar_t()
-  {
-  }
-
-  vchar_t(const char *arg, const size_t arg_size)
-  {
-    _vchar.resize(arg_size);
-    memcpy(&_vchar[0], arg, arg_size);
-  }
-
-  const _vchar_t& operator*() const
-  { 
-    return _vchar;
-  }
-
-  _vchar_t& operator*()
-  { 
-    return _vchar;
-  }
-
-  const _vchar_t& get() const
-  { 
-    return _vchar;
-  }
-
-  _vchar_t& get()
-  { 
-    return _vchar;
-  }
-
-  bool operator==(const vchar_t& right) const;
-
-  bool operator!=(const vchar_t& right) const;
-
-  ~vchar_t()
-  {
-  }
-
-private:
-  _vchar_t _vchar;
-};
+void make_vector(libtest::vchar_t& arg, const char *str, size_t length);
 
 std::ostream& operator<<(std::ostream& output, const libtest::vchar_t& arg);
 

@@ -80,7 +80,7 @@ public:
 
   size_t stdout_result_length() const
   {
-    return (*_stdout_buffer).size();
+    return _stdout_buffer.size();
   }
 
   libtest::vchar_t stderr_result() const
@@ -90,7 +90,7 @@ public:
 
   size_t stderr_result_length() const
   {
-    return (*_stderr_buffer).size();
+    return _stderr_buffer.size();
   }
 
   std::string print();

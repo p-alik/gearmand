@@ -105,8 +105,8 @@ Application::error_t Application::run(const char *args[])
   stdin_fd.reset();
   stdout_fd.reset();
   stderr_fd.reset();
-  (*_stdout_buffer).clear();
-  (*_stderr_buffer).clear();
+  _stdout_buffer.clear();
+  _stderr_buffer.clear();
 
   posix_spawn_file_actions_t file_actions;
   posix_spawn_file_actions_init(&file_actions);
@@ -168,10 +168,10 @@ Application::error_t Application::wait()
           bail= true;
         }
       }
-      (*_stdout_buffer).reserve(read_length +1);
+      _stdout_buffer.reserve(read_length +1);
       for (size_t x= 0; x < read_length; x++)
       {
-        (*_stdout_buffer).push_back(buffer[x]);
+        _stdout_buffer.push_back(buffer[x]);
       }
       // @todo Suck up all output code here
     }
@@ -195,10 +195,10 @@ Application::error_t Application::wait()
           bail= true;
         }
       }
-      (*_stderr_buffer).reserve(read_length +1);
+      _stderr_buffer.reserve(read_length +1);
       for (size_t x= 0; x < read_length; x++)
       {
-        (*_stderr_buffer).push_back(buffer[x]);
+        _stderr_buffer.push_back(buffer[x]);
       }
       // @todo Suck up all errput code here
     }

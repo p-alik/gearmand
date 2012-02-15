@@ -174,32 +174,19 @@ bool server_startup(server_startup_st& construct, const std::string& server_type
       {
         server= build_gearmand("localhost", try_port);
       }
-      else
-      {
-        Error << "Libgearman was not found";
-      }
-    } 
-    else
-    {
-      Error << "No gearmand binary is available";
     }
   }
   else if (server_type.compare("blobslap_worker") == 0)
   {
     if (GEARMAND_BINARY)
     {
-      if (HAVE_LIBGEARMAN)
+      if (GEARMAND_BLOBSLAP_WORKER)
       {
-        server= build_blobslap_worker(try_port);
+        if (HAVE_LIBGEARMAN)
+        {
+          server= build_blobslap_worker(try_port);
+        }
       }
-      else
-      {
-        Error << "Libgearman was not found";
-      }
-    }
-    else
-    {
-      Error << "No gearmand binary is available";
     }
   }
   else if (server_type.compare("memcached-sasl") == 0)
@@ -210,14 +197,6 @@ bool server_startup(server_startup_st& construct, const std::string& server_type
       {
         server= build_memcached_sasl("localhost", try_port, construct.username(), construct.password());
       }
-      else
-      {
-        Error << "Libmemcached was not found";
-      }
-    }
-    else
-    {
-      Error << "No memcached binary that was compiled with sasl is available";
     }
   }
   else if (server_type.compare("memcached") == 0)
@@ -228,19 +207,7 @@ bool server_startup(server_startup_st& construct, const std::string& server_type
       {
         server= build_memcached("localhost", try_port);
       }
-      else
-      {
-        Error << "Libmemcached was not found";
-      }
     }
-    else
-    {
-      Error << "No memcached binary is available";
-    }
-  }
-  else
-  {
-    Error << "Failed to start " << server_type << ", no support was found to be compiled in for it.";
   }
 
   if (server == NULL)
@@ -252,7 +219,7 @@ bool server_startup(server_startup_st& construct, const std::string& server_type
   /*
     We will now cycle the server we have created.
   */
-  if (not server->cycle())
+  if (server->cycle() == false)
   {
     Error << "Could not start up server " << *server;
     delete server;
