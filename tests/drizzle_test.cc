@@ -22,8 +22,6 @@ using namespace libtest;
 #include <tests/basic.h>
 #include <tests/context.h>
 
-#include <tests/ports.h>
-
 #define WORKER_FUNCTION "drizzle_queue_test"
 
 #if defined(HAVE_LIBDRIZZLE) && HAVE_LIBDRIZZLE
@@ -127,7 +125,7 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
     }
   }
 
-  Context *test= new Context(DRIZZLE_TEST_PORT, servers);
+  Context *test= new Context(default_port(), servers);
   if (not test)
   {
     error= TEST_MEMORY_ALLOCATION_FAILURE;

@@ -52,16 +52,16 @@ using namespace libtest;
 #include <tests/basic.h>
 #include <tests/context.h>
 
-#include <tests/ports.h>
-
 // Prototypes
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
+static char url[1024]= { 0 };
+
 static test_return_t GET_TEST(void *)
 {
-  libtest::http::GET get("http://localhost:8090/");
+  libtest::http::GET get(url);
 
   test_compare(false, get.execute());
 
@@ -70,7 +70,7 @@ static test_return_t GET_TEST(void *)
 
 static test_return_t HEAD_TEST(void *)
 {
-  libtest::http::HEAD head("http://localhost:8090/");
+  libtest::http::HEAD head(url);
 
   test_compare(false, head.execute());
 
@@ -80,8 +80,13 @@ static test_return_t HEAD_TEST(void *)
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  const char *argv[]= { "gearmand", "--protocol=http", "--http-port=8090", 0 };
-  if (server_startup(servers, "gearmand", HTTPD_PORT, 3, argv) == false)
+  in_port_t http_port= libtest::get_free_port();
+  snprintf(url, sizeof(url), "http://localhost:%d/", int(http_port));
+
+  char buffer[1024];
+  snprintf(buffer, sizeof(buffer), "--http-port=%d", int(http_port));
+  const char *argv[]= { "gearmand", "--protocol=http", buffer, 0 };
+  if (server_startup(servers, "gearmand", libtest::default_port(), 3, argv) == false)
   {
     error= TEST_FAILURE;
     return NULL;

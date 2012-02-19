@@ -49,8 +49,6 @@ using namespace libtest;
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #endif
 
-#include "tests/ports.h"
-
 static std::string executable;
 
 static test_return_t postion_TEST(void *)

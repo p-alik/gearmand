@@ -211,6 +211,17 @@ do \
   } \
 } while (0)
 
+#define test_memcmp_hint(A,B,C,__hint) \
+do \
+{ \
+  if ((A) == NULL or (B) == NULL or memcmp((A), (B), (C))) \
+  { \
+    fprintf(stderr, "\n%s:%d: (hint:%s) %.*s -> %.*s\n", __FILE__, __LINE__, __hint, (int)(C), (char *)(A), (int)(C), (char *)(B)); \
+    libtest::create_core(); \
+    return TEST_FAILURE; \
+  } \
+} while (0)
+
 #define test_return_if(__test_return_t) \
 do \
 { \

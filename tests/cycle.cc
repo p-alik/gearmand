@@ -45,7 +45,6 @@
 using namespace libtest;
 #include <libgearman/gearman.h>
 
-#include "tests/ports.h"
 #include "tests/start_worker.h"
 
 static gearman_return_t success_fn(gearman_job_st*, void* /* context */)
@@ -93,7 +92,7 @@ collection_st collection[] ={
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
   const char *argv[1]= { "client_gearmand" };
-  if (server_startup(servers, "gearmand", CYCLE_TEST_PORT, 1, argv) == false)
+  if (server_startup(servers, "gearmand", libtest::default_port(), 1, argv) == false)
   {
     error= TEST_FAILURE;
   }

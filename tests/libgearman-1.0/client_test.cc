@@ -50,8 +50,6 @@ using namespace libtest;
 #include <vector>
 #include <boost/foreach.hpp>
 
-#include <tests/ports.h>
-
 #define GEARMAN_CORE
 #include <libgearman/gearman.h>
 
@@ -228,7 +226,7 @@ extern "C"
       pthread_exit(0);
     }
 
-    gearman_return_t rc= gearman_client_add_server(&client, NULL, CLIENT_TEST_PORT);
+    gearman_return_t rc= gearman_client_add_server(&client, NULL, libtest::default_port());
     if (gearman_failed(rc))
     {
       *ret= rc;
@@ -862,7 +860,7 @@ static test_return_t bug_518512_test(void *)
   test_truth(gearman_client_create(&client));
 
   test_compare(GEARMAN_SUCCESS,
-               gearman_client_add_server(&client, NULL, CLIENT_TEST_PORT));
+               gearman_client_add_server(&client, NULL, libtest::default_port()));
 
   gearman_client_set_timeout(&client, 0);
   gearman_return_t rc;
@@ -873,7 +871,7 @@ static test_return_t bug_518512_test(void *)
   test_zero(result_size);
 
   gearman_function_t func_arg= gearman_function_create_v1(client_test_temp_worker);
-  struct worker_handle_st *completion_worker= test_worker_start(CLIENT_TEST_PORT, NULL, "client_test_temp",
+  struct worker_handle_st *completion_worker= test_worker_start(libtest::default_port(), NULL, "client_test_temp",
                                                                 func_arg, NULL, gearman_worker_options_t());
 
   test_true(completion_worker);
@@ -901,7 +899,7 @@ static test_return_t loop_test(void *)
   gearman_function_t func_arg= gearman_function_create_v1(client_test_temp_worker);
   for (size_t x= 0; x < NUMBER_OF_WORKERS; x++)
   {
-    handles[x]= test_worker_start(CLIENT_TEST_PORT, NULL, "client_test_temp",
+    handles[x]= test_worker_start(libtest::default_port(), NULL, "client_test_temp",
                                   func_arg, NULL, gearman_worker_options_t());
   }
 
@@ -938,7 +936,7 @@ static test_return_t regression_785203_do_test(void *object)
   test_truth(client= gearman_client_create(NULL));
 
   test_compare(GEARMAN_SUCCESS,
-               gearman_client_add_server(client, NULL, CLIENT_TEST_PORT));
+               gearman_client_add_server(client, NULL, libtest::default_port()));
 
   gearman_client_add_options(client, GEARMAN_CLIENT_FREE_TASKS);
   { // All defaults, except timeout_return
@@ -974,7 +972,7 @@ static test_return_t regression_785203_do_background_test(void *object)
   test_truth(client= gearman_client_create(NULL));
 
   test_compare(GEARMAN_SUCCESS,
-               gearman_client_add_server(client, NULL, CLIENT_TEST_PORT));
+               gearman_client_add_server(client, NULL, libtest::default_port()));
 
   gearman_client_add_options(client, GEARMAN_CLIENT_FREE_TASKS);
   { // All defaults, except timeout_return
@@ -1261,14 +1259,14 @@ void *client_test_temp_worker(gearman_job_st *, void *,
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
   const char *argv[1]= { "client_gearmand" };
-  if (server_startup(servers, "gearmand", CLIENT_TEST_PORT, 1, argv) == false)
+  if (server_startup(servers, "gearmand", libtest::default_port(), 1, argv) == false)
   {
     error= TEST_FAILURE;
     return NULL;
   }
   (void)pre_namespace;
 
-  client_test_st *test= new client_test_st();
+  client_test_st *test= new (std::nothrow)client_test_st();
 
   if (not test)
   {
@@ -1278,36 +1276,36 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
 
   // Version 1 functions
   gearman_function_t echo_react_fn_v1= gearman_function_create_v1(echo_or_react_worker);
-  test->push(test_worker_start(CLIENT_TEST_PORT, NULL, WORKER_FUNCTION_NAME, echo_react_fn_v1, NULL, gearman_worker_options_t()));
+  test->push(test_worker_start(libtest::default_port(), NULL, WORKER_FUNCTION_NAME, echo_react_fn_v1, NULL, gearman_worker_options_t()));
   gearman_function_t echo_react_chunk_fn_v1= gearman_function_create_v1(echo_or_react_chunk_worker);
-  test->push(test_worker_start(CLIENT_TEST_PORT, NULL, WORKER_CHUNKED_FUNCTION_NAME, echo_react_chunk_fn_v1, NULL, gearman_worker_options_t()));
+  test->push(test_worker_start(libtest::default_port(), NULL, WORKER_CHUNKED_FUNCTION_NAME, echo_react_chunk_fn_v1, NULL, gearman_worker_options_t()));
 
   // Version 2 functsions
   gearman_function_t echo_react_fn_v2= gearman_function_create(echo_or_react_worker_v2);
-  test->push(test_worker_start(CLIENT_TEST_PORT, NULL, WORKER_FUNCTION_NAME"_v2", echo_react_fn_v2, NULL, gearman_worker_options_t()));
+  test->push(test_worker_start(libtest::default_port(), NULL, WORKER_FUNCTION_NAME"_v2", echo_react_fn_v2, NULL, gearman_worker_options_t()));
   gearman_function_t echo_react_chunk_fn_v2= gearman_function_create(echo_or_react_chunk_worker_v2);
-  test->push(test_worker_start(CLIENT_TEST_PORT, NULL, WORKER_CHUNKED_FUNCTION_NAME"_v2", echo_react_chunk_fn_v2, NULL, gearman_worker_options_t()));
+  test->push(test_worker_start(libtest::default_port(), NULL, WORKER_CHUNKED_FUNCTION_NAME"_v2", echo_react_chunk_fn_v2, NULL, gearman_worker_options_t()));
 
   gearman_function_t unique_worker_arg= gearman_function_create_v1(unique_worker);
-  test->push(test_worker_start(CLIENT_TEST_PORT, NULL, WORKER_UNIQUE_FUNCTION_NAME, unique_worker_arg, NULL, GEARMAN_WORKER_GRAB_UNIQ));
+  test->push(test_worker_start(libtest::default_port(), NULL, WORKER_UNIQUE_FUNCTION_NAME, unique_worker_arg, NULL, GEARMAN_WORKER_GRAB_UNIQ));
 
   gearman_function_t split_worker_fn= gearman_function_create_partition(split_worker, cat_aggregator_fn);
-  test->push(test_worker_start(CLIENT_TEST_PORT, NULL, WORKER_SPLIT_FUNCTION_NAME, split_worker_fn,  NULL, GEARMAN_WORKER_GRAB_ALL));
+  test->push(test_worker_start(libtest::default_port(), NULL, WORKER_SPLIT_FUNCTION_NAME, split_worker_fn,  NULL, GEARMAN_WORKER_GRAB_ALL));
 
   // Namespace versions of the above
-  test->push(test_worker_start(CLIENT_TEST_PORT, NAMESPACE_KEY, WORKER_FUNCTION_NAME, echo_react_fn_v1, NULL, gearman_worker_options_t()));
-  test->push(test_worker_start(CLIENT_TEST_PORT, NAMESPACE_KEY, WORKER_CHUNKED_FUNCTION_NAME, echo_react_chunk_fn_v1, NULL, gearman_worker_options_t()));
-  test->push(test_worker_start(CLIENT_TEST_PORT, NAMESPACE_KEY, WORKER_SPLIT_FUNCTION_NAME, split_worker_fn,  NULL, GEARMAN_WORKER_GRAB_ALL));
+  test->push(test_worker_start(libtest::default_port(), NAMESPACE_KEY, WORKER_FUNCTION_NAME, echo_react_fn_v1, NULL, gearman_worker_options_t()));
+  test->push(test_worker_start(libtest::default_port(), NAMESPACE_KEY, WORKER_CHUNKED_FUNCTION_NAME, echo_react_chunk_fn_v1, NULL, gearman_worker_options_t()));
+  test->push(test_worker_start(libtest::default_port(), NAMESPACE_KEY, WORKER_SPLIT_FUNCTION_NAME, split_worker_fn,  NULL, GEARMAN_WORKER_GRAB_ALL));
 
   // Long function name
-  test->push(test_worker_start(CLIENT_TEST_PORT, NULL, REGRESSION_FUNCTION_833394_54, echo_react_fn_v2, NULL, gearman_worker_options_t()));
-  test->push(test_worker_start(CLIENT_TEST_PORT, NULL, REGRESSION_FUNCTION_833394_55, echo_react_fn_v2, NULL, gearman_worker_options_t()));
-  test->push(test_worker_start(CLIENT_TEST_PORT, NULL, REGRESSION_FUNCTION_833394_65, echo_react_fn_v2, NULL, gearman_worker_options_t()));
+  test->push(test_worker_start(libtest::default_port(), NULL, REGRESSION_FUNCTION_833394_54, echo_react_fn_v2, NULL, gearman_worker_options_t()));
+  test->push(test_worker_start(libtest::default_port(), NULL, REGRESSION_FUNCTION_833394_55, echo_react_fn_v2, NULL, gearman_worker_options_t()));
+  test->push(test_worker_start(libtest::default_port(), NULL, REGRESSION_FUNCTION_833394_65, echo_react_fn_v2, NULL, gearman_worker_options_t()));
 
   gearman_function_t increment_reset_worker_fn= gearman_function_create_v1(increment_reset_worker);
   for (uint32_t x= 0; x < 10; x++)
   {
-    test->push(test_worker_start(CLIENT_TEST_PORT, 
+    test->push(test_worker_start(libtest::default_port(), 
                                  NULL,
                                  "increment_reset_worker", increment_reset_worker_fn, 
                                  NULL, gearman_worker_options_t()));
@@ -1315,9 +1313,9 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
 
   // Count worker
   gearman_function_t count_worker_fn= gearman_function_create(count_worker);
-  test->push(test_worker_start(CLIENT_TEST_PORT, NULL, "count", count_worker_fn, NULL, gearman_worker_options_t()));
+  test->push(test_worker_start(libtest::default_port(), NULL, "count", count_worker_fn, NULL, gearman_worker_options_t()));
 
-  if (gearman_failed(gearman_client_add_server(test->client(), NULL, CLIENT_TEST_PORT)))
+  if (gearman_failed(gearman_client_add_server(test->client(), NULL, libtest::default_port())))
   {
     error= TEST_FAILURE;
     return NULL;

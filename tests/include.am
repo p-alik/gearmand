@@ -17,7 +17,6 @@ noinst_HEADERS+= \
 		 tests/gearman_client_do_job_handle.h \
 		 tests/gearman_execute_partition.h \
 		 tests/limits.h \
-		 tests/ports.h \
 		 tests/protocol.h \
 		 tests/regression.h \
 		 tests/server_options.h \
@@ -43,12 +42,6 @@ CLIENT_LDADD= \
 	      libgearman/libgearman.la \
 	      libtest/libtest.la \
 	      tests/libstartworker.la
-
-tests_killall_SOURCES= tests/killall.cc
-tests_killall_DEPENDENCIES= ${CLIENT_LDADD} gearmand/gearmand bin/gearadmin
-tests_killall_LDADD= ${CLIENT_LDADD}
-check_PROGRAMS+=tests/killall
-noinst_PROGRAMS+=tests/killall
 
 tests_cycle_SOURCES= tests/cycle.cc
 tests_cycle_DEPENDENCIES= ${CLIENT_LDADD} gearmand/gearmand
