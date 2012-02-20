@@ -22,8 +22,6 @@ using namespace libtest;
 #include <tests/basic.h>
 #include <tests/context.h>
 
-#include <tests/ports.h>
-
 #define WORKER_FUNCTION "hiredis_queue_test"
 
 #ifndef __INTEL_COMPILER
@@ -64,7 +62,7 @@ static test_return_t collection_cleanup(void *object)
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  Context *test= new Context(REDIS_PORT, servers);
+  Context *test= new Context(default_port(), servers);
   if (not test)
   {
     error= TEST_MEMORY_ALLOCATION_FAILURE;

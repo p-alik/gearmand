@@ -22,8 +22,6 @@ using namespace libtest;
 #include <tests/basic.h>
 #include <tests/context.h>
 
-#include <tests/ports.h>
-
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
@@ -72,13 +70,13 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
     return NULL;
   }
 
-  if (server_startup(servers, "memcached", 12555, 0, NULL) == false)
+  if (server_startup(servers, "memcached", default_port(), 0, NULL) == false)
   {
     error= TEST_FAILURE;
     return NULL;
   }
 
-  Context *test= new Context(MEMCACHED_TEST_PORT, servers);
+  Context *test= new Context(default_port(), servers);
   if (not test)
   {
     error= TEST_MEMORY_ALLOCATION_FAILURE;

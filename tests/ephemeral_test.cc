@@ -22,8 +22,6 @@ using namespace libtest;
 #include <tests/basic.h>
 #include <tests/context.h>
 
-#include <tests/ports.h>
-
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
@@ -51,7 +49,7 @@ static test_return_t collection_cleanup(void *object)
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  Context *test= new Context(EPHEMERAL_PORT, servers);
+  Context *test= new Context(default_port(), servers);
   if (test == NULL)
   {
     error= TEST_MEMORY_ALLOCATION_FAILURE;

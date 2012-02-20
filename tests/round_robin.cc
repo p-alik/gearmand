@@ -20,8 +20,6 @@ using namespace libtest;
 
 #include <libgearman/gearman.h>
 
-#include <tests/ports.h>
-
 struct worker_test_st
 {
   gearman_worker_st worker;
@@ -58,7 +56,6 @@ static void *append_function(gearman_job_st *job,
 
 static test_return_t queue_add(void *object)
 {
-  gearman_return_t rc;
   worker_test_st *test= (worker_test_st *)object;
   gearman_client_st client;
   gearman_client_st *client_ptr;
@@ -73,17 +70,17 @@ static test_return_t queue_add(void *object)
   test_truth(client_ptr);
 
   test_compare(GEARMAN_SUCCESS,
-               gearman_client_add_server(&client, NULL, ROUND_ROBIN_WORKER_TEST_PORT));
+               gearman_client_add_server(&client, NULL, libtest::default_port()));
 
   /* send strings "0", "1" ... "9" to alternating between 2 queues */
   /* queue1 = 1,3,5,7,9 */
   /* queue2 = 0,2,4,6,8 */
   for (uint32_t x= 0; x < 10; x++)
   {
-    rc= gearman_client_do_background(&client, x % 2 ? "queue1" : "queue2", NULL,
-                                     value, value_length, job_handle);
+    test_compare(GEARMAN_SUCCESS,
+                 gearman_client_do_background(&client, x % 2 ? "queue1" : "queue2", NULL,
+                                              value, value_length, job_handle));
 
-    test_truth(GEARMAN_SUCCESS == rc);
     *value = (uint8_t)(*value + 1);
   }
 
@@ -130,7 +127,7 @@ static test_return_t queue_worker(void *object)
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
   const char *argv[2]= { "test_gearmand", "--round-robin"};
-  if (server_startup(servers, "gearmand", ROUND_ROBIN_WORKER_TEST_PORT, 2, argv) == false)
+  if (server_startup(servers, "gearmand", libtest::default_port(), 2, argv) == false)
   {
     error= TEST_FAILURE;
     return NULL;
@@ -149,7 +146,7 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
     return NULL;
   }
 
-  if (gearman_failed(gearman_worker_add_server(&(test->worker), NULL, ROUND_ROBIN_WORKER_TEST_PORT)))
+  if (gearman_failed(gearman_worker_add_server(&(test->worker), NULL, libtest::default_port())))
   {
     error= TEST_FAILURE;
     return NULL;

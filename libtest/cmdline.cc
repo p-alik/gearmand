@@ -221,7 +221,9 @@ Application::error_t Application::wait()
 
   if (exit_code == Application::INVALID)
   {
+#if 0
     Error << print_argv(built_argv, _argc, _pid);
+#endif
   }
 
   return exit_code;

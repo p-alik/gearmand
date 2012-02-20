@@ -23,8 +23,6 @@ using namespace libtest;
 
 #include <tests/start_worker.h>
 
-#include <tests/ports.h>
-
 #define DEFAULT_WORKER_NAME "burnin"
 
 struct client_test_st {
@@ -189,14 +187,14 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
   /**
     We start up everything before we allocate so that we don't have to track memory in the forked process.
   */
-  if (server_startup(servers, "gearmand", BURNIN_TEST_PORT, 1, argv) == false)
+  if (server_startup(servers, "gearmand", libtest::default_port(), 1, argv) == false)
   {
     error= TEST_FAILURE;
     return NULL;
   }
 
   gearman_function_t func_arg= gearman_function_create_v1(worker_fn);
-  test->handle= test_worker_start(BURNIN_TEST_PORT, NULL, DEFAULT_WORKER_NAME, func_arg, NULL, gearman_worker_options_t());
+  test->handle= test_worker_start(libtest::default_port(), NULL, DEFAULT_WORKER_NAME, func_arg, NULL, gearman_worker_options_t());
   if (not test->handle)
   {
     error= TEST_FAILURE;
@@ -209,7 +207,7 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
     return NULL;
   }
 
-  if (gearman_failed(gearman_client_add_server(&(test->client), NULL, BURNIN_TEST_PORT)))
+  if (gearman_failed(gearman_client_add_server(&(test->client), NULL, libtest::default_port())))
   {
     error= TEST_FAILURE;
     return NULL;

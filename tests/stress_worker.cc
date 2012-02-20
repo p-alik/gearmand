@@ -23,7 +23,6 @@ using namespace libtest;
 
 #include <libhostile/hostile.h>
 
-#include <tests/ports.h>
 #include <tests/start_worker.h>
 #include <tests/workers.h>
 
@@ -55,7 +54,7 @@ extern "C" {
       {
         pthread_exit(0);
       }
-      rc= gearman_client_add_server(client, NULL, STRESS_WORKER_PORT);
+      rc= gearman_client_add_server(client, NULL, libtest::default_port());
       pthread_setcanceltype(oldstate, NULL);
     }
 
@@ -187,7 +186,7 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
     return NULL;
   }
 
-  if (server_startup(servers, "gearmand", STRESS_WORKER_PORT, 0, NULL) == false)
+  if (server_startup(servers, "gearmand", libtest::default_port(), 0, NULL) == false)
   {
     error= TEST_FAILURE;
     return NULL;
@@ -197,7 +196,7 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
 
   for (uint32_t x= 0; x < 100; x++)
   {
-    if (test_worker_start(STRESS_WORKER_PORT, NULL, WORKER_FUNCTION_NAME, echo_react_fn, NULL, gearman_worker_options_t()) == NULL)
+    if (test_worker_start(libtest::default_port(), NULL, WORKER_FUNCTION_NAME, echo_react_fn, NULL, gearman_worker_options_t()) == NULL)
     {
       error= TEST_FAILURE;
       return NULL;
