@@ -1266,13 +1266,7 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
   }
   (void)pre_namespace;
 
-  client_test_st *test= new (std::nothrow)client_test_st();
-
-  if (not test)
-  {
-    error= TEST_MEMORY_ALLOCATION_FAILURE;
-    return NULL;
-  }
+  client_test_st *test= new client_test_st();
 
   // Version 1 functions
   gearman_function_t echo_react_fn_v1= gearman_function_create_v1(echo_or_react_worker);

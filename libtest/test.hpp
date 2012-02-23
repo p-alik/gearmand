@@ -26,13 +26,13 @@
 
 #include <cstdio>
 #include <cstdlib>
-#include <stdint.h>
 #include <arpa/inet.h>
 
 #include <libtest/visibility.h>
 #include <libtest/version.h>
 
 #include <libtest/vchar.hpp>
+#include <libtest/fatal.hpp>
 
 #include <libtest/has.hpp>
 #include <libtest/error.h>

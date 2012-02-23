@@ -49,14 +49,7 @@ static test_return_t collection_cleanup(void *object)
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  Context *test= new Context(default_port(), servers);
-  if (test == NULL)
-  {
-    error= TEST_MEMORY_ALLOCATION_FAILURE;
-    return NULL;
-  }
-
-  return test;
+  return new Context(default_port(), servers);
 }
 
 static bool world_destroy(void *object)
