@@ -133,12 +133,7 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
     return NULL;
   }
 
-  worker_test_st *test= new (std::nothrow) worker_test_st;;
-  if (not test)
-  {
-    error= TEST_MEMORY_ALLOCATION_FAILURE;
-    return NULL;
-  }
+  worker_test_st *test= new worker_test_st;;
 
   if (gearman_worker_create(&(test->worker)) == NULL)
   {

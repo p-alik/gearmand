@@ -2,7 +2,7 @@
  * 
  *  libtest
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -20,36 +20,49 @@
  */
 
 #include <libtest/common.h>
+#include <cstdarg>
 
-namespace libtest { 
+namespace libtest {
 
-const char *test_strerror(test_return_t code)
-{
-  switch (code) {
-  case TEST_SUCCESS:
-    return "ok";
+fatal::fatal(const char *file, int line, const char *func, const char *format, ...) :
+  std::runtime_error(func)
+  {
+    va_list args;
+    va_start(args, format);
+    char last_error[BUFSIZ];
+    (void)vsnprintf(last_error, sizeof(last_error), format, args);
+    va_end(args);
 
-  case TEST_FAILURE:
-    return "failed";
-
-  case TEST_SKIPPED:
-    return "skipped";
+    snprintf(_error_message, sizeof(_error_message), "%s:%d FATAL:%s (%s)", file, int(line), last_error, func);
   }
 
-  throw fatal_message("No port could be found");
+static bool _disabled= false;
+static uint32_t _counter= 0;
+
+bool fatal::is_disabled()
+{
+  return _disabled;
+}
+
+bool fatal::disable()
+{
+  _disabled= true;
+}
+
+bool fatal::enable()
+{
+  _disabled= false;
+}
+
+uint32_t fatal::disabled_counter()
+{
+  return _counter;
+}
+
+void fatal::increment_disabled_counter()
+{
+  _counter++;
 }
 
 } // namespace libtest
 
-
-std::ostream& operator<<(std::ostream& output, const enum test_return_t &arg)
-{
-  output << libtest::test_strerror(arg);
-  return output;
-}
-
-std::ostream& operator<<(std::ostream& output, const std::vector<char> &arg)
-{
-  output << "std::vector<char>:" << arg.size(); 
-  return output;
-}
