@@ -75,15 +75,8 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
     return NULL;
   }
 
-  Context *test= new Context(libtest::default_port(), servers);
-  if (test == NULL)
-  {
-    error= TEST_MEMORY_ALLOCATION_FAILURE;
-    return NULL;
-  }
   unlink("var/tmp/gearman.tcb");
-
-  return test;
+  return new Context(libtest::default_port(), servers);
 }
 
 static bool world_destroy(void *object)
