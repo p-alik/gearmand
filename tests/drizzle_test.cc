@@ -92,9 +92,9 @@ static test_return_t collection_init(void *object)
   Context *test= (Context *)object;
   assert(test);
 
-  const char *argv[]= { "test_gearmand", "--queue-type=libdrizzle", 0 };
+  const char *argv[]= { "--queue-type=libdrizzle", 0 };
 
-  test->initialize(2, argv);
+  test->initialize(1, argv);
 
   return TEST_SUCCESS;
 }

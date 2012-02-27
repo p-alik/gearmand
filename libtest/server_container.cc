@@ -144,7 +144,10 @@ bool server_startup_st::is_helgrind() const
 bool server_startup(server_startup_st& construct, const std::string& server_type, in_port_t try_port, int argc, const char *argv[])
 {
   Outn();
-  (void)try_port;
+  if (try_port <= 0)
+  {
+    libtest::fatal(LIBYATL_DEFAULT_PARAM, "was passed the invalid port number %d", int(try_port));
+  }
 
   libtest::Server *server= NULL;
   if (0)
@@ -216,7 +219,9 @@ bool server_startup(server_startup_st& construct, const std::string& server_type
     Out << "Pausing for startup, hit return when ready.";
     std::string gdb_command= server->base_command();
     std::string options;
+#if 0
     Out << "run " << server->args(options);
+#endif
     getchar();
   }
   else if (server->start() == false)
@@ -313,7 +318,9 @@ bool server_startup_st::start_socket_server(const std::string& server_type, cons
     Out << "Pausing for startup, hit return when ready.";
     std::string gdb_command= server->base_command();
     std::string options;
+#if 0
     Out << "run " << server->args(options);
+#endif
     getchar();
   }
   else if (not server->start())

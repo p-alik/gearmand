@@ -64,7 +64,7 @@ static test_return_t gearmand_basic_option_without_table_test(void *)
 
 static test_return_t collection_init(void *object)
 {
-  const char *argv[]= { "test_gearmand",
+  const char *argv[]= {
     "--libsqlite3-db=var/tmp/gearman.sql",
     "--queue-type=libsqlite3", 
     0 };
@@ -76,7 +76,7 @@ static test_return_t collection_init(void *object)
   Context *test= (Context *)object;
   assert(test);
 
-  test_truth(test->initialize(3, argv));
+  test_truth(test->initialize(2, argv));
 
   return TEST_SUCCESS;
 }
