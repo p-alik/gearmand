@@ -215,7 +215,7 @@ AX_CHECK_LIBRARY([LIBUUID], [uuid/uuid.h], [uuid],
                   LIBUUID_LDFLAGS="-luuid"
                   ],
                  [
-                  AC_MSG_ERROR([Unable to find libuuid])
+                  AC_MSG_WARN([Unable to find libuuid])
                   ])
 
 
