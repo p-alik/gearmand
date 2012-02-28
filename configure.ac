@@ -6,7 +6,7 @@
 # Use and distribution licensed under the BSD license.  See
 # the COPYING file in this directory for full text.
 
-AC_INIT([gearmand],[0.28],[https://bugs.launchpad.net/gearmand],[gearmand],[http://gearman.info/])
+AC_INIT([gearmand],[0.29],[https://bugs.launchpad.net/gearmand],[gearmand],[http://gearman.info/])
 
 AC_CONFIG_AUX_DIR(config)
 
@@ -17,7 +17,7 @@ AM_INIT_AUTOMAKE(-Wall -Werror -Wno-portability subdir-objects foreign tar-ustar
 AC_CANONICAL_HOST
 AC_CANONICAL_BUILD
 
-AC_PREREQ([2.61])
+AC_PREREQ([2.63])
 
 AC_CONFIG_MACRO_DIR(m4)
 
@@ -115,6 +115,7 @@ AC_PROG_AWK
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
+AC_CHECK_PROGS([VALGRIND], ['valgrind'])
 
 # Checks for header files.
 AC_HEADER_STDC

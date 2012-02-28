@@ -441,14 +441,11 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
   /**
     We start up everything before we allocate so that we don't have to track memory in the forked process.
   */
-  const char *argv[1]= { "client_gearmand" };
-  if (server_startup(servers, "gearmand", libtest::default_port(), 1, argv) == false)
+  if (server_startup(servers, "gearmand", libtest::default_port(), 0, NULL) == false)
   {
     error= TEST_FAILURE;
     return NULL;
   }
-
-  error= TEST_SUCCESS;
 
   return NULL;
 }

@@ -72,7 +72,7 @@ static test_return_t gearmand_basic_option_test(void *)
 
 static test_return_t collection_init(void *object)
 {
-  const char *argv[]= { "test_gearmand",
+  const char *argv[]= {
     "--queue-type=Postgres",
     "--libpq-conninfo=\"host=localhost port=5432 user=root dbname=gearman\"",
     "--libpq-table=gearman",
@@ -81,7 +81,7 @@ static test_return_t collection_init(void *object)
   Context *test= (Context *)object;
   assert(test);
 
-  test_truth(test->initialize(4, argv));
+  test_truth(test->initialize(3, argv));
 
   return TEST_SUCCESS;
 }

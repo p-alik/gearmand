@@ -171,18 +171,12 @@ static void *worker_fn(gearman_job_st *, void *,
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  /**
-   *  @TODO We cast this to char ** below, which is evil. We need to do the
-   *  right thing
-   */
-  const char *argv[1]= { "client_gearmand" };
-
   client_test_st *test= new client_test_st;
 
   /**
     We start up everything before we allocate so that we don't have to track memory in the forked process.
   */
-  if (server_startup(servers, "gearmand", libtest::default_port(), 1, argv) == false)
+  if (server_startup(servers, "gearmand", libtest::default_port(), 0, NULL) == false)
   {
     error= TEST_FAILURE;
     return NULL;
