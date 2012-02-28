@@ -185,12 +185,12 @@ AC_CHECK_LIB([rt], [clock_gettime],
 # Check for -lm
 AC_CHECK_LIB([m], [floor], 
              [
-              M_LIB="-lrt"
+              M_LIB="-lm"
               AC_SUBST(M_LIB)
-              AC_DEFINE([HAVE_LIBRT], [ 1 ], [Have clock_gettime])
+              AC_DEFINE([HAVE_LIBM], [ 1 ], [Have math library])
               ], 
              [
-              AC_DEFINE([HAVE_LIBRT], [ 0 ], [Have clock_gettime])
+              AC_DEFINE([HAVE_LIBM], [ 0 ], [Have math library])
               ])
 
 AC_CHECK_FUNC(setsockopt, [], [AC_CHECK_LIB(socket, setsockopt)])
