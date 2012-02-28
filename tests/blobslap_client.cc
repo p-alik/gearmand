@@ -52,8 +52,8 @@ static std::string executable;
 static test_return_t help_test(void *)
 {
   char buffer[1024];
-  snprintf(buffer, sizeof(buffer), "-p %d", int(default_port()));
-  const char *args[]= { buffer, "-?", 0 };
+  snprintf(buffer, sizeof(buffer), "%d", int(default_port()));
+  const char *args[]= { buffer, "-?", "-p", buffer, 0 };
 
   test_compare(EXIT_SUCCESS, exec_cmdline(executable, args, true));
 
@@ -63,8 +63,8 @@ static test_return_t help_test(void *)
 static test_return_t unknown_test(void *)
 {
   char buffer[1024];
-  snprintf(buffer, sizeof(buffer), "-p %d", int(default_port()));
-  const char *args[]= { buffer, "--unknown", 0 };
+  snprintf(buffer, sizeof(buffer), "%d", int(default_port()));
+  const char *args[]= { buffer, "--unknown", "-p", buffer, 0 };
 
   // The argument doesn't exist, so we should see an error
   test_compare(EXIT_FAILURE, exec_cmdline(executable, args, true));
@@ -75,8 +75,8 @@ static test_return_t unknown_test(void *)
 static test_return_t basic_benchmark_test(void *)
 {
   char buffer[1024];
-  snprintf(buffer, sizeof(buffer), "-p %d", int(default_port()));
-  const char *args[]= { buffer, "-c 100", "-n 10", "-e", 0 };
+  snprintf(buffer, sizeof(buffer), "%d", int(default_port()));
+  const char *args[]= { buffer, "-c", "100", "-n", "10", "-e", "-p", buffer, 0 };
 
   // The argument doesn't exist, so we should see an error
   test_compare(EXIT_SUCCESS, exec_cmdline(executable, args, true));
@@ -98,13 +98,12 @@ collection_st collection[] ={
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  const char *argv[1]= { "blobslap_client" };
-  if (server_startup(servers, "gearmand", libtest::default_port(), 1, argv) == false)
+  if (server_startup(servers, "gearmand", libtest::default_port(), 0, NULL) == false)
   {
     error= TEST_FAILURE;
   }
 
-  if (server_startup(servers, "blobslap_worker", libtest::default_port(), 1, argv) == false)
+  if (server_startup(servers, "blobslap_worker", libtest::default_port(), 0, NULL) == false)
   {
     error= TEST_FAILURE;
   }

@@ -85,8 +85,8 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
 
   char buffer[1024];
   snprintf(buffer, sizeof(buffer), "--http-port=%d", int(http_port));
-  const char *argv[]= { "gearmand", "--protocol=http", buffer, 0 };
-  if (server_startup(servers, "gearmand", libtest::default_port(), 3, argv) == false)
+  const char *argv[]= { "--protocol=http", buffer, 0 };
+  if (server_startup(servers, "gearmand", libtest::default_port(), 2, argv) == false)
   {
     error= TEST_FAILURE;
     return NULL;

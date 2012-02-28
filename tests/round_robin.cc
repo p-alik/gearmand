@@ -126,8 +126,8 @@ static test_return_t queue_worker(void *object)
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  const char *argv[2]= { "test_gearmand", "--round-robin"};
-  if (server_startup(servers, "gearmand", libtest::default_port(), 2, argv) == false)
+  const char *argv[]= { "--round-robin", 0};
+  if (server_startup(servers, "gearmand", libtest::default_port(), 1, argv) == false)
   {
     error= TEST_FAILURE;
     return NULL;
