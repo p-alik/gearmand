@@ -26,9 +26,16 @@
 extern "C" {
 #endif
 
+#if defined(HAVE_LIBHOSTILE) && HAVE_LIBHOSTILE
 void set_recv_close(bool arg, int frequency, int not_until_arg);
 
 void set_send_close(bool arg, int frequency, int not_until_arg);
+#else
+
+#define set_recv_close(__arg, __frequency, __not_until_arg)
+#define set_send_close(__arg, __frequency, __not_until_arg)
+
+#endif
 
 #ifdef __cplusplus
 }
