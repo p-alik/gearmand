@@ -192,15 +192,9 @@ int main(int argc, char *argv[])
   try {
     do {
       exit_code= EXIT_SUCCESS;
-      Framework *world= new Framework();
+      Framework world;
 
-      if (world == NULL)
-      {
-        Error << "Failed to create Framework()";
-        return EXIT_FAILURE;
-      }
-
-      assert(sigignore(SIGPIPE) == 0);
+      fatal_assert(sigignore(SIGPIPE) == 0);
 
       libtest::SignalThread signal;
       if (not signal.setup())
@@ -211,10 +205,10 @@ int main(int argc, char *argv[])
 
       Stats stats;
 
-      get_world(world);
+      get_world(&world);
 
       test_return_t error;
-      void *creators_ptr= world->create(error);
+      void *creators_ptr= world.create(error);
 
       switch (error)
       {
@@ -223,11 +217,9 @@ int main(int argc, char *argv[])
 
       case TEST_SKIPPED:
         Out << "SKIP " << argv[0];
-        delete world;
         return EXIT_SUCCESS;
 
       case TEST_FAILURE:
-        delete world;
         return EXIT_FAILURE;
       }
 
@@ -250,7 +242,7 @@ int main(int argc, char *argv[])
         wildcard= argv[2];
       }
 
-      for (collection_st *next= world->collections; next and next->name and (not signal.is_shutdown()); next++)
+      for (collection_st *next= world.collections; next and next->name and (not signal.is_shutdown()); next++)
       {
         bool failed= false;
         bool skipped= false;
@@ -262,11 +254,11 @@ int main(int argc, char *argv[])
 
         stats.collection_total++;
 
-        test_return_t collection_rc= world->startup(creators_ptr);
+        test_return_t collection_rc= world.startup(creators_ptr);
 
         if (collection_rc == TEST_SUCCESS and next->pre)
         {
-          collection_rc= world->runner()->pre(next->pre, creators_ptr);
+          collection_rc= world.runner()->pre(next->pre, creators_ptr);
         }
 
         switch (collection_rc)
@@ -303,20 +295,20 @@ int main(int argc, char *argv[])
 
           test_return_t return_code;
           try {
-            if (test_success(return_code= world->item.startup(creators_ptr)))
+            if (test_success(return_code= world.item.startup(creators_ptr)))
             {
-              if (test_success(return_code= world->item.flush(creators_ptr, run)))
+              if (test_success(return_code= world.item.flush(creators_ptr, run)))
               {
                 // @note pre will fail is SKIPPED is returned
-                if (test_success(return_code= world->item.pre(creators_ptr)))
+                if (test_success(return_code= world.item.pre(creators_ptr)))
                 {
                   { // Runner Code
                     gettimeofday(&start_time, NULL);
-                    assert(world->runner());
+                    assert(world.runner());
                     assert(run->test_fn);
                     try 
                     {
-                      return_code= world->runner()->run(run->test_fn, creators_ptr);
+                      return_code= world.runner()->run(run->test_fn, creators_ptr);
                     }
                     // Special case where check for the testing of the exception
                     // system.
@@ -339,7 +331,7 @@ int main(int argc, char *argv[])
                 }
 
                 // @todo do something if post fails
-                (void)world->item.post(creators_ptr);
+                (void)world.item.post(creators_ptr);
               }
               else if (return_code == TEST_SKIPPED)
               { }
@@ -394,7 +386,7 @@ int main(int argc, char *argv[])
             throw fatal_message("invalid return code");
           }
 
-          if (test_failed(world->on_error(return_code, creators_ptr)))
+          if (test_failed(world.on_error(return_code, creators_ptr)))
           {
             Error << "Failed while running on_error()";
             signal.set_shutdown(SHUTDOWN_GRACEFUL);
@@ -402,7 +394,7 @@ int main(int argc, char *argv[])
           }
         }
 
-        (void) world->runner()->post(next->post, creators_ptr);
+        (void) world.runner()->post(next->post, creators_ptr);
 
 cleanup:
         if (failed == false and skipped == false)
@@ -420,7 +412,7 @@ cleanup:
           stats.collection_skipped++;
         }
 
-        world->shutdown(creators_ptr);
+        world.shutdown(creators_ptr);
         Outn();
       }
 
@@ -450,8 +442,6 @@ cleanup:
       }
 
       stats_print(&stats);
-
-      delete world;
 
       Outn(); // Generate a blank to break up the messages if make check/test has been run
     } while (exit_code == EXIT_SUCCESS and opt_repeat);
