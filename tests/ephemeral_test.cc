@@ -28,12 +28,10 @@ using namespace libtest;
 
 static test_return_t collection_init(void *object)
 {
-  const char *argv[]= { "test_gearmand", 0 };
-
   Context *test= (Context *)object;
   assert(test);
 
-  test_truth(test->initialize(1, argv));
+  test_truth(test->initialize(0, NULL));
 
   return TEST_SUCCESS;
 }
