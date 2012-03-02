@@ -42,7 +42,6 @@
 
 using namespace libtest;
 
-#include <cassert>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -79,7 +78,7 @@ static test_return_t collection_init(void *object)
     0 };
 
   Context *test= (Context *)object;
-  assert(test);
+  fatal_assert(test);
 
   test_truth(test->initialize(3, argv));
 
