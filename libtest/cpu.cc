@@ -1,8 +1,8 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  libhostile
+ *  libtest
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -19,21 +19,41 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#include <libtest/common.h>
 
-#pragma once
+#include <unistd.h>
 
-#ifdef __cplusplus
-extern "C" {
+namespace libtest {
+
+size_t number_of_cpus()
+{
+  size_t number_of_cpu= 1;
+#ifdef TARGET_OS_LINUX
+  number_of_cpu= sysconf(_SC_NPROCESSORS_ONLN);
+#elif TARGET_OS_OSX || TARGET_OS_FREEBSD
+  int mib[4];
+  size_t len= sizeof(number_of_cpu); 
+
+  /* set the mib for hw.ncpu */
+  mib[0] = CTL_HW;
+  mib[1] = HW_AVAILCPU;  // alternatively, try HW_NCPU;
+
+  /* get the number of CPUs from the system */
+  sysctl(mib, 2, &number_of_cpu, &len, NULL, 0);
+
+  if (number_of_cpu < 1) 
+  {
+    mib[1]= HW_NCPU;
+    sysctl(mib, 2, &number_of_cpu, &len, NULL, 0 );
+
+    if (number_of_cpu < 1 )
+    {
+      number_of_cpu = 1;
+    }
+  }
 #endif
 
-#if defined(HAVE_LIBHOSTILE) && HAVE_LIBHOSTILE
-void set_recv_close(bool arg, int frequency, int not_until_arg);
-void set_send_close(bool arg, int frequency, int not_until_arg);
-#else
-#define set_recv_close( __arg, __frequency, __not_until_arg);
-#define set_send_close( __arg, __frequency, __not_until_arg);
-#endif
-
-#ifdef __cplusplus
+  return number_of_cpu;
 }
-#endif
+
+} // namespace libtest

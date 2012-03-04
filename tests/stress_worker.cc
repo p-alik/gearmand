@@ -79,7 +79,7 @@ extern "C" {
     if (gearman_success(rc))
     {
       gearman_client_set_timeout(client, 400);
-      for (size_t x= 0; x < 10; x++)
+      for (size_t x= 0; x < 100; x++)
       {
         int oldstate;
         pthread_setcanceltype(PTHREAD_CANCEL_DISABLE, &oldstate);
@@ -108,16 +108,13 @@ extern "C" {
   }
 }
 
-#define CLIENT_CHILDREN 100
 static test_return_t worker_ramp_exec(const size_t payload_size)
 {
   std::vector<pthread_t> children;
-  children.resize(CLIENT_CHILDREN);
+  children.resize(number_of_cpus());
 
   std::vector<client_thread_context_st>  success;
   success.resize(children.size());
-
-  set_recv_close(true, 20, 20);
 
   for (size_t x= 0; x < children.size(); x++)
   {
@@ -162,8 +159,6 @@ static test_return_t worker_ramp_exec(const size_t payload_size)
 #endif
   }
 
-  set_recv_close(true, 0, 0);
-
   return TEST_SUCCESS;
 }
 
@@ -177,8 +172,16 @@ static test_return_t worker_ramp_1K_TEST(void *)
   return worker_ramp_exec(1024);
 }
 
+static test_return_t worker_ramp_10K_TEST(void *)
+{
+  return worker_ramp_exec(1024*10);
+}
+
 static test_return_t pre_recv(void *)
 {
+  // Assume we are running under valgrind, and bail 
+  test_skip(true, bool(getenv("YATL_RUN_MASSIVE_TESTS")));
+
   set_recv_close(true, 20, 20);
 
   return TEST_SUCCESS;
@@ -186,6 +189,8 @@ static test_return_t pre_recv(void *)
 
 static test_return_t post_recv(void *)
 {
+  test_skip(true, bool(getenv("YATL_RUN_MASSIVE_TESTS")));
+
   set_recv_close(true, 0, 0);
 
   return TEST_SUCCESS;
@@ -216,13 +221,6 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
     return NULL;
   }
 
-  // Assume we are running under valgrind, and bail 
-  if (getenv("YATL_RUN_MASSIVE_TESTS") == NULL) 
-  {
-    error= TEST_SKIPPED;
-    return NULL;
-  }
-
   if (server_startup(servers, "gearmand", libtest::default_port(), 0, NULL) == false)
   {
     error= TEST_FAILURE;
@@ -247,6 +245,7 @@ test_st tests[] ={
   {"first pass", 0, worker_ramp_TEST },
   {"second pass", 0, worker_ramp_TEST },
   {"first pass 1K jobs", 0, worker_ramp_1K_TEST },
+  {"first pass 10K jobs", 0, worker_ramp_10K_TEST },
   {0, 0, 0}
 };
 

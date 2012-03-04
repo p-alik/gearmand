@@ -241,6 +241,18 @@ static test_return_t gearmand_cycle_test(void *object)
   return TEST_SUCCESS;
 }
 
+static test_return_t memcached_light_cycle_TEST(void *object)
+{
+  server_startup_st *servers= (server_startup_st*)object;
+  test_true(servers);
+
+  test_skip(true, bool(HAVE_MEMCACHED_LIGHT_BINARY));
+
+  test_true(server_startup(*servers, "memcached-light", get_free_port(), 0, NULL));
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t memcached_cycle_test(void *object)
 {
   server_startup_st *servers= (server_startup_st*)object;
@@ -522,6 +534,13 @@ static test_return_t fatal_TEST(void *)
   return TEST_SUCCESS;
 }
 
+static test_return_t number_of_cpus_TEST(void *)
+{
+  test_true(number_of_cpus() >= 1);
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t fatal_message_TEST(void *)
 {
   test_compare(fatal_calls++, fatal::disabled_counter());
@@ -565,6 +584,7 @@ static test_return_t check_for_libmemcached(void *)
 
 test_st memcached_tests[] ={
   {"memcached startup-shutdown", 0, memcached_cycle_test },
+  {"memcached-light startup-shutdown", 0, memcached_light_cycle_TEST },
   {"memcached(socket file) startup-shutdown", 0, memcached_socket_cycle_test },
   {"memcached_sasl() startup-shutdown", 0, memcached_sasl_test },
   {"_compare(memcached_return_t)", 0, _compare_memcached_return_t_test },
@@ -635,6 +655,11 @@ test_st fatal_message_TESTS[] ={
   {0, 0, 0}
 };
 
+test_st number_of_cpus_TESTS[] ={
+  {"libtest::number_of_cpus()", 0, number_of_cpus_TEST },
+  {0, 0, 0}
+};
+
 test_st application_tests[] ={
   {"vchar_t", 0, vchar_t_TEST },
   {"true", 0, application_true_BINARY },
@@ -684,6 +709,7 @@ collection_st collection[] ={
   {"http", check_for_curl, 0, http_tests},
   {"get_free_port()", 0, 0, get_free_port_TESTS },
   {"fatal", disable_fatal_exception, enable_fatal_exception, fatal_message_TESTS },
+  {"number_of_cpus()", 0, 0, number_of_cpus_TESTS },
   {0, 0, 0, 0}
 };
 
