@@ -76,17 +76,19 @@ check_PROGRAMS+= tests/round_robin_test
 noinst_PROGRAMS+= tests/round_robin_test
 
 
-if TARGET_LINUX
 tests_hostileworker_test_SOURCES=
 tests_hostileworker_test_DEPENDENCIES=
 tests_hostileworker_test_CXXFLAGS=
 tests_hostileworker_test_LDADD=
 
+if TARGET_LINUX
 tests_hostileworker_test_CXXFLAGS+= -DHAVE_LIBHOSTILE=1
 tests_hostileworker_test_DEPENDENCIES+= libhostile/libhostile.la
 tests_hostileworker_test_LDADD+= libhostile/libhostile.la
 tests_hostileworker_test_LDADD+= $(DL_LIB)
 tests_hostileworker_test_LDADD+= $(RT_LIB)
+endif
+
 tests_hostileworker_test_SOURCES+= tests/stress_worker.cc
 tests_hostileworker_test_SOURCES+= tests/libgearman-1.0/workers.cc
 tests_hostileworker_test_DEPENDENCIES+= ${CLIENT_LDADD} gearmand/gearmand
@@ -99,7 +101,6 @@ test-hostile: tests/hostileworker_test gearmand/gearmand
 
 gdb-hostile: tests/hostileworker_test gearmand/gearmand
 	@$(GDB_COMMAND) tests/hostileworker_test
-endif
 
 # Test linking with C++ application
 tests_cpp_test_SOURCES= tests/cpp_test.cc
