@@ -102,6 +102,9 @@ AS_IF([test "x${WANT_SQLITE3}" = "xyes"],
       ])
 AM_CONDITIONAL(HAVE_LIBSQLITE3, test "x${WANT_SQLITE3}" = "xyes")
 
+AC_DEFINE([HAVE_MEMCACHED_LIGHT_BINARY], [0], [Support for memcached_light])
+AC_DEFINE([MEMCACHED_LIGHT_BINARY], [""], [Support for memcached_light])
+
 
 PANDORA_HAVE_BETTER_MALLOC
 AX_HAVE_LIBPQ
