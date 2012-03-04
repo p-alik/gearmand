@@ -114,7 +114,7 @@ gearmand_st *gearmand_create(const char *host_arg,
 
   if (! gearman_server_create(&(gearmand->server), job_retries, worker_wakeup, round_robin))
   {
-    gearmand_crazy("free");
+    gearmand_debug("free");
     free(gearmand);
     return NULL;
   }
@@ -193,7 +193,7 @@ void gearmand_free(gearmand_st *gearmand)
 
     dcon= gearmand->free_dcon_list;
     gearmand->free_dcon_list= dcon->next;
-    gearmand_crazy("free");
+    gearmand_debug("free");
     free(dcon);
   }
 
@@ -208,26 +208,26 @@ void gearmand_free(gearmand_st *gearmand)
   {
     if (gearmand->port_list[x].listen_fd != NULL)
     {
-      gearmand_crazy("free");
+      gearmand_debug("free");
       free(gearmand->port_list[x].listen_fd);
     }
 
     if (gearmand->port_list[x].listen_event != NULL)
     {
-      gearmand_crazy("free");
+      gearmand_debug("free");
       free(gearmand->port_list[x].listen_event);
     }
   }
 
   if (gearmand->port_list != NULL)
   {
-    gearmand_crazy("free");
+    gearmand_debug("free");
     free(gearmand->port_list);
   }
 
   gearmand_info("Shutdown complete");
 
-  gearmand_crazy("free");
+  gearmand_debug("free");
   free(gearmand);
 }
 

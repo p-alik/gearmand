@@ -220,7 +220,7 @@ static drizzle_return_t _libdrizzle_query(plugins::queue::Drizzle *queue,
 {
   drizzle_return_t ret;
 
-  gearmand_log_crazy(GEARMAN_DEFAULT_LOG_PARAM, "libdrizzle query: %.*s", (uint32_t)query_size, query);
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "libdrizzle query: %.*s", (uint32_t)query_size, query);
 
   drizzle_result_st *result= drizzle_query(queue->con, queue->result(), query, query_size, &ret);
   if (libdrizzle_failed(ret))
@@ -572,7 +572,7 @@ static gearmand_error_t _libdrizzle_done(gearman_server_st *,
     return gearmand_gerror("snprintf(DELETE)", GEARMAN_MEMORY_ALLOCATION_FAILURE);
   }
 
-  gearmand_log_crazy(GEARMAN_DEFAULT_LOG_PARAM, "%.*", query_size, &query[0]);
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "%.*", query_size, &query[0]);
   
   if (libdrizzle_failed(_libdrizzle_query(queue, &query[0], query_size)))
   {

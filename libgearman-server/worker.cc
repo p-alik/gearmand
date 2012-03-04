@@ -97,8 +97,7 @@ void gearman_server_worker_free(gearman_server_worker_st *worker)
   /* If the worker was in the middle of a job, requeue it. */
   while (worker->job_list != NULL)
   {
-    gearmand_error_t ret;
-    ret= gearman_server_job_queue(worker->job_list);
+    gearmand_error_t ret= gearman_server_job_queue(worker->job_list);
     if (ret != GEARMAN_SUCCESS)
     {
       gearmand_gerror_warn("gearman_server_job_queue", ret);
@@ -129,7 +128,7 @@ void gearman_server_worker_free(gearman_server_worker_st *worker)
   }
   else
   {
-    gearmand_crazy("free");
+    gearmand_debug("free");
     free(worker);
   }
 }

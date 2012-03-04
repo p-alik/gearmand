@@ -90,7 +90,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
     return _server_error_packet(server_con, "bad_magic", "Request magic expected");
   }
 
-  gearmand_log_crazy(GEARMAN_DEFAULT_LOG_PARAM,
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
                      "%15s:%5s packet command  %s",
 		     server_con->con.context == NULL ? "-" : server_con->con.context->host,
 		     server_con->con.context == NULL ? "-" : server_con->con.context->port, 
@@ -872,7 +872,7 @@ static gearmand_error_t _server_run_text(gearman_server_con_st *server_con,
             {
               (void) pthread_mutex_unlock(&thread->lock);
               gearmand_perror("realloc");
-              gearmand_crazy("free");
+              gearmand_debug("free");
               free(data);
               return GEARMAN_MEMORY_ALLOCATION_FAILURE;
             }
@@ -887,7 +887,7 @@ static gearmand_error_t _server_run_text(gearman_server_con_st *server_con,
           if ((size_t)checked_length > total - size || checked_length < 0)
           {
             (void) pthread_mutex_unlock(&thread->lock);
-            gearmand_crazy("free");
+            gearmand_debug("free");
             free(data);
             gearmand_perror("snprintf");
             return GEARMAN_MEMORY_ALLOCATION_FAILURE;
@@ -906,7 +906,7 @@ static gearmand_error_t _server_run_text(gearman_server_con_st *server_con,
             if ((size_t)checked_length > total - size || checked_length < 0)
             {
               (void) pthread_mutex_unlock(&thread->lock);
-              gearmand_crazy("free");
+              gearmand_debug("free");
               free(data);
               gearmand_perror("snprintf");
               return GEARMAN_MEMORY_ALLOCATION_FAILURE;
@@ -924,7 +924,7 @@ static gearmand_error_t _server_run_text(gearman_server_con_st *server_con,
           if ((size_t)checked_length > total - size || checked_length < 0)
           {
             (void) pthread_mutex_unlock(&thread->lock);
-            gearmand_crazy("free");
+            gearmand_debug("free");
             free(data);
             gearmand_perror("snprintf");
             return GEARMAN_MEMORY_ALLOCATION_FAILURE;
@@ -966,7 +966,7 @@ static gearmand_error_t _server_run_text(gearman_server_con_st *server_con,
         if (new_data == NULL)
         {
           gearmand_perror("realloc");
-          gearmand_crazy("free");
+          gearmand_debug("free");
           free(data);
           return GEARMAN_MEMORY_ALLOCATION_FAILURE;
         }
@@ -983,7 +983,7 @@ static gearmand_error_t _server_run_text(gearman_server_con_st *server_con,
       if ((size_t)checked_length > total - size || checked_length < 0)
       {
         gearmand_perror("snprintf");
-        gearmand_crazy("free");
+        gearmand_debug("free");
         free(data);
         return GEARMAN_MEMORY_ALLOCATION_FAILURE;
       }
@@ -999,7 +999,7 @@ static gearmand_error_t _server_run_text(gearman_server_con_st *server_con,
       if ((size_t)checked_length > total - size || checked_length < 0)
       {
         gearmand_perror("snprintf");
-        gearmand_crazy("free");
+        gearmand_debug("free");
         free(data);
         return GEARMAN_MEMORY_ALLOCATION_FAILURE;
       }
@@ -1136,7 +1136,7 @@ static gearmand_error_t _server_run_text(gearman_server_con_st *server_con,
   server_packet= gearman_server_packet_create(server_con->thread, false);
   if (server_packet == NULL)
   {
-    gearmand_crazy("free");
+    gearmand_debug("free");
     free(data);
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }

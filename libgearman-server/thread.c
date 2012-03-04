@@ -133,7 +133,7 @@ void gearman_server_thread_free(gearman_server_thread_st *thread)
   {
     con= thread->free_con_list;
     thread->free_con_list= con->next;
-    gearmand_crazy("free");
+    gearmand_debug("free");
     free(con);
   }
 
@@ -141,7 +141,7 @@ void gearman_server_thread_free(gearman_server_thread_st *thread)
   {
     packet= thread->free_packet_list;
     thread->free_packet_list= packet->next;
-    gearmand_crazy("free");
+    gearmand_debug("free");
     free(packet);
   }
 

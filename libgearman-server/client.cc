@@ -80,7 +80,7 @@ void gearman_server_client_free(gearman_server_client_st *client)
   }
   else
   {
-    gearmand_crazy("free");
+    gearmand_debug("free");
     free(client);
   }
 }

@@ -240,24 +240,6 @@ void gearmand_log_debug(const char *position, const char *function, const char *
   }
 }
 
-void gearmand_log_crazy(const char *position, const char *function, const char *format, ...)
-{
-#ifdef DEBUG
-  va_list args;
-
-  if (not Gearmand() || Gearmand()->verbose >= GEARMAND_VERBOSE_CRAZY)
-  {
-    va_start(args, format);
-    gearmand_log(position, function, GEARMAND_VERBOSE_CRAZY, GEARMAN_SUCCESS, format, args);
-    va_end(args);
-  }
-#else
-  (void)position;
-  (void)function;
-  (void)format;
-#endif
-}
-
 gearmand_error_t gearmand_log_perror(const char *position, const char *function, const char *message)
 {
   if (not Gearmand() or (Gearmand()->verbose >= GEARMAND_VERBOSE_ERROR))

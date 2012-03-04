@@ -95,12 +95,12 @@ void gearman_server_function_free(gearman_server_st *server, gearman_server_func
 {
   if (function->function_name != NULL)
   {
-    gearmand_crazy("free");
+    gearmand_debug("free");
     free(function->function_name);
   }
 
   gearmand_server_list_free(server, function);
 
-  gearmand_crazy("free");
+  gearmand_debug("free");
   free(function);
 }

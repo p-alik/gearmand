@@ -212,7 +212,7 @@ void gearman_server_con_free(gearman_server_con_st *con)
   }
   else
   {
-    gearmand_crazy("free");
+    gearmand_debug("free");
     free(con);
   }
 }

@@ -235,7 +235,6 @@ bool server_startup(server_startup_st& construct, const std::string& server_type
   }
   else if (server->start() == false)
   {
-    Error << "Failed to start " << *server;
     delete server;
     return false;
   }
