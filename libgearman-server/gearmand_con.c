@@ -11,6 +11,7 @@
  * @brief Gearmand Connection Definitions
  */
 
+#include <config.h>
 #include <libgearman-server/common.h>
 #include <libgearman-server/gearmand.h>
 #include <string.h>
@@ -195,7 +196,7 @@ void gearmand_con_free(gearmand_con_st *dcon)
   }
   else
   {
-    gearmand_crazy("free");
+    gearmand_debug("free");
     free(dcon);
   }
 }
@@ -277,7 +278,7 @@ gearmand_error_t gearmand_connection_watch(gearmand_io_st *con, short events,
     dcon->last_events= set_events;
   }
 
-  gearmand_log_crazy(GEARMAN_DEFAULT_LOG_PARAM,
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
                      "%15s:%5s Watching  %6s %s",
                      dcon->host, dcon->port,
                      events & POLLIN ? "POLLIN" : "",
@@ -309,7 +310,7 @@ static void _con_ready(int fd __attribute__ ((unused)), short events,
     return;
   }
 
-  gearmand_log_crazy(GEARMAN_DEFAULT_LOG_PARAM, 
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, 
                      "%15:%5 Ready     %6s %s",
                      dcon->host, dcon->port,
                      revents & POLLIN ? "POLLIN" : "",

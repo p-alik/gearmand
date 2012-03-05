@@ -19,14 +19,14 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include "config.h"
+#include <config.h>
+
+#include <libhostile/initialize.h>
 
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <dlfcn.h>
-
-#include <libhostile/initialize.h>
 
 static pthread_once_t start_key_once= PTHREAD_ONCE_INIT;
 

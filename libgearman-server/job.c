@@ -43,6 +43,7 @@
  * @brief Server job definitions
  */
 
+#include <config.h>
 #include <libgearman-server/common.h>
 #include <string.h>
 

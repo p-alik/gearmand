@@ -11,6 +11,7 @@
  * @brief libmemcached Queue Storage Definitions
  */
 
+#include <config.h>
 #include <libgearman-server/common.h>
 
 #include <libgearman-server/plugins/queue/base.h>

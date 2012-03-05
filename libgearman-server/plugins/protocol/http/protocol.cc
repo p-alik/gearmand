@@ -42,6 +42,7 @@
  * @brief HTTP Protocol Definitions
  */
 
+#include <config.h>
 #include <libgearman-server/common.h>
 
 #include <cstdio>

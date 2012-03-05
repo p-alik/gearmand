@@ -11,6 +11,7 @@
  * @brief libsqlite3 Queue Storage Definitions
  */
 
+#include <config.h>
 #include <libgearman-server/common.h>
 
 #include <libgearman-server/plugins/queue/sqlite/queue.h>
@@ -298,7 +299,7 @@ int _sqlite_query(gearman_server_st *,
     return SQLITE_ERROR;
   }
 
-  gearmand_log_crazy(GEARMAN_DEFAULT_LOG_PARAM, "sqlite query: %s", query);
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "sqlite query: %s", query);
   int ret= sqlite3_prepare(queue->db, query, (int)query_size, sth, NULL);
   if (ret  != SQLITE_OK)
   {
@@ -509,7 +510,7 @@ static gearmand_error_t _sqlite_add(gearman_server_st *server, void *context,
     return GEARMAN_QUEUE_ERROR;
   }
 
-  gearmand_log_crazy(GEARMAN_DEFAULT_LOG_PARAM,
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
                      "sqlite data: priority: %d, unique_key: %s, function_name: %s",
                      priority, (char*)unique, (char*)function_name);
 

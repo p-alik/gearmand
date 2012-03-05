@@ -97,14 +97,6 @@ GEARMAN_INTERNAL_API
 void gearmand_log_debug(const char *position, const char *function, const char *format, ...);
 #define gearmand_debug(_mesg) gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, (_mesg))
 
-
-/**
- * Log a crazy message, see gearmand_log() for argument details.
- */
-GEARMAN_INTERNAL_API
-void gearmand_log_crazy(const char *position, const char *function, const char *format, ...);
-#define gearmand_crazy(_mesg) gearmand_log_crazy(GEARMAN_DEFAULT_LOG_PARAM, (_mesg))
-
 #ifdef __cplusplus
 }
 #endif
