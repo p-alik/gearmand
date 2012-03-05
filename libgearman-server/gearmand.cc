@@ -506,7 +506,8 @@ static gearmand_error_t _listen_init(gearmand_st *gearmand)
         }
 
         // We are in single user threads, so strerror() is fine.
-        gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Retrying bind(%s) on %s:%s %u >= %u", strerror(ret), host, port->port,
+        gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Retrying bind(%s) on %s:%s %u >= %u", 
+                           strerror(errno), host, port->port,
                            waited, bind_timeout);
         this_wait= retry * retry / 3 + 1;
         sleep(this_wait);
@@ -520,7 +521,7 @@ static gearmand_error_t _listen_init(gearmand_st *gearmand)
 
         if (errno == EADDRINUSE)
         {
-          if (not port->listen_fd)
+          if (port->listen_fd == NULL)
           {
             gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "Address already in use %s:%s", host, port->port);
           }
