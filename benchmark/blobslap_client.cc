@@ -11,6 +11,7 @@
  * @brief Blob slap client utility
  */
 
+#include <config.h>
 #include <benchmark/benchmark.h>
 
 #include <iostream>

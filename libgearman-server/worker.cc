@@ -11,6 +11,7 @@
  * @brief Server worker definitions
  */
 
+#include <config.h>
 #include <libgearman-server/common.h>
 
 static gearman_server_worker_st *

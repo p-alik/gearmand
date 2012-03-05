@@ -11,6 +11,7 @@
  * @brief Server Thread Definitions
  */
 
+#include <config.h>
 #include <libgearman-server/common.h>
 
 #define GEARMAN_CORE

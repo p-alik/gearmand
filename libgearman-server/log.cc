@@ -11,10 +11,11 @@
  * @brief Gearman State Definitions
  */
 
+#include <config.h>
 #include <libgearman-server/common.h>
 
 #include <algorithm>
-#include <errno.h>
+#include <cerrno>
 #include <cstring>
 
 static pthread_key_t logging_key;

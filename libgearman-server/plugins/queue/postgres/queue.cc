@@ -42,6 +42,7 @@
  * @brief libpq Queue Storage Definitions
  */
 
+#include <config.h>
 #include <libgearman-server/common.h>
 #include <libgearman-server/byte.h>
 

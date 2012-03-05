@@ -3,8 +3,8 @@
  * @brief Tokyo Cabinet Queue Storage Definitions
  */
 
+#include <config.h>
 #include <libgearman-server/common.h>
-#include <inttypes.h>
 
 #include <libgearman-server/plugins/queue/tokyocabinet/queue.h>
 #include <libgearman-server/plugins/queue/base.h>

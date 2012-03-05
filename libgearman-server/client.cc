@@ -11,8 +11,9 @@
  * @brief Server client definitions
  */
 
+#include <config.h>
 #include <libgearman-server/common.h>
-#include <assert.h>
+#include <cassert>
 
 /*
  * Public definitions

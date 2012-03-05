@@ -35,6 +35,7 @@
  *
  */
 
+#include <config.h>
 #include <libgearman/common.h>
 
 #include <cassert>
@@ -42,7 +43,6 @@
 #include <limits>
 #include <memory>
 
-#include <libgearman/common.h>
 #include <libgearman/result.hpp>
 
 bool gearman_result_is_null(const gearman_result_st *self)

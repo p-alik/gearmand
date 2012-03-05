@@ -42,6 +42,7 @@
  * @brief Blob slap worker utility
  */
 
+#include <config.h>
 #include <benchmark/benchmark.h>
 #include <boost/program_options.hpp>
 #include <cerrno>

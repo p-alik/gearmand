@@ -11,6 +11,7 @@
  * @brief Server Definitions
  */
 
+#include <config.h>
 #include <libgearman-server/common.h>
 
 #include <assert.h>

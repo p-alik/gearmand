@@ -11,6 +11,7 @@
  * @brief Connection Definitions
  */
 
+#include <config.h>
 #include <libgearman-server/common.h>
 
 #include <cstring>

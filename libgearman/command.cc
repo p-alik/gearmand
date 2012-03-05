@@ -36,6 +36,7 @@
  *
  */
 
+#include <config.h>
 #include <libgearman/common.h>
 
 #include <libgearman-1.0/visibility.h>

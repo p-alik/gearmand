@@ -11,9 +11,10 @@
  * @brief Gearmand Definitions
  */
 
+#include <config.h>
 #include <libgearman-server/common.h>
 
-#include <errno.h>
+#include <cerrno>
 #include <netdb.h>
 #include <sys/socket.h>
 #include <sys/types.h>

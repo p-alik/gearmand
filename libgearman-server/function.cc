@@ -11,8 +11,9 @@
  * @brief Server function definitions
  */
 
+#include <config.h>
 #include <libgearman-server/common.h>
-#include <string.h>
+#include <cstring>
 
 #include <libgearman-server/list.h>
 
