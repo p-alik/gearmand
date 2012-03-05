@@ -21,12 +21,12 @@
 
 #include <config.h>
 
+#include <libhostile/initialize.h>
+
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <dlfcn.h>
-
-#include <libhostile/initialize.h>
 
 static pthread_once_t start_key_once= PTHREAD_ONCE_INIT;
 
