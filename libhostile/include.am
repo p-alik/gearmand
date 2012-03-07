@@ -1,6 +1,6 @@
 # vim:ft=automake
 # libhostile
-# Copyright (C) 2011 Data Differential
+# Copyright (C) 2011 - 2012 Data Differential
 # All rights reserved.
 #
 # Use and distribution licensed under the BSD license.  See
@@ -27,7 +27,9 @@ noinst_HEADERS+= \
 libhostile_libhostile_la_CPPFLAGS=
 libhostile_libhostile_la_LIBADD=
 libhostile_libhostile_la_SOURCES=
+libhostile_libhostile_la_DEPENDENCIES=
 
+libhostile_libhostile_la_DEPENDENCIES+= config.h
 libhostile_libhostile_la_SOURCES+= libhostile/initialize.c
 
 if TARGET_LINUX
