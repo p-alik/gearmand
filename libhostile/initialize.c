@@ -19,14 +19,16 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include "config.h"
+#include <config.h>
+
+#if defined(TARGET_OS_LINUX) && TARGET_OS_LINUX
+
+#include <libhostile/initialize.h>
 
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <dlfcn.h>
-
-#include <libhostile/initialize.h>
 
 static pthread_once_t start_key_once= PTHREAD_ONCE_INIT;
 
@@ -95,3 +97,13 @@ void hostile_initialize(void)
 {
   (void) pthread_once(&start_key_once, startup);
 }
+
+#else // TARGET_OS_LINUX
+
+void hostile_initialize(void);
+
+void hostile_initialize(void)
+{
+}
+
+#endif // TARGET_OS_LINUX

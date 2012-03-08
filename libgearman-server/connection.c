@@ -11,6 +11,7 @@
  * @brief Server connection definitions
  */
 
+#include <config.h>
 #include <libgearman-server/common.h>
 #include <string.h>
 #include <errno.h>
@@ -212,7 +213,7 @@ void gearman_server_con_free(gearman_server_con_st *con)
   }
   else
   {
-    gearmand_crazy("free");
+    gearmand_debug("free");
     free(con);
   }
 }

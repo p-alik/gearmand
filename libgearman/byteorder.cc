@@ -40,6 +40,7 @@
  *
  */
 
+#include <config.h>
 #include <libgearman/common.h>
 
 #ifndef swap64

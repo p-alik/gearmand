@@ -11,8 +11,9 @@
  * @brief Server client definitions
  */
 
+#include <config.h>
 #include <libgearman-server/common.h>
-#include <assert.h>
+#include <cassert>
 
 /*
  * Public definitions
@@ -80,7 +81,7 @@ void gearman_server_client_free(gearman_server_client_st *client)
   }
   else
   {
-    gearmand_crazy("free");
+    gearmand_debug("free");
     free(client);
   }
 }

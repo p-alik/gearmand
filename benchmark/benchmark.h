@@ -13,8 +13,6 @@
 
 #pragma once
 
-#include <config.h>
-
 #include <libgearman/gearman.h>
 
 #ifdef TIME_WITH_SYS_TIME

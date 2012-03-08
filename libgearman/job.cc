@@ -37,6 +37,7 @@
  */
 
 
+#include <config.h>
 #include <libgearman/common.h>
 
 #include <cassert>

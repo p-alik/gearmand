@@ -11,9 +11,10 @@
  * @brief Gearmand Definitions
  */
 
+#include <config.h>
 #include <libgearman-server/common.h>
 
-#include <errno.h>
+#include <cerrno>
 #include <netdb.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -114,7 +115,7 @@ gearmand_st *gearmand_create(const char *host_arg,
 
   if (! gearman_server_create(&(gearmand->server), job_retries, worker_wakeup, round_robin))
   {
-    gearmand_crazy("free");
+    gearmand_debug("free");
     free(gearmand);
     return NULL;
   }
@@ -193,7 +194,7 @@ void gearmand_free(gearmand_st *gearmand)
 
     dcon= gearmand->free_dcon_list;
     gearmand->free_dcon_list= dcon->next;
-    gearmand_crazy("free");
+    gearmand_debug("free");
     free(dcon);
   }
 
@@ -208,26 +209,26 @@ void gearmand_free(gearmand_st *gearmand)
   {
     if (gearmand->port_list[x].listen_fd != NULL)
     {
-      gearmand_crazy("free");
+      gearmand_debug("free");
       free(gearmand->port_list[x].listen_fd);
     }
 
     if (gearmand->port_list[x].listen_event != NULL)
     {
-      gearmand_crazy("free");
+      gearmand_debug("free");
       free(gearmand->port_list[x].listen_event);
     }
   }
 
   if (gearmand->port_list != NULL)
   {
-    gearmand_crazy("free");
+    gearmand_debug("free");
     free(gearmand->port_list);
   }
 
   gearmand_info("Shutdown complete");
 
-  gearmand_crazy("free");
+  gearmand_debug("free");
   free(gearmand);
 }
 
@@ -506,7 +507,8 @@ static gearmand_error_t _listen_init(gearmand_st *gearmand)
         }
 
         // We are in single user threads, so strerror() is fine.
-        gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Retrying bind(%s) on %s:%s %u >= %u", strerror(ret), host, port->port,
+        gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Retrying bind(%s) on %s:%s %u >= %u", 
+                           strerror(errno), host, port->port,
                            waited, bind_timeout);
         this_wait= retry * retry / 3 + 1;
         sleep(this_wait);
@@ -520,7 +522,7 @@ static gearmand_error_t _listen_init(gearmand_st *gearmand)
 
         if (errno == EADDRINUSE)
         {
-          if (not port->listen_fd)
+          if (port->listen_fd == NULL)
           {
             gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "Address already in use %s:%s", host, port->port);
           }

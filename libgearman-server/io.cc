@@ -11,6 +11,7 @@
  * @brief Connection Definitions
  */
 
+#include <config.h>
 #include <libgearman-server/common.h>
 
 #include <cstring>
@@ -601,7 +602,7 @@ gearmand_error_t gearman_io_recv(gearman_server_con_st *con, bool recv_data)
         }
         return ret;
       }
-      gearmand_log_crazy(GEARMAN_DEFAULT_LOG_PARAM, "read %lu bytes", (unsigned long)recv_size);
+      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "read %lu bytes", (unsigned long)recv_size);
 
       connection->recv_buffer_size+= recv_size;
     }

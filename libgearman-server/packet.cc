@@ -11,13 +11,14 @@
  * @brief Server connection definitions
  */
 
+#include <config.h>
 #include <libgearman-server/common.h>
 
 #define GEARMAN_CORE
 #include <libgearman/command.h>
 
 #include <libgearman-server/fifo.h>
-#include <assert.h>
+#include <cassert>
 #include <cstring>
 
 #ifndef __INTEL_COMPILER
@@ -82,7 +83,7 @@ void gearman_server_packet_free(gearman_server_packet_st *packet,
     }
     else
     {
-      gearmand_crazy("free");
+      gearmand_debug("free");
       free(packet);
     }
   }
@@ -96,7 +97,7 @@ void gearman_server_packet_free(gearman_server_packet_st *packet,
     }
     else
     {
-      gearmand_crazy("free");
+      gearmand_debug("free");
       free(packet);
     }
   }
@@ -307,14 +308,14 @@ void gearmand_packet_free(gearmand_packet_st *packet)
 {
   if (packet->args != packet->args_buffer && packet->args != NULL)
   {
-    gearmand_crazy("free");
+    gearmand_debug("free");
     free(packet->args);
     packet->args= NULL;
   }
 
   if (packet->options.free_data && packet->data != NULL)
   {
-    gearmand_crazy("free");
+    gearmand_debug("free");
     free((void *)packet->data); //@todo fix the need for the casting.
     packet->data= NULL;
   }
@@ -523,7 +524,7 @@ size_t gearmand_packet_unpack(gearmand_packet_st *packet,
       ptr= (uint8_t *)memchr(((uint8_t *)data) + used_size, 0, data_size - used_size);
       if (not ptr)
       {
-        gearmand_log_crazy(GEARMAN_DEFAULT_LOG_PARAM, "Possible protocol error for %s, recieved only %u args", gearman_command_info(packet->command)->name, packet->argc);
+        gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Possible protocol error for %s, recieved only %u args", gearman_command_info(packet->command)->name, packet->argc);
         *ret_ptr= GEARMAN_IO_WAIT;
         return used_size;
       }

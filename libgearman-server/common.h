@@ -13,8 +13,6 @@
 
 #pragma once
 
-#include <config.h>
-
 #include <libgearman-server/gearmand.h>
 #include <libgearman-server/byteorder.h>
 
