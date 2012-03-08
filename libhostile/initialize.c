@@ -21,6 +21,8 @@
 
 #include <config.h>
 
+#if defined(TARGET_OS_LINUX) && TARGET_OS_LINUX
+
 #include <libhostile/initialize.h>
 
 #include <pthread.h>
@@ -95,3 +97,13 @@ void hostile_initialize(void)
 {
   (void) pthread_once(&start_key_once, startup);
 }
+
+#else // TARGET_OS_LINUX
+
+void hostile_initialize(void);
+
+void hostile_initialize(void)
+{
+}
+
+#endif // TARGET_OS_LINUX
