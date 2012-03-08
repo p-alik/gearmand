@@ -129,3 +129,5 @@ tests/libgearman-1.0/worker_test
 libgearman-1.0/t/c_test
 libgearman-1.0/t/cc_test
 tests/httpd_test
+docs/doctest
+var
