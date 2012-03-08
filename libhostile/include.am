@@ -24,19 +24,18 @@ noinst_HEADERS+= \
 		 libhostile/setsockopt.h \
 		 libhostile/write.h
 
-libhostile_libhostile_la_CPPFLAGS=
+libhostile_libhostile_la_CFLAGS=
 libhostile_libhostile_la_LIBADD=
 libhostile_libhostile_la_SOURCES=
 libhostile_libhostile_la_DEPENDENCIES=
 
-libhostile_libhostile_la_DEPENDENCIES+= config.h
 libhostile_libhostile_la_SOURCES+= libhostile/initialize.c
 
 if TARGET_LINUX
 libhostile_libhostile_la_LIBADD+= $(DL_LIB)
 libhostile_libhostile_la_LIBADD+= $(RT_LIB)
 
-libhostile_libhostile_la_CPPFLAGS+= -DHAVE_LIBHOSTILE=1
+libhostile_libhostile_la_CFLAGS+= -DHAVE_LIBHOSTILE=1
 libhostile_libhostile_la_SOURCES+= \
 				   libhostile/getaddrinfo.c \
 				   libhostile/malloc.c \
