@@ -12,7 +12,7 @@ Documentation Content
 
 Gearman Documentation (gearman.info) is licensed under a `Creative Commons Attribution-NonCommercial-NoDerivs 3.0 Unported License <http://creativecommons.org/licenses/by-nc-nd/3.0/>`_.
 
-If you need to have the documention licensed in a different manner, please contact `Data Differential <http://datadifferential.com/>`_.
+If you need to have the documention licensed in a different manner, please contact `Data Differential <http://www.datadifferential.com/>`_.
 
 ------------------------
 Server and C/C++ library
