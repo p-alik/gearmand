@@ -23,18 +23,19 @@ Link with -lgearman
 DESCRIPTION
 -----------
 
-:c:func:`gearman_client_add_task_background()` creates a background task and adds it ito the given :c:type:`gearman_client_st`. Execution of the task does now begin until :c:func:`gearman_client_run_tasks()` is called. 
+:c:func:`gearman_client_add_task_background` creates a background task and adds it ito the given :c:type:`gearman_client_st`. Execution of the task does now begin until :c:func:`gearman_client_run_tasks` is called. 
 
 If the unique value is not set, then a unique will be assigned.
 
-:c:func:`gearman_client_add_task_background_high()` and :c:func:`gearman_client_add_task_background_low()` are
-identical to :c:func:`gearman_client_do()`, only they set the priority to
+:c:func:`gearman_client_add_task_background_high` and :c:func:`gearman_client_add_task_background_low` are
+identical to :c:func:`gearman_client_do`, only they set the priority to
 either high or low. 
 
 .. warning:: 
-  You may wish to avoid using :c:func:`gearman_client_add_task_background()` with a stack based allocated
+
+  You may wish to avoid using :c:func:`gearman_client_add_task_background` with a stack based allocated
   :c:type:`gearman_task_st`. The most common issues related to ABI safety involve stack allocated structures. If you use a stack based
-  :c:type:`gearman_task_st` you must free it with :c:func:`gearman_task_free()`.
+  :c:type:`gearman_task_st` you must free it with :c:func:`gearman_task_free`.
 
 ------------
 RETURN VALUE

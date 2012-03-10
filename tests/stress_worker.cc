@@ -179,9 +179,6 @@ static test_return_t worker_ramp_10K_TEST(void *)
 
 static test_return_t pre_recv(void *)
 {
-  // Assume we are running under valgrind, and bail 
-  test_skip(true, bool(getenv("YATL_RUN_MASSIVE_TESTS")));
-
   set_recv_close(true, 20, 20);
 
   return TEST_SUCCESS;
@@ -189,8 +186,6 @@ static test_return_t pre_recv(void *)
 
 static test_return_t post_recv(void *)
 {
-  test_skip(true, bool(getenv("YATL_RUN_MASSIVE_TESTS")));
-
   set_recv_close(true, 0, 0);
 
   return TEST_SUCCESS;
@@ -216,6 +211,12 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
 {
   // Assume we are running under valgrind, and bail 
   if (getenv("TESTS_ENVIRONMENT")) 
+  {
+    error= TEST_SKIPPED;
+    return NULL;
+  }
+
+  if (bool(getenv("YATL_RUN_MASSIVE_TESTS")) == false) 
   {
     error= TEST_SKIPPED;
     return NULL;

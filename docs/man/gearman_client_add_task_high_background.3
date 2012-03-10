@@ -1,4 +1,4 @@
-.TH "GEARMAN_CLIENT_ADD_TASK_HIGH_BACKGROUND" "3" "January 26, 2012" "0.28" "Gearmand"
+.TH "GEARMAN_CLIENT_ADD_TASK_HIGH_BACKGROUND" "3" "March 07, 2012" "0.29" "Gearmand"
 .SH NAME
 gearman_client_add_task_high_background \- Gearmand Documentation, http://gearman.info/
 .
@@ -62,6 +62,11 @@ If the unique value is not set, then a unique will be assigned.
 \fBgearman_client_add_task_background_high()\fP and \fBgearman_client_add_task_background_low()\fP are
 identical to \fBgearman_client_do()\fP, only they set the priority to
 either high or low.
+.IP Warning
+You may wish to avoid using \fBgearman_client_add_task_background()\fP with a stack based allocated
+\fBgearman_task_st\fP. The most common issues related to ABI safety involve stack allocated structures. If you use a stack based
+\fBgearman_task_st\fP you must free it with \fBgearman_task_free()\fP.
+.RE
 .SH RETURN VALUE
 .sp
 The \fBgearman_task_st\fP is created and a pointer to it is returned. On error NULL is returned and ret_ptr is set with a \fBgearman_return_t\fP.
