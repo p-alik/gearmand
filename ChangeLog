@@ -1,5 +1,8 @@
 0.29
 * Additional Fixes for Postgres
+* Additional debug calls in server via tuneable logging.
+* Documentation update.
+* Fixes for Ubuntu 11.10
 
 0.28 Thu Jan 26 22:43:46 PST 2012
 * -v has been deprecated because of parsing issues. Please use --verbose instead
