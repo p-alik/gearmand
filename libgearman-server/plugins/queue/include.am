@@ -9,8 +9,7 @@
 # All paths should be given relative to the root
 #
 
-noinst_HEADERS+= \
-		 libgearman-server/plugins/queue/base.h
+noinst_HEADERS+= libgearman-server/plugins/queue/base.h
 
 include libgearman-server/plugins/queue/drizzle/include.am
 include libgearman-server/plugins/queue/libmemcached/include.am

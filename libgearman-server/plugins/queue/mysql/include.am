@@ -1,3 +1,4 @@
+# vim:ft=automake
 # Gearman
 # Copyright (C) 2011 Oleksiy Krivoshey
 # All rights reserved.
@@ -8,12 +9,12 @@
 # All paths should be given relative to the root
 #
 
-noinst_HEADERS+= \
-		 libgearman-server/plugins/queue/mysql/queue.h
+noinst_HEADERS+= libgearman-server/plugins/queue/mysql/queue.h
 
-libgearman_server_libgearman_server_la_SOURCES+= \
-						 libgearman-server/plugins/queue/mysql/queue.cc
+if HAVE_MYSQL
+libgearman_server_libgearman_server_la_SOURCES+= libgearman-server/plugins/queue/mysql/queue.cc
 
 libgearman_server_libgearman_server_la_LIBADD+= $(MYSQL_LDFLAGS)
+endif
 
 
