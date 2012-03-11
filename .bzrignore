@@ -131,3 +131,4 @@ libgearman-1.0/t/cc_test
 tests/httpd_test
 docs/doctest
 var
+libtest/abort
