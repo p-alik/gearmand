@@ -113,6 +113,16 @@ AC_FUNC_STRERROR_R
 SOCKET_SEND_FLAGS
 AX_HAVE_LIBHIREDIS
 
+AX_LIB_MYSQL([5.0])
+AM_CONDITIONAL(HAVE_MYSQL, test "x${HAVE_MYSQL}" = "x1")
+AS_IF([test "x${HAVE_MYSQL}" = "xyes"],
+      [
+       AC_DEFINE([HAVE_MYSQL_BUILD], [1], [Define to 1 if MySQL libraries are available])
+      ],
+      [
+       AC_DEFINE([HAVE_MYSQL_BUILD], [0], [Define to 1 if MySQL libraries are available])
+      ])
+
 # Checks for programs.
 AC_PROG_AWK
 AC_PROG_INSTALL
@@ -250,5 +260,6 @@ echo "   * Building with libdrizzle   $ac_enable_libdrizzle"
 echo "   * Building with libmemcached $ac_enable_libmemcached"
 echo "   * Building with libpq        $ac_cv_libpq"
 echo "   * Building with tokyocabinet $ac_enable_libtokyocabinet"
+echo "   * Building with libmysql     $found_mysql"
 echo ""
 echo "---"
