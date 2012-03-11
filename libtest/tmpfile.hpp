@@ -19,48 +19,13 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <config.h>
+#pragma once
+
 #include <libtest/common.h>
-
-#include <unistd.h>
-
-#if defined(HAVE_SYS_SYSCTL_H) && HAVE_SYS_SYSCTL_H
-#include <sys/sysctl.h>
-#endif
 
 namespace libtest {
 
-size_t number_of_cpus()
-{
-  size_t number_of_cpu= 1;
-#if TARGET_OS_LINUX
-  number_of_cpu= sysconf(_SC_NPROCESSORS_ONLN);
-#elif defined(HAVE_SYS_SYSCTL_H) && defined(CTL_HW) && defined(HW_NCPU) && defined(HW_AVAILCPU) && defined(HW_NCPU)
-  int mib[4];
-  size_t len= sizeof(number_of_cpu); 
-
-  /* set the mib for hw.ncpu */
-  mib[0] = CTL_HW;
-  mib[1] = HW_AVAILCPU;  // alternatively, try HW_NCPU;
-
-  /* get the number of CPUs from the system */
-  sysctl(mib, 2, &number_of_cpu, &len, NULL, 0);
-
-  if (number_of_cpu < 1) 
-  {
-    mib[1]= HW_NCPU;
-    sysctl(mib, 2, &number_of_cpu, &len, NULL, 0 );
-
-    if (number_of_cpu < 1 )
-    {
-      number_of_cpu = 1;
-    }
-  }
-#else
-  fprintf(stderr, "Going with guessing\n");
-#endif
-
-  return number_of_cpu;
-}
+std::string create_tmpfile(const std::string&);
 
 } // namespace libtest
+

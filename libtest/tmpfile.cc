@@ -19,48 +19,28 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <config.h>
+
 #include <libtest/common.h>
-
-#include <unistd.h>
-
-#if defined(HAVE_SYS_SYSCTL_H) && HAVE_SYS_SYSCTL_H
-#include <sys/sysctl.h>
-#endif
 
 namespace libtest {
 
-size_t number_of_cpus()
+std::string create_tmpfile(const std::string& name)
 {
-  size_t number_of_cpu= 1;
-#if TARGET_OS_LINUX
-  number_of_cpu= sysconf(_SC_NPROCESSORS_ONLN);
-#elif defined(HAVE_SYS_SYSCTL_H) && defined(CTL_HW) && defined(HW_NCPU) && defined(HW_AVAILCPU) && defined(HW_NCPU)
-  int mib[4];
-  size_t len= sizeof(number_of_cpu); 
+  char file_buffer[FILENAME_MAX];
+  file_buffer[0]= 0;
 
-  /* set the mib for hw.ncpu */
-  mib[0] = CTL_HW;
-  mib[1] = HW_AVAILCPU;  // alternatively, try HW_NCPU;
+  int length= snprintf(file_buffer, sizeof(file_buffer), "var/tmp/%s.XXXXXX", name.c_str());
+  fatal_assert(length > 0);
 
-  /* get the number of CPUs from the system */
-  sysctl(mib, 2, &number_of_cpu, &len, NULL, 0);
-
-  if (number_of_cpu < 1) 
+  int fd;
+  if ((fd= mkstemp(file_buffer)) == -1)
   {
-    mib[1]= HW_NCPU;
-    sysctl(mib, 2, &number_of_cpu, &len, NULL, 0 );
-
-    if (number_of_cpu < 1 )
-    {
-      number_of_cpu = 1;
-    }
+    libtest::fatal(LIBYATL_DEFAULT_PARAM, "mkstemp() failed on %s with %s", file_buffer, strerror(errno));
   }
-#else
-  fprintf(stderr, "Going with guessing\n");
-#endif
+  close(fd);
+  unlink(file_buffer);
 
-  return number_of_cpu;
+  return file_buffer;
 }
 
 } // namespace libtest
