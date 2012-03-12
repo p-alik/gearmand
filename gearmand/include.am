@@ -16,14 +16,17 @@ noinst_HEADERS+= gearmand/log.hpp
 sbin_PROGRAMS+= gearmand/gearmand
 
 gearmand_gearmand_LDADD=
+gearmand_gearmand_CXXFLAGS=
+gearmand_gearmand_DEPENDENCIES=
+gearmand_gearmand_LDFLAGS=
+
 gearmand_gearmand_LDADD+= libgearman-server/libgearman-server.la
 
-gearmand_gearmand_DEPENDENCIES=
 gearmand_gearmand_DEPENDENCIES+= libgearman-server/libgearman-server.la
 
-gearmand_gearmand_LDFLAGS= $(BOOST_PROGRAM_OPTIONS_LDFLAGS)
+gearmand_gearmand_LDFLAGS+= $(BOOST_PROGRAM_OPTIONS_LDFLAGS)
 
-gearmand_gearmand_CXXFLAGS= $(BOOST_CXXFLAGS)
+gearmand_gearmand_CXXFLAGS+= $(BOOST_CPPFLAGS)
 
 gearmand_gearmand_SOURCES= \
 			   gearmand/gearmand.cc \
