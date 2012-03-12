@@ -12,6 +12,7 @@
 # All paths should be given relative to the root
 
 EXAMPLES_LDADD= \
+		$(BOOST_PROGRAM_OPTIONS_LDFLAGS) \
 		$(BOOST_PROGRAM_OPTIONS_LIBS) \
 		libgearman/libgearman.la
 
