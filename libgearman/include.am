@@ -35,6 +35,7 @@ noinst_HEADERS+= \
 		 libgearman/packet.hpp \
 		 libgearman/result.hpp \
 		 libgearman/run.hpp \
+		 libgearman/task.hpp \
 		 libgearman/strcommand.h \
 		 libgearman/string.hpp \
 		 libgearman/unique.hpp \

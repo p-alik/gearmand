@@ -38,5 +38,4 @@
 
 #pragma once
 
-GEARMAN_LOCAL
-gearman_return_t _client_run_task(gearman_client_st *client, gearman_task_st *task);
+gearman_return_t _client_run_task(gearman_task_st *task);
