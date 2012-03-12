@@ -792,19 +792,18 @@ static test_return_t background_failure_test(void *object)
 
 static test_return_t add_servers_test(void *)
 {
-  gearman_client_st client, *client_ptr;
+  gearman_client_st *client= gearman_client_create(NULL);
+  test_truth(client);
 
-  client_ptr= gearman_client_create(&client);
-  test_truth(client_ptr);
+  test_compare_got(GEARMAN_SUCCESS,
+                   gearman_client_add_servers(client, "localhost:4730,localhost"),
+                   gearman_client_error(client));
 
-  gearman_return_t rc;
-  rc= gearman_client_add_servers(&client, "localhost:4730,localhost");
-  test_compare_got(GEARMAN_SUCCESS, rc, gearman_strerror(rc));
+  test_compare_got(GEARMAN_GETADDRINFO,
+                   gearman_client_add_servers(client, "exist.gearman.info:7003,does_not_exist.gearman.info:12345"),
+                   gearman_client_error(client));
 
-  rc= gearman_client_add_servers(&client, "old_jobserver:7003,broken:12345");
-  test_compare_got(GEARMAN_GETADDRINFO, rc, gearman_strerror(rc));
-
-  gearman_client_free(&client);
+  gearman_client_free(client);
 
   return TEST_SUCCESS;
 }
