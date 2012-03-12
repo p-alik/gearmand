@@ -112,28 +112,6 @@ struct gearman_task_st
   char job_handle[GEARMAN_JOB_HANDLE_SIZE];
 };
 
-#ifdef __cplusplus
-/**
- * Initialize a task structure.
- *
- * @param[in] client Structure previously initialized with
- *  gearman_client_create() or gearman_client_clone().
- * @param[in] task Caller allocated structure, or NULL to allocate one.
- * @return On success, a pointer to the (possibly allocated) structure. On
- *  failure this will be NULL.
- */
-GEARMAN_LOCAL
-gearman_task_st *gearman_task_internal_create(gearman_client_st *client,
-                                              gearman_task_st *task);
-
-GEARMAN_LOCAL
-const char *gearman_task_strstate(gearman_task_st *self);
-
-#endif
-
-GEARMAN_LOCAL
-void gearman_task_clear_fn(gearman_task_st *task);
-
 /**
  * Free a task structure.
  *
@@ -149,9 +127,6 @@ void gearman_task_free(gearman_task_st *task);
  */
 GEARMAN_API
 void *gearman_task_context(const gearman_task_st *task);
-
-GEARMAN_LOCAL
-bool gearman_task_is_active(const gearman_task_st *self);
 
 /**
  * Set context for a task.
@@ -251,12 +226,6 @@ gearman_result_st *gearman_task_result(gearman_task_st *task);
 
 GEARMAN_API
 gearman_return_t gearman_task_return(const gearman_task_st *task);
-
-GEARMAN_LOCAL
-gearman_result_st *gearman_task_mutable_result(gearman_task_st *task);
-
-GEARMAN_LOCAL
-void gearman_task_free_result(gearman_task_st *task);
 
 /** @} */
 

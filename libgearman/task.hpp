@@ -2,8 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  Copyright (C) 2008 Brian Aker, Eric Day
+ *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -36,31 +35,26 @@
  *
  */
 
-
 #pragma once
 
-#include <libgearman/assert.hpp>
+/**
+ * Initialize a task structure.
+ *
+ * @param[in] client Structure previously initialized with
+ *  gearman_client_create() or gearman_client_clone().
+ * @param[in] task Caller allocated structure, or NULL to allocate one.
+ * @return On success, a pointer to the (possibly allocated) structure. On
+ *  failure this will be NULL.
+ */
+gearman_task_st *gearman_task_internal_create(gearman_client_st *client,
+                                              gearman_task_st *task);
 
-#include <libgearman-1.0/gearman.h>
+const char *gearman_task_strstate(gearman_task_st *self);
 
-#include <libgearman/connection.hpp>
-#include <libgearman/universal.hpp>
-#include <libgearman/allocator.hpp>
-#include <libgearman/packet.hpp>
-#include <libgearman/run.hpp>
-#include <libgearman/aggregator.hpp>
+void gearman_task_clear_fn(gearman_task_st *task);
 
-#include <libgearman/error.hpp>
+bool gearman_task_is_active(const gearman_task_st *self);
 
-/* These are private not to be installed headers */
-#include <libgearman/byteorder.h>
-#include <libgearman/strcommand.h>
-#include <libgearman/vector.hpp>
-#include <libgearman/unique.hpp>
-#include <libgearman/add.hpp>
-#include <libgearman/result.hpp>
-#include <libgearman/actions.hpp>
-#include <libgearman/is.hpp>
-#include <libgearman/string.hpp>
-#include <libgearman/command.h>
-#include <libgearman/task.hpp>
+gearman_result_st *gearman_task_mutable_result(gearman_task_st *task);
+
+void gearman_task_free_result(gearman_task_st *task);

@@ -54,13 +54,13 @@ static gearman_return_t _client_pause_data(gearman_task_st *task)
 
   if (gearman_task_data_size(task))
   {
-    if (not task->result_ptr)
+    if (task->result_ptr)
     {
-      task->result_ptr= new (std::nothrow) gearman_result_st(gearman_task_data_size(task));
+      task->result_ptr->clear();
     }
     else
     {
-      task->result_ptr->clear();
+      task->result_ptr= new (std::nothrow) gearman_result_st(gearman_task_data_size(task));
     }
     assert_msg(task->result_ptr, "programmer error, result_ptr has not been allocated for task");
 
