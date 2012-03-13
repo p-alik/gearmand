@@ -122,21 +122,21 @@ extern "C" {
 
   static void *thread_runner(void *con)
   {
-    context_st *context= (context_st *)con;
-
     do
     {
-      if (context == NULL)
+      std::auto_ptr<context_st> context((context_st *)con);
+
+      assert(context.get());
+      if (context.get() == NULL)
       {
         Error << "context_st passed to function was NULL";
-        delete context;
         break;
       }
 
+      assert (context->magic == CONTEXT_MAGIC_MARKER);
       if (context->magic != CONTEXT_MAGIC_MARKER)
       {
         Error << "context_st had bad magic";
-        delete context;
         break;
       }
 
@@ -144,7 +144,6 @@ extern "C" {
       if (&worker == NULL)
       {
         Error << "Failed to create Worker";
-        delete context;
         break;
       }
 
@@ -152,7 +151,6 @@ extern "C" {
       if (context->handle == NULL)
       {
         Error << "Progammer error, no handle found";
-        delete context;
         break;
       }
       context->handle->set_worker_id(&worker);
@@ -165,7 +163,6 @@ extern "C" {
       if (gearman_failed(gearman_worker_add_server(&worker, NULL, context->port)))
       {
         Error << "gearman_worker_add_server()";
-        delete context;
         break;
       }
 
@@ -181,7 +178,6 @@ extern "C" {
         if (success == false)
         {
           Error << "gearman_worker_set_server_option() failed";
-          delete context;
           break;
         }
       }
@@ -193,7 +189,6 @@ extern "C" {
                                                         context->context)))
       {
         Error << "Failed to add function " << context->function_name << "(" << gearman_worker_error(&worker) << ")";
-        delete context;
         break;
       }
 
@@ -210,7 +205,6 @@ extern "C" {
         ret= gearman_worker_work(&worker);
       }
 
-      delete context;
     } while (0);
 
     pthread_exit(0);
