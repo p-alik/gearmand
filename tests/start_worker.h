@@ -42,32 +42,37 @@
 #include <libgearman/gearman.h>
 #include <libtest/visibility.h>
 
+namespace boost { class barrier; }
+
 struct worker_handle_st
 {
-  pthread_t thread;
-  bool _shutdown;
-  pthread_mutex_t _shutdown_lock;
-  gearman_id_t worker_id;
-
+public:
   worker_handle_st();
   ~worker_handle_st();
 
-  void set_shutdown()
-  {
-    pthread_mutex_lock(&_shutdown_lock);
-    _shutdown= true;
-    pthread_mutex_unlock(&_shutdown_lock);
-  }
-
+  void set_shutdown();
   bool is_shutdown();
-
   bool shutdown();
+
+  void set_worker_id(gearman_worker_st*);
+
+  pthread_t* thread();
+  boost::barrier* sync_point();
+
+  void wait();
+
+
+  volatile bool failed_startup;
+
+private:
+  pthread_t _thread;
+  bool _shutdown;
+  pthread_mutex_t _shutdown_lock;
+  gearman_id_t _worker_id;
+  boost::barrier* _sync_point;
 };
 
 #pragma once
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 LIBTEST_API
   struct worker_handle_st *test_worker_start(in_port_t port, 
@@ -79,7 +84,3 @@ LIBTEST_API
 
 LIBTEST_API
 bool test_worker_stop(struct worker_handle_st *);
-
-#ifdef __cplusplus
-}
-#endif
