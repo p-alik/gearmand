@@ -121,10 +121,25 @@ void server_startup_st::restart()
   }
 }
 
+#define MAGIC_MEMORY 123575
+server_startup_st::server_startup_st() :
+  _magic(MAGIC_MEMORY),
+  _socket(false),
+  _sasl(false),
+  _count(5),
+  udp(0)
+{ }
+
 server_startup_st::~server_startup_st()
 {
   shutdown_and_remove();
 }
+
+bool server_startup_st::validate()
+{
+  return _magic == MAGIC_MEMORY;
+}
+
 
 bool server_startup_st::is_debug() const
 {
@@ -313,7 +328,7 @@ bool server_startup_st::start_socket_server(const std::string& server_type, cons
   /*
     We will now cycle the server we have created.
   */
-  if (not server->cycle())
+  if (server->cycle() == false)
   {
     Error << "Could not start up server " << *server;
     delete server;
