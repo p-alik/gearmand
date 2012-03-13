@@ -48,8 +48,6 @@
 #include <stdlib.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include <pthread.h>
-#include <boost/thread.hpp>
 
 
 #include <cstdio>
@@ -69,127 +67,137 @@ using namespace datadifferential;
 #define CONTEXT_MAGIC_MARKER 45
 
 struct context_st {
-  in_port_t port;
-  const char *function_name;
   struct worker_handle_st *handle;
+  in_port_t port;
   gearman_worker_options_t options;
   gearman_function_t worker_fn;
-  const char *namespace_key;
+  std::string namespace_key;
+  std::string function_name;
   void *context;
-  boost::barrier *sync_point;
-  volatile bool failed_startup;
   int magic;
+  boost::barrier* _sync_point;
 
   context_st(worker_handle_st* handle_arg,
              gearman_function_t& arg,
-             in_port_t port_arg) :
+             in_port_t port_arg,
+             const std::string& namespace_key_arg,
+             const std::string& function_name_arg,
+             void *context_arg,
+             gearman_worker_options_t& options_arg) :
     port(port_arg),
     handle(handle_arg),
-    options(gearman_worker_options_t()),
+    options(options_arg),
     worker_fn(arg),
-    namespace_key(NULL),
-    context(0),
-    sync_point(NULL),
-    failed_startup(false),
+    namespace_key(namespace_key_arg),
+    function_name(function_name_arg),
+    context(context_arg),
+    _sync_point(handle_arg->sync_point()),
     magic(CONTEXT_MAGIC_MARKER)
   {
   }
 
+  void wait(void)
+  {
+    if (_sync_point)
+    {
+      _sync_point->wait();
+      _sync_point= NULL;
+    }
+  }
+
   void fail(void)
   {
-    failed_startup= true;
+    handle->failed_startup= true;
+    handle->wait();
   }
 
   ~context_st()
   {
   }
+
 };
 
-extern "C" {
+static void thread_runner(context_st* con)
+{
+  std::auto_ptr<context_st> context(con);
 
-  static void *thread_runner(void *con)
+  assert(context.get());
+  if (context.get() == NULL)
   {
-    context_st *context= (context_st *)con;
+    Error << "context_st passed to function was NULL";
+    return;
+  }
 
-    if (context == NULL)
+  assert (context->magic == CONTEXT_MAGIC_MARKER);
+  if (context->magic != CONTEXT_MAGIC_MARKER)
+  {
+    Error << "context_st had bad magic";
+    return;
+  }
+
+  Worker worker;
+  if (&worker == NULL)
+  {
+    Error << "Failed to create Worker";
+    return;
+  }
+
+  assert(context->handle);
+  if (context->handle == NULL)
+  {
+    Error << "Progammer error, no handle found";
+    return;
+  }
+  context->handle->set_worker_id(&worker);
+
+  if (context->namespace_key.empty() == false)
+  {
+    gearman_worker_set_namespace(&worker, context->namespace_key.c_str(), context->namespace_key.length());
+  }
+
+  if (gearman_failed(gearman_worker_add_server(&worker, NULL, context->port)))
+  {
+    Error << "gearman_worker_add_server()";
+    return;
+  }
+
+  // Check for a working server by "asking" it for an option
+  {
+    size_t count= 5;
+    bool success= false;
+    while (--count and success == false)
     {
-      Error << "context_st passed to function was NULL";
-      context->fail();
-      pthread_exit(0);
+      success= gearman_worker_set_server_option(&worker, test_literal_param("exceptions"));
     }
 
-    if (context->magic != CONTEXT_MAGIC_MARKER)
+    if (success == false)
     {
-      Error << "context_st had bad magic";
-      context->fail();
-      pthread_exit(0);
+      Error << "gearman_worker_set_server_option() failed";
+      return;
     }
+  }
 
-    Worker worker;
-    if (&worker == NULL)
-    {
-      Error << "Failed to create Worker";
-      context->fail();
-      pthread_exit(0);
-    }
+  if (gearman_failed(gearman_worker_define_function(&worker,
+                                                    context->function_name.c_str(), context->function_name.length(),
+                                                    context->worker_fn,
+                                                    0, 
+                                                    context->context)))
+  {
+    Error << "Failed to add function " << context->function_name << "(" << gearman_worker_error(&worker) << ")";
+    return;
+  }
 
-    assert(context->handle);
-    context->handle->worker_id= gearman_worker_id(&worker);
+  if (context->options != gearman_worker_options_t())
+  {
+    gearman_worker_add_options(&worker, context->options);
+  }
 
-    if (context->namespace_key)
-    {
-      gearman_worker_set_namespace(&worker, context->namespace_key, strlen(context->namespace_key));
-    }
+  context->handle->wait();
 
-    if (gearman_failed(gearman_worker_add_server(&worker, NULL, context->port)))
-    {
-      Error << "gearman_worker_add_server()";
-      context->fail();
-      pthread_exit(context);
-    }
-
-    // Check for a working server by "asking" it for an option
-    {
-      size_t count= 5;
-      bool success= false;
-      while (--count and success == false)
-      {
-        success= gearman_worker_set_server_option(&worker, test_literal_param("exceptions"));
-      }
-
-      if (success == false)
-      {
-        Error << "gearman_worker_set_server_option() failed";
-        context->fail();
-        pthread_exit(context);
-      }
-    }
-
-    if (gearman_failed(gearman_worker_define_function(&worker,
-                                                      context->function_name, strlen(context->function_name), 
-                                                      context->worker_fn,
-                                                      0, 
-                                                      context->context)))
-    {
-      Error << "Failed to add function " << context->function_name << "(" << gearman_worker_error(&worker) << ")";
-      context->fail();
-      pthread_exit(context);
-    }
-
-    if (context->options != gearman_worker_options_t())
-    {
-      gearman_worker_add_options(&worker, context->options);
-    }
-
-    context->sync_point->wait();
-
-    gearman_return_t ret= GEARMAN_SUCCESS;
-    while (context->handle->is_shutdown() == false or ret != GEARMAN_SHUTDOWN)
-    {
-      ret= gearman_worker_work(&worker);
-    }
-
-    pthread_exit(context);
+  gearman_return_t ret= GEARMAN_SUCCESS;
+  while (context->handle->is_shutdown() == false or ret != GEARMAN_SHUTDOWN)
+  {
+    ret= gearman_worker_work(&worker);
   }
 }
 
@@ -201,70 +209,67 @@ worker_handle_st *test_worker_start(in_port_t port,
                                     void *context_arg,
                                     gearman_worker_options_t options)
 {
-  boost::barrier sync_point(2);
   worker_handle_st *handle= new worker_handle_st();
-  assert(handle);
+  fatal_assert(handle);
 
-  context_st *context= new context_st(handle, worker_fn, port);
+  context_st *context= new context_st(handle, worker_fn, port,
+                                      namespace_key ? namespace_key : "",
+                                      function_name,
+                                      context_arg, options);
+  fatal_assert(context);
 
-  context->function_name= function_name;
-  context->context= context_arg;
-  context->handle= handle;
-  context->options= options;
-  context->namespace_key= namespace_key;
-  context->sync_point= &sync_point;
-
-  if (pthread_create(&handle->thread, NULL, thread_runner, context) != 0)
+  handle->_thread= new boost::thread(thread_runner, context);
+  if (handle->_thread == NULL)
   {
-    Error << "pthread_create(" << strerror(errno) << ")";
     delete context;
     delete handle;
 
     return NULL;
   }
 
-  sync_point.wait();
-
-  if (context->failed_startup)
-  {
-    void *ret;
-    pthread_join(handle->thread, &ret);
-    context_st *ret_con= (context_st *)ret;
-
-    if (ret_con)
-    {
-      delete ret_con;
-    }
-    else
-    {
-      delete context;
-    }
-
-    delete handle;
-
-    Error << "Now aborting from failed worker startup";
-
-    return NULL;
-  }
+  handle->wait();
 
   return handle;
 }
 
-worker_handle_st::worker_handle_st() :
-  _shutdown(false),
-  worker_id(gearman_id_t())
+boost::barrier* worker_handle_st::sync_point()
 {
-  pthread_mutex_init(&_shutdown_lock, NULL);
+  return &_sync_point;
+}
+
+void worker_handle_st::set_worker_id(gearman_worker_st* worker)
+{
+  _worker_id= gearman_worker_id(worker);
+}
+
+worker_handle_st::worker_handle_st() :
+  failed_startup(false),
+  _shutdown(false),
+  _worker_id(gearman_id_t()),
+  _sync_point(2)
+{
+}
+
+worker_handle_st::~worker_handle_st()
+{
+  shutdown();
+}
+
+void worker_handle_st::wait()
+{
+  _sync_point.wait();
+}
+
+void worker_handle_st::set_shutdown()
+{
+  boost::mutex::scoped_lock(_shutdown_lock);
+  _shutdown= true;
 }
 
 bool worker_handle_st::is_shutdown()
 {
-  bool tmp;
-  pthread_mutex_lock(&_shutdown_lock);
-  tmp= _shutdown;
-  pthread_mutex_unlock(&_shutdown_lock);
-
-  return tmp;
+  boost::mutex::scoped_lock(_shutdown_lock);
+  return _shutdown;
 }
 
 
@@ -278,23 +283,14 @@ bool worker_handle_st::shutdown()
   set_shutdown();
 
   gearman_return_t rc;
-  if (gearman_failed(rc=  gearman_kill(worker_id, GEARMAN_KILL)))
+  if (gearman_failed(rc=  gearman_kill(_worker_id, GEARMAN_KILL)))
   {
     Error << "failed to shutdown " << rc;
     return false;
   }
 
-  void *ret;
-  pthread_join(thread, &ret);
-  context_st *con= (context_st *)ret;
+  _thread->join();
+  delete _thread;
 
-  delete con;
-  
   return true;
-}
-
-worker_handle_st::~worker_handle_st()
-{
-  shutdown();
-  pthread_mutex_destroy(&_shutdown_lock);
 }
