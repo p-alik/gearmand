@@ -37,12 +37,12 @@
 
 
 #include <sys/types.h>
-#include <pthread.h>
 
 #include <libgearman/gearman.h>
 #include <libtest/visibility.h>
 
-namespace boost { class barrier; }
+#include <boost/thread.hpp>
+
 
 struct worker_handle_st
 {
@@ -56,20 +56,19 @@ public:
 
   void set_worker_id(gearman_worker_st*);
 
-  pthread_t* thread();
   boost::barrier* sync_point();
 
   void wait();
 
 
   volatile bool failed_startup;
+  boost::thread* _thread;
 
 private:
-  pthread_t _thread;
   bool _shutdown;
-  pthread_mutex_t _shutdown_lock;
+  boost::mutex _shutdown_lock;
   gearman_id_t _worker_id;
-  boost::barrier* _sync_point;
+  boost::barrier _sync_point;
 };
 
 #pragma once

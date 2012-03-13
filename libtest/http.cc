@@ -30,8 +30,6 @@ class CURL;
 #endif
 
 
-static pthread_once_t start_key_once= PTHREAD_ONCE_INIT;
-
 static void cleanup_curl(void)
 {
 #if defined(HAVE_CURL_CURL_H) && HAVE_CURL_CURL_H
@@ -54,6 +52,7 @@ static void initialize_curl_startup()
   }
 }
 
+static pthread_once_t start_key_once= PTHREAD_ONCE_INIT;
 void initialize_curl(void)
 {
   int ret;
