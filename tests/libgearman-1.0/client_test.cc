@@ -275,10 +275,8 @@ static test_return_t allocation_test(void *)
 static test_return_t clone_test(void *object)
 {
   const gearman_client_st *from= (gearman_client_st *)object;
-  gearman_client_st *from_with_host;
-  gearman_client_st *client;
 
-  client= gearman_client_clone(NULL, NULL);
+  gearman_client_st *client= gearman_client_clone(NULL, NULL);
 
   test_truth(client);
   test_truth(client->options.allocated);
@@ -289,7 +287,7 @@ static test_return_t clone_test(void *object)
   test_truth(client);
   gearman_client_free(client);
 
-  from_with_host= gearman_client_create(NULL);
+  gearman_client_st *from_with_host= gearman_client_create(NULL);
   test_truth(from_with_host);
   gearman_client_add_server(from_with_host, "localhost", 12345);
 
@@ -1005,7 +1003,29 @@ static test_return_t regression_785203_do_background_test(void *object)
   return TEST_SUCCESS;
 }
 
-static test_return_t submit_log_failure(void *object)
+static test_return_t regression2_TEST(void *object)
+{
+  gearman_client_st *client= (gearman_client_st *)object;
+  test_truth(client);
+
+  const char *worker_function= (const char *)gearman_client_context(client);
+  test_truth(worker_function);
+
+  size_t result_length;
+  gearman_return_t rc;
+  void *job_result= gearman_client_do(client,
+                                      worker_function, // default worker function
+                                      NULL,  // no unique
+                                      test_literal_param("submit_log_failure"),
+                                      &result_length, &rc);
+  test_compare(GEARMAN_NO_SERVERS, rc);
+  test_false(job_result);
+  test_zero(result_length);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t submit_log_failure_TEST(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
   test_truth(client);
@@ -1016,12 +1036,14 @@ static test_return_t submit_log_failure(void *object)
 
   size_t result_length;
   gearman_return_t rc;
+  test_null(client->task);
   void *job_result= gearman_client_do(client, worker_function, NULL, 
                                       gearman_string_param(value),
                                       &result_length, &rc);
   test_compare(GEARMAN_NO_SERVERS, rc);
   test_false(job_result);
   test_zero(result_length);
+  test_null(client->task);
 
   return TEST_SUCCESS;
 }
@@ -1222,7 +1244,7 @@ static test_return_t post_function_reset(void *object)
 
   all->set_worker_name(WORKER_FUNCTION_NAME);
   gearman_client_set_namespace(all->client(), 0, 0);
-  assert(not gearman_client_has_option(all->client(), GEARMAN_CLIENT_FREE_TASKS));
+  test_false(gearman_client_has_option(all->client(), GEARMAN_CLIENT_FREE_TASKS));
 
   return TEST_SUCCESS;
 }
@@ -1230,6 +1252,7 @@ static test_return_t post_function_reset(void *object)
 static test_return_t pre_logging(void *object)
 {
   client_test_st *all= (client_test_st *)object;
+  test_true(all);
   gearman_log_fn *func= log_counter;
   global_counter= 0;
   all->reset_client();
@@ -1240,9 +1263,12 @@ static test_return_t pre_logging(void *object)
   return TEST_SUCCESS;
 }
 
-static test_return_t post_logging(void *)
+static test_return_t post_logging(void* object)
 {
+  client_test_st *all= (client_test_st *)object;
+  test_true(all);
   test_truth(global_counter);
+  all->set_clone(true);
 
   return TEST_SUCCESS;
 }
@@ -1366,10 +1392,16 @@ test_st gearman_command_t_tests[] ={
 };
 
 
-test_st tests_log[] ={
-  {"submit_log_failure", 0, submit_log_failure },
+test_st tests_log_TESTS[] ={
+  {"submit_log_failure", 0, submit_log_failure_TEST },
   {0, 0, 0}
 };
+
+test_st regression2_TESTS[] ={
+  {"stale client", 0, regression2_TEST },
+  {0, 0, 0}
+};
+
 
 test_st gearman_strerror_tests[] ={
   {"count", 0, strerror_count },
@@ -1478,7 +1510,7 @@ collection_st collection[] ={
   {"gearman_id_t", 0, 0, gearman_id_t_TESTS},
   {"gearman_client_st", 0, 0, gearman_client_st_TESTS},
   {"gearman_client_st chunky", pre_chunk, post_function_reset, gearman_client_st_TESTS}, // Test with a worker that will respond in part
-  {"gearman_strerror()", 0, 0, gearman_strerror_tests},
+  {"gearman_strerror()", 0, 0, gearman_strerror_tests },
   {"gearman_task_add_task()", 0, 0, gearman_task_tests},
   {"gearman_task_add_task() v2 workers", pre_v2, post_function_reset, gearman_task_tests},
   {"gearman_task_add_task() chunky", pre_chunk, post_function_reset, gearman_task_tests},
@@ -1506,8 +1538,9 @@ collection_st collection[] ={
   {"gearman_execute_partition(GEARMAN_CLIENT_FREE_TASKS)", pre_free_tasks, post_free_tasks, gearman_execute_partition_tests},
   {"gearman_command_t", 0, 0, gearman_command_t_tests},
   {"regression_tests", 0, 0, regression_tests},
-  {"limits", 0, 0, limit_tests},
-  {"client-logging", pre_logging, post_logging, tests_log},
+  {"limits", 0, 0, limit_tests },
+  {"client-logging", pre_logging, post_logging, tests_log_TESTS },
+  {"regression", 0, 0, regression2_TESTS },
   {0, 0, 0, 0}
 };
 
