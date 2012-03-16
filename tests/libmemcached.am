@@ -10,11 +10,16 @@
 # All paths should be given relative to the root
 #
 
-tests_memcached_test_SOURCES= \
-			      tests/basic.cc \
-			      tests/memcached_test.cc
-tests_memcached_test_DEPENDENCIES= $(CLIENT_LDADD)
-tests_memcached_test_LDADD= $(tests_memcached_test_DEPENDENCIES)
+tests_memcached_test_SOURCES=
+tests_memcached_test_DEPENDENCIES=
+tests_memcached_test_LDADD=
+
+tests_memcached_test_SOURCES+= tests/basic.cc
+tests_memcached_test_SOURCES+= tests/memcached_test.cc
+tests_memcached_test_DEPENDENCIES+= $(CLIENT_LDADD)
+tests_memcached_test_DEPENDENCIES+= gearmand/gearmand
+tests_memcached_test_LDADD+= $(CLIENT_LDADD)
+
 check_PROGRAMS+= tests/memcached_test
 noinst_PROGRAMS+= tests/memcached_test
 
