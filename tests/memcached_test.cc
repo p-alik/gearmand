@@ -26,11 +26,21 @@ using namespace libtest;
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
+static in_port_t memcached_port= 0;
+
 static test_return_t gearmand_basic_option_test(void *)
 {
-  const char *args[]= { "--check-args",
+  test_true(memcached_port);
+  char memcached_server_string[1024];
+  int length= snprintf(memcached_server_string, 
+                       sizeof(memcached_server_string),
+                       "--libmemcached-servers=localhost:%d",
+                       int(memcached_port));
+  test_true(length > 0);
+  const char *args[]= {
+    "--check-args",
     "--queue-type=libmemcached",
-    "--libmemcached-servers=localhost:12555", 
+    memcached_server_string,
     0 };
 
   test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
@@ -40,8 +50,14 @@ static test_return_t gearmand_basic_option_test(void *)
 
 static test_return_t collection_init(void *object)
 {
+  char memcached_server_string[1024];
+  int length= snprintf(memcached_server_string, 
+                       sizeof(memcached_server_string),
+                       "--libmemcached-servers=localhost:%d",
+                       int(memcached_port));
+  test_true(length > 0);
   const char *argv[]= {
-    "--libmemcached-servers=localhost:12555", 
+    memcached_server_string,
     "--queue-type=libmemcached",
     0 };
 
@@ -70,7 +86,8 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
     return NULL;
   }
 
-  if (server_startup(servers, "memcached", default_port(), 0, NULL) == false)
+  memcached_port= libtest::get_free_port();
+  if (server_startup(servers, "memcached", memcached_port, 0, NULL) == false)
   {
     error= TEST_FAILURE;
     return NULL;

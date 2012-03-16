@@ -15,8 +15,10 @@ CLEANFILES+= tests/gearman.sql tests/gearman.sql-journal tests/gearmand.log*
 tests_sqlite_test_SOURCES= \
 			   tests/basic.cc \
 			   tests/sqlite_test.cc
-tests_sqlite_test_DEPENDENCIES= $(CLIENT_LDADD)
-tests_sqlite_test_LDADD= $(tests_sqlite_test_DEPENDENCIES)
+tests_sqlite_test_DEPENDENCIES=
+tests_sqlite_test_DEPENDENCIES+= $(CLIENT_LDADD)
+tests_sqlite_test_DEPENDENCIES+= gearmand/gearmand
+tests_sqlite_test_LDADD= $(CLIENT_LDADD)
 check_PROGRAMS+= tests/sqlite_test
 noinst_PROGRAMS+= tests/sqlite_test
 
