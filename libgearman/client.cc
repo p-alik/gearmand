@@ -240,7 +240,7 @@ static gearman_return_t _client_do_background(gearman_client_st *client,
 
   if (gearman_size(function) == 0)
   {
-    return gearman_error(client->universal, GEARMAN_INVALID_ARGUMENT, "function arguement was empty");
+    return gearman_error(client->universal, GEARMAN_INVALID_ARGUMENT, "function argument was empty");
   }
 
   client->_do_handle[0]= 0; // Reset the job_handle we store in client
