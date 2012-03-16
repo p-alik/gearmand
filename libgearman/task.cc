@@ -153,6 +153,13 @@ void gearman_task_free(gearman_task_st *task)
 
   task->client->task_count--;
 
+  // If the task we are removing is a current task, remove it from the client
+  // structures.
+  if (task->client->task == task)
+  {
+    task->client->task= NULL;
+  }
+
   if (task->options.allocated)
   {
     delete task;
