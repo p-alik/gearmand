@@ -190,7 +190,7 @@ gearman_server_job_add_reducer(gearman_server_st *server,
                              (int)unique_size, unique);
     if (checked_length >= GEARMAN_UNIQUE_SIZE || checked_length < 0)
     {
-      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "We recieved a unique beyond GEARMAN_UNIQUE_SIZE: %.*s", (int)unique_size, unique);
+      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "We received a unique beyond GEARMAN_UNIQUE_SIZE: %.*s", (int)unique_size, unique);
     }
 
     server->job_handle_count++;

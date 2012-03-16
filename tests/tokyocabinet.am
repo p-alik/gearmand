@@ -10,9 +10,15 @@
 # All paths should be given relative to the root
 #
 
-tests_tokyocabinet_test_DEPENDENCIES= $(CLIENT_LDADD)
-tests_tokyocabinet_test_LDADD= $(tests_tokyocabinet_test_DEPENDENCIES)
-tests_tokyocabinet_test_SOURCES= tests/tokyocabinet_test.cc tests/basic.cc
+tests_tokyocabinet_test_SOURCES=
+tests_tokyocabinet_test_DEPENDENCIES=
+tests_tokyocabinet_test_LDADD=
+
+tests_tokyocabinet_test_DEPENDENCIES+= $(CLIENT_LDADD)
+tests_tokyocabinet_test_DEPENDENCIES+= gearmand/gearmand
+tests_tokyocabinet_test_LDADD+= $(CLIENT_LDADD)
+tests_tokyocabinet_test_SOURCES+= tests/tokyocabinet_test.cc
+tests_tokyocabinet_test_SOURCES+= tests/basic.cc
 check_PROGRAMS+= tests/tokyocabinet_test
 noinst_PROGRAMS+= tests/tokyocabinet_test
 
