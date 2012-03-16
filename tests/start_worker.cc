@@ -75,6 +75,7 @@ struct context_st {
   std::string function_name;
   void *context;
   int magic;
+  int _timeout;
   boost::barrier* _sync_point;
 
   context_st(worker_handle_st* handle_arg,
@@ -83,7 +84,8 @@ struct context_st {
              const std::string& namespace_key_arg,
              const std::string& function_name_arg,
              void *context_arg,
-             gearman_worker_options_t& options_arg) :
+             gearman_worker_options_t& options_arg,
+             int timeout_arg) :
     port(port_arg),
     handle(handle_arg),
     options(options_arg),
@@ -92,7 +94,8 @@ struct context_st {
     function_name(function_name_arg),
     context(context_arg),
     _sync_point(handle_arg->sync_point()),
-    magic(CONTEXT_MAGIC_MARKER)
+    magic(CONTEXT_MAGIC_MARKER),
+    _timeout(timeout_arg)
   {
   }
 
@@ -161,6 +164,11 @@ static void thread_runner(context_st* con)
     return;
   }
 
+  if (context->_timeout)
+  {
+    gearman_worker_set_timeout(&worker, context->_timeout);
+  }
+
   // Check for a working server by "asking" it for an option
   {
     size_t count= 5;
@@ -207,7 +215,8 @@ worker_handle_st *test_worker_start(in_port_t port,
                                     const char *function_name,
                                     gearman_function_t &worker_fn,
                                     void *context_arg,
-                                    gearman_worker_options_t options)
+                                    gearman_worker_options_t options,
+                                    int timeout)
 {
   worker_handle_st *handle= new worker_handle_st();
   fatal_assert(handle);
@@ -215,7 +224,7 @@ worker_handle_st *test_worker_start(in_port_t port,
   context_st *context= new context_st(handle, worker_fn, port,
                                       namespace_key ? namespace_key : "",
                                       function_name,
-                                      context_arg, options);
+                                      context_arg, options, timeout);
   fatal_assert(context);
 
   handle->_thread= new boost::thread(thread_runner, context);

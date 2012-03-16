@@ -69,6 +69,11 @@ gearman_return_t echo_or_react_worker_v2(gearman_job_st *job, void *)
   {
     return GEARMAN_FATAL;
   }
+  else if (result_size == test_literal_param_size("sleep") and (not memcmp(workload, test_literal_param("sleep"))))
+  {
+    libtest::dream(WORKER_DEFAULT_SLEEP, 0);
+    return GEARMAN_SUCCESS;
+  }
   else if (result_size == test_literal_param_size("exception") and (not memcmp(workload, test_literal_param("exception"))))
   {
     gearman_return_t rc= gearman_job_send_exception(job, test_literal_param("test exception"));
