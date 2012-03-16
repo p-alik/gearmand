@@ -383,7 +383,9 @@ bool gearman_client_has_option(gearman_client_st *client,
                                 gearman_client_options_t option)
 {
   if (client == NULL)
+  {
     return false;
+  }
 
   switch (option)
   {
