@@ -119,7 +119,7 @@ bool Pidfile::create()
   }
 
   int file;
-  if ((file = open(_filename.c_str(), O_CREAT|O_WRONLY|O_TRUNC, S_IRWXU|S_IRGRP|S_IROTH)) < 0)
+  if ((file = open(_filename.c_str(), O_CREAT|O_WRONLY|O_TRUNC|O_CLOEXEC, S_IRWXU|S_IRGRP|S_IROTH)) < 0)
   {
     std::stringstream error_stream;
     error_stream << "Could not open pid file for writing: " << _filename << "(" << strerror(errno) << ")";

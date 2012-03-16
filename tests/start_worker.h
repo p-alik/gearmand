@@ -79,7 +79,8 @@ LIBTEST_API
 					     const char *function_name,
 					     gearman_function_t &worker_fn,
 					     void *context,
-					     gearman_worker_options_t options);
+					     gearman_worker_options_t options,
+               int timeout= 0);
 
 LIBTEST_API
 bool test_worker_stop(struct worker_handle_st *);

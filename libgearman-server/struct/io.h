@@ -127,4 +127,5 @@ struct gearman_server_con_st
     gearmand_packet_pack_fn *packet_pack_fn;
     gearmand_packet_unpack_fn *packet_unpack_fn;
   } protocol;
+  struct event *timeout_event;
 };

@@ -250,6 +250,13 @@ extern "C"
   }
 }
 
+#if 0
+static void log_2_stderr(const char *line, gearman_verbose_t verbose, void*)
+{
+  Error << line << " " << gearman_verbose_name(verbose);
+}
+#endif
+
 static test_return_t init_test(void *)
 {
   gearman_client_st client;
@@ -474,6 +481,7 @@ static test_return_t submit_job_test(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
   const char *worker_function= (const char *)gearman_client_context(client);
+  test_true(worker_function);
   gearman_string_t value= { test_literal_param("submit_job_test") };
 
   size_t result_length;
@@ -1025,6 +1033,77 @@ static test_return_t regression2_TEST(void *object)
   return TEST_SUCCESS;
 }
 
+static test_return_t gearman_worker_timeout_TEST(void *object)
+{
+  gearman_client_st *client= (gearman_client_st *)object;
+  test_truth(client);
+
+  test_truth(WORKER_DEFAULT_SLEEP);
+  int timeout= WORKER_DEFAULT_SLEEP/4;
+  (void)timeout;
+
+  gearman_function_t dreaming_fn= gearman_function_create(echo_or_react_worker_v2);
+  worker_handle_st* worker_handle= test_worker_start(libtest::default_port(), NULL,
+                                                     __func__,
+                                                     dreaming_fn, NULL,
+                                                     gearman_worker_options_t(),
+                                                     0);
+
+  /*
+    The client should get a timeout since the "sleeper" will sleep longer then the timeout.
+  */
+  size_t result_length;
+  gearman_return_t rc;
+  void *job_result= gearman_client_do(client,
+                                      __func__,  // Our sleeper function
+                                      NULL, // No unique 
+                                      gearman_literal_param("sleep"), // We send "sleep" to tell the sleeper to sleep
+                                      &result_length, &rc);
+  test_compare(GEARMAN_SUCCESS, rc);
+  test_true(job_result);
+  test_compare(sizeof("slept") -1, result_length);
+  test_memcmp("slept", job_result, 5);
+
+  delete worker_handle;
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_worker_timeout_TIMEOUT_TEST(void *object)
+{
+  gearman_client_st *client= (gearman_client_st *)object;
+  test_truth(client);
+
+  test_truth(WORKER_DEFAULT_SLEEP);
+  int timeout= WORKER_DEFAULT_SLEEP/4;
+
+  gearman_function_t dreaming_fn= gearman_function_create(echo_or_react_worker_v2);
+  worker_handle_st* worker_handle= test_worker_start(libtest::default_port(), NULL,
+                                                     __func__,
+                                                     dreaming_fn, NULL,
+                                                     gearman_worker_options_t(),
+                                                     timeout);
+
+  /*
+    The client should get a timeout since the "sleeper" will sleep longer then the timeout.
+  */
+  size_t result_length;
+  gearman_return_t rc;
+  void *job_result= gearman_client_do(client,
+                                      __func__,  // Our sleeper function
+                                      NULL, // No unique 
+                                      gearman_literal_param("sleep"), // We send "sleep" to tell the sleeper to sleep
+                                      &result_length, &rc);
+  test_compare(GEARMAN_SUCCESS, rc);
+  test_true(job_result);
+  test_compare(sizeof("slept") -1, result_length);
+  test_memcmp("slept", job_result, 5);
+
+  delete worker_handle;
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t submit_log_failure_TEST(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
@@ -1249,6 +1328,17 @@ static test_return_t post_function_reset(void *object)
   return TEST_SUCCESS;
 }
 
+static test_return_t set_defaults(void *object)
+{
+  client_test_st *all= (client_test_st *)object;
+  test_true(all);
+
+  test_compare(GEARMAN_SUCCESS,
+               gearman_client_add_server(all->client(), NULL, libtest::default_port()));
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t pre_logging(void *object)
 {
   client_test_st *all= (client_test_st *)object;
@@ -1391,6 +1481,11 @@ test_st gearman_command_t_tests[] ={
   {0, 0, 0}
 };
 
+test_st gearman_worker_timeout_TESTS[] ={
+  {"gearman_worker_timeout(0)", 0, gearman_worker_timeout_TEST },
+  {"gearman_worker_timeout(DEFAULT_TIMEOUT)", 0, gearman_worker_timeout_TIMEOUT_TEST },
+  {0, 0, 0}
+};
 
 test_st tests_log_TESTS[] ={
   {"submit_log_failure", 0, submit_log_failure_TEST },
@@ -1541,6 +1636,7 @@ collection_st collection[] ={
   {"limits", 0, 0, limit_tests },
   {"client-logging", pre_logging, post_logging, tests_log_TESTS },
   {"regression", 0, 0, regression2_TESTS },
+  {"gearman_worker_timeout()", set_defaults, 0, gearman_worker_timeout_TESTS },
   {0, 0, 0, 0}
 };
 

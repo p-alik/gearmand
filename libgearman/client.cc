@@ -37,7 +37,9 @@
  */
 
 #include <config.h>
+
 #include <libgearman/common.h>
+#include <libgearman/log.hpp>
 
 #include <arpa/inet.h>
 #include <cassert>
@@ -1354,7 +1356,9 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
             if (gearman_failed(ret))
             {
               if (ret == GEARMAN_IO_WAIT)
+              {
                 break;
+              }
 
               client->state= GEARMAN_CLIENT_STATE_IDLE;
               return ret;
@@ -1367,12 +1371,17 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
                  client->task= client->task->next)
             {
               if (client->task->con != client->con)
+              {
                 continue;
+              }
 
+              gearman_log_debug(&client->universal, "Got %s", gearman_strcommand(client->con->_packet.command));
               if (client->con->_packet.command == GEARMAN_COMMAND_JOB_CREATED)
               {
                 if (client->task->created_id != client->con->created_id)
+                {
                   continue;
+                }
 
                 /* New job created, drop through below and notify task. */
                 client->con->created_id++;
@@ -1432,7 +1441,9 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
 
           /* If all tasks are done, return. */
           if (client->running_tasks == 0)
+          {
             break;
+          }
         }
       }
 
@@ -1442,8 +1453,10 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
         break;
       }
 
-      if (client->new_tasks > 0 && ! (client->options.no_new))
+      if (client->new_tasks > 0 and ! (client->options.no_new))
+      {
         continue;
+      }
 
       if (client->options.non_blocking)
       {
