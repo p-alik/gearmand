@@ -324,14 +324,14 @@ static gearmand_error_t _thread_packet_flush(gearman_server_con_st *con)
 {
   /* Check to see if we've already tried to avoid excessive system calls. */
   if (con->con.events & POLLOUT)
+  {
     return GEARMAN_IO_WAIT;
+  }
 
   while (con->io_packet_list)
   {
-    gearmand_error_t ret;
-
-    ret= gearman_io_send(con, &(con->io_packet_list->packet),
-                         con->io_packet_list->next == NULL ? true : false);
+    gearmand_error_t ret= gearman_io_send(con, &(con->io_packet_list->packet),
+                                          con->io_packet_list->next == NULL ? true : false);
     if (gearmand_failed(ret))
     {
       return ret;

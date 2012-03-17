@@ -422,6 +422,8 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
     if (server_job == NULL)
     {
       server_con->is_sleeping= true;
+      /* Remove any timeouts while sleeping */
+      gearman_server_con_delete_timeout(server_con);
     }
     else
     {
@@ -519,10 +521,19 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
       gearmand_gerror("gearman_server_io_packet_add", ret);
 
       if (server_job)
+      {
         return gearman_server_job_queue(server_job);
+      }
 
       return ret;
     }
+
+    /* Since job is assigned, we should respect function timeout */
+    if (server_job != NULL)
+    {
+      gearman_server_con_add_job_timeout(server_con, server_job);
+    }
+
 
     break;
 
