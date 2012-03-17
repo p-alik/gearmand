@@ -178,12 +178,9 @@ static test_return_t cleanup(void *object)
 }
 
 
-static void *worker_fn(gearman_job_st *, void *,
-                       size_t *result_size, gearman_return_t *ret_ptr)
+static gearman_return_t worker_fn(gearman_job_st*, void*)
 {
-  *result_size= 0;
-  *ret_ptr= GEARMAN_SUCCESS;
-  return NULL;
+  return GEARMAN_SUCCESS;
 }
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
@@ -198,7 +195,7 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
   }
 
   client_test_st *test= new client_test_st;
-  gearman_function_t func_arg= gearman_function_create_v1(worker_fn);
+  gearman_function_t func_arg= gearman_function_create(worker_fn);
   test->handle= test_worker_start(libtest::default_port(), NULL, DEFAULT_WORKER_NAME, func_arg, NULL, gearman_worker_options_t());
   if (test->handle == NULL)
   {
