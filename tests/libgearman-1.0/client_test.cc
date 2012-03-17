@@ -1063,6 +1063,7 @@ static test_return_t gearman_worker_timeout_TEST(void *object)
   test_true(job_result);
   test_compare(sizeof("slept") -1, result_length);
   test_memcmp("slept", job_result, 5);
+  free(job_result);
 
   delete worker_handle;
 
@@ -1098,6 +1099,7 @@ static test_return_t gearman_worker_timeout_TIMEOUT_TEST(void *object)
   test_true(job_result);
   test_compare(sizeof("slept") -1, result_length);
   test_memcmp("slept", job_result, 5);
+  free(job_result);
 
   delete worker_handle;
 

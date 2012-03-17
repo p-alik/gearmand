@@ -1428,7 +1428,9 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
           gearman_return_t local_ret= _client_run_task(client->task);
 
           if (local_ret == GEARMAN_IO_WAIT)
+          {
             break;
+          }
 
           if (gearman_failed(local_ret))
           {
