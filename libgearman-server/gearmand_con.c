@@ -311,7 +311,7 @@ static void _con_ready(int fd __attribute__ ((unused)), short events,
   }
 
   gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, 
-                     "%15:%5 Ready     %6s %s",
+                     "%15s:%5s Ready     %6s %s",
                      dcon->host, dcon->port,
                      revents & POLLIN ? "POLLIN" : "",
                      revents & POLLOUT ? "POLLOUT" : "");

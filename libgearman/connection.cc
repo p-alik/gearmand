@@ -966,8 +966,7 @@ size_t gearman_connection_st::recv_socket(void *data, size_t data_size, gearman_
 
         if (gearman_universal_is_non_blocking(universal))
         {
-          gearman_gerror(universal, GEARMAN_IO_WAIT);
-          ret= GEARMAN_IO_WAIT;
+          ret= gearman_gerror(universal, GEARMAN_IO_WAIT);
           return 0;
         }
 
