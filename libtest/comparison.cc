@@ -24,14 +24,24 @@
 
 namespace libtest {
 
-bool _in_valgrind(const char*, int, const char*)
+bool valgrind_is_caller(void)
 {
   if (bool(getenv("TESTS_ENVIRONMENT")) and strstr(getenv("TESTS_ENVIRONMENT"), "valgrind"))
   {
     return true;
   }
 
-  return TEST_SUCCESS;
+  return false;
+}
+
+bool _in_valgrind(const char*, int, const char*)
+{
+  if (valgrind_is_caller())
+  {
+    return true;
+  }
+
+  return false;
 }
 
 } // namespace libtest

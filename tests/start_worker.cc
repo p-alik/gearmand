@@ -128,6 +128,7 @@ static void thread_runner(context_st* con)
   if (context.get() == NULL)
   {
     Error << "context_st passed to function was NULL";
+    context->fail();
     return;
   }
 
@@ -135,6 +136,7 @@ static void thread_runner(context_st* con)
   if (context->magic != CONTEXT_MAGIC_MARKER)
   {
     Error << "context_st had bad magic";
+    context->fail();
     return;
   }
 
@@ -149,6 +151,7 @@ static void thread_runner(context_st* con)
   if (context->handle == NULL)
   {
     Error << "Progammer error, no handle found";
+    context->fail();
     return;
   }
   context->handle->set_worker_id(&worker);
@@ -161,6 +164,7 @@ static void thread_runner(context_st* con)
   if (gearman_failed(gearman_worker_add_server(&worker, NULL, context->port)))
   {
     Error << "gearman_worker_add_server()";
+    context->fail();
     return;
   }
 
@@ -176,6 +180,7 @@ static void thread_runner(context_st* con)
     if (success == false)
     {
       Error << "gearman_worker_set_server_option() failed";
+      context->fail();
       return;
     }
   }
@@ -187,6 +192,7 @@ static void thread_runner(context_st* con)
                                                     context->context)))
   {
     Error << "Failed to add function " << context->function_name << "(" << gearman_worker_error(&worker) << ")";
+    context->fail();
     return;
   }
 
@@ -297,4 +303,34 @@ bool worker_handle_st::shutdown()
   delete _thread;
 
   return true;
+}
+
+worker_handles_st::worker_handles_st()
+{
+}
+
+worker_handles_st::~worker_handles_st()
+{
+  reset();
+}
+
+// Warning, this will not clean up memory
+void worker_handles_st::kill_all()
+{
+  assert(libtest::valgrind_is_caller() == false);
+  _workers.clear();
+}
+
+void worker_handles_st::reset()
+{
+  for (std::vector<worker_handle_st *>::iterator iter= _workers.begin(); iter != _workers.end(); iter++)
+  {
+    delete *iter;
+  }
+  _workers.clear();
+}
+
+void worker_handles_st::push(worker_handle_st *arg)
+{
+  _workers.push_back(arg);
 }

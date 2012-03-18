@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -35,69 +35,33 @@
  *
  */
 
-
-#include <sys/types.h>
-
-#include <libgearman/gearman.h>
-#include <libtest/visibility.h>
-
-#include <boost/thread.hpp>
-
-
-struct worker_handle_st
-{
-public:
-  worker_handle_st();
-  ~worker_handle_st();
-
-  void set_shutdown();
-  bool is_shutdown();
-  bool shutdown();
-  void kill();
-
-  void set_worker_id(gearman_worker_st*);
-
-  boost::barrier* sync_point();
-
-  void wait();
-
-
-  volatile bool failed_startup;
-  boost::thread* _thread;
-
-private:
-  bool _shutdown;
-  boost::mutex _shutdown_lock;
-  gearman_id_t _worker_id;
-  boost::barrier _sync_point;
-};
-
-struct worker_handles_st
-{
-  worker_handles_st();
-  ~worker_handles_st();
-
-  // Warning, this will not clean up memory
-  void kill_all();
-
-  void reset();
-
-  void push(worker_handle_st *arg);
-
-private:
-  std::vector<worker_handle_st *> _workers;
-};
-
 #pragma once
 
-LIBTEST_API
-  struct worker_handle_st *test_worker_start(in_port_t port, 
-					     const char *namespace_key,
-					     const char *function_name,
-					     gearman_function_t &worker_fn,
-					     void *context,
-					     gearman_worker_options_t options,
-               int timeout= 0);
+#include <iostream>
+#include <ostream>
 
-LIBTEST_API
-bool test_worker_stop(struct worker_handle_st *);
+static inline std::ostream& operator<<(std::ostream& output, const gearman_task_st& arg)
+{
+  output << " handle:" << arg.job_handle[0] ? arg.job_handle : "unset";
+  output << " state:";
+  switch (arg.state)
+  {
+  case GEARMAN_TASK_STATE_NEW: output << "GEARMAN_TASK_STATE_NEW"; break; 
+  case GEARMAN_TASK_STATE_SUBMIT: output << "GEARMAN_TASK_STATE_SUBMIT"; break; 
+  case GEARMAN_TASK_STATE_WORKLOAD: output << "GEARMAN_TASK_STATE_WORKLOAD"; break; 
+  case GEARMAN_TASK_STATE_WORK: output << "GEARMAN_TASK_STATE_WORK"; break; 
+  case GEARMAN_TASK_STATE_CREATED: output << "GEARMAN_TASK_STATE_CREATED"; break; 
+  case GEARMAN_TASK_STATE_DATA: output << "GEARMAN_TASK_STATE_DATA"; break; 
+  case GEARMAN_TASK_STATE_WARNING: output << "GEARMAN_TASK_STATE_WARNING"; break; 
+  case GEARMAN_TASK_STATE_STATUS: output << "GEARMAN_TASK_STATE_STATUS"; break; 
+  case GEARMAN_TASK_STATE_COMPLETE: output << "GEARMAN_TASK_STATE_COMPLETE"; break; 
+  case GEARMAN_TASK_STATE_EXCEPTION: output << "GEARMAN_TASK_STATE_EXCEPTION"; break; 
+  case GEARMAN_TASK_STATE_FAIL: output << "GEARMAN_TASK_STATE_FAIL"; break; 
+  case GEARMAN_TASK_STATE_FINISHED: output << "GEARMAN_TASK_STATE_FINISHED"; break; 
+  default:
+                                    output << "UNKNOWN";
+                                    break;
+  }
+
+  return output;
+}

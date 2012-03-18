@@ -159,6 +159,8 @@ void gearman_task_free(gearman_task_st *task)
   {
     task->client->task= NULL;
   }
+  task->client= NULL;
+  task->job_handle[0]= 0;
 
   if (task->options.allocated)
   {

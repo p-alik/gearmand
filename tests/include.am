@@ -9,6 +9,7 @@
 
 noinst_HEADERS+= \
 		 tests/basic.h \
+		 tests/burnin.h \
 		 tests/client.h \
 		 tests/context.h \
 		 tests/do.h \
@@ -34,6 +35,7 @@ tests_libstartworker_la_CXXFLAGS+= $(PTHREAD_CFLAGS)
 tests_libstartworker_la_CXXFLAGS+= $(BOOST_CPPFLAGS)
 tests_libstartworker_la_LIBADD+= $(BOOST_THREAD_LDFLAGS)
 tests_libstartworker_la_LIBADD+= $(BOOST_THREAD_LIBS)
+tests_libstartworker_la_LIBADD+= libtest/libtest.la
 tests_libstartworker_la_LIBADD+= libgearman/libgearman.la
 tests_libstartworker_la_SOURCES= tests/start_worker.cc
 tests_libstartworker_la_SOURCES+= util/instance.cc
@@ -104,6 +106,7 @@ tests_hostileworker_test_LDADD+= $(RT_LIB)
 endif
 
 tests_hostileworker_test_SOURCES+= tests/stress_worker.cc
+tests_hostileworker_test_SOURCES+= tests/burnin.cc
 tests_hostileworker_test_SOURCES+= tests/libgearman-1.0/workers.cc
 tests_hostileworker_test_DEPENDENCIES+= ${CLIENT_LDADD}
 tests_hostileworker_test_DEPENDENCIES+= gearmand/gearmand
@@ -113,6 +116,9 @@ noinst_PROGRAMS+=tests/hostileworker_test
 
 test-hostile: tests/hostileworker_test gearmand/gearmand
 	@tests/hostileworker_test
+
+valgrind-hostile: tests/hostileworker_test gearmand/gearmand
+	@$(VALGRIND_COMMAND) tests/hostileworker_test
 
 gdb-hostile: tests/hostileworker_test gearmand/gearmand
 	@$(GDB_COMMAND) tests/hostileworker_test
@@ -134,17 +140,6 @@ tests_c_test_DEPENDENCIES+= gearmand/gearmand
 tests_c_test_LDADD= ${CLIENT_LDADD}
 check_PROGRAMS+=tests/c_test
 noinst_PROGRAMS+=tests/c_test
-
-tests_burnin_test_SOURCES= tests/burnin.cc
-tests_burnin_test_DEPENDENCIES=
-tests_burnin_test_DEPENDENCIES+= ${CLIENT_LDADD}
-tests_burnin_test_DEPENDENCIES+= gearmand/gearmand
-tests_burnin_test_LDADD= ${CLIENT_LDADD}
-check_PROGRAMS+=tests/burnin_test
-noinst_PROGRAMS+=tests/burnin_test
-
-test-burnin: tests/burnin_test gearmand/gearmand
-	@tests/burnin_test
 
 test-cycle: tests/cycle gearmand/gearmand
 	@tests/cycle
@@ -168,9 +163,6 @@ check-local:
 
 gdb-round-robin: tests/round_robin_test gearmand/gearmand
 	@$(GDB_COMMAND) tests/round_robin_test
-
-gdb-burnin: tests/burnin_test gearmand/gearmand
-	@$(GDB_COMMAND) tests/burnin_test
 
 gdb-cli: tests/cli gearmand/gearmand
 	@$(GDB_COMMAND) tests/cli
