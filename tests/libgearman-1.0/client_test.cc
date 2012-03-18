@@ -1072,6 +1072,9 @@ static test_return_t gearman_worker_timeout_TEST(void *object)
 
 static test_return_t gearman_worker_timeout_TIMEOUT_TEST(void *object)
 {
+  // This test currently takes to long.
+  test_skip_valgrind();
+
   gearman_client_st *client= (gearman_client_st *)object;
   test_truth(client);
 

@@ -1252,6 +1252,12 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
           }
 
   case GEARMAN_CLIENT_STATE_NEW:
+          if (client->task == NULL)
+          {
+            client->state= GEARMAN_CLIENT_STATE_IDLE;
+            break;
+          }
+
           assert_msg(client == client->task->client, "Programmer error, client and task member client are not the same");
           gearman_return_t local_ret= _client_run_task(client->task);
           if (gearman_failed(local_ret) and local_ret != GEARMAN_IO_WAIT)
@@ -1289,6 +1295,11 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
             }
 
   case GEARMAN_CLIENT_STATE_SUBMIT:
+            if (client->task == NULL)
+            {
+              client->state= GEARMAN_CLIENT_STATE_IDLE;
+              break;
+            }
             assert_msg(client == client->task->client, "Programmer error, client and task member client are not the same");
             gearman_return_t local_ret= _client_run_task(client->task);
             if (local_ret == GEARMAN_COULD_NOT_CONNECT)

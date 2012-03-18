@@ -132,3 +132,4 @@ tests/httpd_test
 docs/doctest
 var
 libtest/abort
+gdb.txt

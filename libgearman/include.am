@@ -32,6 +32,7 @@ noinst_HEADERS+= \
 		 libgearman/function/partition.hpp \
 		 libgearman/is.hpp \
 		 libgearman/log.hpp \
+		 libgearman/ostream.hpp \
 		 libgearman/packet.hpp \
 		 libgearman/result.hpp \
 		 libgearman/run.hpp \

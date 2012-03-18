@@ -23,33 +23,45 @@ using namespace libtest;
 
 #include <tests/start_worker.h>
 
+#include <tests/burnin.h>
+
 #define DEFAULT_WORKER_NAME "burnin"
 
+static gearman_return_t worker_fn(gearman_job_st*, void*)
+{
+  return GEARMAN_SUCCESS;
+}
+
 struct client_test_st {
-  gearman_client_st client;
-  pid_t gearmand_pid;
+  gearman_client_st _client;
   worker_handle_st *handle;
 
   client_test_st():
-    gearmand_pid(-1),
     handle(NULL)
   {
-    if (gearman_client_create(&client) == NULL)
+    if (gearman_client_create(&_client) == NULL)
     {
       fatal_message("gearman_client_create() failed");
     }
 
-    if (gearman_failed(gearman_client_add_server(&client, NULL, libtest::default_port())))
+    if (gearman_failed(gearman_client_add_server(&_client, NULL, libtest::default_port())))
     {
       fatal_message("gearman_client_add_server()");
     }
 
+    gearman_function_t func_arg= gearman_function_create(worker_fn);
+    handle= test_worker_start(libtest::default_port(), NULL, DEFAULT_WORKER_NAME, func_arg, NULL, gearman_worker_options_t());
   }
 
   ~client_test_st()
   {
-    gearman_client_free(&client);
+    gearman_client_free(&_client);
     delete handle;
+  }
+
+  gearman_client_st* client()
+  {
+    return &_client;
   }
 };
 
@@ -69,19 +81,31 @@ struct client_context_st {
     count(2000),
     blob(NULL)
   { }
+
+  ~client_context_st()
+  {
+    if (blob)
+    {
+      free(blob);
+    }
+  }
 };
 
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
-static test_return_t burnin_test(void *object)
+static client_test_st *test_client_context= NULL;
+test_return_t burnin_TEST(void *object)
 {
-  gearman_client_st *client= (gearman_client_st *)object;
+  gearman_client_st *client= test_client_context->client();
+  fatal_assert(client);
 
-  struct client_context_st *context= (struct client_context_st *)gearman_client_context(client);
+  client_context_st *context= (client_context_st *)gearman_client_context(client);
+  fatal_assert(context);
 
   // This sketchy, don't do this in your own code.
+  test_true(context->num_tasks > 0);
   gearman_task_st *tasks= (gearman_task_st *)calloc(context->num_tasks, sizeof(gearman_task_st));
   test_true_got(tasks, strerror(errno));
 
@@ -149,139 +173,27 @@ static test_return_t burnin_test(void *object)
   return TEST_SUCCESS;
 }
 
-static test_return_t setup(void *object)
+test_return_t burnin_setup(void *object)
 {
-  gearman_client_st *client= (gearman_client_st *)object;
-
-  struct client_context_st *context= new client_context_st;
-  test_true_got(context, strerror(errno));
+  test_client_context= new client_test_st;
+  client_context_st *context= new client_context_st;
 
   context->blob= (char *)malloc(context->max_size);
   test_true_got(context->blob, strerror(errno));
   memset(context->blob, 'x', context->max_size); 
 
-  gearman_client_set_context(client, context);
+  gearman_client_set_context(test_client_context->client(), context);
 
   return TEST_SUCCESS;
 }
 
-static test_return_t cleanup(void *object)
+test_return_t burnin_cleanup(void *object)
 {
-  gearman_client_st *client= (gearman_client_st *)object;
+  client_context_st *context= (struct client_context_st *)gearman_client_context(test_client_context->client());
 
-  struct client_context_st *context= (struct client_context_st *)gearman_client_context(client);
-
-  free(context->blob);
-  delete(context);
+  delete context;
+  delete test_client_context;
+  test_client_context= NULL;
 
   return TEST_SUCCESS;
-}
-
-
-static void *worker_fn(gearman_job_st *, void *,
-                       size_t *result_size, gearman_return_t *ret_ptr)
-{
-  *result_size= 0;
-  *ret_ptr= GEARMAN_SUCCESS;
-  return NULL;
-}
-
-static void *world_create(server_startup_st& servers, test_return_t& error)
-{
-  /**
-    We start up everything before we allocate so that we don't have to track memory in the forked process.
-  */
-  if (server_startup(servers, "gearmand", libtest::default_port(), 0, NULL) == false)
-  {
-    error= TEST_FAILURE;
-    return NULL;
-  }
-
-  client_test_st *test= new client_test_st;
-  gearman_function_t func_arg= gearman_function_create_v1(worker_fn);
-  test->handle= test_worker_start(libtest::default_port(), NULL, DEFAULT_WORKER_NAME, func_arg, NULL, gearman_worker_options_t());
-  if (test->handle == NULL)
-  {
-    error= TEST_FAILURE;
-    delete test;
-    return NULL;
-  }
-
-  return (void *)test;
-}
-
-static bool world_destroy(void *object)
-{
-  client_test_st *test= (client_test_st *)object;
-
-  delete test;
-
-  return TEST_SUCCESS;
-}
-
-
-test_st tests[] ={
-  {"burnin", 0, burnin_test },
-//  {"burnin_background", 0, burnin_test },
-  {0, 0, 0}
-};
-
-
-collection_st collection[] ={
-  {"burnin", setup, cleanup, tests},
-  {0, 0, 0, 0}
-};
-
-typedef test_return_t (*libgearman_test_callback_fn)(gearman_client_st *);
-class GearmandRunner : public Runner {
-public:
-  test_return_t run(test_callback_fn* func, void *object)
-  {
-    if (func)
-    {
-      libgearman_test_callback_fn actual= libgearman_test_callback_fn(func);
-      client_test_st *container= (client_test_st*)object;
-
-      return actual(&container->client);
-    }
-
-    return TEST_SUCCESS;
-  }
-
-  test_return_t pre(test_callback_fn* func, void *object)
-  {
-    if (func)
-    {
-      libgearman_test_callback_fn actual= libgearman_test_callback_fn(func);
-      client_test_st *container= (client_test_st*)object;
-
-
-      return actual(&container->client);
-    }
-
-    return TEST_SUCCESS;
-  }
-
-  test_return_t post(test_callback_fn* func, void *object)
-  {
-    if (func)
-    {
-      libgearman_test_callback_fn actual= libgearman_test_callback_fn(func);
-      client_test_st *container= (client_test_st*)object;
-
-      return actual(&container->client);
-    }
-
-    return TEST_SUCCESS;
-  }
-};
-
-static GearmandRunner defualt_runner;
-
-void get_world(Framework *world)
-{
-  world->collections= collection;
-  world->_create= world_create;
-  world->_destroy= world_destroy;
-  world->set_runner(&defualt_runner);
 }

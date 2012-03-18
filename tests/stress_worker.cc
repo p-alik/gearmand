@@ -24,6 +24,7 @@ using namespace libtest;
 
 #include <tests/start_worker.h>
 #include <tests/workers.h>
+#include "tests/burnin.h"
 
 #define WORKER_FUNCTION_NAME "foo"
 
@@ -177,45 +178,77 @@ static test_return_t worker_ramp_10K_TEST(void *)
   return worker_ramp_exec(1024*10);
 }
 
-static test_return_t pre_recv(void *)
+static test_return_t worker_ramp_SETUP(void *object)
 {
+  worker_handles_st *handles= (worker_handles_st*)object;
+
+  gearman_function_t echo_react_fn= gearman_function_create(echo_or_react_worker_v2);
+  for (uint32_t x= 0; x < 10; x++)
+  {
+    worker_handle_st *worker;
+    if ((worker= test_worker_start(libtest::default_port(), NULL, WORKER_FUNCTION_NAME, echo_react_fn, NULL, gearman_worker_options_t())) == NULL)
+    {
+      return TEST_FAILURE;
+    }
+    handles->push(worker);
+  }
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t worker_ramp_TEARDOWN(void* object)
+{
+  worker_handles_st *handles= (worker_handles_st*)object;
+  handles->reset();
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t recv_SETUP(void* object)
+{
+  test_skip_valgrind();
+
+  worker_ramp_SETUP(object);
   set_recv_close(true, 20, 20);
 
   return TEST_SUCCESS;
 }
 
-static test_return_t post_recv(void *)
+static test_return_t resv_TEARDOWN(void* object)
 {
   set_recv_close(true, 0, 0);
+
+  worker_handles_st *handles= (worker_handles_st*)object;
+  handles->kill_all();
 
   return TEST_SUCCESS;
 }
 
-static test_return_t pre_send(void *)
+static test_return_t send_SETUP(void* object)
 {
+  test_skip_valgrind();
+
+  worker_ramp_SETUP(object);
   set_send_close(true, 20, 20);
 
   return TEST_SUCCESS;
 }
 
-static test_return_t post_send(void *)
+static test_return_t send_TEARDOWN(void* object)
 {
   set_send_close(true, 0, 0);
 
+  worker_handles_st *handles= (worker_handles_st*)object;
+  handles->kill_all();
+
   return TEST_SUCCESS;
 }
+
 
 /*********************** World functions **************************************/
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  // Assume we are running under valgrind, and bail 
-  if (getenv("TESTS_ENVIRONMENT")) 
-  {
-    error= TEST_SKIPPED;
-    return NULL;
-  }
-
   if (bool(getenv("YATL_RUN_MASSIVE_TESTS")) == false) 
   {
     error= TEST_SKIPPED;
@@ -228,21 +261,24 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
     return NULL;
   }
 
-  gearman_function_t echo_react_fn= gearman_function_create(echo_or_react_worker_v2);
-
-  for (uint32_t x= 0; x < 100; x++)
-  {
-    if (test_worker_start(libtest::default_port(), NULL, WORKER_FUNCTION_NAME, echo_react_fn, NULL, gearman_worker_options_t()) == NULL)
-    {
-      error= TEST_FAILURE;
-      return NULL;
-    }
-  }
-
-  return NULL;
+  return new worker_handles_st;
 }
 
-test_st tests[] ={
+static bool world_destroy(void *object)
+{
+  worker_handles_st *handles= (worker_handles_st *)object;
+  delete handles;
+
+  return TEST_SUCCESS;
+}
+
+test_st burnin_TESTS[] ={
+  {"burnin", 0, burnin_TEST },
+  {0, 0, 0}
+};
+
+
+test_st worker_TESTS[] ={
   {"first pass", 0, worker_ramp_TEST },
   {"second pass", 0, worker_ramp_TEST },
   {"first pass 1K jobs", 0, worker_ramp_1K_TEST },
@@ -251,9 +287,10 @@ test_st tests[] ={
 };
 
 collection_st collection[] ={
-  {"plain", pre_recv, post_recv, tests},
-  {"hostile recv()", pre_recv, post_recv, tests},
-  {"hostile send()", pre_send, post_send, tests},
+  {"burnin", burnin_setup, burnin_cleanup, burnin_TESTS },
+  {"plain", worker_ramp_SETUP, worker_ramp_TEARDOWN, worker_TESTS },
+  {"hostile recv()", recv_SETUP, resv_TEARDOWN, worker_TESTS },
+  {"hostile send()", send_SETUP, send_TEARDOWN, worker_TESTS },
   {0, 0, 0, 0}
 };
 
@@ -261,4 +298,5 @@ void get_world(Framework *world)
 {
   world->collections= collection;
   world->_create= world_create;
+  world->_destroy= world_destroy;
 }

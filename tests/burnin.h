@@ -35,69 +35,8 @@
  *
  */
 
-
-#include <sys/types.h>
-
-#include <libgearman/gearman.h>
-#include <libtest/visibility.h>
-
-#include <boost/thread.hpp>
-
-
-struct worker_handle_st
-{
-public:
-  worker_handle_st();
-  ~worker_handle_st();
-
-  void set_shutdown();
-  bool is_shutdown();
-  bool shutdown();
-  void kill();
-
-  void set_worker_id(gearman_worker_st*);
-
-  boost::barrier* sync_point();
-
-  void wait();
-
-
-  volatile bool failed_startup;
-  boost::thread* _thread;
-
-private:
-  bool _shutdown;
-  boost::mutex _shutdown_lock;
-  gearman_id_t _worker_id;
-  boost::barrier _sync_point;
-};
-
-struct worker_handles_st
-{
-  worker_handles_st();
-  ~worker_handles_st();
-
-  // Warning, this will not clean up memory
-  void kill_all();
-
-  void reset();
-
-  void push(worker_handle_st *arg);
-
-private:
-  std::vector<worker_handle_st *> _workers;
-};
-
 #pragma once
 
-LIBTEST_API
-  struct worker_handle_st *test_worker_start(in_port_t port, 
-					     const char *namespace_key,
-					     const char *function_name,
-					     gearman_function_t &worker_fn,
-					     void *context,
-					     gearman_worker_options_t options,
-               int timeout= 0);
-
-LIBTEST_API
-bool test_worker_stop(struct worker_handle_st *);
+test_return_t burnin_TEST(void *object);
+test_return_t burnin_setup(void *object);
+test_return_t burnin_cleanup(void *object);
