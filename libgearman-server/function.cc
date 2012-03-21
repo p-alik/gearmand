@@ -79,7 +79,8 @@ static gearman_server_function_st * gearman_server_function_create(gearman_serve
   function->job_count= 0;
   function->job_total= 0;
   function->job_running= 0;
-  function->max_queue_size= GEARMAN_DEFAULT_MAX_QUEUE_SIZE;
+  memset(function->max_queue_size, GEARMAN_DEFAULT_MAX_QUEUE_SIZE,
+         sizeof(uint32_t) * GEARMAND_JOB_PRIORITY_MAX);
   function->function_name_size= 0;
   gearmand_server_list_add(server, function);
   function->function_name= NULL;

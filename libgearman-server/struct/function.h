@@ -43,7 +43,7 @@ struct gearman_server_function_st
   uint32_t job_count;
   uint32_t job_total;
   uint32_t job_running;
-  uint32_t max_queue_size;
+  uint32_t max_queue_size[GEARMAND_JOB_PRIORITY_MAX];
   size_t function_name_size;
   gearman_server_function_st *next;
   gearman_server_function_st *prev;

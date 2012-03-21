@@ -207,6 +207,7 @@ static test_return_t worker_ramp_TEARDOWN(void* object)
 static test_return_t recv_SETUP(void* object)
 {
   test_skip_valgrind();
+  test_skip(true, bool(getenv("YATL_RUN_MASSIVE_TESTS")));
 
   worker_ramp_SETUP(object);
   set_recv_close(true, 20, 20);
@@ -227,6 +228,7 @@ static test_return_t resv_TEARDOWN(void* object)
 static test_return_t send_SETUP(void* object)
 {
   test_skip_valgrind();
+  test_skip(true, bool(getenv("YATL_RUN_MASSIVE_TESTS")));
 
   worker_ramp_SETUP(object);
   set_send_close(true, 20, 20);
@@ -249,12 +251,6 @@ static test_return_t send_TEARDOWN(void* object)
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  if (bool(getenv("YATL_RUN_MASSIVE_TESTS")) == false) 
-  {
-    error= TEST_SKIPPED;
-    return NULL;
-  }
-
   if (server_startup(servers, "gearmand", libtest::default_port(), 0, NULL) == false)
   {
     error= TEST_FAILURE;
