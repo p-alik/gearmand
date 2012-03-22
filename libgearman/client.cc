@@ -66,7 +66,9 @@ static gearman_client_st *_client_allocate(gearman_client_st *client, bool is_cl
   {
     client= new (std::nothrow) gearman_client_st;
     if (client == NULL)
+    {
       return NULL;
+    }
 
     client->options.allocated= true;
   }
@@ -87,7 +89,7 @@ static gearman_client_st *_client_allocate(gearman_client_st *client, bool is_cl
   client->task_context_free_fn= NULL;
   gearman_client_clear_fn(client);
 
-  if (not is_clone)
+  if (is_clone == false)
   {
     gearman_universal_initialize(client->universal);
   }
@@ -496,7 +498,9 @@ int gearman_client_timeout(gearman_client_st *client)
 void gearman_client_set_timeout(gearman_client_st *client, int timeout)
 {
   if (client == NULL)
+  {
     return;
+  }
 
   gearman_universal_set_timeout(client->universal, timeout);
 }
@@ -504,7 +508,9 @@ void gearman_client_set_timeout(gearman_client_st *client, int timeout)
 void *gearman_client_context(const gearman_client_st *client)
 {
   if (client == NULL)
+  {
     return NULL;
+  }
 
   return const_cast<void *>(client->context);
 }
@@ -512,7 +518,9 @@ void *gearman_client_context(const gearman_client_st *client)
 void gearman_client_set_context(gearman_client_st *client, void *context)
 {
   if (client == NULL)
+  {
     return;
+  }
 
   client->context= context;
 }
@@ -522,7 +530,9 @@ void gearman_client_set_log_fn(gearman_client_st *client,
                                gearman_verbose_t verbose)
 {
   if (client == NULL)
+  {
     return;
+  }
 
   gearman_set_log_fn(client->universal, function, context, verbose);
 }
@@ -532,7 +542,9 @@ void gearman_client_set_workload_malloc_fn(gearman_client_st *client,
                                            void *context)
 {
   if (client == NULL)
+  {
     return;
+  }
 
   gearman_set_workload_malloc_fn(client->universal, function, context);
 }
@@ -540,7 +552,9 @@ void gearman_client_set_workload_malloc_fn(gearman_client_st *client,
 void gearman_client_set_workload_free_fn(gearman_client_st *client, gearman_free_fn *function, void *context)
 {
   if (client == NULL)
+  {
     return;
+  }
 
   gearman_set_workload_free_fn(client->universal, function, context);
 }
@@ -814,13 +828,19 @@ gearman_return_t gearman_client_job_status(gearman_client_st *client,
     }
 
     if (is_running)
+    {
       *is_running= false;
+    }
 
     if (numerator)
+    {
       *numerator= 0;
+    }
 
     if (denominator)
+    {
       *denominator= 0;
+    }
   }
   gearman_task_free(do_task_ptr);
 
@@ -1313,10 +1333,21 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
               return local_ret;
             }
           }
+
+          /* Connection errors are fatal. */
+          if (client->con->revents & (POLLERR | POLLHUP | POLLNVAL))
+          {
+            gearman_error(client->universal, GEARMAN_LOST_CONNECTION, "detected lost connection in _client_run_tasks()");
+            client->con->close_socket();
+            client->state= GEARMAN_CLIENT_STATE_IDLE;
+            return GEARMAN_LOST_CONNECTION;
+          }
         }
 
-        if (not (client->con->revents & POLLIN))
+        if ((client->con->revents & POLLIN) == 0)
+        {
           continue;
+        }
 
         /* Socket is ready for reading. */
         while (1)
@@ -1404,6 +1435,17 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
                                             static_cast<char *>(client->con->_packet.arg[0]),
                                             int(client->con->_packet.arg_size[1]),
                                             static_cast<char *>(client->con->_packet.arg[1]));
+
+                /* 
+                  Packet cleanup copied from "Clean up the packet" below, and must
+                  remain in sync with its reference.
+                */
+                gearman_packet_free(&(client->con->_packet));
+                client->con->options.packet_in_use= false;
+
+                /* This step copied from _client_run_tasks() above: */
+                /* Increment this value because new job created then failed. */
+                client->con->created_id++;
 
                 return GEARMAN_SERVER_ERROR;
               }
