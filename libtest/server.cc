@@ -156,10 +156,13 @@ bool Server::start()
     fatal_message("has_pid() failed, programer error");
   }
 
+  // This needs more work.
+#if 0
   if (gdb_is_caller())
   {
     _app.use_gdb();
   }
+#endif
 
   if (args(_app) == false)
   {
