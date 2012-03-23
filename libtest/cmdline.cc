@@ -329,6 +329,13 @@ Application::error_t Application::wait()
   return exit_code;
 }
 
+void Application::add_long_option(const std::string& name, const std::string& option_value)
+{
+  std::string arg(name);
+  arg+= option_value;
+  _options.push_back(std::make_pair(arg, std::string()));
+}
+
 void Application::add_option(const std::string& arg)
 {
   _options.push_back(std::make_pair(arg, std::string()));

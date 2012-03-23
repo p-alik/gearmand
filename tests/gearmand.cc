@@ -43,6 +43,8 @@
 
 #include <libtest/test.hpp>
 
+#include "tests/worker.h"
+
 using namespace libtest;
 
 #ifndef __INTEL_COMPILER
@@ -420,6 +422,25 @@ static test_return_t http_port_test(void *)
   return TEST_SUCCESS;
 }
 
+static test_return_t maxqueue_TEST(void *)
+{
+  in_port_t port= libtest::get_free_port();
+  Application gearmand(gearmand_binary(), true);
+
+  gearmand.add_option("--check-args");
+  char buffer[1024];
+  test_true(snprintf(buffer, sizeof(buffer), "%d", int32_t(port)) > 0);
+  gearmand.add_long_option("--port=", buffer);
+
+  test_compare(Application::SUCCESS, gearmand.run());
+
+  Worker worker;
+  test_compare(GEARMAN_SUCCESS, gearman_worker_register(&worker, __func__, 0));
+  test_compare(GEARMAN_SUCCESS, gearman_worker_unregister(&worker, __func__));
+  test_compare(Application::SUCCESS, gearmand.wait());
+
+  return TEST_SUCCESS;
+}
 
 test_st bad_option_TESTS[] ={
   {"position argument", 0, postion_TEST },
@@ -481,10 +502,16 @@ test_st gearmand_httpd_option_tests[] ={
   {0, 0, 0}
 };
 
+test_st maxqueue_TESTS[] ={
+  { "maxqueue=", 0, maxqueue_TEST },
+  {0, 0, 0}
+};
+
 collection_st collection[] ={
   { "bad options", 0, 0, bad_option_TESTS },
   { "basic options", 0, 0, gearmand_option_tests },
   { "httpd options", 0, 0, gearmand_httpd_option_tests },
+  { "maxqueue", 0, 0, maxqueue_TESTS },
   {0, 0, 0, 0}
 };
 
