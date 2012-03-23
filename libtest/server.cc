@@ -94,6 +94,12 @@ Server::~Server()
   {
     Error << "Unable to kill:" << *this;
   }
+
+  Application::error_t ret;
+  if (Application::SUCCESS !=  (ret= _app.wait()))
+  {
+    Error << "Application::wait() " << _running << " " << ret << ": " << _app.stderr_result();
+  }
 }
 
 bool Server::validate()
@@ -150,16 +156,9 @@ bool Server::start()
     fatal_message("has_pid() failed, programer error");
   }
 
-  if (is_debug())
+  if (gdb_is_caller())
   {
     _app.use_gdb();
-  }
-  else if (getenv("TESTS_ENVIRONMENT"))
-  {
-    if (strstr(getenv("TESTS_ENVIRONMENT"), "gdb"))
-    {
-      _app.use_gdb();
-    }
   }
 
   if (args(_app) == false)
@@ -176,13 +175,7 @@ bool Server::start()
   }
   _running= _app.print();
 
-  if (Application::SUCCESS !=  (ret= _app.wait()))
-  {
-    Error << "Application::wait() " << _running << " " << ret;
-    return false;
-  }
-
-  if (is_helgrind() or is_valgrind())
+  if (valgrind_is_caller())
   {
     dream(5, 50000);
   }
@@ -368,12 +361,6 @@ bool Server::args(Application& app)
     pid_file_option(app, pid_file());
   }
 
-  assert(daemon_file_option());
-  if (daemon_file_option() and not is_valgrind() and not is_helgrind())
-  {
-    app.add_option(daemon_file_option());
-  }
-
   if (has_socket_file_option())
   {
     if (set_socket_file() == false)
@@ -402,21 +389,6 @@ bool Server::args(Application& app)
   }
 
   return true;
-}
-
-bool Server::is_debug() const
-{
-  return bool(getenv("LIBTEST_MANUAL_GDB"));
-}
-
-bool Server::is_valgrind() const
-{
-  return bool(getenv("LIBTEST_MANUAL_VALGRIND"));
-}
-
-bool Server::is_helgrind() const
-{
-  return bool(getenv("LIBTEST_MANUAL_HELGRIND"));
 }
 
 bool Server::kill(pid_t pid_arg)

@@ -162,7 +162,7 @@ public:
 
   const char *daemon_file_option()
   {
-    return "--daemon";
+    return "";
   }
 
   void log_file_option(Application& app, const std::string& arg)

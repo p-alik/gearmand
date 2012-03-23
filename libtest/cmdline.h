@@ -101,6 +101,11 @@ public:
     _use_valgrind= arg;
   }
 
+  bool check() const;
+
+  void slurp();
+  void murder();
+
   void use_gdb(bool arg= true)
   {
     _use_gdb= arg;
