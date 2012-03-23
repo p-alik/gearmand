@@ -76,12 +76,15 @@ std::ostream& operator<<(std::ostream& output, const Server &arg)
 
 #define MAGIC_MEMORY 123570
 
-Server::Server(const std::string& host_arg, const in_port_t port_arg, bool is_socket_arg) :
+Server::Server(const std::string& host_arg, const in_port_t port_arg,
+               const std::string& executable, const bool _is_libtool,
+               bool is_socket_arg) :
   _magic(MAGIC_MEMORY),
   _is_socket(is_socket_arg),
   _pid(-1),
   _port(port_arg),
-  _hostname(host_arg)
+  _hostname(host_arg),
+  _app(executable, _is_libtool)
 {
 }
 
@@ -147,35 +150,33 @@ bool Server::start()
     fatal_message("has_pid() failed, programer error");
   }
 
-  Application app(executable(), is_libtool());
-
   if (is_debug())
   {
-    app.use_gdb();
+    _app.use_gdb();
   }
   else if (getenv("TESTS_ENVIRONMENT"))
   {
     if (strstr(getenv("TESTS_ENVIRONMENT"), "gdb"))
     {
-      app.use_gdb();
+      _app.use_gdb();
     }
   }
 
-  if (args(app) == false)
+  if (args(_app) == false)
   {
     Error << "Could not build command()";
     return false;
   }
 
   Application::error_t ret;
-  if (Application::SUCCESS !=  (ret= app.run()))
+  if (Application::SUCCESS !=  (ret= _app.run()))
   {
     Error << "Application::run() " << ret;
     return false;
   }
-  _running= app.print();
+  _running= _app.print();
 
-  if (Application::SUCCESS !=  (ret= app.wait()))
+  if (Application::SUCCESS !=  (ret= _app.wait()))
   {
     Error << "Application::wait() " << _running << " " << ret;
     return false;
