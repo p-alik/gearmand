@@ -195,11 +195,11 @@ bool Server::start()
     }
   }
 
+  uint32_t this_wait;
   bool pinged= false;
   {
     uint32_t timeout= 20; // This number should be high enough for valgrind startup (which is slow)
     uint32_t waited;
-    uint32_t this_wait;
     uint32_t retry;
 
     for (waited= 0, retry= 1; ; retry++, waited+= this_wait)
@@ -227,7 +227,9 @@ bool Server::start()
       {
         fatal_message("Failed to kill off server after startup occurred, when pinging failed");
       }
-      Error << "Failed to ping() server started, having pid_file. exec:" << _running;
+      Error << "Failed to ping(), waited:" << this_wait 
+        << " server started, having pid_file. exec:" << _running 
+        << " error:" << _app.stderr_result();
     }
     else
     {
