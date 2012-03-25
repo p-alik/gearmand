@@ -197,7 +197,7 @@ int main(int argc, char *argv[])
       fatal_assert(sigignore(SIGPIPE) == 0);
 
       libtest::SignalThread signal;
-      if (not signal.setup())
+      if (signal.setup() == false)
       {
         Error << "Failed to setup signals";
         return EXIT_FAILURE;

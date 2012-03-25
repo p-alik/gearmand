@@ -70,6 +70,7 @@ public:
 
   void add_option(const std::string&);
   void add_option(const std::string&, const std::string&);
+  void add_long_option(const std::string& option_name, const std::string& option_value);
   error_t run(const char *args[]= NULL);
   error_t wait();
 
@@ -99,6 +100,11 @@ public:
   {
     _use_valgrind= arg;
   }
+
+  bool check() const;
+
+  void slurp();
+  void murder();
 
   void use_gdb(bool arg= true)
   {

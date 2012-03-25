@@ -180,6 +180,8 @@ static test_return_t worker_ramp_10K_TEST(void *)
 
 static test_return_t worker_ramp_SETUP(void *object)
 {
+  test_skip_valgrind();
+
   worker_handles_st *handles= (worker_handles_st*)object;
 
   gearman_function_t echo_react_fn= gearman_function_create(echo_or_react_worker_v2);

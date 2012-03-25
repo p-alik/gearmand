@@ -239,14 +239,24 @@ Application::error_t Application::run(const char *args[])
   return Application::SUCCESS;
 }
 
-Application::error_t Application::wait()
+bool Application::check() const
 {
-  if (_pid == -1)
+  if (kill(_pid, 0) == 0)
   {
-    Error << "wait() got an invalid pid_t";
-    return Application::INVALID;
+    return true;
   }
 
+  return false;
+}
+
+void Application::murder()
+{
+  slurp();
+  kill(_pid, SIGTERM);
+}
+
+void Application::slurp()
+{
   {
     ssize_t read_length;
     char buffer[1024]= { 0 };
@@ -300,6 +310,13 @@ Application::error_t Application::wait()
       // @todo Suck up all errput code here
     }
   }
+}
+
+Application::error_t Application::wait()
+{
+  fatal_assert(_pid != -1);
+
+  slurp();
 
   error_t exit_code= FAILURE;
   {
@@ -307,7 +324,15 @@ Application::error_t Application::wait()
     pid_t waited_pid;
     if ((waited_pid= waitpid(_pid, &status, 0)) == -1)
     {
-      Error << "Error occured while waitpid(" << strerror(errno) << ") on pid " << int(_pid);
+      switch (errno)
+      {
+      case ECHILD:
+        exit_code= Application::SUCCESS;
+        break;
+
+      default:
+        Error << "Error occured while waitpid(" << strerror(errno) << ") on pid " << int(_pid);
+      }
     }
     else
     {
@@ -327,6 +352,13 @@ Application::error_t Application::wait()
 #endif
 
   return exit_code;
+}
+
+void Application::add_long_option(const std::string& name, const std::string& option_value)
+{
+  std::string arg(name);
+  arg+= option_value;
+  _options.push_back(std::make_pair(arg, std::string()));
 }
 
 void Application::add_option(const std::string& arg)
