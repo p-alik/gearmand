@@ -204,7 +204,7 @@ public:
 
   bool has_pid() const;
 
-  bool wait_for_pidfile() const;
+  virtual bool wait_for_pidfile() const;
 
   bool check_pid(pid_t pid_arg) const
   {
