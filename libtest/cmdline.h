@@ -72,7 +72,7 @@ public:
   void add_option(const std::string&, const std::string&);
   void add_long_option(const std::string& option_name, const std::string& option_value);
   error_t run(const char *args[]= NULL);
-  error_t wait();
+  error_t wait(bool nohang= true);
 
   libtest::vchar_t stdout_result() const
   {

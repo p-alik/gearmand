@@ -388,7 +388,7 @@ static test_return_t application_doesnotexist_BINARY(void *)
   const char *args[]= { "--fubar", 0 };
 #if defined(TARGET_OS_OSX) && TARGET_OS_OSX
   test_compare(Application::INVALID, true_app.run(args));
-  test_compare(Application::FAILURE, true_app.wait());
+  test_compare(Application::INVALID, true_app.wait(false));
 #else
   test_compare(Application::SUCCESS, true_app.run(args));
   test_compare(Application::INVALID, true_app.wait());
