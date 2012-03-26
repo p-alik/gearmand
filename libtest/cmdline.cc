@@ -30,6 +30,7 @@ using namespace libtest;
 #include <fcntl.h>
 #include <fstream>
 #include <memory>
+#include <poll.h>
 #include <spawn.h>
 #include <sstream>
 #include <string>
@@ -142,6 +143,7 @@ Application::Application(const std::string& arg, const bool _use_libtool_arg) :
 
 Application::~Application()
 {
+  murder();
   delete_argv();
 }
 
@@ -241,6 +243,7 @@ Application::error_t Application::run(const char *args[])
 
 bool Application::check() const
 {
+  Error << "Testing " << _exectuble;
   if (kill(_pid, 0) == 0)
   {
     return true;
@@ -255,13 +258,55 @@ void Application::murder()
   kill(_pid, SIGTERM);
 }
 
-void Application::slurp()
+// false means that no data was returned
+bool Application::slurp()
 {
+  struct pollfd fds[2];
+  fds[0].fd= stdout_fd.fd()[0];
+  fds[0].events= POLLIN;
+  fds[0].revents= 0;
+  fds[1].fd= stderr_fd.fd()[0];
+  fds[1].events= POLLIN;
+  fds[1].revents= 0;
+
+  int active_fd;
+  if ((active_fd= poll(fds, 2, 400)) == -1)
+  {
+    int error;
+    switch ((error= errno))
+    {
+#ifdef TARGET_OS_LINUX
+    case ERESTART:
+#endif
+    case EINTR:
+      break;
+
+    case EFAULT:
+    case ENOMEM:
+      fatal_message(strerror(error));
+      break;
+
+    case EINVAL:
+      fatal_message("RLIMIT_NOFILE exceeded, or if OSX the timeout value was invalid");
+      break;
+
+    default:
+      fatal_message(strerror(error));
+      break;
+    }
+  }
+
+  if (active_fd == 0)
+  {
+    return false;
+  }
+
+  bool data_was_read= false;
+  if (fds[0].revents == POLLIN)
   {
     ssize_t read_length;
     char buffer[1024]= { 0 };
-    bool bail= false;
-    while (((read_length= ::read(stdout_fd.fd()[0], buffer, sizeof(buffer))) != 0) or bail)
+    while ((read_length= ::read(stdout_fd.fd()[0], buffer, sizeof(buffer))))
     {
       if (read_length == -1)
       {
@@ -272,9 +317,13 @@ void Application::slurp()
 
         default:
           Error << strerror(errno);
-          bail= true;
+          break;
         }
+
+        break;
       }
+
+      data_was_read= true;
       _stdout_buffer.reserve(read_length +1);
       for (size_t x= 0; x < read_length; x++)
       {
@@ -284,11 +333,11 @@ void Application::slurp()
     }
   }
 
+  if (fds[1].revents == POLLIN)
   {
     ssize_t read_length;
     char buffer[1024]= { 0 };
-    bool bail= false;
-    while (((read_length= ::read(stderr_fd.fd()[0], buffer, sizeof(buffer))) != 0) or bail)
+    while ((read_length= ::read(stderr_fd.fd()[0], buffer, sizeof(buffer))))
     {
       if (read_length == -1)
       {
@@ -299,9 +348,13 @@ void Application::slurp()
 
         default:
           Error << strerror(errno);
-          bail= true;
+          break;
         }
+
+        break;
       }
+
+      data_was_read= true;
       _stderr_buffer.reserve(read_length +1);
       for (size_t x= 0; x < read_length; x++)
       {
@@ -310,6 +363,8 @@ void Application::slurp()
       // @todo Suck up all errput code here
     }
   }
+
+  return data_was_read;
 }
 
 Application::error_t Application::wait()
@@ -379,12 +434,27 @@ Application::Pipe::Pipe()
   _open[1]= false;
 }
 
+void Application::Pipe::nonblock()
+{
+  int ret;
+  if ((ret= fcntl(_fd[0], F_GETFL, 0)) == -1)
+  {
+    Error << "fcntl(F_GETFL) " << strerror(errno);
+    throw strerror(errno);
+  }
+
+  if ((ret= fcntl(_fd[0], F_SETFL, ret | O_NONBLOCK)) == -1)
+  {
+    Error << "fcntl(F_SETFL) " << strerror(errno);
+    throw strerror(errno);
+  }
+}
+
 void Application::Pipe::reset()
 {
   close(READ);
   close(WRITE);
 
-  int ret;
   if (pipe(_fd) == -1)
   {
     throw strerror(errno);
@@ -392,18 +462,9 @@ void Application::Pipe::reset()
   _open[0]= true;
   _open[1]= true;
 
+  if (0)
   {
-    if ((ret= fcntl(_fd[0], F_GETFL, 0)) == -1)
-    {
-      Error << "fcntl(F_GETFL) " << strerror(errno);
-      throw strerror(errno);
-    }
-
-    if ((ret= fcntl(_fd[0], F_SETFL, ret | O_NONBLOCK)) == -1)
-    {
-      Error << "fcntl(F_SETFL) " << strerror(errno);
-      throw strerror(errno);
-    }
+    nonblock();
   }
 }
 

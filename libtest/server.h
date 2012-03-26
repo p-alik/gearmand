@@ -62,7 +62,6 @@ public:
   virtual ~Server();
 
   virtual const char *name()= 0;
-  virtual const char *daemon_file_option()= 0;
   virtual bool is_libtool()= 0;
 
   virtual bool has_socket_file_option() const
@@ -203,10 +202,7 @@ public:
     return _pid;
   }
 
-  bool has_pid() const
-  {
-    return (_pid > 1);
-  }
+  bool has_pid() const;
 
   bool wait_for_pidfile() const;
 
@@ -225,9 +221,11 @@ public:
     return _running;
   }
 
+  bool check();
+
   std::string log_and_pid();
 
-  bool kill(pid_t pid_arg);
+  bool kill();
   bool start();
   bool command(libtest::Application& app);
 

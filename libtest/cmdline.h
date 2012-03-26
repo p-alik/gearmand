@@ -58,6 +58,8 @@ public:
                        posix_spawn_file_actions_t& file_actions,
                        const int newfildes);
 
+    void nonblock();
+
   private:
     int _fd[2];
     bool _open[2];
@@ -103,7 +105,7 @@ public:
 
   bool check() const;
 
-  void slurp();
+  bool slurp();
   void murder();
 
   void use_gdb(bool arg= true)
@@ -116,6 +118,11 @@ public:
   std::string gdb_filename()
   {
     return  _gdb_filename;
+  }
+
+  pid_t pid() const
+  {
+    return _pid;
   }
 
 private:

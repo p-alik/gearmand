@@ -118,11 +118,6 @@ public:
     return "blobslap_worker";
   };
 
-  const char *daemon_file_option()
-  {
-    return "--daemon";
-  }
-
   bool has_port_option() const
   {
     return true;
