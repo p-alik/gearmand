@@ -73,13 +73,15 @@ public:
             const bool is_socket_arg,
             const std::string& username_arg,
             const std::string& password_arg) :
-    libtest::Server(host_arg, port_arg, is_socket_arg, MEMCACHED_BINARY, is_memcached_libtool()),
+    libtest::Server(host_arg, port_arg, 
+                    MEMCACHED_BINARY, is_memcached_libtool(), is_socket_arg),
     _username(username_arg),
     _password(password_arg)
   { }
 
   Memcached(const std::string& host_arg, const in_port_t port_arg, const bool is_socket_arg) :
-    libtest::Server(host_arg, port_arg, is_socket_arg)
+    libtest::Server(host_arg, port_arg,
+                    MEMCACHED_BINARY, is_memcached_libtool(), is_socket_arg)
   {
     set_pid_file();
   }
@@ -196,11 +198,6 @@ public:
     return "-s ";
   }
 
-  const char *daemon_file_option()
-  {
-    return "-d";
-  }
-
   virtual void port_option(Application& app, in_port_t arg)
   {
     char buffer[30];
@@ -314,11 +311,6 @@ public:
   const char *executable()
   {
     return MEMCACHED_LIGHT_BINARY;
-  }
-
-  const char *daemon_file_option()
-  {
-    return "--daemon";
   }
 
   virtual void port_option(Application& app, in_port_t arg)

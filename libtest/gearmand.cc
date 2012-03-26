@@ -160,11 +160,6 @@ public:
     return "gearmand";
   };
 
-  const char *daemon_file_option()
-  {
-    return "";
-  }
-
   void log_file_option(Application& app, const std::string& arg)
   {
     if (arg.empty() == false)
