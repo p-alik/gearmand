@@ -197,7 +197,7 @@ int main(int argc, char *argv[])
       fatal_assert(sigignore(SIGPIPE) == 0);
 
       libtest::SignalThread signal;
-      if (not signal.setup())
+      if (signal.setup() == false)
       {
         Error << "Failed to setup signals";
         return EXIT_FAILURE;
@@ -350,6 +350,11 @@ int main(int argc, char *argv[])
             }
           }
 
+          catch (libtest::fatal &e)
+          {
+            Error << "Fatal exception was thrown: " << e.what();
+            return_code= TEST_FAILURE;
+          }
           catch (std::exception &e)
           {
             Error << "Exception was thrown: " << e.what();

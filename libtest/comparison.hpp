@@ -35,7 +35,10 @@
 namespace libtest {
 
 LIBTEST_API
-bool valgrind_is_caller();
+bool gdb_is_caller(void);
+
+LIBTEST_API
+bool valgrind_is_caller(void);
 
 LIBTEST_API
 bool _in_valgrind(const char *file, int line, const char *func);
