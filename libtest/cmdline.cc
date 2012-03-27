@@ -271,7 +271,7 @@ bool Application::slurp()
   fds[1].revents= 0;
 
   int active_fd;
-  if ((active_fd= poll(fds, 2, 400)) == -1)
+  if ((active_fd= poll(fds, 2, 0)) == -1)
   {
     int error;
     switch ((error= errno))
@@ -295,6 +295,8 @@ bool Application::slurp()
       fatal_message(strerror(error));
       break;
     }
+
+    return false;
   }
 
   if (active_fd == 0)
@@ -408,6 +410,8 @@ Application::error_t Application::wait(bool nohang)
       exit_code= int_to_error_t(exited_successfully(status));
     }
   }
+
+  slurp();
 
 #if 0
   if (exit_code == Application::INVALID)
