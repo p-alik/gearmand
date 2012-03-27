@@ -388,10 +388,9 @@ static test_return_t application_doesnotexist_BINARY(void *)
   const char *args[]= { "--fubar", 0 };
 #if defined(TARGET_OS_OSX) && TARGET_OS_OSX
   test_compare(Application::INVALID, true_app.run(args));
-  test_compare(Application::FAILURE, true_app.wait());
 #else
   test_compare(Application::SUCCESS, true_app.run(args));
-  test_compare(Application::INVALID, true_app.wait());
+  test_compare(Application::INVALID, true_app.wait(false));
 #endif
 
   test_compare(0, true_app.stdout_result().size());
@@ -472,6 +471,8 @@ static test_return_t application_echo_fubar_BINARY(void *)
   test_compare(Application::SUCCESS, true_app.run(args));
   test_compare(Application::SUCCESS, true_app.wait());
 
+  while (true_app.slurp() == false) {} ;
+
   libtest::vchar_t response;
   make_vector(response, test_literal_param("fubar\n"));
   test_compare(response, true_app.stdout_result());
@@ -486,7 +487,8 @@ static test_return_t application_echo_fubar_BINARY2(void *)
   true_app.add_option("fubar");
 
   test_compare(Application::SUCCESS, true_app.run());
-  test_compare(Application::SUCCESS, true_app.wait());
+  test_compare(Application::SUCCESS, true_app.wait(false));
+
   libtest::vchar_t response;
   make_vector(response, test_literal_param("fubar\n"));
   test_compare(response, true_app.stdout_result());
@@ -616,6 +618,7 @@ static test_return_t gdb_abort_services_appliction_TEST(void *)
   test_compare(Application::SUCCESS, abort_app.wait());
 
   std::string gdb_filename= abort_app.gdb_filename();
+  test_skip(0, access(gdb_filename.c_str(), R_OK ));
   const char *args[]= { "SIGABRT", gdb_filename.c_str(), 0 };
   test_compare(EXIT_SUCCESS, exec_cmdline("grep", args));
 
@@ -656,11 +659,13 @@ static test_return_t number_of_cpus_TEST(void *)
 static test_return_t create_tmpfile_TEST(void *)
 {
   std::string tmp= create_tmpfile(__func__);
+  test_compare(-1, access(tmp.c_str(), R_OK));
+  test_compare(-1, access(tmp.c_str(), F_OK));
 
   Application touch_app("touch");
   const char *args[]= { tmp.c_str(), 0 };
   test_compare(Application::SUCCESS, touch_app.run(args));
-  test_compare(Application::SUCCESS, touch_app.wait());
+  test_compare(Application::SUCCESS, touch_app.wait(false));
 
   test_compare_hint(0, access(tmp.c_str(), R_OK), strerror(errno));
   test_compare_hint(0, unlink(tmp.c_str()), strerror(errno));

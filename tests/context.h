@@ -73,7 +73,7 @@ public:
   {
     if (server_startup(_servers, "gearmand", _port, argc, argv) == false)
     {
-      return NULL;
+      return false;
     }
 
     if ((worker= gearman_worker_create(NULL)) == NULL)

@@ -49,6 +49,17 @@ public:
     }
   }
 
+  Worker(in_port_t arg)
+  {
+    _worker= gearman_worker_create(NULL);
+
+    if (_worker == NULL)
+    {
+      throw "gearman_worker_create() failed";
+    }
+    gearman_worker_add_server(_worker, "localhost", arg);
+  }
+
   gearman_worker_st* operator&() const
   { 
     return _worker;

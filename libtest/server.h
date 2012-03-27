@@ -55,13 +55,13 @@ protected:
   std::string _extra_args;
 
 public:
-  Server(const std::string& hostname, const in_port_t port_arg, const bool is_socket_arg= false);
+  Server(const std::string& hostname, const in_port_t port_arg,
+         const std::string& executable, const bool _is_libtool,
+         const bool is_socket_arg= false);
 
   virtual ~Server();
 
   virtual const char *name()= 0;
-  virtual const char *executable()= 0;
-  virtual const char *daemon_file_option()= 0;
   virtual bool is_libtool()= 0;
 
   virtual bool has_socket_file_option() const
@@ -202,12 +202,9 @@ public:
     return _pid;
   }
 
-  bool has_pid() const
-  {
-    return (_pid > 1);
-  }
+  bool has_pid() const;
 
-  bool wait_for_pidfile() const;
+  virtual bool wait_for_pidfile() const;
 
   bool check_pid(pid_t pid_arg) const
   {
@@ -224,9 +221,11 @@ public:
     return _running;
   }
 
+  bool check();
+
   std::string log_and_pid();
 
-  bool kill(pid_t pid_arg);
+  bool kill();
   bool start();
   bool command(libtest::Application& app);
 
@@ -235,6 +234,7 @@ public:
 protected:
   bool set_pid_file();
   Options _options;
+  Application _app;
 
 private:
   bool is_helgrind() const;

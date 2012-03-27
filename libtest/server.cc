@@ -76,21 +76,26 @@ std::ostream& operator<<(std::ostream& output, const Server &arg)
 
 #define MAGIC_MEMORY 123570
 
-Server::Server(const std::string& host_arg, const in_port_t port_arg, bool is_socket_arg) :
+Server::Server(const std::string& host_arg, const in_port_t port_arg,
+               const std::string& executable, const bool _is_libtool,
+               bool is_socket_arg) :
   _magic(MAGIC_MEMORY),
   _is_socket(is_socket_arg),
   _pid(-1),
   _port(port_arg),
-  _hostname(host_arg)
+  _hostname(host_arg),
+  _app(executable, _is_libtool)
 {
 }
 
 Server::~Server()
 {
-  if (has_pid() and not kill(_pid))
-  {
-    Error << "Unable to kill:" << *this;
-  }
+}
+
+bool Server::check()
+{
+  _app.slurp();
+  return _app.check();
 }
 
 bool Server::validate()
@@ -104,13 +109,12 @@ bool Server::cycle()
   uint32_t limit= 3;
 
   // Try to ping, and kill the server #limit number of times
-  pid_t current_pid;
   while (--limit and 
-         is_pid_valid(current_pid= get_pid()))
+         is_pid_valid(_app.pid()))
   {
-    if (kill(current_pid))
+    if (kill())
     {
-      Log << "Killed existing server," << *this << " with pid:" << current_pid;
+      Log << "Killed existing server," << *this;
       dream(0, 50000);
       continue;
     }
@@ -119,7 +123,7 @@ bool Server::cycle()
   // For whatever reason we could not kill it, and we reached limit
   if (limit == 0)
   {
-    Error << "Reached limit, could not kill server pid:" << current_pid;
+    Error << "Reached limit, could not kill server";
     return false;
   }
 
@@ -133,55 +137,43 @@ bool Server::wait_for_pidfile() const
   return wait.successful();
 }
 
+bool Server::has_pid() const
+{
+  return (_pid > 1);
+}
+
+
 bool Server::start()
 {
   // If we find that we already have a pid then kill it.
-  if (has_pid() and kill(_pid) == false)
-  {
-    Error << "Could not kill() existing server during start() pid:" << _pid;
-    return false;
-  }
-
   if (has_pid() == false)
   {
     fatal_message("has_pid() failed, programer error");
   }
 
-  Application app(executable(), is_libtool());
-
-  if (is_debug())
+  // This needs more work.
+#if 0
+  if (gdb_is_caller())
   {
-    app.use_gdb();
+    _app.use_gdb();
   }
-  else if (getenv("TESTS_ENVIRONMENT"))
-  {
-    if (strstr(getenv("TESTS_ENVIRONMENT"), "gdb"))
-    {
-      app.use_gdb();
-    }
-  }
+#endif
 
-  if (args(app) == false)
+  if (args(_app) == false)
   {
     Error << "Could not build command()";
     return false;
   }
 
   Application::error_t ret;
-  if (Application::SUCCESS !=  (ret= app.run()))
+  if (Application::SUCCESS !=  (ret= _app.run()))
   {
     Error << "Application::run() " << ret;
     return false;
   }
-  _running= app.print();
+  _running= _app.print();
 
-  if (Application::SUCCESS !=  (ret= app.wait()))
-  {
-    Error << "Application::wait() " << _running << " " << ret;
-    return false;
-  }
-
-  if (is_helgrind() or is_valgrind())
+  if (valgrind_is_caller())
   {
     dream(5, 50000);
   }
@@ -198,11 +190,11 @@ bool Server::start()
     }
   }
 
+  uint32_t this_wait;
   bool pinged= false;
   {
     uint32_t timeout= 20; // This number should be high enough for valgrind startup (which is slow)
     uint32_t waited;
-    uint32_t this_wait;
     uint32_t retry;
 
     for (waited= 0, retry= 1; ; retry++, waited+= this_wait)
@@ -230,7 +222,9 @@ bool Server::start()
       {
         fatal_message("Failed to kill off server after startup occurred, when pinging failed");
       }
-      Error << "Failed to ping() server started, having pid_file. exec:" << _running;
+      Error << "Failed to ping(), waited:" << this_wait 
+        << " server started, having pid_file. exec:" << _running 
+        << " error:" << _app.stderr_result();
     }
     else
     {
@@ -367,12 +361,6 @@ bool Server::args(Application& app)
     pid_file_option(app, pid_file());
   }
 
-  assert(daemon_file_option());
-  if (daemon_file_option() and not is_valgrind() and not is_helgrind())
-  {
-    app.add_option(daemon_file_option());
-  }
-
   if (has_socket_file_option())
   {
     if (set_socket_file() == false)
@@ -403,24 +391,9 @@ bool Server::args(Application& app)
   return true;
 }
 
-bool Server::is_debug() const
+bool Server::kill()
 {
-  return bool(getenv("LIBTEST_MANUAL_GDB"));
-}
-
-bool Server::is_valgrind() const
-{
-  return bool(getenv("LIBTEST_MANUAL_VALGRIND"));
-}
-
-bool Server::is_helgrind() const
-{
-  return bool(getenv("LIBTEST_MANUAL_HELGRIND"));
-}
-
-bool Server::kill(pid_t pid_arg)
-{
-  if (check_pid(pid_arg) and kill_pid(pid_arg)) // If we kill it, reset
+  if (check_pid(_app.pid()) and kill_pid(_app.pid())) // If we kill it, reset
   {
     if (broken_pid_file() and pid_file().empty() == false)
     {
