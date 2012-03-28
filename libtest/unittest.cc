@@ -381,8 +381,8 @@ static test_return_t application_true_fubar_BINARY(void *)
 
 static test_return_t application_doesnotexist_BINARY(void *)
 {
-  test_skip_valgrind();
 
+  test_skip_valgrind();
   Application true_app("doesnotexist");
 
   const char *args[]= { "--fubar", 0 };
