@@ -245,7 +245,7 @@ Application::error_t Application::run(const char *args[])
 bool Application::check() const
 {
   Error << "Testing " << _exectuble;
-  if (kill(_pid, 0) == 0)
+  if (_pid > 1 and kill(_pid, 0) == 0)
   {
     return true;
   }
@@ -256,7 +256,14 @@ bool Application::check() const
 void Application::murder()
 {
   slurp();
-  kill(_pid, SIGTERM);
+  if (_pid > 1 and kill(_pid, SIGTERM) == 0)
+  {
+    int status= 0;
+    if (waitpid(_pid, &status, 0) == -1)
+    {
+      Error << "waitpid() failed after kill with error of " << strerror(errno);
+    }
+  }
 }
 
 // false means that no data was returned
@@ -393,8 +400,11 @@ Application::error_t Application::wait(bool nohang)
         exit_code= Application::SUCCESS;
         break;
 
+      case EINTR:
+
       default:
         Error << "Error occured while waitpid(" << strerror(errno) << ") on pid " << int(_pid);
+        break;
       }
     }
     else if (waited_pid == 0)
