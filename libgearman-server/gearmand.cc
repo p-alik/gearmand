@@ -27,6 +27,7 @@
 
 #include <libgearman-server/struct/port.h>
 #include <libgearman-server/plugins.h>
+#include <libgearman-server/timer.h>
 
 using namespace gearmand;
 
@@ -273,6 +274,8 @@ gearman_server_st *gearmand_server(gearmand_st *gearmand)
 gearmand_error_t gearmand_run(gearmand_st *gearmand)
 {
   uint32_t x;
+
+  current_epoch_handler(0, 0, 0);
 
   /* Initialize server components. */
   if (gearmand->base == NULL)
