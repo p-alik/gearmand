@@ -100,7 +100,6 @@ gearmand_st *gearmand_create(const char *host_arg,
   gearmand_st *gearmand;
 
   assert(_global_gearmand == NULL);
-  
   if (_global_gearmand)
   {
     gearmand_error("You have called gearmand_create() twice within your application.");
@@ -273,6 +272,8 @@ gearman_server_st *gearmand_server(gearmand_st *gearmand)
 
 gearmand_error_t gearmand_run(gearmand_st *gearmand)
 {
+  libgearman::server::Epoch epoch;
+
   /* Initialize server components. */
   if (gearmand->base == NULL)
   {
@@ -336,9 +337,6 @@ gearmand_error_t gearmand_run(gearmand_st *gearmand)
     return gearmand->ret;
   }
 
-#if 0
-  current_epoch_handler(0, 0, 0);
-#endif
   gearmand_debug("Entering main event loop");
 
   if (event_base_loop(gearmand->base, 0) == -1)
@@ -354,13 +352,6 @@ gearmand_error_t gearmand_run(gearmand_st *gearmand)
 
 void gearmand_wakeup(gearmand_st *gearmand, gearmand_wakeup_t wakeup)
 {
-  if (wakeup == GEARMAND_WAKEUP_SHUTDOWN or wakeup == GEARMAND_WAKEUP_SHUTDOWN_GRACEFUL)
-  {
-#if 0
-    shutdown_current_epoch_handler();
-#endif
-  }
-
   uint8_t buffer= wakeup;
 
   /* If this fails, there is not much we can really do. This should never fail

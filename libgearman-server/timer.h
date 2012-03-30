@@ -37,8 +37,15 @@
 
 #pragma once
 
-struct timeval get_current_epoch();
+namespace libgearman {
+namespace server {
 
-void current_epoch_handler(const int, const short, void*);
+class Epoch {
+public:
+  Epoch();
+  ~Epoch();
+  static struct timeval current();
+};
 
-void shutdown_current_epoch_handler();
+} // server
+} // libgearman

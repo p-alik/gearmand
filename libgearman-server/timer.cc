@@ -40,56 +40,74 @@
 #include <libgearman-server/common.h>
 #include <libgearman-server/gearmand.h>
 
+#include <libgearman-server/timer.h>
+
+#include <cerrno>
 #include <ctime>
-#include <event.h>
+
+#include <pthread.h>
+
+static pthread_once_t start_key_once= PTHREAD_ONCE_INIT;
+static pthread_t thread_id;
 
 static struct timeval current_epoch;
-static struct event clock_event;
 
-struct timeval get_current_epoch()
+static void* current_epoch_handler(void*)
+{
+  gearmand_debug("staring up Epoch thread");
+
+  pollfd fds[1];
+  fds[1].fd= -1; //STDIN_FILENO;
+  fds[1].events= POLLIN;
+  fds[1].revents= 0;
+
+  while (true)
+  {
+    int error;
+    if ((error= poll(fds, 1, 1000)) == -1)
+    {
+      gearmand_perror("poll");
+    }
+    gettimeofday(&current_epoch, NULL);
+  }
+}
+
+static void startup(void)
+{
+  gettimeofday(&current_epoch, NULL);
+
+  int error;
+  if ((error= pthread_create(&thread_id, NULL, current_epoch_handler, NULL)))
+  {
+    fprintf(stderr, "pthread_create failed\n");
+  }
+}
+
+namespace libgearman {
+namespace server {
+
+Epoch::Epoch()
+{
+  (void) pthread_once(&start_key_once, startup);
+}
+
+Epoch::~Epoch()
+{
+  gearmand_debug("shutting down Epoch thread");
+  int error;
+  if ((error= pthread_kill(thread_id, SIGTERM)) != 0)
+  {
+    errno= error;
+    gearmand_perror("pthread_kill(thread_id, SIGTERM)");
+  }
+
+  gearmand_debug("shutdown of Epoch completed");
+}
+
+struct timeval Epoch::current()
 {
   return current_epoch;
 }
 
-static bool _shutdown_clock= false;
-
-void shutdown_current_epoch_handler()
-{
-  _shutdown_clock= true;
-}
-
-void current_epoch_handler(const int, const short, void*)
-{
-  static bool initialized= false;
-
-  if (_shutdown_clock)
-  {
-    if (initialized) 
-    {
-      evtimer_del(&clock_event);
-    }
-
-    return;
-  }
-
-  if (initialized) 
-  {
-    evtimer_del(&clock_event);
-  }
-  else
-  {
-    initialized= true;
-  }
-
-  evtimer_set(&clock_event, current_epoch_handler, 0);
-  event_base_set(Gearmand()->base, &clock_event);
-
-  struct timeval wait_for;
-  wait_for.tv_sec= 1;
-  wait_for.tv_usec= 0;
-
-  evtimer_add(&clock_event, &wait_for);
-
-  struct timeval tv;
-  gettimeofday(&current_epoch, NULL);
-}
+} // server
+} // libgearman
