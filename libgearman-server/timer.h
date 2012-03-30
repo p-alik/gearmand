@@ -40,3 +40,5 @@
 struct timeval get_current_epoch();
 
 void current_epoch_handler(const int, const short, void*);
+
+void shutdown_current_epoch_handler();

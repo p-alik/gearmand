@@ -51,9 +51,26 @@ struct timeval get_current_epoch()
   return current_epoch;
 }
 
+static bool _shutdown_clock= false;
+
+void shutdown_current_epoch_handler()
+{
+  _shutdown_clock= true;
+}
+
 void current_epoch_handler(const int, const short, void*)
 {
   static bool initialized= false;
+
+  if (_shutdown_clock)
+  {
+    if (initialized) 
+    {
+      evtimer_del(&clock_event);
+    }
+
+    return;
+  }
 
   if (initialized) 
   {
