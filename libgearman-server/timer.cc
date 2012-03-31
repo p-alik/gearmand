@@ -44,8 +44,8 @@
 
 #include <cerrno>
 #include <ctime>
-
 #include <pthread.h>
+#include <signal.h>
 
 static pthread_once_t start_key_once= PTHREAD_ONCE_INIT;
 static pthread_t thread_id;
