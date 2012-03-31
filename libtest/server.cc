@@ -81,7 +81,6 @@ Server::Server(const std::string& host_arg, const in_port_t port_arg,
                bool is_socket_arg) :
   _magic(MAGIC_MEMORY),
   _is_socket(is_socket_arg),
-  _pid(-1),
   _port(port_arg),
   _hostname(host_arg),
   _app(executable, _is_libtool)
@@ -139,7 +138,7 @@ bool Server::wait_for_pidfile() const
 
 bool Server::has_pid() const
 {
-  return (_pid > 1);
+  return (_app.pid() > 1);
 }
 
 
@@ -234,9 +233,6 @@ bool Server::start()
     return false;
   }
 
-  // A failing get_pid() at this point is considered an error
-  _pid= get_pid(true);
-
   return has_pid();
 }
 
@@ -244,12 +240,11 @@ void Server::reset_pid()
 {
   _running.clear();
   _pid_file.clear();
-  _pid= -1;
 }
 
-pid_t Server::pid()
+pid_t Server::pid() const
 {
-  return _pid;
+  return _app.pid();
 }
 
 void Server::add_option(const std::string& arg)
@@ -393,8 +388,9 @@ bool Server::args(Application& app)
 
 bool Server::kill()
 {
-  if (check_pid(_app.pid()) and kill_pid(_app.pid())) // If we kill it, reset
+  if (check_pid(_app.pid())) // If we kill it, reset
   {
+    _app.murder();
     if (broken_pid_file() and pid_file().empty() == false)
     {
       unlink(pid_file().c_str());

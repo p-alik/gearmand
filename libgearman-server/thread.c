@@ -395,7 +395,9 @@ static gearmand_error_t _proc_thread_start(gearman_server_st *server)
 static void _proc_thread_kill(gearman_server_st *server)
 {
   if (! (server->flags.threaded) || server->proc_shutdown)
+  {
     return;
+  }
 
   server->proc_shutdown= true;
 
