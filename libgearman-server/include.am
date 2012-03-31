@@ -44,11 +44,12 @@ noinst_HEADERS+= \
 		 libgearman-server/list.h \
 		 libgearman-server/log.h \
 		 libgearman-server/packet.h \
-		 libgearman-server/queue.h \
 		 libgearman-server/plugins.h \
-		 libgearman-server/struct/port.h \
+		 libgearman-server/queue.h \
 		 libgearman-server/server.h \
+		 libgearman-server/struct/port.h \
 		 libgearman-server/thread.h \
+		 libgearman-server/timer.h \
 		 libgearman-server/verbose.h \
 		 libgearman-server/wakeup.h \
 		 libgearman-server/worker.h
@@ -73,6 +74,7 @@ libgearman_server_libgearman_server_la_SOURCES+= \
 						 libgearman-server/queue.cc \
 						 libgearman-server/server.c \
 						 libgearman-server/thread.c \
+						 libgearman-server/timer.cc \
 						 libgearman-server/wakeup.cc \
 						 libgearman-server/worker.cc \
 						 libgearman/command.cc

@@ -27,6 +27,7 @@
 
 #include <libgearman-server/struct/port.h>
 #include <libgearman-server/plugins.h>
+#include <libgearman-server/timer.h>
 
 using namespace gearmand;
 
@@ -99,7 +100,6 @@ gearmand_st *gearmand_create(const char *host_arg,
   gearmand_st *gearmand;
 
   assert(_global_gearmand == NULL);
-  
   if (_global_gearmand)
   {
     gearmand_error("You have called gearmand_create() twice within your application.");
@@ -272,7 +272,7 @@ gearman_server_st *gearmand_server(gearmand_st *gearmand)
 
 gearmand_error_t gearmand_run(gearmand_st *gearmand)
 {
-  uint32_t x;
+  libgearman::server::Epoch epoch;
 
   /* Initialize server components. */
   if (gearmand->base == NULL)
@@ -289,11 +289,10 @@ gearmand_error_t gearmand_run(gearmand_st *gearmand)
                                               gearmand->threads) / 2);
     }
 
-    gearmand_debug("Initializing libevent for main thread");
-
     gearmand->base= static_cast<struct event_base *>(event_base_new());
     if (gearmand->base == NULL)
     {
+
       gearmand_fatal("event_base_new(NULL)");
       return GEARMAN_EVENT;
     }
@@ -302,16 +301,20 @@ gearmand_error_t gearmand_run(gearmand_st *gearmand)
 
     gearmand->ret= _listen_init(gearmand);
     if (gearmand->ret != GEARMAN_SUCCESS)
+    {
       return gearmand->ret;
+    }
 
     gearmand->ret= _wakeup_init(gearmand);
     if (gearmand->ret != GEARMAN_SUCCESS)
+    {
       return gearmand->ret;
+    }
 
     gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Creating %u threads", gearmand->threads);
 
     /* If we have 0 threads we still need to create a fake one for context. */
-    x= 0;
+    uint32_t x= 0;
     do
     {
       gearmand->ret= gearmand_thread_create(gearmand);
@@ -323,12 +326,16 @@ gearmand_error_t gearmand_run(gearmand_st *gearmand)
 
     gearmand->ret= gearman_server_queue_replay(&(gearmand->server));
     if (gearmand->ret != GEARMAN_SUCCESS)
+    {
       return gearmand->ret;
+    }
   }
 
   gearmand->ret= _watch_events(gearmand);
   if (gearmand->ret != GEARMAN_SUCCESS)
+  {
     return gearmand->ret;
+  }
 
   gearmand_debug("Entering main event loop");
 

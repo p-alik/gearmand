@@ -161,6 +161,13 @@ Application::error_t Application::run(const char *args[])
   stdin_fd.dup_for_spawn(Application::Pipe::READ, file_actions, STDIN_FILENO);
   stdout_fd.dup_for_spawn(Application::Pipe::WRITE, file_actions, STDOUT_FILENO);
   stderr_fd.dup_for_spawn(Application::Pipe::WRITE, file_actions, STDERR_FILENO);
+
+  posix_spawnattr_t spawnattr;
+  posix_spawnattr_init(&spawnattr);
+
+  sigset_t set;
+  sigemptyset(&set);
+  fatal_assert(posix_spawnattr_setsigmask(&spawnattr, &set) == 0);
   
   create_argv(args);
 
@@ -199,7 +206,7 @@ Application::error_t Application::run(const char *args[])
         const_cast<char *>(_exectuble_with_path.c_str()), 
         0};
 
-      spawn_ret= posix_spawnp(&_pid, libtool(), &file_actions, NULL, argv, NULL);
+      spawn_ret= posix_spawnp(&_pid, libtool(), &file_actions, &spawnattr, argv, NULL);
     }
     else
     {
@@ -212,22 +219,23 @@ Application::error_t Application::run(const char *args[])
         const_cast<char *>(gdb_run_file.c_str()), 
         const_cast<char *>(_exectuble_with_path.c_str()), 
         0};
-      spawn_ret= posix_spawnp(&_pid, "gdb", &file_actions, NULL, argv, NULL);
+      spawn_ret= posix_spawnp(&_pid, "gdb", &file_actions, &spawnattr, argv, NULL);
     }
   }
   else
   {
     if (_use_libtool)
     {
-      spawn_ret= posix_spawn(&_pid, built_argv[0], &file_actions, NULL, built_argv, NULL);
+      spawn_ret= posix_spawn(&_pid, built_argv[0], &file_actions, &spawnattr, built_argv, NULL);
     }
     else
     {
-      spawn_ret= posix_spawnp(&_pid, built_argv[0], &file_actions, NULL, built_argv, NULL);
+      spawn_ret= posix_spawnp(&_pid, built_argv[0], &file_actions, &spawnattr, built_argv, NULL);
     }
   }
 
   posix_spawn_file_actions_destroy(&file_actions);
+  posix_spawnattr_destroy(&spawnattr);
 
   stdin_fd.close(Application::Pipe::READ);
   stdout_fd.close(Application::Pipe::WRITE);
@@ -345,8 +353,6 @@ bool Application::slurp()
 
   if (fds[1].revents & POLLIN)
   {
-    stderr_fd.nonblock();
-
     ssize_t read_length;
     char buffer[1024]= { 0 };
     while ((read_length= ::read(stderr_fd.fd()[0], buffer, sizeof(buffer))))

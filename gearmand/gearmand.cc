@@ -258,7 +258,7 @@ int main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
-  if (not queue_type.empty())
+  if (queue_type.empty() == false)
   {
     gearmand_error_t rc;
     if ((rc= gearmand::queue::initialize(_gearmand, queue_type.c_str())) != GEARMAN_SUCCESS)
@@ -280,7 +280,7 @@ int main(int argc, char *argv[])
       return EXIT_FAILURE;
     }
   }
-  else if (protocol.empty() == 0)
+  else if (protocol.empty() == false)
   {
     error::message("Unknown protocol module", protocol.c_str());
     gearmand_free(_gearmand);
