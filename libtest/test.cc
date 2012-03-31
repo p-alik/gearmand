@@ -76,6 +76,7 @@ static long int timedif(struct timeval a, struct timeval b)
 
 int main(int argc, char *argv[])
 {
+  bool opt_massive= false;
   bool opt_repeat= false;
   bool opt_quiet= false;
   std::string collection_to_run;
@@ -85,6 +86,7 @@ int main(int argc, char *argv[])
     enum long_option_t {
       OPT_LIBYATL_VERSION,
       OPT_LIBYATL_MATCH_COLLECTION,
+      OPT_LIBYATL_MASSIVE,
       OPT_LIBYATL_QUIET,
       OPT_LIBYATL_REPEAT
     };
@@ -95,6 +97,7 @@ int main(int argc, char *argv[])
       { "quiet", no_argument, NULL, OPT_LIBYATL_QUIET },
       { "repeat", no_argument, NULL, OPT_LIBYATL_REPEAT },
       { "collection", required_argument, NULL, OPT_LIBYATL_MATCH_COLLECTION },
+      { "massive", no_argument, NULL, OPT_LIBYATL_MASSIVE },
       { 0, 0, 0, 0 }
     };
 
@@ -124,6 +127,10 @@ int main(int argc, char *argv[])
         collection_to_run= optarg;
         break;
 
+      case OPT_LIBYATL_MASSIVE:
+        opt_massive= true;
+        break;
+
       case '?':
         /* getopt_long already printed an error message. */
         Error << "unknown option to getopt_long()";
@@ -143,13 +150,13 @@ int main(int argc, char *argv[])
     opt_repeat= true;
   }
 
-  if ((getenv("YATL_QUIET") and strcmp(getenv("YATL_QUIET"), "0") == 0) or opt_quiet)
+  if ((bool(getenv("YATL_QUIET")) and (strcmp(getenv("YATL_QUIET"), "0") == 0)) or opt_quiet)
   {
     opt_quiet= true;
   }
   else if (getenv("JENKINS_URL"))
   {
-    if (getenv("YATL_QUIET") and strcmp(getenv("YATL_QUIET"), "1") == 0)
+    if (bool(getenv("YATL_QUIET")) and (strcmp(getenv("YATL_QUIET"), "1") == 0))
     { }
     else
     {
