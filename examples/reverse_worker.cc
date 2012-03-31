@@ -55,11 +55,13 @@ struct reverse_worker_options_t
   bool chunk;
   bool status;
   bool unique;
+  bool verbose;
 
   reverse_worker_options_t():
     chunk(false),
     status(false),
-    unique(false)
+    unique(false),
+    verbose(true)
   { }
 };
 
@@ -71,9 +73,13 @@ static gearman_return_t reverse_worker(gearman_job_st *job, void *context)
 {
   reverse_worker_options_t options= *((reverse_worker_options_t *)context);
 
-
   const char *workload= (const char *)gearman_job_workload(job);
   const size_t workload_size= gearman_job_workload_size(job);
+
+  if (options.verbose)
+  {
+    std::cout << "Recieved " << workload_size << " bytes" << std::endl;
+  }
 
   char *result= (char *)malloc(workload_size);
   if (result == NULL)
@@ -106,18 +112,23 @@ static gearman_return_t reverse_worker(gearman_job_st *job, void *context)
     }
   }
 
-  std::cout << "Job=" << gearman_job_handle(job);
+  if (options.verbose)
+  {
+    std::cout << "Job=" << gearman_job_handle(job);
+  }
 
-  if (options.unique)
+  if (options.unique and options.verbose)
   {
     std::cout << "Unique=" << gearman_job_unique(job);
   }
 
 
-  std::cout << "  Reversed=";
-  std::cout.write(workload, workload_size);
-
-  std::cout << std::endl;
+  if (options.verbose)
+  {
+    std::cout << "  Reversed=";
+    std::cout.write(workload, workload_size);
+    std::cout << std::endl;
+  }
 
   return GEARMAN_SUCCESS;
 }
@@ -142,6 +153,7 @@ int main(int args, char *argv[])
     ("chunk,d", boost::program_options::bool_switch(&options.chunk)->default_value(false), "Send result back in data chunks")
     ("status,s", boost::program_options::bool_switch(&options.status)->default_value(false), "Send status updates and sleep while running job")
     ("unique,u", boost::program_options::bool_switch(&options.unique)->default_value(false), "When grabbing jobs, grab the uniqie id")
+    ("verbose", boost::program_options::bool_switch(&options.verbose)->default_value(true), "Print to stdout information as job is processed.")
             ;
 
   boost::program_options::variables_map vm;

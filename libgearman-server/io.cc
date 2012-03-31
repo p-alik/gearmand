@@ -450,7 +450,9 @@ gearmand_error_t gearman_io_send(gearman_server_con_st *con,
 
     /* Return here if we have no data to send. */
     if (packet->data_size == 0)
+    {
       break;
+    }
 
     /* If there is any room in the buffer, copy in data. */
     if (packet->data and (GEARMAN_SEND_BUFFER_SIZE - connection->send_buffer_size) > 0)
@@ -512,7 +514,7 @@ gearmand_error_t gearman_io_send(gearman_server_con_st *con,
     {
       _connection_close(connection);
       ret= GEARMAN_LOST_CONNECTION;
-      gearmand_gerror_warn("failure while flusing data, closing connection", ret);
+      gearmand_debug("closing connection after flush by request");
     }
     return ret;
   }
@@ -521,11 +523,11 @@ gearmand_error_t gearman_io_send(gearman_server_con_st *con,
   {
     connection->send_state= gearmand_io_st::GEARMAND_CON_SEND_UNIVERSAL_FLUSH;
     ret= _connection_flush(con);
-    if (ret == GEARMAN_SUCCESS && connection->options.close_after_flush)
+    if (ret == GEARMAN_SUCCESS and connection->options.close_after_flush)
     {
       _connection_close(connection);
       ret= GEARMAN_LOST_CONNECTION;
-      gearmand_gerror_warn("failure while flusing data, closing connection", ret);
+      gearmand_debug("closing connection after flush by request");
     }
     return ret;
   }

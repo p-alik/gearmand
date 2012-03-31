@@ -857,6 +857,7 @@ collection_st collection[] ={
   {"cmdline", 0, 0, cmdline_tests},
   {"application", 0, 0, application_tests},
   {"http", check_for_curl, 0, http_tests},
+  {"http", check_for_curl, 0, http_tests},
   {"get_free_port()", 0, 0, get_free_port_TESTS },
   {"fatal", disable_fatal_exception, enable_fatal_exception, fatal_message_TESTS },
   {"number_of_cpus()", 0, 0, number_of_cpus_TESTS },

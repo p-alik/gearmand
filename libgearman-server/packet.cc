@@ -14,7 +14,6 @@
 #include <config.h>
 #include <libgearman-server/common.h>
 
-#define GEARMAN_CORE
 #include <libgearman/command.h>
 
 #include <libgearman-server/fifo.h>

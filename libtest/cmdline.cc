@@ -269,7 +269,16 @@ void Application::murder()
     int status= 0;
     if (waitpid(_pid, &status, 0) == -1)
     {
-      Error << "waitpid() failed after kill with error of " << strerror(errno);
+      switch (errno)
+      {
+      case ECHILD:
+      case EINTR:
+        break;
+
+      default:
+        Error << "waitpid() failed after kill with error of " << strerror(errno);
+        break;
+      }
     }
   }
 }
@@ -407,6 +416,7 @@ Application::error_t Application::wait(bool nohang)
         break;
 
       case EINTR:
+        break;
 
       default:
         Error << "Error occured while waitpid(" << strerror(errno) << ") on pid " << int(_pid);

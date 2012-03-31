@@ -14,6 +14,8 @@
 #pragma once
 
 #include <libgearman-server/plugins/base.h>
+#include <libgearman-server/plugins/protocol/http/method.h>
+#include <libgearman-server/plugins/protocol/http/response_codes.h>
 
 struct gearmand_st;
 
@@ -21,21 +23,13 @@ namespace gearmand {
 namespace protocol {
 
 class HTTP : public gearmand::Plugin {
-public:
-  enum method_t 
-  {
-    HEAD,
-    GET,
-    PUT,
-    POST,
-    TRACE,
-  };
 
 private:
-  HTTP::method_t _method;
+  httpd::method_t _method;
   bool _background;
   bool _keep_alive;
   std::string global_port;
+  httpd::response_t _http_response;
 
 public:
 
@@ -64,22 +58,27 @@ public:
     _keep_alive= arg;
   }
 
-  HTTP::method_t method()
+  void set_response(httpd::response_t arg)
+  {
+    _http_response= arg;
+  }
+
+  httpd::response_t response() const
+  {
+    return _http_response;
+  }
+
+  httpd::method_t method()
   {
     return _method;
   }
 
-  void set_method(HTTP::method_t arg)
+  void set_method(httpd::method_t arg)
   {
     _method= arg;
   }
 
-  void reset()
-  {
-    _background= false;
-    _keep_alive= false;
-    _method= HTTP::TRACE;
-  }
+  void reset();
 };
 
 } // namespace protocol

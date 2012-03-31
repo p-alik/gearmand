@@ -44,6 +44,7 @@
 
 #include <config.h>
 #include <libgearman-server/common.h>
+#include <libgearman/strcommand.h>
 
 #include <cstdio>
 #include <cstdlib>
@@ -66,29 +67,31 @@
 /* Protocol callback functions. */
 
 static const char *_http_line(const void *data, size_t data_size,
-                              size_t *line_size, size_t *offset)
+                              size_t& line_size, size_t& offset)
 {
-  const char *start= (const char *)data + *offset;
-  const char *end;
+  const char *start= (const char *)data +offset;
 
-  end= (const char *)memchr(start, '\n', data_size - *offset);
+  const char *end= (const char *)memchr(start, '\n', data_size -offset);
   if (end == NULL)
+  {
     return NULL;
+  }
 
-  *offset+= (size_t)(end - start) + 1;
+  offset+= size_t(end - start) +1;
 
   if (end != start && *(end - 1) == '\r')
+  {
     end--;
+  }
 
-  *line_size= (size_t)(end - start);
+  line_size= size_t(end - start);
 
   return start;
 }
 
-static void _http_free(gearman_server_con_st *connection __attribute__ ((unused)),
-                       void *context)
+static void _http_free(gearman_server_con_st *, void *context)
 {
-  gearmand_info("HTTP connection disconnected");
+  gearmand_debug("HTTP connection disconnected");
   gearmand::protocol::HTTP *http= (gearmand::protocol::HTTP *)context;
   delete http;
 }
@@ -97,10 +100,6 @@ static size_t _http_pack(const gearmand_packet_st *packet, gearman_server_con_st
                          void *data, size_t data_size,
                          gearmand_error_t *ret_ptr)
 {
-  gearmand_info("Sending HTTP response");
-
-  size_t pack_size;
-
   gearmand::protocol::HTTP *http= (gearmand::protocol::HTTP *)gearmand_connection_protocol_context(connection);
 
   if (packet->command != GEARMAN_COMMAND_WORK_COMPLETE and
@@ -109,12 +108,28 @@ static size_t _http_pack(const gearmand_packet_st *packet, gearman_server_con_st
       (http->background() == false or
        packet->command != GEARMAN_COMMAND_JOB_CREATED))
   {
-    gearmand_info("Sending HTTP told to ignore packet");
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
+                       "Sending HTTP told to ignore packet: gearmand_command_t:%s", 
+                       gearman_strcommand(packet->command));
     *ret_ptr= GEARMAN_IGNORE_PACKET;
     return 0;
   }
 
-  if (http->method() == gearmand::protocol::HTTP::HEAD)
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Sending HTTP response: Content-length:%"PRIu64" gearmand_command_t:%s response:%s", 
+                     uint64_t(packet->data_size), gearman_strcommand(packet->command),
+                     gearmand::protocol::httpd::response(http->response()));
+
+  size_t pack_size;
+  if (http->response() != gearmand::protocol::httpd::HTTP_OK)
+  {
+    pack_size= (size_t)snprintf((char *)data, data_size,
+                                "HTTP/1.0 %u %s\r\n"
+                                "Server: Gearman/" PACKAGE_VERSION "\r\n"
+                                "Content-Length: 0\r\n"
+                                "\r\n",
+                                int(http->response()), gearmand::protocol::httpd::response(http->response()));
+  }
+  else if (http->method() == gearmand::protocol::httpd::HEAD)
   {
     pack_size= (size_t)snprintf((char *)data, data_size,
                                 "HTTP/1.0 200 OK\r\n"
@@ -126,7 +141,7 @@ static size_t _http_pack(const gearmand_packet_st *packet, gearman_server_con_st
                                 (const char *)packet->arg[0],
                                 (uint64_t)packet->data_size);
   }
-  else if (http->method() == gearmand::protocol::HTTP::TRACE)
+  else if (http->method() == gearmand::protocol::httpd::TRACE)
   {
     pack_size= (size_t)snprintf((char *)data, data_size,
                                 "HTTP/1.0 200 OK\r\n"
@@ -140,34 +155,36 @@ static size_t _http_pack(const gearmand_packet_st *packet, gearman_server_con_st
     pack_size= (size_t)snprintf((char *)data, data_size,
                                 "HTTP/1.0 200 OK\r\n"
                                 "X-Gearman-Job-Handle: %.*s\r\n"
+                                "X-Gearman-Command: %s\r\n"
                                 "Content-Length: %"PRIu64"\r\n"
                                 "Server: Gearman/" PACKAGE_VERSION "\r\n"
                                 "\r\n",
-                                packet->command == GEARMAN_COMMAND_JOB_CREATED ?  (int)packet->arg_size[0] : (int)packet->arg_size[0] - 1,
-                                (const char *)packet->arg[0],
-                                (uint64_t)packet->data_size);
+                                packet->command == GEARMAN_COMMAND_JOB_CREATED ?  int(packet->arg_size[0]) : int(packet->arg_size[0] - 1), (const char *)packet->arg[0],
+                                gearman_strcommand(packet->command),
+                                uint64_t(packet->data_size));
   }
 
   if (pack_size > data_size)
   {
-    gearmand_info("Sending HTTP had to flush");
+    gearmand_debug("Sending HTTP had to flush");
     *ret_ptr= GEARMAN_FLUSH_DATA;
     return 0;
   }
 
-  if (! (http->keep_alive()))
+  if (http->keep_alive() == false)
   {
     gearman_io_set_option(&connection->con, GEARMAND_CON_CLOSE_AFTER_FLUSH, true);
   }
 
   *ret_ptr= GEARMAN_SUCCESS;
+
   return pack_size;
 }
+
 static size_t _http_unpack(gearmand_packet_st *packet, gearman_server_con_st *connection,
                            const void *data, size_t data_size,
                            gearmand_error_t *ret_ptr)
 {
-  gearmand::protocol::HTTP *http;
   const char *unique= "-";
   size_t unique_size= 2;
   gearmand_job_priority_t priority= GEARMAND_JOB_PRIORITY_NORMAL;
@@ -177,7 +194,7 @@ static size_t _http_unpack(gearmand_packet_st *packet, gearman_server_con_st *co
   /* Get the request line first. */
   size_t request_size;
   size_t offset= 0;
-  const char *request= _http_line(data, data_size, &request_size, &offset);
+  const char *request= _http_line(data, data_size, request_size, offset);
   if (request == NULL or request_size == 0)
   {
     gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "Zero length request made");
@@ -185,7 +202,7 @@ static size_t _http_unpack(gearmand_packet_st *packet, gearman_server_con_st *co
     return offset;
   }
 
-  http= (gearmand::protocol::HTTP *)gearmand_connection_protocol_context(connection);
+  gearmand::protocol::HTTP *http= (gearmand::protocol::HTTP *)gearmand_connection_protocol_context(connection);
   http->reset();
 
   /* Parse out the method, URI, and HTTP version from the request line. */
@@ -194,7 +211,8 @@ static size_t _http_unpack(gearmand_packet_st *packet, gearman_server_con_st *co
   if (uri == NULL)
   {
     gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "bad request line: %.*s", (uint32_t)request_size, request);
-    *ret_ptr= GEARMAN_INVALID_PACKET;
+    http->set_response(gearmand::protocol::httpd::HTTP_NOT_FOUND);
+    *ret_ptr= GEARMAN_SUCCESS;
     return 0;
   }
 
@@ -202,40 +220,47 @@ static size_t _http_unpack(gearmand_packet_st *packet, gearman_server_con_st *co
 
   if (method_size == 3 and strncmp(method, "GET", 3) == 0)
   {
-    http->set_method(gearmand::protocol::HTTP::GET);
+    http->set_method(gearmand::protocol::httpd::GET);
   }
   else if (method_size == 3 and strncmp(method, "PUT", 3) == 0)
   {
-    http->set_method(gearmand::protocol::HTTP::PUT);
+    http->set_method(gearmand::protocol::httpd::PUT);
   }
   else if (method_size == 4 and strncmp(method, "POST", 4) == 0)
   {
-    http->set_method(gearmand::protocol::HTTP::POST);
+    http->set_method(gearmand::protocol::httpd::POST);
   }
   else if (method_size == 4 and strncmp(method, "HEAD", 4) == 0)
   {
-    http->set_method(gearmand::protocol::HTTP::HEAD);
+    http->set_method(gearmand::protocol::httpd::HEAD);
   }
   else if (method_size == 5 and strncmp(method, "TRACE", 5) == 0)
   {
-    http->set_method(gearmand::protocol::HTTP::TRACE);
+    http->set_method(gearmand::protocol::httpd::TRACE);
   }
   else
   {
     gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "bad method: %.*s", (uint32_t)method_size, method);
-    *ret_ptr= GEARMAN_INVALID_PACKET;
+    http->set_response(gearmand::protocol::httpd::HTTP_METHOD_NOT_ALLOWED);
+    *ret_ptr= GEARMAN_SUCCESS;
     return 0;
   }
+
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "METHOD: %s", str_method(http->method()));
+
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "URI: %s", uri);
 
   while (*uri == ' ')
   {
     uri++;
   }
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "URI: %s", uri);
 
   while (*uri == '/')
   {
     uri++;
   }
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "URI: %s", uri);
 
   const char *version= (const char *)memchr(uri, ' ', request_size - (size_t)(uri - request));
   if (version == NULL)
@@ -249,18 +274,17 @@ static size_t _http_unpack(gearmand_packet_st *packet, gearman_server_con_st *co
   ptrdiff_t uri_size= version -uri;
   switch (http->method())
   {
-  case gearmand::protocol::HTTP::POST:
-  case gearmand::protocol::HTTP::PUT:
-  case gearmand::protocol::HTTP::GET:
+  case gearmand::protocol::httpd::POST:
+  case gearmand::protocol::httpd::PUT:
+  case gearmand::protocol::httpd::GET:
     if (uri_size == 0)
     {
       gearmand_error("must give function name in URI");
-      *ret_ptr= GEARMAN_INVALID_PACKET;
-      return 0;
+      http->set_response(gearmand::protocol::httpd::HTTP_NOT_FOUND);
     }
 
-  case gearmand::protocol::HTTP::TRACE:
-  case gearmand::protocol::HTTP::HEAD:
+  case gearmand::protocol::httpd::TRACE:
+  case gearmand::protocol::httpd::HEAD:
     break;
   }
 
@@ -270,11 +294,14 @@ static size_t _http_unpack(gearmand_packet_st *packet, gearman_server_con_st *co
   }
 
   size_t version_size= request_size - (size_t)(version - request);
-  if (version_size == 8 && !strncasecmp(version, "HTTP/1.1", 8))
+  if (false and version_size == 8 and strncasecmp(version, "HTTP/1.1", 8) == 0)
   {
     http->set_keep_alive(true);
   }
-  else if (version_size != 8 || strncasecmp(version, "HTTP/1.0", 8))
+  else if (version_size == 8 and strncasecmp(version, "HTTP/1.1", 8) == 0)
+  {
+  }
+  else
   {
     gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "bad version: %.*s", (uint32_t)version_size, version);
     *ret_ptr= GEARMAN_INVALID_PACKET;
@@ -284,7 +311,7 @@ static size_t _http_unpack(gearmand_packet_st *packet, gearman_server_con_st *co
   /* Loop through all the headers looking for ones of interest. */
   const char *header;
   size_t header_size;
-  while ((header= _http_line(data, data_size, &header_size, &offset)) != NULL)
+  while ((header= _http_line(data, data_size, header_size, offset)) != NULL)
   {
     if (header_size == 0)
     {
@@ -330,7 +357,7 @@ static size_t _http_unpack(gearmand_packet_st *packet, gearman_server_con_st *co
   }
 
   /* Make sure we received the end of headers. */
-  if (header == NULL)
+  if (header == NULL and http->response() == gearmand::protocol::httpd::HTTP_OK)
   {
     gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "No headers were found");
     *ret_ptr= GEARMAN_IO_WAIT;
@@ -340,7 +367,20 @@ static size_t _http_unpack(gearmand_packet_st *packet, gearman_server_con_st *co
   /* Request and all headers complete, build a packet based on HTTP request. */
   packet->magic= GEARMAN_MAGIC_REQUEST;
 
-  if (http->method() == gearmand::protocol::HTTP::TRACE)
+  if (http->response() != gearmand::protocol::httpd::HTTP_OK)
+  {
+    packet->command= GEARMAN_COMMAND_ECHO_REQ;
+
+    *ret_ptr= gearmand_packet_pack_header(packet);
+    if (*ret_ptr != GEARMAN_SUCCESS)
+    {
+      return 0;
+    }
+
+    packet->data_size= 0;
+    packet->data= NULL;
+  }
+  else if (http->method() == gearmand::protocol::httpd::TRACE)
   {
     packet->command= GEARMAN_COMMAND_ECHO_REQ;
 
@@ -353,7 +393,7 @@ static size_t _http_unpack(gearmand_packet_st *packet, gearman_server_con_st *co
     packet->data_size= data_size;
     packet->data= (const char*)data;
   }
-  else if (http->method() == gearmand::protocol::HTTP::HEAD and uri_size == 0)
+  else if (http->method() == gearmand::protocol::httpd::HEAD and uri_size == 0)
   {
     packet->command= GEARMAN_COMMAND_ECHO_REQ;
 
@@ -435,9 +475,10 @@ namespace protocol {
 
 HTTP::HTTP() :
   Plugin("HTTP"),
-  _method(gearmand::protocol::HTTP::TRACE),
+  _method(gearmand::protocol::httpd::TRACE),
   _background(false),
-  _keep_alive(false)
+  _keep_alive(false),
+  _http_response(gearmand::protocol::httpd::HTTP_OK)
 {
   command_line_options().add_options()
     ("http-port", boost::program_options::value(&global_port)->default_value(GEARMAN_PROTOCOL_HTTP_DEFAULT_PORT), "Port to listen on.");
@@ -451,6 +492,14 @@ gearmand_error_t HTTP::start(gearmand_st *gearmand)
 {
   gearmand_info("Initializing HTTP");
   return gearmand_port_add(gearmand, global_port.c_str(), _http_con_add);
+}
+
+void HTTP::reset()
+{
+  _background= false;
+  _keep_alive= false;
+  _method= httpd::TRACE;
+  _http_response= gearmand::protocol::httpd::HTTP_OK;
 }
 
 } // namespace protocol

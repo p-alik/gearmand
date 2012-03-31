@@ -14,19 +14,14 @@
 #include <config.h>
 #include <libgearman-server/common.h>
 
-#define GEARMAN_CORE
 #include <libgearman/command.h>
 
 #ifdef __cplusplus
-
-#include <cassert>
-#include <cerrno>
-
+# include <cassert>
+# include <cerrno>
 #else
-
-#include <assert.h>
-#include <errno.h>
-
+# include <assert.h>
+# include <errno.h>
 #endif
 
 /*
@@ -415,9 +410,6 @@ static void _proc_thread_kill(gearman_server_st *server)
 static void *_proc(void *data)
 {
   gearman_server_st *server= (gearman_server_st *)data;
-  gearman_server_thread_st *thread;
-  gearman_server_con_st *con;
-  gearman_server_packet_st *packet;
 
   gearmand_initialize_thread_logging("[ proc ]");
 
@@ -437,8 +429,9 @@ static void *_proc(void *data)
     server->proc_wakeup= false;
     (void) pthread_mutex_unlock(&(server->proc_lock));
 
-    for (thread= server->thread_list; thread != NULL; thread= thread->next)
+    for (gearman_server_thread_st *thread= server->thread_list; thread != NULL; thread= thread->next)
     {
+      gearman_server_con_st *con;
       while ((con= gearman_server_con_proc_next(thread)) != NULL)
       {
         if (con->is_dead)
@@ -455,9 +448,11 @@ static void *_proc(void *data)
 
         while (1)
         {
-          packet= gearman_server_proc_packet_remove(con);
+          gearman_server_packet_st *packet= gearman_server_proc_packet_remove(con);
           if (packet == NULL)
+          {
             break;
+          }
 
           con->ret= gearman_server_run_command(con, &(packet->packet));
           gearmand_packet_free(&(packet->packet));
