@@ -106,7 +106,7 @@ static test_return_t GET_TEST(void *)
 {
   libtest::http::GET get(url);
 
-  test_compare(false, get.execute());
+  test_compare(true, get.execute());
 
   return TEST_SUCCESS;
 }
@@ -115,7 +115,7 @@ static test_return_t HEAD_TEST(void *)
 {
   libtest::http::HEAD head(url);
 
-  test_compare(false, head.execute());
+  test_compare(true, head.execute());
 
   return TEST_SUCCESS;
 }
