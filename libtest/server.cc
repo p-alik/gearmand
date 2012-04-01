@@ -158,7 +158,11 @@ bool Server::start()
   }
 #endif
 
-  if (args(_app) == false)
+  if (getenv("YATL_VALGRIND_SERVER"))
+  {
+    _app.use_valgrind();
+  }
+  else if (args(_app) == false)
   {
     Error << "Could not build command()";
     return false;

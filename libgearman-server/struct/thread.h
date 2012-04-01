@@ -44,6 +44,7 @@ struct gearman_server_thread_st
   uint32_t con_count;
   uint32_t io_count;
   uint32_t proc_count;
+  uint32_t to_be_freed_count;
   uint32_t free_con_count;
   uint32_t free_packet_count;
   gearmand_connection_list_st *gearman;
@@ -57,6 +58,7 @@ struct gearman_server_thread_st
   gearman_server_con_st *io_list;
   gearman_server_con_st *proc_list;
   gearman_server_con_st *free_con_list;
+  gearman_server_con_st *to_be_freed_list;
   gearman_server_packet_st *free_packet_list;
   gearmand_connection_list_st gearmand_connection_list_static;
   pthread_mutex_t lock;
