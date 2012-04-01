@@ -77,7 +77,7 @@ static long int timedif(struct timeval a, struct timeval b)
 int main(int argc, char *argv[])
 {
   bool opt_massive= false;
-  bool opt_repeat= false;
+  unsigned long int opt_repeat= 1; // Run all tests once
   bool opt_quiet= false;
   std::string collection_to_run;
 
@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
         break;
 
       case OPT_LIBYATL_REPEAT:
-        opt_repeat= true;
+        opt_repeat= strtoul(optarg, (char **) NULL, 10);
         break;
 
       case OPT_LIBYATL_MATCH_COLLECTION:
@@ -144,10 +144,9 @@ int main(int argc, char *argv[])
 
   srandom((unsigned int)time(NULL));
 
-  int repeat;
-  if (bool(getenv("YATL_REPEAT")) and (repeat= atoi(getenv("YATL_REPEAT"))))
+  if (bool(getenv("YATL_REPEAT")) and (strtoul(getenv("YATL_REPEAT"), (char **) NULL, 10) > 1))
   {
-    opt_repeat= true;
+    opt_repeat= strtoul(getenv("YATL_REPEAT"), (char **) NULL, 10);
   }
 
   if ((bool(getenv("YATL_QUIET")) and (strcmp(getenv("YATL_QUIET"), "0") == 0)) or opt_quiet)
@@ -456,7 +455,7 @@ cleanup:
       stats_print(&stats);
 
       Outn(); // Generate a blank to break up the messages if make check/test has been run
-    } while (exit_code == EXIT_SUCCESS and opt_repeat);
+    } while (exit_code == EXIT_SUCCESS and --opt_repeat);
   }
   catch (libtest::fatal& e)
   {
