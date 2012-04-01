@@ -400,8 +400,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
   case GEARMAN_COMMAND_CAN_DO_TIMEOUT:
     if (gearman_server_worker_add(server_con, (char *)(packet->arg[0]),
                                   packet->arg_size[0] - 1,
-                                  (in_port_t)atoi((char *)(packet->arg[1])))
-         == NULL)
+                                  0) == NULL)
     {
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }

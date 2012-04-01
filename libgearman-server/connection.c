@@ -26,9 +26,7 @@ static gearman_server_con_st * _server_con_create(gearman_server_thread_st *thre
 
 gearman_server_con_st *gearman_server_con_add(gearman_server_thread_st *thread, gearmand_con_st *dcon, gearmand_error_t *ret)
 {
-  gearman_server_con_st *con;
-
-  con= _server_con_create(thread, dcon, ret);
+  gearman_server_con_st *con= _server_con_create(thread, dcon, ret);
   if (con == NULL)
   {
     return NULL;
@@ -153,6 +151,7 @@ void gearman_server_con_attempt_free(gearman_server_con_st *con)
   {
     if (!(con->proc_removed) && !(Server->proc_shutdown))
     {
+      gearman_server_con_delete_timeout(con);
       con->is_dead= true;
       con->is_sleeping= false;
       con->is_exceptions= false;
@@ -172,6 +171,8 @@ void gearman_server_con_free(gearman_server_con_st *con)
   gearman_server_packet_st *packet;
   con->_host= NULL;
   con->_port= NULL;
+
+  gearman_server_con_delete_timeout(con);
 
   if (con->is_cleaned_up)
   {
