@@ -173,6 +173,9 @@ gdb-blobslap_client: tests/blobslap_client gearmand/gearmand
 gdb-cycle: tests/cycle gearmand/gearmand
 	@$(GDB_COMMAND) tests/cycle
 
+gdb-gearmand: tests/gearmand gearmand/gearmand
+	@$(GDB_COMMAND) tests/gearmand
+
 valgrind-cli: tests/cli gearmand/gearmand
 	@$(VALGRIND_COMMAND) tests/cli gearmand/gearmand
 
@@ -187,6 +190,9 @@ valgrind-burnin: tests/burnin_test gearmand/gearmand
 
 valgrind-cycle: tests/cycle gearmand/gearmand
 	@$(VALGRIND_COMMAND) tests/cycle
+
+valgrind-gearmand: tests/gearmand gearmand/gearmand
+	@$(VALGRIND_COMMAND) tests/gearmand
 
 helgrind-client: tests/client_test gearmand/gearmand
 	@$(HELGRIND_COMMAND) tests/client_test

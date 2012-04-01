@@ -165,7 +165,7 @@ void gearmand_con_free(gearmand_con_st *dcon)
   // connection.
   if (dcon->server_con)
   {
-    gearman_server_con_free(dcon->server_con);
+    gearman_server_con_attempt_free(dcon->server_con);
   }
 
   GEARMAN_LIST_DEL(dcon->thread->dcon, dcon,)
