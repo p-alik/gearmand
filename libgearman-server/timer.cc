@@ -43,6 +43,7 @@
 #include <libgearman-server/timer.h>
 
 #include <cerrno>
+#include <cstring>
 #include <ctime>
 #include <pthread.h>
 #include <signal.h>
@@ -57,6 +58,7 @@ static void* current_epoch_handler(void*)
   gearmand_debug("staring up Epoch thread");
 
   pollfd fds[1];
+  memset(fds, 0, sizeof(pollfd));
   fds[1].fd= -1; //STDIN_FILENO;
   fds[1].events= POLLIN;
   fds[1].revents= 0;
@@ -100,6 +102,7 @@ Epoch::~Epoch()
     errno= error;
     gearmand_perror("pthread_kill(thread_id, SIGTERM)");
   }
+  pthread_join(thread_id, 0);
 
   gearmand_debug("shutdown of Epoch completed");
 }

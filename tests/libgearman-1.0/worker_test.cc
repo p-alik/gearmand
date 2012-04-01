@@ -652,7 +652,7 @@ static test_return_t gearman_worker_remove_options_GEARMAN_WORKER_GRAB_UNIQ(void
 
   gearman_return_t rc;
   gearman_job_st *job= gearman_worker_grab_job(&worker, NULL, &rc);
-  test_compare_got(GEARMAN_SUCCESS, rc, gearman_strerror(rc));
+  test_compare_got(GEARMAN_SUCCESS, rc, gearman_worker_error(&worker));
   test_truth(job);
 
   size_t size= 0;
