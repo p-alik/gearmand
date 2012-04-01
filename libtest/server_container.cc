@@ -158,28 +158,11 @@ bool server_startup_st::validate()
   return _magic == MAGIC_MEMORY;
 }
 
-
-bool server_startup_st::is_debug() const
-{
-  return bool(getenv("LIBTEST_MANUAL_GDB"));
-}
-
-bool server_startup_st::is_valgrind() const
-{
-  return bool(getenv("LIBTEST_MANUAL_VALGRIND"));
-}
-
-bool server_startup_st::is_helgrind() const
-{
-  return bool(getenv("LIBTEST_MANUAL_HELGRIND"));
-}
-
-
 bool server_startup(server_startup_st& construct, const std::string& server_type, in_port_t try_port, int argc, const char *argv[], const bool opt_startup_message)
 {
   if (try_port <= 0)
   {
-    libtest::fatal(LIBYATL_DEFAULT_PARAM, "was passed the invalid port number %d", int(try_port));
+    throw libtest::fatal(LIBYATL_DEFAULT_PARAM, "was passed the invalid port number %d", int(try_port));
   }
 
   libtest::Server *server= NULL;
@@ -256,7 +239,7 @@ bool server_startup(server_startup_st& construct, const std::string& server_type
 
   server->build(argc, argv);
 
-  if (construct.is_debug())
+  if (gdb_is_caller())
   {
     Out << "Pausing for startup, hit return when ready.";
     std::string gdb_command= server->base_command();
@@ -357,7 +340,7 @@ bool server_startup_st::start_socket_server(const std::string& server_type, cons
 
   server->build(argc, argv);
 
-  if (is_debug())
+  if (gdb_is_caller())
   {
     Out << "Pausing for startup, hit return when ready.";
     std::string gdb_command= server->base_command();

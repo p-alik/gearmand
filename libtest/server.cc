@@ -145,7 +145,7 @@ bool Server::has_pid() const
 bool Server::start()
 {
   // If we find that we already have a pid then kill it.
-  if (has_pid() == false)
+  if (has_pid() == true)
   {
     fatal_message("has_pid() failed, programer error");
   }
@@ -187,9 +187,9 @@ bool Server::start()
 
     if (wait.successful() == false)
     {
-      libtest::fatal(LIBYATL_DEFAULT_PARAM,
-                     "Unable to open pidfile for: %s",
-                     _running.c_str());
+      throw libtest::fatal(LIBYATL_DEFAULT_PARAM,
+                           "Unable to open pidfile for: %s",
+                           _running.c_str());
     }
   }
 
@@ -223,7 +223,7 @@ bool Server::start()
     {
       if (kill_file(pid_file()) == false)
       {
-        fatal_message("Failed to kill off server after startup occurred, when pinging failed");
+        throw libtest::fatal(LIBYATL_DEFAULT_PARAM, "Failed to kill off server after startup occurred, when pinging failed: %s", pid_file().c_str());
       }
       Error << "Failed to ping(), waited:" << this_wait 
         << " server started, having pid_file. exec:" << _running 
@@ -326,7 +326,7 @@ bool Server::set_log_file()
   int fd;
   if ((fd= mkstemp(file_buffer)) == -1)
   {
-    libtest::fatal(LIBYATL_DEFAULT_PARAM, "mkstemp() failed on %s with %s", file_buffer, strerror(errno));
+    throw libtest::fatal(LIBYATL_DEFAULT_PARAM, "mkstemp() failed on %s with %s", file_buffer, strerror(errno));
   }
   close(fd);
 

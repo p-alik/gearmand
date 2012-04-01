@@ -74,11 +74,6 @@ public:
     return _username;
   }
 
-
-  bool is_debug() const;
-  bool is_helgrind() const;
-  bool is_valgrind() const;
-
   bool socket()
   {
     return _socket;

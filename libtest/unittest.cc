@@ -676,7 +676,7 @@ static test_return_t create_tmpfile_TEST(void *)
 static test_return_t fatal_message_TEST(void *)
 {
   test_compare(fatal_calls++, fatal::disabled_counter());
-  throw fatal_message("Fatal test");
+  fatal_message("Fatal test");
 
   return TEST_SUCCESS;
 }

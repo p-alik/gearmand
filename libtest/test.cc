@@ -284,7 +284,7 @@ int main(int argc, char *argv[])
           goto cleanup;
 
         default:
-          throw fatal_message("invalid return code");
+          fatal_message("invalid return code");
         }
 
         Out << "Collection: " << next->name;
@@ -394,7 +394,7 @@ int main(int argc, char *argv[])
             break;
 
           default:
-            throw fatal_message("invalid return code");
+            fatal_message("invalid return code");
           }
 
           if (test_failed(world.on_error(return_code, creators_ptr)))

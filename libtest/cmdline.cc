@@ -116,7 +116,7 @@ Application::Application(const std::string& arg, const bool _use_libtool_arg) :
     {
       if (libtool() == NULL)
       {
-        throw fatal_message("libtool requested, but know libtool was found");
+        fatal_message("libtool requested, but know libtool was found");
       }
     }
 
@@ -523,7 +523,7 @@ void Application::Pipe::reset()
 
   if (pipe(_fd) == -1)
   {
-    throw fatal_message(strerror(errno));
+    fatal_message(strerror(errno));
   }
   _open[0]= true;
   _open[1]= true;
@@ -548,13 +548,13 @@ void Application::Pipe::dup_for_spawn(const close_t& arg, posix_spawn_file_actio
   if ((ret= posix_spawn_file_actions_adddup2(&file_actions, _fd[type], newfildes )) < 0)
   {
     Error << "posix_spawn_file_actions_adddup2(" << strerror(ret) << ")";
-    throw fatal_message(strerror(ret));
+    fatal_message(strerror(ret));
   }
 
   if ((ret= posix_spawn_file_actions_addclose(&file_actions, _fd[type])) < 0)
   {
     Error << "posix_spawn_file_actions_adddup2(" << strerror(ret) << ")";
-    throw fatal_message(strerror(ret));
+    fatal_message(strerror(ret));
   }
 }
 
@@ -576,12 +576,15 @@ void Application::Pipe::close(const close_t& arg)
 
 void Application::create_argv(const char *args[])
 {
-  _argc= 2 +_use_libtool ? 2 : 0; // +1 for the command, +2 for libtool/mode=execute, +1 for the NULL
+  delete_argv();
+  fatal_assert(_argc == 0);
 
   if (_use_libtool)
   {
     _argc+= 2; // +2 for libtool --mode=execute
   }
+
+  _argc+= 1; // For the command
 
   /*
     valgrind --error-exitcode=1 --leak-check=yes --show-reachable=yes --track-fds=yes --malloc-fill=A5 --free-fill=DE
@@ -612,7 +615,8 @@ void Application::create_argv(const char *args[])
     }
   }
 
-  delete_argv();
+  _argc+= 1; // for the NULL
+
   built_argv= new char * [_argc];
 
   size_t x= 0;
@@ -659,7 +663,8 @@ void Application::create_argv(const char *args[])
       built_argv[x++]= strdup(*ptr);
     }
   }
-  built_argv[_argc -1]= NULL;
+  built_argv[x++]= NULL;
+  fatal_assert(x == _argc);
 }
 
 std::string Application::print()
