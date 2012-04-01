@@ -116,7 +116,7 @@ Application::Application(const std::string& arg, const bool _use_libtool_arg) :
     {
       if (libtool() == NULL)
       {
-        throw fatal_message("libtool requested, but know libtool was found");
+        fatal_message("libtool requested, but know libtool was found");
       }
     }
 
@@ -252,7 +252,6 @@ Application::error_t Application::run(const char *args[])
 
 bool Application::check() const
 {
-  Error << "Testing " << _exectuble;
   if (_pid > 1 and kill(_pid, 0) == 0)
   {
     return true;
@@ -264,12 +263,48 @@ bool Application::check() const
 void Application::murder()
 {
   slurp();
-  if (_pid > 1 and kill(_pid, SIGTERM) == 0)
+  if (check())
   {
-    int status= 0;
-    if (waitpid(_pid, &status, 0) == -1)
+    int count= 5;
+    while ((count--) > 0 and check())
     {
-      Error << "waitpid() failed after kill with error of " << strerror(errno);
+      int kill_ret= kill(_pid, SIGTERM);
+      if (kill_ret == 0)
+      {
+        int status= 0;
+        pid_t waitpid_ret;
+        if ((waitpid_ret= waitpid(_pid, &status, WNOHANG)) == -1)
+        {
+          switch (errno)
+          {
+          case ECHILD:
+          case EINTR:
+            break;
+
+          default:
+            Error << "waitpid() failed after kill with error of " << strerror(errno);
+            break;
+          }
+        }
+
+        if (waitpid_ret == 0)
+        {
+          libtest::dream(1, 0);
+        }
+      }
+      else
+      {
+        Error << "kill(pid, SIGTERM) failed after kill with error of " << strerror(errno);
+        continue;
+      }
+
+      break;
+    }
+
+    // If for whatever reason it lives, kill it hard
+    if (check())
+    {
+      (void)kill(_pid, SIGKILL);
     }
   }
 }
@@ -407,6 +442,7 @@ Application::error_t Application::wait(bool nohang)
         break;
 
       case EINTR:
+        break;
 
       default:
         Error << "Error occured while waitpid(" << strerror(errno) << ") on pid " << int(_pid);
@@ -487,7 +523,7 @@ void Application::Pipe::reset()
 
   if (pipe(_fd) == -1)
   {
-    throw fatal_message(strerror(errno));
+    fatal_message(strerror(errno));
   }
   _open[0]= true;
   _open[1]= true;
@@ -512,13 +548,13 @@ void Application::Pipe::dup_for_spawn(const close_t& arg, posix_spawn_file_actio
   if ((ret= posix_spawn_file_actions_adddup2(&file_actions, _fd[type], newfildes )) < 0)
   {
     Error << "posix_spawn_file_actions_adddup2(" << strerror(ret) << ")";
-    throw fatal_message(strerror(ret));
+    fatal_message(strerror(ret));
   }
 
   if ((ret= posix_spawn_file_actions_addclose(&file_actions, _fd[type])) < 0)
   {
     Error << "posix_spawn_file_actions_adddup2(" << strerror(ret) << ")";
-    throw fatal_message(strerror(ret));
+    fatal_message(strerror(ret));
   }
 }
 
@@ -540,12 +576,15 @@ void Application::Pipe::close(const close_t& arg)
 
 void Application::create_argv(const char *args[])
 {
-  _argc= 2 +_use_libtool ? 2 : 0; // +1 for the command, +2 for libtool/mode=execute, +1 for the NULL
+  delete_argv();
+  fatal_assert(_argc == 0);
 
   if (_use_libtool)
   {
     _argc+= 2; // +2 for libtool --mode=execute
   }
+
+  _argc+= 1; // For the command
 
   /*
     valgrind --error-exitcode=1 --leak-check=yes --show-reachable=yes --track-fds=yes --malloc-fill=A5 --free-fill=DE
@@ -576,7 +615,8 @@ void Application::create_argv(const char *args[])
     }
   }
 
-  delete_argv();
+  _argc+= 1; // for the NULL
+
   built_argv= new char * [_argc];
 
   size_t x= 0;
@@ -623,7 +663,8 @@ void Application::create_argv(const char *args[])
       built_argv[x++]= strdup(*ptr);
     }
   }
-  built_argv[_argc -1]= NULL;
+  built_argv[x++]= NULL;
+  fatal_assert(x == _argc);
 }
 
 std::string Application::print()

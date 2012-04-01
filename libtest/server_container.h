@@ -57,12 +57,7 @@ public:
 
   uint32_t count() const
   {
-    return _count;
-  }
-
-  void set_count(uint32_t arg)
-  {
-    _count= arg;
+    return servers.size();
   }
 
   void restart();
@@ -78,11 +73,6 @@ public:
   {
     return _username;
   }
-
-
-  bool is_debug() const;
-  bool is_helgrind() const;
-  bool is_valgrind() const;
 
   bool socket()
   {
@@ -108,7 +98,7 @@ public:
 
 
   void shutdown_and_remove();
-  void shutdown();
+  bool shutdown();
   bool shutdown(uint32_t number_of_host);
 
   bool check() const;
@@ -117,6 +107,6 @@ public:
   Server *pop_server();
 };
 
-bool server_startup(server_startup_st&, const std::string&, in_port_t try_port, int argc, const char *argv[]);
+bool server_startup(server_startup_st&, const std::string&, in_port_t try_port, int argc, const char *argv[], const bool opt_startup_message= true);
 
 } // namespace libtest

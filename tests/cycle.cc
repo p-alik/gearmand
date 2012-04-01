@@ -54,14 +54,11 @@ static gearman_return_t success_fn(gearman_job_st*, void* /* context */)
 
 static test_return_t single_cycle(void *)
 {
-  (void)success_fn;
-#if 0
   gearman_function_t success_function= gearman_function_create(success_fn);
-  worker_handle_st *worker= test_worker_start(CYCLE_TEST_PORT, NULL, "success", success_function, NULL, gearman_worker_options_t());
+  worker_handle_st *worker= test_worker_start(libtest::default_port(), NULL, "success", success_function, NULL, gearman_worker_options_t());
   test_true(worker);
   test_true(worker->shutdown());
   delete worker;
-#endif
 
   return TEST_SUCCESS;
 }
@@ -73,6 +70,44 @@ static test_return_t kill_test(void *)
   return TEST_SUCCESS;
 }
 
+static test_return_t server_startup_single_TEST(void *obj)
+{
+  server_startup_st *servers= (server_startup_st*)obj;
+  test_compare(true, server_startup(*servers, "gearmand", libtest::get_free_port(), 0, NULL, false));
+  test_compare(true, servers->shutdown());
+
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t server_startup_multiple_TEST(void *obj)
+{
+  server_startup_st *servers= (server_startup_st*)obj;
+  for (size_t x= 0; x < 10; x++)
+  {
+    test_compare(true, server_startup(*servers, "gearmand", libtest::get_free_port(), 0, NULL, false));
+  }
+  test_compare(true, servers->shutdown());
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t shutdown_and_remove_TEST(void *obj)
+{
+  server_startup_st *servers= (server_startup_st*)obj;
+  servers->shutdown_and_remove();
+
+  return TEST_SUCCESS;
+}
+
+test_st server_startup_TESTS[] ={
+  {"server_startup(1)", false, (test_callback_fn*)server_startup_single_TEST },
+  {"server_startup(10)", false, (test_callback_fn*)server_startup_multiple_TEST },
+  {"shutdown_and_remove()", false, (test_callback_fn*)shutdown_and_remove_TEST },
+  {"server_startup(10)", false, (test_callback_fn*)server_startup_multiple_TEST },
+  {0, 0, 0}
+};
+
 test_st kill_tests[] ={
   {"kill", true, (test_callback_fn*)kill_test },
   {0, 0, 0}
@@ -83,20 +118,42 @@ test_st worker_tests[] ={
   {0, 0, 0}
 };
 
+static test_return_t collection_INIT(void *object)
+{
+  server_startup_st *servers= (server_startup_st*)object;
+  test_zero(servers->count());
+  test_compare(true, server_startup(*servers, "gearmand", libtest::default_port(), 0, NULL, false));
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t validate_sanity_INIT(void *object)
+{
+  server_startup_st *servers= (server_startup_st*)object;
+
+  test_zero(servers->count());
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t collection_FINAL(void *object)
+{
+  server_startup_st *servers= (server_startup_st*)object;
+  servers->shutdown_and_remove();
+
+  return TEST_SUCCESS;
+}
+
 collection_st collection[] ={
-  {"kill", 0, 0, kill_tests},
-  {"worker", 0, 0, worker_tests},
+  {"kill", validate_sanity_INIT, collection_FINAL, kill_tests },
+  {"worker", collection_INIT, collection_FINAL, worker_tests },
+  {"server_startup()", validate_sanity_INIT, collection_FINAL, server_startup_TESTS },
   {0, 0, 0, 0}
 };
 
-static void *world_create(server_startup_st& servers, test_return_t& error)
+static void *world_create(server_startup_st& servers, test_return_t& )
 {
-  if (server_startup(servers, "gearmand", libtest::default_port(), 0, NULL) == false)
-  {
-    error= TEST_FAILURE;
-  }
-
-  return NULL;
+  return &servers;
 }
 
 void get_world(Framework *world)

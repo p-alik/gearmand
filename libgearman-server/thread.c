@@ -14,19 +14,14 @@
 #include <config.h>
 #include <libgearman-server/common.h>
 
-#define GEARMAN_CORE
 #include <libgearman/command.h>
 
 #ifdef __cplusplus
-
-#include <cassert>
-#include <cerrno>
-
+# include <cassert>
+# include <cerrno>
 #else
-
-#include <assert.h>
-#include <errno.h>
-
+# include <assert.h>
+# include <errno.h>
 #endif
 
 /*
@@ -90,6 +85,7 @@ bool gearman_server_thread_init(gearman_server_st *server,
   thread->con_count= 0;
   thread->io_count= 0;
   thread->proc_count= 0;
+  thread->to_be_freed_count= 0;
   thread->free_con_count= 0;
   thread->free_packet_count= 0;
   thread->log_fn= log_function;
@@ -101,6 +97,7 @@ bool gearman_server_thread_init(gearman_server_st *server,
   thread->proc_list= NULL;
   thread->free_con_list= NULL;
   thread->free_packet_list= NULL;
+  thread->to_be_freed_list= NULL;
 
   int error;
   if ((error= pthread_mutex_init(&(thread->lock), NULL)))
@@ -124,7 +121,7 @@ void gearman_server_thread_free(gearman_server_thread_st *thread)
   gearman_server_packet_st *packet;
 
   _proc_thread_kill(Server);
-
+  
   while (thread->con_list != NULL)
   {
     gearman_server_con_free(thread->con_list);
@@ -172,15 +169,20 @@ gearman_server_thread_run(gearman_server_thread_st *thread,
   {
     gearman_server_con_st *server_con;
 
+    while ((server_con= gearman_server_con_to_be_freed_next(thread)) != NULL)
+    {
+      if (server_con->is_dead && server_con->proc_removed)
+        gearman_server_con_free(server_con);
+      else
+        gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "con %llu isn't dead %d or proc removed %d, but is in to_be_freed_list",
+                           server_con, server_con->is_dead, server_con->proc_removed);
+    }
+
     while ((server_con= gearman_server_con_io_next(thread)) != NULL)
     {
       if (server_con->is_dead)
       {
-        if (server_con->proc_removed)
-        {
-          gearman_server_con_free(server_con);
-        }
-
+        gearman_server_con_attempt_free(server_con);
         continue;
       }
 
@@ -415,9 +417,6 @@ static void _proc_thread_kill(gearman_server_st *server)
 static void *_proc(void *data)
 {
   gearman_server_st *server= (gearman_server_st *)data;
-  gearman_server_thread_st *thread;
-  gearman_server_con_st *con;
-  gearman_server_packet_st *packet;
 
   gearmand_initialize_thread_logging("[ proc ]");
 
@@ -437,11 +436,37 @@ static void *_proc(void *data)
     server->proc_wakeup= false;
     (void) pthread_mutex_unlock(&(server->proc_lock));
 
-    for (thread= server->thread_list; thread != NULL; thread= thread->next)
+    for (gearman_server_thread_st *thread= server->thread_list; thread != NULL; thread= thread->next)
     {
+      gearman_server_con_st *con;
       while ((con= gearman_server_con_proc_next(thread)) != NULL)
       {
-        if (con->is_dead)
+        bool packet_sent = false;
+        while (1)
+        {
+          gearman_server_packet_st *packet= gearman_server_proc_packet_remove(con);
+          if (packet == NULL)
+          {
+            break;
+          }
+
+          con->ret= gearman_server_run_command(con, &(packet->packet));
+          packet_sent = true;
+          gearmand_packet_free(&(packet->packet));
+          gearman_server_packet_free(packet, con->thread, false);
+        }
+
+        // if a packet was sent in above block, and connection is dead,
+        // queue up into io thread so it comes back to the PROC queue for
+        // marking proc_removed. this prevents leaking any connection objects
+        if (packet_sent)
+        {
+          if (con->is_dead)
+          {
+            gearman_server_con_io_add(con);
+          }
+        }
+        else if (con->is_dead)
         {
           gearman_server_con_free_workers(con);
 
@@ -449,19 +474,7 @@ static void *_proc(void *data)
             gearman_server_client_free(con->client_list);
 
           con->proc_removed= true;
-          gearman_server_con_io_add(con);
-          continue;
-        }
-
-        while (1)
-        {
-          packet= gearman_server_proc_packet_remove(con);
-          if (packet == NULL)
-            break;
-
-          con->ret= gearman_server_run_command(con, &(packet->packet));
-          gearmand_packet_free(&(packet->packet));
-          gearman_server_packet_free(packet, con->thread, false);
+          gearman_server_con_to_be_freed_add(con);
         }
       }
     }

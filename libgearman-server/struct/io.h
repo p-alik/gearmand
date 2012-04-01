@@ -96,10 +96,12 @@ struct gearman_server_con_st
   bool is_exceptions;
   bool is_dead;
   bool is_noop_sent;
+  bool is_cleaned_up;
   gearmand_error_t ret;
   bool io_list;
   bool proc_list;
   bool proc_removed;
+  bool to_be_freed_list;
   uint32_t io_packet_count;
   uint32_t proc_packet_count;
   uint32_t worker_count;
@@ -116,6 +118,8 @@ struct gearman_server_con_st
   gearman_server_con_st *io_prev;
   gearman_server_con_st *proc_next;
   gearman_server_con_st *proc_prev;
+  gearman_server_con_st *to_be_freed_next;
+  gearman_server_con_st *to_be_freed_prev;
   struct gearman_server_worker_st *worker_list;
   struct gearman_server_client_st *client_list;
   const char *_host; // client host

@@ -77,7 +77,8 @@ libgearman_server_libgearman_server_la_SOURCES+= \
 						 libgearman-server/timer.cc \
 						 libgearman-server/wakeup.cc \
 						 libgearman-server/worker.cc \
-						 libgearman/command.cc
+						 libgearman/command.cc \
+						 libgearman/strcommand.cc
 
 libgearman_server_libgearman_server_la_CFLAGS+= $(LIBEVENT_CPPFLAGS)
 libgearman_server_libgearman_server_la_CFLAGS+= $(PTHREAD_CFLAGS)

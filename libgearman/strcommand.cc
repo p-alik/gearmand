@@ -36,8 +36,9 @@
  */
 
 #include <config.h>
-#include <libgearman/common.h>
 
+#include <libgearman/command.h>
+#include <libgearman/strcommand.h>
 
 const char *gearman_strcommand(gearman_command_t command)
 {

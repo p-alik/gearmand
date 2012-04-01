@@ -1,9 +1,8 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
- * 
+ *
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  Copyright (C) 2008 Brian Aker, Eric Day
+ *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -36,24 +35,33 @@
  *
  */
 
+#include <config.h>
 
-#pragma once
+#include <libgearman-server/plugins/protocol/http/method.h>
 
-#include <libgearman-1.0/protocol.h>
+namespace gearmand {
+namespace protocol {
+namespace httpd {
 
-struct gearman_command_info_st
+const char *str_method(method_t arg)
 {
-  const char *name;
-  const uint8_t argc; // Number of arguments to commands.
-  const bool data;
-};
+  switch (arg)
+  {
+  case HEAD: return "HEAD";
+  case GET: return "GET";
+  case PUT: return "PUT";
+  case POST: return "POST";
+  case TRACE: return "TRACE";
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+  default:
+              break;
+  }
 
-struct gearman_command_info_st *gearman_command_info(gearman_command_t command);
-
-#ifdef __cplusplus
+  return "UNKNOWN";
 }
-#endif
+
+} // namespace http
+} // namespace protocol
+} // namespace gearmand
+
+

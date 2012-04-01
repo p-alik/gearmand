@@ -676,7 +676,7 @@ static test_return_t create_tmpfile_TEST(void *)
 static test_return_t fatal_message_TEST(void *)
 {
   test_compare(fatal_calls++, fatal::disabled_counter());
-  throw fatal_message("Fatal test");
+  fatal_message("Fatal test");
 
   return TEST_SUCCESS;
 }
@@ -856,6 +856,7 @@ collection_st collection[] ={
   {"memcached", check_for_libmemcached, 0, memcached_tests},
   {"cmdline", 0, 0, cmdline_tests},
   {"application", 0, 0, application_tests},
+  {"http", check_for_curl, 0, http_tests},
   {"http", check_for_curl, 0, http_tests},
   {"get_free_port()", 0, 0, get_free_port_TESTS },
   {"fatal", disable_fatal_exception, enable_fatal_exception, fatal_message_TESTS },

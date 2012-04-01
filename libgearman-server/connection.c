@@ -88,11 +88,13 @@ static gearman_server_con_st * _server_con_create(gearman_server_thread_st *thre
   con->is_sleeping= false;
   con->is_exceptions= false;
   con->is_dead= false;
+  con->is_cleaned_up = false;
   con->is_noop_sent= false;
 
   con->ret= 0;
   con->io_list= false;
   con->proc_list= false;
+  con->to_be_freed_list= false;
   con->proc_removed= false;
   con->io_packet_count= 0;
   con->proc_packet_count= 0;
@@ -108,6 +110,8 @@ static gearman_server_con_st * _server_con_create(gearman_server_thread_st *thre
   con->io_prev= NULL;
   con->proc_next= NULL;
   con->proc_prev= NULL;
+  con->to_be_freed_next= NULL;
+  con->to_be_freed_prev= NULL;
   con->worker_list= NULL;
   con->client_list= NULL;
   con->_host= dcon->host;
@@ -140,40 +144,46 @@ static gearman_server_con_st * _server_con_create(gearman_server_thread_st *thre
   return con;
 }
 
+void gearman_server_con_attempt_free(gearman_server_con_st *con)
+{
+  con->_host= NULL;
+  con->_port= NULL;
+
+  if (Server->flags.threaded)
+  {
+    if (!(con->proc_removed) && !(Server->proc_shutdown))
+    {
+      con->is_dead= true;
+      con->is_sleeping= false;
+      con->is_exceptions= false;
+      con->is_noop_sent= false;
+      gearman_server_con_proc_add(con);
+    }
+  }
+  else
+  {
+    gearman_server_con_free(con); 
+  }
+}
+
 void gearman_server_con_free(gearman_server_con_st *con)
 {
   gearman_server_thread_st *thread= con->thread;
   gearman_server_packet_st *packet;
-
   con->_host= NULL;
   con->_port= NULL;
 
-  if (Server->flags.threaded && !(con->proc_removed) && !(Server->proc_shutdown))
+  if (con->is_cleaned_up)
   {
-    con->is_dead= true;
-    con->is_sleeping= false;
-    con->is_exceptions= false;
-    con->is_noop_sent= false;
-    gearman_server_con_proc_add(con);
+    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "con %llu is already cleaned-up. returning", con);
     return;
   }
-
+  
   gearmand_io_free(&(con->con));
 
   if (con->protocol.context != NULL && con->protocol.context_free_fn != NULL)
   {
     con->protocol.context_free_fn(con, (void *)con->protocol.context);
-  }
-
-
-  if (con->proc_list)
-  {
-    gearman_server_con_proc_remove(con);
-  }
-
-  if (con->io_list)
-  {
-    gearman_server_con_io_remove(con);
   }
 
   if (con->packet != NULL)
@@ -210,6 +220,16 @@ void gearman_server_con_free(gearman_server_con_st *con)
     event_del(con->timeout_event);
   }
 
+  if (con->proc_list)
+  {
+    gearman_server_con_proc_remove(con);
+  }
+
+  if (con->io_list)
+  {
+    gearman_server_con_io_remove(con);
+  }
+  
   (void) pthread_mutex_lock(&thread->lock);
   GEARMAN_LIST_DEL(con->thread->con, con,)
   (void) pthread_mutex_unlock(&thread->lock);
@@ -223,6 +243,7 @@ void gearman_server_con_free(gearman_server_con_st *con)
     gearmand_debug("free");
     free(con);
   }
+  con->is_cleaned_up = true;
 }
 
 gearmand_io_st *gearman_server_con_con(gearman_server_con_st *con)
@@ -292,6 +313,57 @@ void gearman_server_con_free_workers(gearman_server_con_st *con)
   {
     gearman_server_worker_free(con->worker_list);
   }
+}
+
+void gearman_server_con_to_be_freed_add(gearman_server_con_st *con)
+{
+  (void) pthread_mutex_lock(&con->thread->lock);
+  if (con->to_be_freed_list)
+  {
+    (void) pthread_mutex_unlock(&con->thread->lock);
+    return;
+  }
+
+  GEARMAN_LIST_ADD(con->thread->to_be_freed, con, to_be_freed_)
+  con->to_be_freed_list = true;
+
+  /* Looks funny, but need to check to_be_freed_count locked, but call run unlocked. */
+  if (con->thread->to_be_freed_count == 1 && con->thread->run_fn)
+  {
+    (void) pthread_mutex_unlock(&con->thread->lock);
+    (*con->thread->run_fn)(con->thread, con->thread->run_fn_arg);
+  }
+  else
+  {
+    (void) pthread_mutex_unlock(&con->thread->lock);
+  }
+}
+
+gearman_server_con_st *
+gearman_server_con_to_be_freed_next(gearman_server_thread_st *thread)
+{
+  gearman_server_con_st *con;
+
+  if (thread->to_be_freed_list == NULL)
+    return NULL;
+
+  (void) pthread_mutex_lock(&thread->lock);
+
+  con= thread->to_be_freed_list;
+  while (con != NULL)
+  {
+    GEARMAN_LIST_DEL(thread->to_be_freed, con, to_be_freed_)
+    if (con->to_be_freed_list)
+    {
+      con->to_be_freed_list= false;
+      break;
+    }
+    con= thread->to_be_freed_list;
+  }
+
+  (void) pthread_mutex_unlock(&thread->lock);
+
+  return con;
 }
 
 void gearman_server_con_io_add(gearman_server_con_st *con)
