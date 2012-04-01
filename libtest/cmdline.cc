@@ -252,7 +252,6 @@ Application::error_t Application::run(const char *args[])
 
 bool Application::check() const
 {
-  Error << "Testing " << _exectuble;
   if (_pid > 1 and kill(_pid, 0) == 0)
   {
     return true;
@@ -264,21 +263,48 @@ bool Application::check() const
 void Application::murder()
 {
   slurp();
-  if (_pid > 1 and kill(_pid, SIGTERM) == 0)
+  if (check())
   {
-    int status= 0;
-    if (waitpid(_pid, &status, 0) == -1)
+    int count= 5;
+    while ((count--) > 0 and check())
     {
-      switch (errno)
+      int kill_ret= kill(_pid, SIGTERM);
+      if (kill_ret == 0)
       {
-      case ECHILD:
-      case EINTR:
-        break;
+        int status= 0;
+        pid_t waitpid_ret;
+        if ((waitpid_ret= waitpid(_pid, &status, WNOHANG)) == -1)
+        {
+          switch (errno)
+          {
+          case ECHILD:
+          case EINTR:
+            break;
 
-      default:
-        Error << "waitpid() failed after kill with error of " << strerror(errno);
-        break;
+          default:
+            Error << "waitpid() failed after kill with error of " << strerror(errno);
+            break;
+          }
+        }
+
+        if (waitpid_ret == 0)
+        {
+          libtest::dream(1, 0);
+        }
       }
+      else
+      {
+        Error << "kill(pid, SIGTERM) failed after kill with error of " << strerror(errno);
+        continue;
+      }
+
+      break;
+    }
+
+    // If for whatever reason it lives, kill it hard
+    if (check())
+    {
+      (void)kill(_pid, SIGKILL);
     }
   }
 }
