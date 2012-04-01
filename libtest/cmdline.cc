@@ -587,11 +587,11 @@ void Application::create_argv(const char *args[])
   _argc+= 1; // For the command
 
   /*
-    valgrind --error-exitcode=1 --leak-check=yes --show-reachable=yes --track-fds=yes --malloc-fill=A5 --free-fill=DE
+    valgrind --error-exitcode=1 --leak-check=yes --show-reachable=yes --track-fds=yes --malloc-fill=A5 --free-fill=DE --log-file=
   */
   if (_use_valgrind)
   {
-    _argc+= 7;
+    _argc+= 8;
   }
   else if (_use_gdb) // gdb
   {
@@ -639,6 +639,12 @@ void Application::create_argv(const char *args[])
     built_argv[x++]= strdup("--track-fds=yes");
     built_argv[x++]= strdup("--malloc-fill=A5");
     built_argv[x++]= strdup("--free-fill=DE");
+
+    std::string log_file= create_tmpfile("valgrind");
+    char buffer[1024];
+    int length= snprintf(buffer, sizeof(buffer), "--log-file=%s", log_file.c_str());
+    fatal_assert(length > 0 and length < sizeof(buffer));
+    built_argv[x++]= strdup(buffer);
   }
   else if (_use_gdb)
   {

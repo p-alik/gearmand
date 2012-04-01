@@ -355,8 +355,6 @@ public:
 
 bool Memcached::build(size_t argc, const char *argv[])
 {
-  std::stringstream arg_buffer;
-
   if (getuid() == 0 or geteuid() == 0)
   {
     add_option("-u", "root");

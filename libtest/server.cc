@@ -162,7 +162,8 @@ bool Server::start()
   {
     _app.use_valgrind();
   }
-  else if (args(_app) == false)
+
+  if (args(_app) == false)
   {
     Error << "Could not build command()";
     return false;
