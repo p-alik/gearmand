@@ -1,9 +1,8 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  Gearmand client and server library.
+ *  libgearman client library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  Copyright (C) 2008 Brian Aker, Eric Day
+ *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -38,37 +37,4 @@
 
 #pragma once
 
-enum gearman_magic_t
-{
-  GEARMAN_MAGIC_TEXT,
-  GEARMAN_MAGIC_REQUEST,
-  GEARMAN_MAGIC_RESPONSE
-};
-
-/**
- * @ingroup gearman_packet
- */
-struct gearman_packet_st
-{
-  struct {
-    bool allocated;
-    bool complete;
-    bool free_data;
-  } options;
-  enum gearman_magic_t magic;
-  gearman_command_t command;
-  uint8_t argc;
-  size_t args_size;
-  size_t data_size;
-  struct gearman_universal_st *universal;
-  gearman_packet_st *next;
-  gearman_packet_st *prev;
-  char *args;
-  const void *data;
-  char *arg[GEARMAN_MAX_COMMAND_ARGS];
-  size_t arg_size[GEARMAN_MAX_COMMAND_ARGS];
-  char args_buffer[GEARMAN_ARGS_BUFFER_SIZE];
-#ifdef GEARMAN_PACKET_TRACE
-  uint32_t _id;
-#endif
-};
+void custom_backtrace(void);

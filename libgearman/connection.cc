@@ -173,7 +173,8 @@ gearman_connection_st::gearman_connection_st(gearman_universal_st &universal_arg
   recv_buffer_size(0),
   recv_data_size(0),
   recv_data_offset(0),
-  universal(universal_arg)
+  universal(universal_arg),
+  _recv_packet(NULL)
 {
   options.ready= false;
   options.packet_in_use= false;
@@ -200,7 +201,6 @@ gearman_connection_st::gearman_connection_st(gearman_universal_st &universal_arg
   addrinfo= NULL;
   addrinfo_next= NULL;
   send_buffer_ptr= send_buffer;
-  recv_packet= NULL;
   recv_buffer_ptr= recv_buffer;
   host[0]= 0;
 }
@@ -386,14 +386,19 @@ void gearman_connection_st::close_socket()
   send_data_offset= 0;
 
   recv_state= GEARMAN_CON_RECV_UNIVERSAL_NONE;
-  if (recv_packet)
-  {
-    gearman_packet_free(recv_packet);
-    recv_packet= NULL;
-  }
+  free_recv_packet();
 
   recv_buffer_ptr= recv_buffer;
   recv_buffer_size= 0;
+}
+
+void gearman_connection_st::free_recv_packet()
+{
+  if (_recv_packet)
+  {
+    gearman_packet_free(recv_packet());
+    _recv_packet= NULL;
+  }
 }
 
 void gearman_connection_st::reset_addrinfo()
@@ -502,7 +507,7 @@ gearman_return_t gearman_connection_st::send_packet(const gearman_packet_st& pac
     send_data_size= packet_arg.data_size;
 
     /* If this is NULL, then gearman_connection_send_data function will be used. */
-    if (not packet_arg.data)
+    if (packet_arg.data == NULL)
     {
       send_state= GEARMAN_CON_SEND_UNIVERSAL_FLUSH_DATA;
       return GEARMAN_SUCCESS;
@@ -802,8 +807,8 @@ gearman_packet_st *gearman_connection_st::receiving(gearman_packet_st& packet_ar
       return NULL;
     }
 
-    recv_packet= gearman_packet_create(universal, &packet_arg);
-    if (recv_packet == NULL)
+    _recv_packet= gearman_packet_create(universal, &packet_arg);
+    if (_recv_packet == NULL)
     {
       ret= GEARMAN_MEMORY_ALLOCATION_FAILURE;
       return NULL;
@@ -816,7 +821,7 @@ gearman_packet_st *gearman_connection_st::receiving(gearman_packet_st& packet_ar
     {
       if (recv_buffer_size > 0)
       {
-        size_t recv_size= gearman_packet_unpack(*recv_packet,
+        size_t recv_size= gearman_packet_unpack(*(recv_packet()),
                                                 recv_buffer_ptr,
                                                 recv_buffer_size, ret);
         recv_buffer_ptr+= recv_size;
@@ -865,7 +870,7 @@ gearman_packet_st *gearman_connection_st::receiving(gearman_packet_st& packet_ar
 
     assert(packet_arg.universal);
     packet_arg.data= gearman_malloc((*packet_arg.universal), packet_arg.data_size);
-    if (not packet_arg.data)
+    if (packet_arg.data == NULL)
     {
       ret= GEARMAN_MEMORY_ALLOCATION_FAILURE;
       close_socket();
@@ -891,8 +896,8 @@ gearman_packet_st *gearman_connection_st::receiving(gearman_packet_st& packet_ar
     break;
   }
 
-  gearman_packet_st *tmp_packet_arg= recv_packet;
-  recv_packet= NULL;
+  gearman_packet_st *tmp_packet_arg= recv_packet();
+  set_recv_packet(NULL);
 
   return tmp_packet_arg;
 }

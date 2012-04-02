@@ -156,9 +156,6 @@ tests-blobslap_client: tests/blobslap_client gearmand/gearmand
 test-round-robin: tests/round_robin_test gearmand/gearmand
 	@tests/round_robin_test
 
-test-worker: tests/worker_test gearmand/gearmand
-	@tests/worker_test
-
 check-local:
 
 gdb-round-robin: tests/round_robin_test gearmand/gearmand
@@ -182,9 +179,6 @@ valgrind-cli: tests/cli gearmand/gearmand
 valgrind-round-robin: tests/round_robin_test gearmand/gearmand
 	@$(VALGRIND_COMMAND) tests/round_robin_test
 
-valgrind-worker: tests/worker_test gearmand/gearmand
-	@$(VALGRIND_COMMAND) tests/worker_test
-
 valgrind-burnin: tests/burnin_test gearmand/gearmand
 	@$(VALGRIND_COMMAND) tests/burnin_test
 
@@ -199,9 +193,6 @@ helgrind-client: tests/client_test gearmand/gearmand
 
 helgrind-round-robin: tests/round_robin_test gearmand/gearmand
 	@$(HELGRIND_COMMAND) tests/round_robin_test
-
-helgrind-worker: tests/worker_test gearmand/gearmand
-	@$(HELGRIND_COMMAND) tests/worker_test
 
 helgrind-burnin: tests/burnin_test gearmand/gearmand
 	@$(HELGRIND_COMMAND) tests/burnin_test

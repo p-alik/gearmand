@@ -648,7 +648,7 @@ static test_return_t gearman_worker_remove_options_GEARMAN_WORKER_GRAB_UNIQ(void
   gearman_worker_remove_options(&worker, GEARMAN_WORKER_GRAB_UNIQ);
   test_false(worker->options.grab_uniq);
 
-  gearman_worker_set_timeout(&worker, 4);
+  gearman_worker_set_timeout(&worker, 800);
 
   gearman_return_t rc;
   gearman_job_st *job= gearman_worker_grab_job(&worker, NULL, &rc);
@@ -754,7 +754,7 @@ static test_return_t gearman_worker_add_options_GEARMAN_WORKER_GRAB_UNIQ_worker_
   gearman_worker_add_options(&worker, GEARMAN_WORKER_GRAB_UNIQ);
   test_truth(worker->options.grab_uniq);
 
-  gearman_worker_set_timeout(&worker, 4);
+  gearman_worker_set_timeout(&worker, 400);
   test_compare(GEARMAN_SUCCESS, gearman_worker_work(&worker));
 
   test_truth(success);
@@ -769,6 +769,31 @@ static test_return_t gearman_worker_failover_test(void *)
 
   test_compare(GEARMAN_SUCCESS, gearman_worker_add_server(&worker, NULL, libtest::default_port()));
   test_compare(GEARMAN_SUCCESS, gearman_worker_add_server(&worker, NULL, libtest::default_port() +1));
+
+  char function_name[GEARMAN_FUNCTION_MAX_SIZE];
+  snprintf(function_name, GEARMAN_FUNCTION_MAX_SIZE, "_%s%d", __func__, int(random())); 
+
+  test_compare(GEARMAN_SUCCESS, 
+               gearman_worker_add_function(&worker, function_name, 0, fail_worker, NULL));
+
+  gearman_worker_set_timeout(&worker, 400);
+
+  test_compare(GEARMAN_TIMEOUT, gearman_worker_work(&worker));
+
+  /* Make sure we have remove worker function */
+  test_compare(GEARMAN_SUCCESS,
+               gearman_worker_unregister(&worker, function_name));
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_worker_set_timeout_FAILOVER_TEST(void *)
+{
+  Worker worker;
+
+  test_compare(GEARMAN_SUCCESS, gearman_worker_add_server(&worker, NULL, libtest::default_port()));
+  in_port_t non_exist_server= libtest::default_port();
+  test_compare(GEARMAN_SUCCESS, gearman_worker_add_server(&worker, NULL, non_exist_server));
 
   char function_name[GEARMAN_FUNCTION_MAX_SIZE];
   snprintf(function_name, GEARMAN_FUNCTION_MAX_SIZE, "_%s%d", __func__, int(random())); 
@@ -820,6 +845,7 @@ test_st tests[] ={
   {"gearman_worker_remove_options(GEARMAN_WORKER_GRAB_UNIQ)", 0, gearman_worker_remove_options_GEARMAN_WORKER_GRAB_UNIQ },
   {"gearman_worker_add_options(GEARMAN_WORKER_GRAB_UNIQ)", 0, gearman_worker_add_options_GEARMAN_WORKER_GRAB_UNIQ },
   {"gearman_worker_add_options(GEARMAN_WORKER_GRAB_UNIQ) worker_work()", 0, gearman_worker_add_options_GEARMAN_WORKER_GRAB_UNIQ_worker_work },
+  {"gearman_worker_set_timeout(2) with failover", 0, gearman_worker_set_timeout_FAILOVER_TEST },
   {"echo_max", 0, echo_max_test },
   {"abandoned_worker", 0, abandoned_worker_test },
   {0, 0, 0}
