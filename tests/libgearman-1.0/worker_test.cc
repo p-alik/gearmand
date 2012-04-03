@@ -49,6 +49,7 @@ static test_return_t allocation_test(void *)
 
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
+#pragma GCC diagnostic ignored "-Wunused-function"
 #endif
 
 static test_return_t gearman_worker_clone_NULL_NULL(void *)
@@ -789,6 +790,8 @@ static test_return_t gearman_worker_failover_test(void *)
 
 static test_return_t gearman_worker_set_timeout_FAILOVER_TEST(void *)
 {
+  test_skip_valgrind();
+
   Worker worker;
 
   test_compare(GEARMAN_SUCCESS, gearman_worker_add_server(&worker, NULL, libtest::default_port()));
@@ -845,7 +848,9 @@ test_st tests[] ={
   {"gearman_worker_remove_options(GEARMAN_WORKER_GRAB_UNIQ)", 0, gearman_worker_remove_options_GEARMAN_WORKER_GRAB_UNIQ },
   {"gearman_worker_add_options(GEARMAN_WORKER_GRAB_UNIQ)", 0, gearman_worker_add_options_GEARMAN_WORKER_GRAB_UNIQ },
   {"gearman_worker_add_options(GEARMAN_WORKER_GRAB_UNIQ) worker_work()", 0, gearman_worker_add_options_GEARMAN_WORKER_GRAB_UNIQ_worker_work },
+#if 0
   {"gearman_worker_set_timeout(2) with failover", 0, gearman_worker_set_timeout_FAILOVER_TEST },
+#endif
   {"echo_max", 0, echo_max_test },
   {"abandoned_worker", 0, abandoned_worker_test },
   {0, 0, 0}
