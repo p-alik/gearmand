@@ -64,6 +64,9 @@ helgrind-worker: tests/libgearman-1.0/worker_test gearmand/gearmand
 gdb-worker: tests/libgearman-1.0/worker_test gearmand/gearmand
 	@$(GDB_COMMAND) tests/libgearman-1.0/worker_test
 
+ptrdiff-worker: tests/libgearman-1.0/worker_test gearmand/gearmand
+	@$(PTRCHECK_COMMAND) tests/libgearman-1.0/worker_test
+
 test-worker: tests/libgearman-1.0/worker_test gearmand/gearmand
 	@tests/libgearman-1.0/worker_test
 

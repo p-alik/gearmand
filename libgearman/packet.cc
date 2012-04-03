@@ -95,20 +95,22 @@ inline static gearman_return_t packet_create_arg(gearman_packet_st *packet,
   }
   else
   {
+    bool was_args_buffer= false;
     // If args is args_buffer we don't want to try realloc it
     if (packet->args == packet->args_buffer)
     {
+      was_args_buffer= true;
       packet->args= NULL;
     }
 
     char *new_args= static_cast<char *>(realloc(packet->args, packet->args_size + arg_size +1));
-    if (not new_args)
+    if (new_args == NULL)
     {
       gearman_perror(*packet->universal, "packet realloc");
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
 
-    if (packet->args_size > 0)
+    if (was_args_buffer and packet->args_size > 0)
     {
       memcpy(new_args, packet->args_buffer, packet->args_size);
     }
