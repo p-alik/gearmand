@@ -68,7 +68,6 @@ struct _worker_function_st
   char *function_name;
   size_t function_length;
   void *context;
-  gearman_packet_st packet;
 
   _worker_function_st(void *context_arg) : 
     next(NULL),
@@ -117,8 +116,18 @@ struct _worker_function_st
   virtual ~_worker_function_st()
   {
     if (options.packet_in_use)
-      gearman_packet_free(&packet);
+    {
+      gearman_packet_free(&_packet);
+    }
 
     delete [] function_name;
   }
+
+  gearman_packet_st& packet()
+  {
+    return _packet;
+  }
+
+private:
+  gearman_packet_st _packet;
 };

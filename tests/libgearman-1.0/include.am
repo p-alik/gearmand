@@ -55,8 +55,20 @@ helgrind-internals: tests/internals_test gearmand/gearmand
 valgrind-internals: tests/internals_test gearmand/gearmand
 	@$(VALGRIND_COMMAND) tests/internals_test
 
+valgrind-worker: tests/libgearman-1.0/worker_test gearmand/gearmand
+	@$(VALGRIND_COMMAND) tests/libgearman-1.0/worker_test
+
+helgrind-worker: tests/libgearman-1.0/worker_test gearmand/gearmand
+	@$(HELGRIND_COMMAND) tests/libgearman-1.0/worker_test
+
 gdb-worker: tests/libgearman-1.0/worker_test gearmand/gearmand
 	@$(GDB_COMMAND) tests/libgearman-1.0/worker_test
+
+ptrdiff-worker: tests/libgearman-1.0/worker_test gearmand/gearmand
+	@$(PTRCHECK_COMMAND) tests/libgearman-1.0/worker_test
+
+test-worker: tests/libgearman-1.0/worker_test gearmand/gearmand
+	@tests/libgearman-1.0/worker_test
 
 test-client: tests/libgearman-1.0/client_test gearmand/gearmand
 	@tests/libgearman-1.0/client_test

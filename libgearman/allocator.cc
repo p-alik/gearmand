@@ -127,8 +127,10 @@ void gearman_real_free(gearman_allocator_t& allocator, void *ptr, const char *fu
   (void)func; (void)file; (void)line;
 #endif
 
-  if (not ptr)
+  if (ptr == NULL)
+  {
     return;
+  }
 
   if (allocator.free)
   {

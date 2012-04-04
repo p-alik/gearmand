@@ -239,7 +239,7 @@ bool server_startup(server_startup_st& construct, const std::string& server_type
 
   server->build(argc, argv);
 
-  if (gdb_is_caller())
+  if (false)
   {
     Out << "Pausing for startup, hit return when ready.";
     std::string gdb_command= server->base_command();
@@ -340,7 +340,7 @@ bool server_startup_st::start_socket_server(const std::string& server_type, cons
 
   server->build(argc, argv);
 
-  if (gdb_is_caller())
+  if (false)
   {
     Out << "Pausing for startup, hit return when ready.";
     std::string gdb_command= server->base_command();
