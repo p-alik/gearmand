@@ -49,6 +49,8 @@
 #include <libgearman/command.h>
 #include <libgearman/packet.hpp>
 
+#include <libgearman/backtrace.hpp>
+
 #include <cerrno>
 #include <cstdlib>
 #include <cstring>
@@ -93,19 +95,22 @@ inline static gearman_return_t packet_create_arg(gearman_packet_st *packet,
   }
   else
   {
+    bool was_args_buffer= false;
+    // If args is args_buffer we don't want to try realloc it
     if (packet->args == packet->args_buffer)
     {
+      was_args_buffer= true;
       packet->args= NULL;
     }
 
     char *new_args= static_cast<char *>(realloc(packet->args, packet->args_size + arg_size +1));
-    if (not new_args)
+    if (new_args == NULL)
     {
       gearman_perror(*packet->universal, "packet realloc");
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
 
-    if (packet->args_size > 0)
+    if (was_args_buffer and packet->args_size > 0)
     {
       memcpy(new_args, packet->args_buffer, packet->args_size);
     }
@@ -143,6 +148,12 @@ inline static gearman_return_t packet_create_arg(gearman_packet_st *packet,
  * Public Definitions
  */
 
+#ifdef GEARMAN_PACKET_TRACE
+#include <pthread.h>
+pthread_mutex_t mutex= PTHREAD_MUTEX_INITIALIZER;
+static uint32_t global_packet_id= 0;
+#endif
+
 gearman_packet_st *gearman_packet_create(gearman_universal_st &universal,
                                          gearman_packet_st *packet)
 {
@@ -164,6 +175,8 @@ gearman_packet_st *gearman_packet_create(gearman_universal_st &universal,
 
     packet->options.allocated= true;
   }
+  packet->options.complete= false;
+  packet->options.free_data= false;
 
   packet->magic= GEARMAN_MAGIC_TEXT;
   packet->command= GEARMAN_COMMAND_TEXT;
@@ -171,6 +184,14 @@ gearman_packet_st *gearman_packet_create(gearman_universal_st &universal,
   packet->args_size= 0;
   packet->data_size= 0;
   packet->universal= &universal;
+
+#ifdef GEARMAN_PACKET_TRACE
+  pthread_mutex_lock(&mutex);
+  packet->_id= global_packet_id++;
+  pthread_mutex_unlock(&mutex);
+  fprintf(stderr, "%s PACKET %u\n", __func__, packet->_id);
+  custom_backtrace();
+#endif
 
   if (universal.options.dont_track_packets == false)
   {
@@ -246,6 +267,10 @@ gearman_return_t gearman_packet_create_args(gearman_universal_st& universal,
 
 void gearman_packet_free(gearman_packet_st *packet)
 {
+#ifdef GEARMAN_PACKET_TRACE
+  fprintf(stderr, "%s PACKET %u\n", __func__, packet->_id);
+  custom_backtrace();
+#endif
   if (packet->args != packet->args_buffer and packet->args)
   {
     // Created with realloc
@@ -255,22 +280,29 @@ void gearman_packet_free(gearman_packet_st *packet)
 
   assert_msg(packet->universal, 
              "Packet that is being freed has not been allocated, most likely this is do to freeing a gearman_task_st or other object twice");
-  if (packet->options.free_data && packet->data)
+  if (packet->options.free_data and packet->data)
   {
     gearman_free((*packet->universal), const_cast<void *>(packet->data));
     packet->data= NULL;
+    packet->options.free_data= false;
   }
 
   if (packet->universal->options.dont_track_packets == false)
   {
     if (packet->universal->packet_list == packet)
+    {
       packet->universal->packet_list= packet->next;
+    }
 
     if (packet->prev)
+    {
       packet->prev->next= packet->next;
+    }
 
     if (packet->next)
+    {
       packet->next->prev= packet->prev;
+    }
 
     packet->universal->packet_count--;
   }

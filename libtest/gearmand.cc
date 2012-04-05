@@ -49,40 +49,6 @@ using namespace libtest;
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
-class GetPid : public util::Instance::Finish
-{
-private:
-  pid_t _pid;
-
-public:
-  GetPid() :
-    _pid(-1)
-  { }
-
-  pid_t pid()
-  {
-    return _pid;
-  }
-
-
-  bool call(const bool success, const std::string &response)
-  {
-    _pid= -1;
-    if (success and response.size())
-    {
-      _pid= atoi(response.c_str());
-    }
-
-    if (is_pid_valid(_pid) == false)
-    {
-      _pid= -1;
-      return false;
-    }
-
-    return true;
-  }
-};
-
 using namespace libtest;
 
 class Gearmand : public libtest::Server

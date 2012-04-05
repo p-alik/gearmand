@@ -69,7 +69,6 @@ struct gearman_connection_st
   struct addrinfo *addrinfo;
   struct addrinfo *addrinfo_next;
   char *send_buffer_ptr;
-  gearman_packet_st *recv_packet;
   char *recv_buffer_ptr;
   gearman_packet_st _packet;
   char host[GEARMAN_NI_MAXHOST];
@@ -109,9 +108,21 @@ struct gearman_connection_st
 
   gearman_return_t lookup();
 
+  void free_recv_packet();
+  gearman_packet_st* recv_packet()
+  {
+    return _recv_packet;
+  }
+
+  void set_recv_packet(gearman_packet_st* arg)
+  {
+    _recv_packet= arg;
+  }
+
 private:
   size_t recv_socket(void *data, size_t data_size, gearman_return_t&);
   gearman_return_t connect_poll();
+  gearman_packet_st *_recv_packet;
 };
 
 /**
