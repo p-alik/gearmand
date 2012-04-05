@@ -94,8 +94,8 @@ static void gearmand_log(const char *position, const char *func /* func */,
   else
   {
     snprintf(current_time_str, sizeof(current_time_str), "%04d-%02d-%02d %02d:%02d:%02d.%06d",
-             (1900 + current_tm.tm_year), current_tm.tm_mon, current_tm.tm_mday, current_tm.tm_hour,
-             current_tm.tm_min, current_tm.tm_sec, current_epoch.tv_usec);
+             int(1900 + current_tm.tm_year), current_tm.tm_mon, current_tm.tm_mday, current_tm.tm_hour,
+             current_tm.tm_min, current_tm.tm_sec, int(current_epoch.tv_usec));
     current_time_str_ptr = current_time_str;
   }
 
