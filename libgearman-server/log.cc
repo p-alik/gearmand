@@ -13,10 +13,12 @@
 
 #include <config.h>
 #include <libgearman-server/common.h>
+#include <libgearman-server/timer.h>
 
 #include <algorithm>
 #include <cerrno>
 #include <cstring>
+#include <ctime>
 
 static pthread_key_t logging_key;
 static pthread_once_t intitialize_log_once= PTHREAD_ONCE_INIT;
@@ -65,10 +67,42 @@ static void gearmand_log(const char *position, const char *func /* func */,
                          const gearmand_error_t error_arg,
                          const char *format, va_list args)
 {
+  struct timeval current_epoch;
+
+  if (Gearmand() and Gearmand()->verbose < GEARMAND_VERBOSE_DEBUG)
+  {
+    current_epoch= libgearman::server::Epoch::current();
+  }
+  else
+  {
+    (void)gettimeofday(&current_epoch, NULL);
+  }
+
+  struct tm current_tm;
+  const char *current_time_str_ptr;
+  char current_time_str[27];
+
+  if (current_epoch.tv_sec == 0)
+  {
+    (void)gettimeofday(&current_epoch, NULL);
+  }
+
+  if ((gmtime_r(&current_epoch.tv_sec, &current_tm) == NULL))
+  {
+    current_time_str_ptr = "NA";
+  }
+  else
+  {
+    snprintf(current_time_str, sizeof(current_time_str), "%04d-%02d-%02d %02d:%02d:%02d.%06d",
+             int(1900 + current_tm.tm_year), current_tm.tm_mon, current_tm.tm_mday, current_tm.tm_hour,
+             current_tm.tm_min, current_tm.tm_sec, int(current_epoch.tv_usec));
+    current_time_str_ptr = current_time_str;
+  }
+
   if (Gearmand() == NULL)
   {
-    fprintf(stderr, "%s %7s: ", position,  gearmand_verbose_name(verbose));
-    vprintf(format, args);
+    fprintf(stderr, "%s %s %7s: ", current_time_str_ptr, position,  gearmand_verbose_name(verbose));
+    vfprintf(stderr, format, args);
     fprintf(stderr, "\n");
     return;
   }
@@ -89,7 +123,7 @@ static void gearmand_log(const char *position, const char *func /* func */,
     size_t remaining_size= sizeof(log_buffer);
 
     {
-      int length= snprintf(log_buffer_ptr, sizeof(log_buffer), "%s ", identity);
+      int length= snprintf(log_buffer, sizeof(log_buffer), "%s %s ", current_time_str_ptr, identity);
       // We just return whatever we have if this occurs
       if (length < -1 || (size_t)length >= sizeof(log_buffer))
       {
@@ -140,8 +174,8 @@ static void gearmand_log(const char *position, const char *func /* func */,
   }
   else
   {
-    fprintf(stderr, "%s %7s: ", identity,  gearmand_verbose_name(verbose));
-    vprintf(format, args);
+    fprintf(stderr, "%s %s %7s: ", current_time_str_ptr, identity,  gearmand_verbose_name(verbose));
+    vfprintf(stderr, format, args);
     fprintf(stderr, "\n");
   }
 }
