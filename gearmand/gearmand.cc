@@ -263,7 +263,7 @@ int main(int argc, char *argv[])
     gearmand_error_t rc;
     if ((rc= gearmand::queue::initialize(_gearmand, queue_type.c_str())) != GEARMAN_SUCCESS)
     {
-      error::message("Error while initializing the queue", protocol.c_str());
+      error::message("Error while initializing the queue", queue_type.c_str());
       gearmand_free(_gearmand);
 
       return EXIT_FAILURE;
