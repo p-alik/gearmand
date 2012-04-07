@@ -1121,9 +1121,8 @@ static test_return_t regression_975591_TEST(void *object)
                                                      gearman_worker_options_t(),
                                                      0);
   int payload_size[] = { 100, 1000, 10000, 1000000, 1000000, 0 };
-  int *ptr= payload_size;
   libtest::vchar_t payload;
-  while(*(ptr++))
+  for (int *ptr= payload_size; *ptr; ptr++)
   {
     payload.reserve(*ptr);
     for (size_t x= payload.size(); x < *ptr; x++)
@@ -1140,6 +1139,7 @@ static test_return_t regression_975591_TEST(void *object)
     test_compare(GEARMAN_SUCCESS, rc);
     test_compare(payload.size(), result_length);
     test_memcmp(&payload[0], job_result, result_length);
+    free(job_result);
   }
 
   delete worker_handle;
