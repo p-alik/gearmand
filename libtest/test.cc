@@ -229,12 +229,17 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
       }
 
-      if (getenv("TEST_COLLECTION"))
+      if (getenv("YATL_COLLECTION_TO_RUN"))
       {
-        if (strlen(getenv("TEST_COLLECTION")))
+        if (strlen(getenv("YATL_COLLECTION_TO_RUN")))
         {
-          collection_to_run= getenv("TEST_COLLECTION");
+          collection_to_run= getenv("YATL_COLLECTION_TO_RUN");
         }
+      }
+
+      if (collection_to_run.compare("none") == 0)
+      {
+        return EXIT_SUCCESS;
       }
 
       if (collection_to_run.empty() == false)

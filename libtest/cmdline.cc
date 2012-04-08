@@ -110,6 +110,9 @@ Application::Application(const std::string& arg, const bool _use_libtool_arg) :
   _use_ptrcheck(false),
   _argc(0),
   _exectuble(arg),
+  stdin_fd(STDIN_FILENO),
+  stdout_fd(STDOUT_FILENO),
+  stderr_fd(STDERR_FILENO),
   built_argv(NULL),
   _pid(-1)
   { 
@@ -159,9 +162,9 @@ Application::error_t Application::run(const char *args[])
   posix_spawn_file_actions_t file_actions;
   posix_spawn_file_actions_init(&file_actions);
 
-  stdin_fd.dup_for_spawn(Application::Pipe::READ, file_actions, STDIN_FILENO);
-  stdout_fd.dup_for_spawn(Application::Pipe::WRITE, file_actions, STDOUT_FILENO);
-  stderr_fd.dup_for_spawn(Application::Pipe::WRITE, file_actions, STDERR_FILENO);
+  stdin_fd.dup_for_spawn(Application::Pipe::READ, file_actions);
+  stdout_fd.dup_for_spawn(Application::Pipe::WRITE, file_actions);
+  stderr_fd.dup_for_spawn(Application::Pipe::WRITE, file_actions);
 
   posix_spawnattr_t spawnattr;
   posix_spawnattr_init(&spawnattr);
@@ -242,8 +245,9 @@ Application::error_t Application::run(const char *args[])
   stdout_fd.close(Application::Pipe::WRITE);
   stderr_fd.close(Application::Pipe::WRITE);
 
-  if (spawn_ret)
+  if (spawn_ret != 0)
   {
+    Error << strerror(spawn_ret) << "(" << spawn_ret << ")";
     _pid= -1;
     return Application::INVALID;
   }
@@ -263,7 +267,6 @@ bool Application::check() const
 
 void Application::murder()
 {
-  slurp();
   if (check())
   {
     int count= 5;
@@ -308,17 +311,18 @@ void Application::murder()
       (void)kill(_pid, SIGKILL);
     }
   }
+  slurp();
 }
 
 // false means that no data was returned
 bool Application::slurp()
 {
   struct pollfd fds[2];
-  fds[0].fd= stdout_fd.fd()[0];
-  fds[0].events= POLLIN;
+  fds[0].fd= stdout_fd.fd();
+  fds[0].events= POLLRDNORM;
   fds[0].revents= 0;
-  fds[1].fd= stderr_fd.fd()[0];
-  fds[1].events= POLLIN;
+  fds[1].fd= stderr_fd.fd();
+  fds[1].events= POLLRDNORM;
   fds[1].revents= 0;
 
   int active_fd;
@@ -356,65 +360,19 @@ bool Application::slurp()
   }
 
   bool data_was_read= false;
-  if (fds[0].revents & POLLIN)
+  if (fds[0].revents & POLLRDNORM)
   {
-    ssize_t read_length;
-    char buffer[1024]= { 0 };
-    while ((read_length= ::read(stdout_fd.fd()[0], buffer, sizeof(buffer))))
+    if (stdout_fd.read(_stdout_buffer) == true)
     {
-      if (read_length == -1)
-      {
-        switch(errno)
-        {
-        case EAGAIN:
-          continue;
-
-        default:
-          Error << strerror(errno);
-          break;
-        }
-
-        break;
-      }
-
       data_was_read= true;
-      _stdout_buffer.reserve(read_length +1);
-      for (size_t x= 0; x < read_length; x++)
-      {
-        _stdout_buffer.push_back(buffer[x]);
-      }
-      // @todo Suck up all output code here
     }
   }
 
-  if (fds[1].revents & POLLIN)
+  if (fds[1].revents & POLLRDNORM)
   {
-    ssize_t read_length;
-    char buffer[1024]= { 0 };
-    while ((read_length= ::read(stderr_fd.fd()[0], buffer, sizeof(buffer))))
+    if (stderr_fd.read(_stderr_buffer) == true)
     {
-      if (read_length == -1)
-      {
-        switch(errno)
-        {
-        case EAGAIN:
-          continue;
-
-        default:
-          Error << strerror(errno);
-          break;
-        }
-
-        break;
-      }
-
       data_was_read= true;
-      _stderr_buffer.reserve(read_length +1);
-      for (size_t x= 0; x < read_length; x++)
-      {
-        _stderr_buffer.push_back(buffer[x]);
-      }
-      // @todo Suck up all errput code here
     }
   }
 
@@ -493,24 +451,77 @@ void Application::add_option(const std::string& name, const std::string& value)
   _options.push_back(std::make_pair(name, value));
 }
 
-Application::Pipe::Pipe()
+Application::Pipe::Pipe(int arg) :
+  _std_fd(arg)
 {
-  _fd[0]= -1;
-  _fd[1]= -1;
-  _open[0]= false;
-  _open[1]= false;
+  _pipe_fd[READ]= -1;
+  _pipe_fd[WRITE]= -1;
+  _open[READ]= false;
+  _open[WRITE]= false;
+}
+
+int Application::Pipe::Pipe::fd()
+{
+  if (_std_fd == STDOUT_FILENO)
+  {
+    return _pipe_fd[READ];
+  }
+  else if (_std_fd == STDERR_FILENO)
+  {
+    return _pipe_fd[READ];
+  }
+
+  return _pipe_fd[WRITE]; // STDIN_FILENO
+}
+
+
+bool Application::Pipe::read(libtest::vchar_t& arg)
+{
+  fatal_assert(_std_fd == STDOUT_FILENO or _std_fd == STDERR_FILENO);
+
+  bool data_was_read= false;
+
+  ssize_t read_length;
+  char buffer[1024]= { 0 };
+  while ((read_length= ::read(_pipe_fd[READ], buffer, sizeof(buffer))))
+  {
+    if (read_length == -1)
+    {
+      switch(errno)
+      {
+      case EAGAIN:
+        break;
+
+      default:
+        Error << strerror(errno);
+        break;
+      }
+
+      break;
+    }
+
+    data_was_read= true;
+    arg.reserve(read_length +1);
+    for (size_t x= 0; x < read_length; x++)
+    {
+      arg.push_back(buffer[x]);
+    }
+    // @todo Suck up all errput code here
+  }
+
+  return data_was_read;
 }
 
 void Application::Pipe::nonblock()
 {
   int ret;
-  if ((ret= fcntl(_fd[0], F_GETFL, 0)) == -1)
+  if ((ret= fcntl(_pipe_fd[READ], F_GETFL, 0)) == -1)
   {
     Error << "fcntl(F_GETFL) " << strerror(errno);
     throw strerror(errno);
   }
 
-  if ((ret= fcntl(_fd[0], F_SETFL, ret | O_NONBLOCK)) == -1)
+  if ((ret= fcntl(_pipe_fd[READ], F_SETFL, ret | O_NONBLOCK)) == -1)
   {
     Error << "fcntl(F_SETFL) " << strerror(errno);
     throw strerror(errno);
@@ -522,16 +533,37 @@ void Application::Pipe::reset()
   close(READ);
   close(WRITE);
 
-  if (pipe(_fd) == -1)
+#if _GNU_SOURCE
+  if (pipe2(_pipe_fd, O_NONBLOCK) == -1)
+#else
+  if (pipe(_pipe_fd) == -1)
+#endif
   {
     fatal_message(strerror(errno));
   }
   _open[0]= true;
   _open[1]= true;
 
-  if (0)
+  if (true)
   {
     nonblock();
+    cloexec();
+  }
+}
+
+void Application::Pipe::cloexec()
+{
+  int ret;
+  if ((ret= fcntl(_pipe_fd[WRITE], F_GETFD, 0)) == -1)
+  {
+    Error << "fcntl(F_GETFD) " << strerror(errno);
+    throw strerror(errno);
+  }
+
+  if ((ret= fcntl(_pipe_fd[WRITE], F_SETFD, ret | FD_CLOEXEC)) == -1)
+  {
+    Error << "fcntl(F_SETFD) " << strerror(errno);
+    throw strerror(errno);
   }
 }
 
@@ -541,18 +573,18 @@ Application::Pipe::~Pipe()
   close(WRITE);
 }
 
-void Application::Pipe::dup_for_spawn(const close_t& arg, posix_spawn_file_actions_t& file_actions, const int newfildes)
+void Application::Pipe::dup_for_spawn(const close_t& arg, posix_spawn_file_actions_t& file_actions)
 {
   int type= int(arg);
 
   int ret;
-  if ((ret= posix_spawn_file_actions_adddup2(&file_actions, _fd[type], newfildes )) < 0)
+  if ((ret= posix_spawn_file_actions_adddup2(&file_actions, _pipe_fd[type], _std_fd )) < 0)
   {
     Error << "posix_spawn_file_actions_adddup2(" << strerror(ret) << ")";
     fatal_message(strerror(ret));
   }
 
-  if ((ret= posix_spawn_file_actions_addclose(&file_actions, _fd[type])) < 0)
+  if ((ret= posix_spawn_file_actions_addclose(&file_actions, _pipe_fd[type])) < 0)
   {
     Error << "posix_spawn_file_actions_adddup2(" << strerror(ret) << ")";
     fatal_message(strerror(ret));
@@ -566,12 +598,12 @@ void Application::Pipe::close(const close_t& arg)
   if (_open[type])
   {
     int ret;
-    if (::close(_fd[type]) == -1)
+    if (::close(_pipe_fd[type]) == -1)
     {
       Error << "close(" << strerror(errno) << ")";
     }
     _open[type]= false;
-    _fd[type]= -1;
+    _pipe_fd[type]= -1;
   }
 }
 

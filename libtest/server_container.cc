@@ -145,7 +145,8 @@ server_startup_st::server_startup_st() :
   _socket(false),
   _sasl(false),
   _count(0),
-  udp(0)
+  udp(0),
+  _servers_to_run(5)
 { }
 
 server_startup_st::~server_startup_st()
