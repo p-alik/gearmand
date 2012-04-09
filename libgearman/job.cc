@@ -571,8 +571,20 @@ void gearman_job_free(gearman_job_st *job)
 static gearman_return_t _job_send(gearman_job_st *job)
 {
   gearman_return_t ret= job->con->send_packet(job->work, true);
+
+  while ((ret == GEARMAN_IO_WAIT) or (ret == GEARMAN_TIMEOUT))
+  {
+    ret= gearman_wait(job->worker->universal);
+    if (ret == GEARMAN_SUCCESS)
+    {
+      ret= job->con->send_packet(job->work, true);
+    }
+  }
+
   if (gearman_failed(ret))
+  {
     return ret;
+  }
 
   gearman_packet_free(&(job->work));
   job->options.work_in_use= false;

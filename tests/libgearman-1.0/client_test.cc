@@ -1109,6 +1109,44 @@ static test_return_t gearman_worker_timeout_TIMEOUT_TEST(void *object)
   return TEST_SUCCESS;
 }
 
+static test_return_t regression_975591_TEST(void *object)
+{
+  gearman_client_st *client= (gearman_client_st *)object;
+  test_true(client);
+
+  gearman_function_t dreaming_fn= gearman_function_create(echo_or_react_worker_v2);
+  worker_handle_st* worker_handle= test_worker_start(libtest::default_port(), NULL,
+                                                     __func__,
+                                                     dreaming_fn, NULL,
+                                                     gearman_worker_options_t(),
+                                                     0);
+  int payload_size[] = { 100, 1000, 10000, 1000000, 1000000, 0 };
+  libtest::vchar_t payload;
+  for (int *ptr= payload_size; *ptr; ptr++)
+  {
+    payload.reserve(*ptr);
+    for (size_t x= payload.size(); x < *ptr; x++)
+    {
+      payload.push_back(rand());
+    }
+
+    size_t result_length;
+    gearman_return_t rc;
+    char *job_result= (char*)gearman_client_do(client, __func__,
+                                               NULL, 
+                                               &payload[0], payload.size(),
+                                               &result_length, &rc);
+    test_compare(GEARMAN_SUCCESS, rc);
+    test_compare(payload.size(), result_length);
+    test_memcmp(&payload[0], job_result, result_length);
+    free(job_result);
+  }
+
+  delete worker_handle;
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t submit_log_failure_TEST(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
@@ -1528,6 +1566,7 @@ test_st regression_tests[] ={
   {"lp:785203 gearman_client_do()", 0, regression_785203_do_test },
   {"lp:785203 gearman_client_do_background()", 0, regression_785203_do_background_test },
   {"lp:833394 long function names", 0, regression_833394_test },
+  {"lp:975591 Increase the work size past the standard buffer size", 0, regression_975591_TEST },
   {0, 0, 0}
 };
 
