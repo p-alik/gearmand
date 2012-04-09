@@ -172,6 +172,7 @@ AC_FUNC_REALLOC
 AC_FUNC_STRERROR_R
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([dup2 gettimeofday memchr memmove memset socket strcasecmp strdup strerror strncasecmp uname])
+AC_CHECK_FUNCS([pipe2])
 AC_CHECK_FUNCS([select])
 AC_CHECK_FUNCS([setenv])
 AC_CHECK_FUNCS([strtol])
