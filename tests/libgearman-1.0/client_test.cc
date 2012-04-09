@@ -1120,9 +1120,9 @@ static test_return_t regression_975591_TEST(void *object)
                                                      dreaming_fn, NULL,
                                                      gearman_worker_options_t(),
                                                      0);
-  int payload_size[] = { 100, 1000, 10000, 1000000, 1000000, 0 };
+  size_t payload_size[] = { 100, 1000, 10000, 1000000, 1000000, 0 };
   libtest::vchar_t payload;
-  for (int *ptr= payload_size; *ptr; ptr++)
+  for (size_t *ptr= payload_size; *ptr; ptr++)
   {
     payload.reserve(*ptr);
     for (size_t x= payload.size(); x < *ptr; x++)
