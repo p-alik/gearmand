@@ -26,3 +26,13 @@ The Bazaar version control system is required to check out the latest stable dev
    ./configure
    make
    make install
+
+-----------------
+Platform specifcs
+-----------------
+.. toctree::
+   :maxdepth: 1
+   
+   build/ubuntu
+   build/fedora
+   build/centos5-8
