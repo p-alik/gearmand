@@ -58,20 +58,29 @@ static void* current_epoch_handler(void*)
   gearmand_debug("staring up Epoch thread");
 
   pollfd fds[1];
-  memset(fds, 0, sizeof(pollfd));
-  fds[1].fd= -1; //STDIN_FILENO;
-  fds[1].events= POLLIN;
-  fds[1].revents= 0;
-
   while (true)
   {
+    memset(fds, 0, sizeof(pollfd));
+    fds[0].fd= -1; //STDIN_FILENO;
+    fds[0].events= POLLIN;
+    fds[0].revents= 0;
+
     int error;
     if ((error= poll(fds, 1, 1000)) == -1)
     {
-      gearmand_perror("poll");
+      switch (errno)
+      {
+      case EINTR: // Shutdown
+        pthread_exit(NULL);
+
+      default:
+        gearmand_perror("poll");
+      }
     }
     gettimeofday(&current_epoch, NULL);
   }
+
+  pthread_exit(NULL);
 }
 
 static void startup(void)

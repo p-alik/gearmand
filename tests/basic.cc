@@ -98,17 +98,16 @@ test_return_t client_echo_fail_test(void *object)
   Context *test= (Context *)object;
   test_truth(test);
 
-  gearman_client_st client, *client_ptr;
+  gearman_client_st *client= gearman_client_create(NULL);
+  test_truth(client);
 
-  client_ptr= gearman_client_create(&client);
-  test_truth(client_ptr);
+  test_compare_hint(GEARMAN_SUCCESS,
+                    gearman_client_add_server(client, NULL, 20), gearman_client_error(client));
 
-  test_true_got(gearman_success(gearman_client_add_server(&client, NULL, 20)), gearman_client_error(client_ptr));
-
-  gearman_return_t rc= gearman_client_echo(&client, test_literal_param("This should never work"));
+  gearman_return_t rc= gearman_client_echo(client, test_literal_param("This should never work"));
   test_true_got(gearman_failed(rc), gearman_strerror(rc));
 
-  gearman_client_free(&client);
+  gearman_client_free(client);
 
   return TEST_SUCCESS;
 }
@@ -118,17 +117,18 @@ test_return_t client_echo_test(void *object)
   Context *test= (Context *)object;
   test_truth(test);
 
-  gearman_client_st client, *client_ptr;
+  gearman_client_st *client= gearman_client_create(NULL);
+  test_truth(client);
 
-  client_ptr= gearman_client_create(&client);
-  test_truth(client_ptr);
+  test_compare_hint(GEARMAN_SUCCESS,
+                    gearman_client_add_server(client, NULL, test->port()),
+                    gearman_client_error(client));
 
-  test_true_got(gearman_success(gearman_client_add_server(&client, NULL, test->port())), gearman_client_error(client_ptr));
+  test_compare_hint(GEARMAN_SUCCESS, 
+                    gearman_client_echo(client, test_literal_param("This is my echo test")),
+                    gearman_client_error(client));
 
-  gearman_return_t rc= gearman_client_echo(&client, test_literal_param("This is my echo test"));
-  test_true_got(rc == GEARMAN_SUCCESS, gearman_strerror(rc));
-
-  gearman_client_free(&client);
+  gearman_client_free(client);
 
   return TEST_SUCCESS;
 }
@@ -141,8 +141,9 @@ test_return_t worker_echo_test(void *object)
   gearman_worker_st *worker= test->worker;
   test_truth(worker);
 
-  gearman_return_t rc= gearman_worker_echo(worker, test_literal_param("This is my echo test"));
-  test_true_got(rc == GEARMAN_SUCCESS, gearman_strerror(rc));
+  test_compare_hint(GEARMAN_SUCCESS,
+                    gearman_worker_echo(worker, test_literal_param("This is my echo test")),
+                    gearman_worker_error(worker));
 
   return TEST_SUCCESS;
 }
@@ -172,26 +173,25 @@ test_return_t queue_clean(void *object)
 test_return_t queue_add(void *object)
 {
   Context *test= (Context *)object;
-  gearman_client_st client, *client_ptr;
   test_truth(test);
 
   test->run_worker= false;
 
-  client_ptr= gearman_client_create(&client);
-  test_truth(client_ptr);
+  gearman_client_st* client= gearman_client_create(NULL);
+  test_truth(client);
 
   test_compare_hint(GEARMAN_SUCCESS, 
-                    gearman_client_add_server(&client, NULL, test->port()),
-                    gearman_client_error(client_ptr));
+                    gearman_client_add_server(client, NULL, test->port()),
+                    gearman_client_error(client));
 
   {
-    gearman_return_t rc= gearman_client_echo(&client, test_literal_param("echo test message"));
+    gearman_return_t rc= gearman_client_echo(client, test_literal_param("echo test message"));
     test_compare_hint(GEARMAN_SUCCESS, rc, gearman_strerror(rc));
   }
 
   {
     gearman_job_handle_t job_handle= {};
-    gearman_return_t ret= gearman_client_do_background(&client, test->worker_function_name(), NULL,
+    gearman_return_t ret= gearman_client_do_background(client, test->worker_function_name(), NULL,
                                                        test->worker_function_name(), strlen(test->worker_function_name()),
                                                        job_handle);
     test_compare_hint(GEARMAN_SUCCESS, ret, gearman_strerror(ret));
@@ -199,13 +199,13 @@ test_return_t queue_add(void *object)
 
     gearman_return_t rc;
     do {
-      rc= gearman_client_job_status(client_ptr, job_handle, NULL, NULL, NULL, NULL);
+      rc= gearman_client_job_status(client, job_handle, NULL, NULL, NULL, NULL);
       test_true(rc != GEARMAN_IN_PROGRESS);
     } while (gearman_continue(rc) and rc != GEARMAN_JOB_EXISTS); // We need to exit on these values since the job will never run
     test_true(rc == GEARMAN_JOB_EXISTS or rc == GEARMAN_SUCCESS);
   }
 
-  gearman_client_free(&client);
+  gearman_client_free(client);
 
   test->run_worker= true;
 
@@ -253,22 +253,22 @@ test_return_t lp_734663(void *object)
   uint8_t value[JOB_SIZE]= { 'x' };
   memset(&value, 'x', sizeof(value));
 
-  gearman_client_st client, *client_ptr;
-  client_ptr= gearman_client_create(&client);
-  test_truth(client_ptr);
+  gearman_client_st *client= gearman_client_create(NULL);
+  test_truth(client);
 
-  test_true_got(gearman_success(gearman_client_add_server(&client, NULL, test->port())), gearman_client_error(client_ptr));
+  test_compare_hint(GEARMAN_SUCCESS,
+                    gearman_client_add_server(client, NULL, test->port()), gearman_client_error(client));
 
-  test_compare(GEARMAN_SUCCESS, gearman_client_echo(&client, value, sizeof(JOB_SIZE)));
+  test_compare(GEARMAN_SUCCESS, gearman_client_echo(client, value, sizeof(JOB_SIZE)));
 
   for (uint32_t x= 0; x < NUMBER_OF_JOBS; x++)
   {
     gearman_job_handle_t job_handle= {};
-    test_compare(GEARMAN_SUCCESS, gearman_client_do_background(&client, worker_function_name, NULL, value, sizeof(value), job_handle));
+    test_compare(GEARMAN_SUCCESS, gearman_client_do_background(client, worker_function_name, NULL, value, sizeof(value), job_handle));
     test_truth(job_handle[0]);
   }
 
-  gearman_client_free(&client);
+  gearman_client_free(client);
 
   struct worker_handle_st *worker_handle[NUMBER_OF_WORKERS];
 
@@ -281,12 +281,7 @@ test_return_t lp_734663(void *object)
 
   while (counter.count() < NUMBER_OF_JOBS)
   {
-#ifdef WIN32
-    sleep(gearman_timeout(worker)/100000);
-#else
-    struct timespec global_sleep_value= { 0, static_cast<long>(gearman_timeout(client_ptr) *1000) };
-    nanosleep(&global_sleep_value, NULL);
-#endif
+    libtest::dream(0, static_cast<long>(gearman_timeout(client) *1000));
   }
 
   for (uint32_t x= 0; x < NUMBER_OF_WORKERS; x++)

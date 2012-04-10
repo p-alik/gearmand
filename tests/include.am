@@ -20,6 +20,7 @@ noinst_HEADERS+= \
 		 tests/limits.h \
 		 tests/protocol.h \
 		 tests/regression.h \
+		 tests/runner.h \
 		 tests/server_options.h \
 		 tests/start_worker.h \
 		 tests/task.h \

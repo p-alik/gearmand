@@ -146,6 +146,8 @@ struct client_test_st
   }
 };
 
+#include <tests/runner.h>
+
 class Client {
 public:
   Client()
@@ -830,7 +832,7 @@ static test_return_t hostname_resolution(void *)
   return TEST_SUCCESS;
 }
 
-static test_return_t gearman_client_st_id_t_TEST(void *)
+static test_return_t gearman_client_st_id_t_TEST(gearman_client_st*)
 {
   return TEST_SKIPPED;
 
@@ -846,7 +848,7 @@ static test_return_t gearman_client_st_id_t_TEST(void *)
 #endif
 }
 
-static test_return_t gearman_worker_st_id_t_TEST(void *)
+static test_return_t gearman_worker_st_id_t_TEST(gearman_client_st*)
 {
   gearman_worker_st *worker= gearman_worker_create(NULL);
   test_true(worker);
@@ -1120,9 +1122,9 @@ static test_return_t regression_975591_TEST(void *object)
                                                      dreaming_fn, NULL,
                                                      gearman_worker_options_t(),
                                                      0);
-  int payload_size[] = { 100, 1000, 10000, 1000000, 1000000, 0 };
+  size_t payload_size[] = { 100, 1000, 10000, 1000000, 1000000, 0 };
   libtest::vchar_t payload;
-  for (int *ptr= payload_size; *ptr; ptr++)
+  for (size_t *ptr= payload_size; *ptr; ptr++)
   {
     payload.reserve(*ptr);
     for (size_t x= payload.size(); x < *ptr; x++)
@@ -1492,8 +1494,8 @@ test_st gearman_client_set_identifier_TESTS[] ={
 };
 
 test_st gearman_id_t_TESTS[] ={
-  {"gearman_client_st", 0, gearman_client_st_id_t_TEST },
-  {"gearman_worker_st", 0, gearman_worker_st_id_t_TEST },
+  {"gearman_client_st", 0, (test_callback_fn*)gearman_client_st_id_t_TEST },
+  {"gearman_worker_st", 0, (test_callback_fn*)gearman_worker_st_id_t_TEST },
   {0, 0, 0}
 };
 
@@ -1684,76 +1686,10 @@ collection_st collection[] ={
   {0, 0, 0, 0}
 };
 
-typedef test_return_t (*libgearman_test_prepost_callback_fn)(client_test_st *);
-typedef test_return_t (*libgearman_test_callback_fn)(gearman_client_st *);
-static test_return_t _runner_prepost_default(libgearman_test_prepost_callback_fn func, client_test_st *container)
-{
-  if (func)
-  {
-    return func(container);
-  }
-
-  return TEST_SUCCESS;
-}
-
-static test_return_t _runner_default(libgearman_test_callback_fn func, client_test_st *container)
-{
-  test_compare(GEARMAN_SUCCESS, gearman_client_echo(container->client(), test_literal_param("check")));
-
-  if (func)
-  {
-    test_return_t rc;
-
-    if (container->clone())
-    {
-      gearman_client_st *client= gearman_client_clone(NULL, container->client());
-      test_truth(client);
-      gearman_client_set_context(client, (void *)container->worker_name());
-      rc= func(client);
-      if (rc == TEST_SUCCESS)
-      {
-        test_true_got(not client->task_list, "Client still had tasks");
-      }
-
-      gearman_client_free(client);
-    }
-    else
-    {
-      gearman_client_set_context(container->client(), (void *)container->worker_name());
-      rc= func(container->client());
-      assert(not container->client()->task_list);
-    }
-
-    return rc;
-  }
-
-  return TEST_SUCCESS;
-}
-
-class GearmandRunner : public Runner {
-public:
-  test_return_t run(test_callback_fn* func, void *object)
-  {
-    return _runner_default(libgearman_test_callback_fn(func), (client_test_st*)object);
-  }
-
-  test_return_t pre(test_callback_fn* func, void *object)
-  {
-    return _runner_prepost_default(libgearman_test_prepost_callback_fn(func), (client_test_st*)object);
-  }
-
-  test_return_t post(test_callback_fn* func, void *object)
-  {
-    return _runner_prepost_default(libgearman_test_prepost_callback_fn(func), (client_test_st*)object);
-  }
-};
-
-static GearmandRunner defualt_runner;
-
 void get_world(Framework *world)
 {
   world->collections= collection;
   world->_create= world_create;
   world->_destroy= world_destroy;
-  world->set_runner(&defualt_runner);
+  world->set_runner(new GearmandRunner);
 }
