@@ -1755,5 +1755,5 @@ void get_world(Framework *world)
   world->collections= collection;
   world->_create= world_create;
   world->_destroy= world_destroy;
-  world->set_runner(&defualt_runner);
+  world->set_runner(new GearmandRunner);
 }
