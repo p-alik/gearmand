@@ -1,3 +1,6 @@
+0.32
+* Fix for shutdown bug.
+
 0.31 Sat Apr  7 11:56:58 PDT 2012
 * Fixes for bugs 975591, 974712, 970828, 967859, 967463,
 * Valgrind fix around epoch retry.
