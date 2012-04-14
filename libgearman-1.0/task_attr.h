@@ -60,6 +60,7 @@ struct gearman_task_attr_t {
     char bytes[sizeof(struct gearman_task_attr_epoch_t)];
     struct gearman_task_attr_epoch_t epoch;
   } options;
+  bool wait; // Whether to wait for add_task
 };
 
 #ifdef __cplusplus
@@ -70,6 +71,9 @@ extern "C" {
 
 GEARMAN_API
   gearman_task_attr_t gearman_task_attr_init(gearman_job_priority_t priority);
+
+GEARMAN_API
+  void gearman_task_attr_set_wait(gearman_task_attr_t *self, bool arg);
 
 GEARMAN_API
   gearman_task_attr_t gearman_task_attr_init_epoch(time_t epoch, gearman_job_priority_t priority);

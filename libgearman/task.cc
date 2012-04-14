@@ -270,7 +270,9 @@ const char *gearman_task_job_handle(const gearman_task_st *task)
 bool gearman_task_is_known(const gearman_task_st *task)
 {
   if (task == NULL)
+  {
     return false;
+  }
 
   return task->options.is_known;
 }
@@ -288,7 +290,9 @@ bool gearman_task_is_running(const gearman_task_st *task)
 uint32_t gearman_task_numerator(const gearman_task_st *task)
 {
   if (task == NULL)
+  {
     return 0;
+  }
 
   return task->numerator;
 }
@@ -296,7 +300,9 @@ uint32_t gearman_task_numerator(const gearman_task_st *task)
 uint32_t gearman_task_denominator(const gearman_task_st *task)
 {
   if (task == NULL)
+  {
     return 0;
+  }
 
   return task->denominator;
 }
@@ -305,7 +311,9 @@ void gearman_task_give_workload(gearman_task_st *task, const void *workload,
                                 size_t workload_size)
 {
   if (task == NULL)
+  {
     return;
+  }
 
   gearman_packet_give_data(task->send, workload, workload_size);
 }

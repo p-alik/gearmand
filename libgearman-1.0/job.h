@@ -75,22 +75,7 @@ extern "C" {
  * @{
  */
 
-/**
- * Initialize a job structure. Always check the return value even if passing
- * in a pre-allocated structure. Some other initialization may have failed. It
- * is not required to memset() a structure before providing it.
- *
- * @param[in] A valid gearman_worker_st.
- * @param[in] gearman_job_st allocated structure, or NULL to allocate one.
- * @return On success, a pointer to the (possibly allocated) structure. On
- *  failure this will be NULL.
- */
-GEARMAN_LOCAL
-gearman_job_st *gearman_job_create(gearman_worker_st *worker,
-                                   gearman_job_st *job);
-
-/**
- * Free a job structure.
+/** Free a job structure.
  *
  * @param[in] job Structure previously initialized with
  *  gearman_worker_grab_job().
@@ -130,12 +115,7 @@ gearman_return_t gearman_job_send_complete(gearman_job_st *job,
                                            const void *result,
                                            size_t result_size);
 
-GEARMAN_LOCAL
-gearman_return_t gearman_job_send_complete_fin(gearman_job_st *job,
-                                               const void *result, size_t result_size);
-
-/**
- * Send exception for a running job.
+/** Send exception for a running job.
  */
 GEARMAN_API
 gearman_return_t gearman_job_send_exception(gearman_job_st *job,
@@ -148,11 +128,7 @@ gearman_return_t gearman_job_send_exception(gearman_job_st *job,
 GEARMAN_API
 gearman_return_t gearman_job_send_fail(gearman_job_st *job);
 
-GEARMAN_LOCAL
-gearman_return_t gearman_job_send_fail_fin(gearman_job_st *job);
-
-/**
- * Get job handle.
+/** Get job handle.
  */
 GEARMAN_API
 const char *gearman_job_handle(const gearman_job_st *job);
@@ -163,29 +139,12 @@ const char *gearman_job_handle(const gearman_job_st *job);
 GEARMAN_API
   const char *gearman_job_function_name(const gearman_job_st *job);
 
-GEARMAN_LOCAL
-  gearman_string_t gearman_job_function_name_string(const gearman_job_st *);
-
-/**
- * Get the unique ID associated with a job.
+/** Get the unique ID associated with a job.
  */
 GEARMAN_API
   const char *gearman_job_unique(const gearman_job_st *job);
 
-GEARMAN_LOCAL
-  gearman_string_t gearman_job_reducer_string(const gearman_job_st *job);
-
-GEARMAN_LOCAL
-  const char *gearman_job_reducer(const gearman_job_st *job);
-
-GEARMAN_LOCAL
-  bool gearman_job_is_map(const gearman_job_st *job);
-
-GEARMAN_LOCAL
-  bool gearman_job_build_reducer(gearman_job_st *job, gearman_aggregator_fn *aggregator_fn);
-
-/**
- * Get a pointer to the workload for a job.
+/** Get a pointer to the workload for a job.
  */
 GEARMAN_API
 const void *gearman_job_workload(const gearman_job_st *job);

@@ -157,7 +157,9 @@ static gearman_return_t gearman_exception_test_function(gearman_task_st *task)
 {
   bool *success= (bool *)gearman_task_context(task);
   if (not success)
+  {
     return GEARMAN_WORK_FAIL;
+  }
 
   *success= true;
   return GEARMAN_SUCCESS;
@@ -325,7 +327,9 @@ static gearman_return_t gearman_warning_test_function(gearman_task_st *task)
 {
   bool *success= (bool *)gearman_task_context(task);
   if (not success)
+  {
     return GEARMAN_WORK_FAIL;
+  }
 
   *success= true;
   return GEARMAN_SUCCESS;

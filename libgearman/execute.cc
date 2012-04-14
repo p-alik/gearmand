@@ -68,13 +68,19 @@ static inline gearman_command_t pick_command_by_priority_background(const gearma
 gearman_task_st *gearman_execute(gearman_client_st *client,
                                  const char *function_name, size_t function_length,
                                  const char *unique_str, size_t unique_length,
-                                 gearman_task_attr_t *workload,
+                                 gearman_task_attr_t *task_attr,
                                  gearman_argument_t *arguments,
                                  void *context)
 {
   if (client == NULL)
   {
     return NULL;
+  }
+
+  gearman_argument_t null_arg= gearman_argument_make(0, 0, 0, 0);
+  if (arguments == NULL)
+  {
+    arguments= &null_arg;
   }
 
   if (function_name == NULL or function_length == 0)
@@ -86,14 +92,14 @@ gearman_task_st *gearman_execute(gearman_client_st *client,
 
   gearman_task_st *task= NULL;
   gearman_unique_t unique= gearman_unique_make(unique_str, unique_length);
-  if (workload)
+  if (task_attr)
   {
-    switch (workload->kind)
+    switch (task_attr->kind)
     {
     case GEARMAN_TASK_ATTR_BACKGROUND:
       task= add_task(*client,
                      context,
-                     pick_command_by_priority_background(workload->priority),
+                     pick_command_by_priority_background(task_attr->priority),
                      function,
                      unique,
                      arguments->value,
@@ -108,14 +114,14 @@ gearman_task_st *gearman_execute(gearman_client_st *client,
                      function,
                      unique,
                      arguments->value,
-                     gearman_task_attr_has_epoch(workload),
+                     gearman_task_attr_has_epoch(task_attr),
                      gearman_actions_execute_defaults());
       break;
 
     case GEARMAN_TASK_ATTR_FOREGROUND:
       task= add_task(*client,
                      context,
-                     pick_command_by_priority(workload->priority),
+                     pick_command_by_priority(task_attr->priority),
                      function,
                      unique,
                      arguments->value,
@@ -144,7 +150,10 @@ gearman_task_st *gearman_execute(gearman_client_st *client,
   }
 
   task->type= GEARMAN_TASK_KIND_EXECUTE;
-  gearman_client_run_tasks(client);
+  if (task_attr == NULL or task_attr->wait)
+  {
+    gearman_client_run_tasks(client);
+  }
 
   return task;
 }
@@ -153,7 +162,7 @@ gearman_task_st *gearman_execute_by_partition(gearman_client_st *client,
                                               const char *partition_function, const size_t partition_function_length,
                                               const char *function_name, const size_t function_name_length,
                                               const char *unique_str, const size_t unique_length,
-                                              gearman_task_attr_t *workload,
+                                              gearman_task_attr_t *task_attr,
                                               gearman_argument_t *arguments,
                                               void *context)
 {
@@ -182,14 +191,14 @@ gearman_task_st *gearman_execute_by_partition(gearman_client_st *client,
   gearman_string_t function= { function_name, function_name_length };
   gearman_unique_t unique= gearman_unique_make(unique_str, unique_length);
 
-  if (workload)
+  if (task_attr)
   {
-    switch (workload->kind)
+    switch (task_attr->kind)
     {
     case GEARMAN_TASK_ATTR_BACKGROUND:
       task= add_reducer_task(client,
                              GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND,
-                             workload->priority,
+                             task_attr->priority,
                              partition,
                              function,
                              unique,
@@ -205,13 +214,13 @@ gearman_task_st *gearman_execute_by_partition(gearman_client_st *client,
 #if 0
       task= add_task(client,
                      GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND,
-                     workload->priority,
+                     task_attr->priority,
                      partition,
                      function,
                      unique,
                      arguments->value,
                      gearman_actions_execute_defaults(),
-                     gearman_work_epoch(workload),
+                     gearman_work_epoch(task_attr),
                      context);
 #endif
       break;
@@ -219,7 +228,7 @@ gearman_task_st *gearman_execute_by_partition(gearman_client_st *client,
     case GEARMAN_TASK_ATTR_FOREGROUND:
       task= add_reducer_task(client,
                              GEARMAN_COMMAND_SUBMIT_REDUCE_JOB,
-                             workload->priority,
+                             task_attr->priority,
                              partition,
                              function,
                              unique,
