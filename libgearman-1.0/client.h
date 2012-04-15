@@ -127,6 +127,9 @@ void gearman_client_free(gearman_client_st *client);
 GEARMAN_API
 const char *gearman_client_error(const gearman_client_st *client);
 
+GEARMAN_API
+gearman_return_t gearman_client_error_code(const gearman_client_st *client);
+
 /**
  * See gearman_errno() for details.
  */

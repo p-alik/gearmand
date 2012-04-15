@@ -350,6 +350,16 @@ const char *gearman_client_error(const gearman_client_st *client)
   return gearman_universal_error(client->universal);
 }
 
+gearman_return_t gearman_client_error_code(const gearman_client_st *client)
+{
+  if (client == NULL)
+  {
+    return GEARMAN_INVALID_ARGUMENT;
+  }
+
+  return gearman_universal_error_code(client->universal);
+}
+
 int gearman_client_errno(const gearman_client_st *client)
 {
   if (client == NULL)

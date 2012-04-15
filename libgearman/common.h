@@ -64,3 +64,4 @@
 #include <libgearman/string.hpp>
 #include <libgearman/command.h>
 #include <libgearman/task.hpp>
+#include <libgearman/job.h>

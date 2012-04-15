@@ -44,49 +44,67 @@
 
 gearman_task_attr_t gearman_task_attr_init(gearman_job_priority_t priority)
 {
-  gearman_task_attr_t local= { GEARMAN_TASK_ATTR_FOREGROUND, priority, {{0}}};
+  gearman_task_attr_t local= { GEARMAN_TASK_ATTR_FOREGROUND, priority, {{0}}, true };
 
   return local;
 }
 
 gearman_task_attr_t gearman_task_attr_init_background(gearman_job_priority_t priority)
 {
-  gearman_task_attr_t local= { GEARMAN_TASK_ATTR_BACKGROUND, priority, {{0}}};
+  gearman_task_attr_t local= { GEARMAN_TASK_ATTR_BACKGROUND, priority, {{0}}, true };
 
   return local;
 }
 
 gearman_task_attr_t gearman_task_attr_init_epoch(time_t epoch, gearman_job_priority_t priority)
 {
-  gearman_task_attr_t local= { GEARMAN_TASK_ATTR_BACKGROUND, priority, {{0}}};
+  gearman_task_attr_t local= { GEARMAN_TASK_ATTR_BACKGROUND, priority, {{0}}, true };
   local.options.epoch.value= epoch;
 
   return local;
 }
 
+void gearman_task_attr_set_wait(gearman_task_attr_t *self, bool arg)
+{
+  if (self == NULL)
+  {
+    return;
+  }
+
+  self->wait= arg;
+}
+
 time_t gearman_task_attr_has_epoch(const gearman_task_attr_t *self)
 {
-  if (not self)
+  if (self == NULL)
+  {
     return 0;
+  }
 
   if (self->kind == GEARMAN_TASK_ATTR_BACKGROUND)
+  {
     return self->options.epoch.value;
+  }
 
   return 0;
 }
 
 gearman_job_priority_t gearman_task_attr_priority(const gearman_task_attr_t *self)
 {
-  if (not self)
+  if (self == NULL)
+  {
     return GEARMAN_JOB_PRIORITY_NORMAL;
+  }
 
   return self->priority;
 }
 
 bool gearman_task_attr_is_background(const gearman_task_attr_t *self)
 {
-  if (not self)
+  if (self == NULL)
+  {
     return false;
+  }
 
   return (self->kind == GEARMAN_TASK_ATTR_BACKGROUND or self->kind == GEARMAN_TASK_ATTR_EPOCH);
 }

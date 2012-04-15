@@ -3,6 +3,7 @@
  *  Gearmand client and server library.
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2008 Brian Aker, Eric Day
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -35,14 +36,34 @@
  *
  */
 
+
 #pragma once
 
-test_return_t gearman_execute_test(void *object);
-test_return_t gearman_execute_NULL_workload_TEST(void *object);
-test_return_t gearman_execute_NULL_attr_NULL_workload_TEST(void *object);
-test_return_t gearman_execute_fail_test(void *object);
-test_return_t gearman_execute_timeout_test(void *object);
-test_return_t gearman_execute_epoch_test(void *object);
-test_return_t gearman_execute_epoch_check_job_handle_test(void *object);
-test_return_t gearman_execute_bg_test(void *object);
-test_return_t gearman_execute_multile_bg_test(void *object);
+/** Initialize a job structure. Always check the return value even if passing
+ * in a pre-allocated structure. Some other initialization may have failed. It
+ * is not required to memset() a structure before providing it.
+ *
+ * @param[in] A valid gearman_worker_st.
+ * @param[in] gearman_job_st allocated structure, or NULL to allocate one.
+ * @return On success, a pointer to the (possibly allocated) structure. On
+ *  failure this will be NULL.
+ */
+gearman_job_st *gearman_job_create(gearman_worker_st *worker,
+                                   gearman_job_st *job);
+
+
+gearman_return_t gearman_job_send_complete_fin(gearman_job_st *job,
+                                               const void *result, size_t result_size);
+
+gearman_string_t gearman_job_function_name_string(const gearman_job_st *);
+
+gearman_string_t gearman_job_reducer_string(const gearman_job_st *job);
+
+const char *gearman_job_reducer(const gearman_job_st *job);
+
+bool gearman_job_is_map(const gearman_job_st *job);
+
+bool gearman_job_build_reducer(gearman_job_st *job, gearman_aggregator_fn *aggregator_fn);
+
+gearman_return_t gearman_job_send_fail_fin(gearman_job_st *job);
+

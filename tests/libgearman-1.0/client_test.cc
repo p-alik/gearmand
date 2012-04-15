@@ -1586,6 +1586,8 @@ test_st gearman_execute_tests[] ={
   {"gearman_execute(GEARMAN_TIMEOUT)", 0, gearman_execute_timeout_test },
   {"gearman_execute() background", 0, gearman_execute_bg_test },
   {"gearman_execute() multiple background", 0, gearman_execute_multile_bg_test },
+  {"gearman_execute() with NULL workload", 0, gearman_execute_NULL_workload_TEST },
+  {"gearman_execute() with NULL workload", 0, gearman_execute_NULL_attr_NULL_workload_TEST },
   {0, 0, 0}
 };
 
