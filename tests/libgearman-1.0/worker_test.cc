@@ -323,7 +323,7 @@ static test_return_t echo_max_test(void *)
   return TEST_SUCCESS;
 }
 
-gearman_return_t error_return_worker(gearman_job_st* job, void *)
+static gearman_return_t error_return_worker(gearman_job_st* job, void *)
 {
   assert(sizeof(gearman_return_t) == gearman_job_workload_size(job));
   const gearman_return_t *ret= (const gearman_return_t*)gearman_job_workload(job);
@@ -340,9 +340,6 @@ static test_return_t error_return_TEST(void *)
   test_true(client);
   test_compare(GEARMAN_SUCCESS, gearman_client_add_server(client, "localhost", libtest::default_port()));
   test_compare(GEARMAN_SUCCESS, gearman_client_echo(client, test_literal_param(__func__)));
-
-  // set wait
-  gearman_task_attr_t task_attr= gearman_task_attr_init_background(GEARMAN_JOB_PRIORITY_NORMAL);
 
   gearman_function_t error_return_TEST_FN= gearman_function_create(error_return_worker);
   worker_handle_st *handle= test_worker_start(libtest::default_port(),
