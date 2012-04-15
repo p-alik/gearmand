@@ -401,7 +401,9 @@ const char *gearman_task_error(const gearman_task_st *task)
   }
 
   if (task->result_rc == GEARMAN_UNKNOWN_STATE or task->result_rc == GEARMAN_SUCCESS)
+  {
     return NULL;
+  }
 
   return gearman_strerror(task->result_rc);
 }

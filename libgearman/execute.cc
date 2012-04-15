@@ -150,10 +150,7 @@ gearman_task_st *gearman_execute(gearman_client_st *client,
   }
 
   task->type= GEARMAN_TASK_KIND_EXECUTE;
-  if (task_attr == NULL or task_attr->wait)
-  {
-    gearman_client_run_tasks(client);
-  }
+  gearman_client_run_tasks(client);
 
   return task;
 }

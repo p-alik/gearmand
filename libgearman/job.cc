@@ -190,7 +190,9 @@ gearman_job_st *gearman_job_create(gearman_worker_st *worker, gearman_job_st *jo
   job->error_code= GEARMAN_UNKNOWN_STATE;
 
   if (worker->job_list)
+  {
     worker->job_list->prev= job;
+  }
   job->next= worker->job_list;
   job->prev= NULL;
   worker->job_list= job;

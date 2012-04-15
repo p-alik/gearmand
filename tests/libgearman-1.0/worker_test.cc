@@ -376,11 +376,15 @@ static test_return_t error_return_TEST(void *)
 
     if (x == GEARMAN_SHUTDOWN)
     {
-      test_compare(GEARMAN_SUCCESS, gearman_task_return(task));
+      test_compare_hint(GEARMAN_SUCCESS,
+                        gearman_task_return(task),
+                        gearman_strerror(x));
     }
     else
     {
-      test_compare(GEARMAN_WORK_FAIL, gearman_task_return(task));
+      test_compare_hint(GEARMAN_WORK_FAIL, 
+                        gearman_task_return(task), 
+                        gearman_strerror(x));
     }
   }
   gearman_client_free(client);
