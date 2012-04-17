@@ -226,7 +226,9 @@ static void thread_runner(context_st* con)
 
     if (ret != GEARMAN_SUCCESS and ret != GEARMAN_INVALID_ARGUMENT and ret != GEARMAN_WORK_FAIL)
     {
+#if 0
       Error <<  context->function_name << ": " << gearman_strerror(ret) << ": " << gearman_worker_error(&worker);
+#endif
     }
   }
 }
