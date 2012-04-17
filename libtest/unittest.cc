@@ -245,6 +245,22 @@ static test_return_t _compare_gearman_return_t_test(void *)
   return TEST_SUCCESS;
 }
 
+static test_return_t drizzled_cycle_test(void *object)
+{
+  server_startup_st *servers= (server_startup_st*)object;
+  test_true(servers and servers->validate());
+
+#if defined(HAVE_GEARMAND_BINARY) && HAVE_GEARMAND_BINARY
+  test_true(has_drizzled_binary());
+#endif
+
+  test_skip(true, has_drizzled_binary());
+
+  test_true(server_startup(*servers, "drizzled", get_free_port(), 0, NULL));
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t gearmand_cycle_test(void *object)
 {
   server_startup_st *servers= (server_startup_st*)object;
@@ -731,6 +747,18 @@ static test_return_t check_for_gearman(void *)
   return TEST_SUCCESS;
 }
 
+static test_return_t check_for_drizzle(void *)
+{
+  test_skip(true, HAVE_LIBDRIZZLE);
+  test_skip(true, has_drizzled_binary());
+  return TEST_SUCCESS;
+}
+
+
+test_st drizzled_tests[] ={
+  {"drizzled startup-shutdown", 0, drizzled_cycle_test },
+  {0, 0, 0}
+};
 
 test_st gearmand_tests[] ={
 #if 0
@@ -892,6 +920,7 @@ collection_st collection[] ={
   {"comparison", 0, 0, comparison_tests},
   {"gearmand", check_for_gearman, 0, gearmand_tests},
   {"memcached", check_for_libmemcached, 0, memcached_tests},
+  {"drizzled", check_for_drizzle, 0, drizzled_tests},
   {"cmdline", 0, 0, cmdline_tests},
   {"application", 0, 0, application_tests},
   {"http", check_for_curl, 0, http_tests},

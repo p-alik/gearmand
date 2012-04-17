@@ -798,7 +798,7 @@ const char *gearmand_binary()
 
 const char *drizzled_binary() 
 {
-  return GEARMAND_BINARY;
+  return DRIZZLED_BINARY;
 }
 
 } // namespace exec_cmdline

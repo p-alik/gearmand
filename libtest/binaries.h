@@ -32,5 +32,8 @@ bool has_memcached_sasl_binary();
 LIBTEST_API
 bool has_gearmand_binary();
 
+LIBTEST_API
+bool has_drizzled_binary();
+
 } // namespace libtest
 
