@@ -348,14 +348,14 @@ static test_return_t error_return_TEST(void *)
   test_compare(GEARMAN_SUCCESS, gearman_client_echo(client, test_literal_param(__func__)));
 
   gearman_function_t error_return_TEST_FN= gearman_function_create(error_return_worker);
-  worker_handle_st *handle= test_worker_start(libtest::default_port(),
-                                              NULL,
-                                              __func__,
-                                              error_return_TEST_FN,
-                                              NULL,
-                                              gearman_worker_options_t(),
-                                              0); // timeout
-  
+  std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
+                                                           NULL,
+                                                           __func__,
+                                                           error_return_TEST_FN,
+                                                           NULL,
+                                                           gearman_worker_options_t(),
+                                                           0)); // timeout
+
   for (gearman_return_t x= GEARMAN_IO_WAIT; int(x) < int(GEARMAN_MAX_RETURN); x= gearman_return_t((int(x) +1)))
   {
     if (x == GEARMAN_SHUTDOWN)
@@ -462,8 +462,6 @@ static test_return_t error_return_TEST(void *)
   }
   gearman_client_set_timeout(client, client_timeout);
   gearman_client_free(client);
-
-  delete handle;
 
   return TEST_SUCCESS;
 }
