@@ -190,6 +190,9 @@ Drizzle::Drizzle () :
   drizzle =drizzle_create(NULL);
   con= drizzle_con_create(drizzle, NULL);
   insert_con= drizzle_con_create(drizzle, NULL);
+
+  drizzle_set_timeout(drizzle, -1);
+  assert(drizzle_timeout(drizzle) == -1);
 }
 
 Drizzle::~Drizzle()
@@ -322,27 +325,6 @@ gearmand_error_t gearman_server_queue_libdrizzle_init(plugins::queue::Drizzle *q
 {
   gearmand_info("Initializing libdrizzle module");
 
-  if (drizzle_create(queue->drizzle) == NULL)
-  {
-    gearmand_error("drizzle_create");
-    return GEARMAN_QUEUE_ERROR;
-  }
-
-  if (drizzle_con_create(queue->drizzle, queue->con) == NULL)
-  {
-    gearmand_error("drizzle_con_create");
-    return GEARMAN_QUEUE_ERROR;
-  }
-
-  if (drizzle_con_create(queue->drizzle, queue->insert_con) == NULL)
-  {
-    gearmand_error("drizzle_con_create");
-    return GEARMAN_QUEUE_ERROR;
-  }
-
-  drizzle_con_set_db(queue->con, queue->schema.c_str());
-  drizzle_con_set_db(queue->insert_con, queue->schema.c_str());
-
   if (queue->mysql_protocol)
   {
     drizzle_con_set_options(queue->con, DRIZZLE_CON_MYSQL);
@@ -364,26 +346,51 @@ gearmand_error_t gearman_server_queue_libdrizzle_init(plugins::queue::Drizzle *q
   drizzle_con_set_auth(queue->insert_con, queue->user.c_str(), queue->password.c_str());
   gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Using '%s' as the username", queue->user.c_str());
 
+  drizzle_con_set_db(queue->con, "INFORMATION_SCHEMA");
+
   std::string query;
-
-  query+= "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = \"";
-  query+= queue->schema;
-  query+= "\"";
-  if (libdrizzle_failed(_libdrizzle_query(queue, query.c_str(), query.size())))
   {
-    return gearmand_gerror("Error occurred while searching for gearman queue schema", GEARMAN_QUEUE_ERROR);
+    query.clear();
+
+    query+= "CREATE SCHEMA IF NOT EXISTS  " +queue->schema;
+    if (libdrizzle_failed(_libdrizzle_query(queue, query.c_str(), query.size())))
+    {
+      return gearmand_gerror(drizzle_error(queue->drizzle), GEARMAN_QUEUE_ERROR);
+    }
+
+    if (libdrizzle_failed(drizzle_column_skip_all(queue->result())))
+    {
+      drizzle_result_free(queue->result());
+      return gearmand_gerror(drizzle_error(queue->drizzle), GEARMAN_QUEUE_ERROR);
+    }
+    drizzle_result_free(queue->result());
   }
 
-  if (libdrizzle_failed(drizzle_result_buffer(queue->result())))
+  // Look for schema
   {
-    return gearmand_gerror(drizzle_error(queue->drizzle), GEARMAN_QUEUE_ERROR);
+    query.clear();
+    query+= "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = \"";
+    query+= queue->schema;
+    query+= "\"";
+    if (libdrizzle_failed(_libdrizzle_query(queue, query.c_str(), query.size())))
+    {
+      return gearmand_gerror("Error occurred while searching for gearman queue schema", GEARMAN_QUEUE_ERROR);
+    }
+
+    if (libdrizzle_failed(drizzle_result_buffer(queue->result())))
+    {
+      return gearmand_gerror(drizzle_error(queue->drizzle), GEARMAN_QUEUE_ERROR);
+    }
+
+    if (drizzle_result_row_count(queue->result()) == 0)
+    {
+      return gearmand_gerror("Error occurred while search for gearman queue schema", GEARMAN_QUEUE_ERROR);
+    }
+    drizzle_result_free(queue->result());
   }
 
-  if (drizzle_result_row_count(queue->result()) == 0)
-  {
-    return gearmand_gerror("Error occurred while search for gearman queue schema", GEARMAN_QUEUE_ERROR);
-  }
-  drizzle_result_free(queue->result());
+  drizzle_con_set_db(queue->con, queue->schema.c_str());
+  drizzle_con_set_db(queue->insert_con, queue->schema.c_str());
 
   // We need to check and see if the tables exists, and if not create it
   query.clear();
@@ -407,7 +414,7 @@ gearmand_error_t gearman_server_queue_libdrizzle_init(plugins::queue::Drizzle *q
 
     query.clear();
 
-    query+= "CREATE TABLE " +queue->table + "( unique_key VARCHAR(" + TOSTRING(GEARMAN_UNIQUE_SIZE) + "),";
+    query+= "CREATE TABLE " +queue->schema + "." +queue->table + "( unique_key VARCHAR(" + TOSTRING(GEARMAN_UNIQUE_SIZE) + "),";
     query+= "function_name VARCHAR(255), priority INT, data LONGBLOB, when_to_run BIGINT, unique key (unique_key, function_name))";
 
     if (libdrizzle_failed(_libdrizzle_query(queue, query.c_str(), query.size())))

@@ -73,6 +73,7 @@ noinst_HEADERS+= \
 		 libtest/fatal.hpp \
 		 libtest/framework.h \
 		 libtest/gearmand.h \
+		 libtest/drizzled.h \
 		 libtest/get.h \
 		 libtest/has.hpp \
 		 libtest/http.hpp \
@@ -114,6 +115,7 @@ libtest_libtest_la_SOURCES+= libtest/dream.cc
 libtest_libtest_la_SOURCES+= libtest/fatal.cc 
 libtest_libtest_la_SOURCES+= libtest/framework.cc 
 libtest_libtest_la_SOURCES+= libtest/has.cc 
+libtest_libtest_la_SOURCES+= libtest/drizzled.cc 
 libtest_libtest_la_SOURCES+= libtest/http.cc 
 libtest_libtest_la_SOURCES+= libtest/is_local.cc 
 libtest_libtest_la_SOURCES+= libtest/killpid.cc 
@@ -171,6 +173,13 @@ libtest_unittest_CXXFLAGS+= -DHAVE_LIBMEMCACHED=0
 endif
 endif
 
+if HAVE_LIBDRIZZLE
+
+libtest_libtest_la_LIBADD+= $(libdrizzle_LIBS)
+libtest_libtest_la_CXXFLAGS+= $(libdrizzle_CFLAGS)
+
+endif
+
 if BUILDING_GEARMAN
 libtest_libtest_la_DEPENDENCIES+= libgearman/libgearman.la
 libtest_libtest_la_LIBADD+= libgearman/libgearman.la
@@ -193,7 +202,7 @@ libtest_libtest_la_SOURCES+= util/operation.cc
 endif
 endif
 
-libtest_tmp_dir: tmp_chroot/var/log tmp_chroot/var/tmp tmp_chroot/var/run
+libtest_tmp_dir: tmp_chroot/var/log tmp_chroot/var/tmp tmp_chroot/var/run tmp_chroot/var/drizzle
 
 tmp_chroot:
 	@$(mkdir_p) tmp_chroot
@@ -206,6 +215,9 @@ tmp_chroot/var/log: tmp_chroot/var
 
 tmp_chroot/var/tmp: tmp_chroot/var
 	@$(mkdir_p) tmp_chroot/var/tmp
+
+tmp_chroot/var/drizzle: tmp_chroot/var
+	@$(mkdir_p) tmp_chroot/var/drizzle
 
 tmp_chroot/var/run: tmp_chroot/var
 	@$(mkdir_p) tmp_chroot/var/run

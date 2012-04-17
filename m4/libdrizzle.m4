@@ -7,7 +7,7 @@ AC_DEFUN([_WITH_LIBDRIZZLE],
 
      AS_IF([test "x$ac_enable_libdrizzle" = "xyes"],
        [ PKG_CHECK_MODULES([libdrizzle], 
-                           [ libdrizzle-1.0 >= 2011.03.13 ], 
+                           [ libdrizzle-1.0 >= 1.0.1 ], 
 			   [
                             AC_DEFINE([HAVE_LIBDRIZZLE], [ 1 ], [Enable libdrizzle support])
                             AC_SUBST(_WITH_LIBDRIZZLE_SUPPORT, ["_WITH_LIBDRIZZLE_SUPPORT 1"])

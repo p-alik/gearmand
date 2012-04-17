@@ -28,43 +28,7 @@ using namespace libtest;
 #include <libdrizzle-1.0/drizzle_client.h>
 #endif
 
-static bool ping_drizzled(void)
-{
-#if defined(HAVE_LIBDRIZZLE) && HAVE_LIBDRIZZLE
-  if (HAVE_LIBDRIZZLE)
-  {
-    drizzle_st *drizzle= drizzle_create(NULL);
-
-    if (drizzle == NULL)
-    {
-      return false;
-    }
-
-    drizzle_con_st *con;
-
-    if ((con= drizzle_con_create(drizzle, NULL)) == NULL)
-    {
-      drizzle_free(drizzle);
-      return false;
-    }
-
-    drizzle_con_set_tcp(con, NULL, 0);
-    drizzle_con_set_auth(con, "root", 0);
-    drizzle_return_t rc;
-    drizzle_result_st *result= drizzle_ping(con, NULL, &rc);
-
-    bool success= bool(result);
-
-    drizzle_result_free(result);
-    drizzle_con_free(con);
-    drizzle_free(drizzle);
-
-    return success;
-  }
-#endif
-
-  return false;
-}
+static in_port_t drizzled_port= 0;
 
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -83,7 +47,7 @@ static test_return_t gearmand_basic_option_test(void *)
     "--libdrizzle-mysql",
     0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  test_compare(EXIT_SUCCESS, exec_cmdline(drizzled_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -92,9 +56,37 @@ static test_return_t collection_init(void *object)
   Context *test= (Context *)object;
   assert(test);
 
-  const char *argv[]= { "--queue-type=libdrizzle", 0 };
+#if defined(HAVE_DRIZZLED_BINARY) && HAVE_DRIZZLED_BINARY
+  drizzled_port= libtest::get_free_port();
+  if (server_startup(test->_servers, "drizzled", drizzled_port, 0, NULL) == false)
+  {
+    return TEST_FAILURE;
+  }
+#else
+  drizzled_port= 0;
+#endif
 
-  test->initialize(1, argv);
+  if (HAVE_LIBDRIZZLE)
+  {
+    if (libtest::ping_drizzled(drizzled_port) == false)
+    {
+      return TEST_FAILURE;
+    }
+  }
+
+
+  char drizzled_server_string[1024];
+  int length= snprintf(drizzled_server_string, 
+                       sizeof(drizzled_server_string),
+                       "--libdrizzle-port=%d",
+                       int(drizzled_port));
+  test_true(length > 0);
+  const char *argv[]= {
+    drizzled_server_string,
+    "--queue-type=libdrizzle",
+    0 };
+
+  test_truth(test->initialize(2, argv));
 
   return TEST_SUCCESS;
 }
@@ -114,15 +106,6 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
   {
     error= TEST_SKIPPED;
     return NULL;
-  }
-
-  if (HAVE_LIBDRIZZLE)
-  {
-    if (ping_drizzled() == false)
-    {
-      error= TEST_SKIPPED;
-      return NULL;
-    }
   }
 
   return new Context(default_port(), servers);
