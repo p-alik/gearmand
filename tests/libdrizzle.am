@@ -16,10 +16,12 @@ test-drizzle: tests/drizzle_test
 gdb-drizzle: tests/drizzle_test
 	@$(GDB_COMMAND) tests/drizzle_test
 
-tests_drizzle_test_SOURCES= \
-			    tests/basic.cc \
-			    tests/drizzle_test.cc
 tests_drizzle_test_CXXFLAGS=
+tests_drizzle_test_SOURCES=
+
+tests_drizzle_test_SOURCES+= tests/basic.cc
+tests_drizzle_test_SOURCES+= tests/drizzle_test.cc
+
 tests_drizzle_test_DEPENDENCIES= ${CLIENT_LDADD} gearmand/gearmand
 tests_drizzle_test_LDADD= ${CLIENT_LDADD}
 

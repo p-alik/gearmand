@@ -42,6 +42,7 @@
 #include <libtest/visibility.h>
 
 #include <boost/thread.hpp>
+#include <boost/shared_ptr.hpp>
 
 
 struct worker_handle_st
@@ -60,10 +61,10 @@ public:
   boost::barrier* sync_point();
 
   void wait();
-
+  bool check();
 
   volatile bool failed_startup;
-  boost::thread* _thread;
+  boost::shared_ptr<boost::thread> _thread;
 
 private:
   bool _shutdown;

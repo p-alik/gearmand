@@ -67,7 +67,7 @@ using namespace datadifferential;
 #define CONTEXT_MAGIC_MARKER 45
 
 struct context_st {
-  struct worker_handle_st *handle;
+  worker_handle_st *handle;
   in_port_t port;
   gearman_worker_options_t options;
   gearman_function_t worker_fn;
@@ -111,7 +111,7 @@ struct context_st {
   void fail(void)
   {
     handle->failed_startup= true;
-    handle->wait();
+    wait();
   }
 
   ~context_st()
@@ -125,6 +125,7 @@ static void thread_runner(context_st* con)
   std::auto_ptr<context_st> context(con);
 
   assert(context.get());
+  assert(context.get() == con);
   if (context.get() == NULL)
   {
     Error << "context_st passed to function was NULL";
@@ -201,12 +202,34 @@ static void thread_runner(context_st* con)
     gearman_worker_add_options(&worker, context->options);
   }
 
-  context->handle->wait();
+  context->wait();
 
   gearman_return_t ret= GEARMAN_SUCCESS;
-  while (context->handle->is_shutdown() == false or ret != GEARMAN_SHUTDOWN)
+  while (context->handle->is_shutdown() == false)
   {
     ret= gearman_worker_work(&worker);
+
+    if (ret == GEARMAN_NO_REGISTERED_FUNCTIONS)
+    {
+      context->handle->set_shutdown();
+      continue;
+    }
+
+    if (ret == GEARMAN_SHUTDOWN)
+    {
+      if (gearman_failed(gearman_worker_unregister_all(&worker)))
+      {
+        Error << "Failed to unregister " << context->function_name;
+      }
+      continue;
+    }
+
+    if (ret != GEARMAN_SUCCESS and ret != GEARMAN_INVALID_ARGUMENT and ret != GEARMAN_WORK_FAIL)
+    {
+#if 0
+      Error <<  context->function_name << ": " << gearman_strerror(ret) << ": " << gearman_worker_error(&worker);
+#endif
+    }
   }
 }
 
@@ -228,8 +251,8 @@ worker_handle_st *test_worker_start(in_port_t port,
                                       context_arg, options, timeout);
   fatal_assert(context);
 
-  handle->_thread= new boost::thread(thread_runner, context);
-  if (handle->_thread == NULL)
+  handle->_thread= boost::shared_ptr<boost::thread>(new boost::thread(thread_runner, context));
+  if (bool(handle->_thread) == false)
   {
     delete context;
     delete handle;
@@ -292,18 +315,30 @@ bool worker_handle_st::shutdown()
 
   set_shutdown();
 
+  // This block issues an error, but the error is not fatal
   gearman_return_t rc;
   if (gearman_failed(rc=  gearman_kill(_worker_id, GEARMAN_KILL)))
   {
     Error << "failed to shutdown " << rc;
-    return false;
   }
 
   _thread->join();
-  delete _thread;
 
   return true;
 }
+
+bool worker_handle_st::check()
+{
+  gearman_return_t rc;
+  if (gearman_failed(rc=  gearman_kill(_worker_id, GEARMAN_KILL)))
+  {
+    return false;
+  }
+
+  return true;
+}
+
+
 
 worker_handles_st::worker_handles_st()
 {

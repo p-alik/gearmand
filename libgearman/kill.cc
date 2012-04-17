@@ -39,6 +39,7 @@
 #include <config.h>
 #include <libgearman/common.h>
 #include <cerrno>
+#include <cstring>
 #include <unistd.h>
 
 gearman_id_t gearman_id_initialize(void)
@@ -84,10 +85,10 @@ gearman_return_t gearman_kill(const gearman_id_t handle, const gearman_signal_t 
   case GEARMAN_SIGNAL_CHECK:
     {
       struct pollfd pfds[1];
+      memset(&pfds, 0, sizeof(pfds));
       pfds[0].fd= handle.read_fd;
       pfds[0].events= POLLIN;
       pfds[0].revents= 0;
-      char buffer[1];
 
       int ret= ::poll(pfds, sizeof(pfds), 1500);
 
@@ -95,9 +96,8 @@ gearman_return_t gearman_kill(const gearman_id_t handle, const gearman_signal_t 
       {
         return GEARMAN_SUCCESS;
       }
-
-      return GEARMAN_COULD_NOT_CONNECT;
     }
+    break;
   }
 
   return GEARMAN_COULD_NOT_CONNECT;

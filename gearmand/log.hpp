@@ -115,7 +115,15 @@ struct gearmand_log_info_st
       if (::write(file(), buffer, buffer_length) == -1)
       {
         error::perror("Could not write to log file.");
-        syslog(LOG_EMERG, "gearmand could not open log file %s, got error %s", filename.c_str(), strerror(errno));
+        if (opt_syslog)
+        {
+          char buffer[1024];
+          char *ptr_buffer= getcwd(buffer, sizeof(buffer));
+          syslog(LOG_ERR, "Could not open log file \"%.*s\", from \"%s\", open failed with (%s)", 
+                 int(filename.size()), filename.c_str(), 
+                 buffer,
+                 strerror(errno));
+        }
       }
 
     }

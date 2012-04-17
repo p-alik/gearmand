@@ -163,19 +163,19 @@ gearman_task_st *gearman_execute_by_partition(gearman_client_st *client,
                                               gearman_argument_t *arguments,
                                               void *context)
 {
-  if (not client)
+  if (client == NULL)
   {
     errno= EINVAL;
     return NULL;
   }
 
-  if (not partition_function or partition_function_length == 0)
+  if ((partition_function == NULL) or (partition_function_length == 0))
   {
     gearman_error(client->universal, GEARMAN_INVALID_ARGUMENT, "function_name was NULL");
     return NULL;
   }
 
-  if (not function_name or function_name_length == 0)
+  if ((function_name == NULL) or (function_name_length == 0))
   {
     gearman_error(client->universal, GEARMAN_INVALID_ARGUMENT, "function_name was NULL");
     return NULL;
@@ -250,7 +250,7 @@ gearman_task_st *gearman_execute_by_partition(gearman_client_st *client,
                            NULL);
   }
 
-  if (not task)
+  if (task == NULL)
   {
     return NULL;
   }
