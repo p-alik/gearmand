@@ -60,7 +60,7 @@ public:
   boost::barrier* sync_point();
 
   void wait();
-
+  bool check();
 
   volatile bool failed_startup;
   boost::thread* _thread;

@@ -70,7 +70,12 @@ public:
       return GEARMAN_FUNCTION_ERROR;
     }
 
-    if (gearman_failed(job->error_code) and job->error_code != GEARMAN_SHUTDOWN)
+    if (job->error_code == GEARMAN_SHUTDOWN)
+    {
+      return GEARMAN_FUNCTION_SHUTDOWN;
+    }
+
+    if (gearman_failed(job->error_code))
     {
       return GEARMAN_FUNCTION_FATAL;
     }

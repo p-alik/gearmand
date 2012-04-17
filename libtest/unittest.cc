@@ -384,6 +384,7 @@ static test_return_t application_doesnotexist_BINARY(void *)
 
   test_skip_valgrind();
   Application true_app("doesnotexist");
+  true_app.will_fail();
 
   const char *args[]= { "--fubar", 0 };
 #if defined(TARGET_OS_OSX) && TARGET_OS_OSX

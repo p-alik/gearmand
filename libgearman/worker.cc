@@ -621,7 +621,9 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
                worker->con= worker->con->next)
           {
             if (worker->con->fd == -1)
+            {
               continue;
+            }
 
     case GEARMAN_WORKER_STATE_FUNCTION_SEND:
             *ret_ptr= worker->con->send_packet(worker->function->packet(), true);
@@ -943,6 +945,8 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
     return GEARMAN_INVALID_ARGUMENT;
   }
 
+  universal_reset_error(worker->universal);
+
   switch (worker->work_state)
   {
   case GEARMAN_WORKER_WORK_UNIVERSAL_GRAB_JOB:
@@ -994,7 +998,7 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
                                               static_cast<void *>(worker->work_function->context)))
       {
       case GEARMAN_FUNCTION_INVALID_ARGUMENT:
-        worker->work_job->error_code= GEARMAN_INVALID_ARGUMENT;
+        worker->work_job->error_code= gearman_error(worker->universal, GEARMAN_INVALID_ARGUMENT, "worker returned an invalid response, gearman_return_t");
       case GEARMAN_FUNCTION_FATAL:
         if (gearman_job_send_fail_fin(worker->work_job) == GEARMAN_LOST_CONNECTION) // If we fail this, we have no connection, @note this causes us to lose the current error
         {
@@ -1043,6 +1047,8 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
       {
         break;
       }
+      else if (worker->work_job->error_code == GEARMAN_SHUTDOWN)
+      { }
       else if (gearman_failed(worker->work_job->error_code))
       {
         worker->work_state= GEARMAN_WORKER_WORK_UNIVERSAL_FAIL;
@@ -1072,7 +1078,12 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
 
   worker->work_state= GEARMAN_WORKER_WORK_UNIVERSAL_GRAB_JOB;
 
-  return shutdown ? GEARMAN_SHUTDOWN : GEARMAN_SUCCESS;
+  if (shutdown)
+  {
+    return GEARMAN_SHUTDOWN;
+  }
+
+  return GEARMAN_SUCCESS;
 }
 
 gearman_return_t gearman_worker_echo(gearman_worker_st *worker,

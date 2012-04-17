@@ -134,6 +134,11 @@ public:
     return _pid;
   }
 
+  void will_fail()
+  {
+    _will_fail= true;
+  }
+
 private:
   void create_argv(const char *args[]);
   void delete_argv();
@@ -143,6 +148,7 @@ private:
   bool _use_valgrind;
   bool _use_gdb;
   bool _use_ptrcheck;
+  bool _will_fail;
   size_t _argc;
   std::string _exectuble_name;
   std::string _exectuble;
