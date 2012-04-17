@@ -154,6 +154,12 @@ static test_return_t var_log_exists_test(void *)
   return TEST_SUCCESS;
 }
 
+static test_return_t var_drizzle_exists_test(void *)
+{
+  test_compare(0, access("var/drizzle", R_OK | W_OK | X_OK));
+  return TEST_SUCCESS;
+}
+
 static test_return_t var_tmp_test(void *)
 {
   FILE *file= fopen("var/tmp/junk", "w+");
@@ -180,6 +186,14 @@ static test_return_t var_log_test(void *)
   return TEST_SUCCESS;
 }
 
+static test_return_t var_drizzle_test(void *)
+{
+  FILE *file= fopen("var/drizzle/junk", "w+");
+  test_true(file);
+  fclose(file);
+  return TEST_SUCCESS;
+}
+
 static test_return_t var_tmp_rm_test(void *)
 {
   test_true(unlink("var/tmp/junk") == 0);
@@ -195,6 +209,12 @@ static test_return_t var_run_rm_test(void *)
 static test_return_t var_log_rm_test(void *)
 {
   test_true(unlink("var/log/junk") == 0);
+  return TEST_SUCCESS;
+}
+
+static test_return_t var_drizzle_rm_test(void *)
+{
+  test_true(unlink("var/drizzle/junk") == 0);
   return TEST_SUCCESS;
 }
 
@@ -769,12 +789,15 @@ test_st directories_tests[] ={
   {"var/tmp exists", 0, var_tmp_exists_test },
   {"var/run exists", 0, var_run_exists_test },
   {"var/log exists", 0, var_log_exists_test },
+  {"var/drizzle exists", 0, var_drizzle_exists_test },
   {"var/tmp", 0, var_tmp_test },
   {"var/run", 0, var_run_test },
   {"var/log", 0, var_log_test },
+  {"var/drizzle", 0, var_drizzle_test },
   {"var/tmp rm", 0, var_tmp_rm_test },
   {"var/run rm", 0, var_run_rm_test },
   {"var/log rm", 0, var_log_rm_test },
+  {"var/drizzle rm", 0, var_drizzle_rm_test },
   {0, 0, 0}
 };
 
