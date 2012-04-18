@@ -38,7 +38,7 @@ The callback function needs to return one of the following errors:
 
 The function was successful.
 
-:c:type:`GEARMAN_FATAL` 
+:c:type:`GEARMAN_FAIL` 
 
 An error has occurred, the job we not processed, and the worker cannot continue.
 
@@ -46,7 +46,7 @@ An error has occurred, the job we not processed, and the worker cannot continue.
 
 A transient error has occurred, like a network failure, and the job can be restarted.
 
-If a value other then the above are returned it is converted to a :c:type:`GEARMAN_FATAL` and :c:func:`gearman_worker_work()` returns :c:type:`GEARMAN_INVALID_ARGUMENT`.
+If a value other then the above are returned it is converted to a :c:type:`GEARMAN_FAIL` and :c:func:`gearman_worker_work()` returns :c:type:`GEARMAN_INVALID_ARGUMENT`.
 
 :c:func:`gearman_job_send_complete()` and :c:func:`gearman_job_send_fail()` cannot be used with any functions created with :c:func:`gearman_worker_define_function()`.
 

@@ -95,6 +95,7 @@ enum gearman_return_t
   GEARMAN_INVALID_ARGUMENT,
   GEARMAN_IN_PROGRESS, // See gearman_client_job_status()
   GEARMAN_MAX_RETURN, /* Always add new error code before */
+  GEARMAN_FAIL= GEARMAN_WORK_FAIL,
   GEARMAN_FATAL= GEARMAN_WORK_FAIL,
   GEARMAN_ERROR= GEARMAN_WORK_ERROR
 };

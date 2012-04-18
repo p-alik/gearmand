@@ -9,6 +9,14 @@ particular keys to specific servers that you specify (and values are
 matched based on server order as supplied by you). It implements both
 the :term:`client` and :term:`worker` interfaces.
 
+***************
+Getting Started
+***************
+
+.. toctree::
+   :titlesonly:
+
+   workers
 
 ********
 Examples

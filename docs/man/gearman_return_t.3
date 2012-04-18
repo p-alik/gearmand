@@ -1,4 +1,4 @@
-.TH "GEARMAN_RETURN_T" "3" "April 11, 2012" "0.32" "Gearmand"
+.TH "GEARMAN_RETURN_T" "3" "April 17, 2012" "0.32" "Gearmand"
 .SH NAME
 gearman_return_t \- Gearmand Documentation, http://gearman.info/
 .
@@ -261,7 +261,11 @@ The function successfully completed the job.
 .INDENT 0.0
 .TP
 .B GEARMAN_FATAL
-The function failed to complete the job.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B GEARMAN_FAIL
+The function failed to complete the job. \fI\%GEARMAN_FATAL\fP is the deprecated name for \fI\%GEARMAN_FAIL\fP
 .UNINDENT
 .INDENT 0.0
 .TP

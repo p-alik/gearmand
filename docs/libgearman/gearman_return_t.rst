@@ -206,8 +206,9 @@ Any function defined by :c:func:`gearman_worker_define_function()` may, and can 
    The function successfully completed the job.
 
 .. c:type:: GEARMAN_FATAL  
+.. c:type:: GEARMAN_FAIL  
 
-   The function failed to complete the job.
+   The function failed to complete the job. :c:type:`GEARMAN_FATAL` is the deprecated name for :c:type:`GEARMAN_FAIL`
 
 .. c:type:: GEARMAN_ERROR  
 

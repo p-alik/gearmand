@@ -81,7 +81,8 @@ done if a task was created with a preallocated structure or if you want to clean
 :c:func:`gearman_task_error()` return the last error message that the
 :c:type:`gearman_task_st` encountered. :c:func:`gearman_task_return()`
 return the last :c:type:`gearman_return_t` stored. A value of
-:c:type:`GEARMAN_UNKNOWN_STATE` means that the task has not been submitted to server yet.
+:c:type:`GEARMAN_UNKNOWN_STATE` means that the task has not been submitted to
+server yet, or that no function was available if the job has been submitted.
 
 ------------
 RETURN VALUE

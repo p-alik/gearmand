@@ -1,4 +1,4 @@
-.TH "GEARMAN_WORKER_DEFINE_FUNCTION" "3" "April 11, 2012" "0.32" "Gearmand"
+.TH "GEARMAN_WORKER_DEFINE_FUNCTION" "3" "April 17, 2012" "0.32" "Gearmand"
 .SH NAME
 gearman_worker_define_function \- Gearmand Documentation, http://gearman.info/
 .
@@ -67,7 +67,7 @@ The callback function needs to return one of the following errors:
 .sp
 The function was successful.
 .sp
-\fBGEARMAN_FATAL\fP
+\fBGEARMAN_FAIL\fP
 .sp
 An error has occurred, the job we not processed, and the worker cannot continue.
 .sp
@@ -75,7 +75,7 @@ An error has occurred, the job we not processed, and the worker cannot continue.
 .sp
 A transient error has occurred, like a network failure, and the job can be restarted.
 .sp
-If a value other then the above are returned it is converted to a \fBGEARMAN_FATAL\fP and \fBgearman_worker_work()\fP returns \fBGEARMAN_INVALID_ARGUMENT\fP.
+If a value other then the above are returned it is converted to a \fBGEARMAN_FAIL\fP and \fBgearman_worker_work()\fP returns \fBGEARMAN_INVALID_ARGUMENT\fP.
 .sp
 \fBgearman_job_send_complete()\fP and \fBgearman_job_send_fail()\fP cannot be used with any functions created with \fI\%gearman_worker_define_function()\fP.
 .SH RETURN VALUE
