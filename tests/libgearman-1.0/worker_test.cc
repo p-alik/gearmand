@@ -323,6 +323,29 @@ static test_return_t echo_max_test(void *)
   return TEST_SUCCESS;
 }
 
+// The idea is to return GEARMAN_ERROR until we hit limit, then return
+// GEARMAN_SUCCESS
+static gearman_return_t GEARMAN_ERROR_worker(gearman_job_st* job, void *context)
+{
+  assert(gearman_job_workload_size(job) == 0);
+  assert(gearman_job_workload(job) == NULL);
+  size_t *ret= (size_t*)context;
+
+  if (*ret > 0)
+  {
+    *ret= (*ret) -1;
+    return GEARMAN_ERROR;
+  }
+
+  if (gearman_failed(gearman_job_send_data(job, test_literal_param("OK"))))
+  {
+    // We should return ERROR here, but that would then possibly loop
+    return GEARMAN_FAIL;
+  }
+
+  return GEARMAN_SUCCESS;
+}
+
 static gearman_return_t error_return_worker(gearman_job_st* job, void *)
 {
   assert(sizeof(gearman_return_t) == gearman_job_workload_size(job));
@@ -461,6 +484,109 @@ static test_return_t error_return_TEST(void *)
     }
   }
   gearman_client_set_timeout(client, client_timeout);
+  gearman_client_free(client);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t GEARMAN_ERROR_return_TEST(void *)
+{
+  // Sanity test on initial enum
+  test_compare(0, int(GEARMAN_SUCCESS));
+  test_compare(1, int(GEARMAN_IO_WAIT));
+
+  gearman_client_st *client= gearman_client_create(NULL);
+  test_true(client);
+  test_compare(GEARMAN_SUCCESS, gearman_client_add_server(client, "localhost", libtest::default_port()));
+  test_compare(GEARMAN_SUCCESS, gearman_client_echo(client, test_literal_param(__func__)));
+
+  size_t count= 0;
+  gearman_function_t GEARMAN_ERROR_FN= gearman_function_create(GEARMAN_ERROR_worker);
+  std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
+                                                           NULL,
+                                                           __func__,
+                                                           GEARMAN_ERROR_FN,
+                                                           &count,
+                                                           gearman_worker_options_t(),
+                                                           0)); // timeout
+
+  for (size_t x= 0; x < 24; x++)
+  {
+    count= x;
+    gearman_task_st *task= gearman_execute(client,
+                                           test_literal_param(__func__),
+                                           NULL, 0, // unique
+                                           NULL, // gearman_task_attr_t
+                                           NULL, // gearman_argument_t
+                                           NULL); // context
+    test_truth(task);
+
+    gearman_return_t rc;
+    bool is_known;
+    do {
+      rc= gearman_client_job_status(client, gearman_task_job_handle(task), &is_known, NULL, NULL, NULL);
+    }  while (gearman_continue(rc) or is_known);
+
+    test_compare_hint(GEARMAN_SUCCESS,
+                      gearman_task_return(task), x);
+    test_zero(count); // Since we hit zero we know that we ran enough times.
+
+    gearman_result_st *result= gearman_task_result(task);
+    test_true(result);
+    test_memcmp("OK", gearman_result_value(result), strlen("ok"));
+  }
+
+  gearman_client_free(client);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t GEARMAN_FAIL_return_TEST(void *)
+{
+  // Sanity test on initial enum
+  test_compare(0, int(GEARMAN_SUCCESS));
+  test_compare(1, int(GEARMAN_IO_WAIT));
+
+  gearman_client_st *client= gearman_client_create(NULL);
+  test_true(client);
+  test_compare(GEARMAN_SUCCESS, gearman_client_add_server(client, "localhost", libtest::default_port()));
+  test_compare(GEARMAN_SUCCESS, gearman_client_echo(client, test_literal_param(__func__)));
+
+  gearman_function_t error_return_TEST_FN= gearman_function_create(error_return_worker);
+  std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
+                                                           NULL,
+                                                           __func__,
+                                                           error_return_TEST_FN,
+                                                           NULL,
+                                                           gearman_worker_options_t(),
+                                                           0)); // timeout
+
+  int count= 3;
+  while(--count)
+  {
+    gearman_return_t x= GEARMAN_FAIL;
+    gearman_argument_t arg= gearman_argument_make(NULL, 0, (const char*)&x, sizeof(gearman_return_t));
+    gearman_task_st *task= gearman_execute(client,
+                                           test_literal_param(__func__),
+                                           NULL, 0, // unique
+                                           NULL, // gearman_task_attr_t
+                                           &arg, // gearman_argument_t
+                                           NULL); // context
+    test_truth(task);
+
+    gearman_return_t rc;
+    bool is_known;
+    do {
+      rc= gearman_client_job_status(client, gearman_task_job_handle(task), &is_known, NULL, NULL, NULL);
+    }  while (gearman_continue(rc) or is_known);
+
+    {
+      test_compare_hint(GEARMAN_FAIL,
+                        gearman_task_return(task),
+                        gearman_strerror(x));
+    }
+  }
+
   gearman_client_free(client);
 
   return TEST_SUCCESS;
@@ -993,7 +1119,9 @@ test_st tests[] ={
   {"gearman_worker_add_options(GEARMAN_WORKER_GRAB_UNIQ)", 0, gearman_worker_add_options_GEARMAN_WORKER_GRAB_UNIQ },
   {"gearman_worker_add_options(GEARMAN_WORKER_GRAB_UNIQ) worker_work()", 0, gearman_worker_add_options_GEARMAN_WORKER_GRAB_UNIQ_worker_work },
   {"gearman_worker_set_timeout(2) with failover", 0, gearman_worker_set_timeout_FAILOVER_TEST },
-  {"gearman_return_t worker coverage", 0, error_return_TEST },
+  {"gearman_return_t worker return coverage", 0, error_return_TEST },
+  {"gearman_return_t GEARMAN_FAIL worker coverage", 0, GEARMAN_FAIL_return_TEST },
+  {"gearman_return_t GEARMAN_ERROR worker coverage", 0, GEARMAN_ERROR_return_TEST },
   {"echo_max", 0, echo_max_test },
   {"abandoned_worker", 0, abandoned_worker_test },
   {0, 0, 0}

@@ -1009,6 +1009,7 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
         return worker->work_job->error_code;
 
       case GEARMAN_FUNCTION_ERROR: // retry 
+        gearman_reset(worker->universal);
         worker->work_job->error_code= GEARMAN_LOST_CONNECTION;
         break;
 

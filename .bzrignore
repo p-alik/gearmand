@@ -133,3 +133,4 @@ docs/doctest
 var
 libtest/abort
 gdb.txt
+docs/_static

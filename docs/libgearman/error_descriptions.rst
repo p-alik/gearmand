@@ -57,5 +57,6 @@ List of client/worker errors
    errors/GEARMAN_INVALID_ARGUMENT
    errors/GEARMAN_IN_PROGRESS
    errors/GEARMAN_FATAL
+   errors/GEARMAN_FAIL
    errors/GEARMAN_ERROR
    errors/GEARMAN_MAX_RETURN

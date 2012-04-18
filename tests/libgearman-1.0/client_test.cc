@@ -1286,6 +1286,28 @@ static test_return_t regression_833394_test(void *object)
   return TEST_SUCCESS;
 }
 
+static test_return_t GEARMAN_SUCCESS_TEST(void*)
+{
+  test_compare(0, int(GEARMAN_SUCCESS));
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t GEARMAN_FAIL_COMPAT_TEST(void*)
+{
+  test_compare(GEARMAN_FAIL, GEARMAN_FATAL);
+  test_compare(GEARMAN_FAIL, GEARMAN_WORK_FAIL);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t GEARMAN_ERROR_COMPAT_TEST(void*)
+{
+  test_compare(GEARMAN_ERROR, GEARMAN_WORK_ERROR);
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t gearman_client_set_identifier_TEST(void* object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
@@ -1493,6 +1515,13 @@ test_st gearman_client_set_identifier_TESTS[] ={
   {0, 0, 0}
 };
 
+test_st gearman_return_t_TESTS[] ={
+  {"GEARMAN_SUCCESS", 0, (test_callback_fn*)GEARMAN_SUCCESS_TEST },
+  {"GEARMAN_FAIL == GEARMAN_FATAL == GEARMAN_WORK_FAIL", 0, (test_callback_fn*)GEARMAN_FAIL_COMPAT_TEST },
+  {"GEARMAN_ERROR == GEARMAN_WORK_ERROR", 0, (test_callback_fn*)GEARMAN_ERROR_COMPAT_TEST },
+  {0, 0, 0}
+};
+
 test_st gearman_id_t_TESTS[] ={
   {"gearman_client_st", 0, (test_callback_fn*)gearman_client_st_id_t_TEST },
   {"gearman_worker_st", 0, (test_callback_fn*)gearman_worker_st_id_t_TEST },
@@ -1650,6 +1679,7 @@ test_st limit_tests[] ={
 
 
 collection_st collection[] ={
+  {"gearman_return_t", 0, 0, gearman_return_t_TESTS},
   {"gearman_id_t", 0, 0, gearman_id_t_TESTS},
   {"gearman_client_st", 0, 0, gearman_client_st_TESTS},
   {"gearman_client_st chunky", pre_chunk, post_function_reset, gearman_client_st_TESTS}, // Test with a worker that will respond in part

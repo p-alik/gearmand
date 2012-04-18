@@ -67,7 +67,7 @@ gearman_return_t echo_or_react_worker_v2(gearman_job_st *job, void *)
   }
   else if (result_size == test_literal_param_size("fail") and (not memcmp(workload, test_literal_param("fail"))))
   {
-    return GEARMAN_FATAL;
+    return GEARMAN_FAIL;
   }
   else if (result_size == test_literal_param_size("sleep") and (not memcmp(workload, test_literal_param("sleep"))))
   {
@@ -147,7 +147,7 @@ gearman_return_t echo_or_react_chunk_worker_v2(gearman_job_st *job, void *)
 
       if (fail)
       {
-        return GEARMAN_FATAL;
+        return GEARMAN_FAIL;
       }
     }
   }
@@ -179,7 +179,7 @@ gearman_return_t unique_worker_v2(gearman_job_st *job, void *)
     }
   }
 
-  return GEARMAN_FATAL;
+  return GEARMAN_FAIL;
 }
 
 gearman_return_t count_worker(gearman_job_st *job, void *)
@@ -190,7 +190,7 @@ gearman_return_t count_worker(gearman_job_st *job, void *)
 
   if (size_t(length) > sizeof(buffer) or length < 0)
   {
-    return GEARMAN_FATAL;
+    return GEARMAN_FAIL;
   }
 
   return GEARMAN_SUCCESS;
@@ -216,7 +216,7 @@ gearman_return_t increment_reset_worker_v2(gearman_job_st *job, void *)
   {
     if (gearman_job_workload_size(job) > GEARMAN_MAXIMUM_INTEGER_DISPLAY_LENGTH)
     {
-      return GEARMAN_FATAL;
+      return GEARMAN_FAIL;
     }
 
     char temp[GEARMAN_MAXIMUM_INTEGER_DISPLAY_LENGTH +1];
@@ -226,7 +226,7 @@ gearman_return_t increment_reset_worker_v2(gearman_job_st *job, void *)
     if (change ==  LONG_MIN or change == LONG_MAX or ( change == 0 and errno < 0))
     {
       gearman_job_send_warning(job, test_literal_param("strtol() failed"));
-      return GEARMAN_FATAL;
+      return GEARMAN_FAIL;
     }
   }
 
@@ -238,7 +238,7 @@ gearman_return_t increment_reset_worker_v2(gearman_job_st *job, void *)
     size_t result_size= size_t(snprintf(result, sizeof(result), "%ld", counter));
     if (gearman_failed(gearman_job_send_data(job, result, result_size)))
     {
-      return GEARMAN_FATAL;
+      return GEARMAN_FAIL;
     }
 
     pthread_mutex_unlock(&increment_reset_worker_mutex);
