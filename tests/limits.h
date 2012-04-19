@@ -37,5 +37,5 @@
 
 #pragma once
 
-test_return_t function_name_limit_test(void *object);
-test_return_t unique_name_limit_test(void *object);
+test_return_t function_name_limit_test(void*);
+test_return_t unique_name_limit_test(void*);

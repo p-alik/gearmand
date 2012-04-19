@@ -41,6 +41,8 @@
 using namespace libtest;
 
 #include <tests/limits.h>
+#include "tests/workers.h"
+#include "tests/start_worker.h"
 
 
 test_return_t function_name_limit_test(void *object)

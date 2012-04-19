@@ -36,7 +36,9 @@ tests_libgearman_1_0_internals_test_LDADD= ${LIBGEARMAN_1_0_CLIENT_LDADD} libgea
 check_PROGRAMS+= tests/libgearman-1.0/internals_test
 noinst_PROGRAMS+= tests/libgearman-1.0/internals_test
 
-tests_libgearman_1_0_worker_test_SOURCES= tests/libgearman-1.0/worker_test.cc
+tests_libgearman_1_0_worker_test_SOURCES=
+tests_libgearman_1_0_worker_test_SOURCES+= tests/libgearman-1.0/worker_test.cc
+tests_libgearman_1_0_worker_test_SOURCES+= tests/libgearman-1.0/workers.cc
 tests_libgearman_1_0_worker_test_DEPENDENCIES= ${LIBGEARMAN_1_0_CLIENT_LDADD} libgearman/libgearmancore.la gearmand/gearmand
 tests_libgearman_1_0_worker_test_LDADD= ${LIBGEARMAN_1_0_CLIENT_LDADD} libgearman/libgearmancore.la
 check_PROGRAMS+=tests/libgearman-1.0/worker_test

@@ -103,7 +103,7 @@ gearman_return_t echo_or_react_worker_v2(gearman_job_st *job, void *)
   return GEARMAN_SUCCESS;
 }
 
-gearman_return_t echo_or_react_chunk_worker_v2(gearman_job_st *job, void *)
+gearman_return_t echo_or_react_chunk_worker_v2(gearman_job_st *job, void *split_arg)
 {
   const char *workload= (const char *)gearman_job_workload(job);
   size_t workload_size= gearman_job_workload_size(job);
@@ -128,15 +128,29 @@ gearman_return_t echo_or_react_chunk_worker_v2(gearman_job_st *job, void *)
     }
   }
 
-  for (size_t x= 0; x < workload_size; x++)
+  size_t split_on= 1; 
+  if (split_arg)
+  {
+    size_t *tmp= (size_t*)split_arg;
+    split_on= *tmp;
+  }
+
+  if (split_on > workload_size)
+  {
+    split_on= workload_size;
+  }
+
+  const char* workload_ptr= &workload[0];
+  size_t remaining= workload_size;
+  for (size_t x= 0; x < workload_size; x+= split_on)
   {
     // Chunk
+    if (gearman_failed(gearman_job_send_data(job, workload_ptr, split_on)))
     {
-      if (gearman_failed(gearman_job_send_data(job, &workload[x], 1)))
-      {
-        return GEARMAN_ERROR;
-      }
+      return GEARMAN_ERROR;
     }
+    remaining-= split_on;
+    workload_ptr+= split_on;
 
     // report status
     {
@@ -149,6 +163,14 @@ gearman_return_t echo_or_react_chunk_worker_v2(gearman_job_st *job, void *)
       {
         return GEARMAN_FAIL;
       }
+    }
+  }
+
+  if (remaining)
+  {
+    if (gearman_failed(gearman_job_send_data(job, workload_ptr, remaining)))
+    {
+      return GEARMAN_ERROR;
     }
   }
 
@@ -238,6 +260,7 @@ gearman_return_t increment_reset_worker_v2(gearman_job_st *job, void *)
     size_t result_size= size_t(snprintf(result, sizeof(result), "%ld", counter));
     if (gearman_failed(gearman_job_send_data(job, result, result_size)))
     {
+      pthread_mutex_unlock(&increment_reset_worker_mutex);
       return GEARMAN_FAIL;
     }
 
