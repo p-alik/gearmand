@@ -159,6 +159,7 @@ void gearman_universal_free(gearman_universal_st &universal)
   {
     // created realloc()
     free(universal.pfds);
+    universal.pfds= NULL;
   }
 }
 
