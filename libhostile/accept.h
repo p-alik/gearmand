@@ -22,20 +22,7 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <sys/types.h>          /* See NOTES */
+#include <sys/socket.h>
 
-#if defined(HAVE_LIBHOSTILE) && HAVE_LIBHOSTILE
-void set_accept_close(bool arg, int frequency, int not_until_arg);
-void set_recv_close(bool arg, int frequency, int not_until_arg);
-void set_send_close(bool arg, int frequency, int not_until_arg);
-#else
-#define set_accept_close( __arg, __frequency, __not_until_arg);
-#define set_recv_close( __arg, __frequency, __not_until_arg);
-#define set_send_close( __arg, __frequency, __not_until_arg);
-#endif
-
-#ifdef __cplusplus
-}
-#endif
+typedef int (accept_fn)(int sockfd, struct sockaddr *addr, socklen_t *addrlen);

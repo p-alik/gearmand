@@ -26,6 +26,7 @@
 
 #include <stdbool.h>
 
+#include <libhostile/accept.h>
 #include <libhostile/action.h>
 #include <libhostile/getaddrinfo.h>
 #include <libhostile/malloc.h>
@@ -42,6 +43,7 @@ extern "C" {
 #endif
 
 union function_un {
+  accept_fn *accept;
   malloc_fn *malloc;
   realloc_fn *realloc;
   send_fn *send;
