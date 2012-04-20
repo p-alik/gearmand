@@ -87,6 +87,50 @@ static test_return_t gearman_worker_timeout_default_test(void *)
   return TEST_SUCCESS;
 }
 
+static test_return_t gearman_worker_free_TEST(void *)
+{
+  gearman_worker_free(NULL);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_worker_error_TEST(void *)
+{
+  test_null(gearman_worker_error(NULL));
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_worker_error_no_error_TEST(void *)
+{
+  Worker worker;
+  test_null(gearman_worker_error(&worker));
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_worker_errno_TEST(void *)
+{
+  test_compare(0, gearman_worker_errno(NULL));
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_worker_errno_no_error_TEST(void *)
+{
+  Worker worker;
+  test_compare(0, gearman_worker_errno(&worker));
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_worker_options_TEST(void *)
+{
+  test_compare(gearman_worker_options_t(), gearman_worker_options(NULL));
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t option_test(void *)
 {
   gearman_worker_st *gear;
@@ -1201,6 +1245,16 @@ test_st worker_defaults[] ={
   {0, 0, 0}
 };
 
+test_st gearman_worker_st_NULL_invocation_TESTS[] ={
+  {"gearman_worker_free()", 0, gearman_worker_free_TEST },
+  {"gearman_worker_error()", 0, gearman_worker_error_TEST },
+  {"gearman_worker_error() no error", 0, gearman_worker_error_no_error_TEST },
+  {"gearman_worker_errno()", 0, gearman_worker_errno_TEST },
+  {"gearman_worker_errno() no error", 0, gearman_worker_errno_no_error_TEST },
+  {"gearman_worker_options()", 0, gearman_worker_options_TEST },
+  {0, 0, 0}
+};
+
 test_st gearman_worker_set_identifier_TESTS[] ={
 #if 0
   {"gearman_worker_set_identifier()", 0, gearman_worker_set_identifier_TEST },
@@ -1211,6 +1265,7 @@ test_st gearman_worker_set_identifier_TESTS[] ={
 collection_st collection[] ={
   {"worker", 0, 0, tests},
   {"worker defaults", 0, 0, worker_defaults},
+  {"null gearman_worker_st invocation", 0, 0, gearman_worker_st_NULL_invocation_TESTS },
   {"gearman_worker_set_identifier()", 0, 0, gearman_worker_set_identifier_TESTS},
   {0, 0, 0, 0}
 };

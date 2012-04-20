@@ -331,9 +331,11 @@ gearman_return_t gearman_client_wait(gearman_client_st *client);
  *  caller is done using it.
  */
 GEARMAN_API
-void *gearman_client_do(gearman_client_st *client, const char *function_name,
-                        const char *unique, const void *workload,
-                        size_t workload_size, size_t *result_size,
+void *gearman_client_do(gearman_client_st *client,
+                        const char *function_name,
+                        const char *unique,
+                        const void *workload, size_t workload_size,
+                        size_t *result_size,
                         gearman_return_t *ret_ptr);
 
 /**

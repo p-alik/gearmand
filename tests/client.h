@@ -49,6 +49,17 @@ public:
     }
   }
 
+  Client(in_port_t arg)
+  {
+    _client= gearman_client_create(NULL);
+
+    if (_client == NULL)
+    {
+      throw "gearman_client_create() failed";
+    }
+    gearman_client_add_server(_client, "localhost", arg);
+  }
+
   gearman_client_st* operator&() const
   { 
     return _client;
