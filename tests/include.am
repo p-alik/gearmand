@@ -92,6 +92,17 @@ tests_round_robin_test_LDADD= ${CLIENT_LDADD} libgearman/libgearmancore.la
 check_PROGRAMS+= tests/round_robin_test
 noinst_PROGRAMS+= tests/round_robin_test
 
+test-round-robin: tests/round_robin_test gearmand/gearmand
+	@tests/round_robin_test
+
+gdb-round-robin: tests/round_robin_test gearmand/gearmand
+	@$(GDB_COMMAND) tests/round_robin_test
+
+valgrind-round-robin: tests/round_robin_test gearmand/gearmand
+	@$(VALGRIND_COMMAND) tests/round_robin_test
+
+helgrind-round-robin: tests/round_robin_test gearmand/gearmand
+	@$(HELGRIND_COMMAND) tests/round_robin_test
 
 tests_hostileworker_test_SOURCES=
 tests_hostileworker_test_DEPENDENCIES=
@@ -154,13 +165,7 @@ test-gearmand: tests/gearmand gearmand/gearmand
 tests-blobslap_client: tests/blobslap_client gearmand/gearmand
 	@tests/blobslap_client
 
-test-round-robin: tests/round_robin_test gearmand/gearmand
-	@tests/round_robin_test
-
 check-local:
-
-gdb-round-robin: tests/round_robin_test gearmand/gearmand
-	@$(GDB_COMMAND) tests/round_robin_test
 
 gdb-cli: tests/cli gearmand/gearmand
 	@$(GDB_COMMAND) tests/cli
@@ -177,9 +182,6 @@ gdb-gearmand: tests/gearmand gearmand/gearmand
 valgrind-cli: tests/cli gearmand/gearmand
 	@$(VALGRIND_COMMAND) tests/cli gearmand/gearmand
 
-valgrind-round-robin: tests/round_robin_test gearmand/gearmand
-	@$(VALGRIND_COMMAND) tests/round_robin_test
-
 valgrind-burnin: tests/burnin_test gearmand/gearmand
 	@$(VALGRIND_COMMAND) tests/burnin_test
 
@@ -191,9 +193,6 @@ valgrind-gearmand: tests/gearmand gearmand/gearmand
 
 helgrind-client: tests/client_test gearmand/gearmand
 	@$(HELGRIND_COMMAND) tests/client_test
-
-helgrind-round-robin: tests/round_robin_test gearmand/gearmand
-	@$(HELGRIND_COMMAND) tests/round_robin_test
 
 helgrind-burnin: tests/burnin_test gearmand/gearmand
 	@$(HELGRIND_COMMAND) tests/burnin_test

@@ -17,7 +17,7 @@ Of fail the server will report to the client that an error occurred and the work
 
 :c:type:`GEARMAN_ERROR`
 
-On error the server will retry the work.
+On error the server will retry the work, until job retries occurs (ie gearmand --job-retries=#)
 
 :c:type:`GEARMAN_SHUTDOWN`
 
