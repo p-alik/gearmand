@@ -13,6 +13,7 @@
 noinst_LTLIBRARIES+= libhostile/libhostile.la
 
 noinst_HEADERS+= \
+		 libhostile/accept.h \
 		 libhostile/action.h \
 		 libhostile/getaddrinfo.h \
 		 libhostile/hostile.h \
@@ -37,6 +38,7 @@ libhostile_libhostile_la_LIBADD+= $(RT_LIB)
 
 libhostile_libhostile_la_CFLAGS+= -DHAVE_LIBHOSTILE=1
 libhostile_libhostile_la_SOURCES+= \
+				   libhostile/accept.c \
 				   libhostile/getaddrinfo.c \
 				   libhostile/malloc.c \
 				   libhostile/realloc.c \

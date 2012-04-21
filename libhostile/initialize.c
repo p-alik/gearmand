@@ -49,13 +49,19 @@ struct function_st set_function(const char *name, const char *environ_name)
 
   set.name= name;
 
+  (void)dlerror();
   set.function.ptr= dlsym(RTLD_NEXT, set.name);
 
-  char *error;
-  if ((error= dlerror()) != NULL)
+  if (set.function.ptr == NULL)
   {
-    fprintf(stderr, "libhostile: %s(%s)", set.name, error);
-    exit(1);
+    fprintf(stderr, "libhostile: %s(%s)", set.name, dlerror());
+    exit(EXIT_FAILURE);
+  }
+
+  if (set.function.ptr == NULL)
+  {
+    fprintf(stderr, "libhostile: %s(%s)", set.name, dlerror());
+    exit(EXIT_FAILURE);
   }
 
   char *ptr;

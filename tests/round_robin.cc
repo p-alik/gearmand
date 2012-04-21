@@ -110,7 +110,8 @@ static test_return_t queue_add(void *object)
   {
     test_compare(GEARMAN_SUCCESS,
                  gearman_client_do_background(&client, x % 2 ? "queue1" : "queue2", NULL,
-                                              value, value_length, job_handle));
+                                              value, value_length,
+                                              job_handle));
 
     *value = (uint32_t)(*value + 1);
   }

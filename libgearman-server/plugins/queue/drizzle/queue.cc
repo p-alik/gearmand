@@ -216,6 +216,47 @@ void initialize_drizzle()
 } // namespace plugins
 } // namespace gearmand
 
+/*
+ * thin wrapper around drizzle_query to handle the server going away
+ * this happens usually because of a low wait_timeout value
+ * we attempt to connect back only once
+ */
+static drizzle_result_st *_libdrizzle_query_with_retry(drizzle_con_st *con,
+                                                       drizzle_result_st *result,
+                                                       const char *query, size_t query_size,
+                                                       drizzle_return_t *ret_ptr)
+{
+  drizzle_result_st *query_result= NULL;
+  *ret_ptr= DRIZZLE_RETURN_LOST_CONNECTION;
+  for (int retry= 0; ((*ret_ptr) == DRIZZLE_RETURN_LOST_CONNECTION) && (retry < 2); ++retry)
+  {
+    query_result= drizzle_query(con, result, query, query_size, ret_ptr);
+  }
+
+  if (libdrizzle_failed(*ret_ptr))
+  {
+    if ((*ret_ptr) == DRIZZLE_RETURN_COULD_NOT_CONNECT)
+    {
+      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM,
+                        "Failed to connect to database instance. host: %s:%d user: %s schema: %s (%s)",
+                         drizzle_con_host(con),
+                         (int)(drizzle_con_port(con)),
+                         drizzle_con_user(con),
+                         drizzle_con_db(con),
+                         drizzle_error(con->drizzle));
+    }
+    else
+    {
+      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM,
+                        "libdrizled error '%s' executing '%.*s'",
+                         drizzle_error(con->drizzle),
+                         query_size, query);
+    }
+  }
+
+  return query_result;
+}
+
 /**
  * Query handling function.
  */
@@ -226,28 +267,9 @@ static drizzle_return_t _libdrizzle_query(plugins::queue::Drizzle *queue,
 
   gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "libdrizzle query: %.*s", (uint32_t)query_size, query);
 
-  drizzle_result_st *result= drizzle_query(queue->con, queue->result(), query, query_size, &ret);
+  drizzle_result_st *result= _libdrizzle_query_with_retry(queue->con, queue->result(), query, query_size, &ret);
   if (libdrizzle_failed(ret))
   {
-
-    if (ret == DRIZZLE_RETURN_COULD_NOT_CONNECT)
-    {
-      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM,
-			 "Failed to connect to database instance. host: %s:%d user: %s schema: %s (%s)", 
-                         drizzle_con_host(queue->con),
-                         (int)(drizzle_con_port(queue->con)),
-                         drizzle_con_user(queue->con),
-                         drizzle_con_db(queue->con),
-                         drizzle_error(queue->drizzle));
-    }
-    else
-    {
-      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM,
-			 "libdrizled error '%s' executing '%.*s'",
-                         drizzle_error(queue->drizzle),
-                         query_size, query);
-    }
-
     return ret;
   }
   (void)result;
@@ -260,28 +282,9 @@ static drizzle_return_t _libdrizzle_insert(plugins::queue::Drizzle *queue,
 {
   drizzle_return_t ret;
 
-  drizzle_result_st *result= drizzle_query(queue->insert_con, NULL, &query[0], query.size() -1, &ret);
+  drizzle_result_st *result= _libdrizzle_query_with_retry(queue->insert_con, NULL, &query[0], query.size() -1, &ret);
   if (libdrizzle_failed(ret))
   {
-
-    if (ret == DRIZZLE_RETURN_COULD_NOT_CONNECT)
-    {
-      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM,
-			 "Failed to connect to database instance. host: %s:%d user: %s schema: %s (%s)", 
-                         drizzle_con_host(queue->insert_con),
-                         int(drizzle_con_port(queue->insert_con)),
-                         drizzle_con_user(queue->insert_con),
-                         drizzle_con_db(queue->insert_con),
-                         drizzle_error(queue->drizzle));
-    }
-    else
-    {
-      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM,
-			 "libdrizled error '%s' executing '%.*s'",
-                         drizzle_error(queue->drizzle),
-                         query.size(), &query[0]);
-    }
-
     return ret;
   }
 

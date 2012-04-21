@@ -681,6 +681,11 @@ static void _listen_event(int fd, short events __attribute__ ((unused)), void *a
     {
       return;
     }
+    else if (errno == ECONNABORTED)
+    {
+      gearmand_perror("accept");
+      return;
+    }
     else if (errno == EMFILE)
     {
       gearmand_perror("accept");
