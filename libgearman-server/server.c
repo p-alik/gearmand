@@ -158,7 +158,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
       {
         gearman_server_client_free(server_client);
         gearmand_gerror("gearman_server_job_add", ret);
-        return ret;
+        return _server_error_packet(server_con, "queue_insert_error", gearmand_strerror(ret));
       }
 
       /* Queue the job created packet. */
@@ -267,7 +267,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
     {
       gearman_server_client_free(server_client);
       gearmand_gerror("gearman_server_job_add", ret);
-      return ret;
+      return _server_error_packet(server_con, "queue_insert_error", gearmand_strerror(ret));
     }
 
     /* Queue the job created packet. */
