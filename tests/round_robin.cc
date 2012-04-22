@@ -72,22 +72,18 @@ struct Context
 #endif
 
 /* append test for worker */
-static void *append_function(gearman_job_st *job,
-                             void *context, size_t *result_size,
-                             gearman_return_t *ret_ptr)
+static gearman_return_t append_function_WORKER(gearman_job_st* job, void *context_arg)
 {
   /* this will will set the last char in the context (buffer) to the */
   /* first char of the work */
-  char *buf = (char *)context;
+  char *buf = (char *)context_arg;
   assert(buf);
 
   char *work = (char *)gearman_job_workload(job);
-  buf += strlen(buf);
+  buf+= strlen(buf);
   *buf= *work;
-  *result_size= 0;
-  *ret_ptr= GEARMAN_SUCCESS;
 
-  return NULL;
+  return GEARMAN_SUCCESS;
 }
 
 static test_return_t queue_add(void *object)
@@ -98,7 +94,8 @@ static test_return_t queue_add(void *object)
   Client client(context->port());
   char job_handle[GEARMAN_JOB_HANDLE_SIZE];
 
-  uint32_t *value= (uint32_t *)strdup("0");
+  uint8_t *value= (uint8_t *)malloc(1);
+  *value= uint8_t('0');
   size_t value_length= 1;
 
   context->run_worker= false;
@@ -113,7 +110,7 @@ static test_return_t queue_add(void *object)
                                               value, value_length,
                                               job_handle));
 
-    *value = (uint32_t)(*value + 1);
+    *value = (uint8_t)(*value +1);
   }
 
   free(value);
@@ -134,13 +131,17 @@ static test_return_t queue_worker(void *object)
 
   test_truth(context->run_worker);
 
-  test_compare_got(GEARMAN_SUCCESS,
-                   gearman_worker_add_function(&worker, "queue1", 5, append_function, buffer),
-                   gearman_worker_error(&worker));
+  gearman_function_t append_function_FN= gearman_function_create(append_function_WORKER);
 
-  test_compare_got(GEARMAN_SUCCESS,
-                   gearman_worker_add_function(&worker, "queue2", 5, append_function, buffer),
-                   gearman_worker_error(&worker));
+  test_compare(GEARMAN_SUCCESS, gearman_worker_define_function(&worker,
+                                                               test_literal_param("queue1"),
+                                                               append_function_FN,
+                                                               0, buffer));
+
+  test_compare(GEARMAN_SUCCESS, gearman_worker_define_function(&worker,
+                                                               test_literal_param("queue2"),
+                                                               append_function_FN,
+                                                               0, buffer));
 
   for (uint32_t x= 0; x < 10; x++)
   {
