@@ -238,11 +238,23 @@ gearman_return_t gearman_packet_create_args(gearman_universal_st& universal,
   {
     assert_msg(args_count -1 == gearman_command_info(packet.command)->argc, 
                "Programmer error, number of arguments incorrect for protocol");
+    if (bool(args_count -1 == gearman_command_info(packet.command)->argc) == false)
+    {
+      gearman_packet_free(&packet);
+      return gearman_universal_set_error(universal, GEARMAN_INVALID_ARGUMENT, GEARMAN_AT,
+                                         "Programmer error, number of arguments incorrect for protocol");
+    }
   }
   else
   {
     assert_msg(args_count == gearman_command_info(packet.command)->argc, 
                "Programmer error, number of arguments incorrect for protocol");
+    if (bool(args_count == gearman_command_info(packet.command)->argc) == false)
+    {
+      gearman_packet_free(&packet);
+      return gearman_universal_set_error(universal, GEARMAN_INVALID_ARGUMENT, GEARMAN_AT,
+                                         "Programmer error, number of arguments incorrect for protocol");
+    }
   }
 
   for (size_t x= 0; x < args_count; x++)

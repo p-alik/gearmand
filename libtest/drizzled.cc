@@ -85,6 +85,10 @@ bool ping_drizzled(const in_port_t _port)
       success= bool(result);
       drizzle_result_free(result);
     }
+    else
+    {
+      success= false;
+    }
 
     if (success == true)
     { }

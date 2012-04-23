@@ -36,11 +36,12 @@ noinst_HEADERS+= \
 		 libgearman/log.hpp \
 		 libgearman/ostream.hpp \
 		 libgearman/packet.hpp \
+		 libgearman/protocol/submit.h \
 		 libgearman/result.hpp \
 		 libgearman/run.hpp \
-		 libgearman/task.hpp \
 		 libgearman/strcommand.h \
 		 libgearman/string.hpp \
+		 libgearman/task.hpp \
 		 libgearman/unique.hpp \
 		 libgearman/universal.hpp \
 		 libgearman/vector.hpp
@@ -86,6 +87,7 @@ libgearman_libgearman_la_SOURCES= \
 				  libgearman/log.cc \
 				  libgearman/packet.cc \
 				  libgearman/parse.cc \
+				  libgearman/protocol/submit.cc \
 				  libgearman/result.cc \
 				  libgearman/run.cc \
 				  libgearman/strcommand.cc \

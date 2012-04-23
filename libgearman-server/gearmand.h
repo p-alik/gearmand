@@ -75,6 +75,8 @@
 
 #include <libgearman-server/struct/gearmand.h>
 
+#include <libgearman-server/text.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif

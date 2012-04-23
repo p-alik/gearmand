@@ -25,6 +25,7 @@ include libgearman-server/plugins/include.am
 noinst_LTLIBRARIES+= libgearman-server/libgearman-server.la
 
 
+noinst_HEADERS+= libgearman-server/text.h
 noinst_HEADERS+= \
 		 libgearman-server/byte.h \
 		 libgearman-server/byteorder.h \
@@ -54,6 +55,7 @@ noinst_HEADERS+= \
 		 libgearman-server/wakeup.h \
 		 libgearman-server/worker.h
 
+libgearman_server_libgearman_server_la_SOURCES+= libgearman-server/text.cc
 libgearman_server_libgearman_server_la_SOURCES+= \
 						 libgearman-server/byteorder.cc \
 						 libgearman-server/client.cc \

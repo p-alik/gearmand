@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -37,13 +37,27 @@
 
 #pragma once
 
-struct gearman_unique_t {
-  const char *c_str;
-  size_t size;
-};
 
-GEARMAN_LOCAL
-gearman_unique_t gearman_unique_make(const char *arg, size_t arg_size);
+namespace libgearman {
+namespace protocol {
 
-GEARMAN_LOCAL
-size_t gearman_unique_size(gearman_unique_t *self);
+gearman_return_t submit(gearman_task_st&,
+                        const gearman_command_t command,
+                        const gearman_string_t &function,
+                        const gearman_unique_t &unique,
+                        const gearman_string_t &workload);
+
+gearman_return_t submit_background(gearman_task_st&,
+                                   const gearman_command_t command,
+                                   const gearman_string_t &function,
+                                   const gearman_unique_t &unique,
+                                   const gearman_string_t &workload);
+
+gearman_return_t submit_epoch(gearman_task_st&,
+                              const gearman_string_t &function,
+                              const gearman_unique_t &unique,
+                              const gearman_string_t &workload,
+                              time_t when);
+
+} // namespace protocol
+} // namespace libgearman
