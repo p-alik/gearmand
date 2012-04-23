@@ -43,6 +43,7 @@
 #include <libgearman/add.hpp>
 #include <libgearman/packet.hpp>
 
+#include <cassert>
 #include <cerrno>
 #include <cstdio>
 #include <cstdlib>
@@ -55,7 +56,7 @@ gearman_task_st *add_task(gearman_client_st& client,
                           void *context,
                           gearman_command_t command,
                           const gearman_string_t &function,
-                          const gearman_unique_t &unique,
+                          gearman_unique_t &unique,
                           const gearman_string_t &workload,
                           time_t when,
                           const gearman_actions_t &actions)
@@ -101,13 +102,11 @@ gearman_task_st *add_task(gearman_client_st& client,
                           void *context,
                           gearman_command_t command,
                           const gearman_string_t &function,
-                          const gearman_unique_t &unique,
+                          gearman_unique_t &unique,
                           const gearman_string_t &workload,
                           time_t when,
                           const gearman_actions_t &actions)
 {
-  uuid_t uuid;
-  char uuid_string[37];
   const void *args[4];
   size_t args_size[4];
 
@@ -148,66 +147,92 @@ gearman_task_st *add_task(gearman_client_st& client,
   task->context= context;
   task->func= actions;
 
-  /**
-    @todo fix it so that NULL is done by default by the API not by happenstance.
-  */
-  char function_buffer[1024];
-  if (client.universal._namespace)
-  {
-    char *ptr= function_buffer;
-    memcpy(ptr, gearman_string_value(client.universal._namespace), gearman_string_length(client.universal._namespace)); 
-    ptr+= gearman_string_length(client.universal._namespace);
-
-    memcpy(ptr, gearman_c_str(function), gearman_size(function) +1);
-    ptr+= gearman_size(function);
-
-    args[0]= function_buffer;
-    args_size[0]= ptr -function_buffer +1;
-  }
-  else
-  {
-    args[0]= gearman_c_str(function);
-    args_size[0]= gearman_size(function) +1;
-  }
-
+  char uuid_string[37];
   if (gearman_size(unique))
-  {
-    args[1]= gearman_c_str(unique);
-    args_size[1]= gearman_size(unique) +1;
-  }
+  { } // Do nothing, pass it along
   else
   {
+    uuid_t uuid;
     uuid_generate(uuid);
     uuid_unparse(uuid, uuid_string);
     uuid_string[36]= 0;
-    args[1]= uuid_string;
-    args_size[1]= 36 +1; // +1 is for the needed null
+
+    unique= gearman_unique_make(uuid_string, 36);
   }
 
   gearman_return_t rc;
-  if (command == GEARMAN_COMMAND_SUBMIT_JOB_EPOCH)
+  switch (command)
   {
-    char time_string[30];
-    int length= snprintf(time_string, sizeof(time_string), "%lld", static_cast<long long>(when));
-    args[2]= time_string;
-    args_size[2]= length +1;
-    args[3]= gearman_c_str(workload);
-    args_size[3]= gearman_size(workload);
+  case GEARMAN_COMMAND_SUBMIT_JOB:
+  case GEARMAN_COMMAND_SUBMIT_JOB_LOW:
+  case GEARMAN_COMMAND_SUBMIT_JOB_HIGH:
+    rc= libgearman::protocol::submit(*task,
+                                     command,
+                                     function,
+                                     unique,
+                                     workload);
+    break;
 
-    rc= gearman_packet_create_args(client.universal, task->send,
-                                   GEARMAN_MAGIC_REQUEST, command,
-                                   args, args_size,
-                                   4);
-  }
-  else
-  {
-    args[2]= gearman_c_str(workload);
-    args_size[2]= gearman_size(workload);
+  case GEARMAN_COMMAND_SUBMIT_JOB_EPOCH:
+    rc= libgearman::protocol::submit_epoch(*task,
+                                           function,
+                                           unique,
+                                           workload,
+                                           when);
+    break;
 
-    rc= gearman_packet_create_args(client.universal, task->send,
-                                   GEARMAN_MAGIC_REQUEST, command,
-                                   args, args_size,
-                                   3);
+  case GEARMAN_COMMAND_SUBMIT_JOB_BG:
+  case GEARMAN_COMMAND_SUBMIT_JOB_LOW_BG:
+  case GEARMAN_COMMAND_SUBMIT_JOB_HIGH_BG:
+    rc= libgearman::protocol::submit_background(*task,
+                                                command,
+                                                function,
+                                                unique,
+                                                workload);
+    break;
+
+  case GEARMAN_COMMAND_SUBMIT_REDUCE_JOB:
+  case GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND:
+    assert(0);
+    rc= GEARMAN_INVALID_ARGUMENT;
+    break;
+
+  case GEARMAN_COMMAND_SUBMIT_JOB_SCHED:
+  case GEARMAN_COMMAND_ALL_YOURS:
+  case GEARMAN_COMMAND_CANT_DO:
+  case GEARMAN_COMMAND_CAN_DO:
+  case GEARMAN_COMMAND_CAN_DO_TIMEOUT:
+  case GEARMAN_COMMAND_ECHO_REQ:
+  case GEARMAN_COMMAND_ECHO_RES:
+  case GEARMAN_COMMAND_ERROR:
+  case GEARMAN_COMMAND_GET_STATUS:
+  case GEARMAN_COMMAND_GRAB_JOB:
+  case GEARMAN_COMMAND_GRAB_JOB_ALL:
+  case GEARMAN_COMMAND_GRAB_JOB_UNIQ:
+  case GEARMAN_COMMAND_JOB_ASSIGN:
+  case GEARMAN_COMMAND_JOB_ASSIGN_ALL:
+  case GEARMAN_COMMAND_JOB_ASSIGN_UNIQ:
+  case GEARMAN_COMMAND_JOB_CREATED:
+  case GEARMAN_COMMAND_MAX:
+  case GEARMAN_COMMAND_NOOP:
+  case GEARMAN_COMMAND_NO_JOB:
+  case GEARMAN_COMMAND_OPTION_REQ:
+  case GEARMAN_COMMAND_OPTION_RES:
+  case GEARMAN_COMMAND_PRE_SLEEP:
+  case GEARMAN_COMMAND_RESET_ABILITIES:
+  case GEARMAN_COMMAND_SET_CLIENT_ID:
+  case GEARMAN_COMMAND_STATUS_RES:
+  case GEARMAN_COMMAND_TEXT:
+  case GEARMAN_COMMAND_UNUSED:
+  case GEARMAN_COMMAND_WORK_COMPLETE:
+  case GEARMAN_COMMAND_WORK_DATA:
+  case GEARMAN_COMMAND_WORK_EXCEPTION:
+  case GEARMAN_COMMAND_WORK_FAIL:
+  case GEARMAN_COMMAND_WORK_STATUS:
+  case GEARMAN_COMMAND_WORK_WARNING:
+    assert(0);
+    rc= GEARMAN_INVALID_ARGUMENT;
+    break;
   }
 
   if (gearman_success(rc))
@@ -220,7 +245,6 @@ gearman_task_st *add_task(gearman_client_st& client,
   }
 
   gearman_task_free(task);
-  gearman_gerror(client.universal, rc);
 
   return NULL;
 }
