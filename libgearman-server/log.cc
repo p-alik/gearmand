@@ -72,6 +72,7 @@ static void gearmand_log(const char *position, const char *func /* func */,
   if (Gearmand() and Gearmand()->verbose < GEARMAND_VERBOSE_DEBUG)
   {
     current_epoch= libgearman::server::Epoch::current();
+    current_epoch.tv_usec= 0;
   }
   else
   {
