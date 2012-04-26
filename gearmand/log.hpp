@@ -75,16 +75,20 @@ struct gearmand_log_info_st
         fd= open(filename.c_str(), O_CREAT | O_WRONLY | O_APPEND, 0644);
         if (fd == -1)
         {
+          char cwd_buffer[1024];
+          char *cwd= getcwd(cwd_buffer, sizeof(cwd_buffer));
+
+          char error_mesg[1024];
+          int error_mesg_length= snprintf(error_mesg, sizeof(error_mesg),
+                                          "Could not open log file \"%.*s\", from \"%s\", switching to stderr. Open failed with (%s)", 
+                                          int(filename.size()), filename.c_str(), 
+                                          cwd,
+                                          strerror(errno));
           if (opt_syslog)
           {
-            char buffer[1024];
-            getcwd(buffer, sizeof(buffer));
-            syslog(LOG_ERR, "Could not open log file \"%.*s\", from \"%s\", open failed with (%s)", 
-                   int(filename.size()), filename.c_str(), 
-                   buffer,
-                   strerror(errno));
+            syslog(LOG_ERR, "%.*s", error_mesg_length, error_mesg);
           }
-          error::perror("Could not open log file for writing, switching to stderr.");
+          error::perror(error_mesg);
 
           fd= STDERR_FILENO;
         }
