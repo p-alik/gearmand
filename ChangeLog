@@ -1,3 +1,6 @@
+0.33
+* Add --config-file option
+
 0.32 Wed Apr 11 02:25:38 PDT 2012
 * Fix for shutdown bug.
 

@@ -1,7 +1,7 @@
-/* Gearman server and library 
+/* Gearman server and library
  *
- * Copyright (C) 2011 Data Differential LLC 
- * Copyright (C) 2008 Brian Aker, Eric Day 
+ * Copyright (C) 2011 Data Differential LLC
+ * Copyright (C) 2008 Brian Aker, Eric Day
  * All rights reserved.
  *
  * Use and distribution licensed under the BSD license.  See
@@ -9,12 +9,14 @@
  */
 
 #include <config.h>
+#include <configmake.h>
 
 #include <cerrno>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <fcntl.h>
+#include <fstream>
 #include <pwd.h>
 #include <signal.h>
 #include <sys/resource.h>
@@ -44,6 +46,12 @@
 #include "util/pidfile.hpp"
 
 #include <boost/program_options.hpp>
+#include <boost/program_options/options_description.hpp>
+#include <boost/program_options/parsers.hpp>
+#include <boost/program_options/variables_map.hpp>
+#include <boost/token_functions.hpp>
+#include <boost/tokenizer.hpp>
+
 #include <iostream>
 
 #include "gearmand/error.hpp"
@@ -77,6 +85,7 @@ int main(int argc, char *argv[])
   std::string protocol;
   std::string queue_type;
   std::string verbose_string= "ERROR";
+  std::string config_file;
 
   uint32_t threads;
   bool opt_round_robin;
@@ -101,19 +110,19 @@ int main(int argc, char *argv[])
   ("job-retries,j", boost::program_options::value(&job_retries)->default_value(0),
    "Number of attempts to run the job before the job server removes it. This is helpful to ensure a bad job does not crash all available workers. Default is no limit.")
 
-  ("log-file,l", boost::program_options::value(&log_file),
+  ("log-file,l", boost::program_options::value(&log_file)->default_value(LOCALSTATEDIR"/log/gearmand.log"),
    "Log file to write errors and information to. If the log-file paramater is specified as 'stderr', then output will go to stderr")
 
   ("listen,L", boost::program_options::value(&host),
    "Address the server should listen on. Default is INADDR_ANY.")
 
-  ("port,p", boost::program_options::value(&port)->default_value(GEARMAN_DEFAULT_TCP_PORT_STRING), 
+  ("port,p", boost::program_options::value(&port)->default_value(GEARMAN_DEFAULT_TCP_PORT_STRING),
    "Port the server should listen on.")
 
-  ("pid-file,P", boost::program_options::value(&pid_file), 
+  ("pid-file,P", boost::program_options::value(&pid_file)->default_value(GEARMAND_PID),
    "File to write process ID out to.")
 
-  ("protocol,r", boost::program_options::value(&protocol), 
+  ("protocol,r", boost::program_options::value(&protocol),
    "Load protocol module.")
 
   ("round-robin,R", boost::program_options::bool_switch(&opt_round_robin)->default_value(false),
@@ -121,6 +130,9 @@ int main(int argc, char *argv[])
 
   ("queue-type,q", boost::program_options::value(&queue_type),
    "Persistent queue type to use.")
+
+  ("config-file", boost::program_options::value(&config_file)->default_value(GEARMAND_CONFIG),
+   "Can be specified with '@name', too")
 
   ("syslog", boost::program_options::bool_switch(&opt_syslog)->default_value(false),
    "Use syslog.")
@@ -160,10 +172,10 @@ int main(int argc, char *argv[])
    "Check command line and configuration file argments and then exit.");
   all.add(hidden);
 
-  // Disable allow_guessing 
-  int style= boost::program_options::command_line_style::default_style ^ boost::program_options::command_line_style::allow_guessing;
   boost::program_options::variables_map vm;
   try {
+    // Disable allow_guessing
+    int style= boost::program_options::command_line_style::default_style ^ boost::program_options::command_line_style::allow_guessing;
     boost::program_options::parsed_options parsed= boost::program_options::command_line_parser(argc, argv)
       .options(all)
       .positional(positional)
@@ -171,8 +183,47 @@ int main(int argc, char *argv[])
       .run();
     store(parsed, vm);
     notify(vm);
-  }
 
+    if (config_file.empty() == false)
+    {
+      // Load the file and tokenize it
+      std::ifstream ifs(config_file.c_str());
+      if (ifs)
+      {
+        // Read the whole file into a string
+        std::stringstream ss;
+        ss << ifs.rdbuf();
+        // Split the file content
+        boost::char_separator<char> sep(" \n\r");
+        std::string sstr= ss.str();
+        boost::tokenizer<boost::char_separator<char> > tok(sstr, sep);
+        std::vector<std::string> args;
+        std::copy(tok.begin(), tok.end(), back_inserter(args));
+
+        for (std::vector<std::string>::iterator iter= args.begin();
+             iter != args.end();
+             iter++)
+        {
+          std::cerr << *iter << std::endl;
+        }
+
+        // Parse the file and store the options
+        store(boost::program_options::command_line_parser(args).options(visible).run(), vm);
+      }
+      else if (config_file.compare(GEARMAND_CONFIG))
+      {
+        error::message("Could not open configuration file.");
+        return EXIT_FAILURE;
+      }
+    }
+
+    notify(vm);
+  }
+  catch(boost::program_options::validation_error &e)
+  {
+    error::message(e.what());
+    return EXIT_FAILURE;
+  }
   catch(std::exception &e)
   {
     if (e.what() and strncmp("-v", e.what(), 2) == 0)
@@ -212,7 +263,7 @@ int main(int argc, char *argv[])
   }
 
   if (fds > 0 && _set_fdlimit(fds))
-  { 
+  {
     return EXIT_FAILURE;
   }
 
@@ -233,7 +284,7 @@ int main(int argc, char *argv[])
 
   util::Pidfile _pid_file(pid_file);
 
-  if (not _pid_file.create())
+  if (_pid_file.create() == false and pid_file.compare(GEARMAND_PID))
   {
     error::perror(_pid_file.error_message().c_str());
     return EXIT_FAILURE;

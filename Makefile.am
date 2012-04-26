@@ -21,8 +21,11 @@ man8_MANS =
 DISTCLEANFILES =
 EXTRA_DIST =
 CLEANFILES =
+BUILT_SOURCES =
 TESTS =
 .PHONY =
+
+CLEANFILES+= ${BUILT_SOURCES}
 
 %.hpp.gch: %.hpp 
 	$(CXXCOMPILE) -c $<
@@ -55,6 +58,23 @@ EXTRA_DIST+= scripts/README.solaris
 
 test: check
 
+BUILT_SOURCES+= configmake.h
+noinst_HEADERS+= configmake.h
+configmake.h: ${top_srcdir}/Makefile.in
+	@echo "Making $@"
+	@rm -f $@-t $@
+	@{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
+	  echo '#define PREFIX "$(prefix)"'; \
+	  echo '#define SYSCONFDIR "$(sysconfdir)"'; \
+	  echo '#define GEARMAND_CONFIG "$(sysconfdir)/gearmand.conf"'; \
+	  echo '#define LOCALSTATEDIR "$(localstatedir)"'; \
+	  echo '#define GEARMAND_PID "$(localstatedir)/gearmand.pid"'; \
+	  } | sed '/""/d' > $@-t
+	@if diff $@-t $@ >/dev/null 2>&1 ; then \
+	  rm @-t ; \
+	  else \
+	  mv $@-t $@ ; \
+	  fi
 clean-local:
 	-rm -rf docs/_build docs/doctrees
 

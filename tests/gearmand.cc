@@ -45,6 +45,8 @@
 
 #include "tests/worker.h"
 
+#include <fstream>
+
 using namespace libtest;
 
 #ifndef __INTEL_COMPILER
@@ -422,6 +424,57 @@ static test_return_t http_port_test(void *)
   return TEST_SUCCESS;
 }
 
+static test_return_t config_file_TEST(void *)
+{
+  const char *args[]= { "--check-args", "--config-file=etc/gearmand.conf", 0 };
+
+  test_compare(EXIT_FAILURE, exec_cmdline(gearmand_binary(), args, true));
+  return TEST_SUCCESS;
+}
+
+static test_return_t config_file_DEFAULT_TEST(void *)
+{
+  const char *args[]= { "--check-args", "--config-file", 0 };
+
+  test_compare(EXIT_FAILURE, exec_cmdline(gearmand_binary(), args, true));
+  return TEST_SUCCESS;
+}
+
+static test_return_t config_file_FAIL_TEST(void *)
+{
+  const char *args[]= { "--check-args", "--config-file=etc/grmandfoo.conf", 0 };
+
+  test_compare(EXIT_FAILURE, exec_cmdline(gearmand_binary(), args, true));
+  return TEST_SUCCESS;
+}
+
+static test_return_t config_file_SIMPLE_TEST(void *)
+{
+  in_port_t port= libtest::get_free_port();
+  char port_str[1024];
+  test_true(snprintf(port_str, sizeof(port_str), "%d", int32_t(port)) > 0);
+
+  std::string config_file= "etc/gearmand.conf";
+  {
+    std::fstream file_stream;
+    file_stream.open(config_file.c_str(), std::fstream::out | std::fstream::trunc);
+
+    file_stream 
+      << "--port " << port_str << std::endl;
+
+    fatal_assert(file_stream.good());
+    file_stream.close();
+  }
+  test_compare(0, access(config_file.c_str(), R_OK));
+
+  const char *args[]= { "--check-args", "--config-file=etc/gearmand.conf", 0 };
+
+  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  unlink(config_file.c_str());
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t maxqueue_TEST(void *)
 {
   in_port_t port= libtest::get_free_port();
@@ -494,6 +547,10 @@ test_st gearmand_option_tests[] ={
   {"--queue-type=", 0, queue_test},
   {"--job-retries=", 0, long_job_retries_test},
   {"-j", 0, short_job_retries_test},
+  {"--config-file=etc/gearmand.conf no file present", 0, config_file_TEST },
+  {"--config-file", 0, config_file_DEFAULT_TEST },
+  {"--config-file=etc/grmandfoo.conf", 0, config_file_FAIL_TEST },
+  {"--config-file=etc/gearmand.conf", 0, config_file_SIMPLE_TEST },
   {0, 0, 0}
 };
 
