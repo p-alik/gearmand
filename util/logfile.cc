@@ -35,7 +35,7 @@
  *
  */
 
-#include <config.h>
+#include "config.h"
 
 #include "util/logfile.hpp"
 
@@ -49,7 +49,6 @@
 #include <sstream>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <unistd.h>
 
 namespace datadifferential {
 namespace util {
