@@ -16,12 +16,12 @@ Link with -lgearman
 DESCRIPTION
 -----------
 
-:c:func:`gearman_client_add_task_status()` creates a :c:type:`gearman_task_st` that can be used to monitor a previously created task.
+:c:func:`gearman_client_add_task_status` creates a :c:type:`gearman_task_st` that can be used to monitor a previously created task.
 
 .. warning::
-        You may wish to avoid using :c:func:`gearman_client_add_task()` with a
+        You may wish to avoid using :c:func:`gearman_client_add_task` with a
         stack based allocated :c:type:`gearman_task_st`. The most common issues related to ABI safety involve
-        stack allocated structures. If you use a stack based :c:type:`gearman_task_st` you must free it with :c:func:`gearman_task_free()`.
+        stack allocated structures. If you use a stack based :c:type:`gearman_task_st` you must free it with :c:func:`gearman_task_free`.
 
 ------------
 RETURN VALUE

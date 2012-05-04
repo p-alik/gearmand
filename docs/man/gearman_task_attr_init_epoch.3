@@ -1,4 +1,4 @@
-.TH "GEARMAN_TASK_ATTR_INIT_EPOCH" "3" "April 17, 2012" "0.32" "Gearmand"
+.TH "GEARMAN_TASK_ATTR_INIT_EPOCH" "3" "May 03, 2012" "0.33" "Gearmand"
 .SH NAME
 gearman_task_attr_init_epoch \- Gearmand Documentation, http://gearman.info/
 .
@@ -39,15 +39,19 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_work_t gearman_work(gearman_job_priority_t priority);
+.B gearman_job_priority_t
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_work_t gearman_work_epoch(time_t epoch, gearman_job_priority_t priority);
+.B \fI\%gearman_work_t\fP gearman_work(\fI\%gearman_job_priority_t\fP\fI\ priority\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_work_t gearman_work_background(gearman_job_priority_t priority);
+.B \fI\%gearman_work_t\fP gearman_work_epoch(time_t\fI\ epoch\fP, \fI\%gearman_job_priority_t\fP\fI\ priority\fP)
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \fI\%gearman_work_t\fP gearman_work_background(\fI\%gearman_job_priority_t\fP\fI\ priority\fP)
 .UNINDENT
 .sp
 Compile and link with \-lgearman
@@ -55,11 +59,11 @@ Compile and link with \-lgearman
 .sp
 \fI\%gearman_work_t\fP describe work for \fBgearman_execute()\fP.
 .sp
-\fBgearman_work()\fP creates a \fI\%gearman_work_t\fP with a priority.
+\fI\%gearman_work()\fP creates a \fI\%gearman_work_t\fP with a priority.
 .sp
-\fBgearman_work_epoch()\fP creates a \fI\%gearman_work_t\fP which tells \fBgearman_execute()\fP to execute the workload at the time specified by epoch.
+\fI\%gearman_work_epoch()\fP creates a \fI\%gearman_work_t\fP which tells \fBgearman_execute()\fP to execute the workload at the time specified by epoch.
 .sp
-\fBgearman_work_background()\fP creates a \fI\%gearman_work_t\fP which tells \fBgearman_execute()\fP to execute the workload as a background job.
+\fI\%gearman_work_background()\fP creates a \fI\%gearman_work_t\fP which tells \fBgearman_execute()\fP to execute the workload as a background job.
 .SH SEE ALSO
 .sp
 \fIgearmand(8)\fP \fIlibgearman(3)\fP \fIgearman_execute()\fP

@@ -1,4 +1,4 @@
-.TH "GEARMAN_JOB_FREE_ALL" "3" "April 17, 2012" "0.32" "Gearmand"
+.TH "GEARMAN_JOB_FREE_ALL" "3" "May 03, 2012" "0.33" "Gearmand"
 .SH NAME
 gearman_job_free_all \- Gearmand Documentation, http://gearman.info/
 .
@@ -39,78 +39,74 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void gearman_job_free(gearman_job_st *job);
+.B void gearman_job_free(\fI\%gearman_job_st\fP\fI\ *job\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_job_send_data(gearman_job_st *job, const void *data, size_t data_size);
+.B gearman_return_t gearman_job_send_data(\fI\%gearman_job_st\fP\fI\ *job\fP, const void\fI\ *data\fP, size_t\fI\ data_size\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_job_send_warning(gearman_job_st *job, const void *warning, size_t warning_size);
+.B gearman_return_t gearman_job_send_warning(\fI\%gearman_job_st\fP\fI\ *job\fP, const void\fI\ *warning\fP, size_t\fI\ warning_size\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_job_send_status(gearman_job_st *job, uint32_t numerator, uint32_t denominator);
+.B gearman_return_t gearman_job_send_status(\fI\%gearman_job_st\fP\fI\ *job\fP, uint32_t\fI\ numerator\fP, uint32_t\fI\ denominator\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_job_send_complete(gearman_job_st *job, const void *result, size_t result_size);
+.B gearman_return_t gearman_job_send_complete(\fI\%gearman_job_st\fP\fI\ *job\fP, const void\fI\ *result\fP, size_t\fI\ result_size\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_job_send_exception(gearman_job_st *job, const void *exception, size_t exception_size);
+.B gearman_return_t gearman_job_send_exception(\fI\%gearman_job_st\fP\fI\ *job\fP, const void\fI\ *exception\fP, size_t\fI\ exception_size\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_job_send_fail(gearman_job_st *job);
+.B gearman_return_t gearman_job_send_fail(\fI\%gearman_job_st\fP\fI\ *job\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B const char *gearman_job_handle(const gearman_job_st *job);
+.B const char *gearman_job_handle(const \fI\%gearman_job_st\fP\fI\ *job\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B const char *gearman_job_function_name(const gearman_job_st *job);
+.B const char *gearman_job_function_name(const \fI\%gearman_job_st\fP\fI\ *job\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B const char *gearman_job_unique(const gearman_job_st *job);
+.B const char *gearman_job_unique(const \fI\%gearman_job_st\fP\fI\ *job\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B const void *gearman_job_workload(const gearman_job_st *job);
+.B const void *gearman_job_workload(const \fI\%gearman_job_st\fP\fI\ *job\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B size_t gearman_job_workload_size(const gearman_job_st *job);
+.B size_t gearman_job_workload_size(const \fI\%gearman_job_st\fP\fI\ *job\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void *gearman_job_take_workload(gearman_job_st *job, size_t *data_size);
+.B void *gearman_job_take_workload(\fI\%gearman_job_st\fP\fI\ *job\fP, size_t\fI\ *data_size\fP)
 .UNINDENT
 .sp
 Link with \-lgearman
 .SH DESCRIPTION
 .sp
-\fBgeaman_job_st\fP are passed to worker functions to represent jobs that are being run by \fBgearman_worker_work()\fP.
+\fI\%gearman_job_st\fP are passed to worker functions to represent jobs that are being run by \fBgearman_worker_work()\fP.
 .sp
-\fBgearman_job_free()\fP is used to free a job. This only needs to be
+\fI\%gearman_job_free()\fP is used to free a job. This only needs to be
 done if a task was created with a preallocated structure.
 .sp
-\fBgearman_job_handle()\fP returns the job handle(see
-\fBgearman_job_t\fP for more information).
+\fI\%gearman_job_handle()\fP returns the job handle(see \fBgearman_job_handle_t\fP for more information).
 .sp
-\fBgearman_job_function_name()\fP return the name of the function that
-the job was set to execute against.
+\fI\%gearman_job_function_name()\fP return the name of the function that the
+job was set to execute against.
 .sp
-\fBgearman_job_unique()\fP return the unique value that was used for
-\fI\%gearman_job_st\fP.
+\fI\%gearman_job_unique()\fP return the unique value that was used for \fI\%gearman_job_st\fP.
 .sp
-returns the \fI\%gearman_job_st\fP workload. The size of it can be
-determined with \fBgearman_job_workload_size()\fP.
-\fBgearman_job_take_workload()\fP is the same as
-\fBgearman_job_workload()\fP with the exception that the result must be
+returns the \fI\%gearman_job_st\fP workload. The size of it can be determined with \fI\%gearman_job_workload_size()\fP.
+\fI\%gearman_job_take_workload()\fP is the same as \fI\%gearman_job_workload()\fP with the exception that the result must be
 \fIfree(3)\fP by the caller.
 .SH RETURN VALUE
 .sp

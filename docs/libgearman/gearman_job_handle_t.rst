@@ -21,7 +21,7 @@ a text string that represents the name of a task (in truth
 gearman_job_handle_t is a typedef'ed
 char[:c:macro:`GEARMAN_JOB_HANDLE_SIZE`]).
 
-:c:func:`gearman_client_job_status()` use handles to find the status of tasks. When passed to :c:func:`gearman_client_do_background()` it will be populated with the job handle.
+:c:func:`gearman_client_job_status` use handles to find the status of tasks. When passed to :c:func:`gearman_client_do_background` it will be populated with the job handle.
 
 ------------
 RETURN VALUE

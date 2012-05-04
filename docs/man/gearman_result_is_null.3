@@ -1,4 +1,4 @@
-.TH "GEARMAN_RESULT_IS_NULL" "3" "April 17, 2012" "0.32" "Gearmand"
+.TH "GEARMAN_RESULT_IS_NULL" "3" "May 03, 2012" "0.33" "Gearmand"
 .SH NAME
 gearman_result_is_null \- Gearmand Documentation, http://gearman.info/
 .
@@ -35,53 +35,57 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 #include <libgearman/gearman.h>
 .INDENT 0.0
 .TP
-.B gearman_result_t
+.B gearman_result_st
 .UNINDENT
 .INDENT 0.0
 .TP
-.B int64_t gearman_result_integer(const gearman_result_st\fI\ *self\fP)
+.B \fI\%gearman_result_st\fP *gearman_task_result(gearman_task_st\fI\ *task\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B bool gearman_result_boolean(const gearman_result_st\fI\ *self\fP)
+.B int64_t gearman_result_integer(const \fI\%gearman_result_st\fP\fI\ *self\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_string_t gearman_result_string(const gearman_result_st\fI\ *self\fP)
+.B bool gearman_result_boolean(const \fI\%gearman_result_st\fP\fI\ *self\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_result_store_string(gearman_result_st\fI\ *self\fP, gearman_string_t\fI\ arg\fP)
+.B gearman_string_t gearman_result_string(const \fI\%gearman_result_st\fP\fI\ *self\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void gearman_result_store_integer(gearman_result_st\fI\ *self\fP, int64_t\fI\ value\fP)
+.B gearman_return_t gearman_result_store_string(\fI\%gearman_result_st\fP\fI\ *self\fP, gearman_string_t\fI\ arg\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_result_store_value(gearman_result_st\fI\ *self\fP, const void\fI\ *value\fP, size_t\fI\ size\fP)
+.B void gearman_result_store_integer(\fI\%gearman_result_st\fP\fI\ *self\fP, int64_t\fI\ value\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B size_t gearman_result_size(const gearman_result_st\fI\ *self\fP)
+.B gearman_return_t gearman_result_store_value(\fI\%gearman_result_st\fP\fI\ *self\fP, const void\fI\ *value\fP, size_t\fI\ size\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B const char *gearman_result_value(const gearman_result_st\fI\ *self\fP)
+.B size_t gearman_result_size(const \fI\%gearman_result_st\fP\fI\ *self\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B bool gearman_result_is_null(const gearman_result_st\fI\ *self\fP)
+.B const char *gearman_result_value(const \fI\%gearman_result_st\fP\fI\ *self\fP)
+.UNINDENT
+.INDENT 0.0
+.TP
+.B bool gearman_result_is_null(const \fI\%gearman_result_st\fP\fI\ *self\fP)
 .UNINDENT
 .sp
 Compile and link with \-lgearman
 .SH DESCRIPTION
 .sp
-The \fBgearman_result_t()\fP type represents a result set. \fBgearman_aggregator_fn\fP is passed on these types which it uses to create a final result that is returned to the client.
+The \fI\%gearman_result_st\fP type represents a result set. \fBgearman_aggregator_fn\fP is passed on these types which it uses to create a final result that is returned to the client.
 .sp
-\fBgearman_task_result()\fP returns \fBgearman_result_t()\fP from a \fBgearman_task_st\fP.
+\fI\%gearman_task_result()\fP returns \fI\%gearman_result_st\fP from a \fBgearman_task_st\fP.
 .sp
-A \fBgearman_result_t()\fP can return the resulting value as either a char pointer, boolean, \fBgearman_string_t\fP, or int64_t.
+A \fI\%gearman_result_st\fP can return the resulting value as either a char pointer, boolean, \fBgearman_string_t\fP, or int64_t.
 .SH SEE ALSO
 .sp
 \fIgearmand(8)\fP \fIlibgearman(3)\fP \fIgearman_client_error()\fP or \fIgearman_worker_error()\fP

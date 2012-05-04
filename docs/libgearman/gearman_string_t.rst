@@ -10,9 +10,9 @@ SYNOPSIS
 
 .. c:type:: gearman_string_t
 
-.. c:macro:: size_t gearman_size(gearman_string_t);
+.. c:macro:: size_t gearman_size(gearman_string_t)
 
-.. c:macro:: const char *gearman_c_str(gearman_string_t);
+.. c:macro:: const char *gearman_c_str(gearman_string_t)
 
 Compile and link with -lgearman
 

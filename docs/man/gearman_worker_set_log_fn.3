@@ -1,4 +1,4 @@
-.TH "GEARMAN_WORKER_SET_LOG_FN" "3" "April 17, 2012" "0.32" "Gearmand"
+.TH "GEARMAN_WORKER_SET_LOG_FN" "3" "May 03, 2012" "0.33" "Gearmand"
 .SH NAME
 gearman_worker_set_log_fn \- Gearmand Documentation, http://gearman.info/
 .
@@ -35,12 +35,12 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 #include <libgearman/gearman.h>
 .INDENT 0.0
 .TP
-.B void gearman_worker_set_log_fn(gearman_worker_st *worker, gearman_log_fn *function, void *context, gearman_verbose_t verbose);
+.B void gearman_worker_set_log_fn(gearman_worker_st\fI\ *worker\fP, gearman_log_fn\fI\ *function\fP, void\fI\ *context\fP, gearman_verbose_t\fI\ verbose\fP)
 .UNINDENT
 .SH DESCRIPTION
 .sp
-\fBgearman_worker_set_log_fn()\fP is similar to \fBgearman_client_set_log_fn()\fP but it used with workers, aka, \fBgearman_worker_st\fP.
-\fBgearman_worker_set_log_fn()\fP allows you to register a callback that will be passed all error messages that are givin to the worker.
+\fI\%gearman_worker_set_log_fn()\fP is similar to \fBgearman_client_set_log_fn()\fP but it used with workers, aka, \fBgearman_worker_st\fP.
+\fI\%gearman_worker_set_log_fn()\fP allows you to register a callback that will be passed all error messages that are givin to the worker.
 .sp
 See \fBgearman_log_fn\fP for a description of the callback.
 .sp

@@ -1,4 +1,4 @@
-.TH "GEARMAN_VERBOSE_T" "3" "April 17, 2012" "0.32" "Gearmand"
+.TH "GEARMAN_VERBOSE_T" "3" "May 03, 2012" "0.33" "Gearmand"
 .SH NAME
 gearman_verbose_t \- Gearmand Documentation, http://gearman.info/
 .
@@ -35,15 +35,19 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 #include <libgearman/gearman.h>
 .INDENT 0.0
 .TP
-.B const char *gearman_verbose_name(gearman_verbose_t\fI\ verbose\fP)
+.B gearman_verbose_t
+.UNINDENT
+.INDENT 0.0
+.TP
+.B const char *gearman_verbose_name(\fI\%gearman_verbose_t\fP\fI\ verbose\fP)
 .UNINDENT
 .sp
 Link with \-lgearman
 .SH DESCRIPTION
 .sp
-\fI\%gearman_verbose_name()\fP takes a \fBgearman_verbose_t\fP and returns a character representation of it.
+\fI\%gearman_verbose_name()\fP takes a \fI\%gearman_verbose_t\fP and returns a character representation of it.
 .sp
-Possible values of \fBgearman_verbose_t\fP:
+Possible values of \fI\%gearman_verbose_t\fP:
 .INDENT 0.0
 .TP
 .B GEARMAN_VERBOSE_FATAL

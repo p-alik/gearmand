@@ -61,7 +61,7 @@ struct Context
 
   void reset()
   {
-    servers.shutdown_and_remove();
+    servers.clear();
     _port= libtest::get_free_port();
     _retries= 0;
   }

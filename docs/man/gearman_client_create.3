@@ -1,4 +1,4 @@
-.TH "GEARMAN_CLIENT_CREATE" "3" "April 17, 2012" "0.32" "Gearmand"
+.TH "GEARMAN_CLIENT_CREATE" "3" "May 03, 2012" "0.33" "Gearmand"
 .SH NAME
 gearman_client_create \- Gearmand Documentation, http://gearman.info/
 .
@@ -50,17 +50,17 @@ Link with \-lgearman
 .SH DESCRIPTION
 .sp
 \fI\%gearman_client_create()\fP is used to create a c:type:\fIgearman_client_st\fP  structure that will then
-be used by other \fBlibgearman()\fP client functions to communicate with the server. You
+be used by other libgearman client functions to communicate with the server. You
 should either pass a statically declared \fBgearman_client_st\fP  to \fI\%gearman_client_create()\fP or
 a NULL. If a NULL passed in then a structure is allocated for you.
 .sp
 \fI\%gearman_client_clone()\fP is similar to \fI\%gearman_client_create()\fP but it copies the
 defaults and list of servers from the source \fBgearman_client_st\fP . If you pass a null as
-the argument for the source to clone, it is the same as a call to gearman_client_create().
+the argument for the source to clone, it is the same as a call to gearman_client_create.
 If the destination argument is NULL a \fBgearman_client_st\fP  will be allocated for you.
 .sp
 To clean up memory associated with a \fBgearman_client_st\fP  structure you should pass
-it to gearman_client_free() when you are finished using it. \fI\%gearman_client_free()\fP is
+it to gearman_client_free when you are finished using it. \fI\%gearman_client_free()\fP is
 the only way to make sure all memory is deallocated when you finish using
 the structure.
 .IP Warning
@@ -70,11 +70,11 @@ stack allocated structures.
 .RE
 .SH RETURN VALUE
 .sp
-\fBgearman_client_create()\fP returns a pointer to the gearman_client_st
+\fI\%gearman_client_create\fP returns a pointer to the gearman_client_st
 that was created (or initialized). On an allocation failure, it returns
 NULL.
 .sp
-\fBgearman_client_clone()\fP returns a pointer to the gearman_client_st that was created
+\fI\%gearman_client_clone\fP returns a pointer to the gearman_client_st that was created
 (or initialized). On an allocation failure, it returns NULL.
 .SH HOME
 .sp

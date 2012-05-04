@@ -9,7 +9,7 @@ SYNOPSIS
 
 #include <libgearman/gearman.h>
 
-.. c:type: gearman_worker_options_t
+.. c:type:: gearman_worker_options_t
 
 .. c:function:: gearman_worker_options_t gearman_worker_options(const gearman_worker_st *worker)
 
@@ -26,7 +26,7 @@ SYNOPSIS
 DESCRIPTION
 -----------
 
-:c:func:`gearman_worker_options()` returns the :c:type:`gearman_worker_options_t` for :c:type:`gearman_worker_st`. You enable options via :c:func:`gearman_worker_add_options()` and disable options via :c:func:`gearman_worker_remove_options()`.  
+:c:func:`gearman_worker_options` returns the :c:type:`gearman_worker_options_t` for :c:type:`gearman_worker_st`. You enable options via :c:func:`gearman_worker_add_options` and disable options via :c:func:`gearman_worker_remove_options`.  
 
 
 

@@ -18,10 +18,11 @@ Compile and link with -lgearman
 DESCRIPTION
 -----------
 
-gearman_client_set_namespace() and gearman_worker_set_namespace() set a "namespace" for a given set of functions. Only clients and workers sharing a :c:data:`namespace_key` can
-see one anothers workloads and functions.
+gearman_client_set_namespace() and gearman_worker_set_namespace() set
+a "namespace" for a given set of functions. Only clients and workers sharing
+a namespace_key can see one anothers workloads and functions.
 
-By setting :c:data:`namespace_key` to NULL you can disable the namespace.
+By setting namespace_key to NULL you can disable the namespace.
 
 ------
 RETURN

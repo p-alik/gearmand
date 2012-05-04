@@ -1,4 +1,4 @@
-.TH "GEARMAN_CLIENT_ERRNO" "3" "April 17, 2012" "0.32" "Gearmand"
+.TH "GEARMAN_CLIENT_ERRNO" "3" "May 03, 2012" "0.33" "Gearmand"
 .SH NAME
 gearman_client_errno \- Gearmand Documentation, http://gearman.info/
 .
@@ -35,20 +35,20 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 #include <libgearman/gearman.h>
 .INDENT 0.0
 .TP
-.B const char *gearman_client_error(const gearman_client_st *client);
+.B const char *gearman_client_error(const gearman_client_st\fI\ *client\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B int gearman_client_errno(gearman_client_st *client);
+.B int gearman_client_errno(gearman_client_st\fI\ *client\fP)
 .UNINDENT
 .sp
 Ling with \-lgearman
 .SH DESCRIPTION
 .sp
-\fBgearman_client_error()\fP and \fBgearman_client_errno()\fP report on the last errors that the client reported/stored in \fBgearman_client_st()\fP. If you are interested in recording all errors please see \fBgearman_client_set_log_fn()\fP.
+\fI\%gearman_client_error()\fP and \fI\%gearman_client_errno()\fP report on the last errors that the client reported/stored in \fBgearman_client_st\fP. If you are interested in recording all errors please see \fBgearman_client_set_log_fn()\fP.
 .SH RETURN VALUE
 .sp
-\fBgearman_client_errno()\fP returns the last \fIerrno\fP that the client recorded.
+\fI\%gearman_client_errno()\fP returns the last \fIerrno\fP that the client recorded.
 .SH HOME
 .sp
 To find out more information please check:

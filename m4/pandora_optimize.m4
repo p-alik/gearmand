@@ -18,10 +18,6 @@ AC_DEFUN([PANDORA_OPTIMIZE],[
       ;;
     esac
 
-    dnl Once we can use a modern autoconf, we can replace the std=gnu99 here
-    dnl with using AC_CC_STD_C99 above
-    CC="${CC} -std=gnu99"
-
     AM_CPPFLAGS="-ggdb ${AM_CPPFLAGS}"
 
     DEBUG_CFLAGS="-O0"
@@ -67,9 +63,11 @@ AC_DEFUN([PANDORA_OPTIMIZE],[
     # Debugging. No optimization.
     AM_CFLAGS="${AM_CFLAGS} ${DEBUG_CFLAGS} -DDEBUG"
     AM_CXXFLAGS="${AM_CXXFLAGS} ${DEBUG_CXXFLAGS} -DDEBUG"
+    AC_DEFINE(DEBUG, [ 1 ], [Define to 1 to enable debugging code.])
   ],[
     # Optimized version. No debug
     AM_CFLAGS="${AM_CFLAGS} ${OPTIMIZE_CFLAGS}"
     AM_CXXFLAGS="${AM_CXXFLAGS} ${OPTIMIZE_CXXFLAGS}"
+    AC_DEFINE(DEBUG, [ 0 ], [Define to 1 to enable debugging code.])
   ])
 ])

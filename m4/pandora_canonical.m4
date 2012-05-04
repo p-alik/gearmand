@@ -126,6 +126,7 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
   AC_STRUCT_TM
   AC_TYPE_SIZE_T
   AC_SYS_LARGEFILE
+  PANDORA_CLOCK_GETTIME
 
   AC_CHECK_HEADERS(sys/socket.h)
 
@@ -178,7 +179,6 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
   AC_LIB_PREFIX
   PANDORA_HAVE_BETTER_MALLOC
 
-  AC_CHECK_PROGS([DOXYGEN], [doxygen])
   AC_CHECK_PROGS([PERL], [perl])
   AC_CHECK_PROGS([DPKG_GENSYMBOLS], [dpkg-gensymbols], [:])
   AC_CHECK_PROGS([LCOV], [lcov], [echo lcov not found])
@@ -199,13 +199,6 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
   AM_CONDITIONAL(HAVE_SPHINX,[test "x${SPHINXBUILD}" != "x:"])
   AM_CONDITIONAL(HAVE_RECENT_SPHINX,[test "x${ac_cv_recent_sphinx}" = "xyes"])
 
-  AS_IF([test "x${gl_LIBOBJS}" != "x"],[
-    AS_IF([test "$GCC" = "yes"],[
-      AM_CPPFLAGS="-isystem \${top_srcdir}/gnulib -isystem \${top_builddir}/gnulib ${AM_CPPFLAGS}"
-    ],[
-    AM_CPPFLAGS="-I\${top_srcdir}/gnulib -I\${top_builddir}/gnulib ${AM_CPPFLAGS}"
-    ])
-  ])
   m4_if(m4_substr(m4_esyscmd(test -d src && echo 0),0,1),0,[
     AM_CPPFLAGS="-I\$(top_srcdir)/src -I\$(top_builddir)/src ${AM_CPPFLAGS}"
   ],[
@@ -213,30 +206,6 @@ AC_DEFUN([PANDORA_CANONICAL_TARGET],[
   ])
 
   PANDORA_USE_PIPE
-
-  AH_TOP([
-#pragma once
-
-/* _SYS_FEATURE_TESTS_H is Solaris, _FEATURES_H is GCC */
-#if defined( _SYS_FEATURE_TESTS_H) || defined(_FEATURES_H)
-#error "You should include config.h as your first include file"
-#endif
-
-])
-  mkdir -p config
-  cat > config/top.h.stamp <<EOF_CONFIG_TOP
-
-#if defined(i386) && !defined(__i386__)
-#define __i386__
-#endif
-
-#if defined(_FILE_OFFSET_BITS)
-# undef _FILE_OFFSET_BITS
-#endif
-EOF_CONFIG_TOP
-
-  diff config/top.h.stamp config/top.h >/dev/null 2>&1 || mv config/top.h.stamp config/top.h
-  rm -f config/top.h.stamp
 
   AM_CFLAGS="-std=c99 ${AM_CFLAGS} ${CC_WARNINGS} ${CC_PROFILING} ${CC_COVERAGE}"
   AM_CXXFLAGS="${AM_CXXFLAGS} ${CXX_WARNINGS} ${CC_PROFILING} ${CC_COVERAGE}"

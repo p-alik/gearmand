@@ -1,4 +1,4 @@
-.TH "GEARMAN_TASK_NUMERATOR" "3" "April 17, 2012" "0.32" "Gearmand"
+.TH "GEARMAN_TASK_NUMERATOR" "3" "May 03, 2012" "0.33" "Gearmand"
 .SH NAME
 gearman_task_numerator \- Gearmand Documentation, http://gearman.info/
 .
@@ -119,9 +119,7 @@ Link with \-lgearman
 .sp
 A \fI\%gearman_task_st\fP represents a \fItask\fP.  Work that is sent by a \fIclient\fP to a gearman server is seen as a task (a \fIworker\fP recieves a task in the form of a \fIjob\fP.
 .sp
-Tasks, i.e. \fI\%gearman_task_st\fP are created by calling either
-\fBgearman_execute()\fP, \fBgearman_client_add_task()\fP, or
-\fBgearman_client_add_task_background()\fP.
+Tasks, i.e. \fI\%gearman_task_st\fP are created by calling either \fBgearman_execute()\fP, \fBgearman_client_add_task()\fP, or \fBgearman_client_add_task_background()\fP.
 .sp
 \fBgearman_client_add_task_status()\fP can also create \fI\%gearman_task_st\fP, these tasks will be used to
 monitor a previously created \fI\%gearman_task_st\fP.
@@ -140,7 +138,8 @@ done if a task was created with a preallocated structure or if you want to clean
 \fI\%gearman_task_error()\fP return the last error message that the
 \fI\%gearman_task_st\fP encountered. \fI\%gearman_task_return()\fP
 return the last \fBgearman_return_t\fP stored. A value of
-\fBGEARMAN_UNKNOWN_STATE\fP means that the task has not been submitted to server yet.
+\fBGEARMAN_UNKNOWN_STATE\fP means that the task has not been submitted to
+server yet, or that no function was available if the job has been submitted.
 .SH RETURN VALUE
 .sp
 Various. Values that are returned by \fI\%gearman_task_take_data()\fP must have \fIfree(3)\fP called on them.

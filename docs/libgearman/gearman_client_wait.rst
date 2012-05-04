@@ -9,7 +9,7 @@ SYNOPSIS
 
 #include <libgearman/gearman.h>
 
-.. c:function::gearman_return_t gearman_client_wait(gearman_client_st *client)
+.. c:function:: gearman_return_t gearman_client_wait(gearman_client_st *client)
 
 Link with -lgearman
 
@@ -17,7 +17,7 @@ Link with -lgearman
 DESCRIPTION
 -----------
 
-Calling :c:func:`gearman_client_wait()` causes the calling code to sleep until either the timeout in :c:type:`gearman_client_st` is reached or :program:`gearmand` responds to the client.
+Calling :c:func:`gearman_client_wait` causes the calling code to sleep until either the timeout in :c:type:`gearman_client_st` is reached or :program:`gearmand` responds to the client.
 
 ------------
 RETURN VALUE

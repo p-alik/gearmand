@@ -44,7 +44,6 @@
 
 #pragma once
 
-#include <inttypes.h>
 #include <netinet/in.h>
 #include <stdbool.h>
 #include <stdlib.h>

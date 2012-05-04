@@ -559,30 +559,28 @@ gearman_task_st *gearman_client_add_task_background(gearman_client_st *client,
  * gearman_client_add_task() for details.
  */
 GEARMAN_API
-gearman_task_st *
-gearman_client_add_task_high_background(gearman_client_st *client,
-                                        gearman_task_st *task,
-                                        void *context,
-                                        const char *function_name,
-                                        const char *unique,
-                                        const void *workload,
-                                        size_t workload_size,
-                                        gearman_return_t *ret_ptr);
+gearman_task_st *gearman_client_add_task_high_background(gearman_client_st *client,
+                                                         gearman_task_st *task,
+                                                         void *context,
+                                                         const char *function_name,
+                                                         const char *unique,
+                                                         const void *workload,
+                                                         size_t workload_size,
+                                                         gearman_return_t *ret_ptr);
 
 /**
  * Add a low priority background task to be run in parallel. See
  * gearman_client_add_task() for details.
  */
 GEARMAN_API
-gearman_task_st *
-gearman_client_add_task_low_background(gearman_client_st *client,
-                                       gearman_task_st *task,
-                                       void *context,
-                                       const char *function_name,
-                                       const char *unique,
-                                       const void *workload,
-                                       size_t workload_size,
-                                       gearman_return_t *ret_ptr);
+gearman_task_st *gearman_client_add_task_low_background(gearman_client_st *client,
+                                                        gearman_task_st *task,
+                                                        void *context,
+                                                        const char *function_name,
+                                                        const char *unique,
+                                                        const void *workload,
+                                                        size_t workload_size,
+                                                        gearman_return_t *ret_ptr);
 
 /**
  * Add task to get the status for a backgound task in parallel.

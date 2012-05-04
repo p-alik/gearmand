@@ -1,4 +1,4 @@
-.TH "GEARMAN_WORKER_ADD_FUNCTION" "3" "April 17, 2012" "0.32" "Gearmand"
+.TH "GEARMAN_WORKER_ADD_FUNCTION" "3" "May 03, 2012" "0.33" "Gearmand"
 .SH NAME
 gearman_worker_add_function \- Gearmand Documentation, http://gearman.info/
 .
@@ -39,59 +39,63 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .UNINDENT
 .INDENT 0.0
 .TP
-.B int gearman_worker_timeout(gearman_worker_st *worker);
+.B gearman_worker_set_task_context_free_fn
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void gearman_worker_set_timeout(gearman_worker_st *worker, int timeout);
+.B int gearman_worker_timeout(\fI\%gearman_worker_st\fP\fI\ *worker\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void *gearman_worker_context(const gearman_worker_st *worker);
+.B void gearman_worker_set_timeout(\fI\%gearman_worker_st\fP\fI\ *worker\fP, int\fI\ timeout\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void gearman_worker_set_context(gearman_worker_st *worker, void *context);
+.B void *gearman_worker_context(const \fI\%gearman_worker_st\fP\fI\ *worker\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void gearman_worker_set_workload_malloc_fn(gearman_worker_st *worker, gearman_malloc_fn *function, void *context);
+.B void gearman_worker_set_context(\fI\%gearman_worker_st\fP\fI\ *worker\fP, void\fI\ *context\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void gearman_worker_set_workload_free_fn(gearman_worker_st *worker, gearman_free_fn *function, void *context);
+.B void gearman_worker_set_workload_malloc_fn(\fI\%gearman_worker_st\fP\fI\ *worker\fP, gearman_malloc_fn\fI\ *function\fP, void\fI\ *context\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_worker_wait(gearman_worker_st *worker);
+.B void gearman_worker_set_workload_free_fn(\fI\%gearman_worker_st\fP\fI\ *worker\fP, gearman_free_fn\fI\ *function\fP, void\fI\ *context\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_worker_register(gearman_worker_st *worker, const char *function_name, uint32_t timeout);
+.B gearman_return_t gearman_worker_wait(\fI\%gearman_worker_st\fP\fI\ *worker\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_worker_unregister(gearman_worker_st *worker, const char *function_name);
+.B gearman_return_t gearman_worker_register(\fI\%gearman_worker_st\fP\fI\ *worker\fP, const char\fI\ *function_name\fP, uint32_t\fI\ timeout\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_worker_unregister_all(gearman_worker_st *worker);
+.B gearman_return_t gearman_worker_unregister(\fI\%gearman_worker_st\fP\fI\ *worker\fP, const char\fI\ *function_name\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker, gearman_job_st *job, gearman_return_t *ret_ptr);
+.B gearman_return_t gearman_worker_unregister_all(\fI\%gearman_worker_st\fP\fI\ *worker\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void gearman_job_free_all(gearman_worker_st *worker);
+.B gearman_job_st *gearman_worker_grab_job(\fI\%gearman_worker_st\fP\fI\ *worker\fP, gearman_job_st\fI\ *job\fP, gearman_return_t\fI\ *ret_ptr\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B bool gearman_worker_function_exist(gearman_worker_st *worker, const char *function_name, size_t function_length);
+.B void gearman_job_free_all(\fI\%gearman_worker_st\fP\fI\ *worker\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_worker_work(gearman_worker_st *worker);
+.B bool gearman_worker_function_exist(\fI\%gearman_worker_st\fP\fI\ *worker\fP, const char\fI\ *function_name\fP, size_t\fI\ function_length\fP)
+.UNINDENT
+.INDENT 0.0
+.TP
+.B gearman_return_t gearman_worker_work(\fI\%gearman_worker_st\fP\fI\ *worker\fP)
 .UNINDENT
 .sp
 Link with \-lgearman
@@ -99,17 +103,17 @@ Link with \-lgearman
 .sp
 \fI\%gearman_worker_st\fP is used for worker communication with the server.
 .sp
-\fBgearman_worker_context()\fP and \fBgearman_worker_set_context()\fP can be used to store an arbitrary object for the user.
+\fI\%gearman_worker_context()\fP and \fI\%gearman_worker_set_context()\fP can be used to store an arbitrary object for the user.
 .sp
-\fBgearman_worker_set_task_context_free_fn()\fP sets a trigger that will be called when a \fBgearman_task_st\fP is released.
+\fI\%gearman_worker_set_task_context_free_fn()\fP sets a trigger that will be called when a \fBgearman_task_st\fP is released.
 .sp
-\fBgearman_worker_timeout()\fP and \fBgearman_worker_set_timeout()\fP get and set the current timeout value, in milliseconds, for the worker.
+\fI\%gearman_worker_timeout()\fP and \fI\%gearman_worker_set_timeout()\fP get and set the current timeout value, in milliseconds, for the worker.
 .sp
-\fBgearman_worker_function_exist()\fP is used to determine if a given worker has a specific function.
+\fI\%gearman_worker_function_exist()\fP is used to determine if a given worker has a specific function.
 .sp
-Normally \fImalloc(3)\fP and \fIfree(3)\fP are used for allocation and releasing workloads. \fBgearman_worker_set_workload_malloc_fn()\fP and \fBgearman_worker_set_workload_free_fn()\fP can be used to replace these with custom functions.
+Normally \fImalloc(3)\fP and \fIfree(3)\fP are used for allocation and releasing workloads. \fI\%gearman_worker_set_workload_malloc_fn()\fP and \fI\%gearman_worker_set_workload_free_fn()\fP can be used to replace these with custom functions.
 .sp
-If you need to remove a function from the server you can call either \fBgearman_worker_unregister_all()\fP to remove all functions that the worker has told the \fBgearmand\fP server about, or you can use \fBgearman_worker_unregister()\fP to remove just a single function.
+If you need to remove a function from the server you can call either \fI\%gearman_worker_unregister_all()\fP to remove all functions that the worker has told the \fBgearmand\fP server about, or you can use \fI\%gearman_worker_unregister()\fP to remove just a single function.
 .SH RETURN
 .sp
 Various

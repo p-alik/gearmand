@@ -122,4 +122,5 @@ Extra
    :titlesonly:
 
    error_descriptions
+   types
 

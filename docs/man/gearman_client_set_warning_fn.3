@@ -1,4 +1,4 @@
-.TH "GEARMAN_CLIENT_SET_WARNING_FN" "3" "April 17, 2012" "0.32" "Gearmand"
+.TH "GEARMAN_CLIENT_SET_WARNING_FN" "3" "May 03, 2012" "0.33" "Gearmand"
 .SH NAME
 gearman_client_set_warning_fn \- Gearmand Documentation, http://gearman.info/
 .
@@ -39,39 +39,75 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void gearman_client_set_workload_fn(gearman_client_st\fI\ *client\fP, gearman_workload_fn\fI\ *function\fP)
+.B gearman_workload_fn
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void gearman_client_set_created_fn(gearman_client_st\fI\ *client\fP, gearman_created_fn\fI\ *function\fP)
+.B gearman_created_fn
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void gearman_client_set_data_fn(gearman_client_st\fI\ *client\fP, gearman_data_fn\fI\ *function\fP)
+.B gearman_data_fn
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void gearman_client_set_warning_fn(gearman_client_st\fI\ *client\fP, gearman_warning_fn\fI\ *function\fP)
+.B gearman_warning_fn
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void gearman_client_set_status_fn(gearman_client_st\fI\ *client\fP, gearman_universal_status_fn\fI\ *function\fP)
+.B gearman_universal_status_fn
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void gearman_client_set_complete_fn(gearman_client_st\fI\ *client\fP, gearman_complete_fn\fI\ *function\fP)
+.B gearman_exception_fn
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void gearman_client_set_exception_fn(gearman_client_st\fI\ *client\fP, gearman_exception_fn\fI\ *function\fP)
+.B gearman_fail_fn
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void gearman_client_set_fail_fn(gearman_client_st\fI\ *client\fP, gearman_fail_fn\fI\ *function\fP)
+.B gearman_complete_fn
+.UNINDENT
+.INDENT 0.0
+.TP
+.B void gearman_client_set_workload_fn(gearman_client_st\fI\ *client\fP, \fI\%gearman_workload_fn\fP\fI\ *function\fP)
+.UNINDENT
+.INDENT 0.0
+.TP
+.B void gearman_client_set_created_fn(gearman_client_st\fI\ *client\fP, \fI\%gearman_created_fn\fP\fI\ *function\fP)
+.UNINDENT
+.INDENT 0.0
+.TP
+.B void gearman_client_set_data_fn(gearman_client_st\fI\ *client\fP, \fI\%gearman_data_fn\fP\fI\ *function\fP)
+.UNINDENT
+.INDENT 0.0
+.TP
+.B void gearman_client_set_warning_fn(gearman_client_st\fI\ *client\fP, \fI\%gearman_warning_fn\fP\fI\ *function\fP)
+.UNINDENT
+.INDENT 0.0
+.TP
+.B void gearman_client_set_status_fn(gearman_client_st\fI\ *client\fP, \fI\%gearman_universal_status_fn\fP\fI\ *function\fP)
+.UNINDENT
+.INDENT 0.0
+.TP
+.B void gearman_client_set_complete_fn(gearman_client_st\fI\ *client\fP, \fI\%gearman_complete_fn\fP\fI\ *function\fP)
+.UNINDENT
+.INDENT 0.0
+.TP
+.B void gearman_client_set_exception_fn(gearman_client_st\fI\ *client\fP, \fI\%gearman_exception_fn\fP\fI\ *function\fP)
+.UNINDENT
+.INDENT 0.0
+.TP
+.B void gearman_client_set_fail_fn(gearman_client_st\fI\ *client\fP, \fI\%gearman_fail_fn\fP\fI\ *function\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
 .B void gearman_client_clear_fn(gearman_client_st\fI\ *client\fP)
+.UNINDENT
+.INDENT 0.0
+.TP
+.B const char *gearman_client_do_job_handle(gearman_client_st\fI\ *client\fP)
 .UNINDENT
 .sp
 Link to \-lgearman
@@ -79,8 +115,11 @@ Link to \-lgearman
 .sp
 Callbacks for client execution task states.
 .sp
-\fBgearman_client_do_job_handle()\fP sets the callback function that will
+\fI\%gearman_client_set_data_fn()\fP sets the callback function that will
 be called if server is to make a request to the client to provide more data.
+.sp
+\fI\%gearman_client_do_job_handle()\fP gest the job handle for the running task. This should be used between repeated
+\fBgearman_client_do()\fP (and related) calls to get information.
 .sp
 \fI\%gearman_client_clear_fn()\fP can be called to remove all existing
 \fI\%gearman_actions_t\fP that have been set.

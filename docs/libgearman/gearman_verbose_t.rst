@@ -8,7 +8,7 @@ SYNOPSIS
 
 #include <libgearman/gearman.h>
 
-.. c:type: gearman_verbose_t
+.. c:type:: gearman_verbose_t
 
 .. c:function:: const char *gearman_verbose_name(gearman_verbose_t verbose)
 
@@ -18,7 +18,7 @@ Link with -lgearman
 DESCRIPTION 
 -----------
 
-:c:func:`gearman_verbose_name()` takes a :c:type:`gearman_verbose_t` and returns a character representation of it.
+:c:func:`gearman_verbose_name` takes a :c:type:`gearman_verbose_t` and returns a character representation of it.
 
 Possible values of :c:type:`gearman_verbose_t`:
 

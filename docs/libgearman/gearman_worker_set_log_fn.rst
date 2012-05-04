@@ -8,15 +8,14 @@ SYNOPSIS
 
 #include <libgearman/gearman.h>
 
-.. c:function:: void gearman_worker_set_log_fn(gearman_worker_st *worker, gearman_log_fn *function, void *context, gearman_verbose_t verbose);
-
+.. c:function:: void gearman_worker_set_log_fn(gearman_worker_st *worker, gearman_log_fn *function, void *context, gearman_verbose_t verbose)
 
 ----------- 
 DESCRIPTION 
 -----------
 
-:c:func:`gearman_worker_set_log_fn()` is similar to :c:func:`gearman_client_set_log_fn()` but it used with workers, aka, :c:type:`gearman_worker_st`.
-:c:func:`gearman_worker_set_log_fn()` allows you to register a callback that will be passed all error messages that are givin to the worker. 
+:c:func:`gearman_worker_set_log_fn` is similar to :c:func:`gearman_client_set_log_fn` but it used with workers, aka, :c:type:`gearman_worker_st`.
+:c:func:`gearman_worker_set_log_fn` allows you to register a callback that will be passed all error messages that are givin to the worker. 
 
 See :c:type:`gearman_log_fn` for a description of the callback.
 

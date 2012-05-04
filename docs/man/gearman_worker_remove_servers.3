@@ -1,4 +1,4 @@
-.TH "GEARMAN_WORKER_REMOVE_SERVERS" "3" "April 17, 2012" "0.32" "Gearmand"
+.TH "GEARMAN_WORKER_REMOVE_SERVERS" "3" "May 03, 2012" "0.33" "Gearmand"
 .SH NAME
 gearman_worker_remove_servers \- Gearmand Documentation, http://gearman.info/
 .
@@ -35,25 +35,25 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 #include <libgearman/gearman.h>
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_worker_add_server(gearman_worker_st *worker, const char *host, in_port_t port);
+.B gearman_return_t gearman_worker_add_server(gearman_worker_st\fI\ *worker\fP, const char\fI\ *host\fP, in_port_t\fI\ port\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_worker_add_servers(gearman_worker_st *worker, const char *servers);
+.B gearman_return_t gearman_worker_add_servers(gearman_worker_st\fI\ *worker\fP, const char\fI\ *servers\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void gearman_worker_remove_servers(gearman_worker_st *worker);
+.B void gearman_worker_remove_servers(gearman_worker_st\fI\ *worker\fP)
 .UNINDENT
 .sp
 Link with \-lgearman
 .SH DESCRIPTION
 .sp
-\fBgearman_worker_add_server()\fP will add an additional \fBgearmand\fP server to the list of servers that the worker will take work from.
+\fI\%gearman_worker_add_server()\fP will add an additional \fBgearmand\fP server to the list of servers that the worker will take work from.
 .sp
-\fBgearman_worker_remove_servers()\fP will remove all servers from the \fBgearman_worker_st\fP.
+\fI\%gearman_worker_remove_servers()\fP will remove all servers from the \fBgearman_worker_st\fP.
 .sp
-\fBgearman_worker_add_servers()\fP takes a list of \fBgearmand\fP servers that will be parsed to provide servers for the worker. The format for this is SERVER[:PORT][,SERVER[:PORT]]...
+\fI\%gearman_worker_add_servers()\fP takes a list of \fBgearmand\fP servers that will be parsed to provide servers for the worker. The format for this is SERVER[:PORT][,SERVER[:PORT]]...
 .sp
 Examples of this are:
 .sp
@@ -65,7 +65,7 @@ localhost234,jobserver2.domain.com:7003,10.0.0.3
 .fi
 .SH RETURN VALUE
 .sp
-\fBgearman_worker_add_server()\fP and \fBgearman_worker_remove_servers()\fP return \fBgearman_return_t\fP.
+\fI\%gearman_worker_add_server()\fP and \fI\%gearman_worker_remove_servers()\fP return \fBgearman_return_t\fP.
 .SH HOME
 .sp
 To find out more information please check:

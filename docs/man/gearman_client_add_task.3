@@ -1,4 +1,4 @@
-.TH "GEARMAN_CLIENT_ADD_TASK" "3" "April 17, 2012" "0.32" "Gearmand"
+.TH "GEARMAN_CLIENT_ADD_TASK" "3" "May 03, 2012" "0.33" "Gearmand"
 .SH NAME
 gearman_client_add_task \- Gearmand Documentation, http://gearman.info/
 .
@@ -37,6 +37,14 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .TP
 .B gearman_task_st *gearman_client_add_task(gearman_client_st\fI\ *client\fP, gearman_task_st\fI\ *task\fP, void\fI\ *context\fP, const char\fI\ *function_name\fP, const char\fI\ *unique\fP, const void\fI\ *workload\fP, size_t\fI\ workload_size\fP, gearman_return_t\fI\ *ret_ptr\fP)
 .UNINDENT
+.INDENT 0.0
+.TP
+.B gearman_task_st *gearman_client_add_task_high(gearman_client_st\fI\ *client\fP, gearman_task_st\fI\ *task\fP, void\fI\ *context\fP, const char\fI\ *function_name\fP, const char\fI\ *unique\fP, const void\fI\ *workload\fP, size_t\fI\ workload_size\fP, gearman_return_t\fI\ *ret_ptr\fP)
+.UNINDENT
+.INDENT 0.0
+.TP
+.B gearman_task_st *gearman_client_add_task_low(gearman_client_st\fI\ *client\fP, gearman_task_st\fI\ *task\fP, void\fI\ *context\fP, const char\fI\ *function_name\fP, const char\fI\ *unique\fP, const void\fI\ *workload\fP, size_t\fI\ workload_size\fP, gearman_return_t\fI\ *ret_ptr\fP)
+.UNINDENT
 .sp
 Link with \-lgearman
 .SH DESCRIPTION
@@ -45,9 +53,7 @@ Link with \-lgearman
 .sp
 If the unique value is not set, then a unique will be assigned.
 .sp
-\fBgearman_client_add_task_high()\fP and \fBgearman_client_add_task_low()\fP are
-identical to \fBgearman_client_do()\fP, only they set the priority to
-either high or low.
+\fI\%gearman_client_add_task_high()\fP and \fI\%gearman_client_add_task_low()\fP are identical to \fBgearman_client_do()\fP, only they set the priority to either high or low.
 .SH RETURN VALUE
 .sp
 The \fBgearman_task_st\fP is created and a pointer to it is returned. On error NULL is returned and ret_ptr is set with a \fBgearman_return_t\fP.

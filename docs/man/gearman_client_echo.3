@@ -1,4 +1,4 @@
-.TH "GEARMAN_CLIENT_ECHO" "3" "April 17, 2012" "0.32" "Gearmand"
+.TH "GEARMAN_CLIENT_ECHO" "3" "May 03, 2012" "0.33" "Gearmand"
 .SH NAME
 gearman_client_echo \- Gearmand Documentation, http://gearman.info/
 .
@@ -35,15 +35,15 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 #include <libgearman/gearman.h>
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_client_echo(gearman_client_st *client, const void *workload, size_t workload_size);
+.B gearman_return_t gearman_client_echo(gearman_client_st\fI\ *client\fP, const void\fI\ *workload\fP, size_t\fI\ workload_size\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_worker_echo(gearman_worker_st *worker, const void *workload, size_t workload_size);
+.B gearman_return_t gearman_worker_echo(gearman_worker_st\fI\ *worker\fP, const void\fI\ *workload\fP, size_t\fI\ workload_size\fP)
 .UNINDENT
 .SH DESCRIPTION
 .sp
-\fBgearman_client_echo()\fP and \fBgearman_worker_echo()\fP send a message to a \fBgearmand\fP server. The server will then respond with the message that it sent. These commands are just for testing the connection to the servers that were configure for the \fBgearman_client_st\fP and the \fBgearman_worker_st\fP that were used.
+\fI\%gearman_client_echo()\fP and \fI\%gearman_worker_echo()\fP send a message to a \fBgearmand\fP server. The server will then respond with the message that it sent. These commands are just for testing the connection to the servers that were configure for the \fBgearman_client_st\fP and the \fBgearman_worker_st\fP that were used.
 .SH RETURN VALUE
 .sp
 \fBgearman_return_t\fP

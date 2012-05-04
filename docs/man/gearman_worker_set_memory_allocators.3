@@ -1,4 +1,4 @@
-.TH "GEARMAN_WORKER_SET_MEMORY_ALLOCATORS" "3" "April 17, 2012" "0.32" "Gearmand"
+.TH "GEARMAN_WORKER_SET_MEMORY_ALLOCATORS" "3" "May 03, 2012" "0.33" "Gearmand"
 .SH NAME
 gearman_worker_set_memory_allocators \- Gearmand Documentation, http://gearman.info/
 .
@@ -55,11 +55,11 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_client_set_memory_allocators(gearman_client_st *, gearman_malloc_fn *malloc_fn, gearman_free_fn *free_fn, gearman_realloc_fn *realloc_fn, gearman_calloc_fn *calloc_fn, void *context);
+.B gearman_return_t gearman_client_set_memory_allocators(gearman_client_st\fI\ *\fP, \fI\%gearman_malloc_fn\fP\fI\ *malloc_fn\fP, \fI\%gearman_free_fn\fP\fI\ *free_fn\fP, \fI\%gearman_realloc_fn\fP\fI\ *realloc_fn\fP, \fI\%gearman_calloc_fn\fP\fI\ *calloc_fn\fP, void\fI\ *context\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_worker_set_memory_allocators(gearman_worker_st *, gearman_malloc_fn *malloc_fn, gearman_free_fn *free_fn, gearman_realloc_fn *realloc_fn, gearman_calloc_fn *calloc_fn, void *context);
+.B gearman_return_t gearman_worker_set_memory_allocators(gearman_worker_st\fI\ *\fP, \fI\%gearman_malloc_fn\fP\fI\ *malloc_fn\fP, \fI\%gearman_free_fn\fP\fI\ *free_fn\fP, \fI\%gearman_realloc_fn\fP\fI\ *realloc_fn\fP, \fI\%gearman_calloc_fn\fP\fI\ *calloc_fn\fP, void\fI\ *context\fP)
 .UNINDENT
 .sp
 Link to \-lgearman
@@ -67,7 +67,7 @@ Link to \-lgearman
 .sp
 Install callbacks for custom allocation.
 .sp
-Normally \fImalloc(3)\fP and \fIfree(3)\fP are used for allocation and releasing workloads. You can use \fBgearman_client_set_memory_allocators()\fP and \fBgearman_worker_set_memory_allocators()\fP to set your own custom allocators.
+Normally \fImalloc(3)\fP and \fIfree(3)\fP are used for allocation and releasing workloads. You can use \fI\%gearman_client_set_memory_allocators()\fP and \fI\%gearman_worker_set_memory_allocators()\fP to set your own custom allocators.
 .SH RETURN VALUE
 .sp
 None

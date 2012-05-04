@@ -91,7 +91,7 @@ public:
 
   void reset()
   {
-    _servers.shutdown_and_remove();
+    _servers.clear();
     gearman_worker_free(worker);
 
     worker= NULL;

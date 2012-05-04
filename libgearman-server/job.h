@@ -97,6 +97,13 @@ gearman_server_job_take(gearman_server_con_st *server_con);
 GEARMAN_API
 gearmand_error_t gearman_server_job_queue(gearman_server_job_st *server_job);
 
+uint32_t _server_job_hash(const char *key, size_t key_size);
+
+void *_proc(void *data);
+
+void _server_con_worker_list_append(gearman_server_worker_st *list,
+                                    gearman_server_worker_st *worker);
+
 /** @} */
 
 #ifdef __cplusplus

@@ -1,4 +1,4 @@
-.TH "GEARMAN_WORKER_DEFINE_FUNCTION" "3" "April 17, 2012" "0.32" "Gearmand"
+.TH "GEARMAN_WORKER_DEFINE_FUNCTION" "3" "May 03, 2012" "0.33" "Gearmand"
 .SH NAME
 gearman_worker_define_function \- Gearmand Documentation, http://gearman.info/
 .
@@ -35,7 +35,11 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 #include <libgearman/gearman.h>
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_worker_define_function(gearman_worker_st\fI\ *worker\fP, const char\fI\ *function_name\fP, const size_t\fI\ function_name_length\fP, const gearman_function_t\fI\ function\fP, const uint32_t\fI\ timeout\fP, void\fI\ *context\fP)
+.B gearman_function_t
+.UNINDENT
+.INDENT 0.0
+.TP
+.B gearman_return_t gearman_worker_define_function(gearman_worker_st\fI\ *worker\fP, const char\fI\ *function_name\fP, const size_t\fI\ function_name_length\fP, const \fI\%gearman_function_t\fP\fI\ function\fP, const uint32_t\fI\ timeout\fP, void\fI\ *context\fP)
 .UNINDENT
 .INDENT 0.0
 .TP

@@ -28,9 +28,9 @@ Link with -lgearman
 DESCRIPTION
 -----------
 
-:c:func:`gearman_client_options()` returns the :c:type:`gearman_client_options_t` for :c:type:`gearman_client_st`. You enable options via :c:func:`gearman_client_add_options()` and disable options via :c:func:`gearman_client_remove_options()`.  
+:c:func:`gearman_client_options` returns the :c:type:`gearman_client_options_t` for :c:type:`gearman_client_st`. You enable options via :c:func:`gearman_client_add_options` and disable options via :c:func:`gearman_client_remove_options`.  
 
-:c:func:`gearman_client_set_options()` has been DEPRECATED.
+:c:func:`gearman_client_set_options` has been DEPRECATED.
 
 
 The currently supported options are:

@@ -16,7 +16,7 @@ Link with -lgearman
 DESCRIPTION
 -----------
 
-:c:func:`gearman_bugreport()` returns the url to the bug tracking site for Gearmand
+:c:func:`gearman_bugreport` returns the url to the bug tracking site for Gearmand
 
 ------------
 RETURN VALUE

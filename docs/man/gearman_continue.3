@@ -1,4 +1,4 @@
-.TH "GEARMAN_CONTINUE" "3" "April 17, 2012" "0.32" "Gearmand"
+.TH "GEARMAN_CONTINUE" "3" "May 03, 2012" "0.33" "Gearmand"
 .SH NAME
 gearman_continue \- Gearmand Documentation, http://gearman.info/
 .
@@ -132,7 +132,9 @@ Server name was valid, but a connection could not be made.
 .INDENT 0.0
 .TP
 .B GEARMAN_ECHO_DATA_CORRUPTION
-Either \fBgearman_client_echo()\fP or \fBgearman_work_echo()\fP echo was unsuccessful because the data was returned from \fBgearmand\fP corrupted.
+Either \fBgearman_client_echo()\fP or \fBgearman_worker_echo()\fP echo
+was unsuccessful because the data was returned from \fBgearmand\fP
+corrupted.
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -288,6 +290,11 @@ A task has had an error and will be retried.
 .B GEARMAN_DATA_TOO_LARGE
 \fBgearman_task_send_workload()\fP failed, the data was too large to be sent.
 .UNINDENT
+.INDENT 0.0
+.TP
+.B GEARMAN_UNKNOWN_OPTION
+Default state of task return value.
+.UNINDENT
 .SS PROTOCOL
 .sp
 If any of these errors occurred the connection will be dropped/reset.
@@ -310,6 +317,15 @@ If any of these errors occurred the connection will be dropped/reset.
 .INDENT 0.0
 .TP
 .B GEARMAN_TOO_MANY_ARGS
+.UNINDENT
+.SS DEPRECATED
+.INDENT 0.0
+.TP
+.B GEARMAN_IGNORE_PACKET
+.UNINDENT
+.INDENT 0.0
+.TP
+.B GEARMAN_MAX_RETURN
 .UNINDENT
 .SH SEE ALSO
 .sp

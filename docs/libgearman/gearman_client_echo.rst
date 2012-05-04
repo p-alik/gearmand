@@ -10,15 +10,15 @@ SYNOPSIS
 #include <libgearman/gearman.h>
 
 
-.. c:function:: gearman_return_t gearman_client_echo(gearman_client_st *client, const void *workload, size_t workload_size);
+.. c:function:: gearman_return_t gearman_client_echo(gearman_client_st *client, const void *workload, size_t workload_size)
 
-.. c:function:: gearman_return_t gearman_worker_echo(gearman_worker_st *worker, const void *workload, size_t workload_size);
+.. c:function:: gearman_return_t gearman_worker_echo(gearman_worker_st *worker, const void *workload, size_t workload_size)
 
 -----------
 DESCRIPTION
 -----------
 
-:c:func:`gearman_client_echo()` and :c:func:`gearman_worker_echo()` send a message to a :program:`gearmand` server. The server will then respond with the message that it sent. These commands are just for testing the connection to the servers that were configure for the :c:type:`gearman_client_st` and the :c:type:`gearman_worker_st` that were used.
+:c:func:`gearman_client_echo` and :c:func:`gearman_worker_echo` send a message to a :program:`gearmand` server. The server will then respond with the message that it sent. These commands are just for testing the connection to the servers that were configure for the :c:type:`gearman_client_st` and the :c:type:`gearman_worker_st` that were used.
 
 ------------
 RETURN VALUE

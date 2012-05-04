@@ -1,4 +1,4 @@
-.TH "GEARMAN_CLIENT_TASK_FREE_ALL" "3" "April 17, 2012" "0.32" "Gearmand"
+.TH "GEARMAN_CLIENT_TASK_FREE_ALL" "3" "May 03, 2012" "0.33" "Gearmand"
 .SH NAME
 gearman_client_task_free_all \- Gearmand Documentation, http://gearman.info/
 .
@@ -39,6 +39,10 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .UNINDENT
 .INDENT 0.0
 .TP
+.B gearman_task_context_free_fn
+.UNINDENT
+.INDENT 0.0
+.TP
 .B int gearman_client_timeout(\fI\%gearman_client_st\fP\fI\ *client\fP)
 .UNINDENT
 .INDENT 0.0
@@ -71,7 +75,7 @@ Deprecated since version 0.23: Use \fBgearman_allocator_t\fP
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void gearman_client_set_task_context_free_fn(\fI\%gearman_client_st\fP\fI\ *client\fP, gearman_task_context_free_fn\fI\ *function\fP)
+.B void gearman_client_set_task_context_free_fn(\fI\%gearman_client_st\fP\fI\ *client\fP, \fI\%gearman_task_context_free_fn\fP\fI\ *function\fP)
 .UNINDENT
 .sp
 Link with \-lgearman

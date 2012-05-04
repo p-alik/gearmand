@@ -11,6 +11,22 @@ SYNOPSIS
 
 .. c:type:: gearman_actions_t
 
+.. c:type:: gearman_workload_fn
+
+.. c:type:: gearman_created_fn
+
+.. c:type:: gearman_data_fn
+
+.. c:type:: gearman_warning_fn
+
+.. c:type:: gearman_universal_status_fn
+
+.. c:type:: gearman_exception_fn
+
+.. c:type:: gearman_fail_fn
+
+.. c:type:: gearman_complete_fn
+
 .. c:function:: void gearman_client_set_workload_fn(gearman_client_st *client, gearman_workload_fn *function)
 
 .. c:function:: void gearman_client_set_created_fn(gearman_client_st *client, gearman_created_fn *function)
@@ -29,6 +45,8 @@ SYNOPSIS
 
 .. c:function:: void gearman_client_clear_fn(gearman_client_st *client)
 
+.. c:function:: const char *gearman_client_do_job_handle(gearman_client_st *client)
+
 Link to -lgearman
 
 -----------
@@ -37,10 +55,13 @@ DESCRIPTION
 
 Callbacks for client execution task states.
 
-:c:func:`gearman_client_do_job_handle` sets the callback function that will
+:c:func:`gearman_client_set_data_fn` sets the callback function that will
 be called if server is to make a request to the client to provide more data.
 
-:c:func:`gearman_client_clear_fn()` can be called to remove all existing
+:c:func:`gearman_client_do_job_handle` gest the job handle for the running task. This should be used between repeated
+:c:func:`gearman_client_do` (and related) calls to get information.
+
+:c:func:`gearman_client_clear_fn` can be called to remove all existing
 :c:type:`gearman_actions_t` that have been set.
 
 :c:func:`gearman_client_set_created_fn`,

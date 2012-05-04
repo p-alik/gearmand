@@ -7,7 +7,7 @@ libgearman examples
 Simple gearman_execute()
 ------------------------
 
-The following examples shows how to use :c:func:`gearman_execute)` to request data be sent to a function named "reverse" and print out the values.
+The following examples shows how to use :c:func:`gearman_execute` to request data be sent to a function named "reverse" and print out the values.
 
 .. literalinclude:: examples/gearman_execute_example.c  
    :language: c

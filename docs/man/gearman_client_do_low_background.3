@@ -1,4 +1,4 @@
-.TH "GEARMAN_CLIENT_DO_LOW_BACKGROUND" "3" "April 17, 2012" "0.32" "Gearmand"
+.TH "GEARMAN_CLIENT_DO_LOW_BACKGROUND" "3" "May 03, 2012" "0.33" "Gearmand"
 .SH NAME
 gearman_client_do_low_background \- Gearmand Documentation, http://gearman.info/
 .
@@ -35,27 +35,29 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 #include <libgearman/gearman.h>
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_client_do_background(gearman_client_st *client, const char *function_name, const char *unique, const void *workload, size_t workload_size, char *job_handle);
+.B gearman_priority_t
+.UNINDENT
+.INDENT 0.0
+.TP
+.B gearman_return_t gearman_client_do_background(gearman_client_st\fI\ *client\fP, const char\fI\ *function_name\fP, const char\fI\ *unique\fP, const void\fI\ *workload\fP, size_t\fI\ workload_size\fP, char\fI\ *job_handle\fP)
 .UNINDENT
 .sp
 Changed in version 0.21: \fBGEARMAN_PAUSE\fP will no longer be returned. A do operation will now run until it has been submitted.
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_client_do_high_background(gearman_client_st *client, const char *function_name, const char *unique, const void *workload, size_t workload_size, gearman_job_handle_t job_handle);
+.B gearman_return_t gearman_client_do_high_background(gearman_client_st\fI\ *client\fP, const char\fI\ *function_name\fP, const char\fI\ *unique\fP, const void\fI\ *workload\fP, size_t\fI\ workload_size\fP, gearman_job_handle_t\fI\ job_handle\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_client_do_low_background(gearman_client_st *client, const char *function_name, const char *unique, const void *workload, size_t workload_size, gearman_job_handle_t job_handle);
+.B gearman_return_t gearman_client_do_low_background(gearman_client_st\fI\ *client\fP, const char\fI\ *function_name\fP, const char\fI\ *unique\fP, const void\fI\ *workload\fP, size_t\fI\ workload_size\fP, gearman_job_handle_t\fI\ job_handle\fP)
 .UNINDENT
 .SH DESCRIPTION
 .sp
-\fBgearman_client_do_background()\fP executes a single request to the
+\fI\%gearman_client_do_background()\fP executes a single request to the
 gearmand server and returns the status via \fBgearman_return_t\fP.
 .sp
-\fBgearman_client_do_background_high()\fP and
-\fBgearman_client_do_background_low()\fP are identical to
-\fBgearman_client_do_background()\fP, only they set the \fBgearman_priority_t\fP to either
-high or low.
+\fBgearman_client_add_task_high_background()\fP and \fBgearman_client_add_task_low_background()\fP are identical to
+\fI\%gearman_client_do_background()\fP, only they set the \fI\%gearman_priority_t\fP to either high or low.
 .sp
 If job_handle is not NULL, it will be populated with the name of the job_handle
 for the task created. The job handle needs to be the size of

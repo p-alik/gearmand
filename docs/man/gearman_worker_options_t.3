@@ -1,4 +1,4 @@
-.TH "GEARMAN_WORKER_OPTIONS_T" "3" "April 17, 2012" "0.32" "Gearmand"
+.TH "GEARMAN_WORKER_OPTIONS_T" "3" "May 03, 2012" "0.33" "Gearmand"
 .SH NAME
 gearman_worker_options_t \- Gearmand Documentation, http://gearman.info/
 .
@@ -35,25 +35,29 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 #include <libgearman/gearman.h>
 .INDENT 0.0
 .TP
-.B gearman_worker_options_t gearman_worker_options(const gearman_worker_st\fI\ *worker\fP)
+.B gearman_worker_options_t
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void gearman_worker_add_options(gearman_worker_st\fI\ *worker\fP, gearman_worker_options_t\fI\ options\fP)
+.B \fI\%gearman_worker_options_t\fP gearman_worker_options(const gearman_worker_st\fI\ *worker\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void gearman_worker_remove_options(gearman_worker_st\fI\ *worker\fP, gearman_worker_options_t\fI\ options\fP)
+.B void gearman_worker_add_options(gearman_worker_st\fI\ *worker\fP, \fI\%gearman_worker_options_t\fP\fI\ options\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void gearman_worker_set_options(gearman_worker_st\fI\ *worker\fP, gearman_worker_options_t\fI\ options\fP)
+.B void gearman_worker_remove_options(gearman_worker_st\fI\ *worker\fP, \fI\%gearman_worker_options_t\fP\fI\ options\fP)
+.UNINDENT
+.INDENT 0.0
+.TP
+.B void gearman_worker_set_options(gearman_worker_st\fI\ *worker\fP, \fI\%gearman_worker_options_t\fP\fI\ options\fP)
 .UNINDENT
 .sp
 Deprecated since version 0.21.
 .SH DESCRIPTION
 .sp
-\fI\%gearman_worker_options()\fP returns the \fBgearman_worker_options_t\fP for \fBgearman_worker_st\fP. You enable options via \fI\%gearman_worker_add_options()\fP and disable options via \fI\%gearman_worker_remove_options()\fP.
+\fI\%gearman_worker_options()\fP returns the \fI\%gearman_worker_options_t\fP for \fBgearman_worker_st\fP. You enable options via \fI\%gearman_worker_add_options()\fP and disable options via \fI\%gearman_worker_remove_options()\fP.
 .sp
 The currently supported options are:
 .sp

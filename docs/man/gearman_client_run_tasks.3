@@ -1,4 +1,4 @@
-.TH "GEARMAN_CLIENT_RUN_TASKS" "3" "April 17, 2012" "0.32" "Gearmand"
+.TH "GEARMAN_CLIENT_RUN_TASKS" "3" "May 03, 2012" "0.33" "Gearmand"
 .SH NAME
 gearman_client_run_tasks \- Gearmand Documentation, http://gearman.info/
 .
@@ -35,18 +35,18 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 #include <libgearman/gearman.h>
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_client_run_tasks(gearman_client_st *client);
+.B gearman_return_t gearman_client_run_tasks(gearman_client_st\fI\ *client\fP)
 .UNINDENT
 .sp
 Link with \-lgearman
 .SH DESCRIPTION
 .sp
-\fBgearman_client_run_tasks()\fP executes one or more tasks that have
+\fI\%gearman_client_run_tasks()\fP executes one or more tasks that have
 been added via \fBgearman_client_add_task()\fP,
 \fBgearman_client_add_task_status()\fP or
 \fBgearman_client_add_task_background()\fP.
 .sp
-\fBgearman_client_run_tasks()\fP can also be used with
+\fI\%gearman_client_run_tasks()\fP can also be used with
 \fBgearman_execute()\fP if either non\-blocking or background tasks were
 created with it.
 .SH RETURN VALUE

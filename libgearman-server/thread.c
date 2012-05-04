@@ -54,11 +54,6 @@ static gearmand_error_t _proc_thread_start(gearman_server_st *server);
  */
 static void _proc_thread_kill(gearman_server_st *server);
 
-/**
- * Processing thread.
- */
-static void *_proc(void *data);
-
 /** @} */
 
 /*
@@ -412,71 +407,4 @@ static void _proc_thread_kill(gearman_server_st *server)
   (void) pthread_join(server->proc_id, NULL);
   (void) pthread_cond_destroy(&(server->proc_cond));
   (void) pthread_mutex_destroy(&(server->proc_lock));
-}
-
-static void *_proc(void *data)
-{
-  gearman_server_st *server= (gearman_server_st *)data;
-
-  gearmand_initialize_thread_logging("[ proc ]");
-
-  while (1)
-  {
-    (void) pthread_mutex_lock(&(server->proc_lock));
-    while (server->proc_wakeup == false)
-    {
-      if (server->proc_shutdown)
-      {
-        (void) pthread_mutex_unlock(&(server->proc_lock));
-        return NULL;
-      }
-
-      (void) pthread_cond_wait(&(server->proc_cond), &(server->proc_lock));
-    }
-    server->proc_wakeup= false;
-    (void) pthread_mutex_unlock(&(server->proc_lock));
-
-    for (gearman_server_thread_st *thread= server->thread_list; thread != NULL; thread= thread->next)
-    {
-      gearman_server_con_st *con;
-      while ((con= gearman_server_con_proc_next(thread)) != NULL)
-      {
-        bool packet_sent = false;
-        while (1)
-        {
-          gearman_server_packet_st *packet= gearman_server_proc_packet_remove(con);
-          if (packet == NULL)
-          {
-            break;
-          }
-
-          con->ret= gearman_server_run_command(con, &(packet->packet));
-          packet_sent = true;
-          gearmand_packet_free(&(packet->packet));
-          gearman_server_packet_free(packet, con->thread, false);
-        }
-
-        // if a packet was sent in above block, and connection is dead,
-        // queue up into io thread so it comes back to the PROC queue for
-        // marking proc_removed. this prevents leaking any connection objects
-        if (packet_sent)
-        {
-          if (con->is_dead)
-          {
-            gearman_server_con_io_add(con);
-          }
-        }
-        else if (con->is_dead)
-        {
-          gearman_server_con_free_workers(con);
-
-          while (con->client_list != NULL)
-            gearman_server_client_free(con->client_list);
-
-          con->proc_removed= true;
-          gearman_server_con_to_be_freed_add(con);
-        }
-      }
-    }
-  }
 }

@@ -51,6 +51,7 @@
 #include <libtest/has.hpp>
 #include <libtest/error.h>
 #include <libtest/strerror.h>
+#include <libtest/timer.hpp>
 #include <libtest/stream.h>
 #include <libtest/comparison.hpp>
 #include <libtest/server.h>
@@ -64,11 +65,9 @@
 #include <libtest/port.h>
 #include <libtest/is_local.hpp>
 #include <libtest/socket.hpp>
-#include <libtest/stats.h>
 #include <libtest/collection.h>
 #include <libtest/framework.h>
 #include <libtest/get.h>
-#include <libtest/stream.h>
 #include <libtest/cmdline.h>
 #include <libtest/string.hpp>
 #include <libtest/binaries.h>

@@ -1,4 +1,4 @@
-.TH "GEARMAN_CLIENT_ADD_SERVER" "3" "April 17, 2012" "0.32" "Gearmand"
+.TH "GEARMAN_CLIENT_ADD_SERVER" "3" "May 03, 2012" "0.33" "Gearmand"
 .SH NAME
 gearman_client_add_server \- Gearmand Documentation, http://gearman.info/
 .
@@ -35,23 +35,23 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 #include <libgearman/gearman.h>
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_client_add_server(gearman_client_st *client, const char *host, in_port_t port);
+.B gearman_return_t gearman_client_add_server(gearman_client_st\fI\ *client\fP, const char\fI\ *host\fP, in_port_t\fI\ port\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_client_add_servers(gearman_client_st *client, const char *servers);
+.B gearman_return_t gearman_client_add_servers(gearman_client_st\fI\ *client\fP, const char\fI\ *servers\fP)
 .UNINDENT
 .INDENT 0.0
 .TP
-.B void gearman_client_remove_servers(gearman_client_st *client);
+.B void gearman_client_remove_servers(gearman_client_st\fI\ *client\fP)
 .UNINDENT
 .SH DESCRIPTION
 .sp
-\fBgearman_client_add_server()\fP will add an additional \fBgearmand\fP server to the list of servers that the client will take work from.
+\fI\%gearman_client_add_server()\fP will add an additional \fBgearmand\fP server to the list of servers that the client will take work from.
 .sp
-\fBgearman_client_remove_servers()\fP will remove all servers from the \fBgearman_client_st\fP.
+\fI\%gearman_client_remove_servers()\fP will remove all servers from the \fBgearman_client_st\fP.
 .sp
-\fBgearman_client_add_servers()\fP takes a list of \fBgearmand\fP servers that will be parsed to provide servers for the client. The format for this is SERVER[:PORT][,SERVER[:PORT]]...
+\fI\%gearman_client_add_servers()\fP takes a list of \fBgearmand\fP servers that will be parsed to provide servers for the client. The format for this is SERVER[:PORT][,SERVER[:PORT]]...
 .INDENT 0.0
 .TP
 .B Examples of this are::
@@ -60,7 +60,7 @@ localhost234,jobserver2.domain.com:7003,10.0.0.3
 .UNINDENT
 .SH RETURN VALUE
 .sp
-\fBgearman_client_add_server()\fP and \fBgearman_client_remove_servers()\fP return \fBgearman_return_t\fP.
+\fI\%gearman_client_add_server()\fP and \fI\%gearman_client_remove_servers()\fP return \fBgearman_return_t\fP.
 .SH HOME
 .sp
 To find out more information please check:

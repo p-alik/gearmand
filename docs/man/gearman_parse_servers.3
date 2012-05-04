@@ -1,4 +1,4 @@
-.TH "GEARMAN_PARSE_SERVERS" "3" "April 17, 2012" "0.32" "Gearmand"
+.TH "GEARMAN_PARSE_SERVERS" "3" "May 03, 2012" "0.33" "Gearmand"
 .SH NAME
 gearman_parse_servers \- Gearmand Documentation, http://gearman.info/
 .
@@ -35,23 +35,22 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 #include <libgearman/gearman.h>
 .INDENT 0.0
 .TP
-.B gearman_return_t gearman_parse_servers(const char *servers,
+.B gearman_parse_server_fn
+.UNINDENT
+.INDENT 0.0
 .TP
-.B gearman_parse_server_fn *function,
-.TP
-.B void *context)
+.B gearman_return_t gearman_parse_servers(const char\fI\ *servers\fP, \fI\%gearman_parse_server_fn\fP\fI\ *function\fP, void\fI\ *context\fP)
 .UNINDENT
 .sp
 Link with \-lgearman
 .SH DESCRIPTION
 .sp
-\fBgearman_parse_servers()\fP parses a list of servers and call the
-\fBgearman_parse_server_fn()\fP for each server.
+\fI\%gearman_parse_servers()\fP parses a list of servers and call the \fI\%gearman_parse_server_fn()\fP for each server.
 .SH RETURN VALUE
 .sp
 A value of type \fBgearman_return_t\fP  is returned.
 On success that value will be \fBGEARMAN_SUCCESS\fP.
-Use gearman_strerror() to translate this value to a printable string.
+Use gearman_strerror to translate this value to a printable string.
 .SH HOME
 .sp
 To find out more information please check:

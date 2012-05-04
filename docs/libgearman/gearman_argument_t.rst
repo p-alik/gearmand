@@ -18,9 +18,9 @@ Compile and link with -lgearman
 DESCRIPTION
 -----------
 
-The :c:func:`gearman_argument_make()` function initializes :c:type:`gearman_argument_t`. 
+The :c:func:`gearman_argument_make` function initializes :c:type:`gearman_argument_t`. 
 
-:c:type:`gearman_argument_t` is an abstraction used passing arguments too :c:func:`gearman_execute()`. The arguments are not copied, so any object that is used to initialize :c:type:`gearman_argument_t` must continue to exist throughout the lifetime/usage of the structure.
+:c:type:`gearman_argument_t` is an abstraction used passing arguments too :c:func:`gearman_execute`. The arguments are not copied, so any object that is used to initialize :c:type:`gearman_argument_t` must continue to exist throughout the lifetime/usage of the structure.
    
 --------
 SEE ALSO

@@ -135,3 +135,4 @@ unittests/unittests
 util/.hg/
 util/.hgignore
 var
+tests/stress_test

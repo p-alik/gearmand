@@ -1,6 +1,6 @@
-============================
-Arguments (gearman_result_t)
-============================
+=============================
+Arguments (gearman_result_st)
+=============================
 
 --------
 SYNOPSIS
@@ -8,7 +8,9 @@ SYNOPSIS
 
 #include <libgearman/gearman.h>
 
-.. c:type:: gearman_result_t
+.. c:type:: gearman_result_st
+
+.. c:function:: gearman_result_st *gearman_task_result(gearman_task_st *task)
 
 .. c:function:: int64_t gearman_result_integer(const gearman_result_st *self)
 
@@ -34,11 +36,11 @@ Compile and link with -lgearman
 DESCRIPTION
 -----------
 
-The :c:type:`gearman_result_t()` type represents a result set. :c:type:`gearman_aggregator_fn` is passed on these types which it uses to create a final result that is returned to the client. 
+The :c:type:`gearman_result_st` type represents a result set. :c:type:`gearman_aggregator_fn` is passed on these types which it uses to create a final result that is returned to the client. 
 
-:c:func:`gearman_task_result()` returns :c:type:`gearman_result_t()` from a :c:type:`gearman_task_st`.
+:c:func:`gearman_task_result` returns :c:type:`gearman_result_st` from a :c:type:`gearman_task_st`.
 
-A :c:type:`gearman_result_t()` can return the resulting value as either a char pointer, boolean, :c:type:`gearman_string_t`, or int64_t.
+A :c:type:`gearman_result_st` can return the resulting value as either a char pointer, boolean, :c:type:`gearman_string_t`, or int64_t.
    
 --------
 SEE ALSO

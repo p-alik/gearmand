@@ -1,4 +1,4 @@
-.TH "GEARMAN_CLIENT_SET_NAMESPACE" "3" "April 17, 2012" "0.32" "Gearmand"
+.TH "GEARMAN_CLIENT_SET_NAMESPACE" "3" "May 03, 2012" "0.33" "Gearmand"
 .SH NAME
 gearman_client_set_namespace \- Gearmand Documentation, http://gearman.info/
 .
@@ -45,10 +45,11 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 Compile and link with \-lgearman
 .SH DESCRIPTION
 .sp
-gearman_client_set_namespace() and gearman_worker_set_namespace() set a "namespace" for a given set of functions. Only clients and workers sharing a \fBnamespace_key\fP can
-see one anothers workloads and functions.
+gearman_client_set_namespace() and gearman_worker_set_namespace() set
+a "namespace" for a given set of functions. Only clients and workers sharing
+a namespace_key can see one anothers workloads and functions.
 .sp
-By setting \fBnamespace_key\fP to NULL you can disable the namespace.
+By setting namespace_key to NULL you can disable the namespace.
 .SH RETURN
 .sp
 None

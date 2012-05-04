@@ -8,7 +8,7 @@ SYNOPSIS
 
 #include <libgearman/gearman.h>
 
-.. c:function:: gearman_return_t gearman_client_run_tasks(gearman_client_st *client);
+.. c:function:: gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
 
 Link with -lgearman
 
@@ -16,13 +16,13 @@ Link with -lgearman
 DESCRIPTION
 -----------
 
-:c:func:`gearman_client_run_tasks()` executes one or more tasks that have
-been added via :c:func:`gearman_client_add_task()`,
-:c:func:`gearman_client_add_task_status()` or
-:c:func:`gearman_client_add_task_background()`.
+:c:func:`gearman_client_run_tasks` executes one or more tasks that have
+been added via :c:func:`gearman_client_add_task`,
+:c:func:`gearman_client_add_task_status` or
+:c:func:`gearman_client_add_task_background`.
 
-:c:func:`gearman_client_run_tasks()` can also be used with
-:c:func:`gearman_execute()` if either non-blocking or background tasks were
+:c:func:`gearman_client_run_tasks` can also be used with
+:c:func:`gearman_execute` if either non-blocking or background tasks were
 created with it.
 
 ------------
