@@ -12,7 +12,10 @@ AH_TOP([
 
 AH_BOTTOM([
 
-#define __STDC_FORMAT_MACROS
+/* This seems to be required for older compilers @note http://stackoverflow.com/questions/8132399/how-to-printf-uint64-t  */
+#ifndef __STDC_FORMAT_MACROS
+#  define __STDC_FORMAT_MACROS
+#endif
  
 #if defined(__cplusplus)
 #  include CINTTYPES_H
