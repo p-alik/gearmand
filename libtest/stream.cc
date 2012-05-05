@@ -44,21 +44,5 @@ namespace detail {
 
 } // namespace detail
 
-make_cerr::make_cerr(const char* filename, int line_number, const char* func) :
-  detail::log<detail::channelln>(std::cerr, filename, line_number, func)
-{ }
-
-cerr::cerr(const char* filename, int line_number, const char* func) :
-  detail::log<detail::channel>(std::cout, filename, line_number, func)
-  { }
-
-clog::clog(const char* filename, int line_number, const char* func) :
-  detail::log<detail::channel>(std::clog, filename, line_number, func)
-  { }
-
-cout::cout(const char* filename, int line_number, const char* func) :
-  detail::log<detail::channel>(std::cout, filename, line_number, func)
-  { }
-
 } // namespace stream
 } // namespace libtest
