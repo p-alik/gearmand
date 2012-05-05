@@ -77,8 +77,6 @@ test_return_t gearman_execute_NULL_workload_TEST(void *object)
   const char *worker_function= (const char *)gearman_client_context(client);
   test_true(worker_function);
 
-  gearman_argument_t value= gearman_argument_make(0, 0, test_literal_param("test load"));
-
   gearman_task_attr_t task_attr= gearman_task_attr_init_background(GEARMAN_JOB_PRIORITY_NORMAL);
 
   gearman_task_st *task;
@@ -99,8 +97,6 @@ test_return_t gearman_execute_NULL_attr_NULL_workload_TEST(void *object)
   test_true(client);
   const char *worker_function= (const char *)gearman_client_context(client);
   test_true(worker_function);
-
-  gearman_argument_t value= gearman_argument_make(0, 0, test_literal_param("test load"));
 
   gearman_task_st *task;
   test_true(task= gearman_execute(client, 
