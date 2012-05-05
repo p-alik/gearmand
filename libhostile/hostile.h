@@ -46,9 +46,9 @@ void set_accept_close(bool arg, int frequency, int not_until_arg);
 void set_recv_close(bool arg, int frequency, int not_until_arg);
 void set_send_close(bool arg, int frequency, int not_until_arg);
 #else
-#define set_accept_close( __arg, __frequency, __not_until_arg);
-#define set_recv_close( __arg, __frequency, __not_until_arg);
-#define set_send_close( __arg, __frequency, __not_until_arg);
+#  define set_accept_close( __arg, __frequency, __not_until_arg);
+#  define set_recv_close( __arg, __frequency, __not_until_arg);
+#  define set_send_close( __arg, __frequency, __not_until_arg);
 static bool libhostile_is_accept(void)  { return false; }
 #endif
 
