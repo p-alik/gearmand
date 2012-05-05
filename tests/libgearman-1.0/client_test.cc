@@ -1720,8 +1720,8 @@ collection_st collection[] ={
 
 void get_world(Framework *world)
 {
-  world->collections= collection;
-  world->_create= world_create;
-  world->_destroy= world_destroy;
+  world->collections(collection);
+  world->create(world_create);
+  world->destroy(world_destroy);
   world->set_runner(new GearmandRunner);
 }

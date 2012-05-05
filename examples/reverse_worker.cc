@@ -88,8 +88,6 @@ static gearman_return_t reverse_worker(gearman_job_st *job, void *context)
     return GEARMAN_ERROR;
   }
 
-  size_t x;
-  size_t y;
   for (size_t y= 0, x= workload_size; x; x--, y++)
   {
     result[y]= ((uint8_t *)workload)[x - 1];

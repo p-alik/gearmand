@@ -75,6 +75,14 @@ gearman_return_t gearman_kill(const gearman_id_t handle, const gearman_signal_t 
     }
     break;
 
+  case GEARMAN_SIGNAL_KILLWAIT:
+    if (close(handle.write_fd) == 0)
+    {
+      gearman_kill(handle, GEARMAN_SIGNAL_CHECK);
+      return GEARMAN_SUCCESS;
+    }
+    break;
+
   case GEARMAN_SIGNAL_KILL:
     if (close(handle.write_fd) == 0)
     {

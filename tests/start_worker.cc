@@ -40,6 +40,7 @@
 #include <config.h>
 
 #include <libtest/test.hpp>
+#include <libhostile/hostile.h>
 
 #include <cassert>
 #include <cstring>
@@ -86,16 +87,16 @@ struct context_st {
              void *context_arg,
              gearman_worker_options_t& options_arg,
              int timeout_arg) :
-    port(port_arg),
     handle(handle_arg),
+    port(port_arg),
     options(options_arg),
     worker_fn(arg),
     namespace_key(namespace_key_arg),
     function_name(function_name_arg),
     context(context_arg),
-    _sync_point(handle_arg->sync_point()),
     magic(CONTEXT_MAGIC_MARKER),
-    _timeout(timeout_arg)
+    _timeout(timeout_arg),
+    _sync_point(handle_arg->sync_point())
   {
   }
 
@@ -180,7 +181,10 @@ static void thread_runner(context_st* con)
 
     if (success == false)
     {
-      Error << "gearman_worker_set_server_option() failed";
+      if (libhostile_is_accept() == false)
+      {
+        Error << "gearman_worker_set_server_option() failed";
+      }
       context->fail();
       return;
     }
