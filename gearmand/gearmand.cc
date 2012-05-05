@@ -67,7 +67,6 @@ extern "C" {
 static bool _set_signals(void);
 }
 
-static void _shutdown_handler(int signal_arg);
 static void _log(const char *line, gearmand_verbose_t verbose, void *context);
 
 int main(int argc, char *argv[])
@@ -409,6 +408,25 @@ static bool _switch_user(const char *user)
   return false;
 }
 
+static void _shutdown_handler(int signal_arg)
+{
+  if (signal_arg == SIGUSR1)
+  {
+    gearmand_wakeup(Gearmand(), GEARMAND_WAKEUP_SHUTDOWN_GRACEFUL);
+  }
+  else
+  {
+    gearmand_wakeup(Gearmand(), GEARMAND_WAKEUP_SHUTDOWN);
+  }
+}
+
+static void _reset_log_handler(int signal_arg)
+{
+  gearmand_log_info_st *log_info= static_cast<gearmand_log_info_st *>(Gearmand()->log_context);
+
+  log_info->reset();
+}
+
 extern "C" {
 static bool _set_signals(void)
 {
@@ -443,20 +461,15 @@ static bool _set_signals(void)
     return true;
   }
 
+  sa.sa_handler= _reset_log_handler;
+  if (sigaction(SIGHUP, &sa, 0) == -1)
+  {
+    error::perror("Could not set SIGHUP handler.");
+    return true;
+  }
+
   return false;
 }
-}
-
-static void _shutdown_handler(int signal_arg)
-{
-  if (signal_arg == SIGUSR1)
-  {
-    gearmand_wakeup(Gearmand(), GEARMAND_WAKEUP_SHUTDOWN_GRACEFUL);
-  }
-  else
-  {
-    gearmand_wakeup(Gearmand(), GEARMAND_WAKEUP_SHUTDOWN);
-  }
 }
 
 static void _log(const char *mesg, gearmand_verbose_t verbose, void *context)

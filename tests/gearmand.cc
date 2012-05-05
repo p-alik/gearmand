@@ -456,18 +456,31 @@ static test_return_t config_file_SIMPLE_TEST(void *)
 
   std::string config_file= "etc/gearmand.conf";
   {
+    char current_directory_buffer[1024];
+    char *current_directory= getcwd(current_directory_buffer, sizeof(current_directory_buffer));
+
+    std::string config_path;
+
+    config_path+= current_directory;
+    config_path+= "/";
+    config_path+= config_file;
+
+
     std::fstream file_stream;
-    file_stream.open(config_file.c_str(), std::fstream::out | std::fstream::trunc);
+    file_stream.open(config_path.c_str(), std::fstream::out | std::fstream::trunc);
 
-    file_stream 
-      << "--port " << port_str << std::endl;
+    test_true_hint(file_stream.good(), config_path);
 
-    fatal_assert(file_stream.good());
+    file_stream << "--port " << port_str << std::endl;
+
+    test_true(file_stream.good());
     file_stream.close();
   }
   test_compare(0, access(config_file.c_str(), R_OK));
 
-  const char *args[]= { "--check-args", "--config-file=etc/gearmand.conf", 0 };
+  char args_buffer[1024];
+  snprintf(args_buffer, sizeof(args_buffer), "--config-file=%s", config_file.c_str()); 
+  const char *args[]= { "--check-args", args_buffer, 0 };
 
   test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   unlink(config_file.c_str());

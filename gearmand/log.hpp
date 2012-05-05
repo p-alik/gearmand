@@ -105,6 +105,18 @@ struct gearmand_log_info_st
     return init_success;
   }
 
+  void reset()
+  {
+    int new_fd= open(filename.c_str(), O_CREAT | O_WRONLY | O_APPEND, 0644);
+
+    if (new_fd != -1)
+    {
+      int old_fd= fd;
+      fd= new_fd;
+      close(old_fd);
+    }
+  }
+
   int file() const
   {
     return fd;

@@ -40,6 +40,7 @@
 #include <config.h>
 
 #include <libtest/test.hpp>
+#include <libhostile/hostile.h>
 
 #include <cassert>
 #include <cstring>
@@ -180,7 +181,10 @@ static void thread_runner(context_st* con)
 
     if (success == false)
     {
-      Error << "gearman_worker_set_server_option() failed";
+      if (libhostile_is_accept() == false)
+      {
+        Error << "gearman_worker_set_server_option() failed";
+      }
       context->fail();
       return;
     }

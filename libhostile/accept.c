@@ -65,6 +65,16 @@ static void set_local(void)
   __function= set_function("accept", "HOSTILE_SEND");
 }
 
+bool libhostile_is_accept()
+{
+  if (__function.frequency)
+  {
+    return true;
+  }
+
+  return false;
+}
+
 void set_accept_close(bool arg, int frequency, int not_until_arg)
 {
   if (arg)

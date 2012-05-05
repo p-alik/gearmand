@@ -121,7 +121,6 @@ test_return_t Collection::exec()
       catch (libtest::fatal &e)
       {
         Error << "Fatal exception was thrown: " << e.what();
-        return_code= TEST_FAILURE;
         _failed++;
         throw;
       }
