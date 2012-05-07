@@ -151,14 +151,6 @@ typedef gearmand_error_t (gearmand_event_watch_fn)(gearmand_io_st *con,
 
 typedef struct gearmand_packet_st gearmand_packet_st;
 
-typedef size_t (gearmand_packet_pack_fn)(const gearmand_packet_st *packet,
-                                         gearman_server_con_st *con,
-                                         void *data, size_t data_size,
-                                         gearmand_error_t *ret_ptr);
-typedef size_t (gearmand_packet_unpack_fn)(gearmand_packet_st *packet,
-                                           gearman_server_con_st *con, const void *data,
-                                           size_t data_size,
-                                           gearmand_error_t *ret_ptr);
 typedef void (gearmand_connection_protocol_context_free_fn)(gearman_server_con_st *con,
                                                             void *context);
 

@@ -37,5 +37,6 @@
 
 #pragma once
 
+#include <libgearman-server/plugins/protocol/gear/protocol.h>
 #include <libgearman-server/plugins/protocol/http/protocol.h>
 

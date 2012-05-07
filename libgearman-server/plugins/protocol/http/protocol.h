@@ -24,13 +24,6 @@ namespace protocol {
 
 class HTTP : public gearmand::Plugin {
 
-private:
-  httpd::method_t _method;
-  bool _background;
-  bool _keep_alive;
-  std::string global_port;
-  httpd::response_t _http_response;
-
 public:
 
   HTTP();
@@ -38,47 +31,8 @@ public:
 
   gearmand_error_t start(gearmand_st *gearmand);
 
-  bool background()
-  {
-    return _background;
-  }
-
-  void set_background(bool arg)
-  {
-    _background= arg;
-  }
-
-  bool keep_alive()
-  {
-    return _keep_alive;
-  }
-
-  void set_keep_alive(bool arg)
-  {
-    _keep_alive= arg;
-  }
-
-  void set_response(httpd::response_t arg)
-  {
-    _http_response= arg;
-  }
-
-  httpd::response_t response() const
-  {
-    return _http_response;
-  }
-
-  httpd::method_t method()
-  {
-    return _method;
-  }
-
-  void set_method(httpd::method_t arg)
-  {
-    _method= arg;
-  }
-
-  void reset();
+private:
+  std::string _port;
 };
 
 } // namespace protocol

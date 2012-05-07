@@ -10,3 +10,4 @@
 #
 
 include libgearman-server/plugins/protocol/http/include.am
+include libgearman-server/plugins/protocol/gear/include.am

@@ -89,7 +89,6 @@ gearmand_st *Gearmand(void)
 }
 
 gearmand_st *gearmand_create(const char *host_arg,
-                             const char *port,
                              uint32_t threads_arg,
                              int backlog_arg,
                              uint8_t job_retries,
@@ -141,31 +140,6 @@ gearmand_st *gearmand_create(const char *host_arg,
   gearmand->thread_list= NULL;
   gearmand->thread_add_next= NULL;
   gearmand->free_dcon_list= NULL;
-
-  gearmand_error_t rc;
-  if (port && port[0] == 0)
-  {
-    struct servent *gearman_servent= getservbyname(GEARMAN_DEFAULT_TCP_SERVICE, NULL);
-
-    if (gearman_servent && gearman_servent->s_name)
-    {
-      rc= gearmand_port_add(gearmand, gearman_servent->s_name, NULL);
-    }
-    else
-    {
-      rc= gearmand_port_add(gearmand, GEARMAN_DEFAULT_TCP_PORT_STRING, NULL);
-    }
-  }
-  else
-  {
-    rc= gearmand_port_add(gearmand, port, NULL);
-  }
-
-  if (rc != GEARMAN_SUCCESS)
-  {
-    gearmand_free(gearmand);
-    return NULL;
-  }
 
   _global_gearmand= gearmand;
 

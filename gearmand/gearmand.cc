@@ -80,7 +80,6 @@ int main(int argc, char *argv[])
   std::string user;
   std::string log_file;
   std::string pid_file;
-  std::string port;
   std::string protocol;
   std::string queue_type;
   std::string verbose_string= "ERROR";
@@ -114,9 +113,6 @@ int main(int argc, char *argv[])
 
   ("listen,L", boost::program_options::value(&host),
    "Address the server should listen on. Default is INADDR_ANY.")
-
-  ("port,p", boost::program_options::value(&port)->default_value(GEARMAN_DEFAULT_TCP_PORT_STRING),
-   "Port the server should listen on.")
 
   ("pid-file,P", boost::program_options::value(&pid_file)->default_value(GEARMAND_PID),
    "File to write process ID out to.")
@@ -155,6 +151,9 @@ int main(int argc, char *argv[])
 
   gearmand::protocol::HTTP http;
   all.add(http.command_line_options());
+
+  gearmand::protocol::Gear gear;
+  all.add(gear.command_line_options());
 
   gearmand::plugins::initialize(all);
 
@@ -297,7 +296,7 @@ int main(int argc, char *argv[])
   }
 
   gearmand_st *_gearmand= gearmand_create(host.empty() ? NULL : host.c_str(),
-                                          port.c_str(), threads, backlog,
+                                          threads, backlog,
                                           static_cast<uint8_t>(job_retries),
                                           static_cast<uint8_t>(worker_wakeup),
                                           _log, &log_info, verbose,
@@ -318,6 +317,14 @@ int main(int argc, char *argv[])
 
       return EXIT_FAILURE;
     }
+  }
+
+  if (gear.start(_gearmand) != GEARMAN_SUCCESS)
+  {
+    error::message("Error while enabling Gear protocol module");
+    gearmand_free(_gearmand);
+
+    return EXIT_FAILURE;
   }
 
   if (protocol.compare("http") == 0)

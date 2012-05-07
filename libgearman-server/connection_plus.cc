@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -35,74 +35,26 @@
  *
  */
 
-#pragma once
+#include <config.h>
+#include <libgearman-server/common.h>
+#include <libgearman-server/plugins/base.h>
 
-#include <boost/program_options.hpp>
+void gearmand_connection_set_protocol(gearman_server_con_st *connection,
+                                      gearmand::protocol::Context* arg)
+{
+  connection->protocol= arg;
+}
 
-#include <libgearman-server/error.h>
-
-struct gearman_server_con_st;
-struct gearmand_packet_st;
-
-namespace gearmand {
-
-class Plugin {
-public:
-
-  Plugin(const std::string &name_arg) :
-    _command_line_options(name_arg),
-    _name(name_arg)
+void gearman_server_con_protocol_release(gearman_server_con_st *con)
+{
+  if (con->protocol)
   {
+    con->protocol->notify(con);
+    if (con->protocol->is_owner())
+    {
+      delete con->protocol;
+      con->protocol= NULL;
+    }
+    con->protocol= NULL;
   }
-
-  const std::string &name() const
-  {
-    return _name;
-  }
-
-  virtual ~Plugin()
-  {};
-
-  boost::program_options::options_description &command_line_options()
-  {
-    return _command_line_options;
-  }
-
-private:
-  boost::program_options::options_description _command_line_options;
-  std::string _name;
-};
-
-namespace protocol {
-
-class Context {
-public:
-  virtual ~Context()
-  { }
-  
-  // If the caller should free the Context, or leave it up to the plugin
-  virtual bool is_owner()
-  {
-    return true;
-  }
-
-  // Notify on disconnect
-  virtual void notify(gearman_server_con_st*)
-  {
-    return;
-  }
-
-  virtual size_t pack(const gearmand_packet_st *packet,
-                      gearman_server_con_st *con,
-                      void *data, const size_t data_size,
-                      gearmand_error_t& ret_ptr)= 0;
-
-  virtual size_t unpack(gearmand_packet_st *packet,
-                        gearman_server_con_st *con,
-                        const void *data,
-                        const size_t data_size,
-                        gearmand_error_t& ret_ptr)= 0;
-};
-
-} // namespace protocol
-} // namespace gearmand
+}

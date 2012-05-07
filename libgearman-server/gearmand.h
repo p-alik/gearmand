@@ -63,6 +63,9 @@
 #include <libgearman-server/log.h>
 #include <libgearman-server/packet.h>
 #include <libgearman-server/connection.h>
+#ifdef __cplusplus
+#include <libgearman-server/connection.hpp>
+#endif
 #include <libgearman-server/function.h>
 #include <libgearman-server/client.h>
 #include <libgearman-server/worker.h>
@@ -101,7 +104,6 @@ gearmand_st *Gearmand(void);
  */
 GEARMAN_API
 gearmand_st *gearmand_create(const char *host,
-                             const char *port,
                              uint32_t threads,
                              int backlog,
                              uint8_t job_retries,

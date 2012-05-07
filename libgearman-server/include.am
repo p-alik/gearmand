@@ -26,6 +26,7 @@ noinst_LTLIBRARIES+= libgearman-server/libgearman-server.la
 
 
 noinst_HEADERS+= libgearman-server/text.h
+noinst_HEADERS+= libgearman-server/connection.hpp
 noinst_HEADERS+= \
 		 libgearman-server/byte.h \
 		 libgearman-server/byteorder.h \
@@ -60,6 +61,7 @@ libgearman_server_libgearman_server_la_SOURCES+= \
 						 libgearman-server/byteorder.cc \
 						 libgearman-server/client.cc \
 						 libgearman-server/connection.c \
+						 libgearman-server/connection_plus.cc \
 						 libgearman-server/connection_list.cc \
 						 libgearman-server/fifo.c \
 						 libgearman-server/function.cc \

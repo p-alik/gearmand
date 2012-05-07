@@ -153,28 +153,16 @@ gearman_server_con_proc_next(gearman_server_thread_st *thread);
  * Set protocol context pointer.
  * Add worker timeout for a connection tied to a job
  */
-GEARMAN_INTERNAL_API
-void gearmand_connection_set_protocol(gearman_server_con_st *connection, 
-                                      void *context,
-                                      gearmand_connection_protocol_context_free_fn *free_fn,
-                                      gearmand_packet_pack_fn *pack,
-                                      gearmand_packet_unpack_fn *unpack);
-
-/**
- * Set protocol context pointer.
- * Add worker timeout for a connection tied to a job
- */
 GEARMAN_API
 gearmand_error_t gearman_server_con_add_job_timeout(gearman_server_con_st *con, gearman_server_job_st *job);
-
-GEARMAN_INTERNAL_API
-void *gearmand_connection_protocol_context(const gearman_server_con_st *connection);
 
 /**
  * Delete timeout event for a server con
  */
 GEARMAN_API
 void gearman_server_con_delete_timeout(gearman_server_con_st *con);
+
+void gearman_server_con_protocol_release(gearman_server_con_st *con);
 
 /** @} */
 

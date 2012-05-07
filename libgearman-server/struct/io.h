@@ -86,6 +86,10 @@ struct gearmand_io_st
   char recv_buffer[GEARMAN_RECV_BUFFER_SIZE];
 };
 
+#ifdef __cplusplus
+namespace gearmand { namespace protocol {class Context; } }
+#endif
+
 /*
   Free list for these are stored in gearman_server_thread_st[], otherwise they are owned by gearmand_con_st[]
   */
@@ -125,11 +129,10 @@ struct gearman_server_con_st
   const char *_host; // client host
   const char *_port; // client port
   char id[GEARMAN_SERVER_CON_ID_SIZE];
-  struct {
-    void *context;
-    gearmand_connection_protocol_context_free_fn *context_free_fn;
-    gearmand_packet_pack_fn *packet_pack_fn;
-    gearmand_packet_unpack_fn *packet_unpack_fn;
-  } protocol;
+#ifdef __cplusplus
+  gearmand::protocol::Context* protocol;
+#else
+  void *protocol;
+#endif
   struct event *timeout_event;
 };

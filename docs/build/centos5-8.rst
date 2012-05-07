@@ -17,6 +17,8 @@ A version of Boost >= 1.39 must be installed.
 
 6. export LD_LIBRARY_PATH=/usr/lib64/boost141:$LD_LIBRARY_PATH
 
+7. sudo yum install e2fsprogs-devel e2fsprogs
+
 
 Then:
 

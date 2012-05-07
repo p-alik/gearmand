@@ -1,8 +1,9 @@
+
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2012 Data Differential, gear://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -37,71 +38,26 @@
 
 #pragma once
 
-#include <boost/program_options.hpp>
+#include <libgearman-server/plugins/base.h>
 
-#include <libgearman-server/error.h>
-
-struct gearman_server_con_st;
-struct gearmand_packet_st;
+struct gearmand_st;
 
 namespace gearmand {
-
-class Plugin {
-public:
-
-  Plugin(const std::string &name_arg) :
-    _command_line_options(name_arg),
-    _name(name_arg)
-  {
-  }
-
-  const std::string &name() const
-  {
-    return _name;
-  }
-
-  virtual ~Plugin()
-  {};
-
-  boost::program_options::options_description &command_line_options()
-  {
-    return _command_line_options;
-  }
-
-private:
-  boost::program_options::options_description _command_line_options;
-  std::string _name;
-};
-
 namespace protocol {
 
-class Context {
+class Gear : public gearmand::Plugin {
+
+private:
+
 public:
-  virtual ~Context()
-  { }
-  
-  // If the caller should free the Context, or leave it up to the plugin
-  virtual bool is_owner()
-  {
-    return true;
-  }
 
-  // Notify on disconnect
-  virtual void notify(gearman_server_con_st*)
-  {
-    return;
-  }
+  Gear();
+  ~Gear();
 
-  virtual size_t pack(const gearmand_packet_st *packet,
-                      gearman_server_con_st *con,
-                      void *data, const size_t data_size,
-                      gearmand_error_t& ret_ptr)= 0;
+  gearmand_error_t start(gearmand_st *gearmand);
 
-  virtual size_t unpack(gearmand_packet_st *packet,
-                        gearman_server_con_st *con,
-                        const void *data,
-                        const size_t data_size,
-                        gearmand_error_t& ret_ptr)= 0;
+private:
+  std::string _port;
 };
 
 } // namespace protocol

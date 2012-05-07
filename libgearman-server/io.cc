@@ -13,6 +13,7 @@
 
 #include <config.h>
 #include <libgearman-server/common.h>
+#include <libgearman-server/plugins/base.h>
 
 #include <cstring>
 #include <cerrno>
@@ -411,10 +412,11 @@ gearmand_error_t gearman_io_send(gearman_server_con_st *con,
     /* Pack first part of packet, which is everything but the payload. */
     while (1)
     {
-      send_size= con->protocol.packet_pack_fn(packet, con,
-                                              connection->send_buffer + connection->send_buffer_size,
-                                              GEARMAN_SEND_BUFFER_SIZE -
-                                              connection->send_buffer_size, &ret);
+      send_size= con->protocol->pack(packet,
+                                     con,
+                                     connection->send_buffer +connection->send_buffer_size,
+                                     GEARMAN_SEND_BUFFER_SIZE -connection->send_buffer_size,
+                                     ret);
       if (ret == GEARMAN_SUCCESS)
       {
         connection->send_buffer_size+= send_size;
@@ -441,8 +443,7 @@ gearmand_error_t gearman_io_send(gearman_server_con_st *con,
       connection->send_state= gearmand_io_st::GEARMAND_CON_SEND_UNIVERSAL_PRE_FLUSH;
 
     case gearmand_io_st::GEARMAND_CON_SEND_UNIVERSAL_PRE_FLUSH:
-      ret= _connection_flush(con);
-      if (ret != GEARMAN_SUCCESS)
+      if ((ret= _connection_flush(con)) != GEARMAN_SUCCESS)
       {
         return ret;
       }
@@ -459,9 +460,12 @@ gearmand_error_t gearman_io_send(gearman_server_con_st *con,
     {
       connection->send_data_offset= GEARMAN_SEND_BUFFER_SIZE - connection->send_buffer_size;
       if (connection->send_data_offset > packet->data_size)
+      {
         connection->send_data_offset= packet->data_size;
+      }
 
-      memcpy(connection->send_buffer + connection->send_buffer_size, packet->data,
+      memcpy(connection->send_buffer +connection->send_buffer_size,
+             packet->data,
              connection->send_data_offset);
       connection->send_buffer_size+= connection->send_data_offset;
 
@@ -477,8 +481,7 @@ gearmand_error_t gearman_io_send(gearman_server_con_st *con,
     connection->send_state= gearmand_io_st::GEARMAND_CON_SEND_UNIVERSAL_FORCE_FLUSH;
 
   case gearmand_io_st::GEARMAND_CON_SEND_UNIVERSAL_FORCE_FLUSH:
-    ret= _connection_flush(con);
-    if (ret != GEARMAN_SUCCESS)
+    if ((ret= _connection_flush(con)) != GEARMAN_SUCCESS)
     {
       return ret;
     }
@@ -510,7 +513,8 @@ gearmand_error_t gearman_io_send(gearman_server_con_st *con,
   case gearmand_io_st::GEARMAND_CON_SEND_UNIVERSAL_FLUSH:
   case gearmand_io_st::GEARMAND_CON_SEND_UNIVERSAL_FLUSH_DATA:
     ret= _connection_flush(con);
-    if (ret == GEARMAN_SUCCESS && connection->options.close_after_flush)
+    if (ret == GEARMAN_SUCCESS and
+        connection->options.close_after_flush)
     {
       _connection_close(connection);
       ret= GEARMAN_LOST_CONNECTION;
@@ -568,9 +572,11 @@ gearmand_error_t gearman_io_recv(gearman_server_con_st *con, bool recv_data)
 
       if (connection->recv_buffer_size > 0)
       {
-	size_t recv_size= con->protocol.packet_unpack_fn(connection->recv_packet, con,
-							 connection->recv_buffer_ptr,
-							 connection->recv_buffer_size, &ret);
+        assert(con->protocol);
+        size_t recv_size= con->protocol->unpack(connection->recv_packet,
+                                                con,
+                                                connection->recv_buffer_ptr,
+                                                connection->recv_buffer_size, ret);
         connection->recv_buffer_ptr+= recv_size;
         connection->recv_buffer_size-= recv_size;
         if (gearmand_success(ret))

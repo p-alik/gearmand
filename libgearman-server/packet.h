@@ -116,24 +116,6 @@ GEARMAN_INTERNAL_API
 GEARMAN_INTERNAL_API
   gearmand_error_t gearmand_packet_pack_header(gearmand_packet_st *packet);
 
-/**
- * Pack packet into output buffer.
- */
-GEARMAN_INTERNAL_API
-  size_t gearmand_packet_pack(const gearmand_packet_st *packet,
-                              gearman_server_con_st *con,
-                              void *data, size_t data_size,
-                              gearmand_error_t *ret_ptr);
-
-/**
- * Unpack packet from input data.
- */
-GEARMAN_INTERNAL_API
-  size_t gearmand_packet_unpack(gearmand_packet_st *packet,
-                                gearman_server_con_st *con,
-                                const void *data, size_t data_size,
-                                gearmand_error_t *ret_ptr);
-
 /** @} */
 
 #ifdef __cplusplus

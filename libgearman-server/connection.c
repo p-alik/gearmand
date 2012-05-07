@@ -117,10 +117,7 @@ static gearman_server_con_st * _server_con_create(gearman_server_thread_st *thre
   strcpy(con->id, "-");
   con->timeout_event= NULL;
 
-  con->protocol.context= NULL;
-  con->protocol.context_free_fn= NULL;
-  con->protocol.packet_pack_fn= gearmand_packet_pack;
-  con->protocol.packet_unpack_fn= gearmand_packet_unpack;
+  con->protocol= NULL;
 
   int error;
   if (! (error= pthread_mutex_lock(&thread->lock)))
@@ -182,10 +179,7 @@ void gearman_server_con_free(gearman_server_con_st *con)
   
   gearmand_io_free(&(con->con));
 
-  if (con->protocol.context != NULL && con->protocol.context_free_fn != NULL)
-  {
-    con->protocol.context_free_fn(con, (void *)con->protocol.context);
-  }
+  gearman_server_con_protocol_release(con);
 
   if (con->packet != NULL)
   {
@@ -475,22 +469,6 @@ gearman_server_con_proc_next(gearman_server_thread_st *thread)
   (void) pthread_mutex_unlock(&thread->lock);
 
   return con;
-}
-
-void gearmand_connection_set_protocol(gearman_server_con_st *connection, void *context,
-                                      gearmand_connection_protocol_context_free_fn *free_fn,
-                                      gearmand_packet_pack_fn *pack,
-                                      gearmand_packet_unpack_fn *unpack)
-{
-  connection->protocol.context= context;
-  connection->protocol.context_free_fn= free_fn;
-  connection->protocol.packet_pack_fn= pack;
-  connection->protocol.packet_unpack_fn= unpack;
-}
-
-void *gearmand_connection_protocol_context(const gearman_server_con_st *connection)
-{
-  return connection->protocol.context;
 }
 
 static void _server_job_timeout(int fd, short event, void *arg)

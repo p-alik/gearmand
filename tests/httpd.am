@@ -25,7 +25,7 @@ tests_httpd_test_LDADD+= $(CLIENT_LDADD)
 check_PROGRAMS+= tests/httpd_test
 noinst_PROGRAMS+= tests/httpd_test
 
-tests-httpd: tests/httpd_test
+test-httpd: tests/httpd_test
 	@tests/httpd_test
 
 gdb-httpd: tests/httpd_test
