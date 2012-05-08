@@ -65,7 +65,6 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
 {
   gearmand_error_t ret;
   gearman_server_job_st *server_job;
-  char job_handle[GEARMAND_JOB_HANDLE_SIZE];
   char option[GEARMAN_OPTION_SIZE];
   gearman_server_client_st *server_client= NULL;
   gearmand_job_priority_t priority;
@@ -278,6 +277,8 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
 
   case GEARMAN_COMMAND_GET_STATUS:
     {
+      char job_handle[GEARMAND_JOB_HANDLE_SIZE];
+
       /* This may not be NULL terminated, so copy to make sure it is. */
       int job_handle_length= snprintf(job_handle, GEARMAND_JOB_HANDLE_SIZE, "%.*s",
                                       (int)(packet->arg_size[0]), (char *)(packet->arg[0]));
@@ -650,57 +651,61 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
     break;
 
   case GEARMAN_COMMAND_WORK_FAIL:
-    /* This may not be NULL terminated, so copy to make sure it is. */
-    checked_length= snprintf(job_handle, GEARMAND_JOB_HANDLE_SIZE, "%.*s",
-                             (int)(packet->arg_size[0]), (char *)(packet->arg[0]));
-
-    if (checked_length >= GEARMAND_JOB_HANDLE_SIZE || checked_length < 0)
     {
-      return _server_error_packet(server_con, "job_name_too_large",
-                                  "Error occured due to GEARMAND_JOB_HANDLE_SIZE being too small from snprintf");
-    }
+      char job_handle[GEARMAND_JOB_HANDLE_SIZE];
 
-    server_job= gearman_server_job_get(Server, job_handle,
-                                       server_con);
-    if (server_job == NULL)
-    {
-      return _server_error_packet(server_con, "job_not_found",
-                                  "Job given in work result not found");
-    }
+      /* This may not be NULL terminated, so copy to make sure it is. */
+      checked_length= snprintf(job_handle, GEARMAND_JOB_HANDLE_SIZE, "%.*s",
+                               (int)(packet->arg_size[0]), (char *)(packet->arg[0]));
 
-    /* Queue the fail packet for all clients. */
-    for (server_client= server_job->client_list; server_client;
-         server_client= server_client->job_next)
-    {
-      ret= gearman_server_io_packet_add(server_client->con, false,
-                                        GEARMAN_MAGIC_RESPONSE,
-                                        GEARMAN_COMMAND_WORK_FAIL,
-                                        packet->arg[0], packet->arg_size[0],
-                                        NULL);
-      if (gearmand_failed(ret))
+      if (checked_length >= GEARMAND_JOB_HANDLE_SIZE || checked_length < 0)
       {
-        gearmand_gerror("gearman_server_io_packet_add", ret);
-        return ret;
+        return _server_error_packet(server_con, "job_name_too_large",
+                                    "Error occured due to GEARMAND_JOB_HANDLE_SIZE being too small from snprintf");
       }
-    }
 
-    /* Remove from persistent queue if one exists. */
-    if (server_job->job_queued && Server->queue._done_fn != NULL)
-    {
-      ret= (*(Server->queue._done_fn))(Server, (void *)Server->queue._context,
-                                       server_job->unique,
-                                       (size_t)strlen(server_job->unique),
-                                       server_job->function->function_name,
-                                       server_job->function->function_name_size);
-      if (gearmand_failed(ret))
+      server_job= gearman_server_job_get(Server, job_handle,
+                                         server_con);
+      if (server_job == NULL)
       {
-        gearmand_gerror("Remove from persistent queue", ret);
-        return ret;
+        return _server_error_packet(server_con, "job_not_found",
+                                    "Job given in work result not found");
       }
-    }
 
-    /* Job is done, remove it. */
-    gearman_server_job_free(server_job);
+      /* Queue the fail packet for all clients. */
+      for (server_client= server_job->client_list; server_client;
+           server_client= server_client->job_next)
+      {
+        ret= gearman_server_io_packet_add(server_client->con, false,
+                                          GEARMAN_MAGIC_RESPONSE,
+                                          GEARMAN_COMMAND_WORK_FAIL,
+                                          packet->arg[0], packet->arg_size[0],
+                                          NULL);
+        if (gearmand_failed(ret))
+        {
+          gearmand_gerror("gearman_server_io_packet_add", ret);
+          return ret;
+        }
+      }
+
+      /* Remove from persistent queue if one exists. */
+      if (server_job->job_queued && Server->queue._done_fn != NULL)
+      {
+        ret= (*(Server->queue._done_fn))(Server, (void *)Server->queue._context,
+                                         server_job->unique,
+                                         (size_t)strlen(server_job->unique),
+                                         server_job->function->function_name,
+                                         server_job->function->function_name_size);
+        if (gearmand_failed(ret))
+        {
+          gearmand_gerror("Remove from persistent queue", ret);
+          return ret;
+        }
+      }
+
+      /* Job is done, remove it. */
+      gearman_server_job_free(server_job);
+    }
 
     break;
 
