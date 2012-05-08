@@ -5,10 +5,13 @@ LIBGEARMAN_1_0_CLIENT_LDADD= \
 			     libtest/libtest.la \
 			     tests/libstartworker.la
 
+noinst_HEADERS+= tests/libgearman-1.0/gearman_client_job_status_by_unique.h
+
 tests_libgearman_1_0_client_test_CXXFLAGS=
 tests_libgearman_1_0_client_test_SOURCES=
 
 tests_libgearman_1_0_client_test_CXXFLAGS+= $(BOOST_CPPFLAGS)
+tests_libgearman_1_0_client_test_SOURCES+= tests/libgearman-1.0/gearman_client_job_status_by_unique.cc
 tests_libgearman_1_0_client_test_SOURCES+= \
 					   tests/libgearman-1.0/client_test.cc \
 					   tests/libgearman-1.0/do.cc \

@@ -56,6 +56,7 @@ enum gearman_command_t
   GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND,          // C->J: FUNC[0]UNIQ[0]REDUCER[0]UNUSED[0]ARGS
   GEARMAN_COMMAND_GRAB_JOB_ALL,          /* W->J -- */
   GEARMAN_COMMAND_JOB_ASSIGN_ALL,          /* J->W: HANDLE[0]FUNC[0]UNIQ[0]REDUCER[0]ARGS */
+  GEARMAN_COMMAND_GET_UNIQUE_STATUS,          /* C->J: UNIQUE */
   GEARMAN_COMMAND_MAX /* Always add new commands before this. */
 };
 

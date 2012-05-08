@@ -79,22 +79,48 @@ void _server_con_worker_list_append(gearman_server_worker_st *list,
   }
 }
 
+gearman_server_job_st *gearman_server_job_get_by_unique(gearman_server_st *server,
+                                                        const char *unique,
+                                                        gearman_server_con_st *worker_con)
+{
+  for (size_t x= 0; x < GEARMAND_JOB_HASH_SIZE; x++)
+  {
+    for (gearman_server_job_st *server_job= server->job_hash[x];
+         server_job != NULL;
+         server_job= server_job->next)
+    {
+      if (bool(server_job->unique[0]) and
+          (strcmp(server_job->unique, unique) == 0))
+      {
+        /* Check to make sure the worker asking for the job still owns the job. */
+        if (worker_con != NULL and
+            (server_job->worker == NULL || server_job->worker->con != worker_con))
+        {
+          return NULL;
+        }
+
+        return server_job;
+      }
+    }
+  }
+
+  return NULL;
+}
+
 gearman_server_job_st *gearman_server_job_get(gearman_server_st *server,
                                               const char *job_handle,
                                               gearman_server_con_st *worker_con)
 {
-  uint32_t key;
-
-  key= _server_job_hash(job_handle, strlen(job_handle));
+  uint32_t key= _server_job_hash(job_handle, strlen(job_handle));
 
   for (gearman_server_job_st *server_job= server->job_hash[key % GEARMAND_JOB_HASH_SIZE];
        server_job != NULL; server_job= server_job->next)
   {
-    if (server_job->job_handle_key == key &&
-        !strcmp(server_job->job_handle, job_handle))
+    if (server_job->job_handle_key == key and
+        strcmp(server_job->job_handle, job_handle) == 0)
     {
       /* Check to make sure the worker asking for the job still owns the job. */
-      if (worker_con != NULL &&
+      if (worker_con != NULL and
           (server_job->worker == NULL || server_job->worker->con != worker_con))
       {
         return NULL;

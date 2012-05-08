@@ -104,6 +104,10 @@ void *_proc(void *data);
 void _server_con_worker_list_append(gearman_server_worker_st *list,
                                     gearman_server_worker_st *worker);
 
+gearman_server_job_st *gearman_server_job_get_by_unique(gearman_server_st *server,
+                                                        const char *unique,
+                                                        gearman_server_con_st *worker_con);
+
 /** @} */
 
 #ifdef __cplusplus
