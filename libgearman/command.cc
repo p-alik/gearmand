@@ -89,7 +89,9 @@ gearman_command_info_st gearmand_command_info_list[GEARMAN_COMMAND_MAX]=
   { "GEARMAN_COMMAND_SUBMIT_REDUCE_JOB", 4, true },
   { "GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND", 4, true },
   { "GEARMAN_COMMAND_GRAB_JOB_ALL",    0, false  },
-  { "GEARMAN_COMMAND_JOB_ASSIGN_ALL",    4, true  }
+  { "GEARMAN_COMMAND_JOB_ASSIGN_ALL",    4, true  },
+  { "GEARMAN_COMMAND_GET_UNIQUE_STATUS", 1, false },
+  { "GEARMAN_COMMAND_STATUS_UNIQUE_RES", 5, false }
 };
 
 gearman_command_info_st *gearman_command_info(gearman_command_t command)
