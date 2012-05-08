@@ -281,12 +281,12 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
   case GEARMAN_COMMAND_GET_STATUS:
     {
       /* This may not be NULL terminated, so copy to make sure it is. */
-      checked_length= snprintf(job_handle, GEARMAND_JOB_HANDLE_SIZE, "%.*s",
-                               (int)(packet->arg_size[0]), (char *)(packet->arg[0]));
+      int job_handle_length= snprintf(job_handle, GEARMAND_JOB_HANDLE_SIZE, "%.*s",
+                                      (int)(packet->arg_size[0]), (char *)(packet->arg[0]));
 
-      if (checked_length >= GEARMAND_JOB_HANDLE_SIZE || checked_length < 0)
+      if (job_handle_length >= GEARMAND_JOB_HANDLE_SIZE || job_handle_length < 0)
       {
-        gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "snprintf(%d)", checked_length);
+        gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "snprintf(%d)", job_handle_length);
         return GEARMAN_MEMORY_ALLOCATION_FAILURE;
       }
 
@@ -297,10 +297,13 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
       {
         ret= gearman_server_io_packet_add(server_con, false,
                                           GEARMAN_MAGIC_RESPONSE,
-                                          GEARMAN_COMMAND_STATUS_RES, job_handle,
-                                          (size_t)(strlen(job_handle) + 1),
-                                          "0", (size_t)2, "0", (size_t)2, "0",
-                                          (size_t)2, "0", (size_t)1, NULL);
+                                          GEARMAN_COMMAND_STATUS_RES,
+                                          job_handle, (size_t)(job_handle_length +1), // Job Handle
+                                          "0", (size_t)2, //
+                                          "0", (size_t)2, //
+                                          "0", (size_t)2, //
+                                          "0", (size_t)1, //
+                                          NULL);
       }
       else
       {
@@ -320,14 +323,12 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
 
         ret= gearman_server_io_packet_add(server_con, false,
                                           GEARMAN_MAGIC_RESPONSE,
-                                          GEARMAN_COMMAND_STATUS_RES, job_handle,
-                                          (size_t)(strlen(job_handle) + 1),
+                                          GEARMAN_COMMAND_STATUS_RES,
+                                          job_handle, (size_t)(job_handle_length +1),
                                           "1", (size_t)2,
-                                          server_job->worker == NULL ? "0" : "1",
-                                          (size_t)2, numerator_buffer,
-                                          (size_t)(strlen(numerator_buffer) + 1),
-                                          denominator_buffer,
-                                          (size_t)strlen(denominator_buffer),
+                                          server_job->worker == NULL ? "0" : "1", (size_t)2,
+                                          numerator_buffer, (size_t)(strlen(numerator_buffer) + 1),
+                                          denominator_buffer, (size_t)strlen(denominator_buffer),
                                           NULL);
       }
 
@@ -559,12 +560,12 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
     server_job->numerator= (uint32_t)atoi((char *)(packet->arg[1]));
 
     /* This may not be NULL terminated, so copy to make sure it is. */
-    checked_length= snprintf(denominator_buffer, sizeof(denominator_buffer), "%.*s", (int)(packet->arg_size[2]),
-                             (char *)(packet->arg[2]));
+    int denominator_buffer_lenght= snprintf(denominator_buffer, sizeof(denominator_buffer), "%.*s", (int)(packet->arg_size[2]),
+                                            (char *)(packet->arg[2]));
 
-    if ((size_t)checked_length > sizeof(denominator_buffer) || checked_length < 0)
+    if ((size_t)denominator_buffer_lenght > sizeof(denominator_buffer) || denominator_buffer_lenght < 0)
     {
-      gearmand_error("snprintf");
+      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "snprintf(%d)", denominator_buffer_lenght);
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
 
