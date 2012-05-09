@@ -230,6 +230,8 @@ gearman_task_st *add_task(gearman_client_st& client,
   case GEARMAN_COMMAND_WORK_FAIL:
   case GEARMAN_COMMAND_WORK_STATUS:
   case GEARMAN_COMMAND_WORK_WARNING:
+  case GEARMAN_COMMAND_GET_UNIQUE_STATUS:
+  case GEARMAN_COMMAND_STATUS_UNIQUE_RES:
     assert(0);
     rc= GEARMAN_INVALID_ARGUMENT;
     break;
