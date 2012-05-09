@@ -289,7 +289,9 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
         return GEARMAN_MEMORY_ALLOCATION_FAILURE;
       }
 
-      gearman_server_job_st *server_job= gearman_server_job_get(Server, job_handle, NULL);
+      gearman_server_job_st *server_job= gearman_server_job_get(Server,
+                                                                job_handle, (size_t)job_handle_length,
+                                                                NULL);
 
       /* Queue status result packet. */
       if (server_job == NULL)
@@ -537,7 +539,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
   case GEARMAN_COMMAND_WORK_WARNING:
     {
       gearman_server_job_st *server_job= gearman_server_job_get(Server,
-                                                                (char *)(packet->arg[0]),
+                                                                (char *)(packet->arg[0]), (size_t)strlen(packet->arg[0]),
                                                                 server_con);
       if (server_job == NULL)
       {
@@ -559,7 +561,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
   case GEARMAN_COMMAND_WORK_STATUS:
     {
       gearman_server_job_st *server_job= gearman_server_job_get(Server,
-                                                                (char *)(packet->arg[0]),
+                                                                (char *)(packet->arg[0]), (size_t)strlen(packet->arg[0]),
                                                                 server_con);
       if (server_job == NULL)
       {
@@ -572,7 +574,8 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
 
       /* This may not be NULL terminated, so copy to make sure it is. */
       char denominator_buffer[11]; /* Max string size to hold a uint32_t. */
-      int denominator_buffer_length= snprintf(denominator_buffer, sizeof(denominator_buffer), "%.*s", (int)(packet->arg_size[2]),
+      int denominator_buffer_length= snprintf(denominator_buffer, sizeof(denominator_buffer), "%.*s",
+                                              (int)(packet->arg_size[2]),
                                               (char *)(packet->arg[2]));
 
       if ((size_t)denominator_buffer_length > sizeof(denominator_buffer) || denominator_buffer_length < 0)
@@ -608,7 +611,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
   case GEARMAN_COMMAND_WORK_COMPLETE:
     {
       gearman_server_job_st *server_job= gearman_server_job_get(Server,
-                                                                (char *)(packet->arg[0]),
+                                                                (char *)(packet->arg[0]), (size_t)strlen(packet->arg[0]),
                                                                 server_con);
       if (server_job == NULL)
       {
@@ -647,7 +650,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
   case GEARMAN_COMMAND_WORK_EXCEPTION:
     {
       gearman_server_job_st *server_job= gearman_server_job_get(Server,
-                                                                (char *)(packet->arg[0]),
+                                                                (char *)(packet->arg[0]), (size_t)strlen(packet->arg[0]),
                                                                 server_con);
       if (server_job == NULL)
       {
@@ -670,16 +673,16 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
       char job_handle[GEARMAND_JOB_HANDLE_SIZE];
 
       /* This may not be NULL terminated, so copy to make sure it is. */
-      checked_length= snprintf(job_handle, GEARMAND_JOB_HANDLE_SIZE, "%.*s",
-                               (int)(packet->arg_size[0]), (char *)(packet->arg[0]));
+      int job_handle_length= snprintf(job_handle, GEARMAND_JOB_HANDLE_SIZE, "%.*s",
+                                      (int)(packet->arg_size[0]), (char *)(packet->arg[0]));
 
-      if (checked_length >= GEARMAND_JOB_HANDLE_SIZE || checked_length < 0)
+      if (job_handle_length >= GEARMAND_JOB_HANDLE_SIZE || job_handle_length < 0)
       {
         return _server_error_packet(server_con, "job_name_too_large",
                                     "Error occured due to GEARMAND_JOB_HANDLE_SIZE being too small from snprintf");
       }
 
-      gearman_server_job_st *server_job= gearman_server_job_get(Server, job_handle,
+      gearman_server_job_st *server_job= gearman_server_job_get(Server, job_handle, (size_t)job_handle_length,
                                                                 server_con);
       if (server_job == NULL)
       {

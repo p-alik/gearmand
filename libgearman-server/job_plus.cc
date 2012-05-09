@@ -109,19 +109,20 @@ gearman_server_job_st *gearman_server_job_get_by_unique(gearman_server_st *serve
 
 gearman_server_job_st *gearman_server_job_get(gearman_server_st *server,
                                               const char *job_handle,
+                                              const size_t job_handle_length,
                                               gearman_server_con_st *worker_con)
 {
-  uint32_t key= _server_job_hash(job_handle, strlen(job_handle));
+  uint32_t key= _server_job_hash(job_handle, job_handle_length);
 
   for (gearman_server_job_st *server_job= server->job_hash[key % GEARMAND_JOB_HASH_SIZE];
        server_job != NULL; server_job= server_job->next)
   {
     if (server_job->job_handle_key == key and
-        strcmp(server_job->job_handle, job_handle) == 0)
+        strncmp(server_job->job_handle, job_handle, GEARMAND_JOB_HANDLE_SIZE) == 0)
     {
       /* Check to make sure the worker asking for the job still owns the job. */
       if (worker_con != NULL and
-          (server_job->worker == NULL || server_job->worker->con != worker_con))
+          (server_job->worker == NULL or server_job->worker->con != worker_con))
       {
         return NULL;
       }

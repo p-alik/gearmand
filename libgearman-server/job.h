@@ -75,6 +75,7 @@ void gearman_server_job_free(gearman_server_job_st *server_job);
 GEARMAN_API
 gearman_server_job_st *gearman_server_job_get(gearman_server_st *server,
                                               const char *job_handle,
+                                              const size_t job_handle_length,
                                               gearman_server_con_st *worker_con);
 
 /**
