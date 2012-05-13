@@ -45,72 +45,12 @@
 
 #include <libgearman-1.0/actions.h>
 
+#include <libgearman-1.0/interface/task.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/**
- * @addtogroup gearman_task Task Declarations
- * @ingroup gearman_client
- *
- * The task functions are used to manage tasks being run by clients. They are
- * most commonly used with the client interface.
- *
- * @{
- */
-
-/**
- * @ingroup gearman_task
- */
-
-enum gearman_task_state_t {
-  GEARMAN_TASK_STATE_NEW,
-  GEARMAN_TASK_STATE_SUBMIT,
-  GEARMAN_TASK_STATE_WORKLOAD,
-  GEARMAN_TASK_STATE_WORK,
-  GEARMAN_TASK_STATE_CREATED,
-  GEARMAN_TASK_STATE_DATA,
-  GEARMAN_TASK_STATE_WARNING,
-  GEARMAN_TASK_STATE_STATUS,
-  GEARMAN_TASK_STATE_COMPLETE,
-  GEARMAN_TASK_STATE_EXCEPTION,
-  GEARMAN_TASK_STATE_FAIL,
-  GEARMAN_TASK_STATE_FINISHED
-};
-
-enum gearman_task_kind_t {
-  GEARMAN_TASK_KIND_ADD_TASK,
-  GEARMAN_TASK_KIND_EXECUTE,
-  GEARMAN_TASK_KIND_DO
-};
-
-struct gearman_task_st
-{
-  struct {
-    bool allocated;
-    bool send_in_use;
-    bool is_known;
-    bool is_running;
-    bool was_reduced;
-    bool is_paused;
-  } options;
-  enum gearman_task_kind_t type;
-  enum gearman_task_state_t state;
-  uint32_t created_id;
-  uint32_t numerator;
-  uint32_t denominator;
-  gearman_client_st *client;
-  gearman_task_st *next;
-  gearman_task_st *prev;
-  void *context;
-  gearman_connection_st *con;
-  gearman_packet_st *recv;
-  gearman_packet_st send;
-  struct gearman_actions_t func;
-  gearman_return_t result_rc;
-  struct gearman_result_st *result_ptr;
-  char job_handle[GEARMAN_JOB_HANDLE_SIZE];
-};
 
 /**
  * Free a task structure.

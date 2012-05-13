@@ -939,14 +939,14 @@ gearman_task_st *gearman_client_add_task(gearman_client_st *client,
     return NULL;
   }
 
-  return add_task(*client, task,
-                  context, GEARMAN_COMMAND_SUBMIT_JOB,
-                  function,
-                  unique,
-                  workload, workload_size,
-                  time_t(0),
-                  ret_ptr,
-                  client->actions);
+  return add_task_ptr(*client, task,
+                      context, GEARMAN_COMMAND_SUBMIT_JOB,
+                      function,
+                      unique,
+                      workload, workload_size,
+                      time_t(0),
+                      ret_ptr,
+                      client->actions);
 }
 
 gearman_task_st *gearman_client_add_task_high(gearman_client_st *client,
@@ -969,14 +969,14 @@ gearman_task_st *gearman_client_add_task_high(gearman_client_st *client,
     return NULL;
   }
 
-  return add_task(*client, task, context,
-                  GEARMAN_COMMAND_SUBMIT_JOB_HIGH,
-                  function,
-                  unique,
-                  workload, workload_size,
-                  time_t(0),
-                  ret_ptr,
-                  client->actions);
+  return add_task_ptr(*client, task, context,
+                      GEARMAN_COMMAND_SUBMIT_JOB_HIGH,
+                      function,
+                      unique,
+                      workload, workload_size,
+                      time_t(0),
+                      ret_ptr,
+                      client->actions);
 }
 
 gearman_task_st *gearman_client_add_task_low(gearman_client_st *client,
@@ -999,13 +999,13 @@ gearman_task_st *gearman_client_add_task_low(gearman_client_st *client,
     return NULL;
   }
 
-  return add_task(*client, task, context, GEARMAN_COMMAND_SUBMIT_JOB_LOW,
-                  function,
-                  unique,
-                  workload, workload_size,
-                  time_t(0),
-                  ret_ptr,
-                  client->actions);
+  return add_task_ptr(*client, task, context, GEARMAN_COMMAND_SUBMIT_JOB_LOW,
+                      function,
+                      unique,
+                      workload, workload_size,
+                      time_t(0),
+                      ret_ptr,
+                      client->actions);
 }
 
 gearman_task_st *gearman_client_add_task_background(gearman_client_st *client,
@@ -1028,13 +1028,13 @@ gearman_task_st *gearman_client_add_task_background(gearman_client_st *client,
     return NULL;
   }
 
-  return add_task(*client, task, context, GEARMAN_COMMAND_SUBMIT_JOB_BG,
-                  function,
-                  unique,
-                  workload, workload_size,
-                  time_t(0),
-                  ret_ptr,
-                  client->actions);
+  return add_task_ptr(*client, task, context, GEARMAN_COMMAND_SUBMIT_JOB_BG,
+                      function,
+                      unique,
+                      workload, workload_size,
+                      time_t(0),
+                      ret_ptr,
+                      client->actions);
 }
 
 gearman_task_st *
@@ -1058,14 +1058,14 @@ gearman_client_add_task_high_background(gearman_client_st *client,
     return NULL;
   }
 
-  return add_task(*client, task, context,
-                  GEARMAN_COMMAND_SUBMIT_JOB_HIGH_BG,
-                  function,
-                  unique,
-                  workload, workload_size,
-                  time_t(0),
-                  ret_ptr,
-                  client->actions);
+  return add_task_ptr(*client, task, context,
+                      GEARMAN_COMMAND_SUBMIT_JOB_HIGH_BG,
+                      function,
+                      unique,
+                      workload, workload_size,
+                      time_t(0),
+                      ret_ptr,
+                      client->actions);
 }
 
 gearman_task_st *
@@ -1089,14 +1089,14 @@ gearman_client_add_task_low_background(gearman_client_st *client,
     return NULL;
   }
 
-  return add_task(*client, task, context,
-                  GEARMAN_COMMAND_SUBMIT_JOB_LOW_BG,
-                  function,
-                  unique,
-                  workload, workload_size,
-                  time_t(0),
-                  ret_ptr,
-                  client->actions);
+  return add_task_ptr(*client, task, context,
+                      GEARMAN_COMMAND_SUBMIT_JOB_LOW_BG,
+                      function,
+                      unique,
+                      workload, workload_size,
+                      time_t(0),
+                      ret_ptr,
+                      client->actions);
 
 }
 
@@ -1135,6 +1135,69 @@ gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
   gearman_return_t rc= gearman_packet_create_args(client->universal, task->send,
                                                   GEARMAN_MAGIC_REQUEST,
                                                   GEARMAN_COMMAND_GET_STATUS,
+                                                  args, args_size, 1);
+  if (gearman_success(rc))
+  {
+    client->new_tasks++;
+    client->running_tasks++;
+    task->options.send_in_use= true;
+  }
+  *ret_ptr= rc;
+
+  return task;
+}
+
+gearman_task_st *gearman_client_add_task_status_by_unique(gearman_client_st *client,
+                                                          void *context,
+                                                          const char *unique_handle,
+                                                          gearman_return_t *ret_ptr)
+{
+  const void *args[1];
+  size_t args_size[1];
+
+  gearman_return_t unused;
+  if (ret_ptr == NULL)
+  {
+    ret_ptr= &unused;
+  }
+
+  if (client == NULL)
+  {
+    *ret_ptr= GEARMAN_INVALID_ARGUMENT;
+    return NULL;
+  }
+
+  if (unique_handle == NULL)
+  {
+    *ret_ptr= GEARMAN_INVALID_ARGUMENT;
+    return NULL;
+  }
+
+  size_t unique_length= strlen(unique_handle);
+  if (unique_length > GEARMAN_MAX_UNIQUE_SIZE)
+  {
+    *ret_ptr= GEARMAN_INVALID_ARGUMENT;
+    return NULL;
+  }
+
+  gearman_task_st *task;
+  if ((task= gearman_task_internal_create(client, NULL)) == NULL)
+  {
+    *ret_ptr= GEARMAN_MEMORY_ALLOCATION_FAILURE;
+    return NULL;
+  }
+
+  task->context= context;
+
+  task->unique_length= unique_length;
+  memcpy(task->unique, unique_handle, unique_length);
+  task->unique[task->unique_length]= 0;
+
+  args[0]= task->unique;
+  args_size[0]= task->unique_length;
+  gearman_return_t rc= gearman_packet_create_args(client->universal, task->send,
+                                                  GEARMAN_MAGIC_REQUEST,
+                                                  GEARMAN_COMMAND_GET_UNIQUE_STATUS,
                                                   args, args_size, 1);
   if (gearman_success(rc))
   {

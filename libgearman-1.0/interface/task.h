@@ -37,24 +37,53 @@
 
 #pragma once
 
+enum gearman_task_state_t {
+  GEARMAN_TASK_STATE_NEW,
+  GEARMAN_TASK_STATE_SUBMIT,
+  GEARMAN_TASK_STATE_WORKLOAD,
+  GEARMAN_TASK_STATE_WORK,
+  GEARMAN_TASK_STATE_CREATED,
+  GEARMAN_TASK_STATE_DATA,
+  GEARMAN_TASK_STATE_WARNING,
+  GEARMAN_TASK_STATE_STATUS,
+  GEARMAN_TASK_STATE_COMPLETE,
+  GEARMAN_TASK_STATE_EXCEPTION,
+  GEARMAN_TASK_STATE_FAIL,
+  GEARMAN_TASK_STATE_FINISHED
+};
 
-namespace libgearman {
-namespace protocol {
+enum gearman_task_kind_t {
+  GEARMAN_TASK_KIND_ADD_TASK,
+  GEARMAN_TASK_KIND_EXECUTE,
+  GEARMAN_TASK_KIND_DO
+};
 
-gearman_return_t submit(gearman_task_st&,
-                        const gearman_command_t command,
-                        const gearman_string_t &function,
-                        const gearman_string_t &workload);
-
-gearman_return_t submit_background(gearman_task_st&,
-                                   const gearman_command_t command,
-                                   const gearman_string_t &function,
-                                   const gearman_string_t &workload);
-
-gearman_return_t submit_epoch(gearman_task_st&,
-                              const gearman_string_t &function,
-                              const gearman_string_t &workload,
-                              time_t when);
-
-} // namespace protocol
-} // namespace libgearman
+struct gearman_task_st
+{
+  struct {
+    bool allocated;
+    bool send_in_use;
+    bool is_known;
+    bool is_running;
+    bool was_reduced;
+    bool is_paused;
+  } options;
+  enum gearman_task_kind_t type;
+  enum gearman_task_state_t state;
+  uint32_t created_id;
+  uint32_t numerator;
+  uint32_t denominator;
+  gearman_client_st *client;
+  gearman_task_st *next;
+  gearman_task_st *prev;
+  void *context;
+  gearman_connection_st *con;
+  gearman_packet_st *recv;
+  gearman_packet_st send;
+  struct gearman_actions_t func;
+  gearman_return_t result_rc;
+  struct gearman_result_st *result_ptr;
+  char job_handle[GEARMAN_JOB_HANDLE_SIZE];
+  size_t unique_length;
+  char unique[GEARMAN_MAX_UNIQUE_SIZE];
+};

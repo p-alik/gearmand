@@ -42,6 +42,7 @@
 #include <cassert>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 
 gearman_return_t _client_run_task(gearman_task_st *task)
 {
@@ -231,7 +232,8 @@ gearman_return_t _client_run_task(gearman_task_st *task)
         }
       }
     }
-    else if (task->recv->command == GEARMAN_COMMAND_WORK_STATUS ||
+    else if (task->recv->command == GEARMAN_COMMAND_WORK_STATUS or
+             task->recv->command == GEARMAN_COMMAND_STATUS_UNIQUE_RES or
              task->recv->command == GEARMAN_COMMAND_STATUS_RES)
     {
       uint8_t x;
@@ -239,14 +241,45 @@ gearman_return_t _client_run_task(gearman_task_st *task)
       if (task->recv->command == GEARMAN_COMMAND_STATUS_RES)
       {
         if (atoi(static_cast<char *>(task->recv->arg[1])) == 0)
+        {
           task->options.is_known= false;
+        }
         else
+        {
           task->options.is_known= true;
+        }
 
         if (atoi(static_cast<char *>(task->recv->arg[2])) == 0)
+        {
           task->options.is_running= false;
+        }
         else
+        {
           task->options.is_running= true;
+        }
+
+        x= 3;
+      }
+      else if (task->recv->command == GEARMAN_COMMAND_STATUS_UNIQUE_RES)
+      {
+        strncpy(task->unique, task->recv->arg[0], GEARMAN_MAX_UNIQUE_SIZE);
+        if (atoi(static_cast<char *>(task->recv->arg[1])) == 0)
+        {
+          task->options.is_known= false;
+        }
+        else
+        {
+          task->options.is_known= true;
+        }
+
+        if (atoi(static_cast<char *>(task->recv->arg[2])) == 0)
+        {
+          task->options.is_running= false;
+        }
+        else
+        {
+          task->options.is_running= true;
+        }
 
         x= 3;
       }

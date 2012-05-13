@@ -1662,6 +1662,8 @@ test_st gearman_task_tests[] ={
   {"gearman_client_add_task() warning", 0, gearman_client_add_task_warning},
   {"gearman_client_add_task(GEARMAN_NO_SERVERS)", 0, gearman_client_add_task_no_servers},
   {"gearman_client_set_task_context_free_fn()", 0, gearman_client_set_task_context_free_fn_test},
+  {"gearman_client_add_task_status_by_unique(NOT_FOUND)", 0, gearman_client_add_task_status_by_unique_NOT_FOUND_TEST },
+  {"gearman_client_add_task_status_by_unique()", 0, gearman_client_add_task_status_by_unique_TEST },
   {0, 0, 0}
 };
 
