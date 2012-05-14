@@ -49,6 +49,16 @@ public:
     }
   }
 
+  Client(const gearman_client_st* arg)
+  {
+    _client= gearman_client_clone(NULL, arg);
+
+    if (_client == NULL)
+    {
+      throw "gearman_client_create() failed";
+    }
+  }
+
   Client(in_port_t arg)
   {
     _client= gearman_client_create(NULL);

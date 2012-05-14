@@ -45,10 +45,86 @@ using namespace libtest;
 #include <libgearman/gearman.h>
 #include <tests/unique.h>
 
+#include <tests/start_worker.h>
+#include "tests/workers.h"
+
+#include "tests/client.h"
+
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
+
+test_return_t coalescence_TEST(void *object)
+{
+  gearman_client_st *client_one= (gearman_client_st *)object;
+  test_true(client_one);
+
+  Client client_two(client_one);
+
+  const char* unique_handle= "local_handle";
+
+  gearman_function_t sleep_return_random_worker_FN= gearman_function_create(sleep_return_random_worker);
+  std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
+                                                           NULL,
+                                                           __func__,
+                                                           sleep_return_random_worker_FN,
+                                                           NULL,
+                                                           gearman_worker_options_t(),
+                                                           0)); // timeout
+
+  // First task
+  gearman_return_t ret;
+  gearman_task_st *first_task= gearman_client_add_task(client_one,
+                                                       NULL, // preallocated task
+                                                       NULL, // context 
+                                                       __func__, // function
+                                                       unique_handle, // unique
+                                                       NULL, 0, // workload
+                                                       &ret);
+  test_compare(GEARMAN_SUCCESS, ret);
+  test_truth(first_task);
+  test_true(gearman_task_unique(first_task));
+  test_compare(strlen(unique_handle), strlen(gearman_task_unique(first_task)));
+ 
+  // Second task
+  gearman_task_st *second_task= gearman_client_add_task(&client_two,
+                                                        NULL, // preallocated task
+                                                        NULL, // context 
+                                                        __func__, // function
+                                                        unique_handle, // unique
+                                                        NULL, 0, // workload
+                                                        &ret);
+  test_compare(GEARMAN_SUCCESS, ret);
+  test_truth(second_task);
+  test_true(gearman_task_unique(second_task));
+  test_compare(strlen(unique_handle), strlen(gearman_task_unique(second_task)));
+  
+  test_strcmp(gearman_task_unique(first_task), gearman_task_unique(second_task));
+
+  Error << "this is the start";
+  do {
+    ret= gearman_client_run_tasks(client_one);
+    gearman_client_run_tasks(&client_two);
+  } while (gearman_continue(ret));
+
+  do {
+    ret= gearman_client_run_tasks(&client_two);
+  } while (gearman_continue(ret));
+
+  gearman_result_st* first_result= gearman_task_result(first_task);
+  gearman_result_st* second_result= gearman_task_result(second_task);
+
+  test_compare(GEARMAN_SUCCESS, gearman_task_return(first_task));
+  test_compare(GEARMAN_SUCCESS, gearman_task_return(second_task));
+
+  test_compare(gearman_result_value(first_result), gearman_result_value(second_result));
+
+  gearman_task_free(first_task);
+  gearman_task_free(second_task);
+
+  return TEST_SUCCESS;
+}
 
 test_return_t unique_compare_test(void *object)
 {
@@ -59,11 +135,14 @@ test_return_t unique_compare_test(void *object)
 
   gearman_string_t unique= { test_literal_param("my little unique") };
 
-  void *job_result= gearman_client_do(client, worker_function, gearman_c_str(unique), 
-                                      gearman_string_param(unique),
-                                      &job_length, &rc);
+  void *job_result= gearman_client_do(client,
+                                      worker_function, // function
+                                      gearman_c_str(unique),  // unique
+                                      gearman_string_param(unique), //workload
+                                      &job_length, // result size
+                                      &rc);
 
-  test_true_got(rc == GEARMAN_SUCCESS, gearman_client_error(client) ? gearman_client_error(client) : gearman_strerror(rc));
+  test_compare_hint(GEARMAN_SUCCESS, rc, gearman_client_error(client) ? gearman_client_error(client) : gearman_strerror(rc));
   test_compare(gearman_size(unique), job_length);
   test_memcmp(gearman_c_str(unique), job_result, job_length);
 

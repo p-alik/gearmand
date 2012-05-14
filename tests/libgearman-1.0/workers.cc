@@ -55,6 +55,36 @@ using namespace libtest;
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
+/* Use this for string generation */
+static const char ALPHANUMERICS[]=
+  "0123456789ABCDEFGHIJKLMNOPQRSTWXYZabcdefghijklmnopqrstuvwxyz";
+
+#define ALPHANUMERICS_SIZE (sizeof(ALPHANUMERICS)-1)
+
+static size_t get_alpha_num(void)
+{
+  return (size_t)random() % ALPHANUMERICS_SIZE;
+}
+
+gearman_return_t sleep_return_random_worker(gearman_job_st *job, void *)
+{
+  libtest::dream(WORKER_DEFAULT_SLEEP, 0);
+
+  char buffer[1024];
+  for (size_t x= 0; x < sizeof(buffer); x++)
+  {
+    buffer[x]= ALPHANUMERICS[get_alpha_num()];
+  }
+  buffer[sizeof(buffer) -1]= 0;
+
+  if (gearman_failed(gearman_job_send_data(job, buffer, sizeof(buffer))))
+  {
+    return GEARMAN_ERROR;
+  }
+
+  return GEARMAN_SUCCESS;
+}
+
 gearman_return_t echo_or_react_worker_v2(gearman_job_st *job, void *)
 {
   const void *workload= gearman_job_workload(job);

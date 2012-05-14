@@ -1550,6 +1550,11 @@ test_st gearman_client_st_TESTS[] ={
   {0, 0, 0}
 };
 
+test_st coalescence_TESTS[] ={
+  {"basic coalescence", 0, coalescence_TEST },
+  {0, 0, 0}
+};
+
 test_st gearman_command_t_tests[] ={
   {"gearman_command_t", 0, check_gearman_command_t },
   {0, 0, 0}
@@ -1712,6 +1717,7 @@ collection_st collection[] ={
   {"gearman_execute_partition()", 0, 0, gearman_execute_partition_tests},
   {"gearman_execute_partition(GEARMAN_CLIENT_FREE_TASKS)", pre_free_tasks, post_free_tasks, gearman_execute_partition_tests},
   {"gearman_command_t", 0, 0, gearman_command_t_tests},
+  {"coalescence", 0, 0, coalescence_TESTS},
   {"regression_tests", 0, 0, regression_tests},
   {"limits", 0, 0, limit_tests },
   {"client-logging", pre_logging, post_logging, tests_log_TESTS },

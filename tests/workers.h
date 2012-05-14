@@ -39,6 +39,8 @@
 
 #define WORKER_DEFAULT_SLEEP 20
 
+gearman_return_t sleep_return_random_worker(gearman_job_st *job, void *);
+
 gearman_return_t echo_or_react_worker_v2(gearman_job_st *job, void *context);
 
 gearman_return_t echo_or_react_chunk_worker_v2(gearman_job_st *job, void *context);
