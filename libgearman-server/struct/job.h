@@ -62,6 +62,7 @@ struct gearman_server_job_st
   gearman_server_client_st *client_list;
   gearman_server_worker_st *worker;
   char job_handle[GEARMAND_JOB_HANDLE_SIZE];
-  char unique[GEARMAN_UNIQUE_SIZE];
-  char reducer[GEARMAN_UNIQUE_SIZE];
+  size_t unique_length;
+  char unique[GEARMAN_MAX_UNIQUE_SIZE];
+  char reducer[GEARMAN_FUNCTION_MAX_SIZE];
 };
