@@ -102,7 +102,6 @@ test_return_t coalescence_TEST(void *object)
   
   test_strcmp(gearman_task_unique(first_task), gearman_task_unique(second_task));
 
-  Error << "this is the start";
   do {
     ret= gearman_client_run_tasks(client_one);
     gearman_client_run_tasks(&client_two);
