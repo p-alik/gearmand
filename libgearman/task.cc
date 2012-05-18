@@ -106,6 +106,8 @@ gearman_task_st *gearman_task_internal_create(gearman_client_st *client, gearman
   task->recv= NULL;
   task->result_ptr= NULL;
   task->job_handle[0]= 0;
+  task->unique_length= 0;
+  task->unique[0]= 0;
 
   return task;
 }
@@ -254,7 +256,7 @@ const char *gearman_task_unique(const gearman_task_st *task)
   if (task == NULL)
     return 0;
 
-  return task->send.arg[1];
+  return task->unique;
 }
 
 const char *gearman_task_job_handle(const gearman_task_st *task)

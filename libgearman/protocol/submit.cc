@@ -46,7 +46,6 @@ namespace protocol {
 static inline gearman_return_t __submit(gearman_task_st& task,
                                         const gearman_command_t command,
                                         const gearman_string_t &function,
-                                        const gearman_unique_t &unique,
                                         const gearman_string_t &workload)
 {
   const void *args[3];
@@ -77,8 +76,8 @@ static inline gearman_return_t __submit(gearman_task_st& task,
   args[0]= gearman_c_str(function);
   args_size[0]= gearman_size(function) +1;
 
-  args[1]= gearman_c_str(unique);
-  args_size[1]= gearman_size(unique) +1;
+  args[1]= task.unique;
+  args_size[1]= task.unique_length +1;
 
   args[2]= gearman_c_str(workload);
   args_size[2]= gearman_size(workload);
@@ -93,24 +92,21 @@ static inline gearman_return_t __submit(gearman_task_st& task,
 gearman_return_t submit(gearman_task_st& task,
                         const gearman_command_t command,
                         const gearman_string_t &function,
-                        const gearman_unique_t &unique,
                         const gearman_string_t &workload)
 {
-  return __submit(task, command, function, unique, workload);
+  return __submit(task, command, function, workload);
 }
 
 gearman_return_t submit_background(gearman_task_st& task,
                                    const gearman_command_t command,
                                    const gearman_string_t &function,
-                                   const gearman_unique_t &unique,
                                    const gearman_string_t &workload)
 {
-  return __submit(task, command, function, unique, workload);
+  return __submit(task, command, function, workload);
 }
 
 gearman_return_t submit_epoch(gearman_task_st& task,
                               const gearman_string_t &function,
-                              const gearman_unique_t &unique,
                               const gearman_string_t &workload,
                               time_t when)
 {
@@ -139,8 +135,8 @@ gearman_return_t submit_epoch(gearman_task_st& task,
     args_size[0]= gearman_size(function) +1;
   }
 
-  args[1]= gearman_c_str(unique);
-  args_size[1]= gearman_size(unique) +1;
+  args[1]= task.unique;
+  args_size[1]= task.unique_length +1;
 
   char time_string[30];
   int length= snprintf(time_string, sizeof(time_string), "%lld", static_cast<long long>(when));

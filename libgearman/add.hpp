@@ -51,16 +51,16 @@ gearman_task_st *add_task(gearman_client_st& client,
                           time_t when,
                           const gearman_actions_t &actions);
 
-gearman_task_st *add_task(gearman_client_st& client,
-                          gearman_task_st *task,
-                          void *context,
-                          gearman_command_t command,
-                          const char *function_name,
-                          const char *unique,
-                          const void *workload_str, size_t workload_size,
-                          time_t when,
-                          gearman_return_t *ret_ptr,
-                          const gearman_actions_t &actions);
+gearman_task_st *add_task_ptr(gearman_client_st& client,
+                              gearman_task_st *task,
+                              void *context,
+                              gearman_command_t command,
+                              const char *function_name,
+                              const char *unique,
+                              const void *workload_str, size_t workload_size,
+                              time_t when,
+                              gearman_return_t *ret_ptr,
+                              const gearman_actions_t &actions);
 
 gearman_task_st *add_task(gearman_client_st& client,
                           gearman_task_st *task,

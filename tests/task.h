@@ -47,4 +47,6 @@ test_return_t gearman_client_add_task_exception(void *);
 test_return_t gearman_client_add_task_warning(void *);
 test_return_t gearman_client_add_task_no_servers(void *);
 test_return_t gearman_client_add_task_pause_test(void *);
-test_return_t gearman_client_set_task_context_free_fn_test(void *);
+test_return_t gearman_client_set_task_context_free_fn_test(void*);
+test_return_t gearman_client_add_task_status_by_unique_TEST(void*);
+test_return_t gearman_client_add_task_status_by_unique_NOT_FOUND_TEST(void*);

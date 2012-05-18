@@ -87,7 +87,7 @@ private:
         rc= func(client);
         if (rc == TEST_SUCCESS)
         {
-          test_true_got(not client->task_list, "Client still had tasks");
+          test_warn_hint(not client->task_list, "Client still had tasks");
         }
 
         gearman_client_free(client);

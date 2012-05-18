@@ -44,18 +44,15 @@ namespace protocol {
 gearman_return_t submit(gearman_task_st&,
                         const gearman_command_t command,
                         const gearman_string_t &function,
-                        const gearman_unique_t &unique,
                         const gearman_string_t &workload);
 
 gearman_return_t submit_background(gearman_task_st&,
                                    const gearman_command_t command,
                                    const gearman_string_t &function,
-                                   const gearman_unique_t &unique,
                                    const gearman_string_t &workload);
 
 gearman_return_t submit_epoch(gearman_task_st&,
                               const gearman_string_t &function,
-                              const gearman_unique_t &unique,
                               const gearman_string_t &workload,
                               time_t when);
 

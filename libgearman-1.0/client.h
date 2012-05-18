@@ -439,6 +439,12 @@ gearman_return_t gearman_client_job_status(gearman_client_st *client,
                                            uint32_t *numerator,
                                            uint32_t *denominator);
 
+GEARMAN_API
+gearman_task_st *gearman_client_add_task_status_by_unique(gearman_client_st *client,
+                                                          void *context,
+                                                          const char *unique_handle,
+                                                          gearman_return_t *ret_ptr);
+
 /**
  * Send data to all job servers to see if they echo it back. This is a test
  * function to see if the job servers are responding properly.

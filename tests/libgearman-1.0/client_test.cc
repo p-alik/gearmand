@@ -1550,6 +1550,11 @@ test_st gearman_client_st_TESTS[] ={
   {0, 0, 0}
 };
 
+test_st coalescence_TESTS[] ={
+  {"basic coalescence", 0, coalescence_TEST },
+  {0, 0, 0}
+};
+
 test_st gearman_command_t_tests[] ={
   {"gearman_command_t", 0, check_gearman_command_t },
   {0, 0, 0}
@@ -1662,6 +1667,8 @@ test_st gearman_task_tests[] ={
   {"gearman_client_add_task() warning", 0, gearman_client_add_task_warning},
   {"gearman_client_add_task(GEARMAN_NO_SERVERS)", 0, gearman_client_add_task_no_servers},
   {"gearman_client_set_task_context_free_fn()", 0, gearman_client_set_task_context_free_fn_test},
+  {"gearman_client_add_task_status_by_unique(NOT_FOUND)", 0, gearman_client_add_task_status_by_unique_NOT_FOUND_TEST },
+  {"gearman_client_add_task_status_by_unique()", 0, gearman_client_add_task_status_by_unique_TEST },
   {0, 0, 0}
 };
 
@@ -1710,6 +1717,7 @@ collection_st collection[] ={
   {"gearman_execute_partition()", 0, 0, gearman_execute_partition_tests},
   {"gearman_execute_partition(GEARMAN_CLIENT_FREE_TASKS)", pre_free_tasks, post_free_tasks, gearman_execute_partition_tests},
   {"gearman_command_t", 0, 0, gearman_command_t_tests},
+  {"coalescence", 0, 0, coalescence_TESTS},
   {"regression_tests", 0, 0, regression_tests},
   {"limits", 0, 0, limit_tests },
   {"client-logging", pre_logging, post_logging, tests_log_TESTS },

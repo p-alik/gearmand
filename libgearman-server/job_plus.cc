@@ -81,20 +81,26 @@ void _server_con_worker_list_append(gearman_server_worker_st *list,
 
 gearman_server_job_st *gearman_server_job_get_by_unique(gearman_server_st *server,
                                                         const char *unique,
+                                                        const size_t unique_length,
                                                         gearman_server_con_st *worker_con)
 {
+  (void)unique_length;
   for (size_t x= 0; x < GEARMAND_JOB_HASH_SIZE; x++)
   {
     for (gearman_server_job_st *server_job= server->job_hash[x];
          server_job != NULL;
          server_job= server_job->next)
     {
+      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "COMPARE unique \"%s\"(%u) == \"%s\"(%u)",
+                         bool(server_job->unique[0]) ? server_job->unique :  "<null>", uint32_t(strlen(server_job->unique)),
+                         unique, uint32_t(unique_length));
+
       if (bool(server_job->unique[0]) and
           (strcmp(server_job->unique, unique) == 0))
       {
         /* Check to make sure the worker asking for the job still owns the job. */
         if (worker_con != NULL and
-            (server_job->worker == NULL || server_job->worker->con != worker_con))
+            (server_job->worker == NULL or server_job->worker->con != worker_con))
         {
           return NULL;
         }

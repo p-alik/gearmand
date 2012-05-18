@@ -40,4 +40,4 @@
 #include <libtest/test.h>
 
 test_return_t unique_compare_test(void *);
-
+test_return_t coalescence_TEST(void*);

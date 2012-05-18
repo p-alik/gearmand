@@ -64,16 +64,16 @@ gearman_task_st *add_task(gearman_client_st& client,
   return add_task(client, NULL, context, command, function, unique, workload, when, actions);
 }
 
-gearman_task_st *add_task(gearman_client_st& client,
-                          gearman_task_st *task,
-                          void *context,
-                          gearman_command_t command,
-                          const char *function_name,
-                          const char *unique,
-                          const void *workload_str, size_t workload_size,
-                          time_t when,
-                          gearman_return_t *ret_ptr,
-                          const gearman_actions_t &actions)
+gearman_task_st *add_task_ptr(gearman_client_st& client,
+                              gearman_task_st *task,
+                              void *context,
+                              gearman_command_t command,
+                              const char *function_name,
+                              const char *unique,
+                              const void *workload_str, size_t workload_size,
+                              time_t when,
+                              gearman_return_t *ret_ptr,
+                              const gearman_actions_t &actions)
 {
   gearman_return_t unused;
   if (ret_ptr == NULL)
@@ -147,18 +147,19 @@ gearman_task_st *add_task(gearman_client_st& client,
   task->context= context;
   task->func= actions;
 
-  char uuid_string[37];
   if (gearman_size(unique))
-  { } // Do nothing, pass it along
+  {
+    task->unique_length= gearman_size(unique);
+    memcpy(task->unique, gearman_c_str(unique), gearman_size(unique));
+  }
   else
   {
     uuid_t uuid;
     uuid_generate(uuid);
-    uuid_unparse(uuid, uuid_string);
-    uuid_string[36]= 0;
-
-    unique= gearman_unique_make(uuid_string, 36);
+    uuid_unparse(uuid, task->unique);
+    task->unique_length= GEARMAN_MAX_UUID_SIZE;
   }
+  task->unique[task->unique_length]= 0;
 
   gearman_return_t rc;
   switch (command)
@@ -169,14 +170,12 @@ gearman_task_st *add_task(gearman_client_st& client,
     rc= libgearman::protocol::submit(*task,
                                      command,
                                      function,
-                                     unique,
                                      workload);
     break;
 
   case GEARMAN_COMMAND_SUBMIT_JOB_EPOCH:
     rc= libgearman::protocol::submit_epoch(*task,
                                            function,
-                                           unique,
                                            workload,
                                            when);
     break;
@@ -187,7 +186,6 @@ gearman_task_st *add_task(gearman_client_st& client,
     rc= libgearman::protocol::submit_background(*task,
                                                 command,
                                                 function,
-                                                unique,
                                                 workload);
     break;
 
@@ -263,7 +261,6 @@ gearman_task_st *add_reducer_task(gearman_client_st *client,
                                   void *context)
 {
   uuid_t uuid;
-  char uuid_string[37];
   const void *args[5];
   size_t args_size[5];
 
@@ -330,14 +327,15 @@ gearman_task_st *add_reducer_task(gearman_client_st *client,
   {
     args[1]= gearman_c_str(unique);
     args_size[1]= gearman_size(unique) + 1;
+    strncpy(task->unique, gearman_c_str(unique), gearman_size(unique));
   }
   else
   {
     uuid_generate(uuid);
-    uuid_unparse(uuid, uuid_string);
-    uuid_string[36]= 0;
-    args[1]= uuid_string;
-    args_size[1]= 36 +1; // +1 is for the needed null
+    uuid_unparse(uuid, task->unique);
+    task->unique[GEARMAN_MAX_UUID_SIZE]= 0;
+    args[1]= task->unique;
+    args_size[1]= GEARMAN_MAX_UUID_SIZE +1; // +1 is for the needed null
   }
 
   assert_msg(command == GEARMAN_COMMAND_SUBMIT_REDUCE_JOB or command == GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND,

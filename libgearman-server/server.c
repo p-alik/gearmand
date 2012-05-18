@@ -272,7 +272,75 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
                           packet->arg_size[1], packet->arg[1], // Unique
                           when);
     }
+    break;
 
+  case GEARMAN_COMMAND_GET_UNIQUE_STATUS:
+    {
+      char unique_handle[GEARMAN_MAX_UNIQUE_SIZE];
+
+      /* This may not be NULL terminated, so copy to make sure it is. */
+      int unique_handle_length= snprintf(unique_handle, GEARMAN_MAX_UNIQUE_SIZE, "%.*s",
+                                      (int)(packet->arg_size[0]), (char *)(packet->arg[0]));
+
+      if (unique_handle_length >= GEARMAN_MAX_UNIQUE_SIZE || unique_handle_length < 0)
+      {
+        gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "snprintf(%d)", unique_handle_length);
+        return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+      }
+
+      gearman_server_job_st *server_job= gearman_server_job_get_by_unique(Server,
+                                                                          unique_handle, (size_t)unique_handle_length,
+                                                                          server_con);
+
+      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Searching for unique job: \"%s\" found: %s", unique_handle, server_job ? "yes" : "no");
+      /* Queue status result packet. */
+      if (server_job == NULL)
+      {
+        ret= gearman_server_io_packet_add(server_con, false,
+                                          GEARMAN_MAGIC_RESPONSE,
+                                          GEARMAN_COMMAND_STATUS_UNIQUE_RES,
+                                          unique_handle, (size_t)(unique_handle_length +1), // Job Handle
+                                          "0", (size_t)2, //
+                                          "0", (size_t)2, //
+                                          "0", (size_t)2, //
+                                          "0", (size_t)1, //
+                                          NULL);
+      }
+      else
+      {
+        char numerator_buffer[11]; /* Max string size to hold a uint32_t. */
+        int numerator_buffer_length= snprintf(numerator_buffer, sizeof(numerator_buffer), "%u", server_job->numerator);
+        if ((size_t)numerator_buffer_length >= sizeof(numerator_buffer) || numerator_buffer_length < 0)
+        {
+          gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "snprintf(%d)", numerator_buffer_length);
+          return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+        }
+
+        char denominator_buffer[11]; /* Max string size to hold a uint32_t. */
+        int denominator_buffer_length= snprintf(denominator_buffer, sizeof(denominator_buffer), "%u", server_job->denominator);
+        if ((size_t)denominator_buffer_length >= sizeof(denominator_buffer) || denominator_buffer_length < 0)
+        {
+          gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "snprintf(%d)", denominator_buffer_length);
+          return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+        }
+
+        ret= gearman_server_io_packet_add(server_con, false,
+                                          GEARMAN_MAGIC_RESPONSE,
+                                          GEARMAN_COMMAND_STATUS_UNIQUE_RES,
+                                          unique_handle, (size_t)(unique_handle_length +1), // unique_handle
+                                          "1", (size_t)2, // is_known
+                                          server_job->worker == NULL ? "0" : "1", (size_t)2, // is_running
+                                          numerator_buffer, (size_t)(numerator_buffer_length +1), // numerator
+                                          denominator_buffer, (size_t)(denominator_buffer_length), //denominator
+                                          NULL);
+      }
+
+      if (ret != GEARMAN_SUCCESS)
+      {
+        gearmand_gerror("gearman_server_io_packet_add", ret);
+        return ret;
+      }
+    }
     break;
 
   case GEARMAN_COMMAND_GET_STATUS:
@@ -463,7 +531,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
                                           GEARMAN_COMMAND_JOB_ASSIGN_UNIQ,
                                           server_job->job_handle, (size_t)(strlen(server_job->job_handle) + 1),
                                           server_job->function->function_name, server_job->function->function_name_size + 1,
-                                          server_job->unique, (size_t)(strlen(server_job->unique) + 1),
+                                          server_job->unique, (size_t)(server_job->unique_length + 1),
                                           server_job->data, server_job->data_size,
                                           NULL);
       }
@@ -473,7 +541,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
                            "Sending reduce submission, Partitioner: %.*s(%lu) Reducer: %.*s(%lu) Unique: %.*s(%lu) with data sized (%lu)" ,
                            server_job->function->function_name_size, server_job->function->function_name, server_job->function->function_name_size,
                            strlen(server_job->reducer), server_job->reducer, strlen(server_job->reducer),
-                           strlen(server_job->unique), server_job->unique, strlen(server_job->unique),
+                           server_job->unique_length, server_job->unique, server_job->unique_length,
                            (unsigned long)server_job->data_size);
         /* 
           We found a runnable job, queue job assigned packet and take the job off the queue. 
@@ -483,7 +551,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
                                           GEARMAN_COMMAND_JOB_ASSIGN_ALL,
                                           server_job->job_handle, (size_t)(strlen(server_job->job_handle) + 1),
                                           server_job->function->function_name, server_job->function->function_name_size + 1,
-                                          server_job->unique, (size_t)(strlen(server_job->unique) + 1),
+                                          server_job->unique, server_job->unique_length +1,
                                           server_job->reducer, (size_t)(strlen(server_job->reducer) +1),
                                           server_job->data, server_job->data_size,
                                           NULL);
@@ -498,7 +566,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
                                           GEARMAN_COMMAND_JOB_ASSIGN_UNIQ,
                                           server_job->job_handle, (size_t)(strlen(server_job->job_handle) +1),
                                           server_job->function->function_name, server_job->function->function_name_size +1,
-                                          server_job->unique, (size_t)(strlen(server_job->unique) +1),
+                                          server_job->unique, server_job->unique_length +1,
                                           server_job->data, server_job->data_size,
                                           NULL);
       }
@@ -632,7 +700,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
       {
         ret= (*(Server->queue._done_fn))(Server, (void *)Server->queue._context,
                                          server_job->unique,
-                                         (size_t)strlen(server_job->unique),
+                                         server_job->unique_length,
                                          server_job->function->function_name,
                                          server_job->function->function_name_size);
         if (gearmand_failed(ret))
@@ -711,7 +779,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
       {
         ret= (*(Server->queue._done_fn))(Server, (void *)Server->queue._context,
                                          server_job->unique,
-                                         (size_t)strlen(server_job->unique),
+                                         server_job->unique_length,
                                          server_job->function->function_name,
                                          server_job->function->function_name_size);
         if (gearmand_failed(ret))
@@ -824,7 +892,9 @@ gearmand_error_t _queue_replay_add(gearman_server_st *server,
                                data, data_size, priority, NULL, &ret, when);
 
   if (ret != GEARMAN_SUCCESS)
+  {
     gearmand_gerror("gearman_server_job_add", ret);
+  }
 
   return ret;
 }

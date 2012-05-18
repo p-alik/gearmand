@@ -80,7 +80,6 @@ static void gearmand_log(const char *position, const char *func /* func */,
   }
 
   struct tm current_tm;
-  const char *current_time_str_ptr;
   char current_time_str[27];
 
   if (current_epoch.tv_sec == 0)
@@ -90,22 +89,7 @@ static void gearmand_log(const char *position, const char *func /* func */,
 
   if ((gmtime_r(&current_epoch.tv_sec, &current_tm) == NULL))
   {
-    current_time_str_ptr = "NA";
-  }
-  else
-  {
-    snprintf(current_time_str, sizeof(current_time_str), "%04d-%02d-%02d %02d:%02d:%02d.%06d",
-             int(1900 + current_tm.tm_year), current_tm.tm_mon, current_tm.tm_mday, current_tm.tm_hour,
-             current_tm.tm_min, current_tm.tm_sec, int(current_epoch.tv_usec));
-    current_time_str_ptr = current_time_str;
-  }
-
-  if (Gearmand() == NULL)
-  {
-    fprintf(stderr, "%s %s %7s: ", current_time_str_ptr, position,  gearmand_verbose_name(verbose));
-    vfprintf(stderr, format, args);
-    fprintf(stderr, "\n");
-    return;
+    memset(&current_epoch, 0, sizeof(current_epoch));
   }
 
   (void) pthread_once(&intitialize_log_once, create_log);
@@ -117,14 +101,17 @@ static void gearmand_log(const char *position, const char *func /* func */,
     identity= "[  main ]";
   }
 
+  char log_buffer[GEARMAN_MAX_ERROR_SIZE*2] = { 0 };
   if (Gearmand() && Gearmand()->log_fn)
   {
-    char log_buffer[GEARMAN_MAX_ERROR_SIZE*2];
     char *log_buffer_ptr= log_buffer;
     size_t remaining_size= sizeof(log_buffer);
 
     {
-      int length= snprintf(log_buffer, sizeof(log_buffer), "%s %s ", current_time_str_ptr, identity);
+      int length= snprintf(log_buffer, sizeof(log_buffer), "%04d-%02d-%02d %02d:%02d:%02d.%06d %s ",
+                           int(1900 + current_tm.tm_year), current_tm.tm_mon, current_tm.tm_mday, current_tm.tm_hour,
+                           current_tm.tm_min, current_tm.tm_sec, int(current_epoch.tv_usec),
+                           identity);
       // We just return whatever we have if this occurs
       if (length < -1 || (size_t)length >= sizeof(log_buffer))
       {
@@ -170,12 +157,16 @@ static void gearmand_log(const char *position, const char *func /* func */,
 
     // Make sure this is null terminated
     log_buffer[sizeof(log_buffer)]= 0;
+  }
 
+  if (Gearmand() and Gearmand()->log_fn)
+  {
     Gearmand()->log_fn(log_buffer, verbose, (void *)Gearmand()->log_context);
   }
   else
   {
-    fprintf(stderr, "%s %s %7s: ", current_time_str_ptr, identity,  gearmand_verbose_name(verbose));
+    fprintf(stderr, "%s -> %s",
+            log_buffer,  gearmand_verbose_name(verbose));
     vfprintf(stderr, format, args);
     fprintf(stderr, "\n");
   }
