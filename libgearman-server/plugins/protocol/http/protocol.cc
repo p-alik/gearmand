@@ -244,19 +244,16 @@ public:
 
     gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "METHOD: %s", str_method(method()));
 
-    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "URI: %s", uri);
-
     while (*uri == ' ')
     {
       uri++;
     }
-    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "URI: %s", uri);
 
+    // Remove leading /
     while (*uri == '/')
     {
       uri++;
     }
-    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "URI: %s", uri);
 
     const char *version= (const char *)memchr(uri, ' ', request_size - (size_t)(uri - request));
     if (version == NULL)
@@ -268,6 +265,7 @@ public:
     }
 
     ptrdiff_t uri_size= version -uri;
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "URI: %.*s", (int)uri_size, uri);
     switch (method())
     {
     case gearmand::protocol::httpd::POST:
