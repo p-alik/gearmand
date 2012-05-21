@@ -164,6 +164,9 @@ void gearman_server_con_delete_timeout(gearman_server_con_st *con);
 
 void gearman_server_con_protocol_release(gearman_server_con_st *con);
 
+gearman_server_con_st* build_gearman_server_con_st(void);
+void destroy_gearman_server_con_st(gearman_server_con_st* arg);
+
 /** @} */
 
 #ifdef __cplusplus

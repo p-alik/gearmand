@@ -56,11 +56,11 @@ static gearmand_error_t gearmand_packet_unpack_header(gearmand_packet_st *packet
 {
   uint32_t tmp;
 
-  if (not memcmp(packet->args, "\0REQ", 4))
+  if (memcmp(packet->args, "\0REQ", 4) == 0)
   {
     packet->magic= GEARMAN_MAGIC_REQUEST;
   }
-  else if (not memcmp(packet->args, "\0RES", 4))
+  else if (memcmp(packet->args, "\0RES", 4) == 0)
   {
     packet->magic= GEARMAN_MAGIC_RESPONSE;
   }
@@ -181,7 +181,7 @@ public:
 
     while (packet->argc != gearman_command_info(packet->command)->argc)
     {
-      if (packet->argc != (gearman_command_info(packet->command)->argc - 1) ||
+      if (packet->argc != (gearman_command_info(packet->command)->argc - 1) or
           gearman_command_info(packet->command)->data)
       {
         uint8_t* ptr= (uint8_t *)memchr(((uint8_t *)data) +used_size, 0,
@@ -232,6 +232,12 @@ public:
               void *data, const size_t data_size,
               gearmand_error_t& ret_ptr)
   {
+
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
+                       "Sending GEAR length:%"PRIu64" gearmand_command_t:%s",
+                       uint64_t(packet->data_size),
+                       gearman_strcommand(packet->command));
+
     if (packet->args_size == 0)
     {
       ret_ptr= GEARMAN_SUCCESS;
@@ -246,6 +252,7 @@ public:
 
     memcpy(data, packet->args, packet->args_size);
     ret_ptr= GEARMAN_SUCCESS;
+
     return packet->args_size;
   }
 

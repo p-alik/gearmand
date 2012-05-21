@@ -30,10 +30,39 @@
  * @{
  */
 
-static void _con_ready(int fd, short events, void *arg);
-
 static gearmand_error_t _con_add(gearmand_thread_st *thread,
-                                 gearmand_con_st *con);
+                                 gearmand_con_st *dcon)
+{
+  gearmand_error_t ret= GEARMAN_SUCCESS;
+  dcon->server_con= gearman_server_con_add(&(thread->server_thread), dcon, &ret);
+
+  assert(dcon->server_con || ret != GEARMAN_SUCCESS);
+  assert(! dcon->server_con || ret == GEARMAN_SUCCESS);
+
+  if (dcon->server_con == NULL)
+  {
+    gearmand_sockfd_close(dcon->fd);
+
+    return ret;
+  }
+
+  if (dcon->add_fn)
+  {
+    ret= (*dcon->add_fn)(dcon->server_con);
+    if (gearmand_failed(ret))
+    {
+      gearman_server_con_free(dcon->server_con);
+
+      gearmand_sockfd_close(dcon->fd);
+
+      return ret;
+    }
+  }
+
+  GEARMAN_LIST_ADD(thread->dcon, dcon,)
+
+  return GEARMAN_SUCCESS;
+}
 
 /** @} */
 
@@ -54,10 +83,10 @@ gearmand_error_t gearmand_con_create(gearmand_st *gearmand, int fd,
   }
   else
   {
-    dcon= (gearmand_con_st *)malloc(sizeof(gearmand_con_st));
+    dcon= build_gearmand_con_st(); 
     if (dcon == NULL)
     {
-      gearmand_perror("malloc");
+      gearmand_perror("new build_gearmand_con_st");
       gearmand_sockfd_close(fd);
 
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
@@ -85,7 +114,9 @@ gearmand_error_t gearmand_con_create(gearmand_st *gearmand, int fd,
 
   /* We do a simple round-robin connection queue algorithm here. */
   if (gearmand->thread_add_next == NULL)
+  {
     gearmand->thread_add_next= gearmand->thread_list;
+  }
 
   dcon->thread= gearmand->thread_add_next;
 
@@ -182,7 +213,7 @@ void gearmand_con_free(gearmand_con_st *dcon)
     {
       /* Lock here because the main thread may be emptying this. */
       int error;
-      if (not (error=  pthread_mutex_lock(&(dcon->thread->lock))))
+      if ((error=  pthread_mutex_lock(&(dcon->thread->lock))) == 0)
       {
         GEARMAN_LIST_ADD(dcon->thread->free_dcon, dcon,);
         (void ) pthread_mutex_unlock(&(dcon->thread->lock));
@@ -196,8 +227,7 @@ void gearmand_con_free(gearmand_con_st *dcon)
   }
   else
   {
-    gearmand_debug("free");
-    free(dcon);
+    destroy_gearmand_con_st(dcon);
   }
 }
 
@@ -212,7 +242,7 @@ void gearmand_con_check_queue(gearmand_thread_st *thread)
   while (thread->dcon_add_list != NULL)
   {
     int error;
-    if (not (error= pthread_mutex_lock(&(thread->lock))))
+    if ((error= pthread_mutex_lock(&(thread->lock))) == 0)
     {
       gearmand_con_st *dcon= thread->dcon_add_list;
       GEARMAN_LIST_DEL(thread->dcon_add, dcon,);
@@ -240,115 +270,4 @@ void gearmand_con_check_queue(gearmand_thread_st *thread)
       gearmand_wakeup(Gearmand(), GEARMAND_WAKEUP_SHUTDOWN);
     }
   }
-}
-
-gearmand_error_t gearmand_connection_watch(gearmand_io_st *con, short events,
-                                           void *context __attribute__ ((unused)))
-{
-  (void) context;
-  gearmand_con_st *dcon;
-  short set_events= 0;
-
-  dcon= (gearmand_con_st *)gearman_io_context(con);
-
-  if (events & POLLIN)
-    set_events|= EV_READ;
-  if (events & POLLOUT)
-    set_events|= EV_WRITE;
-
-  if (dcon->last_events != set_events)
-  {
-    if (dcon->last_events)
-    {
-      if (event_del(&(dcon->event)) < 0)
-      {
-        gearmand_perror("event_del");
-        assert(! "event_del");
-      }
-    }
-    event_set(&(dcon->event), dcon->fd, set_events | EV_PERSIST, _con_ready, dcon);
-    event_base_set(dcon->thread->base, &(dcon->event));
-
-    if (event_add(&(dcon->event), NULL) < 0)
-    {
-      gearmand_perror("event_add");
-      return GEARMAN_EVENT;
-    }
-
-    dcon->last_events= set_events;
-  }
-
-  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
-                     "%15s:%5s Watching  %6s %s",
-                     dcon->host, dcon->port,
-                     events & POLLIN ? "POLLIN" : "",
-                     events & POLLOUT ? "POLLOUT" : "");
-
-  return GEARMAN_SUCCESS;
-}
-
-/*
- * Private definitions
- */
-
-static void _con_ready(int fd __attribute__ ((unused)), short events,
-                       void *arg)
-{
-  gearmand_con_st *dcon= (gearmand_con_st *)arg;
-  short revents= 0;
-
-  if (events & EV_READ)
-    revents|= POLLIN;
-  if (events & EV_WRITE)
-    revents|= POLLOUT;
-
-  gearmand_error_t ret= gearmand_io_set_revents(dcon->server_con, revents);
-  if (gearmand_failed(ret))
-  {
-    gearmand_gerror("gearmand_io_set_revents", ret);
-    gearmand_con_free(dcon);
-    return;
-  }
-
-  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, 
-                     "%15s:%5s Ready     %6s %s",
-                     dcon->host, dcon->port,
-                     revents & POLLIN ? "POLLIN" : "",
-                     revents & POLLOUT ? "POLLOUT" : "");
-
-  gearmand_thread_run(dcon->thread);
-}
-
-static gearmand_error_t _con_add(gearmand_thread_st *thread,
-                                 gearmand_con_st *dcon)
-{
-  gearmand_error_t ret= GEARMAN_SUCCESS;
-  dcon->server_con= gearman_server_con_add(&(thread->server_thread), dcon, &ret);
-
-  assert(dcon->server_con || ret != GEARMAN_SUCCESS);
-  assert(! dcon->server_con || ret == GEARMAN_SUCCESS);
-
-  if (not dcon->server_con)
-  {
-    gearmand_sockfd_close(dcon->fd);
-
-    return ret;
-  }
-
-  if (dcon->add_fn)
-  {
-    ret= (*dcon->add_fn)(dcon->server_con);
-    if (gearmand_failed(ret))
-    {
-      gearman_server_con_free(dcon->server_con);
-
-      gearmand_sockfd_close(dcon->fd);
-
-      return ret;
-    }
-  }
-
-  GEARMAN_LIST_ADD(thread->dcon, dcon,)
-
-  return GEARMAN_SUCCESS;
 }

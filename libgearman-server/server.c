@@ -207,7 +207,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
       }
 
       gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
-                         "Received submission, %.*s/%.*s with %d arguments",
+                         "Received submission, function:%.*s unique:%.*s with %d arguments",
                          packet->arg_size[0], packet->arg[0],
                          packet->arg_size[1], packet->arg[1],
                          (int)packet->argc);
@@ -216,7 +216,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
       {
         sscanf((char *)packet->arg[2], "%lld", (long long *)&when);
         gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, 
-                           "Received EPOCH job submission, %.*s/%.*s, with data for %jd at %jd, args %d",
+                           "Received EPOCH job submission, function:%.*s unique:%.*s with data for %jd at %jd, args %d",
                            packet->arg_size[0], packet->arg[0],
                            packet->arg_size[1], packet->arg[1],
                            when, time(NULL),
@@ -453,6 +453,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
 
   /* Worker requests. */
   case GEARMAN_COMMAND_CAN_DO:
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Registering function: %.*s", packet->arg_size[0], packet->arg[0]);
     if (gearman_server_worker_add(server_con, (char *)(packet->arg[0]),
                                   packet->arg_size[0], 0) == NULL)
     {
@@ -462,6 +463,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
     break;
 
   case GEARMAN_COMMAND_CAN_DO_TIMEOUT:
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Registering function: %.*s with timeout", packet->arg_size[0], packet->arg[0]);
     if (gearman_server_worker_add(server_con, (char *)(packet->arg[0]),
                                   packet->arg_size[0] - 1,
                                   0) == NULL)
@@ -472,6 +474,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
     break;
 
   case GEARMAN_COMMAND_CANT_DO:
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Removing function: %.*s with timeout", packet->arg_size[0], packet->arg[0]);
     gearman_server_con_free_worker(server_con, (char *)(packet->arg[0]),
                                    packet->arg_size[0]);
     break;

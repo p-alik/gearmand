@@ -61,9 +61,56 @@ static bool gearman_server_create(gearman_server_st *server,
                                   uint8_t job_retries,
                                   uint8_t worker_wakeup,
                                   bool round_robin);
-static void gearman_server_free(gearman_server_st *server);
 static void gearmand_set_log_fn(gearmand_st *gearmand, gearmand_log_fn *function,
                                 void *context, const gearmand_verbose_t verbose);
+
+
+static void gearman_server_free(gearman_server_st *server)
+{
+  /* All threads should be cleaned up before calling this. */
+  assert(server->thread_list == NULL);
+
+  for (uint32_t key= 0; key < GEARMAND_JOB_HASH_SIZE; key++)
+  {
+    while (server->job_hash[key] != NULL)
+    {
+      gearman_server_job_free(server->job_hash[key]);
+    }
+  }
+
+  while (server->function_list != NULL)
+  {
+    gearman_server_function_free(server, server->function_list);
+  }
+
+  while (server->free_packet_list != NULL)
+  {
+    gearman_server_packet_st *packet= server->free_packet_list;
+    server->free_packet_list= packet->next;
+    delete packet;
+  }
+
+  while (server->free_job_list != NULL)
+  {
+    gearman_server_job_st* job= server->free_job_list;
+    server->free_job_list= job->next;
+    delete job;
+  }
+
+  while (server->free_client_list != NULL)
+  {
+    gearman_server_client_st* client= server->free_client_list;
+    server->free_client_list= client->con_next;
+    delete client;
+  }
+
+  while (server->free_worker_list != NULL)
+  {
+    gearman_server_worker_st* worker= server->free_worker_list;
+    server->free_worker_list= worker->con_next;
+    delete worker;
+  }
+}
 
 /** @} */
 
@@ -105,17 +152,17 @@ gearmand_st *gearmand_create(const char *host_arg,
     _exit(EXIT_FAILURE);
   }
 
-  gearmand= (gearmand_st *)malloc(sizeof(gearmand_st));
+  gearmand= new (std::nothrow) gearmand_st;
   if (gearmand == NULL)
   {
-    gearmand_merror("malloc", gearmand_st, 0);
+    gearmand_merror("new", gearmand_st, 0);
     return NULL;
   }
 
-  if (! gearman_server_create(&(gearmand->server), job_retries, worker_wakeup, round_robin))
+  if (gearman_server_create(&(gearmand->server), job_retries, worker_wakeup, round_robin) == false)
   {
-    gearmand_debug("free");
-    free(gearmand);
+    gearmand_debug("delete gearmand_st");
+    delete gearmand;
     return NULL;
   }
 
@@ -202,8 +249,8 @@ void gearmand_free(gearmand_st *gearmand)
 
   gearmand_info("Shutdown complete");
 
-  gearmand_debug("free");
-  free(gearmand);
+  gearmand_debug("delete");
+  delete gearmand;
 }
 
 static void gearmand_set_log_fn(gearmand_st *gearmand, gearmand_log_fn *function,
@@ -594,7 +641,9 @@ static void _listen_close(gearmand_st *gearmand)
 static gearmand_error_t _listen_watch(gearmand_st *gearmand)
 {
   if (gearmand->is_listen_event)
+  {
     return GEARMAN_SUCCESS;
+  }
 
   for (uint32_t x= 0; x < gearmand->port_count; x++)
   {
@@ -617,8 +666,10 @@ static gearmand_error_t _listen_watch(gearmand_st *gearmand)
 
 static void _listen_clear(gearmand_st *gearmand)
 {
-  if (! (gearmand->is_listen_event))
+  if (gearmand->is_listen_event == false)
+  {
     return;
+  }
 
   for (uint32_t x= 0; x < gearmand->port_count; x++)
   {
@@ -675,9 +726,8 @@ static void _listen_event(int fd, short events __attribute__ ((unused)), void *a
   /* 
     Since this is numeric, it should never fail. Even if it did we don't want to really error from it.
   */
-  int error;
-  error= getnameinfo(&sa, sa_len, host, NI_MAXHOST, port_str, NI_MAXSERV,
-                     NI_NUMERICHOST | NI_NUMERICSERV);
+  int error= getnameinfo(&sa, sa_len, host, NI_MAXHOST, port_str, NI_MAXSERV,
+                         NI_NUMERICHOST | NI_NUMERICSERV);
   if (error != 0)
   {
     gearmand_gai_error("getnameinfo", error);
@@ -748,7 +798,9 @@ static void _wakeup_close(gearmand_st *gearmand)
 static gearmand_error_t _wakeup_watch(gearmand_st *gearmand)
 {
   if (gearmand->is_wakeup_event)
+  {
     return GEARMAN_SUCCESS;
+  }
 
   gearmand_debug("Adding event for wakeup pipe");
 
@@ -797,10 +849,14 @@ static void _wakeup_event(int fd, short events __attribute__ ((unused)),
     else if (ret == -1)
     {
       if (errno == EINTR)
+      {
         continue;
+      }
 
       if (errno == EAGAIN)
+      {
         break;
+      }
 
       _clear_events(gearmand);
       gearmand_perror("_wakeup_event:read");
@@ -854,11 +910,15 @@ static gearmand_error_t _watch_events(gearmand_st *gearmand)
 
   ret= _listen_watch(gearmand);
   if (ret != GEARMAN_SUCCESS)
+  {
     return ret;
+  }
 
   ret= _wakeup_watch(gearmand);
   if (ret != GEARMAN_SUCCESS)
+  {
     return ret;
+  }
 
   return GEARMAN_SUCCESS;
 }
@@ -1035,57 +1095,4 @@ static bool gearman_server_create(gearman_server_st *server,
   server->job_handle_count= 1;
 
   return true;
-}
-
-static void gearman_server_free(gearman_server_st *server)
-{
-  uint32_t key;
-  gearman_server_packet_st *packet;
-  gearman_server_job_st *job;
-  gearman_server_client_st *client;
-  gearman_server_worker_st *worker;
-
-  /* All threads should be cleaned up before calling this. */
-  assert(server->thread_list == NULL);
-
-  for (key= 0; key < GEARMAND_JOB_HASH_SIZE; key++)
-  {
-    while (server->job_hash[key] != NULL)
-    {
-      gearman_server_job_free(server->job_hash[key]);
-    }
-  }
-
-  while (server->function_list != NULL)
-  {
-    gearman_server_function_free(server, server->function_list);
-  }
-
-  while (server->free_packet_list != NULL)
-  {
-    packet= server->free_packet_list;
-    server->free_packet_list= packet->next;
-    free(packet);
-  }
-
-  while (server->free_job_list != NULL)
-  {
-    job= server->free_job_list;
-    server->free_job_list= job->next;
-    free(job);
-  }
-
-  while (server->free_client_list != NULL)
-  {
-    client= server->free_client_list;
-    server->free_client_list= client->con_next;
-    free(client);
-  }
-
-  while (server->free_worker_list != NULL)
-  {
-    worker= server->free_worker_list;
-    server->free_worker_list= worker->con_next;
-    free(worker);
-  }
 }

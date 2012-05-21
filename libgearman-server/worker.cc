@@ -14,39 +14,9 @@
 #include <config.h>
 #include <libgearman-server/common.h>
 
-static gearman_server_worker_st *
-gearman_server_worker_create(gearman_server_con_st *con,
-                             gearman_server_function_st *function);
+#include <memory>
 
-/*
- * Public definitions
- */
-
-gearman_server_worker_st *
-gearman_server_worker_add(gearman_server_con_st *con, const char *function_name,
-                          size_t function_name_size, uint32_t timeout)
-{
-  gearman_server_worker_st *worker;
-  gearman_server_function_st *function= gearman_server_function_get(Server, function_name,
-                                                                    function_name_size);
-  if (function == NULL)
-  {
-    return NULL;
-  }
-
-  worker= gearman_server_worker_create(con, function);
-  if (worker == NULL)
-  {
-    return NULL;
-  }
-
-  worker->timeout= timeout;
-
-  return worker;
-}
-
-static gearman_server_worker_st *
-gearman_server_worker_create(gearman_server_con_st *con, gearman_server_function_st *function)
+static gearman_server_worker_st* gearman_server_worker_create(gearman_server_con_st *con, gearman_server_function_st *function)
 {
   gearman_server_worker_st *worker;
 
@@ -57,10 +27,10 @@ gearman_server_worker_create(gearman_server_con_st *con, gearman_server_function
   }
   else
   {
-    worker= static_cast<gearman_server_worker_st *>(malloc(sizeof(gearman_server_worker_st)));
-    if (not worker)
+    worker= new (std::nothrow) gearman_server_worker_st;
+    if (worker == NULL)
     {
-      gearmand_merror("malloc", 0, sizeof(gearman_server_worker_st));
+      gearmand_merror("new", 0, sizeof(gearman_server_worker_st));
       return NULL;
     }
   }
@@ -89,6 +59,32 @@ gearman_server_worker_create(gearman_server_con_st *con, gearman_server_function
   function->worker_count++;
 
   worker->job_list= NULL;
+
+  return worker;
+}
+
+/*
+ * Public definitions
+ */
+
+gearman_server_worker_st *
+gearman_server_worker_add(gearman_server_con_st *con, const char *function_name,
+                          size_t function_name_size, uint32_t timeout)
+{
+  gearman_server_function_st *function= gearman_server_function_get(Server, function_name,
+                                                                    function_name_size);
+  if (function == NULL)
+  {
+    return NULL;
+  }
+
+  gearman_server_worker_st* worker= gearman_server_worker_create(con, function);
+  if (worker == NULL)
+  {
+    return NULL;
+  }
+
+  worker->timeout= timeout;
 
   return worker;
 }
@@ -129,7 +125,7 @@ void gearman_server_worker_free(gearman_server_worker_st *worker)
   }
   else
   {
-    gearmand_debug("free");
-    free(worker);
+    gearmand_debug("delete");
+    delete worker;
   }
 }

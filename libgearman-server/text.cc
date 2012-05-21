@@ -101,7 +101,11 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
             char *new_data= (char *)realloc(data, total + GEARMAN_TEXT_RESPONSE_SIZE);
             if (new_data == NULL)
             {
-              (void) pthread_mutex_unlock(&thread->lock);
+              if (pthread_mutex_unlock(&(thread->lock)) == -1)
+              {
+                gearmand_fatal("pthread_mutex_unlock()");
+                assert(!"pthread_mutex_lock");
+              }
               gearmand_perror("realloc");
               gearmand_debug("free");
               free(data);
@@ -117,7 +121,11 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
 
           if ((size_t)sn_checked_length > total - size || sn_checked_length < 0)
           {
-            (void) pthread_mutex_unlock(&thread->lock);
+            if (pthread_mutex_unlock(&(thread->lock)) == -1)
+            {
+              gearmand_fatal("pthread_mutex_unlock()");
+              assert(!"pthread_mutex_lock");
+            }
             gearmand_debug("free");
             free(data);
             gearmand_perror("snprintf");
@@ -138,7 +146,11 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
 
             if ((size_t)checked_length > total - size || checked_length < 0)
             {
-              (void) pthread_mutex_unlock(&thread->lock);
+              if (pthread_mutex_unlock(&(thread->lock)) == -1)
+              {
+                gearmand_fatal("pthread_mutex_unlock()");
+                assert(!"pthread_mutex_lock");
+              }
               gearmand_debug("free");
               free(data);
               gearmand_perror("snprintf");
@@ -158,7 +170,11 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
           int checked_length= snprintf(data + size, total - size, "\n");
           if ((size_t)checked_length > total - size || checked_length < 0)
           {
-            (void) pthread_mutex_unlock(&thread->lock);
+            if (pthread_mutex_unlock(&(thread->lock)) == -1)
+            {
+              gearmand_fatal("pthread_mutex_unlock()");
+              assert(!"pthread_mutex_lock");
+            }
             gearmand_debug("free");
             free(data);
             gearmand_perror("snprintf");
@@ -167,7 +183,11 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
           size+= (size_t)checked_length;
         }
 
-        (void) pthread_mutex_unlock(&thread->lock);
+        if (pthread_mutex_unlock(&(thread->lock)) == -1)
+        {
+          gearmand_fatal("pthread_mutex_unlock()");
+          assert(!"pthread_mutex_lock");
+        }
       }
       else
       {
@@ -417,10 +437,14 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
   server_packet->packet.data_size= strlen(data);
 
   int error;
-  if (! (error= pthread_mutex_lock(&server_con->thread->lock)))
+  if ((error= pthread_mutex_lock(&server_con->thread->lock)) == 0)
   {
     GEARMAN_FIFO_ADD(server_con->io_packet, server_packet,);
-    (void) pthread_mutex_unlock(&server_con->thread->lock);
+    if (pthread_mutex_unlock(&(server_con->thread->lock)) == -1)
+    {
+      gearmand_fatal("pthread_mutex_unlock()");
+      assert(!"pthread_mutex_lock");
+    }
   }
   else
   {

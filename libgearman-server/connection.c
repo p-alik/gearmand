@@ -49,7 +49,8 @@ gearman_server_con_st *gearman_server_con_add(gearman_server_thread_st *thread, 
   return con;
 }
 
-static gearman_server_con_st * _server_con_create(gearman_server_thread_st *thread, gearmand_con_st *dcon,
+static gearman_server_con_st * _server_con_create(gearman_server_thread_st *thread,
+                                                  gearmand_con_st *dcon,
                                                   gearmand_error_t *ret)
 {
   gearman_server_con_st *con;
@@ -61,10 +62,10 @@ static gearman_server_con_st * _server_con_create(gearman_server_thread_st *thre
   }
   else
   {
-    con= (gearman_server_con_st *)malloc(sizeof(gearman_server_con_st));
+    con= build_gearman_server_con_st();
     if (con == NULL)
     {
-      gearmand_perror("malloc");
+      gearmand_perror("new() build_gearman_server_con_st");
       *ret= GEARMAN_MEMORY_ALLOCATION_FAILURE;
       return NULL;
     }
@@ -120,15 +121,23 @@ static gearman_server_con_st * _server_con_create(gearman_server_thread_st *thre
   con->protocol= NULL;
 
   int error;
-  if (! (error= pthread_mutex_lock(&thread->lock)))
+  if ((error= pthread_mutex_lock(&thread->lock)) == 0)
   {
     GEARMAN_LIST_ADD(thread->con, con,);
-    (void) pthread_mutex_unlock(&thread->lock);
+    if ((error= pthread_mutex_unlock(&thread->lock)))
+    {
+      errno= error;
+      gearmand_log_fatal(GEARMAN_DEFAULT_LOG_PARAM, "pthread_mutex_unlock(%d), programming error, please report", error);
+      gearman_server_con_free(con);
+
+      *ret= GEARMAN_ERRNO;
+      return NULL;
+    }
   }
   else
   {
-    errno= error;
-    gearmand_perror("pthread_mutex_lock");
+    assert(error);
+    gearmand_log_fatal(GEARMAN_DEFAULT_LOG_PARAM, "pthread_mutex_lock(%d), programming error, please report", error);
     gearman_server_con_free(con);
 
     *ret= GEARMAN_ERRNO;
@@ -232,27 +241,29 @@ void gearman_server_con_free(gearman_server_con_st *con)
   if (thread->free_con_count < GEARMAN_MAX_FREE_SERVER_CON)
   {
     GEARMAN_LIST_ADD(thread->free_con, con,)
+
+    con->is_cleaned_up = true;
+    return;
   }
-  else
-  {
-    gearmand_debug("free");
-    free(con);
-  }
-  con->is_cleaned_up = true;
+
+  destroy_gearman_server_con_st(con);
 }
 
 gearmand_io_st *gearman_server_con_con(gearman_server_con_st *con)
 {
+  assert(con);
   return &con->con;
 }
 
 gearmand_con_st *gearman_server_con_data(gearman_server_con_st *con)
 {
+  assert(con);
   return gearman_io_context(&(con->con));
 }
 
 const char *gearman_server_con_id(gearman_server_con_st *con)
 {
+  assert(con);
   return con->id;
 }
 
