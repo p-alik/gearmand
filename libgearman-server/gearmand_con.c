@@ -57,7 +57,7 @@ gearmand_error_t gearmand_con_create(gearmand_st *gearmand, int fd,
     dcon= build_gearmand_con_st(); 
     if (dcon == NULL)
     {
-      gearmand_perror("malloc");
+      gearmand_perror("new build_gearmand_con_st");
       gearmand_sockfd_close(fd);
 
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;

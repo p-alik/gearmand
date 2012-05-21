@@ -17,6 +17,7 @@
 
 #include <cassert>
 #include <cerrno>
+#include <memory>
 
 #include <libgearman-server/list.h>
 
@@ -48,19 +49,16 @@ static void _clear_events(gearmand_thread_st *thread);
 
 gearmand_error_t gearmand_thread_create(gearmand_st *gearmand)
 {
-  gearmand_thread_st *thread;
-  gearmand_error_t ret;
-
-  thread= static_cast<gearmand_thread_st *>(malloc(sizeof(gearmand_thread_st)));
-  if (not thread)
+  gearmand_thread_st* thread= new (std::nothrow) gearmand_thread_st;
+  if (thread == NULL)
   {
-    return gearmand_merror("malloc", gearmand_thread_st, 1);
+    return gearmand_merror("new", gearmand_thread_st, 1);
   }
 
   if (! gearman_server_thread_init(gearmand_server(gearmand), &(thread->server_thread),
                                    _log, thread, gearmand_connection_watch))
   {
-    free(thread);
+    delete thread;
     gearmand_fatal("gearman_server_thread_init(NULL)");
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
@@ -99,7 +97,7 @@ gearmand_error_t gearmand_thread_create(gearmand_st *gearmand)
     }
   }
 
-  ret= _wakeup_init(thread);
+  gearmand_error_t ret= _wakeup_init(thread);
   if (ret != GEARMAN_SUCCESS)
   {
     gearmand_thread_free(thread);
@@ -108,7 +106,9 @@ gearmand_error_t gearmand_thread_create(gearmand_st *gearmand)
 
   /* If we are not running multi-threaded, just return the thread context. */
   if (gearmand->threads == 0)
+  {
     return GEARMAN_SUCCESS;
+  }
 
   thread->count= gearmand->thread_count;
 
@@ -147,8 +147,6 @@ gearmand_error_t gearmand_thread_create(gearmand_st *gearmand)
 
 void gearmand_thread_free(gearmand_thread_st *thread)
 {
-  gearmand_con_st *dcon;
-
   if (Gearmand()->threads && thread->count > 0)
   {
     gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Shutting down thread %u", thread->count);
@@ -171,17 +169,17 @@ void gearmand_thread_free(gearmand_thread_st *thread)
 
   while (thread->dcon_add_list != NULL)
   {
-    dcon= thread->dcon_add_list;
+    gearmand_con_st* dcon= thread->dcon_add_list;
     thread->dcon_add_list= dcon->next;
     gearmand_sockfd_close(dcon->fd);
-    free(dcon);
+    delete dcon;
   }
 
   while (thread->free_dcon_list != NULL)
   {
-    dcon= thread->free_dcon_list;
+    gearmand_con_st* dcon= thread->free_dcon_list;
     thread->free_dcon_list= dcon->next;
-    free(dcon);
+    delete dcon;
   }
 
   gearman_server_thread_free(&(thread->server_thread));
@@ -198,7 +196,7 @@ void gearmand_thread_free(gearmand_thread_st *thread)
     gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Thread %u shutdown complete", thread->count);
   }
 
-  free(thread);
+  delete thread;
 }
 
 void gearmand_thread_wakeup(gearmand_thread_st *thread,
@@ -221,13 +219,14 @@ void gearmand_thread_run(gearmand_thread_st *thread)
     gearmand_error_t ret;
     gearmand_con_st *dcon= gearman_server_thread_run(&(thread->server_thread), &ret);
 
-    if (ret == GEARMAN_SUCCESS || ret == GEARMAN_IO_WAIT ||
+    if (ret == GEARMAN_SUCCESS or
+        ret == GEARMAN_IO_WAIT or
         ret == GEARMAN_SHUTDOWN_GRACEFUL)
     {
       return;
     }
 
-    if (not dcon)
+    if (dcon == NULL)
     {
       /* We either got a GEARMAN_SHUTDOWN or some other fatal internal error.
          Either way, we want to shut the server down. */

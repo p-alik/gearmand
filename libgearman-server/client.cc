@@ -13,7 +13,9 @@
 
 #include <config.h>
 #include <libgearman-server/common.h>
+
 #include <cassert>
+#include <memory>
 
 /*
  * Public definitions
@@ -31,16 +33,16 @@ gearman_server_client_add(gearman_server_con_st *con)
   }
   else
   {
-    client= static_cast<gearman_server_client_st *>(malloc(sizeof(gearman_server_client_st)));
-    if (not client)
+    client= new (std::nothrow) gearman_server_client_st;
+    if (client == NULL)
     {
-      gearmand_merror("malloc", gearman_server_client_st,  0);
+      gearmand_merror("new", gearman_server_client_st,  0);
       return NULL;
     }
   }
   assert(client);
 
-  if (not client)
+  if (client == NULL)
   {
     gearmand_error("In gearman_server_client_add() we failed to either allocorate of find a free one");
     return NULL;
@@ -58,8 +60,10 @@ gearman_server_client_add(gearman_server_con_st *con)
 
 void gearman_server_client_free(gearman_server_client_st *client)
 {
-  if (not client)
+  if (client == NULL)
+  {
     return;
+  }
 
   GEARMAN_LIST_DEL(client->con->client, client, con_)
 
@@ -81,7 +85,7 @@ void gearman_server_client_free(gearman_server_client_st *client)
   }
   else
   {
-    gearmand_debug("free");
-    free(client);
+    gearmand_debug("delete gearman_server_client_st");
+    delete client;
   }
 }
