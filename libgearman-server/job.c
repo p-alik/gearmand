@@ -291,7 +291,9 @@ gearman_server_job_create(gearman_server_st *server)
   {
     server_job= (gearman_server_job_st *)malloc(sizeof(gearman_server_job_st));
     if (server_job == NULL)
+    {
       return NULL;
+    }
   }
 
   server_job->ignore_job= false;
@@ -324,9 +326,7 @@ gearman_server_job_create(gearman_server_st *server)
 
 void gearman_server_job_free(gearman_server_job_st *server_job)
 {
-  uint32_t key;
-
-  if (! server_job)
+  if (server_job == NULL)
   {
     return;
   }
@@ -339,15 +339,21 @@ void gearman_server_job_free(gearman_server_job_st *server_job)
   server_job->function->job_total--;
 
   if (server_job->data != NULL)
+  {
     free((void *)(server_job->data));
+  }
 
   while (server_job->client_list != NULL)
+  {
     gearman_server_client_free(server_job->client_list);
+  }
 
   if (server_job->worker != NULL)
+  {
     GEARMAN_LIST_DEL(server_job->worker->job, server_job, worker_)
+  }
 
-  key= server_job->unique_key % GEARMAND_JOB_HASH_SIZE;
+  uint32_t key= server_job->unique_key % GEARMAND_JOB_HASH_SIZE;
   GEARMAN_HASH_DEL(Server->unique, key, server_job, unique_);
 
   key= server_job->job_handle_key % GEARMAND_JOB_HASH_SIZE;
@@ -365,9 +371,6 @@ void gearman_server_job_free(gearman_server_job_st *server_job)
 
 gearmand_error_t gearman_server_job_queue(gearman_server_job_st *job)
 {
-  gearman_server_client_st *client;
-  gearman_server_worker_st *worker;
-  uint32_t noop_sent;
   gearmand_error_t ret;
 
   if (job->worker)
@@ -380,6 +383,7 @@ gearmand_error_t gearman_server_job_queue(gearman_server_job_st *job)
                          job->job_handle,
                          (int)job->unique_length, job->unique);
 
+      gearman_server_client_st *client;
       for (client= job->client_list; client != NULL; client= client->job_next)
       {
         ret= gearman_server_io_packet_add(client->con, false,
@@ -421,8 +425,8 @@ gearmand_error_t gearman_server_job_queue(gearman_server_job_st *job)
   /* Queue NOOP for possible sleeping workers. */
   if (job->function->worker_list != NULL)
   {
-    worker= job->function->worker_list;
-    noop_sent= 0;
+    gearman_server_worker_st *worker= job->function->worker_list;
+    uint32_t noop_sent= 0;
 
     do
     {
