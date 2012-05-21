@@ -38,6 +38,7 @@
 #include <config.h>
 #include <libgearman-server/common.h>
 
+#include <cassert>
 #include <memory>
 
 gearmand_con_st* build_gearmand_con_st(void)
@@ -49,4 +50,81 @@ void destroy_gearmand_con_st(gearmand_con_st* arg)
 {
   gearmand_debug("delete gearmand_con_st");
   delete arg;
+}
+
+void _con_ready(int, short events, void *arg)
+{
+  gearmand_con_st *dcon= (gearmand_con_st *)arg;
+  short revents= 0;
+
+  if (events & EV_READ)
+  {
+    revents|= POLLIN;
+  }
+  if (events & EV_WRITE)
+  {
+    revents|= POLLOUT;
+  }
+
+  gearmand_error_t ret= gearmand_io_set_revents(dcon->server_con, revents);
+  if (gearmand_failed(ret))
+  {
+    gearmand_gerror("gearmand_io_set_revents", ret);
+    gearmand_con_free(dcon);
+    return;
+  }
+
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, 
+                     "%15s:%5s Ready     %6s %s",
+                     dcon->host, dcon->port,
+                     revents & POLLIN ? "POLLIN" : "",
+                     revents & POLLOUT ? "POLLOUT" : "");
+
+  gearmand_thread_run(dcon->thread);
+}
+
+gearmand_error_t gearmand_connection_watch(gearmand_io_st *con, short events, void *)
+{
+  short set_events= 0;
+
+  gearmand_con_st* dcon= gearman_io_context(con);
+
+  if (events & POLLIN)
+  {
+    set_events|= EV_READ;
+  }
+  if (events & POLLOUT)
+  {
+    set_events|= EV_WRITE;
+  }
+
+  if (dcon->last_events != set_events)
+  {
+    if (dcon->last_events)
+    {
+      if (event_del(&(dcon->event)) < 0)
+      {
+        gearmand_perror("event_del");
+        assert(! "event_del");
+      }
+    }
+    event_set(&(dcon->event), dcon->fd, set_events | EV_PERSIST, _con_ready, dcon);
+    event_base_set(dcon->thread->base, &(dcon->event));
+
+    if (event_add(&(dcon->event), NULL) < 0)
+    {
+      gearmand_perror("event_add");
+      return GEARMAN_EVENT;
+    }
+
+    dcon->last_events= set_events;
+  }
+
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
+                     "%15s:%5s Watching  %6s %s",
+                     dcon->host, dcon->port,
+                     events & POLLIN ? "POLLIN" : "",
+                     events & POLLOUT ? "POLLOUT" : "");
+
+  return GEARMAN_SUCCESS;
 }
