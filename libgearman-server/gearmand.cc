@@ -1039,16 +1039,10 @@ static bool gearman_server_create(gearman_server_st *server,
 
 static void gearman_server_free(gearman_server_st *server)
 {
-  uint32_t key;
-  gearman_server_packet_st *packet;
-  gearman_server_job_st *job;
-  gearman_server_client_st *client;
-  gearman_server_worker_st *worker;
-
   /* All threads should be cleaned up before calling this. */
   assert(server->thread_list == NULL);
 
-  for (key= 0; key < GEARMAND_JOB_HASH_SIZE; key++)
+  for (uint32_t key= 0; key < GEARMAND_JOB_HASH_SIZE; key++)
   {
     while (server->job_hash[key] != NULL)
     {
@@ -1063,28 +1057,28 @@ static void gearman_server_free(gearman_server_st *server)
 
   while (server->free_packet_list != NULL)
   {
-    packet= server->free_packet_list;
+    gearman_server_packet_st *packet= server->free_packet_list;
     server->free_packet_list= packet->next;
-    free(packet);
+    delete packet;
   }
 
   while (server->free_job_list != NULL)
   {
-    job= server->free_job_list;
+    gearman_server_job_st* job= server->free_job_list;
     server->free_job_list= job->next;
     free(job);
   }
 
   while (server->free_client_list != NULL)
   {
-    client= server->free_client_list;
+    gearman_server_client_st* client= server->free_client_list;
     server->free_client_list= client->con_next;
     free(client);
   }
 
   while (server->free_worker_list != NULL)
   {
-    worker= server->free_worker_list;
+    gearman_server_worker_st* worker= server->free_worker_list;
     server->free_worker_list= worker->con_next;
     free(worker);
   }

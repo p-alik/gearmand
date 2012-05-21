@@ -137,9 +137,13 @@ gearmand_error_t gearmand_connection_recv_data(gearman_server_con_st *con, void 
   if (connection->recv_buffer_size > 0)
   {
     if (connection->recv_buffer_size < data_size)
+    {
       recv_size= connection->recv_buffer_size;
+    }
     else
+    {
       recv_size= data_size;
+    }
 
     memcpy(data, connection->recv_buffer_ptr, recv_size);
     connection->recv_buffer_ptr+= recv_size;
@@ -195,17 +199,17 @@ static gearmand_error_t _connection_flush(gearman_server_con_st *con)
         }
         else if (write_size == -1)
         {
-          gearmand_error_t gret;
-
           switch (errno)
           {
           case EAGAIN:
-            gret= gearmand_io_set_events(con, POLLOUT);
-            if (gret != GEARMAN_SUCCESS)
             {
-              return gret;
+              gearmand_error_t gret= gearmand_io_set_events(con, POLLOUT);
+              if (gret != GEARMAN_SUCCESS)
+              {
+                return gret;
+              }
+              return GEARMAN_IO_WAIT;
             }
-            return GEARMAN_IO_WAIT;
 
           case EINTR:
             continue;

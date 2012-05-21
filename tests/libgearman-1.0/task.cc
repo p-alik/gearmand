@@ -53,7 +53,6 @@ using namespace libtest;
 
 test_return_t gearman_client_add_task_status_by_unique_NOT_FOUND_TEST(void *object)
 {
-  return TEST_SUCCESS;
   gearman_client_st *client= (gearman_client_st *)object;
   const char *worker_function= (const char *)gearman_client_context(client);
 

@@ -112,9 +112,6 @@ bool gearman_server_thread_init(gearman_server_st *server,
 
 void gearman_server_thread_free(gearman_server_thread_st *thread)
 {
-  gearman_server_con_st *con;
-  gearman_server_packet_st *packet;
-
   _proc_thread_kill(Server);
   
   while (thread->con_list != NULL)
@@ -124,22 +121,24 @@ void gearman_server_thread_free(gearman_server_thread_st *thread)
 
   while (thread->free_con_list != NULL)
   {
-    con= thread->free_con_list;
+    gearman_server_con_st *con= thread->free_con_list;
     thread->free_con_list= con->next;
     gearmand_debug("free");
-    free(con);
+    destroy_gearman_server_con_st(con);
   }
 
   while (thread->free_packet_list != NULL)
   {
-    packet= thread->free_packet_list;
+    gearman_server_packet_st *packet= thread->free_packet_list;
     thread->free_packet_list= packet->next;
     gearmand_debug("free");
-    free(packet);
+    destroy_gearman_server_packet_st(packet);
   }
 
   if (thread->gearman != NULL)
+  {
     gearman_connection_list_free(thread->gearman);
+  }
 
   pthread_mutex_destroy(&(thread->lock));
 

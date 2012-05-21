@@ -62,7 +62,7 @@ static gearman_server_con_st * _server_con_create(gearman_server_thread_st *thre
   }
   else
   {
-    con= (gearman_server_con_st *)malloc(sizeof(gearman_server_con_st));
+    con= build_gearman_server_con_st();
     if (con == NULL)
     {
       gearmand_perror("malloc");
@@ -246,8 +246,7 @@ void gearman_server_con_free(gearman_server_con_st *con)
     return;
   }
 
-  gearmand_debug("free");
-  free(con);
+  destroy_gearman_server_con_st(con);
 }
 
 gearmand_io_st *gearman_server_con_con(gearman_server_con_st *con)

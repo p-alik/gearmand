@@ -116,6 +116,8 @@ GEARMAN_INTERNAL_API
 GEARMAN_INTERNAL_API
   gearmand_error_t gearmand_packet_pack_header(gearmand_packet_st *packet);
 
+void destroy_gearman_server_packet_st(gearman_server_packet_st *packet);
+
 /** @} */
 
 #ifdef __cplusplus

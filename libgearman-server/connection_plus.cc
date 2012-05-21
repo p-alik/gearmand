@@ -46,6 +46,7 @@ gearman_server_con_st* build_gearman_server_con_st(void)
 
 void destroy_gearman_server_con_st(gearman_server_con_st* arg)
 {
+  gearmand_debug("delete gearman_server_con_st");
   delete arg;
 }
 
