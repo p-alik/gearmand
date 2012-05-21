@@ -78,7 +78,7 @@ void gearman_server_packet_free(gearman_server_packet_st *packet,
                                 gearman_server_thread_st *thread,
                                 bool from_thread)
 {
-  if (from_thread && Server->flags.threaded)
+  if (from_thread and Server->flags.threaded)
   {
     if (thread->free_packet_count < GEARMAN_MAX_FREE_SERVER_PACKET)
     {

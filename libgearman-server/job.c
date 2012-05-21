@@ -64,10 +64,38 @@
  * Get a server job structure from the unique ID. If data_size is non-zero,
  * then unique points to the workload data and not a real unique key.
  */
-static gearman_server_job_st *
-_server_job_get_unique(gearman_server_st *server, uint32_t unique_key,
-                       gearman_server_function_st *server_function,
-                       const char *unique, size_t data_size);
+static gearman_server_job_st * _server_job_get_unique(gearman_server_st *server, uint32_t unique_key,
+                                                      gearman_server_function_st *server_function,
+                                                      const char *unique, size_t data_size)
+{
+  gearman_server_job_st *server_job;
+
+  for (server_job= server->unique_hash[unique_key % GEARMAND_JOB_HASH_SIZE];
+       server_job != NULL; server_job= server_job->unique_next)
+  {
+    if (data_size == 0)
+    {
+      if (server_job->function == server_function &&
+          server_job->unique_key == unique_key &&
+          !strcmp(server_job->unique, unique))
+      {
+        return server_job;
+      }
+    }
+    else
+    {
+      if (server_job->function == server_function &&
+          server_job->unique_key == unique_key &&
+          server_job->data_size == data_size &&
+          memcmp(server_job->data, unique, data_size) == 0)
+      {
+        return server_job;
+      }
+    }
+  }
+
+  return NULL;
+}
 
 /** @} */
 
@@ -277,53 +305,6 @@ gearman_server_job_add_reducer(gearman_server_st *server,
   return server_job;
 }
 
-gearman_server_job_st *
-gearman_server_job_create(gearman_server_st *server)
-{
-  gearman_server_job_st *server_job;
-
-  if (server->free_job_count > 0)
-  {
-    server_job= server->free_job_list;
-    gearmand_server_free_job_list_free(server, server_job);
-  }
-  else
-  {
-    server_job= build_gearman_server_job_st();
-    if (server_job == NULL)
-    {
-      return NULL;
-    }
-  }
-
-  server_job->ignore_job= false;
-  server_job->job_queued= false;
-  server_job->retries= 0;
-  server_job->priority= 0;
-  server_job->job_handle_key= 0;
-  server_job->unique_key= 0;
-  server_job->client_count= 0;
-  server_job->numerator= 0;
-  server_job->denominator= 0;
-  server_job->data_size= 0;
-  server_job->next= NULL;
-  server_job->prev= NULL;
-  server_job->unique_next= NULL;
-  server_job->unique_prev= NULL;
-  server_job->worker_next= NULL;
-  server_job->worker_prev= NULL;
-  server_job->function= NULL;
-  server_job->function_next= NULL;
-  server_job->data= NULL;
-  server_job->client_list= NULL;
-  server_job->worker= NULL;
-  server_job->job_handle[0]= 0;
-  server_job->unique[0]= 0;
-  server_job->unique_length= 0;
-
-  return server_job;
-}
-
 void gearman_server_job_free(gearman_server_job_st *server_job)
 {
   if (server_job == NULL)
@@ -473,37 +454,3 @@ gearmand_error_t gearman_server_job_queue(gearman_server_job_st *job)
 /*
  * Private definitions
  */
-
-static gearman_server_job_st *
-_server_job_get_unique(gearman_server_st *server, uint32_t unique_key,
-                       gearman_server_function_st *server_function,
-                       const char *unique, size_t data_size)
-{
-  gearman_server_job_st *server_job;
-
-  for (server_job= server->unique_hash[unique_key % GEARMAND_JOB_HASH_SIZE];
-       server_job != NULL; server_job= server_job->unique_next)
-  {
-    if (data_size == 0)
-    {
-      if (server_job->function == server_function &&
-          server_job->unique_key == unique_key &&
-          !strcmp(server_job->unique, unique))
-      {
-        return server_job;
-      }
-    }
-    else
-    {
-      if (server_job->function == server_function &&
-          server_job->unique_key == unique_key &&
-          server_job->data_size == data_size &&
-          !memcmp(server_job->data, unique, data_size))
-      {
-        return server_job;
-      }
-    }
-  }
-
-  return NULL;
-}

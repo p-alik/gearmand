@@ -271,7 +271,3 @@ void gearmand_con_check_queue(gearmand_thread_st *thread)
     }
   }
 }
-
-/*
- * Private definitions
- */
