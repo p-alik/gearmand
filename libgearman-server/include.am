@@ -67,6 +67,7 @@ libgearman_server_libgearman_server_la_SOURCES+= \
 						 libgearman-server/function.cc \
 						 libgearman-server/gearmand.cc \
 						 libgearman-server/gearmand_con.c \
+						 libgearman-server/gearmand_con_plus.cc \
 						 libgearman-server/gearmand_thread.cc \
 						 libgearman-server/hash.c \
 						 libgearman-server/io.cc \

@@ -289,7 +289,7 @@ gearman_server_job_create(gearman_server_st *server)
   }
   else
   {
-    server_job= (gearman_server_job_st *)malloc(sizeof(gearman_server_job_st));
+    server_job= build_gearman_server_job_st();
     if (server_job == NULL)
     {
       return NULL;
@@ -365,14 +365,12 @@ void gearman_server_job_free(gearman_server_job_st *server_job)
   }
   else
   {
-    free(server_job);
+    destroy_gearman_server_job_st(server_job);
   }
 }
 
 gearmand_error_t gearman_server_job_queue(gearman_server_job_st *job)
 {
-  gearmand_error_t ret;
-
   if (job->worker)
   {
     job->retries++;
@@ -386,7 +384,7 @@ gearmand_error_t gearman_server_job_queue(gearman_server_job_st *job)
       gearman_server_client_st *client;
       for (client= job->client_list; client != NULL; client= client->job_next)
       {
-        ret= gearman_server_io_packet_add(client->con, false,
+        gearmand_error_t ret= gearman_server_io_packet_add(client->con, false,
                                           GEARMAN_MAGIC_RESPONSE,
                                           GEARMAN_COMMAND_WORK_FAIL,
                                           job->job_handle,
@@ -401,13 +399,15 @@ gearmand_error_t gearman_server_job_queue(gearman_server_job_st *job)
       /* Remove from persistent queue if one exists. */
       if (job->job_queued && Server->queue._done_fn != NULL)
       {
-        ret= (*(Server->queue._done_fn))(Server,
-                                         (void *)Server->queue._context,
-                                         job->unique, job->unique_length,
-                                         job->function->function_name,
-                                         job->function->function_name_size);
+        gearmand_error_t ret= (*(Server->queue._done_fn))(Server,
+                                                          (void *)Server->queue._context,
+                                                          job->unique, job->unique_length,
+                                                          job->function->function_name,
+                                                          job->function->function_name_size);
         if (ret != GEARMAN_SUCCESS)
+        {
           return ret;
+        }
       }
 
       gearman_server_job_free(job);
@@ -432,9 +432,9 @@ gearmand_error_t gearman_server_job_queue(gearman_server_job_st *job)
     {
       if (worker->con->is_sleeping && ! (worker->con->is_noop_sent))
       {
-        ret= gearman_server_io_packet_add(worker->con, false,
-                                          GEARMAN_MAGIC_RESPONSE,
-                                          GEARMAN_COMMAND_NOOP, NULL);
+        gearmand_error_t ret= gearman_server_io_packet_add(worker->con, false,
+                                                           GEARMAN_MAGIC_RESPONSE,
+                                                           GEARMAN_COMMAND_NOOP, NULL);
         if (gearmand_failed(ret))
         {
           gearmand_gerror("gearman_server_io_packet_add", ret);

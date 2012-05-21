@@ -39,6 +39,7 @@
 #include <libgearman-server/common.h>
 
 #include <cstring>
+#include <memory>
 
 /**
  * Generate hash key for job handles and unique IDs.
@@ -77,6 +78,17 @@ void _server_con_worker_list_append(gearman_server_worker_st *list,
   {
     worker->con_prev->con_next= worker;
   }
+}
+
+gearman_server_job_st* build_gearman_server_job_st(void)
+{
+  return new (std::nothrow) gearman_server_job_st;
+}
+
+void destroy_gearman_server_job_st(gearman_server_job_st* arg)
+{
+  gearmand_debug("delete gearman_server_con_st");
+  delete arg;
 }
 
 gearman_server_job_st *gearman_server_job_get_by_unique(gearman_server_st *server,

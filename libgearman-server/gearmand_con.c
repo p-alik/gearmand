@@ -54,7 +54,7 @@ gearmand_error_t gearmand_con_create(gearmand_st *gearmand, int fd,
   }
   else
   {
-    dcon= (gearmand_con_st *)malloc(sizeof(gearmand_con_st));
+    dcon= build_gearmand_con_st(); 
     if (dcon == NULL)
     {
       gearmand_perror("malloc");
@@ -85,7 +85,9 @@ gearmand_error_t gearmand_con_create(gearmand_st *gearmand, int fd,
 
   /* We do a simple round-robin connection queue algorithm here. */
   if (gearmand->thread_add_next == NULL)
+  {
     gearmand->thread_add_next= gearmand->thread_list;
+  }
 
   dcon->thread= gearmand->thread_add_next;
 
@@ -182,7 +184,7 @@ void gearmand_con_free(gearmand_con_st *dcon)
     {
       /* Lock here because the main thread may be emptying this. */
       int error;
-      if (not (error=  pthread_mutex_lock(&(dcon->thread->lock))))
+      if ((error=  pthread_mutex_lock(&(dcon->thread->lock))) == 0)
       {
         GEARMAN_LIST_ADD(dcon->thread->free_dcon, dcon,);
         (void ) pthread_mutex_unlock(&(dcon->thread->lock));
@@ -196,8 +198,7 @@ void gearmand_con_free(gearmand_con_st *dcon)
   }
   else
   {
-    gearmand_debug("free");
-    free(dcon);
+    destroy_gearmand_con_st(dcon);
   }
 }
 
@@ -212,7 +213,7 @@ void gearmand_con_check_queue(gearmand_thread_st *thread)
   while (thread->dcon_add_list != NULL)
   {
     int error;
-    if (not (error= pthread_mutex_lock(&(thread->lock))))
+    if ((error= pthread_mutex_lock(&(thread->lock))) == 0)
     {
       gearmand_con_st *dcon= thread->dcon_add_list;
       GEARMAN_LIST_DEL(thread->dcon_add, dcon,);
@@ -328,7 +329,7 @@ static gearmand_error_t _con_add(gearmand_thread_st *thread,
   assert(dcon->server_con || ret != GEARMAN_SUCCESS);
   assert(! dcon->server_con || ret == GEARMAN_SUCCESS);
 
-  if (not dcon->server_con)
+  if (dcon->server_con == NULL)
   {
     gearmand_sockfd_close(dcon->fd);
 

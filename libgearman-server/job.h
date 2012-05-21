@@ -112,6 +112,10 @@ gearman_server_job_st *gearman_server_job_get_by_unique(gearman_server_st *serve
 
 /** @} */
 
+gearman_server_job_st* build_gearman_server_job_st(void);
+
+void destroy_gearman_server_job_st(gearman_server_job_st *);
+
 #ifdef __cplusplus
 }
 #endif
