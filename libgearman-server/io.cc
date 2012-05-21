@@ -188,7 +188,7 @@ static gearmand_error_t _connection_flush(gearman_server_con_st *con)
 
         if (write_size == 0) // detect infinite loop?
         {
-          gearmand_log_debug("send() sent zero bytes to peer %s:%s",
+          gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "send() sent zero bytes to peer %s:%s",
                              connection->context == NULL ? "-" : connection->context->host,
                              connection->context == NULL ? "-" : connection->context->port);
           continue;
@@ -225,6 +225,12 @@ static gearmand_error_t _connection_flush(gearman_server_con_st *con)
           _connection_close(connection);
           return GEARMAN_ERRNO;
         }
+
+        gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "send() %u bytes to peer %s:%s %.*s",
+                           uint32_t(write_size),
+                           connection->context == NULL ? "-" : connection->context->host,
+                           connection->context == NULL ? "-" : connection->context->port,
+                           int32_t(write_size), connection->send_buffer_ptr);
 
         connection->send_buffer_size-= static_cast<size_t>(write_size);
         if (connection->send_state == gearmand_io_st::GEARMAND_CON_SEND_UNIVERSAL_FLUSH_DATA)

@@ -39,6 +39,16 @@
 #include <libgearman-server/common.h>
 #include <libgearman-server/plugins/base.h>
 
+gearman_server_con_st* build_gearman_server_con_st(void)
+{
+  return new (std::nothrow) gearman_server_con_st;
+}
+
+void destroy_gearman_server_con_st(gearman_server_con_st* arg)
+{
+  delete arg;
+}
+
 void gearmand_connection_set_protocol(gearman_server_con_st *connection,
                                       gearmand::protocol::Context* arg)
 {

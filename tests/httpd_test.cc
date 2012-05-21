@@ -59,13 +59,13 @@ using namespace libtest;
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
-static char url[1024]= { 0 };
+static char host_url[1024]= { 0 };
 #define WORKER_FUNCTION_NAME "httpd_worker"
 
 static test_return_t curl_no_function_TEST(void *)
 {
   Application curl("/usr/bin/curl");
-  curl.add_option(url);
+  curl.add_option(host_url);
 
   test_compare(Application::SUCCESS, curl.run());
   test_compare(Application::SUCCESS, curl.wait(false));
@@ -77,8 +77,9 @@ static test_return_t curl_function_no_body_TEST(void *)
 {
   Application curl("/usr/bin/curl");
   char worker_url[1024];
-  snprintf(worker_url, sizeof(worker_url), "%s%s", url, WORKER_FUNCTION_NAME);
+  snprintf(worker_url, sizeof(worker_url), "%s%s", host_url, WORKER_FUNCTION_NAME);
   curl.add_option(worker_url);
+  curl.add_option("--header", "\"X-Gearman-Unique: curl_function_no_body_TEST\"");
 
   test_compare(Application::SUCCESS, curl.run());
   test_compare(Application::SUCCESS, curl.wait(false));
@@ -91,20 +92,21 @@ static test_return_t curl_function_TEST(void *)
 {
   Application curl("/usr/bin/curl");
   char worker_url[1024];
-  snprintf(worker_url, sizeof(worker_url), "%s%s", url, WORKER_FUNCTION_NAME);
-  curl.add_option(worker_url);
+  snprintf(worker_url, sizeof(worker_url), "%s%s", host_url, WORKER_FUNCTION_NAME);
+  curl.add_option("--header", "\"X-Gearman-Unique: curl_function_TEST\"");
   curl.add_option("--data", "fubar");
+  curl.add_option(worker_url);
 
   test_compare(Application::SUCCESS, curl.run());
   test_compare(Application::SUCCESS, curl.wait(false));
-  test_zero(curl.stdout_result_length());
+  test_compare(146U, curl.stdout_result_length());
 
   return TEST_SUCCESS;
 }
 
 static test_return_t GET_TEST(void *)
 {
-  libtest::http::GET get(url);
+  libtest::http::GET get(host_url);
 
   test_compare(true, get.execute());
 
@@ -113,7 +115,7 @@ static test_return_t GET_TEST(void *)
 
 static test_return_t HEAD_TEST(void *)
 {
-  libtest::http::HEAD head(url);
+  libtest::http::HEAD head(host_url);
 
   test_compare(true, head.execute());
 
@@ -124,12 +126,12 @@ static test_return_t HEAD_TEST(void *)
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
   in_port_t http_port= libtest::get_free_port();
-  int length= snprintf(url, sizeof(url), "http://localhost:%d/", int(http_port));
-  fatal_assert(length > 0 and sizeof(length) < sizeof(url));
+  int length= snprintf(host_url, sizeof(host_url), "http://localhost:%d/", int(http_port));
+  fatal_assert(length > 0 and sizeof(length) < sizeof(host_url));
 
   char buffer[1024];
   length= snprintf(buffer, sizeof(buffer), "--http-port=%d", int(http_port));
-  fatal_assert(length > 0 and sizeof(length) < sizeof(url));
+  fatal_assert(length > 0 and sizeof(length) < sizeof(buffer));
   const char *argv[]= { "--protocol=http", buffer, 0 };
   if (server_startup(servers, "gearmand", libtest::default_port(), 2, argv) == false)
   {

@@ -110,6 +110,14 @@ static gearman_return_t reverse_worker(gearman_job_st *job, void *context)
     }
   }
 
+  if (options.chunk == false) // Chunk the result set
+  {
+    if (gearman_failed(gearman_job_send_data(job, result, workload_size)))
+    {
+      return GEARMAN_ERROR;
+    }
+  }
+
   if (options.verbose)
   {
     std::cout << "Job=" << gearman_job_handle(job);
