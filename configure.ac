@@ -27,7 +27,7 @@ AC_CONFIG_SRCDIR(libgearman/gearman.cc)
 
 PANDORA_CANONICAL_TARGET(require-cxx, no-vc-changelog)
 
-GEARMAN_LIBRARY_VERSION=6:0:0
+GEARMAN_LIBRARY_VERSION=7:0:0
 #                       | | |
 #                +------+ | +---+
 #                |        |     |

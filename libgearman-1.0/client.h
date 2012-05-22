@@ -439,6 +439,7 @@ gearman_return_t gearman_client_job_status(gearman_client_st *client,
                                            uint32_t *numerator,
                                            uint32_t *denominator);
 
+// This is not in the API yet, subject to change
 GEARMAN_API
 gearman_task_st *gearman_client_add_task_status_by_unique(gearman_client_st *client,
                                                           void *context,

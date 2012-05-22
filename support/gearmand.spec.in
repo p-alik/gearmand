@@ -93,8 +93,8 @@ fi
 %{_bindir}/gearadmin
 %{_bindir}/gearman
 %{_libdir}/libgearman.la
-%{_libdir}/libgearman.so.6
-%{_libdir}/libgearman.so.6.0.0
+%{_libdir}/libgearman.so.7
+%{_libdir}/libgearman.so.7.0.0
 %{_mandir}/man1/gearadmin.1.gz
 %{_mandir}/man1/gearman.1.gz
 
@@ -124,6 +124,7 @@ fi
 %{_includedir}/libgearman-1.0/execute.h
 %{_includedir}/libgearman-1.0/function.h
 %{_includedir}/libgearman-1.0/gearman.h
+%{_includedir}/libgearman-1.0/interface/task.h
 %{_includedir}/libgearman-1.0/job.h
 %{_includedir}/libgearman-1.0/job_handle.h
 %{_includedir}/libgearman-1.0/kill.h

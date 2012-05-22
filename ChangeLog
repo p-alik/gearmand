@@ -1,3 +1,8 @@
+0.34 
+* Alpha support for direct MySQL queue.
+* XML option for testing under valgrind.
+* gearmand now allows for a user to specify the format for the server key
+
 0.33 Thu May  3 22:09:29 PDT 2012
 * Add --config-file option
 * Additional testing for Drizzle
