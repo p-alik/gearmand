@@ -229,6 +229,7 @@ include tests/ephemeral.am
 include tests/libdrizzle.am
 include tests/libmemcached.am
 include tests/postgres.am
+include tests/mysql.am
 include tests/sqlite.am
 include tests/tokyocabinet.am
 include tests/redis.am

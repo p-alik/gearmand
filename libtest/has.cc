@@ -63,11 +63,20 @@ bool has_postgres_support(void)
 {
   if (getenv("POSTGES_IS_RUNNING_AND_SETUP"))
   {
-
     if (HAVE_LIBPQ)
     {
       return true;
     }
+  }
+
+  return false;
+}
+
+bool has_mysql_support(void)
+{
+  if (HAVE_MYSQL_BUILD)
+  {
+    return true;
   }
 
   return false;

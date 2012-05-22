@@ -41,3 +41,5 @@ bool has_memcached_support(void);
 bool has_drizzle_support(void);
 
 bool has_postgres_support(void);
+
+bool has_mysql_support(void);
