@@ -41,15 +41,17 @@
 
 using namespace libtest;
 
+#include <libgearman/gearman.h>
+#include "tests/start_worker.h"
+#include "tests/workers.h"
+
 #include <cassert>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
-
-#include <libgearman/gearman.h>
-#include "tests/start_worker.h"
-#include "tests/workers.h"
 
 #include <tests/basic.h>
 #include <tests/context.h>
@@ -90,16 +92,27 @@ static test_return_t curl_function_no_body_TEST(void *)
 
 static test_return_t curl_function_TEST(void *)
 {
+  // Cleanup previous run
+  unlink("var/tmp/curl_function_TEST.out");
+
   Application curl("/usr/bin/curl");
   char worker_url[1024];
   snprintf(worker_url, sizeof(worker_url), "%s%s", host_url, WORKER_FUNCTION_NAME);
   curl.add_option("--header", "\"X-Gearman-Unique: curl_function_TEST\"");
   curl.add_option("--data", "fubar");
+  curl.add_option("--silent");
+  curl.add_option("--show-error");
+  curl.add_option("--output", "var/tmp/curl_function_TEST.out");
   curl.add_option(worker_url);
 
   test_compare(Application::SUCCESS, curl.run());
   test_compare(Application::SUCCESS, curl.wait(false));
-  test_compare(146U, curl.stdout_result_length());
+  test_zero(curl.stdout_result_length());
+
+  struct stat stat_buffer;
+  test_zero(stat("var/tmp/curl_function_TEST.out", &stat_buffer));
+  test_compare(off_t(146), stat_buffer.st_size);
+  test_zero(unlink("var/tmp/curl_function_TEST.out"));
 
   return TEST_SUCCESS;
 }

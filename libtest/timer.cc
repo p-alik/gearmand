@@ -45,9 +45,9 @@ std::ostream& operator<<(std::ostream& output, const libtest::Timer& arg)
   struct timespec temp;
   arg.difference(temp);
 
-  output << temp.tv_sec;
+  output << temp.tv_sec/60 << "." << temp.tv_sec%60;
   output << ":";
-  output << temp.tv_nsec;
+  output << temp.tv_nsec/1000;
 
   return output;
 }
