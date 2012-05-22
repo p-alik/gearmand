@@ -115,8 +115,8 @@ FCNTL_FLAGS
 AX_HAVE_LIBHIREDIS
 
 AX_LIB_MYSQL([5.0])
-AM_CONDITIONAL(HAVE_MYSQL, test "x${HAVE_MYSQL}" = "x1")
-AS_IF([test "x${HAVE_MYSQL}" = "xyes"],
+AM_CONDITIONAL(HAVE_MYSQL, test "x${found_mysql}" = "xyes")
+AS_IF([test "x${found_mysql}" = "xyes"],
       [
        AC_DEFINE([HAVE_MYSQL_BUILD], [1], [Define to 1 if MySQL libraries are available])
       ],
