@@ -478,7 +478,7 @@ gearman_return_t gearman_set_identifier(gearman_universal_st& universal,
 #endif
       con->free_private_packet();
       con->set_recv_packet(NULL);
-      ret= gearman_error(universal, GEARMAN_ECHO_DATA_CORRUPTION, "corruption during echo");
+      ret= gearman_error(universal, GEARMAN_SEND_IN_PROGRESS, "corruption occured when setting the client identifier");
 
       goto exit;
     }
@@ -545,6 +545,7 @@ gearman_return_t gearman_echo(gearman_universal_st& universal,
 
     con->options.packet_in_use= true;
     gearman_packet_st *packet_ptr= con->receiving(con->_packet, ret, true);
+    assert(packet_ptr->command == GEARMAN_COMMAND_ECHO_RES);
     if (gearman_failed(ret))
     {
 #if 0

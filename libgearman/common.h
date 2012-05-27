@@ -66,4 +66,6 @@
 #include <libgearman/task.hpp>
 #include <libgearman/job.h>
 
+#include <libgearman/status.hpp>
+
 #include <libgearman/protocol/submit.h>

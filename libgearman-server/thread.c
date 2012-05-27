@@ -123,7 +123,6 @@ void gearman_server_thread_free(gearman_server_thread_st *thread)
   {
     gearman_server_con_st *con= thread->free_con_list;
     thread->free_con_list= con->next;
-    gearmand_debug("free");
     destroy_gearman_server_con_st(con);
   }
 
@@ -131,7 +130,6 @@ void gearman_server_thread_free(gearman_server_thread_st *thread)
   {
     gearman_server_packet_st *packet= thread->free_packet_list;
     thread->free_packet_list= packet->next;
-    gearmand_debug("free");
     destroy_gearman_server_packet_st(packet);
   }
 
@@ -309,7 +307,9 @@ static gearmand_error_t _thread_packet_read(gearman_server_con_st *con)
       gearman_server_packet_free(con->packet, con->thread, true);
       con->packet= NULL;
       if (gearmand_failed(rc))
+      {
         return rc;
+      }
     }
   }
 

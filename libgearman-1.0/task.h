@@ -167,6 +167,9 @@ gearman_result_st *gearman_task_result(gearman_task_st *task);
 GEARMAN_API
 gearman_return_t gearman_task_return(const gearman_task_st *task);
 
+GEARMAN_API
+const char *gearman_task_strstate(const gearman_task_st *);
+
 /** @} */
 
 #ifdef __cplusplus

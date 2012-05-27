@@ -1,8 +1,9 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
+ * 
+ *  Gearmand client and server library.
  *
- *  Gearman Server and Client
- *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
+ *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -34,39 +35,15 @@
  *
  */
 
-#pragma once
+#include <config.h>
 
-#include <libgearman-1.0/gearman.h>
+#include <libgearman/common.h>
 
-#include <ostream>
-
-static inline std::ostream& operator<<(std::ostream& output, const enum gearman_return_t &arg)
+void gearman_init(gearman_status_t& status)
 {
-  output << gearman_strerror(arg);
-  return output;
-}
-
-static inline std::ostream& operator<<(std::ostream& output, const gearman_task_st &arg)
-{
-  output << std::boolalpha 
-    << "job: " << gearman_task_job_handle(&arg)
-    << " unique: " << gearman_task_unique(&arg)
-    << " complete: " << gearman_task_numerator(&arg) << "/" << gearman_task_denominator(&arg)
-    << " state: " << gearman_task_strstate(&arg)
-    << " is_known: " << gearman_task_is_known(&arg)
-    << " is_running: " << gearman_task_is_running(&arg)
-    << " ret: " << gearman_task_return(&arg);
-
-  return output;
-}
-
-static inline std::ostream& operator<<(std::ostream& output, const gearman_status_t &arg)
-{
-  output << std::boolalpha 
-    << " is_known: " << arg.is_known
-    << " is_running: " << arg.is_running
-    << " complete: " << arg.numerator << "/" << arg.denominator
-    << " ret: " << gearman_strerror(arg.result_rc);
-
-  return output;
+  status.result_rc= GEARMAN_UNKNOWN_STATE;
+  status.is_known= false;
+  status.is_running= false;
+  status.numerator= false;
+  status.denominator= false;
 }

@@ -143,6 +143,7 @@ typedef struct gearman_task_attr_t gearman_task_attr_t;
 typedef struct gearman_result_st gearman_result_st;
 typedef struct gearman_string_t gearman_string_t;
 typedef struct gearman_argument_t gearman_argument_t;
+typedef struct gearman_status_t gearman_status_t;
 
 // Custom allocators
 typedef void* (gearman_malloc_fn)(size_t size, void *context);

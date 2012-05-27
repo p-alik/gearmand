@@ -461,10 +461,9 @@ size_t gearman_packet_unpack(gearman_packet_st& self,
     {
       /* Try to parse a text-based command. */
       char *ptr= (char *)memchr(data, '\n', data_size);
-      if (not ptr)
+      if (ptr == NULL)
       {
-        gearman_gerror(*self.universal, GEARMAN_IO_WAIT);
-        ret= GEARMAN_IO_WAIT;
+        ret= gearman_gerror(*self.universal, GEARMAN_IO_WAIT);
         return 0;
       }
 
@@ -474,7 +473,9 @@ size_t gearman_packet_unpack(gearman_packet_st& self,
       used_size= (size_t)(ptr - ((char *)data)) + 1;
       *ptr= 0;
       if (used_size > 1 && *(ptr - 1) == '\r')
+      {
         *(ptr - 1)= 0;
+      }
 
       for (arg_size= used_size, ptr= (char *)data; ptr != NULL; data= ptr)
       {
@@ -503,8 +504,7 @@ size_t gearman_packet_unpack(gearman_packet_st& self,
     }
     else if (data_size < GEARMAN_PACKET_HEADER_SIZE)
     {
-      gearman_gerror(*self.universal, GEARMAN_IO_WAIT);
-      ret= GEARMAN_IO_WAIT;
+      ret= gearman_gerror(*self.universal, GEARMAN_IO_WAIT);
       return 0;
     }
 
@@ -535,8 +535,7 @@ size_t gearman_packet_unpack(gearman_packet_st& self,
       void *ptr= memchr(location, 0, data_size - used_size);
       if (ptr == NULL)
       {
-        gearman_gerror(*self.universal, GEARMAN_IO_WAIT);
-        ret= GEARMAN_IO_WAIT;
+        ret= gearman_gerror(*self.universal, GEARMAN_IO_WAIT);
         return used_size;
       }
 
@@ -554,8 +553,7 @@ size_t gearman_packet_unpack(gearman_packet_st& self,
     {
       if ((data_size - used_size) < self.data_size)
       {
-        gearman_gerror(*self.universal, GEARMAN_IO_WAIT);
-        ret= GEARMAN_IO_WAIT;
+        ret= gearman_gerror(*self.universal, GEARMAN_IO_WAIT);
         return used_size;
       }
 

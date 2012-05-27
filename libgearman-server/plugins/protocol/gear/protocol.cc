@@ -223,6 +223,32 @@ public:
       }
     }
 
+    if (packet->command == GEARMAN_COMMAND_ECHO_RES)
+    {
+      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
+                         "GEAR length: %"PRIu64" gearmand_command_t: %s echo: %.*s",
+                         uint64_t(packet->data_size),
+                         gearman_strcommand(packet->command),
+                         int(packet->data_size),
+                         packet->data);
+    }
+    else if (packet->command == GEARMAN_COMMAND_TEXT)
+    {
+      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
+                         "GEAR length: %"PRIu64" gearmand_command_t: %s text: %.*s",
+                         uint64_t(packet->data_size),
+                         gearman_strcommand(packet->command),
+                         int(packet->data_size),
+                         packet->data);
+    }
+    else
+    {
+      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
+                         "GEAR length: %"PRIu64" gearmand_command_t: %s",
+                         uint64_t(packet->data_size),
+                         gearman_strcommand(packet->command));
+    }
+
     ret_ptr= GEARMAN_SUCCESS;
     return used_size;
   }
@@ -232,11 +258,22 @@ public:
               void *data, const size_t data_size,
               gearmand_error_t& ret_ptr)
   {
-
-    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
-                       "Sending GEAR length:%"PRIu64" gearmand_command_t:%s",
-                       uint64_t(packet->data_size),
-                       gearman_strcommand(packet->command));
+    if (packet->command == GEARMAN_COMMAND_ECHO_RES)
+    {
+      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
+                         "GEAR length: %"PRIu64" gearmand_command_t: %s echo: %.*",
+                         uint64_t(packet->data_size),
+                         gearman_strcommand(packet->command),
+                         int(packet->data_size),
+                         packet->data);
+    }
+    else
+    {
+      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
+                         "GEAR length: %"PRIu64" gearmand_command_t: %s",
+                         uint64_t(packet->data_size),
+                         gearman_strcommand(packet->command));
+    }
 
     if (packet->args_size == 0)
     {

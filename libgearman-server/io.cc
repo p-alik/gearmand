@@ -230,11 +230,10 @@ static gearmand_error_t _connection_flush(gearman_server_con_st *con)
           return GEARMAN_ERRNO;
         }
 
-        gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "send() %u bytes to peer %s:%s %.*s",
+        gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "send() %u bytes to peer %s:%s",
                            uint32_t(write_size),
                            connection->context == NULL ? "-" : connection->context->host,
-                           connection->context == NULL ? "-" : connection->context->port,
-                           int32_t(write_size), connection->send_buffer_ptr);
+                           connection->context == NULL ? "-" : connection->context->port);
 
         connection->send_buffer_size-= static_cast<size_t>(write_size);
         if (connection->send_state == gearmand_io_st::GEARMAND_CON_SEND_UNIVERSAL_FLUSH_DATA)

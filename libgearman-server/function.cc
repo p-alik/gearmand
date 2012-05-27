@@ -78,10 +78,10 @@ gearman_server_function_get(gearman_server_st *server,
     return NULL;
   }
 
-  function->function_name= (char *)malloc(function_name_size +1);
+  function->function_name= new char[function_name_size +1];
   if (function->function_name == NULL)
   {
-    gearmand_merror("malloc", char,  function_name_size +1);
+    gearmand_merror("new[]", char,  function_name_size +1);
     gearman_server_function_free(server, function);
     return NULL;
   }
@@ -95,14 +95,9 @@ gearman_server_function_get(gearman_server_st *server,
 
 void gearman_server_function_free(gearman_server_st *server, gearman_server_function_st *function)
 {
-  if (function->function_name != NULL)
-  {
-    gearmand_debug("free");
-    free(function->function_name);
-  }
+  delete function->function_name;
 
   gearmand_server_list_free(server, function);
 
-  gearmand_debug("free");
   delete function;
 }

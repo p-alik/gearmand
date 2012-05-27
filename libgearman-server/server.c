@@ -75,8 +75,8 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
 
   gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
                      "%15s:%5s packet command  %s",
-		     server_con->con.context == NULL ? "-" : server_con->con.context->host,
-		     server_con->con.context == NULL ? "-" : server_con->con.context->port, 
+		     server_con->con.context == NULL || server_con->con.context->host == NULL ? "-" : server_con->con.context->host,
+		     server_con->con.context == NULL || server_con->con.context->port == NULL ? "-" : server_con->con.context->port, 
 		     gearmand_strcommand(packet));
 
   switch (packet->command)

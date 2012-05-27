@@ -161,7 +161,6 @@ gearmand_st *gearmand_create(const char *host_arg,
 
   if (gearman_server_create(&(gearmand->server), job_retries, worker_wakeup, round_robin) == false)
   {
-    gearmand_debug("delete gearmand_st");
     delete gearmand;
     return NULL;
   }
@@ -215,7 +214,6 @@ void gearmand_free(gearmand_st *gearmand)
 
     dcon= gearmand->free_dcon_list;
     gearmand->free_dcon_list= dcon->next;
-    gearmand_debug("free");
     free(dcon);
   }
 
@@ -230,26 +228,22 @@ void gearmand_free(gearmand_st *gearmand)
   {
     if (gearmand->port_list[x].listen_fd != NULL)
     {
-      gearmand_debug("free");
       free(gearmand->port_list[x].listen_fd);
     }
 
     if (gearmand->port_list[x].listen_event != NULL)
     {
-      gearmand_debug("free");
       free(gearmand->port_list[x].listen_event);
     }
   }
 
   if (gearmand->port_list != NULL)
   {
-    gearmand_debug("free");
     free(gearmand->port_list);
   }
 
   gearmand_info("Shutdown complete");
 
-  gearmand_debug("delete");
   delete gearmand;
 }
 
@@ -406,24 +400,25 @@ static gearmand_error_t _listen_init(gearmand_st *gearmand)
   for (uint32_t x= 0; x < gearmand->port_count; x++)
   {
     struct linger ling= {0, 0};
-    struct gearmand_port_st *port;
     struct addrinfo hints;
     struct addrinfo *addrinfo;
 
-    port= &gearmand->port_list[x];
+    gearmand_port_st *port= &gearmand->port_list[x];
 
     memset(&hints, 0, sizeof(struct addrinfo));
     hints.ai_flags= AI_PASSIVE;
     hints.ai_socktype= SOCK_STREAM;
 
-    int ret= getaddrinfo(gearmand->host, port->port, &hints, &addrinfo);
-    if (ret != 0)
     {
-      char buffer[1024];
+      int ret= getaddrinfo(gearmand->host, port->port, &hints, &addrinfo);
+      if (ret != 0)
+      {
+        char buffer[1024];
 
-      snprintf(buffer, sizeof(buffer), "%s:%s", gearmand->host ? gearmand->host : "<any>", port->port);
-      gearmand_gai_error(buffer, ret);
-      return GEARMAN_ERRNO;
+        snprintf(buffer, sizeof(buffer), "%s:%s", gearmand->host ? gearmand->host : "<any>", port->port);
+        gearmand_gai_error(buffer, ret);
+        return GEARMAN_ERRNO;
+      }
     }
 
     std::set<host_port_t> unique_hosts;
@@ -433,14 +428,16 @@ static gearmand_error_t _listen_init(gearmand_st *gearmand)
       int fd;
       char host[NI_MAXHOST];
 
-      ret= getnameinfo(addrinfo_next->ai_addr, addrinfo_next->ai_addrlen, host,
-                       NI_MAXHOST, port->port, NI_MAXSERV,
-                       NI_NUMERICHOST | NI_NUMERICSERV);
-      if (ret != 0)
       {
-        gearmand_gai_error("getaddrinfo", ret);
-        strcpy(host, "-");
-        strcpy(port->port, "-");
+        int ret= getnameinfo(addrinfo_next->ai_addr, addrinfo_next->ai_addrlen, host,
+                             NI_MAXHOST, port->port, NI_MAXSERV,
+                             NI_NUMERICHOST | NI_NUMERICSERV);
+        if (ret != 0)
+        {
+          gearmand_gai_error("getaddrinfo", ret);
+          strncpy(host, "-", sizeof(host));
+          strncpy(port->port, "-", sizeof(port->port));
+        }
       }
 
       std::string host_string(host);
@@ -469,8 +466,7 @@ static gearmand_error_t _listen_init(gearmand_st *gearmand)
       if (addrinfo_next->ai_family == AF_INET6)
       {
         flags= 1;
-        ret= setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &flags, sizeof(flags));
-        if (ret != 0)
+        if (setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &flags, sizeof(flags)) == -1)
         {
           gearmand_perror("setsockopt(IPV6_V6ONLY)");
           return GEARMAN_ERRNO;
@@ -478,39 +474,45 @@ static gearmand_error_t _listen_init(gearmand_st *gearmand)
       }
 #endif
 
-      ret= fcntl(fd, F_SETFD, FD_CLOEXEC);
-      if (ret != 0 || !(fcntl(fd, F_GETFD, 0) & FD_CLOEXEC))
       {
-        gearmand_perror("fcntl(FD_CLOEXEC)");
-        return GEARMAN_ERRNO;
+        int ret= fcntl(fd, F_SETFD, FD_CLOEXEC);
+        if (ret != 0 || !(fcntl(fd, F_GETFD, 0) & FD_CLOEXEC))
+        {
+          gearmand_perror("fcntl(FD_CLOEXEC)");
+          return GEARMAN_ERRNO;
+        }
       }
 
-      ret= setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &flags, sizeof(flags));
-      if (ret != 0)
       {
-        gearmand_perror("setsockopt(SO_REUSEADDR)");
-        return GEARMAN_ERRNO;
+        if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &flags, sizeof(flags)) == -1)
+        {
+          gearmand_perror("setsockopt(SO_REUSEADDR)");
+          return GEARMAN_ERRNO;
+        }
       }
 
-      ret= setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &flags, sizeof(flags));
-      if (ret != 0)
       {
-        gearmand_perror("setsockopt(SO_KEEPALIVE)");
-        return GEARMAN_ERRNO;
+        if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &flags, sizeof(flags)) == -1)
+        {
+          gearmand_perror("setsockopt(SO_KEEPALIVE)");
+          return GEARMAN_ERRNO;
+        }
       }
 
-      ret= setsockopt(fd, SOL_SOCKET, SO_LINGER, &ling, sizeof(ling));
-      if (ret != 0)
       {
-        gearmand_perror("setsockopt(SO_LINGER)");
-        return GEARMAN_ERRNO;
+        if (setsockopt(fd, SOL_SOCKET, SO_LINGER, &ling, sizeof(ling)) == -1)
+        {
+          gearmand_perror("setsockopt(SO_LINGER)");
+          return GEARMAN_ERRNO;
+        }
       }
 
-      ret= setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &flags, sizeof(flags));
-      if (ret != 0)
       {
-        gearmand_perror("setsockopt(TCP_NODELAY)");
-        return GEARMAN_ERRNO;
+        if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &flags, sizeof(flags)) == -1)
+        {
+          gearmand_perror("setsockopt(TCP_NODELAY)");
+          return GEARMAN_ERRNO;
+        }
       }
 
       /*
@@ -526,6 +528,7 @@ static gearmand_error_t _listen_init(gearmand_st *gearmand)
       uint32_t waited;
       uint32_t this_wait;
       uint32_t retry;
+      int ret= -1;
       for (waited= 0, retry= 1; ; retry++, waited+= this_wait)
       {
         if (((ret= bind(fd, addrinfo_next->ai_addr, addrinfo_next->ai_addrlen)) == 0) or
@@ -694,11 +697,8 @@ static void _listen_event(int fd, short events __attribute__ ((unused)), void *a
 {
   gearmand_port_st *port= (gearmand_port_st *)arg;
   struct sockaddr sa;
-  socklen_t sa_len;
-  char host[NI_MAXHOST];
-  char port_str[NI_MAXSERV];
 
-  sa_len= sizeof(sa);
+  socklen_t sa_len= sizeof(sa);
   fd= accept(fd, &sa, &sa_len);
   if (fd == -1)
   {
@@ -726,13 +726,15 @@ static void _listen_event(int fd, short events __attribute__ ((unused)), void *a
   /* 
     Since this is numeric, it should never fail. Even if it did we don't want to really error from it.
   */
+  char host[NI_MAXHOST];
+  char port_str[NI_MAXSERV];
   int error= getnameinfo(&sa, sa_len, host, NI_MAXHOST, port_str, NI_MAXSERV,
                          NI_NUMERICHOST | NI_NUMERICSERV);
   if (error != 0)
   {
     gearmand_gai_error("getnameinfo", error);
-    strcpy(host, "-");
-    strcpy(port_str, "-");
+    strncpy(host, "-", sizeof(host));
+    strncpy(port_str, "-", sizeof(port_str));
   }
 
   gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "Accepted connection from %s:%s", host, port_str);

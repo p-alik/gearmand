@@ -78,8 +78,7 @@ gearman_return_t _client_run_task(gearman_task_st *task)
     if (task->con == NULL)
     {
       task->client->options.no_new= true;
-      gearman_gerror(task->client->universal, GEARMAN_IO_WAIT);
-      return GEARMAN_IO_WAIT;
+      return gearman_gerror(task->client->universal, GEARMAN_IO_WAIT);
     }
 
     task->client->new_tasks--;

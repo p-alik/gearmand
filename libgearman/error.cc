@@ -136,9 +136,9 @@ gearman_return_t gearman_universal_set_gerror(gearman_universal_st& universal,
                                               const char *func,
                                               const char *position)
 {
-  if (rc == GEARMAN_SUCCESS)
+  if (rc == GEARMAN_SUCCESS or rc == GEARMAN_IO_WAIT)
   {
-    return GEARMAN_SUCCESS;
+    return rc;
   }
 
   universal.error.rc= rc;

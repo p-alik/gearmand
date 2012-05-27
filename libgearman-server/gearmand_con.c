@@ -101,8 +101,10 @@ gearmand_error_t gearmand_con_create(gearmand_st *gearmand, int fd,
   dcon->prev= NULL;
   dcon->server_con= NULL;
   dcon->add_fn= NULL;
-  strncpy(dcon->host, host, NI_MAXHOST - 1);
-  strncpy(dcon->port, port, NI_MAXSERV - 1);
+  strncpy(dcon->host, host, NI_MAXHOST);
+  dcon->host[NI_MAXHOST -1]= 0;
+  strncpy(dcon->port, port, NI_MAXSERV);
+  dcon->port[NI_MAXSERV -1]= 0;
   dcon->add_fn= add_fn;
 
   /* If we are not threaded, just add the connection now. */
@@ -132,7 +134,14 @@ gearmand_error_t gearmand_con_create(gearmand_st *gearmand, int fd,
     uint32_t free_dcon_count;
     gearmand_con_st *free_dcon_list;
 
-    (void ) pthread_mutex_lock(&(dcon->thread->lock));
+    int error;
+    if ((error= pthread_mutex_lock(&(dcon->thread->lock))) != 0)
+    {
+      errno= error;
+      gearmand_perror("pthread_mutex_lock");
+      gearmand_fatal("Lock could not be taken on dcon->thread->, shutdown to occur");
+      gearmand_wakeup(Gearmand(), GEARMAND_WAKEUP_SHUTDOWN);
+    }
 
     GEARMAN_LIST_ADD(dcon->thread->dcon_add, dcon,)
 
@@ -148,7 +157,9 @@ gearmand_error_t gearmand_con_create(gearmand_st *gearmand, int fd,
        to lock around the count check, worst case it was already picked up and
        we send an extra byte. */
     if (dcon->thread->dcon_add_count == 1)
+    {
       gearmand_thread_wakeup(dcon->thread, GEARMAND_WAKEUP_CON);
+    }
 
     /* Put the free connection structures we grabbed on the main list. */
     while (free_dcon_list != NULL)
@@ -235,7 +246,9 @@ void gearmand_con_check_queue(gearmand_thread_st *thread)
 {
   /* Dirty check is fine here, wakeup is always sent after add completes. */
   if (thread->dcon_add_count == 0)
+  {
     return;
+  }
 
   /* We want to add new connections inside the lock because other threads may
      walk the thread's dcon_list while holding the lock. */

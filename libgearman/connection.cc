@@ -349,6 +349,9 @@ void gearman_connection_st::set_host(const char *host_arg, const in_port_t port_
   port= in_port_t(port_arg == 0 ? GEARMAN_DEFAULT_TCP_PORT : port_arg);
 }
 
+/*
+  Do not call error within this function.
+*/
 void gearman_connection_st::close_socket()
 {
   if (fd == INVALID_SOCKET)
@@ -358,20 +361,11 @@ void gearman_connection_st::close_socket()
 
   /* in case of death shutdown to avoid blocking at close_socket() */
   if (shutdown(fd, SHUT_RDWR) == SOCKET_ERROR && get_socket_errno() != ENOTCONN)
-  {
-#if 0
-    gearman_perror(universal, "shutdown");
-    assert(errno != ENOTSOCK);
-#endif
-  }
+  { }
   else
   {
     if (closesocket(fd) == SOCKET_ERROR)
-    {
-#if 0
-      gearman_perror(universal, "close");
-#endif
-    }
+    { }
   }
 
   state= GEARMAN_CON_UNIVERSAL_ADDRINFO;
@@ -732,8 +726,7 @@ gearman_return_t gearman_connection_st::flush()
 
             if (gearman_universal_is_non_blocking(universal))
             {
-              gearman_gerror(universal, GEARMAN_IO_WAIT);
-              return GEARMAN_IO_WAIT;
+              return gearman_gerror(universal, GEARMAN_IO_WAIT);
             }
 
             gearman_return_t gret= gearman_wait(universal);
@@ -913,14 +906,20 @@ size_t gearman_connection_st::receiving(void *data, size_t data_size, gearman_re
   }
 
   if ((recv_data_size - recv_data_offset) < data_size)
+  {
     data_size= recv_data_size - recv_data_offset;
+  }
 
   if (recv_buffer_size > 0)
   {
     if (recv_buffer_size < data_size)
+    {
       recv_size= recv_buffer_size;
+    }
     else
+    {
       recv_size= data_size;
+    }
 
     memcpy(data, recv_buffer_ptr, recv_size);
     recv_buffer_ptr+= recv_size;
@@ -957,9 +956,8 @@ size_t gearman_connection_st::recv_socket(void *data, size_t data_size, gearman_
     read_size= ::recv(fd, data, data_size, 0);
     if (read_size == 0)
     {
-      gearman_error(universal, GEARMAN_LOST_CONNECTION, "lost connection to server (EOF)");
+      ret= gearman_error(universal, GEARMAN_LOST_CONNECTION, "lost connection to server (EOF)");
       close_socket();
-      ret= GEARMAN_LOST_CONNECTION;
 
       return 0;
     }
@@ -1010,8 +1008,7 @@ size_t gearman_connection_st::recv_socket(void *data, size_t data_size, gearman_
       }
       else
       {
-        gearman_perror(universal, "read");
-        ret= GEARMAN_ERRNO;
+        ret= gearman_perror(universal, "recv");
       }
 
       close_socket();
@@ -1028,7 +1025,9 @@ size_t gearman_connection_st::recv_socket(void *data, size_t data_size, gearman_
 void gearman_connection_st::set_events(short arg)
 {
   if ((events | arg) == events)
+  {
     return;
+  }
 
   events|= arg;
 }

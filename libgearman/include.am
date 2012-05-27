@@ -39,6 +39,7 @@ noinst_HEADERS+= \
 		 libgearman/protocol/submit.h \
 		 libgearman/result.hpp \
 		 libgearman/run.hpp \
+		 libgearman/status.hpp \
 		 libgearman/strcommand.h \
 		 libgearman/string.hpp \
 		 libgearman/task.hpp \
@@ -90,6 +91,7 @@ libgearman_libgearman_la_SOURCES= \
 				  libgearman/protocol/submit.cc \
 				  libgearman/result.cc \
 				  libgearman/run.cc \
+				  libgearman/status.cc \
 				  libgearman/strcommand.cc \
 				  libgearman/strerror.cc \
 				  libgearman/string.cc \

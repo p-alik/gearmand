@@ -179,6 +179,7 @@ void gearman_task_free_result(gearman_task_st *task)
 
 bool gearman_task_is_active(const gearman_task_st *self)
 {
+  assert(self);
   switch (self->state)
   {
   case GEARMAN_TASK_STATE_NEW:
@@ -201,8 +202,13 @@ bool gearman_task_is_active(const gearman_task_st *self)
   return false;
 }
 
-const char *gearman_task_strstate(gearman_task_st *self)
+const char *gearman_task_strstate(const gearman_task_st *self)
 {
+  if (self == NULL)
+  {
+    return NULL;
+  }
+
   switch (self->state)
   {
   case GEARMAN_TASK_STATE_NEW: return "GEARMAN_TASK_STATE_NEW";
@@ -224,13 +230,20 @@ const char *gearman_task_strstate(gearman_task_st *self)
 
 void gearman_task_clear_fn(gearman_task_st *task)
 {
+  if (task == NULL)
+  {
+    return;
+  }
+
   task->func= gearman_actions_default();
 }
 
 void *gearman_task_context(const gearman_task_st *task)
 {
   if (task == NULL)
+  {
     return NULL;
+  }
 
   return const_cast<void *>(task->context);
 }
@@ -238,7 +251,9 @@ void *gearman_task_context(const gearman_task_st *task)
 void gearman_task_set_context(gearman_task_st *task, void *context)
 {
   if (task == NULL)
+  {
     return;
+  }
 
   task->context= context;
 }
@@ -246,7 +261,9 @@ void gearman_task_set_context(gearman_task_st *task, void *context)
 const char *gearman_task_function_name(const gearman_task_st *task)
 {
   if (task == NULL)
+  {
     return 0;
+  }
 
   return task->send.arg[0];
 }
@@ -254,7 +271,9 @@ const char *gearman_task_function_name(const gearman_task_st *task)
 const char *gearman_task_unique(const gearman_task_st *task)
 {
   if (task == NULL)
+  {
     return 0;
+  }
 
   return task->unique;
 }
@@ -325,7 +344,9 @@ size_t gearman_task_send_workload(gearman_task_st *task, const void *workload,
                                   gearman_return_t *ret_ptr)
 {
   if (task == NULL)
+  {
     return 0;
+  }
 
   return task->con->send_and_flush(workload, workload_size, ret_ptr);
 }
@@ -333,7 +354,9 @@ size_t gearman_task_send_workload(gearman_task_st *task, const void *workload,
 gearman_result_st *gearman_task_result(gearman_task_st *task)
 {
   if (task == NULL)
+  {
     return NULL;
+  }
 
   return task->result_ptr;
 }
@@ -341,8 +364,10 @@ gearman_result_st *gearman_task_result(gearman_task_st *task)
 gearman_result_st *gearman_task_mutable_result(gearman_task_st *task)
 {
   assert(task); // Programmer error
-  if (not task->result_ptr)
+  if (task->result_ptr == NULL)
+  {
     task->result_ptr= new gearman_result_st();
+  }
 
   return task->result_ptr;
 }
@@ -350,10 +375,14 @@ gearman_result_st *gearman_task_mutable_result(gearman_task_st *task)
 const void *gearman_task_data(const gearman_task_st *task)
 {
   if (task == NULL)
+  {
     return NULL;
+  }
 
   if (task->recv and task->recv->data)
+  {
     return task->recv->data;
+  }
 
   return 0;
 }
@@ -361,10 +390,14 @@ const void *gearman_task_data(const gearman_task_st *task)
 size_t gearman_task_data_size(const gearman_task_st *task)
 {
   if (task == NULL)
+  {
     return 0;
+  }
 
   if (task->recv and task->recv->data_size)
+  {
     return task->recv->data_size;
+  }
 
   return 0;
 }
@@ -372,7 +405,9 @@ size_t gearman_task_data_size(const gearman_task_st *task)
 void *gearman_task_take_data(gearman_task_st *task, size_t *data_size)
 {
   if (task == NULL)
+  {
     return 0;
+  }
 
   return gearman_packet_take_data(*task->recv, data_size);
 }
@@ -386,7 +421,7 @@ size_t gearman_task_recv_data(gearman_task_st *task, void *data,
     return 0;
   }
 
-  if (not ret_ptr)
+  if (ret_ptr == NULL)
   {
     gearman_return_t unused;
     return task->con->receiving(data, data_size, unused);
