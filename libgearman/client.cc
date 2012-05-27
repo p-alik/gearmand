@@ -1375,12 +1375,6 @@ void gearman_client_clear_fn(gearman_client_st *client)
   client->actions= gearman_actions_default();
 }
 
-static inline void _pop_blocking(gearman_client_st *client)
-{
-  client->universal.options.non_blocking= client->options.non_blocking;
-  assert(client->universal.options.stored_non_blocking == client->options.non_blocking);
-}
-
 static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
 {
   gearman_return_t ret= GEARMAN_MAX_RETURN;

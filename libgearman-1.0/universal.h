@@ -55,7 +55,6 @@ struct gearman_universal_st
   struct {
     bool dont_track_packets;
     bool non_blocking;
-    bool stored_non_blocking;
   } options;
   gearman_verbose_t verbose;
   uint32_t con_count;

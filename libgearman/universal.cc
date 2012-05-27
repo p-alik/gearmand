@@ -59,7 +59,6 @@ void gearman_universal_initialize(gearman_universal_st &self, const gearman_univ
   { // Set defaults on all options.
     self.options.dont_track_packets= false;
     self.options.non_blocking= false;
-    self.options.stored_non_blocking= false;
   }
 
   if (options)
