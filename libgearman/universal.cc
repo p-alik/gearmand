@@ -57,7 +57,6 @@
 void gearman_universal_initialize(gearman_universal_st &self, const gearman_universal_options_t *options)
 {
   { // Set defaults on all options.
-    self.options.dont_track_packets= false;
     self.options.non_blocking= false;
   }
 
@@ -132,7 +131,6 @@ void gearman_universal_clone(gearman_universal_st &destination, const gearman_un
   }
 
   (void)gearman_universal_set_option(destination, GEARMAN_NON_BLOCKING, source.options.non_blocking);
-  (void)gearman_universal_set_option(destination, GEARMAN_DONT_TRACK_PACKETS, source.options.dont_track_packets);
 
   destination.timeout= source.timeout;
 
@@ -171,7 +169,6 @@ gearman_return_t gearman_universal_set_option(gearman_universal_st &self, gearma
     break;
 
   case GEARMAN_DONT_TRACK_PACKETS:
-    self.options.dont_track_packets= value;
     break;
 
   case GEARMAN_MAX:

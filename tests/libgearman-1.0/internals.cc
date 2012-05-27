@@ -78,7 +78,6 @@ static test_return_t init_test(void *)
   gearman_universal_st gear;
 
   gearman_universal_initialize(gear);
-  test_false(gear.options.dont_track_packets);
   test_false(gear.options.non_blocking);
   test_false(gear._namespace);
 
@@ -99,7 +98,6 @@ static test_return_t clone_test(void *)
     gearman_universal_clone(destination, gear);
 
     { // Test all of the flags
-      test_truth(destination.options.dont_track_packets == gear.options.dont_track_packets);
       test_truth(destination.options.non_blocking == gear.options.non_blocking);
     }
     test_truth(destination._namespace == gear._namespace);
@@ -168,7 +166,6 @@ static test_return_t state_option_test(void *)
 
   gearman_universal_initialize(universal);
   { // Initial Allocated, no changes
-    test_false(universal.options.dont_track_packets);
     test_false(universal.options.non_blocking);
   }
   gearman_universal_free(universal);
@@ -183,7 +180,6 @@ static test_return_t state_option_on_create_test(void *)
 
   gearman_universal_initialize(universal, options);
   { // Initial Allocated, no changes
-    test_truth(universal.options.dont_track_packets);
     test_truth(universal.options.non_blocking);
   }
   gearman_universal_free(universal);
@@ -234,7 +230,6 @@ static test_return_t state_option_set_test(void *)
 
   gearman_universal_initialize(universal, options);
   { // Initial Allocated, no changes
-    test_truth(universal.options.dont_track_packets);
     test_truth(universal.options.non_blocking);
   }
 
@@ -242,19 +237,16 @@ static test_return_t state_option_set_test(void *)
 
   gearman_universal_initialize(universal);
   { // Initial Allocated, no changes
-    test_false(universal.options.dont_track_packets);
     test_false(universal.options.non_blocking);
   }
 
   gearman_universal_add_options(universal, GEARMAN_DONT_TRACK_PACKETS);
   { // Initial Allocated, no changes
-    test_truth(universal.options.dont_track_packets);
     test_false(universal.options.non_blocking);
   }
 
   gearman_universal_remove_options(universal, GEARMAN_DONT_TRACK_PACKETS);
   { // Initial Allocated, no changes
-    test_false(universal.options.dont_track_packets);
     test_false(universal.options.non_blocking);
   }
 

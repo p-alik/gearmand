@@ -193,7 +193,7 @@ gearman_packet_st *gearman_packet_create(gearman_universal_st &universal,
   custom_backtrace();
 #endif
 
-  if (universal.options.dont_track_packets == false)
+  // dont_track_packets == false
   {
     if (universal.packet_list != NULL)
     {
@@ -299,7 +299,7 @@ void gearman_packet_free(gearman_packet_st *packet)
     packet->options.free_data= false;
   }
 
-  if (packet->universal->options.dont_track_packets == false)
+  // dont_track_packets == false
   {
     if (packet->universal->packet_list == packet)
     {
