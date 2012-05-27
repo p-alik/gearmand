@@ -160,3 +160,62 @@ gearman_id_t gearman_universal_id(gearman_universal_st &universal);
 gearman_return_t gearman_set_identifier(gearman_universal_st& universal,
                                         const char *id,
                                         size_t id_size);
+
+/**
+  Push the state of IO
+*/
+class PushBlocking {
+public:
+  PushBlocking(gearman_universal_st& arg) :
+    _original(arg.options.non_blocking),
+    _universal(arg)
+  {
+    _universal.options.non_blocking= false;
+  }
+
+  PushBlocking(gearman_client_st* arg) :
+    _original(arg->universal.options.non_blocking),
+    _universal(arg->universal)
+  {
+    _universal.options.non_blocking= false;
+  }
+
+  ~PushBlocking()
+  {
+    _universal.options.non_blocking= _original;
+  }
+
+private:
+  bool _original;
+  gearman_universal_st& _universal;
+};
+
+#define PUSH_BLOCKING(__univeral) PushBlocking _push_block((__univeral));
+
+class PushNonBlocking {
+public:
+  PushNonBlocking(gearman_universal_st& arg) :
+    _original(arg.options.non_blocking),
+    _universal(arg)
+  {
+    _universal.options.non_blocking= true;
+  }
+
+  PushNonBlocking(gearman_client_st* arg) :
+    _original(arg->universal.options.non_blocking),
+    _universal(arg->universal)
+  {
+    _universal.options.non_blocking= true;
+  }
+
+  ~PushNonBlocking()
+  {
+    _universal.options.non_blocking= _original;
+  }
+
+private:
+  bool _original;
+  gearman_universal_st& _universal;
+};
+
+#define PUSH_NON_BLOCKING(__univeral) PushNonBlocking _push_block((__univeral));

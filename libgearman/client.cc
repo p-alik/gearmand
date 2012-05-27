@@ -707,10 +707,14 @@ const char *gearman_client_do_job_handle(gearman_client_st *self)
 void gearman_client_do_status(gearman_client_st *, uint32_t *numerator, uint32_t *denominator)
 {
   if (numerator)
+  {
     *numerator= 0;
+  }
 
   if (denominator)
+  {
     *denominator= 0;
+  }
 }
 
 gearman_return_t gearman_client_do_background(gearman_client_st *client,
@@ -1371,24 +1375,6 @@ void gearman_client_clear_fn(gearman_client_st *client)
   client->actions= gearman_actions_default();
 }
 
-static inline void _push_non_blocking(gearman_client_st *client)
-{
-  client->universal.options.stored_non_blocking= client->universal.options.non_blocking;
-  client->universal.options.non_blocking= true;
-}
-
-static inline void _pop_non_blocking(gearman_client_st *client)
-{
-  client->universal.options.non_blocking= client->options.non_blocking;
-  assert(client->universal.options.stored_non_blocking == client->options.non_blocking);
-}
-
-static inline void _push_blocking(gearman_client_st *client)
-{
-  client->universal.options.stored_non_blocking= client->universal.options.non_blocking;
-  client->universal.options.non_blocking= false;
-}
-
 static inline void _pop_blocking(gearman_client_st *client)
 {
   client->universal.options.non_blocking= client->options.non_blocking;
@@ -1695,11 +1681,12 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
     return GEARMAN_SUCCESS;
   }
 
-  _push_non_blocking(client);
+  gearman_return_t rc;
+  {
+    PUSH_NON_BLOCKING(client);
 
-  gearman_return_t rc= _client_run_tasks(client);
-
-  _pop_non_blocking(client);
+    rc= _client_run_tasks(client);
+  }
 
   if (rc == GEARMAN_COULD_NOT_CONNECT)
   {
@@ -1722,11 +1709,12 @@ gearman_return_t gearman_client_run_block_tasks(gearman_client_st *client)
   }
 
 
-  _push_blocking(client);
+  gearman_return_t rc;
+  {
+    PUSH_BLOCKING(client);
 
-  gearman_return_t rc= _client_run_tasks(client);
-
-  _pop_blocking(client);
+    rc= _client_run_tasks(client);
+  }
 
   if (gearman_failed(rc))
   {

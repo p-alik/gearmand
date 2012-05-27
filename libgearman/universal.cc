@@ -387,26 +387,9 @@ gearman_connection_st *gearman_ready(gearman_universal_st& universal)
   return NULL;
 }
 
-/**
-  @note _push_blocking is only used for echo (and should be fixed
-  when tricky flip/flop in IO is fixed).
-*/
-static inline void _push_blocking(gearman_universal_st& universal, bool &orig_block_universal)
-{
-  orig_block_universal= universal.options.non_blocking;
-  universal.options.non_blocking= false;
-}
-
-static inline void _pop_non_blocking(gearman_universal_st& universal, bool orig_block_universal)
-{
-  universal.options.non_blocking= orig_block_universal;
-}
-
 gearman_return_t gearman_set_identifier(gearman_universal_st& universal,
                                         const char *id, size_t id_size)
 {
-  bool orig_block_universal;
-
   if (id == NULL)
   {
     return gearman_error(universal, GEARMAN_INVALID_ARGUMENT, "id was NULL");
@@ -443,7 +426,7 @@ gearman_return_t gearman_set_identifier(gearman_universal_st& universal,
     return ret;
   }
 
-  _push_blocking(universal, orig_block_universal);
+  PUSH_BLOCKING(universal);
 
   for (gearman_connection_st *con= universal.con_list; con; con= con->next)
   {
@@ -491,7 +474,6 @@ gearman_return_t gearman_set_identifier(gearman_universal_st& universal,
 
 exit:
   gearman_packet_free(&packet);
-  _pop_non_blocking(universal, orig_block_universal);
 
   return ret;
 }
@@ -500,8 +482,6 @@ gearman_return_t gearman_echo(gearman_universal_st& universal,
                               const void *workload,
                               size_t workload_size)
 {
-  bool orig_block_universal;
-
   if (workload == NULL)
   {
     return gearman_error(universal, GEARMAN_INVALID_ARGUMENT, "workload was NULL");
@@ -530,7 +510,7 @@ gearman_return_t gearman_echo(gearman_universal_st& universal,
     return ret;
   }
 
-  _push_blocking(universal, orig_block_universal);
+  PUSH_BLOCKING(universal);
 
   for (gearman_connection_st *con= universal.con_list; con; con= con->next)
   {
@@ -579,7 +559,6 @@ gearman_return_t gearman_echo(gearman_universal_st& universal,
 
 exit:
   gearman_packet_free(&packet);
-  _pop_non_blocking(universal, orig_block_universal);
 
   return ret;
 }
@@ -587,8 +566,6 @@ exit:
 bool gearman_request_option(gearman_universal_st &universal,
                             gearman_string_t &option)
 {
-  bool orig_block_universal;
-
   const void *args[]= { gearman_c_str(option) };
   size_t args_size[]= { gearman_size(option) };
 
@@ -603,7 +580,7 @@ bool gearman_request_option(gearman_universal_st &universal,
     return ret;
   }
 
-  _push_blocking(universal, orig_block_universal);
+  PUSH_BLOCKING(universal);
 
   for (gearman_connection_st *con= universal.con_list; con != NULL; con= con->next)
   {
@@ -644,7 +621,6 @@ bool gearman_request_option(gearman_universal_st &universal,
 
 exit:
   gearman_packet_free(&packet);
-  _pop_non_blocking(universal, orig_block_universal);
 
   return gearman_success(ret);
 }
