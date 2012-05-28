@@ -1256,9 +1256,7 @@ test_st gearman_worker_st_NULL_invocation_TESTS[] ={
 };
 
 test_st gearman_worker_set_identifier_TESTS[] ={
-#if 0
   {"gearman_worker_set_identifier()", 0, gearman_worker_set_identifier_TEST },
-#endif
   {0, 0, 0}
 };
 

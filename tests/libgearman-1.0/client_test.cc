@@ -1318,6 +1318,36 @@ static test_return_t gearman_client_set_identifier_TEST(void* object)
   return TEST_SUCCESS;
 }
 
+static test_return_t gearman_client_set_identifier_plus_work_TEST(void* object)
+{
+  test_compare(TEST_SUCCESS, gearman_client_set_identifier_TEST(object));
+  test_compare(TEST_SUCCESS, regression_833394_test(object));
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_client_set_identifier_plus_random_TEST(void* object)
+{
+  for (size_t x= 0; x < 10; x++)
+  {
+    switch (random() %3)
+    {
+    case 0:
+      test_compare(TEST_SUCCESS, gearman_client_set_identifier_TEST(object));
+      break;
+
+    case 1:
+      test_compare(TEST_SUCCESS, regression_833394_test(object));
+      break;
+
+    default:
+      test_compare(TEST_SUCCESS, regression_975591_TEST(object));
+    }
+  }
+
+  return TEST_SUCCESS;
+}
+
 static uint32_t global_counter;
 
 static test_return_t pre_chunk(void *object)
@@ -1512,6 +1542,8 @@ static bool world_destroy(void *object)
 
 test_st gearman_client_set_identifier_TESTS[] ={
   {"gearman_client_set_identifier()", 0, gearman_client_set_identifier_TEST },
+  {"gearman_client_set_identifier(with_work)", 0, gearman_client_set_identifier_plus_work_TEST },
+  {"gearman_client_set_identifier(RANDOM)", 0, gearman_client_set_identifier_plus_random_TEST },
   {0, 0, 0}
 };
 
@@ -1724,6 +1756,7 @@ collection_st collection[] ={
   {"client-logging", pre_logging, post_logging, tests_log_TESTS },
   {"regression", 0, 0, regression2_TESTS },
   {"gearman_worker_timeout()", set_defaults, 0, gearman_worker_timeout_TESTS },
+  {"gearman_client_set_identifier()", set_defaults, 0, gearman_client_set_identifier_TESTS },
   {0, 0, 0, 0}
 };
 

@@ -424,6 +424,8 @@ gearman_return_t gearman_set_identifier(gearman_universal_st& universal,
 
   PUSH_BLOCKING(universal);
 
+  size_t error_count= 0;
+  gearman_return_t cached_error;
   for (gearman_connection_st *con= universal.con_list; con; con= con->next)
   {
     ret= con->send_packet(packet, true);
@@ -432,46 +434,14 @@ gearman_return_t gearman_set_identifier(gearman_universal_st& universal,
 #if 0
       assert_msg(con->universal.error.rc != GEARMAN_SUCCESS, "Programmer error, error returned but not recorded");
 #endif
-      goto exit;
+      error_count++;
+      cached_error= ret;
     }
 
-    con->options.packet_in_use= true;
-    gearman_packet_st *packet_ptr= con->receiving(con->_packet, ret, true);
-    if (gearman_failed(ret))
-    {
-#if 0
-      assert_msg(con->universal.error.rc != GEARMAN_SUCCESS, "Programmer error, error returned but not recorded");
-#endif
-      con->free_private_packet();
-      con->set_recv_packet(NULL);
-
-      goto exit;
-    }
-    assert(packet_ptr);
-
-    if (con->_packet.data_size != id_size or
-        memcmp(id, con->_packet.data, id_size))
-    {
-#if 0
-      assert_msg(con->universal.error.rc != GEARMAN_SUCCESS, "Programmer error, error returned but not recorded");
-#endif
-      con->free_private_packet();
-      con->set_recv_packet(NULL);
-      ret= gearman_error(universal, GEARMAN_SEND_IN_PROGRESS, "corruption occured when setting the client identifier");
-
-      goto exit;
-    }
-
-    con->set_recv_packet(NULL);
-    con->free_private_packet();
   }
-
-  ret= GEARMAN_SUCCESS;
-
-exit:
   gearman_packet_free(&packet);
 
-  return ret;
+  return error_count ? cached_error : GEARMAN_SUCCESS;
 }
 
 gearman_return_t gearman_echo(gearman_universal_st& universal,
