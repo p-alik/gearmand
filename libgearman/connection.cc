@@ -519,7 +519,7 @@ gearman_return_t gearman_connection_st::send_packet(const gearman_packet_st& pac
       break;
     }
 
-    send_buffer_ptr= static_cast<char *>(const_cast<void *>(packet_arg.data)) + send_data_offset;
+    send_buffer_ptr= (const char*)(size_t(packet_arg.data) +send_data_offset);
     send_state= GEARMAN_CON_SEND_UNIVERSAL_FLUSH_DATA;
 
   case GEARMAN_CON_SEND_UNIVERSAL_FLUSH:
@@ -550,7 +550,7 @@ size_t gearman_connection_st::send_and_flush(const void *data, size_t data_size,
     return gearman_error(universal, GEARMAN_DATA_TOO_LARGE, "data too large");
   }
 
-  send_buffer_ptr= static_cast<char *>(const_cast<void *>(data));
+  send_buffer_ptr= (const char*)data;
   send_buffer_size= data_size;
 
   *ret_ptr= flush();
@@ -890,7 +890,7 @@ gearman_packet_st *gearman_connection_st::receiving(gearman_packet_st& packet_ar
   }
 
   gearman_packet_st *tmp_packet_arg= recv_packet();
-  set_recv_packet(NULL);
+  reset_recv_packet();
 
   return tmp_packet_arg;
 }

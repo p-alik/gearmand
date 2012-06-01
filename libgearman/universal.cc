@@ -498,7 +498,7 @@ gearman_return_t gearman_echo(gearman_universal_st& universal,
       assert_msg(con->universal.error.rc != GEARMAN_SUCCESS, "Programmer error, error returned but not recorded");
 #endif
       con->free_private_packet();
-      con->set_recv_packet(NULL);
+      con->reset_recv_packet();
 
       goto exit;
     }
@@ -511,13 +511,13 @@ gearman_return_t gearman_echo(gearman_universal_st& universal,
       assert_msg(con->universal.error.rc != GEARMAN_SUCCESS, "Programmer error, error returned but not recorded");
 #endif
       con->free_private_packet();
-      con->set_recv_packet(NULL);
+      con->reset_recv_packet();
       ret= gearman_error(universal, GEARMAN_ECHO_DATA_CORRUPTION, "corruption during echo");
 
       goto exit;
     }
 
-    con->set_recv_packet(NULL);
+    con->reset_recv_packet();
     con->free_private_packet();
   }
 
@@ -565,7 +565,7 @@ bool gearman_request_option(gearman_universal_st &universal,
     }
     else if (gearman_failed(ret))
     {
-      con->set_recv_packet(NULL);
+      con->reset_recv_packet();
       gearman_packet_free(&recv_packet);
       goto exit;
     }
@@ -573,7 +573,7 @@ bool gearman_request_option(gearman_universal_st &universal,
 
     if (packet_ptr->command == GEARMAN_COMMAND_ERROR)
     {
-      con->set_recv_packet(NULL);
+      con->reset_recv_packet();
       gearman_packet_free(&recv_packet);
       ret= gearman_error(universal, GEARMAN_INVALID_ARGUMENT, "invalid server option");
 
