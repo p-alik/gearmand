@@ -542,28 +542,44 @@ void *gearman_job_take_workload(gearman_job_st *job, size_t *data_size)
 
 void gearman_job_free(gearman_job_st *job)
 {
-  if (not job)
+  if (job == NULL)
+  {
     return;
+  }
 
   if (job->options.assigned_in_use)
+  {
     gearman_packet_free(&(job->assigned));
+  }
 
   if (job->options.work_in_use)
+  {
     gearman_packet_free(&(job->work));
+  }
 
   if (job->worker->job_list == job)
+  {
     job->worker->job_list= job->next;
+  }
+
   if (job->prev)
+  {
     job->prev->next= job->next;
+  }
+
   if (job->next)
+  {
     job->next->prev= job->prev;
+  }
   job->worker->job_count--;
 
   delete job->reducer;
   job->reducer= NULL;
 
   if (job->options.allocated)
+  {
     delete job;
+  }
 }
 
 /*
