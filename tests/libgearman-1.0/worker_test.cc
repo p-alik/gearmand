@@ -1270,7 +1270,6 @@ collection_st collection[] ={
 
 void get_world(Framework *world)
 {
-  (void)gearman_worker_set_identifier_TEST;
   world->collections(collection);
   world->create(world_create);
 }

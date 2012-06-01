@@ -413,35 +413,26 @@ gearman_return_t gearman_set_identifier(gearman_universal_st& universal,
   gearman_return_t ret= gearman_packet_create_args(universal, packet, GEARMAN_MAGIC_REQUEST,
                                                    GEARMAN_COMMAND_SET_CLIENT_ID,
                                                    (const void**)&id, &id_size, 1);
-  if (gearman_failed(ret))
+  if (gearman_success(ret))
   {
-#if 0
-    assert_msg(universal.error.rc != GEARMAN_SUCCESS, "Programmer error, error returned but not recorded");
-#endif
-    gearman_packet_free(&packet);
-    return ret;
-  }
+    PUSH_BLOCKING(universal);
 
-  PUSH_BLOCKING(universal);
-
-  size_t error_count= 0;
-  gearman_return_t cached_error;
-  for (gearman_connection_st *con= universal.con_list; con; con= con->next)
-  {
-    ret= con->send_packet(packet, true);
-    if (gearman_failed(ret))
+    size_t error_count= 0;
+    gearman_return_t cached_error;
+    for (gearman_connection_st *con= universal.con_list; con; con= con->next)
     {
-#if 0
-      assert_msg(con->universal.error.rc != GEARMAN_SUCCESS, "Programmer error, error returned but not recorded");
-#endif
-      error_count++;
-      cached_error= ret;
-    }
+      gearman_return_t local_ret= con->send_packet(packet, true);
+      if (gearman_failed(local_ret))
+      {
+        ret= local_ret;
+      }
 
+    }
   }
+
   gearman_packet_free(&packet);
 
-  return error_count ? cached_error : GEARMAN_SUCCESS;
+  return ret;
 }
 
 gearman_return_t gearman_echo(gearman_universal_st& universal,

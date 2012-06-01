@@ -512,7 +512,7 @@ gearman_return_t gearman_connection_st::send_packet(const gearman_packet_st& pac
     if (send_buffer_size < GEARMAN_SEND_BUFFER_SIZE)
     {
       memcpy(send_buffer,
-             static_cast<char *>(const_cast<void *>(packet_arg.data)) + send_data_offset,
+             (const char*)(packet_arg.data) +send_data_offset,
              send_buffer_size);
       send_data_size= 0;
       send_data_offset= 0;
