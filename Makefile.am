@@ -81,6 +81,9 @@ clean-local:
 rpm-build: support/gearmand.spec
 	@rm -f ~/rpmbuild/RPMS/x86_64/gearmand-$(VERSION)*.rpm
 	@rm -f ~/rpmbuild/SRPMS/gearmand-$(VERSION)*.rpm
+	@mkdir -p ~/rpmbuild/SOURCES/
+	@mkdir -p ~/rpmbuild/RPMS/x86_64/
+	@mkdir -p ~/rpmbuild/SRPMS/
 	@cp gearmand-$(VERSION).tar.gz ~/rpmbuild/SOURCES/
 	@cp support/gearmand.init ~/rpmbuild/SOURCES/
 	@rpmbuild -ba support/gearmand.spec
