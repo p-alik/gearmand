@@ -1096,7 +1096,7 @@ static test_return_t _increase_TEST(gearman_function_t &func, gearman_client_opt
                                                            func,
                                                            &block_size,
                                                            gearman_worker_options_t(),
-                                                           -1)); // timeout
+                                                           5000)); // timeout
 
   for (size_t x= 1; x < 24; x++)
   {

@@ -463,12 +463,16 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
     break;
 
   case GEARMAN_COMMAND_CAN_DO_TIMEOUT:
-    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Registering function: %.*s with timeout", packet->arg_size[0], packet->arg[0]);
-    if (gearman_server_worker_add(server_con, (char *)(packet->arg[0]),
-                                  packet->arg_size[0] - 1,
-                                  0) == NULL)
     {
-      return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+      uint32_t timeout = 0;
+      sscanf((char *)packet->arg[1], "%d", (int *)&timeout);
+      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Registering function: %.*s with timeout", packet->arg_size[0], packet->arg[0]);
+      if (gearman_server_worker_add(server_con, (char *)(packet->arg[0]),
+                                    packet->arg_size[0] - 1,
+                                    timeout) == NULL)
+      {
+        return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+      }
     }
 
     break;
