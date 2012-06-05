@@ -46,7 +46,7 @@ you will need to install %{name}-devel.
 
 
 %build
-%{__make}
+%{__make} %{?_smp_mflags}
 
 %install
 %{__rm} -rf %{buildroot}
@@ -56,6 +56,9 @@ mkdir -p $RPM_BUILD_ROOT/etc/rc.d/init.d
 mkdir -p $RPM_BUILD_ROOT/var/log/gearmand
 mkdir -p $RPM_BUILD_ROOT/var/run/gearmand
 install -m 755 %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/gearmand
+
+%check
+%{__make} %{?_smp_mflags} check
 
 %clean
 %{__rm} -rf %{buildroot}

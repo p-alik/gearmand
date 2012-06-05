@@ -4,8 +4,13 @@ rpm-build: support/$(PACKAGE).spec
 	@rm -f *.rpm
 	@rm -f ~/rpmbuild/RPMS/x86_64/$(PACKAGE)-$(VERSION)*.rpm
 	@rm -f ~/rpmbuild/SRPMS/$(PACKAGE)-$(VERSION)*.rpm
-	@mkdir -p ~/rpmbuild/SOURCES/
+	@mkdir -p ~/rpmbuild/BUILD/
+	@mkdir -p ~/rpmbuild/RPMS/i386/
+	@mkdir -p ~/rpmbuild/RPMS/i686/
+	@mkdir -p ~/rpmbuild/RPMS/noarch/
 	@mkdir -p ~/rpmbuild/RPMS/x86_64/
+	@mkdir -p ~/rpmbuild/SOURCES/
+	@mkdir -p ~/rpmbuild/SPECS/
 	@mkdir -p ~/rpmbuild/SRPMS/
 	@cp $(PACKAGE)-$(VERSION).tar.gz ~/rpmbuild/SOURCES/
 	@cp support/$(PACKAGE).init ~/rpmbuild/SOURCES/
