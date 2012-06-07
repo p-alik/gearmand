@@ -102,7 +102,7 @@ static test_return_t collection_cleanup(void *object)
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  if (has_drizzle_support() == false)
+  if (has_drizzled() == false)
   {
     error= TEST_SKIPPED;
     return NULL;

@@ -35,13 +35,16 @@
  */
 
 #include <config.h>
-#include <libtest/has.hpp>
+#include <libtest/common.h>
 
 #include <cstdlib>
+#include <unistd.h>
 
-bool has_memcached_support(void)
+namespace libtest {
+
+bool has_libmemcached(void)
 {
-  if (HAVE_LIBMEMCACHED and HAVE_MEMCACHED_BINARY)
+  if (HAVE_LIBMEMCACHED)
   {
     return true;
   }
@@ -49,9 +52,9 @@ bool has_memcached_support(void)
   return false;
 }
 
-bool has_drizzle_support(void)
+bool has_libdrizzle(void)
 {
-  if (HAVE_LIBDRIZZLE and HAVE_DRIZZLED_BINARY)
+  if (HAVE_LIBDRIZZLE)
   {
     return true;
   }
@@ -72,12 +75,92 @@ bool has_postgres_support(void)
   return false;
 }
 
-bool has_mysql_support(void)
+
+bool has_gearmand()
 {
-  if (HAVE_MYSQL_BUILD)
+  if (HAVE_GEARMAND_BINARY)
   {
-    return true;
+    std::stringstream arg_buffer;
+
+    if (getenv("PWD") and strcmp(MEMCACHED_BINARY, "gearmand/gearmand") == 0)
+    {
+      arg_buffer << getenv("PWD");
+      arg_buffer << "/";
+    }
+    arg_buffer << GEARMAND_BINARY;
+
+    if (access(arg_buffer.str().c_str(), X_OK) == 0)
+    {
+      return true;
+    }
   }
 
   return false;
 }
+
+bool has_drizzled()
+{
+  if (HAVE_DRIZZLED_BINARY)
+  {
+    if (access(DRIZZLED_BINARY, X_OK) == 0)
+    {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool has_mysqld()
+{
+#if defined(HAVE_MYSQL_BUILD) && HAVE_MYSQL_BUILD
+  if (HAVE_MYSQL_BUILD)
+  {
+    if (access(HAVE_MYSQL, X_OK) == 0)
+    {
+      return true;
+    }
+  }
+#endif
+
+  return false;
+}
+
+bool has_memcached()
+{
+  if (HAVE_MEMCACHED_BINARY)
+  {
+    std::stringstream arg_buffer;
+
+    if (getenv("PWD") and strcmp(MEMCACHED_BINARY, "memcached/memcached") == 0)
+    {
+      arg_buffer << getenv("PWD");
+      arg_buffer << "/";
+    }
+    arg_buffer << MEMCACHED_BINARY;
+
+    if (access(arg_buffer.str().c_str(), X_OK) == 0)
+    {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool has_memcached_sasl()
+{
+#if defined(HAVE_MEMCACHED_SASL_BINARY) && HAVE_MEMCACHED_SASL_BINARY
+  if (HAVE_MEMCACHED_SASL_BINARY)
+  {
+    if (access(MEMCACHED_SASL_BINARY, X_OK) == 0)
+    {
+      return true;
+    }
+  }
+#endif
+
+  return false;
+}
+
+} // namespace libtest
