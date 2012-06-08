@@ -1035,7 +1035,9 @@ void gearman_connection_st::set_events(short arg)
 void gearman_connection_st::set_revents(short arg)
 {
   if (arg)
+  {
     options.ready= true;
+  }
 
   revents= arg;
   events&= short(~arg);

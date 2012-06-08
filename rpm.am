@@ -25,7 +25,12 @@ rpm-sign: rpm-build
 	@rpm --addsign *.rpm
 	@rpm --checksig *.rpm
 
-rpm: support/$(PACKAGE).spec man distcheck rpm-build
+clean_rpm:
+	@rm -f *.tar.gz
+	@rm -f *.src.rpm
+	@rm -f *.rpm
+
+rpm: clean_rpm support/$(PACKAGE).spec man distcheck rpm-build
 
 release: rpm rpm-sign
 
@@ -37,3 +42,4 @@ merge-clean:
 	@echo "The follow files need to be removed or checked in:"
 	@bzr unknowns
 
+release: rpm
