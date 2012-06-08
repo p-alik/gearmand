@@ -31,6 +31,7 @@ drd:
 	@echo make check TESTS_ENVIRONMENT="\"$(DRD_COMMAND)\""
 
 EXTRA_DIST+= libtest/run.gdb
+EXTRA_DIST+= libtest/version.h
 
 CLEANFILES+= tmp_chroot/etc/*
 CLEANFILES+= tmp_chroot/var/drizzle/*
@@ -80,6 +81,7 @@ noinst_HEADERS+= libtest/test.h
 noinst_HEADERS+= libtest/test.hpp 
 noinst_HEADERS+= libtest/tmpfile.hpp 
 noinst_HEADERS+= libtest/vchar.hpp 
+noinst_HEADERS+= libtest/version.h 
 noinst_HEADERS+= libtest/visibility.h 
 noinst_HEADERS+= libtest/wait.h
 
