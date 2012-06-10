@@ -116,7 +116,7 @@ bool has_mysqld()
 #if defined(HAVE_MYSQL_BUILD) && HAVE_MYSQL_BUILD
   if (HAVE_MYSQL_BUILD)
   {
-    if (access(HAVE_MYSQL, X_OK) == 0)
+    if (access("mysqld", X_OK) == 0)
     {
       return true;
     }
