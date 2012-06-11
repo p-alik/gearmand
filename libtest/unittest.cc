@@ -720,6 +720,34 @@ static test_return_t number_of_cpus_TEST(void *)
   return TEST_SUCCESS;
 }
 
+static test_return_t check_dns_TEST(void *)
+{
+  if (libtest::check_dns(), true)
+  {
+    Error << "Broken DNS server/no DNS server found";
+    return TEST_SKIPPED;
+  }
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t lookup_true_TEST(void *)
+{
+  test_compare(libtest::lookup("exist.gearman.info"), true);
+  return TEST_SUCCESS;
+}
+
+static test_return_t lookup_false_TEST(void *)
+{
+  if (libtest::lookup("does_not_exist.gearman.info"))
+  {
+    Error << "Broken DNS server detected";
+    return TEST_SKIPPED;
+  }
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t create_tmpfile_TEST(void *)
 {
   std::string tmp= create_tmpfile(__func__);
@@ -885,6 +913,13 @@ test_st create_tmpfile_TESTS[] ={
   {0, 0, 0}
 };
 
+test_st dns_TESTS[] ={
+  {"libtest::lookup(true)", 0, lookup_true_TEST },
+  {"libtest::lookup(false)", 0, lookup_false_TEST },
+  {"libtest::check_dns()", 0, check_dns_TEST },
+  {0, 0, 0}
+};
+
 test_st application_tests[] ={
   {"vchar_t", 0, vchar_t_TEST },
   {"vchar_t compare()", 0, vchar_t_compare_neg_TEST },
@@ -943,6 +978,7 @@ collection_st collection[] ={
   {"fatal", disable_fatal_exception, enable_fatal_exception, fatal_message_TESTS },
   {"number_of_cpus()", 0, 0, number_of_cpus_TESTS },
   {"create_tmpfile()", 0, 0, create_tmpfile_TESTS },
+  {"dns", 0, 0, dns_TESTS },
   {0, 0, 0, 0}
 };
 

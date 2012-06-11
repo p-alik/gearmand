@@ -802,8 +802,11 @@ static test_return_t add_servers_test(void *)
   test_compare(GEARMAN_SUCCESS,
                gearman_client_add_servers(client, "localhost:4730,localhost"));
 
-  test_compare(GEARMAN_GETADDRINFO,
-               gearman_client_add_servers(client, "exist.gearman.info:7003,does_not_exist.gearman.info:12345"));
+  if (libtest::check_dns())
+  {
+    test_compare(GEARMAN_GETADDRINFO,
+                 gearman_client_add_servers(client, "exist.gearman.info:7003,does_not_exist.gearman.info:12345"));
+  }
 
   gearman_client_free(client);
 

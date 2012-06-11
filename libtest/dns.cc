@@ -33,49 +33,63 @@
  *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-/*
-  Common include file for libtest
-*/
 
-#pragma once
+#include <config.h>
+#include <libtest/common.h>
 
-#include <cassert>
-#include <cerrno>
-#include <cstdlib>
-#include <sstream>
-#include <string>
-
-#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
-#endif
+#include <sys/socket.h>
+#include <netdb.h>
 
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#endif
+namespace libtest {
 
-#ifdef HAVE_SYS_WAIT_H
-#include <sys/wait.h>
-#endif
+bool lookup(const char* host)
+{
+  bool success= false;
+  struct addrinfo *addrinfo= NULL;
 
-#ifdef HAVE_SYS_RESOURCE_H 
-#include <sys/resource.h> 
-#endif
- 
-#ifdef HAVE_FNMATCH_H
-#include <fnmatch.h>
-#endif
+  int limit= 5;
+  while (limit--)
+  {
+    int ret;
+    if ((ret= getaddrinfo(host, NULL, NULL, &(addrinfo))))
+    {
+      switch (ret)
+      {
+      case EAI_AGAIN:
+        continue;
 
-#include <libtest/test.hpp>
+      default:
+        throw libtest::fatal(LIBYATL_DEFAULT_PARAM, "getaddrinfo:%s", gai_strerror(ret));
+      }
+    }
+    else
+    {
+      success= true;
+      break;
+    }
+  }
 
-#include <libtest/is_pid.hpp>
+  freeaddrinfo(addrinfo);
 
-#include <libtest/gearmand.h>
-#include <libtest/blobslap_worker.h>
-#include <libtest/memcached.h>
-#include <libtest/drizzled.h>
+  return success;
+}
 
-#include <libtest/libtool.hpp>
-#include <libtest/killpid.h>
-#include <libtest/signal.h>
-#include <libtest/check_dns.hpp>
+
+bool check_dns()
+{
+  if (lookup("exist.gearman.info") == false)
+  {
+    return false;
+  }
+
+  if (lookup("does_not_exist.gearman.info")) // This should fail, if it passes,...
+  {
+    return false;
+  }
+
+  return true;
+}
+
+} // namespace libtest
 

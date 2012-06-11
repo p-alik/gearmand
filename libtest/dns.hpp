@@ -33,49 +33,12 @@
  *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-/*
-  Common include file for libtest
-*/
 
 #pragma once
 
-#include <cassert>
-#include <cerrno>
-#include <cstdlib>
-#include <sstream>
-#include <string>
+namespace libtest {
 
-#ifdef HAVE_SYS_TYPES_H
-#include <sys/types.h>
-#endif
+bool check_dns();
+bool lookup(const char*);
 
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#endif
-
-#ifdef HAVE_SYS_WAIT_H
-#include <sys/wait.h>
-#endif
-
-#ifdef HAVE_SYS_RESOURCE_H 
-#include <sys/resource.h> 
-#endif
- 
-#ifdef HAVE_FNMATCH_H
-#include <fnmatch.h>
-#endif
-
-#include <libtest/test.hpp>
-
-#include <libtest/is_pid.hpp>
-
-#include <libtest/gearmand.h>
-#include <libtest/blobslap_worker.h>
-#include <libtest/memcached.h>
-#include <libtest/drizzled.h>
-
-#include <libtest/libtool.hpp>
-#include <libtest/killpid.h>
-#include <libtest/signal.h>
-#include <libtest/check_dns.hpp>
-
+} // namespace libtest
