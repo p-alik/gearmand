@@ -179,7 +179,7 @@ static test_return_t var_tmp_test(void *)
   FILE *file= fopen("var/tmp/junk", "w+");
   char buffer[1024];
   const char *dir= getcwd(buffer, sizeof(buffer));
-  test_true_got(file, dir);
+  test_true(file);
   fclose(file);
   return TEST_SUCCESS;
 }
@@ -696,7 +696,7 @@ static test_return_t gdb_abort_services_appliction_TEST(void *)
 static test_return_t get_free_port_TEST(void *)
 {
   in_port_t ret_port;
-  test_true_hint((ret_port= get_free_port()), ret_port);
+  test_true((ret_port= get_free_port()));
   test_true(get_free_port() != default_port());
   test_true(get_free_port() != get_free_port());
 
@@ -731,8 +731,8 @@ static test_return_t create_tmpfile_TEST(void *)
   test_compare(Application::SUCCESS, touch_app.run(args));
   test_compare(Application::SUCCESS, touch_app.wait(false));
 
-  test_compare_hint(0, access(tmp.c_str(), R_OK), strerror(errno));
-  test_compare_hint(0, unlink(tmp.c_str()), strerror(errno));
+  test_compare(0, access(tmp.c_str(), R_OK));
+  test_compare(0, unlink(tmp.c_str()));
 
   return TEST_SUCCESS;
 }

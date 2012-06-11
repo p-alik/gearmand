@@ -141,7 +141,7 @@ test_return_t unique_compare_test(void *object)
                                       &job_length, // result size
                                       &rc);
 
-  test_compare_hint(GEARMAN_SUCCESS, rc, gearman_client_error(client) ? gearman_client_error(client) : gearman_strerror(rc));
+  test_compare(rc, GEARMAN_SUCCESS);
   test_compare(gearman_size(unique), job_length);
   test_memcmp(gearman_c_str(unique), job_result, job_length);
 

@@ -107,9 +107,9 @@ test_return_t burnin_TEST(void *object)
   // This sketchy, don't do this in your own code.
   test_true(context->num_tasks > 0);
   gearman_task_st *tasks= (gearman_task_st *)calloc(context->num_tasks, sizeof(gearman_task_st));
-  test_true_got(tasks, strerror(errno));
+  test_true(tasks);
 
-  test_true_got(gearman_success(gearman_client_echo(client, test_literal_param("echo_test"))), gearman_client_error(client));
+  test_compare(gearman_client_echo(client, test_literal_param("echo_test")), GEARMAN_SUCCESS);
 
   do
   {
@@ -126,7 +126,9 @@ test_return_t burnin_TEST(void *object)
         blob_size= (size_t)rand();
 
         if (context->max_size > RAND_MAX)
+        {
           blob_size*= (size_t)(rand() + 1);
+        }
 
         blob_size= (blob_size % (context->max_size - context->min_size)) + context->min_size;
       }
@@ -146,7 +148,7 @@ test_return_t burnin_TEST(void *object)
                                           &ret);
       }
 
-      test_true_got(gearman_success(ret), gearman_client_error(client));
+      test_compare(ret, GEARMAN_SUCCESS);
       test_truth(task_ptr);
     }
 
@@ -158,7 +160,7 @@ test_return_t burnin_TEST(void *object)
     }
     test_zero(client->new_tasks);
 
-    test_true_got(gearman_success(ret), gearman_client_error(client));
+    test_compare(ret, GEARMAN_SUCCESS);
 
     for (uint32_t x= 0; x < context->num_tasks; x++)
     {
@@ -179,7 +181,7 @@ test_return_t burnin_setup(void *object)
   client_context_st *context= new client_context_st;
 
   context->blob= (char *)malloc(context->max_size);
-  test_true_got(context->blob, strerror(errno));
+  test_true(context->blob);
   memset(context->blob, 'x', context->max_size); 
 
   gearman_client_set_context(test_client_context->client(), context);

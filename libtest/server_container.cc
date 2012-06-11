@@ -231,7 +231,7 @@ bool server_startup(server_startup_st& construct, const std::string& server_type
     }
     else if (server_type.compare("memcached") == 0)
     {
-      if (MEMCACHED_BINARY)
+      if (HAVE_MEMCACHED_BINARY)
       {
         if (HAVE_LIBMEMCACHED)
         {
@@ -252,7 +252,7 @@ bool server_startup(server_startup_st& construct, const std::string& server_type
 
     if (server == NULL)
     {
-      fatal_message("Launching of an unknown server was attempted");
+      throw libtest::fatal(LIBYATL_DEFAULT_PARAM, "Launching of an unknown server was attempted: %s", server_type.c_str());
     }
 
     /*

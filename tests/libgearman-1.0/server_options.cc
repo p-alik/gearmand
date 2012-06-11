@@ -52,7 +52,7 @@ using namespace libtest;
 test_return_t gearman_client_set_server_option_exception(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
-  test_true_got(gearman_client_set_server_option(client, test_literal_param("exceptions")), gearman_client_error(client));
+  test_true(gearman_client_set_server_option(client, test_literal_param("exceptions")));
   return TEST_SUCCESS;
 }
 

@@ -122,15 +122,27 @@ bool _compare_zero(const char *file, int line, const char *func, T_comparable __
 }
 
 template <class T_comparable>
-bool _truth(const char *file, int line, const char *func, T_comparable __truth)
+bool _assert_truth(const char *file, int line, const char *func, T_comparable __truth)
+{
+  if (bool(__truth) == false)
+  {
+    return true;
+  }
+
+  libtest::stream::make_cerr(file, line, func) << "Assertion failed for " << func << "() with \"" << __truth << "\"";
+  return false;
+}
+
+template <class T_comparable, class T_printable>
+bool _assert_truth(const char *file, int line, const char *func, T_comparable __truth, T_printable __printable)
 {
   if (bool(__truth))
   {
-    libtest::stream::make_cerr(file, line, func) << "Assertion failed for " << func << "() with \"" << __truth << "\"";
-    return false;
+    return true;
   }
 
-  return true;
+  libtest::stream::make_cerr(file, line, func) << "Assertion failed for " << func << "() with \"" << __printable << "\"";
+  return false;
 }
 
 template <class T1_comparable, class T2_comparable, class T_hint>

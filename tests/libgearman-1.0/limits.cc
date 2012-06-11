@@ -60,7 +60,7 @@ test_return_t function_name_limit_test(void *object)
                                              NULL, 
                                              test_literal_param("reset"),
                                              &result_length, &rc);
-  test_compare_got(GEARMAN_INVALID_ARGUMENT, rc, gearman_strerror(rc));
+  test_compare(GEARMAN_INVALID_ARGUMENT, rc);
   test_null(job_result);
 
   return TEST_SUCCESS;
@@ -85,7 +85,7 @@ test_return_t unique_name_limit_test(void *object)
                                              &unique_name[0],
                                              test_literal_param("reset"),
                                              &result_length, &rc);
-  test_compare_got(GEARMAN_INVALID_ARGUMENT, rc, gearman_strerror(rc));
+  test_compare(GEARMAN_INVALID_ARGUMENT, rc);
   test_null(job_result);
 
   return TEST_SUCCESS;

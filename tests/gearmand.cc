@@ -469,7 +469,7 @@ static test_return_t config_file_SIMPLE_TEST(void *)
     std::fstream file_stream;
     file_stream.open(config_path.c_str(), std::fstream::out | std::fstream::trunc);
 
-    test_true_hint(file_stream.good(), config_path);
+    test_true(file_stream.good());
 
     file_stream << "--port " << port_str << std::endl;
 

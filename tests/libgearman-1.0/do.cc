@@ -64,8 +64,7 @@ test_return_t gearman_client_do_huge_unique(void *object)
                                       test_literal_param("gearman_client_do_huge_unique"),
                                       &job_length,
                                       &rc);
-  test_compare_hint(GEARMAN_INVALID_ARGUMENT, rc, gearman_strerror(rc));
-  test_compare_hint(GEARMAN_INVALID_ARGUMENT, rc, gearman_client_error(client));
+  test_compare(GEARMAN_INVALID_ARGUMENT, rc);
   test_null(job_result);
   test_zero(job_length);
 
@@ -81,7 +80,7 @@ test_return_t gearman_client_do_with_active_background_task(void *object)
   { // Start up epoch_task
     gearman_task_attr_t work_description= gearman_task_attr_init_epoch(time(NULL) +5, GEARMAN_JOB_PRIORITY_NORMAL);
     gearman_argument_t value= gearman_argument_make(0, 0, test_literal_param("test load"));
-    test_true_got(epoch_task= gearman_execute(client, test_string_make_from_cstr(worker_function), NULL, 0, &work_description, &value, 0), gearman_client_error(client));
+    test_true(epoch_task= gearman_execute(client, test_string_make_from_cstr(worker_function), NULL, 0, &work_description, &value, 0));
     test_truth(epoch_task);
     test_truth(gearman_task_job_handle(epoch_task));
   }
@@ -91,7 +90,7 @@ test_return_t gearman_client_do_with_active_background_task(void *object)
   gearman_return_t rc;
   void *job_result= gearman_client_do(client, worker_function, NULL, gearman_string_param(value), &result_length, &rc);
 
-  test_compare_hint(GEARMAN_SUCCESS, rc, gearman_client_error(client) ? gearman_client_error(client) : gearman_strerror(rc));
+  test_compare(GEARMAN_SUCCESS, rc);
   test_truth(job_result);
   test_compare(gearman_size(value), result_length);
 
