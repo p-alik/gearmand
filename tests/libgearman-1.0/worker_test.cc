@@ -337,18 +337,24 @@ static test_return_t echo_multi_test(void *)
 
 static test_return_t gearman_worker_add_server_GEARMAN_INVALID_ARGUMENT_TEST(void *)
 {
-  test_compare(GEARMAN_INVALID_ARGUMENT,
-               gearman_worker_add_server(NULL, "nonexist.gearman.info", libtest::default_port()));
+  if (libtest::check_dns())
+  {
+    test_compare(GEARMAN_INVALID_ARGUMENT,
+                 gearman_worker_add_server(NULL, "nonexist.gearman.info", libtest::default_port()));
+  }
 
   return TEST_SUCCESS;
 }
 
 static test_return_t gearman_worker_add_server_GEARMAN_GETADDRINFO_TEST(void *)
 {
-  gearman_worker_st *worker= gearman_worker_create(NULL);
-  test_true(worker);
-  test_compare(gearman_worker_add_server(worker, "nonexist.gearman.info", libtest::default_port()), GEARMAN_GETADDRINFO);
-  gearman_worker_free(worker);
+  if (libtest::check_dns())
+  {
+    gearman_worker_st *worker= gearman_worker_create(NULL);
+    test_true(worker);
+    test_compare(gearman_worker_add_server(worker, "nonexist.gearman.info", libtest::default_port()), GEARMAN_GETADDRINFO);
+    gearman_worker_free(worker);
+  }
 
   return TEST_SUCCESS;
 }
