@@ -42,7 +42,7 @@
 #include <boost/program_options.hpp>
 
 #include <libgearman-server/plugins/queue/base.h>
-#include <libgearman-server/queue.h>
+#include <libgearman-server/queue.hpp>
 #include <libgearman-server/log.h>
 
 

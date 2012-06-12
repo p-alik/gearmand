@@ -101,7 +101,7 @@ gearman_return_t gearman_connection_st::connect_poll()
           errno= err;
         }
 
-        return gearman_perror(universal, "getsockopt() failed");
+        return gearman_perror(universal, "getsockopt()");
       }
 
     case 0:

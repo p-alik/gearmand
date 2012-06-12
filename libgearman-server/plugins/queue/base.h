@@ -38,7 +38,7 @@
 #pragma once
 
 #include <libgearman-server/plugins/base.h>
-#include <libgearman-server/queue.h>
+#include <libgearman-server/queue.hpp>
 
 namespace gearmand {
 namespace plugins {

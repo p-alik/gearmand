@@ -25,8 +25,9 @@ include libgearman-server/plugins/include.am
 noinst_LTLIBRARIES+= libgearman-server/libgearman-server.la
 
 
-noinst_HEADERS+= libgearman-server/text.h
 noinst_HEADERS+= libgearman-server/connection.hpp
+noinst_HEADERS+= libgearman-server/queue.hpp
+noinst_HEADERS+= libgearman-server/text.h
 noinst_HEADERS+= \
 		 libgearman-server/byte.h \
 		 libgearman-server/byteorder.h \
@@ -47,7 +48,6 @@ noinst_HEADERS+= \
 		 libgearman-server/log.h \
 		 libgearman-server/packet.h \
 		 libgearman-server/plugins.h \
-		 libgearman-server/queue.h \
 		 libgearman-server/server.h \
 		 libgearman-server/struct/port.h \
 		 libgearman-server/thread.h \

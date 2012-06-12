@@ -38,7 +38,7 @@
 
 #include <libgearman-server/gearmand.h>
 #include <libgearman-server/plugins.h>
-#include <libgearman-server/queue.h>
+#include <libgearman-server/queue.hpp>
 
 #define GEARMAND_LOG_REOPEN_TIME 60
 

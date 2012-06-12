@@ -40,7 +40,7 @@
 
 #include <libgearman-server/plugins.h>
 
-#include <libgearman-server/queue.h>
+#include <libgearman-server/queue.hpp>
 #include <libgearman-server/plugins/queue.h>
 
 namespace gearmand {
