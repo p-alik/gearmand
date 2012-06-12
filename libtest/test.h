@@ -179,10 +179,10 @@ do \
   void(libtest::_compare(__FILE__, __LINE__, __func__, (__expected), (__actual)), true); \
 } while (0)
 
-#define test_warn(__truth) \
+#define test_warn(__truth, __explain) \
 do \
 { \
-  void(libtest::_assert_truth(__FILE__, __LINE__, __func__, (__truth), #__truth)); \
+  void(libtest::_assert_truth(__FILE__, __LINE__, __func__, bool((__truth)), #__truth, __explain)); \
 } while (0)
 
 #define test_strcmp(__expected, __actual) \
