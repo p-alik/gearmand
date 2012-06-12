@@ -44,7 +44,6 @@
 #include <config.h>
 #include <libgearman-server/common.h>
 
-#include <assert.h>
 #include <errno.h>
 #include <string.h>
 #include <iso646.h>
@@ -735,12 +734,11 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
       /* Remove from persistent queue if one exists. */
       if (server_job->job_queued)
       {
-        assert(Server->queue._done_fn);
-        ret= (*(Server->queue._done_fn))(Server, (void *)Server->queue._context,
-                                         server_job->unique,
-                                         server_job->unique_length,
-                                         server_job->function->function_name,
-                                         server_job->function->function_name_size);
+        ret= gearman_queue_done(Server,
+                                server_job->unique,
+                                server_job->unique_length,
+                                server_job->function->function_name,
+                                server_job->function->function_name_size);
         if (gearmand_failed(ret))
         {
           gearmand_gerror("Remove from persistent queue", ret);
@@ -815,12 +813,11 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
       /* Remove from persistent queue if one exists. */
       if (server_job->job_queued)
       {
-        assert(Server->queue._done_fn);
-        ret= (*(Server->queue._done_fn))(Server, (void *)Server->queue._context,
-                                         server_job->unique,
-                                         server_job->unique_length,
-                                         server_job->function->function_name,
-                                         server_job->function->function_name_size);
+        ret= gearman_queue_done(Server,
+                                server_job->unique,
+                                server_job->unique_length,
+                                server_job->function->function_name,
+                                server_job->function->function_name_size);
         if (gearmand_failed(ret))
         {
           gearmand_gerror("Remove from persistent queue", ret);
@@ -877,12 +874,9 @@ gearmand_error_t gearman_server_shutdown_graceful(gearman_server_st *server)
 
 gearmand_error_t gearman_server_queue_replay(gearman_server_st *server)
 {
-  assert(server->queue._replay_fn);
-
   server->state.queue_startup= true;
 
-  gearmand_error_t ret= (*(server->queue._replay_fn))(server, (void *)server->queue._context,
-                                                      _queue_replay_add, server);
+  gearmand_error_t ret= gearman_queue_replay(server, _queue_replay_add, server);
 
   server->state.queue_startup= false;
 
