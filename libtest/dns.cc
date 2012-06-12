@@ -45,6 +45,7 @@ namespace libtest {
 
 bool lookup(const char* host)
 {
+  assert(host);
   bool success= false;
   struct addrinfo *addrinfo= NULL;
 
@@ -56,11 +57,14 @@ bool lookup(const char* host)
     {
       switch (ret)
       {
+      case EAI_NONAME:
+        break;
+
       case EAI_AGAIN:
         continue;
 
       default:
-        throw libtest::fatal(LIBYATL_DEFAULT_PARAM, "getaddrinfo:%s", gai_strerror(ret));
+        throw libtest::fatal(LIBYATL_DEFAULT_PARAM, "host: %s getaddrinfo:%s", host, gai_strerror(ret));
       }
     }
     else

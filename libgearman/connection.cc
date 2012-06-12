@@ -560,10 +560,9 @@ size_t gearman_connection_st::send_and_flush(const void *data, size_t data_size,
 
 gearman_return_t gearman_connection_st::lookup()
 {
-  struct addrinfo *addrinfo= NULL;
-  struct addrinfo *addrinfo_next= NULL;
   if (addrinfo)
   {
+    freeaddrinfo(addrinfo);
     addrinfo= NULL;
   }
 
@@ -583,8 +582,6 @@ gearman_return_t gearman_connection_st::lookup()
 
   addrinfo_next= addrinfo;
   state= GEARMAN_CON_UNIVERSAL_CONNECT;
-
-  freeaddrinfo(addrinfo);
 
   return GEARMAN_SUCCESS;
 }

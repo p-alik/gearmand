@@ -47,15 +47,36 @@ using namespace libtest;
 
 #include "tests/start_worker.h"
 
+struct cycle_context_st 
+{
+  cycle_context_st(libtest::server_startup_st& arg) :
+    servers(arg),
+    port(0)
+  {
+    reset();
+  }
+
+  void reset()
+  {
+    servers.clear();
+    port= get_free_port();
+  }
+
+  server_startup_st& servers;
+  in_port_t port;
+};
+
 static gearman_return_t success_fn(gearman_job_st*, void* /* context */)
 {
   return GEARMAN_SUCCESS;
 }
 
-static test_return_t single_cycle(void *)
+static test_return_t single_cycle(void* object)
 {
+  cycle_context_st *context= (cycle_context_st*)object;
+
   gearman_function_t success_function= gearman_function_create(success_fn);
-  worker_handle_st *worker= test_worker_start(libtest::default_port(), NULL, "success", success_function, NULL, gearman_worker_options_t());
+  worker_handle_st *worker= test_worker_start(context->port, NULL, "success", success_function, NULL, gearman_worker_options_t());
   test_true(worker);
   test_true(worker->shutdown());
   delete worker;
@@ -72,9 +93,9 @@ static test_return_t kill_test(void *)
 
 static test_return_t server_startup_single_TEST(void *obj)
 {
-  server_startup_st *servers= (server_startup_st*)obj;
-  test_compare(true, server_startup(*servers, "gearmand", libtest::get_free_port(), 0, NULL, false));
-  test_compare(true, servers->shutdown());
+  cycle_context_st *context= (cycle_context_st*)obj;
+  test_compare(true, server_startup(context->servers, "gearmand", context->port, 0, NULL, false));
+  test_compare(true, context->servers.shutdown());
 
 
   return TEST_SUCCESS;
@@ -82,20 +103,20 @@ static test_return_t server_startup_single_TEST(void *obj)
 
 static test_return_t server_startup_multiple_TEST(void *obj)
 {
-  server_startup_st *servers= (server_startup_st*)obj;
+  cycle_context_st *context= (cycle_context_st*)obj;
   for (size_t x= 0; x < 10; x++)
   {
-    test_compare(true, server_startup(*servers, "gearmand", libtest::get_free_port(), 0, NULL, false));
+    test_compare(true, server_startup(context->servers, "gearmand", context->port, 0, NULL, false));
   }
-  test_compare(true, servers->shutdown());
+  test_compare(true, context->servers.shutdown());
 
   return TEST_SUCCESS;
 }
 
 static test_return_t shutdown_and_remove_TEST(void *obj)
 {
-  server_startup_st *servers= (server_startup_st*)obj;
-  servers->clear();
+  cycle_context_st *context= (cycle_context_st*)obj;
+  context->servers.clear();
 
   return TEST_SUCCESS;
 }
@@ -120,26 +141,29 @@ test_st worker_tests[] ={
 
 static test_return_t collection_INIT(void *object)
 {
-  server_startup_st *servers= (server_startup_st*)object;
-  test_zero(servers->count());
-  test_compare(true, server_startup(*servers, "gearmand", libtest::default_port(), 0, NULL, false));
+  cycle_context_st *context= (cycle_context_st*)object;
+  test_zero(context->servers.count());
+  context->reset();
+
+  test_compare(true, server_startup(context->servers, "gearmand", context->port, 0, NULL, false));
 
   return TEST_SUCCESS;
 }
 
 static test_return_t validate_sanity_INIT(void *object)
 {
-  server_startup_st *servers= (server_startup_st*)object;
+  cycle_context_st *context= (cycle_context_st*)object;
 
-  test_zero(servers->count());
+  test_zero(context->servers.count());
+  context->reset();
 
   return TEST_SUCCESS;
 }
 
 static test_return_t collection_FINAL(void *object)
 {
-  server_startup_st *servers= (server_startup_st*)object;
-  servers->clear();
+  cycle_context_st *context= (cycle_context_st*)object;
+  context->reset();
 
   return TEST_SUCCESS;
 }
@@ -153,12 +177,21 @@ collection_st collection[] ={
 
 static void *world_create(server_startup_st& servers, test_return_t& )
 {
-  return &servers;
+  return new cycle_context_st(servers);
+}
+
+static bool world_destroy(void *object)
+{
+  cycle_context_st *context= (cycle_context_st*)object;
+  delete context;
+
+  return TEST_SUCCESS;
 }
 
 void get_world(Framework *world)
 {
   world->collections(collection);
   world->create(world_create);
+  world->destroy(world_destroy);
 }
 

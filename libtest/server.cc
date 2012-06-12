@@ -252,6 +252,7 @@ bool Server::start()
       }
 
       this_wait= retry * retry / 3 + 1;
+      Error << "dreaming" << this_wait;
       libtest::dream(this_wait, 0);
     }
   }
@@ -264,30 +265,38 @@ bool Server::start()
       _app.slurp();
       if (kill_file(pid_file()) == false)
       {
-        throw libtest::fatal(LIBYATL_DEFAULT_PARAM,
-                             "Failed to kill off server, waited: %u after startup occurred, when pinging failed: %.*s stderr:%.*s",
-                             this_wait,
-                             int(_running.size()), _running.c_str(),
-                             int(_app.stderr_result_length()), _app.stderr_c_str());
-      }
+        libtest::fatal err(LIBYATL_DEFAULT_PARAM,
+                           "Failed to kill off server, waited: %u after startup occurred, when pinging failed: %.*s stderr:%.*s",
+                           this_wait,
+                           int(_running.size()), _running.c_str(),
+                           int(_app.stderr_result_length()), _app.stderr_c_str());
 
-      throw libtest::fatal(LIBYATL_DEFAULT_PARAM, 
-                           "Failed native ping(), pid: %d is alive: %s waited: %u server started, having pid_file. exec: %.*s stderr:%.*s",
+        stream::cerr(err.file(), err.line(), err.func()) << err.what();
+      }
+      else
+      {
+        libtest::fatal err(LIBYATL_DEFAULT_PARAM, 
+                           "Failed native ping(), pid: %d was alive: %s waited: %u server started, having pid_file. exec: %.*s stderr:%.*s",
                            int(_app.pid()),
                            _app.check() ? "true" : "false",
                            this_wait,
                            int(_running.size()), _running.c_str(),
                            int(_app.stderr_result_length()), _app.stderr_c_str());
+
+        stream::cerr(err.file(), err.line(), err.func()) << err.what();
+      }
     }
     else
     {
-      throw libtest::fatal(LIBYATL_DEFAULT_PARAM,
-                           "Failed native ping(), pid: %d is alive: %s waited: %u server started. exec: %.*s stderr:%.*s",
-                           int(_app.pid()),
-                           _app.check() ? "true" : "false",
-                           this_wait,
-                           int(_running.size()), _running.c_str(),
-                           int(_app.stderr_result_length()), _app.stderr_c_str());
+      libtest::fatal err(LIBYATL_DEFAULT_PARAM,
+                         "Failed native ping(), pid: %d is alive: %s waited: %u server started. exec: %.*s stderr:%.*s",
+                         int(_app.pid()),
+                         _app.check() ? "true" : "false",
+                         this_wait,
+                         int(_running.size()), _running.c_str(),
+                         int(_app.stderr_result_length()), _app.stderr_c_str());
+
+      stream::cerr(err.file(), err.line(), err.func()) << err.what();
     }
     _running.clear();
     return false;
