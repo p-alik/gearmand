@@ -227,7 +227,7 @@ public:
   {
     const char *unique= "-";
     size_t unique_size= 2;
-    gearmand_job_priority_t priority= GEARMAND_JOB_PRIORITY_NORMAL;
+    gearman_job_priority_t priority= GEARMAN_JOB_PRIORITY_NORMAL;
 
     gearmand_info("Receiving HTTP response");
 
@@ -393,12 +393,12 @@ public:
       else if (header_size == 24 and
                strncasecmp(header, "X-Gearman-Priority: high", 24) == 0)
       {
-        priority= GEARMAND_JOB_PRIORITY_HIGH;
+        priority= GEARMAN_JOB_PRIORITY_HIGH;
       }
       else if (header_size == 23 and
                strncasecmp(header, "X-Gearman-Priority: low", 23) == 0)
       {
-        priority= GEARMAND_JOB_PRIORITY_LOW;
+        priority= GEARMAN_JOB_PRIORITY_LOW;
       }
     }
 
@@ -450,11 +450,11 @@ public:
     {
       if (background())
       {
-        if (priority == GEARMAND_JOB_PRIORITY_NORMAL)
+        if (priority == GEARMAN_JOB_PRIORITY_NORMAL)
         {
           packet->command= GEARMAN_COMMAND_SUBMIT_JOB_BG;
         }
-        else if (priority == GEARMAND_JOB_PRIORITY_HIGH)
+        else if (priority == GEARMAN_JOB_PRIORITY_HIGH)
         {
           packet->command= GEARMAN_COMMAND_SUBMIT_JOB_HIGH_BG;
         }
@@ -465,11 +465,11 @@ public:
       }
       else
       {
-        if (priority == GEARMAND_JOB_PRIORITY_NORMAL)
+        if (priority == GEARMAN_JOB_PRIORITY_NORMAL)
         {
           packet->command= GEARMAN_COMMAND_SUBMIT_JOB;
         }
-        else if (priority == GEARMAND_JOB_PRIORITY_HIGH)
+        else if (priority == GEARMAN_JOB_PRIORITY_HIGH)
         {
           packet->command= GEARMAN_COMMAND_SUBMIT_JOB_HIGH;
         }

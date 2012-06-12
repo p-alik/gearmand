@@ -2,10 +2,9 @@
 # Gearman server and library
 # Copyright (C) 2011 Data Differential
 
-noinst_HEADERS+= \
-		 libgearman-server/plugins/base.h \
-		 libgearman-server/plugins/protocol.h \
-		 libgearman-server/plugins/queue.h
+noinst_HEADERS+= libgearman-server/plugins/base.h
+noinst_HEADERS+= libgearman-server/plugins/protocol.h
+noinst_HEADERS+= libgearman-server/plugins/queue.h
 
 include libgearman-server/plugins/protocol/include.am
 include libgearman-server/plugins/queue/include.am

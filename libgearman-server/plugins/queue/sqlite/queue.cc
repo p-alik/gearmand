@@ -158,7 +158,7 @@ static gearmand_error_t _sqlite_add(gearman_server_st *server, void *context,
                                     const char *function_name,
                                     size_t function_name_size,
                                     const void *data, size_t data_size,
-                                    gearmand_job_priority_t priority,
+                                    gearman_job_priority_t priority,
                                     int64_t when);
 
 static gearmand_error_t _sqlite_flush(gearman_server_st *server, void *context);
@@ -428,7 +428,7 @@ static gearmand_error_t _sqlite_add(gearman_server_st *server, void *context,
                                     const char *function_name,
                                     size_t function_name_size,
                                     const void *data, size_t data_size,
-                                    gearmand_job_priority_t priority,
+                                    gearman_job_priority_t priority,
                                     int64_t when)
 {
   gearmand::plugins::queue::Sqlite *queue= (gearmand::plugins::queue::Sqlite *)context;
@@ -629,10 +629,10 @@ static gearmand_error_t _sqlite_replay(gearman_server_st *server, void *context,
       return GEARMAN_QUEUE_ERROR;
     }
 
-    gearmand_job_priority_t priority;
+    gearman_job_priority_t priority;
     if (sqlite3_column_type(sth,2) == SQLITE_INTEGER)
     {
-      priority= (gearmand_job_priority_t)sqlite3_column_int64(sth,2);
+      priority= (gearman_job_priority_t)sqlite3_column_int64(sth,2);
     }
     else
     {

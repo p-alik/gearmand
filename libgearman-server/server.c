@@ -37,7 +37,7 @@ static gearmand_error_t _queue_replay_add(gearman_server_st *server, void *conte
                                           const char *unique, size_t unique_size,
                                           const char *function_name, size_t function_name_size,
                                           const void *data, size_t data_size,
-                                          gearmand_job_priority_t priority,
+                                          gearman_job_priority_t priority,
                                           int64_t when);
 
 /**
@@ -117,7 +117,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
         return _server_error_packet(server_con, "job failure", "Unique value too large");
       }
 
-      gearmand_job_priority_t map_priority= GEARMAND_JOB_PRIORITY_NORMAL;
+      gearman_job_priority_t map_priority= GEARMAN_JOB_PRIORITY_NORMAL;
 
       /* Schedule job. */
       gearman_server_job_st *server_job= gearman_server_job_add_reducer(Server,
@@ -172,22 +172,22 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
   case GEARMAN_COMMAND_SUBMIT_JOB_LOW_BG:
   case GEARMAN_COMMAND_SUBMIT_JOB_EPOCH:
     {
-      gearmand_job_priority_t priority;
+      gearman_job_priority_t priority;
 
       if (packet->command == GEARMAN_COMMAND_SUBMIT_JOB ||
           packet->command == GEARMAN_COMMAND_SUBMIT_JOB_BG ||
           packet->command == GEARMAN_COMMAND_SUBMIT_JOB_EPOCH)
       {
-        priority= GEARMAND_JOB_PRIORITY_NORMAL;
+        priority= GEARMAN_JOB_PRIORITY_NORMAL;
       }
       else if (packet->command == GEARMAN_COMMAND_SUBMIT_JOB_HIGH ||
                packet->command == GEARMAN_COMMAND_SUBMIT_JOB_HIGH_BG)
       {
-        priority= GEARMAND_JOB_PRIORITY_HIGH;
+        priority= GEARMAN_JOB_PRIORITY_HIGH;
       }
       else
       {
-        priority= GEARMAND_JOB_PRIORITY_LOW;
+        priority= GEARMAN_JOB_PRIORITY_LOW;
       }
 
       if (packet->command == GEARMAN_COMMAND_SUBMIT_JOB_BG ||
@@ -888,7 +888,7 @@ gearmand_error_t _queue_replay_add(gearman_server_st *server,
                                    const char *unique, size_t unique_size,
                                    const char *function_name, size_t function_name_size,
                                    const void *data, size_t data_size,
-                                   gearmand_job_priority_t priority,
+                                   gearman_job_priority_t priority,
                                    int64_t when)
 {
   gearmand_error_t ret= GEARMAN_SUCCESS;

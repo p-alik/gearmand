@@ -20,6 +20,7 @@
 #endif
 
 #include <libgearman-1.0/limits.h>
+#include <libgearman-1.0/priority.h>
 #include <libgearman-server/verbose.h>
 
 /**
@@ -54,22 +55,6 @@
 #define GEARMAN_TEXT_RESPONSE_SIZE 8192
 
 /** @} */
-
-/**
- * @ingroup gearman_job
- * Priority levels for a job.
- */
-enum gearmand_job_priority_t
-{
-  GEARMAND_JOB_PRIORITY_HIGH,
-  GEARMAND_JOB_PRIORITY_NORMAL,
-  GEARMAND_JOB_PRIORITY_LOW,
-  GEARMAND_JOB_PRIORITY_MAX /* Always add new commands before this. */
-};
-
-#ifndef __cplusplus
-typedef enum gearmand_job_priority_t gearmand_job_priority_t;
-#endif
 
 /** @} */
 
@@ -124,7 +109,7 @@ typedef gearmand_error_t (gearman_queue_add_fn)(gearman_server_st *server,
                                                 size_t function_name_size,
                                                 const void *data,
                                                 size_t data_size,
-                                                gearmand_job_priority_t priority,
+                                                gearman_job_priority_t priority,
                                                 int64_t when);
 
 typedef gearmand_error_t (gearman_queue_flush_fn)(gearman_server_st *server,

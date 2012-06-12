@@ -40,7 +40,7 @@
 struct gearman_server_job_st
 {
   uint8_t retries;
-  gearmand_job_priority_t priority;
+  gearman_job_priority_t priority;
   bool ignore_job;
   bool job_queued;
   uint32_t job_handle_key;

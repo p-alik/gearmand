@@ -160,7 +160,7 @@ static gearmand_error_t _libpq_add(gearman_server_st *server, void *context,
                                    const char *function_name,
                                    size_t function_name_size,
                                    const void *data, size_t data_size,
-                                   gearmand_job_priority_t priority,
+                                   gearman_job_priority_t priority,
                                    int64_t when);
 
 static gearmand_error_t _libpq_flush(gearman_server_st *server, void *context);
@@ -256,7 +256,7 @@ static gearmand_error_t _libpq_add(gearman_server_st *server, void *context,
                                    const char *function_name,
                                    size_t function_name_size,
                                    const void *data, size_t data_size,
-                                   gearmand_job_priority_t priority,
+                                   gearman_job_priority_t priority,
                                    int64_t when)
 {
   (void)server;
@@ -392,7 +392,7 @@ static gearmand_error_t _libpq_replay(gearman_server_st *server, void *context,
                    PQgetvalue(result, row, 1),
                    (size_t)PQgetlength(result, row, 1),
                    data, data_length,
-                   (gearmand_job_priority_t)atoi(PQgetvalue(result, row, 2)),
+                   (gearman_job_priority_t)atoi(PQgetvalue(result, row, 2)),
                    atoll(PQgetvalue(result, row, 4)));
     if (gearmand_failed(ret))
     {
