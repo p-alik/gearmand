@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
   ("round-robin,R", boost::program_options::bool_switch(&opt_round_robin)->default_value(false),
    "Assign work in round-robin order per worker connection. The default is to assign work in the order of functions added by the worker.")
 
-  ("queue-type,q", boost::program_options::value(&queue_type),
+  ("queue-type,q", boost::program_options::value(&queue_type)->default_value("builtin"),
    "Persistent queue type to use.")
 
   ("config-file", boost::program_options::value(&config_file)->default_value(GEARMAND_CONFIG),

@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -35,80 +35,15 @@
  *
  */
 
-#include <config.h>
-
-#include <iostream>
-
-#include <boost/program_options.hpp>
-
-#include <libgearman-server/plugins/queue/base.h>
-#include <libgearman-server/queue.h>
-#include <libgearman-server/log.h>
+#pragma once
 
 
 namespace gearmand {
-
+namespace plugins {
 namespace queue {
 
-plugins::Queue::vector all_queue_modules;
-
-void add(plugins::Queue* arg)
-{
-  all_queue_modules.push_back(arg);
-}
-
-void load_options(boost::program_options::options_description &all)
-{
-  for (plugins::Queue::vector::iterator iter= all_queue_modules.begin();
-       iter != all_queue_modules.end();
-       iter++)
-  {
-    all.add((*iter)->command_line_options());
-  }
-}
-
-gearmand_error_t initialize(gearmand_st *, const std::string &name)
-{
-  bool launched= false;
-
-  if (name.empty())
-  {
-    return GEARMAN_SUCCESS;
-  }
-
-  for (plugins::Queue::vector::iterator iter= all_queue_modules.begin();
-       iter != all_queue_modules.end();
-       iter++)
-  {
-    if (not name.compare((*iter)->name()))
-    {
-      if (launched)
-      {
-        return gearmand_gerror("Attempt to initialize multiple queues", GEARMAN_UNKNOWN_OPTION);
-      }
-
-      gearmand_error_t rc;
-      if (gearmand_failed(rc= (*iter)->initialize()))
-      {
-        std::string error_string("Failed to initialize ");
-        error_string+= name;
-
-        return gearmand_gerror(error_string.c_str(), rc);
-      }
-
-      launched= true;
-    }
-  }
-
-  if (launched == false)
-  {
-    std::string error_string("Unknown queue ");
-    error_string+= name;
-    return gearmand_gerror(error_string.c_str(), GEARMAN_UNKNOWN_OPTION);
-  }
-
-  return GEARMAN_SUCCESS;
-}
+void initialize_default();
 
 } // namespace queue
+} // namespace plugin
 } // namespace gearmand
