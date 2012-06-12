@@ -63,7 +63,7 @@ bool _compare_truth(const char *file, int line, const char *func, T_comparable _
 {
   if (__expected == false)
   {
-    libtest::stream::make_cerr(file, line, func) << "Assertation  \"" << assertation_label << "\" failed";
+    libtest::stream::make_cerr(file, line, func) << "Assertation  \"" << assertation_label << "\"";
     return false;
   }
 
@@ -131,7 +131,7 @@ bool _assert_truth(const char *file, int line, const char *func, T_comparable __
 
   if (__explain)
   {
-    libtest::stream::make_cerr(file, line, func) << "Assertion \"" << __expression << "\" failed warning:" << __explain;
+    libtest::stream::make_cerr(file, line, func) << "Assertion \"" << __expression << "\" warning:" << __explain;
   }
 
   return false;

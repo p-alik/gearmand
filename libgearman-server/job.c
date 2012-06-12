@@ -50,6 +50,8 @@
 #include <libgearman-server/list.h>
 #include <libgearman-server/hash.h>
 
+#include <assert.h>
+
 /*
  * Private declarations
  */
@@ -243,8 +245,9 @@ gearman_server_job_add_reducer(gearman_server_st *server,
     {
       server_job->job_queued= true;
     }
-    else if (server_client == NULL && server->queue._add_fn != NULL)
+    else if (server_client == NULL)
     {
+      assert(server->queue._add_fn);
       *ret_ptr= (*(server->queue._add_fn))(server,
                                            (void *)server->queue._context,
                                            server_job->unique, unique_size,
@@ -277,8 +280,9 @@ gearman_server_job_add_reducer(gearman_server_st *server,
     *ret_ptr= gearman_server_job_queue(server_job);
     if (gearmand_failed(*ret_ptr))
     {
-      if (server_client == NULL && server->queue._done_fn != NULL)
+      if (server_client == NULL)
       {
+        assert(server->queue._done_fn);
         /* Do our best to remove the job from the queue. */
         (void)(*(server->queue._done_fn))(server,
                                           (void *)server->queue._context,
@@ -378,8 +382,9 @@ gearmand_error_t gearman_server_job_queue(gearman_server_job_st *job)
       }
 
       /* Remove from persistent queue if one exists. */
-      if (job->job_queued && Server->queue._done_fn != NULL)
+      if (job->job_queued)
       {
+        assert(Server->queue._done_fn);
         gearmand_error_t ret= (*(Server->queue._done_fn))(Server,
                                                           (void *)Server->queue._context,
                                                           job->unique, job->unique_length,
