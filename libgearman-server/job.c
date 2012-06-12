@@ -259,7 +259,6 @@ gearman_server_job_add_reducer(gearman_server_st *server,
         return NULL;
       }
 
-      if (server->queue._flush_fn != NULL)
       {
         *ret_ptr= gearman_queue_flush(server);
         if (*ret_ptr != GEARMAN_SUCCESS)

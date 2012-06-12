@@ -37,6 +37,33 @@
 
 #pragma once
 
+struct queue_st {
+  void *_context;
+  gearman_queue_add_fn *_add_fn;
+  gearman_queue_flush_fn *_flush_fn;
+  gearman_queue_done_fn *_done_fn;
+  gearman_queue_replay_fn *_replay_fn;
+};
+
+enum queue_version_t {
+  QUEUE_VERSION_FUNCTION,
+  QUEUE_VERSION_CLASS
+};
+
+#ifdef __cplusplus
+namespace gearmand { namespace queue { class Context; } };
+#endif
+
+union queue_un {
+  struct queue_st functions;
+#ifdef __cplusplus
+  gearmand::queue::Context* _object;
+#else
+  void *_object;
+#endif
+  char raw[sizeof(struct queue_st)];
+};
+
 struct gearman_server_st
 {
   struct {
@@ -72,13 +99,8 @@ struct gearman_server_st
   gearman_server_job_st *free_job_list;
   gearman_server_client_st *free_client_list;
   gearman_server_worker_st *free_worker_list;
-  struct {
-    void *_context;
-    gearman_queue_add_fn *_add_fn;
-    gearman_queue_flush_fn *_flush_fn;
-    gearman_queue_done_fn *_done_fn;
-    gearman_queue_replay_fn *_replay_fn;
-  } queue;
+  enum queue_version_t queue_version;
+  union queue_un queue;
   pthread_mutex_t proc_lock;
   pthread_cond_t proc_cond;
   pthread_t proc_id;

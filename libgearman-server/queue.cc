@@ -57,21 +57,30 @@ gearmand_error_t gearman_queue_add(gearman_server_st *server,
                                    gearman_job_priority_t priority,
                                    int64_t when)
 {
-  assert(server->queue._add_fn);
-  return (*(server->queue._add_fn))(server,
-                                    (void *)server->queue._context,
-                                    unique, unique_size,
-                                    function_name,
-                                    function_name_size,
-                                    data, data_size, priority, 
-                                    when);
+  if (server->queue_version == QUEUE_VERSION_FUNCTION)
+  {
+    assert(server->queue.functions._add_fn);
+    return (*(server->queue.functions._add_fn))(server,
+                                                (void *)server->queue.functions._context,
+                                                unique, unique_size,
+                                                function_name,
+                                                function_name_size,
+                                                data, data_size, priority, 
+                                                when);
+  }
+
+  return GEARMAN_SUCCESS;
 }
 
 gearmand_error_t gearman_queue_flush(gearman_server_st *server)
 {
-  assert(server->queue._flush_fn);
-  return (*(server->queue._flush_fn))(server,
-                                      (void *)server->queue._context);
+  if (server->queue_version == QUEUE_VERSION_FUNCTION)
+  {
+    assert(server->queue.functions._flush_fn);
+    return (*(server->queue.functions._flush_fn))(server, (void *)server->queue.functions._context);
+  }
+
+  return GEARMAN_SUCCESS;
 }
 
 gearmand_error_t gearman_queue_done(gearman_server_st *server,
@@ -80,24 +89,33 @@ gearmand_error_t gearman_queue_done(gearman_server_st *server,
                                     const char *function_name,
                                     size_t function_name_size)
 {
-  assert(server->queue._done_fn);
-  return (*(server->queue._done_fn))(server,
-                                     (void *)server->queue._context,
-                                     unique, unique_size,
-                                     function_name,
-                                     function_name_size);
+  if (server->queue_version == QUEUE_VERSION_FUNCTION)
+  {
+    assert(server->queue.functions._done_fn);
+    return (*(server->queue.functions._done_fn))(server,
+                                                  (void *)server->queue.functions._context,
+                                                  unique, unique_size,
+                                                  function_name,
+                                                  function_name_size);
+  }
+
+  return GEARMAN_SUCCESS;
 }
 
 gearmand_error_t gearman_queue_replay(gearman_server_st *server,
                                       gearman_queue_add_fn *add_fn,
                                       void *add_context)
 {
-  assert(server->queue._replay_fn);
-  return (*(server->queue._replay_fn))(server,
-                                       (void *)server->queue._context,
-                                       add_fn,
-                                       server);
+  if (server->queue_version == QUEUE_VERSION_FUNCTION)
+  {
+    assert(server->queue.functions._replay_fn);
+    return (*(server->queue.functions._replay_fn))(server,
+                                                    (void *)server->queue.functions._context,
+                                                    add_fn,
+                                                    server);
+  }
 
+  return GEARMAN_SUCCESS;
 }
 
 

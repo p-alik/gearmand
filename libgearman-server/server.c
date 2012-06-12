@@ -885,7 +885,12 @@ gearmand_error_t gearman_server_queue_replay(gearman_server_st *server)
 
 void *gearman_server_queue_context(const gearman_server_st *server)
 {
-  return (void *)server->queue._context;
+  if (server->queue_version == QUEUE_VERSION_FUNCTION)
+  {
+    return (void *)server->queue.functions._context;
+  }
+
+  return NULL;
 }
 
 void gearman_server_set_queue(gearman_server_st *server,
@@ -895,11 +900,12 @@ void gearman_server_set_queue(gearman_server_st *server,
                               gearman_queue_done_fn *done,
                               gearman_queue_replay_fn *replay)
 {
-  server->queue._context= context;
-  server->queue._add_fn= add;
-  server->queue._flush_fn= flush;
-  server->queue._done_fn= done;
-  server->queue._replay_fn= replay;
+  server->queue_version= QUEUE_VERSION_FUNCTION;
+  server->queue.functions._context= context;
+  server->queue.functions._add_fn= add;
+  server->queue.functions._flush_fn= flush;
+  server->queue.functions._done_fn= done;
+  server->queue.functions._replay_fn= replay;
 }
 
 /*
