@@ -10,20 +10,16 @@
 # All paths should be given relative to the root
 #
 
-test-drizzle: tests/drizzle_test
-	@tests/drizzle_test
-
-gdb-drizzle: tests/drizzle_test
-	@$(GDB_COMMAND) tests/drizzle_test
-
 tests_drizzle_test_CXXFLAGS=
 tests_drizzle_test_SOURCES=
+tests_drizzle_test_DEPENDENCIES=
+tests_drizzle_test_LDADD=
 
 tests_drizzle_test_SOURCES+= tests/basic.cc
 tests_drizzle_test_SOURCES+= tests/drizzle_test.cc
 
-tests_drizzle_test_DEPENDENCIES= ${CLIENT_LDADD} gearmand/gearmand
-tests_drizzle_test_LDADD= ${CLIENT_LDADD}
+tests_drizzle_test_DEPENDENCIES+= ${CLIENT_LDADD}
+tests_drizzle_test_LDADD+= ${CLIENT_LDADD}
 
 if HAVE_LIBDRIZZLE
 tests_drizzle_test_LDADD+= $(libdrizzle_LIBS)
@@ -32,3 +28,15 @@ endif
 
 check_PROGRAMS += tests/drizzle_test
 noinst_PROGRAMS += tests/drizzle_test
+
+test-drizzle: tests/drizzle_test gearmand/gearmand
+	@tests/drizzle_test
+
+gdb-drizzle: tests/drizzle_test gearmand/gearmand
+	@$(GDB_COMMAND) tests/drizzle_test
+
+helgrind-drizzle: tests/drizzle_test gearmand/gearmand
+	@$(HELGRIND_COMMAND) tests/drizzle_test
+
+valgrind-drizzle: tests/drizzle_test gearmand/gearmand
+	@$(VALGRIND_COMMAND) tests/drizzle_test

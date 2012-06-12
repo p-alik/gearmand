@@ -53,7 +53,6 @@ tests_cycle_DEPENDENCIES=
 
 tests_cycle_SOURCES+= tests/cycle.cc
 tests_cycle_DEPENDENCIES+= ${CLIENT_LDADD}
-tests_cycle_DEPENDENCIES+= gearmand/gearmand
 tests_cycle_LDADD= ${CLIENT_LDADD}
 check_PROGRAMS+=tests/cycle
 noinst_PROGRAMS+=tests/cycle
@@ -64,7 +63,6 @@ tests_blobslap_client_LDADD=
 
 tests_blobslap_client_SOURCES+= tests/blobslap_client.cc
 tests_blobslap_client_DEPENDENCIES+= ${CLIENT_LDADD}
-tests_blobslap_client_DEPENDENCIES+= gearmand/gearmand
 tests_blobslap_client_LDADD+= ${CLIENT_LDADD}
 noinst_PROGRAMS+= tests/blobslap_client
 
@@ -75,7 +73,6 @@ tests_cli_LDADD=
 tests_cli_SOURCES+= tests/cli.cc
 tests_cli_SOURCES+= tests/libgearman-1.0/workers.cc
 tests_cli_DEPENDENCIES+= ${CLIENT_LDADD}
-tests_cli_DEPENDENCIES+= gearmand/gearmand
 tests_cli_DEPENDENCIES+= bin/gearman
 tests_cli_DEPENDENCIES+= bin/gearadmin
 tests_cli_LDADD+= ${CLIENT_LDADD}
@@ -88,7 +85,6 @@ tests_gearmand_LDADD=
 
 tests_gearmand_SOURCES+= tests/gearmand.cc
 tests_gearmand_DEPENDENCIES+= ${CLIENT_LDADD}
-tests_gearmand_DEPENDENCIES+= gearmand/gearmand
 tests_gearmand_LDADD+= ${CLIENT_LDADD}
 check_PROGRAMS+= tests/gearmand
 noinst_PROGRAMS+= tests/gearmand
@@ -102,7 +98,6 @@ tests_round_robin_test_LDADD=
 tests_round_robin_test_SOURCES+= tests/round_robin.cc
 tests_round_robin_test_DEPENDENCIES+= ${CLIENT_LDADD}
 tests_round_robin_test_DEPENDENCIES+= libgearman/libgearmancore.la
-tests_round_robin_test_DEPENDENCIES+= gearmand/gearmand
 tests_round_robin_test_LDADD+= ${CLIENT_LDADD}
 tests_round_robin_test_LDADD+= libgearman/libgearmancore.la
 check_PROGRAMS+= tests/round_robin_test
@@ -137,7 +132,6 @@ tests_stress_test_SOURCES+= tests/burnin.cc
 tests_stress_test_SOURCES+= tests/libgearman-1.0/workers.cc
 tests_stress_test_SOURCES+= tests/stress_worker.cc
 tests_stress_test_DEPENDENCIES+= ${CLIENT_LDADD}
-tests_stress_test_DEPENDENCIES+= gearmand/gearmand
 tests_stress_test_LDADD+= ${CLIENT_LDADD}
 check_PROGRAMS+=tests/stress_test
 noinst_PROGRAMS+=tests/stress_test
@@ -158,7 +152,6 @@ tests_cpp_test_LDADD=
 
 tests_cpp_test_SOURCES+= tests/cpp_test.cc
 tests_cpp_test_DEPENDENCIES+= ${CLIENT_LDADD}
-tests_cpp_test_DEPENDENCIES+= gearmand/gearmand
 tests_cpp_test_LDADD+= ${CLIENT_LDADD}
 check_PROGRAMS+=tests/cpp_test
 noinst_PROGRAMS+=tests/cpp_test
@@ -170,7 +163,6 @@ tests_c_test_LDADD=
 
 tests_c_test_SOURCES+= tests/c_test.c
 tests_c_test_DEPENDENCIES+= ${CLIENT_LDADD}
-tests_c_test_DEPENDENCIES+= gearmand/gearmand
 tests_c_test_LDADD+= ${CLIENT_LDADD}
 check_PROGRAMS+=tests/c_test
 noinst_PROGRAMS+=tests/c_test

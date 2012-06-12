@@ -15,7 +15,7 @@ test-ephemeral: tests/ephemeral_test
 
 tests_ephemeral_test_SOURCES=
 tests_ephemeral_test_CXXFLAGS=
-tests_ephemeral_test_DEPENDENCIES= ${CLIENT_LDADD} gearmand/gearmand
+tests_ephemeral_test_DEPENDENCIES= ${CLIENT_LDADD}
 tests_ephemeral_test_LDADD= ${CLIENT_LDADD}
 
 tests_ephemeral_test_SOURCES+= tests/basic.cc
