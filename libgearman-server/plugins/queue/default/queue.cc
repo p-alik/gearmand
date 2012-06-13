@@ -44,9 +44,8 @@
 #include <config.h>
 #include <libgearman-server/common.h>
 
-#include <libgearman-server/plugins/queue/sqlite/queue.h>
+#include <libgearman-server/plugins/queue/default/queue.h>
 #include <libgearman-server/plugins/queue/base.h>
-#include <sqlite3.h>
 
 /**
  * @addtogroup gearman_queue_default_static Static default Queue Storage Definitions
