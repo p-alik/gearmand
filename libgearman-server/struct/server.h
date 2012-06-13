@@ -57,7 +57,7 @@ namespace gearmand { namespace queue { class Context; } };
 union queue_un {
   struct queue_st functions;
 #ifdef __cplusplus
-  gearmand::queue::Context* _object;
+  gearmand::queue::Context* object;
 #else
   void *_object;
 #endif

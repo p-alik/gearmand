@@ -83,7 +83,6 @@ public:
   { }
 
     virtual gearmand_error_t add(gearman_server_st *server,
-                                 void *context,
                                  const char *unique,
                                  size_t unique_size,
                                  const char *function_name,
@@ -93,20 +92,15 @@ public:
                                  gearman_job_priority_t priority,
                                  int64_t when)= 0;
 
-    virtual gearmand_error_t flush(gearman_server_st *server,
-                                   void *context)= 0;
+    virtual gearmand_error_t flush(gearman_server_st *server)= 0;
 
     virtual gearmand_error_t done(gearman_server_st *server,
-                                  void *context,
                                   const char *unique,
                                   size_t unique_size,
                                   const char *function_name,
                                   size_t function_name_size)= 0;
 
-    virtual gearmand_error_t replay(gearman_server_st *server,
-                                    void *context,
-                                    gearman_queue_add_fn *add_fn,
-                                    void *add_context)= 0;
+    virtual gearmand_error_t replay(gearman_server_st *server)= 0;
 };
 
 } // namespace queue
