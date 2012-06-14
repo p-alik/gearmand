@@ -57,14 +57,12 @@ bool lookup(const char* host)
     {
       switch (ret)
       {
-      case EAI_NONAME:
-        break;
-
       case EAI_AGAIN:
         continue;
 
+      case EAI_NONAME:
       default:
-        throw libtest::fatal(LIBYATL_DEFAULT_PARAM, "host: %s getaddrinfo:%s", host, gai_strerror(ret));
+        break;
       }
     }
     else

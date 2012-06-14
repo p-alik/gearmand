@@ -120,7 +120,6 @@ test_return_t Collection::exec()
       }
       catch (libtest::fatal &e)
       {
-        Error << "Fatal exception was thrown: " << e.what();
         stream::cerr(e.file(), e.line(), e.func()) << e.what();
         _failed++;
         throw;
