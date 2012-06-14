@@ -10,15 +10,6 @@
 # All paths should be given relative to the root
 #
 
-test-postgres: tests/postgres_test gearmand/gearmand
-	@tests/postgres_test
-
-gdb-postgres: tests/postgres_test gearmand/gearmand
-	@$(GDB_COMMAND) tests/postgres_test
-
-valgrind-postgres: tests/postgres_test gearmand/gearmand
-	@$(VALGRIND_COMMAND) tests/postgres_test
-
 tests_postgres_test_SOURCES=
 tests_postgres_test_CXXFLAGS=
 tests_postgres_test_DEPENDENCIES=
@@ -28,8 +19,16 @@ tests_postgres_test_SOURCES+= tests/basic.cc
 tests_postgres_test_SOURCES+= tests/postgres_test.cc
 
 tests_postgres_test_DEPENDENCIES+= ${CLIENT_LDADD}
-tests_postgres_test_DEPENDENCIES+= gearmand/gearmand
 tests_postgres_test_LDADD+= ${CLIENT_LDADD}
 
 check_PROGRAMS += tests/postgres_test
 noinst_PROGRAMS += tests/postgres_test
+
+test-postgres: tests/postgres_test gearmand/gearmand
+	@tests/postgres_test
+
+gdb-postgres: tests/postgres_test gearmand/gearmand
+	@$(GDB_COMMAND) tests/postgres_test
+
+valgrind-postgres: tests/postgres_test gearmand/gearmand
+	@$(VALGRIND_COMMAND) tests/postgres_test

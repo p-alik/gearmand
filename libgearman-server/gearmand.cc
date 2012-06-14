@@ -1071,11 +1071,11 @@ static bool gearman_server_create(gearman_server_st *server,
   server->free_job_list= NULL;
   server->free_client_list= NULL;
   server->free_worker_list= NULL;
-  server->queue._context= NULL;
-  server->queue._add_fn= NULL;
-  server->queue._flush_fn= NULL;
-  server->queue._done_fn= NULL;
-  server->queue._replay_fn= NULL;
+
+  server->queue_version= QUEUE_VERSION_FUNCTION;
+
+  memset(server->queue.raw, 0, sizeof(server->queue));
+
   memset(server->job_hash, 0,
          sizeof(gearman_server_job_st *) * GEARMAND_JOB_HASH_SIZE);
   memset(server->unique_hash, 0,
@@ -1088,7 +1088,7 @@ static bool gearman_server_create(gearman_server_st *server,
   }
 
   int checked_length= snprintf(server->job_handle_prefix, GEARMAND_JOB_HANDLE_SIZE, "H:%s", un.nodename);
-  if (checked_length >= GEARMAND_JOB_HANDLE_SIZE || checked_length < 0)
+  if (checked_length >= GEARMAND_JOB_HANDLE_SIZE or checked_length < 0)
   {
     gearman_server_free(server);
     return false;

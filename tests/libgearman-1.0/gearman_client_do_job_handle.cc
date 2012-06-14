@@ -74,7 +74,7 @@ test_return_t gearman_client_do_job_handle_follow_do(void *object)
   job_result= gearman_client_do(client, worker_function, NULL, value,
 				value_length, &job_length, &rc);
 
-  test_true_got(rc == GEARMAN_SUCCESS, gearman_client_error(client) ? gearman_client_error(client) : gearman_strerror(rc));
+  test_compare(rc, GEARMAN_SUCCESS);
   test_true(gearman_client_do_job_handle(client));
   test_truth(job_result);
   test_compare(value_length, job_length);

@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2011-2012 Data Differential, http://datadifferential.com/
  *  Copyright (C) 2008 Brian Aker, Eric Day
  *  All rights reserved.
  *
@@ -49,6 +49,7 @@
 
 #include <libgearman-server/list.h>
 #include <libgearman-server/hash.h>
+#include <libgearman-server/queue.h>
 
 /*
  * Private declarations
@@ -108,7 +109,7 @@ gearman_server_job_st * gearman_server_job_add(gearman_server_st *server,
                                                const char *function_name, size_t function_name_size,
                                                const char *unique, size_t unique_size,
                                                const void *data, size_t data_size,
-                                               gearmand_job_priority_t priority,
+                                               gearman_job_priority_t priority,
                                                gearman_server_client_st *server_client,
                                                gearmand_error_t *ret_ptr,
                                                int64_t when)
@@ -127,7 +128,7 @@ gearman_server_job_add_reducer(gearman_server_st *server,
                                const char *unique, size_t unique_size,
                                const char *reducer_name, size_t reducer_size,
                                const void *data, size_t data_size,
-                               gearmand_job_priority_t priority,
+                               gearman_job_priority_t priority,
                                gearman_server_client_st *server_client,
                                gearmand_error_t *ret_ptr,
                                int64_t when)
@@ -243,15 +244,14 @@ gearman_server_job_add_reducer(gearman_server_st *server,
     {
       server_job->job_queued= true;
     }
-    else if (server_client == NULL && server->queue._add_fn != NULL)
+    else if (server_client == NULL)
     {
-      *ret_ptr= (*(server->queue._add_fn))(server,
-                                           (void *)server->queue._context,
-                                           server_job->unique, unique_size,
-                                           function_name,
-                                           function_name_size,
-                                           data, data_size, priority, 
-                                           when);
+      *ret_ptr= gearman_queue_add(server,
+                                  server_job->unique, unique_size,
+                                  function_name,
+                                  function_name_size,
+                                  data, data_size, priority, 
+                                  when);
       if (gearmand_failed(*ret_ptr))
       {
         server_job->data= NULL;
@@ -259,10 +259,8 @@ gearman_server_job_add_reducer(gearman_server_st *server,
         return NULL;
       }
 
-      if (server->queue._flush_fn != NULL)
       {
-        *ret_ptr= (*(server->queue._flush_fn))(server,
-                                              (void *)server->queue._context);
+        *ret_ptr= gearman_queue_flush(server);
         if (*ret_ptr != GEARMAN_SUCCESS)
         {
           server_job->data= NULL;
@@ -277,14 +275,13 @@ gearman_server_job_add_reducer(gearman_server_st *server,
     *ret_ptr= gearman_server_job_queue(server_job);
     if (gearmand_failed(*ret_ptr))
     {
-      if (server_client == NULL && server->queue._done_fn != NULL)
+      if (server_client == NULL)
       {
         /* Do our best to remove the job from the queue. */
-        (void)(*(server->queue._done_fn))(server,
-                                          (void *)server->queue._context,
-                                          server_job->unique, unique_size,
-                                          server_job->function->function_name,
-                                          server_job->function->function_name_size);
+        (void)gearman_queue_done(server,
+                                 server_job->unique, unique_size,
+                                 server_job->function->function_name,
+                                 server_job->function->function_name_size);
       }
 
       gearman_server_job_free(server_job);
@@ -378,13 +375,12 @@ gearmand_error_t gearman_server_job_queue(gearman_server_job_st *job)
       }
 
       /* Remove from persistent queue if one exists. */
-      if (job->job_queued && Server->queue._done_fn != NULL)
+      if (job->job_queued)
       {
-        gearmand_error_t ret= (*(Server->queue._done_fn))(Server,
-                                                          (void *)Server->queue._context,
-                                                          job->unique, job->unique_length,
-                                                          job->function->function_name,
-                                                          job->function->function_name_size);
+        gearmand_error_t ret= gearman_queue_done(Server,
+                                                 job->unique, job->unique_length,
+                                                 job->function->function_name,
+                                                 job->function->function_name_size);
         if (ret != GEARMAN_SUCCESS)
         {
           return ret;

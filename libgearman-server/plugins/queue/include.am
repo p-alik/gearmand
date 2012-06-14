@@ -11,6 +11,7 @@
 
 noinst_HEADERS+= libgearman-server/plugins/queue/base.h
 
+include libgearman-server/plugins/queue/default/include.am
 include libgearman-server/plugins/queue/drizzle/include.am
 include libgearman-server/plugins/queue/libmemcached/include.am
 include libgearman-server/plugins/queue/postgres/include.am

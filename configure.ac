@@ -61,6 +61,8 @@ BOOST_THREADS
 AX_CXX_CINTTYPES
 CONFIG_EXTRA
 
+m4_include([libtest/yatl.m4])
+
 WITH_LIBMEMCACHED
 m4_include([m4/memcached.m4])
 m4_include([m4/memcached_sasl.m4])
@@ -238,7 +240,6 @@ AX_CHECK_LIBRARY([LIBUUID], [uuid/uuid.h], [uuid],
                   ])
 
 
-AC_CONFIG_FILES([libtest/version.h])
 AC_CONFIG_FILES(Makefile
                 docs/conf.py
                 libgearman-1.0/version.h

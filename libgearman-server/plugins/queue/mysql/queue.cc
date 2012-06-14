@@ -177,7 +177,7 @@ static gearmand_error_t _mysql_queue_add(gearman_server_st *server, void *contex
         const char *function_name,
         size_t function_name_size,
         const void *data, size_t data_size,
-        gearmand_job_priority_t priority,
+        gearman_job_priority_t priority,
         int64_t when);
 
 static gearmand_error_t _mysql_queue_flush(gearman_server_st *server, void *context);
@@ -275,7 +275,7 @@ static gearmand_error_t _mysql_queue_add(gearman_server_st *, void *context,
         const char *function_name,
         size_t function_name_size,
         const void *data, size_t data_size,
-        gearmand_job_priority_t priority,
+        gearman_job_priority_t priority,
         int64_t when)
 {
   MYSQL_BIND    bind[5];
@@ -472,7 +472,7 @@ static gearmand_error_t _mysql_queue_replay(gearman_server_st *server, void *con
   while ((row= mysql_fetch_row(result))) 
   {
     unsigned long *lengths;
-    gearmand_job_priority_t priority= (gearmand_job_priority_t)0;
+    gearman_job_priority_t priority= (gearman_job_priority_t)0;
     int when= 0;
 
     lengths= mysql_fetch_lengths(result);
@@ -488,7 +488,7 @@ static gearmand_error_t _mysql_queue_replay(gearman_server_st *server, void *con
 
     if (lengths[3])
     {
-      priority= (gearmand_job_priority_t) atoi(row[3]);
+      priority= (gearman_job_priority_t) atoi(row[3]);
     }
 
     if (lengths[4])

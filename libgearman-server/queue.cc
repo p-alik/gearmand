@@ -41,10 +41,112 @@
 
 #include <boost/program_options.hpp>
 
-#include <libgearman-server/plugins/queue/base.h>
+#include <libgearman-server/common.h>
 #include <libgearman-server/queue.h>
+#include <libgearman-server/plugins/queue/base.h>
+#include <libgearman-server/queue.hpp>
 #include <libgearman-server/log.h>
 
+gearmand_error_t gearman_queue_add(gearman_server_st *server,
+                                   const char *unique,
+                                   size_t unique_size,
+                                   const char *function_name,
+                                   size_t function_name_size,
+                                   const void *data,
+                                   size_t data_size,
+                                   gearman_job_priority_t priority,
+                                   int64_t when)
+{
+  if (server->queue_version == QUEUE_VERSION_FUNCTION)
+  {
+    assert(server->queue.functions._add_fn);
+    return (*(server->queue.functions._add_fn))(server,
+                                                (void *)server->queue.functions._context,
+                                                unique, unique_size,
+                                                function_name,
+                                                function_name_size,
+                                                data, data_size, priority, 
+                                                when);
+  }
+
+  return server->queue.object->add(server,
+                                   unique, unique_size,
+                                   function_name,
+                                   function_name_size,
+                                   data, data_size, priority, 
+                                   when);
+}
+
+gearmand_error_t gearman_queue_flush(gearman_server_st *server)
+{
+  if (server->queue_version == QUEUE_VERSION_FUNCTION)
+  {
+    assert(server->queue.functions._flush_fn);
+    return (*(server->queue.functions._flush_fn))(server, (void *)server->queue.functions._context);
+  }
+
+  return server->queue.object->flush(server);
+}
+
+gearmand_error_t gearman_queue_done(gearman_server_st *server,
+                                    const char *unique,
+                                    size_t unique_size,
+                                    const char *function_name,
+                                    size_t function_name_size)
+{
+  if (server->queue_version == QUEUE_VERSION_FUNCTION)
+  {
+    assert(server->queue.functions._done_fn);
+    return (*(server->queue.functions._done_fn))(server,
+                                                  (void *)server->queue.functions._context,
+                                                  unique, unique_size,
+                                                  function_name,
+                                                  function_name_size);
+  }
+
+  return server->queue.object->done(server,
+                                    unique, unique_size,
+                                    function_name,
+                                    function_name_size);
+}
+
+gearmand_error_t gearman_queue_replay(gearman_server_st *server,
+                                      gearman_queue_add_fn *add_fn,
+                                      void *add_context)
+{
+  if (server->queue_version == QUEUE_VERSION_FUNCTION)
+  {
+    assert(server->queue.functions._replay_fn);
+    return (*(server->queue.functions._replay_fn))(server,
+                                                    (void *)server->queue.functions._context,
+                                                    add_fn,
+                                                    server);
+  }
+
+  return server->queue.object->replay(server);
+}
+
+void gearman_server_set_queue(gearman_server_st *server,
+                              void *context,
+                              gearman_queue_add_fn *add,
+                              gearman_queue_flush_fn *flush,
+                              gearman_queue_done_fn *done,
+                              gearman_queue_replay_fn *replay)
+{
+  server->queue_version= QUEUE_VERSION_FUNCTION;
+  server->queue.functions._context= context;
+  server->queue.functions._add_fn= add;
+  server->queue.functions._flush_fn= flush;
+  server->queue.functions._done_fn= done;
+  server->queue.functions._replay_fn= replay;
+}
+
+void gearman_server_set_queue(gearman_server_st *server,
+                              gearmand::queue::Context* context)
+{
+  server->queue_version= QUEUE_VERSION_CLASS;
+  server->queue.object= context;
+}
 
 namespace gearmand {
 
@@ -72,7 +174,9 @@ gearmand_error_t initialize(gearmand_st *, const std::string &name)
   bool launched= false;
 
   if (name.empty())
+  {
     return GEARMAN_SUCCESS;
+  }
 
   for (plugins::Queue::vector::iterator iter= all_queue_modules.begin();
        iter != all_queue_modules.end();
@@ -98,7 +202,7 @@ gearmand_error_t initialize(gearmand_st *, const std::string &name)
     }
   }
 
-  if (not launched)
+  if (launched == false)
   {
     std::string error_string("Unknown queue ");
     error_string+= name;

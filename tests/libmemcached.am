@@ -17,14 +17,13 @@ tests_memcached_test_LDADD=
 tests_memcached_test_SOURCES+= tests/basic.cc
 tests_memcached_test_SOURCES+= tests/memcached_test.cc
 tests_memcached_test_DEPENDENCIES+= $(CLIENT_LDADD)
-tests_memcached_test_DEPENDENCIES+= gearmand/gearmand
 tests_memcached_test_LDADD+= $(CLIENT_LDADD)
 
 check_PROGRAMS+= tests/memcached_test
 noinst_PROGRAMS+= tests/memcached_test
 
-test-libmemcached: tests/memcached_test
+test-libmemcached: tests/memcached_test gearmand/gearmand
 	@tests/memcached_test  
 
-valgrind-libmemcached: tests/memcached_test
+valgrind-libmemcached: tests/memcached_test gearmand/gearmand
 	@tests/memcached_test  

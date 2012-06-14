@@ -34,22 +34,11 @@
  *
  */
 
-#include <config.h>
-#include <libtest/timer.hpp>
-#include <ctime>
+#pragma once
 
 namespace libtest {
 
-std::ostream& operator<<(std::ostream& output, const libtest::Timer& arg)
-{
-  struct timespec temp;
-  arg.difference(temp);
-
-  output << temp.tv_sec;
-  output << ":";
-  output << temp.tv_nsec;
-
-  return output;
-}
+bool check_dns();
+bool lookup(const char*);
 
 } // namespace libtest

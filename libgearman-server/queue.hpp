@@ -1,8 +1,9 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
+ * 
+ *  Gearmand client and server library.
  *
- *  Data Differential YATL (i.e. libtest)  library
- *
- *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -34,22 +35,39 @@
  *
  */
 
-#include <config.h>
-#include <libtest/timer.hpp>
-#include <ctime>
+#pragma once
 
-namespace libtest {
+#include <string>
 
-std::ostream& operator<<(std::ostream& output, const libtest::Timer& arg)
-{
-  struct timespec temp;
-  arg.difference(temp);
+struct gearmand_st;
 
-  output << temp.tv_sec;
-  output << ":";
-  output << temp.tv_nsec;
+namespace boost { namespace program_options { class options_description; } }
 
-  return output;
-}
+namespace gearmand {
 
-} // namespace libtest
+namespace plugins { class Queue; }
+
+namespace queue {
+
+void add(plugins::Queue* queue);
+void load_options(boost::program_options::options_description &all);
+gearmand_error_t initialize(gearmand_st *gearmand, const std::string &name);
+
+} // namespace queue
+} // namespace gearmand
+
+namespace gearmand { namespace queue { class Context; } };
+
+/**
+ * Set persistent queue context that will be passed back to all queue callback
+ * functions.
+ */
+void gearman_server_set_queue(gearman_server_st *server,
+                              void *context,
+                              gearman_queue_add_fn *add,
+                              gearman_queue_flush_fn *flush,
+                              gearman_queue_done_fn *done,
+                              gearman_queue_replay_fn *replay);
+
+void gearman_server_set_queue(gearman_server_st *server,
+                              gearmand::queue::Context* context);

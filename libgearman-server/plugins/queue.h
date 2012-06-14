@@ -37,6 +37,8 @@
 
 #pragma once
 
+#include <libgearman-server/plugins/queue/default/queue.h>
+
 #include <libgearman-server/plugins/queue/drizzle/queue.h>
 
 #include <libgearman-server/plugins/queue/libmemcached/queue.h>

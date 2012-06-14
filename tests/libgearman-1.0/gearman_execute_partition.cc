@@ -54,9 +54,8 @@ test_return_t gearman_execute_partition_check_parameters(void *object)
   gearman_client_st *client= (gearman_client_st *)object;
   test_true(client);
 
-  test_compare_got(GEARMAN_SUCCESS,
-                   gearman_client_echo(client, test_literal_param("this is mine")),
-                   gearman_client_error(client));
+  test_compare(GEARMAN_SUCCESS,
+               gearman_client_echo(client, test_literal_param("this is mine")));
 
   // This just hear to make it easier to trace when gearman_execute() is
   // called (look in the log to see the failed option setting.
@@ -88,9 +87,8 @@ test_return_t gearman_execute_partition_basic(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
 
-  test_compare_hint(GEARMAN_SUCCESS,
-                    gearman_client_echo(client, test_literal_param("this is mine")),
-                    gearman_client_error(client));
+  test_compare(GEARMAN_SUCCESS,
+               gearman_client_echo(client, test_literal_param("this is mine")));
 
   // This just hear to make it easier to trace when
   // gearman_execute_partition() is called (look in the log to see the
@@ -104,7 +102,7 @@ test_return_t gearman_execute_partition_basic(void *object)
                                                       NULL, 0,  // unique
                                                       NULL,
                                                       &workload, 0);
-  test_true_hint(task, gearman_client_error(client));
+  test_true(task);
   test_compare(GEARMAN_SUCCESS, gearman_task_return(task));
   gearman_result_st *result= gearman_task_result(task);
   test_truth(result);
@@ -123,9 +121,8 @@ test_return_t gearman_execute_partition_workfail(void *object)
   gearman_client_st *client= (gearman_client_st *)object;
   const char *worker_function= (const char *)gearman_client_context(client);
 
-  test_compare_hint(GEARMAN_SUCCESS,
-                    gearman_client_echo(client, test_literal_param("this is mine")),
-                    gearman_client_error(client));
+  test_compare(GEARMAN_SUCCESS,
+               gearman_client_echo(client, test_literal_param("this is mine")));
 
   gearman_argument_t workload= gearman_argument_make(0, 0, test_literal_param("this dog does not hunt mapper_fail"));
 
@@ -135,9 +132,9 @@ test_return_t gearman_execute_partition_workfail(void *object)
                                                       NULL, 0,  // unique
                                                       NULL,
                                                       &workload, 0);
-  test_true_hint(task, gearman_client_error(client));
+  test_true(task);
 
-  test_compare_got(GEARMAN_WORK_FAIL, gearman_task_return(task), gearman_task_error(task));
+  test_compare(GEARMAN_WORK_FAIL, gearman_task_return(task));
 
   gearman_task_free(task);
   gearman_client_task_free_all(client);
@@ -150,7 +147,7 @@ test_return_t gearman_execute_partition_fail_in_reduction(void *object)
   gearman_client_st *client= (gearman_client_st *)object;
   const char *worker_function= (const char *)gearman_client_context(client);
 
-  test_true_got(gearman_success(gearman_client_echo(client, test_literal_param("this is mine"))), gearman_client_error(client));
+  test_compare(gearman_client_echo(client, test_literal_param("this is mine")), GEARMAN_SUCCESS);
 
   gearman_argument_t workload= gearman_argument_make(0, 0, test_literal_param("this dog does not hunt fail"));
 
@@ -160,9 +157,9 @@ test_return_t gearman_execute_partition_fail_in_reduction(void *object)
                                                       NULL, 0,  // unique
                                                       NULL,
                                                       &workload, 0);
-  test_true_hint(task, gearman_client_error(client));
+  test_true(task);
 
-  test_compare_got(GEARMAN_WORK_FAIL, gearman_task_return(task), gearman_task_error(task));
+  test_compare(GEARMAN_WORK_FAIL, gearman_task_return(task));
 
   gearman_task_free(task);
   gearman_client_task_free_all(client);
@@ -174,7 +171,7 @@ test_return_t gearman_execute_partition_use_as_function(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
 
-  test_true_got(gearman_success(gearman_client_echo(client, test_literal_param("this is mine"))), gearman_client_error(client));
+  test_compare(gearman_client_echo(client, test_literal_param("this is mine")), GEARMAN_SUCCESS);
 
   // This just hear to make it easier to trace when
   // gearman_execute_partition() is called (look in the log to see the
@@ -187,7 +184,7 @@ test_return_t gearman_execute_partition_use_as_function(void *object)
                                          NULL, 0,  // unique
                                          NULL,
                                          &workload, 0);
-  test_true_hint(task, gearman_client_error(client));
+  test_true(task);
 
   test_compare(GEARMAN_SUCCESS, gearman_task_return(task));
   gearman_result_st *result= gearman_task_result(task);
@@ -214,11 +211,10 @@ test_return_t gearman_execute_partition_no_aggregate(void *object)
                                                       NULL, 0,  // unique
                                                       NULL,
                                                       &workload, 0);
-  test_true_hint(task, gearman_client_error(client));
+  test_true(task);
 
-  test_compare_got(GEARMAN_SUCCESS, 
-                   gearman_task_return(task), 
-                   gearman_client_error(client));
+  test_compare(GEARMAN_SUCCESS, 
+               gearman_task_return(task));
 
   test_compare(GEARMAN_SUCCESS, gearman_task_return(task));
   test_false(gearman_task_result(task));

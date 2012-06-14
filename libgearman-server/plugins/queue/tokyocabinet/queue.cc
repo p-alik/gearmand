@@ -87,7 +87,7 @@ static gearmand_error_t _libtokyocabinet_add(gearman_server_st *server, void *co
                                              const char *function_name,
                                              size_t function_name_size,
                                              const void *data, size_t data_size,
-                                             gearmand_job_priority_t priority,
+                                             gearman_job_priority_t priority,
                                              int64_t when);
 
 static gearmand_error_t _libtokyocabinet_flush(gearman_server_st *server, void *context);
@@ -172,7 +172,7 @@ static gearmand_error_t _libtokyocabinet_add(gearman_server_st *server, void *co
                                              const char *function_name,
                                              size_t function_name_size,
                                              const void *data, size_t data_size,
-                                             gearmand_job_priority_t priority,
+                                             gearman_job_priority_t priority,
                                              int64_t when)
 {
   (void)server;
@@ -202,14 +202,14 @@ static gearmand_error_t _libtokyocabinet_add(gearman_server_st *server, void *co
 
   switch (priority)
   {
-   case GEARMAND_JOB_PRIORITY_HIGH:
-   case GEARMAND_JOB_PRIORITY_MAX:     
+   case GEARMAN_JOB_PRIORITY_HIGH:
+   case GEARMAN_JOB_PRIORITY_MAX:     
      tcxstrcat2(job_data, "0");
      break;
-   case GEARMAND_JOB_PRIORITY_LOW:
+   case GEARMAN_JOB_PRIORITY_LOW:
      tcxstrcat2(job_data, "2");
      break;
-   case GEARMAND_JOB_PRIORITY_NORMAL:
+   case GEARMAN_JOB_PRIORITY_NORMAL:
    default:
      tcxstrcat2(job_data, "1");
   }
@@ -288,7 +288,7 @@ static gearmand_error_t _callback_for_record(gearman_server_st *server,
   size_t function_len;
   char *unique;
   size_t unique_len;
-  gearmand_job_priority_t priority;
+  gearman_job_priority_t priority;
   gearmand_error_t gret;
   int64_t when; 
   
@@ -314,11 +314,17 @@ static gearmand_error_t _callback_for_record(gearman_server_st *server,
 
   // single char for priority
   if (*data_cstr == '2')
-    priority = GEARMAND_JOB_PRIORITY_LOW;
+  {
+    priority= GEARMAN_JOB_PRIORITY_LOW;
+  }
   else if (*data_cstr == '0')
-    priority = GEARMAND_JOB_PRIORITY_HIGH;
+  {
+    priority= GEARMAN_JOB_PRIORITY_HIGH;
+  }
   else
-    priority = GEARMAND_JOB_PRIORITY_NORMAL;
+  {
+    priority= GEARMAN_JOB_PRIORITY_NORMAL;
+  }
 
   ++data_cstr;
   --data_cstr_size;

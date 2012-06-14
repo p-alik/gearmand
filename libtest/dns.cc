@@ -35,21 +35,63 @@
  */
 
 #include <config.h>
-#include <libtest/timer.hpp>
-#include <ctime>
+#include <libtest/common.h>
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
 
 namespace libtest {
 
-std::ostream& operator<<(std::ostream& output, const libtest::Timer& arg)
+bool lookup(const char* host)
 {
-  struct timespec temp;
-  arg.difference(temp);
+  assert(host);
+  bool success= false;
+  struct addrinfo *addrinfo= NULL;
 
-  output << temp.tv_sec;
-  output << ":";
-  output << temp.tv_nsec;
+  int limit= 5;
+  while (limit--)
+  {
+    int ret;
+    if ((ret= getaddrinfo(host, NULL, NULL, &(addrinfo))))
+    {
+      switch (ret)
+      {
+      case EAI_AGAIN:
+        continue;
 
-  return output;
+      case EAI_NONAME:
+      default:
+        break;
+      }
+    }
+    else
+    {
+      success= true;
+      break;
+    }
+  }
+
+  freeaddrinfo(addrinfo);
+
+  return success;
+}
+
+
+bool check_dns()
+{
+  if (lookup("exist.gearman.info") == false)
+  {
+    return false;
+  }
+
+  if (lookup("does_not_exist.gearman.info")) // This should fail, if it passes,...
+  {
+    return false;
+  }
+
+  return true;
 }
 
 } // namespace libtest
+

@@ -328,9 +328,9 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
     }
     else
     {
-      uint32_t max_queue_size[GEARMAND_JOB_PRIORITY_MAX];
+      uint32_t max_queue_size[GEARMAN_JOB_PRIORITY_MAX];
 
-      for (int priority= 0; priority < GEARMAND_JOB_PRIORITY_MAX; ++priority)
+      for (int priority= 0; priority < GEARMAN_JOB_PRIORITY_MAX; ++priority)
       {
         const int argc= priority +2;
         if (packet->argc > argc)
@@ -357,7 +357,7 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
       */
       if (packet->argc <= 3)
       {
-        for (int priority= 1; priority < GEARMAND_JOB_PRIORITY_MAX; ++priority)
+        for (int priority= 1; priority < GEARMAN_JOB_PRIORITY_MAX; ++priority)
         {
           max_queue_size[priority]= max_queue_size[0];
         }
@@ -369,7 +369,7 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
             (memcmp(packet->arg[1], function->function_name, function->function_name_size) == 0))
         {
           gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Applying queue limits to %s", function->function_name);
-          memcpy(function->max_queue_size, max_queue_size, sizeof(uint32_t) * GEARMAND_JOB_PRIORITY_MAX);
+          memcpy(function->max_queue_size, max_queue_size, sizeof(uint32_t) * GEARMAN_JOB_PRIORITY_MAX);
         }
       }
 

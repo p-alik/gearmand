@@ -301,7 +301,7 @@ static gearmand_error_t _libdrizzle_add(gearman_server_st *server,
                                         const char *unique, size_t unique_size,
                                         const char *function_name, size_t function_name_size,
                                         const void *data, size_t data_size,
-                                        gearmand_job_priority_t priority,
+                                        gearman_job_priority_t priority,
                                         int64_t when);
 
 static gearmand_error_t _libdrizzle_flush(gearman_server_st *gearman,
@@ -472,7 +472,7 @@ static gearmand_error_t _libdrizzle_add(gearman_server_st *,
                                         const char *unique, size_t unique_size,
                                         const char *function_name, size_t function_name_size,
                                         const void *data, size_t data_size,
-                                        gearmand_job_priority_t priority,
+                                        gearman_job_priority_t priority,
                                         int64_t when)
 {
   plugins::queue::Drizzle *queue= (plugins::queue::Drizzle *)context;
@@ -735,7 +735,7 @@ static gearmand_error_t _libdrizzle_replay(gearman_server_st *server,
 
     gret= (*add_fn)(server, add_context, row[0], field_sizes[0],
                     row[1], field_sizes[1],
-                    data, data_size, (gearmand_job_priority_t)atoi(row[2]), when);
+                    data, data_size, (gearman_job_priority_t)atoi(row[2]), when);
 
     if (gret != GEARMAN_SUCCESS)
     {

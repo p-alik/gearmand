@@ -92,30 +92,10 @@ do \
   } \
 } while (0)
 
-#define test_true_got(__expected, __hint) \
-do \
-{ \
-  if (not libtest::_compare_truth_hint(__FILE__, __LINE__, __func__, ((__expected)), #__expected, ((__hint)))) \
-  { \
-    libtest::create_core(); \
-    return TEST_FAILURE; \
-  } \
-} while (0)
-#define test_true_hint test_true_got
-
 #define test_skip(__expected, __actual) \
 do \
 { \
   if (libtest::_compare(__FILE__, __LINE__, __func__, ((__expected)), ((__actual)), false) == false) \
-  { \
-    return TEST_SKIPPED; \
-  } \
-} while (0)
-
-#define test_skip_hint(__expected, __actual, __hint) \
-do \
-{ \
-  if (libtest::_compare_hint(__FILE__, __LINE__, __func__, (__expected), (__actual), (__hint)) == false) \
   { \
     return TEST_SKIPPED; \
   } \
@@ -193,53 +173,22 @@ do \
 
 #define test_null test_zero
 
-#define test_compare_got(__expected, __actual, __hint) \
-do \
-{ \
-  if (libtest::_compare_hint(__FILE__, __LINE__, __func__, (__expected), (__actual), (__hint)) == false) \
-  { \
-    libtest::create_core(); \
-    return TEST_FAILURE; \
-  } \
-} while (0)
-
-#define test_compare_hint test_compare_got
-
 #define test_compare_warn(__expected, __actual) \
 do \
 { \
   void(libtest::_compare(__FILE__, __LINE__, __func__, (__expected), (__actual)), true); \
 } while (0)
 
-#define test_compare_warn_hint(__expected, __actual, __hint) \
+#define test_warn(__truth, __explain) \
 do \
 { \
-  libtest::_compare_hint(__FILE__, __LINE__, __func__, (__expected), (__actual), (__hint)); \
+  void(libtest::_assert_truth(__FILE__, __LINE__, __func__, bool((__truth)), #__truth, __explain)); \
 } while (0)
 
-#define test_warn(__truth) \
+#define test_strcmp(__expected, __actual) \
 do \
 { \
-  void(libtest::_truth(__FILE__, __LINE__, __func__, (__truth))); \
-} while (0)
-
-#define test_warn_hint(__truth, __hint) \
-do \
-{ \
-  void(libtest::_compare_truth_hint(__FILE__, __LINE__, __func__, (__truth), #__truth, (__hint))); \
-} while (0)
-
-
-#define test_strcmp(A,B) \
-do \
-{ \
-  if ((A) == NULL or (B) == NULL or strcmp((A), (B))) \
-  { \
-    if ((B) == NULL) fprintf(stderr, "\n%s:%d: Expected %s, got <null>\n", __FILE__, __LINE__, (A)); \
-    else fprintf(stderr, "\n%s:%d: Expected %s, got \"%s\"\n", __FILE__, __LINE__, (A), (B)); \
-    libtest::create_core(); \
-    return TEST_FAILURE; \
-  } \
+  void(libtest::_compare_strcmp(__FILE__, __LINE__, __func__, (__expected), (__actual))); \
 } while (0)
 
 #define test_memcmp(A,B,C) \
@@ -248,17 +197,6 @@ do \
   if ((A) == NULL or (B) == NULL or memcmp((A), (B), (C))) \
   { \
     fprintf(stderr, "\n%s:%d: %.*s -> %.*s\n", __FILE__, __LINE__, (int)(C), (char *)(A), (int)(C), (char *)(B)); \
-    libtest::create_core(); \
-    return TEST_FAILURE; \
-  } \
-} while (0)
-
-#define test_memcmp_hint(A,B,C,__hint) \
-do \
-{ \
-  if ((A) == NULL or (B) == NULL or memcmp((A), (B), (C))) \
-  { \
-    fprintf(stderr, "\n%s:%d: (hint:%s) %.*s -> %.*s\n", __FILE__, __LINE__, __hint, (int)(C), (char *)(A), (int)(C), (char *)(B)); \
     libtest::create_core(); \
     return TEST_FAILURE; \
   } \

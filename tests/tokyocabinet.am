@@ -15,15 +15,14 @@ tests_tokyocabinet_test_DEPENDENCIES=
 tests_tokyocabinet_test_LDADD=
 
 tests_tokyocabinet_test_DEPENDENCIES+= $(CLIENT_LDADD)
-tests_tokyocabinet_test_DEPENDENCIES+= gearmand/gearmand
 tests_tokyocabinet_test_LDADD+= $(CLIENT_LDADD)
 tests_tokyocabinet_test_SOURCES+= tests/tokyocabinet_test.cc
 tests_tokyocabinet_test_SOURCES+= tests/basic.cc
 check_PROGRAMS+= tests/tokyocabinet_test
 noinst_PROGRAMS+= tests/tokyocabinet_test
 
-test-tokyocabinet: tests/tokyocabinet_test
+test-tokyocabinet: tests/tokyocabinet_test gearmand/gearmand
 	@tests/tokyocabinet_test
 
-valgrind-tokyocabinet: tests/tokyocabinet_test
+valgrind-tokyocabinet: tests/tokyocabinet_test gearmand/gearmand
 	@$(VALGRIND_COMMAND) tests/tokyocabinet_test

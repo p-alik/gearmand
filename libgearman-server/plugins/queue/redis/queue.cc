@@ -18,7 +18,7 @@ static gearmand_error_t _hiredis_add(gearman_server_st *server, void *context,
                                              const char *function_name,
                                              size_t function_name_size,
                                              const void *data, size_t data_size,
-                                             gearmand_job_priority_t priority,
+                                             gearman_job_priority_t priority,
                                              int64_t when);
 
 static gearmand_error_t _hiredis_flush(gearman_server_st *server, void *context);
@@ -141,7 +141,7 @@ static gearmand_error_t _hiredis_add(gearman_server_st *server, void *context,
                                              const char *function_name,
                                              size_t function_name_size,
                                              const void *data, size_t data_size,
-                                             gearmand_job_priority_t priority,
+                                             gearman_job_priority_t priority,
                                              int64_t when)
 {
   gearmand::plugins::queue::Hiredis *queue= (gearmand::plugins::queue::Hiredis *)context;
@@ -231,7 +231,7 @@ static gearmand_error_t _hiredis_replay(gearman_server_st *server, void *context
                    unique, strlen(unique),
                    function_name, strlen(function_name),
                    get_reply->str, get_reply->len,
-                   GEARMAND_JOB_PRIORITY_NORMAL, 0);
+                   GEARMAN_JOB_PRIORITY_NORMAL, 0);
     freeReplyObject(get_reply);
   }
   freeReplyObject(reply);

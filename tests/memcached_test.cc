@@ -80,7 +80,7 @@ static test_return_t collection_cleanup(void *object)
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  if (has_memcached_support() == false)
+  if (has_memcached() == false or has_libmemcached() == false)
   {
     error= TEST_SKIPPED;
     return NULL;

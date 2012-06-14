@@ -38,15 +38,15 @@ static gearman_server_function_st* gearman_server_function_create(gearman_server
   function->job_total= 0;
   function->job_running= 0;
   memset(function->max_queue_size, GEARMAN_DEFAULT_MAX_QUEUE_SIZE,
-         sizeof(uint32_t) * GEARMAND_JOB_PRIORITY_MAX);
+         sizeof(uint32_t) * GEARMAN_JOB_PRIORITY_MAX);
   function->function_name_size= 0;
   gearmand_server_list_add(server, function);
   function->function_name= NULL;
   function->worker_list= NULL;
   memset(function->job_list, 0,
-         sizeof(gearman_server_job_st *) * GEARMAND_JOB_PRIORITY_MAX);
+         sizeof(gearman_server_job_st *) * GEARMAN_JOB_PRIORITY_MAX);
   memset(function->job_end, 0,
-         sizeof(gearman_server_job_st *) * GEARMAND_JOB_PRIORITY_MAX);
+         sizeof(gearman_server_job_st *) * GEARMAN_JOB_PRIORITY_MAX);
 
   return function;
 }

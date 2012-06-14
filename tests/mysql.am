@@ -9,16 +9,6 @@
 # Included from Top Level Makefile.am
 # All paths should be given relative to the root
 #
-
-test-mysql: tests/mysql_test gearmand/gearmand
-	@tests/mysql_test
-
-gdb-mysql: tests/mysql_test gearmand/gearmand
-	@$(GDB_COMMAND) tests/mysql_test
-
-valgrind-mysql: tests/mysql_test gearmand/gearmand
-	@$(VALGRIND_COMMAND) tests/mysql_test
-
 tests_mysql_test_SOURCES=
 tests_mysql_test_CXXFLAGS=
 tests_mysql_test_DEPENDENCIES=
@@ -28,8 +18,16 @@ tests_mysql_test_SOURCES+= tests/basic.cc
 tests_mysql_test_SOURCES+= tests/mysql_test.cc
 
 tests_mysql_test_DEPENDENCIES+= ${CLIENT_LDADD}
-tests_mysql_test_DEPENDENCIES+= gearmand/gearmand
 tests_mysql_test_LDADD+= ${CLIENT_LDADD}
 
-check_PROGRAMS += tests/mysql_test
-noinst_PROGRAMS += tests/mysql_test
+check_PROGRAMS+= tests/mysql_test
+noinst_PROGRAMS+= tests/mysql_test
+
+test-mysql: tests/mysql_test gearmand/gearmand
+	@tests/mysql_test
+
+gdb-mysql: tests/mysql_test gearmand/gearmand
+	@$(GDB_COMMAND) tests/mysql_test
+
+valgrind-mysql: tests/mysql_test gearmand/gearmand
+	@$(VALGRIND_COMMAND) tests/mysql_test

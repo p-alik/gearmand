@@ -1,8 +1,9 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
- *
- *  Data Differential YATL (i.e. libtest)  library
+ * 
+ *  Gearmand client and server library.
  *
  *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
+ *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -34,22 +35,15 @@
  *
  */
 
-#include <config.h>
-#include <libtest/timer.hpp>
-#include <ctime>
+#pragma once
 
-namespace libtest {
 
-std::ostream& operator<<(std::ostream& output, const libtest::Timer& arg)
-{
-  struct timespec temp;
-  arg.difference(temp);
+namespace gearmand {
+namespace plugins {
+namespace queue {
 
-  output << temp.tv_sec;
-  output << ":";
-  output << temp.tv_nsec;
+void initialize_default();
 
-  return output;
-}
-
-} // namespace libtest
+} // namespace queue
+} // namespace plugin
+} // namespace gearmand

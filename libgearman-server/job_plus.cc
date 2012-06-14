@@ -163,9 +163,9 @@ gearman_server_job_st * gearman_server_job_peek(gearman_server_con_st *server_co
   {
     if (server_worker->function->job_count != 0)
     {
-      for (gearmand_job_priority_t priority= GEARMAND_JOB_PRIORITY_HIGH;
-           priority != GEARMAND_JOB_PRIORITY_MAX;
-           priority= gearmand_job_priority_t(int(priority) +1))
+      for (gearman_job_priority_t priority= GEARMAN_JOB_PRIORITY_HIGH;
+           priority != GEARMAN_JOB_PRIORITY_MAX;
+           priority= gearman_job_priority_t(int(priority) +1))
       {
         gearman_server_job_st *server_job;
         server_job= server_worker->function->job_list[priority];
@@ -228,9 +228,9 @@ gearman_server_job_st *gearman_server_job_take(gearman_server_con_st *server_con
         }
       }
 
-      gearmand_job_priority_t priority;
-      for (priority= GEARMAND_JOB_PRIORITY_HIGH; priority < GEARMAND_JOB_PRIORITY_LOW;
-           priority= gearmand_job_priority_t(int(priority) +1))
+      gearman_job_priority_t priority;
+      for (priority= GEARMAN_JOB_PRIORITY_HIGH; priority < GEARMAN_JOB_PRIORITY_LOW;
+           priority= gearman_job_priority_t(int(priority) +1))
       {
         if (server_worker->function->job_list[priority])
         {
@@ -387,7 +387,7 @@ gearman_server_job_st * gearman_server_job_create(gearman_server_st *server)
   server_job->ignore_job= false;
   server_job->job_queued= false;
   server_job->retries= 0;
-  server_job->priority= GEARMAND_JOB_PRIORITY_NORMAL;
+  server_job->priority= GEARMAN_JOB_PRIORITY_NORMAL;
   server_job->job_handle_key= 0;
   server_job->unique_key= 0;
   server_job->client_count= 0;

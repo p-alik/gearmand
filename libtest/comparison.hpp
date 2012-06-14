@@ -58,12 +58,12 @@ bool valgrind_is_caller(void);
 LIBTEST_API
 bool _in_valgrind(const char *file, int line, const char *func);
 
-template <class T_comparable, class T_hint>
-bool _compare_truth_hint(const char *file, int line, const char *func, T_comparable __expected, const char *assertation_label,  T_hint __hint)
+template <class T_comparable>
+bool _compare_truth(const char *file, int line, const char *func, T_comparable __expected, const char *assertation_label)
 {
   if (__expected == false)
   {
-    libtest::stream::make_cerr(file, line, func) << "Assertation  \"" << assertation_label << "\" failed, hint: " << __hint;
+    libtest::stream::make_cerr(file, line, func) << "Assertation  \"" << assertation_label << "\"";
     return false;
   }
 
@@ -86,6 +86,29 @@ bool _compare(const char *file, int line, const char *func, const T1_comparable&
   return true;
 }
 
+template <class T1_comparable, class T2_comparable>
+bool _compare_strcmp(const char *file, int line, const char *func, const T1_comparable& __expected, const T2_comparable& __actual)
+{
+  if (__expected == NULL)
+  {
+    fatal_message("Expected value was NULL, programmer error");
+  }
+
+  if (__actual == NULL)
+  {
+    libtest::stream::make_cerr(file, line, func) << "Expected " << __expected << " but got NULL";
+    return false;
+  }
+
+  if (strncmp(__expected, __actual, strlen(__expected)))
+  {
+    libtest::stream::make_cerr(file, line, func) << "Expected " << __expected << " passed \"" << __actual << "\"";
+    return false;
+  }
+
+  return true;
+}
+
 template <class T_comparable>
 bool _compare_zero(const char *file, int line, const char *func, T_comparable __actual)
 {
@@ -98,48 +121,20 @@ bool _compare_zero(const char *file, int line, const char *func, T_comparable __
   return true;
 }
 
-template <class T_comparable>
-bool _truth(const char *file, int line, const char *func, T_comparable __truth)
+template <class T_comparable, class T_expression_string>
+bool _assert_truth(const char *file, int line, const char *func, T_comparable __truth, T_expression_string __expression, const char* __explain= NULL)
 {
-  if (bool(__truth))
+  if (__truth)
   {
-    libtest::stream::make_cerr(file, line, func) << "Assertion failed for " << func << "() with \"" << __truth << "\"";
-    return false;
+    return true;
   }
 
-  return true;
-}
-
-template <class T1_comparable, class T2_comparable, class T_hint>
-bool _compare_hint(const char *file, int line, const char *func, T1_comparable __expected, T2_comparable __actual, T_hint __hint, bool io_error= true)
-{
-  if (__expected != __actual)
+  if (__explain)
   {
-    if (io_error)
-    {
-      libtest::stream::make_cerr(file, line, func) << "Expected \"" << __expected << "\" got \"" << __actual << "\"" << " Additionally: \"" << __hint << "\"";
-    }
-
-    return false;
+    libtest::stream::make_cerr(file, line, func) << "Assertion \"" << __expression << "\" warning:" << __explain;
   }
 
-  return true;
-}
-
-template <class T1_comparable, class T2_comparable, class T_hint>
-bool _ne_compare_hint(const char *file, int line, const char *func, T1_comparable __expected, T2_comparable __actual, T_hint __hint, bool io_error= true)
-{
-  if (__expected == __actual)
-  {
-    if (io_error)
-    {
-      libtest::stream::make_cerr(file, line, func) << "Expected \"" << __expected << "\" got \"" << __actual << "\"" << " Additionally: \"" << __hint << "\"";
-    }
-
-    return false;
-  }
-
-  return true;
+  return false;
 }
 
 } // namespace libtest
