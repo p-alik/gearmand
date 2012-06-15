@@ -88,6 +88,17 @@ int main(int argc, char *argv[])
   std::string collection_to_run;
   std::string wildcard;
 
+  /*
+    Valgrind does not currently work reliably, or sometimes at all, on OSX
+    - Fri Jun 15 11:24:07 EDT 2012
+  */
+#if defined(TARGET_OS_OSX) && TARGET_OS_OSX
+  if (valgrind_is_caller())
+  {
+    return EXIT_SKIP;
+  }
+#endif
+
   // Options parsing
   {
     enum long_option_t {
