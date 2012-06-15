@@ -12,18 +12,18 @@
 
 noinst_LTLIBRARIES+= libhostile/libhostile.la
 
-noinst_HEADERS+= \
-		 libhostile/accept.h \
-		 libhostile/action.h \
-		 libhostile/getaddrinfo.h \
-		 libhostile/hostile.h \
-		 libhostile/initialize.h \
-		 libhostile/malloc.h \
-		 libhostile/realloc.h \
-		 libhostile/recv.h \
-		 libhostile/send.h \
-		 libhostile/setsockopt.h \
-		 libhostile/write.h
+noinst_HEADERS+= libhostile/accept.h
+noinst_HEADERS+= libhostile/action.h
+noinst_HEADERS+= libhostile/getaddrinfo.h
+noinst_HEADERS+= libhostile/hostile.h
+noinst_HEADERS+= libhostile/initialize.h
+noinst_HEADERS+= libhostile/malloc.h
+noinst_HEADERS+= libhostile/poll.h
+noinst_HEADERS+= libhostile/realloc.h
+noinst_HEADERS+= libhostile/recv.h
+noinst_HEADERS+= libhostile/send.h
+noinst_HEADERS+= libhostile/setsockopt.h
+noinst_HEADERS+= libhostile/write.h
 
 libhostile_libhostile_la_CFLAGS=
 libhostile_libhostile_la_LIBADD=
@@ -37,13 +37,14 @@ libhostile_libhostile_la_LIBADD+= $(DL_LIB)
 libhostile_libhostile_la_LIBADD+= $(RT_LIB)
 
 libhostile_libhostile_la_CFLAGS+= -DHAVE_LIBHOSTILE=1
-libhostile_libhostile_la_SOURCES+= \
-				   libhostile/accept.c \
-				   libhostile/getaddrinfo.c \
-				   libhostile/malloc.c \
-				   libhostile/realloc.c \
-				   libhostile/recv.c \
-				   libhostile/send.c \
-				   libhostile/setsockopt.c \
-				   libhostile/write.c
+libhostile_libhostile_la_CFLAGS+= -std=c99
+libhostile_libhostile_la_SOURCES+= libhostile/accept.c
+libhostile_libhostile_la_SOURCES+= libhostile/getaddrinfo.c
+libhostile_libhostile_la_SOURCES+= libhostile/malloc.c
+libhostile_libhostile_la_SOURCES+= libhostile/poll.c
+libhostile_libhostile_la_SOURCES+= libhostile/realloc.c
+libhostile_libhostile_la_SOURCES+= libhostile/recv.c
+libhostile_libhostile_la_SOURCES+= libhostile/send.c
+libhostile_libhostile_la_SOURCES+= libhostile/setsockopt.c
+libhostile_libhostile_la_SOURCES+= libhostile/write.c
 endif

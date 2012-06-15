@@ -252,7 +252,6 @@ bool Server::start()
       }
 
       this_wait= retry * retry / 3 + 1;
-      Error << "dreaming" << this_wait;
       libtest::dream(this_wait, 0);
     }
   }

@@ -249,6 +249,27 @@ static test_return_t accept_SETUP(void* object)
   return TEST_SUCCESS;
 }
 
+static test_return_t poll_SETUP(void* object)
+{
+  test_skip_valgrind();
+  test_skip(true, bool(getenv("YATL_RUN_MASSIVE_TESTS")));
+
+  worker_ramp_SETUP(object);
+  set_poll_close(true, 4, 0);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t poll_TEARDOWN(void* object)
+{
+  set_poll_close(true, 0, 0);
+
+  worker_handles_st *handles= (worker_handles_st*)object;
+  handles->kill_all();
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t send_TEARDOWN(void* object)
 {
   set_send_close(true, 0, 0);
@@ -311,6 +332,7 @@ collection_st collection[] ={
   {"hostile recv()", recv_SETUP, resv_TEARDOWN, worker_TESTS },
   {"hostile send()", send_SETUP, send_TEARDOWN, worker_TESTS },
   {"hostile accept()", accept_SETUP, accept_TEARDOWN, worker_TESTS },
+  {"hostile poll()", poll_SETUP, poll_TEARDOWN, worker_TESTS },
   {0, 0, 0, 0}
 };
 

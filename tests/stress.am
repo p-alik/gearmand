@@ -1,0 +1,43 @@
+# vim:ft=automake
+# Gearman server and library
+# Copyright (C) 2012 Data Differential, http://datadifferential.com/
+# All rights reserved.
+#
+# Use and distribution licensed under the BSD license.  See
+# the COPYING file in the parent directory for full text.
+#
+# Included from Top Level Makefile.am
+# All paths should be given relative to the root
+#
+
+tests_stress_test_SOURCES=
+tests_stress_test_DEPENDENCIES=
+tests_stress_test_CXXFLAGS=
+tests_stress_test_LDADD=
+
+if TARGET_LINUX
+tests_stress_test_CXXFLAGS+= -DHAVE_LIBHOSTILE=1
+tests_stress_test_DEPENDENCIES+= libhostile/libhostile.la
+tests_stress_test_LDADD+= libhostile/libhostile.la
+tests_stress_test_LDADD+= $(DL_LIB)
+tests_stress_test_LDADD+= $(RT_LIB)
+endif
+
+tests_stress_test_SOURCES+= tests/burnin.cc
+tests_stress_test_SOURCES+= tests/libgearman-1.0/workers.cc
+tests_stress_test_SOURCES+= tests/stress_worker.cc
+tests_stress_test_DEPENDENCIES+= ${CLIENT_LDADD}
+tests_stress_test_LDADD+= ${CLIENT_LDADD}
+check_PROGRAMS+=tests/stress_test
+noinst_PROGRAMS+=tests/stress_test
+
+test-stress: tests/stress_test gearmand/gearmand
+	@tests/stress_test
+
+valgrind-stress: tests/stress_test gearmand/gearmand
+	@$(VALGRIND_COMMAND) tests/stress_test
+
+gdb-stress: tests/stress_test gearmand/gearmand
+	@$(GDB_COMMAND) tests/stress_test
+
+

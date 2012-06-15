@@ -34,53 +34,69 @@
  *
  */
 
-#pragma once
+#include <config.h>
 
-#include <pthread.h>
+#include <libhostile/initialize.h>
 
-#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <time.h>
+#include <poll.h>
 
-#include <libhostile/accept.h>
-#include <libhostile/action.h>
-#include <libhostile/getaddrinfo.h>
-#include <libhostile/malloc.h>
-#include <libhostile/poll.h>
-#include <libhostile/realloc.h>
-#include <libhostile/recv.h>
-#include <libhostile/send.h>
-#include <libhostile/setsockopt.h>
-#include <libhostile/write.h>
+/*
+  Random poll failing library for testing poll failures.
+  LD_PRELOAD="/usr/lib/libdl.so ./util/libhostile_poll.so" ./binary
+*/
 
-#include <libhostile/hostile.h>
+#include <dlfcn.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+static int not_until= 50;
 
-union function_un {
-  accept_fn *accept;
-  getaddrinfo_fn *getaddrinfo;
-  malloc_fn *malloc;
-  poll_fn *poll;
-  realloc_fn *realloc;
-  recv_fn *recv;
-  send_fn *send;
-  setsockopt_fn *setsockopt;
-  write_fn *write;
-  void *ptr;
-};
+static struct function_st __function;
 
-struct function_st {
-  const char *name;
-  union function_un function;
-  enum action_t action;
-  int frequency;
-};
-
-void hostile_initialize(void);
-struct function_st set_function(const char *name, const char *environ_name);
-void set_action_frequency(enum action_t action, int frequency);
-
-#ifdef __cplusplus
+static pthread_once_t function_lookup_once = PTHREAD_ONCE_INIT;
+static void set_local(void)
+{
+  __function= set_function("poll", "HOSTILE_POLL");
 }
-#endif
+
+void set_poll_close(bool arg, int frequency, int not_until_arg)
+{
+  if (arg)
+  {
+    __function.frequency= frequency;
+    not_until= not_until_arg;
+  }
+  else
+  {
+    __function.frequency= 0;
+    not_until= 0;
+  }
+}
+
+int poll(struct pollfd *fds, nfds_t nfds, int timeout)
+{
+
+  hostile_initialize();
+
+  (void) pthread_once(&function_lookup_once, set_local);
+
+  if (__function.frequency)
+  {
+    if (--not_until < 0 && random() % __function.frequency)
+    {
+      for (nfds_t x= 0; x < nfds; nfds++)
+      {
+        shutdown(fds[x].fd, SHUT_RDWR);
+        close(fds[x].fd);
+        fds[x].revents= POLLHUP;
+      }
+      return nfds;
+    }
+  }
+
+  return __function.function.poll(fds, nfds, timeout);
+}

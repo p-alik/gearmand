@@ -36,51 +36,6 @@
 
 #pragma once
 
-#include <pthread.h>
+#include <poll.h>
 
-#include <stdbool.h>
-
-#include <libhostile/accept.h>
-#include <libhostile/action.h>
-#include <libhostile/getaddrinfo.h>
-#include <libhostile/malloc.h>
-#include <libhostile/poll.h>
-#include <libhostile/realloc.h>
-#include <libhostile/recv.h>
-#include <libhostile/send.h>
-#include <libhostile/setsockopt.h>
-#include <libhostile/write.h>
-
-#include <libhostile/hostile.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-union function_un {
-  accept_fn *accept;
-  getaddrinfo_fn *getaddrinfo;
-  malloc_fn *malloc;
-  poll_fn *poll;
-  realloc_fn *realloc;
-  recv_fn *recv;
-  send_fn *send;
-  setsockopt_fn *setsockopt;
-  write_fn *write;
-  void *ptr;
-};
-
-struct function_st {
-  const char *name;
-  union function_un function;
-  enum action_t action;
-  int frequency;
-};
-
-void hostile_initialize(void);
-struct function_st set_function(const char *name, const char *environ_name);
-void set_action_frequency(enum action_t action, int frequency);
-
-#ifdef __cplusplus
-}
-#endif
+typedef int (poll_fn)(struct pollfd *fds, nfds_t nfds, int timeout);
