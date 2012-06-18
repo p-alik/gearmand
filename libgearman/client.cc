@@ -155,10 +155,7 @@ static void *_client_do(gearman_client_st *client, gearman_command_t command,
   }
   do_task_ptr->type= GEARMAN_TASK_KIND_DO;
 
-  gearman_return_t ret;
-  do {
-    ret= gearman_client_run_tasks(client);
-  } while (gearman_continue(ret));
+  gearman_return_t ret= gearman_client_run_block_tasks(client);
 
   // gearman_client_run_tasks failed
   assert(client->task_list); // Programmer error, we should always have the task that we used for do
@@ -263,15 +260,7 @@ static gearman_return_t _client_do_background(gearman_client_st *client,
   }
   do_task_ptr->type= GEARMAN_TASK_KIND_DO;
 
-  gearman_return_t ret;
-  do {
-    ret= gearman_client_run_tasks(client);
-    
-    // If either of the following is ever true, we will end up in an
-    // infinite loop
-    assert(ret != GEARMAN_IN_PROGRESS and ret != GEARMAN_JOB_EXISTS);
-
-  } while (gearman_continue(ret));
+  gearman_return_t ret= gearman_client_run_block_tasks(client);
 
   if (job_handle)
   {
@@ -1620,7 +1609,8 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
           /* If all tasks are done, return. */
           if (client->running_tasks == 0)
           {
-            break;
+            client->state= GEARMAN_CLIENT_STATE_IDLE;
+            return GEARMAN_SUCCESS;
           }
         }
       }
