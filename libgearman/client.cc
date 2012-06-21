@@ -1699,7 +1699,11 @@ gearman_return_t gearman_client_run_block_tasks(gearman_client_st *client)
       gearman_reset(client->universal);
     }
 
-    assert(gearman_universal_error_code(client->universal) == rc);
+    if (gearman_universal_error_code(client->universal) != rc and rc != GEARMAN_COULD_NOT_CONNECT)
+    {
+      fprintf(stderr, "%s:%d %s\n", __FILE__, __LINE__, gearman_strerror(rc));
+      assert(gearman_universal_error_code(client->universal) == rc);
+    }
   }
 
   return rc;
