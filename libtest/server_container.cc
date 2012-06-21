@@ -59,9 +59,6 @@ void server_startup_st::push_server(Server *arg)
 {
   servers.push_back(arg);
 
-  char port_str[NI_MAXSERV];
-  snprintf(port_str, sizeof(port_str), "%u", int(arg->port()));
-
   std::string server_config_string;
   if (arg->has_socket())
   {
@@ -73,6 +70,9 @@ void server_startup_st::push_server(Server *arg)
   }
   else
   {
+    char port_str[NI_MAXSERV];
+    snprintf(port_str, sizeof(port_str), "%u", int(arg->port()));
+
     server_config_string+= "--server=";
     server_config_string+= arg->hostname();
     server_config_string+= ":";
@@ -111,7 +111,7 @@ bool server_startup_st::shutdown(uint32_t host_to_shutdown)
 
 void server_startup_st::clear()
 {
-  for (std::vector<Server *>::iterator iter= servers.begin(); iter != servers.end(); iter++)
+  for (std::vector<Server *>::iterator iter= servers.begin(); iter != servers.end(); ++iter)
   {
     delete *iter;
   }
@@ -121,7 +121,7 @@ void server_startup_st::clear()
 bool server_startup_st::check() const
 {
   bool success= true;
-  for (std::vector<Server *>::const_iterator iter= servers.begin(); iter != servers.end(); iter++)
+  for (std::vector<Server *>::const_iterator iter= servers.begin(); iter != servers.end(); ++iter)
   {
     if ((*iter)->check()  == false)
     {
@@ -135,7 +135,7 @@ bool server_startup_st::check() const
 bool server_startup_st::shutdown()
 {
   bool success= true;
-  for (std::vector<Server *>::iterator iter= servers.begin(); iter != servers.end(); iter++)
+  for (std::vector<Server *>::iterator iter= servers.begin(); iter != servers.end(); ++iter)
   {
     if ((*iter)->has_pid() and (*iter)->kill() == false)
     {
@@ -149,7 +149,7 @@ bool server_startup_st::shutdown()
 
 void server_startup_st::restart()
 {
-  for (std::vector<Server *>::iterator iter= servers.begin(); iter != servers.end(); iter++)
+  for (std::vector<Server *>::iterator iter= servers.begin(); iter != servers.end(); ++iter)
   {
     (*iter)->start();
   }

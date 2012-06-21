@@ -153,7 +153,6 @@ test_return_t unique_compare_test(void *object)
 test_return_t gearman_client_unique_status_TEST(void *object)
 {
   return TEST_SKIPPED;
-  gearman_return_t rc;
   gearman_client_st *client= (gearman_client_st *)object;
 
   gearman_client_add_options(client, GEARMAN_CLIENT_NON_BLOCKING);

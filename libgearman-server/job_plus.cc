@@ -207,15 +207,11 @@ gearman_server_job_st *gearman_server_job_take(gearman_server_con_st *server_con
 {
   for (gearman_server_worker_st *server_worker= server_con->worker_list; server_worker; server_worker= server_worker->con_next)
   {
-    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Jobs available for %.*s: %lu",
-                       (int)server_worker->function->function_name_size, server_worker->function->function_name,
-                       (unsigned long)(server_worker->function->job_count));
-    if (server_worker->function->job_count)
+    if (server_worker->function and server_worker->function->job_count)
     {
-      if (server_worker == NULL)
-      {
-        return NULL;
-      }
+      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Jobs available for %.*s: %lu",
+                         (int)server_worker->function->function_name_size, server_worker->function->function_name,
+                         (unsigned long)(server_worker->function->job_count));
 
       if (Server->flags.round_robin)
       {

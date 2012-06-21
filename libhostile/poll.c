@@ -84,17 +84,20 @@ int poll(struct pollfd *fds, nfds_t nfds, int timeout)
 
   (void) pthread_once(&function_lookup_once, set_local);
 
-  if (__function.frequency)
+  if (is_getaddrinfo() == false)
   {
-    if (--not_until < 0 && random() % __function.frequency)
+    if (__function.frequency)
     {
-      for (nfds_t x= 0; x < nfds; nfds++)
+      if (--not_until < 0 && random() % __function.frequency)
       {
-        shutdown(fds[x].fd, SHUT_RDWR);
-        close(fds[x].fd);
-        fds[x].revents= POLLHUP;
+        for (nfds_t x= 0; x < nfds; nfds++)
+        {
+          shutdown(fds[x].fd, SHUT_RDWR);
+          close(fds[x].fd);
+          fds[x].revents= POLLHUP;
+        }
+        return nfds;
       }
-      return nfds;
     }
   }
 

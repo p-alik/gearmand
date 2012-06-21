@@ -418,7 +418,6 @@ gearman_return_t gearman_set_identifier(gearman_universal_st& universal,
     PUSH_BLOCKING(universal);
 
     size_t error_count= 0;
-    gearman_return_t cached_error;
     for (gearman_connection_st *con= universal.con_list; con; con= con->next)
     {
       gearman_return_t local_ret= con->send_packet(packet, true);

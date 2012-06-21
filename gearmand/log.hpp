@@ -137,7 +137,7 @@ struct gearmand_log_info_st
           char *ptr_buffer= getcwd(buffer, sizeof(buffer));
           syslog(LOG_ERR, "Could not open log file \"%.*s\", from \"%s\", open failed with (%s)", 
                  int(filename.size()), filename.c_str(), 
-                 buffer,
+                 ptr_buffer,
                  strerror(errno));
         }
       }

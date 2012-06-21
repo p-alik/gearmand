@@ -1095,7 +1095,7 @@ static test_return_t _increase_TEST(gearman_function_t &func, gearman_client_opt
     gearman_return_t rc;
     do {
       rc= gearman_client_run_tasks(&client);
-      if (options)
+      if (options & GEARMAN_CLIENT_NON_BLOCKING)
       {
         gearman_client_wait(&client);
       }
@@ -1106,7 +1106,7 @@ static test_return_t _increase_TEST(gearman_function_t &func, gearman_client_opt
 
     gearman_result_st *result= gearman_task_result(task);
     test_true(result);
-    test_compare(workload.size(), gearman_result_size(result));
+    test_compare(gearman_result_size(result), workload.size());
   }
 
   return TEST_SUCCESS;

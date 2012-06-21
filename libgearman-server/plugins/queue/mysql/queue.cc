@@ -88,7 +88,9 @@ private:
 MySQL::MySQL() :
   Queue("MySQL"),
   con(NULL),
-  add_stmt(NULL) {
+  add_stmt(NULL),
+  done_stmt(NULL)
+  {
     command_line_options().add_options()
       ("mysql-host", boost::program_options::value(&mysql_host)->default_value("localhost"), "MySQL host.")
       ("mysql-user", boost::program_options::value(&mysql_user)->default_value(""), "MySQL user.")

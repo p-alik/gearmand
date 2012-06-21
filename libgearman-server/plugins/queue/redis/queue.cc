@@ -101,7 +101,7 @@ void initialize_redis()
 typedef std::vector<char> vchar_t;
 #define GEARMAN_QUEUE_GEARMAND_DEFAULT_PREFIX "_gear_"
 #define GEARMAN_KEY_LITERAL "%s-%.*s-%*s"
-#define GEARMAN_KEY_SCAN_LITERAL "%*s-%s-%s"
+#define GEARMAN_KEY_SCAN_LITERAL "%.s*-%.*s-%.*s"
 
 static size_t build_key(vchar_t &key,
                         const char *unique,
@@ -114,6 +114,11 @@ static size_t build_key(vchar_t &key,
                          GEARMAN_QUEUE_GEARMAND_DEFAULT_PREFIX,
                          (int)function_name_size, function_name,
                          (int)unique_size, unique);
+  if (key_size > key.size() or key_size == -1)
+  {
+    assert(0);
+    return -1;
+  }
 
   return key.size();
 }
@@ -213,9 +218,13 @@ static gearmand_error_t _hiredis_replay(gearman_server_st *server, void *context
 
   for (size_t x= 0; x < reply->elements; x++)
   {
+    char prefix[sizeof(GEARMAN_QUEUE_GEARMAND_DEFAULT_PREFIX)];
     char function_name[GEARMAN_FUNCTION_MAX_SIZE];
     char unique[GEARMAN_MAX_UNIQUE_SIZE];
-    int ret= sscanf(reply->element[x]->str, GEARMAN_KEY_SCAN_LITERAL, function_name, unique);
+    int ret= sscanf(reply->element[x]->str, GEARMAN_KEY_SCAN_LITERAL, 
+                    int(sizeof(prefix)), prefix,
+                    int(sizeof(function_name)), function_name,
+                    int(sizeof(unique)), unique);
     if (ret == 0)
     {
       continue;

@@ -486,9 +486,6 @@ static void _server_job_timeout(int fd, short event, void *arg)
 {
   gearman_server_job_st *job= (gearman_server_job_st *)arg;
 
-  fd= fd;
-  event= event;
-
   /* A timeout has ocurred on a job, re-queue it */
   gearmand_log_warning(GEARMAN_DEFAULT_LOG_PARAM,
                        "Worker timeout reached on job, requeueing: %s %s",

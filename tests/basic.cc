@@ -254,7 +254,7 @@ test_return_t lp_734663(void *object)
   test_compare(gearman_client_add_server(client, NULL, test->port()),
                GEARMAN_SUCCESS);
 
-  test_compare(gearman_client_echo(client, value, sizeof(JOB_SIZE)), GEARMAN_SUCCESS);
+  test_compare(gearman_client_echo(client, value, sizeof(value)), GEARMAN_SUCCESS);
 
   for (uint32_t x= 0; x < NUMBER_OF_JOBS; x++)
   {

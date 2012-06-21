@@ -85,7 +85,7 @@ int main(int args, char *argv[])
   uint32_t count= UINT_MAX;
   in_port_t port;
   std::string host;
-  std::vector<std::string>* functions= NULL;
+  std::vector<std::string> functions;
   std::string verbose_string;
   boost::program_options::options_description desc("Options");
   desc.add_options()
@@ -98,7 +98,7 @@ int main(int args, char *argv[])
     ("status,s", boost::program_options::bool_switch(&opt_status)->default_value(false), "Send status updates and sleep while running job")
     ("unique,u", boost::program_options::bool_switch(&opt_unique)->default_value(false), "When grabbing jobs, grab the uniqie id")
     ("daemon,d", boost::program_options::bool_switch(&opt_daemon)->default_value(false), "Daemonize")
-    ("function,f", boost::program_options::value(functions), "Function to use.")
+    ("function,f", boost::program_options::value(&functions), "Function to use.")
     ("verbose,v", boost::program_options::value(&verbose_string)->default_value("v"), "Increase verbosity level by one.")
     ("pid-file", boost::program_options::value(&pid_file), "File to write process ID out to.")
     ("log-file", boost::program_options::value(&log_file), "Create a log file.")
@@ -224,9 +224,9 @@ int main(int args, char *argv[])
     return EXIT_FAILURE;
   }
 
-  if (functions and functions->size())
+  if (functions.size())
   {
-    for (std::vector<std::string>::iterator iter= functions->begin(); iter != functions->end(); iter++)
+    for (std::vector<std::string>::iterator iter= functions.begin(); iter != functions.end(); ++iter)
     {
       if (gearman_failed(gearman_worker_add_function(worker,
                                                      (*iter).c_str(), 0,

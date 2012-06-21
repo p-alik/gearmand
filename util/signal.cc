@@ -189,6 +189,7 @@ static void *sig_thread(void *arg)
 SignalThread::SignalThread(bool exit_on_signal_arg) :
   _exit_on_signal(exit_on_signal_arg),
   magic_memory(MAGIC_MEMORY),
+  __shutdown(SHUTDOWN_RUNNING),
   thread(pthread_self()),
   _sighup(NULL)
 {

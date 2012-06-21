@@ -351,7 +351,7 @@ static test_return_t gearman_packet_give_data_test(void *)
   gearman_packet_give_data(packet, data, data_size);
 
   test_truth(packet.data == data);
-  test_truth(packet.data_size == data_size);
+  test_compare(packet.data_size, data_size);
   test_truth(packet.options.free_data);
 
   gearman_packet_free(&packet);

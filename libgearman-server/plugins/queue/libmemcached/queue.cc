@@ -55,7 +55,9 @@ public:
                        const char *function_name, size_t function_name_size,
                        const void *data, size_t data_size,
                        gearmand_job_priority_t priority,
-                       int64_t when);
+                       int64_t when)
+  {
+  }
 
   gearmand_error_t flush(gearman_server_st *server);
 

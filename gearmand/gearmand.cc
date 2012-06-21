@@ -200,7 +200,7 @@ int main(int argc, char *argv[])
 
         for (std::vector<std::string>::iterator iter= args.begin();
              iter != args.end();
-             iter++)
+             ++iter)
         {
           std::cerr << *iter << std::endl;
         }

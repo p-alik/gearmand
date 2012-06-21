@@ -107,9 +107,6 @@ gearman_task_st *add_task(gearman_client_st& client,
                           time_t when,
                           const gearman_actions_t &actions)
 {
-  const void *args[4];
-  size_t args_size[4];
-
   if (gearman_size(function) == 0 or gearman_c_str(function) == NULL or gearman_size(function) > GEARMAN_FUNCTION_MAX_SIZE)
   {
     if (gearman_size(function) > GEARMAN_FUNCTION_MAX_SIZE)

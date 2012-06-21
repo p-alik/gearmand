@@ -438,7 +438,7 @@ bool Server::args(Application& app)
     port_option(app, _port);
   }
 
-  for (Options::const_iterator iter= _options.begin(); iter != _options.end(); iter++)
+  for (Options::const_iterator iter= _options.begin(); iter != _options.end(); ++iter)
   {
     if ((*iter).second.empty() == false)
     {

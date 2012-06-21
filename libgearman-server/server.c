@@ -95,8 +95,6 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
   gearmand_error_t ret;
   gearman_server_client_st *server_client= NULL;
 
-  int checked_length;
-
   if (packet->magic == GEARMAN_MAGIC_RESPONSE)
   {
     return _server_error_packet(server_con, "bad_magic", "Request magic expected");

@@ -30,7 +30,7 @@ static gearman_server_worker_st* gearman_server_worker_create(gearman_server_con
     worker= new (std::nothrow) gearman_server_worker_st;
     if (worker == NULL)
     {
-      gearmand_merror("new", 0, sizeof(gearman_server_worker_st));
+      gearmand_merror("new", gearman_server_worker_st, 1);
       return NULL;
     }
   }

@@ -163,7 +163,7 @@ void load_options(boost::program_options::options_description &all)
 {
   for (plugins::Queue::vector::iterator iter= all_queue_modules.begin();
        iter != all_queue_modules.end();
-       iter++)
+       ++iter)
   {
     all.add((*iter)->command_line_options());
   }
@@ -180,7 +180,7 @@ gearmand_error_t initialize(gearmand_st *, const std::string &name)
 
   for (plugins::Queue::vector::iterator iter= all_queue_modules.begin();
        iter != all_queue_modules.end();
-       iter++)
+       ++iter)
   {
     if (not name.compare((*iter)->name()))
     {

@@ -231,7 +231,6 @@ bool gearman_job_build_reducer(gearman_job_st *job, gearman_aggregator_fn *aggre
 
 gearman_return_t gearman_job_send_data(gearman_job_st *job, const void *data, size_t data_size)
 {
-  gearman_return_t ret;
   const void *args[2];
   size_t args_size[2];
 
@@ -249,12 +248,14 @@ gearman_return_t gearman_job_send_data(gearman_job_st *job, const void *data, si
     args_size[0]= job->assigned.arg_size[0];
     args[1]= data;
     args_size[1]= data_size;
-    ret= gearman_packet_create_args(job->worker->universal, job->work,
-                                    GEARMAN_MAGIC_REQUEST,
-                                    GEARMAN_COMMAND_WORK_DATA,
-                                    args, args_size, 2);
+    gearman_return_t ret= gearman_packet_create_args(job->worker->universal, job->work,
+                                                     GEARMAN_MAGIC_REQUEST,
+                                                     GEARMAN_COMMAND_WORK_DATA,
+                                                     args, args_size, 2);
     if (gearman_failed(ret))
+    {
       return ret;
+    }
 
     job->options.work_in_use= true;
   }

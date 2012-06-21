@@ -40,8 +40,7 @@ void gearmand_initialize_thread_logging(const char *identity)
 {
   (void) pthread_once(&intitialize_log_once, create_log);
 
-  void *ptr;
-  if ((ptr= pthread_getspecific(logging_key)) == NULL)
+  if (pthread_getspecific(logging_key) == NULL)
   {
     const char *key_to_use= strdup(identity);
     (void) pthread_setspecific(logging_key, key_to_use);
@@ -80,8 +79,6 @@ static void gearmand_log(const char *position, const char *func /* func */,
   }
 
   struct tm current_tm;
-  char current_time_str[27];
-
   if (current_epoch.tv_sec == 0)
   {
     (void)gettimeofday(&current_epoch, NULL);

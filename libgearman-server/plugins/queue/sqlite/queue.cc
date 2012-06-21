@@ -630,7 +630,7 @@ gearmand_error_t SqliteQueue::replay(gearman_server_st *server)
   while (sqlite3_step(sth) == SQLITE_ROW)
   {
     const char *unique, *function_name;
-    void *data;
+    std::vector<char> data;
     size_t unique_size, function_name_size, data_size;
 
     if (sqlite3_column_type(sth,0) == SQLITE_TEXT)
@@ -676,14 +676,16 @@ gearmand_error_t SqliteQueue::replay(gearman_server_st *server)
     {
       data_size= (size_t)sqlite3_column_bytes(sth,3);
       /* need to make a copy here ... gearman_server_job_free will free it later */
-      data= (void *)malloc(data_size);
-      if (data == NULL)
+      try {
+        data.resize(data_size);
+      }
+      catch (...)
       {
         sqlite3_finalize(sth);
         gearmand_perror("malloc");
         return GEARMAN_MEMORY_ALLOCATION_FAILURE;
       }
-      memcpy(data, sqlite3_column_blob(sth,3), data_size);
+      memcpy(&data[0], sqlite3_column_blob(sth,3), data_size);
     }
     else
     {
@@ -716,7 +718,7 @@ gearmand_error_t SqliteQueue::replay(gearman_server_st *server)
     gearmand_error_t gret= add(server,
                                unique, unique_size,
                                function_name, function_name_size,
-                               data, data_size,
+                               &data[0], data.size(),
                                priority, when);
     if (gearmand_failed(gret))
     {

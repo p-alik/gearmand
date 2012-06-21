@@ -178,7 +178,6 @@ static test_return_t var_tmp_test(void *)
 {
   FILE *file= fopen("var/tmp/junk", "w+");
   char buffer[1024];
-  const char *dir= getcwd(buffer, sizeof(buffer));
   test_true(file);
   fclose(file);
   return TEST_SUCCESS;

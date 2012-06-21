@@ -101,23 +101,26 @@ int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 
   (void) pthread_once(&function_lookup_once, set_local);
 
-  if (is_getaddrinfo() == false && __function.frequency)
+  if (is_getaddrinfo() == false)
   {
-    if (--not_until < 0 && random() % __function.frequency)
+    if (__function.frequency)
     {
-      if (random() % 1)
+      if (--not_until < 0 && random() % __function.frequency)
       {
-        shutdown(sockfd, SHUT_RDWR);
-        close(sockfd);
-        errno= ECONNABORTED;
-        return -1;
-      }
-      else
-      {
-        shutdown(sockfd, SHUT_RDWR);
-        close(sockfd);
-        errno= EMFILE;
-        return -1;
+        if (random() % 1)
+        {
+          shutdown(sockfd, SHUT_RDWR);
+          close(sockfd);
+          errno= ECONNABORTED;
+          return -1;
+        }
+        else
+        {
+          shutdown(sockfd, SHUT_RDWR);
+          close(sockfd);
+          errno= EMFILE;
+          return -1;
+        }
       }
     }
   }

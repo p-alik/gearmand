@@ -362,7 +362,9 @@ void worker_handles_st::kill_all()
 
 void worker_handles_st::reset()
 {
-  for (std::vector<worker_handle_st *>::iterator iter= _workers.begin(); iter != _workers.end(); iter++)
+  for (std::vector<worker_handle_st *>::iterator iter= _workers.begin(); 
+       iter != _workers.end();
+       ++iter)
   {
     delete *iter;
   }

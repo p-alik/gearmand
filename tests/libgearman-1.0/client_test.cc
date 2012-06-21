@@ -101,7 +101,7 @@ struct client_test_st
 
   ~client_test_st()
   {
-    for (std::vector<worker_handle_st *>::iterator iter= workers.begin(); iter != workers.end(); iter++)
+    for (std::vector<worker_handle_st *>::iterator iter= workers.begin(); iter != workers.end(); ++iter)
     {
       delete *iter;
     }
@@ -1214,7 +1214,6 @@ static test_return_t strerror_strings(void *)
 
   for (int rc= GEARMAN_SUCCESS; rc < GEARMAN_MAX_RETURN; rc++)
   {
-    char *make_number_str;
     uint32_t hash_val;
     const char *msg=  gearman_strerror((gearman_return_t)rc);
     hash_val= internal_generate_hash(msg, strlen(msg));

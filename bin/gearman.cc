@@ -282,7 +282,7 @@ void _client_run(gearman_client_st& client, Args &args,
 
   for (Function::vector::iterator iter= args.begin(); 
        iter != args.end();
-       iter++)
+       ++iter)
   {
     Function &function= *iter;
 
@@ -467,7 +467,7 @@ void _worker(Args &args)
 
   for (Function::vector::iterator iter= args.begin(); 
        iter != args.end();
-       iter++)
+       ++iter)
   {
     Function &function= *iter;
     worker_argument_t pass(args, *iter);

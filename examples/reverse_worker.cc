@@ -81,40 +81,57 @@ static gearman_return_t reverse_worker(gearman_job_st *job, void *context)
     std::cout << "Recieved " << workload_size << " bytes" << std::endl;
   }
 
-  char *result= (char *)malloc(workload_size);
-  if (result == NULL)
-  {
-    perror("malloc");
-    return GEARMAN_ERROR;
-  }
+  std::vector<char> result;
+  result.resize(workload_size);
 
+  // Copy workload
   for (size_t y= 0, x= workload_size; x; x--, y++)
   {
     result[y]= ((uint8_t *)workload)[x - 1];
+  }
 
-    if (options.chunk) // Chunk the result set
+  if (options.chunk) // Chunk the result set
+  {
+    for (size_t y= 0, x= workload_size; x; x--, y++)
     {
       if (gearman_failed(gearman_job_send_data(job, &result[y], 1)))
       {
         return GEARMAN_ERROR;
       }
+
+      if (options.status)
+      {
+        // Notice that we send based on y divided by zero.
+        if (gearman_failed(gearman_job_send_status(job, (uint32_t)y, (uint32_t)workload_size)))
+        {
+          return GEARMAN_ERROR;
+        }
+      }
+    }
+  }
+  else
+  {
+    if (options.status)
+    {
+      // Notice that we send based on y divided by zero.
+      if (gearman_failed(gearman_job_send_status(job, (uint32_t)0, (uint32_t)workload_size)))
+      {
+        return GEARMAN_ERROR;
+      }
+    }
+
+    if (gearman_failed(gearman_job_send_data(job, &result[0], workload_size)))
+    {
+      return GEARMAN_ERROR;
     }
 
     if (options.status)
     {
       // Notice that we send based on y divided by zero.
-      if (gearman_failed(gearman_job_send_status(job, (uint32_t)y, (uint32_t)workload_size)))
+      if (gearman_failed(gearman_job_send_status(job, (uint32_t)workload_size, (uint32_t)workload_size)))
       {
         return GEARMAN_ERROR;
       }
-    }
-  }
-
-  if (options.chunk == false) // Chunk the result set
-  {
-    if (gearman_failed(gearman_job_send_data(job, result, workload_size)))
-    {
-      return GEARMAN_ERROR;
     }
   }
 
