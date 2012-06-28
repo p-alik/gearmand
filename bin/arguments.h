@@ -138,7 +138,7 @@ public:
 
   bool is_error() const
   {
-    if (_functions.size() == 0)
+    if (_functions.empty())
     {
       return true;
     }

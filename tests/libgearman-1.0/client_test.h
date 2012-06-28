@@ -36,77 +36,106 @@
  *
  */
 
-#include <config.h>
-#include <libgearman/common.h>
-#include <cerrno>
-#include <cstring>
-#include <unistd.h>
+#pragma once
 
-gearman_id_t gearman_id_initialize(void)
+struct client_test_st;
+#include "tests/start_worker.h"
+
+struct client_test_st
 {
-  static gearman_id_t tmp= { -1, -1 };
+  gearman_client_st *_client;
+  gearman_client_st *_clone;
+  std::vector<worker_handle_st *> workers;
+  const char *_worker_name;
+  const char *_session_namespace;
 
-  return tmp;
-}
+  client_test_st() :
+    _client(NULL),
+    _clone(NULL),
+    _worker_name(NULL),
+    _session_namespace(NULL)
+  { 
+    _client= gearman_client_create(NULL);
 
-bool gearman_id_valid(const gearman_id_t handle)
-{
-  if (handle.write_fd <= 0 and handle.read_fd <= 0)
-  {
-    return false;
+    if (_client == NULL)
+    {
+      throw "gearman_client_create() failed";
+    }
   }
 
-  return true;
-}
-
-gearman_return_t gearman_kill(const gearman_id_t handle, const gearman_signal_t sig)
-{
-  if (handle.write_fd <= 0 or handle.read_fd <= 0)
+  ~client_test_st()
   {
-    return GEARMAN_COULD_NOT_CONNECT;
+    clear();
+    gearman_client_free(_client);
   }
 
-  switch (sig)
+  void clear()
   {
-  case GEARMAN_SIGNAL_INTERRUPT:
-    if (write(handle.write_fd, "1", 1) == 1)
+    for (std::vector<worker_handle_st *>::iterator iter= workers.begin(); iter != workers.end(); ++iter)
     {
-      return GEARMAN_SUCCESS;
+      delete *iter;
     }
-    break;
-
-  case GEARMAN_SIGNAL_KILLWAIT:
-    if (close(handle.write_fd) == 0)
-    {
-      gearman_kill(handle, GEARMAN_SIGNAL_CHECK);
-      return GEARMAN_SUCCESS;
-    }
-    break;
-
-  case GEARMAN_SIGNAL_KILL:
-    if (close(handle.write_fd) == 0)
-    {
-      return GEARMAN_SUCCESS;
-    }
-    break;
-
-  case GEARMAN_SIGNAL_CHECK:
-    {
-      struct pollfd pfds[1];
-      memset(&pfds, 0, sizeof(pfds));
-      pfds[0].fd= handle.read_fd;
-      pfds[0].events= POLLIN;
-      pfds[0].revents= 0;
-
-      int ret= ::poll(pfds, sizeof(pfds), 1500);
-
-      if (ret >= 0)
-      {
-        return GEARMAN_SUCCESS;
-      }
-    }
-    break;
+    workers.clear();
+    set_worker_name(NULL);
+    session_namespace(NULL);
+    reset_client();
   }
 
-  return GEARMAN_COULD_NOT_CONNECT;
-}
+  void push(worker_handle_st *arg)
+  {
+    workers.push_back(arg);
+  }
+
+  void add_server(const char* hostname, in_port_t port_arg)
+  {
+    gearman_client_add_server(_client, hostname, port_arg);
+  }
+
+  const char *worker_name() const
+  {
+    return _worker_name;
+  }
+
+  void set_worker_name(const char *arg)
+  {
+    _worker_name= arg;
+  }
+
+  void session_namespace(const char *arg)
+  {
+    _session_namespace= arg;
+  }
+
+  const char* session_namespace()
+  {
+    return _session_namespace;
+  }
+
+  gearman_client_st *client()
+  {
+    if (_clone == NULL)
+    {
+      _clone= gearman_client_clone(NULL, _client);
+    }
+
+    return _clone;
+  }
+
+  void clear_clone()
+  {
+    if (_clone)
+    {
+      gearman_client_free(_clone);
+    }
+    _clone= gearman_client_create(NULL);
+  }
+
+  void reset_client()
+  {
+    if (_clone)
+    {
+      gearman_client_free(_clone);
+    }
+    _clone= gearman_client_clone(NULL, _client);
+  }
+};

@@ -65,8 +65,8 @@ static void* current_epoch_handler(void*)
     fds[0].events= POLLIN;
     fds[0].revents= 0;
 
-    int error;
-    if ((error= poll(fds, 1, 1000)) == -1)
+    int active_fd;
+    if ((active_fd= poll(fds, 1, 1000)) == -1)
     {
       switch (errno)
       {
@@ -77,7 +77,11 @@ static void* current_epoch_handler(void*)
         gearmand_perror("poll");
       }
     }
-    gettimeofday(&current_epoch, NULL);
+
+    if (active_fd == 1)
+    {
+      gettimeofday(&current_epoch, NULL);
+    }
   }
 
   pthread_exit(NULL);

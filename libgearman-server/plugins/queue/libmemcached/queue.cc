@@ -189,8 +189,6 @@ static memcached_return callback_loader(const memcached_st*,
   const char *unique;
   const char *function;
   size_t function_len;
-  char *data;
-  size_t data_size;
 
   key= memcached_result_key_value(result);
   if (strncmp(key, GEARMAN_QUEUE_LIBMEMCACHED_DEFAULT_PREFIX, strlen(GEARMAN_QUEUE_LIBMEMCACHED_DEFAULT_PREFIX)))
@@ -211,10 +209,12 @@ static memcached_return callback_loader(const memcached_st*,
   assert(function);
   assert(function_len);
 
-  data_size= (size_t) memcached_result_length(result);
+  std::vector<char> data;
   /* need to make a copy here ... gearman_server_job_free will free it later */
-  data= (char *)malloc(data_size);
-  if (data == NULL)
+  try {
+    data.resize(memcached_result_length(result));
+  }
+  catch(...)
   {
     gearmand_perror("malloc");
     return MEMCACHED_MEMORY_ALLOCATION_FAILURE;
@@ -225,7 +225,7 @@ static memcached_return callback_loader(const memcached_st*,
   (void)add(container->server,
             unique, strlen(unique),
             function, function_len,
-            data, data_size,
+            data, data.size(),
             static_cast<gearmand_job_priority_t>(memcached_result_flags(result)), 0);
 
 

@@ -56,6 +56,11 @@ gearman_function_t gearman_function_create(gearman_function_fn func)
   return _function;
 }
 
+gearman_function_t gearman_function_create_v2(gearman_function_fn func)
+{
+  return gearman_function_create(func);
+}
+
 gearman_function_t gearman_function_create_null()
 {
   gearman_function_t _function= { GEARMAN_WORKER_FUNCTION_NULL, { { 0 } } };

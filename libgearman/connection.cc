@@ -419,8 +419,8 @@ gearman_return_t gearman_connection_st::send_packet(const gearman_packet_st& pac
     /* Pack first part of packet, which is everything but the payload. */
     while (1)
     {
-      gearman_return_t rc;
       { // Scoping to shut compiler up about switch/case jump
+        gearman_return_t rc;
         size_t send_size= gearman_packet_pack(packet_arg,
                                               send_buffer +send_buffer_size,
                                               GEARMAN_SEND_BUFFER_SIZE -send_buffer_size, rc);
@@ -567,7 +567,11 @@ gearman_return_t gearman_connection_st::lookup()
   }
 
   char port_str[GEARMAN_NI_MAXSERV];
-  snprintf(port_str, GEARMAN_NI_MAXSERV, "%hu", uint16_t(port));
+  int port_str_length;
+  if ((port_str_length= snprintf(port_str, sizeof(port_str), "%hu", uint16_t(port))) >= sizeof(port_str))
+  {
+    return gearman_universal_set_error(universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, GEARMAN_AT, "snprintf(%d)", port_str_length);
+  }
 
   struct addrinfo ai;
   memset(&ai, 0, sizeof(struct addrinfo));

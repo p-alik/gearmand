@@ -37,6 +37,9 @@
 
 #pragma once
 
+test_return_t partition_SETUP(void *);
+test_return_t partition_free_SETUP(void *);
+
 test_return_t gearman_execute_partition_check_parameters(void *);
 test_return_t gearman_execute_partition_basic(void *);
 test_return_t gearman_execute_partition_fail_in_reduction(void *);

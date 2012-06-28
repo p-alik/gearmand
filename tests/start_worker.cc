@@ -80,7 +80,7 @@ struct context_st {
   boost::barrier* _sync_point;
 
   context_st(worker_handle_st* handle_arg,
-             gearman_function_t& arg,
+             const gearman_function_t& func_arg,
              in_port_t port_arg,
              const std::string& namespace_key_arg,
              const std::string& function_name_arg,
@@ -90,7 +90,7 @@ struct context_st {
     handle(handle_arg),
     port(port_arg),
     options(options_arg),
-    worker_fn(arg),
+    worker_fn(func_arg),
     namespace_key(namespace_key_arg),
     function_name(function_name_arg),
     context(context_arg),
@@ -241,7 +241,7 @@ static void thread_runner(context_st* con)
 worker_handle_st *test_worker_start(in_port_t port, 
                                     const char *namespace_key,
                                     const char *function_name,
-                                    gearman_function_t &worker_fn,
+                                    const gearman_function_t &worker_fn,
                                     void *context_arg,
                                     gearman_worker_options_t options,
                                     int timeout)

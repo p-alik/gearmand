@@ -4,7 +4,7 @@ Version: @VERSION@
 Release: 1
 License: BSD
 Group: System Environment/Libraries
-BuildRequires: gcc-c++
+BuildRequires: bison
 URL: http://launchpad.net/gearmand
 Requires: sqlite, libevent >= 1.4, boost-program-options >=  1.39
 

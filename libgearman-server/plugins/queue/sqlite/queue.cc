@@ -631,7 +631,7 @@ gearmand_error_t SqliteQueue::replay(gearman_server_st *server)
   {
     const char *unique, *function_name;
     std::vector<char> data;
-    size_t unique_size, function_name_size, data_size;
+    size_t unique_size, function_name_size;
 
     if (sqlite3_column_type(sth,0) == SQLITE_TEXT)
     {
@@ -674,7 +674,7 @@ gearmand_error_t SqliteQueue::replay(gearman_server_st *server)
 
     if (sqlite3_column_type(sth,3) == SQLITE_BLOB)
     {
-      data_size= (size_t)sqlite3_column_bytes(sth,3);
+      size_t data_size= (size_t)sqlite3_column_bytes(sth,3);
       /* need to make a copy here ... gearman_server_job_free will free it later */
       try {
         data.resize(data_size);

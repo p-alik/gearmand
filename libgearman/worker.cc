@@ -1373,3 +1373,8 @@ gearman_return_t gearman_worker_set_identifier(gearman_worker_st *worker,
 {
   return gearman_set_identifier(worker->universal, id, id_size);
 }
+
+const char *gearman_worker_namespace(gearman_worker_st *self)
+{
+  return gearman_univeral_namespace(self->universal);
+}

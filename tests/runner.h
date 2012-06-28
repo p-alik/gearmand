@@ -38,6 +38,8 @@
 
 #pragma once
 
+#include "tests/libgearman-1.0/client_test.h"
+
 class GearmandRunner : public Runner {
 private:
 
@@ -47,21 +49,21 @@ private:
 public:
   test_return_t run(test_callback_fn* func, void *object)
   {
-    return _runner_default(libgearman_test_callback_fn(func), (client_test_st*)object);
+    return _run(libgearman_test_callback_fn(func), (client_test_st*)object);
   }
 
   test_return_t pre(test_callback_fn* func, void *object)
   {
-    return _runner_prepost_default(libgearman_test_prepost_callback_fn(func), (client_test_st*)object);
+    return _setup(libgearman_test_prepost_callback_fn(func), (client_test_st*)object);
   }
 
   test_return_t post(test_callback_fn* func, void *object)
   {
-    return _runner_prepost_default(libgearman_test_prepost_callback_fn(func), (client_test_st*)object);
+    return _teardown(libgearman_test_prepost_callback_fn(func), (client_test_st*)object);
   }
 
 private:
-  test_return_t _runner_prepost_default(libgearman_test_prepost_callback_fn func, client_test_st *container)
+  test_return_t _setup(libgearman_test_prepost_callback_fn func, client_test_st *container)
   {
     if (func)
     {
@@ -71,7 +73,18 @@ private:
     return TEST_SUCCESS;
   }
 
-  test_return_t _runner_default(libgearman_test_callback_fn func, client_test_st *container)
+  test_return_t _teardown(libgearman_test_prepost_callback_fn func, client_test_st *container)
+  {
+    if (func)
+    {
+      return func(container);
+    }
+    container->clear();
+
+    return TEST_SUCCESS;
+  }
+
+  test_return_t _run(libgearman_test_callback_fn func, client_test_st *container)
   {
     test_compare(GEARMAN_SUCCESS, gearman_client_echo(container->client(), test_literal_param("check")));
 
@@ -79,11 +92,14 @@ private:
     {
       test_return_t rc;
 
-      if (container->clone())
       {
         gearman_client_st *client= gearman_client_clone(NULL, container->client());
         test_truth(client);
         gearman_client_set_context(client, (void *)container->worker_name());
+        if (container->session_namespace())
+        {
+          gearman_client_set_namespace(client, container->session_namespace(),strlen(container->session_namespace()));
+        }
         rc= func(client);
         if (rc == TEST_SUCCESS)
         {
@@ -91,12 +107,6 @@ private:
         }
 
         gearman_client_free(client);
-      }
-      else
-      {
-        gearman_client_set_context(container->client(), (void *)container->worker_name());
-        rc= func(container->client());
-        assert(not container->client()->task_list);
       }
 
       return rc;

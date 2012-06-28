@@ -43,10 +43,13 @@
 
 #include <config.h>
 #include <libgearman-server/common.h>
+#include <libgearman-server/queue.h>
 
 #include <errno.h>
-#include <string.h>
 #include <iso646.h>
+#include <limits.h>
+#include <stdlib.h>
+#include <string.h>
 
 /*
  * Private declarations
@@ -241,7 +244,12 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
       int64_t when= 0;
       if (packet->command == GEARMAN_COMMAND_SUBMIT_JOB_EPOCH)
       {
-        sscanf((char *)packet->arg[2], "%lld", (long long *)&when);
+        char *endptr;
+        when= strtoll((char *)packet->arg[1], &endptr, 10);
+        if (when == LONG_MIN or when == LONG_MAX or errno == EINVAL or when > UINT8_MAX or when == 0)
+        {
+          return gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "strtoul(%ul)", when);
+        }
         gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, 
                            "Received EPOCH job submission, function:%.*s unique:%.*s with data for %jd at %jd, args %d",
                            packet->arg_size[0], packet->arg[0],
@@ -491,9 +499,14 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
 
   case GEARMAN_COMMAND_CAN_DO_TIMEOUT:
     {
-      uint32_t timeout = 0;
-      sscanf((char *)packet->arg[1], "%d", (int *)&timeout);
+      char *endptr;
+      unsigned long timeout= strtoul((char *)packet->arg[1], &endptr, 10);
+      if (timeout == LONG_MIN or timeout == LONG_MAX or errno == EINVAL or timeout > UINT8_MAX or timeout == 0)
+      {
+        return gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "strtoul(%ul)", timeout);
+      }
       gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Registering function: %.*s with timeout", packet->arg_size[0], packet->arg[0]);
+
       if (gearman_server_worker_add(server_con, (char *)(packet->arg[0]),
                                     packet->arg_size[0] - 1,
                                     timeout) == NULL)

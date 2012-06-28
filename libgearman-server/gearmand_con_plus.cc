@@ -54,7 +54,7 @@ void destroy_gearmand_con_st(gearmand_con_st* arg)
 
 void _con_ready(int, short events, void *arg)
 {
-  gearmand_con_st *dcon= (gearmand_con_st *)arg;
+  gearmand_con_st *dcon= (gearmand_con_st *)(arg);
   short revents= 0;
 
   if (events & EV_READ)

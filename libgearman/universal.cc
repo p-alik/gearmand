@@ -276,7 +276,9 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
   for (gearman_connection_st *con= universal.con_list; con; con= con->next)
   {
     if (con->events == 0)
+    {
       continue;
+    }
 
     pfds[x].fd= con->fd;
     pfds[x].events= con->events;
@@ -417,7 +419,6 @@ gearman_return_t gearman_set_identifier(gearman_universal_st& universal,
   {
     PUSH_BLOCKING(universal);
 
-    size_t error_count= 0;
     for (gearman_connection_st *con= universal.con_list; con; con= con->next)
     {
       gearman_return_t local_ret= con->send_packet(packet, true);
@@ -604,4 +605,9 @@ void gearman_universal_set_namespace(gearman_universal_st& universal, const char
 {
   gearman_string_free(universal._namespace);
   universal._namespace= gearman_string_create(NULL, namespace_key, namespace_key_size);
+}
+
+const char *gearman_univeral_namespace(gearman_universal_st& universal)
+{
+  return gearman_string_value(universal._namespace);
 }

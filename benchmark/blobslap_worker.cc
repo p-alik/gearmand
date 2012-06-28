@@ -224,7 +224,7 @@ int main(int args, char *argv[])
     return EXIT_FAILURE;
   }
 
-  if (functions.size())
+  if (functions.empty() == false)
   {
     for (std::vector<std::string>::iterator iter= functions.begin(); iter != functions.end(); ++iter)
     {

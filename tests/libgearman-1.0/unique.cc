@@ -50,9 +50,29 @@ using namespace libtest;
 
 #include "tests/client.h"
 
+#include "tests/libgearman-1.0/client_test.h"
+
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
+
+#include "tests/workers_v1.h"
+
+#define WORKER_UNIQUE_FUNCTION_NAME "unique_test"
+
+test_return_t unique_SETUP(void *object)
+{
+  client_test_st *test= (client_test_st *)object;
+
+  test->set_worker_name(WORKER_UNIQUE_FUNCTION_NAME);
+
+  gearman_function_t unique_worker_arg= gearman_function_create_v1(unique_worker);
+  test->push(test_worker_start(libtest::default_port(), NULL,
+                               test->worker_name(),
+                               unique_worker_arg, NULL, GEARMAN_WORKER_GRAB_UNIQ));
+
+  return TEST_SUCCESS;
+}
 
 
 test_return_t coalescence_TEST(void *object)

@@ -84,7 +84,7 @@ Framework::~Framework()
 
   for (std::vector<Collection*>::iterator iter= _collection.begin();
        iter != _collection.end();
-       iter++)
+       ++iter)
   {
     delete *iter;
   }
@@ -104,7 +104,7 @@ void Framework::exec()
 {
   for (std::vector<Collection*>::iterator iter= _collection.begin();
        iter != _collection.end() and (_signal.is_shutdown() == false);
-       iter++)
+       ++iter)
   {
     if (_only_run.empty() == false and
         fnmatch(_only_run.c_str(), (*iter)->name(), 0))
@@ -151,7 +151,7 @@ uint32_t Framework::sum_total()
   uint32_t count= 0;
   for (std::vector<Collection*>::iterator iter= _collection.begin();
        iter != _collection.end();
-       iter++)
+       ++iter)
   {
     count+= (*iter)->total();
   }
@@ -164,7 +164,7 @@ uint32_t Framework::sum_success()
   uint32_t count= 0;
   for (std::vector<Collection*>::iterator iter= _collection.begin();
        iter != _collection.end();
-       iter++)
+       ++iter)
   {
     count+= (*iter)->success();
   }
@@ -177,7 +177,7 @@ uint32_t Framework::sum_skipped()
   uint32_t count= 0;
   for (std::vector<Collection*>::iterator iter= _collection.begin();
        iter != _collection.end();
-       iter++)
+       ++iter)
   {
     count+= (*iter)->skipped();
   }
@@ -190,7 +190,7 @@ uint32_t Framework::sum_failed()
   uint32_t count= 0;
   for (std::vector<Collection*>::iterator iter= _collection.begin();
        iter != _collection.end();
-       iter++)
+       ++iter)
   {
     count+= (*iter)->failed();
   }

@@ -1,5 +1,7 @@
 # vim:ft=automake
 
+noinst_HEADERS+= tests/libgearman-1.0/client_test.h
+
 LIBGEARMAN_1_0_CLIENT_LDADD=
 LIBGEARMAN_1_0_CLIENT_LDADD+= libgearman/libgearman.la
 LIBGEARMAN_1_0_CLIENT_LDADD+= libtest/libtest.la

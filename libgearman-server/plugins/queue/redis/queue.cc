@@ -101,7 +101,7 @@ void initialize_redis()
 typedef std::vector<char> vchar_t;
 #define GEARMAN_QUEUE_GEARMAND_DEFAULT_PREFIX "_gear_"
 #define GEARMAN_KEY_LITERAL "%s-%.*s-%*s"
-#define GEARMAN_KEY_SCAN_LITERAL "%.s*-%.*s-%.*s"
+#define GEARMAN_KEY_SCAN_LITERAL "%.*s-%.*s-%.*s"
 
 static size_t build_key(vchar_t &key,
                         const char *unique,

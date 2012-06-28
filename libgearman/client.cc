@@ -121,6 +121,12 @@ static void *_client_do(gearman_client_st *client, gearman_command_t command,
     ret_ptr= &unused;
   }
 
+  if (client == NULL)
+  {
+    *ret_ptr= GEARMAN_INVALID_ARGUMENT;
+    return NULL;
+  }
+
   universal_reset_error(client->universal);
 
   size_t unused_size;
@@ -130,16 +136,9 @@ static void *_client_do(gearman_client_st *client, gearman_command_t command,
   }
   *result_size= 0;
 
-  if (client == NULL)
-  {
-    *ret_ptr= GEARMAN_INVALID_ARGUMENT;
-    return NULL;
-  }
-
   gearman_string_t function= { gearman_string_param_cstr(function_name) };
   gearman_unique_t local_unique= gearman_unique_make(unique, unique ? strlen(unique) : 0);
   gearman_string_t workload= { static_cast<const char*>(workload_str), workload_size };
-
 
   gearman_task_st do_task;
   gearman_task_st *do_task_ptr= add_task(*client, &do_task, NULL, command,
@@ -1761,3 +1760,7 @@ gearman_return_t gearman_client_set_identifier(gearman_client_st *client,
   return gearman_set_identifier(client->universal, id, id_size);
 }
 
+const char *gearman_client_namespace(gearman_client_st *self)
+{
+  return gearman_univeral_namespace(self->universal);
+}

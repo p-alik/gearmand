@@ -738,6 +738,8 @@ GEARMAN_API
 gearman_return_t gearman_client_set_identifier(gearman_client_st *client,
                                                const char *id, size_t id_size);
 
+const char *gearman_client_namespace(gearman_client_st *self);
+
 /** @} */
 
 #ifdef __cplusplus

@@ -94,6 +94,9 @@ GEARMAN_API
 GEARMAN_API
   gearman_function_t gearman_function_create_v1(gearman_worker_fn func);
 
+GEARMAN_API
+  gearman_function_t gearman_function_create_v2(gearman_function_fn func);
+
 #ifdef __cplusplus
 }
 #endif

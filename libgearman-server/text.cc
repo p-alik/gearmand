@@ -292,9 +292,9 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
       bool success= false;
       for (gearman_server_function_st *function= Server->function_list; function != NULL; function= function->next)
       {
-        if (! strcasecmp(function->function_name, (char *)(packet->arg[2])))
+        if (strcasecmp(function->function_name, (char *)(packet->arg[2])) == 0)
         {
-          success++;
+          success= true;
           if (function->worker_count == 0 && function->job_running == 0)
           {
             gearman_server_function_free(Server, function);
@@ -308,7 +308,7 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
         }
       }
 
-      if (! success)
+      if (success == false)
       {
         snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, "ERR function not found\r\n");
         gearmand_debug(data);

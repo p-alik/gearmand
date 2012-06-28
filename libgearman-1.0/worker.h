@@ -459,6 +459,9 @@ GEARMAN_API
 void gearman_worker_set_namespace(gearman_worker_st *self, const char *namespace_key, size_t namespace_key_size);
 
 GEARMAN_API
+const char *gearman_worker_namespace(gearman_worker_st *self);
+
+GEARMAN_API
   gearman_id_t gearman_worker_shutdown_handle(gearman_worker_st *self);
 
 GEARMAN_API

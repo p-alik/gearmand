@@ -106,8 +106,13 @@ test_return_t burnin_TEST(void *object)
 
   // This sketchy, don't do this in your own code.
   test_true(context->num_tasks > 0);
-  gearman_task_st *tasks= (gearman_task_st *)calloc(context->num_tasks, sizeof(gearman_task_st));
-  test_true(tasks);
+  std::vector<gearman_task_st> tasks;
+  try {
+    tasks.resize(context->num_tasks);
+  }
+  catch (...)
+  { }
+  test_compare(tasks.size(), context->num_tasks);
 
   test_compare(gearman_client_echo(client, test_literal_param("echo_test")), GEARMAN_SUCCESS);
 
@@ -167,8 +172,6 @@ test_return_t burnin_TEST(void *object)
       gearman_task_free(&(tasks[x]));
     }
   } while (context->count--);
-
-  free(tasks);
 
   context->latch++;
 

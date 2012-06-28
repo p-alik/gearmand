@@ -153,7 +153,7 @@ static void gearmand_log(const char *position, const char *func /* func */,
     }
 
     // Make sure this is null terminated
-    log_buffer[sizeof(log_buffer)]= 0;
+    log_buffer[sizeof(log_buffer) -1]= 0;
   }
 
   if (Gearmand() and Gearmand()->log_fn)

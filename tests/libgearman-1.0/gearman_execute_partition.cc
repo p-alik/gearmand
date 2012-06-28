@@ -43,11 +43,120 @@ using namespace libtest;
 #include <cassert>
 #include <cstring>
 #include <libgearman/gearman.h>
-#include <tests/gearman_execute_partition.h>
+#include "tests/gearman_execute_partition.h"
+
+#include "tests/libgearman-1.0/client_test.h"
+
+#include "tests/workers.h"
 
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
+
+#define WORKER_FUNCTION_NAME "client_test"
+#define WORKER_SPLIT_FUNCTION_NAME "split_worker"
+
+namespace {
+  gearman_return_t cat_aggregator_fn(gearman_aggregator_st *, gearman_task_st *task, gearman_result_st *result)
+  {
+    std::string string_value;
+
+    do
+    {
+      assert(task);
+      gearman_result_st *result_ptr= gearman_task_result(task);
+
+      if (result_ptr)
+      {
+        if (not gearman_result_size(result_ptr))
+          return GEARMAN_WORK_EXCEPTION;
+
+        string_value.append(gearman_result_value(result_ptr), gearman_result_size(result_ptr));
+      }
+    } while ((task= gearman_next(task)));
+
+    gearman_result_store_value(result, string_value.c_str(), string_value.size());
+
+    return GEARMAN_SUCCESS;
+  }
+
+  gearman_return_t split_worker(gearman_job_st *job, void* /* context */)
+  {
+    const char *workload= static_cast<const char *>(gearman_job_workload(job));
+    size_t workload_size= gearman_job_workload_size(job);
+
+    assert(job->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN_ALL);
+
+    const char *chunk_begin= workload;
+    for (size_t x= 0; x < workload_size; x++)
+    {
+      if (int(workload[x]) == 0 or int(workload[x]) == int(' '))
+      {
+        if ((workload +x -chunk_begin) == 11 and not memcmp(chunk_begin, test_literal_param("mapper_fail")))
+        {
+          return GEARMAN_FAIL;
+        }
+
+        // NULL Chunk
+        gearman_return_t rc= gearman_job_send_data(job, chunk_begin, workload +x -chunk_begin);
+        if (gearman_failed(rc))
+        {
+          return GEARMAN_FAIL;
+        }
+
+        chunk_begin= workload +x +1;
+      }
+    }
+
+    if (chunk_begin < workload +workload_size)
+    {
+      if ((size_t(workload +workload_size) -size_t(chunk_begin) ) == 11 and not memcmp(chunk_begin, test_literal_param("mapper_fail")))
+      {
+        return GEARMAN_FAIL;
+      }
+
+      gearman_return_t rc= gearman_job_send_data(job, chunk_begin, size_t(workload +workload_size) -size_t(chunk_begin));
+      if (gearman_failed(rc))
+      {
+        return GEARMAN_FAIL;
+      }
+    }
+
+    return GEARMAN_SUCCESS;
+  }
+}
+
+test_return_t partition_SETUP(void *object)
+{
+  client_test_st *test= (client_test_st *)object;
+  test_true(test);
+
+  test->set_worker_name(WORKER_FUNCTION_NAME);
+
+  gearman_function_t echo_react_fn= gearman_function_create_v2(echo_or_react_worker_v2);
+  test->push(test_worker_start(libtest::default_port(), NULL,
+                               test->worker_name(),
+                               echo_react_fn, NULL, gearman_worker_options_t()));
+
+  gearman_function_t split_worker_fn= gearman_function_create_partition(split_worker, cat_aggregator_fn);
+  test->push(test_worker_start(libtest::default_port(), NULL,
+                               WORKER_SPLIT_FUNCTION_NAME,
+                               split_worker_fn,  NULL, GEARMAN_WORKER_GRAB_ALL));
+
+
+  return TEST_SUCCESS;
+}
+
+test_return_t partition_free_SETUP(void *object)
+{
+  client_test_st *test= (client_test_st *)object;
+
+  test_compare(TEST_SUCCESS, partition_SETUP(object));
+
+  gearman_client_add_options(test->client(), GEARMAN_CLIENT_FREE_TASKS);
+
+  return TEST_SUCCESS;
+}
 
 test_return_t gearman_execute_partition_check_parameters(void *object)
 {
@@ -65,7 +174,7 @@ test_return_t gearman_execute_partition_check_parameters(void *object)
   // Test client as NULL
   gearman_task_st *task= gearman_execute_by_partition(NULL,
                                                       test_literal_param("split_worker"),
-                                                      test_literal_param("client_test"),
+                                                      test_literal_param(WORKER_FUNCTION_NAME),
                                                       NULL, 0,  // unique
                                                       NULL,
                                                       &workload, 0);
@@ -98,7 +207,7 @@ test_return_t gearman_execute_partition_basic(void *object)
 
   gearman_task_st *task= gearman_execute_by_partition(client,
                                                       test_literal_param("split_worker"),
-                                                      test_literal_param("client_test"),
+                                                      test_literal_param(WORKER_FUNCTION_NAME),
                                                       NULL, 0,  // unique
                                                       NULL,
                                                       &workload, 0);
@@ -206,7 +315,7 @@ test_return_t gearman_execute_partition_no_aggregate(void *object)
   gearman_argument_t workload= gearman_argument_make(0, 0, test_literal_param("this dog does not hunt"));
 
   gearman_task_st *task= gearman_execute_by_partition(client,
-                                                      test_literal_param("client_test"),
+                                                      test_literal_param(WORKER_FUNCTION_NAME),
                                                       test_literal_param("count"),
                                                       NULL, 0,  // unique
                                                       NULL,
