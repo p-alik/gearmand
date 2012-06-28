@@ -225,7 +225,7 @@ test_return_t queue_worker(void *object)
   test_compare(gearman_worker_define_function(worker,
                                               test->worker_function_name(), strlen(test->worker_function_name()),
                                               counter_function,
-                                              1000, &counter), GEARMAN_SUCCESS);
+                                              0, &counter), GEARMAN_SUCCESS);
 
   gearman_return_t rc= gearman_worker_work(worker);
   test_compare(rc, GEARMAN_SUCCESS);
