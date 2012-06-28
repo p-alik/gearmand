@@ -1058,10 +1058,8 @@ static test_return_t gearman_worker_add_options_GEARMAN_WORKER_GRAB_UNIQ_worker_
   return TEST_SUCCESS;
 }
 
-static test_return_t _increase_TEST(gearman_function_t &func, gearman_client_options_t options)
+static test_return_t _increase_TEST(gearman_function_t &func, gearman_client_options_t options, size_t block_size)
 {
-  return TEST_SKIPPED;
-
   Client client;
   test_compare(GEARMAN_SUCCESS,
                gearman_client_add_server(&client, NULL, libtest::default_port()));
@@ -1070,21 +1068,18 @@ static test_return_t _increase_TEST(gearman_function_t &func, gearman_client_opt
 
   gearman_client_add_options(&client, options);
 
-  size_t block_size= 1024 * 1024;
   std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
                                                            NULL,
                                                            __func__,
                                                            func,
                                                            NULL,
                                                            gearman_worker_options_t(),
-                                                           5000)); // timeout
+                                                           0)); // timeout
 
   for (size_t x= 1; x < 24; x++)
   {
     libtest::vchar_t workload;
     libtest::vchar::make(workload, x * block_size);
-
-    Error << "size " << workload.size();
 
     gearman_argument_t value= gearman_argument_make(0, 0, vchar_param(workload));
 
@@ -1097,16 +1092,13 @@ static test_return_t _increase_TEST(gearman_function_t &func, gearman_client_opt
     test_truth(task);
 
     gearman_return_t rc;
-    if (options & GEARMAN_CLIENT_NON_BLOCKING)
-    {
-      do {
-        rc= gearman_client_run_tasks(&client);
-      } while (gearman_continue(rc));
-    }
-    else
-    {
+    do {
       rc= gearman_client_run_tasks(&client);
-    }
+      if (options)
+      {
+        gearman_client_wait(&client);
+      }
+    }  while (gearman_continue(rc));
 
     test_compare(GEARMAN_SUCCESS,
                  gearman_task_return(task));
@@ -1122,13 +1114,19 @@ static test_return_t _increase_TEST(gearman_function_t &func, gearman_client_opt
 static test_return_t gearman_client_run_tasks_increase_TEST(void*)
 {
   gearman_function_t func= gearman_function_create(echo_or_react_worker_v2);
-  return _increase_TEST(func, GEARMAN_CLIENT_NON_BLOCKING);
+  return _increase_TEST(func, gearman_client_options_t(), 1024 * 1024);
+}
+
+static test_return_t gearman_client_run_tasks_increase_GEARMAN_CLIENT_NON_BLOCKING_TEST(void*)
+{
+  gearman_function_t func= gearman_function_create(echo_or_react_worker_v2);
+  return _increase_TEST(func, GEARMAN_CLIENT_NON_BLOCKING, 1024 * 1024);
 }
 
 static test_return_t gearman_client_run_tasks_increase_chunk_TEST(void*)
 {
   gearman_function_t func= gearman_function_create(echo_or_react_chunk_worker_v2);
-  return _increase_TEST(func, gearman_client_options_t());
+  return _increase_TEST(func, gearman_client_options_t(), 1024);
 }
 
 static test_return_t gearman_worker_failover_test(void *)
@@ -1220,6 +1218,7 @@ test_st tests[] ={
   {"gearman_return_t GEARMAN_FAIL worker coverage", 0, GEARMAN_FAIL_return_TEST },
   {"gearman_return_t GEARMAN_ERROR worker coverage", 0, GEARMAN_ERROR_return_TEST },
   {"gearman_client_run_tasks()", 0, gearman_client_run_tasks_increase_TEST },
+  {"gearman_client_run_tasks() GEARMAN_CLIENT_NON_BLOCKING", 0, gearman_client_run_tasks_increase_GEARMAN_CLIENT_NON_BLOCKING_TEST },
   {"gearman_client_run_tasks() chunked", 0, gearman_client_run_tasks_increase_chunk_TEST },
   {"echo_max", 0, echo_max_test },
   {"abandoned_worker", 0, abandoned_worker_test },
