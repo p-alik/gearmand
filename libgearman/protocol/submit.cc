@@ -73,9 +73,6 @@ static inline gearman_return_t __submit(gearman_task_st& task,
     args_size[0]= gearman_size(function) +1;
   }
 
-  args[0]= gearman_c_str(function);
-  args_size[0]= gearman_size(function) +1;
-
   args[1]= task.unique;
   args_size[1]= task.unique_length +1;
 

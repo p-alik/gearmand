@@ -158,6 +158,9 @@ gearman_task_st *add_task(gearman_client_st& client,
   }
   task->unique[task->unique_length]= 0;
 
+  assert(task->client);
+  assert(task->client == &client);
+
   gearman_return_t rc;
   switch (command)
   {

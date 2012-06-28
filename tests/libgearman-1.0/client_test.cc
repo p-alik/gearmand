@@ -1319,7 +1319,6 @@ static test_return_t pre_free_tasks(void *object)
 
 static test_return_t namespace_v1_SETUP(void *object)
 {
-  return TEST_SKIPPED;
   client_test_st *test= (client_test_st *)object;
   test_true(test);
 
@@ -1331,7 +1330,6 @@ static test_return_t namespace_v1_SETUP(void *object)
 
 static test_return_t namespace_v2_SETUP(void *object)
 {
-  return TEST_SKIPPED;
   client_test_st *test= (client_test_st *)object;
   test_true(test);
 
