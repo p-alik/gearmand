@@ -134,11 +134,18 @@ void Framework::exec()
     }
     catch (libtest::fatal& e)
     {
+      _failed++;
       stream::cerr(e.file(), e.line(), e.func()) << e.mesg();
     }
     catch (libtest::disconnected& e)
     {
+      _failed++;
       Error << "Unhandled disconnection occurred:" << e.what();
+      throw;
+    }
+    catch (...)
+    {
+      _failed++;
       throw;
     }
 
