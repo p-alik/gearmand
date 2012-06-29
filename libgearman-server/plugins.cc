@@ -80,7 +80,7 @@ void initialize(boost::program_options::options_description &all)
     queue::initialize_tokyocabinet();
   }
 
-  if (HAVE_MYSQL_BUILD)
+  if (HAVE_LIBMYSQL_BUILD)
   {
     queue::initialize_mysql();
   }
