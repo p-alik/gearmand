@@ -66,7 +66,18 @@ struct client_test_st
   ~client_test_st()
   {
     clear();
-    gearman_client_free(_client);
+
+    if (_clone)
+    {
+      gearman_client_free(_clone);
+      _clone= NULL;
+    }
+
+    if (_client)
+    {
+      gearman_client_free(_client);
+      _client= NULL;
+    }
   }
 
   void clear()
@@ -78,7 +89,7 @@ struct client_test_st
     workers.clear();
     set_worker_name(NULL);
     session_namespace(NULL);
-    reset_client();
+    reset_clone();
   }
 
   void push(worker_handle_st *arg)
@@ -130,7 +141,7 @@ struct client_test_st
     _clone= gearman_client_create(NULL);
   }
 
-  void reset_client()
+  void reset_clone()
   {
     if (_clone)
     {

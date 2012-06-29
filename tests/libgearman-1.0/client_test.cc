@@ -916,12 +916,11 @@ static test_return_t regression_785203_do_background_test(void *object)
 
 static test_return_t regression2_TEST(void *object)
 {
-  gearman_client_st *client;
-  test_truth(client= gearman_client_create(NULL));
+  Client client;
 
   size_t result_length;
   gearman_return_t rc;
-  void *job_result= gearman_client_do(client,
+  void *job_result= gearman_client_do(&client,
                                       __func__, // Worker does not exist.
                                       NULL,  // no unique
                                       test_literal_param("submit_log_failure"),
@@ -1284,7 +1283,7 @@ static test_return_t chunk_v2_SETUP(void *object)
 static test_return_t reset_SETUP(void *object)
 {
   client_test_st* test= (client_test_st *)object;
-  test->reset_client();
+  test->reset_clone();
   return TEST_SUCCESS;
 }
 
