@@ -264,6 +264,7 @@ int main(int argc, char *argv[])
           return EXIT_SKIP;
 
         case TEST_FAILURE:
+          std::cerr << "frame->create()" << std::endl;
           return EXIT_FAILURE;
         }
       }
@@ -302,7 +303,7 @@ int main(int argc, char *argv[])
   }
   catch (libtest::fatal& e)
   {
-    std::cerr << e.what() << std::endl;
+    std::cerr << "FATAL:" << e.what() << std::endl;
     exit_code= EXIT_FAILURE;
   }
   catch (libtest::disconnected& e)
@@ -312,7 +313,7 @@ int main(int argc, char *argv[])
   }
   catch (std::exception& e)
   {
-    std::cerr << e.what() << std::endl;
+    std::cerr << "std::exception:" << e.what() << std::endl;
     exit_code= EXIT_FAILURE;
   }
   catch (...)
