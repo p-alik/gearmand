@@ -39,6 +39,8 @@ CLEANFILES+= tmp_chroot/var/log/*
 CLEANFILES+= tmp_chroot/var/run/*
 CLEANFILES+= tmp_chroot/var/tmp/*
 
+BUILT_SOURCES+= libtest/version.h
+
 .PHONY: distclean-libtest-check
 distclean-libtest-check:
 	-rm -rf tmp_chroot
@@ -69,6 +71,8 @@ noinst_HEADERS+= libtest/is_local.hpp
 noinst_HEADERS+= libtest/killpid.h 
 noinst_HEADERS+= libtest/libtool.hpp 
 noinst_HEADERS+= libtest/memcached.h 
+noinst_HEADERS+= libtest/memcached.hpp
+noinst_HEADERS+= libtest/poll_error.hpp
 noinst_HEADERS+= libtest/port.h 
 noinst_HEADERS+= libtest/runner.h 
 noinst_HEADERS+= libtest/server.h 
