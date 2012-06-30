@@ -53,6 +53,6 @@ AC_DEFUN([AX_PROG_MYSQLD],[
 AC_REQUIRE([AC_EXEEXT])dnl
 AC_PATH_PROG(MYSQLD, mysqld$EXEEXT, nocommand)
 if test "$MYSQLD" = nocommand; then
-	AC_MSG_ERROR([mysqld not found in $PATH])
+	AC_MSG_WARN([mysqld not found in $PATH])
 fi;dnl
 ])
