@@ -253,7 +253,12 @@ static void *_thread(void *data)
   gearmand_thread_st *thread= (gearmand_thread_st *)data;
   char buffer[BUFSIZ];
 
-  snprintf(buffer, sizeof(buffer), "[%6u ]", thread->count);
+  int length= snprintf(buffer, sizeof(buffer), "[%6u ]", thread->count);
+  if (length <= 0 or sizeof(length) >= sizeof(buffer))
+  {
+    assert(0);
+    buffer[0]= 0;
+  }
 
   gearmand_initialize_thread_logging(buffer);
 
