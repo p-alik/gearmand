@@ -1,3 +1,4 @@
+m4_include([libtest/m4/ax_lib_mysql.m4])
 m4_include([libtest/m4/ax_prog_mysqld.m4])
 
 AX_LIB_MYSQL([5.0])

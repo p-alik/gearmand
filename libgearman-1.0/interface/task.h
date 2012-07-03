@@ -73,6 +73,7 @@ struct gearman_task_st
   uint32_t created_id;
   uint32_t numerator;
   uint32_t denominator;
+  uint32_t client_count;
   gearman_client_st *client;
   gearman_task_st *next;
   gearman_task_st *prev;

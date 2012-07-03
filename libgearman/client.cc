@@ -787,10 +787,7 @@ gearman_status_t gearman_client_unique_status(gearman_client_st *client,
 
   gearman_task_clear_fn(do_task_ptr);
 
-  size_t loop= 5;
-  do {
-    ret= gearman_client_run_tasks(client);
-  } while (gearman_continue(ret) and loop--);
+  ret= gearman_client_run_block_tasks(client);
 
   // @note we don't know if our task was run or not, we just know something
   // happened.
@@ -801,6 +798,7 @@ gearman_status_t gearman_client_unique_status(gearman_client_st *client,
     status.is_running= do_task.options.is_running;
     status.numerator= do_task.numerator;
     status.denominator= do_task.denominator;
+    status.client_count= do_task.client_count;
 
     if (status.is_known == false and status.is_running == false)
     {
@@ -1244,7 +1242,7 @@ gearman_task_st *gearman_client_add_task_status_by_unique(gearman_client_st *cli
   args_size[0]= task->unique_length;
   gearman_return_t rc= gearman_packet_create_args(client->universal, task->send,
                                                   GEARMAN_MAGIC_REQUEST,
-                                                  GEARMAN_COMMAND_GET_UNIQUE_STATUS,
+                                                  GEARMAN_COMMAND_GET_STATUS_UNIQUE,
                                                   args, args_size, 1);
   if (gearman_success(rc))
   {
@@ -1553,6 +1551,11 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
 
                 return GEARMAN_SERVER_ERROR;
               }
+              else if (client->con->_packet.command == GEARMAN_COMMAND_STATUS_RES_UNIQUE and
+                       strncmp(gearman_task_unique(client->task),
+                               static_cast<char *>(client->con->_packet.arg[0]),
+                               client->con->_packet.arg_size[0]) == 0)
+              { }
               else if (strncmp(client->task->job_handle,
                                static_cast<char *>(client->con->_packet.arg[0]),
                                client->con->_packet.arg_size[0]) ||
@@ -1569,7 +1572,7 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
               break;
             }
 
-            if (not client->task)
+            if (client->task == NULL)
             {
               /* The client has stopped waiting for the response, ignore it. */
               client->con->free_private_packet();
@@ -1583,7 +1586,6 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
           /* Let task process job created or result packet. */
           assert_msg(client == client->task->client, "Programmer error, client and task member client are not the same");
           gearman_return_t local_ret= _client_run_task(client->task);
-
           if (local_ret == GEARMAN_IO_WAIT)
           {
             break;
@@ -1700,7 +1702,6 @@ gearman_return_t gearman_client_run_block_tasks(gearman_client_st *client)
 
     if (gearman_universal_error_code(client->universal) != rc and rc != GEARMAN_COULD_NOT_CONNECT)
     {
-      fprintf(stderr, "%s:%d %s\n", __FILE__, __LINE__, gearman_strerror(rc));
       assert(gearman_universal_error_code(client->universal) == rc);
     }
   }

@@ -84,6 +84,7 @@ gearman_task_st *gearman_task_internal_create(gearman_client_st *client, gearman
   task->created_id= 0;
   task->numerator= 0;
   task->denominator= 0;
+  task->client_count= 0;
   task->client= client;
 
   task->func= client->actions;

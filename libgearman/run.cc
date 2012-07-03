@@ -231,7 +231,7 @@ gearman_return_t _client_run_task(gearman_task_st *task)
       }
     }
     else if (task->recv->command == GEARMAN_COMMAND_WORK_STATUS or
-             task->recv->command == GEARMAN_COMMAND_STATUS_UNIQUE_RES or
+             task->recv->command == GEARMAN_COMMAND_STATUS_RES_UNIQUE or
              task->recv->command == GEARMAN_COMMAND_STATUS_RES)
     {
       uint8_t x;
@@ -258,7 +258,7 @@ gearman_return_t _client_run_task(gearman_task_st *task)
 
         x= 3;
       }
-      else if (task->recv->command == GEARMAN_COMMAND_STATUS_UNIQUE_RES)
+      else if (task->recv->command == GEARMAN_COMMAND_STATUS_RES_UNIQUE)
       {
         strncpy(task->unique, task->recv->arg[0], GEARMAN_MAX_UNIQUE_SIZE);
         if (atoi(static_cast<char *>(task->recv->arg[1])) == 0)
@@ -287,11 +287,25 @@ gearman_return_t _client_run_task(gearman_task_st *task)
       }
 
       task->numerator= uint32_t(atoi(static_cast<char *>(task->recv->arg[x])));
-      char status_buffer[11]; /* Max string size to hold a uint32_t. */
-      snprintf(status_buffer, 11, "%.*s",
-               int(task->recv->arg_size[x + 1]),
-               static_cast<char *>(task->recv->arg[x + 1]));
-      task->denominator= uint32_t(atoi(status_buffer));
+
+      // denomitor
+      {
+        char status_buffer[11]; /* Max string size to hold a uint32_t. */
+        snprintf(status_buffer, 11, "%.*s",
+                 int(task->recv->arg_size[x + 1]),
+                 static_cast<char *>(task->recv->arg[x + 1]));
+        task->denominator= uint32_t(atoi(status_buffer));
+      }
+
+      // client_count
+      if (task->recv->command == GEARMAN_COMMAND_STATUS_RES_UNIQUE)
+      {
+        char status_buffer[11]; /* Max string size to hold a uint32_t. */
+        snprintf(status_buffer, 11, "%.*s",
+                 int(task->recv->arg_size[x +2]),
+                 static_cast<char *>(task->recv->arg[x +2]));
+        task->client_count= uint32_t(atoi(status_buffer));
+      }
 
   case GEARMAN_TASK_STATE_STATUS:
       if (task->func.status_fn)
@@ -305,6 +319,11 @@ gearman_return_t _client_run_task(gearman_task_st *task)
       }
 
       if (task->send.command == GEARMAN_COMMAND_GET_STATUS)
+      {
+        break;
+      }
+
+      if (task->send.command == GEARMAN_COMMAND_GET_STATUS_UNIQUE)
       {
         break;
       }

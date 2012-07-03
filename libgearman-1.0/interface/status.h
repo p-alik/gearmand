@@ -44,5 +44,6 @@ struct gearman_status_t
   bool is_running;
   uint32_t numerator;
   uint32_t denominator;
+  uint32_t client_count;
 };
 
