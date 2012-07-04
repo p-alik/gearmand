@@ -1481,6 +1481,7 @@ test_st gearman_strerror_tests[] ={
 
 test_st unique_tests[] ={
   {"compare sent unique", 0, unique_compare_test },
+  {"gearman_client_unique_status(NOT_FOUND)", 0, gearman_client_unique_status_NOT_FOUND_TEST },
   {"gearman_client_unique_status()", 0, gearman_client_unique_status_TEST },
   {0, 0, 0}
 };

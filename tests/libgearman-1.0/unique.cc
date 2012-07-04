@@ -236,6 +236,11 @@ test_return_t gearman_client_unique_status_TEST(void *object)
     gearman_status_t status= gearman_client_unique_status(&client_one,
                                                           unique_handle, strlen(unique_handle));
     test_compare(GEARMAN_SUCCESS, status.result_rc);
+    test_compare(true, status.is_known);
+    test_compare(false, status.is_running);
+    test_compare(0, status.numerator);
+    test_compare(0, status.denominator);
+    test_compare(0, status.client_count);
   }
 
   gearman_function_t func= gearman_function_create_v2(echo_or_react_worker_v2);
@@ -252,6 +257,33 @@ test_return_t gearman_client_unique_status_TEST(void *object)
   gearman_task_free(first_task);
   gearman_task_free(second_task);
   gearman_task_free(third_task);
+
+  return TEST_SUCCESS;
+}
+
+test_return_t gearman_client_unique_status_NOT_FOUND_TEST(void *object)
+{
+  gearman_client_st *original_client= (gearman_client_st *)object;
+
+  Client status_client(original_client);
+  const char* unique_handle= YATL_UNIQUE;
+
+  gearman_function_t func= gearman_function_create_v2(echo_or_react_worker_v2);
+  std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(), NULL,
+                                                           __func__,
+                                                           func, NULL, gearman_worker_options_t()));
+
+
+  {
+    gearman_status_t status= gearman_client_unique_status(&status_client,
+                                                          unique_handle, strlen(unique_handle));
+    test_compare(GEARMAN_SUCCESS, status.result_rc);
+    test_compare(false, status.is_known);
+    test_compare(false, status.is_running);
+    test_compare(0, status.numerator);
+    test_compare(0, status.denominator);
+    test_compare(0, status.client_count);
+  }
 
   return TEST_SUCCESS;
 }
