@@ -141,6 +141,7 @@ fi
 %{_includedir}/libgearman-1.0/result.h
 %{_includedir}/libgearman-1.0/return.h
 %{_includedir}/libgearman-1.0/signal.h
+%{_includedir}/libgearman-1.0/status.h
 %{_includedir}/libgearman-1.0/strerror.h
 %{_includedir}/libgearman-1.0/string.h
 %{_includedir}/libgearman-1.0/task.h
