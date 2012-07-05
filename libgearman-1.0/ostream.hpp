@@ -63,10 +63,10 @@ static inline std::ostream& operator<<(std::ostream& output, const gearman_task_
 static inline std::ostream& operator<<(std::ostream& output, const gearman_status_t &arg)
 {
   output << std::boolalpha 
-    << " is_known: " << arg.is_known
-    << " is_running: " << arg.is_running
-    << " complete: " << arg.numerator << "/" << arg.denominator
-    << " ret: " << gearman_strerror(arg.result_rc);
+    << " is_known: " << gearman_status_is_known(arg)
+    << " is_running: " << gearman_status_is_running(arg)
+    << " complete: " << gearman_status_numerator(arg) << "/" << gearman_status_denominator(arg)
+    << " ret: " << gearman_strerror(gearman_status_return(arg));
 
   return output;
 }

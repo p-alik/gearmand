@@ -37,4 +37,13 @@
 
 #pragma once
 
-void gearman_init(gearman_status_t& status);
+void gearman_status_set_return(gearman_status_t&, const gearman_return_t);
+
+void gearman_init(gearman_status_t&);
+
+void gearman_status_set(gearman_status_t& arg,
+                        const bool is_known,
+                        const bool is_running,
+                        const uint32_t numerator,
+                        const uint32_t denominator,
+                        const uint32_t client_count);

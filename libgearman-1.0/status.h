@@ -37,25 +37,26 @@
 
 #pragma once
 
-enum gearman_status_version_t {
-  GEARMAN_STATUS_V1
-};
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-struct gearman_status_v1_t
-{
-  gearman_return_t result_rc;
-  bool is_known;
-  bool is_running;
-  uint32_t numerator;
-  uint32_t denominator;
-  uint32_t client_count;
-};
+GEARMAN_API
+gearman_return_t gearman_status_return(const struct gearman_status_t arg);
 
-struct gearman_status_t
-{
-  enum gearman_status_version_t version_;
-  union {
-    struct gearman_status_v1_t mesg_;
-    uint8_t raw_[sizeof(struct gearman_status_v1_t)];
-  } status_;
-};
+GEARMAN_API
+bool gearman_status_is_known(const struct gearman_status_t arg);
+
+GEARMAN_API
+bool gearman_status_is_running(const struct gearman_status_t arg);
+
+GEARMAN_API
+uint32_t gearman_status_numerator(const struct gearman_status_t arg);
+
+GEARMAN_API
+uint32_t gearman_status_denominator(const struct gearman_status_t arg);
+
+#ifdef __cplusplus
+}
+#endif
+

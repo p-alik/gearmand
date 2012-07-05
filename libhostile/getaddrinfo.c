@@ -53,13 +53,13 @@
 
 #include <libhostile/initialize.h>
 
-__thread bool is_in_getaddrinfo= 0;
+__thread bool is_in_getaddrinfo= false;
 
 static int not_until= 500;
 
 static struct function_st __function;
 
-static pthread_once_t function_lookup_once = PTHREAD_ONCE_INIT;
+static pthread_once_t function_lookup_once= PTHREAD_ONCE_INIT;
 static void set_local(void)
 {
   __function= set_function("getaddrinfo", "HOSTILE_GETADDRINFO");
@@ -74,7 +74,6 @@ int getaddrinfo(const char *node, const char *service,
                 const struct addrinfo *hints,
                 struct addrinfo **res)
 {
-
   hostile_initialize();
 
   (void) pthread_once(&function_lookup_once, set_local);

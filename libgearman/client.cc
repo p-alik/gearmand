@@ -766,7 +766,7 @@ gearman_status_t gearman_client_unique_status(gearman_client_st *client,
 
   if (client == NULL)
   {
-    status.result_rc= GEARMAN_INVALID_ARGUMENT;
+    gearman_status_set_return(status, GEARMAN_INVALID_ARGUMENT);
     return status;
   }
 
@@ -779,7 +779,7 @@ gearman_status_t gearman_client_unique_status(gearman_client_st *client,
                                                                          unique, &ret);
   if (gearman_failed(ret))
   {
-    status.result_rc= ret;
+    gearman_status_set_return(status, ret);
     return status;
   }
   assert(do_task_ptr);
@@ -794,13 +794,14 @@ gearman_status_t gearman_client_unique_status(gearman_client_st *client,
 
   if (gearman_success(ret))
   {
-    status.is_known= do_task.options.is_known;
-    status.is_running= do_task.options.is_running;
-    status.numerator= do_task.numerator;
-    status.denominator= do_task.denominator;
-    status.client_count= do_task.client_count;
+    gearman_status_set(status,
+                       do_task.options.is_known,
+                       do_task.options.is_running,
+                       do_task.numerator,
+                       do_task.denominator,
+                       do_task.client_count);
 
-    if (status.is_known == false and status.is_running == false)
+    if (gearman_status_is_known(status) == false and gearman_status_is_running(status) == false)
     {
       if (do_task.options.is_running) 
       {
@@ -815,7 +816,7 @@ gearman_status_t gearman_client_unique_status(gearman_client_st *client,
 
   gearman_task_free(do_task_ptr);
 
-  status.result_rc= ret;
+  gearman_status_set_return(status, ret);
 
   return status;
 }

@@ -96,6 +96,7 @@
 #include <libgearman-1.0/execute.h>
 #include <libgearman-1.0/util.h>
 #include <libgearman-1.0/interface/status.h>
+#include <libgearman-1.0/status.h>
 
 #include <libgearman-1.0/worker.h>
 #include <libgearman-1.0/client.h>

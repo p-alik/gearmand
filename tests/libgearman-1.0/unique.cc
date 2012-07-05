@@ -229,18 +229,17 @@ test_return_t gearman_client_unique_status_TEST(void *object)
     Client unique_client(original_client);
     gearman_status_t status= gearman_client_unique_status(&unique_client,
                                                           unique_handle, strlen(unique_handle));
-    test_compare(GEARMAN_SUCCESS, status.result_rc);
+    test_compare(GEARMAN_SUCCESS, gearman_status_return(status));
   }
 
   {
     gearman_status_t status= gearman_client_unique_status(&client_one,
                                                           unique_handle, strlen(unique_handle));
-    test_compare(GEARMAN_SUCCESS, status.result_rc);
-    test_compare(true, status.is_known);
-    test_compare(false, status.is_running);
-    test_compare(0, status.numerator);
-    test_compare(0, status.denominator);
-    test_compare(0, status.client_count);
+    test_compare(GEARMAN_SUCCESS, gearman_status_return(status));
+    test_compare(true, gearman_status_is_known(status));
+    test_compare(false, gearman_status_is_running(status));
+    test_compare(0, gearman_status_numerator(status));
+    test_compare(0, gearman_status_denominator(status));
   }
 
   gearman_function_t func= gearman_function_create_v2(echo_or_react_worker_v2);
@@ -277,12 +276,11 @@ test_return_t gearman_client_unique_status_NOT_FOUND_TEST(void *object)
   {
     gearman_status_t status= gearman_client_unique_status(&status_client,
                                                           unique_handle, strlen(unique_handle));
-    test_compare(GEARMAN_SUCCESS, status.result_rc);
-    test_compare(false, status.is_known);
-    test_compare(false, status.is_running);
-    test_compare(0, status.numerator);
-    test_compare(0, status.denominator);
-    test_compare(0, status.client_count);
+    test_compare(GEARMAN_SUCCESS, gearman_status_return(status));
+    test_compare(false, gearman_status_is_known(status));
+    test_compare(false, gearman_status_is_running(status));
+    test_compare(0, gearman_status_numerator(status));
+    test_compare(0, gearman_status_denominator(status));
   }
 
   return TEST_SUCCESS;

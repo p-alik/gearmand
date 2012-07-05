@@ -41,10 +41,55 @@
 
 void gearman_init(gearman_status_t& status)
 {
-  status.result_rc= GEARMAN_UNKNOWN_STATE;
-  status.is_known= false;
-  status.is_running= false;
-  status.numerator= 0;
-  status.denominator= 0;
-  status.client_count= 0;
+  status.version_= GEARMAN_STATUS_V1;
+  status.status_.mesg_.result_rc= GEARMAN_UNKNOWN_STATE;
+  status.status_.mesg_.is_known= false;
+  status.status_.mesg_.is_running= false;
+  status.status_.mesg_.numerator= 0;
+  status.status_.mesg_.denominator= 0;
+  status.status_.mesg_.client_count= 0;
+}
+
+void gearman_status_set_return(gearman_status_t& arg, const gearman_return_t ret)
+{
+  arg.status_.mesg_.result_rc= ret;
+}
+
+void gearman_status_set(gearman_status_t& arg,
+                        const bool is_known,
+                        const bool is_running,
+                        const uint32_t numerator,
+                        const uint32_t denominator,
+                        const uint32_t client_count)
+{
+  arg.status_.mesg_.is_known= is_known;
+  arg.status_.mesg_.is_running= is_running;
+  arg.status_.mesg_.numerator= numerator;
+  arg.status_.mesg_.denominator= denominator;
+  arg.status_.mesg_.client_count= client_count;
+}
+
+gearman_return_t gearman_status_return(const struct gearman_status_t arg)
+{
+  return arg.status_.mesg_.result_rc;
+}
+
+bool gearman_status_is_known(const struct gearman_status_t arg)
+{
+  return arg.status_.mesg_.is_known;
+}
+
+bool gearman_status_is_running(const struct gearman_status_t arg)
+{
+  return arg.status_.mesg_.is_running;
+}
+
+uint32_t gearman_status_numerator(const struct gearman_status_t arg)
+{
+  return arg.status_.mesg_.numerator;
+}
+
+uint32_t gearman_status_denominator(const struct gearman_status_t arg)
+{
+  return arg.status_.mesg_.denominator;
 }

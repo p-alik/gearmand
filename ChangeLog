@@ -2,6 +2,7 @@
 * Alpha support for direct MySQL queue.
 * XML option for testing under valgrind.
 * gearmand now allows for a user to specify the format for the server key
+* First pass support for checking status via unique value.
 
 0.33 Thu May  3 22:09:29 PDT 2012
 * Add --config-file option
