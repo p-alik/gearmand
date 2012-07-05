@@ -110,7 +110,7 @@ static void gearmand_log(const char *position, const char *func /* func */,
                            current_tm.tm_min, current_tm.tm_sec, int(current_epoch.tv_usec),
                            identity);
       // We just return whatever we have if this occurs
-      if (length < -1 || (size_t)length >= sizeof(log_buffer))
+      if (length <= 0 or (size_t)length >= sizeof(log_buffer))
       {
         remaining_size= 0;
       }
@@ -124,7 +124,7 @@ static void gearmand_log(const char *position, const char *func /* func */,
     if (remaining_size)
     {
       int length= vsnprintf(log_buffer_ptr, remaining_size, format, args);
-      if (length < -1 or size_t(length) >= remaining_size)
+      if (length <= 0 or size_t(length) >= remaining_size)
       { 
         remaining_size= 0;
       }
@@ -138,8 +138,10 @@ static void gearmand_log(const char *position, const char *func /* func */,
     if (remaining_size and error_arg != GEARMAN_SUCCESS)
     {
       int length= snprintf(log_buffer_ptr, remaining_size, " %s(%s)", func, gearmand_strerror(error_arg));
-      if (length < -1 or size_t(length) >= remaining_size)
-      { }
+      if (length <= 0 or size_t(length) >= remaining_size)
+      {
+        remaining_size= 0;
+      }
       else
       {
         remaining_size-= size_t(length);
@@ -149,7 +151,11 @@ static void gearmand_log(const char *position, const char *func /* func */,
 
     if (remaining_size and position and verbose != GEARMAND_VERBOSE_INFO)
     {
-      snprintf(log_buffer_ptr, remaining_size, " -> %s", position);
+      int length= snprintf(log_buffer_ptr, remaining_size, " -> %s", position);
+      if (length <= 0 or size_t(length) >= remaining_size)
+      {
+        remaining_size= 0;
+      }
     }
 
     // Make sure this is null terminated

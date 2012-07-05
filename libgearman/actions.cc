@@ -92,7 +92,7 @@ static gearman_return_t _client_pause_complete(gearman_task_st *task)
 static gearman_return_t _client_pause_status(gearman_task_st *task)
 {
   assert_msg(task->recv->command == GEARMAN_COMMAND_WORK_STATUS or
-             task->recv->command == GEARMAN_COMMAND_STATUS_UNIQUE_RES or
+             task->recv->command == GEARMAN_COMMAND_STATUS_RES_UNIQUE or
              task->recv->command == GEARMAN_COMMAND_STATUS_RES, "status has been called out of order for task, or was registered to run on non-status callback, see gearman_actions_t(3)");
   if (task->options.is_paused)
   {

@@ -75,8 +75,10 @@ void *gearman_real_calloc(gearman_allocator_t& allocator, size_t nelem, size_t s
   else if (allocator.malloc)
   {
     ptr= gearman_real_malloc(allocator, nelem * size, func, file, line);
-    if (not ptr)
+    if (ptr)
+    {
       memset(ptr, 0, nelem * size);
+    }
   }
   else
   {

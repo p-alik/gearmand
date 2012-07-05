@@ -100,8 +100,8 @@ void initialize_redis()
 
 typedef std::vector<char> vchar_t;
 #define GEARMAN_QUEUE_GEARMAND_DEFAULT_PREFIX "_gear_"
+#define GEARMAN_QUEUE_GEARMAND_DEFAULT_PREFIX_SIZE sizeof(GEARMAN_QUEUE_GEARMAND_DEFAULT_PREFIX)
 #define GEARMAN_KEY_LITERAL "%s-%.*s-%*s"
-#define GEARMAN_KEY_SCAN_LITERAL "%.*s-%.*s-%.*s"
 
 static size_t build_key(vchar_t &key,
                         const char *unique,
@@ -109,12 +109,12 @@ static size_t build_key(vchar_t &key,
                         const char *function_name,
                         size_t function_name_size)
 {
-  key.resize(function_name_size +unique_size +sizeof(GEARMAN_QUEUE_GEARMAND_DEFAULT_PREFIX) +4);
+  key.resize(function_name_size +unique_size +GEARMAN_QUEUE_GEARMAND_DEFAULT_PREFIX_SIZE +4);
   int key_size= snprintf(&key[0], key.size(), GEARMAN_KEY_LITERAL,
                          GEARMAN_QUEUE_GEARMAND_DEFAULT_PREFIX,
                          (int)function_name_size, function_name,
                          (int)unique_size, unique);
-  if (key_size > key.size() or key_size == -1)
+  if (key_size >= key.size() or key_size <= 0)
   {
     assert(0);
     return -1;
@@ -218,13 +218,26 @@ static gearmand_error_t _hiredis_replay(gearman_server_st *server, void *context
 
   for (size_t x= 0; x < reply->elements; x++)
   {
-    char prefix[sizeof(GEARMAN_QUEUE_GEARMAND_DEFAULT_PREFIX)];
+    char prefix[GEARMAN_QUEUE_GEARMAND_DEFAULT_PREFIX_SIZE];
     char function_name[GEARMAN_FUNCTION_MAX_SIZE];
     char unique[GEARMAN_MAX_UNIQUE_SIZE];
-    int ret= sscanf(reply->element[x]->str, GEARMAN_KEY_SCAN_LITERAL, 
-                    int(sizeof(prefix)), prefix,
-                    int(sizeof(function_name)), function_name,
-                    int(sizeof(unique)), unique);
+
+    char fmt_str[100] = "";    
+    int fmt_str_length= snprintf(fmt_str, sizeof(fmt_str), "%%%ds-%%%ds-%%%ds",
+                                 int(GEARMAN_QUEUE_GEARMAND_DEFAULT_PREFIX_SIZE),
+                                 int(GEARMAN_FUNCTION_MAX_SIZE),
+                                 int(GEARMAN_MAX_UNIQUE_SIZE));
+    if (fmt_str_length <= 0 or fmt_str_length >= sizeof(fmt_str))
+    {
+      assert(fmt_str_length != 1);
+      return gearmand_gerror("snprintf() failed to produce a valud fmt_str for redis key", GEARMAN_QUEUE_ERROR);
+    }
+
+    int ret= sscanf(reply->element[x]->str,
+                    fmt_str,
+                    prefix,
+                    function_name,
+                    unique);
     if (ret == 0)
     {
       continue;

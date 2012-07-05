@@ -105,9 +105,9 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
 
   gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
                      "%15s:%5s packet command  %s",
-		     server_con->con.context == NULL || server_con->con.context->host == NULL ? "-" : server_con->con.context->host,
-		     server_con->con.context == NULL || server_con->con.context->port == NULL ? "-" : server_con->con.context->port, 
-		     gearmand_strcommand(packet));
+                     server_con->con.context == NULL || server_con->con.context->host == NULL ? "-" : server_con->con.context->host,
+                     server_con->con.context == NULL || server_con->con.context->port == NULL ? "-" : server_con->con.context->port, 
+                     gearmand_strcommand(packet));
 
   switch (packet->command)
   {
@@ -309,7 +309,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
     }
     break;
 
-  case GEARMAN_COMMAND_GET_UNIQUE_STATUS:
+  case GEARMAN_COMMAND_GET_STATUS_UNIQUE:
     {
       char unique_handle[GEARMAN_MAX_UNIQUE_SIZE];
 
@@ -325,20 +325,23 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
 
       gearman_server_job_st *server_job= gearman_server_job_get_by_unique(Server,
                                                                           unique_handle, (size_t)unique_handle_length,
-                                                                          server_con);
+                                                                          NULL);
 
-      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Searching for unique job: \"%s\" found: %s", unique_handle, server_job ? "yes" : "no");
+      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Searching for unique job: \"%s\" found: %s clients:%d", unique_handle,
+                         server_job ? "yes" : "no",
+                         server_job ? server_job->client_count : 0);
       /* Queue status result packet. */
       if (server_job == NULL)
       {
         ret= gearman_server_io_packet_add(server_con, false,
                                           GEARMAN_MAGIC_RESPONSE,
-                                          GEARMAN_COMMAND_STATUS_UNIQUE_RES,
+                                          GEARMAN_COMMAND_STATUS_RES_UNIQUE,
                                           unique_handle, (size_t)(unique_handle_length +1), // Job Handle
                                           "0", (size_t)2, //
                                           "0", (size_t)2, //
                                           "0", (size_t)2, //
-                                          "0", (size_t)1, //
+                                          "0", (size_t)2, //
+                                          "0", (size_t)1, // client_count
                                           NULL);
       }
       else
@@ -359,14 +362,23 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
           return GEARMAN_MEMORY_ALLOCATION_FAILURE;
         }
 
+        char client_count_buffer[11]; /* Max string size to hold a uint32_t. */
+        int client_count_buffer_length= snprintf(client_count_buffer, sizeof(client_count_buffer), "%u", server_job->client_count);
+        if ((size_t)client_count_buffer_length >= sizeof(client_count_buffer) || client_count_buffer_length < 0)
+        {
+          gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "snprintf(%d)", client_count_buffer_length);
+          return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+        }
+
         ret= gearman_server_io_packet_add(server_con, false,
                                           GEARMAN_MAGIC_RESPONSE,
-                                          GEARMAN_COMMAND_STATUS_UNIQUE_RES,
+                                          GEARMAN_COMMAND_STATUS_RES_UNIQUE,
                                           unique_handle, (size_t)(unique_handle_length +1), // unique_handle
                                           "1", (size_t)2, // is_known
                                           server_job->worker == NULL ? "0" : "1", (size_t)2, // is_running
                                           numerator_buffer, (size_t)(numerator_buffer_length +1), // numerator
-                                          denominator_buffer, (size_t)(denominator_buffer_length), //denominator
+                                          denominator_buffer, (size_t)(denominator_buffer_length +1), //denominator
+                                          client_count_buffer, (size_t)(client_count_buffer_length), //client_count
                                           NULL);
       }
 

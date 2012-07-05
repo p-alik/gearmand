@@ -1,9 +1,8 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
- * 
- *  Gearmand client and server library.
+ *
+ *  Data Differential YATL (i.e. libtest)  library
  *
  *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
- *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -35,56 +34,67 @@
  *
  */
 
-#pragma once
+/*
+  Structures for generic tests.
+*/
 
-enum gearman_task_state_t {
-  GEARMAN_TASK_STATE_NEW,
-  GEARMAN_TASK_STATE_SUBMIT,
-  GEARMAN_TASK_STATE_WORKLOAD,
-  GEARMAN_TASK_STATE_WORK,
-  GEARMAN_TASK_STATE_CREATED,
-  GEARMAN_TASK_STATE_DATA,
-  GEARMAN_TASK_STATE_WARNING,
-  GEARMAN_TASK_STATE_STATUS,
-  GEARMAN_TASK_STATE_COMPLETE,
-  GEARMAN_TASK_STATE_EXCEPTION,
-  GEARMAN_TASK_STATE_FAIL,
-  GEARMAN_TASK_STATE_FINISHED
-};
+#include <cstdio>
+#include <poll.h>
 
-enum gearman_task_kind_t {
-  GEARMAN_TASK_KIND_ADD_TASK,
-  GEARMAN_TASK_KIND_EXECUTE,
-  GEARMAN_TASK_KIND_DO
-};
-
-struct gearman_task_st
+void print_poll(pollfd& fds)
 {
-  struct {
-    bool allocated;
-    bool send_in_use;
-    bool is_known;
-    bool is_running;
-    bool was_reduced;
-    bool is_paused;
-  } options;
-  enum gearman_task_kind_t type;
-  enum gearman_task_state_t state;
-  uint32_t created_id;
-  uint32_t numerator;
-  uint32_t denominator;
-  uint32_t client_count;
-  gearman_client_st *client;
-  gearman_task_st *next;
-  gearman_task_st *prev;
-  void *context;
-  gearman_connection_st *con;
-  gearman_packet_st *recv;
-  gearman_packet_st send;
-  struct gearman_actions_t func;
-  gearman_return_t result_rc;
-  struct gearman_result_st *result_ptr;
-  char job_handle[GEARMAN_JOB_HANDLE_SIZE];
-  size_t unique_length;
-  char unique[GEARMAN_MAX_UNIQUE_SIZE];
-};
+  if (fds.revents & POLLERR)
+  {
+    fprintf(stderr, "\tPOLLERR\n");
+  }
+
+  if (fds.revents & POLLHUP)
+  {
+    fprintf(stderr, "\tPOLLHUP\n");
+  }
+
+  if (fds.revents & POLLIN)
+  {
+    fprintf(stderr, "\tPOLLIN\n");
+  }
+
+  if (fds.revents & POLLIN)
+  {
+    fprintf(stderr, "\tPOLLIN\n");
+  }
+
+  if (fds.revents & POLLNVAL)
+  {
+    fprintf(stderr, "\tPOLLNVAL\n");
+  }
+
+  if (fds.revents & POLLOUT)
+  {
+    fprintf(stderr, "\tPOLLOUT\n");
+  }
+
+  if (fds.revents & POLLPRI)
+  {
+    fprintf(stderr, "\tPOLLPRI\n");
+  }
+
+  if (fds.revents & POLLRDBAND)
+  {
+    fprintf(stderr, "\tPOLLPRI\n");
+  }
+
+  if (fds.revents & POLLRDNORM)
+  {
+    fprintf(stderr, "\tPOLLRDNORM\n");
+  }
+
+  if (fds.revents & POLLWRBAND)
+  {
+    fprintf(stderr, "\tPOLLWRBAND\n");
+  }
+
+  if (fds.revents & POLLWRNORM)
+  {
+    fprintf(stderr, "\tPOLLWRNORM\n");
+  }
+}

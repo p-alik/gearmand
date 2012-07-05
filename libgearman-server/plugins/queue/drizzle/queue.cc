@@ -174,6 +174,8 @@ Drizzle::Drizzle () :
   _result(),
   _query(),
   username(""),
+  port(4427),
+  mysql_protocol(false),
   _epoch_support(true)
 {
   command_line_options().add_options()

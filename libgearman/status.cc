@@ -44,6 +44,7 @@ void gearman_init(gearman_status_t& status)
   status.result_rc= GEARMAN_UNKNOWN_STATE;
   status.is_known= false;
   status.is_running= false;
-  status.numerator= false;
-  status.denominator= false;
+  status.numerator= 0;
+  status.denominator= 0;
+  status.client_count= 0;
 }

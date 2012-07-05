@@ -61,17 +61,17 @@ check_PROGRAMS+=tests/libgearman-1.0/worker_test
 noinst_PROGRAMS+=tests/libgearman-1.0/worker_test
 
 test-internals: tests/libgearman-1.0/internals_test gearmand/gearmand
-	@tests/internals_test
+	@tests/libgearman-1.0/internals_test
 
 gdb-internals: tests/libgearman-1.0/internals_test gearmand/gearmand
-	@$(GDB_COMMAND) tests/internals_test
+	@$(GDB_COMMAND) tests/libgearman-1.0/internals_test
 
 helgrind-internals: tests/internals_test gearmand/gearmand
-	@$(HELGRIND_COMMAND) tests/internals_test
+	@$(HELGRIND_COMMAND) tests/libgearman-1.0/internals_test
 
 
-valgrind-internals: tests/internals_test gearmand/gearmand
-	@$(VALGRIND_COMMAND) tests/internals_test
+valgrind-internals: tests/libgearman-1.0/internals_test gearmand/gearmand
+	@$(VALGRIND_COMMAND) tests/libgearman-1.0/internals_test
 
 valgrind-worker: tests/libgearman-1.0/worker_test gearmand/gearmand
 	@$(VALGRIND_COMMAND) tests/libgearman-1.0/worker_test

@@ -172,72 +172,118 @@ test_return_t unique_compare_test(void *object)
 
 test_return_t gearman_client_unique_status_TEST(void *object)
 {
-  return TEST_SKIPPED;
-  gearman_client_st *client= (gearman_client_st *)object;
+  gearman_client_st *original_client= (gearman_client_st *)object;
 
-  gearman_client_add_options(client, GEARMAN_CLIENT_NON_BLOCKING);
+  Client status_client(original_client);
 
-  Client client_one(client);
-  Client client_two(client);
-  Client client_three(client);
-  Client client_four(client);
+  Client client_one(original_client);
+  Client client_two(original_client);
+  Client client_three(original_client);
 
   const char* unique_handle= "local_handle4";
 
   gearman_return_t ret;
   // First task
-  gearman_task_st *first_task= gearman_client_add_task(&client_one,
-                                                       NULL, // preallocated task
-                                                       NULL, // context 
-                                                       __func__, // function
-                                                       unique_handle, // unique
-                                                       test_literal_param("first_task"), // workload
-                                                       &ret);
+  gearman_task_st *first_task= gearman_client_add_task_background(&client_one,
+                                                                  NULL, // preallocated task
+                                                                  NULL, // context 
+                                                                  __func__, // function
+                                                                  unique_handle, // unique
+                                                                  test_literal_param("first_task"), // workload
+                                                                  &ret);
   test_true(first_task);
 
-  gearman_task_st *second_task= gearman_client_add_task(&client_two,
-                                                        NULL, // preallocated task
-                                                        NULL, // context 
-                                                        __func__, // function
-                                                        unique_handle, // unique
-                                                        test_literal_param("second_task"), // workload
-                                                        &ret);
+  gearman_task_st *second_task= gearman_client_add_task_background(&client_two,
+                                                                   NULL, // preallocated task
+                                                                   NULL, // context 
+                                                                   __func__, // function
+                                                                   unique_handle, // unique
+                                                                   test_literal_param("second_task"), // workload
+                                                                   &ret);
   test_true(second_task);
 
-  gearman_task_st *third_task= gearman_client_add_task(&client_three,
-                                                       NULL, // preallocated task
-                                                       NULL, // context 
-                                                       __func__, // function
-                                                       unique_handle, // unique
-                                                       test_literal_param("third_task"), // workload
-                                                       &ret);
+  gearman_task_st *third_task= gearman_client_add_task_background(&client_three,
+                                                                  NULL, // preallocated task
+                                                                  NULL, // context 
+                                                                  __func__, // function
+                                                                  unique_handle, // unique
+                                                                  test_literal_param("third_task"), // workload
+                                                                  &ret);
   test_true(third_task);
 
-  test_compare(GEARMAN_SUCCESS, gearman_client_set_server_option(client, test_literal_param("marker")));
+  {
+    test_compare(gearman_client_run_tasks(&client_one), GEARMAN_SUCCESS);
+    test_compare(gearman_client_run_tasks(&client_two), GEARMAN_SUCCESS);
+    test_compare(gearman_client_run_tasks(&client_three), GEARMAN_SUCCESS);
+  }
 
-  size_t limit= 4;
-  do {
-    ret= gearman_client_run_tasks(&client_one);
-  } while (gearman_continue(ret) and limit--);
+  test_compare(gearman_client_job_status(&status_client,
+                                         gearman_task_job_handle(third_task), // job handle
+                                         NULL, // is_known
+                                         NULL, // is_running
+                                         NULL, // numerator
+                                         NULL // denominator
+                                         ), GEARMAN_JOB_EXISTS);
 
-  limit= 4;
-  do {
-    ret= gearman_client_run_tasks(&client_two);
-  } while (gearman_continue(ret) and limit--);
+  {
+    Client unique_client(original_client);
+    gearman_status_t status= gearman_client_unique_status(&unique_client,
+                                                          unique_handle, strlen(unique_handle));
+    test_compare(GEARMAN_SUCCESS, status.result_rc);
+  }
 
-  limit= 4;
-  do {
-    ret= gearman_client_run_tasks(&client_three);
-  } while (gearman_continue(ret) and limit--);
+  {
+    gearman_status_t status= gearman_client_unique_status(&client_one,
+                                                          unique_handle, strlen(unique_handle));
+    test_compare(GEARMAN_SUCCESS, status.result_rc);
+    test_compare(true, status.is_known);
+    test_compare(false, status.is_running);
+    test_compare(0, status.numerator);
+    test_compare(0, status.denominator);
+    test_compare(0, status.client_count);
+  }
 
-  gearman_status_t status= gearman_client_unique_status(&client_four,
-                                                        unique_handle, strlen(unique_handle));
+  gearman_function_t func= gearman_function_create_v2(echo_or_react_worker_v2);
+  std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(), NULL,
+                                                           __func__,
+                                                           func, NULL, gearman_worker_options_t()));
 
-  test_compare(GEARMAN_SUCCESS, status.result_rc);
+  {
+    test_compare(gearman_client_run_tasks(&client_one), GEARMAN_SUCCESS);
+    test_compare(gearman_client_run_tasks(&client_two), GEARMAN_SUCCESS);
+    test_compare(gearman_client_run_tasks(&client_three), GEARMAN_SUCCESS);
+  }
 
   gearman_task_free(first_task);
   gearman_task_free(second_task);
   gearman_task_free(third_task);
+
+  return TEST_SUCCESS;
+}
+
+test_return_t gearman_client_unique_status_NOT_FOUND_TEST(void *object)
+{
+  gearman_client_st *original_client= (gearman_client_st *)object;
+
+  Client status_client(original_client);
+  const char* unique_handle= YATL_UNIQUE;
+
+  gearman_function_t func= gearman_function_create_v2(echo_or_react_worker_v2);
+  std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(), NULL,
+                                                           __func__,
+                                                           func, NULL, gearman_worker_options_t()));
+
+
+  {
+    gearman_status_t status= gearman_client_unique_status(&status_client,
+                                                          unique_handle, strlen(unique_handle));
+    test_compare(GEARMAN_SUCCESS, status.result_rc);
+    test_compare(false, status.is_known);
+    test_compare(false, status.is_running);
+    test_compare(0, status.numerator);
+    test_compare(0, status.denominator);
+    test_compare(0, status.client_count);
+  }
 
   return TEST_SUCCESS;
 }

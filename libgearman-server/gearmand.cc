@@ -415,7 +415,11 @@ static gearmand_error_t _listen_init(gearmand_st *gearmand)
       {
         char buffer[1024];
 
-        snprintf(buffer, sizeof(buffer), "%s:%s", gearmand->host ? gearmand->host : "<any>", port->port);
+        int length= snprintf(buffer, sizeof(buffer), "%s:%s", gearmand->host ? gearmand->host : "<any>", port->port);
+        if (length <= 0 or size_t(length) >= sizeof(buffer))
+        {
+          buffer[0]= 0;
+        }
         gearmand_gai_error(buffer, ret);
         return GEARMAN_ERRNO;
       }
@@ -1088,7 +1092,7 @@ static bool gearman_server_create(gearman_server_st *server,
   }
 
   int checked_length= snprintf(server->job_handle_prefix, GEARMAND_JOB_HANDLE_SIZE, "H:%s", un.nodename);
-  if (checked_length >= GEARMAND_JOB_HANDLE_SIZE or checked_length < 0)
+  if (checked_length >= GEARMAND_JOB_HANDLE_SIZE or checked_length <= 0)
   {
     gearman_server_free(server);
     return false;
