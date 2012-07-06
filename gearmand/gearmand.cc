@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
    "Number of attempts to run the job before the job server removes it. This is helpful to ensure a bad job does not crash all available workers. Default is no limit.")
 
   ("log-file,l", boost::program_options::value(&log_file)->default_value(LOCALSTATEDIR"/log/gearmand.log"),
-   "Log file to write errors and information to. If the log-file paramater is specified as 'stderr', then output will go to stderr")
+   "Log file to write errors and information to. If the log-file paramater is specified as 'stderr', then output will go to stderr. If 'none', then no logfile will be generated.")
 
   ("listen,L", boost::program_options::value(&host),
    "Address the server should listen on. Default is INADDR_ANY.")

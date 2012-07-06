@@ -69,7 +69,10 @@ struct gearmand_log_info_st
       if (filename.compare("stderr") == 0)
       {
         fd= STDERR_FILENO;
+        opt_file= true;
       }
+      else if (filename.compare("none") == 0)
+      { }
       else
       {
         fd= open(filename.c_str(), O_CREAT | O_WRONLY | O_APPEND, 0644);
@@ -80,10 +83,9 @@ struct gearmand_log_info_st
 
           char error_mesg[1024];
           int error_mesg_length= snprintf(error_mesg, sizeof(error_mesg),
-                                          "Could not open log file \"%.*s\", from \"%s\", switching to stderr. Open failed with (%s)", 
+                                          "Could not open log file \"%.*s\", from \"%s\", switching to stderr.",
                                           int(filename.size()), filename.c_str(), 
-                                          cwd,
-                                          strerror(errno));
+                                          cwd);
           if (opt_syslog)
           {
             syslog(LOG_ERR, "%.*s", error_mesg_length, error_mesg);
@@ -92,9 +94,9 @@ struct gearmand_log_info_st
 
           fd= STDERR_FILENO;
         }
-      }
 
-      opt_file= true;
+        opt_file= true;
+      }
     }
 
     init_success= true;
