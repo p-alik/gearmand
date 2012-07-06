@@ -160,13 +160,16 @@ static test_return_t gearadmin_shutdown_test(void *object)
 
   Server *server= context->servers.pop_server();
   test_true(server);
+  
+  // We will now quiet down the false error about it not being able to restart
+  server->out_of_ban_killed(true);
+
   while (server->ping()) 
   {
     // Wait out the death of the server
   }
 
   // Since we killed the server above, we need to reset it
-  server->reset();
   delete server;
 
   return TEST_SUCCESS;

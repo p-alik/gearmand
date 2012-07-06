@@ -59,6 +59,10 @@
 #include <fcntl.h>
 #endif
 
+#ifndef SOCK_CLOEXEC 
+#define SOCK_CLOEXEC 0
+#endif
+
 static gearman_return_t gearman_connection_set_option(gearman_connection_st *connection,
                                                       gearman_connection_options_t options,
                                                       bool value);
@@ -618,11 +622,32 @@ gearman_return_t gearman_connection_st::flush()
         return gearman_universal_set_error(universal, GEARMAN_COULD_NOT_CONNECT, GEARMAN_AT, "%s:%hu", host, uint16_t(port));
       }
 
-      fd= socket(addrinfo_next->ai_family, addrinfo_next->ai_socktype, addrinfo_next->ai_protocol);
+      // rewrite tye if HAVE_SOCK_CLOEXEC
+      {
+        int type= addrinfo_next->ai_socktype;
+        if (HAVE_SOCK_CLOEXEC)
+        {
+          type|= SOCK_CLOEXEC;
+        }
+
+        fd= socket(addrinfo_next->ai_family, type, addrinfo_next->ai_protocol);
+      }
+
       if (fd == INVALID_SOCKET)
       {
         state= GEARMAN_CON_UNIVERSAL_ADDRINFO;
         return gearman_perror(universal, "socket");
+      }
+
+      if (HAVE_SOCK_CLOEXEC == 0)
+      {
+#ifdef FD_CLOEXEC
+        int rval;
+        do
+        { 
+          rval= fcntl (fd, F_SETFD, FD_CLOEXEC);
+        } while (rval == -1 && (errno == EINTR or errno == EAGAIN));
+#endif
       }
 
       {

@@ -237,6 +237,16 @@ public:
 
   bool validate();
 
+  void out_of_ban_killed(bool arg)
+  {
+    out_of_ban_killed_= arg;
+  }
+
+  bool out_of_ban_killed()
+  {
+    return out_of_ban_killed_;
+  }
+
 protected:
   bool set_pid_file();
   Options _options;
@@ -249,6 +259,7 @@ private:
   bool set_log_file();
   bool set_socket_file();
   void reset_pid();
+  bool out_of_ban_killed_;
 };
 
 std::ostream& operator<<(std::ostream& output, const libtest::Server &arg);
