@@ -251,8 +251,6 @@ static test_return_t accept_SETUP(void* object)
 
 static test_return_t poll_SETUP(void* object)
 {
-  return TEST_SKIPPED; // Not running correctly all of the time.
-
   test_skip_valgrind();
   test_skip(true, bool(getenv("YATL_RUN_MASSIVE_TESTS")));
 
