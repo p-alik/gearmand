@@ -43,5 +43,3 @@
 typedef ssize_t (getaddrinfo_fn) (const char *node, const char *service,
                                   const struct addrinfo *hints,
                                   struct addrinfo **res);
-
-bool is_getaddrinfo(void);

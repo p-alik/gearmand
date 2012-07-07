@@ -64,16 +64,22 @@ void *malloc(size_t size)
   hostile_initialize();
   (void) pthread_once(&function_lookup_once, set_malloc);
 
-  if (__function.frequency)
+  if (is_called() == false)
   {
-    if (--not_until < 0 && random() % __function.frequency)
+    if (__function.frequency)
     {
-      fprintf(stderr, "Mid=evil on malloc()\n");
-      errno= ENOMEM;
-      return NULL;
+      if (--not_until < 0 && random() % __function.frequency)
+      {
+        fprintf(stderr, "Mid=evil on malloc()\n");
+        errno= ENOMEM;
+        return NULL;
+      }
     }
   }
 
-  return __function.function.malloc(size);
+  set_called();
+  void *ret= __function.function.malloc(size);
+  reset_called();
 
+  return ret;
 }

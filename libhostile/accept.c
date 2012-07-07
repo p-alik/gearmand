@@ -101,7 +101,7 @@ int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 
   (void) pthread_once(&function_lookup_once, set_local);
 
-  if (is_getaddrinfo() == false)
+  if (is_called() == false)
   {
     if (__function.frequency)
     {
@@ -125,5 +125,9 @@ int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
     }
   }
 
-  return __function.function.accept(sockfd, addr, addrlen);
+  set_called();
+  int ret= __function.function.accept(sockfd, addr, addrlen);
+  reset_called();
+
+  return ret;
 }

@@ -36,74 +36,42 @@
 
 #include <config.h>
 
-#include <libhostile/initialize.h>
-
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <time.h>
-#include <poll.h>
-
 /*
-  Random poll failing library for testing poll failures.
-  LD_PRELOAD="/usr/lib/libdl.so ./util/libhostile_poll.so" ./binary
+  Random getaddrinfo failing library for testing getaddrinfo() failures.
+  LD_PRELOAD="/usr/lib/libdl.so ./util/libhostile_getaddrinfo.so" ./binary
 */
 
-#include <dlfcn.h>
+#include <libhostile/initialize.h>
 
-static int not_until= 50;
+__thread bool is_called_= false;
 
-static struct function_st __function;
-
-static pthread_once_t function_lookup_once = PTHREAD_ONCE_INIT;
-static void set_local(void)
+bool is_called(void)
 {
-  __function= set_function("poll", "HOSTILE_POLL");
+  return is_called_;
 }
 
-void set_poll_close(bool arg, int frequency, int not_until_arg)
+void set_called()
 {
-  if (arg)
+  assert(is_called_ == false);
+  if (is_called_ == true)
   {
-    __function.frequency= frequency;
-    not_until= not_until_arg;
+    fprintf(stderr, "set_called() called when is_called_ was not set\n");
+    abort();
   }
-  else
-  {
-    __function.frequency= 0;
-    not_until= 0;
-  }
+  is_called_= true;
 }
 
-int poll(struct pollfd *fds, nfds_t nfds, int timeout)
+void reset_called()
 {
-
-  hostile_initialize();
-
-  (void) pthread_once(&function_lookup_once, set_local);
-
-  if (is_called() == false)
+  assert(is_called_);
+  if (is_called_ == false)
   {
-    if (__function.frequency)
-    {
-      if (--not_until < 0 && random() % __function.frequency)
-      {
-        for (nfds_t x= 0; x < nfds; nfds++)
-        {
-          shutdown(fds[x].fd, SHUT_RDWR);
-          close(fds[x].fd);
-          fds[x].revents= POLLHUP;
-        }
-        return nfds;
-      }
-    }
+    fprintf(stderr, "reset_called() called when is_called_ was not set\n");
+    abort();
   }
-
-  set_called();
-  int ret= __function.function.poll(fds, nfds, timeout);
-  reset_called();
-
-  return ret;
+  is_called_= false;
 }
+

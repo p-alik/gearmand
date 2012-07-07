@@ -42,6 +42,7 @@
 
 #include <libhostile/accept.h>
 #include <libhostile/action.h>
+#include <libhostile/called.h>
 #include <libhostile/getaddrinfo.h>
 #include <libhostile/malloc.h>
 #include <libhostile/poll.h>

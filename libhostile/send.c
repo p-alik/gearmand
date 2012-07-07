@@ -86,7 +86,7 @@ ssize_t send(int sockfd, const void *buf, size_t len, int flags)
 
   (void) pthread_once(&function_lookup_once, set_local);
 
-  if (is_getaddrinfo() == false)
+  if (is_called() == false)
   {
     if (__function.frequency)
     {
@@ -100,5 +100,9 @@ ssize_t send(int sockfd, const void *buf, size_t len, int flags)
     }
   }
 
-  return __function.function.send(sockfd, buf, len, flags);
+  set_called();
+  ssize_t ret= __function.function.send(sockfd, buf, len, flags);
+  reset_called();
+
+  return ret;
 }

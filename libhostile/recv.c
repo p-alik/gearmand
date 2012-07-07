@@ -87,7 +87,7 @@ ssize_t recv(int sockfd, void *buf, size_t len, int flags)
 
   (void) pthread_once(&function_lookup_once, set_local);
 
-  if (is_getaddrinfo() == false && __function.frequency)
+  if (is_called() == false && __function.frequency)
   {
     if (--not_until < 0 && rand() % __function.frequency)
     {
@@ -101,6 +101,10 @@ ssize_t recv(int sockfd, void *buf, size_t len, int flags)
     }
   }
 
-  return __function.function.recv(sockfd, buf, len, flags);
+  set_called();
+  ssize_t ret= __function.function.recv(sockfd, buf, len, flags);
+  reset_called();
+
+  return ret;
 }
 

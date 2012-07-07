@@ -34,76 +34,8 @@
  *
  */
 
-#include <config.h>
+#pragma once
 
-#include <libhostile/initialize.h>
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <time.h>
-#include <poll.h>
-
-/*
-  Random poll failing library for testing poll failures.
-  LD_PRELOAD="/usr/lib/libdl.so ./util/libhostile_poll.so" ./binary
-*/
-
-#include <dlfcn.h>
-
-static int not_until= 50;
-
-static struct function_st __function;
-
-static pthread_once_t function_lookup_once = PTHREAD_ONCE_INIT;
-static void set_local(void)
-{
-  __function= set_function("poll", "HOSTILE_POLL");
-}
-
-void set_poll_close(bool arg, int frequency, int not_until_arg)
-{
-  if (arg)
-  {
-    __function.frequency= frequency;
-    not_until= not_until_arg;
-  }
-  else
-  {
-    __function.frequency= 0;
-    not_until= 0;
-  }
-}
-
-int poll(struct pollfd *fds, nfds_t nfds, int timeout)
-{
-
-  hostile_initialize();
-
-  (void) pthread_once(&function_lookup_once, set_local);
-
-  if (is_called() == false)
-  {
-    if (__function.frequency)
-    {
-      if (--not_until < 0 && random() % __function.frequency)
-      {
-        for (nfds_t x= 0; x < nfds; nfds++)
-        {
-          shutdown(fds[x].fd, SHUT_RDWR);
-          close(fds[x].fd);
-          fds[x].revents= POLLHUP;
-        }
-        return nfds;
-      }
-    }
-  }
-
-  set_called();
-  int ret= __function.function.poll(fds, nfds, timeout);
-  reset_called();
-
-  return ret;
-}
+bool is_called(void);
+void set_called();
+void reset_called();

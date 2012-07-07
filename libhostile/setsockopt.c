@@ -68,16 +68,23 @@ int setsockopt(int sockfd, int level, int optname,
   hostile_initialize();
   (void) pthread_once(&function_lookup_once, set_local);
 
-  if (__function.frequency)
+  if (is_called() == false)
   {
-    if (--not_until < 0 && random() % __function.frequency)
+    if (__function.frequency)
     {
-      shutdown(sockfd, SHUT_RDWR);
-      close(sockfd);
-      errno= EBADF;
-      return -1;
+      if (--not_until < 0 && random() % __function.frequency)
+      {
+        shutdown(sockfd, SHUT_RDWR);
+        close(sockfd);
+        errno= EBADF;
+        return -1;
+      }
     }
   }
 
-  return __function.function.setsockopt(sockfd, level, optname, optval, optlen);
+  set_called();
+  int ret= __function.function.setsockopt(sockfd, level, optname, optval, optlen);
+  reset_called();
+
+  return ret;
 }
