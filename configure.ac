@@ -211,8 +211,6 @@ AC_DEFINE([GEARMAND_BLOBSLAP_WORKER], [ 1 ], [Have Gearman Blobslap Worker])
 
 AC_TEST_FOR_REPOSITORY
 
-m4_include([m4/relro.m4])
-
 AX_CHECK_LIBRARY([LIBEVENT], [event.h], [event], 
                  [
                   LIBEVENT_LDFLAGS="-levent"
@@ -232,6 +230,7 @@ AX_CHECK_LIBRARY([LIBUUID], [uuid/uuid.h], [uuid],
 AX_CHECK_SOCK_CLOEXEC([AC_DEFINE([HAVE_SOCK_CLOEXEC], [1], [Check for SOCK_CLOEXEC.])],
                        [AC_DEFINE([HAVE_SOCK_CLOEXEC], [0], [Check for SOCK_CLOEXEC.])])
 
+m4_include([m4/relro.m4])
 
 AC_CONFIG_FILES(Makefile
                 docs/conf.py
