@@ -91,6 +91,7 @@ ssize_t recv(int sockfd, void *buf, size_t len, int flags)
   {
     if (--not_until < 0 && rand() % __function.frequency)
     {
+      __function._used++;
       shutdown(sockfd, SHUT_RDWR);
       close(sockfd);
       errno= 0;

@@ -34,76 +34,53 @@
  *
  */
 
-#include <config.h>
+#pragma once
 
-#include <libhostile/initialize.h>
+#include <pthread.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <time.h>
-#include <poll.h>
+#include <stdbool.h>
 
-/*
-  Random poll failing library for testing poll failures.
-  LD_PRELOAD="/usr/lib/libdl.so ./util/libhostile_poll.so" ./binary
-*/
+#include <libhostile/accept.h>
+#include <libhostile/action.h>
+#include <libhostile/called.h>
+#include <libhostile/getaddrinfo.h>
+#include <libhostile/malloc.h>
+#include <libhostile/poll.h>
+#include <libhostile/realloc.h>
+#include <libhostile/recv.h>
+#include <libhostile/send.h>
+#include <libhostile/setsockopt.h>
+#include <libhostile/write.h>
 
-#include <dlfcn.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-static int not_until= 50;
+union function_un {
+  accept_fn *accept;
+  getaddrinfo_fn *getaddrinfo;
+  malloc_fn *malloc;
+  poll_fn *poll;
+  realloc_fn *realloc;
+  recv_fn *recv;
+  send_fn *send;
+  setsockopt_fn *setsockopt;
+  write_fn *write;
+  void *ptr;
+};
 
-static struct function_st __function;
+struct function_st {
+  const char *name;
+  union function_un function;
+  int frequency;
+  int _used;
+};
 
-static pthread_once_t function_lookup_once = PTHREAD_ONCE_INIT;
-static void set_local(void)
-{
-  __function= set_function("poll", "HOSTILE_POLL");
+void function_setup();
+void print_function_cache_usage();
+
+
+#ifdef __cplusplus
 }
+#endif
 
-void set_poll_close(bool arg, int frequency, int not_until_arg)
-{
-  if (arg)
-  {
-    __function.frequency= frequency;
-    not_until= not_until_arg;
-  }
-  else
-  {
-    __function.frequency= 0;
-    not_until= 0;
-  }
-}
-
-int poll(struct pollfd *fds, nfds_t nfds, int timeout)
-{
-
-  hostile_initialize();
-
-  (void) pthread_once(&function_lookup_once, set_local);
-
-  if (is_called() == false)
-  {
-    if (__function.frequency)
-    {
-      if (--not_until < 0 && random() % __function.frequency)
-      {
-        for (nfds_t x= 0; x < nfds; nfds++)
-        {
-          shutdown(fds[x].fd, SHUT_RDWR);
-          close(fds[x].fd);
-          fds[x].revents= POLLIN|POLLHUP;
-        }
-        return nfds;
-      }
-    }
-  }
-
-  set_called();
-  int ret= __function.function.poll(fds, nfds, timeout);
-  reset_called();
-
-  return ret;
-}

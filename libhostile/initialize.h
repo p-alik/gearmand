@@ -74,13 +74,12 @@ union function_un {
 struct function_st {
   const char *name;
   union function_un function;
-  enum action_t action;
   int frequency;
+  int _used;
 };
 
 void hostile_initialize(void);
 struct function_st set_function(const char *name, const char *environ_name);
-void set_action_frequency(enum action_t action, int frequency);
 
 #ifdef __cplusplus
 }

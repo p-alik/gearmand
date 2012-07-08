@@ -88,7 +88,8 @@ extern "C" {
         payload.resize(success->payload_size);
         void *value= gearman_client_do(client, WORKER_FUNCTION_NAME,
                                        NULL,
-                                       &payload[0], payload.size(),
+                                       &payload[0], 
+                                       payload.size() ? random() % payload.size() : 0,
                                        NULL, &rc);
         pthread_setcanceltype(oldstate, NULL);
 
@@ -129,28 +130,39 @@ static test_return_t worker_ramp_exec(const size_t payload_size)
     {
       struct timespec ts;
 
+      bool success= false;
       if (HAVE_LIBRT)
       {
-        if (clock_gettime(CLOCK_REALTIME, &ts) == -1) 
+        if (clock_gettime(CLOCK_REALTIME, &ts) == 0) 
         {
-          Error << strerror(errno);
+          success= true;
         }
       }
       else
       {
         struct timeval tv;
-        if (gettimeofday(&tv, NULL) == -1) 
+        if (gettimeofday(&tv, NULL) == 0) 
         {
-          Error << strerror(errno);
+          success= true;
+          TIMEVAL_TO_TIMESPEC(&tv, &ts);
         }
-        TIMEVAL_TO_TIMESPEC(&tv, &ts);
       }
 
-      ts.tv_sec+= 10;
-
-      int error= pthread_timedjoin_np(children[x], NULL, &ts);
-      if (error != 0)
+      if (success)
       {
+        ts.tv_sec+= 10;
+
+        int error= pthread_timedjoin_np(children[x], NULL, &ts);
+        if (error != 0)
+        {
+          Error << strerror(error);
+          pthread_cancel(children[x]);
+          pthread_join(children[x], NULL);
+        }
+      }
+      else
+      { // error from either clock_gettime() or gettimeofday()
+        Error << strerror(errno);
         pthread_cancel(children[x]);
         pthread_join(children[x], NULL);
       }

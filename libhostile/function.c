@@ -36,74 +36,78 @@
 
 #include <config.h>
 
+#if defined(TARGET_OS_LINUX) && TARGET_OS_LINUX
+
 #include <libhostile/initialize.h>
 
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <time.h>
-#include <poll.h>
-
-/*
-  Random poll failing library for testing poll failures.
-  LD_PRELOAD="/usr/lib/libdl.so ./util/libhostile_poll.so" ./binary
-*/
-
 #include <dlfcn.h>
 
-static int not_until= 50;
+int64_t function_cache_index;
+struct function_st function_cache[10];
 
-static struct function_st __function;
-
-static pthread_once_t function_lookup_once = PTHREAD_ONCE_INIT;
-static void set_local(void)
+void print_function_cache_usage()
 {
-  __function= set_function("poll", "HOSTILE_POLL");
+  for (struct function_st *ptr= function_cache;
+       ptr->name == NULL; ptr++)
+  {
+    if (ptr->frequency)
+    {
+      fprintf(stderr, "--------------------------------------------------------\n\n");
+      fprintf(stderr, "%s hostilized %d\n", ptr->name, ptr->frequency);
+      fprintf(stderr, "\n--------------------------------------------------------\n");
+    }
+  }
 }
 
-void set_poll_close(bool arg, int frequency, int not_until_arg)
+struct function_st set_function(const char *name, const char *environ_name)
 {
-  if (arg)
+  struct function_st set;
+
+  set.name= name;
+  set._used= 0;
+
+  (void)dlerror();
+  set.function.ptr= dlsym(RTLD_NEXT, set.name);
+
+  if (set.function.ptr == NULL)
   {
-    __function.frequency= frequency;
-    not_until= not_until_arg;
+    fprintf(stderr, "libhostile: %s(%s)", set.name, dlerror());
+    exit(EXIT_FAILURE);
+  }
+
+  if (set.function.ptr == NULL)
+  {
+    fprintf(stderr, "libhostile: %s(%s)", set.name, dlerror());
+    exit(EXIT_FAILURE);
+  }
+
+  char *ptr;
+  if ((ptr= getenv(environ_name)))
+  {
+    set.frequency= atoi(ptr);
   }
   else
   {
-    __function.frequency= 0;
-    not_until= 0;
+    set.frequency= 0;
   }
-}
 
-int poll(struct pollfd *fds, nfds_t nfds, int timeout)
-{
-
-  hostile_initialize();
-
-  (void) pthread_once(&function_lookup_once, set_local);
-
-  if (is_called() == false)
+  if (set.frequency)
   {
-    if (__function.frequency)
-    {
-      if (--not_until < 0 && random() % __function.frequency)
-      {
-        for (nfds_t x= 0; x < nfds; nfds++)
-        {
-          shutdown(fds[x].fd, SHUT_RDWR);
-          close(fds[x].fd);
-          fds[x].revents= POLLIN|POLLHUP;
-        }
-        return nfds;
-      }
-    }
+    fprintf(stderr, "--------------------------------------------------------\n\n");
+    fprintf(stderr, "\t\tHostile Engaged -> %s\n\n", set.name);
+    fprintf(stderr, "Frequency used %d\n", set.frequency);
+    fprintf(stderr, "\n--------------------------------------------------------\n");
   }
 
-  set_called();
-  int ret= __function.function.poll(fds, nfds, timeout);
-  reset_called();
+  function_cache[function_cache_index]= set; 
+  function_cache_index++;
 
-  return ret;
+  print_function_cache_usage();
+
+  return set;
 }
+
+#endif

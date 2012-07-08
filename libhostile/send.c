@@ -92,6 +92,7 @@ ssize_t send(int sockfd, const void *buf, size_t len, int flags)
     {
       if (--not_until < 0 && random() % __function.frequency)
       {
+        __function._used++;
         shutdown(sockfd, SHUT_RDWR);
         close(sockfd);
         errno= ECONNRESET;
