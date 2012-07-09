@@ -312,29 +312,28 @@ gearman_client_st *gearman_client_clone(gearman_client_st *client,
 
 void gearman_client_free(gearman_client_st *client)
 {
-  if (client == NULL)
+  if (client)
   {
-    return;
-  }
 
-  gearman_client_task_free_all(client);
+    gearman_client_task_free_all(client);
 
-  gearman_universal_free(client->universal);
+    gearman_universal_free(client->universal);
 
-  if (client->options.allocated)
-  {
-    delete client;
+    if (client->options.allocated)
+    {
+      delete client;
+    }
   }
 }
 
 const char *gearman_client_error(const gearman_client_st *client)
 {
-  if (client == NULL)
+  if (client)
   {
-    return NULL;
+    return gearman_universal_error(client->universal);
   }
 
-  return gearman_universal_error(client->universal);
+  return NULL;
 }
 
 gearman_return_t gearman_client_error_code(const gearman_client_st *client)
@@ -928,16 +927,15 @@ gearman_return_t gearman_client_echo(gearman_client_st *client,
 
 void gearman_client_task_free_all(gearman_client_st *client)
 {
-  if (client == NULL)
+  if (client and client->task_list)
   {
-    return;
-  }
-
-  while (client->task_list)
-  {
-    gearman_task_free(client->task_list);
+    while (client->task_list)
+    {
+      gearman_task_free(client->task_list);
+    }
   }
 }
+
 
 void gearman_client_set_task_context_free_fn(gearman_client_st *client,
                                              gearman_task_context_free_fn *function)

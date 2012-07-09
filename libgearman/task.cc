@@ -139,7 +139,6 @@ void gearman_task_free(gearman_task_st *task)
 
   if (task->client)
   {
-
     if (task->options.send_in_use)
     {
       gearman_packet_free(&(task->send));
@@ -378,27 +377,27 @@ gearman_result_st *gearman_task_result(gearman_task_st *task)
 gearman_result_st *gearman_task_mutable_result(gearman_task_st *task)
 {
   assert(task); // Programmer error
-  if (task->result_ptr == NULL)
+  if (task)
   {
-    task->result_ptr= new (std::nothrow) gearman_result_st();
-  }
+    if (task->result_ptr == NULL)
+    {
+      task->result_ptr= new (std::nothrow) gearman_result_st();
+    }
 
-  return task->result_ptr;
+    return task->result_ptr;
+  }
+  
+  return NULL;
 }
 
 const void *gearman_task_data(const gearman_task_st *task)
 {
-  if (task == NULL)
-  {
-    return NULL;
-  }
-
-  if (task->recv and task->recv->data)
+  if (task and task->recv and task->recv->data)
   {
     return task->recv->data;
   }
 
-  return 0;
+    return NULL;
 }
 
 size_t gearman_task_data_size(const gearman_task_st *task)
