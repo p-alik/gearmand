@@ -49,6 +49,7 @@ struct gearman_vector_st {
   size_t current_size;
   struct {
     bool is_allocated:1;
+    bool is_initialized:1;
   } options;
 };
 

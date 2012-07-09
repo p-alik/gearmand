@@ -60,7 +60,22 @@ struct gearman_result_st
     _is_null(true),
     type(GEARMAN_RESULT_BINARY)
   {
-    gearman_string_create(&value.string, initial_size);
+    gearman_vector_st *allocated_str;
+    int limit= 2;
+    while (--limit)
+    {
+      if ((allocated_str= gearman_string_create(&value.string, initial_size)))
+      {
+        assert_msg(allocated_str == &value.string, "Programmer error, gearman_string_create() is not returning a correct value");
+        return;
+      }
+
+      // if we fail to allocate on the initial size, try to fail to "something"
+      initial_size= 0;
+    }
+
+    // We should never reach this point
+    assert_msg(allocated_str, "We should never exit with no allocation, most likely something in memory allocation is broken");
   }
 
   bool is_null() const
@@ -86,7 +101,9 @@ struct gearman_result_st
   gearman_vector_st *string()
   {
     if (type == GEARMAN_RESULT_BINARY)
+    {
       return &value.string;
+    }
 
     return NULL;
   }
@@ -94,7 +111,9 @@ struct gearman_result_st
   int64_t integer()
   {
     if (type == GEARMAN_RESULT_INTEGER)
+    {
       return value.integer;
+    }
 
     return 0;
   }
@@ -102,6 +121,9 @@ struct gearman_result_st
   ~gearman_result_st()
   {
     if (type == GEARMAN_RESULT_BINARY)
+    {
+      assert_msg(gearman_is_initialized(&value.string), "Somehow we have a GEARMAN_RESULT_BINARY, but no valid string");
       gearman_string_free(&value.string);
+    }
   }
 };

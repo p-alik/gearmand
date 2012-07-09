@@ -482,6 +482,8 @@ gearman_return_t gearman_echo(gearman_universal_st& universal,
 
     con->options.packet_in_use= true;
     gearman_packet_st *packet_ptr= con->receiving(con->_packet, ret, true);
+    assert(packet_ptr);
+    assert(packet_ptr == &con->_packet);
     assert(packet_ptr->command == GEARMAN_COMMAND_ECHO_RES);
     if (gearman_failed(ret))
     {

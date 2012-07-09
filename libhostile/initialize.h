@@ -45,6 +45,8 @@
 #include <libhostile/called.h>
 #include <libhostile/getaddrinfo.h>
 #include <libhostile/malloc.h>
+#include <libhostile/pipe.h>
+#include <libhostile/function.h>
 #include <libhostile/poll.h>
 #include <libhostile/realloc.h>
 #include <libhostile/recv.h>
@@ -57,26 +59,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-union function_un {
-  accept_fn *accept;
-  getaddrinfo_fn *getaddrinfo;
-  malloc_fn *malloc;
-  poll_fn *poll;
-  realloc_fn *realloc;
-  recv_fn *recv;
-  send_fn *send;
-  setsockopt_fn *setsockopt;
-  write_fn *write;
-  void *ptr;
-};
-
-struct function_st {
-  const char *name;
-  union function_un function;
-  int frequency;
-  int _used;
-};
 
 void hostile_initialize(void);
 struct function_st set_function(const char *name, const char *environ_name);

@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2012 Data Differential, http://datadifferential.com/ 
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -35,58 +35,80 @@
  *
  */
 
-#pragma once
+#include <config.h>
 
-enum gearman_task_state_t {
-  GEARMAN_TASK_STATE_NEW,
-  GEARMAN_TASK_STATE_SUBMIT,
-  GEARMAN_TASK_STATE_WORKLOAD,
-  GEARMAN_TASK_STATE_WORK,
-  GEARMAN_TASK_STATE_CREATED,
-  GEARMAN_TASK_STATE_DATA,
-  GEARMAN_TASK_STATE_WARNING,
-  GEARMAN_TASK_STATE_STATUS,
-  GEARMAN_TASK_STATE_COMPLETE,
-  GEARMAN_TASK_STATE_EXCEPTION,
-  GEARMAN_TASK_STATE_FAIL,
-  GEARMAN_TASK_STATE_FINISHED
-};
+#include <cerrno>
+#include <cstdio>
+#include <cstring>
+#include <fcntl.h>
+#include <unistd.h>
 
-enum gearman_task_kind_t {
-  GEARMAN_TASK_KIND_ADD_TASK,
-  GEARMAN_TASK_KIND_EXECUTE,
-  GEARMAN_TASK_KIND_DO
-};
-
-struct gearman_task_st
+bool setup_shutdown_pipe(int pipedes_[2])
 {
-  struct {
-    bool allocated;
-    bool send_in_use;
-    bool is_known;
-    bool is_running;
-    bool was_reduced;
-    bool is_paused;
-    bool is_initialized;
-  } options;
-  enum gearman_task_kind_t type;
-  enum gearman_task_state_t state;
-  uint32_t magic_;
-  uint32_t created_id;
-  uint32_t numerator;
-  uint32_t denominator;
-  uint32_t client_count;
-  gearman_client_st *client;
-  gearman_task_st *next;
-  gearman_task_st *prev;
-  void *context;
-  gearman_connection_st *con;
-  gearman_packet_st *recv;
-  gearman_packet_st send;
-  struct gearman_actions_t func;
-  gearman_return_t result_rc;
-  struct gearman_result_st *result_ptr;
-  char job_handle[GEARMAN_JOB_HANDLE_SIZE];
-  size_t unique_length;
-  char unique[GEARMAN_MAX_UNIQUE_SIZE];
-};
+#ifdef _GNU_SOURCE
+  if (pipe2(pipedes_, O_NONBLOCK|O_CLOEXEC) == -1)
+  {
+    return false;
+  }
+#else // not _GNU_SOURCE
+  assert(_GNU_SOURCE);
+  if (pipe(pipedes_) == -1)
+  {
+    return false;
+  }
+#endif // _GNU_SOURCE
+
+  for (size_t x= 0; x < 2; ++x)
+  {
+#ifndef _GNU_SOURCE
+    int returned_flags;
+    do 
+    {
+      if ((returned_flags= fcntl(pipedes_[x], F_GETFL, 0)) == -1)
+      {
+        if (errno != EBADF)
+        {
+          close(pipedes_[0]);
+          close(pipedes_[1]);
+        }
+
+        return false;
+      }
+    } while (returned_flags == -1 and errno == EINTR);
+
+    int fcntl_error;
+    do
+    {
+      if ((fcntl_error= fcntl(pipedes_[x], F_SETFL, returned_flags | O_NONBLOCK)) == -1)
+      {
+        close(pipedes_[0]);
+        close(pipedes_[1]);
+
+        return false;
+      }
+    } while (fcntl_error == -1 and errno == EINTR);
+
+    int rval;
+    do
+    { 
+      rval= fcntl (pipedes_[x], F_SETFD, FD_CLOEXEC);
+    } while (rval == -1 && (errno == EINTR or errno == EAGAIN));
+#endif // _GNU_SOURCE
+
+#ifdef F_SETNOSIGPIPE
+    int fcntl_sig_error;
+    do 
+    {
+      if (fcntl(pipedes_[x], F_SETNOSIGPIPE, 0) != -1)
+      {
+        close(pipedes_[0]);
+        close(pipedes_[1]);
+
+        return false;
+      }
+    } while (fcntl_sig_error == -1 and errno == EINTR);
+#endif // F_SETNOSIGPIPE
+  }
+
+  return true;
+}

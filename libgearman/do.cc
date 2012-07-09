@@ -106,7 +106,7 @@ void *client_do(gearman_client_st *client, gearman_command_t command,
     if (gearman_success(do_task_ptr->result_rc))
     {
       *ret_ptr= do_task_ptr->result_rc;
-      if (do_task_ptr->result_ptr)
+      if (gearman_task_result(do_task_ptr))
       {
         gearman_string_t result= gearman_result_take_string(do_task_ptr->result_ptr);
         *result_size= gearman_size(result);

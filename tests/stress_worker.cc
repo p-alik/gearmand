@@ -110,6 +110,50 @@ extern "C" {
   }
 }
 
+static bool join_thread(pthread_t& thread_arg, struct timespec& ts)
+{
+  int error;
+  ts.tv_sec+= 10;
+
+#if _GNU_SOURCE && defined(TARGET_OS_LINUX) && TARGET_OS_LINUX 
+  int limit= 2;
+  while (--limit)
+  {
+    switch ((error= pthread_timedjoin_np(thread_arg, NULL, &ts)))
+    {
+    case ETIMEDOUT:
+      libtest::dream(1, 0);
+      continue;
+
+    case 0:
+      return true;
+
+    case ESRCH:
+      return false;
+
+    default:
+      Error << "pthread_timedjoin_np() " << strerror(error);
+      return false;
+    }
+  }
+
+  Out << "pthread_timedjoin_np() " << strerror(error);
+  if ((error= pthread_cancel(thread_arg)) != 0)
+  {
+    Error << "pthread_cancel() " << strerror(error);
+    return false;
+  }
+#endif
+
+  if ((error= pthread_join(thread_arg, NULL)) != 0)
+  {
+    Error << "pthread_join() " << strerror(error);
+    return false;
+  }
+
+  return true;
+}
+
 static test_return_t worker_ramp_exec(const size_t payload_size)
 {
   std::vector<pthread_t> children;
@@ -126,50 +170,40 @@ static test_return_t worker_ramp_exec(const size_t payload_size)
   
   for (size_t x= 0; x < children.size(); x++)
   {
-#if _GNU_SOURCE && defined(TARGET_OS_LINUX) && TARGET_OS_LINUX 
+    struct timespec ts;
+    bool success= false;
+    int limit= 2;
+    while (success == false and --limit)
     {
-      struct timespec ts;
-
-      bool success= false;
-      if (HAVE_LIBRT)
+      if (HAVE_LIBRT) // This won't be called on OSX, etc,...
       {
-        if (clock_gettime(CLOCK_REALTIME, &ts) == 0) 
+        if (clock_gettime(CLOCK_REALTIME, &ts) == -1) 
         {
-          success= true;
+          Error << "clock_gettime(CLOCK_REALTIME) " << strerror(errno);
+          continue;
         }
+
+        success= join_thread(children[x], ts);
       }
       else
       {
         struct timeval tv;
-        if (gettimeofday(&tv, NULL) == 0) 
+        if (gettimeofday(&tv, NULL) == -1) 
         {
-          success= true;
-          TIMEVAL_TO_TIMESPEC(&tv, &ts);
+          Error << "gettimeofday() " << strerror(errno);
+          continue;
         }
-      }
 
-      if (success)
-      {
-        ts.tv_sec+= 10;
-
-        int error= pthread_timedjoin_np(children[x], NULL, &ts);
-        if (error != 0)
-        {
-          Error << strerror(error);
-          pthread_cancel(children[x]);
-          pthread_join(children[x], NULL);
-        }
-      }
-      else
-      { // error from either clock_gettime() or gettimeofday()
-        Error << strerror(errno);
-        pthread_cancel(children[x]);
-        pthread_join(children[x], NULL);
+        TIMEVAL_TO_TIMESPEC(&tv, &ts);
+        success= join_thread(children[x], ts);
       }
     }
-#else
-    pthread_join(children[x], NULL);
-#endif
+
+    if (success == false)
+    {
+      pthread_cancel(children[x]);
+      Error << "Something went very wrong, it is likely threads were not cleaned up";
+    }
   }
 
   return TEST_SUCCESS;
@@ -261,20 +295,42 @@ static test_return_t accept_SETUP(void* object)
   return TEST_SUCCESS;
 }
 
-static test_return_t poll_SETUP(void* object)
+static test_return_t poll_HOSTILE_POLL_CLOSED_SETUP(void* object)
 {
   test_skip_valgrind();
   test_skip(true, bool(getenv("YATL_RUN_MASSIVE_TESTS")));
 
   worker_ramp_SETUP(object);
-  set_poll_close(true, 4, 0);
+  set_poll_close(true, 4, 0, HOSTILE_POLL_CLOSED);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t poll_HOSTILE_POLL_SHUT_WR_SETUP(void* object)
+{
+  test_skip_valgrind();
+  test_skip(true, bool(getenv("YATL_RUN_MASSIVE_TESTS")));
+
+  worker_ramp_SETUP(object);
+  set_poll_close(true, 4, 0, HOSTILE_POLL_SHUT_WR);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t poll_HOSTILE_POLL_SHUT_RD_SETUP(void* object)
+{
+  test_skip_valgrind();
+  test_skip(true, bool(getenv("YATL_RUN_MASSIVE_TESTS")));
+
+  worker_ramp_SETUP(object);
+  set_poll_close(true, 4, 0, HOSTILE_POLL_SHUT_RD);
 
   return TEST_SUCCESS;
 }
 
 static test_return_t poll_TEARDOWN(void* object)
 {
-  set_poll_close(true, 0, 0);
+  set_poll_close(false, 0, 0, HOSTILE_POLL_CLOSED);
 
   worker_handles_st *handles= (worker_handles_st*)object;
   handles->kill_all();
@@ -344,7 +400,9 @@ collection_st collection[] ={
   {"hostile recv()", recv_SETUP, resv_TEARDOWN, worker_TESTS },
   {"hostile send()", send_SETUP, send_TEARDOWN, worker_TESTS },
   {"hostile accept()", accept_SETUP, accept_TEARDOWN, worker_TESTS },
-  {"hostile poll()", poll_SETUP, poll_TEARDOWN, worker_TESTS },
+  {"hostile poll(CLOSED)", poll_HOSTILE_POLL_CLOSED_SETUP, poll_TEARDOWN, worker_TESTS },
+  {"hostile poll(SHUT_RD)", poll_HOSTILE_POLL_SHUT_RD_SETUP, poll_TEARDOWN, worker_TESTS },
+  {"hostile poll(SHUT_WR)", poll_HOSTILE_POLL_SHUT_WR_SETUP, poll_TEARDOWN, worker_TESTS },
   {0, 0, 0, 0}
 };
 

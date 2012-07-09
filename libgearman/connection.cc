@@ -1032,8 +1032,7 @@ size_t gearman_connection_st::recv_socket(void *data, size_t data_size, gearman_
       }
       else if (errno == EPIPE || errno == ECONNRESET || errno == EHOSTDOWN)
       {
-        gearman_perror(universal, "lost connection to server during read");
-        ret= GEARMAN_LOST_CONNECTION;
+        ret= gearman_perror(universal, "lost connection to server during read");
       }
       else
       {

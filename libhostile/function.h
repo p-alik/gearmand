@@ -45,6 +45,7 @@
 #include <libhostile/called.h>
 #include <libhostile/getaddrinfo.h>
 #include <libhostile/malloc.h>
+#include <libhostile/pipe.h>
 #include <libhostile/poll.h>
 #include <libhostile/realloc.h>
 #include <libhostile/recv.h>
@@ -61,6 +62,8 @@ union function_un {
   getaddrinfo_fn *getaddrinfo;
   malloc_fn *malloc;
   poll_fn *poll;
+  pipe_fn *pipe;
+  pipe2_fn *pipe2;
   realloc_fn *realloc;
   recv_fn *recv;
   send_fn *send;

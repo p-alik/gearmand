@@ -183,7 +183,7 @@ static void thread_runner(context_st* con)
     {
       if (libhostile_is_accept() == false)
       {
-        Error << "gearman_worker_set_server_option() failed";
+        Out << "gearman_worker_set_server_option() failed";
       }
       context->fail();
       return;

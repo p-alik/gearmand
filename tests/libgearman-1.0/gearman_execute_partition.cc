@@ -68,8 +68,10 @@ namespace {
 
       if (result_ptr)
       {
-        if (not gearman_result_size(result_ptr))
+        if (gearman_result_size(result_ptr) == 0)
+        {
           return GEARMAN_WORK_EXCEPTION;
+        }
 
         string_value.append(gearman_result_value(result_ptr), gearman_result_size(result_ptr));
       }

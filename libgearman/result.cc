@@ -52,17 +52,19 @@ bool gearman_result_is_null(const gearman_result_st *self)
 
 int64_t gearman_result_integer(const gearman_result_st *self)
 {
-  if (not self)
-    return false;
-
-  switch (self->type)
+  if (self)
   {
+    switch (self->type)
+    {
     case GEARMAN_RESULT_BINARY:
       return atoll(gearman_string_value(&self->value.string));
+
     case GEARMAN_RESULT_BOOLEAN:
       return self->value.boolean;
+
     case GEARMAN_RESULT_INTEGER:
       return self->value.integer;
+    }
   }
 
   return false;
@@ -70,17 +72,19 @@ int64_t gearman_result_integer(const gearman_result_st *self)
 
 bool gearman_result_boolean(const gearman_result_st *self)
 {
-  if (not self)
-    return false;
-
-  switch (self->type)
+  if (self)
   {
+    switch (self->type)
+    {
     case GEARMAN_RESULT_BINARY:
       return gearman_string_length(&self->value.string);
+
     case GEARMAN_RESULT_BOOLEAN:
       return self->value.boolean;
+
     case GEARMAN_RESULT_INTEGER:
       return self->value.integer ? true : false;
+    }
   }
 
   return false;
@@ -88,20 +92,23 @@ bool gearman_result_boolean(const gearman_result_st *self)
 
 size_t gearman_result_size(const gearman_result_st *self)
 {
-  if (not self or self->type != GEARMAN_RESULT_BINARY)
-    return 0;
+  if (self and self->type == GEARMAN_RESULT_BINARY)
+  {
+    return gearman_string_length(&self->value.string);
+  }
 
-  return gearman_string_length(&self->value.string);
+  return 0;
 }
 
 const char *gearman_result_value(const gearman_result_st *self)
 {
-  if (not self or self->type != GEARMAN_RESULT_BINARY)
-    return NULL;
+  if (self and self->type == GEARMAN_RESULT_BINARY)
+  {
+    gearman_string_t ret= gearman_string(&self->value.string);
+    return gearman_c_str(ret);
+  }
 
-  gearman_string_t ret= gearman_string(&self->value.string);
-
-  return gearman_c_str(ret);
+  return NULL;
 }
 
 gearman_string_t gearman_result_string(const gearman_result_st *self)
@@ -120,6 +127,7 @@ gearman_string_t gearman_result_take_string(gearman_result_st *self)
   assert(self); // Programming error
   if (self->type == GEARMAN_RESULT_BINARY and gearman_result_size(self))
   {
+    self->type= GEARMAN_RESULT_BOOLEAN; // Set to default type
     return gearman_string_take_string(&self->value.string);
   }
   self->_is_null= false;
@@ -135,8 +143,10 @@ gearman_return_t gearman_result_store_string(gearman_result_st *self, gearman_st
 
 gearman_return_t gearman_result_store_value(gearman_result_st *self, const void *value, size_t size)
 {
-  if (not self)
+  if (self == NULL)
+  {
     return GEARMAN_INVALID_ARGUMENT;
+  }
 
   if (self->type == GEARMAN_RESULT_BINARY)
   {
@@ -154,15 +164,15 @@ gearman_return_t gearman_result_store_value(gearman_result_st *self, const void 
 
 void gearman_result_store_integer(gearman_result_st *self, int64_t value)
 {
-  if (not self)
-    return;
-
-  if (self->type == GEARMAN_RESULT_BINARY)
+  if (self)
   {
-    gearman_string_free(&self->value.string);
-  }
+    if (self->type == GEARMAN_RESULT_BINARY)
+    {
+      gearman_string_free(&self->value.string);
+    }
 
-  self->type= GEARMAN_RESULT_INTEGER;
-  self->value.integer= value;
-  self->_is_null= false;
+    self->type= GEARMAN_RESULT_INTEGER;
+    self->value.integer= value;
+    self->_is_null= false;
+  }
 }

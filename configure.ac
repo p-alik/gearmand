@@ -232,6 +232,8 @@ AX_CHECK_SOCK_CLOEXEC([AC_DEFINE([HAVE_SOCK_CLOEXEC], [1], [Check for SOCK_CLOEX
 
 m4_include([m4/relro.m4])
 
+AX_APPEND_COMPILE_FLAGS([-fstack-protector-all])
+
 AC_CONFIG_FILES(Makefile
                 docs/conf.py
                 libgearman-1.0/version.h

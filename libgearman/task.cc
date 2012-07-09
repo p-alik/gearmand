@@ -53,6 +53,9 @@
  * Public Definitions
  */
 
+#define TASK_MAGIC 134
+#define TASK_ANTI_MAGIC 157
+
 gearman_task_st *gearman_task_internal_create(gearman_client_st *client, gearman_task_st *task)
 {
   assert(client);
@@ -71,6 +74,7 @@ gearman_task_st *gearman_task_internal_create(gearman_client_st *client, gearman
 
     task->options.allocated= true;
   }
+  task->options.is_initialized= true;
 
   task->options.send_in_use= false;
   task->options.is_known= false;
@@ -81,6 +85,7 @@ gearman_task_st *gearman_task_internal_create(gearman_client_st *client, gearman
   task->type= GEARMAN_TASK_KIND_ADD_TASK;
 
   task->state= GEARMAN_TASK_STATE_NEW;
+  task->magic_= TASK_MAGIC;
   task->created_id= 0;
   task->numerator= 0;
   task->denominator= 0;
@@ -121,50 +126,58 @@ void gearman_task_free(gearman_task_st *task)
     return;
   }
 
-  delete task->result_ptr;
-  task->result_ptr= NULL;
-
-  if (task->client == NULL)
+  if (task->options.is_initialized == false)
   {
     return;
   }
 
-  if (task->options.send_in_use)
-  {
-    gearman_packet_free(&(task->send));
-  }
+  assert(task->magic_ != TASK_ANTI_MAGIC);
+  assert(task->magic_ == TASK_MAGIC);
+  task->magic_= TASK_ANTI_MAGIC;
 
-  if (task->type != GEARMAN_TASK_KIND_DO  and task->context and  task->client->task_context_free_fn)
-  {
-    task->client->task_context_free_fn(task, static_cast<void *>(task->context));
-  }
+  gearman_task_free_result(task);
 
-  if (task->client->task_list == task)
+  if (task->client)
   {
-    task->client->task_list= task->next;
-  }
 
-  if (task->prev)
-  {
-    task->prev->next= task->next;
-  }
+    if (task->options.send_in_use)
+    {
+      gearman_packet_free(&(task->send));
+    }
 
-  if (task->next)
-  {
-    task->next->prev= task->prev;
-  }
+    if (task->type != GEARMAN_TASK_KIND_DO  and task->context and  task->client->task_context_free_fn)
+    {
+      task->client->task_context_free_fn(task, static_cast<void *>(task->context));
+    }
 
-  task->client->task_count--;
+    if (task->client->task_list == task)
+    {
+      task->client->task_list= task->next;
+    }
 
-  // If the task we are removing is a current task, remove it from the client
-  // structures.
-  if (task->client->task == task)
-  {
-    task->client->task= NULL;
+    if (task->prev)
+    {
+      task->prev->next= task->next;
+    }
+
+    if (task->next)
+    {
+      task->next->prev= task->prev;
+    }
+
+    task->client->task_count--;
+
+    // If the task we are removing is a current task, remove it from the client
+    // structures.
+    if (task->client->task == task)
+    {
+      task->client->task= NULL;
+    }
+    task->client= NULL;
   }
-  task->client= NULL;
   task->job_handle[0]= 0;
 
+  task->options.is_initialized= false;
   if (task->options.allocated)
   {
     delete task;
@@ -367,7 +380,7 @@ gearman_result_st *gearman_task_mutable_result(gearman_task_st *task)
   assert(task); // Programmer error
   if (task->result_ptr == NULL)
   {
-    task->result_ptr= new gearman_result_st();
+    task->result_ptr= new (std::nothrow) gearman_result_st();
   }
 
   return task->result_ptr;

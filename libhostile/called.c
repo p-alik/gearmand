@@ -47,10 +47,48 @@
 #include <libhostile/initialize.h>
 
 __thread bool is_called_= false;
+static __thread char** unique_ptr= NULL;
 
 bool is_called(void)
 {
   return is_called_;
+}
+
+void set_called_ptr(char* passed_pos)
+{
+  assert(passed_pos);
+  if (passed_pos == NULL)
+  {
+    abort();
+  }
+
+  if (unique_ptr)
+  {
+    if (&passed_pos == unique_ptr)
+    {
+      return;
+    }
+  }
+  set_called();
+  unique_ptr= &passed_pos;
+}
+
+void reset_called_ptr(char* passed_pos)
+{
+  assert(unique_ptr);
+  if (unique_ptr == NULL)
+  {
+    abort();
+  }
+
+  assert(&passed_pos == unique_ptr);
+  if (&passed_pos != unique_ptr)
+  {
+    abort();
+  }
+  
+  reset_called();
+  unique_ptr= NULL;
 }
 
 void set_called()

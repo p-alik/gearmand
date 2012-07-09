@@ -58,9 +58,9 @@
 #include <libgearman/vector.hpp>
 #include <libgearman/unique.hpp>
 #include <libgearman/add.hpp>
+#include <libgearman/is.hpp>
 #include <libgearman/result.hpp>
 #include <libgearman/actions.hpp>
-#include <libgearman/is.hpp>
 #include <libgearman/string.hpp>
 #include <libgearman/command.h>
 #include <libgearman/task.hpp>

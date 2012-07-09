@@ -54,9 +54,9 @@ static gearman_return_t _client_pause_data(gearman_task_st *task)
 
   if (gearman_task_data_size(task))
   {
-    if (task->result_ptr)
+    if (gearman_task_result(task))
     {
-      task->result_ptr->clear();
+      gearman_task_result(task)->clear();
     }
     else
     {
@@ -122,10 +122,10 @@ static gearman_return_t _client_do_data(gearman_task_st *task)
 {
   if (gearman_task_data_size(task))
   {
-    if (not task->result_ptr)
+    if (gearman_task_result(task) == NULL)
     {
       task->result_ptr= new (std::nothrow) gearman_result_st(gearman_task_data_size(task));
-      if (not task->result_ptr)
+      if (task->result_ptr == NULL)
       {
         return GEARMAN_MEMORY_ALLOCATION_FAILURE;
       }
@@ -141,10 +141,10 @@ static gearman_return_t _client_do_complete(gearman_task_st *task)
 {
   if (gearman_task_data_size(task))
   {
-    if (not task->result_ptr)
+    if (gearman_task_result(task) == NULL)
     {
       task->result_ptr= new (std::nothrow) gearman_result_st(gearman_task_data_size(task));
-      if (not task->result_ptr)
+      if (task->result_ptr == NULL)
       {
         return GEARMAN_MEMORY_ALLOCATION_FAILURE;
       }

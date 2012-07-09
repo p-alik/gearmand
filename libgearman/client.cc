@@ -175,13 +175,13 @@ static void *_client_do(gearman_client_st *client, gearman_command_t command,
   else if (gearman_success(ret) and do_task_ptr->result_rc == GEARMAN_SUCCESS)
   {
     *ret_ptr= do_task_ptr->result_rc;
-    if (do_task_ptr->result_ptr)
+    if (gearman_task_result(do_task_ptr))
     {
       if (gearman_has_allocator(client->universal))
       {
         gearman_string_t result= gearman_result_string(do_task_ptr->result_ptr);
         returnable= static_cast<char *>(gearman_malloc(client->universal, gearman_size(result) +1));
-        if (not returnable)
+        if (returnable == NULL)
         {
           gearman_error(client->universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "custom workload_fn failed to allocate memory");
           *result_size= 0;

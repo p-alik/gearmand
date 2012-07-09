@@ -52,6 +52,7 @@
 static int not_until= 500;
 
 static struct function_st __function;
+static __thread char unique_ptr;
 
 static pthread_once_t function_lookup_once = PTHREAD_ONCE_INIT;
 static void set_malloc(void)
@@ -77,9 +78,9 @@ void *malloc(size_t size)
     }
   }
 
-  set_called();
+  set_called_ptr(&unique_ptr);
   void *ret= __function.function.malloc(size);
-  reset_called();
+  reset_called_ptr(&unique_ptr);
 
   return ret;
 }

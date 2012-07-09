@@ -39,3 +39,6 @@
 bool is_called(void);
 void set_called();
 void reset_called();
+
+void set_called_ptr(char* passed_pos);
+void reset_called_ptr(char* passed_pos);
