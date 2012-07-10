@@ -54,7 +54,7 @@ public:
                        const char *unique, size_t unique_size,
                        const char *function_name, size_t function_name_size,
                        const void *data, size_t data_size,
-                       gearmand_job_priority_t priority,
+                       gearman_job_priority_t priority,
                        int64_t when)
   {
   }
