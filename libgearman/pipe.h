@@ -35,9 +35,6 @@
  *
  */
 
-#undef _GNU_SOURCE 
-#define _GNU_SOURCE 
-
-#include <config.h>
+#pragma once
 
 bool setup_shutdown_pipe(int pipedes_[2]);

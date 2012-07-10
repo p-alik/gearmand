@@ -36,24 +36,17 @@
 
 #include <config.h>
 
-/*
-  Random accept failing library for testing accept failures.
-  LD_PRELOAD="/usr/lib/libdl.so ./util/libhostile_accept.so" ./binary
-*/
-
-//#define _GNU_SOURCE
-#include <dlfcn.h>
-
 #include <errno.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <time.h>
+#include <unistd.h>
 
 #include <libhostile/initialize.h>
-
+#include <libhostile/function.h>
 
 static int not_until= 500;
 

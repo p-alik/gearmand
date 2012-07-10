@@ -37,6 +37,8 @@
 
 #include <config.h>
 
+#include "libgearman/common.h"
+
 #include <cassert>
 #include <cerrno>
 #include <cstdio>
@@ -46,55 +48,55 @@
 
 bool setup_shutdown_pipe(int pipedes_[2])
 {
-#ifdef HAVE_PIPE2
-  assert(_GNU_SOURCE);
-  if (pipe2(pipedes_, O_NONBLOCK|O_CLOEXEC) == -1)
+  if (HAVE_PIPE2)
+  {
+    if (pipe2(pipedes_, O_NONBLOCK|O_CLOEXEC) == -1)
+    {
+      return false;
+    }
+  }
+  else if (pipe(pipedes_) == -1)
   {
     return false;
   }
-#else // HAVE_PIPE2
-  if (pipe(pipedes_) == -1)
-  {
-    return false;
-  }
-#endif // HAVE_PIPE2
 
   for (size_t x= 0; x < 2; ++x)
   {
-#ifndef HAVE_PIPE2
-    int returned_flags;
-    do 
+    if (HAVE_PIPE2)
     {
-      if ((returned_flags= fcntl(pipedes_[x], F_GETFL, 0)) == -1)
+      int returned_flags;
+      do 
       {
-        if (errno != EBADF)
+        if ((returned_flags= fcntl(pipedes_[x], F_GETFL, 0)) == -1)
+        {
+          if (errno != EBADF)
+          {
+            close(pipedes_[0]);
+            close(pipedes_[1]);
+          }
+
+          return false;
+        }
+      } while (returned_flags == -1 and errno == EINTR);
+
+      int fcntl_error;
+      do
+      {
+        if ((fcntl_error= fcntl(pipedes_[x], F_SETFL, returned_flags | O_NONBLOCK)) == -1)
         {
           close(pipedes_[0]);
           close(pipedes_[1]);
+
+          return false;
         }
+      } while (fcntl_error == -1 and errno == EINTR);
 
-        return false;
-      }
-    } while (returned_flags == -1 and errno == EINTR);
-
-    int fcntl_error;
-    do
-    {
-      if ((fcntl_error= fcntl(pipedes_[x], F_SETFL, returned_flags | O_NONBLOCK)) == -1)
-      {
-        close(pipedes_[0]);
-        close(pipedes_[1]);
-
-        return false;
-      }
-    } while (fcntl_error == -1 and errno == EINTR);
-
-    int rval;
-    do
-    { 
-      rval= fcntl (pipedes_[x], F_SETFD, FD_CLOEXEC);
-    } while (rval == -1 && (errno == EINTR or errno == EAGAIN));
-#endif // _GNU_SOURCE
+      int rval;
+      do
+      { 
+        rval= fcntl (pipedes_[x], F_SETFD, FD_CLOEXEC);
+      } while (rval == -1 && (errno == EINTR or errno == EAGAIN));
+    }
 
 #ifdef F_SETNOSIGPIPE
     int fcntl_sig_error;

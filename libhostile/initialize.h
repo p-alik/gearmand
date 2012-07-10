@@ -36,24 +36,7 @@
 
 #pragma once
 
-#include <pthread.h>
-
-#include <stdbool.h>
-
-#include <libhostile/accept.h>
-#include <libhostile/action.h>
 #include <libhostile/called.h>
-#include <libhostile/getaddrinfo.h>
-#include <libhostile/malloc.h>
-#include <libhostile/pipe.h>
-#include <libhostile/function.h>
-#include <libhostile/poll.h>
-#include <libhostile/realloc.h>
-#include <libhostile/recv.h>
-#include <libhostile/send.h>
-#include <libhostile/setsockopt.h>
-#include <libhostile/write.h>
-
 #include <libhostile/hostile.h>
 
 #ifdef __cplusplus
@@ -61,7 +44,6 @@ extern "C" {
 #endif
 
 void hostile_initialize(void);
-struct function_st set_function(const char *name, const char *environ_name);
 
 #ifdef __cplusplus
 }

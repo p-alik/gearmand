@@ -36,22 +36,18 @@
 
 #include <config.h>
 
+#include <libhostile/function.h>
 #include <libhostile/initialize.h>
 
 #include <assert.h>
+#include <netdb.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
-
-/*
-  Random poll failing library for testing poll failures.
-  LD_PRELOAD="/usr/lib/libdl.so ./util/libhostile_poll.so" ./binary
-*/
-
-#include <dlfcn.h>
 
 static int not_until= 50;
 

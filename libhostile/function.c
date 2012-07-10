@@ -38,12 +38,13 @@
 
 #if defined(TARGET_OS_LINUX) && TARGET_OS_LINUX
 
+#include <libhostile/function.h>
 #include <libhostile/initialize.h>
 
+#include <dlfcn.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <dlfcn.h>
 
 int64_t function_cache_index;
 struct function_st function_cache[10];

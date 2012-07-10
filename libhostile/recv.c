@@ -36,25 +36,18 @@
 
 #include <config.h>
 
-/*
-  Random recv failing library for testing recv() failures.
-  LD_PRELOAD="/usr/lib/libdl.so ./util/libhostile_recv.so" ./binary
-*/
-
-#include <dlfcn.h>
+#include <libhostile/function.h>
+#include <libhostile/initialize.h>
 
 #include <assert.h>
 #include <errno.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <time.h>
-#include <stdbool.h>
-
-#include <libhostile/initialize.h>
-
+#include <unistd.h>
 
 static int not_until= 500;
 

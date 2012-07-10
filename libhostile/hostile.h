@@ -36,6 +36,8 @@
 
 #pragma once
 
+#include <stdbool.h>
+
 typedef enum hostile_poll_t
 {
   HOSTILE_POLL_CLOSED,

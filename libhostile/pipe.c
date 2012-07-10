@@ -36,22 +36,17 @@
 
 #include <config.h>
 
+#include <libhostile/function.h>
 #include <libhostile/initialize.h>
 
 #include <assert.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
-
-/*
-  Random pipe failing library for testing pipe failures.
-  LD_PRELOAD="/usr/lib/libdl.so ./util/libhostile_pipe.so" ./binary
-*/
-
-#include <dlfcn.h>
 
 static int not_until= 50;
 

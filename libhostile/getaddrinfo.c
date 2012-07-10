@@ -36,22 +36,20 @@
 
 #include <config.h>
 
-/*
-  Random getaddrinfo failing library for testing getaddrinfo() failures.
-  LD_PRELOAD="/usr/lib/libdl.so ./util/libhostile_getaddrinfo.so" ./binary
-*/
-
-#include <dlfcn.h>
+#include <libhostile/function.h>
+#include <libhostile/initialize.h>
 
 #include <assert.h>
 #include <errno.h>
+#include <netdb.h>
+#include <pthread.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
-
-#include <libhostile/initialize.h>
 
 static int not_until= 500;
 

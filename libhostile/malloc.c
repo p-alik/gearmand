@@ -34,20 +34,16 @@
  *
  */
 
-/*
-  Random malloc failing library for testing malloc failures.
-  LD_PRELOAD="/usr/lib/libdl.so ./util/libhostile_malloc.so" ./binary
-*/
+#include <config.h>
 
-#define _GNU_SOURCE
-#include <dlfcn.h>
+#include <libhostile/initialize.h>
+#include <libhostile/function.h>
 
+#include <errno.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <errno.h>
-
-#include <libhostile/initialize.h>
 
 static int not_until= 500;
 

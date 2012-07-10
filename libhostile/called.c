@@ -36,15 +36,11 @@
 
 #include <config.h>
 
+#include <libhostile/initialize.h>
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-/*
-  Random getaddrinfo failing library for testing getaddrinfo() failures.
-  LD_PRELOAD="/usr/lib/libdl.so ./util/libhostile_getaddrinfo.so" ./binary
-*/
-
-#include <libhostile/initialize.h>
 
 __thread bool is_called_= false;
 static __thread char** unique_ptr= NULL;

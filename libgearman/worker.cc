@@ -36,10 +36,8 @@
  *
  */
 
-#undef _GNU_SOURCE 
-#define _GNU_SOURCE 
-
 #include <config.h>
+
 #include <libgearman/common.h>
 #include <libgearman/function/base.hpp>
 #include <libgearman/function/make.hpp>

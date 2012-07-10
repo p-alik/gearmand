@@ -36,6 +36,10 @@
 
 #pragma once
 
+#ifdef HAVE_STDBOOL_H
+# include <stdbool.h>
+#endif
+
 bool is_called(void);
 void set_called();
 void reset_called();

@@ -36,13 +36,8 @@
 
 #pragma once
 
-#include <pthread.h>
-
-#include <stdbool.h>
-
 #include <libhostile/accept.h>
 #include <libhostile/action.h>
-#include <libhostile/called.h>
 #include <libhostile/getaddrinfo.h>
 #include <libhostile/malloc.h>
 #include <libhostile/pipe.h>
@@ -52,10 +47,6 @@
 #include <libhostile/send.h>
 #include <libhostile/setsockopt.h>
 #include <libhostile/write.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 union function_un {
   accept_fn *accept;
@@ -79,9 +70,14 @@ struct function_st {
   int _used;
 };
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void function_setup();
 void print_function_cache_usage();
 
+struct function_st set_function(const char *name, const char *environ_name);
 
 #ifdef __cplusplus
 }

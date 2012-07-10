@@ -34,29 +34,22 @@
  *
  */
 
-/*
-  Random send failing library for testing send failures.
-  LD_PRELOAD="/usr/lib/libdl.so ./util/libhostile_send.so" ./binary
-*/
+#include <config.h>
 
-#define _GNU_SOURCE
-#include <dlfcn.h>
-
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-#include <time.h>
-
-
+#include <libhostile/function.h>
 #include <libhostile/initialize.h>
 
+#include <errno.h>
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
 static int not_until= 500;
 
 static struct function_st __function;
 
-static pthread_once_t function_lookup_once = PTHREAD_ONCE_INIT;
+static pthread_once_t function_lookup_once= PTHREAD_ONCE_INIT;
 static void set_local(void)
 {
   __function= set_function("setsockopt", "HOSTILE_SETSOCKOPT");

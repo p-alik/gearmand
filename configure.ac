@@ -165,7 +165,12 @@ AC_FUNC_REALLOC
 AC_FUNC_STRERROR_R
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([dup2 gettimeofday memchr memmove memset socket strcasecmp strdup strerror strncasecmp uname])
-AC_CHECK_FUNCS([pipe2])
+AC_CHECK_FUNCS([pipe2], 
+               AC_DEFINE([HAVE_PIPE2], [1], [Have pipe2]),
+               AC_DEFINE([HAVE_PIPE2], [0], [Have pipe2]))
+AC_CHECK_FUNCS([pthread_timedjoin_np], 
+               AC_DEFINE([HAVE_PTHREAD_TIMEDJOIN_NP], [1], [Have pthread_timedjoin_np]),
+               AC_DEFINE([HAVE_PTHREAD_TIMEDJOIN_NP], [0], [Have pthread_timedjoin_np]))
 AC_CHECK_FUNCS([select])
 AC_CHECK_FUNCS([setenv])
 AC_CHECK_FUNCS([strtol])
