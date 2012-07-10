@@ -199,7 +199,6 @@ gearmand_error_t _initialize(gearman_server_st *server, gearmand::plugins::queue
 {
 
   MYSQL_RES * result;
-  char query_buffer[1024];
   my_bool  my_true= true;
 
   gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM,"Initializing MySQL module");
@@ -231,6 +230,7 @@ gearmand_error_t _initialize(gearman_server_st *server, gearmand::plugins::queue
 
   if (mysql_num_rows(result) == 0)
   {
+    char query_buffer[1024];
     snprintf(query_buffer, sizeof(query_buffer),
              "CREATE TABLE %s"
              "("

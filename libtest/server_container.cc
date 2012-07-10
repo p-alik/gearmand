@@ -70,7 +70,7 @@ void server_startup_st::push_server(Server *arg)
   }
   else
   {
-    char port_str[NI_MAXSERV];
+    char port_str[NI_MAXSERV]= { 0 };
     snprintf(port_str, sizeof(port_str), "%u", int(arg->port()));
 
     server_config_string+= "--server=";

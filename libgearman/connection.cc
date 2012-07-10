@@ -570,7 +570,7 @@ gearman_return_t gearman_connection_st::lookup()
     addrinfo= NULL;
   }
 
-  char port_str[GEARMAN_NI_MAXSERV];
+  char port_str[GEARMAN_NI_MAXSERV]= { 0 };
   int port_str_length;
   if ((port_str_length= snprintf(port_str, sizeof(port_str), "%hu", uint16_t(port))) >= sizeof(port_str))
   {
