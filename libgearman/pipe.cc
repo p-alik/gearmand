@@ -37,6 +37,7 @@
 
 #include <config.h>
 
+#include <cassert>
 #include <cerrno>
 #include <cstdio>
 #include <cstring>
@@ -45,22 +46,22 @@
 
 bool setup_shutdown_pipe(int pipedes_[2])
 {
-#ifdef _GNU_SOURCE
+#ifdef HAVE_PIPE2
+  assert(_GNU_SOURCE);
   if (pipe2(pipedes_, O_NONBLOCK|O_CLOEXEC) == -1)
   {
     return false;
   }
-#else // not _GNU_SOURCE
-  assert(_GNU_SOURCE);
+#else // HAVE_PIPE2
   if (pipe(pipedes_) == -1)
   {
     return false;
   }
-#endif // _GNU_SOURCE
+#endif // HAVE_PIPE2
 
   for (size_t x= 0; x < 2; ++x)
   {
-#ifndef _GNU_SOURCE
+#ifndef HAVE_PIPE2
     int returned_flags;
     do 
     {
