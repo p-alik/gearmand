@@ -230,9 +230,8 @@ AX_CHECK_LIBRARY([LIBUUID], [uuid/uuid.h], [uuid],
 AX_CHECK_SOCK_CLOEXEC([AC_DEFINE([HAVE_SOCK_CLOEXEC], [1], [Check for SOCK_CLOEXEC.])],
                        [AC_DEFINE([HAVE_SOCK_CLOEXEC], [0], [Check for SOCK_CLOEXEC.])])
 
-m4_include([m4/relro.m4])
-
 AX_APPEND_COMPILE_FLAGS([-fstack-protector-all])
+AX_APPEND_LINK_FLAGS([-z relro -z now])
 
 AC_CONFIG_FILES(Makefile
                 docs/conf.py
