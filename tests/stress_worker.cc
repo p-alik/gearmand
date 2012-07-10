@@ -148,6 +148,7 @@ static bool join_thread(pthread_t& thread_arg, struct timespec& ts)
 
   if (HAVE_PTHREAD_TIMEDJOIN_NP)
   {
+#if defined(HAVE_PTHREAD_TIMEDJOIN_NP) && HAVE_PTHREAD_TIMEDJOIN_NP
     int limit= 2;
     while (--limit)
     {
@@ -175,6 +176,7 @@ static bool join_thread(pthread_t& thread_arg, struct timespec& ts)
       Error << "pthread_cancel() " << strerror(error);
       return false;
     }
+#endif
   }
 
   if ((error= pthread_join(thread_arg, NULL)) != 0)
@@ -207,6 +209,7 @@ static test_return_t worker_ramp_exec(const size_t payload_size)
     int limit= 2;
     while (success == false and --limit)
     {
+#if defined(HAVE_LIBRT) && HAVE_LIBRT
       if (HAVE_LIBRT) // This won't be called on OSX, etc,...
       {
         if (clock_gettime(CLOCK_REALTIME, &ts) == -1) 
@@ -218,6 +221,7 @@ static test_return_t worker_ramp_exec(const size_t payload_size)
         success= join_thread(children[x], ts);
       }
       else
+#endif
       {
         struct timeval tv;
         if (gettimeofday(&tv, NULL) == -1) 

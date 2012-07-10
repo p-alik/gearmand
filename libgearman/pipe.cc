@@ -50,10 +50,12 @@ bool setup_shutdown_pipe(int pipedes_[2])
 {
   if (HAVE_PIPE2)
   {
+#if defined(HAVE_PIPE2) && HAVE_PIPE2
     if (pipe2(pipedes_, O_NONBLOCK|O_CLOEXEC) == -1)
     {
       return false;
     }
+#endif
   }
   else if (pipe(pipedes_) == -1)
   {

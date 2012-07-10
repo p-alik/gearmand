@@ -18,8 +18,6 @@ AC_DEFUN([PANDORA_OPTIMIZE],[
       ;;
     esac
 
-    AM_CPPFLAGS="-ggdb ${AM_CPPFLAGS}"
-
     DEBUG_CFLAGS="-O0"
     DEBUG_CXXFLAGS="-O0"
 
