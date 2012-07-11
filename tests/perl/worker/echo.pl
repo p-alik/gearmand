@@ -18,6 +18,17 @@
 #     REVISION: ---
 #===============================================================================
 
+use Gearman::Worker;
+
+sub echo_worker 
+{
+  my $job = $_[0];
+
+  my $workload= $job->arg;
+
+  return $workload;
+}
+
 use strict;
 use warnings;
 
@@ -26,9 +37,7 @@ my $port = '4730';
 
 my $servers = $host . ':' . $port;
 
-print "Connecting to $servers\n";
-use Gearman::Worker;
 my $worker = Gearman::Worker->new;
 $worker->job_servers($servers);
-$worker->register_function(sum => sub { return $_[0] });
+$worker->register_function( 'echo', \&echo_worker);
 $worker->work while 1;

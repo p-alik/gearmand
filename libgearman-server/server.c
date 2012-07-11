@@ -631,6 +631,10 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
       }
       else
       {
+        gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
+                           "Sending GEARMAN_COMMAND_JOB_ASSIGN Function: %.*s(%lu) with data sized (%lu)" ,
+                           server_job->function->function_name_size, server_job->function->function_name, server_job->function->function_name_size,
+                           (unsigned long)server_job->data_size);
         /* Same, but without unique ID. */
         ret= gearman_server_io_packet_add(server_con, false,
                                           GEARMAN_MAGIC_RESPONSE,
