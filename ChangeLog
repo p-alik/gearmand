@@ -1,4 +1,4 @@
-0.34 
+0.34 Tue Jul 10 21:19:10 EDT 2012
 * Alpha support for direct MySQL queue.
 * XML option for testing under valgrind.
 * gearmand now allows for a user to specify the format for the server key
