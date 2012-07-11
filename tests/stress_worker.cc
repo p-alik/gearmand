@@ -1,22 +1,45 @@
-/* Gearman server and library
- * Copyright (C) 2008 Brian Aker, Eric Day
- * All rights reserved.
+/*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
+ * 
+ *  Gearmand client and server library.
  *
- * Use and distribution licensed under the BSD license.  See
- * the COPYING file in the parent directory for full text.
+ *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions are
+ *  met:
+ *
+ *      * Redistributions of source code must retain the above copyright
+ *  notice, this list of conditions and the following disclaimer.
+ *
+ *      * Redistributions in binary form must reproduce the above
+ *  copyright notice, this list of conditions and the following disclaimer
+ *  in the documentation and/or other materials provided with the
+ *  distribution.
+ *
+ *      * The names of its contributors may not be used to endorse or
+ *  promote products derived from this software without specific prior
+ *  written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ *  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ *  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ *  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ *  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ *  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ *  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
+
 
 #include <config.h>
 #include <libtest/test.hpp>
 
 using namespace libtest;
-
-#include <cerrno>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <unistd.h>
-#include <sys/time.h>
 
 #include <libgearman/gearman.h>
 
@@ -25,6 +48,14 @@ using namespace libtest;
 #include <tests/start_worker.h>
 #include <tests/workers.h>
 #include "tests/burnin.h"
+
+
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <unistd.h>
+#include <sys/time.h>
 
 #define WORKER_FUNCTION_NAME "foo"
 
@@ -88,7 +119,8 @@ extern "C" {
         payload.resize(success->payload_size);
         void *value= gearman_client_do(client, WORKER_FUNCTION_NAME,
                                        NULL,
-                                       &payload[0], payload.size(),
+                                       &payload[0], 
+                                       payload.size() ? random() % payload.size() : 0,
                                        NULL, &rc);
         pthread_setcanceltype(oldstate, NULL);
 
@@ -109,6 +141,53 @@ extern "C" {
   }
 }
 
+static bool join_thread(pthread_t& thread_arg, struct timespec& ts)
+{
+  int error;
+  ts.tv_sec+= 10;
+
+  if (HAVE_PTHREAD_TIMEDJOIN_NP)
+  {
+#if defined(HAVE_PTHREAD_TIMEDJOIN_NP) && HAVE_PTHREAD_TIMEDJOIN_NP
+    int limit= 2;
+    while (--limit)
+    {
+      switch ((error= pthread_timedjoin_np(thread_arg, NULL, &ts)))
+      {
+      case ETIMEDOUT:
+        libtest::dream(1, 0);
+        continue;
+
+      case 0:
+        return true;
+
+      case ESRCH:
+        return false;
+
+      default:
+        Error << "pthread_timedjoin_np() " << strerror(error);
+        return false;
+      }
+    }
+
+    Out << "pthread_timedjoin_np() " << strerror(error);
+    if ((error= pthread_cancel(thread_arg)) != 0)
+    {
+      Error << "pthread_cancel() " << strerror(error);
+      return false;
+    }
+#endif
+  }
+
+  if ((error= pthread_join(thread_arg, NULL)) != 0)
+  {
+    Error << "pthread_join() " << strerror(error);
+    return false;
+  }
+
+  return true;
+}
+
 static test_return_t worker_ramp_exec(const size_t payload_size)
 {
   std::vector<pthread_t> children;
@@ -125,39 +204,42 @@ static test_return_t worker_ramp_exec(const size_t payload_size)
   
   for (size_t x= 0; x < children.size(); x++)
   {
-#if _GNU_SOURCE && defined(TARGET_OS_LINUX) && TARGET_OS_LINUX 
+    struct timespec ts;
+    bool success= false;
+    int limit= 2;
+    while (success == false and --limit)
     {
-      struct timespec ts;
-
-      if (HAVE_LIBRT)
+#if defined(HAVE_LIBRT) && HAVE_LIBRT
+      if (HAVE_LIBRT) // This won't be called on OSX, etc,...
       {
         if (clock_gettime(CLOCK_REALTIME, &ts) == -1) 
         {
-          Error << strerror(errno);
+          Error << "clock_gettime(CLOCK_REALTIME) " << strerror(errno);
+          continue;
         }
+
+        success= join_thread(children[x], ts);
       }
       else
+#endif
       {
         struct timeval tv;
         if (gettimeofday(&tv, NULL) == -1) 
         {
-          Error << strerror(errno);
+          Error << "gettimeofday() " << strerror(errno);
+          continue;
         }
+
         TIMEVAL_TO_TIMESPEC(&tv, &ts);
-      }
-
-      ts.tv_sec+= 10;
-
-      int error= pthread_timedjoin_np(children[x], NULL, &ts);
-      if (error != 0)
-      {
-        pthread_cancel(children[x]);
-        pthread_join(children[x], NULL);
+        success= join_thread(children[x], ts);
       }
     }
-#else
-    pthread_join(children[x], NULL);
-#endif
+
+    if (success == false)
+    {
+      pthread_cancel(children[x]);
+      Error << "Something went very wrong, it is likely threads were not cleaned up";
+    }
   }
 
   return TEST_SUCCESS;
@@ -249,22 +331,42 @@ static test_return_t accept_SETUP(void* object)
   return TEST_SUCCESS;
 }
 
-static test_return_t poll_SETUP(void* object)
+static test_return_t poll_HOSTILE_POLL_CLOSED_SETUP(void* object)
 {
-  return TEST_SKIPPED; // Not running correctly all of the time.
-
   test_skip_valgrind();
   test_skip(true, bool(getenv("YATL_RUN_MASSIVE_TESTS")));
 
   worker_ramp_SETUP(object);
-  set_poll_close(true, 4, 0);
+  set_poll_close(true, 4, 0, HOSTILE_POLL_CLOSED);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t poll_HOSTILE_POLL_SHUT_WR_SETUP(void* object)
+{
+  test_skip_valgrind();
+  test_skip(true, bool(getenv("YATL_RUN_MASSIVE_TESTS")));
+
+  worker_ramp_SETUP(object);
+  set_poll_close(true, 4, 0, HOSTILE_POLL_SHUT_WR);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t poll_HOSTILE_POLL_SHUT_RD_SETUP(void* object)
+{
+  test_skip_valgrind();
+  test_skip(true, bool(getenv("YATL_RUN_MASSIVE_TESTS")));
+
+  worker_ramp_SETUP(object);
+  set_poll_close(true, 4, 0, HOSTILE_POLL_SHUT_RD);
 
   return TEST_SUCCESS;
 }
 
 static test_return_t poll_TEARDOWN(void* object)
 {
-  set_poll_close(true, 0, 0);
+  set_poll_close(false, 0, 0, HOSTILE_POLL_CLOSED);
 
   worker_handles_st *handles= (worker_handles_st*)object;
   handles->kill_all();
@@ -334,7 +436,9 @@ collection_st collection[] ={
   {"hostile recv()", recv_SETUP, resv_TEARDOWN, worker_TESTS },
   {"hostile send()", send_SETUP, send_TEARDOWN, worker_TESTS },
   {"hostile accept()", accept_SETUP, accept_TEARDOWN, worker_TESTS },
-  {"hostile poll()", poll_SETUP, poll_TEARDOWN, worker_TESTS },
+  {"hostile poll(CLOSED)", poll_HOSTILE_POLL_CLOSED_SETUP, poll_TEARDOWN, worker_TESTS },
+  {"hostile poll(SHUT_RD)", poll_HOSTILE_POLL_SHUT_RD_SETUP, poll_TEARDOWN, worker_TESTS },
+  {"hostile poll(SHUT_WR)", poll_HOSTILE_POLL_SHUT_WR_SETUP, poll_TEARDOWN, worker_TESTS },
   {0, 0, 0, 0}
 };
 

@@ -127,24 +127,15 @@ int main(int args, char *argv[])
     util::daemonize(false, true);
   }
 
-  if (not pid_file.empty())
+  util::Pidfile _pid_file(pid_file);
+
+  if (pid_file.empty() == false)
   {
-    if (access(pid_file.c_str(), F_OK) == 0)
+    if (_pid_file.create() == false)
     {
-      std::cerr << "pid_file already exists:" << pid_file << std::endl;
+      std::cerr << _pid_file.error_message().c_str();
       return EXIT_FAILURE;
     }
-
-    FILE *file= fopen(pid_file.c_str(), "w+");
-    if (file == NULL)
-    {
-      std::cerr << "Unable to open:" << pid_file << "(" << strerror(errno) << ")" << std::endl;
-      return EXIT_FAILURE;
-    }
-    fclose(file);
-
-    // We let the error from this happen later (if one was to occur)
-    unlink(pid_file.c_str());
   }
 
   if (not log_file.empty())
@@ -193,14 +184,6 @@ int main(int args, char *argv[])
   if (not signal.setup())
   {
     log.log() << "Failed signal.setup()" << std::endl;
-    return EXIT_FAILURE;
-  }
-
-
-  util::Pidfile _pid_file(pid_file);
-  if (not _pid_file.create())
-  {
-    log.log() << _pid_file.error_message() << std::endl;
     return EXIT_FAILURE;
   }
 

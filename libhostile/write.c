@@ -34,21 +34,17 @@
  *
  */
 
-/*
-  Random write failing library for testing write failures.
-  LD_PRELOAD="/usr/lib/libdl.so ./util/libhostile_write.so" ./binary
-*/
+#include <config.h>
 
-#define _GNU_SOURCE
-#include <dlfcn.h>
+#include <libhostile/function.h>
+#include <libhostile/initialize.h>
 
+#include <errno.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <errno.h>
 #include <unistd.h>
-
-#include <libhostile/initialize.h>
 
 static int not_until= 500;
 static struct function_st __function;
@@ -64,15 +60,22 @@ ssize_t write(int fd, const void *buf, size_t count)
   hostile_initialize();
   (void) pthread_once(&function_lookup_once, set_local);
 
-  if (__function.frequency)
+  if (is_called() == false)
   {
-    if (--not_until < 0 && random() % __function.frequency)
+    if (__function.frequency)
     {
-      close(fd);
-      errno= ECONNRESET;
-      return -1;
+      if (--not_until < 0 && random() % __function.frequency)
+      {
+        close(fd);
+        errno= ECONNRESET;
+        return -1;
+      }
     }
   }
 
-  return __function.function.write(fd, buf, count);
+  set_called();
+  ssize_t ret= __function.function.write(fd, buf, count);
+  reset_called();
+
+  return ret;
 }

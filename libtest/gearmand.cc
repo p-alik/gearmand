@@ -94,7 +94,11 @@ public:
         gearman_client_free(client);
         return true;
       }
-      Error << hostname().c_str() << ":" << port() << " was " << gearman_strerror(rc) << " extended: " << gearman_client_error(client);
+      
+      if (out_of_ban_killed() == false)
+      {
+        Error << hostname().c_str() << ":" << port() << " was " << gearman_strerror(rc) << " extended: " << gearman_client_error(client);
+      }
     }
     else
     {

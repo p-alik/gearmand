@@ -508,9 +508,6 @@ static void *_worker_cb(gearman_job_st *job, void *context,
                         size_t *result_size, gearman_return_t *ret_ptr)
 {
   worker_argument_t *arguments= static_cast<worker_argument_t *>(context);
-  int in_fds[2];
-  int out_fds[2];
-  int status;
 
   Args &args= arguments->args;
   Function &function= arguments->function;
@@ -529,7 +526,10 @@ static void *_worker_cb(gearman_job_st *job, void *context,
   }
   else
   {
-    if (pipe(in_fds) == -1 || pipe(out_fds) == -1)
+    int in_fds[2];
+    int out_fds[2];
+
+    if (pipe(in_fds) == -1 or pipe(out_fds) == -1)
     {
       error::perror("pipe");
     }
@@ -654,6 +654,7 @@ static void *_worker_cb(gearman_job_st *job, void *context,
       *result_size= function.buffer().size();
     }
 
+    int status;
     if (wait(&status) == -1)
     {
       error::perror("wait");

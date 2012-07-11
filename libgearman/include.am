@@ -13,6 +13,7 @@
 nobase_include_HEADERS+= libgearman/gearman.h
 
 noinst_HEADERS+= libgearman/job.h
+noinst_HEADERS+= libgearman/pipe.h
 noinst_HEADERS+= \
 		 libgearman/actions.hpp \
 		 libgearman/add.hpp \
@@ -101,6 +102,8 @@ libgearman_libgearman_la_SOURCES= \
 				  libgearman/universal.cc \
 				  libgearman/vector.cc \
 				  libgearman/worker.cc
+
+libgearman_libgearman_la_SOURCES+= libgearman/pipe.cc
 
 libgearman_libgearman_la_CXXFLAGS= -DBUILDING_LIBGEARMAN
 

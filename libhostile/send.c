@@ -36,30 +36,23 @@
 
 #include <config.h>
 
-/*
-  Random send failing library for testing send failures.
-  LD_PRELOAD="/usr/lib/libdl.so ./util/libhostile_send.so" ./binary
-*/
-
-//#define _GNU_SOURCE
-#include <dlfcn.h>
+#include <libhostile/function.h>
+#include <libhostile/initialize.h>
 
 #include <errno.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <time.h>
-
-#include <libhostile/initialize.h>
-
+#include <unistd.h>
 
 static int not_until= 500;
 
 static struct function_st __function;
 
-static pthread_once_t function_lookup_once = PTHREAD_ONCE_INIT;
+static pthread_once_t function_lookup_once= PTHREAD_ONCE_INIT;
 static void set_local(void)
 {
   __function= set_function("send", "HOSTILE_SEND");
@@ -86,12 +79,13 @@ ssize_t send(int sockfd, const void *buf, size_t len, int flags)
 
   (void) pthread_once(&function_lookup_once, set_local);
 
-  if (is_getaddrinfo() == false)
+  if (is_called() == false)
   {
     if (__function.frequency)
     {
       if (--not_until < 0 && random() % __function.frequency)
       {
+        __function._used++;
         shutdown(sockfd, SHUT_RDWR);
         close(sockfd);
         errno= ECONNRESET;
@@ -100,5 +94,9 @@ ssize_t send(int sockfd, const void *buf, size_t len, int flags)
     }
   }
 
-  return __function.function.send(sockfd, buf, len, flags);
+  set_called();
+  ssize_t ret= __function.function.send(sockfd, buf, len, flags);
+  reset_called();
+
+  return ret;
 }

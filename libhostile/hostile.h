@@ -36,19 +36,29 @@
 
 #pragma once
 
+#include <stdbool.h>
+
+typedef enum hostile_poll_t
+{
+  HOSTILE_POLL_CLOSED,
+  HOSTILE_POLL_SHUT_WR,
+  HOSTILE_POLL_SHUT_RD
+} hostile_poll_t;
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #if defined(HAVE_LIBHOSTILE) && HAVE_LIBHOSTILE
 bool libhostile_is_accept();
-void set_poll_close(bool arg, int frequency, int not_until_arg);
+void set_poll_close(bool arg, int frequency, int not_until_arg, enum hostile_poll_t poll_type);
 void set_accept_close(bool arg, int frequency, int not_until_arg);
 void set_recv_close(bool arg, int frequency, int not_until_arg);
 void set_send_close(bool arg, int frequency, int not_until_arg);
 #else
 #  define set_accept_close( __arg, __frequency, __not_until_arg);
-#  define set_poll_close( __arg, __frequency, __not_until_arg);
+#  define set_poll_close( __arg, __frequency, __not_until_arg, __poll_type);
 #  define set_recv_close( __arg, __frequency, __not_until_arg);
 #  define set_send_close( __arg, __frequency, __not_until_arg);
 static bool libhostile_is_accept(void)  { return false; }

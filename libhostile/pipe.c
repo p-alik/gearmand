@@ -39,45 +39,49 @@
 #include <libhostile/function.h>
 #include <libhostile/initialize.h>
 
-#include <errno.h>
+#include <assert.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 #include <time.h>
+#include <unistd.h>
 
-static int not_until= 500;
+static int not_until= 50;
 
 static struct function_st __function;
 
 static pthread_once_t function_lookup_once= PTHREAD_ONCE_INIT;
 static void set_local(void)
 {
-  __function= set_function("setsockopt", "HOSTILE_SETSOCKOPT");
+  __function= set_function("pipe", "HOSTILE_PIPE");
+  __function= set_function("pipe2", "HOSTILE_PIPE2");
 }
 
-int setsockopt(int sockfd, int level, int optname,
-               const void *optval, socklen_t optlen)
+int pipe(int pipefd[2])
 {
   hostile_initialize();
+
   (void) pthread_once(&function_lookup_once, set_local);
 
-  if (is_called() == false)
-  {
-    if (__function.frequency)
-    {
-      if (--not_until < 0 && random() % __function.frequency)
-      {
-        shutdown(sockfd, SHUT_RDWR);
-        close(sockfd);
-        errno= EBADF;
-        return -1;
-      }
-    }
-  }
-
   set_called();
-  int ret= __function.function.setsockopt(sockfd, level, optname, optval, optlen);
+  int ret= __function.function.pipe(pipefd);
   reset_called();
 
   return ret;
 }
+
+int pipe2(int pipefd[2], int flags)
+{
+  hostile_initialize();
+
+  (void) pthread_once(&function_lookup_once, set_local);
+
+  set_called();
+  int ret= __function.function.pipe2(pipefd, flags);
+  reset_called();
+
+  return ret;
+}
+

@@ -34,24 +34,21 @@
  *
  */
 
-/*
-  Random malloc failing library for testing malloc failures.
-  LD_PRELOAD="/usr/lib/libdl.so ./util/libhostile_malloc.so" ./binary
-*/
+#include <config.h>
 
-#define _GNU_SOURCE
-#include <dlfcn.h>
+#include <libhostile/initialize.h>
+#include <libhostile/function.h>
 
+#include <errno.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <errno.h>
-
-#include <libhostile/initialize.h>
 
 static int not_until= 500;
 
 static struct function_st __function;
+static __thread char unique_ptr;
 
 static pthread_once_t function_lookup_once = PTHREAD_ONCE_INIT;
 static void set_malloc(void)
@@ -64,16 +61,22 @@ void *malloc(size_t size)
   hostile_initialize();
   (void) pthread_once(&function_lookup_once, set_malloc);
 
-  if (__function.frequency)
+  if (is_called() == false)
   {
-    if (--not_until < 0 && random() % __function.frequency)
+    if (__function.frequency)
     {
-      fprintf(stderr, "Mid=evil on malloc()\n");
-      errno= ENOMEM;
-      return NULL;
+      if (--not_until < 0 && random() % __function.frequency)
+      {
+        fprintf(stderr, "Mid=evil on malloc()\n");
+        errno= ENOMEM;
+        return NULL;
+      }
     }
   }
 
-  return __function.function.malloc(size);
+  set_called_ptr(&unique_ptr);
+  void *ret= __function.function.malloc(size);
+  reset_called_ptr(&unique_ptr);
 
+  return ret;
 }

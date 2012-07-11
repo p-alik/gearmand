@@ -36,48 +36,76 @@
 
 #include <config.h>
 
-#include <libhostile/function.h>
 #include <libhostile/initialize.h>
 
-#include <errno.h>
-#include <pthread.h>
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 
-static int not_until= 500;
+__thread bool is_called_= false;
+static __thread char** unique_ptr= NULL;
 
-static struct function_st __function;
-
-static pthread_once_t function_lookup_once= PTHREAD_ONCE_INIT;
-static void set_local(void)
+bool is_called(void)
 {
-  __function= set_function("setsockopt", "HOSTILE_SETSOCKOPT");
+  return is_called_;
 }
 
-int setsockopt(int sockfd, int level, int optname,
-               const void *optval, socklen_t optlen)
+void set_called_ptr(char* passed_pos)
 {
-  hostile_initialize();
-  (void) pthread_once(&function_lookup_once, set_local);
-
-  if (is_called() == false)
+  assert(passed_pos);
+  if (passed_pos == NULL)
   {
-    if (__function.frequency)
-    {
-      if (--not_until < 0 && random() % __function.frequency)
-      {
-        shutdown(sockfd, SHUT_RDWR);
-        close(sockfd);
-        errno= EBADF;
-        return -1;
-      }
-    }
+    abort();
   }
 
+  if (unique_ptr)
+  {
+    if (&passed_pos == unique_ptr)
+    {
+      return;
+    }
+  }
   set_called();
-  int ret= __function.function.setsockopt(sockfd, level, optname, optval, optlen);
-  reset_called();
-
-  return ret;
+  unique_ptr= &passed_pos;
 }
+
+void reset_called_ptr(char* passed_pos)
+{
+  assert(unique_ptr);
+  if (unique_ptr == NULL)
+  {
+    abort();
+  }
+
+  assert(&passed_pos == unique_ptr);
+  if (&passed_pos != unique_ptr)
+  {
+    abort();
+  }
+  
+  reset_called();
+  unique_ptr= NULL;
+}
+
+void set_called()
+{
+  assert(is_called_ == false);
+  if (is_called_ == true)
+  {
+    fprintf(stderr, "set_called() called when is_called_ was not set\n");
+    abort();
+  }
+  is_called_= true;
+}
+
+void reset_called()
+{
+  assert(is_called_);
+  if (is_called_ == false)
+  {
+    fprintf(stderr, "reset_called() called when is_called_ was not set\n");
+    abort();
+  }
+  is_called_= false;
+}
+

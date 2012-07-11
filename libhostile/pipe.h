@@ -34,50 +34,8 @@
  *
  */
 
-#include <config.h>
+#pragma once
 
-#include <libhostile/function.h>
-#include <libhostile/initialize.h>
+typedef int (pipe_fn)(int pipefd[2]);
+typedef int (pipe2_fn)(int pipefd[2], int flags);
 
-#include <errno.h>
-#include <pthread.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-
-static int not_until= 500;
-
-static struct function_st __function;
-
-static pthread_once_t function_lookup_once= PTHREAD_ONCE_INIT;
-static void set_local(void)
-{
-  __function= set_function("setsockopt", "HOSTILE_SETSOCKOPT");
-}
-
-int setsockopt(int sockfd, int level, int optname,
-               const void *optval, socklen_t optlen)
-{
-  hostile_initialize();
-  (void) pthread_once(&function_lookup_once, set_local);
-
-  if (is_called() == false)
-  {
-    if (__function.frequency)
-    {
-      if (--not_until < 0 && random() % __function.frequency)
-      {
-        shutdown(sockfd, SHUT_RDWR);
-        close(sockfd);
-        errno= EBADF;
-        return -1;
-      }
-    }
-  }
-
-  set_called();
-  int ret= __function.function.setsockopt(sockfd, level, optname, optval, optlen);
-  reset_called();
-
-  return ret;
-}

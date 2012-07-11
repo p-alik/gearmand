@@ -36,24 +36,17 @@
 
 #include <config.h>
 
-/*
-  Random accept failing library for testing accept failures.
-  LD_PRELOAD="/usr/lib/libdl.so ./util/libhostile_accept.so" ./binary
-*/
-
-//#define _GNU_SOURCE
-#include <dlfcn.h>
-
 #include <errno.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <time.h>
+#include <unistd.h>
 
 #include <libhostile/initialize.h>
-
+#include <libhostile/function.h>
 
 static int not_until= 500;
 
@@ -101,7 +94,7 @@ int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 
   (void) pthread_once(&function_lookup_once, set_local);
 
-  if (is_getaddrinfo() == false)
+  if (is_called() == false)
   {
     if (__function.frequency)
     {
@@ -125,5 +118,9 @@ int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
     }
   }
 
-  return __function.function.accept(sockfd, addr, addrlen);
+  set_called();
+  int ret= __function.function.accept(sockfd, addr, addrlen);
+  reset_called();
+
+  return ret;
 }

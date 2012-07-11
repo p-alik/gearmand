@@ -60,11 +60,14 @@ static void correct_from_errno(gearman_universal_st& universal)
       universal.error.rc= GEARMAN_INVALID_ARGUMENT;
       break;
 
-    case ECONNREFUSED:
     case ECONNRESET:
     case EHOSTDOWN:
-    case ENETUNREACH:
     case EPIPE:
+      universal.error.rc= GEARMAN_LOST_CONNECTION;
+      break;
+
+    case ECONNREFUSED:
+    case ENETUNREACH:
     case ETIMEDOUT:
       universal.error.rc= GEARMAN_COULD_NOT_CONNECT;
       break;

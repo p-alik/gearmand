@@ -67,9 +67,11 @@ struct gearman_task_st
     bool is_running;
     bool was_reduced;
     bool is_paused;
+    bool is_initialized;
   } options;
   enum gearman_task_kind_t type;
   enum gearman_task_state_t state;
+  uint32_t magic_;
   uint32_t created_id;
   uint32_t numerator;
   uint32_t denominator;

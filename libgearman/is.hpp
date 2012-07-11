@@ -44,5 +44,5 @@
 #define gearman_is_processing_input(__object) ((__object)->state.is_processing_input)
 #define gearman_set_purging(__object, __value) ((__object)->state.is_purging= (__value))
 #define gearman_set_processing_input(__object, __value) ((__object)->state.is_processing_input= (__value))
-#define gearman_set_initialized(__object, __value) ((__object)->options.is_initialized(= (__value))
+#define gearman_set_initialized(__object, __value) ((__object)->options.is_initialized= (__value))
 #define gearman_set_allocated(__object, __value) ((__object)->options.is_allocated= (__value))

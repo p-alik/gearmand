@@ -36,24 +36,20 @@
 
 #include <config.h>
 
-/*
-  Random getaddrinfo failing library for testing getaddrinfo() failures.
-  LD_PRELOAD="/usr/lib/libdl.so ./util/libhostile_getaddrinfo.so" ./binary
-*/
-
-#include <dlfcn.h>
+#include <libhostile/function.h>
+#include <libhostile/initialize.h>
 
 #include <assert.h>
 #include <errno.h>
+#include <netdb.h>
+#include <pthread.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
-
-#include <libhostile/initialize.h>
-
-__thread bool is_in_getaddrinfo= false;
 
 static int not_until= 500;
 
@@ -65,11 +61,6 @@ static void set_local(void)
   __function= set_function("getaddrinfo", "HOSTILE_GETADDRINFO");
 }
 
-bool is_getaddrinfo(void)
-{
-  return is_in_getaddrinfo;
-}
-
 int getaddrinfo(const char *node, const char *service,
                 const struct addrinfo *hints,
                 struct addrinfo **res)
@@ -78,20 +69,23 @@ int getaddrinfo(const char *node, const char *service,
 
   (void) pthread_once(&function_lookup_once, set_local);
 
-  if (__function.frequency)
+  if (is_called() == false)
   {
-    if (--not_until < 0 && random() % __function.frequency)
+    if (__function.frequency)
     {
+      if (--not_until < 0 && random() % __function.frequency)
+      {
 #if 0
-      perror("HOSTILE CLOSE() of socket during getaddrinfo()");
+        perror("HOSTILE CLOSE() of socket during getaddrinfo()");
 #endif
-      return EAI_FAIL;
+        return EAI_FAIL;
+      }
     }
   }
 
-  is_in_getaddrinfo= true;
+  set_called();
   int ret= __function.function.getaddrinfo(node, service, hints, res);
-  is_in_getaddrinfo= false;
+  reset_called();
 
   return ret;
 }

@@ -34,50 +34,52 @@
  *
  */
 
-#include <config.h>
+#pragma once
 
-#include <libhostile/function.h>
-#include <libhostile/initialize.h>
+#include <libhostile/accept.h>
+#include <libhostile/action.h>
+#include <libhostile/getaddrinfo.h>
+#include <libhostile/malloc.h>
+#include <libhostile/pipe.h>
+#include <libhostile/poll.h>
+#include <libhostile/realloc.h>
+#include <libhostile/recv.h>
+#include <libhostile/send.h>
+#include <libhostile/setsockopt.h>
+#include <libhostile/write.h>
 
-#include <errno.h>
-#include <pthread.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
+union function_un {
+  accept_fn *accept;
+  getaddrinfo_fn *getaddrinfo;
+  malloc_fn *malloc;
+  poll_fn *poll;
+  pipe_fn *pipe;
+  pipe2_fn *pipe2;
+  realloc_fn *realloc;
+  recv_fn *recv;
+  send_fn *send;
+  setsockopt_fn *setsockopt;
+  write_fn *write;
+  void *ptr;
+};
 
-static int not_until= 500;
+struct function_st {
+  const char *name;
+  union function_un function;
+  int frequency;
+  int _used;
+};
 
-static struct function_st __function;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-static pthread_once_t function_lookup_once= PTHREAD_ONCE_INIT;
-static void set_local(void)
-{
-  __function= set_function("setsockopt", "HOSTILE_SETSOCKOPT");
+void function_setup();
+void print_function_cache_usage();
+
+struct function_st set_function(const char *name, const char *environ_name);
+
+#ifdef __cplusplus
 }
+#endif
 
-int setsockopt(int sockfd, int level, int optname,
-               const void *optval, socklen_t optlen)
-{
-  hostile_initialize();
-  (void) pthread_once(&function_lookup_once, set_local);
-
-  if (is_called() == false)
-  {
-    if (__function.frequency)
-    {
-      if (--not_until < 0 && random() % __function.frequency)
-      {
-        shutdown(sockfd, SHUT_RDWR);
-        close(sockfd);
-        errno= EBADF;
-        return -1;
-      }
-    }
-  }
-
-  set_called();
-  int ret= __function.function.setsockopt(sockfd, level, optname, optval, optlen);
-  reset_called();
-
-  return ret;
-}

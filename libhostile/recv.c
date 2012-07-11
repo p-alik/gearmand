@@ -36,25 +36,18 @@
 
 #include <config.h>
 
-/*
-  Random recv failing library for testing recv() failures.
-  LD_PRELOAD="/usr/lib/libdl.so ./util/libhostile_recv.so" ./binary
-*/
-
-#include <dlfcn.h>
+#include <libhostile/function.h>
+#include <libhostile/initialize.h>
 
 #include <assert.h>
 #include <errno.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <time.h>
-#include <stdbool.h>
-
-#include <libhostile/initialize.h>
-
+#include <unistd.h>
 
 static int not_until= 500;
 
@@ -87,10 +80,11 @@ ssize_t recv(int sockfd, void *buf, size_t len, int flags)
 
   (void) pthread_once(&function_lookup_once, set_local);
 
-  if (is_getaddrinfo() == false && __function.frequency)
+  if (is_called() == false && __function.frequency)
   {
     if (--not_until < 0 && rand() % __function.frequency)
     {
+      __function._used++;
       shutdown(sockfd, SHUT_RDWR);
       close(sockfd);
       errno= 0;
@@ -101,6 +95,10 @@ ssize_t recv(int sockfd, void *buf, size_t len, int flags)
     }
   }
 
-  return __function.function.recv(sockfd, buf, len, flags);
+  set_called();
+  ssize_t ret= __function.function.recv(sockfd, buf, len, flags);
+  reset_called();
+
+  return ret;
 }
 

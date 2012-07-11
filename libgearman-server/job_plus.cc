@@ -234,12 +234,12 @@ gearman_server_job_st *gearman_server_job_take(gearman_server_con_st *server_con
         }
       }
 
-      gearman_server_job_st *server_job= server_job= server_worker->function->job_list[priority];
+      gearman_server_job_st *server_job= server_worker->function->job_list[priority];
       gearman_server_job_st *previous_job= server_job;
   
       int64_t current_time= (int64_t)time(NULL);
   
-      while (server_job && server_job->when != 0 && server_job->when > current_time)
+      while (server_job and server_job->when != 0 and server_job->when > current_time)
       {
         previous_job= server_job;
         server_job= server_job->function_next;  

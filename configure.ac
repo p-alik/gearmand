@@ -165,7 +165,12 @@ AC_FUNC_REALLOC
 AC_FUNC_STRERROR_R
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([dup2 gettimeofday memchr memmove memset socket strcasecmp strdup strerror strncasecmp uname])
-AC_CHECK_FUNCS([pipe2])
+AC_CHECK_FUNCS([pipe2], 
+               AC_DEFINE([HAVE_PIPE2], [1], [Have pipe2]),
+               AC_DEFINE([HAVE_PIPE2], [0], [Have pipe2]))
+AC_CHECK_FUNCS([pthread_timedjoin_np], 
+               AC_DEFINE([HAVE_PTHREAD_TIMEDJOIN_NP], [1], [Have pthread_timedjoin_np]),
+               AC_DEFINE([HAVE_PTHREAD_TIMEDJOIN_NP], [0], [Have pthread_timedjoin_np]))
 AC_CHECK_FUNCS([select])
 AC_CHECK_FUNCS([setenv])
 AC_CHECK_FUNCS([strtol])
@@ -211,8 +216,6 @@ AC_DEFINE([GEARMAND_BLOBSLAP_WORKER], [ 1 ], [Have Gearman Blobslap Worker])
 
 AC_TEST_FOR_REPOSITORY
 
-m4_include([m4/relro.m4])
-
 AX_CHECK_LIBRARY([LIBEVENT], [event.h], [event], 
                  [
                   LIBEVENT_LDFLAGS="-levent"
@@ -229,6 +232,13 @@ AX_CHECK_LIBRARY([LIBUUID], [uuid/uuid.h], [uuid],
                   AC_MSG_WARN([Unable to find libuuid])
                   ])
 
+AX_CHECK_SOCK_CLOEXEC([AC_DEFINE([HAVE_SOCK_CLOEXEC], [1], [Check for SOCK_CLOEXEC.])],
+                       [AC_DEFINE([HAVE_SOCK_CLOEXEC], [0], [Check for SOCK_CLOEXEC.])])
+
+AX_APPEND_COMPILE_FLAGS([-fstack-protector-all])
+AX_APPEND_COMPILE_FLAGS([-ggdb])
+AX_APPEND_COMPILE_FLAGS([-floop-parallelize-all])
+AX_APPEND_LINK_FLAGS([-z relro -z now])
 
 AC_CONFIG_FILES(Makefile
                 docs/conf.py

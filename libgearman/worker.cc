@@ -37,9 +37,12 @@
  */
 
 #include <config.h>
+
 #include <libgearman/common.h>
 #include <libgearman/function/base.hpp>
 #include <libgearman/function/make.hpp>
+
+#include "libgearman/pipe.h"
 
 #include <cassert>
 #include <cstdio>
@@ -48,6 +51,7 @@
 #include <memory>
 #include <unistd.h>
 #include <fcntl.h>
+#include <cerrno>
 
 /**
  * @addtogroup gearman_worker_static Static Worker Declarations
@@ -1149,42 +1153,12 @@ static gearman_worker_st *_worker_allocate(gearman_worker_st *worker, bool is_cl
 #endif
   }
 
-  if (pipe(worker->universal.wakeup_fd) != 0)
+  if (setup_shutdown_pipe(worker->universal.wakeup_fd) == false)
   {
     delete worker;
 
     return NULL;
   }
-
-  int returned_flags;
-  if ((returned_flags= fcntl(worker->universal.wakeup_fd[0], F_GETFL, 0)) < 0)
-  {
-    close(worker->universal.wakeup_fd[0]);
-    close(worker->universal.wakeup_fd[1]);
-    delete worker;
-
-    return NULL;
-  }
-
-  if (fcntl(worker->universal.wakeup_fd[0], F_SETFL, returned_flags | O_NONBLOCK) < 0)
-  {
-    close(worker->universal.wakeup_fd[0]);
-    close(worker->universal.wakeup_fd[1]);
-    delete worker;
-
-    return NULL;
-  }
-
-#ifdef F_SETNOSIGPIPE
-  if (fcntl(worker->universal.wakeup_fd[1], F_SETNOSIGPIPE, 0) < 0)
-  {
-    close(worker->universal.wakeup_fd[0]);
-    close(worker->universal.wakeup_fd[1]);
-    delete worker;
-
-    return NULL;
-  }
-#endif
 
   return worker;
 }

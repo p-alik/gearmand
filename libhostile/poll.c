@@ -36,24 +36,22 @@
 
 #include <config.h>
 
+#include <libhostile/function.h>
 #include <libhostile/initialize.h>
 
+#include <assert.h>
+#include <netdb.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <time.h>
-#include <poll.h>
-
-/*
-  Random poll failing library for testing poll failures.
-  LD_PRELOAD="/usr/lib/libdl.so ./util/libhostile_poll.so" ./binary
-*/
-
-#include <dlfcn.h>
+#include <unistd.h>
 
 static int not_until= 50;
+
+static enum hostile_poll_t hostile_poll_type= HOSTILE_POLL_CLOSED;
 
 static struct function_st __function;
 
@@ -63,17 +61,19 @@ static void set_local(void)
   __function= set_function("poll", "HOSTILE_POLL");
 }
 
-void set_poll_close(bool arg, int frequency, int not_until_arg)
+void set_poll_close(bool arg, int frequency, int not_until_arg,  enum hostile_poll_t poll_type)
 {
   if (arg)
   {
     __function.frequency= frequency;
     not_until= not_until_arg;
+    hostile_poll_type= poll_type;
   }
   else
   {
     __function.frequency= 0;
     not_until= 0;
+    hostile_poll_type= HOSTILE_POLL_CLOSED;
   }
 }
 
@@ -84,7 +84,7 @@ int poll(struct pollfd *fds, nfds_t nfds, int timeout)
 
   (void) pthread_once(&function_lookup_once, set_local);
 
-  if (is_getaddrinfo() == false)
+  if (is_called() == false)
   {
     if (__function.frequency)
     {
@@ -92,14 +92,38 @@ int poll(struct pollfd *fds, nfds_t nfds, int timeout)
       {
         for (nfds_t x= 0; x < nfds; nfds++)
         {
-          shutdown(fds[x].fd, SHUT_RDWR);
-          close(fds[x].fd);
-          fds[x].revents= POLLHUP;
+          switch (hostile_poll_type)
+          {
+            case HOSTILE_POLL_CLOSED:
+              shutdown(fds[x].fd, SHUT_RDWR);
+              close(fds[x].fd);
+              fds[x].revents= POLLIN|POLLHUP;
+              break;
+
+            case HOSTILE_POLL_SHUT_WR:
+              shutdown(fds[x].fd, SHUT_WR);
+              close(fds[x].fd);
+              fds[x].revents= POLLIN;
+              break;
+
+            case HOSTILE_POLL_SHUT_RD:
+              shutdown(fds[x].fd, SHUT_RD);
+              fds[x].revents= POLLIN;
+              break;
+
+            default:
+              assert(0);
+              abort();
+          }
         }
         return nfds;
       }
     }
   }
 
-  return __function.function.poll(fds, nfds, timeout);
+  set_called();
+  int ret= __function.function.poll(fds, nfds, timeout);
+  reset_called();
+
+  return ret;
 }

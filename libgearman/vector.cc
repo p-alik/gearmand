@@ -90,19 +90,20 @@ static inline void _init_string(gearman_vector_st *self)
 
 gearman_vector_st *gearman_string_create(gearman_vector_st *self, const char *str, size_t initial_size)
 {
-  if (not str)
+  if (str == NULL)
+  {
     return NULL;
+  }
 
   self= gearman_string_create(self, initial_size);
-
-  if (not self)
-    return NULL;
-
-   if (gearman_failed(gearman_string_append(self, str, initial_size)))
-   {
-     gearman_string_free(self);
-     return NULL;
-   }
+  if (self)
+  {
+    if (gearman_failed(gearman_string_append(self, str, initial_size)))
+    {
+      gearman_string_free(self);
+      return NULL;
+    }
+  }
 
    return self;
 }
@@ -118,13 +119,14 @@ gearman_vector_st *gearman_string_create(gearman_vector_st *self, size_t initial
   {
     self= static_cast<gearman_vector_st *>(malloc(sizeof(gearman_vector_st)));
 
-    if (not self)
+    if (self == NULL)
     {
       return NULL;
     }
 
     gearman_set_allocated(self, true);
   }
+  gearman_set_initialized(self, true);
 
   _init_string(self);
 
@@ -134,31 +136,36 @@ gearman_vector_st *gearman_string_create(gearman_vector_st *self, size_t initial
     {
       free(self);
     }
+    gearman_set_initialized(self, false);
 
     return NULL;
   }
 
   if (initial_size)
+  {
     self->string[0]= 0;
+  }
 
   return self;
 }
 
 gearman_vector_st *gearman_string_clone(const gearman_vector_st *self)
 {
-  if (not self)
-    return NULL;
-
-  gearman_vector_st *clone= gearman_string_create(NULL, gearman_string_length(self));
-  if (not clone)
-    return NULL;
-
-  if (gearman_string_length(self))
+  gearman_vector_st *clone= NULL;
+  if (self)
   {
-    if (gearman_failed(gearman_string_append(clone, gearman_string_value(self), gearman_string_length(self))))
+    clone= gearman_string_create(NULL, gearman_string_length(self));
+
+    if (clone)
     {
-      gearman_string_free(clone);
-      return NULL;
+      if (gearman_string_length(self))
+      {
+        if (gearman_failed(gearman_string_append(clone, gearman_string_value(self), gearman_string_length(self))))
+        {
+          gearman_string_free(clone);
+          return NULL;
+        }
+      }
     }
   }
 
@@ -201,18 +208,17 @@ gearman_return_t gearman_string_append(gearman_vector_st *string,
 
 char *gearman_string_c_copy(gearman_vector_st *string)
 {
-  char *c_ptr;
+  char *c_ptr= NULL;
 
   if (gearman_string_length(string) == 0)
-    return NULL;
-
-  c_ptr= static_cast<char *>(malloc((gearman_string_length(string) +1) * sizeof(char)));
-
-  if (not c_ptr)
-    return NULL;
-
-  memcpy(c_ptr, gearman_string_value(string), gearman_string_length(string));
-  c_ptr[gearman_string_length(string)]= 0;
+  {
+    c_ptr= static_cast<char *>(malloc((gearman_string_length(string) +1) * sizeof(char)));
+    if (c_ptr)
+    {
+      memcpy(c_ptr, gearman_string_value(string), gearman_string_length(string));
+      c_ptr[gearman_string_length(string)]= 0;
+    }
+  }
 
   return c_ptr;
 }
@@ -225,17 +231,24 @@ void gearman_string_reset(gearman_vector_st *string)
 
 void gearman_string_free(gearman_vector_st *ptr)
 {
-  if (not ptr)
-    return;
-
-  if (ptr->string)
+  if (ptr)
   {
-    free(ptr->string);
-  }
+    if (ptr->string)
+    {
+      free(ptr->string);
+    }
 
-  if (ptr->options.is_allocated)
-  {
-    free(ptr);
+    if (gearman_is_allocated(ptr))
+    {
+      free(ptr);
+      return;
+    }
+
+    assert(gearman_is_allocated(ptr) == false);
+    gearman_set_initialized(ptr, false);
+    ptr->string= NULL;
+    ptr->end= NULL;
+    ptr->current_size= 0;
   }
 }
 
@@ -246,18 +259,22 @@ gearman_return_t gearman_string_check(gearman_vector_st *string, size_t need)
 
 size_t gearman_string_length(const gearman_vector_st *self)
 {
-  if (not self)
-    return 0;
+  if (self)
+  {
+    return size_t(self->end - self->string);
+  }
 
-  return size_t(self->end - self->string);
+  return 0;
 }
 
 const char *gearman_string_value(const gearman_vector_st *self)
 {
-  if (not self)
-    return NULL;
+  if (self)
+  {
+    return self->string;
+  }
 
-  return self->string;
+  return NULL;
 }
 
 gearman_string_t gearman_string(const gearman_vector_st *self)

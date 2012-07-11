@@ -1,8 +1,9 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
+ * 
+ *  Gearmand client and server library.
  *
- *  Data Differential's libhostle
- *
- *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2012 Data Differential, http://datadifferential.com/ 
+ *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -34,50 +35,6 @@
  *
  */
 
-#include <config.h>
+#pragma once
 
-#include <libhostile/function.h>
-#include <libhostile/initialize.h>
-
-#include <errno.h>
-#include <pthread.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-
-static int not_until= 500;
-
-static struct function_st __function;
-
-static pthread_once_t function_lookup_once= PTHREAD_ONCE_INIT;
-static void set_local(void)
-{
-  __function= set_function("setsockopt", "HOSTILE_SETSOCKOPT");
-}
-
-int setsockopt(int sockfd, int level, int optname,
-               const void *optval, socklen_t optlen)
-{
-  hostile_initialize();
-  (void) pthread_once(&function_lookup_once, set_local);
-
-  if (is_called() == false)
-  {
-    if (__function.frequency)
-    {
-      if (--not_until < 0 && random() % __function.frequency)
-      {
-        shutdown(sockfd, SHUT_RDWR);
-        close(sockfd);
-        errno= EBADF;
-        return -1;
-      }
-    }
-  }
-
-  set_called();
-  int ret= __function.function.setsockopt(sockfd, level, optname, optval, optlen);
-  reset_called();
-
-  return ret;
-}
+bool setup_shutdown_pipe(int pipedes_[2]);
