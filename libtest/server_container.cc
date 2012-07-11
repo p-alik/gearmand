@@ -196,6 +196,16 @@ bool server_startup(server_startup_st& construct, const std::string& server_type
         }
       }
     }
+    else if (server_type.compare("hostile-gearmand") == 0)
+    {
+      if (GEARMAND_BINARY)
+      {
+        if (HAVE_LIBGEARMAN)
+        {
+          server= build_gearmand("localhost", try_port, "gearmand/hostile_gearmand");
+        }
+      }
+    }
     else if (server_type.compare("drizzled") == 0)
     {
       if (DRIZZLED_BINARY)

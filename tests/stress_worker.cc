@@ -59,6 +59,8 @@ using namespace libtest;
 
 #define WORKER_FUNCTION_NAME "foo"
 
+static in_port_t hostile_server= 0;
+
 struct client_thread_context_st
 {
   size_t count;
@@ -404,6 +406,15 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
     error= TEST_FAILURE;
     return NULL;
   }
+
+#if defined(HAVE_LIBHOSTILE) && HAVE_LIBHOSTILE
+  hostile_server= libtest::get_free_port();
+  if (server_startup(servers, "gearmand", hostile_server, 0, NULL) == false)
+  {
+    error= TEST_FAILURE;
+    return NULL;
+  }
+#endif
 
   return new worker_handles_st;
 }
