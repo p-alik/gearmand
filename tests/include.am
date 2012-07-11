@@ -197,6 +197,7 @@ include tests/sqlite.am
 include tests/tokyocabinet.am
 include tests/redis.am
 include tests/httpd.am
+include tests/perl/include.am
 
 bogus:
 
