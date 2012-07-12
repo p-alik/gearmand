@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -37,4 +37,5 @@
 
 #pragma once
 
-void *increment_reset_worker(gearman_job_st *job, void *, size_t *result_size, gearman_return_t *ret_ptr);
+gearman_return_t split_worker(gearman_job_st *job, void* /* context */);
+

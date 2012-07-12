@@ -40,8 +40,13 @@
 #define WORKER_DEFAULT_SLEEP 20
 
 #include "tests/workers/v2/count.h"
-#include "tests/workers/v2/sleep_return_random.h"
 #include "tests/workers/v2/echo_or_react.h"
 #include "tests/workers/v2/echo_or_react_chunk.h"
 #include "tests/workers/v2/increment_reset.h"
+#include "tests/workers/v2/sleep_return_random.h"
 #include "tests/workers/v2/unique.h"
+
+#include "tests/workers/v1/echo_or_react.h"
+#include "tests/workers/v1/echo_or_react_chunk.h"
+#include "tests/workers/v1/increment_reset.h"
+#include "tests/workers/v1/unique.h"

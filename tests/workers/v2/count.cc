@@ -39,7 +39,7 @@
 
 #include <libgearman-1.0/gearman.h>
 
-#include "tests/workers/v1/count.h"
+#include "tests/workers/v2/count.h"
 
 #include <cstdio>
 
@@ -56,4 +56,3 @@ gearman_return_t count_worker(gearman_job_st *job, void *)
 
   return GEARMAN_SUCCESS;
 }
-

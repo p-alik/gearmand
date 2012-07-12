@@ -35,6 +35,39 @@
  *
  */
 
-#pragma once
+#include <config.h>
+#include <libtest/test.hpp>
 
-void *increment_reset_worker(gearman_job_st *job, void *, size_t *result_size, gearman_return_t *ret_ptr);
+using namespace libtest;
+
+#include <libgearman-1.0/gearman.h>
+
+#include "tests/workers/aggregator/cat.h"
+
+#include <cassert>
+#include <cstring>
+
+gearman_return_t cat_aggregator_fn(gearman_aggregator_st *, gearman_task_st *task, gearman_result_st *result)
+{
+  std::string string_value;
+
+  do
+  {
+    assert(task);
+    gearman_result_st *result_ptr= gearman_task_result(task);
+
+    if (result_ptr)
+    {
+      if (gearman_result_size(result_ptr) == 0)
+      {
+        return GEARMAN_WORK_EXCEPTION;
+      }
+
+      string_value.append(gearman_result_value(result_ptr), gearman_result_size(result_ptr));
+    }
+  } while ((task= gearman_next(task)));
+
+  gearman_result_store_value(result, string_value.c_str(), string_value.size());
+
+  return GEARMAN_SUCCESS;
+}
