@@ -35,13 +35,45 @@
  *
  */
 
-#pragma once
+#include <config.h>
 
-#define WORKER_DEFAULT_SLEEP 20
+#include <libgearman-1.0/gearman.h>
 
-#include "tests/workers/v2/count.h"
-#include "tests/workers/v2/sleep_return_random.h"
-#include "tests/workers/v2/echo_or_react.h"
-#include "tests/workers/v2/echo_or_react_chunk.h"
-#include "tests/workers/v2/increment_reset.h"
-#include "tests/workers/v2/unique.h"
+#include "tests/workers/v1/unique.h"
+
+#include <cassert>
+#include <cstring>
+
+
+// payload is unique value
+void *unique_worker(gearman_job_st *job, void *,
+                    size_t *result_size, gearman_return_t *ret_ptr)
+{
+  const char *workload= static_cast<const char *>(gearman_job_workload(job));
+
+  assert(job->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN_UNIQ);
+  assert(gearman_job_unique(job));
+  assert(strlen(gearman_job_unique(job)));
+  assert(gearman_job_workload_size(job));
+  assert(strlen(gearman_job_unique(job)) == gearman_job_workload_size(job));
+  assert(not memcmp(workload, gearman_job_unique(job), gearman_job_workload_size(job)));
+  if (gearman_job_workload_size(job) == strlen(gearman_job_unique(job)))
+  {
+    if (not memcmp(workload, gearman_job_unique(job), gearman_job_workload_size(job)))
+    {
+      void *result= malloc(gearman_job_workload_size(job));
+      assert(result);
+      memcpy(result, workload, gearman_job_workload_size(job));
+      *result_size= gearman_job_workload_size(job);
+      *ret_ptr= GEARMAN_SUCCESS;
+
+      return result;
+    }
+  }
+
+  *result_size= 0;
+  *ret_ptr= GEARMAN_WORK_FAIL;
+
+  return NULL;
+}
+

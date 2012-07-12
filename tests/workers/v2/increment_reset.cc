@@ -35,13 +35,61 @@
  *
  */
 
-#pragma once
+#include <config.h>
 
-#define WORKER_DEFAULT_SLEEP 20
+#include <libgearman-1.0/gearman.h>
 
-#include "tests/workers/v2/count.h"
-#include "tests/workers/v2/sleep_return_random.h"
-#include "tests/workers/v2/echo_or_react.h"
-#include "tests/workers/v2/echo_or_react_chunk.h"
 #include "tests/workers/v2/increment_reset.h"
-#include "tests/workers/v2/unique.h"
+
+static pthread_mutex_t increment_reset_worker_mutex= PTHREAD_MUTEX_INITIALIZER;
+
+gearman_return_t increment_reset_worker_v2(gearman_job_st *job, void *)
+{
+  static long counter= 0;
+  long change= 0;
+  const char *workload= (const char*)gearman_job_workload(job);
+
+  if (gearman_job_workload_size(job) == test_literal_param_size("reset") and (not memcmp(workload, test_literal_param("reset"))))
+  {
+    pthread_mutex_lock(&increment_reset_worker_mutex);
+    counter= 0;
+    pthread_mutex_unlock(&increment_reset_worker_mutex);
+
+    return GEARMAN_SUCCESS;
+  }
+  else if (workload and gearman_job_workload_size(job))
+  {
+    if (gearman_job_workload_size(job) > GEARMAN_MAXIMUM_INTEGER_DISPLAY_LENGTH)
+    {
+      return GEARMAN_FAIL;
+    }
+
+    char temp[GEARMAN_MAXIMUM_INTEGER_DISPLAY_LENGTH +1];
+    memcpy(temp, workload, gearman_job_workload_size(job));
+    temp[gearman_job_workload_size(job)]= 0;
+    change= strtol(temp, (char **)NULL, 10);
+    if (change ==  LONG_MIN or change == LONG_MAX or ( change == 0 and errno < 0))
+    {
+      gearman_job_send_warning(job, test_literal_param("strtol() failed"));
+      return GEARMAN_FAIL;
+    }
+  }
+
+  {
+    pthread_mutex_lock(&increment_reset_worker_mutex);
+    counter= counter +change;
+
+    char result[GEARMAN_MAXIMUM_INTEGER_DISPLAY_LENGTH +1];
+    size_t result_size= size_t(snprintf(result, sizeof(result), "%ld", counter));
+    if (gearman_failed(gearman_job_send_data(job, result, result_size)))
+    {
+      pthread_mutex_unlock(&increment_reset_worker_mutex);
+      return GEARMAN_FAIL;
+    }
+
+    pthread_mutex_unlock(&increment_reset_worker_mutex);
+  }
+
+  return GEARMAN_SUCCESS;
+}
+

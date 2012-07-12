@@ -37,11 +37,5 @@
 
 #pragma once
 
-#define WORKER_DEFAULT_SLEEP 20
+gearman_return_t count_worker(gearman_job_st *job, void *context);
 
-#include "tests/workers/v2/count.h"
-#include "tests/workers/v2/sleep_return_random.h"
-#include "tests/workers/v2/echo_or_react.h"
-#include "tests/workers/v2/echo_or_react_chunk.h"
-#include "tests/workers/v2/increment_reset.h"
-#include "tests/workers/v2/unique.h"

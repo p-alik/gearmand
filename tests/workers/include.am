@@ -1,0 +1,14 @@
+# vim:ft=automake
+# Gearman server and library
+# Copyright (C) 2011-2012 Data Differential, http://datadifferential.com/
+# All rights reserved.
+#
+# Use and distribution licensed under the BSD license.  See
+# the COPYING file in the parent directory for full text.
+
+noinst_HEADERS+= tests/workers/v1/count.h
+noinst_HEADERS+= tests/workers/v1/sleep_return_random.h
+noinst_HEADERS+= tests/workers/v2/echo_or_react.h
+noinst_HEADERS+= tests/workers/v2/echo_or_react_chunk.h
+noinst_HEADERS+= tests/workers/v2/increment_reset.h
+noinst_HEADERS+= tests/workers/v2/unique.h

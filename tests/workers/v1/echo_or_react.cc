@@ -35,13 +35,58 @@
  *
  */
 
-#pragma once
+#include <config.h>
 
-#define WORKER_DEFAULT_SLEEP 20
+#include <libtest/test.hpp>
 
-#include "tests/workers/v2/count.h"
-#include "tests/workers/v2/sleep_return_random.h"
-#include "tests/workers/v2/echo_or_react.h"
-#include "tests/workers/v2/echo_or_react_chunk.h"
-#include "tests/workers/v2/increment_reset.h"
-#include "tests/workers/v2/unique.h"
+#include <libgearman-1.0/gearman.h>
+
+#include "tests/workers/v1/echo_or_react.h"
+
+#include <cassert>
+#include <cstdio>
+
+void *echo_or_react_worker(gearman_job_st *job, void *,
+                           size_t *result_size, gearman_return_t *ret_ptr)
+{
+  const void *workload= gearman_job_workload(job);
+  *result_size= gearman_job_workload_size(job);
+
+  if (workload == NULL or *result_size == 0)
+  {
+    assert(workload == NULL and *result_size == 0);
+    *ret_ptr= GEARMAN_SUCCESS;
+    return NULL;
+  }
+  else if (*result_size == test_literal_param_size("fail") and (not memcmp(workload, test_literal_param("fail"))))
+  {
+    *ret_ptr= GEARMAN_WORK_FAIL;
+    return NULL;
+  }
+  else if (*result_size == test_literal_param_size("exception") and (not memcmp(workload, test_literal_param("exception"))))
+  {
+    gearman_return_t rc= gearman_job_send_exception(job, test_literal_param("test exception"));
+    if (gearman_failed(rc))
+    {
+      *ret_ptr= GEARMAN_WORK_FAIL;
+      return NULL;
+    }
+  }
+  else if (*result_size == test_literal_param_size("warning") and (not memcmp(workload, test_literal_param("warning"))))
+  {
+    gearman_return_t rc= gearman_job_send_warning(job, test_literal_param("test warning"));
+    if (gearman_failed(rc))
+    {
+      *ret_ptr= GEARMAN_WORK_FAIL;
+      return NULL;
+    }
+  }
+
+  void *result= malloc(*result_size);
+  assert(result);
+  memcpy(result, workload, *result_size);
+
+  *ret_ptr= GEARMAN_SUCCESS;
+  return result;
+}
+

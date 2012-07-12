@@ -71,7 +71,7 @@ tests_cli_SOURCES=
 tests_cli_LDADD=
 
 tests_cli_SOURCES+= tests/cli.cc
-tests_cli_SOURCES+= tests/libgearman-1.0/workers.cc
+tests_cli_SOURCES+= tests/workers/v2/echo_or_react.cc
 tests_cli_DEPENDENCIES+= ${CLIENT_LDADD}
 tests_cli_DEPENDENCIES+= bin/gearman
 tests_cli_DEPENDENCIES+= bin/gearadmin

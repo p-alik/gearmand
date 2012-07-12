@@ -35,13 +35,64 @@
  *
  */
 
-#pragma once
+#include <config.h>
 
-#define WORKER_DEFAULT_SLEEP 20
+#include <libtest/test.hpp>
 
-#include "tests/workers/v2/count.h"
-#include "tests/workers/v2/sleep_return_random.h"
+#include <libgearman-1.0/gearman.h>
+
+#define WORKER_DEFAULT_SLEEP 2
+
 #include "tests/workers/v2/echo_or_react.h"
-#include "tests/workers/v2/echo_or_react_chunk.h"
-#include "tests/workers/v2/increment_reset.h"
-#include "tests/workers/v2/unique.h"
+
+#include <cassert>
+#include <cstring>
+
+gearman_return_t echo_or_react_worker_v2(gearman_job_st *job, void *)
+{
+  const void *workload= gearman_job_workload(job);
+  size_t result_size= gearman_job_workload_size(job);
+
+  if (workload == NULL or result_size == 0)
+  {
+    assert(workload == NULL and result_size == 0);
+    return GEARMAN_SUCCESS;
+  }
+  else if (result_size == test_literal_param_size("fail") and (not memcmp(workload, test_literal_param("fail"))))
+  {
+    return GEARMAN_FAIL;
+  }
+  else if (result_size == test_literal_param_size("sleep") and (not memcmp(workload, test_literal_param("sleep"))))
+  {
+    libtest::dream(WORKER_DEFAULT_SLEEP, 0);
+    if (gearman_failed(gearman_job_send_data(job, test_literal_param("slept"))))
+    {
+      return GEARMAN_ERROR;
+    }
+    return GEARMAN_SUCCESS;
+  }
+  else if (result_size == test_literal_param_size("exception") and (not memcmp(workload, test_literal_param("exception"))))
+  {
+    gearman_return_t rc= gearman_job_send_exception(job, test_literal_param("test exception"));
+    if (gearman_failed(rc))
+    {
+      return GEARMAN_ERROR;
+    }
+  }
+  else if (result_size == test_literal_param_size("warning") and (not memcmp(workload, test_literal_param("warning"))))
+  {
+    gearman_return_t rc= gearman_job_send_warning(job, test_literal_param("test warning"));
+    if (gearman_failed(rc))
+    {
+      return GEARMAN_ERROR;
+    }
+  }
+
+  if (gearman_failed(gearman_job_send_data(job, workload, result_size)))
+  {
+    return GEARMAN_ERROR;
+  }
+
+  return GEARMAN_SUCCESS;
+}
+

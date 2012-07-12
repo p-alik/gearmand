@@ -25,7 +25,8 @@ using namespace libtest;
 #include <tests/client.h>
 #include <tests/worker.h>
 #include "tests/start_worker.h"
-#include <tests/workers.h>
+#include "tests/workers/v2/echo_or_react.h"
+#include "tests/workers/v2/echo_or_react_chunk.h"
 
 static test_return_t init_test(void *)
 {

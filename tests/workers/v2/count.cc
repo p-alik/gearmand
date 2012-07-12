@@ -35,13 +35,25 @@
  *
  */
 
-#pragma once
+#include <config.h>
 
-#define WORKER_DEFAULT_SLEEP 20
+#include <libgearman-1.0/gearman.h>
 
-#include "tests/workers/v2/count.h"
-#include "tests/workers/v2/sleep_return_random.h"
-#include "tests/workers/v2/echo_or_react.h"
-#include "tests/workers/v2/echo_or_react_chunk.h"
-#include "tests/workers/v2/increment_reset.h"
-#include "tests/workers/v2/unique.h"
+#include "tests/workers/v1/count.h"
+
+#include <cstdio>
+
+gearman_return_t count_worker(gearman_job_st *job, void *)
+{
+  char buffer[GEARMAN_MAXIMUM_INTEGER_DISPLAY_LENGTH +1];
+
+  int length= snprintf(buffer, sizeof(buffer), "%lu", static_cast<unsigned long>(gearman_job_workload_size(job)));
+
+  if (size_t(length) > sizeof(buffer) or length < 0)
+  {
+    return GEARMAN_FAIL;
+  }
+
+  return GEARMAN_SUCCESS;
+}
+

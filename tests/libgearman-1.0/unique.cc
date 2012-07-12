@@ -51,6 +51,8 @@ using namespace libtest;
 #include "tests/client.h"
 
 #include "tests/libgearman-1.0/client_test.h"
+#include "tests/workers/v1/unique.h"
+#include "tests/workers/v2/sleep_return_random.h"
 
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
