@@ -1,4 +1,4 @@
-.TH "GEARMAN" "1" "May 22, 2012" "0.34" "Gearmand"
+.TH "GEARMAN" "1" "July 12, 2012" "0.34" "Gearmand"
 .SH NAME
 gearman \- Gearmand Documentation, http://gearman.info/
 .
@@ -122,6 +122,8 @@ Run in worker mode
 .SH DESCRIPTION
 .sp
 With gearman you can run client and worker functions from the command line.
+.sp
+The environmental variable GEARMAN_SERVER can be used to specify multiple gearmand servers. Please see the c:func:\(aqgearman_client_add_servers\(aq for an explanation of the required syntax.
 .SH HOME
 .sp
 To find out more information please check:
