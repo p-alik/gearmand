@@ -90,6 +90,8 @@ DESCRIPTION
 
 With gearman you can run client and worker functions from the command line. 
 
+The environmental variable GEARMAN_SERVER can be used to specify multiple gearmand servers. Please see the c:func:'gearman_client_add_servers' for an explanation of the required syntax.
+
 
 ----
 HOME
