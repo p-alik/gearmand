@@ -43,7 +43,6 @@ using namespace libtest;
 
 #include <libgearman/gearman.h>
 #include "tests/start_worker.h"
-#include "tests/workers.h"
 
 #include <cassert>
 #include <cstdio>
@@ -55,6 +54,8 @@ using namespace libtest;
 
 #include <tests/basic.h>
 #include <tests/context.h>
+
+#include "tests/workers/v2/echo_or_react.h"
 
 // Prototypes
 #ifndef __INTEL_COMPILER

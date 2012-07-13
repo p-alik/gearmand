@@ -46,7 +46,6 @@ using namespace libtest;
 #include <libhostile/hostile.h>
 
 #include <tests/start_worker.h>
-#include <tests/workers.h>
 #include "tests/burnin.h"
 
 #include "tests/workers/v2/echo_or_react.h"

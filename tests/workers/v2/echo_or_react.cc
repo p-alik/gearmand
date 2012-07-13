@@ -41,8 +41,6 @@
 
 #include <libgearman-1.0/gearman.h>
 
-#define WORKER_DEFAULT_SLEEP 2
-
 #include "tests/workers/v2/echo_or_react.h"
 
 #include <cassert>
@@ -64,7 +62,7 @@ gearman_return_t echo_or_react_worker_v2(gearman_job_st *job, void *)
   }
   else if (result_size == test_literal_param_size("sleep") and (not memcmp(workload, test_literal_param("sleep"))))
   {
-    libtest::dream(WORKER_DEFAULT_SLEEP, 0);
+    libtest::dream(ECHO_OR_REACT_DREAM, 0);
     if (gearman_failed(gearman_job_send_data(job, test_literal_param("slept"))))
     {
       return GEARMAN_ERROR;

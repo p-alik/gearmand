@@ -55,6 +55,11 @@ using namespace libtest;
 
 #include <tests/start_worker.h>
 
+#include "tests/workers/v1/echo_or_react.h"
+#include "tests/workers/v1/echo_or_react_chunk.h"
+#include "tests/workers/v2/echo_or_react.h"
+#include "tests/workers/v2/echo_or_react_chunk.h"
+
 #define NAMESPACE_KEY "foo123"
 
 #define WORKER_FUNCTION_NAME "client_test"
@@ -72,8 +77,6 @@ using namespace libtest;
 #include <tests/regression.h>
 #include <tests/task.h>
 #include <tests/unique.h>
-#include <tests/workers.h>
-#include <tests/workers_v1.h>
 
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -937,10 +940,6 @@ static test_return_t gearman_worker_timeout_TEST(void *object)
   gearman_client_st *client= (gearman_client_st *)object;
   test_truth(client);
 
-  test_truth(WORKER_DEFAULT_SLEEP);
-  int timeout= WORKER_DEFAULT_SLEEP/4;
-  (void)timeout;
-
   gearman_function_t dreaming_fn= gearman_function_create(echo_or_react_worker_v2);
   std::auto_ptr<worker_handle_st> worker_handle(test_worker_start(libtest::default_port(), NULL,
                                                                   __func__,
@@ -975,8 +974,8 @@ static test_return_t gearman_worker_timeout_TIMEOUT_TEST(void *object)
   gearman_client_st *client= (gearman_client_st *)object;
   test_truth(client);
 
-  test_truth(WORKER_DEFAULT_SLEEP);
-  int timeout= WORKER_DEFAULT_SLEEP/4;
+  test_truth(ECHO_OR_REACT_DREAM);
+  int timeout= ECHO_OR_REACT_DREAM/4;
 
   gearman_function_t dreaming_fn= gearman_function_create(echo_or_react_worker_v2);
   std::auto_ptr<worker_handle_st> worker_handle(test_worker_start(libtest::default_port(), NULL,

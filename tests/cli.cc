@@ -51,8 +51,9 @@ using namespace libtest;
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #endif
 
-#include <tests/workers.h>
 #include <tests/start_worker.h>
+
+#include "tests/workers/v2/echo_or_react.h"
 
 #define WORKER_FUNCTION_NAME "echo_function"
 

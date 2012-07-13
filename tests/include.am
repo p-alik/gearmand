@@ -25,8 +25,6 @@ noinst_HEADERS+= tests/start_worker.h
 noinst_HEADERS+= tests/task.h
 noinst_HEADERS+= tests/unique.h
 noinst_HEADERS+= tests/worker.h
-noinst_HEADERS+= tests/workers.h
-noinst_HEADERS+= tests/workers_v1.h
 
 noinst_LTLIBRARIES+= tests/libstartworker.la
 tests_libstartworker_la_CXXFLAGS=

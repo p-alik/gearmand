@@ -47,8 +47,7 @@ using namespace libtest;
 
 #include "tests/libgearman-1.0/client_test.h"
 
-#include "tests/workers.h"
-
+#include "tests/workers/v2/echo_or_react.h"
 #include "tests/workers/v2/split.h"
 #include "tests/workers/aggregator/cat.h"
 

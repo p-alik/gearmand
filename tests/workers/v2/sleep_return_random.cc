@@ -43,8 +43,6 @@
 
 #include "tests/workers/v2/sleep_return_random.h"
 
-#define WORKER_DEFAULT_SLEEP 20
-
 /* Use this for string generation */
 static const char ALPHANUMERICS[]=
   "0123456789ABCDEFGHIJKLMNOPQRSTWXYZabcdefghijklmnopqrstuvwxyz";
@@ -58,7 +56,7 @@ static size_t get_alpha_num(void)
 
 gearman_return_t sleep_return_random_worker(gearman_job_st *job, void *)
 {
-  libtest::dream(WORKER_DEFAULT_SLEEP, 0);
+  libtest::dream(random() % 20, 0);
 
   char buffer[1024];
   for (size_t x= 0; x < sizeof(buffer); x++)

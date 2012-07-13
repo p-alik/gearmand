@@ -41,7 +41,6 @@
 using namespace libtest;
 
 #include <tests/limits.h>
-#include "tests/workers.h"
 #include "tests/start_worker.h"
 
 

@@ -46,13 +46,13 @@ using namespace libtest;
 #include <tests/unique.h>
 
 #include <tests/start_worker.h>
-#include "tests/workers.h"
 
 #include "tests/client.h"
 
 #include "tests/libgearman-1.0/client_test.h"
 #include "tests/workers/v1/unique.h"
 #include "tests/workers/v2/sleep_return_random.h"
+#include "tests/workers/v2/echo_or_react.h"
 
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
