@@ -55,6 +55,11 @@ static inline std::string &rtrim(std::string &s)
 
 namespace libtest {
 
+Server* server_startup_st::last()
+{
+  return servers.back();
+}
+
 void server_startup_st::push_server(Server *arg)
 {
   servers.push_back(arg);
@@ -177,6 +182,11 @@ bool server_startup_st::validate()
 
 bool server_startup(server_startup_st& construct, const std::string& server_type, in_port_t try_port, int argc, const char *argv[], const bool opt_startup_message)
 {
+  construct.start_server(server_type, try_port, argc, argv, opt_startup_message);
+}
+
+bool server_startup_st::start_server(const std::string& server_type, in_port_t try_port, int argc, const char *argv[], const bool opt_startup_message)
+{
   if (try_port <= 0)
   {
     throw libtest::fatal(LIBYATL_DEFAULT_PARAM, "was passed the invalid port number %d", int(try_port));
@@ -235,7 +245,7 @@ bool server_startup(server_startup_st& construct, const std::string& server_type
       {
         if (HAVE_LIBMEMCACHED)
         {
-          server= build_memcached_sasl("localhost", try_port, construct.username(), construct.password());
+          server= build_memcached_sasl("localhost", try_port, username(), password());
         }
       }
     }
@@ -308,12 +318,14 @@ bool server_startup(server_startup_st& construct, const std::string& server_type
     throw;
   }
 
-  construct.push_server(server);
+  push_server(server);
 
   return true;
 }
 
-bool server_startup_st::start_socket_server(const std::string& server_type, const in_port_t try_port, int argc, const char *argv[])
+bool server_startup_st::start_socket_server(const std::string& server_type, const in_port_t try_port, int argc,
+                                            const char *argv[],
+                                            const bool opt_startup_message)
 {
   (void)try_port;
   Outn();
@@ -403,7 +415,12 @@ bool server_startup_st::start_socket_server(const std::string& server_type, cons
     }
     else
     {
-      Out << "STARTING SERVER(pid:" << server->pid() << "): " << server->running();
+      if (opt_startup_message)
+      {
+        Outn();
+        Out << "STARTING SERVER(pid:" << server->pid() << "): " << server->running();
+        Outn();
+      }
     }
   }
   catch (...)

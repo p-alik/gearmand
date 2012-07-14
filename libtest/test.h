@@ -92,6 +92,12 @@ do \
   } \
 } while (0)
 
+#define test_true_got(A, B) test_true(A);
+#define test_true_hint(A, B) test_true(A);
+
+#define test_compare_hint(A, B, C) test_compare(A, B);
+#define test_compare_got(A, B, C) test_compare(A, B);
+
 #define test_skip(__expected, __actual) \
 do \
 { \
@@ -144,7 +150,7 @@ do \
 #define test_ne_compare(__expected, __actual) \
 do \
 { \
-  if (libtest::_ne_compare_hint(__FILE__, __LINE__, __func__, ((__expected)), ((__actual)), true) == false) \
+  if (libtest::_ne_compare(__FILE__, __LINE__, __func__, ((__expected)), ((__actual)), true) == false) \
   { \
     libtest::create_core(); \
     return TEST_FAILURE; \
