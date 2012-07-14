@@ -1,4 +1,5 @@
 # vim:ft=automake
+#
 # Gearman server and library
 # Copyright (C) 2011-2012 Data Differential, http://datadifferential.com/
 # Copyright (C) 2008 Brian Aker, Eric Day
@@ -25,8 +26,6 @@ noinst_HEADERS+= tests/start_worker.h
 noinst_HEADERS+= tests/task.h
 noinst_HEADERS+= tests/unique.h
 noinst_HEADERS+= tests/worker.h
-noinst_HEADERS+= tests/workers.h
-noinst_HEADERS+= tests/workers_v1.h
 
 noinst_LTLIBRARIES+= tests/libstartworker.la
 tests_libstartworker_la_CXXFLAGS=
@@ -71,7 +70,8 @@ tests_cli_SOURCES=
 tests_cli_LDADD=
 
 tests_cli_SOURCES+= tests/cli.cc
-tests_cli_SOURCES+= tests/libgearman-1.0/workers.cc
+tests_cli_SOURCES+= tests/workers/v2/count.cc
+tests_cli_SOURCES+= tests/workers/v2/echo_or_react.cc
 tests_cli_DEPENDENCIES+= ${CLIENT_LDADD}
 tests_cli_DEPENDENCIES+= bin/gearman
 tests_cli_DEPENDENCIES+= bin/gearadmin
@@ -91,6 +91,7 @@ noinst_PROGRAMS+= tests/gearmand
 
 include tests/libgearman-1.0/include.am
 include tests/stress.am
+include tests/workers/include.am
 
 tests_round_robin_test_DEPENDENCIES=
 tests_round_robin_test_SOURCES=
@@ -197,6 +198,7 @@ include tests/sqlite.am
 include tests/tokyocabinet.am
 include tests/redis.am
 include tests/httpd.am
+include tests/perl/include.am
 
 bogus:
 

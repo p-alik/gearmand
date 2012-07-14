@@ -15,7 +15,8 @@ tests_httpd_test_DEPENDENCIES=
 tests_httpd_test_LDADD=
 
 tests_httpd_test_SOURCES+= tests/httpd_test.cc
-tests_httpd_test_SOURCES+= tests/libgearman-1.0/workers.cc
+tests_httpd_test_SOURCES+= tests/workers/v2/echo_or_react.cc
+tests_httpd_test_SOURCES+= tests/workers/v2/echo_or_react_chunk.cc
 
 tests_httpd_test_DEPENDENCIES+= $(CLIENT_LDADD)
 

@@ -46,9 +46,9 @@ using namespace libtest;
 #include <libhostile/hostile.h>
 
 #include <tests/start_worker.h>
-#include <tests/workers.h>
 #include "tests/burnin.h"
 
+#include "tests/workers/v2/echo_or_react.h"
 
 #include <cerrno>
 #include <cstdio>
@@ -58,6 +58,25 @@ using namespace libtest;
 #include <sys/time.h>
 
 #define WORKER_FUNCTION_NAME "foo"
+
+static in_port_t hostile_server= 0;
+static in_port_t stress_server= 0;
+static in_port_t& current_server_= stress_server;
+
+static void reset_server()
+{
+  current_server_= stress_server;
+}
+
+static in_port_t current_server()
+{
+  return current_server_;
+}
+
+static void set_server(in_port_t& arg)
+{
+  current_server_= arg;
+}
 
 struct client_thread_context_st
 {
@@ -102,7 +121,7 @@ extern "C" {
       {
         pthread_exit(0);
       }
-      rc= gearman_client_add_server(client, NULL, libtest::default_port());
+      rc= gearman_client_add_server(client, NULL, current_server());
       pthread_setcanceltype(oldstate, NULL);
     }
 
@@ -270,7 +289,7 @@ static test_return_t worker_ramp_SETUP(void *object)
   for (uint32_t x= 0; x < 10; x++)
   {
     worker_handle_st *worker;
-    if ((worker= test_worker_start(libtest::default_port(), NULL, WORKER_FUNCTION_NAME, echo_react_fn, NULL, gearman_worker_options_t())) == NULL)
+    if ((worker= test_worker_start(current_server(), NULL, WORKER_FUNCTION_NAME, echo_react_fn, NULL, gearman_worker_options_t())) == NULL)
     {
       return TEST_FAILURE;
     }
@@ -284,6 +303,19 @@ static test_return_t worker_ramp_TEARDOWN(void* object)
 {
   worker_handles_st *handles= (worker_handles_st*)object;
   handles->reset();
+
+  reset_server();
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t hostile_gearmand_SETUP(void* object)
+{
+  test_skip_valgrind();
+  test_skip(true, bool(getenv("YATL_RUN_MASSIVE_TESTS")));
+
+  set_server(hostile_server);
+  worker_ramp_SETUP(object);
 
   return TEST_SUCCESS;
 }
@@ -305,6 +337,8 @@ static test_return_t resv_TEARDOWN(void* object)
 
   worker_handles_st *handles= (worker_handles_st*)object;
   handles->kill_all();
+
+  reset_server();
 
   return TEST_SUCCESS;
 }
@@ -371,6 +405,8 @@ static test_return_t poll_TEARDOWN(void* object)
   worker_handles_st *handles= (worker_handles_st*)object;
   handles->kill_all();
 
+  reset_server();
+
   return TEST_SUCCESS;
 }
 
@@ -380,6 +416,8 @@ static test_return_t send_TEARDOWN(void* object)
 
   worker_handles_st *handles= (worker_handles_st*)object;
   handles->kill_all();
+
+  reset_server();
 
   return TEST_SUCCESS;
 }
@@ -391,6 +429,8 @@ static test_return_t accept_TEARDOWN(void* object)
   worker_handles_st *handles= (worker_handles_st*)object;
   handles->kill_all();
 
+  reset_server();
+
   return TEST_SUCCESS;
 }
 
@@ -399,11 +439,21 @@ static test_return_t accept_TEARDOWN(void* object)
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  if (server_startup(servers, "gearmand", libtest::default_port(), 0, NULL) == false)
+  stress_server= libtest::default_port();
+  if (server_startup(servers, "gearmand", stress_server, 0, NULL) == false)
   {
     error= TEST_FAILURE;
     return NULL;
   }
+
+#if defined(HAVE_LIBHOSTILE) && HAVE_LIBHOSTILE
+  hostile_server= libtest::get_free_port();
+  if (server_startup(servers, "gearmand", hostile_server, 0, NULL) == false)
+  {
+    error= TEST_FAILURE;
+    return NULL;
+  }
+#endif
 
   return new worker_handles_st;
 }
@@ -433,6 +483,7 @@ test_st worker_TESTS[] ={
 collection_st collection[] ={
   {"burnin", burnin_setup, burnin_cleanup, burnin_TESTS },
   {"plain", worker_ramp_SETUP, worker_ramp_TEARDOWN, worker_TESTS },
+  {"plain against hostile server", hostile_gearmand_SETUP, worker_ramp_TEARDOWN, worker_TESTS },
   {"hostile recv()", recv_SETUP, resv_TEARDOWN, worker_TESTS },
   {"hostile send()", send_SETUP, send_TEARDOWN, worker_TESTS },
   {"hostile accept()", accept_SETUP, accept_TEARDOWN, worker_TESTS },

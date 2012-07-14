@@ -1,14 +1,39 @@
-/* Gearman server and library
- * Copyright (C) 2008 Brian Aker, Eric Day
- * All rights reserved.
+/*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
+ * 
+ *  Gearmand client and server library.
  *
- * Use and distribution licensed under the BSD license.  See
- * the COPYING file in the parent directory for full text.
- */
-
-/**
- * @file
- * @brief Gearman Command Line Tool
+ *  Copyright (C) 2011-2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2008 Brian Aker, Eric Day
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions are
+ *  met:
+ *
+ *      * Redistributions of source code must retain the above copyright
+ *  notice, this list of conditions and the following disclaimer.
+ *
+ *      * Redistributions in binary form must reproduce the above
+ *  copyright notice, this list of conditions and the following disclaimer
+ *  in the documentation and/or other materials provided with the
+ *  distribution.
+ *
+ *      * The names of its contributors may not be used to endorse or
+ *  promote products derived from this software without specific prior
+ *  written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ *  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ *  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ *  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ *  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ *  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ *  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
 #include <config.h>
@@ -220,7 +245,15 @@ void _client(Args &args)
     gearman_client_set_timeout(&client, args.timeout());
   }
 
-  if (gearman_failed(gearman_client_add_server(&client, args.host(), args.port())))
+  if (getenv("GEARMAN_SERVER"))
+  {
+    if (gearman_failed(gearman_client_add_servers(&client, getenv("GEARMAN_SERVER"))))
+    {
+      error::message("Error occurred while parsing GEARMAN_SERVER", client);
+      return;
+    }
+  }
+  else if (gearman_failed(gearman_client_add_server(&client, args.host(), args.port())))
   {
     error::message("gearman_client_add_server", client);
     return;
@@ -457,7 +490,15 @@ void _worker(Args &args)
     gearman_worker_set_timeout(&worker, args.timeout());
   }
 
-  if (gearman_failed(gearman_worker_add_server(&worker, args.host(), args.port())))
+  if (getenv("GEARMAN_SERVER"))
+  {
+    if (gearman_failed(gearman_worker_add_servers(&worker, getenv("GEARMAN_SERVER"))))
+    {
+      error::message("Error occurred while parsing GEARMAN_SERVER", worker);
+      return;
+    }
+  }
+  else if (gearman_failed(gearman_worker_add_server(&worker, args.host(), args.port())))
   {
     error::message("gearman_worker_add_server", worker);
     _exit(EXIT_FAILURE);

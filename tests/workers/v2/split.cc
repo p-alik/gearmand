@@ -35,19 +35,61 @@
  *
  */
 
-#pragma once
+#include <config.h>
+#include <libtest/test.hpp>
 
-void *echo_or_react_worker(gearman_job_st *job, void *,
-                           size_t *result_size, gearman_return_t *ret_ptr);
+using namespace libtest;
 
-void *echo_or_react_chunk_worker(gearman_job_st *job, void *,
-                                 size_t *result_size, gearman_return_t *ret_ptr);
+#include <libgearman-1.0/gearman.h>
 
-void *unique_worker(gearman_job_st *job, void *,
-                    size_t *result_size, gearman_return_t *ret_ptr);
+#include "tests/workers/v2/split.h"
 
-gearman_return_t split_worker(gearman_job_st *job, void *);
+#include <cassert>
+#include <cstring>
 
-gearman_return_t cat_aggregator_fn(gearman_aggregator_st *aggregator, gearman_task_st *task, gearman_result_st *result);
 
-void *increment_reset_worker(gearman_job_st *job, void *, size_t *result_size, gearman_return_t *ret_ptr);
+gearman_return_t split_worker(gearman_job_st *job, void* /* context */)
+{
+  const char *workload= static_cast<const char *>(gearman_job_workload(job));
+  size_t workload_size= gearman_job_workload_size(job);
+
+  assert(job->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN_ALL);
+
+  const char *chunk_begin= workload;
+  for (size_t x= 0; x < workload_size; x++)
+  {
+    if (int(workload[x]) == 0 or int(workload[x]) == int(' '))
+    {
+      if ((workload +x -chunk_begin) == 11 and not memcmp(chunk_begin, test_literal_param("mapper_fail")))
+      {
+        return GEARMAN_FAIL;
+      }
+
+      // NULL Chunk
+      gearman_return_t rc= gearman_job_send_data(job, chunk_begin, workload +x -chunk_begin);
+      if (gearman_failed(rc))
+      {
+        return GEARMAN_FAIL;
+      }
+
+      chunk_begin= workload +x +1;
+    }
+  }
+
+  if (chunk_begin < workload +workload_size)
+  {
+    if ((size_t(workload +workload_size) -size_t(chunk_begin) ) == 11 and not memcmp(chunk_begin, test_literal_param("mapper_fail")))
+    {
+      return GEARMAN_FAIL;
+    }
+
+    gearman_return_t rc= gearman_job_send_data(job, chunk_begin, size_t(workload +workload_size) -size_t(chunk_begin));
+    if (gearman_failed(rc))
+    {
+      return GEARMAN_FAIL;
+    }
+  }
+
+  return GEARMAN_SUCCESS;
+}
+
