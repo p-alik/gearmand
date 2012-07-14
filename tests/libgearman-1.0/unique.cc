@@ -58,8 +58,6 @@ using namespace libtest;
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
-#include "tests/workers_v1.h"
-
 #define WORKER_UNIQUE_FUNCTION_NAME "unique_test"
 
 test_return_t unique_SETUP(void *object)

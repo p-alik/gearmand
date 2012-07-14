@@ -8,7 +8,6 @@
 
 noinst_HEADERS+= tests/workers/aggregator/cat.h
 
-noinst_HEADERS+= tests/workers/v1/count.h
 noinst_HEADERS+= tests/workers/v1/echo_or_react.h
 noinst_HEADERS+= tests/workers/v1/echo_or_react_chunk.h
 noinst_HEADERS+= tests/workers/v1/increment_reset.h
