@@ -91,6 +91,7 @@ noinst_PROGRAMS+= tests/gearmand
 
 include tests/libgearman-1.0/include.am
 include tests/stress.am
+include tests/workers/include.am
 
 tests_round_robin_test_DEPENDENCIES=
 tests_round_robin_test_SOURCES=
