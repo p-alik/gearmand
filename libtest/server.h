@@ -204,11 +204,24 @@ public:
     _log_file.clear();
   }
 
-  bool args(Application&);
-
   pid_t pid() const;
 
   bool has_pid() const;
+
+  virtual bool has_pid_file() const
+  {
+    return true;
+  }
+
+  const std::string& error()
+  {
+    return _error;
+  }
+
+  void error(std::string arg)
+  {
+    _error= arg;
+  }
 
   virtual bool wait_for_pidfile() const;
 
@@ -260,6 +273,9 @@ private:
   bool set_socket_file();
   void reset_pid();
   bool out_of_ban_killed_;
+  bool args(Application&);
+
+  std::string _error;
 };
 
 std::ostream& operator<<(std::ostream& output, const libtest::Server &arg);

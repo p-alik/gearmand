@@ -41,6 +41,7 @@
 #if defined(HAVE_LIBMEMCACHED) && HAVE_LIBMEMCACHED
 #include <libmemcached-1.0/memcached.h>
 #include <libmemcachedutil-1.0/ostream.hpp>
+#include <libtest/memcached.hpp>
 #endif
 
 #if defined(HAVE_LIBGEARMAN) && HAVE_LIBGEARMAN
@@ -115,6 +116,22 @@ bool _compare_zero(const char *file, int line, const char *func, T_comparable __
   if (T_comparable(0) != __actual)
   {
     libtest::stream::make_cerr(file, line, func) << "Expected 0 got \"" << __actual << "\"";
+    return false;
+  }
+
+  return true;
+}
+
+template <class T1_comparable, class T2_comparable>
+bool _ne_compare(const char *file, int line, const char *func, T1_comparable __expected, T2_comparable __actual, bool io_error= true)
+{
+  if (__expected == __actual)
+  {
+    if (io_error)
+    {
+      libtest::stream::make_cerr(file, line, func) << "Expected \"" << __expected << "\" got \"" << __actual << "\"";
+    }
+
     return false;
   }
 
