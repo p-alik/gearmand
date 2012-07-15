@@ -104,7 +104,7 @@ bool setup_shutdown_pipe(int pipedes_[2])
     int fcntl_sig_error;
     do 
     {
-      if (fcntl(pipedes_[x], F_SETNOSIGPIPE, 0) != -1)
+      if ((fcntl_sig_error= fcntl(pipedes_[x], F_SETNOSIGPIPE, 0)) != -1)
       {
         close(pipedes_[0]);
         close(pipedes_[1]);
