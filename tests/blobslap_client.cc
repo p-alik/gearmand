@@ -112,7 +112,7 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
 }
 
 
-void get_world(Framework *world)
+void get_world(libtest::Framework *world)
 {
   executable= "./benchmark/blobslap_client";
   world->collections(collection);

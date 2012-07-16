@@ -38,6 +38,8 @@
 
 #include <string>
 
+namespace libtest { class Framework; }
+
 
 namespace libtest {
 
@@ -58,14 +60,26 @@ public:
 
   void push_testcase(const std::string&);
 
+  const std::string& name() const
+  {
+    return _suite_name;
+  }
+
+  TestCases& testcases()
+  {
+    return _testcases;
+  }
+
+  static void xml(libtest::Framework&, std::ofstream&);
+
 private:
   void reset();
 
+  TestCase* current();
+
 private:
   std::string _suite_name;
-  std::vector <TestCase*> testcases;
-
-  TestCase *_current_testcase;
+  TestCases _testcases;
 };
 
 } // namespace libtest

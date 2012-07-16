@@ -40,7 +40,7 @@
 
 #include <libtest/timer.hpp>
 
-class Framework;
+namespace { class Framework; }
 
 
 /**
@@ -57,7 +57,7 @@ namespace libtest {
 
 class Collection {
 public:
-  Collection(Framework*, collection_st*);
+  Collection(libtest::Framework*, collection_st*);
 
   test_return_t exec();
 
@@ -96,7 +96,7 @@ private:
   test_callback_fn *_pre;
   test_callback_fn *_post;
   struct test_st *_tests;
-  Framework* _frame;
+  libtest::Framework* _frame;
   uint32_t _success;
   uint32_t _skipped;
   uint32_t _failed;

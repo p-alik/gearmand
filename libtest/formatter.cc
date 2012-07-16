@@ -37,6 +37,9 @@
 #include <config.h>
 
 #include <libtest/common.h>
+
+#include <iostream>
+#include <fstream>
   
 namespace libtest {
 
@@ -86,62 +89,104 @@ private:
 };
 
 Formatter::Formatter(const std::string& arg) :
-  _suite_name(arg),
-  _current_testcase(NULL)
+  _suite_name(arg)
 {
 }
 
 Formatter::~Formatter()
 {
-  for (TestCases::iterator iter= testcases.begin(); iter != testcases.end(); ++iter)
+  for (TestCases::iterator iter= _testcases.begin(); iter != _testcases.end(); ++iter)
   {
     delete *iter;
   }
 }
 
+TestCase* Formatter::current()
+{
+  return _testcases.back();
+}
+
 void Formatter::skipped()
 {
-  assert(_current_testcase);
-  _current_testcase->result(TEST_SKIPPED);
-  Out << "\tTesting " << _current_testcase->name() <<  "\t\t\t\t\t" << "[ " << test_strerror(_current_testcase->result()) << " ]";
+  current()->result(TEST_SKIPPED);
+  Out << "\t" << name() << "." << current()->name() <<  "\t\t\t\t\t" << "[ " << test_strerror(current()->result()) << " ]";
 
   reset();
 }
 
 void Formatter::failed()
 {
-  assert(_current_testcase);
-  _current_testcase->result(TEST_FAILURE);
+  assert(current());
+  current()->result(TEST_FAILURE);
 
-  Out << "\tTesting " << _current_testcase->name() <<  "\t\t\t\t\t" << "[ " << test_strerror(_current_testcase->result()) << " ]";
+  Out << "\t" << name() << "." << current()->name() <<  "\t\t\t\t\t" << "[ " << test_strerror(current()->result()) << " ]";
 
   reset();
 }
 
 void Formatter::success(const libtest::Timer& timer_)
 {
-  assert(_current_testcase);
-  _current_testcase->result(TEST_SUCCESS, timer_);
+  assert(current());
+  current()->result(TEST_SUCCESS, timer_);
 
-  Out << "\tTesting " 
-    << _current_testcase->name()
+  Out << "\t"
+    << name() << "."
+    << current()->name()
     <<  "\t\t\t\t\t" 
-    << _current_testcase->timer() 
-    << " [ " << test_strerror(_current_testcase->result()) << " ]";
+    << current()->timer() 
+    << " [ " << test_strerror(current()->result()) << " ]";
 
   reset();
+}
+
+void Formatter::xml(libtest::Framework& framework_, std::ofstream& output)
+{
+  output << "<testsuites name=\"" << framework_.name() << "\">" << std::endl;
+  for (Suites::iterator framework_iter= framework_.suites().begin();
+       framework_iter != framework_.suites().end();
+       ++framework_iter)
+  {
+    output << "\t<testsuite name=\"" << (*framework_iter)->name() << "\"  classname=\"\" package=\"\">" << std::endl;
+
+    for (TestCases::iterator case_iter= (*framework_iter)->formatter()->testcases().begin();
+         case_iter != (*framework_iter)->formatter()->testcases().end();
+         ++case_iter)
+    {
+      output << "\t\t<testcase name=\"" 
+        << (*case_iter)->name() 
+        << "\" time=\"" 
+        << (*case_iter)->timer().elapsed_milliseconds() 
+        << "\">" 
+        << std::endl;
+
+      switch ((*case_iter)->result())
+      {
+        case TEST_SKIPPED:
+        output << "\t\t <skipped/>" << std::endl;
+        break;
+
+        case TEST_FAILURE:
+        output << "\t\t <failure message=\"\" type=\"\"/>"<< std::endl;
+        break;
+
+        case TEST_SUCCESS:
+        break;
+      }
+      output << "\t\t</testcase>" << std::endl;
+    }
+    output << "\t</testsuite>" << std::endl;
+  }
+  output << "</testsuites>" << std::endl;
 }
 
 void Formatter::push_testcase(const std::string& arg)
 {
   assert(_suite_name.empty() == false);
-  assert(_current_testcase == NULL);
-  _current_testcase= new TestCase(arg);
-  testcases.push_back(_current_testcase);
+  TestCase* _current_testcase= new TestCase(arg);
+  _testcases.push_back(_current_testcase);
 }
 
 void Formatter::reset()
 {
-  _current_testcase= NULL;
 }
 } // namespace libtest

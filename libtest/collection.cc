@@ -38,7 +38,7 @@
 
 #include <libtest/common.h>
 
-static test_return_t runner_code(Framework* frame,
+static test_return_t runner_code(libtest::Framework* frame,
                                  test_st* run, 
                                  libtest::Timer& _timer)
 { // Runner Code
@@ -92,8 +92,6 @@ Collection::Collection(Framework* frame_arg,
 
 test_return_t Collection::exec()
 {
-  Out << "Collection: " << _name;
-
   if (test_success(_frame->runner()->pre(_pre, _frame->creators_ptr())))
   {
     for (test_st *run= _tests; run->name; run++)
@@ -105,7 +103,6 @@ test_return_t Collection::exec()
         continue;
       }
       _total++;
-
 
       test_return_t return_code;
       try 
