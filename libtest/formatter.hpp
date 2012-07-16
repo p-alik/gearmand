@@ -33,50 +33,39 @@
  *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-/*
-  Common include file for libtest
-*/
 
 #pragma once
 
-#include <cassert>
-#include <cerrno>
-#include <cstdlib>
-#include <sstream>
 #include <string>
 
-#ifdef HAVE_SYS_TYPES_H
-#include <sys/types.h>
-#endif
 
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#endif
+namespace libtest {
 
-#ifdef HAVE_SYS_WAIT_H
-#include <sys/wait.h>
-#endif
+class TestCase;
+typedef std::vector<libtest::TestCase*> TestCases;
 
-#ifdef HAVE_SYS_RESOURCE_H 
-#include <sys/resource.h> 
-#endif
- 
-#ifdef HAVE_FNMATCH_H
-#include <fnmatch.h>
-#endif
+class Formatter {
+public:
+  Formatter(const std::string& arg);
 
-#include <libtest/test.hpp>
+  ~Formatter();
 
-#include <libtest/is_pid.hpp>
+  void skipped();
 
-#include <libtest/gearmand.h>
-#include <libtest/blobslap_worker.h>
-#include <libtest/memcached.h>
-#include <libtest/drizzled.h>
+  void failed();
 
-#include <libtest/libtool.hpp>
-#include <libtest/killpid.h>
-#include <libtest/signal.h>
-#include <libtest/dns.hpp>
-#include <libtest/formatter.hpp>
+  void success(const libtest::Timer&);
 
+  void push_testcase(const std::string&);
+
+private:
+  void reset();
+
+private:
+  std::string _suite_name;
+  std::vector <TestCase*> testcases;
+
+  TestCase *_current_testcase;
+};
+
+} // namespace libtest

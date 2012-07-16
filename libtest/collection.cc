@@ -84,7 +84,8 @@ Collection::Collection(Framework* frame_arg,
   _success(0),
   _skipped(0),
   _failed(0),
-  _total(0)
+  _total(0),
+  _formatter(_name)
 {
   fatal_assert(arg);
 }
@@ -97,11 +98,14 @@ test_return_t Collection::exec()
   {
     for (test_st *run= _tests; run->name; run++)
     {
+      formatter()->push_testcase(run->name);
       if (_frame->match(run->name))
       {
+        formatter()->skipped();
         continue;
       }
       _total++;
+
 
       test_return_t return_code;
       try 
@@ -112,6 +116,7 @@ test_return_t Collection::exec()
           {
             Error << "frame->runner()->flush(creators_ptr)";
             _skipped++;
+            formatter()->skipped();
             continue;
           }
         }
@@ -122,28 +127,25 @@ test_return_t Collection::exec()
       {
         stream::cerr(e.file(), e.line(), e.func()) << e.what();
         _failed++;
+        formatter()->failed();
         throw;
       }
 
       switch (return_code)
       {
       case TEST_SUCCESS:
-        Out << "\tTesting " 
-          << run->name
-          <<  "\t\t\t\t\t" 
-          << _timer 
-          << " [ " << test_strerror(return_code) << " ]";
         _success++;
+        formatter()->success(_timer);
         break;
 
       case TEST_FAILURE:
         _failed++;
-        Out << "\tTesting " << run->name <<  "\t\t\t\t\t" << "[ " << test_strerror(return_code) << " ]";
+        formatter()->failed();
         break;
 
       case TEST_SKIPPED:
         _skipped++;
-        Out << "\tTesting " << run->name <<  "\t\t\t\t\t" << "[ " << test_strerror(return_code) << " ]";
+        formatter()->skipped();
         break;
 
       default:
