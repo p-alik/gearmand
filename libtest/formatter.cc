@@ -109,7 +109,7 @@ TestCase* Formatter::current()
 void Formatter::skipped()
 {
   current()->result(TEST_SKIPPED);
-  Out << "\t" << name() << "." << current()->name() <<  "\t\t\t\t\t" << "[ " << test_strerror(current()->result()) << " ]";
+  Out << name() << "." << current()->name() <<  "\t\t\t\t\t" << "[ " << test_strerror(current()->result()) << " ]";
 
   reset();
 }
@@ -119,7 +119,7 @@ void Formatter::failed()
   assert(current());
   current()->result(TEST_FAILURE);
 
-  Out << "\t" << name() << "." << current()->name() <<  "\t\t\t\t\t" << "[ " << test_strerror(current()->result()) << " ]";
+  Out << name() << "." << current()->name() <<  "\t\t\t\t\t" << "[ " << test_strerror(current()->result()) << " ]";
 
   reset();
 }
@@ -129,8 +129,7 @@ void Formatter::success(const libtest::Timer& timer_)
   assert(current());
   current()->result(TEST_SUCCESS, timer_);
 
-  Out << "\t"
-    << name() << "."
+  Out << name() << "."
     << current()->name()
     <<  "\t\t\t\t\t" 
     << current()->timer() 

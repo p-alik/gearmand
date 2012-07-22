@@ -38,6 +38,7 @@ CLEANFILES+= tmp_chroot/var/drizzle/*
 CLEANFILES+= tmp_chroot/var/log/*
 CLEANFILES+= tmp_chroot/var/run/*
 CLEANFILES+= tmp_chroot/var/tmp/*
+CLEANFILES+= tmp_chroot/*.xml
 
 BUILT_SOURCES+= libtest/version.h
 
