@@ -104,3 +104,4 @@ gdb-client: tests/libgearman-1.0/client_test gearmand/gearmand
 
 valgrind-client: tests/libgearman-1.0/client_test gearmand/gearmand
 	@$(VALGRIND_COMMAND) tests/libgearman-1.0/client_test
+
