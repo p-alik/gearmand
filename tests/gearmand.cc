@@ -426,6 +426,8 @@ static test_return_t http_port_test(void *)
 
 static test_return_t config_file_TEST(void *)
 {
+  test_compare(-1, access("etc/gearmand.conf", R_OK));
+
   const char *args[]= { "--check-args", "--config-file=etc/gearmand.conf", 0 };
 
   test_compare(EXIT_FAILURE, exec_cmdline(gearmand_binary(), args, true));
@@ -577,9 +579,15 @@ test_st maxqueue_TESTS[] ={
   {0, 0, 0}
 };
 
+test_return_t option_SETUP(void*)
+{
+  unlink("etc/gearmand.conf");
+  return TEST_SUCCESS;
+}
+
 collection_st collection[] ={
   { "bad options", 0, 0, bad_option_TESTS },
-  { "basic options", 0, 0, gearmand_option_tests },
+  { "basic options", option_SETUP, 0, gearmand_option_tests },
   { "httpd options", 0, 0, gearmand_httpd_option_tests },
   { "maxqueue", 0, 0, maxqueue_TESTS },
   {0, 0, 0, 0}
