@@ -1551,9 +1551,9 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
                 return GEARMAN_SERVER_ERROR;
               }
               else if (client->con->_packet.command == GEARMAN_COMMAND_STATUS_RES_UNIQUE and
-                       strncmp(gearman_task_unique(client->task),
+                       (strncmp(gearman_task_unique(client->task),
                                static_cast<char *>(client->con->_packet.arg[0]),
-                               client->con->_packet.arg_size[0]) == 0)
+                               client->con->_packet.arg_size[0]) == 0))
               { }
               else if (strncmp(client->task->job_handle,
                                static_cast<char *>(client->con->_packet.arg[0]),

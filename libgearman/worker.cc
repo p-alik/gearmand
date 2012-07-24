@@ -1155,7 +1155,10 @@ static gearman_worker_st *_worker_allocate(gearman_worker_st *worker, bool is_cl
 
   if (setup_shutdown_pipe(worker->universal.wakeup_fd) == false)
   {
-    delete worker;
+    if (worker->options.allocated)
+    {
+      delete worker;
+    }
 
     return NULL;
   }

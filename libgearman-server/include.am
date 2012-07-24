@@ -79,7 +79,7 @@ libgearman_server_libgearman_server_la_SOURCES+= \
 						 libgearman-server/packet.cc \
 						 libgearman-server/plugins.cc \
 						 libgearman-server/queue.cc \
-						 libgearman-server/server.c \
+						 libgearman-server/server.cc \
 						 libgearman-server/thread.c \
 						 libgearman-server/timer.cc \
 						 libgearman-server/wakeup.cc \

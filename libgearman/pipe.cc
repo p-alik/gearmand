@@ -46,6 +46,72 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+static inline bool set_cloexec(int pipedes_[2], const size_t x)
+{
+  int returned_flags;
+  do 
+  {
+    returned_flags= fcntl(pipedes_[x], F_GETFD, 0);
+  } while (returned_flags == -1 and (errno == EINTR or errno == EAGAIN));
+
+  if (returned_flags == -1)
+  {
+#if 0
+    perror("fcntl(pipedes_[x], F_GETFD, 0)");
+#endif
+    return false;
+  }
+
+  int retval;
+  do
+  { 
+    retval= fcntl (pipedes_[x], F_SETFD, FD_CLOEXEC);
+  } while (retval == -1 && (errno == EINTR or errno == EAGAIN));
+
+  if (retval == -1)
+  {
+#if 0
+    perror("fcntl (pipedes_[x], F_SETFD, FD_CLOEXEC)");
+#endif
+    return false;
+  }
+
+  return true;
+}
+
+static inline bool set_nonblock(int pipedes_[2], const size_t x)
+{
+  int returned_flags;
+  do 
+  {
+    returned_flags= fcntl(pipedes_[x], F_GETFL, 0);
+  } while (returned_flags == -1 and (errno == EINTR or errno == EAGAIN));
+
+  if (returned_flags == -1)
+  {
+#if 0
+    perror("fcntl(pipedes_[x], F_GETFL, 0)");
+#endif
+    return false;
+  }
+
+  int retval;
+  do
+  {
+    retval= fcntl(pipedes_[x], F_SETFL, returned_flags | O_NONBLOCK);
+  } while (retval == -1 and (errno == EINTR or errno == EAGAIN));
+
+  if (retval == -1)
+  {
+#if 0
+    perror("fcntl(pipedes_[x], F_SETFL, returned_flags | O_NONBLOCK)");
+#endif
+    return false;
+  }
+
+  return true;
+}
+
 bool setup_shutdown_pipe(int pipedes_[2])
 {
   if (HAVE_PIPE2)
@@ -55,64 +121,61 @@ bool setup_shutdown_pipe(int pipedes_[2])
     {
       return false;
     }
+#else
+    assert(0); // This should never be reached
 #endif
   }
   else if (pipe(pipedes_) == -1)
   {
+#if 0
+    perror("pipe");
+#endif
     return false;
   }
 
   for (size_t x= 0; x < 2; ++x)
   {
-    if (HAVE_PIPE2)
-    {
-      int returned_flags;
-      do 
-      {
-        if ((returned_flags= fcntl(pipedes_[x], F_GETFL, 0)) == -1)
-        {
-          if (errno != EBADF)
-          {
-            close(pipedes_[0]);
-            close(pipedes_[1]);
-          }
-
-          return false;
-        }
-      } while (returned_flags == -1 and errno == EINTR);
-
-      int fcntl_error;
-      do
-      {
-        if ((fcntl_error= fcntl(pipedes_[x], F_SETFL, returned_flags | O_NONBLOCK)) == -1)
-        {
-          close(pipedes_[0]);
-          close(pipedes_[1]);
-
-          return false;
-        }
-      } while (fcntl_error == -1 and errno == EINTR);
-
-      int rval;
-      do
-      { 
-        rval= fcntl (pipedes_[x], F_SETFD, FD_CLOEXEC);
-      } while (rval == -1 && (errno == EINTR or errno == EAGAIN));
-    }
+    bool success= true;
 
 #ifdef F_SETNOSIGPIPE
-    int fcntl_sig_error;
-    do 
+    if (F_SETNOSIGPIPE)
     {
-      if ((fcntl_sig_error= fcntl(pipedes_[x], F_SETNOSIGPIPE, 0)) != -1)
+      int fcntl_sig_error;
+      do 
+      {
+        fcntl_sig_error= fcntl(pipedes_[x], F_SETNOSIGPIPE, 0);
+      } while (fcntl_sig_error == -1 and (errno == EINTR or errno == EAGAIN));
+
+      if (fcntl_sig_error == -1)
+      {
+#if 0
+        perror ("fcntl_sig_error= fcntl(pipedes_[x], F_SETNOSIGPIPE, 0)");
+#endif
+        success= false;
+      }
+    }
+#endif // F_SETNOSIGPIPE
+
+    if (HAVE_PIPE2)
+    { }
+    else
+    {
+      if ((success= set_cloexec(pipedes_, x)))
+      {
+        success= set_nonblock(pipedes_, x);
+      }
+    }
+    
+    if (success == false)
+    {
+      if (errno != EBADF)
       {
         close(pipedes_[0]);
         close(pipedes_[1]);
-
-        return false;
       }
-    } while (fcntl_sig_error == -1 and errno == EINTR);
-#endif // F_SETNOSIGPIPE
+
+      return false;
+    }
   }
 
   return true;
