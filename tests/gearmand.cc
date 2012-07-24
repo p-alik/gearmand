@@ -579,7 +579,7 @@ test_st maxqueue_TESTS[] ={
   {0, 0, 0}
 };
 
-test_return_t option_SETUP(void*)
+static test_return_t option_SETUP(void*)
 {
   unlink("etc/gearmand.conf");
   return TEST_SUCCESS;
