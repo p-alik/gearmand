@@ -458,6 +458,66 @@ Application::error_t Application::wait(bool nohang)
   return exit_code;
 }
 
+Application::error_t Application::join()
+{
+  if (_pid == -1)
+  {
+    return Application::INVALID;
+  }
+
+  slurp();
+
+  error_t exit_code= FAILURE;
+  {
+    int status= 0;
+    pid_t waited_pid;
+    do {
+      waited_pid= waitpid(_pid, &status, 0);
+    } while (waited_pid == -1 and (errno == EINTR or errno == EAGAIN));
+
+    if (waited_pid == -1)
+    {
+      switch (errno)
+      {
+      case ECHILD:
+        exit_code= Application::SUCCESS;
+        break;
+
+      case EINTR:
+        break;
+
+      default:
+        Error << "Error occured while waitpid(" << strerror(errno) << ") on pid " << int(_pid);
+        break;
+      }
+    }
+    else if (waited_pid == 0)
+    {
+      exit_code= Application::SUCCESS;
+    }
+    else
+    {
+      if (waited_pid != _pid)
+      {
+        throw libtest::fatal(LIBYATL_DEFAULT_PARAM, "Pid mismatch, %d != %d", int(waited_pid), int(_pid));
+      }
+
+      exit_code= int_to_error_t(exited_successfully(status));
+    }
+  }
+
+  slurp();
+
+#if 0
+  if (exit_code == Application::INVALID)
+  {
+    Error << print_argv(built_argv, _argc);
+  }
+#endif
+
+  return exit_code;
+}
+
 void Application::add_long_option(const std::string& name, const std::string& option_value)
 {
   std::string arg(name);
@@ -809,7 +869,7 @@ int exec_cmdline(const std::string& command, const char *args[], bool use_libtoo
     return int(ret);
   }
 
-  return int(app.wait(false));
+  return int(app.join());
 }
 
 const char *gearmand_binary() 

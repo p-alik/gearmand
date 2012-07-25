@@ -92,6 +92,7 @@ public:
   void add_long_option(const std::string& option_name, const std::string& option_value);
   error_t run(const char *args[]= NULL);
   error_t wait(bool nohang= true);
+  Application::error_t join();
 
   libtest::vchar_t stdout_result() const
   {

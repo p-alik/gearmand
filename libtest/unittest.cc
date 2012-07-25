@@ -547,7 +547,7 @@ static test_return_t application_echo_fubar_BINARY2(void *)
   true_app.add_option("fubar");
 
   test_compare(Application::SUCCESS, true_app.run());
-  test_compare(Application::SUCCESS, true_app.wait(false));
+  test_compare(Application::SUCCESS, true_app.join());
 
   libtest::vchar_t response;
   make_vector(response, test_literal_param("fubar\n"));
@@ -766,7 +766,7 @@ static test_return_t create_tmpfile_TEST(void *)
   Application touch_app("touch");
   const char *args[]= { tmp.c_str(), 0 };
   test_compare(Application::SUCCESS, touch_app.run(args));
-  test_compare(Application::SUCCESS, touch_app.wait(false));
+  test_compare(Application::SUCCESS, touch_app.join());
 
   test_compare(0, access(tmp.c_str(), R_OK));
   test_compare(0, unlink(tmp.c_str()));
