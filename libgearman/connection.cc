@@ -572,7 +572,7 @@ gearman_return_t gearman_connection_st::lookup()
 
   char port_str[GEARMAN_NI_MAXSERV]= { 0 };
   int port_str_length;
-  if ((port_str_length= snprintf(port_str, sizeof(port_str), "%hu", uint16_t(port))) >= sizeof(port_str))
+  if (size_t(port_str_length= snprintf(port_str, sizeof(port_str), "%hu", uint16_t(port))) >= sizeof(port_str))
   {
     return gearman_universal_set_error(universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, GEARMAN_AT, "snprintf(%d)", port_str_length);
   }

@@ -40,6 +40,9 @@
 #include <libgearman/command.h>
 #include <libgearman/strcommand.h>
 
+#include <cassert>
+#include <cstdlib>
+
 const char *gearman_strcommand(gearman_command_t command)
 {
   switch(command)
@@ -89,4 +92,7 @@ const char *gearman_strcommand(gearman_command_t command)
   case GEARMAN_COMMAND_GET_STATUS_UNIQUE: return "GEARMAN_COMMAND_GET_STATUS_UNIQUE";
   case GEARMAN_COMMAND_STATUS_RES_UNIQUE: return "GEARMAN_COMMAND_STATUS_RES_UNIQUE";
   }
+
+  assert(0); // We should never reach this
+  abort();
 }
