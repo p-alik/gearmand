@@ -291,6 +291,7 @@ static test_return_t gearmand_cycle_test(void *object)
   return TEST_SUCCESS;
 }
 
+#if 0
 static test_return_t memcached_light_cycle_TEST(void *object)
 {
   server_startup_st *servers= (server_startup_st*)object;
@@ -302,6 +303,7 @@ static test_return_t memcached_light_cycle_TEST(void *object)
 
   return TEST_SUCCESS;
 }
+#endif
 
 static test_return_t skip_shim(bool a, bool b)
 {
@@ -359,6 +361,7 @@ static test_return_t socket_server_startup_TEST(void *object)
   return TEST_SUCCESS;
 }
 
+#if 0
 static test_return_t memcached_sasl_test(void *object)
 {
   server_startup_st *servers= (server_startup_st*)object;
@@ -379,6 +382,7 @@ static test_return_t memcached_sasl_test(void *object)
 
   return TEST_SKIPPED;
 }
+#endif
 
 static test_return_t application_true_BINARY(void *)
 {
@@ -422,7 +426,7 @@ static test_return_t application_true_fubar_BINARY(void *)
   const char *args[]= { "--fubar", 0 };
   test_compare(Application::SUCCESS, true_app.run(args));
   test_compare(Application::SUCCESS, true_app.wait());
-  test_compare(0, true_app.stdout_result().size());
+  test_compare(size_t(0), true_app.stdout_result().size());
 
   return TEST_SUCCESS;
 }
