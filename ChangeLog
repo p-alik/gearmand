@@ -1,3 +1,8 @@
+0.35 
+* Critical bug fix for rare case in which initialization of pipe for a worker fails.
+* Add support for MySQL specific driver to specify port.
+* Fix library issue with OSX Mountain Lion.
+
 0.34 Tue Jul 10 21:19:10 EDT 2012
 * Alpha support for direct MySQL queue.
 * XML option for testing under valgrind.
