@@ -71,7 +71,7 @@ static test_return_t curl_no_function_TEST(void *)
   curl.add_option(host_url);
 
   test_compare(Application::SUCCESS, curl.run());
-  test_compare(Application::SUCCESS, curl.wait(false));
+  test_compare(Application::SUCCESS, curl.join());
 
   return TEST_SUCCESS;
 }
@@ -85,7 +85,7 @@ static test_return_t curl_function_no_body_TEST(void *)
   curl.add_option("--header", "\"X-Gearman-Unique: curl_function_no_body_TEST\"");
 
   test_compare(Application::SUCCESS, curl.run());
-  test_compare(Application::SUCCESS, curl.wait(false));
+  test_compare(Application::SUCCESS, curl.join());
   test_zero(curl.stdout_result_length());
 
   return TEST_SUCCESS;
@@ -107,7 +107,7 @@ static test_return_t curl_function_TEST(void *)
   curl.add_option(worker_url);
 
   test_compare(Application::SUCCESS, curl.run());
-  test_compare(Application::SUCCESS, curl.wait(false));
+  test_compare(Application::SUCCESS, curl.join());
   test_zero(curl.stdout_result_length());
 
   struct stat stat_buffer;
