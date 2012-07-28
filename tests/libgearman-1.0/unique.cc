@@ -238,8 +238,8 @@ test_return_t gearman_client_unique_status_TEST(void *object)
     test_compare(GEARMAN_SUCCESS, gearman_status_return(status));
     test_compare(true, gearman_status_is_known(status));
     test_compare(false, gearman_status_is_running(status));
-    test_compare(0, gearman_status_numerator(status));
-    test_compare(0, gearman_status_denominator(status));
+    test_zero(gearman_status_numerator(status));
+    test_zero(gearman_status_denominator(status));
   }
 
   gearman_function_t func= gearman_function_create_v2(echo_or_react_worker_v2);
@@ -279,8 +279,8 @@ test_return_t gearman_client_unique_status_NOT_FOUND_TEST(void *object)
     test_compare(GEARMAN_SUCCESS, gearman_status_return(status));
     test_compare(false, gearman_status_is_known(status));
     test_compare(false, gearman_status_is_running(status));
-    test_compare(0, gearman_status_numerator(status));
-    test_compare(0, gearman_status_denominator(status));
+    test_zero(gearman_status_numerator(status));
+    test_zero(gearman_status_denominator(status));
   }
 
   return TEST_SUCCESS;

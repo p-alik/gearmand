@@ -478,7 +478,7 @@ static test_return_t config_file_SIMPLE_TEST(void *)
     test_true(file_stream.good());
     file_stream.close();
   }
-  test_compare(0, access(config_file.c_str(), R_OK));
+  test_zero(access(config_file.c_str(), R_OK));
 
   char args_buffer[1024];
   snprintf(args_buffer, sizeof(args_buffer), "--config-file=%s", config_file.c_str()); 

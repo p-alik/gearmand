@@ -426,7 +426,7 @@ static test_return_t application_true_fubar_BINARY(void *)
   const char *args[]= { "--fubar", 0 };
   test_compare(Application::SUCCESS, true_app.run(args));
   test_compare(Application::SUCCESS, true_app.wait());
-  test_compare(size_t(0), true_app.stdout_result().size());
+  test_zero(true_app.stdout_result().size());
 
   return TEST_SUCCESS;
 }
@@ -446,7 +446,7 @@ static test_return_t application_doesnotexist_BINARY(void *)
   test_compare(Application::INVALID, true_app.wait(false));
 #endif
 
-  test_compare(0, true_app.stdout_result().size());
+  test_zero(true_app.stdout_result().size());
 
   return TEST_SUCCESS;
 }
@@ -458,7 +458,7 @@ static test_return_t application_true_fubar_eq_doh_BINARY(void *)
   const char *args[]= { "--fubar=doh", 0 };
   test_compare(Application::SUCCESS, true_app.run(args));
   test_compare(Application::SUCCESS, true_app.wait());
-  test_compare(0, true_app.stdout_result().size());
+  test_zero(true_app.stdout_result().size());
 
   return TEST_SUCCESS;
 }
@@ -471,7 +471,7 @@ static test_return_t application_true_fubar_eq_doh_option_BINARY(void *)
 
   test_compare(Application::SUCCESS, true_app.run());
   test_compare(Application::SUCCESS, true_app.wait());
-  test_compare(0, true_app.stdout_result().size());
+  test_zero(true_app.stdout_result().size());
 
   return TEST_SUCCESS;
 }
