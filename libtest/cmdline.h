@@ -177,7 +177,7 @@ private:
   Pipe stdin_fd;
   Pipe stdout_fd;
   Pipe stderr_fd;
-  char * * built_argv;
+  libtest::vchar_ptr_t built_argv;
   pid_t _pid;
   libtest::vchar_t _stdout_buffer;
   libtest::vchar_t _stderr_buffer;

@@ -9,6 +9,7 @@ VALGRIND_EXEC_COMMAND= $(LIBTOOL_COMMAND) valgrind --error-exitcode=1 --leak-che
 VALGRIND_COMMAND= TESTS_ENVIRONMENT="valgrind" $(VALGRIND_EXEC_COMMAND)
 HELGRIND_COMMAND= $(LIBTOOL_COMMAND) valgrind --tool=helgrind --read-var-info=yes --error-exitcode=1 --read-var-info=yes
 DRD_COMMAND= $(LIBTOOL_COMMAND) valgrind --tool=drd
+MASSIF_COMMAND= $(LIBTOOL_COMMAND) valgrind --tool=massif
 GDB_COMMAND= $(LIBTOOL_COMMAND) gdb -f -x libtest/run.gdb
 PTRCHECK_COMMAND= $(LIBTOOL_COMMAND) valgrind --tool=exp-ptrcheck --error-exitcode=1
 
@@ -231,7 +232,7 @@ test-unittest: libtest/unittest
 	@libtest/unittest
 
 valgrind-unittest: libtest/unittest
-	@$(VALGRIND_COMMAND) libtest/unittest TESTS_ENVIRONMENT="valgrind"
+	@$(VALGRIND_COMMAND) libtest/unittest
 
 gdb-unittest: libtest/unittest
 	@$(GDB_COMMAND) libtest/unittest
