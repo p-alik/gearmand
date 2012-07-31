@@ -249,7 +249,7 @@ bool Server::start()
     uint32_t waited;
     uint32_t retry;
 
-    for (waited= 0, retry= 1; ; retry++, waited+= this_wait)
+    for (waited= 0, retry= 4; ; retry++, waited+= this_wait)
     {
       if ((pinged= ping()) == true)
       {
