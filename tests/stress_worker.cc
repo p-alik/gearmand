@@ -442,7 +442,7 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
   stress_server= libtest::default_port();
   if (server_startup(servers, "gearmand", stress_server, 0, NULL) == false)
   {
-    error= TEST_FAILURE;
+    error= TEST_SKIPPED;
     return NULL;
   }
 
@@ -450,7 +450,7 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
   hostile_server= libtest::get_free_port();
   if (server_startup(servers, "gearmand", hostile_server, 0, NULL) == false)
   {
-    error= TEST_FAILURE;
+    error= TEST_SKIPPED;
     return NULL;
   }
 #endif

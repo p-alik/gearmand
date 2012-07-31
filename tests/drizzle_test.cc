@@ -60,7 +60,7 @@ static test_return_t collection_init(void *object)
   drizzled_port= libtest::get_free_port();
   if (server_startup(test->_servers, "drizzled", drizzled_port, 0, NULL) == false)
   {
-    return TEST_FAILURE;
+    return TEST_SKIPPED;
   }
 #else
   drizzled_port= 0;

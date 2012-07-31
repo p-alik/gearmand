@@ -149,7 +149,7 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
   const char *argv[]= { "--protocol=http", buffer, 0 };
   if (server_startup(servers, "gearmand", libtest::default_port(), 2, argv) == false)
   {
-    error= TEST_FAILURE;
+    error= TEST_SKIPPED;
     return NULL;
   }
 
