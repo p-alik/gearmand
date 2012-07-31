@@ -82,7 +82,8 @@ bool has_gearmand()
   {
     std::stringstream arg_buffer;
 
-    if (getenv("PWD") and strcmp(MEMCACHED_BINARY, "gearmand/gearmand") == 0)
+    if (getenv("PWD") and 
+        ((strcmp(GEARMAND_BINARY, "./gearmand/gearmand") == 0) or (strcmp(GEARMAND_BINARY, "gearmand/gearmand") == 0)))
     {
       arg_buffer << getenv("PWD");
       arg_buffer << "/";

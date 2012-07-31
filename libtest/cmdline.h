@@ -56,6 +56,26 @@ public:
     INVALID= 127
   };
 
+  static const char* toString(error_t arg)
+  {
+    switch (arg)
+    {
+    case Application::SUCCESS:
+      return "EXIT_SUCCESS";
+
+    case Application::FAILURE:
+      return "EXIT_FAILURE";
+
+    case Application::INVALID:
+      return "127";
+
+    default:
+      break;
+    }
+
+    return "EXIT_UNKNOWN";
+  }
+
   class Pipe {
   public:
     Pipe(int);
@@ -185,25 +205,7 @@ private:
 
 static inline std::ostream& operator<<(std::ostream& output, const enum Application::error_t &arg)
 {
-  switch (arg)
-  {
-    case Application::SUCCESS:
-      output << "EXIT_SUCCESS";
-      break;
-
-    case Application::FAILURE:
-      output << "EXIT_FAILURE";
-      break;
-
-    case Application::INVALID:
-      output << "127";
-      break;
-
-    default:
-      output << "EXIT_UNKNOWN";
-  }
-
-  return output;
+  return output << Application::toString(arg);
 }
 
 int exec_cmdline(const std::string& executable, const char *args[], bool use_libtool= false);

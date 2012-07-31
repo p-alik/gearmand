@@ -328,6 +328,16 @@ static test_return_t test_skip_false_TEST(void *object)
   return TEST_SUCCESS;
 }
 
+static test_return_t server_startup_fail_TEST(void *object)
+{
+  server_startup_st *servers= (server_startup_st*)object;
+  test_true(servers);
+
+  test_compare(servers->start_server(testing_service, LIBTEST_FAIL_PORT, 0, NULL, true), false);
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t server_startup_TEST(void *object)
 {
   server_startup_st *servers= (server_startup_st*)object;
@@ -799,6 +809,9 @@ static test_return_t check_for_gearman(void *)
 {
   test_skip(true, HAVE_LIBGEARMAN);
   test_skip(true, has_gearmand());
+
+  testing_service= "gearmand";
+
   return TEST_SUCCESS;
 }
 
@@ -806,6 +819,9 @@ static test_return_t check_for_drizzle(void *)
 {
   test_skip(true, HAVE_LIBDRIZZLE);
   test_skip(true, has_drizzled());
+
+  testing_service= "drizzled";
+
   return TEST_SUCCESS;
 }
 
@@ -821,6 +837,7 @@ test_st gearmand_tests[] ={
 #endif
   {"gearmand startup-shutdown", 0, gearmand_cycle_test },
   {"_compare(gearman_return_t)", 0, _compare_gearman_return_t_test },
+  {"server_startup(fail)", 0, server_startup_fail_TEST },
   {0, 0, 0}
 };
 
@@ -842,6 +859,7 @@ test_st memcached_TESTS[] ={
   {"memcached startup-shutdown", 0, server_startup_TEST },
   {"memcached(socket file) startup-shutdown", 0, socket_server_startup_TEST },
   {"_compare(memcached_return_t)", 0, _compare_memcached_return_t_test },
+  {"server_startup(fail)", 0, server_startup_fail_TEST },
   {0, 0, 0}
 };
 
