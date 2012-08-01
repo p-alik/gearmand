@@ -515,10 +515,9 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
       long timeout= strtol((char *)packet->arg[1], &endptr, 10);
       if (timeout == LONG_MIN or timeout == LONG_MAX)
       {
-        return gearmand_log_perror(GEARMAN_DEFAULT_LOG_PARAM, "GEARMAN_COMMAND_CAN_DO_TIMEOUT:strtol(%.*s) function: %.*s",
-                                   packet->arg_size[1], packet->arg[1],
-                                   packet->arg_size[0], packet->arg[0]);
+        return gearmand_log_perror(GEARMAN_DEFAULT_LOG_PARAM, "GEARMAN_COMMAND_CAN_DO_TIMEOUT:strtol");
       }
+
       gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Registering function: %.*s with timeout %dl",
                          packet->arg_size[0], packet->arg[0], timeout);
 
