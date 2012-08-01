@@ -35,9 +35,8 @@ static gearman_server_worker_st* gearman_server_worker_create(gearman_server_con
     }
   }
 
-
   worker->job_count= 0;
-  worker->timeout= 0;
+  worker->timeout= -1;
   worker->con= con;
   GEARMAN_LIST_ADD(con->worker, worker, con_)
   worker->function= function;

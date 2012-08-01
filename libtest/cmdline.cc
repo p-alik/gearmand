@@ -590,7 +590,7 @@ bool Application::Pipe::read(libtest::vchar_t& arg)
 
     data_was_read= true;
     arg.reserve(read_length +1);
-    for (size_t x= 0; x < read_length; ++x)
+    for (size_t x= 0; x < size_t(read_length); ++x)
     {
       arg.push_back(buffer[x]);
     }
@@ -730,7 +730,7 @@ void Application::create_argv(const char *args[])
     std::string log_file= create_tmpfile("valgrind");
     char buffer[1024];
     int length= snprintf(buffer, sizeof(buffer), "--log-file=%s", log_file.c_str());
-    fatal_assert(length > 0 and length < sizeof(buffer));
+    fatal_assert(length > 0 and size_t(length) < sizeof(buffer));
     built_argv.push_back(strdup(buffer));
   }
   else if (_use_ptrcheck)
@@ -744,7 +744,7 @@ void Application::create_argv(const char *args[])
     std::string log_file= create_tmpfile("ptrcheck");
     char buffer[1024];
     int length= snprintf(buffer, sizeof(buffer), "--log-file=%s", log_file.c_str());
-    fatal_assert(length > 0 and length < sizeof(buffer));
+    fatal_assert(length > 0 and size_t(length) < sizeof(buffer));
     built_argv.push_back(strdup(buffer));
   }
   else if (_use_gdb)

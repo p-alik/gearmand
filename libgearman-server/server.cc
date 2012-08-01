@@ -512,12 +512,15 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
   case GEARMAN_COMMAND_CAN_DO_TIMEOUT:
     {
       char *endptr;
-      unsigned long timeout= strtoul((char *)packet->arg[1], &endptr, 10);
-      if (timeout == LONG_MIN or timeout == LONG_MAX or errno == EINVAL or timeout > UINT8_MAX or timeout == 0)
+      long timeout= strtol((char *)packet->arg[1], &endptr, 10);
+      if (timeout == LONG_MIN or timeout == LONG_MAX)
       {
-        return gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "strtoul(%ul)", timeout);
+        return gearmand_log_perror(GEARMAN_DEFAULT_LOG_PARAM, "GEARMAN_COMMAND_CAN_DO_TIMEOUT:strtol(%.*s) function: %.*s",
+                                   packet->arg_size[1], packet->arg[1],
+                                   packet->arg_size[0], packet->arg[0]);
       }
-      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Registering function: %.*s with timeout", packet->arg_size[0], packet->arg[0]);
+      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Registering function: %.*s with timeout %dl",
+                         packet->arg_size[0], packet->arg[0], timeout);
 
       if (gearman_server_worker_add(server_con, (char *)(packet->arg[0]),
                                     packet->arg_size[0] - 1,
@@ -530,7 +533,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
     break;
 
   case GEARMAN_COMMAND_CANT_DO:
-    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Removing function: %.*s with timeout", packet->arg_size[0], packet->arg[0]);
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Removing function: %.*s", packet->arg_size[0], packet->arg[0]);
     gearman_server_con_free_worker(server_con, (char *)(packet->arg[0]),
                                    packet->arg_size[0]);
     break;
