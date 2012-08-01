@@ -232,6 +232,8 @@ AX_CHECK_LIBRARY([LIBUUID], [uuid/uuid.h], [uuid],
                   AC_MSG_WARN([Unable to find libuuid])
                   ])
 
+AX_CHECK_ZLIB
+
 AX_CHECK_SOCK_CLOEXEC([AC_DEFINE([HAVE_SOCK_CLOEXEC], [1], [Check for SOCK_CLOEXEC.])],
                        [AC_DEFINE([HAVE_SOCK_CLOEXEC], [0], [Check for SOCK_CLOEXEC.])])
 
@@ -239,7 +241,7 @@ AX_APPEND_COMPILE_FLAGS([-Werror -fstack-protector-all])
 AX_APPEND_COMPILE_FLAGS([-Werror -ggdb])
 AX_APPEND_COMPILE_FLAGS([-Werror -floop-parallelize-all])
 AX_APPEND_COMPILE_FLAGS([-Werror -Wsign-compare])
-AX_APPEND_LINK_FLAGS([-z relro -z now])
+AX_APPEND_COMPILE_FLAGS([-Werror -Wmaybe-uninitialized])
 
 AC_CONFIG_FILES(Makefile
                 docs/conf.py
