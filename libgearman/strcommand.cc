@@ -40,7 +40,8 @@
 #include <libgearman/command.h>
 #include <libgearman/strcommand.h>
 
-#include <cassert>
+#include "libgearman/assert.hpp"
+
 #include <cstdlib>
 
 const char *gearman_strcommand(gearman_command_t command)

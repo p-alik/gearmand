@@ -45,7 +45,7 @@ static test_return_t collection_cleanup(void *object)
 }
 
 
-static void *world_create(server_startup_st& servers, test_return_t& error)
+static void *world_create(server_startup_st& servers, test_return_t&)
 {
   return new Context(default_port(), servers);
 }

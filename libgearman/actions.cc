@@ -40,6 +40,9 @@
 
 #include <libgearman/unique.hpp>
 #include <libgearman/result.hpp>
+
+#include "libgearman/assert.hpp"
+
 #include <memory>
 
 struct gearman_result_st;

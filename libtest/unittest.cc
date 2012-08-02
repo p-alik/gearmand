@@ -311,7 +311,7 @@ static test_return_t skip_shim(bool a, bool b)
   return TEST_SUCCESS;
 }
 
-static test_return_t test_skip_true_TEST(void *object)
+static test_return_t test_skip_true_TEST(void*)
 {
   test_compare(true, true);
   test_compare(false, false);
@@ -321,7 +321,7 @@ static test_return_t test_skip_true_TEST(void *object)
   return TEST_SUCCESS;
 }
 
-static test_return_t test_skip_false_TEST(void *object)
+static test_return_t test_skip_false_TEST(void*)
 {
   test_compare(TEST_SKIPPED, skip_shim(true, false));
   test_compare(TEST_SKIPPED, skip_shim(false, true));

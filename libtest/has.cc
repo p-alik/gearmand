@@ -64,8 +64,10 @@ bool has_libdrizzle(void)
 
 bool has_postgres_support(void)
 {
-  if (getenv("POSTGES_IS_RUNNING_AND_SETUP"))
+  char *getenv_ptr;
+  if (bool((getenv_ptr= getenv("POSTGES_IS_RUNNING_AND_SETUP"))))
   {
+    (void)(getenv_ptr);
     if (HAVE_LIBPQ)
     {
       return true;
@@ -82,10 +84,11 @@ bool has_gearmand()
   {
     std::stringstream arg_buffer;
 
-    if (getenv("PWD") and 
+    char *getenv_ptr;
+    if (bool((getenv_ptr= getenv("PWD"))) and 
         ((strcmp(GEARMAND_BINARY, "./gearmand/gearmand") == 0) or (strcmp(GEARMAND_BINARY, "gearmand/gearmand") == 0)))
     {
-      arg_buffer << getenv("PWD");
+      arg_buffer << getenv_ptr;
       arg_buffer << "/";
     }
     arg_buffer << GEARMAND_BINARY;
@@ -101,6 +104,7 @@ bool has_gearmand()
 
 bool has_drizzled()
 {
+#if defined(HAVE_DRIZZLED_BINARY) && HAVE_DRIZZLED_BINARY
   if (HAVE_DRIZZLED_BINARY)
   {
     if (access(DRIZZLED_BINARY, X_OK) == 0)
@@ -108,12 +112,14 @@ bool has_drizzled()
       return true;
     }
   }
+#endif
 
   return false;
 }
 
 bool has_mysqld()
 {
+#if defined(HAVE_MYSQLD_BUILD) && HAVE_MYSQLD_BUILD
   if (HAVE_MYSQLD_BUILD)
   {
     if (access(MYSQLD_BINARY, X_OK) == 0)
@@ -121,6 +127,7 @@ bool has_mysqld()
       return true;
     }
   }
+#endif
 
   return false;
 }
@@ -131,9 +138,11 @@ bool has_memcached()
   {
     std::stringstream arg_buffer;
 
-    if (getenv("PWD") and strcmp(MEMCACHED_BINARY, "memcached/memcached") == 0)
+
+    char *getenv_ptr;
+    if (bool((getenv_ptr= getenv("PWD"))) and strcmp(MEMCACHED_BINARY, "memcached/memcached") == 0)
     {
-      arg_buffer << getenv("PWD");
+      arg_buffer << getenv_ptr;
       arg_buffer << "/";
     }
     arg_buffer << MEMCACHED_BINARY;

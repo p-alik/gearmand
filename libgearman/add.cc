@@ -43,7 +43,8 @@
 #include <libgearman/add.hpp>
 #include <libgearman/packet.hpp>
 
-#include <cassert>
+#include "libgearman/assert.hpp"
+
 #include <cerrno>
 #include <cstdio>
 #include <cstdlib>

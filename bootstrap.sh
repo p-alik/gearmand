@@ -6,8 +6,8 @@ rm -r -f autom4te.cache/ config.h config.log config.status
 ./config/autorun.sh
 if [ $(uname) = "Darwin" ];
 then
-  ./configure CC=clang CXX=clang++
+  ./configure CC=clang CXX=clang++ --enable-assert
 else
-  ./configure
+  ./configure --enable-assert
 fi
 make

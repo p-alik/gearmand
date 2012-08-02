@@ -40,7 +40,8 @@
 #include <libgearman/add.hpp>
 #include <libgearman/universal.hpp>
 
-#include <cassert>
+#include "libgearman/assert.hpp"
+
 #include <cerrno>
 
 static inline gearman_command_t pick_command_by_priority(const gearman_job_priority_t &arg)

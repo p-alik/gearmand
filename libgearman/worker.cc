@@ -44,7 +44,8 @@
 
 #include "libgearman/pipe.h"
 
-#include <cassert>
+#include "libgearman/assert.hpp"
+
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -68,8 +69,10 @@ static inline struct _worker_function_st *_function_exist(gearman_worker_st *wor
   {
     if (function_length == function->function_length)
     {
-      if (not memcmp(function_name, function->function_name, function_length))
+      if (memcmp(function_name, function->function_name, function_length) == 0)
+      {
         break;
+      }
     }
   }
 
@@ -309,6 +312,7 @@ void gearman_worker_add_options(gearman_worker_st *worker,
   {
     worker->grab_job.command= GEARMAN_COMMAND_GRAB_JOB_UNIQ;
     gearman_return_t rc= gearman_packet_pack_header(&(worker->grab_job));
+    (void)(rc);
     assert(gearman_success(rc));
     worker->options.grab_uniq= true;
   }
@@ -317,6 +321,7 @@ void gearman_worker_add_options(gearman_worker_st *worker,
   {
     worker->grab_job.command= GEARMAN_COMMAND_GRAB_JOB_ALL;
     gearman_return_t rc= gearman_packet_pack_header(&(worker->grab_job));
+    (void)(rc);
     assert(gearman_success(rc));
     worker->options.grab_all= true;
   }
@@ -1333,7 +1338,7 @@ gearman_id_t gearman_worker_id(gearman_worker_st *self)
 {
   if (self == NULL)
   {
-    gearman_id_t handle= { INVALID_SOCKET };
+    gearman_id_t handle= { INVALID_SOCKET, INVALID_SOCKET };
     return handle;
   }
 

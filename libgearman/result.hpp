@@ -38,6 +38,8 @@
 
 #pragma once
 
+#include "libgearman/assert.hpp"
+
 struct gearman_result_st
 {
   bool _is_null;
@@ -56,27 +58,7 @@ struct gearman_result_st
     value.boolean= false;
   }
 
-  gearman_result_st(size_t initial_size) :
-    _is_null(true),
-    type(GEARMAN_RESULT_BINARY)
-  {
-    gearman_vector_st *allocated_str;
-    int limit= 2;
-    while (--limit)
-    {
-      if ((allocated_str= gearman_string_create(&value.string, initial_size)))
-      {
-        assert_msg(allocated_str == &value.string, "Programmer error, gearman_string_create() is not returning a correct value");
-        return;
-      }
-
-      // if we fail to allocate on the initial size, try to fail to "something"
-      initial_size= 0;
-    }
-
-    // We should never reach this point
-    assert_msg(allocated_str, "We should never exit with no allocation, most likely something in memory allocation is broken");
-  }
+  gearman_result_st(size_t initial_size);
 
   bool is_null() const
   {

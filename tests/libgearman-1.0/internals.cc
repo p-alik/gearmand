@@ -43,7 +43,6 @@
 
 using namespace libtest;
 
-#include <cassert>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>

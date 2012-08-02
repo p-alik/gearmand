@@ -41,7 +41,8 @@
 #include <libgearman/universal.hpp>
 #include <libgearman/do.hpp>
 
-#include <cassert>
+#include "libgearman/assert.hpp"
+
 #include <cerrno>
 #include <cstring>
 

@@ -41,7 +41,8 @@
 
 #include <libgearman-1.0/visibility.h>
 #include <libgearman/command.h>
-#include <cassert>
+
+#include "libgearman/assert.hpp"
 
 /**
  * Command info. Update GEARMAN_MAX_COMMAND_ARGS to the largest number in the
