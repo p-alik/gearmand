@@ -43,18 +43,29 @@ bool libhostile_is_accept()
   return false;
 }
 
-void set_poll_close(bool, int, int, enum hostile_poll_t)
+void set_poll_close(bool arg, int frequency, int not_until_arg, enum hostile_poll_t poll_type)
 {
+  (void)(arg);
+  (void)(frequency);
+  (void)(not_until_arg);
+  (void)(poll_type);
 }
 
-void set_accept_close(bool, int, int)
+void set_accept_close(bool arg, int frequency, int not_until_arg);
 {
+  (void)(arg);
+  (void)(frequency);
+  (void)(not_until_arg);
 }
 
-void set_recv_close(bool, int, int)
+void set_recv_close(bool arg, int frequency, int not_until_arg);
 {
+  (void)(arg);
+  (void)(frequency);
+  (void)(not_until_arg);
 }
 
-void set_send_close(bool, int, int)
+
+void set_send_close(bool arg, int frequency, int not_until_arg)
 {
 }
