@@ -26,12 +26,15 @@ noinst_HEADERS+= libhostile/realloc.h
 noinst_HEADERS+= libhostile/recv.h
 noinst_HEADERS+= libhostile/send.h
 noinst_HEADERS+= libhostile/setsockopt.h
+noinst_HEADERS+= libhostile/visibility.h
 noinst_HEADERS+= libhostile/write.h
 
 libhostile_libhostile_la_CFLAGS=
 libhostile_libhostile_la_LIBADD=
 libhostile_libhostile_la_SOURCES=
 libhostile_libhostile_la_DEPENDENCIES=
+
+libhostile_libhostile_la_CXXFLAGS= -DBUILDING_LIBHOSTILE
 
 libhostile_libhostile_la_SOURCES+= libhostile/initialize.c
 
@@ -53,4 +56,6 @@ libhostile_libhostile_la_SOURCES+= libhostile/recv.c
 libhostile_libhostile_la_SOURCES+= libhostile/send.c
 libhostile_libhostile_la_SOURCES+= libhostile/setsockopt.c
 libhostile_libhostile_la_SOURCES+= libhostile/write.c
+else
+libhostile_libhostile_la_SOURCES+= libhostile/dummy.c
 endif

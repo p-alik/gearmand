@@ -34,43 +34,27 @@
  *
  */
 
-#pragma once
+#include "config.h"
 
-#include <stdbool.h>
+#include "libhostile/hostile.h"
 
-#include "libhostile/visibility.h"
-
-enum hostile_poll_t
+bool libhostile_is_accept()
 {
-  HOSTILE_POLL_CLOSED,
-  HOSTILE_POLL_SHUT_WR,
-  HOSTILE_POLL_SHUT_RD
-};
-
-#ifndef __cplusplus
-typedef enum hostile_poll_t hostile_poll_t;
-#endif
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-LIBHOSTILE_API
-  bool libhostile_is_accept();
-
-LIBHOSTILE_API
-  void set_poll_close(bool arg, int frequency, int not_until_arg, enum hostile_poll_t poll_type);
-
-LIBHOSTILE_API
-  void set_accept_close(bool arg, int frequency, int not_until_arg);
-
-LIBHOSTILE_API
-  void set_recv_close(bool arg, int frequency, int not_until_arg);
-
-LIBHOSTILE_API
-  void set_send_close(bool arg, int frequency, int not_until_arg);
-
-#ifdef __cplusplus
+  return false;
 }
-#endif
+
+void set_poll_close(bool, int, int, enum hostile_poll_t)
+{
+}
+
+void set_accept_close(bool, int, int)
+{
+}
+
+void set_recv_close(bool, int, int)
+{
+}
+
+void set_send_close(bool, int, int)
+{
+}

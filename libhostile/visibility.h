@@ -1,6 +1,6 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  *
- *  Data Differential's libhostle
+ *  Data Differential YATL (i.e. libtest)  library
  *
  *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
  *
@@ -36,41 +36,42 @@
 
 #pragma once
 
-#include <stdbool.h>
-
-#include "libhostile/visibility.h"
-
-enum hostile_poll_t
-{
-  HOSTILE_POLL_CLOSED,
-  HOSTILE_POLL_SHUT_WR,
-  HOSTILE_POLL_SHUT_RD
-};
-
-#ifndef __cplusplus
-typedef enum hostile_poll_t hostile_poll_t;
-#endif
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-LIBHOSTILE_API
-  bool libhostile_is_accept();
-
-LIBHOSTILE_API
-  void set_poll_close(bool arg, int frequency, int not_until_arg, enum hostile_poll_t poll_type);
-
-LIBHOSTILE_API
-  void set_accept_close(bool arg, int frequency, int not_until_arg);
-
-LIBHOSTILE_API
-  void set_recv_close(bool arg, int frequency, int not_until_arg);
-
-LIBHOSTILE_API
-  void set_send_close(bool arg, int frequency, int not_until_arg);
-
-#ifdef __cplusplus
-}
-#endif
+#if defined(BUILDING_LIBHOSTILE)
+# if defined(HAVE_VISIBILITY) && HAVE_VISIBILITY
+#  define LIBHOSTILE_API __attribute__ ((visibility("default")))
+#  define LIBHOSTILE_LOCAL  __attribute__ ((visibility("default")))
+# elif defined (__SUNPRO_C) && (__SUNPRO_C >= 0x550)
+#  define LIBHOSTILE_API __global
+#  define LIBHOSTILE_LOCAL __global
+# elif defined(_MSC_VER)
+#  define LIBHOSTILE_API extern __declspec(dllexport) 
+#  define LIBHOSTILE_LOCAL extern __declspec(dllexport)
+# else
+#  define LIBHOSTILE_API
+#  define LIBHOSTILE_LOCAL
+# endif
+#else
+# if defined(BUILDING_LIBHOSTILE)
+#  if defined(HAVE_VISIBILITY) && HAVE_VISIBILITY
+#   define LIBHOSTILE_API __attribute__ ((visibility("default")))
+#   define LIBHOSTILE_LOCAL  __attribute__ ((visibility("hidden")))
+#  elif defined (__SUNPRO_C) && (__SUNPRO_C >= 0x550)
+#   define LIBHOSTILE_API __global
+#   define LIBHOSTILE_LOCAL __hidden
+#  elif defined(_MSC_VER)
+#   define LIBHOSTILE_API extern __declspec(dllexport) 
+#   define LIBHOSTILE_LOCAL
+#  else
+#   define LIBHOSTILE_API
+#   define LIBHOSTILE_LOCAL
+#  endif /* defined(HAVE_VISIBILITY) */
+# else  /* defined(BUILDING_LIBHOSTILE) */
+#  if defined(_MSC_VER)
+#   define LIBHOSTILE_API extern __declspec(dllimport) 
+#   define LIBHOSTILE_LOCAL
+#  else
+#   define LIBHOSTILE_API
+#   define LIBHOSTILE_LOCAL
+#  endif /* defined(_MSC_VER) */
+# endif /* defined(BUILDING_LIBHOSTILE) */
+#endif /* defined(BUILDING_LIBHOSTILEINTERNAL) */
