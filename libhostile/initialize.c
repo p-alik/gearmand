@@ -36,7 +36,7 @@
 
 #include <config.h>
 
-#if defined(TARGET_OS_LINUX) && TARGET_OS_LINUX
+#if defined(BUILD_LIBHOSTILE) && BUILD_LIBHOSTILE
 
 #include <libhostile/initialize.h>
 
@@ -70,7 +70,7 @@ void hostile_dump(void)
   fprintf(stderr, "\n--------------------------------------------------------\n");
 }
 
-#else // TARGET_OS_LINUX
+#else // BUILD_LIBHOSTILE
 
 void hostile_initialize(void);
 
@@ -78,4 +78,4 @@ void hostile_initialize(void)
 {
 }
 
-#endif // TARGET_OS_LINUX
+#endif // BUILD_LIBHOSTILE

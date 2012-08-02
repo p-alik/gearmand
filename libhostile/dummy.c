@@ -38,6 +38,7 @@
 
 #include "libhostile/hostile.h"
 
+#if defined(BUILD_LIBHOSTILE) && BUILD_LIBHOSTILE == 0
 bool libhostile_is_accept()
 {
   return false;
@@ -51,14 +52,14 @@ void set_poll_close(bool arg, int frequency, int not_until_arg, enum hostile_pol
   (void)(poll_type);
 }
 
-void set_accept_close(bool arg, int frequency, int not_until_arg);
+void set_accept_close(bool arg, int frequency, int not_until_arg)
 {
   (void)(arg);
   (void)(frequency);
   (void)(not_until_arg);
 }
 
-void set_recv_close(bool arg, int frequency, int not_until_arg);
+void set_recv_close(bool arg, int frequency, int not_until_arg)
 {
   (void)(arg);
   (void)(frequency);
@@ -72,3 +73,4 @@ void set_send_close(bool arg, int frequency, int not_until_arg)
   (void)frequency;
   (void)not_until_arg;
 }
+#endif
