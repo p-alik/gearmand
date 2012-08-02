@@ -824,15 +824,14 @@ gearman_packet_st *gearman_connection_st::receiving(gearman_packet_st& packet_ar
   case GEARMAN_CON_RECV_UNIVERSAL_NONE:
     if (state != GEARMAN_CON_UNIVERSAL_CONNECTED)
     {
-      gearman_error(universal, GEARMAN_NOT_CONNECTED, "not connected");
-      ret= GEARMAN_NOT_CONNECTED;
+      ret= gearman_error(universal, GEARMAN_NOT_CONNECTED, "not connected");
       return NULL;
     }
 
     _recv_packet= gearman_packet_create(universal, &packet_arg);
     if (_recv_packet == NULL)
     {
-      ret= GEARMAN_MEMORY_ALLOCATION_FAILURE;
+      ret= gearman_error(universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "gearman_packet_create()");
       return NULL;
     }
 
@@ -894,7 +893,7 @@ gearman_packet_st *gearman_connection_st::receiving(gearman_packet_st& packet_ar
     packet_arg.data= gearman_malloc((*packet_arg.universal), packet_arg.data_size);
     if (packet_arg.data == NULL)
     {
-      ret= GEARMAN_MEMORY_ALLOCATION_FAILURE;
+      ret= gearman_error(universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "gearman_malloc((*packet_arg.universal), packet_arg.data_size)");
       close_socket();
       return NULL;
     }
