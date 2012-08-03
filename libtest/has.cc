@@ -82,6 +82,7 @@ bool has_gearmand()
 {
   if (HAVE_GEARMAND_BINARY)
   {
+#if defined(HAVE_GEARMAND_BINARY) && HAVE_GEARMAND_BINARY
     std::stringstream arg_buffer;
 
     char *getenv_ptr;
@@ -97,6 +98,7 @@ bool has_gearmand()
     {
       return true;
     }
+#endif
   }
 
   return false;
