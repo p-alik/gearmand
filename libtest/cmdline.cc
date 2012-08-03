@@ -96,6 +96,7 @@ namespace {
     return arg_buffer.str();
   }
 
+#if 0
   std::string print_argv(char** argv)
   {
     std::stringstream arg_buffer;
@@ -107,6 +108,7 @@ namespace {
 
     return arg_buffer.str();
   }
+#endif
 
   static Application::error_t int_to_error_t(int arg)
   {
