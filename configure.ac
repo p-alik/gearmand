@@ -249,6 +249,7 @@ AX_APPEND_COMPILE_FLAGS([-Werror -Wsign-compare])
 AX_APPEND_COMPILE_FLAGS([-Werror -Wmaybe-uninitialized])
 AX_APPEND_COMPILE_FLAGS([-Werror -Wunused-variable])
 AX_APPEND_COMPILE_FLAGS([-Werror -Wunused-result])
+AX_APPEND_COMPILE_FLAGS([-Werror -Wunused-parameter])
 
 AC_CONFIG_FILES(Makefile
                 docs/conf.py
