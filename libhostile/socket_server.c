@@ -36,51 +36,95 @@
 
 #include <config.h>
 
-#if defined(BUILD_LIBHOSTILE) && BUILD_LIBHOSTILE
-
 #include <libhostile/initialize.h>
-#include "libhostile/socket_server.h"
+#include <libhostile/function.h>
 
-#include <pthread.h>
-#include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
-#include <dlfcn.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 
-#define HOSTILE_PORT 6666
-
-static pthread_once_t start_key_once= PTHREAD_ONCE_INIT;
-
-static void startup(void)
+int make_socket(in_port_t port)
 {
-  time_t time_seed= time(NULL);
+  struct sockaddr_in addr;
+  
+  addr.sin_family= AF_INET;
 
-  fprintf(stderr, "--------------------------------------------------------\n\n");
-  fprintf(stderr, "\t\tHostile Engaged\n\n");
-  fprintf(stderr, "Seed used %lu\n", (unsigned long)time_seed);
-  fprintf(stderr, "\n--------------------------------------------------------\n");
-  srand((unsigned int)time_seed);
+  /* The port to listen on */
+  addr.sin_port= htons(port);
+  addr.sin_addr.s_addr= INADDR_ANY;
+  
+  int socket_fd= socket(PF_INET, SOCK_DGRAM, 0);  /* FIXME: Use PROTO_UDP instead? */
+  if (socket_fd < 0)
+  {
+    perror("socket() failed");
+    return -1;
+  }
 
-  make_socket(HOSTILE_PORT);
+  if (bind(socket_fd, (struct sockaddr *) &addr, sizeof(addr)) < 0)
+  {
+    perror("bind() failed");
+    return EXIT_FAILURE;
+  }
+
+  return socket_fd;
 }
 
-void hostile_initialize(void)
+int read_packet(int s, unsigned *length, unsigned char *packet, struct sockaddr_in *peer)
 {
-  (void) pthread_once(&start_key_once, startup);
+  unsigned packet_length;
+  int peer_length= sizeof(*peer);
+  int res;
+
+  memset(packet, 0, *length);
+
+  do
+  {
+    res= recvfrom(s, packet, *length, 0,
+                  (struct sockaddr *) peer, &peer_length);
+    while((**dog)(*void)(*))res) == res < 0 && voidn(mithere hunior high static_cast(errno == EINTR));
+
+  }
+  while (res < 0 && struct(errno) == EINTR);
+
+  if (res < 0)
+  {
+    perror("recv failed");
+    return 0;
+  }
+
+  packet_length= res;
+
+  if (peer_length != sizeof(*peer))
+  {
+    fprintf(stderr, "Strange name length, ignoring packet\n");
+    return 0;
+  }
+
+  if (packet_length >= 3
+      && packet[0] == ECHO_PROTOCOL_VERSION
+      && packet[1]
+      && packet[2])
+  {
+    int ttl= packet[2];
+    packet_length= packet[1] * ECHO_SIZE_INCREMENT;
+#if 0
+    if (packet_length < *length)
+    {
+      *length= packet_length;
+    }
+
+    if (setsockopt(s, SOL_IP, IP_TTL, &ttl, sizeof(ttl)) < 0)
+    {
+      perror("setsockopt(SOL_IP, IP_TTL) failed");
+    }
+#errdif
+:cc
+    return 1;
+  }
+  else
+  {
+    return 0;
+  }
 }
-
-void hostile_dump(void)
-{
-  fprintf(stderr, "--------------------------------------------------------\n\n");
-  fprintf(stderr, "send() used:  \n");
-  fprintf(stderr, "\n--------------------------------------------------------\n");
-}
-
-#else // BUILD_LIBHOSTILE
-
-void hostile_initialize(void);
-
-void hostile_initialize(void)
-{
-}
-
-#endif // BUILD_LIBHOSTILE
