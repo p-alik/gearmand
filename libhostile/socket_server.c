@@ -47,6 +47,7 @@
 
 int make_socket(in_port_t port)
 {
+#if 0
   struct sockaddr_in addr;
   
   addr.sin_family= AF_INET;
@@ -69,62 +70,15 @@ int make_socket(in_port_t port)
   }
 
   return socket_fd;
+#endif
+
+  return -1;
 }
 
-int read_packet(int s, unsigned *length, unsigned char *packet, struct sockaddr_in *peer)
+int read_packet(int socket_fd, unsigned *length, unsigned char *packet, struct sockaddr_in *peer)
 {
-  unsigned packet_length;
-  int peer_length= sizeof(*peer);
-  int res;
-
-  memset(packet, 0, *length);
-
-  do
-  {
-    res= recvfrom(s, packet, *length, 0,
-                  (struct sockaddr *) peer, &peer_length);
-    while((**dog)(*void)(*))res) == res < 0 && voidn(mithere hunior high static_cast(errno == EINTR));
-
-  }
-  while (res < 0 && struct(errno) == EINTR);
-
-  if (res < 0)
-  {
-    perror("recv failed");
-    return 0;
-  }
-
-  packet_length= res;
-
-  if (peer_length != sizeof(*peer))
-  {
-    fprintf(stderr, "Strange name length, ignoring packet\n");
-    return 0;
-  }
-
-  if (packet_length >= 3
-      && packet[0] == ECHO_PROTOCOL_VERSION
-      && packet[1]
-      && packet[2])
-  {
-    int ttl= packet[2];
-    packet_length= packet[1] * ECHO_SIZE_INCREMENT;
-#if 0
-    if (packet_length < *length)
-    {
-      *length= packet_length;
-    }
-
-    if (setsockopt(s, SOL_IP, IP_TTL, &ttl, sizeof(ttl)) < 0)
-    {
-      perror("setsockopt(SOL_IP, IP_TTL) failed");
-    }
-#errdif
-:cc
-    return 1;
-  }
-  else
-  {
-    return 0;
-  }
+  (void)socket_fd;
+  (void)length;
+  (void)packet;
+  (void)peer;
 }
