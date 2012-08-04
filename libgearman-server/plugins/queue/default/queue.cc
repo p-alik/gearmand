@@ -61,7 +61,7 @@ namespace gearmand { namespace plugins { namespace queue { class Default; }}}
 /* Queue callback functions. */
 static gearmand_error_t __add(gearman_server_st *server __attribute__((unused)), 
                               void *context __attribute__((unused)),
-                              const char *unique, size_t unique_size __attribute__((unused)),
+                              const char *unique __attribute__((unused)), size_t unique_size __attribute__((unused)),
                               const char *function_name __attribute__((unused)),
                               size_t function_name_size __attribute__((unused)),
                               const void *data __attribute__((unused)), size_t data_size __attribute__((unused)),

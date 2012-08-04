@@ -40,7 +40,7 @@
 struct gearman_server_worker_st
 {
   uint32_t job_count;
-  uint32_t timeout;
+  long timeout; // struct timeval.tv_sec
   gearman_server_con_st *con;
   gearman_server_worker_st *con_next;
   gearman_server_worker_st *con_prev;

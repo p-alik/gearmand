@@ -71,7 +71,7 @@ static test_return_t curl_no_function_TEST(void *)
   curl.add_option(host_url);
 
   test_compare(Application::SUCCESS, curl.run());
-  test_compare(Application::SUCCESS, curl.wait(false));
+  test_compare(Application::SUCCESS, curl.join());
 
   return TEST_SUCCESS;
 }
@@ -85,7 +85,7 @@ static test_return_t curl_function_no_body_TEST(void *)
   curl.add_option("--header", "\"X-Gearman-Unique: curl_function_no_body_TEST\"");
 
   test_compare(Application::SUCCESS, curl.run());
-  test_compare(Application::SUCCESS, curl.wait(false));
+  test_compare(Application::SUCCESS, curl.join());
   test_zero(curl.stdout_result_length());
 
   return TEST_SUCCESS;
@@ -107,7 +107,7 @@ static test_return_t curl_function_TEST(void *)
   curl.add_option(worker_url);
 
   test_compare(Application::SUCCESS, curl.run());
-  test_compare(Application::SUCCESS, curl.wait(false));
+  test_compare(Application::SUCCESS, curl.join());
   test_zero(curl.stdout_result_length());
 
   struct stat stat_buffer;
@@ -149,7 +149,7 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
   const char *argv[]= { "--protocol=http", buffer, 0 };
   if (server_startup(servers, "gearmand", libtest::default_port(), 2, argv) == false)
   {
-    error= TEST_FAILURE;
+    error= TEST_SKIPPED;
     return NULL;
   }
 
@@ -210,7 +210,7 @@ collection_st collection[] ={
   { 0, 0, 0, 0 }
 };
 
-void get_world(Framework *world)
+void get_world(libtest::Framework *world)
 {
   world->collections(collection);
   world->create(world_create);

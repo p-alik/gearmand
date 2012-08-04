@@ -84,6 +84,9 @@ valgrind-internals: tests/libgearman-1.0/internals_test gearmand/gearmand
 valgrind-worker: tests/libgearman-1.0/worker_test gearmand/gearmand
 	@$(VALGRIND_COMMAND) tests/libgearman-1.0/worker_test
 
+massif-worker: tests/libgearman-1.0/worker_test gearmand/gearmand
+	@$(MASSIF_COMMAND) tests/libgearman-1.0/worker_test
+
 helgrind-worker: tests/libgearman-1.0/worker_test gearmand/gearmand
 	@$(HELGRIND_COMMAND) tests/libgearman-1.0/worker_test
 
@@ -104,3 +107,4 @@ gdb-client: tests/libgearman-1.0/client_test gearmand/gearmand
 
 valgrind-client: tests/libgearman-1.0/client_test gearmand/gearmand
 	@$(VALGRIND_COMMAND) tests/libgearman-1.0/client_test
+

@@ -44,7 +44,8 @@
 #include <config.h>
 #include <libgearman/common.h>
 
-#include <cassert>
+#include "libgearman/assert.hpp"
+
 #include <cerrno>
 #include <cstdio>
 #include <cstdlib>
@@ -572,7 +573,7 @@ gearman_return_t gearman_connection_st::lookup()
 
   char port_str[GEARMAN_NI_MAXSERV]= { 0 };
   int port_str_length;
-  if ((port_str_length= snprintf(port_str, sizeof(port_str), "%hu", uint16_t(port))) >= sizeof(port_str))
+  if (size_t(port_str_length= snprintf(port_str, sizeof(port_str), "%hu", uint16_t(port))) >= sizeof(port_str))
   {
     return gearman_universal_set_error(universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, GEARMAN_AT, "snprintf(%d)", port_str_length);
   }
@@ -824,15 +825,14 @@ gearman_packet_st *gearman_connection_st::receiving(gearman_packet_st& packet_ar
   case GEARMAN_CON_RECV_UNIVERSAL_NONE:
     if (state != GEARMAN_CON_UNIVERSAL_CONNECTED)
     {
-      gearman_error(universal, GEARMAN_NOT_CONNECTED, "not connected");
-      ret= GEARMAN_NOT_CONNECTED;
+      ret= gearman_error(universal, GEARMAN_NOT_CONNECTED, "not connected");
       return NULL;
     }
 
     _recv_packet= gearman_packet_create(universal, &packet_arg);
     if (_recv_packet == NULL)
     {
-      ret= GEARMAN_MEMORY_ALLOCATION_FAILURE;
+      ret= gearman_error(universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "gearman_packet_create()");
       return NULL;
     }
 
@@ -894,7 +894,7 @@ gearman_packet_st *gearman_connection_st::receiving(gearman_packet_st& packet_ar
     packet_arg.data= gearman_malloc((*packet_arg.universal), packet_arg.data_size);
     if (packet_arg.data == NULL)
     {
-      ret= GEARMAN_MEMORY_ALLOCATION_FAILURE;
+      ret= gearman_error(universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "gearman_malloc((*packet_arg.universal), packet_arg.data_size)");
       close_socket();
       return NULL;
     }

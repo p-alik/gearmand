@@ -43,7 +43,6 @@
 
 using namespace libtest;
 
-#include <cassert>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -431,14 +430,14 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
   */
   if (server_startup(servers, "gearmand", libtest::default_port(), 0, NULL) == false)
   {
-    error= TEST_FAILURE;
+    error= TEST_SKIPPED;
     return NULL;
   }
 
   return NULL;
 }
 
-void get_world(Framework *world)
+void get_world(libtest::Framework *world)
 {
   world->collections(collection);
   world->create(world_create);

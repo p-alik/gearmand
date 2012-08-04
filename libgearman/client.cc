@@ -41,8 +41,9 @@
 #include <libgearman/common.h>
 #include <libgearman/log.hpp>
 
+#include "libgearman/assert.hpp"
+
 #include <arpa/inet.h>
-#include <cassert>
 #include <cerrno>
 #include <cstdio>
 #include <cstdlib>
@@ -760,6 +761,7 @@ gearman_return_t gearman_client_do_low_background(gearman_client_st *client,
 gearman_status_t gearman_client_unique_status(gearman_client_st *client,
                                               const char *unique, size_t unique_length)
 {
+  (void)unique_length;
   gearman_status_t status;
   gearman_init(status);
 
@@ -1551,9 +1553,9 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
                 return GEARMAN_SERVER_ERROR;
               }
               else if (client->con->_packet.command == GEARMAN_COMMAND_STATUS_RES_UNIQUE and
-                       strncmp(gearman_task_unique(client->task),
+                       (strncmp(gearman_task_unique(client->task),
                                static_cast<char *>(client->con->_packet.arg[0]),
-                               client->con->_packet.arg_size[0]) == 0)
+                               client->con->_packet.arg_size[0]) == 0))
               { }
               else if (strncmp(client->task->job_handle,
                                static_cast<char *>(client->con->_packet.arg[0]),

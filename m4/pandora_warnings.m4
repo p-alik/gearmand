@@ -98,7 +98,7 @@ AC_DEFUN([PANDORA_WARNINGS],[
     AC_CACHE_CHECK([whether it is safe to use -floop-parallelize-all],
       [ac_cv_safe_to_use_floop_parallelize_all_],
       [save_CFLAGS="$CFLAGS"
-       CFLAGS="-floop-parallelize-all ${AM_CFLAGS} ${CFLAGS}"
+       CFLAGS="-Werror -floop-parallelize-all ${AM_CFLAGS} ${CFLAGS}"
        AC_COMPILE_IFELSE(
          [AC_LANG_PROGRAM([],[])],
          [ac_cv_safe_to_use_floop_parallelize_all_=yes],
@@ -236,8 +236,8 @@ uint16_t x= htons(80);
               [NO_CONVERSION="-Wno-conversion"])
       ])
 
-      CC_WARNINGS="${BASE_WARNINGS} -Wstrict-prototypes -Wmissing-prototypes -Wredundant-decls -Wmissing-declarations -Wcast-align -Wsign-compare ${CC_WARNINGS_FULL}"
-      CXX_WARNINGS="${BASE_WARNINGS} -Woverloaded-virtual -Wnon-virtual-dtor -Wctor-dtor-privacy -Wno-long-long -Wsign-compare ${CXX_WARNINGS_FULL}"
+      CC_WARNINGS="${BASE_WARNINGS} -Wstrict-prototypes -Wmissing-prototypes -Wredundant-decls -Wmissing-declarations -Wcast-align ${CC_WARNINGS_FULL}"
+      CXX_WARNINGS="${BASE_WARNINGS} -Woverloaded-virtual -Wnon-virtual-dtor -Wctor-dtor-privacy -Wno-long-long ${CXX_WARNINGS_FULL}"
 
       AC_CACHE_CHECK([whether it is safe to use -Wmissing-declarations from C++],
         [ac_cv_safe_to_use_Wmissing_declarations_],

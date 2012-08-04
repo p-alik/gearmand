@@ -301,7 +301,7 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
 {
   if (server_startup(servers, "gearmand", default_port(), 0, NULL) == false)
   {
-    error= TEST_FAILURE;
+    error= TEST_SKIPPED;
     return NULL;
   }
 
@@ -330,7 +330,7 @@ static bool world_destroy(void *object)
 }
 
 
-void get_world(Framework *world)
+void get_world(libtest::Framework *world)
 {
   world->collections(collection);
   world->create(world_create);

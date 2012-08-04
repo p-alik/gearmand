@@ -113,7 +113,7 @@ static uint32_t internal_generate_hash(const char *key, size_t key_length)
 }
 
 /* Prototypes */
-static void *client_test_temp_worker(gearman_job_st *job, void *context,
+static void *client_test_temp_worker(gearman_job_st *, void *,
                                      size_t *result_size, gearman_return_t *ret_ptr)
 {
   *result_size= 0;
@@ -192,7 +192,7 @@ static test_return_t allocation_test(void *)
   return TEST_SUCCESS;
 }
 
-static test_return_t clone_test(void *object)
+static test_return_t clone_test(void *)
 {
   {
     gearman_client_st *client= gearman_client_clone(NULL, NULL);
@@ -835,7 +835,7 @@ static test_return_t loop_test(void *)
   return TEST_SUCCESS;
 }
 
-static test_return_t regression_785203_do_test(void *object)
+static test_return_t regression_785203_do_test(void *)
 {
   gearman_client_st *client;
   test_truth(client= gearman_client_create(NULL));
@@ -917,7 +917,7 @@ static test_return_t regression_785203_do_background_test(void *object)
   return TEST_SUCCESS;
 }
 
-static test_return_t regression2_TEST(void *object)
+static test_return_t regression2_TEST(void *)
 {
   Client client;
 
@@ -1089,14 +1089,6 @@ static test_return_t strerror_count(void *)
 }
 
 #undef MAKE_NEW_STRERROR
-
-static char * make_number(uint32_t expected, uint32_t got)
-{
-  char buffer[1024];
-  snprintf(buffer, sizeof(buffer), "Expected %uU, got %uU", expected, got);
-
-  return strdup(buffer);
-}
 
 static test_return_t strerror_strings(void *)
 {
@@ -1353,7 +1345,7 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
 {
   if (server_startup(servers, "gearmand", libtest::default_port(), 0, NULL) == false)
   {
-    error= TEST_FAILURE;
+    error= TEST_SKIPPED;
     return NULL;
   }
 
@@ -1627,7 +1619,7 @@ collection_st collection[] ={
   {0, 0, 0, 0}
 };
 
-void get_world(Framework *world)
+void get_world(libtest::Framework *world)
 {
   world->collections(collection);
   world->create(world_create);

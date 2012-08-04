@@ -45,7 +45,7 @@ static test_return_t collection_cleanup(void *object)
 }
 
 
-static void *world_create(server_startup_st& servers, test_return_t& error)
+static void *world_create(server_startup_st& servers, test_return_t&)
 {
   return new Context(default_port(), servers);
 }
@@ -74,7 +74,7 @@ collection_st collection[] ={
   {0, 0, 0, 0}
 };
 
-void get_world(Framework *world)
+void get_world(libtest::Framework *world)
 {
   world->collections(collection);
   world->create(world_create);

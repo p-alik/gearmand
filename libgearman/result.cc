@@ -38,12 +38,36 @@
 #include <config.h>
 #include <libgearman/common.h>
 
-#include <cassert>
+#include "libgearman/assert.hpp"
+
 #include <cstdlib>
 #include <limits>
 #include <memory>
 
 #include <libgearman/result.hpp>
+
+
+gearman_result_st::gearman_result_st(size_t initial_size) :
+  _is_null(true),
+  type(GEARMAN_RESULT_BINARY)
+{
+  gearman_vector_st *allocated_str;
+  int limit= 2;
+  while (--limit)
+  {
+    if ((allocated_str= gearman_string_create(&value.string, initial_size)))
+    {
+      assert_msg(allocated_str == &value.string, "Programmer error, gearman_string_create() is not returning a correct value");
+      return;
+    }
+
+    // if we fail to allocate on the initial size, try to fail to "something"
+    initial_size= 0;
+  }
+
+  // We should never reach this point
+  assert_msg(allocated_str, "We should never exit with no allocation, most likely something in memory allocation is broken");
+}
 
 bool gearman_result_is_null(const gearman_result_st *self)
 {

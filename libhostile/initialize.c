@@ -36,14 +36,17 @@
 
 #include <config.h>
 
-#if defined(TARGET_OS_LINUX) && TARGET_OS_LINUX
+#if defined(BUILD_LIBHOSTILE) && BUILD_LIBHOSTILE
 
 #include <libhostile/initialize.h>
+#include "libhostile/socket_server.h"
 
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <dlfcn.h>
+
+#define HOSTILE_PORT 6666
 
 static pthread_once_t start_key_once= PTHREAD_ONCE_INIT;
 
@@ -56,6 +59,8 @@ static void startup(void)
   fprintf(stderr, "Seed used %lu\n", (unsigned long)time_seed);
   fprintf(stderr, "\n--------------------------------------------------------\n");
   srand((unsigned int)time_seed);
+
+  make_socket(HOSTILE_PORT);
 }
 
 void hostile_initialize(void)
@@ -70,7 +75,7 @@ void hostile_dump(void)
   fprintf(stderr, "\n--------------------------------------------------------\n");
 }
 
-#else // TARGET_OS_LINUX
+#else // BUILD_LIBHOSTILE
 
 void hostile_initialize(void);
 
@@ -78,4 +83,4 @@ void hostile_initialize(void)
 {
 }
 
-#endif // TARGET_OS_LINUX
+#endif // BUILD_LIBHOSTILE

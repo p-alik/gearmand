@@ -153,7 +153,7 @@ test_return_t gearman_client_add_task_test(void *object)
   test_compare(ret, GEARMAN_SUCCESS);
   test_truth(task);
   test_true(gearman_task_unique(task));
-  test_compare(GEARMAN_MAX_UUID_SIZE, strlen(gearman_task_unique(task)));
+  test_compare(size_t(GEARMAN_MAX_UUID_SIZE), strlen(gearman_task_unique(task)));
 
   do
   {
@@ -501,7 +501,7 @@ test_return_t gearman_client_add_task_pause_test(void *object)
   test_compare(ret, GEARMAN_SUCCESS);
   test_truth(task);
   test_true(gearman_task_unique(task));
-  test_compare(GEARMAN_MAX_UUID_SIZE, strlen(gearman_task_unique(task)));
+  test_compare(size_t(GEARMAN_MAX_UUID_SIZE), strlen(gearman_task_unique(task)));
 
   do
   {
@@ -591,7 +591,7 @@ test_return_t gearman_client_set_task_context_free_fn_test(void *object)
   test_compare(ret, GEARMAN_SUCCESS);
   test_truth(task);
   test_true(gearman_task_unique(task));
-  test_compare(GEARMAN_MAX_UUID_SIZE, strlen(gearman_task_unique(task)));
+  test_compare(size_t(GEARMAN_MAX_UUID_SIZE), strlen(gearman_task_unique(task)));
   gearman_task_set_context(task, &task_free_foo);
 
   do

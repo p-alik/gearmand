@@ -82,7 +82,14 @@ public:
   std::string mysql_password;
   std::string mysql_db;
   std::string mysql_table;
+
+  in_port_t port() const
+  {
+    return _port;
+  }
+
 private:
+  in_port_t _port;
 };
 
 MySQL::MySQL() :
@@ -93,6 +100,7 @@ MySQL::MySQL() :
   {
     command_line_options().add_options()
       ("mysql-host", boost::program_options::value(&mysql_host)->default_value("localhost"), "MySQL host.")
+      ("mysql-port", boost::program_options::value(&_port)->default_value(3306), "Port of server. (by default 3306)")
       ("mysql-user", boost::program_options::value(&mysql_user)->default_value(""), "MySQL user.")
       ("mysql-password", boost::program_options::value(&mysql_password)->default_value(""), "MySQL user password.")
       ("mysql-db", boost::program_options::value(&mysql_db)->default_value(""), "MySQL database.")
@@ -213,7 +221,8 @@ gearmand_error_t _initialize(gearman_server_st *server, gearmand::plugins::queue
                           queue->mysql_host.c_str(),
                           queue->mysql_user.c_str(),
                           queue->mysql_password.c_str(),
-                          queue->mysql_db.c_str(), 0, NULL, 0))
+                          queue->mysql_db.c_str(), 
+                          queue->port(), NULL, 0))
   {
     gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "Failed to connect to database: %s", mysql_error(queue->con));
 

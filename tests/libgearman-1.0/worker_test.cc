@@ -1077,7 +1077,13 @@ static test_return_t _increase_TEST(gearman_function_t &func, gearman_client_opt
                                                            gearman_worker_options_t(),
                                                            0)); // timeout
 
-  for (size_t x= 1; x < 24; x++)
+  size_t max_block_size= 4;
+  if (libtest::is_massive())
+  {
+    max_block_size= 24;
+  }
+
+  for (size_t x= 1; x < max_block_size; x++)
   {
     libtest::vchar_t workload;
     libtest::vchar::make(workload, x * block_size);
@@ -1187,7 +1193,7 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
 {
   if (server_startup(servers, "gearmand", libtest::default_port(), 0, NULL) == false)
   {
-    error= TEST_FAILURE;
+    error= TEST_SKIPPED;
     return NULL;
   }
 
@@ -1254,7 +1260,7 @@ collection_st collection[] ={
   {0, 0, 0, 0}
 };
 
-void get_world(Framework *world)
+void get_world(libtest::Framework *world)
 {
   world->collections(collection);
   world->create(world_create);

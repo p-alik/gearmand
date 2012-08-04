@@ -517,35 +517,48 @@ gearmand_error_t gearman_server_con_add_job_timeout(gearman_server_con_st *con, 
 
     /* It makes no sense to add a timeout to a connection that has no workers for a job */
     assert(worker);
-    if (worker && worker->timeout)
+    if (worker)
     {
-      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Adding timeout on %s for %s (%d)",
-                         job->function->function_name,
-                         job->job_handle,
-                         worker->timeout);
-
-      if (con->timeout_event == NULL)
+      // We treat 0 and -1 as being the same (i.e. no timer)
+      if (worker->timeout > 0)
       {
-        gearmand_con_st *dcon= con->con.context;
-        con->timeout_event= (struct event *)malloc(sizeof(struct event));
+        if (worker->timeout < 1000)
+        {
+          worker->timeout= 1000;
+        }
+
+        gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Adding timeout on %s for %s (%dl)",
+                           job->function->function_name,
+                           job->job_handle,
+                           worker->timeout);
         if (con->timeout_event == NULL)
         {
-          return gearmand_gerror("creating timeout event", GEARMAN_MEMORY_ALLOCATION_FAILURE);
+          gearmand_con_st *dcon= con->con.context;
+          con->timeout_event= (struct event *)malloc(sizeof(struct event));
+          if (con->timeout_event == NULL)
+          {
+            return gearmand_gerror("creating timeout event", GEARMAN_MEMORY_ALLOCATION_FAILURE);
+          }
+          timeout_set(con->timeout_event, _server_job_timeout, job);
+          event_base_set(dcon->thread->base, con->timeout_event);
         }
-        timeout_set(con->timeout_event, _server_job_timeout, job);
-        event_base_set(dcon->thread->base, con->timeout_event);
+
+        /* XXX Right now, if a worker has diff timeouts for functions I think
+          this will overwrite any existing timeouts on that event. One
+          solution to that would be to record the timeout from last time,
+          and only set this one if it is longer than that one. */
+
+        struct timeval timeout_tv = { 0 , 0 };
+        timeout_tv.tv_sec= worker->timeout;
+        timeout_add(con->timeout_event, &timeout_tv);
       }
-
-      /* XXX Right now, if a worker has diff timeouts for functions I think
-        this will overwrite any existing timeouts on that event. One
-        solution to that would be to record the timeout from last time,
-        and only set this one if it is longer than that one. */
-
-      struct timeval timeout_tv = { 0 , 0 };
-      timeout_tv.tv_sec= worker->timeout;
-      timeout_add(con->timeout_event, &timeout_tv);
+      else if (con->timeout_event) // Delete the timer if it exists
+      {
+        gearman_server_con_delete_timeout(con);
+      }
     }
   }
+
   return GEARMAN_SUCCESS;
 }
 

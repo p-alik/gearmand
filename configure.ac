@@ -6,7 +6,7 @@
 # Use and distribution licensed under the BSD license.  See
 # the COPYING file in this directory for full text.
 
-AC_INIT([gearmand],[0.34],[https://bugs.launchpad.net/gearmand],[gearmand],[http://gearman.info/])
+AC_INIT([gearmand],[0.35],[https://bugs.launchpad.net/gearmand],[gearmand],[http://gearman.info/])
 
 AC_CONFIG_AUX_DIR(config)
 
@@ -232,13 +232,24 @@ AX_CHECK_LIBRARY([LIBUUID], [uuid/uuid.h], [uuid],
                   AC_MSG_WARN([Unable to find libuuid])
                   ])
 
+AX_CHECK_ZLIB
+
+AS_IF([test "x${TARGET_LINUX}" = "xtrue"], [AC_DEFINE([BUILD_LIBHOSTILE], [1], [Build libhostile])], [AC_DEFINE([BUILD_LIBHOSTILE], [0], [Build libhostile])])
+AM_CONDITIONAL(TARGET_HOSTILE, [test "x${TARGET_LINUX}" = "xtrue"])
+
 AX_CHECK_SOCK_CLOEXEC([AC_DEFINE([HAVE_SOCK_CLOEXEC], [1], [Check for SOCK_CLOEXEC.])],
                        [AC_DEFINE([HAVE_SOCK_CLOEXEC], [0], [Check for SOCK_CLOEXEC.])])
 
-AX_APPEND_COMPILE_FLAGS([-fstack-protector-all])
-AX_APPEND_COMPILE_FLAGS([-ggdb])
-AX_APPEND_COMPILE_FLAGS([-floop-parallelize-all])
-AX_APPEND_LINK_FLAGS([-z relro -z now])
+AX_APPEND_COMPILE_FLAGS([-Werror -Wall])
+AX_APPEND_COMPILE_FLAGS([-Werror -Wextra])
+AX_APPEND_COMPILE_FLAGS([-Werror -fstack-protector-all])
+AX_APPEND_COMPILE_FLAGS([-Werror -ggdb])
+AX_APPEND_COMPILE_FLAGS([-Werror -floop-parallelize-all])
+AX_APPEND_COMPILE_FLAGS([-Werror -Wsign-compare])
+AX_APPEND_COMPILE_FLAGS([-Werror -Wmaybe-uninitialized])
+AX_APPEND_COMPILE_FLAGS([-Werror -Wunused-variable])
+AX_APPEND_COMPILE_FLAGS([-Werror -Wunused-result])
+AX_APPEND_COMPILE_FLAGS([-Werror -Wunused-parameter])
 
 AC_CONFIG_FILES(Makefile
                 docs/conf.py

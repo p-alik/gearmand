@@ -39,7 +39,7 @@
 
 #pragma once
 
-#include <libgearman/assert.hpp>
+struct gearman_result_st;
 
 #include <libgearman-1.0/gearman.h>
 

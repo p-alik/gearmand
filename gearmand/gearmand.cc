@@ -427,7 +427,7 @@ static void _shutdown_handler(int signal_arg)
   }
 }
 
-static void _reset_log_handler(int signal_arg)
+static void _reset_log_handler(int) // signal_arg
 {
   gearmand_log_info_st *log_info= static_cast<gearmand_log_info_st *>(Gearmand()->log_context);
 

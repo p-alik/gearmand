@@ -211,6 +211,7 @@ struct Limit
 // GEARMAN_SUCCESS
 static gearman_return_t job_retry_WORKER(gearman_job_st* job, void *context_arg)
 {
+  (void)(job);
   assert(gearman_job_workload_size(job) == 0);
   assert(gearman_job_workload(job) == NULL);
   Limit *limit= (Limit*)context_arg;
@@ -381,7 +382,7 @@ collection_st collection[] ={
   {0, 0, 0, 0}
 };
 
-void get_world(Framework *world)
+void get_world(libtest::Framework *world)
 {
   world->collections(collection);
   world->create(world_create);

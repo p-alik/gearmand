@@ -79,3 +79,18 @@ clean-local:
 	-rm -rf docs/_build docs/doctrees
 
 include rpm.am
+
+merge-clean:
+	@find ./ | $(GREP) \.gcda | xargs rm -f
+	@find ./ | $(GREP) \.gcno | xargs rm -f
+	@find ./ | $(GREP) \.gz | xargs rm -f
+	@find ./ | $(GREP) \.moved | xargs rm -r -f
+	@find ./ | $(GREP) \.orig | xargs rm -f
+	@find ./ | $(GREP) \.rej | xargs rm -f
+	@rm -f *\.rpm
+	@find ./ | $(GREP) \.THIS | xargs rm -f
+	@find ./ | $(GREP) \.OTHER | xargs rm -f
+	@find ./ | $(GREP) \.BASE | xargs rm -f
+	@find ./ | $(GREP) \~$$ | xargs rm -f
+	@echo "Files that need to be either removed or checked in:"
+	@bzr unknowns

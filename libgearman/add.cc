@@ -43,7 +43,8 @@
 #include <libgearman/add.hpp>
 #include <libgearman/packet.hpp>
 
-#include <cassert>
+#include "libgearman/assert.hpp"
+
 #include <cerrno>
 #include <cstdio>
 #include <cstdlib>
@@ -161,7 +162,7 @@ gearman_task_st *add_task(gearman_client_st& client,
   assert(task->client);
   assert(task->client == &client);
 
-  gearman_return_t rc;
+  gearman_return_t rc= GEARMAN_INVALID_ARGUMENT;
   switch (command)
   {
   case GEARMAN_COMMAND_SUBMIT_JOB:

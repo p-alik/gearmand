@@ -43,6 +43,8 @@
 
 #pragma once
 
+#include <cstdio>
+
 /** @addtogroup gearman_local Local Gearman Declarations @ingroup
  * gearman_universal @{
  */

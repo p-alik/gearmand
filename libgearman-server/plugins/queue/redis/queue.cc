@@ -114,7 +114,7 @@ static size_t build_key(vchar_t &key,
                          GEARMAN_QUEUE_GEARMAND_DEFAULT_PREFIX,
                          (int)function_name_size, function_name,
                          (int)unique_size, unique);
-  if (key_size >= key.size() or key_size <= 0)
+  if (size_t(key_size) >= key.size() or key_size <= 0)
   {
     assert(0);
     return -1;
@@ -140,14 +140,14 @@ static size_t build_key(vchar_t &key,
  * Private definitions
  */
 
-static gearmand_error_t _hiredis_add(gearman_server_st *server, void *context,
-                                             const char *unique,
-                                             size_t unique_size,
-                                             const char *function_name,
-                                             size_t function_name_size,
-                                             const void *data, size_t data_size,
-                                             gearman_job_priority_t priority,
-                                             int64_t when)
+static gearmand_error_t _hiredis_add(gearman_server_st *, void *context,
+                                     const char *unique,
+                                     size_t unique_size,
+                                     const char *function_name,
+                                     size_t function_name_size,
+                                     const void *data, size_t data_size,
+                                     gearman_job_priority_t,
+                                     int64_t when)
 {
   gearmand::plugins::queue::Hiredis *queue= (gearmand::plugins::queue::Hiredis *)context;
 
@@ -227,7 +227,7 @@ static gearmand_error_t _hiredis_replay(gearman_server_st *server, void *context
                                  int(GEARMAN_QUEUE_GEARMAND_DEFAULT_PREFIX_SIZE),
                                  int(GEARMAN_FUNCTION_MAX_SIZE),
                                  int(GEARMAN_MAX_UNIQUE_SIZE));
-    if (fmt_str_length <= 0 or fmt_str_length >= sizeof(fmt_str))
+    if (fmt_str_length <= 0 or size_t(fmt_str_length) >= sizeof(fmt_str))
     {
       assert(fmt_str_length != 1);
       return gearmand_gerror("snprintf() failed to produce a valud fmt_str for redis key", GEARMAN_QUEUE_ERROR);

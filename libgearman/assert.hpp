@@ -1,9 +1,8 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  Gearmand client and server library.
+ *  libmcachedd client library.
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  Copyright (C) 2008 Brian Aker, Eric Day
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -38,11 +37,20 @@
 
 #pragma once
 
-#include <cstdlib>
+#include "libgearman/backtrace.hpp"
+
+#include <cassert>
 #include <cstdio>
+#include <cstdlib>
+
+#ifndef assert
+#  define	assert(__expr)(void)(__expr)
+#endif
 
 #ifdef NDEBUG
-#define	assert(__expr, __mesg)	((void)0)
+
+#define assert_msg(__expr, __mesg) (void)(__expr); (void)(__mesg);
+
 #else
 
 #define assert_msg(__expr, __mesg) \
@@ -50,7 +58,8 @@ do \
 { \
   if (not (__expr)) \
   { \
-    fprintf(stderr, "\nAssertion \"%s\" failed for function \"%s\" likely for %s, at %s:%d\n", #__expr, __func__, (#__mesg),  __FILE__, __LINE__);\
+    fprintf(stderr, "\n%s:%d Assertion \"%s\" failed for function \"%s\" likely for %s\n", __FILE__, __LINE__, #__expr, __func__, (#__mesg));\
+    custom_backtrace(); \
     abort(); \
   } \
 } while (0)

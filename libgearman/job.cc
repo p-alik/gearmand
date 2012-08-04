@@ -40,7 +40,8 @@
 #include <config.h>
 #include <libgearman/common.h>
 
-#include <cassert>
+#include "libgearman/assert.hpp"
+
 #include <cstdio>
 #include <cstring>
 #include <memory>

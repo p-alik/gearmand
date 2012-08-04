@@ -312,7 +312,7 @@ static test_return_t worker_ramp_TEARDOWN(void* object)
 static test_return_t hostile_gearmand_SETUP(void* object)
 {
   test_skip_valgrind();
-  test_skip(true, bool(getenv("YATL_RUN_MASSIVE_TESTS")));
+  test_skip(true, libtest::is_massive());
 
   set_server(hostile_server);
   worker_ramp_SETUP(object);
@@ -323,7 +323,7 @@ static test_return_t hostile_gearmand_SETUP(void* object)
 static test_return_t recv_SETUP(void* object)
 {
   test_skip_valgrind();
-  test_skip(true, bool(getenv("YATL_RUN_MASSIVE_TESTS")));
+  test_skip(true, libtest::is_massive());
 
   worker_ramp_SETUP(object);
   set_recv_close(true, 20, 20);
@@ -346,7 +346,7 @@ static test_return_t resv_TEARDOWN(void* object)
 static test_return_t send_SETUP(void* object)
 {
   test_skip_valgrind();
-  test_skip(true, bool(getenv("YATL_RUN_MASSIVE_TESTS")));
+  test_skip(true, libtest::is_massive());
 
   worker_ramp_SETUP(object);
   set_send_close(true, 20, 20);
@@ -357,7 +357,7 @@ static test_return_t send_SETUP(void* object)
 static test_return_t accept_SETUP(void* object)
 {
   test_skip_valgrind();
-  test_skip(true, bool(getenv("YATL_RUN_MASSIVE_TESTS")));
+  test_skip(true, libtest::is_massive());
 
   worker_ramp_SETUP(object);
   set_accept_close(true, 20, 20);
@@ -368,7 +368,7 @@ static test_return_t accept_SETUP(void* object)
 static test_return_t poll_HOSTILE_POLL_CLOSED_SETUP(void* object)
 {
   test_skip_valgrind();
-  test_skip(true, bool(getenv("YATL_RUN_MASSIVE_TESTS")));
+  test_skip(true, libtest::is_massive());
 
   worker_ramp_SETUP(object);
   set_poll_close(true, 4, 0, HOSTILE_POLL_CLOSED);
@@ -379,7 +379,7 @@ static test_return_t poll_HOSTILE_POLL_CLOSED_SETUP(void* object)
 static test_return_t poll_HOSTILE_POLL_SHUT_WR_SETUP(void* object)
 {
   test_skip_valgrind();
-  test_skip(true, bool(getenv("YATL_RUN_MASSIVE_TESTS")));
+  test_skip(true, libtest::is_massive());
 
   worker_ramp_SETUP(object);
   set_poll_close(true, 4, 0, HOSTILE_POLL_SHUT_WR);
@@ -390,7 +390,7 @@ static test_return_t poll_HOSTILE_POLL_SHUT_WR_SETUP(void* object)
 static test_return_t poll_HOSTILE_POLL_SHUT_RD_SETUP(void* object)
 {
   test_skip_valgrind();
-  test_skip(true, bool(getenv("YATL_RUN_MASSIVE_TESTS")));
+  test_skip(true, libtest::is_massive());
 
   worker_ramp_SETUP(object);
   set_poll_close(true, 4, 0, HOSTILE_POLL_SHUT_RD);
@@ -442,7 +442,7 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
   stress_server= libtest::default_port();
   if (server_startup(servers, "gearmand", stress_server, 0, NULL) == false)
   {
-    error= TEST_FAILURE;
+    error= TEST_SKIPPED;
     return NULL;
   }
 
@@ -450,7 +450,7 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
   hostile_server= libtest::get_free_port();
   if (server_startup(servers, "gearmand", hostile_server, 0, NULL) == false)
   {
-    error= TEST_FAILURE;
+    error= TEST_SKIPPED;
     return NULL;
   }
 #endif
@@ -493,7 +493,7 @@ collection_st collection[] ={
   {0, 0, 0, 0}
 };
 
-void get_world(Framework *world)
+void get_world(libtest::Framework *world)
 {
   world->collections(collection);
   world->create(world_create);

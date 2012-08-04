@@ -40,7 +40,7 @@
 
 #include <libgearman/gearman.h>
 
-test_return_t gearman_client_job_status_by_unique_TEST(void* object)
+test_return_t gearman_client_job_status_by_unique_TEST(void*)
 {
   return TEST_SUCCESS;
 }

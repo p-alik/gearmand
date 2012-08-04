@@ -96,7 +96,7 @@ struct client_context_st {
 #endif
 
 static client_test_st *test_client_context= NULL;
-test_return_t burnin_TEST(void *object)
+test_return_t burnin_TEST(void*)
 {
   gearman_client_st *client= test_client_context->client();
   fatal_assert(client);
@@ -178,7 +178,7 @@ test_return_t burnin_TEST(void *object)
   return TEST_SUCCESS;
 }
 
-test_return_t burnin_setup(void *object)
+test_return_t burnin_setup(void*)
 {
   test_client_context= new client_test_st;
   client_context_st *context= new client_context_st;
@@ -192,7 +192,7 @@ test_return_t burnin_setup(void *object)
   return TEST_SUCCESS;
 }
 
-test_return_t burnin_cleanup(void *object)
+test_return_t burnin_cleanup(void*)
 {
   client_context_st *context= (struct client_context_st *)gearman_client_context(test_client_context->client());
 

@@ -221,7 +221,8 @@ public:
     return pack_size;
   }
 
-  size_t unpack(gearmand_packet_st *packet, gearman_server_con_st *connection,
+  size_t unpack(gearmand_packet_st *packet,
+                gearman_server_con_st *, //connection
                 const void *data, const size_t data_size,
                 gearmand_error_t& ret_ptr)
   {
