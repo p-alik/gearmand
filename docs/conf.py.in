@@ -27,11 +27,11 @@ import sys, os
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = []
 
-extensions = ['sphinxcontrib.googleanalytics']
+#extensions = ['sphinxcontrib.googleanalytics']
 
 # Google 
-googleanalytics_id = 'UA-23928702-1'
-googleanalytics_enabled = 'True'
+#googleanalytics_id = 'UA-23928702-1'
+#googleanalytics_enabled = 'True'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

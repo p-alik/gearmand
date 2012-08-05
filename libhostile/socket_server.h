@@ -34,51 +34,9 @@
  *
  */
 
-#include <config.h>
+#pragma once
 
-#include <libhostile/initialize.h>
-#include <libhostile/function.h>
+#include <netinet/in.h>
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-
-int make_socket(in_port_t port)
-{
-#if 0
-  struct sockaddr_in addr;
-  
-  addr.sin_family= AF_INET;
-
-  /* The port to listen on */
-  addr.sin_port= htons(port);
-  addr.sin_addr.s_addr= INADDR_ANY;
-  
-  int socket_fd= socket(PF_INET, SOCK_DGRAM, 0);  /* FIXME: Use PROTO_UDP instead? */
-  if (socket_fd < 0)
-  {
-    perror("socket() failed");
-    return -1;
-  }
-
-  if (bind(socket_fd, (struct sockaddr *) &addr, sizeof(addr)) < 0)
-  {
-    perror("bind() failed");
-    return EXIT_FAILURE;
-  }
-
-  return socket_fd;
-#endif
-
-  return -1;
-}
-
-int read_packet(int socket_fd, unsigned *length, unsigned char *packet, struct sockaddr_in *peer)
-{
-  (void)socket_fd;
-  (void)length;
-  (void)packet;
-  (void)peer;
-}
+int make_socket(in_port_t port);
+int read_packet(int s, unsigned *length, unsigned char *packet, struct sockaddr_in *peer);
