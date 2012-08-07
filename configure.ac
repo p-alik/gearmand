@@ -51,8 +51,6 @@ AX_CXX_HEADER_STDCXX_98
     AC_MSG_ERROR([Your system lacks a new enough C++ compiler])
   fi
 
-AX_PTHREAD(, [AC_MSG_ERROR(could not find libpthread)])
-
 dnl First look for Boost, maybe for a specific minimum version:
 BOOST_REQUIRE([1.39])
 BOOST_PROGRAM_OPTIONS
@@ -240,16 +238,8 @@ AM_CONDITIONAL(TARGET_HOSTILE, [test "x${TARGET_LINUX}" = "xtrue"])
 AX_CHECK_SOCK_CLOEXEC([AC_DEFINE([HAVE_SOCK_CLOEXEC], [1], [Check for SOCK_CLOEXEC.])],
                        [AC_DEFINE([HAVE_SOCK_CLOEXEC], [0], [Check for SOCK_CLOEXEC.])])
 
-AX_APPEND_COMPILE_FLAGS([-Werror -Wall])
-AX_APPEND_COMPILE_FLAGS([-Werror -Wextra])
-AX_APPEND_COMPILE_FLAGS([-Werror -fstack-protector-all])
-AX_APPEND_COMPILE_FLAGS([-Werror -ggdb])
-AX_APPEND_COMPILE_FLAGS([-Werror -floop-parallelize-all])
-AX_APPEND_COMPILE_FLAGS([-Werror -Wsign-compare])
-AX_APPEND_COMPILE_FLAGS([-Werror -Wmaybe-uninitialized])
-AX_APPEND_COMPILE_FLAGS([-Werror -Wunused-variable])
-AX_APPEND_COMPILE_FLAGS([-Werror -Wunused-result])
-AX_APPEND_COMPILE_FLAGS([-Werror -Wunused-parameter])
+AX_HARDEN_COMPILER_FLAGS
+AX_PTHREAD(, [AC_MSG_ERROR(could not find libpthread)])
 
 AC_CONFIG_FILES(Makefile
                 docs/conf.py

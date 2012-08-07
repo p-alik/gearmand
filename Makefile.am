@@ -46,6 +46,8 @@ include tests/include.am
 include support/include.am
 include docs/include.am
 
+include m4/include.am
+
 docs: html man
 
 TESTS += $(check_PROGRAMS)
