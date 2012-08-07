@@ -326,13 +326,13 @@ gearmand_error_t LibmemcachedQueue::replay(gearman_server_st *server)
 
   gearmand_info("libmemcached replay start");
 
-  memcached_st* clone= memcached_clone(NULL, memc_);
+  memcached_st* local_clone= memcached_clone(NULL, memc_);
 
-  if (clone)
+  if (local_clone)
   {
     Replay context(this, server);
-    (void)memcached_dump(clone, callbacks, (void *)&context, 1);
-    memcached_free(clone);
+    (void)memcached_dump(local_clone, callbacks, (void *)&context, 1);
+    memcached_free(local_clone);
   }
 
   return GEARMAN_SUCCESS;

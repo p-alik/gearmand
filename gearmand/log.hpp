@@ -135,8 +135,8 @@ struct gearmand_log_info_st
         error::perror("Could not write to log file.");
         if (opt_syslog)
         {
-          char buffer[1024];
-          char *ptr_buffer= getcwd(buffer, sizeof(buffer));
+          char getcwd_buffer[1024];
+          char *ptr_buffer= getcwd(getcwd_buffer, sizeof(getcwd_buffer));
           syslog(LOG_ERR, "Could not open log file \"%.*s\", from \"%s\", open failed with (%s)", 
                  int(filename.size()), filename.c_str(), 
                  ptr_buffer,

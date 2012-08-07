@@ -327,9 +327,9 @@ void Server::add_option(const std::string& arg)
   _options.push_back(std::make_pair(arg, std::string()));
 }
 
-void Server::add_option(const std::string& name, const std::string& value)
+void Server::add_option(const std::string& name_, const std::string& value_)
 {
-  _options.push_back(std::make_pair(name, value));
+  _options.push_back(std::make_pair(name_, value_));
 }
 
 bool Server::set_socket_file()

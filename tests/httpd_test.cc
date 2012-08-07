@@ -183,8 +183,8 @@ static test_return_t check_for_curl(void *)
 
 test_st curl_TESTS[] ={
   { "curl /", 0, curl_no_function_TEST },
-  { "curl /"WORKER_FUNCTION_NAME, 0, curl_function_no_body_TEST },
-  { "curl /"WORKER_FUNCTION_NAME" --data=fubar", 0, curl_function_TEST },
+  { "curl /" WORKER_FUNCTION_NAME, 0, curl_function_no_body_TEST },
+  { "curl /" WORKER_FUNCTION_NAME " --data=fubar", 0, curl_function_TEST },
   { 0, 0, 0 }
 };
 

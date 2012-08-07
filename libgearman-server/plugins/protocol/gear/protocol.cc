@@ -226,7 +226,7 @@ public:
     if (packet->command == GEARMAN_COMMAND_ECHO_RES)
     {
       gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
-                         "GEAR length: %"PRIu64" gearmand_command_t: %s echo: %.*s",
+                         "GEAR length: %" PRIu64 " gearmand_command_t: %s echo: %.*s",
                          uint64_t(packet->data_size),
                          gearman_strcommand(packet->command),
                          int(packet->data_size),
@@ -235,7 +235,7 @@ public:
     else if (packet->command == GEARMAN_COMMAND_TEXT)
     {
       gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
-                         "GEAR length: %"PRIu64" gearmand_command_t: %s text: %.*s",
+                         "GEAR length: %" PRIu64 " gearmand_command_t: %s text: %.*s",
                          uint64_t(packet->data_size),
                          gearman_strcommand(packet->command),
                          int(packet->data_size),
@@ -244,7 +244,7 @@ public:
     else
     {
       gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
-                         "GEAR length: %"PRIu64" gearmand_command_t: %s",
+                         "GEAR length: %" PRIu64 " gearmand_command_t: %s",
                          uint64_t(packet->data_size),
                          gearman_strcommand(packet->command));
     }
@@ -261,7 +261,7 @@ public:
     if (packet->command == GEARMAN_COMMAND_ECHO_RES)
     {
       gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
-                         "GEAR length: %"PRIu64" gearmand_command_t: %s echo: %.*",
+                         "GEAR length: %" PRIu64 " gearmand_command_t: %s echo: %.*",
                          uint64_t(packet->data_size),
                          gearman_strcommand(packet->command),
                          int(packet->data_size),
@@ -270,7 +270,7 @@ public:
     else
     {
       gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
-                         "GEAR length: %"PRIu64" gearmand_command_t: %s",
+                         "GEAR length: %" PRIu64 " gearmand_command_t: %s",
                          uint64_t(packet->data_size),
                          gearman_strcommand(packet->command));
     }

@@ -296,13 +296,13 @@ void worker_handle_st::wait()
 
 void worker_handle_st::set_shutdown()
 {
-  boost::mutex::scoped_lock(_shutdown_lock);
+  boost::lock_guard<boost::mutex> lock(_shutdown_lock);
   _shutdown= true;
 }
 
 bool worker_handle_st::is_shutdown()
 {
-  boost::mutex::scoped_lock(_shutdown_lock);
+  boost::lock_guard<boost::mutex> lock(_shutdown_lock);
   return _shutdown;
 }
 
