@@ -51,7 +51,6 @@
 
 #if defined(HAVE_LIBPQ) and HAVE_LIBPQ
 #include <libpq-fe.h>
-#include <pg_config_manual.h>
 #endif
 
 
