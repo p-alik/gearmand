@@ -34,8 +34,8 @@ GEARMAN_LIBRARY_VERSION=7:0:0
 #                +- increment if interfaces have been added, removed or changed
 AC_SUBST(GEARMAN_LIBRARY_VERSION)
 
-LT_PREREQ([2.2])
-LT_INIT([disable-static])
+LT_PREREQ([2.4])
+LT_INIT()
 LT_LANG([C++])
 gl_VISIBILITY
 PANDORA_PLATFORM
