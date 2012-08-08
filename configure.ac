@@ -7,25 +7,18 @@
 # the COPYING file in this directory for full text.
 
 AC_INIT([gearmand],[0.35],[https://bugs.launchpad.net/gearmand],[gearmand],[http://gearman.info/])
-
 AC_CONFIG_AUX_DIR(config)
 
 AC_CANONICAL_TARGET
+AC_ARG_PROGRAM
+AC_USE_SYSTEM_EXTENSIONS
 
-AM_INIT_AUTOMAKE(-Wall -Werror -Wno-portability subdir-objects foreign tar-ustar)
-
-AC_CANONICAL_HOST
-AC_CANONICAL_BUILD
+AM_INIT_AUTOMAKE([-Wall -Werror -Wno-portability subdir-objects foreign tar-ustar])
 
 AC_PREREQ([2.63])
 
-AC_CONFIG_MACRO_DIR(m4)
-
 AC_CONFIG_HEADERS([config.h:config.in])dnl Keep filename to 8.3 for MS-DOS.
-
 AC_CONFIG_SRCDIR(libgearman/gearman.cc)
-
-PANDORA_CANONICAL_TARGET(require-cxx, no-vc-changelog)
 
 GEARMAN_LIBRARY_VERSION=7:0:0
 #                       | | |
@@ -45,6 +38,10 @@ LT_PREREQ([2.2])
 LT_INIT([disable-static])
 LT_LANG([C++])
 gl_VISIBILITY
+PANDORA_PLATFORM
+m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
+
+AX_COMPILER_VENDOR
 
 AX_CXX_HEADER_STDCXX_98
   if test "$ax_cv_cxx_stdcxx_98" = no; then
@@ -89,6 +86,7 @@ AX_LIB_CURL([7.21.7],
               ]
              )
 
+m4_include([m4/have_sphinx.m4])
 m4_include([m4/drizzled.m4])
 WITH_LIBDRIZZLE
 
@@ -106,6 +104,7 @@ AC_DEFINE([HAVE_MEMCACHED_LIGHT_BINARY], [0], [Support for memcached_light])
 AC_DEFINE([MEMCACHED_LIGHT_BINARY], [""], [Support for memcached_light])
 
 
+PANDORA_ENABLE_DTRACE
 PANDORA_HAVE_BETTER_MALLOC
 AX_HAVE_LIBPQ
 PANDORA_HAVE_LIBTOKYOCABINET
@@ -113,6 +112,7 @@ AC_FUNC_STRERROR_R
 SOCKET_SEND_FLAGS
 FCNTL_FLAGS
 AX_HAVE_LIBHIREDIS
+PANDORA_HEADER_ASSERT
 
 # Checks for programs.
 AC_PROG_AWK

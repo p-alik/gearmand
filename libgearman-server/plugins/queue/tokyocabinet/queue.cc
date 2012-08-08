@@ -180,7 +180,8 @@ static gearmand_error_t _libtokyocabinet_add(gearman_server_st *server, void *co
   TCXSTR *key;
   TCXSTR *job_data;
 
-  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "libtokyocabinet add: %.*s at %lld", (uint32_t)unique_size, (char *)unique, (long long int)when);
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "libtokyocabinet add: %.*s at %" PRId64,
+                     (uint32_t)unique_size, (char *)unique, when);
 
   char key_str[GEARMAN_QUEUE_TOKYOCABINET_MAX_KEY_LEN];
   size_t key_length= (size_t)snprintf(key_str, GEARMAN_QUEUE_TOKYOCABINET_MAX_KEY_LEN, "%.*s-%.*s",
@@ -216,7 +217,7 @@ static gearmand_error_t _libtokyocabinet_add(gearman_server_st *server, void *co
 
   // get int64_t as string
   char timestr[32];
-  snprintf(timestr, sizeof(timestr), "%lld", (long long int)when);
+  snprintf(timestr, sizeof(timestr), "%" PRId64, when);
 
   // append to job_data
   tcxstrcat(job_data, (const char *)timestr, (int)strlen(timestr));
@@ -290,7 +291,6 @@ static gearmand_error_t _callback_for_record(gearman_server_st *server,
   size_t unique_len;
   gearman_job_priority_t priority;
   gearmand_error_t gret;
-  int64_t when; 
   
   gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "replaying: %s", (char *) tcxstrptr(key));
 
@@ -333,13 +333,13 @@ static gearmand_error_t _callback_for_record(gearman_server_st *server,
   char *new_data_cstr= NULL;
   
   // parse time from record
-  when= (int64_t)strtoul(data_cstr, &new_data_cstr, 10);
+  int64_t when= (int64_t)strtoul(data_cstr, &new_data_cstr, 10);
   
   // decrease opaque data size by the length of the numbers read by strtoul
   data_cstr_size -= (new_data_cstr - data_cstr) + 1;
   
   // move data pointer to end of timestamp + 1 (null)
-  data_cstr= new_data_cstr + 1; 
+  data_cstr= new_data_cstr +1; 
   
   // data is freed later so we must make a copy
   void *data_ptr= (void *)malloc(data_cstr_size);
