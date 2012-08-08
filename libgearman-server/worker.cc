@@ -68,7 +68,7 @@ static gearman_server_worker_st* gearman_server_worker_create(gearman_server_con
 
 gearman_server_worker_st *
 gearman_server_worker_add(gearman_server_con_st *con, const char *function_name,
-                          size_t function_name_size, uint32_t timeout)
+                          size_t function_name_size, long timeout)
 {
   gearman_server_function_st *function= gearman_server_function_get(Server, function_name,
                                                                     function_name_size);

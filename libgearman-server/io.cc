@@ -119,7 +119,7 @@ static size_t _connection_read(gearman_server_con_st *con, void *data, size_t da
   return size_t(read_size);
 }
 
-gearmand_error_t gearmand_connection_recv_data(gearman_server_con_st *con, void *data, size_t data_size)
+static gearmand_error_t gearmand_connection_recv_data(gearman_server_con_st *con, void *data, size_t data_size)
 {
   gearmand_io_st *connection= &con->con;
 

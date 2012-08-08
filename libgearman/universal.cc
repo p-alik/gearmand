@@ -266,7 +266,7 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
     }
 
     universal.pfds= pfds;
-    universal.pfds_size= con_count;
+    universal.pfds_size= int(con_count);
   }
   else
   {

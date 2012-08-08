@@ -123,7 +123,10 @@ static void gearmand_log(const char *position, const char *func /* func */,
 
     if (remaining_size)
     {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
       int length= vsnprintf(log_buffer_ptr, remaining_size, format, args);
+#pragma GCC diagnostic pop
       if (length <= 0 or size_t(length) >= remaining_size)
       { 
         remaining_size= 0;
@@ -170,7 +173,10 @@ static void gearmand_log(const char *position, const char *func /* func */,
   {
     fprintf(stderr, "%s -> %s",
             log_buffer,  gearmand_verbose_name(verbose));
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
     vfprintf(stderr, format, args);
+#pragma GCC diagnostic pop
     fprintf(stderr, "\n");
   }
 }

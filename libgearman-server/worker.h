@@ -34,7 +34,7 @@ extern "C" {
 GEARMAN_API
 gearman_server_worker_st *
 gearman_server_worker_add(gearman_server_con_st *con, const char *function_name,
-                          size_t function_name_size, uint32_t timeout);
+                          size_t function_name_size, long timeout);
 
 /**
  * Free a server worker structure.
