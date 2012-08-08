@@ -420,7 +420,7 @@ static test_return_t error_return_TEST(void *)
   test_compare(GEARMAN_SUCCESS, gearman_client_echo(client, test_literal_param(__func__)));
 
   gearman_function_t error_return_TEST_FN= gearman_function_create(error_return_worker);
-  std::unique_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
+  std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
                                                            NULL,
                                                            __func__,
                                                            error_return_TEST_FN,
@@ -544,7 +544,7 @@ static test_return_t GEARMAN_ERROR_return_TEST(void *)
 
   size_t count= 0;
   gearman_function_t GEARMAN_ERROR_FN= gearman_function_create(GEARMAN_ERROR_worker);
-  std::unique_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
+  std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
                                                            NULL,
                                                            __func__,
                                                            GEARMAN_ERROR_FN,
@@ -594,7 +594,7 @@ static test_return_t GEARMAN_FAIL_return_TEST(void *)
   test_compare(GEARMAN_SUCCESS, gearman_client_echo(client, test_literal_param(__func__)));
 
   gearman_function_t error_return_TEST_FN= gearman_function_create(error_return_worker);
-  std::unique_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
+  std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
                                                            NULL,
                                                            __func__,
                                                            error_return_TEST_FN,
@@ -1069,7 +1069,7 @@ static test_return_t _increase_TEST(gearman_function_t &func, gearman_client_opt
 
   gearman_client_add_options(&client, options);
 
-  std::unique_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
+  std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
                                                            NULL,
                                                            __func__,
                                                            func,

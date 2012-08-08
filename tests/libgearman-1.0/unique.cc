@@ -85,7 +85,7 @@ test_return_t coalescence_TEST(void *object)
   const char* unique_handle= "local_handle";
 
   gearman_function_t sleep_return_random_worker_FN= gearman_function_create(sleep_return_random_worker);
-  std::unique_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
+  std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
                                                            NULL,
                                                            __func__,
                                                            sleep_return_random_worker_FN,
@@ -243,7 +243,7 @@ test_return_t gearman_client_unique_status_TEST(void *object)
   }
 
   gearman_function_t func= gearman_function_create_v2(echo_or_react_worker_v2);
-  std::unique_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(), NULL,
+  std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(), NULL,
                                                            __func__,
                                                            func, NULL, gearman_worker_options_t()));
 
@@ -268,7 +268,7 @@ test_return_t gearman_client_unique_status_NOT_FOUND_TEST(void *object)
   const char* unique_handle= YATL_UNIQUE;
 
   gearman_function_t func= gearman_function_create_v2(echo_or_react_worker_v2);
-  std::unique_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(), NULL,
+  std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(), NULL,
                                                            __func__,
                                                            func, NULL, gearman_worker_options_t()));
 
