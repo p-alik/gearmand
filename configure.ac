@@ -9,7 +9,18 @@
 AC_INIT([gearmand],[0.35],[https://bugs.launchpad.net/gearmand],[gearmand],[http://gearman.info/])
 AC_CONFIG_AUX_DIR(config)
 
-AC_CANONICAL_TARGET
+AC_CANONICAL_SYSTEM
+
+  case "$host_os" in
+    *darwin*)
+
+AC_PROG_CC(clang llvm-gcc gcc)
+AC_PROG_CXX(clang++ llvm-g++ g++)
+AC_PROG_CPP
+    ;;
+  esac
+
+# AC_CANONICAL_TARGET
 AC_ARG_PROGRAM
 AC_USE_SYSTEM_EXTENSIONS
 
@@ -259,7 +270,7 @@ echo ""
 echo "   * Installation prefix:       $prefix"
 echo "   * System type:               $host_vendor-$host_os"
 echo "   * Host CPU:                  $host_cpu"
-echo "   * C Compiler:                $CC_VERSION"
+echo "   * C++ Compiler:              $ac_ct_CXX"
 echo "   * Assertions enabled:        $ac_cv_assert"
 echo "   * Debug enabled:             $with_debug"
 echo "   * Warnings as failure:       $ac_cv_warnings_as_errors"
