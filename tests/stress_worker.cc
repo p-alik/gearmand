@@ -224,9 +224,9 @@ static test_return_t worker_ramp_exec(const size_t payload_size)
   for (size_t x= 0; x < children.size(); x++)
   {
     struct timespec ts;
-    bool success= false;
+    bool join_success= false;
     int limit= 2;
-    while (success == false and --limit)
+    while (join_success == false and --limit)
     {
 #if defined(HAVE_LIBRT) && HAVE_LIBRT
       if (HAVE_LIBRT) // This won't be called on OSX, etc,...
@@ -237,7 +237,7 @@ static test_return_t worker_ramp_exec(const size_t payload_size)
           continue;
         }
 
-        success= join_thread(children[x], ts);
+        join_success= join_thread(children[x], ts);
       }
       else
 #endif
@@ -250,11 +250,11 @@ static test_return_t worker_ramp_exec(const size_t payload_size)
         }
 
         TIMEVAL_TO_TIMESPEC(&tv, &ts);
-        success= join_thread(children[x], ts);
+        join_success= join_thread(children[x], ts);
       }
     }
 
-    if (success == false)
+    if (join_success == false)
     {
       pthread_cancel(children[x]);
       Error << "Something went very wrong, it is likely threads were not cleaned up";

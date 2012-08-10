@@ -50,8 +50,10 @@
 #include <libgearman-server/plugins/queue/base.h>
 
 #if defined(HAVE_LIBPQ) and HAVE_LIBPQ
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wundef"
 #include <libpq-fe.h>
-#include <pg_config_manual.h>
+#pragma GCC diagnostic pop
 #endif
 
 

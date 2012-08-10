@@ -98,9 +98,9 @@ int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
   {
     if (__function.frequency)
     {
-      if (--not_until < 0 && random() % __function.frequency)
+      if (--not_until < 0 && rand() % __function.frequency)
       {
-        if (random() % 1)
+        if (rand() % 1)
         {
           shutdown(sockfd, SHUT_RDWR);
           close(sockfd);

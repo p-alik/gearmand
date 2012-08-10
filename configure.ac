@@ -7,25 +7,18 @@
 # the COPYING file in this directory for full text.
 
 AC_INIT([gearmand],[0.35],[https://bugs.launchpad.net/gearmand],[gearmand],[http://gearman.info/])
-
 AC_CONFIG_AUX_DIR(config)
 
 AC_CANONICAL_TARGET
+AC_ARG_PROGRAM
+AC_USE_SYSTEM_EXTENSIONS
 
-AM_INIT_AUTOMAKE(-Wall -Werror -Wno-portability subdir-objects foreign tar-ustar)
-
-AC_CANONICAL_HOST
-AC_CANONICAL_BUILD
+AM_INIT_AUTOMAKE([-Wall -Werror -Wno-portability subdir-objects foreign tar-ustar])
 
 AC_PREREQ([2.63])
 
-AC_CONFIG_MACRO_DIR(m4)
-
 AC_CONFIG_HEADERS([config.h:config.in])dnl Keep filename to 8.3 for MS-DOS.
-
 AC_CONFIG_SRCDIR(libgearman/gearman.cc)
-
-PANDORA_CANONICAL_TARGET(require-cxx, no-vc-changelog)
 
 GEARMAN_LIBRARY_VERSION=7:0:0
 #                       | | |
@@ -41,17 +34,17 @@ GEARMAN_LIBRARY_VERSION=7:0:0
 #                +- increment if interfaces have been added, removed or changed
 AC_SUBST(GEARMAN_LIBRARY_VERSION)
 
-LT_PREREQ([2.2])
+LT_PREREQ([2.4])
 LT_INIT([disable-static])
 LT_LANG([C++])
 gl_VISIBILITY
+PANDORA_PLATFORM
+m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 
 AX_CXX_HEADER_STDCXX_98
   if test "$ax_cv_cxx_stdcxx_98" = no; then
     AC_MSG_ERROR([Your system lacks a new enough C++ compiler])
   fi
-
-AX_PTHREAD(, [AC_MSG_ERROR(could not find libpthread)])
 
 dnl First look for Boost, maybe for a specific minimum version:
 BOOST_REQUIRE([1.39])
@@ -91,6 +84,7 @@ AX_LIB_CURL([7.21.7],
               ]
              )
 
+m4_include([m4/have_sphinx.m4])
 m4_include([m4/drizzled.m4])
 WITH_LIBDRIZZLE
 
@@ -108,6 +102,7 @@ AC_DEFINE([HAVE_MEMCACHED_LIGHT_BINARY], [0], [Support for memcached_light])
 AC_DEFINE([MEMCACHED_LIGHT_BINARY], [""], [Support for memcached_light])
 
 
+PANDORA_ENABLE_DTRACE
 PANDORA_HAVE_BETTER_MALLOC
 AX_HAVE_LIBPQ
 PANDORA_HAVE_LIBTOKYOCABINET
@@ -115,6 +110,7 @@ AC_FUNC_STRERROR_R
 SOCKET_SEND_FLAGS
 FCNTL_FLAGS
 AX_HAVE_LIBHIREDIS
+PANDORA_HEADER_ASSERT
 
 # Checks for programs.
 AC_PROG_AWK
@@ -240,16 +236,10 @@ AM_CONDITIONAL(TARGET_HOSTILE, [test "x${TARGET_LINUX}" = "xtrue"])
 AX_CHECK_SOCK_CLOEXEC([AC_DEFINE([HAVE_SOCK_CLOEXEC], [1], [Check for SOCK_CLOEXEC.])],
                        [AC_DEFINE([HAVE_SOCK_CLOEXEC], [0], [Check for SOCK_CLOEXEC.])])
 
-AX_APPEND_COMPILE_FLAGS([-Werror -Wall])
-AX_APPEND_COMPILE_FLAGS([-Werror -Wextra])
-AX_APPEND_COMPILE_FLAGS([-Werror -fstack-protector-all])
-AX_APPEND_COMPILE_FLAGS([-Werror -ggdb])
-AX_APPEND_COMPILE_FLAGS([-Werror -floop-parallelize-all])
-AX_APPEND_COMPILE_FLAGS([-Werror -Wsign-compare])
-AX_APPEND_COMPILE_FLAGS([-Werror -Wmaybe-uninitialized])
-AX_APPEND_COMPILE_FLAGS([-Werror -Wunused-variable])
-AX_APPEND_COMPILE_FLAGS([-Werror -Wunused-result])
-AX_APPEND_COMPILE_FLAGS([-Werror -Wunused-parameter])
+AX_PTHREAD(, [AC_MSG_ERROR(could not find libpthread)])
+AX_HARDEN_COMPILER_FLAGS
+
+AX_DEBUG
 
 AC_CONFIG_FILES(Makefile
                 docs/conf.py
@@ -269,7 +259,8 @@ echo ""
 echo "   * Installation prefix:       $prefix"
 echo "   * System type:               $host_vendor-$host_os"
 echo "   * Host CPU:                  $host_cpu"
-echo "   * C Compiler:                $CC_VERSION"
+echo "   * C++ Compiler:              $CXX"
+echo "   * C++ Flags:                 $CXXFLAGS"
 echo "   * Assertions enabled:        $ac_cv_assert"
 echo "   * Debug enabled:             $with_debug"
 echo "   * Warnings as failure:       $ac_cv_warnings_as_errors"

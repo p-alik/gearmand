@@ -51,7 +51,7 @@ enum queue_version_t {
 };
 
 #ifdef __cplusplus
-namespace gearmand { namespace queue { class Context; } };
+namespace gearmand { namespace queue { class Context; } }
 #endif
 
 union queue_un {

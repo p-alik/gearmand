@@ -409,8 +409,9 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
   }
   else
   {
-    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Failed to find command %.*s(%llu)", packet->arg_size[0], packet->arg[0], 
-                       (unsigned long long)packet->arg_size[0]);
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Failed to find command %.*s(%" PRIu64 ")",
+                       packet->arg_size[0], packet->arg[0], 
+                       packet->arg_size[0]);
     snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, TEXT_ERROR_UNKNOWN_COMMAND, (int)packet->arg_size[0], (char *)(packet->arg[0]));
   }
 

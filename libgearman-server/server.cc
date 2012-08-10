@@ -882,6 +882,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
   case GEARMAN_COMMAND_JOB_ASSIGN_UNIQ:
   case GEARMAN_COMMAND_JOB_ASSIGN_ALL:
   case GEARMAN_COMMAND_MAX:
+  case GEARMAN_COMMAND_STATUS_RES_UNIQUE:
   default:
     return _server_error_packet(server_con, "bad_command", "Command not expected");
   }

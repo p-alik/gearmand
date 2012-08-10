@@ -56,7 +56,7 @@ gearmand_error_t initialize(gearmand_st *gearmand, const std::string &name);
 } // namespace queue
 } // namespace gearmand
 
-namespace gearmand { namespace queue { class Context; } };
+namespace gearmand { namespace queue { class Context; } }
 
 /**
  * Set persistent queue context that will be passed back to all queue callback

@@ -60,7 +60,7 @@ void custom_backtrace(void)
 #ifdef HAVE_EXECINFO_H
   void *array[50];
 
-  size_t size= backtrace(array, 50);
+  int size= backtrace(array, 50);
   char **strings= backtrace_symbols(array, size);
 
   if (strings == NULL)
@@ -78,7 +78,7 @@ void custom_backtrace(void)
     return;
   }
 
-  for (size_t x= 1; x < size; x++) 
+  for (int x= 1; x < size; x++) 
   {
     if (USE_DEMANGLE)
     {

@@ -232,12 +232,14 @@ static gearmand_error_t _hiredis_replay(gearman_server_st *server, void *context
       assert(fmt_str_length != 1);
       return gearmand_gerror("snprintf() failed to produce a valud fmt_str for redis key", GEARMAN_QUEUE_ERROR);
     }
-
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
     int ret= sscanf(reply->element[x]->str,
                     fmt_str,
                     prefix,
                     function_name,
                     unique);
+#pragma GCC diagnostic pop
     if (ret == 0)
     {
       continue;

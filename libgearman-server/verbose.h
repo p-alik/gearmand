@@ -62,7 +62,7 @@ enum gearmand_verbose_t
   GEARMAND_VERBOSE_INFO= LOG_INFO, // syslog:LOG_INFO
 
   // @todo Fix it so that these will not be compiled in by default
-  GEARMAND_VERBOSE_DEBUG= LOG_DEBUG, // syslog:LOG_DEBUG
+  GEARMAND_VERBOSE_DEBUG= LOG_DEBUG // syslog:LOG_DEBUG
 };
 
 #ifndef __cplusplus

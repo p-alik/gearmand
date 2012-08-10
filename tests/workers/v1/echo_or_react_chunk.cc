@@ -41,7 +41,7 @@
 
 #include <libgearman-1.0/gearman.h>
 
-#include "tests/workers/v1/echo_or_react.h"
+#include "tests/workers/v1/echo_or_react_chunk.h"
 
 #include <cassert>
 #include <cstdio>

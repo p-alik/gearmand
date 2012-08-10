@@ -83,11 +83,6 @@ void _server_con_worker_list_append(gearman_server_worker_st *list,
   }
 }
 
-gearman_server_job_st* build_gearman_server_job_st(void)
-{
-  return new (std::nothrow) gearman_server_job_st;
-}
-
 void destroy_gearman_server_job_st(gearman_server_job_st* arg)
 {
   gearmand_debug("delete gearman_server_con_st");

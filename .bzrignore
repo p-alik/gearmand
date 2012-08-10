@@ -137,3 +137,4 @@ util/.hgignore
 var
 tests/stress_test
 tests/mysql_test
+m4/.git

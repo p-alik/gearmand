@@ -108,7 +108,10 @@ gearman_return_t gearman_universal_set_error(gearman_universal_st& universal,
 
   char last_error[GEARMAN_MAX_ERROR_SIZE];
   va_start(args, format);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
   int length= vsnprintf(last_error, GEARMAN_MAX_ERROR_SIZE, format, args);
+#pragma GCC diagnostic pop
   va_end(args);
 
   if (length > int(GEARMAN_MAX_ERROR_SIZE) or length < 0)

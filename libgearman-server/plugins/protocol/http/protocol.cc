@@ -104,12 +104,54 @@ public:
           content.push_back(*ptr);
         }
 
-        gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "HTTP gearmand_command_t: GEARMAN_COMMAND_WORK_DATA length:%"PRIu64, uint64_t(content.size()));
+        gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "HTTP gearmand_command_t: GEARMAN_COMMAND_WORK_DATA length:%" PRIu64, uint64_t(content.size()));
         ret_ptr= GEARMAN_IGNORE_PACKET;
         return 0;
       }
 
     default:
+    case GEARMAN_COMMAND_TEXT:
+    case GEARMAN_COMMAND_CAN_DO:
+    case GEARMAN_COMMAND_CANT_DO:
+    case GEARMAN_COMMAND_RESET_ABILITIES:
+    case GEARMAN_COMMAND_PRE_SLEEP:
+    case GEARMAN_COMMAND_UNUSED:
+    case GEARMAN_COMMAND_NOOP:
+    case GEARMAN_COMMAND_SUBMIT_JOB:
+    case GEARMAN_COMMAND_GRAB_JOB:
+    case GEARMAN_COMMAND_NO_JOB:
+    case GEARMAN_COMMAND_JOB_ASSIGN:
+    case GEARMAN_COMMAND_WORK_STATUS:
+    case GEARMAN_COMMAND_GET_STATUS:
+    case GEARMAN_COMMAND_ECHO_REQ:
+    case GEARMAN_COMMAND_SUBMIT_JOB_BG:
+    case GEARMAN_COMMAND_ERROR:
+    case GEARMAN_COMMAND_STATUS_RES:
+    case GEARMAN_COMMAND_SUBMIT_JOB_HIGH:
+    case GEARMAN_COMMAND_SET_CLIENT_ID:
+    case GEARMAN_COMMAND_CAN_DO_TIMEOUT:
+    case GEARMAN_COMMAND_ALL_YOURS:
+    case GEARMAN_COMMAND_WORK_EXCEPTION:
+    case GEARMAN_COMMAND_OPTION_REQ:
+    case GEARMAN_COMMAND_OPTION_RES:
+    case GEARMAN_COMMAND_WORK_WARNING:
+    case GEARMAN_COMMAND_GRAB_JOB_UNIQ:
+    case GEARMAN_COMMAND_JOB_ASSIGN_UNIQ:
+    case GEARMAN_COMMAND_SUBMIT_JOB_HIGH_BG:
+    case GEARMAN_COMMAND_SUBMIT_JOB_LOW:
+    case GEARMAN_COMMAND_SUBMIT_JOB_LOW_BG:
+    case GEARMAN_COMMAND_SUBMIT_JOB_SCHED:
+    case GEARMAN_COMMAND_SUBMIT_JOB_EPOCH:
+    case GEARMAN_COMMAND_SUBMIT_REDUCE_JOB:
+    case GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND:
+    case GEARMAN_COMMAND_GRAB_JOB_ALL:
+    case GEARMAN_COMMAND_JOB_ASSIGN_ALL:
+    case GEARMAN_COMMAND_GET_STATUS_UNIQUE:
+    case GEARMAN_COMMAND_STATUS_RES_UNIQUE:
+    case GEARMAN_COMMAND_MAX:
+      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
+                         "Bad packet command: gearmand_command_t:%s", 
+                         gearman_strcommand(packet->command));
       assert(0);
     case GEARMAN_COMMAND_WORK_FAIL:
     case GEARMAN_COMMAND_ECHO_RES:
@@ -127,7 +169,7 @@ public:
     }
 
     gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
-                       "Sending HTTP response: Content-length:%"PRIu64" data_size:%"PRIu64" gearmand_command_t:%s response:%s", 
+                       "Sending HTTP response: Content-length:%" PRIu64 " data_size:%" PRIu64 " gearmand_command_t:%s response:%s", 
                        uint64_t(content.size()),
                        uint64_t(packet->data_size),
                        gearman_strcommand(packet->command),
@@ -150,7 +192,7 @@ public:
         pack_size= (size_t)snprintf((char *)send_buffer, send_buffer_size,
                                     "HTTP/1.0 200 OK\r\n"
                                     "X-Gearman-Job-Handle: %.*s\r\n"
-                                    "Content-Length: %"PRIu64"\r\n"
+                                    "Content-Length: %" PRIu64 "\r\n"
                                     "Server: Gearman/" PACKAGE_VERSION "\r\n"
                                     "\r\n",
                                     packet->command == GEARMAN_COMMAND_JOB_CREATED ?  (int)packet->arg_size[0] : (int)packet->arg_size[0] - 1,
@@ -172,7 +214,7 @@ public:
                                     "HTTP/1.0 200 OK\r\n"
                                     "X-Gearman-Job-Handle: %.*s\r\n"
                                     "X-Gearman-Command: %s\r\n"
-                                    "Content-Length: %"PRIu64"\r\n"
+                                    "Content-Length: %" PRIu64 "\r\n"
                                     "Server: Gearman/" PACKAGE_VERSION "\r\n"
                                     "\r\n%.*s",
                                     packet->command == GEARMAN_COMMAND_JOB_CREATED ?  int(packet->arg_size[0]) : int(packet->arg_size[0] - 1),
@@ -187,7 +229,7 @@ public:
                                     "HTTP/1.0 200 OK\r\n"
                                     "X-Gearman-Job-Handle: %.*s\r\n"
                                     "X-Gearman-Command: %s\r\n"
-                                    "Content-Length: %"PRIu64"\r\n"
+                                    "Content-Length: %" PRIu64 "\r\n"
                                     "Server: Gearman/" PACKAGE_VERSION "\r\n"
                                     "\r\n",
                                     packet->command == GEARMAN_COMMAND_JOB_CREATED ?  int(packet->arg_size[0]) : int(packet->arg_size[0] - 1),
