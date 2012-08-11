@@ -37,6 +37,7 @@
 
 #pragma once
 
+LIBTEST_API
 void *echo_or_react_worker(gearman_job_st *job, void *,
                            size_t *result_size, gearman_return_t *ret_ptr);
 

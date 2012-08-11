@@ -36,10 +36,13 @@
  */
 
 #include <config.h>
+#include <libtest/test.hpp>
 
 #include <libgearman-1.0/gearman.h>
 
 #include "tests/workers/v2/increment_reset.h"
+
+#include <climits>
 
 static pthread_mutex_t increment_reset_worker_mutex= PTHREAD_MUTEX_INITIALIZER;
 

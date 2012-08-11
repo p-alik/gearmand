@@ -37,6 +37,7 @@
 
 #pragma once
 
+LIBTEST_API
 // payload is unique value
 void *unique_worker(gearman_job_st *job, void *,
                     size_t *result_size, gearman_return_t *ret_ptr);

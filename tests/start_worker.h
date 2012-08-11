@@ -44,6 +44,7 @@
 #include <boost/thread.hpp>
 #include <boost/shared_ptr.hpp>
 
+#include "tests/workers/v2/called.h"
 
 struct worker_handle_st
 {

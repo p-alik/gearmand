@@ -25,7 +25,6 @@ endif
 
 tests_stress_test_SOURCES+= tests/burnin.cc
 tests_stress_test_SOURCES+= tests/stress_worker.cc
-tests_stress_test_SOURCES+= tests/workers/v2/echo_or_react.cc
 tests_stress_test_DEPENDENCIES+= ${CLIENT_LDADD}
 tests_stress_test_LDADD+= ${CLIENT_LDADD}
 check_PROGRAMS+=tests/stress_test

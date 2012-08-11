@@ -36,6 +36,7 @@
  */
 
 #include <config.h>
+#include <libtest/test.hpp>
 
 #include <libgearman-1.0/gearman.h>
 

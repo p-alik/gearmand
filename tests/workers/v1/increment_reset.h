@@ -37,4 +37,5 @@
 
 #pragma once
 
+LIBTEST_API
 void *increment_reset_worker(gearman_job_st *job, void *, size_t *result_size, gearman_return_t *ret_ptr);

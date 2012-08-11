@@ -27,22 +27,6 @@ noinst_HEADERS+= tests/task.h
 noinst_HEADERS+= tests/unique.h
 noinst_HEADERS+= tests/worker.h
 
-noinst_LTLIBRARIES+= tests/libstartworker.la
-tests_libstartworker_la_CXXFLAGS=
-tests_libstartworker_la_LIBADD=
-tests_libstartworker_la_SOURCES=
-
-tests_libstartworker_la_CXXFLAGS+= $(PTHREAD_CFLAGS)
-tests_libstartworker_la_CXXFLAGS+= $(BOOST_CPPFLAGS)
-tests_libstartworker_la_LIBADD+= $(BOOST_THREAD_LDFLAGS)
-tests_libstartworker_la_LIBADD+= $(BOOST_THREAD_LIBS)
-tests_libstartworker_la_LIBADD+= libtest/libtest.la
-tests_libstartworker_la_LIBADD+= libgearman/libgearman.la
-tests_libstartworker_la_SOURCES+= tests/start_worker.cc
-tests_libstartworker_la_SOURCES+= tests/workers/v2/called.cc
-tests_libstartworker_la_SOURCES+= util/instance.cc
-tests_libstartworker_la_SOURCES+= util/operation.cc
-
 CLIENT_LDADD=
 CLIENT_LDADD+= libgearman/libgearman.la
 CLIENT_LDADD+= libtest/libtest.la
@@ -71,8 +55,6 @@ tests_cli_SOURCES=
 tests_cli_LDADD=
 
 tests_cli_SOURCES+= tests/cli.cc
-tests_cli_SOURCES+= tests/workers/v2/count.cc
-tests_cli_SOURCES+= tests/workers/v2/echo_or_react.cc
 tests_cli_DEPENDENCIES+= ${CLIENT_LDADD}
 tests_cli_DEPENDENCIES+= bin/gearman
 tests_cli_DEPENDENCIES+= bin/gearadmin

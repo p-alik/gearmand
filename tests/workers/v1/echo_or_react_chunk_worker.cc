@@ -36,10 +36,11 @@
  */
 
 #include <config.h>
+#include <libtest/test.hpp>
 
 #include <libgearman-1.0/gearman.h>
 
-#include "tests/workers/v1/echo_or_react_chunk_worker.h"
+#include "tests/workers/v1/echo_or_react_chunk.h"
 
 
 void *echo_or_react_chunk_worker(gearman_job_st *job, void *,

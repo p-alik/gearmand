@@ -37,6 +37,5 @@
 
 #pragma once
 
+LIBTEST_API
 gearman_return_t cat_aggregator_fn(gearman_aggregator_st *aggregator, gearman_task_st *task, gearman_result_st *result);
-
-

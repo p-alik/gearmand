@@ -37,4 +37,5 @@
 
 #pragma once
 
+LIBTEST_API
 gearman_return_t sleep_return_random_worker(gearman_job_st *job, void *);

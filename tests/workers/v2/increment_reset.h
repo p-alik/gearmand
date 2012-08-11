@@ -37,4 +37,5 @@
 
 #pragma once
 
+LIBTEST_API
 gearman_return_t increment_reset_worker_v2(gearman_job_st *job, void *context);

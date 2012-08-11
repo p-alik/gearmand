@@ -37,4 +37,5 @@
 
 #pragma once
 
+LIBTEST_API
 gearman_return_t echo_or_react_chunk_worker_v2(gearman_job_st *job, void *context);

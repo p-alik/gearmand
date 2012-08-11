@@ -37,4 +37,5 @@
 
 #pragma once
 
+LIBTEST_API
 gearman_return_t unique_worker_v2(gearman_job_st *job, void *context);

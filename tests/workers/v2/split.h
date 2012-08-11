@@ -37,5 +37,6 @@
 
 #pragma once
 
+LIBTEST_API
 gearman_return_t split_worker(gearman_job_st *job, void* /* context */);
 

@@ -39,4 +39,5 @@
 
 #define ECHO_OR_REACT_DREAM 20
 
+LIBTEST_API
 gearman_return_t echo_or_react_worker_v2(gearman_job_st *job, void *context);
