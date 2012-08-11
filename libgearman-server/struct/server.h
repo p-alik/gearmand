@@ -43,6 +43,17 @@ struct queue_st {
   gearman_queue_flush_fn *_flush_fn;
   gearman_queue_done_fn *_done_fn;
   gearman_queue_replay_fn *_replay_fn;
+
+#ifdef __cplusplus
+  queue_st() :
+    _context(NULL),
+    _add_fn(NULL),
+    _flush_fn(NULL),
+    _done_fn(NULL),
+    _replay_fn(NULL)
+  {
+  }
+#endif
 };
 
 enum queue_version_t {
@@ -55,13 +66,12 @@ namespace gearmand { namespace queue { class Context; } }
 #endif
 
 union queue_un {
-  struct queue_st functions;
+  struct queue_st* functions;
 #ifdef __cplusplus
   gearmand::queue::Context* object;
 #else
   void *_object;
 #endif
-  char raw[sizeof(struct queue_st)];
 };
 
 struct gearman_server_st

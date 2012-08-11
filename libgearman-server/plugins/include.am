@@ -6,5 +6,7 @@ noinst_HEADERS+= libgearman-server/plugins/base.h
 noinst_HEADERS+= libgearman-server/plugins/protocol.h
 noinst_HEADERS+= libgearman-server/plugins/queue.h
 
+libgearman_server_libgearman_server_la_SOURCES+= libgearman-server/plugins/base.cc
+
 include libgearman-server/plugins/protocol/include.am
 include libgearman-server/plugins/queue/include.am

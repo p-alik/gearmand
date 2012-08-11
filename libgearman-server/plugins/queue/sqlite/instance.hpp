@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -37,24 +37,66 @@
 
 #pragma once
 
-#include <libgearman-server/plugins/base.h>
-#include <libgearman-server/queue.hpp>
+#include <libgearman-server/plugins/queue/base.h>
+
+#include <sqlite3.h>
+
+#include <string>
 
 namespace gearmand {
-namespace plugins {
+namespace queue {
 
-class Queue : public gearmand::Plugin {
+class Instance : public gearmand::queue::Context 
+{
 public:
-  Queue(const std::string &arg);
+  Instance(const std::string& schema_, const std::string& table_);
 
-  virtual gearmand_error_t initialize()= 0;
+  ~Instance();
 
-  virtual ~Queue()= 0;
+  const std::string &insert_query() const
+  {
+    return _insert_query;
+  }
 
-  typedef std::vector<Queue *> vector;
+  const std::string &delete_query() const
+  {
+    return _delete_query;
+  }
+
+
+  gearmand_error_t init();
+
+  gearmand_error_t add(gearman_server_st *server,
+                       const char *unique, size_t unique_size,
+                       const char *function_name, size_t function_name_size,
+                       const void *data, size_t data_size,
+                       gearman_job_priority_t priority,
+                       int64_t when);
+
+  gearmand_error_t flush(gearman_server_st *server);
+
+  gearmand_error_t done(gearman_server_st *server,
+                        const char *unique, size_t unique_size,
+                        const char *function_name, size_t function_name_size);
+
+  gearmand_error_t replay(gearman_server_st *server);
 
 private:
+  int _sqlite_query(const char *query, size_t query_size, sqlite3_stmt ** sth);
+  int _sqlite_commit();
+  int _sqlite_rollback();
+  int _sqlite_lock();
+
+private:
+  bool _epoch_support;
+  int _in_trans;
+  sqlite3 *_db;
+  std::string _error_string;
+  std::string _schema;
+  std::string _table;
+  std::string _insert_query;
+  std::string _delete_query;
 };
 
-} // namespace plugin
+} // namespace queue
 } // namespace gearmand
