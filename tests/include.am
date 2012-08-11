@@ -39,6 +39,7 @@ tests_libstartworker_la_LIBADD+= $(BOOST_THREAD_LIBS)
 tests_libstartworker_la_LIBADD+= libtest/libtest.la
 tests_libstartworker_la_LIBADD+= libgearman/libgearman.la
 tests_libstartworker_la_SOURCES+= tests/start_worker.cc
+tests_libstartworker_la_SOURCES+= tests/workers/v2/called.cc
 tests_libstartworker_la_SOURCES+= util/instance.cc
 tests_libstartworker_la_SOURCES+= util/operation.cc
 

@@ -37,13 +37,44 @@
 
 #pragma once
 
-#include <libtest/test.h>
+#include <pthread.h>
 
-test_return_t unique_SETUP(void *);
+class Called
+{
+public:
+  Called() :
+    _count(0)
+  {
+    pthread_mutex_init(&_lock, NULL);
+  }
 
-test_return_t unique_compare_test(void *);
-test_return_t coalescence_TEST(void*);
-test_return_t coalescence_by_data_TEST(void*);
-test_return_t coalescence_by_data_FAIL_TEST(void*);
-test_return_t gearman_client_unique_status_TEST(void*);
-test_return_t gearman_client_unique_status_NOT_FOUND_TEST(void *object);
+  ~Called()
+  {
+    pthread_mutex_destroy(&_lock);
+  }
+
+  void increment()
+  {
+    pthread_mutex_lock(&_lock);
+    _count++;
+    pthread_mutex_unlock(&_lock);
+  }
+
+  int32_t count()
+  {
+    int32_t tmp;
+    pthread_mutex_lock(&_lock);
+    tmp= _count;
+    pthread_mutex_unlock(&_lock);
+
+    return tmp;
+  }
+
+private:
+  int32_t _count;
+  pthread_mutex_t _lock;
+
+};
+
+LIBTEST_API
+gearman_return_t called_worker(gearman_job_st *job, void *context);

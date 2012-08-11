@@ -1353,27 +1353,6 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
 
   test->add_server(NULL, libtest::default_port());
 
-  // Namespace versions of the above
-
-  // Long function name
-
-#if 0
-  gearman_function_t increment_reset_worker_fn= gearman_function_create_v1(increment_reset_worker);
-  for (uint32_t x= 0; x < 10; x++)
-  {
-    test->push(test_worker_start(libtest::default_port(), 
-                                 NULL,
-                                 "increment_reset_worker", increment_reset_worker_fn, 
-                                 NULL, gearman_worker_options_t()));
-  }
-#endif
-
-  // Count worker
-#if 0
-  gearman_function_t count_worker_fn= gearman_function_create(count_worker);
-  test->push(test_worker_start(libtest::default_port(), NULL, "count", count_worker_fn, NULL, gearman_worker_options_t()));
-#endif
-
   error= TEST_SUCCESS;
 
   return (void *)test;
@@ -1440,6 +1419,7 @@ test_st loop_TESTS[] ={
 test_st coalescence_TESTS[] ={
   {"basic coalescence", 0, coalescence_TEST },
   {"coalescence by data", 0, coalescence_by_data_TEST },
+  {"coalescence by data fail", 0, coalescence_by_data_FAIL_TEST },
   {0, 0, 0}
 };
 

@@ -35,15 +35,19 @@
  *
  */
 
-#pragma once
+#include <config.h>
 
-#include <libtest/test.h>
+#include <libtest/test.hpp>
 
-test_return_t unique_SETUP(void *);
+#include <libgearman-1.0/gearman.h>
 
-test_return_t unique_compare_test(void *);
-test_return_t coalescence_TEST(void*);
-test_return_t coalescence_by_data_TEST(void*);
-test_return_t coalescence_by_data_FAIL_TEST(void*);
-test_return_t gearman_client_unique_status_TEST(void*);
-test_return_t gearman_client_unique_status_NOT_FOUND_TEST(void *object);
+#include "tests/workers/v2/called.h"
+
+gearman_return_t called_worker(gearman_job_st *, void *object)
+{
+  Called *count= (Called*)object;
+  assert(count);
+  count->increment();
+
+  return GEARMAN_SUCCESS;
+}

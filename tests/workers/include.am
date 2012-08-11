@@ -13,6 +13,7 @@ noinst_HEADERS+= tests/workers/v1/echo_or_react_chunk.h
 noinst_HEADERS+= tests/workers/v1/increment_reset.h
 noinst_HEADERS+= tests/workers/v1/unique.h
 
+noinst_HEADERS+= tests/workers/v2/called.h
 noinst_HEADERS+= tests/workers/v2/count.h
 noinst_HEADERS+= tests/workers/v2/echo_or_react.h
 noinst_HEADERS+= tests/workers/v2/echo_or_react_chunk.h
