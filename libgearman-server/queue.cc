@@ -134,7 +134,7 @@ void gearman_server_set_queue(gearman_server_st *server,
                               gearman_queue_replay_fn *replay)
 {
   server->queue_version= QUEUE_VERSION_FUNCTION;
-  server->queue.functions->_context= new queue_st();
+  server->queue.functions= new queue_st();
   server->queue.functions->_context= context;
   server->queue.functions->_add_fn= add;
   server->queue.functions->_flush_fn= flush;
