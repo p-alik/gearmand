@@ -62,13 +62,9 @@ public:
     return _name;
   }
 
-  virtual ~Plugin()
-  {};
+  virtual ~Plugin()= 0;
 
-  boost::program_options::options_description &command_line_options()
-  {
-    return _command_line_options;
-  }
+  boost::program_options::options_description &command_line_options();
 
 private:
   boost::program_options::options_description _command_line_options;
@@ -79,28 +75,27 @@ namespace queue {
 
 class Context {
 public:
-  virtual ~Context()
-  { }
+  virtual ~Context()= 0;
 
-    virtual gearmand_error_t add(gearman_server_st *server,
-                                 const char *unique,
-                                 size_t unique_size,
-                                 const char *function_name,
-                                 size_t function_name_size,
-                                 const void *data,
-                                 size_t data_size,
-                                 gearman_job_priority_t priority,
-                                 int64_t when)= 0;
+  virtual gearmand_error_t add(gearman_server_st *server,
+                               const char *unique,
+                               size_t unique_size,
+                               const char *function_name,
+                               size_t function_name_size,
+                               const void *data,
+                               size_t data_size,
+                               gearman_job_priority_t priority,
+                               int64_t when)= 0;
 
-    virtual gearmand_error_t flush(gearman_server_st *server)= 0;
+  virtual gearmand_error_t flush(gearman_server_st *server)= 0;
 
-    virtual gearmand_error_t done(gearman_server_st *server,
-                                  const char *unique,
-                                  size_t unique_size,
-                                  const char *function_name,
-                                  size_t function_name_size)= 0;
+  virtual gearmand_error_t done(gearman_server_st *server,
+                                const char *unique,
+                                size_t unique_size,
+                                const char *function_name,
+                                size_t function_name_size)= 0;
 
-    virtual gearmand_error_t replay(gearman_server_st *server)= 0;
+  virtual gearmand_error_t replay(gearman_server_st *server)= 0;
 };
 
 } // namespace queue
@@ -109,8 +104,7 @@ namespace protocol {
 
 class Context {
 public:
-  virtual ~Context()
-  { }
+  virtual ~Context()= 0;
   
   // If the caller should free the Context, or leave it up to the plugin
   virtual bool is_owner()

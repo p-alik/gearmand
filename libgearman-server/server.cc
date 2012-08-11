@@ -917,7 +917,7 @@ void *gearman_server_queue_context(const gearman_server_st *server)
 {
   if (server->queue_version == QUEUE_VERSION_FUNCTION)
   {
-    return (void *)server->queue.functions._context;
+    return (void *)server->queue.functions->_context;
   }
 
   return NULL;

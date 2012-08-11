@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,9 @@
  *
  */
 
-#pragma once
+#include <config.h>
+
+#include "libgearman-server/plugins/queue/base.h"
 
 #include <libgearman-server/plugins/base.h>
 #include <libgearman-server/queue.hpp>
@@ -43,18 +45,15 @@
 namespace gearmand {
 namespace plugins {
 
-class Queue : public gearmand::Plugin {
-public:
-  Queue(const std::string &arg);
+Queue::Queue(const std::string &arg) :
+  Plugin(arg)
+  {
+    gearmand::queue::add(this);
+  }
 
-  virtual gearmand_error_t initialize()= 0;
-
-  virtual ~Queue()= 0;
-
-  typedef std::vector<Queue *> vector;
-
-private:
-};
+Queue::~Queue()
+{
+}
 
 } // namespace plugin
 } // namespace gearmand

@@ -110,6 +110,8 @@ static void gearman_server_free(gearman_server_st *server)
     server->free_worker_list= worker->con_next;
     delete worker;
   }
+
+  delete server->queue.object;
 }
 
 /** @} */
@@ -1077,8 +1079,6 @@ static bool gearman_server_create(gearman_server_st *server,
   server->free_worker_list= NULL;
 
   server->queue_version= QUEUE_VERSION_FUNCTION;
-
-  memset(server->queue.raw, 0, sizeof(server->queue));
 
   memset(server->job_hash, 0,
          sizeof(gearman_server_job_st *) * GEARMAND_JOB_HASH_SIZE);
