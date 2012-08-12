@@ -79,6 +79,8 @@ struct function_st set_function(const char *name, const char *environ_name)
     exit(EXIT_FAILURE);
   }
 
+  set._corrupt= false;
+
   if (set.function.ptr == NULL)
   {
     fprintf(stderr, "libhostile: %s(%s)", set.name, dlerror());

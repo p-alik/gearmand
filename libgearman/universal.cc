@@ -455,6 +455,11 @@ public:
 
   gearman_return_t success(gearman_connection_st* con)
   {
+    if (con->_packet.command != GEARMAN_COMMAND_ECHO_RES)
+    {
+      return gearman_error(_universal, GEARMAN_INVALID_COMMAND, "Wrong command sent in response to ECHO request");
+    }
+
     if (con->_packet.data_size != _workload_size or
         memcmp(_workload, con->_packet.data, _workload_size))
     {
@@ -515,7 +520,6 @@ static gearman_return_t connection_loop(gearman_universal_st& universal,
     }
 
     assert(packet_ptr == &con->_packet);
-    assert(packet_ptr->command == GEARMAN_COMMAND_ECHO_RES);
     if (gearman_failed(ret))
     {
 #if 0
