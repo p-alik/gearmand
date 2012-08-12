@@ -7,7 +7,8 @@
 # the COPYING file in this directory for full text.
 
 AC_INIT([gearmand],[0.35],[https://bugs.launchpad.net/gearmand],[gearmand],[http://gearman.info/])
-AC_CONFIG_AUX_DIR(config)
+AC_CONFIG_AUX_DIR([config])
+AC_CONFIG_MACRO_DIR([m4])
 
 AC_CANONICAL_TARGET
 AC_ARG_PROGRAM
@@ -227,8 +228,6 @@ AX_CHECK_LIBRARY([LIBUUID], [uuid/uuid.h], [uuid],
                  [
                   AC_MSG_WARN([Unable to find libuuid])
                   ])
-
-AX_CHECK_ZLIB
 
 AS_IF([test "x${TARGET_LINUX}" = "xtrue"], [AC_DEFINE([BUILD_LIBHOSTILE], [1], [Build libhostile])], [AC_DEFINE([BUILD_LIBHOSTILE], [0], [Build libhostile])])
 AM_CONDITIONAL(TARGET_HOSTILE, [test "x${TARGET_LINUX}" = "xtrue"])
