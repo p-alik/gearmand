@@ -254,5 +254,10 @@ libtest_wait_SOURCES+= libtest/wait.cc
 libtest_wait_SOURCES+= libtest/dream.cc
 noinst_PROGRAMS+= libtest/wait
 
+libtest_core_count_SOURCES=
+libtest_core_count_SOURCES+= libtest/cpu.cc
+libtest_core_count_SOURCES+= libtest/core_count.cc
+noinst_PROGRAMS+= libtest/core-count
+
 libtest_abort_SOURCES= libtest/abort.cc
 noinst_PROGRAMS+= libtest/abort
