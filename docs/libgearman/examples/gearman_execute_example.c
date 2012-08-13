@@ -2,6 +2,15 @@
   Example code to show how to send a string to a function called "reverse" and print the results.
 */
 
+/*
+# Gearman server and library
+# Copyright (C) 2012 Data Differential, http://datadifferential.com/
+# All rights reserved.
+#
+# Use and distribution licensed under the BSD license.  See
+# the COPYING file in this directory for full text.
+*/
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
