@@ -1,3 +1,7 @@
+0.36
+* Fix issue where sqlite was not correctly being shutdown.
+* Check for more warnings (and cleanup found from).
+
 0.35 Sun Aug  5 16:03:21 EDT 2012
 * Critical bug fix for rare case in which initialization of pipe for a worker fails.
 * Add support for MySQL specific driver to specify port.
