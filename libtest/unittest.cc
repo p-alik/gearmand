@@ -594,6 +594,15 @@ static test_return_t echo_fubar_BINARY(void *)
   return TEST_SUCCESS;
 }
 
+static test_return_t core_count_BINARY(void *)
+{
+  const char *args[]= { 0 };
+
+  test_compare(EXIT_SUCCESS, exec_cmdline("libtest/core-count", args, true));
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t wait_BINARY(void *)
 {
   const char *args[]= { "--quiet", 0 };
@@ -916,6 +925,7 @@ test_st cmdline_tests[] ={
   {"true", 0, true_BINARY },
   {"true --fubar", 0, true_fubar_BINARY },
   {"echo fubar", 0, echo_fubar_BINARY },
+  {"core-count", 0, core_count_BINARY },
   {"wait --quiet", 0, wait_BINARY },
   {"wait --quiet --help", 0, wait_help_BINARY },
   {"wait --quiet --version", 0, wait_version_BINARY },
