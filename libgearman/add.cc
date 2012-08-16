@@ -45,13 +45,13 @@
 
 #include "libgearman/assert.hpp"
 
+#include "libgearman/uuid.hpp"
+
 #include <cerrno>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <memory>
-
-#include <uuid/uuid.h>
 
 gearman_task_st *add_task(gearman_client_st& client,
                           void *context,
@@ -153,7 +153,7 @@ gearman_task_st *add_task(gearman_client_st& client,
   else
   {
     uuid_t uuid;
-    uuid_generate(uuid);
+    safe_uuid_generate(uuid);
     uuid_unparse(uuid, task->unique);
     task->unique_length= GEARMAN_MAX_UUID_SIZE;
   }
@@ -332,7 +332,7 @@ gearman_task_st *add_reducer_task(gearman_client_st *client,
   }
   else
   {
-    uuid_generate(uuid);
+    safe_uuid_generate(uuid);
     uuid_unparse(uuid, task->unique);
     task->unique[GEARMAN_MAX_UUID_SIZE]= 0;
     args[1]= task->unique;

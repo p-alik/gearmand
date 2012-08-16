@@ -23,7 +23,7 @@ AC_DEFUN([AC_CXX_COMPILE_STDCXX_0X], [
   AC_CACHE_CHECK(if g++ supports C++0x features without additional flags,
   ac_cv_cxx_compile_cxx0x_native,
   [AC_LANG_SAVE
-  AC_LANG_CPLUSPLUS
+  AC_LANG_C
   AC_TRY_COMPILE([
   template <typename T>
     struct check

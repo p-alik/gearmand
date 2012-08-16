@@ -1,6 +1,6 @@
 # vim:ft=automake
 # Gearman server and library 
-# Copyright (C) 2011 Data Differential, http://datadifferential.com/
+# Copyright (C) 2011 - 2012 Data Differential, http://datadifferential.com/
 # Copyright (C) 2009-2010 Brian Aker, Eric Day, Monty Taylor All rights
 # Copyright (C) 2008 Brian Aker, Eric Day 
 #
@@ -12,6 +12,7 @@
 
 nobase_include_HEADERS+= libgearman/gearman.h
 
+noinst_HEADERS+= libgearman/uuid.hpp
 noinst_HEADERS+= libgearman/job.h
 noinst_HEADERS+= libgearman/pipe.h
 noinst_HEADERS+= \
@@ -104,6 +105,7 @@ libgearman_libgearman_la_SOURCES= \
 				  libgearman/worker.cc
 
 libgearman_libgearman_la_SOURCES+= libgearman/pipe.cc
+libgearman_libgearman_la_SOURCES+= libgearman/uuid.cc
 
 libgearman_libgearman_la_CXXFLAGS= -DBUILDING_LIBGEARMAN
 

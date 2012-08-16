@@ -165,9 +165,6 @@ AC_CHECK_FUNCS([dup2 gettimeofday memchr memmove memset socket strcasecmp strdup
 AC_CHECK_FUNCS([pipe2], 
                AC_DEFINE([HAVE_PIPE2], [1], [Have pipe2]),
                AC_DEFINE([HAVE_PIPE2], [0], [Have pipe2]))
-AC_CHECK_FUNCS([pthread_timedjoin_np], 
-               AC_DEFINE([HAVE_PTHREAD_TIMEDJOIN_NP], [1], [Have pthread_timedjoin_np]),
-               AC_DEFINE([HAVE_PTHREAD_TIMEDJOIN_NP], [0], [Have pthread_timedjoin_np]))
 AC_CHECK_FUNCS([select])
 AC_CHECK_FUNCS([setenv])
 AC_CHECK_FUNCS([strtol])
@@ -224,6 +221,7 @@ AX_CHECK_LIBRARY([LIBEVENT], [event.h], [event],
 AX_CHECK_LIBRARY([LIBUUID], [uuid/uuid.h], [uuid], 
                  [
                   LIBUUID_LDFLAGS="-luuid"
+                  AX_UUID_GENERATE_TIME_SAFE
                   ],
                  [
                   AC_MSG_WARN([Unable to find libuuid])
@@ -236,6 +234,8 @@ AX_CHECK_SOCK_CLOEXEC([AC_DEFINE([HAVE_SOCK_CLOEXEC], [1], [Check for SOCK_CLOEX
                        [AC_DEFINE([HAVE_SOCK_CLOEXEC], [0], [Check for SOCK_CLOEXEC.])])
 
 AX_PTHREAD(, [AC_MSG_ERROR(could not find libpthread)])
+AX_PTHREAD_TIMEDJOIN_NP
+
 AX_HARDEN_COMPILER_FLAGS
 
 AX_DEBUG

@@ -197,6 +197,8 @@ The I/O thread is responsible for doing the read and write system calls on the s
 
 The processing thread should have no system calls within it (except for the occasional brk() for more memory), and manages the various lists and hash tables used for tracking unique keys, job handles, functions, and job queues. All packets that need to be sent back to connections are put into an asynchronous queue for the I/O thread. The I/O thread will pick these up and send them back over the connected socket. All packets flow through the processing thread since it contains the information needed to process the packets. This is due to the complex nature of the various lists and hash tables. If multiple threads were modifying them the locking overhead would most likely cause worse performance than having it in a single thread (and would also complicate the code). In the future more work may be pushed to the I/O threads, and the processing thread can retain minimal functionality to manage those tables and lists. So far this has not been a significant bottleneck, a 16 core Intel machine is able to process upwards of 50k jobs per second.
 
+For thread safety to work when UUID are generated, you must be running the uuidd daemon.
+
 Persistent Queues
 +++++++++++++++++
 
