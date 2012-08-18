@@ -383,60 +383,57 @@ gearman_client_options_t gearman_client_options(const gearman_client_st *client)
 bool gearman_client_has_option(gearman_client_st *client,
                                 gearman_client_options_t option)
 {
-  if (client == NULL)
+  if (client)
   {
-    return false;
+    switch (option)
+    {
+    case GEARMAN_CLIENT_ALLOCATED:
+      return client->options.allocated;
+
+    case GEARMAN_CLIENT_NON_BLOCKING:
+      return client->options.non_blocking;
+
+    case GEARMAN_CLIENT_UNBUFFERED_RESULT:
+      return client->options.unbuffered_result;
+
+    case GEARMAN_CLIENT_NO_NEW:
+      return client->options.no_new;
+
+    case GEARMAN_CLIENT_FREE_TASKS:
+      return client->options.free_tasks;
+
+    default:
+    case GEARMAN_CLIENT_TASK_IN_USE:
+    case GEARMAN_CLIENT_MAX:
+      break; // Let these fall through to false
+    }
   }
 
-  switch (option)
-  {
-  case GEARMAN_CLIENT_ALLOCATED:
-    return client->options.allocated;
-
-  case GEARMAN_CLIENT_NON_BLOCKING:
-    return client->options.non_blocking;
-
-  case GEARMAN_CLIENT_UNBUFFERED_RESULT:
-    return client->options.unbuffered_result;
-
-  case GEARMAN_CLIENT_NO_NEW:
-    return client->options.no_new;
-
-  case GEARMAN_CLIENT_FREE_TASKS:
-    return client->options.free_tasks;
-
-  default:
-  case GEARMAN_CLIENT_TASK_IN_USE:
-  case GEARMAN_CLIENT_MAX:
-        return false;
-  }
+  return false;
 }
 
 void gearman_client_set_options(gearman_client_st *client,
                                 gearman_client_options_t options)
 {
-  if (client == NULL)
-    return;
-
-  gearman_client_options_t usable_options[]= {
-    GEARMAN_CLIENT_NON_BLOCKING,
-    GEARMAN_CLIENT_UNBUFFERED_RESULT,
-    GEARMAN_CLIENT_FREE_TASKS,
-    GEARMAN_CLIENT_MAX
-  };
-
-  gearman_client_options_t *ptr;
-
-
-  for (ptr= usable_options; *ptr != GEARMAN_CLIENT_MAX ; ptr++)
+  if (client)
   {
-    if (options & *ptr)
+    gearman_client_options_t usable_options[]= {
+      GEARMAN_CLIENT_NON_BLOCKING,
+      GEARMAN_CLIENT_UNBUFFERED_RESULT,
+      GEARMAN_CLIENT_FREE_TASKS,
+      GEARMAN_CLIENT_MAX
+    };
+
+    for (gearman_client_options_t* ptr= usable_options; *ptr != GEARMAN_CLIENT_MAX ; ptr++)
     {
-      gearman_client_add_options(client, *ptr);
-    }
-    else
-    {
-      gearman_client_remove_options(client, *ptr);
+      if (options & *ptr)
+      {
+        gearman_client_add_options(client, *ptr);
+      }
+      else
+      {
+        gearman_client_remove_options(client, *ptr);
+      }
     }
   }
 }
@@ -444,48 +441,46 @@ void gearman_client_set_options(gearman_client_st *client,
 void gearman_client_add_options(gearman_client_st *client,
                                 gearman_client_options_t options)
 {
-  if (client == NULL)
+  if (client)
   {
-    return;
-  }
+    if (options & GEARMAN_CLIENT_NON_BLOCKING)
+    {
+      gearman_universal_add_options(client->universal, GEARMAN_NON_BLOCKING);
+      client->options.non_blocking= true;
+    }
 
-  if (options & GEARMAN_CLIENT_NON_BLOCKING)
-  {
-    gearman_universal_add_options(client->universal, GEARMAN_NON_BLOCKING);
-    client->options.non_blocking= true;
-  }
+    if (options & GEARMAN_CLIENT_UNBUFFERED_RESULT)
+    {
+      client->options.unbuffered_result= true;
+    }
 
-  if (options & GEARMAN_CLIENT_UNBUFFERED_RESULT)
-  {
-    client->options.unbuffered_result= true;
-  }
-
-  if (options & GEARMAN_CLIENT_FREE_TASKS)
-  {
-    client->options.free_tasks= true;
+    if (options & GEARMAN_CLIENT_FREE_TASKS)
+    {
+      client->options.free_tasks= true;
+    }
   }
 }
 
 void gearman_client_remove_options(gearman_client_st *client,
                                    gearman_client_options_t options)
 {
-  if (client == NULL)
-    return;
-
-  if (options & GEARMAN_CLIENT_NON_BLOCKING)
+  if (client)
   {
-    gearman_universal_remove_options(client->universal, GEARMAN_NON_BLOCKING);
-    client->options.non_blocking= false;
-  }
+    if (options & GEARMAN_CLIENT_NON_BLOCKING)
+    {
+      gearman_universal_remove_options(client->universal, GEARMAN_NON_BLOCKING);
+      client->options.non_blocking= false;
+    }
 
-  if (options & GEARMAN_CLIENT_UNBUFFERED_RESULT)
-  {
-    client->options.unbuffered_result= false;
-  }
+    if (options & GEARMAN_CLIENT_UNBUFFERED_RESULT)
+    {
+      client->options.unbuffered_result= false;
+    }
 
-  if (options & GEARMAN_CLIENT_FREE_TASKS)
-  {
-    client->options.free_tasks= false;
+    if (options & GEARMAN_CLIENT_FREE_TASKS)
+    {
+      client->options.free_tasks= false;
+    }
   }
 }
 
@@ -496,83 +491,73 @@ int gearman_client_timeout(gearman_client_st *client)
 
 void gearman_client_set_timeout(gearman_client_st *client, int timeout)
 {
-  if (client == NULL)
+  if (client)
   {
-    return;
+    gearman_universal_set_timeout(client->universal, timeout);
   }
-
-  gearman_universal_set_timeout(client->universal, timeout);
 }
 
 void *gearman_client_context(const gearman_client_st *client)
 {
-  if (client == NULL)
+  if (client)
   {
-    return NULL;
+    return const_cast<void *>(client->context);
   }
 
-  return const_cast<void *>(client->context);
+  return NULL;
 }
 
 void gearman_client_set_context(gearman_client_st *client, void *context)
 {
-  if (client == NULL)
+  if (client)
   {
-    return;
+    client->context= context;
   }
-
-  client->context= context;
 }
 
 void gearman_client_set_log_fn(gearman_client_st *client,
                                gearman_log_fn *function, void *context,
                                gearman_verbose_t verbose)
 {
-  if (client == NULL)
+  if (client)
   {
-    return;
+    gearman_set_log_fn(client->universal, function, context, verbose);
   }
-
-  gearman_set_log_fn(client->universal, function, context, verbose);
 }
 
 void gearman_client_set_workload_malloc_fn(gearman_client_st *client,
                                            gearman_malloc_fn *function,
                                            void *context)
 {
-  if (client == NULL)
+  if (client)
   {
-    return;
+    gearman_set_workload_malloc_fn(client->universal, function, context);
   }
-
-  gearman_set_workload_malloc_fn(client->universal, function, context);
 }
 
 void gearman_client_set_workload_free_fn(gearman_client_st *client, gearman_free_fn *function, void *context)
 {
-  if (client == NULL)
+  if (client)
   {
-    return;
+    gearman_set_workload_free_fn(client->universal, function, context);
   }
-
-  gearman_set_workload_free_fn(client->universal, function, context);
 }
 
 gearman_return_t gearman_client_add_server(gearman_client_st *client,
                                            const char *host, in_port_t port)
 {
-  if (client == NULL)
+  if (client)
   {
-    return GEARMAN_INVALID_ARGUMENT;
+    if (gearman_connection_create_args(client->universal, host, port) == false)
+    {
+      assert(client->universal.error.rc != GEARMAN_SUCCESS);
+      return gearman_universal_error_code(client->universal);
+    }
+
+    return GEARMAN_SUCCESS;
   }
 
-  if (gearman_connection_create_args(client->universal, host, port) == false)
-  {
-    assert(client->universal.error.rc != GEARMAN_SUCCESS);
-    return gearman_universal_error_code(client->universal);
-  }
-
-  return GEARMAN_SUCCESS;
+  return GEARMAN_INVALID_ARGUMENT;
 }
 
 gearman_return_t gearman_client_add_servers(gearman_client_st *client,
@@ -583,22 +568,20 @@ gearman_return_t gearman_client_add_servers(gearman_client_st *client,
 
 void gearman_client_remove_servers(gearman_client_st *client)
 {
-  if (client == NULL)
+  if (client)
   {
-    return;
+    gearman_free_all_cons(client->universal);
   }
-
-  gearman_free_all_cons(client->universal);
 }
 
 gearman_return_t gearman_client_wait(gearman_client_st *client)
 {
-  if (client == NULL)
+  if (client)
   {
-    return GEARMAN_INVALID_ARGUMENT;
+    return gearman_wait(client->universal);
   }
 
-  return gearman_wait(client->universal);
+  return GEARMAN_INVALID_ARGUMENT;
 }
 
 void *gearman_client_do(gearman_client_st *client,
@@ -682,13 +665,13 @@ static bool _active_tasks(gearman_client_st *client)
 
 const char *gearman_client_do_job_handle(gearman_client_st *self)
 {
-  if (self == NULL)
+  if (self)
   {
-    errno= EINVAL;
-    return NULL;
+    return self->_do_handle;
   }
 
-  return self->_do_handle;
+  errno= EINVAL;
+  return NULL;
 }
 
 void gearman_client_do_status(gearman_client_st *, uint32_t *numerator, uint32_t *denominator)
@@ -942,13 +925,10 @@ void gearman_client_task_free_all(gearman_client_st *client)
 void gearman_client_set_task_context_free_fn(gearman_client_st *client,
                                              gearman_task_context_free_fn *function)
 {
-  if (client == NULL)
+  if (client)
   {
-    return;
+    client->task_context_free_fn= function;
   }
-
-  client->task_context_free_fn= function;
-
 }
 
 gearman_return_t gearman_client_set_memory_allocators(gearman_client_st *client,
@@ -1259,99 +1239,81 @@ gearman_task_st *gearman_client_add_task_status_by_unique(gearman_client_st *cli
 void gearman_client_set_workload_fn(gearman_client_st *client,
                                     gearman_workload_fn *function)
 {
-  if (client == NULL)
+  if (client)
   {
-    return;
+    client->actions.workload_fn= function;
   }
-
-  client->actions.workload_fn= function;
 }
 
 void gearman_client_set_created_fn(gearman_client_st *client,
                                    gearman_created_fn *function)
 {
-  if (client == NULL)
+  if (client)
   {
-    return;
+    client->actions.created_fn= function;
   }
-
-  client->actions.created_fn= function;
 }
 
 void gearman_client_set_data_fn(gearman_client_st *client,
                                 gearman_data_fn *function)
 {
-  if (client == NULL)
+  if (client)
   {
-    return;
+    client->actions.data_fn= function;
   }
-
-  client->actions.data_fn= function;
 }
 
 void gearman_client_set_warning_fn(gearman_client_st *client,
                                    gearman_warning_fn *function)
 {
-  if (client == NULL)
+  if (client)
   {
-    return;
+    client->actions.warning_fn= function;
   }
-
-  client->actions.warning_fn= function;
 }
 
 void gearman_client_set_status_fn(gearman_client_st *client,
                                   gearman_universal_status_fn *function)
 {
-  if (client == NULL)
+  if (client)
   {
-    return;
+    client->actions.status_fn= function;
   }
-
-  client->actions.status_fn= function;
 }
 
 void gearman_client_set_complete_fn(gearman_client_st *client,
                                     gearman_complete_fn *function)
 {
-  if (client == NULL)
+  if (client)
   {
-    return;
+    client->actions.complete_fn= function;
   }
-
-  client->actions.complete_fn= function;
 }
 
 void gearman_client_set_exception_fn(gearman_client_st *client,
                                      gearman_exception_fn *function)
 {
-  if (client == NULL)
+  if (client)
   {
-    return;
+    client->actions.exception_fn= function;
   }
-
-  client->actions.exception_fn= function;
 }
 
 void gearman_client_set_fail_fn(gearman_client_st *client,
                                 gearman_fail_fn *function)
 {
-  if (client == NULL)
+  if (client)
   {
-    return;
+    client->actions.fail_fn= function;
   }
-
-  client->actions.fail_fn= function;
 }
 
 void gearman_client_clear_fn(gearman_client_st *client)
 {
-  if (client == NULL)
+  if (client)
   {
-    return;
+    client->actions= gearman_actions_default();
   }
-
-  client->actions= gearman_actions_default();
 }
 
 static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
@@ -1736,24 +1698,21 @@ bool gearman_client_compare(const gearman_client_st *first, const gearman_client
 
 bool gearman_client_set_server_option(gearman_client_st *self, const char *option_arg, size_t option_arg_size)
 {
-  if (self == NULL)
+  if (self)
   {
-    return false;
+    gearman_string_t option= { option_arg, option_arg_size };
+    return gearman_request_option(self->universal, option);
   }
 
-  gearman_string_t option= { option_arg, option_arg_size };
-
-  return gearman_request_option(self->universal, option);
+  return false;
 }
 
 void gearman_client_set_namespace(gearman_client_st *self, const char *namespace_key, size_t namespace_key_size)
 {
-  if (self == NULL)
+  if (self)
   {
-    return;
+    gearman_universal_set_namespace(self->universal, namespace_key, namespace_key_size);
   }
-
-  gearman_universal_set_namespace(self->universal, namespace_key, namespace_key_size);
 }
 
 gearman_return_t gearman_client_set_identifier(gearman_client_st *client,
