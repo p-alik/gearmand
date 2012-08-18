@@ -66,6 +66,12 @@ void set_recv_close(bool arg, int frequency, int not_until_arg)
   (void)(not_until_arg);
 }
 
+void set_recv_corrupt(bool arg, int frequency, int not_until_arg)
+{
+  (void)(arg);
+  (void)(frequency);
+  (void)(not_until_arg);
+}
 
 void set_send_close(bool arg, int frequency, int not_until_arg)
 {
