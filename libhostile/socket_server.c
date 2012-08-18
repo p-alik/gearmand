@@ -81,4 +81,6 @@ int read_packet(int socket_fd, unsigned *length, unsigned char *packet, struct s
   (void)length;
   (void)packet;
   (void)peer;
+  
+  return 0;
 }

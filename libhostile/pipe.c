@@ -48,8 +48,6 @@
 #include <time.h>
 #include <unistd.h>
 
-static int not_until= 50;
-
 static struct function_st __function;
 
 static pthread_once_t function_lookup_once= PTHREAD_ONCE_INIT;
