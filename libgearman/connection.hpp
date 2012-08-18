@@ -66,7 +66,7 @@ struct gearman_connection_st
   gearman_connection_st *next;
   gearman_connection_st *prev;
   void *context;
-  struct addrinfo *addrinfo;
+  struct addrinfo *_addrinfo;
   struct addrinfo *addrinfo_next;
   const char *send_buffer_ptr;
   char *recv_buffer_ptr;

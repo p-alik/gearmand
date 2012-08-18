@@ -179,6 +179,12 @@ gearman_connection_st::gearman_connection_st(gearman_universal_st &universal_arg
   recv_data_size(0),
   recv_data_offset(0),
   universal(universal_arg),
+  next(NULL),
+  prev(NULL),
+  context(NULL),
+  _addrinfo(NULL),
+  addrinfo_next(NULL),
+  send_buffer_ptr(NULL),
   _recv_packet(NULL)
 {
   options.ready= false;
@@ -198,13 +204,9 @@ gearman_connection_st::gearman_connection_st(gearman_universal_st &universal_arg
     universal.con_list->prev= this;
   }
   next= universal.con_list;
-  prev= NULL;
   universal.con_list= this;
   universal.con_count++;
 
-  context= NULL;
-  addrinfo= NULL;
-  addrinfo_next= NULL;
   send_buffer_ptr= send_buffer;
   recv_buffer_ptr= recv_buffer;
   host[0]= 0;
@@ -402,10 +404,10 @@ void gearman_connection_st::free_recv_packet()
 
 void gearman_connection_st::reset_addrinfo()
 {
-  if (addrinfo)
+  if (_addrinfo)
   {
-    freeaddrinfo(addrinfo);
-    addrinfo= NULL;
+    freeaddrinfo(_addrinfo);
+    _addrinfo= NULL;
   }
 
   addrinfo_next= NULL;
@@ -565,11 +567,7 @@ size_t gearman_connection_st::send_and_flush(const void *data, size_t data_size,
 
 gearman_return_t gearman_connection_st::lookup()
 {
-  if (addrinfo)
-  {
-    freeaddrinfo(addrinfo);
-    addrinfo= NULL;
-  }
+  reset_addrinfo();
 
   char port_str[GEARMAN_NI_MAXSERV]= { 0 };
   int port_str_length;
@@ -584,12 +582,12 @@ gearman_return_t gearman_connection_st::lookup()
   ai.ai_protocol= IPPROTO_TCP;
 
   int ret;
-  if ((ret= getaddrinfo(host, port_str, &ai, &(addrinfo))))
+  if ((ret= getaddrinfo(host, port_str, &ai, &(_addrinfo))))
   {
     return gearman_universal_set_error(universal, GEARMAN_GETADDRINFO, GEARMAN_AT, "getaddrinfo:%s", gai_strerror(ret));
   }
 
-  addrinfo_next= addrinfo;
+  addrinfo_next= _addrinfo;
   state= GEARMAN_CON_UNIVERSAL_CONNECT;
 
   return GEARMAN_SUCCESS;
