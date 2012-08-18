@@ -66,6 +66,9 @@ LIBHOSTILE_API
   void set_accept_close(bool arg, int frequency, int not_until_arg);
 
 LIBHOSTILE_API
+  void set_recv_corrupt(bool arg, int frequency, int not_until_arg);
+
+LIBHOSTILE_API
   void set_recv_close(bool arg, int frequency, int not_until_arg);
 
 LIBHOSTILE_API

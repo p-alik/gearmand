@@ -44,6 +44,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <time.h>
@@ -59,6 +60,22 @@ static void set_local(void)
   __function= set_function("recv", "HOSTILE_RECV");
 }
 
+void set_recv_corrupt(bool arg, int frequency, int not_until_arg)
+{
+  if (arg)
+  {
+    __function.frequency= frequency;
+    not_until= not_until_arg;
+    __function._corrupt= arg;
+  }
+  else
+  {
+    __function.frequency= 0;
+    not_until= 0;
+    __function._corrupt= false;
+  }
+}
+
 void set_recv_close(bool arg, int frequency, int not_until_arg)
 {
   if (arg)
@@ -70,6 +87,7 @@ void set_recv_close(bool arg, int frequency, int not_until_arg)
   {
     __function.frequency= 0;
     not_until= 0;
+    __function._corrupt= false;
   }
 }
 
@@ -80,9 +98,13 @@ ssize_t recv(int sockfd, void *buf, size_t len, int flags)
 
   (void) pthread_once(&function_lookup_once, set_local);
 
+  bool corrupt= false;
   if (is_called() == false && __function.frequency)
   {
-    if (--not_until < 0 && rand() % __function.frequency)
+    if (false)
+    {
+    }
+    else if (--not_until < 0 && rand() % __function.frequency)
     {
       __function._used++;
       shutdown(sockfd, SHUT_RDWR);
@@ -99,6 +121,10 @@ ssize_t recv(int sockfd, void *buf, size_t len, int flags)
   ssize_t ret= __function.function.recv(sockfd, buf, len, flags);
   reset_called();
 
+  if (corrupt)
+  {
+    memset(buf, 'd', len);
+  }
+
   return ret;
 }
-

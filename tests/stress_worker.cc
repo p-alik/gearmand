@@ -331,6 +331,17 @@ static test_return_t recv_SETUP(void* object)
   return TEST_SUCCESS;
 }
 
+static test_return_t recv_corrupt_SETUP(void* object)
+{
+  test_skip_valgrind();
+  test_skip(true, libtest::is_massive());
+
+  worker_ramp_SETUP(object);
+  set_recv_corrupt(true, 20, 20);
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t resv_TEARDOWN(void* object)
 {
   set_recv_close(true, 0, 0);
@@ -485,6 +496,7 @@ collection_st collection[] ={
   {"plain", worker_ramp_SETUP, worker_ramp_TEARDOWN, worker_TESTS },
   {"plain against hostile server", hostile_gearmand_SETUP, worker_ramp_TEARDOWN, worker_TESTS },
   {"hostile recv()", recv_SETUP, resv_TEARDOWN, worker_TESTS },
+  {"hostile recv() corrupt", recv_corrupt_SETUP, resv_TEARDOWN, worker_TESTS },
   {"hostile send()", send_SETUP, send_TEARDOWN, worker_TESTS },
   {"hostile accept()", accept_SETUP, accept_TEARDOWN, worker_TESTS },
   {"hostile poll(CLOSED)", poll_HOSTILE_POLL_CLOSED_SETUP, poll_TEARDOWN, worker_TESTS },

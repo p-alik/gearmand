@@ -68,6 +68,7 @@ struct function_st {
   union function_un function;
   int frequency;
   int _used;
+  bool _corrupt;
 };
 
 #ifdef __cplusplus
