@@ -1,4 +1,4 @@
-0.36 
+0.36 Sat Aug 18 16:57:13 EDT 2012
 * Fix issue where sqlite was not correctly being shutdown.
 * Check for more warnings (and cleanup found from).
 * Fix thread safety issue for uuid_generate().
