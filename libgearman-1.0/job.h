@@ -43,24 +43,6 @@
 
 #pragma once
 
-struct gearman_job_st
-{
-  struct {
-    bool allocated;
-    bool assigned_in_use;
-    bool work_in_use;
-    bool finished;
-  } options;
-  gearman_worker_st *worker;
-  gearman_job_st *next;
-  gearman_job_st *prev;
-  gearman_connection_st *con;
-  gearman_packet_st assigned;
-  gearman_packet_st work;
-  struct gearman_job_reducer_st *reducer;
-  gearman_return_t error_code;
-};
-
 #ifdef __cplusplus
 extern "C" {
 #endif

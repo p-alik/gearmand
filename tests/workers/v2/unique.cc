@@ -50,7 +50,9 @@ gearman_return_t unique_worker_v2(gearman_job_st *job, void *)
 {
   const char *workload= static_cast<const char *>(gearman_job_workload(job));
 
+#if 0
   assert(job->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN_UNIQ);
+#endif
   assert(gearman_job_unique(job));
   assert(strlen(gearman_job_unique(job)));
   assert(gearman_job_workload_size(job));

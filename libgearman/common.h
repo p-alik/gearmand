@@ -65,6 +65,7 @@ struct gearman_result_st;
 #include <libgearman/command.h>
 #include <libgearman/task.hpp>
 #include <libgearman/job.h>
+#include <libgearman/job.hpp>
 
 #include <libgearman/status.hpp>
 

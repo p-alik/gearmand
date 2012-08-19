@@ -2,8 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011-2012 Data Differential, http://datadifferential.com/
- *  Copyright (C) 2008 Brian Aker, Eric Day
+ *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -38,56 +37,20 @@
 
 #pragma once
 
-enum gearman_magic_t
-{
-  GEARMAN_MAGIC_TEXT,
-  GEARMAN_MAGIC_REQUEST,
-  GEARMAN_MAGIC_RESPONSE
-};
-
-/**
- * @ingroup gearman_packet
- */
-struct gearman_packet_st
+struct gearman_job_st
 {
   struct {
     bool allocated;
-    bool complete;
-    bool free_data;
+    bool assigned_in_use;
+    bool work_in_use;
+    bool finished;
   } options;
-  enum gearman_magic_t magic;
-  gearman_command_t command;
-  uint8_t argc;
-  size_t args_size;
-  size_t data_size;
-  struct gearman_universal_st *universal;
-  gearman_packet_st *next;
-  gearman_packet_st *prev;
-  char *args;
-  const void *data;
-  char *arg[GEARMAN_MAX_COMMAND_ARGS];
-  size_t arg_size[GEARMAN_MAX_COMMAND_ARGS];
-  char args_buffer[GEARMAN_ARGS_BUFFER_SIZE];
-#ifdef GEARMAN_PACKET_TRACE
-  uint32_t _id;
-#endif
-
-#ifdef __cplusplus
-  gearman_packet_st() :
-    magic(GEARMAN_MAGIC_TEXT),
-    command(GEARMAN_COMMAND_TEXT),
-    argc(0),
-    args_size(0),
-    data_size(0),
-    universal(0),
-    next(0),
-    prev(0),
-    args(0),
-    data(0)
-  {
-    options.allocated= false;
-    options.complete= false;
-    options.free_data= false;
-  }
-#endif
+  gearman_worker_st *worker;
+  gearman_job_st *next;
+  gearman_job_st *prev;
+  gearman_connection_st *con;
+  gearman_packet_st assigned;
+  gearman_packet_st work;
+  struct gearman_job_reducer_st *reducer;
+  gearman_return_t error_code;
 };

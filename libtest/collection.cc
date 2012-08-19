@@ -50,12 +50,14 @@ static test_return_t runner_code(libtest::Framework* frame,
   try 
   {
     _timer.reset();
+    alarm(600);
     return_code= frame->runner()->run(run->test_fn, frame->creators_ptr());
   }
   // Special case where check for the testing of the exception
   // system.
   catch (libtest::fatal &e)
   {
+    alarm(0);
     if (libtest::fatal::is_disabled())
     {
       libtest::fatal::increment_disabled_counter();
@@ -65,6 +67,11 @@ static test_return_t runner_code(libtest::Framework* frame,
     {
       throw;
     }
+  }
+  catch (...)
+  {
+    alarm(0);
+    throw;
   }
 
   _timer.sample();
@@ -118,17 +125,7 @@ test_return_t Collection::exec()
           }
         }
 
-        alarm(600);
-        try 
-        {
-          return_code= runner_code(_frame, run, _timer);
-        }
-        catch (...)
-        {
-          alarm(0);
-          throw;
-        }
-        alarm(0);
+        return_code= runner_code(_frame, run, _timer);
       }
       catch (libtest::fatal &e)
       {

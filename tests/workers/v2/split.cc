@@ -53,7 +53,9 @@ gearman_return_t split_worker(gearman_job_st *job, void* /* context */)
   const char *workload= static_cast<const char *>(gearman_job_workload(job));
   size_t workload_size= gearman_job_workload_size(job);
 
+#if 0
   assert(job->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN_ALL);
+#endif
 
   const char *chunk_begin= workload;
   for (size_t x= 0; x < workload_size; x++)
