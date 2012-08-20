@@ -43,6 +43,16 @@
 #include <cstring>
 #include <memory>
 
+gearman_task_st *gearman_next(gearman_task_st *shell)
+{
+  if (shell)
+  {
+    return shell->impl()->next;
+  }
+
+  return NULL;
+}
+
 gearman_task_attr_t gearman_task_attr_init(gearman_job_priority_t priority)
 {
   gearman_task_attr_t local= { GEARMAN_TASK_ATTR_FOREGROUND, priority, {{0}} };

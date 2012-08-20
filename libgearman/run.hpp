@@ -38,4 +38,4 @@
 
 #pragma once
 
-gearman_return_t _client_run_task(gearman_task_st *task);
+gearman_return_t _client_run_task(Task *task);

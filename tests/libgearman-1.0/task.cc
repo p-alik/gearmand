@@ -45,6 +45,8 @@ using namespace libtest;
 #include <libgearman/actions.hpp>
 #include <tests/task.h>
 
+#include "libgearman/interface/task.hpp"
+
 #include <iostream>
 
 #ifndef __INTEL_COMPILER
@@ -193,7 +195,7 @@ test_return_t gearman_client_add_task_test_fail(void *object)
                                                  &ret);
   test_compare(GEARMAN_SUCCESS,ret);
   test_truth(task);
-  test_truth(task->client);
+  test_truth(task->impl()->client);
 
   do {
     ret= gearman_client_run_tasks(client);
@@ -207,11 +209,11 @@ test_return_t gearman_client_add_task_test_fail(void *object)
     return TEST_SUCCESS;
   }
 
-  test_truth(task->client);
+  test_truth(task->impl()->client);
 
   test_compare(gearman_task_return(task), GEARMAN_WORK_FAIL);
 
-  test_truth(task->client);
+  test_truth(task->impl()->client);
   gearman_task_free(task);
 
   return TEST_SUCCESS;

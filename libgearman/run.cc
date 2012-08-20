@@ -45,7 +45,7 @@
 #include <cstdlib>
 #include <cstring>
 
-gearman_return_t _client_run_task(gearman_task_st *task)
+gearman_return_t _client_run_task(Task *task)
 {
   // This should not be possible
   assert_msg(task->client, "Programmer error, somehow an invalid task was specified");
@@ -161,7 +161,7 @@ gearman_return_t _client_run_task(gearman_task_st *task)
       }
 
   case GEARMAN_TASK_STATE_WORKLOAD:
-      gearman_return_t ret= task->func.workload_fn(task);
+      gearman_return_t ret= task->func.workload_fn(task->shell());
       if (gearman_failed(ret))
       {
         task->state= GEARMAN_TASK_STATE_WORKLOAD;
@@ -185,7 +185,7 @@ gearman_return_t _client_run_task(gearman_task_st *task)
   case GEARMAN_TASK_STATE_CREATED:
       if (task->func.created_fn)
       {
-        gearman_return_t ret= task->func.created_fn(task);
+        gearman_return_t ret= task->func.created_fn(task->shell());
         if (gearman_failed(ret))
         {
           task->state= GEARMAN_TASK_STATE_CREATED;
@@ -210,7 +210,7 @@ gearman_return_t _client_run_task(gearman_task_st *task)
   case GEARMAN_TASK_STATE_DATA:
       if (task->func.data_fn)
       {
-        gearman_return_t ret= task->func.data_fn(task);
+        gearman_return_t ret= task->func.data_fn(task->shell());
         if (gearman_failed(ret))
         {
           task->state= GEARMAN_TASK_STATE_DATA;
@@ -223,7 +223,7 @@ gearman_return_t _client_run_task(gearman_task_st *task)
   case GEARMAN_TASK_STATE_WARNING:
       if (task->func.warning_fn)
       {
-        gearman_return_t ret= task->func.warning_fn(task);
+        gearman_return_t ret= task->func.warning_fn(task->shell());
         if (gearman_failed(ret))
         {
           task->state= GEARMAN_TASK_STATE_WARNING;
@@ -311,7 +311,7 @@ gearman_return_t _client_run_task(gearman_task_st *task)
   case GEARMAN_TASK_STATE_STATUS:
       if (task->func.status_fn)
       {
-        gearman_return_t ret= task->func.status_fn(task);
+        gearman_return_t ret= task->func.status_fn(task->shell());
         if (gearman_failed(ret))
         {
           task->state= GEARMAN_TASK_STATE_STATUS;
@@ -338,7 +338,7 @@ gearman_return_t _client_run_task(gearman_task_st *task)
   case GEARMAN_TASK_STATE_COMPLETE:
       if (task->func.complete_fn)
       {
-        gearman_return_t ret= task->func.complete_fn(task);
+        gearman_return_t ret= task->func.complete_fn(task->shell());
         if (gearman_failed(ret))
         {
           task->state= GEARMAN_TASK_STATE_COMPLETE;
@@ -353,7 +353,7 @@ gearman_return_t _client_run_task(gearman_task_st *task)
   case GEARMAN_TASK_STATE_EXCEPTION:
       if (task->func.exception_fn)
       {
-        gearman_return_t ret= task->func.exception_fn(task);
+        gearman_return_t ret= task->func.exception_fn(task->shell());
         if (gearman_failed(ret))
         {
           task->state= GEARMAN_TASK_STATE_EXCEPTION;
@@ -374,7 +374,7 @@ gearman_return_t _client_run_task(gearman_task_st *task)
   case GEARMAN_TASK_STATE_FAIL:
       if (task->func.fail_fn)
       {
-        gearman_return_t ret= task->func.fail_fn(task);
+        gearman_return_t ret= task->func.fail_fn(task->shell());
         if (gearman_failed(ret))
         {
           task->state= GEARMAN_TASK_STATE_FAIL;
@@ -397,7 +397,7 @@ gearman_return_t _client_run_task(gearman_task_st *task)
 
   if (task->client->options.free_tasks and task->type == GEARMAN_TASK_KIND_ADD_TASK)
   {
-    gearman_task_free(task);
+    gearman_task_free(task->shell());
   }
 
   return GEARMAN_SUCCESS;

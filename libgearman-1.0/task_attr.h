@@ -66,7 +66,8 @@ struct gearman_task_attr_t {
 extern "C" {
 #endif
 
-#define  gearman_next(X) (X) ? (X)->next : NULL
+GEARMAN_API
+  gearman_task_st *gearman_next(gearman_task_st *task);
 
 GEARMAN_API
   gearman_task_attr_t gearman_task_attr_init(gearman_job_priority_t priority);

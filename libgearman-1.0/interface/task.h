@@ -58,35 +58,26 @@ enum gearman_task_kind_t {
   GEARMAN_TASK_KIND_DO
 };
 
+#ifdef __cplusplus
+struct Task;
+#endif
+
 struct gearman_task_st
 {
   struct {
-    bool allocated;
-    bool send_in_use;
-    bool is_known;
-    bool is_running;
-    bool was_reduced;
-    bool is_paused;
+    bool is_allocated;
     bool is_initialized;
   } options;
-  enum gearman_task_kind_t type;
-  enum gearman_task_state_t state;
-  uint32_t magic_;
-  uint32_t created_id;
-  uint32_t numerator;
-  uint32_t denominator;
-  uint32_t client_count;
-  gearman_client_st *client;
-  gearman_task_st *next;
-  gearman_task_st *prev;
-  void *context;
-  gearman_connection_st *con;
-  gearman_packet_st *recv;
-  gearman_packet_st send;
-  struct gearman_actions_t func;
-  gearman_return_t result_rc;
-  struct gearman_result_st *result_ptr;
-  char job_handle[GEARMAN_JOB_HANDLE_SIZE];
-  size_t unique_length;
-  char unique[GEARMAN_MAX_UNIQUE_SIZE];
+  void *_impl;
+#ifdef __cplusplus
+  struct Task* impl() const
+  {
+    return (Task*)(_impl);
+  }
+
+  void impl(Task* impl_)
+  {
+    _impl= impl_;
+  }
+#endif
 };

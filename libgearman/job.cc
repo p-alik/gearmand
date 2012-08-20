@@ -132,9 +132,9 @@ struct gearman_job_reducer_st {
     {
       do
       {
-        if (gearman_failed(check_task->result_rc))
+        if (gearman_failed(check_task->impl()->result_rc))
         {
-          return check_task->result_rc;
+          return check_task->impl()->result_rc;
         }
       } while ((check_task= gearman_next(check_task)));
 

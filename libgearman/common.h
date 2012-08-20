@@ -70,3 +70,4 @@ struct gearman_result_st;
 #include <libgearman/status.hpp>
 
 #include <libgearman/protocol/submit.h>
+#include <libgearman/interface/task.hpp>

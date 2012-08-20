@@ -43,7 +43,7 @@
 namespace libgearman {
 namespace protocol {
 
-static inline gearman_return_t __submit(gearman_task_st& task,
+static inline gearman_return_t __submit(Task& task,
                                         const gearman_command_t command,
                                         const gearman_string_t &function,
                                         const gearman_string_t &workload)
@@ -55,6 +55,7 @@ static inline gearman_return_t __submit(gearman_task_st& task,
     @todo fix it so that NULL is done by default by the API not by happenstance.
   */
   char function_buffer[1024];
+  assert(task.client);
   if (task.client->universal._namespace)
   {
     char *ptr= function_buffer;
@@ -86,7 +87,7 @@ static inline gearman_return_t __submit(gearman_task_st& task,
                                     3);
 }
 
-gearman_return_t submit(gearman_task_st& task,
+gearman_return_t submit(Task& task,
                         const gearman_command_t command,
                         const gearman_string_t &function,
                         const gearman_string_t &workload)
@@ -94,7 +95,7 @@ gearman_return_t submit(gearman_task_st& task,
   return __submit(task, command, function, workload);
 }
 
-gearman_return_t submit_background(gearman_task_st& task,
+gearman_return_t submit_background(Task& task,
                                    const gearman_command_t command,
                                    const gearman_string_t &function,
                                    const gearman_string_t &workload)
@@ -102,7 +103,7 @@ gearman_return_t submit_background(gearman_task_st& task,
   return __submit(task, command, function, workload);
 }
 
-gearman_return_t submit_epoch(gearman_task_st& task,
+gearman_return_t submit_epoch(Task& task,
                               const gearman_string_t &function,
                               const gearman_string_t &workload,
                               time_t when)

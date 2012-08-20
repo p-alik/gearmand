@@ -17,9 +17,11 @@ using namespace libtest;
 #include <cstdlib>
 #include <cstring>
 
-#include <libgearman/gearman.h>
+#include <libgearman-1.0/gearman.h>
 
 #include <libtest/test.hpp>
+
+#include "libgearman/interface/task.hpp"
 
 #include <tests/start_worker.h>
 
@@ -160,8 +162,8 @@ test_return_t burnin_TEST(void*)
     gearman_return_t ret= gearman_client_run_tasks(client);
     for (uint32_t x= 0; x < context->num_tasks; x++)
     {
-      test_compare(GEARMAN_TASK_STATE_FINISHED, tasks[x].state);
-      test_compare(GEARMAN_SUCCESS, tasks[x].result_rc);
+      test_compare(GEARMAN_TASK_STATE_FINISHED, tasks[x].impl()->state);
+      test_compare(GEARMAN_SUCCESS, tasks[x].impl()->result_rc);
     }
     test_zero(client->new_tasks);
 

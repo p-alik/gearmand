@@ -150,7 +150,7 @@ gearman_task_st *gearman_execute(gearman_client_st *client,
     return NULL;
   }
 
-  task->type= GEARMAN_TASK_KIND_EXECUTE;
+  task->impl()->type= GEARMAN_TASK_KIND_EXECUTE;
   gearman_client_run_tasks(client);
 
   return task;
