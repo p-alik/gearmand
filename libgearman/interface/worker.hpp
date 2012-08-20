@@ -2,8 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  Copyright (C) 2008 Brian Aker, Eric Day
+ *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -36,39 +35,71 @@
  *
  */
 
-
 #pragma once
 
-struct gearman_result_st;
+struct Worker
+{
+  struct Options {
+    bool is_allocated;
+    bool non_blocking;
+    bool packet_init;
+    bool change;
+    bool grab_uniq;
+    bool grab_all;
+    bool timeout_return;
 
-#include <libgearman-1.0/gearman.h>
+    Options() :
+      is_allocated(true),
+      non_blocking(false),
+      packet_init(false),
+      change(false),
+      grab_uniq(true),
+      grab_all(true),
+      timeout_return(false)
+    { }
+  } options;
+  enum gearman_worker_state_t state;
+  enum gearman_worker_universal_t work_state;
+  uint32_t function_count;
+  uint32_t job_count;
+  size_t work_result_size;
+  void *context;
+  gearman_connection_st *con;
+  gearman_job_st *job;
+  gearman_job_st *job_list;
+  struct _worker_function_st *function;
+  struct _worker_function_st *function_list;
+  struct _worker_function_st *work_function;
+  void *work_result;
+  struct gearman_universal_st universal;
+  gearman_packet_st grab_job;
+  gearman_packet_st pre_sleep;
+  gearman_job_st *work_job;
+  gearman_worker_st* _shell;
 
-#include <libgearman/connection.hpp>
-#include <libgearman/universal.hpp>
-#include <libgearman/allocator.hpp>
-#include <libgearman/packet.hpp>
-#include <libgearman/run.hpp>
-#include <libgearman/aggregator.hpp>
+  Worker(gearman_worker_st* shell_) :
+    state(GEARMAN_WORKER_STATE_START),
+    work_state(GEARMAN_WORKER_WORK_UNIVERSAL_GRAB_JOB),
+    function_count(0),
+    job_count(0),
+    work_result_size(0),
+    context(NULL),
+    con(NULL),
+    job(NULL),
+    job_list(NULL),
+    function(NULL),
+    function_list(NULL),
+    work_function(NULL),
+    work_result(NULL),
+    work_job(NULL),
+    _shell(shell_)
+  {
+  }
 
-#include <libgearman/error.hpp>
 
-/* These are private not to be installed headers */
-#include <libgearman/byteorder.h>
-#include <libgearman/strcommand.h>
-#include <libgearman/vector.hpp>
-#include <libgearman/unique.hpp>
-#include <libgearman/add.hpp>
-#include <libgearman/is.hpp>
-#include <libgearman/result.hpp>
-#include <libgearman/actions.hpp>
-#include <libgearman/string.hpp>
-#include <libgearman/command.h>
-#include <libgearman/task.hpp>
-#include <libgearman/job.h>
-#include <libgearman/job.hpp>
+  gearman_worker_st* shell()
+  {
+    return _shell;
+  }
+};
 
-#include <libgearman/status.hpp>
-
-#include <libgearman/protocol/submit.h>
-#include <libgearman/interface/task.hpp>
-#include <libgearman/interface/worker.hpp>

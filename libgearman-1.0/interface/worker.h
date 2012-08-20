@@ -2,8 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  Copyright (C) 2008 Brian Aker, Eric Day
+ *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -36,39 +35,29 @@
  *
  */
 
-
 #pragma once
 
-struct gearman_result_st;
+#ifdef __cplusplus
+struct Worker;
+#endif
 
-#include <libgearman-1.0/gearman.h>
+struct gearman_worker_st
+{
+  struct {
+    bool is_allocated;
+    bool is_initialized;
+  } options;
+  void *_impl;
+#ifdef __cplusplus
+  struct Worker* impl() const
+  {
+    return (Worker*)(_impl);
+  }
 
-#include <libgearman/connection.hpp>
-#include <libgearman/universal.hpp>
-#include <libgearman/allocator.hpp>
-#include <libgearman/packet.hpp>
-#include <libgearman/run.hpp>
-#include <libgearman/aggregator.hpp>
+  void impl(Worker* impl_)
+  {
+    _impl= impl_;
+  }
+#endif
+};
 
-#include <libgearman/error.hpp>
-
-/* These are private not to be installed headers */
-#include <libgearman/byteorder.h>
-#include <libgearman/strcommand.h>
-#include <libgearman/vector.hpp>
-#include <libgearman/unique.hpp>
-#include <libgearman/add.hpp>
-#include <libgearman/is.hpp>
-#include <libgearman/result.hpp>
-#include <libgearman/actions.hpp>
-#include <libgearman/string.hpp>
-#include <libgearman/command.h>
-#include <libgearman/task.hpp>
-#include <libgearman/job.h>
-#include <libgearman/job.hpp>
-
-#include <libgearman/status.hpp>
-
-#include <libgearman/protocol/submit.h>
-#include <libgearman/interface/task.hpp>
-#include <libgearman/interface/worker.hpp>

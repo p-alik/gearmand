@@ -12,6 +12,8 @@
 
 nobase_include_HEADERS+= libgearman/gearman.h
 
+noinst_HEADERS+= libgearman/interface/task.hpp
+noinst_HEADERS+= libgearman/interface/worker.hpp
 noinst_HEADERS+= libgearman/uuid.hpp
 noinst_HEADERS+= libgearman/job.hpp
 noinst_HEADERS+= libgearman/job.h

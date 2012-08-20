@@ -502,7 +502,7 @@ static test_return_t maxqueue_TEST(void *)
 
   test_compare(Application::SUCCESS, gearmand.run());
 
-  Worker worker;
+  test::Worker worker;
   test_compare(GEARMAN_SUCCESS, gearman_worker_register(&worker, __func__, 0));
   test_compare(GEARMAN_SUCCESS, gearman_worker_unregister(&worker, __func__));
   test_compare(Application::SUCCESS, gearmand.wait());

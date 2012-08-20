@@ -43,6 +43,8 @@
 
 #pragma once
 
+#include <libgearman-1.0/interface/worker.h>
+
 /** @addtogroup gearman_worker Worker Declarations
  *
  * This is the interface gearman workers should use.
@@ -66,39 +68,6 @@
     GEARMAN_WORKER_WORK_UNIVERSAL_COMPLETE,
     GEARMAN_WORKER_WORK_UNIVERSAL_FAIL
   };
-
-/**
- * @ingroup gearman_worker
- */
-struct gearman_worker_st
-{
-  struct {
-    bool allocated;
-    bool non_blocking;
-    bool packet_init;
-    bool change;
-    bool grab_uniq;
-    bool grab_all;
-    bool timeout_return;
-  } options;
-  enum gearman_worker_state_t state;
-  enum gearman_worker_universal_t work_state;
-  uint32_t function_count;
-  uint32_t job_count;
-  size_t work_result_size;
-  void *context;
-  gearman_connection_st *con;
-  gearman_job_st *job;
-  gearman_job_st *job_list;
-  struct _worker_function_st *function;
-  struct _worker_function_st *function_list;
-  struct _worker_function_st *work_function;
-  void *work_result;
-  struct gearman_universal_st universal;
-  gearman_packet_st grab_job;
-  gearman_packet_st pre_sleep;
-  gearman_job_st *work_job;
-};
 
 #ifdef __cplusplus
 #define gearman_has_reducer(A) (A) ? static_cast<bool>((A)->reducer.final_fn) : false

@@ -173,9 +173,9 @@ gearman_job_st *gearman_job_create(gearman_worker_st *worker, gearman_job_st *jo
   else
   {
     job= new (std::nothrow) gearman_job_st;
-    if (not job)
+    if (job == NULL)
     {
-      gearman_perror(worker->universal, "new");
+      gearman_perror(worker->impl()->universal, "new");
       return NULL;
     }
 
@@ -190,14 +190,14 @@ gearman_job_st *gearman_job_create(gearman_worker_st *worker, gearman_job_st *jo
   job->reducer= NULL;
   job->error_code= GEARMAN_UNKNOWN_STATE;
 
-  if (worker->job_list)
+  if (worker->impl()->job_list)
   {
-    worker->job_list->prev= job;
+    worker->impl()->job_list->prev= job;
   }
-  job->next= worker->job_list;
+  job->next= worker->impl()->job_list;
   job->prev= NULL;
-  worker->job_list= job;
-  worker->job_count++;
+  worker->impl()->job_list= job;
+  worker->impl()->job_count++;
 
   job->con= NULL;
 
@@ -213,7 +213,7 @@ bool gearman_job_build_reducer(gearman_job_st *job, gearman_aggregator_fn *aggre
 
   gearman_string_t reducer_func= gearman_job_reducer_string(job);
 
-  job->reducer= new (std::nothrow) gearman_job_reducer_st(job->worker->universal, reducer_func, aggregator_fn);
+  job->reducer= new (std::nothrow) gearman_job_reducer_st(job->worker->impl()->universal, reducer_func, aggregator_fn);
   if (not job->reducer)
   {
     gearman_job_free(job);
@@ -249,7 +249,7 @@ gearman_return_t gearman_job_send_data(gearman_job_st *job, const void *data, si
     args_size[0]= job->assigned.arg_size[0];
     args[1]= data;
     args_size[1]= data_size;
-    gearman_return_t ret= gearman_packet_create_args(job->worker->universal, job->work,
+    gearman_return_t ret= gearman_packet_create_args(job->worker->impl()->universal, job->work,
                                                      GEARMAN_MAGIC_REQUEST,
                                                      GEARMAN_COMMAND_WORK_DATA,
                                                      args, args_size, 2);
@@ -279,7 +279,7 @@ gearman_return_t gearman_job_send_warning(gearman_job_st *job,
     args_size[1]= warning_size;
 
     gearman_return_t ret;
-    ret= gearman_packet_create_args(job->worker->universal, job->work,
+    ret= gearman_packet_create_args(job->worker->impl()->universal, job->work,
                                     GEARMAN_MAGIC_REQUEST,
                                     GEARMAN_COMMAND_WORK_WARNING,
                                     args, args_size, 2);
@@ -314,7 +314,7 @@ gearman_return_t gearman_job_send_status(gearman_job_st *job,
     args_size[2]= strlen(denominator_string);
 
     gearman_return_t ret;
-    ret= gearman_packet_create_args(job->worker->universal, job->work,
+    ret= gearman_packet_create_args(job->worker->impl()->universal, job->work,
                                     GEARMAN_MAGIC_REQUEST,
                                     GEARMAN_COMMAND_WORK_STATUS,
                                     args, args_size, 3);
@@ -360,7 +360,7 @@ gearman_return_t gearman_job_send_complete_fin(gearman_job_st *job,
     gearman_return_t rc= job->reducer->complete();
     if (gearman_failed(rc))
     {
-      return gearman_error(job->worker->universal, rc, "The reducer's complete() returned an error");
+      return gearman_error(job->worker->impl()->universal, rc, "The reducer's complete() returned an error");
     }
 
     gearman_vector_st *reduced_value= job->reducer->result.string();
@@ -386,7 +386,7 @@ gearman_return_t gearman_job_send_complete_fin(gearman_job_st *job,
 
     args[1]= result;
     args_size[1]= result_size;
-    gearman_return_t ret= gearman_packet_create_args(job->worker->universal, job->work,
+    gearman_return_t ret= gearman_packet_create_args(job->worker->impl()->universal, job->work,
                                                      GEARMAN_MAGIC_REQUEST,
                                                      GEARMAN_COMMAND_WORK_COMPLETE,
                                                      args, args_size, 2);
@@ -422,7 +422,7 @@ gearman_return_t gearman_job_send_exception(gearman_job_st *job,
     args[1]= exception;
     args_size[1]= exception_size;
 
-    gearman_return_t ret= gearman_packet_create_args(job->worker->universal, job->work,
+    gearman_return_t ret= gearman_packet_create_args(job->worker->impl()->universal, job->work,
                                                      GEARMAN_MAGIC_REQUEST,
                                                      GEARMAN_COMMAND_WORK_EXCEPTION,
                                                      args, args_size, 2);
@@ -455,7 +455,7 @@ gearman_return_t gearman_job_send_fail_fin(gearman_job_st *job)
   {
     args[0]= job->assigned.arg[0];
     args_size[0]= job->assigned.arg_size[0] - 1;
-    gearman_return_t ret= gearman_packet_create_args(job->worker->universal, job->work,
+    gearman_return_t ret= gearman_packet_create_args(job->worker->impl()->universal, job->work,
                                                      GEARMAN_MAGIC_REQUEST,
                                                      GEARMAN_COMMAND_WORK_FAIL,
                                                      args, args_size, 1);
@@ -559,9 +559,9 @@ void gearman_job_free(gearman_job_st *job)
     gearman_packet_free(&(job->work));
   }
 
-  if (job->worker->job_list == job)
+  if (job->worker->impl()->job_list == job)
   {
-    job->worker->job_list= job->next;
+    job->worker->impl()->job_list= job->next;
   }
 
   if (job->prev)
@@ -573,7 +573,7 @@ void gearman_job_free(gearman_job_st *job)
   {
     job->next->prev= job->prev;
   }
-  job->worker->job_count--;
+  job->worker->impl()->job_count--;
 
   delete job->reducer;
   job->reducer= NULL;
@@ -594,7 +594,7 @@ static gearman_return_t _job_send(gearman_job_st *job)
 
   while ((ret == GEARMAN_IO_WAIT) or (ret == GEARMAN_TIMEOUT))
   {
-    ret= gearman_wait(job->worker->universal);
+    ret= gearman_wait(job->worker->impl()->universal);
     if (ret == GEARMAN_SUCCESS)
     {
       ret= job->con->send_packet(job->work, true);

@@ -124,7 +124,7 @@ static test_return_t queue_worker(void *object)
   Context *context= (Context *)object;
   test_truth(context);
 
-  Worker worker(context->port());
+  test::Worker worker(context->port());
 
   char buffer[11];
   memset(buffer, 0, sizeof(buffer));

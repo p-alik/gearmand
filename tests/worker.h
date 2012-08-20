@@ -37,6 +37,8 @@
 
 #pragma once
 
+namespace test {
+
 class Worker {
 public:
   Worker()
@@ -79,3 +81,5 @@ private:
   gearman_worker_st *_worker;
 
 };
+
+} // namespace test

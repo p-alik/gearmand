@@ -142,7 +142,7 @@ static void thread_runner(context_st* con)
     return;
   }
 
-  Worker worker;
+  test::Worker worker;
   if (&worker == NULL)
   {
     Error << "Failed to create Worker";

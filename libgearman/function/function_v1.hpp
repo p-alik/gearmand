@@ -63,7 +63,7 @@ public:
     }
 
     job->error_code= GEARMAN_SUCCESS;
-    job->worker->work_result= _worker_fn(job, context_arg, &(job->worker->work_result_size), &job->error_code);
+    job->worker->impl()->work_result= _worker_fn(job, context_arg, &(job->worker->impl()->work_result_size), &job->error_code);
 
     if (job->error_code == GEARMAN_LOST_CONNECTION)
     {

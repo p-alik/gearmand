@@ -21,6 +21,8 @@ using namespace libtest;
 #include <libgearman/connection.hpp>
 #include "libgearman/packet.hpp"
 #include "libgearman/universal.hpp"
+#include "libgearman/is.hpp"
+#include "libgearman/interface/worker.hpp"
 
 #include <tests/client.h>
 #include <tests/worker.h>
@@ -60,7 +62,7 @@ static test_return_t gearman_worker_clone_NULL_NULL(void *)
   gearman_worker_st *worker= gearman_worker_clone(NULL, NULL);
 
   test_truth(worker);
-  test_compare(true, worker->options.allocated);
+  test_compare(true, gearman_is_allocated(worker));
 
   gearman_worker_free(worker);
 
@@ -69,11 +71,11 @@ static test_return_t gearman_worker_clone_NULL_NULL(void *)
 
 static test_return_t gearman_worker_clone_NULL_SOURCE(void *)
 {
-  Worker source;
+  test::Worker source;
 
   gearman_worker_st *worker= gearman_worker_clone(NULL, &source);
   test_truth(worker);
-  test_compare(true, worker->options.allocated);
+  test_compare(true, gearman_is_allocated(worker));
   gearman_worker_free(worker);
 
   return TEST_SUCCESS;
@@ -81,7 +83,7 @@ static test_return_t gearman_worker_clone_NULL_SOURCE(void *)
 
 static test_return_t gearman_worker_timeout_default_test(void *)
 {
-  Worker worker;
+  test::Worker worker;
 
   test_compare(-1, gearman_worker_timeout(&worker));
 
@@ -104,7 +106,7 @@ static test_return_t gearman_worker_error_TEST(void *)
 
 static test_return_t gearman_worker_error_no_error_TEST(void *)
 {
-  Worker worker;
+  test::Worker worker;
   test_null(gearman_worker_error(&worker));
 
   return TEST_SUCCESS;
@@ -119,7 +121,7 @@ static test_return_t gearman_worker_errno_TEST(void *)
 
 static test_return_t gearman_worker_errno_no_error_TEST(void *)
 {
-  Worker worker;
+  test::Worker worker;
   test_compare(0, gearman_worker_errno(&worker));
 
   return TEST_SUCCESS;
@@ -134,18 +136,17 @@ static test_return_t gearman_worker_options_TEST(void *)
 
 static test_return_t option_test(void *)
 {
-  gearman_worker_st *gear;
   gearman_worker_options_t default_options;
 
-  gear= gearman_worker_create(NULL);
+  gearman_worker_st* gear= gearman_worker_create(NULL);
   test_truth(gear);
   { // Initial Allocated, no changes
-    test_truth(gear->options.allocated);
-    test_false(gear->options.non_blocking);
-    test_truth(gear->options.packet_init);
-    test_false(gear->options.change);
-    test_true(gear->options.grab_uniq);
-    test_false(gear->options.timeout_return);
+    test_truth(gearman_is_allocated(gear));
+    test_false(gearman_is_non_blocking(gear->impl()));
+    test_truth(gear->impl()->options.packet_init);
+    test_false(gear->impl()->options.change);
+    test_true(gear->impl()->options.grab_uniq);
+    test_false(gear->impl()->options.timeout_return);
   }
 
   /* Set up for default options */
@@ -157,12 +158,12 @@ static test_return_t option_test(void *)
   */
   gearman_worker_set_options(gear, default_options);
   { // Initial Allocated, no changes
-    test_truth(gear->options.allocated);
-    test_false(gear->options.non_blocking);
-    test_truth(gear->options.packet_init);
-    test_false(gear->options.change);
-    test_true(gear->options.grab_uniq);
-    test_false(gear->options.timeout_return);
+    test_truth(gearman_is_allocated(gear));
+    test_false(gearman_is_non_blocking(gear->impl()));
+    test_truth(gear->impl()->options.packet_init);
+    test_false(gear->impl()->options.change);
+    test_true(gear->impl()->options.grab_uniq);
+    test_false(gear->impl()->options.timeout_return);
   }
 
   /*
@@ -171,22 +172,22 @@ static test_return_t option_test(void *)
   {
     gearman_worker_remove_options(gear, GEARMAN_WORKER_ALLOCATED);
     { // Initial Allocated, no changes
-      test_truth(gear->options.allocated);
-      test_false(gear->options.non_blocking);
-      test_truth(gear->options.packet_init);
-      test_false(gear->options.change);
-      test_true(gear->options.grab_uniq);
-      test_false(gear->options.timeout_return);
+      test_truth(gearman_is_allocated(gear));
+      test_false(gearman_is_non_blocking(gear->impl()));
+      test_truth(gear->impl()->options.packet_init);
+      test_false(gear->impl()->options.change);
+      test_true(gear->impl()->options.grab_uniq);
+      test_false(gear->impl()->options.timeout_return);
     }
 
     gearman_worker_remove_options(gear, GEARMAN_WORKER_PACKET_INIT);
     { // Initial Allocated, no changes
-      test_truth(gear->options.allocated);
-      test_false(gear->options.non_blocking);
-      test_truth(gear->options.packet_init);
-      test_false(gear->options.change);
-      test_true(gear->options.grab_uniq);
-      test_false(gear->options.timeout_return);
+      test_truth(gearman_is_allocated(gear));
+      test_false(gearman_is_non_blocking(gear->impl()));
+      test_truth(gear->impl()->options.packet_init);
+      test_false(gear->impl()->options.change);
+      test_true(gear->impl()->options.grab_uniq);
+      test_false(gear->impl()->options.timeout_return);
     }
   }
 
@@ -196,39 +197,39 @@ static test_return_t option_test(void *)
   {
     gearman_worker_remove_options(gear, GEARMAN_WORKER_NON_BLOCKING);
     { // GEARMAN_WORKER_NON_BLOCKING set to default, by default.
-      test_truth(gear->options.allocated);
-      test_false(gear->options.non_blocking);
-      test_truth(gear->options.packet_init);
-      test_false(gear->options.change);
-      test_true(gear->options.grab_uniq);
-      test_false(gear->options.timeout_return);
+      test_truth(gearman_is_allocated(gear));
+      test_false(gearman_is_non_blocking(gear->impl()));
+      test_truth(gear->impl()->options.packet_init);
+      test_false(gear->impl()->options.change);
+      test_true(gear->impl()->options.grab_uniq);
+      test_false(gear->impl()->options.timeout_return);
     }
     gearman_worker_add_options(gear, GEARMAN_WORKER_NON_BLOCKING);
     { // GEARMAN_WORKER_NON_BLOCKING set to default, by default.
-      test_truth(gear->options.allocated);
-      test_truth(gear->options.non_blocking);
-      test_truth(gear->options.packet_init);
-      test_false(gear->options.change);
-      test_true(gear->options.grab_uniq);
-      test_false(gear->options.timeout_return);
+      test_truth(gearman_is_allocated(gear));
+      test_truth(gearman_is_non_blocking(gear->impl()));
+      test_truth(gear->impl()->options.packet_init);
+      test_false(gear->impl()->options.change);
+      test_true(gear->impl()->options.grab_uniq);
+      test_false(gear->impl()->options.timeout_return);
     }
     gearman_worker_set_options(gear, GEARMAN_WORKER_NON_BLOCKING);
     { // GEARMAN_WORKER_NON_BLOCKING set to default, by default.
-      test_truth(gear->options.allocated);
-      test_truth(gear->options.non_blocking);
-      test_truth(gear->options.packet_init);
-      test_false(gear->options.change);
-      test_false(gear->options.grab_uniq);
-      test_false(gear->options.timeout_return);
+      test_truth(gearman_is_allocated(gear));
+      test_truth(gearman_is_non_blocking(gear->impl()));
+      test_truth(gear->impl()->options.packet_init);
+      test_false(gear->impl()->options.change);
+      test_false(gear->impl()->options.grab_uniq);
+      test_false(gear->impl()->options.timeout_return);
     }
     gearman_worker_set_options(gear, GEARMAN_WORKER_GRAB_UNIQ);
     { // Everything is now set to false except GEARMAN_WORKER_GRAB_UNIQ, and non-mutable options
-      test_truth(gear->options.allocated);
-      test_false(gear->options.non_blocking);
-      test_truth(gear->options.packet_init);
-      test_false(gear->options.change);
-      test_truth(gear->options.grab_uniq);
-      test_false(gear->options.timeout_return);
+      test_truth(gearman_is_allocated(gear));
+      test_false(gearman_is_non_blocking(gear->impl()));
+      test_truth(gear->impl()->options.packet_init);
+      test_false(gear->impl()->options.change);
+      test_truth(gear->impl()->options.grab_uniq);
+      test_false(gear->impl()->options.timeout_return);
     }
     /*
       Reset options to default. Then add an option, and then add more options. Make sure
@@ -237,30 +238,30 @@ static test_return_t option_test(void *)
     {
       gearman_worker_set_options(gear, default_options);
       { // See if we return to defaults
-        test_truth(gear->options.allocated);
-        test_false(gear->options.non_blocking);
-        test_truth(gear->options.packet_init);
-        test_false(gear->options.change);
-        test_true(gear->options.grab_uniq);
-        test_false(gear->options.timeout_return);
+        test_truth(gearman_is_allocated(gear));
+        test_false(gearman_is_non_blocking(gear->impl()));
+        test_truth(gear->impl()->options.packet_init);
+        test_false(gear->impl()->options.change);
+        test_true(gear->impl()->options.grab_uniq);
+        test_false(gear->impl()->options.timeout_return);
       }
       gearman_worker_add_options(gear, GEARMAN_WORKER_TIMEOUT_RETURN);
       { // All defaults, except timeout_return
-        test_truth(gear->options.allocated);
-        test_false(gear->options.non_blocking);
-        test_truth(gear->options.packet_init);
-        test_false(gear->options.change);
-        test_true(gear->options.grab_uniq);
-        test_truth(gear->options.timeout_return);
+        test_truth(gearman_is_allocated(gear));
+        test_false(gearman_is_non_blocking(gear->impl()));
+        test_truth(gear->impl()->options.packet_init);
+        test_false(gear->impl()->options.change);
+        test_true(gear->impl()->options.grab_uniq);
+        test_truth(gear->impl()->options.timeout_return);
       }
       gearman_worker_add_options(gear, (gearman_worker_options_t)(GEARMAN_WORKER_NON_BLOCKING|GEARMAN_WORKER_GRAB_UNIQ));
       { // GEARMAN_WORKER_NON_BLOCKING set to default, by default.
-        test_truth(gear->options.allocated);
-        test_truth(gear->options.non_blocking);
-        test_truth(gear->options.packet_init);
-        test_false(gear->options.change);
-        test_truth(gear->options.grab_uniq);
-        test_truth(gear->options.timeout_return);
+        test_truth(gearman_is_allocated(gear));
+        test_truth(gearman_is_non_blocking(gear->impl()));
+        test_truth(gear->impl()->options.packet_init);
+        test_false(gear->impl()->options.change);
+        test_truth(gear->impl()->options.grab_uniq);
+        test_truth(gear->impl()->options.timeout_return);
       }
     }
     /*
@@ -269,30 +270,30 @@ static test_return_t option_test(void *)
     {
       gearman_worker_set_options(gear, default_options);
       { // See if we return to defaults
-        test_truth(gear->options.allocated);
-        test_false(gear->options.non_blocking);
-        test_truth(gear->options.packet_init);
-        test_false(gear->options.change);
-        test_true(gear->options.grab_uniq);
-        test_false(gear->options.timeout_return);
+        test_truth(gearman_is_allocated(gear));
+        test_false(gearman_is_non_blocking(gear->impl()));
+        test_truth(gear->impl()->options.packet_init);
+        test_false(gear->impl()->options.change);
+        test_true(gear->impl()->options.grab_uniq);
+        test_false(gear->impl()->options.timeout_return);
       }
       gearman_worker_add_options(gear, GEARMAN_WORKER_TIMEOUT_RETURN);
       { // All defaults, except timeout_return
-        test_truth(gear->options.allocated);
-        test_false(gear->options.non_blocking);
-        test_truth(gear->options.packet_init);
-        test_false(gear->options.change);
-        test_true(gear->options.grab_uniq);
-        test_truth(gear->options.timeout_return);
+        test_truth(gearman_is_allocated(gear));
+        test_false(gearman_is_non_blocking(gear->impl()));
+        test_truth(gear->impl()->options.packet_init);
+        test_false(gear->impl()->options.change);
+        test_true(gear->impl()->options.grab_uniq);
+        test_truth(gear->impl()->options.timeout_return);
       }
       gearman_worker_add_options(gear, (gearman_worker_options_t)(GEARMAN_WORKER_TIMEOUT_RETURN|GEARMAN_WORKER_GRAB_UNIQ));
       { // GEARMAN_WORKER_NON_BLOCKING set to default, by default.
-        test_truth(gear->options.allocated);
-        test_false(gear->options.non_blocking);
-        test_truth(gear->options.packet_init);
-        test_false(gear->options.change);
-        test_truth(gear->options.grab_uniq);
-        test_truth(gear->options.timeout_return);
+        test_truth(gearman_is_allocated(gear));
+        test_false(gearman_is_non_blocking(gear->impl()));
+        test_truth(gear->impl()->options.packet_init);
+        test_false(gear->impl()->options.change);
+        test_truth(gear->impl()->options.grab_uniq);
+        test_truth(gear->impl()->options.timeout_return);
       }
     }
   }
@@ -304,7 +305,7 @@ static test_return_t option_test(void *)
 
 static test_return_t echo_test(void*)
 {
-  Worker worker;
+  test::Worker worker;
 
   test_compare(gearman_worker_echo(&worker, test_literal_param("This is my echo test")), GEARMAN_SUCCESS);
 
@@ -313,7 +314,7 @@ static test_return_t echo_test(void*)
 
 static test_return_t echo_multi_test(void *)
 {
-  Worker worker;
+  test::Worker worker;
 
   const char *value[]= {
     "This is my echo test",
@@ -362,7 +363,7 @@ static test_return_t gearman_worker_add_server_GEARMAN_GETADDRINFO_TEST(void *)
 
 static test_return_t echo_max_test(void *)
 {
-  Worker worker;
+  test::Worker worker;
 
   gearman_worker_add_server(&worker, NULL, libtest::default_port());
 
@@ -777,7 +778,7 @@ static void *fail_worker(gearman_job_st *,
 
 static test_return_t gearman_worker_add_function_test(void *)
 {
-  Worker worker;
+  test::Worker worker;
 
   char function_name[GEARMAN_FUNCTION_MAX_SIZE];
   snprintf(function_name, GEARMAN_FUNCTION_MAX_SIZE, "_%s%d", __func__, int(random())); 
@@ -801,7 +802,7 @@ static test_return_t gearman_worker_add_function_test(void *)
 
 static test_return_t gearman_worker_add_function_multi_test(void *)
 {
-  Worker worker;
+  test::Worker worker;
 
   for (uint32_t x= 0; x < 100; x++)
   {
@@ -835,7 +836,7 @@ static test_return_t gearman_worker_add_function_multi_test(void *)
 
 static test_return_t gearman_worker_unregister_all_test(void *)
 {
-  Worker worker;
+  test::Worker worker;
   for (uint32_t x= 0; x < 100; x++)
   {
     char buffer[1024];
@@ -867,7 +868,7 @@ static test_return_t gearman_worker_unregister_all_test(void *)
 
 static test_return_t gearman_worker_work_with_test(void *)
 {
-  Worker worker;
+  test::Worker worker;
 
   char function_name[GEARMAN_FUNCTION_MAX_SIZE];
   snprintf(function_name, GEARMAN_FUNCTION_MAX_SIZE, "_%s%d", __func__, int(random())); 
@@ -894,7 +895,7 @@ static test_return_t gearman_worker_work_with_test(void *)
 
 static test_return_t gearman_worker_context_test(void *)
 {
-  Worker worker;
+  test::Worker worker;
 
   test_false(gearman_worker_context(&worker));
 
@@ -912,16 +913,16 @@ static test_return_t gearman_worker_context_test(void *)
 
 static test_return_t gearman_worker_check_options_GEARMAN_WORKER_GRAB_UNIQ(void *)
 {
-  Worker worker;
+  test::Worker worker;
 
-  test_true(worker->options.grab_uniq);
+  test_true(worker->impl()->options.grab_uniq);
 
   return TEST_SUCCESS;
 }
 
 static test_return_t gearman_worker_remove_options_GEARMAN_WORKER_GRAB_UNIQ(void *)
 {
-  Worker worker;
+  test::Worker worker;
 
   char function_name[GEARMAN_FUNCTION_MAX_SIZE];
   snprintf(function_name, GEARMAN_FUNCTION_MAX_SIZE, "_%s%d", __func__, int(random())); 
@@ -945,7 +946,7 @@ static test_return_t gearman_worker_remove_options_GEARMAN_WORKER_GRAB_UNIQ(void
   }
 
   gearman_worker_remove_options(&worker, GEARMAN_WORKER_GRAB_UNIQ);
-  test_false(worker->options.grab_uniq);
+  test_false(worker->impl()->options.grab_uniq);
 
   gearman_worker_set_timeout(&worker, 800);
 
@@ -981,7 +982,7 @@ static test_return_t gearman_worker_add_options_GEARMAN_WORKER_GRAB_UNIQ(void *)
                  GEARMAN_SUCCESS);
   }
 
-  Worker worker;
+  test::Worker worker;
 
   test_compare(GEARMAN_SUCCESS,
                gearman_worker_add_server(&worker, NULL, libtest::default_port()));
@@ -990,7 +991,7 @@ static test_return_t gearman_worker_add_options_GEARMAN_WORKER_GRAB_UNIQ(void *)
                gearman_worker_add_function(&worker, function_name, 0, check_unique_worker, NULL));
 
   gearman_worker_add_options(&worker, GEARMAN_WORKER_GRAB_UNIQ);
-  test_true(worker->options.grab_uniq);
+  test_true(worker->impl()->options.grab_uniq);
 
   gearman_return_t rc;
   gearman_job_st *job= gearman_worker_grab_job(&worker, NULL, &rc);
@@ -1009,7 +1010,7 @@ static test_return_t gearman_worker_add_options_GEARMAN_WORKER_GRAB_UNIQ(void *)
 
 static test_return_t gearman_worker_set_identifier_TEST(void *)
 {
-  Worker worker;
+  test::Worker worker;
 
   test_compare(GEARMAN_SUCCESS,
                gearman_worker_add_server(&worker, NULL, libtest::default_port()));
@@ -1022,7 +1023,7 @@ static test_return_t gearman_worker_set_identifier_TEST(void *)
 
 static test_return_t gearman_worker_add_options_GEARMAN_WORKER_GRAB_UNIQ_worker_work(void *)
 {
-  Worker worker;
+  test::Worker worker;
 
   char function_name[GEARMAN_FUNCTION_MAX_SIZE];
   snprintf(function_name, GEARMAN_FUNCTION_MAX_SIZE, "_%s%d", __func__, int(random())); 
@@ -1046,9 +1047,9 @@ static test_return_t gearman_worker_add_options_GEARMAN_WORKER_GRAB_UNIQ_worker_
                  GEARMAN_SUCCESS);
   }
 
-  test_true(worker->options.grab_uniq);
+  test_true(worker->impl()->options.grab_uniq);
   gearman_worker_add_options(&worker, GEARMAN_WORKER_GRAB_UNIQ);
-  test_truth(worker->options.grab_uniq);
+  test_truth(worker->impl()->options.grab_uniq);
 
   gearman_worker_set_timeout(&worker, 400);
   test_compare(gearman_worker_work(&worker), GEARMAN_SUCCESS);
@@ -1138,7 +1139,7 @@ static test_return_t gearman_client_run_tasks_increase_chunk_TEST(void*)
 
 static test_return_t gearman_worker_failover_test(void *)
 {
-  Worker worker;
+  test::Worker worker;
 
   test_compare(GEARMAN_SUCCESS, gearman_worker_add_server(&worker, NULL, libtest::default_port()));
   test_compare(GEARMAN_SUCCESS, gearman_worker_add_server(&worker, NULL, libtest::default_port() +1));
@@ -1164,7 +1165,7 @@ static test_return_t gearman_worker_set_timeout_FAILOVER_TEST(void *)
 {
   test_skip_valgrind(); // lp:961904
 
-  Worker worker;
+  test::Worker worker;
 
   test_compare(GEARMAN_SUCCESS, gearman_worker_add_server(&worker, NULL, libtest::default_port()));
   in_port_t non_exist_server= libtest::default_port();
