@@ -150,8 +150,8 @@ static void *_client_do(gearman_client_st *client, gearman_command_t command,
       *ret_ptr= client->impl()->universal.error_code();
       return NULL;
     }
-    assert(do_task.impl());
-    assert(&do_task == do_task_ptr);
+    assert_msg(do_task.impl(), "Bad return by add_task()");
+    assert_msg(&do_task == do_task_ptr, "Bad return by add_task()");
   }
 
   do_task.impl()->type= GEARMAN_TASK_KIND_DO;
@@ -774,6 +774,7 @@ gearman_status_t gearman_client_unique_status(gearman_client_st *client,
       gearman_status_set_return(status, ret);
       return status;
     }
+    (void)do_task_ptr;
     assert(do_task_ptr);
     assert(&do_task == do_task_ptr);
   }
@@ -840,7 +841,7 @@ gearman_return_t gearman_client_job_status(gearman_client_st *client,
     {
       return ret;
     }
-    assert(do_task_ptr);
+    assert_msg(do_task_ptr, "Programming error, a NULL return happend from gearman_client_add_task_status() without an error");
   }
   do_task.impl()->type= GEARMAN_TASK_KIND_DO;
 
