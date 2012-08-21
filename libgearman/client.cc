@@ -74,7 +74,6 @@ static gearman_client_st *_client_allocate(gearman_client_st *client_shell, bool
   }
 
   client_shell->impl(new (std::nothrow) Client(client_shell));
-
   if (client_shell->impl())
   {
     if (is_clone == false)
@@ -82,8 +81,10 @@ static gearman_client_st *_client_allocate(gearman_client_st *client_shell, bool
       gearman_universal_initialize(client_shell->impl()->universal);
     }
 
-    delete client_shell;
+    return client_shell;
   }
+
+  delete client_shell;
 
   return client_shell;
 }
@@ -322,7 +323,7 @@ void gearman_client_free(gearman_client_st *client_shell)
     delete client_shell->impl();
     client_shell->impl(NULL);
 
-    if (client_shell->impl()->options.allocated)
+    if (gearman_is_allocated(client_shell))
     {
       delete client_shell;
     }
@@ -385,7 +386,7 @@ gearman_client_options_t gearman_client_options(const gearman_client_st *client_
 bool gearman_client_has_option(gearman_client_st *client_shell,
                                 gearman_client_options_t option)
 {
-  if (client_shell)
+  if (client_shell and client_shell->impl())
   {
     switch (option)
     {
@@ -1311,7 +1312,7 @@ void gearman_client_set_exception_fn(gearman_client_st *client,
   }
 }
 
-void gearman_client_set_fail_fn(gearman_client_st *client,
+void gearman_client_set_fail_fn(gearman_client_st* client,
                                 gearman_fail_fn *function)
 {
   if (client)
@@ -1320,7 +1321,7 @@ void gearman_client_set_fail_fn(gearman_client_st *client,
   }
 }
 
-void gearman_client_clear_fn(gearman_client_st *client)
+void gearman_client_clear_fn(gearman_client_st* client)
 {
   if (client)
   {

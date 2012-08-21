@@ -37,6 +37,8 @@
 
 #pragma once
 
+namespace bin {
+
 class Client
 {
 public:
@@ -63,3 +65,5 @@ public:
 private:
   gearman_client_st _client;
 };
+
+} // namespace bin

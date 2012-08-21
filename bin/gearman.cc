@@ -237,7 +237,7 @@ int main(int argc, char *argv[])
 
 void _client(Args &args)
 {
-  Client local_client;
+  bin::Client local_client;
   gearman_client_st &client= local_client.client();
   Bytes workload;
   if (args.timeout() >= 0)
@@ -482,7 +482,7 @@ static void _worker_free(void *, void *)
 
 void _worker(Args &args)
 {
-  Worker local_worker;
+  bin::Worker local_worker;
   gearman_worker_st &worker= local_worker.worker();
 
   if (args.timeout() >= 0)

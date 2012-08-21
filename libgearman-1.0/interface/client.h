@@ -60,5 +60,3 @@ struct gearman_client_st
   }
 #endif
 };
-
-

@@ -37,6 +37,8 @@
 
 #pragma once
 
+namespace bin {
+
 class Worker
 {
 public:
@@ -63,3 +65,4 @@ public:
 private:
   gearman_worker_st _worker;
 };
+} //namespace bin

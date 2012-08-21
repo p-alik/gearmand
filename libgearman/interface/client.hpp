@@ -37,6 +37,8 @@
 
 #pragma once
 
+#include "libgearman/actions.hpp"
+
 struct Client
 {
   struct Options {
@@ -80,9 +82,10 @@ struct Client
     task(NULL),
     task_list(NULL),
     task_context_free_fn(NULL),
+    actions(gearman_actions_default()),
     _shell(shell_)
   {
-    gearman_client_clear_fn(_shell);
+    _do_handle[0]= 0;
   }
 
   gearman_client_st* shell()
