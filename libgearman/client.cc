@@ -42,6 +42,7 @@
 #include <libgearman/log.hpp>
 
 #include "libgearman/assert.hpp"
+#include "libgearman/interface/push.hpp"
 
 #include <arpa/inet.h>
 #include <cerrno>
@@ -78,7 +79,10 @@ static gearman_client_st *_client_allocate(gearman_client_st *client_shell, bool
   {
     if (is_clone == false)
     {
+#if 0
       gearman_universal_initialize(client_shell->impl()->universal);
+  gearman_universal_initialize(universal);
+#endif
     }
 
     return client_shell;
@@ -143,7 +147,7 @@ static void *_client_do(gearman_client_st *client, gearman_command_t command,
                                            gearman_actions_do_default());
     if (do_task_ptr == NULL)
     {
-      *ret_ptr= gearman_universal_error_code(client->impl()->universal);
+      *ret_ptr= client->impl()->universal.error_code();
       return NULL;
     }
     assert(do_task.impl());
@@ -254,7 +258,7 @@ static gearman_return_t _client_do_background(gearman_client_st *client,
                                            gearman_actions_do_default());
     if (do_task_ptr == NULL)
     {
-      return gearman_universal_error_code(client->impl()->universal);
+      return client->impl()->universal.error_code();
     }
     assert(do_task_ptr);
     assert(&do_task == do_task_ptr);
@@ -334,7 +338,7 @@ const char *gearman_client_error(const gearman_client_st *client_shell)
 {
   if (client_shell)
   {
-    return gearman_universal_error(client_shell->impl()->universal);
+    return client_shell->impl()->universal.error();
   }
 
   return NULL;
@@ -342,22 +346,22 @@ const char *gearman_client_error(const gearman_client_st *client_shell)
 
 gearman_return_t gearman_client_error_code(const gearman_client_st *client_shell)
 {
-  if (client_shell == NULL)
+  if (client_shell)
   {
-    return GEARMAN_INVALID_ARGUMENT;
+    return client_shell->impl()->universal.error_code();
   }
 
-  return gearman_universal_error_code(client_shell->impl()->universal);
+  return GEARMAN_INVALID_ARGUMENT;
 }
 
 int gearman_client_errno(const gearman_client_st *client_shell)
 {
-  if (client_shell == NULL)
+  if (client_shell)
   {
-    return 0;
+    return client_shell->impl()->universal.last_errno();
   }
 
-  return gearman_universal_errno(client_shell->impl()->universal);
+  return 0;
 }
 
 gearman_client_options_t gearman_client_options(const gearman_client_st *client_shell)
@@ -553,8 +557,8 @@ gearman_return_t gearman_client_add_server(gearman_client_st *client_shell,
   {
     if (gearman_connection_create_args(client_shell->impl()->universal, host, port) == false)
     {
-      assert(client_shell->impl()->universal.error.rc != GEARMAN_SUCCESS);
-      return gearman_universal_error_code(client_shell->impl()->universal);
+      assert(client_shell->impl()->universal.error_code() != GEARMAN_SUCCESS);
+      return client_shell->impl()->universal.error_code();
     }
 
     return GEARMAN_SUCCESS;
@@ -1676,9 +1680,9 @@ gearman_return_t gearman_client_run_block_tasks(gearman_client_st *client)
       gearman_reset(client->impl()->universal);
     }
 
-    if (gearman_universal_error_code(client->impl()->universal) != rc and rc != GEARMAN_COULD_NOT_CONNECT)
+    if (client->impl()->universal.error_code() != rc and rc != GEARMAN_COULD_NOT_CONNECT)
     {
-      assert(gearman_universal_error_code(client->impl()->universal) == rc);
+      assert(client->impl()->universal.error_code() == rc);
     }
   }
 
@@ -1737,4 +1741,14 @@ gearman_return_t gearman_client_set_identifier(gearman_client_st *client,
 const char *gearman_client_namespace(gearman_client_st *self)
 {
   return gearman_univeral_namespace(self->impl()->universal);
+}
+
+bool gearman_client_has_tasks(const gearman_client_st *client_shell)
+{
+  if (client_shell and client_shell->impl())
+  {
+    return bool(client_shell->impl()->task_list);
+  }
+
+  return false;
 }

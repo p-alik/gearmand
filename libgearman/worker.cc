@@ -216,24 +216,24 @@ void gearman_worker_free(gearman_worker_st *worker)
   }
 }
 
-const char *gearman_worker_error(const gearman_worker_st *worker)
+const char *gearman_worker_error(const gearman_worker_st *worker_shell)
 {
-  if (worker == NULL)
+  if (worker_shell)
   {
-    return NULL;
+    return worker_shell->impl()->universal.error();
   }
 
-  return gearman_universal_error(worker->impl()->universal);
+  return NULL;
 }
 
-int gearman_worker_errno(gearman_worker_st *worker)
+int gearman_worker_errno(gearman_worker_st *worker_shell)
 {
-  if (worker == NULL)
+  if (worker_shell)
   {
-    return 0;
+    return worker_shell->impl()->universal.last_errno();
   }
 
-  return gearman_universal_errno(worker->impl()->universal);
+  return 0;
 }
 
 gearman_worker_options_t gearman_worker_options(const gearman_worker_st *worker)
@@ -1140,8 +1140,8 @@ static gearman_worker_st *_worker_allocate(gearman_worker_st *worker, bool is_cl
   {
     if (is_clone == false)
     {
-      gearman_universal_initialize(worker->impl()->universal);
 #if 0
+      gearman_universal_initialize(worker->impl()->universal);
       gearman_universal_set_timeout(worker->impl()->universal, GEARMAN_WORKER_WAIT_TIMEOUT);
 #endif
     }

@@ -736,7 +736,7 @@ static test_return_t hostname_resolution(void *)
 
   test_skip(GEARMAN_SUCCESS, gearman_client_add_servers(&client, "exist.gearman.info:12345"));
 
-  test_compare(GEARMAN_SUCCESS, client->impl()->universal.error.rc);
+  test_compare(GEARMAN_SUCCESS, gearman_client_error_code(&client));
 
   test_compare(GEARMAN_COULD_NOT_CONNECT,
                gearman_client_echo(&client, test_literal_param("foo")));

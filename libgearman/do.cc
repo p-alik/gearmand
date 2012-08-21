@@ -86,7 +86,7 @@ void *client_do(gearman_client_st *client, gearman_command_t command,
                                            gearman_actions_do_default());
     if (do_task_ptr == NULL)
     {
-      *ret_ptr= gearman_universal_error_code(client->impl()->universal);
+      *ret_ptr= client->impl()->universal.error_code();
       return NULL;
     }
     assert(do_task_ptr);
@@ -161,7 +161,7 @@ gearman_return_t client_do_background(gearman_client_st *client,
                                            gearman_actions_do_default());
     if (do_task_ptr == NULL)
     {
-      return gearman_universal_error_code(client->impl()->universal);
+      return client->impl()->universal.error_code();
     }
     assert(&do_task == do_task_ptr);
   }

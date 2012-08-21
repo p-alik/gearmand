@@ -46,6 +46,7 @@
 #include <libgearman/common.h>
 
 #include "libgearman/assert.hpp"
+#include "libgearman/interface/push.hpp"
 
 #include <cerrno>
 #include <cstdarg>
@@ -54,44 +55,6 @@
 #include <cstring>
 #include <cctype>
 #include <unistd.h>
-
-void gearman_universal_initialize(gearman_universal_st &self, const gearman_universal_options_t *options)
-{
-  { // Set defaults on all options.
-    self.options.non_blocking= false;
-  }
-
-  if (options)
-  {
-    while (*options != GEARMAN_MAX)
-    {
-      /**
-        @note Check for bad value, refactor gearman_add_options().
-      */
-      gearman_universal_add_options(self, *options);
-      options++;
-    }
-  }
-
-  self.verbose= GEARMAN_VERBOSE_NEVER;
-  self.con_count= 0;
-  self.packet_count= 0;
-  self.pfds_size= 0;
-  self.sending= 0;
-  self.timeout= -1;
-  self.con_list= NULL;
-  self.packet_list= NULL;
-  self.pfds= NULL;
-  self.log_fn= NULL;
-  self.log_context= NULL;
-  self.allocator= gearman_default_allocator();
-  self._namespace= NULL;
-  self.error.rc= GEARMAN_SUCCESS;
-  self.error.last_errno= 0;
-  self.error.last_error[0]= 0;
-  self.wakeup_fd[0]= INVALID_SOCKET;
-  self.wakeup_fd[1]= INVALID_SOCKET;
-}
 
 void gearman_nap(int arg)
 {
@@ -122,8 +85,6 @@ void gearman_universal_clone(gearman_universal_st &destination, const gearman_un
     wakeup_fd[0]= destination.wakeup_fd[0];
     wakeup_fd[1]= destination.wakeup_fd[1];
   }
-
-  gearman_universal_initialize(destination);
 
   if (has_wakeup_fd)
   {

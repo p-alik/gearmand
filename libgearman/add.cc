@@ -89,7 +89,7 @@ gearman_task_st *add_task_ptr(gearman_client_st& client,
   task= add_task(client, task, context, command, function, local_unique, workload, when, actions);
   if (task == NULL)
   {
-    *ret_ptr= gearman_universal_error_code(client.impl()->universal);
+    *ret_ptr= client.impl()->universal.error_code();
     return NULL;
   }
 

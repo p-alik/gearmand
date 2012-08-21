@@ -647,7 +647,6 @@ static test_return_t abandoned_worker_test(void *)
 
   /* Now take job with one worker. */
   gearman_universal_st universal;
-  gearman_universal_initialize(universal);
 
   gearman_connection_st *worker1;
   test_truth(worker1= gearman_connection_create(universal, NULL));

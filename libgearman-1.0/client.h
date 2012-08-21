@@ -716,6 +716,9 @@ gearman_return_t gearman_client_set_identifier(gearman_client_st *client,
 
 const char *gearman_client_namespace(gearman_client_st *self);
 
+GEARMAN_API
+bool gearman_client_has_tasks(const gearman_client_st *client);
+
 /** @} */
 
 #ifdef __cplusplus

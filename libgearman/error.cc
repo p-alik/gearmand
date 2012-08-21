@@ -48,29 +48,29 @@
 
 static void correct_from_errno(gearman_universal_st& universal)
 {
-  if (universal.error.rc == GEARMAN_ERRNO)
+  if (universal.error_code() == GEARMAN_ERRNO)
   {
-    switch (universal.error.last_errno)
+    switch (universal.last_errno())
     {
     case EFAULT:
     case ENOMEM:
-      universal.error.rc= GEARMAN_MEMORY_ALLOCATION_FAILURE;
+      universal.error_code(GEARMAN_MEMORY_ALLOCATION_FAILURE);
       break;
 
     case EINVAL:
-      universal.error.rc= GEARMAN_INVALID_ARGUMENT;
+      universal.error_code(GEARMAN_INVALID_ARGUMENT);
       break;
 
     case ECONNRESET:
     case EHOSTDOWN:
     case EPIPE:
-      universal.error.rc= GEARMAN_LOST_CONNECTION;
+      universal.error_code(GEARMAN_LOST_CONNECTION);
       break;
 
     case ECONNREFUSED:
     case ENETUNREACH:
     case ETIMEDOUT:
-      universal.error.rc= GEARMAN_COULD_NOT_CONNECT;
+      universal.error_code(GEARMAN_COULD_NOT_CONNECT);
       break;
 
     default:
@@ -79,15 +79,8 @@ static void correct_from_errno(gearman_universal_st& universal)
   }
   else
   {
-    universal.error.last_errno= 0;
+    universal.last_errno(0);
   }
-}
-
-void universal_reset_error(gearman_universal_st& universal)
-{
-  universal.error.rc= GEARMAN_SUCCESS;
-  universal.error.last_errno= 0;
-  universal.error.last_error[0]= 0;
 }
 
 gearman_return_t gearman_universal_set_error(gearman_universal_st& universal, 
@@ -103,7 +96,7 @@ gearman_return_t gearman_universal_set_error(gearman_universal_st& universal,
 
   va_list args;
 
-  universal.error.rc= rc;
+  universal._error.rc= rc;
   correct_from_errno(universal);
 
   char last_error[GEARMAN_MAX_ERROR_SIZE];
@@ -118,24 +111,24 @@ gearman_return_t gearman_universal_set_error(gearman_universal_st& universal,
   {
     assert(length > int(GEARMAN_MAX_ERROR_SIZE));
     assert(length < 0);
-    universal.error.last_error[GEARMAN_MAX_ERROR_SIZE -1]= 0;
+    universal._error.last_error[GEARMAN_MAX_ERROR_SIZE -1]= 0;
   }
 
-  length= snprintf(universal.error.last_error, GEARMAN_MAX_ERROR_SIZE, "%s(%s) %s -> %s", function, gearman_strerror(universal.error.rc), last_error, position);
+  length= snprintf(universal._error.last_error, GEARMAN_MAX_ERROR_SIZE, "%s(%s) %s -> %s", function, gearman_strerror(universal._error.rc), last_error, position);
   if (length > int(GEARMAN_MAX_ERROR_SIZE) or length < 0)
   {
     assert(length > int(GEARMAN_MAX_ERROR_SIZE));
     assert(length < 0);
-    universal.error.last_error[GEARMAN_MAX_ERROR_SIZE -1]= 0;
+    universal._error.last_error[GEARMAN_MAX_ERROR_SIZE -1]= 0;
   }
 
   if (universal.log_fn)
   {
-    universal.log_fn(universal.error.last_error, GEARMAN_VERBOSE_FATAL,
+    universal.log_fn(universal._error.last_error, GEARMAN_VERBOSE_FATAL,
                      static_cast<void *>(universal.log_context));
   }
 
-  return universal.error.rc;
+  return universal._error.rc;
 }
 
 gearman_return_t gearman_universal_set_gerror(gearman_universal_st& universal, 
@@ -148,21 +141,21 @@ gearman_return_t gearman_universal_set_gerror(gearman_universal_st& universal,
     return rc;
   }
 
-  universal.error.rc= rc;
+  universal._error.rc= rc;
   correct_from_errno(universal);
 
-  int length= snprintf(universal.error.last_error, GEARMAN_MAX_ERROR_SIZE, "%s(%s) -> %s", func, gearman_strerror(rc), position);
+  int length= snprintf(universal._error.last_error, GEARMAN_MAX_ERROR_SIZE, "%s(%s) -> %s", func, gearman_strerror(rc), position);
   if (length > int(GEARMAN_MAX_ERROR_SIZE) or length < 0)
   {
     assert(length > int(GEARMAN_MAX_ERROR_SIZE));
     assert(length < 0);
-    universal.error.last_error[GEARMAN_MAX_ERROR_SIZE -1]= 0;
+    universal._error.last_error[GEARMAN_MAX_ERROR_SIZE -1]= 0;
     return GEARMAN_ARGUMENT_TOO_LARGE;
   }
 
   if (universal.log_fn)
   {
-    universal.log_fn(universal.error.last_error, GEARMAN_VERBOSE_FATAL,
+    universal.log_fn(universal._error.last_error, GEARMAN_VERBOSE_FATAL,
                      static_cast<void *>(universal.log_context));
   }
 
@@ -181,14 +174,14 @@ gearman_return_t gearman_universal_set_perror(gearman_universal_st &universal,
   switch (errno)
   {
   case ENOMEM:
-    universal.error.rc= GEARMAN_MEMORY_ALLOCATION_FAILURE;
+    universal._error.rc= GEARMAN_MEMORY_ALLOCATION_FAILURE;
     break;
 
   default:
-    universal.error.rc= GEARMAN_ERRNO;
+    universal._error.rc= GEARMAN_ERRNO;
     break;
   }
-  universal.error.last_errno= errno;
+  universal._error.last_errno= errno;
 
   correct_from_errno(universal);
 
@@ -197,34 +190,34 @@ gearman_return_t gearman_universal_set_perror(gearman_universal_st &universal,
   errmsg[0]= 0; 
 
 #ifdef STRERROR_R_CHAR_P
-  errmsg_ptr= strerror_r(universal.error.last_errno, errmsg, sizeof(errmsg));
+  errmsg_ptr= strerror_r(universal._error.last_errno, errmsg, sizeof(errmsg));
 #else
-  strerror_r(universal.error.last_errno, errmsg, sizeof(errmsg));
+  strerror_r(universal._error.last_errno, errmsg, sizeof(errmsg));
   errmsg_ptr= errmsg;
 #endif
 
   int length;
   if (message)
   {
-    length= snprintf(universal.error.last_error, GEARMAN_MAX_ERROR_SIZE, "%s(%s) %s -> %s", function, errmsg_ptr, message, position);
+    length= snprintf(universal._error.last_error, GEARMAN_MAX_ERROR_SIZE, "%s(%s) %s -> %s", function, errmsg_ptr, message, position);
   }
   else
   {
-    length= snprintf(universal.error.last_error, GEARMAN_MAX_ERROR_SIZE, "%s(%s) -> %s", function, errmsg_ptr, position);
+    length= snprintf(universal._error.last_error, GEARMAN_MAX_ERROR_SIZE, "%s(%s) -> %s", function, errmsg_ptr, position);
   }
 
   if (length > int(GEARMAN_MAX_ERROR_SIZE) or length < 0)
   {
     assert(length > int(GEARMAN_MAX_ERROR_SIZE));
     assert(length < 0);
-    universal.error.last_error[GEARMAN_MAX_ERROR_SIZE -1]= 0;
+    universal._error.last_error[GEARMAN_MAX_ERROR_SIZE -1]= 0;
   }
 
   if (universal.log_fn)
   {
-    universal.log_fn(universal.error.last_error, GEARMAN_VERBOSE_FATAL,
+    universal.log_fn(universal._error.last_error, GEARMAN_VERBOSE_FATAL,
                      static_cast<void *>(universal.log_context));
   }
 
-  return universal.error.rc;
+  return universal._error.rc;
 }

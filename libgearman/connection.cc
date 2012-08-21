@@ -677,7 +677,7 @@ gearman_return_t gearman_connection_st::flush()
           gearman_return_t gret= connect_poll();
           if (gearman_failed(gret))
           {
-            assert_msg(universal.error.rc != GEARMAN_SUCCESS, "Programmer error, connect_poll() returned an error, but it was not set");
+            assert_msg(universal.error_code() != GEARMAN_SUCCESS, "Programmer error, connect_poll() returned an error, but it was not set");
             close_socket();
             return gret;
           }
@@ -720,7 +720,7 @@ gearman_return_t gearman_connection_st::flush()
 
         set_events(POLLOUT);
 
-        if (gearman_universal_is_non_blocking(universal))
+        if (universal.is_non_blocking())
         {
           state= GEARMAN_CON_UNIVERSAL_CONNECTING;
           return gearman_gerror(universal, GEARMAN_IO_WAIT);
@@ -742,7 +742,7 @@ gearman_return_t gearman_connection_st::flush()
       while (send_buffer_size != 0)
       {
         ssize_t write_size= ::send(fd, send_buffer_ptr, send_buffer_size, 
-                                   gearman_universal_is_non_blocking(universal) ? MSG_NOSIGNAL| MSG_DONTWAIT : MSG_NOSIGNAL);
+                                   universal.is_non_blocking() ? MSG_NOSIGNAL| MSG_DONTWAIT : MSG_NOSIGNAL);
 
         if (write_size == 0) // Zero value on send()
         { }
@@ -752,7 +752,7 @@ gearman_return_t gearman_connection_st::flush()
           {
             set_events(POLLOUT);
 
-            if (gearman_universal_is_non_blocking(universal))
+            if (universal.is_non_blocking())
             {
               return gearman_gerror(universal, GEARMAN_IO_WAIT);
             }
@@ -994,7 +994,7 @@ size_t gearman_connection_st::recv_socket(void *data, size_t data_size, gearman_
       {
         set_events(POLLIN);
 
-        if (gearman_universal_is_non_blocking(universal))
+        if (universal.is_non_blocking())
         {
           ret= gearman_gerror(universal, GEARMAN_IO_WAIT);
           return 0;

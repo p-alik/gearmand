@@ -38,37 +38,23 @@
 
 #pragma once
 
-#include "libgearman/interface/client.hpp"
-
 // Get next connection that is ready for I/O.
-GEARMAN_LOCAL
-gearman_connection_st *gearman_ready(gearman_universal_st&);
+struct gearman_connection_st *gearman_ready(gearman_universal_st&);
 
-GEARMAN_LOCAL
-void gearman_universal_initialize(gearman_universal_st &self, const gearman_universal_options_t *options= NULL);
-
-GEARMAN_LOCAL
 void gearman_universal_clone(gearman_universal_st &destination, const gearman_universal_st &source, bool has_wakeup_fd= false);
 
-GEARMAN_LOCAL
 void gearman_universal_free(gearman_universal_st &gearman);
 
-GEARMAN_LOCAL
 void gearman_free_all_packets(gearman_universal_st &gearman);
 
-GEARMAN_LOCAL
 bool gearman_request_option(gearman_universal_st &universal, gearman_string_t &option);
 
-GEARMAN_LOCAL
 gearman_return_t gearman_universal_set_option(gearman_universal_st &self, gearman_universal_options_t option, bool value);
 
-GEARMAN_LOCAL
 void gearman_set_log_fn(gearman_universal_st &self, gearman_log_fn *function, void *context, gearman_verbose_t verbose);
 
-GEARMAN_LOCAL
 void gearman_universal_set_timeout(gearman_universal_st &self, int timeout);
 
-GEARMAN_LOCAL
 int gearman_universal_timeout(gearman_universal_st &self);
 
 GEARMAN_LOCAL
@@ -132,31 +118,6 @@ static inline void gearman_universal_remove_options(gearman_universal_st &self, 
   (void)gearman_universal_set_option(self, options, false);
 }
 
-static inline bool gearman_universal_is_non_blocking(gearman_universal_st &self)
-{
-  return self.options.non_blocking;
-}
-
-static inline const char *gearman_universal_error(const gearman_universal_st &self)
-{
-  if (self.error.last_error[0] == 0)
-  {
-    return NULL;
-  }
-
-  return static_cast<const char *>(self.error.last_error);
-}
-
-static inline gearman_return_t gearman_universal_error_code(const gearman_universal_st &self)
-{
-  return self.error.rc;
-}
-
-static inline int gearman_universal_errno(const gearman_universal_st &self)
-{
-  return self.error.last_errno;
-}
-
 gearman_id_t gearman_universal_id(gearman_universal_st &universal);
 
 gearman_return_t gearman_set_identifier(gearman_universal_st& universal,
@@ -165,61 +126,3 @@ gearman_return_t gearman_set_identifier(gearman_universal_st& universal,
 
 const char *gearman_univeral_namespace(gearman_universal_st& universal);
 
-/**
-  Push the state of IO
-*/
-class PushBlocking {
-public:
-  PushBlocking(gearman_universal_st& arg) :
-    _original(arg.options.non_blocking),
-    _universal(arg)
-  {
-    _universal.options.non_blocking= false;
-  }
-
-  PushBlocking(gearman_client_st* client_shell) :
-    _original(client_shell->impl()->universal.options.non_blocking),
-    _universal(client_shell->impl()->universal)
-  {
-    _universal.options.non_blocking= false;
-  }
-
-  ~PushBlocking()
-  {
-    _universal.options.non_blocking= _original;
-  }
-
-private:
-  bool _original;
-  gearman_universal_st& _universal;
-};
-
-#define PUSH_BLOCKING(__univeral) PushBlocking _push_block((__univeral));
-
-class PushNonBlocking {
-public:
-  PushNonBlocking(gearman_universal_st& arg) :
-    _original(arg.options.non_blocking),
-    _universal(arg)
-  {
-    _universal.options.non_blocking= true;
-  }
-
-  PushNonBlocking(gearman_client_st* client_shell) :
-    _original(client_shell->impl()->universal.options.non_blocking),
-    _universal(client_shell->impl()->universal)
-  {
-    _universal.options.non_blocking= true;
-  }
-
-  ~PushNonBlocking()
-  {
-    _universal.options.non_blocking= _original;
-  }
-
-private:
-  bool _original;
-  gearman_universal_st& _universal;
-};
-
-#define PUSH_NON_BLOCKING(__univeral) PushNonBlocking _push_block((__univeral));

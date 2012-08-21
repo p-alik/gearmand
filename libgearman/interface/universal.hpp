@@ -38,7 +38,7 @@
 
 #pragma once
 
-#include <libgearman-1.0/allocator.h>
+#include "libgearman/allocator.hpp" 
 
 /**
   @todo this is only used by the server and should be made private.
@@ -47,14 +47,16 @@ typedef struct gearman_connection_st gearman_connection_st;
 typedef gearman_return_t (gearman_event_watch_fn)(gearman_connection_st *con,
                                                   short events, void *context);
 
-/**
- * @ingroup gearman_universal
- */
 struct gearman_universal_st
 {
-  struct {
+  struct Options {
     bool dont_track_packets;
     bool non_blocking;
+
+    Options() :
+      dont_track_packets(false),
+      non_blocking(false)
+    { }
   } options;
   gearman_verbose_t verbose;
   uint32_t con_count;
@@ -69,10 +71,140 @@ struct gearman_universal_st
   void *log_context;
   gearman_allocator_t allocator;
   struct gearman_vector_st *_namespace;
-  struct {
+  struct error_st {
     gearman_return_t rc;
     int last_errno;
     char last_error[GEARMAN_MAX_ERROR_SIZE];
-  } error;
+
+    error_st():
+      rc(GEARMAN_SUCCESS),
+      last_errno(0)
+    {
+      last_error[0]= 0;
+    }
+
+  } _error;
   int wakeup_fd[2];
+
+  bool is_non_blocking() const
+  {
+    return options.non_blocking;
+  }
+
+  void non_blocking(bool arg_)
+  {
+    options.non_blocking= arg_;
+  }
+
+  const char *error() const
+  {
+    if (_error.last_error[0] == 0)
+    {
+      return NULL;
+    }
+
+    return static_cast<const char *>(_error.last_error);
+  }
+
+  gearman_return_t error_code() const
+  {
+    return _error.rc;
+  }
+
+  void error_code(gearman_return_t rc)
+  {
+    _error.rc= rc;
+  }
+
+  int last_errno() const
+  {
+    return _error.last_errno;
+  }
+
+  void last_errno(int last_errno_)
+  {
+    _error.last_errno= last_errno_;
+  }
+
+  void reset_error()
+  {
+    _error.rc= GEARMAN_SUCCESS;
+    _error.last_errno= 0;
+    _error.last_error[0]= 0;
+  }
+
+  gearman_return_t option(gearman_universal_options_t option, bool value)
+  {
+    switch (option)
+    {
+    case GEARMAN_NON_BLOCKING:
+      non_blocking(value);
+      break;
+
+    case GEARMAN_DONT_TRACK_PACKETS:
+      break;
+
+    case GEARMAN_MAX:
+    default:
+      return GEARMAN_INVALID_COMMAND;
+    }
+
+    return GEARMAN_SUCCESS;
+  }
+
+  gearman_universal_st(const gearman_universal_options_t *options_= NULL) :
+    verbose(GEARMAN_VERBOSE_NEVER),
+    con_count(0),
+    packet_count(0),
+    pfds_size(0),
+    sending(0),
+    timeout(-1),
+    con_list(NULL),
+    packet_list(NULL),
+    pfds(NULL),
+    log_fn(NULL),
+    log_context(NULL),
+    allocator(gearman_default_allocator()),
+    _namespace(NULL)
+  {
+    wakeup_fd[0]= INVALID_SOCKET;
+    wakeup_fd[1]= INVALID_SOCKET;
+
+    if (options_)
+    {
+      while (*options_ != GEARMAN_MAX)
+      {
+        /**
+          @note Check for bad value, refactor gearman_add_options().
+        */
+        (void)option(*options_, true);
+        options_++;
+      }
+    }
+  }
 };
+
+static inline bool gearman_universal_is_non_blocking(gearman_universal_st &self)
+{
+  return self.is_non_blocking();
+}
+
+static inline const char *gearman_universal_error(const gearman_universal_st &self)
+{
+  return self.error();
+}
+
+static inline gearman_return_t gearman_universal_error_code(const gearman_universal_st &self)
+{
+  return self.error_code();
+}
+
+static inline int gearman_universal_errno(const gearman_universal_st &self)
+{
+  return self.last_errno();
+}
+
+static inline void universal_reset_error(gearman_universal_st &self)
+{
+  self.reset_error();
+}

@@ -39,7 +39,13 @@
 
 #pragma once
 
+struct Client;
+struct Task;
+struct Worker;
+struct gearman_client_st;
+struct gearman_connection_st;
 struct gearman_result_st;
+struct gearman_universal_st;
 
 #include <libgearman-1.0/gearman.h>
 
@@ -70,8 +76,6 @@ struct gearman_result_st;
 #include <libgearman/status.hpp>
 
 #include <libgearman/protocol/submit.h>
-#include <libgearman/interface/universal.hpp>
-#include <libgearman/interface/packet.hpp>
 #include <libgearman/interface/client.hpp>
 #include <libgearman/interface/task.hpp>
 #include <libgearman/interface/worker.hpp>
