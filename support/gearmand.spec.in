@@ -134,7 +134,6 @@ fi
 %{_includedir}/libgearman-1.0/kill.h
 %{_includedir}/libgearman-1.0/limits.h
 %{_includedir}/libgearman-1.0/ostream.hpp
-%{_includedir}/libgearman-1.0/packet.h
 %{_includedir}/libgearman-1.0/parse.h
 %{_includedir}/libgearman-1.0/priority.h
 %{_includedir}/libgearman-1.0/protocol.h
@@ -146,7 +145,6 @@ fi
 %{_includedir}/libgearman-1.0/string.h
 %{_includedir}/libgearman-1.0/task.h
 %{_includedir}/libgearman-1.0/task_attr.h
-%{_includedir}/libgearman-1.0/universal.h
 %{_includedir}/libgearman-1.0/util.h
 %{_includedir}/libgearman-1.0/version.h
 %{_includedir}/libgearman-1.0/visibility.h
