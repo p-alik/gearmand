@@ -62,5 +62,3 @@ gearman_return_t gearman_universal_set_gerror(gearman_universal_st&,
                                               gearman_return_t rc,
                                               const char *func,
                                               const char *position);
-
-void universal_reset_error(gearman_universal_st& universal);

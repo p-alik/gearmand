@@ -133,9 +133,9 @@ struct gearman_universal_st
     _error.last_error[0]= 0;
   }
 
-  gearman_return_t option(gearman_universal_options_t option, bool value)
+  gearman_return_t option(gearman_universal_options_t option_, bool value)
   {
-    switch (option)
+    switch (option_)
     {
     case GEARMAN_NON_BLOCKING:
       non_blocking(value);
