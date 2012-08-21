@@ -39,5 +39,3 @@
 #pragma once
 
 #include <libgearman-1.0/allocator.h>
-#include <libgearman-1.0/universal.h>
-#include <libgearman-1.0/packet.h>

@@ -39,6 +39,8 @@
 #pragma once
 
 #include <libgearman-1.0/connection.h>
+#include "libgearman/interface/packet.hpp"
+#include "libgearman/interface/universal.hpp"
 
 struct gearman_connection_st
 {

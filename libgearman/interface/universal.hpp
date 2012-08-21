@@ -63,7 +63,7 @@ struct gearman_universal_st
   uint32_t sending;
   int timeout; // Used by poll()
   gearman_connection_st *con_list;
-  gearman_packet_st *packet_list;
+  struct gearman_packet_st *packet_list;
   struct pollfd *pfds;
   gearman_log_fn *log_fn;
   void *log_context;

@@ -38,6 +38,7 @@
 #pragma once
 
 #include "libgearman/interface/client.hpp"
+#include "libgearman/interface/packet.hpp"
 
 #define TASK_MAGIC 134
 #define TASK_ANTI_MAGIC 157

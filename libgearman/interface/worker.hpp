@@ -37,6 +37,9 @@
 
 #pragma once
 
+#include "libgearman/interface/universal.hpp"
+#include "libgearman/interface/packet.hpp"
+
 struct Worker
 {
   struct Options {

@@ -28,7 +28,6 @@ nobase_include_HEADERS+= \
 			 libgearman-1.0/kill.h \
 			 libgearman-1.0/limits.h \
 			 libgearman-1.0/ostream.hpp \
-			 libgearman-1.0/packet.h \
 			 libgearman-1.0/parse.h \
 			 libgearman-1.0/priority.h \
 			 libgearman-1.0/protocol.h \
@@ -39,7 +38,6 @@ nobase_include_HEADERS+= \
 			 libgearman-1.0/string.h \
 			 libgearman-1.0/task.h \
 			 libgearman-1.0/task_attr.h \
-			 libgearman-1.0/universal.h \
 			 libgearman-1.0/util.h \
 			 libgearman-1.0/version.h \
 			 libgearman-1.0/visibility.h \

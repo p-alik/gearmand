@@ -38,6 +38,7 @@
 #pragma once
 
 #include "libgearman/actions.hpp"
+#include "libgearman/interface/universal.hpp"
 
 struct Client
 {
@@ -62,11 +63,11 @@ struct Client
   uint32_t running_tasks;
   uint32_t task_count;
   void *context;
-  gearman_connection_st *con;
+  struct gearman_connection_st *con;
   gearman_task_st *task;
   gearman_task_st *task_list;
   gearman_task_context_free_fn *task_context_free_fn;
-  struct gearman_universal_st universal;
+  gearman_universal_st universal;
   struct gearman_actions_t actions;
   gearman_job_handle_t _do_handle; // Backwards compatible
   gearman_client_st* _shell;
