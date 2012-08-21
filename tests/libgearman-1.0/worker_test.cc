@@ -639,7 +639,7 @@ static test_return_t abandoned_worker_test(void *)
   size_t args_size[2];
 
   {
-    Client client;
+    test::Client client;
     gearman_client_add_server(&client, NULL, libtest::default_port());
     test_compare(gearman_client_do_background(&client, "abandoned_worker", NULL, NULL, 0, job_handle),
                  GEARMAN_SUCCESS);
@@ -937,7 +937,7 @@ static test_return_t gearman_worker_remove_options_GEARMAN_WORKER_GRAB_UNIQ(void
                gearman_worker_add_function(&worker, function_name, 0, no_unique_worker, NULL));
 
   {
-    Client client;
+    test::Client client;
     test_compare(GEARMAN_SUCCESS,
                  gearman_client_add_server(&client, NULL, libtest::default_port()));
     test_compare(gearman_client_do_background(&client, function_name, unique_name,
@@ -973,7 +973,7 @@ static test_return_t gearman_worker_add_options_GEARMAN_WORKER_GRAB_UNIQ(void *)
   snprintf(unique_name, GEARMAN_MAX_UNIQUE_SIZE, "_%s%d", __func__, int(random())); 
 
   {
-    Client client;
+    test::Client client;
     test_compare(GEARMAN_SUCCESS,
                  gearman_client_add_server(&client, NULL, libtest::default_port()));
 
@@ -1039,7 +1039,7 @@ static test_return_t gearman_worker_add_options_GEARMAN_WORKER_GRAB_UNIQ_worker_
                gearman_worker_add_function(&worker, function_name, 0, check_unique_worker, &success));
 
   {
-    Client client;
+    test::Client client;
     test_compare(GEARMAN_SUCCESS,
                  gearman_client_add_server(&client, NULL, libtest::default_port()));
     test_compare(gearman_client_do_background(&client, function_name, unique_name,
@@ -1062,7 +1062,7 @@ static test_return_t gearman_worker_add_options_GEARMAN_WORKER_GRAB_UNIQ_worker_
 
 static test_return_t _increase_TEST(gearman_function_t &func, gearman_client_options_t options, size_t block_size)
 {
-  Client client;
+  test::Client client;
   test_compare(GEARMAN_SUCCESS,
                gearman_client_add_server(&client, NULL, libtest::default_port()));
 

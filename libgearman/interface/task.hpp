@@ -37,6 +37,8 @@
 
 #pragma once
 
+#include "libgearman/interface/client.hpp"
+
 #define TASK_MAGIC 134
 #define TASK_ANTI_MAGIC 157
 
@@ -102,7 +104,7 @@ struct Task
     context(NULL),
     con(NULL),
     recv(NULL),
-    func(client_.actions),
+    func(client_.impl()->actions),
     result_rc(GEARMAN_UNKNOWN_STATE),
     result_ptr(NULL),
     _shell(shell_),
@@ -113,14 +115,14 @@ struct Task
 
     // Add the task to the client
     {
-      if (client_.task_list)
+      if (client_.impl()->task_list)
       {
-        client_.task_list->impl()->prev= shell_;
+        client_.impl()->task_list->impl()->prev= shell_;
       }
-      next= client_.task_list;
+      next= client_.impl()->task_list;
       prev= NULL;
-      client_.task_list= shell_;
-      client_.task_count++;
+      client_.impl()->task_list= shell_;
+      client_.impl()->task_count++;
     }
 
     shell_->impl(this);

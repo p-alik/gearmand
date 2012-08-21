@@ -38,6 +38,8 @@
 
 #pragma once
 
+#include "libgearman/interface/client.hpp"
+
 // Get next connection that is ready for I/O.
 GEARMAN_LOCAL
 gearman_connection_st *gearman_ready(gearman_universal_st&);
@@ -175,9 +177,9 @@ public:
     _universal.options.non_blocking= false;
   }
 
-  PushBlocking(gearman_client_st* arg) :
-    _original(arg->universal.options.non_blocking),
-    _universal(arg->universal)
+  PushBlocking(gearman_client_st* client_shell) :
+    _original(client_shell->impl()->universal.options.non_blocking),
+    _universal(client_shell->impl()->universal)
   {
     _universal.options.non_blocking= false;
   }
@@ -203,9 +205,9 @@ public:
     _universal.options.non_blocking= true;
   }
 
-  PushNonBlocking(gearman_client_st* arg) :
-    _original(arg->universal.options.non_blocking),
-    _universal(arg->universal)
+  PushNonBlocking(gearman_client_st* client_shell) :
+    _original(client_shell->impl()->universal.options.non_blocking),
+    _universal(client_shell->impl()->universal)
   {
     _universal.options.non_blocking= true;
   }

@@ -56,11 +56,11 @@ static inline gearman_return_t __submit(Task& task,
   */
   char function_buffer[1024];
   assert(task.client);
-  if (task.client->universal._namespace)
+  if (task.client->impl()->universal._namespace)
   {
     char *ptr= function_buffer;
-    memcpy(ptr, gearman_string_value(task.client->universal._namespace), gearman_string_length(task.client->universal._namespace)); 
-    ptr+= gearman_string_length(task.client->universal._namespace);
+    memcpy(ptr, gearman_string_value(task.client->impl()->universal._namespace), gearman_string_length(task.client->impl()->universal._namespace)); 
+    ptr+= gearman_string_length(task.client->impl()->universal._namespace);
 
     memcpy(ptr, gearman_c_str(function), gearman_size(function) +1);
     ptr+= gearman_size(function);
@@ -80,7 +80,7 @@ static inline gearman_return_t __submit(Task& task,
   args[2]= gearman_c_str(workload);
   args_size[2]= gearman_size(workload);
 
-  return gearman_packet_create_args(task.client->universal, task.send,
+  return gearman_packet_create_args(task.client->impl()->universal, task.send,
                                     GEARMAN_MAGIC_REQUEST,
                                     command,
                                     args, args_size,
@@ -115,11 +115,11 @@ gearman_return_t submit_epoch(Task& task,
     @todo fix it so that NULL is done by default by the API not by happenstance.
   */
   char function_buffer[1024];
-  if (task.client->universal._namespace)
+  if (task.client->impl()->universal._namespace)
   {
     char *ptr= function_buffer;
-    memcpy(ptr, gearman_string_value(task.client->universal._namespace), gearman_string_length(task.client->universal._namespace)); 
-    ptr+= gearman_string_length(task.client->universal._namespace);
+    memcpy(ptr, gearman_string_value(task.client->impl()->universal._namespace), gearman_string_length(task.client->impl()->universal._namespace)); 
+    ptr+= gearman_string_length(task.client->impl()->universal._namespace);
 
     memcpy(ptr, gearman_c_str(function), gearman_size(function) +1);
     ptr+= gearman_size(function);
@@ -144,7 +144,7 @@ gearman_return_t submit_epoch(Task& task,
   args[3]= gearman_c_str(workload);
   args_size[3]= gearman_size(workload);
 
-  return gearman_packet_create_args(task.client->universal, task.send,
+  return gearman_packet_create_args(task.client->impl()->universal, task.send,
                                     GEARMAN_MAGIC_REQUEST,
                                     GEARMAN_COMMAND_SUBMIT_JOB_EPOCH,
                                     args, args_size,

@@ -65,7 +65,7 @@ gearman_task_st *gearman_task_internal_create(gearman_client_st& client, gearman
     task_shell= new (std::nothrow) gearman_task_st;
     if (task_shell == NULL)
     {
-      gearman_perror(client.universal, "gearman_task_st new");
+      gearman_perror(client.impl()->universal, "gearman_task_st new");
       return NULL;
     }
 
@@ -80,7 +80,7 @@ gearman_task_st *gearman_task_internal_create(gearman_client_st& client, gearman
     return task_shell;
   }
 
-  gearman_perror(client.universal, "gearman_task_st new");
+  gearman_perror(client.impl()->universal, "gearman_task_st new");
   gearman_task_free(task_shell);
 
   return NULL;
@@ -113,14 +113,14 @@ void gearman_task_free(gearman_task_st *shell)
           gearman_packet_free(&(task->send));
         }
 
-        if (task->type != GEARMAN_TASK_KIND_DO  and task->context and  task->client->task_context_free_fn)
+        if (task->type != GEARMAN_TASK_KIND_DO  and task->context and  task->client->impl()->task_context_free_fn)
         {
-          task->client->task_context_free_fn(task->shell(), static_cast<void *>(task->context));
+          task->client->impl()->task_context_free_fn(task->shell(), static_cast<void *>(task->context));
         }
 
-        if (task->client->task_list == task->shell())
+        if (task->client->impl()->task_list == task->shell())
         {
-          task->client->task_list= task->next;
+          task->client->impl()->task_list= task->next;
         }
 
         if (task->prev)
@@ -133,13 +133,13 @@ void gearman_task_free(gearman_task_st *shell)
           task->next->impl()->prev= task->prev;
         }
 
-        task->client->task_count--;
+        task->client->impl()->task_count--;
 
         // If the task we are removing is a current task, remove it from the client
         // structures.
-        if (task->client->task == task->shell())
+        if (task->client->impl()->task == task->shell())
         {
-          task->client->task= NULL;
+          task->client->impl()->task= NULL;
         }
         task->client= NULL;
       }

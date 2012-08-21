@@ -86,7 +86,7 @@ gearman_task_st *gearman_execute(gearman_client_st *client,
 
   if (function_name == NULL or function_length == 0)
   {
-    gearman_error(client->universal, GEARMAN_INVALID_ARGUMENT, "function_name was NULL");
+    gearman_error(client->impl()->universal, GEARMAN_INVALID_ARGUMENT, "function_name was NULL");
     return NULL;
   }
   gearman_string_t function= { function_name, function_length };
@@ -145,7 +145,7 @@ gearman_task_st *gearman_execute(gearman_client_st *client,
 
   if (task == NULL)
   {
-    gearman_universal_error_code(client->universal);
+    gearman_universal_error_code(client->impl()->universal);
 
     return NULL;
   }
@@ -172,17 +172,17 @@ gearman_task_st *gearman_execute_by_partition(gearman_client_st *client,
 
   if ((partition_function == NULL) or (partition_function_length == 0))
   {
-    gearman_error(client->universal, GEARMAN_INVALID_ARGUMENT, "function_name was NULL");
+    gearman_error(client->impl()->universal, GEARMAN_INVALID_ARGUMENT, "function_name was NULL");
     return NULL;
   }
 
   if ((function_name == NULL) or (function_name_length == 0))
   {
-    gearman_error(client->universal, GEARMAN_INVALID_ARGUMENT, "function_name was NULL");
+    gearman_error(client->impl()->universal, GEARMAN_INVALID_ARGUMENT, "function_name was NULL");
     return NULL;
   }
   
-  universal_reset_error(client->universal);
+  universal_reset_error(client->impl()->universal);
 
   gearman_task_st *task= NULL;
   gearman_string_t partition= { partition_function, partition_function_length };
@@ -207,7 +207,7 @@ gearman_task_st *gearman_execute_by_partition(gearman_client_st *client,
       break;
 
     case GEARMAN_TASK_ATTR_EPOCH:
-      gearman_error(client->universal, GEARMAN_INVALID_ARGUMENT, "EPOCH is not currently supported for gearman_client_execute_reduce()");
+      gearman_error(client->impl()->universal, GEARMAN_INVALID_ARGUMENT, "EPOCH is not currently supported for gearman_client_execute_reduce()");
       return NULL;
 #if 0
       task= add_task(client,
@@ -260,7 +260,7 @@ gearman_task_st *gearman_execute_by_partition(gearman_client_st *client,
     gearman_return_t rc;
     if (gearman_failed(rc= gearman_client_run_tasks(client)))
     {
-      gearman_gerror(client->universal, rc);
+      gearman_gerror(client->impl()->universal, rc);
       gearman_task_free(task);
       return NULL;
     }

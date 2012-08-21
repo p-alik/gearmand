@@ -37,6 +37,8 @@
 
 #pragma once
 
+namespace test {
+
 class Client {
 public:
   Client()
@@ -89,3 +91,5 @@ private:
   gearman_client_st *_client;
 
 };
+
+} // namespace test

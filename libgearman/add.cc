@@ -89,7 +89,7 @@ gearman_task_st *add_task_ptr(gearman_client_st& client,
   task= add_task(client, task, context, command, function, local_unique, workload, when, actions);
   if (task == NULL)
   {
-    *ret_ptr= gearman_universal_error_code(client.universal);
+    *ret_ptr= gearman_universal_error_code(client.impl()->universal);
     return NULL;
   }
 
@@ -112,11 +112,11 @@ gearman_task_st *add_task(gearman_client_st& client,
   {
     if (gearman_size(function) > GEARMAN_FUNCTION_MAX_SIZE)
     {
-      gearman_error(client.universal, GEARMAN_INVALID_ARGUMENT, "function name longer then GEARMAN_MAX_FUNCTION_SIZE");
+      gearman_error(client.impl()->universal, GEARMAN_INVALID_ARGUMENT, "function name longer then GEARMAN_MAX_FUNCTION_SIZE");
     } 
     else
     {
-      gearman_error(client.universal, GEARMAN_INVALID_ARGUMENT, "invalid function");
+      gearman_error(client.impl()->universal, GEARMAN_INVALID_ARGUMENT, "invalid function");
     }
 
     return NULL;
@@ -124,21 +124,21 @@ gearman_task_st *add_task(gearman_client_st& client,
 
   if (gearman_size(unique) > GEARMAN_MAX_UNIQUE_SIZE)
   {
-    gearman_error(client.universal, GEARMAN_INVALID_ARGUMENT, "unique name longer then GEARMAN_MAX_UNIQUE_SIZE");
+    gearman_error(client.impl()->universal, GEARMAN_INVALID_ARGUMENT, "unique name longer then GEARMAN_MAX_UNIQUE_SIZE");
 
     return NULL;
   }
 
   if ((gearman_size(workload) && gearman_c_str(workload) == NULL) or (gearman_size(workload) == 0 && gearman_c_str(workload)))
   {
-    gearman_error(client.universal, GEARMAN_INVALID_ARGUMENT, "invalid workload");
+    gearman_error(client.impl()->universal, GEARMAN_INVALID_ARGUMENT, "invalid workload");
     return NULL;
   }
 
   task_shell= gearman_task_internal_create(client, task_shell);
   if (task_shell == NULL or task_shell->impl() == NULL)
   {
-    gearman_error(client.universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "");
+    gearman_error(client.impl()->universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "");
     return NULL;
   }
   assert(task_shell);
@@ -244,8 +244,8 @@ gearman_task_st *add_task(gearman_client_st& client,
 
   if (gearman_success(rc))
   {
-    client.new_tasks++;
-    client.running_tasks++;
+    client.impl()->new_tasks++;
+    client.impl()->running_tasks++;
     task->options.send_in_use= true;
 
     return task->shell();
@@ -275,11 +275,11 @@ gearman_task_st *add_reducer_task(gearman_client_st *client,
   {
     if (gearman_size(function) > GEARMAN_FUNCTION_MAX_SIZE)
     {
-      gearman_error(client->universal, GEARMAN_INVALID_ARGUMENT, "function name longer then GEARMAN_MAX_FUNCTION_SIZE");
+      gearman_error(client->impl()->universal, GEARMAN_INVALID_ARGUMENT, "function name longer then GEARMAN_MAX_FUNCTION_SIZE");
     } 
     else
     {
-      gearman_error(client->universal, GEARMAN_INVALID_ARGUMENT, "invalid function");
+      gearman_error(client->impl()->universal, GEARMAN_INVALID_ARGUMENT, "invalid function");
     }
 
     return NULL;
@@ -287,21 +287,21 @@ gearman_task_st *add_reducer_task(gearman_client_st *client,
 
   if (gearman_size(unique) > GEARMAN_MAX_UNIQUE_SIZE)
   {
-    gearman_error(client->universal, GEARMAN_INVALID_ARGUMENT, "unique name longer then GEARMAN_MAX_UNIQUE_SIZE");
+    gearman_error(client->impl()->universal, GEARMAN_INVALID_ARGUMENT, "unique name longer then GEARMAN_MAX_UNIQUE_SIZE");
 
     return NULL;
   }
 
   if ((gearman_size(workload) and not gearman_c_str(workload)) or (gearman_size(workload) == 0 && gearman_c_str(workload)))
   {
-    gearman_error(client->universal, GEARMAN_INVALID_ARGUMENT, "invalid workload");
+    gearman_error(client->impl()->universal, GEARMAN_INVALID_ARGUMENT, "invalid workload");
     return NULL;
   }
 
   gearman_task_st *task= gearman_task_internal_create(*client, NULL);
   if (task == NULL)
   {
-    gearman_error(client->universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "");
+    gearman_error(client->impl()->universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "");
     return NULL;
   }
 
@@ -312,11 +312,11 @@ gearman_task_st *add_reducer_task(gearman_client_st *client,
     @todo fix it so that NULL is done by default by the API not by happenstance.
   */
   char function_buffer[1024];
-  if (client->universal._namespace)
+  if (client->impl()->universal._namespace)
   {
     char *ptr= function_buffer;
-    memcpy(ptr, gearman_string_value(client->universal._namespace), gearman_string_length(client->universal._namespace)); 
-    ptr+= gearman_string_length(client->universal._namespace);
+    memcpy(ptr, gearman_string_value(client->impl()->universal._namespace), gearman_string_length(client->impl()->universal._namespace)); 
+    ptr+= gearman_string_length(client->impl()->universal._namespace);
 
     memcpy(ptr, gearman_c_str(function), gearman_size(function) +1);
     ptr+= gearman_size(function);
@@ -349,11 +349,11 @@ gearman_task_st *add_reducer_task(gearman_client_st *client,
              "Command was not appropriate for request");
 
   char reducer_buffer[1024];
-  if (client->universal._namespace)
+  if (client->impl()->universal._namespace)
   {
     char *ptr= reducer_buffer;
-    memcpy(ptr, gearman_string_value(client->universal._namespace), gearman_string_length(client->universal._namespace)); 
-    ptr+= gearman_string_length(client->universal._namespace);
+    memcpy(ptr, gearman_string_value(client->impl()->universal._namespace), gearman_string_length(client->impl()->universal._namespace)); 
+    ptr+= gearman_string_length(client->impl()->universal._namespace);
 
     memcpy(ptr, gearman_c_str(reducer), gearman_size(reducer) +1);
     ptr+= gearman_size(reducer);
@@ -378,18 +378,18 @@ gearman_task_st *add_reducer_task(gearman_client_st *client,
   args_size[4]= gearman_size(workload);
 
   gearman_return_t rc;
-  if (gearman_success(rc= gearman_packet_create_args(client->universal, task->impl()->send,
+  if (gearman_success(rc= gearman_packet_create_args(client->impl()->universal, task->impl()->send,
                                                      GEARMAN_MAGIC_REQUEST, command,
                                                      args, args_size,
                                                      5)))
   {
-    client->new_tasks++;
-    client->running_tasks++;
+    client->impl()->new_tasks++;
+    client->impl()->running_tasks++;
     task->impl()->options.send_in_use= true;
   }
   else
   {
-    gearman_gerror(client->universal, rc);
+    gearman_gerror(client->impl()->universal, rc);
     gearman_task_free(task);
     task= NULL;
   }

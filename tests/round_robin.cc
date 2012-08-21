@@ -91,7 +91,7 @@ static test_return_t queue_add(void *object)
   Context *context= (Context *)object;
   test_truth(context);
 
-  Client client(context->port());
+  test::Client client(context->port());
   char job_handle[GEARMAN_JOB_HANDLE_SIZE];
 
   uint8_t *value= (uint8_t *)malloc(1);
@@ -236,7 +236,7 @@ static test_return_t _job_retry_TEST(Context *context, Limit& limit)
                                                            &limit,
                                                            gearman_worker_options_t(),
                                                            0)); // timeout
-  Client client(context->port());
+  test::Client client(context->port());
 
   gearman_return_t rc;
   test_null(gearman_client_do(&client,

@@ -51,6 +51,7 @@ using namespace libtest;
 #include <tests/start_worker.h>
 
 #include "tests/workers/v2/called.h"
+#include "libgearman/interface/client.hpp"
 
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"

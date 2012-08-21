@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -38,23 +38,27 @@
 #pragma once
 
 #ifdef __cplusplus
-extern "C" {
+struct Client;
 #endif
 
-GEARMAN_API
-const char *gearman_version(void);
-
-GEARMAN_API
-const char *gearman_bugreport(void);
-
-GEARMAN_API
-const char *gearman_verbose_name(gearman_verbose_t verbose);
-
-#define gearman_timeout(__object) ((__object)->impl()->universal.timeout)
-
-#define gearman_set_timeout(__object, __value) ((__object)->universal.timeout)=(__value);
-
+struct gearman_client_st
+{
+  struct {
+    bool is_allocated;
+    bool is_initialized;
+  } options;
+  void *_impl;
 #ifdef __cplusplus
-}
+  struct Client* impl() const
+  {
+    return (Client*)(_impl);
+  }
+
+  void impl(Client* impl_)
+  {
+    _impl= impl_;
+  }
 #endif
+};
+
 

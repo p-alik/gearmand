@@ -39,6 +39,7 @@
 #pragma once
 
 #include "tests/libgearman-1.0/client_test.h"
+#include "libgearman/interface/client.hpp"
 
 class GearmandRunner : public Runner {
 private:
@@ -103,7 +104,7 @@ private:
         rc= func(client);
         if (rc == TEST_SUCCESS)
         {
-          test_warn(client->task_list == NULL, "client has uncompleted tasks");
+          test_warn(client->impl()->task_list == NULL, "client has uncompleted tasks");
         }
 
         gearman_client_free(client);

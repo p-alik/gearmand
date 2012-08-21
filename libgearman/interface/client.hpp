@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -37,24 +37,57 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+struct Client
+{
+  struct Options {
+    bool allocated;
+    bool non_blocking;
+    bool unbuffered_result;
+    bool no_new;
+    bool free_tasks;
 
-GEARMAN_API
-const char *gearman_version(void);
+    Options():
+      allocated(true),
+      non_blocking(false),
+      unbuffered_result(false),
+      no_new(false),
+      free_tasks(false)
+    {
+    }
+  } options;
+  enum gearman_client_t state;
+  uint32_t new_tasks;
+  uint32_t running_tasks;
+  uint32_t task_count;
+  void *context;
+  gearman_connection_st *con;
+  gearman_task_st *task;
+  gearman_task_st *task_list;
+  gearman_task_context_free_fn *task_context_free_fn;
+  struct gearman_universal_st universal;
+  struct gearman_actions_t actions;
+  gearman_job_handle_t _do_handle; // Backwards compatible
+  gearman_client_st* _shell;
 
-GEARMAN_API
-const char *gearman_bugreport(void);
 
-GEARMAN_API
-const char *gearman_verbose_name(gearman_verbose_t verbose);
+  Client(gearman_client_st* shell_) :
+    state(GEARMAN_CLIENT_STATE_IDLE),
+    new_tasks(0),
+    running_tasks(0),
+    task_count(0),
+    context(NULL),
+    con(NULL),
+    task(NULL),
+    task_list(NULL),
+    task_context_free_fn(NULL),
+    _shell(shell_)
+  {
+    gearman_client_clear_fn(_shell);
+  }
 
-#define gearman_timeout(__object) ((__object)->impl()->universal.timeout)
-
-#define gearman_set_timeout(__object, __value) ((__object)->universal.timeout)=(__value);
-
-#ifdef __cplusplus
-}
-#endif
+  gearman_client_st* shell()
+  {
+    return _shell;
+  }
+};
 

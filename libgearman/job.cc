@@ -110,7 +110,7 @@ struct gearman_job_reducer_st {
                                     gearman_actions_execute_defaults());
     if (task == NULL)
     {
-      gearman_universal_error_code(client->universal);
+      gearman_universal_error_code(client->impl()->universal);
 
       return false;
     }
@@ -126,7 +126,7 @@ struct gearman_job_reducer_st {
       return rc;
     }
 
-    gearman_task_st *check_task= client->task_list;
+    gearman_task_st *check_task= client->impl()->task_list;
 
     if (check_task)
     {
@@ -140,8 +140,8 @@ struct gearman_job_reducer_st {
 
       if (aggregator_fn)
       {
-        gearman_aggregator_st aggregator(client->context);
-        aggregator_fn(&aggregator, client->task_list, &result);
+        gearman_aggregator_st aggregator(client->impl()->context);
+        aggregator_fn(&aggregator, client->impl()->task_list, &result);
       }
     }
 

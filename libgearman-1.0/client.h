@@ -43,6 +43,8 @@
 
 #pragma once
 
+#include <libgearman-1.0/interface/client.h>
+
 /** @addtogroup gearman_client Client Declarations
  *
  * This is the interface gearman clients should use. You can run tasks one at a
@@ -57,32 +59,6 @@ enum gearman_client_t {
   GEARMAN_CLIENT_STATE_NEW,
   GEARMAN_CLIENT_STATE_SUBMIT,
   GEARMAN_CLIENT_STATE_PACKET
-};
-
-/**
- * @ingroup gearman_client
- */
-struct gearman_client_st
-{
-  struct {
-    bool allocated;
-    bool non_blocking;
-    bool unbuffered_result;
-    bool no_new;
-    bool free_tasks;
-  } options;
-  enum gearman_client_t state;
-  uint32_t new_tasks;
-  uint32_t running_tasks;
-  uint32_t task_count;
-  void *context;
-  gearman_connection_st *con;
-  gearman_task_st *task;
-  gearman_task_st *task_list;
-  gearman_task_context_free_fn *task_context_free_fn;
-  struct gearman_universal_st universal;
-  struct gearman_actions_t actions;
-  gearman_job_handle_t _do_handle; // Backwards compatible
 };
 
 #ifdef __cplusplus

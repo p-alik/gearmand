@@ -165,7 +165,7 @@ test_return_t burnin_TEST(void*)
       test_compare(GEARMAN_TASK_STATE_FINISHED, tasks[x].impl()->state);
       test_compare(GEARMAN_SUCCESS, tasks[x].impl()->result_rc);
     }
-    test_zero(client->new_tasks);
+    test_zero(client->impl()->new_tasks);
 
     test_compare(ret, GEARMAN_SUCCESS);
 

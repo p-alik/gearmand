@@ -51,7 +51,7 @@ gearman_return_t _client_run_task(Task *task)
   assert_msg(task->client, "Programmer error, somehow an invalid task was specified");
   if (task->client == NULL)
   {
-    return gearman_universal_set_error(task->client->universal, GEARMAN_INVALID_ARGUMENT, GEARMAN_AT,
+    return gearman_universal_set_error(task->client->impl()->universal, GEARMAN_INVALID_ARGUMENT, GEARMAN_AT,
                                        "Programmer error, somehow an invalid task was specified");
   }
 
@@ -59,14 +59,14 @@ gearman_return_t _client_run_task(Task *task)
   {
   case GEARMAN_TASK_STATE_NEW:
     
-    if (task->client->universal.con_list == NULL)
+    if (task->client->impl()->universal.con_list == NULL)
     {
-      task->client->new_tasks--;
-      task->client->running_tasks--;
-      return gearman_universal_set_error(task->client->universal, GEARMAN_NO_SERVERS, GEARMAN_AT, "no servers added");
+      task->client->impl()->new_tasks--;
+      task->client->impl()->running_tasks--;
+      return gearman_universal_set_error(task->client->impl()->universal, GEARMAN_NO_SERVERS, GEARMAN_AT, "no servers added");
     }
 
-    for (task->con= task->client->universal.con_list; task->con;
+    for (task->con= task->client->impl()->universal.con_list; task->con;
          task->con= task->con->next)
     {
       if (task->con->send_state == GEARMAN_CON_SEND_STATE_NONE)
@@ -77,11 +77,11 @@ gearman_return_t _client_run_task(Task *task)
 
     if (task->con == NULL)
     {
-      task->client->options.no_new= true;
-      return gearman_gerror(task->client->universal, GEARMAN_IO_WAIT);
+      task->client->impl()->options.no_new= true;
+      return gearman_gerror(task->client->impl()->universal, GEARMAN_IO_WAIT);
     }
 
-    task->client->new_tasks--;
+    task->client->impl()->new_tasks--;
 
     if (task->send.command != GEARMAN_COMMAND_GET_STATUS)
     {
@@ -93,7 +93,7 @@ gearman_return_t _client_run_task(Task *task)
     while (1)
     {
       assert(task->con);
-      gearman_return_t ret= task->con->send_packet(task->send, task->client->new_tasks == 0 ? true : false);
+      gearman_return_t ret= task->con->send_packet(task->send, task->client->impl()->new_tasks == 0 ? true : false);
 
       if (gearman_success(ret))
       {
@@ -133,12 +133,12 @@ gearman_return_t _client_run_task(Task *task)
           if (ret == GEARMAN_COULD_NOT_CONNECT) // If no connection is found, we will let the user try again
           {
             task->state= GEARMAN_TASK_STATE_NEW;
-            task->client->new_tasks++;
+            task->client->impl()->new_tasks++;
           }
           else
           {
             task->state= GEARMAN_TASK_STATE_FAIL;
-            task->client->running_tasks--;
+            task->client->impl()->running_tasks--;
           }
           return ret;
         }
@@ -155,7 +155,7 @@ gearman_return_t _client_run_task(Task *task)
     {
       if (not task->func.workload_fn)
       {
-        gearman_error(task->client->universal, GEARMAN_NEED_WORKLOAD_FN,
+        gearman_error(task->client->impl()->universal, GEARMAN_NEED_WORKLOAD_FN,
                       "workload size > 0, but no data pointer or workload_fn was given");
         return GEARMAN_NEED_WORKLOAD_FN;
       }
@@ -169,7 +169,7 @@ gearman_return_t _client_run_task(Task *task)
       }
     }
 
-    task->client->options.no_new= false;
+    task->client->impl()->options.no_new= false;
     task->state= GEARMAN_TASK_STATE_WORK;
     task->con->set_events(POLLIN);
     return GEARMAN_SUCCESS;
@@ -392,10 +392,10 @@ gearman_return_t _client_run_task(Task *task)
     break;
   }
 
-  task->client->running_tasks--;
+  task->client->impl()->running_tasks--;
   task->state= GEARMAN_TASK_STATE_FINISHED;
 
-  if (task->client->options.free_tasks and task->type == GEARMAN_TASK_KIND_ADD_TASK)
+  if (task->client->impl()->options.free_tasks and task->type == GEARMAN_TASK_KIND_ADD_TASK)
   {
     gearman_task_free(task->shell());
   }
