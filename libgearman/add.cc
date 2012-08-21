@@ -141,8 +141,6 @@ gearman_task_st *add_task(gearman_client_st& client,
     gearman_error(client.impl()->universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "");
     return NULL;
   }
-  assert(task_shell);
-  assert(task_shell->impl());
   assert(task_shell->impl()->client);
   assert(task_shell->impl()->client == &client);
 
