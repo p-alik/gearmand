@@ -246,7 +246,7 @@ gearman_worker_options_t gearman_worker_options(const gearman_worker_st *worker)
   int options;
   memset(&options, 0, sizeof(gearman_worker_options_t));
 
-  if (gearman_is_allocated(worker->impl()))
+  if (gearman_is_allocated(worker))
   {
     options|= int(GEARMAN_WORKER_ALLOCATED);
   }
@@ -1148,7 +1148,7 @@ static gearman_worker_st *_worker_allocate(gearman_worker_st *worker, bool is_cl
 
     if (setup_shutdown_pipe(worker->impl()->universal.wakeup_fd) == false)
     {
-      if (gearman_is_allocated(worker->impl()))
+      if (gearman_is_allocated(worker))
       {
         delete worker;
       }

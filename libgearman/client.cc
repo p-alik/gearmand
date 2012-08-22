@@ -369,7 +369,7 @@ gearman_client_options_t gearman_client_options(const gearman_client_st *client_
   int32_t options;
   memset(&options, 0, sizeof(int32_t));
 
-  if (client_shell->impl()->options.allocated)
+  if (gearman_is_allocated(client_shell))
     options|= int(GEARMAN_CLIENT_ALLOCATED);
 
   if (client_shell->impl()->options.non_blocking)
@@ -395,7 +395,7 @@ bool gearman_client_has_option(gearman_client_st *client_shell,
     switch (option)
     {
     case GEARMAN_CLIENT_ALLOCATED:
-      return client_shell->impl()->options.allocated;
+      return gearman_is_allocated(client_shell);
 
     case GEARMAN_CLIENT_NON_BLOCKING:
       return client_shell->impl()->options.non_blocking;

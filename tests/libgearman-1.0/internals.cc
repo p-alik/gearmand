@@ -298,8 +298,8 @@ static test_return_t packet_init_test(void *)
   gearman_packet_st *packet_ptr;
 
   packet_ptr= gearman_packet_create(universal, &packet);
-  test_false(packet.options.allocated);
-  test_false(packet_ptr->options.allocated);
+  test_false(gearman_is_allocated(&packet));
+  test_false(gearman_is_allocated(packet_ptr));
 
   test_false(packet.options.complete);
   test_false(packet.options.free_data);
@@ -307,7 +307,7 @@ static test_return_t packet_init_test(void *)
   test_truth(packet_ptr == &packet);
 
   gearman_packet_free(packet_ptr);
-  test_false(packet.options.allocated);
+  test_false(gearman_is_allocated(&packet));
 
   return TEST_SUCCESS;
 }

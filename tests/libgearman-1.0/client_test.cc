@@ -90,6 +90,7 @@ using namespace libtest;
 
 #include "tests/libgearman-1.0/client_test.h"
 #include "libgearman/interface/client.hpp"
+#include "libgearman/is.hpp"
 
 /**
   @note Just here until I fix libhashkit.
@@ -199,7 +200,7 @@ static test_return_t clone_test(void *)
     gearman_client_st *client= gearman_client_clone(NULL, NULL);
 
     test_truth(client);
-    test_truth(client->impl()->options.allocated);
+    test_truth(gearman_is_allocated(client));
 
     gearman_client_free(client);
   }
@@ -234,7 +235,7 @@ static test_return_t option_test(void *)
   gear= gearman_client_create(NULL);
   test_truth(gear);
   { // Initial Allocated, no changes
-    test_truth(gear->impl()->options.allocated);
+    test_truth(gearman_is_allocated(gear));
     test_false(gear->impl()->options.non_blocking);
     test_false(gear->impl()->options.unbuffered_result);
     test_false(gear->impl()->options.no_new);
@@ -250,7 +251,7 @@ static test_return_t option_test(void *)
   */
   gearman_client_set_options(gear, default_options);
   { // Initial Allocated, no changes
-    test_truth(gear->impl()->options.allocated);
+    test_truth(gearman_is_allocated(gear));
     test_false(gear->impl()->options.non_blocking);
     test_false(gear->impl()->options.unbuffered_result);
     test_false(gear->impl()->options.no_new);
@@ -263,7 +264,7 @@ static test_return_t option_test(void *)
   {
     gearman_client_remove_options(gear, GEARMAN_CLIENT_ALLOCATED);
     { // Initial Allocated, no changes
-      test_truth(gear->impl()->options.allocated);
+      test_truth(gearman_is_allocated(gear));
       test_false(gear->impl()->options.non_blocking);
       test_false(gear->impl()->options.unbuffered_result);
       test_false(gear->impl()->options.no_new);
@@ -271,7 +272,7 @@ static test_return_t option_test(void *)
     }
     gearman_client_remove_options(gear, GEARMAN_CLIENT_NO_NEW);
     { // Initial Allocated, no changes
-      test_truth(gear->impl()->options.allocated);
+      test_truth(gearman_is_allocated(gear));
       test_false(gear->impl()->options.non_blocking);
       test_false(gear->impl()->options.unbuffered_result);
       test_false(gear->impl()->options.no_new);
@@ -285,7 +286,7 @@ static test_return_t option_test(void *)
   {
     gearman_client_remove_options(gear, GEARMAN_CLIENT_NON_BLOCKING);
     { // GEARMAN_CLIENT_NON_BLOCKING set to default, by default.
-      test_truth(gear->impl()->options.allocated);
+      test_truth(gearman_is_allocated(gear));
       test_false(gear->impl()->options.non_blocking);
       test_false(gear->impl()->options.unbuffered_result);
       test_false(gear->impl()->options.no_new);
@@ -293,7 +294,7 @@ static test_return_t option_test(void *)
     }
     gearman_client_add_options(gear, GEARMAN_CLIENT_NON_BLOCKING);
     { // GEARMAN_CLIENT_NON_BLOCKING set to default, by default.
-      test_truth(gear->impl()->options.allocated);
+      test_truth(gearman_is_allocated(gear));
       test_truth(gear->impl()->options.non_blocking);
       test_false(gear->impl()->options.unbuffered_result);
       test_false(gear->impl()->options.no_new);
@@ -301,7 +302,7 @@ static test_return_t option_test(void *)
     }
     gearman_client_set_options(gear, GEARMAN_CLIENT_NON_BLOCKING);
     { // GEARMAN_CLIENT_NON_BLOCKING set to default, by default.
-      test_truth(gear->impl()->options.allocated);
+      test_truth(gearman_is_allocated(gear));
       test_truth(gear->impl()->options.non_blocking);
       test_false(gear->impl()->options.unbuffered_result);
       test_false(gear->impl()->options.no_new);
@@ -309,7 +310,7 @@ static test_return_t option_test(void *)
     }
     gearman_client_set_options(gear, GEARMAN_CLIENT_UNBUFFERED_RESULT);
     { // Everything is now set to false except GEARMAN_CLIENT_UNBUFFERED_RESULT, and non-mutable options
-      test_truth(gear->impl()->options.allocated);
+      test_truth(gearman_is_allocated(gear));
       test_false(gear->impl()->options.non_blocking);
       test_truth(gear->impl()->options.unbuffered_result);
       test_false(gear->impl()->options.no_new);
@@ -322,7 +323,7 @@ static test_return_t option_test(void *)
     {
       gearman_client_set_options(gear, default_options);
       { // See if we return to defaults
-        test_truth(gear->impl()->options.allocated);
+        test_truth(gearman_is_allocated(gear));
         test_false(gear->impl()->options.non_blocking);
         test_false(gear->impl()->options.unbuffered_result);
         test_false(gear->impl()->options.no_new);
@@ -330,7 +331,7 @@ static test_return_t option_test(void *)
       }
       gearman_client_add_options(gear, GEARMAN_CLIENT_FREE_TASKS);
       { // All defaults, except timeout_return
-        test_truth(gear->impl()->options.allocated);
+        test_truth(gearman_is_allocated(gear));
         test_false(gear->impl()->options.non_blocking);
         test_false(gear->impl()->options.unbuffered_result);
         test_false(gear->impl()->options.no_new);
@@ -338,7 +339,7 @@ static test_return_t option_test(void *)
       }
       gearman_client_add_options(gear, (gearman_client_options_t)(GEARMAN_CLIENT_NON_BLOCKING|GEARMAN_CLIENT_UNBUFFERED_RESULT));
       { // GEARMAN_CLIENT_NON_BLOCKING set to default, by default.
-        test_truth(gear->impl()->options.allocated);
+        test_truth(gearman_is_allocated(gear));
         test_truth(gear->impl()->options.non_blocking);
         test_truth(gear->impl()->options.unbuffered_result);
         test_false(gear->impl()->options.no_new);
@@ -351,7 +352,7 @@ static test_return_t option_test(void *)
     {
       gearman_client_set_options(gear, default_options);
       { // See if we return to defaults
-        test_truth(gear->impl()->options.allocated);
+        test_truth(gearman_is_allocated(gear));
         test_false(gear->impl()->options.non_blocking);
         test_false(gear->impl()->options.unbuffered_result);
         test_false(gear->impl()->options.no_new);
@@ -359,7 +360,7 @@ static test_return_t option_test(void *)
       }
       gearman_client_add_options(gear, GEARMAN_CLIENT_FREE_TASKS);
       { // All defaults, except timeout_return
-        test_truth(gear->impl()->options.allocated);
+        test_truth(gearman_is_allocated(gear));
         test_false(gear->impl()->options.non_blocking);
         test_false(gear->impl()->options.unbuffered_result);
         test_false(gear->impl()->options.no_new);
@@ -367,7 +368,7 @@ static test_return_t option_test(void *)
       }
       gearman_client_add_options(gear, (gearman_client_options_t)(GEARMAN_CLIENT_FREE_TASKS|GEARMAN_CLIENT_UNBUFFERED_RESULT));
       { // GEARMAN_CLIENT_NON_BLOCKING set to default, by default.
-        test_truth(gear->impl()->options.allocated);
+        test_truth(gearman_is_allocated(gear));
         test_false(gear->impl()->options.non_blocking);
         test_truth(gear->impl()->options.unbuffered_result);
         test_false(gear->impl()->options.no_new);
@@ -843,7 +844,7 @@ static test_return_t regression_785203_do_test(void *)
 
   gearman_client_add_options(client, GEARMAN_CLIENT_FREE_TASKS);
   { // All defaults, except timeout_return
-    test_truth(client->impl()->options.allocated);
+    test_truth(gearman_is_allocated(client));
     test_false(client->impl()->options.non_blocking);
     test_false(client->impl()->options.unbuffered_result);
     test_false(client->impl()->options.no_new);
@@ -889,7 +890,7 @@ static test_return_t regression_785203_do_background_test(void *object)
 
   gearman_client_add_options(client, GEARMAN_CLIENT_FREE_TASKS);
   { // All defaults, except timeout_return
-    test_truth(client->impl()->options.allocated);
+    test_truth(gearman_is_allocated(client));
     test_false(client->impl()->options.non_blocking);
     test_false(client->impl()->options.unbuffered_result);
     test_false(client->impl()->options.no_new);

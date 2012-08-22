@@ -43,7 +43,6 @@
 struct Worker
 {
   struct Options {
-    bool is_allocated;
     bool non_blocking;
     bool packet_init;
     bool change;
@@ -52,7 +51,6 @@ struct Worker
     bool timeout_return;
 
     Options() :
-      is_allocated(true),
       non_blocking(false),
       packet_init(false),
       change(false),

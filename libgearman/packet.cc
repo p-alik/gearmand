@@ -159,7 +159,7 @@ gearman_packet_st *gearman_packet_create(gearman_universal_st &universal,
 {
   if (packet)
   {
-    packet->options.allocated= false;
+    gearman_set_allocated(packet, false);
     packet->options.complete= false;
     packet->options.free_data= false;
   }
@@ -173,7 +173,7 @@ gearman_packet_st *gearman_packet_create(gearman_universal_st &universal,
       return NULL;
     }
 
-    packet->options.allocated= true;
+    gearman_set_allocated(packet, true);
   }
   packet->options.complete= false;
   packet->options.free_data= false;
@@ -319,7 +319,7 @@ void gearman_packet_free(gearman_packet_st *packet)
     packet->universal->packet_count--;
   }
 
-  if (packet->options.allocated)
+  if (gearman_is_allocated(packet))
   {
     delete packet;
   }

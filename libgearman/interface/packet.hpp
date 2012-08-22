@@ -53,12 +53,12 @@ struct gearman_universal_st;
 struct gearman_packet_st
 {
   struct Options {
-    bool allocated;
+    bool is_allocated;
     bool complete;
     bool free_data;
 
     Options() :
-      allocated(false),
+      is_allocated(false),
       complete(false),
       free_data(false)
     { }

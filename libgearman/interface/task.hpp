@@ -46,7 +46,6 @@
 struct Task
 {
   struct Options {
-    bool allocated;
     bool send_in_use;
     bool is_known;
     bool is_running;
@@ -55,7 +54,6 @@ struct Task
     bool is_initialized;
 
     Options() :
-      allocated(true),
       send_in_use(false),
       is_known(false),
       is_running(false),

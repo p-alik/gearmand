@@ -43,14 +43,12 @@
 struct Client
 {
   struct Options {
-    bool allocated;
     bool non_blocking;
     bool unbuffered_result;
     bool no_new;
     bool free_tasks;
 
     Options():
-      allocated(true),
       non_blocking(false),
       unbuffered_result(false),
       no_new(false),
