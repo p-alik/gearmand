@@ -6,7 +6,7 @@
 # Use and distribution licensed under the BSD license.  See
 # the COPYING file in this directory for full text.
 
-AC_INIT([gearmand],[0.36],[https://bugs.launchpad.net/gearmand],[gearmand],[http://gearman.info/])
+AC_INIT([gearmand],[1.0],[https://bugs.launchpad.net/gearmand],[gearmand],[http://gearman.info/])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([m4])
 
@@ -21,7 +21,7 @@ AC_PREREQ([2.63])
 AC_CONFIG_HEADERS([config.h:config.in])dnl Keep filename to 8.3 for MS-DOS.
 AC_CONFIG_SRCDIR(libgearman/gearman.cc)
 
-GEARMAN_LIBRARY_VERSION=7:0:0
+GEARMAN_LIBRARY_VERSION=8:0:0
 #                       | | |
 #                +------+ | +---+
 #                |        |     |
