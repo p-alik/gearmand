@@ -59,23 +59,8 @@
  */
 static gearman_client_st *_client_allocate(gearman_client_st *client_shell, bool is_clone)
 {
-  if (client_shell)
-  {
-    gearman_set_allocated(client_shell, false);
-  }
-  else
-  {
-    client_shell= new (std::nothrow) gearman_client_st;
-    if (client_shell == NULL)
-    {
-      return NULL;
-    }
-
-    gearman_set_allocated(client_shell, true);
-  }
-
-  client_shell->impl(new (std::nothrow) Client(client_shell));
-  if (client_shell->impl())
+  Client *client= new (std::nothrow) Client(client_shell);
+  if (client)
   {
     if (is_clone == false)
     {
@@ -85,12 +70,10 @@ static gearman_client_st *_client_allocate(gearman_client_st *client_shell, bool
 #endif
     }
 
-    return client_shell;
+    return client->shell();
   }
 
-  delete client_shell;
-
-  return client_shell;
+  return NULL;
 }
 
 /**
@@ -325,12 +308,6 @@ void gearman_client_free(gearman_client_st *client_shell)
     gearman_universal_free(client_shell->impl()->universal);
 
     delete client_shell->impl();
-    client_shell->impl(NULL);
-
-    if (gearman_is_allocated(client_shell))
-    {
-      delete client_shell;
-    }
   }
 }
 

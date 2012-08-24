@@ -168,51 +168,44 @@ gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker,
 
 void gearman_worker_free(gearman_worker_st *worker)
 {
-  if (worker == NULL)
+  if (worker)
   {
-    return;
-  }
+    if (worker->impl()->universal.wakeup_fd[0] != INVALID_SOCKET)
+    {
+      close(worker->impl()->universal.wakeup_fd[0]);
+    }
 
-  if (worker->impl()->universal.wakeup_fd[0] != INVALID_SOCKET)
-  {
-    close(worker->impl()->universal.wakeup_fd[0]);
-  }
+    if (worker->impl()->universal.wakeup_fd[1] != INVALID_SOCKET)
+    {
+      close(worker->impl()->universal.wakeup_fd[1]);
+    }
 
-  if (worker->impl()->universal.wakeup_fd[1] != INVALID_SOCKET)
-  {
-    close(worker->impl()->universal.wakeup_fd[1]);
-  }
+    gearman_worker_unregister_all(worker);
 
-  gearman_worker_unregister_all(worker);
+    if (worker->impl()->options.packet_init)
+    {
+      gearman_packet_free(&worker->impl()->grab_job);
+      gearman_packet_free(&worker->impl()->pre_sleep);
+    }
 
-  if (worker->impl()->options.packet_init)
-  {
-    gearman_packet_free(&worker->impl()->grab_job);
-    gearman_packet_free(&worker->impl()->pre_sleep);
-  }
+    gearman_job_free(worker->impl()->job);
+    worker->impl()->work_job= NULL;
 
-  gearman_job_free(worker->impl()->job);
-  worker->impl()->work_job= NULL;
+    if (worker->impl()->work_result)
+    {
+      gearman_free(worker->impl()->universal, worker->impl()->work_result);
+    }
 
-  if (worker->impl()->work_result)
-  {
-    gearman_free(worker->impl()->universal, worker->impl()->work_result);
-  }
+    while (worker->impl()->function_list)
+    {
+      _worker_function_free(worker, worker->impl()->function_list);
+    }
 
-  while (worker->impl()->function_list)
-  {
-    _worker_function_free(worker, worker->impl()->function_list);
-  }
+    gearman_job_free_all(worker);
 
-  gearman_job_free_all(worker);
+    gearman_universal_free(worker->impl()->universal);
 
-  gearman_universal_free(worker->impl()->universal);
-
-  delete worker->impl();
-
-  if (gearman_is_allocated(worker))
-  {
-    delete worker;
+    delete worker->impl();
   }
 }
 
@@ -1117,26 +1110,10 @@ gearman_return_t gearman_worker_echo(gearman_worker_st *worker,
  * Static Definitions
  */
 
-static gearman_worker_st *_worker_allocate(gearman_worker_st *worker, bool is_clone)
+static gearman_worker_st *_worker_allocate(gearman_worker_st *worker_shell, bool is_clone)
 {
+  Worker *worker= new (std::nothrow) Worker(worker_shell);
   if (worker)
-  {
-    gearman_set_allocated(worker, false);
-  }
-  else
-  {
-    worker= new (std::nothrow) gearman_worker_st;
-    if (worker == NULL)
-    {
-      return NULL;
-    }
-
-    gearman_set_allocated(worker, true);
-  }
-
-  worker->impl(new (std::nothrow) Worker(worker));
-
-  if (worker->impl())
   {
     if (is_clone == false)
     {
@@ -1146,26 +1123,16 @@ static gearman_worker_st *_worker_allocate(gearman_worker_st *worker, bool is_cl
 #endif
     }
 
-    if (setup_shutdown_pipe(worker->impl()->universal.wakeup_fd) == false)
+    if (setup_shutdown_pipe(worker->universal.wakeup_fd) == false)
     {
-      if (gearman_is_allocated(worker))
-      {
-        delete worker;
-      }
-
+      delete worker;
       return NULL;
     }
 
-    return worker;
+    return worker->shell();
   }
 
-  if (gearman_is_allocated(worker))
-  {
-    delete worker;
-    worker= NULL;
-  }
-
-  return worker;
+  return NULL;
 }
 
 static gearman_return_t _worker_packet_init(gearman_worker_st *worker)

@@ -129,11 +129,11 @@ extern "C"
   static void *client_thread(void *object)
   {
     volatile gearman_return_t *ret= (volatile gearman_return_t *)object;
-    gearman_client_st client;
-    gearman_client_st *client_ptr;
     size_t result_size;
 
-    client_ptr= gearman_client_create(&client);
+    gearman_client_st client;
+    gearman_client_st* client_ptr= gearman_client_create(&client);
+    assert(client_ptr == &client);
 
     if (client_ptr == NULL)
     {
@@ -141,24 +141,29 @@ extern "C"
       pthread_exit(0);
     }
 
-    gearman_return_t rc= gearman_client_add_server(&client, NULL, libtest::default_port());
-    if (gearman_failed(rc))
-    {
-      *ret= rc;
-      pthread_exit(0);
-    }
-
-    gearman_client_set_timeout(&client, 400);
-    for (size_t x= 0; x < 5; x++)
-    {
-      (void)gearman_client_do(&client, "client_test_temp", NULL, NULL, 0, &result_size, &rc);
-
+    do {
+      gearman_return_t rc= gearman_client_add_server(&client, NULL, libtest::default_port());
       if (gearman_failed(rc))
       {
         *ret= rc;
-        pthread_exit(0);
+        break;
       }
-    }
+
+      gearman_client_set_timeout(&client, 400);
+      for (size_t x= 0; x < 5; x++)
+      {
+        (void)gearman_client_do(&client, "client_test_temp", NULL, NULL, 0, &result_size, &rc);
+
+        if (gearman_failed(rc))
+        {
+          *ret= rc;
+          break;
+        }
+      }
+
+      break;
+    } while (1);
+
     gearman_client_free(client_ptr);
 
     pthread_exit(0);

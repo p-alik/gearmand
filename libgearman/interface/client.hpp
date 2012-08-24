@@ -39,6 +39,7 @@
 
 #include "libgearman/actions.hpp"
 #include "libgearman/interface/universal.hpp"
+#include "libgearman/is.hpp"
 
 struct Client
 {
@@ -68,7 +69,6 @@ struct Client
   gearman_universal_st universal;
   struct gearman_actions_t actions;
   gearman_job_handle_t _do_handle; // Backwards compatible
-  gearman_client_st* _shell;
 
 
   Client(gearman_client_st* shell_) :
@@ -85,11 +85,32 @@ struct Client
     _shell(shell_)
   {
     _do_handle[0]= 0;
+
+    if (shell_)
+    {
+      gearman_set_allocated(_shell, false);
+    }
+    else
+    {
+      _shell= &_owned_shell;
+      gearman_set_allocated(_shell, true);
+    }
+
+    _shell->impl(this);
+    gearman_set_initialized(_shell, true);
+  }
+
+  ~Client()
+  {
   }
 
   gearman_client_st* shell()
   {
     return _shell;
   }
+
+private:
+  gearman_client_st* _shell;
+  gearman_client_st _owned_shell;
 };
 

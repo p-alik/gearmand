@@ -76,7 +76,6 @@ struct Worker
   gearman_packet_st grab_job;
   gearman_packet_st pre_sleep;
   gearman_job_st *work_job;
-  gearman_worker_st* _shell;
 
   Worker(gearman_worker_st* shell_) :
     state(GEARMAN_WORKER_STATE_START),
@@ -95,12 +94,31 @@ struct Worker
     work_job(NULL),
     _shell(shell_)
   {
+    if (shell_)
+    {
+      gearman_set_allocated(_shell, false);
+    }
+    else
+    {
+      _shell= &_owned_shell;
+      gearman_set_allocated(_shell, true);
+    }
+
+    _shell->impl(this);
+    gearman_set_initialized(_shell, true);
   }
 
+  ~Worker()
+  {
+  }
 
   gearman_worker_st* shell()
   {
     return _shell;
   }
+
+private:
+  gearman_worker_st* _shell;
+  gearman_worker_st _owned_shell;
 };
 

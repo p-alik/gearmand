@@ -79,7 +79,6 @@ struct Task
   struct gearman_actions_t func;
   gearman_return_t result_rc;
   struct gearman_result_st *result_ptr;
-  gearman_task_st* _shell;
   char job_handle[GEARMAN_JOB_HANDLE_SIZE];
   size_t unique_length;
   char unique[GEARMAN_MAX_UNIQUE_SIZE];
@@ -106,24 +105,39 @@ struct Task
     func(client_.impl()->actions),
     result_rc(GEARMAN_UNKNOWN_STATE),
     result_ptr(NULL),
-    _shell(shell_),
-    unique_length(0)
+    unique_length(0),
+    _shell(shell_)
   {
     job_handle[0]= 0;
     unique[0]= 0;
+
+    if (_shell)
+    {
+      gearman_set_allocated(_shell, false);
+    }
+    else
+    {
+      _shell= &_owned_shell;
+      gearman_set_allocated(_shell, true);
+    }
+    gearman_set_initialized(_shell, true);
 
     // Add the task to the client
     {
       if (client_.impl()->task_list)
       {
-        client_.impl()->task_list->impl()->prev= shell_;
+        client_.impl()->task_list->impl()->prev= _shell;
       }
       next= client_.impl()->task_list;
       prev= NULL;
-      client_.impl()->task_list= shell_;
+      client_.impl()->task_list= _shell;
       client_.impl()->task_count++;
     }
 
-    shell_->impl(this);
+    _shell->impl(this);
   }
+
+private:
+  gearman_task_st* _shell;
+  gearman_task_st _owned_shell;
 };
