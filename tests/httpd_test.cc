@@ -139,6 +139,9 @@ static test_return_t HEAD_TEST(void *)
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
+  error= TEST_SKIPPED;
+  return NULL;
+
   in_port_t http_port= libtest::get_free_port();
   int length= snprintf(host_url, sizeof(host_url), "http://localhost:%d/", int(http_port));
   fatal_assert(length > 0 and sizeof(length) < sizeof(host_url));
