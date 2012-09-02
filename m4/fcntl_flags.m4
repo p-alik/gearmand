@@ -16,6 +16,7 @@ AC_DEFUN([FCNTL_FLAGS],
 
     AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <fcntl.h>], [ int flags= O_CLOEXEC])], [ac_cv_o_cloexec="yes"], [ac_cv_o_cloexec="no"])
     AC_LANG_POP
+    CFLAGS="$save_CFLAGS"
   ])
 
   AS_IF([test "x$ac_cv_o_cloexec" = "xyes"],[ AC_DEFINE(HAVE_O_CLOEXEC, 1, [Define to 1 if you have O_CLOEXEC defined])])
