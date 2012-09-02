@@ -58,7 +58,7 @@ static void set_local(void)
   __function= set_function("accept", "HOSTILE_SEND");
 }
 
-bool libhostile_is_accept()
+bool libhostile_is_accept(void)
 {
   hostile_initialize();
 
