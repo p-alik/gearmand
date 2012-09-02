@@ -100,6 +100,8 @@ struct Client
     gearman_set_initialized(_shell, true);
   }
 
+  gearman_return_t add_server(const char *host, const char* service_);
+
   ~Client()
   {
   }

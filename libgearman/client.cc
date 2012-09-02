@@ -544,6 +544,17 @@ gearman_return_t gearman_client_add_server(gearman_client_st *client_shell,
   return GEARMAN_INVALID_ARGUMENT;
 }
 
+gearman_return_t Client::add_server(const char *host, const char* service_)
+{
+  if (gearman_connection_create_args(universal, host, service_) == false)
+  {
+    assert(universal.error_code() != GEARMAN_SUCCESS);
+    return universal.error_code();
+  }
+
+  return GEARMAN_SUCCESS;
+}
+
 gearman_return_t gearman_client_add_servers(gearman_client_st *client_shell,
                                             const char *servers)
 {
@@ -1673,22 +1684,18 @@ gearman_return_t gearman_client_run_block_tasks(gearman_client_st *client)
 
 bool gearman_client_compare(const gearman_client_st *first, const gearman_client_st *second)
 {
-  if (first == NULL or second == NULL)
+  if (first and second)
   {
-    return false;
+    if (strcmp(first->impl()->universal.con_list->_host, second->impl()->universal.con_list->_host) == 0)
+    {
+      if (strcmp(first->impl()->universal.con_list->_service, second->impl()->universal.con_list->_service) == 0)
+      {
+        return true;
+      }
+    }
   }
 
-  if (strcmp(first->impl()->universal.con_list->host, second->impl()->universal.con_list->host))
-  {
-    return false;
-  }
-
-  if (first->impl()->universal.con_list->port != second->impl()->universal.con_list->port)
-  {
-    return false;
-  }
-
-  return true;
+  return false;
 }
 
 bool gearman_client_set_server_option(gearman_client_st *self, const char *option_arg, size_t option_arg_size)

@@ -51,7 +51,6 @@ struct gearman_connection_st
   enum gearman_con_universal_t state;
   enum gearman_con_send_t send_state;
   enum gearman_con_recv_t recv_state;
-  in_port_t port;
   short events;
   short revents;
   int fd;
@@ -73,7 +72,8 @@ struct gearman_connection_st
   const char *send_buffer_ptr;
   char *recv_buffer_ptr;
   gearman_packet_st _packet;
-  char host[GEARMAN_NI_MAXHOST];
+  char _host[GEARMAN_NI_MAXHOST];
+  char _service[GEARMAN_NI_MAXSERV];
   char send_buffer[GEARMAN_SEND_BUFFER_SIZE];
   char recv_buffer[GEARMAN_RECV_BUFFER_SIZE];
 
@@ -85,6 +85,7 @@ struct gearman_connection_st
   ~gearman_connection_st();
 
   void set_host( const char *host, const in_port_t port);
+  void set_host( const char *host, const char* service);
 
   gearman_return_t send_packet(const gearman_packet_st&, const bool flush_buffer);
   size_t send_and_flush(const void *data, size_t data_size, gearman_return_t *ret_ptr);
@@ -133,11 +134,9 @@ private:
  * failed.
  */
 
-GEARMAN_LOCAL
 gearman_connection_st *gearman_connection_create(gearman_universal_st &universal,
-                                                 gearman_connection_options_t *options);
+                                                 gearman_connection_options_t *options= NULL);
 
-GEARMAN_LOCAL
 gearman_connection_st *gearman_connection_copy(gearman_universal_st& universal,
                                                const gearman_connection_st& from);
 
@@ -152,6 +151,8 @@ gearman_connection_st *gearman_connection_copy(gearman_universal_st& universal,
  * @return On success, a pointer to the (possibly allocated) structure. On
  *  failure this will be NULL.
  */
-GEARMAN_LOCAL
 gearman_connection_st *gearman_connection_create_args(gearman_universal_st &universal,
                                                       const char *host, in_port_t port);
+
+gearman_connection_st *gearman_connection_create_args(gearman_universal_st &universal,
+                                                      const char* host, const char* service);

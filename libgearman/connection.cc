@@ -165,7 +165,6 @@ gearman_connection_st::gearman_connection_st(gearman_universal_st &universal_arg
   state(GEARMAN_CON_UNIVERSAL_ADDRINFO),
   send_state(GEARMAN_CON_SEND_STATE_NONE),
   recv_state(GEARMAN_CON_RECV_UNIVERSAL_NONE),
-  port(0),
   events(0),
   revents(0),
   fd(-1),
@@ -209,7 +208,8 @@ gearman_connection_st::gearman_connection_st(gearman_universal_st &universal_arg
 
   send_buffer_ptr= send_buffer;
   recv_buffer_ptr= recv_buffer;
-  host[0]= 0;
+  _host[0]= 0;
+  _service[0]= 0;
 }
 
 gearman_connection_st *gearman_connection_create(gearman_universal_st &universal,
@@ -226,9 +226,30 @@ gearman_connection_st *gearman_connection_create(gearman_universal_st &universal
 }
 
 gearman_connection_st *gearman_connection_create_args(gearman_universal_st& universal,
+                                                      const char *host, const char* service_)
+{
+  gearman_connection_st *connection= gearman_connection_create(universal);
+  if (connection == NULL)
+  {
+    return NULL;
+  }
+
+  connection->set_host(host, service_);
+
+  if (gearman_failed(connection->lookup()))
+  {
+    gearman_gerror(universal, GEARMAN_GETADDRINFO);
+    delete connection;
+    return NULL;
+  }
+
+  return connection;
+}
+
+gearman_connection_st *gearman_connection_create_args(gearman_universal_st& universal,
                                                       const char *host, in_port_t port)
 {
-  gearman_connection_st *connection= gearman_connection_create(universal, NULL);
+  gearman_connection_st *connection= gearman_connection_create(universal);
   if (connection == NULL)
   {
     return NULL;
@@ -249,7 +270,7 @@ gearman_connection_st *gearman_connection_create_args(gearman_universal_st& univ
 gearman_connection_st *gearman_connection_copy(gearman_universal_st& universal,
                                                const gearman_connection_st& from)
 {
-  gearman_connection_st *connection= gearman_connection_create(universal, NULL);
+  gearman_connection_st *connection= gearman_connection_create(universal);
 
   if (connection == NULL)
   {
@@ -260,8 +281,8 @@ gearman_connection_st *gearman_connection_copy(gearman_universal_st& universal,
   // @todo Is this right?
   connection->options.packet_in_use= from.options.packet_in_use;
 
-  strcpy(connection->host, from.host);
-  connection->port= from.port;
+  strcpy(connection->_host, from._host);
+  strcpy(connection->_service, from._service);
 
   return connection;
 }
@@ -350,10 +371,31 @@ void gearman_connection_st::set_host(const char *host_arg, const in_port_t port_
 {
   reset_addrinfo();
 
-  strncpy(host, host_arg == NULL ? GEARMAN_DEFAULT_TCP_HOST : host_arg, GEARMAN_NI_MAXHOST);
-  host[GEARMAN_NI_MAXHOST - 1]= 0;
+  strncpy(_host, host_arg == NULL ? GEARMAN_DEFAULT_TCP_HOST : host_arg, GEARMAN_NI_MAXHOST);
+  _host[GEARMAN_NI_MAXHOST - 1]= 0;
 
-  port= in_port_t(port_arg == 0 ? GEARMAN_DEFAULT_TCP_PORT : port_arg);
+  in_port_t port= in_port_t(port_arg == 0 ? GEARMAN_DEFAULT_TCP_PORT : port_arg);
+
+  snprintf(_service, sizeof(_service), "%hu", uint16_t(port));
+  _service[GEARMAN_NI_MAXSERV - 1]= 0;
+}
+
+void gearman_connection_st::set_host(const char *host_arg, const char* service_)
+{
+  reset_addrinfo();
+
+  strncpy(_host, host_arg == NULL ? GEARMAN_DEFAULT_TCP_HOST : host_arg, GEARMAN_NI_MAXHOST);
+  _host[GEARMAN_NI_MAXHOST - 1]= 0;
+
+  if (service_)
+  {
+    strcpy(_service, service_);
+  }
+  else
+  {
+    strcpy(_service, GEARMAN_DEFAULT_TCP_PORT_STRING);
+  }
+  _service[GEARMAN_NI_MAXSERV - 1]= 0;
 }
 
 /*
@@ -569,20 +611,13 @@ gearman_return_t gearman_connection_st::lookup()
 {
   reset_addrinfo();
 
-  char port_str[GEARMAN_NI_MAXSERV]= { 0 };
-  int port_str_length;
-  if (size_t(port_str_length= snprintf(port_str, sizeof(port_str), "%hu", uint16_t(port))) >= sizeof(port_str))
-  {
-    return gearman_universal_set_error(universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, GEARMAN_AT, "snprintf(%d)", port_str_length);
-  }
-
   struct addrinfo ai;
   memset(&ai, 0, sizeof(struct addrinfo));
   ai.ai_socktype= SOCK_STREAM;
   ai.ai_protocol= IPPROTO_TCP;
 
   int ret;
-  if ((ret= getaddrinfo(host, port_str, &ai, &(_addrinfo))))
+  if ((ret= getaddrinfo(_host, _service, &ai, &(_addrinfo))))
   {
     return gearman_universal_set_error(universal, GEARMAN_GETADDRINFO, GEARMAN_AT, "getaddrinfo:%s", gai_strerror(ret));
   }
@@ -618,7 +653,7 @@ gearman_return_t gearman_connection_st::flush()
       if (addrinfo_next == NULL)
       {
         state= GEARMAN_CON_UNIVERSAL_ADDRINFO;
-        return gearman_universal_set_error(universal, GEARMAN_COULD_NOT_CONNECT, GEARMAN_AT, "%s:%hu", host, uint16_t(port));
+        return gearman_universal_set_error(universal, GEARMAN_COULD_NOT_CONNECT, GEARMAN_AT, "%s:%s", _host, _service);
       }
 
       // rewrite tye if HAVE_SOCK_CLOEXEC

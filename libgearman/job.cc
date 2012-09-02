@@ -76,7 +76,9 @@ struct gearman_job_reducer_st {
   {
     client= gearman_client_create(NULL);
     if (not client)
+    {
       return false;
+    }
 
     if (universal._namespace)
     {
@@ -87,7 +89,7 @@ struct gearman_job_reducer_st {
 
     for (gearman_connection_st *con= universal.con_list; con; con= con->next)
     {
-      if (gearman_failed(gearman_client_add_server(client, con->host, con->port)))
+      if (gearman_failed(client->impl()->add_server(con->_host, con->_service)))
       {
         return false;
       }
