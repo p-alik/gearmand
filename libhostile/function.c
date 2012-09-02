@@ -49,7 +49,7 @@
 int64_t function_cache_index;
 struct function_st function_cache[10];
 
-void print_function_cache_usage()
+void print_function_cache_usage(void)
 {
   for (struct function_st *ptr= function_cache;
        ptr->name == NULL; ptr++)

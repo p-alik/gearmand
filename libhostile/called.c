@@ -87,7 +87,7 @@ void reset_called_ptr(char* passed_pos)
   unique_ptr= NULL;
 }
 
-void set_called()
+void set_called(void)
 {
   assert(is_called_ == false);
   if (is_called_ == true)
@@ -98,7 +98,7 @@ void set_called()
   is_called_= true;
 }
 
-void reset_called()
+void reset_called(void)
 {
   assert(is_called_);
   if (is_called_ == false)

@@ -74,6 +74,9 @@ LIBHOSTILE_API
 LIBHOSTILE_API
   void set_send_close(bool arg, int frequency, int not_until_arg);
 
+LIBHOSTILE_API
+  void hostile_dump(void);
+
 #ifdef __cplusplus
 }
 #endif

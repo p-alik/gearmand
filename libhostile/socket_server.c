@@ -38,6 +38,7 @@
 
 #include <libhostile/initialize.h>
 #include <libhostile/function.h>
+#include "libhostile/socket_server.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -47,6 +48,7 @@
 
 int make_socket(in_port_t port)
 {
+  (void)port;
 #if 0
   struct sockaddr_in addr;
   

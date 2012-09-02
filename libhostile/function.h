@@ -75,12 +75,11 @@ struct function_st {
 extern "C" {
 #endif
 
-void function_setup();
-void print_function_cache_usage();
+void function_setup(void);
+void print_function_cache_usage(void);
 
 struct function_st set_function(const char *name, const char *environ_name);
 
 #ifdef __cplusplus
 }
 #endif
-
