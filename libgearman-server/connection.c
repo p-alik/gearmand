@@ -514,6 +514,8 @@ gearman_server_con_proc_next(gearman_server_thread_st *thread)
 
 static void _server_job_timeout(int fd, short event, void *arg)
 {
+  (void)fd;
+  (void)event;
   gearman_server_job_st *job= (gearman_server_job_st *)arg;
 
   /* A timeout has ocurred on a job, re-queue it */

@@ -57,7 +57,7 @@ extern "C" {
 #endif
 
 LIBHOSTILE_API
-  bool libhostile_is_accept();
+  bool libhostile_is_accept(void);
 
 LIBHOSTILE_API
   void set_poll_close(bool arg, int frequency, int not_until_arg, enum hostile_poll_t poll_type);
@@ -73,6 +73,9 @@ LIBHOSTILE_API
 
 LIBHOSTILE_API
   void set_send_close(bool arg, int frequency, int not_until_arg);
+
+LIBHOSTILE_API
+  void hostile_dump(void);
 
 #ifdef __cplusplus
 }

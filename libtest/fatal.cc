@@ -40,6 +40,7 @@
 
 namespace libtest {
 
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
 fatal::fatal(const char *file_arg, int line_arg, const char *func_arg, const char *format, ...) :
   std::runtime_error(func_arg),
   _line(line_arg),
@@ -49,10 +50,7 @@ fatal::fatal(const char *file_arg, int line_arg, const char *func_arg, const cha
     va_list args;
     va_start(args, format);
     char last_error[BUFSIZ];
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
     int last_error_length= vsnprintf(last_error, sizeof(last_error), format, args);
-#pragma GCC diagnostic pop
     va_end(args);
 
     strncpy(_mesg, last_error, sizeof(_mesg));
@@ -88,6 +86,7 @@ void fatal::increment_disabled_counter()
   _counter++;
 }
 
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
 disconnected::disconnected(const char *file_arg, int line_arg, const char *func_arg,
                            const std::string& instance, const in_port_t port,
                            const char *format, ...) :
@@ -100,10 +99,7 @@ disconnected::disconnected(const char *file_arg, int line_arg, const char *func_
   va_list args;
   va_start(args, format);
   char last_error[BUFSIZ];
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
   (void)vsnprintf(last_error, sizeof(last_error), format, args);
-#pragma GCC diagnostic pop
   va_end(args);
 
   snprintf(_error_message, sizeof(_error_message), "%s:%u %s", instance.c_str(), uint32_t(port), last_error);

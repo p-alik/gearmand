@@ -333,6 +333,8 @@ static test_return_t recv_SETUP(void* object)
 
 static test_return_t recv_corrupt_SETUP(void* object)
 {
+  return TEST_SKIPPED;
+
   test_skip_valgrind();
   test_skip(true, libtest::is_massive());
 

@@ -506,7 +506,7 @@ static test_return_t submit_multiple_do(void *object)
 {
   for (uint32_t x= 0; x < 100 /* arbitrary */; x++)
   {
-    uint32_t option= random() %3;
+    uint32_t option= uint32_t(random() %3);
 
     switch (option)
     {

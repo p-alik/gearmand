@@ -39,7 +39,7 @@
 #include "libhostile/hostile.h"
 
 #if defined(BUILD_LIBHOSTILE) && BUILD_LIBHOSTILE == 0
-bool libhostile_is_accept()
+bool libhostile_is_accept(void)
 {
   return false;
 }

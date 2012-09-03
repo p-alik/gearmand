@@ -10,7 +10,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <libgearman/gearman.h>
+#include <libgearman-1.0/gearman.h>
 
 int main(void)
 {

@@ -107,7 +107,7 @@ static void *_client_do(gearman_client_st *client, gearman_command_t command,
     return NULL;
   }
 
-  universal_reset_error(client->impl()->universal);
+  client->impl()->universal.reset_error();
 
   size_t unused_size;
   if (result_size == NULL)
@@ -220,7 +220,7 @@ static gearman_return_t _client_do_background(gearman_client_st *client,
     return GEARMAN_INVALID_ARGUMENT;
   }
 
-  universal_reset_error(client->impl()->universal);
+  client->impl()->universal.reset_error();
 
   if (gearman_size(function) == 0)
   {
@@ -749,7 +749,7 @@ gearman_status_t gearman_client_unique_status(gearman_client_st *client,
     return status;
   }
 
-  universal_reset_error(client->impl()->universal);
+  client->impl()->universal.reset_error();
 
   gearman_return_t ret;
   gearman_task_st do_task;
@@ -819,7 +819,7 @@ gearman_return_t gearman_client_job_status(gearman_client_st *client,
     return GEARMAN_INVALID_ARGUMENT;
   }
 
-  universal_reset_error(client->impl()->universal);
+  client->impl()->universal.reset_error();
 
   gearman_task_st do_task;
   {
@@ -1692,7 +1692,9 @@ bool gearman_client_compare(const gearman_client_st *first, const gearman_client
       {
         return true;
       }
+      fprintf(stderr, "Compared %s != %s\n", first->impl()->universal.con_list->_service, second->impl()->universal.con_list->_service);
     }
+    fprintf(stderr, "Compared %s != %s\n", first->impl()->universal.con_list->_host, second->impl()->universal.con_list->_host);
   }
 
   return false;

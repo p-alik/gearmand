@@ -78,8 +78,12 @@ void hostile_dump(void)
 #else // BUILD_LIBHOSTILE
 
 void hostile_initialize(void);
-
 void hostile_initialize(void)
+{
+}
+
+void hostile_dump(void);
+void hostile_dump(void)
 {
 }
 

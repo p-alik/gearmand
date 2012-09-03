@@ -47,6 +47,7 @@
 
 #include <cstdio>
 
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
 void gearman_log(gearman_universal_st *state, gearman_verbose_t verbose,
                  const char *format, va_list args)
 {
@@ -54,10 +55,7 @@ void gearman_log(gearman_universal_st *state, gearman_verbose_t verbose,
 
   if (state->log_fn == NULL)
   {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
     vsnprintf(log_buffer, GEARMAN_MAX_ERROR_SIZE, format, args);
-#pragma GCC diagnostic pop
     state->log_fn(log_buffer, verbose, state->log_context);
   }
 }

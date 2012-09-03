@@ -19,11 +19,11 @@
 #   and this notice are preserved. This file is offered as-is, without any
 #   warranty.
 
-#serial 1
+#serial 2
 
 AC_DEFUN([AX_UUID_GENERATE_TIME_SAFE], [
     AC_CACHE_CHECK([check for uuid_generate_time_safe], [ax_cv_uuid_generate_time_safe], [
-      save_LDFLAGS= $LDFLAGS
+      save_LDFLAGS="$LDFLAGS"
       LDFLAGS="-luuid"
       AC_LANG_PUSH([C])
       AC_COMPILE_IFELSE([
@@ -36,13 +36,11 @@ AC_DEFUN([AX_UUID_GENERATE_TIME_SAFE], [
       ])
 
     AC_LANG_POP
-
+    LDFLAGS="$save_LDFLAGS"
     ])
 
   AS_IF([test "$ax_cv_uuid_generate_time_safe" = yes],[
     AC_DEFINE(HAVE_UUID_GENERATE_TIME_SAFE,[1],[Define if uuid_generate_time_safe is present in uuid/uuid.h.])],[
     AC_DEFINE(HAVE_UUID_GENERATE_TIME_SAFE,[0],[Define if uuid_generate_time_safe is present in uuid/uuid.h.])
   ])
-
-  LDFLAGS= $save_LDFLAGS
 ])

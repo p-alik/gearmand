@@ -19,12 +19,12 @@
 #   and this notice are preserved. This file is offered as-is, without any
 #   warranty.
 
-#serial 1
+#serial 2
 
 AC_DEFUN([AX_PTHREAD_TIMEDJOIN_NP], [
     AC_CACHE_CHECK([check for pthread_timedjoin_np], [ax_cv_pthread_timedjoin_np], [
-      save_LDFLAGS= $LDFLAGS
-      LDFLAGS=$(PTHREAD_LIBS)
+      save_LDFLAGS="$LDFLAGS"
+      LDFLAGS="$PTHREAD_LIBS"
       AC_LANG_PUSH([C])
       AC_COMPILE_IFELSE([
         AC_LANG_PROGRAM([
@@ -36,6 +36,7 @@ AC_DEFUN([AX_PTHREAD_TIMEDJOIN_NP], [
       ])
 
     AC_LANG_POP
+     LDFLAGS="$save_LDFLAGS"
 
     ])
 
@@ -43,7 +44,5 @@ AC_DEFUN([AX_PTHREAD_TIMEDJOIN_NP], [
       AC_DEFINE(HAVE_PTHREAD_TIMEDJOIN_NP,[1],[Define if pthread_timedjoin_np is present in pthread.h.])],[
       AC_DEFINE(HAVE_PTHREAD_TIMEDJOIN_NP,[0],[Define if pthread_timedjoin_np is present in pthread.h.])
     ])
-
-  LDFLAGS= $save_LDFLAGS
 ])
 

@@ -75,6 +75,13 @@ different states of execution for a client request. Each request, ie
 a creation of :c:type:`gearman_task_st`, keeps a copy of callbacks when it
 is created.  
 
+:c:func:`gearman_client_set_exception_fn` will only be called if exceptions are enabled on the server. You can do this by calling :c:func:`gearman_client_set_server_option`.
+
+An example of this::
+
+   const char *EXCEPTIONS="exceptions";
+   gearman_client_set_server_option(client, EXCEPTIONS, strlen(EXCEPTIONS));
+
 ------------
 RETURN VALUE
 ------------
