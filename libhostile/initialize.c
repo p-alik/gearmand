@@ -83,4 +83,8 @@ void hostile_initialize(void)
 {
 }
 
+void hostile_dump(void)
+{
+}
+
 #endif // BUILD_LIBHOSTILE
