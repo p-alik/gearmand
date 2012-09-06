@@ -1,4 +1,4 @@
-.TH "GEARMAN_CLIENT_CLEAR_FN" "3" "August 18, 2012" "0.36" "Gearmand"
+.TH "GEARMAN_CLIENT_CLEAR_FN" "3" "September 06, 2012" "1.1.0" "Gearmand"
 .SH NAME
 gearman_client_clear_fn \- Gearmand Documentation, http://gearman.info/
 .
@@ -134,6 +134,17 @@ be called if server is to make a request to the client to provide more data.
 different states of execution for a client request. Each request, ie
 a creation of \fBgearman_task_st\fP, keeps a copy of callbacks when it
 is created.
+.sp
+\fI\%gearman_client_set_exception_fn()\fP will only be called if exceptions are enabled on the server. You can do this by calling \fBgearman_client_set_server_option()\fP.
+.sp
+An example of this:
+.sp
+.nf
+.ft C
+const char *EXCEPTIONS="exceptions";
+gearman_client_set_server_option(client, EXCEPTIONS, strlen(EXCEPTIONS));
+.ft P
+.fi
 .SH RETURN VALUE
 .sp
 None
