@@ -196,6 +196,10 @@ sphinx-help:
 	@echo "  linkcheck  to check all external links for integrity"
 	@echo "  doctest    to run all doctests embedded in the documentation (if enabled)"
 
+install-html:
+	@rm -r -f /var/www/gearmand
+	@cp -r docs/html /var/www/gearmand
+
 html-local: docs/conf.py
 	PYTHONPATH=${top_srcdir}/docs $(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/html
 	@echo
