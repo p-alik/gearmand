@@ -200,7 +200,7 @@ install-html: html-local
 	@rm -r -f /var/www/gearmand
 	@cp -r docs/html /var/www/gearmand
 
-html-local: docs/conf.py
+html-local: docs/conf.py docs
 	PYTHONPATH=${top_srcdir}/docs $(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(SPHINX_BUILDDIR)/html."
