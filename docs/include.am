@@ -197,7 +197,7 @@ sphinx-help:
 	@echo "  doctest    to run all doctests embedded in the documentation (if enabled)"
 
 install-html: html-local
-	@rm -r -f /var/www/gearmand
+	@rm -r -f /var/www/gearmand/*
 	@cp -r docs/html /var/www/gearmand
 
 html-local: docs/conf.py docs
