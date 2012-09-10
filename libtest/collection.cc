@@ -118,17 +118,19 @@ test_return_t Collection::exec()
           }
         }
 
-        alarm(600);
+        set_alarm();
+
         try 
         {
           return_code= runner_code(_frame, run, _timer);
         }
         catch (...)
         {
-          alarm(0);
+          cancel_alarm();
+
           throw;
         }
-        alarm(0);
+        libtest::cancel_alarm();
       }
       catch (libtest::fatal &e)
       {

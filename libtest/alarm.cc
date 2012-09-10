@@ -34,47 +34,49 @@
  *
  */
 
-#pragma once 
+#include <config.h>
+#include <libtest/common.h>
 
-#include <pthread.h>
-#include <semaphore.h>
-#include <signal.h>
-
-enum shutdown_t {
-  SHUTDOWN_RUNNING,
-  SHUTDOWN_GRACEFUL,
-  SHUTDOWN_FORCED
-};
+#include <sys/time.h>
+#include <cstdlib>
 
 namespace libtest {
 
-class SignalThread {
-  sigset_t set;
-  sem_t lock;
-  uint64_t magic_memory;
-  volatile shutdown_t __shutdown;
-  pthread_mutex_t shutdown_mutex;
-  pthread_t thread;
-  sigset_t original_set;
+static const long default_timer_value= 600;
 
-public:
+static const struct timeval default_it_value= { default_timer_value, 0 };
+static const struct timeval default_it_interval= { 0, 0 };
+static const struct itimerval defualt_timer= { default_it_interval, default_it_value };
 
-  SignalThread();
-  ~SignalThread();
+static const struct itimerval cancel_timer= { default_it_interval, default_it_interval };
 
-  void test();
-  void post();
-  bool setup();
-  bool unblock();
 
-  int wait(int& sig)
+void set_alarm()
+{
+  if (setitimer(ITIMER_VIRTUAL, &defualt_timer, NULL) == -1)
   {
-    return sigwait(&set, &sig);
+    Error << "setitimer() failed";
   }
+}
 
-  void set_shutdown(shutdown_t arg);
-  bool is_shutdown();
-  shutdown_t get_shutdown();
-};
+void set_alarm(long tv_sec, long tv_usec)
+{
+  struct timeval it_value= { tv_sec, tv_usec };
+  struct itimerval timer= { default_it_interval, it_value };
+
+  if (setitimer(ITIMER_VIRTUAL, &timer, NULL) == -1)
+  {
+    Error << "setitimer() failed";
+  }
+}
+
+void cancel_alarm()
+{
+  if (setitimer(ITIMER_VIRTUAL, &cancel_timer, NULL) == -1)
+  {
+    Error << "setitimer() failed";
+  }
+}
 
 } // namespace libtest
+

@@ -49,6 +49,7 @@ public:
   std::string _worker_function_name;
   server_startup_st &_servers;
   bool run_worker;
+  std::vector<std::string> _extra_files;
 
   Context(in_port_t port_arg, server_startup_st &server_arg):
     worker(NULL),
@@ -57,6 +58,11 @@ public:
     _servers(server_arg),
     run_worker(false)
   {
+  }
+
+  ~Context()
+  {
+    extra_clear();
   }
 
   const char *worker_function_name() const
@@ -89,11 +95,28 @@ public:
     return true;
   }
 
+  void extra_file(const std::string& extra_file_)
+  {
+    _extra_files.push_back(extra_file_);
+  }
+
+  void extra_clear()
+  {
+    for (std::vector<std::string>::iterator iter= _extra_files.begin();
+         iter != _extra_files.end();
+         iter++)
+    {
+      unlink((*iter).c_str());
+    }
+    _extra_files.clear();
+  }
+
   void reset()
   {
     _servers.clear();
     gearman_worker_free(worker);
 
     worker= NULL;
+    extra_clear();
   }
 };

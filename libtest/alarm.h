@@ -34,47 +34,13 @@
  *
  */
 
-#pragma once 
-
-#include <pthread.h>
-#include <semaphore.h>
-#include <signal.h>
-
-enum shutdown_t {
-  SHUTDOWN_RUNNING,
-  SHUTDOWN_GRACEFUL,
-  SHUTDOWN_FORCED
-};
+#pragma once
 
 namespace libtest {
 
-class SignalThread {
-  sigset_t set;
-  sem_t lock;
-  uint64_t magic_memory;
-  volatile shutdown_t __shutdown;
-  pthread_mutex_t shutdown_mutex;
-  pthread_t thread;
-  sigset_t original_set;
-
-public:
-
-  SignalThread();
-  ~SignalThread();
-
-  void test();
-  void post();
-  bool setup();
-  bool unblock();
-
-  int wait(int& sig)
-  {
-    return sigwait(&set, &sig);
-  }
-
-  void set_shutdown(shutdown_t arg);
-  bool is_shutdown();
-  shutdown_t get_shutdown();
-};
+void set_alarm(long tv_sec, long tv_usec);
+void set_alarm();
+void cancel_alarm();
 
 } // namespace libtest
+

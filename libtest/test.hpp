@@ -52,6 +52,7 @@
 #include <libtest/error.h>
 #include <libtest/strerror.h>
 #include <libtest/timer.hpp>
+#include <libtest/alarm.h>
 #include <libtest/stream.h>
 #include <libtest/comparison.hpp>
 #include <libtest/server.h>
