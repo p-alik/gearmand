@@ -42,9 +42,7 @@
 
 namespace libtest {
 
-static const long default_timer_value= 600;
-
-static const struct timeval default_it_value= { default_timer_value, 0 };
+static const struct timeval default_it_value= { 600, 0 };
 static const struct timeval default_it_interval= { 0, 0 };
 static const struct itimerval defualt_timer= { default_it_interval, default_it_value };
 
@@ -61,7 +59,12 @@ void set_alarm()
 
 void set_alarm(long tv_sec, long tv_usec)
 {
+#if defined(TARGET_OS_OSX) && TARGET_OS_OSX
+  struct timeval it_value= { time_t(tv_sec), suseconds_t(tv_usec) };
+#else
   struct timeval it_value= { tv_sec, tv_usec };
+#endif
+
   struct itimerval timer= { default_it_interval, it_value };
 
   if (setitimer(ITIMER_VIRTUAL, &timer, NULL) == -1)
