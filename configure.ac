@@ -218,14 +218,7 @@ AX_CHECK_LIBRARY([LIBEVENT], [event.h], [event],
                   AC_MSG_ERROR([Unable to find libevent])
                   ])
 
-AX_CHECK_LIBRARY([LIBUUID], [uuid/uuid.h], [uuid], 
-                 [
-                  LIBUUID_LDFLAGS="-luuid"
-                  AX_UUID_GENERATE_TIME_SAFE
-                  ],
-                 [
-                  AC_MSG_WARN([Unable to find libuuid])
-                  ])
+AX_UUID_GENERATE_TIME_SAFE
 
 AS_IF([test "x${TARGET_LINUX}" = "xtrue"], [AC_DEFINE([BUILD_LIBHOSTILE], [1], [Build libhostile])], [AC_DEFINE([BUILD_LIBHOSTILE], [0], [Build libhostile])])
 AM_CONDITIONAL(TARGET_HOSTILE, [test "x${TARGET_LINUX}" = "xtrue"])

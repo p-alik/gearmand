@@ -152,12 +152,8 @@ gearman_task_st *add_task(gearman_client_st& client,
   }
   else
   {
-    uuid_t uuid;
-    safe_uuid_generate(uuid);
-    uuid_unparse(uuid, task->unique);
-    task->unique_length= GEARMAN_MAX_UUID_SIZE;
+    safe_uuid_generate(task->unique, task->unique_length);
   }
-  task->unique[task->unique_length]= 0;
 
   assert(task->client);
   assert(task->client == &client);
@@ -261,7 +257,6 @@ gearman_task_st *add_reducer_task(gearman_client_st *client,
                                   const time_t,
                                   void *context)
 {
-  uuid_t uuid;
   const void *args[5];
   size_t args_size[5];
 
@@ -332,11 +327,9 @@ gearman_task_st *add_reducer_task(gearman_client_st *client,
   }
   else
   {
-    safe_uuid_generate(uuid);
-    uuid_unparse(uuid, task->unique);
-    task->unique[GEARMAN_MAX_UUID_SIZE]= 0;
+    safe_uuid_generate(task->unique, task->unique_length);
     args[1]= task->unique;
-    args_size[1]= GEARMAN_MAX_UUID_SIZE +1; // +1 is for the needed null
+    args_size[1]= task->unique_length +1; // +1 is for the needed null
   }
 
   assert_msg(command == GEARMAN_COMMAND_SUBMIT_REDUCE_JOB or command == GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND,

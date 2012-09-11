@@ -37,6 +37,6 @@
 
 #pragma once
 
-#include <uuid/uuid.h>
+#include <cstdlib>
 
-int safe_uuid_generate(uuid_t out);
+int safe_uuid_generate(char* buffer, size_t& length);
