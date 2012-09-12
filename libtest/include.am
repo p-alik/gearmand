@@ -49,6 +49,7 @@ distclean-libtest-check:
 
 noinst_HEADERS+= libtest/formatter.hpp
 noinst_HEADERS+= libtest/timer.hpp
+noinst_HEADERS+= libtest/alarm.h
 noinst_HEADERS+= libtest/binaries.h 
 noinst_HEADERS+= libtest/cpu.hpp 
 noinst_HEADERS+= libtest/blobslap_worker.h 
@@ -100,19 +101,20 @@ libtest_libtest_la_DEPENDENCIES=
 libtest_libtest_la_LIBADD=
 libtest_libtest_la_SOURCES=
 
+libtest_libtest_la_SOURCES+= libtest/alarm.cc 
 libtest_libtest_la_SOURCES+= libtest/binaries.cc 
-libtest_libtest_la_SOURCES+= libtest/dns.cc 
 libtest_libtest_la_SOURCES+= libtest/cmdline.cc 
-libtest_libtest_la_SOURCES+= libtest/comparison.cc 
 libtest_libtest_la_SOURCES+= libtest/collection.cc 
+libtest_libtest_la_SOURCES+= libtest/comparison.cc 
 libtest_libtest_la_SOURCES+= libtest/core.cc 
 libtest_libtest_la_SOURCES+= libtest/cpu.cc 
+libtest_libtest_la_SOURCES+= libtest/dns.cc 
 libtest_libtest_la_SOURCES+= libtest/dream.cc 
+libtest_libtest_la_SOURCES+= libtest/drizzled.cc 
 libtest_libtest_la_SOURCES+= libtest/fatal.cc 
 libtest_libtest_la_SOURCES+= libtest/formatter.cc 
 libtest_libtest_la_SOURCES+= libtest/framework.cc 
 libtest_libtest_la_SOURCES+= libtest/has.cc 
-libtest_libtest_la_SOURCES+= libtest/drizzled.cc 
 libtest_libtest_la_SOURCES+= libtest/http.cc 
 libtest_libtest_la_SOURCES+= libtest/is_local.cc 
 libtest_libtest_la_SOURCES+= libtest/killpid.cc 

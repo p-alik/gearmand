@@ -95,8 +95,21 @@ void SignalThread::test()
     assert(sigismember(&set, SIGABRT));
     assert(sigismember(&set, SIGQUIT));
     assert(sigismember(&set, SIGINT));
+    assert(sigismember(&set, SIGVTALRM));
   }
   assert(sigismember(&set, SIGUSR2));
+}
+
+bool SignalThread::unblock()
+{
+  int error;
+  if ((error= pthread_sigmask(SIG_UNBLOCK, &set, NULL)) != 0)
+  {
+    Error << "While trying to reset signal mask to original set, pthread_sigmask() died during pthread_sigmask(" << strerror(error) << ")";
+    return false;
+  }
+
+  return true;
 }
 
 SignalThread::~SignalThread()
@@ -115,11 +128,7 @@ SignalThread::~SignalThread()
 #endif
   sem_destroy(&lock);
 
-  int error;
-  if ((error= pthread_sigmask(SIG_UNBLOCK, &set, NULL)) != 0)
-  {
-    Error << "While trying to reset signal mask to original set, pthread_sigmask() died during pthread_sigmask(" << strerror(error) << ")";
-  }
+  unblock();
 }
 
 extern "C" {
@@ -146,6 +155,11 @@ static void *sig_thread(void *arg)
     case SIGALRM:
       Error << "SIGALRM";
       exit(EXIT_SKIP);
+
+    case SIGVTALRM:
+      Error << "SIGVTALRM was called";
+      context->unblock();
+      raise(SIGVTALRM);
 
     case SIGABRT:
     case SIGUSR2:
@@ -189,6 +203,7 @@ SignalThread::SignalThread() :
     sigaddset(&set, SIGABRT);
     sigaddset(&set, SIGQUIT);
     sigaddset(&set, SIGINT);
+    sigaddset(&set, SIGVTALRM);
   }
   sigaddset(&set, SIGPIPE);
 
@@ -209,10 +224,17 @@ bool SignalThread::setup()
   {
     Error << strsignal(SIGQUIT) << " has been previously set.";
   }
+
   if (sigismember(&original_set, SIGINT))
   {
     Error << strsignal(SIGINT) << " has been previously set.";
   }
+
+  if (sigismember(&original_set, SIGVTALRM))
+  {
+    Error << strsignal(SIGVTALRM) << " has been previously set.";
+  }
+
   if (sigismember(&original_set, SIGUSR2))
   {
     Error << strsignal(SIGUSR2) << " has been previously set.";

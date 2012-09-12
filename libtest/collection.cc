@@ -125,7 +125,19 @@ test_return_t Collection::exec()
           }
         }
 
-        return_code= runner_code(_frame, run, _timer);
+        set_alarm();
+
+        try 
+        {
+          return_code= runner_code(_frame, run, _timer);
+        }
+        catch (...)
+        {
+          cancel_alarm();
+
+          throw;
+        }
+        libtest::cancel_alarm();
       }
       catch (libtest::fatal &e)
       {

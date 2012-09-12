@@ -1,9 +1,8 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
- * 
- *  Gearmand client and server library.
+ *
+ *  Data Differential YATL (i.e. libtest)  library
  *
  *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
- *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -35,8 +34,52 @@
  *
  */
 
-#pragma once
+#include <config.h>
+#include <libtest/common.h>
 
+#include <sys/time.h>
 #include <cstdlib>
 
-int safe_uuid_generate(char* buffer, size_t& length);
+namespace libtest {
+
+static const struct timeval default_it_value= { 600, 0 };
+static const struct timeval default_it_interval= { 0, 0 };
+static const struct itimerval defualt_timer= { default_it_interval, default_it_value };
+
+static const struct itimerval cancel_timer= { default_it_interval, default_it_interval };
+
+
+void set_alarm()
+{
+  if (setitimer(ITIMER_VIRTUAL, &defualt_timer, NULL) == -1)
+  {
+    Error << "setitimer() failed";
+  }
+}
+
+void set_alarm(long tv_sec, long tv_usec)
+{
+#if defined(TARGET_OS_OSX) && TARGET_OS_OSX
+  struct timeval it_value= { time_t(tv_sec), suseconds_t(tv_usec) };
+#else
+  struct timeval it_value= { tv_sec, tv_usec };
+#endif
+
+  struct itimerval timer= { default_it_interval, it_value };
+
+  if (setitimer(ITIMER_VIRTUAL, &timer, NULL) == -1)
+  {
+    Error << "setitimer() failed";
+  }
+}
+
+void cancel_alarm()
+{
+  if (setitimer(ITIMER_VIRTUAL, &cancel_timer, NULL) == -1)
+  {
+    Error << "setitimer() failed";
+  }
+}
+
+} // namespace libtest
+

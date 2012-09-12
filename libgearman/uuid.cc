@@ -37,15 +37,41 @@
 
 #include "config.h"
 
+#include "libgearman/common.h"
+
 #include "libgearman/uuid.hpp"
 
-int safe_uuid_generate(uuid_t out)
+#if defined(HAVE_UUID_UUID_H) && HAVE_UUID_UUID_H
+#  include <uuid/uuid.h>
+
+int safe_uuid_generate(char* buffer, size_t& length)
 {
+  uuid_t uuid;
+  int ret;
 #if defined(HAVE_UUID_GENERATE_TIME_SAFE) && HAVE_UUID_GENERATE_TIME_SAFE
-  return uuid_generate_time_safe(out);
+  ret= uuid_generate_time_safe(uuid);
 #else
-  uuid_generate(out);
-  return -1;
+  uuid_generate(uuid);
+  ret= -1;
 #endif
+
+  uuid_unparse(uuid, buffer);
+  length= GEARMAN_MAX_UUID_SIZE;
+
+  buffer[length]= 0;
+
+  return ret;
 }
 
+#else
+
+int safe_uuid_generate(char* buffer, size_t& length)
+{
+  // Buffer has to be null terminated even if we are not storing anything
+  buffer[0]= 0;
+  length= 0;
+
+  return -1;
+}
+
+#endif

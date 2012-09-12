@@ -53,30 +53,43 @@ static test_return_t gearmand_basic_option_test(void *)
 
 static test_return_t gearmand_basic_option_without_table_test(void *)
 {
+  std::string sql_file= libtest::create_tmpfile("sqlite");
+
+  char sql_buffer[1024];
+  snprintf(sql_buffer, sizeof(sql_buffer), "--libsqlite3-db=%.*s", int(sql_file.length()), sql_file.c_str());
   const char *args[]= { "--check-args",
     "--queue-type=libsqlite3",
-    "--libsqlite3-db=var/tmp/gearman.sql",
+    sql_buffer,
     0 };
 
   test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  test_compare(0, access(sql_file.c_str(), R_OK | W_OK ));
+
   return TEST_SUCCESS;
 }
 
 static test_return_t collection_init(void *object)
 {
-  const char *argv[]= {
-    "--libsqlite3-db=var/tmp/gearman.sql",
-    "--queue-type=libsqlite3", 
-    0 };
+  std::string sql_file= libtest::create_tmpfile("sqlite");
 
-  // Delete whatever might have been sitting around for the sql files
-  unlink("var/tmp/gearman.sql");
-  unlink("var/tmp/gearman.sql-journal");
+  char sql_buffer[1024];
+  snprintf(sql_buffer, sizeof(sql_buffer), "--libsqlite3-db=%.*s", int(sql_file.length()), sql_file.c_str());
+  const char *argv[]= {
+    "--queue-type=libsqlite3", 
+    sql_buffer,
+    0 };
 
   Context *test= (Context *)object;
   assert(test);
 
   test_truth(test->initialize(2, argv));
+
+  test_compare(0, access(sql_file.c_str(), R_OK | W_OK ));
+
+  test->extra_file(sql_file.c_str());
+  std::string sql_journal_file(sql_file);
+  sql_journal_file+= "-journal";
+  test->extra_file(sql_journal_file);
 
   return TEST_SUCCESS;
 }
@@ -86,21 +99,19 @@ static test_return_t collection_cleanup(void *object)
   Context *test= (Context *)object;
   test->reset();
 
-  unlink("tests/gearman.sql");
-  unlink("tests/gearman.sql-journal");
-
   return TEST_SUCCESS;
 }
 
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  if (not test_for_HAVE_LIBSQLITE3(error))
+  if (test_for_HAVE_LIBSQLITE3(error))
   {
+    error= TEST_SKIPPED;
     return NULL;
   }
 
-  return  new Context(libtest::default_port(), servers);
+  return new Context(libtest::get_free_port(), servers);
 }
 
 static bool world_destroy(void *object)

@@ -149,19 +149,20 @@ gearman_task_st *add_task(gearman_client_st& client,
   task->context= context;
   task->func= actions;
 
-  if (gearman_size(unique))
+  if ((task->unique_length= gearman_size(unique)))
   {
-    task->unique_length= gearman_size(unique);
-    memcpy(task->unique, gearman_c_str(unique), gearman_size(unique));
+    if (task->unique_length >= GEARMAN_MAX_UNIQUE_SIZE)
+    {
+      task->unique_length= GEARMAN_MAX_UNIQUE_SIZE -1; // Leave space for NULL byte
+    }
+
+    strncpy(task->unique, gearman_c_str(unique), GEARMAN_MAX_UNIQUE_SIZE);
+    task->unique[task->unique_length]= 0;
   }
   else
   {
-    uuid_t uuid;
-    safe_uuid_generate(uuid);
-    uuid_unparse(uuid, task->unique);
-    task->unique_length= GEARMAN_MAX_UUID_SIZE;
+    safe_uuid_generate(task->unique, task->unique_length);
   }
-  task->unique[task->unique_length]= 0;
 
   assert(task->client);
   assert(task->client == &client);
@@ -265,7 +266,6 @@ gearman_task_st *add_reducer_task(gearman_client_st *client,
                                   const time_t,
                                   void *context)
 {
-  uuid_t uuid;
   const void *args[5];
   size_t args_size[5];
 
@@ -328,20 +328,23 @@ gearman_task_st *add_reducer_task(gearman_client_st *client,
     args_size[0]= gearman_size(function) + 1;
   }
 
-  if (gearman_size(unique))
+  if ((task->impl()->unique_length= gearman_size(unique)))
   {
-    args[1]= gearman_c_str(unique);
-    args_size[1]= gearman_size(unique) + 1;
-    strncpy(task->impl()->unique, gearman_c_str(unique), gearman_size(unique));
+    if (task->impl()->unique_length >= GEARMAN_MAX_UNIQUE_SIZE)
+    {
+      task->impl()->unique_length= GEARMAN_MAX_UNIQUE_SIZE -1; // Leave space for NULL byte
+    }
+
+    strncpy(task->impl()->unique, gearman_c_str(unique), GEARMAN_MAX_UNIQUE_SIZE);
+    task->impl()->unique[task->impl()->unique_length]= 0;
   }
   else
   {
-    safe_uuid_generate(uuid);
-    uuid_unparse(uuid, task->impl()->unique);
-    task->impl()->unique[GEARMAN_MAX_UUID_SIZE]= 0;
-    args[1]= task->impl()->unique;
-    args_size[1]= GEARMAN_MAX_UUID_SIZE +1; // +1 is for the needed null
+    safe_uuid_generate(task->impl()->unique, task->impl()->unique_length);
   }
+
+  args[1]= task->impl()->unique;
+  args_size[1]= task->impl()->unique_length +1; // +1 is for the needed null
 
   assert_msg(command == GEARMAN_COMMAND_SUBMIT_REDUCE_JOB or command == GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND,
              "Command was not appropriate for request");

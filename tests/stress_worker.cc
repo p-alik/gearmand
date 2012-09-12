@@ -59,6 +59,18 @@ using namespace libtest;
 
 #define WORKER_FUNCTION_NAME "foo"
 
+static bool has_hostile()
+{
+#if defined(HAVE_LIBHOSTILE) && HAVE_LIBHOSTILE
+  if (1)
+  {
+    return true;
+  }
+#endif
+
+  return false;
+}
+
 static in_port_t hostile_server= 0;
 static in_port_t stress_server= 0;
 static in_port_t& current_server_= stress_server;
@@ -209,6 +221,8 @@ static bool join_thread(pthread_t& thread_arg, struct timespec& ts)
 
 static test_return_t worker_ramp_exec(const size_t payload_size)
 {
+  set_alarm(1200, 0);
+
   std::vector<pthread_t> children;
   children.resize(number_of_cpus());
 
@@ -311,8 +325,12 @@ static test_return_t worker_ramp_TEARDOWN(void* object)
 
 static test_return_t hostile_gearmand_SETUP(void* object)
 {
+  test_skip(true, has_hostile());
   test_skip_valgrind();
   test_skip(true, libtest::is_massive());
+
+  // Programmer error
+  assert(hostile_server);
 
   set_server(hostile_server);
   worker_ramp_SETUP(object);
@@ -459,14 +477,14 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
     return NULL;
   }
 
-#if defined(HAVE_LIBHOSTILE) && HAVE_LIBHOSTILE
-  hostile_server= libtest::get_free_port();
-  if (server_startup(servers, "gearmand", hostile_server, 0, NULL) == false)
+  if (has_hostile())
   {
-    error= TEST_SKIPPED;
-    return NULL;
+    hostile_server= libtest::get_free_port();
+    if (server_startup(servers, "gearmand", hostile_server, 0, NULL) == false)
+    {
+      hostile_server= 0;
+    }
   }
-#endif
 
   return new worker_handles_st;
 }

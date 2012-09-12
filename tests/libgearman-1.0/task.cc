@@ -104,7 +104,6 @@ test_return_t gearman_client_add_task_status_by_unique_TEST(void *object)
   test_true(gearman_task_unique(task));
   test_compare(strlen(unique_key), strlen(gearman_task_unique(task)));
 
-
   do
   {
     // just for async IO

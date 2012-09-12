@@ -134,12 +134,12 @@ gearmand_error_t MySQL::prepareAddStatement()
     return GEARMAN_QUEUE_ERROR;
   }
 
-  snprintf(query_buffer, sizeof(query_buffer),
-           "INSERT INTO %s "
-           "(unique_key, function_name, priority, data, when_to_run) "
-           "VALUES(?, ?, ?, ?, ?)", this->mysql_table.c_str());
+  int query_buffer_length= snprintf(query_buffer, sizeof(query_buffer),
+                                    "INSERT INTO %s "
+                                    "(unique_key, function_name, priority, data, when_to_run) "
+                                    "VALUES(?, ?, ?, ?, ?)", this->mysql_table.c_str());
 
-  if (mysql_stmt_prepare(this->add_stmt, query_buffer, strlen(query_buffer)))
+  if (mysql_stmt_prepare(this->add_stmt, query_buffer, query_buffer_length))
   {
     gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "mysql_stmt_prepare failed: %s", mysql_error(this->con));
     return GEARMAN_QUEUE_ERROR;
@@ -158,12 +158,12 @@ gearmand_error_t MySQL::prepareDoneStatement()
     return GEARMAN_QUEUE_ERROR;
   }
 
-  snprintf(query_buffer, sizeof(query_buffer),
-           "DELETE FROM %s "
-           "WHERE unique_key=? "
-           "AND function_name=?", this->mysql_table.c_str());
+  int query_buffer_length= snprintf(query_buffer, sizeof(query_buffer),
+                                    "DELETE FROM %s "
+                                    "WHERE unique_key=? "
+                                    "AND function_name=?", this->mysql_table.c_str());
 
-  if (mysql_stmt_prepare(this->done_stmt, query_buffer, strlen(query_buffer)))
+  if (mysql_stmt_prepare(this->done_stmt, query_buffer, query_buffer_length))
   {
     gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "mysql_stmt_prepare failed: %s", mysql_error(this->con));
     return GEARMAN_QUEUE_ERROR;
@@ -240,21 +240,21 @@ gearmand_error_t _initialize(gearman_server_st *server, gearmand::plugins::queue
   if (mysql_num_rows(result) == 0)
   {
     char query_buffer[1024];
-    snprintf(query_buffer, sizeof(query_buffer),
-             "CREATE TABLE %s"
-             "("
-             "unique_key VARCHAR(%d),"
-             "function_name VARCHAR(255),"
-             "priority INT,"
-             "data LONGBLOB,"
-             "when_to_run INT,"
-             "unique key (unique_key, function_name)"
-             ")",
-             queue->mysql_table.c_str(), GEARMAN_UNIQUE_SIZE);
+    int query_buffer_length= snprintf(query_buffer, sizeof(query_buffer),
+                                      "CREATE TABLE %s"
+                                      "("
+                                      "unique_key VARCHAR(%d),"
+                                      "function_name VARCHAR(255),"
+                                      "priority INT,"
+                                      "data LONGBLOB,"
+                                      "when_to_run INT,"
+                                      "unique key (unique_key, function_name)"
+                                      ")",
+                                      queue->mysql_table.c_str(), GEARMAN_UNIQUE_SIZE);
 
     gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM,"MySQL module: creating table %s", queue->mysql_table.c_str());
 
-    if (mysql_real_query(queue->con, query_buffer, strlen(query_buffer)))
+    if (mysql_real_query(queue->con, query_buffer, query_buffer_length))
     {
       gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "MySQL module: create table failed: %s", mysql_error(queue->con));
       return GEARMAN_QUEUE_ERROR;
@@ -456,11 +456,11 @@ static gearmand_error_t _mysql_queue_replay(gearman_server_st *server, void *con
 
   gearmand::plugins::queue::MySQL *queue= (gearmand::plugins::queue::MySQL *)context;
 
-  snprintf(query_buffer, sizeof(query_buffer),
-           "SELECT unique_key, function_name, data, priority, when_to_run FROM %s",
-           queue->mysql_table.c_str());
+  int query_buffer_length= snprintf(query_buffer, sizeof(query_buffer),
+                                    "SELECT unique_key, function_name, data, priority, when_to_run FROM %s",
+                                    queue->mysql_table.c_str());
 
-  if (mysql_real_query(queue->con, query_buffer, strlen(query_buffer)))
+  if (mysql_real_query(queue->con, query_buffer, query_buffer_length))
   {
     gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "mysql_real_query failed: %s", mysql_error(queue->con));
     return GEARMAN_QUEUE_ERROR;

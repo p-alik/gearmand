@@ -1,9 +1,8 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
- * 
- *  Gearmand client and server library.
+ *
+ *  Data Differential YATL (i.e. libtest)  library
  *
  *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
- *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -37,6 +36,11 @@
 
 #pragma once
 
-#include <cstdlib>
+namespace libtest {
 
-int safe_uuid_generate(char* buffer, size_t& length);
+void set_alarm(long tv_sec, long tv_usec);
+void set_alarm();
+void cancel_alarm();
+
+} // namespace libtest
+

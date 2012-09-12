@@ -92,21 +92,26 @@ gearman_return_t gearman_connection_st::connect_poll()
     {
     case 1:
       {
-        int err;
-        socklen_t len= sizeof (err);
-        // We replace errno with err if getsockopt() passes, but err has been
-        // set.
-        if (getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &len) == 0)
+        if (fds[0].revents == POLLERR)
         {
-          // We check the value to see what happened wth the socket.
-          if (err == 0)
+          int err;
+          socklen_t len= sizeof (err);
+          // We replace errno with err if getsockopt() passes, but err has been
+          // set.
+          if (getsockopt(fds[0].fd, SOL_SOCKET, SO_ERROR, &err, &len) == 0)
           {
-            return GEARMAN_SUCCESS;
+            // We check the value to see what happened wth the socket.
+            if (err == 0)
+            {
+              return GEARMAN_SUCCESS;
+            }
+            errno= err;
           }
-          errno= err;
+
+          return gearman_perror(universal, "getsockopt()");
         }
 
-        return gearman_perror(universal, "getsockopt()");
+        return GEARMAN_SUCCESS;
       }
 
     case 0:
@@ -619,10 +624,12 @@ gearman_return_t gearman_connection_st::lookup()
   int ret;
   if ((ret= getaddrinfo(_host, _service, &ai, &(_addrinfo))))
   {
+    reset_addrinfo();
     return gearman_universal_set_error(universal, GEARMAN_GETADDRINFO, GEARMAN_AT, "getaddrinfo:%s", gai_strerror(ret));
   }
 
   addrinfo_next= _addrinfo;
+  assert(addrinfo_next);
   state= GEARMAN_CON_UNIVERSAL_CONNECT;
 
   return GEARMAN_SUCCESS;
