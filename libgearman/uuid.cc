@@ -37,6 +37,8 @@
 
 #include "config.h"
 
+#include "libgearman/common.h"
+
 #include "libgearman/uuid.hpp"
 
 #if defined(HAVE_UUID_UUID_H) && HAVE_UUID_UUID_H
@@ -47,9 +49,9 @@ int safe_uuid_generate(char* buffer, size_t& length)
   uuid_t uuid;
   int ret;
 #if defined(HAVE_UUID_GENERATE_TIME_SAFE) && HAVE_UUID_GENERATE_TIME_SAFE
-  ret= uuid_generate_time_safe(out);
+  ret= uuid_generate_time_safe(uuid);
 #else
-  uuid_generate(out);
+  uuid_generate(uuid);
   ret= -1;
 #endif
 

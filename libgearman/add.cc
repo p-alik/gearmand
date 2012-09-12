@@ -145,10 +145,15 @@ gearman_task_st *add_task(gearman_client_st& client,
   task->context= context;
   task->func= actions;
 
-  if (gearman_size(unique))
+  if ((task->unique_length= gearman_size(unique)))
   {
-    task->unique_length= gearman_size(unique);
-    memcpy(task->unique, gearman_c_str(unique), gearman_size(unique));
+    if (task->unique_length >= GEARMAN_MAX_UNIQUE_SIZE)
+    {
+      task->unique_length= GEARMAN_MAX_UNIQUE_SIZE -1; // Leave space for NULL byte
+    }
+
+    strncpy(task->unique, gearman_c_str(unique), GEARMAN_MAX_UNIQUE_SIZE);
+    task->unique[task->unique_length]= 0;
   }
   else
   {
@@ -319,18 +324,23 @@ gearman_task_st *add_reducer_task(gearman_client_st *client,
     args_size[0]= gearman_size(function) + 1;
   }
 
-  if (gearman_size(unique))
+  if ((task->unique_length= gearman_size(unique)))
   {
-    args[1]= gearman_c_str(unique);
-    args_size[1]= gearman_size(unique) + 1;
-    strncpy(task->unique, gearman_c_str(unique), gearman_size(unique));
+    if (task->unique_length >= GEARMAN_MAX_UNIQUE_SIZE)
+    {
+      task->unique_length= GEARMAN_MAX_UNIQUE_SIZE -1; // Leave space for NULL byte
+    }
+
+    strncpy(task->unique, gearman_c_str(unique), GEARMAN_MAX_UNIQUE_SIZE);
+    task->unique[task->unique_length]= 0;
   }
   else
   {
     safe_uuid_generate(task->unique, task->unique_length);
-    args[1]= task->unique;
-    args_size[1]= task->unique_length +1; // +1 is for the needed null
   }
+
+  args[1]= task->unique;
+  args_size[1]= task->unique_length +1; // +1 is for the needed null
 
   assert_msg(command == GEARMAN_COMMAND_SUBMIT_REDUCE_JOB or command == GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND,
              "Command was not appropriate for request");
