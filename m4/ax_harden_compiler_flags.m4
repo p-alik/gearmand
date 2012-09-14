@@ -49,6 +49,8 @@
 # -Wdeclaration-after-statement is counter to C99
 # AX_APPEND_COMPILE_FLAGS([-std=c++11]) -- Not ready yet
 # AX_APPEND_COMPILE_FLAGS([-pedantic]) -- ?
+# AX_APPEND_COMPILE_FLAGS([-Wstack-protector]) -- Issues on 32bit compile
+# AX_APPEND_COMPILE_FLAGS([-fstack-protector-all]) -- Issues on 32bit compile
 
 #serial 1
 
@@ -101,7 +103,6 @@
       AX_APPEND_COMPILE_FLAGS([-Wshadow])
       AX_APPEND_COMPILE_FLAGS([-Wshorten-64-to-32])
       AX_APPEND_COMPILE_FLAGS([-Wsign-compare])
-      AX_APPEND_COMPILE_FLAGS([-Wstack-protector])
       AX_APPEND_COMPILE_FLAGS([-Wstrict-overflow=1])
       AX_APPEND_COMPILE_FLAGS([-Wswitch-enum])
       AX_APPEND_COMPILE_FLAGS([-Wundef])
@@ -109,7 +110,6 @@
       AX_APPEND_COMPILE_FLAGS([-Wunused-variable])
       AX_APPEND_COMPILE_FLAGS([-Wwrite-strings])
       AX_APPEND_COMPILE_FLAGS([-floop-parallelize-all])
-      AX_APPEND_COMPILE_FLAGS([-fstack-protector-all])
       AX_APPEND_COMPILE_FLAGS([-fwrapv])
       AX_APPEND_COMPILE_FLAGS([-ggdb])
       AX_CHECK_LINK_FLAG([-Werror])
