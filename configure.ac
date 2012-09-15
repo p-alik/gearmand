@@ -208,8 +208,6 @@ AC_CHECK_FUNC(bind, [], [AC_CHECK_LIB(bind, bind)])
 
 AC_DEFINE([GEARMAND_BLOBSLAP_WORKER], [ 1 ], [Have Gearman Blobslap Worker])
 
-AC_TEST_FOR_REPOSITORY
-
 AX_CHECK_LIBRARY([LIBEVENT], [event.h], [event], 
                  [
                   LIBEVENT_LDFLAGS="-levent"
@@ -229,7 +227,7 @@ AX_CHECK_SOCK_CLOEXEC([AC_DEFINE([HAVE_SOCK_CLOEXEC], [1], [Check for SOCK_CLOEX
 AX_PTHREAD(, [AC_MSG_ERROR(could not find libpthread)])
 AX_PTHREAD_TIMEDJOIN_NP
 
-AX_HARDEN_COMPILER_FLAGS
+AX_HARDEN_CC_COMPILER_FLAGS
 
 AX_DEBUG
 

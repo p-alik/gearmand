@@ -1,3 +1,8 @@
+1.2.0 
+* 0.38 Fri Sep 14 02:16:01 EDT 2012
+* Updates for compiling on different platforms.
+* UUID portability fixes.
+
 1.1.0 Wed Sep  5 08:33:37 PDT 2012
 * Fix for ABI compatibility issues.
 
