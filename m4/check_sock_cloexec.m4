@@ -19,7 +19,8 @@ AC_DEFUN([AX_CHECK_SOCK_CLOEXEC], [
           return (s == -1);
           ])],
         [ax_cv_sock_cloexec=yes],
-        [ax_cv_sock_cloexec=no])
+        [ax_cv_sock_cloexec=no],
+        [AC_MSG_WARN([test program execution failed])])
       ])
 
     AS_IF([test x"ax_cv_sock_cloexec" = xyes], [AC_MSG_RESULT([yes]) ; $1], AC_MSG_RESULT([no]) ; $2)
