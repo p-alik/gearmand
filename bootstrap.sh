@@ -33,7 +33,7 @@
 
 if test -f configure; then make clean; make merge-clean; make distclean; fi;
 
-rm -r -f autom4te.cache/ config.h config.log config.status 
+rm -r -f autom4te.cache/ config.h config.log config.status configure
 ./config/autorun.sh
 if [ $(uname) = "Darwin" ];
 then
