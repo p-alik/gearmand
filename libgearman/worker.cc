@@ -945,6 +945,14 @@ gearman_return_t gearman_worker_define_function(gearman_worker_st *worker,
   return GEARMAN_INVALID_ARGUMENT;
 }
 
+void gearman_worker_reset_error(gearman_worker_st *worker)
+{
+  if (worker)
+  {
+    universal_reset_error(worker->universal);
+  }
+}
+
 gearman_return_t gearman_worker_work(gearman_worker_st *worker)
 {
   bool shutdown= false;

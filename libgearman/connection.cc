@@ -423,6 +423,8 @@ gearman_return_t gearman_connection_st::send_packet(const gearman_packet_st& pac
   switch (send_state)
   {
   case GEARMAN_CON_SEND_STATE_NONE:
+    assert_msg(packet_arg.universal, "send_packet() was to execute against a packet with no universal");
+    universal_reset_error(*(packet_arg.universal));
     if (packet_arg.options.complete == false)
     {
       return gearman_error(universal, GEARMAN_INVALID_PACKET, "packet not complete");

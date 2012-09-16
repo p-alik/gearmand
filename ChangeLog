@@ -1,3 +1,6 @@
+0.39
+* gearman_job_error()
+
 0.38 Fri Sep 14 02:16:01 EDT 2012
 * Updates for compiling on different platforms.
 * UUID portability fixes.
