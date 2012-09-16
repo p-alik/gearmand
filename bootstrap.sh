@@ -31,7 +31,15 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-if test -f configure; then make clean; make merge-clean; make distclean; fi;
+if test -n $MAKE; then 
+  MAKE="make"
+fi
+
+if test -n $MAKE_J; then 
+  MAKE_J="-j2"
+fi
+
+if test -f configure; then $MAKE $MAKE_J clean; $MAKE $MAKE_J merge-clean; $MAKE $MAKE_J distclean; fi;
 
 rm -r -f autom4te.cache/ config.h config.log config.status configure
 ./config/autorun.sh
@@ -41,4 +49,7 @@ then
 else
   ./configure --enable-assert
 fi
-make
+
+if test -z $JENKINS_URL; then 
+$MAKE $MAKE_J
+fi
