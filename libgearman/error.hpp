@@ -64,3 +64,5 @@ gearman_return_t gearman_universal_set_gerror(gearman_universal_st&,
                                               const char *position);
 
 void universal_reset_error(gearman_universal_st& universal);
+
+void gearman_worker_reset_error(gearman_worker_st *worker);

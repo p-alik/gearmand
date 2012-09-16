@@ -229,6 +229,13 @@ bool gearman_job_build_reducer(gearman_job_st *job, gearman_aggregator_fn *aggre
   return true;
 }
 
+static inline void gearman_job_reset_error(gearman_job_st *job)
+{
+  if (job->worker)
+  {
+    gearman_worker_reset_error(job->worker);
+  }
+}
 
 gearman_return_t gearman_job_send_data(gearman_job_st *job, const void *data, size_t data_size)
 {
@@ -243,7 +250,7 @@ gearman_return_t gearman_job_send_data(gearman_job_st *job, const void *data, si
     return GEARMAN_SUCCESS;
   }
 
-  if (not (job->options.work_in_use))
+  if ((job->options.work_in_use) == false)
   {
     args[0]= job->assigned.arg[0];
     args_size[0]= job->assigned.arg_size[0];
@@ -271,7 +278,7 @@ gearman_return_t gearman_job_send_warning(gearman_job_st *job,
   const void *args[2];
   size_t args_size[2];
 
-  if (not (job->options.work_in_use))
+  if ((job->options.work_in_use) == false)
   {
     args[0]= job->assigned.arg[0];
     args_size[0]= job->assigned.arg_size[0];
@@ -284,7 +291,9 @@ gearman_return_t gearman_job_send_warning(gearman_job_st *job,
                                     GEARMAN_COMMAND_WORK_WARNING,
                                     args, args_size, 2);
     if (gearman_failed(ret))
+    {
       return ret;
+    }
 
     job->options.work_in_use= true;
   }
@@ -449,7 +458,9 @@ gearman_return_t gearman_job_send_fail_fin(gearman_job_st *job)
   size_t args_size[1];
 
   if (job->options.finished)
+  {
     return GEARMAN_SUCCESS;
+  }
 
   if (not (job->options.work_in_use))
   {
@@ -460,7 +471,9 @@ gearman_return_t gearman_job_send_fail_fin(gearman_job_st *job)
                                                      GEARMAN_COMMAND_WORK_FAIL,
                                                      args, args_size, 1);
     if (gearman_failed(ret))
+    {
       return ret;
+    }
 
     job->options.work_in_use= true;
   }
@@ -594,6 +607,10 @@ static gearman_return_t _job_send(gearman_job_st *job)
 
   while ((ret == GEARMAN_IO_WAIT) or (ret == GEARMAN_TIMEOUT))
   {
+#if 0
+    assert(job->work.universal);
+    ret= gearman_wait(*(job->work.universal));
+#endif
     ret= gearman_wait(job->worker->universal);
     if (ret == GEARMAN_SUCCESS)
     {
@@ -610,4 +627,14 @@ static gearman_return_t _job_send(gearman_job_st *job)
   job->options.work_in_use= false;
 
   return GEARMAN_SUCCESS;
+}
+
+const char *gearman_job_error(gearman_job_st *job)
+{
+  if (job and job->worker)
+  {
+    return gearman_worker_error(job->worker);
+  }
+
+  return NULL;
 }
