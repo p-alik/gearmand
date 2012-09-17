@@ -249,9 +249,9 @@ echo ""
 echo "   * Installation prefix:       $prefix"
 echo "   * System type:               $host_vendor-$host_os"
 echo "   * Host CPU:                  $host_cpu"
-echo "   * C Compiler:                $CC"
+echo "   * C Compiler:                $CC_VERSION"
 echo "   * C Flags:                   $CFLAGS"
-echo "   * C++ Compiler:              $CXX"
+echo "   * C++ Compiler:              $CXX_VERSION"
 echo "   * C++ Flags:                 $CXXFLAGS"
 echo "   * CPP Flags:                 $CPPFLAGS"
 echo "   * Assertions enabled:        $ac_cv_assert"
@@ -265,3 +265,16 @@ echo "   * Building with tokyocabinet $ac_enable_libtokyocabinet"
 echo "   * Building with libmysql     $found_mysql"
 echo ""
 echo "---"
+
+case "$host_os" in
+  *freebsd*)
+    echo "*****"
+    echo "*"
+    echo "*  NOTE: You are on FreeBSD. BSD make will not work."
+    echo "*"
+    echo "*   use 'gmake' To build libmemcached"
+    echo "*"
+    echo "*****"
+  ;;
+esac
+
