@@ -2,7 +2,7 @@
 # AX_CHECK_SOCK_CLOEXEC([action-if-found], [action-if-not-found])
 #
 
-#serial 1
+#serial 2
 
 AC_DEFUN([AX_CHECK_SOCK_CLOEXEC], [
     AC_CACHE_CHECK([whether SOCK_CLOEXEC is supported], [ax_cv_sock_cloexec], [
