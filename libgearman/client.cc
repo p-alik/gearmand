@@ -351,7 +351,7 @@ int gearman_client_errno(const gearman_client_st *client)
 {
   if (client == NULL)
   {
-    return 0;
+    return EINVAL;
   }
 
   return gearman_universal_errno(client->universal);
