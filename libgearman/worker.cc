@@ -228,7 +228,7 @@ int gearman_worker_errno(gearman_worker_st *worker)
 {
   if (worker == NULL)
   {
-    return 0;
+    return EINVAL;
   }
 
   return gearman_universal_errno(worker->universal);

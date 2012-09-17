@@ -1241,6 +1241,50 @@ static test_return_t gearman_client_set_identifier_plus_random_TEST(void* object
   return TEST_SUCCESS;
 }
 
+static test_return_t gearman_client_free_TEST(void *)
+{
+  gearman_client_free(NULL);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_client_error_TEST(void *)
+{
+  test_null(gearman_client_error(NULL));
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_client_error_no_error_TEST(void *)
+{
+  Client client;
+  test_null(gearman_client_error(&client));
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_client_errno_TEST(void *)
+{
+  test_compare(EINVAL, gearman_client_errno(NULL));
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_client_errno_no_error_TEST(void *)
+{
+  Client client;
+  test_compare(0, gearman_client_errno(&client));
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_client_options_TEST(void *)
+{
+  test_compare(gearman_client_options_t(), gearman_client_options(NULL));
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t __SETUP(client_test_st* test, const gearman_function_t& echo_react_fn)
 {
   test_true(test);
@@ -1540,6 +1584,16 @@ test_st gearman_task_tests[] ={
   {"gearman_client_add_task_status_by_unique(NOT_FOUND)", 0, gearman_client_add_task_status_by_unique_NOT_FOUND_TEST },
   {"gearman_client_add_task_status_by_unique()", 0, gearman_client_add_task_status_by_unique_TEST },
   {"gearman_client_add_task() fail", 0, gearman_client_add_task_test_fail}, // Fail needs to go last
+  {0, 0, 0}
+};
+
+test_st gearman_client_st_NULL_invocation_TESTS[] ={
+  {"gearman_client_free()", 0, gearman_client_free_TEST },
+  {"gearman_client_error()", 0, gearman_client_error_TEST },
+  {"gearman_client_error() no error", 0, gearman_client_error_no_error_TEST },
+  {"gearman_client_errno()", 0, gearman_client_errno_TEST },
+  {"gearman_client_errno() no error", 0, gearman_client_errno_no_error_TEST },
+  {"gearman_client_options()", 0, gearman_client_options_TEST },
   {0, 0, 0}
 };
 
