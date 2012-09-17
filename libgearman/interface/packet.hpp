@@ -53,12 +53,12 @@ struct gearman_universal_st;
 struct gearman_packet_st
 {
   struct Options {
-    bool is_allocated;
+    const bool is_allocated;
     bool complete;
     bool free_data;
 
-    Options() :
-      is_allocated(false),
+    Options(bool is_allocted_) :
+      is_allocated(is_allocted_),
       complete(false),
       free_data(false)
     { }
@@ -80,7 +80,8 @@ struct gearman_packet_st
   uint32_t _id;
 #endif
 
-  gearman_packet_st() :
+  gearman_packet_st(bool is_allocted_= false) :
+    options(is_allocted_),
     magic(GEARMAN_MAGIC_TEXT),
     command(GEARMAN_COMMAND_TEXT),
     argc(0),
@@ -92,5 +93,32 @@ struct gearman_packet_st
     args(0),
     data(0)
   {
+  }
+
+  void free__data();
+
+  void reset()
+  {
+    if (args != args_buffer and args)
+    {
+      // Created with realloc
+      free(args);
+      args= NULL;
+    }
+
+    free__data();
+
+    options.complete= false;
+    options.free_data= false;
+    magic= GEARMAN_MAGIC_TEXT;
+    command= GEARMAN_COMMAND_TEXT;
+    argc= 0;
+    args_size= 0;
+    data_size= 0;
+    universal= NULL;
+    next= 0;
+    prev= 0;
+    args= 0;
+    data= 0;
   }
 };
