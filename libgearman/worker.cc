@@ -226,7 +226,7 @@ int gearman_worker_errno(gearman_worker_st *worker_shell)
     return worker_shell->impl()->universal.last_errno();
   }
 
-  return 0;
+  return EINVAL;
 }
 
 gearman_worker_options_t gearman_worker_options(const gearman_worker_st *worker)
@@ -941,6 +941,14 @@ gearman_return_t gearman_worker_define_function(gearman_worker_st *worker,
                                  context);
 
   return GEARMAN_INVALID_ARGUMENT;
+}
+
+void gearman_worker_reset_error(gearman_worker_st *worker)
+{
+  if (worker and worker->impl())
+  {
+    universal_reset_error(worker->impl()->universal);
+  }
 }
 
 gearman_return_t gearman_worker_work(gearman_worker_st *worker)
