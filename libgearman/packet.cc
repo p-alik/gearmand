@@ -159,30 +159,18 @@ gearman_packet_st *gearman_packet_create(gearman_universal_st &universal,
 {
   if (packet)
   {
-    gearman_set_allocated(packet, false);
-    packet->options.complete= false;
-    packet->options.free_data= false;
+    packet->reset();
   }
   else
   {
-    packet= new (std::nothrow) gearman_packet_st;
+    packet= new (std::nothrow) gearman_packet_st(true);
     if (packet == NULL)
     {
       gearman_perror(universal, "gearman_packet_st new");
       errno= ENOMEM;
       return NULL;
     }
-
-    gearman_set_allocated(packet, true);
   }
-  packet->options.complete= false;
-  packet->options.free_data= false;
-
-  packet->magic= GEARMAN_MAGIC_TEXT;
-  packet->command= GEARMAN_COMMAND_TEXT;
-  packet->argc= 0;
-  packet->args_size= 0;
-  packet->data_size= 0;
   packet->universal= &universal;
 
 #ifdef GEARMAN_PACKET_TRACE
@@ -204,9 +192,6 @@ gearman_packet_st *gearman_packet_create(gearman_universal_st &universal,
     universal.packet_list= packet;
     universal.packet_count++;
   }
-
-  packet->args= NULL;
-  packet->data= NULL;
 
   return packet;
 }
@@ -325,7 +310,7 @@ void gearman_packet_free(gearman_packet_st *packet)
   }
   else
   {
-    memset(packet, 0, sizeof(gearman_packet_st));
+    packet->reset();
   }
 }
 
@@ -591,4 +576,14 @@ void *gearman_packet_take_data(gearman_packet_st& self, size_t *data_size)
   self.options.free_data= false;
 
   return data;
+}
+
+void gearman_packet_st::free__data()
+{
+  if (universal and options.free_data and data)
+  {
+    gearman_free((*universal), const_cast<void *>(data));
+    data= NULL;
+    options.free_data= false;
+  }
 }

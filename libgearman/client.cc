@@ -338,7 +338,7 @@ int gearman_client_errno(const gearman_client_st *client_shell)
     return client_shell->impl()->universal.last_errno();
   }
 
-  return 0;
+  return EINVAL;
 }
 
 gearman_client_options_t gearman_client_options(const gearman_client_st *client_shell)
