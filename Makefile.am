@@ -48,8 +48,6 @@ include docs/include.am
 
 include m4/include.am
 
-docs: html man
-
 TESTS += $(check_PROGRAMS)
 
 EXTRA_DIST+= HACKING
