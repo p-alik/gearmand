@@ -202,7 +202,7 @@ sphinx-help:
 docs/_static: 
 	@$(mkdir_p) docs/_static
 
-html-local: docs/conf.py docs/_static
+html-local: docs/conf.py docs changes docs/_static
 	PYTHONPATH=${top_srcdir}/docs $(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(SPHINX_BUILDDIR)/html."
