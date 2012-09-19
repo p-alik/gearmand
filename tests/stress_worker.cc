@@ -116,7 +116,7 @@ extern "C" {
     pthread_setcanceltype(oldstate, NULL);
   }
 
-  static void *client_thread(void *object)
+  static __attribute__((noreturn)) void *client_thread(void *object)
   {
     client_thread_context_st *success= (client_thread_context_st *)object;
     fatal_assert(success);

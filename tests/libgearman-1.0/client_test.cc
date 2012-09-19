@@ -126,7 +126,7 @@ static void *client_test_temp_worker(gearman_job_st *, void *,
 
 extern "C"
 {
-  static void *client_thread(void *object)
+  static __attribute__((noreturn)) void *client_thread(void *object)
   {
     volatile gearman_return_t *ret= (volatile gearman_return_t *)object;
     size_t result_size;

@@ -177,6 +177,9 @@ man3_MANS+= \
 	    docs/man/libgearman.3
 
 if HAVE_SPHINX
+
+docs: html man
+
 sphinx-help:
 	@echo "Please use \`make <target>' where <target> is one of"
 	@echo "  html       to make standalone HTML files"
@@ -200,17 +203,20 @@ install-html: html-local
 	@rm -r -f /var/www/gearmand/*
 	@cp -r docs/html /var/www/gearmand
 
-html-local: docs/conf.py docs
+docs/_static: 
+	@$(mkdir_p) docs/_static
+
+html-local: docs/conf.py docs changes docs/_static
 	PYTHONPATH=${top_srcdir}/docs $(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(SPHINX_BUILDDIR)/html."
 
-dirhtml: docs/conf.py
+dirhtml: html-local
 	PYTHONPATH=${top_srcdir}/docs $(SPHINXBUILD) -b dirhtml $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/dirhtml
 	@echo
 	@echo "Build finished. The HTML pages are in $(SPHINX_BUILDDIR)/dirhtml."
 
-singlehtml: docs/conf.py
+singlehtml: html-local
 	PYTHONPATH=${top_srcdir}/docs  $(SPHINXBUILD) -b singlehtml $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/singlehtml
 	@echo
 	@echo "Build finished. The HTML page is in $(SPHINX_BUILDDIR)/singlehtml."
@@ -292,6 +298,10 @@ doctest: docs/conf.py
 	PYTHONPATH=${top_srcdir}/docs  $(SPHINXBUILD) -b doctest $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/doctest
 	@echo "Testing of doctests in the sources finished, look at the " \
 	      "results in $(SPHINX_BUILDDIR)/doctest/output.txt."
+
+else
+
+docs:
 
 endif
 

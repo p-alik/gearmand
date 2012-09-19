@@ -42,6 +42,8 @@ gl_VISIBILITY
 PANDORA_PLATFORM
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 
+PANDORA_CHECK_CXX_VERSION
+
 AX_CXX_HEADER_STDCXX_98
   if test "$ax_cv_cxx_stdcxx_98" = no; then
     AC_MSG_ERROR([Your system lacks a new enough C++ compiler])
@@ -255,7 +257,7 @@ echo "   * C++ Compiler:              $CXX_VERSION"
 echo "   * C++ Flags:                 $CXXFLAGS"
 echo "   * CPP Flags:                 $CPPFLAGS"
 echo "   * Assertions enabled:        $ac_cv_assert"
-echo "   * Debug enabled:             $with_debug"
+echo "   * Debug enabled:             $ax_with_debug"
 echo "   * Warnings as failure:       $ac_cv_warnings_as_errors"
 echo "   * Building with libsqlite3   $WANT_SQLITE3"
 echo "   * Building with libdrizzle   $ac_enable_libdrizzle"
