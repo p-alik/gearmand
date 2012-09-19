@@ -177,6 +177,9 @@ man3_MANS+= \
 	    docs/man/libgearman.3
 
 if HAVE_SPHINX
+
+docs: html man
+
 sphinx-help:
 	@echo "Please use \`make <target>' where <target> is one of"
 	@echo "  html       to make standalone HTML files"
@@ -196,7 +199,10 @@ sphinx-help:
 	@echo "  linkcheck  to check all external links for integrity"
 	@echo "  doctest    to run all doctests embedded in the documentation (if enabled)"
 
-html-local: docs/conf.py
+docs/_static: 
+	@$(mkdir_p) docs/_static
+
+html-local: docs/conf.py docs/_static
 	PYTHONPATH=${top_srcdir}/docs $(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(SPHINX_BUILDDIR)/html."
@@ -288,6 +294,10 @@ doctest: docs/conf.py
 	PYTHONPATH=${top_srcdir}/docs  $(SPHINXBUILD) -b doctest $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/doctest
 	@echo "Testing of doctests in the sources finished, look at the " \
 	      "results in $(SPHINX_BUILDDIR)/doctest/output.txt."
+
+else
+
+docs:
 
 endif
 
