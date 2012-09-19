@@ -1,9 +1,6 @@
-0.39
-
+0.39 Wed Sep 19 03:36:06 EDT 2012
 * Added gearman_job_error() interface.
-
 * gearman_client_errno() and gearman_worker_errno() now return EINVAL if client or worker is invalid.
-
 
 0.38 Fri Sep 14 02:16:01 EDT 2012
 * Updates for compiling on different platforms.
