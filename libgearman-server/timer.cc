@@ -40,6 +40,7 @@
 #include <libgearman-server/common.h>
 #include <libgearman-server/gearmand.h>
 
+#include <libgearman/pipe.h>
 #include <libgearman-server/timer.h>
 
 #include <cerrno>
@@ -53,33 +54,37 @@ static pthread_t thread_id;
 
 static struct timeval current_epoch;
 
+static int wakeup_fd[2];
+
 static __attribute__((noreturn)) void* current_epoch_handler(void*)
 {
   gearmand_debug("staring up Epoch thread");
 
-  pollfd fds[1];
+  pollfd fds[2];
   while (true)
   {
     memset(fds, 0, sizeof(pollfd));
     fds[0].fd= -1; //STDIN_FILENO;
     fds[0].events= POLLIN;
     fds[0].revents= 0;
+    fds[1].fd= wakeup_fd[0]; // wakeup fd
+    fds[1].events= POLLIN;
+    fds[1].revents= 0;
 
     int active_fd;
-    if ((active_fd= poll(fds, 1, 1000)) == -1)
+    if ((active_fd= poll(fds, 2, 1000)) == -1)
     {
-      switch (errno)
-      {
-      case EINTR: // Shutdown
-        pthread_exit(NULL);
-
-      default:
-        gearmand_perror("poll");
-      }
+      gearmand_perror("poll");
     }
 
-    if (active_fd == 1)
+    fprintf(stderr, "poll(1) active:%d %d\n", active_fd, fds[1].revents);
+    if (active_fd > 0)
     {
+      fprintf(stderr, "poll(1) %d\n", fds[1].revents);
+      if (fds[1].revents)
+      {
+        pthread_exit(NULL);
+      }
       gettimeofday(&current_epoch, NULL);
     }
   }
@@ -87,19 +92,30 @@ static __attribute__((noreturn)) void* current_epoch_handler(void*)
   pthread_exit(NULL);
 }
 
+namespace libgearman {
+namespace server {
+
 static void startup(void)
 {
+  wakeup_fd[0]= -1;
+  wakeup_fd[1]= -1;
+
+  if (setup_shutdown_pipe(wakeup_fd) == false)
+  {
+    fprintf(stderr, "Could not setup pipe\n");
+    exit(1);
+  }
+
   gettimeofday(&current_epoch, NULL);
 
   int error;
   if ((error= pthread_create(&thread_id, NULL, current_epoch_handler, NULL)))
   {
-    fprintf(stderr, "pthread_create failed\n");
+    fprintf(stderr, "pthread_create() failed: %s\n", strerror(error));
+    exit(1);
   }
 }
 
-namespace libgearman {
-namespace server {
 
 Epoch::Epoch()
 {
@@ -109,12 +125,32 @@ Epoch::Epoch()
 Epoch::~Epoch()
 {
   gearmand_debug("shutting down Epoch thread");
+  int count= 5;
+  while (--count)
+  {
+    if (close(wakeup_fd[1]) == -1)
+    {
+      switch(errno)
+      {
+      case EAGAIN:
+        continue;
+
+      default:
+        break;
+      }
+    }
+
+    break; // close()
+  }
+
+#if 0
   int error;
-  if ((error= pthread_kill(thread_id, SIGTERM)) != 0)
+  if ((error= pthread_kill(thread_id, SIGPIPE)) != 0)
   {
     errno= error;
     gearmand_perror("pthread_kill(thread_id, SIGTERM)");
   }
+#endif
   pthread_join(thread_id, 0);
 
   gearmand_debug("shutdown of Epoch completed");

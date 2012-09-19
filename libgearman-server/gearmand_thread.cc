@@ -182,12 +182,23 @@ void gearmand_thread_free(gearmand_thread_st *thread)
     gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Shutting down thread %u", thread->count);
 
     gearmand_thread_wakeup(thread, GEARMAND_WAKEUP_SHUTDOWN);
-    (void) pthread_join(thread->id, NULL);
+    int pthread_error;
+    if ((pthread_error= pthread_join(thread->id, NULL)))
+    {
+      errno= pthread_error;
+      gearmand_perror("pthread_join");
+    }
+    fprintf(stderr, "Join worked\n");
   }
 
   if (thread->is_thread_lock)
   {
-    (void) pthread_mutex_destroy(&(thread->lock));
+    int pthread_error;
+    if ((pthread_error= pthread_mutex_destroy(&(thread->lock))))
+    {
+      errno= pthread_error;
+      gearmand_perror("pthread_mutex_destroy");
+    }
   }
 
   _wakeup_close(thread);
@@ -221,6 +232,7 @@ void gearmand_thread_free(gearmand_thread_st *thread)
     if (thread->base != NULL)
     {
       event_base_free(thread->base);
+      thread->base= NULL;
     }
 
     gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Thread %u shutdown complete", thread->count);

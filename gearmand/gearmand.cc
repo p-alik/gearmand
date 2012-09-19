@@ -384,6 +384,7 @@ int main(int argc, char *argv[])
   gearmand_error_t ret= gearmand_run(_gearmand);
 
   gearmand_free(_gearmand);
+  _gearmand= NULL;
 
   return (ret == GEARMAN_SUCCESS || ret == GEARMAN_SHUTDOWN) ? 0 : 1;
 }
