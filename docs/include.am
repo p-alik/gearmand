@@ -199,10 +199,10 @@ sphinx-help:
 	@echo "  linkcheck  to check all external links for integrity"
 	@echo "  doctest    to run all doctests embedded in the documentation (if enabled)"
 
-_static: ${top_srcdir}/docs/_static
-	@$(mkdir_p) ${top_srcdir}/docs/_static
+docs/_static: 
+	@$(mkdir_p) docs/_static
 
-html-local: docs/conf.py _static
+html-local: docs/conf.py docs/_static
 	PYTHONPATH=${top_srcdir}/docs $(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(SPHINX_BUILDDIR)/html."
