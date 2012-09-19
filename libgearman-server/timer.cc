@@ -77,10 +77,8 @@ static __attribute__((noreturn)) void* current_epoch_handler(void*)
       gearmand_perror("poll");
     }
 
-    fprintf(stderr, "poll(1) active:%d %d\n", active_fd, fds[1].revents);
     if (active_fd > 0)
     {
-      fprintf(stderr, "poll(1) %d\n", fds[1].revents);
       if (fds[1].revents)
       {
         pthread_exit(NULL);

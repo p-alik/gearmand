@@ -141,7 +141,6 @@ static void gearman_server_free(gearman_server_st& server)
     delete worker;
   }
 
-  fprintf(stderr, "Object: %s\n", server.queue.object ? "true" : "false");
   if (server.queue_version == QUEUE_VERSION_CLASS)
   {
     delete server.queue.object;
@@ -232,7 +231,6 @@ gearmand_st *gearmand_create(const char *host_arg,
 
 void gearmand_free(gearmand_st *gearmand)
 {
-  fprintf(stderr, "Calling free \n");
   if (gearmand)
   {
     _close_events(gearmand);
@@ -246,7 +244,6 @@ void gearmand_free(gearmand_st *gearmand)
     {
       gearmand_thread_free(gearmand->thread_list);
     }
-    fprintf(stderr, "Threads are now free\n");
 
     while (gearmand->free_dcon_list != NULL)
     {
@@ -287,7 +284,6 @@ void gearmand_free(gearmand_st *gearmand)
 
     delete gearmand;
   }
-  fprintf(stderr, "Completed free \n");
 }
 
 static void gearmand_set_log_fn(gearmand_st *gearmand, gearmand_log_fn *function,

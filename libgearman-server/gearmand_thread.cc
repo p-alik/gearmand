@@ -188,7 +188,6 @@ void gearmand_thread_free(gearmand_thread_st *thread)
       errno= pthread_error;
       gearmand_perror("pthread_join");
     }
-    fprintf(stderr, "Join worked\n");
   }
 
   if (thread->is_thread_lock)
