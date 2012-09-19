@@ -87,7 +87,7 @@ static gearmand_error_t _watch_events(gearmand_st *gearmand);
 static void _clear_events(gearmand_st *gearmand);
 static void _close_events(gearmand_st *gearmand);
 
-static bool gearman_server_create(gearman_server_st *server,
+static bool gearman_server_create(gearman_server_st& server,
                                   uint8_t job_retries,
                                   uint8_t worker_wakeup,
                                   bool round_robin);
@@ -95,53 +95,56 @@ static void gearmand_set_log_fn(gearmand_st *gearmand, gearmand_log_fn *function
                                 void *context, const gearmand_verbose_t verbose);
 
 
-static void gearman_server_free(gearman_server_st *server)
+static void gearman_server_free(gearman_server_st& server)
 {
   /* All threads should be cleaned up before calling this. */
-  assert(server->thread_list == NULL);
+  assert(server.thread_list == NULL);
 
   for (uint32_t key= 0; key < GEARMAND_JOB_HASH_SIZE; key++)
   {
-    while (server->job_hash[key] != NULL)
+    while (server.job_hash[key] != NULL)
     {
-      gearman_server_job_free(server->job_hash[key]);
+      gearman_server_job_free(server.job_hash[key]);
     }
   }
 
-  while (server->function_list != NULL)
+  while (server.function_list != NULL)
   {
-    gearman_server_function_free(server, server->function_list);
+    gearman_server_function_free(&server, server.function_list);
   }
 
-  while (server->free_packet_list != NULL)
+  while (server.free_packet_list != NULL)
   {
-    gearman_server_packet_st *packet= server->free_packet_list;
-    server->free_packet_list= packet->next;
+    gearman_server_packet_st *packet= server.free_packet_list;
+    server.free_packet_list= packet->next;
     delete packet;
   }
 
-  while (server->free_job_list != NULL)
+  while (server.free_job_list != NULL)
   {
-    gearman_server_job_st* job= server->free_job_list;
-    server->free_job_list= job->next;
+    gearman_server_job_st* job= server.free_job_list;
+    server.free_job_list= job->next;
     delete job;
   }
 
-  while (server->free_client_list != NULL)
+  while (server.free_client_list != NULL)
   {
-    gearman_server_client_st* client= server->free_client_list;
-    server->free_client_list= client->con_next;
+    gearman_server_client_st* client= server.free_client_list;
+    server.free_client_list= client->con_next;
     delete client;
   }
 
-  while (server->free_worker_list != NULL)
+  while (server.free_worker_list != NULL)
   {
-    gearman_server_worker_st* worker= server->free_worker_list;
-    server->free_worker_list= worker->con_next;
+    gearman_server_worker_st* worker= server.free_worker_list;
+    server.free_worker_list= worker->con_next;
     delete worker;
   }
 
-  delete server->queue.object;
+  if (server.queue_version == QUEUE_VERSION_CLASS)
+  {
+    delete server.queue.object;
+  }
 }
 
 /** @} */
@@ -191,7 +194,7 @@ gearmand_st *gearmand_create(const char *host_arg,
     return NULL;
   }
 
-  if (gearman_server_create(&(gearmand->server), job_retries, worker_wakeup, round_robin) == false)
+  if (gearman_server_create(gearmand->server, job_retries, worker_wakeup, round_robin) == false)
   {
     delete gearmand;
     return NULL;
@@ -228,55 +231,59 @@ gearmand_st *gearmand_create(const char *host_arg,
 
 void gearmand_free(gearmand_st *gearmand)
 {
-  _close_events(gearmand);
-
-  if (gearmand->threads > 0)
+  if (gearmand)
   {
-    gearmand_debug("Shutting down all threads");
-  }
+    _close_events(gearmand);
 
-  while (gearmand->thread_list != NULL)
-  {
-    gearmand_thread_free(gearmand->thread_list);
-  }
-
-  while (gearmand->free_dcon_list != NULL)
-  {
-    gearmand_con_st *dcon;
-
-    dcon= gearmand->free_dcon_list;
-    gearmand->free_dcon_list= dcon->next;
-    free(dcon);
-  }
-
-  if (gearmand->base != NULL)
-  {
-    event_base_free(gearmand->base);
-  }
-
-  gearman_server_free(&(gearmand->server));
-
-  for (uint32_t x= 0; x < gearmand->port_count; x++)
-  {
-    if (gearmand->port_list[x].listen_fd != NULL)
+    if (gearmand->threads > 0)
     {
-      free(gearmand->port_list[x].listen_fd);
+      gearmand_debug("Shutting down all threads");
     }
 
-    if (gearmand->port_list[x].listen_event != NULL)
+    while (gearmand->thread_list != NULL)
     {
-      free(gearmand->port_list[x].listen_event);
+      gearmand_thread_free(gearmand->thread_list);
     }
+
+    while (gearmand->free_dcon_list != NULL)
+    {
+      gearmand_con_st *dcon;
+
+      dcon= gearmand->free_dcon_list;
+      gearmand->free_dcon_list= dcon->next;
+      free(dcon);
+    }
+
+    if (gearmand->base != NULL)
+    {
+      event_base_free(gearmand->base);
+      gearmand->base= NULL;
+    }
+
+    gearman_server_free(gearmand->server);
+
+    for (uint32_t x= 0; x < gearmand->port_count; x++)
+    {
+      if (gearmand->port_list[x].listen_fd != NULL)
+      {
+        free(gearmand->port_list[x].listen_fd);
+      }
+
+      if (gearmand->port_list[x].listen_event != NULL)
+      {
+        free(gearmand->port_list[x].listen_event);
+      }
+    }
+
+    if (gearmand->port_list != NULL)
+    {
+      free(gearmand->port_list);
+    }
+
+    gearmand_info("Shutdown complete");
+
+    delete gearmand;
   }
-
-  if (gearmand->port_list != NULL)
-  {
-    free(gearmand->port_list);
-  }
-
-  gearmand_info("Shutdown complete");
-
-  delete gearmand;
 }
 
 static void gearmand_set_log_fn(gearmand_st *gearmand, gearmand_log_fn *function,
@@ -1076,43 +1083,43 @@ bool gearmand_verbose_check(const char *name, gearmand_verbose_t& level)
   return success;
 }
 
-static bool gearman_server_create(gearman_server_st *server, 
+static bool gearman_server_create(gearman_server_st& server, 
                                   uint8_t job_retries_arg,
                                   uint8_t worker_wakeup_arg,
                                   bool round_robin_arg)
 {
   struct utsname un;
-  assert(server);
 
-  server->state.queue_startup= false;
-  server->flags.round_robin= round_robin_arg;
-  server->flags.threaded= false;
-  server->shutdown= false;
-  server->shutdown_graceful= false;
-  server->proc_wakeup= false;
-  server->proc_shutdown= false;
-  server->job_retries= job_retries_arg;
-  server->worker_wakeup= worker_wakeup_arg;
-  server->thread_count= 0;
-  server->free_packet_count= 0;
-  server->function_count= 0;
-  server->job_count= 0;
-  server->unique_count= 0;
-  server->free_job_count= 0;
-  server->free_client_count= 0;
-  server->free_worker_count= 0;
-  server->thread_list= NULL;
-  server->free_packet_list= NULL;
-  server->function_list= NULL;
-  server->free_job_list= NULL;
-  server->free_client_list= NULL;
-  server->free_worker_list= NULL;
+  server.state.queue_startup= false;
+  server.flags.round_robin= round_robin_arg;
+  server.flags.threaded= false;
+  server.shutdown= false;
+  server.shutdown_graceful= false;
+  server.proc_wakeup= false;
+  server.proc_shutdown= false;
+  server.job_retries= job_retries_arg;
+  server.worker_wakeup= worker_wakeup_arg;
+  server.thread_count= 0;
+  server.free_packet_count= 0;
+  server.function_count= 0;
+  server.job_count= 0;
+  server.unique_count= 0;
+  server.free_job_count= 0;
+  server.free_client_count= 0;
+  server.free_worker_count= 0;
+  server.thread_list= NULL;
+  server.free_packet_list= NULL;
+  server.function_list= NULL;
+  server.free_job_list= NULL;
+  server.free_client_list= NULL;
+  server.free_worker_list= NULL;
 
-  server->queue_version= QUEUE_VERSION_FUNCTION;
+  server.queue_version= QUEUE_VERSION_FUNCTION;
+  server.queue.object= NULL;
 
-  memset(server->job_hash, 0,
+  memset(server.job_hash, 0,
          sizeof(gearman_server_job_st *) * GEARMAND_JOB_HASH_SIZE);
-  memset(server->unique_hash, 0,
+  memset(server.unique_hash, 0,
          sizeof(gearman_server_job_st *) * GEARMAND_JOB_HASH_SIZE);
 
   if (uname(&un) == -1)
@@ -1121,14 +1128,14 @@ static bool gearman_server_create(gearman_server_st *server,
     return false;
   }
 
-  int checked_length= snprintf(server->job_handle_prefix, GEARMAND_JOB_HANDLE_SIZE, "H:%s", un.nodename);
+  int checked_length= snprintf(server.job_handle_prefix, GEARMAND_JOB_HANDLE_SIZE, "H:%s", un.nodename);
   if (checked_length >= GEARMAND_JOB_HANDLE_SIZE or checked_length <= 0)
   {
     gearman_server_free(server);
     return false;
   }
 
-  server->job_handle_count= 1;
+  server.job_handle_count= 1;
 
   return true;
 }
