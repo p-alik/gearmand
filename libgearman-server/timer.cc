@@ -53,7 +53,7 @@ static pthread_t thread_id;
 
 static struct timeval current_epoch;
 
-static void* current_epoch_handler(void*)
+static __attribute__((noreturn)) void* current_epoch_handler(void*)
 {
   gearmand_debug("staring up Epoch thread");
 
