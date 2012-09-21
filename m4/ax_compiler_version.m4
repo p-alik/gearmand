@@ -1,10 +1,4 @@
-dnl  Copyright (C) 2009 Sun Microsystems, Inc.
-dnl This file is free software; Sun Microsystems, Inc.
-dnl gives unlimited permission to copy and/or distribute it,
-dnl with or without modifications, as long as this notice is preserved.
-
-
-AC_DEFUN([PANDORA_CHECK_C_VERSION],[
+AC_DEFUN([AX_C_COMPILER_VERSION],[
 
     dnl Print version of C compiler
     AC_MSG_CHECKING("C Compiler version--$GCC")
@@ -21,10 +15,10 @@ AC_DEFUN([PANDORA_CHECK_C_VERSION],[
     ])
 
 
-AC_DEFUN([PANDORA_CHECK_CXX_VERSION], [
+AC_DEFUN([AX_CXX_COMPILER_VERSION], [
 
     dnl Check C version while at it
-    AC_REQUIRE([PANDORA_CHECK_C_VERSION])
+    AC_REQUIRE([AX_C_COMPILER_VERSION])
 
     dnl Print version of CXX compiler
     AC_MSG_CHECKING("C++ Compiler version")
@@ -39,3 +33,4 @@ AC_DEFUN([PANDORA_CHECK_CXX_VERSION], [
     AC_MSG_RESULT("$CXX_VERSION")
     AC_SUBST(CXX_VERSION)
   ])
+
