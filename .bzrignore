@@ -139,3 +139,5 @@ tests/stress_test
 tests/mysql_test
 m4/.git
 libtest/core-count
+docs/changes/
+docs/latex/
