@@ -6,7 +6,7 @@
 # Use and distribution licensed under the BSD license.  See
 # the COPYING file in this directory for full text.
 
-AC_INIT([gearmand],[0.39],[https://bugs.launchpad.net/gearmand],[gearmand],[http://gearman.info/])
+AC_INIT([gearmand],[0.40],[https://bugs.launchpad.net/gearmand],[gearmand],[http://gearman.info/])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
 
@@ -222,8 +222,11 @@ AX_CHECK_SOCK_CLOEXEC([AC_DEFINE([HAVE_SOCK_CLOEXEC], [1], [Check for SOCK_CLOEX
 AX_PTHREAD(, [AC_MSG_ERROR(could not find libpthread)])
 AX_PTHREAD_TIMEDJOIN_NP
 
-AX_HARDEN_CC_COMPILER_FLAGS
+AX_ENDIAN
+AX_HEX_VERSION
 AX_ASSERT
+AX_CXX_COMPILER_VERSION
+AX_HARDEN_COMPILER_FLAGS
 
 AC_CONFIG_FILES(Makefile
                 docs/conf.py

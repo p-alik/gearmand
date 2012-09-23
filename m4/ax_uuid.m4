@@ -87,7 +87,7 @@ AC_DEFUN([AX_UUID], [
         ])
 
       AS_IF([test "$ax_cv_uuid_generate_time_safe" = yes],[
-        AC_DEFINE(HAVE_UUID_GENERATE_TIME_SAFE,[1],[Define if uuid_generate_time_safe is present in uuid/uuid.h.])],[
-        AC_DEFINE(HAVE_UUID_GENERATE_TIME_SAFE,[0],[Define if uuid_generate_time_safe is present in uuid/uuid.h.])
+        AC_DEFINE([HAVE_UUID_GENERATE_TIME_SAFE],[1],[Define if uuid_generate_time_safe is present in uuid/uuid.h.])],[
+        AC_DEFINE([HAVE_UUID_GENERATE_TIME_SAFE],[0],[Define if uuid_generate_time_safe is present in uuid/uuid.h.])
         ])
       ])
