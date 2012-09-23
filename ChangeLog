@@ -1,3 +1,6 @@
+0.40
+* Switched from --having-debug to --enable-debug
+
 0.39 Wed Sep 19 03:36:06 EDT 2012
 * Added gearman_job_error() interface.
 * gearman_client_errno() and gearman_worker_errno() now return EINVAL if client or worker is invalid.

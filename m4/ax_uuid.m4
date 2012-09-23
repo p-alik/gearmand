@@ -1,5 +1,5 @@
 # ===========================================================================
-# http://
+# https://github.com/BrianAker/ddm4
 # ===========================================================================
 #
 # SYNOPSIS
@@ -20,7 +20,7 @@
 #   and this notice are preserved. This file is offered as-is, without any
 #   warranty.
 
-#serial 3
+#serial 4
 
 AC_DEFUN([AX_UUID], [
     AC_CHECK_HEADER([uuid/uuid.h], [
@@ -33,7 +33,7 @@ AC_DEFUN([AX_UUID], [
             ])],
           [ax_cv_libuuid_is_required=no],
           [ax_cv_libuuid_is_required=maybe],
-	  [AC_MSG_WARN([test program execution failed])])
+          [AC_MSG_WARN([test program execution failed])])
         AC_LANG_POP
         ])
 
@@ -49,7 +49,7 @@ AC_DEFUN([AX_UUID], [
               ])],
             [ax_cv_libuuid_works=yes],
             [ax_cv_libuuid_works=no],
-	    [AC_MSG_WARN([test program execution failed])])
+            [AC_MSG_WARN([test program execution failed])])
           AC_LANG_POP
           LIBS="$save_LIBS"
           ])
@@ -81,7 +81,7 @@ AC_DEFUN([AX_UUID], [
             ])],
           [ax_cv_uuid_generate_time_safe=yes],
           [ax_cv_uuid_generate_time_safe=no],
-	  [AC_MSG_WARN([test program execution failed])])
+          [AC_MSG_WARN([test program execution failed])])
         AC_LANG_POP
         LIBS="$save_LIBS"
         ])

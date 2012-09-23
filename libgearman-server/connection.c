@@ -120,7 +120,7 @@ static gearman_server_con_st * _server_con_create(gearman_server_thread_st *thre
   con->is_cleaned_up = false;
   con->is_noop_sent= false;
 
-  con->ret= 0;
+  con->ret= GEARMAN_SUCCESS;
   con->io_list= false;
   con->proc_list= false;
   con->to_be_freed_list= false;
