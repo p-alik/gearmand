@@ -80,7 +80,6 @@ AX_LIB_CURL([7.21.7],
               ]
              )
 
-m4_include([m4/have_sphinx.m4])
 m4_include([m4/drizzled.m4])
 WITH_LIBDRIZZLE
 
@@ -114,6 +113,7 @@ AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_CHECK_PROGS([VALGRIND], ['valgrind'])
+AX_PROG_SPHINX_BUILD
 
 # Checks for header files.
 AC_HEADER_STDC
