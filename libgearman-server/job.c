@@ -159,9 +159,8 @@ gearman_server_job_add_reducer(gearman_server_st *server,
       else
       {
         /* Look up job via unique data when unique = '-'. */
-        key= _server_job_hash(data, data_size);
-        server_job= _server_job_get_unique(server, key, server_function, data,
-                                           data_size);
+        key= _server_job_hash((const char*)data, data_size);
+        server_job= _server_job_get_unique(server, key, server_function, (const char*)data, data_size);
       }
     }
     else
