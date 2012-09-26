@@ -105,7 +105,7 @@ static test_return_t collection_cleanup(void *object)
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  if (test_for_HAVE_LIBSQLITE3(error))
+  if (test_for_HAVE_LIBSQLITE3(error) == false)
   {
     error= TEST_SKIPPED;
     return NULL;
