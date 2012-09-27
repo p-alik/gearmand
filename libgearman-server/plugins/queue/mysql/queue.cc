@@ -46,8 +46,8 @@
 #include <libgearman-server/plugins/queue/mysql/queue.h>
 #include <libgearman-server/plugins/queue/base.h>
 
-#include <mysql/mysql.h>
-#include <mysql/errmsg.h>
+#include <mysql.h>
+#include <errmsg.h>
 
 /**
  * Default values.
