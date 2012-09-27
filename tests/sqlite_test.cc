@@ -63,7 +63,7 @@ static test_return_t gearmand_basic_option_without_table_test(void *)
     0 };
 
   test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
-  test_compare(0, access(sql_file.c_str(), R_OK | W_OK ));
+  test_compare(-1, access(sql_file.c_str(), R_OK | W_OK ));
 
   return TEST_SUCCESS;
 }
