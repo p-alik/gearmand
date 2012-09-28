@@ -378,11 +378,13 @@ gearmand_error_t gearmand_run(gearmand_st *gearmand)
     }
     while (x < gearmand->threads);
 
-    gearmand->ret= gearman_server_queue_replay(&(gearmand->server));
+    gearmand_debug("replaying queue: begin");
+    gearmand->ret= gearman_server_queue_replay(gearmand->server);
     if (gearmand->ret != GEARMAN_SUCCESS)
     {
       return gearmand->ret;
     }
+    gearmand_debug("replaying queue: end");
   }
 
   gearmand->ret= _watch_events(gearmand);
