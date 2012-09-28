@@ -45,7 +45,7 @@ DESCRIPTION
 
 :c:func:`gearman_client_set_task_context_free_fn` sets a trigger that will be called when a :c:type:`gearman_task_st` is released.
 
-:c:func:`gearman_client_timeout` and :c:func:`gearman_client_set_timeout` get and set the current timeout value, in milliseconds, for the client.
+:c:func:`gearman_client_timeout` and :c:func:`gearman_client_set_timeout` get and set the current connection timeout value, in milliseconds, for the client.
 
 Normally :manpage:`malloc(3)` and :manpage:`free(3)` are used for allocation and releasing workloads. :c:func:`gearman_client_set_workload_malloc_fn` and :c:func:`gearman_client_set_workload_free_fn` can be used to replace these with custom functions. (These have been deprecated, please see :c:type:`gearman_allocator_t` for the updated interface.
 
@@ -59,7 +59,7 @@ Normally :manpage:`malloc(3)` and :manpage:`free(3)` are used for allocation and
 RETURN VALUE
 ------------
 
-:c:func:`gearman_client_timeout` returns an integer representing the amount of time in milliseconds. A value of -1 means an infinite timeout value. See :manpage:`poll(3)` for more details.
+:c:func:`gearman_client_timeout` returns an integer representing the amount of time in milliseconds to wait for a connection before throwing an error. A value of -1 means an infinite timeout value.
 
 
 ----

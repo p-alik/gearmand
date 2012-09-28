@@ -63,7 +63,7 @@ struct gearman_universal_st
   uint32_t packet_count;
   uint32_t pfds_size;
   uint32_t sending;
-  int timeout; // Used by poll()
+  int timeout; // Connection timeout.
   gearman_connection_st *con_list;
   struct gearman_packet_st *packet_list;
   struct pollfd *pfds;

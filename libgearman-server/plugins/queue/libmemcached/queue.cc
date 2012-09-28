@@ -84,7 +84,7 @@ public:
 
   memcached_st* clone()
   {
-    if (clone_)
+    if (clone_ == NULL)
     {
       clone_= memcached_clone(NULL, memc_);
     }
