@@ -63,7 +63,7 @@ static test_return_t gearmand_basic_option_without_table_test(void *)
     0 };
 
   test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
-  test_compare(0, access(sql_file.c_str(), R_OK | W_OK ));
+  test_compare(-1, access(sql_file.c_str(), R_OK | W_OK ));
 
   return TEST_SUCCESS;
 }
@@ -105,7 +105,7 @@ static test_return_t collection_cleanup(void *object)
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  if (test_for_HAVE_LIBSQLITE3(error))
+  if (test_for_HAVE_LIBSQLITE3(error) == false)
   {
     error= TEST_SKIPPED;
     return NULL;
