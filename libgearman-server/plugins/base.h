@@ -96,6 +96,14 @@ public:
                                 size_t function_name_size)= 0;
 
   virtual gearmand_error_t replay(gearman_server_st *server)= 0;
+
+  static gearmand_error_t replay_add(gearman_server_st *server,
+                                     void *context __attribute__ ((unused)),
+                                     const char *unique, size_t unique_size,
+                                     const char *function_name, size_t function_name_size,
+                                     const void *data, size_t data_size,
+                                     gearman_job_priority_t priority,
+                                     int64_t when);
 };
 
 } // namespace queue

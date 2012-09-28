@@ -84,8 +84,10 @@ gearmand_error_t gearman_server_shutdown_graceful(gearman_server_st *server);
  * @return Standard gearman return value. This will return GEARMAN_SHUTDOWN if
  *         the server is ready to shutdown now.
  */
+#ifdef __cplusplus
 GEARMAN_API
-gearmand_error_t gearman_server_queue_replay(gearman_server_st *server);
+gearmand_error_t gearman_server_queue_replay(gearman_server_st& server);
+#endif
 
 /**
  * Get persistent queue context.

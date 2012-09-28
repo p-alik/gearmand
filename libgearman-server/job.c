@@ -362,11 +362,11 @@ gearmand_error_t gearman_server_job_queue(gearman_server_job_st *job)
       for (client= job->client_list; client != NULL; client= client->job_next)
       {
         gearmand_error_t ret= gearman_server_io_packet_add(client->con, false,
-                                          GEARMAN_MAGIC_RESPONSE,
-                                          GEARMAN_COMMAND_WORK_FAIL,
-                                          job->job_handle,
-                                          (size_t)strlen(job->job_handle),
-                                          NULL);
+                                                           GEARMAN_MAGIC_RESPONSE,
+                                                           GEARMAN_COMMAND_WORK_FAIL,
+                                                           job->job_handle,
+                                                           (size_t)strlen(job->job_handle),
+                                                           NULL);
         if (gearmand_failed(ret))
         {
           return ret;
@@ -391,7 +391,7 @@ gearmand_error_t gearman_server_job_queue(gearman_server_job_st *job)
     }
 
     GEARMAN_LIST_DEL(job->worker->job, job, worker_)
-    job->worker= NULL;
+      job->worker= NULL;
     job->function->job_running--;
     job->function_next= NULL;
     job->numerator= 0;
@@ -425,7 +425,7 @@ gearmand_error_t gearman_server_job_queue(gearman_server_job_st *job)
     }
     while (worker != job->function->worker_list &&
            (Server->worker_wakeup == 0 ||
-           noop_sent < Server->worker_wakeup));
+            noop_sent < Server->worker_wakeup));
 
     job->function->worker_list= worker;
   }
