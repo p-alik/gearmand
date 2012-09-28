@@ -47,6 +47,8 @@
 #include <libgearman-server/queue.hpp>
 #include <libgearman-server/log.h>
 
+#include <assert.h>
+
 gearmand_error_t gearman_queue_add(gearman_server_st *server,
                                    const char *unique,
                                    size_t unique_size,
@@ -57,6 +59,7 @@ gearmand_error_t gearman_queue_add(gearman_server_st *server,
                                    gearman_job_priority_t priority,
                                    int64_t when)
 {
+  assert(server->state.queue_startup == false);
   if (server->queue_version == QUEUE_VERSION_FUNCTION)
   {
     assert(server->queue.functions->_add_fn);
@@ -108,22 +111,6 @@ gearmand_error_t gearman_queue_done(gearman_server_st *server,
                                     unique, unique_size,
                                     function_name,
                                     function_name_size);
-}
-
-gearmand_error_t gearman_queue_replay(gearman_server_st *server,
-                                      gearman_queue_add_fn *add_fn,
-                                      void *)
-{
-  if (server->queue_version == QUEUE_VERSION_FUNCTION)
-  {
-    assert(server->queue.functions->_replay_fn);
-    return (*(server->queue.functions->_replay_fn))(server,
-                                                    (void *)server->queue.functions->_context,
-                                                    add_fn,
-                                                    server);
-  }
-
-  return server->queue.object->replay(server);
 }
 
 void gearman_server_set_queue(gearman_server_st *server,

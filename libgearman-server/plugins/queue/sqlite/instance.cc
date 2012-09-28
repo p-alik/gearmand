@@ -587,11 +587,12 @@ gearmand_error_t Instance::replay(gearman_server_st *server)
 
     gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "sqlite replay: %s", (char*)function_name);
 
-    gearmand_error_t gret= add(server,
-                               unique, unique_size,
-                               function_name, function_name_size,
-                               &data[0], data.size(),
-                               priority, when);
+    gearmand_error_t gret= Instance::replay_add(server,
+                                                NULL,
+                                                unique, unique_size,
+                                                function_name, function_name_size,
+                                                &data[0], data.size(),
+                                                priority, when);
     if (gearmand_failed(gret))
     {
       sqlite3_finalize(sth);

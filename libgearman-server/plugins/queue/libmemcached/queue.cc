@@ -314,11 +314,12 @@ static memcached_return callback_loader(const memcached_st*,
   memcpy(&data[0], memcached_result_value(result), data.size());
 
   /* Currently not looking at failure cases */
-  replay->queue()->add(replay->server(),
-                       unique, strlen(unique),
-                       function, function_len,
-                       &data[0], data.size(),
-                       static_cast<gearman_job_priority_t>(memcached_result_flags(result)), int64_t(0));
+  LibmemcachedQueue::replay_add(replay->server(),
+                                NULL,
+                                unique, strlen(unique),
+                                function, function_len,
+                                &data[0], data.size(),
+                                static_cast<gearman_job_priority_t>(memcached_result_flags(result)), int64_t(0));
 
 
   return MEMCACHED_SUCCESS;

@@ -37,6 +37,8 @@
 
 #pragma once
 
+#include "libgearman-server/struct/server.h"
+
 struct gearmand_st
 {
   gearmand_verbose_t verbose;
