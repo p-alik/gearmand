@@ -44,12 +44,13 @@
 #include <config.h>
 #include <libgearman-server/common.h>
 #include <libgearman-server/queue.h>
+#include "libgearman-server/plugins/base.h"
 
 #include <errno.h>
-#include <iso646.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 /*
  * Private declarations
@@ -61,16 +62,6 @@
  * @ingroup gearman_server
  * @{
  */
-
-/**
- * Add job to queue wihle replaying queue during startup.
- */
-static gearmand_error_t _queue_replay_add(gearman_server_st *server, void *context,
-                                          const char *unique, size_t unique_size,
-                                          const char *function_name, size_t function_name_size,
-                                          const void *data, size_t data_size,
-                                          gearman_job_priority_t priority,
-                                          int64_t when);
 
 /**
  * Queue an error packet.
@@ -902,13 +893,29 @@ gearmand_error_t gearman_server_shutdown_graceful(gearman_server_st *server)
   return GEARMAN_SHUTDOWN_GRACEFUL;
 }
 
-gearmand_error_t gearman_server_queue_replay(gearman_server_st *server)
+static gearmand_error_t gearman_queue_replay(gearman_server_st& server)
 {
-  server->state.queue_startup= true;
+  assert(server.state.queue_startup == true);
+  if (server.queue_version == QUEUE_VERSION_FUNCTION)
+  {
+    assert(server.queue.functions->_replay_fn);
+    return (*(server.queue.functions->_replay_fn))(&server,
+                                                    (void *)server.queue.functions->_context,
+                                                    gearmand::queue::Context::replay_add,
+                                                    &server);
+  }
 
-  gearmand_error_t ret= gearman_queue_replay(server, _queue_replay_add, server);
+  return server.queue.object->replay(&server);
+}
 
-  server->state.queue_startup= false;
+
+gearmand_error_t gearman_server_queue_replay(gearman_server_st& server)
+{
+  server.state.queue_startup= true;
+
+  gearmand_error_t ret= gearman_queue_replay(server);
+
+  server.state.queue_startup= false;
 
   return ret;
 }
@@ -923,18 +930,18 @@ void *gearman_server_queue_context(const gearman_server_st *server)
   return NULL;
 }
 
-/*
- * Private definitions
- */
+namespace gearmand {
+namespace queue {
 
-gearmand_error_t _queue_replay_add(gearman_server_st *server,
-                                   void *context __attribute__ ((unused)),
-                                   const char *unique, size_t unique_size,
-                                   const char *function_name, size_t function_name_size,
-                                   const void *data, size_t data_size,
-                                   gearman_job_priority_t priority,
-                                   int64_t when)
+gearmand_error_t Context::replay_add(gearman_server_st *server,
+                                     void *context __attribute__ ((unused)),
+                                     const char *unique, size_t unique_size,
+                                     const char *function_name, size_t function_name_size,
+                                     const void *data, size_t data_size,
+                                     gearman_job_priority_t priority,
+                                     int64_t when)
 {
+  assert(server->state.queue_startup == true);
   gearmand_error_t ret= GEARMAN_SUCCESS;
 
   (void)gearman_server_job_add(server,
@@ -950,6 +957,12 @@ gearmand_error_t _queue_replay_add(gearman_server_st *server,
   return ret;
 }
 
+} // namespace queue
+} // namespace gearmand
+
+/*
+ * Private definitions
+ */
 static gearmand_error_t _server_error_packet(gearman_server_con_st *server_con,
                                              const char *error_code,
                                              const char *error_string)

@@ -55,10 +55,6 @@ gearmand_error_t gearman_queue_add(gearman_server_st *server,
 
 gearmand_error_t gearman_queue_flush(gearman_server_st *server);
 
-gearmand_error_t gearman_queue_replay(gearman_server_st *server,
-                                      gearman_queue_add_fn *add_fn,
-                                      void *add_context);
-
 gearmand_error_t gearman_queue_done(gearman_server_st *server,
                                     const char *unique,
                                     size_t unique_size,

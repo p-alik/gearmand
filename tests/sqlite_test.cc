@@ -21,6 +21,8 @@ using namespace libtest;
 
 #include <tests/basic.h>
 #include <tests/context.h>
+#include <tests/client.h>
+#include <tests/worker.h>
 
 // Prototypes
 #ifndef __INTEL_COMPILER
@@ -83,7 +85,6 @@ static test_return_t collection_init(void *object)
   assert(test);
 
   test_truth(test->initialize(2, argv));
-
   test_compare(0, access(sql_file.c_str(), R_OK | W_OK ));
 
   test->extra_file(sql_file.c_str());
@@ -98,6 +99,75 @@ static test_return_t collection_cleanup(void *object)
 {
   Context *test= (Context *)object;
   test->reset();
+
+  return TEST_SUCCESS;
+}
+
+
+static test_return_t lp_1054377_TEST(void *object)
+{
+  Context *test= (Context *)object;
+  test_truth(test);
+  server_startup_st &servers= test->_servers;
+
+  std::string sql_file= libtest::create_tmpfile("sqlite");
+
+  char sql_buffer[1024];
+  snprintf(sql_buffer, sizeof(sql_buffer), "--libsqlite3-db=%.*s", int(sql_file.length()), sql_file.c_str());
+  const char *argv[]= {
+    "--queue-type=libsqlite3", 
+    sql_buffer,
+    0 };
+
+  {
+    in_port_t first_port= libtest::get_free_port();
+
+    test_true(server_startup(servers, "gearmand", first_port, 2, argv));
+    test_compare(0, access(sql_file.c_str(), R_OK | W_OK ));
+
+    {
+      Worker worker(first_port);
+      test_compare(gearman_worker_register(&worker, __func__, 0), GEARMAN_SUCCESS);
+    }
+
+    {
+      Client client(first_port);
+      test_compare(gearman_client_echo(&client, test_literal_param("This is my echo test")), GEARMAN_SUCCESS);
+      gearman_job_handle_t job_handle;
+      test_compare(gearman_client_do_background(&client,
+                                                __func__, // func
+                                                NULL, // unique
+                                                test_literal_param("foo"),
+                                                job_handle), GEARMAN_SUCCESS);
+    }
+
+    servers.clear();
+  }
+
+  {
+    in_port_t first_port= libtest::get_free_port();
+
+    test_true(server_startup(servers, "gearmand", first_port, 2, argv));
+    test_compare(0, access(sql_file.c_str(), R_OK | W_OK ));
+
+    {
+      Worker worker(first_port);
+      test_compare(gearman_worker_register(&worker, __func__, 0), GEARMAN_SUCCESS);
+    }
+
+    {
+      Client client(first_port);
+      test_compare(gearman_client_echo(&client, test_literal_param("This is my echo test")), GEARMAN_SUCCESS);
+      gearman_job_handle_t job_handle;
+      test_compare(gearman_client_do_background(&client,
+                                                __func__, // func
+                                                NULL, // unique
+                                                test_literal_param("foo"),
+                                                job_handle), GEARMAN_SUCCESS);
+    }
+
+    servers.clear();
+  }
 
   return TEST_SUCCESS;
 }
@@ -144,10 +214,16 @@ test_st regressions[] ={
   {0, 0, 0}
 };
 
+test_st queue_restart_TESTS[] ={
+  {"lp:1054377", 0, lp_1054377_TEST },
+  {0, 0, 0}
+};
+
 collection_st collection[] ={
   {"gearmand options", 0, 0, gearmand_basic_option_tests},
   {"sqlite queue", collection_init, collection_cleanup, tests},
   {"queue regression", collection_init, collection_cleanup, regressions},
+  {"queue restart", 0, 0, queue_restart_TESTS},
 #if 0
   {"sqlite queue change table", collection_init, collection_cleanup, tests},
 #endif
