@@ -38,6 +38,7 @@
 #pragma once
 
 #include <cerrno>
+#include <cstdio>
 
 static const char* _progname= NULL;
 
