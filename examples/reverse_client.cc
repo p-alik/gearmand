@@ -46,12 +46,17 @@
 #include <libgearman/gearman.h>
 #include <boost/program_options.hpp>
 
+#include "util/string.hpp"
+#include "gearmand/error.hpp"
+
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
 int main(int args, char *argv[])
 {
+  gearmand::error::init(argv[0]);
+
   in_port_t port;
   std::string text_to_echo;
   std::string host;
@@ -61,6 +66,7 @@ int main(int args, char *argv[])
   boost::program_options::options_description desc("Options");
   desc.add_options()
     ("help", "Options related to the program.")
+    ("verbose", "Send status to stdout")
     ("host,h", boost::program_options::value<std::string>(&host)->default_value("localhost"),"Connect to the host")
     ("identifier", boost::program_options::value<std::string>(&identifier),"Assign identifier")
     ("port,p", boost::program_options::value<in_port_t>(&port)->default_value(GEARMAN_DEFAULT_TCP_PORT), "Port number use for connection")
@@ -88,6 +94,11 @@ int main(int args, char *argv[])
   {
     std::cout << desc << std::endl;
     return EXIT_SUCCESS;
+  }
+
+  if (vm.count("verbose") == 0)
+  {
+    close(STDOUT_FILENO);
   }
 
   if (text_to_echo.empty())
@@ -123,7 +134,7 @@ int main(int args, char *argv[])
   gearman_return_t ret= gearman_client_add_server(&client, host.c_str(), port);
   if (ret != GEARMAN_SUCCESS)
   {
-    std::cerr << gearman_client_error(&client) << std::endl;
+    gearmand::error::message(gearman_client_error(&client));
     return EXIT_FAILURE;
   }
 
@@ -131,7 +142,7 @@ int main(int args, char *argv[])
   {
     if (gearman_failed(gearman_client_set_identifier(&client, identifier.c_str(), identifier.size())))
     {
-      std::cerr << gearman_client_error(&client) << std::endl;
+      gearmand::error::message(gearman_client_error(&client));
       return EXIT_FAILURE;
     }
   }
@@ -168,12 +179,12 @@ int main(int args, char *argv[])
     }
     else if (ret == GEARMAN_WORK_FAIL)
     {
-      std::cerr << "Work failed" << std::endl;
+      gearmand::error::message("Work failed");
       exit_code= EXIT_FAILURE;
     }
     else
     {
-      std::cerr << gearman_client_error(&client) << std::endl;
+      gearmand::error::message(gearman_client_error(&client));
       exit_code= EXIT_FAILURE;
     }
 
