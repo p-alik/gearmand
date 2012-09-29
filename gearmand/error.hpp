@@ -37,9 +37,18 @@
 
 #pragma once
 
+#include <cerrno>
+
+static const char* _progname= NULL;
+
 namespace gearmand {
 
 namespace error {
+
+void init(const char* progname_)
+{
+  _progname= progname_;
+}
 
 inline void perror(const char *message)
 {
@@ -53,23 +62,25 @@ inline void perror(const char *message)
   strerror_r(errno, errmsg, sizeof(errmsg));
   errmsg_ptr= errmsg;
 #endif
-  std::cerr << "gearmand: " << message << " (" << errmsg_ptr << ")" << std::endl;
+  std::cerr << _progname << ": " << message << " (" << errmsg_ptr << ")" << std::endl;
 }
 
 inline void message(const char *arg)
 {
-  std::cerr << "gearmand: " << arg << std::endl;
+  std::cerr << _progname << ": " << arg << std::endl;
 }
 
 inline void message(const char *arg, const char *arg2)
 {
-  std::cerr << "gearmand: " << arg << " : " << arg2 << std::endl;
+  std::cerr << _progname << ": " << arg << " : " << arg2 << std::endl;
 }
 
+#ifdef DBUILDING_LIBGEARMAN
 inline void message(const std::string &arg, gearmand_error_t rc)
 {
-  std::cerr << "gearmand: " << arg << " : " << gearmand_strerror(rc) << std::endl;
+  std::cerr << _progname << ": " << arg << " : " << gearmand_strerror(rc) << std::endl;
 }
+#endif
 
 } // namespace error
 
