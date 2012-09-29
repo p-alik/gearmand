@@ -10,6 +10,7 @@
 # All paths should be given relative to the root
 #
 
+tests_memcached_test_CXXFLAGS=
 tests_memcached_test_SOURCES=
 tests_memcached_test_DEPENDENCIES=
 tests_memcached_test_LDADD=
@@ -19,6 +20,13 @@ tests_memcached_test_SOURCES+= tests/memcached_test.cc
 tests_memcached_test_DEPENDENCIES+= $(CLIENT_LDADD)
 tests_memcached_test_LDADD+= $(CLIENT_LDADD)
 
+if HAVE_LIBMEMCACHED
+
+tests_memcached_test_CXXFLAGS+= $(libmemcached_CFLAGS)
+tests_memcached_test_LDADD+= $(libmemcached_LIBS)
+
+endif
+
 check_PROGRAMS+= tests/memcached_test
 noinst_PROGRAMS+= tests/memcached_test
 
@@ -26,4 +34,7 @@ test-libmemcached: tests/memcached_test gearmand/gearmand
 	@tests/memcached_test  
 
 valgrind-libmemcached: tests/memcached_test gearmand/gearmand
-	@tests/memcached_test  
+	@$(VALGRIND_COMMAND) tests/memcached_test  
+
+gdb-libmemcached: tests/memcached_test gearmand/gearmand
+	@$(GDB_COMMAND) tests/memcached_test  
