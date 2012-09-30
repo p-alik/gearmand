@@ -22,8 +22,8 @@ tests_memcached_test_LDADD+= $(CLIENT_LDADD)
 
 if HAVE_LIBMEMCACHED
 
-tests_memcached_test_CXXFLAGS+= $(libmemcached_CFLAGS)
-tests_memcached_test_LDADD+= $(libmemcached_LIBS)
+tests_memcached_test_CXXFLAGS+= $(LIBMEMCACHED_CFLAGS)
+tests_memcached_test_LDADD+= $(LIBMEMCACHED_UTIL_LDFLAGS)
 
 endif
 

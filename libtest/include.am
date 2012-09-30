@@ -165,7 +165,7 @@ libtest_unittest_DEPENDENCIES+= libmemcached/libmemcached.la
 libtest_unittest_DEPENDENCIES+= libmemcached/libmemcachedutil.la
 else
 if HAVE_LIBMEMCACHED
-libtest_libtest_la_LIBADD+= $(libmemcached_LIBS)
+libtest_libtest_la_LIBADD+= $(LIBMEMCACHED_UTIL_LDFLAGS)
 libtest_libtest_la_SOURCES+= libtest/memcached.cc
 else
 libtest_libtest_la_CXXFLAGS+= -DHAVE_LIBMEMCACHED=0

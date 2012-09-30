@@ -52,7 +52,7 @@ CONFIG_EXTRA
 
 m4_include([libtest/yatl.m4])
 
-WITH_LIBMEMCACHED
+AX_LIBMEMCACHED_UTIL
 m4_include([m4/memcached.m4])
 m4_include([m4/memcached_sasl.m4])
 AM_CONDITIONAL(BUILDING_LIBMEMCACHED, false)

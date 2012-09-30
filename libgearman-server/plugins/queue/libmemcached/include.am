@@ -14,8 +14,8 @@ noinst_HEADERS+= libgearman-server/plugins/queue/libmemcached/queue.h
 if HAVE_LIBMEMCACHED
 
 libgearman_server_libgearman_server_la_SOURCES+= libgearman-server/plugins/queue/libmemcached/queue.cc
-libgearman_server_libgearman_server_la_CXXFLAGS+= $(libmemcached_CFLAGS)
-libgearman_server_libgearman_server_la_LIBADD+= $(libmemcached_LIBS)
+libgearman_server_libgearman_server_la_CXXFLAGS+= $(LIBMEMCACHED_CFLAGS)
+libgearman_server_libgearman_server_la_LIBADD+= $(LIBMEMCACHED_LDFLAGS)
 
-gearmand_gearmand_LDADD+= $(libmemcached_LIBS)
+gearmand_gearmand_LDADD+= $(LIBMEMCACHED_LDFLAGS)
 endif
