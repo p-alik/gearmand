@@ -146,4 +146,6 @@ unittests/unittests
 util/.hg/
 util/.hgignore
 var
-man/*
+man/*.1
+man/*.3
+man/*.8
