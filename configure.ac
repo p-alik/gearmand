@@ -52,7 +52,7 @@ CONFIG_EXTRA
 
 m4_include([libtest/yatl.m4])
 
-AX_LIBMEMCACHED_UTIL
+AX_WITH_LIBMEMCACHED
 m4_include([m4/memcached.m4])
 m4_include([m4/memcached_sasl.m4])
 AM_CONDITIONAL(BUILDING_LIBMEMCACHED, false)
@@ -255,7 +255,7 @@ echo "   * Debug enabled:             $ax_enable_debug"
 echo "   * Warnings as failure:       $ac_cv_warnings_as_errors"
 echo "   * Building with libsqlite3   $WANT_SQLITE3"
 echo "   * Building with libdrizzle   $ac_enable_libdrizzle"
-echo "   * Building with libmemcached $ac_enable_libmemcached"
+echo "   * Building with libmemcached $ac_with_libmemcached"
 echo "   * Building with libpq        $ac_cv_libpq"
 echo "   * Building with tokyocabinet $ac_enable_libtokyocabinet"
 echo "   * Building with libmysql     $found_mysql"

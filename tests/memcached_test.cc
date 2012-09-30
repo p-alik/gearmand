@@ -47,9 +47,11 @@ using namespace libtest;
 #include <cstring>
 #include <unistd.h>
 
-#if defined(HAVE_LIBMEMCACHED_UTIL_H) && HAVE_LIBMEMCACHED_UTIL_H
+#if defined(HAVE_LIBMEMCACHED) && HAVE_LIBMEMCACHED
 #  include <libmemcached-1.0/memcached.h>
-#  include <libmemcachedutil-1.0/util.h>
+#  if defined(HAVE_LIBMEMCACHED_UTIL_H) && HAVE_LIBMEMCACHED_UTIL_H
+#    include <libmemcachedutil-1.0/util.h>
+#  endif
 #endif
 
 #include <libgearman/gearman.h>
@@ -96,8 +98,10 @@ static test_return_t lp_1054377_TEST(void *object)
                        int(memcached_port));
   test_true(size_t(length) < sizeof(memcached_server_string));
 
-#if defined(HAVE_LIBMEMCACHED_UTIL_H) && HAVE_LIBMEMCACHED_UTIL_H
+#if defined(HAVE_LIBMEMCACHED) && HAVE_LIBMEMCACHED
+# if defined(HAVE_LIBMEMCACHED_UTIL_H) && HAVE_LIBMEMCACHED_UTIL_H
   test_true(libmemcached_util_ping("localhost", memcached_port, NULL));
+# endif
 #endif
 
   const char *gearmand_argv[]= {
