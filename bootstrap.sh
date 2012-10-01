@@ -72,9 +72,6 @@ bootstrap() {
 
   AUTORECONF=autoreconf
 
-  AUTOMAKE_FLAGS=--add-missing
-
-
   # Set ENV DEBUG in order to enable debugging
   if [ -n "$DEBUG" ]
   then 
@@ -85,13 +82,6 @@ bootstrap() {
   if [ -n "$ASSERT" ]
   then 
     ASSERT="--enable-assert"
-  fi
-
-  # Set ENV VALGRIND in order to enable assert
-  if [ -n "$VALGRIND" ] && command_exists valgrind
-  then 
-    VALGRIND="valgrind --error-exitcode=1 --leak-check=yes --show-reachable=yes --track-fds=yes --malloc-fill=A5 --free-fill=DE"
-    TESTS_ENVIRONMENT="$VALGRIND"
   fi
 
   # Set ENV MAKE in order to override "make"
@@ -128,9 +118,50 @@ bootstrap() {
     ./configure $DEBUG $ASSERT $PREFIX || die "configure failed to run"
   fi
 
+  # Set ENV MAKE_TARGET in order to override default of "all"
+  if [ -z "$MAKE_TARGET" ]
+  then 
+    MAKE_TARGET="all"
+  fi
+
+  # Backwards compatibility
+  if [ -n "$VALGRIND" ]; then
+    MAKE_TARGET="valgrind"
+  fi
+
+  if [ "$MAKE_TARGET" == "valgrind" ]; then
+    if command_exists valgrind; then
+      VALGRIND="valgrind --error-exitcode=1 --leak-check=yes --show-reachable=yes --track-fds=yes --malloc-fill=A5 --free-fill=DE"
+      TESTS_ENVIRONMENT="$VALGRIND"
+      MAKE_TARGET="check"
+    else
+      MAKE_TARGET="all"
+    fi
+  fi
+
+  # Set ENV GDB in order to gdb test
+  if [ "$MAKE_TARGET" == "gdb" ]; then
+    if command_exists gdb; then
+      GDB_TMPFILE=$(mktemp /tmp/gdb.XXXXXXXXXX)
+      echo "set logging on" > $GDB_TMPFILE
+      echo "set logging overwrite on" >> $GDB_TMPFILE
+      echo "set environment LIBTEST_IN_GDB=1" >> $GDB_TMPFILE
+      echo "run" >> $GDB_TMPFILE
+      echo "thread apply all bt" >> $GDB_TMPFILE
+      echo "quit" >> $GDB_TMPFILE
+      GDB_COMMAND="gdb -f -batch -x $GDB_TMPFILE"
+      TESTS_ENVIRONMENT="$GDB_COMMAND"
+      MAKE_TARGET="check"
+    else
+      MAKE_TARGET="all"
+    fi
+  fi
+
   if [[ -n "$TESTS_ENVIRONMENT" ]] && [[ -f libtool ]]
   then
     TESTS_ENVIRONMENT="./libtool --mode=execute $TESTS_ENVIRONMENT"
+    export TESTS_ENVIRONMENT
+  elif [[ -n "$TESTS_ENVIRONMENT" ]]; then
     export TESTS_ENVIRONMENT
   fi
 
@@ -139,10 +170,20 @@ bootstrap() {
     run $MAKE $MAKE_J man || die "Can't execute make"
   fi
 
-  # Set ENV MAKE_TARGET in order to override default of "all"
-  if [ -z "$MAKE_TARGET" ]
-  then 
-    MAKE_TARGET="all"
+  if [[ -n "$JENKINS_HOME" ]] && [ -z "$MAKE_TARGET" == "distcheck" ]; then 
+    if [[ -f "/etc/lsb-release" ]]; then 
+      debian_version=`cat /etc/lsb-release | grep DISTRIB_CODENAME | awk -F= ' { print $2 } '`
+      case $debian_version in
+        precise)
+          ;;
+          *)
+          ;;
+      esac
+    elif [[ -f "/etc/fedora-release" ]]; then 
+      MAKE_TARGET="distcheck"
+    else
+      MAKE_TARGET="all"
+    fi
   fi
 
   run $MAKE $MAKE_J $MAKE_TARGET || die "Can't execute make"
