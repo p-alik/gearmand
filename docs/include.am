@@ -112,10 +112,17 @@ text: docs/conf.py
 	@echo
 	@echo "Build finished. The text files are in $(SPHINX_BUILDDIR)/text."
 
+if HAVE_RECENT_SPHINX
 man:
 	PYTHONPATH=${top_srcdir}/docs  $(SPHINXBUILD) -b man $(ALLSPHINXOPTS) ${top_srcdir}/man
 	@echo
 	@echo "Build finished. The manual pages are in ${top_srcdir}/man."
+
+else
+
+man:
+
+endif
 
 changes: docs/conf.py
 	PYTHONPATH=${top_srcdir}/docs  $(SPHINXBUILD) -b changes $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/changes
