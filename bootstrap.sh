@@ -70,7 +70,6 @@ bootstrap() {
     LIBTOOLIZE=libtoolize
   fi
 
-  AUTOMAKE=automake
   AUTORECONF=autoreconf
 
   AUTOMAKE_FLAGS=--add-missing
@@ -119,7 +118,6 @@ bootstrap() {
   fi
 
   run $LIBTOOLIZE $LIBTOOLIZE_FLAGS || die "Can't execute $LIBTOOLIZE"
-  run $AUTOMAKE $AUTOMAKE_FLAGS || die "Can't execute $AUTORECONF"
   run $AUTORECONF $AUTORECONF_FLAGS || die "Can't execute $AUTORECONF"
 
   # If we are executing on OSX use CLANG, otherwise only use it if we find it in the ENV
