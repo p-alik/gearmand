@@ -133,6 +133,10 @@ doctest: docs/conf.py
 	@echo "Testing of doctests in the sources finished, look at the " \
 	      "results in $(SPHINX_BUILDDIR)/doctest/output.txt."
 
+else
+
+man:
+
 endif
 
 noinst_PROGRAMS+= \
