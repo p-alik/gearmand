@@ -33,89 +33,160 @@
 
 die() { echo "$@"; exit 1; }
 
+command_exists () {
+  type "$1" &> /dev/null ;
+}
+
 run() {
+  echo $TESTS_ENVIRONMENT
   echo "\`$@' $ARGS"
   $@ $ARGS
 } 
 
-if [ -d .git ]
-then
-  AUTORECONF_FLAGS="--install --force --verbose -Wall -Werror"
-elif [ -d .bzr ]
-then
-  AUTORECONF_FLAGS="--install --force --verbose -Wall -Werror"
-elif [ -d .svn ]
-then
-  AUTORECONF_FLAGS="--install --force --verbose -Wall -Werror"
-elif [ -d .hg ]
-then
-  AUTORECONF_FLAGS="--install --force --verbose -Wall -Werror"
-else
-  AUTORECONF_FLAGS="--install --force --verbose -Wall"
-fi
+bootstrap() {
+  if [ -d .git ]
+  then
+    AUTORECONF_FLAGS="--install --force --verbose -Wall -Werror"
+  elif [ -d .bzr ]
+  then
+    AUTORECONF_FLAGS="--install --force --verbose -Wall -Werror"
+  elif [ -d .svn ]
+  then
+    AUTORECONF_FLAGS="--install --force --verbose -Wall -Werror"
+  elif [ -d .hg ]
+  then
+    AUTORECONF_FLAGS="--install --force --verbose -Wall -Werror"
+  else
+    AUTORECONF_FLAGS="--install --force --verbose -Wall"
+  fi
 
-LIBTOOLIZE_FLAGS="--force --verbose"
+  LIBTOOLIZE_FLAGS="--force --verbose"
 
-if [ $(uname) = "Darwin" ]
-then
-  LIBTOOLIZE=glibtoolize
-elif [ -z "$LIBTOOLIZE" ]
-then 
-  LIBTOOLIZE=libtoolize
-fi
+  if [ $(uname) = "Darwin" ]
+  then
+    LIBTOOLIZE=glibtoolize
+  elif [ -z "$LIBTOOLIZE" ]
+  then 
+    LIBTOOLIZE=libtoolize
+  fi
 
-AUTORECONF=autoreconf
+  AUTORECONF=autoreconf
 
-# Set ENV DEBUG in order to enable debugging
-if [ -n "$DEBUG" ]
-then 
-  DEBUG="--enable-debug"
-fi
+  # Set ENV DEBUG in order to enable debugging
+  if [ -n "$DEBUG" ]
+  then 
+    DEBUG="--enable-debug"
+  fi
 
-# Set ENV ASSERT in order to enable assert
-if [ -n "$ASSERT" ]
-then 
-  ASSERT="--enable-assert"
-fi
+  # Set ENV ASSERT in order to enable assert
+  if [ -n "$ASSERT" ]
+  then 
+    ASSERT="--enable-assert"
+  fi
 
-# Set ENV MAKE in order to override "make"
-if [ -z "$MAKE" ]
-then 
-  MAKE="make"
-fi
+  # Set ENV MAKE in order to override "make"
+  if [ -z "$MAKE" ]
+  then 
+    MAKE="make"
+  fi
 
-# Set ENV MAKE_J in order to override "-j2"
-if [ -z "$MAKE_J" ]
-then
-  MAKE_J="-j2"
-fi
+  # Set ENV MAKE_J in order to override "-j2"
+  if [ -z "$MAKE_J" ]
+  then
+    MAKE_J="-j2"
+  fi
 
-# Set ENV PREFIX in order to set --prefix for ./configure
-if [ -n "$PREFIX" ]
-then 
-  PREFIX="--prefix=$PREFIX"
-fi
+  # Set ENV PREFIX in order to set --prefix for ./configure
+  if [ -n "$PREFIX" ]
+  then 
+    PREFIX="--prefix=$PREFIX"
+  fi
 
-if [ -f Makefile ]
-then
-  $MAKE $MAKE_J maintainer-clean
-fi
+  if [ -f Makefile ]
+  then
+    $MAKE $MAKE_J maintainer-clean
+  fi
 
-run $LIBTOOLIZE $LIBTOOLIZE_FLAGS || die "Can't execute $LIBTOOLIZE"
-run $AUTORECONF $AUTORECONF_FLAGS || die "Can't execute $AUTORECONF"
+  run $LIBTOOLIZE $LIBTOOLIZE_FLAGS || die "Can't execute $LIBTOOLIZE"
+  run $AUTORECONF $AUTORECONF_FLAGS || die "Can't execute $AUTORECONF"
 
-# If we are executing on OSX use CLANG, otherwise only use it if we find it in the ENV
-if [ $(uname) = "Darwin" ]
-then
-  CC=clang CXX=clang++ ./configure $DEBUG $ASSERT $PREFIX || die "configure failed to run"
-else
-  ./configure $DEBUG $ASSERT $PREFIX || die "configure failed to run"
-fi
+  # If we are executing on OSX use CLANG, otherwise only use it if we find it in the ENV
+  if [ $(uname) = "Darwin" ]
+  then
+    CC=clang CXX=clang++ ./configure $DEBUG $ASSERT $PREFIX || die "configure failed to run"
+  else
+    ./configure $DEBUG $ASSERT $PREFIX || die "configure failed to run"
+  fi
 
-# Set ENV MAKE_TARGET in order to override default of "all"
-if [ -z "$MAKE_TARGET" ]
-then 
-  MAKE_TARGET="all"
-fi
+  # Set ENV MAKE_TARGET in order to override default of "all"
+  if [ -z "$MAKE_TARGET" ]
+  then 
+    MAKE_TARGET="all"
+  fi
 
-run $MAKE $MAKE_J $MAKE_TARGET || die "Can't execute make"
+  # Backwards compatibility
+  if [ -n "$VALGRIND" ]; then
+    MAKE_TARGET="valgrind"
+  fi
+
+  if [ "$MAKE_TARGET" == "valgrind" ]; then
+    if command_exists valgrind; then
+      VALGRIND="valgrind --error-exitcode=1 --leak-check=yes --show-reachable=yes --track-fds=yes --malloc-fill=A5 --free-fill=DE"
+      TESTS_ENVIRONMENT="$VALGRIND"
+      MAKE_TARGET="check"
+    else
+      MAKE_TARGET="all"
+    fi
+  fi
+
+  # Set ENV GDB in order to gdb test
+  if [ "$MAKE_TARGET" == "gdb" ]; then
+    if command_exists gdb; then
+      GDB_TMPFILE=$(mktemp /tmp/gdb.XXXXXXXXXX)
+      echo "set logging on" > $GDB_TMPFILE
+      echo "set logging overwrite on" >> $GDB_TMPFILE
+      echo "set environment LIBTEST_IN_GDB=1" >> $GDB_TMPFILE
+      echo "run" >> $GDB_TMPFILE
+      echo "thread apply all bt" >> $GDB_TMPFILE
+      echo "quit" >> $GDB_TMPFILE
+      GDB_COMMAND="gdb -f -batch -x $GDB_TMPFILE"
+      TESTS_ENVIRONMENT="$GDB_COMMAND"
+      MAKE_TARGET="check"
+    else
+      MAKE_TARGET="all"
+    fi
+  fi
+
+  if [[ -n "$TESTS_ENVIRONMENT" ]] && [[ -f libtool ]]
+  then
+    TESTS_ENVIRONMENT="./libtool --mode=execute $TESTS_ENVIRONMENT"
+    export TESTS_ENVIRONMENT
+  elif [[ -n "$TESTS_ENVIRONMENT" ]]; then
+    export TESTS_ENVIRONMENT
+  fi
+
+  if [ -f docs/conf.py ]
+  then 
+    run $MAKE $MAKE_J man || die "Can't execute make"
+  fi
+
+  if [[ -n "$JENKINS_HOME" ]] && [ -z "$MAKE_TARGET" == "distcheck" ]; then 
+    if [[ -f "/etc/lsb-release" ]]; then 
+      debian_version=`cat /etc/lsb-release | grep DISTRIB_CODENAME | awk -F= ' { print $2 } '`
+      case $debian_version in
+        precise)
+          ;;
+          *)
+          ;;
+      esac
+    elif [[ -f "/etc/fedora-release" ]]; then 
+      MAKE_TARGET="distcheck"
+    else
+      MAKE_TARGET="all"
+    fi
+  fi
+
+  run $MAKE $MAKE_J $MAKE_TARGET || die "Can't execute make"
+}
+
+bootstrap

@@ -45,6 +45,7 @@ include util/include.am
 include tests/include.am
 include support/include.am
 include docs/include.am
+include man/include.am
 
 include m4/include.am
 
