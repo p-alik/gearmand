@@ -75,8 +75,8 @@ Instance::~Instance()
   if (_db)
   {
     sqlite3_close(_db);
+    _db= NULL;
     gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "sqlite shutdown database");
-    return;
   }
 
   gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "sqlite shutdown");
@@ -186,7 +186,7 @@ gearmand_error_t Instance::init()
     return gearmand_gerror("missing required --libsqlite3-db=<dbfile> argument", GEARMAN_QUEUE_ERROR);
   }
 
-
+  assert(_db == NULL);
   if (sqlite3_open(_schema.c_str(), &_db) != SQLITE_OK)
   {
     _error_string= "sqlite3_open failed with: ";

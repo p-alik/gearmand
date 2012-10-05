@@ -69,7 +69,7 @@
 
 namespace gearmand { namespace plugins { namespace  queue { class Postgres; }}}
 
-static gearmand_error_t _initialize(gearman_server_st *server, gearmand::plugins::queue::Postgres *queue);
+static gearmand_error_t _initialize(gearman_server_st& server, gearmand::plugins::queue::Postgres *queue);
 
 namespace gearmand {
 namespace plugins {
@@ -131,7 +131,7 @@ gearmand_error_t Postgres::initialize()
   _create_query+= "CREATE TABLE " +table +" (unique_key VARCHAR" +"(" + TOSTRING(GEARMAN_UNIQUE_SIZE) +"), ";
   _create_query+= "function_name VARCHAR(255), priority INTEGER, data BYTEA, when_to_run INTEGER, UNIQUE (unique_key, function_name))";
 
-  gearmand_error_t ret= _initialize(&Gearmand()->server, this);
+  gearmand_error_t ret= _initialize(Gearmand()->server, this);
 
   _insert_query+= "INSERT INTO " +table +" (priority, unique_key, function_name, data, when_to_run) VALUES($1,$2,$3,$4::BYTEA,$5)";
 
@@ -183,11 +183,9 @@ static gearmand_error_t _libpq_replay(gearman_server_st *server, void *context,
 
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 
-gearmand_error_t _initialize(gearman_server_st *server,
+gearmand_error_t _initialize(gearman_server_st& server,
                              gearmand::plugins::queue::Postgres *queue)
 {
-  PGresult *result;
-
   gearmand_info("Initializing libpq module");
 
   gearman_server_set_queue(server, queue, _libpq_add, _libpq_flush, _libpq_done, _libpq_replay);
@@ -201,11 +199,11 @@ gearmand_error_t _initialize(gearman_server_st *server,
     return GEARMAN_QUEUE_ERROR;
   }
 
-  (void)PQsetNoticeProcessor(queue->con, _libpq_notice_processor, server);
+  (void)PQsetNoticeProcessor(queue->con, _libpq_notice_processor, &server);
 
   std::string query("SELECT tablename FROM pg_tables WHERE tablename='" +queue->table + "'");
 
-  result= PQexec(queue->con, query.c_str());
+  PGresult* result= PQexec(queue->con, query.c_str());
   if (result == NULL || PQresultStatus(result) != PGRES_TUPLES_OK)
   {
     std::string error_string= "PQexec:";
@@ -251,7 +249,7 @@ static void _libpq_notice_processor(void *arg, const char *message)
   gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "PostgreSQL %s", message);
 }
 
-static gearmand_error_t _libpq_add(gearman_server_st *server, void *context,
+static gearmand_error_t _libpq_add(gearman_server_st*, void *context,
                                    const char *unique, size_t unique_size,
                                    const char *function_name,
                                    size_t function_name_size,
@@ -259,7 +257,6 @@ static gearmand_error_t _libpq_add(gearman_server_st *server, void *context,
                                    gearman_job_priority_t priority,
                                    int64_t when)
 {
-  (void)server;
   (void)when;
   gearmand::plugins::queue::Postgres *queue= (gearmand::plugins::queue::Postgres *)context;
 
@@ -306,13 +303,12 @@ static gearmand_error_t _libpq_flush(gearman_server_st *, void *)
   return GEARMAN_SUCCESS;
 }
 
-static gearmand_error_t _libpq_done(gearman_server_st *server, void *context,
+static gearmand_error_t _libpq_done(gearman_server_st*, void *context,
                                     const char *unique,
                                     size_t unique_size,
                                     const char *function_name,
                                     size_t function_name_size)
 {
-  (void)server;
   (void)function_name_size;
   gearmand::plugins::queue::Postgres *queue= (gearmand::plugins::queue::Postgres *)context;
   PGresult *result;

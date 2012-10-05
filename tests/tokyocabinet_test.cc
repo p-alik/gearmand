@@ -21,6 +21,10 @@ using namespace libtest;
 
 #include <tests/basic.h>
 #include <tests/context.h>
+#include <tests/client.h>
+#include <tests/worker.h>
+
+#include "tests/workers/v2/called.h"
 
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -53,6 +57,84 @@ static test_return_t collection_init(void *object)
   assert(test);
 
   test_truth(test->initialize(2, argv));
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t lp_1054377_TEST(void *object)
+{
+  Context *test= (Context *)object;
+  test_truth(test);
+  server_startup_st &servers= test->_servers;
+
+  std::string sql_file= libtest::create_tmpfile("sqlite");
+
+  char sql_buffer[1024];
+  snprintf(sql_buffer, sizeof(sql_buffer), "--libsqlite3-db=%.*s", int(sql_file.length()), sql_file.c_str());
+  const char *argv[]= {
+    "--queue-type=libsqlite3", 
+    sql_buffer,
+    0 };
+
+  const int32_t inserted_jobs= 3;
+  {
+    in_port_t first_port= libtest::get_free_port();
+
+    test_true(server_startup(servers, "gearmand", first_port, 2, argv));
+    test_compare(0, access(sql_file.c_str(), R_OK | W_OK ));
+
+    {
+      Worker worker(first_port);
+      test_compare(gearman_worker_register(&worker, __func__, 0), GEARMAN_SUCCESS);
+    }
+
+    {
+      Client client(first_port);
+      test_compare(gearman_client_echo(&client, test_literal_param("This is my echo test")), GEARMAN_SUCCESS);
+      gearman_job_handle_t job_handle;
+      for (int32_t x= 0; x < inserted_jobs; ++x)
+      {
+        test_compare(gearman_client_do_background(&client,
+                                                  __func__, // func
+                                                  NULL, // unique
+                                                  test_literal_param("foo"),
+                                                  job_handle), GEARMAN_SUCCESS);
+      }
+    }
+
+    servers.clear();
+  }
+
+  test_compare(0, access(sql_file.c_str(), R_OK | W_OK ));
+
+  if (0)
+  {
+    in_port_t first_port= libtest::get_free_port();
+
+    test_true(server_startup(servers, "gearmand", first_port, 2, argv));
+
+    {
+      Worker worker(first_port);
+      Called called;
+      gearman_function_t counter_function= gearman_function_create(called_worker);
+      test_compare(gearman_worker_define_function(&worker,
+                                                  test_literal_param(__func__),
+                                                  counter_function,
+                                                  3000, &called), GEARMAN_SUCCESS);
+
+      int32_t job_count= 0;
+      while (GEARMAN_SUCCESS == gearman_worker_work(&worker))
+      {
+        job_count++;
+        if (job_count == inserted_jobs)
+        {
+          break;
+        }
+      };
+
+      test_compare(called.count(), inserted_jobs);
+    }
+  }
 
   return TEST_SUCCESS;
 }
@@ -105,9 +187,15 @@ test_st tests[] ={
   {0, 0, 0}
 };
 
+test_st queue_restart_TESTS[] ={
+  {"lp:1054377", 0, lp_1054377_TEST },
+  {0, 0, 0}
+};
+
 collection_st collection[] ={
   {"gearmand options", 0, 0, gearmand_basic_option_tests},
   {"tokyocabinet queue", collection_init, collection_cleanup, tests},
+  {"queue restart", 0, 0, queue_restart_TESTS},
   {0, 0, 0, 0}
 };
 

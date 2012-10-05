@@ -905,6 +905,7 @@ static gearmand_error_t gearman_queue_replay(gearman_server_st& server)
                                                     &server);
   }
 
+  assert(server.queue.object);
   return server.queue.object->replay(&server);
 }
 

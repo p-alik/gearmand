@@ -152,9 +152,9 @@ gearmand_error_t Libmemcached::initialize()
   }
 
   gearmand::queue::LibmemcachedQueue* exec_queue= new gearmand::queue::LibmemcachedQueue(this, servers);
-  if (exec_queue->init())
+  if (exec_queue and exec_queue->init())
   {
-    gearman_server_set_queue(&Gearmand()->server, exec_queue);
+    gearman_server_set_queue(Gearmand()->server, exec_queue);
 
     memcached_server_list_free(servers);
 

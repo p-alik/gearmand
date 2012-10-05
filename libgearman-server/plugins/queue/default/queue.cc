@@ -130,7 +130,7 @@ Default::~Default()
 
 gearmand_error_t Default::initialize()
 {
-  gearman_server_set_queue(&Gearmand()->server, this, __add, __flush, __done, __replay);
+  gearman_server_set_queue(Gearmand()->server, this, __add, __flush, __done, __replay);
 
   return GEARMAN_SUCCESS;
 }

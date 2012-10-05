@@ -72,6 +72,7 @@ gearmand_error_t gearman_queue_add(gearman_server_st *server,
                                                 when);
   }
 
+  assert(server->queue.object);
   return server->queue.object->add(server,
                                    unique, unique_size,
                                    function_name,
@@ -88,6 +89,7 @@ gearmand_error_t gearman_queue_flush(gearman_server_st *server)
     return (*(server->queue.functions->_flush_fn))(server, (void *)server->queue.functions->_context);
   }
 
+  assert(server->queue.object);
   return server->queue.object->flush(server);
 }
 
@@ -107,33 +109,41 @@ gearmand_error_t gearman_queue_done(gearman_server_st *server,
                                                   function_name_size);
   }
 
+  assert(server->queue.object);
   return server->queue.object->done(server,
                                     unique, unique_size,
                                     function_name,
                                     function_name_size);
 }
 
-void gearman_server_set_queue(gearman_server_st *server,
+void gearman_server_set_queue(gearman_server_st& server,
                               void *context,
                               gearman_queue_add_fn *add,
                               gearman_queue_flush_fn *flush,
                               gearman_queue_done_fn *done,
                               gearman_queue_replay_fn *replay)
 {
-  server->queue_version= QUEUE_VERSION_FUNCTION;
-  server->queue.functions= new queue_st();
-  server->queue.functions->_context= context;
-  server->queue.functions->_add_fn= add;
-  server->queue.functions->_flush_fn= flush;
-  server->queue.functions->_done_fn= done;
-  server->queue.functions->_replay_fn= replay;
+  server.queue_version= QUEUE_VERSION_FUNCTION;
+  server.queue.functions= new queue_st();
+  if (server.queue.functions)
+  {
+    server.queue.functions->_context= context;
+    server.queue.functions->_add_fn= add;
+    server.queue.functions->_flush_fn= flush;
+    server.queue.functions->_done_fn= done;
+    server.queue.functions->_replay_fn= replay;
+  }
+  assert(server.queue.functions);
 }
 
-void gearman_server_set_queue(gearman_server_st *server,
+void gearman_server_set_queue(gearman_server_st& server,
                               gearmand::queue::Context* context)
 {
-  server->queue_version= QUEUE_VERSION_CLASS;
-  server->queue.object= context;
+  assert(context);
+  {
+    server.queue_version= QUEUE_VERSION_CLASS;
+    server.queue.object= context;
+  }
 }
 
 namespace gearmand {
