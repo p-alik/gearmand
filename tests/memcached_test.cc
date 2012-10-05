@@ -142,16 +142,15 @@ static test_return_t lp_1054377_TEST(void *object)
 
 #if 0
     delete server;
-    servers.clear();
 #endif
   }
 
+  if (0)
   {
     in_port_t first_port= libtest::get_free_port();
 
     test_true(server_startup(servers, "gearmand", first_port, 2, gearmand_argv));
 
-#if 0
     {
       Worker worker(first_port);
       Called called;
@@ -165,7 +164,6 @@ static test_return_t lp_1054377_TEST(void *object)
 
       Error << called.count();
     }
-#endif
   }
 
   return TEST_SUCCESS;

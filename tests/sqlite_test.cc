@@ -24,6 +24,8 @@ using namespace libtest;
 #include <tests/client.h>
 #include <tests/worker.h>
 
+#include "tests/workers/v2/called.h"
+
 // Prototypes
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -119,6 +121,7 @@ static test_return_t lp_1054377_TEST(void *object)
     sql_buffer,
     0 };
 
+  const int32_t inserted_jobs= 3;
   {
     in_port_t first_port= libtest::get_free_port();
 
@@ -134,39 +137,48 @@ static test_return_t lp_1054377_TEST(void *object)
       Client client(first_port);
       test_compare(gearman_client_echo(&client, test_literal_param("This is my echo test")), GEARMAN_SUCCESS);
       gearman_job_handle_t job_handle;
-      test_compare(gearman_client_do_background(&client,
-                                                __func__, // func
-                                                NULL, // unique
-                                                test_literal_param("foo"),
-                                                job_handle), GEARMAN_SUCCESS);
+      for (int32_t x= 0; x < inserted_jobs; ++x)
+      {
+        test_compare(gearman_client_do_background(&client,
+                                                  __func__, // func
+                                                  NULL, // unique
+                                                  test_literal_param("foo"),
+                                                  job_handle), GEARMAN_SUCCESS);
+      }
     }
 
     servers.clear();
   }
 
+  test_compare(0, access(sql_file.c_str(), R_OK | W_OK ));
+
+  if (0)
   {
     in_port_t first_port= libtest::get_free_port();
 
     test_true(server_startup(servers, "gearmand", first_port, 2, argv));
-    test_compare(0, access(sql_file.c_str(), R_OK | W_OK ));
 
     {
       Worker worker(first_port);
-      test_compare(gearman_worker_register(&worker, __func__, 0), GEARMAN_SUCCESS);
-    }
+      Called called;
+      gearman_function_t counter_function= gearman_function_create(called_worker);
+      test_compare(gearman_worker_define_function(&worker,
+                                                  test_literal_param(__func__),
+                                                  counter_function,
+                                                  3000, &called), GEARMAN_SUCCESS);
 
-    {
-      Client client(first_port);
-      test_compare(gearman_client_echo(&client, test_literal_param("This is my echo test")), GEARMAN_SUCCESS);
-      gearman_job_handle_t job_handle;
-      test_compare(gearman_client_do_background(&client,
-                                                __func__, // func
-                                                NULL, // unique
-                                                test_literal_param("foo"),
-                                                job_handle), GEARMAN_SUCCESS);
-    }
+      int32_t job_count= 0;
+      while (GEARMAN_SUCCESS == gearman_worker_work(&worker))
+      {
+        job_count++;
+        if (job_count == inserted_jobs)
+        {
+          break;
+        }
+      };
 
-    servers.clear();
+      test_compare(called.count(), inserted_jobs);
+    }
   }
 
   return TEST_SUCCESS;
