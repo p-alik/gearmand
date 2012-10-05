@@ -47,6 +47,9 @@
 #include <libgearman/gearman.h>
 #include <boost/program_options.hpp>
 
+#include "util/string.hpp"
+#include "gearmand/error.hpp"
+
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
@@ -61,6 +64,8 @@ static gearman_return_t fail(gearman_task_st *task);
 
 int main(int args, char *argv[])
 {
+  gearmand::error::init(argv[0]);
+
   in_port_t port;
   int timeout;
   std::string host;
@@ -69,6 +74,7 @@ int main(int args, char *argv[])
   boost::program_options::options_description desc("Options");
   desc.add_options()
     ("help", "Options related to the program.")
+    ("verbose", "Send status to stdout")
     ("host,h", boost::program_options::value<std::string>(&host)->default_value("localhost"),"Connect to the host")
     ("port,p", boost::program_options::value<in_port_t>(&port)->default_value(GEARMAN_DEFAULT_TCP_PORT), "Port number use for connection")
     ("timeout,u", boost::program_options::value<int>(&timeout)->default_value(-1), "Timeout in milliseconds")
@@ -97,10 +103,15 @@ int main(int args, char *argv[])
     return EXIT_SUCCESS;
   }
 
+  if (vm.count("verbose") == 0)
+  {
+    close(STDOUT_FILENO);
+  }
+
   gearman_client_st client;
   if (gearman_client_create(&client) == NULL)
   {
-    std::cerr << "Memory allocation failure on client creation" << std::endl;
+    gearmand::error::message("Memory allocation failure on client creation");
     return EXIT_FAILURE;
   }
 
@@ -108,7 +119,7 @@ int main(int args, char *argv[])
   ret= gearman_client_add_server(&client, host.c_str(), port);
   if (ret != GEARMAN_SUCCESS)
   {
-    std::cerr << gearman_client_error(&client) << std::endl;
+    gearmand::error::message(gearman_client_error(&client));
     gearman_client_free(&client);
     return EXIT_FAILURE;
   }
@@ -121,7 +132,7 @@ int main(int args, char *argv[])
                                 &ret) == NULL ||
         ret != GEARMAN_SUCCESS)
     {
-      std::cerr << gearman_client_error(&client) << std::endl;
+      gearmand::error::message(gearman_client_error(&client));
       gearman_client_free(&client);
       return EXIT_FAILURE;
     }
@@ -136,7 +147,7 @@ int main(int args, char *argv[])
   ret= gearman_client_run_tasks(&client);
   if (ret != GEARMAN_SUCCESS)
   {
-    std::cerr << gearman_client_error(&client) << std::endl;
+    gearmand::error::message(gearman_client_error(&client));
     gearman_client_free(&client);
     return EXIT_FAILURE;
   }

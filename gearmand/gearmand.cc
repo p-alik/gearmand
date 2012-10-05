@@ -99,6 +99,8 @@ static void _log(const char *line, gearmand_verbose_t verbose, void *context);
 
 int main(int argc, char *argv[])
 {
+  gearmand::error::init(argv[0]);
+
   int backlog;
   rlim_t fds= 0;
   uint32_t job_retries;
