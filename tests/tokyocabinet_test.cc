@@ -107,7 +107,6 @@ static test_return_t lp_1054377_TEST(void *object)
 
   test_compare(0, access(sql_file.c_str(), R_OK | W_OK ));
 
-  if (0)
   {
     in_port_t first_port= libtest::get_free_port();
 

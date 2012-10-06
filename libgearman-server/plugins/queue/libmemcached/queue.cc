@@ -313,17 +313,14 @@ static memcached_return callback_loader(const memcached_st*,
   assert(function);
   assert(function_len);
 
-  std::vector<char> data;
   /* need to make a copy here ... gearman_server_job_free will free it later */
-  try {
-    data.resize(memcached_result_length(result));
-  }
-  catch(...)
+  char* data= (char*)malloc(memcached_result_length(result));
+  if (data == NULL)
   {
     gearmand_perror("malloc");
     return MEMCACHED_MEMORY_ALLOCATION_FAILURE;
   } 
-  memcpy(&data[0], memcached_result_value(result), data.size());
+  memcpy(data, memcached_result_value(result), memcached_result_length(result));
 
   gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "libmemcached replay_add: %.*s", (uint32_t)unique_size, (char *)unique);
 
@@ -332,7 +329,7 @@ static memcached_return callback_loader(const memcached_st*,
                                 NULL,
                                 unique, unique_size,
                                 function, function_len,
-                                &data[0], data.size(),
+                                data, memcached_result_length(result),
                                 static_cast<gearman_job_priority_t>(memcached_result_flags(result)), int64_t(0));
 
 

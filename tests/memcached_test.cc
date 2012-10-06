@@ -145,7 +145,6 @@ static test_return_t lp_1054377_TEST(void *object)
 #endif
   }
 
-  if (0)
   {
     in_port_t first_port= libtest::get_free_port();
 
