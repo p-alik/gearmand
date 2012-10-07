@@ -57,6 +57,18 @@
 
 #include <libtest/signal.h>
 
+#ifndef SOCK_CLOEXEC 
+#  define SOCK_CLOEXEC 0
+#endif
+
+#ifndef SOCK_NONBLOCK 
+#  define SOCK_NONBLOCK 0
+#endif
+
+#ifndef FD_CLOEXEC
+#  define FD_CLOEXEC 0
+#endif
+
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif

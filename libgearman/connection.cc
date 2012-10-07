@@ -1176,7 +1176,7 @@ static gearman_return_t _con_setsockopt(gearman_connection_st *connection)
 
 #if defined(__MACH__) && defined(__APPLE__) || defined(__FreeBSD__)
   {
-    ret= 1;
+    int ret= 1;
     setsockopt(connection->fd, SOL_SOCKET, SO_NOSIGPIPE, static_cast<void *>(&ret), sizeof(int));
 
     // This is not considered a fatal error 
