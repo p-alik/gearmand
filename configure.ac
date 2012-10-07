@@ -19,7 +19,7 @@ AM_INIT_AUTOMAKE([-Wall -Werror -Wno-portability subdir-objects foreign tar-usta
 AC_PREREQ([2.63])
 
 AC_CONFIG_HEADERS([config.h:config.in])dnl Keep filename to 8.3 for MS-DOS.
-AC_CONFIG_SRCDIR(libgearman/gearman.cc)
+AC_CONFIG_SRCDIR([libgearman/gearman.cc])
 
 GEARMAN_LIBRARY_VERSION=7:0:0
 #                       | | |
@@ -55,14 +55,14 @@ m4_include([libtest/yatl.m4])
 AX_WITH_LIBMEMCACHED
 m4_include([m4/memcached.m4])
 m4_include([m4/memcached_sasl.m4])
-AM_CONDITIONAL(BUILDING_LIBMEMCACHED, false)
+AM_CONDITIONAL([BUILDING_LIBMEMCACHED], false)
 
-AM_CONDITIONAL(BUILDING_GEARMAN, true)
-AM_CONDITIONAL(HAVE_LIBGEARMAN, true)
-AC_SUBST(_WITH_LIBGEARMAN_SUPPORT, ["_WITH_LIBGEARMAN_SUPPORT 0"])
-AC_DEFINE([GEARMAND_BINARY], "./gearmand/gearmand", [Name of the gearmand binary used in make test])
-AC_DEFINE([HAVE_LIBGEARMAN], 1, [libgearman support])
-AC_DEFINE([HAVE_GEARMAND_BINARY], 1, [libgearman support])
+AM_CONDITIONAL([BUILDING_GEARMAN], true)
+AM_CONDITIONAL([HAVE_LIBGEARMAN], true)
+AC_SUBST([_WITH_LIBGEARMAN_SUPPORT], ["_WITH_LIBGEARMAN_SUPPORT 0"])
+AC_DEFINE([GEARMAND_BINARY], ["./gearmand/gearmand"], [Name of the gearmand binary used in make test])
+AC_DEFINE([HAVE_LIBGEARMAN], [1], [libgearman support])
+AC_DEFINE([HAVE_GEARMAND_BINARY], [1], [libgearman support])
 
 AX_LIB_CURL([7.21.7],
             [
@@ -84,14 +84,14 @@ m4_include([m4/drizzled.m4])
 WITH_LIBDRIZZLE
 
 AX_LIB_SQLITE3
-AS_IF([test "x${WANT_SQLITE3}" = "xyes"],
+AS_IF([ test "x${WANT_SQLITE3}" = "xyes"],
       [
        AC_DEFINE([HAVE_LIBSQLITE3], [ 1 ], [Have the SQLITE3 library])
       ],
       [
        AC_DEFINE([HAVE_LIBSQLITE3], [ 0 ], [Have the SQLITE3 library])
       ])
-AM_CONDITIONAL(HAVE_LIBSQLITE3, test "x${WANT_SQLITE3}" = "xyes")
+AM_CONDITIONAL([HAVE_LIBSQLITE3], [ test "x${WANT_SQLITE3}" = "xyes" ])
 
 AC_DEFINE([HAVE_MEMCACHED_LIGHT_BINARY], [0], [Support for memcached_light])
 AC_DEFINE([MEMCACHED_LIGHT_BINARY], [""], [Support for memcached_light])
@@ -221,8 +221,8 @@ AC_CHECK_LIB([m], [floor], [
                  AC_DEFINE([HAVE_LIBM], [ 0 ], [Have math library])
                  ])
 
-AC_CHECK_FUNC(setsockopt, [], [AC_CHECK_LIB(socket, setsockopt)])
-AC_CHECK_FUNC(bind, [], [AC_CHECK_LIB(bind, bind)])
+AC_CHECK_FUNC([setsockopt], [], [AC_CHECK_LIB(socket, setsockopt)])
+AC_CHECK_FUNC([bind], [], [AC_CHECK_LIB(bind, bind)])
 
 AC_DEFINE([GEARMAND_BLOBSLAP_WORKER], [ 1 ], [Have Gearman Blobslap Worker])
 
@@ -234,8 +234,8 @@ AX_CHECK_LIBRARY([LIBEVENT], [event.h], [event], [
 
 AX_UUID_GENERATE_TIME_SAFE
 
-AS_IF([test "x${TARGET_LINUX}" = "xtrue"], [AC_DEFINE([BUILD_LIBHOSTILE], [1], [Build libhostile])], [AC_DEFINE([BUILD_LIBHOSTILE], [0], [Build libhostile])])
-AM_CONDITIONAL(TARGET_HOSTILE, [test "x${TARGET_LINUX}" = "xtrue"])
+AS_IF([ test "x${TARGET_LINUX}" = "xtrue" ], [AC_DEFINE([BUILD_LIBHOSTILE], [1], [Build libhostile])], [AC_DEFINE([BUILD_LIBHOSTILE], [0], [Build libhostile])])
+AM_CONDITIONAL([TARGET_HOSTILE], [ test "x${TARGET_LINUX}" = "xtrue" ])
 
 AX_PTHREAD(, [AC_MSG_ERROR(could not find libpthread)])
 AX_PTHREAD_TIMEDJOIN_NP
@@ -246,15 +246,15 @@ AX_ASSERT
 AX_CXX_COMPILER_VERSION
 AX_HARDEN_COMPILER_FLAGS
 
-AC_CONFIG_FILES(Makefile
-                docs/conf.py
-                libgearman-1.0/version.h
-                scripts/gearmand
-                scripts/gearmand-init
-                scripts/gearmand.xml
-                scripts/smf_install.sh
-                support/gearmand.pc
-                support/gearmand.spec)
+AC_CONFIG_FILES([Makefile
+                 docs/conf.py
+                 libgearman-1.0/version.h
+                 scripts/gearmand
+                 scripts/gearmand-init
+                 scripts/gearmand.xml
+                 scripts/smf_install.sh
+                 support/gearmand.pc
+                 support/gearmand.spec])
 
 AC_OUTPUT
 
