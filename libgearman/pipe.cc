@@ -48,92 +48,94 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#ifndef FD_CLOEXEC
+# define FD_CLOEXEC 0
+#endif
+
+// This is not called if HAVE_PIPE2 is true
 static inline bool set_cloexec(int pipedes_[2], const size_t x)
 {
-  int returned_flags;
-  do 
+  if (FD_CLOEXEC)
   {
-    returned_flags= fcntl(pipedes_[x], F_GETFD, 0);
-  } while (returned_flags == -1 and (errno == EINTR or errno == EAGAIN));
+    int flags;
+    do 
+    {
+      flags= fcntl(pipedes_[x], F_GETFD, 0);
+    } while (flags == -1 and (errno == EINTR or errno == EAGAIN));
 
-  if (returned_flags == -1)
-  {
+    if (flags != -1)
+    {
+      int retval;
+      do
+      { 
+        retval= fcntl (pipedes_[x], F_SETFD, flags | FD_CLOEXEC);
+      } while (retval == -1 && (errno == EINTR or errno == EAGAIN));
+
+      if (retval != -1)
+      {
+        return true;
+      }
+
 #if 0
-    perror("fcntl(pipedes_[x], F_GETFD, 0)");
+      perror("fcntl(pipedes_[x], F_GETFD, 0)");
 #endif
-    return false;
-  }
+      return false;
+    }
 
-  int retval;
-  do
-  { 
-    retval= fcntl (pipedes_[x], F_SETFD, FD_CLOEXEC);
-  } while (retval == -1 && (errno == EINTR or errno == EAGAIN));
-
-  if (retval == -1)
-  {
 #if 0
     perror("fcntl (pipedes_[x], F_SETFD, FD_CLOEXEC)");
 #endif
-    return false;
   }
 
-  return true;
+  return false;
 }
 
+// This is not called if HAVE_PIPE2 is true
 static inline bool set_nonblock(int pipedes_[2], const size_t x)
 {
-  int returned_flags;
+  int flags;
   do 
   {
-    returned_flags= fcntl(pipedes_[x], F_GETFL, 0);
-  } while (returned_flags == -1 and (errno == EINTR or errno == EAGAIN));
+    flags= fcntl(pipedes_[x], F_GETFL, 0);
+  } while (flags == -1 and (errno == EINTR or errno == EAGAIN));
 
-  if (returned_flags == -1)
+  if (flags != -1)
   {
+    int retval;
+    do
+    {
+      retval= fcntl(pipedes_[x], F_SETFL, flags | O_NONBLOCK);
+    } while (retval == -1 and (errno == EINTR or errno == EAGAIN));
+
+    if (retval != -1)
+    {
+      return true;
+    }
 #if 0
-    perror("fcntl(pipedes_[x], F_GETFL, 0)");
+    perror("fcntl(pipedes_[x], F_SETFL, flags | O_NONBLOCK)");
 #endif
-    return false;
   }
 
-  int retval;
-  do
-  {
-    retval= fcntl(pipedes_[x], F_SETFL, returned_flags | O_NONBLOCK);
-  } while (retval == -1 and (errno == EINTR or errno == EAGAIN));
-
-  if (retval == -1)
-  {
 #if 0
-    perror("fcntl(pipedes_[x], F_SETFL, returned_flags | O_NONBLOCK)");
+  perror("fcntl(pipedes_[x], F_GETFL, 0)");
 #endif
-    return false;
-  }
 
-  return true;
+  return false;
 }
 
 bool setup_shutdown_pipe(int pipedes_[2])
 {
-  if (HAVE_PIPE2)
-  {
 #if defined(HAVE_PIPE2) && HAVE_PIPE2
-    if (pipe2(pipedes_, O_NONBLOCK|O_CLOEXEC) == -1)
-    {
-      return false;
-    }
-#else
-    assert(0); // This should never be reached
-#endif
-  }
-  else if (pipe(pipedes_) == -1)
+  if (pipe2(pipedes_, O_NONBLOCK|O_CLOEXEC) == -1)
   {
-#if 0
-    perror("pipe");
-#endif
     return false;
   }
+#else
+  if (pipe(pipedes_) == -1)
+  {
+    return false;
+  }
+#endif
 
   for (size_t x= 0; x < 2; ++x)
   {

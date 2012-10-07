@@ -164,7 +164,7 @@ static const char * _libtokyocabinet_tcaerrmsg(TCADB *db)
     }
   }
 
-  return NULL;
+  return "no TCADB file";
 }
 
 gearmand_error_t _initialize(gearman_server_st *server,
@@ -186,10 +186,10 @@ gearmand_error_t _initialize(gearman_server_st *server,
 
   if (tcadbopen(queue->db, queue->filename.c_str()) == 0)
   {
-    queue->destroy();
-
     gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, 
                        "tcadbopen(%s): %s", queue->filename.c_str(), _libtokyocabinet_tcaerrmsg(queue->db));
+
+    queue->destroy();
 
     return GEARMAN_QUEUE_ERROR;
   }

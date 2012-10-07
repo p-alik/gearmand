@@ -1,5 +1,6 @@
-0.40
+0.41
 * Switched from --having-debug to --enable-debug
+* Fix for SQLITE, it wasn't replaying its queue on startup.
 
 0.39 Wed Sep 19 03:36:06 EDT 2012
 * Added gearman_job_error() interface.

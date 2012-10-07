@@ -318,6 +318,7 @@ void gearman_server_job_free(gearman_server_job_st *server_job)
   if (server_job->data != NULL)
   {
     free((void *)(server_job->data));
+    server_job->data= NULL;
   }
 
   while (server_job->client_list != NULL)

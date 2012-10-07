@@ -44,6 +44,7 @@
 #pragma once
 
 #include <cstdio>
+#include <cstdarg>
 
 /** @addtogroup gearman_local Local Gearman Declarations @ingroup
  * gearman_universal @{

@@ -106,7 +106,7 @@ static test_return_t server_startup_multiple_TEST(void *obj)
   cycle_context_st *context= (cycle_context_st*)obj;
   for (size_t x= 0; x < 10; x++)
   {
-    test_skip(true, server_startup(context->servers, "gearmand", context->port, 0, NULL, false));
+    test_skip(true, server_startup(context->servers, "gearmand", libtest::get_free_port(), 0, NULL, false));
   }
   test_compare(true, context->servers.shutdown());
 
