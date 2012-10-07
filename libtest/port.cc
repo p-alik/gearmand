@@ -122,8 +122,19 @@ in_port_t get_free_port()
 
   while (--retries)
   {
+    int type= SOCK_STREAM;
+    if (SOCK_CLOEXEC)
+    {
+      type|= SOCK_CLOEXEC;
+    }
+
+    if (SOCK_NONBLOCK)
+    {
+      type|= SOCK_NONBLOCK; 
+    }
+
     int sd;
-    if ((sd= socket(AF_INET, SOCK_STREAM, 0)) != -1)
+    if ((sd= socket(AF_INET, type, 0)) != -1)
     {
       int optval= 1;
       if (setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) != -1)

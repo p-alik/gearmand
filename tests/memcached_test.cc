@@ -104,16 +104,17 @@ static test_return_t lp_1054377_TEST(void *object)
 # endif
 #endif
 
-  const char *gearmand_argv[]= {
+  const char *argv[]= {
     "--queue-type=libmemcached",
     memcached_server_string,
     0 };
 
 
+  const int32_t inserted_jobs= 3;
   {
     in_port_t first_port= libtest::get_free_port();
 
-    test_true(server_startup(servers, "gearmand", first_port, 2, gearmand_argv));
+    test_true(server_startup(servers, "gearmand", first_port, 2, argv));
 #if 0
     libtest::Server* server= servers.pop_server();
 #endif
@@ -127,17 +128,14 @@ static test_return_t lp_1054377_TEST(void *object)
       Client client(first_port);
       test_compare(gearman_client_echo(&client, test_literal_param("This is my echo test")), GEARMAN_SUCCESS);
       gearman_job_handle_t job_handle;
-      test_compare(gearman_client_do_background(&client,
-                                                __func__, // func
-                                                NULL, // unique
-                                                test_literal_param("foo"),
-                                                job_handle), GEARMAN_SUCCESS);
-
-      test_compare(gearman_client_do_background(&client,
-                                                __func__, // func
-                                                NULL, // unique
-                                                test_literal_param("foo"),
-                                                job_handle), GEARMAN_SUCCESS);
+      for (int32_t x= 0; x < inserted_jobs; ++x)
+      {
+        test_compare(gearman_client_do_background(&client,
+                                                  __func__, // func
+                                                  NULL, // unique
+                                                  test_literal_param("foo"),
+                                                  job_handle), GEARMAN_SUCCESS);
+      }
     }
 
 #if 0
@@ -148,7 +146,7 @@ static test_return_t lp_1054377_TEST(void *object)
   {
     in_port_t first_port= libtest::get_free_port();
 
-    test_true(server_startup(servers, "gearmand", first_port, 2, gearmand_argv));
+    test_true(server_startup(servers, "gearmand", first_port, 2, argv));
 
     {
       Worker worker(first_port);
@@ -157,11 +155,34 @@ static test_return_t lp_1054377_TEST(void *object)
       test_compare(gearman_worker_define_function(&worker,
                                                   test_literal_param(__func__),
                                                   counter_function,
-                                                  30000, &called), GEARMAN_SUCCESS);
+                                                  3000, &called), GEARMAN_SUCCESS);
 
-      while (GEARMAN_SUCCESS == gearman_worker_work(&worker)) {};
+      const int32_t max_timeout= 4;
+      int32_t max_timeout_value= max_timeout;
+      int32_t job_count= 0;
+      gearman_return_t ret;
+      do
+      {
+        ret= gearman_worker_work(&worker);
+        if (gearman_success(ret))
+        {
+          job_count++;
+          max_timeout_value= max_timeout;
+          if (job_count == inserted_jobs)
+          {
+            break;
+          }
+        }
+        else if (ret == GEARMAN_TIMEOUT)
+        {
+          if ((--max_timeout_value) < 0)
+          {
+            break;
+          }
+        }
+      } while (ret == GEARMAN_TIMEOUT or ret == GEARMAN_SUCCESS);
 
-      Error << called.count();
+      test_compare(called.count(), inserted_jobs);
     }
   }
 
