@@ -243,8 +243,9 @@ bool Server::start()
     }
   }
 
-  uint32_t this_wait= 0;
   bool pinged= false;
+  uint32_t this_wait= 0;
+  do 
   {
     uint32_t timeout= 20; // This number should be high enough for valgrind startup (which is slow)
     uint32_t waited;
@@ -266,7 +267,7 @@ bool Server::start()
       this_wait= retry * retry / 3 + 1;
       libtest::dream(this_wait, 0);
     }
-  }
+  } while (_app.check() and pinged == false);
 
   if (pinged == false)
   {

@@ -43,27 +43,42 @@
 #include <libgearman-server/error.h>
 #include <libgearman-server/constants.h>
 
+#include <algorithm>
+#include <string> 
+
 struct gearman_server_con_st;
 struct gearmand_packet_st;
 struct gearman_server_st;
 
 namespace gearmand {
 
-  Plugin::~Plugin()
+Plugin::Plugin(const std::string &name_arg) :
+  _command_line_options(name_arg),
+  _name(name_arg),
+  _match(name_arg)
   {
+    std::transform(_match.begin(), _match.end(), _match.begin(), ::tolower);
   }
 
-  boost::program_options::options_description& Plugin::command_line_options()
-  {
-    return _command_line_options;
-  }
+int Plugin::compare(const std::string& arg)
+{
+  return _match.compare(arg);
+}
+
+Plugin::~Plugin()
+{
+}
+
+boost::program_options::options_description& Plugin::command_line_options()
+{
+  return _command_line_options;
+}
 
 namespace queue {
 
 Context::~Context()
 {
 }
-
 
 } // namespace queue
 
