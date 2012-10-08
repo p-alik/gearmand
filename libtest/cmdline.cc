@@ -59,6 +59,10 @@ using namespace libtest;
 static char **environ= NULL;
 #endif
 
+#ifndef FD_CLOEXEC
+# define FD_CLOEXEC 0
+#endif
+
 extern "C" {
   static int exited_successfully(int status)
   {
@@ -643,17 +647,34 @@ void Application::Pipe::reset()
 
 void Application::Pipe::cloexec()
 {
-  int ret;
-  if ((ret= fcntl(_pipe_fd[WRITE], F_GETFD, 0)) == -1)
+  //if (SOCK_CLOEXEC == 0)
   {
-    Error << "fcntl(F_GETFD) " << strerror(errno);
-    throw strerror(errno);
-  }
+    if (FD_CLOEXEC) 
+    {
+      int flags;
+      do 
+      {
+        flags= fcntl(_pipe_fd[WRITE], F_GETFD, 0);
+      } while (flags == -1 and (errno == EINTR or errno == EAGAIN));
 
-  if ((ret= fcntl(_pipe_fd[WRITE], F_SETFD, ret | FD_CLOEXEC)) == -1)
-  {
-    Error << "fcntl(F_SETFD) " << strerror(errno);
-    throw strerror(errno);
+      if (flags == -1)
+      {
+        Error << "fcntl(F_GETFD) " << strerror(errno);
+        throw strerror(errno);
+      }
+
+      int rval;
+      do
+      { 
+        rval= fcntl(_pipe_fd[WRITE], F_SETFD, flags | FD_CLOEXEC);
+      } while (rval == -1 && (errno == EINTR or errno == EAGAIN));
+
+      if (rval == -1)
+      {
+        Error << "fcntl(F_SETFD) " << strerror(errno);
+        throw strerror(errno);
+      }
+    }
   }
 }
 

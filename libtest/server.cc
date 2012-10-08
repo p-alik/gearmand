@@ -200,6 +200,7 @@ bool Server::start()
   }
 
   libtest::release_port(_port);
+
   Application::error_t ret;
   if (Application::SUCCESS !=  (ret= _app.run()))
   {
@@ -259,6 +260,8 @@ bool Server::start()
       {
         break;
       }
+
+      Error << "ping() wait: " << this_wait << " " << hostname() << ":" << port() << " " << error();
 
       this_wait= retry * retry / 3 + 1;
       libtest::dream(this_wait, 0);

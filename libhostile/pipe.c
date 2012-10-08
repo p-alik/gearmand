@@ -70,6 +70,7 @@ int pipe(int pipefd[2])
   return ret;
 }
 
+#if defined(HAVE_PIPE2) && HAVE_PIPE2
 int pipe2(int pipefd[2], int flags)
 {
   hostile_initialize();
@@ -82,4 +83,5 @@ int pipe2(int pipefd[2], int flags)
 
   return ret;
 }
+#endif
 

@@ -57,6 +57,18 @@
 
 #include <libtest/signal.h>
 
+#ifndef SOCK_CLOEXEC 
+#  define SOCK_CLOEXEC 0
+#endif
+
+#ifndef SOCK_NONBLOCK 
+#  define SOCK_NONBLOCK 0
+#endif
+
+#ifndef FD_CLOEXEC
+#  define FD_CLOEXEC 0
+#endif
+
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
@@ -122,8 +134,19 @@ in_port_t get_free_port()
 
   while (--retries)
   {
+    int type= SOCK_STREAM;
+    if (SOCK_CLOEXEC)
+    {
+      type|= SOCK_CLOEXEC;
+    }
+
+    if (SOCK_NONBLOCK)
+    {
+      type|= SOCK_NONBLOCK; 
+    }
+
     int sd;
-    if ((sd= socket(AF_INET, SOCK_STREAM, 0)) != -1)
+    if ((sd= socket(AF_INET, type, 0)) != -1)
     {
       int optval= 1;
       if (setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) != -1)

@@ -90,6 +90,7 @@ gearmand_error_t Sqlite::initialize()
 
   if (exec_queue == NULL)
   {
+    return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
 
   gearmand_error_t rc;
@@ -98,7 +99,7 @@ gearmand_error_t Sqlite::initialize()
     delete exec_queue;
     return rc;
   }
-  gearman_server_set_queue(&Gearmand()->server, exec_queue);
+  gearman_server_set_queue(Gearmand()->server, exec_queue);
 
   return rc;
 }

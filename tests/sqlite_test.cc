@@ -1,9 +1,39 @@
-/* Gearman server and library
- * Copyright (C) 2008 Brian Aker, Eric Day
- * All rights reserved.
+/*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
+ * 
+ *  Gearmand client and server library.
  *
- * Use and distribution licensed under the BSD license.  See
- * the COPYING file in the parent directory for full text.
+ *  Copyright (C) 2011-2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2008 Brian Aker, Eric Day
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions are
+ *  met:
+ *
+ *      * Redistributions of source code must retain the above copyright
+ *  notice, this list of conditions and the following disclaimer.
+ *
+ *      * Redistributions in binary form must reproduce the above
+ *  copyright notice, this list of conditions and the following disclaimer
+ *  in the documentation and/or other materials provided with the
+ *  distribution.
+ *
+ *      * The names of its contributors may not be used to endorse or
+ *  promote products derived from this software without specific prior
+ *  written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ *  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ *  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ *  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ *  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ *  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ *  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
 #include <config.h>
@@ -23,6 +53,8 @@ using namespace libtest;
 #include <tests/context.h>
 #include <tests/client.h>
 #include <tests/worker.h>
+
+#include "tests/workers/v2/called.h"
 
 // Prototypes
 #ifndef __INTEL_COMPILER
@@ -119,6 +151,7 @@ static test_return_t lp_1054377_TEST(void *object)
     sql_buffer,
     0 };
 
+  const int32_t inserted_jobs= 8;
   {
     in_port_t first_port= libtest::get_free_port();
 
@@ -134,39 +167,62 @@ static test_return_t lp_1054377_TEST(void *object)
       test::Client client(first_port);
       test_compare(gearman_client_echo(&client, test_literal_param("This is my echo test")), GEARMAN_SUCCESS);
       gearman_job_handle_t job_handle;
-      test_compare(gearman_client_do_background(&client,
-                                                __func__, // func
-                                                NULL, // unique
-                                                test_literal_param("foo"),
-                                                job_handle), GEARMAN_SUCCESS);
+      for (int32_t x= 0; x < inserted_jobs; ++x)
+      {
+        test_compare(gearman_client_do_background(&client,
+                                                  __func__, // func
+                                                  NULL, // unique
+                                                  test_literal_param("foo"),
+                                                  job_handle), GEARMAN_SUCCESS);
+      }
     }
 
     servers.clear();
   }
 
+  test_compare(0, access(sql_file.c_str(), R_OK | W_OK ));
+
   {
     in_port_t first_port= libtest::get_free_port();
 
     test_true(server_startup(servers, "gearmand", first_port, 2, argv));
-    test_compare(0, access(sql_file.c_str(), R_OK | W_OK ));
 
     {
       test::Worker worker(first_port);
-      test_compare(gearman_worker_register(&worker, __func__, 0), GEARMAN_SUCCESS);
-    }
+      Called called;
+      gearman_function_t counter_function= gearman_function_create(called_worker);
+      test_compare(gearman_worker_define_function(&worker,
+                                                  test_literal_param(__func__),
+                                                  counter_function,
+                                                  3000, &called), GEARMAN_SUCCESS);
 
-    {
-      test::Client client(first_port);
-      test_compare(gearman_client_echo(&client, test_literal_param("This is my echo test")), GEARMAN_SUCCESS);
-      gearman_job_handle_t job_handle;
-      test_compare(gearman_client_do_background(&client,
-                                                __func__, // func
-                                                NULL, // unique
-                                                test_literal_param("foo"),
-                                                job_handle), GEARMAN_SUCCESS);
-    }
+      const int32_t max_timeout= 4;
+      int32_t max_timeout_value= max_timeout;
+      int32_t job_count= 0;
+      gearman_return_t ret;
+      do
+      {
+        ret= gearman_worker_work(&worker);
+        if (gearman_success(ret))
+        {
+          job_count++;
+          max_timeout_value= max_timeout;
+          if (job_count == inserted_jobs)
+          {
+            break;
+          }
+        }
+        else if (ret == GEARMAN_TIMEOUT)
+        {
+          if ((--max_timeout_value) < 0)
+          {
+            break;
+          }
+        }
+      } while (ret == GEARMAN_TIMEOUT or ret == GEARMAN_SUCCESS);
 
-    servers.clear();
+      test_compare(called.count(), inserted_jobs);
+    }
   }
 
   return TEST_SUCCESS;
