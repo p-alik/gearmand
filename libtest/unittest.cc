@@ -53,6 +53,9 @@ using namespace libtest;
 
 static std::string testing_service;
 
+// Used to track setups where we see if failure is happening
+static uint32_t fatal_calls= 0;
+
 static test_return_t LIBTOOL_COMMAND_test(void *)
 {
   test_true(getenv("LIBTOOL_COMMAND"));
@@ -270,7 +273,7 @@ static test_return_t drizzled_cycle_test(void *object)
 
   test_skip(true, has_drizzled());
 
-  test_skip(true, server_startup(*servers, "drizzled", get_free_port(), 0, NULL));
+  test_skip(true, server_startup(*servers, "drizzled", get_free_port(), 0, NULL, false));
 
   return TEST_SUCCESS;
 }
@@ -286,7 +289,7 @@ static test_return_t gearmand_cycle_test(void *object)
 
   test_skip(true, has_gearmand());
 
-  test_skip(true, server_startup(*servers, "gearmand", get_free_port(), 0, NULL));
+  test_skip(true, server_startup(*servers, "gearmand", get_free_port(), 0, NULL, false));
 
   return TEST_SUCCESS;
 }
@@ -299,7 +302,7 @@ static test_return_t memcached_light_cycle_TEST(void *object)
 
   test_skip(true, bool(HAVE_MEMCACHED_LIGHT_BINARY));
 
-  test_true(server_startup(*servers, "memcached-light", get_free_port(), 0, NULL));
+  test_true(server_startup(*servers, "memcached-light", get_free_port(), 0, NULL, false));
 
   return TEST_SUCCESS;
 }
@@ -333,7 +336,9 @@ static test_return_t server_startup_fail_TEST(void *object)
   server_startup_st *servers= (server_startup_st*)object;
   test_true(servers);
 
-  test_compare(servers->start_server(testing_service, LIBTEST_FAIL_PORT, 0, NULL, true), false);
+  fatal::disable();
+  test_compare(servers->start_server(testing_service, LIBTEST_FAIL_PORT, 0, NULL, false), true);
+  fatal::enable();
 
   return TEST_SUCCESS;
 }
@@ -343,7 +348,7 @@ static test_return_t server_startup_TEST(void *object)
   server_startup_st *servers= (server_startup_st*)object;
   test_true(servers);
 
-  test_true(servers->start_server(testing_service, get_free_port(), 0, NULL, true));
+  test_compare(servers->start_server(testing_service, get_free_port(), 0, NULL, false), true);
 
   test_true(servers->last());
   pid_t last_pid= servers->last()->pid();
@@ -366,7 +371,7 @@ static test_return_t socket_server_startup_TEST(void *object)
   server_startup_st *servers= (server_startup_st*)object;
   test_true(servers);
 
-  test_true(servers->start_socket_server(testing_service, get_free_port(), 0, NULL, true));
+  test_true(servers->start_socket_server(testing_service, get_free_port(), 0, NULL, false));
 
   return TEST_SUCCESS;
 }
@@ -384,7 +389,7 @@ static test_return_t memcached_sasl_test(void *object)
     if (HAVE_LIBMEMCACHED)
     {
       test_true(has_memcached_sasl());
-      test_true(server_startup(*servers, "memcached-sasl", get_free_port(), 0, NULL));
+      test_true(server_startup(*servers, "memcached-sasl", get_free_port(), 0, NULL, false));
 
       return TEST_SUCCESS;
     }
@@ -723,8 +728,6 @@ static test_return_t get_free_port_TEST(void *)
 
   return TEST_SUCCESS;
 }
-
-static uint32_t fatal_calls= 0;
 
 static test_return_t fatal_TEST(void *)
 {

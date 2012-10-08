@@ -73,6 +73,7 @@ void fatal::disable()
 
 void fatal::enable()
 {
+  _counter= 0;
   _disabled= false;
 }
 

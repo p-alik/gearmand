@@ -320,9 +320,12 @@ bool server_startup_st::start_server(const std::string& server_type, in_port_t t
   }
   catch (libtest::disconnected err)
   {
-    stream::cerr(err.file(), err.line(), err.func()) << err.what();
-    delete server;
-    return false;
+    if (fatal::is_disabled() == false and try_port != LIBTEST_FAIL_PORT)
+    {
+      stream::cerr(err.file(), err.line(), err.func()) << err.what();
+      delete server;
+      return false;
+    }
   }
   catch (...)
   {
