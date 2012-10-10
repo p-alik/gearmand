@@ -51,7 +51,7 @@ namespace queue {
 
 void add(plugins::Queue* queue);
 void load_options(boost::program_options::options_description &all);
-gearmand_error_t initialize(gearmand_st *gearmand, const std::string &name);
+gearmand_error_t initialize(gearmand_st *gearmand, std::string);
 
 } // namespace queue
 } // namespace gearmand

@@ -167,7 +167,7 @@ void load_options(boost::program_options::options_description &all)
   }
 }
 
-gearmand_error_t initialize(gearmand_st *, const std::string &name)
+gearmand_error_t initialize(gearmand_st *, std::string name)
 {
   bool launched= false;
 
@@ -176,11 +176,13 @@ gearmand_error_t initialize(gearmand_st *, const std::string &name)
     return GEARMAN_SUCCESS;
   }
 
+  std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+
   for (plugins::Queue::vector::iterator iter= all_queue_modules.begin();
        iter != all_queue_modules.end();
        ++iter)
   {
-    if (not name.compare((*iter)->name()))
+    if ((*iter)->compare(name) == 0)
     {
       if (launched)
       {
