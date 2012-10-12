@@ -50,7 +50,7 @@ noinst_PROGRAMS+=gearmand/hostile_gearmand
 endif
 
 gearmand-valgrind: gearmand/gearmand
-	$(LIBTOOL) --mode=execute valgrind --leak-check=yes --show-reachable=yes  gearmand/gearmand
+	$(LIBTOOL) --mode=execute valgrind --leak-check=yes gearmand/gearmand
 
 gearmand-debug: gearmand/gearmand
 	$(LIBTOOL) --mode=execute gdb gearmand/gearmand
