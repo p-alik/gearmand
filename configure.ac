@@ -53,7 +53,6 @@ CONFIG_EXTRA
 m4_include([libtest/yatl.m4])
 
 AX_WITH_LIBMEMCACHED
-m4_include([m4/memcached.m4])
 m4_include([m4/memcached_sasl.m4])
 AM_CONDITIONAL([BUILDING_LIBMEMCACHED], false)
 
@@ -234,6 +233,8 @@ AX_CHECK_LIBRARY([LIBEVENT], [event.h], [event], [
 
 AX_UUID_GENERATE_TIME_SAFE
 
+AX_AM_JOBSERVER([yes])
+
 AS_IF([ test "x${TARGET_LINUX}" = "xtrue" ], [AC_DEFINE([BUILD_LIBHOSTILE], [1], [Build libhostile])], [AC_DEFINE([BUILD_LIBHOSTILE], [0], [Build libhostile])])
 AM_CONDITIONAL([TARGET_HOSTILE], [ test "x${TARGET_LINUX}" = "xtrue" ])
 
@@ -278,6 +279,7 @@ echo "   * Building with libmemcached $ac_with_libmemcached"
 echo "   * Building with libpq        $ac_cv_libpq"
 echo "   * Building with tokyocabinet $ac_enable_libtokyocabinet"
 echo "   * Building with libmysql     $found_mysql"
+echo "   * make -j:                   $enable_jobserver"
 echo ""
 echo "---"
 
