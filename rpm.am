@@ -1,6 +1,7 @@
 # vim:ft=automake
 
-rpm-build: support/$(PACKAGE).spec dist
+rpm-build: support/$(PACKAGE).spec clean-rpm
+	$(MAKE) $(AM_MAKEFLAGS) dist
 	@rm -f *.rpm
 	@rm -f ~/rpmbuild/RPMS/x86_64/$(PACKAGE)-$(VERSION)*.rpm
 	@rm -f ~/rpmbuild/SRPMS/$(PACKAGE)-$(VERSION)*.rpm
@@ -35,4 +36,4 @@ rpm: clean-rpm support/$(PACKAGE).spec rpm-build
 release: rpm rpm-sign
 
 auto-rpmbuild:
-	@auto-br-rpmbuild -ba support/libmemcached.spec
+	@auto-br-rpmbuild -ba support/gearmand.spec

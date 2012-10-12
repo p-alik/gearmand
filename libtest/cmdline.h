@@ -53,7 +53,11 @@ public:
   enum error_t {
     SUCCESS= EXIT_SUCCESS,
     FAILURE= EXIT_FAILURE,
-    INVALID= 127
+    UNINITIALIZED,
+    SIGTERM_KILLED,
+    UNKNOWN,
+    UNKNOWN_SIGNAL,
+    INVALID_POSIX_SPAWN= 127
   };
 
   static const char* toString(error_t arg)
@@ -63,12 +67,22 @@ public:
     case Application::SUCCESS:
       return "EXIT_SUCCESS";
 
+    case Application::UNINITIALIZED:
+      return "UNINITIALIZED";
+
+    case Application::SIGTERM_KILLED:
+      return "Exit happened via SIGTERM";
+
     case Application::FAILURE:
       return "EXIT_FAILURE";
 
-    case Application::INVALID:
-      return "127";
+    case Application::UNKNOWN_SIGNAL:
+      return "Exit happened via a signal which was not SIGTERM";
 
+    case Application::INVALID_POSIX_SPAWN:
+      return "127: Invalid call to posix_spawn()";
+
+    case Application::UNKNOWN:
     default:
       break;
     }
@@ -111,7 +125,6 @@ public:
   void add_option(const std::string&, const std::string&);
   void add_long_option(const std::string& option_name, const std::string& option_value);
   error_t run(const char *args[]= NULL);
-  error_t wait(bool nohang= true);
   Application::error_t join();
 
   libtest::vchar_t stdout_result() const
@@ -201,6 +214,9 @@ private:
   pid_t _pid;
   libtest::vchar_t _stdout_buffer;
   libtest::vchar_t _stderr_buffer;
+  int _status;
+  pthread_t _thread;
+  error_t _app_exit_state;
 };
 
 static inline std::ostream& operator<<(std::ostream& output, const enum Application::error_t &arg)
