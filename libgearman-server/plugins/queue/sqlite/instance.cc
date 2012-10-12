@@ -75,8 +75,8 @@ Instance::~Instance()
   if (_db)
   {
     sqlite3_close(_db);
+    _db= NULL;
     gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "sqlite shutdown database");
-    return;
   }
 
   gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "sqlite shutdown");
@@ -186,7 +186,7 @@ gearmand_error_t Instance::init()
     return gearmand_gerror("missing required --libsqlite3-db=<dbfile> argument", GEARMAN_QUEUE_ERROR);
   }
 
-
+  assert(_db == NULL);
   if (sqlite3_open(_schema.c_str(), &_db) != SQLITE_OK)
   {
     _error_string= "sqlite3_open failed with: ";
@@ -502,7 +502,6 @@ gearmand_error_t Instance::replay(gearman_server_st *server)
   while (sqlite3_step(sth) == SQLITE_ROW)
   {
     const char *unique, *function_name;
-    std::vector<char> data;
     size_t unique_size, function_name_size;
 
     if (sqlite3_column_type(sth,0) == SQLITE_TEXT)
@@ -544,27 +543,23 @@ gearmand_error_t Instance::replay(gearman_server_st *server)
       return GEARMAN_QUEUE_ERROR;
     }
 
-    if (sqlite3_column_type(sth,3) == SQLITE_BLOB)
-    {
-      size_t data_size= (size_t)sqlite3_column_bytes(sth,3);
-      /* need to make a copy here ... gearman_server_job_free will free it later */
-      try {
-        data.resize(data_size);
-      }
-      catch (...)
-      {
-        sqlite3_finalize(sth);
-        gearmand_perror("malloc");
-        return GEARMAN_MEMORY_ALLOCATION_FAILURE;
-      }
-      memcpy(&data[0], sqlite3_column_blob(sth,3), data_size);
-    }
-    else
+    if (sqlite3_column_type(sth,3) != SQLITE_BLOB)
     {
       sqlite3_finalize(sth);
       gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "column %d is not type TEXT", 3);
       return GEARMAN_QUEUE_ERROR;
     }
+
+    size_t data_size= (size_t)sqlite3_column_bytes(sth,3);
+    char* data= (char*)malloc(data_size);
+    /* need to make a copy here ... gearman_server_job_free will free it later */
+    if (data == NULL)
+    {
+      sqlite3_finalize(sth);
+      gearmand_perror("malloc");
+      return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+    }
+    memcpy(data, sqlite3_column_blob(sth,3), data_size);
     
     int64_t when;
     if (_epoch_support)
@@ -591,7 +586,7 @@ gearmand_error_t Instance::replay(gearman_server_st *server)
                                                 NULL,
                                                 unique, unique_size,
                                                 function_name, function_name_size,
-                                                &data[0], data.size(),
+                                                data, data_size,
                                                 priority, when);
     if (gearmand_failed(gret))
     {

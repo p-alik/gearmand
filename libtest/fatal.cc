@@ -68,11 +68,13 @@ bool fatal::is_disabled()
 
 void fatal::disable()
 {
+  _counter= 0;
   _disabled= true;
 }
 
 void fatal::enable()
 {
+  _counter= 0;
   _disabled= false;
 }
 

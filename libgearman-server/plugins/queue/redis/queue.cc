@@ -121,7 +121,7 @@ gearmand_error_t Hiredis::initialize()
 
   gearmand_info("Initializing hiredis module");
 
-  gearman_server_set_queue(&Gearmand()->server, this, _hiredis_add, _hiredis_flush, _hiredis_done, _hiredis_replay);   
+  gearman_server_set_queue(Gearmand()->server, this, _hiredis_add, _hiredis_flush, _hiredis_done, _hiredis_replay);   
    
   return GEARMAN_SUCCESS;
 }

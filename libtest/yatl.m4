@@ -8,3 +8,6 @@ AC_CONFIG_FILES([libtest/version.h])
 
 m4_include([libtest/m4/mysql.m4])
 m4_include([libtest/m4/memcached.m4])
+
+YATL_MYSQL
+YATL_MEMCACHED

@@ -106,6 +106,7 @@ Server::Server(const std::string& host_arg, const in_port_t port_arg,
 
 Server::~Server()
 {
+  kill();
 }
 
 bool Server::check()
@@ -200,6 +201,7 @@ bool Server::start()
   }
 
   libtest::release_port(_port);
+
   Application::error_t ret;
   if (Application::SUCCESS !=  (ret= _app.run()))
   {
@@ -242,15 +244,20 @@ bool Server::start()
     }
   }
 
-  uint32_t this_wait= 0;
   bool pinged= false;
+  uint32_t this_wait= 0;
   {
     uint32_t timeout= 20; // This number should be high enough for valgrind startup (which is slow)
     uint32_t waited;
     uint32_t retry;
 
-    for (waited= 0, retry= 4; ; retry++, waited+= this_wait)
+    for (waited= 0, retry= 7; ; retry++, waited+= this_wait)
     {
+      if (_app.check() == false)
+      {
+        break;
+      }
+
       if ((pinged= ping()) == true)
       {
         break;
@@ -259,6 +266,8 @@ bool Server::start()
       {
         break;
       }
+
+      Error << "ping(" << _app.pid() << ") wait: " << this_wait << " " << hostname() << ":" << port() << " " << error();
 
       this_wait= retry * retry / 3 + 1;
       libtest::dream(this_wait, 0);

@@ -25,6 +25,10 @@ BUILT_SOURCES =
 TESTS =
 .PHONY =
 
+#includes additional rules from aminclude.am
+@INC_AMINCLUDE@
+DISTCLEANFILES+= aminclude.am
+
 CLEANFILES+= ${BUILT_SOURCES}
 
 %.hpp.gch: %.hpp 

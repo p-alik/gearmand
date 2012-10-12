@@ -57,6 +57,18 @@
 
 #include <libtest/signal.h>
 
+#ifndef SOCK_CLOEXEC 
+#  define SOCK_CLOEXEC 0
+#endif
+
+#ifndef SOCK_NONBLOCK 
+#  define SOCK_NONBLOCK 0
+#endif
+
+#ifndef FD_CLOEXEC
+#  define FD_CLOEXEC 0
+#endif
+
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
@@ -66,6 +78,11 @@ using namespace libtest;
 struct socket_st {
   typedef std::vector< std::pair< int, in_port_t> > socket_port_t;
   socket_port_t _pair;
+  in_port_t last_port;
+
+  socket_st():
+    last_port(0)
+  { }
 
   void release(in_port_t _arg)
   {
@@ -116,25 +133,27 @@ void release_port(in_port_t arg)
 
 in_port_t get_free_port()
 {
-  in_port_t ret_port= in_port_t(0);
+  const in_port_t default_port= in_port_t(-1);
 
   int retries= 1024;
 
+  in_port_t ret_port;
   while (--retries)
   {
+    ret_port= default_port;
     int sd;
     if ((sd= socket(AF_INET, SOCK_STREAM, 0)) != -1)
     {
       int optval= 1;
       if (setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) != -1)
-      {
+      { 
         struct sockaddr_in sin;
         sin.sin_port= 0;
         sin.sin_addr.s_addr= 0;
         sin.sin_addr.s_addr= INADDR_ANY;
         sin.sin_family= AF_INET;
 
-        if (bind(sd, (struct sockaddr *)&sin,sizeof(struct sockaddr_in) ) != -1)
+        if (bind(sd, (struct sockaddr *)&sin, sizeof(struct sockaddr_in) ) != -1)
         {
           socklen_t addrlen= sizeof(sin);
 
@@ -143,14 +162,41 @@ in_port_t get_free_port()
             ret_port= sin.sin_port;
           }
         }
-      }
+        else
+        {
+          if (errno)
+          {
+            Error << "all free ports are in use";
+            fatal_assert(errno != EADDRINUSE);
+          }
+          Error << strerror(errno);
+        }
 
-      all_socket_fd._pair.push_back(std::make_pair(sd, ret_port));
+        all_socket_fd._pair.push_back(std::make_pair(sd, ret_port));
+      }
+      else
+      {
+        Error << strerror(errno);
+      }
+    }
+    else
+    {
+      Error << strerror(errno);
     }
 
-    if (ret_port > 1024)
+    if (ret_port == default_port)
+    {
+      Error << "no ret_port set:" << strerror(errno);
+    }
+    else if (ret_port > 1024 and ret_port != all_socket_fd.last_port)
     {
       break;
+    }
+    else
+    {
+#if 0
+      Error << "skipping:" << ret_port;
+#endif
     }
   }
 
@@ -165,10 +211,17 @@ in_port_t get_free_port()
     fatal_message("No port could be found");
   }
 
+  if (ret_port == default_port)
+  {
+    fatal_message("No port could be found");
+  }
+
   if (ret_port <= 1024)
   {
     fatal_message("No port could be found, though some where available below or at 1024");
   }
+
+  all_socket_fd.last_port= ret_port;
 
   return ret_port;
 }

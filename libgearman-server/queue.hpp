@@ -51,7 +51,7 @@ namespace queue {
 
 void add(plugins::Queue* queue);
 void load_options(boost::program_options::options_description &all);
-gearmand_error_t initialize(gearmand_st *gearmand, const std::string &name);
+gearmand_error_t initialize(gearmand_st *gearmand, std::string);
 
 } // namespace queue
 } // namespace gearmand
@@ -62,12 +62,12 @@ namespace gearmand { namespace queue { class Context; } }
  * Set persistent queue context that will be passed back to all queue callback
  * functions.
  */
-void gearman_server_set_queue(gearman_server_st *server,
+void gearman_server_set_queue(gearman_server_st& server,
                               void *context,
                               gearman_queue_add_fn *add,
                               gearman_queue_flush_fn *flush,
                               gearman_queue_done_fn *done,
                               gearman_queue_replay_fn *replay);
 
-void gearman_server_set_queue(gearman_server_st *server,
+void gearman_server_set_queue(gearman_server_st& server,
                               gearmand::queue::Context* context);

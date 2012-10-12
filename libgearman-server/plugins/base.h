@@ -51,16 +51,14 @@ namespace gearmand {
 class Plugin {
 public:
 
-  Plugin(const std::string &name_arg) :
-    _command_line_options(name_arg),
-    _name(name_arg)
-  {
-  }
+  Plugin(const std::string&);
 
   const std::string &name() const
   {
     return _name;
   }
+
+  int compare(const std::string&);
 
   virtual ~Plugin()= 0;
 
@@ -69,6 +67,7 @@ public:
 private:
   boost::program_options::options_description _command_line_options;
   std::string _name;
+  std::string _match;
 };
 
 namespace queue {

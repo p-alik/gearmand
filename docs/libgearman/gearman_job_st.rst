@@ -36,6 +36,8 @@ SYNOPSIS
 
 .. c:function:: void *gearman_job_take_workload(gearman_job_st *job, size_t *data_size)
 
+.. c:function:: gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker, gearman_job_st *job, gearman_return_t *ret_ptr)
+
 Link with -lgearman
 
 -----------
@@ -57,6 +59,8 @@ job was set to execute against.
 returns the :c:type:`gearman_job_st` workload. The size of it can be determined with :c:func:`gearman_job_workload_size`.
 :c:func:`gearman_job_take_workload` is the same as :c:func:`gearman_job_workload` with the exception that the result must be
 :manpage:`free(3)` by the caller.
+
+:c:func:`gearman_worker_grab_job` Takes a job from one of the job servers. It is the responsibility of the caller to free the job once they are done. This interface is used in testing, and is very rarely the correct interface to program against.
 
 ------------
 RETURN VALUE

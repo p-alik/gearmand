@@ -91,25 +91,26 @@ static test_return_t kill_test(void *)
   return TEST_SUCCESS;
 }
 
-static test_return_t server_startup_single_TEST(void *obj)
+static test_return_t __server_startup_TEST(cycle_context_st* context, const int count)
 {
-  cycle_context_st *context= (cycle_context_st*)obj;
-  test_skip(true, server_startup(context->servers, "gearmand", context->port, 0, NULL, false));
+  for (int x= 0; x < count; x++)
+  {
+    test_skip(true, server_startup(context->servers, "gearmand", libtest::get_free_port(), 0, NULL, false));
+  }
   test_compare(true, context->servers.shutdown());
 
+  return TEST_SUCCESS;
+}
 
+static test_return_t server_startup_single_TEST(void *obj)
+{
+  test_compare(__server_startup_TEST((cycle_context_st*)obj, 1), TEST_SUCCESS);
   return TEST_SUCCESS;
 }
 
 static test_return_t server_startup_multiple_TEST(void *obj)
 {
-  cycle_context_st *context= (cycle_context_st*)obj;
-  for (size_t x= 0; x < 10; x++)
-  {
-    test_skip(true, server_startup(context->servers, "gearmand", context->port, 0, NULL, false));
-  }
-  test_compare(true, context->servers.shutdown());
-
+  test_compare(__server_startup_TEST((cycle_context_st*)obj, 20), TEST_SUCCESS);
   return TEST_SUCCESS;
 }
 
@@ -123,9 +124,9 @@ static test_return_t shutdown_and_remove_TEST(void *obj)
 
 test_st server_startup_TESTS[] ={
   {"server_startup(1)", false, (test_callback_fn*)server_startup_single_TEST },
-  {"server_startup(10)", false, (test_callback_fn*)server_startup_multiple_TEST },
+  {"server_startup(many)", false, (test_callback_fn*)server_startup_multiple_TEST },
   {"shutdown_and_remove()", false, (test_callback_fn*)shutdown_and_remove_TEST },
-  {"server_startup(10)", false, (test_callback_fn*)server_startup_multiple_TEST },
+  {"server_startup(many)", false, (test_callback_fn*)server_startup_multiple_TEST },
   {0, 0, 0}
 };
 

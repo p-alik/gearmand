@@ -63,6 +63,7 @@ public:
   ~Context()
   {
     extra_clear();
+    _servers.clear();
   }
 
   const char *worker_function_name() const

@@ -137,7 +137,7 @@ static void gearmand_log(const char *position, const char *func /* func */,
 
     {
       int length= snprintf(log_buffer, sizeof(log_buffer), "%04d-%02d-%02d %02d:%02d:%02d.%06d %s ",
-                           int(1900 + current_tm.tm_year), current_tm.tm_mon, current_tm.tm_mday, current_tm.tm_hour,
+                           int(1900 +current_tm.tm_year), current_tm.tm_mon +1, current_tm.tm_mday, current_tm.tm_hour,
                            current_tm.tm_min, current_tm.tm_sec, int(current_epoch.tv_usec),
                            identity);
       // We just return whatever we have if this occurs

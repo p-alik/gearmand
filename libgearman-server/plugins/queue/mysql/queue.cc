@@ -56,7 +56,7 @@
 
 namespace gearmand { namespace plugins { namespace queue { class MySQL; } } }
 
-static gearmand_error_t _initialize(gearman_server_st *server, gearmand::plugins::queue::MySQL *queue);
+static gearmand_error_t _initialize(gearman_server_st& server, gearmand::plugins::queue::MySQL *queue);
 
 namespace gearmand 
 {
@@ -121,7 +121,7 @@ MySQL::~MySQL()
 
 gearmand_error_t MySQL::initialize()
 {
-  return _initialize(&Gearmand()->server, this);
+  return _initialize(Gearmand()->server, this);
 }
 
 gearmand_error_t MySQL::prepareAddStatement()
@@ -203,7 +203,7 @@ static gearmand_error_t _mysql_queue_replay(gearman_server_st *server, void *con
         void *add_context);
 
 
-gearmand_error_t _initialize(gearman_server_st *server, gearmand::plugins::queue::MySQL *queue)
+gearmand_error_t _initialize(gearman_server_st& server, gearmand::plugins::queue::MySQL *queue)
 {
 
   MYSQL_RES * result;
@@ -363,19 +363,15 @@ static gearmand_error_t _mysql_queue_add(gearman_server_st *, void *context,
   return GEARMAN_SUCCESS;
 }
 
-static gearmand_error_t _mysql_queue_flush(gearman_server_st *server,
-                                           void *context __attribute__((unused)))
+static gearmand_error_t _mysql_queue_flush(gearman_server_st*, void*)
 {
-
-  (void) server;
-  (void) context;
 
   gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,"MySQL queue flush");
 
   return GEARMAN_SUCCESS;
 }
 
-static gearmand_error_t _mysql_queue_done(gearman_server_st *server, void *context,
+static gearmand_error_t _mysql_queue_done(gearman_server_st*, void *context,
                                           const char *unique,
                                           size_t unique_size,
                                           const char *function_name,
@@ -383,8 +379,6 @@ static gearmand_error_t _mysql_queue_done(gearman_server_st *server, void *conte
 {
 
   MYSQL_BIND    bind[2];
-
-  (void) server;
 
   gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,"MySQL queue done: %.*s %.*s", (uint32_t) unique_size, (char *) unique,
                      (uint32_t) function_name_size, (char *) function_name);
@@ -443,7 +437,7 @@ static gearmand_error_t _mysql_queue_done(gearman_server_st *server, void *conte
   return GEARMAN_SUCCESS;
 }
 
-static gearmand_error_t _mysql_queue_replay(gearman_server_st *server, void *context,
+static gearmand_error_t _mysql_queue_replay(gearman_server_st* server, void *context,
                                             gearman_queue_add_fn *add_fn,
                                             void *add_context) 
 {
