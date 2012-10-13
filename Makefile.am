@@ -31,9 +31,6 @@ DISTCLEANFILES+= aminclude.am
 
 CLEANFILES+= ${BUILT_SOURCES}
 
-%.hpp.gch: %.hpp 
-	$(CXXCOMPILE) -c $<
-
 # Should always be first
 include libtest/include.am
 include libhostile/include.am
