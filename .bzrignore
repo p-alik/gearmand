@@ -22,6 +22,7 @@
 INSTALL
 TAGS
 aclocal.m4
+aminclude.am
 autom4te.cache
 autoscan.log
 benchmark/blobslap_client
