@@ -64,6 +64,7 @@ examples/reverse_client_epoch
 examples/reverse_worker
 examples/wc_worker
 gdb.txt
+gearmand-?.??
 gearmand/gearmand
 gearmand/gearmand_hostile
 gearmand/gearmand_test
