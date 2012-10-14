@@ -36,29 +36,29 @@
 
 #pragma once
 
-GEARMAN_LOCAL
+
 void *gearman_real_malloc(gearman_allocator_t& allocator, size_t size, const char *func, const char *file, int line);
 
 #define gearman_malloc(__gearman_universal_st, __size) gearman_real_malloc(((__gearman_universal_st).allocator), (__size), __func__, __FILE__, __LINE__)
 
-GEARMAN_LOCAL
+
 void *gearman_real_calloc(gearman_allocator_t& allocator, size_t nelem, size_t size, const char *func, const char *file, int line);
 
 #define gearman_calloc(__gearman_universal_st, __nelem,  __size) gearman_real_calloc(((__gearman_universal_st).allocator), (__nelem), (__size), __func__, __FILE__, __LINE__)
 
-GEARMAN_LOCAL
+
 void *gearman_real_realloc(gearman_allocator_t&, void *ptr, size_t size, const char *func, const char *file, int line);
 
 #define gearman_realloc(__gearman_universal_st, __ptr, __size) gearman_real_realloc(((__gearman_universal_st).allocator), (__ptr), (__size), __func__, __FILE__, __LINE__)
 
-GEARMAN_LOCAL
+
 void gearman_real_free(gearman_allocator_t& allocator, void *ptr, const char *func, const char *file, int line);
 
 #define gearman_free(__gearman_universal_st, __ptr) gearman_real_free(((__gearman_universal_st).allocator), (__ptr), __func__, __FILE__, __LINE__)
 
 #define gearman_has_allocator(__gearman_universal_st) bool(__gearman_universal_st.allocator.malloc)
 
-GEARMAN_LOCAL
+
 gearman_return_t gearman_set_memory_allocator(gearman_allocator_t& allocator,
                                               gearman_malloc_fn *malloc_fn,
                                               gearman_free_fn *free_fn,
@@ -66,7 +66,5 @@ gearman_return_t gearman_set_memory_allocator(gearman_allocator_t& allocator,
                                               gearman_calloc_fn *calloc_fn,
                                               void *context);
 
-
-GEARMAN_LOCAL
 gearman_allocator_t gearman_default_allocator();
 

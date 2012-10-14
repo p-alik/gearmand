@@ -39,13 +39,13 @@
 
 #ifdef __cplusplus // Local only
 
-GEARMAN_LOCAL
+
 const gearman_actions_t &gearman_actions_default();
 
-GEARMAN_LOCAL
+
 const gearman_actions_t &gearman_actions_do_default();
 
-GEARMAN_LOCAL
+
 const gearman_actions_t &gearman_actions_execute_defaults();
 
 GEARMAN_API

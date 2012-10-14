@@ -39,44 +39,31 @@
 #pragma once
 
 // Get next connection that is ready for I/O.
-GEARMAN_LOCAL
 gearman_connection_st *gearman_ready(gearman_universal_st&);
 
-GEARMAN_LOCAL
 void gearman_universal_initialize(gearman_universal_st &self, const gearman_universal_options_t *options= NULL);
 
-GEARMAN_LOCAL
 void gearman_universal_clone(gearman_universal_st &destination, const gearman_universal_st &source, bool has_wakeup_fd= false);
 
-GEARMAN_LOCAL
 void gearman_universal_free(gearman_universal_st &gearman);
 
-GEARMAN_LOCAL
 void gearman_free_all_packets(gearman_universal_st &gearman);
 
-GEARMAN_LOCAL
 bool gearman_request_option(gearman_universal_st &universal, gearman_string_t &option);
 
-GEARMAN_LOCAL
 gearman_return_t gearman_universal_set_option(gearman_universal_st &self, gearman_universal_options_t option, bool value);
 
-GEARMAN_LOCAL
 void gearman_set_log_fn(gearman_universal_st &self, gearman_log_fn *function, void *context, gearman_verbose_t verbose);
 
-GEARMAN_LOCAL
 void gearman_universal_set_timeout(gearman_universal_st &self, int timeout);
 
-GEARMAN_LOCAL
 int gearman_universal_timeout(gearman_universal_st &self);
 
-GEARMAN_LOCAL
 void gearman_universal_set_namespace(gearman_universal_st &self, const char *namespace_key, size_t namespace_key_size);
 
-GEARMAN_LOCAL
 void gearman_reset(gearman_universal_st& universal);
 
 // Flush the send buffer for all connections.
-GEARMAN_LOCAL
 gearman_return_t gearman_flush_all(gearman_universal_st&);
 
 /**
@@ -84,7 +71,6 @@ gearman_return_t gearman_flush_all(gearman_universal_st&);
  * the standard system malloc to allocate memory used with workloads. The
  * provided function will be used instead.
  */
-GEARMAN_LOCAL
 void gearman_set_workload_malloc_fn(gearman_universal_st&,
                                     gearman_malloc_fn *function,
                                     void *context);
@@ -94,30 +80,24 @@ void gearman_set_workload_malloc_fn(gearman_universal_st&,
  * standard system free to free memory used with workloads. The provided
  * function will be used instead.
  */
-GEARMAN_LOCAL
 void gearman_set_workload_free_fn(gearman_universal_st&,
                                   gearman_free_fn *function,
                                   void *context);
 
 // Free all connections for a gearman structure.
-GEARMAN_LOCAL
 void gearman_free_all_cons(gearman_universal_st&);
 
 // Test echo with all connections.
-GEARMAN_LOCAL
 gearman_return_t gearman_echo(gearman_universal_st&, const void *workload, size_t workload_size);
 
 /**
  * Wait for I/O on connections.
  *
  */
-GEARMAN_LOCAL
 gearman_return_t gearman_wait(gearman_universal_st&);
 
-GEARMAN_LOCAL
 void gearman_nap(gearman_universal_st &self);
 
-GEARMAN_LOCAL
 void gearman_nap(int arg);
 
 static inline void gearman_universal_add_options(gearman_universal_st &self, gearman_universal_options_t options)
