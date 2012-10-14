@@ -43,8 +43,12 @@ determine_target_platform () {
   elif [[ -f "/etc/fedora-release" ]]; then 
     AUTOCONF_TARGET_PLATFORM="yes"
     PLATFORM="fedora"
-  elif [[ -f "/etc/redhat-release" ]]; then 
-    rhel_version=`cat /etc/lsb-release | grep DISTRIB_CODENAME | awk -F= ' { print $2 } '`
+  elif [[ -f "/etc/redhat-release" ]]; then
+    if [[ -f "lsb-release" ]]; then 
+      rhel_version=`cat /etc/lsb-release | grep DISTRIB_CODENAME | awk -F= ' { print $2 } '`
+    else
+      rhel_version="?.?"
+    fi
     PLATFORM="rhel-$rhel_version"
   elif [[ -f "/etc/lsb-release" ]]; then 
     debian_version=`cat /etc/lsb-release | grep DISTRIB_CODENAME | awk -F= ' { print $2 } '`
@@ -226,7 +230,7 @@ make_target_platform () {
   make_distclean
 
   cd $bootstrap_top_builddir
-  rm -r -f 
+  rm -r -f build_dir
 
   make_install_system
 }

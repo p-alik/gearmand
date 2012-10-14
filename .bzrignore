@@ -41,6 +41,7 @@ config/top.h
 configmake.h
 configure
 configure.scan
+ddm4
 docs/_static
 docs/_static
 docs/changes/
