@@ -43,6 +43,9 @@ determine_target_platform () {
   elif [[ -f "/etc/fedora-release" ]]; then 
     AUTOCONF_TARGET_PLATFORM="yes"
     PLATFORM="fedora"
+  elif [[ -f "/etc/redhat-release" ]]; then 
+    rhel_version=`cat /etc/lsb-release | grep DISTRIB_CODENAME | awk -F= ' { print $2 } '`
+    PLATFORM="rhel-$rhel_version"
   elif [[ -f "/etc/lsb-release" ]]; then 
     debian_version=`cat /etc/lsb-release | grep DISTRIB_CODENAME | awk -F= ' { print $2 } '`
     case $debian_version in
@@ -65,13 +68,26 @@ determine_target_platform () {
 }
 
 configure_target_platform () {
+  # We always begin at the root of our build
+  cd $bootstrap_top_builddir
+
+  if [[ -n $1 ]]; then
+    rm -r -f $1
+    mkdir -p $1
+    cd $1
+    pwd
+  fi
+
   # If we are executing on OSX use CLANG, otherwise only use it if we find it in the ENV
   case $TARGET_PLATFORM in
     darwin-*)
-      CC=clang CXX=clang++ ./configure $DEBUG_ARG $ASSERT_ARG $PREFIX_ARG || die "Cannot execute CC=clang CXX=clang++ configure $DEBUG_ARG $ASSERT_ARG $PREFIX_ARG"
+      CC=clang CXX=clang++ $bootstrap_top_builddir/configure $DEBUG_ARG $ASSERT_ARG $PREFIX_ARG || die "Cannot execute CC=clang CXX=clang++ configure $DEBUG_ARG $ASSERT_ARG $PREFIX_ARG"
+      ;;
+    rhel-5*)
+      CC=gcc44 CXX=gcc44 $bootstrap_top_builddir/configure $DEBUG_ARG $ASSERT_ARG $PREFIX_ARG || die "Cannot execute CC=gcc44 CXX=gcc44 configure $DEBUG_ARG $ASSERT_ARG $PREFIX_ARG"
       ;;
     *)
-      ./configure $DEBUG_ARG $ASSERT_ARG $PREFIX_ARG || die "Cannot execute configure $DEBUG_ARG $ASSERT_ARG $PREFIX_ARG"
+      $bootstrap_top_builddir/configure $DEBUG_ARG $ASSERT_ARG $PREFIX_ARG || die "Cannot execute configure $DEBUG_ARG $ASSERT_ARG $PREFIX_ARG"
       ;;
   esac
 }
@@ -128,12 +144,11 @@ make_valgrind () {
 }
 
 make_install_system () {
-  make_distclean
 
   INSTALL_LOCATION=$(mktemp -d /tmp/XXXXXXXXXX)
   PREFIX_ARG="--prefix=$INSTALL_LOCATION"
 
-  configure_target_platform
+  configure_target_platform install_buid_dir
 
   if [[ -n "$TESTS_ENVIRONMENT" ]]; then
     OLD_TESTS_ENVIRONMENT=$TESTS_ENVIRONMENT
@@ -156,6 +171,10 @@ make_install_system () {
   fi
 
   rm -r -f $INSTALL_LOCATION
+  make_distclean
+
+  rm -r -f install_buid_dir
+  cd $bootstrap_top_builddir
 }
 
 make_darwin_malloc () {
@@ -180,17 +199,21 @@ make_local () {
 }
 
 make_target_platform () {
+  # We setup a directory to do the build in
+  configure_target_platform build_dir
+
   case $TARGET_PLATFORM in
     fedora-*)
-      make_distcheck
+      # make rpm includes "make distcheck"
       if [[ -f rpm.am ]]; then
         make_rpm
+      else
+        make_distcheck
       fi
       ;;
     precise-*)
       make_distcheck
       make_valgrind
-      make_gdb
       ;;
     unknown-*)
       make_all
@@ -200,9 +223,12 @@ make_target_platform () {
       ;;
   esac
 
-  make_install_system
-
   make_distclean
+
+  cd $bootstrap_top_builddir
+  rm -r -f 
+
+  make_install_system
 }
 
 make_gdb () {
@@ -241,12 +267,20 @@ make_gdb () {
 }
 
 make_target () {
+  if [[ ! -f Makefile ]]; then
+    configure_target_platform
+  fi
+
   if [[ -n "$MAKE_TARGET" ]]; then
     OLD_MAKE_TARGET=$MAKE_TARGET
   fi
 
   MAKE_TARGET=$1
-  run $MAKE $MAKE_TARGET || die "Cannot execute $MAKE $MAKE_TARGET"
+  if [[ "$2" = "no_error" ]]; then
+    run $MAKE $MAKE_TARGET
+  else
+    run $MAKE $MAKE_TARGET || die "Cannot execute $MAKE $MAKE_TARGET"
+  fi
 
   if [[ -n "$MAKE_TARGET" ]]; then
     MAKE_TARGET=$OLD_MAKE_TARGET
@@ -266,7 +300,7 @@ make_distclean () {
 }
 
 make_maintainer_clean () {
-  make_target maintainer-clean
+  make_target maintainer-clean no_error
 }
 
 make_check () {
@@ -389,9 +423,8 @@ bootstrap() {
     rm -r -f autom4te.cache
   fi
 
-  configure_target_platform
-  
   if [[ "x$CONFIGURE_OPTION" = "xyes" ]]; then
+    configure_target_platform
     exit
   fi
 
@@ -403,12 +436,6 @@ bootstrap() {
   # Setup LIBTOOL_COMMAND if we need it
   if [[ -f libtool ]]; then
     LIBTOOL_COMMAND="./libtool --mode=execute"
-  fi
-
-  if [[ -f docs/conf.py ]]; then 
-    if command_exists sphinx-build; then
-      make_target "man"
-    fi
   fi
 
   # If we are running under Jenkins we predetermine what tests we will run against
@@ -437,5 +464,6 @@ VCS_CHECKOUT=
 PLATFORM=unknown
 TARGET_PLATFORM=unknown
 AUTOCONF_TARGET_PLATFORM=no
+bootstrap_top_builddir=`pwd`
 
 bootstrap $@
