@@ -336,7 +336,7 @@ run() {
 
 parse_command_line_options() {
 
-  if ! options=$(getopt -o c --long configure -n 'bootstrap' -- "$@"); then
+  if ! options=$(getopt -o c --long configure -o a --long autoreconf -n 'bootstrap' -- "$@"); then
     exit 1
   fi
 
