@@ -38,8 +38,8 @@ CLEANFILES+= tmp_chroot
 
 BUILT_SOURCES+= libtest/version.h
 
-.PHONY: distclean-libtest-check
-distclean-libtest-check:
+.PHONY: clean-libtest-check
+clean-libtest-check:
 	-rm -rf tmp_chroot
 
 noinst_HEADERS+= libtest/formatter.hpp

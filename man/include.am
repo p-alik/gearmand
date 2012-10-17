@@ -6,12 +6,12 @@ if HAVE_RECENT_SPHINX
 
 if MAINTAINER_MODE
 
+dist-hook: man
+
 # Build rule for documentation
 $(man_MANS): man
 
 endif
-
-CLEANFILES+= man/.doctrees
 
 man_MANS+=  man/gearadmin.1
 man_MANS+=  man/gearman.1

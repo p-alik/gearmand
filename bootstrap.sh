@@ -167,14 +167,14 @@ determine_target_platform ()
       AUTORECONF_REBUILD_HOST=true
     fi
   elif [[ -f "/etc/centos-release" ]]; then
-    local centos_version= `cat /etc/centos-release | awk ' { print $7 } '`
+    local centos_version=`cat /etc/centos-release | awk ' { print $7 } '`
     set_VENDOR "centos" "rhel" $centos_version
   elif [[ -f "/etc/SuSE-release" ]]; then
     local suse_distribution=`head -1 /etc/SuSE-release | awk ' { print $1 } '`
     local suse_version=`head -1 /etc/SuSE-release | awk ' { print $2 } '`
     set_VENDOR "suse" "$suse_distribution" "$suse_version"
   elif [[ -f "/etc/redhat-release" ]]; then
-    local rhel_version= `cat /etc/redhat-release | awk ' { print $7 } '`
+    local rhel_version=`cat /etc/redhat-release | awk ' { print $7 } '`
     set_VENDOR "redhat" "rhel" $rhel_version
   elif [[ -f "/etc/lsb-release" ]]; then 
     local debian_DISTRIB_ID=`cat /etc/lsb-release | grep DISTRIB_ID | awk -F= ' { print $2 } '`
@@ -364,6 +364,10 @@ make_install_system ()
   local INSTALL_LOCATION=$(mktemp -d /tmp/XXXXXXXXXX)
   push_PREFIX_ARG $INSTALL_LOCATION
 
+  if [ ! -d $INSTALL_LOCATION ] ; then
+    die "$LINENO: ASSERT temp directory not found '$INSTALL_LOCATION'"
+  fi
+
   run_configure #install_buid_dir
 
   push_TESTS_ENVIRONMENT
@@ -380,6 +384,14 @@ make_install_system ()
   rm -r -f $INSTALL_LOCATION
   make_maintainer_clean
 
+  if [ -f 'configure' ]; then
+    die "$LINENO: ASSERT Makefile should not exist"
+  fi
+
+  if [ -f 'Makefile' ]; then
+    die "$LINENO: ASSERT Makefile should not exist"
+  fi
+
   safe_popd
 }
 
@@ -394,9 +406,9 @@ make_darwin_malloc ()
 
   make_check
 
-  MallocGuardEdges= $old_MallocGuardEdges
-  MallocErrorAbort= $old_MallocErrorAbort
-  MallocScribble= $old_MallocScribble
+  MallocGuardEdges=$old_MallocGuardEdges
+  MallocErrorAbort=$old_MallocErrorAbort
+  MallocScribble=$old_MallocScribble
 }
 
 make_for_continuus_integration ()
@@ -427,6 +439,14 @@ make_for_continuus_integration ()
 
       run_configure
 
+      if [ ! -f 'Makefile' ]; then
+        die "$LINENO: Programmer error, Makefile should exist"
+      fi
+
+      if [ ! -f 'configure' ]; then
+        die "$LINENO: Programmer error, Makefile should exist"
+      fi
+
       # make rpm includes "make distcheck"
       if [[ -f rpm.am ]]; then
         make_rpm
@@ -435,6 +455,16 @@ make_for_continuus_integration ()
       else
         make_distcheck
       fi
+
+      if [ ! -f 'configure' ]; then
+        die "$LINENO: ASSERT Makefile should exist"
+      fi
+
+      if [ ! -f 'Makefile' ]; then
+        die "$LINENO: ASSERT Makefile should exist"
+      fi
+
+
       make_install_system
       ;;
     *-precise-*)
@@ -442,14 +472,36 @@ make_for_continuus_integration ()
         make_maintainer_clean
       fi
 
-      if [[ -f 'Makefile' ]]; then
-        die "$LINENO: Programmer error, Makefile existed where build state should have been clean"
-      fi
-
       run_configure
 
+      if [ ! -f 'configure' ]; then
+        die "$LINENO: ASSERT Makefile should exist"
+      fi
+
+      if [ ! -f 'Makefile' ]; then
+        die "$LINENO: ASSERT Makefile should exist"
+      fi
+
       make_distcheck
+
+      if [ ! -f 'configure' ]; then
+        die "$LINENO: ASSERT Makefile should exist"
+      fi
+
+      if [ ! -f 'Makefile' ]; then
+        die "$LINENO: ASSERT Makefile should exist"
+      fi
+
       make_valgrind
+
+      if [ ! -f 'configure' ]; then
+        die "$LINENO: ASSERT Makefile should exist"
+      fi
+
+      if [ ! -f 'Makefile' ]; then
+        die "$LINENO: ASSERT Makefile should exist"
+      fi
+
       make_install_system
       ;;
     *)
@@ -473,7 +525,7 @@ make_gdb () {
       setup_gdb_command
     fi
 
-    if [[ -f libtool ]]; then
+    if [ -f 'libtool' ]; then
       TESTS_ENVIRONMENT="$LIBTOOL_COMMAND $GDB_COMMAND"
     else
       TESTS_ENVIRONMENT="$GDB_COMMAND"
@@ -481,13 +533,13 @@ make_gdb () {
 
     make_target check
 
-    if [[ -f gdb.txt ]]; then
-      rm -f gdb.txt
+    if [ -f 'gdb.txt' ]; then
+      rm 'gdb.txt'
     fi
 
     pop_TESTS_ENVIRONMENT
 
-    if [[ -f '.gdb_history' ]]; then
+    if [ -f '.gdb_history' ]; then
       rm '.gdb_history'
     fi
   else
@@ -504,7 +556,7 @@ make_target ()
     die "$LINENO: Programmer error, no target provided for make"
   fi
 
-  if [[ ! -f "Makefile" ]]; then
+  if [ ! -f 'Makefile' ]; then
     die "$LINENO: Programmer error, make was called before configure"
     run_configure
   fi
@@ -793,7 +845,7 @@ bootstrap ()
   fi
 
   # Setup LIBTOOL_COMMAND if we need it
-  if [[ -f "libtool" ]]; then
+  if [ -f 'libtool' ]; then
     LIBTOOL_COMMAND='./libtool --mode=execute'
   fi
 
@@ -818,6 +870,9 @@ bootstrap ()
     return
   elif [[ "$MAKE_TARGET" == 'autoreconf' ]]; then
     run_autoreconf
+    return
+  elif [[ "$MAKE_TARGET" == 'install-system' ]]; then
+    make_install_system
     return
   elif [[ "$MAKE_TARGET" == 'configure' ]]; then
     run_configure

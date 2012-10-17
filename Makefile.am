@@ -81,9 +81,7 @@ configmake.h: ${top_srcdir}/Makefile.in
 	  else \
 	  mv $@-t $@ ; \
 	  fi
-clean-local:
-	-rm -rf docs/_build docs/doctrees
-	-rm -rf tmp_chroot
+clean-local: clean-libtest-check clean-docs-check
 
 maintainer-clean-local:
 	find . -type f -name '*~' -exec rm -f '{}' \;
