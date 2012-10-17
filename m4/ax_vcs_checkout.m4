@@ -48,6 +48,7 @@
 #serial 2
 
 AC_DEFUN([AX_VCS_CHECKOUT],[
+    ac_cv_vcs_checkout
     AC_CACHE_CHECK([for vcs checkout], [ac_cv_vcs_checkout], [
       AS_IF([test -d ".bzr"],[ac_cv_vcs_checkout=yes])
       AS_IF([test -d ".svn"],[ac_cv_vcs_checkout=yes])
@@ -56,4 +57,6 @@ AC_DEFUN([AX_VCS_CHECKOUT],[
       ],[
       ac_cv_vcs_checkout=no
       ])
+
+    AM_CONDITIONAL([MAINTAINER_MODE], [ test "$ac_cv_vcs_checkout" = "yes" ])
     ])

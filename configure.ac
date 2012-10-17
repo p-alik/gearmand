@@ -280,6 +280,7 @@ echo "   * Building with libpq        $ac_cv_libpq"
 echo "   * Building with tokyocabinet $ac_enable_libtokyocabinet"
 echo "   * Building with libmysql     $found_mysql"
 echo "   * make -j:                   $enable_jobserver"
+echo "   * VCS checkout:              $ac_cv_vcs_checkout"
 echo ""
 echo "---"
 
@@ -287,7 +288,7 @@ case "$host_os" in
   *freebsd*)
     echo "*****"
     echo "*"
-    echo "*  NOTE: You are on FreeBSD. BSD make will not work."
+    echo "*  NOTE: You are on FreeBSD. BSD 'make' will not work."
     echo "*"
     echo "*   use 'gmake' To build libmemcached"
     echo "*"
