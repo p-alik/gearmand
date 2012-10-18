@@ -81,6 +81,7 @@ configmake.h: ${top_srcdir}/Makefile.in
 	  else \
 	  mv $@-t $@ ; \
 	  fi
+
 clean-local: clean-libtest-check clean-docs-check
 
 maintainer-clean-local:
