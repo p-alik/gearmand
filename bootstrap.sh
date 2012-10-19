@@ -637,6 +637,7 @@ make_distcheck ()
 
 make_rpm ()
 {
+  run_configure_if_required
   make_target 'rpm'
 }
 
@@ -687,13 +688,13 @@ run_autoreconf ()
   eval 'bash -n configure' || die "autoreconf generated a malformed configure"
 }
 
-run ()
+function run ()
 {
   if $VERBOSE; then
     echo "\`$@' $ARGS"
   fi
 
-  ($@ $ARGS)
+  eval $@ $ARGS
 } 
 
 parse_command_line_options ()
@@ -769,10 +770,14 @@ autoreconf_setup ()
   if [[ -z "$MAKE" ]]; then 
     if command_exists gmake; then
       MAKE=`type -p gmake`
+    else
+      if command_exists make; then
+        MAKE=`type -p make`
+      fi
     fi
-
-    if command_exists make; then
-      MAKE=`type -p make`
+    
+    if $DEBUG; then
+      MAKE="$MAKE --warn-undefined-variables"
     fi
   fi
 
@@ -954,6 +959,8 @@ check_make_target()
       ;;
     'configure')
       ;;
+    'rpm')
+      ;;
     'snapshot')
       ;;
     'valgrind')
@@ -1035,6 +1042,9 @@ bootstrap ()
         ;;
       'snapshot')
         make_for_snapshot
+        ;;
+      'rpm')
+        make_rpm
         ;;
       'valgrind')
         make_valgrind
