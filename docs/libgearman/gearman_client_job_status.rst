@@ -18,7 +18,7 @@ DESCRIPTION
 
 :c:func:`gearman_client_job_status` is used to find the status of a job via its :c:type:`gearman_job_handle_t`. The arguments is_known, is_running, numerator, and denominator are all optional. Unless a Gearman worker has sent numerator/denominator via :c:func:`gearman_job_send_status`, those values will be zero.
 
-If the arguments is_known and is_running are ommitted then the function returns state data via :c:type:`gearman_return_t`. 
+If the arguments is_known and is_running are omitted then the function returns state data via :c:type:`gearman_return_t`. 
 
 ------------
 RETURN VALUE
