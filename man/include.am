@@ -6,8 +6,6 @@ if HAVE_RECENT_SPHINX
 
 if MAINTAINER_MODE
 
-dist-hook: man
-
 # Build rule for documentation
 $(dist_man_MANS): man
 
