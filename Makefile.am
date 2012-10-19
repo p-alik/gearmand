@@ -31,10 +31,6 @@ man_MANS =
 @INC_AMINCLUDE@
 DISTCLEANFILES+= aminclude.am
 
-CLEANFILES+= ${BUILT_SOURCES}
-
-EXTRA_DIST+= $(man_MANS)
-
 # Should always be first
 include libtest/include.am
 include libhostile/include.am
@@ -57,9 +53,6 @@ include m4/include.am
 TESTS += $(check_PROGRAMS)
 
 EXTRA_DIST+= HACKING
-EXTRA_DIST+= ${man1_MANS}
-EXTRA_DIST+= ${man3_MANS}
-EXTRA_DIST+= ${man8_MANS}
 EXTRA_DIST+= scripts/README.solaris
 
 test: check
