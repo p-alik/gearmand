@@ -108,7 +108,6 @@ public:
 private:
   memcached_st* memc_;
   memcached_st* clone_;
-  gearmand::plugins::queue::Libmemcached *__queue;
 };
 
 } // namespace queue
