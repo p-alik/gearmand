@@ -318,7 +318,7 @@ bool server_startup_st::start_server(const std::string& server_type, in_port_t t
         }
       }
   }
-  catch (libtest::disconnected err)
+  catch (libtest::disconnected& err)
   {
     if (fatal::is_disabled() == false and try_port != LIBTEST_FAIL_PORT)
     {

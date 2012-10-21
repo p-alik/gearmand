@@ -132,12 +132,9 @@ private:
  * passing in a pre-allocated structure. Some other initialization may have
  * failed.
  */
-
-GEARMAN_LOCAL
 gearman_connection_st *gearman_connection_create(gearman_universal_st &universal,
                                                  gearman_connection_options_t *options);
 
-GEARMAN_LOCAL
 gearman_connection_st *gearman_connection_copy(gearman_universal_st& universal,
                                                const gearman_connection_st& from);
 
@@ -152,6 +149,5 @@ gearman_connection_st *gearman_connection_copy(gearman_universal_st& universal,
  * @return On success, a pointer to the (possibly allocated) structure. On
  *  failure this will be NULL.
  */
-GEARMAN_LOCAL
 gearman_connection_st *gearman_connection_create_args(gearman_universal_st &universal,
                                                       const char *host, in_port_t port);

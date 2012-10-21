@@ -52,6 +52,7 @@ noinst_HEADERS+= \
 noinst_LTLIBRARIES+= libgearman/libgearmancore.la
 libgearman_libgearmancore_la_SOURCES= \
 				      libgearman/allocator.cc \
+				      libgearman/backtrace.cc \
 				      libgearman/byteorder.cc \
 				      libgearman/command.cc \
 				      libgearman/connection.cc \

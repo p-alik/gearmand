@@ -42,6 +42,14 @@
 #define EXIT_SKIP 77
 #define EXIT_FATAL 77
 
+#ifndef EX_NOEXEC
+#  define EX_NOEXEC 126
+#endif
+
+#ifndef EX_NOTFOUND
+#  define EX_NOTFOUND 127
+#endif
+
 namespace libtest {
 
 class Application {

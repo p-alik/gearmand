@@ -153,24 +153,31 @@ in_port_t get_free_port()
         sin.sin_addr.s_addr= INADDR_ANY;
         sin.sin_family= AF_INET;
 
-        if (bind(sd, (struct sockaddr *)&sin, sizeof(struct sockaddr_in) ) != -1)
+        int bind_ret;
+        do
         {
-          socklen_t addrlen= sizeof(sin);
+          if ((bind_ret= bind(sd, (struct sockaddr *)&sin, sizeof(struct sockaddr_in) )) != -1)
+          {
+            socklen_t addrlen= sizeof(sin);
 
-          if (getsockname(sd, (struct sockaddr *)&sin, &addrlen) != -1)
-          {
-            ret_port= sin.sin_port;
+            if (getsockname(sd, (struct sockaddr *)&sin, &addrlen) != -1)
+            {
+              ret_port= sin.sin_port;
+            }
           }
-        }
-        else
-        {
-          if (errno)
+          else
           {
-            Error << "all free ports are in use";
-            fatal_assert(errno != EADDRINUSE);
+            if (errno != EADDRINUSE)
+            {
+              Error << strerror(errno);
+            }
           }
-          Error << strerror(errno);
-        }
+
+          if (errno == EADDRINUSE)
+          {
+            libtest::dream(2, 0);
+          }
+        } while (bind_ret == -1 and errno == EADDRINUSE);
 
         all_socket_fd._pair.push_back(std::make_pair(sd, ret_port));
       }
@@ -191,12 +198,6 @@ in_port_t get_free_port()
     else if (ret_port > 1024 and ret_port != all_socket_fd.last_port)
     {
       break;
-    }
-    else
-    {
-#if 0
-      Error << "skipping:" << ret_port;
-#endif
     }
   }
 
@@ -222,6 +223,7 @@ in_port_t get_free_port()
   }
 
   all_socket_fd.last_port= ret_port;
+  release_port(ret_port);
 
   return ret_port;
 }

@@ -213,7 +213,7 @@ A persistent queue module is enabled by passing the -q or –queue-type option t
 Extended Protocols
 ------------------
 
-The protocol plugin interface allows you to take over the packet send and recieve functions, allowing you to pack the buffers as required by the protocol. The core read and write functions can (and should) be used by the protocol plugin.
+The protocol plugin interface allows you to take over the packet send and receive functions, allowing you to pack the buffers as required by the protocol. The core read and write functions can (and should) be used by the protocol plugin.
 
 HTTP
 ++++

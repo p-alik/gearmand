@@ -42,8 +42,6 @@ struct gearman_unique_t {
   size_t size;
 };
 
-GEARMAN_LOCAL
 gearman_unique_t gearman_unique_make(const char *arg, size_t arg_size);
 
-GEARMAN_LOCAL
 size_t gearman_unique_size(gearman_unique_t *self);

@@ -33,8 +33,6 @@ SYNOPSIS
 
 .. c:function:: gearman_return_t gearman_worker_unregister_all(gearman_worker_st *worker)
 
-.. c:function:: gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker, gearman_job_st *job, gearman_return_t *ret_ptr)
-
 .. c:function:: void gearman_job_free_all(gearman_worker_st *worker)
 
 .. c:function:: bool gearman_worker_function_exist(gearman_worker_st *worker, const char *function_name, size_t function_length)
