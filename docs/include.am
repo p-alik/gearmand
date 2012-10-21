@@ -7,15 +7,18 @@
 
 SPHINXOPTS    = ${SPHINX_WARNINGS}
 PAPER         =
-SPHINX_BUILDDIR      = ${top_builddir}/docs
+SPHINX_BUILDDIR      = ${abs_top_builddir}/docs
 
 # Internal variables.
 PAPEROPT_a4     = -D latex_paper_size=a4
 PAPEROPT_letter = -D latex_paper_size=letter
-ALLSPHINXOPTS   = -d $(SPHINX_BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) ${top_srcdir}/docs
+ALLSPHINXOPTS   = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) $(SPHINX_BUILDDIR)
+
+.PHONY: clean-docs-check
+clean-docs-check:
+	-rm -rf docs/_build docs/doctrees man/.doctrees/
 
 .PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest
-
 if HAVE_SPHINX
 
 sphinx-help:
@@ -37,14 +40,10 @@ sphinx-help:
 	@echo "  linkcheck  to check all external links for integrity"
 	@echo "  doctest    to run all doctests embedded in the documentation (if enabled)"
 
-install-html: html-local
-	@rm -r -f /var/www/gearmand/*
-	@cp -r docs/html /var/www/gearmand
+doc_dirs: 
+	@$(mkdir_p) $(SPHINX_BUILDDIR)/_static
 
-docs/_static: 
-	@$(mkdir_p) docs/_static
-
-html-local: docs/conf.py docs changes docs/_static
+html-local: docs/conf.py docs changes doc_dirs
 	PYTHONPATH=${top_srcdir}/docs $(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(SPHINX_BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(SPHINX_BUILDDIR)/html."
@@ -118,9 +117,7 @@ text: docs/conf.py
 
 if HAVE_RECENT_SPHINX
 man:
-	PYTHONPATH=${top_srcdir}/docs  $(SPHINXBUILD) -b man $(ALLSPHINXOPTS) ${top_srcdir}/man
-	@echo
-	@echo "Build finished. The manual pages are in ${top_srcdir}/man."
+	PYTHONPATH=$(SPHINX_BUILDDIR)/docs  $(SPHINXBUILD) -b man $(ALLSPHINXOPTS) ${top_builddir}/man
 
 else
 
@@ -150,11 +147,10 @@ man:
 
 endif
 
-noinst_PROGRAMS+= \
-		  docs/libgearman/examples/gearman_client_do_background_example \
-		  docs/libgearman/examples/gearman_client_do_example \
-		  docs/libgearman/examples/gearman_execute_example \
-		  docs/libgearman/examples/gearman_execute_partition
+noinst_PROGRAMS+= docs/libgearman/examples/gearman_client_do_background_example
+noinst_PROGRAMS+= docs/libgearman/examples/gearman_client_do_example
+noinst_PROGRAMS+= docs/libgearman/examples/gearman_execute_example
+noinst_PROGRAMS+= docs/libgearman/examples/gearman_execute_partition
 
 docs_libgearman_examples_gearman_execute_example_SOURCES= docs/libgearman/examples/gearman_execute_example.c
 docs_libgearman_examples_gearman_execute_example_LDADD= libgearman/libgearman.la

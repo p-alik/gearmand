@@ -105,7 +105,7 @@ public:
   {
     for (std::vector<std::string>::iterator iter= _extra_files.begin();
          iter != _extra_files.end();
-         iter++)
+         ++iter)
     {
       unlink((*iter).c_str());
     }

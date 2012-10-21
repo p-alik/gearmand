@@ -47,17 +47,16 @@
 #define gearman_error(__universal, B, C) gearman_universal_set_error((__universal), (B), __func__, AT, (C))
 #define gearman_gerror(__universal, __gearman_return_t) gearman_universal_set_gerror((__universal), (__gearman_return_t), __func__, AT)
 
-GEARMAN_LOCAL
 gearman_return_t gearman_universal_set_error(gearman_universal_st&,
                                              gearman_return_t rc,
                                              const char *function,
                                              const char *position,
                                              const char *format, ...);
-GEARMAN_LOCAL
+
 gearman_return_t gearman_universal_set_perror(gearman_universal_st&,
                                               const char *function, const char *position, 
                                               const char *message);
-GEARMAN_LOCAL
+
 gearman_return_t gearman_universal_set_gerror(gearman_universal_st&,
                                               gearman_return_t rc,
                                               const char *func,

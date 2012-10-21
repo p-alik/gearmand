@@ -3,7 +3,7 @@ Worker Basics
 
 Workers take "work" in the form of messages sent by clients to the server. Clients call workers via a call to a "function". Whether or not message content is provided to the "function" is entirely left to the design of the end user. Message content is limited to ~4gigs (though the practical size is based on the amount of memory available to the server, so this number is likely to be much smaller).
 
-The server takes the work sent to it, and then passes it along to the first available worker to process. The work then returns a response in a single message, or it sends the message as "chunks" to the client. Clients by default recieve messages as a single reply, so no work is needed to support "chunked" replies. A worker does not have to send a message in response, it can just return whether or not the work was carried out.
+The server takes the work sent to it, and then passes it along to the first available worker to process. The work then returns a response in a single message, or it sends the message as "chunks" to the client. Clients by default receive messages as a single reply, so no work is needed to support "chunked" replies. A worker does not have to send a message in response, it can just return whether or not the work was carried out.
 
 As of 0.32 the following are the responses from a worker that is supported:
 

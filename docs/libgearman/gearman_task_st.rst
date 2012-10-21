@@ -58,7 +58,7 @@ Link with -lgearman
 DESCRIPTION
 -----------
 
-A :c:type:`gearman_task_st` represents a :term:`task`.  Work that is sent by a :term:`client` to a gearman server is seen as a task (a :term:`worker` recieves a task in the form of a :term:`job`.
+A :c:type:`gearman_task_st` represents a :term:`task`.  Work that is sent by a :term:`client` to a gearman server is seen as a task (a :term:`worker` receives a task in the form of a :term:`job`.
 
 Tasks, i.e. :c:type:`gearman_task_st` are created by calling either :c:func:`gearman_execute`, :c:func:`gearman_client_add_task`, or :c:func:`gearman_client_add_task_background`.
 

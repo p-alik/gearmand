@@ -39,8 +39,11 @@ LT_PREREQ([2.2])
 LT_INIT([disable-static])
 LT_LANG([C++])
 gl_VISIBILITY
+AS_IF([ test -n "$CFLAG_VISIBILITY" ], [ CPPFLAGS="$CPPFLAGS $CFLAG_VISIBILITY" ])
+
 PANDORA_PLATFORM
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
+AX_ASSERT
 
 dnl First look for Boost, maybe for a specific minimum version:
 BOOST_REQUIRE([1.39])
@@ -243,9 +246,9 @@ AX_PTHREAD_TIMEDJOIN_NP
 
 AX_ENDIAN
 AX_HEX_VERSION
-AX_ASSERT
 AX_CXX_COMPILER_VERSION
 AX_HARDEN_COMPILER_FLAGS
+AM_CFLAGS="$AM_CFLAGS $CFLAG_VISIBILITY"
 
 AC_CONFIG_FILES([Makefile
                  docs/conf.py
@@ -270,6 +273,7 @@ echo "   * C Flags:                   $CFLAGS"
 echo "   * C++ Compiler:              $CXX_VERSION"
 echo "   * C++ Flags:                 $CXXFLAGS"
 echo "   * CPP Flags:                 $CPPFLAGS"
+echo "   * LIB Flags:                 $LIB"
 echo "   * Assertions enabled:        $ax_enable_assert"
 echo "   * Debug enabled:             $ax_enable_debug"
 echo "   * Warnings as failure:       $ac_cv_warnings_as_errors"
@@ -280,6 +284,7 @@ echo "   * Building with libpq        $ac_cv_libpq"
 echo "   * Building with tokyocabinet $ac_enable_libtokyocabinet"
 echo "   * Building with libmysql     $found_mysql"
 echo "   * make -j:                   $enable_jobserver"
+echo "   * VCS checkout:              $ac_cv_vcs_checkout"
 echo ""
 echo "---"
 
@@ -287,7 +292,7 @@ case "$host_os" in
   *freebsd*)
     echo "*****"
     echo "*"
-    echo "*  NOTE: You are on FreeBSD. BSD make will not work."
+    echo "*  NOTE: You are on FreeBSD. BSD 'make' will not work."
     echo "*"
     echo "*   use 'gmake' To build libmemcached"
     echo "*"

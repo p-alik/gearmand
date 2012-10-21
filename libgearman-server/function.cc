@@ -125,7 +125,7 @@ gearman_server_function_get(gearman_server_st *server,
 
 void gearman_server_function_free(gearman_server_st *server, gearman_server_function_st *function)
 {
-  delete function->function_name;
+  delete [] function->function_name;
 
   gearmand_server_list_free(server, function);
 

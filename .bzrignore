@@ -22,6 +22,7 @@
 INSTALL
 TAGS
 aclocal.m4
+aminclude.am
 autom4te.cache
 autoscan.log
 benchmark/blobslap_client
@@ -40,6 +41,7 @@ config/top.h
 configmake.h
 configure
 configure.scan
+ddm4
 docs/_static
 docs/_static
 docs/changes/
@@ -63,6 +65,7 @@ examples/reverse_client_epoch
 examples/reverse_worker
 examples/wc_worker
 gdb.txt
+gearmand-?.??
 gearmand/gearmand
 gearmand/gearmand_hostile
 gearmand/gearmand_test
