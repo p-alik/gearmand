@@ -6,7 +6,7 @@
 # Use and distribution licensed under the BSD license.  See
 # the COPYING file in this directory for full text.
 
-AC_INIT([gearmand],[0.41],[https://bugs.launchpad.net/gearmand],[gearmand],[http://gearman.info/])
+AC_INIT([gearmand],[0.42],[https://bugs.launchpad.net/gearmand],[gearmand],[http://gearman.info/])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
 
@@ -38,8 +38,6 @@ AC_SUBST(GEARMAN_LIBRARY_VERSION)
 LT_PREREQ([2.2])
 LT_INIT([disable-static])
 LT_LANG([C++])
-gl_VISIBILITY
-AS_IF([ test -n "$CFLAG_VISIBILITY" ], [ CPPFLAGS="$CPPFLAGS $CFLAG_VISIBILITY" ])
 
 PANDORA_PLATFORM
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
@@ -245,10 +243,9 @@ AX_PTHREAD(, [AC_MSG_ERROR(could not find libpthread)])
 AX_PTHREAD_TIMEDJOIN_NP
 
 AX_ENDIAN
-AX_HEX_VERSION
+AX_HEX_VERSION([LIBGEARMAN],[$VERSION])
 AX_CXX_COMPILER_VERSION
 AX_HARDEN_COMPILER_FLAGS
-AM_CFLAGS="$AM_CFLAGS $CFLAG_VISIBILITY"
 
 AC_CONFIG_FILES([Makefile
                  docs/conf.py
