@@ -176,8 +176,14 @@ collection_st collection[] ={
   {0, 0, 0, 0}
 };
 
-static void *world_create(server_startup_st& servers, test_return_t& )
+static void *world_create(server_startup_st& servers, test_return_t& error)
 {
+  if (jenkins_is_caller())
+  {
+    error= TEST_SKIPPED;
+    return NULL;
+  }
+
   return new cycle_context_st(servers);
 }
 

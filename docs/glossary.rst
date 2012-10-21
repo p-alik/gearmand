@@ -25,7 +25,7 @@ Glossary
       A function that takes a piece of data from mapper and returns a value that will be seent to an aggregator function. Any function can be a reducer.
 
    mapper 
-      Mapper functions take incomming data and "map" it out to hosts. The "map" typically is a function that splits up the incomming work. The function that recieves the mapped work is the reducer. Work is collected from the reducer and given to an aggregator function. 
+      Mapper functions take incomming data and "map" it out to hosts. The "map" typically is a function that splits up the incomming work. The function that receives the mapped work is the reducer. Work is collected from the reducer and given to an aggregator function. 
 
    aggregator 
       A function which takes data and compiles it into a single return value. Aggregator functions are defined by :c:type:`gearman_aggregator_fn`.

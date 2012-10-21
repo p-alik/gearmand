@@ -135,7 +135,6 @@ private:
  * passing in a pre-allocated structure. Some other initialization may have
  * failed.
  */
-
 gearman_connection_st *gearman_connection_create(gearman_universal_st &universal,
                                                  gearman_connection_options_t *options= NULL);
 

@@ -90,6 +90,22 @@ std::ostream& operator<<(std::ostream& output, const Server &arg)
   return output;  // for multiple << operators
 }
 
+#ifdef __GLIBC__
+namespace {
+
+class Buffer
+{
+public:
+  Buffer(char *b) : b_(b) {}
+   ~Buffer() { free(b_); }
+  char* buf() { return b_; }
+private:
+  char *b_;
+};
+
+}
+#endif // __GLIBC__
+
 #define MAGIC_MEMORY 123570
 
 Server::Server(const std::string& host_arg, const in_port_t port_arg,
@@ -232,8 +248,13 @@ bool Server::start()
           continue;
         }
 
+#ifdef __GLIBC__
+        Buffer buf( get_current_dir_name());
+        char *getcwd_buf= buf.buf();
+#else
         char buf[PATH_MAX];
         char *getcwd_buf= getcwd(buf, sizeof(buf));
+#endif // __GLIBC__
         throw libtest::disconnected(LIBYATL_DEFAULT_PARAM,
                                     hostname(), port(),
                                     "Unable to open pidfile in %s for: %s stderr:%s",
