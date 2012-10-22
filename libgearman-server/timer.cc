@@ -124,21 +124,24 @@ Epoch::~Epoch()
 {
   gearmand_debug("shutting down Epoch thread");
   int count= 5;
-  while (--count)
+  for (size_t x= 0; x < 2; x++)
   {
-    if (close(wakeup_fd[1]) == -1)
+    while (--count)
     {
-      switch(errno)
+      if (close(wakeup_fd[x]) == -1)
       {
-      case EAGAIN:
-        continue;
+        switch(errno)
+        {
+        case EAGAIN:
+          continue;
 
-      default:
-        break;
+        default:
+          break;
+        }
       }
-    }
 
-    break; // close()
+      break; // close()
+    }
   }
 
 #if 0
