@@ -62,6 +62,7 @@ int main(int args, char *argv[])
   std::string host;
   std::string identifier;
   int timeout;
+  int count;
 
   boost::program_options::options_description desc("Options");
   desc.add_options()
@@ -71,6 +72,7 @@ int main(int args, char *argv[])
     ("identifier", boost::program_options::value<std::string>(&identifier),"Assign identifier")
     ("port,p", boost::program_options::value<in_port_t>(&port)->default_value(GEARMAN_DEFAULT_TCP_PORT), "Port number use for connection")
     ("timeout,u", boost::program_options::value<int>(&timeout)->default_value(-1), "Timeout in milliseconds")
+    ("count", boost::program_options::value<int>(&count)->default_value(1), "Number of times to send the job")
     ("text", boost::program_options::value<std::string>(&text_to_echo), "Text used for echo")
             ;
 
@@ -149,7 +151,7 @@ int main(int args, char *argv[])
 
 
   int exit_code= EXIT_SUCCESS;
-  while (1)
+  do
   {
     size_t result_size;
     char *result;
@@ -181,15 +183,18 @@ int main(int args, char *argv[])
     {
       gearmand::error::message("Work failed");
       exit_code= EXIT_FAILURE;
+      break;
     }
     else
     {
       gearmand::error::message(gearman_client_error(&client));
       exit_code= EXIT_FAILURE;
+      break;
     }
 
-    break;
-  }
+    --count;
+
+  } while (count);
 
   gearman_client_free(&client);
 
