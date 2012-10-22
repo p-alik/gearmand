@@ -1,5 +1,15 @@
 Hi!
 
+You can obtain the latest source tree for Gearman by issuing the following command:
+bzr clone lp:gearmand
+
+You will need to have bzr installed in order for this to work (http://bazaar.canonical.com/en/).
+
+If you are building from source control (i.e. bzr) you should setup your environment via:
+./bootstrap.sh autoreconf
+
+This will build the files you will need in order to run "./configure".
+
 If you are working on the server here are some handy environmental variables
 you can set so that you can debug make test:
 
