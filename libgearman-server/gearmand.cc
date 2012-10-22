@@ -145,6 +145,10 @@ static void gearman_server_free(gearman_server_st& server)
   {
     delete server.queue.object;
   }
+  else if (server.queue_version == QUEUE_VERSION_FUNCTION)
+  {
+    delete server.queue.functions;
+  }
 }
 
 /** @} */
