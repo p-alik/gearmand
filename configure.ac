@@ -6,6 +6,7 @@
 # Use and distribution licensed under the BSD license.  See
 # the COPYING file in this directory for full text.
 
+AC_PREREQ([2.63])
 AC_INIT([gearmand],[0.42],[https://bugs.launchpad.net/gearmand],[gearmand],[http://gearman.info/])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
@@ -14,9 +15,7 @@ AC_CANONICAL_TARGET
 AC_ARG_PROGRAM
 AC_USE_SYSTEM_EXTENSIONS
 
-AM_INIT_AUTOMAKE([-Wall -Werror -Wno-portability subdir-objects foreign tar-ustar])
-
-AC_PREREQ([2.63])
+AM_INIT_AUTOMAKE([1.11 color-tests -Wno-portability subdir-objects foreign tar-ustar])
 
 AC_CONFIG_HEADERS([config.h:config.in])dnl Keep filename to 8.3 for MS-DOS.
 AC_CONFIG_SRCDIR([libgearman/gearman.cc])
