@@ -9,6 +9,8 @@ and Coding Style sections.
 Getting Started
 ---------------
 
+You can grab a released version of Gearman from http://launchpad.net/gearmand/. If you want to work on the latest code, please read the file HACKING.
+
 To build, you can follow the normal:
 
 ./configure
