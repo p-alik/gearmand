@@ -255,7 +255,7 @@ void gearmand_free(gearmand_st *gearmand)
 
       dcon= gearmand->free_dcon_list;
       gearmand->free_dcon_list= dcon->next;
-      free(dcon);
+      delete dcon;
     }
 
     if (gearmand->base != NULL)
