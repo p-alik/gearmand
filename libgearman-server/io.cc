@@ -128,8 +128,15 @@ static size_t _connection_read(gearman_server_con_st *con, void *data, size_t da
       case EPIPE:
       case ECONNRESET:
       case EHOSTDOWN:
-        gearmand_perror("lost connection to client recv(EPIPE || ECONNRESET || EHOSTDOWN)");
-        ret= GEARMAN_LOST_CONNECTION;
+        {
+          ret= GEARMAN_LOST_CONNECTION;
+          gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, 
+                            "Peer connection has called close() %s:%s",
+                            connection->context == NULL ? "-" : connection->context->host,
+                            connection->context == NULL ? "-" : connection->context->port);
+          _connection_close(connection);
+          return 0;
+        }
         break;
 
       default:

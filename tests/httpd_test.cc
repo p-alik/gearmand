@@ -104,6 +104,7 @@ static test_return_t curl_function_TEST(void *)
   curl.add_option("--silent");
   curl.add_option("--show-error");
   curl.add_option("--output", "var/tmp/curl_function_TEST.out");
+  curl.add_option("--connect-timeout", "1");
   curl.add_option(worker_url);
 
   test_compare(Application::SUCCESS, curl.run());
