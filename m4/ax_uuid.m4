@@ -24,7 +24,7 @@
 #serial 5
 
 AC_DEFUN([AX_UUID],
-    [AC_PREREQ([2.68])dnl
+    [AC_PREREQ([2.63])dnl
     AC_CHECK_HEADER([uuid/uuid.h], [
       AC_CACHE_CHECK([check to see if -luuid is needed], [ax_cv_libuuid_is_required], [
         AC_LANG_PUSH([C])

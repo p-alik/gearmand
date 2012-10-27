@@ -7,25 +7,25 @@
 
 ACLOCAL_AMFLAGS= -I m4
 
-bin_PROGRAMS =
-sbin_PROGRAMS = 
-check_PROGRAMS =
-noinst_PROGRAMS =
-lib_LTLIBRARIES =
-noinst_LTLIBRARIES =
-nobase_include_HEADERS =
-noinst_HEADERS =
-man1_MANS =
-man3_MANS =
-man8_MANS =
-DISTCLEANFILES =
-EXTRA_DIST =
-CLEANFILES =
-BUILT_SOURCES =
-TESTS =
-.PHONY =
-dist_man_MANS =
-man_MANS =
+bin_PROGRAMS=
+sbin_PROGRAMS= 
+check_PROGRAMS=
+noinst_PROGRAMS=
+lib_LTLIBRARIES=
+noinst_LTLIBRARIES=
+nobase_include_HEADERS=
+noinst_HEADERS=
+man1_MANS=
+man3_MANS=
+man8_MANS=
+DISTCLEANFILES=
+EXTRA_DIST=
+CLEANFILES=
+BUILT_SOURCES=
+TESTS=
+.PHONY=
+dist_man_MANS=
+man_MANS=
 
 #includes additional rules from aminclude.am
 @INC_AMINCLUDE@

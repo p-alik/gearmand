@@ -52,7 +52,7 @@ CONFIG_EXTRA
 
 m4_include([libtest/yatl.m4])
 
-AX_WITH_LIBMEMCACHED
+AX_ENABLE_LIBMEMCACHED
 m4_include([m4/memcached_sasl.m4])
 AM_CONDITIONAL([BUILDING_LIBMEMCACHED], false)
 
@@ -97,7 +97,6 @@ AC_DEFINE([MEMCACHED_LIGHT_BINARY], [""], [Support for memcached_light])
 
 
 PANDORA_ENABLE_DTRACE
-PANDORA_HAVE_BETTER_MALLOC
 AX_HAVE_LIBPQ
 PANDORA_HAVE_LIBTOKYOCABINET
 AC_FUNC_STRERROR_R
@@ -167,9 +166,7 @@ AC_CHECK_TYPES([ptrdiff_t])
 # Checks for library functions.
 AC_FUNC_ERROR_AT_LINE
 AC_FUNC_FORK
-AC_FUNC_MALLOC
 AC_FUNC_MEMCMP
-AC_FUNC_REALLOC
 AC_FUNC_STRERROR_R
 AC_FUNC_VPRINTF
 AC_REPLACE_FNMATCH
@@ -275,7 +272,7 @@ echo "   * Debug enabled:             $ax_enable_debug"
 echo "   * Warnings as failure:       $ac_cv_warnings_as_errors"
 echo "   * Building with libsqlite3   $WANT_SQLITE3"
 echo "   * Building with libdrizzle   $ac_enable_libdrizzle"
-echo "   * Building with libmemcached $ac_with_libmemcached"
+echo "   * Building with libmemcached $ax_enable_libmemcached"
 echo "   * Building with libpq        $ac_cv_libpq"
 echo "   * Building with tokyocabinet $ac_enable_libtokyocabinet"
 echo "   * Building with libmysql     $found_mysql"
