@@ -35,7 +35,7 @@
  *
  */
 
-#include <config.h>
+#include "config.h"
 #include <iostream>
 
 #include <libgearman-server/plugins.h>

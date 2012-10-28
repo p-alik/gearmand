@@ -40,7 +40,7 @@
  *
  */
 
-#include <config.h>
+#include "config.h"
 
 #include <libgearman-server/byteorder.h>
 

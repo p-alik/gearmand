@@ -41,8 +41,8 @@
  * @brief Gearmand Definitions
  */
 
-#include <config.h>
-#include <libgearman-server/common.h>
+#include "config.h"
+#include "libgearman-server/common.h"
 
 #include <cerrno>
 #include <netdb.h>

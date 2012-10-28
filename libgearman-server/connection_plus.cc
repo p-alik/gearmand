@@ -35,8 +35,8 @@
  *
  */
 
-#include <config.h>
-#include <libgearman-server/common.h>
+#include "config.h"
+#include "libgearman-server/common.h"
 #include <libgearman-server/plugins/base.h>
 
 gearman_server_con_st* build_gearman_server_con_st(void)

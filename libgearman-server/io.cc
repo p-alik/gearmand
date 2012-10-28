@@ -41,8 +41,8 @@
  * @brief Connection Definitions
  */
 
-#include <config.h>
-#include <libgearman-server/common.h>
+#include "config.h"
+#include "libgearman-server/common.h"
 #include <libgearman-server/plugins/base.h>
 
 #include <cstring>
