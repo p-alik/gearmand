@@ -115,35 +115,45 @@ AX_PROG_SPHINX_BUILD
 # Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS([arpa/inet.h])
 AC_CHECK_HEADERS([cxxabi.h], 
                  AC_DEFINE([HAVE_CXXABI_H], [1], [Have cxxabi.h]),
                  AC_DEFINE([HAVE_CXXABI_H], [0], [Have cxxabi.h]))
-AC_CHECK_HEADERS([errno.h])
-AC_CHECK_HEADERS([execinfo.h])
-AC_CHECK_HEADERS([fcntl.h])
-AC_CHECK_HEADERS([getopt.h])
-AC_CHECK_HEADERS([inttypes.h])
-AC_CHECK_HEADERS([limits.h])
-AC_CHECK_HEADERS([netdb.h])
-AC_CHECK_HEADERS([netinet/in.h])
-AC_CHECK_HEADERS([netinet/tcp.h])
-AC_CHECK_HEADERS([pwd.h])
-AC_CHECK_HEADERS([signal.h])
-AC_CHECK_HEADERS([stdarg.h])
-AC_CHECK_HEADERS([stddef.h])
-AC_CHECK_HEADERS([stdint.h])
-AC_CHECK_HEADERS([stdio.h])
-AC_CHECK_HEADERS([stdlib.h])
-AC_CHECK_HEADERS([string.h])
-AC_CHECK_HEADERS([strings.h])
-AC_CHECK_HEADERS([sys/resource.h])
-AC_CHECK_HEADERS([sys/socket.h])
-AC_CHECK_HEADERS([sys/stat.h])
-AC_CHECK_HEADERS([sys/time.h])
-AC_CHECK_HEADERS([sys/types.h])
-AC_CHECK_HEADERS([sys/utsname.h])
-AC_CHECK_HEADERS([unistd.h])
+AC_CHECK_HEADERS_ONCE([arpa/inet.h])
+AC_CHECK_HEADERS_ONCE([errno.h])
+AC_CHECK_HEADERS_ONCE([execinfo.h])
+AC_CHECK_HEADERS_ONCE([fcntl.h])
+AC_CHECK_HEADERS_ONCE([fnmatch.h])
+AC_CHECK_HEADERS_ONCE([getopt.h])
+AC_CHECK_HEADERS_ONCE([inttypes.h])
+AC_CHECK_HEADERS_ONCE([limits.h])
+AC_CHECK_HEADERS_ONCE([netdb.h])
+AC_CHECK_HEADERS_ONCE([netinet/in.h])
+AC_CHECK_HEADERS_ONCE([netinet/tcp.h])
+AC_CHECK_HEADERS_ONCE([poll.h])
+AC_CHECK_HEADERS_ONCE([pwd.h])
+AC_CHECK_HEADERS_ONCE([signal.h])
+AC_CHECK_HEADERS_ONCE([stdarg.h])
+AC_CHECK_HEADERS_ONCE([stddef.h])
+AC_CHECK_HEADERS_ONCE([stdint.h])
+AC_CHECK_HEADERS_ONCE([stdio.h])
+AC_CHECK_HEADERS_ONCE([stdlib.h])
+AC_CHECK_HEADERS_ONCE([string.h])
+AC_CHECK_HEADERS_ONCE([strings.h])
+AC_CHECK_HEADERS_ONCE([sys/resource.h])
+AC_CHECK_HEADERS_ONCE([sys/socket.h])
+AC_CHECK_HEADERS_ONCE([sys/stat.h])
+AC_CHECK_HEADERS_ONCE([sys/time.h])
+AC_CHECK_HEADERS_ONCE([sys/types.h])
+AC_CHECK_HEADERS_ONCE([sys/utsname.h])
+AC_CHECK_HEADERS_ONCE([sys/wait.h])
+AC_CHECK_HEADERS_ONCE([unistd.h])
+AC_CHECK_HEADERS_ONCE([winsock2.h])
+AM_CONDITIONAL([BUILD_WIN32_WRAPPERS],[test "x$ac_cv_header_winsock2_h" = "xyes"])
+AS_IF(test "x$ac_cv_header_winsock2_h" = "xyes",
+      [AM_LDFLAGS="$AM_LDFLAGS -lws2_32"
+       AM_CFLAGS="$AM_CFLAGS $NO_WERROR"
+       AM_CXXFLAGS="$AM_CXXFLAGS $NO_WERROR"
+      ])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
@@ -175,6 +185,7 @@ AC_CHECK_FUNCS([gettimeofday])
 AC_CHECK_FUNCS([memchr])
 AC_CHECK_FUNCS([memmove])
 AC_CHECK_FUNCS([memset])
+AC_CHECK_FUNCS([pipe])
 AC_CHECK_FUNCS([pipe2], 
                AC_DEFINE([HAVE_PIPE2], [1], [Have pipe2]),
                AC_DEFINE([HAVE_PIPE2], [0], [Have pipe2]))
@@ -191,31 +202,19 @@ AC_CHECK_FUNCS([uname])
 LT_LIB_M
 
 # Check for the ability to call dlopen (used in libhostile)
-AC_CHECK_LIB([dl], [dlopen], [
-              DL_LIB="-ldl"
-              AC_SUBST([DL_LIB])
-              AC_DEFINE([HAVE_LIBDL], [1], [Have dlopen])
-              ],[
-                 AC_DEFINE([HAVE_LIBDL], [0], [Have dlopen])
-                 ])
+AC_CHECK_LIB([dl],[dlopen],
+             [AC_SUBST([DL_LIB],[-ldl])
+             AC_DEFINE([HAVE_LIBDL], [1], [Have dlopen])
+             ])
 
 # Check for -lrt
-AC_CHECK_LIB([rt], [clock_gettime], [
-              RT_LIB="-lrt"
-              AC_SUBST(RT_LIB)
-              AC_DEFINE([HAVE_LIBRT], [1], [Have clock_gettime])
-              ],[
-                 AC_DEFINE([HAVE_LIBRT], [0], [Have clock_gettime])
-              ])
+AC_CHECK_LIB([rt],[clock_gettime],
+             [AC_SUBST([RT_LIB],[-lrt])
+             AC_DEFINE([HAVE_LIBRT], [1], [Have clock_gettime])
+             ])
 
 # Check for -lm
-AC_CHECK_LIB([m], [floor], [
-              M_LIB="-lm"
-              AC_SUBST(M_LIB)
-              AC_DEFINE([HAVE_LIBM], [ 1 ], [Have math library])
-              ],[
-                 AC_DEFINE([HAVE_LIBM], [ 0 ], [Have math library])
-                 ])
+LT_LIB_M
 
 AC_CHECK_FUNC([setsockopt], [], [AC_CHECK_LIB(socket, setsockopt)])
 AC_CHECK_FUNC([bind], [], [AC_CHECK_LIB(bind, bind)])
