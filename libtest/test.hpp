@@ -75,3 +75,4 @@
 #include <libtest/http.hpp>
 #include <libtest/cpu.hpp>
 #include <libtest/tmpfile.hpp>
+#include <libtest/client.hpp>

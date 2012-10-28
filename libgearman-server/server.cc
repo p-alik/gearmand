@@ -41,16 +41,17 @@
  * @brief Server Definitions
  */
 
-#include <config.h>
-#include <libgearman-server/common.h>
-#include <libgearman-server/queue.h>
+#include "config.h"
+
+#include "libgearman-server/common.h"
+#include "libgearman-server/queue.h"
 #include "libgearman-server/plugins/base.h"
 
-#include <errno.h>
-#include <limits.h>
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
+#include <cerrno>
+#include <climits>
+#include <cstdlib>
+#include <cstring>
+#include <cassert>
 
 /*
  * Private declarations

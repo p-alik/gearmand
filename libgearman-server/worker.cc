@@ -41,8 +41,8 @@
  * @brief Server worker definitions
  */
 
-#include <config.h>
-#include <libgearman-server/common.h>
+#include "config.h"
+#include "libgearman-server/common.h"
 
 #include <memory>
 

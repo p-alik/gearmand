@@ -1,9 +1,8 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  *
- *  Gearmand client and server library.
+ *  Data Differential YATL (i.e. libtest)  library
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  All rights reserved.
+ *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -35,58 +34,44 @@
  *
  */
 
-#include "config.h"
-#include <iostream>
+#pragma once
 
-#include <libgearman-server/plugins.h>
+namespace libtest {
 
-#include <libgearman-server/queue.hpp>
-#include <libgearman-server/plugins/queue.h>
+class SimpleClient {
+public:
+  SimpleClient(const std::string& hostname_, in_port_t port_);
+  ~SimpleClient();
 
-namespace gearmand {
-namespace plugins {
+  bool send_message(const std::string& arg);
+  bool send_message(const std::string& message_, std::string& response_);
+  bool response(std::string&);
 
-void initialize(boost::program_options::options_description &all)
-{
-  queue::initialize_default();
+  bool is_valid();
 
-  if (HAVE_LIBDRIZZLE)
+  const std::string& error() const
   {
-    queue::initialize_drizzle();
+    return _error;
   }
 
-  if (HAVE_LIBMEMCACHED)
+  bool is_error() const
   {
-    queue::initialize_libmemcached();
+    return _error.size();
   }
 
-  if (HAVE_LIBSQLITE3)
-  {
-    queue::initialize_sqlite();
-  }
+private: // Methods
+  void close_socket();
+  bool instance_connect();
+  struct addrinfo* lookup();
+  bool message(const std::string&);
+  bool ready(int event_);
 
-  if (HAVE_LIBPQ)
-  {
-    queue::initialize_postgres();
-  }
+private:
+  std::string _hostname;
+  in_port_t _port;
+  int sock_fd;
+  std::string _error;
+  int requested_message;
+};
 
-
-#ifdef HAVE_LIBHIREDIS
-  queue::initialize_redis();
-#endif
-
-  if (HAVE_LIBTOKYOCABINET)
-  {
-    queue::initialize_tokyocabinet();
-  }
-
-  if (HAVE_LIBMYSQL_BUILD)
-  {
-    queue::initialize_mysql();
-  }
-
-  gearmand::queue::load_options(all);
-}
-
-} //namespace plugins
-} //namespace gearmand
+} // namespace libtest
