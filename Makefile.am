@@ -92,7 +92,7 @@ maintainer-clean-local:
 	-rm build-aux/install-sh
 	-rm build-aux/ltmain.sh
 	-rm build-aux/missing
-	-rm config.in
+	-rm gear_config.in
 	-rm config.log
 	-rm config.status
 	-rm configure

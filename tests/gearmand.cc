@@ -39,7 +39,7 @@
   Test that we are cycling the servers we are creating during testing.
 */
 
-#include <config.h>
+#include "gear_config.h"
 
 #include <libtest/test.hpp>
 

@@ -41,7 +41,7 @@
  * @brief libsqlite3 Queue Storage Definitions
  */
 
-#include <config.h>
+#include <gear_config.h>
 #include <libgearman-server/common.h>
 
 #include <libgearman-server/plugins/queue/sqlite/queue.h>

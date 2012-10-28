@@ -35,7 +35,7 @@
  *
  */
 
-#include <config.h>
+#include "gear_config.h"
 
 #include "libgearman-server/plugins/base.h"
 #include <boost/program_options.hpp>

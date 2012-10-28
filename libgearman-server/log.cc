@@ -41,7 +41,7 @@
  * @brief Gearman State Definitions
  */
 
-#include "config.h"
+#include "gear_config.h"
 #include "libgearman-server/common.h"
 #include <libgearman-server/timer.h>
 

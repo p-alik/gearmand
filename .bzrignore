@@ -31,9 +31,9 @@ bin/gearadmin
 bin/gearman
 bin/wait
 build-aux/
-config.h
-config.h.in
-config.in
+gear_config.h
+gear_config.h.in
+gear_config.in
 config.log
 config.status
 config/pandora_vc_revinfo
