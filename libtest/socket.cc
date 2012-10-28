@@ -34,7 +34,7 @@
  *
  */
 
-#include "config.h"
+#include "gear_config.h"
 #include <libtest/common.h>
 
 static char global_socket[1024]= { 0 };

@@ -36,7 +36,7 @@
  *
  */
 
-#include "config.h"
+#include "gear_config.h"
 
 #include <cstdlib>
 #include <cstring>

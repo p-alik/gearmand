@@ -41,7 +41,7 @@
  * @brief gearman_strerror()
  */
 
-#include "config.h"
+#include "gear_config.h"
 #include <libgearman/common.h>
 
 // Please see http://gearman.info/libgearman/gearman_return_t.html

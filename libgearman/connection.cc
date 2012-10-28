@@ -41,7 +41,7 @@
  * @brief Connection Definitions
  */
 
-#include "config.h"
+#include "gear_config.h"
 #include <libgearman/common.h>
 
 #include "libgearman/assert.hpp"

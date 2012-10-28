@@ -41,7 +41,7 @@
  * @brief libdrizzle Queue Storage Definitions
  */
 
-#include <config.h>
+#include <gear_config.h>
 #include <libgearman-server/common.h>
 #include <libgearman-server/byte.h>
 #include <libgearman-1.0/limits.h>

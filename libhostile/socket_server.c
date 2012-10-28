@@ -34,7 +34,7 @@
  *
  */
 
-#include "config.h"
+#include "gear_config.h"
 
 #include <libhostile/initialize.h>
 #include <libhostile/function.h>

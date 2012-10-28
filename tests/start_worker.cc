@@ -37,7 +37,7 @@
 
 
 
-#include "config.h"
+#include "gear_config.h"
 
 #include <libtest/test.hpp>
 #include <libhostile/hostile.h>

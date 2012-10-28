@@ -34,7 +34,7 @@
  *
  */
 
-#include "config.h"
+#include "gear_config.h"
 #include <libtest/common.h>
 
 using namespace libtest;
