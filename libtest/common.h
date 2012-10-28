@@ -46,23 +46,27 @@
 #include <string>
 
 #ifdef HAVE_SYS_TYPES_H
-#include <sys/types.h>
+# include <sys/types.h>
 #endif
 
 #ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
+# include <sys/time.h>
 #endif
 
 #ifdef HAVE_SYS_WAIT_H
-#include <sys/wait.h>
+# include <sys/wait.h>
 #endif
 
 #ifdef HAVE_SYS_RESOURCE_H 
-#include <sys/resource.h> 
+# include <sys/resource.h> 
 #endif
  
 #ifdef HAVE_FNMATCH_H
-#include <fnmatch.h>
+# include <fnmatch.h>
+#endif
+
+#ifdef HAVE_ARPA_INET_H
+# include <arpa/inet.h>
 #endif
 
 #include <libtest/test.hpp>

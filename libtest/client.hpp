@@ -34,45 +34,44 @@
  *
  */
 
-/*
-  Structures for generic tests.
-*/
+#pragma once
 
-#include <cstdio>
-#include <cstdlib>
-#include <arpa/inet.h>
+namespace libtest {
 
-#include <libtest/visibility.h>
-#include <libtest/version.h>
+class SimpleClient {
+public:
+  SimpleClient(const std::string& hostname_, in_port_t port_);
+  ~SimpleClient();
 
-#include <libtest/vchar.hpp>
-#include <libtest/fatal.hpp>
+  bool send_message(const std::string& arg);
+  bool send_message(const std::string& message_, std::string& response_);
+  bool response(std::string&);
 
-#include <libtest/has.hpp>
-#include <libtest/error.h>
-#include <libtest/strerror.h>
-#include <libtest/timer.hpp>
-#include <libtest/alarm.h>
-#include <libtest/stream.h>
-#include <libtest/comparison.hpp>
-#include <libtest/server.h>
-#include <libtest/server_container.h>
-#include <libtest/wait.h>
-#include <libtest/callbacks.h>
-#include <libtest/test.h>
-#include <libtest/dream.h>
-#include <libtest/core.h>
-#include <libtest/runner.h>
-#include <libtest/port.h>
-#include <libtest/is_local.hpp>
-#include <libtest/socket.hpp>
-#include <libtest/collection.h>
-#include <libtest/framework.h>
-#include <libtest/get.h>
-#include <libtest/cmdline.h>
-#include <libtest/string.hpp>
-#include <libtest/binaries.h>
-#include <libtest/http.hpp>
-#include <libtest/cpu.hpp>
-#include <libtest/tmpfile.hpp>
-#include <libtest/client.hpp>
+  bool is_valid();
+
+  const std::string& error() const
+  {
+    return _error;
+  }
+
+  bool is_error() const
+  {
+    return _error.size();
+  }
+
+private: // Methods
+  void close_socket();
+  bool instance_connect();
+  struct addrinfo* lookup();
+  bool message(const std::string&);
+  bool ready(int event_);
+
+private:
+  std::string _hostname;
+  in_port_t _port;
+  int sock_fd;
+  std::string _error;
+  int requested_message;
+};
+
+} // namespace libtest
