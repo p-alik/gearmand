@@ -441,7 +441,6 @@ gearmand_con_st *gearman_io_context(const gearmand_io_st *connection)
 gearmand_error_t gearman_io_send(gearman_server_con_st *con,
                                  const gearmand_packet_st *packet, bool flush)
 {
-  gearmand_error_t ret;
   size_t send_size;
 
   gearmand_io_st *connection= &con->con;
@@ -458,6 +457,7 @@ gearmand_error_t gearman_io_send(gearman_server_con_st *con,
     /* Pack first part of packet, which is everything but the payload. */
     while (1)
     {
+      gearmand_error_t ret;
       send_size= con->protocol->pack(packet,
                                      con,
                                      connection->send_buffer +connection->send_buffer_size,
@@ -489,9 +489,12 @@ gearmand_error_t gearman_io_send(gearman_server_con_st *con,
       connection->send_state= gearmand_io_st::GEARMAND_CON_SEND_UNIVERSAL_PRE_FLUSH;
 
     case gearmand_io_st::GEARMAND_CON_SEND_UNIVERSAL_PRE_FLUSH:
-      if ((ret= _connection_flush(con)) != GEARMAN_SUCCESS)
       {
-        return ret;
+        gearmand_error_t local_ret;
+        if ((local_ret= _connection_flush(con)) != GEARMAN_SUCCESS)
+        {
+          return local_ret;
+        }
       }
     }
 
@@ -527,9 +530,12 @@ gearmand_error_t gearman_io_send(gearman_server_con_st *con,
     connection->send_state= gearmand_io_st::GEARMAND_CON_SEND_UNIVERSAL_FORCE_FLUSH;
 
   case gearmand_io_st::GEARMAND_CON_SEND_UNIVERSAL_FORCE_FLUSH:
-    if ((ret= _connection_flush(con)) != GEARMAN_SUCCESS)
     {
-      return ret;
+      gearmand_error_t local_ret;
+      if ((local_ret= _connection_flush(con)) != GEARMAN_SUCCESS)
+      {
+        return local_ret;
+      }
     }
 
     connection->send_data_size= packet->data_size;
@@ -558,28 +564,30 @@ gearmand_error_t gearman_io_send(gearman_server_con_st *con,
 
   case gearmand_io_st::GEARMAND_CON_SEND_UNIVERSAL_FLUSH:
   case gearmand_io_st::GEARMAND_CON_SEND_UNIVERSAL_FLUSH_DATA:
-    ret= _connection_flush(con);
-    if (ret == GEARMAN_SUCCESS and
-        connection->options.close_after_flush)
     {
-      _connection_close(connection);
-      ret= GEARMAN_LOST_CONNECTION;
-      gearmand_debug("closing connection after flush by request");
+      gearmand_error_t local_ret= _connection_flush(con);
+      if (local_ret == GEARMAN_SUCCESS and
+          connection->options.close_after_flush)
+      {
+        _connection_close(connection);
+        local_ret= GEARMAN_LOST_CONNECTION;
+        gearmand_debug("closing connection after flush by request");
+      }
+      return local_ret;
     }
-    return ret;
   }
 
   if (flush)
   {
     connection->send_state= gearmand_io_st::GEARMAND_CON_SEND_UNIVERSAL_FLUSH;
-    ret= _connection_flush(con);
-    if (ret == GEARMAN_SUCCESS and connection->options.close_after_flush)
+    gearmand_error_t local_ret= _connection_flush(con);
+    if (local_ret == GEARMAN_SUCCESS and connection->options.close_after_flush)
     {
       _connection_close(connection);
-      ret= GEARMAN_LOST_CONNECTION;
+      local_ret= GEARMAN_LOST_CONNECTION;
       gearmand_debug("closing connection after flush by request");
     }
-    return ret;
+    return local_ret;
   }
 
   connection->send_state= gearmand_io_st::GEARMAND_CON_SEND_STATE_NONE;
@@ -744,7 +752,9 @@ gearmand_error_t gearmand_io_set_revents(gearman_server_con_st *con, short reven
   gearmand_io_st *connection= &con->con;
 
   if (revents != 0)
+  {
     connection->options.ready= true;
+  }
 
   connection->revents= revents;
 
@@ -776,22 +786,24 @@ gearmand_error_t gearmand_io_set_revents(gearman_server_con_st *con, short reven
 
 static gearmand_error_t _io_setsockopt(gearmand_io_st &connection)
 {
-  struct linger linger;
-  struct timeval waittime;
-
-  int setting= 1;
-  if (setsockopt(connection.fd, IPPROTO_TCP, TCP_NODELAY, &setting, (socklen_t)sizeof(int)) and errno != EOPNOTSUPP)
   {
-    gearmand_perror("setsockopt(TCP_NODELAY)");
-    return GEARMAN_ERRNO;
+    int setting= 1;
+    if (setsockopt(connection.fd, IPPROTO_TCP, TCP_NODELAY, &setting, (socklen_t)sizeof(int)) and errno != EOPNOTSUPP)
+    {
+      gearmand_perror("setsockopt(TCP_NODELAY)");
+      return GEARMAN_ERRNO;
+    }
   }
 
-  linger.l_onoff= 1;
-  linger.l_linger= GEARMAN_DEFAULT_SOCKET_TIMEOUT;
-  if (setsockopt(connection.fd, SOL_SOCKET, SO_LINGER, &linger, (socklen_t)sizeof(struct linger)))
   {
-    gearmand_perror("setsockopt(SO_LINGER)");
-    return GEARMAN_ERRNO;
+    struct linger linger;
+    linger.l_onoff= 1;
+    linger.l_linger= GEARMAN_DEFAULT_SOCKET_TIMEOUT;
+    if (setsockopt(connection.fd, SOL_SOCKET, SO_LINGER, &linger, (socklen_t)sizeof(struct linger)))
+    {
+      gearmand_perror("setsockopt(SO_LINGER)");
+      return GEARMAN_ERRNO;
+    }
   }
 
 #if defined(__MACH__) && defined(__APPLE__) || defined(__FreeBSD__)
@@ -806,45 +818,54 @@ static gearmand_error_t _io_setsockopt(gearmand_io_st &connection)
   }
 #endif
 
-  waittime.tv_sec= GEARMAN_DEFAULT_SOCKET_TIMEOUT;
-  waittime.tv_usec= 0;
-  if (setsockopt(connection.fd, SOL_SOCKET, SO_SNDTIMEO, &waittime, (socklen_t)sizeof(struct timeval)) and errno != ENOPROTOOPT)
+  if (0)
   {
-    gearmand_perror("setsockopt(SO_SNDTIMEO)");
-    return GEARMAN_ERRNO;
+    struct timeval waittime;
+    waittime.tv_sec= GEARMAN_DEFAULT_SOCKET_TIMEOUT;
+    waittime.tv_usec= 0;
+    if (setsockopt(connection.fd, SOL_SOCKET, SO_SNDTIMEO, &waittime, (socklen_t)sizeof(struct timeval)) and errno != ENOPROTOOPT)
+    {
+      gearmand_perror("setsockopt(SO_SNDTIMEO)");
+      return GEARMAN_ERRNO;
+    }
+
+    if (setsockopt(connection.fd, SOL_SOCKET, SO_RCVTIMEO, &waittime, (socklen_t)sizeof(struct timeval)) and errno != ENOPROTOOPT)
+    {
+      gearmand_error("setsockopt(SO_RCVTIMEO)");
+      return GEARMAN_ERRNO;
+    }
   }
 
-  if (setsockopt(connection.fd, SOL_SOCKET, SO_RCVTIMEO, &waittime, (socklen_t)sizeof(struct timeval)) and errno != ENOPROTOOPT)
+  if (0)
   {
-    gearmand_error("setsockopt(SO_RCVTIMEO)");
-    return GEARMAN_ERRNO;
+    int setting= GEARMAN_DEFAULT_SOCKET_SEND_SIZE;
+    if (setsockopt(connection.fd, SOL_SOCKET, SO_SNDBUF, &setting, (socklen_t)sizeof(int)))
+    {
+      gearmand_perror("setsockopt(SO_SNDBUF)");
+      return GEARMAN_ERRNO;
+    }
+
+    setting= GEARMAN_DEFAULT_SOCKET_RECV_SIZE;
+    if (setsockopt(connection.fd, SOL_SOCKET, SO_RCVBUF, &setting, (socklen_t)sizeof(int)))
+    {
+      gearmand_perror("setsockopt(SO_RCVBUF)");
+      return GEARMAN_ERRNO;
+    }
   }
 
-  setting= GEARMAN_DEFAULT_SOCKET_SEND_SIZE;
-  if (setsockopt(connection.fd, SOL_SOCKET, SO_SNDBUF, &setting, (socklen_t)sizeof(int)))
   {
-    gearmand_perror("setsockopt(SO_SNDBUF)");
-    return GEARMAN_ERRNO;
-  }
+    int fcntl_flags;
+    if ((fcntl_flags= fcntl(connection.fd, F_GETFL, 0)) == -1)
+    {
+      gearmand_perror("fcntl(F_GETFL)");
+      return GEARMAN_ERRNO;
+    }
 
-  setting= GEARMAN_DEFAULT_SOCKET_RECV_SIZE;
-  if (setsockopt(connection.fd, SOL_SOCKET, SO_RCVBUF, &setting, (socklen_t)sizeof(int)))
-  {
-    gearmand_perror("setsockopt(SO_RCVBUF)");
-    return GEARMAN_ERRNO;
-  }
-
-  int fcntl_flags;
-  if ((fcntl_flags= fcntl(connection.fd, F_GETFL, 0)) == -1)
-  {
-    gearmand_perror("fcntl(F_GETFL)");
-    return GEARMAN_ERRNO;
-  }
-
-  if ((fcntl(connection.fd, F_SETFL, fcntl_flags | O_NONBLOCK) == -1))
-  {
-    gearmand_perror("fcntl(F_SETFL)");
-    return GEARMAN_ERRNO;
+    if ((fcntl(connection.fd, F_SETFL, fcntl_flags | O_NONBLOCK) == -1))
+    {
+      gearmand_perror("fcntl(F_SETFL)");
+      return GEARMAN_ERRNO;
+    }
   }
 
   return GEARMAN_SUCCESS;
