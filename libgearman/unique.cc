@@ -35,7 +35,7 @@
  *
  */
 
-#include <config.h>
+#include "config.h"
 #include <libgearman/common.h>
 
 gearman_unique_t gearman_unique_make(const char *arg, size_t arg_size)

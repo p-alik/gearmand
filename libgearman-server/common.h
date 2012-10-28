@@ -47,28 +47,28 @@
 #include <libgearman-server/byteorder.h>
 
 #ifdef HAVE_FCNTL_H
-#include <fcntl.h>
+# include <fcntl.h>
 #endif
 #ifdef HAVE_PTHREAD
-#include <pthread.h>
+# include <pthread.h>
 #endif
 #ifdef HAVE_STDARG_H
-#include <stdarg.h>
+# include <stdarg.h>
 #endif
 #ifdef HAVE_STDDEF_H
-#include <stddef.h>
+# include <stddef.h>
 #endif
 #ifdef HAVE_STRINGS_H
-#include <strings.h>
+# include <strings.h>
 #endif
 #ifdef HAVE_SYS_UTSNAME_H
-#include <sys/utsname.h>
+# include <sys/utsname.h>
 #endif
 #ifdef HAVE_NETINET_TCP_H
-#include <netinet/tcp.h>
+# include <netinet/tcp.h>
 #endif
 #ifdef HAVE_UNISTD_H
-#include <unistd.h>
+# include <unistd.h>
 #endif
 
 #ifdef TIME_WITH_SYS_TIME

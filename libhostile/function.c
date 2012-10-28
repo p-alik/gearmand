@@ -34,7 +34,7 @@
  *
  */
 
-#include <config.h>
+#include "config.h"
 
 #if defined(TARGET_OS_LINUX) && TARGET_OS_LINUX
 

@@ -35,7 +35,7 @@
  *
  */
 
-#include <config.h>
+#include "config.h"
 
 #include "libgearman/pipe.h"
 #include "libgearman/common.h"

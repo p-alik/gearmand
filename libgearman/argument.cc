@@ -35,7 +35,7 @@
  *
  */
 
-#include <config.h>
+#include "config.h"
 #include <libgearman/common.h>
 
 gearman_argument_t gearman_argument_make(const char *name, const size_t name_length, const char *value, const size_t value_size)

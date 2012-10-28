@@ -35,7 +35,7 @@
  *
  */
 
-#include <config.h>
+#include "config.h"
 #include <libtest/test.hpp>
 
 #include <libgearman/gearman.h>

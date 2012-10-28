@@ -35,7 +35,7 @@
  *
  */
 
-#include <config.h>
+#include "config.h"
 #include <libgearman/common.h>
 
 gearman_function_t gearman_function_create_v1(gearman_worker_fn func)

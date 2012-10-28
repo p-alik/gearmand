@@ -34,7 +34,7 @@
  *
  */
 
-#include <config.h>
+#include "config.h"
 
 #include <libhostile/function.h>
 #include <libhostile/initialize.h>

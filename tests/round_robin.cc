@@ -6,7 +6,7 @@
  * the COPYING file in the parent directory for full text.
  */
 
-#include <config.h>
+#include "config.h"
 #include <libtest/test.hpp>
 
 using namespace libtest;

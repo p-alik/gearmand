@@ -36,7 +36,7 @@
  *
  */
 
-#include <config.h>
+#include "config.h"
 #include <libgearman/common.h>
 #include <libgearman/universal.hpp>
 

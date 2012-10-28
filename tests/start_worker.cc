@@ -37,7 +37,7 @@
 
 
 
-#include <config.h>
+#include "config.h"
 
 #include <libtest/test.hpp>
 #include <libhostile/hostile.h>
