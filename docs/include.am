@@ -5,7 +5,7 @@
 # Makefile for Sphinx documentation
 #
 
-SPHINXOPTS    = ${SPHINX_WARNINGS}
+SPHINXOPTS    = ${SPHINX_WARNINGS} -q
 PAPER         =
 SPHINX_BUILDDIR      = ${abs_top_builddir}/docs
 

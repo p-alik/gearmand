@@ -41,8 +41,8 @@
  * @brief Server function definitions
  */
 
-#include <config.h>
-#include <libgearman-server/common.h>
+#include "config.h"
+#include "libgearman-server/common.h"
 
 #include <cstring>
 #include <memory>
