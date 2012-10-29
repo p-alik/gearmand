@@ -100,4 +100,4 @@ libgearman_server_libgearman_server_la_CXXFLAGS+= -DBUILDING_LIBGEARMAN
 libgearman_server_libgearman_server_la_LIBADD+= $(LIBEVENT_LDFLAGS)
 libgearman_server_libgearman_server_la_LIBADD+= $(PTHREAD_LIBS)
 libgearman_server_libgearman_server_la_LIBADD+= $(BOOST_PROGRAM_OPTIONS_LIBS)
-libgearman_server_libgearman_server_la_LIBADD+= $(M_LIB)
+libgearman_server_libgearman_server_la_LIBADD+= @LIBM@

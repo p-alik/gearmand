@@ -40,7 +40,7 @@
  * @brief gearman_strerror()
  */
 
-#include <config.h>
+#include "gear_config.h"
 #include <libgearman-server/error/strerror.h>
 
 const char *gearmand_strerror(gearmand_error_t rc)

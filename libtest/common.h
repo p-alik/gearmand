@@ -69,6 +69,19 @@
 # include <arpa/inet.h>
 #endif
 
+#if defined(WIN32) || defined(__MINGW32__)
+# include "win32/wrappers.h"
+# define get_socket_errno() WSAGetLastError()
+#else
+# ifdef HAVE_UNISTD_H
+#  include <unistd.h>
+# endif
+# define INVALID_SOCKET -1
+# define SOCKET_ERROR -1
+# define closesocket(a) close(a)
+# define get_socket_errno() errno
+#endif
+
 #include <libtest/test.hpp>
 
 #include <libtest/is_pid.hpp>

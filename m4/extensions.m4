@@ -26,7 +26,7 @@ AC_BEFORE([$0], [AC_RUN_IFELSE])dnl
 
   AC_REQUIRE([AC_CANONICAL_HOST])
 
-  AC_CHECK_HEADER([minix/config.h], [MINIX=yes], [MINIX=])
+  AC_CHECK_HEADER([minix/gear_config.h], [MINIX=yes], [MINIX=])
   if test "$MINIX" = yes; then
     AC_DEFINE([_POSIX_SOURCE], [1],
       [Define to 1 if you need to in order for `stat' and other

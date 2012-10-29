@@ -34,7 +34,7 @@
  *
  */
 
-#include <config.h>
+#include "gear_config.h"
 
 #if defined(BUILD_LIBHOSTILE) && BUILD_LIBHOSTILE
 
