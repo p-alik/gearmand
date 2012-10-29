@@ -808,7 +808,7 @@ static gearmand_error_t _io_setsockopt(gearmand_io_st &connection)
 
 #if defined(__MACH__) && defined(__APPLE__) || defined(__FreeBSD__)
   {
-    setting= 1;
+    int setting= 1;
 
     // This is not considered a fatal error 
     if (setsockopt(connection.fd, SOL_SOCKET, SO_NOSIGPIPE, (void *)&setting, sizeof(int)))
