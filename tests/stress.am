@@ -19,8 +19,8 @@ tests_stress_test_CXXFLAGS+= -DHAVE_LIBHOSTILE=1
 tests_stress_test_DEPENDENCIES+= libhostile/libhostile.la
 tests_stress_test_LDADD+= libhostile/libhostile.la
 if TARGET_LINUX
-tests_stress_test_LDADD+= $(DL_LIB)
-tests_stress_test_LDADD+= $(RT_LIB)
+tests_stress_test_LDADD+= @DL_LIB@
+tests_stress_test_LDADD+= @RT_LIB@
 endif
 
 tests_stress_test_SOURCES+= tests/burnin.cc

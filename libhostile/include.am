@@ -41,8 +41,8 @@ libhostile_libhostile_la_SOURCES+= libhostile/dummy.c
 libhostile_libhostile_la_SOURCES+= libhostile/initialize.c
 
 if TARGET_HOSTILE
-libhostile_libhostile_la_LIBADD+= $(DL_LIB)
-libhostile_libhostile_la_LIBADD+= $(RT_LIB)
+libhostile_libhostile_la_LIBADD+= @DL_LIB@
+libhostile_libhostile_la_LIBADD+= @RT_LIB@
 
 libhostile_libhostile_la_CFLAGS+= -DHAVE_LIBHOSTILE=1
 libhostile_libhostile_la_CFLAGS+= -std=c99
