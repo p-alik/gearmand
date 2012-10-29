@@ -36,7 +36,7 @@
  *
  */
 
-#include "config.h"
+#include "gear_config.h"
 #include <libgearman-server/error.h>
 #include <libgearman-server/constants.h>
 #include <libgearman-server/connection_list.h>

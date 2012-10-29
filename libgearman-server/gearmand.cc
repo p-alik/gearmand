@@ -41,7 +41,7 @@
  * @brief Gearmand Definitions
  */
 
-#include "config.h"
+#include "gear_config.h"
 #include "libgearman-server/common.h"
 
 #include <cerrno>
@@ -625,9 +625,7 @@ static gearmand_error_t _listen_init(gearmand_st *gearmand)
 
       // Scoping note for eventual transformation
       {
-        int *fd_list;
-
-        fd_list= (int *)realloc(port->listen_fd, sizeof(int) * (port->listen_count + 1));
+        int* fd_list= (int *)realloc(port->listen_fd, sizeof(int) * (port->listen_count + 1));
         if (fd_list == NULL)
         {
           gearmand_perror("realloc");
@@ -718,37 +716,35 @@ static gearmand_error_t _listen_watch(gearmand_st *gearmand)
 
 static void _listen_clear(gearmand_st *gearmand)
 {
-  if (gearmand->is_listen_event == false)
+  if (gearmand->is_listen_event)
   {
-    return;
-  }
-
-  for (uint32_t x= 0; x < gearmand->port_count; x++)
-  {
-    for (uint32_t y= 0; y < gearmand->port_list[x].listen_count; y++)
+    for (uint32_t x= 0; x < gearmand->port_count; x++)
     {
-      gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, 
-                        "Clearing event for listening socket (%d)",
-                        gearmand->port_list[x].listen_fd[y]);
-
-      if (event_del(&(gearmand->port_list[x].listen_event[y])) < 0)
+      for (uint32_t y= 0; y < gearmand->port_list[x].listen_count; y++)
       {
-        gearmand_perror("We tried to event_del() an event which no longer existed");
-        assert(! "We tried to event_del() an event which no longer existed");
+        gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, 
+                          "Clearing event for listening socket (%d)",
+                          gearmand->port_list[x].listen_fd[y]);
+
+        if (event_del(&(gearmand->port_list[x].listen_event[y])) < 0)
+        {
+          gearmand_perror("We tried to event_del() an event which no longer existed");
+          assert(! "We tried to event_del() an event which no longer existed");
+        }
       }
     }
-  }
 
-  gearmand->is_listen_event= false;
+    gearmand->is_listen_event= false;
+  }
 }
 
-static void _listen_event(int fd, short events __attribute__ ((unused)), void *arg)
+static void _listen_event(int event_fd, short events __attribute__ ((unused)), void *arg)
 {
   gearmand_port_st *port= (gearmand_port_st *)arg;
   struct sockaddr sa;
 
   socklen_t sa_len= sizeof(sa);
-  fd= accept(fd, &sa, &sa_len);
+  int fd= accept(event_fd, &sa, &sa_len);
   if (fd == -1)
   {
     if (errno == EINTR)
@@ -879,17 +875,14 @@ static void _wakeup_clear(gearmand_st *gearmand)
   }
 }
 
-static void _wakeup_event(int fd, short events __attribute__ ((unused)),
-                          void *arg)
+static void _wakeup_event(int fd, short, void *arg)
 {
   gearmand_st *gearmand= (gearmand_st *)arg;
-  uint8_t buffer[GEARMAN_PIPE_BUFFER_SIZE];
-  gearmand_thread_st *thread;
 
   while (1)
   {
-    ssize_t ret;
-    ret= read(fd, buffer, GEARMAN_PIPE_BUFFER_SIZE);
+    uint8_t buffer[GEARMAN_PIPE_BUFFER_SIZE];
+    ssize_t ret= read(fd, buffer, GEARMAN_PIPE_BUFFER_SIZE);
     if (ret == 0)
     {
       _clear_events(gearmand);
@@ -929,7 +922,8 @@ static void _wakeup_event(int fd, short events __attribute__ ((unused)),
         gearmand_debug("Received SHUTDOWN_GRACEFUL wakeup event");
         _listen_close(gearmand);
 
-        for (thread= gearmand->thread_list; thread != NULL;
+        for (gearmand_thread_st* thread= gearmand->thread_list; 
+             thread != NULL;
              thread= thread->next)
         {
           gearmand_thread_wakeup(thread, GEARMAND_WAKEUP_SHUTDOWN_GRACEFUL);
@@ -957,9 +951,7 @@ static void _wakeup_event(int fd, short events __attribute__ ((unused)),
 
 static gearmand_error_t _watch_events(gearmand_st *gearmand)
 {
-  gearmand_error_t ret;
-
-  ret= _listen_watch(gearmand);
+  gearmand_error_t ret= _listen_watch(gearmand);
   if (ret != GEARMAN_SUCCESS)
   {
     return ret;

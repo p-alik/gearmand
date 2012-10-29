@@ -35,7 +35,8 @@
  *
  */
 
-#include <config.h>
+#include "gear_config.h"
+
 #include <libgearman-server/plugins/protocol/http/response_codes.h>
 
 namespace gearmand {
