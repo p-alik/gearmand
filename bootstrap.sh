@@ -672,7 +672,7 @@ function make_target ()
     run_configure
   fi
 
-  if test -n "$TESTS_ENVIRONMENT" -a $VERBOSE; then
+  if [ -n "$TESTS_ENVIRONMENT" -a $VERBOSE ]; then
     echo "TESTS_ENVIRONMENT=$TESTS_ENVIRONMENT"
   fi
 
