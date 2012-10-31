@@ -208,6 +208,8 @@ static bool join_thread(pthread_t& thread_arg, struct timespec& ts)
       return false;
     }
 #endif
+
+    return true;
   }
 
   if ((error= pthread_join(thread_arg, NULL)) != 0)
