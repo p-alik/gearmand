@@ -19,10 +19,11 @@
 #   and this notice are preserved. This file is offered as-is, without any
 #   warranty.
 
-#serial 5
+#serial 6
 
 AC_DEFUN([AX_PTHREAD_TIMEDJOIN_NP],
-    [AC_REQUIRE([AX_PTHREAD])
+    [AC_PREREQ([2.63])dnl
+    AC_REQUIRE([AX_PTHREAD])
     AC_CACHE_CHECK([check for pthread_timedjoin_np], [ax_cv_pthread_timedjoin_np],
       [AX_SAVE_FLAGS
       CFLAGS="$PTHREAD_CFLAGS"
