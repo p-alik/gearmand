@@ -306,7 +306,6 @@ bool worker_handle_st::is_shutdown()
   return _shutdown;
 }
 
-
 bool worker_handle_st::shutdown()
 {
   if (is_shutdown())

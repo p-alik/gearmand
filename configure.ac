@@ -58,42 +58,25 @@ AM_CONDITIONAL([BUILDING_LIBMEMCACHED], false)
 
 AM_CONDITIONAL([BUILDING_GEARMAN], true)
 AM_CONDITIONAL([HAVE_LIBGEARMAN], true)
-AC_SUBST([_WITH_LIBGEARMAN_SUPPORT], ["_WITH_LIBGEARMAN_SUPPORT 0"])
-AC_DEFINE([GEARMAND_BINARY], ["./gearmand/gearmand"], [Name of the gearmand binary used in make test])
-AC_DEFINE([HAVE_LIBGEARMAN], [1], [libgearman support])
-AC_DEFINE([HAVE_GEARMAND_BINARY], [1], [libgearman support])
+AC_SUBST([_WITH_LIBGEARMAN_SUPPORT],["_WITH_LIBGEARMAN_SUPPORT 0"])
+AC_DEFINE([GEARMAND_BINARY],["./gearmand/gearmand"], [Name of the gearmand binary used in make test])
+AC_DEFINE([HAVE_LIBGEARMAN],[1], [libgearman support])
+AC_DEFINE([HAVE_GEARMAND_BINARY],[1],[libgearman support])
 
 AX_LIB_CURL([7.21.7],
-            [
-             AC_CHECK_HEADERS([curl/curl.h], 
-                              [
-                               AC_DEFINE([HAVE_LIBCURL], [ 1 ], [libcurl support])
-                               ],
-                               [
-                                AC_DEFINE([HAVE_LIBCURL], [ 0 ], [libcurl support])
-                                ]
-                               )
-             ],
-             [
-              AC_DEFINE([HAVE_LIBCURL], [ 0 ], [libcurl support])
-              ]
-             )
+            [AC_CHECK_HEADERS([curl/curl.h], 
+                              [AC_DEFINE([HAVE_LIBCURL], [ 1 ], [libcurl support])],
+                              [AC_DEFINE([HAVE_LIBCURL], [ 0 ], [libcurl support])])],
+                              [AC_DEFINE([HAVE_LIBCURL], [ 0 ], [libcurl support])])
 
 m4_include([m4/drizzled.m4])
 WITH_LIBDRIZZLE
 
 AX_LIB_SQLITE3
-AS_IF([ test "x${WANT_SQLITE3}" = "xyes"],
-      [
-       AC_DEFINE([HAVE_LIBSQLITE3], [ 1 ], [Have the SQLITE3 library])
-      ],
-      [
-       AC_DEFINE([HAVE_LIBSQLITE3], [ 0 ], [Have the SQLITE3 library])
-      ])
-AM_CONDITIONAL([HAVE_LIBSQLITE3], [ test "x${WANT_SQLITE3}" = "xyes" ])
-
-AC_DEFINE([HAVE_MEMCACHED_LIGHT_BINARY], [0], [Support for memcached_light])
-AC_DEFINE([MEMCACHED_LIGHT_BINARY], [""], [Support for memcached_light])
+AS_IF([test "x${WANT_SQLITE3}" = "xyes"],
+      [AC_DEFINE([HAVE_LIBSQLITE3],[1],[Have the SQLITE3 library])],
+      [AC_DEFINE([HAVE_LIBSQLITE3],[0],[Have the SQLITE3 library])])
+AM_CONDITIONAL([HAVE_LIBSQLITE3],[test "x${WANT_SQLITE3}" = "xyes"])
 
 
 PANDORA_ENABLE_DTRACE
@@ -105,11 +88,11 @@ FCNTL_FLAGS
 AX_HAVE_LIBHIREDIS
 
 # Checks for programs.
+AC_CHECK_PROGS([VALGRIND],['valgrind'])
 AC_PROG_AWK
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
-AC_CHECK_PROGS([VALGRIND], ['valgrind'])
 AX_PROG_SPHINX_BUILD
 
 # Checks for header files.
@@ -126,6 +109,7 @@ AC_CHECK_HEADERS_ONCE([fnmatch.h])
 AC_CHECK_HEADERS_ONCE([getopt.h])
 AC_CHECK_HEADERS_ONCE([inttypes.h])
 AC_CHECK_HEADERS_ONCE([limits.h])
+AC_CHECK_HEADERS_ONCE([mach/mach.h])
 AC_CHECK_HEADERS_ONCE([netdb.h])
 AC_CHECK_HEADERS_ONCE([netinet/in.h])
 AC_CHECK_HEADERS_ONCE([netinet/tcp.h])
@@ -146,32 +130,34 @@ AC_CHECK_HEADERS_ONCE([sys/time.h])
 AC_CHECK_HEADERS_ONCE([sys/types.h])
 AC_CHECK_HEADERS_ONCE([sys/utsname.h])
 AC_CHECK_HEADERS_ONCE([sys/wait.h])
+AC_CHECK_HEADERS_ONCE([syslog.h])
 AC_CHECK_HEADERS_ONCE([unistd.h])
 AC_CHECK_HEADERS_ONCE([winsock2.h])
 AM_CONDITIONAL([BUILD_WIN32_WRAPPERS],[test "x$ac_cv_header_winsock2_h" = "xyes"])
-AS_IF(test "x$ac_cv_header_winsock2_h" = "xyes",
+AS_IF([test "x$ac_cv_header_winsock2_h" = "xyes"],
       [AM_LDFLAGS="$AM_LDFLAGS -lws2_32"
        AM_CFLAGS="$AM_CFLAGS $NO_WERROR"
        AM_CXXFLAGS="$AM_CXXFLAGS $NO_WERROR"
-      ])
+       ])
 
 # Checks for typedefs, structures, and compiler characteristics.
-AC_HEADER_STDBOOL
+AC_CHECK_TYPES([ptrdiff_t])
 AC_C_CONST
 AC_C_INLINE
+AC_C_VOLATILE
+AC_HEADER_STDBOOL
+AC_HEADER_TIME
 AC_TYPE_INT32_T
+AC_TYPE_INT64_T
+AC_TYPE_OFF_T
 AC_TYPE_PID_T
 AC_TYPE_SIZE_T
 AC_TYPE_SSIZE_T
-AC_HEADER_TIME
 AC_TYPE_UID_T
 AC_TYPE_UINT16_T
 AC_TYPE_UINT32_T
 AC_TYPE_UINT64_T
-AC_TYPE_INT64_T
 AC_TYPE_UINT8_T
-AC_C_VOLATILE
-AC_CHECK_TYPES([ptrdiff_t])
 
 # Checks for library functions.
 AC_FUNC_ERROR_AT_LINE
@@ -199,6 +185,11 @@ AC_CHECK_FUNCS([strncasecmp])
 AC_CHECK_FUNCS([strtol])
 AC_CHECK_FUNCS([strtoul])
 AC_CHECK_FUNCS([uname])
+AC_CHECK_FUNCS([atexit])
+AC_CHECK_FUNCS([clock_gettime])
+AC_CHECK_FUNCS([getcwd])
+AC_CHECK_FUNCS([strstr])
+
 LT_LIB_M
 
 # Check for the ability to call dlopen (used in libhostile)
@@ -216,23 +207,21 @@ AC_CHECK_LIB([rt],[clock_gettime],
 # Check for -lm
 LT_LIB_M
 
-AC_CHECK_FUNC([setsockopt], [], [AC_CHECK_LIB(socket, setsockopt)])
-AC_CHECK_FUNC([bind], [], [AC_CHECK_LIB(bind, bind)])
+AC_CHECK_FUNC([setsockopt],[],[AC_CHECK_LIB([socket],[setsockopt])])
+AC_CHECK_FUNC([bind],[],[AC_CHECK_LIB([bind],[bind])])
 
-AC_DEFINE([GEARMAND_BLOBSLAP_WORKER], [ 1 ], [Have Gearman Blobslap Worker])
+AC_DEFINE([GEARMAND_BLOBSLAP_WORKER],[1],[Have Gearman Blobslap Worker])
 
-AX_CHECK_LIBRARY([LIBEVENT], [event.h], [event], [
-                  LIBEVENT_LDFLAGS="-levent"
-                  ],[
-                     AC_MSG_ERROR([Unable to find libevent])
-                  ])
+AX_CHECK_LIBRARY([LIBEVENT],[event.h],[event],
+                 [LIBEVENT_LDFLAGS="-levent"],
+                 [AC_MSG_ERROR([Unable to find libevent])])
 
 AX_UUID_GENERATE_TIME_SAFE
 
 AX_AM_JOBSERVER([yes])
 
-AS_IF([ test "x${TARGET_LINUX}" = "xtrue" ], [AC_DEFINE([BUILD_LIBHOSTILE], [1], [Build libhostile])], [AC_DEFINE([BUILD_LIBHOSTILE], [0], [Build libhostile])])
-AM_CONDITIONAL([TARGET_HOSTILE], [ test "x${TARGET_LINUX}" = "xtrue" ])
+AS_IF([test "x${TARGET_LINUX}" = "xtrue"], [AC_DEFINE([BUILD_LIBHOSTILE],[1],[Build libhostile])], [AC_DEFINE([BUILD_LIBHOSTILE],[0],[Build libhostile])])
+AM_CONDITIONAL([TARGET_HOSTILE],[test "x${TARGET_LINUX}" = "xtrue"])
 
 AX_PTHREAD(, [AC_MSG_ERROR(could not find libpthread)])
 AX_PTHREAD_TIMEDJOIN_NP
