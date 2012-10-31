@@ -869,6 +869,10 @@ autoreconf_setup ()
     GNU_BUILD_FLAGS="$GNU_BUILD_FLAGS --verbose"
   fi
 
+  if [ -z "$ACLOCAL_PATH" ]; then
+    ACLOCAL_PATH="/usr/local/share/aclocal $ACLOCAL_PATH"
+  fi
+
   if [[ -z "$WARNINGS" ]]; then
     if [[ -n "$VCS_CHECKOUT" ]]; then
       WARNINGS="all,error"
