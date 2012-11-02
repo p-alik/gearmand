@@ -516,9 +516,10 @@ bool Application::Pipe::read(libtest::vchar_t& arg)
 
   bool data_was_read= false;
 
+  libtest::vchar_t buffer;
+  buffer.resize(1024);
   ssize_t read_length;
-  char buffer[1024]= { 0 };
-  while ((read_length= ::read(_pipe_fd[READ], buffer, sizeof(buffer))))
+  while ((read_length= ::read(_pipe_fd[READ], &buffer[0], buffer.size())))
   {
     if (read_length == -1)
     {
@@ -705,10 +706,11 @@ void Application::create_argv(const char *args[])
     built_argv.push_back(strdup("--free-fill=DE"));
 
     std::string log_file= create_tmpfile("valgrind");
-    char buffer[1024];
-    int length= snprintf(buffer, sizeof(buffer), "--log-file=%s", log_file.c_str());
-    fatal_assert(length > 0 and size_t(length) < sizeof(buffer));
-    built_argv.push_back(strdup(buffer));
+    libtest::vchar_t buffer;
+    buffer.resize(1024);
+    int length= snprintf(&buffer[0], buffer.size(), "--log-file=%s", log_file.c_str());
+    fatal_assert(length > 0 and size_t(length) < buffer.size());
+    built_argv.push_back(strdup(&buffer[0]));
   }
   else if (_use_ptrcheck)
   {
@@ -719,10 +721,11 @@ void Application::create_argv(const char *args[])
     built_argv.push_back(strdup("--error-exitcode=1"));
     built_argv.push_back(strdup("--tool=exp-ptrcheck"));
     std::string log_file= create_tmpfile("ptrcheck");
-    char buffer[1024];
-    int length= snprintf(buffer, sizeof(buffer), "--log-file=%s", log_file.c_str());
-    fatal_assert(length > 0 and size_t(length) < sizeof(buffer));
-    built_argv.push_back(strdup(buffer));
+    libtest::vchar_t buffer;
+    buffer.resize(1024);
+    int length= snprintf(&buffer[0], buffer.size(), "--log-file=%s", log_file.c_str());
+    fatal_assert(length > 0 and size_t(length) < buffer.size());
+    built_argv.push_back(&buffer[0]);
   }
   else if (_use_gdb)
   {
