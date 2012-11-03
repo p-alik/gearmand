@@ -126,7 +126,7 @@ bool check_pid(const std::string &filename)
     libtest::vchar_t pid_buffer;
     pid_buffer.resize(1024);
 
-    char *ptr= fgets(&pid_buffer[0], pid_buffer.size(), fp);
+    char *ptr= fgets(&pid_buffer[0], int(pid_buffer.size()), fp);
     fclose(fp);
 
     if (ptr)
