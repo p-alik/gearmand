@@ -1,4 +1,5 @@
 # Gearman server and library
+# Copyright (C) 2011-2012 DataDifferential LLC, http://datadifferential.com/
 # Copyright (C) 2008 Brian Aker, Eric Day
 # All rights reserved.
 #
