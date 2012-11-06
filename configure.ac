@@ -7,7 +7,7 @@
 # the COPYING file in this directory for full text.
 
 AC_PREREQ([2.63])
-AC_INIT([gearmand],[1.0.0],[https://bugs.launchpad.net/gearmand],[gearmand],[http://gearman.info/])
+AC_INIT([gearmand],[1.0.1],[https://bugs.launchpad.net/gearmand],[gearmand],[http://gearman.info/])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
 
@@ -195,13 +195,13 @@ LT_LIB_M
 # Check for the ability to call dlopen (used in libhostile)
 AC_CHECK_LIB([dl],[dlopen],
              [AC_SUBST([DL_LIB],[-ldl])
-             AC_DEFINE([HAVE_LIBDL], [1], [Have dlopen])
+             AC_DEFINE([HAVE_LIBDL],[1],[Have dlopen])
              ])
 
 # Check for -lrt
 AC_CHECK_LIB([rt],[clock_gettime],
              [AC_SUBST([RT_LIB],[-lrt])
-             AC_DEFINE([HAVE_LIBRT], [1], [Have clock_gettime])
+             AC_DEFINE([HAVE_LIBRT],[1],[Have clock_gettime])
              ])
 
 # Check for -lm
