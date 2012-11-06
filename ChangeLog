@@ -1,6 +1,7 @@
-1.0.0
+1.0.1 Tue Nov  6 01:07:07 EST 2012
 * Stable branch labeled as 1.0
 * Update all build related files.
+* Add a few additional platforms to the supported list.
 
 0.41 Fri Oct 12 05:34:29 EDT 2012
 * Switched from --having-debug to --enable-debug
