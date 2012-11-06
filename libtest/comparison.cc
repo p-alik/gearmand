@@ -83,7 +83,7 @@ bool _in_valgrind(const char*, int, const char*)
 {
   if (valgrind_is_caller())
   {
-    return false;
+    return true;
   }
 
   return false;
