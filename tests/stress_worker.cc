@@ -115,7 +115,7 @@ extern "C" {
     fatal_assert(success);
     fatal_assert(success->count == 0);
 
-    libtest::Client client(current_server());
+    test::Client client(current_server());
     {
       gearman_client_set_timeout(&client, 400);
       for (size_t x= 0; x < 100; x++)
