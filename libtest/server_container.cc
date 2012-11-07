@@ -76,13 +76,14 @@ void server_startup_st::push_server(Server *arg)
   }
   else
   {
-    char port_str[NI_MAXSERV]= { 0 };
-    snprintf(port_str, sizeof(port_str), "%u", int(arg->port()));
+    libtest::vchar_t port_str;
+    port_str.resize(NI_MAXSERV);
+    snprintf(&port_str[0], port_str.size(), "%u", int(arg->port()));
 
     server_config_string+= "--server=";
     server_config_string+= arg->hostname();
     server_config_string+= ":";
-    server_config_string+= port_str;
+    server_config_string+= &port_str[0];
     server_config_string+= " ";
   }
 

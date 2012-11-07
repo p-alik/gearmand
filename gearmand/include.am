@@ -1,7 +1,8 @@
 # vim:ft=automake
 # Gearman server and library
-# Copyright (C) 2008 Brian Aker, Eric Day
+# Copyright (C) 2010-2012 DataDifferential LLC
 # Copyright (C) 2009 Brian Aker, Eric Day, Monty Taylor
+# Copyright (C) 2008 Brian Aker, Eric Day
 # All rights reserved.
 #
 # Use and distribution licensed under the BSD license.  See
@@ -23,9 +24,9 @@ gearmand_gearmand_SOURCES=
 
 gearmand_gearmand_CXXFLAGS+= $(BOOST_CPPFLAGS)
 gearmand_gearmand_DEPENDENCIES+= libgearman-server/libgearman-server.la
-gearmand_gearmand_DEPENDENCIES+= configmake.h
 gearmand_gearmand_LDADD+= libgearman-server/libgearman-server.la
 gearmand_gearmand_LDFLAGS+= $(BOOST_PROGRAM_OPTIONS_LDFLAGS)
+gearmand_gearmand_SOURCES+= configmake.h
 gearmand_gearmand_SOURCES+= gearmand/gearmand.cc
 gearmand_gearmand_SOURCES+= util/daemon.cc
 gearmand_gearmand_SOURCES+= util/pidfile.cc
@@ -38,6 +39,7 @@ gearmand_hostile_gearmand_LDFLAGS=
 gearmand_hostile_gearmand_SOURCES=
 
 gearmand_hostile_gearmand_CXXFLAGS+= $(gearmand_gearmand_CXXFLAGS)
+gearmand_hostile_gearmand_DEPENDENCIES+= configmake.h
 gearmand_hostile_gearmand_DEPENDENCIES+= libgearman-server/libgearman-server.la
 gearmand_hostile_gearmand_DEPENDENCIES+= libhostile/libhostile.la
 gearmand_hostile_gearmand_LDADD+= $(DL_lib)

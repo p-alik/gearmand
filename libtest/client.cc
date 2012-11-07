@@ -110,11 +110,12 @@ struct addrinfo* SimpleClient::lookup()
   hints.ai_socktype= SOCK_STREAM;
   hints.ai_protocol= IPPROTO_TCP;
 
-  char service[NI_MAXSERV];
-  (void)snprintf(service, NI_MAXSERV, "%d", _port);
+  libtest::vchar_t service;
+  service.resize(NI_MAXSERV);
+  (void)snprintf(&service[0], service.size(), "%d", _port);
 
   int getaddrinfo_error;
-  if ((getaddrinfo_error= getaddrinfo(_hostname.c_str(), service, &hints, &ai)) != 0)
+  if ((getaddrinfo_error= getaddrinfo(_hostname.c_str(), &service[0], &hints, &ai)) != 0)
   {
     if (getaddrinfo_error != EAI_SYSTEM)
     {

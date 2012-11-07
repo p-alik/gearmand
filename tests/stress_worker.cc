@@ -37,6 +37,7 @@
 
 
 #include "gear_config.h"
+
 #include <libtest/test.hpp>
 
 using namespace libtest;
@@ -45,6 +46,7 @@ using namespace libtest;
 
 #include <libhostile/hostile.h>
 
+#include "tests/client.h"
 #include <tests/start_worker.h>
 #include "tests/burnin.h"
 
@@ -107,48 +109,23 @@ struct client_thread_context_st
 };
 
 extern "C" {
-
-  static void client_cleanup(void *client)
-  {
-    int oldstate;
-    pthread_setcanceltype(PTHREAD_CANCEL_DISABLE, &oldstate);
-    gearman_client_free((gearman_client_st *)client);
-    pthread_setcanceltype(oldstate, NULL);
-  }
-
   static __attribute__((noreturn)) void *client_thread(void *object)
   {
     client_thread_context_st *success= (client_thread_context_st *)object;
     fatal_assert(success);
     fatal_assert(success->count == 0);
 
-    gearman_return_t rc;
-    gearman_client_st *client;
+    test::Client client(current_server());
     {
-      int oldstate;
-      pthread_setcanceltype(PTHREAD_CANCEL_DISABLE, &oldstate);
-      client= gearman_client_create(NULL);
-
-      if (client == NULL)
-      {
-        pthread_exit(0);
-      }
-      rc= gearman_client_add_server(client, NULL, current_server());
-      pthread_setcanceltype(oldstate, NULL);
-    }
-
-    pthread_cleanup_push(client_cleanup, client);
-
-    if (gearman_success(rc))
-    {
-      gearman_client_set_timeout(client, 400);
+      gearman_client_set_timeout(&client, 400);
       for (size_t x= 0; x < 100; x++)
       {
         int oldstate;
         pthread_setcanceltype(PTHREAD_CANCEL_DISABLE, &oldstate);
         libtest::vchar_t payload;
         payload.resize(success->payload_size);
-        void *value= gearman_client_do(client, WORKER_FUNCTION_NAME,
+        gearman_return_t rc;
+        void *value= gearman_client_do(&client, WORKER_FUNCTION_NAME,
                                        NULL,
                                        &payload[0], 
                                        payload.size() ? random() % payload.size() : 0,
@@ -167,7 +144,6 @@ extern "C" {
       }
     }
 
-    pthread_cleanup_pop(1);
     pthread_exit(0);
   }
 }

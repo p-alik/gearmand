@@ -114,7 +114,8 @@ static test_return_t collection_init(void *object)
     0 };
 
   Context *test= (Context *)object;
-  assert(test);
+  test_true(test);
+  test->reset();
 
   test_truth(test->initialize(2, argv));
   test_compare(0, access(sql_file.c_str(), R_OK | W_OK ));
