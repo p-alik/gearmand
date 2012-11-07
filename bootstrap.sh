@@ -470,6 +470,10 @@ function make_darwin_malloc ()
 
 function snapshot_check ()
 {
+  if [ ! -f "$BOOTSTRAP_SNAPSHOT_CHECK" ]; then
+    make_for_snapshot
+  fi
+
   if [ -n "$BOOTSTRAP_SNAPSHOT_CHECK" ]; then
     assert_file "$BOOTSTRAP_SNAPSHOT_CHECK" 'snapshot check failed'
   fi
