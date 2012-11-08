@@ -7,7 +7,7 @@
 # the COPYING file in this directory for full text.
 
 AC_PREREQ([2.63])
-AC_INIT([gearmand],[1.0.1],[https://bugs.launchpad.net/gearmand],[gearmand],[http://gearman.info/])
+AC_INIT([gearmand],[1.1.3],[https://bugs.launchpad.net/gearmand],[gearmand],[http://gearman.info/])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
 
