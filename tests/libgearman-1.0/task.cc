@@ -105,11 +105,19 @@ test_return_t gearman_client_add_task_status_by_unique_TEST(void *object)
   do
   {
     // just for async IO
+    size_t limit= 10;
     do {
+      if (--limit)
+      {
+        break;
+      }
       ret= gearman_client_run_tasks(client);
     } while (gearman_continue(ret));
 
-    test_compare(ret, GEARMAN_SUCCESS);
+    if (limit)
+    {
+      test_compare(ret, GEARMAN_SUCCESS);
+    }
 
     // If the task has been built to be freed, we won't have it to test
     if (gearman_client_has_option(client, GEARMAN_CLIENT_FREE_TASKS))

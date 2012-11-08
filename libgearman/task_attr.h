@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -35,61 +35,12 @@
  *
  */
 
-#include "gear_config.h"
-#include <libgearman/common.h>
+#pragma once
 
-#include "libgearman/assert.hpp"
+// Everything below here is private
 
-#include <cstring>
-#include <memory>
+time_t gearman_task_attr_has_epoch(const gearman_task_attr_t *);
 
-gearman_task_attr_t gearman_task_attr_init(gearman_job_priority_t priority)
-{
-  gearman_task_attr_t local= { GEARMAN_TASK_ATTR_FOREGROUND, priority, {{0}} };
+gearman_job_priority_t gearman_task_attr_priority(const gearman_task_attr_t *);
 
-  return local;
-}
-
-gearman_task_attr_t gearman_task_attr_init_background(gearman_job_priority_t priority)
-{
-  gearman_task_attr_t local= { GEARMAN_TASK_ATTR_BACKGROUND, priority, {{0}} };
-
-  return local;
-}
-
-gearman_task_attr_t gearman_task_attr_init_epoch(time_t epoch, gearman_job_priority_t priority)
-{
-  gearman_task_attr_t local= { GEARMAN_TASK_ATTR_EPOCH, priority, {{0}} };
-  local.options.epoch.value= epoch;
-
-  return local;
-}
-
-time_t gearman_task_attr_has_epoch(const gearman_task_attr_t *self)
-{
-  if (self and self->kind == GEARMAN_TASK_ATTR_EPOCH)
-  {
-    return self->options.epoch.value;
-  }
-
-  return 0;
-}
-
-gearman_job_priority_t gearman_task_attr_priority(const gearman_task_attr_t *self)
-{
-  if (self == NULL)
-  {
-    return GEARMAN_JOB_PRIORITY_NORMAL;
-  }
-
-  return self->priority;
-}
-
-bool gearman_task_attr_is_background(const gearman_task_attr_t *self)
-{
-  if (self)
-  {
-    return (self->kind == GEARMAN_TASK_ATTR_BACKGROUND or self->kind == GEARMAN_TASK_ATTR_EPOCH);
-  }
-  return false;
-}
+bool gearman_task_attr_is_background(const gearman_task_attr_t *);

@@ -49,6 +49,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/utsname.h>
+#include <unistd.h>
 
 #include <set>
 #include <string>
@@ -335,7 +336,8 @@ gearmand_error_t gearmand_run(gearmand_st *gearmand)
   /* Initialize server components. */
   if (gearmand->base == NULL)
   {
-    gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "Starting up, verbose set to %s", 
+    gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "Starting up(%lu), verbose set to %s", 
+                      (unsigned long)(getpid()),
                       gearmand_verbose_name(gearmand->verbose));
 
     if (gearmand->threads > 0)

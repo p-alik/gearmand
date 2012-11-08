@@ -237,8 +237,12 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
       if (packet->command == GEARMAN_COMMAND_SUBMIT_JOB_EPOCH)
       {
         char *endptr;
-        when= strtoll((char *)packet->arg[1], &endptr, 10);
-        if (when == LONG_MIN or when == LONG_MAX or errno == EINVAL or when > UINT8_MAX or when == 0)
+        // @note stroll will set errno if error, but it might also leave errno
+        // alone if none happens (so a previous call that sets it might cause
+        // an error.
+        errno= 0;
+        when= strtoll((char *)packet->arg[2], &endptr, 10);
+        if (errno)
         {
           return gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "strtoul(%ul)", when);
         }

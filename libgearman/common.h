@@ -63,6 +63,7 @@ struct gearman_result_st;
 #include <libgearman/actions.hpp>
 #include <libgearman/string.hpp>
 #include <libgearman/command.h>
+#include <libgearman/task_attr.h>
 #include <libgearman/task.hpp>
 #include <libgearman/job.h>
 

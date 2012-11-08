@@ -346,6 +346,7 @@ man_pages = [
   ('libgearman/gearman_task_attr_t', 'gearman_task_attr_init', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://www.datadifferential.com/'], 3),
   ('libgearman/gearman_task_attr_t', 'gearman_task_attr_init_epoch', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://www.datadifferential.com/'], 3),
   ('libgearman/gearman_task_attr_t', 'gearman_task_attr_init_background', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://www.datadifferential.com/'], 3),
+  ('libgearman/gearman_worker_set_identifier', 'gearman_worker_set_identifier', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://www.datadifferential.com/'], 3),
   ('libgearman/gearman_worker_add_server', 'gearman_worker_add_server', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://www.datadifferential.com/'], 3),
   ('libgearman/gearman_worker_add_server', 'gearman_worker_add_servers', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://www.datadifferential.com/'], 3),
   ('libgearman/gearman_worker_add_server', 'gearman_worker_remove_servers', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://www.datadifferential.com/'], 3),

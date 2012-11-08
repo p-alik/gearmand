@@ -45,6 +45,7 @@ noinst_HEADERS+= \
 		 libgearman/strcommand.h \
 		 libgearman/string.hpp \
 		 libgearman/task.hpp \
+		 libgearman/task_attr.h \
 		 libgearman/unique.hpp \
 		 libgearman/universal.hpp \
 		 libgearman/vector.hpp

@@ -154,6 +154,13 @@ dist_man_MANS+=  man/gearman_worker_set_log_fn.3
 dist_man_MANS+=  man/gearman_worker_set_namespace.3
 dist_man_MANS+=  man/gearman_worker_set_options.3
 dist_man_MANS+=  man/gearman_worker_set_timeout.3
+dist_man_MANS+=  man/gearman_client_has_option.3
+dist_man_MANS+=  man/gearman_client_options_t.3
+dist_man_MANS+=  man/gearman_task_attr_init.3
+dist_man_MANS+=  man/gearman_task_attr_init_background.3
+dist_man_MANS+=  man/gearman_task_attr_init_epoch.3
+dist_man_MANS+=  man/gearman_task_attr_t.3
+dist_man_MANS+=  man/gearman_worker_set_identifier.3
 dist_man_MANS+=  man/gearman_worker_set_workload_free_fn.3
 dist_man_MANS+=  man/gearman_worker_set_workload_malloc_fn.3
 dist_man_MANS+=  man/gearman_worker_st.3
@@ -162,12 +169,6 @@ dist_man_MANS+=  man/gearman_worker_unregister.3
 dist_man_MANS+=  man/gearman_worker_unregister_all.3
 dist_man_MANS+=  man/gearman_worker_wait.3
 dist_man_MANS+=  man/gearman_worker_work.3
-dist_man_MANS+=  man/gearman_task_attr_init.3
-dist_man_MANS+=  man/gearman_task_attr_init_background.3
-dist_man_MANS+=  man/gearman_task_attr_init_epoch.3
-dist_man_MANS+=  man/gearman_task_attr_t.3
-dist_man_MANS+=  man/gearman_client_options_t.3
-dist_man_MANS+=  man/gearman_client_has_option.3
 dist_man_MANS+=  man/libgearman.3
 
 endif

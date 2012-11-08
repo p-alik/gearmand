@@ -77,17 +77,6 @@ GEARMAN_API
 GEARMAN_API
   gearman_task_attr_t gearman_task_attr_init_background(gearman_job_priority_t priority);
 
-// Everything below here is private
-
-GEARMAN_LOCAL
-time_t gearman_task_attr_has_epoch(const gearman_task_attr_t *);
-
-GEARMAN_LOCAL
-gearman_job_priority_t gearman_task_attr_priority(const gearman_task_attr_t *);
-
-GEARMAN_LOCAL
-bool gearman_task_attr_is_background(const gearman_task_attr_t *);
-
 #ifdef __cplusplus
 }
 #endif
