@@ -181,7 +181,8 @@ gearmand_st *gearmand_create(const char *host_arg,
                              uint8_t job_retries,
                              uint8_t worker_wakeup,
                              gearmand_log_fn *log_function, void *log_context, const gearmand_verbose_t verbose_arg,
-                             bool round_robin)
+                             bool round_robin,
+                             bool exceptions_)
 {
   gearmand_st *gearmand;
 
@@ -207,6 +208,7 @@ gearmand_st *gearmand_create(const char *host_arg,
 
   gearmand->is_listen_event= false;
   gearmand->is_wakeup_event= false;
+  gearmand->_exceptions= exceptions_;
   gearmand->verbose= verbose_arg;
   gearmand->timeout= -1;
   gearmand->ret= GEARMAN_SUCCESS;

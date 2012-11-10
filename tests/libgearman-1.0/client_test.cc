@@ -53,7 +53,7 @@ using namespace libtest;
 #define GEARMAN_CORE
 #include <libgearman/gearman.h>
 
-#include <tests/start_worker.h>
+#include "tests/start_worker.h"
 
 #include "tests/workers/v1/echo_or_react.h"
 #include "tests/workers/v1/echo_or_react_chunk.h"
@@ -65,24 +65,24 @@ using namespace libtest;
 #define WORKER_FUNCTION_NAME "client_test"
 #define WORKER_CHUNKED_FUNCTION_NAME "reverse_test"
 
-#include <tests/limits.h>
-#include <tests/do.h>
-#include <tests/client.h>
-#include <tests/server_options.h>
-#include <tests/do_background.h>
-#include <tests/execute.h>
-#include <tests/gearman_client_do_job_handle.h>
-#include <tests/gearman_execute_partition.h>
-#include <tests/protocol.h>
-#include <tests/regression.h>
-#include <tests/task.h>
-#include <tests/unique.h>
+#include "tests/limits.h"
+#include "tests/do.h"
+#include "tests/client.h"
+#include "tests/server_options.h"
+#include "tests/do_background.h"
+#include "tests/execute.h"
+#include "tests/gearman_client_do_job_handle.h"
+#include "tests/gearman_execute_partition.h"
+#include "tests/protocol.h"
+#include "tests/regression.h"
+#include "tests/task.h"
+#include "tests/unique.h"
 
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
-#include <tests/runner.h>
+#include "tests/runner.h"
 
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -1348,6 +1348,8 @@ static test_return_t pre_free_tasks(void *object)
   gearman_client_add_options(test->client(), GEARMAN_CLIENT_FREE_TASKS);
   test_true(gearman_client_has_option(test->client(), GEARMAN_CLIENT_FREE_TASKS));
 
+  Error << "GEARMAN_CLIENT_FREE_TASKS";
+
   return TEST_SUCCESS;
 }
 
@@ -1387,7 +1389,8 @@ static test_return_t pre_logging(void *object)
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  if (server_startup(servers, "gearmand", libtest::default_port(), 0, NULL) == false)
+  const char *argv[]= { "--exceptions", 0 };
+  if (server_startup(servers, "gearmand", libtest::default_port(), 1, argv) == false)
   {
     error= TEST_SKIPPED;
     return NULL;
@@ -1578,6 +1581,7 @@ test_st gearman_task_tests[] ={
   {"gearman_client_add_task_low_background()", 0, gearman_client_add_task_low_background_test},
   {"gearman_client_add_task_high_background()", 0, gearman_client_add_task_high_background_test},
   {"gearman_client_add_task() exception", 0, gearman_client_add_task_exception},
+  {"gearman_client_add_task() exception check returned string", 0, gearman_client_add_task_check_exception_TEST},
   {"gearman_client_add_task() warning", 0, gearman_client_add_task_warning},
   {"gearman_client_add_task(GEARMAN_NO_SERVERS)", 0, gearman_client_add_task_no_servers},
   {"gearman_client_set_task_context_free_fn()", 0, gearman_client_set_task_context_free_fn_test},

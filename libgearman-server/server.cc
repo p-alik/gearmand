@@ -781,14 +781,16 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
       gearman_server_job_st *server_job= gearman_server_job_get(Server,
                                                                 (char *)(packet->arg[0]), (size_t)strlen(packet->arg[0]),
                                                                 server_con);
+      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
+                         "Exception being sent from: %.*s(%lu)",
+                         server_job->function->function_name_size, server_job->function->function_name, server_job->function->function_name_size);
       if (server_job == NULL)
       {
         return _server_error_packet(server_con, "job_not_found", "Job given in work result not found");
       }
 
       /* Queue the exception packet for all clients. */
-      ret= _server_queue_work_data(server_job, packet,
-                                   GEARMAN_COMMAND_WORK_EXCEPTION);
+      ret= _server_queue_work_data(server_job, packet, GEARMAN_COMMAND_WORK_EXCEPTION);
       if (gearmand_failed(ret))
       {
         gearmand_gerror("_server_queue_work_data", ret);

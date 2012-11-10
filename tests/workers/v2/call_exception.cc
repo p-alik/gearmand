@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -35,33 +35,24 @@
  *
  */
 
-#pragma once
+#include <gear_config.h>
 
-#include <iostream>
-#include <ostream>
+#include <libtest/test.hpp>
 
-static inline std::ostream& operator<<(std::ostream& output, const gearman_task_st& arg)
+#include <libgearman-1.0/gearman.h>
+
+#include "tests/workers/v2/call_exception.h"
+
+#include <cassert>
+#include <cstring>
+
+gearman_return_t call_exception_WORKER(gearman_job_st *job, void *)
 {
-  output << " handle:" << arg.job_handle[0] ? arg.job_handle : "unset";
-  output << " state:";
-  switch (arg.state)
+  gearman_return_t rc= gearman_job_send_exception(job, gearman_job_workload(job), gearman_job_workload_size(job));
+  if (gearman_failed(rc))
   {
-  case GEARMAN_TASK_STATE_NEW: output << "GEARMAN_TASK_STATE_NEW"; break; 
-  case GEARMAN_TASK_STATE_SUBMIT: output << "GEARMAN_TASK_STATE_SUBMIT"; break; 
-  case GEARMAN_TASK_STATE_WORKLOAD: output << "GEARMAN_TASK_STATE_WORKLOAD"; break; 
-  case GEARMAN_TASK_STATE_WORK: output << "GEARMAN_TASK_STATE_WORK"; break; 
-  case GEARMAN_TASK_STATE_CREATED: output << "GEARMAN_TASK_STATE_CREATED"; break; 
-  case GEARMAN_TASK_STATE_DATA: output << "GEARMAN_TASK_STATE_DATA"; break; 
-  case GEARMAN_TASK_STATE_WARNING: output << "GEARMAN_TASK_STATE_WARNING"; break; 
-  case GEARMAN_TASK_STATE_STATUS: output << "GEARMAN_TASK_STATE_STATUS"; break; 
-  case GEARMAN_TASK_STATE_COMPLETE: output << "GEARMAN_TASK_STATE_COMPLETE"; break; 
-  case GEARMAN_TASK_STATE_EXCEPTION: output << "GEARMAN_TASK_STATE_EXCEPTION"; break; 
-  case GEARMAN_TASK_STATE_FAIL: output << "GEARMAN_TASK_STATE_FAIL"; break; 
-  case GEARMAN_TASK_STATE_FINISHED: output << "GEARMAN_TASK_STATE_FINISHED"; break; 
-  default:
-                                    output << "UNKNOWN";
-                                    break;
+    return GEARMAN_ERROR;
   }
 
-  return output;
+  return GEARMAN_SUCCESS;
 }

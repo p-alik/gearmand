@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011-2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -37,17 +37,6 @@
 
 #pragma once
 
-test_return_t gearman_client_add_task_test(void *);
-test_return_t gearman_client_add_task_test_fail(void *);
-test_return_t gearman_client_add_task_test_bad_workload(void *);
-test_return_t gearman_client_add_task_background_test(void *);
-test_return_t gearman_client_add_task_high_background_test(void *);
-test_return_t gearman_client_add_task_low_background_test(void *);
-test_return_t gearman_client_add_task_exception(void *);
-test_return_t gearman_client_add_task_check_exception_TEST(void *);
-test_return_t gearman_client_add_task_warning(void *);
-test_return_t gearman_client_add_task_no_servers(void *);
-test_return_t gearman_client_add_task_pause_test(void *);
-test_return_t gearman_client_set_task_context_free_fn_test(void*);
-test_return_t gearman_client_add_task_status_by_unique_TEST(void*);
-test_return_t gearman_client_add_task_status_by_unique_NOT_FOUND_TEST(void*);
+gearman_return_t gearman_client_run_block_tasks(gearman_client_st *client);
+
+size_t gearman_client_count_tasks(gearman_client_st *client);
