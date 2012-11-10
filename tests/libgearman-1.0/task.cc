@@ -332,7 +332,7 @@ static gearman_return_t check_exception_function(gearman_task_st *task)
   return GEARMAN_SUCCESS;
 }
 
-test_return_t gearman_client_add_task_check_exception_TEST(void *object)
+test_return_t gearman_client_add_task_check_exception_TEST(void*)
 {
   Client client(libtest::default_port());
 

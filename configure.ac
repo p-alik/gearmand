@@ -7,7 +7,7 @@
 # the COPYING file in this directory for full text.
 
 AC_PREREQ([2.63])
-AC_INIT([gearmand],[1.0.1],[https://bugs.launchpad.net/gearmand],[gearmand],[http://gearman.info/])
+AC_INIT([gearmand],[1.0.2],[https://bugs.launchpad.net/gearmand],[gearmand],[http://gearman.info/])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
 
@@ -18,6 +18,7 @@ AC_USE_SYSTEM_EXTENSIONS
 AM_INIT_AUTOMAKE([1.11 color-tests -Wno-portability subdir-objects foreign tar-ustar])
 
 AC_CONFIG_HEADERS([gear_config.h:gear_config.in])dnl Keep filename to 8.3 for MS-DOS.
+AC_SUBST([AUTOHEADER_FILE],[gear_config.h])
 AC_CONFIG_SRCDIR([libgearman/gearman.cc])
 
 GEARMAN_LIBRARY_VERSION=7:0:0
@@ -32,7 +33,7 @@ GEARMAN_LIBRARY_VERSION=7:0:0
 #                |        +- increment if source code has changed
 #                |           set to zero if current is incremented
 #                +- increment if interfaces have been added, removed or changed
-AC_SUBST(GEARMAN_LIBRARY_VERSION)
+AC_SUBST([GEARMAN_LIBRARY_VERSION])
 
 LT_PREREQ([2.2])
 LT_INIT([disable-static])

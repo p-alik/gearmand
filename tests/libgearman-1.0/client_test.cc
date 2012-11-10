@@ -1348,8 +1348,6 @@ static test_return_t pre_free_tasks(void *object)
   gearman_client_add_options(test->client(), GEARMAN_CLIENT_FREE_TASKS);
   test_true(gearman_client_has_option(test->client(), GEARMAN_CLIENT_FREE_TASKS));
 
-  Error << "GEARMAN_CLIENT_FREE_TASKS";
-
   return TEST_SUCCESS;
 }
 

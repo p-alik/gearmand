@@ -1,3 +1,6 @@
+1.0.2
+* Add --expceptions to Gearmand to enable exceptions by default
+
 1.0.1 Tue Nov  6 01:07:07 EST 2012
 * Stable branch labeled as 1.0
 * Update all build related files.
