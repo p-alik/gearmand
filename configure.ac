@@ -43,10 +43,12 @@ PANDORA_PLATFORM
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 AX_ASSERT
 
-dnl First look for Boost, maybe for a specific minimum version:
-BOOST_REQUIRE([1.39])
-BOOST_PROGRAM_OPTIONS
-BOOST_THREADS
+# First look for Boost, maybe for a specific minimum version:
+AC_DEFUN([CHECK_BOOST],
+         [BOOST_REQUIRE([1.39])
+         BOOST_PROGRAM_OPTIONS
+         BOOST_THREADS])
+CHECK_BOOST
 
 AX_CXX_CINTTYPES
 CONFIG_EXTRA
@@ -230,6 +232,8 @@ AX_PTHREAD_TIMEDJOIN_NP
 AX_ENDIAN
 AX_HEX_VERSION([LIBGEARMAN],[$VERSION])
 AX_HARDEN_COMPILER_FLAGS
+
+AM_CONDITIONAL([TARGET_MINGW],[test "x${MINGW}" = "xtrue"])
 
 AC_CONFIG_FILES([Makefile
                  docs/conf.py
