@@ -43,9 +43,11 @@ public:
   SimpleClient(const std::string& hostname_, in_port_t port_);
   ~SimpleClient();
 
-  bool send_message(const std::string& arg);
-  bool send_message(const std::string& message_, std::string& response_);
+  bool send_data(const libtest::vchar_t&, libtest::vchar_t&);
+  bool send_message(const std::string&);
+  bool send_message(const std::string&, std::string&);
   bool response(std::string&);
+  bool response(libtest::vchar_t&);
 
   bool is_valid();
 
@@ -63,7 +65,7 @@ private: // Methods
   void close_socket();
   bool instance_connect();
   struct addrinfo* lookup();
-  bool message(const std::string&);
+  bool message(const char* ptr, const size_t len);
   bool ready(int event_);
 
 private:

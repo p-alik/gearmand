@@ -197,6 +197,25 @@ static bool join_thread(pthread_t& thread_arg, struct timespec& ts)
   return true;
 }
 
+static test_return_t send_random_port_data_TEST(void* )
+{
+  set_alarm(1200, 0);
+
+  SimpleClient client("localhost", current_server());
+
+  for (size_t x= 0; x < 200; ++x)
+  {
+    libtest::vchar_t message_;
+    libtest::vchar_t response_;
+
+    libtest::vchar::make(message_, size_t(random() % 1024));
+
+    client.send_data(message_, response_);
+  }
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t worker_ramp_exec(const size_t payload_size)
 {
   set_alarm(1200, 0);
@@ -478,6 +497,10 @@ test_st burnin_TESTS[] ={
   {0, 0, 0}
 };
 
+test_st dos_TESTS[] ={
+  {"send random port data", 0, send_random_port_data_TEST },
+  {0, 0, 0}
+};
 
 test_st worker_TESTS[] ={
   {"first pass", 0, worker_ramp_TEST },
@@ -489,6 +512,7 @@ test_st worker_TESTS[] ={
 
 collection_st collection[] ={
   {"burnin", burnin_setup, burnin_cleanup, burnin_TESTS },
+  {"dos", 0, 0, dos_TESTS },
   {"plain", worker_ramp_SETUP, worker_ramp_TEARDOWN, worker_TESTS },
   {"plain against hostile server", hostile_gearmand_SETUP, worker_ramp_TEARDOWN, worker_TESTS },
   {"hostile recv()", recv_SETUP, resv_TEARDOWN, worker_TESTS },
