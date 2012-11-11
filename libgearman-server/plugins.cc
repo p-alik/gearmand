@@ -50,6 +50,8 @@ void initialize(boost::program_options::options_description &all)
 {
   queue::initialize_default();
 
+  queue::initialize_retention();
+
   if (HAVE_LIBDRIZZLE)
   {
     queue::initialize_drizzle();

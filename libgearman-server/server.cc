@@ -1,5 +1,5 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
- * 
+ *
  *  Gearmand client and server library.
  *
  *  Copyright (C) 2011-2012 Data Differential, http://datadifferential.com/
@@ -98,7 +98,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
   gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
                      "%15s:%5s packet command  %s",
                      server_con->con.context == NULL || server_con->con.context->host == NULL ? "-" : server_con->con.context->host,
-                     server_con->con.context == NULL || server_con->con.context->port == NULL ? "-" : server_con->con.context->port, 
+                     server_con->con.context == NULL || server_con->con.context->port == NULL ? "-" : server_con->con.context->port,
                      gearmand_strcommand(packet));
 
   switch (packet->command)
@@ -242,7 +242,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
         {
           return gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "strtoul(%ul)", when);
         }
-        gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, 
+        gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
                            "Received EPOCH job submission, function:%.*s unique:%.*s with data for %jd at %jd, args %d",
                            packet->arg_size[0], packet->arg[0],
                            packet->arg_size[1], packet->arg[1],
@@ -576,8 +576,8 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
       }
       else if (packet->command == GEARMAN_COMMAND_GRAB_JOB_UNIQ)
       {
-        /* 
-          We found a runnable job, queue job assigned packet and take the job off the queue. 
+        /*
+          We found a runnable job, queue job assigned packet and take the job off the queue.
         */
         ret= gearman_server_io_packet_add(server_con, false,
                                           GEARMAN_MAGIC_RESPONSE,
@@ -596,8 +596,8 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
                            strlen(server_job->reducer), server_job->reducer, strlen(server_job->reducer),
                            server_job->unique_length, server_job->unique, server_job->unique_length,
                            (unsigned long)server_job->data_size);
-        /* 
-          We found a runnable job, queue job assigned packet and take the job off the queue. 
+        /*
+          We found a runnable job, queue job assigned packet and take the job off the queue.
         */
         ret= gearman_server_io_packet_add(server_con, false,
                                           GEARMAN_MAGIC_RESPONSE,
@@ -611,8 +611,8 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
       }
       else if (packet->command == GEARMAN_COMMAND_GRAB_JOB_ALL)
       {
-        /* 
-          We found a runnable job, queue job assigned packet and take the job off the queue. 
+        /*
+          We found a runnable job, queue job assigned packet and take the job off the queue.
         */
         ret= gearman_server_io_packet_add(server_con, false,
                                           GEARMAN_MAGIC_RESPONSE,
@@ -919,6 +919,26 @@ gearmand_error_t gearman_server_queue_replay(gearman_server_st& server)
 
   server.state.queue_startup= false;
 
+  return ret;
+}
+
+static gearmand_error_t gearman_queue_shutdown(gearman_server_st& server)
+{
+  if(server.queue.functions->_shutdown_fn == NULL)
+    return GEARMAN_SUCCESS;
+  if (server.queue_version == QUEUE_VERSION_FUNCTION)
+  {
+    return (*(server.queue.functions->_shutdown_fn))(&server,
+                                                    (void *)server.queue.functions->_context);
+  }
+
+  assert(server.queue.object);
+  return server.queue.object->shutdown(&server);
+}
+
+gearmand_error_t gearman_server_queue_shutdown(gearman_server_st& server)
+{
+  gearmand_error_t ret= gearman_queue_shutdown(server);
   return ret;
 }
 

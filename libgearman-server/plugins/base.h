@@ -96,6 +96,8 @@ public:
 
   virtual gearmand_error_t replay(gearman_server_st *server)= 0;
 
+  virtual gearmand_error_t shutdown(gearman_server_st *server)= 0;
+
   static gearmand_error_t replay_add(gearman_server_st *server,
                                      void *context __attribute__ ((unused)),
                                      const char *unique, size_t unique_size,

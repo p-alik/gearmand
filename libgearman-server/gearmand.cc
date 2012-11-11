@@ -1,5 +1,5 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
- * 
+ *
  *  Gearmand client and server library.
  *
  *  Copyright (C) 2011-2012 Data Differential, http://datadifferential.com/
@@ -99,6 +99,10 @@ static void gearman_server_free(gearman_server_st& server)
 {
   /* All threads should be cleaned up before calling this. */
   assert(server.thread_list == NULL);
+
+  gearmand_debug("shutdown queue: begin");
+  gearman_server_queue_shutdown(server);
+  gearmand_debug("shutdown queue: end");
 
   for (uint32_t key= 0; key < GEARMAND_JOB_HASH_SIZE; key++)
   {
@@ -335,7 +339,7 @@ gearmand_error_t gearmand_run(gearmand_st *gearmand)
   /* Initialize server components. */
   if (gearmand->base == NULL)
   {
-    gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "Starting up, verbose set to %s", 
+    gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "Starting up, verbose set to %s",
                       gearmand_verbose_name(gearmand->verbose));
 
     if (gearmand->threads > 0)
@@ -425,7 +429,7 @@ void gearmand_wakeup(gearmand_st *gearmand, gearmand_wakeup_t wakeup)
     }
     else
     {
-      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, 
+      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM,
                          "gearmand_wakeup() incorrectly wrote %lu bytes of data.", (unsigned long)written);
     }
   }
@@ -587,7 +591,7 @@ static gearmand_error_t _listen_init(gearmand_st *gearmand)
         }
 
         // We are in single user threads, so strerror() is fine.
-        gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Retrying bind(%s) on %s:%s %u >= %u", 
+        gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Retrying bind(%s) on %s:%s %u >= %u",
                            strerror(errno), host, port->port,
                            waited, bind_timeout);
         this_wait= retry * retry / 3 + 1;
@@ -722,7 +726,7 @@ static void _listen_clear(gearmand_st *gearmand)
     {
       for (uint32_t y= 0; y < gearmand->port_list[x].listen_count; y++)
       {
-        gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, 
+        gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM,
                           "Clearing event for listening socket (%d)",
                           gearmand->port_list[x].listen_fd[y]);
 
@@ -768,7 +772,7 @@ static void _listen_event(int event_fd, short events __attribute__ ((unused)), v
     return;
   }
 
-  /* 
+  /*
     Since this is numeric, it should never fail. Even if it did we don't want to really error from it.
   */
   char host[NI_MAXHOST];
@@ -922,7 +926,7 @@ static void _wakeup_event(int fd, short, void *arg)
         gearmand_debug("Received SHUTDOWN_GRACEFUL wakeup event");
         _listen_close(gearmand);
 
-        for (gearmand_thread_st* thread= gearmand->thread_list; 
+        for (gearmand_thread_st* thread= gearmand->thread_list;
              thread != NULL;
              thread= thread->next)
         {
@@ -1081,7 +1085,7 @@ bool gearmand_verbose_check(const char *name, gearmand_verbose_t& level)
   return success;
 }
 
-static bool gearman_server_create(gearman_server_st& server, 
+static bool gearman_server_create(gearman_server_st& server,
                                   uint8_t job_retries_arg,
                                   uint8_t worker_wakeup_arg,
                                   bool round_robin_arg)

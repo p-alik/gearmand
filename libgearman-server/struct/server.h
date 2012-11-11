@@ -43,6 +43,7 @@ struct queue_st {
   gearman_queue_flush_fn *_flush_fn;
   gearman_queue_done_fn *_done_fn;
   gearman_queue_replay_fn *_replay_fn;
+  gearman_queue_shutdown_fn *_shutdown_fn;
 
 #ifdef __cplusplus
   queue_st() :
@@ -50,7 +51,8 @@ struct queue_st {
     _add_fn(NULL),
     _flush_fn(NULL),
     _done_fn(NULL),
-    _replay_fn(NULL)
+    _replay_fn(NULL),
+    _shutdown_fn(NULL)
   {
   }
 #endif

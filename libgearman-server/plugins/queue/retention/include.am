@@ -1,0 +1,15 @@
+# vim:ft=automake
+# Gearman
+# Copyright (C) 2012 Data Differential, http://datadifferential.com/
+# Copyright (C) 2012 Sven Nierlein, sven@consol.de
+# All rights reserved.
+#
+# Use and distribution licensed under the BSD license.  See
+# the COPYING file in the parent directory for full text.
+#
+# All paths should be given relative to the root
+#
+
+noinst_HEADERS+= libgearman-server/plugins/queue/retention/queue.h
+
+libgearman_server_libgearman_server_la_SOURCES+= libgearman-server/plugins/queue/retention/queue.cc

@@ -90,6 +90,18 @@ gearmand_error_t gearman_server_queue_replay(gearman_server_st& server);
 #endif
 
 /**
+ * shutdown the persistent queue to save all remaining jobs.
+ * should only be run at shutdown.
+ * @param server Server structure previously initialized with
+ *        gearman_server_create.
+ * @return Standard gearman return value.
+ */
+#ifdef __cplusplus
+GEARMAN_API
+gearmand_error_t gearman_server_queue_shutdown(gearman_server_st& server);
+#endif
+
+/**
  * Get persistent queue context.
  */
 GEARMAN_API

@@ -155,6 +155,8 @@ typedef gearmand_error_t (gearman_queue_replay_fn)(gearman_server_st *server,
                                                    void *context,
                                                    gearman_queue_add_fn *add_fn,
                                                    void *add_context);
+typedef gearmand_error_t (gearman_queue_shutdown_fn)(gearman_server_st *server,
+                                                   void *context);
 
 typedef gearmand_error_t (gearmand_connection_add_fn)(gearman_server_con_st *con);
 
