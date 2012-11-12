@@ -34,7 +34,7 @@
  *
  */
 
-#include "gear_config.h"
+#include "libtest/yatlcon.h"
 
 #include "libtest/common.h"
 
@@ -427,7 +427,7 @@ Application::error_t Application::join()
       error_string+= built_argv[0];
       throw std::logic_error(error_string);
     }
-    else if WIFSIGNALED(_status)
+    else if (WIFSIGNALED(_status))
     {
       if (WTERMSIG(_status) != SIGTERM and WTERMSIG(_status) != SIGHUP)
       {

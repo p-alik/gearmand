@@ -46,6 +46,7 @@ struct gearmand_st
   int backlog; // Set socket backlog for listening connection
   bool is_listen_event;
   bool is_wakeup_event;
+  bool _exceptions;
   int timeout;
   uint32_t port_count;
   uint32_t threads;
@@ -63,4 +64,11 @@ struct gearmand_st
   gearmand_con_st *free_dcon_list;
   gearman_server_st server;
   struct event wakeup_event;
+  
+#ifdef __cplusplus
+  bool exceptions() const
+  {
+    return _exceptions;
+  }
+#endif
 };

@@ -1,8 +1,9 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
- *
- *  Data Differential YATL (i.e. libtest)  library
+ * 
+ *  Gearmand client and server library.
  *
  *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
+ *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -34,59 +35,12 @@
  *
  */
 
-#include "libtest/yatlcon.h"
-#include <libtest/common.h>
+#pragma once
 
-namespace libtest {
+// Everything below here is private
 
-bool jenkins_is_caller(void)
-{
-  if (bool(getenv("JENKINS_HOME")))
-  {
-    return true;
-  }
+time_t gearman_task_attr_has_epoch(const gearman_task_attr_t *);
 
-  return false;
-}
+gearman_job_priority_t gearman_task_attr_priority(const gearman_task_attr_t *);
 
-bool valgrind_is_caller(void)
-{
-  if (bool(getenv("TESTS_ENVIRONMENT")) and strstr(getenv("TESTS_ENVIRONMENT"), "valgrind"))
-  {
-    return true;
-  }
-
-  return false;
-}
-
-bool gdb_is_caller(void)
-{
-  if (bool(getenv("TESTS_ENVIRONMENT")) and strstr(getenv("TESTS_ENVIRONMENT"), "gdb"))
-  {
-    return true;
-  }
-
-  return false;
-}
-
-bool helgrind_is_caller(void)
-{
-  if (bool(getenv("TESTS_ENVIRONMENT")) and strstr(getenv("TESTS_ENVIRONMENT"), "helgrind"))
-  {
-    return true;
-  }
-
-  return false;
-}
-
-bool _in_valgrind(const char*, int, const char*)
-{
-  if (valgrind_is_caller())
-  {
-    return true;
-  }
-
-  return false;
-}
-
-} // namespace libtest
+bool gearman_task_attr_is_background(const gearman_task_attr_t *);

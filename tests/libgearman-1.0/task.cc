@@ -40,12 +40,18 @@
 
 using namespace libtest;
 
-#include <cassert>
-#include <libgearman/gearman.h>
-#include <libgearman/actions.hpp>
-#include <tests/task.h>
+#include "libgearman/gearman.h"
+#include "libgearman/actions.hpp"
+#include "tests/task.h"
 
+#include "tests/workers/v2/call_exception.h"
+#include "tests/start_worker.h"
+
+#include "tests/client.h"
+
+#include <cassert>
 #include <iostream>
+#include <memory>
 
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -105,11 +111,19 @@ test_return_t gearman_client_add_task_status_by_unique_TEST(void *object)
   do
   {
     // just for async IO
+    size_t limit= 10;
     do {
+      if (--limit)
+      {
+        break;
+      }
       ret= gearman_client_run_tasks(client);
     } while (gearman_continue(ret));
 
-    test_compare(ret, GEARMAN_SUCCESS);
+    if (limit)
+    {
+      test_compare(ret, GEARMAN_SUCCESS);
+    }
 
     // If the task has been built to be freed, we won't have it to test
     if (gearman_client_has_option(client, GEARMAN_CLIENT_FREE_TASKS))
@@ -296,6 +310,72 @@ test_return_t gearman_client_add_task_exception(void *object)
   }
 
   fatal_assert(client->task_list);
+  gearman_task_free(task);
+
+  return TEST_SUCCESS;
+}
+
+static gearman_return_t check_exception_function(gearman_task_st *task)
+{
+  std::string *exception_str= (std::string *)gearman_task_context(task);
+  if (exception_str == NULL)
+  {
+    Error << "Programmer error, null std::string passed";
+    return GEARMAN_WORK_FAIL;
+  }
+
+  assert(task);
+#if 0
+  exception_str->append(task->recv->arg[1], task->recv->arg_size[1]);
+#endif
+
+  return GEARMAN_SUCCESS;
+}
+
+test_return_t gearman_client_add_task_check_exception_TEST(void*)
+{
+  Client client(libtest::default_port());
+
+  if (gearman_client_has_option(&client, GEARMAN_CLIENT_FREE_TASKS))
+  {
+    return TEST_SKIPPED;
+  }
+
+  gearman_client_set_exception_fn(&client, check_exception_function);
+
+  gearman_function_t func= gearman_function_create_v2(call_exception_WORKER);
+  std::auto_ptr<worker_handle_st> call_exception_worker(test_worker_start(libtest::default_port(), NULL,
+                                                                          __func__,
+                                                                          func,
+                                                                          NULL, gearman_worker_options_t()));
+
+  std::string exception_string;
+  gearman_return_t ret;
+  gearman_task_st *task= gearman_client_add_task(&client, NULL, &exception_string,
+                                                 __func__, NULL,
+                                                 test_literal_param("exception test"),
+                                                 &ret);
+  test_compare(ret, GEARMAN_SUCCESS);
+  test_truth(task);
+
+  do {
+    ret= gearman_client_run_tasks(&client);
+  } while (gearman_continue(ret));
+  test_compare(ret, GEARMAN_SUCCESS);
+
+  // This is a defect, from what I understand we should be passing along the
+  // exception.
+#if 0
+  test_true(exception_string.compare("exception test") == 0);
+#endif
+
+  // If the task has been free() then we can't check anything about it
+  if (gearman_client_has_option(&client, GEARMAN_CLIENT_FREE_TASKS))
+  {
+    return TEST_SUCCESS;
+  }
+
+  fatal_assert(&client->task_list);
   gearman_task_free(task);
 
   return TEST_SUCCESS;

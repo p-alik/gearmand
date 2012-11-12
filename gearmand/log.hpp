@@ -47,7 +47,7 @@ struct gearmand_log_info_st
   bool opt_file;
   bool init_success;
 
-  gearmand_log_info_st(const std::string &filename_arg, bool syslog_arg) :
+  gearmand_log_info_st(const std::string &filename_arg, const bool syslog_arg) :
     filename(filename_arg),
     fd(-1),
     opt_syslog(syslog_arg),

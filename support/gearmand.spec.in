@@ -289,6 +289,7 @@ fi
 %{_mandir}/man3/gearman_worker_remove_options.3.gz
 %{_mandir}/man3/gearman_worker_remove_servers.3.gz
 %{_mandir}/man3/gearman_worker_set_context.3.gz
+%{_mandir}/man3/gearman_worker_set_identifier.3.gz
 %{_mandir}/man3/gearman_worker_set_log_fn.3.gz
 %{_mandir}/man3/gearman_worker_set_memory_allocators.3.gz
 %{_mandir}/man3/gearman_worker_set_namespace.3.gz

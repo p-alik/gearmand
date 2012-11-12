@@ -11,3 +11,5 @@ m4_include([libtest/m4/memcached.m4])
 
 YATL_MYSQL
 YATL_MEMCACHED
+
+AC_CONFIG_FILES([libtest/yatlcon.h])

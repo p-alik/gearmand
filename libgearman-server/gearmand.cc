@@ -49,6 +49,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/utsname.h>
+#include <unistd.h>
 
 #include <set>
 #include <string>
@@ -180,7 +181,8 @@ gearmand_st *gearmand_create(const char *host_arg,
                              uint8_t job_retries,
                              uint8_t worker_wakeup,
                              gearmand_log_fn *log_function, void *log_context, const gearmand_verbose_t verbose_arg,
-                             bool round_robin)
+                             bool round_robin,
+                             bool exceptions_)
 {
   gearmand_st *gearmand;
 
@@ -206,6 +208,7 @@ gearmand_st *gearmand_create(const char *host_arg,
 
   gearmand->is_listen_event= false;
   gearmand->is_wakeup_event= false;
+  gearmand->_exceptions= exceptions_;
   gearmand->verbose= verbose_arg;
   gearmand->timeout= -1;
   gearmand->ret= GEARMAN_SUCCESS;
@@ -335,7 +338,8 @@ gearmand_error_t gearmand_run(gearmand_st *gearmand)
   /* Initialize server components. */
   if (gearmand->base == NULL)
   {
-    gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "Starting up, verbose set to %s", 
+    gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "Starting up(%lu), verbose set to %s", 
+                      (unsigned long)(getpid()),
                       gearmand_verbose_name(gearmand->verbose));
 
     if (gearmand->threads > 0)

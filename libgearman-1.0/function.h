@@ -84,9 +84,6 @@ extern "C" {
 GEARMAN_API
   gearman_function_t gearman_function_create(gearman_function_fn func);
 
-GEARMAN_LOCAL
-  gearman_function_t gearman_function_create_null(void);
-
 GEARMAN_API
   gearman_function_t gearman_function_create_partition(gearman_function_fn func,
                                                        gearman_aggregator_fn aggregator);

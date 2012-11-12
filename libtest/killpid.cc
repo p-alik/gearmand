@@ -34,7 +34,7 @@
  *
  */
 
-#include "gear_config.h"
+#include "libtest/yatlcon.h"
 #include <libtest/common.h>
 
 #include <cstdlib>
@@ -209,6 +209,8 @@ pid_t get_pid_from_file(const std::string &filename, std::stringstream& error_me
     {
       error_message << LIBTEST_AT << " File " << filename << " was empty ";
     }
+
+    fclose(fp);
 
     return ret;
   }

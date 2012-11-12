@@ -115,7 +115,7 @@ static gearman_server_con_st * _server_con_create(gearman_server_thread_st *thre
   con->con.root= con;
 
   con->is_sleeping= false;
-  con->is_exceptions= false;
+  con->is_exceptions= Gearmand()->_exceptions;
   con->is_dead= false;
   con->is_cleaned_up = false;
   con->is_noop_sent= false;
@@ -190,7 +190,7 @@ void gearman_server_con_attempt_free(gearman_server_con_st *con)
       gearman_server_con_delete_timeout(con);
       con->is_dead= true;
       con->is_sleeping= false;
-      con->is_exceptions= false;
+      con->is_exceptions= Gearmand()->_exceptions;
       con->is_noop_sent= false;
       gearman_server_con_proc_add(con);
     }
