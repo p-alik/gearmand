@@ -70,6 +70,7 @@ Worker Functions
    gearman_worker_define_function
    gearman_worker_error
    gearman_worker_set_log_fn
+   gearman_worker_set_identifier
 
 ****
 Misc

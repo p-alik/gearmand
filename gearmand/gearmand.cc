@@ -116,6 +116,7 @@ int main(int argc, char *argv[])
   std::string config_file;
 
   uint32_t threads;
+  bool opt_exceptions;
   bool opt_round_robin;
   bool opt_daemon;
   bool opt_check_args;
@@ -129,6 +130,9 @@ int main(int argc, char *argv[])
 
   ("daemon,d", boost::program_options::bool_switch(&opt_daemon)->default_value(false),
    "Daemon, detach and run in the background.")
+
+  ("exceptions", boost::program_options::bool_switch(&opt_exceptions)->default_value(false),
+   "Enable protocol exceptions by default.")
 
   ("file-descriptors,f", boost::program_options::value(&fds),
    "Number of file descriptors to allow for the process (total connections will be slightly less). Default is max allowed for user.")
@@ -330,7 +334,7 @@ int main(int argc, char *argv[])
                                           static_cast<uint8_t>(job_retries),
                                           static_cast<uint8_t>(worker_wakeup),
                                           _log, &log_info, verbose,
-                                          opt_round_robin);
+                                          opt_round_robin, opt_exceptions);
   if (_gearmand == NULL)
   {
     error::message("Could not create gearmand library instance.");
@@ -461,6 +465,8 @@ static void _shutdown_handler(int signal_arg)
 static void _reset_log_handler(int) // signal_arg
 {
   gearmand_log_info_st *log_info= static_cast<gearmand_log_info_st *>(Gearmand()->log_context);
+  
+  log_info->write(GEARMAND_VERBOSE_NOTICE, "SIGHUP, reopening log file");
 
   log_info->reset();
 }

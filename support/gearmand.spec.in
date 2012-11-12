@@ -289,6 +289,7 @@ fi
 %{_mandir}/man3/gearman_worker_remove_options.3.gz
 %{_mandir}/man3/gearman_worker_remove_servers.3.gz
 %{_mandir}/man3/gearman_worker_set_context.3.gz
+%{_mandir}/man3/gearman_worker_set_identifier.3.gz
 %{_mandir}/man3/gearman_worker_set_log_fn.3.gz
 %{_mandir}/man3/gearman_worker_set_memory_allocators.3.gz
 %{_mandir}/man3/gearman_worker_set_namespace.3.gz
@@ -303,7 +304,6 @@ fi
 %{_mandir}/man3/gearman_worker_wait.3.gz
 %{_mandir}/man3/gearman_worker_work.3.gz
 %{_mandir}/man3/libgearman.3.gz
-
 
 %changelog
 * Wed Jan 7 2009 Brian Aker <brian@tangent.org> - 0.1-1

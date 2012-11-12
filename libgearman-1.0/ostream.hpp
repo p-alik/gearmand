@@ -46,20 +46,6 @@ static inline std::ostream& operator<<(std::ostream& output, const enum gearman_
   return output;
 }
 
-static inline std::ostream& operator<<(std::ostream& output, const gearman_task_st &arg)
-{
-  output << std::boolalpha 
-    << "job: " << gearman_task_job_handle(&arg)
-    << " unique: " << gearman_task_unique(&arg)
-    << " complete: " << gearman_task_numerator(&arg) << "/" << gearman_task_denominator(&arg)
-    << " state: " << gearman_task_strstate(&arg)
-    << " is_known: " << gearman_task_is_known(&arg)
-    << " is_running: " << gearman_task_is_running(&arg)
-    << " ret: " << gearman_task_return(&arg);
-
-  return output;
-}
-
 static inline std::ostream& operator<<(std::ostream& output, const gearman_status_t &arg)
 {
   output << std::boolalpha 

@@ -167,8 +167,7 @@ gearman_server_job_add_reducer(gearman_server_st *server,
     {
       /* Look up job via unique ID first to make sure it's not a duplicate. */
       key= _server_job_hash(unique, unique_size);
-      server_job= _server_job_get_unique(server, key, server_function, unique,
-                                         0);
+      server_job= _server_job_get_unique(server, key, server_function, unique, 0);
     }
   }
 

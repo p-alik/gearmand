@@ -1039,6 +1039,8 @@ check_make_target()
   case $1 in
     'self')
       ;;
+    'rpm')
+      ;;
     'gdb')
       ;;
     'clean_op')

@@ -35,7 +35,7 @@
  */
 
 
-#include "gear_config.h"
+#include "libtest/yatlcon.h"
 #include <libtest/common.h>
 
 #include <libtest/blobslap_worker.h>

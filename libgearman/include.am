@@ -12,16 +12,18 @@
 
 nobase_include_HEADERS+= libgearman/gearman.h
 
-noinst_HEADERS+= libgearman/interface/packet.hpp
-noinst_HEADERS+= libgearman/interface/universal.hpp
+noinst_HEADERS+= libgearman/client.h
 noinst_HEADERS+= libgearman/interface/client.hpp
+noinst_HEADERS+= libgearman/interface/packet.hpp
 noinst_HEADERS+= libgearman/interface/push.hpp
 noinst_HEADERS+= libgearman/interface/task.hpp
+noinst_HEADERS+= libgearman/interface/universal.hpp
 noinst_HEADERS+= libgearman/interface/worker.hpp
-noinst_HEADERS+= libgearman/uuid.hpp
-noinst_HEADERS+= libgearman/job.hpp
 noinst_HEADERS+= libgearman/job.h
+noinst_HEADERS+= libgearman/job.hpp
+noinst_HEADERS+= libgearman/ostream.hpp
 noinst_HEADERS+= libgearman/pipe.h
+noinst_HEADERS+= libgearman/uuid.hpp
 noinst_HEADERS+= \
 		 libgearman/actions.hpp \
 		 libgearman/add.hpp \
@@ -43,7 +45,6 @@ noinst_HEADERS+= \
 		 libgearman/function/partition.hpp \
 		 libgearman/is.hpp \
 		 libgearman/log.hpp \
-		 libgearman/ostream.hpp \
 		 libgearman/packet.hpp \
 		 libgearman/protocol/submit.h \
 		 libgearman/result.hpp \
@@ -52,6 +53,7 @@ noinst_HEADERS+= \
 		 libgearman/strcommand.h \
 		 libgearman/string.hpp \
 		 libgearman/task.hpp \
+		 libgearman/task_attr.h \
 		 libgearman/unique.hpp \
 		 libgearman/universal.hpp \
 		 libgearman/vector.hpp
