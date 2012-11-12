@@ -7,7 +7,7 @@
 # the COPYING file in this directory for full text.
 
 AC_PREREQ([2.63])
-AC_INIT([gearmand],[1.1.3],[https://bugs.launchpad.net/gearmand],[gearmand],[http://gearman.info/])
+AC_INIT([gearmand],[1.1.4],[https://bugs.launchpad.net/gearmand],[gearmand],[http://gearman.info/])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
 
@@ -18,6 +18,7 @@ AC_USE_SYSTEM_EXTENSIONS
 AM_INIT_AUTOMAKE([1.11 color-tests -Wno-portability subdir-objects foreign tar-ustar])
 
 AC_CONFIG_HEADERS([gear_config.h:gear_config.in])dnl Keep filename to 8.3 for MS-DOS.
+AC_SUBST([AUTOHEADER_FILE],[gear_config.h])
 AC_CONFIG_SRCDIR([libgearman/gearman.cc])
 
 GEARMAN_LIBRARY_VERSION=8:0:0
@@ -32,7 +33,7 @@ GEARMAN_LIBRARY_VERSION=8:0:0
 #                |        +- increment if source code has changed
 #                |           set to zero if current is incremented
 #                +- increment if interfaces have been added, removed or changed
-AC_SUBST(GEARMAN_LIBRARY_VERSION)
+AC_SUBST([GEARMAN_LIBRARY_VERSION])
 
 LT_PREREQ([2.2])
 LT_INIT([disable-static])
@@ -42,10 +43,12 @@ PANDORA_PLATFORM
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 AX_ASSERT
 
-dnl First look for Boost, maybe for a specific minimum version:
-BOOST_REQUIRE([1.39])
-BOOST_PROGRAM_OPTIONS
-BOOST_THREADS
+# First look for Boost, maybe for a specific minimum version:
+AC_DEFUN([CHECK_BOOST],
+         [BOOST_REQUIRE([1.39])
+         BOOST_PROGRAM_OPTIONS
+         BOOST_THREADS])
+CHECK_BOOST
 
 AX_CXX_CINTTYPES
 CONFIG_EXTRA
@@ -229,6 +232,8 @@ AX_PTHREAD_TIMEDJOIN_NP
 AX_ENDIAN
 AX_HEX_VERSION([LIBGEARMAN],[$VERSION])
 AX_HARDEN_COMPILER_FLAGS
+
+AM_CONDITIONAL([TARGET_MINGW],[test "x${MINGW}" = "xtrue"])
 
 AC_CONFIG_FILES([Makefile
                  docs/conf.py

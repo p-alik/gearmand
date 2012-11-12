@@ -1,8 +1,9 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
- *
- *  Data Differential YATL (i.e. libtest)  library
+ * 
+ *  Gearmand client and server library.
  *
  *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
+ *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -34,59 +35,8 @@
  *
  */
 
-#include "libtest/yatlcon.h"
-#include <libtest/common.h>
+#pragma once
 
-namespace libtest {
+gearman_return_t gearman_client_run_block_tasks(gearman_client_st *client);
 
-bool jenkins_is_caller(void)
-{
-  if (bool(getenv("JENKINS_HOME")))
-  {
-    return true;
-  }
-
-  return false;
-}
-
-bool valgrind_is_caller(void)
-{
-  if (bool(getenv("TESTS_ENVIRONMENT")) and strstr(getenv("TESTS_ENVIRONMENT"), "valgrind"))
-  {
-    return true;
-  }
-
-  return false;
-}
-
-bool gdb_is_caller(void)
-{
-  if (bool(getenv("TESTS_ENVIRONMENT")) and strstr(getenv("TESTS_ENVIRONMENT"), "gdb"))
-  {
-    return true;
-  }
-
-  return false;
-}
-
-bool helgrind_is_caller(void)
-{
-  if (bool(getenv("TESTS_ENVIRONMENT")) and strstr(getenv("TESTS_ENVIRONMENT"), "helgrind"))
-  {
-    return true;
-  }
-
-  return false;
-}
-
-bool _in_valgrind(const char*, int, const char*)
-{
-  if (valgrind_is_caller())
-  {
-    return true;
-  }
-
-  return false;
-}
-
-} // namespace libtest
+size_t gearman_client_count_tasks(gearman_client_st *client);

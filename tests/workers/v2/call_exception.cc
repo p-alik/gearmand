@@ -1,8 +1,9 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
+ * 
+ *  Gearmand client and server library.
  *
- *  Data Differential YATL (i.e. libtest)  library
- *
- *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -34,59 +35,24 @@
  *
  */
 
-#include "libtest/yatlcon.h"
-#include <libtest/common.h>
+#include <gear_config.h>
 
-namespace libtest {
+#include <libtest/test.hpp>
 
-bool jenkins_is_caller(void)
+#include <libgearman-1.0/gearman.h>
+
+#include "tests/workers/v2/call_exception.h"
+
+#include <cassert>
+#include <cstring>
+
+gearman_return_t call_exception_WORKER(gearman_job_st *job, void *)
 {
-  if (bool(getenv("JENKINS_HOME")))
+  gearman_return_t rc= gearman_job_send_exception(job, gearman_job_workload(job), gearman_job_workload_size(job));
+  if (gearman_failed(rc))
   {
-    return true;
+    return GEARMAN_ERROR;
   }
 
-  return false;
+  return GEARMAN_SUCCESS;
 }
-
-bool valgrind_is_caller(void)
-{
-  if (bool(getenv("TESTS_ENVIRONMENT")) and strstr(getenv("TESTS_ENVIRONMENT"), "valgrind"))
-  {
-    return true;
-  }
-
-  return false;
-}
-
-bool gdb_is_caller(void)
-{
-  if (bool(getenv("TESTS_ENVIRONMENT")) and strstr(getenv("TESTS_ENVIRONMENT"), "gdb"))
-  {
-    return true;
-  }
-
-  return false;
-}
-
-bool helgrind_is_caller(void)
-{
-  if (bool(getenv("TESTS_ENVIRONMENT")) and strstr(getenv("TESTS_ENVIRONMENT"), "helgrind"))
-  {
-    return true;
-  }
-
-  return false;
-}
-
-bool _in_valgrind(const char*, int, const char*)
-{
-  if (valgrind_is_caller())
-  {
-    return true;
-  }
-
-  return false;
-}
-
-} // namespace libtest

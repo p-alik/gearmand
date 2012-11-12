@@ -695,17 +695,11 @@ void gearman_client_clear_fn(gearman_client_st *client);
 GEARMAN_API
 gearman_return_t gearman_client_run_tasks(gearman_client_st *client);
 
-GEARMAN_LOCAL
-gearman_return_t gearman_client_run_block_tasks(gearman_client_st *client);
-
 GEARMAN_API
 bool gearman_client_compare(const gearman_client_st *first, const gearman_client_st *second);
 
 GEARMAN_API
 bool gearman_client_set_server_option(gearman_client_st *self, const char *option_arg, size_t option_arg_size);
-
-GEARMAN_LOCAL
-size_t gearman_client_count_tasks(gearman_client_st *client);
 
 GEARMAN_API
 void gearman_client_set_namespace(gearman_client_st *self, const char *namespace_key, size_t namespace_key_size);

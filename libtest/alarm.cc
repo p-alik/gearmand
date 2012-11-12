@@ -34,7 +34,6 @@
  *
  */
 
-#include "gear_config.h"
 #include <libtest/common.h>
 
 #include <sys/time.h>
