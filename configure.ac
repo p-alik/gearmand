@@ -215,9 +215,7 @@ AC_CHECK_FUNC([bind],[],[AC_CHECK_LIB([bind],[bind])])
 
 AC_DEFINE([GEARMAND_BLOBSLAP_WORKER],[1],[Have Gearman Blobslap Worker])
 
-AX_CHECK_LIBRARY([LIBEVENT],[event.h],[event],
-                 [LIBEVENT_LDFLAGS="-levent"],
-                 [AC_MSG_ERROR([Unable to find libevent])])
+AX_LIBEVENT(,[AC_MSG_ERROR([Unable to find libevent])])
 
 AX_UUID_GENERATE_TIME_SAFE
 
