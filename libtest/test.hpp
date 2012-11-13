@@ -76,3 +76,4 @@
 #include <libtest/cpu.hpp>
 #include <libtest/tmpfile.hpp>
 #include <libtest/client.hpp>
+#include <libtest/thread.hpp>
