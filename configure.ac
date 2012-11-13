@@ -46,8 +46,7 @@ AX_ASSERT
 # First look for Boost, maybe for a specific minimum version:
 AC_DEFUN([CHECK_BOOST],
          [BOOST_REQUIRE([1.39])
-         BOOST_PROGRAM_OPTIONS
-         BOOST_THREADS])
+         BOOST_PROGRAM_OPTIONS])
 CHECK_BOOST
 
 AX_CXX_CINTTYPES
