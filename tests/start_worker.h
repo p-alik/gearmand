@@ -41,7 +41,6 @@
 #include <libgearman/gearman.h>
 #include <libtest/visibility.h>
 
-#include <boost/thread.hpp>
 #include <boost/shared_ptr.hpp>
 
 #include "tests/workers/v2/called.h"
