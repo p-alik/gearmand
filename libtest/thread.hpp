@@ -229,5 +229,90 @@ private:
   uint32_t _generation;
 };
 
+class Thread 
+{
+private:
+  typedef void *(*start_routine_fn) (void *);
+
+public:
+  template <class Function,class Arg1>
+    Thread(Function func, Arg1 arg):
+      _func((start_routine_fn)func),
+      _context(arg)
+    {
+      int err;
+      if ((err= pthread_create(&_thread, NULL, entry_func, (void*)this)))
+      {
+        throw libtest::fatal(LIBYATL_DEFAULT_PARAM, "pthread_join: %s", strerror(err));
+      }
+    }
+
+  bool running() const
+  {
+    return (pthread_kill(_thread, 0) == 0);
+  }
+
+  bool detached()
+  {
+    void *unused;
+    if (EDEADLK == pthread_join(_thread, &unused))
+    {
+      return true;
+    }
+
+    /* Result of pthread_join was EINVAL == detached thread */
+    return false;
+  } 
+
+  bool join()
+  {
+    bool ret= false;
+
+    int err;
+    void *unused;
+    if ((err= pthread_join(_thread, &unused)))
+    {
+      switch(err)
+      {
+      case EINVAL:
+        break;
+
+      case ESRCH:
+        ret= true;
+        break;
+
+      case EDEADLK:
+      default:
+        throw libtest::fatal(LIBYATL_DEFAULT_PARAM, "pthread_join: %s", strerror(err));
+      }
+    }
+
+    return ret;
+  }
+
+  ~Thread()
+  {
+    join();
+  }
+
+protected:
+  void run()
+  {
+    _func(_context);
+  }
+
+private:
+  static void * entry_func(void * This)
+  {
+    ((Thread *)This)->run();
+    return NULL;
+  }
+
+private:
+  pthread_t _thread;
+  start_routine_fn _func;
+  void* _context;
+};
+
 } // namespace thread
 } // namespace libtest

@@ -65,7 +65,7 @@ public:
   bool check();
 
   volatile bool failed_startup;
-  boost::shared_ptr<boost::thread> _thread;
+  boost::shared_ptr<libtest::thread::Thread> _thread;
 
 private:
   bool _shutdown;

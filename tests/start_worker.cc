@@ -252,7 +252,7 @@ worker_handle_st *test_worker_start(in_port_t port,
                                       context_arg, options, timeout);
   fatal_assert(context);
 
-  handle->_thread= boost::shared_ptr<boost::thread>(new boost::thread(thread_runner, context));
+  handle->_thread= boost::shared_ptr<libtest::thread::Thread>(new libtest::thread::Thread(thread_runner, context));
   if (bool(handle->_thread) == false)
   {
     delete context;
