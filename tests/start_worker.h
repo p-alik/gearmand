@@ -59,7 +59,7 @@ public:
 
   void set_worker_id(gearman_worker_st*);
 
-  boost::barrier* sync_point();
+  libtest::thread::Barrier* sync_point();
 
   void wait();
   bool check();
@@ -69,9 +69,9 @@ public:
 
 private:
   bool _shutdown;
-  boost::mutex _shutdown_lock;
+  libtest::thread::Mutex _shutdown_lock;
   gearman_id_t _worker_id;
-  boost::barrier _sync_point;
+  libtest::thread::Barrier _sync_point;
 };
 
 struct worker_handles_st
