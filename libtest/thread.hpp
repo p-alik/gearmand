@@ -149,7 +149,7 @@ public:
     }
   }
 
-  void Wait(ScopedLock& lock_)
+  void wait(ScopedLock& lock_)
   {
     int err;
     if ((err= pthread_cond_wait(&_cond, lock_.handle()->handle())))
@@ -174,21 +174,10 @@ public:
     {
       fatal_assert("Zero is an invalid value");
     }
-
-    int err;
-    if ((err= pthread_cond_init(&_cond, NULL)))
-    {
-      throw libtest::fatal(LIBYATL_DEFAULT_PARAM, "pthread_cond_init: %s", strerror(err));
-    }
   }
 
   ~Barrier()
   {
-    int err;
-    if ((err= pthread_cond_destroy(&_cond)))
-    {
-      throw libtest::fatal(LIBYATL_DEFAULT_PARAM, "pthread_cond_destroy: %s", strerror(err));
-    }
   }
 
   bool wait()
@@ -200,22 +189,14 @@ public:
     {   
       _generation++;
       _count = _threshold;
-      int err;
-      if ((err= pthread_cond_broadcast(&_cond)))
-      {
-        throw libtest::fatal(LIBYATL_DEFAULT_PARAM, "pthread_cond_broadcast: %s", strerror(err));
-      }
+      _cond.broadcast();
 
       return true;
     }
 
     while (gen == _generation)
     {
-      int err;
-      if ((err= pthread_cond_wait(&_cond, _mutex.handle())))
-      {
-        throw libtest::fatal(LIBYATL_DEFAULT_PARAM, "pthread_cond_wait: %s", strerror(err));
-      }
+      _cond.wait(l);
     }
 
     return false;
@@ -223,7 +204,7 @@ public:
 
 private:
   Mutex _mutex;
-  pthread_cond_t _cond;
+  Condition _cond;
   uint32_t _threshold;
   uint32_t _count;
   uint32_t _generation;
