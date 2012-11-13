@@ -103,7 +103,6 @@ size_t gearman_packet_unpack(gearman_packet_st& packet,
 gearman_return_t gearman_packet_create_arg(gearman_packet_st& packet,
                                            const void *arg, size_t arg_size);
 
-
 /**
  * Pack header.
  */

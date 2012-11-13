@@ -47,35 +47,40 @@ struct gearman_connection_st;
 struct gearman_result_st;
 struct gearman_universal_st;
 
-#include <libgearman-1.0/gearman.h>
+#include "libgearman-1.0/gearman.h"
 
-#include <libgearman/connection.hpp>
-#include <libgearman/universal.hpp>
-#include <libgearman/allocator.hpp>
-#include <libgearman/packet.hpp>
-#include <libgearman/run.hpp>
-#include <libgearman/aggregator.hpp>
+#include "libgearman/connection.hpp"
+#include "libgearman/universal.hpp"
+#include "libgearman/allocator.hpp"
+#include "libgearman/packet.hpp"
+#include "libgearman/run.hpp"
+#include "libgearman/aggregator.hpp"
 
-#include <libgearman/error.hpp>
+#include "libgearman/error.hpp"
 
 /* These are private not to be installed headers */
-#include <libgearman/byteorder.h>
-#include <libgearman/strcommand.h>
-#include <libgearman/vector.hpp>
-#include <libgearman/unique.hpp>
-#include <libgearman/add.hpp>
-#include <libgearman/is.hpp>
-#include <libgearman/result.hpp>
-#include <libgearman/actions.hpp>
-#include <libgearman/string.hpp>
-#include <libgearman/command.h>
-#include <libgearman/task.hpp>
-#include <libgearman/job.h>
-#include <libgearman/job.hpp>
+#include "libgearman/byteorder.h"
+#include "libgearman/strcommand.h"
+#include "libgearman/vector.hpp"
+#include "libgearman/unique.hpp"
+#include "libgearman/add.hpp"
+#include "libgearman/is.hpp"
+#include "libgearman/result.hpp"
+#include "libgearman/actions.hpp"
+#include "libgearman/string.hpp"
+#include "libgearman/command.h"
+#include "libgearman/task.hpp"
+#include "libgearman/job.h"
+#include "libgearman/job.hpp"
+#include "libgearman/client.h"
 
-#include <libgearman/status.hpp>
+#include "libgearman/status.hpp"
 
-#include <libgearman/protocol/submit.h>
-#include <libgearman/interface/client.hpp>
-#include <libgearman/interface/task.hpp>
-#include <libgearman/interface/worker.hpp>
+#include "libgearman/task_attr.h"
+
+#include "libgearman/protocol/submit.h"
+#include "libgearman/interface/client.hpp"
+#include "libgearman/interface/task.hpp"
+#include "libgearman/interface/worker.hpp"
+
+gearman_function_t gearman_function_create_null(void);
