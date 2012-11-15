@@ -156,7 +156,7 @@ static bool join_thread(pthread_t& thread_arg, struct timespec& ts)
   if (HAVE_PTHREAD_TIMEDJOIN_NP)
   {
 #if defined(HAVE_PTHREAD_TIMEDJOIN_NP) && HAVE_PTHREAD_TIMEDJOIN_NP
-    int limit= 2;
+    int limit= 3;
     while (--limit)
     {
       switch ((error= pthread_timedjoin_np(thread_arg, NULL, &ts)))
@@ -177,7 +177,7 @@ static bool join_thread(pthread_t& thread_arg, struct timespec& ts)
       }
     }
 
-    Out << "pthread_timedjoin_np() " << strerror(error);
+    Out << "Limit reached, pthread_timedjoin_np() " << strerror(error);
     if ((error= pthread_cancel(thread_arg)) != 0)
     {
       Error << "pthread_cancel() " << strerror(error);
@@ -216,6 +216,33 @@ static test_return_t send_random_port_data_TEST(void* )
   return TEST_SUCCESS;
 }
 
+static bool fill_timespec(struct timespec& ts)
+{
+#if defined(HAVE_LIBRT) && HAVE_LIBRT
+  if (HAVE_LIBRT) // This won't be called on OSX, etc,...
+  {
+    if (clock_gettime(CLOCK_REALTIME, &ts) == -1) 
+    {
+      Error << "clock_gettime(CLOCK_REALTIME) " << strerror(errno);
+      return false;
+    }
+  }
+#else
+  {
+    struct timeval tv;
+    if (gettimeofday(&tv, NULL) == -1) 
+    {
+      Error << "gettimeofday() " << strerror(errno);
+      return false;
+    }
+
+    TIMEVAL_TO_TIMESPEC(&tv, &ts);
+  }
+#endif
+
+  return true;
+}
+
 static test_return_t worker_ramp_exec(const size_t payload_size)
 {
   set_alarm(1200, 0);
@@ -234,40 +261,21 @@ static test_return_t worker_ramp_exec(const size_t payload_size)
   
   for (size_t x= 0; x < children.size(); x++)
   {
-    struct timespec ts;
+    pthread_t& thread= children[x];
     bool join_success= false;
-    int limit= 2;
+    int limit= 3;
     while (join_success == false and --limit)
     {
-#if defined(HAVE_LIBRT) && HAVE_LIBRT
-      if (HAVE_LIBRT) // This won't be called on OSX, etc,...
+      struct timespec ts;
+      if (fill_timespec(ts))
       {
-        if (clock_gettime(CLOCK_REALTIME, &ts) == -1) 
-        {
-          Error << "clock_gettime(CLOCK_REALTIME) " << strerror(errno);
-          continue;
-        }
-
-        join_success= join_thread(children[x], ts);
-      }
-      else
-#endif
-      {
-        struct timeval tv;
-        if (gettimeofday(&tv, NULL) == -1) 
-        {
-          Error << "gettimeofday() " << strerror(errno);
-          continue;
-        }
-
-        TIMEVAL_TO_TIMESPEC(&tv, &ts);
-        join_success= join_thread(children[x], ts);
+        join_success= join_thread(thread, ts);
       }
     }
 
     if (join_success == false)
     {
-      pthread_cancel(children[x]);
+      pthread_cancel(thread);
       Error << "Something went very wrong, it is likely threads were not cleaned up";
     }
   }
