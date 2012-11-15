@@ -64,9 +64,9 @@
 # endif
 #endif
 
-#include <libgearman-server/gearmand.h>
-#include <libgearman-server/plugins.h>
-#include <libgearman-server/queue.hpp>
+#include "libgearman-server/gearmand.h"
+#include "libgearman-server/plugins.h"
+#include "libgearman-server/queue.hpp"
 
 #define GEARMAND_LOG_REOPEN_TIME 60
 
@@ -84,6 +84,8 @@
 
 #include "gearmand/error.hpp"
 #include "gearmand/log.hpp"
+
+#include "libgearman/backtrace.hpp"
 
 using namespace datadifferential;
 using namespace gearmand;
@@ -450,7 +452,7 @@ static bool _switch_user(const char *user)
   return false;
 }
 
-static void _shutdown_handler(int signal_arg)
+extern "C" void _shutdown_handler(int signal_arg)
 {
   if (signal_arg == SIGUSR1)
   {
@@ -462,13 +464,26 @@ static void _shutdown_handler(int signal_arg)
   }
 }
 
-static void _reset_log_handler(int) // signal_arg
+extern "C" void _reset_log_handler(int) // signal_arg
 {
   gearmand_log_info_st *log_info= static_cast<gearmand_log_info_st *>(Gearmand()->log_context);
   
   log_info->write(GEARMAND_VERBOSE_NOTICE, "SIGHUP, reopening log file");
 
   log_info->reset();
+}
+
+static bool segfaulted= false;
+extern "C" void _crash_handler(int)
+{
+  if (segfaulted)
+  {
+    error::message("Fatal crash while backtracing");
+    _exit(1); /* Quit without running destructors */
+  }
+
+  segfaulted= true;
+  custom_backtrace();
 }
 
 extern "C" {
@@ -509,6 +524,38 @@ static bool _set_signals(void)
   if (sigaction(SIGHUP, &sa, 0) == -1)
   {
     error::perror("Could not set SIGHUP handler.");
+    return true;
+  }
+
+  sa.sa_handler= _crash_handler;
+  if (sigaction(SIGSEGV, &sa, NULL) == -1)
+  {
+    error::perror("Could not set SIGSEGV handler.");
+    return true;
+  }
+
+  if (sigaction(SIGABRT, &sa, NULL) == -1)
+  {
+    error::perror("Could not set SIGABRT handler.");
+    return true;
+  }
+  
+#ifdef SIGBUS
+  if (sigaction(SIGBUS, &sa, NULL) == -1)
+  {
+    error::perror("Could not set SIGBUS handler.");
+    return true;
+  }
+#endif
+  if (sigaction(SIGILL, &sa, NULL) == -1)
+  {
+    error::perror("Could not set SIGBUS handler.");
+    return true;
+  }
+
+  if (sigaction(SIGFPE, &sa, NULL) == -1)
+  {
+    error::perror("Could not set SIGBUS handler.");
     return true;
   }
 

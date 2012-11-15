@@ -218,14 +218,16 @@ private:
 public:
   template <class Function,class Arg1>
     Thread(Function func, Arg1 arg):
+      _joined(false),
       _func((start_routine_fn)func),
       _context(arg)
     {
       int err;
       if ((err= pthread_create(&_thread, NULL, entry_func, (void*)this)))
       {
-        throw libtest::fatal(LIBYATL_DEFAULT_PARAM, "pthread_join: %s", strerror(err));
+        throw libtest::fatal(LIBYATL_DEFAULT_PARAM, "pthread_create: %s", strerror(err));
       }
+      _owner= pthread_self();
     }
 
   bool running() const
@@ -235,8 +237,7 @@ public:
 
   bool detached()
   {
-    void *unused;
-    if (EDEADLK == pthread_join(_thread, &unused))
+    if (EDEADLK == pthread_join(_thread, NULL))
     {
       return true;
     }
@@ -247,24 +248,44 @@ public:
 
   bool join()
   {
-    bool ret= false;
-
-    int err;
-    void *unused;
-    if ((err= pthread_join(_thread, &unused)))
+    if (_thread == pthread_self())
     {
-      switch(err)
+      throw libtest::fatal(LIBYATL_DEFAULT_PARAM, "Thread cannot join on itself");
+    }
+
+    if (_owner != pthread_self())
+    {
+      throw libtest::fatal(LIBYATL_DEFAULT_PARAM, "Attempt made by a non-owner thead to join on thread");
+    }
+
+    bool ret= false;
+    {
+      ScopedLock l(_join_mutex);
+      if (_joined == false)
       {
-      case EINVAL:
-        break;
+        int err;
+        if ((err= pthread_join(_thread, NULL)))
+        {
+          switch(err)
+          {
+          case EINVAL:
+            break;
 
-      case ESRCH:
-        ret= true;
-        break;
+          case ESRCH:
+            ret= true;
+            break;
 
-      case EDEADLK:
-      default:
-        throw libtest::fatal(LIBYATL_DEFAULT_PARAM, "pthread_join: %s", strerror(err));
+          case EDEADLK:
+          default:
+            throw libtest::fatal(LIBYATL_DEFAULT_PARAM, "pthread_join: %s", strerror(err));
+          }
+        }
+        else
+        {
+          ret= true;
+        }
+
+        _joined= true;
       }
     }
 
@@ -283,16 +304,19 @@ protected:
   }
 
 private:
-  static void * entry_func(void * This)
+  static void * entry_func(void* This)
   {
     ((Thread *)This)->run();
     return NULL;
   }
 
 private:
+  bool _joined;
   pthread_t _thread;
+  pthread_t _owner;
   start_routine_fn _func;
   void* _context;
+  Mutex _join_mutex;
 };
 
 } // namespace thread

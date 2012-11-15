@@ -57,6 +57,7 @@ noinst_HEADERS+= \
 		 libgearman-server/wakeup.h \
 		 libgearman-server/worker.h
 
+libgearman_server_libgearman_server_la_SOURCES+= libgearman/backtrace.cc
 libgearman_server_libgearman_server_la_SOURCES+= libgearman/pipe.cc
 libgearman_server_libgearman_server_la_SOURCES+= libgearman-server/text.cc
 libgearman_server_libgearman_server_la_SOURCES+= \
