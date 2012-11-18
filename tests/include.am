@@ -111,6 +111,9 @@ tests_cpp_test_LDADD+= ${CLIENT_LDADD}
 check_PROGRAMS+=tests/cpp_test
 noinst_PROGRAMS+=tests/cpp_test
 
+valgrind-cpp_test: tests/cpp_test
+	@$(VALGRIND_COMMAND) tests/cpp_test
+
 # Test linking with C application
 tests_c_test_SOURCES=
 tests_c_test_DEPENDENCIES=
@@ -121,6 +124,9 @@ tests_c_test_DEPENDENCIES+= ${CLIENT_LDADD}
 tests_c_test_LDADD+= ${CLIENT_LDADD}
 check_PROGRAMS+=tests/c_test
 noinst_PROGRAMS+=tests/c_test
+
+valgrind-c_test: tests/c_test
+	@$(VALGRIND_COMMAND) tests/c_test
 
 test-cycle: tests/cycle gearmand/gearmand
 	@tests/cycle

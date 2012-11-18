@@ -44,5 +44,10 @@
 
 int main(void)
 {
+  gearman_client_st client;
+
+  gearman_client_create(&client);
+  gearman_client_free(&client);
+
   return EXIT_SUCCESS;
 }
