@@ -156,7 +156,7 @@ bool kill_file(const std::string &filename)
     libtest::vchar_t pid_buffer;
     pid_buffer.resize(1024);
 
-    char *ptr= fgets(&pid_buffer[0], pid_buffer.size(), fp);
+    char *ptr= fgets(&pid_buffer[0], int(pid_buffer.size()), fp);
     fclose(fp);
 
     if (ptr)
@@ -182,7 +182,6 @@ bool kill_file(const std::string &filename)
 pid_t get_pid_from_file(const std::string &filename, std::stringstream& error_message)
 {
   pid_t ret= -1;
-  FILE *fp;
 
   if (filename.empty())
   {
@@ -190,13 +189,13 @@ pid_t get_pid_from_file(const std::string &filename, std::stringstream& error_me
     return ret;
   }
 
+  FILE *fp;
   if ((fp= fopen(filename.c_str(), "r")))
   {
     libtest::vchar_t pid_buffer;
     pid_buffer.resize(1024);
 
-    char *ptr= fgets(&pid_buffer[0], pid_buffer.size(), fp);
-
+    char *ptr= fgets(&pid_buffer[0], int(pid_buffer.size()), fp);
     if (ptr)
     {
       ret= (pid_t)atoi(&pid_buffer[0]);

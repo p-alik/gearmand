@@ -97,7 +97,6 @@ static test_return_t collection_cleanup(void *object)
   return TEST_SUCCESS;
 }
 
-
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
   if (has_mysqld() == false)

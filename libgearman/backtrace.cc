@@ -36,10 +36,12 @@
  */
 
 #include "gear_config.h"
-#include <libgearman/common.h>
 
-#include <cstring>
+#include "libgearman/backtrace.hpp"
+
+#include <cstdio>
 #include <cstdlib>
+#include <cstring>
 
 #ifdef HAVE_EXECINFO_H
 #include <execinfo.h>

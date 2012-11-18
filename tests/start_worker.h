@@ -41,7 +41,6 @@
 #include <libgearman/gearman.h>
 #include <libtest/visibility.h>
 
-#include <boost/thread.hpp>
 #include <boost/shared_ptr.hpp>
 
 #include "tests/workers/v2/called.h"
@@ -59,19 +58,19 @@ public:
 
   void set_worker_id(gearman_worker_st*);
 
-  boost::barrier* sync_point();
+  libtest::thread::Barrier* sync_point();
 
   void wait();
   bool check();
 
   volatile bool failed_startup;
-  boost::shared_ptr<boost::thread> _thread;
+  boost::shared_ptr<libtest::thread::Thread> _thread;
 
 private:
   bool _shutdown;
-  boost::mutex _shutdown_lock;
+  libtest::thread::Mutex _shutdown_lock;
   gearman_id_t _worker_id;
-  boost::barrier _sync_point;
+  libtest::thread::Barrier _sync_point;
 };
 
 struct worker_handles_st

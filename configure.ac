@@ -39,15 +39,14 @@ LT_PREREQ([2.2])
 LT_INIT([disable-static])
 LT_LANG([C++])
 
-PANDORA_PLATFORM
+AX_PLATFORM
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 AX_ASSERT
 
 # First look for Boost, maybe for a specific minimum version:
 AC_DEFUN([CHECK_BOOST],
          [BOOST_REQUIRE([1.39])
-         BOOST_PROGRAM_OPTIONS
-         BOOST_THREADS])
+         BOOST_PROGRAM_OPTIONS])
 CHECK_BOOST
 
 AX_CXX_CINTTYPES
@@ -215,9 +214,7 @@ AC_CHECK_FUNC([bind],[],[AC_CHECK_LIB([bind],[bind])])
 
 AC_DEFINE([GEARMAND_BLOBSLAP_WORKER],[1],[Have Gearman Blobslap Worker])
 
-AX_CHECK_LIBRARY([LIBEVENT],[event.h],[event],
-                 [LIBEVENT_LDFLAGS="-levent"],
-                 [AC_MSG_ERROR([Unable to find libevent])])
+AX_LIBEVENT(,[AC_MSG_ERROR([Unable to find libevent])])
 
 AX_UUID_GENERATE_TIME_SAFE
 
@@ -228,7 +225,6 @@ AM_CONDITIONAL([TARGET_HOSTILE],[test "x${TARGET_LINUX}" = "xtrue"])
 
 AX_PTHREAD(, [AC_MSG_ERROR(could not find libpthread)])
 AX_PTHREAD_TIMEDJOIN_NP
-
 AX_ENDIAN
 AX_HEX_VERSION([LIBGEARMAN],[$VERSION])
 AX_HARDEN_COMPILER_FLAGS
