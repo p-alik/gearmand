@@ -34,6 +34,8 @@
  *
  */
 
+#include "libtest/yatlcon.h"
+
 #include <libtest/common.h>
 
 namespace libtest {
