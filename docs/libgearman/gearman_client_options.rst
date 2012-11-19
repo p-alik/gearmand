@@ -48,6 +48,10 @@ Automatically free task objects once they are complete.
 Allow the client to read data in chunks rather than have the library buffer
 the entire data result and pass that back.
 
+.. c:type:: GEARMAN_CLIENT_GENERATE_UNIQUE
+
+Generate a unique id for each task created by generating a UUID.
+
 ------------
 RETURN VALUE
 ------------

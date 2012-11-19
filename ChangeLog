@@ -1,5 +1,5 @@
 1.1.4
-*
+* Add GEARMAN_CLIENT_GENERATE_UNIQUE, with default set to not generate.
 
 1.1.3 Wed Nov  7 22:48:21 EST 2012
 * Merge with 1.0.1
@@ -16,6 +16,7 @@
 1.0.2
 * Add --expceptions to Gearmand to enable exceptions by default
 * Backtraces on some types of crashes.
+* Add GEARMAN_CLIENT_GENERATE_UNIQUE.
 
 1.0.1 Tue Nov  6 01:07:07 EST 2012
 * Stable branch labeled as 1.0

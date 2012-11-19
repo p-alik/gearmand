@@ -110,7 +110,8 @@ typedef enum
   GEARMAN_CLIENT_UNBUFFERED_RESULT= (1 << 3),
   GEARMAN_CLIENT_NO_NEW=            (1 << 4),
   GEARMAN_CLIENT_FREE_TASKS=        (1 << 5),
-  GEARMAN_CLIENT_MAX=               (1 << 6)
+  GEARMAN_CLIENT_GENERATE_UNIQUE=   (1 << 6),
+  GEARMAN_CLIENT_MAX=               (1 << 7)
 } gearman_client_options_t;
 
 /**
