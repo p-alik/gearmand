@@ -1,0 +1,2 @@
+#!/bin/sh
+ln -s /lib/init/upstart-job /etc/init.d/gearman-job-server
