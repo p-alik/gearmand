@@ -291,6 +291,7 @@ gearman_client_st *gearman_client_clone(gearman_client_st *destination,
   destination->impl()->options.unbuffered_result= source->impl()->options.unbuffered_result;
   destination->impl()->options.no_new= source->impl()->options.no_new;
   destination->impl()->options.free_tasks= source->impl()->options.free_tasks;
+  destination->impl()->options.generate_unique= source->impl()->options.generate_unique;
   destination->impl()->actions= source->impl()->actions;
   destination->impl()->_do_handle[0]= 0;
 
@@ -361,6 +362,9 @@ gearman_client_options_t gearman_client_options(const gearman_client_st *client_
   if (client_shell->impl()->options.free_tasks)
     options|= int(GEARMAN_CLIENT_FREE_TASKS);
 
+  if (client_shell->impl()->options.generate_unique)
+    options|= int(GEARMAN_CLIENT_GENERATE_UNIQUE);
+
   return gearman_client_options_t(options);
 }
 
@@ -386,6 +390,9 @@ bool gearman_client_has_option(gearman_client_st *client_shell,
     case GEARMAN_CLIENT_FREE_TASKS:
       return client_shell->impl()->options.free_tasks;
 
+    case GEARMAN_CLIENT_GENERATE_UNIQUE:
+      return client_shell->impl()->options.generate_unique;
+
     default:
     case GEARMAN_CLIENT_TASK_IN_USE:
     case GEARMAN_CLIENT_MAX:
@@ -405,6 +412,7 @@ void gearman_client_set_options(gearman_client_st *client_shell,
       GEARMAN_CLIENT_NON_BLOCKING,
       GEARMAN_CLIENT_UNBUFFERED_RESULT,
       GEARMAN_CLIENT_FREE_TASKS,
+      GEARMAN_CLIENT_GENERATE_UNIQUE,
       GEARMAN_CLIENT_MAX
     };
 
@@ -442,6 +450,11 @@ void gearman_client_add_options(gearman_client_st *client_shell,
     {
       client_shell->impl()->options.free_tasks= true;
     }
+
+    if (options & GEARMAN_CLIENT_GENERATE_UNIQUE)
+    {
+      client_shell->impl()->options.generate_unique= true;
+    }
   }
 }
 
@@ -464,6 +477,11 @@ void gearman_client_remove_options(gearman_client_st *client_shell,
     if (options & GEARMAN_CLIENT_FREE_TASKS)
     {
       client_shell->impl()->options.free_tasks= false;
+    }
+
+    if (options & GEARMAN_CLIENT_GENERATE_UNIQUE)
+    {
+      client_shell->impl()->options.generate_unique= false;
     }
   }
 }

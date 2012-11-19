@@ -16,6 +16,7 @@
 1.0.2
 * Add --expceptions to Gearmand to enable exceptions by default
 * Backtraces on some types of crashes.
+* Add GEARMAN_CLIENT_GENERATE_UNIQUE.
 
 1.0.1 Tue Nov  6 01:07:07 EST 2012
 * Stable branch labeled as 1.0

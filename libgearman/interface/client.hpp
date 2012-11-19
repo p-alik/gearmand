@@ -48,12 +48,14 @@ struct Client
     bool unbuffered_result;
     bool no_new;
     bool free_tasks;
+    bool generate_unique;
 
     Options():
       non_blocking(false),
       unbuffered_result(false),
       no_new(false),
-      free_tasks(false)
+      free_tasks(false),
+      generate_unique(true)
     {
     }
   } options;
