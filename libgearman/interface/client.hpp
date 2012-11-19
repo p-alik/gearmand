@@ -55,7 +55,7 @@ struct Client
       unbuffered_result(false),
       no_new(false),
       free_tasks(false),
-      generate_unique(true)
+      generate_unique(false)
     {
     }
   } options;

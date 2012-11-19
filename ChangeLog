@@ -1,5 +1,5 @@
 1.1.4
-*
+* Add GEARMAN_CLIENT_GENERATE_UNIQUE, with default set to not generate.
 
 1.1.3 Wed Nov  7 22:48:21 EST 2012
 * Merge with 1.0.1
