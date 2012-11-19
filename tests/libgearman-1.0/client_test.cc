@@ -238,6 +238,7 @@ static test_return_t option_test(void *)
     test_false(gear->options.unbuffered_result);
     test_false(gear->options.no_new);
     test_false(gear->options.free_tasks);
+    test_true(gear->options.generate_unique);
   }
 
   /* Set up for default options */
@@ -254,6 +255,7 @@ static test_return_t option_test(void *)
     test_false(gear->options.unbuffered_result);
     test_false(gear->options.no_new);
     test_false(gear->options.free_tasks);
+    test_true(gear->options.generate_unique);
   }
 
   /*
@@ -267,6 +269,7 @@ static test_return_t option_test(void *)
       test_false(gear->options.unbuffered_result);
       test_false(gear->options.no_new);
       test_false(gear->options.free_tasks);
+      test_true(gear->options.generate_unique);
     }
     gearman_client_remove_options(gear, GEARMAN_CLIENT_NO_NEW);
     { // Initial Allocated, no changes
@@ -275,6 +278,7 @@ static test_return_t option_test(void *)
       test_false(gear->options.unbuffered_result);
       test_false(gear->options.no_new);
       test_false(gear->options.free_tasks);
+      test_true(gear->options.generate_unique);
     }
   }
 
@@ -314,6 +318,40 @@ static test_return_t option_test(void *)
       test_false(gear->options.no_new);
       test_false(gear->options.free_tasks);
     }
+
+    // Test setting GEARMAN_CLIENT_GENERATE_UNIQUE
+    {
+      gearman_client_set_options(gear, default_options);
+      { // See if we return to defaults
+        test_truth(gear->options.allocated);
+        test_false(gear->options.non_blocking);
+        test_false(gear->options.unbuffered_result);
+        test_false(gear->options.no_new);
+        test_false(gear->options.free_tasks);
+        test_true(gear->options.generate_unique);
+      }
+
+      gearman_client_remove_options(gear, GEARMAN_CLIENT_GENERATE_UNIQUE);
+      { // Initial Allocated, no changes
+        test_truth(gear->options.allocated);
+        test_false(gear->options.non_blocking);
+        test_false(gear->options.unbuffered_result);
+        test_false(gear->options.no_new);
+        test_false(gear->options.free_tasks);
+        test_false(gear->options.generate_unique);
+      }
+
+      gearman_client_set_options(gear, GEARMAN_CLIENT_GENERATE_UNIQUE);
+      { // See if we return to defaults
+        test_truth(gear->options.allocated);
+        test_false(gear->options.non_blocking);
+        test_false(gear->options.unbuffered_result);
+        test_false(gear->options.no_new);
+        test_false(gear->options.free_tasks);
+        test_true(gear->options.generate_unique);
+      }
+    }
+
     /*
       Reset options to default. Then add an option, and then add more options. Make sure
       the options are all additive.
@@ -326,6 +364,7 @@ static test_return_t option_test(void *)
         test_false(gear->options.unbuffered_result);
         test_false(gear->options.no_new);
         test_false(gear->options.free_tasks);
+        test_true(gear->options.generate_unique);
       }
       gearman_client_add_options(gear, GEARMAN_CLIENT_FREE_TASKS);
       { // All defaults, except timeout_return
@@ -334,6 +373,7 @@ static test_return_t option_test(void *)
         test_false(gear->options.unbuffered_result);
         test_false(gear->options.no_new);
         test_truth(gear->options.free_tasks);
+        test_true(gear->options.generate_unique);
       }
       gearman_client_add_options(gear, (gearman_client_options_t)(GEARMAN_CLIENT_NON_BLOCKING|GEARMAN_CLIENT_UNBUFFERED_RESULT));
       { // GEARMAN_CLIENT_NON_BLOCKING set to default, by default.
@@ -342,6 +382,7 @@ static test_return_t option_test(void *)
         test_truth(gear->options.unbuffered_result);
         test_false(gear->options.no_new);
         test_truth(gear->options.free_tasks);
+        test_true(gear->options.generate_unique);
       }
     }
     /*
@@ -1330,6 +1371,19 @@ static test_return_t default_v2_SETUP(void *object)
   return TEST_SUCCESS;
 }
 
+static test_return_t GEARMAN_CLIENT_GENERATE_UNIQUE_SETUP(void *object)
+{
+  client_test_st* test= (client_test_st *)object;
+  test_true(test);
+
+  test_compare(TEST_SUCCESS, default_v2_SETUP(object));
+
+  gearman_client_remove_options(test->client(), GEARMAN_CLIENT_GENERATE_UNIQUE);
+  test_false(gearman_client_has_option(test->client(), GEARMAN_CLIENT_GENERATE_UNIQUE));
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t default_v1_SETUP(void *object)
 {
   gearman_function_t echo_react_fn= gearman_function_create_v1(echo_or_react_worker);
@@ -1623,6 +1677,7 @@ collection_st collection[] ={
   {"gearman_task_add_task() chunky v1 workers", chunk_v1_SETUP, 0, gearman_task_tests},
   {"gearman_task_add_task() chunky v2 workers", chunk_v2_SETUP, 0, gearman_task_tests},
   {"gearman_task_add_task(GEARMAN_CLIENT_FREE_TASKS)", pre_free_tasks, 0, gearman_task_tests},
+  {"gearman_task_add_task(GEARMAN_CLIENT_GENERATE_UNIQUE)", GEARMAN_CLIENT_GENERATE_UNIQUE_SETUP, 0, gearman_task_tests},
   {"gearman_task_add_task(GEARMAN_PAUSE)", chunk_v1_SETUP, 0, gearman_task_pause_tests},
   {"gearman_task_add_task(GEARMAN_PAUSE)", chunk_v2_SETUP, 0, gearman_task_pause_tests},
   {"unique", unique_SETUP, 0, unique_tests},

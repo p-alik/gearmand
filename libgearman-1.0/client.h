@@ -70,6 +70,7 @@ struct gearman_client_st
     bool unbuffered_result;
     bool no_new;
     bool free_tasks;
+    bool generate_unique;
   } options;
   enum gearman_client_t state;
   uint32_t new_tasks;

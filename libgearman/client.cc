@@ -77,6 +77,7 @@ static gearman_client_st *_client_allocate(gearman_client_st *client, bool is_cl
   client->options.unbuffered_result= false;
   client->options.no_new= false;
   client->options.free_tasks= false;
+  client->options.generate_unique= true;
 
   client->state= GEARMAN_CLIENT_STATE_IDLE;
   client->new_tasks= 0;
@@ -303,6 +304,7 @@ gearman_client_st *gearman_client_clone(gearman_client_st *client,
   client->options.unbuffered_result= from->options.unbuffered_result;
   client->options.no_new= from->options.no_new;
   client->options.free_tasks= from->options.free_tasks;
+  client->options.generate_unique= from->options.generate_unique;
   client->actions= from->actions;
   client->_do_handle[0]= 0;
 
@@ -377,6 +379,9 @@ gearman_client_options_t gearman_client_options(const gearman_client_st *client)
   if (client->options.free_tasks)
     options|= int(GEARMAN_CLIENT_FREE_TASKS);
 
+  if (client->options.generate_unique)
+    options|= int(GEARMAN_CLIENT_GENERATE_UNIQUE);
+
   return gearman_client_options_t(options);
 }
 
@@ -402,6 +407,9 @@ bool gearman_client_has_option(gearman_client_st *client,
     case GEARMAN_CLIENT_FREE_TASKS:
       return client->options.free_tasks;
 
+    case GEARMAN_CLIENT_GENERATE_UNIQUE:
+      return client->options.generate_unique;
+
     default:
     case GEARMAN_CLIENT_TASK_IN_USE:
     case GEARMAN_CLIENT_MAX:
@@ -421,6 +429,7 @@ void gearman_client_set_options(gearman_client_st *client,
       GEARMAN_CLIENT_NON_BLOCKING,
       GEARMAN_CLIENT_UNBUFFERED_RESULT,
       GEARMAN_CLIENT_FREE_TASKS,
+      GEARMAN_CLIENT_GENERATE_UNIQUE,
       GEARMAN_CLIENT_MAX
     };
 
@@ -458,6 +467,11 @@ void gearman_client_add_options(gearman_client_st *client,
     {
       client->options.free_tasks= true;
     }
+
+    if (options & GEARMAN_CLIENT_GENERATE_UNIQUE)
+    {
+      client->options.generate_unique= true;
+    }
   }
 }
 
@@ -480,6 +494,11 @@ void gearman_client_remove_options(gearman_client_st *client,
     if (options & GEARMAN_CLIENT_FREE_TASKS)
     {
       client->options.free_tasks= false;
+    }
+
+    if (options & GEARMAN_CLIENT_GENERATE_UNIQUE)
+    {
+      client->options.generate_unique= false;
     }
   }
 }
