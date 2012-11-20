@@ -440,6 +440,8 @@ static test_return_t application_doesnotexist_BINARY(void *)
   const char *args[]= { "--fubar", 0 };
 #if defined(TARGET_OS_OSX) && TARGET_OS_OSX
   test_compare(Application::INVALID_POSIX_SPAWN, true_app.run(args));
+#elif defined(TARGET_OS_FREEBSD) && TARGET_OS_FREEBSD
+  test_compare(Application::INVALID_POSIX_SPAWN, true_app.run(args));
 #else
   test_compare(Application::SUCCESS, true_app.run(args));
   test_compare(Application::INVALID_POSIX_SPAWN, true_app.join());
