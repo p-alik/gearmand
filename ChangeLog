@@ -3,6 +3,8 @@
 * Backtraces on some types of crashes.
 * Add GEARMAN_CLIENT_GENERATE_UNIQUE.
 
+* Fix test case results for FreeBSD.
+
 1.0.1 Tue Nov  6 01:07:07 EST 2012
 * Stable branch labeled as 1.0
 * Update all build related files.
