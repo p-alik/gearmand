@@ -73,12 +73,12 @@ gearmand_error_t gearman_queue_add(gearman_server_st *server,
   }
 
   assert(server->queue.object);
-  return server->queue.object->add(server,
-                                   unique, unique_size,
-                                   function_name,
-                                   function_name_size,
-                                   data, data_size, priority, 
-                                   when);
+  return server->queue.object->store(server,
+                                     unique, unique_size,
+                                     function_name,
+                                     function_name_size,
+                                     data, data_size, priority, 
+                                     when);
 }
 
 gearmand_error_t gearman_queue_flush(gearman_server_st *server)
@@ -114,6 +114,16 @@ gearmand_error_t gearman_queue_done(gearman_server_st *server,
                                     unique, unique_size,
                                     function_name,
                                     function_name_size);
+}
+
+void gearman_server_save_job(gearman_server_st& server,
+                             const gearman_server_job_st* server_job)
+{
+  if (server.queue_version == QUEUE_VERSION_CLASS)
+  {
+    assert(server.queue.object);
+    server.queue.object->save_job(server, server_job);
+  }
 }
 
 void gearman_server_set_queue(gearman_server_st& server,

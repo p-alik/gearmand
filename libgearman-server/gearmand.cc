@@ -56,9 +56,10 @@
 
 #include <libgearman-server/gearmand.h>
 
-#include <libgearman-server/struct/port.h>
-#include <libgearman-server/plugins.h>
-#include <libgearman-server/timer.h>
+#include "libgearman-server/struct/port.h"
+#include "libgearman-server/plugins.h"
+#include "libgearman-server/timer.h"
+#include "libgearman-server/queue.h"
 
 using namespace gearmand;
 
@@ -105,6 +106,7 @@ static void gearman_server_free(gearman_server_st& server)
   {
     while (server.job_hash[key] != NULL)
     {
+      gearman_server_save_job(server, server.job_hash[key]);
       gearman_server_job_free(server.job_hash[key]);
     }
   }

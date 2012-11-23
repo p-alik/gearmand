@@ -1,5 +1,6 @@
 1.1.4
 * Add GEARMAN_CLIENT_GENERATE_UNIQUE, with default set to not generate.
+* Experimental addition to queue service which will allow a queue to be stored on shutdown (--libsqlite3-store-on-shutdown).
 
 1.1.3 Wed Nov  7 22:48:21 EST 2012
 * Merge with 1.0.1
