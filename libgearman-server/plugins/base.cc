@@ -42,6 +42,9 @@
 
 #include <libgearman-server/error.h>
 #include <libgearman-server/constants.h>
+#include "libgearman-server/struct/worker.h"
+#include "libgearman-server/struct/function.h"
+#include "libgearman-server/struct/job.h"
 
 #include <algorithm>
 #include <string> 
@@ -79,6 +82,48 @@ namespace queue {
 Context::~Context()
 {
 }
+
+gearmand_error_t Context::store(gearman_server_st *server,
+                                const char *unique,
+                                size_t unique_size,
+                                const char *function_name,
+                                size_t function_name_size,
+                                const void *data,
+                                size_t data_size,
+                                gearman_job_priority_t priority,
+                                int64_t when)
+{
+  if (_store_on_shutdown == false)
+  {
+    return add(server,
+               unique, unique_size,
+               function_name, function_name_size,
+               data, data_size,
+               priority,
+               when);
+  }
+
+  return GEARMAN_SUCCESS;
+}
+
+void Context::save_job(gearman_server_st& server,
+                       const gearman_server_job_st* server_job)
+{
+  if (_store_on_shutdown)
+  {
+    if (server_job->job_queued)
+    {
+      add(&server,
+          server_job->unique, server_job->unique_length,
+          server_job->function->function_name,
+          server_job->function->function_name_size,
+          server_job->data, server_job->data_size,
+          server_job->priority, 
+          server_job->when);
+    }
+  }
+}
+
 
 } // namespace queue
 

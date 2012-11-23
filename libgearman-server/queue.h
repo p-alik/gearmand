@@ -62,5 +62,10 @@ gearmand_error_t gearman_queue_done(gearman_server_st *server,
                                     size_t function_name_size);
 
 #ifdef __cplusplus
+void gearman_server_save_job(gearman_server_st& server,
+                             const gearman_server_job_st* server_job);
+#endif
+
+#ifdef __cplusplus
 }
 #endif

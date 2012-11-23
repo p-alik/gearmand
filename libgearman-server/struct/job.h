@@ -37,6 +37,8 @@
 
 #pragma once
 
+struct gearman_server_client_st;
+
 struct gearman_server_job_st
 {
   uint8_t retries;

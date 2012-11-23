@@ -37,6 +37,8 @@
 
 #pragma once
 
+struct gearman_server_function_st;
+
 struct gearman_server_worker_st
 {
   uint32_t job_count;

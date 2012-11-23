@@ -942,7 +942,7 @@ namespace gearmand {
 namespace queue {
 
 gearmand_error_t Context::replay_add(gearman_server_st *server,
-                                     void *context __attribute__ ((unused)),
+                                     void*, // context
                                      const char *unique, size_t unique_size,
                                      const char *function_name, size_t function_name_size,
                                      const void *data, size_t data_size,
