@@ -40,8 +40,7 @@ gearmand_hostile_gearmand_LDFLAGS=
 gearmand_hostile_gearmand_SOURCES=
 
 gearmand_hostile_gearmand_CXXFLAGS+= $(gearmand_gearmand_CXXFLAGS)
-gearmand_hostile_gearmand_DEPENDENCIES+= configmake.h
-gearmand_hostile_gearmand_DEPENDENCIES+= libgearman-server/libgearman-server.la
+gearmand_hostile_gearmand_DEPENDENCIES+= $(gearmand_gearmand_DEPENDENCIES)
 gearmand_hostile_gearmand_DEPENDENCIES+= libhostile/libhostile.la
 gearmand_hostile_gearmand_LDADD+= @DL_LIB@
 gearmand_hostile_gearmand_LDADD+= libgearman-server/libgearman-server.la
