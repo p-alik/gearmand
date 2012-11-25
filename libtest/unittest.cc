@@ -56,6 +56,18 @@ static std::string testing_service;
 // Used to track setups where we see if failure is happening
 static uint32_t fatal_calls= 0;
 
+static test_return_t getenv_TEST(void *)
+{
+#if 0
+  for (char **ptr= environ; *ptr; ptr++)
+  {
+    Error << *ptr;
+  }
+#endif
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t LIBTOOL_COMMAND_test(void *)
 {
   test_true(getenv("LIBTOOL_COMMAND"));
@@ -845,6 +857,7 @@ test_st test_skip_TESTS[] ={
 };
 
 test_st environment_tests[] ={
+  {"getenv()", 0, getenv_TEST },
   {"LIBTOOL_COMMAND", 0, LIBTOOL_COMMAND_test },
   {"VALGRIND_COMMAND", 0, VALGRIND_COMMAND_test },
   {"HELGRIND_COMMAND", 0, HELGRIND_COMMAND_test },
