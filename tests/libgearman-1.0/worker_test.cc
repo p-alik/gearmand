@@ -881,9 +881,18 @@ static test_return_t gearman_worker_unregister_all_test(void *)
   return TEST_SUCCESS;
 }
 
-static test_return_t gearman_worker_work_with_test(void *)
+static test_return_t gearman_worker_work_with_test(int timeout, gearman_worker_options_t option)
 {
   test::Worker worker;
+
+  if (option)
+  {
+    gearman_worker_add_options(&worker, option);
+    if (option == GEARMAN_WORKER_NON_BLOCKING)
+    {
+      test_true(gearman_worker_options(&worker) & GEARMAN_WORKER_NON_BLOCKING);
+    }
+  }
 
   char function_name[GEARMAN_FUNCTION_MAX_SIZE];
   snprintf(function_name, GEARMAN_FUNCTION_MAX_SIZE, "_%s%d", __func__, int(random())); 
@@ -893,19 +902,55 @@ static test_return_t gearman_worker_work_with_test(void *)
                                            0, fail_worker, NULL),
                GEARMAN_SUCCESS);
 
-  gearman_worker_set_timeout(&worker, 0);
+  gearman_worker_set_timeout(&worker, timeout);
 
-  test_compare(GEARMAN_TIMEOUT,
-               gearman_worker_work(&worker));
+  if (option == GEARMAN_WORKER_NON_BLOCKING)
+  {
+    test_compare(GEARMAN_NO_JOBS,
+                 gearman_worker_work(&worker));
 
-  test_compare(GEARMAN_TIMEOUT,
-               gearman_worker_work(&worker));
+    test_compare(GEARMAN_NO_JOBS,
+                 gearman_worker_work(&worker));
+  }
+  else
+  {
+    test_compare(GEARMAN_TIMEOUT,
+                 gearman_worker_work(&worker));
+
+    test_compare(GEARMAN_TIMEOUT,
+                 gearman_worker_work(&worker));
+  }
 
   /* Make sure we have removed the worker function */
   test_compare(GEARMAN_SUCCESS,
                gearman_worker_unregister(&worker, function_name));
 
   return TEST_SUCCESS;
+}
+
+static test_return_t gearman_worker_work_with_option(gearman_worker_options_t option)
+{
+  int timeout[]= { 500, 1000, 2000, 8000, 0 };
+
+  // First we try with immediate timeout
+  test_compare(TEST_SUCCESS, gearman_worker_work_with_test(0, option));
+
+  for (size_t x= 0; timeout[x]; ++x)
+  {
+    test_compare(TEST_SUCCESS, gearman_worker_work_with_test(timeout[x], option));
+  }
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_worker_work_with_TEST(void*)
+{
+  return gearman_worker_work_with_option(gearman_worker_options_t());
+}
+
+static test_return_t gearman_worker_work_with_GEARMAN_WORKER_NON_BLOCKING_TEST(void*)
+{
+  return gearman_worker_work_with_option(GEARMAN_WORKER_NON_BLOCKING);
 }
 
 static test_return_t gearman_worker_context_test(void *)
@@ -1213,7 +1258,8 @@ test_st tests[] ={
   {"gearman_worker_add_function()", 0, gearman_worker_add_function_test },
   {"gearman_worker_add_function() multi", 0, gearman_worker_add_function_multi_test },
   {"gearman_worker_unregister_all()", 0, gearman_worker_unregister_all_test },
-  {"gearman_worker_work() with timout", 0, gearman_worker_work_with_test },
+  {"gearman_worker_work() with timout", 0, gearman_worker_work_with_TEST },
+  {"gearman_worker_work(GEARMAN_WORKER_NON_BLOCKING) with timout", 0, gearman_worker_work_with_GEARMAN_WORKER_NON_BLOCKING_TEST },
   {"gearman_worker_context", 0, gearman_worker_context_test },
   {"gearman_worker_failover", 0, gearman_worker_failover_test },
   {"gearman_worker_check_options(GEARMAN_WORKER_GRAB_UNIQ)", 0, gearman_worker_check_options_GEARMAN_WORKER_GRAB_UNIQ },

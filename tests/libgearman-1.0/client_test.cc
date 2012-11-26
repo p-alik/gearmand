@@ -785,8 +785,13 @@ static test_return_t hostname_resolution(void *)
 
   test_compare(GEARMAN_SUCCESS, gearman_client_error_code(&client));
 
+#if defined(TARGET_OS_FREEBSD) && TARGET_OS_FREEBSD
+  test_compare(GEARMAN_TIMEOUT,
+               gearman_client_echo(&client, test_literal_param("foo")));
+#else
   test_compare(GEARMAN_COULD_NOT_CONNECT,
                gearman_client_echo(&client, test_literal_param("foo")));
+#endif
 
   return TEST_SUCCESS;
 }

@@ -12,11 +12,11 @@
 # All paths should be given relative to the root
 
 EXAMPLES_LDADD= \
-		$(BOOST_PROGRAM_OPTIONS_LDFLAGS) \
 		$(BOOST_PROGRAM_OPTIONS_LIBS) \
 		libgearman/libgearman.la
 
-EXAMPLES_LD_FLAGS= $(CLIENT_LDFLAGS)
+EXAMPLES_LD_FLAGS=
+EXAMPLES_LD_FLAGS+= $(BOOST_PROGRAM_OPTIONS_LDFLAGS)
 noinst_PROGRAMS+= \
 		  examples/echo_client \
 		  examples/echo_worker \

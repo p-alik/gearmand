@@ -153,3 +153,4 @@ unittests/unittests
 util/.hg/
 util/.hgignore
 var
+libtest/yatlcon.h
