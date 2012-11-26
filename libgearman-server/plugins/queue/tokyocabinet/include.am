@@ -11,11 +11,11 @@
 
 noinst_HEADERS+= libgearman-server/plugins/queue/tokyocabinet/queue.h
 
-if HAVE_LIBTOKYOCABINET
+if HAVE_TOKYOCABINET
 
 libgearman_server_libgearman_server_la_SOURCES+= libgearman-server/plugins/queue/tokyocabinet/queue.cc
 
-libgearman_server_libgearman_server_la_LIBADD+= $(LIBTOKYOCABINET_LDFLAGS)
+libgearman_server_libgearman_server_la_LIBADD+= @TOKYOCABINET_LIB@
 
 endif
 
