@@ -20,7 +20,7 @@
 #   and this notice are preserved. This file is offered as-is, without any
 #   warranty.
 
-#serial 3
+#serial 4
  
 AC_DEFUN([AX_LIBEVENT],
          [AC_PREREQ([2.63])dnl
@@ -45,7 +45,7 @@ AC_DEFUN([AX_LIBEVENT],
            ])
 
          AS_IF([test "x$ax_cv_libevent" = "xyes"],
-             [AC_SUBST([LIBEVENT_LDFLAGS],[-levent])
+             [AC_SUBST([LIBEVENT_LIB],[-levent])
              AC_DEFINE([HAVE_LIBEVENT],[1],[Define if event_init is present in event.h.])],
              [AC_DEFINE([HAVE_LIBEVENT],[0],[Define if event_init is present in event.h.])])
 
@@ -79,7 +79,7 @@ AC_DEFUN([AX_LIBEVENT2],
       ])
 
     AS_IF([test "x$ax_cv_libevent2" = xyes],
-        [AC_SUBST([LIBEVENT2_LDFLAGS],[-levent])
+        [AC_SUBST([LIBEVENT2_LIB],[-levent])
         AC_DEFINE([HAVE_LIBEVENT2],[1],[Define if event_init is present in event2/event.h.])],
         [AC_DEFINE([HAVE_LIBEVENT2],[0],[Define if event_init is present in event2/event.h.])])
 

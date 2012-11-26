@@ -130,11 +130,11 @@ libtest_libtest_la_SOURCES+= libtest/tmpfile.cc
 libtest_libtest_la_SOURCES+= libtest/vchar.cc
 
 libtest_libtest_la_CXXFLAGS+= -DBUILDING_LIBTEST
-libtest_libtest_la_CXXFLAGS+= $(PTHREAD_CFLAGS)
+libtest_libtest_la_CXXFLAGS+= @PTHREAD_CFLAGS@
 libtest_libtest_la_CXXFLAGS+= -DLIBTEST_TEMP="\"tmp_chroot\""
 libtest_libtest_la_CXXFLAGS+= $(CURL_CFLAGS)
 
-libtest_libtest_la_LIBADD+= $(PTHREAD_LIBS)
+libtest_libtest_la_LIBADD+= @PTHREAD_LIBS@
 libtest_libtest_la_LIBADD+= $(CURL_LIBS)
 libtest_libtest_la_LIBADD+= @RT_LIB@
 
@@ -149,8 +149,6 @@ libtest_unittest_DEPENDENCIES=
 
 # We are either building in tree, or with
 if BUILDING_LIBMEMCACHED
-libtest_libtest_la_DEPENDENCIES+= libmemcached/libmemcached.la
-libtest_libtest_la_DEPENDENCIES+= libmemcached/libmemcachedutil.la
 libtest_libtest_la_LIBADD+= libmemcached/libmemcached.la
 libtest_libtest_la_LIBADD+= libmemcached/libmemcachedutil.la
 libtest_libtest_la_SOURCES+= libtest/memcached.cc
@@ -179,8 +177,6 @@ libtest_libtest_la_CXXFLAGS+= $(libdrizzle_CFLAGS)
 endif
 
 if BUILDING_GEARMAN
-libtest_libtest_la_DEPENDENCIES+= libgearman/libgearman.la
-libtest_libtest_la_LIBADD+= libgearman/libgearman.la
 libtest_libtest_la_SOURCES+= libtest/blobslap_worker.cc
 libtest_libtest_la_SOURCES+= libtest/gearmand.cc
 libtest_libtest_la_SOURCES+= util/instance.cc
@@ -191,8 +187,6 @@ libtest_unittest_DEPENDENCIES+= libgearman/libgearman.la
 libtest_unittest_DEPENDENCIES+= gearmand/gearmand
 else
 if HAVE_LIBGEARMAN
-libtest_libtest_la_DEPENDENCIES+= libgearman/libgearman.la
-libtest_libtest_la_LIBADD+= $(libgearman_LIBS)
 libtest_libtest_la_SOURCES+= libtest/blobslap_worker.cc
 libtest_libtest_la_SOURCES+= libtest/gearmand.cc
 libtest_libtest_la_SOURCES+= util/instance.cc
