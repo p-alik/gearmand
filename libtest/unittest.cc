@@ -38,12 +38,12 @@
 
 #include <libtest/test.hpp>
 
-#if defined(LIBTEST_WITH_LIBMEMCACHED_SUPPORT) && LIBTEST_WITH_LIBMEMCACHED_SUPPORT
-#include <libmemcached-1.0/memcached.h>
+#if defined(HAVE_LIBMEMCACHED_1_0_TYPES_RETURN_H) && HAVE_LIBMEMCACHED_1_0_TYPES_RETURN_H
+# include <libmemcached-1.0/types/return.h>
 #endif
 
-#if defined(LIBTEST_WITH_LIBGEARMAN_SUPPORT) && LIBTEST_WITH_LIBGEARMAN_SUPPORT
-#include <libgearman/gearman.h>
+#if defined(HAVE_LIBGEARMAN_1_0_RETURN_H) && HAVE_LIBGEARMAN_1_0_RETURN_H
+# include <libgearman-1.0/return.h>
 #endif
 
 #include <cstdlib>
@@ -95,7 +95,7 @@ static test_return_t GDB_COMMAND_test(void *)
 static test_return_t test_success_equals_one_test(void *)
 {
   test_skip(HAVE_LIBMEMCACHED, 1);
-#if defined(HAVE_LIBMEMCACHED) && HAVE_LIBMEMCACHED 
+#if defined(HAVE_LIBMEMCACHED_1_0_TYPES_RETURN_H) && HAVE_LIBMEMCACHED_1_0_TYPES_RETURN_H
   test_zero(MEMCACHED_SUCCESS);
 #endif
   return TEST_SUCCESS;
@@ -257,7 +257,7 @@ static test_return_t _compare_test_return_t_test(void *)
 static test_return_t _compare_memcached_return_t_test(void *)
 {
   test_skip(HAVE_LIBMEMCACHED, true);
-#if defined(HAVE_LIBMEMCACHED) && HAVE_LIBMEMCACHED 
+#if defined(HAVE_LIBMEMCACHED_1_0_TYPES_RETURN_H) && HAVE_LIBMEMCACHED_1_0_TYPES_RETURN_H
   test_compare(MEMCACHED_SUCCESS, MEMCACHED_SUCCESS);
 #endif
 
@@ -267,7 +267,7 @@ static test_return_t _compare_memcached_return_t_test(void *)
 static test_return_t _compare_gearman_return_t_test(void *)
 {
   test_skip(HAVE_LIBGEARMAN, true);
-#if defined(HAVE_LIBGEARMAN) && HAVE_LIBGEARMAN
+#if defined(HAVE_LIBGEARMAN_1_0_RETURN_H) && HAVE_LIBGEARMAN_1_0_RETURN_H
   test_compare(GEARMAN_SUCCESS, GEARMAN_SUCCESS);
 #endif
 
@@ -407,6 +407,8 @@ static test_return_t application_true_BINARY(void *)
 static test_return_t application_gdb_true_BINARY2(void *)
 {
   test_skip(0, access("/usr/bin/gdb", X_OK ));
+  test_skip(0, access("/usr/bin/true", X_OK ));
+
   Application true_app("/usr/bin/true");
   true_app.use_gdb();
 
@@ -419,6 +421,8 @@ static test_return_t application_gdb_true_BINARY2(void *)
 static test_return_t application_gdb_true_BINARY(void *)
 {
   test_skip(0, access("/usr/bin/gdb", X_OK ));
+  test_skip(0, access("/usr/bin/true", X_OK ));
+
   Application true_app("/usr/bin/true");
   true_app.use_gdb();
 
@@ -622,8 +626,9 @@ static test_return_t wait_services_BINARY2(void *)
 
 static test_return_t wait_services_appliction_TEST(void *)
 {
-  test_skip(0, access("/usr/bin/gdb", X_OK ));
   test_skip(0, access("/etc/services", R_OK ));
+  test_skip(0, access("/usr/bin/gdb", X_OK ));
+  test_skip(0, access("libtest/wait", X_OK ));
 
   libtest::Application wait_app("libtest/wait", true);
   wait_app.use_gdb();
@@ -642,8 +647,9 @@ static test_return_t gdb_wait_services_appliction_TEST(void *)
   test_skip(0, TARGET_OS_OSX);
 #endif
 
-  test_skip(0, access("/usr/bin/gdb", X_OK ));
   test_skip(0, access("/etc/services", R_OK ));
+  test_skip(0, access("/usr/bin/gdb", X_OK ));
+  test_skip(0, access("libtest/wait", X_OK ));
 
   libtest::Application wait_app("libtest/wait", true);
   wait_app.use_gdb();
@@ -657,8 +663,9 @@ static test_return_t gdb_wait_services_appliction_TEST(void *)
 
 static test_return_t gdb_abort_services_appliction_TEST(void *)
 {
-  test_skip(true, false);
   test_skip(0, access("/usr/bin/gdb", X_OK ));
+  test_skip(0, access("libtest/abort", X_OK ));
+  test_skip(true, false);
 
 #if defined(TARGET_OS_OSX) && TARGET_OS_OSX
   test_skip(0, TARGET_OS_OSX);
