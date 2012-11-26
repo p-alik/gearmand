@@ -474,12 +474,12 @@ extern "C" void _reset_log_handler(int) // signal_arg
 }
 
 static bool segfaulted= false;
-extern "C" void _crash_handler(int)
+extern "C" void _crash_handler(int signal_)
 {
   if (segfaulted)
   {
-    error::message("Fatal crash while backtracing");
-    _exit(1); /* Quit without running destructors */
+    error::message("Fatal crash while backtracing", strsignal(signal_));
+    _exit(EXIT_FAILURE); /* Quit without running destructors */
   }
 
   segfaulted= true;
@@ -527,36 +527,41 @@ static bool _set_signals(void)
     return true;
   }
 
-  sa.sa_handler= _crash_handler;
-  if (sigaction(SIGSEGV, &sa, NULL) == -1)
-  {
-    error::perror("Could not set SIGSEGV handler.");
-    return true;
-  }
+  bool in_gdb_libtest= bool(getenv("LIBTEST_IN_GDB"));
 
-  if (sigaction(SIGABRT, &sa, NULL) == -1)
+  if (in_gdb_libtest == false)
   {
-    error::perror("Could not set SIGABRT handler.");
-    return true;
-  }
-  
+    sa.sa_handler= _crash_handler;
+    if (sigaction(SIGSEGV, &sa, NULL) == -1)
+    {
+      error::perror("Could not set SIGSEGV handler.");
+      return true;
+    }
+
+    if (sigaction(SIGABRT, &sa, NULL) == -1)
+    {
+      error::perror("Could not set SIGABRT handler.");
+      return true;
+    }
+
 #ifdef SIGBUS
-  if (sigaction(SIGBUS, &sa, NULL) == -1)
-  {
-    error::perror("Could not set SIGBUS handler.");
-    return true;
-  }
+    if (sigaction(SIGBUS, &sa, NULL) == -1)
+    {
+      error::perror("Could not set SIGBUS handler.");
+      return true;
+    }
 #endif
-  if (sigaction(SIGILL, &sa, NULL) == -1)
-  {
-    error::perror("Could not set SIGBUS handler.");
-    return true;
-  }
+    if (sigaction(SIGILL, &sa, NULL) == -1)
+    {
+      error::perror("Could not set SIGBUS handler.");
+      return true;
+    }
 
-  if (sigaction(SIGFPE, &sa, NULL) == -1)
-  {
-    error::perror("Could not set SIGBUS handler.");
-    return true;
+    if (sigaction(SIGFPE, &sa, NULL) == -1)
+    {
+      error::perror("Could not set SIGBUS handler.");
+      return true;
+    }
   }
 
   return false;
