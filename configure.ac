@@ -135,6 +135,8 @@ AC_CHECK_HEADERS_ONCE([sys/wait.h])
 AC_CHECK_HEADERS_ONCE([syslog.h])
 AC_CHECK_HEADERS_ONCE([unistd.h])
 AC_CHECK_HEADERS_ONCE([winsock2.h])
+AC_CHECK_HEADERS_ONCE([libmemcached-1.0/types/return.h])
+AC_CHECK_HEADERS_ONCE([libgearman-1.0/return.h])
 AM_CONDITIONAL([BUILD_WIN32_WRAPPERS],[test "x$ac_cv_header_winsock2_h" = "xyes"])
 AS_IF([test "x$ac_cv_header_winsock2_h" = "xyes"],
       [AM_LDFLAGS="$AM_LDFLAGS -lws2_32"
@@ -195,10 +197,11 @@ AC_CHECK_FUNCS([strstr])
 LT_LIB_M
 
 # Check for the ability to call dlopen (used in libhostile)
-AC_CHECK_LIB([dl],[dlopen],
-             [AC_SUBST([DL_LIB],[-ldl])
-             AC_DEFINE([HAVE_LIBDL],[1],[Have dlopen])
-             ])
+AS_IF([test "x$enable_shared" = xyes],
+      [AC_CHECK_LIB([dl],[dlopen],
+                    [AC_SUBST([DL_LIB],[-ldl])
+                    AC_DEFINE([HAVE_LIBDL],[1],[Have dlopen])])],
+                    [AC_DEFINE([HAVE_LIBDL],[0],[Have dlopen])])
 
 # Check for -lrt
 AC_CHECK_LIB([rt],[clock_gettime],

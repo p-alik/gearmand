@@ -1,7 +1,7 @@
 #serial 1
 
   AC_DEFUN([YATL_MEMCACHED], [
-      AC_REQUIRE([AX_WITH_LIBMEMCACHED])
+      AC_REQUIRE([AX_ENABLE_LIBMEMCACHED])
 
       AX_WITH_PROG(MEMCACHED_BINARY, [memcached])
       AS_IF([test -f "$ac_cv_path_MEMCACHED_BINARY"],[

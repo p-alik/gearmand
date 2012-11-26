@@ -121,7 +121,7 @@ libgearman_libgearman_la_CXXFLAGS= -DBUILDING_LIBGEARMAN
 
 libgearman_libgearman_la_LDFLAGS= -version-info $(GEARMAN_LIBRARY_VERSION)
 
-libgearman_libgearman_la_LIBADD= $(LIBUUID_LDFLAGS)
+libgearman_libgearman_la_LIBADD= @LIBUUID_LIB@
 
 if TARGET_LINUX
 libgearman_libgearman_la_LIBADD+= -lm
