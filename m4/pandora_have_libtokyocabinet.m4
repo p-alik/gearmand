@@ -4,12 +4,14 @@
 #  with or without modifications, as long as this notice is preserved.
  
 #  Provides support for finding libtokyocabinet.
+#
+# serial 2
 
 AC_DEFUN([_PANDORA_SEARCH_LIBTOKYOCABINET],
     [AC_REQUIRE([AX_CHECK_LIBRARY])
 
     AS_IF([test "x$ac_enable_libtokyocabinet" = "xyes"],
-      [AX_CHECK_LIBRARY([TOKYOCABINET], [tcadb.h], [tokyocabinet],,[ac_enable_libtokyocabinet="no"])],
+      [AX_CHECK_LIBRARY([TOKYOCABINET],[tcadb.h],[tokyocabinet])],
       [AC_DEFINE([HAVE_TOKYOCABINET],[0],[If TokyoCabinet is available])])
 
     AS_IF([test "x$ax_cv_have_TOKYOCABINET" = xno],[ac_enable_libtokyocabinet="no"])
@@ -23,4 +25,6 @@ AC_DEFUN([PANDORA_HAVE_LIBTOKYOCABINET],
       [ac_enable_libtokyocabinet="yes"])
 
     _PANDORA_SEARCH_LIBTOKYOCABINET
+    AS_IF([test "x$ac_enable_libtokyocabinet" = xyes],
+      [_PANDORA_SEARCH_LIBTOKYOCABINET])
     ])
