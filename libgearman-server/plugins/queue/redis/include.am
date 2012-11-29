@@ -14,6 +14,6 @@ noinst_HEADERS+= libgearman-server/plugins/queue/redis/queue.h
 if HAVE_HIREDIS
 libgearman_server_libgearman_server_la_SOURCES+= libgearman-server/plugins/queue/redis/queue.cc
 
-libgearman_server_libgearman_server_la_LIBADD+= -lhiredis
+libgearman_server_libgearman_server_la_LIBADD+= @HIREDIS_LIB@
 endif
 

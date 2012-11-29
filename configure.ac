@@ -87,7 +87,7 @@ PANDORA_HAVE_LIBTOKYOCABINET
 AC_FUNC_STRERROR_R
 SOCKET_SEND_FLAGS
 FCNTL_FLAGS
-AX_HAVE_LIBHIREDIS
+AX_ENABLE_LIBHIREDIS
 
 # Checks for programs.
 AC_CHECK_PROGS([VALGRIND],['valgrind'])
@@ -100,10 +100,8 @@ AX_PROG_SPHINX_BUILD
 # Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS([cxxabi.h], 
-                 AC_DEFINE([HAVE_CXXABI_H], [1], [Have cxxabi.h]),
-                 AC_DEFINE([HAVE_CXXABI_H], [0], [Have cxxabi.h]))
 AC_CHECK_HEADERS_ONCE([arpa/inet.h])
+AC_CHECK_HEADERS_ONCE([dlfcn.h])
 AC_CHECK_HEADERS_ONCE([errno.h])
 AC_CHECK_HEADERS_ONCE([execinfo.h])
 AC_CHECK_HEADERS_ONCE([fcntl.h])
@@ -198,10 +196,11 @@ LT_LIB_M
 
 # Check for the ability to call dlopen (used in libhostile)
 AS_IF([test "x$enable_shared" = xyes],
-      [AC_CHECK_LIB([dl],[dlopen],
-                    [AC_SUBST([DL_LIB],[-ldl])
-                    AC_DEFINE([HAVE_LIBDL],[1],[Have dlopen])])],
-                    [AC_DEFINE([HAVE_LIBDL],[0],[Have dlopen])])
+      [AX_CHECK_LIBRARY([DL],[dlfcn.h],[dl],
+                        [AC_DEFINE([HAVE_LIBDL],[1],[Have dlopen])
+                        AC_CHECK_LIB([dl],[dlopen],[AC_DEFINE([HAVE_DLOPEN],[1],[Have dlopen])])
+                        AC_CHECK_LIB([dl],[dladdr],[AC_DEFINE([HAVE_DLADDR],[1],[Have dladdr])])])
+      ])
 
 # Check for -lrt
 AC_CHECK_LIB([rt],[clock_gettime],
@@ -233,6 +232,12 @@ AX_HEX_VERSION([LIBGEARMAN],[$VERSION])
 AX_HARDEN_COMPILER_FLAGS
 
 AM_CONDITIONAL([TARGET_MINGW],[test "x${MINGW}" = "xtrue"])
+
+# backtrace(), others require shared builds
+AS_IF([test "x$enable_shared" = "xyes"],
+      [AC_DEFINE([HAVE_SHARED_ENABLED],[1],[Enable code which requires shared library support. Like backtrace().])
+      AX_CXX_GCC_ABI_DEMANGLE])
+AM_CONDITIONAL([SHARED_ENABLED],[test "x$enable_shared" = "xyes"])
 
 AC_CONFIG_FILES([Makefile
                  docs/conf.py

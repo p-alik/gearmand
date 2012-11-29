@@ -71,11 +71,15 @@ void initialize(boost::program_options::options_description &all)
   }
 
 
+  if (HAVE_HIREDIS)
+  {
 #ifdef HAVE_LIBHIREDIS
-  queue::initialize_redis();
+    queue::initialize_redis();
 #endif
+  }
 
-  if (HAVE_LIBTOKYOCABINET)
+
+  if (HAVE_TOKYOCABINET)
   {
     queue::initialize_tokyocabinet();
   }
