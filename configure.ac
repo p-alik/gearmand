@@ -100,9 +100,6 @@ AX_PROG_SPHINX_BUILD
 # Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS([cxxabi.h], 
-                 AC_DEFINE([HAVE_CXXABI_H], [1], [Have cxxabi.h]),
-                 AC_DEFINE([HAVE_CXXABI_H], [0], [Have cxxabi.h]))
 AC_CHECK_HEADERS_ONCE([arpa/inet.h])
 AC_CHECK_HEADERS_ONCE([dlfcn.h])
 AC_CHECK_HEADERS_ONCE([errno.h])
