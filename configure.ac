@@ -195,11 +195,12 @@ AC_CHECK_FUNCS([strstr])
 LT_LIB_M
 
 # Check for the ability to call dlopen (used in libhostile)
-# Check for the ability to call dlopen (used in libhostile)
 AS_IF([test "x$enable_shared" = xyes],
-      [AC_CHECK_LIB([dl],[dlopen],
-                    [AC_SUBST([DL_LIB],[-ldl])
-                    AC_DEFINE([HAVE_LIBDL],[1],[Have dlopen])])])
+      [AX_CHECK_LIBRARY([DL],[dlfcn.h],[dl],
+                        [AC_DEFINE([HAVE_LIBDL],[1],[Have dlopen])
+                        AC_CHECK_LIB([dlopen],[dladdr])
+                        AC_CHECK_LIB([dlopen],[dladdr])])
+      ])
 
 # Check for -lrt
 AC_CHECK_LIB([rt],[clock_gettime],
