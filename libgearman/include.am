@@ -66,7 +66,7 @@ libgearman_libgearmancore_la_SOURCES= \
 				      libgearman/vector.cc
 
 libgearman_libgearmancore_la_CXXFLAGS= -DBUILDING_LIBGEARMAN
-libgearman_libgearmancore_la_LIBADD+= @DL_LIB@
+libgearman_libgearmancore_la_LIBADD= @DL_LIB@
 
 lib_LTLIBRARIES+= libgearman/libgearman.la
 libgearman_libgearman_la_SOURCES= \
