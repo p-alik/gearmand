@@ -9,7 +9,8 @@ AC_DEFUN([_SEARCH_HIREDIS],
       [hiredis_header="hiredis/hiredis.h"],
       [hiredis_header="does_not_exist"])
 
-    AX_CHECK_LIBRARY([HIREDIS],[$hiredis_header],[hiredis])
+    AX_CHECK_LIBRARY([HIREDIS],[$hiredis_header],[hiredis],,
+                     [AC_DEFINE([HAVE_HIREDIS],[0],[Define to 1 if HIREDIS is found])])
 
     AS_IF([test "x$ax_cv_have_HIREDIS" = xno],[ac_enable_hiredis="no"])
     ])

@@ -14,7 +14,8 @@ AC_DEFUN([_PANDORA_SEARCH_LIBTOKYOCABINET],
       [tokyocabinet_header="tcadb.h"],
       [tokyocabinet_header="does_not_exist"])
 
-    AX_CHECK_LIBRARY([TOKYOCABINET],[$tokyocabinet_header],[tokyocabinet])
+    AX_CHECK_LIBRARY([TOKYOCABINET],[$tokyocabinet_header],[tokyocabinet],,
+                     [AC_DEFINE([HAVE_TOKYOCABINET],[0],[Define to 1 if TOKYOCABINET is found])])
 
     AS_IF([test "x$ax_cv_have_TOKYOCABINET" = xno],[ac_enable_libtokyocabinet="no"])
     ])
