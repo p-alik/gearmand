@@ -139,7 +139,6 @@ private:
   const char* _func;
 };
 
-
 } // namespace libtest
 
 #define fatal_message(__mesg) throw libtest::fatal(LIBYATL_DEFAULT_PARAM, "%s", __mesg)

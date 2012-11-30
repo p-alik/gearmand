@@ -53,7 +53,21 @@ test_return_t Runner::run(test_callback_fn* func, void *object)
 {
   if (func)
   {
-    return func(object);
+    try {
+      return func(object);
+    }
+    catch (libtest::__skipped)
+    {
+      return TEST_SKIPPED;
+    }
+    catch (libtest::__failure)
+    {
+      return TEST_FAILURE;
+    }
+    catch (libtest::__success)
+    {
+      return TEST_SUCCESS;
+    }
   }
 
   return TEST_SUCCESS;
@@ -63,7 +77,21 @@ test_return_t Runner::pre(test_callback_fn* func, void *object)
 {
   if (func)
   {
-    return func(object);
+    try {
+      return func(object);
+    }
+    catch (libtest::__skipped)
+    {
+      return TEST_SKIPPED;
+    }
+    catch (libtest::__failure)
+    {
+      return TEST_FAILURE;
+    }
+    catch (libtest::__success)
+    {
+      return TEST_SUCCESS;
+    }
   }
 
   return TEST_SUCCESS;
@@ -73,7 +101,21 @@ test_return_t Runner::post(test_callback_fn* func, void *object)
 {
   if (func)
   {
-    return func(object);
+    try {
+      return func(object);
+    }
+    catch (libtest::__skipped)
+    {
+      return TEST_SKIPPED;
+    }
+    catch (libtest::__failure)
+    {
+      return TEST_FAILURE;
+    }
+    catch (libtest::__success)
+    {
+      return TEST_SUCCESS;
+    }
   }
 
   return TEST_SUCCESS;
