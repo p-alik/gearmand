@@ -108,14 +108,73 @@ static test_return_t test_success_test(void *)
 
 static test_return_t test_throw_success_TEST(void *)
 {
-  _SUCCESS;
-  return TEST_SUCCESS;
+  try {
+    _SUCCESS;
+  }
+  catch (libtest::__success)
+  {
+    return TEST_SUCCESS;
+  }
+  catch (...)
+  {
+    return TEST_FAILURE;
+  }
+
+  return TEST_FAILURE;
 }
 
 static test_return_t test_throw_skip_TEST(void *)
 {
-  SKIP;
-  return TEST_SUCCESS;
+  try {
+    SKIP;
+  }
+  catch (libtest::__skipped)
+  {
+    return TEST_SUCCESS;
+  }
+  catch (...)
+  {
+    return TEST_FAILURE;
+  }
+
+  return TEST_FAILURE;
+}
+
+static test_return_t test_throw_fail_TEST(void *)
+{
+  try {
+    FAIL;
+  }
+  catch (libtest::__failure)
+  {
+    return TEST_SUCCESS;
+  }
+  catch (...)
+  {
+    return TEST_FAILURE;
+  }
+
+  return TEST_FAILURE;
+}
+
+static test_return_t test_throw_failure_TEST(void *)
+{
+  std::string error_messsage("test message!");
+  try {
+    FAILED(error_messsage);
+  }
+  catch (libtest::__failure e)
+  {
+    std::string compare_message("FAIL: test message!");
+    test_zero(compare_message.compare(e.what()));
+    return TEST_SUCCESS;
+  }
+  catch (...)
+  {
+    return TEST_FAILURE;
+  }
+
+  return TEST_FAILURE;
 }
 
 static test_return_t test_failure_test(void *)
@@ -890,6 +949,8 @@ test_st tests_log[] ={
   {"TEST_SUCCESS == 0", false, test_success_equals_one_test },
   {"SUCCESS", false, test_throw_success_TEST },
   {"SKIP", false, test_throw_skip_TEST },
+  {"FAIL", false, test_throw_fail_TEST },
+  {"FAILED", false, test_throw_failure_TEST },
   {0, 0, 0}
 };
 

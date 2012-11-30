@@ -56,10 +56,10 @@ m4_include([libtest/yatl.m4])
 
 AX_ENABLE_LIBMEMCACHED
 m4_include([m4/memcached_sasl.m4])
-AM_CONDITIONAL([BUILDING_LIBMEMCACHED], false)
+AM_CONDITIONAL([BUILDING_LIBMEMCACHED],false)
 
-AM_CONDITIONAL([BUILDING_GEARMAN], true)
-AM_CONDITIONAL([HAVE_LIBGEARMAN], true)
+AM_CONDITIONAL([BUILDING_GEARMAN],true)
+AM_CONDITIONAL([HAVE_LIBGEARMAN],true)
 AC_SUBST([_WITH_LIBGEARMAN_SUPPORT],["_WITH_LIBGEARMAN_SUPPORT 0"])
 AC_DEFINE([GEARMAND_BINARY],["./gearmand/gearmand"],[Name of the gearmand binary used in make test])
 AC_DEFINE([HAVE_LIBGEARMAN],[1], [libgearman support])
@@ -67,7 +67,9 @@ AC_DEFINE([HAVE_GEARMAND_BINARY],[1],[libgearman support])
 
 AX_LIB_CURL([7.21.7],
             [AX_CHECK_LIBRARY([LIBCURL],[curl/curl.h],[curl])],
-            [AC_DEFINE([HAVE_LIBCURL],[0],[Have the LIBCURL library])])
+            [AC_DEFINE([HAVE_LIBCURL],[0],[Have the LIBCURL library])
+            AM_CONDITIONAL([HAVE_LIBCURL],false)
+            ])
 
 m4_include([m4/drizzled.m4])
 WITH_LIBDRIZZLE

@@ -95,14 +95,16 @@ private:
 class __failure : public __test_result
 {
 public:
+  __failure(const char *file, int line, const char *func, const std::string&);
   __failure(const char *file, int line, const char *func);
 
   const char* what() const throw()
   {
-    return "FAILURE";
+    return _error_message;
   }
 
 private:
+  char _error_message[BUFSIZ];
 };
 
 
@@ -111,3 +113,4 @@ private:
 #define _SUCCESS throw libtest::__success(LIBYATL_DEFAULT_PARAM)
 #define SKIP throw libtest::__skipped(LIBYATL_DEFAULT_PARAM)
 #define FAIL throw libtest::__failure(LIBYATL_DEFAULT_PARAM)
+#define FAILED(__mesg) throw libtest::__failure(LIBYATL_DEFAULT_PARAM, __mesg)
