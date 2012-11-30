@@ -34,47 +34,39 @@
  *
  */
 
-/*
-  Structures for generic tests.
-*/
+#include "libtest/yatlcon.h"
+#include <libtest/common.h>
+#include <cstdarg>
 
-#include <cstdio>
-#include <cstdlib>
-#include <arpa/inet.h>
+namespace libtest {
 
-#include <libtest/visibility.h>
-#include <libtest/version.h>
+__test_result::__test_result(const char *file_arg, int line_arg, const char *func_arg):
+  _line(line_arg),
+  _file(file_arg),
+  _func(func_arg)
+{
+}
 
-#include <libtest/vchar.hpp>
-#include <libtest/fatal.hpp>
-#include <libtest/result.hpp>
+__success::__success(const char *file_arg, int line_arg, const char *func_arg):
+  __test_result(file_arg, line_arg, func_arg)
+{
+}
 
-#include <libtest/has.hpp>
-#include <libtest/error.h>
-#include <libtest/strerror.h>
-#include <libtest/timer.hpp>
-#include <libtest/alarm.h>
-#include <libtest/stream.h>
-#include <libtest/comparison.hpp>
-#include <libtest/server.h>
-#include <libtest/server_container.h>
-#include <libtest/wait.h>
-#include <libtest/callbacks.h>
-#include <libtest/test.h>
-#include <libtest/dream.h>
-#include <libtest/core.h>
-#include <libtest/runner.h>
-#include <libtest/port.h>
-#include <libtest/is_local.hpp>
-#include <libtest/socket.hpp>
-#include <libtest/collection.h>
-#include <libtest/framework.h>
-#include <libtest/get.h>
-#include <libtest/cmdline.h>
-#include <libtest/string.hpp>
-#include <libtest/binaries.h>
-#include <libtest/http.hpp>
-#include <libtest/cpu.hpp>
-#include <libtest/tmpfile.hpp>
-#include <libtest/client.hpp>
-#include <libtest/thread.hpp>
+__skipped::__skipped(const char *file_arg, int line_arg, const char *func_arg):
+  __test_result(file_arg, line_arg, func_arg)
+{
+}
+
+__failure::__failure(const char *file_arg, int line_arg, const char *func_arg, const std::string& mesg):
+  __test_result(file_arg, line_arg, func_arg)
+{
+  snprintf(_error_message, sizeof(_error_message), "FAIL: %.*s", int(mesg.size()), mesg.c_str());
+}
+
+__failure::__failure(const char *file_arg, int line_arg, const char *func_arg):
+  __test_result(file_arg, line_arg, func_arg)
+{
+  snprintf(_error_message, sizeof(_error_message), "FAIL");
+}
+
+} // namespace libtest

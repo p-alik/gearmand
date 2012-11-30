@@ -193,7 +193,7 @@ static test_return_t collection_cleanup(void *object)
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  if (HAVE_LIBTOKYOCABINET == 0)
+  if (HAVE_TOKYOCABINET == 0)
   {
     error= TEST_SKIPPED;
     return NULL;

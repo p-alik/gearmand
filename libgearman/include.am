@@ -74,6 +74,7 @@ libgearman_libgearmancore_la_SOURCES= \
 				      libgearman/vector.cc
 
 libgearman_libgearmancore_la_CXXFLAGS= -DBUILDING_LIBGEARMAN
+libgearman_libgearmancore_la_LIBADD= @DL_LIB@
 
 lib_LTLIBRARIES+= libgearman/libgearman.la
 libgearman_libgearman_la_SOURCES= \
@@ -121,10 +122,12 @@ libgearman_libgearman_la_CXXFLAGS= -DBUILDING_LIBGEARMAN
 
 libgearman_libgearman_la_LDFLAGS= -version-info $(GEARMAN_LIBRARY_VERSION)
 
-libgearman_libgearman_la_LIBADD= @LIBUUID_LIB@
+libgearman_libgearman_la_LIBADD=
+libgearman_libgearman_la_LIBADD+= @LIBUUID_LIB@
+libgearman_libgearman_la_LIBADD+= @DL_LIB@
 
 if TARGET_LINUX
-libgearman_libgearman_la_LIBADD+= -lm
+libgearman_libgearman_la_LIBADD+= @LIBM@
 endif
 
 
