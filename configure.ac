@@ -61,15 +61,13 @@ AM_CONDITIONAL([BUILDING_LIBMEMCACHED], false)
 AM_CONDITIONAL([BUILDING_GEARMAN], true)
 AM_CONDITIONAL([HAVE_LIBGEARMAN], true)
 AC_SUBST([_WITH_LIBGEARMAN_SUPPORT],["_WITH_LIBGEARMAN_SUPPORT 0"])
-AC_DEFINE([GEARMAND_BINARY],["./gearmand/gearmand"], [Name of the gearmand binary used in make test])
+AC_DEFINE([GEARMAND_BINARY],["./gearmand/gearmand"],[Name of the gearmand binary used in make test])
 AC_DEFINE([HAVE_LIBGEARMAN],[1], [libgearman support])
 AC_DEFINE([HAVE_GEARMAND_BINARY],[1],[libgearman support])
 
 AX_LIB_CURL([7.21.7],
-            [AC_CHECK_HEADERS([curl/curl.h], 
-                              [AC_DEFINE([HAVE_LIBCURL], [ 1 ], [libcurl support])],
-                              [AC_DEFINE([HAVE_LIBCURL], [ 0 ], [libcurl support])])],
-                              [AC_DEFINE([HAVE_LIBCURL], [ 0 ], [libcurl support])])
+            [AX_CHECK_LIBRARY([LIBCURL],[curl/curl.h],[curl])],
+            [AC_DEFINE([HAVE_LIBCURL],[0],[Have the LIBCURL library])])
 
 m4_include([m4/drizzled.m4])
 WITH_LIBDRIZZLE
@@ -101,7 +99,6 @@ AX_PROG_SPHINX_BUILD
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
 AC_CHECK_HEADERS_ONCE([arpa/inet.h])
-AC_CHECK_HEADERS_ONCE([dlfcn.h])
 AC_CHECK_HEADERS_ONCE([errno.h])
 AC_CHECK_HEADERS_ONCE([execinfo.h])
 AC_CHECK_HEADERS_ONCE([fcntl.h])
@@ -199,8 +196,8 @@ AS_IF([test "x$enable_shared" = xyes],
       [AX_CHECK_LIBRARY([DL],[dlfcn.h],[dl],
                         [AC_DEFINE([HAVE_LIBDL],[1],[Have dlopen])
                         AC_CHECK_LIB([dl],[dlopen],[AC_DEFINE([HAVE_DLOPEN],[1],[Have dlopen])])
-                        AC_CHECK_LIB([dl],[dladdr],[AC_DEFINE([HAVE_DLADDR],[1],[Have dladdr])])])
-      ])
+                        AC_CHECK_LIB([dl],[dladdr],[AC_DEFINE([HAVE_DLADDR],[1],[Have dladdr])])])],
+      [AM_CONDITIONAL([HAVE_DL],false)])
 
 # Check for -lrt
 AC_CHECK_LIB([rt],[clock_gettime],
