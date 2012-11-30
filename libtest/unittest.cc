@@ -106,6 +106,18 @@ static test_return_t test_success_test(void *)
   return TEST_SUCCESS;
 }
 
+static test_return_t test_throw_success_TEST(void *)
+{
+  _SUCCESS;
+  return TEST_SUCCESS;
+}
+
+static test_return_t test_throw_skip_TEST(void *)
+{
+  SKIP;
+  return TEST_SUCCESS;
+}
+
 static test_return_t test_failure_test(void *)
 {
   return TEST_SKIPPED; // Only run this when debugging
@@ -876,6 +888,8 @@ test_st tests_log[] ={
   {"TEST_SUCCESS", false, test_success_test },
   {"TEST_FAILURE", false, test_failure_test },
   {"TEST_SUCCESS == 0", false, test_success_equals_one_test },
+  {"SUCCESS", false, test_throw_success_TEST },
+  {"SKIP", false, test_throw_skip_TEST },
   {0, 0, 0}
 };
 
