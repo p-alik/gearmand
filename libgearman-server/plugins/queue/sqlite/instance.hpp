@@ -82,6 +82,7 @@ public:
   gearmand_error_t replay(gearman_server_st *server);
 
 private:
+  gearmand_error_t _sqlite_dispatch(const std::string& arg, bool send_error= true);
   int _sqlite_query(const char *query, size_t query_size, sqlite3_stmt ** sth);
   int _sqlite_commit();
   int _sqlite_rollback();

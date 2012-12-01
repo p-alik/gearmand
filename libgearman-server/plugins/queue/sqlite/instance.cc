@@ -114,31 +114,38 @@ int Instance::_sqlite_lock()
     return SQLITE_OK;
   }
 
-  sqlite3_stmt* sth;
-  int ret= _sqlite_query(gearman_literal_param("BEGIN TRANSACTION"), &sth);
-  if (ret != SQLITE_OK)
+  char* error= NULL;
+  sqlite3_exec(_db, "BEGIN TRANSACTION", NULL, NULL, &error);
+  if (error != NULL)
   {
-    gearmand_log_error(AT, "failed to begin transaction: %s", sqlite3_errmsg(_db));
-    if (sth)
-    {
-      sqlite3_finalize(sth);
-    }
-
-    return ret;
+    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM,
+                       "failed to begin transaction: %s",
+                       error);
+    return sqlite3_errcode(_db);
   }
 
-  ret= sqlite3_step(sth);
-  if (ret != SQLITE_DONE)
-  {
-    gearmand_log_error(AT, "lock error: %s", sqlite3_errmsg(_db));
-    sqlite3_finalize(sth);
-    return ret;
-  }
-
-  sqlite3_finalize(sth);
   _in_trans++;
 
   return SQLITE_OK;
+}
+
+gearmand_error_t Instance::_sqlite_dispatch(const std::string& arg, bool send_error)
+{
+  char* error= NULL;
+  sqlite3_exec(_db, arg.c_str(), NULL, NULL, &error);
+
+  if (error != NULL)
+  {
+    if (send_error)
+    {
+      return gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM,
+                                "%s", error);
+    }
+
+    return GEARMAN_UNKNOWN_OPTION;
+  }
+
+  return GEARMAN_SUCCESS;
 }
 
 int Instance::_sqlite_commit()
@@ -149,29 +156,16 @@ int Instance::_sqlite_commit()
     return SQLITE_OK;
   }
 
-  sqlite3_stmt* sth;
-  int ret= _sqlite_query(gearman_literal_param("COMMIT"), &sth);
-  if (ret != SQLITE_OK)
-  {
-    gearmand_log_error("_sqlite_commit",
-                       "failed to commit transaction: %s",
-                       sqlite3_errmsg(_db));
-    if (sth)
-    {
-      sqlite3_finalize(sth);
-    }
+  char* error= NULL;
+  sqlite3_exec(_db, "COMMIT", NULL, NULL, &error);
 
-    return ret;
+  if (error != NULL)
+  {
+    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM,
+                       "failed to commit transaction: %s", error);
+    return sqlite3_errcode(_db);
   }
 
-  ret= sqlite3_step(sth);
-  if (ret != SQLITE_DONE)
-  {
-    gearmand_log_error("_sqlite_commit", "commit error: %s", sqlite3_errmsg(_db));
-    sqlite3_finalize(sth);
-    return ret;
-  }
-  sqlite3_finalize(sth);
   _in_trans= 0;
 
   return SQLITE_OK;
@@ -248,21 +242,10 @@ gearmand_error_t Instance::init()
 
     gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "sqlite module creating table '%s'", _table.c_str());
 
-    if (_sqlite_query(query.c_str(), query.size(), &sth) != SQLITE_OK)
+    gearmand_error_t ret= _sqlite_dispatch(query);
+    if (ret != GEARMAN_SUCCESS)
     {
-      return gearmand_gerror(sqlite3_errmsg(_db), GEARMAN_QUEUE_ERROR);
-    }
-
-    if (sqlite3_step(sth) != SQLITE_DONE)
-    {
-      gearmand_gerror(sqlite3_errmsg(_db), GEARMAN_QUEUE_ERROR);
-      sqlite3_finalize(sth);
-      return GEARMAN_QUEUE_ERROR;
-    }
-
-    if (sqlite3_finalize(sth) != SQLITE_OK)
-    {
-      return gearmand_gerror(sqlite3_errmsg(_db), GEARMAN_QUEUE_ERROR);
+      return ret;
     }
   }
   else
@@ -270,7 +253,8 @@ gearmand_error_t Instance::init()
     std::string query("SELECT when_to_run FROM ");
     query+= _table;
 
-    if (_sqlite_query(query.c_str(), query.size(), &sth) != SQLITE_OK)
+    gearmand_error_t ret= _sqlite_dispatch(query);
+    if (ret != GEARMAN_SUCCESS)
     {
       gearmand_info("No epoch support in sqlite queue");
       _epoch_support= false;
@@ -288,29 +272,15 @@ int Instance::_sqlite_rollback()
     return SQLITE_OK;
   }
 
-  sqlite3_stmt* sth;
-  int ret= _sqlite_query(gearman_literal_param("ROLLBACK"), &sth);
-  if (ret != SQLITE_OK)
-  {
-    gearmand_log_error("_sqlite_rollback",
-                       "failed to rollback transaction: %s",
-                       sqlite3_errmsg(_db));
-    if (sth)
-    {
-      sqlite3_finalize(sth);
-    }
+  char* error= NULL;
+  sqlite3_exec(_db, "ROLLBACK", NULL, NULL, &error);
 
-    return ret;
-  }
-  ret= sqlite3_step(sth);
-  if (ret != SQLITE_DONE)
+  if (error != NULL)
   {
-    gearmand_log_error("_sqlite_rollback", "rollback error: %s",
-                       sqlite3_errmsg(_db));
-    sqlite3_finalize(sth);
-    return ret;
+    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM,
+                       "failed to commit transaction: %s", error);
+    return sqlite3_errcode(_db);
   }
-  sqlite3_finalize(sth);
   _in_trans= 0;
 
   return SQLITE_OK;
@@ -462,7 +432,8 @@ gearmand_error_t Instance::done(gearman_server_st *server,
 
   if (sqlite3_step(sth) != SQLITE_DONE)
   {
-    gearmand_log_error("_sqlite_done", "delete error: %s",
+    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM,
+                       "delete error: %s",
                        sqlite3_errmsg(_db));
     sqlite3_finalize(sth);
     return GEARMAN_QUEUE_ERROR;
