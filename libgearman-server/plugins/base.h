@@ -64,6 +64,24 @@ public:
 
   boost::program_options::options_description &command_line_options();
 
+  bool has_error()
+  {
+    return _error_string.size();
+  }
+
+  const std::string& error_string()
+  {
+    return _error_string;
+  }
+
+protected:
+  void reset_error()
+  {
+    _error_string.clear();
+  }
+
+  std::string _error_string;
+
 private:
   boost::program_options::options_description _command_line_options;
   std::string _name;
@@ -103,6 +121,24 @@ public:
                                      const void *data, size_t data_size,
                                      gearman_job_priority_t priority,
                                      int64_t when);
+
+  bool has_error()
+  {
+    return _error_string.size();
+  }
+
+  const std::string& error_string()
+  {
+    return _error_string;
+  }
+
+protected:
+  void reset_error()
+  {
+    _error_string.clear();
+  }
+
+  std::string _error_string;
 };
 
 } // namespace queue
@@ -135,6 +171,24 @@ public:
                         const void *data,
                         const size_t data_size,
                         gearmand_error_t& ret_ptr)= 0;
+
+  bool has_error()
+  {
+    return _error_string.size();
+  }
+
+  const std::string& error_string()
+  {
+    return _error_string;
+  }
+
+protected:
+  void reset_error()
+  {
+    _error_string.clear();
+  }
+
+  std::string _error_string;
 };
 
 } // namespace protocol

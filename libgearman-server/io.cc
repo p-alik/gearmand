@@ -639,7 +639,7 @@ gearmand_error_t gearman_io_recv(gearman_server_con_st *con, bool recv_data)
         }
         else if (ret != GEARMAN_IO_WAIT)
         {
-	  gearmand_gerror_warn("protocol failure, closing connection", ret);
+          gearmand_gerror_warn("protocol failure, closing connection", ret);
           _connection_close(connection);
           return ret;
         }

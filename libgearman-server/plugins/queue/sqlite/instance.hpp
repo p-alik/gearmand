@@ -53,17 +53,6 @@ public:
 
   ~Instance();
 
-  const std::string &insert_query() const
-  {
-    return _insert_query;
-  }
-
-  const std::string &delete_query() const
-  {
-    return _delete_query;
-  }
-
-
   gearmand_error_t init();
 
   gearmand_error_t add(gearman_server_st *server,
@@ -81,16 +70,37 @@ public:
 
   gearmand_error_t replay(gearman_server_st *server);
 
+  bool has_error()
+  {
+    return _error_string.size();
+  }
+
 private:
-  int _sqlite_query(const char *query, size_t query_size, sqlite3_stmt ** sth);
-  int _sqlite_commit();
-  int _sqlite_rollback();
-  int _sqlite_lock();
+  gearmand_error_t replay_loop(gearman_server_st *server);
+
+  void reset_error()
+  {
+    _error_string.clear();
+  }
+
+  bool _sqlite_count(const std::string& arg, int& count);
+  bool _sqlite_dispatch(const std::string& arg);
+  bool _sqlite_dispatch(const char* arg);
+  bool _sqlite_count(const char* arg, int& count);
+  bool _sqlite_prepare(const char *query, size_t query_size, sqlite3_stmt ** sth);
+  bool _sqlite_commit();
+  bool _sqlite_rollback();
+  bool _sqlite_lock();
+  void _sqlite3_finalize(sqlite3_stmt*);
 
 private:
   bool _epoch_support;
+  bool _check_replay;
   int _in_trans;
   sqlite3 *_db;
+  sqlite3_stmt* delete_sth;
+  sqlite3_stmt* insert_sth;
+  sqlite3_stmt* replay_sth;
   std::string _error_string;
   std::string _schema;
   std::string _table;

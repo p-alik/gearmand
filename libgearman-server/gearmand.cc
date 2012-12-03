@@ -142,13 +142,20 @@ static void gearman_server_free(gearman_server_st& server)
     delete worker;
   }
 
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "removing queue: %s", (server.queue_version == QUEUE_VERSION_CLASS) ? "CLASS" : "FUNCTION");
   if (server.queue_version == QUEUE_VERSION_CLASS)
   {
     delete server.queue.object;
+    assert(server.queue.functions == NULL);
   }
   else if (server.queue_version == QUEUE_VERSION_FUNCTION)
   {
     delete server.queue.functions;
+    assert(server.queue.object == NULL);
+  }
+  else
+  {
+    gearmand_debug("Unknown queue type in removal");
   }
 }
 
@@ -1116,8 +1123,9 @@ static bool gearman_server_create(gearman_server_st& server,
   server.free_client_list= NULL;
   server.free_worker_list= NULL;
 
-  server.queue_version= QUEUE_VERSION_FUNCTION;
+  server.queue_version= QUEUE_VERSION_NONE;
   server.queue.object= NULL;
+  server.queue.functions= NULL;
 
   memset(server.job_hash, 0,
          sizeof(gearman_server_job_st *) * GEARMAND_JOB_HASH_SIZE);

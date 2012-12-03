@@ -67,7 +67,7 @@ static gearmand_error_t gearmand_packet_unpack_header(gearmand_packet_st *packet
   }
   else
   {
-    gearmand_error("invalid magic value");
+    gearmand_warning("invalid magic value");
     return GEARMAN_INVALID_MAGIC;
   }
 
