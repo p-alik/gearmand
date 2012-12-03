@@ -223,6 +223,11 @@ public:
     _error= arg;
   }
 
+  void reset_error()
+  {
+    _error.clear();
+  }
+
   virtual bool wait_for_pidfile() const;
 
   bool check_pid(pid_t pid_arg) const

@@ -123,6 +123,11 @@ void gearman_server_set_queue(gearman_server_st& server,
                               gearman_queue_done_fn *done,
                               gearman_queue_replay_fn *replay)
 {
+  delete server.queue.functions;
+  server.queue.functions= NULL;
+  delete server.queue.object;
+  server.queue.object= NULL;
+
   server.queue_version= QUEUE_VERSION_FUNCTION;
   server.queue.functions= new queue_st();
   if (server.queue.functions)
@@ -139,6 +144,10 @@ void gearman_server_set_queue(gearman_server_st& server,
 void gearman_server_set_queue(gearman_server_st& server,
                               gearmand::queue::Context* context)
 {
+  delete server.queue.functions;
+  server.queue.functions= NULL;
+  delete server.queue.object;
+  server.queue.object= NULL;
   assert(context);
   {
     server.queue_version= QUEUE_VERSION_CLASS;
@@ -192,10 +201,8 @@ gearmand_error_t initialize(gearmand_st *, std::string name)
       gearmand_error_t rc;
       if (gearmand_failed(rc= (*iter)->initialize()))
       {
-        std::string error_string("Failed to initialize ");
-        error_string+= name;
-
-        return gearmand_gerror(error_string.c_str(), rc);
+        return gearmand_log_gerror(GEARMAN_DEFAULT_LOG_PARAM, rc,
+                                   "Failed to initialize %s: %s", name.c_str(), (*iter)->error_string().c_str());
       }
 
       launched= true;
@@ -204,9 +211,7 @@ gearmand_error_t initialize(gearmand_st *, std::string name)
 
   if (launched == false)
   {
-    std::string error_string("Unknown queue ");
-    error_string+= name;
-    return gearmand_gerror(error_string.c_str(), GEARMAN_UNKNOWN_OPTION);
+    return gearmand_log_gerror(GEARMAN_DEFAULT_LOG_PARAM, GEARMAN_UNKNOWN_OPTION, "Unknown queue %s", name.c_str());
   }
 
   return GEARMAN_SUCCESS;

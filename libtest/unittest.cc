@@ -148,7 +148,7 @@ static test_return_t test_throw_fail_TEST(void *)
   }
   catch (libtest::__failure e)
   {
-    std::string compare_message("FAIL: test message!");
+    std::string compare_message("test message!");
     test_zero(compare_message.compare(e.what()));
     return TEST_SUCCESS;
   }
