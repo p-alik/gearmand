@@ -71,6 +71,8 @@ public:
 
   bool ping()
   {
+    reset_error();
+
     if (out_of_ban_killed())
     {
       return false;
@@ -79,7 +81,14 @@ public:
     SimpleClient client(_hostname, _port);
 
     std::string response;
-    return client.send_message("version", response);
+    bool ret= client.send_message("version", response);
+
+    if (client.is_error())
+    {
+      error(client.error());
+    }
+
+    return ret;
   }
 
   const char *name()

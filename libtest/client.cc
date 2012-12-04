@@ -139,8 +139,11 @@ SimpleClient::~SimpleClient()
 
 void SimpleClient::close_socket()
 {
-  close(sock_fd);
-  sock_fd= INVALID_SOCKET;
+  if (sock_fd != INVALID_SOCKET)
+  {
+    close(sock_fd);
+    sock_fd= INVALID_SOCKET;
+  }
 }
 
 bool SimpleClient::instance_connect()

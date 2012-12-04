@@ -60,13 +60,7 @@ __skipped::__skipped(const char *file_arg, int line_arg, const char *func_arg):
 __failure::__failure(const char *file_arg, int line_arg, const char *func_arg, const std::string& mesg):
   __test_result(file_arg, line_arg, func_arg)
 {
-  snprintf(_error_message, sizeof(_error_message), "FAIL: %.*s", int(mesg.size()), mesg.c_str());
-}
-
-__failure::__failure(const char *file_arg, int line_arg, const char *func_arg):
-  __test_result(file_arg, line_arg, func_arg)
-{
-  snprintf(_error_message, sizeof(_error_message), "FAIL");
+  snprintf(_error_message, sizeof(_error_message), "%.*s", int(mesg.size()), mesg.c_str());
 }
 
 } // namespace libtest
