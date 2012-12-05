@@ -174,8 +174,8 @@ AC_CHECK_FUNCS([memmove])
 AC_CHECK_FUNCS([memset])
 AC_CHECK_FUNCS([pipe])
 AC_CHECK_FUNCS([pipe2], 
-               [AC_DEFINE([HAVE_PIPE2], [1], [Have pipe2]),
-               AC_DEFINE([HAVE_PIPE2], [0], [Have pipe2])])
+               [AC_DEFINE([HAVE_PIPE2], [1], [Have pipe2])],
+               [AC_DEFINE([HAVE_PIPE2], [0], [Have pipe2])])
 AC_CHECK_FUNCS([select])
 AC_CHECK_FUNCS([setenv])
 AC_CHECK_FUNCS([socket])

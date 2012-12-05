@@ -69,6 +69,8 @@ using namespace libtest;
 
 static int sql_print(void *, int argc, char **argv, char **)
 {
+  (void)argc;
+  (void)argv;
   assert(argc == 2);
 
   return 0;
