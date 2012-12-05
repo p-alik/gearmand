@@ -117,7 +117,8 @@ Server::Server(const std::string& host_arg, const in_port_t port_arg,
   _port(port_arg),
   _hostname(host_arg),
   _app(executable, _is_libtool),
-  out_of_ban_killed_(false)
+  out_of_ban_killed_(false),
+  _timeout(40)
 {
 }
 
@@ -271,7 +272,6 @@ bool Server::start()
   bool pinged= false;
   uint32_t this_wait= 0;
   {
-    uint32_t timeout= 40; // This number should be high enough for valgrind startup (which is slow)
     uint32_t waited;
     uint32_t retry;
 
@@ -286,7 +286,7 @@ bool Server::start()
       {
         break;
       }
-      else if (waited >= timeout)
+      else if (waited >= _timeout)
       {
         break;
       }

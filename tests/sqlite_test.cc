@@ -244,10 +244,8 @@ static test_return_t collection_cleanup(void *object)
 }
 
 
-static test_return_t lp_1054377_TEST(void *object)
+static test_return_t queue_restart_TEST(Context *test, const int32_t inserted_jobs, uint32_t timeout)
 {
-  Context *test= (Context *)object;
-  test_truth(test);
   server_startup_st &servers= test->_servers;
 
   std::string sql_file= libtest::create_tmpfile("sqlite");
@@ -261,7 +259,6 @@ static test_return_t lp_1054377_TEST(void *object)
     sql_buffer,
     0 };
 
-  const int32_t inserted_jobs= 8;
   {
     in_port_t first_port= libtest::get_free_port();
 
@@ -279,11 +276,33 @@ static test_return_t lp_1054377_TEST(void *object)
       gearman_job_handle_t job_handle;
       for (int32_t x= 0; x < inserted_jobs; ++x)
       {
-        test_compare(gearman_client_do_background(&client,
-                                                  __func__, // func
-                                                  NULL, // unique
-                                                  test_literal_param("foo"),
-                                                  job_handle), GEARMAN_SUCCESS);
+        switch (random() % 3)
+        {
+        case 0:
+          test_compare(gearman_client_do_background(&client,
+                                                    __func__, // func
+                                                    NULL, // unique
+                                                    test_literal_param("foo"),
+                                                    job_handle), GEARMAN_SUCCESS);
+          break;
+
+        case 1:
+          test_compare(gearman_client_do_low_background(&client,
+                                                        __func__, // func
+                                                        NULL, // unique
+                                                        test_literal_param("fudge"),
+                                                        job_handle), GEARMAN_SUCCESS);
+          break;
+
+        default:
+        case 2:
+          test_compare(gearman_client_do_high_background(&client,
+                                                         __func__, // func
+                                                         NULL, // unique
+                                                         test_literal_param("history"),
+                                                         job_handle), GEARMAN_SUCCESS);
+          break;
+        }
       }
     }
 
@@ -313,6 +332,11 @@ static test_return_t lp_1054377_TEST(void *object)
     in_port_t first_port= libtest::get_free_port();
 
     test_true(server_startup(servers, "gearmand", first_port, 2, argv));
+
+    if (timeout)
+    {
+      servers.last()->timeout(timeout);
+    }
 
     {
       Worker worker(first_port);
@@ -375,6 +399,23 @@ static test_return_t lp_1054377_TEST(void *object)
   return TEST_SUCCESS;
 }
 
+static test_return_t lp_1054377_TEST(void* object)
+{
+  Context *test= (Context *)object;
+  test_truth(test);
+
+  return queue_restart_TEST(test, 8, 0);
+}
+
+static test_return_t lp_1054377x20K_TEST(void* object)
+{
+  test_skip(true, libtest::is_massive());
+
+  Context *test= (Context *)object;
+  test_truth(test);
+
+  return queue_restart_TEST(test, 20000, 200);
+}
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
@@ -419,6 +460,7 @@ test_st regressions[] ={
 
 test_st queue_restart_TESTS[] ={
   {"lp:1054377", 0, lp_1054377_TEST },
+  {"lp:1054377 x 20000", 0, lp_1054377x20K_TEST },
   {0, 0, 0}
 };
 
