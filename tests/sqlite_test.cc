@@ -39,6 +39,8 @@
 #include "gear_config.h"
 #include <libtest/test.hpp>
 
+#include <sqlite3.h>
+
 using namespace libtest;
 
 #include <cassert>
@@ -49,6 +51,8 @@ using namespace libtest;
 
 #include <libgearman/gearman.h>
 
+#define GEARMAN_QUEUE_SQLITE_DEFAULT_TABLE "gearman_queue"
+
 #include <tests/basic.h>
 #include <tests/context.h>
 #include <tests/client.h>
@@ -56,18 +60,124 @@ using namespace libtest;
 
 #include "tests/workers/v2/called.h"
 
+#include <climits>
+
 // Prototypes
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
+#if defined(HAVE_LIBSQLITE3) && HAVE_LIBSQLITE3
+static int sql_print(void *, int argc, char **argv, char **)
+{
+  assert(argc == 2);
+
+  return 0;
+}
+
+static int sql_count(void * rows_, int argc, char **argv, char **)
+{
+  if (argc)
+  {
+    int *rows= (int*)rows_;
+    *rows= atoi(argv[0]);
+  }
+
+  return 0;
+}
+
+class Sqlite {
+public:
+  Sqlite(const std::string& schema_)
+  {
+    if (sqlite3_open(schema_.c_str(), &_db) != SQLITE_OK)
+    {
+      FAIL(sqlite3_errmsg(_db));
+    }
+    sqlite3_busy_timeout(_db, 6000);
+  }
+
+  ~Sqlite()
+  {
+    if (_db)
+    {
+      sqlite3_close(_db);
+      _db= NULL;
+    }
+  }
+
+  int vcount()
+  {
+    reset_error();
+    std::string count_query;
+    count_query+= "SELECT count(*) FROM ";
+    count_query+= GEARMAN_QUEUE_SQLITE_DEFAULT_TABLE;
+
+    int rows= 0;
+    char *err= NULL;
+    sqlite3_exec(_db, count_query.c_str(), sql_count, &rows, &err);
+
+    if (err != NULL)
+    {
+      _error_string= err;
+      sqlite3_free(err);
+      return -1;
+    }
+
+    return rows;
+  }
+
+  void vprint_unique()
+  {
+    reset_error();
+
+    std::string count_query;
+    count_query+= "SELECT unique_key, function_name FROM ";
+    count_query+= GEARMAN_QUEUE_SQLITE_DEFAULT_TABLE;
+
+    char *err= NULL;
+    sqlite3_exec(_db, count_query.c_str(), sql_print, NULL, &err);
+
+    if (err != NULL)
+    {
+      _error_string= err;
+      sqlite3_free(err);
+    }
+  }
+
+  bool has_error()
+  {
+    return _error_string.size();
+  }
+
+  const std::string& error_string()
+  {
+    return _error_string;
+  }
+
+protected:
+  void reset_error()
+  {
+    _error_string.clear();
+  }
+
+  std::string _error_string;
+
+private:
+  sqlite3 *_db;
+};
+
+#endif // HAVE_LIBSQLITE3
+
 static bool test_for_HAVE_LIBSQLITE3(test_return_t &error)
 {
+#if defined(HAVE_LIBSQLITE3)
   if (HAVE_LIBSQLITE3)
   {
     error= TEST_SUCCESS;
     return true;
   }
+#endif
 
   error= TEST_SKIPPED;
   return false;
@@ -145,6 +255,10 @@ static test_return_t lp_1054377_TEST(void *object)
 
   std::string sql_file= libtest::create_tmpfile("sqlite");
 
+#if defined(HAVE_LIBSQLITE3) && HAVE_LIBSQLITE3
+  Sqlite sql_handle(sql_file);
+#endif
+
   char sql_buffer[1024];
   snprintf(sql_buffer, sizeof(sql_buffer), "--libsqlite3-db=%.*s", int(sql_file.length()), sql_file.c_str());
   const char *argv[]= {
@@ -181,6 +295,25 @@ static test_return_t lp_1054377_TEST(void *object)
     servers.clear();
   }
 
+#if defined(HAVE_LIBSQLITE3) && HAVE_LIBSQLITE3
+  {
+    if (sql_handle.vcount() != inserted_jobs)
+    {
+      if (sql_handle.has_error())
+      {
+        Error << sql_handle.error_string();
+      }
+      else
+      {
+        Out << "sql_handle.vprint_unique()";
+        sql_handle.vprint_unique();
+      }
+    }
+
+    test_compare(sql_handle.vcount(), inserted_jobs);
+  }
+#endif
+
   test_compare(0, access(sql_file.c_str(), R_OK | W_OK ));
 
   {
@@ -215,16 +348,38 @@ static test_return_t lp_1054377_TEST(void *object)
         }
         else if (ret == GEARMAN_TIMEOUT)
         {
+          Error << " hit timeout";
           if ((--max_timeout_value) < 0)
           {
             break;
           }
         }
       } while (ret == GEARMAN_TIMEOUT or ret == GEARMAN_SUCCESS);
-
       test_compare(called.count(), inserted_jobs);
     }
+
+    servers.clear();
   }
+
+#if defined(HAVE_LIBSQLITE3) && HAVE_LIBSQLITE3
+  {
+    if (sql_handle.vcount() != 0)
+    {
+      Error << "make";
+      if (sql_handle.has_error())
+      {
+        Error << sql_handle.error_string();
+      }
+      else
+      {
+        Out << "sql_handle.vprint_unique()";
+        sql_handle.vprint_unique();
+      }
+    }
+
+    test_zero(sql_handle.vcount());
+  }
+#endif
 
   return TEST_SUCCESS;
 }

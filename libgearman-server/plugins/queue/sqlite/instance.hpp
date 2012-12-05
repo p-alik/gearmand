@@ -87,7 +87,7 @@ private:
   bool _sqlite_dispatch(const std::string& arg);
   bool _sqlite_dispatch(const char* arg);
   bool _sqlite_count(const char* arg, int& count);
-  bool _sqlite_prepare(const char *query, size_t query_size, sqlite3_stmt ** sth);
+  bool _sqlite_prepare(const std::string& query_size, sqlite3_stmt ** sth);
   bool _sqlite_commit();
   bool _sqlite_rollback();
   bool _sqlite_lock();
