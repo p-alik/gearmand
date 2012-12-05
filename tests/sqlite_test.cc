@@ -67,7 +67,6 @@ using namespace libtest;
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
-#if defined(HAVE_LIBSQLITE3) && HAVE_LIBSQLITE3
 static int sql_print(void *, int argc, char **argv, char **)
 {
   assert(argc == 2);
@@ -167,17 +166,13 @@ private:
   sqlite3 *_db;
 };
 
-#endif // HAVE_LIBSQLITE3
-
 static bool test_for_HAVE_LIBSQLITE3(test_return_t &error)
 {
-#if defined(HAVE_LIBSQLITE3)
   if (HAVE_LIBSQLITE3)
   {
     error= TEST_SUCCESS;
     return true;
   }
-#endif
 
   error= TEST_SKIPPED;
   return false;
@@ -255,9 +250,7 @@ static test_return_t lp_1054377_TEST(void *object)
 
   std::string sql_file= libtest::create_tmpfile("sqlite");
 
-#if defined(HAVE_LIBSQLITE3) && HAVE_LIBSQLITE3
   Sqlite sql_handle(sql_file);
-#endif
 
   char sql_buffer[1024];
   snprintf(sql_buffer, sizeof(sql_buffer), "--libsqlite3-db=%.*s", int(sql_file.length()), sql_file.c_str());
@@ -295,7 +288,6 @@ static test_return_t lp_1054377_TEST(void *object)
     servers.clear();
   }
 
-#if defined(HAVE_LIBSQLITE3) && HAVE_LIBSQLITE3
   {
     if (sql_handle.vcount() != inserted_jobs)
     {
@@ -312,7 +304,6 @@ static test_return_t lp_1054377_TEST(void *object)
 
     test_compare(sql_handle.vcount(), inserted_jobs);
   }
-#endif
 
   test_compare(0, access(sql_file.c_str(), R_OK | W_OK ));
 
@@ -361,7 +352,6 @@ static test_return_t lp_1054377_TEST(void *object)
     servers.clear();
   }
 
-#if defined(HAVE_LIBSQLITE3) && HAVE_LIBSQLITE3
   {
     if (sql_handle.vcount() != 0)
     {
@@ -379,7 +369,6 @@ static test_return_t lp_1054377_TEST(void *object)
 
     test_zero(sql_handle.vcount());
   }
-#endif
 
   return TEST_SUCCESS;
 }

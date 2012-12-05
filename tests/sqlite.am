@@ -12,6 +12,7 @@
 
 CLEANFILES+= tests/gearman.sql tests/gearman.sql-journal tests/gearmand.log*
 
+if HAVE_LIBSQLITE3
 tests_sqlite_test_CFLAGS=
 tests_sqlite_test_CXXFLAGS=
 tests_sqlite_test_DEPENDENCIES=
@@ -39,3 +40,4 @@ helgrind-sqlite: tests/sqlite_test gearmand/gearmand
 
 valgrind-sqlite: tests/sqlite_test gearmand/gearmand
 	@$(VALGRIND_COMMAND) tests/sqlite_test
+endif
