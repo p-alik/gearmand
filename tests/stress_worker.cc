@@ -148,36 +148,65 @@ extern "C" {
   }
 }
 
-static bool join_thread(pthread_t& thread_arg, struct timespec& ts)
+static bool fill_timespec(struct timespec& ts)
+{
+#if defined(HAVE_LIBRT) && HAVE_LIBRT
+  if (HAVE_LIBRT) // This won't be called on OSX, etc,...
+  {
+    if (clock_gettime(CLOCK_REALTIME, &ts) == -1) 
+    {
+      Error << "clock_gettime(CLOCK_REALTIME) " << strerror(errno);
+      return false;
+    }
+  }
+#else
+  {
+    struct timeval tv;
+    if (gettimeofday(&tv, NULL) == -1) 
+    {
+      Error << "gettimeofday() " << strerror(errno);
+      return false;
+    }
+
+    TIMEVAL_TO_TIMESPEC(&tv, &ts);
+  }
+#endif
+
+  return true;
+}
+
+static bool join_thread(pthread_t& thread_arg)
 {
   int error;
-  ts.tv_sec+= 10;
 
   if (HAVE_PTHREAD_TIMEDJOIN_NP)
   {
 #if defined(HAVE_PTHREAD_TIMEDJOIN_NP) && HAVE_PTHREAD_TIMEDJOIN_NP
-    int limit= 3;
+    int limit= 2;
     while (--limit)
     {
-      switch ((error= pthread_timedjoin_np(thread_arg, NULL, &ts)))
+      struct timespec ts;
+      if (fill_timespec(ts))
       {
-      case ETIMEDOUT:
-        libtest::dream(1, 0);
-        continue;
+        ts.tv_sec+= 30;
+        switch ((error= pthread_timedjoin_np(thread_arg, NULL, &ts)))
+        {
+        case ETIMEDOUT:
+          continue;
 
-      case 0:
-        return true;
+        case 0:
+          return true;
 
-      case ESRCH:
-        return false;
+        case ESRCH:
+          return false;
 
-      default:
-        Error << "pthread_timedjoin_np() " << strerror(error);
-        return false;
+        default:
+          Error << "pthread_timedjoin_np() " << strerror(error);
+          return false;
+        }
       }
     }
 
-    Out << "Limit reached, pthread_timedjoin_np() " << strerror(error);
     if ((error= pthread_cancel(thread_arg)) != 0)
     {
       Error << "pthread_cancel() " << strerror(error);
@@ -216,33 +245,6 @@ static test_return_t send_random_port_data_TEST(void* )
   return TEST_SUCCESS;
 }
 
-static bool fill_timespec(struct timespec& ts)
-{
-#if defined(HAVE_LIBRT) && HAVE_LIBRT
-  if (HAVE_LIBRT) // This won't be called on OSX, etc,...
-  {
-    if (clock_gettime(CLOCK_REALTIME, &ts) == -1) 
-    {
-      Error << "clock_gettime(CLOCK_REALTIME) " << strerror(errno);
-      return false;
-    }
-  }
-#else
-  {
-    struct timeval tv;
-    if (gettimeofday(&tv, NULL) == -1) 
-    {
-      Error << "gettimeofday() " << strerror(errno);
-      return false;
-    }
-
-    TIMEVAL_TO_TIMESPEC(&tv, &ts);
-  }
-#endif
-
-  return true;
-}
-
 static test_return_t worker_ramp_exec(const size_t payload_size)
 {
   set_alarm(1200, 0);
@@ -266,11 +268,7 @@ static test_return_t worker_ramp_exec(const size_t payload_size)
     int limit= 3;
     while (join_success == false and --limit)
     {
-      struct timespec ts;
-      if (fill_timespec(ts))
-      {
-        join_success= join_thread(thread, ts);
-      }
+      join_success= join_thread(thread);
     }
 
     if (join_success == false)
