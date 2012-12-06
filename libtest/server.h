@@ -265,6 +265,11 @@ public:
     return out_of_ban_killed_;
   }
 
+  void timeout(uint32_t timeout_)
+  {
+    _timeout= timeout_;
+  }
+
 protected:
   bool set_pid_file();
   Options _options;
@@ -281,6 +286,7 @@ private:
   bool args(Application&);
 
   std::string _error;
+  uint32_t _timeout; // This number should be high enough for valgrind startup (which is slow)
 };
 
 std::ostream& operator<<(std::ostream& output, const libtest::Server &arg);

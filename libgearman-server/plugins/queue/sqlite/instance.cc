@@ -110,17 +110,17 @@ void Instance::_sqlite3_finalize(sqlite3_stmt* sth)
   }
 }
 
-bool Instance::_sqlite_prepare(const char *query, size_t query_size, sqlite3_stmt ** sth)
+bool Instance::_sqlite_prepare(const std::string& query, sqlite3_stmt ** sth)
 {
   reset_error();
-  if (query_size > UINT32_MAX)
+  if (query.size() > UINT32_MAX)
   {
     _error_string= "query size too big";
     return false;
   }
 
-  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "sqlite query: %s", query);
-  if (sqlite3_prepare_v2(_db, query, int(query_size), sth, NULL) != SQLITE_OK)
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "sqlite query: %s", query.c_str());
+  if (sqlite3_prepare_v2(_db, query.c_str(), -1, sth, NULL) != SQLITE_OK)
   {
     _error_string= sqlite3_errmsg(_db);
     return false;
@@ -131,17 +131,14 @@ bool Instance::_sqlite_prepare(const char *query, size_t query_size, sqlite3_stm
 
 bool Instance::_sqlite_lock()
 {
-  if (_in_trans)
+  /* already in transaction? */
+  if (_in_trans == 0)
   {
-    /* already in transaction */
-    return true;
+    if (_sqlite_dispatch("BEGIN TRANSACTION") == false)
+    {
+      return false;
+    }
   }
-
-  if (_sqlite_dispatch("BEGIN TRANSACTION") == false)
-  {
-    return false;
-  }
-
   _in_trans++;
 
   return true;
@@ -185,40 +182,24 @@ bool Instance::_sqlite_count(const char* arg, int& count)
 
 bool Instance::_sqlite_count(const std::string& arg, int& count)
 {
-  reset_error();
-  count= 0;
-
-  char* error= NULL;
-  int errcode= sqlite3_exec(_db, arg.c_str(), sql_count, &count, &error);
-  if (error != NULL or errcode != SQLITE_OK)
-  {
-    assert(errcode != SQLITE_OK);
-    _error_string= error;
-    sqlite3_free(error);
-
-    return false;
-  }
-
-  return true;
+  return _sqlite_count(arg.c_str(), count);
 }
 
 bool Instance::_sqlite_dispatch(const std::string& arg)
 {
   int count;
-  return _sqlite_count(arg, count);
+  return _sqlite_count(arg.c_str(), count);
 }
 
 bool Instance::_sqlite_commit()
 {
-  if (_in_trans == 0)
+  /* not in transaction? */
+  if (_in_trans)
   {
-    /* not in transaction */
-    return true;
-  }
-
-  if (_sqlite_dispatch("COMMIT") == false)
-  {
-    return false;
+    if (_sqlite_dispatch("COMMIT") == false)
+    {
+      return false;
+    }
   }
 
   _in_trans= 0;
@@ -248,6 +229,10 @@ gearmand_error_t Instance::init()
     return gearmand_log_gerror(GEARMAN_DEFAULT_LOG_PARAM, GEARMAN_QUEUE_ERROR, "Unknown error while opening up sqlite file");
   }
 
+  // The only reason why we do this is because during testing we might read the
+  // database which can cause a lock conflict.
+  sqlite3_busy_timeout(_db, 6000);
+
   int rows;
   std::string check_table_str("SELECT 1 FROM sqlite_master WHERE type='table' AND name='");
   check_table_str+= _table;
@@ -262,8 +247,8 @@ gearmand_error_t Instance::init()
   {
     std::string query("SELECT when_to_run FROM ");
     query+= _table;
-    sqlite3_stmt *select_sth;
-    if (_sqlite_prepare(query.c_str(), _delete_query.size(), &select_sth) == false)
+    sqlite3_stmt* select_sth= NULL;
+    if (_sqlite_prepare(query, &select_sth) == false)
     {
       gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
                           "Error from '%s': %s",
@@ -299,14 +284,14 @@ gearmand_error_t Instance::init()
     }
   }
 
-  if (_sqlite_prepare(_delete_query.c_str(), _delete_query.size(), &delete_sth) == false)
+  if (_sqlite_prepare(_delete_query, &delete_sth) == false)
   {
     return gearmand_log_gerror(GEARMAN_DEFAULT_LOG_PARAM, GEARMAN_QUEUE_ERROR,
                                "DELETE PREPARE error: %s",
                                _error_string.c_str());
   }
 
-  if (_sqlite_prepare(_insert_query.c_str(), _insert_query.size(), &insert_sth) == false)
+  if (_sqlite_prepare(_insert_query, &insert_sth) == false)
   {
     return gearmand_log_gerror(GEARMAN_DEFAULT_LOG_PARAM, GEARMAN_QUEUE_ERROR,
                                "INSERT PREPARE: %s",  _error_string.c_str());
@@ -324,7 +309,7 @@ gearmand_error_t Instance::init()
     }
     query+= _table;
 
-    if (_sqlite_prepare(query.c_str(), query.size(), &replay_sth) == false)
+    if (_sqlite_prepare(query, &replay_sth) == false)
     {
       return gearmand_log_gerror(GEARMAN_DEFAULT_LOG_PARAM, GEARMAN_QUEUE_ERROR,
                                  "REPLAY PREPARE: %s", _error_string.c_str());
@@ -337,15 +322,13 @@ gearmand_error_t Instance::init()
 
 bool Instance::_sqlite_rollback()
 {
-  if (_in_trans == 0)
+  /* not in transaction? */
+  if (_in_trans)
   {
-    /* not in transaction */
-    return true;
-  }
-
-  if (_sqlite_dispatch("ROLLBACK") == false)
-  {
-    return false;
+    if (_sqlite_dispatch("ROLLBACK") == false)
+    {
+      return false;
+    }
   }
 
   _in_trans= 0;
@@ -367,10 +350,13 @@ gearmand_error_t Instance::add(gearman_server_st*,
     return gearmand_gerror("Table lacks when_to_run field", GEARMAN_QUEUE_ERROR);
   }
 
-  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "sqlite add: %.*s %.*s at %ld",
-                     uint32_t(unique_size), (char *)unique,
-                     uint32_t(function_name_size), (char *)function_name,
-                     (long int)when);
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
+                     "sqlite add: priority: %d, unique_key: %.*s, function_name: %.*s when: %ld size: %u",
+                     int(priority),
+                     int(unique_size), (char*)unique,
+                     int(function_name_size), (char*)function_name,
+                     (long int)when,
+                     uint32_t(data_size));
 
   if (_sqlite_lock() ==  false)
   {
@@ -414,11 +400,6 @@ gearmand_error_t Instance::add(gearman_server_st*,
                                "failed to bind epoch int64_t(%ld): %s", (long int)when, sqlite3_errmsg(_db));
   }
 
-  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
-                     "sqlite data: priority: %d, unique_key: %s, function_name: %s",
-                     priority, (char*)unique, (char*)function_name);
-
-
   // INSERT happens here
   if (sqlite3_step(insert_sth) != SQLITE_DONE)
   {
@@ -449,7 +430,10 @@ gearmand_error_t Instance::done(gearman_server_st*,
                                    const char *function_name,
                                    size_t function_name_size)
 {
-  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "sqlite done: %.*s", uint32_t(unique_size), (char *)unique);
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
+                     "sqlite done: unique_key: %.*s, function_name: %.*s",
+                     int(unique_size), (char*)unique,
+                     int(function_name_size), (char*)function_name);
 
   if (_sqlite_lock() == false)
   {
@@ -580,7 +564,10 @@ gearmand_error_t Instance::replay_loop(gearman_server_st *server)
       when= 0;
     }
 
-    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "sqlite replay: %s %s", (char*)unique, (char*)function_name);
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
+                       "sqlite replay: unique_key: %.*s, function_name: %.*s",
+                       int(unique_size), (char*)unique,
+                       int(function_name_size), (char*)function_name);
 
     gret= Instance::replay_add(server,
                                NULL,
