@@ -39,6 +39,7 @@
 #pragma once
 
 #include "libgearman/assert.hpp"
+#include <cstring>
 
 struct gearman_result_st
 {
@@ -55,6 +56,7 @@ struct gearman_result_st
     _is_null(true),
     type(GEARMAN_RESULT_BOOLEAN)
   {
+    memset(&value.string, 0, sizeof(gearman_vector_st));
     value.boolean= false;
   }
 
@@ -77,6 +79,7 @@ struct gearman_result_st
     }
 
     type= GEARMAN_RESULT_BOOLEAN;
+    value.boolean= false;
     _is_null= true;
   }
 

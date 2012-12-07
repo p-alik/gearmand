@@ -46,6 +46,7 @@
 namespace libtest {
 
 SimpleClient::SimpleClient(const std::string& hostname_, in_port_t port_) :
+  _is_connected(false),
   _hostname(hostname_),
   _port(port_),
   sock_fd(INVALID_SOCKET),
@@ -60,7 +61,13 @@ bool SimpleClient::ready(int event_)
   fds[0].events= event_;
   fds[0].revents= 0;
 
-  int ready_fds= poll(fds, 1, 5000);
+  int timeout= 5000;
+  if (_is_connected == false)
+  {
+    timeout= timeout * 30;
+  }
+
+  int ready_fds= poll(fds, 1, timeout);
 
   if (ready_fds == -1)
   {
@@ -90,6 +97,7 @@ bool SimpleClient::ready(int event_)
       return false;
     }
 
+    _is_connected= true;
     if (fds[0].revents & event_)
     {
       return true;
@@ -139,12 +147,16 @@ SimpleClient::~SimpleClient()
 
 void SimpleClient::close_socket()
 {
-  close(sock_fd);
-  sock_fd= INVALID_SOCKET;
+  if (sock_fd != INVALID_SOCKET)
+  {
+    close(sock_fd);
+    sock_fd= INVALID_SOCKET;
+  }
 }
 
 bool SimpleClient::instance_connect()
 {
+  _is_connected= false;
   struct addrinfo *ai;
   if ((ai= lookup()))
   {
