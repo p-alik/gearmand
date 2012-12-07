@@ -69,6 +69,7 @@ private: // Methods
   bool ready(int event_);
 
 private:
+  bool _is_connected;
   std::string _hostname;
   in_port_t _port;
   int sock_fd;

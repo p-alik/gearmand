@@ -178,8 +178,11 @@ gearman_return_t gearman_result_store_value(gearman_result_st *self, const void 
   }
   else
   {
+    if (gearman_string_create(&self->value.string, size) == NULL)
+    {
+      return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+    }
     self->type= GEARMAN_RESULT_BINARY;
-    gearman_string_create(&self->value.string, size);
   }
   self->_is_null= false;
 

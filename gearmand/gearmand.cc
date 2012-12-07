@@ -343,6 +343,7 @@ int main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
+  assert(queue_type.size());
   if (queue_type.empty() == false)
   {
     gearmand_error_t rc;

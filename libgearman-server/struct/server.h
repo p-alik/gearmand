@@ -57,6 +57,7 @@ struct queue_st {
 };
 
 enum queue_version_t {
+  QUEUE_VERSION_NONE,
   QUEUE_VERSION_FUNCTION,
   QUEUE_VERSION_CLASS
 };
@@ -65,7 +66,7 @@ enum queue_version_t {
 namespace gearmand { namespace queue { class Context; } }
 #endif
 
-union queue_un {
+struct Queue_st {
   struct queue_st* functions;
 #ifdef __cplusplus
   gearmand::queue::Context* object;
@@ -110,7 +111,7 @@ struct gearman_server_st
   gearman_server_client_st *free_client_list;
   gearman_server_worker_st *free_worker_list;
   enum queue_version_t queue_version;
-  union queue_un queue;
+  struct Queue_st queue;
   pthread_mutex_t proc_lock;
   pthread_cond_t proc_cond;
   pthread_t proc_id;

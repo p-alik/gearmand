@@ -52,7 +52,7 @@
 # ?  _APPEND_COMPILE_FLAGS_ERROR([-Wlong-long]) -- Don't turn on for
 # compatibility issues memcached_stat_st
 
-#serial 6
+#serial 7
 
 AC_DEFUN([_APPEND_LINK_FLAGS_ERROR],
          [AC_REQUIRE([AX_APPEND_LINK_FLAGS])
@@ -134,14 +134,15 @@ AC_DEFUN([_HARDEN_CC_COMPILER_FLAGS],
           _APPEND_COMPILE_FLAGS_ERROR([-fwrapv])
           _APPEND_COMPILE_FLAGS_ERROR([-fmudflapt])
 
-          AS_IF([test "x$ac_cv_vcs_checkout" = xyes],
-                [_APPEND_COMPILE_FLAGS_ERROR([-fstack-check])
-                AS_IF([test "x$ac_c_gcc_recent" = xyes],
-                      [_APPEND_COMPILE_FLAGS_ERROR([-D_FORTIFY_SOURCE=2])
-                      _APPEND_COMPILE_FLAGS_ERROR([-Wstack-protector])
-                      _APPEND_COMPILE_FLAGS_ERROR([-fstack-protector])
-                      _APPEND_COMPILE_FLAGS_ERROR([-fstack-protector-all])
-                      ])])
+          AS_IF([test "x$ax_enable_debug" = xno],
+            [AS_IF([test "x$ac_cv_vcs_checkout" = xyes],
+                  [_APPEND_COMPILE_FLAGS_ERROR([-fstack-check])
+                  AS_IF([test "x$ac_c_gcc_recent" = xyes],
+                        [_APPEND_COMPILE_FLAGS_ERROR([-D_FORTIFY_SOURCE=2])
+                        _APPEND_COMPILE_FLAGS_ERROR([-Wstack-protector])
+                        _APPEND_COMPILE_FLAGS_ERROR([-fstack-protector])
+                        _APPEND_COMPILE_FLAGS_ERROR([-fstack-protector-all])
+                        ])])])
 
          AS_IF([test "x$ac_cv_vcs_checkout" = xyes],
                [_APPEND_COMPILE_FLAGS_ERROR([-fstack-check])],
@@ -210,14 +211,15 @@ AC_DEFUN([_HARDEN_CXX_COMPILER_FLAGS],
             _APPEND_COMPILE_FLAGS_ERROR([-fwrapv])
             _APPEND_COMPILE_FLAGS_ERROR([-fmudflapt])
 
-            AS_IF([test "x$ac_cv_vcs_checkout" = xyes],
+            AS_IF([test "x$ax_enable_debug" = xno],
+            [AS_IF([test "x$ac_cv_vcs_checkout" = xyes],
                   [_APPEND_COMPILE_FLAGS_ERROR([-fstack-check])
                   AS_IF([test "x$ac_c_gcc_recent" = xyes],
                         [_APPEND_COMPILE_FLAGS_ERROR([-D_FORTIFY_SOURCE=2])
                         _APPEND_COMPILE_FLAGS_ERROR([-Wstack-protector])
                         _APPEND_COMPILE_FLAGS_ERROR([-fstack-protector])
                         _APPEND_COMPILE_FLAGS_ERROR([-fstack-protector-all])
-                        ])])
+                        ])])])
 
             AS_IF([test "x$ac_cv_warnings_as_errors" = xyes],
                   [_APPEND_COMPILE_FLAGS_ERROR([-Werror])])
