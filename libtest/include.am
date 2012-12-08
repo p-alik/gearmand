@@ -34,8 +34,6 @@ drd:
 EXTRA_DIST+= libtest/run.gdb
 EXTRA_DIST+= libtest/version.h
 
-CLEANFILES+= tmp_chroot
-
 BUILT_SOURCES+= libtest/version.h
 
 .PHONY: clean-libtest-check
@@ -196,29 +194,13 @@ libtest_libtest_la_SOURCES+= util/operation.cc
 endif
 endif
 
-libtest_tmp_dir: tmp_chroot/var/log tmp_chroot/var/tmp tmp_chroot/var/run tmp_chroot/var/drizzle
+TMP_DIR := tmp_chroot/etc tmp_chroot/var/log tmp_chroot/var/tmp tmp_chroot/var/run tmp_chroot/var/drizzle
 
-tmp_chroot: tmp_chroot/etc
-	@$(mkdir_p) tmp_chroot
+.PHONY: libtest_tmp_dir
+libtest_tmp_dir: | $(TMP_DIR)
 
-tmp_chroot/etc:
-	@$(mkdir_p) tmp_chroot/etc
-
-tmp_chroot/var: tmp_chroot
-	@$(mkdir_p) tmp_chroot/var
-
-tmp_chroot/var/log: tmp_chroot/var
-	@$(mkdir_p) tmp_chroot/var/log
-
-tmp_chroot/var/tmp: tmp_chroot/var
-	@$(mkdir_p) tmp_chroot/var/tmp
-
-tmp_chroot/var/drizzle: tmp_chroot/var
-	@$(mkdir_p) tmp_chroot/var/drizzle
-
-tmp_chroot/var/run: tmp_chroot/var
-	@$(mkdir_p) tmp_chroot/var/run
-
+$(TMP_DIR):
+	@$(mkdir_p) $(TMP_DIR)
 
 libtest_unittest_DEPENDENCIES+= libtest/libtest.la
 libtest_unittest_LDADD+= libtest/libtest.la
