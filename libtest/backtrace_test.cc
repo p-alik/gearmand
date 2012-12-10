@@ -34,52 +34,90 @@
  *
  */
 
-#pragma once
+#include <cerrno>
+#include <csignal>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <iostream>
 
-#include <string>
+#include "libgearman/backtrace.hpp"
 
-namespace libtest { class Framework; }
-
-
-namespace libtest {
-
-class TestCase;
-typedef std::vector<libtest::TestCase*> TestCases;
-
-class Formatter {
+class Test {
 public:
-  Formatter(const std::string& frame_name, const std::string& arg);
-
-  ~Formatter();
-
-  void skipped();
-
-  void failed();
-
-  void success(const libtest::Timer&);
-
-  void push_testcase(const std::string&);
-
-  const std::string& name() const
+  Test()
   {
-    return _suite_name;
   }
 
-  TestCases& testcases()
+  void call_backtrace()
   {
-    return _testcases;
+    std::cerr << __func__ << std::endl;
+    custom_backtrace();
   }
-
-  static void xml(libtest::Framework&, std::ofstream&);
-
-private:
-  void reset();
-
-  TestCase* current();
-
-private:
-  std::string _suite_name;
-  TestCases _testcases;
 };
 
-} // namespace libtest
+void SIGSEGV_handler(int sig_num, siginfo_t* info, void* ucontext)
+{
+  std::cerr << __func__ << std::endl;
+  (void)sig_num;
+  (void)info;
+  (void)ucontext;
+
+  custom_backtrace();
+}
+
+int raise_SIGSEGV()
+{
+  std::cerr << std::endl << "Calling backtrace()" << std::endl;
+  custom_backtrace();
+  std::cerr << std::endl << "Calling raise()" << std::endl;
+  return raise(SIGSEGV);
+}
+
+int layer4()
+{
+  return raise_SIGSEGV();
+}
+
+int layer3()
+{
+  return layer4();
+}
+
+int layer2()
+{
+  return layer3();
+}
+
+int layer1()
+{
+  return layer2();
+}
+
+int main(int, char **)
+{
+  Test t;
+
+  t.call_backtrace();
+
+  struct sigaction sigact;
+
+  sigact.sa_sigaction= SIGSEGV_handler;
+  sigact.sa_flags= SA_RESTART | SA_SIGINFO;
+
+  if (sigaction(SIGSEGV, &sigact, (struct sigaction *)NULL) != 0)
+  {
+    std::cerr << "error setting signal handler for " << strsignal(SIGSEGV) << "(" <<  SIGSEGV << ")" << std::endl;
+
+    exit(EXIT_FAILURE);
+  }
+
+  int ret= layer1();
+  if (ret)
+  {
+    std::cerr << "raise() " << strerror(errno) << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+  exit(EXIT_SUCCESS);
+}

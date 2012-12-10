@@ -291,8 +291,6 @@ bool Server::start()
         break;
       }
 
-      Error << "ping(" << _app.pid() << ") wait: " << this_wait << " " << hostname() << ":" << port() << " " << error();
-
       this_wait= retry * retry / 3 + 1;
       libtest::dream(this_wait, 0);
     }
@@ -300,6 +298,8 @@ bool Server::start()
 
   if (pinged == false)
   {
+    Error << "ping(" << _app.pid() << ") wait: " << this_wait << " " << hostname() << ":" << port() << " run:" << _running << " " << error();
+
     // If we happen to have a pid file, lets try to kill it
     if ((pid_file().empty() == false) and (access(pid_file().c_str(), R_OK) == 0))
     {
