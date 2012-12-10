@@ -241,16 +241,6 @@ bool server_startup_st::start_server(const std::string& server_type, in_port_t t
         }
       }
     }
-    else if (server_type.compare("memcached-sasl") == 0)
-    {
-      if (MEMCACHED_SASL_BINARY)
-      {
-        if (HAVE_LIBMEMCACHED)
-        {
-          server= build_memcached_sasl("localhost", try_port, username(), password());
-        }
-      }
-    }
     else if (server_type.compare("memcached") == 0)
     {
       if (HAVE_MEMCACHED_BINARY)
