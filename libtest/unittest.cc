@@ -396,7 +396,6 @@ static test_return_t server_startup_TEST(void *object)
   server_startup_st *servers= (server_startup_st*)object;
   test_true(servers);
 
-  Error << testing_service;
   test_compare(servers->start_server(testing_service, get_free_port(), 0, NULL, false), true);
 
   test_true(servers->last());
