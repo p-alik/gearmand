@@ -42,6 +42,13 @@
 #include <unistd.h>
 #include <string>
 
+#ifdef HAVE_POLL_H
+# include <poll.h>
+#endif
+
+#ifndef HAVE_MSG_NOSIGNAL
+# define MSG_NOSIGNAL 0
+#endif
 
 namespace libtest {
 
