@@ -355,6 +355,12 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
     ssize_t read_length= read(universal.wakeup_fd[0], buffer, sizeof(buffer));
     if (read_length > 0)
     {
+      gearman_return_t local_ret= gearman_kill(gearman_universal_id(universal), GEARMAN_INTERRUPT);
+      if (gearman_failed(local_ret))
+      {
+        return GEARMAN_SHUTDOWN;
+      }
+
       return GEARMAN_SHUTDOWN_GRACEFUL;
     }
     if (read_length == 0)
