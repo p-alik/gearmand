@@ -1035,17 +1035,13 @@ size_t gearman_connection_st::recv_socket(void *data, size_t data_size, gearman_
 
         ret= gearman_wait(universal);
 
-        if (ret == GEARMAN_SHUTDOWN_GRACEFUL)
-        {
-        }
-        else if (ret == GEARMAN_SHUTDOWN)
-        {
-          close_socket();
-          return 0;
-        }
-
         if (gearman_failed(ret))
         {
+          if (ret == GEARMAN_SHUTDOWN)
+          {
+            close_socket();
+          }
+
           return 0;
         }
 
