@@ -49,6 +49,8 @@ AC_DEFUN([CHECK_BOOST],
          BOOST_PROGRAM_OPTIONS])
 CHECK_BOOST
 
+m4_include([libhashkit/include.m4])
+
 AX_CXX_CINTTYPES
 CONFIG_EXTRA
 

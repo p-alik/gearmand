@@ -1,9 +1,9 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  Gearmand client and server library.
+ *  HashKit library
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  All rights reserved.
+ *  Copyright (C) 2011-2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2009 Brian Aker All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -35,15 +35,54 @@
  *
  */
 
+
+/**
+ * @file
+ * @brief HashKit Header
+ */
+
 #pragma once
 
-struct gearman_unique_t {
-  const char *c_str;
-  size_t size;
-};
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-gearman_unique_t gearman_unique_make(const char *arg, size_t arg_size);
+HASHKIT_API
+uint32_t libhashkit_one_at_a_time(const char *key, size_t key_length);
 
-size_t gearman_unique_size(gearman_unique_t *self);
+HASHKIT_API
+uint32_t libhashkit_fnv1_64(const char *key, size_t key_length);
 
-bool gearman_unique_is_hash(const gearman_unique_t&);
+HASHKIT_API
+uint32_t libhashkit_fnv1a_64(const char *key, size_t key_length);
+
+HASHKIT_API
+uint32_t libhashkit_fnv1_32(const char *key, size_t key_length);
+
+HASHKIT_API
+uint32_t libhashkit_fnv1a_32(const char *key, size_t key_length);
+
+HASHKIT_API
+uint32_t libhashkit_crc32(const char *key, size_t key_length);
+
+HASHKIT_API
+uint32_t libhashkit_hsieh(const char *key, size_t key_length);
+
+HASHKIT_API
+uint32_t libhashkit_murmur(const char *key, size_t key_length);
+
+HASHKIT_API
+uint32_t libhashkit_murmur3(const char *key, size_t key_length);
+
+HASHKIT_API
+uint32_t libhashkit_jenkins(const char *key, size_t key_length);
+
+HASHKIT_API
+uint32_t libhashkit_md5(const char *key, size_t key_length);
+
+HASHKIT_API
+void libhashkit_md5_signature(const unsigned char *key, size_t length, unsigned char *result);
+
+#ifdef __cplusplus
+}
+#endif

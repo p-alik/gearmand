@@ -1,8 +1,8 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  Gearmand client and server library.
+ *  HashKit library
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -35,15 +35,15 @@
  *
  */
 
-#pragma once
+#include "libhashkit/common.h"
+#include "libhashkit/murmur3.h"
 
-struct gearman_unique_t {
-  const char *c_str;
-  size_t size;
-};
+uint32_t hashkit_murmur3(const char *key, size_t length, void *)
+{
+  const uint32_t seed= (0xdeadbeef * (uint32_t)length);
 
-gearman_unique_t gearman_unique_make(const char *arg, size_t arg_size);
+  uint32_t ret;
+  MurmurHash3_x86_32(key, length, seed, &ret);
 
-size_t gearman_unique_size(gearman_unique_t *self);
-
-bool gearman_unique_is_hash(const gearman_unique_t&);
+  return ret;
+}

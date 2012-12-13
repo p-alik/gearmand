@@ -1,9 +1,8 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  Gearmand client and server library.
+ *  Libhashkit library
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  All rights reserved.
+ *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -35,15 +34,30 @@
  *
  */
 
-#pragma once
 
-struct gearman_unique_t {
-  const char *c_str;
-  size_t size;
-};
+#include <libhashkit/common.h>
 
-gearman_unique_t gearman_unique_make(const char *arg, size_t arg_size);
+hashkit_string_st *hashkit_encrypt(hashkit_st *kit,
+                                   const char* source, size_t source_length)
+{
+  return aes_encrypt(static_cast<aes_key_t*>(kit->_key), source, source_length);
+}
 
-size_t gearman_unique_size(gearman_unique_t *self);
+hashkit_string_st *hashkit_decrypt(hashkit_st *kit,
+                                   const char* source, size_t source_length)
+{
+  return aes_decrypt(static_cast<aes_key_t*>(kit->_key), source, source_length);
+}
 
-bool gearman_unique_is_hash(const gearman_unique_t&);
+bool hashkit_key(hashkit_st *kit, const char *key, const size_t key_length)
+{
+  if (kit->_key)
+  {
+    free(kit->_key);
+  }
+
+  kit->_key= aes_create_key(key, key_length);
+  
+  return bool(kit->_key);
+}
+

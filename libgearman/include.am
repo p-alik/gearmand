@@ -117,6 +117,7 @@ libgearman_libgearman_la_LDFLAGS= -version-info $(GEARMAN_LIBRARY_VERSION)
 libgearman_libgearman_la_LIBADD=
 libgearman_libgearman_la_LIBADD+= @LIBUUID_LIB@
 libgearman_libgearman_la_LIBADD+= @DL_LIB@
+libgearman_libgearman_la_LIBADD+= libhashkit/libhashkit.la
 
 if TARGET_LINUX
 libgearman_libgearman_la_LIBADD+= @LIBM@

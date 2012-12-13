@@ -1,9 +1,9 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  Gearmand client and server library.
+ *  HashKit library
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  All rights reserved.
+ *  Copyright (C) 2011-2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2009-2010 Brian Aker All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -35,15 +35,29 @@
  *
  */
 
+
 #pragma once
 
-struct gearman_unique_t {
-  const char *c_str;
-  size_t size;
-};
+#ifdef __cplusplus
+struct hashkit_string_st;
+#endif
 
-gearman_unique_t gearman_unique_make(const char *arg, size_t arg_size);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-size_t gearman_unique_size(gearman_unique_t *self);
+HASHKIT_API
+void hashkit_string_free(hashkit_string_st *ptr);
 
-bool gearman_unique_is_hash(const gearman_unique_t&);
+
+HASHKIT_API
+size_t hashkit_string_length(const hashkit_string_st *self);
+
+HASHKIT_API
+const char *hashkit_string_c_str(const hashkit_string_st* self);
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
+
+
