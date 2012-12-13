@@ -150,7 +150,7 @@ test_return_t coalescence_by_data_hash_TEST(void *object)
   gearman_client_st *client_one= (gearman_client_st *)object;
   test_true(client_one);
 
-  Client client_two(client_one);
+  test::Client client_two(client_one);
 
   const char* unique_handle= "#";
 
