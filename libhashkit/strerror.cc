@@ -1,9 +1,9 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  Gearmand client and server library.
+ *  HashKit library
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  All rights reserved.
+ *  Copyright (C) 2011-2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2009 Data Differential, http://datadifferential.com/
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -35,15 +35,22 @@
  *
  */
 
-#pragma once
 
-struct gearman_unique_t {
-  const char *c_str;
-  size_t size;
-};
 
-gearman_unique_t gearman_unique_make(const char *arg, size_t arg_size);
+#include <libhashkit/common.h>
 
-size_t gearman_unique_size(gearman_unique_t *self);
-
-bool gearman_unique_is_hash(const gearman_unique_t&);
+const char *hashkit_strerror(hashkit_st *ptr, hashkit_return_t rc)
+{
+  (void)ptr;
+  switch (rc)
+  {
+  case HASHKIT_SUCCESS: return "SUCCESS";
+  case HASHKIT_FAILURE: return "FAILURE";
+  case HASHKIT_MEMORY_ALLOCATION_FAILURE: return "MEMORY ALLOCATION FAILURE";
+  case HASHKIT_INVALID_ARGUMENT: return "INVALID ARGUMENT";
+  case HASHKIT_INVALID_HASH: return "INVALID hashkit_hash_algorithm_t";
+  case HASHKIT_MAXIMUM_RETURN:
+  default:
+    return "INVALID hashkit_return_t";
+  }
+}

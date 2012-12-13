@@ -1,9 +1,8 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
- * 
- *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  All rights reserved.
+ *  HashKit library
+ *
+ *  Copyright (C) 2006-2012 Data Differential, http://datadifferential.com/
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -35,34 +34,65 @@
  *
  */
 
-#include "gear_config.h"
-#include <libgearman/common.h>
+#include "libhashkit/common.h"
 
-gearman_unique_t gearman_unique_make(const char *arg, size_t arg_size)
+uint32_t libhashkit_one_at_a_time(const char *key, size_t key_length)
 {
-  gearman_unique_t local= { arg, arg_size };
-  return local;
+  return hashkit_one_at_a_time(key, key_length, NULL);
 }
 
-size_t gearman_unique_size(gearman_unique_t *unique_)
+uint32_t libhashkit_fnv1_64(const char *key, size_t key_length)
 {
-  if (unique_)
-  {
-    return unique_->size;
-  }
-
-  return 0;
+  return hashkit_fnv1_64(key, key_length, NULL);
 }
 
-bool gearman_unique_is_hash(const gearman_unique_t& unique_)
+uint32_t libhashkit_fnv1a_64(const char *key, size_t key_length)
 {
-  if (gearman_size(unique_) == 1)
-  {
-    if (gearman_c_str(unique_)[0] == '#')
-    {
-      return true;
-    }
-  }
-
-  return false;
+  return hashkit_fnv1a_64(key, key_length, NULL);
 }
+
+uint32_t libhashkit_fnv1_32(const char *key, size_t key_length)
+{
+  return hashkit_fnv1_32(key, key_length, NULL);
+}
+
+uint32_t libhashkit_fnv1a_32(const char *key, size_t key_length)
+{
+  return hashkit_fnv1a_32(key, key_length, NULL);
+}
+
+uint32_t libhashkit_crc32(const char *key, size_t key_length)
+{
+  return hashkit_crc32(key, key_length, NULL);
+}
+
+uint32_t libhashkit_hsieh(const char *key, size_t key_length)
+{
+  return hashkit_hsieh(key, key_length, NULL);
+}
+
+uint32_t libhashkit_murmur3(const char *key, size_t key_length)
+{
+  return hashkit_murmur3(key, key_length, NULL);
+}
+
+uint32_t libhashkit_murmur(const char *key, size_t key_length)
+{
+  return hashkit_murmur(key, key_length, NULL);
+}
+
+uint32_t libhashkit_jenkins(const char *key, size_t key_length)
+{
+  return hashkit_jenkins(key, key_length, NULL);
+}
+
+uint32_t libhashkit_md5(const char *key, size_t key_length)
+{
+  return hashkit_md5(key, key_length, NULL);
+}
+
+void libhashkit_md5_signature(const unsigned char *key, size_t length, unsigned char *result)
+{
+  md5_signature(key, (uint32_t)length, result);
+}
+

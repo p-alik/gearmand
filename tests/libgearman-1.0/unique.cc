@@ -145,6 +145,77 @@ test_return_t coalescence_TEST(void *object)
   return TEST_SUCCESS;
 }
 
+test_return_t coalescence_by_data_hash_TEST(void *object)
+{
+  gearman_client_st *client_one= (gearman_client_st *)object;
+  test_true(client_one);
+
+  Client client_two(client_one);
+
+  const char* unique_handle= "#";
+
+  gearman_function_t sleep_return_random_worker_FN= gearman_function_create(sleep_return_random_worker);
+  std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
+                                                           NULL,
+                                                           __func__,
+                                                           sleep_return_random_worker_FN,
+                                                           NULL,
+                                                           gearman_worker_options_t(),
+                                                           0)); // timeout
+
+  // First task
+  gearman_return_t ret;
+  gearman_task_st *first_task= gearman_client_add_task(client_one,
+                                                       NULL, // preallocated task
+                                                       NULL, // context 
+                                                       __func__, // function
+                                                       unique_handle, // unique
+                                                       test_literal_param(__func__), // workload
+                                                       &ret);
+  test_compare(GEARMAN_SUCCESS, ret);
+  test_truth(first_task);
+  test_true(gearman_task_unique(first_task));
+  test_compare(strlen("2285535048"), strlen(gearman_task_unique(first_task)));
+ 
+  // Second task
+  gearman_task_st *second_task= gearman_client_add_task(&client_two,
+                                                        NULL, // preallocated task
+                                                        NULL, // context 
+                                                        __func__, // function
+                                                        unique_handle, // unique
+                                                        test_literal_param(__func__), // workload
+                                                        &ret);
+  test_compare(GEARMAN_SUCCESS, ret);
+  test_truth(second_task);
+  test_true(gearman_task_unique(second_task));
+  test_compare(strlen("2285535048"), strlen(gearman_task_unique(second_task)));
+  
+  test_strcmp(gearman_task_unique(first_task), gearman_task_unique(second_task));
+  test_strcmp("2285535048", gearman_task_unique(second_task));
+
+  do {
+    ret= gearman_client_run_tasks(client_one);
+    gearman_client_run_tasks(&client_two);
+  } while (gearman_continue(ret));
+
+  do {
+    ret= gearman_client_run_tasks(&client_two);
+  } while (gearman_continue(ret));
+
+  gearman_result_st* first_result= gearman_task_result(first_task);
+  gearman_result_st* second_result= gearman_task_result(second_task);
+
+  test_compare(GEARMAN_SUCCESS, gearman_task_return(first_task));
+  test_compare(GEARMAN_SUCCESS, gearman_task_return(second_task));
+
+  test_compare(gearman_result_value(first_result), gearman_result_value(second_result));
+
+  gearman_task_free(first_task);
+  gearman_task_free(second_task);
+
+  return TEST_SUCCESS;
+}
+
 test_return_t coalescence_by_data_TEST(void *object)
 {
   gearman_client_st *client_one= (gearman_client_st *)object;

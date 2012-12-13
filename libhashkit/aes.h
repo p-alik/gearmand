@@ -1,9 +1,8 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  Gearmand client and server library.
+ *  Libmemcached library
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -37,13 +36,14 @@
 
 #pragma once
 
-struct gearman_unique_t {
-  const char *c_str;
-  size_t size;
-};
+struct aes_key_t;
 
-gearman_unique_t gearman_unique_make(const char *arg, size_t arg_size);
+hashkit_string_st* aes_encrypt(aes_key_t* _aes_key,
+                               const char* source, size_t source_length);
 
-size_t gearman_unique_size(gearman_unique_t *self);
+hashkit_string_st* aes_decrypt(aes_key_t* _aes_key,
+                               const char* source, size_t source_length);
 
-bool gearman_unique_is_hash(const gearman_unique_t&);
+aes_key_t* aes_create_key(const char *key, const size_t key_length);
+
+aes_key_t* aes_clone_key(aes_key_t* _aes_key);

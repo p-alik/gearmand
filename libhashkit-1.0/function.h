@@ -1,9 +1,9 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  Gearmand client and server library.
+ *  HashKit library
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  All rights reserved.
+ *  Copyright (C) 2011-2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2009-2010 Brian Aker All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -35,15 +35,39 @@
  *
  */
 
+
+
+
 #pragma once
 
-struct gearman_unique_t {
-  const char *c_str;
-  size_t size;
-};
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-gearman_unique_t gearman_unique_make(const char *arg, size_t arg_size);
+/**
+  This sets/gets the default function we will be using.
+*/
+HASHKIT_API
+hashkit_return_t hashkit_set_function(hashkit_st *hash, hashkit_hash_algorithm_t hash_algorithm);
 
-size_t gearman_unique_size(gearman_unique_t *self);
+HASHKIT_API
+hashkit_return_t hashkit_set_custom_function(hashkit_st *hash, hashkit_hash_fn function, void *context);
 
-bool gearman_unique_is_hash(const gearman_unique_t&);
+HASHKIT_API
+hashkit_hash_algorithm_t hashkit_get_function(const hashkit_st *hash);
+
+/**
+  This sets/gets the function we use for distribution.
+*/
+HASHKIT_API
+hashkit_return_t hashkit_set_distribution_function(hashkit_st *hash, hashkit_hash_algorithm_t hash_algorithm);
+
+HASHKIT_API
+hashkit_return_t hashkit_set_custom_distribution_function(hashkit_st *self, hashkit_hash_fn function, void *context);
+
+HASHKIT_API
+hashkit_hash_algorithm_t hashkit_get_distribution_function(const hashkit_st *self);
+
+#ifdef __cplusplus
+}
+#endif

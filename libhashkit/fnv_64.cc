@@ -1,9 +1,9 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  Gearmand client and server library.
+ *  HashKit library
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  All rights reserved.
+ *  Copyright (C) 2011-2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2009 Brian Aker All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -35,15 +35,51 @@
  *
  */
 
-#pragma once
 
-struct gearman_unique_t {
-  const char *c_str;
-  size_t size;
-};
+#include <libhashkit/common.h>
 
-gearman_unique_t gearman_unique_make(const char *arg, size_t arg_size);
+#if __WORDSIZE == 64 && defined(HAVE_FNV64_HASH)
 
-size_t gearman_unique_size(gearman_unique_t *self);
+/* FNV hash'es lifted from Dustin Sallings work */
+static uint64_t FNV_64_INIT= 0xcbf29ce484222325;
+static uint64_t FNV_64_PRIME= 0x100000001b3;
 
-bool gearman_unique_is_hash(const gearman_unique_t&);
+uint32_t hashkit_fnv1_64(const char *key, size_t key_length, void *)
+{
+  /* Thanks to pierre@demartines.com for the pointer */
+  uint64_t hash= FNV_64_INIT;
+
+  for (size_t x= 0; x < key_length; x++)
+  {
+    hash *= FNV_64_PRIME;
+    hash ^= (uint64_t)key[x];
+  }
+
+  return (uint32_t)hash;
+}
+
+uint32_t hashkit_fnv1a_64(const char *key, size_t key_length, void *)
+{
+  uint32_t hash= (uint32_t) FNV_64_INIT;
+
+  for (size_t x= 0; x < key_length; x++)
+  {
+    uint32_t val= (uint32_t)key[x];
+    hash ^= val;
+    hash *= (uint32_t) FNV_64_PRIME;
+  }
+
+  return hash;
+}
+
+#else
+uint32_t hashkit_fnv1_64(const char *, size_t, void *)
+{
+  return 0;
+}
+
+uint32_t hashkit_fnv1a_64(const char *, size_t, void *)
+{
+  return 0;
+}
+#endif

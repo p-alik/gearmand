@@ -1,9 +1,8 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
- * 
- *  Gearmand client and server library.
+ *
+ *  HashKit library
  *
  *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -35,15 +34,37 @@
  *
  */
 
+
 #pragma once
 
-struct gearman_unique_t {
-  const char *c_str;
-  size_t size;
-};
+#include "libhashkit/hashkitcon.h"
 
-gearman_unique_t gearman_unique_make(const char *arg, size_t arg_size);
+#include <assert.h>
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 
-size_t gearman_unique_size(gearman_unique_t *self);
+#ifndef __WORDSIZE
+# ifdef __MINGW32__
+#  define __WORDSIZE 32
+# endif
+#endif
 
-bool gearman_unique_is_hash(const gearman_unique_t&);
+#include <libhashkit-1.0/hashkit.h>
+#include "libhashkit/algorithm.h"
+#include "libhashkit/is.h"
+#include "libhashkit/string.h"
+#include "libhashkit/aes.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void md5_signature(const unsigned char *key, unsigned int length, unsigned char *result);
+
+int update_continuum(hashkit_st *hashkit);
+
+#ifdef __cplusplus
+}
+#endif

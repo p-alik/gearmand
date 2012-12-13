@@ -1,9 +1,9 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  Gearmand client and server library.
+ *  HashKit library
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  All rights reserved.
+ *  Copyright (C) 2011-2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2009 Brian Aker All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -35,15 +35,48 @@
  *
  */
 
-#pragma once
 
-struct gearman_unique_t {
-  const char *c_str;
-  size_t size;
-};
+#include <libhashkit/common.h>
 
-gearman_unique_t gearman_unique_make(const char *arg, size_t arg_size);
+bool libhashkit_has_algorithm(const hashkit_hash_algorithm_t algo)
+{
+  switch (algo)
+  {
+  case HASHKIT_HASH_FNV1_64:
+  case HASHKIT_HASH_FNV1A_64:
+#if __WORDSIZE == 64 && defined(HAVE_FNV64_HASH)
+    return true;
+#else
+    return false;
+#endif
 
-size_t gearman_unique_size(gearman_unique_t *self);
+  case HASHKIT_HASH_HSIEH:
+#ifdef HAVE_HSIEH_HASH
+    return true;
+#else
+    return false;
+#endif
 
-bool gearman_unique_is_hash(const gearman_unique_t&);
+  case HASHKIT_HASH_MURMUR3:
+  case HASHKIT_HASH_MURMUR:
+#ifdef HAVE_MURMUR_HASH
+    return true;
+#else
+    return false;
+#endif
+
+  case HASHKIT_HASH_FNV1_32:
+  case HASHKIT_HASH_FNV1A_32:
+  case HASHKIT_HASH_DEFAULT:
+  case HASHKIT_HASH_MD5:
+  case HASHKIT_HASH_CRC:
+  case HASHKIT_HASH_JENKINS:
+  case HASHKIT_HASH_CUSTOM:
+    return true;
+
+  case HASHKIT_HASH_MAX:
+    break;
+  }
+
+  return false;
+}

@@ -142,10 +142,11 @@ static void thread_runner(context_st* con)
     return;
   }
 
-  Worker worker;
+  Worker worker(context->port);
   if (&worker == NULL)
   {
     Error << "Failed to create Worker";
+    context->fail();
     return;
   }
 
@@ -161,13 +162,6 @@ static void thread_runner(context_st* con)
   if (context->namespace_key.empty() == false)
   {
     gearman_worker_set_namespace(&worker, context->namespace_key.c_str(), context->namespace_key.length());
-  }
-
-  if (gearman_failed(gearman_worker_add_server(&worker, NULL, context->port)))
-  {
-    Error << "gearman_worker_add_server()";
-    context->fail();
-    return;
   }
 
   // Check for a working server by "asking" it for an option

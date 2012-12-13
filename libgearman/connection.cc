@@ -54,22 +54,26 @@
 #include <unistd.h>
 
 #if HAVE_NETINET_TCP_H
-#include <netinet/tcp.h>    /* for TCP_NODELAY */
+# include <netinet/tcp.h>    /* for TCP_NODELAY */
 #endif
 #ifdef HAVE_FCNTL_H
-#include <fcntl.h>
+# include <fcntl.h>
 #endif
 
 #ifndef SOCK_CLOEXEC 
-#  define SOCK_CLOEXEC 0
+# define SOCK_CLOEXEC 0
 #endif
 
 #ifndef SOCK_NONBLOCK 
-#  define SOCK_NONBLOCK 0
+# define SOCK_NONBLOCK 0
 #endif
 
 #ifndef FD_CLOEXEC
-#  define FD_CLOEXEC 0
+# define FD_CLOEXEC 0
+#endif
+
+#ifndef MSG_DONTWAIT
+# define MSG_DONTWAIT 0
 #endif
 
 static gearman_return_t gearman_connection_set_option(gearman_connection_st *connection,
@@ -1013,7 +1017,9 @@ size_t gearman_connection_st::recv_socket(void *data, size_t data_size, gearman_
 
   while (1)
   {
-    read_size= ::recv(fd, data, data_size, 0);
+    read_size= ::recv(fd, data, data_size, 
+                      gearman_universal_is_non_blocking(universal) ? MSG_NOSIGNAL| MSG_DONTWAIT : MSG_NOSIGNAL);
+
     if (read_size == 0)
     {
       ret= gearman_error(universal, GEARMAN_LOST_CONNECTION, "lost connection to server (EOF)");
@@ -1035,17 +1041,13 @@ size_t gearman_connection_st::recv_socket(void *data, size_t data_size, gearman_
 
         ret= gearman_wait(universal);
 
-        if (ret == GEARMAN_SHUTDOWN_GRACEFUL)
-        {
-        }
-        else if (ret == GEARMAN_SHUTDOWN)
-        {
-          close_socket();
-          return 0;
-        }
-
         if (gearman_failed(ret))
         {
+          if (ret == GEARMAN_SHUTDOWN)
+          {
+            close_socket();
+          }
+
           return 0;
         }
 
@@ -1153,7 +1155,7 @@ static gearman_return_t _con_setsockopt(gearman_connection_st *connection)
     int ret= setsockopt(connection->fd, SOL_SOCKET, SO_KEEPALIVE, &optval, sizeof(optval));
     if (ret == -1 && errno != ENOPROTOOPT)
     {
-      gearman_perror(connection->universal, "setsockopt(SO_RCVTIMEO)");
+      gearman_perror(connection->universal, "setsockopt(SO_KEEPALIVE)");
       return GEARMAN_ERRNO;
     }
   }
