@@ -1529,6 +1529,7 @@ test_st loop_TESTS[] ={
 
 test_st coalescence_TESTS[] ={
   {"basic coalescence", 0, coalescence_TEST },
+  {"coalescence by hash", 0, coalescence_by_data_hash_TEST },
   {"coalescence by data", 0, coalescence_by_data_TEST },
   {"coalescence by data fail", 0, coalescence_by_data_FAIL_TEST },
   {0, 0, 0}

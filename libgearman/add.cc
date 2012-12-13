@@ -46,6 +46,7 @@
 #include "libgearman/assert.hpp"
 
 #include "libgearman/uuid.hpp"
+#include "libhashkit-1.0/hashkit.h"
 
 #include <cerrno>
 #include <cstdio>
@@ -212,7 +213,11 @@ gearman_task_st *add_task(gearman_client_st& client,
   task->context= context;
   task->func= actions;
 
-  if ((task->unique_length= gearman_size(unique)))
+  if (gearman_unique_is_hash(unique))
+  {
+    task->unique_length= snprintf(task->unique, GEARMAN_MAX_UNIQUE_SIZE, "%u", libhashkit_murmur3(gearman_string_param(workload)));
+  }
+  else if ((task->unique_length= gearman_size(unique)))
   {
     if (task->unique_length >= GEARMAN_MAX_UNIQUE_SIZE)
     {
@@ -399,7 +404,11 @@ gearman_task_st *add_reducer_task(gearman_client_st *client,
     args_size[0]= gearman_size(function) + 1;
   }
 
-  if ((task->impl()->unique_length= gearman_size(unique)))
+  if (gearman_unique_is_hash(unique))
+  {
+    task->impl()->unique_length= snprintf(task->impl()->unique, GEARMAN_MAX_UNIQUE_SIZE, "%u", libhashkit_murmur3(gearman_string_param(workload)));
+  }
+  else if ((task->impl()->unique_length= gearman_size(unique)))
   {
     if (task->impl()->unique_length >= GEARMAN_MAX_UNIQUE_SIZE)
     {

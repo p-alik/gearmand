@@ -846,6 +846,19 @@ static test_return_t check_for_gearman(void *)
 {
   test_skip(true, HAVE_LIBGEARMAN);
   test_skip(true, has_gearmand());
+#if defined(HAVE_GEARMAND_BINARY) && HAVE_GEARMAND_BINARY
+  if (GEARMAND_BINARY)
+  {
+    if (strcmp(GEARMAND_BINARY, "./gearmand/gearmand"))
+    {
+      test_zero(access(GEARMAND_BINARY, X_OK ));
+    }
+  }
+  else
+  {
+    return TEST_SKIPPED;
+  }
+#endif
 
   testing_service= "gearmand";
 

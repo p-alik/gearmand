@@ -44,10 +44,25 @@ gearman_unique_t gearman_unique_make(const char *arg, size_t arg_size)
   return local;
 }
 
-size_t gearman_unique_size(gearman_unique_t *self)
+size_t gearman_unique_size(gearman_unique_t *unique_)
 {
-  if (not self)
-    return 0;
+  if (unique_)
+  {
+    return unique_->size;
+  }
 
-  return self->size;
+  return 0;
+}
+
+bool gearman_unique_is_hash(const gearman_unique_t& unique_)
+{
+  if (gearman_size(unique_) == 1)
+  {
+    if (gearman_c_str(unique_)[0] == '#')
+    {
+      return true;
+    }
+  }
+
+  return false;
 }

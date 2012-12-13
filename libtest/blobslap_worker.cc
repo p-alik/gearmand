@@ -51,6 +51,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include <libgearman/gearman.h>
+
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
