@@ -19,6 +19,8 @@
 * Backtraces on some types of crashes.
 * Add GEARMAN_CLIENT_GENERATE_UNIQUE.
 
+* If the unique value passed to any client function is "#" then the unique value will be derived by hashing the workload that is being supplied to the function.
+
 * Fix test case results for FreeBSD.
 
 1.0.1 Tue Nov  6 01:07:07 EST 2012

@@ -49,6 +49,8 @@ AC_DEFUN([CHECK_BOOST],
          BOOST_PROGRAM_OPTIONS])
 CHECK_BOOST
 
+m4_include([libhashkit/include.m4])
+
 AX_CXX_CINTTYPES
 CONFIG_EXTRA
 
@@ -63,7 +65,7 @@ AM_CONDITIONAL([HAVE_LIBGEARMAN],true)
 AC_SUBST([_WITH_LIBGEARMAN_SUPPORT],["_WITH_LIBGEARMAN_SUPPORT 0"])
 AC_DEFINE([GEARMAND_BINARY],["./gearmand/gearmand"],[Name of the gearmand binary used in make test])
 AC_DEFINE([HAVE_LIBGEARMAN],[1], [libgearman support])
-AC_DEFINE([HAVE_GEARMAND_BINARY],[1],[libgearman support])
+AC_DEFINE([HAVE_GEARMAND_BINARY],[1],[gearmand binary was found])
 
 AX_LIB_CURL([7.21.7],
             [AX_CHECK_LIBRARY([LIBCURL],[curl/curl.h],[curl])],
@@ -194,12 +196,7 @@ AC_CHECK_FUNCS([strstr])
 LT_LIB_M
 
 # Check for the ability to call dlopen (used in libhostile)
-AS_IF([test "x$enable_shared" = xyes],
-      [AX_CHECK_LIBRARY([DL],[dlfcn.h],[dl],
-                        [AC_DEFINE([HAVE_LIBDL],[1],[Have dlopen])
-                        AC_CHECK_LIB([dl],[dlopen],[AC_DEFINE([HAVE_DLOPEN],[1],[Have dlopen])])
-                        AC_CHECK_LIB([dl],[dladdr],[AC_DEFINE([HAVE_DLADDR],[1],[Have dladdr])])])],
-      [AM_CONDITIONAL([HAVE_DL],false)])
+AX_DLOPEN
 
 # Check for -lrt
 AC_CHECK_LIB([rt],[clock_gettime],

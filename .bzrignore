@@ -154,3 +154,6 @@ util/.hg/
 util/.hgignore
 var
 libtest/yatlcon.h
+libtest/backtrace
+man/.doctrees/
+libhashkit-1.0/configure.h

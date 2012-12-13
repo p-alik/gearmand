@@ -45,3 +45,5 @@ struct gearman_unique_t {
 gearman_unique_t gearman_unique_make(const char *arg, size_t arg_size);
 
 size_t gearman_unique_size(gearman_unique_t *self);
+
+bool gearman_unique_is_hash(const gearman_unique_t&);

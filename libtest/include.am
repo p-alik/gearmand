@@ -12,6 +12,7 @@ DRD_COMMAND= $(LIBTOOL_COMMAND) valgrind --tool=drd
 MASSIF_COMMAND= $(LIBTOOL_COMMAND) valgrind --tool=massif
 GDB_COMMAND= $(LIBTOOL_COMMAND) gdb -f -x libtest/run.gdb
 PTRCHECK_COMMAND= $(LIBTOOL_COMMAND) valgrind --tool=exp-ptrcheck --error-exitcode=1
+PAHOLE_COMMAND= $(LIBTOOL_COMMAND) --mode=execute pahole
 
 export LIBTOOL_COMMAND
 export VALGRIND_COMMAND
@@ -33,8 +34,6 @@ drd:
 
 EXTRA_DIST+= libtest/run.gdb
 EXTRA_DIST+= libtest/version.h
-
-CLEANFILES+= tmp_chroot
 
 BUILT_SOURCES+= libtest/version.h
 
@@ -152,15 +151,12 @@ libtest_unittest_DEPENDENCIES=
 # We are either building in tree, or with
 if BUILDING_LIBMEMCACHED
 libtest_libtest_la_LIBADD+= libmemcached/libmemcached.la
-libtest_libtest_la_LIBADD+= libmemcached/libmemcachedutil.la
 libtest_libtest_la_SOURCES+= libtest/memcached.cc
 libtest_libtest_la_CXXFLAGS+= -DHAVE_LIBMEMCACHED
 
 libtest_unittest_CXXFLAGS+= -DHAVE_LIBMEMCACHED
 libtest_unittest_LDADD+= libmemcached/libmemcached.la
-libtest_unittest_LDADD+= libmemcached/libmemcachedutil.la
 libtest_unittest_DEPENDENCIES+= libmemcached/libmemcached.la
-libtest_unittest_DEPENDENCIES+= libmemcached/libmemcachedutil.la
 else
 if HAVE_LIBMEMCACHED
 libtest_libtest_la_LIBADD+= $(LIBMEMCACHED_UTIL_LDFLAGS)
@@ -196,29 +192,13 @@ libtest_libtest_la_SOURCES+= util/operation.cc
 endif
 endif
 
-libtest_tmp_dir: tmp_chroot/var/log tmp_chroot/var/tmp tmp_chroot/var/run tmp_chroot/var/drizzle
+TMP_DIR := tmp_chroot/etc tmp_chroot/var/log tmp_chroot/var/tmp tmp_chroot/var/run tmp_chroot/var/drizzle
 
-tmp_chroot: tmp_chroot/etc
-	@$(mkdir_p) tmp_chroot
+.PHONY: libtest_tmp_dir
+libtest_tmp_dir: | $(TMP_DIR)
 
-tmp_chroot/etc:
-	@$(mkdir_p) tmp_chroot/etc
-
-tmp_chroot/var: tmp_chroot
-	@$(mkdir_p) tmp_chroot/var
-
-tmp_chroot/var/log: tmp_chroot/var
-	@$(mkdir_p) tmp_chroot/var/log
-
-tmp_chroot/var/tmp: tmp_chroot/var
-	@$(mkdir_p) tmp_chroot/var/tmp
-
-tmp_chroot/var/drizzle: tmp_chroot/var
-	@$(mkdir_p) tmp_chroot/var/drizzle
-
-tmp_chroot/var/run: tmp_chroot/var
-	@$(mkdir_p) tmp_chroot/var/run
-
+$(TMP_DIR):
+	@$(mkdir_p) $(TMP_DIR)
 
 libtest_unittest_DEPENDENCIES+= libtest/libtest.la
 libtest_unittest_LDADD+= libtest/libtest.la
@@ -257,3 +237,16 @@ noinst_PROGRAMS+= libtest/core-count
 
 libtest_abort_SOURCES= libtest/abort.cc
 noinst_PROGRAMS+= libtest/abort
+
+libtest_backtrace_SOURCES=
+libtest_backtrace_LDADD=
+libtest_backtrace_SOURCES+= libtest/backtrace_test.cc
+libtest_backtrace_SOURCES+= libgearman/backtrace.cc
+libtest_backtrace_LDADD+= @DL_LIB@
+noinst_PROGRAMS+= libtest/backtrace
+test-backtrace: libtest/backtrace
+	@libtest/backtrace
+
+gdb-backtrace: libtest/backtrace
+	@$(GDB_COMMAND) libtest/backtrace
+
