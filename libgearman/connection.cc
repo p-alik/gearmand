@@ -78,98 +78,33 @@
 
 static gearman_return_t gearman_connection_set_option(gearman_connection_st *connection,
                                                       gearman_connection_options_t options,
-                                                      bool value);
-
-
-
-gearman_return_t gearman_connection_st::connect_poll()
+                                                      bool value)
 {
-  struct pollfd fds[1];
-  fds[0].fd= fd;
-  fds[0].events= POLLOUT;
-
-  size_t loop_max= 5;
-
-#if 0
-  if (universal.timeout == 0)
+  switch (options)
   {
-    return gearman_error(universal, GEARMAN_TIMEOUT, "not connected");
-  }
-#endif
+  case GEARMAN_CON_READY:
+    connection->options.ready= value;
+    break;
 
-  while (--loop_max) // Should only loop on cases of ERESTART or EINTR
-  {
-    int error= poll(fds, 1, GEARMAN_DEFAULT_CONNECT_TIMEOUT);
-    switch (error)
-    {
-    case 1:
-      {
-        if (fds[0].revents & (POLLERR | POLLHUP | POLLNVAL))
-        {
-          int err;
-          socklen_t len= sizeof (err);
-          // We replace errno with err if getsockopt() passes, but err has been
-          // set.
-          if (getsockopt(fds[0].fd, SOL_SOCKET, SO_ERROR, &err, &len) == 0)
-          {
-            // We check the value to see what happened wth the socket.
-            if (err == 0)
-            {
-              return GEARMAN_SUCCESS;
-            }
-            errno= err;
-          }
+  case GEARMAN_CON_PACKET_IN_USE:
+    connection->options.packet_in_use= value;
+    break;
 
-          return gearman_perror(universal, "getsockopt()");
-        }
+  case GEARMAN_CON_IGNORE_LOST_CONNECTION:
+    break;
 
-        return GEARMAN_SUCCESS;
-      }
+  case GEARMAN_CON_CLOSE_AFTER_FLUSH:
+    break;
 
-    case 0:
-      {
-        return gearman_error(universal, GEARMAN_TIMEOUT, "timeout occurred while trying to connect");
-      }
-
-    default: // A real error occurred and we need to completely bail
-      switch (get_socket_errno())
-      {
-#ifdef TARGET_OS_LINUX
-      case ERESTART:
-#endif
-      case EINTR:
-        continue;
-
-      case EFAULT:
-      case ENOMEM:
-        return gearman_perror(universal, "poll() failure");
-
-      case EINVAL:
-        return gearman_perror(universal, "RLIMIT_NOFILE exceeded, or if OSX the timeout value was invalid");
-
-      default: // This should not happen
-        if (fds[0].revents & POLLERR)
-        {
-          int err;
-          socklen_t len= sizeof (err);
-          (void)getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &len);
-          errno= err;
-        }
-        else
-        {
-          errno= get_socket_errno();
-        }
-
-        assert_msg(fd != INVALID_SOCKET, "poll() was passed an invalid file descriptor");
-
-        return gearman_perror(universal, "socket error occurred");
-      }
-    }
+  case GEARMAN_CON_EXTERNAL_FD:
+  case GEARMAN_CON_MAX:
+  default:
+    return GEARMAN_INVALID_COMMAND;
   }
 
-  // This should only be possible from ERESTART or EINTR;
-  return gearman_perror(universal, "connection failed (error should be from either ERESTART or EINTR");
+  return GEARMAN_SUCCESS;
 }
+
 
 /**
  * @addtogroup gearman_connection_static Static Connection Declarations
@@ -321,35 +256,6 @@ void gearman_connection_st::free_private_packet()
     gearman_packet_free(&_packet);
     options.packet_in_use= false;
   }
-}
-
-gearman_return_t gearman_connection_set_option(gearman_connection_st *connection,
-                                               gearman_connection_options_t options,
-                                               bool value)
-{
-  switch (options)
-  {
-  case GEARMAN_CON_READY:
-    connection->options.ready= value;
-    break;
-
-  case GEARMAN_CON_PACKET_IN_USE:
-    connection->options.packet_in_use= value;
-    break;
-
-  case GEARMAN_CON_IGNORE_LOST_CONNECTION:
-    break;
-
-  case GEARMAN_CON_CLOSE_AFTER_FLUSH:
-    break;
-
-  case GEARMAN_CON_EXTERNAL_FD:
-  case GEARMAN_CON_MAX:
-  default:
-    return GEARMAN_INVALID_COMMAND;
-  }
-
-  return GEARMAN_SUCCESS;
 }
 
 /** @} */
@@ -679,32 +585,23 @@ gearman_return_t gearman_connection_st::flush()
 
         switch (errno)
         {
-        case EAGAIN:
+          // Treat as an async connect
         case EINTR:
-          continue;
-
         case EINPROGRESS:
-          {
-            gearman_return_t gret= connect_poll();
-            if (gearman_failed(gret))
-            {
-              assert_msg(universal.error.rc != GEARMAN_SUCCESS, "Programmer error, connect_poll() returned an error, but it was not set");
-              close_socket();
-              return gret;
-            }
-
             state= GEARMAN_CON_UNIVERSAL_CONNECTING;
             break;
-          }
 
         case ECONNREFUSED:
         case ENETUNREACH:
         case ETIMEDOUT:
-          {
-            state= GEARMAN_CON_UNIVERSAL_CONNECT;
-            addrinfo_next= addrinfo_next->ai_next;
-            break;
-          }
+          addrinfo_next= addrinfo_next->ai_next;
+
+          // We will treat this as an error but retry the address
+        case EAGAIN:
+          state= GEARMAN_CON_UNIVERSAL_CONNECT;
+          close_socket();
+          break;
+
         default:
           gearman_perror(universal, "connect");
           close_socket();

@@ -314,6 +314,9 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
       case EINTR:
         continue;
 
+      case EINVAL:
+        return gearman_perror(universal, "RLIMIT_NOFILE exceeded, or if OSX the timeout value was invalid");
+
       default:
         return gearman_perror(universal, "poll");
       }
@@ -337,11 +340,14 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
       continue;
     }
 
-    int err;
-    socklen_t len= sizeof (err);
-    if (getsockopt(con->fd, SOL_SOCKET, SO_ERROR, &err, &len) == 0)
+    if (pfds[x].revents & (POLLERR | POLLHUP | POLLNVAL))
     {
-      con->cached_errno= err;
+      int err;
+      socklen_t len= sizeof (err);
+      if (getsockopt(pfds[x].fd, SOL_SOCKET, SO_ERROR, &err, &len) == 0)
+      {
+        con->cached_errno= err;
+      }
     }
 
     con->set_revents(pfds[x].revents);
@@ -363,12 +369,15 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
 
       return GEARMAN_SHUTDOWN_GRACEFUL;
     }
+
     if (read_length == 0)
     {
       return GEARMAN_SHUTDOWN;
     }
 
+#if 0
     perror("shudown read");
+#endif
     // @todo figure out what happens in an error
   }
 
