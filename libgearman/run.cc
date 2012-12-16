@@ -239,6 +239,7 @@ gearman_return_t _client_run_task(gearman_task_st *task)
 
       if (task->recv->command == GEARMAN_COMMAND_STATUS_RES)
       {
+        task->result_rc= GEARMAN_SUCCESS;
         if (atoi(static_cast<char *>(task->recv->arg[1])) == 0)
         {
           task->options.is_known= false;
@@ -261,6 +262,7 @@ gearman_return_t _client_run_task(gearman_task_st *task)
       }
       else if (task->recv->command == GEARMAN_COMMAND_STATUS_RES_UNIQUE)
       {
+        task->result_rc= GEARMAN_SUCCESS;
         strncpy(task->unique, task->recv->arg[0], GEARMAN_MAX_UNIQUE_SIZE);
         if (atoi(static_cast<char *>(task->recv->arg[1])) == 0)
         {

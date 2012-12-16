@@ -156,7 +156,7 @@ static void *_client_do(gearman_client_st *client, gearman_command_t command,
   }
   do_task_ptr->type= GEARMAN_TASK_KIND_DO;
 
-  gearman_return_t ret= gearman_client_run_block_tasks(client);
+  gearman_return_t ret= gearman_client_run_block_tasks(client, do_task_ptr);
 
   // gearman_client_run_tasks failed
   assert(client->task_list); // Programmer error, we should always have the task that we used for do
@@ -261,7 +261,7 @@ static gearman_return_t _client_do_background(gearman_client_st *client,
   }
   do_task_ptr->type= GEARMAN_TASK_KIND_DO;
 
-  gearman_return_t ret= gearman_client_run_block_tasks(client);
+  gearman_return_t ret= gearman_client_run_block_tasks(client, do_task_ptr);
 
   if (job_handle)
   {
@@ -790,7 +790,7 @@ gearman_status_t gearman_client_unique_status(gearman_client_st *client,
 
   gearman_task_clear_fn(do_task_ptr);
 
-  ret= gearman_client_run_block_tasks(client);
+  ret= gearman_client_run_block_tasks(client, do_task_ptr);
 
   // @note we don't know if our task was run or not, we just know something
   // happened.
@@ -851,7 +851,7 @@ gearman_return_t gearman_client_job_status(gearman_client_st *client,
 
   gearman_task_clear_fn(do_task_ptr);
 
-  ret= gearman_client_run_block_tasks(client);
+  ret= gearman_client_run_block_tasks(client, do_task_ptr);
 
   // @note we don't know if our task was run or not, we just know something
   // happened.
@@ -1335,7 +1335,7 @@ void gearman_client_clear_fn(gearman_client_st *client)
   }
 }
 
-static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
+static inline gearman_return_t _client_run_tasks(gearman_client_st *client, gearman_task_st* exit_task)
 {
   gearman_return_t ret= GEARMAN_MAX_RETURN;
 
@@ -1582,6 +1582,16 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client)
           /* Clean up the packet. */
           client->con->free_private_packet();
 
+          /* If exit task is set and matched, exit */
+          if (exit_task)
+          {
+            if (exit_task->result_rc != GEARMAN_UNKNOWN_STATE)
+            {
+              client->state= GEARMAN_CLIENT_STATE_IDLE;
+              return GEARMAN_SUCCESS;
+            }
+          }
+
           /* If all tasks are done, return. */
           if (client->running_tasks == 0)
           {
@@ -1644,7 +1654,7 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
   {
     PUSH_NON_BLOCKING(client);
 
-    rc= _client_run_tasks(client);
+    rc= _client_run_tasks(client, NULL);
   }
 
   if (rc == GEARMAN_COULD_NOT_CONNECT)
@@ -1655,7 +1665,7 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
   return rc;
 }
 
-gearman_return_t gearman_client_run_block_tasks(gearman_client_st *client)
+gearman_return_t gearman_client_run_block_tasks(gearman_client_st *client, gearman_task_st* exit_task)
 {
   if (client == NULL)
   {
@@ -1672,7 +1682,7 @@ gearman_return_t gearman_client_run_block_tasks(gearman_client_st *client)
   {
     PUSH_BLOCKING(client);
 
-    rc= _client_run_tasks(client);
+    rc= _client_run_tasks(client, exit_task);
   }
 
   if (gearman_failed(rc))

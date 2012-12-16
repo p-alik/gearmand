@@ -89,7 +89,7 @@ void *client_do(gearman_client_st *client, gearman_command_t command,
     return NULL;
   }
 
-  gearman_return_t ret= gearman_client_run_block_tasks(client);
+  gearman_return_t ret= gearman_client_run_block_tasks(client, do_task_ptr);
 
   const void *returnable= NULL;
   
@@ -161,7 +161,7 @@ gearman_return_t client_do_background(gearman_client_st *client,
 
   gearman_task_clear_fn(do_task_ptr);
 
-  gearman_return_t ret= gearman_client_run_block_tasks(client);
+  gearman_return_t ret= gearman_client_run_block_tasks(client, do_task_ptr);
   assert(ret != GEARMAN_IO_WAIT);
   if (ret != GEARMAN_IO_WAIT)
   {

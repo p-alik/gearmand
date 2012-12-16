@@ -778,39 +778,44 @@ gearman_return_t gearman_connection_st::flush()
     case GEARMAN_CON_UNIVERSAL_CONNECTED:
       while (send_buffer_size != 0)
       {
-        ssize_t write_size= ::send(fd, send_buffer_ptr, send_buffer_size, 
-                                   gearman_universal_is_non_blocking(universal) ? MSG_NOSIGNAL| MSG_DONTWAIT : MSG_NOSIGNAL);
+        ssize_t write_size= ::send(fd, send_buffer_ptr, send_buffer_size, MSG_NOSIGNAL);
 
         if (write_size == 0) // Zero value on send()
         { }
         else if (write_size == -1)
         {
-          if (errno == EAGAIN)
+          switch (errno)
           {
-            set_events(POLLOUT);
-
-            if (gearman_universal_is_non_blocking(universal))
+#if defined(EWOULDBLOCK) && EWOULDBLOCK != EAGAIN
+          case EWOULDBLOCK:
+#endif
+          case EAGAIN:
             {
-              return gearman_gerror(universal, GEARMAN_IO_WAIT);
-            }
+              set_events(POLLOUT);
 
-            gearman_return_t gret= gearman_wait(universal);
-            if (gearman_failed(gret))
+              if (gearman_universal_is_non_blocking(universal))
+              {
+                return gearman_gerror(universal, GEARMAN_IO_WAIT);
+              }
+
+              gearman_return_t gret= gearman_wait(universal);
+              if (gearman_failed(gret))
+              {
+                return gret;
+              }
+
+              continue;
+            }
+          case EPIPE:
+          case ECONNRESET:
+          case EHOSTDOWN:
             {
-              return gret;
+              gearman_return_t ret= gearman_perror(universal, "lost connection to server during send");
+              close_socket();
+              return ret;
             }
-
-            continue;
-          }
-          else if (errno == EINTR)
-          {
-            continue;
-          }
-          else if (errno == EPIPE || errno == ECONNRESET || errno == EHOSTDOWN)
-          {
-            gearman_return_t ret= gearman_perror(universal, "lost connection to server during send");
-            close_socket();
-            return ret;
+          default:
+            break;
           }
 
           gearman_return_t ret= gearman_perror(universal, "send");
@@ -876,6 +881,7 @@ gearman_packet_st *gearman_connection_st::receiving(gearman_packet_st& packet_ar
   case GEARMAN_CON_RECV_UNIVERSAL_READ:
     while (1)
     {
+      // If we have data, see if it is a complete packet
       if (recv_buffer_size > 0)
       {
         size_t recv_size= gearman_packet_unpack(*(recv_packet()),
@@ -902,7 +908,7 @@ gearman_packet_st *gearman_connection_st::receiving(gearman_packet_st& packet_ar
       }
       recv_buffer_ptr= recv_buffer;
 
-      size_t recv_size= recv_socket(recv_buffer + recv_buffer_size, GEARMAN_RECV_BUFFER_SIZE - recv_buffer_size, ret);
+      size_t recv_size= recv_socket(recv_buffer +recv_buffer_size, GEARMAN_RECV_BUFFER_SIZE -recv_buffer_size, ret);
       if (gearman_failed(ret))
       {
         return NULL;
@@ -1017,8 +1023,7 @@ size_t gearman_connection_st::recv_socket(void *data, size_t data_size, gearman_
 
   while (1)
   {
-    read_size= ::recv(fd, data, data_size, 
-                      gearman_universal_is_non_blocking(universal) ? MSG_NOSIGNAL| MSG_DONTWAIT : MSG_NOSIGNAL);
+    read_size= ::recv(fd, data, data_size, MSG_NOSIGNAL);
 
     if (read_size == 0)
     {
@@ -1193,6 +1198,7 @@ static gearman_return_t _con_setsockopt(gearman_connection_st *connection)
     }
   }
 
+  // If SOCK_NONBLOCK doesn't work, just enable non_block via fcntl
   if (SOCK_NONBLOCK == 0)
   {
     int flags;
