@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2011-2012 Data Differential, http://datadifferential.com/
  *  Copyright (C) 2008 Brian Aker, Eric Day
  *  All rights reserved.
  *
@@ -797,7 +797,7 @@ gearman_packet_st *gearman_connection_st::receiving(gearman_packet_st& packet_ar
 
     recv_data_size= packet_arg.data_size;
 
-    if (not recv_data)
+    if (recv_data == false )
     {
       recv_state= GEARMAN_CON_RECV_STATE_READ_DATA;
       break;
@@ -818,7 +818,7 @@ gearman_packet_st *gearman_connection_st::receiving(gearman_packet_st& packet_ar
   case GEARMAN_CON_RECV_STATE_READ_DATA:
     while (recv_data_size)
     {
-      (void)receiving(static_cast<uint8_t *>(const_cast<void *>(packet_arg.data)) +
+      (void)receive_data(static_cast<uint8_t *>(const_cast<void *>(packet_arg.data)) +
                       recv_data_offset,
                       packet_arg.data_size -recv_data_offset, ret);
       if (gearman_failed(ret))
@@ -837,7 +837,7 @@ gearman_packet_st *gearman_connection_st::receiving(gearman_packet_st& packet_ar
   return tmp_packet_arg;
 }
 
-size_t gearman_connection_st::receiving(void *data, size_t data_size, gearman_return_t& ret)
+size_t gearman_connection_st::receive_data(void *data, size_t data_size, gearman_return_t& ret)
 {
   size_t recv_size= 0;
 
