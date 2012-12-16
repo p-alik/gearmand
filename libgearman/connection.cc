@@ -677,35 +677,41 @@ gearman_return_t gearman_connection_st::flush()
           break;
         }
 
-        if (errno == EAGAIN || errno == EINTR)
+        switch (errno)
         {
+        case EAGAIN:
+        case EINTR:
           continue;
-        }
 
-        if (errno == EINPROGRESS)
-        {
-          gearman_return_t gret= connect_poll();
-          if (gearman_failed(gret))
+        case EINPROGRESS:
           {
-            assert_msg(universal.error.rc != GEARMAN_SUCCESS, "Programmer error, connect_poll() returned an error, but it was not set");
-            close_socket();
-            return gret;
+            gearman_return_t gret= connect_poll();
+            if (gearman_failed(gret))
+            {
+              assert_msg(universal.error.rc != GEARMAN_SUCCESS, "Programmer error, connect_poll() returned an error, but it was not set");
+              close_socket();
+              return gret;
+            }
+
+            state= GEARMAN_CON_UNIVERSAL_CONNECTING;
+            break;
           }
 
-          state= GEARMAN_CON_UNIVERSAL_CONNECTING;
-          break;
+        case ECONNREFUSED:
+        case ENETUNREACH:
+        case ETIMEDOUT:
+          {
+            state= GEARMAN_CON_UNIVERSAL_CONNECT;
+            addrinfo_next= addrinfo_next->ai_next;
+            break;
+          }
+        default:
+          gearman_perror(universal, "connect");
+          close_socket();
+          return GEARMAN_COULD_NOT_CONNECT;
         }
 
-        if (errno == ECONNREFUSED || errno == ENETUNREACH || errno == ETIMEDOUT)
-        {
-          state= GEARMAN_CON_UNIVERSAL_CONNECT;
-          addrinfo_next= addrinfo_next->ai_next;
-          break;
-        }
-
-        gearman_perror(universal, "connect");
-        close_socket();
-        return GEARMAN_COULD_NOT_CONNECT;
+        break;
       }
 
       if (state != GEARMAN_CON_UNIVERSAL_CONNECTING)
