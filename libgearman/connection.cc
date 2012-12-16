@@ -181,18 +181,16 @@ gearman_connection_st *gearman_connection_create_args(gearman_universal_st& univ
                                                       const char *host, in_port_t port)
 {
   gearman_connection_st *connection= gearman_connection_create(universal, NULL);
-  if (connection == NULL)
+  if (connection)
   {
-    return NULL;
-  }
+    connection->set_host(host, port);
 
-  connection->set_host(host, port);
-
-  if (gearman_failed(connection->lookup()))
-  {
-    gearman_gerror(universal, GEARMAN_GETADDRINFO);
-    delete connection;
-    return NULL;
+    if (gearman_failed(connection->lookup()))
+    {
+      gearman_gerror(universal, GEARMAN_GETADDRINFO);
+      delete connection;
+      return NULL;
+    }
   }
 
   return connection;
@@ -203,17 +201,15 @@ gearman_connection_st *gearman_connection_copy(gearman_universal_st& universal,
 {
   gearman_connection_st *connection= gearman_connection_create(universal, NULL);
 
-  if (connection == NULL)
+  if (connection)
   {
-    return NULL;
+    connection->options.ready= from.options.ready;
+    // @todo Is this right?
+    connection->options.packet_in_use= from.options.packet_in_use;
+
+    strcpy(connection->host, from.host);
+    connection->port= from.port;
   }
-
-  connection->options.ready= from.options.ready;
-  // @todo Is this right?
-  connection->options.packet_in_use= from.options.packet_in_use;
-
-  strcpy(connection->host, from.host);
-  connection->port= from.port;
 
   return connection;
 }
