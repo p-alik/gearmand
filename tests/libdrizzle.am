@@ -12,13 +12,11 @@
 
 tests_drizzle_test_CXXFLAGS=
 tests_drizzle_test_SOURCES=
-tests_drizzle_test_DEPENDENCIES=
 tests_drizzle_test_LDADD=
 
 tests_drizzle_test_SOURCES+= tests/basic.cc
 tests_drizzle_test_SOURCES+= tests/drizzle_test.cc
 
-tests_drizzle_test_DEPENDENCIES+= ${CLIENT_LDADD}
 tests_drizzle_test_LDADD+= ${CLIENT_LDADD}
 
 if HAVE_LIBDRIZZLE

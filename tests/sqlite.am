@@ -15,7 +15,6 @@ CLEANFILES+= tests/gearman.sql tests/gearman.sql-journal tests/gearmand.log*
 if HAVE_LIBSQLITE3
 tests_sqlite_test_CFLAGS=
 tests_sqlite_test_CXXFLAGS=
-tests_sqlite_test_DEPENDENCIES=
 tests_sqlite_test_LDADD=
 tests_sqlite_test_SOURCES=
 
@@ -24,7 +23,6 @@ tests_sqlite_test_CXXFLAGS+= @SQLITE3_CFLAGS@
 tests_sqlite_test_LDADD+= @SQLITE3_LDFLAGS@
 tests_sqlite_test_SOURCES+= tests/basic.cc
 tests_sqlite_test_SOURCES+= tests/sqlite_test.cc
-tests_sqlite_test_DEPENDENCIES+= $(CLIENT_LDADD)
 tests_sqlite_test_LDADD+= $(CLIENT_LDADD)
 check_PROGRAMS+= tests/sqlite_test
 noinst_PROGRAMS+= tests/sqlite_test

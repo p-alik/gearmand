@@ -18,13 +18,12 @@ sbin_PROGRAMS+= gearmand/gearmand
 
 gearmand_gearmand_LDADD=
 gearmand_gearmand_CXXFLAGS=
-gearmand_gearmand_DEPENDENCIES=
+EXTRA_gearmand_gearmand_DEPENDENCIES=
 gearmand_gearmand_LDFLAGS=
 gearmand_gearmand_SOURCES=
 
 gearmand_gearmand_CXXFLAGS+= $(BOOST_CPPFLAGS)
-gearmand_gearmand_DEPENDENCIES+= configmake.h
-gearmand_gearmand_DEPENDENCIES+= libgearman-server/libgearman-server.la
+EXTRA_gearmand_gearmand_DEPENDENCIES+= configmake.h
 gearmand_gearmand_LDADD+= libgearman-server/libgearman-server.la
 gearmand_gearmand_LDFLAGS+= $(BOOST_PROGRAM_OPTIONS_LDFLAGS)
 gearmand_gearmand_SOURCES+= configmake.h
@@ -34,14 +33,13 @@ gearmand_gearmand_SOURCES+= util/pidfile.cc
 
 if TARGET_LINUX
 gearmand_hostile_gearmand_CXXFLAGS=
-gearmand_hostile_gearmand_DEPENDENCIES=
+EXTRA_gearmand_hostile_gearmand_DEPENDENCIES=
 gearmand_hostile_gearmand_LDADD=
 gearmand_hostile_gearmand_LDFLAGS=
 gearmand_hostile_gearmand_SOURCES=
 
 gearmand_hostile_gearmand_CXXFLAGS+= $(gearmand_gearmand_CXXFLAGS)
-gearmand_hostile_gearmand_DEPENDENCIES+= $(gearmand_gearmand_DEPENDENCIES)
-gearmand_hostile_gearmand_DEPENDENCIES+= libhostile/libhostile.la
+EXTRA_gearmand_hostile_gearmand_DEPENDENCIES+= $(EXTRA_gearmand_gearmand_DEPENDENCIES)
 gearmand_hostile_gearmand_LDADD+= @DL_LIB@
 gearmand_hostile_gearmand_LDADD+= libgearman-server/libgearman-server.la
 gearmand_hostile_gearmand_LDADD+= libhostile/libhostile.la
