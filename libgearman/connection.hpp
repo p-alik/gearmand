@@ -100,7 +100,7 @@ public:
                                gearman_return_t& , const bool recv_data);
 
   // Receive packet data from a connection.
-  size_t receiving(void *data, size_t data_size, gearman_return_t&);
+  size_t receive_data(void *data, size_t data_size, gearman_return_t&);
 
   // Set events to be watched for a connection.
   void set_events(short events);
@@ -125,6 +125,7 @@ public:
   }
 
 private:
+  gearman_return_t set_socket_options();
   size_t recv_socket(void *data, size_t data_size, gearman_return_t&);
   gearman_return_t connect_poll();
   gearman_packet_st *_recv_packet;

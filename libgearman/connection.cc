@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2011-2012 Data Differential, http://datadifferential.com/
  *  Copyright (C) 2008 Brian Aker, Eric Day
  *  All rights reserved.
  *
@@ -78,98 +78,33 @@
 
 static gearman_return_t gearman_connection_set_option(gearman_connection_st *connection,
                                                       gearman_connection_options_t options,
-                                                      bool value);
-
-
-
-gearman_return_t gearman_connection_st::connect_poll()
+                                                      bool value)
 {
-  struct pollfd fds[1];
-  fds[0].fd= fd;
-  fds[0].events= POLLOUT;
-
-  size_t loop_max= 5;
-
-#if 0
-  if (universal.timeout == 0)
+  switch (options)
   {
-    return gearman_error(universal, GEARMAN_TIMEOUT, "not connected");
-  }
-#endif
+  case GEARMAN_CON_READY:
+    connection->options.ready= value;
+    break;
 
-  while (--loop_max) // Should only loop on cases of ERESTART or EINTR
-  {
-    int error= poll(fds, 1, GEARMAN_DEFAULT_CONNECT_TIMEOUT);
-    switch (error)
-    {
-    case 1:
-      {
-        if (fds[0].revents & (POLLERR | POLLHUP | POLLNVAL))
-        {
-          int err;
-          socklen_t len= sizeof (err);
-          // We replace errno with err if getsockopt() passes, but err has been
-          // set.
-          if (getsockopt(fds[0].fd, SOL_SOCKET, SO_ERROR, &err, &len) == 0)
-          {
-            // We check the value to see what happened wth the socket.
-            if (err == 0)
-            {
-              return GEARMAN_SUCCESS;
-            }
-            errno= err;
-          }
+  case GEARMAN_CON_PACKET_IN_USE:
+    connection->options.packet_in_use= value;
+    break;
 
-          return gearman_perror(universal, "getsockopt()");
-        }
+  case GEARMAN_CON_IGNORE_LOST_CONNECTION:
+    break;
 
-        return GEARMAN_SUCCESS;
-      }
+  case GEARMAN_CON_CLOSE_AFTER_FLUSH:
+    break;
 
-    case 0:
-      {
-        return gearman_error(universal, GEARMAN_TIMEOUT, "timeout occurred while trying to connect");
-      }
-
-    default: // A real error occurred and we need to completely bail
-      switch (get_socket_errno())
-      {
-#ifdef TARGET_OS_LINUX
-      case ERESTART:
-#endif
-      case EINTR:
-        continue;
-
-      case EFAULT:
-      case ENOMEM:
-        return gearman_perror(universal, "poll() failure");
-
-      case EINVAL:
-        return gearman_perror(universal, "RLIMIT_NOFILE exceeded, or if OSX the timeout value was invalid");
-
-      default: // This should not happen
-        if (fds[0].revents & POLLERR)
-        {
-          int err;
-          socklen_t len= sizeof (err);
-          (void)getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &len);
-          errno= err;
-        }
-        else
-        {
-          errno= get_socket_errno();
-        }
-
-        assert_msg(fd != INVALID_SOCKET, "poll() was passed an invalid file descriptor");
-
-        return gearman_perror(universal, "socket error occurred");
-      }
-    }
+  case GEARMAN_CON_EXTERNAL_FD:
+  case GEARMAN_CON_MAX:
+  default:
+    return GEARMAN_INVALID_COMMAND;
   }
 
-  // This should only be possible from ERESTART or EINTR;
-  return gearman_perror(universal, "connection failed (error should be from either ERESTART or EINTR");
+  return GEARMAN_SUCCESS;
 }
+
 
 /**
  * @addtogroup gearman_connection_static Static Connection Declarations
@@ -266,19 +201,17 @@ gearman_connection_st *gearman_connection_create_args(gearman_universal_st& univ
 gearman_connection_st *gearman_connection_create_args(gearman_universal_st& universal,
                                                       const char *host, in_port_t port)
 {
-  gearman_connection_st *connection= gearman_connection_create(universal);
-  if (connection == NULL)
+  gearman_connection_st *connection= gearman_connection_create(universal, NULL);
+  if (connection)
   {
-    return NULL;
-  }
+    connection->set_host(host, port);
 
-  connection->set_host(host, port);
-
-  if (gearman_failed(connection->lookup()))
-  {
-    gearman_gerror(universal, GEARMAN_GETADDRINFO);
-    delete connection;
-    return NULL;
+    if (gearman_failed(connection->lookup()))
+    {
+      gearman_gerror(universal, GEARMAN_GETADDRINFO);
+      delete connection;
+      return NULL;
+    }
   }
 
   return connection;
@@ -289,17 +222,15 @@ gearman_connection_st *gearman_connection_copy(gearman_universal_st& universal,
 {
   gearman_connection_st *connection= gearman_connection_create(universal);
 
-  if (connection == NULL)
+  if (connection)
   {
-    return NULL;
+    connection->options.ready= from.options.ready;
+    // @todo Is this right?
+    connection->options.packet_in_use= from.options.packet_in_use;
+
+    strcpy(connection->_host, from._host);
+    strcpy(connection->_service, from._service);
   }
-
-  connection->options.ready= from.options.ready;
-  // @todo Is this right?
-  connection->options.packet_in_use= from.options.packet_in_use;
-
-  strcpy(connection->_host, from._host);
-  strcpy(connection->_service, from._service);
 
   return connection;
 }
@@ -343,40 +274,6 @@ void gearman_connection_st::free_private_packet()
     options.packet_in_use= false;
   }
 }
-
-gearman_return_t gearman_connection_set_option(gearman_connection_st *connection,
-                                               gearman_connection_options_t options,
-                                               bool value)
-{
-  switch (options)
-  {
-  case GEARMAN_CON_READY:
-    connection->options.ready= value;
-    break;
-
-  case GEARMAN_CON_PACKET_IN_USE:
-    connection->options.packet_in_use= value;
-    break;
-
-  case GEARMAN_CON_IGNORE_LOST_CONNECTION:
-    break;
-
-  case GEARMAN_CON_CLOSE_AFTER_FLUSH:
-    break;
-
-  case GEARMAN_CON_EXTERNAL_FD:
-  case GEARMAN_CON_MAX:
-  default:
-    return GEARMAN_INVALID_COMMAND;
-  }
-
-  return GEARMAN_SUCCESS;
-}
-
-/**
- * Set socket options for a connection.
- */
-static gearman_return_t _con_setsockopt(gearman_connection_st *connection);
 
 /** @} */
 
@@ -699,30 +596,8 @@ gearman_return_t gearman_connection_st::flush()
         return gearman_perror(universal, "socket");
       }
 
-      if (SOCK_CLOEXEC == 0)
       {
-        if (FD_CLOEXEC)
-        {
-          int flags;
-          do 
-          {
-            flags= fcntl(fd, F_GETFD, 0);
-          } while (flags == -1 and (errno == EINTR or errno == EAGAIN));
-
-          if (flags != -1)
-          {
-            int rval;
-            do
-            { 
-              rval= fcntl (fd, F_SETFD, flags | FD_CLOEXEC);
-            } while (rval == -1 && (errno == EINTR or errno == EAGAIN));
-            // we currently ignore the case where rval is -1
-          }
-        }
-      }
-
-      {
-        gearman_return_t gret= _con_setsockopt(this);
+        gearman_return_t gret= set_socket_options();
         if (gearman_failed(gret))
         {
           close_socket();
@@ -739,35 +614,32 @@ gearman_return_t gearman_connection_st::flush()
           break;
         }
 
-        if (errno == EAGAIN || errno == EINTR)
+        switch (errno)
         {
-          continue;
-        }
+          // Treat as an async connect
+        case EINTR:
+        case EINPROGRESS:
+            state= GEARMAN_CON_UNIVERSAL_CONNECTING;
+            break;
 
-        if (errno == EINPROGRESS)
-        {
-          gearman_return_t gret= connect_poll();
-          if (gearman_failed(gret))
-          {
-            assert_msg(universal.error_code() != GEARMAN_SUCCESS, "Programmer error, connect_poll() returned an error, but it was not set");
-            close_socket();
-            return gret;
-          }
-
-          state= GEARMAN_CON_UNIVERSAL_CONNECTING;
-          break;
-        }
-
-        if (errno == ECONNREFUSED || errno == ENETUNREACH || errno == ETIMEDOUT)
-        {
-          state= GEARMAN_CON_UNIVERSAL_CONNECT;
+        case ECONNREFUSED:
+        case ENETUNREACH:
+        case ETIMEDOUT:
           addrinfo_next= addrinfo_next->ai_next;
+
+          // We will treat this as an error but retry the address
+        case EAGAIN:
+          state= GEARMAN_CON_UNIVERSAL_CONNECT;
+          close_socket();
           break;
+
+        default:
+          gearman_perror(universal, "connect");
+          close_socket();
+          return GEARMAN_COULD_NOT_CONNECT;
         }
 
-        gearman_perror(universal, "connect");
-        close_socket();
-        return GEARMAN_COULD_NOT_CONNECT;
+        break;
       }
 
       if (state != GEARMAN_CON_UNIVERSAL_CONNECTING)
@@ -813,39 +685,44 @@ gearman_return_t gearman_connection_st::flush()
     case GEARMAN_CON_UNIVERSAL_CONNECTED:
       while (send_buffer_size != 0)
       {
-        ssize_t write_size= ::send(fd, send_buffer_ptr, send_buffer_size, 
-                                   universal.is_non_blocking() ? MSG_NOSIGNAL| MSG_DONTWAIT : MSG_NOSIGNAL);
+        ssize_t write_size= ::send(fd, send_buffer_ptr, send_buffer_size, MSG_NOSIGNAL);
 
         if (write_size == 0) // Zero value on send()
         { }
         else if (write_size == -1)
         {
-          if (errno == EAGAIN)
+          switch (errno)
           {
-            set_events(POLLOUT);
-
-            if (universal.is_non_blocking())
+#if defined(EWOULDBLOCK) && EWOULDBLOCK != EAGAIN
+          case EWOULDBLOCK:
+#endif
+          case EAGAIN:
             {
-              return gearman_gerror(universal, GEARMAN_IO_WAIT);
-            }
+              set_events(POLLOUT);
 
-            gearman_return_t gret= gearman_wait(universal);
-            if (gearman_failed(gret))
+              if (gearman_universal_is_non_blocking(universal))
+              {
+                return gearman_gerror(universal, GEARMAN_IO_WAIT);
+              }
+
+              gearman_return_t gret= gearman_wait(universal);
+              if (gearman_failed(gret))
+              {
+                return gret;
+              }
+
+              continue;
+            }
+          case EPIPE:
+          case ECONNRESET:
+          case EHOSTDOWN:
             {
-              return gret;
+              gearman_return_t ret= gearman_perror(universal, "lost connection to server during send");
+              close_socket();
+              return ret;
             }
-
-            continue;
-          }
-          else if (errno == EINTR)
-          {
-            continue;
-          }
-          else if (errno == EPIPE || errno == ECONNRESET || errno == EHOSTDOWN)
-          {
-            gearman_return_t ret= gearman_perror(universal, "lost connection to server during send");
-            close_socket();
-            return ret;
+          default:
+            break;
           }
 
           gearman_return_t ret= gearman_perror(universal, "send");
@@ -911,6 +788,7 @@ gearman_packet_st *gearman_connection_st::receiving(gearman_packet_st& packet_ar
   case GEARMAN_CON_RECV_UNIVERSAL_READ:
     while (1)
     {
+      // If we have data, see if it is a complete packet
       if (recv_buffer_size > 0)
       {
         size_t recv_size= gearman_packet_unpack(*(recv_packet()),
@@ -937,7 +815,7 @@ gearman_packet_st *gearman_connection_st::receiving(gearman_packet_st& packet_ar
       }
       recv_buffer_ptr= recv_buffer;
 
-      size_t recv_size= recv_socket(recv_buffer + recv_buffer_size, GEARMAN_RECV_BUFFER_SIZE - recv_buffer_size, ret);
+      size_t recv_size= recv_socket(recv_buffer +recv_buffer_size, GEARMAN_RECV_BUFFER_SIZE -recv_buffer_size, ret);
       if (gearman_failed(ret))
       {
         return NULL;
@@ -954,7 +832,7 @@ gearman_packet_st *gearman_connection_st::receiving(gearman_packet_st& packet_ar
 
     recv_data_size= packet_arg.data_size;
 
-    if (not recv_data)
+    if (recv_data == false )
     {
       recv_state= GEARMAN_CON_RECV_STATE_READ_DATA;
       break;
@@ -975,7 +853,7 @@ gearman_packet_st *gearman_connection_st::receiving(gearman_packet_st& packet_ar
   case GEARMAN_CON_RECV_STATE_READ_DATA:
     while (recv_data_size)
     {
-      (void)receiving(static_cast<uint8_t *>(const_cast<void *>(packet_arg.data)) +
+      (void)receive_data(static_cast<uint8_t *>(const_cast<void *>(packet_arg.data)) +
                       recv_data_offset,
                       packet_arg.data_size -recv_data_offset, ret);
       if (gearman_failed(ret))
@@ -994,7 +872,7 @@ gearman_packet_st *gearman_connection_st::receiving(gearman_packet_st& packet_ar
   return tmp_packet_arg;
 }
 
-size_t gearman_connection_st::receiving(void *data, size_t data_size, gearman_return_t& ret)
+size_t gearman_connection_st::receive_data(void *data, size_t data_size, gearman_return_t& ret)
 {
   size_t recv_size= 0;
 
@@ -1052,8 +930,7 @@ size_t gearman_connection_st::recv_socket(void *data, size_t data_size, gearman_
 
   while (1)
   {
-    read_size= ::recv(fd, data, data_size, 
-                      gearman_universal_is_non_blocking(universal) ? MSG_NOSIGNAL| MSG_DONTWAIT : MSG_NOSIGNAL);
+    read_size= ::recv(fd, data, data_size, MSG_NOSIGNAL);
 
     if (read_size == 0)
     {
@@ -1137,15 +1014,37 @@ void gearman_connection_st::set_revents(short arg)
  * Static Definitions
  */
 
-static gearman_return_t _con_setsockopt(gearman_connection_st *connection)
+gearman_return_t gearman_connection_st::set_socket_options()
 {
+  if (SOCK_CLOEXEC == 0)
+  {
+    if (FD_CLOEXEC)
+    {
+      int flags;
+      do 
+      {
+        flags= fcntl(fd, F_GETFD, 0);
+      } while (flags == -1 and (errno == EINTR or errno == EAGAIN));
+
+      if (flags != -1)
+      {
+        int rval;
+        do
+        { 
+          rval= fcntl (fd, F_SETFD, flags | FD_CLOEXEC);
+        } while (rval == -1 && (errno == EINTR or errno == EAGAIN));
+        // we currently ignore the case where rval is -1
+      }
+    }
+  }
+
   {
     int ret= 1;
-    ret= setsockopt(connection->fd, IPPROTO_TCP, TCP_NODELAY, &ret,
+    ret= setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &ret,
                     socklen_t(sizeof(int)));
     if (ret == -1 && errno != EOPNOTSUPP)
     {
-      gearman_perror(connection->universal, "setsockopt(TCP_NODELAY)");
+      gearman_perror(universal, "setsockopt(TCP_NODELAY)");
       return GEARMAN_ERRNO;
     }
   }
@@ -1154,11 +1053,11 @@ static gearman_return_t _con_setsockopt(gearman_connection_st *connection)
     struct linger linger;
     linger.l_onoff= 1;
     linger.l_linger= GEARMAN_DEFAULT_SOCKET_TIMEOUT;
-    int ret= setsockopt(connection->fd, SOL_SOCKET, SO_LINGER, &linger,
+    int ret= setsockopt(fd, SOL_SOCKET, SO_LINGER, &linger,
                         socklen_t(sizeof(struct linger)));
     if (ret == -1)
     {
-      gearman_perror(connection->universal, "setsockopt(SO_LINGER)");
+      gearman_perror(universal, "setsockopt(SO_LINGER)");
       return GEARMAN_ERRNO;
     }
   }
@@ -1168,39 +1067,39 @@ static gearman_return_t _con_setsockopt(gearman_connection_st *connection)
     struct timeval waittime;
     waittime.tv_sec= GEARMAN_DEFAULT_SOCKET_TIMEOUT;
     waittime.tv_usec= 0;
-    int ret= setsockopt(connection->fd, SOL_SOCKET, SO_SNDTIMEO, &waittime,
+    int ret= setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &waittime,
                         socklen_t(sizeof(struct timeval)));
     if (ret == -1 && errno != ENOPROTOOPT)
     {
-      gearman_perror(connection->universal, "setsockopt(SO_SNDTIMEO)");
+      gearman_perror(universal, "setsockopt(SO_SNDTIMEO)");
       return GEARMAN_ERRNO;
     }
 
-    ret= setsockopt(connection->fd, SOL_SOCKET, SO_RCVTIMEO, &waittime,
+    ret= setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &waittime,
                     socklen_t(sizeof(struct timeval)));
     if (ret == -1 && errno != ENOPROTOOPT)
     {
-      gearman_perror(connection->universal, "setsockopt(SO_RCVTIMEO)");
+      gearman_perror(universal, "setsockopt(SO_RCVTIMEO)");
       return GEARMAN_ERRNO;
     }
   }
 
   {
     int optval= 1;
-    int ret= setsockopt(connection->fd, SOL_SOCKET, SO_KEEPALIVE, &optval, sizeof(optval));
+    int ret= setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &optval, sizeof(optval));
     if (ret == -1 && errno != ENOPROTOOPT)
     {
-      gearman_perror(connection->universal, "setsockopt(SO_KEEPALIVE)");
+      gearman_perror(universal, "setsockopt(SO_KEEPALIVE)");
       return GEARMAN_ERRNO;
     }
   }
 
   {
     int ret= GEARMAN_DEFAULT_SOCKET_SEND_SIZE;
-    ret= setsockopt(connection->fd, SOL_SOCKET, SO_SNDBUF, &ret, socklen_t(sizeof(int)));
+    ret= setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &ret, socklen_t(sizeof(int)));
     if (ret == -1)
     {
-      gearman_perror(connection->universal, "setsockopt(SO_SNDBUF)");
+      gearman_perror(universal, "setsockopt(SO_SNDBUF)");
       return GEARMAN_ERRNO;
     }
   }
@@ -1208,37 +1107,38 @@ static gearman_return_t _con_setsockopt(gearman_connection_st *connection)
 #if defined(__MACH__) && defined(__APPLE__) || defined(__FreeBSD__)
   {
     int ret= 1;
-    setsockopt(connection->fd, SOL_SOCKET, SO_NOSIGPIPE, static_cast<void *>(&ret), sizeof(int));
+    setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, static_cast<void *>(&ret), sizeof(int));
 
     // This is not considered a fatal error 
     if (ret == -1)
     {
-      gearman_perror(connection->universal, "setsockopt(SO_NOSIGPIPE)");
+      gearman_perror(universal, "setsockopt(SO_NOSIGPIPE)");
     }
   }
 #endif
 
   {
     int ret= GEARMAN_DEFAULT_SOCKET_RECV_SIZE;
-    ret= setsockopt(connection->fd, SOL_SOCKET, SO_RCVBUF, &ret, socklen_t(sizeof(int)));
+    ret= setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &ret, socklen_t(sizeof(int)));
     if (ret == -1)
     {
-      gearman_perror(connection->universal, "setsockopt(SO_RCVBUF)");
+      gearman_perror(universal, "setsockopt(SO_RCVBUF)");
       return GEARMAN_ERRNO;
     }
   }
 
+  // If SOCK_NONBLOCK doesn't work, just enable non_block via fcntl
   if (SOCK_NONBLOCK == 0)
   {
     int flags;
     do
     {
-      flags= fcntl(connection->fd, F_GETFL, 0);
+      flags= fcntl(fd, F_GETFL, 0);
     } while (flags == -1 and (errno == EINTR or errno == EAGAIN));
 
     if (flags == -1)
     {
-      gearman_perror(connection->universal, "fcntl(F_GETFL)");
+      gearman_perror(universal, "fcntl(F_GETFL)");
       return GEARMAN_ERRNO;
     }
     else if ((flags & O_NONBLOCK) == 0)
@@ -1246,12 +1146,12 @@ static gearman_return_t _con_setsockopt(gearman_connection_st *connection)
       int retval;
       do
       {
-        retval= fcntl(connection->fd, F_SETFL, flags | O_NONBLOCK);
+        retval= fcntl(fd, F_SETFL, flags | O_NONBLOCK);
       } while (retval == -1 and (errno == EINTR or errno == EAGAIN));
 
       if (retval == -1)
       {
-        gearman_perror(connection->universal, "fcntl(F_SETFL)");
+        gearman_perror(universal, "fcntl(F_SETFL)");
         return GEARMAN_ERRNO;
       }
     }
