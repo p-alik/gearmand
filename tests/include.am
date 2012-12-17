@@ -33,8 +33,12 @@ CLIENT_LDADD+= libtest/libtest.la
 CLIENT_LDADD+= tests/libstartworker.la
 
 tests_cycle_SOURCES=
+tests_cycle_LDADD=
+EXTRA_tests_cycle_DEPENDENCIES=
 
+EXTRA_tests_cycle_DEPENDENCIES+= gearmand/gearmand
 tests_cycle_SOURCES+= tests/cycle.cc
+tests_cycle_LDADD+= ${CLIENT_LDADD}
 check_PROGRAMS+=tests/cycle
 noinst_PROGRAMS+=tests/cycle
 
@@ -52,15 +56,18 @@ tests_cli_LDADD=
 tests_cli_SOURCES+= tests/cli.cc
 EXTRA_tests_cli_DEPENDENCIES+= bin/gearman
 EXTRA_tests_cli_DEPENDENCIES+= bin/gearadmin
+EXTRA_tests_cli_DEPENDENCIES+= gearmand/gearmand
 tests_cli_LDADD+= ${CLIENT_LDADD}
 check_PROGRAMS+= tests/cli
 noinst_PROGRAMS+= tests/cli
 
-tests_gearmand_SOURCES=
+EXTRA_tests_gearmand_DEPENDENCIES=
 tests_gearmand_LDADD=
+tests_gearmand_SOURCES=
 
 tests_gearmand_SOURCES+= tests/gearmand.cc
 tests_gearmand_LDADD+= ${CLIENT_LDADD}
+EXTRA_tests_gearmand_DEPENDENCIES+= gearmand/gearmand
 check_PROGRAMS+= tests/gearmand
 noinst_PROGRAMS+= tests/gearmand
 
