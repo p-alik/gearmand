@@ -345,12 +345,10 @@ uint32_t gearman_task_denominator(const gearman_task_st *task)
 void gearman_task_give_workload(gearman_task_st *task, const void *workload,
                                 size_t workload_size)
 {
-  if (task == NULL)
+  if (task)
   {
-    return;
+    gearman_packet_give_data(task->send, workload, workload_size);
   }
-
-  gearman_packet_give_data(task->send, workload, workload_size);
 }
 
 size_t gearman_task_send_workload(gearman_task_st *task, const void *workload,
@@ -432,16 +430,16 @@ size_t gearman_task_recv_data(gearman_task_st *task, void *data,
 {
   if (task == NULL)
   {
-    return 0;
-  }
-
-  if (ret_ptr == NULL)
-  {
     gearman_return_t unused;
-    return task->con->receiving(data, data_size, unused);
+    if (ret_ptr == NULL)
+    {
+      ret_ptr= &unused;
+    }
+
+    return task->con->receive_data(data, data_size, *ret_ptr);
   }
 
-  return task->con->receiving(data, data_size, *ret_ptr);
+  return 0;
 }
 
 const char *gearman_task_error(const gearman_task_st *task)

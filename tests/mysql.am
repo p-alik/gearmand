@@ -11,13 +11,11 @@
 #
 tests_mysql_test_SOURCES=
 tests_mysql_test_CXXFLAGS=
-tests_mysql_test_DEPENDENCIES=
 tests_mysql_test_LDADD=
 
 tests_mysql_test_SOURCES+= tests/basic.cc
 tests_mysql_test_SOURCES+= tests/mysql_test.cc
 
-tests_mysql_test_DEPENDENCIES+= ${CLIENT_LDADD}
 tests_mysql_test_LDADD+= ${CLIENT_LDADD}
 
 check_PROGRAMS+= tests/mysql_test

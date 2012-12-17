@@ -5,6 +5,8 @@
 
 * If the unique value passed to any client function is "#" then the unique value will be derived by hashing the workload that is being supplied to the function.
 
+* Optimize status requests so that they exit as soon as request is received.
+
 * Fix test case results for FreeBSD.
 
 1.0.1 Tue Nov  6 01:07:07 EST 2012

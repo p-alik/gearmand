@@ -8,4 +8,4 @@ AC_SUBST(HASHKIT_LIBRARY_VERSION)
 
 AC_CONFIG_FILES([libhashkit/hashkitcon.h])
 AC_CONFIG_FILES([libhashkit-1.0/configure.h])
-AM_CONDITIONAL([INCLUDE_HSIEH_SRC], false])
+AM_CONDITIONAL([INCLUDE_HSIEH_SRC],[false])
