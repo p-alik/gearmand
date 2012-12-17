@@ -11,10 +11,8 @@
 #
 tests_redis_test_CXXFLAGS=
 tests_redis_test_SOURCES=
-tests_redis_test_DEPENDENCIES=
 tests_redis_test_LDADD=
 
-tests_redis_test_DEPENDENCIES+= ${CLIENT_LDADD}
 tests_redis_test_LDADD+= ${CLIENT_LDADD}
 tests_redis_test_SOURCES+= tests/basic.cc
 tests_redis_test_SOURCES+= tests/redis.cc

@@ -11,10 +11,8 @@
 #
 
 tests_tokyocabinet_test_SOURCES=
-tests_tokyocabinet_test_DEPENDENCIES=
 tests_tokyocabinet_test_LDADD=
 
-tests_tokyocabinet_test_DEPENDENCIES+= $(CLIENT_LDADD)
 tests_tokyocabinet_test_LDADD+= $(CLIENT_LDADD)
 tests_tokyocabinet_test_SOURCES+= tests/tokyocabinet_test.cc
 tests_tokyocabinet_test_SOURCES+= tests/basic.cc

@@ -385,7 +385,7 @@ size_t gearman_task_recv_data(gearman_task_st *task_shell, void *data,
       ret_ptr= &unused;
     }
 
-    return task_shell->impl()->con->receiving(data, data_size, *ret_ptr);
+    return task_shell->impl()->con->receive_data(data, data_size, *ret_ptr);
   }
 
   return 0;
