@@ -502,9 +502,10 @@ static test_return_t error_return_TEST(void *)
 
     gearman_return_t rc;
     bool is_known;
+    int limit= 5;
     do {
       rc= gearman_client_job_status(&client, gearman_task_job_handle(task), &is_known, NULL, NULL, NULL);
-    }  while (gearman_continue(rc) or is_known);
+    }  while ((gearman_continue(rc) or is_known) and --limit);
 
     {
       test_compare(GEARMAN_SUCCESS, gearman_task_return(task));

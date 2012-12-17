@@ -407,6 +407,9 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
       /* Queue status result packet. */
       if (server_job == NULL)
       {
+        gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,"status,%.*s,unknown,unknown,unknown,unknown",
+                           int(job_handle_length), job_handle);
+
         ret= gearman_server_io_packet_add(server_con, false,
                                           GEARMAN_MAGIC_RESPONSE,
                                           GEARMAN_COMMAND_STATUS_RES,
@@ -434,6 +437,13 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
           gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "snprintf(%d)", denominator_buffer_length);
           return GEARMAN_MEMORY_ALLOCATION_FAILURE;
         }
+
+        gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,"status,%.*s,known,%s,%.*s,%.*s",
+                           int(job_handle_length), job_handle,
+                           server_job->worker == NULL ? "quiet" : "running",
+                           int(numerator_buffer_length), numerator_buffer,
+                           int(denominator_buffer_length), denominator_buffer);
+
 
         ret= gearman_server_io_packet_add(server_con, false,
                                           GEARMAN_MAGIC_RESPONSE,
