@@ -135,7 +135,7 @@ AC_CHECK_HEADERS_ONCE([syslog.h])
 AC_CHECK_HEADERS_ONCE([unistd.h])
 AC_CHECK_HEADERS_ONCE([winsock2.h])
 AC_CHECK_HEADERS_ONCE([libmemcached-1.0/types/return.h])
-AC_CHECK_HEADERS_ONCE([libgearman-1.0/return.h])
+
 AM_CONDITIONAL([BUILD_WIN32_WRAPPERS],[test "x$ac_cv_header_winsock2_h" = "xyes"])
 AS_IF([test "x$ac_cv_header_winsock2_h" = "xyes"],
       [AM_LDFLAGS="$AM_LDFLAGS -lws2_32"
