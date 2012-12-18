@@ -8,10 +8,11 @@ if IS_VCS_CHECKOUT
 
 # Build rule for documentation
 $(dist_man_MANS): man
+BUILT_SOURCES+= $(dist_man_MANS)
 
 endif
 
-BUILT_SOURCES+= $(dist_man_MANS)
+endif
 
 dist_man_MANS+=  man/gearadmin.1
 dist_man_MANS+=  man/gearman.1
@@ -170,5 +171,3 @@ dist_man_MANS+=  man/gearman_worker_unregister_all.3
 dist_man_MANS+=  man/gearman_worker_wait.3
 dist_man_MANS+=  man/gearman_worker_work.3
 dist_man_MANS+=  man/libgearman.3
-
-endif
