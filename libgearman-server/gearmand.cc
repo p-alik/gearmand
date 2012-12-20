@@ -781,6 +781,14 @@ static void _listen_event(int event_fd, short events __attribute__ ((unused)), v
     return;
   }
 
+  {
+    int flags= 1;
+    if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &flags, sizeof(flags)) == -1)
+    {
+      gearmand_perror("setsockopt(SO_KEEPALIVE)");
+    }
+  }
+
   /* 
     Since this is numeric, it should never fail. Even if it did we don't want to really error from it.
   */
