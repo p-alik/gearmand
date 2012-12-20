@@ -447,6 +447,86 @@ void gearmand_wakeup(gearmand_st *gearmand, gearmand_wakeup_t wakeup)
  * Private definitions
  */
 
+gearmand_error_t set_socket(int& fd, struct addrinfo *addrinfo_next)
+{
+  /* Call to socket() can fail for some getaddrinfo results, try another. */
+  fd= socket(addrinfo_next->ai_family, addrinfo_next->ai_socktype,
+             addrinfo_next->ai_protocol);
+  if (fd == -1)
+  {
+    return gearmand_perror("socket()");
+  }
+
+#ifdef IPV6_V6ONLY
+  {
+    int flags= 1;
+    if (addrinfo_next->ai_family == AF_INET6)
+    {
+      flags= 1;
+      if (setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &flags, sizeof(flags)) == -1)
+      {
+        return gearmand_perror("setsockopt(IPV6_V6ONLY)");
+      }
+    }
+  }
+#endif
+
+  {
+    if (FD_CLOEXEC)
+    {
+      int flags;
+      do 
+      {
+        flags= fcntl(fd, F_GETFD, 0);
+      } while (flags == -1 and (errno == EINTR or errno == EAGAIN));
+
+      if (flags != -1)
+      {
+        int rval;
+        do
+        { 
+          rval= fcntl (fd, F_SETFD, flags | FD_CLOEXEC);
+        } while (rval == -1 && (errno == EINTR or errno == EAGAIN));
+        // we currently ignore the case where rval is -1
+      }
+    }
+  }
+
+  {
+    int flags= 1;
+    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &flags, sizeof(flags)) == -1)
+    {
+      return gearmand_perror("setsockopt(SO_REUSEADDR)");
+    }
+  }
+
+  {
+    int flags= 1;
+    if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &flags, sizeof(flags)) == -1)
+    {
+      return gearmand_perror("setsockopt(SO_KEEPALIVE)");
+    }
+  }
+
+  {
+    struct linger ling= {0, 0};
+    if (setsockopt(fd, SOL_SOCKET, SO_LINGER, &ling, sizeof(ling)) == -1)
+    {
+      return gearmand_perror("setsockopt(SO_LINGER)");
+    }
+  }
+
+  {
+    int flags= 1;
+    if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &flags, sizeof(flags)) == -1)
+    {
+      return gearmand_perror("setsockopt(TCP_NODELAY)");
+    }
+  }
+
+  return GEARMAN_SUCCESS;
+}
+
 static const uint32_t bind_timeout= 20; // Number is not special, but look at INFO messages if you decide to change it.
 
 typedef std::pair<std::string, std::string> host_port_t;
@@ -455,7 +535,6 @@ static gearmand_error_t _listen_init(gearmand_st *gearmand)
 {
   for (uint32_t x= 0; x < gearmand->port_count; x++)
   {
-    struct linger ling= {0, 0};
     struct addrinfo hints;
     struct addrinfo *addrinfo;
 
@@ -476,8 +555,7 @@ static gearmand_error_t _listen_init(gearmand_st *gearmand)
         {
           buffer[0]= 0;
         }
-        gearmand_gai_error(buffer, ret);
-        return GEARMAN_ERRNO;
+        return gearmand_gai_error(buffer, ret);
       }
     }
 
@@ -485,7 +563,6 @@ static gearmand_error_t _listen_init(gearmand_st *gearmand)
     for (struct addrinfo *addrinfo_next= addrinfo; addrinfo_next != NULL;
          addrinfo_next= addrinfo_next->ai_next)
     {
-      int fd;
       char host[NI_MAXHOST];
 
       {
@@ -512,69 +589,6 @@ static gearmand_error_t _listen_init(gearmand_st *gearmand)
 
       gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Trying to listen on %s:%s", host, port->port);
 
-      /* Call to socket() can fail for some getaddrinfo results, try another. */
-      fd= socket(addrinfo_next->ai_family, addrinfo_next->ai_socktype,
-                 addrinfo_next->ai_protocol);
-      if (fd == -1)
-      {
-        gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "Failed to listen on %s:%s", host, port->port);
-        continue;
-      }
-
-      int flags= 1;
-#ifdef IPV6_V6ONLY
-      if (addrinfo_next->ai_family == AF_INET6)
-      {
-        flags= 1;
-        if (setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &flags, sizeof(flags)) == -1)
-        {
-          gearmand_perror("setsockopt(IPV6_V6ONLY)");
-          return GEARMAN_ERRNO;
-        }
-      }
-#endif
-
-      {
-        int ret= fcntl(fd, F_SETFD, FD_CLOEXEC);
-        if (ret != 0 || !(fcntl(fd, F_GETFD, 0) & FD_CLOEXEC))
-        {
-          gearmand_perror("fcntl(FD_CLOEXEC)");
-          return GEARMAN_ERRNO;
-        }
-      }
-
-      {
-        if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &flags, sizeof(flags)) == -1)
-        {
-          gearmand_perror("setsockopt(SO_REUSEADDR)");
-          return GEARMAN_ERRNO;
-        }
-      }
-
-      {
-        if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &flags, sizeof(flags)) == -1)
-        {
-          gearmand_perror("setsockopt(SO_KEEPALIVE)");
-          return GEARMAN_ERRNO;
-        }
-      }
-
-      {
-        if (setsockopt(fd, SOL_SOCKET, SO_LINGER, &ling, sizeof(ling)) == -1)
-        {
-          gearmand_perror("setsockopt(SO_LINGER)");
-          return GEARMAN_ERRNO;
-        }
-      }
-
-      {
-        if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &flags, sizeof(flags)) == -1)
-        {
-          gearmand_perror("setsockopt(TCP_NODELAY)");
-          return GEARMAN_ERRNO;
-        }
-      }
-
       /*
         @note logic for this pulled from Drizzle.
 
@@ -589,40 +603,49 @@ static gearmand_error_t _listen_init(gearmand_st *gearmand)
       uint32_t this_wait;
       uint32_t retry;
       int ret= -1;
-      for (waited= 0, retry= 4; ; retry++, waited+= this_wait)
+      int fd;
+      for (waited= 0, retry= 1; ; retry++, waited+= this_wait)
       {
-        if (((ret= bind(fd, addrinfo_next->ai_addr, addrinfo_next->ai_addrlen)) == 0) or
-            (errno != EADDRINUSE) || (waited >= bind_timeout))
+        gearmand_debug("set_socket");
+        { 
+          gearmand_error_t socket_ret;
+          if (gearmand_failed(socket_ret= set_socket(fd, addrinfo_next)))
+          {
+            gearmand_sockfd_close(fd);
+            return socket_ret;
+          }
+        }
+
+        errno= 0;
+        if ((ret= bind(fd, addrinfo_next->ai_addr, addrinfo_next->ai_addrlen)) == 0)
         {
+          // Success
           break;
         }
-
-        // We are in single user threads, so strerror() is fine.
-        gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Retrying bind(%s) on %s:%s %u >= %u", 
-                           strerror(errno), host, port->port,
-                           waited, bind_timeout);
-        this_wait= retry * retry / 3 + 1;
-        sleep(this_wait);
-      }
-
-      if (ret < 0)
-      {
-        gearmand_perror("bind");
-
+        // Protect our error
+        ret= errno;
         gearmand_sockfd_close(fd);
-
-        if (errno == EADDRINUSE)
+        
+        if (waited >= bind_timeout)
         {
-          if (port->listen_fd == NULL)
-          {
-            gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "Address already in use %s:%s", host, port->port);
-          }
-
-          continue;
+          return gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "Timeout occured when calling bind() for %s:%s", host, port->port);
         }
 
-        gearmand_perror("bind");
-        return GEARMAN_ERRNO;
+        if (ret != EADDRINUSE)
+        {
+          errno= ret;
+          return gearmand_perror("bind");
+        }
+
+        this_wait= retry * retry / 3 + 1;
+
+        // We are in single user threads, so strerror() is fine.
+        gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Retrying bind(%s) on %s:%s %u + %u >= %u", 
+                           strerror(ret), host, port->port,
+                           waited, this_wait, bind_timeout);
+
+        struct timespec requested= { this_wait, 0 };
+        nanosleep(&requested, NULL);
       }
 
       if (listen(fd, gearmand->backlog) == -1)

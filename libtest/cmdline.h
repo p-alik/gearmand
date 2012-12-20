@@ -162,7 +162,7 @@ public:
 
   std::string print();
 
-  void use_valgrind(bool arg= true)
+  void use_valgrind(bool arg)
   {
     _use_valgrind= arg;
   }
@@ -172,12 +172,12 @@ public:
   bool slurp();
   void murder();
 
-  void use_gdb(bool arg= true)
+  void use_gdb(bool arg)
   {
     _use_gdb= arg;
   }
 
-  void use_ptrcheck(bool arg= true)
+  void use_ptrcheck(bool arg)
   {
     _use_ptrcheck= arg;
   }
