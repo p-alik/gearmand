@@ -1,0 +1,26 @@
+description  "Overriding gearman-job-server.conf"
+author "Goran Miskovic <goran.v.miskovic@gmail.com>"
+# Useful info could be found in /var/log/upstart/gearman-job-server.log
+
+# Comment line bellow to enable starting job server on startup
+manual
+
+# For all versions of Upstart prior to v1.4, the default value for console was console none.
+# console log
+
+# Uncomment to change the default respawn limit
+# respawn the job up to 10 times within a 5 second period.
+# If the job exceeds these values, it will be stopped and marked as failed.
+# respawn limit 10 5
+
+# Uncomment to start when both mysql started and network is available
+# start on (started mysql and net-device-up IFACE!=lo)
+
+# If compiled from the source using default options gearmand will not be in /usr/sbin
+# exec /usr/local/sbin/gearmand
+
+# Uncomment to use configuration file that is not in the default location
+# exec /usr/local/sbin/gearmand --config-file=/path/tp/yours/gearmand.conf
+
+# Various options could be defined in the same way
+# exec /usr/local/sbin/gearmand --verbose=DEBUG
