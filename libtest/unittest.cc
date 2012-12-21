@@ -464,7 +464,7 @@ static test_return_t application_gdb_true_BINARY2(void *)
   test_skip(0, access("/usr/bin/true", X_OK ));
 
   Application true_app("/usr/bin/true");
-  true_app.use_gdb();
+  true_app.use_gdb(true);
 
   test_compare(Application::SUCCESS, true_app.run());
   test_compare(Application::SUCCESS, true_app.join());
@@ -478,7 +478,7 @@ static test_return_t application_gdb_true_BINARY(void *)
   test_skip(0, access("/usr/bin/true", X_OK ));
 
   Application true_app("/usr/bin/true");
-  true_app.use_gdb();
+  true_app.use_gdb(true);
 
   const char *args[]= { "--fubar", 0 };
   test_compare(Application::SUCCESS, true_app.run(args));
@@ -685,7 +685,7 @@ static test_return_t wait_services_appliction_TEST(void *)
   test_skip(0, access("libtest/wait", X_OK ));
 
   libtest::Application wait_app("libtest/wait", true);
-  wait_app.use_gdb();
+  wait_app.use_gdb(true);
 
   const char *args[]= { "/etc/services", 0 };
   test_compare(Application::SUCCESS, wait_app.run(args));
@@ -706,7 +706,7 @@ static test_return_t gdb_wait_services_appliction_TEST(void *)
   test_skip(0, access("libtest/wait", X_OK ));
 
   libtest::Application wait_app("libtest/wait", true);
-  wait_app.use_gdb();
+  wait_app.use_gdb(true);
 
   const char *args[]= { "/etc/services", 0 };
   test_compare(Application::SUCCESS, wait_app.run(args));
@@ -726,7 +726,7 @@ static test_return_t gdb_abort_services_appliction_TEST(void *)
 #endif
 
   libtest::Application abort_app("libtest/abort", true);
-  abort_app.use_gdb();
+  abort_app.use_gdb(true);
 
   test_compare(Application::SUCCESS, abort_app.run());
   test_compare(Application::SUCCESS, abort_app.join());

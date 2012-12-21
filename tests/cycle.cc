@@ -114,6 +114,21 @@ static test_return_t server_startup_multiple_TEST(void *obj)
   return TEST_SUCCESS;
 }
 
+// We can't really test for this just yet, because we don't know if the server
+// we attach to is really the one we expect to attach too.
+static test_return_t server_startup_conflict_TEST(void*)
+{
+#if 0
+  cycle_context_st *context= (cycle_context_st*)object;
+
+  in_port_t bind_port= libtest::get_free_port();
+  test_compare(true, server_startup(context->servers, "gearmand", bind_port, 0, NULL, false));
+  test_compare(false, server_startup(context->servers, "gearmand", bind_port, 0, NULL, false));
+#endif
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t shutdown_and_remove_TEST(void *obj)
 {
   cycle_context_st *context= (cycle_context_st*)obj;
@@ -127,6 +142,7 @@ test_st server_startup_TESTS[] ={
   {"server_startup(many)", false, (test_callback_fn*)server_startup_multiple_TEST },
   {"shutdown_and_remove()", false, (test_callback_fn*)shutdown_and_remove_TEST },
   {"server_startup(many)", false, (test_callback_fn*)server_startup_multiple_TEST },
+  {"server_startup() with bind() conflict", false, (test_callback_fn*)server_startup_conflict_TEST },
   {0, 0, 0}
 };
 
@@ -201,4 +217,3 @@ void get_world(libtest::Framework *world)
   world->create(world_create);
   world->destroy(world_destroy);
 }
-

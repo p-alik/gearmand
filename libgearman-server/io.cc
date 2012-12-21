@@ -874,7 +874,9 @@ static gearmand_error_t _io_setsockopt(gearmand_io_st &connection)
 void gearmand_sockfd_close(int sockfd)
 {
   if (sockfd == INVALID_SOCKET)
+  {
     return;
+  }
 
   /* in case of death shutdown to avoid blocking at close() */
   if (shutdown(sockfd, SHUT_RDWR) == SOCKET_ERROR && get_socket_errno() != ENOTCONN)
