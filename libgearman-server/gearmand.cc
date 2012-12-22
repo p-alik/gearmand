@@ -606,7 +606,6 @@ static gearmand_error_t _listen_init(gearmand_st *gearmand)
       int fd;
       for (waited= 0, retry= 1; ; retry++, waited+= this_wait)
       {
-        gearmand_debug("set_socket");
         { 
           gearmand_error_t socket_ret;
           if (gearmand_failed(socket_ret= set_socket(fd, addrinfo_next)))

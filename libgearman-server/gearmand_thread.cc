@@ -48,12 +48,45 @@
 #include <cassert>
 #include <cerrno>
 #include <memory>
+#include <csignal>
 
 #include <libgearman-server/list.h>
 
 /*
  * Private declarations
  */
+
+namespace
+{
+
+bool fill_timespec(struct timespec& ts)
+{
+#if defined(HAVE_LIBRT) && HAVE_LIBRT
+  if (HAVE_LIBRT) // This won't be called on OSX, etc,...
+  {
+    if (clock_gettime(CLOCK_REALTIME, &ts) == -1) 
+    {
+      gearmand_perror("clock_gettime(CLOCK_REALTIME)");
+      return false;
+    }
+  }
+#else
+  {
+    struct timeval tv;
+    if (gettimeofday(&tv, NULL) == -1) 
+    {
+      gearmand_perror("gettimeofday()");
+      return false;
+    }
+
+    TIMEVAL_TO_TIMESPEC(&tv, &ts);
+  }
+#endif
+
+  return true;
+}
+
+}
 
 /**
  * @addtogroup gearmand_thread_private Private Gearmand Thread Functions
@@ -182,8 +215,38 @@ void gearmand_thread_free(gearmand_thread_st *thread)
     gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Shutting down thread %u", thread->count);
 
     gearmand_thread_wakeup(thread, GEARMAND_WAKEUP_SHUTDOWN);
-    int pthread_error;
-    if ((pthread_error= pthread_join(thread->id, NULL)))
+
+    int pthread_error= -1;
+#if defined(HAVE_PTHREAD_TIMEDJOIN_NP) && HAVE_PTHREAD_TIMEDJOIN_NP
+    {
+      struct timespec ts;
+      if (fill_timespec(ts))
+      {
+        ts.tv_sec+= 30;
+        pthread_error= pthread_timedjoin_np(thread->id, NULL, &ts);
+        if (pthread_error)
+        {
+          errno= pthread_error;
+          gearmand_perror("pthread_join");
+        }
+      }
+
+      if (pthread_error != 0)
+      {
+        pthread_error= pthread_kill(thread->id, SIGQUIT);
+        if (pthread_error)
+        {
+          errno= pthread_error;
+          gearmand_perror("pthread_join");
+        }
+        pthread_error= pthread_join(thread->id, NULL);
+      }
+    }
+#else
+    pthread_error= pthread_join(thread->id, NULL);
+#endif
+
+    if (pthread_error)
     {
       errno= pthread_error;
       gearmand_perror("pthread_join");
@@ -392,8 +455,7 @@ static void _wakeup_clear(gearmand_thread_st *thread)
     gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Clearing event for IO thread wakeup pipe %u", thread->count);
     if (event_del(&(thread->wakeup_event)) < 0)
     {
-      gearmand_perror("event_del");
-      assert(! "event_del");
+      gearmand_perror("event_del() failure, shutdown may hang");
     }
     thread->is_wakeup_event= false;
   }
