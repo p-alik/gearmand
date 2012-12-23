@@ -874,7 +874,10 @@ static gearmand_error_t _io_setsockopt(gearmand_io_st &connection)
 void gearmand_sockfd_close(int sockfd)
 {
   if (sockfd == INVALID_SOCKET)
+  {
+    gearmand_error("gearmand_sockfd_close() called with an invalid socket");
     return;
+  }
 
   /* in case of death shutdown to avoid blocking at close() */
   if (shutdown(sockfd, SHUT_RDWR) == SOCKET_ERROR && get_socket_errno() != ENOTCONN)
@@ -894,6 +897,7 @@ void gearmand_pipe_close(int pipefd)
 {
   if (pipefd == INVALID_SOCKET)
   {
+    gearmand_error("gearmand_pipe_close() called with an invalid socket");
     return;
   }
 

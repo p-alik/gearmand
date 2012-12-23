@@ -101,3 +101,4 @@ libgearman_server_libgearman_server_la_LIBADD+= @PTHREAD_LIBS@
 libgearman_server_libgearman_server_la_LIBADD+= $(BOOST_PROGRAM_OPTIONS_LIBS)
 libgearman_server_libgearman_server_la_LIBADD+= @LIBM@
 libgearman_server_libgearman_server_la_LIBADD+= @DL_LIB@
+libgearman_server_libgearman_server_la_LIBADD+= @RT_LIB@
