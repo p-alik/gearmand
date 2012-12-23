@@ -471,6 +471,7 @@ gearmand_error_t set_socket(int& fd, struct addrinfo *addrinfo_next)
   }
 #endif
 
+  if (0) // Add in when we have server working as a library again.
   {
     if (FD_CLOEXEC)
     {
