@@ -14,6 +14,8 @@ tests_libgearman_1_0_client_test_SOURCES=
 tests_libgearman_1_0_client_test_LDADD=
 
 tests_libgearman_1_0_client_test_CXXFLAGS+= $(BOOST_CPPFLAGS)
+tests_libgearman_1_0_client_test_CXXFLAGS+= @PTHREAD_CFLAGS@
+tests_libgearman_1_0_client_test_LDADD+= @PTHREAD_LIBS@
 tests_libgearman_1_0_client_test_SOURCES+= tests/libgearman-1.0/client_test.cc 
 tests_libgearman_1_0_client_test_SOURCES+= tests/libgearman-1.0/do.cc 
 tests_libgearman_1_0_client_test_SOURCES+= tests/libgearman-1.0/do_background.cc 

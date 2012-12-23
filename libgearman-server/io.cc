@@ -875,6 +875,7 @@ void gearmand_sockfd_close(int sockfd)
 {
   if (sockfd == INVALID_SOCKET)
   {
+    gearmand_error("gearmand_sockfd_close() called with an invalid socket");
     return;
   }
 
@@ -896,6 +897,7 @@ void gearmand_pipe_close(int pipefd)
 {
   if (pipefd == INVALID_SOCKET)
   {
+    gearmand_error("gearmand_pipe_close() called with an invalid socket");
     return;
   }
 

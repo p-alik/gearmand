@@ -235,6 +235,7 @@ test_return_t lp_734663(void *object)
   for (uint32_t x= 0; x < NUMBER_OF_WORKERS; x++)
   {
     worker_handle[x]= test_worker_start(test->port(), NULL, worker_function_name, counter_function_fn, &called, gearman_worker_options_t());
+    test_true(worker_handle[x]);
   }
 
   while (called.count() < NUMBER_OF_JOBS)
