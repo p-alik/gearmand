@@ -293,7 +293,6 @@ static test_return_t lp_1087654_TEST(void* object)
 
     {
       test::Client client(first_port);
-      test_compare(gearman_client_echo(&client, test_literal_param("This is my echo test")), GEARMAN_SUCCESS);
       gearman_job_handle_t job_handle;
       for (int32_t x= 0; x < inserted_jobs; ++x)
       {
@@ -342,7 +341,7 @@ static test_return_t lp_1087654_TEST(void* object)
         }
       }
 
-      test_compare(sql_handle.vcount(), inserted_jobs);
+      test_zero(sql_handle.vcount());
     }
 
     servers.clear();

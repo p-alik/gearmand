@@ -110,6 +110,7 @@ static void gearman_server_free(gearman_server_st& server)
       gearman_server_job_free(server.job_hash[key]);
     }
   }
+  gearman_queue_flush(&server);
 
   while (server.function_list != NULL)
   {

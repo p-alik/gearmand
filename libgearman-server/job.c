@@ -174,8 +174,8 @@ gearman_server_job_add_reducer(gearman_server_st *server,
   if (server_job == NULL)
   {
     gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Comparing queue %u to limit %u for priority %u",
-      server_function->job_total, server_function->max_queue_size[priority],
-      priority);
+                       server_function->job_total, server_function->max_queue_size[priority],
+                       priority);
     if (server_function->max_queue_size[priority] > 0 &&
         server_function->job_total >= server_function->max_queue_size[priority])
     {
@@ -255,16 +255,6 @@ gearman_server_job_add_reducer(gearman_server_st *server,
         server_job->data= NULL;
         gearman_server_job_free(server_job);
         return NULL;
-      }
-
-      {
-        *ret_ptr= gearman_queue_flush(server);
-        if (*ret_ptr != GEARMAN_SUCCESS)
-        {
-          server_job->data= NULL;
-          gearman_server_job_free(server_job);
-          return NULL;
-        }
       }
 
       server_job->job_queued= true;

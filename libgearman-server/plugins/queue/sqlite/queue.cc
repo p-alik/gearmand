@@ -95,6 +95,8 @@ gearmand_error_t Sqlite::initialize()
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
 
+  exec_queue->store_on_shutdown(_store_on_shutdown);
+
   gearmand_error_t rc;
   if ((rc= exec_queue->init()) != GEARMAN_SUCCESS)
   {
