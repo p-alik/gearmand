@@ -317,7 +317,7 @@ gearmand_error_t gearmand_port_add(gearmand_st *gearmand, const char *port,
                                          sizeof(gearmand_port_st) * (gearmand->port_count + 1));
   if (port_list == NULL)
   {
-    gearmand_perror("realloc");
+    gearmand_perror(errno, "realloc");
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
 
@@ -432,7 +432,7 @@ void gearmand_wakeup(gearmand_st *gearmand, gearmand_wakeup_t wakeup)
   {
     if (written < 0)
     {
-      gearmand_perror(gearmand_strwakeup(wakeup));
+      gearmand_perror(errno, gearmand_strwakeup(wakeup));
     }
     else
     {
@@ -454,7 +454,7 @@ gearmand_error_t set_socket(int& fd, struct addrinfo *addrinfo_next)
              addrinfo_next->ai_protocol);
   if (fd == -1)
   {
-    return gearmand_perror("socket()");
+    return gearmand_perror(errno, "socket()");
   }
 
 #ifdef IPV6_V6ONLY
@@ -465,7 +465,7 @@ gearmand_error_t set_socket(int& fd, struct addrinfo *addrinfo_next)
       flags= 1;
       if (setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &flags, sizeof(flags)) == -1)
       {
-        return gearmand_perror("setsockopt(IPV6_V6ONLY)");
+        return gearmand_perror(errno, "setsockopt(IPV6_V6ONLY)");
       }
     }
   }
@@ -497,7 +497,7 @@ gearmand_error_t set_socket(int& fd, struct addrinfo *addrinfo_next)
     int flags= 1;
     if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &flags, sizeof(flags)) == -1)
     {
-      return gearmand_perror("setsockopt(SO_REUSEADDR)");
+      return gearmand_perror(errno, "setsockopt(SO_REUSEADDR)");
     }
   }
 
@@ -505,7 +505,7 @@ gearmand_error_t set_socket(int& fd, struct addrinfo *addrinfo_next)
     int flags= 1;
     if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &flags, sizeof(flags)) == -1)
     {
-      return gearmand_perror("setsockopt(SO_KEEPALIVE)");
+      return gearmand_perror(errno, "setsockopt(SO_KEEPALIVE)");
     }
   }
 
@@ -513,7 +513,7 @@ gearmand_error_t set_socket(int& fd, struct addrinfo *addrinfo_next)
     struct linger ling= {0, 0};
     if (setsockopt(fd, SOL_SOCKET, SO_LINGER, &ling, sizeof(ling)) == -1)
     {
-      return gearmand_perror("setsockopt(SO_LINGER)");
+      return gearmand_perror(errno, "setsockopt(SO_LINGER)");
     }
   }
 
@@ -521,7 +521,7 @@ gearmand_error_t set_socket(int& fd, struct addrinfo *addrinfo_next)
     int flags= 1;
     if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &flags, sizeof(flags)) == -1)
     {
-      return gearmand_perror("setsockopt(TCP_NODELAY)");
+      return gearmand_perror(errno, "setsockopt(TCP_NODELAY)");
     }
   }
 
@@ -633,8 +633,7 @@ static gearmand_error_t _listen_init(gearmand_st *gearmand)
 
         if (ret != EADDRINUSE)
         {
-          errno= ret;
-          return gearmand_perror("bind");
+          return gearmand_perror(ret, "bind");
         }
 
         this_wait= retry * retry / 3 + 1;
@@ -650,7 +649,7 @@ static gearmand_error_t _listen_init(gearmand_st *gearmand)
 
       if (listen(fd, gearmand->backlog) == -1)
       {
-        gearmand_perror("listen");
+        gearmand_perror(errno, "listen");
 
         gearmand_sockfd_close(fd);
 
@@ -662,7 +661,7 @@ static gearmand_error_t _listen_init(gearmand_st *gearmand)
         int* fd_list= (int *)realloc(port->listen_fd, sizeof(int) * (port->listen_count + 1));
         if (fd_list == NULL)
         {
-          gearmand_perror("realloc");
+          gearmand_perror(errno, "realloc");
 
           gearmand_sockfd_close(fd);
 
@@ -738,7 +737,7 @@ static gearmand_error_t _listen_watch(gearmand_st *gearmand)
 
       if (event_add(&(gearmand->port_list[x].listen_event[y]), NULL) < 0)
       {
-        gearmand_perror("event_add");
+        gearmand_perror(errno, "event_add");
         return GEARMAN_EVENT;
       }
     }
@@ -762,7 +761,7 @@ static void _listen_clear(gearmand_st *gearmand)
 
         if (event_del(&(gearmand->port_list[x].listen_event[y])) < 0)
         {
-          gearmand_perror("We tried to event_del() an event which no longer existed");
+          gearmand_perror(errno, "We tried to event_del() an event which no longer existed");
           assert(! "We tried to event_del() an event which no longer existed");
         }
       }
@@ -781,23 +780,25 @@ static void _listen_event(int event_fd, short events __attribute__ ((unused)), v
   int fd= accept(event_fd, &sa, &sa_len);
   if (fd == -1)
   {
-    if (errno == EINTR)
+    int local_error= errno;
+
+    if (local_error == EINTR)
     {
       return;
     }
-    else if (errno == ECONNABORTED)
+    else if (local_error == ECONNABORTED)
     {
-      gearmand_perror("accept");
+      gearmand_perror(local_error, "accept");
       return;
     }
-    else if (errno == EMFILE)
+    else if (local_error == EMFILE)
     {
-      gearmand_perror("accept");
+      gearmand_perror(local_error, "accept");
       return;
     }
 
     _clear_events(Gearmand());
-    gearmand_perror("accept");
+    gearmand_perror(local_error, "accept");
     Gearmand()->ret= GEARMAN_ERRNO;
     return;
   }
@@ -838,20 +839,20 @@ static gearmand_error_t _wakeup_init(gearmand_st *gearmand)
 
   if (pipe(gearmand->wakeup_fd) < 0)
   {
-    gearmand_perror("pipe");
+    gearmand_perror(errno, "pipe");
     return GEARMAN_ERRNO;
   }
 
   int returned_flags;
   if ((returned_flags= fcntl(gearmand->wakeup_fd[0], F_GETFL, 0)) < 0)
   {
-    gearmand_perror("fcntl:F_GETFL");
+    gearmand_perror(errno, "fcntl:F_GETFL");
     return GEARMAN_ERRNO;
   }
 
   if (fcntl(gearmand->wakeup_fd[0], F_SETFL, returned_flags | O_NONBLOCK) < 0)
   {
-    gearmand_perror("F_SETFL");
+    gearmand_perror(errno, "F_SETFL");
     return GEARMAN_ERRNO;
   }
 
@@ -887,7 +888,7 @@ static gearmand_error_t _wakeup_watch(gearmand_st *gearmand)
 
   if (event_add(&(gearmand->wakeup_event), NULL) < 0)
   {
-    gearmand_perror("event_add");
+    gearmand_perror(errno, "event_add");
     return GEARMAN_EVENT;
   }
 
@@ -902,7 +903,7 @@ static void _wakeup_clear(gearmand_st *gearmand)
     gearmand_debug("Clearing event for wakeup pipe");
     if (event_del(&(gearmand->wakeup_event)) < 0)
     {
-      gearmand_perror("We tried to event_del() an event which no longer existed");
+      gearmand_perror(errno, "We tried to event_del() an event which no longer existed");
       assert(! "We tried to event_del() an event which no longer existed");
     }
     gearmand->is_wakeup_event= false;
@@ -926,18 +927,19 @@ static void _wakeup_event(int fd, short, void *arg)
     }
     else if (ret == -1)
     {
-      if (errno == EINTR)
+      int local_error= errno;
+      if (local_error == EINTR)
       {
         continue;
       }
 
-      if (errno == EAGAIN)
+      if (local_error == EAGAIN)
       {
         break;
       }
 
       _clear_events(gearmand);
-      gearmand_perror("_wakeup_event:read");
+      gearmand_perror(local_error, "_wakeup_event:read");
       gearmand->ret= GEARMAN_ERRNO;
       return;
     }

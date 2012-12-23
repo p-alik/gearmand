@@ -95,8 +95,7 @@ static gearman_server_con_st * _server_con_create(gearman_server_thread_st *thre
     con= build_gearman_server_con_st();
     if (con == NULL)
     {
-      gearmand_perror("new() build_gearman_server_con_st");
-      *ret= GEARMAN_MEMORY_ALLOCATION_FAILURE;
+      *ret= gearmand_perror(errno, "new() build_gearman_server_con_st");
       return NULL;
     }
   }

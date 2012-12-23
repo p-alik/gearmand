@@ -48,6 +48,7 @@
 
 #include <libgearman-server/fifo.h>
 #include <cassert>
+#include <cerrno>
 #include <cstring>
 #include <memory>
 
@@ -89,7 +90,7 @@ gearman_server_packet_create(gearman_server_thread_st *thread,
     server_packet= new (std::nothrow) gearman_server_packet_st;
     if (server_packet == NULL)
     {
-      gearmand_perror("new() gearman_server_packet_st");
+      gearmand_perror(errno, "new() gearman_server_packet_st");
       return NULL;
     }
   }
@@ -319,8 +320,7 @@ inline static gearmand_error_t packet_create_arg(gearmand_packet_st *packet,
       char *new_args= (char *)realloc(packet->args, packet->args_size + arg_size);
       if (new_args == NULL)
       {
-        gearmand_perror("realloc");
-        return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+        return gearmand_perror(errno, "realloc");
       }
       packet->args= new_args;
     }

@@ -71,8 +71,8 @@ void gearmand_log_fatal(const char *position, const char *func, const char *form
 #define gearmand_fatal(_mesg) gearmand_log_fatal(GEARMAN_DEFAULT_LOG_PARAM, (_mesg))
 
 GEARMAN_INTERNAL_API
-void gearmand_log_fatal_perror(const char *position, const char *function, const char *message);
-#define gearmand_fatal_perror(_mesg) gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, (_mesg))
+gearmand_error_t gearmand_log_fatal_perror(const char *position, const char *function, int local_errno, const char *message);
+#define gearmand_fatal_perror(__local_errno, __mesg) gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, (__local_errno), (__mesg))
 
 
 /**
@@ -82,11 +82,9 @@ GEARMAN_INTERNAL_API
 gearmand_error_t gearmand_log_error(const char *position, const char *function, const char *format, ...);
 #define gearmand_error(_mesg) gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, (_mesg))
 
-GEARMAN_INTERNAL_API
-gearmand_error_t gearmand_log_perror(const char *position, const char *function, const char *message);
-#define gearmand_perror(_mesg) gearmand_log_perror(GEARMAN_DEFAULT_LOG_PARAM,  (_mesg))
+gearmand_error_t gearmand_log_perror(const char *position, const char *function, int local_errno, const char *message);
+#define gearmand_perror(__local_errno, __mesg) gearmand_log_perror(GEARMAN_DEFAULT_LOG_PARAM, (__local_errno), (__mesg))
 
-GEARMAN_INTERNAL_API
 gearmand_error_t gearmand_log_gerror(const char *position, const char *function, const gearmand_error_t rc, const char *format, ...);
 #define gearmand_gerror(_mesg, _gearmand_errot_t) gearmand_log_gerror(GEARMAN_DEFAULT_LOG_PARAM, (_gearmand_errot_t), (_mesg))
 

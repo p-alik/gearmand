@@ -74,7 +74,7 @@ static __attribute__((noreturn)) void* current_epoch_handler(void*)
     int active_fd;
     if ((active_fd= poll(fds, 2, 1000)) == -1)
     {
-      gearmand_perror("poll");
+      gearmand_perror(errno, "poll");
     }
 
     if (active_fd > 0)
@@ -148,8 +148,7 @@ Epoch::~Epoch()
   int error;
   if ((error= pthread_kill(thread_id, SIGPIPE)) != 0)
   {
-    errno= error;
-    gearmand_perror("pthread_kill(thread_id, SIGTERM)");
+    gearmand_perror(error, "pthread_kill(thread_id, SIGTERM)");
   }
 #endif
   pthread_join(thread_id, 0);
