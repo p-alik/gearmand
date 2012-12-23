@@ -34,53 +34,63 @@
  *
  */
 
-#pragma once
+#include "gear_config.h"
 
-#include <libhostile/accept.h>
-#include <libhostile/action.h>
-#include <libhostile/getaddrinfo.h>
-#include <libhostile/malloc.h>
-#include <libhostile/pipe.h>
-#include <libhostile/poll.h>
-#include <libhostile/realloc.h>
-#include <libhostile/recv.h>
-#include <libhostile/send.h>
-#include <libhostile/setsockopt.h>
-#include <libhostile/write.h>
+#include <errno.h>
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <time.h>
+#include <unistd.h>
 
-union function_un {
-  accept_fn *accept;
-  connect_fn *connect;
-  getaddrinfo_fn *getaddrinfo;
-  malloc_fn *malloc;
-  poll_fn *poll;
-  pipe_fn *pipe;
-  pipe2_fn *pipe2;
-  realloc_fn *realloc;
-  recv_fn *recv;
-  send_fn *send;
-  setsockopt_fn *setsockopt;
-  write_fn *write;
-  void *ptr;
-};
+#include <libhostile/initialize.h>
+#include <libhostile/function.h>
 
-struct function_st {
-  const char *name;
-  union function_un function;
-  int frequency;
-  int _used;
-  bool _corrupt;
-};
+static int not_until= 500;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+static struct function_st __function;
 
-void function_setup(void);
-void print_function_cache_usage(void);
-
-struct function_st set_function(const char *name, const char *environ_name);
-
-#ifdef __cplusplus
+static pthread_once_t function_lookup_once = PTHREAD_ONCE_INIT;
+static void set_local(void)
+{
+  __function= set_function("connect", "HOSTILE_CONNECT");
 }
-#endif
+
+int connect(int sockfd, struct sockaddr *addr, socklen_t addrlen)
+{
+  hostile_initialize();
+
+  (void) pthread_once(&function_lookup_once, set_local);
+
+  if (is_called() == false)
+  {
+    if (__function.frequency)
+    {
+      if (--not_until < 0 && rand() % __function.frequency)
+      {
+        if (rand() % 1)
+        {
+          shutdown(sockfd, SHUT_RDWR);
+          close(sockfd);
+          errno= ECONNABORTED;
+          return -1;
+        }
+        else
+        {
+          shutdown(sockfd, SHUT_RDWR);
+          close(sockfd);
+          errno= EMFILE;
+          return -1;
+        }
+      }
+    }
+  }
+
+  set_called();
+  int ret= __function.function.connect(sockfd, addr, addrlen);
+  reset_called();
+
+  return ret;
+}

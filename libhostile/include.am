@@ -15,6 +15,7 @@ noinst_LTLIBRARIES+= libhostile/libhostile.la
 noinst_HEADERS+= libhostile/accept.h
 noinst_HEADERS+= libhostile/action.h
 noinst_HEADERS+= libhostile/called.h
+noinst_HEADERS+= libhostile/connect.h
 noinst_HEADERS+= libhostile/function.h
 noinst_HEADERS+= libhostile/getaddrinfo.h
 noinst_HEADERS+= libhostile/hostile.h
@@ -46,6 +47,7 @@ libhostile_libhostile_la_LIBADD+= @RT_LIB@
 libhostile_libhostile_la_CFLAGS+= -DHAVE_LIBHOSTILE=1
 libhostile_libhostile_la_SOURCES+= libhostile/accept.c
 libhostile_libhostile_la_SOURCES+= libhostile/called.c
+libhostile_libhostile_la_SOURCES+= libhostile/connect.c
 libhostile_libhostile_la_SOURCES+= libhostile/function.c
 libhostile_libhostile_la_SOURCES+= libhostile/getaddrinfo.c
 libhostile_libhostile_la_SOURCES+= libhostile/malloc.c
