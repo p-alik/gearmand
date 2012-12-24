@@ -54,6 +54,7 @@
 #include <libpq-fe.h>
 #endif
 
+#include <cerrno>
 
 /**
  * @addtogroup plugins::queue::Postgresatic Static libpq Queue Storage Definitions
@@ -373,10 +374,10 @@ static gearmand_error_t _libpq_replay(gearman_server_st *server, void *context,
     {
       data_length= size_t(PQgetlength(result, row, 3));
       data= (char *)malloc(data_length);
-      if (not data)
+      if (data == NULL)
       {
         PQclear(result);
-        return gearmand_perror("malloc");
+        return gearmand_perror(errno, "malloc");
       }
 
       memcpy(data, PQgetvalue(result, row, 3), data_length);

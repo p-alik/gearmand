@@ -219,7 +219,7 @@ void gearmand_log_fatal(const char *position, const char *func, const char *form
   }
 }
 
-void gearmand_log_fatal_perror(const char *position, const char *function, const char *message)
+gearmand_error_t gearmand_log_fatal_perror(const char *position, const char *function, int local_errno,  const char *message)
 {
   if (not Gearmand() || Gearmand()->verbose >= GEARMAND_VERBOSE_FATAL)
   {
@@ -228,14 +228,29 @@ void gearmand_log_fatal_perror(const char *position, const char *function, const
     errmsg[0]= 0; 
 
 #ifdef STRERROR_R_CHAR_P
-    errmsg_ptr= strerror_r(errno, errmsg, sizeof(errmsg));
+    errmsg_ptr= strerror_r(local_errno, errmsg, sizeof(errmsg));
 #else
-    strerror_r(errno, errmsg, sizeof(errmsg));
+    strerror_r(local_errno, errmsg, sizeof(errmsg));
     errmsg_ptr= errmsg;
 #endif
 
     gearmand_log_fatal(position, function, "%s(%s)", message, errmsg_ptr);
   }
+
+  switch (local_errno)
+  {
+  case ENOMEM:
+    return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+
+  case ECONNRESET:
+  case EHOSTDOWN:
+    return GEARMAN_LOST_CONNECTION;
+
+  default:
+    break;
+  }
+
+  return GEARMAN_ERRNO;
 }
 
 gearmand_error_t gearmand_log_error(const char *position, const char *function, const char *format, ...)
@@ -301,7 +316,7 @@ void gearmand_log_debug(const char *position, const char *function, const char *
   }
 }
 
-gearmand_error_t gearmand_log_perror(const char *position, const char *function, const char *message)
+gearmand_error_t gearmand_log_perror(const char *position, const char *function, int local_errno, const char *message)
 {
   if (not Gearmand() or (Gearmand()->verbose >= GEARMAND_VERBOSE_ERROR))
   {
@@ -310,12 +325,25 @@ gearmand_error_t gearmand_log_perror(const char *position, const char *function,
     errmsg[0]= 0; 
 
 #ifdef STRERROR_R_CHAR_P
-    errmsg_ptr= strerror_r(errno, errmsg, sizeof(errmsg));
+    errmsg_ptr= strerror_r(local_errno, errmsg, sizeof(errmsg));
 #else
-    strerror_r(errno, errmsg, sizeof(errmsg));
+    strerror_r(local_errno, errmsg, sizeof(errmsg));
     errmsg_ptr= errmsg;
 #endif
     gearmand_log_error(position, function, "%s(%s)", message, errmsg_ptr);
+  }
+
+  switch (local_errno)
+  {
+  case ENOMEM:
+    return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+
+  case ECONNRESET:
+  case EHOSTDOWN:
+    return GEARMAN_LOST_CONNECTION;
+
+  default:
+    break;
   }
 
   return GEARMAN_ERRNO;
@@ -363,7 +391,7 @@ gearmand_error_t gearmand_log_gai_error(const char *position, const char *functi
 {
   if (rc == EAI_SYSTEM)
   {
-    return gearmand_log_perror(position, function, message);
+    return gearmand_log_perror(position, function, errno, message);
   }
 
   gearmand_log_error(position, function, "%s getaddrinfo(%s)", message, gai_strerror(rc));

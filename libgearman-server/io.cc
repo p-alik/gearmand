@@ -109,13 +109,14 @@ static size_t _connection_read(gearman_server_con_st *con, void *data, size_t da
     }
     else if (read_size == -1)
     {
-      switch (errno)
+      int local_errno= errno;
+      switch (local_errno)
       {
       case EAGAIN:
         ret= gearmand_io_set_events(con, POLLIN);
         if (gearmand_failed(ret))
         {
-          gearmand_perror("recv");
+          gearmand_perror(local_errno, "recv");
           return 0;
         }
 
@@ -140,11 +141,10 @@ static size_t _connection_read(gearman_server_con_st *con, void *data, size_t da
         break;
 
       default:
-        gearmand_perror("recv");
         ret= GEARMAN_ERRNO;
       }
 
-      gearmand_error("closing connection due to previous errno error");
+      gearmand_perror(local_errno, "closing connection due to previous errno error");
       _connection_close(connection);
       return 0;
     }
@@ -236,7 +236,8 @@ static gearmand_error_t _connection_flush(gearman_server_con_st *con)
         }
         else if (write_size == -1)
         {
-          switch (errno)
+          int local_errno= errno;
+          switch (local_errno)
           {
           case EAGAIN:
             {
@@ -254,7 +255,7 @@ static gearmand_error_t _connection_flush(gearman_server_con_st *con)
           case EPIPE:
           case ECONNRESET:
           case EHOSTDOWN:
-            gearmand_perror("lost connection to client during send(EPIPE || ECONNRESET || EHOSTDOWN)");
+            gearmand_perror(local_errno, "lost connection to client during send(EPIPE || ECONNRESET || EHOSTDOWN)");
             _connection_close(connection);
             return GEARMAN_LOST_CONNECTION;
 
@@ -262,7 +263,7 @@ static gearmand_error_t _connection_flush(gearman_server_con_st *con)
             break;
           }
 
-          gearmand_perror("send() failed, closing connection");
+          gearmand_perror(local_errno, "send() failed, closing connection");
           _connection_close(connection);
           return GEARMAN_ERRNO;
         }
@@ -790,8 +791,7 @@ static gearmand_error_t _io_setsockopt(gearmand_io_st &connection)
     int setting= 1;
     if (setsockopt(connection.fd, IPPROTO_TCP, TCP_NODELAY, &setting, (socklen_t)sizeof(int)) and errno != EOPNOTSUPP)
     {
-      gearmand_perror("setsockopt(TCP_NODELAY)");
-      return GEARMAN_ERRNO;
+      return gearmand_perror(errno, "setsockopt(TCP_NODELAY)");
     }
   }
 
@@ -801,8 +801,7 @@ static gearmand_error_t _io_setsockopt(gearmand_io_st &connection)
     linger.l_linger= GEARMAN_DEFAULT_SOCKET_TIMEOUT;
     if (setsockopt(connection.fd, SOL_SOCKET, SO_LINGER, &linger, (socklen_t)sizeof(struct linger)))
     {
-      gearmand_perror("setsockopt(SO_LINGER)");
-      return GEARMAN_ERRNO;
+      return gearmand_perror(errno, "setsockopt(SO_LINGER)");
     }
   }
 
@@ -813,7 +812,7 @@ static gearmand_error_t _io_setsockopt(gearmand_io_st &connection)
     // This is not considered a fatal error 
     if (setsockopt(connection.fd, SOL_SOCKET, SO_NOSIGPIPE, (void *)&setting, sizeof(int)))
     {
-      gearmand_perror("setsockopt(SO_NOSIGPIPE)");
+      gearmand_perror(errno, "setsockopt(SO_NOSIGPIPE)");
     }
   }
 #endif
@@ -825,14 +824,12 @@ static gearmand_error_t _io_setsockopt(gearmand_io_st &connection)
     waittime.tv_usec= 0;
     if (setsockopt(connection.fd, SOL_SOCKET, SO_SNDTIMEO, &waittime, (socklen_t)sizeof(struct timeval)) and errno != ENOPROTOOPT)
     {
-      gearmand_perror("setsockopt(SO_SNDTIMEO)");
-      return GEARMAN_ERRNO;
+      return gearmand_perror(errno, "setsockopt(SO_SNDTIMEO)");
     }
 
     if (setsockopt(connection.fd, SOL_SOCKET, SO_RCVTIMEO, &waittime, (socklen_t)sizeof(struct timeval)) and errno != ENOPROTOOPT)
     {
-      gearmand_error("setsockopt(SO_RCVTIMEO)");
-      return GEARMAN_ERRNO;
+      return gearmand_perror(errno, "setsockopt(SO_RCVTIMEO)");
     }
   }
 
@@ -841,15 +838,13 @@ static gearmand_error_t _io_setsockopt(gearmand_io_st &connection)
     int setting= GEARMAN_DEFAULT_SOCKET_SEND_SIZE;
     if (setsockopt(connection.fd, SOL_SOCKET, SO_SNDBUF, &setting, (socklen_t)sizeof(int)))
     {
-      gearmand_perror("setsockopt(SO_SNDBUF)");
-      return GEARMAN_ERRNO;
+      return gearmand_perror(errno, "setsockopr(SO_SNDBUF)");
     }
 
     setting= GEARMAN_DEFAULT_SOCKET_RECV_SIZE;
     if (setsockopt(connection.fd, SOL_SOCKET, SO_RCVBUF, &setting, (socklen_t)sizeof(int)))
     {
-      gearmand_perror("setsockopt(SO_RCVBUF)");
-      return GEARMAN_ERRNO;
+      return gearmand_perror(errno, "setsockopt(SO_RCVBUF)");
     }
   }
 
@@ -857,14 +852,12 @@ static gearmand_error_t _io_setsockopt(gearmand_io_st &connection)
     int fcntl_flags;
     if ((fcntl_flags= fcntl(connection.fd, F_GETFL, 0)) == -1)
     {
-      gearmand_perror("fcntl(F_GETFL)");
-      return GEARMAN_ERRNO;
+      return gearmand_perror(errno, "fcntl(F_GETFL)");
     }
 
     if ((fcntl(connection.fd, F_SETFL, fcntl_flags | O_NONBLOCK) == -1))
     {
-      gearmand_perror("fcntl(F_SETFL)");
-      return GEARMAN_ERRNO;
+      return gearmand_perror(errno, "fcntl(F_SETFL)");
     }
   }
 
@@ -882,14 +875,14 @@ void gearmand_sockfd_close(int sockfd)
   /* in case of death shutdown to avoid blocking at close() */
   if (shutdown(sockfd, SHUT_RDWR) == SOCKET_ERROR && get_socket_errno() != ENOTCONN)
   {
-    gearmand_perror("shutdown");
+    gearmand_perror(errno, "shutdown");
     assert(errno != ENOTSOCK);
     return;
   }
 
   if (closesocket(sockfd) == SOCKET_ERROR)
   {
-    gearmand_perror("close");
+    gearmand_perror(errno, "close");
   }
 }
 
@@ -903,6 +896,6 @@ void gearmand_pipe_close(int pipefd)
 
   if (closesocket(pipefd) == SOCKET_ERROR)
   {
-    gearmand_perror("close");
+    gearmand_perror(errno, "close");
   }
 }
