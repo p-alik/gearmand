@@ -397,6 +397,17 @@ static test_return_t accept_SETUP(void* object)
   return TEST_SUCCESS;
 }
 
+static test_return_t connect_SETUP(void* object)
+{
+  test_skip_valgrind();
+  test_skip(true, libtest::is_massive());
+
+  worker_ramp_SETUP(object);
+  set_connect_close(true, 20, 20);
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t poll_HOSTILE_POLL_CLOSED_SETUP(void* object)
 {
   test_skip_valgrind();
@@ -466,6 +477,18 @@ static test_return_t accept_TEARDOWN(void* object)
   return TEST_SUCCESS;
 }
 
+static test_return_t connect_TEARDOWN(void* object)
+{
+  set_connect_close(true, 0, 0);
+
+  worker_handles_st *handles= (worker_handles_st*)object;
+  handles->kill_all();
+
+  reset_server();
+
+  return TEST_SUCCESS;
+}
+
 
 /*********************** World functions **************************************/
 
@@ -525,6 +548,7 @@ collection_st collection[] ={
   {"hostile recv() corrupt", recv_corrupt_SETUP, resv_TEARDOWN, worker_TESTS },
   {"hostile send()", send_SETUP, send_TEARDOWN, worker_TESTS },
   {"hostile accept()", accept_SETUP, accept_TEARDOWN, worker_TESTS },
+  {"hostile connect()", connect_SETUP, connect_TEARDOWN, worker_TESTS },
   {"hostile poll(CLOSED)", poll_HOSTILE_POLL_CLOSED_SETUP, poll_TEARDOWN, worker_TESTS },
   {"hostile poll(SHUT_RD)", poll_HOSTILE_POLL_SHUT_RD_SETUP, poll_TEARDOWN, worker_TESTS },
   {"hostile poll(SHUT_WR)", poll_HOSTILE_POLL_SHUT_WR_SETUP, poll_TEARDOWN, worker_TESTS },

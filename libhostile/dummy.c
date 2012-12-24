@@ -52,6 +52,13 @@ void set_poll_close(bool arg, int frequency, int not_until_arg, enum hostile_pol
   (void)(poll_type);
 }
 
+void set_connect_close(bool arg, int frequency, int not_until_arg)
+{
+  (void)(arg);
+  (void)(frequency);
+  (void)(not_until_arg);
+}
+
 void set_accept_close(bool arg, int frequency, int not_until_arg)
 {
   (void)(arg);

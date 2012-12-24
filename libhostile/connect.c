@@ -58,6 +58,20 @@ static void set_local(void)
   __function= set_function("connect", "HOSTILE_CONNECT");
 }
 
+void set_connect_close(bool arg, int frequency, int not_until_arg)
+{
+  if (arg)
+  {
+    __function.frequency= frequency;
+    not_until= not_until_arg;
+  }
+  else
+  {
+    __function.frequency= 0;
+    not_until= 0;
+  }
+}
+
 int connect(int sockfd, struct sockaddr *addr, socklen_t addrlen)
 {
   hostile_initialize();
