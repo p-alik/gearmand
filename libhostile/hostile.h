@@ -36,7 +36,9 @@
 
 #pragma once
 
-#include <stdbool.h>
+#ifndef __cplusplus
+# include <stdbool.h>
+#endif
 
 #include "libhostile/visibility.h"
 

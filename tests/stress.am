@@ -10,11 +10,13 @@
 # All paths should be given relative to the root
 #
 
-tests_stress_test_SOURCES=
+tests_stress_test_CFLAGS=
 tests_stress_test_CXXFLAGS=
 tests_stress_test_LDADD=
+tests_stress_test_SOURCES=
 
 tests_stress_test_CXXFLAGS+= -DHAVE_LIBHOSTILE=1
+tests_stress_test_CFLAGS+= -DHAVE_LIBHOSTILE=1
 tests_stress_test_LDADD+= libhostile/libhostile.la
 if TARGET_LINUX
 tests_stress_test_LDADD+= @DL_LIB@

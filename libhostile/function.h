@@ -38,6 +38,7 @@
 
 #include <libhostile/accept.h>
 #include <libhostile/action.h>
+#include <libhostile/connect.h>
 #include <libhostile/getaddrinfo.h>
 #include <libhostile/malloc.h>
 #include <libhostile/pipe.h>

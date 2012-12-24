@@ -504,9 +504,11 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
   if (has_hostile())
   {
     hostile_server= libtest::get_free_port();
-    if (server_startup(servers, "gearmand", hostile_server, 0, NULL) == false)
+    if (server_startup(servers, "hostile-gearmand", hostile_server, 0, NULL) == false)
     {
       hostile_server= 0;
+      error= TEST_FAILURE;
+      return NULL;
     }
   }
 

@@ -72,7 +72,7 @@ void set_connect_close(bool arg, int frequency, int not_until_arg)
   }
 }
 
-int connect(int sockfd, struct sockaddr *addr, socklen_t addrlen)
+int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 {
   hostile_initialize();
 
@@ -82,6 +82,7 @@ int connect(int sockfd, struct sockaddr *addr, socklen_t addrlen)
   {
     if (__function.frequency)
     {
+      fprintf(stderr, "%s:%d connect() %d %d\n", __FILE__, __LINE__, not_until, __function.frequency);
       if (--not_until < 0 && rand() % __function.frequency)
       {
         if (rand() % 1)

@@ -32,19 +32,19 @@ noinst_HEADERS+= libhostile/visibility.h
 noinst_HEADERS+= libhostile/write.h
 
 libhostile_libhostile_la_CFLAGS=
+libhostile_libhostile_la_CXXFLAGS=
 libhostile_libhostile_la_LIBADD=
 libhostile_libhostile_la_SOURCES=
 
-libhostile_libhostile_la_CXXFLAGS= -DBUILDING_LIBHOSTILE
+libhostile_libhostile_la_CFLAGS+= -DBUILDING_LIBHOSTILE
+libhostile_libhostile_la_CXXFLAGS+= -DBUILDING_LIBHOSTILE
 
-libhostile_libhostile_la_SOURCES+= libhostile/dummy.c
 libhostile_libhostile_la_SOURCES+= libhostile/initialize.c
 
 if TARGET_HOSTILE
 libhostile_libhostile_la_LIBADD+= @DL_LIB@
 libhostile_libhostile_la_LIBADD+= @RT_LIB@
 
-libhostile_libhostile_la_CFLAGS+= -DHAVE_LIBHOSTILE=1
 libhostile_libhostile_la_SOURCES+= libhostile/accept.c
 libhostile_libhostile_la_SOURCES+= libhostile/called.c
 libhostile_libhostile_la_SOURCES+= libhostile/connect.c
@@ -59,4 +59,6 @@ libhostile_libhostile_la_SOURCES+= libhostile/send.c
 libhostile_libhostile_la_SOURCES+= libhostile/socket_server.c
 libhostile_libhostile_la_SOURCES+= libhostile/setsockopt.c
 libhostile_libhostile_la_SOURCES+= libhostile/write.c
+else
+libhostile_libhostile_la_SOURCES+= libhostile/dummy.c
 endif

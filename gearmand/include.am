@@ -16,6 +16,8 @@ noinst_HEADERS+= gearmand/log.hpp
 
 sbin_PROGRAMS+= gearmand/gearmand
 
+BUILT_SOURCES+= configmake.h
+
 gearmand_gearmand_LDADD=
 gearmand_gearmand_CXXFLAGS=
 EXTRA_gearmand_gearmand_DEPENDENCIES=
