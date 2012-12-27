@@ -48,7 +48,6 @@ using namespace libtest;
 
 #include "tests/client.h"
 #include <tests/start_worker.h>
-#include "tests/burnin.h"
 
 #include "tests/workers/v2/echo_or_react.h"
 
@@ -74,12 +73,11 @@ static bool has_hostile()
 }
 
 static in_port_t hostile_server= 0;
-static in_port_t stress_server= 0;
-static in_port_t& current_server_= stress_server;
+static in_port_t& current_server_= hostile_server;
 
 static void reset_server()
 {
-  current_server_= stress_server;
+  current_server_= hostile_server;
 }
 
 static in_port_t current_server()
@@ -397,6 +395,17 @@ static test_return_t accept_SETUP(void* object)
   return TEST_SUCCESS;
 }
 
+static test_return_t connect_SETUP(void* object)
+{
+  test_skip_valgrind();
+  test_skip(true, libtest::is_massive());
+
+  worker_ramp_SETUP(object);
+  set_connect_close(true, 20, 20);
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t poll_HOSTILE_POLL_CLOSED_SETUP(void* object)
 {
   test_skip_valgrind();
@@ -466,25 +475,40 @@ static test_return_t accept_TEARDOWN(void* object)
   return TEST_SUCCESS;
 }
 
+static test_return_t connect_TEARDOWN(void* object)
+{
+  set_connect_close(true, 0, 0);
+
+  worker_handles_st *handles= (worker_handles_st*)object;
+  handles->kill_all();
+
+  reset_server();
+
+  return TEST_SUCCESS;
+}
+
 
 /*********************** World functions **************************************/
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  stress_server= libtest::default_port();
-  if (server_startup(servers, "gearmand", stress_server, 0, NULL) == false)
-  {
-    error= TEST_SKIPPED;
-    return NULL;
-  }
+  error= TEST_SKIPPED;
+  return NULL;
 
   if (has_hostile())
   {
     hostile_server= libtest::get_free_port();
-    if (server_startup(servers, "gearmand", hostile_server, 0, NULL) == false)
+    if (server_startup(servers, "hostile-gearmand", hostile_server, 0, NULL) == false)
     {
       hostile_server= 0;
+      error= TEST_FAILURE;
+      return NULL;
     }
+  }
+  else
+  {
+    error= TEST_SKIPPED;
+    return NULL;
   }
 
   return new worker_handles_st;
@@ -497,11 +521,6 @@ static bool world_destroy(void *object)
 
   return TEST_SUCCESS;
 }
-
-test_st burnin_TESTS[] ={
-  {"burnin", 0, burnin_TEST },
-  {0, 0, 0}
-};
 
 test_st dos_TESTS[] ={
   {"send random port data", 0, send_random_port_data_TEST },
@@ -517,7 +536,6 @@ test_st worker_TESTS[] ={
 };
 
 collection_st collection[] ={
-  {"burnin", burnin_setup, burnin_cleanup, burnin_TESTS },
   {"dos", 0, 0, dos_TESTS },
   {"plain", worker_ramp_SETUP, worker_ramp_TEARDOWN, worker_TESTS },
   {"plain against hostile server", hostile_gearmand_SETUP, worker_ramp_TEARDOWN, worker_TESTS },
@@ -525,6 +543,7 @@ collection_st collection[] ={
   {"hostile recv() corrupt", recv_corrupt_SETUP, resv_TEARDOWN, worker_TESTS },
   {"hostile send()", send_SETUP, send_TEARDOWN, worker_TESTS },
   {"hostile accept()", accept_SETUP, accept_TEARDOWN, worker_TESTS },
+  {"hostile connect()", connect_SETUP, connect_TEARDOWN, worker_TESTS },
   {"hostile poll(CLOSED)", poll_HOSTILE_POLL_CLOSED_SETUP, poll_TEARDOWN, worker_TESTS },
   {"hostile poll(SHUT_RD)", poll_HOSTILE_POLL_SHUT_RD_SETUP, poll_TEARDOWN, worker_TESTS },
   {"hostile poll(SHUT_WR)", poll_HOSTILE_POLL_SHUT_WR_SETUP, poll_TEARDOWN, worker_TESTS },

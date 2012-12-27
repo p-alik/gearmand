@@ -36,52 +36,8 @@
 
 #pragma once
 
-#ifndef __cplusplus
-# include <stdbool.h>
-#endif
+#include <sys/types.h>          /* See NOTES */
+#include <sys/socket.h>
 
-#include "libhostile/visibility.h"
+typedef int (connect_fn)(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 
-enum hostile_poll_t
-{
-  HOSTILE_POLL_CLOSED,
-  HOSTILE_POLL_SHUT_WR,
-  HOSTILE_POLL_SHUT_RD
-};
-
-#ifndef __cplusplus
-typedef enum hostile_poll_t hostile_poll_t;
-#endif
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-LIBHOSTILE_API
-  bool libhostile_is_accept(void);
-
-LIBHOSTILE_API
-  void set_poll_close(bool arg, int frequency, int not_until_arg, enum hostile_poll_t poll_type);
-
-LIBHOSTILE_API
-  void set_accept_close(bool arg, int frequency, int not_until_arg);
-
-LIBHOSTILE_API
-  void set_connect_close(bool arg, int frequency, int not_until_arg);
-
-LIBHOSTILE_API
-  void set_recv_corrupt(bool arg, int frequency, int not_until_arg);
-
-LIBHOSTILE_API
-  void set_recv_close(bool arg, int frequency, int not_until_arg);
-
-LIBHOSTILE_API
-  void set_send_close(bool arg, int frequency, int not_until_arg);
-
-LIBHOSTILE_API
-  void hostile_dump(void);
-
-#ifdef __cplusplus
-}
-#endif

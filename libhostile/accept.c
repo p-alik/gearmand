@@ -55,7 +55,7 @@ static struct function_st __function;
 static pthread_once_t function_lookup_once = PTHREAD_ONCE_INIT;
 static void set_local(void)
 {
-  __function= set_function("accept", "HOSTILE_SEND");
+  __function= set_function("accept", "HOSTILE_ACCEPT");
 }
 
 bool libhostile_is_accept(void)

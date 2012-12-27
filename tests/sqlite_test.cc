@@ -407,14 +407,14 @@ static test_return_t lp_1054377_TEST(void* object)
   return queue_restart_TEST(test, 8, 0);
 }
 
-static test_return_t lp_1054377x20K_TEST(void* object)
+static test_return_t lp_1054377x200_TEST(void* object)
 {
   test_skip(true, libtest::is_massive());
 
   Context *test= (Context *)object;
   test_truth(test);
 
-  return queue_restart_TEST(test, 20000, 200);
+  return queue_restart_TEST(test, 200, 200);
 }
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
@@ -460,7 +460,7 @@ test_st regressions[] ={
 
 test_st queue_restart_TESTS[] ={
   {"lp:1054377", 0, lp_1054377_TEST },
-  {"lp:1054377 x 20000", 0, lp_1054377x20K_TEST },
+  {"lp:1054377 x 200", 0, lp_1054377x200_TEST },
   {0, 0, 0}
 };
 

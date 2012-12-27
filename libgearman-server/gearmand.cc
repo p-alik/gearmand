@@ -427,18 +427,32 @@ void gearmand_wakeup(gearmand_st *gearmand, gearmand_wakeup_t wakeup)
 
   /* If this fails, there is not much we can really do. This should never fail
      though if the main gearmand thread is still active. */
+  int limit= 5;
   ssize_t written;
-  if ((written= write(gearmand->wakeup_fd[1], &buffer, 1)) != 1)
+  while (--limit) 
   {
-    if (written < 0)
+    if ((written= write(gearmand->wakeup_fd[1], &buffer, 1)) != 1)
     {
-      gearmand_perror(errno, gearmand_strwakeup(wakeup));
+      if (written < 0)
+      {
+        switch (errno)
+        {
+        case EINTR:
+          continue;
+
+        default:
+          break;
+        }
+        gearmand_perror(errno, gearmand_strwakeup(wakeup));
+      }
+      else
+      {
+        gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, 
+                           "gearmand_wakeup() incorrectly wrote %lu bytes of data.", (unsigned long)written);
+      }
     }
-    else
-    {
-      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, 
-                         "gearmand_wakeup() incorrectly wrote %lu bytes of data.", (unsigned long)written);
-    }
+
+    break;
   }
 }
 

@@ -34,54 +34,30 @@
  *
  */
 
-#pragma once
-
-#ifndef __cplusplus
-# include <stdbool.h>
+#ifdef HOSTILE
+# include <libhostile/hostile.h>
 #endif
 
-#include "libhostile/visibility.h"
+#include <libtest/yatl_lite.h>
 
-enum hostile_poll_t
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
+int main(void)
 {
-  HOSTILE_POLL_CLOSED,
-  HOSTILE_POLL_SHUT_WR,
-  HOSTILE_POLL_SHUT_RD
-};
+  if (valgrind_is_caller() == false)
+  {
+    TEST_TRUE(pipe(NULL) == -1);
+    TEST_TRUE(errno == EFAULT);
+  }
 
-#ifndef __cplusplus
-typedef enum hostile_poll_t hostile_poll_t;
-#endif
+  int pipefd[2];
+  TEST_TRUE(pipe(pipefd) == 0);
+  TEST_TRUE(close(pipefd[0]) == 0);
+  TEST_TRUE(close(pipefd[1]) == 0);
 
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-LIBHOSTILE_API
-  bool libhostile_is_accept(void);
-
-LIBHOSTILE_API
-  void set_poll_close(bool arg, int frequency, int not_until_arg, enum hostile_poll_t poll_type);
-
-LIBHOSTILE_API
-  void set_accept_close(bool arg, int frequency, int not_until_arg);
-
-LIBHOSTILE_API
-  void set_connect_close(bool arg, int frequency, int not_until_arg);
-
-LIBHOSTILE_API
-  void set_recv_corrupt(bool arg, int frequency, int not_until_arg);
-
-LIBHOSTILE_API
-  void set_recv_close(bool arg, int frequency, int not_until_arg);
-
-LIBHOSTILE_API
-  void set_send_close(bool arg, int frequency, int not_until_arg);
-
-LIBHOSTILE_API
-  void hostile_dump(void);
-
-#ifdef __cplusplus
+  return EXIT_SUCCESS;
 }
-#endif

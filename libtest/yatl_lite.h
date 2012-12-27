@@ -1,6 +1,6 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  *
- *  Data Differential's libhostle
+ *  Data Differential YATL (i.e. libtest)  library
  *
  *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
  *
@@ -36,52 +36,45 @@
 
 #pragma once
 
-#ifndef __cplusplus
+#ifdef __cplusplus
+# include <cstddef>
+# include <cstdlib>
+# include <cstring>
+#else
+# include <stddef.h>
+# include <stdlib.h>
 # include <stdbool.h>
+# include <string.h>
 #endif
 
-#include "libhostile/visibility.h"
+#ifndef EXIT_SKIP
+# define EXIT_SKIP 77
+#endif
 
-enum hostile_poll_t
+static inline bool valgrind_is_caller(void)
 {
-  HOSTILE_POLL_CLOSED,
-  HOSTILE_POLL_SHUT_WR,
-  HOSTILE_POLL_SHUT_RD
-};
+  if (getenv("TESTS_ENVIRONMENT")  && strstr(getenv("TESTS_ENVIRONMENT"), "valgrind"))
+  {
+    return true;
+  }
 
-#ifndef __cplusplus
-typedef enum hostile_poll_t hostile_poll_t;
-#endif
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-LIBHOSTILE_API
-  bool libhostile_is_accept(void);
-
-LIBHOSTILE_API
-  void set_poll_close(bool arg, int frequency, int not_until_arg, enum hostile_poll_t poll_type);
-
-LIBHOSTILE_API
-  void set_accept_close(bool arg, int frequency, int not_until_arg);
-
-LIBHOSTILE_API
-  void set_connect_close(bool arg, int frequency, int not_until_arg);
-
-LIBHOSTILE_API
-  void set_recv_corrupt(bool arg, int frequency, int not_until_arg);
-
-LIBHOSTILE_API
-  void set_recv_close(bool arg, int frequency, int not_until_arg);
-
-LIBHOSTILE_API
-  void set_send_close(bool arg, int frequency, int not_until_arg);
-
-LIBHOSTILE_API
-  void hostile_dump(void);
-
-#ifdef __cplusplus
+  return false;
 }
-#endif
+
+#define TEST_TRUE(A) \
+do \
+{ \
+  if (! (A)) { \
+    fprintf(stderr, "\n%s:%d: Assertion \"%s\" failed, in %s\n", __FILE__, __LINE__, #A, __func__);\
+    exit(EXIT_FAILURE); \
+  } \
+} while (0)
+
+#define TEST_FALSE(A) \
+do \
+{ \
+  if ((A)) { \
+    fprintf(stderr, "\n%s:%d: Assertion failed %s, in %s\n", __FILE__, __LINE__, #A, __func__);\
+    exit(EXIT_FAILURE); \
+  } \
+} while (0)

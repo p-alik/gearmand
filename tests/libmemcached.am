@@ -16,7 +16,9 @@ tests_memcached_test_LDADD=
 
 tests_memcached_test_SOURCES+= tests/basic.cc
 tests_memcached_test_SOURCES+= tests/memcached_test.cc
-tests_memcached_test_LDADD+= $(CLIENT_LDADD)
+tests_memcached_test_LDADD+= libgearman/libgearman.la
+tests_memcached_test_LDADD+= libtest/libtest.la
+tests_memcached_test_LDADD+= tests/libstartworker.la
 
 if HAVE_LIBMEMCACHED
 
