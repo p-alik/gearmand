@@ -729,7 +729,7 @@ void Application::create_argv(const char *args[])
     buffer.resize(1024);
     int length= snprintf(&buffer[0], buffer.size(), "--log-file=%s", log_file.c_str());
     fatal_assert(length > 0 and size_t(length) < buffer.size());
-    built_argv.push_back(&buffer[0]);
+    built_argv.push_back(strdup(&buffer[0]));
   }
   else if (_use_gdb)
   {
@@ -781,7 +781,10 @@ struct DeleteFromVector
   template <class T>
     void operator() ( T* ptr) const
     {
-      free(ptr);
+      if (ptr)
+      {
+        free(ptr);
+      }
     }
 };
 

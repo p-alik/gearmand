@@ -9,12 +9,15 @@
 # Included from Top Level Makefile.am
 # All paths should be given relative to the root
 
+# Unit tests
+include libhostile/t/include.am
 
 noinst_LTLIBRARIES+= libhostile/libhostile.la
 
 noinst_HEADERS+= libhostile/accept.h
 noinst_HEADERS+= libhostile/action.h
 noinst_HEADERS+= libhostile/called.h
+noinst_HEADERS+= libhostile/connect.h
 noinst_HEADERS+= libhostile/function.h
 noinst_HEADERS+= libhostile/getaddrinfo.h
 noinst_HEADERS+= libhostile/hostile.h
@@ -31,21 +34,26 @@ noinst_HEADERS+= libhostile/visibility.h
 noinst_HEADERS+= libhostile/write.h
 
 libhostile_libhostile_la_CFLAGS=
+libhostile_libhostile_la_CXXFLAGS=
 libhostile_libhostile_la_LIBADD=
 libhostile_libhostile_la_SOURCES=
 
-libhostile_libhostile_la_CXXFLAGS= -DBUILDING_LIBHOSTILE
+libhostile_libhostile_la_CFLAGS+= -DBUILDING_LIBHOSTILE
+libhostile_libhostile_la_CXXFLAGS+= -DBUILDING_LIBHOSTILE
 
-libhostile_libhostile_la_SOURCES+= libhostile/dummy.c
+libhostile_libhostile_la_CFLAGS+= @PTHREAD_CFLAGS@
+libhostile_libhostile_la_CXXFLAGS+= @PTHREAD_CFLAGS@
+
 libhostile_libhostile_la_SOURCES+= libhostile/initialize.c
 
 if TARGET_HOSTILE
 libhostile_libhostile_la_LIBADD+= @DL_LIB@
 libhostile_libhostile_la_LIBADD+= @RT_LIB@
+libhostile_libhostile_la_LIBADD+= @PTHREAD_LIBS@
 
-libhostile_libhostile_la_CFLAGS+= -DHAVE_LIBHOSTILE=1
 libhostile_libhostile_la_SOURCES+= libhostile/accept.c
 libhostile_libhostile_la_SOURCES+= libhostile/called.c
+libhostile_libhostile_la_SOURCES+= libhostile/connect.c
 libhostile_libhostile_la_SOURCES+= libhostile/function.c
 libhostile_libhostile_la_SOURCES+= libhostile/getaddrinfo.c
 libhostile_libhostile_la_SOURCES+= libhostile/malloc.c
@@ -57,4 +65,6 @@ libhostile_libhostile_la_SOURCES+= libhostile/send.c
 libhostile_libhostile_la_SOURCES+= libhostile/socket_server.c
 libhostile_libhostile_la_SOURCES+= libhostile/setsockopt.c
 libhostile_libhostile_la_SOURCES+= libhostile/write.c
+else
+libhostile_libhostile_la_SOURCES+= libhostile/dummy.c
 endif

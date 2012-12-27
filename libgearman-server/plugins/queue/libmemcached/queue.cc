@@ -49,6 +49,10 @@
 #include <libgearman-server/plugins/queue/libmemcached/queue.h>
 #include <libmemcached/memcached.h>
 
+#include "libgearman-server/log.h"
+
+#include <cerrno>
+
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 
 using namespace gearmand;
@@ -317,7 +321,7 @@ static memcached_return callback_loader(const memcached_st*,
   char* data= (char*)malloc(memcached_result_length(result));
   if (data == NULL)
   {
-    gearmand_perror("malloc");
+    gearmand_perror(errno, "malloc");
     return MEMCACHED_MEMORY_ALLOCATION_FAILURE;
   } 
   memcpy(data, memcached_result_value(result), memcached_result_length(result));

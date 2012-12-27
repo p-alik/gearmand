@@ -48,6 +48,7 @@
 
 #include <mysql.h>
 #include <errmsg.h>
+#include <cerrno>
 
 /**
  * Default values.
@@ -485,9 +486,9 @@ static gearmand_error_t _mysql_queue_replay(gearman_server_st* server, void *con
     /* need to make a copy here ... gearman_server_job_free will free it later */
     size_t data_size= lengths[2];
     char * data= (char *)malloc(data_size);
-    if (data == NULL){
-      gearmand_perror("malloc failed");
-      return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+    if (data == NULL)
+    {
+      return gearmand_perror(errno, "malloc failed");
     }
     memcpy(data, row[2], data_size);
 

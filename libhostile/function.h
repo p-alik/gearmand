@@ -38,6 +38,7 @@
 
 #include <libhostile/accept.h>
 #include <libhostile/action.h>
+#include <libhostile/connect.h>
 #include <libhostile/getaddrinfo.h>
 #include <libhostile/malloc.h>
 #include <libhostile/pipe.h>
@@ -50,6 +51,7 @@
 
 union function_un {
   accept_fn *accept;
+  connect_fn *connect;
   getaddrinfo_fn *getaddrinfo;
   malloc_fn *malloc;
   poll_fn *poll;

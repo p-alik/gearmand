@@ -42,6 +42,8 @@
 #include "libgearman-server/plugins/base.h"
 #include "libgearman-server/plugins/queue/sqlite/instance.hpp"
 
+#include <cerrno>
+
 namespace gearmand {
 namespace queue {
 
@@ -543,7 +545,7 @@ gearmand_error_t Instance::replay_loop(gearman_server_st *server)
     /* need to make a copy here ... gearman_server_job_free will free it later */
     if (data == NULL)
     {
-      return gearmand_perror("malloc");
+      return gearmand_perror(errno, "malloc");
     }
     memcpy(data, sqlite3_column_blob(replay_sth, 3), data_size);
     

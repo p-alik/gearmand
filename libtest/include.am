@@ -86,6 +86,7 @@ noinst_HEADERS+= libtest/test.h
 noinst_HEADERS+= libtest/test.hpp 
 noinst_HEADERS+= libtest/thread.hpp
 noinst_HEADERS+= libtest/tmpfile.hpp 
+noinst_HEADERS+= libtest/yatl_lite.h
 noinst_HEADERS+= libtest/vchar.hpp 
 noinst_HEADERS+= libtest/version.h 
 noinst_HEADERS+= libtest/visibility.h 

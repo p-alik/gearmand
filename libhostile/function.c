@@ -46,8 +46,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int64_t function_cache_index;
-struct function_st function_cache[10];
+static int64_t function_cache_index= 0;
+struct function_st function_cache[20];
 
 void print_function_cache_usage(void)
 {

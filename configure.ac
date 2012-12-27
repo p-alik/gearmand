@@ -117,6 +117,7 @@ AC_CHECK_HEADERS_ONCE([netinet/tcp.h])
 AC_CHECK_HEADERS_ONCE([poll.h])
 AC_CHECK_HEADERS_ONCE([pwd.h])
 AC_CHECK_HEADERS_ONCE([signal.h])
+AC_CHECK_HEADERS_ONCE([spawn.h])
 AC_CHECK_HEADERS_ONCE([stdarg.h])
 AC_CHECK_HEADERS_ONCE([stddef.h])
 AC_CHECK_HEADERS_ONCE([stdint.h])
@@ -218,7 +219,8 @@ AX_UUID_GENERATE_TIME_SAFE
 
 AX_AM_JOBSERVER([yes])
 
-AS_IF([test "x${TARGET_LINUX}" = "xtrue"], [AC_DEFINE([BUILD_LIBHOSTILE],[1],[Build libhostile])], [AC_DEFINE([BUILD_LIBHOSTILE],[0],[Build libhostile])])
+AS_IF([test "x${TARGET_LINUX}" = "xtrue"],
+      [AC_DEFINE([BUILD_LIBHOSTILE],[1],[Build libhostile])],[AC_DEFINE([BUILD_LIBHOSTILE],[0],[Build libhostile])])
 AM_CONDITIONAL([TARGET_HOSTILE],[test "x${TARGET_LINUX}" = "xtrue"])
 
 AX_PTHREAD(, [AC_MSG_ERROR(could not find libpthread)])

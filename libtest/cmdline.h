@@ -39,8 +39,13 @@
 #include <spawn.h>
 
 // http://www.gnu.org/software/automake/manual/automake.html#Using-the-TAP-test-protocol
-#define EXIT_SKIP 77
-#define EXIT_FATAL 77
+#ifndef EXIT_SKIP
+# define EXIT_SKIP 77
+#endif
+
+#ifndef EXIT_FATAL
+# define EXIT_FATAL 99
+#endif
 
 #ifndef EX_NOEXEC
 #  define EX_NOEXEC 126

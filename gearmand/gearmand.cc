@@ -37,7 +37,7 @@
  */
 
 #include "gear_config.h"
-#include <configmake.h>
+#include "configmake.h"
 
 #include <cerrno>
 #include <cstdio>

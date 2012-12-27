@@ -10,30 +10,72 @@
 # All paths should be given relative to the root
 #
 
-tests_stress_test_SOURCES=
+tests_stress_CFLAGS=
+tests_stress_CXXFLAGS=
+tests_stress_LDADD=
+tests_stress_SOURCES=
+
+tests_stress_SOURCES+= tests/burnin.cc
+tests_stress_LDADD+= libgearman/libgearman.la
+tests_stress_LDADD+= libtest/libtest.la
+tests_stress_LDADD+= tests/libstartworker.la
+check_PROGRAMS+=tests/stress
+noinst_PROGRAMS+=tests/stress
+
+tests_stress_test_CFLAGS=
 tests_stress_test_CXXFLAGS=
 tests_stress_test_LDADD=
+tests_stress_test_SOURCES=
 
 tests_stress_test_CXXFLAGS+= -DHAVE_LIBHOSTILE=1
+tests_stress_test_CFLAGS+= -DHAVE_LIBHOSTILE=1
 tests_stress_test_LDADD+= libhostile/libhostile.la
 if TARGET_LINUX
 tests_stress_test_LDADD+= @DL_LIB@
 tests_stress_test_LDADD+= @RT_LIB@
 endif
 
-tests_stress_test_SOURCES+= tests/burnin.cc
 tests_stress_test_SOURCES+= tests/stress_worker.cc
-tests_stress_test_LDADD+= ${CLIENT_LDADD}
+tests_stress_test_LDADD+= libgearman/libgearman.la
+tests_stress_test_LDADD+= libtest/libtest.la
+tests_stress_test_LDADD+= tests/libstartworker.la
 check_PROGRAMS+=tests/stress_test
 noinst_PROGRAMS+=tests/stress_test
 
-test-stress: tests/stress_test gearmand/gearmand
+test-stress: tests/stress_test gearmand/gearmand gearmand/hostile_gearmand
 	@tests/stress_test
 
-valgrind-stress: tests/stress_test gearmand/gearmand
+valgrind-stress: tests/stress_test gearmand/gearmand gearmand/hostile_gearmand
 	@$(VALGRIND_COMMAND) tests/stress_test
 
-gdb-stress: tests/stress_test gearmand/gearmand
+gdb-stress: tests/stress_test gearmand/gearmand gearmand/hostile_gearmand
 	@$(GDB_COMMAND) tests/stress_test
 
+tests_libstress_test_CFLAGS=
+tests_libstress_test_CXXFLAGS=
+tests_libstress_test_LDADD=
+tests_libstress_test_SOURCES=
 
+tests_libstress_test_CXXFLAGS+= -DHAVE_LIBHOSTILE=1
+tests_libstress_test_CFLAGS+= -DHAVE_LIBHOSTILE=1
+tests_libstress_test_LDADD+= libhostile/libhostile.la
+if TARGET_LINUX
+tests_libstress_test_LDADD+= @DL_LIB@
+tests_libstress_test_LDADD+= @RT_LIB@
+endif
+
+tests_libstress_test_SOURCES+= tests/stress_worker.cc
+tests_libstress_test_LDADD+= libgearman/libgearman-hostile.la
+tests_libstress_test_LDADD+= libtest/libtest.la
+tests_libstress_test_LDADD+= tests/libstartworker.la
+check_PROGRAMS+=tests/libstress_test
+noinst_PROGRAMS+=tests/libstress_test
+
+test-libstress: tests/libstress_test gearmand/gearmand
+	@tests/stress_test
+
+valgrind-libstress: tests/libstress_test gearmand/gearmand
+	@$(VALGRIND_COMMAND) tests/libstress_test
+
+gdb-libstress: tests/libstress_test gearmand/gearmand
+	@$(GDB_COMMAND) tests/libstress_test
