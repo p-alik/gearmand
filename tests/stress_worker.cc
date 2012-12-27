@@ -48,7 +48,6 @@ using namespace libtest;
 
 #include "tests/client.h"
 #include <tests/start_worker.h>
-#include "tests/burnin.h"
 
 #include "tests/workers/v2/echo_or_react.h"
 
@@ -74,12 +73,11 @@ static bool has_hostile()
 }
 
 static in_port_t hostile_server= 0;
-static in_port_t stress_server= 0;
-static in_port_t& current_server_= stress_server;
+static in_port_t& current_server_= hostile_server;
 
 static void reset_server()
 {
-  current_server_= stress_server;
+  current_server_= hostile_server;
 }
 
 static in_port_t current_server()
@@ -494,12 +492,8 @@ static test_return_t connect_TEARDOWN(void* object)
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  stress_server= libtest::default_port();
-  if (server_startup(servers, "gearmand", stress_server, 0, NULL) == false)
-  {
-    error= TEST_SKIPPED;
-    return NULL;
-  }
+  error= TEST_SKIPPED;
+  return NULL;
 
   if (has_hostile())
   {
@@ -510,6 +504,11 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
       error= TEST_FAILURE;
       return NULL;
     }
+  }
+  else
+  {
+    error= TEST_SKIPPED;
+    return NULL;
   }
 
   return new worker_handles_st;
@@ -522,11 +521,6 @@ static bool world_destroy(void *object)
 
   return TEST_SUCCESS;
 }
-
-test_st burnin_TESTS[] ={
-  {"burnin", 0, burnin_TEST },
-  {0, 0, 0}
-};
 
 test_st dos_TESTS[] ={
   {"send random port data", 0, send_random_port_data_TEST },
@@ -542,7 +536,6 @@ test_st worker_TESTS[] ={
 };
 
 collection_st collection[] ={
-  {"burnin", burnin_setup, burnin_cleanup, burnin_TESTS },
   {"dos", 0, 0, dos_TESTS },
   {"plain", worker_ramp_SETUP, worker_ramp_TEARDOWN, worker_TESTS },
   {"plain against hostile server", hostile_gearmand_SETUP, worker_ramp_TEARDOWN, worker_TESTS },

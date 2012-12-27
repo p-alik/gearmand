@@ -51,6 +51,7 @@ noinst_HEADERS+= \
 		 libgearman/vector.hpp
 
 noinst_LTLIBRARIES+= libgearman/libgearmancore.la
+
 libgearman_libgearmancore_la_SOURCES= \
 				      libgearman/allocator.cc \
 				      libgearman/backtrace.cc \
@@ -67,9 +68,15 @@ libgearman_libgearmancore_la_SOURCES= \
 
 libgearman_libgearmancore_la_CXXFLAGS= -DBUILDING_LIBGEARMAN
 libgearman_libgearmancore_la_LIBADD= @DL_LIB@
+libgearman_libgearmancore_la_LIBADD+= libhashkit/libhashkit.la
+
+libgearman_libgearman_la_LIBADD=
+libgearman_libgearman_la_SOURCES=
+libgearman_libgearman_la_CXXFLAGS=
+libgearman_libgearman_la_LDFLAGS=
 
 lib_LTLIBRARIES+= libgearman/libgearman.la
-libgearman_libgearman_la_SOURCES= \
+libgearman_libgearman_la_SOURCES+= \
 				  libgearman/actions.cc \
 				  libgearman/aggregator.cc \
 				  libgearman/allocator.cc \
@@ -110,11 +117,10 @@ libgearman_libgearman_la_SOURCES= \
 libgearman_libgearman_la_SOURCES+= libgearman/pipe.cc
 libgearman_libgearman_la_SOURCES+= libgearman/uuid.cc
 
-libgearman_libgearman_la_CXXFLAGS= -DBUILDING_LIBGEARMAN
+libgearman_libgearman_la_CXXFLAGS+= -DBUILDING_LIBGEARMAN
 
-libgearman_libgearman_la_LDFLAGS= -version-info $(GEARMAN_LIBRARY_VERSION)
+libgearman_libgearman_la_LDFLAGS+= -version-info $(GEARMAN_LIBRARY_VERSION)
 
-libgearman_libgearman_la_LIBADD=
 libgearman_libgearman_la_LIBADD+= @LIBUUID_LIB@
 libgearman_libgearman_la_LIBADD+= @DL_LIB@
 libgearman_libgearman_la_LIBADD+= libhashkit/libhashkit.la
@@ -125,3 +131,11 @@ endif
 
 
 DISTCLEANFILES+= config/top.h
+
+# Hostile version 
+
+noinst_LTLIBRARIES+= libgearman/libgearman-hostile.la
+
+libgearman_libgearman_hostile_la_LIBADD= $(libgearman_libgearman_la_LIBADD)
+libgearman_libgearman_hostile_la_SOURCES= $(libgearman_libgearman_la_SOURCES)
+libgearman_libgearman_hostile_la_CXXFLAGS= $(libgearman_libgearman_la_CXXFLAGS)

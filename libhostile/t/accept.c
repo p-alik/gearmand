@@ -34,93 +34,23 @@
  *
  */
 
-#include "gear_config.h"
+#ifdef HOSTILE
+# include <libhostile/hostile.h>
+#endif
 
-#include <libhostile/function.h>
-#include <libhostile/initialize.h>
+#include <libtest/yatl_lite.h>
 
-#include <assert.h>
 #include <errno.h>
-#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
-#include <sys/types.h>
-#include <time.h>
-#include <unistd.h>
+#include <sys/types.h>          /* See NOTES */
 
-static struct function_st __function_pipe;
-static struct function_st __function_pipe2;
-
-static pthread_once_t function_lookup_once= PTHREAD_ONCE_INIT;
-static void set_local(void)
+int main(void)
 {
-  __function_pipe= set_function("pipe", "HOSTILE_PIPE");
-  __function_pipe2= set_function("pipe2", "HOSTILE_PIPE2");
+  TEST_TRUE(accept(-1, NULL, NULL) == -1);
+  TEST_TRUE(errno == EBADF);
+
+  return EXIT_SUCCESS;
 }
-
-int pipe(int pipefd_arg[2])
-{
-  hostile_initialize();
-
-  (void) pthread_once(&function_lookup_once, set_local);
-
-  int stored_errno;
-  int ret;
-  {
-    set_called();
-
-    if (pipefd_arg)
-    {
-      int pipefd[2];
-      ret= __function_pipe.function.pipe(pipefd);
-      stored_errno= errno;
-      pipefd_arg[0]= pipefd[0];
-      pipefd_arg[1]= pipefd[1];
-    }
-    else
-    {
-      ret= __function_pipe.function.pipe(NULL);
-      stored_errno= errno;
-    }
-
-    reset_called();
-  }
-
-  errno= stored_errno;
-  return ret;
-}
-
-#if defined(HAVE_PIPE2) && HAVE_PIPE2
-int pipe2(int pipefd_arg[2], int flags)
-{
-  hostile_initialize();
-
-  (void) pthread_once(&function_lookup_once, set_local);
-
-  int stored_errno;
-  int ret;
-  {
-    set_called();
-    if (pipefd_arg)
-    {
-      int pipefd[2];
-      ret= __function_pipe2.function.pipe2(pipefd, flags);
-      stored_errno= errno;
-      pipefd_arg[0]= pipefd[0];
-      pipefd_arg[1]= pipefd[1];
-    }
-    else
-    {
-      ret= __function_pipe2.function.pipe2(pipefd_arg, flags);
-      stored_errno= errno;
-    }
-    reset_called();
-  }
-
-  errno= stored_errno;
-  return ret;
-}
-#endif
-
