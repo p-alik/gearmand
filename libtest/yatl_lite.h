@@ -36,9 +36,30 @@
 
 #pragma once
 
+#ifdef __cplusplus
+# include <cstddef>
+# include <cstdlib>
+# include <cstring>
+#else
+# include <stddef.h>
+# include <stdlib.h>
+# include <stdbool.h>
+# include <string.h>
+#endif
+
 #ifndef EXIT_SKIP
 # define EXIT_SKIP 77
 #endif
+
+static inline bool valgrind_is_caller(void)
+{
+  if (getenv("TESTS_ENVIRONMENT")  && strstr(getenv("TESTS_ENVIRONMENT"), "valgrind"))
+  {
+    return true;
+  }
+
+  return false;
+}
 
 #define TEST_TRUE(A) \
 do \

@@ -51,8 +51,11 @@
 int main(void)
 {
 #if defined(HAVE_PIPE2) && HAVE_PIPE2
-  TEST_TRUE(pipe2(NULL, 0) == -1);
-  TEST_TRUE(errno == EFAULT);
+  if (valgrind_is_caller() == false)
+  {
+    TEST_TRUE(pipe2(NULL, 0) == -1);
+    TEST_TRUE(errno == EFAULT);
+  }
 
   int pipefd[2];
   TEST_TRUE(pipe2(pipefd, 0) == 0);

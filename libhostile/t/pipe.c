@@ -48,8 +48,11 @@
 
 int main(void)
 {
-  TEST_TRUE(pipe(NULL) == -1);
-  TEST_TRUE(errno == EFAULT);
+  if (valgrind_is_caller() == false)
+  {
+    TEST_TRUE(pipe(NULL) == -1);
+    TEST_TRUE(errno == EFAULT);
+  }
 
   int pipefd[2];
   TEST_TRUE(pipe(pipefd) == 0);
