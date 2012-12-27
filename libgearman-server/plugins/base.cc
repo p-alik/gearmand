@@ -45,6 +45,7 @@
 #include "libgearman-server/struct/worker.h"
 #include "libgearman-server/struct/function.h"
 #include "libgearman-server/struct/job.h"
+#include "libgearman-server/log.h"
 
 #include <algorithm>
 #include <string> 
@@ -93,6 +94,7 @@ gearmand_error_t Context::store(gearman_server_st *server,
                                 gearman_job_priority_t priority,
                                 int64_t when)
 {
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "SHUTDOWN VALUE %s", _store_on_shutdown ? "true" : "false");
   if (_store_on_shutdown == false)
   {
     return add(server,

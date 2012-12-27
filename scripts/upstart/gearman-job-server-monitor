@@ -1,0 +1,10 @@
+description "Notify root about gearman job server respawn limit reached"
+author "Goran Miskovic <goran.v.miskovic@gmail.com>"
+
+task
+
+start on stopped gearman-job-server PROCESS=respawn
+
+script
+    echo "Gearman Job Server reached respawn limit" | mail -s "Gearman Job Server Crashed" root
+end script

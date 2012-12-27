@@ -293,7 +293,6 @@ static test_return_t lp_1087654_TEST(void* object)
 
     {
       test::Client client(first_port);
-      test_compare(gearman_client_echo(&client, test_literal_param("This is my echo test")), GEARMAN_SUCCESS);
       gearman_job_handle_t job_handle;
       for (int32_t x= 0; x < inserted_jobs; ++x)
       {
@@ -342,7 +341,7 @@ static test_return_t lp_1087654_TEST(void* object)
         }
       }
 
-      test_compare(sql_handle.vcount(), inserted_jobs);
+      test_zero(sql_handle.vcount());
     }
 
     servers.clear();
@@ -598,14 +597,14 @@ static test_return_t lp_1054377_TEST(void* object)
   return queue_restart_TEST(test, 8, 0);
 }
 
-static test_return_t lp_1054377x20K_TEST(void* object)
+static test_return_t lp_1054377x200_TEST(void* object)
 {
   test_skip(true, libtest::is_massive());
 
   Context *test= (Context *)object;
   test_truth(test);
 
-  return queue_restart_TEST(test, 20000, 200);
+  return queue_restart_TEST(test, 200, 200);
 }
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
@@ -652,7 +651,7 @@ test_st regressions[] ={
 
 test_st queue_restart_TESTS[] ={
   {"lp:1054377", 0, lp_1054377_TEST },
-  {"lp:1054377 x 20000", 0, lp_1054377x20K_TEST },
+  {"lp:1054377 x 200", 0, lp_1054377x200_TEST },
   {"lp:1087654", 0, lp_1087654_TEST },
   {0, 0, 0}
 };

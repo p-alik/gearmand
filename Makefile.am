@@ -61,12 +61,10 @@ EXTRA_DIST+= scripts/README.solaris
 test: check
 
 BUILT_SOURCES+= configmake.h
-noinst_HEADERS+= configmake.h
-configmake.h: ${top_srcdir}/Makefile.in
-	@echo "Making $@"
+CLEANFILES+= configmake.h configmake.h-t
+configmake.h: Makefile
 	@rm -f $@-t $@
 	@{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
-	  echo '#define PREFIX "$(prefix)"'; \
 	  echo '#define SYSCONFDIR "$(sysconfdir)"'; \
 	  echo '#define GEARMAND_CONFIG "$(sysconfdir)/gearmand.conf"'; \
 	  echo '#define LOCALSTATEDIR "$(localstatedir)"'; \

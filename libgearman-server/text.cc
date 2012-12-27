@@ -38,6 +38,7 @@
 #include "gear_config.h"
 
 #include "libgearman-server/common.h"
+#include "libgearman-server/log.h"
 
 #include <cassert>
 #include <cerrno>
@@ -57,8 +58,7 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
   char *data= (char *)(char *)malloc(GEARMAN_TEXT_RESPONSE_SIZE);
   if (data == NULL)
   {
-    gearmand_perror("malloc");
-    return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+    return gearmand_perror(errno, "malloc");
   }
   total= GEARMAN_TEXT_RESPONSE_SIZE;
   data[0]= 0;
@@ -101,15 +101,14 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
             char *new_data= (char *)realloc(data, total + GEARMAN_TEXT_RESPONSE_SIZE);
             if (new_data == NULL)
             {
-              if (pthread_mutex_unlock(&(thread->lock)) == -1)
+              int pthread_error;
+              if ((pthread_error= pthread_mutex_unlock(&(thread->lock))) == -1)
               {
-                gearmand_fatal("pthread_mutex_unlock()");
+                gearmand_perror(pthread_error, "pthread_mutex_unlock()");
                 assert(!"pthread_mutex_lock");
               }
-              gearmand_perror("realloc");
-              gearmand_debug("free");
               free(data);
-              return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+              return gearmand_perror(ENOMEM, "realloc");
             }
 
             data= new_data;
@@ -121,15 +120,14 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
 
           if ((size_t)sn_checked_length > total - size || sn_checked_length < 0)
           {
-            if (pthread_mutex_unlock(&(thread->lock)) == -1)
+            int pthread_error;
+            if ((pthread_error= pthread_mutex_unlock(&(thread->lock))) == -1)
             {
-              gearmand_fatal("pthread_mutex_unlock()");
+              gearmand_perror(pthread_error, "pthread_mutex_unlock()");
               assert(!"pthread_mutex_lock");
             }
-            gearmand_debug("free");
             free(data);
-            gearmand_perror("snprintf");
-            return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+            return gearmand_perror(ENOMEM, "snprintf");
           }
 
           size+= (size_t)sn_checked_length;
@@ -146,15 +144,14 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
 
             if ((size_t)checked_length > total - size || checked_length < 0)
             {
-              if (pthread_mutex_unlock(&(thread->lock)) == -1)
+              int pthread_error;
+              if ((pthread_error= (pthread_mutex_unlock(&(thread->lock)))) == -1)
               {
-                gearmand_fatal("pthread_mutex_unlock()");
+                gearmand_perror(pthread_error, "pthread_mutex_unlock()");
                 assert(!"pthread_mutex_lock");
               }
-              gearmand_debug("free");
               free(data);
-              gearmand_perror("snprintf");
-              return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+              return gearmand_perror(ENOMEM, "snprintf");
             }
 
             size+= (size_t)checked_length;
@@ -170,29 +167,29 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
           int checked_length= snprintf(data + size, total - size, "\n");
           if ((size_t)checked_length > total - size || checked_length < 0)
           {
-            if (pthread_mutex_unlock(&(thread->lock)) == -1)
+            int pthread_error;
+            if ((pthread_error= (pthread_mutex_unlock(&(thread->lock)))) == -1)
             {
-              gearmand_fatal("pthread_mutex_unlock()");
+              gearmand_perror(pthread_error, "pthread_mutex_unlock()");
               assert(!"pthread_mutex_lock");
             }
             gearmand_debug("free");
             free(data);
-            gearmand_perror("snprintf");
-            return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+            return gearmand_perror(ENOMEM, "snprintf");
           }
           size+= (size_t)checked_length;
         }
 
-        if (pthread_mutex_unlock(&(thread->lock)) == -1)
+        int pthread_error;
+        if ((pthread_error= (pthread_mutex_unlock(&(thread->lock)))) == -1)
         {
-          gearmand_fatal("pthread_mutex_unlock()");
+          gearmand_perror(pthread_error, "pthread_mutex_unlock()");
           assert(!"pthread_mutex_lock");
         }
       }
       else
       {
-        errno= error;
-        gearmand_error("pthread_mutex_lock");
+        gearmand_perror(error, "pthread_mutex_lock");
         assert(! "pthread_mutex_lock");
       }
     }
@@ -202,8 +199,7 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
       int checked_length= snprintf(data + size, total - size, ".\n");
       if ((size_t)checked_length > total - size || checked_length < 0)
       {
-        gearmand_perror("snprintf");
-        return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+        return gearmand_perror(ENOMEM, "snprintf");
       }
     }
   }
@@ -220,10 +216,8 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
         char *new_data= (char *)realloc(data, total + GEARMAN_TEXT_RESPONSE_SIZE);
         if (new_data == NULL)
         {
-          gearmand_perror("realloc");
-          gearmand_debug("free");
           free(data);
-          return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+          return gearmand_perror(errno, "realloc");
         }
 
         data= new_data;
@@ -237,10 +231,8 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
 
       if ((size_t)checked_length > total - size || checked_length < 0)
       {
-        gearmand_perror("snprintf");
-        gearmand_debug("free");
         free(data);
-        return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+        return gearmand_perror(ENOMEM, "snprintf");
       }
 
       size+= (size_t)checked_length;
@@ -255,10 +247,8 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
       int checked_length= snprintf(data + size, total - size, ".\n");
       if ((size_t)checked_length > total - size || checked_length < 0)
       {
-        gearmand_perror("snprintf");
-        gearmand_debug("free");
         free(data);
-        return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+        return gearmand_perror(ENOMEM, "snprintf");
       }
     }
   }
@@ -441,16 +431,15 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
   if ((error= pthread_mutex_lock(&server_con->thread->lock)) == 0)
   {
     GEARMAN_FIFO_ADD(server_con->io_packet, server_packet,);
-    if (pthread_mutex_unlock(&(server_con->thread->lock)) == -1)
+    if ((error= pthread_mutex_unlock(&(server_con->thread->lock))) == -1)
     {
-      gearmand_fatal("pthread_mutex_unlock()");
+      gearmand_perror(error, "pthread_mutex_unlock()");
       assert(!"pthread_mutex_lock");
     }
   }
   else
   {
-    errno= error;
-    gearmand_perror("pthread_mutex_lock");
+    gearmand_perror(error, "pthread_mutex_lock");
     assert(!"pthread_mutex_lock");
   }
 

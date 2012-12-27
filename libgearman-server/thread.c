@@ -127,8 +127,7 @@ bool gearman_server_thread_init(gearman_server_st *server,
   int error;
   if ((error= pthread_mutex_init(&(thread->lock), NULL)))
   {
-    errno= error;
-    gearmand_perror("pthread_mutex_init");
+    gearmand_perror(error, "pthread_mutex_init");
     return false;
   }
 
@@ -378,35 +377,36 @@ static gearmand_error_t _thread_packet_flush(gearman_server_con_st *con)
 
 static gearmand_error_t _proc_thread_start(gearman_server_st *server)
 {
-  if ((errno= pthread_mutex_init(&(server->proc_lock), NULL)))
+  int error;
+  if ((error= pthread_mutex_init(&(server->proc_lock), NULL)))
   {
-    gearmand_perror("pthread_mutex_init");
+    gearmand_perror(error, "pthread_mutex_init");
     return GEARMAN_ERRNO;
   }
 
-  if ((errno= pthread_cond_init(&(server->proc_cond), NULL)))
+  if ((error= pthread_cond_init(&(server->proc_cond), NULL)))
   {
-    gearmand_perror("pthread_cond_init");
+    gearmand_perror(error, "pthread_cond_init");
     return GEARMAN_ERRNO;
   }
 
   pthread_attr_t attr;
-  if ((errno= pthread_attr_init(&attr)))
+  if ((error= pthread_attr_init(&attr)))
   {
-    gearmand_perror("pthread_attr_init");
+    gearmand_perror(error, "pthread_attr_init");
     return GEARMAN_ERRNO;
   }
 
-  if ((errno= pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM)))
+  if ((error= pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM)))
   {
-    gearmand_perror("pthread_attr_setscope");
+    gearmand_perror(error, "pthread_attr_setscope");
     (void) pthread_attr_destroy(&attr);
     return GEARMAN_ERRNO;
   }
 
-  if ((errno= pthread_create(&(server->proc_id), &attr, _proc, server)))
+  if ((error= pthread_create(&(server->proc_id), &attr, _proc, server)))
   {
-    gearmand_perror("pthread_create");
+    gearmand_perror(error, "pthread_create");
     (void) pthread_attr_destroy(&attr);
     return GEARMAN_ERRNO;
   }

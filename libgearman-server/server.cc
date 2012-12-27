@@ -521,7 +521,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
       long timeout= strtol((char *)packet->arg[1], &endptr, 10);
       if (timeout == LONG_MIN or timeout == LONG_MAX)
       {
-        return gearmand_log_perror(GEARMAN_DEFAULT_LOG_PARAM, "GEARMAN_COMMAND_CAN_DO_TIMEOUT:strtol");
+        return gearmand_log_perror(GEARMAN_DEFAULT_LOG_PARAM, errno, "GEARMAN_COMMAND_CAN_DO_TIMEOUT:strtol");
       }
 
       gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Registering function: %.*s with timeout %dl",
@@ -1025,8 +1025,7 @@ _server_queue_work_data(gearman_server_job_st *server_job,
         data= (uint8_t *)malloc(packet->data_size);
         if (data == NULL)
         {
-          gearmand_perror("malloc");
-          return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+          return gearmand_perror(errno, "malloc");
         }
 
         memcpy(data, packet->data, packet->data_size);

@@ -22,10 +22,9 @@ using namespace libtest;
 #include <libtest/test.hpp>
 
 #include "libgearman/interface/task.hpp"
+#include "tests/client.h"
 
 #include <tests/start_worker.h>
-
-#include <tests/burnin.h>
 
 #define DEFAULT_WORKER_NAME "burnin"
 
@@ -35,29 +34,19 @@ static gearman_return_t worker_fn(gearman_job_st*, void*)
 }
 
 struct client_test_st {
-  gearman_client_st _client;
+  test::Client _client;
   worker_handle_st *handle;
 
   client_test_st():
+    _client(libtest::default_port()),
     handle(NULL)
   {
-    if (gearman_client_create(&_client) == NULL)
-    {
-      fatal_message("gearman_client_create() failed");
-    }
-
-    if (gearman_failed(gearman_client_add_server(&_client, NULL, libtest::default_port())))
-    {
-      fatal_message("gearman_client_add_server()");
-    }
-
     gearman_function_t func_arg= gearman_function_create(worker_fn);
     handle= test_worker_start(libtest::default_port(), NULL, DEFAULT_WORKER_NAME, func_arg, NULL, gearman_worker_options_t());
   }
 
   ~client_test_st()
   {
-    gearman_client_free(&_client);
     delete handle;
   }
 
@@ -98,7 +87,7 @@ struct client_context_st {
 #endif
 
 static client_test_st *test_client_context= NULL;
-test_return_t burnin_TEST(void*)
+static test_return_t burnin_TEST(void*)
 {
   gearman_client_st *client= test_client_context->client();
   fatal_assert(client);
@@ -180,7 +169,7 @@ test_return_t burnin_TEST(void*)
   return TEST_SUCCESS;
 }
 
-test_return_t burnin_setup(void*)
+static test_return_t burnin_setup(void*)
 {
   test_client_context= new client_test_st;
   client_context_st *context= new client_context_st;
@@ -194,7 +183,7 @@ test_return_t burnin_setup(void*)
   return TEST_SUCCESS;
 }
 
-test_return_t burnin_cleanup(void*)
+static test_return_t burnin_cleanup(void*)
 {
   client_context_st *context= (struct client_context_st *)gearman_client_context(test_client_context->client());
 
@@ -203,4 +192,49 @@ test_return_t burnin_cleanup(void*)
   test_client_context= NULL;
 
   return TEST_SUCCESS;
+}
+
+/*********************** World functions **************************************/
+
+static void *world_create(server_startup_st& servers, test_return_t& error)
+{
+  if (server_startup(servers, "gearmand", libtest::default_port(), 0, NULL) == false)
+  {
+    error= TEST_SKIPPED;
+    return NULL;
+  }
+
+  worker_handles_st *handle= new worker_handles_st;
+  if (handle == NULL)
+  {
+    error= TEST_FAILURE;
+    return NULL;
+  }
+
+  return handle;
+}
+
+static bool world_destroy(void *object)
+{
+  worker_handles_st *handles= (worker_handles_st *)object;
+  delete handles;
+
+  return TEST_SUCCESS;
+}
+
+test_st burnin_TESTS[] ={
+  {"burnin", 0, burnin_TEST },
+  {0, 0, 0}
+};
+
+collection_st collection[] ={
+  {"burnin", burnin_setup, burnin_cleanup, burnin_TESTS },
+  {0, 0, 0, 0}
+};
+
+void get_world(libtest::Framework *world)
+{
+  world->collections(collection);
+  world->create(world_create);
+  world->destroy(world_destroy);
 }

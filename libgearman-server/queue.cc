@@ -60,25 +60,35 @@ gearmand_error_t gearman_queue_add(gearman_server_st *server,
                                    int64_t when)
 {
   assert(server->state.queue_startup == false);
+  gearmand_error_t ret;
   if (server->queue_version == QUEUE_VERSION_FUNCTION)
   {
     assert(server->queue.functions->_add_fn);
-    return (*(server->queue.functions->_add_fn))(server,
-                                                 (void *)server->queue.functions->_context,
-                                                 unique, unique_size,
-                                                 function_name,
-                                                 function_name_size,
-                                                 data, data_size, priority, 
-                                                when);
+    ret= (*(server->queue.functions->_add_fn))(server,
+                                               (void *)server->queue.functions->_context,
+                                               unique, unique_size,
+                                               function_name,
+                                               function_name_size,
+                                               data, data_size, priority, 
+                                               when);
   }
-
-  assert(server->queue.object);
-  return server->queue.object->store(server,
+  else
+  {
+    assert(server->queue.object);
+    ret= server->queue.object->store(server,
                                      unique, unique_size,
                                      function_name,
                                      function_name_size,
                                      data, data_size, priority, 
                                      when);
+  }
+
+  if (gearmand_success(ret))
+  {
+    ret= gearman_queue_flush(server);
+  }
+
+  return ret;
 }
 
 gearmand_error_t gearman_queue_flush(gearman_server_st *server)

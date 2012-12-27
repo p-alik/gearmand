@@ -1104,10 +1104,11 @@ gearman_return_t gearman_connection_st::set_socket_options()
     }
   }
 
-#if defined(__MACH__) && defined(__APPLE__) || defined(__FreeBSD__)
+#if defined(SO_NOSIGPIPE)
+  if (SO_NOSIGPIPE)
   {
     int ret= 1;
-    setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, static_cast<void *>(&ret), sizeof(int));
+    ret= setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, static_cast<void *>(&ret), sizeof(int));
 
     // This is not considered a fatal error 
     if (ret == -1)

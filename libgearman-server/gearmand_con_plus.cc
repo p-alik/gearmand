@@ -39,6 +39,7 @@
 #include "libgearman-server/common.h"
 
 #include <cassert>
+#include <cerrno>
 #include <memory>
 
 gearmand_con_st* build_gearmand_con_st(void)
@@ -104,7 +105,7 @@ gearmand_error_t gearmand_connection_watch(gearmand_io_st *con, short events, vo
     {
       if (event_del(&(dcon->event)) < 0)
       {
-        gearmand_perror("event_del");
+        gearmand_perror(errno, "event_del");
         assert(! "event_del");
       }
     }
@@ -113,7 +114,7 @@ gearmand_error_t gearmand_connection_watch(gearmand_io_st *con, short events, vo
 
     if (event_add(&(dcon->event), NULL) < 0)
     {
-      gearmand_perror("event_add");
+      gearmand_perror(errno, "event_add");
       return GEARMAN_EVENT;
     }
 

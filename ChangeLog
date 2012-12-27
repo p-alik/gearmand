@@ -1,3 +1,6 @@
+1.1.5
+* Rollup of bug fixes for 1.0.3
+
 1.1.4 Mon Dec 17 21:24:16 EST 2012
 * Add GEARMAN_CLIENT_GENERATE_UNIQUE, with default set to not generate.
 * Experimental addition to queue service which will allow a queue to be stored on shutdown (--libsqlite3-store-on-shutdown).
@@ -14,6 +17,9 @@
 
 1.1.0 Wed Sep  5 08:33:37 PDT 2012
 * Fix for ABI compatibility issues.
+
+1.0.3 
+* Allow for a longer set of retries if port is in use when the server starts up.
 
 1.0.2 Mon Dec 17 07:24:42 EST 2012
 * Add --expceptions to Gearmand to enable exceptions by default

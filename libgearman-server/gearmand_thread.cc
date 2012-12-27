@@ -48,12 +48,45 @@
 #include <cassert>
 #include <cerrno>
 #include <memory>
+#include <csignal>
 
 #include <libgearman-server/list.h>
 
 /*
  * Private declarations
  */
+
+namespace
+{
+
+bool fill_timespec(struct timespec& ts)
+{
+#if defined(HAVE_LIBRT) && HAVE_LIBRT
+  if (HAVE_LIBRT) // This won't be called on OSX, etc,...
+  {
+    if (clock_gettime(CLOCK_REALTIME, &ts) == -1) 
+    {
+      gearmand_perror(errno, "clock_gettime(CLOCK_REALTIME)");
+      return false;
+    }
+  }
+#else
+  {
+    struct timeval tv;
+    if (gettimeofday(&tv, NULL) == -1) 
+    {
+      gearmand_perror(errno, "gettimeofday()");
+      return false;
+    }
+
+    TIMEVAL_TO_TIMESPEC(&tv, &ts);
+  }
+#endif
+
+  return true;
+}
+
+}
 
 /**
  * @addtogroup gearmand_thread_private Private Gearmand Thread Functions
@@ -149,9 +182,7 @@ gearmand_error_t gearmand_thread_create(gearmand_st *gearmand)
     thread->count= 0;
     gearmand_thread_free(thread);
 
-    errno= pthread_ret;
-    gearmand_fatal_perror("pthread_mutex_init");
-    return GEARMAN_ERRNO;
+    return gearmand_fatal_perror(pthread_ret, "pthread_mutex_init");
   }
 
   thread->is_thread_lock= true;
@@ -164,10 +195,7 @@ gearmand_error_t gearmand_thread_create(gearmand_st *gearmand)
     thread->count= 0;
     gearmand_thread_free(thread);
 
-    errno= pthread_ret;
-    gearmand_perror("pthread_create");
-
-    return GEARMAN_ERRNO;
+    return gearmand_perror(pthread_ret, "pthread_create");
   }
 
   gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Thread %u created", thread->count);
@@ -182,11 +210,38 @@ void gearmand_thread_free(gearmand_thread_st *thread)
     gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Shutting down thread %u", thread->count);
 
     gearmand_thread_wakeup(thread, GEARMAND_WAKEUP_SHUTDOWN);
-    int pthread_error;
-    if ((pthread_error= pthread_join(thread->id, NULL)))
+
+    int pthread_error= -1;
+#if defined(HAVE_PTHREAD_TIMEDJOIN_NP) && HAVE_PTHREAD_TIMEDJOIN_NP
     {
-      errno= pthread_error;
-      gearmand_perror("pthread_join");
+      struct timespec ts;
+      if (fill_timespec(ts))
+      {
+        ts.tv_sec+= 30;
+        pthread_error= pthread_timedjoin_np(thread->id, NULL, &ts);
+        if (pthread_error)
+        {
+          gearmand_perror(pthread_error, "pthread_timedjoin_np");
+        }
+      }
+
+      if (pthread_error != 0)
+      {
+        pthread_error= pthread_kill(thread->id, SIGQUIT);
+        if (pthread_error)
+        {
+          gearmand_perror(pthread_error, "pthread_kill(, SIGQUIT)");
+        }
+        pthread_error= pthread_join(thread->id, NULL);
+      }
+    }
+#else
+    pthread_error= pthread_join(thread->id, NULL);
+#endif
+
+    if (pthread_error)
+    {
+      gearmand_perror(pthread_error, "pthread_join");
     }
   }
 
@@ -195,8 +250,7 @@ void gearmand_thread_free(gearmand_thread_st *thread)
     int pthread_error;
     if ((pthread_error= pthread_mutex_destroy(&(thread->lock))))
     {
-      errno= pthread_error;
-      gearmand_perror("pthread_mutex_destroy");
+      gearmand_perror(pthread_error, "pthread_mutex_destroy");
     }
   }
 
@@ -246,10 +300,33 @@ void gearmand_thread_wakeup(gearmand_thread_st *thread,
   uint8_t buffer= wakeup;
 
   /* If this fails, there is not much we can really do. This should never fail
-     though if the thread is still active. */
-  if (write(thread->wakeup_fd[1], &buffer, 1) != 1)
+     though if the main gearmand thread is still active. */
+  int limit= 5;
+  ssize_t written;
+  while (--limit) 
   {
-    gearmand_perror("write");
+    if ((written= write(thread->wakeup_fd[1], &buffer, 1)) != 1)
+    {
+      if (written < 0)
+      {
+        switch (errno)
+        {
+        case EINTR:
+          continue;
+
+        default:
+          break;
+        }
+        gearmand_perror(errno, gearmand_strwakeup(wakeup));
+      }
+      else
+      {
+        gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, 
+                           "gearmand_wakeup() incorrectly wrote %lu bytes of data.", (unsigned long)written);
+      }
+    }
+
+    break;
   }
 }
 
@@ -338,21 +415,21 @@ static gearmand_error_t _wakeup_init(gearmand_thread_st *thread)
   ret= pipe(thread->wakeup_fd);
   if (ret == -1)
   {
-    gearmand_perror("pipe");
+    gearmand_perror(ret, "pipe");
     return GEARMAN_ERRNO;
   }
 
   ret= fcntl(thread->wakeup_fd[0], F_GETFL, 0);
   if (ret == -1)
   {
-    gearmand_perror("fcntl(F_GETFL)");
+    gearmand_perror(ret, "fcntl(F_GETFL)");
     return GEARMAN_ERRNO;
   }
 
   ret= fcntl(thread->wakeup_fd[0], F_SETFL, ret | O_NONBLOCK);
   if (ret == -1)
   {
-    gearmand_perror("fcntl(F_SETFL)");
+    gearmand_perror(ret, "fcntl(F_SETFL)");
     return GEARMAN_ERRNO;
   }
 
@@ -362,7 +439,7 @@ static gearmand_error_t _wakeup_init(gearmand_thread_st *thread)
 
   if (event_add(&(thread->wakeup_event), NULL) < 0)
   {
-    gearmand_perror("event_add");
+    gearmand_perror(errno, "event_add");
     return GEARMAN_EVENT;
   }
 
@@ -392,8 +469,7 @@ static void _wakeup_clear(gearmand_thread_st *thread)
     gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Clearing event for IO thread wakeup pipe %u", thread->count);
     if (event_del(&(thread->wakeup_event)) < 0)
     {
-      gearmand_perror("event_del");
-      assert(! "event_del");
+      gearmand_perror(errno, "event_del() failure, shutdown may hang");
     }
     thread->is_wakeup_event= false;
   }
@@ -417,14 +493,19 @@ static void _wakeup_event(int fd, short events __attribute__ ((unused)), void *a
     }
     else if (ret == -1)
     {
-      if (errno == EINTR)
+      int local_errno= errno;
+      if (local_errno == EINTR)
+      {
         continue;
+      }
 
-      if (errno == EAGAIN)
+      if (local_errno == EAGAIN)
+      {
         break;
+      }
 
       _clear_events(thread);
-      gearmand_perror("_wakeup_event:read");
+      gearmand_perror(local_errno, "_wakeup_event:read");
       Gearmand()->ret= GEARMAN_ERRNO;
       return;
     }

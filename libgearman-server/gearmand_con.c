@@ -116,7 +116,7 @@ gearmand_error_t gearmand_con_create(gearmand_st *gearmand, int fd,
     dcon= build_gearmand_con_st(); 
     if (dcon == NULL)
     {
-      gearmand_perror("new build_gearmand_con_st");
+      gearmand_perror(errno, "new build_gearmand_con_st");
       gearmand_sockfd_close(fd);
 
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
@@ -167,8 +167,7 @@ gearmand_error_t gearmand_con_create(gearmand_st *gearmand, int fd,
     int error;
     if ((error= pthread_mutex_lock(&(dcon->thread->lock))) != 0)
     {
-      errno= error;
-      gearmand_perror("pthread_mutex_lock");
+      gearmand_perror(error, "pthread_mutex_lock");
       gearmand_fatal("Lock could not be taken on dcon->thread->, shutdown to occur");
       gearmand_wakeup(Gearmand(), GEARMAND_WAKEUP_SHUTDOWN);
     }
@@ -211,7 +210,7 @@ void gearmand_con_free(gearmand_con_st *dcon)
   {
     if (event_del(&(dcon->event)) < 0)
     {
-      gearmand_perror("event_del");
+      gearmand_perror(errno, "event_del");
     }
     else
     {
@@ -221,13 +220,13 @@ void gearmand_con_free(gearmand_con_st *dcon)
 
       if (event_add(&(dcon->event), NULL) < 0)
       {
-        gearmand_perror("event_add");
+        gearmand_perror(errno, "event_add");
       }
       else
       {
         if (event_del(&(dcon->event)) < 0)
         {
-          gearmand_perror("event_del");
+          gearmand_perror(errno, "event_del");
         }
       }
     }
@@ -261,8 +260,7 @@ void gearmand_con_free(gearmand_con_st *dcon)
       }
       else
       {
-        errno= error;
-        gearmand_perror("pthread_mutex_lock");
+        gearmand_perror(error, "pthread_mutex_lock");
       }
     }
   }
@@ -292,8 +290,7 @@ void gearmand_con_check_queue(gearmand_thread_st *thread)
 
       if ((error= pthread_mutex_unlock(&(thread->lock))) != 0)
       {
-        errno= error;
-        gearmand_perror("pthread_mutex_unlock");
+        gearmand_perror(error, "pthread_mutex_unlock");
         gearmand_fatal("Error in locking forcing a shutdown");
         gearmand_wakeup(Gearmand(), GEARMAND_WAKEUP_SHUTDOWN);
       }
@@ -307,8 +304,7 @@ void gearmand_con_check_queue(gearmand_thread_st *thread)
     }
     else
     {
-      errno= error;
-      gearmand_perror("pthread_mutex_lock");
+      gearmand_perror(error, "pthread_mutex_lock");
       gearmand_fatal("Lock could not be taken on thread->, shutdown to occur");
       gearmand_wakeup(Gearmand(), GEARMAND_WAKEUP_SHUTDOWN);
     }

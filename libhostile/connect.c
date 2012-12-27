@@ -34,54 +34,78 @@
  *
  */
 
-#pragma once
+#include "gear_config.h"
 
-#ifndef __cplusplus
-# include <stdbool.h>
-#endif
+#include <errno.h>
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <time.h>
+#include <unistd.h>
 
-#include "libhostile/visibility.h"
+#include <libhostile/initialize.h>
+#include <libhostile/function.h>
 
-enum hostile_poll_t
+static int not_until= 500;
+
+static struct function_st __function;
+
+static pthread_once_t function_lookup_once = PTHREAD_ONCE_INIT;
+static void set_local(void)
 {
-  HOSTILE_POLL_CLOSED,
-  HOSTILE_POLL_SHUT_WR,
-  HOSTILE_POLL_SHUT_RD
-};
-
-#ifndef __cplusplus
-typedef enum hostile_poll_t hostile_poll_t;
-#endif
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-LIBHOSTILE_API
-  bool libhostile_is_accept(void);
-
-LIBHOSTILE_API
-  void set_poll_close(bool arg, int frequency, int not_until_arg, enum hostile_poll_t poll_type);
-
-LIBHOSTILE_API
-  void set_accept_close(bool arg, int frequency, int not_until_arg);
-
-LIBHOSTILE_API
-  void set_connect_close(bool arg, int frequency, int not_until_arg);
-
-LIBHOSTILE_API
-  void set_recv_corrupt(bool arg, int frequency, int not_until_arg);
-
-LIBHOSTILE_API
-  void set_recv_close(bool arg, int frequency, int not_until_arg);
-
-LIBHOSTILE_API
-  void set_send_close(bool arg, int frequency, int not_until_arg);
-
-LIBHOSTILE_API
-  void hostile_dump(void);
-
-#ifdef __cplusplus
+  __function= set_function("connect", "HOSTILE_CONNECT");
 }
-#endif
+
+void set_connect_close(bool arg, int frequency, int not_until_arg)
+{
+  if (arg)
+  {
+    __function.frequency= frequency;
+    not_until= not_until_arg;
+  }
+  else
+  {
+    __function.frequency= 0;
+    not_until= 0;
+  }
+}
+
+int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
+{
+  hostile_initialize();
+
+  (void) pthread_once(&function_lookup_once, set_local);
+
+  if (is_called() == false)
+  {
+    if (__function.frequency)
+    {
+      fprintf(stderr, "%s:%d connect() %d %d\n", __FILE__, __LINE__, not_until, __function.frequency);
+      if (--not_until < 0 && rand() % __function.frequency)
+      {
+        if (rand() % 1)
+        {
+          shutdown(sockfd, SHUT_RDWR);
+          close(sockfd);
+          errno= ECONNABORTED;
+          return -1;
+        }
+        else
+        {
+          shutdown(sockfd, SHUT_RDWR);
+          close(sockfd);
+          errno= EMFILE;
+          return -1;
+        }
+      }
+    }
+  }
+
+  set_called();
+  int ret= __function.function.connect(sockfd, addr, addrlen);
+  reset_called();
+
+  return ret;
+}
