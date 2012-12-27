@@ -44,7 +44,7 @@
 #endif
 
 #ifndef EXIT_FATAL
-# define EXIT_FATAL 77
+# define EXIT_FATAL 99
 #endif
 
 #ifndef EX_NOEXEC
