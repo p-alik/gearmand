@@ -46,6 +46,13 @@
 
 #include <libgearman/result.hpp>
 
+gearman_result_st::gearman_result_st() :
+  _is_null(true),
+  type(GEARMAN_RESULT_BOOLEAN)
+{
+  memset(&value.string, 0, sizeof(gearman_vector_st));
+  value.boolean= false;
+}
 
 gearman_result_st::gearman_result_st(size_t initial_size) :
   _is_null(true),
@@ -151,10 +158,12 @@ gearman_string_t gearman_result_take_string(gearman_result_st *self)
   assert(self); // Programming error
   if (self->type == GEARMAN_RESULT_BINARY and gearman_result_size(self))
   {
+    gearman_string_t ret_string= gearman_string_take_string(&self->value.string);
     self->type= GEARMAN_RESULT_BOOLEAN; // Set to default type
-    return gearman_string_take_string(&self->value.string);
+    self->_is_null= false;
+
+    return ret_string;
   }
-  self->_is_null= false;
 
   static gearman_string_t ret= {0, 0};
   return ret;

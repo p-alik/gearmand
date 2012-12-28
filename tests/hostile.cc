@@ -60,10 +60,14 @@ using namespace libtest;
 
 #define WORKER_FUNCTION_NAME "foo"
 
+#ifndef SERVER_TARGET
+#  define SERVER_TARGET "hostile-gearmand"
+#endif
+
 static bool has_hostile()
 {
-#if defined(HAVE_LIBHOSTILE) && HAVE_LIBHOSTILE
-  if (1)
+#if defined(HAVE_LIBHOSTILE)
+  if (HAVE_LIBHOSTILE)
   {
     return true;
   }
@@ -492,13 +496,10 @@ static test_return_t connect_TEARDOWN(void* object)
 
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
-  error= TEST_SKIPPED;
-  return NULL;
-
   if (has_hostile())
   {
     hostile_server= libtest::get_free_port();
-    if (server_startup(servers, "hostile-gearmand", hostile_server, 0, NULL) == false)
+    if (server_startup(servers, SERVER_TARGET, hostile_server, 0, NULL) == false)
     {
       hostile_server= 0;
       error= TEST_FAILURE;
