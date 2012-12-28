@@ -288,8 +288,13 @@ gearman_string_t gearman_string(const gearman_vector_st *self)
 gearman_string_t gearman_string_take_string(gearman_vector_st *self)
 {
   assert(self);
-  gearman_string_t passable= gearman_string(self);
-  _init_string(self);
+  if (gearman_string_length(self))
+  {
+    gearman_string_t passable= gearman_string(self);
+    _init_string(self);
+    return passable;
+  }
 
-  return passable;
+  static gearman_string_t ret= {0, 0};
+  return ret;
 }

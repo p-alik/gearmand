@@ -187,8 +187,11 @@ void gearman_task_free(gearman_task_st *task)
 void gearman_task_free_result(gearman_task_st *task)
 {
   assert(task);
-  delete task->result_ptr;
-  task->result_ptr= NULL;
+  if (task)
+  {
+    delete task->result_ptr;
+    task->result_ptr= NULL;
+  }
 }
 
 bool gearman_task_is_active(const gearman_task_st *self)
