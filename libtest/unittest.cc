@@ -943,9 +943,8 @@ static test_return_t clear_servers(void* object)
   return TEST_SUCCESS;
 }
 
-static test_return_t check_for_libmemcached(void* object)
+static test_return_t check_for_memcached(void* object)
 {
-  test_skip(true, HAVE_LIBMEMCACHED);
   test_skip(true, has_memcached());
 
   server_startup_st *servers= (server_startup_st*)object;
@@ -1115,7 +1114,7 @@ collection_st collection[] ={
   {"directories", 0, 0, directories_tests},
   {"comparison", 0, 0, comparison_tests},
   {"gearmand", check_for_gearman, clear_servers, gearmand_tests},
-  {"memcached", check_for_libmemcached, clear_servers, memcached_TESTS },
+  {"memcached", check_for_memcached, clear_servers, memcached_TESTS },
   {"drizzled", check_for_drizzle, clear_servers, drizzled_tests},
   {"cmdline", 0, 0, cmdline_tests},
   {"application", 0, 0, application_tests},

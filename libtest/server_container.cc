@@ -335,14 +335,7 @@ bool server_startup_st::start_socket_server(const std::string& server_type, cons
     {
       if (MEMCACHED_BINARY)
       {
-        if (HAVE_LIBMEMCACHED)
-        {
           server= build_memcached_socket("localhost", try_port);
-        }
-        else
-        {
-          Error << "Libmemcached was not found";
-        }
       }
       else
       {
