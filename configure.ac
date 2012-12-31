@@ -189,6 +189,8 @@ AC_CHECK_FUNCS([atexit])
 AC_CHECK_FUNCS([clock_gettime])
 AC_CHECK_FUNCS([getcwd])
 AC_CHECK_FUNCS([strstr])
+AC_CHECK_FUNC([setsockopt],[],[AC_CHECK_LIB([socket],[setsockopt])])
+AC_CHECK_FUNC([bind],[],[AC_CHECK_LIB([bind],[bind])])
 
 LT_LIB_M
 
@@ -203,9 +205,7 @@ AC_CHECK_LIB([rt],[clock_gettime],
 
 # Check for -lm
 LT_LIB_M
-
-AC_CHECK_FUNC([setsockopt],[],[AC_CHECK_LIB([socket],[setsockopt])])
-AC_CHECK_FUNC([bind],[],[AC_CHECK_LIB([bind],[bind])])
+AX_ENABLE_LIBMEMCACHED
 
 AC_DEFINE([GEARMAND_BLOBSLAP_WORKER],[1],[Have Gearman Blobslap Worker])
 
