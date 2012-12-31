@@ -38,7 +38,7 @@
 # include <libhostile/hostile.h>
 #endif
 
-#include <libtest/yatl_lite.h>
+#include <libtest/lite.h>
 
 #include <errno.h>
 #include <stdio.h>
@@ -50,14 +50,14 @@ int main(void)
 {
   if (valgrind_is_caller() == false)
   {
-    TEST_TRUE(pipe(NULL) == -1);
-    TEST_TRUE(errno == EFAULT);
+    ASSERT_TRUE(pipe(NULL) == -1);
+    ASSERT_TRUE(errno == EFAULT);
   }
 
   int pipefd[2];
-  TEST_TRUE(pipe(pipefd) == 0);
-  TEST_TRUE(close(pipefd[0]) == 0);
-  TEST_TRUE(close(pipefd[1]) == 0);
+  ASSERT_TRUE(pipe(pipefd) == 0);
+  ASSERT_TRUE(close(pipefd[0]) == 0);
+  ASSERT_TRUE(close(pipefd[1]) == 0);
 
   return EXIT_SUCCESS;
 }

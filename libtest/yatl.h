@@ -36,45 +36,8 @@
 
 #pragma once
 
-#ifdef __cplusplus
-# include <cstddef>
-# include <cstdlib>
-# include <cstring>
-#else
-# include <stddef.h>
-# include <stdlib.h>
-# include <stdbool.h>
-# include <string.h>
+#ifndef YATL_FULL
+# define YATL_FULL 1
 #endif
 
-#ifndef EXIT_SKIP
-# define EXIT_SKIP 77
-#endif
-
-static inline bool valgrind_is_caller(void)
-{
-  if (getenv("TESTS_ENVIRONMENT")  && strstr(getenv("TESTS_ENVIRONMENT"), "valgrind"))
-  {
-    return true;
-  }
-
-  return false;
-}
-
-#define TEST_TRUE(A) \
-do \
-{ \
-  if (! (A)) { \
-    fprintf(stderr, "\n%s:%d: Assertion \"%s\" failed, in %s\n", __FILE__, __LINE__, #A, __func__);\
-    exit(EXIT_FAILURE); \
-  } \
-} while (0)
-
-#define TEST_FALSE(A) \
-do \
-{ \
-  if ((A)) { \
-    fprintf(stderr, "\n%s:%d: Assertion failed %s, in %s\n", __FILE__, __LINE__, #A, __func__);\
-    exit(EXIT_FAILURE); \
-  } \
-} while (0)
+#include <libtest/test.hpp>

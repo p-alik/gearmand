@@ -36,7 +36,7 @@
 
 #include "libtest/yatlcon.h"
 
-#include <libtest/test.hpp>
+#include <libtest/yatl.h>
 
 #if defined(HAVE_LIBMEMCACHED_1_0_TYPES_RETURN_H) && HAVE_LIBMEMCACHED_1_0_TYPES_RETURN_H
 # include <libmemcached-1.0/types/return.h>
@@ -142,14 +142,55 @@ static test_return_t test_throw_skip_TEST(void *)
 
 static test_return_t test_throw_fail_TEST(void *)
 {
-  std::string error_messsage("test message!");
   try {
-    FAIL(error_messsage);
+#if 0
+    FAIL("test message!");
+#endif
+    throw libtest::__failure(LIBYATL_DEFAULT_PARAM, "test message!");
   }
-  catch (libtest::__failure e)
+  catch (const libtest::__failure& e)
   {
     std::string compare_message("test message!");
     test_zero(compare_message.compare(e.what()));
+    return TEST_SUCCESS;
+  }
+  catch (...)
+  {
+    return TEST_FAILURE;
+  }
+
+  return TEST_FAILURE;
+}
+#pragma GCC diagnostic ignored "-Wstack-protector"
+
+static test_return_t ASSERT_FALSE__TEST(void *)
+{
+  try {
+    ASSERT_FALSE_(true, __func__);
+  }
+  catch (libtest::__failure e)
+  {
+    std::string compare_message(__func__);
+    ASSERT_EQ(compare_message.compare(e.what()), -32);
+    return TEST_SUCCESS;
+  }
+  catch (...)
+  {
+    return TEST_FAILURE;
+  }
+
+  return TEST_FAILURE;
+}
+
+static test_return_t ASSERT_FALSE_TEST(void *)
+{
+  try {
+    FAIL(__func__);
+  }
+  catch (libtest::__failure e)
+  {
+    std::string compare_message(__func__);
+    ASSERT_EQ(0, compare_message.compare(e.what()));
     return TEST_SUCCESS;
   }
   catch (...)
@@ -946,6 +987,8 @@ test_st tests_log[] ={
   {"SUCCESS", false, test_throw_success_TEST },
   {"SKIP", false, test_throw_skip_TEST },
   {"FAIL", false, test_throw_fail_TEST },
+  {"ASSERT_FALSE_", false, ASSERT_FALSE__TEST },
+  {"ASSERT_FALSE", false, ASSERT_FALSE_TEST },
   {0, 0, 0}
 };
 

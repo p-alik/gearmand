@@ -346,7 +346,7 @@ worker_handles_st::~worker_handles_st()
 // Warning, this will not clean up memory
 void worker_handles_st::kill_all()
 {
-  assert(libtest::valgrind_is_caller() == false);
+  assert(valgrind_is_caller() == false);
   _workers.clear();
 }
 

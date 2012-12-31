@@ -56,16 +56,15 @@ namespace libtest {
 class fatal : std::runtime_error
 {
 public:
-  fatal(const char *file, int line, const char *func, const char *format, ...);
+  fatal(const char *file, int line, const char *func, ...);
+
+  ~fatal() throw()
+  {
+  }
 
   const char* what() const throw()
   {
-    return _error_message;
-  }
-
-  const char* mesg() const throw()
-  {
-    return _error_message;
+    return &_error_message[0];
   }
 
   // The following are just for unittesting the exception class
@@ -91,8 +90,7 @@ public:
   }
 
 private:
-  char _error_message[BUFSIZ];
-  char _mesg[BUFSIZ];
+  vchar_t _error_message;
   int _line;
   const char*  _file;
   const char* _func;
@@ -101,11 +99,11 @@ private:
 class disconnected : std::runtime_error
 {
 public:
-  disconnected(const char *file, int line, const char *func, const std::string&, const in_port_t port, const char *format, ...);
+  disconnected(const char *file, int line, const char *func, const std::string&, const in_port_t port, ...);
 
   const char* what() const throw()
   {
-    return _error_message;
+    return &_error_message[0];
   }
 
   // The following are just for unittesting the exception class
@@ -141,5 +139,10 @@ private:
 
 } // namespace libtest
 
-#define fatal_message(__mesg) throw libtest::fatal(LIBYATL_DEFAULT_PARAM, "%s", __mesg)
-#define fatal_assert(__assert) if((__assert)) {} else { throw libtest::fatal(LIBYATL_DEFAULT_PARAM, "%s", #__assert); }
+#define fatal_message(...) \
+do \
+{ \
+  throw libtest::fatal(LIBYATL_DEFAULT_PARAM, __VA_ARGS__); \
+} while (0)
+
+#define fatal_assert(__assert) if((__assert)) {} else { throw libtest::fatal(LIBYATL_DEFAULT_PARAM, #__assert); }

@@ -38,7 +38,7 @@
 # include <libhostile/hostile.h>
 #endif
 
-#include <libtest/yatl_lite.h>
+#include <libtest/lite.h>
 
 #include <errno.h>
 #include <stdio.h>
@@ -49,8 +49,8 @@
 
 int main(void)
 {
-  TEST_TRUE(accept(-1, NULL, NULL) == -1);
-  TEST_TRUE(errno == EBADF);
+  ASSERT_TRUE(accept(-1, NULL, NULL) == -1);
+  ASSERT_TRUE(errno == EBADF);
 
   return EXIT_SUCCESS;
 }

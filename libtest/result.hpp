@@ -45,6 +45,13 @@ class __test_result : public std::exception
 public:
   __test_result(const char *file, int line, const char *func);
 
+  __test_result( const __test_result& other ) :
+    _line(other._line),
+    _file(other._file),
+    _func(other._func)
+  {
+  }
+
   int line()
   {
     return _line;
@@ -95,7 +102,11 @@ private:
 class __failure : public __test_result
 {
 public:
-  __failure(const char *file, int line, const char *func, const std::string&);
+  __failure(const char *file, int line, const char *func, ...);
+
+  __failure(const __failure& other);
+
+  ~__failure() throw();
 
   const char* what() const throw()
   {
@@ -103,7 +114,8 @@ public:
   }
 
 private:
-  char _error_message[BUFSIZ];
+  char* _error_message;
+  int _error_message_size;
 };
 
 
@@ -111,4 +123,9 @@ private:
 
 #define _SUCCESS throw libtest::__success(LIBYATL_DEFAULT_PARAM)
 #define SKIP throw libtest::__skipped(LIBYATL_DEFAULT_PARAM)
-#define FAIL(__mesg) throw libtest::__failure(LIBYATL_DEFAULT_PARAM, __mesg)
+
+#define FAIL(...) \
+do \
+{ \
+  throw libtest::__failure(LIBYATL_DEFAULT_PARAM, __VA_ARGS__); \
+} while (0)
