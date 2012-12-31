@@ -42,10 +42,7 @@ namespace libtest {
 
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
 fatal::fatal(const char *file_arg, int line_arg, const char *func_arg, ...) :
-  std::runtime_error(func_arg),
-  _line(line_arg),
-  _file(file_arg),
-  _func(func_arg)
+  __test_result(file_arg, line_arg, func_arg)
   {
     va_list args;
     va_start(args, func_arg);
