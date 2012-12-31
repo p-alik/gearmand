@@ -56,10 +56,6 @@ CONFIG_EXTRA
 
 m4_include([libtest/yatl.m4])
 
-AX_ENABLE_LIBMEMCACHED
-m4_include([m4/memcached_sasl.m4])
-AM_CONDITIONAL([BUILDING_LIBMEMCACHED],false)
-
 AM_CONDITIONAL([BUILDING_GEARMAN],true)
 AM_CONDITIONAL([HAVE_LIBGEARMAN],true)
 AC_SUBST([_WITH_LIBGEARMAN_SUPPORT],["_WITH_LIBGEARMAN_SUPPORT 0"])
@@ -281,7 +277,7 @@ case "$host_os" in
     echo "*"
     echo "*  NOTE: You are on FreeBSD. BSD 'make' will not work."
     echo "*"
-    echo "*   use 'gmake' To build libmemcached"
+    echo "*   use 'gmake' To build gearmand"
     echo "*"
     echo "*****"
   ;;
