@@ -82,7 +82,6 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
   {
     if (__function.frequency)
     {
-      fprintf(stderr, "%s:%d connect() %d %d\n", __FILE__, __LINE__, not_until, __function.frequency);
       if (--not_until < 0 && rand() % __function.frequency)
       {
         if (rand() % 1)

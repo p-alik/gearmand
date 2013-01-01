@@ -64,7 +64,6 @@ bool libhostile_is_accept(void)
 
   (void) pthread_once(&function_lookup_once, set_local);
 
-  fprintf(stderr, "libhostile_is_accept() %s\n", __function.frequency ? "true" : "false");
   if (__function.frequency)
   {
     return true;

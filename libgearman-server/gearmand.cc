@@ -398,7 +398,7 @@ gearmand_error_t gearmand_run(gearmand_st *gearmand)
 
     gearmand_debug("replaying queue: begin");
     gearmand->ret= gearman_server_queue_replay(gearmand->server);
-    if (gearmand->ret != GEARMAN_SUCCESS)
+    if (gearmand_failed(gearmand->ret))
     {
       return gearmand_gerror("failed to reload queue", gearmand->ret);
     }
@@ -406,7 +406,7 @@ gearmand_error_t gearmand_run(gearmand_st *gearmand)
   }
 
   gearmand->ret= _watch_events(gearmand);
-  if (gearmand->ret != GEARMAN_SUCCESS)
+  if (gearmand_failed(gearmand->ret))
   {
     return gearmand->ret;
   }

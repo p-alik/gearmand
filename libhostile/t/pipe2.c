@@ -40,7 +40,7 @@
 
 #include "gear_config.h"
 
-#include <libtest/yatl_lite.h>
+#include <libtest/lite.h>
 
 #include <errno.h>
 #include <stdio.h>
@@ -50,20 +50,23 @@
 
 int main(void)
 {
-#if defined(HAVE_PIPE2) && HAVE_PIPE2
-  if (valgrind_is_caller() == false)
+#if defined(HAVE_PIPE2)
+  if (HAVE_PIPE2)
   {
-    TEST_TRUE(pipe2(NULL, 0) == -1);
-    TEST_TRUE(errno == EFAULT);
+    if (valgrind_is_caller() == false)
+    {
+      ASSERT_TRUE(pipe2(NULL, 0) == -1);
+      ASSERT_TRUE(errno == EFAULT);
+    }
+
+    int pipefd[2];
+    ASSERT_TRUE(pipe2(pipefd, 0) == 0);
+    ASSERT_TRUE(close(pipefd[0]) == 0);
+    ASSERT_TRUE(close(pipefd[1]) == 0);
+
+    return EXIT_SUCCESS;
   }
-
-  int pipefd[2];
-  TEST_TRUE(pipe2(pipefd, 0) == 0);
-  TEST_TRUE(close(pipefd[0]) == 0);
-  TEST_TRUE(close(pipefd[1]) == 0);
-
-  return EXIT_SUCCESS;
-#else
-  return EXIT_SKIP;
 #endif
+
+  return EXIT_SKIP;
 }

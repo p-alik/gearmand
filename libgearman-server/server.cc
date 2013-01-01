@@ -932,6 +932,7 @@ gearmand_error_t gearman_server_queue_replay(gearman_server_st& server)
   server.state.queue_startup= true;
 
   gearmand_error_t ret= gearman_queue_replay(server);
+  assert(ret != GEARMAN_UNKNOWN_STATE);
 
   server.state.queue_startup= false;
 
@@ -960,14 +961,14 @@ gearmand_error_t Context::replay_add(gearman_server_st *server,
                                      int64_t when)
 {
   assert(server->state.queue_startup == true);
-  gearmand_error_t ret= GEARMAN_SUCCESS;
+  gearmand_error_t ret= GEARMAN_UNKNOWN_STATE;
 
   (void)gearman_server_job_add(server,
                                function_name, function_name_size,
                                unique, unique_size,
                                data, data_size, priority, NULL, &ret, when);
 
-  if (ret != GEARMAN_SUCCESS)
+  if (gearmand_failed(ret))
   {
     gearmand_gerror("gearman_server_job_add", ret);
   }

@@ -1107,7 +1107,7 @@ static test_return_t _increase_TEST(gearman_function_t &func, gearman_client_opt
 
   for (size_t x= 1; x < max_block_size; ++x)
   {
-    if (libtest::valgrind_is_caller() and (x * block_size) > 15728640)
+    if (valgrind_is_caller() and (x * block_size) > 15728640)
     {
       continue;
     }
