@@ -54,7 +54,6 @@ private:
   std::string server_list;
   bool _socket;
   bool _sasl;
-  uint32_t _count;
   std::string _username;
   std::string _password;
 

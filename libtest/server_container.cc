@@ -118,10 +118,7 @@ bool server_startup_st::shutdown(uint32_t host_to_shutdown)
 
 void server_startup_st::clear()
 {
-  for (std::vector<Server *>::iterator iter= servers.begin(); iter != servers.end(); ++iter)
-  {
-    delete *iter;
-  }
+  std::for_each(servers.begin(), servers.end(), DeleteFromVector());
   servers.clear();
 }
 
@@ -167,7 +164,6 @@ server_startup_st::server_startup_st() :
   _magic(MAGIC_MEMORY),
   _socket(false),
   _sasl(false),
-  _count(0),
   udp(0),
   _servers_to_run(5)
 { }

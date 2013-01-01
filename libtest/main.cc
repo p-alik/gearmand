@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
     {
       { "version", no_argument, NULL, OPT_LIBYATL_VERSION },
       { "quiet", no_argument, NULL, OPT_LIBYATL_QUIET },
-      { "repeat", no_argument, NULL, OPT_LIBYATL_REPEAT },
+      { "repeat", required_argument, NULL, OPT_LIBYATL_REPEAT },
       { "collection", required_argument, NULL, OPT_LIBYATL_MATCH_COLLECTION },
       { "wildcard", required_argument, NULL, OPT_LIBYATL_MATCH_WILDCARD },
       { "massive", no_argument, NULL, OPT_LIBYATL_MASSIVE },

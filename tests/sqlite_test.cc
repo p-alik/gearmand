@@ -188,7 +188,7 @@ static test_return_t gearmand_basic_option_test(void *)
     "--libsqlite3-table=var/tmp/table", 
     0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -203,8 +203,8 @@ static test_return_t gearmand_basic_option_without_table_test(void *)
     sql_buffer,
     0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
-  test_compare(-1, access(sql_file.c_str(), R_OK | W_OK ));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(-1, access(sql_file.c_str(), R_OK | W_OK ));
 
   return TEST_SUCCESS;
 }
@@ -225,7 +225,7 @@ static test_return_t collection_init(void *object)
   test->reset();
 
   test_truth(test->initialize(2, argv));
-  test_compare(0, access(sql_file.c_str(), R_OK | W_OK ));
+  ASSERT_EQ(0, access(sql_file.c_str(), R_OK | W_OK ));
 
   test->extra_file(sql_file.c_str());
   std::string sql_journal_file(sql_file);
@@ -263,23 +263,23 @@ static test_return_t queue_restart_TEST(Context *test, const int32_t inserted_jo
     in_port_t first_port= libtest::get_free_port();
 
     test_true(server_startup(servers, "gearmand", first_port, 2, argv));
-    test_compare(0, access(sql_file.c_str(), R_OK | W_OK ));
+    ASSERT_EQ(0, access(sql_file.c_str(), R_OK | W_OK ));
 
     {
       Worker worker(first_port);
-      test_compare(gearman_worker_register(&worker, __func__, 0), GEARMAN_SUCCESS);
+      ASSERT_EQ(gearman_worker_register(&worker, __func__, 0), GEARMAN_SUCCESS);
     }
 
     {
       Client client(first_port);
-      test_compare(gearman_client_echo(&client, test_literal_param("This is my echo test")), GEARMAN_SUCCESS);
+      ASSERT_EQ(gearman_client_echo(&client, test_literal_param("This is my echo test")), GEARMAN_SUCCESS);
       gearman_job_handle_t job_handle;
       for (int32_t x= 0; x < inserted_jobs; ++x)
       {
         switch (random() % 3)
         {
         case 0:
-          test_compare(gearman_client_do_background(&client,
+          ASSERT_EQ(gearman_client_do_background(&client,
                                                     __func__, // func
                                                     NULL, // unique
                                                     test_literal_param("foo"),
@@ -287,7 +287,7 @@ static test_return_t queue_restart_TEST(Context *test, const int32_t inserted_jo
           break;
 
         case 1:
-          test_compare(gearman_client_do_low_background(&client,
+          ASSERT_EQ(gearman_client_do_low_background(&client,
                                                         __func__, // func
                                                         NULL, // unique
                                                         test_literal_param("fudge"),
@@ -296,7 +296,7 @@ static test_return_t queue_restart_TEST(Context *test, const int32_t inserted_jo
 
         default:
         case 2:
-          test_compare(gearman_client_do_high_background(&client,
+          ASSERT_EQ(gearman_client_do_high_background(&client,
                                                          __func__, // func
                                                          NULL, // unique
                                                          test_literal_param("history"),
@@ -323,10 +323,10 @@ static test_return_t queue_restart_TEST(Context *test, const int32_t inserted_jo
       }
     }
 
-    test_compare(sql_handle.vcount(), inserted_jobs);
+    ASSERT_EQ(sql_handle.vcount(), inserted_jobs);
   }
 
-  test_compare(0, access(sql_file.c_str(), R_OK | W_OK ));
+  ASSERT_EQ(0, access(sql_file.c_str(), R_OK | W_OK ));
 
   {
     in_port_t first_port= libtest::get_free_port();
@@ -342,7 +342,7 @@ static test_return_t queue_restart_TEST(Context *test, const int32_t inserted_jo
       Worker worker(first_port);
       Called called;
       gearman_function_t counter_function= gearman_function_create(called_worker);
-      test_compare(gearman_worker_define_function(&worker,
+      ASSERT_EQ(gearman_worker_define_function(&worker,
                                                   test_literal_param(__func__),
                                                   counter_function,
                                                   3000, &called), GEARMAN_SUCCESS);
@@ -372,7 +372,7 @@ static test_return_t queue_restart_TEST(Context *test, const int32_t inserted_jo
           }
         }
       } while (ret == GEARMAN_TIMEOUT or ret == GEARMAN_SUCCESS);
-      test_compare(called.count(), inserted_jobs);
+      ASSERT_EQ(called.count(), inserted_jobs);
     }
 
     servers.clear();
