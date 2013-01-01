@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2011-2012 Data Differential, http://datadifferential.com/
  *  Copyright (C) 2008 Brian Aker, Eric Day
  *  All rights reserved.
  *
@@ -137,8 +137,11 @@ void gearman_task_free_result(gearman_task_st *task_shell)
 {
   assert(task_shell);
   assert(task_shell->impl());
-  delete task_shell->impl()->result_ptr;
-  task_shell->impl()->result_ptr= NULL;
+  if (task_shell and task_shell->impl())
+  {
+    delete task_shell->impl()->result_ptr;
+    task_shell->impl()->result_ptr= NULL;
+  }
 }
 
 bool gearman_task_is_active(const gearman_task_st *task_shell)
@@ -292,8 +295,7 @@ uint32_t gearman_task_denominator(const gearman_task_st *task_shell)
   return 0;
 }
 
-void gearman_task_give_workload(gearman_task_st *task_shell, const void *workload,
-                                size_t workload_size)
+void gearman_task_give_workload(gearman_task_st *task_shell, const void *workload, size_t workload_size)
 {
   if (task_shell and task_shell->impl())
   {

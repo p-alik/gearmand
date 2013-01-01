@@ -1,0 +1,72 @@
+# vim:ft=automake
+# Gearman server and library
+# Copyright (C) 2012 Data Differential, http://datadifferential.com/
+# All rights reserved.
+#
+# Use and distribution licensed under the BSD license.  See
+# the COPYING file in the parent directory for full text.
+#
+# Included from Top Level Makefile.am
+# All paths should be given relative to the root
+#
+
+tests_hostile_gearmand_CFLAGS=
+tests_hostile_gearmand_CXXFLAGS=
+tests_hostile_gearmand_LDADD=
+tests_hostile_gearmand_SOURCES=
+
+tests_hostile_gearmand_CXXFLAGS+= -DHAVE_LIBHOSTILE=1
+tests_hostile_gearmand_CFLAGS+= -DHAVE_LIBHOSTILE=1
+tests_hostile_gearmand_LDADD+= libhostile/libhostile.la
+if TARGET_LINUX
+tests_hostile_gearmand_LDADD+= @DL_LIB@
+tests_hostile_gearmand_LDADD+= @RT_LIB@
+endif
+
+tests_hostile_gearmand_SOURCES+= tests/hostile.cc
+tests_hostile_gearmand_LDADD+= libgearman/libgearman.la
+tests_hostile_gearmand_LDADD+= libtest/libtest.la
+tests_hostile_gearmand_LDADD+= tests/libstartworker.la
+check_PROGRAMS+=tests/hostile_gearmand
+noinst_PROGRAMS+=tests/hostile_gearmand
+
+test-hostile-gearmand: tests/hostile_gearmand gearmand/gearmand gearmand/hostile_gearmand
+	@tests/hostile_gearmand
+
+valgrind-hostile-gearmand: tests/hostile_gearmand gearmand/gearmand gearmand/hostile_gearmand
+	@$(VALGRIND_COMMAND) tests/hostile_gearmand
+
+gdb-hostile-gearmand: tests/hostile_gearmand gearmand/gearmand gearmand/hostile_gearmand
+	@$(GDB_COMMAND) tests/hostile_gearmand
+
+tests_hostile_libgearman_CFLAGS=
+tests_hostile_libgearman_CXXFLAGS=
+tests_hostile_libgearman_LDADD=
+tests_hostile_libgearman_SOURCES=
+
+tests_hostile_libgearman_CXXFLAGS+= -DHAVE_LIBHOSTILE=1
+tests_hostile_libgearman_CFLAGS+= -DHAVE_LIBHOSTILE=1
+tests_hostile_libgearman_CXXFLAGS+= -DSERVER_TARGET="\"gearmand\""
+tests_hostile_libgearman_CFLAGS+= -DSERVER_TARGET="\"gearmand\""
+tests_hostile_libgearman_LDADD+= libhostile/libhostile.la
+if TARGET_LINUX
+tests_hostile_libgearman_LDADD+= @DL_LIB@
+tests_hostile_libgearman_LDADD+= @RT_LIB@
+endif
+
+tests_hostile_libgearman_SOURCES+= tests/hostile.cc
+tests_hostile_libgearman_LDADD+= libgearman/libgearman-hostile.la
+tests_hostile_libgearman_LDADD+= libtest/libtest.la
+tests_hostile_libgearman_LDADD+= tests/libstartworker.la
+check_PROGRAMS+=tests/hostile_libgearman
+noinst_PROGRAMS+=tests/hostile_libgearman
+
+test-hostile_libgearman: tests/hostile_libgearman gearmand/gearmand
+	@tests/hostile_libgearman
+
+valgrind-hostile_libgearman: tests/hostile_libgearman gearmand/gearmand
+	@$(VALGRIND_COMMAND) tests/hostile_libgearman
+
+gdb-hostile_libgearman: tests/hostile_libgearman gearmand/gearmand
+	@$(GDB_COMMAND) tests/hostile_libgearman
+

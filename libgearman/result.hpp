@@ -52,13 +52,7 @@ struct gearman_result_st
     gearman_vector_st string;
   } value;
 
-  gearman_result_st() :
-    _is_null(true),
-    type(GEARMAN_RESULT_BOOLEAN)
-  {
-    memset(&value.string, 0, sizeof(gearman_vector_st));
-    value.boolean= false;
-  }
+  gearman_result_st();
 
   gearman_result_st(size_t initial_size);
 
