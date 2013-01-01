@@ -36,45 +36,39 @@
 
 #pragma once
 
-#ifdef __cplusplus
-# include <cstddef>
-# include <cstdlib>
-# include <cstring>
-#else
-# include <stddef.h>
-# include <stdlib.h>
-# include <stdbool.h>
-# include <string.h>
-#endif
+namespace libtest {
 
-#ifndef EXIT_SKIP
-# define EXIT_SKIP 77
-#endif
-
-static inline bool valgrind_is_caller(void)
+class __test_result : public std::exception
 {
-  if (getenv("TESTS_ENVIRONMENT")  && strstr(getenv("TESTS_ENVIRONMENT"), "valgrind"))
+public:
+  __test_result(const char *file, int line, const char *func);
+
+  __test_result( const __test_result& other ) :
+    _line(other._line),
+    _file(other._file),
+    _func(other._func)
   {
-    return true;
   }
 
-  return false;
-}
+  int line()
+  {
+    return _line;
+  }
 
-#define TEST_TRUE(A) \
-do \
-{ \
-  if (! (A)) { \
-    fprintf(stderr, "\n%s:%d: Assertion \"%s\" failed, in %s\n", __FILE__, __LINE__, #A, __func__);\
-    exit(EXIT_FAILURE); \
-  } \
-} while (0)
+  const char*  file()
+  {
+    return _file;
+  }
 
-#define TEST_FALSE(A) \
-do \
-{ \
-  if ((A)) { \
-    fprintf(stderr, "\n%s:%d: Assertion failed %s, in %s\n", __FILE__, __LINE__, #A, __func__);\
-    exit(EXIT_FAILURE); \
-  } \
-} while (0)
+  const char* func()
+  {
+    return _func;
+  }
+
+private:
+  int _line;
+  const char*  _file;
+  const char* _func;
+};
+
+} // namespace libtest

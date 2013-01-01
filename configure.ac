@@ -56,10 +56,6 @@ CONFIG_EXTRA
 
 m4_include([libtest/yatl.m4])
 
-AX_ENABLE_LIBMEMCACHED
-m4_include([m4/memcached_sasl.m4])
-AM_CONDITIONAL([BUILDING_LIBMEMCACHED],false)
-
 AM_CONDITIONAL([BUILDING_GEARMAN],true)
 AM_CONDITIONAL([HAVE_LIBGEARMAN],true)
 AC_SUBST([_WITH_LIBGEARMAN_SUPPORT],["_WITH_LIBGEARMAN_SUPPORT 0"])
@@ -193,6 +189,8 @@ AC_CHECK_FUNCS([atexit])
 AC_CHECK_FUNCS([clock_gettime])
 AC_CHECK_FUNCS([getcwd])
 AC_CHECK_FUNCS([strstr])
+AC_CHECK_FUNC([setsockopt],[],[AC_CHECK_LIB([socket],[setsockopt])])
+AC_CHECK_FUNC([bind],[],[AC_CHECK_LIB([bind],[bind])])
 
 LT_LIB_M
 
@@ -207,9 +205,7 @@ AC_CHECK_LIB([rt],[clock_gettime],
 
 # Check for -lm
 LT_LIB_M
-
-AC_CHECK_FUNC([setsockopt],[],[AC_CHECK_LIB([socket],[setsockopt])])
-AC_CHECK_FUNC([bind],[],[AC_CHECK_LIB([bind],[bind])])
+AX_ENABLE_LIBMEMCACHED
 
 AC_DEFINE([GEARMAND_BLOBSLAP_WORKER],[1],[Have Gearman Blobslap Worker])
 
@@ -281,7 +277,7 @@ case "$host_os" in
     echo "*"
     echo "*  NOTE: You are on FreeBSD. BSD 'make' will not work."
     echo "*"
-    echo "*   use 'gmake' To build libmemcached"
+    echo "*   use 'gmake' To build gearmand"
     echo "*"
     echo "*****"
   ;;
