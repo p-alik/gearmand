@@ -64,7 +64,7 @@ test_return_t gearman_client_do_huge_unique(void *object)
                                       test_literal_param("gearman_client_do_huge_unique"),
                                       &job_length,
                                       &rc);
-  test_compare(GEARMAN_INVALID_ARGUMENT, rc);
+  ASSERT_EQ(GEARMAN_INVALID_ARGUMENT, rc);
   test_null(job_result);
   test_zero(job_length);
 
@@ -90,9 +90,9 @@ test_return_t gearman_client_do_with_active_background_task(void *object)
   gearman_return_t rc;
   void *job_result= gearman_client_do(client, worker_function, NULL, gearman_string_param(value), &result_length, &rc);
 
-  test_compare(GEARMAN_SUCCESS, rc);
+  ASSERT_EQ(GEARMAN_SUCCESS, rc);
   test_truth(job_result);
-  test_compare(gearman_size(value), result_length);
+  ASSERT_EQ(gearman_size(value), result_length);
 
   test_memcmp(gearman_c_str(value), job_result, gearman_size(value));
 

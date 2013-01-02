@@ -59,7 +59,7 @@ static test_return_t postion_TEST(void *)
 {
   const char *args[]= { "foo", 0 };
 
-  test_compare(EXIT_FAILURE, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_FAILURE, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -67,7 +67,7 @@ static test_return_t partial_TEST(void *)
 {
   const char *args[]= { "--log", 0 };
 
-  test_compare(EXIT_FAILURE, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_FAILURE, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -75,7 +75,7 @@ static test_return_t check_args_test(void *)
 {
   const char *args[]= { "--check-args", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -83,7 +83,7 @@ static test_return_t long_backlog_test(void *)
 {
   const char *args[]= { "--check-args", "--backlog=10", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -91,7 +91,7 @@ static test_return_t short_backlog_test(void *)
 {
   const char *args[]= { "--check-args", "-b", "10", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -99,7 +99,7 @@ static test_return_t long_daemon_test(void *)
 {
   const char *args[]= { "--check-args", "--daemon", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -107,7 +107,7 @@ static test_return_t short_daemon_test(void *)
 {
   const char *args[]= { "--check-args", "-d", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -115,7 +115,7 @@ static test_return_t long_file_descriptors_test(void *)
 {
   const char *args[]= { "--check-args", "--file-descriptors=10", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -123,7 +123,7 @@ static test_return_t short_file_descriptors_test(void *)
 {
   const char *args[]= { "--check-args", "-f", "10", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -131,7 +131,7 @@ static test_return_t long_help_test(void *)
 {
   const char *args[]= { "--check-args", "--help", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -139,7 +139,7 @@ static test_return_t short_help_test(void *)
 {
   const char *args[]= { "--check-args", "-h", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -147,7 +147,7 @@ static test_return_t long_log_file_test(void *)
 {
   const char *args[]= { "--check-args", "--log-file=\"tmp/foo\"", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -155,7 +155,7 @@ static test_return_t long_log_file_stderr_TEST(void *)
 {
   const char *args[]= { "--check-args", "--log-file=stderr", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -163,7 +163,7 @@ static test_return_t short_log_file_test(void *)
 {
   const char *args[]= { "--check-args", "-l", "\"tmp/foo\"", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -171,7 +171,7 @@ static test_return_t long_listen_test(void *)
 {
   const char *args[]= { "--check-args", "--listen=10", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -179,7 +179,7 @@ static test_return_t short_listen_test(void *)
 {
   const char *args[]= { "--check-args", "-L", "10", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -187,7 +187,7 @@ static test_return_t long_port_test(void *)
 {
   const char *args[]= { "--check-args", "--port=10", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -195,7 +195,7 @@ static test_return_t short_port_test(void *)
 {
   const char *args[]= { "--check-args", "-p", "10", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -203,7 +203,7 @@ static test_return_t long_pid_file_test(void *)
 {
   const char *args[]= { "--check-args", "--pid-file=\"tmp/gearmand.pid\"", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -211,7 +211,7 @@ static test_return_t short_pid_file_test(void *)
 {
   const char *args[]= { "--check-args", "-P", "\"tmp/gearmand.pid\"", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -219,7 +219,7 @@ static test_return_t long_round_robin_test(void *)
 {
   const char *args[]= { "--check-args", "--round-robin", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -227,7 +227,7 @@ static test_return_t short_round_robin_test(void *)
 {
   const char *args[]= { "--check-args", "-R", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -235,7 +235,7 @@ static test_return_t long_syslog_test(void *)
 {
   const char *args[]= { "--check-args", "--syslog", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -243,7 +243,7 @@ static test_return_t long_threads_test(void *)
 {
   const char *args[]= { "--check-args", "--threads=10", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -251,7 +251,7 @@ static test_return_t short_threads_test(void *)
 {
   const char *args[]= { "--check-args", "-t", "8", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -259,7 +259,7 @@ static test_return_t long_user_test(void *)
 {
   const char *args[]= { "--check-args", "--user=nobody", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -267,7 +267,7 @@ static test_return_t short_user_test(void *)
 {
   const char *args[]= { "--check-args", "-u", "nobody", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -275,7 +275,7 @@ static test_return_t long_version_test(void *)
 {
   const char *args[]= { "--check-args", "--version", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -283,7 +283,7 @@ static test_return_t short_version_test(void *)
 {
   const char *args[]= { "--check-args", "-V", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -291,7 +291,7 @@ static test_return_t verbose_bad_option_TEST(void *)
 {
   const char *args[]= { "--check-args", "--verbose=BAD", 0 };
 
-  test_compare(EXIT_FAILURE, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_FAILURE, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -299,7 +299,7 @@ static test_return_t verbose_DEBUG_TEST(void *)
 {
   const char *args[]= { "--check-args", "--verbose=DEBUG", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -307,7 +307,7 @@ static test_return_t verbose_ERROR_TEST(void *)
 {
   const char *args[]= { "--check-args", "--verbose=ERROR", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -315,7 +315,7 @@ static test_return_t verbose_ALERT_TEST(void *)
 {
   const char *args[]= { "--check-args", "--verbose=ALERT", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -323,7 +323,7 @@ static test_return_t verbose_INFO_TEST(void *)
 {
   const char *args[]= { "--check-args", "--verbose=INFO", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -331,7 +331,7 @@ static test_return_t verbose_WARNING_TEST(void *)
 {
   const char *args[]= { "--check-args", "--verbose=WARNING", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -339,7 +339,7 @@ static test_return_t verbose_NOTICE_TEST(void *)
 {
   const char *args[]= { "--check-args", "--verbose=NOTICE", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -347,7 +347,7 @@ static test_return_t verbose_FATAL_TEST(void *)
 {
   const char *args[]= { "--check-args", "--verbose=FATAL", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -355,7 +355,7 @@ static test_return_t verbose_CRITICAL_TEST(void *)
 {
   const char *args[]= { "--check-args", "--verbose=CRITICAL", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -363,7 +363,7 @@ static test_return_t verbose_deprecated_TEST(void *)
 {
   const char *args[]= { "--check-args", "-vvv", 0 };
 
-  test_compare(EXIT_FAILURE, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_FAILURE, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -371,7 +371,7 @@ static test_return_t long_worker_wakeup_test(void *)
 {
   const char *args[]= { "--check-args", "--worker-wakeup=4", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -379,7 +379,7 @@ static test_return_t short_worker_wakeup_test(void *)
 {
   const char *args[]= { "--check-args", "-V", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -387,7 +387,7 @@ static test_return_t protocol_test(void *)
 {
   const char *args[]= { "--check-args", "--protocol=http", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -395,7 +395,7 @@ static test_return_t queue_test(void *)
 {
   const char *args[]= { "--check-args", "--queue-type=builtin", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
 
   return TEST_SUCCESS;
 }
@@ -404,7 +404,7 @@ static test_return_t long_job_retries_test(void *)
 {
   const char *args[]= { "--check-args", "--job-retries=4", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -412,7 +412,7 @@ static test_return_t short_job_retries_test(void *)
 {
   const char *args[]= { "--check-args", "-j", "6", 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -420,17 +420,17 @@ static test_return_t http_port_test(void *)
 {
   const char *args[]= { "--check-args", "--protocol=http", "--http-port=8090",  0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
 static test_return_t config_file_TEST(void *)
 {
-  test_compare(-1, access("etc/gearmand.conf", R_OK));
+  ASSERT_EQ(-1, access("etc/gearmand.conf", R_OK));
 
   const char *args[]= { "--check-args", "--config-file=etc/gearmand.conf", 0 };
 
-  test_compare(EXIT_FAILURE, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_FAILURE, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -438,7 +438,7 @@ static test_return_t config_file_DEFAULT_TEST(void *)
 {
   const char *args[]= { "--check-args", "--config-file", 0 };
 
-  test_compare(EXIT_FAILURE, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_FAILURE, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -446,7 +446,7 @@ static test_return_t config_file_FAIL_TEST(void *)
 {
   const char *args[]= { "--check-args", "--config-file=etc/grmandfoo.conf", 0 };
 
-  test_compare(EXIT_FAILURE, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_FAILURE, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -484,7 +484,7 @@ static test_return_t config_file_SIMPLE_TEST(void *)
   snprintf(args_buffer, sizeof(args_buffer), "--config-file=%s", config_file.c_str()); 
   const char *args[]= { "--check-args", args_buffer, 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   unlink(config_file.c_str());
 
   return TEST_SUCCESS;
@@ -501,12 +501,12 @@ static test_return_t maxqueue_TEST(void *)
   test_true(snprintf(buffer, sizeof(buffer), "%d", int32_t(port)) > 0);
   gearmand.add_long_option("--port=", buffer);
 
-  test_compare(Application::SUCCESS, gearmand.run());
+  ASSERT_EQ(Application::SUCCESS, gearmand.run());
 
   Worker worker(port);
-  test_compare(GEARMAN_SUCCESS, gearman_worker_register(&worker, __func__, 0));
-  test_compare(GEARMAN_SUCCESS, gearman_worker_unregister(&worker, __func__));
-  test_compare(Application::SUCCESS, gearmand.join());
+  ASSERT_EQ(GEARMAN_SUCCESS, gearman_worker_register(&worker, __func__, 0));
+  ASSERT_EQ(GEARMAN_SUCCESS, gearman_worker_unregister(&worker, __func__));
+  ASSERT_EQ(Application::SUCCESS, gearmand.join());
 
   return TEST_SUCCESS;
 #endif

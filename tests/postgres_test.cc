@@ -64,7 +64,7 @@ static test_return_t gearmand_basic_option_test(void *)
     "--libpq-table=gearman",
     0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
 
   return TEST_SUCCESS;
 }

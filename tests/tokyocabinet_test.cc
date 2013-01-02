@@ -71,7 +71,7 @@ static test_return_t gearmand_basic_option_test(void *)
     0 };
 
   unlink("var/tmp/gearman.tcb");
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
 
   return TEST_SUCCESS;
 }
@@ -114,16 +114,16 @@ static test_return_t lp_1054377_TEST(void *object)
 
     {
       Worker worker(first_port);
-      test_compare(gearman_worker_register(&worker, __func__, 0), GEARMAN_SUCCESS);
+      ASSERT_EQ(gearman_worker_register(&worker, __func__, 0), GEARMAN_SUCCESS);
     }
 
     {
       Client client(first_port);
-      test_compare(gearman_client_echo(&client, test_literal_param("This is my echo test")), GEARMAN_SUCCESS);
+      ASSERT_EQ(gearman_client_echo(&client, test_literal_param("This is my echo test")), GEARMAN_SUCCESS);
       gearman_job_handle_t job_handle;
       for (int32_t x= 0; x < inserted_jobs; ++x)
       {
-        test_compare(gearman_client_do_background(&client,
+        ASSERT_EQ(gearman_client_do_background(&client,
                                                   __func__, // func
                                                   NULL, // unique
                                                   test_literal_param("foo"),
@@ -143,7 +143,7 @@ static test_return_t lp_1054377_TEST(void *object)
       Worker worker(first_port);
       Called called;
       gearman_function_t counter_function= gearman_function_create(called_worker);
-      test_compare(gearman_worker_define_function(&worker,
+      ASSERT_EQ(gearman_worker_define_function(&worker,
                                                   test_literal_param(__func__),
                                                   counter_function,
                                                   3000, &called), GEARMAN_SUCCESS);
@@ -173,7 +173,7 @@ static test_return_t lp_1054377_TEST(void *object)
         }
       } while (ret == GEARMAN_TIMEOUT or ret == GEARMAN_SUCCESS);
 
-      test_compare(called.count(), inserted_jobs);
+      ASSERT_EQ(called.count(), inserted_jobs);
     }
   }
   unlink("var/tmp/gearman.tcb");

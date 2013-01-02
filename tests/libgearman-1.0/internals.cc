@@ -129,13 +129,13 @@ static test_return_t set_timout_test(void *)
 
   gearman_universal_initialize(universal);
 
-  test_compare(-1, gearman_universal_timeout(universal)); // Current default
+  ASSERT_EQ(-1, gearman_universal_timeout(universal)); // Current default
 
   gearman_universal_set_timeout(universal, 20);
-  test_compare(20, gearman_universal_timeout(universal)); // New value of 20
+  ASSERT_EQ(20, gearman_universal_timeout(universal)); // New value of 20
 
   gearman_universal_set_timeout(universal, 10);
-  test_compare(10, gearman_universal_timeout(universal)); // New value of 10
+  ASSERT_EQ(10, gearman_universal_timeout(universal)); // New value of 10
 
   gearman_universal_free(universal);
 
@@ -151,7 +151,7 @@ static test_return_t basic_error_test(void *)
   const char *error= gearman_universal_error(universal);
   test_false(error);
 
-  test_compare(0, gearman_universal_errno(universal));
+  ASSERT_EQ(0, gearman_universal_errno(universal));
 
   gearman_universal_free(universal);
 
@@ -352,7 +352,7 @@ static test_return_t gearman_packet_give_data_test(void *)
   gearman_packet_give_data(packet, data, data_size);
 
   test_truth(packet.data == data);
-  test_compare(packet.data_size, data_size);
+  ASSERT_EQ(packet.data_size, data_size);
   test_truth(packet.options.free_data);
 
   gearman_packet_free(&packet);
@@ -382,7 +382,7 @@ static test_return_t gearman_packet_take_data_test(void *)
   gearman_packet_give_data(packet, data, data_size);
 
   test_truth(packet_ptr->data == data);
-  test_compare(data_size, packet_ptr->data_size);
+  ASSERT_EQ(data_size, packet_ptr->data_size);
   test_truth(packet_ptr->options.free_data);
 
   size_t mine_size;
@@ -393,7 +393,7 @@ static test_return_t gearman_packet_take_data_test(void *)
   test_false(packet_ptr->options.free_data);
 
   test_strcmp(mine, "Mine!");
-  test_compare(data_size, mine_size);
+  ASSERT_EQ(data_size, mine_size);
 
   gearman_packet_free(packet_ptr);
   gearman_universal_free(universal);
