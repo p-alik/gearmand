@@ -40,8 +40,8 @@ sphinx-help:
 	@echo "  doctest    to run all doctests embedded in the documentation (if enabled)"
 
 install-html-local: html-local
-	@rm -rf $(htmldir)/html
-	@cp -r ${top_builddir}/html/ $(htmldir)
+	@$(MKDIR_P)  $(htmldir)/html
+	@cp -r ${top_builddir}/html $(htmldir)/
 
 html-local: docs/conf.py
 	@PYTHONPATH=${top_srcdir}/docs $(SPHINXBUILD) -b html $(ALLSPHINXOPTS) ${top_builddir}/html
