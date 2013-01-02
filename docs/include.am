@@ -39,12 +39,9 @@ sphinx-help:
 	@echo "  linkcheck  to check all external links for integrity"
 	@echo "  doctest    to run all doctests embedded in the documentation (if enabled)"
 
-doc_dirs: 
-	@$(mkdir_p) $(SPHINX_BUILDDIR)/_static
-
 install-html-local: html-local
 	@rm -rf $(htmldir)/html
-	@scp -r ${top_builddir}/html/ $(htmldir)
+	@cp -r ${top_builddir}/html/ $(htmldir)
 
 html-local: docs/conf.py
 	@PYTHONPATH=${top_srcdir}/docs $(SPHINXBUILD) -b html $(ALLSPHINXOPTS) ${top_builddir}/html
