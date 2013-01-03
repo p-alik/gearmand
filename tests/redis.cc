@@ -67,6 +67,8 @@ static void *world_create(server_startup_st& servers, test_return_t&)
 
 static bool world_destroy(void *object)
 {
+  SKIP_IF(HAVE_UUID_UUID_H != 1);
+
   Context *test= (Context *)object;
 
   delete test;
