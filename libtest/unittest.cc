@@ -1001,7 +1001,7 @@ test_st tests_log[] ={
   {"TEST_SUCCESS == 0", false, test_success_equals_one_test },
   {"SUCCESS", false, test_throw_success_TEST },
   {"libtest::__skipped", false, test_throw_skip_TEST },
-  {"SKIP", false, test_throw_skip_macro_TEST },
+  {"SKIP_IF", false, test_throw_skip_macro_TEST },
   {"FAIL", false, test_throw_fail_TEST },
   {"ASSERT_FALSE_", false, ASSERT_FALSE__TEST },
   {"ASSERT_FALSE", false, ASSERT_FALSE_TEST },

@@ -121,7 +121,7 @@ do \
     if (YATL_FULL) { \
       SKIP(#__expression); \
     } \
-    fprintf(stderr, "\n%s:%d: %s SKIP '!(%s)'\n", __FILE__, __LINE__, __PRETTY_FUNCTION__, #__expression); \
+    fprintf(stdout, "\n%s:%d: %s SKIP '!(%s)'\n", __FILE__, __LINE__, __PRETTY_FUNCTION__, #__expression); \
     exit(EXIT_SKIP); \
   } \
 } while (0)
