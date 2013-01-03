@@ -105,7 +105,7 @@ static test_return_t queue_add(void *object)
   /* queue2 = 0,2,4,6,8 */
   for (uint32_t x= 0; x < 10; x++)
   {
-    test_compare(GEARMAN_SUCCESS,
+    ASSERT_EQ(GEARMAN_SUCCESS,
                  gearman_client_do_background(&client, (x % 2) ? "queue1" : "queue2", NULL,
                                               value, value_length,
                                               job_handle));
@@ -133,19 +133,19 @@ static test_return_t queue_worker(void *object)
 
   gearman_function_t append_function_FN= gearman_function_create(append_function_WORKER);
 
-  test_compare(GEARMAN_SUCCESS, gearman_worker_define_function(&worker,
+  ASSERT_EQ(GEARMAN_SUCCESS, gearman_worker_define_function(&worker,
                                                                test_literal_param("queue1"),
                                                                append_function_FN,
                                                                0, buffer));
 
-  test_compare(GEARMAN_SUCCESS, gearman_worker_define_function(&worker,
+  ASSERT_EQ(GEARMAN_SUCCESS, gearman_worker_define_function(&worker,
                                                                test_literal_param("queue2"),
                                                                append_function_FN,
                                                                0, buffer));
 
   for (uint32_t x= 0; x < 10; x++)
   {
-    test_compare(GEARMAN_SUCCESS, gearman_worker_work(&worker));
+    ASSERT_EQ(GEARMAN_SUCCESS, gearman_worker_work(&worker));
   }
 
   // expect buffer to be reassembled in a predictable round robin order
@@ -245,8 +245,8 @@ static test_return_t _job_retry_TEST(Context *context, Limit& limit)
                               NULL, 0, // workload
                               NULL, // result size
                               &rc));
-  test_compare(uint32_t(limit.expected()), uint32_t(limit.count()));
-  test_compare(limit.response(), rc);
+  ASSERT_EQ(uint32_t(limit.expected()), uint32_t(limit.count()));
+  ASSERT_EQ(limit.response(), rc);
 
   return TEST_SUCCESS;
 }
@@ -272,7 +272,7 @@ static test_return_t job_retry_limit_GEARMAN_SUCCESS_TEST(void *object)
   for (uint32_t x= 1; x < context->retries(); x++)
   {
     Limit limit(uint32_t(x -1), true);
-    test_compare(TEST_SUCCESS, _job_retry_TEST(context, limit));
+    ASSERT_EQ(TEST_SUCCESS, _job_retry_TEST(context, limit));
   }
 
   return TEST_SUCCESS;

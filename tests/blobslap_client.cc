@@ -55,7 +55,7 @@ static test_return_t help_test(void *)
   snprintf(buffer, sizeof(buffer), "%d", int(default_port()));
   const char *args[]= { buffer, "-?", "-p", buffer, 0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(executable, args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(executable, args, true));
 
   return TEST_SUCCESS;
 }
@@ -67,7 +67,7 @@ static test_return_t unknown_test(void *)
   const char *args[]= { buffer, "--unknown", "-p", buffer, 0 };
 
   // The argument doesn't exist, so we should see an error
-  test_compare(EXIT_FAILURE, exec_cmdline(executable, args, true));
+  ASSERT_EQ(EXIT_FAILURE, exec_cmdline(executable, args, true));
 
   return TEST_SUCCESS;
 }
@@ -79,7 +79,7 @@ static test_return_t basic_benchmark_test(void *)
   const char *args[]= { buffer, "-c", "100", "-n", "10", "-e", "-p", buffer, 0 };
 
   // The argument doesn't exist, so we should see an error
-  test_compare(EXIT_SUCCESS, exec_cmdline(executable, args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(executable, args, true));
 
   return TEST_SUCCESS;
 }

@@ -103,9 +103,9 @@ static test_return_t burnin_TEST(void*)
   }
   catch (...)
   { }
-  test_compare(tasks.size(), context->num_tasks);
+  ASSERT_EQ(tasks.size(), context->num_tasks);
 
-  test_compare(gearman_client_echo(client, test_literal_param("echo_test")), GEARMAN_SUCCESS);
+  ASSERT_EQ(gearman_client_echo(client, test_literal_param("echo_test")), GEARMAN_SUCCESS);
 
   do
   {
@@ -144,19 +144,19 @@ static test_return_t burnin_TEST(void*)
                                           &ret);
       }
 
-      test_compare(ret, GEARMAN_SUCCESS);
+      ASSERT_EQ(ret, GEARMAN_SUCCESS);
       test_truth(task_ptr);
     }
 
     gearman_return_t ret= gearman_client_run_tasks(client);
     for (uint32_t x= 0; x < context->num_tasks; x++)
     {
-      test_compare(GEARMAN_TASK_STATE_FINISHED, tasks[x].impl()->state);
-      test_compare(GEARMAN_SUCCESS, tasks[x].impl()->result_rc);
+      ASSERT_EQ(GEARMAN_TASK_STATE_FINISHED, tasks[x].impl()->state);
+      ASSERT_EQ(GEARMAN_SUCCESS, tasks[x].impl()->result_rc);
     }
     test_zero(client->impl()->new_tasks);
 
-    test_compare(ret, GEARMAN_SUCCESS);
+    ASSERT_EQ(ret, GEARMAN_SUCCESS);
 
     for (uint32_t x= 0; x < context->num_tasks; x++)
     {

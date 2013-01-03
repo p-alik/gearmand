@@ -70,8 +70,8 @@ static test_return_t curl_no_function_TEST(void *)
   Application curl("/usr/bin/curl");
   curl.add_option(host_url);
 
-  test_compare(Application::SUCCESS, curl.run());
-  test_compare(Application::SUCCESS, curl.join());
+  ASSERT_EQ(Application::SUCCESS, curl.run());
+  ASSERT_EQ(Application::SUCCESS, curl.join());
 
   return TEST_SUCCESS;
 }
@@ -84,8 +84,8 @@ static test_return_t curl_function_no_body_TEST(void *)
   curl.add_option(worker_url);
   curl.add_option("--header", "\"X-Gearman-Unique: curl_function_no_body_TEST\"");
 
-  test_compare(Application::SUCCESS, curl.run());
-  test_compare(Application::SUCCESS, curl.join());
+  ASSERT_EQ(Application::SUCCESS, curl.run());
+  ASSERT_EQ(Application::SUCCESS, curl.join());
   test_zero(curl.stdout_result_length());
 
   return TEST_SUCCESS;
@@ -107,8 +107,8 @@ static test_return_t curl_function_TEST(void *)
   curl.add_option("--connect-timeout", "1");
   curl.add_option(worker_url);
 
-  test_compare(Application::SUCCESS, curl.run());
-  test_compare(Application::SUCCESS, curl.join());
+  ASSERT_EQ(Application::SUCCESS, curl.run());
+  ASSERT_EQ(Application::SUCCESS, curl.join());
   test_zero(curl.stdout_result_length());
 
   struct stat stat_buffer;
@@ -123,7 +123,7 @@ static test_return_t GET_TEST(void *)
 {
   libtest::http::GET get(host_url);
 
-  test_compare(true, get.execute());
+  ASSERT_EQ(true, get.execute());
 
   return TEST_SUCCESS;
 }
@@ -132,7 +132,7 @@ static test_return_t HEAD_TEST(void *)
 {
   libtest::http::HEAD head(host_url);
 
-  test_compare(true, head.execute());
+  ASSERT_EQ(true, head.execute());
 
   return TEST_SUCCESS;
 }
