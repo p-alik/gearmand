@@ -124,6 +124,8 @@ public:
   Server* last();
   Server *pop_server();
 
+  Server* create(const std::string& server_type, in_port_t try_port, const bool is_socket);
+
   unsigned long int servers_to_run() const
   {
     return _servers_to_run;
@@ -133,6 +135,13 @@ public:
   {
     _servers_to_run= arg;
   }
+
+private:
+  bool _start_server(const bool is_socket,
+                     const std::string& server_type,
+                     const in_port_t try_port,
+                     int argc, const char *argv[],
+                     const bool opt_startup_message);
 
 private:
   unsigned long int _servers_to_run;
