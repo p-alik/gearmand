@@ -480,13 +480,16 @@ bool Server::args(Application& app)
 
   for (Options::const_iterator iter= _options.begin(); iter != _options.end(); ++iter)
   {
-    if ((*iter).second.empty() == false)
+    if ((*iter).first.empty() == false)
     {
-      app.add_option((*iter).first, (*iter).second);
-    }
-    else
-    {
-      app.add_option((*iter).first);
+      if ((*iter).second.empty() == false)
+      {
+        app.add_option((*iter).first, (*iter).second);
+      }
+      else
+      {
+        app.add_option((*iter).first);
+      }
     }
   }
 
