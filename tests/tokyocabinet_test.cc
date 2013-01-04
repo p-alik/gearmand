@@ -191,13 +191,10 @@ static test_return_t collection_cleanup(void *object)
 }
 
 
-static void *world_create(server_startup_st& servers, test_return_t& error)
+static void *world_create(server_startup_st& servers, test_return_t&)
 {
-  if (HAVE_TOKYOCABINET == 0)
-  {
-    error= TEST_SKIPPED;
-    return NULL;
-  }
+  SKIP_IF(HAVE_UUID_UUID_H != 1);
+  SKIP_IF(HAVE_TOKYOCABINET != 1);
 
   unlink("var/tmp/gearman.tcb");
   return new Context(libtest::default_port(), servers);

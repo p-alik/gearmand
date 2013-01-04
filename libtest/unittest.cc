@@ -123,19 +123,40 @@ static test_return_t test_throw_success_TEST(void *)
   return TEST_FAILURE;
 }
 
-static test_return_t test_throw_skip_TEST(void *)
+static test_return_t test_throw_skip_macro_TEST(void *)
 {
   try {
-    SKIP;
+    SKIP_IF(true);
   }
-  catch (libtest::__skipped)
+  catch (libtest::__skipped e)
   {
     return TEST_SUCCESS;
   }
   catch (...)
   {
-    return TEST_FAILURE;
+    FAIL("SLIP_IF() failed to throw libtest::_skipped");
   }
+
+  FAIL("SLIP_IF() failed to throw");
+
+  return TEST_FAILURE;
+}
+
+static test_return_t test_throw_skip_TEST(void *)
+{
+  try {
+    throw libtest::__skipped(LIBYATL_DEFAULT_PARAM, "basic test");
+  }
+  catch (libtest::__skipped e)
+  {
+    return TEST_SUCCESS;
+  }
+  catch (...)
+  {
+    FAIL("SLIP_IF() failed to throw libtest::_skipped");
+  }
+
+  FAIL("SLIP_IF() failed to throw");
 
   return TEST_FAILURE;
 }
@@ -979,7 +1000,8 @@ test_st tests_log[] ={
   {"TEST_FAILURE", false, test_failure_test },
   {"TEST_SUCCESS == 0", false, test_success_equals_one_test },
   {"SUCCESS", false, test_throw_success_TEST },
-  {"SKIP", false, test_throw_skip_TEST },
+  {"libtest::__skipped", false, test_throw_skip_TEST },
+  {"SKIP_IF", false, test_throw_skip_macro_TEST },
   {"FAIL", false, test_throw_fail_TEST },
   {"ASSERT_FALSE_", false, ASSERT_FALSE__TEST },
   {"ASSERT_FALSE", false, ASSERT_FALSE_TEST },

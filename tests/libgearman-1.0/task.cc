@@ -153,6 +153,8 @@ test_return_t gearman_client_add_task_status_by_unique_TEST(void *object)
 
 test_return_t gearman_client_add_task_test(void *object)
 {
+  SKIP_IF(HAVE_UUID_UUID_H != 1);
+
   gearman_client_st *client= (gearman_client_st *)object;
   const char *worker_function= (const char *)gearman_client_context(client);
 
