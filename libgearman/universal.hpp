@@ -155,9 +155,9 @@ public:
     _universal.options.non_blocking= false;
   }
 
-  PushBlocking(gearman_client_st* arg) :
-    _original(arg->universal.options.non_blocking),
-    _universal(arg->universal)
+  PushBlocking(gearman_client_st& client_) :
+    _original(client_.universal.options.non_blocking),
+    _universal(client_.universal)
   {
     _universal.options.non_blocking= false;
   }
@@ -176,16 +176,16 @@ private:
 
 class PushNonBlocking {
 public:
-  PushNonBlocking(gearman_universal_st& arg) :
-    _original(arg.options.non_blocking),
-    _universal(arg)
+  PushNonBlocking(gearman_universal_st& universal_) :
+    _original(universal_.options.non_blocking),
+    _universal(universal_)
   {
     _universal.options.non_blocking= true;
   }
 
-  PushNonBlocking(gearman_client_st* arg) :
-    _original(arg->universal.options.non_blocking),
-    _universal(arg->universal)
+  PushNonBlocking(gearman_client_st& client_) :
+    _original(client_.universal.options.non_blocking),
+    _universal(client_.universal)
   {
     _universal.options.non_blocking= true;
   }
