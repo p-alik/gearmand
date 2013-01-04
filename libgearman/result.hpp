@@ -54,7 +54,7 @@ struct gearman_result_st
 
   gearman_result_st();
 
-  gearman_result_st(size_t initial_size);
+  explicit gearman_result_st(size_t initial_size);
 
   bool is_null() const
   {
