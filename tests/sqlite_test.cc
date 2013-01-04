@@ -312,15 +312,10 @@ static test_return_t queue_restart_TEST(Context *test, const int32_t inserted_jo
   {
     if (sql_handle.vcount() != inserted_jobs)
     {
-      if (sql_handle.has_error())
-      {
-        Error << sql_handle.error_string();
-      }
-      else
-      {
-        Out << "sql_handle.vprint_unique()";
-        sql_handle.vprint_unique();
-      }
+      ASSERT_EQ_(false, sql_handle.has_error(), "sqlite: %s", sql_handle.error_string().c_str());
+
+      Out << "sql_handle.vprint_unique()";
+      sql_handle.vprint_unique();
     }
 
     ASSERT_EQ(sql_handle.vcount(), inserted_jobs);
@@ -381,19 +376,13 @@ static test_return_t queue_restart_TEST(Context *test, const int32_t inserted_jo
   {
     if (sql_handle.vcount() != 0)
     {
-      Error << "make";
-      if (sql_handle.has_error())
-      {
-        Error << sql_handle.error_string();
-      }
-      else
-      {
-        Out << "sql_handle.vprint_unique()";
-        sql_handle.vprint_unique();
-      }
+      ASSERT_EQ_(false, sql_handle.has_error(), "sqlite: %s", sql_handle.error_string().c_str());
+
+      Out << "sql_handle.vprint_unique()";
+      sql_handle.vprint_unique();
     }
 
-    test_zero(sql_handle.vcount());
+    ASSERT_EQ(0, sql_handle.vcount());
   }
 
   return TEST_SUCCESS;

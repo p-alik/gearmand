@@ -39,10 +39,6 @@
 
 #include <libtest/gearmand.h>
 
-#include "util/instance.hpp"
-#include "util/operation.hpp"
-
-using namespace datadifferential;
 using namespace libtest;
 
 #include <cassert>
@@ -147,6 +143,11 @@ bool Gearmand::build(size_t argc, const char *argv[])
 
   for (size_t x= 0 ; x < argc ; x++)
   {
+    if (argv[x] == NULL)
+    {
+      break;
+    }
+
     add_option(argv[x]);
   }
 
