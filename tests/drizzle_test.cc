@@ -100,13 +100,10 @@ static test_return_t collection_cleanup(void *object)
 }
 
 
-static void *world_create(server_startup_st& servers, test_return_t& error)
+static void *world_create(server_startup_st& servers, test_return_t&)
 {
-  if (has_drizzled() == false)
-  {
-    error= TEST_SKIPPED;
-    return NULL;
-  }
+  SKIP_IF(HAVE_UUID_UUID_H != 1);
+  SKIP_IF(has_drizzled() == false);
 
   return new Context(default_port(), servers);
 }

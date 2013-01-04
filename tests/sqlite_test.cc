@@ -168,15 +168,13 @@ private:
   sqlite3 *_db;
 };
 
-static bool test_for_HAVE_LIBSQLITE3(test_return_t &error)
+static bool test_for_HAVE_LIBSQLITE3()
 {
   if (HAVE_LIBSQLITE3)
   {
-    error= TEST_SUCCESS;
     return true;
   }
 
-  error= TEST_SKIPPED;
   return false;
 }
 
@@ -246,6 +244,8 @@ static test_return_t collection_cleanup(void *object)
 
 static test_return_t queue_restart_TEST(Context *test, const int32_t inserted_jobs, uint32_t timeout)
 {
+  SKIP_IF(HAVE_UUID_UUID_H != 1);
+
   server_startup_st &servers= test->_servers;
 
   std::string sql_file= libtest::create_tmpfile("sqlite");
@@ -417,13 +417,10 @@ static test_return_t lp_1054377x200_TEST(void* object)
   return queue_restart_TEST(test, 200, 200);
 }
 
-static void *world_create(server_startup_st& servers, test_return_t& error)
+static void *world_create(server_startup_st& servers, test_return_t&)
 {
-  if (test_for_HAVE_LIBSQLITE3(error) == false)
-  {
-    error= TEST_SKIPPED;
-    return NULL;
-  }
+  SKIP_IF(HAVE_UUID_UUID_H != 1);
+  SKIP_IF(test_for_HAVE_LIBSQLITE3() == false);
 
   return new Context(libtest::get_free_port(), servers);
 }
