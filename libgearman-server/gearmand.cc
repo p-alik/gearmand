@@ -62,6 +62,10 @@
 
 using namespace gearmand;
 
+#ifndef SOCK_NONBLOCK 
+# define SOCK_NONBLOCK 0
+#endif
+
 /*
  * Private declarations
  */
@@ -791,29 +795,36 @@ static void _listen_event(int event_fd, short events __attribute__ ((unused)), v
   struct sockaddr sa;
 
   socklen_t sa_len= sizeof(sa);
-  int fd= accept(event_fd, &sa, &sa_len);
+  int fd= -1;
+#if defined(HAVE_ACCEPT4) && HAVE_ACCEPT4
+  fd= accept4(event_fd, &sa, &sa_len, 0); //  SOCK_NONBLOCK);
+#endif
+
+  if (fd == -1)
+  {
+    fd= accept(event_fd, &sa, &sa_len);
+  }
+
   if (fd == -1)
   {
     int local_error= errno;
 
-    if (local_error == EINTR)
+    switch (local_error)
     {
+    case EINTR:
       return;
-    }
-    else if (local_error == ECONNABORTED)
-    {
+
+    case ECONNABORTED:
+    case EMFILE:
       gearmand_perror(local_error, "accept");
       return;
-    }
-    else if (local_error == EMFILE)
-    {
-      gearmand_perror(local_error, "accept");
-      return;
+
+    default:
+      break;
     }
 
     _clear_events(Gearmand());
-    gearmand_perror(local_error, "accept");
-    Gearmand()->ret= GEARMAN_ERRNO;
+    Gearmand()->ret= gearmand_perror(local_error, "accept");
     return;
   }
 

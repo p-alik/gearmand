@@ -109,6 +109,7 @@ public:
                 gearmand_error_t& ret_ptr)
   {
     size_t used_size;
+    gearmand_info("Gear unpack");
 
     if (packet->args_size == 0)
     {
