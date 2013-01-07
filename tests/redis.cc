@@ -35,7 +35,7 @@ static test_return_t gearmand_basic_option_test(void *)
     "--redis-port=6379",
     0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -67,6 +67,8 @@ static void *world_create(server_startup_st& servers, test_return_t&)
 
 static bool world_destroy(void *object)
 {
+  SKIP_IF(HAVE_UUID_UUID_H != 1);
+
   Context *test= (Context *)object;
 
   delete test;

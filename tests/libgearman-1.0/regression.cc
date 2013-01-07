@@ -76,14 +76,14 @@ test_return_t regression_bug_783141_test(void *)
                                                    "does not exist", NULL,
                                                    test_literal_param("dog"),
                                                    &ret);
-    test_compare(ret, GEARMAN_SUCCESS);
+    ASSERT_EQ(ret, GEARMAN_SUCCESS);
     test_truth(task);
 
     gearman_return_t local_ret= gearman_client_run_tasks(client);
-    test_compare(local_ret, GEARMAN_COULD_NOT_CONNECT);
+    ASSERT_EQ(local_ret, GEARMAN_COULD_NOT_CONNECT);
 
     local_ret= gearman_client_run_tasks(client);
-    test_compare(local_ret, GEARMAN_COULD_NOT_CONNECT);
+    ASSERT_EQ(local_ret, GEARMAN_COULD_NOT_CONNECT);
 
     gearman_client_free(client);
   }
@@ -101,14 +101,14 @@ test_return_t regression_bug_783141_test(void *)
                                                    "does not exist", NULL,
                                                    test_literal_param("dog"),
                                                    &ret);
-    test_compare(ret, GEARMAN_SUCCESS);
+    ASSERT_EQ(ret, GEARMAN_SUCCESS);
     test_truth(task);
 
     gearman_return_t local_ret= gearman_client_run_tasks(client);
-    test_compare(local_ret, GEARMAN_COULD_NOT_CONNECT);
+    ASSERT_EQ(local_ret, GEARMAN_COULD_NOT_CONNECT);
 
     local_ret= gearman_client_run_tasks(client);
-    test_compare(local_ret, GEARMAN_COULD_NOT_CONNECT);
+    ASSERT_EQ(local_ret, GEARMAN_COULD_NOT_CONNECT);
 
     gearman_client_free(client);
   }
@@ -220,7 +220,7 @@ test_return_t regression_768317_test(void *object)
                                              NULL, 
                                              test_literal_param("reset"),
                                              &result_length, &rc);
-  test_compare(rc, GEARMAN_SUCCESS);
+  ASSERT_EQ(rc, GEARMAN_SUCCESS);
   test_false(job_result);
 
   // Check to see that the task ran just once
@@ -228,10 +228,10 @@ test_return_t regression_768317_test(void *object)
                                        NULL, 
                                        test_literal_param("10"),
                                        &result_length, &rc);
-  test_compare(rc, GEARMAN_SUCCESS);
+  ASSERT_EQ(rc, GEARMAN_SUCCESS);
   test_truth(job_result);
   long count= strtol(job_result, (char **)NULL, 10);
-  test_compare(10L, count);
+  ASSERT_EQ(10L, count);
   free(job_result);
 
   // Check to see that the task ran just once out of the bg queue
@@ -242,22 +242,22 @@ test_return_t regression_768317_test(void *object)
                                      NULL,
                                      test_literal_param("14"),
                                      job_handle);
-    test_compare(rc, GEARMAN_SUCCESS);
+    ASSERT_EQ(rc, GEARMAN_SUCCESS);
 
     bool is_known;
     do {
       rc= gearman_client_job_status(client, job_handle, &is_known, NULL, NULL, NULL);
     }  while (gearman_continue(rc) or is_known);
-    test_compare(rc, GEARMAN_SUCCESS);
+    ASSERT_EQ(rc, GEARMAN_SUCCESS);
 
     job_result= (char*)gearman_client_do(client, "increment_reset_worker", 
                                          NULL, 
                                          test_literal_param("10"),
                                          &result_length, &rc);
-    test_compare(rc, GEARMAN_SUCCESS);
+    ASSERT_EQ(rc, GEARMAN_SUCCESS);
     test_truth(job_result);
     count= atol(job_result);
-    test_compare(34L, count);
+    ASSERT_EQ(34L, count);
     free(job_result);
   }
 

@@ -57,7 +57,9 @@ static pthread_once_t function_lookup_once= PTHREAD_ONCE_INIT;
 static void set_local(void)
 {
   __function_pipe= set_function("pipe", "HOSTILE_PIPE");
+#if defined(HAVE_PIPE2) && HAVE_PIPE2
   __function_pipe2= set_function("pipe2", "HOSTILE_PIPE2");
+#endif
 }
 
 int pipe(int pipefd_arg[2])

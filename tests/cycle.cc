@@ -97,20 +97,20 @@ static test_return_t __server_startup_TEST(cycle_context_st* context, const int 
   {
     test_skip(true, server_startup(context->servers, "gearmand", libtest::get_free_port(), 0, NULL, false));
   }
-  test_compare(true, context->servers.shutdown());
+  ASSERT_EQ(true, context->servers.shutdown());
 
   return TEST_SUCCESS;
 }
 
 static test_return_t server_startup_single_TEST(void *obj)
 {
-  test_compare(__server_startup_TEST((cycle_context_st*)obj, 1), TEST_SUCCESS);
+  ASSERT_EQ(__server_startup_TEST((cycle_context_st*)obj, 1), TEST_SUCCESS);
   return TEST_SUCCESS;
 }
 
 static test_return_t server_startup_multiple_TEST(void *obj)
 {
-  test_compare(__server_startup_TEST((cycle_context_st*)obj, 20), TEST_SUCCESS);
+  ASSERT_EQ(__server_startup_TEST((cycle_context_st*)obj, 20), TEST_SUCCESS);
   return TEST_SUCCESS;
 }
 
@@ -122,8 +122,8 @@ static test_return_t server_startup_conflict_TEST(void*)
   cycle_context_st *context= (cycle_context_st*)object;
 
   in_port_t bind_port= libtest::get_free_port();
-  test_compare(true, server_startup(context->servers, "gearmand", bind_port, 0, NULL, false));
-  test_compare(false, server_startup(context->servers, "gearmand", bind_port, 0, NULL, false));
+  ASSERT_EQ(true, server_startup(context->servers, "gearmand", bind_port, 0, NULL, false));
+  ASSERT_EQ(false, server_startup(context->servers, "gearmand", bind_port, 0, NULL, false));
 #endif
 
   return TEST_SUCCESS;

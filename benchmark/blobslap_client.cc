@@ -74,16 +74,16 @@ int main(int argc, char *argv[])
   size_t min_size= BLOBSLAP_DEFAULT_BLOB_MIN_SIZE;
   size_t max_size= BLOBSLAP_DEFAULT_BLOB_MAX_SIZE;
   unsigned long int count= 1;
-  gearman_client_st client;
+  gearman_client_st master_client;
   bool shutdown_worker= false;
 
-  if (not gearman_client_create(&client))
+  if (gearman_client_create(&master_client) == NULL)
   {
     std::cerr << "Failed to allocate memory for client" << std::endl;
     return EXIT_FAILURE;
   }
 
-  gearman_client_add_options(&client, GEARMAN_CLIENT_UNBUFFERED_RESULT);
+  gearman_client_add_options(&master_client, GEARMAN_CLIENT_UNBUFFERED_RESULT);
 
   while ((c= getopt(argc, argv, "bc:f:h:m:M:n:p:s:ve?")) != -1)
   {
@@ -103,9 +103,9 @@ int main(int argc, char *argv[])
 
     case 'h':
       {
-        if (gearman_failed(gearman_client_add_server(&client, host, port)))
+        if (gearman_failed(gearman_client_add_server(&master_client, host, port)))
         {
-          std::cerr << "Failed while adding server " << host << ":" << port << " :" << gearman_client_error(&client) << std::endl;
+          std::cerr << "Failed while adding server " << host << ":" << port << " :" << gearman_client_error(&master_client) << std::endl;
           exit(EXIT_FAILURE);
         }
       }
@@ -140,23 +140,23 @@ int main(int argc, char *argv[])
       break;
 
     case '?':
-      gearman_client_free(&client);
+      gearman_client_free(&master_client);
       _usage(argv[0]);
       exit(EXIT_SUCCESS);
       break;
 
     default:
-      gearman_client_free(&client);
+      gearman_client_free(&master_client);
       _usage(argv[0]);
       exit(EXIT_FAILURE);
     }
   }
 
-  if (not host)
+  if (host == NULL)
   {
-    if (gearman_failed(gearman_client_add_server(&client, NULL, port)))
+    if (gearman_failed(gearman_client_add_server(&master_client, NULL, port)))
     {
-      std::cerr << "Failing to add localhost:" << port << " :" << gearman_client_error(&client) << std::endl;
+      std::cerr << "Failing to add localhost:" << port << " :" << gearman_client_error(&master_client) << std::endl;
       exit(EXIT_FAILURE);
     }
   }
@@ -191,6 +191,13 @@ int main(int argc, char *argv[])
   bool error= false;
   do
   {
+    gearman_client_st client;
+    if (gearman_client_clone(&client, &master_client) == NULL)
+    {
+      std::cerr << "Failed to allocate client clone" << std::endl;
+      exit(EXIT_FAILURE);
+    }
+
     for (uint32_t x= 0; x < num_tasks; x++)
     {
       size_t blob_size;
@@ -208,7 +215,7 @@ int main(int argc, char *argv[])
 
         blob_size= (blob_size % (max_size - min_size)) + min_size;
       }
-      
+
       const char *blob_ptr= blob_size ? blob : NULL;
 
       gearman_return_t ret;
@@ -239,8 +246,8 @@ int main(int argc, char *argv[])
           std::cerr << "Task #" << x << " failed during gearman_client_add_task(" << gearman_strerror(ret) << " -> " << gearman_client_error(&client) << std::endl ;
         }
 
-	error= true;
-	goto exit_immediatly;
+        error= true;
+        goto exit_immediatly;
       }
     }
 
@@ -280,20 +287,24 @@ int main(int argc, char *argv[])
     }
 
     count--;
+
+    gearman_client_free(&client);
   } while (count or error);
 
 exit_immediatly:
   if (shutdown_worker)
   {
-    gearman_client_do(&client, "shutdown", 0, 0, 0, 0, 0);
+    gearman_client_do(&master_client, "shutdown", 0, 0, 0, 0, 0);
   }
 
   delete [] blob;
   delete [] tasks;
-  gearman_client_free(&client);
+  gearman_client_free(&master_client);
 
   if (benchmark.verbose)
+  {
     std::cout << "Successfully completed all tasks" << std::endl;
+  }
 
   return error ? EXIT_FAILURE : 0;
 }

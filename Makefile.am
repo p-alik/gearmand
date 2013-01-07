@@ -103,6 +103,7 @@ maintainer-clean-local:
 	-rm m4/ltversion.m4
 	-rm m4/lt~obsolete.m4
 	-rmdir build-aux
+	-rm -rf ${top_builddir}/html
 
 include rpm.am
 

@@ -49,6 +49,10 @@
 #include <cerrno>
 #include <cassert>
 
+#ifndef SOCK_NONBLOCK 
+# define SOCK_NONBLOCK 0
+#endif
+
 static void _connection_close(gearmand_io_st *connection)
 {
   if (connection->fd == INVALID_SOCKET)
@@ -787,6 +791,7 @@ gearmand_error_t gearmand_io_set_revents(gearman_server_con_st *con, short reven
 
 static gearmand_error_t _io_setsockopt(gearmand_io_st &connection)
 {
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "setsockopt() %d", connection.fd);
   {
     int setting= 1;
     if (setsockopt(connection.fd, IPPROTO_TCP, TCP_NODELAY, &setting, (socklen_t)sizeof(int)) and errno != EOPNOTSUPP)
@@ -848,16 +853,30 @@ static gearmand_error_t _io_setsockopt(gearmand_io_st &connection)
     }
   }
 
+  if (SOCK_NONBLOCK == 0)
   {
-    int fcntl_flags;
-    if ((fcntl_flags= fcntl(connection.fd, F_GETFL, 0)) == -1)
+    int flags;
+    do
+    {
+      flags= fcntl(connection.fd, F_GETFL, 0);
+    } while (flags == -1 and (errno == EINTR or errno == EAGAIN));
+
+    if (flags == -1)
     {
       return gearmand_perror(errno, "fcntl(F_GETFL)");
     }
-
-    if ((fcntl(connection.fd, F_SETFL, fcntl_flags | O_NONBLOCK) == -1))
+    else if ((flags & O_NONBLOCK) == 0)
     {
-      return gearmand_perror(errno, "fcntl(F_SETFL)");
+      int retval;
+      do
+      {
+        retval= fcntl(connection.fd, F_SETFL, flags | O_NONBLOCK);
+      } while (retval == -1 and (errno == EINTR or errno == EAGAIN));
+
+      if (retval == -1)
+      {
+        return gearmand_perror(errno, "fcntl(F_SETFL)");
+      }
     }
   }
 

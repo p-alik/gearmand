@@ -53,9 +53,9 @@ public:
     _universal.non_blocking(false);
   }
 
-  PushBlocking(gearman_client_st* client_shell) :
-    _original(client_shell->impl()->universal.is_non_blocking()),
-    _universal(client_shell->impl()->universal)
+  PushBlocking(gearman_client_st& client_shell) :
+    _original(client_shell.impl()->universal.is_non_blocking()),
+    _universal(client_shell.impl()->universal)
   {
     _universal.non_blocking(false);
   }
@@ -81,9 +81,9 @@ public:
     _universal.non_blocking(true);
   }
 
-  PushNonBlocking(gearman_client_st* client_shell) :
-    _original(client_shell->impl()->universal.options.non_blocking),
-    _universal(client_shell->impl()->universal)
+  PushNonBlocking(gearman_client_st& client_shell) :
+    _original(client_shell.impl()->universal.options.non_blocking),
+    _universal(client_shell.impl()->universal)
   {
     _universal.non_blocking(true);
   }
@@ -99,4 +99,3 @@ private:
 };
 
 #define PUSH_NON_BLOCKING(__univeral) PushNonBlocking _push_block((__univeral));
-

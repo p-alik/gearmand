@@ -168,15 +168,13 @@ private:
   sqlite3 *_db;
 };
 
-static bool test_for_HAVE_LIBSQLITE3(test_return_t &error)
+static bool test_for_HAVE_LIBSQLITE3()
 {
   if (HAVE_LIBSQLITE3)
   {
-    error= TEST_SUCCESS;
     return true;
   }
 
-  error= TEST_SKIPPED;
   return false;
 }
 
@@ -188,7 +186,7 @@ static test_return_t gearmand_basic_option_test(void *)
     "--libsqlite3-table=custom_table", 
     0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
   return TEST_SUCCESS;
 }
 
@@ -203,8 +201,8 @@ static test_return_t gearmand_basic_option_without_table_test(void *)
     sql_buffer,
     0 };
 
-  test_compare(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
-  test_compare(-1, access(sql_file.c_str(), R_OK | W_OK ));
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  ASSERT_EQ(-1, access(sql_file.c_str(), R_OK | W_OK ));
 
   return TEST_SUCCESS;
 }
@@ -243,7 +241,7 @@ static test_return_t collection_init(void *object)
   test->reset();
 
   test_truth(test->initialize(2, argv));
-  test_compare(0, access(sql_file.c_str(), R_OK | W_OK ));
+  ASSERT_EQ(0, access(sql_file.c_str(), R_OK | W_OK ));
 
   test->extra_file(sql_file.c_str());
   std::string sql_journal_file(sql_file);
@@ -434,8 +432,12 @@ static test_return_t lp_1087654_TEST(void* object)
 }
 
 
-static test_return_t queue_restart_TEST(Context *test, const int32_t inserted_jobs, uint32_t timeout)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstack-protector"
+static test_return_t queue_restart_TEST(Context const* test, const int32_t inserted_jobs, uint32_t timeout)
 {
+  SKIP_IF(HAVE_UUID_UUID_H != 1);
+
   server_startup_st &servers= test->_servers;
 
   std::string sql_file= libtest::create_tmpfile("sqlite");
@@ -452,24 +454,24 @@ static test_return_t queue_restart_TEST(Context *test, const int32_t inserted_jo
   {
     in_port_t first_port= libtest::get_free_port();
 
-    test_true(server_startup(servers, "gearmand", first_port, 2, argv));
-    test_compare(0, access(sql_file.c_str(), R_OK | W_OK ));
+    ASSERT_TRUE(server_startup(servers, "gearmand", first_port, 2, argv));
+    ASSERT_EQ(0, access(sql_file.c_str(), R_OK | W_OK ));
 
     {
       test::Worker worker(first_port);
-      test_compare(gearman_worker_register(&worker, __func__, 0), GEARMAN_SUCCESS);
+      ASSERT_EQ(gearman_worker_register(&worker, __func__, 0), GEARMAN_SUCCESS);
     }
 
     {
       test::Client client(first_port);
-      test_compare(gearman_client_echo(&client, test_literal_param("This is my echo test")), GEARMAN_SUCCESS);
+      ASSERT_EQ(gearman_client_echo(&client, test_literal_param("This is my echo test")), GEARMAN_SUCCESS);
       gearman_job_handle_t job_handle;
       for (int32_t x= 0; x < inserted_jobs; ++x)
       {
         switch (random() % 3)
         {
         case 0:
-          test_compare(gearman_client_do_background(&client,
+          ASSERT_EQ(gearman_client_do_background(&client,
                                                     __func__, // func
                                                     NULL, // unique
                                                     test_literal_param("foo"),
@@ -477,7 +479,7 @@ static test_return_t queue_restart_TEST(Context *test, const int32_t inserted_jo
           break;
 
         case 1:
-          test_compare(gearman_client_do_low_background(&client,
+          ASSERT_EQ(gearman_client_do_low_background(&client,
                                                         __func__, // func
                                                         NULL, // unique
                                                         test_literal_param("fudge"),
@@ -486,7 +488,7 @@ static test_return_t queue_restart_TEST(Context *test, const int32_t inserted_jo
 
         default:
         case 2:
-          test_compare(gearman_client_do_high_background(&client,
+          ASSERT_EQ(gearman_client_do_high_background(&client,
                                                          __func__, // func
                                                          NULL, // unique
                                                          test_literal_param("history"),
@@ -502,21 +504,16 @@ static test_return_t queue_restart_TEST(Context *test, const int32_t inserted_jo
   {
     if (sql_handle.vcount() != inserted_jobs)
     {
-      if (sql_handle.has_error())
-      {
-        Error << sql_handle.error_string();
-      }
-      else
-      {
-        Out << "sql_handle.vprint_unique()";
-        sql_handle.vprint_unique();
-      }
+      ASSERT_EQ_(false, sql_handle.has_error(), "sqlite: %s", sql_handle.error_string().c_str());
+
+      Out << "sql_handle.vprint_unique()";
+      sql_handle.vprint_unique();
     }
 
-    test_compare(sql_handle.vcount(), inserted_jobs);
+    ASSERT_EQ(sql_handle.vcount(), inserted_jobs);
   }
 
-  test_compare(0, access(sql_file.c_str(), R_OK | W_OK ));
+  ASSERT_EQ(0, access(sql_file.c_str(), R_OK | W_OK ));
 
   {
     in_port_t first_port= libtest::get_free_port();
@@ -532,7 +529,7 @@ static test_return_t queue_restart_TEST(Context *test, const int32_t inserted_jo
       test::Worker worker(first_port);
       Called called;
       gearman_function_t counter_function= gearman_function_create(called_worker);
-      test_compare(gearman_worker_define_function(&worker,
+      ASSERT_EQ(gearman_worker_define_function(&worker,
                                                   test_literal_param(__func__),
                                                   counter_function,
                                                   3000, &called), GEARMAN_SUCCESS);
@@ -562,7 +559,7 @@ static test_return_t queue_restart_TEST(Context *test, const int32_t inserted_jo
           }
         }
       } while (ret == GEARMAN_TIMEOUT or ret == GEARMAN_SUCCESS);
-      test_compare(called.count(), inserted_jobs);
+      ASSERT_EQ(called.count(), inserted_jobs);
     }
 
     servers.clear();
@@ -571,23 +568,18 @@ static test_return_t queue_restart_TEST(Context *test, const int32_t inserted_jo
   {
     if (sql_handle.vcount() != 0)
     {
-      Error << "make";
-      if (sql_handle.has_error())
-      {
-        Error << sql_handle.error_string();
-      }
-      else
-      {
-        Out << "sql_handle.vprint_unique()";
-        sql_handle.vprint_unique();
-      }
+      ASSERT_EQ_(false, sql_handle.has_error(), "sqlite: %s", sql_handle.error_string().c_str());
+
+      Out << "sql_handle.vprint_unique()";
+      sql_handle.vprint_unique();
     }
 
-    test_zero(sql_handle.vcount());
+    ASSERT_EQ(0, sql_handle.vcount());
   }
 
   return TEST_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 static test_return_t lp_1054377_TEST(void* object)
 {
@@ -607,13 +599,10 @@ static test_return_t lp_1054377x200_TEST(void* object)
   return queue_restart_TEST(test, 200, 200);
 }
 
-static void *world_create(server_startup_st& servers, test_return_t& error)
+static void *world_create(server_startup_st& servers, test_return_t&)
 {
-  if (test_for_HAVE_LIBSQLITE3(error) == false)
-  {
-    error= TEST_SKIPPED;
-    return NULL;
-  }
+  SKIP_IF(HAVE_UUID_UUID_H != 1);
+  SKIP_IF(test_for_HAVE_LIBSQLITE3() == false);
 
   return new Context(libtest::get_free_port(), servers);
 }
