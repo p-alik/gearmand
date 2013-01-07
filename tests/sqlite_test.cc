@@ -242,7 +242,9 @@ static test_return_t collection_cleanup(void *object)
 }
 
 
-static test_return_t queue_restart_TEST(Context *test, const int32_t inserted_jobs, uint32_t timeout)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstack-protector"
+static test_return_t queue_restart_TEST(Context const* test, const int32_t inserted_jobs, uint32_t timeout)
 {
   SKIP_IF(HAVE_UUID_UUID_H != 1);
 
@@ -262,7 +264,7 @@ static test_return_t queue_restart_TEST(Context *test, const int32_t inserted_jo
   {
     in_port_t first_port= libtest::get_free_port();
 
-    test_true(server_startup(servers, "gearmand", first_port, 2, argv));
+    ASSERT_TRUE(server_startup(servers, "gearmand", first_port, 2, argv));
     ASSERT_EQ(0, access(sql_file.c_str(), R_OK | W_OK ));
 
     {
@@ -387,6 +389,7 @@ static test_return_t queue_restart_TEST(Context *test, const int32_t inserted_jo
 
   return TEST_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 static test_return_t lp_1054377_TEST(void* object)
 {

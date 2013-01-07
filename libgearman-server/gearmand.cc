@@ -321,8 +321,7 @@ gearmand_error_t gearmand_port_add(gearmand_st *gearmand, const char *port,
                                          sizeof(gearmand_port_st) * (gearmand->port_count + 1));
   if (port_list == NULL)
   {
-    gearmand_perror(errno, "realloc");
-    return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+    return gearmand_perror(errno, "realloc");
   }
 
   strncpy(port_list[gearmand->port_count].port, port, NI_MAXSERV);
@@ -795,15 +794,11 @@ static void _listen_event(int event_fd, short events __attribute__ ((unused)), v
   struct sockaddr sa;
 
   socklen_t sa_len= sizeof(sa);
-  int fd= -1;
 #if defined(HAVE_ACCEPT4) && HAVE_ACCEPT4
-  fd= accept4(event_fd, &sa, &sa_len, 0); //  SOCK_NONBLOCK);
+  int fd= accept4(event_fd, &sa, &sa_len, SOCK_NONBLOCK); //  SOCK_NONBLOCK);
+#else
+  int fd= accept(event_fd, &sa, &sa_len);
 #endif
-
-  if (fd == -1)
-  {
-    fd= accept(event_fd, &sa, &sa_len);
-  }
 
   if (fd == -1)
   {
@@ -827,6 +822,7 @@ static void _listen_event(int event_fd, short events __attribute__ ((unused)), v
     Gearmand()->ret= gearmand_perror(local_error, "accept");
     return;
   }
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "accept() %d", fd);
 
   /* 
     Since this is numeric, it should never fail. Even if it did we don't want to really error from it.
@@ -844,8 +840,7 @@ static void _listen_event(int event_fd, short events __attribute__ ((unused)), v
 
   gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "Accepted connection from %s:%s", host, port_str);
 
-  gearmand_error_t ret;
-  ret= gearmand_con_create(Gearmand(), fd, host, port_str, port->add_fn);
+  gearmand_error_t ret= gearmand_con_create(Gearmand(), fd, host, port_str, port->add_fn);
   if (ret == GEARMAN_MEMORY_ALLOCATION_FAILURE)
   {
     gearmand_sockfd_close(fd);
@@ -862,24 +857,28 @@ static gearmand_error_t _wakeup_init(gearmand_st *gearmand)
 {
   gearmand_debug("Creating wakeup pipe");
 
+#if defined(HAVE_PIPE2) && HAVE_PIPE2
+  if (pipe2(gearmand->wakeup_fd, O_NONBLOCK) < 0)
+  {
+    return gearmand_perror(errno, "pipe2(gearmand->wakeup_fd)");
+  }
+#else
   if (pipe(gearmand->wakeup_fd) < 0)
   {
-    gearmand_perror(errno, "pipe");
-    return GEARMAN_ERRNO;
+    return gearmand_perror(errno, "pipe(gearmand->wakeup_fd)");
   }
 
   int returned_flags;
   if ((returned_flags= fcntl(gearmand->wakeup_fd[0], F_GETFL, 0)) < 0)
   {
-    gearmand_perror(errno, "fcntl:F_GETFL");
-    return GEARMAN_ERRNO;
+    return gearmand_perror(errno, "fcntl:F_GETFL");
   }
 
   if (fcntl(gearmand->wakeup_fd[0], F_SETFL, returned_flags | O_NONBLOCK) < 0)
   {
-    gearmand_perror(errno, "F_SETFL");
-    return GEARMAN_ERRNO;
+    return gearmand_perror(errno, "F_SETFL");
   }
+#endif
 
   event_set(&(gearmand->wakeup_event), gearmand->wakeup_fd[0],
             EV_READ | EV_PERSIST, _wakeup_event, gearmand);
@@ -964,8 +963,7 @@ static void _wakeup_event(int fd, short, void *arg)
       }
 
       _clear_events(gearmand);
-      gearmand_perror(local_error, "_wakeup_event:read");
-      gearmand->ret= GEARMAN_ERRNO;
+      gearmand->ret= gearmand_perror(local_error, "_wakeup_event:read");
       return;
     }
 
