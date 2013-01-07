@@ -298,7 +298,7 @@ void gearmand_con_check_queue(gearmand_thread_st *thread)
       gearmand_error_t rc;
       if ((rc= _con_add(thread, dcon)) != GEARMAN_SUCCESS)
       {
-	gearmand_gerror("_con_add() has failed, please report any crashes that occur immediatly after this.", rc);
+        gearmand_gerror("_con_add() has failed, please report any crashes that occur immediatly after this.", rc);
         gearmand_con_free(dcon);
       }
     }

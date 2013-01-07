@@ -408,30 +408,31 @@ static void _run(gearman_server_thread_st *thread __attribute__ ((unused)),
 
 static gearmand_error_t _wakeup_init(gearmand_thread_st *thread)
 {
-  int ret;
-
   gearmand_debug("Creating IO thread wakeup pipe");
 
-  ret= pipe(thread->wakeup_fd);
-  if (ret == -1)
+#if defined(HAVE_PIPE2) && HAVE_PIPE2
+  if (pipe2(thread->wakeup_fd, O_NONBLOCK) == -1)
   {
-    gearmand_perror(ret, "pipe");
-    return GEARMAN_ERRNO;
+    return gearmand_perror(errno, "pipe");
+  }
+#else
+  if (pipe(thread->wakeup_fd) == -1)
+  {
+    return gearmand_perror(errno, "pipe");
   }
 
-  ret= fcntl(thread->wakeup_fd[0], F_GETFL, 0);
+  int ret= fcntl(thread->wakeup_fd[0], F_GETFL, 0);
   if (ret == -1)
   {
-    gearmand_perror(ret, "fcntl(F_GETFL)");
-    return GEARMAN_ERRNO;
+    return gearmand_perror(errno, "fcntl(F_GETFL)");
   }
 
   ret= fcntl(thread->wakeup_fd[0], F_SETFL, ret | O_NONBLOCK);
   if (ret == -1)
   {
-    gearmand_perror(ret, "fcntl(F_SETFL)");
-    return GEARMAN_ERRNO;
+    return gearmand_perror(errno, "fcntl(F_SETFL)");
   }
+#endif
 
   event_set(&(thread->wakeup_event), thread->wakeup_fd[0], EV_READ | EV_PERSIST,
             _wakeup_event, thread);

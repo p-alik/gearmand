@@ -40,3 +40,4 @@
 #include <sys/socket.h>
 
 typedef int (accept_fn)(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+typedef int (accept4_fn)(int sockfd, struct sockaddr *addr, socklen_t *addrlen, int flags);

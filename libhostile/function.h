@@ -51,6 +51,7 @@
 
 union function_un {
   accept_fn *accept;
+  accept4_fn *accept4;
   connect_fn *connect;
   getaddrinfo_fn *getaddrinfo;
   malloc_fn *malloc;
