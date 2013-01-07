@@ -6,6 +6,7 @@
 # Use and distribution licensed under the BSD license.  See
 # the COPYING file in this directory for full text.
 
+AC_REVISION([m4_esyscmd_s([bzr revno])])
 AC_PREREQ([2.63])
 AC_INIT([gearmand],[1.1.5],[https://bugs.launchpad.net/gearmand],[gearmand],[http://gearman.info/])
 AC_CONFIG_AUX_DIR([build-aux])
@@ -63,11 +64,14 @@ AC_DEFINE([GEARMAND_BINARY],["./gearmand/gearmand"],[Name of the gearmand binary
 AC_DEFINE([HAVE_LIBGEARMAN],[1], [libgearman support])
 AC_DEFINE([HAVE_GEARMAND_BINARY],[1],[gearmand binary was found])
 
-AX_LIB_CURL([7.21.7],
-            [AX_CHECK_LIBRARY([LIBCURL],[curl/curl.h],[curl])],
-            [AC_DEFINE([HAVE_LIBCURL],[0],[Have the LIBCURL library])
-            AM_CONDITIONAL([HAVE_LIBCURL],false)
-            ])
+AC_DEFUN([CHECK_CURL],
+         [AX_LIB_CURL([7.21.7],
+                      [AX_CHECK_LIBRARY([LIBCURL],[curl/curl.h],[curl])],
+                      [AC_DEFINE([HAVE_LIBCURL],[1],[Have the LIBCURL library])
+                      ])
+         ])
+CHECK_CURL
+AM_CONDITIONAL([HAVE_LIBCURL],[test "x${ax_cv_have_LIBCURL}" = "xyes"])
 
 m4_include([m4/drizzled.m4])
 WITH_LIBDRIZZLE
@@ -166,6 +170,7 @@ AC_FUNC_MEMCMP
 AC_FUNC_STRERROR_R
 AC_FUNC_VPRINTF
 AC_REPLACE_FNMATCH
+AC_CHECK_FUNCS([accept4])
 AC_CHECK_FUNCS([dup2])
 AC_CHECK_FUNCS([gettimeofday])
 AC_CHECK_FUNCS([memchr])

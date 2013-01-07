@@ -50,12 +50,16 @@
 
 static int not_until= 500;
 
-static struct function_st __function;
+static struct function_st __function_accept;
+static struct function_st __function_accept4;
 
 static pthread_once_t function_lookup_once = PTHREAD_ONCE_INIT;
 static void set_local(void)
 {
-  __function= set_function("accept", "HOSTILE_ACCEPT");
+  __function_accept= set_function("accept", "HOSTILE_ACCEPT");
+#if defined(HAVE_ACCEPT4) && HAVE_ACCEPT4
+  __function_accept4= set_function("accept4", "HOSTILE_ACCEPT4");
+#endif
 }
 
 bool libhostile_is_accept(void)
@@ -64,7 +68,7 @@ bool libhostile_is_accept(void)
 
   (void) pthread_once(&function_lookup_once, set_local);
 
-  if (__function.frequency)
+  if (__function_accept.frequency)
   {
     return true;
   }
@@ -76,12 +80,12 @@ void set_accept_close(bool arg, int frequency, int not_until_arg)
 {
   if (arg)
   {
-    __function.frequency= frequency;
+    __function_accept.frequency= frequency;
     not_until= not_until_arg;
   }
   else
   {
-    __function.frequency= 0;
+    __function_accept.frequency= 0;
     not_until= 0;
   }
 }
@@ -95,9 +99,9 @@ int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 
   if (is_called() == false)
   {
-    if (__function.frequency)
+    if (__function_accept.frequency)
     {
-      if (--not_until < 0 && rand() % __function.frequency)
+      if (--not_until < 0 && rand() % __function_accept.frequency)
       {
         if (rand() % 1)
         {
@@ -118,8 +122,48 @@ int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
   }
 
   set_called();
-  int ret= __function.function.accept(sockfd, addr, addrlen);
+  int ret= __function_accept.function.accept(sockfd, addr, addrlen);
   reset_called();
 
   return ret;
 }
+
+#if defined(HAVE_ACCEPT4) && HAVE_ACCEPT4
+int accept4(int sockfd, struct sockaddr *addr, socklen_t *addrlen, int flags)
+{
+
+  hostile_initialize();
+
+  (void) pthread_once(&function_lookup_once, set_local);
+
+  if (is_called() == false)
+  {
+    if (__function_accept4.frequency)
+    {
+      if (--not_until < 0 && rand() % __function_accept4.frequency)
+      {
+        if (rand() % 1)
+        {
+          shutdown(sockfd, SHUT_RDWR);
+          close(sockfd);
+          errno= ECONNABORTED;
+          return -1;
+        }
+        else
+        {
+          shutdown(sockfd, SHUT_RDWR);
+          close(sockfd);
+          errno= EMFILE;
+          return -1;
+        }
+      }
+    }
+  }
+
+  set_called();
+  int ret= __function_accept4.function.accept4(sockfd, addr, addrlen, flags);
+  reset_called();
+
+  return ret;
+}
+#endif

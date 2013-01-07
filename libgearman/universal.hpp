@@ -38,6 +38,8 @@
 
 #pragma once
 
+#include "libgearman/interface/client.hpp"
+
 // Get next connection that is ready for I/O.
 gearman_connection_st *gearman_ready(gearman_universal_st&);
 
@@ -115,4 +117,3 @@ gearman_return_t gearman_set_identifier(gearman_universal_st& universal,
                                         size_t id_size);
 
 const char *gearman_univeral_namespace(gearman_universal_st& universal);
-

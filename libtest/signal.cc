@@ -154,6 +154,10 @@ static void *sig_thread(void *arg)
     {
     case SIGALRM:
       Error << "SIGALRM";
+      if (gdb_is_caller())
+      {
+        abort();
+      }
       exit(EXIT_SKIP);
 
     case SIGVTALRM:

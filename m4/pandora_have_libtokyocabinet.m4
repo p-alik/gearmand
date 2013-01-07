@@ -28,4 +28,5 @@ AC_DEFUN([PANDORA_HAVE_LIBTOKYOCABINET],
       [ac_enable_libtokyocabinet="yes"])
 
     _PANDORA_SEARCH_LIBTOKYOCABINET
+    AM_CONDITIONAL([HAVE_TOKYOCABINET],[test "x${ac_enable_libtokyocabinet}" = "xyes"])
     ])

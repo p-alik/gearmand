@@ -46,6 +46,8 @@
 #include <libgearman-server/plugins/queue/redis/queue.h>
 #include <libgearman-server/plugins/queue/base.h>
 
+#if defined(HAVE_HIREDIS) && HAVE_HIREDIS
+
 #include <hiredis/hiredis.h>
 
 /* Queue callback functions. */
@@ -299,3 +301,5 @@ static gearmand_error_t _hiredis_replay(gearman_server_st *server, void *context
 
   return GEARMAN_SUCCESS;
 }
+
+#endif // defined(HAVE_HIREDIS) && HAVE_HIREDIS

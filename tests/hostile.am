@@ -58,7 +58,7 @@ tests_hostile_libgearman_SOURCES+= tests/hostile.cc
 tests_hostile_libgearman_LDADD+= libgearman/libgearman-hostile.la
 tests_hostile_libgearman_LDADD+= libtest/libtest.la
 tests_hostile_libgearman_LDADD+= tests/libstartworker.la
-check_PROGRAMS+=tests/hostile_libgearman
+# check_PROGRAMS+=tests/hostile_libgearman
 noinst_PROGRAMS+=tests/hostile_libgearman
 
 test-hostile_libgearman: tests/hostile_libgearman gearmand/gearmand

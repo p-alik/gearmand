@@ -432,7 +432,9 @@ static test_return_t lp_1087654_TEST(void* object)
 }
 
 
-static test_return_t queue_restart_TEST(Context *test, const int32_t inserted_jobs, uint32_t timeout)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstack-protector"
+static test_return_t queue_restart_TEST(Context const* test, const int32_t inserted_jobs, uint32_t timeout)
 {
   SKIP_IF(HAVE_UUID_UUID_H != 1);
 
@@ -452,7 +454,7 @@ static test_return_t queue_restart_TEST(Context *test, const int32_t inserted_jo
   {
     in_port_t first_port= libtest::get_free_port();
 
-    test_true(server_startup(servers, "gearmand", first_port, 2, argv));
+    ASSERT_TRUE(server_startup(servers, "gearmand", first_port, 2, argv));
     ASSERT_EQ(0, access(sql_file.c_str(), R_OK | W_OK ));
 
     {
@@ -502,15 +504,10 @@ static test_return_t queue_restart_TEST(Context *test, const int32_t inserted_jo
   {
     if (sql_handle.vcount() != inserted_jobs)
     {
-      if (sql_handle.has_error())
-      {
-        Error << sql_handle.error_string();
-      }
-      else
-      {
-        Out << "sql_handle.vprint_unique()";
-        sql_handle.vprint_unique();
-      }
+      ASSERT_EQ_(false, sql_handle.has_error(), "sqlite: %s", sql_handle.error_string().c_str());
+
+      Out << "sql_handle.vprint_unique()";
+      sql_handle.vprint_unique();
     }
 
     ASSERT_EQ(sql_handle.vcount(), inserted_jobs);
@@ -571,23 +568,18 @@ static test_return_t queue_restart_TEST(Context *test, const int32_t inserted_jo
   {
     if (sql_handle.vcount() != 0)
     {
-      Error << "make";
-      if (sql_handle.has_error())
-      {
-        Error << sql_handle.error_string();
-      }
-      else
-      {
-        Out << "sql_handle.vprint_unique()";
-        sql_handle.vprint_unique();
-      }
+      ASSERT_EQ_(false, sql_handle.has_error(), "sqlite: %s", sql_handle.error_string().c_str());
+
+      Out << "sql_handle.vprint_unique()";
+      sql_handle.vprint_unique();
     }
 
-    test_zero(sql_handle.vcount());
+    ASSERT_EQ(0, sql_handle.vcount());
   }
 
   return TEST_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 static test_return_t lp_1054377_TEST(void* object)
 {
