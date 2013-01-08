@@ -162,25 +162,29 @@ gearmand_error_t gearmand_con_create(gearmand_st *gearmand, int fd,
   else
   {
     uint32_t free_dcon_count;
-    gearmand_con_st *free_dcon_list;
+    gearmand_con_st *free_dcon_list= NULL;
 
     int error;
-    if ((error= pthread_mutex_lock(&(dcon->thread->lock))) != 0)
+    if ((error= pthread_mutex_lock(&(dcon->thread->lock))) == 0)
     {
-      gearmand_perror(error, "pthread_mutex_lock");
-      gearmand_fatal("Lock could not be taken on dcon->thread->, shutdown to occur");
+      GEARMAN_LIST_ADD(dcon->thread->dcon_add, dcon,);
+
+      /* Take the free connection structures back to reuse. */
+      free_dcon_list= dcon->thread->free_dcon_list;
+      free_dcon_count= dcon->thread->free_dcon_count;
+      dcon->thread->free_dcon_list= NULL;
+      dcon->thread->free_dcon_count= 0;
+
+      if ((error= pthread_mutex_unlock(&(dcon->thread->lock))))
+      {
+        gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock() failed");
+      }
+    }
+    else
+    {
+      gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_lock() failed");
       gearmand_wakeup(Gearmand(), GEARMAND_WAKEUP_SHUTDOWN);
     }
-
-    GEARMAN_LIST_ADD(dcon->thread->dcon_add, dcon,)
-
-    /* Take the free connection structures back to reuse. */
-    free_dcon_list= dcon->thread->free_dcon_list;
-    free_dcon_count= dcon->thread->free_dcon_count;
-    dcon->thread->free_dcon_list= NULL;
-    dcon->thread->free_dcon_count= 0;
-
-    (void ) pthread_mutex_unlock(&(dcon->thread->lock));
 
     /* Only wakeup the thread if this is the first in the queue. We don't need
        to lock around the count check, worst case it was already picked up and
@@ -256,11 +260,14 @@ void gearmand_con_free(gearmand_con_st *dcon)
       if ((error=  pthread_mutex_lock(&(dcon->thread->lock))) == 0)
       {
         GEARMAN_LIST_ADD(dcon->thread->free_dcon, dcon,);
-        (void ) pthread_mutex_unlock(&(dcon->thread->lock));
+        if ((error= pthread_mutex_unlock(&(dcon->thread->lock))))
+        {
+          gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock() failed");
+        }
       }
       else
       {
-        gearmand_perror(error, "pthread_mutex_lock");
+        gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_lock() failed");
       }
     }
   }
@@ -288,10 +295,9 @@ void gearmand_con_check_queue(gearmand_thread_st *thread)
       gearmand_con_st *dcon= thread->dcon_add_list;
       GEARMAN_LIST_DEL(thread->dcon_add, dcon,);
 
-      if ((error= pthread_mutex_unlock(&(thread->lock))) != 0)
+      if ((error= pthread_mutex_unlock(&(thread->lock))))
       {
-        gearmand_perror(error, "pthread_mutex_unlock");
-        gearmand_fatal("Error in locking forcing a shutdown");
+        gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock() failed, forcing a shutdown");
         gearmand_wakeup(Gearmand(), GEARMAND_WAKEUP_SHUTDOWN);
       }
 
@@ -304,8 +310,7 @@ void gearmand_con_check_queue(gearmand_thread_st *thread)
     }
     else
     {
-      gearmand_perror(error, "pthread_mutex_lock");
-      gearmand_fatal("Lock could not be taken on thread->, shutdown to occur");
+      gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_lock() failed, forcing a shutdown");
       gearmand_wakeup(Gearmand(), GEARMAND_WAKEUP_SHUTDOWN);
     }
   }

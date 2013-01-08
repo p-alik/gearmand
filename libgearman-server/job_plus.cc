@@ -296,10 +296,10 @@ void *_proc(void *data)
     {
       if (server->proc_shutdown)
       {
-        if (pthread_mutex_unlock(&(server->proc_lock)) == -1)
+        int error;
+        if ((error= pthread_mutex_unlock(&(server->proc_lock))))
         {
-          gearmand_fatal("pthread_mutex_unlock()");
-          assert(!"pthread_mutex_lock");
+          gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock() failed");
         }
         return NULL;
       }
@@ -307,9 +307,13 @@ void *_proc(void *data)
       (void) pthread_cond_wait(&(server->proc_cond), &(server->proc_lock));
     }
     server->proc_wakeup= false;
-    if (pthread_mutex_unlock(&(server->proc_lock)) == -1)
+
     {
-      gearmand_fatal("pthread_mutex_unlock()");
+      int error;
+      if ((error= pthread_mutex_unlock(&(server->proc_lock))))
+      {
+        gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock() failed");
+      }
     }
 
     for (gearman_server_thread_st *thread= server->thread_list; thread != NULL; thread= thread->next)

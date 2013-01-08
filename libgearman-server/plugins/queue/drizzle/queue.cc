@@ -490,7 +490,7 @@ gearmand_error_t gearman_server_queue_libdrizzle_init(plugins::queue::Drizzle *q
     drizzle_result_free(queue->result());
   }
 
-  gearman_server_set_queue(server, queue, _libdrizzle_add, _libdrizzle_flush, _libdrizzle_done, _libdrizzle_replay);
+  gearman_server_set_queue(*server, queue, _libdrizzle_add, _libdrizzle_flush, _libdrizzle_done, _libdrizzle_replay);
 
   return GEARMAN_SUCCESS;
 }
@@ -532,23 +532,23 @@ static gearmand_error_t _libdrizzle_add(gearman_server_st *,
   {
     query_size= (size_t)snprintf(query_buffer, sizeof(query_buffer),
                                  "INSERT INTO %.*s.%.*s SET priority=%u,when_to_run=%lld,unique_key='%.*s',function_name='%.*s',data='",
-                                 queue->schema.size(), queue->schema.c_str(),
-                                 queue->table.size(), queue->table.c_str(),
+                                 int(queue->schema.size()), queue->schema.c_str(),
+                                 int(queue->table.size()), queue->table.c_str(),
                                  uint32_t(priority),
                                  (long long unsigned int)when,
-                                 escaped_unique_name.size(), &escaped_unique_name[0],
-                                 escaped_function_name.size(), &escaped_function_name[0]
+                                 int(escaped_unique_name.size()), &escaped_unique_name[0],
+                                 int(escaped_function_name.size()), &escaped_function_name[0]
                                 );
   }
   else
   {
     query_size= (size_t)snprintf(query_buffer, sizeof(query_buffer),
                                  "INSERT INTO %.*s.%.*s SET priority=%u,unique_key='%.*s',function_name='%.*s',data='",
-                                 queue->schema.size(), queue->schema.c_str(),
-                                 queue->table.size(), queue->table.c_str(),
+                                 int(queue->schema.size()), queue->schema.c_str(),
+                                 int(queue->table.size()), queue->table.c_str(),
                                  uint32_t(priority),
-                                 escaped_unique_name.size(), &escaped_unique_name[0],
-                                 escaped_function_name.size(), &escaped_function_name[0]
+                                 int(escaped_unique_name.size()), &escaped_unique_name[0],
+                                 int(escaped_function_name.size()), &escaped_function_name[0]
                                 );
   }
 
@@ -604,10 +604,10 @@ static gearmand_error_t _libdrizzle_done(gearman_server_st *,
 
   int query_size= snprintf(&query[0], query.size(),
                            "DELETE FROM %.*s.%.*s WHERE unique_key='%.*s' and function_name= '%.*s'",
-                           queue->schema.size(), queue->schema.c_str(),
-                           queue->table.size(), queue->table.c_str(),
-                           escaped_unique_name.size(), &escaped_unique_name[0],
-                           escaped_function_name.size(), &escaped_function_name[0]
+                           int(queue->schema.size()), queue->schema.c_str(),
+                           int(queue->table.size()), queue->table.c_str(),
+                           int(escaped_unique_name.size()), &escaped_unique_name[0],
+                           int(escaped_function_name.size()), &escaped_function_name[0]
                           );
 
   if (query_size < 0 or size_t(query_size) > query.size())
