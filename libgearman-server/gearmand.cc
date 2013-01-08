@@ -265,9 +265,7 @@ void gearmand_free(gearmand_st *gearmand)
 
     while (gearmand->free_dcon_list != NULL)
     {
-      gearmand_con_st *dcon;
-
-      dcon= gearmand->free_dcon_list;
+      gearmand_con_st* dcon= gearmand->free_dcon_list;
       gearmand->free_dcon_list= dcon->next;
       delete dcon;
     }
