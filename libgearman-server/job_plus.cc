@@ -95,7 +95,7 @@ gearman_server_job_st *gearman_server_job_get_by_unique(gearman_server_st *serve
                                                         gearman_server_con_st *worker_con)
 {
   (void)unique_length;
-  for (size_t x= 0; x < GEARMAND_JOB_HASH_SIZE; x++)
+  for (size_t x= 0; x < server->hashtable_buckets; ++x)
   {
     for (gearman_server_job_st *server_job= server->job_hash[x];
          server_job != NULL;
@@ -130,7 +130,7 @@ gearman_server_job_st *gearman_server_job_get(gearman_server_st *server,
 {
   uint32_t key= _server_job_hash(job_handle, job_handle_length);
 
-  for (gearman_server_job_st *server_job= server->job_hash[key % GEARMAND_JOB_HASH_SIZE];
+  for (gearman_server_job_st *server_job= server->job_hash[key % server->hashtable_buckets];
        server_job != NULL; server_job= server_job->next)
   {
     if (server_job->job_handle_key == key and

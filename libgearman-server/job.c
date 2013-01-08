@@ -71,7 +71,7 @@ static gearman_server_job_st * _server_job_get_unique(gearman_server_st *server,
 {
   gearman_server_job_st *server_job;
 
-  for (server_job= server->unique_hash[unique_key % GEARMAND_JOB_HASH_SIZE];
+  for (server_job= server->unique_hash[unique_key % server->hashtable_buckets];
        server_job != NULL; server_job= server_job->unique_next)
   {
     if (data_size == 0)
@@ -229,13 +229,13 @@ gearman_server_job_add_reducer(gearman_server_st *server,
     }
 		
     server_job->unique_key= key;
-    key= key % GEARMAND_JOB_HASH_SIZE;
+    key= key % server->hashtable_buckets;
     GEARMAN_HASH_ADD(server->unique, key, server_job, unique_);
 
     key= _server_job_hash(server_job->job_handle,
                           strlen(server_job->job_handle));
     server_job->job_handle_key= key;
-    key= key % GEARMAND_JOB_HASH_SIZE;
+    key= key % server->hashtable_buckets;
     gearmand_hash_server_add(server, key, server_job);
 
     if (server->state.queue_startup)
@@ -330,10 +330,10 @@ void gearman_server_job_free(gearman_server_job_st *server_job)
     GEARMAN_LIST_DEL(server_job->worker->job, server_job, worker_)
   }
 
-  uint32_t key= server_job->unique_key % GEARMAND_JOB_HASH_SIZE;
+  uint32_t key= server_job->unique_key % Server->hashtable_buckets;
   GEARMAN_HASH_DEL(Server->unique, key, server_job, unique_);
 
-  key= server_job->job_handle_key % GEARMAND_JOB_HASH_SIZE;
+  key= server_job->job_handle_key % Server->hashtable_buckets;
   gearmand_hash_server_free(Server, key, server_job);
 
   if (Server->free_job_count < GEARMAN_MAX_FREE_SERVER_JOB)

@@ -107,10 +107,12 @@ gearmand_st *gearmand_create(const char *host,
                              uint32_t threads,
                              int backlog,
                              uint8_t job_retries,
+                             const char *job_handle_prefix,
                              uint8_t worker_wakeup,
                              gearmand_log_fn *function, void *log_context, const gearmand_verbose_t verbose,
                              bool round_robin,
-                             bool exceptions_);
+                             bool exceptions_,
+                             uint32_t hashtable_buckets);
 
 /**
  * Free resources used by a server instace.
