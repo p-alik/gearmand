@@ -380,38 +380,36 @@ static gearmand_error_t _proc_thread_start(gearman_server_st *server)
   int error;
   if ((error= pthread_mutex_init(&(server->proc_lock), NULL)))
   {
-    gearmand_perror(error, "pthread_mutex_init");
-    return GEARMAN_ERRNO;
+    return gearmand_perror(error, "pthread_mutex_init");
   }
 
   if ((error= pthread_cond_init(&(server->proc_cond), NULL)))
   {
-    gearmand_perror(error, "pthread_cond_init");
-    return GEARMAN_ERRNO;
+    return gearmand_perror(error, "pthread_cond_init");
   }
 
   pthread_attr_t attr;
   if ((error= pthread_attr_init(&attr)))
   {
-    gearmand_perror(error, "pthread_attr_init");
-    return GEARMAN_ERRNO;
+    return gearmand_perror(error, "pthread_attr_init");
   }
 
   if ((error= pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM)))
   {
-    gearmand_perror(error, "pthread_attr_setscope");
     (void) pthread_attr_destroy(&attr);
-    return GEARMAN_ERRNO;
+    return gearmand_perror(error, "pthread_attr_setscope");
   }
 
   if ((error= pthread_create(&(server->proc_id), &attr, _proc, server)))
   {
-    gearmand_perror(error, "pthread_create");
     (void) pthread_attr_destroy(&attr);
-    return GEARMAN_ERRNO;
+    return gearmand_perror(error, "pthread_create");
   }
 
-  (void) pthread_attr_destroy(&attr);
+  if ((error= pthread_attr_destroy(&attr)))
+  {
+    gearmand_perror(error, "pthread_create");
+  }
 
   server->flags.threaded= true;
 
@@ -428,12 +426,37 @@ static void _proc_thread_kill(gearman_server_st *server)
   server->proc_shutdown= true;
 
   /* Signal proc thread to shutdown. */
-  (void) pthread_mutex_lock(&(server->proc_lock));
-  (void) pthread_cond_signal(&(server->proc_cond));
-  (void) pthread_mutex_unlock(&(server->proc_lock));
+  int error;
+  if ((error= pthread_mutex_lock(&(server->proc_lock))) == 0)
+  {
+    if ((error= pthread_cond_signal(&(server->proc_cond))))
+    {
+      gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_cond_signal() failed, forcing a shutdown");
+    }
+
+    if ((error= pthread_mutex_unlock(&(server->proc_lock))))
+    {
+      gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock() failed, forcing a shutdown");
+    }
+  }
+  else
+  {
+    gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_lock() failed, forcing a shutdown");
+  }
 
   /* Wait for the proc thread to exit and then cleanup. */
-  (void) pthread_join(server->proc_id, NULL);
-  (void) pthread_cond_destroy(&(server->proc_cond));
-  (void) pthread_mutex_destroy(&(server->proc_lock));
+  if ((error= pthread_join(server->proc_id, NULL)))
+  {
+    gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_join() failed, forcing a shutdown");
+  }
+
+  if ((error= pthread_cond_destroy(&(server->proc_cond))))
+  {
+    gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_cond_destroy() failed, forcing a shutdown");
+  }
+
+  if ((error= pthread_mutex_destroy(&(server->proc_lock))))
+  {
+    gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_destroy() failed, forcing a shutdown");
+  }
 }

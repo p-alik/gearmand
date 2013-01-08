@@ -46,7 +46,7 @@
 #include <libgearman-server/gearmand.h>
 #include <libgearman-server/byteorder.h>
 
-#include "libgearman/backtrace.hpp"
+#include "libgearman/assert.hpp"
 
 #ifdef HAVE_FCNTL_H
 # include <fcntl.h>

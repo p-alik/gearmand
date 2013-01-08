@@ -81,7 +81,7 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
          thread= thread->next)
     {
       int error;
-      if (! (error= pthread_mutex_lock(&thread->lock)))
+      if ((error= pthread_mutex_lock(&thread->lock)) == 0)
       {
         for (gearman_server_con_st *con= thread->con_list; con != NULL; con= con->next)
         {
@@ -101,11 +101,9 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
             char *new_data= (char *)realloc(data, total + GEARMAN_TEXT_RESPONSE_SIZE);
             if (new_data == NULL)
             {
-              int pthread_error;
-              if ((pthread_error= pthread_mutex_unlock(&(thread->lock))) == -1)
+              if ((error= pthread_mutex_unlock(&(thread->lock))))
               {
-                gearmand_perror(pthread_error, "pthread_mutex_unlock()");
-                assert(!"pthread_mutex_lock");
+                gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock() failed");
               }
               free(data);
               return gearmand_perror(ENOMEM, "realloc");
@@ -120,12 +118,11 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
 
           if ((size_t)sn_checked_length > total - size || sn_checked_length < 0)
           {
-            int pthread_error;
-            if ((pthread_error= pthread_mutex_unlock(&(thread->lock))) == -1)
+            if ((error= pthread_mutex_unlock(&(thread->lock))))
             {
-              gearmand_perror(pthread_error, "pthread_mutex_unlock()");
-              assert(!"pthread_mutex_lock");
+              gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock() failed");
             }
+
             free(data);
             return gearmand_perror(ENOMEM, "snprintf");
           }
@@ -144,12 +141,11 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
 
             if ((size_t)checked_length > total - size || checked_length < 0)
             {
-              int pthread_error;
-              if ((pthread_error= (pthread_mutex_unlock(&(thread->lock)))) == -1)
+              if ((error= (pthread_mutex_unlock(&(thread->lock)))))
               {
-                gearmand_perror(pthread_error, "pthread_mutex_unlock()");
-                assert(!"pthread_mutex_lock");
+                gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock() failed");
               }
+
               free(data);
               return gearmand_perror(ENOMEM, "snprintf");
             }
@@ -167,30 +163,25 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
           int checked_length= snprintf(data + size, total - size, "\n");
           if ((size_t)checked_length > total - size || checked_length < 0)
           {
-            int pthread_error;
-            if ((pthread_error= (pthread_mutex_unlock(&(thread->lock)))) == -1)
+            if ((error= (pthread_mutex_unlock(&(thread->lock)))))
             {
-              gearmand_perror(pthread_error, "pthread_mutex_unlock()");
-              assert(!"pthread_mutex_lock");
+              gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock() failed");
             }
-            gearmand_debug("free");
+
             free(data);
             return gearmand_perror(ENOMEM, "snprintf");
           }
           size+= (size_t)checked_length;
         }
 
-        int pthread_error;
-        if ((pthread_error= (pthread_mutex_unlock(&(thread->lock)))) == -1)
+        if ((error= (pthread_mutex_unlock(&(thread->lock)))) != 0)
         {
-          gearmand_perror(pthread_error, "pthread_mutex_unlock()");
-          assert(!"pthread_mutex_lock");
+          gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock() failed");
         }
       }
       else
       {
-        gearmand_perror(error, "pthread_mutex_lock");
-        assert(! "pthread_mutex_lock");
+        gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_lock() failed");
       }
     }
 
@@ -431,16 +422,14 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
   if ((error= pthread_mutex_lock(&server_con->thread->lock)) == 0)
   {
     GEARMAN_FIFO_ADD(server_con->io_packet, server_packet,);
-    if ((error= pthread_mutex_unlock(&(server_con->thread->lock))) == -1)
+    if ((error= pthread_mutex_unlock(&(server_con->thread->lock))))
     {
-      gearmand_perror(error, "pthread_mutex_unlock()");
-      assert(!"pthread_mutex_lock");
+      gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock() failed");
     }
   }
   else
   {
-    gearmand_perror(error, "pthread_mutex_lock");
-    assert(!"pthread_mutex_lock");
+    gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_lock() failed");
   }
 
   gearman_server_con_io_add(server_con);

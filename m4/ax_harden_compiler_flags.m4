@@ -91,7 +91,10 @@ AC_DEFUN([_HARDEN_CC_COMPILER_FLAGS],
            [_APPEND_COMPILE_FLAGS_ERROR([-g])
            _APPEND_COMPILE_FLAGS_ERROR([-O2])])
 
-         _APPEND_COMPILE_FLAGS_ERROR([-Wno-pragmas])
+         AS_IF([test "x$ac_cv_vcs_checkout" = xyes],
+           [_APPEND_COMPILE_FLAGS_ERROR([-fstack-check])],
+           [_APPEND_COMPILE_FLAGS_ERROR([-Wno-pragmas])])
+
          _APPEND_COMPILE_FLAGS_ERROR([-Wall])
          _APPEND_COMPILE_FLAGS_ERROR([-Wextra])
          _APPEND_COMPILE_FLAGS_ERROR([-Wunknown-pragmas])
@@ -148,17 +151,13 @@ AC_DEFUN([_HARDEN_CC_COMPILER_FLAGS],
 
           AS_IF([test "x$ax_enable_debug" = xno],
             [AS_IF([test "x$ac_cv_vcs_checkout" = xyes],
-                  [_APPEND_COMPILE_FLAGS_ERROR([-fstack-check])
-                  AS_IF([test "x$ac_c_gcc_recent" = xyes],
-                        [_APPEND_COMPILE_FLAGS_ERROR([-D_FORTIFY_SOURCE=2])
-                        _APPEND_COMPILE_FLAGS_ERROR([-Wstack-protector])
-                        _APPEND_COMPILE_FLAGS_ERROR([-fstack-protector])
-                        _APPEND_COMPILE_FLAGS_ERROR([-fstack-protector-all])
-                        ])])])
-
-         AS_IF([test "x$ac_cv_vcs_checkout" = xyes],
-               [_APPEND_COMPILE_FLAGS_ERROR([-fstack-check])],
-               [_APPEND_COMPILE_FLAGS_ERROR([-Wno-pragmas])])
+              [AS_IF([test "x${target_os}" != "xmingw32"],
+                [AS_IF([test "x$ac_c_gcc_recent" = xyes],
+                  [_APPEND_COMPILE_FLAGS_ERROR([-D_FORTIFY_SOURCE=2])
+                  #_APPEND_COMPILE_FLAGS_ERROR([-Wstack-protector])
+                  #_APPEND_COMPILE_FLAGS_ERROR([-fstack-protector])
+                  _APPEND_COMPILE_FLAGS_ERROR([-fstack-protector-all])
+                  ])])])])
 
          AS_IF([test "x$ac_cv_warnings_as_errors" = xyes],
              [AX_APPEND_FLAG([-Werror])])
@@ -231,13 +230,13 @@ AC_DEFUN([_HARDEN_CXX_COMPILER_FLAGS],
 
           AS_IF([test "x$ax_enable_debug" = xno],
           [AS_IF([test "x$ac_cv_vcs_checkout" = xyes],
-                [_APPEND_COMPILE_FLAGS_ERROR([-fstack-check])
-                AS_IF([test "x$ac_c_gcc_recent" = xyes],
-                      [_APPEND_COMPILE_FLAGS_ERROR([-D_FORTIFY_SOURCE=2])
-                      _APPEND_COMPILE_FLAGS_ERROR([-Wstack-protector])
-                      _APPEND_COMPILE_FLAGS_ERROR([-fstack-protector])
-                      _APPEND_COMPILE_FLAGS_ERROR([-fstack-protector-all])
-                      ])])])
+            [AS_IF([test "x${target_os}" != "xmingw32"],
+              [AS_IF([test "x$ac_c_gcc_recent" = xyes],
+                [_APPEND_COMPILE_FLAGS_ERROR([-D_FORTIFY_SOURCE=2])
+                #_APPEND_COMPILE_FLAGS_ERROR([-Wstack-protector])
+                #_APPEND_COMPILE_FLAGS_ERROR([-fstack-protector])
+                _APPEND_COMPILE_FLAGS_ERROR([-fstack-protector-all])
+                ])])])])
 
           AS_IF([test "x$ac_cv_warnings_as_errors" = xyes],
                 [AX_APPEND_FLAG([-Werror])])
