@@ -93,7 +93,7 @@ static void _clear_events(gearmand_st *gearmand);
 static void _close_events(gearmand_st *gearmand);
 
 static bool gearman_server_create(gearman_server_st& server,
-                                  uint8_t job_retries,
+                                  const uint32_t job_retries,
                                   const char *job_handle_prefix,
                                   uint8_t worker_wakeup,
                                   bool round_robin,
@@ -194,7 +194,7 @@ gearmand_st *Gearmand(void)
 gearmand_st *gearmand_create(const char *host_arg,
                              uint32_t threads_arg,
                              int backlog_arg,
-                             uint8_t job_retries,
+                             const uint32_t job_retries,
                              const char *job_handle_prefix,
                              uint8_t worker_wakeup,
                              gearmand_log_fn *log_function, void *log_context, const gearmand_verbose_t verbose_arg,
@@ -202,8 +202,6 @@ gearmand_st *gearmand_create(const char *host_arg,
                              bool exceptions_,
                              uint32_t hashtable_buckets)
 {
-  gearmand_st *gearmand;
-
   assert(_global_gearmand == NULL);
   if (_global_gearmand)
   {
@@ -211,14 +209,16 @@ gearmand_st *gearmand_create(const char *host_arg,
     _exit(EXIT_FAILURE);
   }
 
-  gearmand= new (std::nothrow) gearmand_st;
+  gearmand_st* gearmand= new (std::nothrow) gearmand_st;
   if (gearmand == NULL)
   {
     gearmand_perror(errno, "Failed to new() gearmand_st");
     return NULL;
   }
 
-  if (gearman_server_create(gearmand->server, job_retries, job_handle_prefix, worker_wakeup, round_robin, hashtable_buckets) == false)
+  if (gearman_server_create(gearmand->server, job_retries,
+                            job_handle_prefix, worker_wakeup,
+                            round_robin, hashtable_buckets) == false)
   {
     delete gearmand;
     return NULL;
@@ -1145,7 +1145,7 @@ bool gearmand_verbose_check(const char *name, gearmand_verbose_t& level)
 }
 
 static bool gearman_server_create(gearman_server_st& server, 
-                                  uint8_t job_retries_arg,
+                                  const uint32_t job_retries_arg,
                                   const char *job_handle_prefix,
                                   uint8_t worker_wakeup_arg,
                                   bool round_robin_arg,

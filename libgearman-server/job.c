@@ -351,7 +351,7 @@ gearmand_error_t gearman_server_job_queue(gearman_server_job_st *job)
   if (job->worker)
   {
     job->retries++;
-    if (Server->job_retries == job->retries)
+    if (Server->job_retries != 0 && Server->job_retries == job->retries)
     {
       gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM,
                          "Dropped job due to max retry count: %s %.*s",
@@ -390,8 +390,8 @@ gearmand_error_t gearman_server_job_queue(gearman_server_job_st *job)
       return GEARMAN_SUCCESS;
     }
 
-    GEARMAN_LIST_DEL(job->worker->job, job, worker_)
-      job->worker= NULL;
+    GEARMAN_LIST_DEL(job->worker->job, job, worker_);
+    job->worker= NULL;
     job->function->job_running--;
     job->function_next= NULL;
     job->numerator= 0;
@@ -445,7 +445,3 @@ gearmand_error_t gearman_server_job_queue(gearman_server_job_st *job)
 
   return GEARMAN_SUCCESS;
 }
-
-/*
- * Private definitions
- */

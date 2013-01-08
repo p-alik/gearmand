@@ -93,7 +93,7 @@ struct gearman_server_st
   bool shutdown_graceful;
   bool proc_wakeup;
   bool proc_shutdown;
-  uint8_t job_retries; // Set maximum job retry count.
+  uint32_t job_retries; // Set maximum job retry count.
   uint8_t worker_wakeup; // Set maximum number of workers to wake up per job.
   uint32_t job_handle_count;
   uint32_t thread_count;
