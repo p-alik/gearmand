@@ -103,3 +103,10 @@ gdb-client: tests/libgearman-1.0/client_test gearmand/gearmand
 valgrind-client: tests/libgearman-1.0/client_test gearmand/gearmand
 	@$(VALGRIND_COMMAND) tests/libgearman-1.0/client_test
 
+tests_libgearman_1_0_1077917_SOURCES= tests/libgearman-1.0/1077917.c
+tests_libgearman_1_0_1077917_LDADD= libgearman/libgearman.la
+check_PROGRAMS+= tests/libgearman-1.0/1077917
+noinst_PROGRAMS+= tests/libgearman-1.0/1077917
+
+valgrind-1077917: tests/libgearman-1.0/1077917
+	@$(VALGRIND_COMMAND) --leak-check=full --show-reachable=yes --track-origins=yes tests/libgearman-1.0/1077917
