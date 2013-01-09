@@ -93,9 +93,11 @@ static void _clear_events(gearmand_st *gearmand);
 static void _close_events(gearmand_st *gearmand);
 
 static bool gearman_server_create(gearman_server_st& server,
-                                  uint8_t job_retries,
+                                  const uint32_t job_retries,
+                                  const char *job_handle_prefix,
                                   uint8_t worker_wakeup,
-                                  bool round_robin);
+                                  bool round_robin,
+                                  uint32_t hashtable_buckets);
 static void gearmand_set_log_fn(gearmand_st *gearmand, gearmand_log_fn *function,
                                 void *context, const gearmand_verbose_t verbose);
 
@@ -105,7 +107,7 @@ static void gearman_server_free(gearman_server_st& server)
   /* All threads should be cleaned up before calling this. */
   assert(server.thread_list == NULL);
 
-  for (uint32_t key= 0; key < GEARMAND_JOB_HASH_SIZE; key++)
+  for (uint32_t key= 0; key < server.hashtable_buckets; key++)
   {
     while (server.job_hash[key] != NULL)
     {
@@ -161,6 +163,9 @@ static void gearman_server_free(gearman_server_st& server)
   {
     gearmand_debug("Unknown queue type in removal");
   }
+
+  free(server.job_hash);
+  free(server.unique_hash);
 }
 
 /** @} */
@@ -189,14 +194,14 @@ gearmand_st *Gearmand(void)
 gearmand_st *gearmand_create(const char *host_arg,
                              uint32_t threads_arg,
                              int backlog_arg,
-                             uint8_t job_retries,
+                             const uint32_t job_retries,
+                             const char *job_handle_prefix,
                              uint8_t worker_wakeup,
                              gearmand_log_fn *log_function, void *log_context, const gearmand_verbose_t verbose_arg,
                              bool round_robin,
-                             bool exceptions_)
+                             bool exceptions_,
+                             uint32_t hashtable_buckets)
 {
-  gearmand_st *gearmand;
-
   assert(_global_gearmand == NULL);
   if (_global_gearmand)
   {
@@ -204,14 +209,16 @@ gearmand_st *gearmand_create(const char *host_arg,
     _exit(EXIT_FAILURE);
   }
 
-  gearmand= new (std::nothrow) gearmand_st;
+  gearmand_st* gearmand= new (std::nothrow) gearmand_st;
   if (gearmand == NULL)
   {
-    gearmand_merror("new", gearmand_st, 0);
+    gearmand_perror(errno, "Failed to new() gearmand_st");
     return NULL;
   }
 
-  if (gearman_server_create(gearmand->server, job_retries, worker_wakeup, round_robin) == false)
+  if (gearman_server_create(gearmand->server, job_retries,
+                            job_handle_prefix, worker_wakeup,
+                            round_robin, hashtable_buckets) == false)
   {
     delete gearmand;
     return NULL;
@@ -697,8 +704,7 @@ static gearmand_error_t _listen_init(gearmand_st *gearmand)
     /* Report last socket() error if we couldn't find an address to bind. */
     if (port->listen_fd == NULL)
     {
-      gearmand_fatal("Could not bind/listen to any addresses");
-      return GEARMAN_ERRNO;
+      return gearmand_log_fatal(GEARMAN_DEFAULT_LOG_PARAM, "Could not bind/listen to any addresses");
     }
 
     port->listen_event= (struct event *)malloc(sizeof(struct event) * port->listen_count);
@@ -1139,12 +1145,12 @@ bool gearmand_verbose_check(const char *name, gearmand_verbose_t& level)
 }
 
 static bool gearman_server_create(gearman_server_st& server, 
-                                  uint8_t job_retries_arg,
+                                  const uint32_t job_retries_arg,
+                                  const char *job_handle_prefix,
                                   uint8_t worker_wakeup_arg,
-                                  bool round_robin_arg)
+                                  bool round_robin_arg,
+                                  uint32_t hashtable_buckets)
 {
-  struct utsname un;
-
   server.state.queue_startup= false;
   server.flags.round_robin= round_robin_arg;
   server.flags.threaded= false;
@@ -1173,20 +1179,42 @@ static bool gearman_server_create(gearman_server_st& server,
   server.queue.object= NULL;
   server.queue.functions= NULL;
 
-  memset(server.job_hash, 0,
-         sizeof(gearman_server_job_st *) * GEARMAND_JOB_HASH_SIZE);
-  memset(server.unique_hash, 0,
-         sizeof(gearman_server_job_st *) * GEARMAND_JOB_HASH_SIZE);
-
-  if (uname(&un) == -1)
+  server.hashtable_buckets= hashtable_buckets;
+  server.job_hash= (gearman_server_job_st **) calloc(hashtable_buckets, sizeof(gearman_server_job_st *));
+  if (server.job_hash == NULL)
   {
-    gearman_server_free(server);
+    gearmand_perror(errno, "calloc(hashtable_buckets, sizeof(gearman_server_job_st *)");
     return false;
   }
 
-  int checked_length= snprintf(server.job_handle_prefix, GEARMAND_JOB_HANDLE_SIZE, "H:%s", un.nodename);
-  if (checked_length >= GEARMAND_JOB_HANDLE_SIZE or checked_length <= 0)
+  server.unique_hash= (gearman_server_job_st **) calloc(hashtable_buckets, sizeof(gearman_server_job_st *));
+  if (server.unique_hash == NULL)
   {
+    gearmand_perror(errno, "calloc(hashtable_buckets, sizeof(gearman_server_job_st *)");
+    return false;
+  }
+
+  int checked_length= -1;
+  if (job_handle_prefix)
+  {
+    checked_length= snprintf(server.job_handle_prefix, GEARMAND_JOB_HANDLE_SIZE, "%s", job_handle_prefix);
+  }
+  else
+  {
+    struct utsname un;
+    if (uname(&un) == -1)
+    {
+      gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, errno, "uname(&un) failed");
+      gearman_server_free(server);
+      return false;
+    }
+    checked_length= snprintf(server.job_handle_prefix, GEARMAND_JOB_HANDLE_SIZE, "H:%s", un.nodename);
+  }
+
+  if (checked_length >= GEARMAND_JOB_HANDLE_SIZE || checked_length < 0)
+  {
+    gearmand_log_fatal(GEARMAN_DEFAULT_LOG_PARAM, "Available length %d not enough to store job handle prefix %s",
+                       GEARMAND_JOB_HANDLE_SIZE, server.job_handle_prefix);
     gearman_server_free(server);
     return false;
   }

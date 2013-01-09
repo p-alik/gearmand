@@ -153,16 +153,13 @@ EXTRA_libtest_libtest_la_DEPENDENCIES+=libtest/wait
 # Declare unittest so that we can append to it
 libtest_unittest_CXXFLAGS=
 libtest_unittest_LDADD=
+libtest_libtest_la_LDFLAGS=
 
 # We are either building in tree, or with
 libtest_libtest_la_SOURCES+= libtest/memcached.cc
 
-if HAVE_LIBDRIZZLE
-
-libtest_libtest_la_LIBADD+= $(libdrizzle_LIBS)
-libtest_libtest_la_CXXFLAGS+= $(libdrizzle_CFLAGS)
-
-endif
+libtest_libtest_la_LDFLAGS+= @LIBDRIZZLE_LDFLAGS@
+libtest_libtest_la_LIBADD+= @LIBDRIZZLE_LIB@
 
 libtest_libtest_la_SOURCES+= libtest/gearmand.cc
 

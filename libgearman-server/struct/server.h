@@ -93,7 +93,7 @@ struct gearman_server_st
   bool shutdown_graceful;
   bool proc_wakeup;
   bool proc_shutdown;
-  uint8_t job_retries; // Set maximum job retry count.
+  uint32_t job_retries; // Set maximum job retry count.
   uint8_t worker_wakeup; // Set maximum number of workers to wake up per job.
   uint32_t job_handle_count;
   uint32_t thread_count;
@@ -116,6 +116,7 @@ struct gearman_server_st
   pthread_cond_t proc_cond;
   pthread_t proc_id;
   char job_handle_prefix[GEARMAND_JOB_HANDLE_SIZE];
-  gearman_server_job_st *job_hash[GEARMAND_JOB_HASH_SIZE];
-  gearman_server_job_st *unique_hash[GEARMAND_JOB_HASH_SIZE];
+  uint32_t hashtable_buckets;
+  gearman_server_job_st **job_hash;
+  gearman_server_job_st **unique_hash;
 };
