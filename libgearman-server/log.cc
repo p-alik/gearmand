@@ -207,7 +207,7 @@ static void gearmand_log(const char *position, const char *func /* func */,
 }
 
 
-void gearmand_log_fatal(const char *position, const char *func, const char *format, ...)
+gearmand_error_t gearmand_log_fatal(const char *position, const char *func, const char *format, ...)
 {
   va_list args;
 
@@ -217,6 +217,10 @@ void gearmand_log_fatal(const char *position, const char *func, const char *form
     gearmand_log(position, func, GEARMAND_VERBOSE_FATAL, GEARMAN_SUCCESS, format, args);
     va_end(args);
   }
+
+  assert_vmsg(false, format, args);
+
+  return GEARMAN_ERRNO;
 }
 
 gearmand_error_t gearmand_log_fatal_perror(const char *position, const char *function, int local_errno,  const char *message)

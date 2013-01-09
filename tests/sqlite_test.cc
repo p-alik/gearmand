@@ -599,6 +599,12 @@ static test_return_t lp_1054377x200_TEST(void* object)
   return queue_restart_TEST(test, 200, 200);
 }
 
+static test_return_t skip_SETUP(void*)
+{
+  SKIP_IF(true);
+  return TEST_SUCCESS;
+}
+
 static void *world_create(server_startup_st& servers, test_return_t&)
 {
   SKIP_IF(HAVE_UUID_UUID_H != 1);
@@ -649,7 +655,7 @@ collection_st collection[] ={
   {"gearmand options", 0, 0, gearmand_basic_option_tests},
   {"sqlite queue", collection_init, collection_cleanup, tests},
   {"queue regression", collection_init, collection_cleanup, regressions},
-  {"queue restart", 0, 0, queue_restart_TESTS},
+  {"queue restart", skip_SETUP, 0, queue_restart_TESTS},
 #if 0
   {"sqlite queue change table", collection_init, collection_cleanup, tests},
 #endif

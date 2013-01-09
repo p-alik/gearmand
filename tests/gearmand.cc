@@ -408,6 +408,22 @@ static test_return_t long_job_retries_test(void *)
   return TEST_SUCCESS;
 }
 
+static test_return_t job_handle_prefix_TEST(void *)
+{
+  const char *args[]= { "--check-args", "--job-handle-prefix=my_own_private_handle", 0 };
+
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  return TEST_SUCCESS;
+}
+
+static test_return_t hashtable_buckets_TEST(void *)
+{
+  const char *args[]= { "--check-args", "--hashtable-buckets=2000", 0 };
+
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  return TEST_SUCCESS;
+}
+
 static test_return_t short_job_retries_test(void *)
 {
   const char *args[]= { "--check-args", "-j", "6", 0 };
@@ -563,6 +579,8 @@ test_st gearmand_option_tests[] ={
   {"--protocol=", 0, protocol_test},
   {"--queue-type=", 0, queue_test},
   {"--job-retries=", 0, long_job_retries_test},
+  {"-hashtable-buckets", 0, hashtable_buckets_TEST},
+  {"--job-handle-prefix=", 0, job_handle_prefix_TEST},
   {"-j", 0, short_job_retries_test},
   {"--config-file=etc/gearmand.conf no file present", 0, config_file_TEST },
   {"--config-file", 0, config_file_DEFAULT_TEST },
