@@ -38,6 +38,7 @@
 #include "gear_config.h"
 #include <libgearman/common.h>
 
+#include <cstdio>
 #include <cstring>
 
 namespace libgearman {

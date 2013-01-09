@@ -13,6 +13,7 @@
 tests_drizzle_test_CXXFLAGS=
 tests_drizzle_test_SOURCES=
 tests_drizzle_test_LDADD=
+tests_drizzle_test_LDFLAGS=
 
 tests_drizzle_test_SOURCES+= tests/basic.cc
 tests_drizzle_test_SOURCES+= tests/drizzle_test.cc
@@ -21,10 +22,8 @@ tests_drizzle_test_LDADD+= libgearman/libgearman.la
 tests_drizzle_test_LDADD+= libtest/libtest.la
 tests_drizzle_test_LDADD+= tests/libstartworker.la
 
-if HAVE_LIBDRIZZLE
-tests_drizzle_test_LDADD+= $(libdrizzle_LIBS)
-tests_drizzle_test_CXXFLAGS+= $(libdrizzle_CFLAGS)
-endif
+tests_drizzle_test_LDFLAGS+= @LIBDRIZZLE_LDFLAGS@
+tests_drizzle_test_LDADD+= @LIBDRIZZLE_LIB@
 
 check_PROGRAMS += tests/drizzle_test
 noinst_PROGRAMS += tests/drizzle_test

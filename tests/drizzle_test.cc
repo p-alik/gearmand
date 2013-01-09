@@ -25,7 +25,7 @@ using namespace libtest;
 #define WORKER_FUNCTION "drizzle_queue_test"
 
 #if defined(HAVE_LIBDRIZZLE) && HAVE_LIBDRIZZLE
-#include <libdrizzle-1.0/drizzle_client.h>
+#include <libdrizzle-5.1/drizzle_client.h>
 #endif
 
 static in_port_t drizzled_port= 0;

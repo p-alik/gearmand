@@ -175,8 +175,7 @@ gearmand_error_t gearmand_thread_create(gearmand_st *gearmand)
 
   thread->count= gearmand->thread_count;
 
-  int pthread_ret;
-  pthread_ret= pthread_mutex_init(&(thread->lock), NULL);
+  int pthread_ret= pthread_mutex_init(&(thread->lock), NULL);
   if (pthread_ret != 0)
   {
     thread->count= 0;

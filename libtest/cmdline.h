@@ -48,11 +48,11 @@
 #endif
 
 #ifndef EX_NOEXEC
-#  define EX_NOEXEC 126
+# define EX_NOEXEC 126
 #endif
 
 #ifndef EX_NOTFOUND
-#  define EX_NOTFOUND 127
+# define EX_NOTFOUND 127
 #endif
 
 namespace libtest {

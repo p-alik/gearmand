@@ -67,7 +67,7 @@ void gearmand_initialize_thread_logging(const char *identity);
  * Log a fatal message, see gearmand_log() for argument details.
  */
 GEARMAN_INTERNAL_API
-void gearmand_log_fatal(const char *position, const char *func, const char *format, ...);
+gearmand_error_t gearmand_log_fatal(const char *position, const char *func, const char *format, ...);
 #define gearmand_fatal(_mesg) gearmand_log_fatal(GEARMAN_DEFAULT_LOG_PARAM, (_mesg))
 
 GEARMAN_INTERNAL_API
