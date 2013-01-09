@@ -210,8 +210,8 @@ Drizzle::Drizzle () :
   _epoch_support(true)
 {
   command_line_options().add_options()
-  ("libdrizzle-host", boost::program_options::value(&host)->default_value("localhost"), "Host of server.")
-  ("libdrizzle-port", boost::program_options::value(&port)->default_value(4427), "Port of server. (by default Drizzle)")
+  ("libdrizzle-host", boost::program_options::value(&host)->default_value(DRIZZLE_DEFAULT_TCP_HOST), "Host of server.")
+  ("libdrizzle-port", boost::program_options::value(&port)->default_value(DRIZZLE_DEFAULT_TCP_PORT), "Port of server. (by default Drizzle)")
   ("libdrizzle-uds", boost::program_options::value(&uds), "Unix domain socket for server.")
   ("libdrizzle-user", boost::program_options::value(&user)->default_value("root"), "User name for authentication.")
   ("libdrizzle-password", boost::program_options::value(&password), "Password for authentication.")

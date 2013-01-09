@@ -71,7 +71,7 @@ namespace libtest {
 bool ping_drizzled(const in_port_t _port)
 {
   (void)(_port);
-#if defined(HAVE_LIBDRIZZLE)
+#if defined(HAVE_LIBDRIZZLE) && HAVE_LIBDRIZZLE
   if (HAVE_LIBDRIZZLE)
   {
     drizzle_st *drizzle= drizzle_create_tcp(getenv("MYSQL_SERVER"),
