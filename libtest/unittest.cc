@@ -935,7 +935,6 @@ static test_return_t check_for_gearman(void *)
 
 static test_return_t check_for_drizzle(void *)
 {
-  test_skip(true, HAVE_LIBDRIZZLE);
   test_skip(true, has_drizzled());
 
   testing_service= "drizzled";
