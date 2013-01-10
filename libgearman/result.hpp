@@ -105,4 +105,8 @@ struct gearman_result_st
       gearman_string_free(&value.string);
     }
   }
+
+private:
+  gearman_result_st( const gearman_result_st& );
+  const gearman_result_st& operator=( const gearman_result_st& );
 };
