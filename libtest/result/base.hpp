@@ -2,7 +2,7 @@
  *
  *  Data Differential YATL (i.e. libtest)  library
  *
- *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2012-2013 Data Differential, http://datadifferential.com/
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -41,11 +41,11 @@ namespace libtest {
 class __test_result : public std::exception
 {
 public:
-  explicit __test_result(const char *file, int line, const char *func);
-
-  __test_result(const char *file, int line, const char *func, va_list);
+  __test_result(const char *file, int line, const char *func);
 
   __test_result( const __test_result& );
+
+  virtual ~__test_result() throw();
 
   virtual const char* what() const throw()
   {

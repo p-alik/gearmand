@@ -2,7 +2,7 @@
  *
  *  Data Differential YATL (i.e. libtest)  library
  *
- *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2012-2013 Data Differential, http://datadifferential.com/
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -58,6 +58,11 @@ void __test_result::init(va_list args_)
   {
     _error_message_size++;
   }
+}
+
+__test_result::~__test_result() throw()
+{
+  free(_error_message);
 }
 
 __test_result::__test_result(const __test_result& other) :
