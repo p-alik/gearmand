@@ -1,8 +1,9 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
+ * 
+ *  DataDifferential Utility Library
  *
- *  Data Differential YATL (i.e. libtest)  library
- *
- *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2013 Data Differential, http://datadifferential.com/
+ *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -36,38 +37,26 @@
 
 #pragma once
 
-#include <cstdlib>
-#include <ctime>
-#include <iostream>
+namespace org {
+namespace tangent {
+namespace util {
 
+namespace noncopyable_
+{
+  class noncopyable
+  {
+  protected:
+    noncopyable() {}
+    ~noncopyable() {}
 
-namespace libtest {
+  private:
+    noncopyable( const noncopyable& );
+    const noncopyable& operator=( const noncopyable& );
+  };
+}
 
-class Timer {
-public:
+typedef noncopyable_::noncopyable noncopyable;
 
-  Timer();
-
-  void reset();
-
-  void sample();
-
-  void offset(int64_t minutes_arg, int64_t seconds_arg, int64_t nanoseconds);
-
-  int64_t minutes();
-
-  uint64_t elapsed_milliseconds() const;
-
-  void difference(struct timespec& arg) const;
-
-private:
-  void _time(struct timespec& ts);
-
-private:
-  struct timespec _begin;
-  struct timespec _end;
-};
-
-std::ostream& operator<<(std::ostream& output, const libtest::Timer& arg);
-
-} // namespace libtest
+} // namespace util
+} // namespace tangent
+} // namespace org

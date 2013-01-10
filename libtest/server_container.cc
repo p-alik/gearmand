@@ -347,7 +347,7 @@ bool server_startup_st::_start_server(const bool is_socket,
       set_default_socket(server->socket().c_str());
     }
   }
-  catch (libtest::disconnected& err)
+  catch (const libtest::disconnected& err)
   {
     if (fatal::is_disabled() == false and try_port != LIBTEST_FAIL_PORT)
     {
@@ -355,12 +355,12 @@ bool server_startup_st::_start_server(const bool is_socket,
       return false;
     }
   }
-  catch (libtest::__test_result& err)
+  catch (const libtest::__test_result& err)
   {
     stream::cerr(err.file(), err.line(), err.func()) << err.what();
     return false;
   }
-  catch (std::exception& err)
+  catch (const std::exception& err)
   {
     Error << err.what();
     return false;

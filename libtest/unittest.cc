@@ -111,7 +111,7 @@ static test_return_t test_throw_success_TEST(void *)
   try {
     _SUCCESS;
   }
-  catch (libtest::__success)
+  catch (const libtest::__success&)
   {
     return TEST_SUCCESS;
   }
@@ -128,7 +128,7 @@ static test_return_t test_throw_skip_macro_TEST(void *)
   try {
     SKIP_IF(true);
   }
-  catch (libtest::__skipped e)
+  catch (const libtest::__skipped&)
   {
     return TEST_SUCCESS;
   }
@@ -147,7 +147,7 @@ static test_return_t test_throw_skip_TEST(void *)
   try {
     throw libtest::__skipped(LIBYATL_DEFAULT_PARAM, "basic test");
   }
-  catch (libtest::__skipped e)
+  catch (const libtest::__skipped&)
   {
     return TEST_SUCCESS;
   }

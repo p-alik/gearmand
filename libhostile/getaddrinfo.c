@@ -53,12 +53,26 @@
 
 static int not_until= 500;
 
-static struct function_st __function;
+static struct function_st __function_getaddrinfo;
 
 static pthread_once_t function_lookup_once= PTHREAD_ONCE_INIT;
 static void set_local(void)
 {
-  __function= set_function("getaddrinfo", "HOSTILE_GETADDRINFO");
+  __function_getaddrinfo= set_function("getaddrinfo", "HOSTILE_GETADDRINFO");
+}
+
+void set_getaddrinfo_error(bool arg, int frequency, int not_until_arg)
+{
+  if (arg)
+  {
+    __function_getaddrinfo.frequency= frequency;
+    not_until= not_until_arg;
+  }
+  else
+  {
+    __function_getaddrinfo.frequency= 0;
+    not_until= 0;
+  }
 }
 
 int getaddrinfo(const char *node, const char *service,
@@ -71,20 +85,25 @@ int getaddrinfo(const char *node, const char *service,
 
   if (is_called() == false)
   {
-    if (__function.frequency)
+    if (__function_getaddrinfo.frequency)
     {
-      if (--not_until < 0 && random() % __function.frequency)
+      if (--not_until < 0 && random() % __function_getaddrinfo.frequency)
       {
 #if 0
         perror("HOSTILE CLOSE() of socket during getaddrinfo()");
 #endif
+        if (random() % 2)
+        {
+          return EAI_AGAIN;
+        }
+
         return EAI_FAIL;
       }
     }
   }
 
   set_called();
-  int ret= __function.function.getaddrinfo(node, service, hints, res);
+  int ret= __function_getaddrinfo.function.getaddrinfo(node, service, hints, res);
   reset_called();
 
   return ret;

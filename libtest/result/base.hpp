@@ -41,34 +41,46 @@ namespace libtest {
 class __test_result : public std::exception
 {
 public:
-  __test_result(const char *file, int line, const char *func);
+  explicit __test_result(const char *file, int line, const char *func);
 
-  __test_result( const __test_result& other ) :
-    _line(other._line),
-    _file(other._file),
-    _func(other._func)
+  __test_result(const char *file, int line, const char *func, va_list);
+
+  __test_result( const __test_result& );
+
+  virtual const char* what() const throw()
   {
+    if (_error_message)
+    {
+      return _error_message;
+    }
+
+    return "";
   }
 
-  int line()
+  int line() const
   {
     return _line;
   }
 
-  const char*  file()
+  const char*  file() const
   {
     return _file;
   }
 
-  const char* func()
+  const char* func() const
   {
     return _func;
   }
+
+protected:
+  void init(va_list);
 
 private:
   int _line;
   const char*  _file;
   const char* _func;
+  char* _error_message;
+  int _error_message_size;
 };
 
 } // namespace libtest

@@ -226,6 +226,7 @@ AC_DEFUN([_HARDEN_CXX_COMPILER_FLAGS],
           _APPEND_COMPILE_FLAGS_ERROR([-floop-parallelize-all])
           _APPEND_COMPILE_FLAGS_ERROR([-fwrapv])
           _APPEND_COMPILE_FLAGS_ERROR([-fmudflapt])
+          #_APPEND_COMPILE_FLAGS_ERROR([-Weffc++])
           _APPEND_COMPILE_FLAGS_ERROR([-pipe])
 
           AS_IF([test "x$ax_enable_debug" = xno],
