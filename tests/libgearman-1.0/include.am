@@ -42,6 +42,24 @@ tests_libgearman_1_0_client_test_LDADD+= ${LIBGEARMAN_1_0_CLIENT_LDADD}
 check_PROGRAMS+=tests/libgearman-1.0/client_test
 noinst_PROGRAMS+=tests/libgearman-1.0/client_test
 
+tests_libgearman_1_0_multi_client_test_CXXFLAGS=
+tests_libgearman_1_0_multi_client_test_SOURCES=
+tests_libgearman_1_0_multi_client_test_LDADD=
+
+tests_libgearman_1_0_multi_client_test_SOURCES+= tests/libgearman-1.0/multi_client_test.cc 
+tests_libgearman_1_0_multi_client_test_LDADD+= ${LIBGEARMAN_1_0_CLIENT_LDADD}
+check_PROGRAMS+=tests/libgearman-1.0/multi_client_test
+noinst_PROGRAMS+=tests/libgearman-1.0/multi_client_test
+
+test-multi-client: tests/libgearman-1.0/multi_client_test gearmand/gearmand
+	@tests/libgearman-1.0/multi_client_test
+
+gdb-multi-client: tests/libgearman-1.0/multi_client_test gearmand/gearmand
+	@$(GDB_COMMAND) tests/libgearman-1.0/multi_client_test
+
+valgrind-multi-client: tests/libgearman-1.0/multi_client_test gearmand/gearmand
+	@$(VALGRIND_COMMAND) tests/libgearman-1.0/multi_client_test
+
 tests_libgearman_1_0_internals_test_SOURCES=
 tests_libgearman_1_0_internals_test_LDADD=
 
