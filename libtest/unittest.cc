@@ -896,7 +896,7 @@ static test_return_t create_tmpfile_TEST(void *)
 static test_return_t fatal_message_TEST(void *)
 {
   ASSERT_EQ(fatal_calls++, fatal::disabled_counter());
-  fatal_message("Fatal test");
+  FATAL("Fatal test");
 
   return TEST_SUCCESS;
 }
