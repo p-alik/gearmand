@@ -24,6 +24,7 @@ EXTRA_DIST=
 CLEANFILES=
 BUILT_SOURCES=
 TESTS=
+XFAIL_TESTS=
 .PHONY=
 dist_man_MANS=
 man_MANS=
@@ -53,7 +54,9 @@ include man/include.am
 
 include m4/include.am
 
+TESTS += $(bin_PROGRAMS)
 TESTS += $(check_PROGRAMS)
+XFAIL_TESTS += $(bin_PROGRAMS)
 
 EXTRA_DIST+= HACKING
 EXTRA_DIST+= scripts/README.solaris
