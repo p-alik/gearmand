@@ -159,7 +159,7 @@ test_return_t Collection::exec()
         break;
 
       default:
-        fatal_message("invalid return code");
+        FATAL("invalid return code");
       }
 #if 0
       @TODO add code here to allow for a collection to define a method to reset to allow tests to continue.
