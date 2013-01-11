@@ -1,13 +1,13 @@
 # vim:ft=automake
 
 noinst_HEADERS+= tests/libgearman-1.0/client_test.h
+noinst_HEADERS+= tests/libgearman-1.0/gearman_client_job_status_by_unique.h
+noinst_HEADERS+= tests/libgearman-1.0/multi_client_test.h
 
 LIBGEARMAN_1_0_CLIENT_LDADD=
 LIBGEARMAN_1_0_CLIENT_LDADD+= libgearman/libgearman.la
 LIBGEARMAN_1_0_CLIENT_LDADD+= libtest/libtest.la
 LIBGEARMAN_1_0_CLIENT_LDADD+= tests/libstartworker.la
-
-noinst_HEADERS+= tests/libgearman-1.0/gearman_client_job_status_by_unique.h
 
 tests_libgearman_1_0_client_test_CXXFLAGS=
 tests_libgearman_1_0_client_test_SOURCES=
@@ -15,7 +15,6 @@ tests_libgearman_1_0_client_test_LDADD=
 
 tests_libgearman_1_0_client_test_CXXFLAGS+= $(BOOST_CPPFLAGS)
 tests_libgearman_1_0_client_test_CXXFLAGS+= @PTHREAD_CFLAGS@
-tests_libgearman_1_0_client_test_LDADD+= @PTHREAD_LIBS@
 tests_libgearman_1_0_client_test_SOURCES+= tests/libgearman-1.0/client_test.cc 
 tests_libgearman_1_0_client_test_SOURCES+= tests/libgearman-1.0/do.cc 
 tests_libgearman_1_0_client_test_SOURCES+= tests/libgearman-1.0/do_background.cc 
@@ -39,6 +38,7 @@ tests_libgearman_1_0_client_test_SOURCES+= tests/workers/v2/sleep_return_random.
 tests_libgearman_1_0_client_test_SOURCES+= tests/workers/v2/split.cc
 tests_libgearman_1_0_client_test_SOURCES+= tests/workers/v2/unique.cc
 tests_libgearman_1_0_client_test_LDADD+= ${LIBGEARMAN_1_0_CLIENT_LDADD}
+tests_libgearman_1_0_client_test_LDADD+= @PTHREAD_LIBS@
 check_PROGRAMS+=tests/libgearman-1.0/client_test
 noinst_PROGRAMS+=tests/libgearman-1.0/client_test
 
