@@ -45,11 +45,11 @@ void gearmand_hash_server_add(gearman_server_st *server,
                               uint32_t key,
                               gearman_server_job_st *server_job)
 {
-  GEARMAN_HASH_ADD(server->job, key, server_job,);
+  GEARMAN_HASH__ADD(server->job, key, server_job);
 }
 
 void gearmand_hash_server_free(gearman_server_st *server,
 			       uint32_t key, gearman_server_job_st *server_job)
 {
-  GEARMAN_HASH_DEL(server->job, key, server_job,);
+  GEARMAN_HASH__DEL(server->job, key, server_job);
 }

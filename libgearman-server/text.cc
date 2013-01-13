@@ -421,7 +421,7 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
   int error;
   if ((error= pthread_mutex_lock(&server_con->thread->lock)) == 0)
   {
-    GEARMAN_FIFO_ADD(server_con->io_packet, server_packet,);
+    GEARMAN_FIFO__ADD(server_con->io_packet, server_packet);
     if ((error= pthread_mutex_unlock(&(server_con->thread->lock))))
     {
       gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock() failed");
