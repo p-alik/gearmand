@@ -37,6 +37,8 @@
 
 #pragma once
 
+#include <netdb.h>
+
 struct gearmand_port_st
 {
   char port[NI_MAXSERV];
@@ -44,5 +46,14 @@ struct gearmand_port_st
   gearmand_connection_add_fn *add_fn;
   int *listen_fd;
   struct event *listen_event;
+
+  gearmand_port_st() :
+    listen_count(0),
+    add_fn(NULL),
+    listen_fd(NULL),
+    listen_event(NULL)
+  {
+    port[0]= 0;
+  }
 };
 
