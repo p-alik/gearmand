@@ -69,7 +69,7 @@ struct Queue_st {
 
 struct gearman_server_st
 {
-  struct {
+  struct Flags {
     /*
       Sets the round-robin mode on the server object. RR will distribute work
       fairly among every function assigned to a worker, instead of draining
@@ -78,7 +78,7 @@ struct gearman_server_st
     bool round_robin;
     bool threaded;
   } flags;
-  struct {
+  struct State {
     bool queue_startup;
   } state;
   bool shutdown;
@@ -111,4 +111,12 @@ struct gearman_server_st
   uint32_t hashtable_buckets;
   gearman_server_job_st **job_hash;
   gearman_server_job_st **unique_hash;
+
+  gearman_server_st()
+  {
+  }
+
+  ~gearman_server_st()
+  {
+  }
 };
