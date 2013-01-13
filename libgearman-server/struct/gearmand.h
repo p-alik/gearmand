@@ -39,6 +39,11 @@
 
 #include "libgearman-server/struct/server.h"
 
+#include "libgearman-server/struct/port.h"
+
+#include <vector>
+#include <cstring>
+
 struct gearmand_st
 {
   gearmand_verbose_t verbose;
@@ -48,27 +53,64 @@ struct gearmand_st
   bool is_wakeup_event;
   bool _exceptions;
   int timeout;
-  uint32_t port_count;
   uint32_t threads;
   uint32_t thread_count;
   uint32_t free_dcon_count;
   uint32_t max_thread_free_dcon_count;
   int wakeup_fd[2];
-  const char *host;
+  char *host;
   gearmand_log_fn *log_fn;
   void *log_context;
   struct event_base *base;
-  struct gearmand_port_st *port_list;
   gearmand_thread_st *thread_list;
   gearmand_thread_st *thread_add_next;
   gearmand_con_st *free_dcon_list;
   gearman_server_st server;
   struct event wakeup_event;
+  std::vector<gearmand_port_st> _port_list;
+
+  gearmand_st(const char *host_,
+              uint32_t threads_,
+              int backlog_,
+              const gearmand_verbose_t verbose_,
+              bool exceptions_) :
+    verbose(verbose_),
+    ret(GEARMAN_SUCCESS),
+    backlog(backlog_),
+    is_listen_event(false),
+    is_wakeup_event(false),
+    _exceptions(exceptions_),
+    timeout(-1),
+    threads(threads_),
+    thread_count(0),
+    free_dcon_count(0),
+    max_thread_free_dcon_count(0),
+    host(NULL),
+    log_fn(NULL),
+    log_context(NULL),
+    base(NULL),
+    thread_list(NULL),
+    thread_add_next(NULL),
+    free_dcon_list(NULL)
+  {
+    if (host)
+    {
+      host= strdup(host_);
+    }
+    wakeup_fd[0]= -1;
+    wakeup_fd[1]= -1;
+  }
+
+  ~gearmand_st()
+  {
+    if (host)
+    {
+      free(host);
+    }
+  }
   
-#ifdef __cplusplus
   bool exceptions() const
   {
     return _exceptions;
   }
-#endif
 };
