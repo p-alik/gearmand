@@ -44,7 +44,6 @@ struct queue_st {
   gearman_queue_done_fn *_done_fn;
   gearman_queue_replay_fn *_replay_fn;
 
-#ifdef __cplusplus
   queue_st() :
     _context(NULL),
     _add_fn(NULL),
@@ -53,7 +52,6 @@ struct queue_st {
     _replay_fn(NULL)
   {
   }
-#endif
 };
 
 enum queue_version_t {
@@ -62,17 +60,11 @@ enum queue_version_t {
   QUEUE_VERSION_CLASS
 };
 
-#ifdef __cplusplus
 namespace gearmand { namespace queue { class Context; } }
-#endif
 
 struct Queue_st {
   struct queue_st* functions;
-#ifdef __cplusplus
   gearmand::queue::Context* object;
-#else
-  void *_object;
-#endif
 };
 
 struct gearman_server_st
