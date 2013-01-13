@@ -131,7 +131,7 @@ bool gearman_server_thread_init(gearman_server_st *server,
     return false;
   }
 
-  GEARMAN_LIST_ADD(server->thread, thread,);
+  GEARMAN_LIST__ADD(server->thread, thread);
 
   thread->gearman= &(thread->gearmand_connection_list_static);
   gearmand_connection_list_init(thread->gearman, event_watch, NULL);
@@ -169,7 +169,7 @@ void gearman_server_thread_free(gearman_server_thread_st *thread)
 
   pthread_mutex_destroy(&(thread->lock));
 
-  GEARMAN_LIST_DEL(Server->thread, thread,);
+  GEARMAN_LIST__DEL(Server->thread, thread);
 }
 
 void gearman_server_thread_set_run(gearman_server_thread_st *thread,

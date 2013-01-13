@@ -89,7 +89,7 @@ static gearmand_error_t _con_add(gearmand_thread_st *thread,
     }
   }
 
-  GEARMAN_LIST_ADD(thread->dcon, dcon,);
+  GEARMAN_LIST__ADD(thread->dcon, dcon);
 
   return GEARMAN_SUCCESS;
 }
@@ -109,7 +109,7 @@ gearmand_error_t gearmand_con_create(gearmand_st *gearmand, int fd,
   if (gearmand->free_dcon_count > 0)
   {
     dcon= gearmand->free_dcon_list;
-    GEARMAN_LIST_DEL(gearmand->free_dcon, dcon,);
+    GEARMAN_LIST__DEL(gearmand->free_dcon, dcon);
   }
   else
   {
@@ -156,7 +156,7 @@ gearmand_error_t gearmand_con_create(gearmand_st *gearmand, int fd,
   if (dcon->thread->dcon_add_count == 0 &&
       dcon->thread->free_dcon_count < gearmand->max_thread_free_dcon_count)
   {
-    GEARMAN_LIST_ADD(dcon->thread->dcon_add, dcon,);
+    GEARMAN_LIST__ADD(dcon->thread->dcon_add, dcon);
     gearmand_thread_wakeup(dcon->thread, GEARMAND_WAKEUP_CON);
   }
   else
@@ -167,7 +167,7 @@ gearmand_error_t gearmand_con_create(gearmand_st *gearmand, int fd,
     int error;
     if ((error= pthread_mutex_lock(&(dcon->thread->lock))) == 0)
     {
-      GEARMAN_LIST_ADD(dcon->thread->dcon_add, dcon,);
+      GEARMAN_LIST__ADD(dcon->thread->dcon_add, dcon);
 
       /* Take the free connection structures back to reuse. */
       free_dcon_list= dcon->thread->free_dcon_list;
@@ -198,8 +198,8 @@ gearmand_error_t gearmand_con_create(gearmand_st *gearmand, int fd,
     while (free_dcon_list != NULL)
     {
       dcon= free_dcon_list;
-      GEARMAN_LIST_DEL(free_dcon, dcon,);
-      GEARMAN_LIST_ADD(gearmand->free_dcon, dcon,);
+      GEARMAN_LIST__DEL(free_dcon, dcon);
+      GEARMAN_LIST__ADD(gearmand->free_dcon, dcon);
     }
   }
 
@@ -243,7 +243,7 @@ void gearmand_con_free(gearmand_con_st *dcon)
     gearman_server_con_attempt_free(dcon->server_con);
   }
 
-  GEARMAN_LIST_DEL(dcon->thread->dcon, dcon,);
+  GEARMAN_LIST__DEL(dcon->thread->dcon, dcon);
 
   gearmand_sockfd_close(dcon->fd);
 
@@ -251,7 +251,7 @@ void gearmand_con_free(gearmand_con_st *dcon)
   {
     if (Gearmand()->threads == 0)
     {
-      GEARMAN_LIST_ADD(Gearmand()->free_dcon, dcon,);
+      GEARMAN_LIST__ADD(Gearmand()->free_dcon, dcon);
     }
     else
     {
@@ -259,7 +259,7 @@ void gearmand_con_free(gearmand_con_st *dcon)
       int error;
       if ((error=  pthread_mutex_lock(&(dcon->thread->lock))) == 0)
       {
-        GEARMAN_LIST_ADD(dcon->thread->free_dcon, dcon,);
+        GEARMAN_LIST__ADD(dcon->thread->free_dcon, dcon);
         if ((error= pthread_mutex_unlock(&(dcon->thread->lock))))
         {
           gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock() failed");
@@ -293,7 +293,7 @@ void gearmand_con_check_queue(gearmand_thread_st *thread)
     if ((error= pthread_mutex_lock(&(thread->lock))) == 0)
     {
       gearmand_con_st *dcon= thread->dcon_add_list;
-      GEARMAN_LIST_DEL(thread->dcon_add, dcon,);
+      GEARMAN_LIST__DEL(thread->dcon_add, dcon);
 
       if ((error= pthread_mutex_unlock(&(thread->lock))))
       {

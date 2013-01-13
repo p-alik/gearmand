@@ -109,6 +109,15 @@ extern "C" {
   __list ## _count++; \
 }
 
+#define GEARMAN_LIST__ADD(__list, __obj) { \
+  if (__list ## _list != NULL) \
+    __list ## _list->prev= __obj; \
+  __obj->next= __list ## _list; \
+  __obj->prev= NULL; \
+  __list ## _list= __obj; \
+  __list ## _count++; \
+}
+
 /**
  * Delete an object from a list.
  * @ingroup gearman_constants
@@ -120,6 +129,16 @@ extern "C" {
     __obj->__prefix ## prev->__prefix ## next= __obj->__prefix ## next; \
   if (__obj->__prefix ## next != NULL) \
     __obj->__prefix ## next->__prefix ## prev= __obj->__prefix ## prev; \
+  __list ## _count--; \
+}
+
+#define GEARMAN_LIST__DEL(__list, __obj) { \
+  if (__list ## _list == __obj) \
+    __list ## _list= __obj->next; \
+  if (__obj->prev != NULL) \
+    __obj->prev->next= __obj->next; \
+  if (__obj->next != NULL) \
+    __obj->next->prev= __obj->prev; \
   __list ## _count--; \
 }
 

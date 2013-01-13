@@ -43,7 +43,7 @@
 
 void gearmand_thread_list_free(gearmand_thread_st *thread)
 {
-  GEARMAN_LIST_DEL(Gearmand()->thread, thread,);
+  GEARMAN_LIST__DEL(Gearmand()->thread, thread);
 }
 
 void gearmand_thread_list_add(gearmand_thread_st *thread)
@@ -54,7 +54,7 @@ void gearmand_thread_list_add(gearmand_thread_st *thread)
 void gearmand_server_list_free(gearman_server_st *server,
                                gearman_server_function_st *function)
 {
-  GEARMAN_LIST_DEL(server->function, function,);
+  GEARMAN_LIST__DEL(server->function, function);
 }
 
 void gearmand_server_list_add(gearman_server_st *server,
@@ -66,7 +66,7 @@ void gearmand_server_list_add(gearman_server_st *server,
 void gearmand_server_free_job_list_free(gearman_server_st *server,
                                         gearman_server_job_st *server_job)
 {
-  GEARMAN_LIST_DEL(server->free_job, server_job,);
+  GEARMAN_LIST__DEL(server->free_job, server_job);
 }
 
 void gearmand_server_job_list_add(gearman_server_st *server,
