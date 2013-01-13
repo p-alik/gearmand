@@ -42,25 +42,25 @@
 #include <libgearman-server/fifo.h>
 
 void gearmand_server_con_fifo_add(gearman_server_con_st *con,
-				  gearman_server_packet_st *server_packet)
+                                  gearman_server_packet_st *server_packet)
 {
   GEARMAN_FIFO_ADD(con->io_packet, server_packet,);
 }
 
 void gearmand_server_con_fifo_free(gearman_server_con_st *con,
-				   gearman_server_packet_st *server_packet)
+                                   gearman_server_packet_st *server_packet)
 {
   GEARMAN_FIFO_DEL(con->io_packet, server_packet,);
 }
 
 void gearmand_server_con_fifo_proc_add(gearman_server_con_st *con,
-				       gearman_server_packet_st *packet)
+                                       gearman_server_packet_st *packet)
 {
   GEARMAN_FIFO_ADD(con->proc_packet, packet,);
 }
 
 void gearmand_server_con_fifo_proc_free(gearman_server_con_st *con,
-					gearman_server_packet_st *packet)
+                                        gearman_server_packet_st *packet)
 {
   GEARMAN_FIFO_DEL(con->proc_packet, packet,);
 }

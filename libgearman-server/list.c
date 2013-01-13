@@ -48,7 +48,7 @@ void gearmand_thread_list_free(gearmand_thread_st *thread)
 
 void gearmand_thread_list_add(gearmand_thread_st *thread)
 {
-  GEARMAN_LIST_ADD(Gearmand()->thread, thread,)
+  GEARMAN_LIST_ADD(Gearmand()->thread, thread,);
 }
 
 void gearmand_server_list_free(gearman_server_st *server,

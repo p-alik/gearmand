@@ -59,7 +59,7 @@ gearman_server_client_add(gearman_server_con_st *con)
   if (Server->free_client_count > 0)
   {
     client= Server->free_client_list;
-    GEARMAN_LIST_DEL(Server->free_client, client, con_)
+    GEARMAN_LIST_DEL(Server->free_client, client, con_);
   }
   else
   {
@@ -79,7 +79,7 @@ gearman_server_client_add(gearman_server_con_st *con)
   }
 
   client->con= con;
-  GEARMAN_LIST_ADD(con->client, client, con_)
+  GEARMAN_LIST_ADD(con->client, client, con_);
 
   client->job= NULL;
   client->job_next= NULL;
@@ -95,11 +95,11 @@ void gearman_server_client_free(gearman_server_client_st *client)
     return;
   }
 
-  GEARMAN_LIST_DEL(client->con->client, client, con_)
+  GEARMAN_LIST_DEL(client->con->client, client, con_);
 
   if (client->job)
   {
-    GEARMAN_LIST_DEL(client->job->client, client, job_)
+    GEARMAN_LIST_DEL(client->job->client, client, job_);
 
     /* If this was a foreground job and is now abandoned, mark to not run. */
     if (client->job->client_list == NULL)

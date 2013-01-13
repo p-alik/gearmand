@@ -88,7 +88,7 @@ static gearman_server_con_st * _server_con_create(gearman_server_thread_st *thre
   if (thread->free_con_count > 0)
   {
     con= thread->free_con_list;
-    GEARMAN_LIST_DEL(thread->free_con, con,)
+    GEARMAN_LIST_DEL(thread->free_con, con,);
   }
   else
   {
@@ -279,7 +279,7 @@ void gearman_server_con_free(gearman_server_con_st *con)
 
   if (thread->free_con_count < GEARMAN_MAX_FREE_SERVER_CON)
   {
-    GEARMAN_LIST_ADD(thread->free_con, con,)
+    GEARMAN_LIST_ADD(thread->free_con, con,);
 
     con->is_cleaned_up = true;
     return;
@@ -381,7 +381,7 @@ void gearman_server_con_to_be_freed_add(gearman_server_con_st *con)
   }
   assert(lock_error == 0);
 
-  GEARMAN_LIST_ADD(con->thread->to_be_freed, con, to_be_freed_)
+  GEARMAN_LIST_ADD(con->thread->to_be_freed, con, to_be_freed_);
   con->to_be_freed_list = true;
 
   /* Looks funny, but need to check to_be_freed_count locked, but call run unlocked. */
@@ -419,7 +419,7 @@ gearman_server_con_st * gearman_server_con_to_be_freed_next(gearman_server_threa
     con= thread->to_be_freed_list;
     while (con != NULL)
     {
-      GEARMAN_LIST_DEL(thread->to_be_freed, con, to_be_freed_)
+      GEARMAN_LIST_DEL(thread->to_be_freed, con, to_be_freed_);
         if (con->to_be_freed_list)
         {
           con->to_be_freed_list= false;

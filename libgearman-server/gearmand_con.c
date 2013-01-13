@@ -89,7 +89,7 @@ static gearmand_error_t _con_add(gearmand_thread_st *thread,
     }
   }
 
-  GEARMAN_LIST_ADD(thread->dcon, dcon,)
+  GEARMAN_LIST_ADD(thread->dcon, dcon,);
 
   return GEARMAN_SUCCESS;
 }
@@ -109,7 +109,7 @@ gearmand_error_t gearmand_con_create(gearmand_st *gearmand, int fd,
   if (gearmand->free_dcon_count > 0)
   {
     dcon= gearmand->free_dcon_list;
-    GEARMAN_LIST_DEL(gearmand->free_dcon, dcon,)
+    GEARMAN_LIST_DEL(gearmand->free_dcon, dcon,);
   }
   else
   {
@@ -156,7 +156,7 @@ gearmand_error_t gearmand_con_create(gearmand_st *gearmand, int fd,
   if (dcon->thread->dcon_add_count == 0 &&
       dcon->thread->free_dcon_count < gearmand->max_thread_free_dcon_count)
   {
-    GEARMAN_LIST_ADD(dcon->thread->dcon_add, dcon,)
+    GEARMAN_LIST_ADD(dcon->thread->dcon_add, dcon,);
     gearmand_thread_wakeup(dcon->thread, GEARMAND_WAKEUP_CON);
   }
   else
@@ -198,8 +198,8 @@ gearmand_error_t gearmand_con_create(gearmand_st *gearmand, int fd,
     while (free_dcon_list != NULL)
     {
       dcon= free_dcon_list;
-      GEARMAN_LIST_DEL(free_dcon, dcon,)
-      GEARMAN_LIST_ADD(gearmand->free_dcon, dcon,)
+      GEARMAN_LIST_DEL(free_dcon, dcon,);
+      GEARMAN_LIST_ADD(gearmand->free_dcon, dcon,);
     }
   }
 
@@ -243,7 +243,7 @@ void gearmand_con_free(gearmand_con_st *dcon)
     gearman_server_con_attempt_free(dcon->server_con);
   }
 
-  GEARMAN_LIST_DEL(dcon->thread->dcon, dcon,)
+  GEARMAN_LIST_DEL(dcon->thread->dcon, dcon,);
 
   gearmand_sockfd_close(dcon->fd);
 
@@ -251,7 +251,7 @@ void gearmand_con_free(gearmand_con_st *dcon)
   {
     if (Gearmand()->threads == 0)
     {
-      GEARMAN_LIST_ADD(Gearmand()->free_dcon, dcon,)
+      GEARMAN_LIST_ADD(Gearmand()->free_dcon, dcon,);
     }
     else
     {

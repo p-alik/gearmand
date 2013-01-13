@@ -169,7 +169,7 @@ void gearman_server_thread_free(gearman_server_thread_st *thread)
 
   pthread_mutex_destroy(&(thread->lock));
 
-  GEARMAN_LIST_DEL(Server->thread, thread,)
+  GEARMAN_LIST_DEL(Server->thread, thread,);
 }
 
 void gearman_server_thread_set_run(gearman_server_thread_st *thread,

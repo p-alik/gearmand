@@ -294,7 +294,7 @@ gearman_server_job_add_reducer(gearman_server_st *server,
   if (server_client)
   {
     server_client->job= server_job;
-    GEARMAN_LIST_ADD(server_job->client, server_client, job_)
+    GEARMAN_LIST_ADD(server_job->client, server_client, job_);
   }
 
   return server_job;
@@ -327,7 +327,7 @@ void gearman_server_job_free(gearman_server_job_st *server_job)
 
   if (server_job->worker != NULL)
   {
-    GEARMAN_LIST_DEL(server_job->worker->job, server_job, worker_)
+    GEARMAN_LIST_DEL(server_job->worker->job, server_job, worker_);
   }
 
   uint32_t key= server_job->unique_key % Server->hashtable_buckets;
