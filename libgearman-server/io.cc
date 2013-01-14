@@ -368,6 +368,30 @@ void gearmand_connection_init(gearmand_connection_list_st *gearman,
   connection->recv_buffer_ptr= connection->recv_buffer;
 }
 
+void gearmand_connection_list_st::list_free()
+{
+  while (con_list)
+  {
+    gearmand_io_free(con_list);
+  }
+}
+
+gearmand_connection_list_st::gearmand_connection_list_st() :
+  con_count(0),
+  con_list(NULL),
+  event_watch_fn(NULL),
+  event_watch_context(NULL)
+{
+}
+
+void gearmand_connection_list_st::init(gearmand_event_watch_fn *watch_fn, void *watch_context)
+{
+  con_count= 0;
+  con_list= NULL;
+  event_watch_fn= watch_fn;
+  event_watch_context= watch_context;
+}
+
 void gearmand_io_free(gearmand_io_st *connection)
 {
   if (connection->fd != INVALID_SOCKET)

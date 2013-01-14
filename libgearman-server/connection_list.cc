@@ -44,23 +44,6 @@
 #include <libgearman-server/connection.h>
 #include <assert.h>
 
-void gearmand_connection_list_init(gearmand_connection_list_st *universal,
-                                   gearmand_event_watch_fn *watch_fn, void *watch_context)
-{
-  assert(universal);
-
-  universal->con_count= 0;
-  universal->con_list= NULL;
-  universal->event_watch_fn= watch_fn;
-  universal->event_watch_context= watch_context;
-}
-
-void gearman_connection_list_free(gearmand_connection_list_st *universal)
-{
-  while (universal->con_list)
-    gearmand_io_free(universal->con_list);
-}
-
 gearman_server_con_st *gearmand_ready(gearmand_connection_list_st *universal)
 {
   /* We can't keep universal between calls since connections may be removed during

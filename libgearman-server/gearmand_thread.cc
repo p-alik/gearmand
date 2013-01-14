@@ -50,8 +50,6 @@
 #include <memory>
 #include <csignal>
 
-#include <libgearman-server/list.h>
-
 /*
  * Private declarations
  */
@@ -104,6 +102,57 @@ static void _wakeup_clear(gearmand_thread_st *thread);
 static void _wakeup_event(int fd, short events, void *arg);
 static void _clear_events(gearmand_thread_st *thread);
 
+
+namespace {
+
+  gearmand_error_t gearmand_connection_watch(gearmand_io_st *con, short events, void *)
+  {
+    short set_events= 0;
+
+    gearmand_con_st* dcon= gearman_io_context(con);
+
+    if (events & POLLIN)
+    {
+      set_events|= EV_READ;
+    }
+    if (events & POLLOUT)
+    {
+      set_events|= EV_WRITE;
+    }
+
+    if (dcon->last_events != set_events)
+    {
+      if (dcon->last_events)
+      {
+        if (event_del(&(dcon->event)) < 0)
+        {
+          gearmand_perror(errno, "event_del");
+          assert(! "event_del");
+        }
+      }
+      event_set(&(dcon->event), dcon->fd, set_events | EV_PERSIST, _con_ready, dcon);
+      event_base_set(dcon->thread->base, &(dcon->event));
+
+      if (event_add(&(dcon->event), NULL) < 0)
+      {
+        gearmand_perror(errno, "event_add");
+        return GEARMAN_EVENT;
+      }
+
+      dcon->last_events= set_events;
+    }
+
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
+                       "%15s:%5s Watching  %6s %s",
+                       dcon->host, dcon->port,
+                       events & POLLIN ? "POLLIN" : "",
+                       events & POLLOUT ? "POLLOUT" : "");
+
+    return GEARMAN_SUCCESS;
+  }
+
+}
+
 /** @} */
 
 /*
@@ -135,7 +184,7 @@ gearmand_error_t gearmand_thread_create(gearmand_st *gearmand)
   thread->wakeup_fd[0]= -1;
   thread->wakeup_fd[1]= -1;
 
-  gearmand_thread_list_add(thread);
+  GEARMAN_LIST__ADD(Gearmand()->thread, thread);
 
   thread->dcon_list= NULL;
   thread->dcon_add_list= NULL;
@@ -277,7 +326,7 @@ void gearmand_thread_free(gearmand_thread_st *thread)
 
   gearman_server_thread_free(&(thread->server_thread));
 
-  gearmand_thread_list_free(thread);
+  GEARMAN_LIST__DEL(Gearmand()->thread, thread);
 
   if (Gearmand()->threads > 0)
   {
