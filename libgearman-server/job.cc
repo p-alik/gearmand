@@ -47,7 +47,6 @@
 #include "libgearman-server/common.h"
 #include <string.h>
 
-#include <libgearman-server/list.h>
 #include <libgearman-server/hash.h>
 #include <libgearman-server/queue.h>
 
@@ -338,7 +337,8 @@ void gearman_server_job_free(gearman_server_job_st *server_job)
 
   if (Server->free_job_count < GEARMAN_MAX_FREE_SERVER_JOB)
   {
-    gearmand_server_job_list_add(Server, server_job);
+    gearman_server_st *server= Server;
+    GEARMAN_LIST__ADD(server->free_job, server_job);
   }
   else
   {

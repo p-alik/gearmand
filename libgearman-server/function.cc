@@ -47,8 +47,6 @@
 #include <cstring>
 #include <memory>
 
-#include <libgearman-server/list.h>
-
 /*
  * Public definitions
  */
@@ -67,10 +65,9 @@ static gearman_server_function_st* gearman_server_function_create(gearman_server
   function->job_count= 0;
   function->job_total= 0;
   function->job_running= 0;
-  memset(function->max_queue_size, GEARMAN_DEFAULT_MAX_QUEUE_SIZE,
-         sizeof(uint32_t) * GEARMAN_JOB_PRIORITY_MAX);
+  memset(function->max_queue_size, GEARMAN_DEFAULT_MAX_QUEUE_SIZE, sizeof(uint32_t) * GEARMAN_JOB_PRIORITY_MAX);
   function->function_name_size= 0;
-  gearmand_server_list_add(server, function);
+  GEARMAN_LIST__ADD(server->function, function);
   function->function_name= NULL;
   function->worker_list= NULL;
   memset(function->job_list, 0,
@@ -127,7 +124,7 @@ void gearman_server_function_free(gearman_server_st *server, gearman_server_func
 {
   delete [] function->function_name;
 
-  gearmand_server_list_free(server, function);
+  GEARMAN_LIST__DEL(server->function, function);
 
   delete function;
 }
