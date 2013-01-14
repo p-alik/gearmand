@@ -37,15 +37,12 @@ noinst_HEADERS+= \
 		 libgearman-server/connection.h \
 		 libgearman-server/connection_list.h \
 		 libgearman-server/constants.h \
-		 libgearman-server/fifo.h \
 		 libgearman-server/function.h \
 		 libgearman-server/gearmand.h \
 		 libgearman-server/gearmand_con.h \
 		 libgearman-server/gearmand_thread.h \
-		 libgearman-server/hash.h \
 		 libgearman-server/io.h \
 		 libgearman-server/job.h \
-		 libgearman-server/list.h \
 		 libgearman-server/log.h \
 		 libgearman-server/packet.h \
 		 libgearman-server/plugins.h \
@@ -64,19 +61,13 @@ libgearman_server_libgearman_server_la_SOURCES+= \
 						 libgearman-server/byteorder.cc \
 						 libgearman-server/client.cc \
 						 libgearman-server/connection.cc \
-						 libgearman-server/connection_plus.cc \
 						 libgearman-server/connection_list.cc \
-						 libgearman-server/fifo.cc \
 						 libgearman-server/function.cc \
 						 libgearman-server/gearmand.cc \
 						 libgearman-server/gearmand_con.cc \
-						 libgearman-server/gearmand_con_plus.cc \
 						 libgearman-server/gearmand_thread.cc \
-						 libgearman-server/hash.cc \
 						 libgearman-server/io.cc \
 						 libgearman-server/job.cc \
-						 libgearman-server/job_plus.cc \
-						 libgearman-server/list.cc \
 						 libgearman-server/log.cc \
 						 libgearman-server/packet.cc \
 						 libgearman-server/plugins.cc \

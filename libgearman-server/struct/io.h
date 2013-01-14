@@ -37,6 +37,8 @@
 
 #pragma once
 
+#include "libgearman-server/plugins/base.h"
+
 struct gearmand_io_st
 {
   struct {
@@ -129,4 +131,31 @@ struct gearman_server_con_st
   char id[GEARMAN_SERVER_CON_ID_SIZE];
   gearmand::protocol::Context* protocol;
   struct event *timeout_event;
+
+  gearman_server_con_st()
+  {
+  }
+
+  ~gearman_server_con_st()
+  {
+  }
+
+  void set_protocol(gearmand::protocol::Context* arg)
+  {
+    protocol= arg;
+  }
+
+  void protocol_release()
+  {
+    if (protocol)
+    {
+      protocol->notify(this);
+      if (protocol->is_owner())
+      {
+        delete protocol;
+        protocol= NULL;
+      }
+      protocol= NULL;
+    }
+  }
 };

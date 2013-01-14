@@ -44,5 +44,11 @@ struct gearmand_connection_list_st
   gearmand_io_st *con_list;
   gearmand_event_watch_fn *event_watch_fn; // Function to be called when events need to be watched
   void *event_watch_context;
+
+  gearmand_connection_list_st();
+
+  void list_free();
+
+  void init(gearmand_event_watch_fn *watch_fn, void *watch_context);
 };
 
