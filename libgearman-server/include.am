@@ -64,7 +64,6 @@ libgearman_server_libgearman_server_la_SOURCES+= \
 						 libgearman-server/byteorder.cc \
 						 libgearman-server/client.cc \
 						 libgearman-server/connection.cc \
-						 libgearman-server/connection_plus.cc \
 						 libgearman-server/connection_list.cc \
 						 libgearman-server/fifo.cc \
 						 libgearman-server/function.cc \

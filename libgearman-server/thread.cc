@@ -134,7 +134,7 @@ bool gearman_server_thread_init(gearman_server_st *server,
   GEARMAN_LIST__ADD(server->thread, thread);
 
   thread->gearman= &(thread->gearmand_connection_list_static);
-  gearmand_connection_list_init(thread->gearman, event_watch, NULL);
+  thread->gearman->init(event_watch, NULL);
 
   return true;
 }
@@ -152,7 +152,7 @@ void gearman_server_thread_free(gearman_server_thread_st *thread)
   {
     gearman_server_con_st *con= thread->free_con_list;
     thread->free_con_list= con->next;
-    destroy_gearman_server_con_st(con);
+    delete con;
   }
 
   while (thread->free_packet_list != NULL)
@@ -164,7 +164,7 @@ void gearman_server_thread_free(gearman_server_thread_st *thread)
 
   if (thread->gearman != NULL)
   {
-    gearman_connection_list_free(thread->gearman);
+    thread->gearman->list_free();
   }
 
   pthread_mutex_destroy(&(thread->lock));
