@@ -261,7 +261,7 @@ gearman_server_job_st *gearman_server_job_take(gearman_server_con_st *server_con
         server_job->function->job_count--;
 
         server_job->worker= server_worker;
-        GEARMAN_LIST_ADD(server_worker->job, server_job, worker_)
+        GEARMAN_LIST_ADD(server_worker->job, server_job, worker_);
         server_job->function->job_running++;
 
         if (server_job->ignore_job)

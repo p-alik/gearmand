@@ -48,10 +48,9 @@ using namespace libtest;
 #include <ctime>
 #include <iostream>
 #include <vector>
-#include <boost/foreach.hpp>
 
 #define GEARMAN_CORE
-#include <libgearman/gearman.h>
+#include <libgearman-1.0/gearman.h>
 
 #include "tests/start_worker.h"
 

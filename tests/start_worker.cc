@@ -252,7 +252,7 @@ worker_handle_st *test_worker_start(in_port_t port,
     delete context;
     delete handle;
 
-    fatal_message("Could not allocate worker");
+    FATAL("Could not allocate worker");
   }
 
   handle->wait();

@@ -1,8 +1,8 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  Gearmand client and server library.
+ *  DataDifferential Utility Library
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2013 Data Differential, http://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -35,32 +35,28 @@
  *
  */
 
-#include "gear_config.h"
-#include "libgearman-server/common.h"
+#pragma once
 
-#include <libgearman-server/gearmand.h>
-#include <libgearman-server/fifo.h>
+namespace org {
+namespace tangent {
+namespace util {
 
-void gearmand_server_con_fifo_add(gearman_server_con_st *con,
-				  gearman_server_packet_st *server_packet)
+namespace noncopyable_
 {
-  GEARMAN_FIFO_ADD(con->io_packet, server_packet,);
+  class noncopyable
+  {
+  protected:
+    noncopyable() {}
+    ~noncopyable() {}
+
+  private:
+    noncopyable( const noncopyable& );
+    const noncopyable& operator=( const noncopyable& );
+  };
 }
 
-void gearmand_server_con_fifo_free(gearman_server_con_st *con,
-				   gearman_server_packet_st *server_packet)
-{
-  GEARMAN_FIFO_DEL(con->io_packet, server_packet,);
-}
+typedef noncopyable_::noncopyable noncopyable;
 
-void gearmand_server_con_fifo_proc_add(gearman_server_con_st *con,
-				       gearman_server_packet_st *packet)
-{
-  GEARMAN_FIFO_ADD(con->proc_packet, packet,);
-}
-
-void gearmand_server_con_fifo_proc_free(gearman_server_con_st *con,
-					gearman_server_packet_st *packet)
-{
-  GEARMAN_FIFO_DEL(con->proc_packet, packet,);
-}
+} // namespace util
+} // namespace tangent
+} // namespace org

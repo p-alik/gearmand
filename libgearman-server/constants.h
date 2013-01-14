@@ -105,22 +105,6 @@ struct gearman_server_st;
 struct gearman_server_con_st;
 struct gearmand_io_st;
 
-#else /* Types. */
-
-typedef struct gearman_server_client_st gearman_server_client_st;
-typedef struct gearman_server_con_st gearman_server_con_st;
-typedef struct gearman_server_function_st gearman_server_function_st;
-typedef struct gearman_server_job_st gearman_server_job_st;
-typedef struct gearman_server_packet_st gearman_server_packet_st;
-typedef struct gearman_server_st gearman_server_st;
-typedef struct gearman_server_thread_st gearman_server_thread_st;
-typedef struct gearman_server_worker_st gearman_server_worker_st;
-typedef struct gearmand_con_st gearmand_con_st;
-typedef struct gearmand_io_st gearmand_io_st;
-typedef struct gearmand_port_st gearmand_port_st;
-typedef struct gearmand_st gearmand_st;
-typedef struct gearmand_thread_st gearmand_thread_st;
-
 #endif
 
 #ifdef __cplusplus
@@ -163,8 +147,6 @@ typedef void (gearman_log_server_fn)(const char *line, gearmand_verbose_t verbos
 
 typedef gearmand_error_t (gearmand_event_watch_fn)(gearmand_io_st *con,
                                                    short events, void *context);
-
-typedef struct gearmand_packet_st gearmand_packet_st;
 
 typedef void (gearmand_connection_protocol_context_free_fn)(gearman_server_con_st *con,
                                                             void *context);

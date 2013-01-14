@@ -85,3 +85,10 @@ void set_send_close(bool arg, int frequency, int not_until_arg)
   (void)frequency;
   (void)not_until_arg;
 }
+
+void set_getaddrinfo_error(bool arg, int frequency, int not_until_arg)
+{
+  (void)arg;
+  (void)frequency;
+  (void)not_until_arg;
+}

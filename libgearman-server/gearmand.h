@@ -149,6 +149,8 @@ gearmand_error_t gearmand_port_add(gearmand_st *gearmand,
 GEARMAN_API
 gearmand_error_t gearmand_run(gearmand_st *gearmand);
 
+bool gearmand_exceptions(gearmand_st *gearmand);
+
 /**
  * Interrupt a running gearmand server from another thread. You should only
  * call this when another thread is currently running gearmand_run() and you

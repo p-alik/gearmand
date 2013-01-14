@@ -23,7 +23,7 @@ tests_memcached_test_LDADD+= tests/libstartworker.la
 if HAVE_LIBMEMCACHED
 
 tests_memcached_test_CXXFLAGS+= $(LIBMEMCACHED_CFLAGS)
-tests_memcached_test_LDADD+= $(LIBMEMCACHED_UTIL_LDFLAGS)
+tests_memcached_test_LDADD+= $(LIBMEMCACHED_UTIL_LIB)
 
 endif
 

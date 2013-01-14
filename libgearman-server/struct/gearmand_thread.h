@@ -57,7 +57,6 @@ struct gearmand_thread_st
   pthread_t id;
   pthread_mutex_t lock;
 
-#ifdef __cplusplus
   gearmand_thread_st():
     is_thread_lock(false),
     is_wakeup_event(false),
@@ -73,6 +72,4 @@ struct gearmand_thread_st
     free_dcon_list(0)
   {
   }
-#endif
-
 };

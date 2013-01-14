@@ -117,7 +117,7 @@ gearmand_con_st *gearman_io_context(const gearmand_io_st *connection);
  */
 GEARMAN_INTERNAL_API
 gearmand_error_t gearman_io_send(gearman_server_con_st *connection,
-                                 const gearmand_packet_st *packet, bool flush);
+                                 const struct gearmand_packet_st *packet, bool flush);
 
 /**
  * Used by thread to recv packets.

@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2011-2013 Data Differential, http://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -164,6 +164,20 @@ int main(int args, char *argv[])
   {
     std::cout << desc << std::endl;
     return EXIT_SUCCESS;
+  }
+
+  if (vm.count("server-version") == 0 and
+     vm.count("server-verbose")  == 0 and
+     vm.count("create-function")  == 0 and
+     vm.count("drop-function")  == 0 and
+     vm.count("getpid") == 0 and
+     vm.count("status") == 0 and
+     vm.count("workers") == 0 and
+     vm.count("shutdown") == 0)
+  {
+    std::cout << "No option execution operation given." << std::endl << std::endl;
+    std::cout << desc << std::endl;
+    return EXIT_FAILURE;
   }
 
   if (vm.count("shutdown"))
