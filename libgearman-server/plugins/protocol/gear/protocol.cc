@@ -304,7 +304,7 @@ static gearmand_error_t _gear_con_add(gearman_server_con_st *connection)
 {
   gearmand_info("Gear connection made");
 
-  gearmand_connection_set_protocol(connection, &gear_context);
+  connection->set_protocol(&gear_context);
 
   return GEARMAN_SUCCESS;
 }

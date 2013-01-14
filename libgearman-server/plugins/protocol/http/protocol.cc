@@ -643,7 +643,7 @@ static gearmand_error_t _http_con_add(gearman_server_con_st *connection)
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
 
-  gearmand_connection_set_protocol(connection, http);
+  connection->set_protocol(http);
 
   return GEARMAN_SUCCESS;
 }

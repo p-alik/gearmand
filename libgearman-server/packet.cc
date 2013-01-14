@@ -46,7 +46,6 @@
 
 #include <libgearman/command.h>
 
-#include <libgearman-server/fifo.h>
 #include <cassert>
 #include <cerrno>
 #include <cstring>
@@ -192,7 +191,7 @@ gearmand_error_t gearman_server_io_packet_add(gearman_server_con_st *con,
   int error;
   if ((error= pthread_mutex_lock(&con->thread->lock)) == 0)
   {
-    gearmand_server_con_fifo_add(con, server_packet);
+    GEARMAN_FIFO__ADD(con->io_packet, server_packet);
     if ((error= pthread_mutex_unlock(&con->thread->lock)))
     {
       gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock() failed");
@@ -217,7 +216,7 @@ void gearman_server_io_packet_remove(gearman_server_con_st *con)
   int error;
   if ((error= pthread_mutex_lock(&con->thread->lock)) == 0)
   {
-    gearmand_server_con_fifo_free(con, server_packet);
+    GEARMAN_FIFO__DEL(con->io_packet, server_packet);
     if ((error= pthread_mutex_unlock(&con->thread->lock)))
     {
       gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock() failed");
@@ -237,7 +236,7 @@ void gearman_server_proc_packet_add(gearman_server_con_st *con,
   int error;
   if ((error= pthread_mutex_lock(&con->thread->lock)) == 0)
   {
-    gearmand_server_con_fifo_proc_add(con, packet);
+    GEARMAN_FIFO__ADD(con->proc_packet, packet);
     if ((error= pthread_mutex_unlock(&con->thread->lock)))
     {
       gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock() failed");
@@ -264,7 +263,7 @@ gearman_server_proc_packet_remove(gearman_server_con_st *con)
   int error;
   if ((error= pthread_mutex_lock(&con->thread->lock)) == 0)
   {
-    gearmand_server_con_fifo_proc_free(con, server_packet);
+    GEARMAN_FIFO__DEL(con->proc_packet, server_packet);
     if ((error= pthread_mutex_unlock(&con->thread->lock)) != 0)
     {
       gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock() failed");

@@ -92,7 +92,7 @@ static gearman_server_con_st * _server_con_create(gearman_server_thread_st *thre
   }
   else
   {
-    con= build_gearman_server_con_st();
+    con= new (std::nothrow) gearman_server_con_st;
     if (con == NULL)
     {
       *ret= gearmand_perror(errno, "new() build_gearman_server_con_st");
@@ -216,7 +216,7 @@ void gearman_server_con_free(gearman_server_con_st *con)
   
   gearmand_io_free(&(con->con));
 
-  gearman_server_con_protocol_release(con);
+  con->protocol_release();
 
   if (con->packet != NULL)
   {
@@ -285,7 +285,7 @@ void gearman_server_con_free(gearman_server_con_st *con)
     return;
   }
 
-  destroy_gearman_server_con_st(con);
+  delete con;
 }
 
 gearmand_io_st *gearman_server_con_con(gearman_server_con_st *con)

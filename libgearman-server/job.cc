@@ -47,8 +47,6 @@
 #include "libgearman-server/common.h"
 #include <string.h>
 
-#include <libgearman-server/list.h>
-#include <libgearman-server/hash.h>
 #include <libgearman-server/queue.h>
 
 /*
@@ -236,7 +234,7 @@ gearman_server_job_add_reducer(gearman_server_st *server,
                           strlen(server_job->job_handle));
     server_job->job_handle_key= key;
     key= key % server->hashtable_buckets;
-    gearmand_hash_server_add(server, key, server_job);
+    GEARMAN_HASH__ADD(server->job, key, server_job);
 
     if (server->state.queue_startup)
     {
@@ -324,11 +322,12 @@ void gearman_server_job_free(gearman_server_job_st *server_job)
   GEARMAN_HASH_DEL(Server->unique, key, server_job, unique_);
 
   key= server_job->job_handle_key % Server->hashtable_buckets;
-  gearmand_hash_server_free(Server, key, server_job);
+  GEARMAN_HASH__DEL(Server->job, key, server_job);
 
   if (Server->free_job_count < GEARMAN_MAX_FREE_SERVER_JOB)
   {
-    gearmand_server_job_list_add(Server, server_job);
+    gearman_server_st *server= Server;
+    GEARMAN_LIST__ADD(server->free_job, server_job);
   }
   else
   {

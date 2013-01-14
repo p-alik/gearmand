@@ -91,19 +91,9 @@ void gearmand_con_free(gearmand_con_st *dcon);
 GEARMAN_API
 void gearmand_con_check_queue(gearmand_thread_st *thread);
 
-/**
- * Callback function used for setting events in libevent.
- */
-GEARMAN_API
-gearmand_error_t gearmand_connection_watch(gearmand_io_st *con, short events,
-                                           void *context);
+void _con_ready(int fd, short events, void *arg);
 
 /** @} */
-
-gearmand_con_st* build_gearmand_con_st(void);
-
-void destroy_gearmand_con_st(gearmand_con_st*);
-void _con_ready(int fd, short events, void *arg);
 
 #ifdef __cplusplus
 }
