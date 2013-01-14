@@ -263,19 +263,6 @@ void gearmand_free(gearmand_st *gearmand)
 
     gearman_server_free(gearmand->server);
 
-    for (uint32_t x= 0; x < gearmand->_port_list.size(); x++)
-    {
-      if (gearmand->_port_list[x].listen_fd != NULL)
-      {
-        free(gearmand->_port_list[x].listen_fd);
-      }
-
-      if (gearmand->_port_list[x].listen_event != NULL)
-      {
-        free(gearmand->_port_list[x].listen_event);
-      }
-    }
-
     gearmand_info("Shutdown complete");
 
     delete gearmand;
@@ -301,10 +288,7 @@ gearmand_error_t gearmand_port_add(gearmand_st *gearmand, const char *port,
   gearmand->_port_list.resize(gearmand->_port_list.size() +1);
 
   strncpy(gearmand->_port_list.back().port, port, NI_MAXSERV);
-  gearmand->_port_list.back().listen_count= 0;
   gearmand->_port_list.back().add_fn= function;
-  gearmand->_port_list.back().listen_fd= NULL;
-  gearmand->_port_list.back().listen_event= NULL;
 
   return GEARMAN_SUCCESS;
 }

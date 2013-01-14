@@ -55,5 +55,18 @@ struct gearmand_port_st
   {
     port[0]= 0;
   }
+
+  ~gearmand_port_st()
+  {
+    if (listen_fd)
+    {
+      free(listen_fd);
+    }
+
+    if (listen_event)
+    {
+      free(listen_event);
+    }
+  }
 };
 
