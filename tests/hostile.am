@@ -70,3 +70,5 @@ valgrind-hostile_libgearman: tests/hostile_libgearman gearmand/gearmand
 gdb-hostile_libgearman: tests/hostile_libgearman gearmand/gearmand
 	@$(GDB_COMMAND) tests/hostile_libgearman
 
+hostile: test-hostile-gearmand test-hostile_libgearman
+

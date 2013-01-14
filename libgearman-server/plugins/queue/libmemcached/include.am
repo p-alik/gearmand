@@ -15,7 +15,7 @@ if HAVE_LIBMEMCACHED
 
 libgearman_server_libgearman_server_la_SOURCES+= libgearman-server/plugins/queue/libmemcached/queue.cc
 libgearman_server_libgearman_server_la_CXXFLAGS+= $(LIBMEMCACHED_CFLAGS)
-libgearman_server_libgearman_server_la_LIBADD+= $(LIBMEMCACHED_LDFLAGS)
+libgearman_server_libgearman_server_la_LIBADD+= $(LIBMEMCACHED_LIB)
 
-gearmand_gearmand_LDADD+= $(LIBMEMCACHED_LDFLAGS)
+gearmand_gearmand_LDADD+= $(LIBMEMCACHED_LIB)
 endif

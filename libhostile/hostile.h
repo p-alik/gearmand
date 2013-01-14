@@ -82,6 +82,9 @@ LIBHOSTILE_API
 LIBHOSTILE_API
   void hostile_dump(void);
 
+LIBHOSTILE_API
+  void set_getaddrinfo_error(bool arg, int frequency, int not_until_arg);
+
 #ifdef __cplusplus
 }
 #endif

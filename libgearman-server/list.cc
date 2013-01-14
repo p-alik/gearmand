@@ -1,8 +1,9 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
+ * 
+ *  Gearmand client and server library.
  *
- *  Data Differential YATL (i.e. libtest)  library
- *
- *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -34,49 +35,42 @@
  *
  */
 
-#pragma once
+#include "gear_config.h"
+#include "libgearman-server/common.h"
 
-#include <libtest/fatal.hpp>
-#include <libtest/result/base.hpp>
-#include <libtest/result/fail.hpp>
-#include <libtest/result/fatal.hpp>
-#include <libtest/result/skip.hpp>
-#include <libtest/result/success.hpp>
+#include <libgearman-server/gearmand.h>
+#include <libgearman-server/list.h>
 
-#define _SUCCESS throw libtest::__success(LIBYATL_DEFAULT_PARAM)
+void gearmand_thread_list_free(gearmand_thread_st *thread)
+{
+  GEARMAN_LIST__DEL(Gearmand()->thread, thread);
+}
 
-#define SKIP(...) \
-do \
-{ \
-  throw libtest::__skipped(LIBYATL_DEFAULT_PARAM, __VA_ARGS__); \
-} while (0)
+void gearmand_thread_list_add(gearmand_thread_st *thread)
+{
+  GEARMAN_LIST_ADD(Gearmand()->thread, thread,);
+}
 
-#define FAIL(...) \
-do \
-{ \
-  throw libtest::__failure(LIBYATL_DEFAULT_PARAM, __VA_ARGS__); \
-} while (0)
+void gearmand_server_list_free(gearman_server_st *server,
+                               gearman_server_function_st *function)
+{
+  GEARMAN_LIST__DEL(server->function, function);
+}
 
-#define FATAL(...) \
-do \
-{ \
-  throw libtest::fatal(LIBYATL_DEFAULT_PARAM, __VA_ARGS__); \
-} while (0)
+void gearmand_server_list_add(gearman_server_st *server,
+                              gearman_server_function_st *function)
+{
+  GEARMAN_LIST_ADD(server->function, function,);
+}
 
-#define FATAL_IF(__expression, ...) \
-do \
-{ \
-  if ((__expression)) { \
-    throw libtest::fatal(LIBYATL_DEFAULT_PARAM, (#__expression)); \
-  } \
-} while (0)
+void gearmand_server_free_job_list_free(gearman_server_st *server,
+                                        gearman_server_job_st *server_job)
+{
+  GEARMAN_LIST__DEL(server->free_job, server_job);
+}
 
-#define FATAL_IF_(__expression, ...) \
-do \
-{ \
-  if ((__expression)) { \
-    throw libtest::fatal(LIBYATL_DEFAULT_PARAM, __VA_ARGS__); \
-  } \
-} while (0)
-
-#define fatal_assert(__assert) if((__assert)) {} else { throw libtest::fatal(LIBYATL_DEFAULT_PARAM, #__assert); }
+void gearmand_server_job_list_add(gearman_server_st *server,
+                                  gearman_server_job_st *server_job)
+{
+  GEARMAN_LIST_ADD(server->free_job, server_job,);
+}

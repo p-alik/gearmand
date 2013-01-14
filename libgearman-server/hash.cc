@@ -39,38 +39,17 @@
 #include "libgearman-server/common.h"
 
 #include <libgearman-server/gearmand.h>
-#include <libgearman-server/list.h>
+#include <libgearman-server/hash.h>
 
-void gearmand_thread_list_free(gearmand_thread_st *thread)
+void gearmand_hash_server_add(gearman_server_st *server,
+                              uint32_t key,
+                              gearman_server_job_st *server_job)
 {
-  GEARMAN_LIST_DEL(Gearmand()->thread, thread,);
+  GEARMAN_HASH__ADD(server->job, key, server_job);
 }
 
-void gearmand_thread_list_add(gearmand_thread_st *thread)
+void gearmand_hash_server_free(gearman_server_st *server,
+			       uint32_t key, gearman_server_job_st *server_job)
 {
-  GEARMAN_LIST_ADD(Gearmand()->thread, thread,)
-}
-
-void gearmand_server_list_free(gearman_server_st *server,
-                               gearman_server_function_st *function)
-{
-  GEARMAN_LIST_DEL(server->function, function,);
-}
-
-void gearmand_server_list_add(gearman_server_st *server,
-                              gearman_server_function_st *function)
-{
-  GEARMAN_LIST_ADD(server->function, function,);
-}
-
-void gearmand_server_free_job_list_free(gearman_server_st *server,
-                                        gearman_server_job_st *server_job)
-{
-  GEARMAN_LIST_DEL(server->free_job, server_job,);
-}
-
-void gearmand_server_job_list_add(gearman_server_st *server,
-                                  gearman_server_job_st *server_job)
-{
-  GEARMAN_LIST_ADD(server->free_job, server_job,);
+  GEARMAN_HASH__DEL(server->job, key, server_job);
 }

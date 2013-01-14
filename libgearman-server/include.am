@@ -63,26 +63,26 @@ libgearman_server_libgearman_server_la_SOURCES+= libgearman-server/text.cc
 libgearman_server_libgearman_server_la_SOURCES+= \
 						 libgearman-server/byteorder.cc \
 						 libgearman-server/client.cc \
-						 libgearman-server/connection.c \
+						 libgearman-server/connection.cc \
 						 libgearman-server/connection_plus.cc \
 						 libgearman-server/connection_list.cc \
-						 libgearman-server/fifo.c \
+						 libgearman-server/fifo.cc \
 						 libgearman-server/function.cc \
 						 libgearman-server/gearmand.cc \
-						 libgearman-server/gearmand_con.c \
+						 libgearman-server/gearmand_con.cc \
 						 libgearman-server/gearmand_con_plus.cc \
 						 libgearman-server/gearmand_thread.cc \
-						 libgearman-server/hash.c \
+						 libgearman-server/hash.cc \
 						 libgearman-server/io.cc \
-						 libgearman-server/job.c \
+						 libgearman-server/job.cc \
 						 libgearman-server/job_plus.cc \
-						 libgearman-server/list.c \
+						 libgearman-server/list.cc \
 						 libgearman-server/log.cc \
 						 libgearman-server/packet.cc \
 						 libgearman-server/plugins.cc \
 						 libgearman-server/queue.cc \
 						 libgearman-server/server.cc \
-						 libgearman-server/thread.c \
+						 libgearman-server/thread.cc \
 						 libgearman-server/timer.cc \
 						 libgearman-server/wakeup.cc \
 						 libgearman-server/worker.cc \

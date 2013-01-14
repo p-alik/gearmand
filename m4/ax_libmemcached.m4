@@ -11,8 +11,8 @@
 #   Checked for installation of libmemcached
 #
 #  AC_SUBST(LIBMEMCACHED_CFLAGS) 
-#  AC_SUBST(LIBMEMCACHED_LDFLAGS)
-#  AC_SUBST(LIBMEMCACHED_UTIL_LDFLAGS)
+#  AC_SUBST(LIBMEMCACHED_LIB)
+#  AC_SUBST(LIBMEMCACHED_UTIL_LIB)
 #
 #   NOTE: Implementation uses AC_CHECK_HEADER.
 #
@@ -49,7 +49,7 @@
 #  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#serial 1
+#serial 2
 
 AC_DEFUN([AX_LIBMEMCACHED], [
     AC_CHECK_HEADER([libmemcached-1.0/memcached.h], [
@@ -123,11 +123,11 @@ AC_DEFUN([_ENABLE_LIBMEMCACHED], [
                AC_DEFINE([HAVE_LIBMEMCACHED], [1], [Enable libmemcached support])
                LIBMEMCACHED_CFLAGS=
                AC_SUBST([LIBMEMCACHED_CFLAGS])
-               LIBMEMCACHED_LDFLAGS="-lmemcached"
-               AC_SUBST([LIBMEMCACHED_LDFLAGS])
+               LIBMEMCACHED_LIB="-lmemcached"
+               AC_SUBST([LIBMEMCACHED_LIB])
                AS_IF([test "x$ax_cv_libmemcached_util" = "xyes"], [
-                     LIBMEMCACHED_UTIL_LDFLAGS="-lmemcached -lmemcachedutil"
-                     AC_SUBST([LIBMEMCACHED_UTIL_LDFLAGS])
+                     LIBMEMCACHED_UTIL_LIB="-lmemcached -lmemcachedutil"
+                     AC_SUBST([LIBMEMCACHED_UTIL_LIB])
                      ])
                ],[
                AC_DEFINE([HAVE_LIBMEMCACHED], [0], [Enable libmemcached support])
