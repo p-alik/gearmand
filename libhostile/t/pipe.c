@@ -48,11 +48,13 @@
 
 int main(void)
 {
+#if ! defined(__DARWIN_C_ANSI)
   if (valgrind_is_caller() == false)
   {
     ASSERT_TRUE(pipe(NULL) == -1);
     ASSERT_TRUE(errno == EFAULT);
   }
+#endif
 
   int pipefd[2];
   ASSERT_TRUE(pipe(pipefd) == 0);

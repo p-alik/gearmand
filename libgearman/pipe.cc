@@ -160,9 +160,11 @@ bool setup_shutdown_pipe(int pipedes_[2])
     }
 #endif // F_SETNOSIGPIPE
 
+#if defined(HAVE_PIPE2)
     if (HAVE_PIPE2)
     { }
     else
+#endif // defined(HAVE_PIPE2)
     {
       if ((success= set_cloexec(pipedes_, x)))
       {

@@ -150,32 +150,38 @@ extern "C" {
   }
 }
 
-static bool fill_timespec(struct timespec& ts)
-{
-#if defined(HAVE_LIBRT) && HAVE_LIBRT
-  if (HAVE_LIBRT) // This won't be called on OSX, etc,...
-  {
-    if (clock_gettime(CLOCK_REALTIME, &ts) == -1) 
-    {
-      Error << "clock_gettime(CLOCK_REALTIME) " << strerror(errno);
-      return false;
-    }
-  }
-#else
-  {
-    struct timeval tv;
-    if (gettimeofday(&tv, NULL) == -1) 
-    {
-      Error << "gettimeofday() " << strerror(errno);
-      return false;
-    }
+namespace {
 
-    TIMEVAL_TO_TIMESPEC(&tv, &ts);
+#if defined(HAVE_PTHREAD_TIMEDJOIN_NP) && HAVE_PTHREAD_TIMEDJOIN_NP
+  bool fill_timespec(struct timespec& ts)
+  {
+#if defined(HAVE_LIBRT) && HAVE_LIBRT
+    if (HAVE_LIBRT) // This won't be called on OSX, etc,...
+    {
+      if (clock_gettime(CLOCK_REALTIME, &ts) == -1) 
+      {
+        Error << "clock_gettime(CLOCK_REALTIME) " << strerror(errno);
+        return false;
+      }
+    }
+#else
+    {
+      struct timeval tv;
+      if (gettimeofday(&tv, NULL) == -1) 
+      {
+        Error << "gettimeofday() " << strerror(errno);
+        return false;
+      }
+
+      TIMEVAL_TO_TIMESPEC(&tv, &ts);
+    }
+#endif
+
+    return true;
   }
 #endif
 
-  return true;
-}
+} // namespace
 
 static bool join_thread(pthread_t& thread_arg)
 {

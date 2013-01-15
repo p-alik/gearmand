@@ -49,8 +49,10 @@
 
 int main(void)
 {
+#if ! defined(__DARWIN_C_ANSI)
   ASSERT_TRUE(accept(-1, NULL, NULL) == -1);
   ASSERT_TRUE(errno == EBADF);
+#endif
 
   return EXIT_SUCCESS;
 }
