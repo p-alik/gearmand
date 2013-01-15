@@ -46,7 +46,7 @@ static test_return_t collection_init(void *object)
 
   const char *argv[]= { "--queue-type=redis", 0 };
 
-  test->initialize(1, argv);
+  test->initialize(argv);
 
   return TEST_SUCCESS;
 }

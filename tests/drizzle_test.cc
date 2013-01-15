@@ -86,7 +86,7 @@ static test_return_t collection_init(void *object)
     "--queue-type=libdrizzle",
     0 };
 
-  test_truth(test->initialize(2, argv));
+  test_truth(test->initialize(argv));
 
   return TEST_SUCCESS;
 }

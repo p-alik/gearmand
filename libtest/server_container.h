@@ -67,8 +67,8 @@ public:
 
   bool validate();
 
-  bool start_socket_server(const std::string& server_type, const in_port_t try_port, int argc, const char *argv[], const bool opt_startup_message= true);
-  bool start_server(const std::string& server_type, const in_port_t try_port, int argc, const char *argv[], const bool opt_startup_message= true);
+  bool start_socket_server(const std::string& server_type, const in_port_t try_port, const char *argv[]);
+  bool start_server(const std::string& server_type, const in_port_t try_port, const char *argv[]);
 
   uint32_t count() const
   {
@@ -140,13 +140,12 @@ private:
   bool _start_server(const bool is_socket,
                      const std::string& server_type,
                      const in_port_t try_port,
-                     int argc, const char *argv[],
-                     const bool opt_startup_message);
+                     const char *argv[]);
 
 private:
   unsigned long int _servers_to_run;
 };
 
-bool server_startup(server_startup_st&, const std::string&, in_port_t try_port, int argc, const char *argv[], const bool opt_startup_message= true);
+bool server_startup(server_startup_st&, const std::string&, in_port_t try_port, const char *argv[]);
 
 } // namespace libtest

@@ -84,7 +84,7 @@ static test_return_t collection_init(void *object)
   Context *test= (Context *)object;
   fatal_assert(test);
 
-  test_truth(test->initialize(2, argv));
+  test_truth(test->initialize(argv));
 
   return TEST_SUCCESS;
 }

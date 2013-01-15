@@ -137,8 +137,8 @@ static test_return_t multi_client_test(void *object)
 
   // Bring server 1 back up
   server_container.shutdown();
-  test_true(server_startup(server_container, "gearmand", gearmand_port_1, 1, server_argv));
-  test_true(server_startup(server_container, "gearmand", gearmand_port_2, 1, server_argv));
+  test_true(server_startup(server_container, "gearmand", gearmand_port_1, server_argv));
+  test_true(server_startup(server_container, "gearmand", gearmand_port_2, server_argv));
 
   // Try adding in a new job.
   // It will timeout. This is a bug!
@@ -166,9 +166,9 @@ static void *world_create(server_startup_st& servers, test_return_t&)
   test->push_port(libtest::get_free_port());
   test->push_port(libtest::get_free_port());
 
-  ASSERT_TRUE(server_startup(servers, "gearmand", test->port(0), 1, server_argv));
+  ASSERT_TRUE(server_startup(servers, "gearmand", test->port(0), server_argv));
 
-  ASSERT_TRUE(server_startup(servers, "gearmand", test->port(1), 1, server_argv));
+  ASSERT_TRUE(server_startup(servers, "gearmand", test->port(1), server_argv));
 
   test->add_server("127.0.0.1", test->port(0),
                    "127.0.0.1", test->port(1));
