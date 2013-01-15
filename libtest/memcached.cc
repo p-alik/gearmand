@@ -188,13 +188,13 @@ public:
     return true;
   }
 
-  bool build(size_t argc, const char *argv[]);
+  bool build();
 };
 
 
 #include <sstream>
 
-bool Memcached::build(size_t argc, const char *argv[])
+bool Memcached::build()
 {
   if (getuid() == 0 or geteuid() == 0)
   {
@@ -210,16 +210,6 @@ bool Memcached::build(size_t argc, const char *argv[])
   if (sasl())
   {
     add_option(sasl());
-  }
-
-  for (size_t x= 0 ; x < argc ; x++)
-  {
-    if (argv[x] == NULL)
-    {
-      break;
-    }
-
-    add_option(argv[x]);
   }
 
   return true;

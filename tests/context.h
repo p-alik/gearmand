@@ -76,9 +76,9 @@ public:
     return _port;
   }
 
-  bool initialize(int argc, const char *argv[])
+  bool initialize(const char *argv[])
   {
-    if (server_startup(_servers, "gearmand", _port, argc, argv) == false)
+    if (server_startup(_servers, "gearmand", _port, argv) == false)
     {
       return false;
     }

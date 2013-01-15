@@ -173,6 +173,19 @@ bool Server::wait_for_pidfile() const
   return wait.successful();
 }
 
+bool Server::init(const char *argv[])
+{
+  if (argv)
+  {
+    for (const char **ptr= argv; *ptr ; ++ptr)
+    {
+      add_option(*ptr);
+    }
+  }
+
+  return build();
+}
+
 bool Server::has_pid() const
 {
   return (_app.pid() > 1);
