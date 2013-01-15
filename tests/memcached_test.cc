@@ -89,7 +89,7 @@ static test_return_t lp_1054377_TEST(void *object)
   server_startup_st &servers= test->_servers;
 
   memcached_port= libtest::get_free_port();
-  test_true(server_startup(servers, "memcached", memcached_port, 0, NULL));
+  test_true(server_startup(servers, "memcached", memcached_port, NULL));
 
   char memcached_server_string[1024];
   int length= snprintf(memcached_server_string, 
@@ -114,7 +114,7 @@ static test_return_t lp_1054377_TEST(void *object)
   {
     in_port_t first_port= libtest::get_free_port();
 
-    test_true(server_startup(servers, "gearmand", first_port, 2, argv));
+    test_true(server_startup(servers, "gearmand", first_port, argv));
 #if 0
     libtest::Server* server= servers.pop_server();
 #endif
@@ -146,7 +146,7 @@ static test_return_t lp_1054377_TEST(void *object)
   {
     in_port_t first_port= libtest::get_free_port();
 
-    test_true(server_startup(servers, "gearmand", first_port, 2, argv));
+    test_true(server_startup(servers, "gearmand", first_port, argv));
 
     {
       Worker worker(first_port);
@@ -195,7 +195,7 @@ static test_return_t collection_init(void *object)
   assert(test);
 
   memcached_port= libtest::get_free_port();
-  test_true(server_startup(test->_servers, "memcached", memcached_port, 0, NULL));
+  test_true(server_startup(test->_servers, "memcached", memcached_port, NULL));
 
   char memcached_server_string[1024];
   int length= snprintf(memcached_server_string, 
@@ -208,7 +208,7 @@ static test_return_t collection_init(void *object)
     "--queue-type=libmemcached",
     0 };
 
-  test_truth(test->initialize(2, argv));
+  test_truth(test->initialize(argv));
 
   return TEST_SUCCESS;
 }

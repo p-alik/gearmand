@@ -1446,7 +1446,7 @@ static test_return_t pre_logging(void *object)
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
   const char *argv[]= { "--exceptions", 0 };
-  if (server_startup(servers, "gearmand", libtest::default_port(), 1, argv) == false)
+  if (server_startup(servers, "gearmand", libtest::default_port(), argv) == false)
   {
     error= TEST_SKIPPED;
     return NULL;

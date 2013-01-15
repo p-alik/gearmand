@@ -528,7 +528,7 @@ static void *world_create(server_startup_st& servers, test_return_t&)
   SKIP_IF(has_hostile() == false);
 
   hostile_server= libtest::get_free_port();
-  ASSERT_TRUE(server_startup(servers, SERVER_TARGET, hostile_server, 0, NULL));
+  ASSERT_TRUE(server_startup(servers, SERVER_TARGET, hostile_server, NULL));
 
   return new worker_handles_st;
 }

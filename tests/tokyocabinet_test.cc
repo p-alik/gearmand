@@ -88,7 +88,7 @@ static test_return_t collection_init(void *object)
   Context *test= (Context *)object;
   assert(test);
 
-  test_truth(test->initialize(2, argv));
+  test_truth(test->initialize(argv));
 
   return TEST_SUCCESS;
 }
@@ -110,7 +110,7 @@ static test_return_t lp_1054377_TEST(void *object)
   {
     in_port_t first_port= libtest::get_free_port();
 
-    test_true(server_startup(servers, "gearmand", first_port, 2, argv));
+    test_true(server_startup(servers, "gearmand", first_port, argv));
 
     {
       Worker worker(first_port);
@@ -137,7 +137,7 @@ static test_return_t lp_1054377_TEST(void *object)
   {
     in_port_t first_port= libtest::get_free_port();
 
-    test_true(server_startup(servers, "gearmand", first_port, 2, argv));
+    test_true(server_startup(servers, "gearmand", first_port, argv));
 
     {
       Worker worker(first_port);
