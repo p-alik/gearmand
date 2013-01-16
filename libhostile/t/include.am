@@ -47,7 +47,10 @@ libhostile_t_hostile_pipe_LDADD+= libhostile/libhostile.la
 check_PROGRAMS+= libhostile/t/hostile_pipe
 noinst_PROGRAMS+= libhostile/t/hostile_pipe
 
-# Test pipe() 
+gdb-pipe: libhostile/t/hostile_pipe
+	@$(GDB_COMMAND) libhostile/t/hostile_pipe
+
+# Test pipe2() 
 libhostile_t_pipe2_SOURCES=
 libhostile_t_pipe2_LDADD=
 

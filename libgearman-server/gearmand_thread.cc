@@ -57,6 +57,7 @@
 namespace
 {
 
+#if defined(HAVE_PTHREAD_TIMEDJOIN_NP) && HAVE_PTHREAD_TIMEDJOIN_NP
 bool fill_timespec(struct timespec& ts)
 {
 #if defined(HAVE_LIBRT) && HAVE_LIBRT
@@ -83,6 +84,7 @@ bool fill_timespec(struct timespec& ts)
 
   return true;
 }
+#endif // defined(HAVE_PTHREAD_TIMEDJOIN_NP) && HAVE_PTHREAD_TIMEDJOIN_NP
 
 }
 
