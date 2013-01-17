@@ -469,9 +469,9 @@ static bool _switch_user(const char *user)
   return false;
 }
 
-extern "C" void _shutdown_handler(int signal_arg)
+extern "C" void _shutdown_handler(int signal_, siginfo*, void*)
 {
-  if (signal_arg == SIGUSR1)
+  if (signal_== SIGUSR1)
   {
     gearmand_wakeup(Gearmand(), GEARMAND_WAKEUP_SHUTDOWN_GRACEFUL);
   }
@@ -481,7 +481,7 @@ extern "C" void _shutdown_handler(int signal_arg)
   }
 }
 
-extern "C" void _reset_log_handler(int) // signal_arg
+extern "C" void _reset_log_handler(int, siginfo*, void*) // signal_arg
 {
   gearmand_log_info_st *log_info= static_cast<gearmand_log_info_st *>(Gearmand()->log_context);
   
@@ -491,16 +491,17 @@ extern "C" void _reset_log_handler(int) // signal_arg
 }
 
 static bool segfaulted= false;
-extern "C" void _crash_handler(int signal_)
+extern "C" void _crash_handler(int signal_, siginfo*, void*)
 {
   if (segfaulted)
   {
-    error::message("Fatal crash while backtracing", strsignal(signal_));
+    error::message("\nFatal crash while backtrace from signal:", strsignal(signal_));
     _exit(EXIT_FAILURE); /* Quit without running destructors */
   }
 
   segfaulted= true;
   custom_backtrace();
+  _exit(EXIT_FAILURE); /* Quit without running destructors */
 }
 
 extern "C" {
@@ -518,7 +519,8 @@ static bool _set_signals(void)
     return true;
   }
 
-  sa.sa_handler= _shutdown_handler;
+  sa.sa_sigaction= _shutdown_handler;
+  sa.sa_flags= SA_SIGINFO;
   if (sigaction(SIGTERM, &sa, 0) == -1)
   {
     error::perror("Could not set SIGTERM handler.");
@@ -537,7 +539,7 @@ static bool _set_signals(void)
     return true;
   }
 
-  sa.sa_handler= _reset_log_handler;
+  sa.sa_sigaction= _reset_log_handler;
   if (sigaction(SIGHUP, &sa, 0) == -1)
   {
     error::perror("Could not set SIGHUP handler.");
@@ -548,7 +550,7 @@ static bool _set_signals(void)
 
   if (in_gdb_libtest == false)
   {
-    sa.sa_handler= _crash_handler;
+    sa.sa_sigaction= _crash_handler;
     if (sigaction(SIGSEGV, &sa, NULL) == -1)
     {
       error::perror("Could not set SIGSEGV handler.");
