@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011-2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2011-2013 Data Differential, http://datadifferential.com/
  *  Copyright (C) 2008 Brian Aker, Eric Day
  *  All rights reserved.
  *
@@ -469,7 +469,7 @@ static bool _switch_user(const char *user)
   return false;
 }
 
-extern "C" void _shutdown_handler(int signal_, siginfo*, void*)
+extern "C" void _shutdown_handler(int signal_, siginfo_t*, void*)
 {
   if (signal_== SIGUSR1)
   {
@@ -481,7 +481,7 @@ extern "C" void _shutdown_handler(int signal_, siginfo*, void*)
   }
 }
 
-extern "C" void _reset_log_handler(int, siginfo*, void*) // signal_arg
+extern "C" void _reset_log_handler(int, siginfo_t*, void*) // signal_arg
 {
   gearmand_log_info_st *log_info= static_cast<gearmand_log_info_st *>(Gearmand()->log_context);
   
@@ -491,7 +491,7 @@ extern "C" void _reset_log_handler(int, siginfo*, void*) // signal_arg
 }
 
 static bool segfaulted= false;
-extern "C" void _crash_handler(int signal_, siginfo*, void*)
+extern "C" void _crash_handler(int signal_, siginfo_t*, void*)
 {
   if (segfaulted)
   {
