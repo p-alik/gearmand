@@ -68,6 +68,7 @@ void custom_backtrace(void)
   void *backtrace_buffer[MAX_DEPTH +1];
 
   int stack_frames= backtrace(backtrace_buffer, MAX_DEPTH);
+  fprintf(stderr, "\nBegin stack trace, frames found: %d\n", stack_frames);
   if (stack_frames)
   {
     char **symbollist= backtrace_symbols(backtrace_buffer, stack_frames);
