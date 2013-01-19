@@ -37,9 +37,12 @@
  */
 
 #include "gear_config.h"
+
 #include <libgearman/common.h>
+
 #include <cerrno>
 #include <cstring>
+#include <poll.h>
 #include <unistd.h>
 
 gearman_id_t gearman_id_initialize(void)
@@ -98,7 +101,7 @@ gearman_return_t gearman_kill(const gearman_id_t handle, const gearman_signal_t 
       pfds[0].events= POLLIN;
       pfds[0].revents= 0;
 
-      int ret= ::poll(pfds, sizeof(pfds), 1500);
+      int ret= ::poll(pfds, 1, 1500);
 
       if (ret >= 0)
       {
