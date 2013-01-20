@@ -15,9 +15,9 @@ noinst_HEADERS+= libgearman-server/plugins/queue/mysql/queue.h
 if HAVE_LIBMYSQL
 libgearman_server_libgearman_server_la_SOURCES+= libgearman-server/plugins/queue/mysql/queue.cc
 
-libgearman_server_libgearman_server_la_CFLAGS+= $(MYSQL_INCLUDE)
-libgearman_server_libgearman_server_la_CXXFLAGS+= $(MYSQL_INCLUDE)
-libgearman_server_libgearman_server_la_LIBADD+= $(MYSQL_LDFLAGS)
+libgearman_server_libgearman_server_la_CFLAGS+= @MYSQL_INCLUDE@
+libgearman_server_libgearman_server_la_CXXFLAGS+= @MYSQL_INCLUDE@
+libgearman_server_libgearman_server_la_LDFLAGS+= @MYSQL_LDFLAGS@
 endif
 
 
