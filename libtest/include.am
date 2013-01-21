@@ -13,6 +13,7 @@ MASSIF_COMMAND= $(LIBTOOL_COMMAND) valgrind --tool=massif
 GDB_COMMAND= $(LIBTOOL_COMMAND) gdb -f -x libtest/run.gdb
 PTRCHECK_COMMAND= $(LIBTOOL_COMMAND) valgrind --tool=exp-ptrcheck --error-exitcode=1
 PAHOLE_COMMAND= $(LIBTOOL_COMMAND) --mode=execute pahole
+VALGRIND_SUPRESSION= $(LIBTOOL_COMMAND) valgrind --leak-check=full --show-reachable=yes --error-limit=no --gen-suppressions=all --log-file=minimalraw.log
 
 export LIBTOOL_COMMAND
 export VALGRIND_COMMAND
@@ -22,6 +23,9 @@ export GDB_COMMAND
 
 valgrind:
 	@echo make check TESTS_ENVIRONMENT="\"$(VALGRIND_EXEC_COMMAND)\""
+
+valgrind-supressions:
+	@echo make check TESTS_ENVIRONMENT="\"$(VALGRIND_SUPRESSION)\""
 
 gdb:
 	@echo make check TESTS_ENVIRONMENT="\"$(GDB_COMMAND)\""

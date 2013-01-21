@@ -264,10 +264,25 @@ void gearman_connection_st::set_host(const char *host_arg, const in_port_t port_
 {
   reset_addrinfo();
 
-  strncpy(host, host_arg == NULL ? GEARMAN_DEFAULT_TCP_HOST : host_arg, GEARMAN_NI_MAXHOST);
+  if (host_arg == NULL)
+  {
+    strncpy(host, GEARMAN_DEFAULT_TCP_HOST, GEARMAN_NI_MAXHOST);
+  }
+  else
+  {
+    strncpy(host, host_arg, GEARMAN_NI_MAXHOST);
+  }
+
   host[GEARMAN_NI_MAXHOST - 1]= 0;
 
-  port= in_port_t(port_arg == 0 ? GEARMAN_DEFAULT_TCP_PORT : port_arg);
+  if (port_arg == 0)
+  {
+    port= GEARMAN_DEFAULT_TCP_PORT;
+  }
+  else
+  {
+    port= port_arg;
+  }
 }
 
 /*
@@ -497,6 +512,7 @@ gearman_return_t gearman_connection_st::lookup()
   ai.ai_socktype= SOCK_STREAM;
   ai.ai_protocol= IPPROTO_TCP;
 
+  assert_msg(_addrinfo == NULL, "Programmer error, reset_addrinfo() is either broke, or was not called.");
   int ret;
   if ((ret= getaddrinfo(host, port_str, &ai, &(_addrinfo))))
   {
