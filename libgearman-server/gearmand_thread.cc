@@ -126,16 +126,20 @@ namespace {
     {
       if (dcon->last_events)
       {
-        if (event_del(&(dcon->event)) < 0)
+        if (event_del(&(dcon->event)) == -1)
         {
           gearmand_perror(errno, "event_del");
-          assert(! "event_del");
+          assert_msg(false, "event_del");
         }
       }
       event_set(&(dcon->event), dcon->fd, set_events | EV_PERSIST, _con_ready, dcon);
-      event_base_set(dcon->thread->base, &(dcon->event));
+      if (event_base_set(dcon->thread->base, &(dcon->event)) == -1)
+      {
+        gearmand_perror(errno, "event_base_set");
+        assert_msg(false, "event_del");
+      }
 
-      if (event_add(&(dcon->event), NULL) < 0)
+      if (event_add(&(dcon->event), NULL) == -1)
       {
         gearmand_perror(errno, "event_add");
         return GEARMAN_EVENT;
@@ -202,11 +206,12 @@ gearmand_error_t gearmand_thread_create(gearmand_st *gearmand)
   {
     gearmand_debug("Initializing libevent for IO thread");
 
-    thread->base= static_cast<struct event_base *>(event_base_new());
+    assert(thread->base == NULL);
+    thread->base= event_base_new();
     if (thread->base == NULL)
     {
       gearmand_thread_free(thread);
-      gearmand_fatal("event_base_new(NULL)");
+      gearmand_fatal("event_base_new()");
       return GEARMAN_EVENT;
     }
   }
@@ -255,93 +260,100 @@ gearmand_error_t gearmand_thread_create(gearmand_st *gearmand)
 
 void gearmand_thread_free(gearmand_thread_st *thread)
 {
-  if (Gearmand()->threads && thread->count > 0)
+  if (thread)
   {
-    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Shutting down thread %u", thread->count);
-
-    gearmand_thread_wakeup(thread, GEARMAND_WAKEUP_SHUTDOWN);
-
-    int pthread_error= -1;
-#if defined(HAVE_PTHREAD_TIMEDJOIN_NP) && HAVE_PTHREAD_TIMEDJOIN_NP
+    if (Gearmand()->threads and thread->count > 0)
     {
-      struct timespec ts;
-      if (fill_timespec(ts))
-      {
-        ts.tv_sec+= 30;
-        pthread_error= pthread_timedjoin_np(thread->id, NULL, &ts);
-        if (pthread_error)
-        {
-          gearmand_perror(pthread_error, "pthread_timedjoin_np");
-        }
-      }
+      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Shutting down thread %u", thread->count);
 
-      if (pthread_error != 0)
+      gearmand_thread_wakeup(thread, GEARMAND_WAKEUP_SHUTDOWN);
+
+      int pthread_error= -1;
+#if defined(HAVE_PTHREAD_TIMEDJOIN_NP) && HAVE_PTHREAD_TIMEDJOIN_NP
       {
-        pthread_error= pthread_kill(thread->id, SIGQUIT);
-        if (pthread_error)
+        struct timespec ts;
+        if (fill_timespec(ts))
         {
-          gearmand_perror(pthread_error, "pthread_kill(, SIGQUIT)");
+          ts.tv_sec+= 30;
+          pthread_error= pthread_timedjoin_np(thread->id, NULL, &ts);
+          if (pthread_error)
+          {
+            gearmand_perror(pthread_error, "pthread_timedjoin_np");
+          }
         }
-        pthread_error= pthread_join(thread->id, NULL);
+
+        if (pthread_error != 0)
+        {
+          pthread_error= pthread_kill(thread->id, SIGQUIT);
+          if (pthread_error)
+          {
+            gearmand_perror(pthread_error, "pthread_kill(, SIGQUIT)");
+          }
+          pthread_error= pthread_join(thread->id, NULL);
+        }
       }
-    }
 #else
-    pthread_error= pthread_join(thread->id, NULL);
+      pthread_error= pthread_join(thread->id, NULL);
 #endif
 
-    if (pthread_error)
-    {
-      gearmand_perror(pthread_error, "pthread_join");
-    }
-  }
-
-  if (thread->is_thread_lock)
-  {
-    int pthread_error;
-    if ((pthread_error= pthread_mutex_destroy(&(thread->lock))))
-    {
-      gearmand_perror(pthread_error, "pthread_mutex_destroy");
-    }
-  }
-
-  _wakeup_close(thread);
-
-  while (thread->dcon_list != NULL)
-  {
-    gearmand_con_free(thread->dcon_list);
-  }
-
-  while (thread->dcon_add_list != NULL)
-  {
-    gearmand_con_st* dcon= thread->dcon_add_list;
-    thread->dcon_add_list= dcon->next;
-    gearmand_sockfd_close(dcon->fd);
-    delete dcon;
-  }
-
-  while (thread->free_dcon_list != NULL)
-  {
-    gearmand_con_st* dcon= thread->free_dcon_list;
-    thread->free_dcon_list= dcon->next;
-    delete dcon;
-  }
-
-  gearman_server_thread_free(&(thread->server_thread));
-
-  GEARMAN_LIST__DEL(Gearmand()->thread, thread);
-
-  if (Gearmand()->threads > 0)
-  {
-    if (thread->base != NULL)
-    {
-      event_base_free(thread->base);
-      thread->base= NULL;
+      if (pthread_error)
+      {
+        gearmand_perror(pthread_error, "pthread_join");
+      }
     }
 
-    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Thread %u shutdown complete", thread->count);
-  }
+    if (thread->is_thread_lock)
+    {
+      int pthread_error;
+      if ((pthread_error= pthread_mutex_destroy(&(thread->lock))))
+      {
+        gearmand_perror(pthread_error, "pthread_mutex_destroy");
+      }
+    }
 
-  delete thread;
+    _wakeup_close(thread);
+
+    while (thread->dcon_list != NULL)
+    {
+      gearmand_con_free(thread->dcon_list);
+    }
+
+    while (thread->dcon_add_list != NULL)
+    {
+      gearmand_con_st* dcon= thread->dcon_add_list;
+      thread->dcon_add_list= dcon->next;
+      gearmand_sockfd_close(dcon->fd);
+      delete dcon;
+    }
+
+    while (thread->free_dcon_list != NULL)
+    {
+      gearmand_con_st* dcon= thread->free_dcon_list;
+      thread->free_dcon_list= dcon->next;
+      delete dcon;
+    }
+
+    gearman_server_thread_free(&(thread->server_thread));
+
+    GEARMAN_LIST__DEL(Gearmand()->thread, thread);
+
+    if (Gearmand()->threads > 0)
+    {
+      if (thread->base != NULL)
+      {
+        if (Gearmand()->base == thread->base)
+        {
+          Gearmand()->base= NULL;
+        }
+        event_base_free(thread->base);
+        thread->base= NULL;
+      }
+
+      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Thread %u shutdown complete", thread->count);
+    }
+
+    delete thread;
+  }
 }
 
 void gearmand_thread_wakeup(gearmand_thread_st *thread,
@@ -428,7 +440,7 @@ static void *_thread(void *data)
     buffer[0]= 0;
   }
 
-  gearmand_initialize_thread_logging(buffer);
+  (void)gearmand_initialize_thread_logging(buffer);
 
   gearmand_debug("Entering thread event loop");
 
@@ -443,17 +455,21 @@ static void *_thread(void *data)
   return NULL;
 }
 
-static void _log(const char *line, gearmand_verbose_t verbose, gearmand_thread_st *dthread)
+static void _log(const char *line, gearmand_verbose_t verbose, gearmand_thread_st*)
 {
-  (void)dthread;
-  (*Gearmand()->log_fn)(line, verbose, (void *)Gearmand()->log_context);
+  if (Gearmand())
+  {
+    (*Gearmand()->log_fn)(line, verbose, (void *)Gearmand()->log_context);
+  }
 }
 
-static void _run(gearman_server_thread_st *thread __attribute__ ((unused)),
-                 void *fn_arg)
+static void _run(gearman_server_thread_st*, void *fn_arg)
 {
-  gearmand_thread_st *dthread= (gearmand_thread_st *)fn_arg;
-  gearmand_thread_wakeup(dthread, GEARMAND_WAKEUP_RUN);
+  if (fn_arg)
+  {
+    gearmand_thread_st *dthread= (gearmand_thread_st*)fn_arg;
+    gearmand_thread_wakeup(dthread, GEARMAND_WAKEUP_RUN);
+  }
 }
 
 static gearmand_error_t _wakeup_init(gearmand_thread_st *thread)

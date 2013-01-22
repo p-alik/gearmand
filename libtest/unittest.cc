@@ -1107,6 +1107,7 @@ test_st application_tests[] ={
 
 static test_return_t check_for_curl(void *)
 {
+  test_skip_valgrind();
   test_skip(true, HAVE_LIBCURL);
   return TEST_SUCCESS;
 }

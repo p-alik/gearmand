@@ -139,10 +139,10 @@ GEARMAN_INTERNAL_API
 gearmand_error_t gearmand_io_set_revents(gearman_server_con_st *connection, short revents);
 
 GEARMAN_INTERNAL_API
-void gearmand_sockfd_close(int sockfd);
+void gearmand_sockfd_close(int& sockfd);
 
 GEARMAN_INTERNAL_API
-void gearmand_pipe_close(int sockfd);
+void gearmand_pipe_close(int& sockfd);
 
 /** @} */
 

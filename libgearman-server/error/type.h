@@ -92,6 +92,7 @@ typedef enum
   GEARMAN_UNKNOWN_OPTION,
   GEARMAN_TIMEOUT,
   GEARMAN_ARGUMENT_TOO_LARGE,
+  GEARMAN_INVALID_ARGUMENT,
   GEARMAN_MAX_RETURN /* Always add new error code before */
 } gearmand_error_t;
 

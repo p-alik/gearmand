@@ -202,7 +202,8 @@ bool Memcached::build()
   }
 
   add_option("-l", "localhost");
-#ifndef TARGET_OS_OSX
+#ifdef __APPLE__
+#else
   add_option("-m", "128");
   add_option("-M");
 #endif
