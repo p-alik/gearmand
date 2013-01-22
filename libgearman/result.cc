@@ -68,6 +68,8 @@ gearman_result_st::gearman_result_st(size_t initial_size) :
       return;
     }
 
+    assert_vmsg(allocated_str == NULL, "gearman_string_create() failed to allocation an intial string with %lu", (unsigned long)(initial_size));
+
     // if we fail to allocate on the initial size, try to fail to "something"
     initial_size= 0;
   }

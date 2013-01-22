@@ -47,10 +47,12 @@
 
 inline static gearman_return_t _string_check(gearman_vector_st *string, const size_t need)
 {
-  if (not string)
+  if (string == NULL)
+  {
     return GEARMAN_INVALID_ARGUMENT;
+  }
 
-  if (need && need > size_t(string->current_size - size_t(string->end - string->string)))
+  if (need and need > size_t(string->current_size - size_t(string->end - string->string)))
   {
     size_t current_offset= size_t(string->end - string->string);
     char *new_value;
@@ -137,7 +139,10 @@ gearman_vector_st *gearman_string_create(gearman_vector_st *self, size_t initial
     {
       free(self);
     }
-    gearman_set_initialized(self, false);
+    else
+    {
+      gearman_set_initialized(self, false);
+    }
 
     return NULL;
   }
