@@ -839,7 +839,7 @@ static gearmand_error_t _wakeup_init(gearmand_st *gearmand)
 
   if (fcntl(gearmand->wakeup_fd[0], F_SETFL, returned_flags | O_NONBLOCK) == -1)
   {
-    return gearmand_log_fatal_perror(errno, "fcntl(F_SETFL)");
+    return gearmand_fatal_perror(errno, "fcntl(F_SETFL)");
   }
 #endif
 
