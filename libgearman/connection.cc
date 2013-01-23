@@ -320,6 +320,14 @@ void gearman_connection_st::close_socket()
 
   recv_buffer_ptr= recv_buffer;
   recv_buffer_size= 0;
+
+  // created_id_next is incremented for every outbound packet (except status).
+  // created_id is incremented for every response packet received, and also when
+  // no packets are received due to an error. There are lots of such error paths
+  // and it seems simpler to just reset these both to zero when a connection is
+  // 'closed'.
+  created_id= 0;
+  created_id_next= 0;
 }
 
 void gearman_connection_st::free_recv_packet()

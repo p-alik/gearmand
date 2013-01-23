@@ -230,7 +230,12 @@ void gearman_reset(gearman_universal_st& universal)
   }
 }
 
-gearman_return_t gearman_flush_all(gearman_universal_st& universal)
+/*
+ * Flush all shouldn't return any error, because there's no way to indicate
+ * which connection experienced an issue. Error detection is better done in gearman_wait()
+ * after flushing all the connections here.
+ */
+void gearman_flush_all(gearman_universal_st& universal)
 {
   for (gearman_connection_st *con= universal.con_list; con; con= con->next)
   {
@@ -239,14 +244,8 @@ gearman_return_t gearman_flush_all(gearman_universal_st& universal)
       continue;
     }
 
-    gearman_return_t ret= con->flush();
-    if (gearman_failed(ret) and ret != GEARMAN_IO_WAIT)
-    {
-      return ret;
-    }
+    con->flush();
   }
-
-  return GEARMAN_SUCCESS;
 }
 
 gearman_return_t gearman_wait(gearman_universal_st& universal)
@@ -327,9 +326,9 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
 
   if (ret == 0)
   {
-    gearman_universal_set_error(universal, GEARMAN_TIMEOUT, GEARMAN_AT, "timeout reached, %u servers were poll(), no servers were available, pipe:%s",
-                                uint32_t(x), have_shutdown_pipe ? "true" : "false");
-    return GEARMAN_TIMEOUT;
+    return gearman_universal_set_error(universal, GEARMAN_TIMEOUT, GEARMAN_AT,
+                                       "timeout reached, %u servers were poll(), no servers were available, pipe:%s",
+                                       uint32_t(x), have_shutdown_pipe ? "true" : "false");
   }
 
   x= 0;
