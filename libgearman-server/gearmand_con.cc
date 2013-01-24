@@ -180,29 +180,27 @@ gearman_server_job_st *gearman_server_job_get_by_unique(gearman_server_st *serve
                                                         const size_t unique_length,
                                                         gearman_server_con_st *worker_con)
 {
-  (void)unique_length;
-  for (size_t x= 0; x < server->hashtable_buckets; ++x)
+  uint32_t key= _server_job_hash(unique, unique_length);
+  gearman_server_job_st *server_job;
+
+  for (server_job= server->unique_hash[key % server->hashtable_buckets];
+       server_job != NULL; server_job= server_job->unique_next)
   {
-    for (gearman_server_job_st *server_job= server->job_hash[x];
-         server_job != NULL;
-         server_job= server_job->next)
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "COMPARE unique \"%s\"(%u) == \"%s\"(%u)",
+                       bool(server_job->unique[0]) ? server_job->unique :  "<null>", uint32_t(strlen(server_job->unique)),
+                       unique, uint32_t(unique_length));
+
+    if (bool(server_job->unique[0]) and
+        (strcmp(server_job->unique, unique) == 0))
     {
-      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "COMPARE unique \"%s\"(%u) == \"%s\"(%u)",
-                         bool(server_job->unique[0]) ? server_job->unique :  "<null>", uint32_t(strlen(server_job->unique)),
-                         unique, uint32_t(unique_length));
-
-      if (bool(server_job->unique[0]) and
-          (strcmp(server_job->unique, unique) == 0))
+      /* Check to make sure the worker asking for the job still owns the job. */
+      if (worker_con != NULL and
+          (server_job->worker == NULL or server_job->worker->con != worker_con))
       {
-        /* Check to make sure the worker asking for the job still owns the job. */
-        if (worker_con != NULL and
-            (server_job->worker == NULL or server_job->worker->con != worker_con))
-        {
-          return NULL;
-        }
-
-        return server_job;
+        return NULL;
       }
+
+      return server_job;
     }
   }
 
