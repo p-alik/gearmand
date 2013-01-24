@@ -9,6 +9,7 @@
 # Included from Top Level Makefile.am
 # All paths should be given relative to the root
 
+noinst_HEADERS+= util/memory.h
 noinst_HEADERS+= util/noncopyable.hpp
 noinst_HEADERS+= \
 		 util/daemon.hpp \
