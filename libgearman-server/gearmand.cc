@@ -61,6 +61,9 @@
 #include <libgearman-server/plugins.h>
 #include <libgearman-server/timer.h>
 
+#include "util/memory.h"
+using namespace org::tangent;
+
 using namespace gearmand;
 
 #ifndef SOCK_NONBLOCK 
