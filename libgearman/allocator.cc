@@ -43,6 +43,9 @@
 #include <libgearman/universal.hpp>
 #include <libgearman/allocator.hpp>
 
+#include "util/memory.h"
+using namespace org::tangent;
+
 void *gearman_real_malloc(gearman_allocator_t& allocator, size_t size, const char *func, const char *file, int line)
 {
   void *ptr;
@@ -140,7 +143,7 @@ void gearman_real_free(gearman_allocator_t& allocator, void *& ptr, const char *
   }
   else
   {
-    free(ptr);
+    util::free__(ptr);
   }
 
   ptr= NULL;

@@ -45,16 +45,18 @@ namespace org {
 namespace tangent {
 namespace util {
 
-void free__(void *& ptr)
+static inline void free__(void *& ptr)
 {
   std::free(ptr);
   ptr= NULL;
 }
 
-void close__(int & fd)
+static inline int close__(int & fd)
 {
-  close(fd);
+  int ret= close(fd);
   fd= -1;
+
+  return ret;
 }
 
 } // namespace util
