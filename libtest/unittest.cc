@@ -181,6 +181,9 @@ static test_return_t test_throw_fail_TEST(void *)
 }
 #pragma GCC diagnostic ignored "-Wstack-protector"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-security"
+
 static test_return_t ASSERT_FALSE__TEST(void *)
 {
   try {
@@ -198,6 +201,8 @@ static test_return_t ASSERT_FALSE__TEST(void *)
 
   return TEST_FAILURE;
 }
+
+#pragma GCC diagnostic pop
 
 static test_return_t ASSERT_FALSE_TEST(void *)
 {
