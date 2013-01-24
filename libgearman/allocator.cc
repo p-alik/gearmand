@@ -121,7 +121,7 @@ void *gearman_real_realloc(gearman_allocator_t& allocator, void *ptr, size_t siz
   return new_ptr;
 }
 
-void gearman_real_free(gearman_allocator_t& allocator, void *ptr, const char *func, const char *file, int line)
+void gearman_real_free(gearman_allocator_t& allocator, void *& ptr, const char *func, const char *file, int line)
 {
 #if 0
   fprintf(stderr, "gearman_real_free(%s) : %p -> %s:%d\n", func, ptr, file, line);
@@ -142,6 +142,8 @@ void gearman_real_free(gearman_allocator_t& allocator, void *ptr, const char *fu
   {
     free(ptr);
   }
+
+  ptr= NULL;
 }
 
 gearman_allocator_t gearman_default_allocator()

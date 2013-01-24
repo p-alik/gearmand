@@ -294,7 +294,8 @@ void gearman_packet_free(gearman_packet_st *packet)
              "Packet that is being freed has not been allocated, most likely this is do to freeing a gearman_task_st or other object twice");
   if (packet->options.free_data and packet->data)
   {
-    gearman_free((*packet->universal), const_cast<void *>(packet->data));
+    void* data= (void*)packet->data;
+    gearman_free((*packet->universal), data);
     packet->data= NULL;
     packet->options.free_data= false;
   }

@@ -43,6 +43,9 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "util/memory.h"
+using namespace org::tangent;
+
 #define GEARMAN_BLOCK_SIZE 1024*4
 
 inline static gearman_return_t _string_check(gearman_vector_st *string, const size_t need)
