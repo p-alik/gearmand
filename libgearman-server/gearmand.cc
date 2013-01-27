@@ -62,6 +62,9 @@
 #include "libgearman-server/timer.h"
 #include "libgearman-server/queue.h"
 
+#include "util/memory.h"
+using namespace org::tangent;
+
 using namespace gearmand;
 
 #ifndef SOCK_NONBLOCK 
@@ -189,7 +192,7 @@ gearmand_st *Gearmand(void)
   if (!_global_gearmand)
   {
     gearmand_error("Gearmand() was called before it was allocated");
-    assert(! "Gearmand() was called before it was allocated");
+    assert_msg(false, "Gearmand() was called before it was allocated");
   }
   assert(_global_gearmand);
   return _global_gearmand;
@@ -324,7 +327,6 @@ gearmand_error_t gearmand_run(gearmand_st *gearmand)
     gearmand->base= static_cast<struct event_base *>(event_base_new());
     if (gearmand->base == NULL)
     {
-
       gearmand_fatal("event_base_new(NULL)");
       return GEARMAN_EVENT;
     }
@@ -666,17 +668,21 @@ static gearmand_error_t _listen_init(gearmand_st *gearmand)
       return gearmand_log_fatal(GEARMAN_DEFAULT_LOG_PARAM, "Could not bind/listen to any addresses");
     }
 
+    assert(port->listen_event == NULL);
     port->listen_event= (struct event *)malloc(sizeof(struct event) * port->listen_count);
     if (port->listen_event == NULL)
     {
       return gearmand_merror("malloc", struct event, port->listen_count);
     }
 
-    for (uint32_t y= 0; y < port->listen_count; y++)
+    for (uint32_t y= 0; y < port->listen_count; ++y)
     {
-      event_set(&(port->listen_event[y]), port->listen_fd[y],
-                EV_READ | EV_PERSIST, _listen_event, port);
-      event_base_set(gearmand->base, &(port->listen_event[y]));
+      event_set(&(port->listen_event[y]), port->listen_fd[y], EV_READ | EV_PERSIST, _listen_event, port);
+
+      if (event_base_set(gearmand->base, &(port->listen_event[y])) == -1)
+      {
+        return gearmand_perror(errno, "event_base_set()");
+      }
     }
   }
 
@@ -739,10 +745,10 @@ static void _listen_clear(gearmand_st *gearmand)
                           "Clearing event for listening socket (%d)",
                           gearmand->_port_list[x].listen_fd[y]);
 
-        if (event_del(&(gearmand->_port_list[x].listen_event[y])) < 0)
+        if (event_del(&(gearmand->_port_list[x].listen_event[y])) == -1)
         {
           gearmand_perror(errno, "We tried to event_del() an event which no longer existed");
-          assert(! "We tried to event_del() an event which no longer existed");
+          assert_msg(false, "We tried to event_del() an event which no longer existed");
         }
       }
     }
@@ -829,25 +835,25 @@ static gearmand_error_t _wakeup_init(gearmand_st *gearmand)
   gearmand_debug("Creating wakeup pipe");
 
 #if defined(HAVE_PIPE2) && HAVE_PIPE2
-  if (pipe2(gearmand->wakeup_fd, O_NONBLOCK) < 0)
+  if (pipe2(gearmand->wakeup_fd, O_NONBLOCK) == -1)
   {
     return gearmand_fatal_perror(errno, "pipe2(gearmand->wakeup_fd)");
   }
 #else
-  if (pipe(gearmand->wakeup_fd) < 0)
+  if (pipe(gearmand->wakeup_fd) == -1)
   {
     return gearmand_fatal_perror(errno, "pipe(gearmand->wakeup_fd)");
   }
 
   int returned_flags;
-  if ((returned_flags= fcntl(gearmand->wakeup_fd[0], F_GETFL, 0)) < 0)
+  if ((returned_flags= fcntl(gearmand->wakeup_fd[0], F_GETFL, 0)) == -1)
   {
     return gearmand_fatal_perror(errno, "fcntl:F_GETFL");
   }
 
-  if (fcntl(gearmand->wakeup_fd[0], F_SETFL, returned_flags | O_NONBLOCK) < 0)
+  if (fcntl(gearmand->wakeup_fd[0], F_SETFL, returned_flags | O_NONBLOCK) == -1)
   {
-    return gearmand_fatal_perror(errno, "F_SETFL");
+    return gearmand_fatal_perror(errno, "fcntl(F_SETFL)");
   }
 #endif
 
@@ -899,7 +905,7 @@ static void _wakeup_clear(gearmand_st *gearmand)
     if (event_del(&(gearmand->wakeup_event)) < 0)
     {
       gearmand_perror(errno, "We tried to event_del() an event which no longer existed");
-      assert(! "We tried to event_del() an event which no longer existed");
+      assert_msg(false, "We tried to event_del() an event which no longer existed");
     }
     gearmand->is_wakeup_event= false;
   }
@@ -938,7 +944,7 @@ static void _wakeup_event(int fd, short, void *arg)
       return;
     }
 
-    for (ssize_t x= 0; x < ret; x++)
+    for (ssize_t x= 0; x < ret; ++x)
     {
       switch ((gearmand_wakeup_t)buffer[x])
       {

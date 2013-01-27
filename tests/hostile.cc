@@ -117,9 +117,10 @@ extern "C" {
     fatal_assert(success);
     fatal_assert(success->count == 0);
 
-    test::Client client(current_server());
     {
-      gearman_client_set_timeout(&client, 400);
+      test::Client client(current_server());
+
+      gearman_client_set_timeout(&client, 1000);
       for (size_t x= 0; x < 100; x++)
       {
         int oldstate;
@@ -150,32 +151,38 @@ extern "C" {
   }
 }
 
-static bool fill_timespec(struct timespec& ts)
-{
-#if defined(HAVE_LIBRT) && HAVE_LIBRT
-  if (HAVE_LIBRT) // This won't be called on OSX, etc,...
-  {
-    if (clock_gettime(CLOCK_REALTIME, &ts) == -1) 
-    {
-      Error << "clock_gettime(CLOCK_REALTIME) " << strerror(errno);
-      return false;
-    }
-  }
-#else
-  {
-    struct timeval tv;
-    if (gettimeofday(&tv, NULL) == -1) 
-    {
-      Error << "gettimeofday() " << strerror(errno);
-      return false;
-    }
+namespace {
 
-    TIMEVAL_TO_TIMESPEC(&tv, &ts);
+#if defined(HAVE_PTHREAD_TIMEDJOIN_NP) && HAVE_PTHREAD_TIMEDJOIN_NP
+  bool fill_timespec(struct timespec& ts)
+  {
+#if defined(HAVE_LIBRT) && HAVE_LIBRT
+    if (HAVE_LIBRT) // This won't be called on OSX, etc,...
+    {
+      if (clock_gettime(CLOCK_REALTIME, &ts) == -1) 
+      {
+        Error << "clock_gettime(CLOCK_REALTIME) " << strerror(errno);
+        return false;
+      }
+    }
+#else
+    {
+      struct timeval tv;
+      if (gettimeofday(&tv, NULL) == -1) 
+      {
+        Error << "gettimeofday() " << strerror(errno);
+        return false;
+      }
+
+      TIMEVAL_TO_TIMESPEC(&tv, &ts);
+    }
+#endif
+
+    return true;
   }
 #endif
 
-  return true;
-}
+} // namespace
 
 static bool join_thread(pthread_t& thread_arg)
 {
@@ -530,7 +537,7 @@ static void *world_create(server_startup_st& servers, test_return_t&)
   SKIP_IF(has_hostile() == false);
 
   hostile_server= libtest::get_free_port();
-  ASSERT_TRUE(server_startup(servers, SERVER_TARGET, hostile_server, 0, NULL));
+  ASSERT_TRUE(server_startup(servers, SERVER_TARGET, hostile_server, NULL));
 
   return new worker_handles_st;
 }

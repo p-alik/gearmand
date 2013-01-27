@@ -291,8 +291,8 @@ static test_return_t round_robin_SETUP(void *object)
 {
   Context *context= (Context *)object;
 
-  const char *argv[]= { "--round-robin", 0};
-  if (server_startup(context->servers, "gearmand", context->port(), 1, argv))
+  const char *argv[]= { "--round-robin", 0 };
+  if (server_startup(context->servers, "gearmand", context->port(), argv))
   {
     return TEST_SUCCESS;
   }
@@ -305,7 +305,7 @@ static test_return_t _job_retries_SETUP(Context *context)
   char buffer[1024];
   snprintf(buffer, sizeof(buffer), "--job-retries=%u", uint32_t(context->retries()));
   const char *argv[]= { buffer, 0};
-  if (server_startup(context->servers, "gearmand", context->port(), 1, argv))
+  if (server_startup(context->servers, "gearmand", context->port(), argv))
   {
     return TEST_SUCCESS;
   }

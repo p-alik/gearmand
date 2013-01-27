@@ -31,7 +31,7 @@ static test_return_t collection_init(void *object)
   Context *test= (Context *)object;
   test_true(test);
 
-  test_truth(test->initialize(0, NULL));
+  test_truth(test->initialize(NULL));
 
   return TEST_SUCCESS;
 }

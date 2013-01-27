@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011-2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2011-2013 Data Differential, http://datadifferential.com/
  *  Copyright (C) 2008 Brian Aker, Eric Day
  *  All rights reserved.
  *
@@ -42,18 +42,35 @@
  */
 
 #include "gear_config.h"
+
 #include "libgearman-server/common.h"
-#include <libgearman-server/timer.h>
+#include "libgearman-server/timer.h"
 
 #include <algorithm>
 #include <cerrno>
+#include <cstddef>
+#include <cstdlib>
 #include <cstring>
 #include <ctime>
+#include <pthread.h>
+
+#ifdef _WIN32
+# include <malloc.h>
+#else
+# include <alloca.h>
+#endif
+
+#ifndef __INTEL_COMPILER
+# pragma GCC diagnostic ignored "-Wold-style-cast"
+# pragma GCC diagnostic ignored "-Wformat-nonliteral"
+# pragma GCC diagnostic ignored "-Wformat-security"
+#endif
+
 
 static pthread_key_t logging_key;
 static pthread_once_t intitialize_log_once= PTHREAD_ONCE_INIT;
 
-static void delete_log(void *ptr)
+static void delete_log(void * ptr)
 {
   if (ptr)
   {
@@ -63,24 +80,40 @@ static void delete_log(void *ptr)
 
 static void create_log(void)
 {
-  (void) pthread_key_create(&logging_key, delete_log);
-}
-
-void gearmand_initialize_thread_logging(const char *identity)
-{
-  (void) pthread_once(&intitialize_log_once, create_log);
-
-  if (pthread_getspecific(logging_key) == NULL)
+  int pthread_error;
+  if ((pthread_error= pthread_key_create(&logging_key, delete_log)))
   {
-    const char *key_to_use= strdup(identity);
-    (void) pthread_setspecific(logging_key, key_to_use);
+    gearmand_log_fatal_perror(GEARMAND_AT, "pthread_key_create", pthread_error, "pthread_key_create");
+    abort();
   }
 }
 
-#ifndef __INTEL_COMPILER
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#endif
+gearmand_error_t gearmand_initialize_thread_logging(const char *identity)
+{
+  if (identity)
+  {
+    int pthread_error;
+    if ((pthread_error= pthread_once(&intitialize_log_once, create_log)))
+    {
+      return gearmand_log_fatal_perror(GEARMAND_AT, "pthread_once", pthread_error, "identity: %s", identity);
+    }
+
+    if (pthread_getspecific(logging_key) == NULL)
+    {
+      const char *key_to_use= strdup(identity);
+      if ((pthread_error= pthread_setspecific(logging_key, key_to_use)))
+      {
+        return gearmand_log_fatal_perror(GEARMAND_AT, "pthread_setspecific", pthread_error, "identity: %s", identity);
+      }
+    }
+
+    return GEARMAN_SUCCESS;
+  }
+
+  gearmand_fatal("identity was NULL");
+
+  return GEARMAN_INVALID_ARGUMENT;
+}
 
 /**
  * Log a message.
@@ -209,23 +242,43 @@ static void gearmand_log(const char *position, const char *func /* func */,
 
 gearmand_error_t gearmand_log_fatal(const char *position, const char *func, const char *format, ...)
 {
-  va_list args;
-
-  if (not Gearmand() || Gearmand()->verbose >= GEARMAND_VERBOSE_FATAL)
+  if (Gearmand() and  Gearmand()->verbose < GEARMAND_VERBOSE_FATAL)
   {
+    return GEARMAN_ERRNO;
+  }
+
+  {
+    va_list args;
     va_start(args, format);
     gearmand_log(position, func, GEARMAND_VERBOSE_FATAL, GEARMAN_SUCCESS, format, args);
     va_end(args);
   }
 
-  assert_vmsg(false, format, args);
-
   return GEARMAN_ERRNO;
 }
 
-gearmand_error_t gearmand_log_fatal_perror(const char *position, const char *function, int local_errno,  const char *message)
+gearmand_error_t gearmand_log_fatal_perror(const char *position, const char *function, const int local_errno, const char *format, ...)
 {
-  if (not Gearmand() || Gearmand()->verbose >= GEARMAND_VERBOSE_FATAL)
+  if (Gearmand() and  Gearmand()->verbose < GEARMAND_VERBOSE_FATAL)
+  {
+    return GEARMAN_ERRNO;
+  }
+
+  char* message_buffer= NULL;
+  {
+    va_list args;
+    va_start(args, format);
+
+    size_t ask= snprintf(0, 0, format);
+    ask++; // for null
+    message_buffer= (char*)alloca(sizeof(char) * ask);
+    if (message_buffer)
+    {
+      vsnprintf(message_buffer, ask, format, args);
+    }
+    va_end(args);
+  }
+
   {
     const char *errmsg_ptr;
     char errmsg[GEARMAN_MAX_ERROR_SIZE]; 
@@ -238,7 +291,14 @@ gearmand_error_t gearmand_log_fatal_perror(const char *position, const char *fun
     errmsg_ptr= errmsg;
 #endif
 
-    gearmand_log_fatal(position, function, "%s(%s)", message, errmsg_ptr);
+    if (message_buffer)
+    {
+      gearmand_log_fatal(position, function, "%s(%s)", message_buffer, errmsg_ptr);
+    }
+    else
+    {
+      gearmand_log_fatal(position, function, "%s", errmsg_ptr);
+    }
   }
 
   switch (local_errno)
@@ -259,10 +319,9 @@ gearmand_error_t gearmand_log_fatal_perror(const char *position, const char *fun
 
 gearmand_error_t gearmand_log_error(const char *position, const char *function, const char *format, ...)
 {
-  va_list args;
-
   if (not Gearmand() or Gearmand()->verbose >= GEARMAND_VERBOSE_ERROR)
   {
+    va_list args;
     va_start(args, format);
     gearmand_log(position, function, GEARMAND_VERBOSE_ERROR, GEARMAN_SUCCESS, format, args);
     va_end(args);
@@ -273,10 +332,9 @@ gearmand_error_t gearmand_log_error(const char *position, const char *function, 
 
 void gearmand_log_warning(const char *position, const char *function, const char *format, ...)
 {
-  va_list args;
-
-  if (not Gearmand() || Gearmand()->verbose >= GEARMAND_VERBOSE_WARN)
+  if (not Gearmand() or Gearmand()->verbose >= GEARMAND_VERBOSE_WARN)
   {
+    va_list args;
     va_start(args, format);
     gearmand_log(position, function, GEARMAND_VERBOSE_WARN, GEARMAN_SUCCESS, format, args);
     va_end(args);
@@ -286,10 +344,9 @@ void gearmand_log_warning(const char *position, const char *function, const char
 // LOG_NOTICE is only used for reporting job status.
 void gearmand_log_notice(const char *position, const char *function, const char *format, ...)
 {
-  va_list args;
-
-  if (not Gearmand() || Gearmand()->verbose >= GEARMAND_VERBOSE_NOTICE)
+  if (not Gearmand() or Gearmand()->verbose >= GEARMAND_VERBOSE_NOTICE)
   {
+    va_list args;
     va_start(args, format);
     gearmand_log(position, function, GEARMAND_VERBOSE_NOTICE, GEARMAN_SUCCESS, format, args);
     va_end(args);
@@ -298,10 +355,9 @@ void gearmand_log_notice(const char *position, const char *function, const char 
 
 void gearmand_log_info(const char *position, const char *function, const char *format, ...)
 {
-  va_list args;
-
-  if (not Gearmand() || Gearmand()->verbose >= GEARMAND_VERBOSE_INFO)
+  if (not Gearmand() or Gearmand()->verbose >= GEARMAND_VERBOSE_INFO)
   {
+    va_list args;
     va_start(args, format);
     gearmand_log(position, function, GEARMAND_VERBOSE_INFO, GEARMAN_SUCCESS, format, args);
     va_end(args);
@@ -320,10 +376,23 @@ void gearmand_log_debug(const char *position, const char *function, const char *
   }
 }
 
-gearmand_error_t gearmand_log_perror(const char *position, const char *function, int local_errno, const char *message)
+gearmand_error_t gearmand_log_perror(const char *position, const char *function, const int local_errno, const char *format, ...)
 {
   if (not Gearmand() or (Gearmand()->verbose >= GEARMAND_VERBOSE_ERROR))
   {
+    char* message_buffer= NULL;
+    {
+      va_list args;
+      va_start(args, format);
+
+      size_t ask= snprintf(0, 0, format);
+      ask++; // for null
+      message_buffer= (char*)alloca(sizeof(char) * ask);
+      vsnprintf(message_buffer, ask, format, args);
+
+      va_end(args);
+    }
+
     const char *errmsg_ptr;
     char errmsg[GEARMAN_MAX_ERROR_SIZE]; 
     errmsg[0]= 0; 
@@ -334,7 +403,14 @@ gearmand_error_t gearmand_log_perror(const char *position, const char *function,
     strerror_r(local_errno, errmsg, sizeof(errmsg));
     errmsg_ptr= errmsg;
 #endif
-    gearmand_log_error(position, function, "%s(%s)", message, errmsg_ptr);
+    if (message_buffer)
+    {
+      gearmand_log_error(position, function, "%s(%s)", message_buffer, errmsg_ptr);
+    }
+    else
+    {
+      gearmand_log_error(position, function, "%s", errmsg_ptr);
+    }
   }
 
   switch (local_errno)

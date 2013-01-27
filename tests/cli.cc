@@ -297,7 +297,7 @@ static test_return_t init_SETUP(void* object)
   cli::Context *context= (cli::Context*)object;
 
   context->port(libtest::get_free_port());
-  test_true(server_startup(context->servers, "gearmand", context->port(), 0, NULL));
+  test_true(server_startup(context->servers, "gearmand", context->port(), NULL));
 
   // Echo function
   gearman_function_t echo_react_fn_v2= gearman_function_create(echo_or_react_worker_v2);
@@ -322,7 +322,7 @@ static test_return_t server_SETUP(void *object)
   cli::Context *context= (cli::Context*)object;
 
   in_port_t new_port= libtest::get_free_port();
-  test_true(server_startup(context->servers, "gearmand", new_port, 0, NULL));
+  test_true(server_startup(context->servers, "gearmand", new_port, NULL));
 
   return TEST_SUCCESS;
 }

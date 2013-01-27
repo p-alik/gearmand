@@ -177,7 +177,8 @@ public:
 
   virtual bool ping()= 0;
 
-  virtual bool build(size_t argc, const char *argv[])= 0;
+  bool init(const char *argv[]);
+  virtual bool build()= 0;
 
   void add_option(const std::string&);
   void add_option(const std::string&, const std::string&);

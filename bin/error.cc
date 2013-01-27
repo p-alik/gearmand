@@ -35,9 +35,11 @@
  *
  */
 
+#include "gear_config.h"
+
+#include <cerrno>
 #include <cstdio>
 #include <cstring>
-#include <errno.h>
 #include <iostream>
 
 #include <libgearman/gearman.h>
@@ -52,13 +54,17 @@ void perror(const char *message)
   char *errmsg_ptr;
   char errmsg[BUFSIZ];
   errmsg[0]= 0;
+  errmsg_ptr= errmsg;
 
 #ifdef STRERROR_R_CHAR_P
   errmsg_ptr= strerror_r(errno, errmsg, sizeof(errmsg));
 #else
-  strerror_r(errno, errmsg, sizeof(errmsg));
-  errmsg_ptr= errmsg;
+  if (strerror_r(errno, errmsg, sizeof(errmsg)) == 0)
+  {
+    errmsg_ptr= errmsg;
+  }
 #endif
+  if (errmsg_ptr and errmsg[0] != 0)
   std::cerr << "gearman: " << message << " (" << errmsg_ptr << ")" << std::endl;
 }
 

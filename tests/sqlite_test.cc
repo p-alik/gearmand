@@ -240,7 +240,7 @@ static test_return_t collection_init(void *object)
   test_true(test);
   test->reset();
 
-  test_truth(test->initialize(2, argv));
+  test_truth(test->initialize(argv));
   ASSERT_EQ(0, access(sql_file.c_str(), R_OK | W_OK ));
 
   test->extra_file(sql_file.c_str());
@@ -281,7 +281,7 @@ static test_return_t lp_1087654_TEST(void* object)
   {
     in_port_t first_port= libtest::get_free_port();
 
-    test_true(server_startup(servers, "gearmand", first_port, 3, argv));
+    test_true(server_startup(servers, "gearmand", first_port, argv));
     test_compare(0, access(sql_file.c_str(), R_OK | W_OK ));
 
     {
@@ -368,7 +368,7 @@ static test_return_t lp_1087654_TEST(void* object)
   {
     in_port_t first_port= libtest::get_free_port();
 
-    test_true(server_startup(servers, "gearmand", first_port, 2, argv));
+    test_true(server_startup(servers, "gearmand", first_port, argv));
 
     {
       test::Worker worker(first_port);
@@ -454,7 +454,7 @@ static test_return_t queue_restart_TEST(Context const* test, const int32_t inser
   {
     in_port_t first_port= libtest::get_free_port();
 
-    ASSERT_TRUE(server_startup(servers, "gearmand", first_port, 2, argv));
+    ASSERT_TRUE(server_startup(servers, "gearmand", first_port, argv));
     ASSERT_EQ(0, access(sql_file.c_str(), R_OK | W_OK ));
 
     {
@@ -518,7 +518,7 @@ static test_return_t queue_restart_TEST(Context const* test, const int32_t inser
   {
     in_port_t first_port= libtest::get_free_port();
 
-    test_true(server_startup(servers, "gearmand", first_port, 2, argv));
+    test_true(server_startup(servers, "gearmand", first_port, argv));
 
     if (timeout)
     {

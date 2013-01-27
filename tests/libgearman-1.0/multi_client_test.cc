@@ -112,8 +112,7 @@ static test_return_t multi_client_test(void *object)
                gearman_client_do_background(client_to_both, worker_function, unique_2, gearman_string_param(value), job_handle));
 
   const char* unique_3= "unique_3";
-  // This is a bug! Should get back SUCCESS.
-  test_compare(GEARMAN_COULD_NOT_CONNECT, 
+  test_compare(GEARMAN_SUCCESS, 
                gearman_client_do_background(client_to_both, worker_function, unique_3, gearman_string_param(value), job_handle));
 
   // The job unique_2 is truly lost, but unique_3 will end up at the gearmand server 2
@@ -127,7 +126,7 @@ static test_return_t multi_client_test(void *object)
                  gearman_status_return(unique_3_status));
   }
 
-  // Next, proving that the job is present on server 2. This is a bug! We were told above that COULD_NOT_CONNECT.
+  // Next, proving that the job is present on server 2.
   {
     gearman_status_t unique_3_status= gearman_client_unique_status(client_to_2, unique_3, strlen(unique_3));
     test_compare(GEARMAN_SUCCESS,
@@ -137,17 +136,15 @@ static test_return_t multi_client_test(void *object)
 
   // Bring server 1 back up
   server_container.shutdown();
-  test_true(server_startup(server_container, "gearmand", gearmand_port_1, 1, server_argv));
-  test_true(server_startup(server_container, "gearmand", gearmand_port_2, 1, server_argv));
+  test_true(server_startup(server_container, "gearmand", gearmand_port_1, server_argv));
+  test_true(server_startup(server_container, "gearmand", gearmand_port_2, server_argv));
 
   // Try adding in a new job.
-  // It will timeout. This is a bug!
   const char* unique_4= "unique_4";
-  test_compare(GEARMAN_TIMEOUT,
+  test_compare(GEARMAN_SUCCESS,
                gearman_client_do_background(client_to_both, worker_function, unique_4, gearman_string_param(value), job_handle));
 
   // Next, proving that the job is present on server 1, but we got a timeout instead!
-  // This is a bug!
   {
     gearman_status_t unique_4_status= gearman_client_unique_status(client_to_both, unique_4, strlen(unique_4));
     test_compare(GEARMAN_SUCCESS,
@@ -166,9 +163,9 @@ static void *world_create(server_startup_st& servers, test_return_t&)
   test->push_port(libtest::get_free_port());
   test->push_port(libtest::get_free_port());
 
-  ASSERT_TRUE(server_startup(servers, "gearmand", test->port(0), 1, server_argv));
+  ASSERT_TRUE(server_startup(servers, "gearmand", test->port(0), server_argv));
 
-  ASSERT_TRUE(server_startup(servers, "gearmand", test->port(1), 1, server_argv));
+  ASSERT_TRUE(server_startup(servers, "gearmand", test->port(1), server_argv));
 
   test->add_server("127.0.0.1", test->port(0),
                    "127.0.0.1", test->port(1));

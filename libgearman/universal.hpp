@@ -64,7 +64,7 @@ void gearman_universal_set_namespace(gearman_universal_st &self, const char *nam
 void gearman_reset(gearman_universal_st& universal);
 
 // Flush the send buffer for all connections.
-gearman_return_t gearman_flush_all(gearman_universal_st&);
+void gearman_flush_all(gearman_universal_st&);
 
 /**
  * Set custom memory allocation function for workloads. Normally gearman uses

@@ -180,29 +180,27 @@ gearman_server_job_st *gearman_server_job_get_by_unique(gearman_server_st *serve
                                                         const size_t unique_length,
                                                         gearman_server_con_st *worker_con)
 {
-  (void)unique_length;
-  for (size_t x= 0; x < server->hashtable_buckets; ++x)
+  uint32_t key= _server_job_hash(unique, unique_length);
+  gearman_server_job_st *server_job;
+
+  for (server_job= server->unique_hash[key % server->hashtable_buckets];
+       server_job != NULL; server_job= server_job->unique_next)
   {
-    for (gearman_server_job_st *server_job= server->job_hash[x];
-         server_job != NULL;
-         server_job= server_job->next)
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "COMPARE unique \"%s\"(%u) == \"%s\"(%u)",
+                       bool(server_job->unique[0]) ? server_job->unique :  "<null>", uint32_t(strlen(server_job->unique)),
+                       unique, uint32_t(unique_length));
+
+    if (bool(server_job->unique[0]) and
+        (strcmp(server_job->unique, unique) == 0))
     {
-      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "COMPARE unique \"%s\"(%u) == \"%s\"(%u)",
-                         bool(server_job->unique[0]) ? server_job->unique :  "<null>", uint32_t(strlen(server_job->unique)),
-                         unique, uint32_t(unique_length));
-
-      if (bool(server_job->unique[0]) and
-          (strcmp(server_job->unique, unique) == 0))
+      /* Check to make sure the worker asking for the job still owns the job. */
+      if (worker_con != NULL and
+          (server_job->worker == NULL or server_job->worker->con != worker_con))
       {
-        /* Check to make sure the worker asking for the job still owns the job. */
-        if (worker_con != NULL and
-            (server_job->worker == NULL or server_job->worker->con != worker_con))
-        {
-          return NULL;
-        }
-
-        return server_job;
+        return NULL;
       }
+
+      return server_job;
     }
   }
 
@@ -368,13 +366,14 @@ void *_proc(void *data)
 {
   gearman_server_st *server= (gearman_server_st *)data;
 
-  gearmand_initialize_thread_logging("[  proc ]");
+  (void)gearmand_initialize_thread_logging("[  proc ]");
 
   while (1)
   {
-    if (pthread_mutex_lock(&(server->proc_lock)) == -1)
+    int pthread_error;
+    if ((pthread_error= pthread_mutex_lock(&(server->proc_lock))))
     {
-      gearmand_fatal("pthread_mutex_lock()");
+      gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, pthread_error, "pthread_mutex_lock");
       return NULL;
     }
 
@@ -382,10 +381,9 @@ void *_proc(void *data)
     {
       if (server->proc_shutdown)
       {
-        int error;
-        if ((error= pthread_mutex_unlock(&(server->proc_lock))))
+        if ((pthread_error= pthread_mutex_unlock(&(server->proc_lock))))
         {
-          gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock() failed");
+          gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, pthread_error, "pthread_mutex_unlock");
         }
         return NULL;
       }
@@ -395,10 +393,9 @@ void *_proc(void *data)
     server->proc_wakeup= false;
 
     {
-      int error;
-      if ((error= pthread_mutex_unlock(&(server->proc_lock))))
+      if ((pthread_error= pthread_mutex_unlock(&(server->proc_lock))))
       {
-        gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock() failed");
+        gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, pthread_error, "pthread_mutex_unlock");
       }
     }
 
@@ -557,8 +554,8 @@ gearmand_error_t gearmand_con_create(gearmand_st *gearmand, int fd,
     uint32_t free_dcon_count;
     gearmand_con_st *free_dcon_list= NULL;
 
-    int error;
-    if ((error= pthread_mutex_lock(&(dcon->thread->lock))) == 0)
+    int pthread_error;
+    if ((pthread_error= pthread_mutex_lock(&(dcon->thread->lock))) == 0)
     {
       GEARMAN_LIST__ADD(dcon->thread->dcon_add, dcon);
 
@@ -568,14 +565,14 @@ gearmand_error_t gearmand_con_create(gearmand_st *gearmand, int fd,
       dcon->thread->free_dcon_list= NULL;
       dcon->thread->free_dcon_count= 0;
 
-      if ((error= pthread_mutex_unlock(&(dcon->thread->lock))))
+      if ((pthread_error= pthread_mutex_unlock(&(dcon->thread->lock))))
       {
-        gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock() failed");
+        gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, pthread_error, "pthread_mutex_unlock");
       }
     }
     else
     {
-      gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_lock() failed");
+      gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, pthread_error, "pthread_mutex_lock");
       gearmand_wakeup(Gearmand(), GEARMAND_WAKEUP_SHUTDOWN);
     }
 
@@ -605,7 +602,7 @@ void gearmand_con_free(gearmand_con_st *dcon)
 {
   if (event_initialized(&(dcon->event)))
   {
-    if (event_del(&(dcon->event)) < 0)
+    if (event_del(&(dcon->event)) == -1)
     {
       gearmand_perror(errno, "event_del");
     }
@@ -615,13 +612,13 @@ void gearmand_con_free(gearmand_con_st *dcon)
       event_set(&(dcon->event), dcon->fd, EV_READ, _con_ready, dcon);
       event_base_set(dcon->thread->base, &(dcon->event));
 
-      if (event_add(&(dcon->event), NULL) < 0)
+      if (event_add(&(dcon->event), NULL) == -1)
       {
         gearmand_perror(errno, "event_add");
       }
       else
       {
-        if (event_del(&(dcon->event)) < 0)
+        if (event_del(&(dcon->event)) == -1)
         {
           gearmand_perror(errno, "event_del");
         }
@@ -655,12 +652,12 @@ void gearmand_con_free(gearmand_con_st *dcon)
         GEARMAN_LIST__ADD(dcon->thread->free_dcon, dcon);
         if ((error= pthread_mutex_unlock(&(dcon->thread->lock))))
         {
-          gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock() failed");
+          gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock");
         }
       }
       else
       {
-        gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_lock() failed");
+        gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_lock");
       }
     }
   }
@@ -690,7 +687,7 @@ void gearmand_con_check_queue(gearmand_thread_st *thread)
 
       if ((error= pthread_mutex_unlock(&(thread->lock))))
       {
-        gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock() failed, forcing a shutdown");
+        gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock");
         gearmand_wakeup(Gearmand(), GEARMAND_WAKEUP_SHUTDOWN);
       }
 
@@ -703,7 +700,7 @@ void gearmand_con_check_queue(gearmand_thread_st *thread)
     }
     else
     {
-      gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_lock() failed, forcing a shutdown");
+      gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_lock");
       gearmand_wakeup(Gearmand(), GEARMAND_WAKEUP_SHUTDOWN);
     }
   }

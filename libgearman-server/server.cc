@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011-2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2011-2013 Data Differential, http://datadifferential.com/
  *  Copyright (C) 2008 Brian Aker, Eric Day
  *  All rights reserved.
  *
@@ -1015,7 +1015,7 @@ _server_queue_work_data(gearman_server_job_st *server_job,
     uint8_t *data;
     if (packet->data_size > 0)
     {
-      if (packet->options.free_data &&
+      if (packet->options.free_data and
           server_client->job_next == NULL)
       {
         data= (uint8_t *)(packet->data);
