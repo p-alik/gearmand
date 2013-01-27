@@ -2,7 +2,7 @@
  * 
  *  Gearman library
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2011-2013 Data Differential, http://datadifferential.com/
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -48,7 +48,7 @@ void *gearman_real_realloc(gearman_allocator_t&, void *ptr, size_t size, const c
 
 #define gearman_realloc(__gearman_universal_st, __ptr, __size) gearman_real_realloc(((__gearman_universal_st).allocator), (__ptr), (__size), __func__, __FILE__, __LINE__)
 
-void gearman_real_free(gearman_allocator_t& allocator, void *ptr, const char *func, const char *file, int line);
+void gearman_real_free(gearman_allocator_t& allocator, void *&ptr, const char *func, const char *file, int line);
 
 #define gearman_free(__gearman_universal_st, __ptr) gearman_real_free(((__gearman_universal_st).allocator), (__ptr), __func__, __FILE__, __LINE__)
 

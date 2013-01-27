@@ -281,24 +281,36 @@ void gearman_connection_st::free_private_packet()
  * Public Definitions
  */
 
-void gearman_connection_st::set_host(const char *host_arg, const in_port_t port_arg)
+void gearman_connection_st::set_host(const char *host_, const in_port_t port_)
 {
   reset_addrinfo();
 
-  strncpy(_host, host_arg == NULL ? GEARMAN_DEFAULT_TCP_HOST : host_arg, GEARMAN_NI_MAXHOST);
+  if (host_ == NULL)
+  {
+    strncpy(_host, GEARMAN_DEFAULT_TCP_HOST, GEARMAN_NI_MAXHOST);
+  }
+  else
+  {
+    strncpy(_host, host_, GEARMAN_NI_MAXHOST);
+  }
   _host[GEARMAN_NI_MAXHOST - 1]= 0;
 
-  in_port_t port= in_port_t(port_arg == 0 ? GEARMAN_DEFAULT_TCP_PORT : port_arg);
-
-  snprintf(_service, sizeof(_service), "%hu", uint16_t(port));
+  snprintf(_service, sizeof(_service), "%hu", uint16_t(port_));
   _service[GEARMAN_NI_MAXSERV - 1]= 0;
 }
 
-void gearman_connection_st::set_host(const char *host_arg, const char* service_)
+void gearman_connection_st::set_host(const char *host_, const char* service_)
 {
   reset_addrinfo();
 
-  strncpy(_host, host_arg == NULL ? GEARMAN_DEFAULT_TCP_HOST : host_arg, GEARMAN_NI_MAXHOST);
+  if (host_ == NULL)
+  {
+    strncpy(_host, GEARMAN_DEFAULT_TCP_HOST, GEARMAN_NI_MAXHOST);
+  }
+  else
+  {
+    strncpy(_host, host_, GEARMAN_NI_MAXHOST);
+  }
   _host[GEARMAN_NI_MAXHOST - 1]= 0;
 
   if (service_)
@@ -347,6 +359,14 @@ void gearman_connection_st::close_socket()
 
   recv_buffer_ptr= recv_buffer;
   recv_buffer_size= 0;
+
+  // created_id_next is incremented for every outbound packet (except status).
+  // created_id is incremented for every response packet received, and also when
+  // no packets are received due to an error. There are lots of such error paths
+  // and it seems simpler to just reset these both to zero when a connection is
+  // 'closed'.
+  created_id= 0;
+  created_id_next= 0;
 }
 
 void gearman_connection_st::free_recv_packet()
@@ -532,6 +552,7 @@ gearman_return_t gearman_connection_st::lookup()
   ai.ai_socktype= SOCK_STREAM;
   ai.ai_protocol= IPPROTO_TCP;
 
+  assert_msg(_addrinfo == NULL, "Programmer error, reset_addrinfo() is either broke, or was not called.");
   int ret;
   if ((ret= getaddrinfo(_host, _service, &ai, &(_addrinfo))))
   {

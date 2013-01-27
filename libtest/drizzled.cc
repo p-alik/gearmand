@@ -182,10 +182,10 @@ public:
     }
   }
 
-  bool build(size_t argc, const char *argv[]);
+  bool build();
 };
 
-bool Drizzle::build(size_t argc, const char *argv[])
+bool Drizzle::build()
 {
   if (getuid() == 0 or geteuid() == 0)
   {
@@ -196,16 +196,6 @@ bool Drizzle::build(size_t argc, const char *argv[])
 #if 0
   add_option("--datadir=var/drizzle");
 #endif
-
-  for (size_t x= 0 ; x < argc ; x++)
-  {
-    if (argv[x] == NULL)
-    {
-      break;
-    }
-
-    add_option(argv[x]);
-  }
 
   return true;
 }

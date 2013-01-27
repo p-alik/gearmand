@@ -43,44 +43,49 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "util/memory.h"
+using namespace org::tangent;
+
 #define GEARMAN_BLOCK_SIZE 1024*4
 
 inline static gearman_return_t _string_check(gearman_vector_st *string, const size_t need)
 {
-  if (not string)
-    return GEARMAN_INVALID_ARGUMENT;
-
-  if (need && need > size_t(string->current_size - size_t(string->end - string->string)))
+  if (string)
   {
-    size_t current_offset= size_t(string->end - string->string);
-    char *new_value;
-    size_t adjust;
-    size_t new_size;
-
-    /* This is the block multiplier. To keep it larger and surive division errors we must round it up */
-    adjust= (need - size_t(string->current_size - size_t(string->end - string->string))) / GEARMAN_BLOCK_SIZE;
-    adjust++;
-
-    new_size= sizeof(char) * size_t((adjust * GEARMAN_BLOCK_SIZE) + string->current_size);
-    /* Test for overflow */
-    if (new_size < need)
+    if (need && need > size_t(string->current_size - size_t(string->end - string->string)))
     {
-      return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+      size_t current_offset= size_t(string->end - string->string);
+      char *new_value;
+      size_t adjust;
+      size_t new_size;
+
+      /* This is the block multiplier. To keep it larger and surive division errors we must round it up */
+      adjust= (need - size_t(string->current_size - size_t(string->end - string->string))) / GEARMAN_BLOCK_SIZE;
+      adjust++;
+
+      new_size= sizeof(char) * size_t((adjust * GEARMAN_BLOCK_SIZE) + string->current_size);
+      /* Test for overflow */
+      if (new_size < need)
+      {
+        return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+      }
+
+      new_value= static_cast<char *>(realloc(string->string, new_size));
+      if (new_value == NULL)
+      {
+        return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+      }
+
+      string->string= new_value;
+      string->end= string->string + current_offset;
+
+      string->current_size+= (GEARMAN_BLOCK_SIZE * adjust);
     }
 
-    new_value= static_cast<char *>(realloc(string->string, new_size));
-    if (new_value == NULL)
-    {
-      return GEARMAN_MEMORY_ALLOCATION_FAILURE;
-    }
-
-    string->string= new_value;
-    string->end= string->string + current_offset;
-
-    string->current_size+= (GEARMAN_BLOCK_SIZE * adjust);
+    return GEARMAN_SUCCESS;
   }
 
-  return GEARMAN_SUCCESS;
+  return GEARMAN_INVALID_ARGUMENT;
 }
 
 static inline void _init_string(gearman_vector_st *self)
@@ -135,9 +140,13 @@ gearman_vector_st *gearman_string_create(gearman_vector_st *self, size_t initial
   {
     if (gearman_is_allocated(self))
     {
-      free(self);
+      void* tmp_ptr= self;
+      util::free__(tmp_ptr);
     }
-    gearman_set_initialized(self, false);
+    else
+    {
+      gearman_set_initialized(self, false);
+    }
 
     return NULL;
   }
@@ -236,12 +245,14 @@ void gearman_string_free(gearman_vector_st *ptr)
   {
     if (ptr->string)
     {
-      free(ptr->string);
+      void* tmp_ptr= ptr->string;
+      util::free__(tmp_ptr);
     }
 
     if (gearman_is_allocated(ptr))
     {
-      free(ptr);
+      void* tmp_ptr= ptr;
+      util::free__(tmp_ptr);
       return;
     }
 

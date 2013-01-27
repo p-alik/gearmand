@@ -181,6 +181,9 @@ static test_return_t test_throw_fail_TEST(void *)
 }
 #pragma GCC diagnostic ignored "-Wstack-protector"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-security"
+
 static test_return_t ASSERT_FALSE__TEST(void *)
 {
   try {
@@ -198,6 +201,8 @@ static test_return_t ASSERT_FALSE__TEST(void *)
 
   return TEST_FAILURE;
 }
+
+#pragma GCC diagnostic pop
 
 static test_return_t ASSERT_FALSE_TEST(void *)
 {
@@ -396,7 +401,7 @@ static test_return_t drizzled_cycle_test(void *object)
 
   test_skip(true, has_drizzled());
 
-  test_skip(true, server_startup(*servers, "drizzled", get_free_port(), 0, NULL, false));
+  test_skip(true, server_startup(*servers, "drizzled", get_free_port(), NULL));
 
   return TEST_SUCCESS;
 }
@@ -407,7 +412,7 @@ static test_return_t gearmand_cycle_test(void *object)
   test_true(servers and servers->validate());
 
   test_skip(true, has_gearmand());
-  test_skip(true, server_startup(*servers, "gearmand", get_free_port(), 0, NULL, false));
+  test_skip(true, server_startup(*servers, "gearmand", get_free_port(), NULL));
   servers->clear();
 
   return TEST_SUCCESS;
@@ -442,7 +447,7 @@ static test_return_t server_startup_fail_TEST(void *object)
   test_true(servers);
 
   fatal::disable();
-  ASSERT_EQ(servers->start_server(testing_service, LIBTEST_FAIL_PORT, 0, NULL, false), true);
+  ASSERT_EQ(servers->start_server(testing_service, LIBTEST_FAIL_PORT, NULL), true);
   fatal::enable();
 
   return TEST_SUCCESS;
@@ -453,7 +458,7 @@ static test_return_t server_startup_TEST(void *object)
   server_startup_st *servers= (server_startup_st*)object;
   test_true(servers);
 
-  ASSERT_EQ(servers->start_server(testing_service, get_free_port(), 0, NULL, false), true);
+  ASSERT_EQ(servers->start_server(testing_service, get_free_port(), NULL), true);
 
   test_true(servers->last());
   pid_t last_pid= servers->last()->pid();
@@ -476,7 +481,7 @@ static test_return_t socket_server_startup_TEST(void *object)
   server_startup_st *servers= (server_startup_st*)object;
   test_true(servers);
 
-  test_true(servers->start_socket_server(testing_service, get_free_port(), 0, NULL, false));
+  test_true(servers->start_socket_server(testing_service, get_free_port(), NULL));
 
   return TEST_SUCCESS;
 }
@@ -494,7 +499,7 @@ static test_return_t memcached_sasl_test(void *object)
     if (HAVE_LIBMEMCACHED)
     {
       test_true(has_memcached_sasl());
-      test_true(server_startup(*servers, "memcached-sasl", get_free_port(), 0, NULL, false));
+      test_true(server_startup(*servers, "memcached-sasl", get_free_port(), NULL));
 
       return TEST_SUCCESS;
     }
@@ -866,11 +871,8 @@ static test_return_t lookup_true_TEST(void *)
 
 static test_return_t lookup_false_TEST(void *)
 {
-  if (libtest::lookup("does_not_exist.gearman.info"))
-  {
-    Error << "Broken DNS server detected";
-    return TEST_SKIPPED;
-  }
+  SKIP_IF_(libtest::lookup("does_not_exist.gearman.info"),
+           "Broken DNS server detected");
 
   return TEST_SUCCESS;
 }
@@ -1110,6 +1112,7 @@ test_st application_tests[] ={
 
 static test_return_t check_for_curl(void *)
 {
+  test_skip_valgrind();
   test_skip(true, HAVE_LIBCURL);
   return TEST_SUCCESS;
 }

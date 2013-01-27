@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011-2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2011-2013 Data Differential, http://datadifferential.com/
  *  Copyright (C) 2008 Brian Aker, Eric Day
  *  All rights reserved.
  *
@@ -67,7 +67,7 @@ static void _connection_close(gearmand_io_st *connection)
   else
   {
     (void)gearmand_sockfd_close(connection->fd);
-    assert(! "We should never have an internal fd");
+    assert_msg(false, "We should never have an internal fd");
   }
 
   connection->_state= gearmand_io_st::GEARMAND_CON_UNIVERSAL_INVALID;
@@ -907,7 +907,7 @@ static gearmand_error_t _io_setsockopt(gearmand_io_st &connection)
   return GEARMAN_SUCCESS;
 }
 
-void gearmand_sockfd_close(int sockfd)
+void gearmand_sockfd_close(int& sockfd)
 {
   if (sockfd == INVALID_SOCKET)
   {
@@ -920,16 +920,16 @@ void gearmand_sockfd_close(int sockfd)
   {
     gearmand_perror(errno, "shutdown");
     assert(errno != ENOTSOCK);
-    return;
   }
-
-  if (closesocket(sockfd) == SOCKET_ERROR)
+  else if (closesocket(sockfd) == SOCKET_ERROR)
   {
     gearmand_perror(errno, "close");
   }
+
+  sockfd= INVALID_SOCKET;
 }
 
-void gearmand_pipe_close(int pipefd)
+void gearmand_pipe_close(int& pipefd)
 {
   if (pipefd == INVALID_SOCKET)
   {
@@ -941,4 +941,6 @@ void gearmand_pipe_close(int pipefd)
   {
     gearmand_perror(errno, "close");
   }
+
+  pipefd= -1;
 }

@@ -1379,11 +1379,7 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client, gear
 
         if (client->impl()->new_tasks == 0)
         {
-          gearman_return_t local_ret= gearman_flush_all(client->impl()->universal);
-          if (gearman_failed(local_ret))
-          {
-            return local_ret;
-          }
+          gearman_flush_all(client->impl()->universal);
         }
       }
 

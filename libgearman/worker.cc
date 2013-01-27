@@ -860,8 +860,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
 
           if (worker->impl()->options.timeout_return)
           {
-            gearman_error(worker->impl()->universal, GEARMAN_TIMEOUT, "Option timeout return reached");
-            *ret_ptr= GEARMAN_TIMEOUT;
+            *ret_ptr= gearman_error(worker->impl()->universal, GEARMAN_TIMEOUT, "Option timeout return reached");
 
             return NULL;
           }

@@ -93,9 +93,9 @@ static test_return_t kill_test(void *)
 
 static test_return_t __server_startup_TEST(cycle_context_st* context, const int count)
 {
-  for (int x= 0; x < count; x++)
+  for (int x= 0; x < count; ++x)
   {
-    test_skip(true, server_startup(context->servers, "gearmand", libtest::get_free_port(), 0, NULL, false));
+    test_skip(true, server_startup(context->servers, "gearmand", libtest::get_free_port(), NULL));
   }
   ASSERT_EQ(true, context->servers.shutdown());
 
@@ -162,7 +162,7 @@ static test_return_t collection_INIT(void *object)
   test_zero(context->servers.count());
   context->reset();
 
-  test_skip(true, server_startup(context->servers, "gearmand", context->port, 0, NULL, false));
+  test_skip(true, server_startup(context->servers, "gearmand", context->port, NULL));
 
   return TEST_SUCCESS;
 }

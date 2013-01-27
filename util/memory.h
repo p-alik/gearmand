@@ -1,9 +1,8 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  Gearmand client and server library.
+ *  DataDifferential Utility Library
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  Copyright (C) 2008 Brian Aker, Eric Day
+ *  Copyright (C) 2013 Data Differential, http://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -36,80 +35,31 @@
  *
  */
 
-#include "gear_config.h"
+#pragma once
 
-#include <libgearman/common.h>
-
-#include <cerrno>
-#include <cstring>
-#include <poll.h>
+#include <cstddef>
+#include <cstdlib>
 #include <unistd.h>
 
-gearman_id_t gearman_id_initialize(void)
-{
-  static gearman_id_t tmp= { -1, -1 };
+namespace org {
+namespace tangent {
+namespace util {
 
-  return tmp;
+static inline void free__(void *& ptr)
+{
+  std::free(ptr);
+  ptr= NULL;
 }
 
-bool gearman_id_valid(const gearman_id_t handle)
+static inline int close__(int & fd)
 {
-  if (handle.write_fd <= 0 and handle.read_fd <= 0)
-  {
-    return false;
-  }
+  int ret= close(fd);
+  fd= -1;
 
-  return true;
+  return ret;
 }
 
-gearman_return_t gearman_kill(const gearman_id_t handle, const gearman_signal_t sig)
-{
-  if (handle.write_fd <= 0 or handle.read_fd <= 0)
-  {
-    return GEARMAN_COULD_NOT_CONNECT;
-  }
+} // namespace util
+} // namespace tangent
+} // namespace org
 
-  switch (sig)
-  {
-  case GEARMAN_SIGNAL_INTERRUPT:
-    if (write(handle.write_fd, "1", 1) == 1)
-    {
-      return GEARMAN_SUCCESS;
-    }
-    break;
-
-  case GEARMAN_SIGNAL_KILLWAIT:
-    if (close(handle.write_fd) == 0)
-    {
-      gearman_kill(handle, GEARMAN_SIGNAL_CHECK);
-      return GEARMAN_SUCCESS;
-    }
-    break;
-
-  case GEARMAN_SIGNAL_KILL:
-    if (close(handle.write_fd) == 0)
-    {
-      return GEARMAN_SUCCESS;
-    }
-    break;
-
-  case GEARMAN_SIGNAL_CHECK:
-    {
-      struct pollfd pfds[1];
-      memset(&pfds, 0, sizeof(pfds));
-      pfds[0].fd= handle.read_fd;
-      pfds[0].events= POLLIN;
-      pfds[0].revents= 0;
-
-      int ret= ::poll(pfds, 1, 1500);
-
-      if (ret >= 0)
-      {
-        return GEARMAN_SUCCESS;
-      }
-    }
-    break;
-  }
-
-  return GEARMAN_COULD_NOT_CONNECT;
-}

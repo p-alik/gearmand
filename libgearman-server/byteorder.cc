@@ -52,8 +52,7 @@ static inline uint64_t swap64(uint64_t in)
   /* Little endian, flip the bytes around until someone makes a faster/better
    * way to do this. */
   uint64_t rv= 0;
-  uint8_t x= 0;
-  for(x= 0; x < 8; x++)
+  for (uint8_t x= 0; x < 8; ++x)
   {
     rv= (rv << 8) | (in & 0xff);
     in >>= 8;

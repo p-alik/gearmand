@@ -49,6 +49,9 @@ __test_result::__test_result(const char *file_arg, int line_arg, const char *fun
 {
 }
 
+#ifndef __INTEL_COMPILER
+# pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#endif
 void __test_result::init(va_list args_)
 {
   const char *format= va_arg(args_, const char *);
