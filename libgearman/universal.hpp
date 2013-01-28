@@ -172,32 +172,27 @@ private:
   gearman_universal_st& _universal;
 };
 
-#define PUSH_BLOCKING(__univeral) PushBlocking _push_block((__univeral));
+#define PUSH(__original, __temp_value) Push _push((__original),(__temp_value));
 
-class PushNonBlocking {
+class Push {
 public:
-  PushNonBlocking(gearman_universal_st& universal_) :
-    _original(universal_.options.non_blocking),
-    _universal(universal_)
+  Push(bool& original_, const bool temp_value) :
+    _saved(original_),
+    _restore(original_)
   {
-    _universal.options.non_blocking= true;
+    _restore= temp_value;
   }
 
-  PushNonBlocking(gearman_client_st& client_) :
-    _original(client_.universal.options.non_blocking),
-    _universal(client_.universal)
+  ~Push()
   {
-    _universal.options.non_blocking= true;
-  }
-
-  ~PushNonBlocking()
-  {
-    _universal.options.non_blocking= _original;
+    _restore= _saved;
   }
 
 private:
-  bool _original;
-  gearman_universal_st& _universal;
+  bool _saved;
+  bool& _restore;
 };
 
-#define PUSH_NON_BLOCKING(__univeral) PushNonBlocking _push_block((__univeral));
+#define PUSH_BLOCKING(__univeral) Push push_blocking_((__univeral).options.non_blocking, false);
+
+#define PUSH_NON_BLOCKING(__univeral) Push push_blocking_((__univeral).options.non_blocking, true);
