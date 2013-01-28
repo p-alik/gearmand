@@ -22,7 +22,7 @@ AC_CONFIG_HEADERS([gear_config.h:gear_config.in])dnl Keep filename to 8.3 for MS
 AC_SUBST([AUTOHEADER_FILE],[gear_config.h])
 AC_CONFIG_SRCDIR([libgearman/gearman.cc])
 
-GEARMAN_LIBRARY_VERSION=7:0:0
+GEARMAN_LIBRARY_VERSION=7:1:0
 #                       | | |
 #                +------+ | +---+
 #                |        |     |
