@@ -78,7 +78,7 @@ struct Task
   gearman_packet_st send;
   struct gearman_actions_t func;
   gearman_return_t result_rc;
-  struct gearman_result_st *result_ptr;
+  struct gearman_result_st *_result_ptr;
   char job_handle[GEARMAN_JOB_HANDLE_SIZE];
   size_t unique_length;
   char unique[GEARMAN_MAX_UNIQUE_SIZE];
@@ -104,7 +104,7 @@ struct Task
     recv(NULL),
     func(client_.impl()->actions),
     result_rc(GEARMAN_UNKNOWN_STATE),
-    result_ptr(NULL),
+    _result_ptr(NULL),
     unique_length(0),
     _shell(shell_)
   {
@@ -136,6 +136,15 @@ struct Task
 
     _shell->impl(this);
   }
+
+  gearman_result_st* result()
+  {
+    return _result_ptr;
+  }
+
+  void free_result();
+
+  bool create_result(size_t initial_size);
 
 private:
   gearman_task_st* _shell;

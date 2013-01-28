@@ -47,10 +47,15 @@ struct gearman_vector_st {
   char *end;
   char *string;
   size_t current_size;
-  struct {
-    bool is_allocated:1;
-    bool is_initialized:1;
+  struct Options {
+    bool is_allocated;
+    bool is_initialized;
   } options;
+
+  void clear()
+  {
+    end= string;
+  }
 };
 
 
@@ -71,6 +76,7 @@ gearman_vector_st *gearman_string_clone(const gearman_vector_st *);
 
 gearman_return_t gearman_string_check(gearman_vector_st *string, size_t need);
 
+gearman_return_t gearman_string_reserve(gearman_vector_st *string, size_t need);
 
 char *gearman_string_c_copy(gearman_vector_st *string);
 

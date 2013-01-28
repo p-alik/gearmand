@@ -369,8 +369,7 @@ gearman_return_t _client_run_task(Task *task)
       // correctly.
       task->options.is_known= false;
       task->options.is_running= false;
-      delete task->result_ptr;
-      task->result_ptr= NULL;
+      task->free_result();
       task->result_rc= GEARMAN_WORK_FAIL;
 
   case GEARMAN_TASK_STATE_FAIL:

@@ -164,7 +164,7 @@ static void *_client_do(gearman_client_st *client, gearman_command_t command,
     {
       if (gearman_has_allocator(client->impl()->universal))
       {
-        gearman_string_t result= gearman_result_string(do_task.impl()->result_ptr);
+        gearman_string_t result= gearman_result_string(do_task.impl()->result());
         returnable= static_cast<char *>(gearman_malloc(client->impl()->universal, gearman_size(result) +1));
         if (returnable == NULL)
         {
@@ -180,7 +180,7 @@ static void *_client_do(gearman_client_st *client, gearman_command_t command,
       }
       else
       {
-        gearman_string_t result= gearman_result_take_string(do_task.impl()->result_ptr);
+        gearman_string_t result= gearman_result_take_string(do_task.impl()->result());
         *result_size= gearman_size(result);
         returnable= const_cast<char *>(gearman_c_str(result));
       }

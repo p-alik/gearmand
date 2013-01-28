@@ -139,8 +139,7 @@ void gearman_task_free_result(gearman_task_st *task_shell)
   assert(task_shell->impl());
   if (task_shell and task_shell->impl())
   {
-    delete task_shell->impl()->result_ptr;
-    task_shell->impl()->result_ptr= NULL;
+    task_shell->impl()->free_result();
   }
 }
 
@@ -319,7 +318,7 @@ gearman_result_st *gearman_task_result(gearman_task_st *task_shell)
 {
   if (task_shell and task_shell->impl())
   {
-    return task_shell->impl()->result_ptr;
+    return task_shell->impl()->result();
   }
 
   return NULL;
@@ -331,12 +330,12 @@ gearman_result_st *gearman_task_mutable_result(gearman_task_st* task_shell)
   assert(task_shell->impl()); // Programmer error
   if (task_shell and task_shell->impl())
   {
-    if (task_shell->impl()->result_ptr == NULL)
+    if (task_shell->impl()->result() == NULL)
     {
-      task_shell->impl()->result_ptr= new (std::nothrow) gearman_result_st();
+      task_shell->impl()->create_result(0);
     }
 
-    return task_shell->impl()->result_ptr;
+    return task_shell->impl()->result();
   }
   
   return NULL;
@@ -419,4 +418,17 @@ gearman_return_t gearman_task_return(const gearman_task_st *task_shell)
   }
 
   return GEARMAN_INVALID_ARGUMENT;
+}
+
+void Task::free_result()
+{
+  delete _result_ptr;
+  _result_ptr= NULL;
+}
+
+bool Task::create_result(size_t initial_size)
+{
+  assert(_result_ptr == NULL);
+  _result_ptr= new (std::nothrow) gearman_result_st(initial_size);
+  return bool(_result_ptr);
 }
