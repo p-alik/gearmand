@@ -41,61 +41,27 @@
 #include "libgearman/interface/client.hpp" 
 #include "libgearman/interface/universal.hpp" 
 
-/**
-  Push the state of IO
-*/
-class PushBlocking {
+#define PUSH(__original, __temp_value) Push _push((__original),(__temp_value));
+
+class Push {
 public:
-  PushBlocking(gearman_universal_st& arg) :
-    _original(arg.options.non_blocking),
-    _universal(arg)
+  Push(bool& original_, const bool temp_value) :
+    _saved(original_),
+    _restore(original_)
   {
-    _universal.non_blocking(false);
+    _restore= temp_value;
   }
 
-  PushBlocking(gearman_client_st& client_shell) :
-    _original(client_shell.impl()->universal.is_non_blocking()),
-    _universal(client_shell.impl()->universal)
+  ~Push()
   {
-    _universal.non_blocking(false);
-  }
-
-  ~PushBlocking()
-  {
-    _universal.non_blocking(_original);
+    _restore= _saved;
   }
 
 private:
-  bool _original;
-  gearman_universal_st& _universal;
+  bool _saved;
+  bool& _restore;
 };
 
-#define PUSH_BLOCKING(__univeral) PushBlocking _push_block((__univeral));
+#define PUSH_BLOCKING(__univeral) Push push_blocking_((__univeral).options.non_blocking, false);
 
-class PushNonBlocking {
-public:
-  PushNonBlocking(gearman_universal_st& arg) :
-    _original(arg.options.non_blocking),
-    _universal(arg)
-  {
-    _universal.non_blocking(true);
-  }
-
-  PushNonBlocking(gearman_client_st& client_shell) :
-    _original(client_shell.impl()->universal.options.non_blocking),
-    _universal(client_shell.impl()->universal)
-  {
-    _universal.non_blocking(true);
-  }
-
-  ~PushNonBlocking()
-  {
-    _universal.non_blocking(_original);
-  }
-
-private:
-  bool _original;
-  gearman_universal_st& _universal;
-};
-
-#define PUSH_NON_BLOCKING(__univeral) PushNonBlocking _push_block((__univeral));
+#define PUSH_NON_BLOCKING(__univeral) Push push_nonblocking_((__univeral).options.non_blocking, true);
