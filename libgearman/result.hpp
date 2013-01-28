@@ -61,19 +61,37 @@ struct gearman_result_st
     return _is_null;
   }
 
-  void clear()
+  void reserve(size_t reserve_size)
   {
     if (type == GEARMAN_RESULT_BINARY)
     {
-      gearman_string_free(&value.string);
+      gearman_string_reserve(&value.string, reserve_size);
     }
-    else if (type == GEARMAN_RESULT_INTEGER)
+    else
     {
+      type= GEARMAN_RESULT_BINARY;
+      gearman_string_create(&value.string, reserve_size);
+      _is_null= true;
+    }
+  }
+
+  void clear()
+  {
+    switch (type)
+    {
+    case GEARMAN_RESULT_BINARY:
+      value.string.clear();
+      break;
+
+    case GEARMAN_RESULT_INTEGER:
       value.integer= 0;
+      break;
+
+    case GEARMAN_RESULT_BOOLEAN:
+      value.boolean= false;
+      break;
     }
 
-    type= GEARMAN_RESULT_BOOLEAN;
-    value.boolean= false;
     _is_null= true;
   }
 

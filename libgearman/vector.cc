@@ -236,7 +236,7 @@ char *gearman_string_c_copy(gearman_vector_st *string)
 void gearman_string_reset(gearman_vector_st *string)
 {
   assert(string);
-  string->end= string->string;
+  string->clear();
 }
 
 void gearman_string_free(gearman_vector_st *ptr)
@@ -265,6 +265,11 @@ void gearman_string_free(gearman_vector_st *ptr)
 }
 
 gearman_return_t gearman_string_check(gearman_vector_st *string, size_t need)
+{
+  return _string_check(string, need);
+}
+
+gearman_return_t gearman_string_reserve(gearman_vector_st *string, size_t need)
 {
   return _string_check(string, need);
 }

@@ -387,19 +387,45 @@ bool Application::slurp()
   }
 
   bool data_was_read= false;
-  if (fds[0].revents & POLLRDNORM)
+  if (fds[0].revents)
   {
-    if (stdout_fd.read(_stdout_buffer) == true)
+    if (fds[0].revents & POLLRDNORM)
     {
-      data_was_read= true;
+      if (stdout_fd.read(_stdout_buffer) == true)
+      {
+        data_was_read= true;
+      }
+    }
+
+    if (fds[0].revents & (POLLERR | POLLHUP | POLLNVAL))
+    {
+      stdout_fd.close();
+
+      if (fds[0].revents & POLLERR)
+      {
+        Error << "getsockopt(stdout)";
+      }
     }
   }
 
-  if (fds[1].revents & POLLRDNORM)
+  if (fds[1].revents)
   {
-    if (stderr_fd.read(_stderr_buffer) == true)
+    if (fds[1].revents & POLLRDNORM)
     {
-      data_was_read= true;
+      if (stderr_fd.read(_stderr_buffer) == true)
+      {
+        data_was_read= true;
+      }
+    }
+
+    if (fds[1].revents & (POLLERR | POLLHUP | POLLNVAL))
+    {
+      stderr_fd.close();
+
+      if (fds[1].revents & POLLERR)
+      {
+        Error << "getsockopt(stderr)";
+      }
     }
   }
 
@@ -511,6 +537,25 @@ int Application::Pipe::Pipe::fd()
   }
 
   return _pipe_fd[WRITE]; // STDIN_FILENO
+}
+
+void Application::Pipe::Pipe::close()
+{
+  if (_std_fd == STDOUT_FILENO)
+  {
+    ::close(_pipe_fd[READ]);
+    _pipe_fd[READ]= -1;
+  }
+  else if (_std_fd == STDERR_FILENO)
+  {
+    ::close(_pipe_fd[READ]);
+    _pipe_fd[READ]= -1;
+  }
+  else
+  {
+    ::close(_pipe_fd[WRITE]);
+    _pipe_fd[WRITE]= -1;
+  }
 }
 
 

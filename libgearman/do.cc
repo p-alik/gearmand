@@ -113,7 +113,7 @@ void *client_do(gearman_client_st *client, gearman_command_t command,
       *ret_ptr= do_task.impl()->result_rc;
       if (gearman_task_result(&do_task))
       {
-        gearman_string_t result= gearman_result_take_string(do_task.impl()->result_ptr);
+        gearman_string_t result= gearman_result_take_string(do_task.impl()->result());
         *result_size= gearman_size(result);
         returnable= gearman_c_str(result);
       }
