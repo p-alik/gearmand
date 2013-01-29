@@ -43,8 +43,8 @@
 #define AT __FILE__ ":" TOSTRING(__LINE__)
 #define GEARMAN_AT __func__, AT
 
-#define gearman_perror(__universal, B) gearman_universal_set_perror((__universal), __func__, AT, (B))
-#define gearman_error(__universal, B, C) gearman_universal_set_error((__universal), (B), __func__, AT, (C))
+#define gearman_perror(__universal, __message) gearman_universal_set_perror((__universal), __func__, AT, (__message))
+#define gearman_error(__universal, __error_t, __message) gearman_universal_set_error((__universal), (__error_t), __func__, AT, (__message))
 #define gearman_gerror(__universal, __gearman_return_t) gearman_universal_set_gerror((__universal), (__gearman_return_t), __func__, AT)
 
 gearman_return_t gearman_universal_set_error(gearman_universal_st&,

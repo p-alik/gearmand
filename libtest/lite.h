@@ -81,7 +81,15 @@ static inline bool valgrind_is_caller(void)
 {
   if (getenv("TESTS_ENVIRONMENT")  && strstr(getenv("TESTS_ENVIRONMENT"), "valgrind"))
   {
-    return true;
+    if (strstr(getenv("TESTS_ENVIRONMENT"), "--tool") == NULL)
+    {
+      return true;
+    }
+
+    if (strstr(getenv("TESTS_ENVIRONMENT"), "--tool=memcheck"))
+    {
+      return true;
+    }
   }
 
   return false;
