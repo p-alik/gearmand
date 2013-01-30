@@ -105,9 +105,13 @@ noinst_HEADERS+= libtest/yatl.h
 noinst_LTLIBRARIES+= libtest/libtest.la
 
 libtest_libtest_la_CXXFLAGS=
+libtest_libtest_la_CFLAGS=
 EXTRA_libtest_libtest_la_DEPENDENCIES=
 libtest_libtest_la_LIBADD=
 libtest_libtest_la_SOURCES=
+
+libtest_libtest_la_CFLAGS+= -DCONFIG_HEADER="\"@AUTOHEADER_FILE@\""
+libtest_libtest_la_CXXFLAGS+= -DCONFIG_HEADER="\"@AUTOHEADER_FILE@\""
 libtest_libtest_la_CXXFLAGS+= @LIBMEMCACHED_CFLAGS@
 libtest_libtest_la_LIBADD+= @LIBMEMCACHED_LIB@
 

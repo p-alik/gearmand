@@ -1,5 +1,6 @@
 1.0.3 
 * Allow for a longer set of retries if port is in use when the server starts up.
+* --threads=0 for gearmand will now result in gearmand using all available cores.
 
 1.0.2 Mon Dec 17 07:24:42 EST 2012
 * Add --expceptions to Gearmand to enable exceptions by default

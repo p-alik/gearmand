@@ -232,6 +232,8 @@ gearmand_st *gearmand_create(const char *host_arg,
 
   gearmand_set_log_fn(gearmand, log_function, log_context, verbose_arg);
 
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "THREADS: %u", threads_arg);
+
   return gearmand;
 }
 
