@@ -1648,7 +1648,7 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
 
   gearman_return_t rc;
   {
-    PUSH_NON_BLOCKING(*client);
+    PUSH_NON_BLOCKING(client->universal);
 
     rc= _client_run_tasks(client, NULL);
   }

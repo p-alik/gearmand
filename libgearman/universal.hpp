@@ -143,56 +143,31 @@ gearman_return_t gearman_set_identifier(gearman_universal_st& universal,
 
 const char *gearman_univeral_namespace(gearman_universal_st& universal);
 
-/**
-  Push the state of IO
-*/
-class PushBlocking {
-public:
-  PushBlocking(gearman_universal_st& arg) :
-    _original(arg.options.non_blocking),
-    _universal(arg)
-  {
-    _universal.options.non_blocking= false;
-  }
-
-  PushBlocking(gearman_client_st& client_) :
-    _original(client_.universal.options.non_blocking),
-    _universal(client_.universal)
-  {
-    _universal.options.non_blocking= false;
-  }
-
-  ~PushBlocking()
-  {
-    _universal.options.non_blocking= _original;
-  }
-
-private:
-  bool _original;
-  gearman_universal_st& _universal;
-};
-
 #define PUSH(__original, __temp_value) Push _push((__original),(__temp_value));
 
 class Push {
 public:
   Push(bool& original_, const bool temp_value) :
     _saved(original_),
-    _restore(original_)
+    _origin(original_)
   {
-    _restore= temp_value;
+    _origin= temp_value;
   }
 
   ~Push()
   {
-    _restore= _saved;
+    _origin= _saved;
   }
 
 private:
   bool _saved;
-  bool& _restore;
+  bool& _origin;
 };
+
+/**
+  Push the state of IO
+*/
 
 #define PUSH_BLOCKING(__univeral) Push push_blocking_((__univeral).options.non_blocking, false);
 
-#define PUSH_NON_BLOCKING(__univeral) Push push_blocking_((__univeral).options.non_blocking, true);
+#define PUSH_NON_BLOCKING(__univeral) Push push_non_blocking_((__univeral).options.non_blocking, true);
