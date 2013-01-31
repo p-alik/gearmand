@@ -54,5 +54,3 @@ void gearman_task_clear_fn(gearman_task_st *task);
 bool gearman_task_is_active(const gearman_task_st *self);
 
 gearman_result_st *gearman_task_mutable_result(gearman_task_st *task);
-
-void gearman_task_free_result(gearman_task_st *task);

@@ -137,6 +137,8 @@ struct Task
     _shell->impl(this);
   }
 
+  ~Task();
+
   gearman_result_st* result()
   {
     return _result_ptr;

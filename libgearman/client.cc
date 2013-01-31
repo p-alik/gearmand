@@ -933,7 +933,7 @@ gearman_return_t gearman_client_echo(gearman_client_st *client,
 
 void gearman_client_task_free_all(gearman_client_st *client)
 {
-  if (client and client->impl()->task_list)
+  if (client and client->impl() and client->impl()->task_list)
   {
     while (client->impl()->task_list)
     {

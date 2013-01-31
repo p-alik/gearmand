@@ -82,6 +82,8 @@
 
 #include <iostream>
 
+#include "libtest/cpu.hpp"
+
 #include "gearmand/error.hpp"
 #include "gearmand/log.hpp"
 
@@ -177,7 +179,7 @@ int main(int argc, char *argv[])
    "Use syslog.")
 
   ("threads,t", boost::program_options::value(&threads)->default_value(4),
-   "Number of I/O threads to use. Default=4.")
+   "Number of I/O threads to use, 0 means that gearmand will try to guess the maximum number it can use. Default=4.")
 
   ("user,u", boost::program_options::value(&user),
    "Switch to given user after startup.")
@@ -343,6 +345,16 @@ int main(int argc, char *argv[])
   if (log_info.initialized() == false)
   {
     return EXIT_FAILURE;
+  }
+
+  if (threads == 0)
+  {
+    uint32_t number_of_threads= libtest::number_of_cpus();
+
+    if (number_of_threads > 4)
+    {
+      threads= number_of_threads;
+    }
   }
 
   gearmand_st *_gearmand= gearmand_create(host.empty() ? NULL : host.c_str(),
