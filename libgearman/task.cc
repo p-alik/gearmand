@@ -84,8 +84,6 @@ void gearman_task_free(gearman_task_st *task_shell)
         assert(task->magic_ == TASK_MAGIC);
         task->magic_= TASK_ANTI_MAGIC;
 
-        gearman_task_free_result(task_shell);
-
         if (task->client)
         {
           if (task->options.send_in_use)
@@ -130,16 +128,6 @@ void gearman_task_free(gearman_task_st *task_shell)
         delete task;
       }
     }
-  }
-}
-
-void gearman_task_free_result(gearman_task_st *task_shell)
-{
-  assert(task_shell);
-  assert(task_shell->impl());
-  if (task_shell and task_shell->impl())
-  {
-    task_shell->impl()->free_result();
   }
 }
 
@@ -418,6 +406,11 @@ gearman_return_t gearman_task_return(const gearman_task_st *task_shell)
   }
 
   return GEARMAN_INVALID_ARGUMENT;
+}
+
+Task::~Task()
+{
+  free_result();
 }
 
 void Task::free_result()

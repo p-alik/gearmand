@@ -102,18 +102,26 @@ ssize_t recv(int sockfd, void *buf, size_t len, int flags)
   if (is_called() == false && __function.frequency)
   {
     if (false)
-    {
-    }
+    { }
     else if (--not_until < 0 && rand() % __function.frequency)
     {
       __function._used++;
       shutdown(sockfd, SHUT_RDWR);
       close(sockfd);
-      errno= 0;
+
+      if (rand() % 2)
+      {
+        errno= ECONNREFUSED;
+        return -1;
+      }
+      else
+      {
+        errno= 0;
 #if 0
-      perror("HOSTILE CLOSE() of socket during recv()");
+        perror("HOSTILE CLOSE() of socket during recv()");
 #endif
-      return 0;
+        return 0;
+      }
     }
   }
 

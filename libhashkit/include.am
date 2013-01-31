@@ -27,8 +27,8 @@ libhashkit_libhashkit_la_SOURCES=
 libhashkit_libhashkit_la_CXXFLAGS=
 libhashkit_libhashkit_la_CFLAGS=
 
-libhashkit_libhashkit_la_CXXFLAGS+= -DCONFIG_HEADER=@CONFIG_HEADER@
-libhashkit_libhashkit_la_CFLAGS+= -DCONFIG_HEADER=@CONFIG_HEADER@
+libhashkit_libhashkit_la_CXXFLAGS+= -DCONFIG_HEADER="\"@AUTOHEADER_FILE@\""
+libhashkit_libhashkit_la_CFLAGS+= -DCONFIG_HEADER="\"@AUTOHEADER_FILE@\""
 
 libhashkit_libhashkit_la_SOURCES+= libhashkit/aes.cc
 libhashkit_libhashkit_la_SOURCES+= libhashkit/algorithm.cc

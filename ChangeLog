@@ -1,5 +1,6 @@
 1.1.5
 * Rollup of bug fixes for 1.0.3
+* --threads=0 for gearmand will now result in gearmand using all available cores.
 
 1.1.4 Mon Dec 17 21:24:16 EST 2012
 * Add GEARMAN_CLIENT_GENERATE_UNIQUE, with default set to not generate.
