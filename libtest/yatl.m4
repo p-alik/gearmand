@@ -14,3 +14,4 @@ YATL_MYSQL
 YATL_MEMCACHED
 
 AC_CONFIG_FILES([libtest/yatlcon.h])
+AC_CHECK_HEADERS([valgrind/valgrind.h])

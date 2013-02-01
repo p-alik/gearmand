@@ -76,13 +76,13 @@ static inline bool set_cloexec(int pipedes_[2], const size_t x)
         return true;
       }
 
-#if 0
+#if defined(DEBUG) && DEBUG
       perror("fcntl(pipedes_[x], F_GETFD, 0)");
 #endif
       return false;
     }
 
-#if 0
+#if defined(DEBUG) && DEBUG
     perror("fcntl (pipedes_[x], F_SETFD, FD_CLOEXEC)");
 #endif
   }
@@ -111,12 +111,12 @@ static inline bool set_nonblock(int pipedes_[2], const size_t x)
     {
       return true;
     }
-#if 0
+#if defined(DEBUG) && DEBUG
     perror("fcntl(pipedes_[x], F_SETFL, flags | O_NONBLOCK)");
 #endif
   }
 
-#if 0
+#if defined(DEBUG) && DEBUG
   perror("fcntl(pipedes_[x], F_GETFL, 0)");
 #endif
 
@@ -128,11 +128,17 @@ bool setup_shutdown_pipe(int pipedes_[2])
 #if defined(HAVE_PIPE2) && HAVE_PIPE2
   if (pipe2(pipedes_, O_NONBLOCK|O_CLOEXEC) == -1)
   {
+#if defined(DEBUG) && DEBUG
+    perror("pipe2(pipedes_, O_NONBLOCK|O_CLOEXEC)");
+#endif
     return false;
   }
 #else
   if (pipe(pipedes_) == -1)
   {
+#if defined(DEBUG) && DEBUG
+    perror("pipe()");
+#endif
     return false;
   }
 #endif
@@ -152,7 +158,7 @@ bool setup_shutdown_pipe(int pipedes_[2])
 
       if (fcntl_sig_error == -1)
       {
-#if 0
+#if defined(DEBUG) && DEBUG
         perror ("fcntl_sig_error= fcntl(pipedes_[x], F_SETNOSIGPIPE, 0)");
 #endif
         success= false;

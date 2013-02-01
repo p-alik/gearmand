@@ -1,8 +1,8 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  *
- *  Data Differential YATL (i.e. libtest)  library
+ *  Data Differential's libhostle
  *
- *  Copyright (C) 2012-2013 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2013 Data Differential, http://datadifferential.com/
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -36,47 +36,4 @@
 
 #pragma once
 
-#include <libtest/fatal.hpp>
-#include <libtest/result/base.hpp>
-#include <libtest/result/fail.hpp>
-#include <libtest/result/fatal.hpp>
-#include <libtest/result/skip.hpp>
-#include <libtest/result/success.hpp>
-
-#define _SUCCESS throw libtest::__success(LIBYATL_DEFAULT_PARAM)
-
-#define SKIP(...) \
-do \
-{ \
-  throw libtest::__skipped(LIBYATL_DEFAULT_PARAM, __VA_ARGS__); \
-} while (0)
-
-#define FAIL(...) \
-do \
-{ \
-  throw libtest::__failure(LIBYATL_DEFAULT_PARAM, __VA_ARGS__); \
-} while (0)
-
-#define FATAL(...) \
-do \
-{ \
-  throw libtest::fatal(LIBYATL_DEFAULT_PARAM, __VA_ARGS__); \
-} while (0)
-
-#define FATAL_IF(__expression, ...) \
-do \
-{ \
-  if ((__expression)) { \
-    throw libtest::fatal(LIBYATL_DEFAULT_PARAM, (#__expression)); \
-  } \
-} while (0)
-
-#define FATAL_IF_(__expression, ...) \
-do \
-{ \
-  if ((__expression)) { \
-    throw libtest::fatal(LIBYATL_DEFAULT_PARAM, __VA_ARGS__); \
-  } \
-} while (0)
-
-#define fatal_assert(__assert) if((__assert)) {} else { throw libtest::fatal(LIBYATL_DEFAULT_PARAM, #__assert); }
+typedef int (close_fn)(int fd);

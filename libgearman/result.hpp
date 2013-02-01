@@ -115,14 +115,7 @@ struct gearman_result_st
     return 0;
   }
 
-  ~gearman_result_st()
-  {
-    if (type == GEARMAN_RESULT_BINARY)
-    {
-      assert_msg(gearman_is_initialized(&value.string), "Somehow we have a GEARMAN_RESULT_BINARY, but no valid string");
-      gearman_string_free(&value.string);
-    }
-  }
+  ~gearman_result_st();
 
 private:
   gearman_result_st( const gearman_result_st& );

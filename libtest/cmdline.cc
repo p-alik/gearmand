@@ -607,7 +607,7 @@ void Application::Pipe::nonblock()
   if (flags == -1)
   {
     Error << "fcntl(F_GETFL) " << strerror(errno);
-    throw strerror(errno);
+    throw std::runtime_error(strerror(errno));
   }
 
   int rval;
@@ -619,7 +619,7 @@ void Application::Pipe::nonblock()
   if (rval == -1)
   {
     Error << "fcntl(F_SETFL) " << strerror(errno);
-    throw strerror(errno);
+    throw std::runtime_error(strerror(errno));
   }
 }
 
@@ -662,7 +662,7 @@ void Application::Pipe::cloexec()
       if (flags == -1)
       {
         Error << "fcntl(F_GETFD) " << strerror(errno);
-        throw strerror(errno);
+        throw std::runtime_error(strerror(errno));
       }
 
       int rval;
@@ -674,7 +674,7 @@ void Application::Pipe::cloexec()
       if (rval == -1)
       {
         Error << "fcntl(F_SETFD) " << strerror(errno);
-        throw strerror(errno);
+        throw std::runtime_error(strerror(errno));
       }
     }
   }

@@ -36,7 +36,7 @@
 
 #include "gear_config.h"
 
-#if defined(TARGET_OS_LINUX) && TARGET_OS_LINUX
+#ifdef __linux
 
 #include <libhostile/function.h>
 #include <libhostile/initialize.h>

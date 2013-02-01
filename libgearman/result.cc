@@ -83,6 +83,15 @@ bool gearman_result_is_null(const gearman_result_st *self)
   return self->is_null();
 }
 
+gearman_result_st::~gearman_result_st()
+{
+  if (type == GEARMAN_RESULT_BINARY)
+  {
+    assert_msg(gearman_is_initialized(&value.string), "Somehow we have a GEARMAN_RESULT_BINARY, but no valid string");
+    gearman_string_free(&value.string);
+  }
+}
+
 int64_t gearman_result_integer(const gearman_result_st *self)
 {
   if (self)

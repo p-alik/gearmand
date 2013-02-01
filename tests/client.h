@@ -37,6 +37,8 @@
 
 #pragma once
 
+#include <stdexcept>
+
 namespace test {
 
 class Client {
@@ -47,7 +49,7 @@ public:
 
     if (_client == NULL)
     {
-      throw "gearman_client_create() failed";
+      throw std::runtime_error("gearman_client_create()");
     }
   }
 
@@ -57,7 +59,7 @@ public:
 
     if (_client == NULL)
     {
-      throw "gearman_client_create() failed";
+      throw std::runtime_error("gearman_client_create()");
     }
   }
 
@@ -67,7 +69,7 @@ public:
 
     if (_client == NULL)
     {
-      throw "gearman_client_create() failed";
+      throw std::runtime_error("gearman_client_create()");
     }
     gearman_client_add_server(_client, "localhost", arg);
   }
