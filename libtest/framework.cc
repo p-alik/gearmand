@@ -39,10 +39,67 @@
 #include <libtest/common.h>
 #include <libtest/collection.h>
 #include <libtest/signal.h>
+#include <libtest/stream.h>
 
 #include <algorithm>
+#include <cerrno>
 #include <fnmatch.h>
 #include <iostream>
+#include <set>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+namespace {
+  int open_file_descriptors(std::set<int>& pre_existing_fd, const bool report)
+  {
+    int max= getdtablesize();
+
+    int counter= 0;
+
+    for (int x= 3; x < max; ++x)
+    {
+      struct stat stats;
+
+      if (fstat(x, &stats) == 0)
+      {
+        if (report)
+        {
+          std::set<int>::iterator it= pre_existing_fd.find(x);
+          if (it!= pre_existing_fd.end())
+          { }
+          else
+          {
+            std::cerr << "FD: " << x;
+
+            if (S_ISREG(stats.st_mode))
+            {
+              std::cerr << " regular file ";
+            }
+            else if (S_ISDIR(stats.st_mode))
+            {
+              std::cerr << " directory ";
+            }
+            else if (S_ISSOCK(stats.st_mode))
+            {
+              std::cerr << " socket ";
+            }
+
+            std::cerr << std::endl;
+          }
+        }
+        else
+        {
+          pre_existing_fd.insert(x);
+        }
+
+        ++counter;
+      }
+    }
+
+    return counter;
+  }
+} // namespace
 
 namespace libtest {
 
@@ -115,6 +172,15 @@ void Framework::exec()
 
     _total++;
 
+#if defined(DEBUG) && DEBUG
+    std::set<int> pre_existing_fd;
+    int open_fd= 0;
+    if (DEBUG)
+    {
+      open_fd= open_file_descriptors(pre_existing_fd, false);
+    }
+#endif
+
     try {
       switch ((*iter)->exec())
       {
@@ -149,9 +215,19 @@ void Framework::exec()
       _failed++;
       throw;
     }
-  }
 
-  void xml(const std::string& testsuites_name, std::ostream& output);
+#if defined(DEBUG) && DEBUG
+    if (DEBUG)
+    {
+      int now_open_fd= open_file_descriptors(pre_existing_fd, true);
+
+      if (open_fd != now_open_fd)
+      {
+        Error << "Growing number of file descriptors: " << int(now_open_fd - open_fd);
+      }
+    }
+#endif
+  }
 }
 
 uint32_t Framework::sum_total()

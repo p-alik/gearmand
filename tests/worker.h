@@ -37,6 +37,8 @@
 
 #pragma once
 
+#include <stdexcept>
+
 namespace test {
 
 class Worker {
@@ -47,7 +49,7 @@ public:
 
     if (_worker == NULL)
     {
-      throw "gearman_worker_create() failed";
+      throw std::runtime_error("gearman_worker_create()");
     }
   }
 
@@ -57,7 +59,7 @@ public:
 
     if (_worker == NULL)
     {
-      throw "gearman_worker_create() failed";
+      throw std::runtime_error("gearman_worker_create()");
     }
     gearman_worker_add_server(_worker, "localhost", arg);
   }

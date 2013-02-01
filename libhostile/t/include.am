@@ -70,8 +70,28 @@ libhostile_t_hostile_pipe2_LDADD+= libhostile/libhostile.la
 check_PROGRAMS+= libhostile/t/hostile_pipe2
 noinst_PROGRAMS+= libhostile/t/hostile_pipe2
 
+# Test close() 
+libhostile_t_close_SOURCES=
+libhostile_t_close_LDADD=
+
+libhostile_t_close_SOURCES+= libhostile/t/close.c
+check_PROGRAMS+= libhostile/t/close
+noinst_PROGRAMS+= libhostile/t/close
+
+libhostile_t_hostile_close_SOURCES=
+libhostile_t_hostile_close_LDADD=
+libhostile_t_hostile_close_CFLAGS=
+libhostile_t_hostile_close_CXXFLAGS=
+
+libhostile_t_hostile_close_SOURCES+= libhostile/t/close.c
+libhostile_t_hostile_close_CFLAGS+= -DHOSTILE
+libhostile_t_hostile_close_CXXFLAGS+= -DHOSTILE
+libhostile_t_hostile_close_LDADD+= libhostile/libhostile.la
+check_PROGRAMS+= libhostile/t/hostile_close
+noinst_PROGRAMS+= libhostile/t/hostile_close
+
 # Test just the hostile unit tests
-unit_hostile: libhostile/t/hostile_accept libhostile/t/accept libhostile/t/pipe libhostile/t/hostile_pipe libhostile/t/pipe2 libhostile/t/hostile_pipe2
+unit_hostile: libhostile/t/hostile_accept libhostile/t/accept libhostile/t/pipe libhostile/t/hostile_pipe libhostile/t/pipe2 libhostile/t/hostile_pipe2 libhostile/t/close libhostile/t/hostile_close
 	@libhostile/t/accept
 	@libhostile/t/pipe
 	@libhostile/t/pipe2

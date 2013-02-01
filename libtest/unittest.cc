@@ -80,6 +80,19 @@ static test_return_t VALGRIND_COMMAND_test(void *)
   return TEST_SUCCESS;
 }
 
+static test_return_t VALGRIND_CHECK_TEST(void *)
+{
+  SKIP_IF(bool(getenv("VALGRIND_COMMAND")) == false);
+  SKIP_IF(bool(getenv("TESTS_ENVIRONMENT")) == false);
+
+  if (getenv("TESTS_ENVIRONMENT")  && strstr(getenv("TESTS_ENVIRONMENT"), "valgrind"))
+  {
+    ASSERT_TRUE(valgrind_is_caller());
+  }
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t HELGRIND_COMMAND_test(void *)
 {
   test_true(getenv("HELGRIND_COMMAND"));
@@ -1004,6 +1017,7 @@ test_st environment_tests[] ={
   {"VALGRIND_COMMAND", 0, VALGRIND_COMMAND_test },
   {"HELGRIND_COMMAND", 0, HELGRIND_COMMAND_test },
   {"GDB_COMMAND", 0, GDB_COMMAND_test },
+  {"valgrind_is_caller()", 0, VALGRIND_CHECK_TEST },
   {0, 0, 0}
 };
 

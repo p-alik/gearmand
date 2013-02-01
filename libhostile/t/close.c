@@ -1,8 +1,8 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  *
- *  Data Differential YATL (i.e. libtest)  library
+ *  Data Differential's libhostle
  *
- *  Copyright (C) 2012-2013 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2013 Data Differential, http://datadifferential.com/
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -34,49 +34,26 @@
  *
  */
 
-#pragma once
+#ifdef HOSTILE
+# include <libhostile/hostile.h>
+#endif
 
-#include <libtest/fatal.hpp>
-#include <libtest/result/base.hpp>
-#include <libtest/result/fail.hpp>
-#include <libtest/result/fatal.hpp>
-#include <libtest/result/skip.hpp>
-#include <libtest/result/success.hpp>
+#include "gear_config.h"
 
-#define _SUCCESS throw libtest::__success(LIBYATL_DEFAULT_PARAM)
+#include <libtest/lite.h>
 
-#define SKIP(...) \
-do \
-{ \
-  throw libtest::__skipped(LIBYATL_DEFAULT_PARAM, __VA_ARGS__); \
-} while (0)
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
-#define FAIL(...) \
-do \
-{ \
-  throw libtest::__failure(LIBYATL_DEFAULT_PARAM, __VA_ARGS__); \
-} while (0)
+int main(void)
+{
+  SKIP_IF(valgrind_is_caller());
 
-#define FATAL(...) \
-do \
-{ \
-  throw libtest::fatal(LIBYATL_DEFAULT_PARAM, __VA_ARGS__); \
-} while (0)
+  ASSERT_TRUE(close(-1) == -1);
+  ASSERT_TRUE(errno == EBADF);
 
-#define FATAL_IF(__expression, ...) \
-do \
-{ \
-  if ((__expression)) { \
-    throw libtest::fatal(LIBYATL_DEFAULT_PARAM, (#__expression)); \
-  } \
-} while (0)
-
-#define FATAL_IF_(__expression, ...) \
-do \
-{ \
-  if ((__expression)) { \
-    throw libtest::fatal(LIBYATL_DEFAULT_PARAM, __VA_ARGS__); \
-  } \
-} while (0)
-
-#define fatal_assert(__assert) if((__assert)) {} else { throw libtest::fatal(LIBYATL_DEFAULT_PARAM, #__assert); }
+  return EXIT_SUCCESS;
+}

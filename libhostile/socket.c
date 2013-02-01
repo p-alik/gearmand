@@ -1,8 +1,8 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  *
- *  Data Differential YATL (i.e. libtest)  library
+ *  Data Differential's libhostle
  *
- *  Copyright (C) 2012-2013 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2013 Data Differential, http://datadifferential.com/
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -34,49 +34,55 @@
  *
  */
 
-#pragma once
+#include "gear_config.h"
 
-#include <libtest/fatal.hpp>
-#include <libtest/result/base.hpp>
-#include <libtest/result/fail.hpp>
-#include <libtest/result/fatal.hpp>
-#include <libtest/result/skip.hpp>
-#include <libtest/result/success.hpp>
+#include <libhostile/function.h>
+#include <libhostile/initialize.h>
 
-#define _SUCCESS throw libtest::__success(LIBYATL_DEFAULT_PARAM)
+#include <assert.h>
+#include <errno.h>
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <time.h>
+#include <unistd.h>
 
-#define SKIP(...) \
-do \
-{ \
-  throw libtest::__skipped(LIBYATL_DEFAULT_PARAM, __VA_ARGS__); \
-} while (0)
+static int not_until= 500;
 
-#define FAIL(...) \
-do \
-{ \
-  throw libtest::__failure(LIBYATL_DEFAULT_PARAM, __VA_ARGS__); \
-} while (0)
+static struct function_st __function;
 
-#define FATAL(...) \
-do \
-{ \
-  throw libtest::fatal(LIBYATL_DEFAULT_PARAM, __VA_ARGS__); \
-} while (0)
+static pthread_once_t function_lookup_once = PTHREAD_ONCE_INIT;
+static void set_local(void)
+{
+  __function= set_function("socket", "HOSTILE_SOCKET");
+}
 
-#define FATAL_IF(__expression, ...) \
-do \
-{ \
-  if ((__expression)) { \
-    throw libtest::fatal(LIBYATL_DEFAULT_PARAM, (#__expression)); \
-  } \
-} while (0)
+int socket(int domain_, int type_, int protocol_)
+{
 
-#define FATAL_IF_(__expression, ...) \
-do \
-{ \
-  if ((__expression)) { \
-    throw libtest::fatal(LIBYATL_DEFAULT_PARAM, __VA_ARGS__); \
-  } \
-} while (0)
+  hostile_initialize();
 
-#define fatal_assert(__assert) if((__assert)) {} else { throw libtest::fatal(LIBYATL_DEFAULT_PARAM, #__assert); }
+  (void) pthread_once(&function_lookup_once, set_local);
+
+  if (is_called() == false && __function.frequency)
+  {
+    if (false)
+    { }
+    else if (--not_until < 0 && rand() % __function.frequency)
+    {
+      __function._used++;
+      errno= ENFILE;
+      return -1;
+    }
+  }
+
+  set_called();
+  int fd= __function.function.socket(domain_, type_, protocol_);
+  reset_called();
+
+  return fd;
+}
+

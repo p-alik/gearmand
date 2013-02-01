@@ -302,7 +302,7 @@ gearman_client_st *gearman_client_clone(gearman_client_st *destination,
 
 void gearman_client_free(gearman_client_st *client_shell)
 {
-  if (client_shell)
+  if (client_shell and client_shell->impl())
   {
     gearman_client_task_free_all(client_shell);
 

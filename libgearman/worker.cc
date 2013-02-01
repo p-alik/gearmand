@@ -120,15 +120,13 @@ gearman_worker_st *gearman_worker_create(gearman_worker_st *worker)
 {
   worker= _worker_allocate(worker, false);
 
-  if (worker == NULL)
+  if (worker)
   {
-    return NULL;
-  }
-
-  if (gearman_failed(_worker_packet_init(worker)))
-  {
-    gearman_worker_free(worker);
-    return NULL;
+    if (gearman_failed(_worker_packet_init(worker)))
+    {
+      gearman_worker_free(worker);
+      return NULL;
+    }
   }
 
   return worker;
@@ -139,7 +137,7 @@ gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker,
 {
   if (source == NULL)
   {
-    return _worker_allocate(worker, false);
+    return gearman_worker_create(worker);
   }
 
   worker= _worker_allocate(worker, true);
@@ -1138,6 +1136,9 @@ static gearman_worker_st *_worker_allocate(gearman_worker_st *worker_shell, bool
 
     return worker->shell();
   }
+#if defined(DEBUG) && DEBUG
+  perror("new Worker");
+#endif
 
   return NULL;
 }

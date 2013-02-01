@@ -38,6 +38,7 @@
 
 #include <libhostile/accept.h>
 #include <libhostile/action.h>
+#include <libhostile/close.h>
 #include <libhostile/connect.h>
 #include <libhostile/getaddrinfo.h>
 #include <libhostile/malloc.h>
@@ -46,12 +47,14 @@
 #include <libhostile/realloc.h>
 #include <libhostile/recv.h>
 #include <libhostile/send.h>
+#include <libhostile/socket.h>
 #include <libhostile/setsockopt.h>
 #include <libhostile/write.h>
 
 union function_un {
   accept_fn *accept;
   accept4_fn *accept4;
+  close_fn *close;
   connect_fn *connect;
   getaddrinfo_fn *getaddrinfo;
   malloc_fn *malloc;
@@ -62,6 +65,7 @@ union function_un {
   recv_fn *recv;
   send_fn *send;
   setsockopt_fn *setsockopt;
+  socket_fn *socket;
   write_fn *write;
   void *ptr;
 };

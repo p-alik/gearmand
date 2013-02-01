@@ -51,6 +51,10 @@
 # include <string.h>
 #endif
 
+#if defined(HAVE_VALGRIND_VALGRIND_H) && HAVE_VALGRIND_VALGRIND_H
+# include <valgrind/valgrind.h>
+#endif
+
 #ifdef _WIN32
 # include <malloc.h>
 #else
@@ -79,6 +83,13 @@
 
 static inline bool valgrind_is_caller(void)
 {
+#if defined(HAVE_VALGRIND_VALGRIND_H) && HAVE_VALGRIND_VALGRIND_H
+  if (RUNNING_ON_VALGRIND)
+  {
+    return true;
+  }
+#endif
+
   if (getenv("TESTS_ENVIRONMENT")  && strstr(getenv("TESTS_ENVIRONMENT"), "valgrind"))
   {
     return true;
