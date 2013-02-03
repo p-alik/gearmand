@@ -1128,7 +1128,7 @@ static test_return_t submit_log_failure_TEST(void *object)
 
 static test_return_t strerror_count(void *)
 {
-  ASSERT_EQ((int)GEARMAN_MAX_RETURN, 51);
+  ASSERT_EQ((int)GEARMAN_MAX_RETURN, 52);
 
   return TEST_SUCCESS;
 }
@@ -1150,14 +1150,14 @@ static test_return_t strerror_strings(void *)
     132823274U, 3950859856U, 237150774U, 290535510U, 
     2101976744U, 2262698284U, 3182950564U, 2391595326U, 
     1764731897U, 3485422815U, 99607280U, 2348849961U, 
-    607991020U, 1597605008U, 1377573125U };
+    607991020U, 1597605008U, 1377573125U, 723914800U };
 
   for (int rc= GEARMAN_SUCCESS; rc < GEARMAN_MAX_RETURN; rc++)
   {
     uint32_t hash_val;
     const char *msg=  gearman_strerror((gearman_return_t)rc);
     hash_val= internal_generate_hash(msg, strlen(msg));
-    ASSERT_EQ(values[rc], hash_val);
+    ASSERT_EQ_(values[rc], hash_val, "New Value for %s at %d: %uU\n", msg, rc, hash_val);
   }
 
   return TEST_SUCCESS;

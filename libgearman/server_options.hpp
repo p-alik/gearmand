@@ -2,7 +2,8 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2013 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2013 Keyur Govande
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -35,32 +36,22 @@
  *
  */
 
-#include "gear_config.h"
-#include <libtest/test.hpp>
+#pragma once
 
-using namespace libtest;
+#include <cstdlib>
 
-#include <cassert>
-#include <cstring>
-#include <libgearman/gearman.h>
-#include <tests/server_options.h>
+struct gearman_universal_st;
 
-#ifndef __INTEL_COMPILER
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#endif
-
-test_return_t gearman_client_set_server_option_exception(void *object)
+struct gearman_server_options_st
 {
-  gearman_client_st *client= (gearman_client_st *)object;
-  test_true(gearman_client_set_server_option(client, test_literal_param("exceptions")));
-  test_compare(GEARMAN_SUCCESS, gearman_client_echo(client, test_literal_param("echo")));
-  return TEST_SUCCESS;
-}
+  gearman_server_options_st *next;
+  gearman_server_options_st *prev;
+  const char* option;
+  const size_t option_length;
+  gearman_universal_st &universal;
 
-test_return_t gearman_client_set_server_option_bad(void *object)
-{
-  gearman_client_st *client= (gearman_client_st *)object;
-  test_true(gearman_client_set_server_option(client, test_literal_param("bad")));
-  test_compare(GEARMAN_INVALID_SERVER_OPTION, gearman_client_echo(client, test_literal_param("echo")));
-  return TEST_SUCCESS;
-}
+public:
+  gearman_server_options_st(gearman_universal_st &universal_arg,
+                            const char* option_arg, const size_t option_arg_size);
+  ~gearman_server_options_st();
+};
