@@ -2,7 +2,8 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2013 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2013 Keyur Govande
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -35,32 +36,51 @@
  *
  */
 
+/**
+ * @file
+ * @brief Server options
+ */
+
 #include "gear_config.h"
-#include <libtest/test.hpp>
+#include <libgearman/common.h>
 
-using namespace libtest;
+#include "libgearman/server_options.hpp"
 
-#include <cassert>
-#include <cstring>
-#include <libgearman/gearman.h>
-#include <tests/server_options.h>
-
-#ifndef __INTEL_COMPILER
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#endif
-
-test_return_t gearman_client_set_server_option_exception(void *object)
+gearman_server_options_st::gearman_server_options_st(gearman_universal_st &universal_arg,
+                                                     const char* option_arg, const size_t option_arg_size) : 
+  next(NULL), prev(NULL), option(option_arg), 
+  option_length(option_arg_size),
+  universal(universal_arg)
 {
-  gearman_client_st *client= (gearman_client_st *)object;
-  test_true(gearman_client_set_server_option(client, test_literal_param("exceptions")));
-  test_compare(GEARMAN_SUCCESS, gearman_client_echo(client, test_literal_param("echo")));
-  return TEST_SUCCESS;
+  if (universal.server_options_list)
+  {
+    universal.server_options_list->prev= this;
+  }
+  next= universal.server_options_list;
+  universal.server_options_list= this;
 }
 
-test_return_t gearman_client_set_server_option_bad(void *object)
+gearman_server_options_st::~gearman_server_options_st()
 {
-  gearman_client_st *client= (gearman_client_st *)object;
-  test_true(gearman_client_set_server_option(client, test_literal_param("bad")));
-  test_compare(GEARMAN_INVALID_SERVER_OPTION, gearman_client_echo(client, test_literal_param("echo")));
-  return TEST_SUCCESS;
+  if (option)
+  {
+    free((void*)option);
+  }
+
+  { // Remove from universal list
+    if (universal.server_options_list == this)
+    {
+      universal.server_options_list= next;
+    }
+
+    if (prev)
+    {
+      prev->next= next;
+    }
+
+    if (next)
+    {
+      next->prev= prev;
+    }
+  }
 }

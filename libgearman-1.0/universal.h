@@ -46,6 +46,7 @@
 typedef struct gearman_connection_st gearman_connection_st;
 typedef gearman_return_t (gearman_event_watch_fn)(gearman_connection_st *con,
                                                   short events, void *context);
+typedef struct gearman_server_options_st gearman_server_options_st;
 
 /**
  * @ingroup gearman_universal
@@ -63,6 +64,7 @@ struct gearman_universal_st
   uint32_t sending;
   int timeout; // Connection timeout.
   gearman_connection_st *con_list;
+  gearman_server_options_st *server_options_list;
   gearman_packet_st *packet_list;
   struct pollfd *pfds;
   gearman_log_fn *log_fn;

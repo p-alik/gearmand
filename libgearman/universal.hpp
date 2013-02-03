@@ -171,3 +171,33 @@ private:
 #define PUSH_BLOCKING(__univeral) Push push_blocking_((__univeral).options.non_blocking, false);
 
 #define PUSH_NON_BLOCKING(__univeral) Push push_non_blocking_((__univeral).options.non_blocking, true);
+
+class Check {
+public:
+  virtual gearman_return_t success(gearman_connection_st*)= 0;
+
+  virtual ~Check() {};
+};
+
+class EchoCheck : public Check {
+public:
+  EchoCheck(gearman_universal_st& universal_,
+            const void *workload_, const size_t workload_size_);
+
+  gearman_return_t success(gearman_connection_st* con);
+
+private:
+  gearman_universal_st& _universal;
+  const void *_workload;
+  const size_t _workload_size;
+};
+
+class OptionCheck : public Check {
+public:
+  OptionCheck(gearman_universal_st& universal_);
+
+  gearman_return_t success(gearman_connection_st* con);
+
+private:
+  gearman_universal_st& _universal;
+};

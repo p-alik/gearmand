@@ -47,6 +47,7 @@ noinst_HEADERS+= \
 		 libgearman/task.hpp \
 		 libgearman/task_attr.h \
 		 libgearman/unique.hpp \
+		 libgearman/server_options.hpp \
 		 libgearman/universal.hpp \
 		 libgearman/vector.hpp
 
@@ -63,6 +64,7 @@ libgearman_libgearmancore_la_SOURCES= \
 				      libgearman/packet.cc \
 				      libgearman/strcommand.cc \
 				      libgearman/strerror.cc \
+				      libgearman/server_options.cc \
 				      libgearman/universal.cc \
 				      libgearman/vector.cc
 
@@ -110,6 +112,7 @@ libgearman_libgearman_la_SOURCES+= \
 				  libgearman/task.cc \
 				  libgearman/task_attr.cc \
 				  libgearman/unique.cc \
+				  libgearman/server_options.cc \
 				  libgearman/universal.cc \
 				  libgearman/vector.cc \
 				  libgearman/worker.cc
