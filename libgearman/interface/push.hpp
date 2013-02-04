@@ -41,7 +41,9 @@
 #include "libgearman/interface/client.hpp" 
 #include "libgearman/interface/universal.hpp" 
 
+#if 0
 #define PUSH(__original, __temp_value) Push _push((__original),(__temp_value));
+#endif
 
 class Push {
 public:

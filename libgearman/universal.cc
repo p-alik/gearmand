@@ -47,6 +47,7 @@
 
 #include "libgearman/assert.hpp"
 #include "libgearman/interface/push.hpp"
+#include "libgearman/server_options.hpp"
 
 #include <cerrno>
 #include <cstdarg>
@@ -55,6 +56,7 @@
 #include <cstring>
 #include <cctype>
 #include <unistd.h>
+#include <memory>
 
 void gearman_nap(int arg)
 {
@@ -119,6 +121,12 @@ void gearman_universal_free(gearman_universal_st &universal)
     // created realloc()
     free(universal.pfds);
     universal.pfds= NULL;
+  }
+
+  // clean-up server options
+  while (universal.server_options_list)
+  {
+    delete universal.server_options_list;
   }
 }
 
@@ -412,64 +420,44 @@ gearman_return_t gearman_set_identifier(gearman_universal_st& universal,
   return ret;
 }
 
-class Check {
-public:
-  virtual gearman_return_t success(gearman_connection_st*)= 0;
-
-  virtual ~Check() {};
-};
-
-class EchoCheck : public Check {
-public:
-  EchoCheck(gearman_universal_st& universal_,
-            const void *workload_, const size_t workload_size_) :
+EchoCheck::EchoCheck(gearman_universal_st& universal_,
+    const void *workload_, const size_t workload_size_) :
     _universal(universal_),
     _workload(workload_),
     _workload_size(workload_size_)
+{
+}
+
+gearman_return_t EchoCheck::success(gearman_connection_st* con)
+{
+  if (con->_packet.command != GEARMAN_COMMAND_ECHO_RES)
   {
+    return gearman_error(_universal, GEARMAN_INVALID_COMMAND, "Wrong command sent in response to ECHO request");
   }
 
-  gearman_return_t success(gearman_connection_st* con)
+  if (con->_packet.data_size != _workload_size or
+      memcmp(_workload, con->_packet.data, _workload_size))
   {
-    if (con->_packet.command != GEARMAN_COMMAND_ECHO_RES)
-    {
-      return gearman_error(_universal, GEARMAN_INVALID_COMMAND, "Wrong command sent in response to ECHO request");
-    }
-
-    if (con->_packet.data_size != _workload_size or
-        memcmp(_workload, con->_packet.data, _workload_size))
-    {
-      return gearman_error(_universal, GEARMAN_ECHO_DATA_CORRUPTION, "corruption during echo");
-    }
-
-    return GEARMAN_SUCCESS;
+    return gearman_error(_universal, GEARMAN_ECHO_DATA_CORRUPTION, "corruption during echo");
   }
 
-private:
-  gearman_universal_st& _universal;
-  const void *_workload;
-  const size_t _workload_size;
-};
+  return GEARMAN_SUCCESS;
+}
 
-class OptionCheck : public Check {
-public:
-  OptionCheck(gearman_universal_st& universal_):
+OptionCheck::OptionCheck(gearman_universal_st& universal_):
     _universal(universal_)
-  { }
+{
+}
 
-  gearman_return_t success(gearman_connection_st* con)
+gearman_return_t OptionCheck::success(gearman_connection_st* con)
+{
+  if (con->_packet.command == GEARMAN_COMMAND_ERROR)
   {
-    if (con->_packet.command == GEARMAN_COMMAND_ERROR)
-    {
-      return gearman_error(_universal, GEARMAN_INVALID_ARGUMENT, "invalid server option");
-    }
-
-    return GEARMAN_SUCCESS;
+    return gearman_error(_universal, GEARMAN_INVALID_SERVER_OPTION, "invalid server option");
   }
 
-private:
-  gearman_universal_st& _universal;
-};
+  return GEARMAN_SUCCESS;
+}
 
 static gearman_return_t connection_loop(gearman_universal_st& universal,
                                         const gearman_packet_st& message,
@@ -574,31 +562,25 @@ gearman_return_t gearman_echo(gearman_universal_st& universal,
 bool gearman_request_option(gearman_universal_st &universal,
                             gearman_string_t &option)
 {
-  const void *args[]= { gearman_c_str(option) };
-  size_t args_size[]= { gearman_size(option) };
+  char* option_str_cpy = (char*) malloc(gearman_size(option));
 
-  gearman_packet_st message;
-  gearman_return_t ret= gearman_packet_create_args(universal, message, GEARMAN_MAGIC_REQUEST,
-                                                   GEARMAN_COMMAND_OPTION_REQ,
-                                                   args, args_size, 1);
-
-  if (gearman_success(ret))
+  if (option_str_cpy == NULL)
   {
-    PUSH_BLOCKING(universal);
-
-    OptionCheck check(universal);
-    ret= connection_loop(universal, message, check);
-  }
-  else
-  {
-    gearman_packet_free(&message);
-    gearman_error(universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "gearman_packet_create_args()");
-    return ret;
+    gearman_error(universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "malloc()");
+    return false;
   }
 
-  gearman_packet_free(&message);
+  strncpy(option_str_cpy, gearman_c_str(option), gearman_size(option));
 
-  return gearman_success(ret);
+  gearman_server_options_st *server_options = new (std::nothrow) gearman_server_options_st(universal, option_str_cpy, gearman_size(option));
+  if (server_options == NULL)
+  {
+    free(option_str_cpy);
+    gearman_error(universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "new gearman_server_options_st()");
+    return false;
+  }
+
+  return true;
 }
 
 void gearman_free_all_packets(gearman_universal_st &universal)
