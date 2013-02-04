@@ -2,8 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  Copyright (C) 2008 Brian Aker, Eric Day
+ *  Copyright (C) 2011-2013 Data Differential, http://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -36,30 +35,51 @@
  *
  */
 
-#pragma once
 
-#define STRINGIFY(x) #x
-#define TOSTRING(x) STRINGIFY(x)
-#define AT __FILE__ ":" TOSTRING(__LINE__)
-#define GEARMAN_AT __func__, AT
+/**
+ * @file
+ * @brief Gearman State Definitions
+ */
 
-#define gearman_perror(__universal, __message) gearman_universal_set_perror((__universal), __func__, AT, (__message))
-#define gearman_error(__universal, __error_t, __message) gearman_universal_set_error((__universal), (__error_t), __func__, AT, (__message))
-#define gearman_gerror(__universal, __gearman_return_t) gearman_universal_set_gerror((__universal), (__gearman_return_t), __func__, AT)
+#include "gear_config.h"
 
-gearman_return_t gearman_universal_set_error(gearman_universal_st&,
-                                             gearman_return_t rc,
-                                             const char *function,
-                                             const char *position,
-                                             const char *format, ...);
+#include "libgearman/common.h"
 
-gearman_return_t gearman_universal_set_perror(gearman_universal_st&,
-                                              const char *function, const char *position, 
-                                              const char *message);
+EchoCheck::EchoCheck(gearman_universal_st& universal_,
+    const void *workload_, const size_t workload_size_) :
+    _universal(universal_),
+    _workload(workload_),
+    _workload_size(workload_size_)
+{
+}
 
-gearman_return_t gearman_universal_set_gerror(gearman_universal_st&,
-                                              gearman_return_t rc,
-                                              const char *func,
-                                              const char *position);
+gearman_return_t EchoCheck::success(gearman_connection_st* con)
+{
+  if (con->_packet.command != GEARMAN_COMMAND_ECHO_RES)
+  {
+    return gearman_error(_universal, GEARMAN_INVALID_COMMAND, "Wrong command sent in response to ECHO request");
+  }
 
-void gearman_worker_reset_error(gearman_worker_st *worker);
+  if (con->_packet.data_size != _workload_size or
+      memcmp(_workload, con->_packet.data, _workload_size))
+  {
+    return gearman_error(_universal, GEARMAN_ECHO_DATA_CORRUPTION, "corruption during echo");
+  }
+
+  return GEARMAN_SUCCESS;
+}
+
+OptionCheck::OptionCheck(gearman_universal_st& universal_):
+    _universal(universal_)
+{
+}
+
+gearman_return_t OptionCheck::success(gearman_connection_st* con)
+{
+  if (con->_packet.command == GEARMAN_COMMAND_ERROR)
+  {
+    return gearman_error(_universal, GEARMAN_INVALID_SERVER_OPTION, "invalid server option");
+  }
+
+  return GEARMAN_SUCCESS;
+}

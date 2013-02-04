@@ -2,8 +2,8 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  Copyright (C) 2008 Brian Aker, Eric Day
+ *  Copyright (C) 2013 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2013 Keyur Govande
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -36,30 +36,53 @@
  *
  */
 
-#pragma once
+/**
+ * @file
+ * @brief Server options
+ */
 
-#define STRINGIFY(x) #x
-#define TOSTRING(x) STRINGIFY(x)
-#define AT __FILE__ ":" TOSTRING(__LINE__)
-#define GEARMAN_AT __func__, AT
+#include "gear_config.h"
+#include <libgearman/common.h>
 
-#define gearman_perror(__universal, __message) gearman_universal_set_perror((__universal), __func__, AT, (__message))
-#define gearman_error(__universal, __error_t, __message) gearman_universal_set_error((__universal), (__error_t), __func__, AT, (__message))
-#define gearman_gerror(__universal, __gearman_return_t) gearman_universal_set_gerror((__universal), (__gearman_return_t), __func__, AT)
+#include "libgearman/server_options.hpp"
 
-gearman_return_t gearman_universal_set_error(gearman_universal_st&,
-                                             gearman_return_t rc,
-                                             const char *function,
-                                             const char *position,
-                                             const char *format, ...);
+gearman_server_options_st::gearman_server_options_st(gearman_universal_st &universal_arg,
+                                                     const char* option_arg, const size_t option_arg_size) : 
+  next(NULL),
+  prev(NULL),
+  option(option_arg), 
+  option_length(option_arg_size),
+  universal(universal_arg)
+{
+  if (universal.server_options_list)
+  {
+    universal.server_options_list->prev= this;
+  }
+  next= universal.server_options_list;
+  universal.server_options_list= this;
+}
 
-gearman_return_t gearman_universal_set_perror(gearman_universal_st&,
-                                              const char *function, const char *position, 
-                                              const char *message);
+gearman_server_options_st::~gearman_server_options_st()
+{
+  if (option)
+  {
+    free((void*)option);
+  }
 
-gearman_return_t gearman_universal_set_gerror(gearman_universal_st&,
-                                              gearman_return_t rc,
-                                              const char *func,
-                                              const char *position);
+  { // Remove from universal list
+    if (universal.server_options_list == this)
+    {
+      universal.server_options_list= next;
+    }
 
-void gearman_worker_reset_error(gearman_worker_st *worker);
+    if (prev)
+    {
+      prev->next= next;
+    }
+
+    if (next)
+    {
+      next->prev= prev;
+    }
+  }
+}

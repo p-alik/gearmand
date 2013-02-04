@@ -2,8 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  Copyright (C) 2008 Brian Aker, Eric Day
+ *  Copyright (C) 2011-2013 Data Differential, http://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -38,28 +37,33 @@
 
 #pragma once
 
-#define STRINGIFY(x) #x
-#define TOSTRING(x) STRINGIFY(x)
-#define AT __FILE__ ":" TOSTRING(__LINE__)
-#define GEARMAN_AT __func__, AT
+class Check {
+public:
+  virtual gearman_return_t success(gearman_connection_st*)= 0;
 
-#define gearman_perror(__universal, __message) gearman_universal_set_perror((__universal), __func__, AT, (__message))
-#define gearman_error(__universal, __error_t, __message) gearman_universal_set_error((__universal), (__error_t), __func__, AT, (__message))
-#define gearman_gerror(__universal, __gearman_return_t) gearman_universal_set_gerror((__universal), (__gearman_return_t), __func__, AT)
+  virtual ~Check() {};
+};
 
-gearman_return_t gearman_universal_set_error(gearman_universal_st&,
-                                             gearman_return_t rc,
-                                             const char *function,
-                                             const char *position,
-                                             const char *format, ...);
+class EchoCheck : public Check {
+public:
+  EchoCheck(gearman_universal_st& universal_,
+            const void *workload_, const size_t workload_size_);
 
-gearman_return_t gearman_universal_set_perror(gearman_universal_st&,
-                                              const char *function, const char *position, 
-                                              const char *message);
+  gearman_return_t success(gearman_connection_st* con);
 
-gearman_return_t gearman_universal_set_gerror(gearman_universal_st&,
-                                              gearman_return_t rc,
-                                              const char *func,
-                                              const char *position);
+private:
+  gearman_universal_st& _universal;
+  const void *_workload;
+  const size_t _workload_size;
+};
 
-void gearman_worker_reset_error(gearman_worker_st *worker);
+class OptionCheck : public Check {
+public:
+  OptionCheck(gearman_universal_st& universal_);
+
+  gearman_return_t success(gearman_connection_st* con);
+
+private:
+  gearman_universal_st& _universal;
+};
+

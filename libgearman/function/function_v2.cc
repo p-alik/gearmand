@@ -118,6 +118,7 @@ gearman_function_error_t FunctionV2::callback(gearman_job_st* job, void *context
   case GEARMAN_ARGUMENT_TOO_LARGE:
   case GEARMAN_INVALID_ARGUMENT:
   case GEARMAN_IN_PROGRESS:
+  case GEARMAN_INVALID_SERVER_OPTION:
   case GEARMAN_MAX_RETURN:
     break;
   }

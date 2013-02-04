@@ -39,6 +39,8 @@
 #pragma once
 
 #include "libgearman/allocator.hpp" 
+#include "libgearman/server_options.hpp"
+#include "libgearman/interface/packet.hpp"
 
 /**
   @todo this is only used by the server and should be made private.
@@ -65,7 +67,8 @@ struct gearman_universal_st
   uint32_t sending;
   int timeout; // Connection timeout.
   gearman_connection_st *con_list;
-  struct gearman_packet_st *packet_list;
+  gearman_server_options_st *server_options_list;
+  gearman_packet_st *packet_list;
   struct pollfd *pfds;
   gearman_log_fn *log_fn;
   void *log_context;
@@ -160,6 +163,7 @@ struct gearman_universal_st
     sending(0),
     timeout(-1),
     con_list(NULL),
+    server_options_list(NULL),
     packet_list(NULL),
     pfds(NULL),
     log_fn(NULL),

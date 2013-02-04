@@ -49,6 +49,7 @@ struct gearman_universal_st;
 
 #include "libgearman-1.0/gearman.h"
 
+#include "libgearman/server_options.hpp"
 #include "libgearman/connection.hpp"
 #include "libgearman/universal.hpp"
 #include "libgearman/allocator.hpp"
@@ -73,6 +74,8 @@ struct gearman_universal_st;
 #include "libgearman/job.h"
 #include "libgearman/job.hpp"
 #include "libgearman/client.h"
+#include "libgearman/server_options.hpp"
+#include "libgearman/check.h"
 
 #include "libgearman/status.hpp"
 
