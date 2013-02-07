@@ -680,10 +680,10 @@ gearmand_error_t gearman_server_con_add_job_timeout(gearman_server_con_st *con, 
         if (con->timeout_event == NULL)
         {
           gearmand_con_st *dcon= con->con.context;
-          con->timeout_event= (struct event *)malloc(sizeof(struct event));
+          con->timeout_event= (struct event *)malloc(sizeof(struct event)); // libevent POD
           if (con->timeout_event == NULL)
           {
-            return gearmand_gerror("creating timeout event", GEARMAN_MEMORY_ALLOCATION_FAILURE);
+            return gearmand_merror("malloc(sizeof(struct event)", struct event, 1);
           }
           timeout_set(con->timeout_event, _server_job_timeout, job);
           event_base_set(dcon->thread->base, con->timeout_event);
