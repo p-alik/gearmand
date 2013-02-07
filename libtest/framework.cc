@@ -51,6 +51,7 @@
 #include <unistd.h>
 
 namespace {
+#if defined(DEBUG) && DEBUG
   int open_file_descriptors(std::set<int>& pre_existing_fd, const bool report)
   {
     int max= getdtablesize();
@@ -99,6 +100,7 @@ namespace {
 
     return counter;
   }
+#endif // #if defined(DEBUG) && DEBUG
 } // namespace
 
 namespace libtest {
