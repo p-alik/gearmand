@@ -671,10 +671,10 @@ static gearmand_error_t _listen_init(gearmand_st *gearmand)
     }
 
     assert(port->listen_event == NULL);
-    port->listen_event= (struct event *)malloc(sizeof(struct event) * port->listen_count);
+    port->listen_event= (struct event *)malloc(sizeof(struct event) * port->listen_count); // libevent POD
     if (port->listen_event == NULL)
     {
-      return gearmand_merror("malloc", struct event, port->listen_count);
+      return gearmand_merror("malloc(sizeof(struct event) * port->listen_count)", struct event, port->listen_count);
     }
 
     for (uint32_t y= 0; y < port->listen_count; ++y)

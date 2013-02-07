@@ -1023,10 +1023,10 @@ _server_queue_work_data(gearman_server_job_st *server_job,
       }
       else
       {
-        data= (uint8_t *)malloc(packet->data_size);
+        data= (uint8_t *)realloc(NULL, packet->data_size);
         if (data == NULL)
         {
-          return gearmand_perror(errno, "malloc");
+          return gearmand_perror(errno, "realloc");
         }
 
         memcpy(data, packet->data, packet->data_size);

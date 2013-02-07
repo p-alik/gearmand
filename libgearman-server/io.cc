@@ -712,12 +712,12 @@ gearmand_error_t gearman_io_recv(gearman_server_con_st *con, bool recv_data)
       break;
     }
 
-    packet->data= static_cast<char *>(malloc(packet->data_size));
+    packet->data= static_cast<char *>(realloc(NULL, packet->data_size));
     if (not packet->data)
     {
       // Server up the memory error first, in case _connection_close()
       // creates any.
-      gearmand_merror("malloc", char, packet->data_size);
+      gearmand_merror("realloc", char, packet->data_size);
       _connection_close(connection);
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }

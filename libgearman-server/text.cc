@@ -55,10 +55,10 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
 {
   size_t total;
 
-  char *data= (char *)malloc(GEARMAN_TEXT_RESPONSE_SIZE);
+  char *data= (char *)realloc(NULL, GEARMAN_TEXT_RESPONSE_SIZE);
   if (data == NULL)
   {
-    return gearmand_perror(errno, "malloc");
+    return gearmand_perror(errno, "realloc");
   }
   total= GEARMAN_TEXT_RESPONSE_SIZE;
   data[0]= 0;
