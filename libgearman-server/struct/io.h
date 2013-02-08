@@ -86,6 +86,8 @@ struct gearmand_io_st
   gearman_server_con_st *root;
   char send_buffer[GEARMAN_SEND_BUFFER_SIZE];
   char recv_buffer[GEARMAN_RECV_BUFFER_SIZE];
+
+  gearmand_io_st() { }
 };
 
 namespace gearmand { namespace protocol {class Context; } }

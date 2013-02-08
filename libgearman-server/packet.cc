@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011-2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2011-2013 Data Differential, http://datadifferential.com/
  *  Copyright (C) 2008 Brian Aker, Eric Day
  *  All rights reserved.
  *
@@ -65,7 +65,7 @@ gearman_server_packet_create(gearman_server_thread_st *thread,
 {
   gearman_server_packet_st *server_packet= NULL;
 
-  if (from_thread && Server->flags.threaded)
+  if (from_thread and Server->flags.threaded)
   {
     if (thread->free_packet_count > 0)
     {

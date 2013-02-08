@@ -78,11 +78,10 @@ extern "C" {
  * @return On success, a pointer to the (possibly allocated) structure. On
  *  failure this will be NULL.
  */
-GEARMAN_INTERNAL_API
-  void gearmand_connection_init(gearmand_connection_list_st *gearman,
-                                gearmand_io_st *connection,
-                                struct gearmand_con_st *dcon,
-                                gearmand_connection_options_t *options);
+void gearmand_connection_init(gearmand_connection_list_st *gearman,
+                              gearmand_io_st *connection,
+                              struct gearmand_con_st *dcon,
+                              gearmand_connection_options_t *options);
 
 /**
  * Free a connection structure.

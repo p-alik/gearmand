@@ -45,7 +45,6 @@
 #pragma once
 
 #include <netinet/in.h>
-#include <stdbool.h>
 #include <stdlib.h>
 #include <poll.h>
 

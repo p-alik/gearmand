@@ -46,15 +46,9 @@ struct gearmand_io_st;
 extern "C" {
 #endif
 
-typedef struct gearmand_connection_list_st gearmand_connection_list_st;
-
-GEARMAN_INTERNAL_API
-void gearmand_connection_list_init(gearmand_connection_list_st *source, gearmand_event_watch_fn *watch_fn, void *watch_context);
-
 /*
   Get next connection that is ready for I/O.
 */
-GEARMAN_INTERNAL_API
 gearman_server_con_st *gearmand_ready(gearmand_connection_list_st *gearman);
 
 #ifdef __cplusplus
