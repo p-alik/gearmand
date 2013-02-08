@@ -51,9 +51,14 @@ enum gearman_magic_t
  */
 struct gearmand_packet_st
 {
-  struct {
+  struct Options {
     bool complete;
     bool free_data;
+
+    Options() :
+      complete(false),
+      free_data(false)
+    { }
   } options;
   enum gearman_magic_t magic;
   enum gearman_command_t command;
@@ -67,10 +72,28 @@ struct gearmand_packet_st
   char *arg[GEARMAN_MAX_COMMAND_ARGS];
   size_t arg_size[GEARMAN_MAX_COMMAND_ARGS];
   char args_buffer[GEARMAN_ARGS_BUFFER_SIZE];
+
+  gearmand_packet_st():
+    magic(GEARMAN_MAGIC_TEXT),
+    command(GEARMAN_COMMAND_TEXT),
+    argc(0),
+    args_size(0),
+    data_size(0),
+    next(NULL),
+    prev(NULL),
+    args(0),
+    data(0)
+  {
+  }
 };
 
 struct gearman_server_packet_st
 {
   gearmand_packet_st packet;
   gearman_server_packet_st *next;
+
+  gearman_server_packet_st():
+    next(NULL)
+  {
+  }
 };

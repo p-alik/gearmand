@@ -89,24 +89,20 @@
 
 /** @} */
 
-typedef enum
+enum gearmand_connection_options_t
 {
   GEARMAND_CON_READY,
   GEARMAND_CON_PACKET_IN_USE,
   GEARMAND_CON_EXTERNAL_FD,
   GEARMAND_CON_CLOSE_AFTER_FLUSH,
   GEARMAND_CON_MAX
-} gearmand_connection_options_t;
+};
 
-
-#ifdef __cplusplus
 
 struct gearman_server_thread_st;
 struct gearman_server_st;
 struct gearman_server_con_st;
 struct gearmand_io_st;
-
-#endif
 
 #ifdef __cplusplus
 extern "C" {

@@ -416,8 +416,8 @@ void gearmand_io_free(gearmand_io_st *connection)
 }
 
 gearmand_error_t gearman_io_set_option(gearmand_io_st *connection,
-                                               gearmand_connection_options_t options,
-                                               bool value)
+                                       gearmand_connection_options_t options,
+                                       bool value)
 {
   switch (options)
   {

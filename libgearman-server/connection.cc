@@ -183,7 +183,7 @@ void gearman_server_con_attempt_free(gearman_server_con_st *con)
 
   if (Server->flags.threaded)
   {
-    if (!(con->proc_removed) && !(Server->proc_shutdown))
+    if (!(con->proc_removed) and !(Server->proc_shutdown))
     {
       gearman_server_con_delete_timeout(con);
       con->is_dead= true;
@@ -202,7 +202,6 @@ void gearman_server_con_attempt_free(gearman_server_con_st *con)
 void gearman_server_con_free(gearman_server_con_st *con)
 {
   gearman_server_thread_st *thread= con->thread;
-  gearman_server_packet_st *packet;
   con->_host= NULL;
   con->_port= NULL;
 
@@ -235,7 +234,7 @@ void gearman_server_con_free(gearman_server_con_st *con)
 
   while (con->proc_packet_list != NULL)
   {
-    packet= gearman_server_proc_packet_remove(con);
+    gearman_server_packet_st* packet= gearman_server_proc_packet_remove(con);
     gearmand_packet_free(&(packet->packet));
     gearman_server_packet_free(packet, con->thread, true);
   }
