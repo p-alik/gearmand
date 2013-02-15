@@ -110,6 +110,7 @@ bool Pidfile::create()
   {
     if (unlink(_filename.c_str()) == -1)
     {
+      _last_errno= errno;
       std::stringstream error_stream;
       error_stream << "Unable to remove exisiting file:" << _filename << "(" << strerror(errno) << ")";
       _error_message= error_stream.str();
@@ -126,6 +127,7 @@ bool Pidfile::create()
   int file;
   if ((file = open(_filename.c_str(), oflags, S_IRWXU|S_IRGRP|S_IROTH)) < 0)
   {
+    _last_errno= errno;
     std::stringstream error_stream;
     error_stream << "Could not open pid file for writing: " << _filename << "(" << strerror(errno) << ")";
     _error_message= error_stream.str();
@@ -138,6 +140,7 @@ bool Pidfile::create()
   int length= snprintf(buffer, sizeof(buffer), "%lu\n", temp);
   if (write(file, buffer, length) != length)
   { 
+    _last_errno= errno;
     std::stringstream error_stream;
     error_stream << "Could not write pid to file: " << _filename << "(" << strerror(errno) << ")";
     _error_message= error_stream.str();
@@ -148,6 +151,7 @@ bool Pidfile::create()
 
   if (close(file) < 0)
   {
+    _last_errno= errno;
     _error_message+= "Could not close() file after writing pid to it: "; 
     _error_message+= _filename;
     return false;
