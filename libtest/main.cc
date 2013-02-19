@@ -369,9 +369,9 @@ int main(int argc, char *argv[])
     std::cerr << "std::exception:" << e.what() << std::endl;
     exit_code= EXIT_FAILURE;
   }
-  catch (char const*)
+  catch (char const* s)
   {
-    std::cerr << "Exception:" << std::endl;
+    std::cerr << "Exception:" << s << std::endl;
     exit_code= EXIT_FAILURE;
   }
   catch (...)
