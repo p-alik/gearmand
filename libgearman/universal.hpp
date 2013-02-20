@@ -49,8 +49,6 @@ void gearman_universal_free(gearman_universal_st &gearman);
 
 void gearman_free_all_packets(gearman_universal_st &gearman);
 
-bool gearman_request_option(gearman_universal_st &universal, gearman_string_t &option);
-
 gearman_return_t gearman_universal_set_option(gearman_universal_st &self, gearman_universal_options_t option, bool value);
 
 void gearman_set_log_fn(gearman_universal_st &self, gearman_log_fn *function, void *context, gearman_verbose_t verbose);
