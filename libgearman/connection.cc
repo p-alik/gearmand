@@ -139,10 +139,6 @@ gearman_connection_st::gearman_connection_st(gearman_universal_st &universal_arg
   send_buffer_ptr(NULL),
   _recv_packet(NULL)
 {
-  options.ready= false;
-  options.packet_in_use= false;
-  options.server_options_sent= false;
-
   if (options_args)
   {
     while (*options_args != GEARMAN_CON_MAX)
@@ -365,15 +361,15 @@ void gearman_connection_st::reset_addrinfo()
  */
 gearman_return_t gearman_connection_st::send_packet(const gearman_packet_st& packet_arg, const bool flush_buffer)
 {
-  if (!options.server_options_sent)
+  if (options.server_options_sent == false)
   {
     for (gearman_server_options_st* head= universal.server_options_list;
          head;
          head= head->next)
     {
       gearman_packet_st message;
-      const void *args[]= { head->option };
-      size_t args_size[]= { head->option_length };
+      const void *args[]= { head->_option };
+      size_t args_size[]= { head->_option_length };
       gearman_return_t ret= gearman_packet_create_args(universal, message, GEARMAN_MAGIC_REQUEST,
                                                        GEARMAN_COMMAND_OPTION_REQ, args, args_size, 1);
 

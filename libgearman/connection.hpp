@@ -42,10 +42,16 @@
 
 struct gearman_connection_st
 {
-  struct {
+  struct Options {
     bool server_options_sent;
     bool ready;
     bool packet_in_use;
+
+    Options() :
+      server_options_sent(false),
+      ready(false),
+      packet_in_use(false)
+    { }
   } options;
   enum gearman_con_universal_t state;
   enum gearman_con_send_t send_state;
