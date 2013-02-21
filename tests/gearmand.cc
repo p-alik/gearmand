@@ -143,6 +143,38 @@ static test_return_t short_help_test(void *)
   return TEST_SUCCESS;
 }
 
+static test_return_t long_keepalive_TEST(void *)
+{
+  const char *args[]= { "--check-args", "--keepalive", 0 };
+
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  return TEST_SUCCESS;
+}
+
+static test_return_t long_keepalive_idle_TEST(void *)
+{
+  const char *args[]= { "--check-args", "--keepalive-idle=10", 0 };
+
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  return TEST_SUCCESS;
+}
+
+static test_return_t long_keepalive_interval_TEST(void *)
+{
+  const char *args[]= { "--check-args", "--keepalive-interval=3", 0 };
+
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  return TEST_SUCCESS;
+}
+
+static test_return_t long_keepalive_count_TEST(void *)
+{
+  const char *args[]= { "--check-args", "--keepalive-count=10", 0 };
+
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  return TEST_SUCCESS;
+}
+
 static test_return_t long_log_file_test(void *)
 {
   const char *args[]= { "--check-args", "--log-file=\"tmp/foo\"", 0 };
@@ -544,6 +576,10 @@ test_st gearmand_option_tests[] ={
   {"-f", 0, short_file_descriptors_test},
   {"--help", 0, long_help_test},
   {"-h", 0, short_help_test},
+  {"--keepalive", 0, long_keepalive_TEST},
+  {"--keepalive-idle", 0, long_keepalive_idle_TEST},
+  {"--keepalive-interval", 0, long_keepalive_interval_TEST},
+  {"--keepalive-count", 0, long_keepalive_count_TEST},
   {"--log-file=", 0, long_log_file_test},
   {"--log-file=stderr", 0, long_log_file_stderr_TEST},
   {"-l", 0, short_log_file_test},

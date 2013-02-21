@@ -127,6 +127,10 @@ int main(int argc, char *argv[])
   bool opt_check_args;
   bool opt_syslog;
   uint32_t hashtable_buckets;
+  bool opt_keepalive;
+  int opt_keepalive_idle;
+  int opt_keepalive_interval;
+  int opt_keepalive_count;
 
   boost::program_options::options_description general("General options");
 
@@ -153,6 +157,18 @@ int main(int argc, char *argv[])
 
   ("hashtable-buckets", boost::program_options::value(&hashtable_buckets)->default_value(GEARMAND_JOB_DEFAULT_HASH_SIZE),
    "Number of buckets in the internal job hash tables. The default of 383 works well for about a million jobs in queue. If the number of jobs in the queue at any time will exceed a million, use proportionally larger values (383 * # of jobs / 1M). For example, to accomodate 2^32 jobs, use 1733003. This will consume ~26MB of extra memory. Gearmand cannot support more than 2^32 jobs in queue at this time.")
+
+  ("keepalive", boost::program_options::bool_switch(&opt_keepalive)->default_value(false),
+   "Enable keepalive on sockets.")
+
+  ("keepalive-idle", boost::program_options::value(&opt_keepalive_idle)->default_value(-1),
+   "If keepalive is enabled, set the value for TCP_KEEPIDLE for systems that support it. A value of -1 means that either the system does not support it or an error occurred when trying to retrieve the default value.")
+
+  ("keepalive-interval", boost::program_options::value(&opt_keepalive_interval)->default_value(-1),
+   "If keepalive is enabled, set the value for TCP_KEEPINTVL for systems that support it. A value of -1 means that either the system does not support it or an error occurred when trying to retrieve the default value.")
+
+  ("keepalive-count", boost::program_options::value(&opt_keepalive_count)->default_value(-1),
+   "If keepalive is enabled, set the value for TCP_KEEPINTVL for systems that support it. A value of -1 means that either the system does not support it or an error occurred when trying to retrieve the default value.")
 
   ("log-file,l", boost::program_options::value(&log_file)->default_value(LOCALSTATEDIR"/log/gearmand.log"),
    "Log file to write errors and information to. If the log-file parameter is specified as 'stderr', then output will go to stderr. If 'none', then no logfile will be generated.")
