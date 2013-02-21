@@ -94,7 +94,7 @@ static bool _set_fdlimit(rlim_t fds);
 static bool _switch_user(const char *user);
 
 extern "C" {
-static bool _set_signals(void);
+static bool _set_signals(bool core_dump= false);
 }
 
 static void _log(const char *line, gearmand_verbose_t verbose, void *context);
@@ -124,6 +124,7 @@ int main(int argc, char *argv[])
   bool opt_daemon;
   bool opt_check_args;
   bool opt_syslog;
+  bool opt_coredump;
   uint32_t hashtable_buckets;
 
   boost::program_options::options_description general("General options");
@@ -175,6 +176,9 @@ int main(int argc, char *argv[])
 
   ("syslog", boost::program_options::bool_switch(&opt_syslog)->default_value(false),
    "Use syslog.")
+
+  ("coredump", boost::program_options::bool_switch(&opt_coredump)->default_value(false),
+   "Whether to create a core dump for uncaught signals.")
 
   ("threads,t", boost::program_options::value(&threads)->default_value(4),
    "Number of I/O threads to use. Default=4.")
@@ -310,7 +314,7 @@ int main(int argc, char *argv[])
     return EXIT_SUCCESS;
   }
 
-  if (fds > 0 && _set_fdlimit(fds))
+  if (fds > 0 and _set_fdlimit(fds))
   {
     return EXIT_FAILURE;
   }
@@ -325,7 +329,7 @@ int main(int argc, char *argv[])
     util::daemonize(false, true);
   }
 
-  if (_set_signals())
+  if (_set_signals(opt_coredump))
   {
     return EXIT_FAILURE;
   }
@@ -505,7 +509,7 @@ extern "C" void _crash_handler(int signal_, siginfo_t*, void*)
 }
 
 extern "C" {
-static bool _set_signals(void)
+static bool _set_signals(bool core_dump)
 {
   struct sigaction sa;
 
@@ -548,7 +552,7 @@ static bool _set_signals(void)
 
   bool in_gdb_libtest= bool(getenv("LIBTEST_IN_GDB"));
 
-  if (in_gdb_libtest == false)
+  if ((in_gdb_libtest == false) and (core_dump == false))
   {
     sa.sa_sigaction= _crash_handler;
     if (sigaction(SIGSEGV, &sa, NULL) == -1)
@@ -572,13 +576,13 @@ static bool _set_signals(void)
 #endif
     if (sigaction(SIGILL, &sa, NULL) == -1)
     {
-      error::perror("Could not set SIGBUS handler.");
+      error::perror("Could not set SIGILL handler.");
       return true;
     }
 
     if (sigaction(SIGFPE, &sa, NULL) == -1)
     {
-      error::perror("Could not set SIGBUS handler.");
+      error::perror("Could not set SIGFPE handler.");
       return true;
     }
   }
