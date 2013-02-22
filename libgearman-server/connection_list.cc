@@ -41,21 +41,18 @@
 #include <libgearman-server/constants.h>
 #include <libgearman-server/connection_list.h>
 #include <libgearman-server/io.h>
+#include <libgearman-server/common.h>
 #include <libgearman-server/connection.h>
 #include <assert.h>
 
 gearman_server_con_st *gearmand_ready(gearmand_connection_list_st *universal)
 {
-  /* We can't keep universal between calls since connections may be removed during
-    processing. If this list ever gets big, we may want something faster. */
-
-  for (gearmand_io_st *con= universal->con_list; con; con= con->next)
+  if (universal->ready_con_list)
   {
-    if (con->options.ready)
-    {
-      con->options.ready= false;
-      return con->root;
-    }
+    gearmand_io_st *con= universal->ready_con_list;
+    con->options.ready= false;
+    GEARMAN_LIST_DEL(universal->ready_con, con, ready_);
+    return con->root;
   }
 
   return NULL;
