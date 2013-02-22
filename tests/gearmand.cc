@@ -103,6 +103,14 @@ static test_return_t long_daemon_test(void *)
   return TEST_SUCCESS;
 }
 
+static test_return_t long_coredump_TEST(void *)
+{
+  const char *args[]= { "--check-args", "--coredump", 0 };
+
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline(gearmand_binary(), args, true));
+  return TEST_SUCCESS;
+}
+
 static test_return_t short_daemon_test(void *)
 {
   const char *args[]= { "--check-args", "-d", 0 };
@@ -538,6 +546,7 @@ test_st gearmand_option_tests[] ={
   {"--check-args", 0, check_args_test},
   {"--backlog=", 0, long_backlog_test},
   {"-b", 0, short_backlog_test},
+  {"--coredump", 0, long_coredump_TEST},
   {"--daemon", 0, long_daemon_test},
   {"-d", 0, short_daemon_test},
   {"--file-descriptors=", 0, long_file_descriptors_test},

@@ -71,6 +71,8 @@ documentation and/or software.
 #include <string.h>
 #include <sys/types.h>
 
+#pragma GCC diagnostic ignored "-Wunsafe-loop-optimizations"
+
 /* POINTER defines a generic pointer type */
 typedef unsigned char *POINTER;
 typedef const unsigned char *CONST_POINTER;
@@ -367,10 +369,10 @@ unsigned int len)
   unsigned int i, j;
 
   for (i = 0, j = 0; j < len; i++, j += 4) {
- output[j] = (unsigned char)(input[i] & 0xff);
- output[j+1] = (unsigned char)((input[i] >> 8) & 0xff);
- output[j+2] = (unsigned char)((input[i] >> 16) & 0xff);
- output[j+3] = (unsigned char)((input[i] >> 24) & 0xff);
+    output[j] = (unsigned char)(input[i] & 0xff);
+    output[j+1] = (unsigned char)((input[i] >> 8) & 0xff);
+    output[j+2] = (unsigned char)((input[i] >> 16) & 0xff);
+    output[j+3] = (unsigned char)((input[i] >> 24) & 0xff);
   }
 }
 

@@ -1,3 +1,6 @@
+1.1.6 
+* Merge of 1.0.4 tree
+
 1.1.5 Mon Feb  4 00:59:19 EST 2013
 * Rollup of bug fixes for 1.0.3
 * --threads=0 for gearmand will now result in gearmand using all available cores.
@@ -6,6 +9,9 @@
 * Add GEARMAN_CLIENT_GENERATE_UNIQUE, with default set to not generate.
 * Experimental addition to queue service which will allow a queue to be stored on shutdown (--libsqlite3-store-on-shutdown).
 * Rollup of all changes in 1.0.2
+
+1.0.4
+* Added --coredump flag to gearmand
 
 1.1.3 Wed Nov  7 22:48:21 EST 2012
 * Merge with 1.0.1

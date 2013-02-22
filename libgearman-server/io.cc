@@ -354,12 +354,7 @@ void gearmand_connection_init(gearmand_connection_list_st *gearman,
   connection->recv_data_offset= 0;
   connection->universal= gearman;
 
-  if (gearman->con_list != NULL)
-    gearman->con_list->prev= connection;
-  connection->next= gearman->con_list;
-  connection->prev= NULL;
-  gearman->con_list= connection;
-  gearman->con_count++;
+  GEARMAN_LIST__ADD(gearman->con, connection);
 
   connection->context= dcon;
 
@@ -386,6 +381,8 @@ gearmand_connection_list_st::gearmand_connection_list_st() :
 
 void gearmand_connection_list_st::init(gearmand_event_watch_fn *watch_fn, void *watch_context)
 {
+  ready_con_count= 0;
+  ready_con_list= NULL;
   con_count= 0;
   con_list= NULL;
   event_watch_fn= watch_fn;
@@ -397,17 +394,13 @@ void gearmand_io_free(gearmand_io_st *connection)
   if (connection->fd != INVALID_SOCKET)
     _connection_close(connection);
 
+  if (connection->options.ready)
   {
-    if (connection->universal->con_list == connection)
-      connection->universal->con_list= connection->next;
-
-    if (connection->prev != NULL)
-      connection->prev->next= connection->next;
-
-    if (connection->next != NULL)
-      connection->next->prev= connection->prev;
-    connection->universal->con_count--;
+    connection->options.ready= false;
+    GEARMAN_LIST_DEL(connection->universal->ready_con, connection, ready_);
   }
+
+  GEARMAN_LIST__DEL(connection->universal->con, connection);
 
   if (connection->options.packet_in_use)
   {
@@ -421,9 +414,6 @@ gearmand_error_t gearman_io_set_option(gearmand_io_st *connection,
 {
   switch (options)
   {
-  case GEARMAND_CON_READY:
-    connection->options.ready= value;
-    break;
   case GEARMAND_CON_PACKET_IN_USE:
     connection->options.packet_in_use= value;
     break;
@@ -783,6 +773,7 @@ gearmand_error_t gearmand_io_set_revents(gearman_server_con_st *con, short reven
   if (revents != 0)
   {
     connection->options.ready= true;
+    GEARMAN_LIST_ADD(connection->universal->ready_con, connection, ready_);
   }
 
   connection->revents= revents;

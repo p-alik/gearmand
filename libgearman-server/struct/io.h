@@ -78,6 +78,8 @@ struct gearmand_io_st
   gearmand_connection_list_st *universal;
   gearmand_io_st *next;
   gearmand_io_st *prev;
+  gearmand_io_st *ready_next;
+  gearmand_io_st *ready_prev;
   gearmand_con_st *context;
   char *send_buffer_ptr;
   gearmand_packet_st *recv_packet;

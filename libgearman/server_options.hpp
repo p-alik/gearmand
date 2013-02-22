@@ -38,16 +38,17 @@
 
 #pragma once
 
-#include <cstdlib>
-
 struct gearman_universal_st;
+
+bool gearman_request_option(gearman_universal_st &universal, gearman_string_t &option);
 
 struct gearman_server_options_st
 {
+  const char* _option;
+  const size_t _option_length;
+
   gearman_server_options_st *next;
   gearman_server_options_st *prev;
-  const char* option;
-  const size_t option_length;
   gearman_universal_st &universal;
 
 public:

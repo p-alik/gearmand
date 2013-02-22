@@ -49,6 +49,7 @@ using namespace libtest;
 #include <tests/basic.h>
 #include <tests/context.h>
 #include <tests/start_worker.h>
+#include "tests/client.h"
 
 #include "tests/workers/v2/called.h"
 #include "libgearman/interface/client.hpp"
@@ -62,15 +63,10 @@ test_return_t client_echo_fail_test(void *object)
   Context *test= (Context *)object;
   test_truth(test);
 
-  gearman_client_st *client= gearman_client_create(NULL);
-  test_truth(client);
+  test::Client client(in_port_t(20));
 
-  ASSERT_EQ(gearman_client_add_server(client, NULL, 20), GEARMAN_SUCCESS);
-
-  gearman_return_t rc= gearman_client_echo(client, test_literal_param("This should never work"));
+  gearman_return_t rc= gearman_client_echo(&client, test_literal_param("This should never work"));
   test_true(gearman_failed(rc));
-
-  gearman_client_free(client);
 
   return TEST_SUCCESS;
 }
@@ -80,16 +76,9 @@ test_return_t client_echo_test(void *object)
   Context *test= (Context *)object;
   test_truth(test);
 
-  gearman_client_st *client= gearman_client_create(NULL);
-  test_truth(client);
+  test::Client client(test->port());
 
-  ASSERT_EQ(gearman_client_add_server(client, NULL, test->port()),
-               GEARMAN_SUCCESS);
-
-  ASSERT_EQ(gearman_client_echo(client, test_literal_param("This is my echo test")),
-               GEARMAN_SUCCESS);
-
-  gearman_client_free(client);
+  ASSERT_EQ(gearman_client_echo(&client, test_literal_param("This is my echo test")), GEARMAN_SUCCESS);
 
   return TEST_SUCCESS;
 }
@@ -137,20 +126,16 @@ test_return_t queue_add(void *object)
 
   test->run_worker= false;
 
-  gearman_client_st* client= gearman_client_create(NULL);
-  test_truth(client);
-
-  ASSERT_EQ(gearman_client_add_server(client, NULL, test->port()),
-               GEARMAN_SUCCESS);
+  test::Client client(test->port());
 
   {
-    gearman_return_t rc= gearman_client_echo(client, test_literal_param("echo test message"));
+    gearman_return_t rc= gearman_client_echo(&client, test_literal_param("echo test message"));
     ASSERT_EQ(rc, GEARMAN_SUCCESS);
   }
 
   {
     gearman_job_handle_t job_handle= {};
-    gearman_return_t ret= gearman_client_do_background(client, test->worker_function_name(), NULL,
+    gearman_return_t ret= gearman_client_do_background(&client, test->worker_function_name(), NULL,
                                                        test->worker_function_name(), strlen(test->worker_function_name()),
                                                        job_handle);
     ASSERT_EQ(ret, GEARMAN_SUCCESS);
@@ -158,13 +143,11 @@ test_return_t queue_add(void *object)
 
     gearman_return_t rc;
     do {
-      rc= gearman_client_job_status(client, job_handle, NULL, NULL, NULL, NULL);
+      rc= gearman_client_job_status(&client, job_handle, NULL, NULL, NULL, NULL);
       test_true(rc != GEARMAN_IN_PROGRESS);
     } while (gearman_continue(rc) and rc != GEARMAN_JOB_EXISTS); // We need to exit on these values since the job will never run
     test_true(rc == GEARMAN_JOB_EXISTS or rc == GEARMAN_SUCCESS);
   }
-
-  gearman_client_free(client);
 
   test->run_worker= true;
 
@@ -212,22 +195,16 @@ test_return_t lp_734663(void *object)
   uint8_t value[JOB_SIZE]= { 'x' };
   memset(&value, 'x', sizeof(value));
 
-  gearman_client_st *client= gearman_client_create(NULL);
-  test_truth(client);
+  test::Client client(in_port_t(test->port()));
 
-  ASSERT_EQ(gearman_client_add_server(client, NULL, test->port()),
-               GEARMAN_SUCCESS);
-
-  ASSERT_EQ(gearman_client_echo(client, value, sizeof(value)), GEARMAN_SUCCESS);
+  ASSERT_EQ(gearman_client_echo(&client, value, sizeof(value)), GEARMAN_SUCCESS);
 
   for (uint32_t x= 0; x < NUMBER_OF_JOBS; x++)
   {
     gearman_job_handle_t job_handle= {};
-    ASSERT_EQ(gearman_client_do_background(client, worker_function_name, NULL, value, sizeof(value), job_handle), GEARMAN_SUCCESS);
+    ASSERT_EQ(gearman_client_do_background(&client, worker_function_name, NULL, value, sizeof(value), job_handle), GEARMAN_SUCCESS);
     test_truth(job_handle[0]);
   }
-
-  gearman_client_free(client);
 
   struct worker_handle_st *worker_handle[NUMBER_OF_WORKERS];
 
@@ -241,7 +218,7 @@ test_return_t lp_734663(void *object)
 
   while (called.count() < NUMBER_OF_JOBS)
   {
-    libtest::dream(0, static_cast<long>(gearman_timeout(client) *1000));
+    libtest::dream(0, static_cast<long>(gearman_timeout(&client) *1000));
   }
 
   for (uint32_t x= 0; x < NUMBER_OF_WORKERS; x++)
