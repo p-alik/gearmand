@@ -51,7 +51,33 @@
  * Public definitions
  */
 
-static gearman_server_function_st* gearman_server_function_create(gearman_server_st *server)
+static uint32_t _server_function_hash(const char *name, size_t size)
+{
+  const char *ptr= name;
+  int32_t value= 0;
+
+  while (size--)
+  {
+    value += (int32_t)*ptr++;
+    value += (value << 10);
+    value ^= (value >> 6);
+  }
+
+  value += (value << 3);
+  value ^= (value >> 11);
+  value += (value << 15);
+
+  return (uint32_t)(value == 0 ? 1 : value);
+}
+
+#ifndef __INTEL_COMPILER
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
+
+static gearman_server_function_st* gearman_server_function_create(gearman_server_st *server,
+                                                                  const char *function_name,
+                                                                  size_t function_name_size,
+                                                                  uint32_t function_key)
 {
   gearman_server_function_st* function= new (std::nothrow) gearman_server_function_st;
 
@@ -66,21 +92,26 @@ static gearman_server_function_st* gearman_server_function_create(gearman_server
   function->job_total= 0;
   function->job_running= 0;
   memset(function->max_queue_size, GEARMAN_DEFAULT_MAX_QUEUE_SIZE, sizeof(uint32_t) * GEARMAN_JOB_PRIORITY_MAX);
-  function->function_name_size= 0;
-  GEARMAN_LIST__ADD(server->function, function);
-  function->function_name= NULL;
+
+  function->function_name= new char[function_name_size +1];
+  if (function->function_name == NULL)
+  {
+    gearmand_merror("new[]", char,  function_name_size +1);
+    delete function;
+    return NULL;
+  }
+
+  memcpy(function->function_name, function_name, function_name_size);
+  function->function_name[function_name_size]= 0;
+  function->function_name_size= function_name_size;
   function->worker_list= NULL;
   memset(function->job_list, 0,
          sizeof(gearman_server_job_st *) * GEARMAN_JOB_PRIORITY_MAX);
   memset(function->job_end, 0,
          sizeof(gearman_server_job_st *) * GEARMAN_JOB_PRIORITY_MAX);
-
+  GEARMAN_HASH__ADD(server->function, function_key, function);
   return function;
 }
-
-#ifndef __INTEL_COMPILER
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#endif
 
 gearman_server_function_st *
 gearman_server_function_get(gearman_server_st *server,
@@ -89,7 +120,8 @@ gearman_server_function_get(gearman_server_st *server,
 {
   gearman_server_function_st *function;
 
-  for (function= server->function_list; function != NULL;
+  uint32_t function_hash = _server_function_hash(function_name, function_name_size) % GEARMAND_DEFAULT_HASH_SIZE;
+  for (function= server->function_hash[function_hash]; function != NULL;
        function= function->next)
   {
     if (function->function_name_size == function_name_size and
@@ -99,32 +131,15 @@ gearman_server_function_get(gearman_server_st *server,
     }
   }
 
-  function= gearman_server_function_create(server);
-  if (function == NULL)
-  {
-    return NULL;
-  }
-
-  function->function_name= new char[function_name_size +1];
-  if (function->function_name == NULL)
-  {
-    gearmand_merror("new[]", char,  function_name_size +1);
-    gearman_server_function_free(server, function);
-    return NULL;
-  }
-
-  memcpy(function->function_name, function_name, function_name_size);
-  function->function_name[function_name_size]= 0;
-  function->function_name_size= function_name_size;
-
-  return function;
+  return gearman_server_function_create(server, function_name, function_name_size, function_hash);
 }
 
 void gearman_server_function_free(gearman_server_st *server, gearman_server_function_st *function)
 {
+  uint32_t function_key;
+  function_key= _server_function_hash(function->function_name, function->function_name_size);
+  function_key= function_key % GEARMAND_DEFAULT_HASH_SIZE;
+  GEARMAN_HASH__DEL(server->function, function_key, function);
   delete [] function->function_name;
-
-  GEARMAN_LIST__DEL(server->function, function);
-
   delete function;
 }

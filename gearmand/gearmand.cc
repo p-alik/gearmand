@@ -150,8 +150,8 @@ int main(int argc, char *argv[])
   ("job-handle-prefix", boost::program_options::value(&job_handle_prefix),
    "Prefix used to generate a job handle string. If not provided, the default \"H:<host_name>\" is used.")
 
-  ("hashtable-buckets", boost::program_options::value(&hashtable_buckets)->default_value(GEARMAND_JOB_DEFAULT_HASH_SIZE),
-   "Number of buckets in the internal job hash tables. The default of 383 works well for about a million jobs in queue. If the number of jobs in the queue at any time will exceed a million, use proportionally larger values (383 * # of jobs / 1M). For example, to accomodate 2^32 jobs, use 1733003. This will consume ~26MB of extra memory. Gearmand cannot support more than 2^32 jobs in queue at this time.")
+  ("hashtable-buckets", boost::program_options::value(&hashtable_buckets)->default_value(GEARMAND_DEFAULT_HASH_SIZE),
+   "Number of buckets in the internal job hash tables. The default of 991 works well for about three million jobs in queue. If the number of jobs in the queue at any time will exceed three million, use proportionally larger values (991 * # of jobs / 3M). For example, to accomodate 2^32 jobs, use 1733003. This will consume ~26MB of extra memory. Gearmand cannot support more than 2^32 jobs in queue at this time.")
 
   ("log-file,l", boost::program_options::value(&log_file)->default_value(LOCALSTATEDIR"/log/gearmand.log"),
    "Log file to write errors and information to. If the log-file parameter is specified as 'stderr', then output will go to stderr. If 'none', then no logfile will be generated.")

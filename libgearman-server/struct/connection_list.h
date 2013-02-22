@@ -40,6 +40,8 @@
 
 struct gearmand_connection_list_st
 {
+  uint32_t ready_con_count;
+  gearmand_io_st *ready_con_list;
   uint32_t con_count;
   gearmand_io_st *con_list;
   gearmand_event_watch_fn *event_watch_fn; // Function to be called when events need to be watched

@@ -198,48 +198,52 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
   {
     size_t size= 0;
 
-    gearman_server_function_st *function;
-    for (function= Server->function_list; function != NULL;
-         function= function->next)
+    for (uint32_t function_key= 0; function_key < GEARMAND_DEFAULT_HASH_SIZE;
+         function_key++)
     {
-      if (size + GEARMAN_TEXT_RESPONSE_SIZE > total)
+      for (gearman_server_function_st *function= Server->function_hash[function_key];
+           function != NULL;
+           function= function->next)
       {
-        char *new_data= (char *)realloc(data, total + GEARMAN_TEXT_RESPONSE_SIZE);
-        if (new_data == NULL)
+        if (size + GEARMAN_TEXT_RESPONSE_SIZE > total)
         {
-          free(data);
-          return gearmand_perror(errno, "realloc");
+          char *new_data= (char *)realloc(data, total + GEARMAN_TEXT_RESPONSE_SIZE);
+          if (new_data == NULL)
+          {
+            free(data);
+            return gearmand_perror(errno, "realloc");
+          }
+
+          data= new_data;
+          total+= GEARMAN_TEXT_RESPONSE_SIZE;
         }
 
-        data= new_data;
-        total+= GEARMAN_TEXT_RESPONSE_SIZE;
+        int checked_length= snprintf(data + size, total - size, "%.*s\t%u\t%u\t%u\n",
+                                     (int)(function->function_name_size),
+                                     function->function_name, function->job_total,
+                                     function->job_running, function->worker_count);
+
+        if ((size_t)checked_length > total - size || checked_length < 0)
+        {
+          free(data);
+          return gearmand_perror(ENOMEM, "snprintf");
+        }
+
+        size+= (size_t)checked_length;
+        if (size > total)
+        {
+          size= total;
+        }
       }
 
-      int checked_length= snprintf(data + size, total - size, "%.*s\t%u\t%u\t%u\n",
-                                   (int)(function->function_name_size),
-                                   function->function_name, function->job_total,
-                                   function->job_running, function->worker_count);
-
-      if ((size_t)checked_length > total - size || checked_length < 0)
+      if (size < total)
       {
-        free(data);
-        return gearmand_perror(ENOMEM, "snprintf");
-      }
-
-      size+= (size_t)checked_length;
-      if (size > total)
-      {
-        size= total;
-      }
-    }
-
-    if (size < total)
-    {
-      int checked_length= snprintf(data + size, total - size, ".\n");
-      if ((size_t)checked_length > total - size || checked_length < 0)
-      {
-        free(data);
-        return gearmand_perror(ENOMEM, "snprintf");
+        int checked_length= snprintf(data + size, total - size, ".\n");
+        if ((size_t)checked_length > total - size || checked_length < 0)
+        {
+          free(data);
+          return gearmand_perror(ENOMEM, "snprintf");
+        }
       }
     }
   }
@@ -271,21 +275,27 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
     if (packet->argc == 3 && !strcasecmp("function", (char *)(packet->arg[1])))
     {
       bool success= false;
-      for (gearman_server_function_st *function= Server->function_list; function != NULL; function= function->next)
+      for (uint32_t function_key= 0; function_key < GEARMAND_DEFAULT_HASH_SIZE;
+           function_key++)
       {
-        if (strcasecmp(function->function_name, (char *)(packet->arg[2])) == 0)
+        for (gearman_server_function_st *function= Server->function_hash[function_key];
+             function != NULL;
+             function= function->next)
         {
-          success= true;
-          if (function->worker_count == 0 && function->job_running == 0)
+          if (strcasecmp(function->function_name, (char *)(packet->arg[2])) == 0)
           {
-            gearman_server_function_free(Server, function);
-            snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, TEXT_SUCCESS);
+            success= true;
+            if (function->worker_count == 0 && function->job_running == 0)
+            {
+              gearman_server_function_free(Server, function);
+              snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, TEXT_SUCCESS);
+            }
+            else
+            {
+              snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, "ERR there are still connected workers or executing clients\r\n");
+            }
+            break;
           }
-          else
-          {
-            snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, "ERR there are still connected workers or executing clients\r\n");
-          }
-          break;
         }
       }
 
@@ -344,13 +354,19 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
         }
       }
        
-      for (gearman_server_function_st *function= Server->function_list; function != NULL; function= function->next)
+      for (uint32_t function_key= 0; function_key < GEARMAND_DEFAULT_HASH_SIZE;
+           function_key++)
       {
-        if (strlen((char *)(packet->arg[1])) == function->function_name_size &&
-            (memcmp(packet->arg[1], function->function_name, function->function_name_size) == 0))
+        for (gearman_server_function_st *function= Server->function_hash[function_key];
+             function != NULL;
+             function= function->next)
         {
-          gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Applying queue limits to %s", function->function_name);
-          memcpy(function->max_queue_size, max_queue_size, sizeof(uint32_t) * GEARMAN_JOB_PRIORITY_MAX);
+          if (strlen((char *)(packet->arg[1])) == function->function_name_size &&
+              (memcmp(packet->arg[1], function->function_name, function->function_name_size) == 0))
+          {
+            gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Applying queue limits to %s", function->function_name);
+            memcpy(function->max_queue_size, max_queue_size, sizeof(uint32_t) * GEARMAN_JOB_PRIORITY_MAX);
+          }
         }
       }
 

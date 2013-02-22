@@ -1,5 +1,5 @@
 # Gearman server and library
-# Copyright (C) 2011-2012 Data Differential, http://datadifferential.com/
+# Copyright (C) 2011-2013 Data Differential, http://datadifferential.com/
 # Copyright (C) 2008 Brian Aker, Eric Day, Monty Taylor
 # All rights reserved.
 #
@@ -8,7 +8,7 @@
 
 AC_REVISION([m4_esyscmd_s([bzr revno])])
 AC_PREREQ([2.63])
-AC_INIT([gearmand],[1.0.3],[https://bugs.launchpad.net/gearmand],[gearmand],[http://gearman.info/])
+AC_INIT([gearmand],[1.0.4],[https://bugs.launchpad.net/gearmand],[gearmand],[http://gearman.info/])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
 

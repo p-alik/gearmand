@@ -91,7 +91,7 @@ ssize_t escape_string(vchar_t &destination, const char *from, size_t from_size)
     return 0;
   }
 
-  destination.reserve(from_size * from_size/2);
+  destination.reserve(from_size * 2);
   char newchar;
   const char *end;
 
