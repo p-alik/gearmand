@@ -437,7 +437,7 @@ void gearmand_wakeup(gearmand_st *gearmand, gearmand_wakeup_t wakeup)
  * Private definitions
  */
 
-gearmand_error_t set_socket(int& fd, struct addrinfo *addrinfo_next)
+gearmand_error_t set_socket(gearmand_st* gearmand, int& fd, struct addrinfo *addrinfo_next)
 {
   /* Call to socket() can fail for some getaddrinfo results, try another. */
   fd= socket(addrinfo_next->ai_family, addrinfo_next->ai_socktype,
@@ -491,6 +491,7 @@ gearmand_error_t set_socket(int& fd, struct addrinfo *addrinfo_next)
     }
   }
 
+  if (gearmand->socketopt().keepalive())
   {
     int flags= 1;
     if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &flags, sizeof(flags)) == -1)
@@ -599,7 +600,7 @@ static gearmand_error_t _listen_init(gearmand_st *gearmand)
       {
         { 
           gearmand_error_t socket_ret;
-          if (gearmand_failed(socket_ret= set_socket(fd, addrinfo_next)))
+          if (gearmand_failed(socket_ret= set_socket(gearmand, fd, addrinfo_next)))
           {
             gearmand_sockfd_close(fd);
             return socket_ret;
@@ -1209,3 +1210,48 @@ static bool gearman_server_create(gearman_server_st& server,
 
   return true;
 }
+
+gearmand_error_t gearmand_set_socket_keepalive(gearmand_st *gearmand, bool keepalive_)
+{
+  if (gearmand)
+  {
+    gearmand->socketopt().keepalive(keepalive_);
+    return GEARMAN_SUCCESS;
+  }
+
+  return GEARMAN_INVALID_ARGUMENT;
+}
+
+gearmand_error_t gearmand_set_socket_keepalive_idle(gearmand_st *gearmand, int keepalive_idle_)
+{
+  if (gearmand)
+  {
+    gearmand->socketopt().keepalive_idle(keepalive_idle_);
+    return GEARMAN_SUCCESS;
+  }
+
+  return GEARMAN_INVALID_ARGUMENT;
+}
+
+gearmand_error_t gearmand_set_socket_keepalive_interval(gearmand_st *gearmand, int keepalive_interval_)
+{
+  if (gearmand)
+  {
+    gearmand->socketopt().keepalive_interval(keepalive_interval_);
+    return GEARMAN_SUCCESS;
+  }
+
+  return GEARMAN_INVALID_ARGUMENT;
+}
+
+gearmand_error_t gearmand_set_socket_keepalive_count(gearmand_st *gearmand, int keepalive_count_)
+{
+  if (gearmand)
+  {
+    gearmand->socketopt().keepalive_count(keepalive_count_);
+    return GEARMAN_SUCCESS;
+  }
+
+  return GEARMAN_INVALID_ARGUMENT;
+}
+

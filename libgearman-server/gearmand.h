@@ -170,6 +170,18 @@ const char *gearmand_bugreport(void);
 GEARMAN_API
 const char *gearmand_verbose_name(gearmand_verbose_t verbose);
 
+GEARMAN_API
+  gearmand_error_t gearmand_set_socket_keepalive(gearmand_st *gearmand, bool arg);
+
+GEARMAN_API
+  gearmand_error_t gearmand_set_socket_keepalive_idle(gearmand_st *gearmand, int arg);
+
+GEARMAN_API
+  gearmand_error_t gearmand_set_socket_keepalive_interval(gearmand_st *gearmand, int arg);
+
+GEARMAN_API
+  gearmand_error_t gearmand_set_socket_keepalive_count(gearmand_st *gearmand, int arg);
+
 /** @} */
 
 #ifdef __cplusplus
