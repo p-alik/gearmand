@@ -50,9 +50,9 @@ const char *gearman_bugreport(void);
 GEARMAN_API
 const char *gearman_verbose_name(gearman_verbose_t verbose);
 
-#define gearman_timeout(__object) ((__object)->impl()->universal.timeout)
+#define gearman_timeout(__object) (__object) ? ((__object)->impl()->universal.timeout) : 0
 
-#define gearman_set_timeout(__object, __value) ((__object)->universal.timeout)=(__value);
+#define gearman_set_timeout(__object, __value) do { if (__object) ((__object)->impl()->universal.timeout)=(__value); } while(0);
 
 #ifdef __cplusplus
 }

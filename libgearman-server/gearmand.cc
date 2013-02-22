@@ -122,9 +122,13 @@ static void gearman_server_free(gearman_server_st& server)
   }
   gearman_queue_flush(&server);
 
-  while (server.function_list != NULL)
+  for (uint32_t function_key= 0; function_key < GEARMAND_DEFAULT_HASH_SIZE;
+       function_key++)
   {
-    gearman_server_function_free(&server, server.function_list);
+    while(server.function_hash[function_key] != NULL)
+    {
+      gearman_server_function_free(&server, server.function_hash[function_key]);
+    }
   }
 
   while (server.free_packet_list != NULL)
@@ -173,6 +177,7 @@ static void gearman_server_free(gearman_server_st& server)
 
   free(server.job_hash);
   free(server.unique_hash);
+  free(server.function_hash);
 }
 
 /** @} */
@@ -1145,7 +1150,6 @@ static bool gearman_server_create(gearman_server_st& server,
   server.free_worker_count= 0;
   server.thread_list= NULL;
   server.free_packet_list= NULL;
-  server.function_list= NULL;
   server.free_job_list= NULL;
   server.free_client_list= NULL;
   server.free_worker_list= NULL;
@@ -1154,18 +1158,25 @@ static bool gearman_server_create(gearman_server_st& server,
   server.queue.object= NULL;
   server.queue.functions= NULL;
 
+  server.function_hash= (gearman_server_function_st **) calloc(GEARMAND_DEFAULT_HASH_SIZE, sizeof(gearman_server_function_st *));
+  if (server.function_hash == NULL)
+  {
+    gearmand_merror("calloc", server.function_hash, GEARMAND_DEFAULT_HASH_SIZE);
+    return false;
+  }
+
   server.hashtable_buckets= hashtable_buckets;
   server.job_hash= (gearman_server_job_st **) calloc(hashtable_buckets, sizeof(gearman_server_job_st *));
   if (server.job_hash == NULL)
   {
-    gearmand_perror(errno, "calloc(hashtable_buckets, sizeof(gearman_server_job_st *)");
+    gearmand_merror("calloc", server.job_hash, hashtable_buckets);
     return false;
   }
 
   server.unique_hash= (gearman_server_job_st **) calloc(hashtable_buckets, sizeof(gearman_server_job_st *));
   if (server.unique_hash == NULL)
   {
-    gearmand_perror(errno, "calloc(hashtable_buckets, sizeof(gearman_server_job_st *)");
+    gearmand_merror("calloc", server.unique_hash, hashtable_buckets);
     return false;
   }
 

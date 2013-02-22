@@ -97,7 +97,7 @@ struct gearman_server_st
   uint32_t free_client_count;
   uint32_t free_worker_count;
   gearman_server_thread_st *thread_list;
-  gearman_server_function_st *function_list;
+  gearman_server_function_st **function_hash;
   gearman_server_packet_st *free_packet_list;
   gearman_server_job_st *free_job_list;
   gearman_server_client_st *free_client_list;

@@ -54,7 +54,6 @@ struct gearman_connection_st
       ready(false),
       packet_in_use(false)
     { }
-
   } options;
   enum gearman_con_universal_t state;
   enum gearman_con_send_t send_state;
