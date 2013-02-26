@@ -45,6 +45,7 @@
 
 #include <libgearman-server/gearmand.h>
 #include <libgearman-server/byteorder.h>
+#include "libgearman-server/config.hpp"
 
 #include "libgearman/assert.hpp"
 

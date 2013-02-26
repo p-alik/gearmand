@@ -183,6 +183,33 @@ static test_return_t long_keepalive_count_TEST(void *)
   return TEST_SUCCESS;
 }
 
+static test_return_t long_keepalive_start_TEST(void *)
+{
+  in_port_t port= libtest::get_free_port();
+  char port_str[1024];
+  test_true(snprintf(port_str, sizeof(port_str), "--port=%d", int32_t(port)) > 0);
+
+  const char *args[]= {
+    port_str,
+    "--log-file=stderr",
+    "--keepalive-count=10", 
+    "--keepalive-interval=3",
+    "--keepalive-idle=10", 0 };
+
+  Application app(gearmand_binary(), true);
+
+  Application::error_t ret= app.run(args);
+
+  ASSERT_EQ(Application::SUCCESS, ret);
+
+  ret= app.join();
+  ASSERT_EQ_(Application::SUCCESS, ret, "ret: %s stderr: '%s' stdout: `%s'",
+             Application::toString(ret),
+             app.stderr_c_str(), app.stdout_c_str());
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t long_log_file_test(void *)
 {
   const char *args[]= { "--check-args", "--log-file=\"tmp/foo\"", 0 };
@@ -631,6 +658,7 @@ test_st gearmand_option_tests[] ={
   {"--config-file", 0, config_file_DEFAULT_TEST },
   {"--config-file=etc/grmandfoo.conf", 0, config_file_FAIL_TEST },
   {"--config-file=etc/gearmand.conf", 0, config_file_SIMPLE_TEST },
+  {"start server with all --keepalive options", 0, long_keepalive_start_TEST},
   {0, 0, 0}
 };
 

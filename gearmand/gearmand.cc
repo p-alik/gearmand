@@ -377,7 +377,18 @@ int main(int argc, char *argv[])
     }
   }
 
-  gearmand_st *_gearmand= gearmand_create(host.empty() ? NULL : host.c_str(),
+  gearmand_config_st *gearmand_config= gearmand_config_create();
+
+  if (gearmand_config == NULL)
+  {
+    return EXIT_FAILURE;
+  }
+
+  gearmand_config_sockopt_keepalive(gearmand_config, opt_keepalive);
+
+
+  gearmand_st *_gearmand= gearmand_create(gearmand_config,
+                                          host.empty() ? NULL : host.c_str(),
                                           threads, backlog,
                                           static_cast<uint8_t>(job_retries),
                                           job_handle_prefix.empty() ? NULL : job_handle_prefix.c_str(),
@@ -390,6 +401,8 @@ int main(int argc, char *argv[])
     error::message("Could not create gearmand library instance.");
     return EXIT_FAILURE;
   }
+
+  gearmand_config_free(gearmand_config);
 
   assert(queue_type.size());
   if (queue_type.empty() == false)
