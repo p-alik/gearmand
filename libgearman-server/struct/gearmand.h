@@ -93,7 +93,7 @@ struct gearmand_st
     thread_add_next(NULL),
     free_dcon_list(NULL)
   {
-    if (host)
+    if (host_)
     {
       host= strdup(host_);
     }
