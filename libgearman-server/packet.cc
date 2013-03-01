@@ -255,23 +255,21 @@ gearman_server_proc_packet_remove(gearman_server_con_st *con)
 {
   gearman_server_packet_st *server_packet= con->proc_packet_list;
 
-  if (server_packet == NULL)
+  if (server_packet)
   {
-    return NULL;
-  }
-
-  int error;
-  if ((error= pthread_mutex_lock(&con->thread->lock)) == 0)
-  {
-    GEARMAN_FIFO__DEL(con->proc_packet, server_packet);
-    if ((error= pthread_mutex_unlock(&con->thread->lock)) != 0)
+    int error;
+    if ((error= pthread_mutex_lock(&con->thread->lock)) == 0)
     {
-      gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock");
+      GEARMAN_FIFO__DEL(con->proc_packet, server_packet);
+      if ((error= pthread_mutex_unlock(&con->thread->lock)) != 0)
+      {
+        gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock");
+      }
     }
-  }
-  else
-  {
-    gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_lock");
+    else
+    {
+      gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_lock");
+    }
   }
 
   return server_packet;
