@@ -67,6 +67,8 @@ struct gearmand_packet_st
   char *arg[GEARMAN_MAX_COMMAND_ARGS];
   size_t arg_size[GEARMAN_MAX_COMMAND_ARGS];
   char args_buffer[GEARMAN_ARGS_BUFFER_SIZE];
+
+  void reset(enum gearman_magic_t, gearman_command_t);
 };
 
 struct gearman_server_packet_st

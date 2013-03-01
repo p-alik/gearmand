@@ -2,8 +2,8 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
- *  All rights reserved.
+ *  Copyright (C) 2012-2013 Data Differential, http://datadifferential.com/ All
+ *  rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -420,10 +420,8 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
 
-  gearmand_packet_init(&(server_packet->packet), GEARMAN_MAGIC_TEXT, GEARMAN_COMMAND_TEXT);
+  server_packet->packet.reset(GEARMAN_MAGIC_TEXT, GEARMAN_COMMAND_TEXT);
 
-  server_packet->packet.magic= GEARMAN_MAGIC_TEXT;
-  server_packet->packet.command= GEARMAN_COMMAND_TEXT;
   server_packet->packet.options.complete= true;
   server_packet->packet.options.free_data= true;
 
