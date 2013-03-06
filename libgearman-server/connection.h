@@ -195,7 +195,12 @@ void gearman_server_con_delete_timeout(gearman_server_con_st *con);
 void gearman_server_con_protocol_release(gearman_server_con_st *con);
 
 gearman_server_con_st* build_gearman_server_con_st(void);
+
 void destroy_gearman_server_con_st(gearman_server_con_st* arg);
+
+void gearmand_connection_list_init(gearmand_connection_list_st *source, gearmand_event_watch_fn *watch_fn, void *watch_context);
+
+gearman_server_con_st *gearmand_ready(gearmand_connection_list_st *gearman);
 
 /** @} */
 
