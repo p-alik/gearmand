@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011-2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2011-2013 Data Differential, http://datadifferential.com/
  *  Copyright (C) 2008 Brian Aker, Eric Day
  *  All rights reserved.
  *
@@ -128,29 +128,14 @@ extern "C"
   static __attribute__((noreturn)) void *client_thread(void *object)
   {
     volatile gearman_return_t *ret= (volatile gearman_return_t *)object;
-    size_t result_size;
-
-    gearman_client_st client;
-    gearman_client_st* client_ptr= gearman_client_create(&client);
-    assert(client_ptr == &client);
-
-    if (client_ptr == NULL)
     {
-      *ret= GEARMAN_MEMORY_ALLOCATION_FAILURE;
-      pthread_exit(0);
-    }
-
-    do {
-      gearman_return_t rc= gearman_client_add_server(&client, NULL, libtest::default_port());
-      if (gearman_failed(rc))
-      {
-        *ret= rc;
-        break;
-      }
-
+      test::Client client(libtest::default_port());
       gearman_client_set_timeout(&client, 400);
+
       for (size_t x= 0; x < 5; x++)
       {
+        gearman_return_t rc;
+        size_t result_size;
         (void)gearman_client_do(&client, "client_test_temp", NULL, NULL, 0, &result_size, &rc);
 
         if (gearman_failed(rc))
@@ -159,11 +144,7 @@ extern "C"
           break;
         }
       }
-
-      break;
-    } while (1);
-
-    gearman_client_free(client_ptr);
+    }
 
     pthread_exit(0);
   }
@@ -758,19 +739,16 @@ static test_return_t background_failure_test(void *object)
 
 static test_return_t add_servers_test(void *)
 {
-  gearman_client_st *client= gearman_client_create(NULL);
-  test_truth(client);
+  test::Client client;
 
   ASSERT_EQ(GEARMAN_SUCCESS,
-               gearman_client_add_servers(client, "localhost:4730,localhost"));
+               gearman_client_add_servers(&client, "localhost:4730,localhost"));
 
   if (libtest::check_dns())
   {
     ASSERT_EQ(GEARMAN_GETADDRINFO,
-                 gearman_client_add_servers(client, "exist.gearman.info:7003,does_not_exist.gearman.info:12345"));
+                 gearman_client_add_servers(&client, "exist.gearman.info:7003,does_not_exist.gearman.info:12345"));
   }
-
-  gearman_client_free(client);
 
   return TEST_SUCCESS;
 }
@@ -889,20 +867,16 @@ static test_return_t loop_test(void *)
 
 static test_return_t regression_785203_do_test(void *)
 {
-  gearman_client_st *client;
-  test_truth(client= gearman_client_create(NULL));
+  test::Client client(libtest::default_port());
 
-  gearman_client_add_options(client, GEARMAN_CLIENT_FREE_TASKS);
+  gearman_client_add_options(&client, GEARMAN_CLIENT_FREE_TASKS);
   { // All defaults, except timeout_return
-    test_truth(gearman_is_allocated(client));
-    test_false(client->impl()->options.non_blocking);
-    test_false(client->impl()->options.unbuffered_result);
-    test_false(client->impl()->options.no_new);
-    test_truth(client->impl()->options.free_tasks);
+    test_truth(gearman_is_allocated(&client));
+    test_false((&client)->impl()->options.non_blocking);
+    test_false((&client)->impl()->options.unbuffered_result);
+    test_false((&client)->impl()->options.no_new);
+    test_truth((&client)->impl()->options.free_tasks);
   }
-
-  ASSERT_EQ(GEARMAN_SUCCESS,
-               gearman_client_add_server(client, NULL, libtest::default_port()));
 
   gearman_function_t func= gearman_function_create_v2(echo_or_react_worker_v2);
   std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(), NULL,
@@ -911,13 +885,11 @@ static test_return_t regression_785203_do_test(void *)
 
   gearman_return_t rc;
   size_t result_length;
-  void *result= gearman_client_do(client, __func__, NULL, 
+  void *result= gearman_client_do(&client, __func__, NULL, 
                                   test_literal_param("keep it rocking and sing"),
                                   &result_length, &rc);
   test_true(result);
   free(result);
-
-  gearman_client_free(client);
 
   return TEST_SUCCESS;
 }
@@ -932,24 +904,20 @@ static test_return_t regression_785203_do_background_test(void *object)
                                                            __func__,
                                                            echo_react_chunk_fn_v2, NULL, gearman_worker_options_t()));
 
-  gearman_client_st *client;
-  test_truth(client= gearman_client_create(NULL));
+  test::Client client(libtest::default_port());
 
-  ASSERT_EQ(GEARMAN_SUCCESS,
-               gearman_client_add_server(client, NULL, libtest::default_port()));
-
-  gearman_client_add_options(client, GEARMAN_CLIENT_FREE_TASKS);
+  gearman_client_add_options(&client, GEARMAN_CLIENT_FREE_TASKS);
   { // All defaults, except timeout_return
-    test_truth(gearman_is_allocated(client));
-    test_false(client->impl()->options.non_blocking);
-    test_false(client->impl()->options.unbuffered_result);
-    test_false(client->impl()->options.no_new);
-    test_truth(client->impl()->options.free_tasks);
+    test_truth(gearman_is_allocated((&client)));
+    test_false((&client)->impl()->options.non_blocking);
+    test_false((&client)->impl()->options.unbuffered_result);
+    test_false((&client)->impl()->options.no_new);
+    test_truth((&client)->impl()->options.free_tasks);
   }
 
   gearman_job_handle_t job_handle;
   ASSERT_EQ(GEARMAN_SUCCESS,
-               gearman_client_do_background(client, __func__, 
+               gearman_client_do_background(&client, __func__, 
                                             NULL,  // No unique requested
                                             test_literal_param("keep it rocking and sing"),
                                             job_handle));
@@ -960,11 +928,9 @@ static test_return_t regression_785203_do_background_test(void *object)
     uint32_t numerator;
     uint32_t denominator;
 
-    ret= gearman_client_job_status(client, job_handle, NULL, NULL, &numerator, &denominator);
+    ret= gearman_client_job_status(&client, job_handle, NULL, NULL, &numerator, &denominator);
   } while (gearman_continue(ret));
   ASSERT_EQ(GEARMAN_SUCCESS, ret);
-
-  gearman_client_free(client);
 
   return TEST_SUCCESS;
 }

@@ -715,3 +715,16 @@ void gearman_server_con_delete_timeout(gearman_server_con_st *con)
     con->timeout_event= NULL;
   }
 }
+
+gearman_server_con_st *gearmand_ready(gearmand_connection_list_st *universal)
+{
+  if (universal->ready_con_list)
+  {
+    gearmand_io_st *con= universal->ready_con_list;
+    con->options.ready= false;
+    GEARMAN_LIST_DEL(universal->ready_con, con, ready_);
+    return con->root;
+  }
+
+  return NULL;
+}

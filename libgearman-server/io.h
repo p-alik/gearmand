@@ -47,6 +47,8 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
+#include <libgearman-server/struct/connection_list.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -89,11 +91,9 @@ void gearmand_connection_init(gearmand_connection_list_st *gearman,
  * @param[in] connection Structure previously initialized with gearmand_connection_init(),
  *  gearmand_connection_init_args(), or gearman_connection_clone().
  */
-GEARMAN_INTERNAL_API
 void gearmand_io_free(gearmand_io_st *connection);
 
 
-GEARMAN_INTERNAL_API
 gearmand_error_t gearman_io_set_option(gearmand_io_st *connection,
                                                gearmand_connection_options_t options,
                                                bool value);
@@ -102,45 +102,37 @@ gearmand_error_t gearman_io_set_option(gearmand_io_st *connection,
 /**
  * Set connection to an already open file descriptor.
  */
-GEARMAN_INTERNAL_API
 gearmand_error_t gearman_io_set_fd(gearmand_io_st *connection, int fd);
 
 /**
  * Get application context pointer.
  */
-GEARMAN_INTERNAL_API
 gearmand_con_st *gearman_io_context(const gearmand_io_st *connection);
 
 /**
  * Used by thread to send packets.
  */
-GEARMAN_INTERNAL_API
 gearmand_error_t gearman_io_send(gearman_server_con_st *connection,
                                  const struct gearmand_packet_st *packet, bool flush);
 
 /**
  * Used by thread to recv packets.
  */
-GEARMAN_INTERNAL_API
 gearmand_error_t gearman_io_recv(gearman_server_con_st *con, bool recv_data);
 
 /**
  * Set events to be watched for a connection.
  */
-GEARMAN_INTERNAL_API
 gearmand_error_t gearmand_io_set_events(gearman_server_con_st *connection, short events);
 
 /**
  * Set events that are ready for a connection. This is used with the external
  * event callbacks.
  */
-GEARMAN_INTERNAL_API
 gearmand_error_t gearmand_io_set_revents(gearman_server_con_st *connection, short revents);
 
-GEARMAN_INTERNAL_API
 void gearmand_sockfd_close(int& sockfd);
 
-GEARMAN_INTERNAL_API
 void gearmand_pipe_close(int& sockfd);
 
 /** @} */
