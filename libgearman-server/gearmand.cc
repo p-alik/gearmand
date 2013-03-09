@@ -71,6 +71,10 @@ using namespace gearmand;
 # define SOCK_NONBLOCK 0
 #endif
 
+#ifndef SOL_TCP 
+# define SOL_TCP 0
+#endif
+
 /*
  * Private declarations
  */
@@ -203,7 +207,8 @@ gearmand_st *Gearmand(void)
   return _global_gearmand;
 }
 
-gearmand_st *gearmand_create(const char *host_arg,
+gearmand_st *gearmand_create(gearmand_config_st *config,
+                             const char *host_arg,
                              uint32_t threads_arg,
                              int backlog_arg,
                              const uint32_t job_retries,
@@ -228,6 +233,8 @@ gearmand_st *gearmand_create(const char *host_arg,
     return NULL;
   }
   _global_gearmand= gearmand;
+
+  gearmand->socketopt()= config->config.sockopt();
 
   if (gearman_server_create(gearmand->server, job_retries,
                             job_handle_prefix, worker_wakeup,
@@ -437,7 +444,7 @@ void gearmand_wakeup(gearmand_st *gearmand, gearmand_wakeup_t wakeup)
  * Private definitions
  */
 
-gearmand_error_t set_socket(int& fd, struct addrinfo *addrinfo_next)
+gearmand_error_t set_socket(gearmand_st* gearmand, int& fd, struct addrinfo *addrinfo_next)
 {
   /* Call to socket() can fail for some getaddrinfo results, try another. */
   fd= socket(addrinfo_next->ai_family, addrinfo_next->ai_socktype,
@@ -491,11 +498,42 @@ gearmand_error_t set_socket(int& fd, struct addrinfo *addrinfo_next)
     }
   }
 
+  if (gearmand->socketopt().keepalive())
   {
     int flags= 1;
     if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &flags, sizeof(flags)) == -1)
     {
       return gearmand_perror(errno, "setsockopt(SO_KEEPALIVE)");
+    }
+
+    if (SOL_TCP)
+    {
+      if (gearmand->socketopt().keepalive_idle() != -1)
+      {
+        int optval= gearmand->socketopt().keepalive_idle();
+        if (setsockopt(fd, SOL_TCP, TCP_KEEPIDLE, &optval, sizeof(optval)) == -1)
+        {
+          return gearmand_perror(errno, "setsockopt(TCP_KEEPIDLE)");
+        }
+      }
+
+      if (gearmand->socketopt().keepalive_interval() != -1)
+      {
+        int optval= gearmand->socketopt().keepalive_interval();
+        if (setsockopt(fd, SOL_TCP, TCP_KEEPINTVL, &optval, sizeof(optval)) == -1)
+        {
+          return gearmand_perror(errno, "setsockopt(TCP_KEEPINTVL)");
+        }
+      }
+
+      if (gearmand->socketopt().keepalive_count() != -1)
+      {
+        int optval= gearmand->socketopt().keepalive_count();
+        if (setsockopt(fd, SOL_TCP, TCP_KEEPCNT, &optval, sizeof(optval)) == -1)
+        {
+          return gearmand_perror(errno, "setsockopt(TCP_KEEPCNT)");
+        }
+      }
     }
   }
 
@@ -599,7 +637,7 @@ static gearmand_error_t _listen_init(gearmand_st *gearmand)
       {
         { 
           gearmand_error_t socket_ret;
-          if (gearmand_failed(socket_ret= set_socket(fd, addrinfo_next)))
+          if (gearmand_failed(socket_ret= set_socket(gearmand, fd, addrinfo_next)))
           {
             gearmand_sockfd_close(fd);
             return socket_ret;
@@ -1209,3 +1247,48 @@ static bool gearman_server_create(gearman_server_st& server,
 
   return true;
 }
+
+gearmand_error_t gearmand_set_socket_keepalive(gearmand_st *gearmand, bool keepalive_)
+{
+  if (gearmand)
+  {
+    gearmand->socketopt().keepalive(keepalive_);
+    return GEARMAN_SUCCESS;
+  }
+
+  return GEARMAN_INVALID_ARGUMENT;
+}
+
+gearmand_error_t gearmand_set_socket_keepalive_idle(gearmand_st *gearmand, int keepalive_idle_)
+{
+  if (gearmand)
+  {
+    gearmand->socketopt().keepalive_idle(keepalive_idle_);
+    return GEARMAN_SUCCESS;
+  }
+
+  return GEARMAN_INVALID_ARGUMENT;
+}
+
+gearmand_error_t gearmand_set_socket_keepalive_interval(gearmand_st *gearmand, int keepalive_interval_)
+{
+  if (gearmand)
+  {
+    gearmand->socketopt().keepalive_interval(keepalive_interval_);
+    return GEARMAN_SUCCESS;
+  }
+
+  return GEARMAN_INVALID_ARGUMENT;
+}
+
+gearmand_error_t gearmand_set_socket_keepalive_count(gearmand_st *gearmand, int keepalive_count_)
+{
+  if (gearmand)
+  {
+    gearmand->socketopt().keepalive_count(keepalive_count_);
+    return GEARMAN_SUCCESS;
+  }
+
+  return GEARMAN_INVALID_ARGUMENT;
+}
+
