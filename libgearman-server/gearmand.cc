@@ -75,6 +75,18 @@ using namespace gearmand;
 # define SOL_TCP 0
 #endif
 
+#ifndef TCP_KEEPIDLE 
+# define TCP_KEEPIDLE 0
+#endif
+
+#ifndef TCP_KEEPINTVL 
+# define TCP_KEEPINTVL 0
+#endif
+
+#ifndef TCP_KEEPCNT 
+# define TCP_KEEPCNT 0
+#endif
+
 /*
  * Private declarations
  */
@@ -508,7 +520,7 @@ gearmand_error_t set_socket(gearmand_st* gearmand, int& fd, struct addrinfo *add
 
     if (SOL_TCP)
     {
-      if (gearmand->socketopt().keepalive_idle() != -1)
+      if (TCP_KEEPIDLE and gearmand->socketopt().keepalive_idle() != -1)
       {
         int optval= gearmand->socketopt().keepalive_idle();
         if (setsockopt(fd, SOL_TCP, TCP_KEEPIDLE, &optval, sizeof(optval)) == -1)
@@ -517,7 +529,7 @@ gearmand_error_t set_socket(gearmand_st* gearmand, int& fd, struct addrinfo *add
         }
       }
 
-      if (gearmand->socketopt().keepalive_interval() != -1)
+      if (TCP_KEEPINTVL and gearmand->socketopt().keepalive_interval() != -1)
       {
         int optval= gearmand->socketopt().keepalive_interval();
         if (setsockopt(fd, SOL_TCP, TCP_KEEPINTVL, &optval, sizeof(optval)) == -1)
@@ -526,7 +538,7 @@ gearmand_error_t set_socket(gearmand_st* gearmand, int& fd, struct addrinfo *add
         }
       }
 
-      if (gearmand->socketopt().keepalive_count() != -1)
+      if (TCP_KEEPCNT and gearmand->socketopt().keepalive_count() != -1)
       {
         int optval= gearmand->socketopt().keepalive_count();
         if (setsockopt(fd, SOL_TCP, TCP_KEEPCNT, &optval, sizeof(optval)) == -1)
