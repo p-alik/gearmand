@@ -128,6 +128,10 @@ int main(int argc, char *argv[])
   bool opt_syslog;
   bool opt_coredump;
   uint32_t hashtable_buckets;
+  bool opt_keepalive;
+  int opt_keepalive_idle;
+  int opt_keepalive_interval;
+  int opt_keepalive_count;
 
   boost::program_options::options_description general("General options");
 
@@ -154,6 +158,18 @@ int main(int argc, char *argv[])
 
   ("hashtable-buckets", boost::program_options::value(&hashtable_buckets)->default_value(GEARMAND_DEFAULT_HASH_SIZE),
    "Number of buckets in the internal job hash tables. The default of 991 works well for about three million jobs in queue. If the number of jobs in the queue at any time will exceed three million, use proportionally larger values (991 * # of jobs / 3M). For example, to accomodate 2^32 jobs, use 1733003. This will consume ~26MB of extra memory. Gearmand cannot support more than 2^32 jobs in queue at this time.")
+
+  ("keepalive", boost::program_options::bool_switch(&opt_keepalive)->default_value(false),
+   "Enable keepalive on sockets.")
+
+  ("keepalive-idle", boost::program_options::value(&opt_keepalive_idle)->default_value(-1),
+   "If keepalive is enabled, set the value for TCP_KEEPIDLE for systems that support it. A value of -1 means that either the system does not support it or an error occurred when trying to retrieve the default value.")
+
+  ("keepalive-interval", boost::program_options::value(&opt_keepalive_interval)->default_value(-1),
+   "If keepalive is enabled, set the value for TCP_KEEPINTVL for systems that support it. A value of -1 means that either the system does not support it or an error occurred when trying to retrieve the default value.")
+
+  ("keepalive-count", boost::program_options::value(&opt_keepalive_count)->default_value(-1),
+   "If keepalive is enabled, set the value for TCP_KEEPINTVL for systems that support it. A value of -1 means that either the system does not support it or an error occurred when trying to retrieve the default value.")
 
   ("log-file,l", boost::program_options::value(&log_file)->default_value(LOCALSTATEDIR"/log/gearmand.log"),
    "Log file to write errors and information to. If the log-file parameter is specified as 'stderr', then output will go to stderr. If 'none', then no logfile will be generated.")
@@ -361,7 +377,18 @@ int main(int argc, char *argv[])
     }
   }
 
-  gearmand_st *_gearmand= gearmand_create(host.empty() ? NULL : host.c_str(),
+  gearmand_config_st *gearmand_config= gearmand_config_create();
+
+  if (gearmand_config == NULL)
+  {
+    return EXIT_FAILURE;
+  }
+
+  gearmand_config_sockopt_keepalive(gearmand_config, opt_keepalive);
+
+
+  gearmand_st *_gearmand= gearmand_create(gearmand_config,
+                                          host.empty() ? NULL : host.c_str(),
                                           threads, backlog,
                                           static_cast<uint8_t>(job_retries),
                                           job_handle_prefix.empty() ? NULL : job_handle_prefix.c_str(),
@@ -374,6 +401,8 @@ int main(int argc, char *argv[])
     error::message("Could not create gearmand library instance.");
     return EXIT_FAILURE;
   }
+
+  gearmand_config_free(gearmand_config);
 
   assert(queue_type.size());
   if (queue_type.empty() == false)

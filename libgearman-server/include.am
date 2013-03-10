@@ -34,8 +34,9 @@ noinst_HEADERS+= \
 		 libgearman-server/byteorder.h \
 		 libgearman-server/client.h \
 		 libgearman-server/common.h \
+		 libgearman-server/config.h \
+		 libgearman-server/config.hpp \
 		 libgearman-server/connection.h \
-		 libgearman-server/connection_list.h \
 		 libgearman-server/constants.h \
 		 libgearman-server/function.h \
 		 libgearman-server/gearmand.h \
@@ -57,11 +58,11 @@ noinst_HEADERS+= \
 libgearman_server_libgearman_server_la_SOURCES+= libgearman/backtrace.cc
 libgearman_server_libgearman_server_la_SOURCES+= libgearman/pipe.cc
 libgearman_server_libgearman_server_la_SOURCES+= libgearman-server/text.cc
+libgearman_server_libgearman_server_la_SOURCES+= libgearman-server/config.cc
 libgearman_server_libgearman_server_la_SOURCES+= \
 						 libgearman-server/byteorder.cc \
 						 libgearman-server/client.cc \
 						 libgearman-server/connection.cc \
-						 libgearman-server/connection_list.cc \
 						 libgearman-server/function.cc \
 						 libgearman-server/gearmand.cc \
 						 libgearman-server/gearmand_con.cc \

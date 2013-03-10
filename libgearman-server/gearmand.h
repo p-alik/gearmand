@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2011-2013 Data Differential, http://datadifferential.com/
  *  Copyright (C) 2008 Brian Aker, Eric Day
  *  All rights reserved.
  *
@@ -57,7 +57,6 @@
 
 #include <libgearman-server/constants.h>
 #include <libgearman-server/wakeup.h>
-#include <libgearman-server/connection_list.h>
 #include <libgearman-server/byteorder.h>
 #include <libgearman-server/log.h>
 #include <libgearman-server/packet.h>
@@ -77,6 +76,8 @@
 #include <libgearman-server/struct/gearmand.h>
 
 #include <libgearman-server/text.h>
+
+#include <libgearman-server/config.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -102,7 +103,8 @@ gearmand_st *Gearmand(void);
  * @return Pointer to an allocated gearmand structure.
  */
 GEARMAN_API
-gearmand_st *gearmand_create(const char *host,
+gearmand_st *gearmand_create(gearmand_config_st *config,
+                             const char *host,
                              uint32_t threads,
                              int backlog,
                              const uint32_t job_retries,
@@ -169,6 +171,18 @@ const char *gearmand_bugreport(void);
 
 GEARMAN_API
 const char *gearmand_verbose_name(gearmand_verbose_t verbose);
+
+GEARMAN_API
+  gearmand_error_t gearmand_set_socket_keepalive(gearmand_st *gearmand, bool arg);
+
+GEARMAN_API
+  gearmand_error_t gearmand_set_socket_keepalive_idle(gearmand_st *gearmand, int arg);
+
+GEARMAN_API
+  gearmand_error_t gearmand_set_socket_keepalive_interval(gearmand_st *gearmand, int arg);
+
+GEARMAN_API
+  gearmand_error_t gearmand_set_socket_keepalive_count(gearmand_st *gearmand, int arg);
 
 /** @} */
 

@@ -2,8 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011-2012 Data Differential, http://datadifferential.com/
- *  Copyright (C) 2008 Brian Aker, Eric Day
+ *  Copyright (C) 2013 Data Differential, http://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -36,24 +35,36 @@
  *
  */
 
-#include "gear_config.h"
-#include <libgearman-server/error.h>
-#include <libgearman-server/constants.h>
-#include <libgearman-server/connection_list.h>
-#include <libgearman-server/io.h>
-#include <libgearman-server/common.h>
-#include <libgearman-server/connection.h>
-#include <assert.h>
+#pragma once
 
-gearman_server_con_st *gearmand_ready(gearmand_connection_list_st *universal)
-{
-  if (universal->ready_con_list)
-  {
-    gearmand_io_st *con= universal->ready_con_list;
-    con->options.ready= false;
-    GEARMAN_LIST_DEL(universal->ready_con, con, ready_);
-    return con->root;
-  }
+#ifdef __cplusplus
+  struct gearmand_config_st;
+#else
+  typedef struct gearmand_config_st gearmand_config_st;
+#endif
 
-  return NULL;
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+GEARMAN_API
+  gearmand_config_st *gearmand_config_create(void);
+
+GEARMAN_API
+  void gearmand_config_free(gearmand_config_st *config);
+
+GEARMAN_API
+  void gearmand_config_sockopt_keepalive(gearmand_config_st *config, bool keepalive_);
+
+GEARMAN_API
+  void gearmand_config_sockopt_keepalive_idle(gearmand_config_st *config, bool keepalive_idle_);
+
+GEARMAN_API
+  void gearmand_config_sockopt_keepalive_interval(gearmand_config_st *config, bool keepalive_interval_);
+
+GEARMAN_API
+  void gearmand_config_sockopt_keepalive_count(gearmand_config_st *config, bool keepalive_count_);
+
+#ifdef __cplusplus
 }
+#endif

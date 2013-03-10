@@ -85,6 +85,7 @@ struct gearmand_packet_st
     data(0)
   {
   }
+  void reset(enum gearman_magic_t, gearman_command_t);
 };
 
 struct gearman_server_packet_st

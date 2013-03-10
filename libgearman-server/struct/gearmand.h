@@ -46,6 +46,71 @@
 
 struct gearmand_st
 {
+  class SocketOpt {
+  public:
+    SocketOpt():
+      _keepalive(false),
+      _keepalive_idle(-1),
+      _keepalive_interval(-1),
+      _keepalive_count(-1)
+    {
+    }
+
+    bool keepalive()
+    {
+      return _keepalive;
+    }
+
+    void keepalive(int keepalive_)
+    {
+      _keepalive= true;
+      _keepalive= keepalive_;
+    }
+
+    int keepalive_idle()
+    {
+      return _keepalive_idle;
+    }
+
+    void keepalive_idle(int keepalive_idle_)
+    {
+      _keepalive= true;
+      _keepalive_idle= keepalive_idle_;
+    }
+
+    int keepalive_interval()
+    {
+      return _keepalive_interval;
+    }
+
+    void keepalive_interval(int keepalive_interval_)
+    {
+      _keepalive= true;
+      _keepalive_interval= keepalive_interval_;
+    }
+
+    int keepalive_count()
+    {
+      return _keepalive_count;
+    }
+
+    void keepalive_count(int keepalive_count_)
+    {
+      _keepalive= true;
+      _keepalive_count= keepalive_count_;
+    }
+
+  private:
+    bool _keepalive;
+    int _keepalive_idle;
+    int _keepalive_interval;
+    int _keepalive_count;
+  } _socketopt;
+
+  SocketOpt& socketopt()
+  {
+    return _socketopt;
+  }
   gearmand_verbose_t verbose;
   gearmand_error_t ret;
   int backlog; // Set socket backlog for listening connection
@@ -93,7 +158,7 @@ struct gearmand_st
     thread_add_next(NULL),
     free_dcon_list(NULL)
   {
-    if (host)
+    if (host_)
     {
       host= strdup(host_);
     }
