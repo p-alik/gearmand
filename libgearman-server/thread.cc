@@ -172,14 +172,6 @@ void gearman_server_thread_free(gearman_server_thread_st *thread)
   GEARMAN_LIST__DEL(Server->thread, thread);
 }
 
-void gearman_server_thread_set_run(gearman_server_thread_st *thread,
-                                   gearman_server_thread_run_fn *run_fn,
-                                   void *run_fn_arg)
-{
-  thread->run_fn= run_fn;
-  thread->run_fn_arg= run_fn_arg;
-}
-
 gearmand_con_st *
 gearman_server_thread_run(gearman_server_thread_st *thread,
                           gearmand_error_t *ret_ptr)

@@ -242,7 +242,7 @@ gearmand_error_t gearmand_thread_create(gearmand_st *gearmand)
 
   thread->is_thread_lock= true;
 
-  gearman_server_thread_set_run(&(thread->server_thread), _run, thread);
+  thread->server_thread.run(_run, thread);
 
   pthread_ret= pthread_create(&(thread->id), NULL, _thread, thread);
   if (pthread_ret != 0)
