@@ -80,18 +80,6 @@ GEARMAN_API
 void gearman_server_thread_free(gearman_server_thread_st *thread);
 
 /**
- * Set thread run callback.
- * @param thread Thread structure previously initialized with
- *        gearman_server_thread_init.
- * @param run_fn Function to call when thread should be run.
- * @param run_arg Argument to pass along with run_fn.
- */
-GEARMAN_API
-void gearman_server_thread_set_run(gearman_server_thread_st *thread,
-                                   gearman_server_thread_run_fn *run_fn,
-                                   void *run_arg);
-
-/**
  * Process server thread connections.
  * @param thread Thread structure previously initialized with
  *        gearman_server_thread_init.

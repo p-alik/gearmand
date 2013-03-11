@@ -62,4 +62,10 @@ struct gearman_server_thread_st
   gearman_server_packet_st *free_packet_list;
   gearmand_connection_list_st gearmand_connection_list_static;
   pthread_mutex_t lock;
+
+  void run(gearman_server_thread_run_fn *run_fn_, void *run_fn_arg_)
+  {
+    run_fn= run_fn_;
+    run_fn_arg= run_fn_arg_;
+  }
 };
