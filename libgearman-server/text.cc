@@ -49,6 +49,8 @@
 #define TEXT_ERROR_CREATE_FUNCTION "ERR CREATE_FUNCTION %.*s\r\n"
 #define TEXT_ERROR_UNKNOWN_COMMAND "ERR UNKNOWN_COMMAND Unknown+server+command%.*s\r\n"
 #define TEXT_ERROR_INTERNAL_ERROR "ERR UNKNOWN_ERROR\r\n"
+#define TEXT_ERROR_UNKNOWN_SHOW_ARGUMENTS "ERR UNKNOWN_SHOW_ARGUMENTS\r\n"
+#define TEXT_ERROR_UNKNOWN_JOB "ERR UNKNOWN_JOB\r\n"
 
 gearmand_error_t server_run_text(gearman_server_con_st *server_con,
                                  gearmand_packet_st *packet)
@@ -65,7 +67,9 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
 
   if (packet->argc)
   {
-    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "text command %.*s", packet->arg_size[0],  packet->arg[0]);
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "text command %.*s %d arguments",
+                       packet->arg_size[0],  packet->arg[0],
+                       int(packet->argc));
   }
 
   if (packet->argc == 0)
@@ -152,7 +156,9 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
 
             size+= (size_t)checked_length;
             if (size > total)
+            {
               break;
+            }
           }
 
           if (size > total)
@@ -245,6 +251,65 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
           return gearmand_perror(ENOMEM, "snprintf");
         }
       }
+    }
+  }
+  else if (packet->argc >= 3 
+           and strcasecmp("cancel", (char *)(packet->arg[0])) == 0)
+  {
+    if (packet->argc == 3 && !strcasecmp("job", (char *)(packet->arg[1])))
+    {
+      snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, TEXT_ERROR_UNKNOWN_JOB);
+    }
+  }
+  else if (packet->argc >= 2 and strcasecmp("show", (char *)(packet->arg[0])) == 0)
+  {
+    if (packet->argc == 3
+        and strcasecmp("unique", (char *)(packet->arg[1])) == 0
+        and strcasecmp("jobs", (char *)(packet->arg[2])) == 0)
+    {
+      size_t size= 0;
+      for (size_t x= 0; x < Server->hashtable_buckets; x++)
+      {
+        for (gearman_server_job_st* server_job= Server->unique_hash[x];
+             server_job != NULL;
+             server_job= server_job->unique_next)
+        {
+          int checked_length= snprintf(data + size, total - size, "%.*s\n",
+                                       int(server_job->unique_length), server_job->unique);
+          if ((size_t)checked_length > total - size || checked_length < 0)
+          {
+            free(data);
+            return gearmand_perror(ENOMEM, "snprintf(unique_hash)");
+          }
+          size+= (size_t)checked_length;
+        }
+      }
+
+      if (size < total)
+      {
+        int checked_length= snprintf(data + size, total - size, ".\n");
+        if ((size_t)checked_length > total - size || checked_length < 0)
+        {
+          return gearmand_perror(ENOMEM, "snprintf");
+        }
+      }
+    }
+    else if (packet->argc == 2
+             and strcasecmp("jobs", (char *)(packet->arg[1])) == 0)
+    {
+      size_t size= 0;
+      if (size < total)
+      {
+        int checked_length= snprintf(data + size, total - size, ".\n");
+        if ((size_t)checked_length > total - size || checked_length < 0)
+        {
+          return gearmand_perror(ENOMEM, "snprintf");
+        }
+      }
+    }
+    else
+    {
+      snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, TEXT_ERROR_UNKNOWN_SHOW_ARGUMENTS);
     }
   }
   else if (strcasecmp("create", (char *)(packet->arg[0])) == 0)

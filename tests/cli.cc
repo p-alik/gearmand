@@ -237,6 +237,42 @@ static test_return_t gearadmin_status_test(void* object)
   return TEST_SUCCESS;
 }
 
+static test_return_t gearadmin_show_unique_jobs_TEST(void* object)
+{
+  cli::Context *context= (cli::Context*)object;
+
+  char buffer[1024];
+  snprintf(buffer, sizeof(buffer), "--port=%d", int(context->port()));
+  const char *args[]= { buffer, "--show-unique-jobs", 0 };
+
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline("bin/gearadmin", args, true));
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearadmin_cancel_job_TEST(void* object)
+{
+  cli::Context *context= (cli::Context*)object;
+
+  char buffer[1024];
+  snprintf(buffer, sizeof(buffer), "--port=%d", int(context->port()));
+  const char *args[]= { buffer, "--cancel-job=test", 0 };
+
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline("bin/gearadmin", args, true));
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearadmin_show_jobs_TEST(void* object)
+{
+  cli::Context *context= (cli::Context*)object;
+
+  char buffer[1024];
+  snprintf(buffer, sizeof(buffer), "--port=%d", int(context->port()));
+  const char *args[]= { buffer, "--show-jobs", 0 };
+
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline("bin/gearadmin", args, true));
+  return TEST_SUCCESS;
+}
+
 static test_return_t gearadmin_workers_test(void* object)
 {
   cli::Context *context= (cli::Context*)object;
@@ -343,6 +379,9 @@ test_st gearadmin_tests[] ={
   {"--server-version", 0, gearadmin_version_test},
   {"--server-verbose", 0, gearadmin_verbose_test},
   {"--status", 0, gearadmin_status_test},
+  {"--cancel-job", 0, gearadmin_cancel_job_TEST},
+  {"--show-jobs", 0, gearadmin_show_jobs_TEST},
+  {"--show-unique-jobs", 0, gearadmin_show_unique_jobs_TEST},
   {"--getpid", 0, gearadmin_getpid_test},
   {"--workers", 0, gearadmin_workers_test},
   {"--create-function and --drop-function", 0, gearadmin_create_drop_test},

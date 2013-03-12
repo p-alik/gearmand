@@ -136,8 +136,11 @@ int main(int args, char *argv[])
     ("port,p", boost::program_options::value<std::string>(&port)->default_value(GEARMAN_DEFAULT_TCP_PORT_STRING), "Port number or service to use for connection")
     ("server-version", "Fetch the version number for the server.")
     ("server-verbose", "Fetch the verbose setting for the server.")
-    ("create-function",  boost::program_options::value<std::string>(), "Create the function from the server.") 
-    ("drop-function",  boost::program_options::value<std::string>(), "Drop the function from the server.")
+    ("create-function", boost::program_options::value<std::string>(), "Create the function from the server.") 
+    ("cancel-job", boost::program_options::value<std::string>(), "Remove a given job from the server's queue")
+    ("drop-function", boost::program_options::value<std::string>(), "Drop the function from the server.")
+    ("show-unique-jobs", "Show unique jobs on server.")
+    ("show-jobs", "Show all jobs on the server.")
     ("getpid", "Get Process ID for the server.")
     ("status", "Status for the server.")
     ("workers", "Workers for the server.")
@@ -170,6 +173,9 @@ int main(int args, char *argv[])
      vm.count("server-verbose")  == 0 and
      vm.count("create-function")  == 0 and
      vm.count("drop-function")  == 0 and
+     vm.count("cancel-job") == 0 and
+     vm.count("show-unique-jobs") == 0 and
+     vm.count("show-jobs") == 0 and
      vm.count("getpid") == 0 and
      vm.count("status") == 0 and
      vm.count("workers") == 0 and
@@ -203,6 +209,24 @@ int main(int args, char *argv[])
   if (vm.count("server-verbose"))
   {
     instance.push(new util::Operation(util_literal_param("verbose\r\n")));
+  }
+
+  if (vm.count("cancel-job"))
+  {
+    std::string execute(util_literal_param("cancel job "));
+    execute.append(vm["cancel-job"].as<std::string>());
+    execute.append("\r\n");
+    instance.push(new util::Operation(execute.c_str(), execute.size()));
+  }
+
+  if (vm.count("show-unique-jobs"))
+  {
+    instance.push(new util::Operation(util_literal_param("show unique jobs\r\n")));
+  }
+
+  if (vm.count("show-jobs"))
+  {
+    instance.push(new util::Operation(util_literal_param("show jobs\r\n")));
   }
 
   if (vm.count("drop-function"))
