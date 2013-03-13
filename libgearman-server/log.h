@@ -40,7 +40,7 @@
   All logging facilities within the server.
 */
 
-#include <stdio.h>
+#include <cstdio>
 
 #pragma once
 

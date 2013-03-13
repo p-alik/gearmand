@@ -191,6 +191,7 @@ static test_return_t long_keepalive_start_TEST(void *)
 
   const char *args[]= {
     port_str,
+    "--check-args",
     "--log-file=stderr",
     "--keepalive-count=10", 
     "--keepalive-interval=3",

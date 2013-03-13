@@ -206,7 +206,12 @@ gearman_return_t gearman_result_store_value(gearman_result_st *self, const void 
   }
   self->_is_null= false;
 
-  return gearman_string_append(&self->value.string, static_cast<const char *>(value), size);
+  if (gearman_string_append(&self->value.string, static_cast<const char *>(value), size) == false)
+  {
+    return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+  }
+
+  return GEARMAN_SUCCESS;
 }
 
 void gearman_result_store_integer(gearman_result_st *self, int64_t value)

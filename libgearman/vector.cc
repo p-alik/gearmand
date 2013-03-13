@@ -36,9 +36,10 @@
 
 
 #include "gear_config.h"
-#include <libgearman/common.h>
 
 #include "libgearman/assert.hpp"
+#include "libgearman/is.hpp"
+#include "libgearman/vector.hpp"
 
 #include <cstdlib>
 #include <cstring>
@@ -48,32 +49,30 @@ using namespace org::tangent;
 
 #define GEARMAN_BLOCK_SIZE 1024*4
 
-inline static gearman_return_t _string_check(gearman_vector_st *string, const size_t need)
+inline static bool _string_check(gearman_vector_st *string, const size_t need)
 {
+  assert(string);
   if (string)
   {
     if (need && need > size_t(string->current_size - size_t(string->end - string->string)))
     {
       size_t current_offset= size_t(string->end - string->string);
-      char *new_value;
-      size_t adjust;
-      size_t new_size;
 
       /* This is the block multiplier. To keep it larger and surive division errors we must round it up */
-      adjust= (need - size_t(string->current_size - size_t(string->end - string->string))) / GEARMAN_BLOCK_SIZE;
+      size_t adjust= (need - size_t(string->current_size - size_t(string->end - string->string))) / GEARMAN_BLOCK_SIZE;
       adjust++;
 
-      new_size= sizeof(char) * size_t((adjust * GEARMAN_BLOCK_SIZE) + string->current_size);
+      size_t new_size= sizeof(char) * size_t((adjust * GEARMAN_BLOCK_SIZE) + string->current_size);
       /* Test for overflow */
       if (new_size < need)
       {
-        return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+        return false;
       }
 
-      new_value= static_cast<char *>(realloc(string->string, new_size));
+      char* new_value= static_cast<char *>(realloc(string->string, new_size));
       if (new_value == NULL)
       {
-        return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+        return false;
       }
 
       string->string= new_value;
@@ -82,14 +81,15 @@ inline static gearman_return_t _string_check(gearman_vector_st *string, const si
       string->current_size+= (GEARMAN_BLOCK_SIZE * adjust);
     }
 
-    return GEARMAN_SUCCESS;
+    return true;
   }
 
-  return GEARMAN_INVALID_ARGUMENT;
+  return false;
 }
 
 static inline void _init_string(gearman_vector_st *self)
 {
+  assert(self);
   self->current_size= 0;
   self->end= self->string= NULL;
 }
@@ -104,7 +104,7 @@ gearman_vector_st *gearman_string_create(gearman_vector_st *self, const char *st
   self= gearman_string_create(self, initial_size);
   if (self)
   {
-    if (gearman_failed(gearman_string_append(self, str, initial_size)))
+    if ((gearman_string_append(self, str, initial_size) == false))
     {
       gearman_string_free(self);
       return NULL;
@@ -136,7 +136,7 @@ gearman_vector_st *gearman_string_create(gearman_vector_st *self, size_t initial
 
   _init_string(self);
 
-  if (gearman_failed(_string_check(self, initial_size)))
+  if (_string_check(self, initial_size) == false)
   {
     if (gearman_is_allocated(self))
     {
@@ -170,7 +170,7 @@ gearman_vector_st *gearman_string_clone(const gearman_vector_st *self)
     {
       if (gearman_string_length(self))
       {
-        if (gearman_failed(gearman_string_append(clone, gearman_string_value(self), gearman_string_length(self))))
+        if (gearman_string_append(clone, gearman_string_value(self), gearman_string_length(self)) == false)
         {
           gearman_string_free(clone);
           return NULL;
@@ -182,38 +182,33 @@ gearman_vector_st *gearman_string_clone(const gearman_vector_st *self)
   return clone;
 }
 
-gearman_return_t gearman_string_append_character(gearman_vector_st *string, char character)
+bool gearman_string_append_character(gearman_vector_st *string, char character)
 {
-  gearman_return_t rc;
-
-
-  if (gearman_failed(rc= _string_check(string, 1 +1))) // Null terminate
+  if (_string_check(string, 1 +1) == false) // Null terminate
   {
-    return rc;
+    return false;
   }
 
   *string->end= character;
   string->end++;
   *string->end= 0;
 
-  return GEARMAN_SUCCESS;
+  return true;
 }
 
-gearman_return_t gearman_string_append(gearman_vector_st *string,
-                                       const char *value, size_t length)
+bool gearman_string_append(gearman_vector_st *string,
+                           const char *value, size_t length)
 {
-  gearman_return_t rc;
-
-  if (gearman_failed(rc= _string_check(string, length +1)))
+  if (_string_check(string, length +1) == false)
   {
-    return rc;
+    return false;
   }
 
   memcpy(string->end, value, length);
   string->end+= length;
   *string->end= 0; // Add a NULL
 
-  return GEARMAN_SUCCESS;
+  return true;
 }
 
 char *gearman_string_c_copy(gearman_vector_st *string)
@@ -239,37 +234,32 @@ void gearman_string_reset(gearman_vector_st *string)
   string->clear();
 }
 
-void gearman_string_free(gearman_vector_st *ptr)
+void gearman_string_free(gearman_vector_st *string)
 {
-  if (ptr)
+  if (string)
   {
-    if (ptr->string)
+    if (string->string)
     {
-      void* tmp_ptr= ptr->string;
+      void* tmp_ptr= string->string;
       util::free__(tmp_ptr);
     }
 
-    if (gearman_is_allocated(ptr))
+    if (gearman_is_allocated(string))
     {
-      void* tmp_ptr= ptr;
+      void* tmp_ptr= string;
       util::free__(tmp_ptr);
       return;
     }
 
-    assert(gearman_is_allocated(ptr) == false);
-    gearman_set_initialized(ptr, false);
-    ptr->string= NULL;
-    ptr->end= NULL;
-    ptr->current_size= 0;
+    assert(gearman_is_allocated(string) == false);
+    gearman_set_initialized(string, false);
+    string->string= NULL;
+    string->end= NULL;
+    string->current_size= 0;
   }
 }
 
-gearman_return_t gearman_string_check(gearman_vector_st *string, size_t need)
-{
-  return _string_check(string, need);
-}
-
-gearman_return_t gearman_string_reserve(gearman_vector_st *string, size_t need)
+bool gearman_string_reserve(gearman_vector_st *string, size_t need)
 {
   return _string_check(string, need);
 }

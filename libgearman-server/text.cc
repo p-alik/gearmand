@@ -256,7 +256,8 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
   else if (packet->argc >= 3 
            and strcasecmp("cancel", (char *)(packet->arg[0])) == 0)
   {
-    if (packet->argc == 3 && !strcasecmp("job", (char *)(packet->arg[1])))
+    if (packet->argc == 3
+        and strcasecmp("job", (char *)(packet->arg[1])) == 0)
     {
       snprintf(data, GEARMAN_TEXT_RESPONSE_SIZE, TEXT_ERROR_UNKNOWN_JOB);
     }

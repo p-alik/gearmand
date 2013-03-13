@@ -36,6 +36,8 @@
 
 #pragma once
 
+#include "libgearman-1.0/string.h"
+
 /**
   vectors are always under our control so we make some assumptions about them.
 
@@ -69,22 +71,16 @@ gearman_vector_st *gearman_string_create(gearman_vector_st *self, const char *st
 extern "C" {
 #endif
 
-
-
 gearman_vector_st *gearman_string_clone(const gearman_vector_st *);
 
-
-gearman_return_t gearman_string_check(gearman_vector_st *string, size_t need);
-
-gearman_return_t gearman_string_reserve(gearman_vector_st *string, size_t need);
+bool gearman_string_reserve(gearman_vector_st *string, size_t need);
 
 char *gearman_string_c_copy(gearman_vector_st *string);
 
-
-gearman_return_t gearman_string_append_character(gearman_vector_st *string,
+bool gearman_string_append_character(gearman_vector_st *string,
                                                  char character);
 
-gearman_return_t gearman_string_append(gearman_vector_st *string,
+bool gearman_string_append(gearman_vector_st *string,
                                        const char *value, size_t length);
 
 void gearman_string_reset(gearman_vector_st *string);
