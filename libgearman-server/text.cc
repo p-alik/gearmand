@@ -39,6 +39,7 @@
 
 #include "libgearman-server/common.h"
 #include "libgearman-server/log.h"
+#include "libgearman/vector.hpp"
 
 #include <cassert>
 #include <cerrno>
