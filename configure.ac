@@ -67,7 +67,7 @@ AC_DEFINE([HAVE_GEARMAND_BINARY],[1],[gearmand binary was found])
 AC_DEFUN([CHECK_CURL],
          [AX_LIB_CURL([7.21.7],
                       [AX_CHECK_LIBRARY([LIBCURL],[curl/curl.h],[curl])],
-                      [AC_DEFINE([HAVE_LIBCURL],[1],[Have the LIBCURL library])
+                      [AC_DEFINE([HAVE_LIBCURL],[0],[Have the LIBCURL library])
                       ])
          ])
 CHECK_CURL
