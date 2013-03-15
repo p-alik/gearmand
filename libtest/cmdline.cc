@@ -423,17 +423,23 @@ Application::error_t Application::join()
       std::string error_string("posix_spawn() failed pid:");
       error_string+= _pid;
       error_string+= " name:";
-      error_string+= built_argv[0];
+      error_string+= _exectuble_name;
       throw std::logic_error(error_string);
     }
     else if (WIFSIGNALED(_status))
     {
       if (WTERMSIG(_status) != SIGTERM and WTERMSIG(_status) != SIGHUP)
       {
+        slurp();
         _app_exit_state= Application::INVALID_POSIX_SPAWN;
-        std::string error_string(built_argv[0]);
+        std::string error_string(_exectuble_name);
         error_string+= " was killed by signal ";
         error_string+= strsignal(WTERMSIG(_status));
+        if (stderr_c_str())
+        {
+          error_string+= " stderr:";
+          error_string+= stderr_c_str();
+        }
         throw std::runtime_error(error_string);
       }
 

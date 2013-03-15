@@ -40,14 +40,16 @@
 
 using namespace libtest;
 
-#include "libgearman/gearman.h"
+#include <libgearman-1.0/gearman.h>
 #include "libgearman/actions.hpp"
 #include "tests/task.h"
 
 #include "tests/workers/v2/call_exception.h"
 #include "tests/start_worker.h"
 
-#include "tests/client.h"
+#include "libgearman/client.hpp"
+#include "libgearman/worker.hpp"
+using namespace org::gearmand;
 
 #include <cassert>
 #include <iostream>
@@ -336,7 +338,7 @@ static gearman_return_t check_exception_function(gearman_task_st *task)
 
 test_return_t gearman_client_add_task_check_exception_TEST(void*)
 {
-  Client client(libtest::default_port());
+  libgearman::Client client(libtest::default_port());
 
   if (gearman_client_has_option(&client, GEARMAN_CLIENT_FREE_TASKS))
   {

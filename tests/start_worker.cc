@@ -59,7 +59,8 @@
 using namespace libtest;
 using namespace datadifferential;
 
-#include <tests/worker.h>
+#include "libgearman/worker.hpp"
+using namespace org::gearmand::libgearman;
 
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"

@@ -21,7 +21,8 @@ using namespace libtest;
 
 #include <libtest/test.hpp>
 
-#include "tests/client.h"
+#include "libgearman/client.hpp"
+using namespace org::gearmand;
 
 #include <tests/start_worker.h>
 
@@ -33,7 +34,7 @@ static gearman_return_t worker_fn(gearman_job_st*, void*)
 }
 
 struct client_test_st {
-  Client _client;
+  libgearman::Client _client;
   worker_handle_st *handle;
 
   client_test_st():

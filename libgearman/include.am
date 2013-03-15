@@ -12,6 +12,9 @@
 
 nobase_include_HEADERS+= libgearman/gearman.h
 
+noinst_HEADERS+= libgearman/client.hpp
+noinst_HEADERS+= libgearman/worker.hpp
+
 noinst_HEADERS+= libgearman/client.h
 noinst_HEADERS+= libgearman/job.h
 noinst_HEADERS+= libgearman/pipe.h
