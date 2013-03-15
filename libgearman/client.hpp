@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2011-2013 Data Differential, http://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -35,47 +35,68 @@
  *
  */
 
+/*
+  @note This header is internal, and should not be used by external programs.
+*/
+
 #pragma once
 
-class Worker {
+#include <stdexcept>
+#include <libgearman-1.0/gearman.h>
+
+namespace org { namespace gearmand { namespace libgearman {
+
+class Client {
 public:
-  Worker()
+  Client()
   {
-    _worker= gearman_worker_create(NULL);
+    _client= gearman_client_create(NULL);
 
-    if (_worker == NULL)
+    if (_client == NULL)
     {
-      throw "gearman_worker_create() failed";
+      throw std::runtime_error("gearman_client_create() failed");
     }
   }
 
-  Worker(in_port_t arg)
+  Client(const gearman_client_st* arg)
   {
-    _worker= gearman_worker_create(NULL);
+    _client= gearman_client_clone(NULL, arg);
 
-    if (_worker == NULL)
+    if (_client == NULL)
     {
-      throw "gearman_worker_create() failed";
+      throw std::runtime_error("gearman_client_create() failed");
     }
-    gearman_worker_add_server(_worker, "localhost", arg);
   }
 
-  gearman_worker_st* operator&() const
-  { 
-    return _worker;
-  }
-
-  gearman_worker_st* operator->() const
-  { 
-    return _worker;
-  }
-
-  ~Worker()
+  Client(in_port_t arg)
   {
-    gearman_worker_free(_worker);
+    _client= gearman_client_create(NULL);
+
+    if (_client == NULL)
+    {
+      throw std::runtime_error("gearman_client_create() failed");
+    }
+    gearman_client_add_server(_client, "localhost", arg);
+  }
+
+  gearman_client_st* operator&() const
+  { 
+    return _client;
+  }
+
+  gearman_client_st* operator->() const
+  { 
+    return _client;
+  }
+
+  ~Client()
+  {
+    gearman_client_free(_client);
   }
 
 private:
-  gearman_worker_st *_worker;
+  gearman_client_st *_client;
 
 };
+
+} /* namespace libgearman */ } /* namespace gearmand */ } /* namespace org */ 

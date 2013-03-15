@@ -50,8 +50,8 @@ void perror(const char *);
 void message(const char *);
 void message(const std::string &arg, gearman_return_t rc);
 void message(const char *arg, const char *arg2);
-void message(const char *arg, const gearman_client_st &);
-void message(const char *arg, const gearman_worker_st &);
+void message(const char *arg, const gearman_client_st*);
+void message(const char *arg, const gearman_worker_st*);
 
 } // namespace error
 

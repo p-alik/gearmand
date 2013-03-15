@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2011-2013 Data Differential, http://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -35,57 +35,57 @@
  *
  */
 
+/*
+  @note This header is internal, and should not be used by external programs.
+*/
+
 #pragma once
 
-class Client {
+#include <stdexcept>
+
+namespace org { namespace gearmand { namespace libgearman {
+
+class Worker {
 public:
-  Client()
+  Worker()
   {
-    _client= gearman_client_create(NULL);
+    _worker= gearman_worker_create(NULL);
 
-    if (_client == NULL)
+    if (_worker == NULL)
     {
-      throw "gearman_client_create() failed";
+      throw std::runtime_error("gearman_worker_create() failed");
     }
   }
 
-  Client(const gearman_client_st* arg)
+  Worker(in_port_t arg)
   {
-    _client= gearman_client_clone(NULL, arg);
+    _worker= gearman_worker_create(NULL);
 
-    if (_client == NULL)
+    if (_worker == NULL)
     {
-      throw "gearman_client_create() failed";
+      throw std::runtime_error("gearman_worker_create() failed");
     }
+    gearman_worker_add_server(_worker, "localhost", arg);
   }
 
-  Client(in_port_t arg)
-  {
-    _client= gearman_client_create(NULL);
-
-    if (_client == NULL)
-    {
-      throw "gearman_client_create() failed";
-    }
-    gearman_client_add_server(_client, "localhost", arg);
-  }
-
-  gearman_client_st* operator&() const
+  gearman_worker_st* operator&() const
   { 
-    return _client;
+    return _worker;
   }
 
-  gearman_client_st* operator->() const
+  gearman_worker_st* operator->() const
   { 
-    return _client;
+    return _worker;
   }
 
-  ~Client()
+  ~Worker()
   {
-    gearman_client_free(_client);
+    gearman_worker_free(_worker);
   }
 
 private:
-  gearman_client_st *_client;
+  gearman_worker_st *_worker;
 
 };
+
+} /* namespace libgearman */ } /* namespace gearmand */ } /* namespace org */ 

@@ -58,8 +58,11 @@ using namespace libtest;
 
 #include <tests/basic.h>
 #include <tests/context.h>
-#include <tests/client.h>
-#include <tests/worker.h>
+
+#include "libgearman/client.hpp"
+#include "libgearman/worker.hpp"
+
+using namespace org::gearmand::libgearman;
 
 #include "tests/workers/v2/called.h"
 

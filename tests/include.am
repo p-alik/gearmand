@@ -10,7 +10,6 @@
 
 noinst_HEADERS+= tests/basic.h
 noinst_HEADERS+= tests/burnin.h
-noinst_HEADERS+= tests/client.h
 noinst_HEADERS+= tests/context.h
 noinst_HEADERS+= tests/do.h
 noinst_HEADERS+= tests/do_background.h
@@ -25,7 +24,6 @@ noinst_HEADERS+= tests/server_options.h
 noinst_HEADERS+= tests/start_worker.h
 noinst_HEADERS+= tests/task.h
 noinst_HEADERS+= tests/unique.h
-noinst_HEADERS+= tests/worker.h
 
 CLIENT_LDADD=
 CLIENT_LDADD+= libgearman/libgearman.la

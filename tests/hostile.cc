@@ -42,12 +42,14 @@
 
 using namespace libtest;
 
-#include <libgearman/gearman.h>
+#include <libgearman-1.0/gearman.h>
 
 #include <libhostile/hostile.h>
 
-#include "tests/client.h"
-#include <tests/start_worker.h>
+#include "libgearman/client.hpp"
+using namespace org::gearmand;
+
+#include "tests/start_worker.h"
 
 #include "tests/workers/v2/echo_or_react.h"
 
@@ -117,7 +119,7 @@ extern "C" {
     fatal_assert(success);
     fatal_assert(success->count == 0);
 
-    Client client(current_server());
+    libgearman::Client client(current_server());
     {
       gearman_client_set_timeout(&client, 400);
       for (size_t x= 0; x < 100; x++)

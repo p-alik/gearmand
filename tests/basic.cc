@@ -49,7 +49,9 @@ using namespace libtest;
 #include <tests/basic.h>
 #include <tests/context.h>
 #include <tests/start_worker.h>
-#include "tests/client.h"
+
+#include "libgearman/client.hpp"
+using namespace org::gearmand;
 
 #include "tests/workers/v2/called.h"
 
@@ -62,7 +64,7 @@ test_return_t client_echo_fail_test(void *object)
   Context *test= (Context *)object;
   test_truth(test);
 
-  Client client(in_port_t(20));
+  libgearman::Client client(in_port_t(20));
 
   gearman_return_t rc= gearman_client_echo(&client, test_literal_param("This should never work"));
   test_true(gearman_failed(rc));
@@ -75,7 +77,7 @@ test_return_t client_echo_test(void *object)
   Context *test= (Context *)object;
   test_truth(test);
 
-  Client client(test->port());
+  libgearman::Client client(test->port());
 
   ASSERT_EQ(gearman_client_echo(&client, test_literal_param("This is my echo test")), GEARMAN_SUCCESS);
 
@@ -125,7 +127,7 @@ test_return_t queue_add(void *object)
 
   test->run_worker= false;
 
-  Client client(test->port());
+  libgearman::Client client(test->port());
 
   {
     gearman_return_t rc= gearman_client_echo(&client, test_literal_param("echo test message"));
@@ -194,7 +196,7 @@ test_return_t lp_734663(void *object)
   uint8_t value[JOB_SIZE]= { 'x' };
   memset(&value, 'x', sizeof(value));
 
-  Client client(test->port());
+  libgearman::Client client(test->port());
 
   ASSERT_EQ(gearman_client_echo(&client, value, sizeof(value)), GEARMAN_SUCCESS);
 
