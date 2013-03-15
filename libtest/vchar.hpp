@@ -44,6 +44,8 @@
 
 namespace libtest {
 
+int random_alpha_num(void);
+
 typedef std::vector<char*> vchar_ptr_t;
 typedef std::vector<char> vchar_t;
 
