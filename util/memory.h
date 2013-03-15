@@ -47,12 +47,20 @@ namespace util {
 
 static inline void free__(void *& ptr)
 {
-  std::free(ptr);
-  ptr= NULL;
+  if (ptr)
+  {
+    std::free(ptr);
+    ptr= NULL;
+  }
 }
 
 static inline int close__(int & fd)
 {
+  if (fd == -1)
+  {
+    return 0;
+  }
+
   int ret= close(fd);
   fd= -1;
 

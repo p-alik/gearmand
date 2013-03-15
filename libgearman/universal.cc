@@ -621,7 +621,14 @@ gearman_id_t gearman_universal_id(gearman_universal_st &universal)
 void gearman_universal_set_namespace(gearman_universal_st& universal, const char *namespace_key, size_t namespace_key_size)
 {
   gearman_string_free(universal._namespace);
-  universal._namespace= gearman_string_create(NULL, namespace_key, namespace_key_size);
+  if (namespace_key)
+  {
+    universal._namespace= gearman_string_create(NULL, namespace_key, namespace_key_size);
+  }
+  else
+  {
+    universal._namespace= NULL;
+  }
 }
 
 const char *gearman_univeral_namespace(gearman_universal_st& universal)

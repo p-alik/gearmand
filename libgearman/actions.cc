@@ -67,7 +67,7 @@ static gearman_return_t _client_pause_data(gearman_task_st *task)
     }
     assert_msg(task->result_ptr, "programmer error, result_ptr has not been allocated for task");
 
-    gearman_string_append(gearman_task_mutable_result(task)->string(), static_cast<const char*>(gearman_task_data(task)), gearman_task_data_size(task));
+    gearman_string_append(gearman_task_mutable_result(task)->mutable_string(), static_cast<const char*>(gearman_task_data(task)), gearman_task_data_size(task));
   }
 
   if (task->recv->command == GEARMAN_COMMAND_WORK_DATA)
@@ -134,7 +134,7 @@ static gearman_return_t _client_do_data(gearman_task_st *task)
       }
     }
 
-    gearman_string_append(gearman_task_mutable_result(task)->string(), static_cast<const char*>(gearman_task_data(task)), gearman_task_data_size(task));
+    gearman_string_append(gearman_task_mutable_result(task)->mutable_string(), static_cast<const char*>(gearman_task_data(task)), gearman_task_data_size(task));
   }
 
   return GEARMAN_SUCCESS;
@@ -153,7 +153,7 @@ static gearman_return_t _client_do_complete(gearman_task_st *task)
       }
     }
 
-    gearman_string_append(gearman_task_mutable_result(task)->string(), static_cast<const char*>(gearman_task_data(task)), gearman_task_data_size(task));
+    gearman_string_append(gearman_task_mutable_result(task)->mutable_string(), static_cast<const char*>(gearman_task_data(task)), gearman_task_data_size(task));
   }
 
   task->result_rc= GEARMAN_SUCCESS;
