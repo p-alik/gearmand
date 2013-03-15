@@ -43,7 +43,9 @@
 
 #include <libtest/test.hpp>
 
-#include "tests/worker.h"
+#include "libgearman/client.hpp"
+#include "libgearman/worker.hpp"
+using namespace org::gearmand;
 
 #include <fstream>
 

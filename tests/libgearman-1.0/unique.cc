@@ -47,7 +47,9 @@ using namespace libtest;
 
 #include <tests/start_worker.h>
 
-#include "tests/client.h"
+#include "libgearman/client.hpp"
+#include "libgearman/worker.hpp"
+using namespace org::gearmand;
 
 #include "tests/libgearman-1.0/client_test.h"
 #include "tests/workers/v1/unique.h"
@@ -80,7 +82,7 @@ test_return_t coalescence_TEST(void *object)
   gearman_client_st *client_one= (gearman_client_st *)object;
   test_true(client_one);
 
-  test::Client client_two(client_one);
+  libgearman::Client client_two(client_one);
 
   const char* unique_handle= "local_handle";
 
@@ -150,7 +152,7 @@ test_return_t coalescence_by_data_hash_TEST(void *object)
   gearman_client_st *client_one= (gearman_client_st *)object;
   test_true(client_one);
 
-  test::Client client_two(client_one);
+  libgearman::Client client_two(client_one);
 
   const char* unique_handle= "#";
 
@@ -221,7 +223,7 @@ test_return_t coalescence_by_data_TEST(void *object)
   gearman_client_st *client_one= (gearman_client_st *)object;
   test_true(client_one);
 
-  test::Client client_two(client_one);
+  libgearman::Client client_two(client_one);
 
   const char* unique_handle= "-";
 
@@ -291,7 +293,7 @@ test_return_t coalescence_by_data_FAIL_TEST(void *object)
   gearman_client_st *client_one= (gearman_client_st *)object;
   test_true(client_one);
 
-  test::Client client_two(client_one);
+  libgearman::Client client_two(client_one);
 
   const char* unique_handle= "-";
 
@@ -385,11 +387,11 @@ test_return_t gearman_client_unique_status_TEST(void *object)
 {
   gearman_client_st *original_client= (gearman_client_st *)object;
 
-  test::Client status_client(original_client);
+  libgearman::Client status_client(original_client);
 
-  test::Client client_one(original_client);
-  test::Client client_two(original_client);
-  test::Client client_three(original_client);
+  libgearman::Client client_one(original_client);
+  libgearman::Client client_two(original_client);
+  libgearman::Client client_three(original_client);
 
   const char* unique_handle= "local_handle4";
 
@@ -437,7 +439,7 @@ test_return_t gearman_client_unique_status_TEST(void *object)
                                          ), GEARMAN_JOB_EXISTS);
 
   {
-    test::Client unique_client(original_client);
+    libgearman::Client unique_client(original_client);
     gearman_status_t status= gearman_client_unique_status(&unique_client,
                                                           unique_handle, strlen(unique_handle));
     ASSERT_EQ(GEARMAN_SUCCESS, gearman_status_return(status));
@@ -475,7 +477,7 @@ test_return_t gearman_client_unique_status_NOT_FOUND_TEST(void *object)
 {
   gearman_client_st *original_client= (gearman_client_st *)object;
 
-  test::Client status_client(original_client);
+  libgearman::Client status_client(original_client);
   const char* unique_handle= YATL_UNIQUE;
 
   gearman_function_t func= gearman_function_create_v2(echo_or_react_worker_v2);

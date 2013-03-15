@@ -102,6 +102,7 @@ public:
   {
     return _functions.end();
   }
+
   bool strip_newline() const
   {
     return _strip_newline;
@@ -150,6 +151,11 @@ public:
     return false;
   }
 
+  bool verbose() const
+  {
+    return _verbose;
+  }
+
   bool suppress_input() const
   {
     return _suppress_input;
@@ -165,14 +171,20 @@ public:
     return argv;
   }
 
-  bool is_error() const
+  bool is_error()
   {
     if (_functions.empty())
     {
+      _arg_error= strdup("No Functions were provided");
       return true;
     }
 
     return _is_error;
+  }
+
+  const char* arg_error() const
+  {
+    return _arg_error;
   }
 
   bool is_valid() const
@@ -190,12 +202,14 @@ private:
   bool _strip_newline;
   bool _worker;
   bool _suppress_input;
+  bool _verbose;
 
   bool _prefix;
   bool _background;
   bool _daemon;
   bool _usage;
   bool _is_error;
+  char *_arg_error;
   gearman_job_priority_t _priority;
   int _timeout;
   char **argv;

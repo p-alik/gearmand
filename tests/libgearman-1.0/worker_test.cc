@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011-2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2011-2013 Data Differential, http://datadifferential.com/
  *  Copyright (C) 2008 Brian Aker, Eric Day
  *  All rights reserved.
  *
@@ -55,8 +55,10 @@ using namespace libtest;
 #include "libgearman/is.hpp"
 #include "libgearman/interface/worker.hpp"
 
-#include <tests/client.h>
-#include <tests/worker.h>
+#include "libgearman/client.hpp"
+#include "libgearman/worker.hpp"
+using namespace org::gearmand;
+
 #include "tests/start_worker.h"
 #include "tests/workers/v2/echo_or_react.h"
 #include "tests/workers/v2/echo_or_react_chunk.h"
@@ -110,7 +112,7 @@ static test_return_t gearman_worker_clone_NULL_NULL(void *)
 
 static test_return_t gearman_worker_clone_NULL_SOURCE(void *)
 {
-  test::Worker source;
+  libgearman::Worker source;
 
   gearman_worker_st *worker= gearman_worker_clone(NULL, &source);
   test_truth(worker);
@@ -122,7 +124,7 @@ static test_return_t gearman_worker_clone_NULL_SOURCE(void *)
 
 static test_return_t gearman_worker_timeout_default_test(void *)
 {
-  test::Worker worker;
+  libgearman::Worker worker;
 
   ASSERT_EQ(-1, gearman_worker_timeout(&worker));
 
@@ -145,7 +147,7 @@ static test_return_t gearman_worker_error_TEST(void *)
 
 static test_return_t gearman_worker_error_no_error_TEST(void *)
 {
-  test::Worker worker;
+  libgearman::Worker worker;
   test_null(gearman_worker_error(&worker));
 
   return TEST_SUCCESS;
@@ -160,7 +162,7 @@ static test_return_t gearman_worker_errno_TEST(void *)
 
 static test_return_t gearman_worker_errno_no_error_TEST(void *)
 {
-  test::Worker worker;
+  libgearman::Worker worker;
   ASSERT_EQ(0, gearman_worker_errno(&worker));
 
   return TEST_SUCCESS;
@@ -344,7 +346,7 @@ static test_return_t option_test(void *)
 
 static test_return_t echo_test(void*)
 {
-  test::Worker worker;
+  libgearman::Worker worker;
 
   ASSERT_EQ(gearman_worker_echo(&worker, test_literal_param("This is my echo test")), GEARMAN_SUCCESS);
 
@@ -353,7 +355,7 @@ static test_return_t echo_test(void*)
 
 static test_return_t echo_multi_test(void *)
 {
-  test::Worker worker;
+  libgearman::Worker worker;
 
   const char *value[]= {
     "This is my echo test",
@@ -402,7 +404,7 @@ static test_return_t gearman_worker_add_server_GEARMAN_GETADDRINFO_TEST(void *)
 
 static test_return_t echo_max_test(void *)
 {
-  test::Worker worker(libtest::default_port());;
+  libgearman::Worker worker(libtest::default_port());;
 
   ASSERT_EQ(GEARMAN_ARGUMENT_TOO_LARGE,
                gearman_worker_echo(&worker, "This is my echo test", GEARMAN_MAX_ECHO_SIZE +1));
@@ -448,10 +450,10 @@ static gearman_return_t error_return_worker(gearman_job_st* job, void *)
 
 static test_return_t error_return_TEST(void *)
 {
-  test::Client client(libtest::default_port());
+  libgearman::Client client(libtest::default_port());
   ASSERT_EQ(GEARMAN_SUCCESS, gearman_client_echo(&client, test_literal_param(__func__)));
 
-  test::Worker worker(libtest::default_port());
+  libgearman::Worker worker(libtest::default_port());
   ASSERT_EQ(gearman_worker_register(&worker, __func__, 0), GEARMAN_SUCCESS);
 
   gearman_task_attr_t task_attr= gearman_task_attr_init_background(GEARMAN_JOB_PRIORITY_NORMAL);
@@ -519,7 +521,7 @@ static test_return_t error_return_TEST(void *)
 
 static test_return_t GEARMAN_ERROR_return_TEST(void *)
 {
-  test::Client client(libtest::default_port());
+  libgearman::Client client(libtest::default_port());
   ASSERT_EQ(GEARMAN_SUCCESS, gearman_client_echo(&client, test_literal_param(__func__)));
 
   size_t count= 0;
@@ -562,7 +564,7 @@ static test_return_t GEARMAN_ERROR_return_TEST(void *)
 
 static test_return_t GEARMAN_FAIL_return_TEST(void *)
 {
-  test::Client client(libtest::default_port());
+  libgearman::Client client(libtest::default_port());
 
   ASSERT_EQ(GEARMAN_SUCCESS, gearman_client_echo(&client, test_literal_param(__func__)));
 
@@ -604,8 +606,8 @@ static test_return_t GEARMAN_FAIL_return_TEST(void *)
 
 static test_return_t gearman_client_job_status_is_known_TEST(void *)
 {
-  test::Client client(libtest::default_port());
-  test::Worker worker(libtest::default_port());
+  libgearman::Client client(libtest::default_port());
+  libgearman::Worker worker(libtest::default_port());
 
   ASSERT_EQ(gearman_worker_register(&worker, __func__, 0), GEARMAN_SUCCESS);
 
@@ -636,7 +638,7 @@ static test_return_t abandoned_worker_test(void *)
   size_t args_size[2];
 
   {
-    test::Client client(libtest::default_port());
+    libgearman::Client client(libtest::default_port());
     ASSERT_EQ(gearman_client_do_background(&client, "abandoned_worker", NULL, NULL, 0, job_handle),
                  GEARMAN_SUCCESS);
   }
@@ -773,7 +775,7 @@ static void *fail_worker(gearman_job_st *,
 
 static test_return_t gearman_worker_add_function_test(void *)
 {
-  test::Worker worker;
+  libgearman::Worker worker;
 
   char function_name[GEARMAN_FUNCTION_MAX_SIZE];
   snprintf(function_name, GEARMAN_FUNCTION_MAX_SIZE, "_%s%d", __func__, int(random())); 
@@ -797,7 +799,7 @@ static test_return_t gearman_worker_add_function_test(void *)
 
 static test_return_t gearman_worker_add_function_multi_test(void *)
 {
-  test::Worker worker;
+  libgearman::Worker worker;
 
   for (uint32_t x= 0; x < 100; x++)
   {
@@ -831,7 +833,7 @@ static test_return_t gearman_worker_add_function_multi_test(void *)
 
 static test_return_t gearman_worker_unregister_all_test(void *)
 {
-  test::Worker worker;
+  libgearman::Worker worker;
   for (uint32_t x= 0; x < 100; x++)
   {
     char buffer[1024];
@@ -863,7 +865,7 @@ static test_return_t gearman_worker_unregister_all_test(void *)
 
 static test_return_t gearman_worker_work_with_test(int timeout, gearman_worker_options_t option)
 {
-  test::Worker worker;
+  libgearman::Worker worker;
 
   if (option)
   {
@@ -935,7 +937,7 @@ static test_return_t gearman_worker_work_with_GEARMAN_WORKER_NON_BLOCKING_TEST(v
 
 static test_return_t gearman_worker_context_test(void *)
 {
-  test::Worker worker;
+  libgearman::Worker worker;
 
   test_false(gearman_worker_context(&worker));
 
@@ -953,7 +955,7 @@ static test_return_t gearman_worker_context_test(void *)
 
 static test_return_t gearman_worker_check_options_GEARMAN_WORKER_GRAB_UNIQ(void *)
 {
-  test::Worker worker;
+  libgearman::Worker worker;
 
   test_true(worker->impl()->options.grab_uniq);
 
@@ -962,7 +964,7 @@ static test_return_t gearman_worker_check_options_GEARMAN_WORKER_GRAB_UNIQ(void 
 
 static test_return_t gearman_worker_remove_options_GEARMAN_WORKER_GRAB_UNIQ(void *)
 {
-  test::Worker worker(libtest::default_port());
+  libgearman::Worker worker(libtest::default_port());
 
   char function_name[GEARMAN_FUNCTION_MAX_SIZE];
   snprintf(function_name, GEARMAN_FUNCTION_MAX_SIZE, "_%s%d", __func__, int(random())); 
@@ -974,7 +976,7 @@ static test_return_t gearman_worker_remove_options_GEARMAN_WORKER_GRAB_UNIQ(void
                gearman_worker_add_function(&worker, function_name, 0, no_unique_worker, NULL));
 
   {
-    test::Client client(libtest::default_port());
+    libgearman::Client client(libtest::default_port());
 
     ASSERT_EQ(gearman_client_do_background(&client, function_name, unique_name,
                                               test_string_make_from_array(unique_name), NULL),
@@ -1009,14 +1011,14 @@ static test_return_t gearman_worker_add_options_GEARMAN_WORKER_GRAB_UNIQ(void *)
   snprintf(unique_name, GEARMAN_MAX_UNIQUE_SIZE, "_%s%d", __func__, int(random())); 
 
   {
-    test::Client client(libtest::default_port());
+    libgearman::Client client(libtest::default_port());
 
     ASSERT_EQ(gearman_client_do_background(&client, function_name, unique_name,
                                               test_string_make_from_array(unique_name), NULL), 
                  GEARMAN_SUCCESS);
   }
 
-  test::Worker worker(libtest::default_port());
+  libgearman::Worker worker(libtest::default_port());
 
   ASSERT_EQ(GEARMAN_SUCCESS,
                gearman_worker_add_function(&worker, function_name, 0, check_unique_worker, NULL));
@@ -1041,7 +1043,7 @@ static test_return_t gearman_worker_add_options_GEARMAN_WORKER_GRAB_UNIQ(void *)
 
 static test_return_t gearman_worker_set_identifier_TEST(void *)
 {
-  test::Worker worker(libtest::default_port());
+  libgearman::Worker worker(libtest::default_port());
 
   ASSERT_EQ(GEARMAN_SUCCESS,
                gearman_worker_set_identifier(&worker, test_literal_param(__func__)));
@@ -1051,7 +1053,7 @@ static test_return_t gearman_worker_set_identifier_TEST(void *)
 
 static test_return_t gearman_worker_add_options_GEARMAN_WORKER_GRAB_UNIQ_worker_work(void *)
 {
-  test::Worker worker(libtest::default_port());
+  libgearman::Worker worker(libtest::default_port());
 
   char function_name[GEARMAN_FUNCTION_MAX_SIZE];
   snprintf(function_name, GEARMAN_FUNCTION_MAX_SIZE, "_%s%d", __func__, int(random())); 
@@ -1064,7 +1066,7 @@ static test_return_t gearman_worker_add_options_GEARMAN_WORKER_GRAB_UNIQ_worker_
                gearman_worker_add_function(&worker, function_name, 0, check_unique_worker, &success));
 
   {
-    test::Client client(libtest::default_port());
+    libgearman::Client client(libtest::default_port());
     ASSERT_EQ(gearman_client_do_background(&client, function_name, unique_name,
                                            test_string_make_from_array(unique_name), NULL),
               GEARMAN_SUCCESS);
@@ -1085,7 +1087,7 @@ static test_return_t gearman_worker_add_options_GEARMAN_WORKER_GRAB_UNIQ_worker_
 
 static test_return_t _increase_TEST(gearman_function_t &func, gearman_client_options_t options, size_t block_size)
 {
-  test::Client client(libtest::default_port());
+  libgearman::Client client(libtest::default_port());
 
   ASSERT_EQ(GEARMAN_SUCCESS, gearman_client_echo(&client, test_literal_param(__func__)));
 
@@ -1164,7 +1166,7 @@ static test_return_t gearman_client_run_tasks_increase_chunk_TEST(void*)
 
 static test_return_t gearman_worker_failover_test(void *)
 {
-  test::Worker worker(libtest::default_port());
+  libgearman::Worker worker(libtest::default_port());
 
   // Now add a port which we do not have a server running on
   ASSERT_EQ(GEARMAN_SUCCESS, gearman_worker_add_server(&worker, NULL, libtest::default_port() +1));
@@ -1191,7 +1193,7 @@ static test_return_t gearman_worker_set_timeout_FAILOVER_TEST(void *)
   test_skip_valgrind(); // lp:961904
 
   in_port_t known_server_port= libtest::default_port();
-  test::Worker worker(known_server_port);
+  libgearman::Worker worker(known_server_port);
 
   ASSERT_EQ(GEARMAN_SUCCESS, gearman_worker_add_server(&worker, NULL, known_server_port));
 

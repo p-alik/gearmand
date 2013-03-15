@@ -365,26 +365,26 @@ gearmand_error_t gearman_server_queue_libdrizzle_init(plugins::queue::Drizzle *q
 
   if (queue->uds.empty())
   {
-    queue->drizzle= drizzle_create_tcp(queue->host.c_str(), queue->port,
-                                       queue->user.c_str(), queue->password.c_str(),
-                                       "INFORMATION_SCHEMA",
-                                       drizzle_options_t());
-    queue->insert_con= drizzle_create_tcp(queue->host.c_str(), queue->port,
-                                          queue->user.c_str(), queue->password.c_str(),
-                                          "INFORMATION_SCHEMA",
-                                          drizzle_options_t());
+    queue->drizzle= drizzle_create(queue->host.c_str(), queue->port,
+                                   queue->user.c_str(), queue->password.c_str(),
+                                   "INFORMATION_SCHEMA",
+                                   0);
+    queue->insert_con= drizzle_create(queue->host.c_str(), queue->port,
+                                      queue->user.c_str(), queue->password.c_str(),
+                                      "INFORMATION_SCHEMA",
+                                      0);
 
   }
   else
   {
-    queue->drizzle= drizzle_create_uds(queue->uds.c_str(),
-                                       queue->user.c_str(), queue->password.c_str(),
-                                       "INFORMATION_SCHEMA",
-                                       drizzle_options_t());
-    queue->insert_con= drizzle_create_uds(queue->uds.c_str(),
-                                          queue->user.c_str(), queue->password.c_str(),
-                                          "INFORMATION_SCHEMA",
-                                          drizzle_options_t());
+    queue->drizzle= drizzle_create(queue->uds.c_str(), 0,
+                                   queue->user.c_str(), queue->password.c_str(),
+                                   "INFORMATION_SCHEMA",
+                                   0);
+    queue->insert_con= drizzle_create(queue->uds.c_str(), 0,
+                                      queue->user.c_str(), queue->password.c_str(),
+                                      "INFORMATION_SCHEMA",
+                                      0);
   }
 
   gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Using '%s' as the username", queue->user.c_str());

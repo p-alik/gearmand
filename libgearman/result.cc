@@ -50,32 +50,14 @@ gearman_result_st::gearman_result_st() :
   _is_null(true),
   type(GEARMAN_RESULT_BOOLEAN)
 {
-  memset(&value.string, 0, sizeof(gearman_vector_st));
   value.boolean= false;
 }
 
 gearman_result_st::gearman_result_st(size_t initial_size) :
   _is_null(true),
-  type(GEARMAN_RESULT_BINARY)
+  type(GEARMAN_RESULT_BINARY),
+  value(initial_size)
 {
-  gearman_vector_st *allocated_str;
-  int limit= 2;
-  while (--limit)
-  {
-    if ((allocated_str= gearman_string_create(&value.string, initial_size)))
-    {
-      assert_msg(allocated_str == &value.string, "Programmer error, gearman_string_create() is not returning a correct value");
-      return;
-    }
-
-    assert_vmsg(allocated_str == NULL, "gearman_string_create() failed to allocation an intial string with %lu", (unsigned long)(initial_size));
-
-    // if we fail to allocate on the initial size, try to fail to "something"
-    initial_size= 0;
-  }
-
-  // We should never reach this point
-  assert_msg(allocated_str, "We should never exit with no allocation, most likely something in memory allocation is broken");
 }
 
 bool gearman_result_is_null(const gearman_result_st *self)
@@ -171,7 +153,7 @@ gearman_string_t gearman_result_take_string(gearman_result_st *self)
   {
     gearman_string_t ret_string= gearman_string_take_string(&self->value.string);
     self->type= GEARMAN_RESULT_BOOLEAN; // Set to default type
-    self->_is_null= false;
+    self->_is_null= true;
 
     return ret_string;
   }
@@ -192,24 +174,17 @@ gearman_return_t gearman_result_store_value(gearman_result_st *self, const void 
     return GEARMAN_INVALID_ARGUMENT;
   }
 
-  if (self->type == GEARMAN_RESULT_BINARY)
+  self->value.string.clear();
+  if (value)
   {
-    gearman_string_reset(&self->value.string);
-  }
-  else
-  {
-    if (gearman_string_create(&self->value.string, size) == NULL)
+    if (gearman_string_append(&self->value.string, static_cast<const char *>(value), size) == false)
     {
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
-    self->type= GEARMAN_RESULT_BINARY;
   }
-  self->_is_null= false;
 
-  if (gearman_string_append(&self->value.string, static_cast<const char *>(value), size) == false)
-  {
-    return GEARMAN_MEMORY_ALLOCATION_FAILURE;
-  }
+  self->_is_null= false;
+  self->type= GEARMAN_RESULT_BINARY;
 
   return GEARMAN_SUCCESS;
 }
@@ -220,7 +195,7 @@ void gearman_result_store_integer(gearman_result_st *self, int64_t value)
   {
     if (self->type == GEARMAN_RESULT_BINARY)
     {
-      gearman_string_free(&self->value.string);
+      self->value.string.clear();
     }
 
     self->type= GEARMAN_RESULT_INTEGER;

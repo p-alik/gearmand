@@ -12,12 +12,9 @@
 # Included from Top Level Makefile.am
 # All paths should be given relative to the root
 
-noinst_HEADERS+= \
-		 bin/arguments.h \
-		 bin/error.h \
-		 bin/function.h \
-		 bin/client.h \
-		 bin/worker.h
+noinst_HEADERS+= bin/arguments.h
+noinst_HEADERS+= bin/error.h
+noinst_HEADERS+= bin/function.h
 
 bin_PROGRAMS+= bin/gearman
 bin_PROGRAMS+= bin/gearadmin

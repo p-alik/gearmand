@@ -41,6 +41,9 @@
 
 #include "gear_config.h"
 
+#include "libgearman/client.hpp"
+using namespace org::gearmand;
+
 #include <libtest/test.hpp>
 using namespace libtest;
 
@@ -113,6 +116,14 @@ private:
 static test_return_t gearman_help_test(void *)
 {
   const char *args[]= { "-H", 0 };
+
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline("bin/gearman", args, true));
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_verbose_TEST(void *)
+{
+  const char *args[]= { "-H", "-v", 0 };
 
   ASSERT_EQ(EXIT_SUCCESS, exec_cmdline("bin/gearman", args, true));
   return TEST_SUCCESS;
@@ -306,6 +317,20 @@ static test_return_t gearadmin_getpid_test(void* object)
 {
   cli::Context *context= (cli::Context*)object;
 
+  {
+    libgearman::Client client(context->port());
+    for (size_t x= 0; x < 4; x++)
+    {
+      gearman_job_handle_t job_handle;
+      ASSERT_EQ(GEARMAN_SUCCESS,
+                gearman_client_do_background(&client,
+                                             __func__, // function
+                                             NULL, // unique
+                                             NULL, 0, // workload
+                                             job_handle));
+    }
+  }
+
   char buffer[1024];
   snprintf(buffer, sizeof(buffer), "--port=%d", int(context->port()));
   const char *args[]= { buffer, "--getpid", 0 };
@@ -367,6 +392,7 @@ static test_return_t server_SETUP(void *object)
 test_st gearman_tests[] ={
   { "--help", 0, gearman_help_test },
   { "-H", 0, gearman_help_test },
+  { "-v", 0, gearman_verbose_TEST },
   { "--unknown", 0, gearman_unknown_test },
   { "-f echo -b payload", 0, gearman_client_background_test },
   { "lp:833394", 0, regression_833394_test },

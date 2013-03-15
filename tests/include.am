@@ -10,7 +10,6 @@
 
 noinst_HEADERS+= tests/basic.h
 noinst_HEADERS+= tests/burnin.h
-noinst_HEADERS+= tests/client.h
 noinst_HEADERS+= tests/context.h
 noinst_HEADERS+= tests/do.h
 noinst_HEADERS+= tests/do_background.h
@@ -25,7 +24,6 @@ noinst_HEADERS+= tests/server_options.h
 noinst_HEADERS+= tests/start_worker.h
 noinst_HEADERS+= tests/task.h
 noinst_HEADERS+= tests/unique.h
-noinst_HEADERS+= tests/worker.h
 
 CLIENT_LDADD=
 CLIENT_LDADD+= libgearman/libgearman.la
@@ -48,6 +46,22 @@ tests_blobslap_client_LDADD=
 tests_blobslap_client_SOURCES+= tests/blobslap_client.cc
 tests_blobslap_client_LDADD+= ${CLIENT_LDADD}
 noinst_PROGRAMS+= tests/blobslap_client
+
+# Vector tests
+tests_vector_SOURCES=
+tests_vector_LDADD=
+
+tests_vector_SOURCES+= tests/vector.cc
+tests_vector_LDADD+= libtest/libtest.la
+tests_vector_LDADD+= libgearman/libgearman-vector.la
+check_PROGRAMS+= tests/vector
+noinst_PROGRAMS+= tests/vector
+
+test-vector: tests/vector
+	@tests/vector
+
+valgrind-vector: tests/vector
+	@$(VALGRIND_COMMAND) tests/vector
 
 EXTRA_tests_cli_DEPENDENCIES=
 tests_cli_SOURCES=
@@ -148,7 +162,7 @@ gdb-gearmand: tests/gearmand gearmand/gearmand
 	@$(GDB_COMMAND) tests/gearmand
 
 valgrind-cli: tests/cli gearmand/gearmand
-	@$(VALGRIND_COMMAND) tests/cli gearmand/gearmand
+	@$(VALGRIND_COMMAND) tests/cli
 
 valgrind-burnin: tests/burnin_test gearmand/gearmand
 	@$(VALGRIND_COMMAND) tests/burnin_test
