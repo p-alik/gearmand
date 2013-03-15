@@ -36,6 +36,13 @@
 
 #pragma once
 
+#include <cstddef>
+#include <cstdlib>
+
+#include "libgearman-1.0/string.h"
+
+#define GEARMAN_VECTOR_BLOCK_SIZE 1024*4
+
 /**
   vectors are always under our control so we make some assumptions about them.
 
@@ -47,10 +54,55 @@ struct gearman_vector_st {
   char *end;
   char *string;
   size_t current_size;
-  struct {
-    bool is_allocated:1;
-    bool is_initialized:1;
+
+  struct Options {
+    bool is_allocated;
+    bool is_initialized;
+    Options() :
+      is_allocated(false),
+      is_initialized(true)
+    { }
   } options;
+
+  gearman_vector_st() :
+    end(NULL),
+    string(NULL),
+    current_size(0)
+  {
+  }
+
+  gearman_vector_st(size_t initial_size);
+
+  ~gearman_vector_st();
+
+  void resize(size_t);
+  void reserve(size_t);
+
+
+  void clear()
+  {
+    end= string;
+    if (current_size)
+    {
+      string[0]= 0;
+    }
+  }
+
+  size_t capacity() const
+  {
+    // We tell a white lie about size since we always keep things null
+    // terminated
+    if (current_size == 1)
+    {
+      return 0;
+    }
+
+    return current_size;
+  }
+
+  size_t size() const;
+
+  void init();
 };
 
 
@@ -64,24 +116,19 @@ gearman_vector_st *gearman_string_create(gearman_vector_st *self, const char *st
 extern "C" {
 #endif
 
-
-
 gearman_vector_st *gearman_string_clone(const gearman_vector_st *);
 
-
-gearman_return_t gearman_string_check(gearman_vector_st *string, size_t need);
-
+bool gearman_string_reserve(gearman_vector_st *string, size_t need);
 
 char *gearman_string_c_copy(gearman_vector_st *string);
 
+bool gearman_string_append_character(gearman_vector_st *string,
+                                     char character);
 
-gearman_return_t gearman_string_append_character(gearman_vector_st *string,
-                                                 char character);
+bool gearman_string_append(gearman_vector_st *string,
+                           const char *value, size_t length);
 
-gearman_return_t gearman_string_append(gearman_vector_st *string,
-                                       const char *value, size_t length);
-
-void gearman_string_reset(gearman_vector_st *string);
+void gearman_string_clear(gearman_vector_st *string);
 
 
 void gearman_string_free(gearman_vector_st *string);

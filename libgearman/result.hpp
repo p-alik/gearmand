@@ -46,10 +46,22 @@ struct gearman_result_st
   bool _is_null;
   enum gearman_result_t type;
 
-  union {
+  struct Value {
     bool boolean;
     int64_t integer;
     gearman_vector_st string;
+
+    Value() :
+      boolean(false),
+      integer(0)
+    { }
+
+    Value(size_t initial_size) :
+      boolean(false),
+      integer(0),
+      string(initial_size)
+    { }
+
   } value;
 
   gearman_result_st();
@@ -65,7 +77,7 @@ struct gearman_result_st
   {
     if (type == GEARMAN_RESULT_BINARY)
     {
-      gearman_string_free(&value.string);
+      value.string.clear();
     }
     else if (type == GEARMAN_RESULT_INTEGER)
     {
@@ -77,7 +89,16 @@ struct gearman_result_st
     _is_null= true;
   }
 
-  gearman_vector_st *string()
+  gearman_vector_st *mutable_string()
+  {
+    value.integer= 0;
+    value.boolean= false;
+    type= GEARMAN_RESULT_BINARY;
+
+    return &value.string;
+  }
+
+  const gearman_vector_st *string() const
   {
     if (type == GEARMAN_RESULT_BINARY)
     {
@@ -99,11 +120,7 @@ struct gearman_result_st
 
   ~gearman_result_st()
   {
-    if (type == GEARMAN_RESULT_BINARY)
-    {
-      assert_msg(gearman_is_initialized(&value.string), "Somehow we have a GEARMAN_RESULT_BINARY, but no valid string");
-      gearman_string_free(&value.string);
-    }
+    gearman_string_free(&value.string);
   }
 
 private:

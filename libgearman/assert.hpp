@@ -54,13 +54,14 @@
 #  include <alloca.h>
 # endif
 
-#ifdef __cplusplus
-# include <cstdarg>
-# include <cstdio>
-#else
-# include <stdarg.h>
-# include <stdio.h>
-#endif // __cplusplus
+# ifdef __cplusplus
+#  include <cstdarg>
+#  include <cstdio>
+# else
+#  include <stdarg.h>
+#  include <stdio.h>
+# endif // __cplusplus
+
 # include <libgearman/backtrace.hpp>
 
 # define assert_msg(__expr, __mesg) \

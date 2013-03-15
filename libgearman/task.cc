@@ -368,12 +368,12 @@ size_t gearman_task_send_workload(gearman_task_st *task, const void *workload,
 
 gearman_result_st *gearman_task_result(gearman_task_st *task)
 {
-  if (task == NULL)
+  if (task)
   {
-    return NULL;
+    return task->result_ptr;
   }
 
-  return task->result_ptr;
+  return NULL;
 }
 
 gearman_result_st *gearman_task_mutable_result(gearman_task_st *task)
@@ -399,19 +399,17 @@ const void *gearman_task_data(const gearman_task_st *task)
     return task->recv->data;
   }
 
-    return NULL;
+  return NULL;
 }
 
 size_t gearman_task_data_size(const gearman_task_st *task)
 {
-  if (task == NULL)
+  if (task)
   {
-    return 0;
-  }
-
-  if (task->recv and task->recv->data_size)
-  {
-    return task->recv->data_size;
+    if (task->recv and task->recv->data_size)
+    {
+      return task->recv->data_size;
+    }
   }
 
   return 0;
