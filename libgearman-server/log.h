@@ -40,9 +40,11 @@
   All logging facilities within the server.
 */
 
-#include <stdio.h>
+#include <cstdio>
 
 #pragma once
+
+#include "libgearman-1.0/string.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -55,12 +57,6 @@ extern "C" {
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 #define GEARMAND_AT __FILE__ ":" TOSTRING(__LINE__)
-
-#ifdef __cplusplus
-#define gearman_literal_param(X) (X), (size_t(sizeof(X) - 1))
-#else
-#define gearman_literal_param(X) (X), ((size_t)((sizeof(X) - 1)))
-#endif
 
 #define GEARMAN_DEFAULT_LOG_PARAM GEARMAND_AT, __PRETTY_FUNCTION__
 

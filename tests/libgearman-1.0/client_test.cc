@@ -64,9 +64,12 @@ using namespace libtest;
 #define WORKER_FUNCTION_NAME "client_test"
 #define WORKER_CHUNKED_FUNCTION_NAME "reverse_test"
 
+#include "libgearman/client.hpp"
+#include "libgearman/worker.hpp"
+using namespace org::gearmand;
+
 #include "tests/limits.h"
 #include "tests/do.h"
-#include "tests/client.h"
 #include "tests/server_options.h"
 #include "tests/do_background.h"
 #include "tests/execute.h"
@@ -129,7 +132,7 @@ extern "C"
   {
     volatile gearman_return_t *ret= (volatile gearman_return_t *)object;
     {
-      test::Client client(libtest::default_port());
+      libgearman::Client client(libtest::default_port());
       gearman_client_set_timeout(&client, 400);
 
       for (size_t x= 0; x < 5; x++)
@@ -739,7 +742,7 @@ static test_return_t background_failure_test(void *object)
 
 static test_return_t add_servers_test(void *)
 {
-  test::Client client;
+  libgearman::Client client;
 
   ASSERT_EQ(GEARMAN_SUCCESS,
                gearman_client_add_servers(&client, "localhost:4730,localhost"));
@@ -755,8 +758,7 @@ static test_return_t add_servers_test(void *)
 
 static test_return_t hostname_resolution(void *)
 {
-  test::Client client;
-  assert(&client);
+  libgearman::Client client;
 
   test_skip(GEARMAN_SUCCESS, gearman_client_add_servers(&client, "exist.gearman.info:12345"));
 
@@ -804,7 +806,7 @@ static test_return_t bug_518512_test(void *)
 {
   size_t result_size;
 
-  test::Client client(libtest::default_port());
+  libgearman::Client client(libtest::default_port());
 
   gearman_client_set_timeout(&client, 0);
   gearman_return_t rc;
@@ -818,7 +820,7 @@ static test_return_t bug_518512_test(void *)
   std::auto_ptr<worker_handle_st> completion_worker(test_worker_start(libtest::default_port(), NULL, "client_test_temp",
                                                                       func_arg, NULL, gearman_worker_options_t()));
 
-  test::Client client2(libtest::default_port());
+  libgearman::Client client2(libtest::default_port());
   gearman_client_set_timeout(&client2, -1);
   result= gearman_client_do(&client2, "client_test_temp", NULL, NULL, 0,
                             &result_size, &rc);
@@ -867,7 +869,7 @@ static test_return_t loop_test(void *)
 
 static test_return_t regression_785203_do_test(void *)
 {
-  test::Client client(libtest::default_port());
+  libgearman::Client client(libtest::default_port());
 
   gearman_client_add_options(&client, GEARMAN_CLIENT_FREE_TASKS);
   { // All defaults, except timeout_return
@@ -904,7 +906,7 @@ static test_return_t regression_785203_do_background_test(void *object)
                                                            __func__,
                                                            echo_react_chunk_fn_v2, NULL, gearman_worker_options_t()));
 
-  test::Client client(libtest::default_port());
+  libgearman::Client client(libtest::default_port());
 
   gearman_client_add_options(&client, GEARMAN_CLIENT_FREE_TASKS);
   { // All defaults, except timeout_return
@@ -937,7 +939,7 @@ static test_return_t regression_785203_do_background_test(void *object)
 
 static test_return_t regression2_TEST(void *)
 {
-  test::Client client;
+  libgearman::Client client;
 
   size_t result_length;
   gearman_return_t rc;
@@ -1275,7 +1277,7 @@ static test_return_t gearman_client_error_TEST(void *)
 
 static test_return_t gearman_client_error_no_error_TEST(void *)
 {
-  test::Client client;
+  libgearman::Client client;
   test_null(gearman_client_error(&client));
 
   return TEST_SUCCESS;
@@ -1290,7 +1292,7 @@ static test_return_t gearman_client_errno_TEST(void *)
 
 static test_return_t gearman_client_errno_no_error_TEST(void *)
 {
-  test::Client client;
+  libgearman::Client client;
   ASSERT_EQ(0, gearman_client_errno(&client));
 
   return TEST_SUCCESS;

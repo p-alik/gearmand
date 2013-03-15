@@ -55,8 +55,10 @@ using namespace libtest;
 
 #include <tests/basic.h>
 #include <tests/context.h>
-#include <tests/client.h>
-#include <tests/worker.h>
+
+#include "libgearman/client.hpp"
+#include "libgearman/worker.hpp"
+using namespace org::gearmand;
 
 #include "tests/workers/v2/called.h"
 
@@ -285,12 +287,12 @@ static test_return_t lp_1087654_TEST(void* object)
     test_compare(0, access(sql_file.c_str(), R_OK | W_OK ));
 
     {
-      test::Worker worker(first_port);
+      libgearman::Worker worker(first_port);
       test_compare(gearman_worker_register(&worker, __func__, 0), GEARMAN_SUCCESS);
     }
 
     {
-      test::Client client(first_port);
+      libgearman::Client client(first_port);
       gearman_job_handle_t job_handle;
       for (int32_t x= 0; x < inserted_jobs; ++x)
       {
@@ -371,7 +373,7 @@ static test_return_t lp_1087654_TEST(void* object)
     test_true(server_startup(servers, "gearmand", first_port, argv));
 
     {
-      test::Worker worker(first_port);
+      libgearman::Worker worker(first_port);
       Called called;
       gearman_function_t counter_function= gearman_function_create(called_worker);
       test_compare(gearman_worker_define_function(&worker,
@@ -458,12 +460,12 @@ static test_return_t queue_restart_TEST(Context const* test, const int32_t inser
     ASSERT_EQ(0, access(sql_file.c_str(), R_OK | W_OK ));
 
     {
-      test::Worker worker(first_port);
+      libgearman::Worker worker(first_port);
       ASSERT_EQ(gearman_worker_register(&worker, __func__, 0), GEARMAN_SUCCESS);
     }
 
     {
-      test::Client client(first_port);
+      libgearman::Client client(first_port);
       ASSERT_EQ(gearman_client_echo(&client, test_literal_param("This is my echo test")), GEARMAN_SUCCESS);
       gearman_job_handle_t job_handle;
       for (int32_t x= 0; x < inserted_jobs; ++x)
@@ -526,7 +528,7 @@ static test_return_t queue_restart_TEST(Context const* test, const int32_t inser
     }
 
     {
-      test::Worker worker(first_port);
+      libgearman::Worker worker(first_port);
       Called called;
       gearman_function_t counter_function= gearman_function_create(called_worker);
       ASSERT_EQ(gearman_worker_define_function(&worker,

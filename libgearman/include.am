@@ -12,6 +12,9 @@
 
 nobase_include_HEADERS+= libgearman/gearman.h
 
+noinst_HEADERS+= libgearman/client.hpp
+noinst_HEADERS+= libgearman/worker.hpp
+
 noinst_HEADERS+= libgearman/client.h
 noinst_HEADERS+= libgearman/check.h
 noinst_HEADERS+= libgearman/interface/client.hpp
@@ -81,6 +84,12 @@ libgearman_libgearmancore_la_SOURCES= \
 libgearman_libgearmancore_la_CXXFLAGS= -DBUILDING_LIBGEARMAN
 libgearman_libgearmancore_la_LIBADD= @DL_LIB@
 libgearman_libgearmancore_la_LIBADD+= libhashkit/libhashkit.la
+
+noinst_LTLIBRARIES+= libgearman/libgearman-vector.la
+libgearman_libgearman_vector_la_CXXFLAGS= -DBUILDING_LIBGEARMAN
+libgearman_libgearman_vector_la_LIBADD= @DL_LIB@
+libgearman_libgearman_vector_la_SOURCES= libgearman/vector.cc
+libgearman_libgearman_vector_la_SOURCES+= libgearman/backtrace.cc
 
 libgearman_libgearman_la_LIBADD=
 libgearman_libgearman_la_SOURCES=

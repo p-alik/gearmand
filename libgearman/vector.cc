@@ -2,7 +2,7 @@
  * 
  *  Gearmand String
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2011-2013 Data Differential, http://datadifferential.com/
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -36,94 +36,103 @@
 
 
 #include "gear_config.h"
-#include <libgearman/common.h>
 
 #include "libgearman/assert.hpp"
+#include "libgearman/is.hpp"
+#include "libgearman/vector.hpp"
 
 #include <cstdlib>
 #include <cstring>
+#include <memory>
 
 #include "util/memory.h"
 using namespace org::tangent;
 
-#define GEARMAN_BLOCK_SIZE 1024*4
-
-inline static gearman_return_t _string_check(gearman_vector_st *string, const size_t need)
+inline static bool _string_check(gearman_vector_st *string, const size_t need)
 {
+  assert_msg(string, "Programmer error, _string_check() was passed a null gearman_vector_st");
   if (string)
   {
-    if (need && need > size_t(string->current_size - size_t(string->end - string->string)))
+    if (need and need > size_t(string->current_size - size_t(string->end - string->string)))
     {
       size_t current_offset= size_t(string->end - string->string);
-      char *new_value;
-      size_t adjust;
-      size_t new_size;
 
       /* This is the block multiplier. To keep it larger and surive division errors we must round it up */
-      adjust= (need - size_t(string->current_size - size_t(string->end - string->string))) / GEARMAN_BLOCK_SIZE;
+      size_t adjust= (need - size_t(string->current_size - size_t(string->end - string->string))) / GEARMAN_VECTOR_BLOCK_SIZE;
       adjust++;
 
-      new_size= sizeof(char) * size_t((adjust * GEARMAN_BLOCK_SIZE) + string->current_size);
+      size_t new_size= sizeof(char) * size_t((adjust * GEARMAN_VECTOR_BLOCK_SIZE) + string->current_size);
       /* Test for overflow */
       if (new_size < need)
       {
-        return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+        return false;
       }
 
-      new_value= static_cast<char *>(realloc(string->string, new_size));
+      char* new_value= static_cast<char *>(realloc(string->string, new_size));
       if (new_value == NULL)
       {
-        return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+        return false;
       }
 
       string->string= new_value;
       string->end= string->string + current_offset;
 
-      string->current_size+= (GEARMAN_BLOCK_SIZE * adjust);
+      string->current_size+= (GEARMAN_VECTOR_BLOCK_SIZE * adjust);
     }
 
-    return GEARMAN_SUCCESS;
+    return true;
   }
 
-  return GEARMAN_INVALID_ARGUMENT;
+  return false;
 }
 
-static inline void _init_string(gearman_vector_st *self)
+void gearman_vector_st::init()
 {
-  self->current_size= 0;
-  self->end= self->string= NULL;
+  current_size= 0;
+  end= string= NULL;
 }
 
-gearman_vector_st *gearman_string_create(gearman_vector_st *self, const char *str, size_t initial_size)
+gearman_vector_st *gearman_string_create(gearman_vector_st *self, const char *str, size_t str_size)
 {
+  assert_msg(str, "Programmer error, gearman_string_clear() was passed a null string");
   if (str == NULL)
   {
     return NULL;
   }
 
-  self= gearman_string_create(self, initial_size);
+  self= gearman_string_create(self, str_size);
+  assert_vmsg(self, "Programmer error, gearman_string_create() returned a null gearman_vector_st() requesting a reserve of %u", uint32_t(str_size));
   if (self)
   {
-    if (gearman_failed(gearman_string_append(self, str, initial_size)))
+    if ((gearman_string_append(self, str, str_size) == false))
     {
+      assert_vmsg(self, "Programmer error, gearman_string_append() returned false while trying to append a string of %u length", uint32_t(str_size));
       gearman_string_free(self);
       return NULL;
     }
   }
 
-   return self;
+  return self;
 }
 
-gearman_vector_st *gearman_string_create(gearman_vector_st *self, size_t initial_size)
+gearman_vector_st::gearman_vector_st(size_t initial_size) :
+  end(NULL),
+  string(NULL),
+  current_size(0)
+{
+  if (initial_size)
+  {
+    _string_check(this, initial_size +1);
+  }
+}
+
+gearman_vector_st *gearman_string_create(gearman_vector_st *self, size_t reserve_)
 {
   /* Saving malloc calls :) */
-  if (self)
+  if (self == NULL)
   {
-    gearman_set_allocated(self, false);
-  }
-  else
-  {
-    self= static_cast<gearman_vector_st *>(malloc(sizeof(gearman_vector_st)));
+    self= new (std::nothrow) gearman_vector_st(reserve_);
+    assert_vmsg(self, "Programmer error, new gearman_vector_st() failed reserve: %u", uint32_t(reserve_));
 
     if (self == NULL)
     {
@@ -132,28 +141,19 @@ gearman_vector_st *gearman_string_create(gearman_vector_st *self, size_t initial
 
     gearman_set_allocated(self, true);
   }
+  else
+  {
+    self->clear();
+    self->resize(reserve_);
+  }
   gearman_set_initialized(self, true);
 
-  _init_string(self);
-
-  if (gearman_failed(_string_check(self, initial_size)))
+  assert_vmsg(reserve_ <= self->capacity(), "Programmer error, capacity: %u reserve: %u", uint32_t(self->capacity()), uint32_t(reserve_));
+  if (reserve_ > self->capacity())
   {
-    if (gearman_is_allocated(self))
-    {
-      void* tmp_ptr= self;
-      util::free__(tmp_ptr);
-    }
-    else
-    {
-      gearman_set_initialized(self, false);
-    }
+    gearman_string_free(self);
 
     return NULL;
-  }
-
-  if (initial_size)
-  {
-    self->string[0]= 0;
   }
 
   return self;
@@ -170,7 +170,7 @@ gearman_vector_st *gearman_string_clone(const gearman_vector_st *self)
     {
       if (gearman_string_length(self))
       {
-        if (gearman_failed(gearman_string_append(clone, gearman_string_value(self), gearman_string_length(self))))
+        if (gearman_string_append(clone, gearman_string_value(self), gearman_string_length(self)) == false)
         {
           gearman_string_free(clone);
           return NULL;
@@ -182,38 +182,35 @@ gearman_vector_st *gearman_string_clone(const gearman_vector_st *self)
   return clone;
 }
 
-gearman_return_t gearman_string_append_character(gearman_vector_st *string, char character)
+bool gearman_string_append_character(gearman_vector_st *string, char character)
 {
-  gearman_return_t rc;
-
-
-  if (gearman_failed(rc= _string_check(string, 1 +1))) // Null terminate
+  assert_msg(string, "Programmer error, gearman_string_append_character() was passed a null gearman_vector_st");
+  if (_string_check(string, 1 +1) == false) // Null terminate
   {
-    return rc;
+    return false;
   }
 
   *string->end= character;
   string->end++;
   *string->end= 0;
 
-  return GEARMAN_SUCCESS;
+  return true;
 }
 
-gearman_return_t gearman_string_append(gearman_vector_st *string,
-                                       const char *value, size_t length)
+bool gearman_string_append(gearman_vector_st *string,
+                           const char *value, size_t length)
 {
-  gearman_return_t rc;
-
-  if (gearman_failed(rc= _string_check(string, length +1)))
+  assert_msg(string, "Programmer error, gearman_string_append() was passed a null gearman_vector_st");
+  if (_string_check(string, length +1) == false)
   {
-    return rc;
+    return false;
   }
 
   memcpy(string->end, value, length);
   string->end+= length;
   *string->end= 0; // Add a NULL
 
-  return GEARMAN_SUCCESS;
+  return true;
 }
 
 char *gearman_string_c_copy(gearman_vector_st *string)
@@ -233,52 +230,97 @@ char *gearman_string_c_copy(gearman_vector_st *string)
   return c_ptr;
 }
 
-void gearman_string_reset(gearman_vector_st *string)
+void gearman_string_clear(gearman_vector_st *string)
 {
-  assert(string);
+  assert_msg(string, "Programmer error, gearman_string_clear() was passed a null gearman_vector_st");
   string->clear();
 }
 
-void gearman_string_free(gearman_vector_st *ptr)
+gearman_vector_st::~gearman_vector_st()
 {
-  if (ptr)
+  if (string)
   {
-    if (ptr->string)
-    {
-      void* tmp_ptr= ptr->string;
-      util::free__(tmp_ptr);
-    }
-
-    if (gearman_is_allocated(ptr))
-    {
-      void* tmp_ptr= ptr;
-      util::free__(tmp_ptr);
-      return;
-    }
-
-    assert(gearman_is_allocated(ptr) == false);
-    gearman_set_initialized(ptr, false);
-    ptr->string= NULL;
-    ptr->end= NULL;
-    ptr->current_size= 0;
+    void* tmp_ptr= string;
+    util::free__(tmp_ptr);
   }
 }
 
-gearman_return_t gearman_string_check(gearman_vector_st *string, size_t need)
+void gearman_vector_st::resize(const size_t size_)
 {
-  return _string_check(string, need);
+  if (size_ == 0)
+  {
+    void* tmp_ptr= string;
+    util::free__(tmp_ptr);
+    init();
+  }
+  else if (size_ > capacity())
+  {
+    reserve(size_);
+  }
+  else if (size_ < capacity())
+  {
+    size_t final_size= (size_ < size()) ?  size_ : size();
+    char* new_value= static_cast<char *>(realloc(string, size_ +1));
+    if (new_value == NULL)
+    {
+      return;
+    }
+    string= new_value;
+    end= string +final_size;
+    current_size= size_ +1;
+    string[final_size]= 0;
+  }
 }
 
-gearman_return_t gearman_string_reserve(gearman_vector_st *string, size_t need)
+void gearman_string_free(gearman_vector_st *string)
 {
-  return _string_check(string, need);
+  if (string)
+  {
+    if (gearman_is_allocated(string))
+    {
+      delete string;
+      return;
+    }
+
+    assert(gearman_is_allocated(string) == false);
+    string->resize(0);
+    gearman_set_initialized(string, false);
+  }
+}
+
+bool gearman_string_reserve(gearman_vector_st *string, size_t need_)
+{
+  if (need_)
+  {
+    return _string_check(string, need_ +1);
+  }
+
+  // Let _string_check handle the behavior of zero
+  return _string_check(string, need_);
+}
+
+size_t gearman_vector_st::size() const
+{
+  assert(end >= string);
+  return size_t(end -string);
+}
+
+void gearman_vector_st::reserve(size_t need_)
+{
+  if (need_)
+  {
+    _string_check(this, need_ +1);
+  }
+
+  // Let _string_check handle the behavior of zero
+  _string_check(this, need_);
 }
 
 size_t gearman_string_length(const gearman_vector_st *self)
 {
   if (self)
   {
-    return size_t(self->end - self->string);
+    return self->size();
   }
 
   return 0;
@@ -307,7 +349,7 @@ gearman_string_t gearman_string_take_string(gearman_vector_st *self)
   if (gearman_string_length(self))
   {
     gearman_string_t passable= gearman_string(self);
-    _init_string(self);
+    self->init();
     return passable;
   }
 

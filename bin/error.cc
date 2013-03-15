@@ -83,14 +83,14 @@ void message(const std::string &arg, gearman_return_t rc)
   std::cerr << "gearman: " << arg << " : " << gearman_strerror(rc) << std::endl;
 }
 
-void message(const char *arg, const gearman_client_st &client)
+void message(const char *arg, const gearman_client_st* client)
 {
-  std::cerr << "gearman: " << arg << " : " << gearman_client_error(&client) << std::endl;
+  std::cerr << "gearman: " << arg << " : " << gearman_client_error(client) << std::endl;
 }
 
-void message(const char *arg, const gearman_worker_st &worker)
+void message(const char *arg, const gearman_worker_st* worker)
 {
-  std::cerr << "gearman: " << arg << " : " << gearman_worker_error(&worker) << std::endl;
+  std::cerr << "gearman: " << arg << " : " << gearman_worker_error(worker) << std::endl;
 }
 
 } // namespace error

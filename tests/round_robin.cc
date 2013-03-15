@@ -20,8 +20,10 @@ using namespace libtest;
 
 #include <libgearman/gearman.h>
 
-#include "tests/client.h"
-#include "tests/worker.h"
+#include "libgearman/client.hpp"
+#include "libgearman/worker.hpp"
+using namespace org::gearmand;
+
 #include "tests/start_worker.h"
 
 struct Context
@@ -91,7 +93,7 @@ static test_return_t queue_add(void *object)
   Context *context= (Context *)object;
   test_truth(context);
 
-  test::Client client(context->port());
+  libgearman::Client client(context->port());
   char job_handle[GEARMAN_JOB_HANDLE_SIZE];
 
   uint8_t *value= (uint8_t *)malloc(1);
@@ -124,7 +126,7 @@ static test_return_t queue_worker(void *object)
   Context *context= (Context *)object;
   test_truth(context);
 
-  test::Worker worker(context->port());
+  libgearman::Worker worker(context->port());
 
   char buffer[11];
   memset(buffer, 0, sizeof(buffer));
@@ -236,7 +238,7 @@ static test_return_t _job_retry_TEST(Context *context, Limit& limit)
                                                            &limit,
                                                            gearman_worker_options_t(),
                                                            0)); // timeout
-  test::Client client(context->port());
+  libgearman::Client client(context->port());
 
   gearman_return_t rc;
   test_null(gearman_client_do(&client,

@@ -214,13 +214,13 @@ public:
                                     "HTTP/1.0 200 OK\r\n"
                                     "X-Gearman-Job-Handle: %.*s\r\n"
                                     "X-Gearman-Command: %s\r\n"
-                                    "Content-Length: %" PRIu64 "\r\n"
+                                    "Content-Length: %d\r\n"
                                     "Server: Gearman/" PACKAGE_VERSION "\r\n"
                                     "\r\n%.*s",
                                     packet->command == GEARMAN_COMMAND_JOB_CREATED ?  int(packet->arg_size[0]) : int(packet->arg_size[0] - 1),
-                                    (const char *)packet->arg[0],
+                                    (const char *)packet->arg[0], // Job handle
                                     gearman_strcommand(packet->command),
-                                    uint64_t(content.size()),
+                                    int(content.size()), // Content-length
                                     int(content.size()), &content[0]);
       }
       else

@@ -39,6 +39,7 @@
 #include "gear_config.h"
 
 #include <cstdlib>
+#include <cstdio>
 #include <cstring>
 #include <string>
 #include <vector>
@@ -64,11 +65,13 @@ Args::Args(int p_argc, char *p_argv[]) :
   _strip_newline(false),
   _worker(false),
   _suppress_input(false),
+  _verbose(false),
   _prefix(false),
   _background(false),
   _daemon(false),
   _usage(false),
   _is_error(false),
+  _arg_error(NULL),
   _priority(GEARMAN_JOB_PRIORITY_NORMAL),
   _timeout(-1),
   argv(p_argv),
@@ -79,6 +82,10 @@ Args::Args(int p_argc, char *p_argv[]) :
 
 Args::~Args()
 {
+  if (_arg_error)
+  {
+    free(_arg_error);
+  }
 }
 
 void Args::init(int argc)
@@ -87,7 +94,7 @@ void Args::init(int argc)
 
   opterr= 0;
 
-  while ((c = getopt(argc, argv, "bc:f:h:HILnNp:Pst:u:wi:d")) != -1)
+  while ((c = getopt(argc, argv, "bc:f:h:HILnNp:Pst:u:vwi:d")) != -1)
   {
     switch(c)
     {
@@ -158,11 +165,36 @@ void Args::init(int argc)
 
     case 'H':
       _usage= true;
-      return;
+      break;
+
+    case 'v':
+      _verbose= true;
+      break;
 
     default:
       _is_error= true;
-      return;
+
+      if (optarg)
+      {
+        size_t length= snprintf(NULL, 0, "-%c %s", char(c), optarg);
+        ++length; // Add in space for null
+        _arg_error= (char*)malloc(length);
+        if (_arg_error)
+        {
+          snprintf(_arg_error, length, "-%c %s", char(c), optarg);
+        }
+      }
+      else
+      {
+        size_t length= snprintf(NULL, 0, "-%c", char(c));
+        length++;
+        _arg_error= (char*)malloc(length);
+        if (_arg_error)
+        {
+          snprintf(_arg_error, length, "-%c", char(c));
+        }
+      }
+      break;
     }
   }
 

@@ -54,11 +54,14 @@
 #include <vector>
 
 
-#include <libgearman/gearman.h>
+#include <libgearman-1.0/gearman.h>
 
 #include "bin/arguments.h"
-#include "bin/client.h"
-#include "bin/worker.h"
+
+#include "libgearman/client.hpp"
+#include "libgearman/worker.hpp"
+using namespace org::gearmand;
+
 #include "util/pidfile.hpp"
 #include "bin/error.h"
 
@@ -87,8 +90,10 @@ static void _client(Args &args);
 /**
  * Run client jobs.
  */
-static void _client_run(gearman_client_st& client, Args &args,
+static void _client_run(libgearman::Client& client, Args &args,
                         const void *workload, size_t workload_size);
+
+static gearman_return_t _client_created(gearman_task_st *task);
 
 /**
  * Client data/complete callback function.
@@ -128,7 +133,7 @@ static void _read_workload(int fd, Bytes& workload);
 /**
  * Print usage information.
  */
-static void usage(char *name);
+static void usage(Args&, char *name);
 
 extern "C"
 {
@@ -150,13 +155,13 @@ int main(int argc, char *argv[])
 
   if (args.usage())
   {
-    usage(argv[0]);
+    usage(args, argv[0]);
     return EXIT_SUCCESS;
   }
 
   if (args.is_error())
   {
-    usage(argv[0]);
+    usage(args, argv[0]);
     return EXIT_FAILURE;
   }
 
@@ -237,8 +242,7 @@ int main(int argc, char *argv[])
 
 void _client(Args &args)
 {
-  bin::Client local_client;
-  gearman_client_st &client= local_client.client();
+  libgearman::Client client;
   Bytes workload;
   if (args.timeout() >= 0)
   {
@@ -249,16 +253,17 @@ void _client(Args &args)
   {
     if (gearman_failed(gearman_client_add_servers(&client, getenv("GEARMAN_SERVER"))))
     {
-      error::message("Error occurred while parsing GEARMAN_SERVER", client);
+      error::message("Error occurred while parsing GEARMAN_SERVER", &client);
       return;
     }
   }
   else if (gearman_failed(gearman_client_add_server(&client, args.host(), args.port())))
   {
-    error::message("gearman_client_add_server", client);
+    error::message("gearman_client_add_server", &client);
     return;
   }
 
+  gearman_client_set_created_fn(&client, _client_created);
   gearman_client_set_data_fn(&client, _client_data);
   gearman_client_set_warning_fn(&client, _client_warning);
   gearman_client_set_status_fn(&client, _client_status);
@@ -308,7 +313,7 @@ void _client(Args &args)
   }
 }
 
-void _client_run(gearman_client_st& client, Args &args,
+void _client_run(libgearman::Client& client, Args &args,
                  const void *workload, size_t workload_size)
 {
   gearman_return_t ret;
@@ -404,14 +409,26 @@ void _client_run(gearman_client_st& client, Args &args,
 
     if (gearman_failed(ret))
     {
-      error::message("gearman_client_add_task", client);
+      error::message("gearman_client_add_task", &client);
     }
   }
 
   if (gearman_failed(gearman_client_run_tasks(&client)))
   {
-    error::message("gearman_client_run_tasks", client);
+    error::message("gearman_client_run_tasks", &client);
   }
+}
+
+static gearman_return_t _client_created(gearman_task_st *task)
+{
+  const Args *args= static_cast<const Args*>(gearman_task_context(task));
+
+  if (args->verbose())
+  {
+    fprintf(stdout, "Task created: %s\n", gearman_task_job_handle(task));
+  }
+
+  return GEARMAN_SUCCESS;
 }
 
 static gearman_return_t _client_data(gearman_task_st *task)
@@ -482,8 +499,7 @@ static void _worker_free(void *, void *)
 
 void _worker(Args &args)
 {
-  bin::Worker local_worker;
-  gearman_worker_st &worker= local_worker.worker();
+  libgearman::Worker worker;
 
   if (args.timeout() >= 0)
   {
@@ -494,13 +510,13 @@ void _worker(Args &args)
   {
     if (gearman_failed(gearman_worker_add_servers(&worker, getenv("GEARMAN_SERVER"))))
     {
-      error::message("Error occurred while parsing GEARMAN_SERVER", worker);
+      error::message("Error occurred while parsing GEARMAN_SERVER", &worker);
       return;
     }
   }
   else if (gearman_failed(gearman_worker_add_server(&worker, args.host(), args.port())))
   {
-    error::message("gearman_worker_add_server", worker);
+    error::message("gearman_worker_add_server", &worker);
     _exit(EXIT_FAILURE);
   }
 
@@ -514,7 +530,7 @@ void _worker(Args &args)
     worker_argument_t pass(args, *iter);
     if (gearman_failed(gearman_worker_add_function(&worker, function.name(), 0, _worker_cb, &pass)))
     {
-      error::message("gearman_worker_add_function", worker);
+      error::message("gearman_worker_add_function", &worker);
       _exit(EXIT_FAILURE);
     }
   }
@@ -523,7 +539,7 @@ void _worker(Args &args)
   {
     if (gearman_failed(gearman_worker_work(&worker)))
     {
-      error::message("gearman_worker_work", worker);
+      error::message("gearman_worker_work", &worker);
     }
 
     if (args.count() > 0)
@@ -743,32 +759,45 @@ void _read_workload(int fd, Bytes& workload)
   }
 }
 
-static void usage(char *name)
+static void usage(Args& args, char *name)
 {
-  printf("Client mode: %s [options] [<data>]\n", name);
-  printf("Worker mode: %s -w [options] [<command> [<args> ...]]\n", name);
+  FILE *stream;
+  if (args.is_error())
+  {
+    stream= stderr;
+    fprintf(stream, "\n%s\tError in usage(%s).\n\n", name, args.arg_error());
+  }
+  else
+  {
+    stream= stdout;
+    fprintf(stream, "\n%s\tError in usage(%s).\n\n", name, args.arg_error());
+  }
 
-  printf("\nCommon options to both client and worker modes.\n");
-  printf("\t-f <function> - Function name to use for jobs (can give many)\n");
-  printf("\t-h <host>     - Job server host\n");
-  printf("\t-H            - Print this help menu\n");
-  printf("\t-p <port>     - Job server port\n");
-  printf("\t-t <timeout>  - Timeout in milliseconds\n");
-  printf("\t-i <pidfile>  - Create a pidfile for the process\n");
+  fprintf(stream, "Client mode: %s [options] [<data>]\n", name);
+  fprintf(stream, "Worker mode: %s -w [options] [<command> [<args> ...]]\n", name);
 
-  printf("\nClient options:\n");
-  printf("\t-b            - Run jobs in the background\n");
-  printf("\t-I            - Run jobs as high priority\n");
-  printf("\t-L            - Run jobs as low priority\n");
-  printf("\t-n            - Run one job per line\n");
-  printf("\t-N            - Same as -n, but strip off the newline\n");
-  printf("\t-P            - Prefix all output lines with functions names\n");
-  printf("\t-s            - Send job without reading from standard input\n");
-  printf("\t-u <unique>   - Unique key to use for job\n");
+  fprintf(stream, "\nCommon options to both client and worker modes.\n");
+  fprintf(stream, "\t-f <function> - Function name to use for jobs (can give many)\n");
+  fprintf(stream, "\t-h <host>     - Job server host\n");
+  fprintf(stream, "\t-H            - Print this help menu\n");
+  fprintf(stream, "\t-v            - Print diagnostic information to stdout(%s)\n", args.verbose() ? "true" : "false");
+  fprintf(stream, "\t-p <port>     - Job server port\n");
+  fprintf(stream, "\t-t <timeout>  - Timeout in milliseconds\n");
+  fprintf(stream, "\t-i <pidfile>  - Create a pidfile for the process\n");
 
-  printf("\nWorker options:\n");
-  printf("\t-c <count>    - Number of jobs for worker to run before exiting\n");
-  printf("\t-n            - Send data packet for each line\n");
-  printf("\t-N            - Same as -n, but strip off the newline\n");
-  printf("\t-w            - Run in worker mode\n");
+  fprintf(stream, "\nClient options:\n");
+  fprintf(stream, "\t-b            - Run jobs in the background(%s)\n", args.background() ? "true" : "false");
+  fprintf(stream, "\t-I            - Run jobs as high priority\n");
+  fprintf(stream, "\t-L            - Run jobs as low priority\n");
+  fprintf(stream, "\t-n            - Run one job per line(%s)\n", args.job_per_newline() ? "true" : "false");
+  fprintf(stream, "\t-N            - Same as -n, but strip off the newline(%s)\n", args.strip_newline() ? "true" : "false");
+  fprintf(stream, "\t-P            - Prefix all output lines with functions names\n");
+  fprintf(stream, "\t-s            - Send job without reading from standard input\n");
+  fprintf(stream, "\t-u <unique>   - Unique key to use for job\n");
+
+  fprintf(stream, "\nWorker options:\n");
+  fprintf(stream, "\t-c <count>    - Number of jobs for worker to run before exiting\n");
+  fprintf(stream, "\t-n            - Send data packet for each line(%s)\n", args.job_per_newline() ? "true" : "false");
+  fprintf(stream, "\t-N            - Same as -n, but strip off the newline(%s)\n", args.strip_newline() ? "true" : "false");
+  fprintf(stream, "\t-w            - Run in worker mode(%s)\n", args.worker() ? "true" : "false");
 }

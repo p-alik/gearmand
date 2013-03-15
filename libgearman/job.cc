@@ -374,7 +374,7 @@ gearman_return_t gearman_job_send_complete_fin(gearman_job_st *job,
       return gearman_error(job->worker->impl()->universal, rc, "The reducer's complete() returned an error");
     }
 
-    gearman_vector_st *reduced_value= job->reducer->result.string();
+    const gearman_vector_st *reduced_value= job->reducer->result.string();
     if (reduced_value)
     {
       result= gearman_string_value(reduced_value);
