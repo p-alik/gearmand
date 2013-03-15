@@ -36,6 +36,9 @@
 
 #pragma once
 
+#include <cstddef>
+#include <cstdlib>
+
 #include "libgearman-1.0/string.h"
 
 #define GEARMAN_VECTOR_BLOCK_SIZE 1024*4
