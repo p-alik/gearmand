@@ -39,26 +39,37 @@
 #pragma once
 
 #include "libgearman/assert.hpp"
+#include "libgearman/vector.hpp"
+#include "libgearman-1.0/return.h"
+
+#include <cstddef>
+#include <cstdlib>
 #include <cstring>
+
+enum gearman_result_t {
+  GEARMAN_RESULT_BINARY,
+  GEARMAN_RESULT_BOOLEAN,
+  GEARMAN_RESULT_INTEGER,
+  GEARMAN_RESULT_NULL
+};
 
 struct gearman_result_st
 {
-  bool _is_null;
   enum gearman_result_t type;
 
   struct Value {
-    bool boolean;
-    int64_t integer;
+    bool _boolean;
+    int64_t _integer;
     gearman_vector_st string;
 
     Value() :
-      boolean(false),
-      integer(0)
+      _boolean(false),
+      _integer(0)
     { }
 
     Value(size_t initial_size) :
-      boolean(false),
-      integer(0),
+      _boolean(false),
+      _integer(0),
       string(initial_size)
     { }
 
@@ -66,33 +77,45 @@ struct gearman_result_st
 
   gearman_result_st();
 
-  explicit gearman_result_st(size_t initial_size);
+  explicit gearman_result_st(size_t);
 
   bool is_null() const
   {
-    return _is_null;
+    return type == GEARMAN_RESULT_NULL ? true : false;
   }
 
   void clear()
   {
-    if (type == GEARMAN_RESULT_BINARY)
-    {
-      value.string.clear();
-    }
-    else if (type == GEARMAN_RESULT_INTEGER)
-    {
-      value.integer= 0;
-    }
+    value.string.clear();
+    value._integer= 0;
+    value._boolean= false;
+    type= GEARMAN_RESULT_NULL;
+  }
 
-    type= GEARMAN_RESULT_BOOLEAN;
-    value.boolean= false;
-    _is_null= true;
+  bool store(const char*, const size_t);
+  bool append(const char*, const size_t);
+
+  size_t size() const;
+
+  size_t capacity() const
+  {
+    return value.string.capacity();
+  }
+
+  void resize(size_t arg_)
+  {
+    return value.string.resize(arg_);
+  }
+
+  void reserve(size_t arg_)
+  {
+    return value.string.reserve(arg_);
   }
 
   gearman_vector_st *mutable_string()
   {
-    value.integer= 0;
-    value.boolean= false;
+    value._integer= 0;
+    value._boolean= false;
     type= GEARMAN_RESULT_BINARY;
 
     return &value.string;
@@ -108,15 +131,21 @@ struct gearman_result_st
     return NULL;
   }
 
-  int64_t integer()
+  void boolean(bool arg_)
   {
-    if (type == GEARMAN_RESULT_INTEGER)
+    if (type != GEARMAN_RESULT_BOOLEAN)
     {
-      return value.integer;
+      clear();
+      type= GEARMAN_RESULT_BOOLEAN;
     }
 
-    return 0;
+    value._boolean= arg_;
   }
+
+  bool boolean() const;
+
+  int64_t integer() const;
+  void integer(int64_t);
 
   ~gearman_result_st()
   {
@@ -127,3 +156,6 @@ private:
   gearman_result_st( const gearman_result_st& );
   const gearman_result_st& operator=( const gearman_result_st& );
 };
+
+
+gearman_string_t gearman_result_take_string(gearman_result_st *self);

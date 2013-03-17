@@ -1,6 +1,8 @@
 1.0.4
 * Added --coredump flag to gearmand
 
+* Removed result type enum, since the structure is never exposed to the user this was of limited use.
+
 1.0.3 Sun Feb  3 21:05:52 EST 2013
 * Allow for a longer set of retries if port is in use when the server starts up.
 * Added checking for valgrind sgcheck
