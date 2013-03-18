@@ -58,7 +58,7 @@ static test_return_t collection_init(void *object)
 
 #if defined(HAVE_DRIZZLED_BINARY) && HAVE_DRIZZLED_BINARY
   drizzled_port= libtest::get_free_port();
-  if (server_startup(test->_servers, "drizzled", drizzled_port, 0, NULL) == false)
+  if (server_startup(test->_servers, "drizzled", drizzled_port, NULL) == false)
   {
     return TEST_SKIPPED;
   }

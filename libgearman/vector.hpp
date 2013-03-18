@@ -78,7 +78,6 @@ struct gearman_vector_st {
   void resize(size_t);
   void reserve(size_t);
 
-
   void clear()
   {
     end= string;
@@ -86,6 +85,11 @@ struct gearman_vector_st {
     {
       string[0]= 0;
     }
+  }
+
+  const char* value() const
+  {
+    return string;
   }
 
   size_t capacity() const
@@ -99,6 +103,9 @@ struct gearman_vector_st {
 
     return current_size;
   }
+
+  bool store(const char*, const size_t);
+  bool append(const char* arg_, const size_t arg_length_);
 
   size_t size() const;
 

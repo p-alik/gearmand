@@ -60,7 +60,7 @@ using namespace libtest;
 using namespace datadifferential;
 
 #include "libgearman/worker.hpp"
-using namespace org::gearmand::libgearman;
+using namespace org::gearmand;
 
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -143,7 +143,7 @@ static void thread_runner(context_st* con)
     return;
   }
 
-  Worker worker(context->port);
+  libgearman::Worker worker(context->port);
   if (&worker == NULL)
   {
     Error << "Failed to create Worker";
