@@ -36,9 +36,12 @@
  */
 
 #include "gear_config.h"
-#include <libgearman/common.h>
 
+#include "libgearman/result.hpp"
 #include "libgearman/assert.hpp"
+
+#include "libgearman-1.0/visibility.h"
+#include "libgearman-1.0/result.h"
 
 #include <cstdlib>
 #include <limits>
@@ -47,48 +50,94 @@
 #include <libgearman/result.hpp>
 
 gearman_result_st::gearman_result_st() :
-  _is_null(true),
-  type(GEARMAN_RESULT_BOOLEAN)
+  type(GEARMAN_RESULT_NULL)
 {
-  value.boolean= false;
+  value._boolean= false;
 }
 
-gearman_result_st::gearman_result_st(size_t initial_size) :
-  _is_null(true),
-  type(GEARMAN_RESULT_BINARY),
-  value(initial_size)
+gearman_result_st::gearman_result_st(size_t reserve_size_) :
+  type(GEARMAN_RESULT_NULL),
+  value(reserve_size_)
 {
 }
 
 bool gearman_result_is_null(const gearman_result_st *self)
 {
-  return self->is_null();
+  assert(self);
+  if (self)
+  {
+    return self->is_null();
+  }
+
+  return true;
 }
 
-gearman_result_st::~gearman_result_st()
+size_t gearman_result_st::size() const
 {
-  if (type == GEARMAN_RESULT_BINARY)
+  switch (type)
   {
-    assert_msg(gearman_is_initialized(&value.string), "Somehow we have a GEARMAN_RESULT_BINARY, but no valid string");
-    gearman_string_free(&value.string);
+  case GEARMAN_RESULT_BINARY:
+    return value.string.size();
+
+  case GEARMAN_RESULT_BOOLEAN:
+    return 1;
+
+  case GEARMAN_RESULT_INTEGER:
+    return sizeof(int64_t);
+
+  case GEARMAN_RESULT_NULL:
+    return 0;
   }
+
+  return 0;
+}
+
+int64_t gearman_result_st::integer() const
+{
+  switch (type)
+  {
+  case GEARMAN_RESULT_BINARY:
+    return atoll(value.string.value());
+
+  case GEARMAN_RESULT_BOOLEAN:
+    return value._boolean;
+
+  case GEARMAN_RESULT_INTEGER:
+    return value._integer;
+
+  case GEARMAN_RESULT_NULL:
+    return 0;
+  }
+
+  return 0;
 }
 
 int64_t gearman_result_integer(const gearman_result_st *self)
 {
+  assert(self);
   if (self)
   {
-    switch (self->type)
-    {
-    case GEARMAN_RESULT_BINARY:
-      return atoll(gearman_string_value(&self->value.string));
+    return self->integer();
+  }
 
-    case GEARMAN_RESULT_BOOLEAN:
-      return self->value.boolean;
+  return 0;
+}
 
-    case GEARMAN_RESULT_INTEGER:
-      return self->value.integer;
-    }
+bool gearman_result_st::boolean() const
+{
+  switch (type)
+  {
+  case GEARMAN_RESULT_BINARY:
+    return value.string.size();
+
+  case GEARMAN_RESULT_BOOLEAN:
+    return value._boolean;
+
+  case GEARMAN_RESULT_INTEGER:
+    return value._integer ? true : false;
+
+  case GEARMAN_RESULT_NULL:
+    return false;
   }
 
   return false;
@@ -98,17 +147,7 @@ bool gearman_result_boolean(const gearman_result_st *self)
 {
   if (self)
   {
-    switch (self->type)
-    {
-    case GEARMAN_RESULT_BINARY:
-      return gearman_string_length(&self->value.string);
-
-    case GEARMAN_RESULT_BOOLEAN:
-      return self->value.boolean;
-
-    case GEARMAN_RESULT_INTEGER:
-      return self->value.integer ? true : false;
-    }
+    return self->boolean();
   }
 
   return false;
@@ -152,8 +191,7 @@ gearman_string_t gearman_result_take_string(gearman_result_st *self)
   if (self->type == GEARMAN_RESULT_BINARY and gearman_result_size(self))
   {
     gearman_string_t ret_string= gearman_string_take_string(&self->value.string);
-    self->type= GEARMAN_RESULT_BOOLEAN; // Set to default type
-    self->_is_null= true;
+    self->type= GEARMAN_RESULT_NULL; // Set to NULL
 
     return ret_string;
   }
@@ -164,42 +202,96 @@ gearman_string_t gearman_result_take_string(gearman_result_st *self)
 
 gearman_return_t gearman_result_store_string(gearman_result_st *self, gearman_string_t arg)
 {
-  return gearman_result_store_value(self, gearman_string_param(arg));
+  assert(self);
+  if (self)
+  {
+    if (self->store(gearman_string_param(arg)) == false)
+    {
+      return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+    }
+
+    return GEARMAN_SUCCESS;
+  }
+
+  return GEARMAN_INVALID_ARGUMENT;
+}
+
+bool gearman_result_st::append(const char* arg, const size_t arg_length)
+{
+  if (type != GEARMAN_RESULT_BINARY)
+  {
+    clear();
+    type= GEARMAN_RESULT_BINARY;
+  }
+
+  if (value.string.append(arg, arg_length) == false)
+  {
+    type= GEARMAN_RESULT_NULL;
+    return false;
+  }
+
+  return true;
+}
+
+bool gearman_result_st::store(const char* arg, const size_t arg_length)
+{
+  value.string.clear();
+  if (gearman_string_append(&value.string, arg, arg_length) == false)
+  {
+    type= GEARMAN_RESULT_NULL;
+    return false;
+  }
+
+  type= GEARMAN_RESULT_BINARY;
+
+  return true;
 }
 
 gearman_return_t gearman_result_store_value(gearman_result_st *self, const void *value, size_t size)
 {
-  if (self == NULL)
+  if (self)
   {
-    return GEARMAN_INVALID_ARGUMENT;
-  }
-
-  self->value.string.clear();
-  if (value)
-  {
-    if (gearman_string_append(&self->value.string, static_cast<const char *>(value), size) == false)
+    if (self->type != GEARMAN_RESULT_BINARY)
     {
+      self->clear();
+    }
+
+    if (self->store((const char*)value, size) == false) // If append should fail, we default to NULL
+    {
+      self->type= GEARMAN_RESULT_NULL;
       return GEARMAN_MEMORY_ALLOCATION_FAILURE;
     }
+    self->type= GEARMAN_RESULT_BINARY;
+
+    return GEARMAN_SUCCESS;
   }
 
-  self->_is_null= false;
-  self->type= GEARMAN_RESULT_BINARY;
-
-  return GEARMAN_SUCCESS;
+  return GEARMAN_INVALID_ARGUMENT;
 }
 
-void gearman_result_store_integer(gearman_result_st *self, int64_t value)
+void gearman_result_st::integer(int64_t arg_)
+{
+  if (type != GEARMAN_RESULT_INTEGER)
+  {
+    clear();
+    type= GEARMAN_RESULT_INTEGER;
+  }
+
+  value._integer= arg_;
+}
+
+void gearman_result_store_integer(gearman_result_st *self, int64_t arg_)
 {
   if (self)
   {
-    if (self->type == GEARMAN_RESULT_BINARY)
-    {
-      self->value.string.clear();
-    }
+    self->integer(arg_);
+  }
+}
 
-    self->type= GEARMAN_RESULT_INTEGER;
-    self->value.integer= value;
-    self->_is_null= false;
+void gearman_result_store_boolean(gearman_result_st *self, const bool arg_)
+{
+  if (self)
+  {
+    self->boolean(arg_);
   }
 }

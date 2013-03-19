@@ -37,15 +37,6 @@
 
 #pragma once
 
-enum gearman_result_t {
-  GEARMAN_RESULT_BINARY,
-  GEARMAN_RESULT_BOOLEAN,
-  GEARMAN_RESULT_INTEGER
-};
-#ifndef __cplusplus
-typedef enum gearman_result_t gearman_result_t;
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -58,9 +49,6 @@ extern "C" {
 
   GEARMAN_API
   gearman_string_t gearman_result_string(const gearman_result_st *self);
-
-  GEARMAN_LOCAL
-  gearman_string_t gearman_result_take_string(gearman_result_st *self);
 
   GEARMAN_API
   gearman_return_t gearman_result_store_string(gearman_result_st *self, gearman_string_t arg);
