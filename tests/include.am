@@ -63,6 +63,23 @@ test-vector: tests/vector
 valgrind-vector: tests/vector
 	@$(VALGRIND_COMMAND) tests/vector
 
+# Vector tests
+tests_result_SOURCES=
+tests_result_LDADD=
+
+tests_result_SOURCES+= tests/result.cc
+tests_result_LDADD+= libtest/libtest.la
+tests_result_LDADD+= libgearman/libgearman-result.la
+check_PROGRAMS+= tests/result
+noinst_PROGRAMS+= tests/result
+
+test-result: tests/result
+	@tests/result
+
+valgrind-result: tests/result
+	@$(VALGRIND_COMMAND) tests/result
+
+
 EXTRA_tests_cli_DEPENDENCIES=
 tests_cli_SOURCES=
 tests_cli_LDADD=

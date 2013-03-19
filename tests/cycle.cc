@@ -122,8 +122,8 @@ static test_return_t server_startup_conflict_TEST(void*)
   cycle_context_st *context= (cycle_context_st*)object;
 
   in_port_t bind_port= libtest::get_free_port();
-  ASSERT_EQ(true, server_startup(context->servers, "gearmand", bind_port, 0, NULL, false));
-  ASSERT_EQ(false, server_startup(context->servers, "gearmand", bind_port, 0, NULL, false));
+  ASSERT_EQ(true, server_startup(context->servers, "gearmand", bind_port, NULL, false));
+  ASSERT_EQ(false, server_startup(context->servers, "gearmand", bind_port, NULL, false));
 #endif
 
   return TEST_SUCCESS;

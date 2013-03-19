@@ -236,6 +236,17 @@ void gearman_string_clear(gearman_vector_st *string)
   string->clear();
 }
 
+bool gearman_vector_st::store(const char* arg_, const size_t arg_length_)
+{
+  clear();
+  return append(arg_, arg_length_);
+}
+
+bool gearman_vector_st::append(const char* arg_, const size_t arg_length_)
+{
+  return gearman_string_append(this, arg_, arg_length_);
+}
+
 gearman_vector_st::~gearman_vector_st()
 {
   if (string)

@@ -91,6 +91,13 @@ libgearman_libgearman_vector_la_LIBADD= @DL_LIB@
 libgearman_libgearman_vector_la_SOURCES= libgearman/vector.cc
 libgearman_libgearman_vector_la_SOURCES+= libgearman/backtrace.cc
 
+noinst_LTLIBRARIES+= libgearman/libgearman-result.la
+libgearman_libgearman_result_la_CXXFLAGS= -DBUILDING_LIBGEARMAN
+libgearman_libgearman_result_la_LIBADD= @DL_LIB@
+libgearman_libgearman_result_la_SOURCES= libgearman/vector.cc
+libgearman_libgearman_result_la_SOURCES+= libgearman/result.cc
+libgearman_libgearman_result_la_SOURCES+= libgearman/backtrace.cc
+
 libgearman_libgearman_la_LIBADD=
 libgearman_libgearman_la_SOURCES=
 libgearman_libgearman_la_CXXFLAGS=
