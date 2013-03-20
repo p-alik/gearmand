@@ -42,6 +42,7 @@
 #include "libgearman/vector.hpp"
 
 #include <cstdlib>
+#include <cstdio>
 #include <cstring>
 #include <memory>
 
