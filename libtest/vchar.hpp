@@ -63,6 +63,7 @@ void append(libtest::vchar_t& arg, const char*);
 } // namespace vchar
 
 #define vchar_param(__arg) (&__arg[0]), (__arg.size())
+#define vchar_printf(__arg) int(__arg.size()), (&__arg[0])
 
 std::ostream& operator<<(std::ostream& output, const libtest::vchar_t& arg);
 

@@ -2,7 +2,7 @@
  * 
  *  Libgearman library
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2011-2013 Data Differential, http://datadifferential.com/
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -38,6 +38,7 @@
 
 #include <cstddef>
 #include <cstdlib>
+#include <cstdarg>
 
 #include "libgearman-1.0/string.h"
 
@@ -71,12 +72,15 @@ struct gearman_vector_st {
   {
   }
 
-  gearman_vector_st(size_t initial_size);
+  gearman_vector_st(const size_t reserve);
 
   ~gearman_vector_st();
 
-  void resize(size_t);
-  void reserve(size_t);
+  bool resize(const size_t);
+  bool reserve(const size_t);
+
+  int	vec_printf(const char *format__, ...); // __printflike(1, 2);
+  int	vec_append_printf(const char *format__, ...); // __printflike(1, 2);
 
   void clear()
   {
@@ -104,12 +108,18 @@ struct gearman_vector_st {
     return current_size;
   }
 
+  bool store(gearman_vector_st&);
   bool store(const char*, const size_t);
   bool append(const char* arg_, const size_t arg_length_);
+  bool append_character(const char character);
 
   size_t size() const;
+  gearman_string_t take();
 
+private:
   void init();
+  int	vec_size_printf(const char *format__, va_list args__);
+  int	vec_ptr_printf(const int required_size, const char *format__, va_list args__);
 };
 
 
@@ -130,7 +140,7 @@ bool gearman_string_reserve(gearman_vector_st *string, size_t need);
 char *gearman_string_c_copy(gearman_vector_st *string);
 
 bool gearman_string_append_character(gearman_vector_st *string,
-                                     char character);
+                                     const char character);
 
 bool gearman_string_append(gearman_vector_st *string,
                            const char *value, size_t length);
