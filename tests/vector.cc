@@ -298,6 +298,19 @@ static test_return_t gearman_vector_st__vec_append_printf_TEST(void*)
   return TEST_SUCCESS;
 }
 
+static test_return_t gearman_vector_st__vec_append_printf_1_TEST(void*)
+{
+  gearman_vector_st vec;
+
+  for (size_t x= 0; x < 10000; x++)
+  {
+    vec.vec_append_printf("a");
+    ASSERT_EQ(x +1, vec.size());
+  }
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t gearman_vector_st__vec_printf_string2_TEST(void*)
 {
   const size_t max_block= 10 * GEARMAN_VECTOR_BLOCK_SIZE;
@@ -512,6 +525,7 @@ test_st printf_TESTS[] ={
 };
 
 test_st append_printf_TESTS[] ={
+  { "gearman_vector_st::vec_append_printf(1)", 0, gearman_vector_st__vec_append_printf_1_TEST },
   { "gearman_vector_st::vec_append_printf()", 0, gearman_vector_st__vec_append_printf_TEST },
   { "gearman_vector_st::vec_append_printf(EMPTY)", 0, gearman_vector_st__vec_append_printf_empty_TEST },
   { "gearman_vector_st::vec_append_printf(, NULL)", 0, gearman_vector_st__vec_append_printf_NULL_TEST },
