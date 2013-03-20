@@ -56,10 +56,12 @@ extern "C" {
 #define TOSTRING(x) STRINGIFY(x)
 #define GEARMAND_AT __FILE__ ":" TOSTRING(__LINE__)
 
-#ifdef __cplusplus
-#define gearman_literal_param(X) (X), (size_t(sizeof(X) - 1))
-#else
-#define gearman_literal_param(X) (X), ((size_t)((sizeof(X) - 1)))
+#ifndef gearman_literal_param
+# ifdef __cplusplus
+#  define gearman_literal_param(X) (X), (size_t(sizeof(X) - 1))
+# else
+#  define gearman_literal_param(X) (X), ((size_t)((sizeof(X) - 1)))
+# endif
 #endif
 
 #define GEARMAN_DEFAULT_LOG_PARAM GEARMAND_AT, __PRETTY_FUNCTION__
