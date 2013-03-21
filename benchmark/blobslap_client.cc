@@ -427,5 +427,6 @@ static void _usage(char *name)
   printf("\t-p <port>      - job server port\n");
   printf("\t-s <seed>      - seed random number for blobsize with <seed>\n");
   printf("\t-e             - tell worker to shutdown when done\n");
-  printf("\t-v            - increase verbose level\n");
+  printf("\t-b             - background\n");
+  printf("\t-v             - increase verbose level\n");
 }

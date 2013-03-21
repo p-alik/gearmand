@@ -150,16 +150,26 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
              server_job != NULL;
              server_job= server_job->unique_next)
         {
-          data.vec_printf("%.*s\n", int(server_job->unique_length), server_job->unique);
+          data.vec_append_printf("%.*s\n", int(server_job->unique_length), server_job->unique);
         }
       }
 
-      data.vec_printf(".\n");
+      data.vec_append_printf(".\n");
     }
     else if (packet->argc == 2
              and strcasecmp("jobs", (char *)(packet->arg[1])) == 0)
     {
-      data.vec_printf(".\n");
+      for (size_t x= 0; x < Server->hashtable_buckets; ++x)
+      {
+        for (gearman_server_job_st *server_job= Server->job_hash[x];
+             server_job != NULL;
+             server_job= server_job->next)
+        {
+          data.vec_append_printf("%s\n", server_job->job_handle);
+        }
+      }
+
+      data.vec_append_printf(".\n");
     }
     else
     {
