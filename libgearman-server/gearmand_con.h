@@ -78,6 +78,10 @@ gearmand_error_t gearmand_con_create(gearmand_st *gearmand, int fd,
                                      const char *host, const char *port,
                                      gearmand_connection_add_fn *add_fn);
 
+bool gearman_server_job_cancel(gearman_server_st& server,
+                               const char *job_handle,
+                               const size_t job_handle_length);
+
 /**
  * Free resources used by a connection.
  * @param dcon Connection previously initialized with gearmand_con_create.

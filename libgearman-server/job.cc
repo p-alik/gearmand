@@ -236,6 +236,9 @@ gearman_server_job_add_reducer(gearman_server_st *server,
     key= key % server->hashtable_buckets;
     GEARMAN_HASH__ADD(server->job, key, server_job);
 
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "JOB %s :%u",
+                       server_job->job_handle, server_job->job_handle_key);
+
     if (server->state.queue_startup)
     {
       server_job->job_queued= true;

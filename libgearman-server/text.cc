@@ -135,7 +135,14 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
     if (packet->argc == 3
         and strcasecmp("job", (char *)(packet->arg[1])) == 0)
     {
-      data.vec_printf(TEXT_ERROR_UNKNOWN_JOB);
+      if (gearman_server_job_cancel(Gearmand()->server, packet->arg[2], strlen(packet->arg[2])))
+      {
+        data.vec_printf(TEXT_SUCCESS);
+      }
+      else
+      {
+        data.vec_printf(TEXT_ERROR_UNKNOWN_JOB);
+      }
     }
   }
   else if (packet->argc >= 2 and strcasecmp("show", (char *)(packet->arg[0])) == 0)
@@ -165,7 +172,8 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
              server_job != NULL;
              server_job= server_job->next)
         {
-          data.vec_append_printf("%s\n", server_job->job_handle);
+          data.vec_append_printf("%s\t%u\t%u\t%u\n", server_job->job_handle, uint32_t(server_job->retries),
+                                 uint32_t(server_job->ignore_job), uint32_t(server_job->job_queued));
         }
       }
 
