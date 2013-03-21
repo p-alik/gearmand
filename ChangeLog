@@ -1,6 +1,8 @@
 1.1.6 
 * Merge of 1.0.4 tree
 
+* Added support for gearadmin to "cancel" a job.
+
 1.1.5 Mon Feb  4 00:59:19 EST 2013
 * Rollup of bug fixes for 1.0.3
 * --threads=0 for gearmand will now result in gearmand using all available cores.
