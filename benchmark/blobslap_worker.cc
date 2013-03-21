@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2011-2013 Data Differential, http://datadifferential.com/
  *  Copyright (C) 2008 Brian Aker, Eric Day
  *  All rights reserved.
  *
@@ -271,7 +271,7 @@ static void *worker_fn(gearman_job_st *job, void *context,
 
   if (benchmark->verbose > 1)
   {
-    std::cout << "Job=%s (" << gearman_job_workload_size(job) << ")" << std::endl;
+    std::cout << "Job=" << gearman_job_handle(job) << " (" << gearman_job_workload_size(job) << ")" << std::endl;
   }
 
   *ret_ptr= GEARMAN_SUCCESS;

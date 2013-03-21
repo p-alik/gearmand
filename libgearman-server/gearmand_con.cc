@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011-2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2011-2013 Data Differential, http://datadifferential.com/
  *  Copyright (C) 2008 Brian Aker, Eric Day
  *  All rights reserved.
  *
@@ -232,6 +232,31 @@ gearman_server_job_st *gearman_server_job_get(gearman_server_st *server,
   }
 
   return NULL;
+}
+
+bool gearman_server_job_cancel(gearman_server_st& server,
+                               const char *job_handle,
+                               const size_t job_handle_length)
+{
+  uint32_t key= _server_job_hash(job_handle, job_handle_length);
+
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "cancel: %.*s", int(job_handle_length), job_handle);
+
+  for (gearman_server_job_st *server_job= server.job_hash[key % server.hashtable_buckets];
+       server_job != NULL;
+       server_job= server_job->next)
+  {
+    if (server_job->job_handle_key == key and
+        strncmp(server_job->job_handle, job_handle, GEARMAND_JOB_HANDLE_SIZE) == 0)
+    {
+      server_job->ignore_job= true;
+      server_job->job_queued= false;
+
+      return true;
+    }
+  }
+
+  return false;
 }
 
 gearman_server_job_st * gearman_server_job_peek(gearman_server_con_st *server_con)

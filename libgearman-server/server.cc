@@ -196,13 +196,13 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
     {
       gearman_job_priority_t priority;
 
-      if (packet->command == GEARMAN_COMMAND_SUBMIT_JOB ||
-          packet->command == GEARMAN_COMMAND_SUBMIT_JOB_BG ||
+      if (packet->command == GEARMAN_COMMAND_SUBMIT_JOB or
+          packet->command == GEARMAN_COMMAND_SUBMIT_JOB_BG or
           packet->command == GEARMAN_COMMAND_SUBMIT_JOB_EPOCH)
       {
         priority= GEARMAN_JOB_PRIORITY_NORMAL;
       }
-      else if (packet->command == GEARMAN_COMMAND_SUBMIT_JOB_HIGH ||
+      else if (packet->command == GEARMAN_COMMAND_SUBMIT_JOB_HIGH or
                packet->command == GEARMAN_COMMAND_SUBMIT_JOB_HIGH_BG)
       {
         priority= GEARMAN_JOB_PRIORITY_HIGH;
@@ -212,9 +212,9 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
         priority= GEARMAN_JOB_PRIORITY_LOW;
       }
 
-      if (packet->command == GEARMAN_COMMAND_SUBMIT_JOB_BG ||
-          packet->command == GEARMAN_COMMAND_SUBMIT_JOB_HIGH_BG ||
-          packet->command == GEARMAN_COMMAND_SUBMIT_JOB_LOW_BG ||
+      if (packet->command == GEARMAN_COMMAND_SUBMIT_JOB_BG or
+          packet->command == GEARMAN_COMMAND_SUBMIT_JOB_HIGH_BG or
+          packet->command == GEARMAN_COMMAND_SUBMIT_JOB_LOW_BG or
           packet->command == GEARMAN_COMMAND_SUBMIT_JOB_EPOCH)
       {
         server_client= NULL;
