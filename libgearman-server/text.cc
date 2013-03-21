@@ -125,9 +125,9 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
                                function->function_name, function->job_total,
                                function->job_running, function->worker_count);
       }
-
-      data.vec_append_printf(".\n");
     }
+
+    data.vec_append_printf(".\n");
   }
   else if (packet->argc >= 3 
            and strcasecmp("cancel", (char *)(packet->arg[0])) == 0)
