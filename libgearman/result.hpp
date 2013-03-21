@@ -102,12 +102,12 @@ struct gearman_result_st
     return value.string.capacity();
   }
 
-  void resize(size_t arg_)
+  bool resize(size_t arg_)
   {
     return value.string.resize(arg_);
   }
 
-  void reserve(size_t arg_)
+  bool reserve(size_t arg_)
   {
     return value.string.reserve(arg_);
   }

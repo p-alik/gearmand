@@ -98,6 +98,7 @@ maintainer-clean-local:
 	-rm build-aux/install-sh
 	-rm build-aux/ltmain.sh
 	-rm build-aux/missing
+	-rm build-aux/test-driver 
 	-rm gear_config.in
 	-rm config.log
 	-rm config.status
