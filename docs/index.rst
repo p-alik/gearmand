@@ -49,6 +49,16 @@ C/C++ Client Library:
 
    libgearman/index
 
+--------
+Protocol
+--------
+
+.. toctree::
+   :maxdepth: 1
+
+   protocol/gear
+   protocol/text
+
 -------------------
 Version Information
 -------------------
