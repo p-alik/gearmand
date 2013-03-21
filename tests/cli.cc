@@ -42,6 +42,7 @@
 #include "gear_config.h"
 
 #include "libgearman/client.hpp"
+#include "libgearman/worker.hpp"
 using namespace org::gearmand;
 
 #include <libtest/test.hpp>
@@ -236,7 +237,7 @@ static test_return_t gearadmin_verbose_test(void* object)
   return TEST_SUCCESS;
 }
 
-static test_return_t gearadmin_status_test(void* object)
+static test_return_t gearadmin_status_TEST(void* object)
 {
   cli::Context *context= (cli::Context*)object;
 
@@ -245,6 +246,32 @@ static test_return_t gearadmin_status_test(void* object)
   const char *args[]= { buffer, "--status", 0 };
 
   ASSERT_EQ(EXIT_SUCCESS, exec_cmdline("bin/gearadmin", args, true));
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearadmin_status_with_jobs_TEST(void* object)
+{
+  cli::Context *context= (cli::Context*)object;
+
+  {
+    libgearman::Client client(context->port());
+    for (size_t x= 0; x < 10000; ++x)
+    {
+      gearman_job_handle_t job_handle;
+      ASSERT_EQ(GEARMAN_SUCCESS, gearman_client_do_background(&client,
+                                                              __func__,
+                                                              NULL, // unique
+                                                              NULL, 0, // workload
+                                                              job_handle));
+    }
+  }
+
+  char buffer[1024];
+  snprintf(buffer, sizeof(buffer), "--port=%d", int(context->port()));
+  const char *args[]= { buffer, "--status", 0 };
+
+  ASSERT_EQ(EXIT_SUCCESS, exec_cmdline("bin/gearadmin", args, true));
+
   return TEST_SUCCESS;
 }
 
@@ -288,11 +315,20 @@ static test_return_t gearadmin_workers_test(void* object)
 {
   cli::Context *context= (cli::Context*)object;
 
+  libgearman::Worker worker(context->port());
+  for (int x= 0; x < 100; ++x)
+  {
+    char function_name[1024];
+    snprintf(function_name, sizeof(function_name), "function_%u", x);
+    ASSERT_EQ(GEARMAN_SUCCESS, gearman_worker_register(&worker, function_name, 0));
+  }
+
   char buffer[1024];
   snprintf(buffer, sizeof(buffer), "--port=%d", int(context->port()));
   const char *args[]= { buffer, "--workers", 0 };
 
   ASSERT_EQ(EXIT_SUCCESS, exec_cmdline("bin/gearadmin", args, true));
+
   return TEST_SUCCESS;
 }
 
@@ -404,10 +440,11 @@ test_st gearadmin_tests[] ={
   {"--help", 0, gearadmin_help_test},
   {"--server-version", 0, gearadmin_version_test},
   {"--server-verbose", 0, gearadmin_verbose_test},
-  {"--status", 0, gearadmin_status_test},
   {"--cancel-job", 0, gearadmin_cancel_job_TEST},
   {"--show-jobs", 0, gearadmin_show_jobs_TEST},
   {"--show-unique-jobs", 0, gearadmin_show_unique_jobs_TEST},
+  {"--status", 0, gearadmin_status_TEST},
+  {"gearman_client_do_background(100) --status", 0, gearadmin_status_with_jobs_TEST},
   {"--getpid", 0, gearadmin_getpid_test},
   {"--workers", 0, gearadmin_workers_test},
   {"--create-function and --drop-function", 0, gearadmin_create_drop_test},

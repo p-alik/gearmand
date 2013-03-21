@@ -42,11 +42,17 @@
 #include "libgearman/vector.hpp"
 
 #include <cstdlib>
+#include <cstdio>
 #include <cstring>
 #include <memory>
 
 #include "util/memory.h"
 using namespace org::tangent;
+
+#ifndef __INTEL_COMPILER
+# pragma GCC diagnostic ignored "-Wformat-nonliteral"
+# pragma GCC diagnostic ignored "-Wformat-security"
+#endif
 
 inline static bool _string_check(gearman_vector_st *string, const size_t need)
 {
@@ -115,14 +121,14 @@ gearman_vector_st *gearman_string_create(gearman_vector_st *self, const char *st
   return self;
 }
 
-gearman_vector_st::gearman_vector_st(size_t initial_size) :
+gearman_vector_st::gearman_vector_st(const size_t reserve_) :
   end(NULL),
   string(NULL),
   current_size(0)
 {
-  if (initial_size)
+  if (reserve_)
   {
-    _string_check(this, initial_size +1);
+    _string_check(this, reserve_ +1);
   }
 }
 
@@ -182,35 +188,41 @@ gearman_vector_st *gearman_string_clone(const gearman_vector_st *self)
   return clone;
 }
 
-bool gearman_string_append_character(gearman_vector_st *string, char character)
+bool gearman_vector_st::append_character(const char character)
 {
-  assert_msg(string, "Programmer error, gearman_string_append_character() was passed a null gearman_vector_st");
-  if (_string_check(string, 1 +1) == false) // Null terminate
+  if (_string_check(this, 1 +1) == false) // Null terminate
   {
     return false;
   }
 
-  *string->end= character;
-  string->end++;
-  *string->end= 0;
+  *end= character;
+  end++;
+  *end= 0;
 
   return true;
+}
+
+bool gearman_string_append_character(gearman_vector_st *string_, const char character)
+{
+  assert_msg(string_, "Programmer error, gearman_string_append_character() was passed a null gearman_vector_st");
+  if (string_)
+  {
+    return string_->append_character(character);
+  }
+
+  return false;
 }
 
 bool gearman_string_append(gearman_vector_st *string,
                            const char *value, size_t length)
 {
   assert_msg(string, "Programmer error, gearman_string_append() was passed a null gearman_vector_st");
-  if (_string_check(string, length +1) == false)
+  if (string)
   {
-    return false;
+    string->append(value, length);
   }
 
-  memcpy(string->end, value, length);
-  string->end+= length;
-  *string->end= 0; // Add a NULL
-
-  return true;
+  return false;
 }
 
 char *gearman_string_c_copy(gearman_vector_st *string)
@@ -242,9 +254,95 @@ bool gearman_vector_st::store(const char* arg_, const size_t arg_length_)
   return append(arg_, arg_length_);
 }
 
+bool gearman_vector_st::store(gearman_vector_st& vec)
+{
+  clear();
+  return append(vec.value(), vec.size());
+}
+
 bool gearman_vector_st::append(const char* arg_, const size_t arg_length_)
 {
-  return gearman_string_append(this, arg_, arg_length_);
+  if (_string_check(this, arg_length_ +1) == false)
+  {
+    return false;
+  }
+
+  memcpy(end, arg_, arg_length_);
+  end+= arg_length_;
+  *end= 0; // Add a NULL
+
+  return true;
+}
+
+int	gearman_vector_st::vec_printf(const char *format__, ...)
+{
+  clear();
+  if (format__)
+  {
+    va_list args;
+
+    va_start(args, format__);
+    int required_size= vec_size_printf(format__, args);
+    va_end(args);
+
+    va_start(args, format__);
+    int actual_size= vec_ptr_printf(required_size, format__, args);
+    va_end(args);
+
+    return actual_size;
+  }
+
+  return -1;
+}
+
+int	gearman_vector_st::vec_append_printf(const char *format__, ...)
+{
+  if (format__)
+  {
+    va_list args;
+
+    va_start(args, format__);
+    int required_size= vec_size_printf(format__, args);
+    va_end(args);
+
+    va_start(args, format__);
+    int actual_size= vec_ptr_printf(required_size, format__, args);
+    va_end(args);
+
+    return actual_size;
+  }
+
+  return -1;
+}
+
+int	gearman_vector_st::vec_size_printf(const char *format__, va_list args__)
+{
+  int required_size= vsnprintf(NULL, 0, format__, args__);
+  if (required_size)
+  {
+    required_size++;
+  }
+
+  return required_size;
+}
+
+int	gearman_vector_st::vec_ptr_printf(const int required_size, const char *format__, va_list args__)
+{
+  if (required_size > 0)
+  {
+    int actual_size= 0;
+    if (required_size > 0 and reserve(required_size + size()))
+    {
+      actual_size= vsnprintf(end, capacity() - size(), format__, args__);
+
+      assert(required_size == actual_size +1);
+      end+= actual_size;
+    }
+
+    return actual_size;
+  }
+
+  return -1;
 }
 
 gearman_vector_st::~gearman_vector_st()
@@ -256,7 +354,7 @@ gearman_vector_st::~gearman_vector_st()
   }
 }
 
-void gearman_vector_st::resize(const size_t size_)
+bool gearman_vector_st::resize(const size_t size_)
 {
   if (size_ == 0)
   {
@@ -266,7 +364,7 @@ void gearman_vector_st::resize(const size_t size_)
   }
   else if (size_ > capacity())
   {
-    reserve(size_);
+    return reserve(size_);
   }
   else if (size_ < capacity())
   {
@@ -274,13 +372,15 @@ void gearman_vector_st::resize(const size_t size_)
     char* new_value= static_cast<char *>(realloc(string, size_ +1));
     if (new_value == NULL)
     {
-      return;
+      return false;
     }
     string= new_value;
     end= string +final_size;
     current_size= size_ +1;
     string[final_size]= 0;
   }
+
+  return true;
 }
 
 void gearman_string_free(gearman_vector_st *string)
@@ -301,13 +401,12 @@ void gearman_string_free(gearman_vector_st *string)
 
 bool gearman_string_reserve(gearman_vector_st *string, size_t need_)
 {
-  if (need_)
+  if (string)
   {
-    return _string_check(string, need_ +1);
+    return string->reserve(need_);
   }
 
-  // Let _string_check handle the behavior of zero
-  return _string_check(string, need_);
+  return false;
 }
 
 size_t gearman_vector_st::size() const
@@ -316,15 +415,28 @@ size_t gearman_vector_st::size() const
   return size_t(end -string);
 }
 
-void gearman_vector_st::reserve(size_t need_)
+gearman_string_t gearman_vector_st::take()
+{
+  if (size())
+  {
+    gearman_string_t passable= { string, size() };
+    init();
+    return passable;
+  }
+
+  static gearman_string_t ret= {0, 0};
+  return ret;
+}
+
+bool gearman_vector_st::reserve(const size_t need_)
 {
   if (need_)
   {
-    _string_check(this, need_ +1);
+    return _string_check(this, need_ +1);
   }
 
   // Let _string_check handle the behavior of zero
-  _string_check(this, need_);
+  return _string_check(this, need_);
 }
 
 size_t gearman_string_length(const gearman_vector_st *self)
@@ -357,13 +469,12 @@ gearman_string_t gearman_string(const gearman_vector_st *self)
 gearman_string_t gearman_string_take_string(gearman_vector_st *self)
 {
   assert(self);
-  if (gearman_string_length(self))
+  if (self)
   {
-    gearman_string_t passable= gearman_string(self);
-    self->init();
-    return passable;
+    return self->take();
   }
 
   static gearman_string_t ret= {0, 0};
+
   return ret;
 }
