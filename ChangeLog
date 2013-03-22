@@ -1,7 +1,7 @@
-1.0.4
+1.0.4 Fri Mar 22 02:07:40 EDT 2013
 * Added --coredump flag to gearmand
-
 * Removed result type enum, since the structure is never exposed to the user this was of limited use.
+* Assorted bug fixes.
 
 1.0.3 Sun Feb  3 21:05:52 EST 2013
 * Allow for a longer set of retries if port is in use when the server starts up.
