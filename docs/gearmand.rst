@@ -83,6 +83,22 @@ SYNOPSIS
 
    Number of workers to wakeup for each job received. The default is to wakeup all available workers.
 
+.. option:: --keepalive
+
+   Enable keepalive on sockets.
+
+.. option:: --keepalive-idle arg (=-1)
+
+   If keepalive is enabled, set the value for TCP_KEEPIDLE for systems that support it. A value of -1 means that either the system does not support it or an error occurred when trying to retrieve the default value.
+
+.. option:: --keepalive-interval arg (=-1)
+
+   If keepalive is enabled, set the value for TCP_KEEPINTVL for systems that support it. A value of -1 means that either the system does not support it or an error occurred when trying to retrieve the default value.
+
+.. option:: --keepalive-count arg (=-1)
+
+   If keepalive is enabled, set the value for TCP_KEEPCNT for systems that support it. A value of -1 means that either the system does not support it or an error occurred when trying to retrieve the default value.
+
 **HTTP:**
 
 .. option:: --http-port arg (=8080)
