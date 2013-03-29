@@ -384,6 +384,7 @@ gearman_result_st *gearman_task_mutable_result(gearman_task_st *task)
     if (task->result_ptr == NULL)
     {
       task->result_ptr= new (std::nothrow) gearman_result_st();
+      assert(task->result_ptr);
     }
 
     return task->result_ptr;

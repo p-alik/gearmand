@@ -99,6 +99,35 @@ static test_return_t gearman_string_create_TEST(void*)
   return TEST_SUCCESS;
 }
 
+static test_return_t gearman_string_create_string_redo_size_TEST(void*)
+{
+  gearman_vector_st* vec= gearman_string_create(NULL, test_literal_param(__func__));
+
+  ASSERT_EQ(test_literal_param_size(__func__), vec->size());
+  ASSERT_TRUE(vec->capacity() >= test_literal_param_size(__func__));
+
+  vec= gearman_string_create(vec, test_literal_param("again"));
+
+  ASSERT_EQ(test_literal_param_size("again"), vec->size());
+  ASSERT_TRUE(vec->capacity() >= test_literal_param_size("again"));
+
+  gearman_string_free(vec);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_string_create_string_size_TEST(void*)
+{
+  gearman_vector_st* vec= gearman_string_create(NULL, test_literal_param(__func__));
+
+  ASSERT_EQ(test_literal_param_size(__func__), vec->size());
+  ASSERT_TRUE(vec->capacity() >= test_literal_param_size(__func__));
+
+  gearman_string_free(vec);
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t gearman_string_create_size_TEST(void*)
 {
   gearman_vector_st* vec= gearman_string_create(NULL, 2023);
@@ -489,6 +518,8 @@ test_st allocate_TESTS[] ={
   { "declare vector(2048)", 0, declare_vector_size_TEST },
   { "new vector(2023)", 0, new_vector_size_TEST },
   { "gearman_string_create(NULL, 0)", 0, gearman_string_create_TEST },
+  { "gearman_string_create(NULL, literal)", 0, gearman_string_create_string_size_TEST },
+  { "gearman_string_create(NULL, literal)x2", 0, gearman_string_create_string_redo_size_TEST },
   { "gearman_string_create(NULL, 2023)", 0, gearman_string_create_size_TEST },
   { "gearman_string_create(vec, 2023)", 0, gearman_string_create_nonnull_size_TEST },
   { 0, 0, 0 }

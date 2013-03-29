@@ -561,7 +561,7 @@ bool Application::Pipe::read(libtest::vchar_t& arg)
 void Application::Pipe::nonblock()
 {
   int flags;
-  {
+  do {
     flags= fcntl(_pipe_fd[READ], F_GETFL, 0);
   } while (flags == -1 and (errno == EINTR or errno == EAGAIN));
 

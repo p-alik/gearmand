@@ -77,8 +77,8 @@ static test_return_t init_test(void *)
   gearman_universal_st gear;
 
   gearman_universal_initialize(gear);
-  test_false(gear.options.non_blocking);
-  test_false(gear._namespace);
+  ASSERT_FALSE(gear.options.non_blocking);
+  ASSERT_FALSE(gear._namespace);
 
   gearman_universal_free(gear);
 
@@ -149,7 +149,7 @@ static test_return_t basic_error_test(void *)
   gearman_universal_initialize(universal);
 
   const char *error= gearman_universal_error(universal);
-  test_false(error);
+  ASSERT_FALSE(error);
 
   ASSERT_EQ(0, gearman_universal_errno(universal));
 
@@ -165,7 +165,7 @@ static test_return_t state_option_test(void *)
 
   gearman_universal_initialize(universal);
   { // Initial Allocated, no changes
-    test_false(universal.options.non_blocking);
+    ASSERT_FALSE(universal.options.non_blocking);
   }
   gearman_universal_free(universal);
 
@@ -192,10 +192,10 @@ static test_return_t gearman_universal_set_namespace_test(void *)
   gearman_universal_st universal;
   gearman_universal_initialize(universal);
 
-  test_false(universal._namespace);
+  ASSERT_FALSE(universal._namespace);
 
   gearman_universal_set_namespace(universal, gearman_literal_param("foo23"));
-  test_truth(universal._namespace);
+  ASSERT_TRUE(universal._namespace);
 
   gearman_universal_free(universal);
 
@@ -207,7 +207,7 @@ static test_return_t clone_gearman_universal_set_namespace_test(void *)
   gearman_universal_st universal;
   gearman_universal_initialize(universal);
 
-  test_false(universal._namespace);
+  ASSERT_FALSE(universal._namespace);
 
   gearman_universal_set_namespace(universal, gearman_literal_param("my_dog"));
   test_truth(universal._namespace);
@@ -236,17 +236,17 @@ static test_return_t state_option_set_test(void *)
 
   gearman_universal_initialize(universal);
   { // Initial Allocated, no changes
-    test_false(universal.options.non_blocking);
+    ASSERT_FALSE(universal.options.non_blocking);
   }
 
   gearman_universal_add_options(universal, GEARMAN_DONT_TRACK_PACKETS);
   { // Initial Allocated, no changes
-    test_false(universal.options.non_blocking);
+    ASSERT_FALSE(universal.options.non_blocking);
   }
 
   gearman_universal_remove_options(universal, GEARMAN_DONT_TRACK_PACKETS);
   { // Initial Allocated, no changes
-    test_false(universal.options.non_blocking);
+    ASSERT_FALSE(universal.options.non_blocking);
   }
 
   gearman_universal_free(universal);
@@ -277,8 +277,8 @@ static test_return_t connection_init_test(void *)
   gearman_connection_st *connection_ptr= gearman_connection_create(universal, NULL);
   test_truth(connection_ptr);
 
-  test_false(connection_ptr->options.ready);
-  test_false(connection_ptr->options.packet_in_use);
+  ASSERT_FALSE(connection_ptr->options.ready);
+  ASSERT_FALSE(connection_ptr->options.packet_in_use);
 
   delete connection_ptr;
 
@@ -294,8 +294,8 @@ static test_return_t connection_alloc_test(void *)
   gearman_connection_st *connection_ptr= gearman_connection_create(universal, NULL);
   test_truth(connection_ptr);
 
-  test_false(connection_ptr->options.ready);
-  test_false(connection_ptr->options.packet_in_use);
+  ASSERT_FALSE(connection_ptr->options.ready);
+  ASSERT_FALSE(connection_ptr->options.packet_in_use);
 
   delete connection_ptr;
 
@@ -318,16 +318,16 @@ static test_return_t packet_init_test(void *)
   gearman_universal_initialize(universal);
 
   packet_ptr= gearman_packet_create(universal, &packet);
-  test_false(packet.options.allocated);
-  test_false(packet_ptr->options.allocated);
+  ASSERT_FALSE(packet.options.allocated);
+  ASSERT_FALSE(packet_ptr->options.allocated);
 
-  test_false(packet.options.complete);
-  test_false(packet.options.free_data);
+  ASSERT_FALSE(packet.options.complete);
+  ASSERT_FALSE(packet.options.free_data);
 
   test_truth(packet_ptr == &packet);
 
   gearman_packet_free(packet_ptr);
-  test_false(packet.options.allocated);
+  ASSERT_FALSE(packet.options.allocated);
 
   return TEST_SUCCESS;
 }
@@ -388,9 +388,9 @@ static test_return_t gearman_packet_take_data_test(void *)
   size_t mine_size;
   char *mine= (char *)gearman_packet_take_data(packet, &mine_size);
 
-  test_false(packet_ptr->data);
+  ASSERT_FALSE(packet_ptr->data);
   test_zero(packet_ptr->data_size);
-  test_false(packet_ptr->options.free_data);
+  ASSERT_FALSE(packet_ptr->options.free_data);
 
   test_strcmp(mine, "Mine!");
   ASSERT_EQ(data_size, mine_size);
