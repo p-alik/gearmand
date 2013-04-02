@@ -87,6 +87,13 @@ static test_return_t new_vector_size_TEST(void*)
   return TEST_SUCCESS;
 }
 
+static test_return_t gearman_string_create_NULL_NULL_TEST(void*)
+{
+  ASSERT_EQ(NULL, gearman_string_create(NULL, NULL, 0));
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t gearman_string_create_TEST(void*)
 {
   gearman_vector_st* vec= gearman_string_create(NULL, 0);
@@ -518,6 +525,7 @@ test_st allocate_TESTS[] ={
   { "declare vector(2048)", 0, declare_vector_size_TEST },
   { "new vector(2023)", 0, new_vector_size_TEST },
   { "gearman_string_create(NULL, 0)", 0, gearman_string_create_TEST },
+  { "gearman_string_create(NULL, NULL, 0)", 0, gearman_string_create_NULL_NULL_TEST },
   { "gearman_string_create(NULL, literal)", 0, gearman_string_create_string_size_TEST },
   { "gearman_string_create(NULL, literal)x2", 0, gearman_string_create_string_redo_size_TEST },
   { "gearman_string_create(NULL, 2023)", 0, gearman_string_create_size_TEST },

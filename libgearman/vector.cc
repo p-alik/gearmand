@@ -100,7 +100,12 @@ void gearman_vector_st::init()
 
 gearman_vector_st *gearman_string_create(gearman_vector_st *self, const char *str, const size_t str_size)
 {
-  assert_msg(str, "Programmer error, gearman_string_clear() was passed a null string");
+  if (str_size and str == NULL)
+  {
+    assert_msg(str, "Programmer error, gearman_string_clear() was passed a null string, but str_size > 0");
+    return NULL;
+  }
+
   if (str == NULL)
   {
     return NULL;
