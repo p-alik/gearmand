@@ -127,13 +127,14 @@ gearman_vector_st *gearman_string_create(gearman_vector_st *string,
                                          size_t initial_size);
 
 
-gearman_vector_st *gearman_string_create(gearman_vector_st *self, const char *str, size_t initial_size);
+gearman_vector_st *gearman_string_create(gearman_vector_st *self, 
+                                         const char *str, size_t initial_size);
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-gearman_vector_st *gearman_string_clone(const gearman_vector_st *);
+gearman_vector_st *gearman_string_clone(const gearman_vector_st*);
 
 bool gearman_string_reserve(gearman_vector_st *string, size_t need);
 

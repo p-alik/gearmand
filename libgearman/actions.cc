@@ -64,6 +64,10 @@ static gearman_return_t _client_pause_data(gearman_task_st *task)
     else
     {
       task->result_ptr= new (std::nothrow) gearman_result_st(gearman_task_data_size(task));
+      if (task->result_ptr == NULL)
+      {
+        return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+      }
     }
     assert_msg(task->result_ptr, "programmer error, result_ptr has not been allocated for task");
 
@@ -134,7 +138,8 @@ static gearman_return_t _client_do_data(gearman_task_st *task)
       }
     }
 
-    gearman_string_append(gearman_task_mutable_result(task)->mutable_string(), static_cast<const char*>(gearman_task_data(task)), gearman_task_data_size(task));
+    assert(gearman_task_mutable_result(task));
+    gearman_task_mutable_result(task)->mutable_string()->append(static_cast<const char*>(gearman_task_data(task)), gearman_task_data_size(task));
   }
 
   return GEARMAN_SUCCESS;
