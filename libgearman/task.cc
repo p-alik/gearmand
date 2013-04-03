@@ -122,65 +122,63 @@ gearman_task_st *gearman_task_internal_create(gearman_client_st *client, gearman
 
 void gearman_task_free(gearman_task_st *task)
 {
-  if (task == NULL)
+  if (task)
   {
-    return;
-  }
-
-  if (task->options.is_initialized == false)
-  {
-    return;
-  }
-
-  assert(task->magic_ != TASK_ANTI_MAGIC);
-  assert(task->magic_ == TASK_MAGIC);
-  task->magic_= TASK_ANTI_MAGIC;
-
-  gearman_task_free_result(task);
-
-  if (task->client)
-  {
-    if (task->options.send_in_use)
+    if (task->options.is_initialized == false)
     {
-      gearman_packet_free(&(task->send));
+      return;
     }
 
-    if (task->type != GEARMAN_TASK_KIND_DO  and task->context and  task->client->task_context_free_fn)
+    assert(task->magic_ != TASK_ANTI_MAGIC);
+    assert(task->magic_ == TASK_MAGIC);
+    task->magic_= TASK_ANTI_MAGIC;
+
+    gearman_task_free_result(task);
+
+    if (task->client)
     {
-      task->client->task_context_free_fn(task, static_cast<void *>(task->context));
-    }
+      if (task->options.send_in_use)
+      {
+        gearman_packet_free(&(task->send));
+      }
 
-    if (task->client->task_list == task)
+      if (task->type != GEARMAN_TASK_KIND_DO  and task->context and  task->client->task_context_free_fn)
+      {
+        task->client->task_context_free_fn(task, static_cast<void *>(task->context));
+      }
+
+      if (task->client->task_list == task)
+      {
+        task->client->task_list= task->next;
+      }
+
+      if (task->prev)
+      {
+        task->prev->next= task->next;
+      }
+
+      if (task->next)
+      {
+        task->next->prev= task->prev;
+      }
+
+      task->client->task_count--;
+
+      // If the task we are removing is a current task, remove it from the client
+      // structures.
+      if (task->client->task == task)
+      {
+        task->client->task= NULL;
+      }
+      task->client= NULL;
+    }
+    task->job_handle[0]= 0;
+
+    task->options.is_initialized= false;
+    if (task->options.allocated)
     {
-      task->client->task_list= task->next;
+      delete task;
     }
-
-    if (task->prev)
-    {
-      task->prev->next= task->next;
-    }
-
-    if (task->next)
-    {
-      task->next->prev= task->prev;
-    }
-
-    task->client->task_count--;
-
-    // If the task we are removing is a current task, remove it from the client
-    // structures.
-    if (task->client->task == task)
-    {
-      task->client->task= NULL;
-    }
-    task->client= NULL;
-  }
-  task->job_handle[0]= 0;
-
-  task->options.is_initialized= false;
-  if (task->options.allocated)
-  {
-    delete task;
   }
 }
 
@@ -267,19 +265,17 @@ void *gearman_task_context(const gearman_task_st *task)
 
 void gearman_task_set_context(gearman_task_st *task, void *context)
 {
-  if (task == NULL)
+  if (task)
   {
-    return;
+    task->context= context;
   }
-
-  task->context= context;
 }
 
 const char *gearman_task_function_name(const gearman_task_st *task)
 {
   if (task == NULL)
   {
-    return 0;
+    return NULL;
   }
 
   return task->send.arg[0];
@@ -289,7 +285,7 @@ const char *gearman_task_unique(const gearman_task_st *task)
 {
   if (task == NULL)
   {
-    return 0;
+    return NULL;
   }
 
   return task->unique;
@@ -299,7 +295,7 @@ const char *gearman_task_job_handle(const gearman_task_st *task)
 {
   if (task == NULL)
   {
-    return 0;
+    return NULL;
   }
 
   return task->job_handle;
@@ -360,6 +356,10 @@ size_t gearman_task_send_workload(gearman_task_st *task, const void *workload,
 {
   if (task == NULL)
   {
+    if (ret_ptr)
+    {
+      *ret_ptr= GEARMAN_INVALID_ARGUMENT;
+    }
     return 0;
   }
 
@@ -430,18 +430,19 @@ size_t gearman_task_recv_data(gearman_task_st *task, void *data,
                                   size_t data_size,
                                   gearman_return_t *ret_ptr)
 {
-  if (task == NULL)
+  gearman_return_t unused;
+  if (ret_ptr == NULL)
   {
-    gearman_return_t unused;
-    if (ret_ptr == NULL)
-    {
-      ret_ptr= &unused;
-    }
-
-    return task->con->receive_data(data, data_size, *ret_ptr);
+    ret_ptr= &unused;
   }
 
-  return 0;
+  if (task == NULL)
+  {
+    *ret_ptr= GEARMAN_INVALID_ARGUMENT;
+    return 0;
+  }
+
+  return task->con->receive_data(data, data_size, *ret_ptr);
 }
 
 const char *gearman_task_error(const gearman_task_st *task)
@@ -461,7 +462,6 @@ const char *gearman_task_error(const gearman_task_st *task)
 
 gearman_return_t gearman_task_return(const gearman_task_st *task)
 {
-  assert(task); // Only used internally.
   if (task == NULL)
   {
     return GEARMAN_INVALID_ARGUMENT;
