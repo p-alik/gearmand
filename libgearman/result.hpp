@@ -3,7 +3,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2011-2013 Data Differential, http://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -55,7 +55,7 @@ enum gearman_result_t {
 
 struct gearman_result_st
 {
-  enum gearman_result_t type;
+  enum gearman_result_t _type;
 
   struct Value {
     bool _boolean;
@@ -81,7 +81,7 @@ struct gearman_result_st
 
   bool is_null() const
   {
-    return type == GEARMAN_RESULT_NULL ? true : false;
+    return _type == GEARMAN_RESULT_NULL;
   }
 
   void clear()
@@ -89,10 +89,12 @@ struct gearman_result_st
     value.string.clear();
     value._integer= 0;
     value._boolean= false;
-    type= GEARMAN_RESULT_NULL;
+    _type= GEARMAN_RESULT_NULL;
   }
 
+  bool store(const gearman_string_t&);
   bool store(const char*, const size_t);
+  bool store(int64_t);
   bool append(const char*, const size_t);
 
   size_t size() const;
@@ -116,14 +118,14 @@ struct gearman_result_st
   {
     value._integer= 0;
     value._boolean= false;
-    type= GEARMAN_RESULT_BINARY;
+    _type= GEARMAN_RESULT_BINARY;
 
     return &value.string;
   }
 
   const gearman_vector_st *string() const
   {
-    if (type == GEARMAN_RESULT_BINARY)
+    if (_type == GEARMAN_RESULT_BINARY)
     {
       return &value.string;
     }
@@ -131,21 +133,30 @@ struct gearman_result_st
     return NULL;
   }
 
-  void boolean(bool arg_)
+  bool boolean(bool arg_)
   {
-    if (type != GEARMAN_RESULT_BOOLEAN)
+    if (_type != GEARMAN_RESULT_BOOLEAN)
     {
       clear();
-      type= GEARMAN_RESULT_BOOLEAN;
+      _type= GEARMAN_RESULT_BOOLEAN;
     }
 
     value._boolean= arg_;
+
+    return true;
   }
 
   bool boolean() const;
 
   int64_t integer() const;
-  void integer(int64_t);
+  bool integer(int64_t);
+
+  gearman_string_t take();
+
+  bool is_type(gearman_result_t arg)
+  {
+    return _type == arg;
+  }
 
   ~gearman_result_st()
   {

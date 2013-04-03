@@ -135,6 +135,8 @@ test_return_t gearman_execute_partition_basic(void *object)
   // gearman_execute_partition() is called (look in the log to see the
   // failed option setting.
   gearman_client_set_server_option(client, test_literal_param("should fail"));
+
+  // This is the real work
   gearman_argument_t workload= gearman_argument_make(0, 0, test_literal_param("this dog does not hunt"));
 
   gearman_task_st *task= gearman_execute_by_partition(client,
@@ -143,10 +145,10 @@ test_return_t gearman_execute_partition_basic(void *object)
                                                       NULL, 0,  // unique
                                                       NULL,
                                                       &workload, 0);
-  test_true(task);
+  ASSERT_TRUE(task);
   ASSERT_EQ(GEARMAN_SUCCESS, gearman_task_return(task));
   gearman_result_st *result= gearman_task_result(task);
-  test_truth(result);
+  ASSERT_TRUE(result);
   const char *value= gearman_result_value(result);
   test_truth(value);
   ASSERT_EQ(18UL, gearman_result_size(result));

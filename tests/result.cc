@@ -50,6 +50,8 @@ using namespace libtest;
 #include "libgearman-1.0/visibility.h"
 #include "libgearman-1.0/result.h"
 
+#include <memory>
+
 static test_return_t declare_result_TEST(void*)
 {
   gearman_result_st result;
@@ -215,6 +217,114 @@ static test_return_t gearman_string_allocate_take_TEST(void*)
   return TEST_SUCCESS;
 }
 
+static test_return_t gearman_result_integer_TEST(void*)
+{
+  gearman_result_st result;
+  ASSERT_TRUE(result.store(8976));
+
+  ASSERT_EQ(0, gearman_result_integer(NULL));
+  ASSERT_EQ(8976, gearman_result_integer(&result));
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_result_boolean_TEST(void*)
+{
+  gearman_result_st result;
+  ASSERT_TRUE(result.is_type(GEARMAN_RESULT_NULL));
+
+  ASSERT_EQ(false, gearman_result_boolean(NULL));
+
+  ASSERT_TRUE(result.boolean(true));
+  ASSERT_EQ(true, gearman_result_boolean(&result));
+  ASSERT_TRUE(result.is_type(GEARMAN_RESULT_BOOLEAN));
+
+  ASSERT_TRUE(result.boolean(false));
+  ASSERT_EQ(false, gearman_result_boolean(&result));
+  ASSERT_TRUE(result.is_type(GEARMAN_RESULT_BOOLEAN));
+
+  gearman_result_st result_false;
+  ASSERT_TRUE(result_false.boolean(false));
+  ASSERT_EQ(false, gearman_result_boolean(&result_false));
+  ASSERT_TRUE(result.is_type(GEARMAN_RESULT_BOOLEAN));
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_result_string_TEST(void*)
+{
+  gearman_string_t value= { test_literal_param("This is my echo test") };
+  gearman_result_st result;
+  ASSERT_EQ(GEARMAN_SUCCESS, gearman_result_store_string(&result, value));
+
+  gearman_string_t ret_value= gearman_result_string(&result);
+  ASSERT_EQ(test_literal_param_size(value), test_literal_param_size(ret_value));
+
+  ASSERT_EQ(GEARMAN_INVALID_ARGUMENT, gearman_result_store_string(NULL, value));
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_result_store_string_TEST(void*)
+{
+  gearman_string_t value= { test_literal_param("This is my echo test") };
+  ASSERT_EQ(GEARMAN_INVALID_ARGUMENT, gearman_result_store_string(NULL, value));
+
+  gearman_result_st result;
+  ASSERT_EQ(GEARMAN_SUCCESS, gearman_result_store_string(&result, value));
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_result_store_integer_TEST(void*)
+{
+  const int64_t value= __LINE__;
+  gearman_result_st result;
+  gearman_result_store_integer(&result, value);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_result_store_value_TEST(void*)
+{
+  ASSERT_EQ(GEARMAN_INVALID_ARGUMENT, gearman_result_store_value(NULL, NULL, 0));
+
+  gearman_result_st result;
+  ASSERT_EQ(GEARMAN_SUCCESS, gearman_result_store_value(&result, test_literal_param(__func__)));
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_result_size_TEST(void*)
+{
+  gearman_result_st result;
+  ASSERT_EQ(GEARMAN_SUCCESS, gearman_result_store_value(&result, test_literal_param(__func__)));
+  ASSERT_EQ(strlen(__func__), gearman_result_size(&result));
+
+  ASSERT_EQ(0, gearman_result_size(NULL));
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_result_value_TEST(void*)
+{
+  gearman_result_st result;
+  ASSERT_EQ(GEARMAN_SUCCESS, gearman_result_store_value(&result, test_literal_param(__func__)));
+
+  ASSERT_EQ(GEARMAN_INVALID_ARGUMENT, gearman_result_store_value(NULL, test_literal_param(__func__)));
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_result_is_null_TEST(void*)
+{
+  gearman_result_st result;
+  ASSERT_TRUE(gearman_result_is_null(&result));
+  ASSERT_TRUE(gearman_result_is_null(NULL));
+
+  return TEST_SUCCESS;
+}
+
 test_st allocate_TESTS[] ={
   { "declare result", 0, declare_result_TEST },
   { "new result", 0, new_result_TEST },
@@ -242,11 +352,25 @@ test_st take_TESTS[] ={
   { 0, 0, 0 }
 };
 
+test_st API_TESTS[] ={
+  { "gearman_result_integer()", 0, gearman_result_integer_TEST },
+  { "gearman_result_boolean()", 0, gearman_result_boolean_TEST },
+  { "gearman_result_string()", 0, gearman_result_string_TEST },
+  { "gearman_result_store_string()", 0, gearman_result_store_string_TEST },
+  { "gearman_result_store_integer()", 0, gearman_result_store_integer_TEST },
+  { "gearman_result_store_value()", 0, gearman_result_store_value_TEST },
+  { "gearman_result_size()", 0, gearman_result_size_TEST },
+  { "gearman_result_value()", 0, gearman_result_value_TEST },
+  { "gearman_result_is_null()", 0, gearman_result_is_null_TEST },
+  { 0, 0, 0 }
+};
+
 collection_st collection[] ={
   {"allocate", NULL, NULL, allocate_TESTS },
   {"resize", NULL, NULL, resize_TESTS },
   {"append", NULL, NULL, append_TESTS },
   {"take", NULL, NULL, take_TESTS },
+  {"API", NULL, NULL, API_TESTS },
   {0, 0, 0, 0}
 };
 

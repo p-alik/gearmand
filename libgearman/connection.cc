@@ -169,8 +169,7 @@ gearman_connection_st *gearman_connection_create(gearman_universal_st &universal
   gearman_connection_st *connection= new (std::nothrow) gearman_connection_st(universal, options);
   if (connection == NULL)
   {
-    gearman_perror(universal, "gearman_connection_st new");
-    return NULL;
+    gearman_perror(universal, "Failed at new() gearman_connection_st new");
   }
 
   return connection;

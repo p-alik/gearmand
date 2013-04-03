@@ -53,7 +53,7 @@ void gearman_log(gearman_universal_st *state, gearman_verbose_t verbose,
 {
   char log_buffer[GEARMAN_MAX_ERROR_SIZE];
 
-  if (state->log_fn == NULL)
+  if (state->log_fn)
   {
     vsnprintf(log_buffer, GEARMAN_MAX_ERROR_SIZE, format, args);
     state->log_fn(log_buffer, verbose, state->log_context);
@@ -100,8 +100,7 @@ void gearman_log_info(gearman_universal_st *gearman, const char *format,
   }
 }
 
-void gearman_log_debug(gearman_universal_st *gearman, const char *format,
-                       ...)
+void gearman_log_debug(gearman_universal_st *gearman, const char *format, ...)
 {
   va_list args;
 
@@ -113,8 +112,7 @@ void gearman_log_debug(gearman_universal_st *gearman, const char *format,
   }
 }
 
-void gearman_log_crazy(gearman_universal_st *gearman, const char *format,
-                       ...)
+void gearman_log_crazy(gearman_universal_st *gearman, const char *format, ...)
 {
   va_list args;
 

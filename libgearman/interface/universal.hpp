@@ -129,6 +129,11 @@ struct gearman_universal_st
     _error.last_errno= last_errno_;
   }
 
+  bool has_connections() const
+  {
+    return con_count;
+  }
+
   void reset_error()
   {
     _error.rc= GEARMAN_SUCCESS;

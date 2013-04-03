@@ -176,7 +176,7 @@ gearman_task_st *gearman_execute_by_partition(gearman_client_st *client,
 
   if ((partition_function == NULL) or (partition_function_length == 0))
   {
-    gearman_error(client->impl()->universal, GEARMAN_INVALID_ARGUMENT, "function_name was NULL");
+    gearman_error(client->impl()->universal, GEARMAN_INVALID_ARGUMENT, "partition_function was NULL");
     return NULL;
   }
 
