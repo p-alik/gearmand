@@ -316,14 +316,20 @@ gearman_result_st *gearman_task_mutable_result(gearman_task_st* task_shell)
 {
   assert(task_shell); // Programmer error
   assert(task_shell->impl()); // Programmer error
-  if (task_shell and task_shell->impl())
-  {
-    if (task_shell->impl()->result() == NULL)
-    {
-      task_shell->impl()->create_result(0);
-    }
 
-    return task_shell->impl()->result();
+  if (task_shell)
+  {
+    Task* task= task_shell->impl();
+    if (task)
+    {
+      if (task->result() == NULL)
+      {
+        task->create_result(0);
+        assert(task->result());
+      }
+
+      return task->result();
+    }
   }
   
   return NULL;

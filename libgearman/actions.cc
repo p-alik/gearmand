@@ -65,7 +65,10 @@ static gearman_return_t _client_pause_data(gearman_task_st* shell)
     }
     else
     {
-      task->create_result(gearman_task_data_size(shell));
+      if (task->create_result(gearman_task_data_size(shell)) == false)
+      {
+        return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+      }
     }
     assert_msg(task->result(), "programmer error, result_ptr has not been allocated for task");
 
@@ -139,7 +142,8 @@ static gearman_return_t _client_do_data(gearman_task_st* shell)
       }
     }
 
-    gearman_string_append(gearman_task_mutable_result(shell)->mutable_string(), static_cast<const char*>(gearman_task_data(shell)), gearman_task_data_size(shell));
+    assert(gearman_task_mutable_result(shell));
+    gearman_task_mutable_result(shell)->mutable_string()->append(static_cast<const char*>(gearman_task_data(shell)), gearman_task_data_size(shell));
   }
 
   return GEARMAN_SUCCESS;

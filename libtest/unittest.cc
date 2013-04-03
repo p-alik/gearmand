@@ -194,17 +194,19 @@ static test_return_t test_throw_fail_TEST(void *)
 }
 #pragma GCC diagnostic ignored "-Wstack-protector"
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-security"
+#ifdef __clang__
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wformat-security"
+#endif
 
 static test_return_t ASSERT_FALSE__TEST(void *)
 {
   try {
-    ASSERT_FALSE_(true, __func__);
+    ASSERT_FALSE(true);
   }
   catch (const libtest::__failure& e)
   {
-    ASSERT_STREQ(e.what(), "Assertion '!true' [ ASSERT_FALSE__TEST ]");
+    ASSERT_STREQ(e.what(), "Assertion '!true'");
     return TEST_SUCCESS;
   }
   catch (...)
@@ -215,7 +217,9 @@ static test_return_t ASSERT_FALSE__TEST(void *)
   return TEST_FAILURE;
 }
 
-#pragma GCC diagnostic pop
+#ifdef __clang__
+# pragma GCC diagnostic pop
+#endif
 
 static test_return_t ASSERT_FALSE_TEST(void *)
 {

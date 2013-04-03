@@ -86,27 +86,22 @@ private:
 
   test_return_t _run(libgearman_test_callback_fn func, client_test_st *container)
   {
-    test_compare(GEARMAN_SUCCESS, gearman_client_echo(container->client(), test_literal_param("check")));
-
     if (func)
     {
       test_return_t rc;
 
       {
-        gearman_client_st *client= gearman_client_clone(NULL, container->client());
-        test_truth(client);
-        gearman_client_set_context(client, (void *)container->worker_name());
+        org::gearmand::libgearman::Client client(container->client());
+        gearman_client_set_context(&client, (void *)container->worker_name());
         if (container->session_namespace())
         {
-          gearman_client_set_namespace(client, container->session_namespace(),strlen(container->session_namespace()));
+          gearman_client_set_namespace(&client, container->session_namespace(),strlen(container->session_namespace()));
         }
-        rc= func(client);
+        rc= func(&client);
         if (rc == TEST_SUCCESS)
         {
-          test_warn(gearman_client_has_tasks(client) == false, "client has uncompleted tasks");
+          test_warn(gearman_client_has_tasks(&client) == false, "client has uncompleted tasks");
         }
-
-        gearman_client_free(client);
       }
 
       return rc;

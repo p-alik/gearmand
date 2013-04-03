@@ -348,7 +348,9 @@ static test_return_t echo_test(void*)
 {
   libgearman::Worker worker;
 
-  ASSERT_EQ(gearman_worker_echo(&worker, test_literal_param("This is my echo test")), GEARMAN_SUCCESS);
+  ASSERT_EQ(gearman_worker_echo(&worker, test_literal_param("This is my echo test")), GEARMAN_NO_SERVERS);
+  ASSERT_EQ(GEARMAN_SUCCESS, gearman_worker_add_server(&worker, "localhost", libtest::default_port()));
+  ASSERT_EQ(GEARMAN_SUCCESS, gearman_worker_echo(&worker, test_literal_param("This is my echo test")));
 
   return TEST_SUCCESS;
 }
@@ -356,6 +358,7 @@ static test_return_t echo_test(void*)
 static test_return_t echo_multi_test(void *)
 {
   libgearman::Worker worker;
+  ASSERT_EQ(GEARMAN_SUCCESS, gearman_worker_add_server(&worker, "localhost", libtest::default_port()));
 
   const char *value[]= {
     "This is my echo test",
@@ -370,8 +373,7 @@ static test_return_t echo_multi_test(void *)
 
   while (*ptr)
   {
-    ASSERT_EQ(gearman_worker_echo(&worker, test_string_make_from_cstr(*ptr)),
-                 GEARMAN_SUCCESS);
+    ASSERT_EQ(gearman_worker_echo(&worker, test_string_make_from_cstr(*ptr)), GEARMAN_SUCCESS);
     ptr++;
   }
 

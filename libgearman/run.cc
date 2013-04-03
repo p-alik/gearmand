@@ -59,11 +59,13 @@ gearman_return_t _client_run_task(Task *task)
   {
   case GEARMAN_TASK_STATE_NEW:
     
-    if (task->client->impl()->universal.con_list == NULL)
+    if (task->client->impl()->universal.has_connections() == false)
     {
+      assert(task->client->impl()->universal.con_count == 0);
+      assert(task->client->impl()->universal.con_list == NULL);
       task->client->impl()->new_tasks--;
       task->client->impl()->running_tasks--;
-      return gearman_universal_set_error(task->client->impl()->universal, GEARMAN_NO_SERVERS, GEARMAN_AT, "no servers added");
+      return gearman_universal_set_error(task->client->impl()->universal, GEARMAN_NO_SERVERS, GEARMAN_AT, "no servers provided");
     }
 
     for (task->con= task->client->impl()->universal.con_list; task->con;

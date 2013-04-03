@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2011-2013 Data Differential, http://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -50,20 +50,19 @@
 #include <libgearman/result.hpp>
 
 gearman_result_st::gearman_result_st() :
-  type(GEARMAN_RESULT_NULL)
+  _type(GEARMAN_RESULT_NULL)
 {
   value._boolean= false;
 }
 
 gearman_result_st::gearman_result_st(size_t reserve_size_) :
-  type(GEARMAN_RESULT_NULL),
+  _type(GEARMAN_RESULT_NULL),
   value(reserve_size_)
 {
 }
 
 bool gearman_result_is_null(const gearman_result_st *self)
 {
-  assert(self);
   if (self)
   {
     return self->is_null();
@@ -74,7 +73,7 @@ bool gearman_result_is_null(const gearman_result_st *self)
 
 size_t gearman_result_st::size() const
 {
-  switch (type)
+  switch (_type)
   {
   case GEARMAN_RESULT_BINARY:
     return value.string.size();
@@ -94,7 +93,7 @@ size_t gearman_result_st::size() const
 
 int64_t gearman_result_st::integer() const
 {
-  switch (type)
+  switch (_type)
   {
   case GEARMAN_RESULT_BINARY:
     return atoll(value.string.value());
@@ -114,7 +113,6 @@ int64_t gearman_result_st::integer() const
 
 int64_t gearman_result_integer(const gearman_result_st *self)
 {
-  assert(self);
   if (self)
   {
     return self->integer();
@@ -125,7 +123,7 @@ int64_t gearman_result_integer(const gearman_result_st *self)
 
 bool gearman_result_st::boolean() const
 {
-  switch (type)
+  switch (_type)
   {
   case GEARMAN_RESULT_BINARY:
     return value.string.size();
@@ -155,7 +153,7 @@ bool gearman_result_boolean(const gearman_result_st *self)
 
 size_t gearman_result_size(const gearman_result_st *self)
 {
-  if (self and self->type == GEARMAN_RESULT_BINARY)
+  if (self and self->_type == GEARMAN_RESULT_BINARY)
   {
     return gearman_string_length(&self->value.string);
   }
@@ -165,7 +163,7 @@ size_t gearman_result_size(const gearman_result_st *self)
 
 const char *gearman_result_value(const gearman_result_st *self)
 {
-  if (self and self->type == GEARMAN_RESULT_BINARY)
+  if (self and self->_type == GEARMAN_RESULT_BINARY)
   {
     gearman_string_t ret= gearman_string(&self->value.string);
     return gearman_c_str(ret);
@@ -176,7 +174,7 @@ const char *gearman_result_value(const gearman_result_st *self)
 
 gearman_string_t gearman_result_string(const gearman_result_st *self)
 {
-  if (not self or self->type != GEARMAN_RESULT_BINARY)
+  if (not self or self->_type != GEARMAN_RESULT_BINARY)
   {
     gearman_string_t ret= {0, 0};
     return ret;
@@ -185,13 +183,12 @@ gearman_string_t gearman_result_string(const gearman_result_st *self)
   return gearman_string(&self->value.string);
 }
 
-gearman_string_t gearman_result_take_string(gearman_result_st *self)
+gearman_string_t gearman_result_st::take()
 {
-  assert(self); // Programming error
-  if (self->type == GEARMAN_RESULT_BINARY and gearman_result_size(self))
+  if (_type == GEARMAN_RESULT_BINARY and size())
   {
-    gearman_string_t ret_string= gearman_string_take_string(&self->value.string);
-    self->type= GEARMAN_RESULT_NULL; // Set to NULL
+    gearman_string_t ret_string= value.string.take();
+    clear();
 
     return ret_string;
   }
@@ -200,9 +197,19 @@ gearman_string_t gearman_result_take_string(gearman_result_st *self)
   return ret;
 }
 
+gearman_string_t gearman_result_take_string(gearman_result_st *self)
+{
+  if (self)
+  {
+    return self->take();
+  }
+
+  static gearman_string_t ret= {0, 0};
+  return ret;
+}
+
 gearman_return_t gearman_result_store_string(gearman_result_st *self, gearman_string_t arg)
 {
-  assert(self);
   if (self)
   {
     if (self->store(gearman_string_param(arg)) == false)
@@ -218,31 +225,62 @@ gearman_return_t gearman_result_store_string(gearman_result_st *self, gearman_st
 
 bool gearman_result_st::append(const char* arg, const size_t arg_length)
 {
-  if (type != GEARMAN_RESULT_BINARY)
+  if (_type != GEARMAN_RESULT_BINARY)
   {
     clear();
-    type= GEARMAN_RESULT_BINARY;
+    _type= GEARMAN_RESULT_BINARY;
   }
 
   if (value.string.append(arg, arg_length) == false)
   {
-    type= GEARMAN_RESULT_NULL;
+    _type= GEARMAN_RESULT_NULL;
     return false;
   }
 
   return true;
 }
 
+#if 0
+bool gearman_result_st::store(bool arg)
+{
+  if (_type != GEARMAN_RESULT_BOOLEAN)
+  {
+    value.string.clear();
+  } 
+  value._boolean= arg; 
+  _type= GEARMAN_RESULT_BOOLEAN; 
+
+  return true;
+}
+#endif
+
+bool gearman_result_st::store(int64_t arg)
+{
+  if (_type != GEARMAN_RESULT_INTEGER)
+  {
+    value.string.clear();
+  } 
+  value._integer= arg; 
+  _type= GEARMAN_RESULT_INTEGER; 
+
+  return true;
+}
+
+bool gearman_result_st::store(const gearman_string_t& arg)
+{
+  return store(gearman_c_str(arg), gearman_size(arg));
+}
+
 bool gearman_result_st::store(const char* arg, const size_t arg_length)
 {
   value.string.clear();
-  if (gearman_string_append(&value.string, arg, arg_length) == false)
+  if (value.string.store(arg, arg_length) == false)
   {
-    type= GEARMAN_RESULT_NULL;
+    _type= GEARMAN_RESULT_NULL;
     return false;
   }
 
-  type= GEARMAN_RESULT_BINARY;
+  _type= GEARMAN_RESULT_BINARY;
 
   return true;
 }
@@ -251,33 +289,23 @@ gearman_return_t gearman_result_store_value(gearman_result_st *self, const void 
 {
   if (self)
   {
-    if (self->type != GEARMAN_RESULT_BINARY)
-    {
-      self->clear();
-    }
-
-    if (self->store((const char*)value, size) == false) // If append should fail, we default to NULL
-    {
-      self->type= GEARMAN_RESULT_NULL;
-      return GEARMAN_MEMORY_ALLOCATION_FAILURE;
-    }
-    self->type= GEARMAN_RESULT_BINARY;
-
-    return GEARMAN_SUCCESS;
+    return self->store((const char*)value, size) == true ? GEARMAN_SUCCESS : GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
 
   return GEARMAN_INVALID_ARGUMENT;
 }
 
-void gearman_result_st::integer(int64_t arg_)
+bool gearman_result_st::integer(int64_t arg_)
 {
-  if (type != GEARMAN_RESULT_INTEGER)
+  if (_type != GEARMAN_RESULT_INTEGER)
   {
     clear();
-    type= GEARMAN_RESULT_INTEGER;
+    _type= GEARMAN_RESULT_INTEGER;
   }
 
   value._integer= arg_;
+
+  return true;
 }
 
 void gearman_result_store_integer(gearman_result_st *self, int64_t arg_)

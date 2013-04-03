@@ -98,9 +98,14 @@ void gearman_vector_st::init()
   end= string= NULL;
 }
 
-gearman_vector_st *gearman_string_create(gearman_vector_st *self, const char *str, size_t str_size)
+gearman_vector_st *gearman_string_create(gearman_vector_st *self, const char *str, const size_t str_size)
 {
-  assert_msg(str, "Programmer error, gearman_string_clear() was passed a null string");
+  if (str_size and str == NULL)
+  {
+    assert_msg(str, "Programmer error, gearman_string_clear() was passed a null string, but str_size > 0");
+    return NULL;
+  }
+
   if (str == NULL)
   {
     return NULL;
@@ -110,7 +115,7 @@ gearman_vector_st *gearman_string_create(gearman_vector_st *self, const char *st
   assert_vmsg(self, "Programmer error, gearman_string_create() returned a null gearman_vector_st() requesting a reserve of %u", uint32_t(str_size));
   if (self)
   {
-    if ((gearman_string_append(self, str, str_size) == false))
+    if ((self->store(str, str_size) == false))
     {
       assert_vmsg(self, "Programmer error, gearman_string_append() returned false while trying to append a string of %u length", uint32_t(str_size));
       gearman_string_free(self);
@@ -132,7 +137,7 @@ gearman_vector_st::gearman_vector_st(const size_t reserve_) :
   }
 }
 
-gearman_vector_st *gearman_string_create(gearman_vector_st *self, size_t reserve_)
+gearman_vector_st *gearman_string_create(gearman_vector_st *self, const size_t reserve_)
 {
   /* Saving malloc calls :) */
   if (self == NULL)
@@ -174,9 +179,9 @@ gearman_vector_st *gearman_string_clone(const gearman_vector_st *self)
 
     if (clone)
     {
-      if (gearman_string_length(self))
+      if (self->size())
       {
-        if (gearman_string_append(clone, gearman_string_value(self), gearman_string_length(self)) == false)
+        if (clone->store(gearman_string_value(self), gearman_string_length(self)) == false)
         {
           gearman_string_free(clone);
           return NULL;
