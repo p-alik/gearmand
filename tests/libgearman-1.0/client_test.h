@@ -42,8 +42,6 @@ struct client_test_st;
 #include "tests/start_worker.h"
 #include "libgearman/client.hpp"
 
-#include <stdexcept>
-
 struct client_test_st
 {
   org::gearmand::libgearman::Client _client;

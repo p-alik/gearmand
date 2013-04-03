@@ -108,7 +108,6 @@ void gearman_universal_clone(gearman_universal_st &destination, const gearman_un
   {
     if (gearman_connection_copy(destination, *con) == NULL)
     {
-      assert(false);
       return;
     }
   }
@@ -172,7 +171,7 @@ void gearman_set_log_fn(gearman_universal_st &self, gearman_log_fn *function,
   self.log_context= context;
   self.verbose= verbose;
   
-  gearman_log_debug(&self, "Enabled logging");
+  gearman_log_debug(self, "Enabled logging");
 }
 
 void gearman_set_workload_malloc_fn(gearman_universal_st& universal,
