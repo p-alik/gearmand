@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2011-2013 Data Differential, http://datadifferential.com/
  *  Copyright (C) 2008 Brian Aker, Eric Day
  *  All rights reserved.
  *
@@ -48,25 +48,23 @@
 #include <cstdio>
 
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
-void gearman_log(gearman_universal_st *state, gearman_verbose_t verbose,
+void gearman_log(gearman_universal_st& state, gearman_verbose_t verbose,
                  const char *format, va_list args)
 {
-  char log_buffer[GEARMAN_MAX_ERROR_SIZE];
-
-  if (state->log_fn == NULL)
+  if (state.log_fn == NULL)
   {
+    char log_buffer[GEARMAN_MAX_ERROR_SIZE];
     vsnprintf(log_buffer, GEARMAN_MAX_ERROR_SIZE, format, args);
-    state->log_fn(log_buffer, verbose, state->log_context);
+    state.log_fn(log_buffer, verbose, state.log_context);
   }
 }
 
 
-void gearman_log_fatal(gearman_universal_st *gearman, const char *format,
-                       ...)
+void gearman_log_fatal(gearman_universal_st& gearman, const char *format, ...)
 {
   va_list args;
 
-  if (gearman->verbose >= GEARMAN_VERBOSE_FATAL)
+  if (gearman.verbose >= GEARMAN_VERBOSE_FATAL)
   {
     va_start(args, format);
     gearman_log(gearman, GEARMAN_VERBOSE_FATAL, format, args);
@@ -74,12 +72,11 @@ void gearman_log_fatal(gearman_universal_st *gearman, const char *format,
   }
 }
 
-void gearman_log_error(gearman_universal_st *gearman, const char *format,
-                       ...)
+void gearman_log_error(gearman_universal_st& gearman, const char *format, ...)
 {
   va_list args;
 
-  if (gearman->verbose >= GEARMAN_VERBOSE_ERROR)
+  if (gearman.verbose >= GEARMAN_VERBOSE_ERROR)
   {
     va_start(args, format);
     gearman_log(gearman, GEARMAN_VERBOSE_ERROR, format, args);
@@ -87,12 +84,11 @@ void gearman_log_error(gearman_universal_st *gearman, const char *format,
   }
 }
 
-void gearman_log_info(gearman_universal_st *gearman, const char *format,
-                      ...)
+void gearman_log_info(gearman_universal_st& gearman, const char *format, ...)
 {
   va_list args;
 
-  if (gearman->verbose >= GEARMAN_VERBOSE_INFO)
+  if (gearman.verbose >= GEARMAN_VERBOSE_INFO)
   {
     va_start(args, format);
     gearman_log(gearman, GEARMAN_VERBOSE_INFO, format, args);
@@ -100,12 +96,11 @@ void gearman_log_info(gearman_universal_st *gearman, const char *format,
   }
 }
 
-void gearman_log_debug(gearman_universal_st *gearman, const char *format,
-                       ...)
+void gearman_log_debug(gearman_universal_st& gearman, const char *format, ...)
 {
   va_list args;
 
-  if (gearman->verbose >= GEARMAN_VERBOSE_DEBUG)
+  if (gearman.verbose >= GEARMAN_VERBOSE_DEBUG)
   {
     va_start(args, format);
     gearman_log(gearman, GEARMAN_VERBOSE_DEBUG, format, args);
