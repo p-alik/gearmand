@@ -51,7 +51,7 @@
 void gearman_log(gearman_universal_st& state, gearman_verbose_t verbose,
                  const char *format, va_list args)
 {
-  if (state.log_fn == NULL)
+  if (state.log_fn)
   {
     char log_buffer[GEARMAN_MAX_ERROR_SIZE];
     vsnprintf(log_buffer, GEARMAN_MAX_ERROR_SIZE, format, args);

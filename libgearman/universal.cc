@@ -139,6 +139,9 @@ void gearman_universal_clone(gearman_universal_st &destination, const gearman_un
   destination.timeout= source.timeout;
 
   destination._namespace= gearman_string_clone(source._namespace);
+  destination.verbose= source.verbose;
+  destination.log_fn= source.log_fn;
+  destination.log_context= source.log_context;
 
   for (gearman_connection_st *con= source.con_list; con; con= con->next)
   {
