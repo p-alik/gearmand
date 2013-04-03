@@ -2095,6 +2095,7 @@ collection_st collection[] ={
   {"init", 0, 0, gearman_client_st_init_TESTS},
   {"gearman_id_t", 0, 0, gearman_id_t_TESTS},
   {"gearman_strerror()", 0, 0, gearman_strerror_tests },
+  {"gearman_client_st init", 0, 0, gearman_client_st_init_TESTS },
   {"gearman_client_st", default_v2_SETUP, 0, gearman_client_st_TESTS},
   {"gearman_client_st chunky", chunk_v1_SETUP, 0, gearman_client_st_TESTS}, // Test with a worker that will respond in part
   {"gearman_task_add_task() v1 workers", default_v1_SETUP, 0, gearman_task_tests},

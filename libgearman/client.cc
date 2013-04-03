@@ -1738,11 +1738,6 @@ bool gearman_client_compare(const gearman_client_st *first_shell, const gearman_
         {
           return true;
         }
-        gearman_log_error(&first->universal, "Compared %s != %s\n", first->universal.con_list->_service, second->universal.con_list->_service);
-      }
-      else
-      {
-        gearman_log_error(&first->universal, "Compared %s != %s\n", first->universal.con_list->_host, second->universal.con_list->_host);
       }
     }
   }
