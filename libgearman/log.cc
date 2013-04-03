@@ -60,30 +60,6 @@ void gearman_log(gearman_universal_st& state, gearman_verbose_t verbose,
 }
 
 
-void gearman_log_fatal(gearman_universal_st& gearman, const char *format, ...)
-{
-  va_list args;
-
-  if (gearman.verbose >= GEARMAN_VERBOSE_FATAL)
-  {
-    va_start(args, format);
-    gearman_log(gearman, GEARMAN_VERBOSE_FATAL, format, args);
-    va_end(args);
-  }
-}
-
-void gearman_log_error(gearman_universal_st& gearman, const char *format, ...)
-{
-  va_list args;
-
-  if (gearman.verbose >= GEARMAN_VERBOSE_ERROR)
-  {
-    va_start(args, format);
-    gearman_log(gearman, GEARMAN_VERBOSE_ERROR, format, args);
-    va_end(args);
-  }
-}
-
 void gearman_log_info(gearman_universal_st& gearman, const char *format, ...)
 {
   va_list args;
