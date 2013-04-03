@@ -112,16 +112,3 @@ void gearman_log_debug(gearman_universal_st *gearman, const char *format,
     va_end(args);
   }
 }
-
-void gearman_log_crazy(gearman_universal_st *gearman, const char *format,
-                       ...)
-{
-  va_list args;
-
-  if (gearman->verbose >= GEARMAN_VERBOSE_CRAZY)
-  {
-    va_start(args, format);
-    gearman_log(gearman, GEARMAN_VERBOSE_CRAZY, format, args);
-    va_end(args);
-  }
-}
