@@ -40,27 +40,21 @@
 
 struct client_test_st;
 #include "tests/start_worker.h"
+#include "libgearman/client.hpp"
 
 struct client_test_st
 {
-  gearman_client_st *_client;
+  org::gearmand::libgearman::Client _client;
   gearman_client_st *_clone;
   std::vector<worker_handle_st *> workers;
   const char *_worker_name;
   const char *_session_namespace;
 
   client_test_st() :
-    _client(NULL),
     _clone(NULL),
     _worker_name(NULL),
     _session_namespace(NULL)
   { 
-    _client= gearman_client_create(NULL);
-
-    if (_client == NULL)
-    {
-      throw "gearman_client_create() failed";
-    }
   }
 
   ~client_test_st()
@@ -71,12 +65,6 @@ struct client_test_st
     {
       gearman_client_free(_clone);
       _clone= NULL;
-    }
-
-    if (_client)
-    {
-      gearman_client_free(_client);
-      _client= NULL;
     }
   }
 
@@ -99,7 +87,7 @@ struct client_test_st
 
   void add_server(const char* hostname, in_port_t port_arg)
   {
-    gearman_client_add_server(_client, hostname, port_arg);
+    gearman_client_add_server(&_client, hostname, port_arg);
   }
 
   const char *worker_name() const
@@ -126,7 +114,7 @@ struct client_test_st
   {
     if (_clone == NULL)
     {
-      _clone= gearman_client_clone(NULL, _client);
+      _clone= gearman_client_clone(NULL, &_client);
     }
 
     return _clone;
@@ -147,6 +135,6 @@ struct client_test_st
     {
       gearman_client_free(_clone);
     }
-    _clone= gearman_client_clone(NULL, _client);
+    _clone= gearman_client_clone(NULL, &_client);
   }
 };

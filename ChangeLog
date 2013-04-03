@@ -1,4 +1,7 @@
-1.0.4 Fri Mar 22 02:07:40 EDT 2013
+1.0.5
+* Fix for log_fn
+
+1.0.4 Never Released
 * Added --coredump flag to gearmand
 * Removed result type enum, since the structure is never exposed to the user this was of limited use.
 * Assorted bug fixes.

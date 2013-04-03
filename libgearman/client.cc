@@ -1507,7 +1507,7 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client, gear
                 continue;
               }
 
-              gearman_log_debug(&client->universal, "Got %s", gearman_strcommand(client->con->_packet.command));
+              gearman_log_debug(client->universal, "Got %s", gearman_strcommand(client->con->_packet.command));
               if (client->con->_packet.command == GEARMAN_COMMAND_JOB_CREATED)
               {
                 if (client->task->created_id != client->con->created_id)
