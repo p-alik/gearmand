@@ -147,10 +147,10 @@ void gearman_universal_clone(gearman_universal_st &destination, const gearman_un
   {
     if (gearman_connection_copy(destination, *con) == NULL)
     {
-      gearman_universal_free(destination);
       return;
     }
   }
+  assert(destination.con_count == source.con_count);
 }
 
 void gearman_universal_free(gearman_universal_st &universal)

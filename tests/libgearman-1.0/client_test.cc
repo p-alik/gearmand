@@ -207,12 +207,13 @@ static test_return_t clone_test(void *)
 
   {
     gearman_client_st *from_with_host= gearman_client_create(NULL);
-    test_truth(from_with_host);
-    gearman_client_add_server(from_with_host, "localhost", 12345);
+    ASSERT_TRUE(from_with_host);
+    ASSERT_EQ(GEARMAN_SUCCESS, gearman_client_add_server(from_with_host, "localhost", 12345));
+    ASSERT_TRUE(from_with_host->universal.con_list);
     gearman_client_st* client= gearman_client_clone(NULL, from_with_host);
-    test_truth(client);
-    test_truth(client->universal.con_list);
-    test_truth(gearman_client_compare(client, from_with_host));
+    ASSERT_TRUE(client);
+    ASSERT_TRUE(client->universal.con_list);
+    ASSERT_TRUE(gearman_client_compare(client, from_with_host));
     gearman_client_free(client);
     gearman_client_free(from_with_host);
   }
