@@ -2020,15 +2020,15 @@ static test_return_t pre_logging(void *object)
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
   const char *argv[]= { "--exceptions", 0 };
-  if (server_startup(servers, "gearmand", libtest::default_port(), argv) == false)
-  {
-    error= TEST_SKIPPED;
-    return NULL;
-  }
+  const char *null_args[]= { 0 };
+  in_port_t first_port= libtest::default_port();
+  in_port_t second_port= libtest::get_free_port();
+  ASSERT_TRUE(server_startup(servers, "gearmand", first_port, argv));
+  ASSERT_TRUE(server_startup(servers, "gearmand", second_port, null_args));
 
   client_test_st *test= new client_test_st();
 
-  test->add_server(NULL, libtest::default_port());
+  test->add_server(NULL, first_port);
 
   error= TEST_SUCCESS;
 
