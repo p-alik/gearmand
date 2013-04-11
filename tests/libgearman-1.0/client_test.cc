@@ -199,10 +199,12 @@ static test_return_t clone_test(void *)
   }
 
   {
-    const gearman_client_st *from= gearman_client_create(NULL);
+    gearman_client_st *from= gearman_client_create(NULL);
+    ASSERT_TRUE(from);
     gearman_client_st* client= gearman_client_clone(NULL, from);
-    test_truth(client);
+    ASSERT_TRUE(client);
     gearman_client_free(client);
+    gearman_client_free(from);
   }
 
   {
