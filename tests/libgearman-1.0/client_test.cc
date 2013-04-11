@@ -199,10 +199,12 @@ static test_return_t clone_test(void *)
   }
 
   {
-    const gearman_client_st *from= gearman_client_create(NULL);
+    gearman_client_st *from= gearman_client_create(NULL);
+    ASSERT_TRUE(from);
     gearman_client_st* client= gearman_client_clone(NULL, from);
-    test_truth(client);
+    ASSERT_TRUE(client);
     gearman_client_free(client);
+    gearman_client_free(from);
   }
 
   {
@@ -2020,15 +2022,15 @@ static test_return_t pre_logging(void *object)
 static void *world_create(server_startup_st& servers, test_return_t& error)
 {
   const char *argv[]= { "--exceptions", 0 };
-  if (server_startup(servers, "gearmand", libtest::default_port(), argv) == false)
-  {
-    error= TEST_SKIPPED;
-    return NULL;
-  }
+  const char *null_args[]= { 0 };
+  in_port_t first_port= libtest::default_port();
+  in_port_t second_port= libtest::get_free_port();
+  ASSERT_TRUE(server_startup(servers, "gearmand", first_port, argv));
+  ASSERT_TRUE(server_startup(servers, "gearmand", second_port, null_args));
 
   client_test_st *test= new client_test_st();
 
-  test->add_server(NULL, libtest::default_port());
+  test->add_server(NULL, first_port);
 
   error= TEST_SUCCESS;
 
