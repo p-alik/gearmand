@@ -144,7 +144,12 @@ struct Task
     return _result_ptr;
   }
 
-  void free_result();
+  void result(gearman_result_st* result_);
+
+  void free_result()
+  {
+    result(NULL);
+  }
 
   bool create_result(size_t initial_size);
 

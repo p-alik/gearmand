@@ -290,14 +290,22 @@ void gearman_task_give_workload(gearman_task_st *task_shell, const void *workloa
   }
 }
 
-size_t gearman_task_send_workload(gearman_task_st *task_shell, const void *workload,
-                                  size_t workload_size,
+size_t gearman_task_send_workload(gearman_task_st *task_shell,
+                                  const void *workload, size_t workload_size,
                                   gearman_return_t *ret_ptr)
 {
+  gearman_return_t unused;
+  if (ret_ptr == NULL)
+  {
+    ret_ptr= &unused;
+  }
+
   if (task_shell and task_shell->impl())
   {
     return task_shell->impl()->con->send_and_flush(workload, workload_size, ret_ptr);
   }
+
+  *ret_ptr= GEARMAN_INVALID_ARGUMENT;
 
   return 0;
 }
@@ -314,9 +322,6 @@ gearman_result_st *gearman_task_result(gearman_task_st *task_shell)
 
 gearman_result_st *gearman_task_mutable_result(gearman_task_st* task_shell)
 {
-  assert(task_shell); // Programmer error
-  assert(task_shell->impl()); // Programmer error
-
   if (task_shell)
   {
     Task* task= task_shell->impl();
@@ -372,16 +377,18 @@ size_t gearman_task_recv_data(gearman_task_st *task_shell, void *data,
                                   size_t data_size,
                                   gearman_return_t *ret_ptr)
 {
+  gearman_return_t unused;
+  if (ret_ptr == NULL)
+  {
+    ret_ptr= &unused;
+  }
+
   if (task_shell and task_shell->impl())
   {
-    gearman_return_t unused;
-    if (ret_ptr == NULL)
-    {
-      ret_ptr= &unused;
-    }
-
     return task_shell->impl()->con->receive_data(data, data_size, *ret_ptr);
   }
+
+  *ret_ptr= GEARMAN_INVALID_ARGUMENT;
 
   return 0;
 }
@@ -404,8 +411,6 @@ const char *gearman_task_error(const gearman_task_st *task_shell)
 
 gearman_return_t gearman_task_return(const gearman_task_st *task_shell)
 {
-  assert(task_shell); // Only used internally.
-  assert(task_shell->impl());
   if (task_shell and task_shell->impl())
   {
     return task_shell->impl()->result_rc;
@@ -419,15 +424,21 @@ Task::~Task()
   free_result();
 }
 
-void Task::free_result()
+void Task::result(gearman_result_st* result_)
 {
   delete _result_ptr;
-  _result_ptr= NULL;
+  _result_ptr= result_;
 }
 
 bool Task::create_result(size_t initial_size)
 {
   assert(_result_ptr == NULL);
+  if (_result_ptr)
+  {
+    _result_ptr->clear();
+    return _result_ptr;
+  }
+
   _result_ptr= new (std::nothrow) gearman_result_st(initial_size);
   return bool(_result_ptr);
 }

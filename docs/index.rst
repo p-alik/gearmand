@@ -19,6 +19,7 @@ Introduction:
    install
    how_to_report_a_bug
    glossary
+   architecture
 
 ------
 Server
