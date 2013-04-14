@@ -77,23 +77,7 @@
 # define SKIP(__message_format, ...)
 #endif
 
-static inline bool valgrind_is_caller(void)
-{
-  if (getenv("TESTS_ENVIRONMENT")  && strstr(getenv("TESTS_ENVIRONMENT"), "valgrind"))
-  {
-    if (strstr(getenv("TESTS_ENVIRONMENT"), "--tool") == NULL)
-    {
-      return true;
-    }
-
-    if (strstr(getenv("TESTS_ENVIRONMENT"), "--tool=memcheck"))
-    {
-      return true;
-    }
-  }
-
-  return false;
-}
+#include <libtest/valgrind.h>
 
 static inline size_t yatl_strlen(const char *s)
 {
