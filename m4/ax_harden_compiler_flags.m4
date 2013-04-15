@@ -15,7 +15,7 @@
 #
 # LICENSE
 #
-#  Copyright (C) 2012 Brian Aker
+#  Copyright (C) 2012-2013 Brian Aker
 #  All rights reserved.
 #
 #  Redistribution and use in source and binary forms, with or without
@@ -53,7 +53,7 @@
 # ?  _APPEND_COMPILE_FLAGS_ERROR([-Wlong-long]) -- Don't turn on for
 # compatibility issues memcached_stat_st
 
-#serial 8
+#serial 9
 
 AC_DEFUN([_WARNINGS_AS_ERRORS],
     [AC_CACHE_CHECK([if all warnings into errors],[ac_cv_warnings_as_errors],
@@ -92,9 +92,12 @@ AC_DEFUN([_HARDEN_CC_COMPILER_FLAGS],
            _APPEND_COMPILE_FLAGS_ERROR([-H])
            _APPEND_COMPILE_FLAGS_ERROR([-ggdb])
            _APPEND_COMPILE_FLAGS_ERROR([-g])
-           _APPEND_COMPILE_FLAGS_ERROR([-O0])],
-           [_APPEND_COMPILE_FLAGS_ERROR([-g])
-           _APPEND_COMPILE_FLAGS_ERROR([-O2])])
+           _APPEND_COMPILE_FLAGS_ERROR([-O0]),
+           _APPEND_COMPILE_FLAGS_ERROR([-fno-omit-frame-pointer])
+           ],[
+           _APPEND_COMPILE_FLAGS_ERROR([-g])
+           _APPEND_COMPILE_FLAGS_ERROR([-O2])
+           ])
 
          AS_IF([test "x$ac_cv_vcs_checkout" = xyes],
            [_APPEND_COMPILE_FLAGS_ERROR([-fstack-check])
@@ -153,27 +156,33 @@ AC_DEFUN([_HARDEN_CC_COMPILER_FLAGS],
           _APPEND_COMPILE_FLAGS_ERROR([-Wswitch-enum])
           _APPEND_COMPILE_FLAGS_ERROR([-Wtrampolines])
           _APPEND_COMPILE_FLAGS_ERROR([-Wundef])
-          _APPEND_COMPILE_FLAGS_ERROR([-Wunsafe-loop-optimizations -funsafe-loop-optimizations])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=address])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=integer])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=thread])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=memory])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=alignment])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=bool])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=bounds])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=enum])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=float-cast-overflow])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=float-divide-by-zero])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=integer-divide-by-zero])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=null])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=object-size])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=return])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=shift])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=signed-integer-overflow])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=unreachable])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=unsigned-integer-overflow])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=vla-bound])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=vptr])
+          _APPEND_COMPILE_FLAGS_ERROR([-Wunsafe-loop-optimizations])
+          _APPEND_COMPILE_FLAGS_ERROR([-funsafe-loop-optimizations])
+          AS_IF([test "x$ac_cv_vcs_checkout" = xyes],[
+            _APPEND_COMPILE_FLAGS_ERROR([-fno-omit-frame-pointer])
+            _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=address])
+            _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=integer])
+            AS_IF([test "x$enable_shared" = "xyes"],[
+                _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=thread])
+                ])
+            _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=memory])
+            _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=alignment])
+            _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=bool])
+            _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=bounds])
+            _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=enum])
+            _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=float-cast-overflow])
+            _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=float-divide-by-zero])
+            _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=integer-divide-by-zero])
+            _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=null])
+            _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=object-size])
+            _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=return])
+            _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=shift])
+            _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=signed-integer-overflow])
+            _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=unreachable])
+            _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=unsigned-integer-overflow])
+            _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=vla-bound])
+            _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=vptr])
+          ])
           _APPEND_COMPILE_FLAGS_ERROR([-Wclobbered])
           _APPEND_COMPILE_FLAGS_ERROR([-Wunused])
           _APPEND_COMPILE_FLAGS_ERROR([-Wunused-result])
@@ -185,6 +194,7 @@ AC_DEFUN([_HARDEN_CC_COMPILER_FLAGS],
           _APPEND_COMPILE_FLAGS_ERROR([-fwrapv])
           _APPEND_COMPILE_FLAGS_ERROR([-fmudflapt])
           _APPEND_COMPILE_FLAGS_ERROR([-pipe])
+          _APPEND_COMPILE_FLAGS_ERROR([-Wsizeof-pointer-memaccess])
 
           AS_IF([test "x$ax_enable_debug" = xno],
             [AS_IF([test "x$ac_cv_vcs_checkout" = xyes],
@@ -193,7 +203,7 @@ AC_DEFUN([_HARDEN_CC_COMPILER_FLAGS],
                   [_APPEND_COMPILE_FLAGS_ERROR([-D_FORTIFY_SOURCE=2])
                   #_APPEND_COMPILE_FLAGS_ERROR([-Wstack-protector])
                   #_APPEND_COMPILE_FLAGS_ERROR([-fstack-protector])
-                  #_APPEND_COMPILE_FLAGS_ERROR([--param=ssp-buffer-size=1])
+                  #_APPEND_COMPILE_FLAGS_ERROR([--param=ssp-buffer-size=4])
                   _APPEND_COMPILE_FLAGS_ERROR([-fstack-protector-all])
                   ])])])])
 
@@ -212,9 +222,12 @@ AC_DEFUN([_HARDEN_CXX_COMPILER_FLAGS],
            _APPEND_COMPILE_FLAGS_ERROR([-H])
            _APPEND_COMPILE_FLAGS_ERROR([-ggdb])
            _APPEND_COMPILE_FLAGS_ERROR([-g])
-           _APPEND_COMPILE_FLAGS_ERROR([-O0])],
-           [_APPEND_COMPILE_FLAGS_ERROR([-g])
-           _APPEND_COMPILE_FLAGS_ERROR([-O2])])
+           _APPEND_COMPILE_FLAGS_ERROR([-O0]),
+           _APPEND_COMPILE_FLAGS_ERROR([-fno-omit-frame-pointer])
+           ],[
+           _APPEND_COMPILE_FLAGS_ERROR([-g])
+           _APPEND_COMPILE_FLAGS_ERROR([-O2])
+           ])
 
          AS_IF([test "x$ac_cv_vcs_checkout" = xyes],
            [_APPEND_COMPILE_FLAGS_ERROR([-fstack-check])
@@ -263,29 +276,35 @@ AC_DEFUN([_HARDEN_CXX_COMPILER_FLAGS],
           _APPEND_COMPILE_FLAGS_ERROR([-Wswitch-enum])
           _APPEND_COMPILE_FLAGS_ERROR([-Wtrampolines])
           _APPEND_COMPILE_FLAGS_ERROR([-Wundef])
-          _APPEND_COMPILE_FLAGS_ERROR([-Wunsafe-loop-optimizations -funsafe-loop-optimizations])
+          _APPEND_COMPILE_FLAGS_ERROR([-Wunsafe-loop-optimizations])
+          _APPEND_COMPILE_FLAGS_ERROR([-funsafe-loop-optimizations])
           _APPEND_COMPILE_FLAGS_ERROR([-Wc++11-compat])
 #         _APPEND_COMPILE_FLAGS_ERROR([-Weffc++])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=address])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=integer])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=thread])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=memory])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=alignment])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=bool])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=bounds])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=enum])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=float-cast-overflow])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=float-divide-by-zero])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=integer-divide-by-zero])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=null])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=object-size])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=return])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=shift])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=signed-integer-overflow])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=unreachable])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=unsigned-integer-overflow])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=vla-bound])
-          _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=vptr])
+          AS_IF([test "x$ac_cv_vcs_checkout" = xyes],[
+            _APPEND_COMPILE_FLAGS_ERROR([-fno-omit-frame-pointer])
+            _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=address])
+            _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=integer])
+            AS_IF([test "x$enable_shared" = "xyes"],[
+                _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=thread])
+                ])
+            _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=memory])
+            _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=alignment])
+            _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=bool])
+            _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=bounds])
+            _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=enum])
+            _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=float-cast-overflow])
+            _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=float-divide-by-zero])
+            _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=integer-divide-by-zero])
+            _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=null])
+            _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=object-size])
+            _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=return])
+            _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=shift])
+            _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=signed-integer-overflow])
+            _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=unreachable])
+            _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=unsigned-integer-overflow])
+            _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=vla-bound])
+            _APPEND_COMPILE_FLAGS_ERROR([-fsanitize=vptr])
+          ])
 #         _APPEND_COMPILE_FLAGS_ERROR([-Wold-style-cast])
           _APPEND_COMPILE_FLAGS_ERROR([-Wclobbered])
           _APPEND_COMPILE_FLAGS_ERROR([-Wunused])
@@ -299,6 +318,7 @@ AC_DEFUN([_HARDEN_CXX_COMPILER_FLAGS],
           _APPEND_COMPILE_FLAGS_ERROR([-fwrapv])
           _APPEND_COMPILE_FLAGS_ERROR([-fmudflapt])
           _APPEND_COMPILE_FLAGS_ERROR([-pipe])
+          _APPEND_COMPILE_FLAGS_ERROR([-Wsizeof-pointer-memaccess])
 
           AS_IF([test "x$ax_enable_debug" = xno],
           [AS_IF([test "x$ac_cv_vcs_checkout" = xyes],
@@ -307,7 +327,7 @@ AC_DEFUN([_HARDEN_CXX_COMPILER_FLAGS],
                 [_APPEND_COMPILE_FLAGS_ERROR([-D_FORTIFY_SOURCE=2])
                 #_APPEND_COMPILE_FLAGS_ERROR([-Wstack-protector])
                 #_APPEND_COMPILE_FLAGS_ERROR([-fstack-protector])
-                #_APPEND_COMPILE_FLAGS_ERROR([--param=ssp-buffer-size=1])
+                #_APPEND_COMPILE_FLAGS_ERROR([--param=ssp-buffer-size=4])
                 _APPEND_COMPILE_FLAGS_ERROR([-fstack-protector-all])
                 ])])])])
 
