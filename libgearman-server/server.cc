@@ -136,7 +136,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
       {
         gearman_server_client_free(server_client);
         gearmand_gerror("unique value too large", GEARMAN_ARGUMENT_TOO_LARGE);
-        return _server_error_packet(server_con, "job failure", "Unique value too large");
+        return _server_error_packet(server_con, "job_failure", "Unique value too large");
       }
 
       gearman_job_priority_t map_priority= GEARMAN_JOB_PRIORITY_NORMAL;
@@ -258,7 +258,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
       {
         gearmand_gerror("unique value too large", GEARMAN_ARGUMENT_TOO_LARGE);
         gearman_server_client_free(server_client);
-        return _server_error_packet(server_con, "job failure", "Unique value too large");
+        return _server_error_packet(server_con, "job_failure", "Unique value too large");
       }
 
       /* Schedule job. */
