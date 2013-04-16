@@ -4,6 +4,7 @@
 
 include libgearman-1.0/t/include.am
 
+nobase_include_HEADERS+= libgearman-1.0/cancel.h
 nobase_include_HEADERS+= libgearman-1.0/interface/client.h
 nobase_include_HEADERS+= libgearman-1.0/interface/status.h
 nobase_include_HEADERS+= libgearman-1.0/interface/task.h

@@ -614,6 +614,19 @@ gearman_return_t gearman_client_wait(gearman_client_st *client_shell)
   return GEARMAN_INVALID_ARGUMENT;
 }
 
+gearman_return_t gearman_client_cancel_job(gearman_client_st *client_shell,
+                                           gearman_job_handle_t job_handle)
+{
+  if (client_shell and client_shell->impl())
+  {
+    client_shell->impl()->universal.reset_error();
+
+    return cancel_job(client_shell->impl()->universal, job_handle);
+  }
+
+  return GEARMAN_INVALID_ARGUMENT;
+}
+
 void *gearman_client_do(gearman_client_st *client_shell,
                         const char *function,
                         const char *unique,

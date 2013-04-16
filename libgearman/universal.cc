@@ -427,45 +427,6 @@ gearman_return_t gearman_set_identifier(gearman_universal_st& universal,
   return ret;
 }
 
-EchoCheck::EchoCheck(gearman_universal_st& universal_,
-    const void *workload_, const size_t workload_size_) :
-    _universal(universal_),
-    _workload(workload_),
-    _workload_size(workload_size_)
-{
-}
-
-gearman_return_t EchoCheck::success(gearman_connection_st* con)
-{
-  if (con->_packet.command != GEARMAN_COMMAND_ECHO_RES)
-  {
-    return gearman_error(_universal, GEARMAN_INVALID_COMMAND, "Wrong command sent in response to ECHO request");
-  }
-
-  if (con->_packet.data_size != _workload_size or
-      memcmp(_workload, con->_packet.data, _workload_size))
-  {
-    return gearman_error(_universal, GEARMAN_ECHO_DATA_CORRUPTION, "corruption during echo");
-  }
-
-  return GEARMAN_SUCCESS;
-}
-
-OptionCheck::OptionCheck(gearman_universal_st& universal_):
-    _universal(universal_)
-{
-}
-
-gearman_return_t OptionCheck::success(gearman_connection_st* con)
-{
-  if (con->_packet.command == GEARMAN_COMMAND_ERROR)
-  {
-    return gearman_error(_universal, GEARMAN_INVALID_SERVER_OPTION, "invalid server option");
-  }
-
-  return GEARMAN_SUCCESS;
-}
-
 static gearman_return_t connection_loop(gearman_universal_st& universal,
                                         const gearman_packet_st& message,
                                         Check& check)
@@ -567,6 +528,46 @@ gearman_return_t gearman_echo(gearman_universal_st& universal,
   }
 
   gearman_packet_free(&message);
+
+  return ret;
+}
+
+gearman_return_t cancel_job(gearman_universal_st& universal,
+                            gearman_job_handle_t job_handle)
+{
+  if (universal.has_connections() == false)
+  {
+    return gearman_universal_set_error(universal, GEARMAN_NO_SERVERS, GEARMAN_AT, "no servers provided");
+  }
+
+  const void *args[1];
+  size_t args_size[1];
+
+  args[0]= job_handle;
+  args_size[0]= strlen(job_handle);
+
+  gearman_packet_st cancel_packet;
+
+  gearman_return_t ret= gearman_packet_create_args(universal,
+                                                   cancel_packet,
+                                                   GEARMAN_MAGIC_REQUEST,
+                                                   GEARMAN_COMMAND_WORK_FAIL,
+                                                   args, args_size, 1);
+  if (gearman_success(ret))
+  {
+    PUSH_BLOCKING(universal);
+
+    CancelCheck check(universal);
+    ret= connection_loop(universal, cancel_packet, check);
+  }
+  else
+  {
+    gearman_packet_free(&cancel_packet);
+    gearman_error(universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "gearman_packet_create_args()");
+    return ret;
+  }
+
+  gearman_packet_free(&cancel_packet);
 
   return ret;
 }

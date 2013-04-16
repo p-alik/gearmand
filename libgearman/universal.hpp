@@ -61,6 +61,9 @@ void gearman_universal_set_namespace(gearman_universal_st &self, const char *nam
 
 void gearman_reset(gearman_universal_st& universal);
 
+gearman_return_t cancel_job(gearman_universal_st& universal,
+                            gearman_job_handle_t job_handle);
+
 // Flush the send buffer for all connections.
 void gearman_flush_all(gearman_universal_st&);
 
