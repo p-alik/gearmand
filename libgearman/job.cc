@@ -519,12 +519,14 @@ gearman_return_t gearman_job_send_fail_fin(gearman_job_st *job)
       job->options.work_in_use= true;
     }
 
-    gearman_return_t ret;
-    ret= _job_send(job);
+    gearman_return_t ret= _job_send(job);
     if (gearman_failed(ret))
+    {
       return ret;
+    }
 
     job->options.finished= true;
+
     return GEARMAN_SUCCESS;
   }
 
