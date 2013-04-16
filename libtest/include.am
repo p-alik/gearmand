@@ -102,6 +102,7 @@ noinst_HEADERS+= libtest/test.hpp
 noinst_HEADERS+= libtest/thread.hpp
 noinst_HEADERS+= libtest/tmpfile.hpp
 noinst_HEADERS+= libtest/lite.h
+noinst_HEADERS+= libtest/valgrind.h
 noinst_HEADERS+= libtest/vchar.hpp
 noinst_HEADERS+= libtest/version.h
 noinst_HEADERS+= libtest/visibility.h
@@ -159,8 +160,8 @@ libtest_libtest_la_LIBADD+= $(CURL_LIBS)
 libtest_libtest_la_LIBADD+= @RT_LIB@
 
 EXTRA_libtest_libtest_la_DEPENDENCIES+= libtest_tmp_dir
-EXTRA_libtest_libtest_la_DEPENDENCIES+=libtest/abort
-EXTRA_libtest_libtest_la_DEPENDENCIES+=libtest/wait
+EXTRA_libtest_libtest_la_DEPENDENCIES+= libtest/abort
+EXTRA_libtest_libtest_la_DEPENDENCIES+= libtest/wait
 
 # Declare unittest so that we can append to it
 libtest_unittest_CXXFLAGS=

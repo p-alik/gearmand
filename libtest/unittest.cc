@@ -221,6 +221,31 @@ static test_return_t ASSERT_FALSE__TEST(void *)
 # pragma GCC diagnostic pop
 #endif
 
+static test_return_t ASSERT_NEQ_FAIL_TEST(void *)
+{
+  try {
+    ASSERT_NEQ(1,1);
+  }
+  catch (const libtest::__failure& e)
+  {
+    ASSERT_STREQ(e.what(), "Assertion '1' == '1'");
+    return TEST_SUCCESS;
+  }
+  catch (...)
+  {
+    return TEST_FAILURE;
+  }
+
+  return TEST_FAILURE;
+}
+
+static test_return_t ASSERT_NEQ_TEST(void *)
+{
+  ASSERT_NEQ(1,0);
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t ASSERT_FALSE_TEST(void *)
 {
   try {
@@ -1035,6 +1060,8 @@ test_st tests_log[] ={
   {"FAIL", false, test_throw_fail_TEST },
   {"ASSERT_FALSE_", false, ASSERT_FALSE__TEST },
   {"ASSERT_FALSE", false, ASSERT_FALSE_TEST },
+  {"ASSERT_NEQ", false, ASSERT_NEQ_TEST },
+  {"ASSERT_NEQ FAIL", false, ASSERT_NEQ_FAIL_TEST },
   {0, 0, 0}
 };
 

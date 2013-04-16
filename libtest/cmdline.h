@@ -146,14 +146,14 @@ public:
     return _stdout_buffer;
   }
 
-  const char* stdout_c_str() const
-  {
-    return &_stderr_buffer[0];
-  }
-
   size_t stdout_result_length() const
   {
     return _stdout_buffer.size();
+  }
+
+  const char* stdout_c_str() const
+  {
+    return &_stdout_buffer[0];
   }
 
   libtest::vchar_t stderr_result() const

@@ -51,11 +51,7 @@
 # include <string.h>
 #endif
 
-#if defined(HAVE_VALGRIND_VALGRIND_H) && HAVE_VALGRIND_VALGRIND_H
-# include <valgrind/valgrind.h>
-#endif
-
-#ifdef _WIN32
+#if defined(WIN32)
 # include <malloc.h>
 #else
 # include <alloca.h>
@@ -81,30 +77,7 @@
 # define SKIP(__message_format, ...)
 #endif
 
-static inline bool valgrind_is_caller(void)
-{
-#if defined(HAVE_VALGRIND_VALGRIND_H) && HAVE_VALGRIND_VALGRIND_H
-  if (RUNNING_ON_VALGRIND)
-  {
-    return true;
-  }
-#endif
-
-  if (getenv("TESTS_ENVIRONMENT")  && strstr(getenv("TESTS_ENVIRONMENT"), "valgrind"))
-  {
-    if (strstr(getenv("TESTS_ENVIRONMENT"), "--tool") == NULL)
-    {
-      return true;
-    }
-
-    if (strstr(getenv("TESTS_ENVIRONMENT"), "--tool=memcheck"))
-    {
-      return true;
-    }
-  }
-
-  return false;
-}
+#include <libtest/valgrind.h>
 
 static inline size_t yatl_strlen(const char *s)
 {
@@ -367,7 +340,7 @@ do \
   } \
 } while (0)
 
-#define ASSERT_NEQ(__expected, __actual, ...) \
+#define ASSERT_NEQ(__expected, __actual) \
 do \
 { \
   if ((__expected) == (__actual)) { \
