@@ -435,6 +435,7 @@ bool Application::slurp()
 Application::error_t Application::join()
 {
   pid_t waited_pid= waitpid(_pid, &_status, 0);
+  slurp();
   if (waited_pid == _pid and WIFEXITED(_status) == false)
   {
     /*
@@ -449,7 +450,12 @@ Application::error_t Application::join()
       std::string error_string("posix_spawn() failed pid:");
       error_string+= _pid;
       error_string+= " name:";
-      error_string+= _exectuble_name;
+      error_string+= print_argv(built_argv);
+      if (stderr_result_length())
+      {
+        error_string+= " stderr: ";
+        error_string+= stderr_c_str();
+      }
       throw std::logic_error(error_string);
     }
     else if (WIFSIGNALED(_status))
@@ -458,14 +464,22 @@ Application::error_t Application::join()
       {
         slurp();
         _app_exit_state= Application::INVALID_POSIX_SPAWN;
-        std::string error_string(_exectuble_name);
+        std::string error_string(print_argv(built_argv));
         error_string+= " was killed by signal ";
         error_string+= strsignal(WTERMSIG(_status));
-        if (stderr_c_str())
+
+        if (stdout_result_length())
         {
-          error_string+= " stderr:";
+          error_string+= " stdout: ";
+          error_string+= stdout_c_str();
+        }
+
+        if (stderr_result_length())
+        {
+          error_string+= " stderr: ";
           error_string+= stderr_c_str();
         }
+
         throw std::runtime_error(error_string);
       }
 
@@ -606,7 +620,8 @@ bool Application::Pipe::read(libtest::vchar_t& arg)
 void Application::Pipe::nonblock()
 {
   int flags;
-  do {
+  do 
+  {
     flags= fcntl(_pipe_fd[READ], F_GETFL, 0);
   } while (flags == -1 and (errno == EINTR or errno == EAGAIN));
 

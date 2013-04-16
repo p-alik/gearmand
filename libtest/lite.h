@@ -51,11 +51,7 @@
 # include <string.h>
 #endif
 
-#if defined(HAVE_VALGRIND_VALGRIND_H) && HAVE_VALGRIND_VALGRIND_H
-# include <valgrind/valgrind.h>
-#endif
-
-#ifdef _WIN32
+#if defined(WIN32)
 # include <malloc.h>
 #else
 # include <alloca.h>
@@ -344,7 +340,7 @@ do \
   } \
 } while (0)
 
-#define ASSERT_NEQ(__expected, __actual, ...) \
+#define ASSERT_NEQ(__expected, __actual) \
 do \
 { \
   if ((__expected) == (__actual)) { \

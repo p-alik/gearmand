@@ -179,7 +179,10 @@ bool Server::init(const char *argv[])
   {
     for (const char **ptr= argv; *ptr ; ++ptr)
     {
-      add_option(*ptr);
+      if (ptr)
+      {
+        add_option(*ptr);
+      }
     }
   }
 
