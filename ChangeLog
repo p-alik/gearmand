@@ -1,4 +1,4 @@
-1.1.6 
+1.1.6 Tue Apr 16 03:29:57 EDT 2013
 * Merge of 1.0.4 tree
 * Added support for gearadmin to "cancel" a job.
 * Keep-alive support for gearmand has been extended (more options to control behavior).
