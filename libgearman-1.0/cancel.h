@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011-2013 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2013 Data Differential, http://datadifferential.com/ 
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -37,49 +37,14 @@
 
 #pragma once
 
-class Check {
-public:
-  virtual gearman_return_t success(gearman_connection_st*)= 0;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-  virtual ~Check() {};
-};
+GEARMAN_API
+gearman_return_t gearman_client_cancel_job(gearman_client_st *client_shell,
+                                           gearman_job_handle_t job_handle);
 
-class EchoCheck : public Check {
-public:
-  EchoCheck(gearman_universal_st& universal_,
-            const void *workload_, const size_t workload_size_);
-
-  gearman_return_t success(gearman_connection_st* con);
-
-private:
-  gearman_universal_st& _universal;
-  const void *_workload;
-  const size_t _workload_size;
-};
-
-class OptionCheck : public Check {
-public:
-  OptionCheck(gearman_universal_st& universal_):
-    _universal(universal_)
-    {
-    }
-
-  gearman_return_t success(gearman_connection_st* con);
-
-private:
-  gearman_universal_st& _universal;
-};
-
-class CancelCheck : public Check {
-public:
-  CancelCheck(gearman_universal_st& universal_):
-    _universal(universal_)
-    {
-    }
-
-  gearman_return_t success(gearman_connection_st* con);
-
-private:
-  gearman_universal_st& _universal;
-};
-
+#ifdef __cplusplus
+}
+#endif

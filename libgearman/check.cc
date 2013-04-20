@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011-2013 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2011-2013 Data Differential, http://datadifferential.com/ 
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -35,12 +35,6 @@
  *
  */
 
-
-/**
- * @file
- * @brief Gearman State Definitions
- */
-
 #include "gear_config.h"
 
 #include "libgearman/common.h"
@@ -69,9 +63,22 @@ gearman_return_t EchoCheck::success(gearman_connection_st* con)
   return GEARMAN_SUCCESS;
 }
 
-OptionCheck::OptionCheck(gearman_universal_st& universal_):
-    _universal(universal_)
+gearman_return_t CancelCheck::success(gearman_connection_st* con)
 {
+  if (con->_packet.command == GEARMAN_COMMAND_ERROR)
+  {
+    if (con->_packet.argc)
+    {
+      return gearman_universal_set_error(_universal, GEARMAN_SERVER_ERROR, GEARMAN_AT, "%d: %.*s:%.*s", con->_packet.argc,
+                                         con->_packet.arg_size[0], con->_packet.arg[0],
+                                         con->_packet.arg_size[1], con->_packet.arg[1]
+                                        );
+    }
+
+    return gearman_error(_universal, GEARMAN_SERVER_ERROR, "server lacks support for client's to cancel a job");
+  }
+
+  return GEARMAN_SUCCESS;
 }
 
 gearman_return_t OptionCheck::success(gearman_connection_st* con)

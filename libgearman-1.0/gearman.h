@@ -102,3 +102,4 @@
 #include <libgearman-1.0/client.h>
 #include <libgearman-1.0/connection.h>
 #include <libgearman-1.0/parse.h>
+#include <libgearman-1.0/cancel.h>

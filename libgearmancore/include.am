@@ -10,22 +10,22 @@
 
 noinst_LTLIBRARIES+= libgearman/libgearmancore.la
 
-libgearman_libgearmancore_la_SOURCES= \
-				      libgearman/allocator.cc \
-				      libgearman/backtrace.cc \
-				      libgearman/byteorder.cc \
-				      libgearman/command.cc \
-				      libgearman/connection.cc \
-				      libgearman/error.cc \
-				      libgearman/log.cc \
-				      libgearman/packet.cc \
-				      libgearman/strcommand.cc \
-				      libgearman/strerror.cc \
-				      libgearman/server_options.cc \
-				      libgearman/universal.cc \
-				      libgearman/vector.cc
+libgearman_libgearmancore_la_SOURCES= 
+libgearman_libgearmancore_la_SOURCES+= libgearman/allocator.cc
+libgearman_libgearmancore_la_SOURCES+= libgearman/backtrace.cc
+libgearman_libgearmancore_la_SOURCES+= libgearman/byteorder.cc
+libgearman_libgearmancore_la_SOURCES+= libgearman/check.cc
+libgearman_libgearmancore_la_SOURCES+= libgearman/command.cc
+libgearman_libgearmancore_la_SOURCES+= libgearman/connection.cc
+libgearman_libgearmancore_la_SOURCES+= libgearman/error.cc
+libgearman_libgearmancore_la_SOURCES+= libgearman/log.cc
+libgearman_libgearmancore_la_SOURCES+= libgearman/packet.cc
+libgearman_libgearmancore_la_SOURCES+= libgearman/server_options.cc
+libgearman_libgearmancore_la_SOURCES+= libgearman/strcommand.cc
+libgearman_libgearmancore_la_SOURCES+= libgearman/strerror.cc
+libgearman_libgearmancore_la_SOURCES+= libgearman/universal.cc
+libgearman_libgearmancore_la_SOURCES+= libgearman/vector.cc
 
 libgearman_libgearmancore_la_CXXFLAGS= -DBUILDING_LIBGEARMAN
 libgearman_libgearmancore_la_LIBADD= @DL_LIB@
 libgearman_libgearmancore_la_LIBADD+= libhashkit/libhashkit.la
-

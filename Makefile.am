@@ -40,6 +40,7 @@ include libtest/include.am
 include libhostile/include.am
 include libhashkit-1.0/include.am
 
+include libgearmancore/include.am
 include libhashkit/include.am
 include benchmark/include.am
 include bin/include.am

@@ -1281,6 +1281,22 @@ static test_return_t gearman_client_set_identifier_plus_random_TEST(void* object
   return TEST_SUCCESS;
 }
 
+static test_return_t gearman_client_cancel_job_TEST(void* object)
+{
+  gearman_client_st *client= (gearman_client_st *)object;
+
+  gearman_job_handle_t job_handle;
+  strcpy(job_handle, __func__);
+
+  // For the moment we won't test the return value since this will change once
+  // we formalize the behavior.
+  gearman_return_t ret= gearman_client_cancel_job(client, job_handle);
+  (void)ret;
+
+  return TEST_SUCCESS;
+}
+
+
 static test_return_t gearman_client_free_TEST(void *)
 {
   gearman_client_free(NULL);
@@ -2169,6 +2185,11 @@ test_st gearman_client_set_identifier_TESTS[] ={
   {0, 0, 0}
 };
 
+test_st gearman_client_cancel_job_TESTS[] ={
+  {"gearman_client_cancel_job()", 0, gearman_client_cancel_job_TEST },
+  {0, 0, 0}
+};
+
 test_st gearman_return_t_TESTS[] ={
   {"GEARMAN_SUCCESS", 0, (test_callback_fn*)GEARMAN_SUCCESS_TEST },
   {"GEARMAN_FAIL == GEARMAN_FATAL == GEARMAN_WORK_FAIL", 0, (test_callback_fn*)GEARMAN_FAIL_COMPAT_TEST },
@@ -2365,6 +2386,7 @@ test_st limit_tests[] ={
 collection_st collection[] ={
   {"gearman_return_t", 0, 0, gearman_return_t_TESTS},
   {"init", 0, 0, gearman_client_st_init_TESTS},
+  {"gearman_client_cancel_job()", 0, 0, gearman_client_cancel_job_TESTS },
   {"gearman_client_st GEARMAN_INVALID_ARGUMENT", 0, 0, gearman_client_st_GEARMAN_INVALID_ARGUMENT_TESTS },
   {"gearman_task_st GEARMAN_INVALID_ARGUMENT", 0, 0, gearman_task_st_GEARMAN_INVALID_ARGUMENT_TESTS },
   {"gearman_job_st GEARMAN_INVALID_ARGUMENT", 0, 0, gearman_job_st_GEARMAN_INVALID_ARGUMENT_TESTS },
