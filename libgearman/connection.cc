@@ -281,25 +281,17 @@ void gearman_connection_st::free_private_packet()
 
 void gearman_connection_st::set_host(const char *host_, const in_port_t port_)
 {
-  reset_addrinfo();
-
-  if (host_)
+  if (port_ < 1)
   {
-    size_t string_len= strlen(host_);
-    if (string_len == 0)
-    {
-      host_= GEARMAN_DEFAULT_TCP_HOST;
-    }
+    set_host(host_, GEARMAN_DEFAULT_TCP_PORT_STRING);
   }
   else
   {
-    host_= GEARMAN_DEFAULT_TCP_HOST;
-  }
-  strncpy(host, host_, GEARMAN_NI_MAXHOST);
-  _host[GEARMAN_NI_MAXHOST - 1]= 0;
+    snprintf(_service, sizeof(_service), "%hu", uint16_t(port_));
+    _service[GEARMAN_NI_MAXSERV - 1]= 0;
 
-  snprintf(_service, sizeof(_service), "%hu", uint16_t(port_));
-  _service[GEARMAN_NI_MAXSERV - 1]= 0;
+    set_host(host_, _service);
+  }
 }
 
 void gearman_connection_st::set_host(const char *host_, const char* service_)
@@ -318,23 +310,26 @@ void gearman_connection_st::set_host(const char *host_, const char* service_)
   {
     host_= GEARMAN_DEFAULT_TCP_HOST;
   }
-  strncpy(host, host_, GEARMAN_NI_MAXHOST);
+  strncpy(_host, host_, GEARMAN_NI_MAXHOST);
   _host[GEARMAN_NI_MAXHOST - 1]= 0;
 
-  if (service_)
+  if (service_ != _service)
   {
-    size_t string_len= strlen(service_);
-    if (string_len == 0)
+    if (service_)
+    {
+      size_t string_len= strlen(service_);
+      if (string_len == 0)
+      {
+        service_= GEARMAN_DEFAULT_TCP_PORT_STRING;
+      }
+    }
+    else
     {
       service_= GEARMAN_DEFAULT_TCP_PORT_STRING;
     }
+    strncpy(_service, service_, GEARMAN_NI_MAXSERV);
+    _service[GEARMAN_NI_MAXSERV - 1]= 0;
   }
-  else
-  {
-    service_= GEARMAN_DEFAULT_TCP_PORT_STRING;
-  }
-  strncpy(_service, service_, GEARMAN_NI_MAXSERV);
-  _service[GEARMAN_NI_MAXSERV - 1]= 0;
 }
 
 /*
