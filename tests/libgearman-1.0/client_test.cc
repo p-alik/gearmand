@@ -1372,6 +1372,26 @@ static test_return_t GEARMAN_CLIENT_GENERATE_UNIQUE_SETUP(void *object)
   return TEST_SUCCESS;
 }
 
+static test_return_t gearman_client_add_server_localhost_TEST(void*)
+{
+  libgearman::Client client;
+
+  ASSERT_EQ(GEARMAN_SUCCESS, gearman_client_add_server(&client, "localhost", libtest::default_port()));
+  ASSERT_EQ(GEARMAN_SUCCESS, gearman_client_echo(&client, test_literal_param(__func__)));
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_client_add_server_empty_quote_TEST(void*)
+{
+  libgearman::Client client;
+
+  ASSERT_EQ(GEARMAN_SUCCESS, gearman_client_add_server(&client, "", libtest::default_port()));
+  ASSERT_EQ(GEARMAN_SUCCESS, gearman_client_echo(&client, test_literal_param(__func__)));
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t gearman_client_create_GEARMAN_INVALID_ARGUMENT_TEST(void*)
 {
   gearman_client_st* clone;
@@ -2046,6 +2066,12 @@ static bool world_destroy(void *object)
   return TEST_SUCCESS;
 }
 
+test_st gearman_client_add_server_TESTS[] ={
+  {"gearman_client_add_server(localhost)", 0, gearman_client_add_server_localhost_TEST },
+  {"gearman_client_add_server(empty quote)", 0, gearman_client_add_server_empty_quote_TEST },
+  {0, 0, 0}
+};
+
 test_st gearman_client_st_GEARMAN_INVALID_ARGUMENT_TESTS[] ={
   {"gearman_client_create()", 0, gearman_client_create_GEARMAN_INVALID_ARGUMENT_TEST },
   {"gearman_client_clone()", 0, gearman_client_clone_GEARMAN_INVALID_ARGUMENT_TEST },
@@ -2353,6 +2379,7 @@ collection_st collection[] ={
   {"gearman_id_t", 0, 0, gearman_id_t_TESTS},
   {"gearman_strerror()", 0, 0, gearman_strerror_tests },
   {"gearman_client_st init", 0, 0, gearman_client_st_init_TESTS },
+  {"gearman_client_add_server()", 0, 0, gearman_client_add_server_TESTS },
   {"gearman_client_st", default_v2_SETUP, 0, gearman_client_st_TESTS},
   {"gearman_client_st chunky", chunk_v1_SETUP, 0, gearman_client_st_TESTS}, // Test with a worker that will respond in part
   {"gearman_task_add_task() v1 workers", default_v1_SETUP, 0, gearman_task_tests},
