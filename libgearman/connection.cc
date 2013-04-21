@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011-2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2011-2013 Data Differential, http://datadifferential.com/
  *  Copyright (C) 2008 Brian Aker, Eric Day
  *  All rights reserved.
  *
@@ -261,14 +261,20 @@ void gearman_connection_st::set_host(const char *host_arg, const in_port_t port_
 {
   reset_addrinfo();
 
-  if (host_arg == NULL)
+  if (host_arg)
   {
-    strncpy(host, GEARMAN_DEFAULT_TCP_HOST, GEARMAN_NI_MAXHOST);
+    size_t string_len= strlen(host_arg);
+    if (string_len == 0)
+    {
+      strncpy(host, host_arg, GEARMAN_NI_MAXHOST);
+      host_arg= GEARMAN_DEFAULT_TCP_HOST;
+    }
   }
   else
   {
-    strncpy(host, host_arg, GEARMAN_NI_MAXHOST);
+    host_arg= GEARMAN_DEFAULT_TCP_HOST;
   }
+  strncpy(host, host_arg, GEARMAN_NI_MAXHOST);
 
   host[GEARMAN_NI_MAXHOST - 1]= 0;
 
