@@ -266,7 +266,6 @@ void gearman_connection_st::set_host(const char *host_arg, const in_port_t port_
     size_t string_len= strlen(host_arg);
     if (string_len == 0)
     {
-      strncpy(host, host_arg, GEARMAN_NI_MAXHOST);
       host_arg= GEARMAN_DEFAULT_TCP_HOST;
     }
   }
