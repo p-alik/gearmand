@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011-2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2011-2013 Data Differential, http://datadifferential.com/
  *  Copyright (C) 2008 Brian Aker, Eric Day
  *  All rights reserved.
  *
@@ -283,14 +283,19 @@ void gearman_connection_st::set_host(const char *host_, const in_port_t port_)
 {
   reset_addrinfo();
 
-  if (host_ == NULL)
+  if (host_)
   {
-    strncpy(_host, GEARMAN_DEFAULT_TCP_HOST, GEARMAN_NI_MAXHOST);
+    size_t string_len= strlen(host_);
+    if (string_len == 0)
+    {
+      host_= GEARMAN_DEFAULT_TCP_HOST;
+    }
   }
   else
   {
-    strncpy(_host, host_, GEARMAN_NI_MAXHOST);
+    host_= GEARMAN_DEFAULT_TCP_HOST;
   }
+  strncpy(host, host_, GEARMAN_NI_MAXHOST);
   _host[GEARMAN_NI_MAXHOST - 1]= 0;
 
   snprintf(_service, sizeof(_service), "%hu", uint16_t(port_));
@@ -301,24 +306,34 @@ void gearman_connection_st::set_host(const char *host_, const char* service_)
 {
   reset_addrinfo();
 
-  if (host_ == NULL)
+  if (host_)
   {
-    strncpy(_host, GEARMAN_DEFAULT_TCP_HOST, GEARMAN_NI_MAXHOST);
+    size_t string_len= strlen(host_);
+    if (string_len == 0)
+    {
+      host_= GEARMAN_DEFAULT_TCP_HOST;
+    }
   }
   else
   {
-    strncpy(_host, host_, GEARMAN_NI_MAXHOST);
+    host_= GEARMAN_DEFAULT_TCP_HOST;
   }
+  strncpy(host, host_, GEARMAN_NI_MAXHOST);
   _host[GEARMAN_NI_MAXHOST - 1]= 0;
 
   if (service_)
   {
-    strcpy(_service, service_);
+    size_t string_len= strlen(service_);
+    if (string_len == 0)
+    {
+      service_= GEARMAN_DEFAULT_TCP_PORT_STRING;
+    }
   }
   else
   {
-    strcpy(_service, GEARMAN_DEFAULT_TCP_PORT_STRING);
+    service_= GEARMAN_DEFAULT_TCP_PORT_STRING;
   }
+  strncpy(_service, service_, GEARMAN_NI_MAXSERV);
   _service[GEARMAN_NI_MAXSERV - 1]= 0;
 }
 
