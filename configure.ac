@@ -8,7 +8,7 @@
 
 AC_REVISION([m4_esyscmd_s([bzr revno])])
 AC_PREREQ([2.63])
-AC_INIT([gearmand],[1.0.5],[https://bugs.launchpad.net/gearmand],[gearmand],[http://gearman.info/])
+AC_INIT([gearmand],[1.0.6],[https://bugs.launchpad.net/gearmand],[gearmand],[http://gearman.info/])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
 
