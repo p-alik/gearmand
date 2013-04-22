@@ -8,7 +8,7 @@
 
 AC_REVISION([m4_esyscmd_s([bzr revno])])
 AC_PREREQ([2.63])
-AC_INIT([gearmand],[1.1.6],[https://bugs.launchpad.net/gearmand],[gearmand],[http://gearman.info/])
+AC_INIT([gearmand],[1.1.7],[https://bugs.launchpad.net/gearmand],[gearmand],[http://gearman.info/])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
 
@@ -99,6 +99,7 @@ AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AX_PROG_SPHINX_BUILD
 AX_PROG_MEMCACHED
+AC_PATH_PROG([GPERF])
 
 # Checks for header files.
 AC_HEADER_STDC
