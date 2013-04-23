@@ -153,6 +153,7 @@ GPERFFLAGS= --compare-strncmp --switch=1
 
 MAINTAINERCLEANFILES+= libgearman/error_code.hpp
 
+EXTRA_DIST+= libgearman/error_code.gperf
 BUILT_SOURCES+= libgearman/error_code.hpp
 libgearman_libgearman_la_SOURCES+= libgearman/error_code.hpp
 libgearman/error_code.hpp: libgearman/error_code.gperf
