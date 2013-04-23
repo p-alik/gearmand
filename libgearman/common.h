@@ -58,6 +58,7 @@ struct gearman_universal_st;
 #include "libgearman/aggregator.hpp"
 
 #include "libgearman/error.hpp"
+#include "libgearman/error_code.hpp"
 
 /* These are private not to be installed headers */
 #include "libgearman/byteorder.h"

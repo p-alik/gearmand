@@ -147,3 +147,22 @@ noinst_LTLIBRARIES+= libgearman/libgearman-hostile.la
 libgearman_libgearman_hostile_la_LIBADD= $(libgearman_libgearman_la_LIBADD)
 libgearman_libgearman_hostile_la_SOURCES= $(libgearman_libgearman_la_SOURCES)
 libgearman_libgearman_hostile_la_CXXFLAGS= $(libgearman_libgearman_la_CXXFLAGS)
+
+# Handling the Gperf code
+GPERFFLAGS= --compare-strncmp --switch=1
+
+MAINTAINERCLEANFILES+= libgearman/error_code.hpp
+
+BUILT_SOURCES+= libgearman/error_code.hpp
+libgearman_libgearman_la_SOURCES+= libgearman/error_code.hpp
+libgearman/error_code.hpp: libgearman/error_code.gperf
+	if $(GPERF) $(GPERFFLAGS) --key-positions=9,10,11,17 --struct-type \
+	  libgearman/error_code.gperf >$@t; then \
+	  mv $@t $@; \
+	  elif $(GPERF) --version >/dev/null 2>&1; then \
+	  rm $@t; \
+	  exit 1; \
+	  else \
+	  rm $@t; \
+	  touch $@; \
+	  fi
