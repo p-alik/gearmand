@@ -1,6 +1,6 @@
 %compare-lengths
 %compare-strncmp
-%define lookup-function-name string2error_code
+%define lookup-function-name error_string2return_code
 %ignore-case
 %language=ANSI-C
 %readonly-tables

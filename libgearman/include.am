@@ -26,7 +26,7 @@ noinst_HEADERS+= libgearman/interface/worker.hpp
 noinst_HEADERS+= libgearman/job.h
 noinst_HEADERS+= libgearman/job.hpp
 noinst_HEADERS+= libgearman/ostream.hpp
-noinst_HEADERS+= libgearman/pipe.h
+noinst_HEADERS+= libgearman/error_code.h
 noinst_HEADERS+= libgearman/uuid.hpp
 noinst_HEADERS+= \
 		 libgearman/actions.hpp \
@@ -96,6 +96,7 @@ libgearman_libgearman_la_SOURCES+= \
 				  libgearman/connection.cc \
 				  libgearman/do.cc \
 				  libgearman/error.cc \
+				  libgearman/error_code.cc \
 				  libgearman/execute.cc \
 				  libgearman/function.cc \
 				  libgearman/function/function_v2.cc \
