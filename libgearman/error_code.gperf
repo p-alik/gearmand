@@ -45,7 +45,10 @@
 
 #pragma once
 
+#include <cstddef>
+#include <cstdlib>
 #include <cstring>
+
 #include "libgearman-1.0/return.h"
 
 namespace org {
