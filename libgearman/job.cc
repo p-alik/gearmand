@@ -587,7 +587,7 @@ bool gearman_job_is_map(const gearman_job_st *job)
     return bool(job->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN_ALL) and job->assigned.arg_size[3] > 1;
   }
 
-  return NULL;
+  return false;
 }
 
 gearman_string_t gearman_job_reducer_string(const gearman_job_st *job)

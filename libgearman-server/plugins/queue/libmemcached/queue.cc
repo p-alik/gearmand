@@ -112,7 +112,6 @@ public:
 
 private:
   memcached_st* memc_;
-  memcached_st* clone_;
 };
 
 } // namespace queue
