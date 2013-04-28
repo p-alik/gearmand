@@ -93,7 +93,7 @@ public:
 
   ~gearman_connection_st();
 
-  void set_host( const char *host, const in_port_t port);
+  void set_host( const char *host, const in_port_t& port);
   void set_host( const char *host, const char* service);
 
   gearman_return_t send_packet(const gearman_packet_st&, const bool flush_buffer);

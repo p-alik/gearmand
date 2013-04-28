@@ -39,4 +39,6 @@
 
 #include <libgearman-1.0/return.h>
 
+#include <cstdlib>
+
 gearman_return_t error_string2return_code(const char*, size_t length);

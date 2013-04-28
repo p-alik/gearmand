@@ -279,7 +279,7 @@ void gearman_connection_st::free_private_packet()
  * Public Definitions
  */
 
-void gearman_connection_st::set_host(const char *host_, const in_port_t port_)
+void gearman_connection_st::set_host(const char *host_, const in_port_t& port_)
 {
   if (port_ < 1)
   {
