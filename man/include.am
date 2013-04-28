@@ -3,7 +3,6 @@
 # All paths should be given relative to the root
 
 if HAVE_RECENT_SPHINX
-
 if IS_VCS_CHECKOUT
 
 # Build rule for documentation
@@ -11,7 +10,6 @@ $(dist_man_MANS): man
 BUILT_SOURCES+= $(dist_man_MANS)
 
 endif
-
 endif
 
 if HAVE_RECENT_SPHINX
