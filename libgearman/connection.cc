@@ -594,6 +594,8 @@ gearman_return_t gearman_connection_st::lookup()
   {
     return gearman_universal_set_error(universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, GEARMAN_AT, "snprintf(%d)", port_str_length);
   }
+  assert(port_str[0]);
+  assert(host[0]);
 
   struct addrinfo ai;
   memset(&ai, 0, sizeof(struct addrinfo));
