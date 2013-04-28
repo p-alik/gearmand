@@ -92,13 +92,18 @@ FCNTL_FLAGS
 AX_ENABLE_LIBHIREDIS
 
 # Checks for programs.
+AC_CHECK_PROGS([DPKG_GENSYMBOLS],[dpkg-gensymbols])
+AC_CHECK_PROGS([PERL],[perl])
 AC_CHECK_PROGS([VALGRIND],['valgrind'])
+AC_CHECK_PROGS([WINE],['wine'])
 AC_PROG_AWK
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
-AX_PROG_SPHINX_BUILD
 AX_PROG_MEMCACHED
+AX_PROG_SPHINX_BUILD(,[AC_MSG_ERROR([sphinx-build version 1.0 or greater is required])])
+AX_WITH_PROG([LCOV],[lcov])
+AX_WITH_PROG([LCOV_GENHTML],[genhtml])
 
 # Checks for header files.
 AC_HEADER_STDC
