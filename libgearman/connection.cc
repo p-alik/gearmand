@@ -277,7 +277,7 @@ void gearman_connection_st::set_host(const char *host_arg, const in_port_t port_
 
   host[GEARMAN_NI_MAXHOST - 1]= 0;
 
-  if (port_arg == 0)
+  if (port_arg < 1)
   {
     port= GEARMAN_DEFAULT_TCP_PORT;
   }
