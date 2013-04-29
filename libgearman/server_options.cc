@@ -73,9 +73,23 @@ bool gearman_request_option(gearman_universal_st &universal,
 
 gearman_server_options_st::gearman_server_options_st(gearman_universal_st &universal_arg,
                                                      const char* option_arg, const size_t option_arg_size) : 
-  _option(option_arg), _option_length(option_arg_size),
+  _option(option_arg_size),
   next(NULL), prev(NULL),
   universal(universal_arg)
+{
+  _option.append(option_arg, option_arg_size);
+  if (universal.server_options_list)
+  {
+    universal.server_options_list->prev= this;
+  }
+  next= universal.server_options_list;
+  universal.server_options_list= this;
+}
+
+gearman_server_options_st::gearman_server_options_st(const gearman_server_options_st& copy) :
+  _option(copy.option()),
+  next(NULL), prev(NULL),
+  universal(copy.universal)
 {
   if (universal.server_options_list)
   {
@@ -87,11 +101,6 @@ gearman_server_options_st::gearman_server_options_st(gearman_universal_st &unive
 
 gearman_server_options_st::~gearman_server_options_st()
 {
-  if (_option)
-  {
-    free((void*)_option);
-  }
-
   { // Remove from universal list
     if (universal.server_options_list == this)
     {
