@@ -171,11 +171,22 @@ public:
     return argv;
   }
 
+  void reset_arg_error()
+  {
+    if (_arg_error)
+    {
+      free(_arg_error);
+      _arg_error= NULL;
+    }
+  }
+
   bool is_error()
   {
     if (_functions.empty())
     {
+      reset_arg_error();
       _arg_error= strdup("No Functions were provided");
+
       return true;
     }
 

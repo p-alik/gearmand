@@ -61,7 +61,7 @@ bool lookup(const char* host)
       }
 
       int ret;
-      if ((ret= getaddrinfo(host, NULL, NULL, &addrinfo)) == 0)
+      if ((ret= getaddrinfo(host, "0", NULL, &addrinfo)) == 0)
       {
         success= true;
         break;
