@@ -46,9 +46,9 @@ namespace libtest {
 bool lookup(const char* host)
 {
   bool success= false;
-  if (host)
+  assert(host and host[0]);
+  if (host and host[0])
   {
-    assert(host);
     struct addrinfo *addrinfo= NULL;
     struct addrinfo hints;
     memset(&hints, 0, sizeof(hints));
