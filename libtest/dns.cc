@@ -50,6 +50,8 @@ bool lookup(const char* host)
   {
     assert(host);
     struct addrinfo *addrinfo= NULL;
+    struct addrinfo hints;
+    memset(&hints, 0, sizeof(hints));
 
     int limit= 5;
     while (--limit and success == false)
@@ -61,7 +63,7 @@ bool lookup(const char* host)
       }
 
       int ret;
-      if ((ret= getaddrinfo(host, "0", NULL, &addrinfo)) == 0)
+      if ((ret= getaddrinfo(host, "echo", &hints, &addrinfo)) == 0)
       {
         success= true;
         break;
