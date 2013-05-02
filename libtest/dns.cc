@@ -96,6 +96,11 @@ bool lookup(const char* host)
 
 bool check_dns()
 {
+  if (valgrind_is_caller())
+  {
+    return false;
+  }
+
   if (lookup("exist.gearman.info") == false)
   {
     return false;
