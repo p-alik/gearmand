@@ -990,6 +990,8 @@ function make_target ()
   if [ $ret -ne 0 ]; then
     if [ -n "$2" ]; then
       warn "Failed to execute $MAKE $1: $ret"
+    elif [ $ret -eq 2 ]; then
+      die "Failed to execute $MAKE $1"
     else
       die "Failed to execute $MAKE $1: $ret"
     fi
