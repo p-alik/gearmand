@@ -52,6 +52,8 @@ bool lookup(const char* host)
     struct addrinfo *addrinfo= NULL;
     struct addrinfo hints;
     memset(&hints, 0, sizeof(hints));
+    hints.ai_socktype= SOCK_STREAM;
+    hints.ai_protocol= IPPROTO_TCP;
 
     int limit= 5;
     while (--limit and success == false)
