@@ -155,7 +155,7 @@ static test_return_t append_TEST(void*)
   {
     gearman_result_st result(random() % max_block);
     libtest::vchar_t random_string;
-    libtest::vchar::make(random_string, random() % max_block);
+    libtest::vchar::make(random_string, (random() % max_block) +1);
     result.append(&random_string[0], random_string.size());
 
     if (random() % 2)
@@ -176,7 +176,7 @@ static test_return_t gearman_string_take_TEST(void*)
 
     // Now we insert a random string
     libtest::vchar_t random_string;
-    libtest::vchar::make(random_string, random() % max_block);
+    libtest::vchar::make(random_string, (random() % max_block) +1);
     result.append(&random_string[0], random_string.size());
 
     gearman_string_t temp= gearman_result_take_string(&result);
@@ -196,8 +196,8 @@ static test_return_t gearman_string_allocate_take_TEST(void*)
 
     { // Now we insert a random string
       libtest::vchar_t random_string;
-      libtest::vchar::make(random_string, random() % max_block);
-      result->append(&random_string[0], random_string.size() +1);
+      libtest::vchar::make(random_string, (random() % max_block) +1);
+      result->append(&random_string[0], random_string.size());
     }
 
     gearman_string_t temp= gearman_result_take_string(result);
@@ -207,7 +207,7 @@ static test_return_t gearman_string_allocate_take_TEST(void*)
     if (random() % 2)
     { // Now we insert a random string
       libtest::vchar_t random_string;
-      libtest::vchar::make(random_string, random() % max_block);
+      libtest::vchar::make(random_string, (random() % max_block) +1);
       result->append(&random_string[0], random_string.size());
     }
 
