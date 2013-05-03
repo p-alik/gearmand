@@ -2,7 +2,7 @@
  *
  *  Data Differential YATL (i.e. libtest)  library
  *
- *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2012-2013 Data Differential, http://datadifferential.com/
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -37,6 +37,7 @@
 #include "libtest/yatlcon.h"
 #include <libtest/common.h>
 
+#include <cstdio>
 #include <cstdlib>
 #include <unistd.h>
 
@@ -84,7 +85,7 @@ bool has_postgres_support(void)
 
 bool has_gearmand()
 {
-#if defined(HAVE_GEARMAND_BINARY) && HAVE_GEARMAND_BINARY
+#if defined(GEARMAND_BINARY) && defined(HAVE_GEARMAND_BINARY) && HAVE_GEARMAND_BINARY
   if (HAVE_GEARMAND_BINARY)
   {
     std::stringstream arg_buffer;
@@ -110,7 +111,7 @@ bool has_gearmand()
 
 bool has_drizzled()
 {
-#if defined(HAVE_DRIZZLED_BINARY) && HAVE_DRIZZLED_BINARY
+#if defined(DRIZZLED_BINARY) && defined(HAVE_DRIZZLED_BINARY) && HAVE_DRIZZLED_BINARY
   if (HAVE_DRIZZLED_BINARY)
   {
     if (access(DRIZZLED_BINARY, X_OK) == 0)
@@ -125,7 +126,7 @@ bool has_drizzled()
 
 bool has_mysqld()
 {
-#if defined(HAVE_MYSQLD_BUILD) && HAVE_MYSQLD_BUILD
+#if defined(MYSQLD_BINARY) && defined(HAVE_MYSQLD_BUILD) && HAVE_MYSQLD_BUILD
   if (HAVE_MYSQLD_BUILD)
   {
     if (access(MYSQLD_BINARY, X_OK) == 0)
@@ -138,13 +139,16 @@ bool has_mysqld()
   return false;
 }
 
-bool has_memcached()
+static char memcached_binary_path[FILENAME_MAX];
+
+static void initialize_memcached_binary_path()
 {
-#if defined(HAVE_MEMCACHED_BINARY) && HAVE_MEMCACHED_BINARY
+  memcached_binary_path[0]= 0;
+
+#if defined(MEMCACHED_BINARY) && defined(HAVE_MEMCACHED_BINARY) && HAVE_MEMCACHED_BINARY
   if (HAVE_MEMCACHED_BINARY)
   {
     std::stringstream arg_buffer;
-
 
     char *getenv_ptr;
     if (bool((getenv_ptr= getenv("PWD"))) and strcmp(MEMCACHED_BINARY, "memcached/memcached") == 0)
@@ -156,27 +160,62 @@ bool has_memcached()
 
     if (access(arg_buffer.str().c_str(), X_OK) == 0)
     {
-      return true;
+      strncpy(memcached_binary_path, arg_buffer.str().c_str(), FILENAME_MAX);
     }
   }
 #endif
+}
+
+static pthread_once_t memcached_binary_once= PTHREAD_ONCE_INIT;
+static void initialize_memcached_binary(void)
+{
+  int ret;
+  if ((ret= pthread_once(&memcached_binary_once, initialize_memcached_binary_path)) != 0)
+  {
+    FATAL(strerror(ret));
+  }
+}
+
+bool has_memcached()
+{
+  initialize_memcached_binary();
+
+  if (memcached_binary_path[0] and (strlen(memcached_binary_path) > 0))
+  {
+    return true;
+  }
 
   return false;
 }
 
-bool has_memcached_sasl()
+const char* memcached_binary()
 {
-#if defined(HAVE_MEMCACHED_SASL_BINARY) && HAVE_MEMCACHED_SASL_BINARY
-  if (HAVE_MEMCACHED_SASL_BINARY)
-  {
-    if (access(MEMCACHED_SASL_BINARY, X_OK) == 0)
-    {
-      return true;
-    }
-  }
-#endif
+  initialize_memcached_binary();
 
-  return false;
+  if (memcached_binary_path[0])
+  {
+    return memcached_binary_path;
+  }
+
+  return NULL;
+}
+
+const char *gearmand_binary() 
+{
+#if defined(GEARMAND_BINARY)
+  return GEARMAND_BINARY;
+#else
+  return NULL;
+#endif
+}
+
+const char *drizzled_binary() 
+{
+#if defined(DRIZZLED_BINARY)
+  return DRIZZLED_BINARY;
+#else
+  return NULL;
+#endif
 }
 
 } // namespace libtest

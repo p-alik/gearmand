@@ -36,21 +36,27 @@
 
 #pragma once
 
-#include <libtest/result/base.hpp>
-#include <libtest/result/fail.hpp>
-#include <libtest/result/skip.hpp>
-#include <libtest/result/success.hpp>
+#include "libtest/exception.hpp"
 
-#define _SUCCESS throw libtest::__success(LIBYATL_DEFAULT_PARAM)
+namespace libtest {
 
-#define SKIP(...) \
-do \
-{ \
-  throw libtest::__skipped(LIBYATL_DEFAULT_PARAM, __VA_ARGS__); \
-} while (0)
+class disconnected : public libtest::exception
+{
+public:
+  disconnected(const char *file, int line, const char *func, const std::string&, const in_port_t port, ...);
 
-#define FAIL(...) \
-do \
-{ \
-  throw libtest::__failure(LIBYATL_DEFAULT_PARAM, __VA_ARGS__); \
-} while (0)
+  disconnected(const disconnected&);
+
+  // The following are just for unittesting the exception class
+  static bool is_disabled();
+  static void disable();
+  static void enable();
+  static uint32_t disabled_counter();
+  static void increment_disabled_counter();
+
+private:
+  in_port_t _port;
+  char _instance[BUFSIZ];
+};
+
+} // namespace libtest
