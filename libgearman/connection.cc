@@ -307,14 +307,8 @@ void gearman_connection_st::set_host(const char *host_arg, const in_port_t port_
 {
   reset_addrinfo();
 
-  if (host_arg)
-  {
-    size_t string_len= strlen(host_arg);
-    if (string_len == 0)
-    {
-      host_arg= GEARMAN_DEFAULT_TCP_HOST;
-    }
-  }
+  if (host_arg and host_arg[0])
+  { }
   else
   {
     host_arg= GEARMAN_DEFAULT_TCP_HOST;
