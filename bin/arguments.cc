@@ -82,10 +82,7 @@ Args::Args(int p_argc, char *p_argv[]) :
 
 Args::~Args()
 {
-  if (_arg_error)
-  {
-    free(_arg_error);
-  }
+  reset_arg_error();
 }
 
 void Args::init(int argc)
@@ -178,6 +175,7 @@ void Args::init(int argc)
       {
         size_t length= snprintf(NULL, 0, "-%c %s", char(c), optarg);
         ++length; // Add in space for null
+        reset_arg_error();
         _arg_error= (char*)malloc(length);
         if (_arg_error)
         {
@@ -188,6 +186,7 @@ void Args::init(int argc)
       {
         size_t length= snprintf(NULL, 0, "-%c", char(c));
         length++;
+        reset_arg_error();
         _arg_error= (char*)malloc(length);
         if (_arg_error)
         {

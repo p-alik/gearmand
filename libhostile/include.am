@@ -12,7 +12,7 @@
 # Unit tests
 include libhostile/t/include.am
 
-noinst_LTLIBRARIES+= libhostile/libhostile.la
+check_LTLIBRARIES+= libhostile/libhostile.la
 
 noinst_HEADERS+= libhostile/accept.h
 noinst_HEADERS+= libhostile/action.h

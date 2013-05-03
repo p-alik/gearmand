@@ -72,6 +72,14 @@ struct gearman_vector_st {
   {
   }
 
+  gearman_vector_st(const gearman_vector_st& copy) :
+    end(NULL),
+    string(NULL),
+    current_size(0)
+  {
+    store(copy);
+  }
+
   gearman_vector_st(const size_t reserve);
 
   ~gearman_vector_st();
@@ -108,7 +116,7 @@ struct gearman_vector_st {
     return current_size;
   }
 
-  bool store(gearman_vector_st&);
+  bool store(const gearman_vector_st&);
   bool store(const char*, const size_t);
   bool append(const char* arg_, const size_t arg_length_);
   bool append_character(const char character);

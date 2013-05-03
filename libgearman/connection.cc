@@ -161,6 +161,52 @@ gearman_connection_st::gearman_connection_st(gearman_universal_st &universal_arg
   host[0]= 0;
 }
 
+gearman_connection_st::gearman_connection_st(const gearman_connection_st& copy):
+  state(GEARMAN_CON_UNIVERSAL_ADDRINFO),
+  send_state(GEARMAN_CON_SEND_STATE_NONE),
+  recv_state(GEARMAN_CON_RECV_UNIVERSAL_NONE),
+  port(copy.port),
+  events(0),
+  revents(0),
+  fd(-1),
+  cached_errno(0),
+  created_id(0),
+  created_id_next(0),
+  send_buffer_size(0),
+  send_data_size(0),
+  send_data_offset(0),
+  recv_buffer_size(0),
+  recv_data_size(0),
+  recv_data_offset(0),
+  universal(copy.universal),
+  next(NULL),
+  prev(NULL),
+  context(NULL),
+  _addrinfo(NULL),
+  addrinfo_next(NULL),
+  send_buffer_ptr(NULL),
+  _recv_packet(NULL)
+{
+  if (universal.con_list)
+  {
+    universal.con_list->prev= this;
+  }
+  next= universal.con_list;
+  universal.con_list= this;
+  universal.con_count++;
+
+  send_buffer_ptr= send_buffer;
+  recv_buffer_ptr= recv_buffer;
+  if (host[0])
+  {
+    strcpy(host, copy.host);
+  }
+  else
+  {
+    host[0]= 0;
+  }
+}
+
 gearman_connection_st *gearman_connection_create(gearman_universal_st &universal,
                                                  gearman_connection_options_t *options)
 {
@@ -277,7 +323,7 @@ void gearman_connection_st::set_host(const char *host_arg, const in_port_t port_
 
   host[GEARMAN_NI_MAXHOST - 1]= 0;
 
-  if (port_arg == 0)
+  if (port_arg < 1)
   {
     port= GEARMAN_DEFAULT_TCP_PORT;
   }
@@ -373,16 +419,15 @@ gearman_return_t gearman_connection_st::send_packet(const gearman_packet_st& pac
          head= head->next)
     {
       gearman_packet_st message;
-      const void *args[]= { head->_option };
-      size_t args_size[]= { head->_option_length };
+      const void *args[]= { (void*)(head->value()) };
+      size_t args_size[]= { head->size() };
       gearman_return_t ret= gearman_packet_create_args(universal, message, GEARMAN_MAGIC_REQUEST,
                                                        GEARMAN_COMMAND_OPTION_REQ, args, args_size, 1);
 
       if (gearman_failed(ret))
       {
         gearman_packet_free(&message);
-        gearman_error(universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "gearman_packet_create_args()");
-        return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+        return gearman_error(universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "gearman_packet_create_args()");
       }
 
       PUSH_BLOCKING(universal);
@@ -594,6 +639,8 @@ gearman_return_t gearman_connection_st::lookup()
   {
     return gearman_universal_set_error(universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, GEARMAN_AT, "snprintf(%d)", port_str_length);
   }
+  assert(port_str[0]);
+  assert(host[0]);
 
   struct addrinfo ai;
   memset(&ai, 0, sizeof(struct addrinfo));

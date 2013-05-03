@@ -16,6 +16,7 @@ check_PROGRAMS=
 noinst_PROGRAMS=
 lib_LTLIBRARIES=
 noinst_LTLIBRARIES=
+check_LTLIBRARIES=
 nobase_include_HEADERS=
 noinst_HEADERS=
 man1_MANS=
