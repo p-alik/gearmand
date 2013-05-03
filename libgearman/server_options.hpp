@@ -38,6 +38,8 @@
 
 #pragma once
 
+#include "libgearman/vector.hpp"
+
 struct gearman_universal_st;
 
 bool gearman_request_option(gearman_universal_st &universal, gearman_string_t &option);

@@ -60,7 +60,7 @@ bool gearman_request_option(gearman_universal_st &universal,
   return true;
 }
 
-gearman_server_options_st::gearman_server_options_st(gearman_universal_st &universal_arg,
+gearman_server_options_st::gearman_server_options_st(gearman_universal_st &universal_,
                                                      const char* option_arg, const size_t option_arg_size) : 
   _option(option_arg_size),
   next(NULL), prev(NULL),
