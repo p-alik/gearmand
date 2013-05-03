@@ -1,8 +1,9 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
+ * 
+ *  Gearmand client and server library.
  *
- *  Data Differential YATL (i.e. libtest)  library
- *
- *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2013 Data Differential, http://datadifferential.com/
+ *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -34,85 +35,13 @@
  *
  */
 
-#include "libtest/yatlcon.h"
-#include <libtest/common.h>
+#include "gear_config.h"
 
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
+#include "libgearman/error_code.h"
+#include "libgearman/error_code.hpp"
 
-namespace libtest {
-
-bool lookup(const char* host)
+gearman_return_t string2return_code(const char*, size_t)
 {
-  bool success= false;
-  assert(host and host[0]);
-  if (host and host[0])
-  {
-    struct addrinfo *addrinfo= NULL;
-    struct addrinfo hints;
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_socktype= SOCK_STREAM;
-    hints.ai_protocol= IPPROTO_TCP;
-
-    int limit= 5;
-    while (--limit and success == false)
-    {
-      if (addrinfo)
-      {
-        freeaddrinfo(addrinfo);
-        addrinfo= NULL;
-      }
-
-      int ret;
-      if ((ret= getaddrinfo(host, "echo", &hints, &addrinfo)) == 0)
-      {
-        success= true;
-        break;
-      }
-
-      switch (ret)
-      {
-      case EAI_AGAIN:
-        continue;
-
-      case EAI_NONAME:
-      default:
-        break;
-      }
-
-      break;
-    }
-
-    if (addrinfo)
-    {
-      freeaddrinfo(addrinfo);
-    }
-  }
-
-  return success;
+  return GEARMAN_SUCCESS;
 }
-
-
-bool check_dns()
-{
-  if (valgrind_is_caller())
-  {
-    return false;
-  }
-
-  if (lookup("exist.gearman.info") == false)
-  {
-    return false;
-  }
-
-  if (lookup("does_not_exist.gearman.info")) // This should fail, if it passes,...
-  {
-    fatal_assert("Your service provider sucks and is providing bogus DNS. You might be in an airport.");
-  }
-
-  return true;
-}
-
-} // namespace libtest
 

@@ -38,14 +38,15 @@
 
 #pragma once
 
+#include "libgearman/vector.hpp"
+
 struct gearman_universal_st;
 
 bool gearman_request_option(gearman_universal_st &universal, gearman_string_t &option);
 
 struct gearman_server_options_st
 {
-  const char* _option;
-  const size_t _option_length;
+  gearman_vector_st _option;
 
   gearman_server_options_st *next;
   gearman_server_options_st *prev;
@@ -55,4 +56,21 @@ public:
   gearman_server_options_st(gearman_universal_st &universal_arg,
                             const char* option_arg, const size_t option_arg_size);
   ~gearman_server_options_st();
+
+  gearman_server_options_st(const gearman_server_options_st&);
+
+  const gearman_vector_st& option() const
+  {
+    return _option;
+  }
+
+  const char* value() const
+  {
+    return _option.value();
+  }
+
+  size_t size() const
+  {
+    return _option.size();
+  }
 };

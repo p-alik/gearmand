@@ -778,6 +778,8 @@ static test_return_t add_servers_test(void *)
 
 static test_return_t hostname_resolution(void *)
 {
+  test_skip_valgrind();
+
   libgearman::Client client;
 
   test_skip(GEARMAN_SUCCESS, gearman_client_add_servers(&client, "exist.gearman.info:12345"));

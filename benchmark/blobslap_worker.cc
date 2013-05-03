@@ -85,12 +85,14 @@ int main(int args, char *argv[])
   uint32_t count= UINT_MAX;
   in_port_t port;
   std::string host;
+  std::string identifier;
   std::vector<std::string> functions;
   std::string verbose_string;
   boost::program_options::options_description desc("Options");
   desc.add_options()
     ("help", "Options related to the program.")
     ("host,h", boost::program_options::value<std::string>(&host)->default_value("localhost"),"Connect to the host")
+    ("identifier", boost::program_options::value<std::string>(&identifier)->default_value("blobslap_worker"), "Worker identifier")
     ("port,p", boost::program_options::value<in_port_t>(&port)->default_value(GEARMAN_DEFAULT_TCP_PORT), "Port number use for connection")
     ("count,c", boost::program_options::value<uint32_t>(&count)->default_value(0), "Number of jobs to run before exiting")
     ("timeout,u", boost::program_options::value<int32_t>(&timeout)->default_value(-1), "Timeout in milliseconds")
@@ -164,6 +166,12 @@ int main(int args, char *argv[])
     std::cerr << "Failed while adding server " << host << ":" << port << " :" << gearman_worker_error(worker) << std::endl;
     return EXIT_FAILURE;
   }
+
+  if (identifier.size())
+  {
+    gearman_worker_set_identifier(worker, identifier.c_str(), identifier.size());
+  }
+
 
   benchmark.verbose= static_cast<uint8_t>(verbose_string.length());
 

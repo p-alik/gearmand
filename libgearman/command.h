@@ -44,6 +44,7 @@
 struct gearman_command_info_st
 {
   const char *name;
+  const gearman_command_t code;
   const uint8_t argc; // Number of arguments to commands.
   const bool data;
 };

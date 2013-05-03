@@ -279,7 +279,7 @@ void gearman_connection_st::free_private_packet()
  * Public Definitions
  */
 
-void gearman_connection_st::set_host(const char *host_, const in_port_t port_)
+void gearman_connection_st::set_host(const char *host_, const in_port_t& port_)
 {
   if (port_ < 1)
   {
@@ -418,8 +418,8 @@ gearman_return_t gearman_connection_st::send_packet(const gearman_packet_st& pac
          head= head->next)
     {
       gearman_packet_st message;
-      const void *args[]= { head->_option };
-      size_t args_size[]= { head->_option_length };
+      const void *args[]= { (const void*)head->value() };
+      size_t args_size[]= { head->size() };
       gearman_return_t ret= gearman_packet_create_args(universal, message, GEARMAN_MAGIC_REQUEST,
                                                        GEARMAN_COMMAND_OPTION_REQ, args, args_size, 1);
 
