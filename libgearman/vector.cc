@@ -181,7 +181,7 @@ gearman_vector_st *gearman_string_clone(const gearman_vector_st *self)
     {
       if (self->size())
       {
-        if (clone->store(gearman_string_value(self), gearman_string_length(self)) == false)
+        if (clone->store(*self) == false)
         {
           gearman_string_free(clone);
           return NULL;
@@ -259,7 +259,7 @@ bool gearman_vector_st::store(const char* arg_, const size_t arg_length_)
   return append(arg_, arg_length_);
 }
 
-bool gearman_vector_st::store(gearman_vector_st& vec)
+bool gearman_vector_st::store(const gearman_vector_st& vec)
 {
   clear();
   return append(vec.value(), vec.size());

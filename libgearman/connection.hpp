@@ -131,6 +131,8 @@ public:
     _recv_packet= NULL;
   }
 
+  gearman_connection_st(const gearman_connection_st&);
+
 private:
   gearman_return_t _send_packet(const gearman_packet_st&, const bool flush_buffer);
   gearman_return_t set_socket_options();

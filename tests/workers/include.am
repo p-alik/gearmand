@@ -23,7 +23,7 @@ noinst_HEADERS+= tests/workers/v2/sleep_return_random.h
 noinst_HEADERS+= tests/workers/v2/split.h
 noinst_HEADERS+= tests/workers/v2/unique.h
 
-noinst_LTLIBRARIES+= tests/libstartworker.la
+check_LTLIBRARIES+= tests/libstartworker.la
 tests_libstartworker_la_CXXFLAGS=
 tests_libstartworker_la_LIBADD=
 tests_libstartworker_la_SOURCES=

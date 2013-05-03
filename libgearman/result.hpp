@@ -64,7 +64,8 @@ struct gearman_result_st
 
     Value() :
       _boolean(false),
-      _integer(0)
+      _integer(0),
+      string()
     { }
 
     Value(size_t initial_size) :
