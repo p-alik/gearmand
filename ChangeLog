@@ -26,6 +26,8 @@
 
 1.0.6
 * strlen() of zero on name passed for instance did not result in a connection to localhost (which the php driver thought would happen).
+* Fix regression in log not updating time on all platforms.
+* Fix issue where pecl php wasn't passing a null string to get default host.
 
 1.0.5 Mon Apr 15 06:36:05 EDT 2013
 * Fix for log_fn

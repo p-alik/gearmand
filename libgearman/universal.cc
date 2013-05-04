@@ -49,6 +49,7 @@
 #include "libgearman/interface/push.hpp"
 #include "libgearman/server_options.hpp"
 #include "libgearman/log.hpp"
+#include "libgearman/vector.h"
 
 #include <cerrno>
 #include <cstdarg>

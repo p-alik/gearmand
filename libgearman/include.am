@@ -30,6 +30,7 @@ noinst_HEADERS+= libgearman/ostream.hpp
 noinst_HEADERS+= libgearman/error_code.h
 noinst_HEADERS+= libgearman/command.hpp
 noinst_HEADERS+= libgearman/uuid.hpp
+noinst_HEADERS+= libgearman/vector.h
 noinst_HEADERS+= \
 		 libgearman/actions.hpp \
 		 libgearman/add.hpp \

@@ -298,14 +298,8 @@ void gearman_connection_st::set_host(const char *host_, const char* service_)
 {
   reset_addrinfo();
 
-  if (host_)
-  {
-    size_t string_len= strlen(host_);
-    if (string_len == 0)
-    {
-      host_= GEARMAN_DEFAULT_TCP_HOST;
-    }
-  }
+  if (host_ and host_[0])
+  { }
   else
   {
     host_= GEARMAN_DEFAULT_TCP_HOST;

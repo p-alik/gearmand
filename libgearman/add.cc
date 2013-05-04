@@ -45,6 +45,7 @@
 
 #include "libgearman/assert.hpp"
 
+#include "libgearman/vector.h"
 #include "libgearman/uuid.hpp"
 #include "libhashkit-1.0/hashkit.h"
 

@@ -37,6 +37,7 @@
 
 #include "gear_config.h"
 #include <libgearman/common.h>
+#include "libgearman/vector.h"
 
 #include <cstdio>
 #include <cstring>

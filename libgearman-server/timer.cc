@@ -76,8 +76,7 @@ static __attribute__((noreturn)) void* current_epoch_handler(void*)
     {
       gearmand_perror(errno, "poll");
     }
-
-    if (active_fd > 0)
+    else
     {
       if (fds[1].revents)
       {

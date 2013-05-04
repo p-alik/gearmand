@@ -42,6 +42,7 @@
 #include <libgearman/result.hpp>
 
 #include "libgearman/assert.hpp"
+#include "libgearman/vector.h"
 
 #include <memory>
 

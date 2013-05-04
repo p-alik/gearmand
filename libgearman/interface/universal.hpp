@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2011-2013 Data Differential, http://datadifferential.com/
  *  Copyright (C) 2008 Brian Aker, Eric Day
  *  All rights reserved.
  *
@@ -41,6 +41,7 @@
 #include "libgearman/allocator.hpp" 
 #include "libgearman/server_options.hpp"
 #include "libgearman/interface/packet.hpp"
+#include "libgearman/vector.h" 
 
 /**
   @todo this is only used by the server and should be made private.
