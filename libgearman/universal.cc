@@ -100,6 +100,7 @@ void gearman_universal_clone(gearman_universal_st &destination, const gearman_un
   destination.timeout= source.timeout;
 
   destination._namespace= gearman_string_clone(source._namespace);
+  destination._identifier= gearman_string_clone(source._identifier);
   destination.verbose= source.verbose;
   destination.log_fn= source.log_fn;
   destination.log_context= source.log_context;
@@ -119,7 +120,6 @@ void gearman_universal_free(gearman_universal_st &universal)
 {
   gearman_free_all_cons(universal);
   gearman_free_all_packets(universal);
-  gearman_string_free(universal._namespace);
 
   if (universal.pfds)
   {
@@ -377,6 +377,19 @@ gearman_connection_st *gearman_ready(gearman_universal_st& universal)
   return NULL;
 }
 
+void gearman_universal_st::identifier(const char *identifier_, const size_t identifier_size_)
+{
+  gearman_string_free(_identifier);
+  if (identifier_ and identifier_size_)
+  {
+    _identifier= gearman_string_create(NULL, identifier_, identifier_size_);
+  }
+  else
+  {
+    _identifier= NULL;
+  }
+}
+
 gearman_return_t gearman_set_identifier(gearman_universal_st& universal,
                                         const char *id, size_t id_size)
 {
@@ -403,28 +416,14 @@ gearman_return_t gearman_set_identifier(gearman_universal_st& universal,
     }
   }
 
-  gearman_packet_st packet;
-  gearman_return_t ret= gearman_packet_create_args(universal, packet, GEARMAN_MAGIC_REQUEST,
-                                                   GEARMAN_COMMAND_SET_CLIENT_ID,
-                                                   (const void**)&id, &id_size, 1);
-  if (gearman_success(ret))
+  universal.identifier(id, id_size);
+
+  for (gearman_connection_st *con= universal.con_list; con; con= con->next)
   {
-    PUSH_BLOCKING(universal);
-
-    for (gearman_connection_st *con= universal.con_list; con; con= con->next)
-    {
-      gearman_return_t local_ret= con->send_packet(packet, true);
-      if (gearman_failed(local_ret))
-      {
-        ret= local_ret;
-      }
-
-    }
+    con->send_identifier();
   }
 
-  gearman_packet_free(&packet);
-
-  return ret;
+  return GEARMAN_SUCCESS;
 }
 
 static gearman_return_t connection_loop(gearman_universal_st& universal,

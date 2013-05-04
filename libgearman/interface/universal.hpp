@@ -73,6 +73,7 @@ struct gearman_universal_st
   gearman_log_fn *log_fn;
   void *log_context;
   gearman_allocator_t allocator;
+  struct gearman_vector_st *_identifier;
   struct gearman_vector_st *_namespace;
   struct error_st {
     gearman_return_t rc;
@@ -174,6 +175,7 @@ struct gearman_universal_st
     log_fn(NULL),
     log_context(NULL),
     allocator(gearman_default_allocator()),
+    _identifier(NULL),
     _namespace(NULL)
   {
     wakeup_fd[0]= INVALID_SOCKET;
@@ -191,6 +193,14 @@ struct gearman_universal_st
       }
     }
   }
+
+  ~gearman_universal_st()
+  {
+    gearman_string_free(_identifier);
+    gearman_string_free(_namespace);
+  }
+
+  void identifier(const char *identifier_, const size_t identifier_size_);
 };
 
 static inline bool gearman_universal_is_non_blocking(gearman_universal_st &self)

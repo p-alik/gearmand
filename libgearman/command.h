@@ -53,7 +53,9 @@ struct gearman_command_info_st
 extern "C" {
 #endif
 
-struct gearman_command_info_st *gearman_command_info(gearman_command_t command);
+const struct gearman_command_info_st *gearman_command_info(gearman_command_t command);
+
+const struct gearman_command_info_st * gearman_command_lookup (register const char *str, register unsigned int len);
 
 #ifdef __cplusplus
 }

@@ -39,6 +39,7 @@
 
 #include "libgearman-server/common.h"
 #include "libgearman-server/log.h"
+#include "libgearman/command.h"
 #include "libgearman/vector.hpp"
 
 #include <cassert>
@@ -65,10 +66,18 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
                        int(packet->argc));
   }
 
+#if 0
+  const struct gearman_command_info_st *command= NULL;
+#endif
   if (packet->argc == 0)
   {
     data.vec_printf(TEXT_ERROR_UNKNOWN_COMMAND, 4, "NULL");
   }
+#if 0
+  else if ((command= gearman_command_lookup((char *)(packet->arg[0]), packet->arg_size[0])))
+  {
+  }
+#endif
   else if (strcasecmp("workers", (char *)(packet->arg[0])) == 0)
   {
     for (gearman_server_thread_st *thread= Server->thread_list;
