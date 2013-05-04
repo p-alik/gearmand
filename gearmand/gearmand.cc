@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
   ("daemon,d", boost::program_options::bool_switch(&opt_daemon)->default_value(false),
    "Daemon, detach and run in the background.")
 
-  ("exceptions", boost::program_options::bool_switch(&opt_exceptions)->default_value(false),
+  ("exceptions", boost::program_options::bool_switch(&opt_exceptions)->default_value(true),
    "Enable protocol exceptions by default.")
 
   ("file-descriptors,f", boost::program_options::value(&fds),
