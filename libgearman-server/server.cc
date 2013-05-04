@@ -68,8 +68,14 @@
  * Queue an error packet.
  */
 static gearmand_error_t _server_error_packet(gearman_server_con_st *server_con,
-                                             const char *error_code,
-                                             const char *error_string);
+                                             const char *error_code, const char *error_string)
+{
+  return gearman_server_io_packet_add(server_con, false, GEARMAN_MAGIC_RESPONSE,
+                                      GEARMAN_COMMAND_ERROR, error_code,
+                                      (size_t)(strlen(error_code) + 1),
+                                      error_string,
+                                      (size_t)strlen(error_string), NULL);
+}
 
 /**
  * Send work result packets with data back to clients.
@@ -982,16 +988,6 @@ gearmand_error_t Context::replay_add(gearman_server_st *server,
 /*
  * Private definitions
  */
-static gearmand_error_t _server_error_packet(gearman_server_con_st *server_con,
-                                             const char *error_code,
-                                             const char *error_string)
-{
-  return gearman_server_io_packet_add(server_con, false, GEARMAN_MAGIC_RESPONSE,
-                                      GEARMAN_COMMAND_ERROR, error_code,
-                                      (size_t)(strlen(error_code) + 1),
-                                      error_string,
-                                      (size_t)strlen(error_string), NULL);
-}
 
 static gearmand_error_t
 _server_queue_work_data(gearman_server_job_st *server_job,

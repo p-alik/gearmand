@@ -298,14 +298,8 @@ void gearman_connection_st::set_host(const char *host_, const char* service_)
 {
   reset_addrinfo();
 
-  if (host_)
-  {
-    size_t string_len= strlen(host_);
-    if (string_len == 0)
-    {
-      host_= GEARMAN_DEFAULT_TCP_HOST;
-    }
-  }
+  if (host_ and host_[0])
+  { }
   else
   {
     host_= GEARMAN_DEFAULT_TCP_HOST;
@@ -399,6 +393,42 @@ void gearman_connection_st::reset_addrinfo()
   addrinfo_next= NULL;
 }
 
+gearman_return_t gearman_connection_st::send_identifier(void)
+{
+  if (universal._identifier)
+  {
+    options.identifier_sent= false;
+    const void* id= (void*)universal._identifier->value();
+    size_t id_size= universal._identifier->size();
+
+    gearman_packet_st packet;
+    gearman_return_t ret= gearman_packet_create_args(universal, packet, GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_SET_CLIENT_ID, (const void**)&id, &id_size, 1);
+
+    if (gearman_success(ret))
+    {
+      PUSH_BLOCKING(universal);
+
+      options.identifier_sent= true;
+      gearman_return_t local_ret= send_packet(packet, true);
+      if (gearman_failed(local_ret))
+      {
+        options.identifier_sent= false;
+        ret= local_ret;
+      }
+      else
+      {
+        options.identifier_sent= true;
+      }
+    }
+
+    gearman_packet_free(&packet);
+
+    return ret;
+  }
+
+  return GEARMAN_SUCCESS;
+}
+
 
 /*
  * The send_packet() method does not only send the passed-in packet_arg. If there are any server options
@@ -411,6 +441,16 @@ void gearman_connection_st::reset_addrinfo()
  */
 gearman_return_t gearman_connection_st::send_packet(const gearman_packet_st& packet_arg, const bool flush_buffer)
 {
+  if (options.identifier_sent == false)
+  {
+    gearman_return_t ret= send_identifier();
+    if (gearman_failed(ret))
+    {
+      return ret;
+    }
+    options.identifier_sent= true;
+  }
+
   if (options.server_options_sent == false)
   {
     for (gearman_server_options_st* head= universal.server_options_list;

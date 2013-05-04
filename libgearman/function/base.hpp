@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2011-2013 Data Differential, http://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,8 @@
 
 #include <cstring>
 #include <memory>
+
+#include "libgearman/vector.h"
 
 enum gearman_function_error_t {
   GEARMAN_FUNCTION_SUCCESS= GEARMAN_SUCCESS,

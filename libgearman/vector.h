@@ -1,10 +1,8 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  Gearmand client and server library.
+ *  Libgearman library
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
- *  Copyright (C) 2008 Brian Aker, Eric Day
- *  All rights reserved.
+ *  Copyright (C) 2013 Data Differential, http://datadifferential.com/
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -36,27 +34,50 @@
  *
  */
 
-
 #pragma once
 
-#include <libgearman-1.0/protocol.h>
+#include <cstddef>
+#include <cstdlib>
+#include <cstdarg>
 
-struct gearman_command_info_st
-{
-  const char *name;
-  const gearman_command_t code;
-  const uint8_t argc; // Number of arguments to commands.
-  const bool data;
-};
+#include "libgearman-1.0/string.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-const struct gearman_command_info_st *gearman_command_info(gearman_command_t command);
+struct gearman_vector_st *gearman_string_clone(const struct gearman_vector_st*);
 
-const struct gearman_command_info_st * gearman_command_lookup (register const char *str, register unsigned int len);
+bool gearman_string_reserve(struct gearman_vector_st *string, size_t need);
+
+char *gearman_string_c_copy(struct gearman_vector_st *string);
+
+bool gearman_string_append_character(struct gearman_vector_st *string,
+                                     const char character);
+
+bool gearman_string_append(struct gearman_vector_st *string,
+                           const char *value, size_t length);
+
+void gearman_string_clear(struct gearman_vector_st *string);
+
+
+void gearman_string_free(struct gearman_vector_st*& string);
+
+size_t gearman_string_length(const struct gearman_vector_st *self);
+
+
+const char *gearman_string_value(const struct gearman_vector_st *self);
+
+
+char *gearman_string_value_mutable(const struct gearman_vector_st *self);
+
+
+gearman_string_t gearman_string(const struct gearman_vector_st *self);
+
+
+gearman_string_t gearman_string_take_string(struct gearman_vector_st *self);
 
 #ifdef __cplusplus
 }
 #endif
+

@@ -42,6 +42,7 @@
 
 #include "libgearman-1.0/visibility.h"
 #include "libgearman-1.0/result.h"
+#include "libgearman/vector.h"
 
 #include <cstdlib>
 #include <limits>

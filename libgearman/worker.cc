@@ -1281,7 +1281,7 @@ gearman_return_t gearman_worker_set_memory_allocators(gearman_worker_st *worker,
                                                       gearman_calloc_fn *calloc_fn,
                                                       void *context)
 {
-  if (worker)
+  if (worker and worker->impl())
   {
     return gearman_set_memory_allocator(worker->impl()->universal.allocator, malloc_fn, free_fn, realloc_fn, calloc_fn, context);
   }
@@ -1302,7 +1302,7 @@ bool gearman_worker_set_server_option(gearman_worker_st *worker_shell, const cha
 
 void gearman_worker_set_namespace(gearman_worker_st *self, const char *namespace_key, size_t namespace_key_size)
 {
-  if (self)
+  if (self and self->impl())
   {
     gearman_universal_set_namespace(self->impl()->universal, namespace_key, namespace_key_size);
   }
@@ -1332,7 +1332,7 @@ gearman_worker_st *gearman_job_clone_worker(gearman_job_st *job)
 gearman_return_t gearman_worker_set_identifier(gearman_worker_st *worker,
                                                const char *id, size_t id_size)
 {
-  if (worker)
+  if (worker and worker->impl())
   {
     return gearman_set_identifier(worker->impl()->universal, id, id_size);
   }
@@ -1340,11 +1340,11 @@ gearman_return_t gearman_worker_set_identifier(gearman_worker_st *worker,
   return GEARMAN_INVALID_ARGUMENT;
 }
 
-const char *gearman_worker_namespace(gearman_worker_st *self)
+const char *gearman_worker_namespace(gearman_worker_st* worker)
 {
-  if (self)
+  if (worker and worker->impl())
   {
-    return gearman_univeral_namespace(self->impl()->universal);
+    return gearman_univeral_namespace(worker->impl()->universal);
   }
 
   return NULL;

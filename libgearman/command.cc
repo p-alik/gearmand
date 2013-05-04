@@ -40,9 +40,11 @@
 #include <libgearman/common.h>
 
 #include <libgearman-1.0/visibility.h>
-#include <libgearman/command.h>
+#include <libgearman/command.hpp>
 
 #include "libgearman/assert.hpp"
+
+using namespace org::gearman;
 
 /**
  * Command info. Update GEARMAN_MAX_COMMAND_ARGS to the largest number in the
@@ -95,9 +97,17 @@ gearman_command_info_st gearmand_command_info_list[GEARMAN_COMMAND_MAX]=
   { "STATUS_RES_UNIQUE", GEARMAN_COMMAND_STATUS_RES_UNIQUE, 6, false }
 };
 
-gearman_command_info_st *gearman_command_info(gearman_command_t command)
+const gearman_command_info_st *gearman_command_info(gearman_command_t command)
 {
   assert(command >= GEARMAN_COMMAND_TEXT);
   assert(command < GEARMAN_COMMAND_MAX);
-  return &gearmand_command_info_list[command];
+  const struct gearman_command_info_st* command_info= &gearmand_command_info_list[command];
+  assert(command_info->code == command);
+  return command_info;
+}
+
+const struct gearman_command_info_st * gearman_command_lookup (register const char *str, register unsigned int len)
+{
+  const struct gearman_command_string_st* com_str=  command_string2command_code (str, len);
+  return gearman_command_info(com_str->code);
 }

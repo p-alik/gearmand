@@ -28,7 +28,9 @@ noinst_HEADERS+= libgearman/job.h
 noinst_HEADERS+= libgearman/job.hpp
 noinst_HEADERS+= libgearman/ostream.hpp
 noinst_HEADERS+= libgearman/error_code.h
+noinst_HEADERS+= libgearman/command.hpp
 noinst_HEADERS+= libgearman/uuid.hpp
+noinst_HEADERS+= libgearman/vector.h
 noinst_HEADERS+= \
 		 libgearman/actions.hpp \
 		 libgearman/add.hpp \
@@ -161,6 +163,21 @@ libgearman_libgearman_la_SOURCES+= libgearman/error_code.hpp
 libgearman/error_code.hpp: libgearman/error_code.gperf
 	if $(GPERF) $(GPERFFLAGS) --key-positions=9,10,11,17 --struct-type \
 	  libgearman/error_code.gperf >$@t; then \
+	  mv $@t $@; \
+	  elif $(GPERF) --version >/dev/null 2>&1; then \
+	  rm $@t; \
+	  exit 1; \
+	  else \
+	  rm $@t; \
+	  touch $@; \
+	  fi
+
+EXTRA_DIST+= libgearman/command.gperf
+BUILT_SOURCES+= libgearman/command.hpp
+libgearman_libgearman_la_SOURCES+= libgearman/command.hpp
+libgearman/command.hpp: libgearman/command.gperf
+	if $(GPERF) $(GPERFFLAGS) -D --struct-type \
+	  libgearman/command.gperf >$@t; then \
 	  mv $@t $@; \
 	  elif $(GPERF) --version >/dev/null 2>&1; then \
 	  rm $@t; \
