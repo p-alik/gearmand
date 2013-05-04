@@ -397,21 +397,22 @@ gearman_return_t gearman_connection_st::send_identifier(void)
 {
   if (universal._identifier)
   {
+    options.identifier_sent= false;
     const void* id= (void*)universal._identifier->value();
     size_t id_size= universal._identifier->size();
 
     gearman_packet_st packet;
-    gearman_return_t ret= gearman_packet_create_args(universal, packet, GEARMAN_MAGIC_REQUEST,
-        GEARMAN_COMMAND_SET_CLIENT_ID,
-        (const void**)&id, &id_size, 1);
+    gearman_return_t ret= gearman_packet_create_args(universal, packet, GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_SET_CLIENT_ID, (const void**)&id, &id_size, 1);
 
     if (gearman_success(ret))
     {
       PUSH_BLOCKING(universal);
 
+      options.identifier_sent= true;
       gearman_return_t local_ret= send_packet(packet, true);
       if (gearman_failed(local_ret))
       {
+        options.identifier_sent= false;
         ret= local_ret;
       }
       else
