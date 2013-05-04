@@ -47,6 +47,7 @@
 
 #include "libgearman/assert.hpp"
 #include "libgearman/server_options.hpp"
+#include "libgearman/vector.h"
 
 #include <cerrno>
 #include <cstdarg>

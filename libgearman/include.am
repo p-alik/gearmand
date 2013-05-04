@@ -19,6 +19,7 @@ noinst_HEADERS+= libgearman/client.h
 noinst_HEADERS+= libgearman/job.h
 noinst_HEADERS+= libgearman/pipe.h
 noinst_HEADERS+= libgearman/uuid.hpp
+noinst_HEADERS+= libgearman/vector.h
 noinst_HEADERS+= \
 		 libgearman/actions.hpp \
 		 libgearman/add.hpp \

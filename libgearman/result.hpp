@@ -161,7 +161,6 @@ struct gearman_result_st
 
   ~gearman_result_st()
   {
-    gearman_string_free(&value.string);
   }
 
 private:
