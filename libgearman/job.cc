@@ -41,6 +41,7 @@
 #include <libgearman/common.h>
 
 #include "libgearman/assert.hpp"
+#include "libgearman/vector.h"
 
 #include <cstdio>
 #include <cstring>

@@ -45,6 +45,7 @@
 using namespace libtest;
 
 #include "libgearman/vector.hpp"
+#include "libgearman/vector.h"
 
 static test_return_t declare_vector_TEST(void*)
 {
