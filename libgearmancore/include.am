@@ -24,6 +24,7 @@ libgearman_libgearmancore_la_SOURCES+= libgearman/server_options.cc
 libgearman_libgearmancore_la_SOURCES+= libgearman/strcommand.cc
 libgearman_libgearmancore_la_SOURCES+= libgearman/strerror.cc
 libgearman_libgearmancore_la_SOURCES+= libgearman/universal.cc
+libgearman_libgearmancore_la_SOURCES+= libgearman/uuid.cc
 libgearman_libgearmancore_la_SOURCES+= libgearman/vector.cc
 
 libgearman_libgearmancore_la_CXXFLAGS= -DBUILDING_LIBGEARMAN

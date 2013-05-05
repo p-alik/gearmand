@@ -50,6 +50,7 @@
 #include "libgearman/server_options.hpp"
 #include "libgearman/log.hpp"
 #include "libgearman/vector.h"
+#include "libgearman/uuid.hpp"
 
 #include <cerrno>
 #include <cstdarg>
@@ -96,7 +97,7 @@ void gearman_universal_clone(gearman_universal_st &destination, const gearman_un
     destination.wakeup_fd[1]= wakeup_fd[1];
   }
 
-  (void)gearman_universal_set_option(destination, GEARMAN_NON_BLOCKING, source.options.non_blocking);
+  (void)gearman_universal_set_option(destination, GEARMAN_UNIVERSAL_NON_BLOCKING, source.options.non_blocking);
 
   destination.timeout= source.timeout;
 
@@ -136,18 +137,34 @@ void gearman_universal_free(gearman_universal_st &universal)
   }
 }
 
-gearman_return_t gearman_universal_set_option(gearman_universal_st &self, gearman_universal_options_t option, bool value)
+gearman_return_t gearman_universal_set_option(gearman_universal_st &self, universal_options_t option, bool value)
 {
   switch (option)
   {
-  case GEARMAN_NON_BLOCKING:
+  case GEARMAN_UNIVERSAL_NON_BLOCKING:
     self.options.non_blocking= value;
     break;
 
-  case GEARMAN_DONT_TRACK_PACKETS:
+  case GEARMAN_UNIVERSAL_DONT_TRACK_PACKETS:
     break;
 
-  case GEARMAN_MAX:
+  case GEARMAN_UNIVERSAL_IDENTIFY:
+    if (value)
+    {
+      if (self._identifier == NULL)
+      {
+        self._identifier= gearman_string_create_guid();
+      }
+      assert(self._identifier);
+    }
+    else
+    {
+      gearman_string_free(self._identifier);
+      self._identifier= NULL;
+    }
+    break;
+
+  case GEARMAN_UNIVERSAL_MAX:
   default:
     return GEARMAN_INVALID_COMMAND;
   }
@@ -376,6 +393,30 @@ gearman_connection_st *gearman_ready(gearman_universal_st& universal)
   }
 
   return NULL;
+}
+
+gearman_return_t gearman_universal_st::option(const universal_options_t& option_, bool value)
+{
+  switch (option_)
+  {
+    case GEARMAN_UNIVERSAL_NON_BLOCKING:
+      non_blocking(value);
+      break;
+
+    case GEARMAN_UNIVERSAL_DONT_TRACK_PACKETS:
+      break;
+
+    case GEARMAN_UNIVERSAL_IDENTIFY:
+      _identifier= gearman_string_create_guid();
+      assert(_identifier);
+      break;
+
+    case GEARMAN_UNIVERSAL_MAX:
+    default:
+      return GEARMAN_INVALID_COMMAND;
+  }
+
+  return GEARMAN_SUCCESS;
 }
 
 void gearman_universal_st::identifier(const char *identifier_, const size_t identifier_size_)

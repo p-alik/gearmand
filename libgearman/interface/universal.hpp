@@ -42,6 +42,15 @@
 #include "libgearman/server_options.hpp"
 #include "libgearman/interface/packet.hpp"
 #include "libgearman/vector.h" 
+#include "libgearman/assert.hpp" 
+
+enum universal_options_t
+{
+  GEARMAN_UNIVERSAL_NON_BLOCKING,
+  GEARMAN_UNIVERSAL_DONT_TRACK_PACKETS,
+  GEARMAN_UNIVERSAL_IDENTIFY,
+  GEARMAN_UNIVERSAL_MAX
+};
 
 /**
   @todo this is only used by the server and should be made private.
@@ -143,26 +152,9 @@ struct gearman_universal_st
     _error.last_error[0]= 0;
   }
 
-  gearman_return_t option(gearman_universal_options_t option_, bool value)
-  {
-    switch (option_)
-    {
-    case GEARMAN_NON_BLOCKING:
-      non_blocking(value);
-      break;
+  gearman_return_t option(const universal_options_t& option_, bool value);
 
-    case GEARMAN_DONT_TRACK_PACKETS:
-      break;
-
-    case GEARMAN_MAX:
-    default:
-      return GEARMAN_INVALID_COMMAND;
-    }
-
-    return GEARMAN_SUCCESS;
-  }
-
-  gearman_universal_st(const gearman_universal_options_t *options_= NULL) :
+  gearman_universal_st(const universal_options_t *options_= NULL) :
     verbose(GEARMAN_VERBOSE_NEVER),
     con_count(0),
     packet_count(0),
@@ -184,7 +176,7 @@ struct gearman_universal_st
 
     if (options_)
     {
-      while (*options_ != GEARMAN_MAX)
+      while (*options_ != GEARMAN_UNIVERSAL_MAX)
       {
         /**
           @note Check for bad value, refactor gearman_add_options().
