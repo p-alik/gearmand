@@ -41,4 +41,4 @@
 
 #include <cstdlib>
 
-gearman_return_t error_string2return_code(const char*, size_t length);
+gearman_return_t string2return_code(const char*, size_t length);
