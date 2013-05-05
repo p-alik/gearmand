@@ -197,7 +197,7 @@ gearmand_error_t LibmemcachedQueue::add(gearman_server_st *server,
 
   (void)server;
 
-  gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM, "libmemcached add: %.*s", (uint32_t)unique_size, (char *)unique);
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "libmemcached add: %.*s", (uint32_t)unique_size, (char *)unique);
 
   char key[MEMCACHED_MAX_KEY];
   size_t key_length= (size_t)snprintf(key, MEMCACHED_MAX_KEY, "%s%.*s-%.*s",
@@ -230,7 +230,7 @@ gearmand_error_t LibmemcachedQueue::done(gearman_server_st*,
 {
   char key[MEMCACHED_MAX_KEY];
 
-  gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM, "libmemcached done: %.*s", (uint32_t)unique_size, (char *)unique);
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "libmemcached done: %.*s", (uint32_t)unique_size, (char *)unique);
 
   size_t key_length= (size_t)snprintf(key, MEMCACHED_MAX_KEY, "%s%.*s-%.*s",
                                       GEARMAND_QUEUE_LIBMEMCACHED_DEFAULT_PREFIX,
@@ -325,7 +325,7 @@ static memcached_return callback_loader(const memcached_st*,
   } 
   memcpy(data, memcached_result_value(result), memcached_result_length(result));
 
-  gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM, "libmemcached replay_add: %.*s", (uint32_t)unique_size, (char *)unique);
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "libmemcached replay_add: %.*s", (uint32_t)unique_size, (char *)unique);
 
   /* Currently not looking at failure cases */
   LibmemcachedQueue::replay_add(replay->server(),

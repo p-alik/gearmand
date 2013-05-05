@@ -104,7 +104,7 @@ static size_t _connection_read(gearman_server_con_st *con, void *data, size_t da
     if (read_size == 0)
     {
       ret= GEARMAND_LOST_CONNECTION;
-      gearmand_log_info(GEARMAND_DEFAULT_LOG_PARAM, 
+      gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, 
                         "Peer connection has called close() %s:%s",
                         connection->context == NULL ? "-" : connection->context->host,
                         connection->context == NULL ? "-" : connection->context->port);
@@ -135,7 +135,7 @@ static size_t _connection_read(gearman_server_con_st *con, void *data, size_t da
       case EHOSTDOWN:
         {
           ret= GEARMAND_LOST_CONNECTION;
-          gearmand_log_info(GEARMAND_DEFAULT_LOG_PARAM, 
+          gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, 
                             "Peer connection has called close() %s:%s",
                             connection->context == NULL ? "-" : connection->context->host,
                             connection->context == NULL ? "-" : connection->context->port);
@@ -233,7 +233,7 @@ static gearmand_error_t _connection_flush(gearman_server_con_st *con)
 
         if (write_size == 0) // detect infinite loop?
         {
-          gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM, "send() sent zero bytes to peer %s:%s",
+          gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "send() sent zero bytes to peer %s:%s",
                              connection->context == NULL ? "-" : connection->context->host,
                              connection->context == NULL ? "-" : connection->context->port);
           continue;
@@ -272,7 +272,7 @@ static gearmand_error_t _connection_flush(gearman_server_con_st *con)
           return GEARMAND_ERRNO;
         }
 
-        gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM, "send() %u bytes to peer %s:%s",
+        gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "send() %u bytes to peer %s:%s",
                            uint32_t(write_size),
                            connection->context == NULL ? "-" : connection->context->host,
                            connection->context == NULL ? "-" : connection->context->port);
@@ -683,7 +683,7 @@ gearmand_error_t gearman_io_recv(gearman_server_con_st *con, bool recv_data)
         }
         return ret;
       }
-      gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM, "read %lu bytes", (unsigned long)recv_size);
+      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "read %lu bytes", (unsigned long)recv_size);
 
       connection->recv_buffer_size+= recv_size;
     }
@@ -806,7 +806,7 @@ gearmand_error_t gearmand_io_set_revents(gearman_server_con_st *con, short reven
 
 static gearmand_error_t _io_setsockopt(gearmand_io_st &connection)
 {
-  gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM, "setsockopt() %d", connection.fd);
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "setsockopt() %d", connection.fd);
   {
     int setting= 1;
     if (setsockopt(connection.fd, IPPROTO_TCP, TCP_NODELAY, &setting, (socklen_t)sizeof(int)) and errno != EOPNOTSUPP)

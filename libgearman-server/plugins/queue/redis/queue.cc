@@ -195,17 +195,17 @@ static gearmand_error_t _hiredis_add(gearman_server_st *, void *context,
     return GEARMAND_QUEUE_ERROR;
   }
 
-  gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM, "hires add: %.*s", (uint32_t)unique_size, (char *)unique);
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "hires add: %.*s", (uint32_t)unique_size, (char *)unique);
 
   std::vector<char> key;
   build_key(key, unique, unique_size, function_name, function_name_size);
-  gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM, "hires key: %u", (uint32_t)key.size());
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "hires key: %u", (uint32_t)key.size());
 
   redisReply *reply= (redisReply*)redisCommand(queue->redis(), "SET %b %b", &key[0], key.size(), data, data_size);
-  gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM, "got reply");
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "got reply");
   if (reply == NULL)
   {
-    return gearmand_log_gerror(GEARMAND_DEFAULT_LOG_PARAM, GEARMAND_QUEUE_ERROR, "failed to insert '%.*s' into redis", key.size(), &key[0]);
+    return gearmand_log_gerror(GEARMAN_DEFAULT_LOG_PARAM, GEARMAND_QUEUE_ERROR, "failed to insert '%.*s' into redis", key.size(), &key[0]);
   }
   freeReplyObject(reply);
 
@@ -225,7 +225,7 @@ static gearmand_error_t _hiredis_done(gearman_server_st *, void *context,
 {
   gearmand::plugins::queue::Hiredis *queue= (gearmand::plugins::queue::Hiredis *)context;
 
-  gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM, "hires done: %.*s", (uint32_t)unique_size, (char *)unique);
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "hires done: %.*s", (uint32_t)unique_size, (char *)unique);
 
   std::vector<char> key;
   build_key(key, unique, unique_size, function_name, function_name_size);

@@ -187,7 +187,7 @@ gearman_server_thread_run(gearman_server_thread_st *thread,
       if (server_con->is_dead && server_con->proc_removed)
         gearman_server_con_free(server_con);
       else
-        gearmand_log_error(GEARMAND_DEFAULT_LOG_PARAM, "con %llu isn't dead %d or proc removed %d, but is in to_be_freed_list",
+        gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "con %llu isn't dead %d or proc removed %d, but is in to_be_freed_list",
                            server_con, server_con->is_dead, server_con->proc_removed);
     }
 
@@ -307,7 +307,7 @@ static gearmand_error_t _thread_packet_read(gearman_server_con_st *con)
       return ret;
     }
 
-    gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM,
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
                        "Received %s %s:%u",
                        gearman_command_info(con->packet->packet.command)->name,
                        con->_host == NULL ? "-" : con->_host,
@@ -354,7 +354,7 @@ static gearmand_error_t _thread_packet_flush(gearman_server_con_st *con)
       return ret;
     }
 
-    gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM, 
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, 
                        "Sent %s to %s:%d",
                        gearman_command_info(con->io_packet_list->packet.command)->name,
                        con->_host == NULL ? "-" : con->_host,
@@ -423,32 +423,32 @@ static void _proc_thread_kill(gearman_server_st *server)
   {
     if ((error= pthread_cond_signal(&(server->proc_cond))))
     {
-      gearmand_log_fatal_perror(GEARMAND_DEFAULT_LOG_PARAM, error, "pthread_cond_signal");
+      gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_cond_signal");
     }
 
     if ((error= pthread_mutex_unlock(&(server->proc_lock))))
     {
-      gearmand_log_fatal_perror(GEARMAND_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock");
+      gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock");
     }
   }
   else
   {
-    gearmand_log_fatal_perror(GEARMAND_DEFAULT_LOG_PARAM, error, "pthread_mutex_lock");
+    gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_lock");
   }
 
   /* Wait for the proc thread to exit and then cleanup. */
   if ((error= pthread_join(server->proc_id, NULL)))
   {
-    gearmand_log_fatal_perror(GEARMAND_DEFAULT_LOG_PARAM, error, "pthread_join");
+    gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_join");
   }
 
   if ((error= pthread_cond_destroy(&(server->proc_cond))))
   {
-    gearmand_log_fatal_perror(GEARMAND_DEFAULT_LOG_PARAM, error, "pthread_cond_destroy");
+    gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_cond_destroy");
   }
 
   if ((error= pthread_mutex_destroy(&(server->proc_lock))))
   {
-    gearmand_log_fatal_perror(GEARMAND_DEFAULT_LOG_PARAM, error, "pthread_mutex_destroy");
+    gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_destroy");
   }
 }

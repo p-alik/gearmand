@@ -194,12 +194,12 @@ gearmand_error_t gearman_server_io_packet_add(gearman_server_con_st *con,
     GEARMAND_FIFO__ADD(con->io_packet, server_packet);
     if ((error= pthread_mutex_unlock(&con->thread->lock)))
     {
-      gearmand_log_fatal_perror(GEARMAND_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock");
+      gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock");
     }
   }
   else
   {
-    gearmand_log_fatal_perror(GEARMAND_DEFAULT_LOG_PARAM, error, "pthread_mutex_lock");
+    gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_lock");
   }
 
   gearman_server_con_io_add(con);
@@ -219,12 +219,12 @@ void gearman_server_io_packet_remove(gearman_server_con_st *con)
     GEARMAND_FIFO__DEL(con->io_packet, server_packet);
     if ((error= pthread_mutex_unlock(&con->thread->lock)))
     {
-      gearmand_log_fatal_perror(GEARMAND_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock");
+      gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock");
     }
   }
   else
   {
-    gearmand_log_fatal_perror(GEARMAND_DEFAULT_LOG_PARAM, error, "pthread_mutex_lock");
+    gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_lock");
   }
 
   gearman_server_packet_free(server_packet, con->thread, true);
@@ -239,12 +239,12 @@ void gearman_server_proc_packet_add(gearman_server_con_st *con,
     GEARMAND_FIFO__ADD(con->proc_packet, packet);
     if ((error= pthread_mutex_unlock(&con->thread->lock)))
     {
-      gearmand_log_fatal_perror(GEARMAND_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock");
+      gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock");
     }
   }
   else
   {
-    gearmand_log_fatal_perror(GEARMAND_DEFAULT_LOG_PARAM, error, "pthread_mutex_lock");
+    gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_lock");
   }
 
   gearman_server_con_proc_add(con);
@@ -263,12 +263,12 @@ gearman_server_proc_packet_remove(gearman_server_con_st *con)
       GEARMAND_FIFO__DEL(con->proc_packet, server_packet);
       if ((error= pthread_mutex_unlock(&con->thread->lock)) != 0)
       {
-        gearmand_log_fatal_perror(GEARMAND_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock");
+        gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock");
       }
     }
     else
     {
-      gearmand_log_fatal_perror(GEARMAND_DEFAULT_LOG_PARAM, error, "pthread_mutex_lock");
+      gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_lock");
     }
   }
 
@@ -288,7 +288,7 @@ inline static gearmand_error_t packet_create_arg(gearmand_packet_st *packet,
       (not (gearman_command_info(packet->command)->data) or
        packet->data))
   {
-    gearmand_log_error(GEARMAND_DEFAULT_LOG_PARAM, "too many arguments for command(%s)", gearman_command_info(packet->command)->name);
+    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "too many arguments for command(%s)", gearman_command_info(packet->command)->name);
     return GEARMAND_TOO_MANY_ARGS;
   }
 
@@ -310,7 +310,7 @@ inline static gearmand_error_t packet_create_arg(gearmand_packet_st *packet,
   }
   else
   {
-    gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM, "resizing packet buffer");
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "resizing packet buffer");
     if (packet->args == packet->args_buffer)
     {
       packet->args= (char *)realloc(NULL, packet->args_size + arg_size);

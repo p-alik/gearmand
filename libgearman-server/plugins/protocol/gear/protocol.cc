@@ -190,7 +190,7 @@ public:
                                data_size -used_size);
         if (ptr == NULL)
         {
-          gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM,
+          gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
                              "Possible protocol error for %s, received only %u args",
                              gearman_command_info(packet->command)->name, packet->argc);
           ret_ptr= GEARMAND_IO_WAIT;
@@ -227,7 +227,7 @@ public:
 
     if (packet->command == GEARMAN_COMMAND_ECHO_RES)
     {
-      gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM,
+      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
                          "GEAR length: %" PRIu64 " gearmand_command_t: %s echo: %.*s",
                          uint64_t(packet->data_size),
                          gearman_strcommand(packet->command),
@@ -236,7 +236,7 @@ public:
     }
     else if (packet->command == GEARMAN_COMMAND_TEXT)
     {
-      gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM,
+      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
                          "GEAR length: %" PRIu64 " gearmand_command_t: %s text: %.*s",
                          uint64_t(packet->data_size),
                          gearman_strcommand(packet->command),
@@ -245,7 +245,7 @@ public:
     }
     else
     {
-      gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM,
+      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
                          "GEAR length: %" PRIu64 " gearmand_command_t: %s",
                          uint64_t(packet->data_size),
                          gearman_strcommand(packet->command));
@@ -262,7 +262,7 @@ public:
   {
     if (packet->command == GEARMAN_COMMAND_ECHO_RES)
     {
-      gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM,
+      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
                          "GEAR length: %" PRIu64 " gearmand_command_t: %s echo: %.*",
                          uint64_t(packet->data_size),
                          gearman_strcommand(packet->command),
@@ -271,7 +271,7 @@ public:
     }
     else
     {
-      gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM,
+      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
                          "GEAR length: %" PRIu64 " gearmand_command_t: %s",
                          uint64_t(packet->data_size),
                          gearman_strcommand(packet->command));

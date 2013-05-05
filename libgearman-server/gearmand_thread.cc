@@ -148,7 +148,7 @@ namespace {
       dcon->last_events= set_events;
     }
 
-    gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM,
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
                        "%15s:%5s Watching  %6s %s",
                        dcon->host, dcon->port,
                        events & POLLIN ? "POLLIN" : "",
@@ -253,7 +253,7 @@ gearmand_error_t gearmand_thread_create(gearmand_st *gearmand)
     return gearmand_perror(pthread_ret, "pthread_create");
   }
 
-  gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM, "Thread %u created", thread->count);
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Thread %u created", thread->count);
 
   return GEARMAND_SUCCESS;
 }
@@ -264,7 +264,7 @@ void gearmand_thread_free(gearmand_thread_st *thread)
   {
     if (Gearmand()->threads and thread->count > 0)
     {
-      gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM, "Shutting down thread %u", thread->count);
+      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Shutting down thread %u", thread->count);
 
       gearmand_thread_wakeup(thread, GEARMAND_WAKEUP_SHUTDOWN);
 
@@ -349,7 +349,7 @@ void gearmand_thread_free(gearmand_thread_st *thread)
         thread->base= NULL;
       }
 
-      gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM, "Thread %u shutdown complete", thread->count);
+      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Thread %u shutdown complete", thread->count);
     }
 
     delete thread;
@@ -383,7 +383,7 @@ void gearmand_thread_wakeup(gearmand_thread_st *thread,
       }
       else
       {
-        gearmand_log_error(GEARMAND_DEFAULT_LOG_PARAM, 
+        gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, 
                            "gearmand_wakeup() incorrectly wrote %lu bytes of data.", (unsigned long)written);
       }
     }
@@ -414,7 +414,7 @@ void gearmand_thread_run(gearmand_thread_st *thread)
       return;
     }
 
-    gearmand_log_info(GEARMAND_DEFAULT_LOG_PARAM, "Disconnected %s:%s", dcon->host, dcon->port);
+    gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "Disconnected %s:%s", dcon->host, dcon->port);
 
     gearmand_con_free(dcon);
   }
@@ -533,7 +533,7 @@ static void _wakeup_clear(gearmand_thread_st *thread)
 {
   if (thread->is_wakeup_event)
   {
-    gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM, "Clearing event for IO thread wakeup pipe %u", thread->count);
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Clearing event for IO thread wakeup pipe %u", thread->count);
     if (event_del(&(thread->wakeup_event)) < 0)
     {
       gearmand_perror(errno, "event_del() failure, shutdown may hang");
@@ -609,7 +609,7 @@ static void _wakeup_event(int fd, short events __attribute__ ((unused)), void *a
         break;
 
       default:
-        gearmand_log_fatal(GEARMAND_DEFAULT_LOG_PARAM, "Received unknown wakeup event (%u)", buffer[x]);
+        gearmand_log_fatal(GEARMAN_DEFAULT_LOG_PARAM, "Received unknown wakeup event (%u)", buffer[x]);
         _clear_events(thread);
         Gearmand()->ret= GEARMAND_UNKNOWN_STATE;
         break;

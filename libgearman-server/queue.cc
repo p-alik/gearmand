@@ -221,7 +221,7 @@ gearmand_error_t initialize(gearmand_st *, std::string name)
       gearmand_error_t rc;
       if (gearmand_failed(rc= (*iter)->initialize()))
       {
-        return gearmand_log_gerror(GEARMAND_DEFAULT_LOG_PARAM, rc,
+        return gearmand_log_gerror(GEARMAN_DEFAULT_LOG_PARAM, rc,
                                    "Failed to initialize %s: %s", name.c_str(), (*iter)->error_string().c_str());
       }
 
@@ -231,7 +231,7 @@ gearmand_error_t initialize(gearmand_st *, std::string name)
 
   if (launched == false)
   {
-    return gearmand_log_gerror(GEARMAND_DEFAULT_LOG_PARAM, GEARMAND_UNKNOWN_OPTION, "Unknown queue %s", name.c_str());
+    return gearmand_log_gerror(GEARMAN_DEFAULT_LOG_PARAM, GEARMAND_UNKNOWN_OPTION, "Unknown queue %s", name.c_str());
   }
 
   return GEARMAND_SUCCESS;

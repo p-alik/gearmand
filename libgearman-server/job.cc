@@ -171,7 +171,7 @@ gearman_server_job_add_reducer(gearman_server_st *server,
 
   if (server_job == NULL)
   {
-    gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM, "Comparing queue %u to limit %u for priority %u",
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Comparing queue %u to limit %u for priority %u",
                        server_function->job_total, server_function->max_queue_size[priority],
                        priority);
     if (server_function->max_queue_size[priority] > 0 &&
@@ -199,7 +199,7 @@ gearman_server_job_add_reducer(gearman_server_st *server,
 
     if (checked_length >= GEARMAND_JOB_HANDLE_SIZE || checked_length < 0)
     {
-      gearmand_log_error(GEARMAND_DEFAULT_LOG_PARAM, "Job handle plus handle count beyond GEARMAND_JOB_HANDLE_SIZE: %s:%u",
+      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "Job handle plus handle count beyond GEARMAND_JOB_HANDLE_SIZE: %s:%u",
                          server->job_handle_prefix, server->job_handle_count);
     }
 
@@ -208,7 +208,7 @@ gearman_server_job_add_reducer(gearman_server_st *server,
                              (int)unique_size, unique);
     if (checked_length >= GEARMAN_MAX_UNIQUE_SIZE || checked_length < 0)
     {
-      gearmand_log_error(GEARMAND_DEFAULT_LOG_PARAM, "We received a unique beyond GEARMAN_MAX_UNIQUE_SIZE: %.*s", (int)unique_size, unique);
+      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "We received a unique beyond GEARMAN_MAX_UNIQUE_SIZE: %.*s", (int)unique_size, unique);
     }
 
     server->job_handle_count++;
@@ -236,7 +236,7 @@ gearman_server_job_add_reducer(gearman_server_st *server,
     key= key % server->hashtable_buckets;
     GEARMAND_HASH__ADD(server->job, key, server_job);
 
-    gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM, "JOB %s :%u",
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "JOB %s :%u",
                        server_job->job_handle, server_job->job_handle_key);
 
     if (server->state.queue_startup)
@@ -345,7 +345,7 @@ gearmand_error_t gearman_server_job_queue(gearman_server_job_st *job)
     job->retries++;
     if (Server->job_retries != 0 && Server->job_retries == job->retries)
     {
-      gearmand_log_error(GEARMAND_DEFAULT_LOG_PARAM,
+      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM,
                          "Dropped job due to max retry count: %s %.*s",
                          job->job_handle,
                          (int)job->unique_length, job->unique);

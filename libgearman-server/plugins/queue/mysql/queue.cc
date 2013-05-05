@@ -131,7 +131,7 @@ gearmand_error_t MySQL::prepareAddStatement()
 
   if ((this->add_stmt= mysql_stmt_init(this->con)) == NULL)
   {
-    gearmand_log_error(GEARMAND_DEFAULT_LOG_PARAM, "mysql_stmt_init failed: %s", mysql_error(this->con));
+    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "mysql_stmt_init failed: %s", mysql_error(this->con));
     return GEARMAND_QUEUE_ERROR;
   }
 
@@ -142,7 +142,7 @@ gearmand_error_t MySQL::prepareAddStatement()
 
   if (mysql_stmt_prepare(this->add_stmt, query_buffer, query_buffer_length))
   {
-    gearmand_log_error(GEARMAND_DEFAULT_LOG_PARAM, "mysql_stmt_prepare failed: %s", mysql_error(this->con));
+    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "mysql_stmt_prepare failed: %s", mysql_error(this->con));
     return GEARMAND_QUEUE_ERROR;
   }
 
@@ -155,7 +155,7 @@ gearmand_error_t MySQL::prepareDoneStatement()
 
   if ((this->done_stmt= mysql_stmt_init(this->con)) == NULL)
   {
-    gearmand_log_error(GEARMAND_DEFAULT_LOG_PARAM, "mysql_stmt_init failed: %s", mysql_error(this->con));
+    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "mysql_stmt_init failed: %s", mysql_error(this->con));
     return GEARMAND_QUEUE_ERROR;
   }
 
@@ -166,7 +166,7 @@ gearmand_error_t MySQL::prepareDoneStatement()
 
   if (mysql_stmt_prepare(this->done_stmt, query_buffer, query_buffer_length))
   {
-    gearmand_log_error(GEARMAND_DEFAULT_LOG_PARAM, "mysql_stmt_prepare failed: %s", mysql_error(this->con));
+    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "mysql_stmt_prepare failed: %s", mysql_error(this->con));
     return GEARMAND_QUEUE_ERROR;
   }
 
@@ -210,7 +210,7 @@ gearmand_error_t _initialize(gearman_server_st& server, gearmand::plugins::queue
   MYSQL_RES * result;
   my_bool  my_true= true;
 
-  gearmand_log_info(GEARMAND_DEFAULT_LOG_PARAM,"Initializing MySQL module");
+  gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM,"Initializing MySQL module");
 
   gearman_server_set_queue(server, queue, _mysql_queue_add, _mysql_queue_flush, _mysql_queue_done, _mysql_queue_replay);
 
@@ -225,7 +225,7 @@ gearmand_error_t _initialize(gearman_server_st& server, gearmand::plugins::queue
                           queue->mysql_db.c_str(), 
                           queue->port(), NULL, 0))
   {
-    gearmand_log_error(GEARMAND_DEFAULT_LOG_PARAM, "Failed to connect to database: %s", mysql_error(queue->con));
+    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "Failed to connect to database: %s", mysql_error(queue->con));
 
     return GEARMAND_QUEUE_ERROR;
   }
@@ -234,7 +234,7 @@ gearmand_error_t _initialize(gearman_server_st& server, gearmand::plugins::queue
 
   if (!(result= mysql_list_tables(queue->con, queue->mysql_table.c_str())))
   {
-    gearmand_log_error(GEARMAND_DEFAULT_LOG_PARAM, "mysql_list_tables failed: %s", mysql_error(queue->con));
+    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "mysql_list_tables failed: %s", mysql_error(queue->con));
     return GEARMAND_QUEUE_ERROR;
   }
 
@@ -253,11 +253,11 @@ gearmand_error_t _initialize(gearman_server_st& server, gearmand::plugins::queue
                                       ")",
                                       queue->mysql_table.c_str(), GEARMAN_UNIQUE_SIZE);
 
-    gearmand_log_info(GEARMAND_DEFAULT_LOG_PARAM,"MySQL module: creating table %s", queue->mysql_table.c_str());
+    gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM,"MySQL module: creating table %s", queue->mysql_table.c_str());
 
     if (mysql_real_query(queue->con, query_buffer, query_buffer_length))
     {
-      gearmand_log_error(GEARMAND_DEFAULT_LOG_PARAM, "MySQL module: create table failed: %s", mysql_error(queue->con));
+      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "MySQL module: create table failed: %s", mysql_error(queue->con));
       return GEARMAND_QUEUE_ERROR;
     }
   }
@@ -294,7 +294,7 @@ static gearmand_error_t _mysql_queue_add(gearman_server_st *, void *context,
 
   gearmand::plugins::queue::MySQL *queue= (gearmand::plugins::queue::MySQL *)context;
 
-  gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM,"MySQL queue add: %.*s %.*s", (uint32_t) unique_size, (char *) unique,
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,"MySQL queue add: %.*s %.*s", (uint32_t) unique_size, (char *) unique,
                      (uint32_t) function_name_size, (char *) function_name);
 
   bind[0].buffer_type= MYSQL_TYPE_STRING;
@@ -339,7 +339,7 @@ static gearmand_error_t _mysql_queue_add(gearman_server_st *, void *context,
       }
       else
       {
-        gearmand_log_error(GEARMAND_DEFAULT_LOG_PARAM, "mysql_stmt_bind_param failed: %s", mysql_error(queue->con));
+        gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "mysql_stmt_bind_param failed: %s", mysql_error(queue->con));
         return GEARMAND_QUEUE_ERROR;
       }
     }
@@ -354,7 +354,7 @@ static gearmand_error_t _mysql_queue_add(gearman_server_st *, void *context,
           continue;
         }
       }
-      gearmand_log_error(GEARMAND_DEFAULT_LOG_PARAM, "mysql_stmt_execute failed: %s", mysql_error(queue->con));
+      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "mysql_stmt_execute failed: %s", mysql_error(queue->con));
       return GEARMAND_QUEUE_ERROR;
     }
 
@@ -367,7 +367,7 @@ static gearmand_error_t _mysql_queue_add(gearman_server_st *, void *context,
 static gearmand_error_t _mysql_queue_flush(gearman_server_st*, void*)
 {
 
-  gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM,"MySQL queue flush");
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,"MySQL queue flush");
 
   return GEARMAND_SUCCESS;
 }
@@ -381,7 +381,7 @@ static gearmand_error_t _mysql_queue_done(gearman_server_st*, void *context,
 
   MYSQL_BIND    bind[2];
 
-  gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM,"MySQL queue done: %.*s %.*s", (uint32_t) unique_size, (char *) unique,
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,"MySQL queue done: %.*s %.*s", (uint32_t) unique_size, (char *) unique,
                      (uint32_t) function_name_size, (char *) function_name);
 
   gearmand::plugins::queue::MySQL *queue= (gearmand::plugins::queue::MySQL *)context;
@@ -412,7 +412,7 @@ static gearmand_error_t _mysql_queue_done(gearman_server_st*, void *context,
       }
       else
       {
-        gearmand_log_error(GEARMAND_DEFAULT_LOG_PARAM, "mysql_stmt_bind_param failed: %s", mysql_error(queue->con));
+        gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "mysql_stmt_bind_param failed: %s", mysql_error(queue->con));
         return GEARMAND_QUEUE_ERROR;
       }
     }
@@ -427,7 +427,7 @@ static gearmand_error_t _mysql_queue_done(gearman_server_st*, void *context,
           continue;
         }
       }
-      gearmand_log_error(GEARMAND_DEFAULT_LOG_PARAM, "mysql_stmt_execute failed: %s", mysql_error(queue->con));
+      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "mysql_stmt_execute failed: %s", mysql_error(queue->con));
 
       return GEARMAND_QUEUE_ERROR;
     }
@@ -447,7 +447,7 @@ static gearmand_error_t _mysql_queue_replay(gearman_server_st* server, void *con
   MYSQL_ROW row;
   char query_buffer[1024];
 
-  gearmand_log_info(GEARMAND_DEFAULT_LOG_PARAM,"MySQL queue replay");
+  gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM,"MySQL queue replay");
 
   gearmand::plugins::queue::MySQL *queue= (gearmand::plugins::queue::MySQL *)context;
 
@@ -457,19 +457,19 @@ static gearmand_error_t _mysql_queue_replay(gearman_server_st* server, void *con
 
   if (mysql_real_query(queue->con, query_buffer, query_buffer_length))
   {
-    gearmand_log_error(GEARMAND_DEFAULT_LOG_PARAM, "mysql_real_query failed: %s", mysql_error(queue->con));
+    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "mysql_real_query failed: %s", mysql_error(queue->con));
     return GEARMAND_QUEUE_ERROR;
   }
 
   if (!(result= mysql_store_result(queue->con)))
   {
-    gearmand_log_error(GEARMAND_DEFAULT_LOG_PARAM, "mysql_store_result failed: %s", mysql_error(queue->con));
+    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "mysql_store_result failed: %s", mysql_error(queue->con));
     return GEARMAND_QUEUE_ERROR;
   }
 
   if (mysql_num_fields(result) < 5)
   {
-    gearmand_log_error(GEARMAND_DEFAULT_LOG_PARAM, "MySQL queue: insufficient row fields in queue table");
+    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "MySQL queue: insufficient row fields in queue table");
     return GEARMAND_QUEUE_ERROR;
   }
 

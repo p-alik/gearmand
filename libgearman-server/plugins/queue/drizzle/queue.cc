@@ -264,7 +264,7 @@ static drizzle_result_st *_libdrizzle_query_with_retry(drizzle_st* con,
   {
     if (ret_ptr == DRIZZLE_RETURN_COULD_NOT_CONNECT)
     {
-      gearmand_log_error(GEARMAND_DEFAULT_LOG_PARAM,
+      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM,
                         "Failed to connect to database instance. host: %s:%d user: %s schema: %s (%s)",
                          drizzle_host(con),
                          int(drizzle_port(con)),
@@ -274,7 +274,7 @@ static drizzle_result_st *_libdrizzle_query_with_retry(drizzle_st* con,
     }
     else
     {
-      gearmand_log_error(GEARMAND_DEFAULT_LOG_PARAM,
+      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM,
                         "libdrizled error '%s' executing '%.*s'",
                          drizzle_error(con),
                          query_size, query);
@@ -292,7 +292,7 @@ static drizzle_return_t _libdrizzle_query(plugins::queue::Drizzle *queue,
 {
   drizzle_return_t ret;
 
-  gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM, "libdrizzle query: %.*s", (uint32_t)query_size, query);
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "libdrizzle query: %.*s", (uint32_t)query_size, query);
 
   drizzle_result_st *result= _libdrizzle_query_with_retry(queue->drizzle, query, query_size, ret);
   if (libdrizzle_failed(ret))
@@ -387,7 +387,7 @@ gearmand_error_t gearman_server_queue_libdrizzle_init(plugins::queue::Drizzle *q
                                       0);
   }
 
-  gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM, "Using '%s' as the username", queue->user.c_str());
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Using '%s' as the username", queue->user.c_str());
 
   std::string query;
   {
@@ -525,7 +525,7 @@ static gearmand_error_t _libdrizzle_add(gearman_server_st *,
 {
   plugins::queue::Drizzle *queue= (plugins::queue::Drizzle *)context;
 
-  gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM, "libdrizzle add: %.*s, %.*s(%u bytes)",
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "libdrizzle add: %.*s, %.*s(%u bytes)",
                      uint32_t(function_name_size), function_name, 
                      uint32_t(unique_size), (char *)unique, uint32_t(data_size));
 
@@ -576,7 +576,7 @@ static gearmand_error_t _libdrizzle_add(gearman_server_st *,
   query.push_back('\'');
   query.resize(query.size() +1);
 
-  gearmand_log_info(GEARMAND_DEFAULT_LOG_PARAM, "%.*s", query.size() -1, &query[0]);
+  gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "%.*s", query.size() -1, &query[0]);
 
   if (libdrizzle_failed(_libdrizzle_insert(queue, query)))
   {
@@ -588,7 +588,7 @@ static gearmand_error_t _libdrizzle_add(gearman_server_st *,
 
 static gearmand_error_t _libdrizzle_flush(gearman_server_st *, void *)
 {
-  gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM, "libdrizzle flush");
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "libdrizzle flush");
 
   return GEARMAND_SUCCESS;
 }
@@ -600,7 +600,7 @@ static gearmand_error_t _libdrizzle_done(gearman_server_st *,
 {
   plugins::queue::Drizzle *queue= (plugins::queue::Drizzle *)context;
 
-  gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM,
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
 		     "libdrizzle done: %.*s(%.*s)", 
                      uint32_t(function_name_size), (char *)function_name,
                      uint32_t(unique_size), (char *)unique);
@@ -631,11 +631,11 @@ static gearmand_error_t _libdrizzle_done(gearman_server_st *,
     return gearmand_gerror("snprintf(DELETE)", GEARMAND_MEMORY_ALLOCATION_FAILURE);
   }
 
-  gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM, "%.*", query_size, &query[0]);
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "%.*", query_size, &query[0]);
   
   if (libdrizzle_failed(_libdrizzle_query(queue, &query[0], query_size)))
   {
-    return gearmand_log_error(GEARMAND_DEFAULT_LOG_PARAM, "Error occured from %.*s", query_size, &query[0]);
+    return gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "Error occured from %.*s", query_size, &query[0]);
   }
 
   drizzle_result_free(queue->result());
@@ -747,7 +747,7 @@ static gearmand_error_t _libdrizzle_replay(gearman_server_st *server,
     if (libdrizzle_failed(ret))
     {
       drizzle_result_free(queue->result());
-      return gearmand_log_error(GEARMAND_DEFAULT_LOG_PARAM, "drizzle_row_buffer:%s", drizzle_error(queue->drizzle));
+      return gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "drizzle_row_buffer:%s", drizzle_error(queue->drizzle));
     }
 
     if (row == NULL)
@@ -757,7 +757,7 @@ static gearmand_error_t _libdrizzle_replay(gearman_server_st *server,
 
     field_sizes= drizzle_row_field_sizes(queue->result());
 
-    gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM, "libdrizzle replay: %.*s", (uint32_t)field_sizes[0], row[0]);
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "libdrizzle replay: %.*s", (uint32_t)field_sizes[0], row[0]);
 
     size_t data_size= field_sizes[3];
     /* need to make a copy here ... gearman_server_job_free will free it later */

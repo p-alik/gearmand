@@ -104,7 +104,7 @@ public:
           content.push_back(*ptr);
         }
 
-        gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM, "HTTP gearmand_command_t: GEARMAN_COMMAND_WORK_DATA length:%" PRIu64, uint64_t(content.size()));
+        gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "HTTP gearmand_command_t: GEARMAN_COMMAND_WORK_DATA length:%" PRIu64, uint64_t(content.size()));
         ret_ptr= GEARMAND_IGNORE_PACKET;
         return 0;
       }
@@ -149,7 +149,7 @@ public:
     case GEARMAN_COMMAND_GET_STATUS_UNIQUE:
     case GEARMAN_COMMAND_STATUS_RES_UNIQUE:
     case GEARMAN_COMMAND_MAX:
-      gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM,
+      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
                          "Bad packet command: gearmand_command_t:%s", 
                          gearman_strcommand(packet->command));
       assert(0);
@@ -160,7 +160,7 @@ public:
 
     case GEARMAN_COMMAND_JOB_CREATED:
       {
-        gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM,
+        gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
                            "Sending HTTP told to ignore packet: gearmand_command_t:%s", 
                            gearman_strcommand(packet->command));
         ret_ptr= GEARMAND_IGNORE_PACKET;
@@ -168,7 +168,7 @@ public:
       }
     }
 
-    gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM,
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
                        "Sending HTTP response: Content-length:%" PRIu64 " data_size:%" PRIu64 " gearmand_command_t:%s response:%s", 
                        uint64_t(content.size()),
                        uint64_t(packet->data_size),
@@ -280,7 +280,7 @@ public:
     const char *request= parse_line(data, data_size, request_size, offset);
     if (request == NULL or request_size == 0)
     {
-      gearmand_log_info(GEARMAND_DEFAULT_LOG_PARAM, "Zero length request made");
+      gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "Zero length request made");
       ret_ptr= GEARMAND_IO_WAIT;
       return offset;
     }
@@ -291,7 +291,7 @@ public:
     const char *uri= (const char *)memchr(request, ' ', request_size);
     if (uri == NULL)
     {
-      gearmand_log_error(GEARMAND_DEFAULT_LOG_PARAM, "bad request line: %.*s", (uint32_t)request_size, request);
+      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "bad request line: %.*s", (uint32_t)request_size, request);
       set_response(gearmand::protocol::httpd::HTTP_NOT_FOUND);
       ret_ptr= GEARMAND_SUCCESS;
       return 0;
@@ -327,14 +327,14 @@ public:
       }
       else
       {
-        gearmand_log_error(GEARMAND_DEFAULT_LOG_PARAM, "bad method: %.*s", (uint32_t)method_size, method_str);
+        gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "bad method: %.*s", (uint32_t)method_size, method_str);
         set_response(gearmand::protocol::httpd::HTTP_METHOD_NOT_ALLOWED);
         ret_ptr= GEARMAND_SUCCESS;
         return 0;
       }
     }
 
-    gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM, "HTTP METHOD: %s", str_method(method()));
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "HTTP METHOD: %s", str_method(method()));
 
     while (*uri == ' ')
     {
@@ -350,14 +350,14 @@ public:
     const char *version= (const char *)memchr(uri, ' ', request_size - (size_t)(uri - request));
     if (version == NULL)
     {
-      gearmand_log_error(GEARMAND_DEFAULT_LOG_PARAM, "bad request line: %.*s",
+      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "bad request line: %.*s",
                          (uint32_t)request_size, request);
       ret_ptr= GEARMAND_INVALID_PACKET;
       return 0;
     }
 
     ptrdiff_t uri_size= version -uri;
-    gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM, "HTTP URI: \"%.*s\"", (int)uri_size, uri);
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "HTTP URI: \"%.*s\"", (int)uri_size, uri);
     switch (method())
     {
     case gearmand::protocol::httpd::POST:
@@ -390,7 +390,7 @@ public:
     { }
     else
     {
-      gearmand_log_error(GEARMAND_DEFAULT_LOG_PARAM, "bad version: %.*s", (uint32_t)version_size, version);
+      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "bad version: %.*s", (uint32_t)version_size, version);
       ret_ptr= GEARMAND_INVALID_PACKET;
       return 0;
     }
@@ -448,7 +448,7 @@ public:
     /* Make sure we received the end of headers. */
     if (header == NULL and response() == gearmand::protocol::httpd::HTTP_OK)
     {
-      gearmand_log_info(GEARMAND_DEFAULT_LOG_PARAM, "No headers were found");
+      gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "No headers were found");
       ret_ptr= GEARMAND_IO_WAIT;
       return 0;
     }

@@ -195,7 +195,7 @@ gearmand_error_t _initialize(gearman_server_st& server,
 
   if (queue->con == NULL || PQstatus(queue->con) != CONNECTION_OK)
   {
-    gearmand_log_error(GEARMAND_DEFAULT_LOG_PARAM, "PQconnectdb: %s", PQerrorMessage(queue->con));
+    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "PQconnectdb: %s", PQerrorMessage(queue->con));
     gearman_server_set_queue(server, NULL, NULL, NULL, NULL, NULL);
     return GEARMAND_QUEUE_ERROR;
   }
@@ -218,12 +218,12 @@ gearmand_error_t _initialize(gearman_server_st& server,
   {
     PQclear(result);
 
-    gearmand_log_info(GEARMAND_DEFAULT_LOG_PARAM, "libpq module creating table '%s'", queue->table.c_str());
+    gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "libpq module creating table '%s'", queue->table.c_str());
 
     result= PQexec(queue->con, queue->create().c_str());
     if (result == NULL || PQresultStatus(result) != PGRES_COMMAND_OK)
     {
-      gearmand_log_error(GEARMAND_DEFAULT_LOG_PARAM,
+      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM,
                          "PQexec:%s", PQerrorMessage(queue->con));
       PQclear(result);
       gearman_server_set_queue(server, NULL, NULL, NULL, NULL, NULL);
@@ -247,7 +247,7 @@ gearmand_error_t _initialize(gearman_server_st& server,
 static void _libpq_notice_processor(void *arg, const char *message)
 {
   (void)arg;
-  gearmand_log_info(GEARMAND_DEFAULT_LOG_PARAM, "PostgreSQL %s", message);
+  gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "PostgreSQL %s", message);
 }
 
 static gearmand_error_t _libpq_add(gearman_server_st*, void *context,
@@ -280,14 +280,14 @@ static gearmand_error_t _libpq_add(gearman_server_st*, void *context,
 
   int param_formats[] = { 0, 0, 0, 1, 0 };
 
-  gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM, "libpq add: %.*s", (uint32_t)unique_size, (char *)unique);
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "libpq add: %.*s", (uint32_t)unique_size, (char *)unique);
 
   PGresult *result= PQexecParams(queue->con, queue->insert().c_str(),
                                  gearmand_array_size(param_lengths),
                                  NULL, param_values, param_lengths, param_formats, 0);
   if (result == NULL || PQresultStatus(result) != PGRES_COMMAND_OK)
   {
-    gearmand_log_error(GEARMAND_DEFAULT_LOG_PARAM, "PQexec:%s", PQerrorMessage(queue->con));
+    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "PQexec:%s", PQerrorMessage(queue->con));
     PQclear(result);
     return GEARMAND_QUEUE_ERROR;
   }
@@ -314,7 +314,7 @@ static gearmand_error_t _libpq_done(gearman_server_st*, void *context,
   gearmand::plugins::queue::Postgres *queue= (gearmand::plugins::queue::Postgres *)context;
   PGresult *result;
 
-  gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM, "libpq done: %.*s", (uint32_t)unique_size, (char *)unique);
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "libpq done: %.*s", (uint32_t)unique_size, (char *)unique);
 
   std::string query;
   query+= "DELETE FROM ";
@@ -328,7 +328,7 @@ static gearmand_error_t _libpq_done(gearman_server_st*, void *context,
   result= PQexec(queue->con, query.c_str());
   if (result == NULL || PQresultStatus(result) != PGRES_COMMAND_OK)
   {
-    gearmand_log_error(GEARMAND_DEFAULT_LOG_PARAM, "PQexec:%s", PQerrorMessage(queue->con));
+    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "PQexec:%s", PQerrorMessage(queue->con));
     PQclear(result);
     return GEARMAND_QUEUE_ERROR;
   }
@@ -351,14 +351,14 @@ static gearmand_error_t _libpq_replay(gearman_server_st *server, void *context,
   PGresult *result= PQexecParams(queue->con, query.c_str(), 0, NULL, NULL, NULL, NULL, 1);
   if (result == NULL || PQresultStatus(result) != PGRES_TUPLES_OK)
   {
-    gearmand_log_error(GEARMAND_DEFAULT_LOG_PARAM, "PQexecParams:%s", PQerrorMessage(queue->con));
+    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "PQexecParams:%s", PQerrorMessage(queue->con));
     PQclear(result);
     return GEARMAND_QUEUE_ERROR;
   }
 
   for (int row= 0; row < PQntuples(result); row++)
   {
-    gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM,
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
                        "libpq replay: %.*s",
                        PQgetlength(result, row, 0),
                        PQgetvalue(result, row, 0));
