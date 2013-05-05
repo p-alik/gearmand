@@ -70,7 +70,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
  * Tell server that it should enter a graceful shutdown state.
  * @param server Server structure previously initialized with
  *        gearman_server_create.
- * @return Standard gearman return value. This will return GEARMAN_SHUTDOWN if
+ * @return Standard gearman return value. This will return GEARMAND_SHUTDOWN if
  *         the server is ready to shutdown now.
  */
 GEARMAN_API
@@ -81,7 +81,7 @@ gearmand_error_t gearman_server_shutdown_graceful(gearman_server_st *server);
  * should only be run at startup.
  * @param server Server structure previously initialized with
  *        gearman_server_create.
- * @return Standard gearman return value. This will return GEARMAN_SHUTDOWN if
+ * @return Standard gearman return value. This will return GEARMAND_SHUTDOWN if
  *         the server is ready to shutdown now.
  */
 #ifdef __cplusplus

@@ -110,7 +110,7 @@ void gearman_server_packet_free(gearman_server_packet_st *packet,
 {
   if (from_thread and Server->flags.threaded)
   {
-    if (thread->free_packet_count < GEARMAN_MAX_FREE_SERVER_PACKET)
+    if (thread->free_packet_count < GEARMAND_MAX_FREE_SERVER_PACKET)
     {
       packet->next= thread->free_packet_list;
       thread->free_packet_list= packet;
@@ -124,7 +124,7 @@ void gearman_server_packet_free(gearman_server_packet_st *packet,
   }
   else
   {
-    if (Server->free_packet_count < GEARMAN_MAX_FREE_SERVER_PACKET)
+    if (Server->free_packet_count < GEARMAND_MAX_FREE_SERVER_PACKET)
     {
       packet->next= Server->free_packet_list;
       Server->free_packet_list= packet;
@@ -150,7 +150,7 @@ gearmand_error_t gearman_server_io_packet_add(gearman_server_con_st *con,
   server_packet= gearman_server_packet_create(con->thread, false);
   if (server_packet == NULL)
   {
-    return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+    return GEARMAND_MEMORY_ALLOCATION_FAILURE;
   }
 
   server_packet->packet.reset(magic, command);
@@ -191,20 +191,20 @@ gearmand_error_t gearman_server_io_packet_add(gearman_server_con_st *con,
   int error;
   if ((error= pthread_mutex_lock(&con->thread->lock)) == 0)
   {
-    GEARMAN_FIFO__ADD(con->io_packet, server_packet);
+    GEARMAND_FIFO__ADD(con->io_packet, server_packet);
     if ((error= pthread_mutex_unlock(&con->thread->lock)))
     {
-      gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock");
+      gearmand_log_fatal_perror(GEARMAND_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock");
     }
   }
   else
   {
-    gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_lock");
+    gearmand_log_fatal_perror(GEARMAND_DEFAULT_LOG_PARAM, error, "pthread_mutex_lock");
   }
 
   gearman_server_con_io_add(con);
 
-  return GEARMAN_SUCCESS;
+  return GEARMAND_SUCCESS;
 }
 
 void gearman_server_io_packet_remove(gearman_server_con_st *con)
@@ -216,15 +216,15 @@ void gearman_server_io_packet_remove(gearman_server_con_st *con)
   int error;
   if ((error= pthread_mutex_lock(&con->thread->lock)) == 0)
   {
-    GEARMAN_FIFO__DEL(con->io_packet, server_packet);
+    GEARMAND_FIFO__DEL(con->io_packet, server_packet);
     if ((error= pthread_mutex_unlock(&con->thread->lock)))
     {
-      gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock");
+      gearmand_log_fatal_perror(GEARMAND_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock");
     }
   }
   else
   {
-    gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_lock");
+    gearmand_log_fatal_perror(GEARMAND_DEFAULT_LOG_PARAM, error, "pthread_mutex_lock");
   }
 
   gearman_server_packet_free(server_packet, con->thread, true);
@@ -236,15 +236,15 @@ void gearman_server_proc_packet_add(gearman_server_con_st *con,
   int error;
   if ((error= pthread_mutex_lock(&con->thread->lock)) == 0)
   {
-    GEARMAN_FIFO__ADD(con->proc_packet, packet);
+    GEARMAND_FIFO__ADD(con->proc_packet, packet);
     if ((error= pthread_mutex_unlock(&con->thread->lock)))
     {
-      gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock");
+      gearmand_log_fatal_perror(GEARMAND_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock");
     }
   }
   else
   {
-    gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_lock");
+    gearmand_log_fatal_perror(GEARMAND_DEFAULT_LOG_PARAM, error, "pthread_mutex_lock");
   }
 
   gearman_server_con_proc_add(con);
@@ -260,15 +260,15 @@ gearman_server_proc_packet_remove(gearman_server_con_st *con)
     int error;
     if ((error= pthread_mutex_lock(&con->thread->lock)) == 0)
     {
-      GEARMAN_FIFO__DEL(con->proc_packet, server_packet);
+      GEARMAND_FIFO__DEL(con->proc_packet, server_packet);
       if ((error= pthread_mutex_unlock(&con->thread->lock)) != 0)
       {
-        gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock");
+        gearmand_log_fatal_perror(GEARMAND_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock");
       }
     }
     else
     {
-      gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_lock");
+      gearmand_log_fatal_perror(GEARMAND_DEFAULT_LOG_PARAM, error, "pthread_mutex_lock");
     }
   }
 
@@ -288,29 +288,29 @@ inline static gearmand_error_t packet_create_arg(gearmand_packet_st *packet,
       (not (gearman_command_info(packet->command)->data) or
        packet->data))
   {
-    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "too many arguments for command(%s)", gearman_command_info(packet->command)->name);
-    return GEARMAN_TOO_MANY_ARGS;
+    gearmand_log_error(GEARMAND_DEFAULT_LOG_PARAM, "too many arguments for command(%s)", gearman_command_info(packet->command)->name);
+    return GEARMAND_TOO_MANY_ARGS;
   }
 
   if (packet->argc == gearman_command_info(packet->command)->argc)
   {
     packet->data= static_cast<const char *>(arg);
     packet->data_size= arg_size;
-    return GEARMAN_SUCCESS;
+    return GEARMAND_SUCCESS;
   }
 
-  if (packet->args_size == 0 and packet->magic != GEARMAN_MAGIC_TEXT)
+  if (packet->args_size == 0 and packet->magic != GEARMAND_MAGIC_TEXT)
   {
-    packet->args_size= GEARMAN_PACKET_HEADER_SIZE;
+    packet->args_size= GEARMAND_PACKET_HEADER_SIZE;
   }
 
-  if ((packet->args_size + arg_size) < GEARMAN_ARGS_BUFFER_SIZE)
+  if ((packet->args_size + arg_size) < GEARMAND_ARGS_BUFFER_SIZE)
   {
     packet->args= packet->args_buffer;
   }
   else
   {
-    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "resizing packet buffer");
+    gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM, "resizing packet buffer");
     if (packet->args == packet->args_buffer)
     {
       packet->args= (char *)realloc(NULL, packet->args_size + arg_size);
@@ -333,13 +333,13 @@ inline static gearmand_error_t packet_create_arg(gearmand_packet_st *packet,
   packet->argc++;
 
   size_t offset;
-  if (packet->magic == GEARMAN_MAGIC_TEXT)
+  if (packet->magic == GEARMAND_MAGIC_TEXT)
   {
     offset= 0;
   }
   else
   {
-    offset= GEARMAN_PACKET_HEADER_SIZE;
+    offset= GEARMAND_PACKET_HEADER_SIZE;
   }
 
   for (uint8_t x= 0; x < packet->argc; ++x)
@@ -348,7 +348,7 @@ inline static gearmand_error_t packet_create_arg(gearmand_packet_st *packet,
     offset+= packet->arg_size[x];
   }
 
-  return GEARMAN_SUCCESS;
+  return GEARMAND_SUCCESS;
 }
 
 /** @} */
@@ -398,54 +398,54 @@ void gearmand_packet_free(gearmand_packet_st *packet)
 
 gearmand_error_t gearmand_packet_pack_header(gearmand_packet_st *packet)
 {
-  if (packet->magic == GEARMAN_MAGIC_TEXT)
+  if (packet->magic == GEARMAND_MAGIC_TEXT)
   {
     packet->options.complete= true;
-    return GEARMAN_SUCCESS;
+    return GEARMAND_SUCCESS;
   }
 
   if (packet->args_size == 0)
   {
     packet->args= packet->args_buffer;
-    packet->args_size= GEARMAN_PACKET_HEADER_SIZE;
+    packet->args_size= GEARMAND_PACKET_HEADER_SIZE;
   }
 
   switch (packet->magic)
   {
-  case GEARMAN_MAGIC_TEXT:
+  case GEARMAND_MAGIC_TEXT:
     break;
 
-  case GEARMAN_MAGIC_REQUEST:
+  case GEARMAND_MAGIC_REQUEST:
     memcpy(packet->args, "\0REQ", 4);
     break;
 
-  case GEARMAN_MAGIC_RESPONSE:
+  case GEARMAND_MAGIC_RESPONSE:
     memcpy(packet->args, "\0RES", 4);
     break;
 
   default:
     gearmand_error("invalid magic value");
-    return GEARMAN_INVALID_MAGIC;
+    return GEARMAND_INVALID_MAGIC;
   }
 
   if (packet->command == GEARMAN_COMMAND_TEXT ||
       packet->command >= GEARMAN_COMMAND_MAX)
   {
     gearmand_error("invalid command value");
-    return GEARMAN_INVALID_COMMAND;
+    return GEARMAND_INVALID_COMMAND;
   }
 
   uint32_t tmp= packet->command;
   tmp= htonl(tmp);
   memcpy(packet->args + 4, &tmp, 4);
 
-  uint64_t length_64= packet->args_size + packet->data_size - GEARMAN_PACKET_HEADER_SIZE;
+  uint64_t length_64= packet->args_size + packet->data_size - GEARMAND_PACKET_HEADER_SIZE;
 
   // Check for overflow on 32bit(portable?).
   if (length_64 >= UINT32_MAX || length_64 < packet->data_size)
   {
     gearmand_error("data size too too long");
-    return GEARMAN_ARGUMENT_TOO_LARGE;
+    return GEARMAND_ARGUMENT_TOO_LARGE;
   }
 
   tmp= (uint32_t)length_64;
@@ -454,5 +454,5 @@ gearmand_error_t gearmand_packet_pack_header(gearmand_packet_st *packet)
 
   packet->options.complete= true;
 
-  return GEARMAN_SUCCESS;
+  return GEARMAND_SUCCESS;
 }

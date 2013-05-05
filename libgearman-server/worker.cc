@@ -53,7 +53,7 @@ static gearman_server_worker_st* gearman_server_worker_create(gearman_server_con
   if (Server->free_worker_count > 0)
   {
     worker= Server->free_worker_list;
-    GEARMAN_LIST_DEL(Server->free_worker, worker, con_);
+    GEARMAND_LIST_DEL(Server->free_worker, worker, con_);
   }
   else
   {
@@ -68,7 +68,7 @@ static gearman_server_worker_st* gearman_server_worker_create(gearman_server_con
   worker->job_count= 0;
   worker->timeout= -1;
   worker->con= con;
-  GEARMAN_LIST_ADD(con->worker, worker, con_);
+  GEARMAND_LIST_ADD(con->worker, worker, con_);
   worker->function= function;
 
   /* Add worker to the function list, which is a double-linked circular list. */
@@ -124,13 +124,13 @@ void gearman_server_worker_free(gearman_server_worker_st *worker)
   while (worker->job_list != NULL)
   {
     gearmand_error_t ret= gearman_server_job_queue(worker->job_list);
-    if (ret != GEARMAN_SUCCESS)
+    if (ret != GEARMAND_SUCCESS)
     {
       gearmand_gerror_warn("gearman_server_job_queue", ret);
     }
   }
 
-  GEARMAN_LIST_DEL(worker->con->worker, worker, con_);
+  GEARMAND_LIST_DEL(worker->con->worker, worker, con_);
 
   if (worker == worker->function_next)
   {
@@ -148,9 +148,9 @@ void gearman_server_worker_free(gearman_server_worker_st *worker)
   }
   worker->function->worker_count--;
 
-  if (Server->free_worker_count < GEARMAN_MAX_FREE_SERVER_WORKER)
+  if (Server->free_worker_count < GEARMAND_MAX_FREE_SERVER_WORKER)
   {
-    GEARMAN_LIST_ADD(Server->free_worker, worker, con_);
+    GEARMAND_LIST_ADD(Server->free_worker, worker, con_);
   }
   else
   {

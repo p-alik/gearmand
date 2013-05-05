@@ -57,11 +57,11 @@
 gearmand_error_t server_run_text(gearman_server_con_st *server_con,
                                  gearmand_packet_st *packet)
 {
-  gearman_vector_st data(GEARMAN_TEXT_RESPONSE_SIZE);
+  gearman_vector_st data(GEARMAND_TEXT_RESPONSE_SIZE);
 
   if (packet->argc)
   {
-    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "text command %.*s %d arguments",
+    gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM, "text command %.*s %d arguments",
                        packet->arg_size[0],  packet->arg[0],
                        int(packet->argc));
   }
@@ -108,12 +108,12 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
 
         if ((error= (pthread_mutex_unlock(&(thread->lock)))) != 0)
         {
-          gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock");
+          gearmand_log_fatal_perror(GEARMAND_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock");
         }
       }
       else
       {
-        gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_lock");
+        gearmand_log_fatal_perror(GEARMAND_DEFAULT_LOG_PARAM, error, "pthread_mutex_lock");
       }
     }
 
@@ -247,7 +247,7 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
       if (success == false)
       {
         data.vec_printf("ERR function not found\r\n");
-        gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "%s", data.value());
+        gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM, "%s", data.value());
       }
     }
     else
@@ -283,7 +283,7 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
         }
         else
         {
-          max_queue_size[priority]= GEARMAN_DEFAULT_MAX_QUEUE_SIZE;
+          max_queue_size[priority]= GEARMAND_DEFAULT_MAX_QUEUE_SIZE;
         }
       }
 
@@ -309,7 +309,7 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
           if (strlen((char *)(packet->arg[1])) == function->function_name_size &&
               (memcmp(packet->arg[1], function->function_name, function->function_name_size) == 0))
           {
-            gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Applying queue limits to %s", function->function_name);
+            gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM, "Applying queue limits to %s", function->function_name);
             memcpy(function->max_queue_size, max_queue_size, sizeof(uint32_t) * GEARMAN_JOB_PRIORITY_MAX);
           }
         }
@@ -351,7 +351,7 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
   }
   else
   {
-    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Failed to find command %.*s(%" PRIu64 ")",
+    gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM, "Failed to find command %.*s(%" PRIu64 ")",
                        packet->arg_size[0], packet->arg[0], 
                        packet->arg_size[0]);
     data.vec_printf(TEXT_ERROR_UNKNOWN_COMMAND, (int)packet->arg_size[0], (char *)(packet->arg[0]));
@@ -360,10 +360,10 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
   gearman_server_packet_st *server_packet= gearman_server_packet_create(server_con->thread, false);
   if (server_packet == NULL)
   {
-    return gearmand_gerror("calling gearman_server_packet_create()", GEARMAN_MEMORY_ALLOCATION_FAILURE);
+    return gearmand_gerror("calling gearman_server_packet_create()", GEARMAND_MEMORY_ALLOCATION_FAILURE);
   }
 
-  server_packet->packet.reset(GEARMAN_MAGIC_TEXT, GEARMAN_COMMAND_TEXT);
+  server_packet->packet.reset(GEARMAND_MAGIC_TEXT, GEARMAN_COMMAND_TEXT);
 
   server_packet->packet.options.complete= true;
   server_packet->packet.options.free_data= true;
@@ -380,18 +380,18 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
   int error;
   if ((error= pthread_mutex_lock(&server_con->thread->lock)) == 0)
   {
-    GEARMAN_FIFO__ADD(server_con->io_packet, server_packet);
+    GEARMAND_FIFO__ADD(server_con->io_packet, server_packet);
     if ((error= pthread_mutex_unlock(&(server_con->thread->lock))))
     {
-      gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock");
+      gearmand_log_fatal_perror(GEARMAND_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock");
     }
   }
   else
   {
-    gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_lock");
+    gearmand_log_fatal_perror(GEARMAND_DEFAULT_LOG_PARAM, error, "pthread_mutex_lock");
   }
 
   gearman_server_con_io_add(server_con);
 
-  return GEARMAN_SUCCESS;
+  return GEARMAND_SUCCESS;
 }

@@ -69,7 +69,7 @@ static gearmand_error_t __add(gearman_server_st *server __attribute__((unused)),
                               int64_t when __attribute__((unused)))
 {
   gearmand_debug(__func__);
-  return GEARMAN_SUCCESS;
+  return GEARMAND_SUCCESS;
 }
 
 
@@ -77,7 +77,7 @@ static gearmand_error_t __flush(gearman_server_st *server __attribute__((unused)
                                 void *context __attribute__((unused)))
 {
   gearmand_debug(__func__);
-  return GEARMAN_SUCCESS;
+  return GEARMAND_SUCCESS;
 }
 
 static gearmand_error_t __done(gearman_server_st *server __attribute__((unused)),
@@ -88,7 +88,7 @@ static gearmand_error_t __done(gearman_server_st *server __attribute__((unused))
                                size_t function_name_size __attribute__((unused)))
 {
   gearmand_debug(__func__);
-  return GEARMAN_SUCCESS;
+  return GEARMAND_SUCCESS;
 }
 
 
@@ -98,7 +98,7 @@ static gearmand_error_t __replay(gearman_server_st *server __attribute__((unused
                                  void *add_context __attribute__((unused)))
 {
   gearmand_debug(__func__);
-  return GEARMAN_SUCCESS;
+  return GEARMAND_SUCCESS;
 }
 
 
@@ -132,7 +132,7 @@ gearmand_error_t Default::initialize()
 {
   gearman_server_set_queue(Gearmand()->server, this, __add, __flush, __done, __replay);
 
-  return GEARMAN_SUCCESS;
+  return GEARMAND_SUCCESS;
 }
 
 void initialize_default()

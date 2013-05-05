@@ -86,8 +86,8 @@ struct gearmand_io_st
   char *recv_buffer_ptr;
   gearmand_packet_st packet;
   gearman_server_con_st *root;
-  char send_buffer[GEARMAN_SEND_BUFFER_SIZE];
-  char recv_buffer[GEARMAN_RECV_BUFFER_SIZE];
+  char send_buffer[GEARMAND_SEND_BUFFER_SIZE];
+  char recv_buffer[GEARMAND_RECV_BUFFER_SIZE];
 
   gearmand_io_st() { }
 };
@@ -132,7 +132,7 @@ struct gearman_server_con_st
   struct gearman_server_client_st *client_list;
   const char *_host; // client host
   const char *_port; // client port
-  char id[GEARMAN_SERVER_CON_ID_SIZE];
+  char id[GEARMAND_SERVER_CON_ID_SIZE];
   gearmand::protocol::Context* protocol;
   struct event *timeout_event;
 
