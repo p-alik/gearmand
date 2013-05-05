@@ -326,26 +326,37 @@ Gear::~Gear()
 
 gearmand_error_t Gear::start(gearmand_st *gearmand)
 {
-  gearmand_info("Initializing Gear");
-
   gearmand_error_t rc;
+
+  if (_port.compare(GEARMAN_DEFAULT_TCP_PORT_STRING) == 0)
+  {
+    char* service;
+    if ((service= getenv("GEARMAND_PORT")) and service[0])
+    {
+      _port.clear();
+      _port.append(service);
+    }
+  }
+
   if (_port.empty())
   {
-    struct servent *gearman_servent= getservbyname(GEARMAN_DEFAULT_TCP_SERVICE, NULL);
+    const char* service= GEARMAN_DEFAULT_TCP_PORT_STRING;
+    struct servent *gearman_servent;
+    if ((gearman_servent= getservbyname(GEARMAN_DEFAULT_TCP_SERVICE, NULL)))
+    {
+      if (gearman_servent and gearman_servent->s_name)
+      {
+        service= gearman_servent->s_name;
+      }
+    }
 
-    if (gearman_servent and gearman_servent->s_name)
-    {
-      rc= gearmand_port_add(gearmand, gearman_servent->s_name, _gear_con_add);
-    }
-    else
-    {
-      rc= gearmand_port_add(gearmand, GEARMAN_DEFAULT_TCP_PORT_STRING, _gear_con_add);
-    }
+    _port.clear();
+    _port.append(service);
   }
-  else
-  {
-    rc= gearmand_port_add(gearmand, _port.c_str(), _gear_con_add);
-  }
+
+  gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "Initializing Gear on port %s", _port.c_str());
+
+  rc= gearmand_port_add(gearmand, _port.c_str(), _gear_con_add);
 
   return rc;
 }

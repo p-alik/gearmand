@@ -337,7 +337,7 @@ gearmand_error_t gearmand_run(gearmand_st *gearmand)
   /* Initialize server components. */
   if (gearmand->base == NULL)
   {
-    gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "Starting up(%lu), verbose set to %s", 
+    gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "Starting up with pid %lu, verbose is set to %s", 
                       (unsigned long)(getpid()),
                       gearmand_verbose_name(gearmand->verbose));
 
