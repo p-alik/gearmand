@@ -448,7 +448,7 @@ void gearman_client_add_options(gearman_client_st *client_shell,
   {
     if (options & GEARMAN_CLIENT_NON_BLOCKING)
     {
-      gearman_universal_add_options(client_shell->impl()->universal, GEARMAN_NON_BLOCKING);
+      gearman_universal_add_options(client_shell->impl()->universal, GEARMAN_UNIVERSAL_NON_BLOCKING);
       client_shell->impl()->options.non_blocking= true;
     }
 
@@ -476,7 +476,7 @@ void gearman_client_remove_options(gearman_client_st *client_shell,
   {
     if (options & GEARMAN_CLIENT_NON_BLOCKING)
     {
-      gearman_universal_remove_options(client_shell->impl()->universal, GEARMAN_NON_BLOCKING);
+      gearman_universal_remove_options(client_shell->impl()->universal, GEARMAN_UNIVERSAL_NON_BLOCKING);
       client_shell->impl()->options.non_blocking= false;
     }
 

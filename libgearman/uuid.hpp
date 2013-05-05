@@ -40,3 +40,5 @@
 #include <cstdlib>
 
 int safe_uuid_generate(char* buffer, size_t& length);
+
+gearman_vector_st *gearman_string_create_guid(void);
