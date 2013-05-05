@@ -75,3 +75,17 @@ int safe_uuid_generate(char* buffer, size_t& length)
 }
 
 #endif
+
+gearman_vector_st *gearman_string_create_guid()
+{
+  gearman_vector_st* _guid= gearman_string_create(NULL, GEARMAN_MAX_UUID_SIZE);
+  assert(_guid);
+  if (_guid)
+  {
+    char* ptr= _guid->ptr(GEARMAN_MAX_UUID_SIZE);
+    size_t created_length= GEARMAN_MAX_UUID_SIZE;
+    safe_uuid_generate(ptr, created_length);
+  }
+
+  return _guid;
+}

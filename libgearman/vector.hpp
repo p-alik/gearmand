@@ -116,6 +116,18 @@ struct gearman_vector_st {
     return current_size;
   }
 
+  char* ptr(size_t expect)
+  {
+    if (resize(expect +1))
+    {
+      end= string +expect;
+      string[expect]= 0;
+      return string;
+    }
+
+    return NULL;
+  }
+
   bool store(const gearman_vector_st&);
   bool store(const char*, const size_t);
   bool append(const char* arg_, const size_t arg_length_);
@@ -129,7 +141,6 @@ private:
   int	vec_size_printf(const char *format__, va_list args__);
   int	vec_ptr_printf(const int required_size, const char *format__, va_list args__);
 };
-
 
 gearman_vector_st *gearman_string_create(gearman_vector_st *string,
                                          size_t initial_size);

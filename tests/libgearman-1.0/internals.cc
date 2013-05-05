@@ -167,7 +167,7 @@ static test_return_t state_option_test(void *)
 
 static test_return_t state_option_on_create_test(void *)
 {
-  gearman_universal_options_t options[]= { GEARMAN_NON_BLOCKING, GEARMAN_DONT_TRACK_PACKETS, GEARMAN_MAX};
+  universal_options_t options[]= { GEARMAN_UNIVERSAL_NON_BLOCKING, GEARMAN_UNIVERSAL_DONT_TRACK_PACKETS, GEARMAN_UNIVERSAL_MAX};
   gearman_universal_st universal(options);
 
   { // Initial Allocated, no changes
@@ -214,7 +214,7 @@ static test_return_t clone_gearman_universal_set_namespace_test(void *)
 
 static test_return_t state_option_set_test(void *)
 {
-  gearman_universal_options_t options[]= { GEARMAN_NON_BLOCKING, GEARMAN_DONT_TRACK_PACKETS, GEARMAN_MAX};
+  universal_options_t options[]= { GEARMAN_UNIVERSAL_NON_BLOCKING, GEARMAN_UNIVERSAL_DONT_TRACK_PACKETS, GEARMAN_UNIVERSAL_MAX};
   gearman_universal_st universal(options);
 
   { // Initial Allocated, no changes
@@ -226,12 +226,12 @@ static test_return_t state_option_set_test(void *)
     ASSERT_TRUE(universal.options.non_blocking);
   }
 
-  gearman_universal_add_options(universal, GEARMAN_DONT_TRACK_PACKETS);
+  gearman_universal_add_options(universal, GEARMAN_UNIVERSAL_DONT_TRACK_PACKETS);
   { // Initial Allocated, no changes
     ASSERT_TRUE(universal.options.non_blocking);
   }
 
-  gearman_universal_remove_options(universal, GEARMAN_DONT_TRACK_PACKETS);
+  gearman_universal_remove_options(universal, GEARMAN_UNIVERSAL_DONT_TRACK_PACKETS);
   { // Initial Allocated, no changes
     ASSERT_TRUE(universal.options.non_blocking);
   }

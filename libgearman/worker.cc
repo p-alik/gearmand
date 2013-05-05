@@ -300,7 +300,7 @@ void gearman_worker_add_options(gearman_worker_st *worker,
 
   if (options & GEARMAN_WORKER_NON_BLOCKING)
   {
-    gearman_universal_add_options(worker->impl()->universal, GEARMAN_NON_BLOCKING);
+    gearman_universal_add_options(worker->impl()->universal, GEARMAN_UNIVERSAL_NON_BLOCKING);
     worker->impl()->options.non_blocking= true;
   }
 
@@ -338,7 +338,7 @@ void gearman_worker_remove_options(gearman_worker_st *worker,
 
   if (options & GEARMAN_WORKER_NON_BLOCKING)
   {
-    gearman_universal_remove_options(worker->impl()->universal, GEARMAN_NON_BLOCKING);
+    gearman_universal_remove_options(worker->impl()->universal, GEARMAN_UNIVERSAL_NON_BLOCKING);
     worker->impl()->options.non_blocking= false;
   }
 
