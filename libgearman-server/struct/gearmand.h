@@ -140,7 +140,7 @@ struct gearmand_st
               const gearmand_verbose_t verbose_,
               bool exceptions_) :
     verbose(verbose_),
-    ret(GEARMAN_SUCCESS),
+    ret(GEARMAND_SUCCESS),
     backlog(backlog_),
     is_listen_event(false),
     is_wakeup_event(false),

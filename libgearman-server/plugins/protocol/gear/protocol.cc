@@ -59,16 +59,16 @@ static gearmand_error_t gearmand_packet_unpack_header(gearmand_packet_st *packet
 
   if (memcmp(packet->args, "\0REQ", 4) == 0)
   {
-    packet->magic= GEARMAN_MAGIC_REQUEST;
+    packet->magic= GEARMAND_MAGIC_REQUEST;
   }
   else if (memcmp(packet->args, "\0RES", 4) == 0)
   {
-    packet->magic= GEARMAN_MAGIC_RESPONSE;
+    packet->magic= GEARMAND_MAGIC_RESPONSE;
   }
   else
   {
     gearmand_warning("invalid magic value");
-    return GEARMAN_INVALID_MAGIC;
+    return GEARMAND_INVALID_MAGIC;
   }
 
   memcpy(&tmp, packet->args + 4, 4);
@@ -78,13 +78,13 @@ static gearmand_error_t gearmand_packet_unpack_header(gearmand_packet_st *packet
       packet->command >= GEARMAN_COMMAND_MAX)
   {
     gearmand_error("invalid command value");
-    return GEARMAN_INVALID_COMMAND;
+    return GEARMAND_INVALID_COMMAND;
   }
 
   memcpy(&tmp, packet->args + 8, 4);
   packet->data_size= ntohl(tmp);
 
-  return GEARMAN_SUCCESS;
+  return GEARMAND_SUCCESS;
 }
 
 class Geartext : public gearmand::protocol::Context {
@@ -119,11 +119,11 @@ public:
         uint8_t* ptr= (uint8_t *)memchr(data, '\n', data_size);
         if (ptr == NULL)
         {
-          ret_ptr= GEARMAN_IO_WAIT;
+          ret_ptr= GEARMAND_IO_WAIT;
           return 0;
         }
 
-        packet->magic= GEARMAN_MAGIC_TEXT;
+        packet->magic= GEARMAND_MAGIC_TEXT;
         packet->command= GEARMAN_COMMAND_TEXT;
 
         used_size= size_t(ptr - ((uint8_t *)data)) +1;
@@ -151,7 +151,7 @@ public:
 
           ret_ptr= gearmand_packet_create(packet, data, ptr == NULL ? arg_size :
                                           size_t(ptr - ((uint8_t *)data)));
-          if (ret_ptr != GEARMAN_SUCCESS)
+          if (ret_ptr != GEARMAND_SUCCESS)
           {
             return used_size;
           }
@@ -159,22 +159,22 @@ public:
 
         return used_size;
       }
-      else if (data_size < GEARMAN_PACKET_HEADER_SIZE)
+      else if (data_size < GEARMAND_PACKET_HEADER_SIZE)
       {
-        ret_ptr= GEARMAN_IO_WAIT;
+        ret_ptr= GEARMAND_IO_WAIT;
         return 0;
       }
 
       packet->args= packet->args_buffer;
-      packet->args_size= GEARMAN_PACKET_HEADER_SIZE;
-      memcpy(packet->args, data, GEARMAN_PACKET_HEADER_SIZE);
+      packet->args_size= GEARMAND_PACKET_HEADER_SIZE;
+      memcpy(packet->args, data, GEARMAND_PACKET_HEADER_SIZE);
 
       if (gearmand_failed(ret_ptr= gearmand_packet_unpack_header(packet)))
       {
         return 0;
       }
 
-      used_size= GEARMAN_PACKET_HEADER_SIZE;
+      used_size= GEARMAND_PACKET_HEADER_SIZE;
     }
     else
     {
@@ -190,10 +190,10 @@ public:
                                data_size -used_size);
         if (ptr == NULL)
         {
-          gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
+          gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM,
                              "Possible protocol error for %s, received only %u args",
                              gearman_command_info(packet->command)->name, packet->argc);
-          ret_ptr= GEARMAN_IO_WAIT;
+          ret_ptr= GEARMAND_IO_WAIT;
           return used_size;
         }
 
@@ -210,7 +210,7 @@ public:
       {
         if ((data_size - used_size) < packet->data_size)
         {
-          ret_ptr= GEARMAN_IO_WAIT;
+          ret_ptr= GEARMAND_IO_WAIT;
           return used_size;
         }
 
@@ -227,7 +227,7 @@ public:
 
     if (packet->command == GEARMAN_COMMAND_ECHO_RES)
     {
-      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
+      gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM,
                          "GEAR length: %" PRIu64 " gearmand_command_t: %s echo: %.*s",
                          uint64_t(packet->data_size),
                          gearman_strcommand(packet->command),
@@ -236,7 +236,7 @@ public:
     }
     else if (packet->command == GEARMAN_COMMAND_TEXT)
     {
-      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
+      gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM,
                          "GEAR length: %" PRIu64 " gearmand_command_t: %s text: %.*s",
                          uint64_t(packet->data_size),
                          gearman_strcommand(packet->command),
@@ -245,13 +245,13 @@ public:
     }
     else
     {
-      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
+      gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM,
                          "GEAR length: %" PRIu64 " gearmand_command_t: %s",
                          uint64_t(packet->data_size),
                          gearman_strcommand(packet->command));
     }
 
-    ret_ptr= GEARMAN_SUCCESS;
+    ret_ptr= GEARMAND_SUCCESS;
     return used_size;
   }
 
@@ -262,7 +262,7 @@ public:
   {
     if (packet->command == GEARMAN_COMMAND_ECHO_RES)
     {
-      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
+      gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM,
                          "GEAR length: %" PRIu64 " gearmand_command_t: %s echo: %.*",
                          uint64_t(packet->data_size),
                          gearman_strcommand(packet->command),
@@ -271,7 +271,7 @@ public:
     }
     else
     {
-      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
+      gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM,
                          "GEAR length: %" PRIu64 " gearmand_command_t: %s",
                          uint64_t(packet->data_size),
                          gearman_strcommand(packet->command));
@@ -279,18 +279,18 @@ public:
 
     if (packet->args_size == 0)
     {
-      ret_ptr= GEARMAN_SUCCESS;
+      ret_ptr= GEARMAND_SUCCESS;
       return 0;
     }
 
     if (packet->args_size > data_size)
     {
-      ret_ptr= GEARMAN_FLUSH_DATA;
+      ret_ptr= GEARMAND_FLUSH_DATA;
       return 0;
     }
 
     memcpy(data, packet->args, packet->args_size);
-    ret_ptr= GEARMAN_SUCCESS;
+    ret_ptr= GEARMAND_SUCCESS;
 
     return packet->args_size;
   }
@@ -306,7 +306,7 @@ static gearmand_error_t _gear_con_add(gearman_server_con_st *connection)
 
   connection->set_protocol(&gear_context);
 
-  return GEARMAN_SUCCESS;
+  return GEARMAND_SUCCESS;
 }
 
 namespace gearmand {

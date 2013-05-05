@@ -408,7 +408,7 @@ int main(int argc, char *argv[])
   if (queue_type.empty() == false)
   {
     gearmand_error_t rc;
-    if ((rc= gearmand::queue::initialize(_gearmand, queue_type.c_str())) != GEARMAN_SUCCESS)
+    if ((rc= gearmand::queue::initialize(_gearmand, queue_type.c_str())) != GEARMAND_SUCCESS)
     {
       error::message("Error while initializing the queue", queue_type.c_str());
       gearmand_free(_gearmand);
@@ -417,7 +417,7 @@ int main(int argc, char *argv[])
     }
   }
 
-  if (gear.start(_gearmand) != GEARMAN_SUCCESS)
+  if (gear.start(_gearmand) != GEARMAND_SUCCESS)
   {
     error::message("Error while enabling Gear protocol module");
     gearmand_free(_gearmand);
@@ -427,7 +427,7 @@ int main(int argc, char *argv[])
 
   if (protocol.compare("http") == 0)
   {
-    if (http.start(_gearmand) != GEARMAN_SUCCESS)
+    if (http.start(_gearmand) != GEARMAND_SUCCESS)
     {
       error::message("Error while enabling protocol module", protocol.c_str());
       gearmand_free(_gearmand);
@@ -456,7 +456,7 @@ int main(int argc, char *argv[])
   gearmand_free(_gearmand);
   _gearmand= NULL;
 
-  return (ret == GEARMAN_SUCCESS || ret == GEARMAN_SHUTDOWN) ? 0 : 1;
+  return (ret == GEARMAND_SUCCESS || ret == GEARMAND_SHUTDOWN) ? 0 : 1;
 }
 
 static bool _set_fdlimit(rlim_t fds)

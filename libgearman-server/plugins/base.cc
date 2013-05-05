@@ -94,7 +94,7 @@ gearmand_error_t Context::store(gearman_server_st *server,
                                 gearman_job_priority_t priority,
                                 int64_t when)
 {
-  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "SHUTDOWN VALUE %s", _store_on_shutdown ? "true" : "false");
+  gearmand_log_debug(GEARMAND_DEFAULT_LOG_PARAM, "SHUTDOWN VALUE %s", _store_on_shutdown ? "true" : "false");
   if (_store_on_shutdown == false)
   {
     return add(server,
@@ -105,7 +105,7 @@ gearmand_error_t Context::store(gearman_server_st *server,
                when);
   }
 
-  return GEARMAN_SUCCESS;
+  return GEARMAND_SUCCESS;
 }
 
 void Context::save_job(gearman_server_st& server,

@@ -70,7 +70,6 @@ gearman_server_packet_st *
 gearman_server_packet_create(gearman_server_thread_st *thread,
                              bool from_thread);
 
-GEARMAN_LOCAL
 const char *gearmand_strcommand(gearmand_packet_st *packet);
 
 /**
