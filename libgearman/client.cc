@@ -1544,7 +1544,14 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client, gear
               }
               else if (client->impl()->con->_packet.command == GEARMAN_COMMAND_ERROR)
               {
-                gearman_universal_set_error(client->impl()->universal, GEARMAN_SERVER_ERROR, GEARMAN_AT,
+                gearman_return_t maybe_server_error= string2return_code(static_cast<char *>(client->impl()->con->_packet.arg[0]), int(client->impl()->con->_packet.arg_size[0]));
+
+                if (maybe_server_error == GEARMAN_MAX_RETURN)
+                {
+                  maybe_server_error= GEARMAN_SERVER_ERROR;
+                }
+
+                gearman_universal_set_error(client->impl()->universal, maybe_server_error, GEARMAN_AT,
                                             "%s:%.*s",
                                             static_cast<char *>(client->impl()->con->_packet.arg[0]),
                                             int(client->impl()->con->_packet.arg_size[1]),
@@ -1561,7 +1568,7 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client, gear
                 /* Increment this value because new job created then failed. */
                 client->impl()->con->created_id++;
 
-                return GEARMAN_SERVER_ERROR;
+                return maybe_server_error;
               }
               else if (client->impl()->con->_packet.command == GEARMAN_COMMAND_STATUS_RES_UNIQUE and
                        (strncmp(gearman_task_unique(client->impl()->task),

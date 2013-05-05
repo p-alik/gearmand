@@ -40,8 +40,17 @@
 #include "libgearman/error_code.h"
 #include "libgearman/error_code.hpp"
 
-gearman_return_t string2return_code(const char*, size_t)
+using namespace org::gearman;
+
+gearman_return_t string2return_code(const char* str, size_t len)
 {
-  return GEARMAN_SUCCESS;
+  const struct error_code_st* code= error_string2return_code(str, len);
+
+  if (code)
+  {
+    return code->code;
+  }
+
+  return GEARMAN_MAX_RETURN;
 }
 
