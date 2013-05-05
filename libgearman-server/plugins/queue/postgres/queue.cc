@@ -65,8 +65,8 @@
 /**
  * Default values.
  */
-#define GEARMAN_QUEUE_LIBPQ_DEFAULT_TABLE "queue"
-#define GEARMAN_QUEUE_QUERY_BUFFER 256
+#define GEARMAND_QUEUE_LIBPQ_DEFAULT_TABLE "queue"
+#define GEARMAND_QUEUE_QUERY_BUFFER 256
 
 namespace gearmand { namespace plugins { namespace  queue { class Postgres; }}}
 
@@ -118,7 +118,7 @@ Postgres::Postgres() :
 {
   command_line_options().add_options()
     ("libpq-conninfo", boost::program_options::value(&postgres_connect_string)->default_value(""), "PostgreSQL connection information string.")
-    ("libpq-table", boost::program_options::value(&table)->default_value(GEARMAN_QUEUE_LIBPQ_DEFAULT_TABLE), "Table to use.");
+    ("libpq-table", boost::program_options::value(&table)->default_value(GEARMAND_QUEUE_LIBPQ_DEFAULT_TABLE), "Table to use.");
 }
 
 Postgres::~Postgres ()
@@ -197,7 +197,7 @@ gearmand_error_t _initialize(gearman_server_st& server,
   {
     gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "PQconnectdb: %s", PQerrorMessage(queue->con));
     gearman_server_set_queue(server, NULL, NULL, NULL, NULL, NULL);
-    return GEARMAN_QUEUE_ERROR;
+    return GEARMAND_QUEUE_ERROR;
   }
 
   (void)PQsetNoticeProcessor(queue->con, _libpq_notice_processor, &server);
@@ -209,9 +209,9 @@ gearmand_error_t _initialize(gearman_server_st& server,
   {
     std::string error_string= "PQexec:";
     error_string+= PQerrorMessage(queue->con);
-    gearmand_gerror(error_string.c_str(), GEARMAN_QUEUE_ERROR);
+    gearmand_gerror(error_string.c_str(), GEARMAND_QUEUE_ERROR);
     PQclear(result);
-    return GEARMAN_QUEUE_ERROR;
+    return GEARMAND_QUEUE_ERROR;
   }
 
   if (PQntuples(result) == 0)
@@ -227,7 +227,7 @@ gearmand_error_t _initialize(gearman_server_st& server,
                          "PQexec:%s", PQerrorMessage(queue->con));
       PQclear(result);
       gearman_server_set_queue(server, NULL, NULL, NULL, NULL, NULL);
-      return GEARMAN_QUEUE_ERROR;
+      return GEARMAND_QUEUE_ERROR;
     }
 
     PQclear(result);
@@ -237,7 +237,7 @@ gearmand_error_t _initialize(gearman_server_st& server,
     PQclear(result);
   }
 
-  return GEARMAN_SUCCESS;
+  return GEARMAND_SUCCESS;
 }
 
 /*
@@ -289,19 +289,19 @@ static gearmand_error_t _libpq_add(gearman_server_st*, void *context,
   {
     gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "PQexec:%s", PQerrorMessage(queue->con));
     PQclear(result);
-    return GEARMAN_QUEUE_ERROR;
+    return GEARMAND_QUEUE_ERROR;
   }
 
   PQclear(result);
 
-  return GEARMAN_SUCCESS;
+  return GEARMAND_SUCCESS;
 }
 
 static gearmand_error_t _libpq_flush(gearman_server_st *, void *)
 {
   gearmand_debug("libpq flush");
 
-  return GEARMAN_SUCCESS;
+  return GEARMAND_SUCCESS;
 }
 
 static gearmand_error_t _libpq_done(gearman_server_st*, void *context,
@@ -330,12 +330,12 @@ static gearmand_error_t _libpq_done(gearman_server_st*, void *context,
   {
     gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "PQexec:%s", PQerrorMessage(queue->con));
     PQclear(result);
-    return GEARMAN_QUEUE_ERROR;
+    return GEARMAND_QUEUE_ERROR;
   }
 
   PQclear(result);
 
-  return GEARMAN_SUCCESS;
+  return GEARMAND_SUCCESS;
 }
 
 static gearmand_error_t _libpq_replay(gearman_server_st *server, void *context,
@@ -353,7 +353,7 @@ static gearmand_error_t _libpq_replay(gearman_server_st *server, void *context,
   {
     gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "PQexecParams:%s", PQerrorMessage(queue->con));
     PQclear(result);
-    return GEARMAN_QUEUE_ERROR;
+    return GEARMAND_QUEUE_ERROR;
   }
 
   for (int row= 0; row < PQntuples(result); row++)
@@ -400,5 +400,5 @@ static gearmand_error_t _libpq_replay(gearman_server_st *server, void *context,
 
   PQclear(result);
 
-  return GEARMAN_SUCCESS;
+  return GEARMAND_SUCCESS;
 }

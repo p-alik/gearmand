@@ -101,7 +101,7 @@ extern "C" {
  * Add an object to a list.
  * @ingroup gearman_constants
  */
-#define GEARMAN_LIST_ADD(__list, __obj, __prefix) { \
+#define GEARMAND_LIST_ADD(__list, __obj, __prefix) { \
   if (__list ## _list != NULL) \
     __list ## _list->__prefix ## prev= __obj; \
   __obj->__prefix ## next= __list ## _list; \
@@ -110,7 +110,7 @@ extern "C" {
   __list ## _count++; \
 }
 
-#define GEARMAN_LIST__ADD(__list, __obj) { \
+#define GEARMAND_LIST__ADD(__list, __obj) { \
   if (__list ## _list != NULL) \
     __list ## _list->prev= __obj; \
   __obj->next= __list ## _list; \
@@ -123,7 +123,7 @@ extern "C" {
  * Delete an object from a list.
  * @ingroup gearman_constants
  */
-#define GEARMAN_LIST_DEL(__list, __obj, __prefix) { \
+#define GEARMAND_LIST_DEL(__list, __obj, __prefix) { \
   if (__list ## _list == __obj) \
     __list ## _list= __obj->__prefix ## next; \
   if (__obj->__prefix ## prev != NULL) \
@@ -133,7 +133,7 @@ extern "C" {
   __list ## _count--; \
 }
 
-#define GEARMAN_LIST__DEL(__list, __obj) { \
+#define GEARMAND_LIST__DEL(__list, __obj) { \
   if (__list ## _list == __obj) \
     __list ## _list= __obj->next; \
   if (__obj->prev != NULL) \
@@ -147,7 +147,7 @@ extern "C" {
  * Add an object to a fifo list.
  * @ingroup gearman_constants
  */
-#define GEARMAN_FIFO_ADD(__list, __obj, __prefix) { \
+#define GEARMAND_FIFO_ADD(__list, __obj, __prefix) { \
   if (__list ## _end == NULL) \
     __list ## _list= __obj; \
   else \
@@ -156,7 +156,7 @@ extern "C" {
   __list ## _count++; \
 }
 
-#define GEARMAN_FIFO__ADD(__list, __obj) { \
+#define GEARMAND_FIFO__ADD(__list, __obj) { \
   if (__list ## _end == NULL) \
     __list ## _list= __obj; \
   else \
@@ -169,14 +169,14 @@ extern "C" {
  * Delete an object from a fifo list.
  * @ingroup gearman_constants
  */
-#define GEARMAN_FIFO_DEL(__list, __obj, __prefix) { \
+#define GEARMAND_FIFO_DEL(__list, __obj, __prefix) { \
   __list ## _list= __obj->__prefix ## next; \
   if (__list ## _list == NULL) \
     __list ## _end= NULL; \
   __list ## _count--; \
 }
 
-#define GEARMAN_FIFO__DEL(__list, __obj) { \
+#define GEARMAND_FIFO__DEL(__list, __obj) { \
   __list ## _list= __obj->next; \
   if (__list ## _list == NULL) \
     __list ## _end= NULL; \
@@ -187,7 +187,7 @@ extern "C" {
  * Add an object to a hash.
  * @ingroup gearman_constants
  */
-#define GEARMAN_HASH_ADD(__hash, __key, __obj, __prefix) { \
+#define GEARMAND_HASH_ADD(__hash, __key, __obj, __prefix) { \
   if (__hash ## _hash[__key] != NULL) \
     __hash ## _hash[__key]->__prefix ## prev= __obj; \
   __obj->__prefix ## next= __hash ## _hash[__key]; \
@@ -196,7 +196,7 @@ extern "C" {
   __hash ## _count++; \
 }
 
-#define GEARMAN_HASH__ADD(__hash, __key, __obj) { \
+#define GEARMAND_HASH__ADD(__hash, __key, __obj) { \
   if (__hash ## _hash[__key] != NULL) \
     __hash ## _hash[__key]->prev= __obj; \
   __obj->next= __hash ## _hash[__key]; \
@@ -209,7 +209,7 @@ extern "C" {
  * Delete an object from a hash.
  * @ingroup gearman_constants
  */
-#define GEARMAN_HASH_DEL(__hash, __key, __obj, __prefix) { \
+#define GEARMAND_HASH_DEL(__hash, __key, __obj, __prefix) { \
   if (__hash ## _hash[__key] == __obj) \
     __hash ## _hash[__key]= __obj->__prefix ## next; \
   if (__obj->__prefix ## prev != NULL) \
@@ -219,7 +219,7 @@ extern "C" {
   __hash ## _count--; \
 }
 
-#define GEARMAN_HASH__DEL(__hash, __key, __obj) { \
+#define GEARMAND_HASH__DEL(__hash, __key, __obj) { \
   if (__hash ## _hash[__key] == __obj) \
     __hash ## _hash[__key]= __obj->next; \
   if (__obj->prev != NULL) \

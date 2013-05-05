@@ -51,7 +51,7 @@
 
 /** Default values.
  */
-#define GEARMAN_QUEUE_SQLITE_DEFAULT_TABLE "gearman_queue"
+#define GEARMAND_QUEUE_SQLITE_DEFAULT_TABLE "gearman_queue"
 
 namespace gearmand {
 namespace plugins {
@@ -78,7 +78,7 @@ Sqlite::Sqlite() :
   command_line_options().add_options()
     ("libsqlite3-db", boost::program_options::value(&schema), "Database file to use.")
     ("store-queue-on-shutdown", boost::program_options::bool_switch(&_store_on_shutdown)->default_value(false), "Store queue on shutdown.")
-    ("libsqlite3-table", boost::program_options::value(&table)->default_value(GEARMAN_QUEUE_SQLITE_DEFAULT_TABLE), "Table to use.")
+    ("libsqlite3-table", boost::program_options::value(&table)->default_value(GEARMAND_QUEUE_SQLITE_DEFAULT_TABLE), "Table to use.")
     ;
 }
 
@@ -92,13 +92,13 @@ gearmand_error_t Sqlite::initialize()
 
   if (exec_queue == NULL)
   {
-    return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+    return GEARMAND_MEMORY_ALLOCATION_FAILURE;
   }
 
   exec_queue->store_on_shutdown(_store_on_shutdown);
 
   gearmand_error_t rc;
-  if ((rc= exec_queue->init()) != GEARMAN_SUCCESS)
+  if ((rc= exec_queue->init()) != GEARMAND_SUCCESS)
   {
     delete exec_queue;
     return rc;

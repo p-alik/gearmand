@@ -105,7 +105,7 @@ gearmand_error_t Context::store(gearman_server_st *server,
                when);
   }
 
-  return GEARMAN_SUCCESS;
+  return GEARMAND_SUCCESS;
 }
 
 void Context::save_job(gearman_server_st& server,

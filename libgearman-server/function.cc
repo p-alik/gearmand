@@ -91,7 +91,7 @@ static gearman_server_function_st* gearman_server_function_create(gearman_server
   function->job_count= 0;
   function->job_total= 0;
   function->job_running= 0;
-  memset(function->max_queue_size, GEARMAN_DEFAULT_MAX_QUEUE_SIZE, sizeof(uint32_t) * GEARMAN_JOB_PRIORITY_MAX);
+  memset(function->max_queue_size, GEARMAND_DEFAULT_MAX_QUEUE_SIZE, sizeof(uint32_t) * GEARMAN_JOB_PRIORITY_MAX);
 
   function->function_name= new char[function_name_size +1];
   if (function->function_name == NULL)
@@ -109,7 +109,7 @@ static gearman_server_function_st* gearman_server_function_create(gearman_server
          sizeof(gearman_server_job_st *) * GEARMAN_JOB_PRIORITY_MAX);
   memset(function->job_end, 0,
          sizeof(gearman_server_job_st *) * GEARMAN_JOB_PRIORITY_MAX);
-  GEARMAN_HASH__ADD(server->function, function_key, function);
+  GEARMAND_HASH__ADD(server->function, function_key, function);
   return function;
 }
 
@@ -139,7 +139,7 @@ void gearman_server_function_free(gearman_server_st *server, gearman_server_func
   uint32_t function_key;
   function_key= _server_function_hash(function->function_name, function->function_name_size);
   function_key= function_key % GEARMAND_DEFAULT_HASH_SIZE;
-  GEARMAN_HASH__DEL(server->function, function_key, function);
+  GEARMAND_HASH__DEL(server->function, function_key, function);
   delete [] function->function_name;
   delete function;
 }

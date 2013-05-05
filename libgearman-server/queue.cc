@@ -202,7 +202,7 @@ gearmand_error_t initialize(gearmand_st *, std::string name)
 
   if (name.empty())
   {
-    return GEARMAN_SUCCESS;
+    return GEARMAND_SUCCESS;
   }
 
   std::transform(name.begin(), name.end(), name.begin(), ::tolower);
@@ -215,7 +215,7 @@ gearmand_error_t initialize(gearmand_st *, std::string name)
     {
       if (launched)
       {
-        return gearmand_gerror("Attempt to initialize multiple queues", GEARMAN_UNKNOWN_OPTION);
+        return gearmand_gerror("Attempt to initialize multiple queues", GEARMAND_UNKNOWN_OPTION);
       }
 
       gearmand_error_t rc;
@@ -231,10 +231,10 @@ gearmand_error_t initialize(gearmand_st *, std::string name)
 
   if (launched == false)
   {
-    return gearmand_log_gerror(GEARMAN_DEFAULT_LOG_PARAM, GEARMAN_UNKNOWN_OPTION, "Unknown queue %s", name.c_str());
+    return gearmand_log_gerror(GEARMAN_DEFAULT_LOG_PARAM, GEARMAND_UNKNOWN_OPTION, "Unknown queue %s", name.c_str());
   }
 
-  return GEARMAN_SUCCESS;
+  return GEARMAND_SUCCESS;
 }
 
 } // namespace queue

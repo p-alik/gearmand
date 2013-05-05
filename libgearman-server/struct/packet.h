@@ -41,9 +41,9 @@
 
 enum gearman_magic_t
 {
-  GEARMAN_MAGIC_TEXT,
-  GEARMAN_MAGIC_REQUEST,
-  GEARMAN_MAGIC_RESPONSE
+  GEARMAND_MAGIC_TEXT,
+  GEARMAND_MAGIC_REQUEST,
+  GEARMAND_MAGIC_RESPONSE
 };
 
 /**
@@ -69,12 +69,12 @@ struct gearmand_packet_st
   struct gearmand_packet_st *prev;
   char *args;
   const char *data;
-  char *arg[GEARMAN_MAX_COMMAND_ARGS];
-  size_t arg_size[GEARMAN_MAX_COMMAND_ARGS];
-  char args_buffer[GEARMAN_ARGS_BUFFER_SIZE];
+  char *arg[GEARMAND_MAX_COMMAND_ARGS];
+  size_t arg_size[GEARMAND_MAX_COMMAND_ARGS];
+  char args_buffer[GEARMAND_ARGS_BUFFER_SIZE];
 
   gearmand_packet_st():
-    magic(GEARMAN_MAGIC_TEXT),
+    magic(GEARMAND_MAGIC_TEXT),
     command(GEARMAN_COMMAND_TEXT),
     argc(0),
     args_size(0),

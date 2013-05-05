@@ -118,14 +118,14 @@ gearmand_error_t Hiredis::initialize()
   int service_port= atoi(service.c_str());
   if ((_redis= redisConnect("127.0.0.1", service_port)) == NULL)
   {
-    return gearmand_gerror("Could not connect to redis server", GEARMAN_QUEUE_ERROR);
+    return gearmand_gerror("Could not connect to redis server", GEARMAND_QUEUE_ERROR);
   }
 
   gearmand_info("Initializing hiredis module");
 
   gearman_server_set_queue(Gearmand()->server, this, _hiredis_add, _hiredis_flush, _hiredis_done, _hiredis_replay);   
    
-  return GEARMAN_SUCCESS;
+  return GEARMAND_SUCCESS;
 }
 
 void initialize_redis()
@@ -138,9 +138,9 @@ void initialize_redis()
 } // namespace gearmand
 
 typedef std::vector<char> vchar_t;
-#define GEARMAN_QUEUE_GEARMAND_DEFAULT_PREFIX "_gear_"
-#define GEARMAN_QUEUE_GEARMAND_DEFAULT_PREFIX_SIZE sizeof(GEARMAN_QUEUE_GEARMAND_DEFAULT_PREFIX)
-#define GEARMAN_KEY_LITERAL "%s-%.*s-%*s"
+#define GEARMAND_QUEUE_GEARMAND_DEFAULT_PREFIX "_gear_"
+#define GEARMAND_QUEUE_GEARMAND_DEFAULT_PREFIX_SIZE sizeof(GEARMAND_QUEUE_GEARMAND_DEFAULT_PREFIX)
+#define GEARMAND_KEY_LITERAL "%s-%.*s-%*s"
 
 static size_t build_key(vchar_t &key,
                         const char *unique,
@@ -148,9 +148,9 @@ static size_t build_key(vchar_t &key,
                         const char *function_name,
                         size_t function_name_size)
 {
-  key.resize(function_name_size +unique_size +GEARMAN_QUEUE_GEARMAND_DEFAULT_PREFIX_SIZE +4);
-  int key_size= snprintf(&key[0], key.size(), GEARMAN_KEY_LITERAL,
-                         GEARMAN_QUEUE_GEARMAND_DEFAULT_PREFIX,
+  key.resize(function_name_size +unique_size +GEARMAND_QUEUE_GEARMAND_DEFAULT_PREFIX_SIZE +4);
+  int key_size= snprintf(&key[0], key.size(), GEARMAND_KEY_LITERAL,
+                         GEARMAND_QUEUE_GEARMAND_DEFAULT_PREFIX,
                          (int)function_name_size, function_name,
                          (int)unique_size, unique);
   if (size_t(key_size) >= key.size() or key_size <= 0)
@@ -192,7 +192,7 @@ static gearmand_error_t _hiredis_add(gearman_server_st *, void *context,
 
   if (when) // No support for EPOCH jobs
   {
-    return GEARMAN_QUEUE_ERROR;
+    return GEARMAND_QUEUE_ERROR;
   }
 
   gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "hires add: %.*s", (uint32_t)unique_size, (char *)unique);
@@ -205,16 +205,16 @@ static gearmand_error_t _hiredis_add(gearman_server_st *, void *context,
   gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "got reply");
   if (reply == NULL)
   {
-    return gearmand_log_gerror(GEARMAN_DEFAULT_LOG_PARAM, GEARMAN_QUEUE_ERROR, "failed to insert '%.*s' into redis", key.size(), &key[0]);
+    return gearmand_log_gerror(GEARMAN_DEFAULT_LOG_PARAM, GEARMAND_QUEUE_ERROR, "failed to insert '%.*s' into redis", key.size(), &key[0]);
   }
   freeReplyObject(reply);
 
-  return GEARMAN_SUCCESS;
+  return GEARMAND_SUCCESS;
 }
 
 static gearmand_error_t _hiredis_flush(gearman_server_st *, void *)
 {
-  return GEARMAN_SUCCESS;
+  return GEARMAND_SUCCESS;
 }
 
 static gearmand_error_t _hiredis_done(gearman_server_st *, void *context,
@@ -233,11 +233,11 @@ static gearmand_error_t _hiredis_done(gearman_server_st *, void *context,
   redisReply *reply= (redisReply*)redisCommand(queue->redis(), "DELETE %.*s", key.size(), &key[0]);
   if (reply == NULL)
   {
-    return GEARMAN_QUEUE_ERROR;
+    return GEARMAND_QUEUE_ERROR;
   }
   freeReplyObject(reply);
 
-  return GEARMAN_SUCCESS;
+  return GEARMAND_SUCCESS;
 }
 
 
@@ -249,27 +249,27 @@ static gearmand_error_t _hiredis_replay(gearman_server_st *server, void *context
    
   gearmand_info("hiredis replay start");
 
-  redisReply *reply= (redisReply*)redisCommand(queue->redis(), "KEYS %s", GEARMAN_QUEUE_GEARMAND_DEFAULT_PREFIX);
+  redisReply *reply= (redisReply*)redisCommand(queue->redis(), "KEYS %s", GEARMAND_QUEUE_GEARMAND_DEFAULT_PREFIX);
   if (reply == NULL)
   {
-    return gearmand_gerror("Failed to call KEYS during QUEUE replay", GEARMAN_QUEUE_ERROR);
+    return gearmand_gerror("Failed to call KEYS during QUEUE replay", GEARMAND_QUEUE_ERROR);
   }
 
   for (size_t x= 0; x < reply->elements; x++)
   {
-    char prefix[GEARMAN_QUEUE_GEARMAND_DEFAULT_PREFIX_SIZE];
+    char prefix[GEARMAND_QUEUE_GEARMAND_DEFAULT_PREFIX_SIZE];
     char function_name[GEARMAN_FUNCTION_MAX_SIZE];
     char unique[GEARMAN_MAX_UNIQUE_SIZE];
 
     char fmt_str[100] = "";    
     int fmt_str_length= snprintf(fmt_str, sizeof(fmt_str), "%%%ds-%%%ds-%%%ds",
-                                 int(GEARMAN_QUEUE_GEARMAND_DEFAULT_PREFIX_SIZE),
+                                 int(GEARMAND_QUEUE_GEARMAND_DEFAULT_PREFIX_SIZE),
                                  int(GEARMAN_FUNCTION_MAX_SIZE),
                                  int(GEARMAN_MAX_UNIQUE_SIZE));
     if (fmt_str_length <= 0 or size_t(fmt_str_length) >= sizeof(fmt_str))
     {
       assert(fmt_str_length != 1);
-      return gearmand_gerror("snprintf() failed to produce a valud fmt_str for redis key", GEARMAN_QUEUE_ERROR);
+      return gearmand_gerror("snprintf() failed to produce a valud fmt_str for redis key", GEARMAND_QUEUE_ERROR);
     }
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
@@ -299,7 +299,7 @@ static gearmand_error_t _hiredis_replay(gearman_server_st *server, void *context
   }
   freeReplyObject(reply);
 
-  return GEARMAN_SUCCESS;
+  return GEARMAND_SUCCESS;
 }
 
 #endif // defined(HAVE_HIREDIS) && HAVE_HIREDIS

@@ -57,7 +57,7 @@
 gearmand_error_t server_run_text(gearman_server_con_st *server_con,
                                  gearmand_packet_st *packet)
 {
-  gearman_vector_st data(GEARMAN_TEXT_RESPONSE_SIZE);
+  gearman_vector_st data(GEARMAND_TEXT_RESPONSE_SIZE);
 
   if (packet->argc)
   {
@@ -283,7 +283,7 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
         }
         else
         {
-          max_queue_size[priority]= GEARMAN_DEFAULT_MAX_QUEUE_SIZE;
+          max_queue_size[priority]= GEARMAND_DEFAULT_MAX_QUEUE_SIZE;
         }
       }
 
@@ -360,10 +360,10 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
   gearman_server_packet_st *server_packet= gearman_server_packet_create(server_con->thread, false);
   if (server_packet == NULL)
   {
-    return gearmand_gerror("calling gearman_server_packet_create()", GEARMAN_MEMORY_ALLOCATION_FAILURE);
+    return gearmand_gerror("calling gearman_server_packet_create()", GEARMAND_MEMORY_ALLOCATION_FAILURE);
   }
 
-  server_packet->packet.reset(GEARMAN_MAGIC_TEXT, GEARMAN_COMMAND_TEXT);
+  server_packet->packet.reset(GEARMAND_MAGIC_TEXT, GEARMAN_COMMAND_TEXT);
 
   server_packet->packet.options.complete= true;
   server_packet->packet.options.free_data= true;
@@ -380,7 +380,7 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
   int error;
   if ((error= pthread_mutex_lock(&server_con->thread->lock)) == 0)
   {
-    GEARMAN_FIFO__ADD(server_con->io_packet, server_packet);
+    GEARMAND_FIFO__ADD(server_con->io_packet, server_packet);
     if ((error= pthread_mutex_unlock(&(server_con->thread->lock))))
     {
       gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_unlock");
@@ -393,5 +393,5 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
 
   gearman_server_con_io_add(server_con);
 
-  return GEARMAN_SUCCESS;
+  return GEARMAND_SUCCESS;
 }

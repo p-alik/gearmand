@@ -73,9 +73,9 @@ static gearmand_error_t gearman_server_queue_libdrizzle_init(plugins::queue::Dri
 /**
  * Default values.
  */
-#define GEARMAN_QUEUE_LIBDRIZZLE_DEFAULT_DATABASE "gearman"
-#define GEARMAN_QUEUE_LIBDRIZZLE_DEFAULT_TABLE "queue"
-#define GEARMAN_QUEUE_QUERY_BUFFER 256
+#define GEARMAND_QUEUE_LIBDRIZZLE_DEFAULT_DATABASE "gearman"
+#define GEARMAND_QUEUE_LIBDRIZZLE_DEFAULT_TABLE "queue"
+#define GEARMAND_QUEUE_QUERY_BUFFER 256
 
 static bool libdrizzle_failed(drizzle_return_t arg) 
 {
@@ -215,8 +215,8 @@ Drizzle::Drizzle () :
   ("libdrizzle-uds", boost::program_options::value(&uds), "Unix domain socket for server.")
   ("libdrizzle-user", boost::program_options::value(&user)->default_value("root"), "User name for authentication.")
   ("libdrizzle-password", boost::program_options::value(&password), "Password for authentication.")
-  ("libdrizzle-db", boost::program_options::value(&schema)->default_value(GEARMAN_QUEUE_LIBDRIZZLE_DEFAULT_DATABASE), "Database to use.")
-  ("libdrizzle-table", boost::program_options::value(&table)->default_value(GEARMAN_QUEUE_LIBDRIZZLE_DEFAULT_TABLE), "Table to use.")
+  ("libdrizzle-db", boost::program_options::value(&schema)->default_value(GEARMAND_QUEUE_LIBDRIZZLE_DEFAULT_DATABASE), "Database to use.")
+  ("libdrizzle-table", boost::program_options::value(&table)->default_value(GEARMAND_QUEUE_LIBDRIZZLE_DEFAULT_TABLE), "Table to use.")
   ("libdrizzle-mysql", boost::program_options::bool_switch(&mysql_protocol)->default_value(false), "Use MySQL protocol.")
   ;
 
@@ -396,13 +396,13 @@ gearmand_error_t gearman_server_queue_libdrizzle_init(plugins::queue::Drizzle *q
     query+= "CREATE SCHEMA IF NOT EXISTS  " +queue->schema;
     if (libdrizzle_failed(_libdrizzle_query(queue, query.c_str(), query.size())))
     {
-      return gearmand_gerror(drizzle_error(queue->drizzle), GEARMAN_QUEUE_ERROR);
+      return gearmand_gerror(drizzle_error(queue->drizzle), GEARMAND_QUEUE_ERROR);
     }
 
     if (libdrizzle_failed(drizzle_column_skip_all(queue->result())))
     {
       drizzle_result_free(queue->result());
-      return gearmand_gerror(drizzle_error(queue->drizzle), GEARMAN_QUEUE_ERROR);
+      return gearmand_gerror(drizzle_error(queue->drizzle), GEARMAND_QUEUE_ERROR);
     }
     drizzle_result_free(queue->result());
   }
@@ -415,17 +415,17 @@ gearmand_error_t gearman_server_queue_libdrizzle_init(plugins::queue::Drizzle *q
     query+= "\"";
     if (libdrizzle_failed(_libdrizzle_query(queue, query.c_str(), query.size())))
     {
-      return gearmand_gerror("Error occurred while searching for gearman queue schema", GEARMAN_QUEUE_ERROR);
+      return gearmand_gerror("Error occurred while searching for gearman queue schema", GEARMAND_QUEUE_ERROR);
     }
 
     if (libdrizzle_failed(drizzle_result_buffer(queue->result())))
     {
-      return gearmand_gerror(drizzle_error(queue->drizzle), GEARMAN_QUEUE_ERROR);
+      return gearmand_gerror(drizzle_error(queue->drizzle), GEARMAND_QUEUE_ERROR);
     }
 
     if (drizzle_result_row_count(queue->result()) == 0)
     {
-      return gearmand_gerror("Error occurred while search for gearman queue schema", GEARMAN_QUEUE_ERROR);
+      return gearmand_gerror("Error occurred while search for gearman queue schema", GEARMAND_QUEUE_ERROR);
     }
     drizzle_result_free(queue->result());
   }
@@ -434,13 +434,13 @@ gearmand_error_t gearman_server_queue_libdrizzle_init(plugins::queue::Drizzle *q
   ret= drizzle_select_db(queue->drizzle, queue->schema.c_str());
   if (libdrizzle_failed(ret))
   {
-    return gearmand_gerror(drizzle_error(queue->drizzle), GEARMAN_QUEUE_ERROR);
+    return gearmand_gerror(drizzle_error(queue->drizzle), GEARMAND_QUEUE_ERROR);
   }
 
   ret= drizzle_select_db(queue->insert_con, queue->schema.c_str());
   if (libdrizzle_failed(ret))
   {
-    return gearmand_gerror(drizzle_error(queue->insert_con), GEARMAN_QUEUE_ERROR);
+    return gearmand_gerror(drizzle_error(queue->insert_con), GEARMAND_QUEUE_ERROR);
   }
 
   // We need to check and see if the tables exists, and if not create it
@@ -448,12 +448,12 @@ gearmand_error_t gearman_server_queue_libdrizzle_init(plugins::queue::Drizzle *q
   query+= "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = \"" +queue->table +"\"";
   if (libdrizzle_failed(_libdrizzle_query(queue, query.c_str(), query.size())))
   {
-    return gearmand_gerror(drizzle_error(queue->drizzle), GEARMAN_QUEUE_ERROR);
+    return gearmand_gerror(drizzle_error(queue->drizzle), GEARMAND_QUEUE_ERROR);
   }
 
   if (libdrizzle_failed(drizzle_result_buffer(queue->result())))
   {
-    return gearmand_gerror(drizzle_error(queue->drizzle), GEARMAN_QUEUE_ERROR);
+    return gearmand_gerror(drizzle_error(queue->drizzle), GEARMAND_QUEUE_ERROR);
   }
   bool create_table= drizzle_result_row_count(queue->result());
   drizzle_result_free(queue->result());
@@ -470,13 +470,13 @@ gearmand_error_t gearman_server_queue_libdrizzle_init(plugins::queue::Drizzle *q
 
     if (libdrizzle_failed(_libdrizzle_query(queue, query.c_str(), query.size())))
     {
-      return gearmand_gerror(drizzle_error(queue->drizzle), GEARMAN_QUEUE_ERROR);
+      return gearmand_gerror(drizzle_error(queue->drizzle), GEARMAND_QUEUE_ERROR);
     }
 
     if (libdrizzle_failed(drizzle_column_skip_all(queue->result())))
     {
       drizzle_result_free(queue->result());
-      return gearmand_gerror(drizzle_error(queue->drizzle), GEARMAN_QUEUE_ERROR);
+      return gearmand_gerror(drizzle_error(queue->drizzle), GEARMAND_QUEUE_ERROR);
     }
     drizzle_result_free(queue->result());
   }
@@ -490,12 +490,12 @@ gearmand_error_t gearman_server_queue_libdrizzle_init(plugins::queue::Drizzle *q
     query+= "AND TABLE_NAME = \"" +queue->table +"\" AND COLUMN_NAME = \"when_to_run\"";
     if (libdrizzle_failed(_libdrizzle_query(queue, query.c_str(), query.size())))
     {
-      return gearmand_gerror(drizzle_error(queue->drizzle), GEARMAN_QUEUE_ERROR);
+      return gearmand_gerror(drizzle_error(queue->drizzle), GEARMAND_QUEUE_ERROR);
     }
 
     if (libdrizzle_failed(drizzle_result_buffer(queue->result())))
     {
-      return gearmand_gerror(drizzle_error(queue->drizzle), GEARMAN_QUEUE_ERROR);
+      return gearmand_gerror(drizzle_error(queue->drizzle), GEARMAND_QUEUE_ERROR);
     }
 
     if (drizzle_result_row_count(queue->result()) == 0)
@@ -508,7 +508,7 @@ gearmand_error_t gearman_server_queue_libdrizzle_init(plugins::queue::Drizzle *q
 
   gearman_server_set_queue(*server, queue, _libdrizzle_add, _libdrizzle_flush, _libdrizzle_done, _libdrizzle_replay);
 
-  return GEARMAN_SUCCESS;
+  return GEARMAND_SUCCESS;
 }
 
 /*
@@ -531,7 +531,7 @@ static gearmand_error_t _libdrizzle_add(gearman_server_st *,
 
   if (when and queue->epoch_support() == false)
   {
-    return gearmand_gerror("Table lacks when_to_run field", GEARMAN_QUEUE_ERROR);
+    return gearmand_gerror("Table lacks when_to_run field", GEARMAND_QUEUE_ERROR);
   }
 
   vchar_t escaped_unique_name;
@@ -543,7 +543,7 @@ static gearmand_error_t _libdrizzle_add(gearman_server_st *,
   // @todo test for overallocation failure
   size_t query_size;
 
-  char query_buffer[GEARMAN_QUEUE_QUERY_BUFFER +(GEARMAN_MAX_UNIQUE_SIZE*2) +(GEARMAN_FUNCTION_MAX_SIZE*2)];
+  char query_buffer[GEARMAND_QUEUE_QUERY_BUFFER +(GEARMAN_MAX_UNIQUE_SIZE*2) +(GEARMAN_FUNCTION_MAX_SIZE*2)];
   if (queue->epoch_support())
   {
     query_size= (size_t)snprintf(query_buffer, sizeof(query_buffer),
@@ -580,17 +580,17 @@ static gearmand_error_t _libdrizzle_add(gearman_server_st *,
 
   if (libdrizzle_failed(_libdrizzle_insert(queue, query)))
   {
-    return gearmand_gerror(drizzle_error(queue->drizzle), GEARMAN_QUEUE_ERROR);
+    return gearmand_gerror(drizzle_error(queue->drizzle), GEARMAND_QUEUE_ERROR);
   }
 
-  return GEARMAN_SUCCESS;
+  return GEARMAND_SUCCESS;
 }
 
 static gearmand_error_t _libdrizzle_flush(gearman_server_st *, void *)
 {
   gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "libdrizzle flush");
 
-  return GEARMAN_SUCCESS;
+  return GEARMAND_SUCCESS;
 }
 
 static gearmand_error_t _libdrizzle_done(gearman_server_st *,
@@ -616,7 +616,7 @@ static gearmand_error_t _libdrizzle_done(gearman_server_st *,
                +escaped_function_name.size() 
                +queue->schema.size()
                +queue->table.size()
-               +GEARMAN_QUEUE_QUERY_BUFFER);
+               +GEARMAND_QUEUE_QUERY_BUFFER);
 
   int query_size= snprintf(&query[0], query.size(),
                            "DELETE FROM %.*s.%.*s WHERE unique_key='%.*s' and function_name= '%.*s'",
@@ -628,7 +628,7 @@ static gearmand_error_t _libdrizzle_done(gearman_server_st *,
 
   if (query_size < 0 or size_t(query_size) > query.size())
   {
-    return gearmand_gerror("snprintf(DELETE)", GEARMAN_MEMORY_ALLOCATION_FAILURE);
+    return gearmand_gerror("snprintf(DELETE)", GEARMAND_MEMORY_ALLOCATION_FAILURE);
   }
 
   gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "%.*", query_size, &query[0]);
@@ -640,13 +640,13 @@ static gearmand_error_t _libdrizzle_done(gearman_server_st *,
 
   drizzle_result_free(queue->result());
 
-  return GEARMAN_SUCCESS;
+  return GEARMAND_SUCCESS;
 }
 
 #if 0
 static gearmand_error_t _dump_queue(plugins::queue::Drizzle *queue)
 {
-  char query[DRIZZLE_MAX_TABLE_SIZE + GEARMAN_QUEUE_QUERY_BUFFER];
+  char query[DRIZZLE_MAX_TABLE_SIZE + GEARMAND_QUEUE_QUERY_BUFFER];
 
   size_t query_size;
   query_size= (size_t)snprintf(query, sizeof(query),
@@ -656,7 +656,7 @@ static gearmand_error_t _dump_queue(plugins::queue::Drizzle *queue)
   if (_libdrizzle_query(NULL, queue, query, query_size) != DRIZZLE_RETURN_OK)
   {
     gearmand_log_error("drizzle_column_skip_all:%s", drizzle_error(queue->drizzle));
-    return GEARMAN_QUEUE_ERROR;
+    return GEARMAND_QUEUE_ERROR;
   }
 
   if (drizzle_column_skip_all(queue->result()) != DRIZZLE_RETURN_OK)
@@ -664,7 +664,7 @@ static gearmand_error_t _dump_queue(plugins::queue::Drizzle *queue)
     drizzle_result_free(queue->result());
     gearmand_log_error("drizzle_column_skip_all:%s", drizzle_error(queue->drizzle));
 
-    return GEARMAN_QUEUE_ERROR;
+    return GEARMAND_QUEUE_ERROR;
   }
 
   gearmand_debug("Shutting down with the following items left to be processed.");
@@ -678,7 +678,7 @@ static gearmand_error_t _dump_queue(plugins::queue::Drizzle *queue)
       drizzle_result_free(queue->result());
       gearmand_log_error("drizzle_row_buffer:%s", drizzle_error(queue->drizzle));
 
-      return GEARMAN_QUEUE_ERROR;
+      return GEARMAND_QUEUE_ERROR;
     }
 
     if (row == NULL)
@@ -697,7 +697,7 @@ static gearmand_error_t _dump_queue(plugins::queue::Drizzle *queue)
 
   drizzle_result_free(queue->result());
 
-  return GEARMAN_SUCCESS;
+  return GEARMAND_SUCCESS;
 }
 #endif
 
@@ -730,13 +730,13 @@ static gearmand_error_t _libdrizzle_replay(gearman_server_st *server,
 
   if (libdrizzle_failed(_libdrizzle_query(queue, query.c_str(), query.size())))
   {
-    return gearmand_gerror(drizzle_error(queue->drizzle), GEARMAN_QUEUE_ERROR);
+    return gearmand_gerror(drizzle_error(queue->drizzle), GEARMAND_QUEUE_ERROR);
   }
 
   if (libdrizzle_failed(drizzle_column_buffer(queue->result())))
   {
     drizzle_result_free(queue->result());
-    return gearmand_gerror(drizzle_error(queue->drizzle), GEARMAN_QUEUE_ERROR);
+    return gearmand_gerror(drizzle_error(queue->drizzle), GEARMAND_QUEUE_ERROR);
   }
 
   while (1)
@@ -767,7 +767,7 @@ static gearmand_error_t _libdrizzle_replay(gearman_server_st *server,
       gearmand_perror(errno, "Failed to allocate data while replaying the queue");
       drizzle_row_free(queue->result(), row);
       drizzle_result_free(queue->result());
-      return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+      return GEARMAND_MEMORY_ALLOCATION_FAILURE;
     }
     memcpy(data, row[3], data_size);
 
@@ -785,7 +785,7 @@ static gearmand_error_t _libdrizzle_replay(gearman_server_st *server,
                     row[1], field_sizes[1],
                     data, data_size, (gearman_job_priority_t)atoi(row[2]), when);
 
-    if (gret != GEARMAN_SUCCESS)
+    if (gret != GEARMAND_SUCCESS)
     {
       drizzle_row_free(queue->result(), row);
       drizzle_result_free(queue->result());
@@ -797,7 +797,7 @@ static gearmand_error_t _libdrizzle_replay(gearman_server_st *server,
 
   drizzle_result_free(queue->result());
 
-  return GEARMAN_SUCCESS;
+  return GEARMAND_SUCCESS;
 }
 
 #else // if defined(HAVE_LIBDRIZZLE) && HAVE_LIBDRIZZLE

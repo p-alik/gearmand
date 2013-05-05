@@ -101,7 +101,7 @@ bool gearman_server_thread_init(gearman_server_st *server,
   if (server->thread_count == 1)
   {
     /* The server is going to be multi-threaded, start processing thread. */
-    if (_proc_thread_start(server) != GEARMAN_SUCCESS)
+    if (_proc_thread_start(server) != GEARMAND_SUCCESS)
     {
       return false;
     }
@@ -131,7 +131,7 @@ bool gearman_server_thread_init(gearman_server_st *server,
     return false;
   }
 
-  GEARMAN_LIST__ADD(server->thread, thread);
+  GEARMAND_LIST__ADD(server->thread, thread);
 
   thread->gearman= &(thread->gearmand_connection_list_static);
   thread->gearman->init(event_watch, NULL);
@@ -169,7 +169,7 @@ void gearman_server_thread_free(gearman_server_thread_st *thread)
 
   pthread_mutex_destroy(&(thread->lock));
 
-  GEARMAN_LIST__DEL(Server->thread, thread);
+  GEARMAND_LIST__DEL(Server->thread, thread);
 }
 
 gearmand_con_st *
@@ -199,7 +199,7 @@ gearman_server_thread_run(gearman_server_thread_st *thread,
         continue;
       }
 
-      if (server_con->ret != GEARMAN_SUCCESS)
+      if (server_con->ret != GEARMAND_SUCCESS)
       {
         *ret_ptr= server_con->ret;
         return gearman_server_con_data(server_con);
@@ -207,7 +207,7 @@ gearman_server_thread_run(gearman_server_thread_st *thread,
 
       /* See if any outgoing packets were queued. */
       *ret_ptr= _thread_packet_flush(server_con);
-      if (*ret_ptr != GEARMAN_SUCCESS && *ret_ptr != GEARMAN_IO_WAIT)
+      if (*ret_ptr != GEARMAND_SUCCESS && *ret_ptr != GEARMAND_IO_WAIT)
       {
         return gearman_server_con_data(server_con);
       }
@@ -224,7 +224,7 @@ gearman_server_thread_run(gearman_server_thread_st *thread,
       if (server_con->con.revents & POLLIN)
       {
         *ret_ptr= _thread_packet_read(server_con);
-        if (*ret_ptr != GEARMAN_SUCCESS && *ret_ptr != GEARMAN_IO_WAIT)
+        if (*ret_ptr != GEARMAND_SUCCESS && *ret_ptr != GEARMAND_IO_WAIT)
           return gearman_server_con_data(server_con);
       }
 
@@ -232,7 +232,7 @@ gearman_server_thread_run(gearman_server_thread_st *thread,
       if (server_con->con.revents & POLLOUT)
       {
         *ret_ptr= _thread_packet_flush(server_con);
-        if (*ret_ptr != GEARMAN_SUCCESS && *ret_ptr != GEARMAN_IO_WAIT)
+        if (*ret_ptr != GEARMAND_SUCCESS && *ret_ptr != GEARMAND_IO_WAIT)
         {
           return gearman_server_con_data(server_con);
         }
@@ -247,7 +247,7 @@ gearman_server_thread_run(gearman_server_thread_st *thread,
     while ((server_con= gearman_server_con_io_next(thread)))
     {
       *ret_ptr= _thread_packet_flush(server_con);
-      if (*ret_ptr != GEARMAN_SUCCESS && *ret_ptr != GEARMAN_IO_WAIT)
+      if (*ret_ptr != GEARMAND_SUCCESS && *ret_ptr != GEARMAND_IO_WAIT)
       {
         return gearman_server_con_data(server_con);
       }
@@ -257,22 +257,22 @@ gearman_server_thread_run(gearman_server_thread_st *thread,
   /* Check for the two shutdown modes. */
   if (Server->shutdown)
   {
-    *ret_ptr= GEARMAN_SHUTDOWN;
+    *ret_ptr= GEARMAND_SHUTDOWN;
   }
   else if (Server->shutdown_graceful)
   {
     if (Server->job_count == 0)
     {
-      *ret_ptr= GEARMAN_SHUTDOWN;
+      *ret_ptr= GEARMAND_SHUTDOWN;
     }
     else
     {
-      *ret_ptr= GEARMAN_SHUTDOWN_GRACEFUL;
+      *ret_ptr= GEARMAND_SHUTDOWN_GRACEFUL;
     }
   }
   else
   {
-    *ret_ptr= GEARMAN_SUCCESS;
+    *ret_ptr= GEARMAND_SUCCESS;
   }
 
   return NULL;
@@ -290,14 +290,14 @@ static gearmand_error_t _thread_packet_read(gearman_server_con_st *con)
     {
       if (! (con->packet= gearman_server_packet_create(con->thread, true)))
       {
-        return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+        return GEARMAND_MEMORY_ALLOCATION_FAILURE;
       }
     }
 
     gearmand_error_t ret;
     if (gearmand_failed(ret= gearman_io_recv(con, true)))
     {
-      if (ret == GEARMAN_IO_WAIT)
+      if (ret == GEARMAND_IO_WAIT)
       {
         break;
       }
@@ -334,7 +334,7 @@ static gearmand_error_t _thread_packet_read(gearman_server_con_st *con)
     }
   }
 
-  return GEARMAN_SUCCESS;
+  return GEARMAND_SUCCESS;
 }
 
 static gearmand_error_t _thread_packet_flush(gearman_server_con_st *con)
@@ -342,7 +342,7 @@ static gearmand_error_t _thread_packet_flush(gearman_server_con_st *con)
   /* Check to see if we've already tried to avoid excessive system calls. */
   if (con->con.events & POLLOUT)
   {
-    return GEARMAN_IO_WAIT;
+    return GEARMAND_IO_WAIT;
   }
 
   while (con->io_packet_list)
@@ -405,7 +405,7 @@ static gearmand_error_t _proc_thread_start(gearman_server_st *server)
 
   server->flags.threaded= true;
 
-  return GEARMAN_SUCCESS;
+  return GEARMAND_SUCCESS;
 }
 
 static void _proc_thread_kill(gearman_server_st *server)
