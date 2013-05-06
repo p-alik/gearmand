@@ -1,3 +1,8 @@
+1.1.7 Mon May  6 06:46:20 EDT 2013
+* Cleanup of error codes returned by gearmand.
+* gearmand will now set its port from the env variable GEARMAND_PORT.
+* Fix issue where identifier might not be set correctly on reconnect.
+
 1.1.6 Tue Apr 16 03:29:57 EDT 2013
 * Merge of 1.0.4 tree
 * Added support for gearadmin to "cancel" a job.
@@ -24,7 +29,7 @@
 1.1.0 Wed Sep  5 08:33:37 PDT 2012
 * Fix for ABI compatibility issues.
 
-1.0.6
+1.0.6 Mon May  6 02:48:30 EDT 2013
 * strlen() of zero on name passed for instance did not result in a connection to localhost (which the php driver thought would happen).
 * Fix regression in log not updating time on all platforms.
 * Fix issue where pecl php wasn't passing a null string to get default host.

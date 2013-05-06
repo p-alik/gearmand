@@ -115,7 +115,6 @@ libgearman_libgearman_la_SOURCES+= \
 				  libgearman/result.cc \
 				  libgearman/run.cc \
 				  libgearman/status.cc \
-				  libgearman/strcommand.cc \
 				  libgearman/strerror.cc \
 				  libgearman/string.cc \
 				  libgearman/task.cc \
