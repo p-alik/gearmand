@@ -72,7 +72,7 @@ gearman_task_st *gearman_task_internal_create(gearman_client_st& client, gearman
 
 void gearman_task_free(gearman_task_st *task_shell)
 {
-  if (task_shell)
+  if (task_shell and task_shell->impl())
   {
     if (gearman_is_initialized(task_shell))
     {
@@ -124,6 +124,8 @@ void gearman_task_free(gearman_task_st *task_shell)
         task->job_handle[0]= 0;
 
         gearman_set_initialized(task, false);
+
+        task_shell->_impl= NULL;
 
         delete task;
       }
@@ -441,4 +443,32 @@ bool Task::create_result(size_t initial_size)
 
   _result_ptr= new (std::nothrow) gearman_result_st(initial_size);
   return bool(_result_ptr);
+}
+
+bool gearman_task_has_exception(const gearman_task_st* task_shell)
+{
+  if (task_shell and task_shell->impl())
+  {
+    if (task_shell->impl()->exception.empty() == false)
+    {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+gearman_string_t gearman_task_exception(const gearman_task_st* task_shell)
+{
+  if (task_shell and task_shell->impl())
+  {
+    if (task_shell->impl()->exception.empty() == false)
+    {
+      gearman_string_t ret= { task_shell->impl()->exception.value(), task_shell->impl()->exception.size() };
+      return ret;
+    }
+  }
+
+  static gearman_string_t ret= {0, 0};
+  return ret;
 }
