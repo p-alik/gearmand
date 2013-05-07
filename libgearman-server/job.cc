@@ -354,7 +354,7 @@ gearmand_error_t gearman_server_job_queue(gearman_server_job_st *job)
       for (client= job->client_list; client != NULL; client= client->job_next)
       {
         gearmand_error_t ret= gearman_server_io_packet_add(client->con, false,
-                                                           GEARMAND_MAGIC_RESPONSE,
+                                                           GEARMAN_MAGIC_RESPONSE,
                                                            GEARMAN_COMMAND_WORK_FAIL,
                                                            job->job_handle,
                                                            (size_t)strlen(job->job_handle),
@@ -401,7 +401,7 @@ gearmand_error_t gearman_server_job_queue(gearman_server_job_st *job)
       if (worker->con->is_sleeping && ! (worker->con->is_noop_sent))
       {
         gearmand_error_t ret= gearman_server_io_packet_add(worker->con, false,
-                                                           GEARMAND_MAGIC_RESPONSE,
+                                                           GEARMAN_MAGIC_RESPONSE,
                                                            GEARMAN_COMMAND_NOOP, NULL);
         if (gearmand_failed(ret))
         {

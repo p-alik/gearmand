@@ -299,7 +299,7 @@ inline static gearmand_error_t packet_create_arg(gearmand_packet_st *packet,
     return GEARMAND_SUCCESS;
   }
 
-  if (packet->args_size == 0 and packet->magic != GEARMAND_MAGIC_TEXT)
+  if (packet->args_size == 0 and packet->magic != GEARMAN_MAGIC_TEXT)
   {
     packet->args_size= GEARMAND_PACKET_HEADER_SIZE;
   }
@@ -333,7 +333,7 @@ inline static gearmand_error_t packet_create_arg(gearmand_packet_st *packet,
   packet->argc++;
 
   size_t offset;
-  if (packet->magic == GEARMAND_MAGIC_TEXT)
+  if (packet->magic == GEARMAN_MAGIC_TEXT)
   {
     offset= 0;
   }
@@ -398,7 +398,7 @@ void gearmand_packet_free(gearmand_packet_st *packet)
 
 gearmand_error_t gearmand_packet_pack_header(gearmand_packet_st *packet)
 {
-  if (packet->magic == GEARMAND_MAGIC_TEXT)
+  if (packet->magic == GEARMAN_MAGIC_TEXT)
   {
     packet->options.complete= true;
     return GEARMAND_SUCCESS;
@@ -412,14 +412,14 @@ gearmand_error_t gearmand_packet_pack_header(gearmand_packet_st *packet)
 
   switch (packet->magic)
   {
-  case GEARMAND_MAGIC_TEXT:
+  case GEARMAN_MAGIC_TEXT:
     break;
 
-  case GEARMAND_MAGIC_REQUEST:
+  case GEARMAN_MAGIC_REQUEST:
     memcpy(packet->args, "\0REQ", 4);
     break;
 
-  case GEARMAND_MAGIC_RESPONSE:
+  case GEARMAN_MAGIC_RESPONSE:
     memcpy(packet->args, "\0RES", 4);
     break;
 
