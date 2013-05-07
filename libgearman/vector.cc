@@ -60,6 +60,7 @@ inline static bool _string_check(gearman_vector_st *string, const size_t need)
   assert_msg(string, "Programmer error, _string_check() was passed a null gearman_vector_st");
   if (string)
   {
+    assert(string->end >= string->string);
     if (need and need > size_t(string->current_size - size_t(string->end - string->string)))
     {
       size_t current_offset= size_t(string->end - string->string);

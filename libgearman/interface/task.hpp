@@ -80,6 +80,7 @@ struct Task
   gearman_return_t result_rc;
   struct gearman_result_st *_result_ptr;
   char job_handle[GEARMAN_JOB_HANDLE_SIZE];
+  gearman_vector_st exception;
   size_t unique_length;
   char unique[GEARMAN_MAX_UNIQUE_SIZE];
 
