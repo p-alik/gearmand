@@ -2,6 +2,7 @@
 * Merge of 1.0.4 tree
 * Added support for gearadmin to "cancel" a job.
 * Keep-alive support for gearmand has been extended (more options to control behavior).
+* Fixed issues related to clients who didn't really support exceptions being passed exceptions.
 
 1.1.5 Mon Feb  4 00:59:19 EST 2013
 * Rollup of bug fixes for 1.0.3

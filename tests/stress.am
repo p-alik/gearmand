@@ -22,3 +22,11 @@ tests_stress_LDADD+= tests/libstartworker.la
 check_PROGRAMS+=tests/stress
 noinst_PROGRAMS+=tests/stress
 
+test-stress: tests/stress gearmand/gearmand
+	@tests/stress
+
+valgrind-stress: tests/stress gearmand/gearmand
+	@$(VALGRIND_COMMAND) tests/stress
+
+gdb-stress: tests/stress gearmand/gearmand
+	@$(GDB_COMMAND) tests/stress

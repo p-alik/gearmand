@@ -59,8 +59,26 @@ using namespace org::gearmand;
 
 #define DEFAULT_WORKER_NAME "burnin"
 
-static gearman_return_t worker_fn(gearman_job_st*, void*)
+#define HARD_CODED_EXCEPTION "my test exception"
+
+__thread int count= 0;
+
+static gearman_return_t worker_fn(gearman_job_st* job, void*)
 {
+  if (random() % 10)
+  {
+    char buffer[1024];
+    snprintf(buffer, sizeof(buffer), "%.*s:%d", test_literal_printf_param(HARD_CODED_EXCEPTION), count++);
+    gearman_return_t ret= gearman_job_send_exception(job, test_literal_param(HARD_CODED_EXCEPTION));
+    if (gearman_failed(ret))
+    {
+      Error << "gearman_job_send_exception(" << gearman_strerror(ret) << ")";
+      return GEARMAN_WORK_ERROR;
+    }
+
+    return GEARMAN_WORK_FAIL;
+  }
+
   return GEARMAN_SUCCESS;
 }
 
@@ -180,11 +198,40 @@ static test_return_t burnin_TEST(void*)
     }
 
     gearman_return_t ret= gearman_client_run_tasks(client);
-    for (uint32_t x= 0; x < context->num_tasks; x++)
-    {
-      ASSERT_EQ(GEARMAN_TASK_STATE_FINISHED, tasks[x].impl()->state);
-      ASSERT_EQ(GEARMAN_SUCCESS, tasks[x].impl()->result_rc);
-    }
+
+    do {
+      for (uint32_t x= 0; x < context->num_tasks; x++)
+      {
+        ASSERT_EQ(GEARMAN_TASK_STATE_FINISHED, tasks[x].impl()->state);
+        if (tasks[x].impl()->result_rc == GEARMAN_UNKNOWN_STATE)
+        {
+          gearman_client_wait(client);
+        }
+        else if (tasks[x].impl()->result_rc == GEARMAN_WORK_FAIL)
+        {
+          if (gearman_task_has_exception(&tasks[x]))
+          {
+            ASSERT_TRUE(gearman_task_has_exception(&tasks[x]));
+            gearman_string_t exception_string= gearman_task_exception(&tasks[x]);
+            test_strcmp(HARD_CODED_EXCEPTION, gearman_c_str(exception_string));
+          }
+          else
+          {
+#if 0
+            Error << "error was " << gearman_task_error(&tasks[x]);
+#endif
+          }
+        }
+        else if (tasks[x].impl()->result_rc != GEARMAN_SUCCESS)
+        {
+          ASSERT_EQ(GEARMAN_SUCCESS, tasks[x].impl()->result_rc);
+        }
+        else
+        {
+          ASSERT_EQ(GEARMAN_SUCCESS, tasks[x].impl()->result_rc);
+        }
+      }
+    } while (client->impl()->new_tasks);
     test_zero(client->impl()->new_tasks);
 
     ASSERT_EQ(ret, GEARMAN_SUCCESS);

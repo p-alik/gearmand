@@ -104,6 +104,16 @@ struct gearman_vector_st {
     return string;
   }
 
+  const void* void_ptr() const
+  {
+    return (const void*)string;
+  }
+
+  bool empty() const
+  {
+    return string == end;
+  }
+
   size_t capacity() const
   {
     // We tell a white lie about size since we always keep things null

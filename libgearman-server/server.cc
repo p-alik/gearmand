@@ -998,7 +998,7 @@ _server_queue_work_data(gearman_server_job_st *server_job,
   for (server_client= server_job->client_list; server_client;
        server_client= server_client->job_next)
   {
-    if (command == GEARMAN_COMMAND_WORK_EXCEPTION && !(server_client->con->is_exceptions))
+    if (command == GEARMAN_COMMAND_WORK_EXCEPTION and (server_client->con->is_exceptions == false))
     {
       gearmand_debug("Dropping GEARMAN_COMMAND_WORK_EXCEPTION");
       continue;
@@ -1034,9 +1034,9 @@ _server_queue_work_data(gearman_server_job_st *server_job,
     }
 
     gearmand_error_t ret= gearman_server_io_packet_add(server_client->con, true,
-                                      GEARMAN_MAGIC_RESPONSE, command,
-                                      packet->arg[0], packet->arg_size[0],
-                                      data, packet->data_size, NULL);
+                                                       GEARMAN_MAGIC_RESPONSE, command,
+                                                       packet->arg[0], packet->arg_size[0],
+                                                       data, packet->data_size, NULL);
     if (ret != GEARMAN_SUCCESS)
     {
       gearmand_gerror("gearman_server_io_packet_add", ret);
