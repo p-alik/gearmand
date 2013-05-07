@@ -80,7 +80,6 @@ libgearman_server_libgearman_server_la_SOURCES+= \
 						 libgearman-server/wakeup.cc \
 						 libgearman-server/worker.cc \
 						 libgearman/command.cc \
-						 libgearman/strcommand.cc \
 						 libgearman/strerror.cc
 
 libgearman_server_libgearman_server_la_CFLAGS+= @PTHREAD_CFLAGS@

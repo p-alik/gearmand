@@ -363,7 +363,7 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
     return gearmand_gerror("calling gearman_server_packet_create()", GEARMAND_MEMORY_ALLOCATION_FAILURE);
   }
 
-  server_packet->packet.reset(GEARMAND_MAGIC_TEXT, GEARMAN_COMMAND_TEXT);
+  server_packet->packet.reset(GEARMAN_MAGIC_TEXT, GEARMAN_COMMAND_TEXT);
 
   server_packet->packet.options.complete= true;
   server_packet->packet.options.free_data= true;

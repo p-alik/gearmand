@@ -38,13 +38,7 @@
 #pragma once
 
 #include <libgearman-1.0/protocol.h>
-
-enum gearman_magic_t
-{
-  GEARMAND_MAGIC_TEXT,
-  GEARMAND_MAGIC_REQUEST,
-  GEARMAND_MAGIC_RESPONSE
-};
+#include "libgearman/magic.h"
 
 /**
  * @ingroup gearman_packet
@@ -74,7 +68,7 @@ struct gearmand_packet_st
   char args_buffer[GEARMAND_ARGS_BUFFER_SIZE];
 
   gearmand_packet_st():
-    magic(GEARMAND_MAGIC_TEXT),
+    magic(GEARMAN_MAGIC_TEXT),
     command(GEARMAN_COMMAND_TEXT),
     argc(0),
     args_size(0),

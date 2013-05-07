@@ -59,11 +59,11 @@ static gearmand_error_t gearmand_packet_unpack_header(gearmand_packet_st *packet
 
   if (memcmp(packet->args, "\0REQ", 4) == 0)
   {
-    packet->magic= GEARMAND_MAGIC_REQUEST;
+    packet->magic= GEARMAN_MAGIC_REQUEST;
   }
   else if (memcmp(packet->args, "\0RES", 4) == 0)
   {
-    packet->magic= GEARMAND_MAGIC_RESPONSE;
+    packet->magic= GEARMAN_MAGIC_RESPONSE;
   }
   else
   {
@@ -123,7 +123,7 @@ public:
           return 0;
         }
 
-        packet->magic= GEARMAND_MAGIC_TEXT;
+        packet->magic= GEARMAN_MAGIC_TEXT;
         packet->command= GEARMAN_COMMAND_TEXT;
 
         used_size= size_t(ptr - ((uint8_t *)data)) +1;

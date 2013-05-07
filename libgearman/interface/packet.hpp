@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011-2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2011-2013 Data Differential, http://datadifferential.com/
  *  Copyright (C) 2008 Brian Aker, Eric Day
  *  All rights reserved.
  *
@@ -38,12 +38,7 @@
 
 #pragma once
 
-enum gearman_magic_t
-{
-  GEARMAN_MAGIC_TEXT,
-  GEARMAN_MAGIC_REQUEST,
-  GEARMAN_MAGIC_RESPONSE
-};
+#include "libgearman/magic.h"
 
 struct gearman_universal_st;
 

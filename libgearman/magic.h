@@ -1,8 +1,9 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  * 
- *  DataDifferential Utility Library
+ *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2013 Data Differential, http://datadifferential.com/
+ *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -34,26 +35,11 @@
  *
  */
 
-
-/*
-  Simple defines
-*/
-
-#include <cstring>
-#include <cstddef>
-
 #pragma once
 
-#define util_literal_param(X) (X), (static_cast<size_t>((sizeof(X) - 1)))
-#define util_literal_param_size(X) static_cast<size_t>(sizeof(X) - 1)
-
-#define util_literal_printf_param(X) (static_cast<int>((sizeof(X) - 1))), (X)
-
-#define util_literal_compare_param(X) (static_cast<size_t>((sizeof(X) - 1))), (X)
-
-#define util_string_make_from_cstr(X) (X), ((X) ? strlen(X) : 0)
-
-#define util_string_make_from_array(__array) (__array), (strlen(__array))
-
-#define util_array_length(__array) sizeof(__array)/sizeof(&__array)
-
+enum gearman_magic_t
+{
+  GEARMAN_MAGIC_TEXT,
+  GEARMAN_MAGIC_REQUEST,
+  GEARMAN_MAGIC_RESPONSE
+};

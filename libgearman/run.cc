@@ -355,6 +355,11 @@ gearman_return_t _client_run_task(Task *task)
     else if (task->recv->command == GEARMAN_COMMAND_WORK_EXCEPTION)
     {
   case GEARMAN_TASK_STATE_EXCEPTION:
+      if (task->recv->argc == 1 and task->recv->data_size)
+      {
+        task->exception.store((const char*)(task->recv->data), task->recv->data_size);
+      }
+
       if (task->func.exception_fn)
       {
         gearman_return_t ret= task->func.exception_fn(task->shell());

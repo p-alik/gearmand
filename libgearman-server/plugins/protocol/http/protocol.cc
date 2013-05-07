@@ -454,7 +454,7 @@ public:
     }
 
     /* Request and all headers complete, build a packet based on HTTP request. */
-    packet->magic= GEARMAND_MAGIC_REQUEST;
+    packet->magic= GEARMAN_MAGIC_REQUEST;
 
     if (response() != gearmand::protocol::httpd::HTTP_OK)
     {

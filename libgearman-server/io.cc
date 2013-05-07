@@ -634,7 +634,7 @@ gearmand_error_t gearman_io_recv(gearman_server_con_st *con, bool recv_data)
 
     connection->recv_packet= packet;
     // The options being passed in are just defaults.
-    connection->recv_packet->reset(GEARMAND_MAGIC_TEXT, GEARMAN_COMMAND_TEXT);
+    connection->recv_packet->reset(GEARMAN_MAGIC_TEXT, GEARMAN_COMMAND_TEXT);
 
     connection->recv_state= gearmand_io_st::GEARMAND_CON_RECV_UNIVERSAL_READ;
 
