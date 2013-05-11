@@ -85,7 +85,11 @@ static gearman_return_t worker_fn(gearman_job_st* job, void*)
       return GEARMAN_WORK_ERROR;
     }
 
-    return GEARMAN_WORK_FAIL;
+    // We will pass back wrong responses from time to time.
+    if (random() % 3)
+    {
+      return GEARMAN_WORK_FAIL;
+    }
   }
 
   return GEARMAN_SUCCESS;
