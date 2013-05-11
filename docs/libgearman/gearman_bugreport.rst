@@ -34,4 +34,4 @@ To find out more information please check:
 
 .. seealso::
 
-:manpage:`gearmand(8)` :manpage:`libgearman(3)`
+   :manpage:`gearmand(8)` :manpage:`libgearman(3)`

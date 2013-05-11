@@ -1209,6 +1209,7 @@ gearman_return_t gearman_connection_st::set_socket_options()
     }
   }
 
+#if 0
   if (0)
   {
     struct timeval waittime;
@@ -1230,6 +1231,7 @@ gearman_return_t gearman_connection_st::set_socket_options()
       return GEARMAN_ERRNO;
     }
   }
+#endif
 
   {
     int optval= 1;

@@ -133,7 +133,10 @@ static test_return_t test_throw_success_TEST(void *)
     return TEST_FAILURE;
   }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunreachable-code"
   return TEST_FAILURE;
+#pragma GCC diagnostic pop
 }
 
 static test_return_t test_throw_skip_macro_TEST(void *)
@@ -285,10 +288,14 @@ static test_return_t ASSERT_FALSE_TEST(void *)
 
 static test_return_t test_failure_test(void *)
 {
-  return TEST_SKIPPED; // Only run this when debugging
-
-  ASSERT_EQ(1, 2);
-  return TEST_SUCCESS;
+  try {
+    ASSERT_EQ(1, 2);
+  }
+  catch (...)
+  {
+    return TEST_SUCCESS;
+  }
+  return TEST_FAILURE;
 }
 
 static test_return_t local_test(void *)
@@ -309,6 +316,7 @@ static test_return_t local_not_test(void *)
 {
   return TEST_SKIPPED;
 
+#if 0
   std::string temp;
 
   const char *ptr;
@@ -336,6 +344,7 @@ static test_return_t local_not_test(void *)
   }
 
   return TEST_SUCCESS;
+#endif
 }
 
 static test_return_t var_exists_test(void *)
@@ -891,8 +900,6 @@ static test_return_t fatal_TEST(void *)
 {
   ASSERT_EQ(fatal_calls++, fatal::disabled_counter());
   throw libtest::fatal(LIBYATL_DEFAULT_PARAM, "Testing va_args based fatal(): %d", 10); 
-
-  return TEST_SUCCESS;
 }
 
 static test_return_t number_of_cpus_TEST(void *)
@@ -979,6 +986,8 @@ static test_return_t check_for_VALGRIND(void *)
   return TEST_SUCCESS;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunreachable-code"
 static test_return_t check_for_gearman(void *)
 {
   test_skip(true, HAVE_LIBGEARMAN);
@@ -1001,6 +1010,7 @@ static test_return_t check_for_gearman(void *)
 
   return TEST_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 static test_return_t check_for_drizzle(void *)
 {

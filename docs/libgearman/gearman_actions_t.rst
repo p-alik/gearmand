@@ -90,4 +90,4 @@ None
 
 .. seealso::
 
-:manpage:`gearmand(8)` :manpage:`libgearman(3)` :manpage:`gearman_client_error(3)` or :manpage:`gearman_worker_error(3)`
+   :manpage:`gearmand(8)` :manpage:`libgearman(3)` :manpage:`gearman_client_error(3)` or :manpage:`gearman_worker_error(3)`

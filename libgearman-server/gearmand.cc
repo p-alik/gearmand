@@ -520,6 +520,7 @@ gearmand_error_t set_socket(gearmand_st* gearmand, int& fd, struct addrinfo *add
 
     if (SOL_TCP)
     {
+#if defined(TCP_KEEPIDLE) && TCP_KEEPIDLE
       if (TCP_KEEPIDLE and gearmand->socketopt().keepalive_idle() != -1)
       {
         int optval= gearmand->socketopt().keepalive_idle();
@@ -528,7 +529,9 @@ gearmand_error_t set_socket(gearmand_st* gearmand, int& fd, struct addrinfo *add
           return gearmand_perror(errno, "setsockopt(TCP_KEEPIDLE)");
         }
       }
+#endif
 
+#if defined(TCP_KEEPINTVL) && TCP_KEEPINTVL
       if (TCP_KEEPINTVL and gearmand->socketopt().keepalive_interval() != -1)
       {
         int optval= gearmand->socketopt().keepalive_interval();
@@ -537,7 +540,9 @@ gearmand_error_t set_socket(gearmand_st* gearmand, int& fd, struct addrinfo *add
           return gearmand_perror(errno, "setsockopt(TCP_KEEPINTVL)");
         }
       }
+#endif
 
+#if defined(TCP_KEEPCNT) && TCP_KEEPCNT
       if (TCP_KEEPCNT and gearmand->socketopt().keepalive_count() != -1)
       {
         int optval= gearmand->socketopt().keepalive_count();
@@ -546,6 +551,7 @@ gearmand_error_t set_socket(gearmand_st* gearmand, int& fd, struct addrinfo *add
           return gearmand_perror(errno, "setsockopt(TCP_KEEPCNT)");
         }
       }
+#endif
     }
   }
 
@@ -1126,10 +1132,10 @@ const char *gearmand_verbose_name(gearmand_verbose_t verbose)
 
   case GEARMAND_VERBOSE_DEBUG:
     return "DEBUG";
-
-  default:
-    break;
   }
+
+  assert_msg(false, "Invalid result");
+  gearmand_fatal("Invalid gearmand_verbose_t used.");
 
   return "UNKNOWN";
 }

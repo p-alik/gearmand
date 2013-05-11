@@ -170,6 +170,8 @@ private:
   sqlite3 *_db;
 };
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunreachable-code"
 static bool test_for_HAVE_LIBSQLITE3()
 {
   if (HAVE_LIBSQLITE3)
@@ -179,6 +181,7 @@ static bool test_for_HAVE_LIBSQLITE3()
 
   return false;
 }
+#pragma GCC diagnostic pop
 
 static test_return_t gearmand_basic_option_test(void *)
 {

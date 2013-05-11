@@ -484,6 +484,8 @@ Application::error_t Application::join()
         throw std::runtime_error(error_string);
       }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunreachable-code"
       // If we terminted it on purpose then it counts as a success.
 #if defined(DEBUG)
       if (DEBUG)
@@ -493,6 +495,7 @@ Application::error_t Application::join()
           << " name:" << built_argv[0];
       }
 #endif
+#pragma GCC diagnostic pop
     }
     else
     {

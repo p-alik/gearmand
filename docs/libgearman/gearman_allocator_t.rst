@@ -41,4 +41,4 @@ None
 
 .. seealso::
 
-:manpage:`gearmand(8)` :manpage:`libgearman(3)` :manpage:`gearman_client_st(3)`
+   :manpage:`gearmand(8)` :manpage:`libgearman(3)` :manpage:`gearman_client_st(3)`

@@ -608,11 +608,14 @@ static void _wakeup_event(int fd, short events __attribute__ ((unused)), void *a
         gearmand_thread_run(thread);
         break;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunreachable-code"
       default:
         gearmand_log_fatal(GEARMAN_DEFAULT_LOG_PARAM, "Received unknown wakeup event (%u)", buffer[x]);
         _clear_events(thread);
         Gearmand()->ret= GEARMAND_UNKNOWN_STATE;
         break;
+#pragma GCC diagnostic pop
       }
     }
   }

@@ -66,6 +66,8 @@ using namespace org::gearmand;
 #  define SERVER_TARGET "hostile-gearmand"
 #endif
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunreachable-code"
 static bool has_hostile()
 {
 #if defined(HAVE_LIBHOSTILE)
@@ -77,6 +79,7 @@ static bool has_hostile()
 
   return false;
 }
+#pragma GCC diagnostic pop
 
 static in_port_t hostile_server= 0;
 static in_port_t& current_server_= hostile_server;
@@ -186,6 +189,8 @@ namespace {
 
 } // namespace
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunreachable-code"
 static bool join_thread(pthread_t& thread_arg)
 {
   int error;
@@ -236,6 +241,7 @@ static bool join_thread(pthread_t& thread_arg)
 
   return true;
 }
+#pragma GCC diagnostic pop
 
 static test_return_t send_random_port_data_TEST(void* )
 {

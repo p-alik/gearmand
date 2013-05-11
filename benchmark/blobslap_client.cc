@@ -143,7 +143,6 @@ int main(int argc, char *argv[])
       gearman_client_free(&master_client);
       _usage(argv[0]);
       exit(EXIT_SUCCESS);
-      break;
 
     default:
       gearman_client_free(&master_client);

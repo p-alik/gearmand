@@ -182,6 +182,7 @@ const char *gearman_task_strstate(const gearman_task_st *task_shell)
     case GEARMAN_TASK_STATE_FINISHED: return "GEARMAN_TASK_STATE_FINISHED";
     }
 
+    assert_msg(false, "Invalid result");
     return "";
   }
 
