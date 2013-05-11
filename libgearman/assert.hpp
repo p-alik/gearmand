@@ -57,9 +57,11 @@
 # ifdef __cplusplus
 #  include <cstdarg>
 #  include <cstdio>
+#  include <cstdlib>
 # else
 #  include <stdarg.h>
 #  include <stdio.h>
+#  include <stdlib.h>
 # endif // __cplusplus
 
 # include <libgearman/backtrace.hpp>
