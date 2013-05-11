@@ -66,6 +66,12 @@ static void _connection_close(gearmand_io_st *connection)
   }
   else
   {
+#if defined(HAVE_CYASSL) && HAVE_CYASSL
+    if (connection->root and connection->root->_ssl)
+    {
+      CyaSSL_shutdown(connection->root->_ssl);
+    }
+#endif
     (void)gearmand_sockfd_close(connection->fd);
     assert_msg(false, "We should never have an internal fd");
   }
@@ -99,7 +105,11 @@ static size_t _connection_read(gearman_server_con_st *con, void *data, size_t da
 
   while (1)
   {
+#if defined(HAVE_CYASSL) && HAVE_CYASSL
+    read_size= CyaSSL_recv(con->_ssl, data, data_size, MSG_DONTWAIT);
+#else
     read_size= recv(connection->fd, data, data_size, MSG_DONTWAIT);
+#endif
 
     if (read_size == 0)
     {
@@ -229,7 +239,12 @@ static gearmand_error_t _connection_flush(gearman_server_con_st *con)
     case gearmand_io_st::GEARMAND_CON_UNIVERSAL_CONNECTED:
       while (connection->send_buffer_size)
       {
-        ssize_t write_size= send(connection->fd, connection->send_buffer_ptr, connection->send_buffer_size, MSG_NOSIGNAL|MSG_DONTWAIT);
+        ssize_t write_size;
+#if defined(HAVE_CYASSL) && HAVE_CYASSL
+        write_size= CyaSSL_send(con->_ssl, connection->send_buffer_ptr, connection->send_buffer_size, MSG_NOSIGNAL|MSG_DONTWAIT);
+#else
+        write_size= send(connection->fd, connection->send_buffer_ptr, connection->send_buffer_size, MSG_NOSIGNAL|MSG_DONTWAIT);
+#endif
 
         if (write_size == 0) // detect infinite loop?
         {

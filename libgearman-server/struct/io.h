@@ -39,6 +39,10 @@
 
 #include "libgearman-server/plugins/base.h"
 
+#if defined(HAVE_CYASSL) && HAVE_CYASSL
+# include <cyassl/ssl.h>
+#endif
+
 struct gearmand_io_st
 {
   struct {
@@ -162,4 +166,7 @@ struct gearman_server_con_st
       protocol= NULL;
     }
   }
+#if defined(HAVE_CYASSL) && HAVE_CYASSL
+  CYASSL* _ssl;
+#endif
 };
