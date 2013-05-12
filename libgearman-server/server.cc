@@ -816,10 +816,10 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
       ret= _server_queue_work_data(server_job, packet, GEARMAN_COMMAND_WORK_EXCEPTION);
       if (gearmand_failed(ret))
       {
-        gearmand_gerror("_server_queue_work_data", ret);
-        return ret;
+        return gearmand_gerror("_server_queue_work_data", ret);
       }
     }
+
     break;
 
   case GEARMAN_COMMAND_WORK_FAIL:
@@ -1001,8 +1001,7 @@ _server_queue_work_data(gearman_server_job_st *server_job,
                         gearmand_packet_st *packet, gearman_command_t command)
 {
 
-  gearman_server_client_st *server_client;
-  for (server_client= server_job->client_list; server_client;
+  for (gearman_server_client_st* server_client= server_job->client_list; server_client;
        server_client= server_client->job_next)
   {
     if (command == GEARMAN_COMMAND_WORK_EXCEPTION and (server_client->con->is_exceptions == false))
@@ -1046,8 +1045,7 @@ _server_queue_work_data(gearman_server_job_st *server_job,
                                                        data, packet->data_size, NULL);
     if (ret != GEARMAND_SUCCESS)
     {
-      gearmand_gerror("gearman_server_io_packet_add", ret);
-      return ret;
+      return gearmand_gerror("gearman_server_io_packet_add", ret);
     }
   }
 

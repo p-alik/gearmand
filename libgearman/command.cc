@@ -104,7 +104,7 @@ const char *gearman_strcommand(gearman_command_t command)
   {
     const char* str=  gearmand_command_info_list[command].name;
 
-    str+= sizeof("GEARMAN_");
+    str+= sizeof("GEARMAN_") -1;
     return str;
   }
 

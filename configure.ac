@@ -6,9 +6,10 @@
 # Use and distribution licensed under the BSD license.  See
 # the COPYING file in this directory for full text.
 
+m4_include([version.m4])
 AC_REVISION([m4_esyscmd_s([bzr revno])])
 AC_PREREQ([2.63])
-AC_INIT([gearmand],[1.1.7],[https://bugs.launchpad.net/gearmand],[gearmand],[http://gearman.info/])
+AC_INIT([gearmand],VERSION_NUMBER,[https://bugs.launchpad.net/gearmand],[gearmand],[http://gearman.info/])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
 

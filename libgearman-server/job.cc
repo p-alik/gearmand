@@ -294,48 +294,46 @@ gearman_server_job_add_reducer(gearman_server_st *server,
 
 void gearman_server_job_free(gearman_server_job_st *server_job)
 {
-  if (server_job == NULL)
+  if (server_job)
   {
-    return;
-  }
+    if (server_job->worker != NULL)
+    {
+      server_job->function->job_running--;
+    }
 
-  if (server_job->worker != NULL)
-  {
-    server_job->function->job_running--;
-  }
+    server_job->function->job_total--;
 
-  server_job->function->job_total--;
+    if (server_job->data != NULL)
+    {
+      free((void *)(server_job->data));
+      server_job->data= NULL;
+    }
 
-  if (server_job->data != NULL)
-  {
-    free((void *)(server_job->data));
-    server_job->data= NULL;
-  }
+    while (server_job->client_list != NULL)
+    {
+      gearman_server_client_free(server_job->client_list);
+    }
 
-  while (server_job->client_list != NULL)
-  {
-    gearman_server_client_free(server_job->client_list);
-  }
+    if (server_job->worker != NULL)
+    {
+      GEARMAND_LIST_DEL(server_job->worker->job, server_job, worker_);
+    }
 
-  if (server_job->worker != NULL)
-  {
-    GEARMAND_LIST_DEL(server_job->worker->job, server_job, worker_);
-  }
+    uint32_t key= server_job->unique_key % Server->hashtable_buckets;
+    GEARMAND_HASH_DEL(Server->unique, key, server_job, unique_);
 
-  uint32_t key= server_job->unique_key % Server->hashtable_buckets;
-  GEARMAND_HASH_DEL(Server->unique, key, server_job, unique_);
+    key= server_job->job_handle_key % Server->hashtable_buckets;
+    GEARMAND_HASH__DEL(Server->job, key, server_job);
 
-  key= server_job->job_handle_key % Server->hashtable_buckets;
-  GEARMAND_HASH__DEL(Server->job, key, server_job);
-
-  if (Server->free_job_count < GEARMAND_MAX_FREE_SERVER_JOB)
-  {
-    gearman_server_st *server= Server;
-    GEARMAND_LIST__ADD(server->free_job, server_job);
-  }
-  else
-  {
-    destroy_gearman_server_job_st(server_job);
+    if (Server->free_job_count < GEARMAND_MAX_FREE_SERVER_JOB)
+    {
+      gearman_server_st *server= Server;
+      GEARMAND_LIST__ADD(server->free_job, server_job);
+    }
+    else
+    {
+      destroy_gearman_server_job_st(server_job);
+    }
   }
 }
 
