@@ -41,6 +41,8 @@
 
 #include "libgearman/assert.hpp"
 
+#include "libgearman/log.hpp"
+
 #include <cerrno>
 #include <cstdarg>
 #include <cstdio>
@@ -120,12 +122,8 @@ gearman_return_t gearman_universal_set_error(gearman_universal_st& universal,
     universal._error.last_error[GEARMAN_MAX_ERROR_SIZE -1]= 0;
   }
 
-  if (universal.log_fn)
-  {
-    universal.log_fn(universal._error.last_error,
-                     universal._error.rc == GEARMAN_MEMORY_ALLOCATION_FAILURE ? GEARMAN_VERBOSE_FATAL : GEARMAN_VERBOSE_ERROR,
-                     static_cast<void *>(universal.log_context));
-  }
+  gearman_log_error(universal,
+                    universal._error.rc == GEARMAN_MEMORY_ALLOCATION_FAILURE ? GEARMAN_VERBOSE_FATAL : GEARMAN_VERBOSE_ERROR);
 
   return universal._error.rc;
 }
@@ -152,12 +150,8 @@ gearman_return_t gearman_universal_set_gerror(gearman_universal_st& universal,
     return GEARMAN_ARGUMENT_TOO_LARGE;
   }
 
-  if (universal.log_fn)
-  {
-    universal.log_fn(universal._error.last_error,
-                     universal._error.rc == GEARMAN_MEMORY_ALLOCATION_FAILURE ? GEARMAN_VERBOSE_FATAL : GEARMAN_VERBOSE_ERROR,
-                     static_cast<void *>(universal.log_context));
-  }
+  gearman_log_error(universal,
+                    universal._error.rc == GEARMAN_MEMORY_ALLOCATION_FAILURE ? GEARMAN_VERBOSE_FATAL : GEARMAN_VERBOSE_ERROR);
 
   return rc;
 }
@@ -213,12 +207,8 @@ gearman_return_t gearman_universal_set_perror(gearman_universal_st &universal,
     universal._error.last_error[GEARMAN_MAX_ERROR_SIZE -1]= 0;
   }
 
-  if (universal.log_fn)
-  {
-    universal.log_fn(universal._error.last_error, 
-                     universal._error.rc == GEARMAN_MEMORY_ALLOCATION_FAILURE ? GEARMAN_VERBOSE_FATAL : GEARMAN_VERBOSE_ERROR,
-                     static_cast<void *>(universal.log_context));
-  }
+  gearman_log_error(universal,
+                    universal._error.rc == GEARMAN_MEMORY_ALLOCATION_FAILURE ? GEARMAN_VERBOSE_FATAL : GEARMAN_VERBOSE_ERROR);
 
   return universal._error.rc;
 }

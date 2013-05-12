@@ -175,6 +175,13 @@ static test_return_t gearman_worker_options_TEST(void *)
   return TEST_SUCCESS;
 }
 
+static test_return_t gearman_worker_set_log_fn_TEST(void *)
+{
+  gearman_worker_set_log_fn(NULL, NULL, NULL, GEARMAN_VERBOSE_MAX);
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t option_test(void *)
 {
   gearman_worker_options_t default_options;
@@ -799,6 +806,13 @@ static test_return_t gearman_worker_add_function_test(void *)
   return TEST_SUCCESS;
 }
 
+static void log_callback(const char *, gearman_verbose_t, void *context)
+{
+  uint32_t *counter= (uint32_t*)context;
+
+  *counter= *counter +1;
+}
+
 static test_return_t gearman_worker_timeout_TEST(void *)
 {
   libgearman::Worker worker(libtest::default_port());
@@ -808,8 +822,12 @@ static test_return_t gearman_worker_timeout_TEST(void *)
 
   gearman_worker_set_timeout(&worker, 1000);
 
+  uint32_t counter= 0;
+  gearman_worker_set_log_fn(&worker, log_callback, &counter, GEARMAN_VERBOSE_ERROR);
+
   gearman_return_t ret= gearman_worker_work(&worker);
   ASSERT_EQ(ret, GEARMAN_TIMEOUT);
+  ASSERT_EQ(counter, 1);
 
   return TEST_SUCCESS;
 }
@@ -1292,6 +1310,7 @@ test_st gearman_worker_st_NULL_invocation_TESTS[] ={
   {"gearman_worker_errno()", 0, gearman_worker_errno_TEST },
   {"gearman_worker_errno() no error", 0, gearman_worker_errno_no_error_TEST },
   {"gearman_worker_options()", 0, gearman_worker_options_TEST },
+  {"gearman_worker_set_log_fn()", 0, gearman_worker_set_log_fn_TEST },
   {0, 0, 0}
 };
 

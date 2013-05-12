@@ -60,7 +60,7 @@
  * @param[in] args Variable argument list that has been initialized.
  */
 void gearman_log(gearman_universal_st& gearman, gearman_verbose_t verbose,
-                 const char *format, va_list args);
+                 const char *format, ...);
 
 /**
  * Log an info message, see gearman_log() for argument details.
@@ -71,3 +71,5 @@ void gearman_log_info(gearman_universal_st& gearman, const char *format, ...);
  * Log a debug message, see gearman_log() for argument details.
  */
 void gearman_log_debug(gearman_universal_st& gearman, const char *format, ...);
+
+void gearman_log_error(gearman_universal_st& state, gearman_verbose_t verbose);
