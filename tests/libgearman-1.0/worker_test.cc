@@ -799,6 +799,21 @@ static test_return_t gearman_worker_add_function_test(void *)
   return TEST_SUCCESS;
 }
 
+static test_return_t gearman_worker_timeout_TEST(void *)
+{
+  libgearman::Worker worker(libtest::default_port());
+
+  ASSERT_EQ(GEARMAN_SUCCESS, 
+            gearman_worker_add_function(&worker, __func__, 0, fail_worker, NULL));
+
+  gearman_worker_set_timeout(&worker, 1000);
+
+  gearman_return_t ret= gearman_worker_work(&worker);
+  ASSERT_EQ(ret, GEARMAN_TIMEOUT);
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t gearman_worker_add_function_multi_test(void *)
 {
   libgearman::Worker worker;
@@ -1233,6 +1248,7 @@ test_st worker_TESTS[] ={
   {"init", 0, init_test },
   {"allocation", 0, allocation_test },
   {"sanity", 0, sanity_TEST },
+  {"gearman_worker_timeout(1000)", 0, gearman_worker_timeout_TEST },
   {"gearman_worker_clone(NULL, NULL)", 0, gearman_worker_clone_NULL_NULL },
   {"gearman_worker_clone(NULL, source)", 0, gearman_worker_clone_NULL_SOURCE },
   {"gearman_worker_add_server(GEARMAN_GETADDRINFO)", false, gearman_worker_add_server_GEARMAN_GETADDRINFO_TEST },
