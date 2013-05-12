@@ -345,7 +345,11 @@ int main(int argc, char *argv[])
 
       std::ofstream xml_file;
       std::string file_name;
-      file_name.append(&tmp_directory[0]);
+      if (getenv("WORKSPACE"))
+      {
+        file_name.append(getenv("WORKSPACE"));
+        file_name.append("/");
+      }
       file_name.append(frame->name());
       file_name.append(".xml");
       xml_file.open(file_name.c_str(), std::ios::trunc);

@@ -433,6 +433,8 @@ bool Application::slurp()
   return data_was_read;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunreachable-code"
 Application::error_t Application::join()
 {
   pid_t waited_pid= waitpid(_pid, &_status, 0);
@@ -531,6 +533,7 @@ Application::error_t Application::join()
 
   return _app_exit_state;
 }
+#pragma GCC diagnostic pop
 
 void Application::add_long_option(const std::string& name, const std::string& option_value)
 {

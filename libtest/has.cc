@@ -43,6 +43,8 @@
 
 namespace libtest {
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunreachable-code"
 bool has_libmemcached(void)
 {
 #if defined(HAVE_LIBMEMCACHED) && HAVE_LIBMEMCACHED
@@ -54,6 +56,7 @@ bool has_libmemcached(void)
 
   return false;
 }
+#pragma GCC diagnostic pop
 
 bool has_libdrizzle(void)
 {

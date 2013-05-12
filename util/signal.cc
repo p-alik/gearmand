@@ -93,6 +93,7 @@ void SignalThread::post()
 
 void SignalThread::test()
 {
+  (void)magic_memory;
   assert(magic_memory == MAGIC_MEMORY);
   assert(sigismember(&set, SIGABRT));
   assert(sigismember(&set, SIGINT));

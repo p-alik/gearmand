@@ -195,6 +195,8 @@ bool Server::has_pid() const
 }
 
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunreachable-code"
 bool Server::start()
 {
   // If we find that we already have a pid then kill it.
@@ -358,6 +360,7 @@ bool Server::start()
 
   return has_pid();
 }
+#pragma GCC diagnostic pop
 
 void Server::reset_pid()
 {

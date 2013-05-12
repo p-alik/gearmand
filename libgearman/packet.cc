@@ -62,10 +62,10 @@
  * @{
  */
 
+#pragma GCC diagnostic push
 #ifndef __INTEL_COMPILER
-#pragma GCC diagnostic ignored "-Wold-style-cast"
+# pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
-
 inline static gearman_return_t packet_create_arg(gearman_packet_st *packet,
                                                  const void *arg, size_t arg_size)
 {
@@ -141,6 +141,7 @@ inline static gearman_return_t packet_create_arg(gearman_packet_st *packet,
 
   return GEARMAN_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 /** @} */
 

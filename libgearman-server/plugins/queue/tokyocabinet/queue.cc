@@ -142,6 +142,7 @@ static gearmand_error_t _libtokyocabinet_replay(gearman_server_st *server, void 
                                                 gearman_queue_add_fn *add_fn,
                                                 void *add_context);
 
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 
 /**
@@ -453,3 +454,4 @@ static gearmand_error_t _libtokyocabinet_replay(gearman_server_st *server, void 
 
   return gret;
 }
+#pragma GCC diagnostic pop

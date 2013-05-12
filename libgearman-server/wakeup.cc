@@ -37,7 +37,8 @@
 
 #include "gear_config.h"
 
-#include <stdlib.h>
+#include "libgearman/assert.hpp"
+#include "libgearman-server/log.h"
 
 #include <libgearman-server/wakeup.h>
 
@@ -59,9 +60,11 @@ const char *gearmand_strwakeup(gearmand_wakeup_t arg)
 
   case GEARMAND_WAKEUP_RUN:
       return "GEARMAND_WAKEUP_RUN";
-
-  default:
-    abort();
   }
+
+  assert_msg(false, "Invalid gearmand_verbose_t used.");
+  gearmand_fatal("Invalid gearmand_verbose_t used.");
+
+  return "";
 }
 

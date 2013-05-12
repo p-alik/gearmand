@@ -173,6 +173,7 @@ static size_t build_key(vchar_t &key,
  * Private declarations
  */
 
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 
 /*
@@ -241,6 +242,8 @@ static gearmand_error_t _hiredis_done(gearman_server_st *, void *context,
 }
 
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
 static gearmand_error_t _hiredis_replay(gearman_server_st *server, void *context,
                                                 gearman_queue_add_fn *add_fn,
                                                 void *add_context)
@@ -271,14 +274,11 @@ static gearmand_error_t _hiredis_replay(gearman_server_st *server, void *context
       assert(fmt_str_length != 1);
       return gearmand_gerror("snprintf() failed to produce a valud fmt_str for redis key", GEARMAND_QUEUE_ERROR);
     }
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
     int ret= sscanf(reply->element[x]->str,
                     fmt_str,
                     prefix,
                     function_name,
                     unique);
-#pragma GCC diagnostic pop
     if (ret == 0)
     {
       continue;
@@ -301,5 +301,7 @@ static gearmand_error_t _hiredis_replay(gearman_server_st *server, void *context
 
   return GEARMAND_SUCCESS;
 }
+#pragma GCC diagnostic pop
+#pragma GCC diagnostic pop
 
 #endif // defined(HAVE_HIREDIS) && HAVE_HIREDIS

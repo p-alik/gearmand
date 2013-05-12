@@ -170,6 +170,8 @@ private:
   sqlite3 *_db;
 };
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunreachable-code"
 static bool test_for_HAVE_LIBSQLITE3()
 {
   if (HAVE_LIBSQLITE3)
@@ -179,6 +181,7 @@ static bool test_for_HAVE_LIBSQLITE3()
 
   return false;
 }
+#pragma GCC diagnostic pop
 
 static test_return_t gearmand_basic_option_test(void *)
 {
@@ -434,8 +437,8 @@ static test_return_t lp_1087654_TEST(void* object)
 }
 
 
+#pragma GCC diagnostic push
 #ifdef __clang__
-# pragma GCC diagnostic push
 # pragma GCC diagnostic ignored "-Wstack-protector"
 #endif // __clang__
 static test_return_t queue_restart_TEST(Context const* test, const int32_t inserted_jobs, uint32_t timeout)
@@ -583,9 +586,7 @@ static test_return_t queue_restart_TEST(Context const* test, const int32_t inser
 
   return TEST_SUCCESS;
 }
-#ifdef __clang__
 # pragma GCC diagnostic pop
-#endif // __clang__
 
 static test_return_t lp_1054377_TEST(void* object)
 {

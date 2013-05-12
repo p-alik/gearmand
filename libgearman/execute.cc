@@ -224,8 +224,8 @@ gearman_task_st *gearman_execute_by_partition(gearman_client_st *client,
                      gearman_actions_execute_defaults(),
                      gearman_work_epoch(task_attr),
                      context);
-#endif
       break;
+#endif
 
     case GEARMAN_TASK_ATTR_FOREGROUND:
       task= add_reducer_task(client,

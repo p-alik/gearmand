@@ -142,7 +142,6 @@ static size_t _connection_read(gearman_server_con_st *con, void *data, size_t da
           _connection_close(connection);
           return 0;
         }
-        break;
 
       default:
         ret= GEARMAND_ERRNO;
@@ -613,11 +612,10 @@ gearmand_error_t gearman_io_send(gearman_server_con_st *con,
   return GEARMAND_SUCCESS;
 }
 
+#pragma GCC diagnostic push
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
-
-
 gearmand_error_t gearman_io_recv(gearman_server_con_st *con, bool recv_data)
 {
   gearmand_io_st *connection= &con->con;
@@ -837,6 +835,7 @@ static gearmand_error_t _io_setsockopt(gearmand_io_st &connection)
   }
 #endif
 
+#if 0
   if (0)
   {
     struct timeval waittime;
@@ -852,7 +851,9 @@ static gearmand_error_t _io_setsockopt(gearmand_io_st &connection)
       return gearmand_perror(errno, "setsockopt(SO_RCVTIMEO)");
     }
   }
+#endif
 
+#if 0
   if (0)
   {
     int setting= GEARMAND_DEFAULT_SOCKET_SEND_SIZE;
@@ -867,6 +868,7 @@ static gearmand_error_t _io_setsockopt(gearmand_io_st &connection)
       return gearmand_perror(errno, "setsockopt(SO_RCVBUF)");
     }
   }
+#endif
 
   if (SOCK_NONBLOCK == 0)
   {
@@ -935,3 +937,4 @@ void gearmand_pipe_close(int& pipefd)
 
   pipefd= -1;
 }
+#pragma GCC diagnostic pop

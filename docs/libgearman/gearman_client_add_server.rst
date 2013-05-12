@@ -44,4 +44,4 @@ To find out more information please check:
 
 .. seealso::
 
-:manpage:`gearmand(8)` :manpage:`libgearman(3)` :manpage:`gearman_client_st`
+   :manpage:`gearmand(8)` :manpage:`libgearman(3)` :manpage:`gearman_client_st`

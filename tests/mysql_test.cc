@@ -72,6 +72,8 @@ static test_return_t gearmand_basic_option_test(void *)
   return TEST_SUCCESS;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunreachable-code"
 static test_return_t collection_init(void *object)
 {
   return TEST_SKIPPED; // Just skip until YaTL has MySQL startup support
@@ -88,6 +90,7 @@ static test_return_t collection_init(void *object)
 
   return TEST_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 static test_return_t collection_cleanup(void *object)
 {

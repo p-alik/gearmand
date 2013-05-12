@@ -53,6 +53,7 @@
 
 #include <cerrno>
 
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 
 using namespace gearmand;
@@ -398,3 +399,4 @@ gearmand_error_t LibmemcachedQueue::replay(gearman_server_st *server)
 } // queue
 } // gearmand
 
+#pragma GCC diagnostic pop

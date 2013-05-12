@@ -50,44 +50,54 @@ void initialize(boost::program_options::options_description &all)
 {
   queue::initialize_default();
 
+#if defined(HAVE_LIBDRIZZLE) && HAVE_LIBDRIZZLE
   if (HAVE_LIBDRIZZLE)
   {
     queue::initialize_drizzle();
   }
+#endif
 
+#if defined(HAVE_LIBMEMCACHED) && HAVE_LIBMEMCACHED
   if (HAVE_LIBMEMCACHED)
   {
     queue::initialize_libmemcached();
   }
+#endif
 
+#if defined(HAVE_LIBSQLITE3) && HAVE_LIBSQLITE3
   if (HAVE_LIBSQLITE3)
   {
     queue::initialize_sqlite();
   }
+#endif
 
+#if defined(HAVE_LIBPQ) && HAVE_LIBPQ
   if (HAVE_LIBPQ)
   {
     queue::initialize_postgres();
   }
+#endif
 
-
+#if defined(HAVE_LIBHIREDIS) && HAVE_LIBHIREDIS
   if (HAVE_HIREDIS)
   {
-#ifdef HAVE_LIBHIREDIS
     queue::initialize_redis();
-#endif
   }
+#endif
 
-
+#if defined(HAVE_TOKYOCABINET) && HAVE_TOKYOCABINET
   if (HAVE_TOKYOCABINET)
   {
     queue::initialize_tokyocabinet();
   }
+#endif
 
+#if defined(HAVE_LIBMYSQL_BUILD) && HAVE_LIBMYSQL_BUILD
   if (HAVE_LIBMYSQL_BUILD)
   {
     queue::initialize_mysql();
   }
+#endif
 
   gearmand::queue::load_options(all);
 }

@@ -89,7 +89,8 @@ size_t gearman_result_st::size() const
     return 0;
   }
 
-  return 0;
+  assert_msg(false, "Invalid result");
+  return size_t(0) -1;
 }
 
 int64_t gearman_result_st::integer() const
@@ -109,7 +110,8 @@ int64_t gearman_result_st::integer() const
     return 0;
   }
 
-  return 0;
+  assert_msg(false, "Invalid result");
+  return int64_t(0) -1;
 }
 
 int64_t gearman_result_integer(const gearman_result_st *self)
@@ -139,6 +141,7 @@ bool gearman_result_st::boolean() const
     return false;
   }
 
+  assert_msg(false, "Invalid result");
   return false;
 }
 

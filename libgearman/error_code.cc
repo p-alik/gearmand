@@ -44,7 +44,7 @@ using namespace org::gearman;
 
 gearman_return_t string2return_code(const char* str, size_t len)
 {
-  const struct error_code_st* code= error_string2return_code(str, len);
+  const struct error_code_st* code= error_string2return_code(str, (uint32_t)(len));
 
   if (code)
   {

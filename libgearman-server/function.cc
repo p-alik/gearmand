@@ -70,10 +70,10 @@ static uint32_t _server_function_hash(const char *name, size_t size)
   return (uint32_t)(value == 0 ? 1 : value);
 }
 
+#pragma GCC diagnostic push
 #ifndef __INTEL_COMPILER
-#pragma GCC diagnostic ignored "-Wold-style-cast"
+# pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
-
 static gearman_server_function_st* gearman_server_function_create(gearman_server_st *server,
                                                                   const char *function_name,
                                                                   size_t function_name_size,
@@ -143,3 +143,4 @@ void gearman_server_function_free(gearman_server_st *server, gearman_server_func
   delete [] function->function_name;
   delete function;
 }
+#pragma GCC diagnostic pop

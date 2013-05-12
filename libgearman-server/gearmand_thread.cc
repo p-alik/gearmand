@@ -420,8 +420,9 @@ void gearmand_thread_run(gearmand_thread_st *thread)
   }
 }
 
+#pragma GCC diagnostic push
 #ifndef __INTEL_COMPILER
-#pragma GCC diagnostic ignored "-Wold-style-cast"
+# pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
 /*
@@ -542,6 +543,8 @@ static void _wakeup_clear(gearmand_thread_st *thread)
   }
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunreachable-code"
 static void _wakeup_event(int fd, short events __attribute__ ((unused)), void *arg)
 {
   gearmand_thread_st *thread= (gearmand_thread_st *)arg;
@@ -617,6 +620,7 @@ static void _wakeup_event(int fd, short events __attribute__ ((unused)), void *a
     }
   }
 }
+#pragma GCC diagnostic pop
 
 static void _clear_events(gearmand_thread_st *thread)
 {
@@ -627,3 +631,4 @@ static void _clear_events(gearmand_thread_st *thread)
     gearmand_con_free(thread->dcon_list);
   }
 }
+#pragma GCC diagnostic pop

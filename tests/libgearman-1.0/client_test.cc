@@ -2074,12 +2074,14 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
   in_port_t first_port= libtest::default_port();
   ASSERT_TRUE(server_startup(servers, "gearmand", first_port, argv));
 
+#if 0
   if (0)
   {
     const char *null_args[]= { 0 };
     in_port_t second_port= libtest::get_free_port();
     ASSERT_TRUE(server_startup(servers, "gearmand", second_port, null_args));
   }
+#endif
 
   client_test_st *test= new client_test_st();
   ASSERT_TRUE(test);

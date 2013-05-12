@@ -37,7 +37,11 @@
 
 #include <gear_config.h>
 
+#include "libgearman/assert.hpp"
+
 #include <libgearman-server/plugins/protocol/http/method.h>
+
+#include <cstdlib>
 
 namespace gearmand {
 namespace protocol {
@@ -52,12 +56,10 @@ const char *str_method(method_t arg)
   case PUT: return "PUT";
   case POST: return "POST";
   case TRACE: return "TRACE";
-
-  default:
-              break;
   }
 
-  return "UNKNOWN";
+  assert_msg(false, "Invalid argument");
+  return "";
 }
 
 } // namespace http
