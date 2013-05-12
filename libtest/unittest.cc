@@ -119,6 +119,8 @@ static test_return_t test_success_test(void *)
   return TEST_SUCCESS;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunreachable-code"
 static test_return_t test_throw_success_TEST(void *)
 {
   try {
@@ -133,11 +135,9 @@ static test_return_t test_throw_success_TEST(void *)
     return TEST_FAILURE;
   }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunreachable-code"
   return TEST_FAILURE;
-#pragma GCC diagnostic pop
 }
+#pragma GCC diagnostic pop
 
 static test_return_t test_throw_skip_macro_TEST(void *)
 {
@@ -214,10 +214,10 @@ static test_return_t test_throw_fail_TEST(void *)
 
   return TEST_FAILURE;
 }
-#pragma GCC diagnostic ignored "-Wstack-protector"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstack-protector"
 #ifdef __clang__
-# pragma GCC diagnostic push
 # pragma GCC diagnostic ignored "-Wformat-security"
 #endif
 
@@ -238,10 +238,7 @@ static test_return_t ASSERT_FALSE__TEST(void *)
 
   return TEST_FAILURE;
 }
-
-#ifdef __clang__
-# pragma GCC diagnostic pop
-#endif
+#pragma GCC diagnostic pop
 
 static test_return_t ASSERT_NEQ_FAIL_TEST(void *)
 {
