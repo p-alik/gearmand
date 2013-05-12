@@ -47,6 +47,7 @@
 
 #include <cstdio>
 
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
 void gearman_log(gearman_universal_st& state, gearman_verbose_t verbose,
                  const char *format, va_list args)
@@ -58,7 +59,6 @@ void gearman_log(gearman_universal_st& state, gearman_verbose_t verbose,
     state.log_fn(log_buffer, verbose, state.log_context);
   }
 }
-
 
 void gearman_log_info(gearman_universal_st& gearman, const char *format, ...)
 {
@@ -83,3 +83,4 @@ void gearman_log_debug(gearman_universal_st& gearman, const char *format, ...)
     va_end(args);
   }
 }
+#pragma GCC diagnostic pop

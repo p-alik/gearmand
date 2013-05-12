@@ -51,6 +51,7 @@
 #include <cstring>
 #include <memory>
 
+#pragma GCC diagnostic push
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
@@ -456,3 +457,4 @@ gearmand_error_t gearmand_packet_pack_header(gearmand_packet_st *packet)
 
   return GEARMAND_SUCCESS;
 }
+#pragma GCC diagnostic pop

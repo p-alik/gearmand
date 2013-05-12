@@ -198,6 +198,7 @@ static void gearman_server_free(gearman_server_st& server)
 
 /** @} */
 
+#pragma GCC diagnostic push
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
@@ -1312,4 +1313,4 @@ gearmand_error_t gearmand_set_socket_keepalive_count(gearmand_st *gearmand, int 
 
   return GEARMAND_INVALID_ARGUMENT;
 }
-
+#pragma GCC diagnostic pop

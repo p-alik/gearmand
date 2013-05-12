@@ -49,9 +49,10 @@
 #include <libgearman-server/plugins/queue/postgres/queue.h>
 #include <libgearman-server/plugins/queue/base.h>
 
+#pragma GCC diagnostic push
 #if defined(HAVE_LIBPQ) and HAVE_LIBPQ
-#pragma GCC diagnostic ignored "-Wundef"
-#include <libpq-fe.h>
+# pragma GCC diagnostic ignored "-Wundef"
+# include <libpq-fe.h>
 #endif
 
 #include <cerrno>
@@ -182,6 +183,7 @@ static gearmand_error_t _libpq_replay(gearman_server_st *server, void *context,
  * Public definitions
  */
 
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 
 gearmand_error_t _initialize(gearman_server_st& server,
@@ -402,3 +404,5 @@ static gearmand_error_t _libpq_replay(gearman_server_st *server, void *context,
 
   return GEARMAND_SUCCESS;
 }
+#pragma GCC diagnostic pop
+#pragma GCC diagnostic pop

@@ -83,6 +83,7 @@ static void correct_from_errno(gearman_universal_st& universal)
   }
 }
 
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
 gearman_return_t gearman_universal_set_error(gearman_universal_st& universal, 
                                              gearman_return_t rc,
@@ -129,7 +130,10 @@ gearman_return_t gearman_universal_set_error(gearman_universal_st& universal,
 
   return universal._error.rc;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
 gearman_return_t gearman_universal_set_gerror(gearman_universal_st& universal, 
                                               gearman_return_t rc,
                                               const char *func,
@@ -161,7 +165,10 @@ gearman_return_t gearman_universal_set_gerror(gearman_universal_st& universal,
 
   return rc;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
 gearman_return_t gearman_universal_set_perror(gearman_universal_st &universal,
                                               const char *function, const char *position, 
                                               const char *message)
@@ -222,3 +229,4 @@ gearman_return_t gearman_universal_set_perror(gearman_universal_st &universal,
 
   return universal._error.rc;
 }
+#pragma GCC diagnostic pop

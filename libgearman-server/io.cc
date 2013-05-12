@@ -612,11 +612,10 @@ gearmand_error_t gearman_io_send(gearman_server_con_st *con,
   return GEARMAND_SUCCESS;
 }
 
+#pragma GCC diagnostic push
 #ifndef __INTEL_COMPILER
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
-
-
 gearmand_error_t gearman_io_recv(gearman_server_con_st *con, bool recv_data)
 {
   gearmand_io_st *connection= &con->con;
@@ -938,3 +937,4 @@ void gearmand_pipe_close(int& pipefd)
 
   pipefd= -1;
 }
+#pragma GCC diagnostic pop

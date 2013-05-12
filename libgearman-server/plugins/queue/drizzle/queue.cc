@@ -349,6 +349,7 @@ static gearmand_error_t _libdrizzle_replay(gearman_server_st *gearman,
  * Public definitions
  */
 
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 
 gearmand_error_t gearman_server_queue_libdrizzle_init(plugins::queue::Drizzle *queue,  gearman_server_st *server)
@@ -799,6 +800,7 @@ static gearmand_error_t _libdrizzle_replay(gearman_server_st *server,
 
   return GEARMAND_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 #else // if defined(HAVE_LIBDRIZZLE) && HAVE_LIBDRIZZLE
 

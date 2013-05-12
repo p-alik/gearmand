@@ -56,6 +56,7 @@
 
 namespace gearmand { namespace plugins { namespace queue { class Default; }}}
 
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 
 /* Queue callback functions. */
@@ -143,3 +144,4 @@ void initialize_default()
 } // namespace queue
 } // namespace plugins
 } // namespace gearmand
+#pragma GCC diagnostic pop

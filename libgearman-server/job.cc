@@ -98,6 +98,7 @@ static gearman_server_job_st * _server_job_get_unique(gearman_server_st *server,
 
 /** @} */
 
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 
 /*
@@ -437,3 +438,4 @@ gearmand_error_t gearman_server_job_queue(gearman_server_job_st *job)
 
   return GEARMAND_SUCCESS;
 }
+#pragma GCC diagnostic pop

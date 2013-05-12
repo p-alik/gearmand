@@ -62,6 +62,7 @@
  */
 #define GEARMAND_PROTOCOL_HTTP_DEFAULT_PORT "8080"
 
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 
 class HTTPtext;
@@ -672,3 +673,4 @@ gearmand_error_t HTTP::start(gearmand_st *gearmand)
 } // namespace gearmand
 
 /** @} */
+#pragma GCC diagnostic pop
