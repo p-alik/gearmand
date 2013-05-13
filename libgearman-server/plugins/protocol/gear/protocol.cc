@@ -370,18 +370,18 @@ Gear::Gear() :
     if (CyaSSL_CTX_use_certificate_file(ctx_ssl, CERT_PEM, SSL_FILETYPE_PEM) != SSL_SUCCESS)
     {   
       CyaSSL_CTX_free(ctx_ssl);
-      gearmand_log_fatal("CyaSSL_CTX_use_certificate_file() cannot obtain certificate");
+      gearmand_fatal("CyaSSL_CTX_use_certificate_file() cannot obtain certificate");
     }
 
     if (access(CERT_KEY_PEM, R_OK) == -1)
     {
-      gearmand_log_fatal("access(CERT_KEY_PEM, R_OK) == -1");
+      gearmand_fatal("access(CERT_KEY_PEM, R_OK) == -1");
     }
 
     if (CyaSSL_CTX_use_PrivateKey_file(ctx_ssl, CERT_KEY_PEM, SSL_FILETYPE_PEM) != SSL_SUCCESS)
     {   
       CyaSSL_CTX_free(ctx_ssl);
-      gearmand_log_fatal("CyaSSL_CTX_use_PrivateKey_file() cannot obtain certificate");
+      gearmand_fatal("CyaSSL_CTX_use_PrivateKey_file() cannot obtain certificate");
     }
 
     assert(ctx_ssl);
