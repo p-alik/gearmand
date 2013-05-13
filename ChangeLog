@@ -1,3 +1,6 @@
+1.1.8
+*
+
 1.1.7 Mon May  6 06:46:20 EDT 2013
 * Cleanup of error codes returned by gearmand.
 * gearmand will now set its port from the env variable GEARMAND_PORT.

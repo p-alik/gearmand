@@ -61,22 +61,35 @@ using namespace org::gearmand;
 
 #define HARD_CODED_EXCEPTION "my test exception"
 
-__thread int count= 0;
+__thread int worker_count= 0;
 
 static gearman_return_t worker_fn(gearman_job_st* job, void*)
 {
   if (random() % 10)
   {
-    char buffer[1024];
-    snprintf(buffer, sizeof(buffer), "%.*s:%d", test_literal_printf_param(HARD_CODED_EXCEPTION), count++);
-    gearman_return_t ret= gearman_job_send_exception(job, test_literal_param(HARD_CODED_EXCEPTION));
+    gearman_return_t ret;
+    if (random() % 3)
+    {
+      char buffer[1024];
+      snprintf(buffer, sizeof(buffer), "%.*s:%d", test_literal_printf_param(HARD_CODED_EXCEPTION), worker_count++);
+      ret= gearman_job_send_exception(job, test_literal_param(HARD_CODED_EXCEPTION));
+    }
+    else
+    {
+      ret= gearman_job_send_exception(job, 0, 0);
+    }
+
     if (gearman_failed(ret))
     {
       Error << "gearman_job_send_exception(" << gearman_strerror(ret) << ")";
       return GEARMAN_WORK_ERROR;
     }
 
-    return GEARMAN_WORK_FAIL;
+    // We will pass back wrong responses from time to time.
+    if (random() % 3)
+    {
+      return GEARMAN_WORK_FAIL;
+    }
   }
 
   return GEARMAN_SUCCESS;
@@ -107,10 +120,10 @@ struct client_test_st {
 
 struct client_context_st {
   int latch;
-  size_t min_size;
-  size_t max_size;
-  size_t num_tasks;
-  size_t count;
+  const size_t min_size;
+  const size_t max_size;
+  const size_t num_tasks;
+  const size_t _count;
   char *blob;
 
   client_context_st():
@@ -118,9 +131,18 @@ struct client_context_st {
     min_size(1024),
     max_size(1024 *2),
     num_tasks(20),
-    count(2000),
+    _count(2000),
     blob(NULL)
-  { }
+  {
+    blob= (char *)malloc(max_size);
+    ASSERT_TRUE(blob);
+    memset(blob, 'x', max_size); 
+  }
+
+  size_t count()
+  {
+    return _count;
+  }
 
   ~client_context_st()
   {
@@ -156,6 +178,7 @@ static test_return_t burnin_TEST(void*)
 
   ASSERT_EQ(gearman_client_echo(client, test_literal_param("echo_test")), GEARMAN_SUCCESS);
 
+  size_t count= context->count();
   do
   {
     for (uint32_t x= 0; x < context->num_tasks; x++)
@@ -240,21 +263,18 @@ static test_return_t burnin_TEST(void*)
     {
       gearman_task_free(&(tasks[x]));
     }
-  } while (context->count--);
+  } while (--count);
 
   context->latch++;
 
   return TEST_SUCCESS;
 }
 
-static test_return_t burnin_setup(void*)
+static test_return_t burnin_setup(void* obj)
 {
-  test_client_context= new client_test_st;
-  client_context_st *context= new client_context_st;
+  client_context_st* context= (client_context_st *)obj;
 
-  context->blob= (char *)malloc(context->max_size);
-  test_true(context->blob);
-  memset(context->blob, 'x', context->max_size); 
+  test_client_context= new client_test_st;
 
   gearman_client_set_context(test_client_context->client(), context);
 
@@ -263,9 +283,6 @@ static test_return_t burnin_setup(void*)
 
 static test_return_t burnin_cleanup(void*)
 {
-  client_context_st *context= (struct client_context_st *)gearman_client_context(test_client_context->client());
-
-  delete context;
   delete test_client_context;
   test_client_context= NULL;
 
@@ -274,33 +291,25 @@ static test_return_t burnin_cleanup(void*)
 
 /*********************** World functions **************************************/
 
-static void *world_create(server_startup_st& servers, test_return_t& error)
+static void *world_create(server_startup_st& servers, test_return_t&)
 {
-  if (server_startup(servers, "gearmand", libtest::default_port(), NULL) == false)
-  {
-    error= TEST_SKIPPED;
-    return NULL;
-  }
+  ASSERT_TRUE(server_startup(servers, "gearmand", libtest::default_port(), NULL));
 
-  worker_handles_st *handle= new worker_handles_st;
-  if (handle == NULL)
-  {
-    error= TEST_FAILURE;
-    return NULL;
-  }
+  client_context_st *context= new client_context_st;
 
-  return handle;
+  return context;
 }
 
 static bool world_destroy(void *object)
 {
-  worker_handles_st *handles= (worker_handles_st *)object;
-  delete handles;
+  client_context_st* context= (client_context_st*)object;
+  delete context;
 
   return TEST_SUCCESS;
 }
 
 test_st burnin_TESTS[] ={
+  {"burnin", 0, burnin_TEST },
   {"burnin", 0, burnin_TEST },
   {0, 0, 0}
 };
