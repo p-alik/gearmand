@@ -38,6 +38,9 @@
 #pragma once
 
 #include "libgearman-server/struct/server.h"
+#if defined(HAVE_CYASSL) && HAVE_CYASSL
+# include <cyassl/ssl.h>
+#endif
 
 #include "libgearman-server/struct/port.h"
 
@@ -174,6 +177,10 @@ struct gearmand_st
     }
   }
   
+#if defined(HAVE_CYASSL) && HAVE_CYASSL
+  CYASSL_CTX *ctx_ssl;
+#endif
+
   bool exceptions() const
   {
     return _exceptions;

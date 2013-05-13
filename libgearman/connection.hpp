@@ -42,6 +42,10 @@
 #include "libgearman/interface/packet.hpp"
 #include "libgearman/interface/universal.hpp"
 
+#if defined(HAVE_CYASSL) && HAVE_CYASSL
+# include <cyassl/ssl.h>
+#endif
+
 struct gearman_connection_st
 {
   struct Options {
@@ -63,6 +67,10 @@ struct gearman_connection_st
   short events;
   short revents;
   int fd;
+#if defined(HAVE_CYASSL) && HAVE_CYASSL
+  CYASSL* ssl;
+  CYASSL_CTX* ctx_ssl;
+#endif
   int cached_errno;
   uint32_t created_id;
   uint32_t created_id_next;
