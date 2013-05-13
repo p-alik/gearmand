@@ -208,6 +208,9 @@ AC_CHECK_FUNC([setsockopt],[],[AC_CHECK_LIB([socket],[setsockopt])])
 AC_CHECK_FUNC([bind],[],[AC_CHECK_LIB([bind],[bind])])
 
 
+# Check for CyaSSL
+AX_CHECK_LIBRARY([CYASSL],[cyassl/ssl.h],[cyassl])
+
 # Check for the ability to call dlopen (used in libhostile)
 AX_DLOPEN
 
