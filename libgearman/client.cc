@@ -444,7 +444,7 @@ void gearman_client_set_options(gearman_client_st *client_shell,
 void gearman_client_add_options(gearman_client_st *client_shell,
                                 gearman_client_options_t options)
 {
-  if (client_shell)
+  if (client_shell and client_shell->impl())
   {
     if (options & GEARMAN_CLIENT_NON_BLOCKING)
     {
@@ -472,7 +472,7 @@ void gearman_client_add_options(gearman_client_st *client_shell,
 void gearman_client_remove_options(gearman_client_st *client_shell,
                                    gearman_client_options_t options)
 {
-  if (client_shell)
+  if (client_shell and client_shell->impl())
   {
     if (options & GEARMAN_CLIENT_NON_BLOCKING)
     {

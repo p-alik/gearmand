@@ -54,5 +54,5 @@ gearman_return_t call_exception_WORKER(gearman_job_st *job, void *)
     return GEARMAN_ERROR;
   }
 
-  return GEARMAN_SUCCESS;
+  return GEARMAN_WORK_EXCEPTION;
 }

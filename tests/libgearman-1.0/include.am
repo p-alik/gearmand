@@ -74,6 +74,7 @@ tests_libgearman_1_0_worker_test_LDADD=
 tests_libgearman_1_0_worker_test_SOURCES=
 
 tests_libgearman_1_0_worker_test_SOURCES+= tests/libgearman-1.0/worker_test.cc
+tests_libgearman_1_0_worker_test_SOURCES+= tests/workers/v2/call_exception.cc
 tests_libgearman_1_0_worker_test_SOURCES+= tests/workers/v2/echo_or_react.cc
 tests_libgearman_1_0_worker_test_SOURCES+= tests/workers/v2/echo_or_react_chunk.cc
 tests_libgearman_1_0_worker_test_LDADD+= ${LIBGEARMAN_1_0_CLIENT_LDADD}
