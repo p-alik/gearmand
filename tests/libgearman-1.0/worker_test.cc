@@ -63,6 +63,7 @@ using namespace org::gearmand;
 #include "tests/workers/v2/call_exception.h"
 #include "tests/workers/v2/echo_or_react.h"
 #include "tests/workers/v2/echo_or_react_chunk.h"
+#include "tests/workers/v2/call_exception.h"
 
 static test_return_t init_test(void *)
 {
@@ -614,7 +615,7 @@ static test_return_t GEARMAN_FAIL_return_TEST(void *)
   return TEST_SUCCESS;
 }
 
-static test_return_t gearman_job_send_exception_TEST(void *)
+static test_return_t gearman_job_send_exception_mass_TEST(void *)
 {
   gearman_function_t call_exception_WORKER_FN= gearman_function_create(call_exception_WORKER);
   std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
@@ -657,6 +658,40 @@ static test_return_t gearman_job_send_exception_TEST(void *)
   {
     ASSERT_EQ(GEARMAN_WORK_FAIL, gearman_task_return(*iter));
   }
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_job_send_exception_TEST(void *)
+{
+  libgearman::Client client(libtest::default_port());
+  libgearman::Worker worker(libtest::default_port());
+
+  ASSERT_EQ(true, gearman_client_set_server_option(&client, test_literal_param("exceptions")));
+
+  gearman_function_t exception_WORKER_FN= gearman_function_create(exception_WORKER);
+  std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
+                                                           NULL,
+                                                           __func__,
+                                                           exception_WORKER_FN,
+                                                           NULL,
+                                                           gearman_worker_options_t(),
+                                                           0)); // timeout
+
+  gearman_return_t ret;
+  gearman_task_st *task= gearman_client_add_task(&client, NULL, NULL,
+                                                 __func__, NULL, "dog", 3,
+                                                 &ret);
+  ASSERT_TRUE(task);
+  ASSERT_EQ(ret, GEARMAN_SUCCESS);
+
+  do {
+    ret= gearman_client_run_tasks(&client);
+  } while (gearman_continue(ret));
+
+  gearman_string_t exception= gearman_task_exception(task);
+  ASSERT_EQ(gearman_task_return(task), GEARMAN_WORK_EXCEPTION);
+  ASSERT_STREQ("dog", gearman_c_str(exception));
 
   return TEST_SUCCESS;
 }
@@ -1341,7 +1376,8 @@ test_st worker_TESTS[] ={
   {"gearman_client_run_tasks() GEARMAN_CLIENT_NON_BLOCKING", 0, gearman_client_run_tasks_increase_GEARMAN_CLIENT_NON_BLOCKING_TEST },
   {"gearman_client_run_tasks() chunked", 0, gearman_client_run_tasks_increase_chunk_TEST },
   {"gearman_client_job_status(is_known)", 0, gearman_client_job_status_is_known_TEST },
-  {"gearman_job_send_exception(mass)", 0, gearman_job_send_exception_TEST },
+  {"gearman_job_send_exception()", 0, gearman_job_send_exception_TEST },
+  {"gearman_job_send_exception(mass)", 0, gearman_job_send_exception_mass_TEST },
   {"echo_max", 0, echo_max_test },
   {"abandoned_worker", 0, abandoned_worker_test },
   {0, 0, 0}

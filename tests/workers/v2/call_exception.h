@@ -40,3 +40,5 @@
 LIBTEST_API
 gearman_return_t call_exception_WORKER(gearman_job_st *job, void *context);
 
+LIBTEST_API
+gearman_return_t exception_WORKER(gearman_job_st *job, void *);

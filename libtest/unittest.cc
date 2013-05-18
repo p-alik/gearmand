@@ -637,7 +637,7 @@ static test_return_t application_doesnotexist_BINARY(void *)
   true_app.will_fail();
 
   const char *args[]= { "--fubar", 0 };
-#if defined(TARGET_OS_OSX) && TARGET_OS_OSX
+#if defined(__APPLE__) && __APPLE__
   ASSERT_EQ(Application::INVALID_POSIX_SPAWN, true_app.run(args));
 #elif defined(TARGET_OS_FREEBSD) && TARGET_OS_FREEBSD
   ASSERT_EQ(Application::INVALID_POSIX_SPAWN, true_app.run(args));

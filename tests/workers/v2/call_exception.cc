@@ -56,3 +56,14 @@ gearman_return_t call_exception_WORKER(gearman_job_st *job, void *)
 
   return GEARMAN_WORK_EXCEPTION;
 }
+
+gearman_return_t exception_WORKER(gearman_job_st *job, void *)
+{
+  gearman_return_t rc= gearman_job_send_exception(job, gearman_job_workload(job), gearman_job_workload_size(job));
+  if (gearman_failed(rc))
+  {
+    return GEARMAN_ERROR;
+  }
+
+  return GEARMAN_WORK_EXCEPTION;
+}
