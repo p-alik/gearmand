@@ -65,7 +65,7 @@ void *echo_or_react_worker(gearman_job_st *job, void *,
   }
   else if (*result_size == test_literal_param_size("exception") and (not memcmp(workload, test_literal_param("exception"))))
   {
-    gearman_return_t rc= gearman_job_send_exception(job, test_literal_param("test exception"));
+    gearman_return_t rc= gearman_job_send_exception(job, test_literal_param(EXCEPTION_MESSAGE));
     if (gearman_failed(rc))
     {
       *ret_ptr= GEARMAN_WORK_FAIL;

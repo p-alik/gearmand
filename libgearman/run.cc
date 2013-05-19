@@ -355,6 +355,11 @@ gearman_return_t _client_run_task(Task *task)
     else if (task->recv->command == GEARMAN_COMMAND_WORK_EXCEPTION)
     {
   case GEARMAN_TASK_STATE_EXCEPTION:
+      task->options.is_known= false;
+      task->options.is_running= false;
+      task->free_result();
+      task->result_rc= GEARMAN_WORK_EXCEPTION;
+
       if (task->recv->argc == 1 and task->recv->data_size)
       {
         task->exception.store((const char*)(task->recv->data), task->recv->data_size);
@@ -369,6 +374,8 @@ gearman_return_t _client_run_task(Task *task)
           return ret;
         }
       }
+
+      break;
     }
     else if (task->recv->command == GEARMAN_COMMAND_WORK_FAIL)
     {

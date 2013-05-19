@@ -39,5 +39,7 @@
 
 #define ECHO_OR_REACT_DREAM 20
 
+#define EXCEPTION_MESSAGE "Please test for define EXCEPTION_MESSAGE"
+
 LIBTEST_API
 gearman_return_t echo_or_react_worker_v2(gearman_job_st *job, void *context);

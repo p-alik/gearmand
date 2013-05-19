@@ -473,7 +473,7 @@ static test_return_t submit_null_job_test(void *object)
   test_truth(client);
 
   const char *worker_function= (const char *)gearman_client_context(client);
-  test_truth(worker_function);
+  ASSERT_NOT_NULL(worker_function);
 
   size_t result_length;
   gearman_return_t rc;
@@ -499,9 +499,18 @@ static test_return_t submit_exception_job_test(void *object)
   void *job_result= gearman_client_do(client, worker_function, NULL,
                                       test_literal_param("exception"),
                                       &result_length, &rc);
-  ASSERT_EQ(GEARMAN_SUCCESS, rc);
-  test_memcmp("exception", job_result, result_length);
-  free(job_result);
+  if (gearman_client_has_option(client, GEARMAN_CLIENT_EXCEPTION))
+  {
+    ASSERT_NOT_NULL(job_result);
+    ASSERT_EQ(GEARMAN_WORK_EXCEPTION, rc);
+    test_memcmp(EXCEPTION_MESSAGE, job_result, result_length);
+    free(job_result);
+  }
+  else
+  {
+    ASSERT_NULL(job_result);
+    ASSERT_EQ(GEARMAN_WORK_EXCEPTION, rc);
+  }
 
   return TEST_SUCCESS;
 }
@@ -519,6 +528,7 @@ static test_return_t submit_warning_job_test(void *object)
   void *job_result= gearman_client_do(client, worker_function, NULL,
                                       test_literal_param("warning"),
                                       &result_length, &rc);
+  ASSERT_NOT_NULL(job_result);
   ASSERT_EQ(GEARMAN_SUCCESS, rc);
   test_memcmp("warning", job_result, result_length);
   free(job_result);
@@ -550,21 +560,24 @@ static test_return_t submit_multiple_do(void *object)
 {
   for (uint32_t x= 0; x < 100 /* arbitrary */; x++)
   {
+    libgearman::Client client((gearman_client_st *)object);
+    gearman_client_set_context(&client, gearman_client_context((gearman_client_st *)object));
+
     uint32_t option= uint32_t(random() %3);
 
     switch (option)
     {
     case 0:
-      ASSERT_EQ(TEST_SUCCESS, submit_null_job_test(object));
+      ASSERT_EQ(TEST_SUCCESS, submit_null_job_test(&client));
       break;
 
     case 1:
-      ASSERT_EQ(TEST_SUCCESS, submit_job_test(object));
+      ASSERT_EQ(TEST_SUCCESS, submit_job_test(&client));
       break;
 
     default:
     case 2:
-      ASSERT_EQ(TEST_SUCCESS, submit_exception_job_test(object));
+      ASSERT_EQ(TEST_SUCCESS, submit_exception_job_test(&client));
       break;
     }
   }
