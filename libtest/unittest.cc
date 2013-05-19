@@ -240,6 +240,24 @@ static test_return_t ASSERT_FALSE__TEST(void *)
 }
 #pragma GCC diagnostic pop
 
+static test_return_t ASSERT_NOT_NULL_FAIL_TEST(void *)
+{
+  const char *valid_ptr= NULL;
+  try {
+    ASSERT_NOT_NULL(valid_ptr);
+  }
+  catch (const libtest::__failure& e)
+  {
+    return TEST_SUCCESS;
+  }
+  catch (...)
+  {
+    return TEST_FAILURE;
+  }
+
+  return TEST_FAILURE;
+}
+
 static test_return_t ASSERT_NEQ_FAIL_TEST(void *)
 {
   try {
@@ -1095,6 +1113,7 @@ test_st tests_log[] ={
   {"ASSERT_FALSE", false, ASSERT_FALSE_TEST },
   {"ASSERT_NEQ", false, ASSERT_NEQ_TEST },
   {"ASSERT_NEQ FAIL", false, ASSERT_NEQ_FAIL_TEST },
+  {"ASSERT_NOT_NULL FAIL", false, ASSERT_NOT_NULL_FAIL_TEST },
   {0, 0, 0}
 };
 

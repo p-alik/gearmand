@@ -404,6 +404,9 @@ bool gearman_client_has_option(gearman_client_st *client_shell,
     case GEARMAN_CLIENT_GENERATE_UNIQUE:
       return client_shell->impl()->options.generate_unique;
 
+    case GEARMAN_CLIENT_EXCEPTION:
+      return client_shell->impl()->options.exceptions;
+
     default:
     case GEARMAN_CLIENT_TASK_IN_USE:
     case GEARMAN_CLIENT_MAX:
@@ -424,6 +427,7 @@ void gearman_client_set_options(gearman_client_st *client_shell,
       GEARMAN_CLIENT_UNBUFFERED_RESULT,
       GEARMAN_CLIENT_FREE_TASKS,
       GEARMAN_CLIENT_GENERATE_UNIQUE,
+      GEARMAN_CLIENT_EXCEPTION,
       GEARMAN_CLIENT_MAX
     };
 
@@ -465,6 +469,11 @@ void gearman_client_add_options(gearman_client_st *client_shell,
     if (options & GEARMAN_CLIENT_GENERATE_UNIQUE)
     {
       client_shell->impl()->options.generate_unique= true;
+    }
+
+    if (options & GEARMAN_CLIENT_EXCEPTION)
+    {
+      client_shell->impl()->options.exceptions= gearman_client_set_server_option(client_shell, gearman_literal_param("exceptions"));
     }
   }
 }
@@ -509,7 +518,7 @@ int gearman_client_timeout(gearman_client_st *client_shell)
 
 void gearman_client_set_timeout(gearman_client_st *client_shell, int timeout)
 {
-  if (client_shell)
+  if (client_shell and client_shell->impl())
   {
     gearman_universal_set_timeout(client_shell->impl()->universal, timeout);
   }
@@ -517,7 +526,7 @@ void gearman_client_set_timeout(gearman_client_st *client_shell, int timeout)
 
 void *gearman_client_context(const gearman_client_st *client_shell)
 {
-  if (client_shell)
+  if (client_shell and client_shell->impl())
   {
     return const_cast<void *>(client_shell->impl()->context);
   }
@@ -1765,22 +1774,30 @@ bool gearman_client_compare(const gearman_client_st *first_shell, const gearman_
   return false;
 }
 
-bool gearman_client_set_server_option(gearman_client_st *self, const char *option_arg, size_t option_arg_size)
+bool gearman_client_set_server_option(gearman_client_st *client_shell, const char *option_arg, size_t option_arg_size)
 {
-  if (self)
+  if (client_shell and client_shell->impl())
   {
     gearman_string_t option= { option_arg, option_arg_size };
-    return gearman_request_option(self->impl()->universal, option);
+    if (gearman_request_option(client_shell->impl()->universal, option))
+    {
+      if (strcmp("exceptions", option_arg) == 0)
+      {
+        client_shell->impl()->options.exceptions= true;
+      }
+
+      return true;
+    }
   }
 
   return false;
 }
 
-void gearman_client_set_namespace(gearman_client_st *self, const char *namespace_key, size_t namespace_key_size)
+void gearman_client_set_namespace(gearman_client_st *client_shell, const char *namespace_key, size_t namespace_key_size)
 {
-  if (self)
+  if (client_shell and client_shell->impl())
   {
-    gearman_universal_set_namespace(self->impl()->universal, namespace_key, namespace_key_size);
+    gearman_universal_set_namespace(client_shell->impl()->universal, namespace_key, namespace_key_size);
   }
 }
 

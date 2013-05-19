@@ -49,13 +49,15 @@ struct Client
     bool no_new;
     bool free_tasks;
     bool generate_unique;
+    bool exceptions;
 
     Options():
       non_blocking(false),
       unbuffered_result(false),
       no_new(false),
       free_tasks(false),
-      generate_unique(false)
+      generate_unique(false),
+      exceptions(false)
     {
     }
   } options;

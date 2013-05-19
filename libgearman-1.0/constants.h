@@ -111,7 +111,8 @@ typedef enum
   GEARMAN_CLIENT_NO_NEW=            (1 << 4),
   GEARMAN_CLIENT_FREE_TASKS=        (1 << 5),
   GEARMAN_CLIENT_GENERATE_UNIQUE=   (1 << 6),
-  GEARMAN_CLIENT_MAX=               (1 << 7)
+  GEARMAN_CLIENT_EXCEPTION=         (1 << 7),
+  GEARMAN_CLIENT_MAX=               (1 << 8)
 } gearman_client_options_t;
 
 /**
