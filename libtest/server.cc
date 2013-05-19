@@ -194,6 +194,10 @@ bool Server::has_pid() const
   return (_app.pid() > 1);
 }
 
+bool Server::is_valgrind() const
+{
+  return getenv("YATL_VALGRIND_SERVER") or valgrind_is_caller();
+}
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunreachable-code"
@@ -222,7 +226,7 @@ bool Server::start()
   {
     _app.use_ptrcheck(true);
   }
-  else if (getenv("YATL_VALGRIND_SERVER"))
+  else if (is_valgrind())
   {
     _app.use_valgrind(true);
   }
