@@ -446,7 +446,7 @@ function setup_gdb_command () {
 function setup_valgrind_command () {
   VALGRIND_PROGRAM=`type -p valgrind`
   if [[ -n "$VALGRIND_PROGRAM" ]]; then
-    VALGRIND_COMMAND="$VALGRIND_PROGRAM --error-exitcode=1 --leak-check=yes --malloc-fill=A5 --free-fill=DE --xml=yes --xml-file=\"tmp_chroot/valgrind-%p.xml\""
+    VALGRIND_COMMAND="$VALGRIND_PROGRAM --error-exitcode=1 --leak-check=yes --malloc-fill=A5 --free-fill=DE --xml=yes --xml-file=\"check-%p.valgrind\""
   fi
 }
 
@@ -1611,7 +1611,6 @@ function bootstrap ()
         make_darwin_malloc
         ;;
       'valgrind')
-        make_maintainer_clean 
         make_valgrind
         ;;
       'universe')

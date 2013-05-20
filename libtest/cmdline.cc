@@ -787,7 +787,7 @@ void Application::create_argv(const char *args[])
     vchar::append(built_argv, "--malloc-fill=A5");
     vchar::append(built_argv, "--free-fill=DE");
     vchar::append(built_argv, "--xml=yes");
-    vchar::append(built_argv, "--xml-file=valgrind-cmd-\%p.xml");
+    vchar::append(built_argv, "--xml-file=cmd-%p.xml");
 
     std::string log_file= create_tmpfile("valgrind");
     libtest::vchar_t buffer;

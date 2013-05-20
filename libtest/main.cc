@@ -85,6 +85,7 @@ int main(int argc, char *argv[])
 {
   bool opt_massive= false;
   unsigned long int opt_repeat= 1; // Run all tests once
+  bool opt_verbose= false;
   bool opt_quiet= false;
   std::string collection_to_run;
   std::string wildcard;
@@ -120,6 +121,7 @@ int main(int argc, char *argv[])
   // Options parsing
   {
     enum long_option_t {
+      OPT_LIBYATL_VERBOSE,
       OPT_LIBYATL_VERSION,
       OPT_LIBYATL_MATCH_COLLECTION,
       OPT_LIBYATL_MASSIVE,
@@ -130,6 +132,7 @@ int main(int argc, char *argv[])
 
     static struct option long_options[]=
     {
+      { "verbose", no_argument, NULL, OPT_LIBYATL_VERBOSE },
       { "version", no_argument, NULL, OPT_LIBYATL_VERSION },
       { "quiet", no_argument, NULL, OPT_LIBYATL_QUIET },
       { "repeat", required_argument, NULL, OPT_LIBYATL_REPEAT },
@@ -150,6 +153,10 @@ int main(int argc, char *argv[])
 
       switch (option_rv)
       {
+      case OPT_LIBYATL_VERBOSE:
+        opt_verbose= true;
+        break;
+
       case OPT_LIBYATL_VERSION:
         break;
 
@@ -187,6 +194,14 @@ int main(int argc, char *argv[])
       default:
         break;
       }
+    }
+  }
+
+  if (opt_verbose)
+  {
+    for (char** ptr= environ; *ptr; ptr++)
+    {
+      Out << *ptr;
     }
   }
 
