@@ -38,12 +38,13 @@
 #include <libtest/common.h>
 
 #include <cassert>
+#include <cstddef>
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
 #include <fnmatch.h>
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <memory>
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -81,7 +82,7 @@ static void stats_print(libtest::Framework *frame)
 #include <getopt.h>
 #include <unistd.h>
 
-int main(int argc, char *argv[])
+int main(int argc, char *argv[], char* environ_[])
 {
   bool opt_massive= false;
   unsigned long int opt_repeat= 1; // Run all tests once
@@ -199,7 +200,7 @@ int main(int argc, char *argv[])
 
   if (opt_verbose)
   {
-    for (char** ptr= environ; *ptr; ptr++)
+    for (char** ptr= environ_; *ptr; ptr++)
     {
       Out << *ptr;
     }
