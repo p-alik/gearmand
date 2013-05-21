@@ -446,7 +446,7 @@ function setup_gdb_command () {
 function setup_valgrind_command () {
   VALGRIND_PROGRAM=`type -p valgrind`
   if [[ -n "$VALGRIND_PROGRAM" ]]; then
-    VALGRIND_COMMAND="$VALGRIND_PROGRAM --error-exitcode=1 --leak-check=yes --malloc-fill=A5 --free-fill=DE --xml=yes --xml-file=\"valgrind-%p.xml\""
+    VALGRIND_COMMAND="$VALGRIND_PROGRAM --error-exitcode=1 --leak-check=yes --malloc-fill=A5 --free-fill=DE --xml=yes --xml-file=\"check-%p.valgrind\""
   fi
 }
 
@@ -991,7 +991,7 @@ function make_target ()
     if [ -n "$2" ]; then
       warn "Failed to execute $MAKE $1: $ret"
     elif [ $ret -eq 2 ]; then
-      die "Failed to execute $MAKE $1"
+      die "Failed to execute $MAKE $1: $ret"
     else
       die "Failed to execute $MAKE $1: $ret"
     fi
@@ -1544,6 +1544,18 @@ function bootstrap ()
     local snapshot_run=false
     local valgrind_run=false
 
+    if $jenkins_build_environment; then
+      echo "#####################################################################################"
+      echo "#"
+      echo "#"
+      echo "#"
+      echo "#    TARGET:$target"
+      echo "#"
+      echo "#"
+      echo "#"
+      echo "#####################################################################################"
+    fi
+
     case $target in
       'self')
         self_test
@@ -1611,7 +1623,6 @@ function bootstrap ()
         make_darwin_malloc
         ;;
       'valgrind')
-        make_maintainer_clean 
         make_valgrind
         ;;
       'universe')

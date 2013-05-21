@@ -779,13 +779,15 @@ void Application::create_argv(const char *args[])
     vchar::append(built_argv, "--leak-check=yes");
 #if 0
     vchar::append(built_argv, "--show-reachable=yes"));
-#endif
     vchar::append(built_argv, "--track-fds=yes");
+#endif
 #if 0
     built_argv[x++]= strdup("--track-origin=yes");
 #endif
     vchar::append(built_argv, "--malloc-fill=A5");
     vchar::append(built_argv, "--free-fill=DE");
+    vchar::append(built_argv, "--xml=yes");
+    vchar::append(built_argv, "--xml-file=cmd-%p.xml");
 
     std::string log_file= create_tmpfile("valgrind");
     libtest::vchar_t buffer;

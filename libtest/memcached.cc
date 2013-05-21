@@ -182,6 +182,11 @@ public:
     return true;
   }
 
+  bool is_valgrind() const
+  {
+    return false;
+  }
+
   // Memcached's pidfile is broken
   bool broken_pid_file()
   {

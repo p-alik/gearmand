@@ -278,7 +278,7 @@ protected:
 
 private:
   bool is_helgrind() const;
-  bool is_valgrind() const;
+  virtual bool is_valgrind() const;
   bool is_debug() const;
   bool set_log_file();
   bool set_socket_file();
