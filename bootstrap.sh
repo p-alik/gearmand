@@ -1109,29 +1109,29 @@ function parse_command_line_options ()
 {
   local SHORTOPTS=':apcmt:dvh'
 
-  nassert MAKE_TARGET
+  nassert OPT_TARGET
 
   while getopts "$SHORTOPTS" opt; do
     case $opt in
       a) #--autoreconf
         AUTORECONF_OPTION=true
-        MAKE_TARGET='autoreconf'
+        OPT_TARGET='autoreconf'
         ;;
       p) #--print-env
         PRINT_SETUP_OPTION=true
         ;;
       c) # --configure
         CONFIGURE_OPTION=true
-        MAKE_TARGET='configure'
+        OPT_TARGET='configure'
         ;;
       m) # maintainer-clean
         CLEAN_OPTION=true
-        MAKE_TARGET='clean_op'
+        OPT_TARGET='clean_op'
         ;;
       t) # target
         TARGET_OPTION=true
         TARGET_OPTION_ARG="$OPTARG"
-        MAKE_TARGET="$OPTARG"
+        OPT_TARGET="$OPTARG"
         ;;
       d) # debug
         DEBUG_OPTION=true
@@ -1167,7 +1167,7 @@ function parse_command_line_options ()
   shift $((OPTIND-1))
 
   if [ -n "$1" ]; then
-    MAKE_TARGET="$@"
+    OPT_TARGET="$@"
   fi
 }
 
@@ -1704,28 +1704,40 @@ function main ()
 
   rebuild_host_os no_output
 
+  local OPT_TARGET=
   parse_command_line_options $@
+
+  nassert MAKE_TARGET
+
+  if [ -n "$OPT_TARGET" ]; then
+    MAKE_TARGET="$OPT_TARGET"
+  fi
 
   # If we are running under Jenkins we predetermine what tests we will run against
   # This MAKE_TARGET can be overridden by parse_command_line_options based MAKE_TARGET changes.
   # We don't want Jenkins overriding other variables, so we NULL them.
   if [ -z "$MAKE_TARGET" ]; then
     if $jenkins_build_environment; then
-      if [[ -n "$label" ]]; then
-        check_make_target $label
-        if [ $? -eq 0 ]; then
-          MAKE_TARGET="$label"
+      if [[ -n "$JENKINS_TARGET" ]]; then
+        MAKE_TARGET="$JENKINS_TARGET"
+      else
+        if [[ -n "$label" ]]; then
+          check_make_target $label
+          if [ $? -eq 0 ]; then
+            MAKE_TARGET="$label"
+          fi
         fi
-      fi
-      if [[ -n "$LABEL" ]]; then
-        check_make_target $LABEL
-        if [ $? -eq 0 ]; then
-          MAKE_TARGET="$LABEL"
-        fi
-      fi
 
-      if [ -z "$MAKE_TARGET" ]; then
-        MAKE_TARGET='jenkins'
+        if [[ -n "$LABEL" ]]; then
+          check_make_target $LABEL
+          if [ $? -eq 0 ]; then
+            MAKE_TARGET="$LABEL"
+          fi
+        fi
+
+        if [[ -z "$MAKE_TARGET" ]]; then
+          MAKE_TARGET='jenkins'
+        fi
       fi
     fi
   fi
