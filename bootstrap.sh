@@ -1544,6 +1544,18 @@ function bootstrap ()
     local snapshot_run=false
     local valgrind_run=false
 
+    if $jenkins_build_environment; then
+      echo "#####################################################################################"
+      echo "#"
+      echo "#"
+      echo "#"
+      echo "#    TARGET:$target"
+      echo "#"
+      echo "#"
+      echo "#"
+      echo "#####################################################################################"
+    fi
+
     case $target in
       'self')
         self_test
