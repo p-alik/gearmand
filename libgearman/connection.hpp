@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2011-2013 Data Differential, http://datadifferential.com/
  *  Copyright (C) 2008 Brian Aker, Eric Day
  *  All rights reserved.
  *
@@ -42,9 +42,7 @@
 #include "libgearman/interface/packet.hpp"
 #include "libgearman/interface/universal.hpp"
 
-#if defined(HAVE_CYASSL) && HAVE_CYASSL
-# include <cyassl/ssl.h>
-#endif
+#include "libgearman/ssl.h"
 
 struct gearman_connection_st
 {
@@ -67,10 +65,7 @@ struct gearman_connection_st
   short events;
   short revents;
   int fd;
-#if defined(HAVE_CYASSL) && HAVE_CYASSL
-  CYASSL* ssl;
-  CYASSL_CTX* ctx_ssl;
-#endif
+  struct CYASSL* _ssl;
   int cached_errno;
   uint32_t created_id;
   uint32_t created_id_next;
@@ -109,6 +104,7 @@ public:
   gearman_return_t send_packet(const gearman_packet_st&, const bool flush_buffer);
   size_t send_and_flush(const void *data, size_t data_size, gearman_return_t *ret_ptr);
 
+  gearman_return_t enable_ssl();
   gearman_return_t flush();
   void close_socket();
 

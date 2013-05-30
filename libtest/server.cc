@@ -131,6 +131,7 @@ bool Server::check()
 {
   _app.slurp();
   _app.check();
+
   return true;
 }
 
@@ -327,18 +328,20 @@ bool Server::start()
       _app.slurp();
       if (kill_file(pid_file()) == false)
       {
-        throw libtest::disconnected(LIBYATL_DEFAULT_PARAM,
+        throw libtest::disconnected(error_file(), error_line(), __PRETTY_FUNCTION__,
                                     hostname(), port(),
-                                    "Failed to kill off server, waited: %u after startup occurred, when pinging failed: %.*s stderr:%.*s",
+                                    "ping(%s) additionally failed to kill off server, waited: %u after startup occurred failed: %.*s error:%s stderr:%.*s",
+                                    error().c_str(),
                                     this_wait,
                                     int(_running.size()), _running.c_str(),
                                     int(_app.stderr_result_length()), _app.stderr_c_str());
       }
       else
       {
-        throw libtest::disconnected(LIBYATL_DEFAULT_PARAM, 
+        throw libtest::disconnected(error_file(), error_line(), __PRETTY_FUNCTION__,
                                     hostname(), port(),
-                                    "Failed native ping(), pid: %d was alive: %s waited: %u server started, having pid_file. exec: %.*s stderr:%.*s",
+                                    "ping(%s) additionally failed pid: %d was alive: %s waited: %u server started, having pid_file. exec: %.*s stderr:%.*s",
+                                    error().c_str(),
                                     int(_app.pid()),
                                     _app.check() ? "true" : "false",
                                     this_wait,
@@ -348,9 +351,10 @@ bool Server::start()
     }
     else
     {
-      throw libtest::disconnected(LIBYATL_DEFAULT_PARAM,
+      throw libtest::disconnected(error_file(), error_line(), __PRETTY_FUNCTION__,
                                   hostname(), port(),
-                                  "Failed native ping(), pid: %d is alive: %s waited: %u server started. exec: %.*s stderr:%.*s",
+                                  "ping(%s), additionally pid: %d is alive: %s waited: %u server started. exec: %.*s stderr:%.*s",
+                                  error().c_str(),
                                   int(_app.pid()),
                                   _app.check() ? "true" : "false",
                                   this_wait,

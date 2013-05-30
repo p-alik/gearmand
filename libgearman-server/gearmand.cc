@@ -211,10 +211,10 @@ static gearmand_st *_global_gearmand= NULL;
 
 gearmand_st *Gearmand(void)
 {
-  if (!_global_gearmand)
+  if (_global_gearmand == NULL)
   {
-    gearmand_error("Gearmand() was called before it was allocated");
     assert_msg(false, "Gearmand() was called before it was allocated");
+    gearmand_error("Gearmand() was called before it was allocated");
   }
   assert(_global_gearmand);
   return _global_gearmand;
@@ -318,6 +318,7 @@ bool gearmand_exceptions(gearmand_st *gearmand)
 gearmand_error_t gearmand_port_add(gearmand_st *gearmand, const char *port,
                                    gearmand_connection_add_fn *function)
 {
+  assert(gearmand);
   gearmand->_port_list.resize(gearmand->_port_list.size() +1);
 
   strncpy(gearmand->_port_list.back().port, port, NI_MAXSERV);

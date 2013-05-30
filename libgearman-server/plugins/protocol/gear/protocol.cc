@@ -307,15 +307,11 @@ private:
 
 static Geartext gear_context;
 
-#if defined(HAVE_CYASSL) && HAVE_CYASSL
-static struct CYASSL_CTX *ctx_ssl= NULL;
-#endif
-
 static gearmand_error_t _gear_con_add(gearman_server_con_st *connection)
 {
 #if defined(HAVE_CYASSL) && HAVE_CYASSL
-  assert(ctx_ssl);
-  if ((connection->_ssl = CyaSSL_new(ctx_ssl)) == NULL)
+  assert(Gearmand()->ctx_ssl());
+  if ((connection->_ssl= CyaSSL_new(Gearmand()->ctx_ssl())) == NULL)
   {
     return gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "CyaSSL_new() failed");
   }
@@ -356,36 +352,6 @@ Gear::Gear() :
     command_line_options().add_options()
       ("port,p", boost::program_options::value(&_port)->default_value(GEARMAN_DEFAULT_TCP_PORT_STRING),
        "Port the server should listen on.");
-
-#if defined(HAVE_CYASSL) && HAVE_CYASSL
-    CyaSSL_Init();
-
-    ctx_ssl= CyaSSL_CTX_new(CyaTLSv1_2_server_method());
-
-    if (access(CERT_PEM, R_OK) == -1)
-    {
-      assert("access()" == NULL);
-    }
-
-    if (CyaSSL_CTX_use_certificate_file(ctx_ssl, CERT_PEM, SSL_FILETYPE_PEM) != SSL_SUCCESS)
-    {   
-      CyaSSL_CTX_free(ctx_ssl);
-      gearmand_fatal("CyaSSL_CTX_use_certificate_file() cannot obtain certificate");
-    }
-
-    if (access(CERT_KEY_PEM, R_OK) == -1)
-    {
-      gearmand_fatal("access(CERT_KEY_PEM, R_OK) == -1");
-    }
-
-    if (CyaSSL_CTX_use_PrivateKey_file(ctx_ssl, CERT_KEY_PEM, SSL_FILETYPE_PEM) != SSL_SUCCESS)
-    {   
-      CyaSSL_CTX_free(ctx_ssl);
-      gearmand_fatal("CyaSSL_CTX_use_PrivateKey_file() cannot obtain certificate");
-    }
-
-    assert(ctx_ssl);
-#endif
   }
 
 Gear::~Gear()
@@ -423,6 +389,32 @@ gearmand_error_t Gear::start(gearmand_st *gearmand)
   }
 
   gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "Initializing Gear on port %s", _port.c_str());
+
+#if defined(HAVE_CYASSL) && HAVE_CYASSL
+  {
+    if (access(CERT_PEM, R_OK) == -1)
+    {
+      assert("access()" == NULL);
+    }
+
+    if (CyaSSL_CTX_use_certificate_file(gearmand->ctx_ssl(), CERT_PEM, SSL_FILETYPE_PEM) != SSL_SUCCESS)
+    {   
+      gearmand_fatal("CyaSSL_CTX_use_certificate_file() cannot obtain certificate");
+    }
+
+    if (access(CERT_KEY_PEM, R_OK) == -1)
+    {
+      gearmand_fatal("access(CERT_KEY_PEM, R_OK) == -1");
+    }
+
+    if (CyaSSL_CTX_use_PrivateKey_file(gearmand->ctx_ssl(), CERT_KEY_PEM, SSL_FILETYPE_PEM) != SSL_SUCCESS)
+    {   
+      gearmand_fatal("CyaSSL_CTX_use_PrivateKey_file() cannot obtain certificate");
+    }
+
+    assert(gearmand->ctx_ssl());
+  }
+#endif
 
   rc= gearmand_port_add(gearmand, _port.c_str(), _gear_con_add);
 

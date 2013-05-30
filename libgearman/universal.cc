@@ -52,6 +52,8 @@
 #include "libgearman/vector.h"
 #include "libgearman/uuid.hpp"
 
+#include "libgearman/ssl.h"
+
 #include <cerrno>
 #include <cstdarg>
 #include <cstdio>
@@ -395,6 +397,18 @@ gearman_connection_st *gearman_ready(gearman_universal_st& universal)
   return NULL;
 }
 
+gearman_universal_st::~gearman_universal_st()
+{
+  gearman_string_free(_identifier);
+  gearman_string_free(_namespace);
+#if defined(HAVE_CYASSL) && HAVE_CYASSL
+  if (_ctx_ssl)
+  {
+    CyaSSL_CTX_free(_ctx_ssl);
+  }
+#endif
+}
+
 gearman_return_t gearman_universal_st::option(const universal_options_t& option_, bool value)
 {
   switch (option_)
@@ -417,6 +431,39 @@ gearman_return_t gearman_universal_st::option(const universal_options_t& option_
   }
 
   return GEARMAN_SUCCESS;
+}
+
+bool gearman_universal_st::init_ssl()
+{
+#if defined(HAVE_CYASSL) && HAVE_CYASSL
+  CyaSSL_Init();
+
+  if ((_ctx_ssl = CyaSSL_CTX_new(CyaTLSv1_client_method())) == NULL)
+  {
+    gearman_error(*this, GEARMAN_INVALID_ARGUMENT, "CyaTLSv1_client_method()");
+    return false;
+  }
+
+  if (CyaSSL_CTX_load_verify_locations(_ctx_ssl, CA_CERT_PEM, 0) != SSL_SUCCESS)
+  {
+    gearman_error(*this, GEARMAN_INVALID_ARGUMENT, CA_CERT_PEM);
+    return false;
+  }
+
+  if (CyaSSL_CTX_use_certificate_file(_ctx_ssl, CERT_PEM, SSL_FILETYPE_PEM) != SSL_SUCCESS)
+  {   
+    gearman_error(*this, GEARMAN_INVALID_ARGUMENT, CERT_PEM);
+    return false;
+  }
+
+  if (CyaSSL_CTX_use_PrivateKey_file(_ctx_ssl, CERT_KEY_PEM, SSL_FILETYPE_PEM) != SSL_SUCCESS)
+  {   
+    gearman_error(*this, GEARMAN_INVALID_ARGUMENT, CERT_KEY_PEM);
+    return false;
+  }
+#endif // defined(HAVE_CYASSL) && HAVE_CYASSL
+
+  return true;
 }
 
 void gearman_universal_st::identifier(const char *identifier_, const size_t identifier_size_)
