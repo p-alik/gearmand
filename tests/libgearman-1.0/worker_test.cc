@@ -417,13 +417,12 @@ static test_return_t gearman_worker_add_server_GEARMAN_GETADDRINFO_TEST(void *)
 static test_return_t job_order_TEST(void *)
 {
   libgearman::Client client(libtest::default_port());;
-#if 0
   ASSERT_EQ(true, gearman_client_set_server_option(&client, test_literal_param("exceptions")));
-#endif
+  gearman_client_add_options(&client, GEARMAN_CLIENT_EXCEPTION);
 
   std::vector<gearman_task_st*> tasks;
   const uint32_t order_seed= __LINE__;
-  for (uint32_t x= order_seed +1; x < order_seed +2; ++x)
+  for (uint32_t x= order_seed +10; x != order_seed; --x)
   {
     gearman_return_t ret;
     char buffer[30];
@@ -439,9 +438,10 @@ static test_return_t job_order_TEST(void *)
     ASSERT_EQ(GEARMAN_SUCCESS, ret);
     ASSERT_TRUE(task);
     tasks.push_back(task);
+    break;
   }
 
-  uint32_t order_context= order_seed;
+  uint32_t order_context= order_seed +10;
   gearman_function_t check_order_worker_TEST_FN= gearman_function_create(check_order_worker);
   std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
                                                            NULL,

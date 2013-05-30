@@ -71,14 +71,15 @@ gearman_return_t check_order_worker(gearman_job_st *job, void *context)
     return GEARMAN_ERROR;
   }
 
-  if ((*last_number) +1 == current_number)
+  if ((*last_number) == current_number)
   {
-    *last_number= current_number;
+    *last_number= current_number -1;
     return GEARMAN_SUCCESS;
   }
 
   char buffer[1024];
-  int excep_length= snprintf(buffer, sizeof(buffer), "current number %u != %u +1 (last_number)", current_number, *last_number);
+  int excep_length= snprintf(buffer, sizeof(buffer), "current number %u != %u (last_number)", current_number, *last_number);
+  Error << "GEARMAN_WORK_EXCEPTION: " << buffer;
   gearman_return_t rc= gearman_job_send_exception(job, buffer, excep_length);
   if (rc == GEARMAN_SUCCESS)
   {
