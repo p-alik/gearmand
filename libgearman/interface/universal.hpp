@@ -85,6 +85,7 @@ struct gearman_universal_st
   gearman_allocator_t allocator;
   struct gearman_vector_st *_identifier;
   struct gearman_vector_st *_namespace;
+  struct CYASSL_CTX* _ctx_ssl;
   struct error_st {
     gearman_return_t rc;
     int last_errno;
@@ -169,7 +170,8 @@ struct gearman_universal_st
     log_context(NULL),
     allocator(gearman_default_allocator()),
     _identifier(NULL),
-    _namespace(NULL)
+    _namespace(NULL),
+    _ctx_ssl(NULL)
   {
     wakeup_fd[0]= INVALID_SOCKET;
     wakeup_fd[1]= INVALID_SOCKET;
@@ -185,13 +187,23 @@ struct gearman_universal_st
         options_++;
       }
     }
+
+    // Only does something if SSL has been enabled.
+    bool ret= init_ssl();
+    if (ret == false)
+    {
+      abort();
+    }
   }
 
-  ~gearman_universal_st()
+  bool init_ssl();
+
+  struct CYASSL_CTX* ctx_ssl() 
   {
-    gearman_string_free(_identifier);
-    gearman_string_free(_namespace);
+    return _ctx_ssl;
   }
+
+  ~gearman_universal_st();
 
   void identifier(const char *identifier_, const size_t identifier_size_);
 };

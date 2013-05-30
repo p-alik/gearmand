@@ -57,3 +57,6 @@ gearmand-valgrind: gearmand/gearmand
 
 gearmand-debug: gearmand/gearmand
 	$(LIBTOOL) --mode=execute gdb gearmand/gearmand
+
+internals: tests/libgearman-1.0/internals_test gearmand/gearmand
+	@$(GDB_COMMAND) tests/libgearman-1.0/internals_test

@@ -1,8 +1,9 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
+ * 
+ *  Gearmand client and server library.
  *
- *  Data Differential YATL (i.e. libtest)  library
- *
- *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2013 Data Differential, http://datadifferential.com/
+ *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -40,71 +41,7 @@
 # include <cyassl/ssl.h>
 #endif
 
-namespace libtest {
+#define CA_CERT_PEM "/home/brian/cyassl/certs/ca-cert.pem"
+#define CERT_PEM "/home/brian/cyassl/certs/server-cert.pem"
+#define CERT_KEY_PEM "/home/brian/cyassl/certs/server-key.pem"
 
-class SimpleClient {
-public:
-  SimpleClient(const std::string& hostname_, in_port_t port_);
-  ~SimpleClient();
-
-  bool send_data(const libtest::vchar_t&, libtest::vchar_t&);
-  bool send_message(const std::string&);
-  bool send_message(const std::string&, std::string&);
-  bool response(std::string&);
-  bool response(libtest::vchar_t&);
-
-private:
-  bool is_valid();
-public:
-
-  const std::string& error() const
-  {
-    return _error;
-  }
-
-  bool is_error() const
-  {
-    return _error.size() ? true : false;
-  }
-
-  const char* error_file() const
-  {
-    return _error_file;
-  }
-
-  int error_line() const
-  {
-    return _error_line;
-  }
-
-private:
-  void free_addrinfo()
-  {
-    freeaddrinfo(_ai);
-    _ai= NULL;
-  }
-
-private: // Methods
-  void error(const char* file, int line, const std::string& error_);
-  void close_socket();
-  bool instance_connect();
-  struct addrinfo* lookup();
-  bool message(const char* ptr, const size_t len);
-  bool ready(int event_);
-  void init_ssl();
-
-private:
-  bool _is_connected;
-  std::string _hostname;
-  in_port_t _port;
-  int sock_fd;
-  std::string _error;
-  const char* _error_file;
-  int _error_line;
-  int requested_message;
-  struct CYASSL_CTX* _ctx_ssl;
-  struct CYASSL* _ssl;
-  struct addrinfo *_ai;
-};
-
-} // namespace libtest

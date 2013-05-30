@@ -1011,6 +1011,10 @@ static test_return_t check_for_gearman(void *)
 
 static test_return_t check_for_drizzle(void *)
 {
+#if defined(HAVE_CYASSL) && HAVE_CYASSL
+  SKIP_IF(HAVE_CYASSL);
+#endif
+
   test_skip(true, has_drizzled());
 
   testing_service= "drizzled";
@@ -1047,6 +1051,10 @@ static test_return_t clear_servers(void* object)
 
 static test_return_t check_for_memcached(void* object)
 {
+#if defined(HAVE_CYASSL) && HAVE_CYASSL
+  SKIP_IF(HAVE_CYASSL);
+#endif
+
   test_skip(true, has_memcached());
 
   server_startup_st *servers= (server_startup_st*)object;

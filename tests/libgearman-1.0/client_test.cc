@@ -414,6 +414,10 @@ static test_return_t echo_test(void *object)
 
   gearman_string_t value= { test_literal_param("This is my echo test") };
 
+  if (GEARMAN_SUCCESS !=  gearman_client_echo(client, gearman_string_param(value)))
+  {
+    Error << gearman_client_error(client);
+  }
   ASSERT_EQ(GEARMAN_SUCCESS, gearman_client_echo(client, gearman_string_param(value)));
 
   return TEST_SUCCESS;

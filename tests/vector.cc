@@ -216,13 +216,13 @@ static test_return_t random_resize_TEST(void*)
   const size_t max_block= 10 * GEARMAN_VECTOR_BLOCK_SIZE;
   for (size_t x= 0; x < 20; x++)
   {
-    gearman_vector_st vec(random() % max_block);
+    gearman_vector_st vec(labs(random()) % max_block);
     ASSERT_TRUE(vec.capacity() >= vec.size());
 
-    vec.resize(random() % max_block);
+    vec.resize(labs(random()) % max_block);
     ASSERT_TRUE(vec.capacity() >= vec.size());
 
-    vec.resize(random() % max_block +GEARMAN_VECTOR_BLOCK_SIZE);
+    vec.resize(labs(random()) % max_block +GEARMAN_VECTOR_BLOCK_SIZE);
     ASSERT_TRUE(vec.capacity() >= vec.size());
   }
 
