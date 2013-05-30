@@ -71,21 +71,21 @@ gearman_return_t check_order_worker(gearman_job_st *job, void *context)
     return GEARMAN_ERROR;
   }
 
-  if ((*last_number) == current_number)
+  if ((current_number) == (*last_number))
   {
-    *last_number= current_number -1;
+    *last_number= current_number;
     return GEARMAN_SUCCESS;
   }
 
   char buffer[1024];
   int excep_length= snprintf(buffer, sizeof(buffer), "current number %u != %u (last_number)", current_number, *last_number);
-  Error << "GEARMAN_WORK_EXCEPTION: " << buffer;
+  Error << "GEARMAN_WORK_EXCEPTION: " << buffer << " " << gearman_job_unique(job);
   gearman_return_t rc= gearman_job_send_exception(job, buffer, excep_length);
   if (rc == GEARMAN_SUCCESS)
   {
-    return GEARMAN_WORK_EXCEPTION;
+    return GEARMAN_FATAL;
   }
 
   // Some other failure happened when sending exception
-  return GEARMAN_ERROR;
+  return GEARMAN_FATAL;
 }

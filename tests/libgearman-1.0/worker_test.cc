@@ -419,6 +419,7 @@ static test_return_t job_order_TEST(void *)
   libgearman::Client client(libtest::default_port());;
   ASSERT_EQ(true, gearman_client_set_server_option(&client, test_literal_param("exceptions")));
   gearman_client_add_options(&client, GEARMAN_CLIENT_EXCEPTION);
+  gearman_client_add_options(&client, GEARMAN_CLIENT_GENERATE_UNIQUE);
 
   std::vector<gearman_task_st*> tasks;
   const uint32_t order_seed= __LINE__;
@@ -433,15 +434,14 @@ static test_return_t job_order_TEST(void *)
                                                    __func__, // function_name,
                                                    NULL, // unique
                                                    buffer, // workload
-                                                   size_t(buffer_length), // length of workload
+                                                   size_t(buffer_length +1), // length of workload
                                                    &ret);
     ASSERT_EQ(GEARMAN_SUCCESS, ret);
     ASSERT_TRUE(task);
     tasks.push_back(task);
-    break;
   }
 
-  uint32_t order_context= order_seed +10;
+  uint32_t order_context= order_seed +1;
   gearman_function_t check_order_worker_TEST_FN= gearman_function_create(check_order_worker);
   std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
                                                            NULL,
@@ -456,6 +456,7 @@ static test_return_t job_order_TEST(void *)
     do {
       ret= gearman_client_run_tasks(&client);
     } while (gearman_continue(ret));
+    ASSERT_EQ(GEARMAN_SUCCESS, ret);
   }
 
   for (std::vector<gearman_task_st*>::iterator iter= tasks.begin();
