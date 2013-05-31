@@ -45,6 +45,8 @@
 #include <gear_config.h>
 #include <libgearman-server/common.h>
 #include <libgearman-server/byte.h>
+#include <stdint.h>
+#include <inttypes.h>
 
 #include <libgearman-server/plugins/queue/postgres/queue.h>
 #include <libgearman-server/plugins/queue/base.h>
@@ -261,22 +263,24 @@ static gearmand_error_t _libpq_add(gearman_server_st*, void *context,
   (void)when;
   gearmand::plugins::queue::Postgres *queue= (gearmand::plugins::queue::Postgres *)context;
 
-  char buffer[22];
-  snprintf(buffer, sizeof(buffer), "%u", static_cast<uint32_t>(priority));
+  char priority_buffer[22];
+  snprintf(priority_buffer, sizeof(priority_buffer), "%u", static_cast<uint32_t>(priority));
+  char when_buffer[12];
+  snprintf(when_buffer, sizeof(when_buffer), "%" PRId64, when);
 
   const char *param_values[]= {
-    (char *)buffer,
+    (char *)priority_buffer,
     (char *)unique,
     (char *)function_name,
     (char *)data,
-    (char *)when };
+    (char *)when_buffer };
 
   int param_lengths[]= {
-    (int)strlen(buffer),
+    (int)strlen(priority_buffer),
     (int)unique_size,
     (int)function_name_size,
     (int)data_size,
-    (int)when };
+    (int)strlen(when_buffer) };
 
   int param_formats[] = { 0, 0, 0, 1, 0 };
 
