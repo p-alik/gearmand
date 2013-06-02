@@ -594,6 +594,8 @@ make_valgrind ()
     TESTS_ENVIRONMENT="$VALGRIND_COMMAND"
   fi
 
+  VALGRIND_HOME="$(pwd)"
+  export VALGRIND_HOME
   make_target 'all'
   make_target 'check'
   ret=$?
