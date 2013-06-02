@@ -81,12 +81,11 @@ inline static gearman_return_t packet_create_arg(gearman_packet_st *packet,
   {
     if (gearman_command_info(packet->command)->data)
     {
-      void* tmp_data= realloc((void*)packet->data, arg_size);
-      if (tmp_data == NULL)
+      packet->data= gearman_malloc(*packet->universal, arg_size);
+      if (packet->data == NULL)
       {
         return gearman_perror(*packet->universal, "packet->data");
       }
-      packet->data= tmp_data;
 
       memcpy((void*)packet->data, arg, arg_size);
       packet->data_size= arg_size;
@@ -232,6 +231,7 @@ gearman_return_t gearman_packet_create_args(gearman_universal_st& universal,
   packet.magic= magic;
   packet.command= command;
 
+#if 0
   if (gearman_command_info(packet.command)->data)
   {
     assert_msg(args_count -1 == gearman_command_info(packet.command)->argc, 
@@ -254,6 +254,7 @@ gearman_return_t gearman_packet_create_args(gearman_universal_st& universal,
                                          "Programmer error, number of arguments incorrect for protocol");
     }
   }
+#endif
 
   for (size_t x= 0; x < args_count; x++)
   {

@@ -563,9 +563,7 @@ gearman_return_t gearman_echo(gearman_universal_st& universal,
   }
   else
   {
-    gearman_packet_free(&message);
-    gearman_error(universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "gearman_packet_create_args()");
-    return ret;
+    return universal.error_code();
   }
 
   gearman_packet_free(&message);

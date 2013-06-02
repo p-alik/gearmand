@@ -444,8 +444,6 @@ static test_return_t submit_job_test(void *object)
   gearman_client_st *client= (gearman_client_st *)object;
   ASSERT_TRUE(client);
 
-  ASSERT_EQ(GEARMAN_SUCCESS, gearman_client_echo(client, test_literal_param("foo")));
-
   const char *worker_function= (const char *)gearman_client_context(client);
   ASSERT_TRUE(worker_function);
   gearman_string_t value= { test_literal_param("submit_job_test") };
@@ -464,6 +462,16 @@ static test_return_t submit_job_test(void *object)
   free(job_result);
 
   return TEST_SUCCESS;
+}
+
+static test_return_t submit_echo_job_test(void *object)
+{
+  gearman_client_st *client= (gearman_client_st *)object;
+  ASSERT_TRUE(client);
+
+  ASSERT_EQ(GEARMAN_SUCCESS, gearman_client_echo(client, test_literal_param("foo")));
+  
+  return submit_job_test(object);
 }
 
 static test_return_t submit_null_job_test(void *object)
@@ -625,7 +633,7 @@ static void test_free_fn(void *ptr, void *context)
 {
   bool *free_check= (bool *)context;
   *free_check= true;
-  return free(ptr);
+  free(ptr);
 }
 
 static test_return_t gearman_client_set_workload_malloc_fn_test(void *object)
@@ -679,7 +687,9 @@ struct _alloc_test_st {
   bool success() // count is valid as 1 only with the current test
   {
     if (total and count == 1)
+    {
       return true;
+    }
 
     std::cerr << __func__ << ":" << __LINE__ << " Total:" <<  total << " Count:" << count << std::endl;
 
@@ -2258,6 +2268,7 @@ test_st gearman_client_st_init_TESTS[] ={
 
 test_st gearman_client_st_TESTS[] ={
   {"submit_job", 0, submit_job_test },
+  {"submit_echo_job", 0, submit_echo_job_test },
   {"submit_null_job", 0, submit_null_job_test },
   {"exception", 0, submit_exception_job_test },
   {"warning", 0, submit_warning_job_test },
