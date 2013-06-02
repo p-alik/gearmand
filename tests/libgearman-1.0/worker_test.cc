@@ -64,6 +64,7 @@ using namespace org::gearmand;
 #include "tests/workers/v2/echo_or_react.h"
 #include "tests/workers/v2/echo_or_react_chunk.h"
 #include "tests/workers/v2/call_exception.h"
+#include "tests/workers/v2/check_order.h"
 
 static test_return_t init_test(void *)
 {
@@ -412,6 +413,74 @@ static test_return_t gearman_worker_add_server_GEARMAN_GETADDRINFO_TEST(void *)
 
   return TEST_SUCCESS;
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunsafe-loop-optimizations"
+static test_return_t job_order_TEST(void *)
+{
+  libgearman::Client client(libtest::default_port());;
+  ASSERT_EQ(true, gearman_client_set_server_option(&client, test_literal_param("exceptions")));
+  gearman_client_add_options(&client, GEARMAN_CLIENT_EXCEPTION);
+  gearman_client_add_options(&client, GEARMAN_CLIENT_GENERATE_UNIQUE);
+
+  std::vector<gearman_task_st*> tasks;
+  const uint32_t order_seed= __LINE__;
+  uint32_t spaces= 0;
+  for (uint32_t x= order_seed +10; x != order_seed; --x)
+  {
+    gearman_return_t ret;
+    char buffer[30];
+    memset(buffer, 0, sizeof(buffer));
+    int buffer_length= snprintf(buffer, sizeof(buffer), "%u", x);
+    for (uint32_t y= 0; y <= spaces; ++y)
+    {
+      buffer[buffer_length +y]= ' ';
+    }
+    ++spaces;
+    gearman_task_st* task= gearman_client_add_task(&client,
+                                                   NULL, // task
+                                                   NULL, // context
+                                                   __func__, // function_name,
+                                                   NULL, // unique
+                                                   buffer, // workload
+                                                   size_t(buffer_length +1 +spaces), // length of workload
+                                                   &ret);
+    ASSERT_EQ(GEARMAN_SUCCESS, ret);
+    ASSERT_TRUE(task);
+    tasks.push_back(task);
+  }
+
+  uint32_t order_context= order_seed +1;
+  gearman_function_t check_order_worker_TEST_FN= gearman_function_create(check_order_worker);
+  std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
+                                                           NULL,
+                                                           __func__,
+                                                           check_order_worker_TEST_FN,
+                                                           (void*)&order_context,
+                                                           gearman_worker_options_t(),
+                                                           0)); // timeout
+
+  {
+    gearman_return_t ret;
+    do {
+      ret= gearman_client_run_tasks(&client);
+    } while (gearman_continue(ret));
+    ASSERT_EQ(GEARMAN_SUCCESS, ret);
+  }
+
+  for (std::vector<gearman_task_st*>::iterator iter= tasks.begin();
+       iter != tasks.end(); ++iter)
+  {
+    if (gearman_task_return(*iter) != GEARMAN_SUCCESS)
+    {
+      Error << gearman_task_error(*iter);
+    }
+    ASSERT_EQ(GEARMAN_SUCCESS, gearman_task_return(*iter));
+  }
+
+  return TEST_SUCCESS;
+}
+#pragma GCC diagnostic pop
 
 static test_return_t echo_max_test(void *)
 {
@@ -1378,6 +1447,7 @@ test_st worker_TESTS[] ={
   {"gearman_client_job_status(is_known)", 0, gearman_client_job_status_is_known_TEST },
   {"gearman_job_send_exception()", 0, gearman_job_send_exception_TEST },
   {"gearman_job_send_exception(mass)", 0, gearman_job_send_exception_mass_TEST },
+  {"job order", 0, job_order_TEST },
   {"echo_max", 0, echo_max_test },
   {"abandoned_worker", 0, abandoned_worker_test },
   {0, 0, 0}
