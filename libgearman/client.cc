@@ -101,7 +101,7 @@ static void *_client_do(gearman_client_st *client, gearman_command_t command,
     ret_ptr= &unused;
   }
 
-  if (client == NULL)
+  if (client == NULL or client->impl() == NULL)
   {
     *ret_ptr= GEARMAN_INVALID_ARGUMENT;
     return NULL;
@@ -122,12 +122,14 @@ static void *_client_do(gearman_client_st *client, gearman_command_t command,
 
   gearman_task_st do_task;
   {
+    client->impl()->universal.options.no_new_data= true;
     gearman_task_st *do_task_ptr= add_task(*client, &do_task, NULL, command,
                                            function,
                                            local_unique,
                                            workload,
                                            time_t(0),
                                            gearman_actions_do_default());
+    client->impl()->universal.options.no_new_data= false;
     if (do_task_ptr == NULL)
     {
       *ret_ptr= client->impl()->universal.error_code();
@@ -231,6 +233,7 @@ static gearman_return_t _client_do_background(gearman_client_st *client,
 
   gearman_task_st do_task;
   {
+    client->impl()->universal.options.no_new_data= true;
     gearman_task_st* do_task_ptr= add_task(*client, &do_task, 
                                            client, 
                                            command,
@@ -239,6 +242,8 @@ static gearman_return_t _client_do_background(gearman_client_st *client,
                                            workload,
                                            time_t(0),
                                            gearman_actions_do_default());
+    client->impl()->universal.options.no_new_data= false;
+
     if (do_task_ptr == NULL)
     {
       return client->impl()->universal.error_code();

@@ -64,10 +64,12 @@ struct gearman_universal_st
   struct Options {
     bool dont_track_packets;
     bool non_blocking;
+    bool no_new_data;
 
     Options() :
       dont_track_packets(false),
-      non_blocking(false)
+      non_blocking(false),
+      no_new_data(false)
     { }
   } options;
   gearman_verbose_t verbose;
