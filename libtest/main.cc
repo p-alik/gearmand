@@ -234,6 +234,11 @@ int main(int argc, char *argv[], char* environ_[])
     }
   }
 
+  if ((bool(getenv("YATL_WILDCARD"))))
+  {
+    wildcard= getenv("YATL_WILDCARD");
+  }
+
   if ((bool(getenv("YATL_RUN_MASSIVE_TESTS"))) or opt_massive)
   {
     opt_massive= true;

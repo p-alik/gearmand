@@ -79,12 +79,24 @@ inline static gearman_return_t packet_create_arg(gearman_packet_st *packet,
 
   if (packet->argc == gearman_command_info(packet->command)->argc)
   {
-    packet->data= arg;
-    packet->data_size= arg_size;
-    return GEARMAN_SUCCESS;
+    if (gearman_command_info(packet->command)->data)
+    {
+      void* tmp_data= realloc((void*)packet->data, arg_size);
+      if (tmp_data == NULL)
+      {
+        return gearman_perror(*packet->universal, "packet->data");
+      }
+      packet->data= tmp_data;
+
+      memcpy((void*)packet->data, arg, arg_size);
+      packet->data_size= arg_size;
+      packet->options.free_data= true;
+
+      return GEARMAN_SUCCESS;
+    }
   }
 
-  if (packet->args_size == 0 && packet->magic != GEARMAN_MAGIC_TEXT)
+  if (packet->args_size == 0 and packet->magic != GEARMAN_MAGIC_TEXT)
   {
     packet->args_size= GEARMAN_PACKET_HEADER_SIZE;
   }

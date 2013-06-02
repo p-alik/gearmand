@@ -58,22 +58,25 @@ template<class Ch, class Tr, class A>
     void operator()(const stream_buffer& s, std::ostream& _out,
                     const char* filename, int line_number, const char* func)
     {
-      if (filename)
+      if (_out.good())
       {
-        _out
-          << filename 
-          << ":" 
-          << line_number 
-          << ": in " 
-          << func << "() "
-          << s.str()
-          << std::endl;
-      }
-      else
-      {
-        _out
-          << s.str()
-          << std::endl;
+        if (filename)
+        {
+          _out
+            << filename 
+            << ":" 
+            << line_number 
+            << ": in " 
+            << func << "() "
+            << s.str()
+            << std::endl;
+        }
+        else
+        {
+          _out
+            << s.str()
+            << std::endl;
+        }
       }
     }
   };
@@ -89,24 +92,27 @@ template<class Ch, class Tr, class A>
     void operator()(const stream_buffer& s, std::ostream& _out,
                     const char* filename, int line_number, const char* func)
     {
-      if (filename)
+      if (_out.good())
       {
-        _out
-          << std::endl
-          << filename 
-          << ":" 
-          << line_number 
-          << ": in " 
-          << func << "() "
-          << s.str()
-          << std::endl;
-      }
-      else
-      {
-        _out
-          << std::endl
-          << s.str()
-          << std::endl;
+        if (filename)
+        {
+          _out
+            << std::endl
+            << filename 
+            << ":" 
+            << line_number 
+            << ": in " 
+            << func << "() "
+            << s.str()
+            << std::endl;
+        }
+        else
+        {
+          _out
+            << std::endl
+            << s.str()
+            << std::endl;
+        }
       }
     }
   };

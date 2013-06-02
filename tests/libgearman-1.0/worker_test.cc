@@ -414,6 +414,8 @@ static test_return_t gearman_worker_add_server_GEARMAN_GETADDRINFO_TEST(void *)
   return TEST_SUCCESS;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunsafe-loop-optimizations"
 static test_return_t job_order_TEST(void *)
 {
   libgearman::Client client(libtest::default_port());;
@@ -423,18 +425,25 @@ static test_return_t job_order_TEST(void *)
 
   std::vector<gearman_task_st*> tasks;
   const uint32_t order_seed= __LINE__;
+  uint32_t spaces= 0;
   for (uint32_t x= order_seed +10; x != order_seed; --x)
   {
     gearman_return_t ret;
     char buffer[30];
+    memset(buffer, 0, sizeof(buffer));
     int buffer_length= snprintf(buffer, sizeof(buffer), "%u", x);
+    for (uint32_t y= 0; y <= spaces; ++y)
+    {
+      buffer[buffer_length +y]= ' ';
+    }
+    ++spaces;
     gearman_task_st* task= gearman_client_add_task(&client,
                                                    NULL, // task
                                                    NULL, // context
                                                    __func__, // function_name,
                                                    NULL, // unique
                                                    buffer, // workload
-                                                   size_t(buffer_length +1), // length of workload
+                                                   size_t(buffer_length +1 +spaces), // length of workload
                                                    &ret);
     ASSERT_EQ(GEARMAN_SUCCESS, ret);
     ASSERT_TRUE(task);
@@ -471,6 +480,7 @@ static test_return_t job_order_TEST(void *)
 
   return TEST_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 static test_return_t echo_max_test(void *)
 {
