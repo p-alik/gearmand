@@ -204,7 +204,7 @@ gearman_task_st *add_task(gearman_client_st& client,
   task_shell= gearman_task_internal_create(client, task_shell);
   if (task_shell == NULL or task_shell->impl() == NULL)
   {
-    gearman_error(client.impl()->universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "");
+    assert(client.impl()->universal.error());
     return NULL;
   }
   assert(task_shell->impl()->client);
@@ -380,7 +380,7 @@ gearman_task_st *add_reducer_task(gearman_client_st *client,
   gearman_task_st *task= gearman_task_internal_create(*client, NULL);
   if (task == NULL)
   {
-    gearman_error(client->impl()->universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "");
+    assert(client->impl()->universal.error_code());
     return NULL;
   }
 

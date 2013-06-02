@@ -329,7 +329,7 @@ const char *gearman_client_error(const gearman_client_st *client_shell)
 
 gearman_return_t gearman_client_error_code(const gearman_client_st *client_shell)
 {
-  if (client_shell)
+  if (client_shell and client_shell->impl())
   {
     return client_shell->impl()->universal.error_code();
   }
@@ -339,7 +339,7 @@ gearman_return_t gearman_client_error_code(const gearman_client_st *client_shell
 
 int gearman_client_errno(const gearman_client_st *client_shell)
 {
-  if (client_shell)
+  if (client_shell and client_shell->impl())
   {
     return client_shell->impl()->universal.last_errno();
   }
@@ -1211,7 +1211,7 @@ gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
 
   if ((task_shell= gearman_task_internal_create(*client, task_shell)) == NULL)
   {
-    *ret_ptr= GEARMAN_MEMORY_ALLOCATION_FAILURE;
+    *ret_ptr= gearman_client_error_code(client);
     return NULL;
   }
 
@@ -1272,7 +1272,7 @@ gearman_task_st *gearman_client_add_task_status_by_unique(gearman_client_st *cli
 
   if ((task_shell= gearman_task_internal_create(*client, task_shell)) == NULL)
   {
-    *ret_ptr= GEARMAN_MEMORY_ALLOCATION_FAILURE;
+    *ret_ptr= gearman_client_error_code(client);
     return NULL;
   }
 
@@ -1302,7 +1302,7 @@ gearman_task_st *gearman_client_add_task_status_by_unique(gearman_client_st *cli
 void gearman_client_set_workload_fn(gearman_client_st *client,
                                     gearman_workload_fn *function)
 {
-  if (client)
+  if (client and client->impl())
   {
     client->impl()->actions.workload_fn= function;
   }
@@ -1311,7 +1311,7 @@ void gearman_client_set_workload_fn(gearman_client_st *client,
 void gearman_client_set_created_fn(gearman_client_st *client,
                                    gearman_created_fn *function)
 {
-  if (client)
+  if (client and client->impl())
   {
     client->impl()->actions.created_fn= function;
   }
@@ -1320,7 +1320,7 @@ void gearman_client_set_created_fn(gearman_client_st *client,
 void gearman_client_set_data_fn(gearman_client_st *client,
                                 gearman_data_fn *function)
 {
-  if (client)
+  if (client and client->impl())
   {
     client->impl()->actions.data_fn= function;
   }
@@ -1329,7 +1329,7 @@ void gearman_client_set_data_fn(gearman_client_st *client,
 void gearman_client_set_warning_fn(gearman_client_st *client,
                                    gearman_warning_fn *function)
 {
-  if (client)
+  if (client and client->impl())
   {
     client->impl()->actions.warning_fn= function;
   }
@@ -1338,7 +1338,7 @@ void gearman_client_set_warning_fn(gearman_client_st *client,
 void gearman_client_set_status_fn(gearman_client_st *client,
                                   gearman_universal_status_fn *function)
 {
-  if (client)
+  if (client and client->impl())
   {
     client->impl()->actions.status_fn= function;
   }
@@ -1347,7 +1347,7 @@ void gearman_client_set_status_fn(gearman_client_st *client,
 void gearman_client_set_complete_fn(gearman_client_st *client,
                                     gearman_complete_fn *function)
 {
-  if (client)
+  if (client and client->impl())
   {
     client->impl()->actions.complete_fn= function;
   }
@@ -1356,7 +1356,7 @@ void gearman_client_set_complete_fn(gearman_client_st *client,
 void gearman_client_set_exception_fn(gearman_client_st *client,
                                      gearman_exception_fn *function)
 {
-  if (client)
+  if (client and client->impl())
   {
     client->impl()->actions.exception_fn= function;
   }
@@ -1365,7 +1365,7 @@ void gearman_client_set_exception_fn(gearman_client_st *client,
 void gearman_client_set_fail_fn(gearman_client_st* client,
                                 gearman_fail_fn *function)
 {
-  if (client)
+  if (client and client->impl())
   {
     client->impl()->actions.fail_fn= function;
   }
@@ -1373,7 +1373,7 @@ void gearman_client_set_fail_fn(gearman_client_st* client,
 
 void gearman_client_clear_fn(gearman_client_st* client)
 {
-  if (client)
+  if (client and client->impl())
   {
     client->impl()->actions= gearman_actions_default();
   }
@@ -1686,7 +1686,7 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client, gear
 
 gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
 {
-  if (client == NULL)
+  if (client == NULL or client->impl() == NULL)
   {
     return GEARMAN_INVALID_ARGUMENT;
   }
