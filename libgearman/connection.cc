@@ -472,8 +472,7 @@ gearman_return_t gearman_connection_st::send_packet(const gearman_packet_st& pac
       if (gearman_failed(ret))
       {
         gearman_packet_free(&message);
-        gearman_error(universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "gearman_packet_create_args()");
-        return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+        return gearman_error(universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "gearman_packet_create_args()");
       }
 
       PUSH_BLOCKING(universal);
@@ -482,8 +481,7 @@ gearman_return_t gearman_connection_st::send_packet(const gearman_packet_st& pac
       if (gearman_failed(ret))
       {
         gearman_packet_free(&message);
-        gearman_error(universal, ret, "Failed to send server-options packet");
-        return ret;
+        return gearman_error(universal, ret, "Failed to send server-options packet");
       }
 
       options.packet_in_use= true;
@@ -492,8 +490,7 @@ gearman_return_t gearman_connection_st::send_packet(const gearman_packet_st& pac
       {
         gearman_packet_free(&message);
         options.packet_in_use= false;
-        gearman_error(universal, ret, "Failed in receiving()");
-        return ret;
+        return gearman_error(universal, ret, "Failed in receiving()");
       }
 
       if (gearman_failed(ret) ||
@@ -546,10 +543,6 @@ gearman_return_t gearman_connection_st::_send_packet(const gearman_packet_st& pa
         {
           send_buffer_size+= send_size;
           break;
-        }
-        else if (rc == GEARMAN_IGNORE_PACKET)
-        {
-          return GEARMAN_SUCCESS;
         }
         else if (rc != GEARMAN_FLUSH_DATA)
         {
@@ -820,7 +813,7 @@ gearman_return_t gearman_connection_st::flush()
         default:
           gearman_perror(universal, "connect");
           close_socket();
-          return GEARMAN_COULD_NOT_CONNECT;
+          return gearman_universal_set_error(universal, GEARMAN_COULD_NOT_CONNECT, GEARMAN_AT, "%s:%s", _host, _service);
         }
 
         break;
@@ -1208,7 +1201,7 @@ size_t gearman_connection_st::recv_socket(void *data, size_t data_size, gearman_
       {
         continue;
       }
-      else if (errno == EPIPE || errno == ECONNRESET || errno == EHOSTDOWN)
+      else if (errno == EPIPE or errno == ECONNRESET or errno == EHOSTDOWN)
       {
         ret= gearman_perror(universal, "lost connection to server during read");
       }
@@ -1283,8 +1276,7 @@ gearman_return_t gearman_connection_st::set_socket_options()
                     socklen_t(sizeof(int)));
     if (ret == -1 && errno != EOPNOTSUPP)
     {
-      gearman_perror(universal, "setsockopt(TCP_NODELAY)");
-      return GEARMAN_ERRNO;
+      return gearman_perror(universal, "setsockopt(TCP_NODELAY)");
     }
   }
 
@@ -1296,8 +1288,7 @@ gearman_return_t gearman_connection_st::set_socket_options()
                         socklen_t(sizeof(struct linger)));
     if (ret == -1)
     {
-      gearman_perror(universal, "setsockopt(SO_LINGER)");
-      return GEARMAN_ERRNO;
+      return gearman_perror(universal, "setsockopt(SO_LINGER)");
     }
   }
 
@@ -1330,8 +1321,7 @@ gearman_return_t gearman_connection_st::set_socket_options()
     int ret= setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &optval, sizeof(optval));
     if (ret == -1 && errno != ENOPROTOOPT)
     {
-      gearman_perror(universal, "setsockopt(SO_KEEPALIVE)");
-      return GEARMAN_ERRNO;
+      return gearman_perror(universal, "setsockopt(SO_KEEPALIVE)");
     }
   }
 
@@ -1340,8 +1330,7 @@ gearman_return_t gearman_connection_st::set_socket_options()
     ret= setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &ret, socklen_t(sizeof(int)));
     if (ret == -1)
     {
-      gearman_perror(universal, "setsockopt(SO_SNDBUF)");
-      return GEARMAN_ERRNO;
+      return gearman_perror(universal, "setsockopt(SO_SNDBUF)");
     }
   }
 
@@ -1364,8 +1353,7 @@ gearman_return_t gearman_connection_st::set_socket_options()
     ret= setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &ret, socklen_t(sizeof(int)));
     if (ret == -1)
     {
-      gearman_perror(universal, "setsockopt(SO_RCVBUF)");
-      return GEARMAN_ERRNO;
+      return gearman_perror(universal, "setsockopt(SO_RCVBUF)");
     }
   }
 
@@ -1380,8 +1368,7 @@ gearman_return_t gearman_connection_st::set_socket_options()
 
     if (flags == -1)
     {
-      gearman_perror(universal, "fcntl(F_GETFL)");
-      return GEARMAN_ERRNO;
+      return gearman_perror(universal, "fcntl(F_GETFL)");
     }
     else if ((flags & O_NONBLOCK) == 0)
     {
@@ -1393,8 +1380,7 @@ gearman_return_t gearman_connection_st::set_socket_options()
 
       if (retval == -1)
       {
-        gearman_perror(universal, "fcntl(F_SETFL)");
-        return GEARMAN_ERRNO;
+        return gearman_perror(universal, "fcntl(F_SETFL)");
       }
     }
   }
