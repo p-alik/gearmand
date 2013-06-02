@@ -100,7 +100,9 @@ AC_CHECK_PROGS([DPKG_GENSYMBOLS],[dpkg-gensymbols])
 AC_CHECK_PROGS([PERL],[perl])
 AC_CHECK_PROGS([VALGRIND],['valgrind'])
 AC_CHECK_PROGS([WINE],['wine'])
-AC_PATH_PROG([GPERF],['gperf'])
+AC_PATH_PROG([GPERF],['gperf'],[])
+AS_IF([test -z "$GPERF"],
+      [AC_MSG_ERROR([could not find gperf])]])
 AC_PROG_AWK
 AC_PROG_INSTALL
 AC_PROG_LN_S
