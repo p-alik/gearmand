@@ -61,7 +61,6 @@ using namespace org::gearmand;
 
 #define HARD_CODED_EXCEPTION "my test exception"
 
-__thread int worker_count= 0;
 
 static gearman_return_t worker_fn(gearman_job_st* job, void*)
 {
@@ -70,8 +69,6 @@ static gearman_return_t worker_fn(gearman_job_st* job, void*)
     gearman_return_t ret;
     if (random() % 3)
     {
-      char buffer[1024];
-      snprintf(buffer, sizeof(buffer), "%.*s:%d", test_literal_printf_param(HARD_CODED_EXCEPTION), worker_count++);
       ret= gearman_job_send_exception(job, test_literal_param(HARD_CODED_EXCEPTION));
     }
     else
