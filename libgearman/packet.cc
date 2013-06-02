@@ -72,9 +72,8 @@ inline static gearman_return_t packet_create_arg(gearman_packet_st *packet,
   if (packet->argc == gearman_command_info(packet->command)->argc and
       (not (gearman_command_info(packet->command)->data) || packet->data != NULL))
   {
-    gearman_universal_set_error(*packet->universal, GEARMAN_TOO_MANY_ARGS, GEARMAN_AT, "too many arguments for command (%s)",
-                                gearman_command_info(packet->command)->name);
-    return GEARMAN_TOO_MANY_ARGS;
+    return gearman_universal_set_error(*packet->universal, GEARMAN_TOO_MANY_ARGS, GEARMAN_AT, "too many arguments for command (%s)",
+                                       gearman_command_info(packet->command)->name);
   }
 
   if (packet->argc == gearman_command_info(packet->command)->argc)
@@ -125,8 +124,7 @@ inline static gearman_return_t packet_create_arg(gearman_packet_st *packet,
     char *new_args= static_cast<char *>(realloc(packet->args, packet->args_size + arg_size +1));
     if (new_args == NULL)
     {
-      gearman_perror(*packet->universal, "packet realloc");
-      return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+      return gearman_perror(*packet->universal, "packet realloc");
     }
 
     if (was_args_buffer and packet->args_size > 0)
@@ -232,53 +230,30 @@ gearman_return_t gearman_packet_create_args(gearman_universal_st& universal,
 {
   if (gearman_packet_create(universal, &packet) == NULL)
   {
-    gearman_perror(universal, "failed in gearman_packet_create()");
-    return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+    assert(universal.error_code());
+    return universal.error_code();
   }
 
   packet.magic= magic;
   packet.command= command;
-
-#if 0
-  if (gearman_command_info(packet.command)->data)
-  {
-    assert_msg(args_count -1 == gearman_command_info(packet.command)->argc, 
-               "Programmer error, number of arguments incorrect for protocol");
-    if (bool(args_count -1 == gearman_command_info(packet.command)->argc) == false)
-    {
-      gearman_packet_free(&packet);
-      return gearman_universal_set_error(universal, GEARMAN_INVALID_ARGUMENT, GEARMAN_AT,
-                                         "Programmer error, number of arguments incorrect for protocol");
-    }
-  }
-  else
-  {
-    assert_msg(args_count == gearman_command_info(packet.command)->argc, 
-               "Programmer error, number of arguments incorrect for protocol");
-    if (bool(args_count == gearman_command_info(packet.command)->argc) == false)
-    {
-      gearman_packet_free(&packet);
-      return gearman_universal_set_error(universal, GEARMAN_INVALID_ARGUMENT, GEARMAN_AT,
-                                         "Programmer error, number of arguments incorrect for protocol");
-    }
-  }
-#endif
 
   for (size_t x= 0; x < args_count; x++)
   {
     gearman_return_t ret= packet_create_arg(&packet, args[x], args_size[x]);
     if (gearman_failed(ret))
     {
+      assert(ret == universal.error_code());
       gearman_packet_free(&packet);
-      return ret;
+      return universal.error_code();
     }
   }
 
   gearman_return_t ret= gearman_packet_pack_header(&packet);
   if (gearman_failed(ret))
   {
+    assert(ret == universal.error_code());
     gearman_packet_free(&packet);
-    return ret;
+    return universal.error_code();
   }
 
   return ret;
@@ -365,15 +340,13 @@ gearman_return_t gearman_packet_pack_header(gearman_packet_st *packet)
     break;
 
   default:
-    gearman_error(*packet->universal, GEARMAN_INVALID_MAGIC, "invalid magic value");
-    return GEARMAN_INVALID_MAGIC;
+    return gearman_error(*packet->universal, GEARMAN_INVALID_MAGIC, "invalid magic value");
   }
 
   if (packet->command == GEARMAN_COMMAND_TEXT ||
       packet->command >= GEARMAN_COMMAND_MAX)
   {
-    gearman_error(*packet->universal, GEARMAN_INVALID_COMMAND, "invalid command value");
-    return GEARMAN_INVALID_COMMAND;
+    return gearman_error(*packet->universal, GEARMAN_INVALID_COMMAND, "invalid command value");
   }
 
   uint32_t tmp= packet->command;
@@ -386,8 +359,7 @@ gearman_return_t gearman_packet_pack_header(gearman_packet_st *packet)
   // Check for overflow on 32bit(portable?).
   if (length_64 >= UINT32_MAX || length_64 < packet->data_size)
   {
-    gearman_error(*packet->universal, GEARMAN_ARGUMENT_TOO_LARGE, "data size too too long");
-    return GEARMAN_ARGUMENT_TOO_LARGE;
+    return gearman_error(*packet->universal, GEARMAN_ARGUMENT_TOO_LARGE, "data size too too long");
   }
 
   tmp= uint32_t(length_64);

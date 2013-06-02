@@ -256,8 +256,8 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
     pfds= static_cast<pollfd*>(realloc(universal.pfds, con_count * sizeof(struct pollfd)));
     if (pfds == NULL)
     {
-      gearman_perror(universal, "pollfd realloc");
-      return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+      return gearman_universal_set_error(universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, GEARMAN_AT,
+                                         "realloc failed to allocate %u pollfd", uint32_t(con_count));
     }
 
     universal.pfds= pfds;
@@ -649,8 +649,7 @@ gearman_return_t cancel_job(gearman_universal_st& universal,
   else
   {
     gearman_packet_free(&cancel_packet);
-    gearman_error(universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "gearman_packet_create_args()");
-    return ret;
+    return universal.error_code();
   }
 
   gearman_packet_free(&cancel_packet);
