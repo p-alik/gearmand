@@ -47,6 +47,7 @@
 #include "libgearman/assert.hpp"
 
 #include "libgearman/interface/push.hpp"
+#include "libgearman/log.hpp"
 
 #include <cerrno>
 #include <cstdio>
@@ -897,7 +898,6 @@ gearman_return_t gearman_connection_st::flush()
 #else
         write_size= ::send(fd, send_buffer_ptr, send_buffer_size, MSG_NOSIGNAL);
 #endif
-
         if (write_size == 0) // Zero value on send()
         { }
         else if (write_size == -1)
@@ -941,6 +941,7 @@ gearman_return_t gearman_connection_st::flush()
 
           return ret;
         }
+        gearman_log_debug(universal, "connection sent %u bytes of data", uint32_t(write_size));
 
         send_buffer_size-= size_t(write_size);
         if (send_state == GEARMAN_CON_SEND_UNIVERSAL_FLUSH_DATA)

@@ -52,6 +52,8 @@
 #include "libgearman/vector.h"
 #include "libgearman/uuid.hpp"
 
+#include "libgearman/protocol/echo.h"
+
 #include "libgearman/ssl.h"
 
 #include <cerrno>
@@ -574,38 +576,17 @@ static gearman_return_t connection_loop(gearman_universal_st& universal,
 
 
 gearman_return_t gearman_echo(gearman_universal_st& universal,
-                              const void *workload,
+                              const void *workload_str,
                               size_t workload_size)
 {
-  if (workload == NULL)
-  {
-    return gearman_error(universal, GEARMAN_INVALID_ARGUMENT, "workload was NULL");
-  }
-
-  if (workload_size == 0)
-  {
-    return gearman_error(universal, GEARMAN_INVALID_ARGUMENT,  "workload_size was 0");
-  }
-
-  if (workload_size > GEARMAN_MAX_ECHO_SIZE)
-  {
-    return gearman_error(universal, GEARMAN_ARGUMENT_TOO_LARGE,  "workload_size was greater then GEARMAN_MAX_ECHO_SIZE");
-  }
-
-  if (universal.has_connections() == false)
-  {
-    return gearman_universal_set_error(universal, GEARMAN_NO_SERVERS, GEARMAN_AT, "no servers provided");
-  }
-
+  gearman_string_t workload= { static_cast<const char*>(workload_str), workload_size };
   gearman_packet_st message;
-  gearman_return_t ret= gearman_packet_create_args(universal, message, GEARMAN_MAGIC_REQUEST,
-                                                   GEARMAN_COMMAND_ECHO_REQ,
-                                                   &workload, &workload_size, 1);
+  gearman_return_t ret=  libgearman::protocol::echo(universal, message, workload);
   if (gearman_success(ret))
   {
     PUSH_BLOCKING(universal);
 
-    EchoCheck check(universal, workload, workload_size);
+    EchoCheck check(universal, workload_str, workload_size);
     ret= connection_loop(universal, message, check);
   }
   else
