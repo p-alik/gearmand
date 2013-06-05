@@ -696,28 +696,22 @@ gearman_return_t gearman_connection_st::lookup()
 gearman_return_t gearman_connection_st::enable_ssl()
 {
 #if defined(HAVE_CYASSL) && HAVE_CYASSL
-  _ssl= CyaSSL_new(universal.ctx_ssl());
-  if (_ssl == NULL)
+  if (universal.ssl())
   {
-    close_socket();
-    return gearman_error(universal, GEARMAN_COULD_NOT_CONNECT, "CyaSSL_new() failed to return a valid object");
-  }
+    _ssl= CyaSSL_new(universal.ctx_ssl());
+    if (_ssl == NULL)
+    {
+      close_socket();
+      return gearman_error(universal, GEARMAN_COULD_NOT_CONNECT, "CyaSSL_new() failed to return a valid object");
+    }
 
-  if (CyaSSL_set_fd(_ssl, fd) != SSL_SUCCESS)
-  {
-    close_socket();
-    char errorString[80];
-    return gearman_error(universal, GEARMAN_COULD_NOT_CONNECT, CyaSSL_ERR_error_string(CyaSSL_get_error(_ssl, 0), errorString));
+    if (CyaSSL_set_fd(_ssl, fd) != SSL_SUCCESS)
+    {
+      close_socket();
+      char errorString[80];
+      return gearman_error(universal, GEARMAN_COULD_NOT_CONNECT, CyaSSL_ERR_error_string(CyaSSL_get_error(_ssl, 0), errorString));
+    }
   }
-
-#if 0
-  if (CyaSSL_connect(_ssl) != SSL_SUCCESS)
-  {
-    close_socket();
-    char errorString[80];
-    return gearman_error(universal, GEARMAN_COULD_NOT_CONNECT, CyaSSL_ERR_error_string(CyaSSL_get_error(_ssl, 0), errorString));
-  }
-#endif
 #endif
 
   return GEARMAN_SUCCESS;
@@ -895,9 +889,12 @@ gearman_return_t gearman_connection_st::flush()
             }
           }
         }
-#else
-        write_size= ::send(fd, send_buffer_ptr, send_buffer_size, MSG_NOSIGNAL);
+        else
 #endif
+        {
+          write_size= ::send(fd, send_buffer_ptr, send_buffer_size, MSG_NOSIGNAL);
+        }
+
         if (write_size == 0) // Zero value on send()
         { }
         else if (write_size == -1)
@@ -1161,9 +1158,11 @@ size_t gearman_connection_st::recv_socket(void *data, size_t data_size, gearman_
         errno= EAGAIN;
       }
     }
-#else
-    read_size= ::recv(fd, data, data_size, MSG_NOSIGNAL);
+    else
 #endif
+    {
+      read_size= ::recv(fd, data, data_size, MSG_NOSIGNAL);
+    }
 
     if (read_size == 0)
     {

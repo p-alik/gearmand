@@ -296,6 +296,7 @@ gearman_client_st *gearman_client_clone(gearman_client_st *destination,
   destination->impl()->options.no_new= source->impl()->options.no_new;
   destination->impl()->options.free_tasks= source->impl()->options.free_tasks;
   destination->impl()->options.generate_unique= source->impl()->options.generate_unique;
+  destination->impl()->ssl(source->impl()->ssl());
   destination->impl()->actions= source->impl()->actions;
   destination->impl()->_do_handle[0]= 0;
 
@@ -378,6 +379,9 @@ gearman_client_options_t gearman_client_options(const gearman_client_st *client_
     if (client->options.generate_unique)
       options|= int(GEARMAN_CLIENT_GENERATE_UNIQUE);
 
+    if (client->ssl())
+      options|= int(GEARMAN_CLIENT_SSL);
+
     return gearman_client_options_t(options);
   }
 
@@ -412,6 +416,9 @@ bool gearman_client_has_option(gearman_client_st *client_shell,
     case GEARMAN_CLIENT_EXCEPTION:
       return client_shell->impl()->options.exceptions;
 
+    case GEARMAN_CLIENT_SSL:
+      return client_shell->impl()->ssl();
+
     default:
     case GEARMAN_CLIENT_TASK_IN_USE:
     case GEARMAN_CLIENT_MAX:
@@ -433,6 +440,7 @@ void gearman_client_set_options(gearman_client_st *client_shell,
       GEARMAN_CLIENT_FREE_TASKS,
       GEARMAN_CLIENT_GENERATE_UNIQUE,
       GEARMAN_CLIENT_EXCEPTION,
+      GEARMAN_CLIENT_SSL,
       GEARMAN_CLIENT_MAX
     };
 
@@ -479,6 +487,11 @@ void gearman_client_add_options(gearman_client_st *client_shell,
     if (options & GEARMAN_CLIENT_EXCEPTION)
     {
       client_shell->impl()->options.exceptions= gearman_client_set_server_option(client_shell, gearman_literal_param("exceptions"));
+    }
+
+    if (options & GEARMAN_CLIENT_SSL)
+    {
+      client_shell->impl()->ssl(true);
     }
   }
 }

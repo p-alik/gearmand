@@ -62,6 +62,7 @@ namespace libtest {
 
 SimpleClient::SimpleClient(const std::string& hostname_, in_port_t port_) :
   _is_connected(false),
+  _is_ssl(false),
   _hostname(hostname_),
   _port(port_),
   sock_fd(INVALID_SOCKET),
@@ -76,44 +77,32 @@ SimpleClient::SimpleClient(const std::string& hostname_, in_port_t port_) :
 
 void SimpleClient::init_ssl()
 {
+  if (_is_ssl)
+  {
 #if defined(HAVE_CYASSL) && HAVE_CYASSL
-  CyaSSL_Init();
+    CyaSSL_Init();
 
-  if ((_ctx_ssl = CyaSSL_CTX_new(CyaTLSv1_client_method())) == NULL)
-  {
-    FATAL("CyaSSL_CTX_new error" == NULL);
-  }
+    if ((_ctx_ssl= CyaSSL_CTX_new(CyaTLSv1_client_method())) == NULL)
+    {
+      FATAL("CyaSSL_CTX_new error" == NULL);
+    }
 
-  if (access(CA_CERT_PEM, R_OK) == -1)
-  {
-    FATAL("access(%s) -> %s", CA_CERT_PEM, strerror(errno));
-  }
+    if (CyaSSL_CTX_load_verify_locations(_ctx_ssl, CA_CERT_PEM, 0) != SSL_SUCCESS)
+    {
+      FATAL("CyaSSL_CTX_load_verify_locations(%s) cannot obtain certificate", CA_CERT_PEM);
+    }
 
-  if (CyaSSL_CTX_load_verify_locations(_ctx_ssl, CA_CERT_PEM, 0) != SSL_SUCCESS)
-  {
-    FATAL("CyaSSL_CTX_load_verify_locations(%s) cannot obtain certificate", CA_CERT_PEM);
-  }
+    if (CyaSSL_CTX_use_certificate_file(_ctx_ssl, CERT_PEM, SSL_FILETYPE_PEM) != SSL_SUCCESS)
+    {   
+      FATAL("CyaSSL_CTX_use_certificate_file(%s) cannot obtain certificate", CERT_PEM);
+    }
 
-  if (access(CERT_PEM, R_OK) == -1)
-  {
-    FATAL("access(%s) -> %s", CERT_PEM, strerror(errno));
-  }
-
-  if (CyaSSL_CTX_use_certificate_file(_ctx_ssl, CERT_PEM, SSL_FILETYPE_PEM) != SSL_SUCCESS)
-  {   
-    FATAL("CyaSSL_CTX_use_certificate_file(%s) cannot obtain certificate", CERT_PEM);
-  }
-
-  if (access(CERT_KEY_PEM, R_OK) == -1)
-  {
-    FATAL("access(%s) -> %s", CERT_KEY_PEM, strerror(errno));
-  }
-
-  if (CyaSSL_CTX_use_PrivateKey_file(_ctx_ssl, CERT_KEY_PEM, SSL_FILETYPE_PEM) != SSL_SUCCESS)
-  {   
-    FATAL("CyaSSL_CTX_use_PrivateKey_file(%s) cannot obtain certificate", CERT_KEY_PEM);
-  }
+    if (CyaSSL_CTX_use_PrivateKey_file(_ctx_ssl, CERT_KEY_PEM, SSL_FILETYPE_PEM) != SSL_SUCCESS)
+    {   
+      FATAL("CyaSSL_CTX_use_PrivateKey_file(%s) cannot obtain certificate", CERT_KEY_PEM);
+    }
 #endif // defined(HAVE_CYASSL) && HAVE_CYASSL
+  }
 }
 
 void SimpleClient::error(const char* file_, int line_, const std::string& error_)
@@ -229,6 +218,7 @@ void SimpleClient::close_socket()
 #if defined(HAVE_CYASSL) && HAVE_CYASSL
     CyaSSL_shutdown(_ssl); 
     CyaSSL_free(_ssl); 
+    _ssl= NULL;
 #endif
     close(sock_fd);
     sock_fd= INVALID_SOCKET;
@@ -302,32 +292,22 @@ bool SimpleClient::is_valid()
     if (instance_connect())
     {
 #if defined(HAVE_CYASSL) && HAVE_CYASSL
-      assert(_ctx_ssl);
-      _ssl= CyaSSL_new(_ctx_ssl);
-      if (_ssl == NULL)
+      if (_ctx_ssl)
       {
-        error(__FILE__, __LINE__, "CyaSSL_new failed");
-        return false;
-      }
+        _ssl= CyaSSL_new(_ctx_ssl);
+        if (_ssl == NULL)
+        {
+          error(__FILE__, __LINE__, "CyaSSL_new failed");
+          return false;
+        }
 
-      int ssl_error;
-      if ((ssl_error= CyaSSL_set_fd(_ssl, sock_fd)) != SSL_SUCCESS)
-      {
-        error(__FILE__, __LINE__, "CyaSSL_set_fd() should not be returning an error.");
-        return false;
+        int ssl_error;
+        if ((ssl_error= CyaSSL_set_fd(_ssl, sock_fd)) != SSL_SUCCESS)
+        {
+          error(__FILE__, __LINE__, "CyaSSL_set_fd() should not be returning an error.");
+          return false;
+        }
       }
-
-#if 0
-      int ret_CyaSSL_connect;
-      fatal_assert(_ssl);
-      if ((ret_CyaSSL_connect= CyaSSL_connect(_ssl)) != SSL_SUCCESS)
-      {
-        close_socket();
-        char buffer[80];
-        error(__FILE__, __LINE__, CyaSSL_ERR_error_string(CyaSSL_get_error(_ssl, 0), buffer));
-        return false;
-      }
-#endif
 #endif
 
       return true;

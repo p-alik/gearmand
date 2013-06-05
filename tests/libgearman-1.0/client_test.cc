@@ -1363,6 +1363,16 @@ static test_return_t gearman_client_errno_no_error_TEST(void *)
   return TEST_SUCCESS;
 }
 
+static test_return_t gearman_client_options_SSL_TEST(void *)
+{
+  libgearman::Client client;
+  ASSERT_FALSE(gearman_client_has_option(&client, GEARMAN_CLIENT_SSL));
+  gearman_client_add_options(&client, GEARMAN_CLIENT_SSL);
+  ASSERT_TRUE(gearman_client_has_option(&client, GEARMAN_CLIENT_SSL));
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t gearman_client_options_TEST(void *)
 {
   ASSERT_EQ(gearman_client_options_t(), gearman_client_options(NULL));
@@ -2427,6 +2437,7 @@ test_st gearman_client_st_NULL_invocation_TESTS[] ={
   {"gearman_client_errno()", 0, gearman_client_errno_TEST },
   {"gearman_client_errno() no error", 0, gearman_client_errno_no_error_TEST },
   {"gearman_client_options()", 0, gearman_client_options_TEST },
+  {"gearman_client_options(SSL)", 0, gearman_client_options_SSL_TEST },
   {0, 0, 0}
 };
 

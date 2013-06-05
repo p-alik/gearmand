@@ -157,6 +157,7 @@ gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker,
   worker->impl()->options.grab_uniq= source->impl()->options.grab_uniq;
   worker->impl()->options.grab_all= source->impl()->options.grab_all;
   worker->impl()->options.timeout_return= source->impl()->options.timeout_return;
+  worker->impl()->ssl(source->impl()->ssl());
 
   gearman_universal_clone(worker->impl()->universal, source->impl()->universal, true);
 
@@ -256,6 +257,8 @@ gearman_worker_options_t gearman_worker_options(const gearman_worker_st *worker)
       options|= int(GEARMAN_WORKER_GRAB_ALL);
     if (worker->impl()->options.timeout_return)
       options|= int(GEARMAN_WORKER_TIMEOUT_RETURN);
+    if (worker->impl()->ssl())
+      options|= int(GEARMAN_WORKER_SSL);
 
     return gearman_worker_options_t(options);
   }
@@ -273,6 +276,7 @@ void gearman_worker_set_options(gearman_worker_st *worker,
       GEARMAN_WORKER_GRAB_UNIQ,
       GEARMAN_WORKER_GRAB_ALL,
       GEARMAN_WORKER_TIMEOUT_RETURN,
+      GEARMAN_WORKER_SSL,
       GEARMAN_WORKER_MAX
     };
 
@@ -323,6 +327,11 @@ void gearman_worker_add_options(gearman_worker_st *worker,
     {
       worker->impl()->options.timeout_return= true;
     }
+
+    if (options & GEARMAN_WORKER_SSL)
+    {
+      worker->impl()->ssl(true);
+    }
   }
 }
 
@@ -355,6 +364,11 @@ void gearman_worker_remove_options(gearman_worker_st *worker,
       worker->impl()->grab_job.command= GEARMAN_COMMAND_GRAB_JOB;
       (void)gearman_packet_pack_header(&(worker->impl()->grab_job));
       worker->impl()->options.grab_all= false;
+    }
+
+    if (options & GEARMAN_WORKER_SSL)
+    {
+      worker->impl()->ssl(false);
     }
   }
 }

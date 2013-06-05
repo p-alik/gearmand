@@ -75,6 +75,11 @@ configmake.h: Makefile
 	@{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
 	  echo '#define SYSCONFDIR "$(sysconfdir)"'; \
 	  echo '#define GEARMAND_CONFIG "$(sysconfdir)/gearmand.conf"'; \
+	  echo '#define GEARMAND_CA_CERTIFICATE "$(sysconfdir)/ssl/certs/gearmand-ca.pem"'; \
+	  echo '#define GEARMAND_SERVER_PEM "$(sysconfdir)/ssl/certs/gearmand.pem"'; \
+	  echo '#define GEARMAND_SERVER_KEY "$(sysconfdir)/ssl/certs/gearmand.key"'; \
+	  echo '#define GEARMAND_CLIENT_PEM "$(sysconfdir)/ssl/certs/gearman.pem"'; \
+	  echo '#define GEARMAND_CLIENT_KEY "$(sysconfdir)/ssl/certs/gearman.key"'; \
 	  echo '#define LOCALSTATEDIR "$(localstatedir)"'; \
 	  echo '#define GEARMAND_PID "$(localstatedir)/gearmand.pid"'; \
 	  } | sed '/""/d' > $@-t

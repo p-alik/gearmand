@@ -41,7 +41,9 @@
 # include <cyassl/ssl.h>
 #endif
 
-#define CA_CERT_PEM "/home/brian/cyassl/certs/ca-cert.pem"
-#define CERT_PEM "/home/brian/cyassl/certs/server-cert.pem"
-#define CERT_KEY_PEM "/home/brian/cyassl/certs/server-key.pem"
+#include "configmake.h"
+
+#define CA_CERT_PEM GEARMAND_CA_CERTIFICATE
+#define CERT_PEM GEARMAND_CLIENT_PEM
+#define CERT_KEY_PEM GEARMAND_CLIENT_PEM
 

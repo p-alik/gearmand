@@ -65,11 +65,13 @@ struct gearman_universal_st
     bool dont_track_packets;
     bool non_blocking;
     bool no_new_data;
+    bool _ssl;
 
     Options() :
       dont_track_packets(false),
       non_blocking(false),
-      no_new_data(false)
+      no_new_data(false),
+      _ssl(false)
     { }
   } options;
   gearman_verbose_t verbose;
@@ -102,6 +104,16 @@ struct gearman_universal_st
 
   } _error;
   int wakeup_fd[2];
+
+  bool ssl() const
+  {
+    return options._ssl;
+  }
+
+  void ssl(bool ssl_)
+  {
+    options._ssl= ssl_;
+  }
 
   bool is_non_blocking() const
   {

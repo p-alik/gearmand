@@ -387,7 +387,6 @@ int main(int argc, char *argv[])
 
   gearmand_config_sockopt_keepalive(gearmand_config, opt_keepalive);
 
-
   gearmand_st *_gearmand= gearmand_create(gearmand_config,
                                           host.empty() ? NULL : host.c_str(),
                                           threads, backlog,

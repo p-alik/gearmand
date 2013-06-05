@@ -85,6 +85,7 @@ static void stats_print(libtest::Framework *frame)
 int main(int argc, char *argv[], char* environ_[])
 {
   bool opt_massive= false;
+  bool opt_ssl= false;
   unsigned long int opt_repeat= 1; // Run all tests once
   bool opt_verbose= false;
   bool opt_quiet= false;
@@ -128,7 +129,9 @@ int main(int argc, char *argv[], char* environ_[])
       OPT_LIBYATL_MASSIVE,
       OPT_LIBYATL_QUIET,
       OPT_LIBYATL_MATCH_WILDCARD,
-      OPT_LIBYATL_REPEAT
+      OPT_LIBYATL_REPEAT,
+      OPT_LIBYATL_SSL,
+      OPT_LIBYATL_MAX
     };
 
     static struct option long_options[]=
@@ -140,6 +143,7 @@ int main(int argc, char *argv[], char* environ_[])
       { "collection", required_argument, NULL, OPT_LIBYATL_MATCH_COLLECTION },
       { "wildcard", required_argument, NULL, OPT_LIBYATL_MATCH_WILDCARD },
       { "massive", no_argument, NULL, OPT_LIBYATL_MASSIVE },
+      { "ssl", no_argument, NULL, OPT_LIBYATL_SSL },
       { 0, 0, 0, 0 }
     };
 
@@ -181,6 +185,10 @@ int main(int argc, char *argv[], char* environ_[])
 
       case OPT_LIBYATL_MATCH_WILDCARD:
         wildcard= optarg;
+        break;
+
+      case OPT_LIBYATL_SSL:
+        opt_ssl= true;
         break;
 
       case OPT_LIBYATL_MASSIVE:
@@ -244,9 +252,19 @@ int main(int argc, char *argv[], char* environ_[])
     opt_massive= true;
   }
 
+  if ((bool(getenv("YATL_SSL"))) or opt_ssl)
+  {
+    opt_ssl= true;
+  }
+
   if (opt_quiet)
   {
     close(STDOUT_FILENO);
+  }
+
+  if (opt_ssl)
+  {
+    is_ssl(opt_ssl);
   }
 
   if (opt_massive)

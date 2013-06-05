@@ -43,6 +43,7 @@
  */
 
 #include "gear_config.h"
+#include "configmake.h"
 #include <libgearman/common.h>
 
 #include "libgearman/assert.hpp"
@@ -437,33 +438,36 @@ gearman_return_t gearman_universal_st::option(const universal_options_t& option_
 
 bool gearman_universal_st::init_ssl()
 {
+  if (options._ssl)
+  {
 #if defined(HAVE_CYASSL) && HAVE_CYASSL
-  CyaSSL_Init();
+    CyaSSL_Init();
 
-  if ((_ctx_ssl = CyaSSL_CTX_new(CyaTLSv1_client_method())) == NULL)
-  {
-    gearman_error(*this, GEARMAN_INVALID_ARGUMENT, "CyaTLSv1_client_method()");
-    return false;
-  }
+    if ((_ctx_ssl = CyaSSL_CTX_new(CyaTLSv1_client_method())) == NULL)
+    {
+      gearman_error(*this, GEARMAN_INVALID_ARGUMENT, "CyaTLSv1_client_method()");
+      return false;
+    }
 
-  if (CyaSSL_CTX_load_verify_locations(_ctx_ssl, CA_CERT_PEM, 0) != SSL_SUCCESS)
-  {
-    gearman_error(*this, GEARMAN_INVALID_ARGUMENT, CA_CERT_PEM);
-    return false;
-  }
+    if (CyaSSL_CTX_load_verify_locations(_ctx_ssl, GEARMAND_CA_CERTIFICATE, 0) != SSL_SUCCESS)
+    {
+      gearman_error(*this, GEARMAN_INVALID_ARGUMENT, CA_CERT_PEM);
+      return false;
+    }
 
-  if (CyaSSL_CTX_use_certificate_file(_ctx_ssl, CERT_PEM, SSL_FILETYPE_PEM) != SSL_SUCCESS)
-  {   
-    gearman_error(*this, GEARMAN_INVALID_ARGUMENT, CERT_PEM);
-    return false;
-  }
+    if (CyaSSL_CTX_use_certificate_file(_ctx_ssl, GEARMAND_CLIENT_PEM, SSL_FILETYPE_PEM) != SSL_SUCCESS)
+    {   
+      gearman_error(*this, GEARMAN_INVALID_ARGUMENT, CERT_PEM);
+      return false;
+    }
 
-  if (CyaSSL_CTX_use_PrivateKey_file(_ctx_ssl, CERT_KEY_PEM, SSL_FILETYPE_PEM) != SSL_SUCCESS)
-  {   
-    gearman_error(*this, GEARMAN_INVALID_ARGUMENT, CERT_KEY_PEM);
-    return false;
-  }
+    if (CyaSSL_CTX_use_PrivateKey_file(_ctx_ssl, GEARMAND_CLIENT_KEY, SSL_FILETYPE_PEM) != SSL_SUCCESS)
+    {   
+      gearman_error(*this, GEARMAN_INVALID_ARGUMENT, CERT_KEY_PEM);
+      return false;
+    }
 #endif // defined(HAVE_CYASSL) && HAVE_CYASSL
+  }
 
   return true;
 }

@@ -58,6 +58,7 @@ public:
 
 private:
   std::string _port;
+  bool opt_ssl;
 };
 
 } // namespace protocol

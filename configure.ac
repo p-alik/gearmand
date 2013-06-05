@@ -222,9 +222,9 @@ AC_CHECK_LIB([rt],[clock_gettime],
 LT_LIB_M
 
 # Check for CyaSSL
-#AX_CHECK_LIBRARY([CYASSL],[cyassl/ssl.h],[cyassl])
-AC_SUBST([CYASSL])
-AC_SUBST([CYASSL_LIB])
+AX_CHECK_LIBRARY([CYASSL],[cyassl/ssl.h],[cyassl])
+#AC_SUBST([CYASSL])
+#AC_SUBST([CYASSL_LIB])
 AX_ENABLE_LIBMEMCACHED
 
 AC_DEFINE([GEARMAND_BLOBSLAP_WORKER],[1],[Have Gearman Blobslap Worker])

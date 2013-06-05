@@ -95,6 +95,7 @@ private: // Methods
 
 private:
   bool _is_connected;
+  bool _is_ssl;
   std::string _hostname;
   in_port_t _port;
   int sock_fd;
