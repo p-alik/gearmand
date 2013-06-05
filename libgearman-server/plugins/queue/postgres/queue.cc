@@ -197,9 +197,8 @@ gearmand_error_t _initialize(gearman_server_st& server,
 
   if (queue->con == NULL || PQstatus(queue->con) != CONNECTION_OK)
   {
-    gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "PQconnectdb: %s", PQerrorMessage(queue->con));
     gearman_server_set_queue(server, NULL, NULL, NULL, NULL, NULL);
-    return GEARMAND_QUEUE_ERROR;
+    return gearmand_log_gerror(GEARMAN_DEFAULT_LOG_PARAM, GEARMAND_QUEUE_ERROR, "PQconnectdb: %s", PQerrorMessage(queue->con));
   }
 
   (void)PQsetNoticeProcessor(queue->con, _libpq_notice_processor, &server);
@@ -263,22 +262,24 @@ static gearmand_error_t _libpq_add(gearman_server_st*, void *context,
   (void)when;
   gearmand::plugins::queue::Postgres *queue= (gearmand::plugins::queue::Postgres *)context;
 
-  char buffer[22];
-  snprintf(buffer, sizeof(buffer), "%u", static_cast<uint32_t>(priority));
+  char priority_buffer[GEARMAN_MAXIMUM_INTEGER_DISPLAY_LENGTH +1];
+  int priority_buffer_length= snprintf(priority_buffer, sizeof(priority_buffer), "%u", static_cast<uint32_t>(priority));
+  char when_buffer[GEARMAN_MAXIMUM_INTEGER_DISPLAY_LENGTH +1];
+  int when_buffer_length= snprintf(when_buffer, sizeof(when_buffer), "%" PRId64, when);
 
   const char *param_values[]= {
-    (char *)buffer,
+    (char *)priority_buffer,
     (char *)unique,
     (char *)function_name,
     (char *)data,
-    (char *)when };
+    (char *)when_buffer };
 
   int param_lengths[]= {
-    (int)strlen(buffer),
+    (int)priority_buffer_length,
     (int)unique_size,
     (int)function_name_size,
     (int)data_size,
-    (int)when };
+    (int)when_buffer_length };
 
   int param_formats[] = { 0, 0, 0, 1, 0 };
 

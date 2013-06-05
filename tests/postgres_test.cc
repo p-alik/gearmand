@@ -60,7 +60,7 @@ static test_return_t gearmand_basic_option_test(void *)
 {
   const char *args[]= { "--check-args",
     "--queue-type=Postgres",
-    "--libpq-conninfo=\"host=localhost port=5432 user=root dbname=gearman\"",
+    "--libpq-conninfo", "host=localhost dbname=gearman",
     "--libpq-table=gearman",
     0 };
 
@@ -73,7 +73,7 @@ static test_return_t collection_init(void *object)
 {
   const char *argv[]= {
     "--queue-type=Postgres",
-    "--libpq-conninfo=\"host=localhost port=5432 user=root dbname=gearman\"",
+    "--libpq-conninfo", "host=localhost dbname=gearman",
     "--libpq-table=gearman",
     0 };
 
