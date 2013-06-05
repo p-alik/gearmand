@@ -146,6 +146,12 @@ bool Gearmand::build()
 
   add_option("--listen=localhost");
 
+
+  if (is_ssl())
+  {
+    add_option("--ssl");
+  }
+
   return true;
 }
 

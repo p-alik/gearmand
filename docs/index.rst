@@ -29,6 +29,7 @@ Server
 
    gearmand
    gearmand/queues
+   gearmand/ssl
 
 ------------------
 Command Line Tools

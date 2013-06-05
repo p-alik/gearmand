@@ -45,6 +45,10 @@ namespace gearmand {
 class Config
 {
 public:
+  Config()
+  {
+  }
+
   gearmand_st::SocketOpt& sockopt()
   {
     return _sockopt;

@@ -115,6 +115,16 @@ struct Client
     return _shell;
   }
 
+  bool ssl() const
+  {
+    return universal.ssl();
+  }
+
+  void ssl(bool ssl_)
+  {
+    universal.ssl(ssl_);
+  }
+
 private:
   gearman_client_st* _shell;
   gearman_client_st _owned_shell;

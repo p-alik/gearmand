@@ -117,6 +117,16 @@ struct Worker
     return _shell;
   }
 
+  bool ssl() const
+  {
+    return universal.options._ssl;
+  }
+
+  void ssl(bool ssl_)
+  {
+    universal.options._ssl= ssl_;
+  }
+
 private:
   gearman_worker_st* _shell;
   gearman_worker_st _owned_shell;

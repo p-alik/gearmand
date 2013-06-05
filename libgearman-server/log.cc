@@ -254,6 +254,7 @@ gearmand_error_t gearmand_log_fatal(const char *position, const char *func, cons
     gearmand_log(position, func, GEARMAND_VERBOSE_FATAL, GEARMAND_SUCCESS, format, args);
     va_end(args);
   }
+  abort();
 
   return GEARMAND_ERRNO;
 }

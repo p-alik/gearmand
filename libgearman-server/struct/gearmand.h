@@ -171,6 +171,10 @@ struct gearmand_st
     }
     wakeup_fd[0]= -1;
     wakeup_fd[1]= -1;
+  }
+
+  void init_ssl()
+  {
 #if defined(HAVE_CYASSL) && HAVE_CYASSL
     CyaSSL_Init();
     _ctx_ssl= CyaSSL_CTX_new(CyaSSLv23_server_method());
