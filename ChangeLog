@@ -1,6 +1,7 @@
-1.1.8
+1.1.8 Thu Jun  6 18:47:01 EDT 2013
 * Postgres test case now passes.
 * SSL support added.
+* OSX fixes.
 
 1.1.7 Mon May  6 06:46:20 EDT 2013
 * Cleanup of error codes returned by gearmand.
