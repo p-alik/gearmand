@@ -46,3 +46,4 @@ support/gearmand.spec
 tests/client_test
 tests/worker_test
 valgrind*xml
+cmd*xml
