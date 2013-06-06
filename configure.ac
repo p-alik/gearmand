@@ -97,6 +97,7 @@ AX_ENABLE_LIBHIREDIS
 
 # Checks for programs.
 AC_CHECK_PROGS([DPKG_GENSYMBOLS],[dpkg-gensymbols])
+AC_CHECK_PROGS([OPENSSL],[openssl])
 AC_CHECK_PROGS([PERL],[perl])
 AC_CHECK_PROGS([VALGRIND],['valgrind'])
 AC_CHECK_PROGS([WINE],['wine'])
