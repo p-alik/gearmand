@@ -379,7 +379,6 @@ run_configure ()
   run_autoreconf_if_required
 
   # We always begin at the root of our build
-  popd
   if [ ! $? ]; then
     die "Programmer error, we entered run_configure with a stacked directory"
   fi
@@ -392,7 +391,6 @@ run_configure ()
   if [[ -n "$BUILD_DIR" ]]; then
     rm -r -f $BUILD_DIR
     mkdir -p $BUILD_DIR
-    safe_pushd $BUILD_DIR
   fi
 
   # Arguments for configure
@@ -423,16 +421,16 @@ run_configure ()
   # If we are executing on OSX use CLANG, otherwise only use it if we find it in the ENV
   case $HOST_OS in
     *-darwin-*)
-      CC=clang CXX=clang++ $top_srcdir/configure "$BUILD_CONFIGURE_ARG" || die "Cannot execute CC=clang CXX=clang++ configure $BUILD_CONFIGURE_ARG"
+      run CC=clang CXX=clang++ $top_srcdir/configure "$BUILD_CONFIGURE_ARG" || die "Cannot execute CC=clang CXX=clang++ configure $BUILD_CONFIGURE_ARG"
       ret=$?
       ;;
     rhel-5*)
       command_exists 'gcc44' || die "Could not locate gcc44"
-      CC=gcc44 CXX=gcc44 $top_srcdir/configure "$BUILD_CONFIGURE_ARG" || die "Cannot execute CC=gcc44 CXX=gcc44 configure $BUILD_CONFIGURE_ARG"
+      run CC=gcc44 CXX=gcc44 $top_srcdir/configure "$BUILD_CONFIGURE_ARG" || die "Cannot execute CC=gcc44 CXX=gcc44 configure $BUILD_CONFIGURE_ARG"
       ret=$?
       ;;
     *)
-      eval "$CONFIGURE $BUILD_CONFIGURE_ARG"
+      run $CONFIGURE $BUILD_CONFIGURE_ARG
       ret=$?
       ;;
   esac
@@ -536,30 +534,6 @@ restore_BUILD ()
   export -n CC CXX
 }
 
-safe_pushd ()
-{
-  pushd "$1" &> /dev/null ;
-
-  if [ -n "$BUILD_DIR" ]; then
-    if $verbose; then
-      echo "BUILD_DIR=$BUILD_DIR"
-    fi
-  fi
-}
-
-safe_popd ()
-{
-  local directory_to_delete="$(pwd)"
-  popd &> /dev/null ;
-  if [ $? -eq 0 ]; then
-    if [[ "$top_srcdir" == "$directory_to_delete" ]]; then
-      die "We almost deleted top_srcdir($top_srcdir), programmer error"
-    fi
-
-    rm -r -f "$directory_to_delete"
-  fi
-}
-
 make_valgrind ()
 {
   # If the env VALGRIND_COMMAND is set then we assume it is valid
@@ -594,8 +568,6 @@ make_valgrind ()
     TESTS_ENVIRONMENT="$VALGRIND_COMMAND"
   fi
 
-  VALGRIND_HOME="$(pwd)"
-  export VALGRIND_HOME
   make_target 'all'
   make_target 'check'
   ret=$?
@@ -636,7 +608,6 @@ make_install_system ()
   fi
 
   restore_BUILD
-  safe_popd
 }
 
 make_darwin_malloc ()
@@ -767,36 +738,6 @@ make_for_mingw ()
 
   make_skeleton
   ret=$?
-
-  restore_BUILD
-
-  return $ret
-}
-
-make_configure_with_args ()
-{
-  if ! check_clang; then
-    return 1
-  fi
-
-  # Make sure it is clean
-  if [ -f Makefile -o -f configure ]; then
-    make_maintainer_clean
-  fi
-
-  run_autoreconf
-
-  save_BUILD
-
-  CC=clang CXX=clang++
-  export CC CXX
-
-  CONFIGURE_ARG="$@"
-
-  make_skeleton
-  ret=$?
-
-  make_target 'check'
 
   restore_BUILD
 
@@ -957,8 +898,6 @@ make_for_continuus_integration ()
   esac
 
   make_maintainer_clean
-
-  safe_popd
 }
 
 # The point to this test is to test bootstrap.sh itself
@@ -1633,17 +1572,6 @@ execute_job ()
     case $target in
       'self')
         self_test
-        ;;
-      'sanitize-address')
-        make_distclean
-        if ! check_clang; then
-          die "clang was not found"
-        fi
-
-        make_configure_with_args "-fsanitize=address"
-        if ! $?; then
-          die "Failed to build clang: $?"
-        fi
         ;;
       'gdb')
         make_gdb
