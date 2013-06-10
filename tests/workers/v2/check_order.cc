@@ -51,10 +51,10 @@ using namespace libtest;
 
 gearman_return_t check_order_worker(gearman_job_st *job, void *context)
 {
-  uint32_t* next_number= (uint32_t*)context;
+  long* next_number= (long*)context;
 
   errno= 0;
-  uint32_t current_number= strtol((const char*)gearman_job_workload(job), NULL, 10);
+  long current_number= strtol((const char*)gearman_job_workload(job), NULL, 10);
   if (errno != 0)
   {
     char buffer[1024];
@@ -78,7 +78,7 @@ gearman_return_t check_order_worker(gearman_job_st *job, void *context)
   }
 
   char buffer[1024];
-  int excep_length= snprintf(buffer, sizeof(buffer), "current number %u != %u (next_number)", current_number, *next_number);
+  int excep_length= snprintf(buffer, sizeof(buffer), "current number %ld != %ld (next_number)", current_number, *next_number);
   gearman_return_t rc= gearman_job_send_exception(job, buffer, excep_length);
   if (rc == GEARMAN_SUCCESS)
   {

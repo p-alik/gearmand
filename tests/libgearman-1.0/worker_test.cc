@@ -415,6 +415,7 @@ static test_return_t gearman_worker_add_server_GEARMAN_GETADDRINFO_TEST(void *)
 }
 
 #pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunknown-pragmas"
 #pragma GCC diagnostic ignored "-Wunsafe-loop-optimizations"
 static test_return_t job_order_TEST(void *)
 {
@@ -424,14 +425,14 @@ static test_return_t job_order_TEST(void *)
   gearman_client_add_options(&client, GEARMAN_CLIENT_GENERATE_UNIQUE);
 
   std::vector<gearman_task_st*> tasks;
-  const uint32_t order_seed= __LINE__;
+  const long order_seed= __LINE__;
   uint32_t spaces= 0;
-  for (uint32_t x= order_seed +10; x != order_seed; --x)
+  for (long x= order_seed +10; x != order_seed; --x)
   {
     gearman_return_t ret;
     char buffer[30];
     memset(buffer, 0, sizeof(buffer));
-    int buffer_length= snprintf(buffer, sizeof(buffer), "%u", x);
+    int buffer_length= snprintf(buffer, sizeof(buffer), "%ld", x);
     for (uint32_t y= 0; y <= spaces; ++y)
     {
       buffer[buffer_length +y]= ' ';
@@ -450,7 +451,7 @@ static test_return_t job_order_TEST(void *)
     tasks.push_back(task);
   }
 
-  uint32_t order_context= order_seed +1;
+  long order_context= order_seed +1;
   gearman_function_t check_order_worker_TEST_FN= gearman_function_create(check_order_worker);
   std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
                                                            NULL,
