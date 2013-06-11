@@ -647,9 +647,9 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
               }
 
               for (worker->impl()->con= (&worker->impl()->universal)->con_list; worker->impl()->con;
-                   worker->impl()->con= worker->impl()->con->next)
+                   worker->impl()->con= worker->impl()->con->next_connection())
               {
-                if (worker->impl()->con->fd == -1)
+                if (worker->impl()->con->socket_descriptor_is_valid() == false)
                 {
                   continue;
                 }
@@ -698,10 +698,10 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
           }
 
           for (worker->impl()->con= (&worker->impl()->universal)->con_list; worker->impl()->con;
-               worker->impl()->con= worker->impl()->con->next)
+               worker->impl()->con= worker->impl()->con->next_connection())
           {
             /* If the connection to the job server is not active, start it. */
-            if (worker->impl()->con->fd == -1)
+            if (worker->impl()->con->socket_descriptor_is_valid() == false)
             {
               for (worker->impl()->function= worker->impl()->function_list;
                    worker->impl()->function;
@@ -731,8 +731,10 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
             }
 
             case GEARMAN_WORKER_STATE_GRAB_JOB_SEND:
-            if (worker->impl()->con->fd == -1)
+            if (worker->impl()->con->socket_descriptor_is_valid() == false)
+            {
               continue;
+            }
 
             *ret_ptr= worker->impl()->con->send_packet(worker->impl()->grab_job, true);
             if (gearman_failed(*ret_ptr))
@@ -823,9 +825,9 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
 
         case GEARMAN_WORKER_STATE_PRE_SLEEP:
           for (worker->impl()->con= (&worker->impl()->universal)->con_list; worker->impl()->con;
-               worker->impl()->con= worker->impl()->con->next)
+               worker->impl()->con= worker->impl()->con->next_connection())
           {
-            if (worker->impl()->con->fd == INVALID_SOCKET)
+            if (worker->impl()->con->socket_descriptor_is_valid() == false)
             {
               continue;
             }
@@ -850,9 +852,9 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker,
 
           /* Set a watch on all active connections that we sent a PRE_SLEEP to. */
           active= 0;
-          for (worker->impl()->con= worker->impl()->universal.con_list; worker->impl()->con; worker->impl()->con= worker->impl()->con->next)
+          for (worker->impl()->con= worker->impl()->universal.con_list; worker->impl()->con; worker->impl()->con= worker->impl()->con->next_connection())
           {
-            if (worker->impl()->con->fd == INVALID_SOCKET)
+            if (worker->impl()->con->socket_descriptor_is_valid() == false)
             {
               continue;
             }

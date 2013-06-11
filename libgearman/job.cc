@@ -88,7 +88,7 @@ struct gearman_job_reducer_st {
                                    gearman_string_length(universal._namespace));
     }
 
-    for (gearman_connection_st *con= universal.con_list; con; con= con->next)
+    for (gearman_connection_st *con= universal.con_list; con; con= con->next_connection())
     {
       if (gearman_failed(client->impl()->add_server(con->_host, con->_service)))
       {
