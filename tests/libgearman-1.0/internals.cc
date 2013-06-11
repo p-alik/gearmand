@@ -298,7 +298,7 @@ static test_return_t packet_init_test(void *)
   gearman_packet_st packet;
   gearman_packet_st *packet_ptr;
 
-  packet_ptr= gearman_packet_create(universal, &packet);
+  packet_ptr= gearman_packet_create(universal, packet);
   ASSERT_FALSE(packet.options.is_allocated);
   ASSERT_FALSE(packet_ptr->options.is_allocated);
 
@@ -326,7 +326,7 @@ static test_return_t gearman_packet_give_data_test(void *)
 
   gearman_packet_st packet;
 
-  test_truth(gearman_packet_create(universal, &packet));
+  test_truth(gearman_packet_create(universal, packet));
 
   gearman_packet_give_data(packet, data, data_size);
 
@@ -353,7 +353,7 @@ static test_return_t gearman_packet_take_data_test(void *)
 
   gearman_packet_st packet;
 
-  gearman_packet_st *packet_ptr= gearman_packet_create(universal, &packet);
+  gearman_packet_st *packet_ptr= gearman_packet_create(universal, packet);
   test_truth(packet_ptr);
 
   gearman_packet_give_data(packet, data, data_size);

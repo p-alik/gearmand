@@ -41,17 +41,23 @@
 namespace libgearman {
 namespace protocol {
 
-gearman_return_t submit(Task&,
+gearman_return_t submit(gearman_universal_st&,
+                        gearman_packet_st& message,
+                        const gearman_unique_t&,
                         const gearman_command_t command,
                         const gearman_string_t &function,
                         const gearman_string_t &workload);
 
-gearman_return_t submit_background(Task&,
+gearman_return_t submit_background(gearman_universal_st&,
+                                   gearman_packet_st& message,
+                                   const gearman_unique_t&,
                                    const gearman_command_t command,
                                    const gearman_string_t &function,
                                    const gearman_string_t &workload);
 
-gearman_return_t submit_epoch(Task&,
+gearman_return_t submit_epoch(gearman_universal_st&,
+                              gearman_packet_st& message,
+                              const gearman_unique_t& unique,
                               const gearman_string_t &function,
                               const gearman_string_t &workload,
                               time_t when);

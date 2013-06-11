@@ -45,8 +45,10 @@
 namespace libgearman {
 namespace protocol {
 
-static inline gearman_return_t __submit(Task& task,
+static inline gearman_return_t __submit(gearman_universal_st& universal,
+                                        gearman_packet_st& message,
                                         const gearman_command_t command,
+                                        const gearman_unique_t& unique,
                                         const gearman_string_t &function,
                                         const gearman_string_t &workload)
 {
@@ -57,12 +59,11 @@ static inline gearman_return_t __submit(Task& task,
     @todo fix it so that NULL is done by default by the API not by happenstance.
   */
   char function_buffer[1024];
-  assert(task.client);
-  if (task.client->impl()->universal._namespace)
+  if (universal._namespace)
   {
     char *ptr= function_buffer;
-    memcpy(ptr, gearman_string_value(task.client->impl()->universal._namespace), gearman_string_length(task.client->impl()->universal._namespace)); 
-    ptr+= gearman_string_length(task.client->impl()->universal._namespace);
+    memcpy(ptr, gearman_string_value(universal._namespace), gearman_string_length(universal._namespace)); 
+    ptr+= gearman_string_length(universal._namespace);
 
     memcpy(ptr, gearman_c_str(function), gearman_size(function) +1);
     ptr+= gearman_size(function);
@@ -76,36 +77,42 @@ static inline gearman_return_t __submit(Task& task,
     args_size[0]= gearman_size(function) +1;
   }
 
-  args[1]= task.unique;
-  args_size[1]= task.unique_length +1;
+  args[1]= gearman_c_str(unique);
+  args_size[1]= gearman_size(unique) +1;
 
   args[2]= gearman_c_str(workload);
   args_size[2]= gearman_size(workload);
 
-  return gearman_packet_create_args(task.client->impl()->universal, task.send,
+  return gearman_packet_create_args(universal, message,
                                     GEARMAN_MAGIC_REQUEST,
                                     command,
                                     args, args_size,
                                     3);
 }
 
-gearman_return_t submit(Task& task,
+gearman_return_t submit(gearman_universal_st& universal,
+                        gearman_packet_st& message,
+                        const gearman_unique_t& unique,
                         const gearman_command_t command,
                         const gearman_string_t &function,
                         const gearman_string_t &workload)
 {
-  return __submit(task, command, function, workload);
+  return __submit(universal, message, command, unique, function, workload);
 }
 
-gearman_return_t submit_background(Task& task,
+gearman_return_t submit_background(gearman_universal_st& universal,
+                                   gearman_packet_st& message,
+                                   const gearman_unique_t& unique,
                                    const gearman_command_t command,
                                    const gearman_string_t &function,
                                    const gearman_string_t &workload)
 {
-  return __submit(task, command, function, workload);
+  return __submit(universal, message, command, unique, function, workload);
 }
 
-gearman_return_t submit_epoch(Task& task,
+gearman_return_t submit_epoch(gearman_universal_st& universal,
+                              gearman_packet_st& message,
+                              const gearman_unique_t& unique,
                               const gearman_string_t &function,
                               const gearman_string_t &workload,
                               time_t when)
@@ -117,11 +124,11 @@ gearman_return_t submit_epoch(Task& task,
     @todo fix it so that NULL is done by default by the API not by happenstance.
   */
   char function_buffer[1024];
-  if (task.client->impl()->universal._namespace)
+  if (universal._namespace)
   {
     char *ptr= function_buffer;
-    memcpy(ptr, gearman_string_value(task.client->impl()->universal._namespace), gearman_string_length(task.client->impl()->universal._namespace)); 
-    ptr+= gearman_string_length(task.client->impl()->universal._namespace);
+    memcpy(ptr, gearman_string_value(universal._namespace), gearman_string_length(universal._namespace)); 
+    ptr+= gearman_string_length(universal._namespace);
 
     memcpy(ptr, gearman_c_str(function), gearman_size(function) +1);
     ptr+= gearman_size(function);
@@ -135,8 +142,8 @@ gearman_return_t submit_epoch(Task& task,
     args_size[0]= gearman_size(function) +1;
   }
 
-  args[1]= task.unique;
-  args_size[1]= task.unique_length +1;
+  args[1]= gearman_c_str(unique);
+  args_size[1]= gearman_size(unique) +1;
 
   char time_string[30];
   int length= snprintf(time_string, sizeof(time_string), "%" PRIu64, static_cast<int64_t>(when));
@@ -146,7 +153,7 @@ gearman_return_t submit_epoch(Task& task,
   args[3]= gearman_c_str(workload);
   args_size[3]= gearman_size(workload);
 
-  return gearman_packet_create_args(task.client->impl()->universal, task.send,
+  return gearman_packet_create_args(universal, message,
                                     GEARMAN_MAGIC_REQUEST,
                                     GEARMAN_COMMAND_SUBMIT_JOB_EPOCH,
                                     args, args_size,
