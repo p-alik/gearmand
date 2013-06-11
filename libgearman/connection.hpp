@@ -64,9 +64,11 @@ struct gearman_connection_st
   enum gearman_con_recv_t recv_state;
   short events;
   short revents;
+private:
   int fd;
   struct CYASSL* _ssl;
   int cached_errno;
+public:
   uint32_t created_id;
   uint32_t created_id_next;
   size_t send_buffer_size;
@@ -75,11 +77,11 @@ struct gearman_connection_st
   size_t recv_buffer_size;
   size_t recv_data_size;
   size_t recv_data_offset;
+private:
   gearman_universal_st &universal;
   gearman_connection_st *next;
   gearman_connection_st *prev;
   void *context;
-private:
   struct addrinfo *_addrinfo;
   struct addrinfo *addrinfo_next;
 public:
@@ -90,6 +92,26 @@ public:
   char _service[GEARMAN_NI_MAXSERV];
   char send_buffer[GEARMAN_SEND_BUFFER_SIZE];
   char recv_buffer[GEARMAN_RECV_BUFFER_SIZE];
+
+  gearman_connection_st* next_connection(void)
+  {
+    return next;
+  }
+
+  int socket_descriptor() const
+  {
+    return fd;
+  }
+
+  int socket_descriptor_is_valid() const
+  {
+    return fd != INVALID_SOCKET;
+  }
+
+  void error(int errno_)
+  {
+    cached_errno= errno_;
+  }
 
   void free_private_packet();
 

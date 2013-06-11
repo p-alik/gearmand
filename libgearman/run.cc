@@ -69,7 +69,7 @@ gearman_return_t _client_run_task(Task *task)
     }
 
     for (task->con= task->client->impl()->universal.con_list; task->con;
-         task->con= task->con->next)
+         task->con= task->con->next_connection())
     {
       if (task->con->send_state == GEARMAN_CON_SEND_STATE_NONE)
       {
@@ -113,9 +113,9 @@ gearman_return_t _client_run_task(Task *task)
 
         if (ret == GEARMAN_COULD_NOT_CONNECT)
         {
-          for (task->con= task->con->next; 
+          for (task->con= task->con->next_connection(); 
                task->con;
-               task->con= task->con->next)
+               task->con= task->con->next_connection())
           {
             if (task->con->send_state == GEARMAN_CON_SEND_STATE_NONE)
             {
