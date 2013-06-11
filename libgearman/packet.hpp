@@ -39,7 +39,7 @@
 #pragma once
 
 
-gearman_packet_st *gearman_packet_create(gearman_universal_st&, gearman_packet_st *packet);
+gearman_packet_st *gearman_packet_create(gearman_universal_st&, gearman_packet_st& packet);
 
 
 void gearman_packet_free(gearman_packet_st*);
