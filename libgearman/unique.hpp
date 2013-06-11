@@ -38,7 +38,7 @@
 #pragma once
 
 struct gearman_unique_t {
-  const char *c_str;
+  const char* c_str;
   size_t size;
 };
 

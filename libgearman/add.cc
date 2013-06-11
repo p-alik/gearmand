@@ -245,6 +245,8 @@ gearman_task_st *add_task(gearman_client_st& client,
     }
   }
 
+  gearman_unique_t final_unique= gearman_unique_make(task->unique, task->unique_length);
+
   assert(task->client);
   assert(task->client == &client);
 
@@ -254,14 +256,18 @@ gearman_task_st *add_task(gearman_client_st& client,
   case GEARMAN_COMMAND_SUBMIT_JOB:
   case GEARMAN_COMMAND_SUBMIT_JOB_LOW:
   case GEARMAN_COMMAND_SUBMIT_JOB_HIGH:
-    rc= libgearman::protocol::submit(*task,
+    rc= libgearman::protocol::submit(task->client->impl()->universal,
+                                     task->send,
+                                     final_unique,
                                      command,
                                      function,
                                      workload);
     break;
 
   case GEARMAN_COMMAND_SUBMIT_JOB_EPOCH:
-    rc= libgearman::protocol::submit_epoch(*task,
+    rc= libgearman::protocol::submit_epoch(task->client->impl()->universal,
+                                           task->send,
+                                           final_unique,
                                            function,
                                            workload,
                                            when);
@@ -270,7 +276,9 @@ gearman_task_st *add_task(gearman_client_st& client,
   case GEARMAN_COMMAND_SUBMIT_JOB_BG:
   case GEARMAN_COMMAND_SUBMIT_JOB_LOW_BG:
   case GEARMAN_COMMAND_SUBMIT_JOB_HIGH_BG:
-    rc= libgearman::protocol::submit_background(*task,
+    rc= libgearman::protocol::submit_background(task->client->impl()->universal,
+                                                task->send,
+                                                final_unique,
                                                 command,
                                                 function,
                                                 workload);

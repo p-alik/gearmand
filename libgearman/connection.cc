@@ -985,7 +985,8 @@ gearman_packet_st *gearman_connection_st::receiving(gearman_packet_st& packet_ar
       return NULL;
     }
 
-    _recv_packet= gearman_packet_create(universal, &packet_arg);
+    _recv_packet= gearman_packet_create(universal, packet_arg);
+    assert(_recv_packet == &packet_arg);
     if (_recv_packet == NULL)
     {
       ret= gearman_error(universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "gearman_packet_create()");
