@@ -231,7 +231,7 @@ static gearmand_error_t _hiredis_done(gearman_server_st *, void *context,
   std::vector<char> key;
   build_key(key, unique, unique_size, function_name, function_name_size);
 
-  redisReply *reply= (redisReply*)redisCommand(queue->redis(), "DELETE %.*s", key.size(), &key[0]);
+  redisReply *reply= (redisReply*)redisCommand(queue->redis(), "DEL %b", &key[0], key.size());
   if (reply == NULL)
   {
     return GEARMAND_QUEUE_ERROR;
