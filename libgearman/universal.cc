@@ -112,7 +112,7 @@ void gearman_universal_clone(gearman_universal_st &destination, const gearman_un
   destination.log_fn= source.log_fn;
   destination.log_context= source.log_context;
 
-  for (gearman_connection_st *con= source.con_list; con; con= con->next)
+  for (gearman_connection_st *con= source.con_list; con; con= con->next_connection())
   {
     if (gearman_connection_copy(destination, *con) == NULL)
     {
@@ -223,7 +223,7 @@ void gearman_free_all_cons(gearman_universal_st& universal)
 
 void gearman_reset(gearman_universal_st& universal)
 {
-  for (gearman_connection_st *con= universal.con_list; con; con= con->next)
+  for (gearman_connection_st *con= universal.con_list; con; con= con->next_connection())
   {
     con->close_socket();
   }
@@ -236,7 +236,7 @@ void gearman_reset(gearman_universal_st& universal)
  */
 void gearman_flush_all(gearman_universal_st& universal)
 {
-  for (gearman_connection_st *con= universal.con_list; con; con= con->next)
+  for (gearman_connection_st *con= universal.con_list; con; con= con->next_connection())
   {
     if (con->events & POLLOUT)
     {
@@ -272,14 +272,14 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
   }
 
   nfds_t x= 0;
-  for (gearman_connection_st *con= universal.con_list; con; con= con->next)
+  for (gearman_connection_st *con= universal.con_list; con; con= con->next_connection())
   {
     if (con->events == 0)
     {
       continue;
     }
 
-    pfds[x].fd= con->fd;
+    pfds[x].fd= con->socket_descriptor();
     pfds[x].events= con->events;
     pfds[x].revents= 0;
     x++;
@@ -331,7 +331,7 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
   }
 
   x= 0;
-  for (gearman_connection_st *con= universal.con_list; con; con= con->next)
+  for (gearman_connection_st *con= universal.con_list; con; con= con->next_connection())
   {
     if (con->events == 0)
     {
@@ -344,7 +344,7 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
       socklen_t len= sizeof (err);
       if (getsockopt(pfds[x].fd, SOL_SOCKET, SO_ERROR, &err, &len) == 0)
       {
-        con->cached_errno= err;
+        con->error(err);
       }
     }
 
@@ -388,7 +388,7 @@ gearman_connection_st *gearman_ready(gearman_universal_st& universal)
     We can't keep universal between calls since connections may be removed during
     processing. If this list ever gets big, we may want something faster.
   */
-  for (gearman_connection_st *con= universal.con_list; con; con= con->next)
+  for (gearman_connection_st *con= universal.con_list; con; con= con->next_connection())
   {
     if (con->options.ready)
     {
@@ -513,7 +513,7 @@ gearman_return_t gearman_set_identifier(gearman_universal_st& universal,
 
   universal.identifier(id, id_size);
 
-  for (gearman_connection_st *con= universal.con_list; con; con= con->next)
+  for (gearman_connection_st *con= universal.con_list; con; con= con->next_connection())
   {
     con->send_identifier();
   }
@@ -527,7 +527,7 @@ static gearman_return_t connection_loop(gearman_universal_st& universal,
 {
   gearman_return_t ret= GEARMAN_SUCCESS;
 
-  for (gearman_connection_st *con= universal.con_list; con; con= con->next)
+  for (gearman_connection_st *con= universal.con_list; con; con= con->next_connection())
   {
     ret= con->send_packet(message, true);
     if (gearman_failed(ret))
