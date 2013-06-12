@@ -306,7 +306,8 @@ test_return_t gearman_client_add_task_exception(void *object)
   } while (gearman_continue(ret));
   ASSERT_EQ(ret, GEARMAN_SUCCESS);
 
-  test_truth(exception_success);
+  ASSERT_TRUE(gearman_task_has_exception(task));
+  ASSERT_TRUE(exception_success);
 
   gearman_client_set_exception_fn(client, NULL);
 
