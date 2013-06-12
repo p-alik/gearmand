@@ -834,6 +834,7 @@ static test_return_t gearman_job_send_exception_TEST(void *)
 
   gearman_string_t exception= gearman_task_exception(task);
   ASSERT_EQ(gearman_task_return(task), GEARMAN_WORK_EXCEPTION);
+  ASSERT_TRUE(gearman_task_has_exception(task));
   ASSERT_STREQ("dog", gearman_c_str(exception));
 
   return TEST_SUCCESS;
