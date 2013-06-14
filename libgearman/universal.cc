@@ -583,6 +583,11 @@ gearman_return_t gearman_echo(gearman_universal_st& universal,
                               const void *workload_str,
                               size_t workload_size)
 {
+  if (universal.has_connections() == false)
+  {
+    return gearman_universal_set_error(universal, GEARMAN_NO_SERVERS, GEARMAN_AT, "no servers provided");
+  }
+
   gearman_string_t workload= { static_cast<const char*>(workload_str), workload_size };
   gearman_packet_st message;
   gearman_return_t ret=  libgearman::protocol::echo(universal, message, workload);
