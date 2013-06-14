@@ -352,7 +352,7 @@ void gearman_connection_st::close_socket()
     { }
   }
 
-  state= GEARMAN_CON_UNIVERSAL_ADDRINFO;
+  state= GEARMAN_CON_UNIVERSAL_CONNECT;
   fd= INVALID_SOCKET;
   events= 0;
   revents= 0;
