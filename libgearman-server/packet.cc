@@ -119,7 +119,6 @@ void gearman_server_packet_free(gearman_server_packet_st *packet,
     }
     else
     {
-      gearmand_debug("delete() gearman_server_packet_st");
       delete packet;
     }
   }
@@ -133,7 +132,6 @@ void gearman_server_packet_free(gearman_server_packet_st *packet,
     }
     else
     {
-      gearmand_debug("delete() gearman_server_packet_st");
       delete packet;
     }
   }
@@ -384,14 +382,12 @@ void gearmand_packet_free(gearmand_packet_st *packet)
 {
   if (packet->args != packet->args_buffer && packet->args != NULL)
   {
-    gearmand_debug("free packet's args");
     free(packet->args);
     packet->args= NULL;
   }
 
   if (packet->options.free_data && packet->data != NULL)
   {
-    gearmand_debug("free() packet's data");
     free((void *)packet->data); //@todo fix the need for the casting.
     packet->data= NULL;
   }
