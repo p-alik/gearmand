@@ -484,6 +484,7 @@ static test_return_t job_order_TEST(void *)
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunknown-pragmas"
 #pragma GCC diagnostic ignored "-Wunsafe-loop-optimizations"
 static test_return_t job_order_background_TEST(void *)
 {

@@ -64,11 +64,6 @@ namespace protocol {
       return gearman_error(universal, GEARMAN_ARGUMENT_TOO_LARGE,  "workload_size was greater then GEARMAN_MAX_ECHO_SIZE");
     }
 
-    if (universal.has_connections() == false)
-    {
-      return gearman_universal_set_error(universal, GEARMAN_NO_SERVERS, GEARMAN_AT, "no servers provided");
-    }
-
     const void *args[1];
     size_t args_size[1];
 
