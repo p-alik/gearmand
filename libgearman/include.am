@@ -57,6 +57,7 @@ noinst_HEADERS+= \
 		 libgearman/packet.hpp \
 		 libgearman/protocol/echo.h \
 		 libgearman/protocol/submit.h \
+		 libgearman/protocol/work_exception.h \
 		 libgearman/result.hpp \
 		 libgearman/run.hpp \
 		 libgearman/status.hpp \
@@ -116,6 +117,7 @@ libgearman_libgearman_la_SOURCES+= \
 				  libgearman/parse.cc \
 				  libgearman/protocol/echo.cc \
 				  libgearman/protocol/submit.cc \
+				  libgearman/protocol/work_exception.cc \
 				  libgearman/result.cc \
 				  libgearman/run.cc \
 				  libgearman/status.cc \
