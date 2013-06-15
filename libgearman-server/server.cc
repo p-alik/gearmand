@@ -827,6 +827,24 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
       {
         return gearmand_gerror("_server_queue_work_data", ret);
       }
+
+      /* Remove from persistent queue if one exists. */
+      if (server_job->job_queued)
+      {
+        ret= gearman_queue_done(Server,
+                                server_job->unique,
+                                server_job->unique_length,
+                                server_job->function->function_name,
+                                server_job->function->function_name_size);
+        if (gearmand_failed(ret))
+        {
+          gearmand_gerror("Remove from persistent queue", ret);
+          return ret;
+        }
+      }
+
+      /* Job is done, remove it. */
+      gearman_server_job_free(server_job);
     }
 
     break;
