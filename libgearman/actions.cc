@@ -80,9 +80,7 @@ static gearman_return_t _client_pause_data(gearman_task_st* shell)
   { }
   else if (task->recv->command == GEARMAN_COMMAND_WORK_WARNING)
   { }
-  else if (task->recv->command == GEARMAN_COMMAND_WORK_EXCEPTION)
-  { }
-  else // GEARMAN_COMMAND_WORK_COMPLETE
+  else // GEARMAN_COMMAND_WORK_COMPLETE or GEARMAN_COMMAND_WORK_EXCEPTION
   {
     return GEARMAN_SUCCESS;
   }
