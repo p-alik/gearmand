@@ -248,7 +248,12 @@ void gearman_server_con_free(gearman_server_con_st *con)
 
   if (con->timeout_event != NULL)
   {
-    event_del(con->timeout_event);
+    if (event_del(con->timeout_event) == -1)
+    {
+      gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, errno, "calling event_del() on timeout_event failed");
+    }
+    free(con->timeout_event);
+    con->timeout_event= NULL;
   }
 
   if (con->proc_list)
