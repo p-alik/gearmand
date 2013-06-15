@@ -806,10 +806,15 @@ static test_return_t gearman_job_send_exception_mass_TEST(void *)
   return TEST_SUCCESS;
 }
 
+static void error_logger(const char* message, gearman_verbose_t, void*)
+{
+  Error << message;
+}
+
 static test_return_t gearman_job_send_exception_TEST(void *)
 {
   libgearman::Client client(libtest::default_port());
-  libgearman::Worker worker(libtest::default_port());
+  gearman_client_set_log_fn(&client, error_logger, NULL, GEARMAN_VERBOSE_ERROR);
 
   ASSERT_EQ(true, gearman_client_set_server_option(&client, test_literal_param("exceptions")));
 
