@@ -530,9 +530,18 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
 
   case GEARMAN_COMMAND_CAN_DO_TIMEOUT:
     {
+      if (packet->arg_size[1] > GEARMAN_MAXIMUM_INTEGER_DISPLAY_LENGTH)
+      {
+        return gearmand_log_gerror(GEARMAN_DEFAULT_LOG_PARAM, GEARMAND_INVALID_PACKET, "GEARMAND_INVALID_PACKET:strtol");
+      }
+
+      char strtol_buffer[GEARMAN_MAXIMUM_INTEGER_DISPLAY_LENGTH +1];
+      memcpy(strtol_buffer, packet->arg[1], packet->arg_size[1]);
+      strtol_buffer[packet->arg_size[1]]= 0;
       char *endptr;
-      long timeout= strtol((char *)packet->arg[1], &endptr, 10);
-      if (timeout == LONG_MIN or timeout == LONG_MAX)
+      errno= 0;
+      long timeout= strtol(strtol_buffer, &endptr, 10);
+      if (timeout == LONG_MIN or timeout == LONG_MAX or errno != 0)
       {
         return gearmand_log_perror(GEARMAN_DEFAULT_LOG_PARAM, errno, "GEARMAN_COMMAND_CAN_DO_TIMEOUT:strtol");
       }
