@@ -42,6 +42,7 @@
 
 #include "libgearman/assert.hpp"
 #include "libgearman/vector.h"
+#include "libgearman/protocol/work_exception.h"
 
 #include <cstdio>
 #include <cstring>
@@ -451,22 +452,16 @@ gearman_return_t gearman_job_send_exception(gearman_job_st *job,
 {
   if (job)
   {
-    const void *args[2];
-    size_t args_size[2];
-
     if (not (job->options.work_in_use))
     {
-      args[0]= job->assigned.arg[0];
-      args_size[0]= job->assigned.arg_size[0];
-      args[1]= exception;
-      args_size[1]= exception_size;
+      gearman_string_t handle_string= { static_cast<const char *>(job->assigned.arg[0]), job->assigned.arg_size[0] };
+      gearman_string_t exception_string= { static_cast<const char *>(exception), exception_size };
 
-      gearman_return_t ret= gearman_packet_create_args(job->worker->impl()->universal, job->work,
-                                                       GEARMAN_MAGIC_REQUEST,
-                                                       GEARMAN_COMMAND_WORK_EXCEPTION,
-                                                       args, args_size, 2);
+      gearman_return_t ret= libgearman::protocol::work_exception(job->worker->impl()->universal, job->work, handle_string, exception_string);
       if (gearman_failed(ret))
+      {
         return ret;
+      }
 
       job->options.work_in_use= true;
     }
