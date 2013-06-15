@@ -92,6 +92,16 @@ struct gearman_packet_st
 
   void free__data();
 
+  bool failed() const
+  {
+    if (command == GEARMAN_COMMAND_WORK_FAIL)
+    {
+      return true;
+    }
+
+    return false;
+  }
+
   void reset()
   {
     if (args != args_buffer and args)
