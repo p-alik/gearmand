@@ -202,7 +202,7 @@ AC_DEFUN([_HARDEN_CC_COMPILER_FLAGS],
           _APPEND_COMPILE_FLAGS_ERROR([-fPIE -pie])
           _APPEND_COMPILE_FLAGS_ERROR([-Wsizeof-pointer-memaccess])
           _APPEND_COMPILE_FLAGS_ERROR([-Wpacked])
-          _APPEND_COMPILE_FLAGS_ERROR([-Wlong-long])
+#         _APPEND_COMPILE_FLAGS_ERROR([-Wlong-long])
           _APPEND_COMPILE_FLAGS_ERROR([-Wunreachable-code])
 
           _SET_SANITIZE_FLAGS
@@ -289,8 +289,8 @@ AC_DEFUN([_HARDEN_CXX_COMPILER_FLAGS],
           _APPEND_COMPILE_FLAGS_ERROR([-Wunsafe-loop-optimizations])
           _APPEND_COMPILE_FLAGS_ERROR([-funsafe-loop-optimizations])
           _APPEND_COMPILE_FLAGS_ERROR([-Wc++11-compat])
-          _APPEND_COMPILE_FLAGS_ERROR([-Weffc++])
-          _APPEND_COMPILE_FLAGS_ERROR([-Wold-style-cast])
+#         _APPEND_COMPILE_FLAGS_ERROR([-Weffc++])
+#         _APPEND_COMPILE_FLAGS_ERROR([-Wold-style-cast])
           _APPEND_COMPILE_FLAGS_ERROR([-Wclobbered])
           _APPEND_COMPILE_FLAGS_ERROR([-Wunused])
           _APPEND_COMPILE_FLAGS_ERROR([-Wunused-result])
@@ -306,7 +306,7 @@ AC_DEFUN([_HARDEN_CXX_COMPILER_FLAGS],
           _APPEND_COMPILE_FLAGS_ERROR([-fPIE -pie])
           _APPEND_COMPILE_FLAGS_ERROR([-Wsizeof-pointer-memaccess])
           _APPEND_COMPILE_FLAGS_ERROR([-Wpacked])
-          _APPEND_COMPILE_FLAGS_ERROR([-Wlong-long])
+#         _APPEND_COMPILE_FLAGS_ERROR([-Wlong-long])
           _APPEND_COMPILE_FLAGS_ERROR([-Wunreachable-code])
 
           AS_IF([test "x$ax_enable_debug" = xno],
