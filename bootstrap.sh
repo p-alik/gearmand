@@ -430,7 +430,7 @@ run_configure ()
       ret=$?
       ;;
     *)
-      run $CONFIGURE $BUILD_CONFIGURE_ARG
+      run $CONFIGURE "$BUILD_CONFIGURE_ARG"
       ret=$?
       ;;
   esac
@@ -1507,6 +1507,9 @@ check_make_target()
 
 execute_job ()
 {
+  # We should always have a target by this point
+  assert MAKE_TARGET
+
   determine_target_platform
 
   determine_vcs
@@ -1516,10 +1519,6 @@ execute_job ()
   require_libtoolise
   if ! autoreconf_setup; then
     return 1
-  fi
-
-  if [ -z "$MAKE_TARGET" ]; then
-    MAKE_TARGET="make_default"
   fi
 
   if $print_setup_opt -o  $debug; then
@@ -1541,19 +1540,12 @@ execute_job ()
     PREFIX_ARG="--prefix=$PREFIX"
   fi
 
-  # We should always have a target by this point
-  assert MAKE_TARGET
-
   if $CLEAN_OPTION; then
     make_maintainer_clean
   fi
 
   local MAKE_TARGET_ARRAY
   MAKE_TARGET_ARRAY=( $MAKE_TARGET )
-
-  if $jenkins_build_environment; then
-    use_banner $target
-  fi
 
   for target in "${MAKE_TARGET_ARRAY[@]}"
   do
@@ -1564,6 +1556,10 @@ execute_job ()
       if [ $ret -ne 0 ]; then
         die "Unknown MAKE_TARGET option: $target"
       fi
+    fi
+
+    if $jenkins_build_environment; then
+      use_banner $target
     fi
 
     local snapshot_run=false
@@ -1619,10 +1615,6 @@ execute_job ()
         ;;
       'mingw')
         make_distclean
-        if ! check_mingw; then
-          die "mingw was not found"
-        fi
-
         if ! make_for_mingw; then
           die "Failed to build mingw: $?"
         fi
@@ -1765,6 +1757,13 @@ main ()
       fi
     fi
   fi
+
+  if [ -z "$MAKE_TARGET" ]; then
+    MAKE_TARGET="make_default"
+  fi
+
+  # We should always have a target by this point
+  assert MAKE_TARGET
 
   execute_job
   local ret=$?
