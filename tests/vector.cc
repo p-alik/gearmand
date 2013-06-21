@@ -482,7 +482,7 @@ static test_return_t gearman_string_take_TEST(void*)
 
     // Now we insert a random string
     libtest::vchar_t random_string;
-    libtest::vchar::make(random_string, random() % max_block);
+    libtest::vchar::make(random_string, (random() % max_block) +1);
     gearman_string_append(&vec, &random_string[0], random_string.size());
 
     gearman_string_t temp= gearman_string_take_string(&vec);
