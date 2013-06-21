@@ -259,7 +259,6 @@ static gearmand_error_t _libpq_add(gearman_server_st*, void *context,
                                    gearman_job_priority_t priority,
                                    int64_t when)
 {
-  (void)when;
   gearmand::plugins::queue::Postgres *queue= (gearmand::plugins::queue::Postgres *)context;
 
   char priority_buffer[GEARMAN_MAXIMUM_INTEGER_DISPLAY_LENGTH +1];
@@ -320,6 +319,7 @@ static gearmand_error_t _libpq_done(gearman_server_st*, void *context,
   gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "libpq done: %.*s", (uint32_t)unique_size, (char *)unique);
 
   std::string query;
+  query.reserve(function_name_size +unique_size + 80);
   query+= "DELETE FROM ";
   query+= queue->table;
   query+= " WHERE unique_key='";
