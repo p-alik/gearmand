@@ -356,6 +356,7 @@ gearman_return_t _client_run_task(Task *task)
     {
       task->options.is_known= false;
       task->options.is_running= false;
+
       if (task->recv->argc == 1 and task->recv->data_size)
       {
         task->exception.store((const char*)(task->recv->data), task->recv->data_size);
