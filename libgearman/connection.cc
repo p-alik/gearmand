@@ -165,8 +165,13 @@ gearman_connection_st::gearman_connection_st(gearman_universal_st &universal_arg
   _service[0]= 0;
 }
 
-gearman_connection_st *gearman_connection_create(gearman_universal_st &universal,
-                                                 gearman_connection_options_t *options)
+/**
+ * Initialize a connection structure. Always check the return value even if
+ * passing in a pre-allocated structure. Some other initialization may have
+ * failed.
+ */
+static gearman_connection_st *__connection_create(gearman_universal_st &universal,
+                                                  gearman_connection_options_t *options)
 {
   gearman_connection_st *connection= new (std::nothrow) gearman_connection_st(universal, options);
   if (connection == NULL)
@@ -177,31 +182,29 @@ gearman_connection_st *gearman_connection_create(gearman_universal_st &universal
   return connection;
 }
 
-gearman_connection_st *gearman_connection_create_args(gearman_universal_st& universal,
-                                                      const char *host, const char* service_)
+gearman_connection_st *gearman_connection_create(gearman_universal_st& universal,
+                                                 const char *host, const char* service_)
 {
-  gearman_connection_st *connection= gearman_connection_create(universal);
-  if (connection == NULL)
+  gearman_connection_st *connection= __connection_create(universal, NULL);
+  if (connection)
   {
-    return NULL;
-  }
+    connection->set_host(host, service_);
 
-  connection->set_host(host, service_);
-
-  if (gearman_failed(connection->lookup()))
-  {
-    gearman_gerror(universal, GEARMAN_GETADDRINFO);
-    delete connection;
-    return NULL;
+    if (gearman_failed(connection->lookup()))
+    {
+      gearman_gerror(universal, GEARMAN_GETADDRINFO);
+      delete connection;
+      return NULL;
+    }
   }
 
   return connection;
 }
 
-gearman_connection_st *gearman_connection_create_args(gearman_universal_st& universal,
-                                                      const char *host, in_port_t port)
+gearman_connection_st *gearman_connection_create(gearman_universal_st& universal,
+                                                 const char *host, const in_port_t& port)
 {
-  gearman_connection_st *connection= gearman_connection_create(universal, NULL);
+  gearman_connection_st *connection= __connection_create(universal, NULL);
   if (connection)
   {
     connection->set_host(host, port);
@@ -220,7 +223,7 @@ gearman_connection_st *gearman_connection_create_args(gearman_universal_st& univ
 gearman_connection_st *gearman_connection_copy(gearman_universal_st& universal,
                                                const gearman_connection_st& from)
 {
-  gearman_connection_st *connection= gearman_connection_create(universal);
+  gearman_connection_st *connection= __connection_create(universal, NULL);
 
   if (connection)
   {

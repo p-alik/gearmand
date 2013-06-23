@@ -51,13 +51,12 @@
 
 #ifdef HAVE_GCC_ABI_DEMANGLE
 # include <cxxabi.h>
-# define USE_DEMANGLE 1
-#else
-# define USE_DEMANGLE 0
-#endif
-
-#ifdef HAVE_DLFCN_H
-# include <dlfcn.h>
+# ifdef HAVE_DLFCN_H
+#  define USE_DEMANGLE 1
+#  include <dlfcn.h>
+# else
+#  define USE_DEMANGLE 0
+# endif   
 #endif   
 
 const int MAX_DEPTH= 50;
@@ -78,9 +77,9 @@ void custom_backtrace(void)
       {
         bool was_demangled= false;
 
+#if defined(USE_DEMANGLE)
         if (USE_DEMANGLE)
         {
-#ifdef HAVE_DLFCN_H
           Dl_info dlinfo;
           if (dladdr(backtrace_buffer[x], &dlinfo))
           {
@@ -108,8 +107,8 @@ void custom_backtrace(void)
                       dlinfo.dli_fname);
             }
           }
-#endif
         }
+#endif // USE_DEMANGLE
 
         if (was_demangled == false)
         {

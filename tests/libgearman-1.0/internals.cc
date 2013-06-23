@@ -259,7 +259,7 @@ static test_return_t connection_init_test(void *)
 {
   gearman_universal_st universal;
 
-  gearman_connection_st *connection_ptr= gearman_connection_create(universal, NULL);
+  gearman_connection_st *connection_ptr= gearman_connection_create(universal, NULL, GEARMAN_DEFAULT_TCP_SERVICE);
   test_truth(connection_ptr);
 
   ASSERT_FALSE(connection_ptr->options.ready);
@@ -274,7 +274,7 @@ static test_return_t connection_alloc_test(void *)
 {
   gearman_universal_st universal;
 
-  gearman_connection_st *connection_ptr= gearman_connection_create(universal, NULL);
+  gearman_connection_st *connection_ptr= gearman_connection_create(universal, NULL, GEARMAN_DEFAULT_TCP_SERVICE);
   test_truth(connection_ptr);
 
   ASSERT_FALSE(connection_ptr->options.ready);

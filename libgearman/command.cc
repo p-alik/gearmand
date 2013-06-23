@@ -109,7 +109,7 @@ const char *gearman_strcommand(gearman_command_t command)
   }
 
   assert(0); // We should never reach this
-  abort();
+  return "__UNKNOWN";
 }
 
 const gearman_command_info_st *gearman_command_info(gearman_command_t command)

@@ -126,9 +126,7 @@ test_return_t regression_bug_372074_test(void *)
   {
     gearman_packet_st packet;
     gearman_connection_st *con_ptr;
-    test_truth(con_ptr= gearman_connection_create(universal, NULL));
-
-    con_ptr->set_host(NULL, default_port());
+    test_truth(con_ptr= gearman_connection_create(universal, NULL, default_port()));
 
     args[0]= "testUnregisterFunction";
     args_size[0]= strlen("testUnregisterFunction");
@@ -159,9 +157,7 @@ test_return_t regression_bug_372074_test(void *)
 
     delete con_ptr;
 
-    test_truth(con_ptr= gearman_connection_create(universal, NULL));
-
-    con_ptr->set_host(NULL, default_port());
+    test_truth(con_ptr= gearman_connection_create(universal, NULL, default_port()));
 
     args[0]= "testUnregisterFunction";
     args_size[0]= strlen("testUnregisterFunction");

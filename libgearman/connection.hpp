@@ -172,14 +172,6 @@ private:
   gearman_packet_st *_recv_packet;
 };
 
-/**
- * Initialize a connection structure. Always check the return value even if
- * passing in a pre-allocated structure. Some other initialization may have
- * failed.
- */
-gearman_connection_st *gearman_connection_create(gearman_universal_st &universal,
-                                                 gearman_connection_options_t *options= NULL);
-
 gearman_connection_st *gearman_connection_copy(gearman_universal_st& universal,
                                                const gearman_connection_st& from);
 
@@ -194,8 +186,8 @@ gearman_connection_st *gearman_connection_copy(gearman_universal_st& universal,
  * @return On success, a pointer to the (possibly allocated) structure. On
  *  failure this will be NULL.
  */
-gearman_connection_st *gearman_connection_create_args(gearman_universal_st &universal,
-                                                      const char *host, in_port_t port);
+gearman_connection_st *gearman_connection_create(gearman_universal_st &universal,
+                                                 const char *host, const in_port_t&);
 
-gearman_connection_st *gearman_connection_create_args(gearman_universal_st &universal,
-                                                      const char* host, const char* service);
+gearman_connection_st *gearman_connection_create(gearman_universal_st &universal,
+                                                 const char* host, const char* service);
