@@ -119,8 +119,18 @@ public:
 
   ~gearman_connection_st();
 
-  void set_host( const char *host, const in_port_t& port);
+  void set_host( const char *host, const in_port_t port);
   void set_host( const char *host, const char* service);
+
+  const char* host(void) const
+  {
+    return _host;
+  }
+
+  const char* service(void) const
+  {
+    return _service;
+  }
 
   gearman_return_t send_packet(const gearman_packet_st&, const bool flush_buffer);
   size_t send_and_flush(const void *data, size_t data_size, gearman_return_t *ret_ptr);

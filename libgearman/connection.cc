@@ -148,11 +148,10 @@ gearman_connection_st *gearman_connection_create(gearman_universal_st& universal
   gearman_connection_st *connection= __connection_create(universal);
   if (connection)
   {
-    connection->set_host(host, service_);
+    connection->set_host(host, (const char*)service_);
 
     if (gearman_failed(connection->lookup()))
     {
-      gearman_gerror(universal, GEARMAN_GETADDRINFO);
       delete connection;
       return NULL;
     }
@@ -171,7 +170,6 @@ gearman_connection_st *gearman_connection_create(gearman_universal_st& universal
 
     if (gearman_failed(connection->lookup()))
     {
-      gearman_gerror(universal, GEARMAN_GETADDRINFO);
       delete connection;
       return NULL;
     }
@@ -241,7 +239,7 @@ void gearman_connection_st::free_private_packet()
  * Public Definitions
  */
 
-void gearman_connection_st::set_host(const char *host_, const in_port_t& port_)
+void gearman_connection_st::set_host(const char *host_, const in_port_t port_)
 {
   if (port_ < 1)
   {
@@ -646,7 +644,7 @@ gearman_return_t gearman_connection_st::lookup()
   if ((ret= getaddrinfo(_host, _service, &ai, &(_addrinfo))))
   {
     reset_addrinfo();
-    return gearman_universal_set_error(universal, GEARMAN_GETADDRINFO, GEARMAN_AT, "getaddrinfo:%s", gai_strerror(ret));
+    return gearman_universal_set_error(universal, GEARMAN_GETADDRINFO, GEARMAN_AT, "%s:%d getaddrinfo:%s", host(), service(), gai_strerror(ret));
   }
 
   addrinfo_next= _addrinfo;

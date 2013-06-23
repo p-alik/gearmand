@@ -94,23 +94,23 @@ static test_return_t clone_test(void *)
     gearman_universal_clone(destination, gear);
 
     { // Test all of the flags
-      test_truth(destination.options.non_blocking == gear.options.non_blocking);
+      ASSERT_EQ(destination.options.non_blocking, gear.options.non_blocking);
     }
-    test_truth(destination._namespace == gear._namespace);
-    test_truth(destination.verbose == gear.verbose);
-    test_truth(destination.con_count == gear.con_count);
-    test_truth(destination.packet_count == gear.packet_count);
-    test_truth(destination.pfds_size == gear.pfds_size);
-    test_truth(destination._error.last_errno == gear._error.last_errno);
-    test_truth(destination.timeout == gear.timeout);
-    test_truth(destination.con_list == gear.con_list);
-    test_truth(destination.packet_list == gear.packet_list);
-    test_truth(destination.pfds == gear.pfds);
-    test_truth(destination.log_fn == gear.log_fn);
-    test_truth(destination.log_context == gear.log_context);
-    test_truth(destination.allocator.malloc == gear.allocator.malloc);
-    test_truth(destination.allocator.context == gear.allocator.context);
-    test_truth(destination.allocator.free == gear.allocator.free);
+    ASSERT_EQ(destination._namespace,  gear._namespace);
+    ASSERT_EQ(destination.verbose,  gear.verbose);
+    ASSERT_EQ(destination.con_count,  gear.con_count);
+    ASSERT_EQ(destination.packet_count,  gear.packet_count);
+    ASSERT_EQ(destination.pfds_size,  gear.pfds_size);
+    ASSERT_EQ(destination._error.last_errno,  gear._error.last_errno);
+    ASSERT_EQ(destination.timeout,  gear.timeout);
+    ASSERT_EQ(destination.con_list,  gear.con_list);
+    ASSERT_EQ(destination.packet_list,  gear.packet_list);
+    ASSERT_EQ(destination.pfds,  gear.pfds);
+    ASSERT_EQ(destination.log_fn,  gear.log_fn);
+    ASSERT_EQ(destination.log_context,  gear.log_context);
+    ASSERT_EQ(destination.allocator.malloc,  gear.allocator.malloc);
+    ASSERT_EQ(destination.allocator.context,  gear.allocator.context);
+    ASSERT_EQ(destination.allocator.free,  gear.allocator.free);
 
     gearman_universal_free(gear);
   }
@@ -171,7 +171,7 @@ static test_return_t state_option_on_create_test(void *)
   gearman_universal_st universal(options);
 
   { // Initial Allocated, no changes
-    test_truth(universal.options.non_blocking);
+    ASSERT_TRUE(universal.options.non_blocking);
   }
   gearman_universal_free(universal);
 
@@ -200,11 +200,11 @@ static test_return_t clone_gearman_universal_set_namespace_test(void *)
   ASSERT_FALSE(universal._namespace);
 
   gearman_universal_set_namespace(universal, gearman_literal_param("my_dog"));
-  test_truth(universal._namespace);
+  ASSERT_TRUE(universal._namespace);
 
   gearman_universal_st clone;
   gearman_universal_clone(clone, universal);
-  test_truth(clone._namespace);
+  ASSERT_TRUE(clone._namespace);
 
   gearman_universal_free(universal);
   gearman_universal_free(clone);
@@ -218,7 +218,7 @@ static test_return_t state_option_set_test(void *)
   gearman_universal_st universal(options);
 
   { // Initial Allocated, no changes
-    test_truth(universal.options.non_blocking);
+    ASSERT_TRUE(universal.options.non_blocking);
   }
 
   ASSERT_TRUE(gearman_universal_is_non_blocking(universal));
@@ -259,8 +259,8 @@ static test_return_t connection_init_test(void *)
 {
   gearman_universal_st universal;
 
-  gearman_connection_st *connection_ptr= gearman_connection_create(universal, NULL, GEARMAN_DEFAULT_TCP_SERVICE);
-  test_truth(connection_ptr);
+  gearman_connection_st *connection_ptr= gearman_connection_create(universal, NULL, (const char*)(GEARMAN_DEFAULT_TCP_PORT_STRING));
+  ASSERT_TRUE(connection_ptr);
 
   ASSERT_FALSE(connection_ptr->options.ready);
   ASSERT_FALSE(connection_ptr->options.packet_in_use);
@@ -274,8 +274,8 @@ static test_return_t connection_alloc_test(void *)
 {
   gearman_universal_st universal;
 
-  gearman_connection_st *connection_ptr= gearman_connection_create(universal, NULL, GEARMAN_DEFAULT_TCP_SERVICE);
-  test_truth(connection_ptr);
+  gearman_connection_st *connection_ptr= gearman_connection_create(universal, NULL, (const char*)(GEARMAN_DEFAULT_TCP_PORT_STRING));
+  ASSERT_TRUE(connection_ptr);
 
   ASSERT_FALSE(connection_ptr->options.ready);
   ASSERT_FALSE(connection_ptr->options.packet_in_use);
@@ -305,7 +305,7 @@ static test_return_t packet_init_test(void *)
   ASSERT_FALSE(packet.options.complete);
   ASSERT_FALSE(packet.options.free_data);
 
-  test_truth(packet_ptr == &packet);
+  ASSERT_EQ(packet_ptr, &packet);
 
   gearman_packet_free(packet_ptr);
   ASSERT_FALSE(packet.options.is_allocated);
@@ -326,13 +326,13 @@ static test_return_t gearman_packet_give_data_test(void *)
 
   gearman_packet_st packet;
 
-  test_truth(gearman_packet_create(universal, packet));
+  ASSERT_TRUE(gearman_packet_create(universal, packet));
 
   gearman_packet_give_data(packet, data, data_size);
 
-  test_truth(packet.data == data);
+  ASSERT_EQ(packet.data, data);
   ASSERT_EQ(packet.data_size, data_size);
-  test_truth(packet.options.free_data);
+  ASSERT_TRUE(packet.options.free_data);
 
   gearman_packet_free(&packet);
   gearman_universal_free(universal);
@@ -354,13 +354,13 @@ static test_return_t gearman_packet_take_data_test(void *)
   gearman_packet_st packet;
 
   gearman_packet_st *packet_ptr= gearman_packet_create(universal, packet);
-  test_truth(packet_ptr);
+  ASSERT_TRUE(packet_ptr);
 
   gearman_packet_give_data(packet, data, data_size);
 
-  test_truth(packet_ptr->data == data);
+  ASSERT_EQ(packet_ptr->data, data);
   ASSERT_EQ(data_size, packet_ptr->data_size);
-  test_truth(packet_ptr->options.free_data);
+  ASSERT_TRUE(packet_ptr->options.free_data);
 
   size_t mine_size;
   char *mine= (char *)gearman_packet_take_data(packet, &mine_size);
