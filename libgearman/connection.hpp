@@ -115,8 +115,7 @@ public:
 
   void free_private_packet();
 
-  gearman_connection_st(gearman_universal_st &universal_arg,
-                        gearman_connection_options_t *options);
+  gearman_connection_st(gearman_universal_st &universal_arg);
 
   ~gearman_connection_st();
 
