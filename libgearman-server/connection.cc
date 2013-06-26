@@ -50,27 +50,27 @@
 #include <assert.h>
 
 static gearman_server_con_st * _server_con_create(gearman_server_thread_st *thread, gearmand_con_st *dcon,
-                                                  gearmand_error_t *ret);
+                                                  gearmand_error_t& ret);
 
 /*
  * Public definitions
  */
 
-gearman_server_con_st *gearman_server_con_add(gearman_server_thread_st *thread, gearmand_con_st *dcon, gearmand_error_t *ret)
+gearman_server_con_st *gearman_server_con_add(gearman_server_thread_st *thread, gearmand_con_st *dcon, gearmand_error_t& ret)
 {
   gearman_server_con_st *con= _server_con_create(thread, dcon, ret);
   if (con)
   {
-    if ((*ret= gearman_io_set_fd(&(con->con), dcon->fd)) != GEARMAND_SUCCESS)
+    if ((ret= gearman_io_set_fd(&(con->con), dcon->fd)) != GEARMAND_SUCCESS)
     {
       gearman_server_con_free(con);
       return NULL;
     }
 
-    *ret= gearmand_io_set_events(con, POLLIN);
-    if (*ret != GEARMAND_SUCCESS)
+    ret= gearmand_io_set_events(con, POLLIN);
+    if (ret != GEARMAND_SUCCESS)
     {
-      gearmand_gerror("gearmand_io_set_events", *ret);
+      gearmand_gerror("gearmand_io_set_events", ret);
       gearman_server_con_free(con);
       return NULL;
     }
@@ -81,7 +81,7 @@ gearman_server_con_st *gearman_server_con_add(gearman_server_thread_st *thread, 
 
 static gearman_server_con_st * _server_con_create(gearman_server_thread_st *thread,
                                                   gearmand_con_st *dcon,
-                                                  gearmand_error_t *ret)
+                                                  gearmand_error_t& ret)
 {
   gearman_server_con_st *con;
 
@@ -95,7 +95,7 @@ static gearman_server_con_st * _server_con_create(gearman_server_thread_st *thre
     con= new (std::nothrow) gearman_server_con_st;
     if (con == NULL)
     {
-      *ret= gearmand_perror(errno, "new() build_gearman_server_con_st");
+      ret= gearmand_perror(errno, "new() build_gearman_server_con_st");
       return NULL;
     }
   }
@@ -104,7 +104,7 @@ static gearman_server_con_st * _server_con_create(gearman_server_thread_st *thre
   if (con == NULL)
   {
     gearmand_error("Neigther an allocated gearman_server_con_st() or free listed could be found");
-    *ret= GEARMAND_MEMORY_ALLOCATION_FAILURE;
+    ret= GEARMAND_MEMORY_ALLOCATION_FAILURE;
     return NULL;
   }
 
@@ -148,6 +148,9 @@ static gearman_server_con_st * _server_con_create(gearman_server_thread_st *thre
   con->timeout_event= NULL;
 
   con->protocol= NULL;
+#if defined(HAVE_CYASSL) && HAVE_CYASSL
+  con->_ssl= NULL;
+#endif
 
   int error;
   if ((error= pthread_mutex_lock(&thread->lock)) == 0)
@@ -158,7 +161,7 @@ static gearman_server_con_st * _server_con_create(gearman_server_thread_st *thre
       gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_lock");
       gearman_server_con_free(con);
 
-      *ret= GEARMAND_ERRNO;
+      ret= GEARMAND_ERRNO;
       return NULL;
     }
   }
@@ -168,7 +171,7 @@ static gearman_server_con_st * _server_con_create(gearman_server_thread_st *thre
     gearmand_log_fatal_perror(GEARMAN_DEFAULT_LOG_PARAM, error, "pthread_mutex_lock");
     gearman_server_con_free(con);
 
-    *ret= GEARMAND_ERRNO;
+    ret= GEARMAND_ERRNO;
     return NULL;
   }
 
