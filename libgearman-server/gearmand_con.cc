@@ -63,7 +63,7 @@ static gearmand_error_t _con_add(gearmand_thread_st *thread,
                                  gearmand_con_st *dcon)
 {
   gearmand_error_t ret= GEARMAND_SUCCESS;
-  dcon->server_con= gearman_server_con_add(&(thread->server_thread), dcon, &ret);
+  dcon->server_con= gearman_server_con_add(&(thread->server_thread), dcon, ret);
 
   assert(dcon->server_con || ret != GEARMAND_SUCCESS);
   assert(! dcon->server_con || ret == GEARMAND_SUCCESS);

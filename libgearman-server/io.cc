@@ -362,7 +362,6 @@ void gearmand_connection_init(gearmand_connection_list_st *gearman,
     }
   }
 
-
   connection->_state= gearmand_io_st::GEARMAND_CON_UNIVERSAL_INVALID;
   connection->send_state= gearmand_io_st::GEARMAND_CON_SEND_STATE_NONE;
   connection->recv_state= gearmand_io_st::GEARMAND_CON_RECV_UNIVERSAL_NONE;

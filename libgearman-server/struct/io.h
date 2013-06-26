@@ -139,6 +139,9 @@ struct gearman_server_con_st
   char id[GEARMAND_SERVER_CON_ID_SIZE];
   gearmand::protocol::Context* protocol;
   struct event *timeout_event;
+#if defined(HAVE_CYASSL) && HAVE_CYASSL
+  CYASSL* _ssl;
+#endif
 
   gearman_server_con_st()
   {
@@ -166,7 +169,4 @@ struct gearman_server_con_st
       protocol= NULL;
     }
   }
-#if defined(HAVE_CYASSL) && HAVE_CYASSL
-  CYASSL* _ssl;
-#endif
 };

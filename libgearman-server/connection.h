@@ -75,7 +75,7 @@ extern "C" {
  */
 GEARMAN_API
 gearman_server_con_st *gearman_server_con_add(gearman_server_thread_st *thread, gearmand_con_st *dcon,
-                                              gearmand_error_t *ret);
+                                              gearmand_error_t& ret);
 
 /**
  * Attempt to free a server connection structure.
