@@ -19,6 +19,7 @@ libgearman_libgearmancore_la_SOURCES+= libgearman/command.cc
 libgearman_libgearmancore_la_SOURCES+= libgearman/connection.cc
 libgearman_libgearmancore_la_SOURCES+= libgearman/error.cc
 libgearman_libgearmancore_la_SOURCES+= libgearman/error_code.cc
+libgearman_libgearmancore_la_SOURCES+= libgearman/kill.cc
 libgearman_libgearmancore_la_SOURCES+= libgearman/log.cc
 libgearman_libgearmancore_la_SOURCES+= libgearman/packet.cc
 libgearman_libgearmancore_la_SOURCES+= libgearman/protocol/echo.cc
