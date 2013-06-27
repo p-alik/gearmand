@@ -78,10 +78,9 @@ static test_return_t GEARMAN_COMMAND_ECHO_REQ_TEST(void *)
   ASSERT_EQ(GEARMAN_SUCCESS, libgearman::protocol::echo(universal, message, workload));
 
   gearman_connection_st *connection1;
-  test_truth(connection1= gearman_connection_create(universal, NULL));
+  ASSERT_TRUE(connection1= gearman_connection_create(universal, GEARMAN_DEFAULT_TCP_HOST, libtest::default_port()));
   ASSERT_TRUE(connection1);
 
-  connection1->set_host(NULL, libtest::default_port());
   ASSERT_EQ(GEARMAN_SUCCESS, connection1->send_packet(message, true));
 
   size_t length;
@@ -123,7 +122,7 @@ static test_return_t GEARMAN_COMMAND_WORK_EXCEPTION_TEST(void *)
   ASSERT_EQ(GEARMAN_SUCCESS, libgearman::protocol::work_exception(universal, message, handle_string, exception_string));
 
   gearman_connection_st *connection1;
-  test_truth(connection1= gearman_connection_create(universal, NULL));
+  ASSERT_TRUE(connection1= gearman_connection_create(universal, GEARMAN_DEFAULT_TCP_HOST, libtest::default_port()));
   ASSERT_TRUE(connection1);
 
   connection1->set_host(NULL, libtest::default_port());
@@ -161,10 +160,8 @@ static test_return_t GEARMAN_COMMAND_ECHO_REQ_overrun_TEST(void *)
   ASSERT_EQ(GEARMAN_SUCCESS, libgearman::protocol::echo(universal, message, workload));
 
   gearman_connection_st *connection1;
-  test_truth(connection1= gearman_connection_create(universal, NULL));
+  ASSERT_TRUE(connection1= gearman_connection_create(universal, GEARMAN_DEFAULT_TCP_HOST, libtest::default_port()));
   ASSERT_TRUE(connection1);
-
-  connection1->set_host(NULL, libtest::default_port());
 
   for (size_t x= 0; x < 1000; ++x)
   {
