@@ -79,35 +79,6 @@
 # define MSG_DONTWAIT 0
 #endif
 
-static gearman_return_t gearman_connection_set_option(gearman_connection_st *connection,
-                                                      gearman_connection_options_t options,
-                                                      bool value)
-{
-  switch (options)
-  {
-  case GEARMAN_CON_READY:
-    connection->options.ready= value;
-    break;
-
-  case GEARMAN_CON_PACKET_IN_USE:
-    connection->options.packet_in_use= value;
-    break;
-
-  case GEARMAN_CON_IGNORE_LOST_CONNECTION:
-    break;
-
-  case GEARMAN_CON_CLOSE_AFTER_FLUSH:
-    break;
-
-  case GEARMAN_CON_EXTERNAL_FD:
-  case GEARMAN_CON_MAX:
-  default:
-    return GEARMAN_INVALID_COMMAND;
-  }
-
-  return GEARMAN_SUCCESS;
-}
-
 
 /**
  * @addtogroup gearman_connection_static Static Connection Declarations
@@ -115,8 +86,7 @@ static gearman_return_t gearman_connection_set_option(gearman_connection_st *con
  * @{
  */
 
-gearman_connection_st::gearman_connection_st(gearman_universal_st &universal_arg,
-                                             gearman_connection_options_t *options_args) :
+gearman_connection_st::gearman_connection_st(gearman_universal_st &universal_arg) :
   state(GEARMAN_CON_UNIVERSAL_ADDRINFO),
   send_state(GEARMAN_CON_SEND_STATE_NONE),
   recv_state(GEARMAN_CON_RECV_UNIVERSAL_NONE),
@@ -142,15 +112,6 @@ gearman_connection_st::gearman_connection_st(gearman_universal_st &universal_arg
   send_buffer_ptr(NULL),
   _recv_packet(NULL)
 {
-  if (options_args)
-  {
-    while (*options_args != GEARMAN_CON_MAX)
-    {
-      gearman_connection_set_option(this, *options_args, true);
-      options_args++;
-    }
-  }
-
   if (universal.con_list)
   {
     universal.con_list->prev= this;
@@ -165,10 +126,14 @@ gearman_connection_st::gearman_connection_st(gearman_universal_st &universal_arg
   _service[0]= 0;
 }
 
-gearman_connection_st *gearman_connection_create(gearman_universal_st &universal,
-                                                 gearman_connection_options_t *options)
+/**
+ * Initialize a connection structure. Always check the return value even if
+ * passing in a pre-allocated structure. Some other initialization may have
+ * failed.
+ */
+static gearman_connection_st *__connection_create(gearman_universal_st &universal)
 {
-  gearman_connection_st *connection= new (std::nothrow) gearman_connection_st(universal, options);
+  gearman_connection_st *connection= new (std::nothrow) gearman_connection_st(universal);
   if (connection == NULL)
   {
     gearman_perror(universal, "Failed at new() gearman_connection_st new");
@@ -177,38 +142,34 @@ gearman_connection_st *gearman_connection_create(gearman_universal_st &universal
   return connection;
 }
 
-gearman_connection_st *gearman_connection_create_args(gearman_universal_st& universal,
-                                                      const char *host, const char* service_)
+gearman_connection_st *gearman_connection_create(gearman_universal_st& universal,
+                                                 const char *host, const char* service_)
 {
-  gearman_connection_st *connection= gearman_connection_create(universal);
-  if (connection == NULL)
+  gearman_connection_st *connection= __connection_create(universal);
+  if (connection)
   {
-    return NULL;
-  }
+    connection->set_host(host, (const char*)service_);
 
-  connection->set_host(host, service_);
-
-  if (gearman_failed(connection->lookup()))
-  {
-    gearman_gerror(universal, GEARMAN_GETADDRINFO);
-    delete connection;
-    return NULL;
+    if (gearman_failed(connection->lookup()))
+    {
+      delete connection;
+      return NULL;
+    }
   }
 
   return connection;
 }
 
-gearman_connection_st *gearman_connection_create_args(gearman_universal_st& universal,
-                                                      const char *host, in_port_t port)
+gearman_connection_st *gearman_connection_create(gearman_universal_st& universal,
+                                                 const char *host, const in_port_t& port)
 {
-  gearman_connection_st *connection= gearman_connection_create(universal, NULL);
+  gearman_connection_st *connection= __connection_create(universal);
   if (connection)
   {
     connection->set_host(host, port);
 
     if (gearman_failed(connection->lookup()))
     {
-      gearman_gerror(universal, GEARMAN_GETADDRINFO);
       delete connection;
       return NULL;
     }
@@ -220,7 +181,7 @@ gearman_connection_st *gearman_connection_create_args(gearman_universal_st& univ
 gearman_connection_st *gearman_connection_copy(gearman_universal_st& universal,
                                                const gearman_connection_st& from)
 {
-  gearman_connection_st *connection= gearman_connection_create(universal);
+  gearman_connection_st *connection= __connection_create(universal);
 
   if (connection)
   {
@@ -278,7 +239,7 @@ void gearman_connection_st::free_private_packet()
  * Public Definitions
  */
 
-void gearman_connection_st::set_host(const char *host_, const in_port_t& port_)
+void gearman_connection_st::set_host(const char *host_, const in_port_t port_)
 {
   if (port_ < 1)
   {
@@ -683,7 +644,7 @@ gearman_return_t gearman_connection_st::lookup()
   if ((ret= getaddrinfo(_host, _service, &ai, &(_addrinfo))))
   {
     reset_addrinfo();
-    return gearman_universal_set_error(universal, GEARMAN_GETADDRINFO, GEARMAN_AT, "getaddrinfo:%s", gai_strerror(ret));
+    return gearman_universal_set_error(universal, GEARMAN_GETADDRINFO, GEARMAN_AT, "%s:%d getaddrinfo:%s", host(), service(), gai_strerror(ret));
   }
 
   addrinfo_next= _addrinfo;

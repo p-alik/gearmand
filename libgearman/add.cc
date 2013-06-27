@@ -286,8 +286,8 @@ gearman_task_st *add_task(gearman_client_st& client,
 
   case GEARMAN_COMMAND_SUBMIT_REDUCE_JOB:
   case GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND:
-    assert(0);
     rc= GEARMAN_INVALID_ARGUMENT;
+    assert(rc != GEARMAN_INVALID_ARGUMENT);
     break;
 
   case GEARMAN_COMMAND_SUBMIT_JOB_SCHED:
@@ -325,8 +325,8 @@ gearman_task_st *add_task(gearman_client_st& client,
   case GEARMAN_COMMAND_WORK_WARNING:
   case GEARMAN_COMMAND_GET_STATUS_UNIQUE:
   case GEARMAN_COMMAND_STATUS_RES_UNIQUE:
-    assert(0);
     rc= GEARMAN_INVALID_ARGUMENT;
+    assert(rc != GEARMAN_INVALID_ARGUMENT);
     break;
   }
 

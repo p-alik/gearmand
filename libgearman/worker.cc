@@ -445,7 +445,7 @@ gearman_return_t gearman_worker_add_server(gearman_worker_st *worker,
 {
   if (worker and worker->impl())
   {
-    if (gearman_connection_create_args(worker->impl()->universal, host, port) == NULL)
+    if (gearman_connection_create(worker->impl()->universal, host, port) == NULL)
     {
       return gearman_universal_error_code(worker->impl()->universal);
     }
