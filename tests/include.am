@@ -106,6 +106,7 @@ include tests/libgearman-1.0/include.am
 include tests/stress.am
 include tests/hostile.am
 include tests/workers/include.am
+include tests/protocol.mk
 
 tests_round_robin_test_SOURCES=
 tests_round_robin_test_LDADD=
