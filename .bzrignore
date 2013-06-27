@@ -116,3 +116,4 @@ examples/reverse_client_epoch
 examples/reverse_worker
 examples/wc_worker
 tmp_chroot
+tests/protocol
