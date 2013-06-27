@@ -102,6 +102,18 @@ struct gearman_packet_st
     return false;
   }
 
+  const char* value(size_t& length_)
+  {
+    length_= data_size;
+
+    if (length_)
+    {
+      return (const char*)data;
+    }
+
+    return NULL;
+  }
+
   void reset()
   {
     if (args != args_buffer and args)
