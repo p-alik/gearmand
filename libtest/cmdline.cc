@@ -437,9 +437,26 @@ bool Application::slurp()
 #pragma GCC diagnostic ignored "-Wunreachable-code"
 Application::error_t Application::join()
 {
-  pid_t waited_pid= waitpid(_pid, &_status, 0);
+  if (waitpid(_pid, &_status, 0) == -1)
+  {
+    std::string error_string;
+    if (stdout_result_length())
+    {
+      error_string+= " stdout: ";
+      error_string+= stdout_c_str();
+    }
+
+    if (stderr_result_length())
+    {
+      error_string+= " stderr: ";
+      error_string+= stderr_c_str();
+    }
+    Error << "waitpid() returned errno:" << strerror(errno) << " " << error_string;
+    return Application::UNKNOWN;
+  }
+
   slurp();
-  if (waited_pid == _pid and WIFEXITED(_status) == false)
+  if (WIFEXITED(_status) == false)
   {
     /*
       What we are looking for here is how the exit status happened.
@@ -504,26 +521,9 @@ Application::error_t Application::join()
         << " name:" << built_argv[0];
     }
   }
-  else if (waited_pid == _pid and WIFEXITED(_status))
+  else if (WIFEXITED(_status))
   {
-    _app_exit_state= int_to_error_t(WEXITSTATUS(_status));
-  }
-  else if (waited_pid == -1)
-  {
-    std::string error_string;
-    if (stdout_result_length())
-    {
-      error_string+= " stdout: ";
-      error_string+= stdout_c_str();
-    }
-
-    if (stderr_result_length())
-    {
-      error_string+= " stderr: ";
-      error_string+= stderr_c_str();
-    }
-    Error << "waitpid() returned errno:" << strerror(errno) << " " << error_string;
-    _app_exit_state= Application::UNKNOWN;
+    return int_to_error_t(WEXITSTATUS(_status));
   }
   else
   {

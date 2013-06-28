@@ -152,16 +152,16 @@ bool daemonize(bool is_chdir, bool wait_sigusr1)
       /* parent */
       int exit_code= EXIT_FAILURE;
       int status;
-      while (waitpid(child, &status, 0) != child)
-      { }
-
-      if (WIFEXITED(status))
+      if  (waitpid(child, &status, 0) != -1)
       {
-        exit_code= WEXITSTATUS(status);
-      }
-      if (WIFSIGNALED(status))
-      {
-        exit_code= EXIT_FAILURE;
+        if (WIFEXITED(status))
+        {
+          exit_code= WEXITSTATUS(status);
+        }
+        if (WIFSIGNALED(status))
+        {
+          exit_code= EXIT_FAILURE;
+        }
       }
       _exit(exit_code);
     }
