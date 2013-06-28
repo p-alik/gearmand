@@ -108,6 +108,7 @@ test_return_t check_client_fork_TEST(void*)
             {
               FAIL("child was killed by signal %s", strsignal(WTERMSIG(status)));
             }
+            test_compare(EXIT_SUCCESS, exit_code);
             ASSERT_EQ(EXIT_SUCCESS, exit_code);
           }
         }
