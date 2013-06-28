@@ -1227,7 +1227,15 @@ gearman_return_t gearman_connection_st::set_socket_options()
         { 
           rval= fcntl (fd, F_SETFD, flags | FD_CLOEXEC);
         } while (rval == -1 && (errno == EINTR or errno == EAGAIN));
-        // we currently ignore the case where rval is -1
+
+        if (rval == -1)
+        {
+          gearman_perror(universal, "fcntl (fd, F_SETFD, flags | FD_CLOEXEC)");
+        }
+      }
+      else
+      {
+        gearman_perror(universal, "fcntl(fd, F_GETFD, 0)");
       }
     }
   }
