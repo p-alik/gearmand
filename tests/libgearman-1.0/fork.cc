@@ -59,11 +59,13 @@ test_return_t fork_SETUP(void*)
 
 test_return_t check_client_fork_TEST(void*)
 {
+  test_skip_valgrind();
+
   libgearman::Client client(libtest::default_port());
 
 #ifdef HAVE_FORK
   {
-    ASSERT_EQ(GEARMAN_SUCCESS, gearman_client_echo(&client, test_literal_param("foo")));
+    ASSERT_EQ(GEARMAN_SUCCESS, gearman_client_echo(&client, test_literal_param("begin all forked")));
     pid_t child= fork();
 
     switch (child)
@@ -74,9 +76,9 @@ test_return_t check_client_fork_TEST(void*)
       case 0:
         {
           gearman_return_t ret;
-          if (gearman_failed(ret= gearman_client_echo(&client, test_literal_param("all forked"))))
+          if (gearman_failed(ret= gearman_client_echo(&client, test_literal_param("child forked"))))
           {
-            Error << gearman_strerror(ret);
+            Error << gearman_client_error(&client);
             exit(int(ret));
           }
           exit(0);
@@ -84,13 +86,6 @@ test_return_t check_client_fork_TEST(void*)
 
       default:
         {
-          {
-            gearman_return_t ret;
-            if (gearman_failed(ret= gearman_client_echo(&client, test_literal_param("all forked"))))
-            {
-              Error << gearman_strerror(ret);
-            }
-          }
           int exit_code= EXIT_FAILURE;
           int status;
           if (waitpid(child, &status, 0) == -1)
@@ -108,9 +103,10 @@ test_return_t check_client_fork_TEST(void*)
             {
               FAIL("child was killed by signal %s", strsignal(WTERMSIG(status)));
             }
-            test_compare(EXIT_SUCCESS, exit_code);
             ASSERT_EQ(EXIT_SUCCESS, exit_code);
           }
+
+          ASSERT_EQ(GEARMAN_LOST_CONNECTION, gearman_client_echo(&client, test_literal_param("parent forked")));
         }
     }
     return TEST_SUCCESS;

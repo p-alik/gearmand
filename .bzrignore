@@ -119,3 +119,4 @@ tmp_chroot
 tests/protocol
 libgearman/command.hpp
 libgearman/error_code.hpp
+TAGS

@@ -42,6 +42,9 @@
 #include <ctime>
 #include <ostream>
 
+#include <sys/types.h>
+#include <unistd.h>
+
 namespace libtest {
 namespace stream {
 
@@ -65,7 +68,8 @@ template<class Ch, class Tr, class A>
           << ":" 
           << line_number 
           << ": in " 
-          << func << "() "
+          << func << "() pid("
+          << getpid() << ") "
           << s.str()
           << std::endl;
       }
@@ -97,7 +101,8 @@ template<class Ch, class Tr, class A>
           << ":" 
           << line_number 
           << ": in " 
-          << func << "() "
+          << func << "() pid("
+          << getpid() << ") "
           << s.str()
           << std::endl;
       }

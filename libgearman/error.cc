@@ -48,6 +48,9 @@
 #include <cstdio>
 #include <cstring>
 
+#include <sys/types.h>
+#include <unistd.h>
+
 static void correct_from_errno(gearman_universal_st& universal)
 {
   if (universal.error_code() == GEARMAN_ERRNO)
@@ -93,9 +96,9 @@ gearman_return_t gearman_universal_set_error(gearman_universal_st& universal,
                                              const char *position,
                                              const char *format, ...)
 {
-  if (rc == GEARMAN_SUCCESS)
+  if (rc == GEARMAN_SUCCESS or rc == GEARMAN_IO_WAIT)
   {
-    return GEARMAN_SUCCESS;
+    return universal._error.rc= rc;
   }
 
   va_list args;
@@ -115,7 +118,8 @@ gearman_return_t gearman_universal_set_error(gearman_universal_st& universal,
     universal._error.last_error[GEARMAN_MAX_ERROR_SIZE -1]= 0;
   }
 
-  length= snprintf(universal._error.last_error, GEARMAN_MAX_ERROR_SIZE, "%s(%s) %s -> %s", function, gearman_strerror(universal._error.rc), last_error, position);
+  length= snprintf(universal._error.last_error, GEARMAN_MAX_ERROR_SIZE, "%s(%s) %s -> %s pid(%u)", 
+                   function, gearman_strerror(universal._error.rc), last_error, position, getpid());
   if (length > int(GEARMAN_MAX_ERROR_SIZE) or length < 0)
   {
     assert(length > int(GEARMAN_MAX_ERROR_SIZE));
@@ -139,19 +143,19 @@ gearman_return_t gearman_universal_set_gerror(gearman_universal_st& universal,
 {
   if (rc == GEARMAN_SUCCESS or rc == GEARMAN_IO_WAIT)
   {
-    return rc;
+    return universal._error.rc= rc;
   }
 
   universal._error.rc= rc;
   correct_from_errno(universal);
 
-  int length= snprintf(universal._error.last_error, GEARMAN_MAX_ERROR_SIZE, "%s(%s) -> %s", func, gearman_strerror(rc), position);
+  int length= snprintf(universal._error.last_error, GEARMAN_MAX_ERROR_SIZE, "%s(%s) -> %s pid(%u)",
+                       func, gearman_strerror(rc), position, getpid());
   if (length > int(GEARMAN_MAX_ERROR_SIZE) or length < 0)
   {
     assert(length > int(GEARMAN_MAX_ERROR_SIZE));
     assert(length < 0);
     universal._error.last_error[GEARMAN_MAX_ERROR_SIZE -1]= 0;
-    return GEARMAN_ARGUMENT_TOO_LARGE;
   }
 
   gearman_log_error(universal,
@@ -200,11 +204,11 @@ gearman_return_t gearman_universal_set_perror(gearman_universal_st &universal,
   int length;
   if (message)
   {
-    length= snprintf(universal._error.last_error, GEARMAN_MAX_ERROR_SIZE, "%s(%s) %s -> %s", function, errmsg_ptr, message, position);
+    length= snprintf(universal._error.last_error, GEARMAN_MAX_ERROR_SIZE, "%s(%s) %s -> %s pid(%d)", function, errmsg_ptr, message, position, getpid());
   }
   else
   {
-    length= snprintf(universal._error.last_error, GEARMAN_MAX_ERROR_SIZE, "%s(%s) -> %s", function, errmsg_ptr, position);
+    length= snprintf(universal._error.last_error, GEARMAN_MAX_ERROR_SIZE, "%s(%s) -> %s pid(%d)", function, errmsg_ptr, position, getpid());
   }
 
   if (length > int(GEARMAN_MAX_ERROR_SIZE) or length < 0)

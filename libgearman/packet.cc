@@ -383,8 +383,7 @@ gearman_return_t gearman_packet_unpack_header(gearman_packet_st *packet)
   if (packet->command == GEARMAN_COMMAND_TEXT ||
       packet->command >= GEARMAN_COMMAND_MAX)
   {
-    gearman_error(*packet->universal, GEARMAN_INVALID_COMMAND, "invalid command value");
-    return GEARMAN_INVALID_COMMAND;
+    return gearman_error(*packet->universal, GEARMAN_INVALID_COMMAND, "invalid command value");
   }
 
   memcpy(&tmp, packet->args + 8, 4);

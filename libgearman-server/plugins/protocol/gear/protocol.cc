@@ -230,7 +230,7 @@ public:
       }
     }
 
-    if (packet->command == GEARMAN_COMMAND_ECHO_RES)
+    if (packet->command == GEARMAN_COMMAND_ECHO_RES or packet->command == GEARMAN_COMMAND_ECHO_REQ)
     {
       gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
                          "GEAR length: %" PRIu64 " gearmand_command_t: %s echo: %.*s",
