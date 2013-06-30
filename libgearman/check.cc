@@ -41,6 +41,8 @@
 
 #include "libgearman/error_code.h"
 
+#include <algorithm>
+
 EchoCheck::EchoCheck(gearman_universal_st& universal_,
     const void *workload_, const size_t workload_size_) :
     _universal(universal_),
@@ -56,10 +58,29 @@ gearman_return_t EchoCheck::success(gearman_connection_st* con)
     return gearman_error(_universal, GEARMAN_INVALID_COMMAND, "Wrong command sent in response to ECHO request");
   }
 
-  if (con->_packet.data_size != _workload_size or
-      memcmp(_workload, con->_packet.data, _workload_size))
+  size_t compared= std::min(con->_packet.size(), _workload_size);
+
+  if (compared != _workload_size or compared != con->_packet.size())
   {
-    return gearman_error(_universal, GEARMAN_ECHO_DATA_CORRUPTION, "corruption during echo");
+    // If the workload_size is smaller
+    if (memcmp(_workload, con->_packet.value(), compared) == 0)
+    {
+      return gearman_universal_set_error(_universal, GEARMAN_ECHO_DATA_CORRUPTION, GEARMAN_AT,
+                                         "Truncation occured, Expected %u, received %u",
+                                         uint32_t(_workload_size), uint32_t(con->_packet.data_size));
+    }
+
+    return gearman_universal_set_error(_universal, GEARMAN_ECHO_DATA_CORRUPTION, GEARMAN_AT,
+                                       "Expected data was not received, expected %u, received %u",
+                                       uint32_t(_workload_size), uint32_t(con->_packet.data_size));
+  }
+  assert(compared == _workload_size);
+
+  if (memcmp(_workload, con->_packet.value(), compared))
+  {
+    return gearman_universal_set_error(_universal, GEARMAN_ECHO_DATA_CORRUPTION, GEARMAN_AT,
+                                       "Data sent was not what was received %u == %u == %u",
+                                       uint32_t(_workload_size), uint32_t(con->_packet.data_size), uint32_t(compared));
   }
 
   return GEARMAN_SUCCESS;

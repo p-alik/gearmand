@@ -2,8 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011-2013 Data Differential, http://datadifferential.com/
- *  Copyright (C) 2008 Brian Aker, Eric Day
+ *  Copyright (C) 2013 Data Differential, http://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -36,40 +35,8 @@
  *
  */
 
-/**
- * @file
- * @brief Local Gearman Declarations
- */
-
 #pragma once
 
-#include <cstdio>
-#include <cstdarg>
+test_return_t fork_SETUP(void*);
 
-/** @addtogroup gearman_local Local Gearman Declarations @ingroup
- * gearman_universal @{
- */
-
-/**
- * Log a message.
- *
- * @param[in] gearman Structure previously initialized with gearman_create() or
- *  gearman_clone().
- * @param[in] verbose Logging level of the message.
- * @param[in] format Format and variable argument list of message.
- * @param[in] args Variable argument list that has been initialized.
- */
-void gearman_log(gearman_universal_st& gearman, gearman_verbose_t verbose,
-                 const char *format, ...);
-
-/**
- * Log an info message, see gearman_log() for argument details.
- */
-void gearman_log_info(gearman_universal_st&, const char *format, ...);
-
-/**
- * Log a debug message, see gearman_log() for argument details.
- */
-void gearman_log_debug(gearman_universal_st& gearman, const char *format, ...);
-
-void gearman_log_error(gearman_universal_st& state, gearman_verbose_t verbose);
+test_return_t check_client_fork_TEST(void*);

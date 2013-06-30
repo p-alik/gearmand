@@ -117,3 +117,6 @@ examples/reverse_worker
 examples/wc_worker
 tmp_chroot
 tests/protocol
+libgearman/command.hpp
+libgearman/error_code.hpp
+TAGS

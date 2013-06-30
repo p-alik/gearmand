@@ -433,8 +433,10 @@ gearman_return_t gearman_connection_st::send_packet(const gearman_packet_st& pac
 
       if (gearman_failed(ret))
       {
+        assert(universal.error_code());
+        assert(universal.error());
         gearman_packet_free(&message);
-        return gearman_error(universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "gearman_packet_create_args()");
+        return universal.error_code();
       }
 
       PUSH_BLOCKING(universal);
@@ -442,8 +444,10 @@ gearman_return_t gearman_connection_st::send_packet(const gearman_packet_st& pac
       ret= _send_packet(message, true);
       if (gearman_failed(ret))
       {
+        assert(universal.error_code());
+        assert(universal.error());
         gearman_packet_free(&message);
-        return gearman_error(universal, ret, "Failed to send server-options packet");
+        return universal.error_code();
       }
 
       options.packet_in_use= true;
@@ -718,7 +722,7 @@ gearman_return_t gearman_connection_st::flush()
         {
           type|= SOCK_NONBLOCK; 
         }
-
+        
         fd= socket(addrinfo_next->ai_family, type, addrinfo_next->ai_protocol);
       }
 
@@ -946,11 +950,12 @@ gearman_packet_st *gearman_connection_st::receiving(gearman_packet_st& packet_ar
       return NULL;
     }
 
+    // This should not fail
     _recv_packet= gearman_packet_create(universal, packet_arg);
     assert(_recv_packet == &packet_arg);
     if (_recv_packet == NULL)
     {
-      ret= gearman_error(universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "gearman_packet_create()");
+      ret= gearman_error(universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "Programmer error, gearman_packet_create() failed which should not be possible");
       return NULL;
     }
 
@@ -974,6 +979,7 @@ gearman_packet_st *gearman_connection_st::receiving(gearman_packet_st& packet_ar
         }
         else if (ret != GEARMAN_IO_WAIT)
         {
+          assert(universal.error_code());
           close_socket();
           return NULL;
         }
@@ -1025,8 +1031,8 @@ gearman_packet_st *gearman_connection_st::receiving(gearman_packet_st& packet_ar
     while (recv_data_size)
     {
       (void)receive_data(static_cast<uint8_t *>(const_cast<void *>(packet_arg.data)) +
-                      recv_data_offset,
-                      packet_arg.data_size -recv_data_offset, ret);
+                         recv_data_offset,
+                         packet_arg.data_size -recv_data_offset, ret);
       if (gearman_failed(ret))
       {
         return NULL;

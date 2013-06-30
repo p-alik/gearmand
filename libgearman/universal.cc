@@ -362,7 +362,7 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
       gearman_return_t local_ret= gearman_kill(gearman_universal_id(universal), GEARMAN_INTERRUPT);
       if (gearman_failed(local_ret))
       {
-        return GEARMAN_SHUTDOWN;
+        return gearman_gerror(universal, GEARMAN_SHUTDOWN);
       }
 
       return GEARMAN_SHUTDOWN_GRACEFUL;
@@ -370,7 +370,7 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
 
     if (read_length == 0)
     {
-      return GEARMAN_SHUTDOWN;
+      return gearman_gerror(universal, GEARMAN_SHUTDOWN);
     }
 
 #if 0
@@ -542,7 +542,10 @@ static gearman_return_t connection_loop(gearman_universal_st& universal,
     gearman_packet_st *packet_ptr= con->receiving(con->_packet, ret, true);
     if (packet_ptr == NULL)
     {
-      assert(&con->_packet == universal.packet_list);
+      if (ret != GEARMAN_NOT_CONNECTED and ret != GEARMAN_LOST_CONNECTION)
+      {
+        assert(&con->_packet == universal.packet_list);
+      }
       con->options.packet_in_use= false;
       break;
     }

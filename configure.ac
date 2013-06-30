@@ -187,6 +187,7 @@ AC_FUNC_VPRINTF
 AC_REPLACE_FNMATCH
 AC_CHECK_FUNCS([accept4])
 AC_CHECK_FUNCS([dup2])
+AC_CHECK_FUNCS([fork])
 AC_CHECK_FUNCS([gettimeofday])
 AC_CHECK_FUNCS([memchr])
 AC_CHECK_FUNCS([memmove])
@@ -223,7 +224,15 @@ AC_CHECK_LIB([rt],[clock_gettime],
 LT_LIB_M
 
 # Check for CyaSSL
-AX_CHECK_LIBRARY([CYASSL],[cyassl/ssl.h],[cyassl])
+AC_DEFUN([AX_ENABLE_SSL],
+         [AC_PREREQ([2.63])dnl
+         AC_ARG_ENABLE([SSL],
+                       [AS_HELP_STRING([--enable-ssl],
+                                       [Enable ssl support for Gearman --enable-debug (yes|no) @<:@default=no@:>@])],
+                                       [AX_CHECK_LIBRARY([CYASSL],[cyassl/ssl.h],[cyassl])],
+                                       [AC_MSG_WARN([ssl will not be enabled])])
+         ])
+AX_ENABLE_SSL
 #AC_SUBST([CYASSL])
 #AC_SUBST([CYASSL_LIB])
 AX_ENABLE_LIBMEMCACHED
@@ -288,6 +297,7 @@ echo "   * Building with libmemcached $ax_enable_libmemcached"
 echo "   * Building with libpq        $ac_cv_libpq"
 echo "   * Building with tokyocabinet $ac_enable_libtokyocabinet"
 echo "   * Building with libmysql     $found_mysql"
+echo "   * SSL enabled:               $enable_SSL"
 echo "   * make -j:                   $enable_jobserver"
 echo "   * VCS checkout:              $ac_cv_vcs_checkout"
 echo ""

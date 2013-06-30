@@ -75,6 +75,7 @@ using namespace org::gearmand;
 #include "tests/execute.h"
 #include "tests/gearman_client_do_job_handle.h"
 #include "tests/gearman_execute_partition.h"
+#include "tests/libgearman-1.0/fork.h"
 #include "tests/protocol.h"
 #include "tests/regression.h"
 #include "tests/task.h"
@@ -2139,6 +2140,11 @@ static bool world_destroy(void *object)
   return TEST_SUCCESS;
 }
 
+test_st client_fork_TESTS[] ={
+  {"fork()", 0, check_client_fork_TEST },
+  {0, 0, 0}
+};
+
 test_st gearman_client_add_server_TESTS[] ={
   {"gearman_client_add_server(localhost)", 0, gearman_client_add_server_localhost_TEST },
   {"gearman_client_add_server(empty quote)", 0, gearman_client_add_server_empty_quote_TEST },
@@ -2496,6 +2502,7 @@ collection_st collection[] ={
   {"gearman_execute_partition(GEARMAN_CLIENT_FREE_TASKS)", partition_free_SETUP, 0, gearman_execute_partition_tests},
   {"gearman_command_t", 0, 0, gearman_command_t_tests},
   {"coalescence", 0, 0, coalescence_TESTS},
+  {"fork", fork_SETUP, 0, client_fork_TESTS },
   {"loop", 0, 0, loop_TESTS},
   {"limits", 0, 0, limit_tests },
   {"client-logging", pre_logging, 0, tests_log_TESTS },
