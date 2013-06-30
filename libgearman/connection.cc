@@ -711,20 +711,7 @@ gearman_return_t gearman_connection_st::flush()
       }
 
       // rewrite tye if HAVE_SOCK_CLOEXEC
-      {
-        int type= addrinfo_next->ai_socktype;
-        if (SOCK_CLOEXEC)
-        {
-          type|= SOCK_CLOEXEC;
-        }
-
-        if (SOCK_NONBLOCK)
-        {
-          type|= SOCK_NONBLOCK; 
-        }
-        
-        fd= socket(addrinfo_next->ai_family, type, addrinfo_next->ai_protocol);
-      }
+      fd= socket(addrinfo_next->ai_family, addrinfo_next->ai_socktype|SOCK_CLOEXEC|SOCK_NONBLOCK, addrinfo_next->ai_protocol);
 
       if (fd == INVALID_SOCKET)
       {
