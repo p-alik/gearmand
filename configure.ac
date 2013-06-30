@@ -226,7 +226,7 @@ LT_LIB_M
 # Check for CyaSSL
 AC_DEFUN([AX_ENABLE_SSL],
          [AC_PREREQ([2.63])dnl
-         AC_ARG_ENABLE([SSL],
+         AC_ARG_ENABLE([ssl],
                        [AS_HELP_STRING([--enable-ssl],
                                        [Enable ssl support for Gearman --enable-debug (yes|no) @<:@default=no@:>@])],
                                        [AX_CHECK_LIBRARY([CYASSL],[cyassl/ssl.h],[cyassl])],
@@ -297,7 +297,7 @@ echo "   * Building with libmemcached $ax_enable_libmemcached"
 echo "   * Building with libpq        $ac_cv_libpq"
 echo "   * Building with tokyocabinet $ac_enable_libtokyocabinet"
 echo "   * Building with libmysql     $found_mysql"
-echo "   * SSL enabled:               $enable_SSL"
+echo "   * SSL enabled:               $enable_ssl"
 echo "   * make -j:                   $enable_jobserver"
 echo "   * VCS checkout:              $ac_cv_vcs_checkout"
 echo ""
