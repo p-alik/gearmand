@@ -971,6 +971,11 @@ gearman_return_t gearman_worker_define_function(gearman_worker_st *worker,
   return GEARMAN_INVALID_ARGUMENT;
 }
 
+void gearman_worker_reset_error(Worker& worker)
+{
+  universal_reset_error(worker.universal);
+}
+
 void gearman_worker_reset_error(gearman_worker_st *worker)
 {
   if (worker and worker->impl())
@@ -1354,7 +1359,7 @@ gearman_worker_st *gearman_job_clone_worker(gearman_job_st *job)
 {
   if (job)
   {
-    return gearman_worker_clone(NULL, job->worker);
+    return gearman_worker_clone(NULL, job->_worker.shell());
   }
 
   return NULL;

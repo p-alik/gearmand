@@ -37,15 +37,32 @@
 
 #pragma once
 
+#include "libgearman/interface/worker.hpp"
+
 struct gearman_job_st
 {
+  gearman_job_st(Worker& worker_):
+    _worker(worker_)
+  { }
+
   struct {
     bool allocated;
     bool assigned_in_use;
     bool work_in_use;
     bool finished;
   } options;
-  gearman_worker_st *worker;
+
+  bool finished() const
+  {
+    return options.finished;
+  }
+
+  void finished(const bool finished_)
+  {
+    options.finished= finished_;
+  }
+
+  Worker& _worker;
   gearman_job_st *next;
   gearman_job_st *prev;
   gearman_connection_st *con;
@@ -53,4 +70,9 @@ struct gearman_job_st
   gearman_packet_st work;
   struct gearman_job_reducer_st *reducer;
   gearman_return_t error_code;
+
+  gearman_universal_st& universal()
+  {
+    return _worker.universal;
+  }
 };
