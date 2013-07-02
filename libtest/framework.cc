@@ -125,6 +125,33 @@ Framework::Framework(libtest::SignalThread& signal_,
   _name(name_)
 {
   get_world(this);
+
+  {
+    std::string file_name;
+    if (getenv("WORKSPACE"))
+    {
+      file_name.append(getenv("WORKSPACE"));
+      file_name.append("/");
+    }
+    file_name.append(name());
+    file_name.append(".xml");
+    xml_file.open(file_name.c_str(), std::ios::trunc);
+    _formatter.push_back(new libtest::Junit(this, xml_file));
+  }
+
+  {
+    std::string file_name;
+    if (getenv("WORKSPACE"))
+    {
+      file_name.append(getenv("WORKSPACE"));
+      file_name.append("/");
+    }
+    file_name.append(name());
+    file_name.append(".tap");
+    tap_file.open(file_name.c_str(), std::ios::trunc);
+    _formatter.push_back(new libtest::TAP(this, tap_file));
+  }
+  _formatter.push_back(new libtest::Legacy(this, std::cout));
 }
 
 void Framework::collections(collection_st collections_[])
@@ -148,6 +175,9 @@ Framework::~Framework()
 
   std::for_each(_collection.begin(), _collection.end(), DeleteFromVector());
   _collection.clear();
+
+  std::for_each(_formatter.begin(), _formatter.end(), DeleteFromVector());
+  _formatter.clear();
 }
 
 bool Framework::match(const char* arg)
@@ -230,58 +260,6 @@ void Framework::exec()
     }
 #endif
   }
-}
-
-uint32_t Framework::sum_total()
-{
-  uint32_t count= 0;
-  for (std::vector<Collection*>::iterator iter= _collection.begin();
-       iter != _collection.end();
-       ++iter)
-  {
-    count+= (*iter)->total();
-  }
-
-  return count;
-}
-
-uint32_t Framework::sum_success()
-{
-  uint32_t count= 0;
-  for (std::vector<Collection*>::iterator iter= _collection.begin();
-       iter != _collection.end();
-       ++iter)
-  {
-    count+= (*iter)->success();
-  }
-
-  return count;
-}
-
-uint32_t Framework::sum_skipped()
-{
-  uint32_t count= 0;
-  for (std::vector<Collection*>::iterator iter= _collection.begin();
-       iter != _collection.end();
-       ++iter)
-  {
-    count+= (*iter)->skipped();
-  }
-
-  return count;
-}
-
-uint32_t Framework::sum_failed()
-{
-  uint32_t count= 0;
-  for (std::vector<Collection*>::iterator iter= _collection.begin();
-       iter != _collection.end();
-       ++iter)
-  {
-    count+= (*iter)->failed();
-  }
-
-  return count;
 }
 
 libtest::Runner *Framework::runner()

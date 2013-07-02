@@ -44,101 +44,190 @@
   
 namespace libtest {
 
-class TestCase {
-public:
-  TestCase(const std::string& arg):
-    _name(arg),
-    _result(TEST_FAILURE)
-  {
-  }
-
-  const std::string& name() const
-  {
-    return _name;
-  }
-
-  test_return_t result() const
-  {
-    return _result;
-  }
-
-  void result(test_return_t arg)
-  {
-    _result= arg;
-  }
-
-  void result(test_return_t arg, const libtest::Timer& timer_)
-  {
-    _result= arg;
-    _timer= timer_;
-  }
-
-  const libtest::Timer& timer() const
-  {
-    return _timer;
-  }
-
-  void timer(libtest::Timer& arg)
-  {
-    _timer= arg;
-  }
-
-private:
-  std::string _name;
-  test_return_t _result;
-  libtest::Timer _timer;
-};
-
-Formatter::Formatter(const std::string& frame_name, const std::string& arg)
+Formatter::Formatter(const Framework* frame_, std::ostream& output_):
+  _frame(frame_),
+  _output(output_)
 {
-  _suite_name= frame_name;
-  _suite_name+= ".";
-  _suite_name+= arg;
 }
 
-Formatter::~Formatter()
+const std::string& Formatter::name() const
 {
-  std::for_each(_testcases.begin(), _testcases.end(), DeleteFromVector());
-  _testcases.clear();
+  return _frame->name();
 }
 
-TestCase* Formatter::current()
+Legacy::Legacy(const Framework* frame_, std::ostream& output_):
+  Formatter(frame_, output_),
+  _collection(NULL)
 {
-  return _testcases.back();
 }
 
-void Formatter::skipped()
-{
-  current()->result(TEST_SKIPPED);
-  Out << name() << "." << current()->name() <<  "\t\t\t\t\t" << "[ " << test_strerror(current()->result()) << " ]";
 
-  reset();
+Legacy::~Legacy()
+{
+  if (getenv("YATL_SUMMARY"))
+  {
+    Outn();
+    Out << "Tests\t\t\t\t\t" << _frame->total();
+    Out << "\tFailed\t\t\t\t\t" << _frame->failed();
+    Out << "\tSkipped\t\t\t\t\t" << _frame->skipped();
+    Out << "\tSucceeded\t\t\t\t" << _frame->success();
+  }
 }
 
-void Formatter::failed()
+void Legacy::plan(const Collection* collection)
 {
-  assert(current());
-  current()->result(TEST_FAILURE);
-
-  Out << name() << "." << current()->name() <<  "\t\t\t\t\t" << "[ " << test_strerror(current()->result()) << " ]";
-
-  reset();
+  _collection= collection;
 }
 
-void Formatter::success(const libtest::Timer& timer_)
+void Legacy::report(const libtest::TestCase* test, size_t) const
 {
-  assert(current());
-  current()->result(TEST_SUCCESS, timer_);
+  switch (test->result())
+  {
+    case TEST_SUCCESS:
+      Out << name() << "."
+        << _collection->name() << "."
+        << test->name()
+        <<  "\t\t\t\t\t" 
+        << test->timer() 
+        << " [ " << test_strerror(test->result()) << " ]";
+      break;
 
-  Out << name() << "."
-    << current()->name()
-    <<  "\t\t\t\t\t" 
-    << current()->timer() 
-    << " [ " << test_strerror(current()->result()) << " ]";
+    case TEST_FAILURE:
+      Out << name() << "."
+        << _collection->name() << "."
+        << test->name()
+        <<  "\t\t\t\t\t" << "[ " << test_strerror(test->result()) << " ]";
+      break;
 
-  reset();
+    case TEST_SKIPPED:
+      Out << name() << "."
+        << _collection->name() << "."
+        << test->name()
+        <<  "\t\t\t\t\t" << "[ " << test_strerror(test->result()) << " ]";
+      break;
+  }
 }
 
+Junit::Junit(const Framework* frame_, std::ostream& output_):
+  Formatter(frame_, output_)
+{
+  _output << "<testsuites name=\"" << name() << "\">" << std::endl;
+}
+
+Junit::~Junit()
+{
+  _output << "</testsuites>" << std::endl;
+}
+
+void Junit::report(const libtest::TestCase* test, size_t) const
+{
+  _output << "\t\t<testcase name=\"" 
+    << test->name() 
+    << "\" time=\"" 
+    << test->timer().elapsed_milliseconds() 
+    << "\">" 
+    << std::endl;
+
+  switch (test->result())
+  {
+    case TEST_SKIPPED:
+      _output << "\t\t <skipped/>" << std::endl;
+      break;
+
+    case TEST_FAILURE:
+      _output << "\t\t <failure message=\"\" type=\"\"/>"<< std::endl;
+      break;
+
+    case TEST_SUCCESS:
+      break;
+  }
+  _output << "\t\t</testcase>" << std::endl;
+}
+
+void Junit::plan(const Collection* collection)
+{
+  _output << "\t<testsuite name=\"" << collection->name() << "\"  classname=\"\" package=\"\">" << std::endl;
+}
+
+void Junit::complete()
+{
+  _output << "\t</testsuite>" << std::endl;
+}
+
+TAP::TAP(const Framework* frame_, std::ostream& output_):
+  Formatter(frame_, output_)
+{
+}
+
+TAP::~TAP()
+{
+}
+
+void TAP::report(const libtest::TestCase* test, size_t position) const
+{
+  assert(test);
+  switch (test->result())
+  {
+    case TEST_SUCCESS:
+      _output << "ok " << position << " - " << test->name() << " # ";
+      _output << test->timer().elapsed_milliseconds();
+      break;
+
+    case TEST_FAILURE:
+      _output << "not ok " << position << " - " << test->name() << " # ";
+      break;
+
+    case TEST_SKIPPED:
+      _output << "ok " << position << " - # SKIP ";
+      break;
+  }
+
+  _output << std::endl;
+}
+
+void TAP::plan(const Collection* collection)
+{
+  _output << "0.." << collection->total() << std::endl;
+}
+
+#if 0
+void Formatter::tap(libtest::Framework& framework_, std::ofstream& output)
+{
+  for (Suites::iterator framework_iter= framework_.suites().begin();
+       framework_iter != framework_.suites().end();
+       ++framework_iter)
+  {
+    output << "1.." << (*framework_iter)->formatter()->testcases().size() << " # " << (*framework_iter)->name() << std::endl;
+
+    size_t test_count= 1;
+    for (TestCases::iterator case_iter= (*framework_iter)->formatter()->testcases().begin();
+         case_iter != (*framework_iter)->formatter()->testcases().end();
+         ++case_iter)
+    {
+      switch ((*case_iter)->result())
+      {
+        case TEST_SKIPPED:
+        output << "ok " << test_count << " - # SKIP ";
+        break;
+
+        case TEST_FAILURE:
+        output << "not ok " << test_count << " - " << (*case_iter)->name() << " # ";
+        break;
+
+        case TEST_SUCCESS:
+        output << "ok " << test_count << " - " << (*case_iter)->name() << " # ";
+        break;
+      }
+
+      output 
+        << (*case_iter)->timer().elapsed_milliseconds() 
+        << std::endl;
+    }
+  }
+}
+#endif
+
+#if 0
 void Formatter::xml(libtest::Framework& framework_, std::ofstream& output)
 {
   output << "<testsuites name=\"" << framework_.name() << "\">" << std::endl;
@@ -178,15 +267,6 @@ void Formatter::xml(libtest::Framework& framework_, std::ofstream& output)
   }
   output << "</testsuites>" << std::endl;
 }
+#endif
 
-void Formatter::push_testcase(const std::string& arg)
-{
-  assert(_suite_name.empty() == false);
-  TestCase* _current_testcase= new TestCase(arg);
-  _testcases.push_back(_current_testcase);
-}
-
-void Formatter::reset()
-{
-}
 } // namespace libtest

@@ -2,7 +2,7 @@
  *
  *  Data Differential YATL (i.e. libtest)  library
  *
- *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2012-2013 Data Differential, http://datadifferential.com/
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -45,6 +45,7 @@
 */
 
 #include <vector>
+#include <fstream>
 
 namespace { class Collection; }
 typedef std::vector<libtest::Collection*> Suites;
@@ -126,34 +127,9 @@ public:
     return _signal;
   }
 
-  uint32_t sum_total();
-  uint32_t sum_success();
-  uint32_t sum_skipped();
-  uint32_t sum_failed();
-
   size_t size() 
   {
     return _collection.size();
-  }
-
-  uint32_t total() const
-  {
-    return _total;
-  }
-
-  uint32_t success() const
-  {
-    return _success;
-  }
-
-  uint32_t skipped() const
-  {
-    return _skipped;
-  }
-
-  uint32_t failed() const
-  {
-    return _failed;
   }
 
   Suites& suites()
@@ -161,12 +137,38 @@ public:
     return _collection;
   }
 
+  libtest::Formatters& formatter()
+  {
+    return _formatter;
+  }
+
+  size_t total() const
+  {
+    return _total;
+  }
+
+  size_t success() const
+  {
+    return _success;
+  }
+
+  size_t skipped() const
+  {
+    return _skipped;
+  }
+
+  size_t failed() const
+  {
+    return _failed;
+  }
+
 private:
-  uint32_t _total;
-  uint32_t _success;
-  uint32_t _skipped;
-  uint32_t _failed;
-  
+  // Sums
+  size_t _total;
+  size_t _success;
+  size_t _skipped;
+  size_t _failed;
+
   /* These methods are called outside of any collection call. */
   test_callback_create_fn *_create;
   test_callback_destroy_fn *_destroy;
@@ -195,6 +197,10 @@ private:
 private:
   Framework( const Framework& );
   const Framework& operator=( const Framework& );
+  libtest::Formatters _formatter;
+  std::ofstream xml_file;
+  std::ofstream tap_file;
+
 };
 
 } // namespace libtest
