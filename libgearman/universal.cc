@@ -171,7 +171,7 @@ gearman_return_t gearman_universal_set_option(gearman_universal_st &self, univer
 
   case GEARMAN_UNIVERSAL_MAX:
   default:
-    return GEARMAN_INVALID_COMMAND;
+    return gearman_gerror(self, GEARMAN_INVALID_COMMAND);
   }
 
   return GEARMAN_SUCCESS;
@@ -365,7 +365,7 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
         return gearman_gerror(universal, GEARMAN_SHUTDOWN);
       }
 
-      return GEARMAN_SHUTDOWN_GRACEFUL;
+      return gearman_gerror(universal, GEARMAN_SHUTDOWN_GRACEFUL);
     }
 
     if (read_length == 0)
@@ -430,7 +430,7 @@ gearman_return_t gearman_universal_st::option(const universal_options_t& option_
 
     case GEARMAN_UNIVERSAL_MAX:
     default:
-      return GEARMAN_INVALID_COMMAND;
+      return gearman_gerror(*this, GEARMAN_INVALID_COMMAND);
   }
 
   return GEARMAN_SUCCESS;
