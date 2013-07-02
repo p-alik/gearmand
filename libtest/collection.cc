@@ -38,9 +38,11 @@
 
 #include <libtest/common.h>
 
+#include <algorithm>
+
 // @todo possibly have this code fork off so if it fails nothing goes bad
 static test_return_t runner_code(libtest::Framework* frame,
-                                 test_st* run, 
+                                 const struct test_st* run, 
                                  libtest::Timer& _timer)
 { // Runner Code
 
@@ -84,46 +86,119 @@ static test_return_t runner_code(libtest::Framework* frame,
 
 namespace libtest {
 
-Collection::Collection(Framework* frame_arg,
-                       collection_st* arg) :
-  _name(arg->name),
-  _pre(arg->pre),
-  _post(arg->post),
-  _tests(arg->tests),
-  _frame(frame_arg),
+Collection::Collection(Framework* frame_,
+                       collection_st* tests_) :
+  _name(tests_->name),
+  _ret(TEST_SKIPPED),
+  _pre(tests_->pre),
+  _post(tests_->post),
+  _tests(tests_->tests),
+  _frame(frame_),
   _success(0),
   _skipped(0),
   _failed(0),
-  _total(0),
-  _formatter(frame_arg->name(), _name)
+  _formatter(frame_->formatter())
 {
-  fatal_assert(arg);
+  fatal_assert(tests_);
+  for (const test_st *run= _tests; run->name; run++)
+  {
+    push_testcase(run);
+  }
+
+  case_iter= _testcases.begin();
+}
+
+Collection::~Collection()
+{
+  std::for_each(_testcases.begin(), _testcases.end(), DeleteFromVector());
+  _testcases.clear();
+
+  std::for_each(_formatter.begin(), _formatter.end(), DeleteFromVector());
+  _formatter.clear();
+}
+
+void Collection::push_testcase(const test_st* test_)
+{
+  TestCase* _current_testcase= new TestCase(test_);
+  _testcases.push_back(_current_testcase);
+}
+
+void Collection::format()
+{
+  for (Formatters::iterator format_iter= _formatter.begin();
+       format_iter != _formatter.end();
+       ++format_iter)
+  {
+    (*format_iter)->report((*case_iter), std::distance(_testcases.begin(), case_iter));
+  }
+}
+
+void Collection::plan()
+{
+  for (Formatters::iterator format_iter= _formatter.begin();
+       format_iter != _formatter.end();
+       ++format_iter)
+  {
+    (*format_iter)->plan(this);
+  }
+}
+
+void Collection::complete()
+{
+  for (Formatters::iterator format_iter= _formatter.begin();
+       format_iter != _formatter.end();
+       ++format_iter)
+  {
+    (*format_iter)->complete();
+  }
+}
+
+void Collection::succeess()
+{
+  _success++;
+  (*case_iter)->success(_timer);
+  format();
+}
+
+void Collection::skip()
+{
+  _skipped++;
+  (*case_iter)->skipped();
+  format();
+}
+
+void Collection::fail()
+{
+  _failed++;
+  (*case_iter)->failed();
+  format();
 }
 
 test_return_t Collection::exec()
 {
+  // Write out any headers required by formatting.
+  plan();
+
   if (test_success(_frame->runner()->setup(_pre, _frame->creators_ptr())))
   {
-    for (test_st *run= _tests; run->name; run++)
+    for (; case_iter != _testcases.end();
+         ++case_iter)
     {
-      formatter()->push_testcase(run->name);
-      if (_frame->match(run->name))
+      if (_frame->match((*case_iter)->name()))
       {
-        formatter()->skipped();
+        skip();
         continue;
       }
-      _total++;
 
       test_return_t return_code;
       try 
       {
-        if (run->requires_flush)
+        if ((*case_iter)->requires_flush())
         {
           if (test_failed(_frame->runner()->flush(_frame->creators_ptr())))
           {
             Error << "frame->runner()->flush(creators_ptr)";
-            _skipped++;
-            formatter()->skipped();
+            skip();
             continue;
           }
         }
@@ -132,7 +207,7 @@ test_return_t Collection::exec()
 
         try 
         {
-          return_code= runner_code(_frame, run, _timer);
+          return_code= runner_code(_frame, (*case_iter)->test(), _timer);
         }
         catch (...)
         {
@@ -145,26 +220,22 @@ test_return_t Collection::exec()
       catch (const libtest::fatal& e)
       {
         stream::cerr(e.file(), e.line(), e.func()) << e.what();
-        _failed++;
-        formatter()->failed();
+        fail();
         throw;
       }
 
       switch (return_code)
       {
       case TEST_SUCCESS:
-        _success++;
-        formatter()->success(_timer);
+        succeess();
         break;
 
       case TEST_FAILURE:
-        _failed++;
-        formatter()->failed();
+        fail();
         break;
 
       case TEST_SKIPPED:
-        _skipped++;
-        formatter()->skipped();
+        skip();
         break;
 
       default:
@@ -180,17 +251,17 @@ test_return_t Collection::exec()
 
   if (_failed == 0 and _skipped == 0 and _success)
   {
-    return TEST_SUCCESS;
+    _ret= TEST_SUCCESS;
   }
-
-  if (_failed)
+  else if (_failed)
   {
-    return TEST_FAILURE;
+    _ret= TEST_FAILURE;
   }
 
-  fatal_assert(_skipped or _success == 0);
+  // Complete any headers required by formatting.
+  complete();
 
-  return TEST_SKIPPED;
+  return _ret;
 }
 
 } // namespace libtest
