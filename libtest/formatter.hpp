@@ -43,43 +43,69 @@ namespace libtest { class Framework; }
 
 namespace libtest {
 
-class TestCase;
-typedef std::vector<libtest::TestCase*> TestCases;
+class Collection;
+
+class Formatter;
+typedef std::vector<libtest::Formatter*> Formatters;
 
 class Formatter {
 public:
-  Formatter(const std::string& frame_name, const std::string& arg);
+  Formatter(const Framework* frame_, std::ostream&);
 
-  ~Formatter();
+  virtual ~Formatter() {}
 
-  void skipped();
+  virtual void plan(const libtest::Collection*) {}
+  virtual void report(const libtest::TestCase*, size_t) const {}
+  virtual void complete() {}
 
-  void failed();
+protected:
+  const std::string& name() const;
 
-  void success(const libtest::Timer&);
-
-  void push_testcase(const std::string&);
-
-  const std::string& name() const
-  {
-    return _suite_name;
-  }
-
-  TestCases& testcases()
-  {
-    return _testcases;
-  }
-
+#if 0
   static void xml(libtest::Framework&, std::ofstream&);
+  static void tap(libtest::Framework&, std::ofstream&);
+#endif
+
+protected:
+  const Framework* _frame;
+
+protected:
+  std::ostream& _output;
+};
+
+class Junit : public Formatter
+{
+public:
+  Junit(const Framework*, std::ostream&);
+  ~Junit();
+
+  void report(const libtest::TestCase*, size_t position) const;
+
+  void plan(const libtest::Collection*);
+  void complete();
+};
+
+class TAP : public Formatter
+{
+public:
+  TAP(const Framework*, std::ostream&);
+  ~TAP();
+
+  void plan(const libtest::Collection*);
+  void report(const libtest::TestCase*, size_t position) const;
+};
+
+class Legacy : public Formatter
+{
+public:
+  Legacy(const Framework*, std::ostream&);
+  ~Legacy();
+
+  void plan(const libtest::Collection*);
+  void report(const libtest::TestCase*, size_t position) const;
 
 private:
-  void reset();
-
-  TestCase* current();
-
-private:
-  std::string _suite_name;
-  TestCases _testcases;
+  const libtest::Collection* _collection;
 };
 
 } // namespace libtest

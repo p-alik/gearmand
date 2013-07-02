@@ -60,25 +60,6 @@
 
 using namespace libtest;
 
-static void stats_print(libtest::Framework *frame)
-{
-  if (frame->failed() == 0 and frame->success() == 0)
-  {
-    return;
-  }
-
-  Outn();
-  Out << "Collections\t\t\t\t\t" << frame->total();
-  Out << "\tFailed\t\t\t\t\t" << frame->failed();
-  Out << "\tSkipped\t\t\t\t\t" << frame->skipped();
-  Out << "\tSucceeded\t\t\t\t" << frame->success();
-  Outn();
-  Out << "Tests\t\t\t\t\t" << frame->sum_total();
-  Out << "\tFailed\t\t\t\t" << frame->sum_failed();
-  Out << "\tSkipped\t\t\t\t" << frame->sum_skipped();
-  Out << "\tSucceeded\t\t\t" << frame->sum_success();
-}
-
 #include <getopt.h>
 #include <unistd.h>
 
@@ -380,19 +361,37 @@ int main(int argc, char *argv[], char* environ_[])
         Out << "All tests completed successfully.";
       }
 
-      stats_print(frame.get());
-
-      std::ofstream xml_file;
-      std::string file_name;
-      if (getenv("WORKSPACE"))
+#if 0
       {
-        file_name.append(getenv("WORKSPACE"));
-        file_name.append("/");
+        std::ofstream xml_file;
+        std::string file_name;
+        if (getenv("WORKSPACE"))
+        {
+          file_name.append(getenv("WORKSPACE"));
+          file_name.append("/");
+        }
+        file_name.append(frame->name());
+        file_name.append(".xml");
+        xml_file.open(file_name.c_str(), std::ios::trunc);
+        libtest::Formatter::xml(*frame, xml_file);
       }
-      file_name.append(frame->name());
-      file_name.append(".xml");
-      xml_file.open(file_name.c_str(), std::ios::trunc);
-      libtest::Formatter::xml(*frame, xml_file);
+#endif
+
+#if 0
+      {
+        std::ofstream tap_file;
+        std::string file_name;
+        if (getenv("WORKSPACE"))
+        {
+          file_name.append(getenv("WORKSPACE"));
+          file_name.append("/");
+        }
+        file_name.append(frame->name());
+        file_name.append(".tap");
+        tap_file.open(file_name.c_str(), std::ios::trunc);
+        libtest::Formatter::tap(*frame, tap_file);
+      }
+#endif
 
       Outn(); // Generate a blank to break up the messages if make check/test has been run
     } while (exit_code == EXIT_SUCCESS and --opt_repeat);

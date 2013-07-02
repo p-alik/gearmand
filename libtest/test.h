@@ -51,6 +51,86 @@ struct test_st {
   test_callback_fn *test_fn;
 };
 
+namespace libtest {
+
+class TestCase;
+typedef std::vector<libtest::TestCase*> TestCases;
+
+class TestCase {
+public:
+  TestCase(const struct test_st* test_):
+    _result(TEST_FAILURE)
+  {
+    _test.name= test_->name;
+    _test.requires_flush= test_->requires_flush;
+    _test.test_fn= test_->test_fn;
+  }
+
+  const char* name() const
+  {
+    return _test.name;
+  }
+
+  test_return_t result() const
+  {
+    return _result;
+  }
+
+  void result(test_return_t result_)
+  {
+    _result= result_;
+  }
+
+  void result(test_return_t result_, const libtest::Timer& timer_)
+  {
+    _result= result_;
+    _timer= timer_;
+  }
+
+  const libtest::Timer& timer() const
+  {
+    return _timer;
+  }
+
+  void timer(libtest::Timer& timer_)
+  {
+    _timer= timer_;
+  }
+
+  void skipped()
+  {
+    _result= TEST_SKIPPED;
+  }
+
+  void failed()
+  {
+    _result= TEST_FAILURE;
+  }
+
+  void success(const libtest::Timer& timer_)
+  {
+    _result= TEST_SUCCESS;
+    _timer= timer_;
+  }
+
+
+  const struct test_st* test() const
+  {
+    return &_test;
+  }
+
+  bool requires_flush() const
+  {
+    return _test.requires_flush;
+  }
+
+private:
+  struct test_st _test;
+  test_return_t _result;
+  libtest::Timer _timer;
+};
+} // namespace libtest
+
 #define test_assert_errno(A) \
 do \
 { \

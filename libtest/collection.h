@@ -58,41 +58,52 @@ namespace libtest {
 class Collection {
 public:
   Collection(libtest::Framework*, collection_st*);
+  ~Collection();
 
   test_return_t exec();
 
-  const char* name()
+  const char* name() const
   {
     return _name.c_str();
   }
 
-  uint32_t success()
+  void succeess();
+
+  void skip();
+
+  void fail();
+
+  uint32_t succeeded() const
   {
     return _success;
   }
 
-  uint32_t skipped()
+  uint32_t skipped() const
   {
     return _skipped;
   }
 
-  uint32_t failed()
+  uint32_t failed() const
   {
     return _failed;
   }
 
-  uint32_t total()
+  void format();
+
+  size_t total() const
   {
-    return _total;
+    return _testcases.size();
   }
 
-  libtest::Formatter* formatter()
-  {
-    return &_formatter;
-  }
+  void plan();
+  void complete();
+
+private:
+  void push_testcase(const test_st* test_);
 
 private:
   std::string _name;
+  test_return_t _ret;
   test_callback_fn *_pre;
   test_callback_fn *_post;
   struct test_st *_tests;
@@ -100,9 +111,10 @@ private:
   uint32_t _success;
   uint32_t _skipped;
   uint32_t _failed;
-  uint32_t _total;
   libtest::Timer _timer;
-  libtest::Formatter _formatter;
+  libtest::Formatters& _formatter;
+  TestCases _testcases;
+  TestCases::iterator case_iter;
 
 private:
   Collection( const Collection& );
