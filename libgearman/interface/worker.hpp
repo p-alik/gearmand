@@ -127,6 +127,11 @@ struct Worker
     universal.options._ssl= ssl_;
   }
 
+  const char* error() const
+  {
+    return universal.error();
+  }
+
 private:
   gearman_worker_st* _shell;
   gearman_worker_st _owned_shell;
