@@ -113,6 +113,7 @@ check_LTLIBRARIES+= libtest/libtest.la
 
 libtest_libtest_la_CXXFLAGS=
 EXTRA_libtest_libtest_la_DEPENDENCIES=
+libtest_libtest_la_LDFLAGS=
 libtest_libtest_la_LIBADD=
 libtest_libtest_la_SOURCES=
 libtest_libtest_la_CXXFLAGS+= @LIBMEMCACHED_CFLAGS@
@@ -165,11 +166,6 @@ EXTRA_libtest_libtest_la_DEPENDENCIES+= libtest_tmp_dir
 EXTRA_libtest_libtest_la_DEPENDENCIES+= libtest/abort
 EXTRA_libtest_libtest_la_DEPENDENCIES+= libtest/wait
 
-# Declare unittest so that we can append to it
-libtest_unittest_CXXFLAGS=
-libtest_unittest_LDADD=
-libtest_libtest_la_LDFLAGS=
-
 # We are either building in tree, or with
 libtest_libtest_la_SOURCES+= libtest/memcached.cc
 
@@ -190,45 +186,50 @@ libtest_tmp_dir: | $(TMP_DIR)
 $(TMP_DIR):
 	@$(mkdir_p) $(TMP_DIR)
 
-libtest_unittest_LDADD+= libtest/libtest.la
-libtest_unittest_SOURCES= libtest/unittest.cc
-check_PROGRAMS+= libtest/unittest
-noinst_PROGRAMS+= libtest/unittest
-test-unittest: libtest/unittest
-	@libtest/unittest
+# Declare unittest so that we can append to it
+t_unittest_CXXFLAGS=
+t_unittest_LDADD=
+t_unittest_SOURCES=
 
-valgrind-unittest: libtest/unittest
-	@$(VALGRIND_COMMAND) libtest/unittest
+t_unittest_LDADD+= libtest/libtest.la
+t_unittest_SOURCES+= libtest/unittest.cc
+check_PROGRAMS+= t/unittest
+noinst_PROGRAMS+= t/unittest
+test-unittest: t/unittest
+	@t/unittest
 
-gdb-unittest: libtest/unittest
-	@$(GDB_COMMAND) libtest/unittest
+valgrind-unittest: t/unittest
+	@$(VALGRIND_COMMAND) t/unittest
 
-helgrind-unittest: libtest/unittest
-	@$(HELGRIND_COMMAND) libtest/unittest
+gdb-unittest: t/unittest
+	@$(GDB_COMMAND) t/unittest
 
-drd-unittest: libtest/unittest
-	@$(DRD_COMMAND) libtest/unittest
+helgrind-unittest: t/unittest
+	@$(HELGRIND_COMMAND) t/unittest
 
-sgcheck-unittest: libtest/unittest
+drd-unittest: t/unittest
+	@$(DRD_COMMAND) t/unittest
+
+sgcheck-unittest: t/unittest
 	echo $(SGCHECK_COMMAND)
-	@$(SGCHECK_COMMAND) libtest/unittest
+	@$(SGCHECK_COMMAND) t/unittest
 
-libtest_skiptest_LDADD= libtest/libtest.la
-libtest_skiptest_SOURCES= libtest/skiptest.cc
-check_PROGRAMS+= libtest/skiptest
-noinst_PROGRAMS+= libtest/skiptest
+t_skip_LDADD= libtest/libtest.la
+t_skip_SOURCES= libtest/skiptest.cc
+check_PROGRAMS+= t/skip
+noinst_PROGRAMS+= t/skip
 
-test-skiptest: libtest/skiptest
-	@libtest/skiptest
+test-skip: t/skip
+	@t/skip
 
-valgrind-skiptest: libtest/skiptest
-	@$(VALGRIND_COMMAND) libtest/skiptest
+valgrind-skip: t/skip
+	@$(VALGRIND_COMMAND) t/skip
 
-helgrind-skiptest: libtest/skiptest
-	@$(HELGRIND_COMMAND) libtest/skiptest
+helgrind-skip: libtest/skip
+	@$(HELGRIND_COMMAND) t/skip
 
-drd-skiptest: libtest/skiptest
-	@$(DRD_COMMAND) libtest/skiptest
+drd-skip: t/skip
+	@$(DRD_COMMAND) t/skip
 
 libtest_wait_SOURCES=
 libtest_wait_SOURCES+= libtest/wait.cc

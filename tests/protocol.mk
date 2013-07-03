@@ -7,21 +7,21 @@
 # Use and distribution licensed under the BSD license.  See
 # the COPYING file in the parent directory for full text.
 
-tests_protocol_SOURCES=
-tests_protocol_LDADD=
+t_protocol_SOURCES=
+t_protocol_LDADD=
 
-tests_protocol_SOURCES+= tests/protocol.cc
-tests_protocol_LDADD+= ${LIBGEARMAN_1_0_CLIENT_LDADD}
-tests_protocol_LDADD+= libgearman/libgearmancore.la
-check_PROGRAMS+= tests/protocol
-noinst_PROGRAMS+= tests/protocol
+t_protocol_SOURCES+= tests/protocol.cc
+t_protocol_LDADD+= ${LIBGEARMAN_1_0_CLIENT_LDADD}
+t_protocol_LDADD+= libgearman/libgearmancore.la
+check_PROGRAMS+= t/protocol
+noinst_PROGRAMS+= t/protocol
 
-test-protocol: tests/protocol gearmand/gearmand
-	@tests/protocol
+test-protocol: t/protocol gearmand/gearmand
+	@t/protocol
 
-gdb-protocol: tests/protocol gearmand/gearmand
-	@$(GDB_COMMAND) tests/protocol
+gdb-protocol: t/protocol gearmand/gearmand
+	@$(GDB_COMMAND) t/protocol
 
-valgrind-protocol: tests/protocol gearmand/gearmand
-	@$(VALGRIND_COMMAND) tests/protocol
+valgrind-protocol: t/protocol gearmand/gearmand
+	@$(VALGRIND_COMMAND) t/protocol
 

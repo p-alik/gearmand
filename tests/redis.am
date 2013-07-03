@@ -9,19 +9,19 @@
 # Included from Top Level Makefile.am
 # All paths should be given relative to the root
 #
-tests_redis_test_CXXFLAGS=
-tests_redis_test_SOURCES=
-tests_redis_test_LDADD=
+t_redis_CXXFLAGS=
+t_redis_SOURCES=
+t_redis_LDADD=
 
-tests_redis_test_LDADD+= ${CLIENT_LDADD}
-tests_redis_test_SOURCES+= tests/basic.cc
-tests_redis_test_SOURCES+= tests/redis.cc
+t_redis_LDADD+= ${CLIENT_LDADD}
+t_redis_SOURCES+= tests/basic.cc
+t_redis_SOURCES+= tests/redis.cc
 
-#check_PROGRAMS += tests/redis_test
-noinst_PROGRAMS += tests/redis_test
+#check_PROGRAMS += t/redis
+noinst_PROGRAMS += t/redis
 
-test-redis: tests/redis_test gearmand/gearmand
-	@tests/redis_test
+test-redis: tests/redis gearmand/gearmand
+	@tests/redis
 
-gdb-redis: tests/redis_test gearmand/gearmand
-	@$(GDB_COMMAND) tests/redis_test
+gdb-redis: tests/redis gearmand/gearmand
+	@$(GDB_COMMAND) tests/redis

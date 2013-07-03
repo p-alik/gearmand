@@ -13,29 +13,29 @@
 CLEANFILES+= tests/gearman.sql tests/gearman.sql-journal tests/gearmand.log*
 
 if HAVE_LIBSQLITE3
-tests_sqlite_test_CFLAGS=
-tests_sqlite_test_CXXFLAGS=
-tests_sqlite_test_LDADD=
-tests_sqlite_test_SOURCES=
+t_sqlite_CFLAGS=
+t_sqlite_CXXFLAGS=
+t_sqlite_LDADD=
+t_sqlite_SOURCES=
 
-tests_sqlite_test_CFLAGS+= @SQLITE3_CFLAGS@
-tests_sqlite_test_CXXFLAGS+= @SQLITE3_CFLAGS@
-tests_sqlite_test_LDADD+= @SQLITE3_LDFLAGS@
-tests_sqlite_test_SOURCES+= tests/basic.cc
-tests_sqlite_test_SOURCES+= tests/sqlite_test.cc
-tests_sqlite_test_LDADD+= $(CLIENT_LDADD)
-check_PROGRAMS+= tests/sqlite_test
-noinst_PROGRAMS+= tests/sqlite_test
+t_sqlite_CFLAGS+= @SQLITE3_CFLAGS@
+t_sqlite_CXXFLAGS+= @SQLITE3_CFLAGS@
+t_sqlite_LDADD+= @SQLITE3_LDFLAGS@
+t_sqlite_SOURCES+= tests/basic.cc
+t_sqlite_SOURCES+= tests/sqlite_test.cc
+t_sqlite_LDADD+= $(CLIENT_LDADD)
+check_PROGRAMS+= t/sqlite
+noinst_PROGRAMS+= t/sqlite
 
-test-sqlite: tests/sqlite_test gearmand/gearmand
+test-sqlite: t/sqlite gearmand/gearmand
 	@tests/sqlite_test
 
-gdb-sqlite: tests/sqlite_test gearmand/gearmand
-	@$(GDB_COMMAND) tests/sqlite_test
+gdb-sqlite: t/sqlite gearmand/gearmand
+	@$(GDB_COMMAND) t/sqlite
 
-helgrind-sqlite: tests/sqlite_test gearmand/gearmand
-	@$(HELGRIND_COMMAND) tests/sqlite_test
+helgrind-sqlite: t/sqlite gearmand/gearmand
+	@$(HELGRIND_COMMAND) t/sqlite
 
-valgrind-sqlite: tests/sqlite_test gearmand/gearmand
-	@$(VALGRIND_COMMAND) tests/sqlite_test
+valgrind-sqlite: t/sqlite gearmand/gearmand
+	@$(VALGRIND_COMMAND) t/sqlite
 endif
