@@ -10,24 +10,24 @@
 # All paths should be given relative to the root
 #
 
-tests_httpd_test_SOURCES=
-tests_httpd_test_LDADD=
+t_httpd_SOURCES=
+t_httpd_LDADD=
 
-tests_httpd_test_SOURCES+= tests/httpd_test.cc
+t_httpd_SOURCES+= tests/httpd_test.cc
 
-tests_httpd_test_LDADD+= $(CLIENT_LDADD)
+t_httpd_LDADD+= $(CLIENT_LDADD)
 
-#check_PROGRAMS+= tests/httpd_test
-noinst_PROGRAMS+= tests/httpd_test
+#check_PROGRAMS+= t/httpd
+noinst_PROGRAMS+= t/httpd
 
-test-httpd: tests/httpd_test gearmand/gearmand
-	@tests/httpd_test
+test-httpd: t/httpd gearmand/gearmand
+	@t/httpd
 
-gdb-httpd: tests/httpd_test gearmand/gearmand
-	@$(GDB_COMMAND) tests/httpd_test
+gdb-httpd: t/httpd gearmand/gearmand
+	@$(GDB_COMMAND) tests/httpd
 
-helgrind-httpd: tests/httpd_test gearmand/gearmand
-	@$(HELGRIND_COMMAND) tests/httpd_test
+helgrind-httpd: t/httpd gearmand/gearmand
+	@$(HELGRIND_COMMAND) t/httpd
 
-valgrind-httpd: tests/httpd_test gearmand/gearmand
-	@$(VALGRIND_COMMAND) tests/httpd_test
+valgrind-httpd: t/httpd gearmand/gearmand
+	@$(VALGRIND_COMMAND) t/httpd

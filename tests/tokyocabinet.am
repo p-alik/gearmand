@@ -10,17 +10,17 @@
 # All paths should be given relative to the root
 #
 
-tests_tokyocabinet_test_SOURCES=
-tests_tokyocabinet_test_LDADD=
+t_tokyocabinet_SOURCES=
+t_tokyocabinet_LDADD=
 
-tests_tokyocabinet_test_LDADD+= $(CLIENT_LDADD)
-tests_tokyocabinet_test_SOURCES+= tests/tokyocabinet_test.cc
-tests_tokyocabinet_test_SOURCES+= tests/basic.cc
-check_PROGRAMS+= tests/tokyocabinet_test
-noinst_PROGRAMS+= tests/tokyocabinet_test
+t_tokyocabinet_LDADD+= $(CLIENT_LDADD)
+t_tokyocabinet_SOURCES+= tests/tokyocabinet_test.cc
+t_tokyocabinet_SOURCES+= tests/basic.cc
+check_PROGRAMS+= t/tokyocabinet
+noinst_PROGRAMS+= t/tokyocabinet
 
-test-tokyocabinet: tests/tokyocabinet_test gearmand/gearmand
-	@tests/tokyocabinet_test
+test-tokyocabinet: t/tokyocabinet gearmand/gearmand
+	@tests/tokyocabinet
 
-valgrind-tokyocabinet: tests/tokyocabinet_test gearmand/gearmand
-	@$(VALGRIND_COMMAND) tests/tokyocabinet_test
+valgrind-tokyocabinet: t/tokyocabinet gearmand/gearmand
+	@$(VALGRIND_COMMAND) t/tokyocabinet

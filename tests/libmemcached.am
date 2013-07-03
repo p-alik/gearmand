@@ -10,31 +10,31 @@
 # All paths should be given relative to the root
 #
 
-tests_memcached_test_CXXFLAGS=
-tests_memcached_test_SOURCES=
-tests_memcached_test_LDADD=
+t_memcached_CXXFLAGS=
+t_memcached_SOURCES=
+t_memcached_LDADD=
 
-tests_memcached_test_SOURCES+= tests/basic.cc
-tests_memcached_test_SOURCES+= tests/memcached_test.cc
-tests_memcached_test_LDADD+= libgearman/libgearman.la
-tests_memcached_test_LDADD+= libtest/libtest.la
-tests_memcached_test_LDADD+= tests/libstartworker.la
+t_memcached_SOURCES+= tests/basic.cc
+t_memcached_SOURCES+= tests/memcached_test.cc
+t_memcached_LDADD+= libgearman/libgearman.la
+t_memcached_LDADD+= libtest/libtest.la
+t_memcached_LDADD+= tests/libstartworker.la
 
 if HAVE_LIBMEMCACHED
 
-tests_memcached_test_CXXFLAGS+= $(LIBMEMCACHED_CFLAGS)
-tests_memcached_test_LDADD+= $(LIBMEMCACHED_UTIL_LIB)
+t_memcached_CXXFLAGS+= $(LIBMEMCACHED_CFLAGS)
+t_memcached_LDADD+= $(LIBMEMCACHED_UTIL_LIB)
 
 endif
 
-check_PROGRAMS+= tests/memcached_test
-noinst_PROGRAMS+= tests/memcached_test
+check_PROGRAMS+= t/memcached
+noinst_PROGRAMS+= t/memcached
 
-test-libmemcached: tests/memcached_test gearmand/gearmand
-	@tests/memcached_test  
+test-libmemcached: t/memcached gearmand/gearmand
+	@t/memcached
 
-valgrind-libmemcached: tests/memcached_test gearmand/gearmand
-	@$(VALGRIND_COMMAND) tests/memcached_test  
+valgrind-libmemcached: t/memcached gearmand/gearmand
+	@$(VALGRIND_COMMAND) t/memcached
 
-gdb-libmemcached: tests/memcached_test gearmand/gearmand
-	@$(GDB_COMMAND) tests/memcached_test  
+gdb-libmemcached: t/memcached gearmand/gearmand
+	@$(GDB_COMMAND) tests/memcached

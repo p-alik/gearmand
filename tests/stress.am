@@ -10,23 +10,23 @@
 # All paths should be given relative to the root
 #
 
-tests_stress_CFLAGS=
-tests_stress_CXXFLAGS=
-tests_stress_LDADD=
-tests_stress_SOURCES=
+t_stress_CFLAGS=
+t_stress_CXXFLAGS=
+t_stress_LDADD=
+t_stress_SOURCES=
 
-tests_stress_SOURCES+= tests/burnin.cc
-tests_stress_LDADD+= libgearman/libgearman.la
-tests_stress_LDADD+= libtest/libtest.la
-tests_stress_LDADD+= tests/libstartworker.la
-check_PROGRAMS+=tests/stress
-noinst_PROGRAMS+=tests/stress
+t_stress_SOURCES+= tests/burnin.cc
+t_stress_LDADD+= libgearman/libgearman.la
+t_stress_LDADD+= libtest/libtest.la
+t_stress_LDADD+= tests/libstartworker.la
+check_PROGRAMS+=t/stress
+noinst_PROGRAMS+=t/stress
 
-test-stress: tests/stress gearmand/gearmand
-	@tests/stress
+test-stress: t/stress gearmand/gearmand
+	@t/stress
 
-valgrind-stress: tests/stress gearmand/gearmand
-	@$(VALGRIND_COMMAND) tests/stress
+valgrind-stress: t/stress gearmand/gearmand
+	@$(VALGRIND_COMMAND) t/stress
 
-gdb-stress: tests/stress gearmand/gearmand
-	@$(GDB_COMMAND) tests/stress
+gdb-stress: t/stress gearmand/gearmand
+	@$(GDB_COMMAND) t/stress
