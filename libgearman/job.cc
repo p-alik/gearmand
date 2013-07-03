@@ -173,9 +173,7 @@ gearman_job_st *gearman_job_create(gearman_worker_st *worker, gearman_job_st *jo
   if (worker)
   {
     if (job)
-    {
-      job->options.allocated= false;
-    }
+    { } // Leave it alone
     else
     {
       job= new (std::nothrow) gearman_job_st(*(worker->impl()));
